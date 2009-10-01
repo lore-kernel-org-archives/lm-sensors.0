@@ -1,124 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 17:42:30 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (adm1025) Clean up detect function
-Message-Id: <20091006194230.28b50328@hyperion.delvare>
+From: Mark Altern <mark.altern@gmail.com>
+Date: Thu, 01 Oct 2009 20:25:43 +0000
+Subject: [lm-sensors] asus_atk0110 mis-behavior on ASUS p6t
+Message-Id: <526fa40a0910011325s517c7997h4caf266190b2b2d0@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6043034810263797271=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As kind is now hard-coded to -1, there is room for code clean-ups.
+--===============6043034810263797271==
+Content-Type: multipart/alternative; boundary=001636eee39ea410220474e573be
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/adm1025.c |   73 ++++++++++++-----------------------------------
- 1 file changed, 20 insertions(+), 53 deletions(-)
+--001636eee39ea410220474e573be
+Content-Type: text/plain; charset=ISO-8859-1
 
---- linux-2.6.32-rc3.orig/drivers/hwmon/adm1025.c	2009-10-06 10:33:15.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/adm1025.c	2009-10-06 11:44:13.000000000 +0200
-@@ -2,7 +2,7 @@
-  * adm1025.c
-  *
-  * Copyright (C) 2000       Chen-Yuan Wu <gwu@esoft.com>
-- * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
-+ * Copyright (C) 2003-2009  Jean Delvare <khali@linux-fr.org>
-  *
-  * The ADM1025 is a sensor chip made by Analog Devices. It reports up to 6
-  * voltages (including its own power source) and up to two temperatures
-@@ -413,67 +413,34 @@ static int adm1025_detect(struct i2c_cli
- 			  struct i2c_board_info *info)
- {
- 	struct i2c_adapter *adapter = client->adapter;
--	const char *name = "";
--	u8 config;
-+	const char *name;
-+	u8 man_id, chip_id;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
- 
--	/*
--	 * Now we do the remaining detection. A negative kind means that
--	 * the driver was loaded with no force parameter (default), so we
--	 * must both detect and identify the chip. A zero kind means that
--	 * the driver was loaded with the force parameter, the detection
--	 * step shall be skipped. A positive kind means that the driver
--	 * was loaded with the force parameter and a given kind of chip is
--	 * requested, so both the detection and the identification steps
--	 * are skipped.
--	 */
--	config = i2c_smbus_read_byte_data(client, ADM1025_REG_CONFIG);
--	if (kind < 0) { /* detection */
--		if ((config & 0x80) != 0x00
--		 || (i2c_smbus_read_byte_data(client,
--		     ADM1025_REG_STATUS1) & 0xC0) != 0x00
--		 || (i2c_smbus_read_byte_data(client,
--		     ADM1025_REG_STATUS2) & 0xBC) != 0x00) {
--			dev_dbg(&adapter->dev,
--				"ADM1025 detection failed at 0x%02x.\n",
--				client->addr);
--			return -ENODEV;
--		}
-+	/* Check for unused bits */
-+	if ((i2c_smbus_read_byte_data(client, ADM1025_REG_CONFIG) & 0x80)
-+	 || (i2c_smbus_read_byte_data(client, ADM1025_REG_STATUS1) & 0xC0)
-+	 || (i2c_smbus_read_byte_data(client, ADM1025_REG_STATUS2) & 0xBC)) {
-+		dev_dbg(&adapter->dev, "ADM1025 detection failed at 0x%02x\n",
-+			client->addr);
-+		return -ENODEV;
- 	}
- 
--	if (kind <= 0) { /* identification */
--		u8 man_id, chip_id;
--
--		man_id = i2c_smbus_read_byte_data(client, ADM1025_REG_MAN_ID);
--		chip_id = i2c_smbus_read_byte_data(client, ADM1025_REG_CHIP_ID);
--
--		if (man_id = 0x41) { /* Analog Devices */
--			if ((chip_id & 0xF0) = 0x20) { /* ADM1025/ADM1025A */
--				kind = adm1025;
--			}
--		} else
--		if (man_id = 0xA1) { /* Philips */
--			if (client->addr != 0x2E
--			 && (chip_id & 0xF0) = 0x20) { /* NE1619 */
--				kind = ne1619;
--			}
--		}
--
--		if (kind <= 0) { /* identification failed */
--			dev_info(&adapter->dev,
--			    "Unsupported chip (man_id=0x%02X, "
--			    "chip_id=0x%02X).\n", man_id, chip_id);
--			return -ENODEV;
--		}
--	}
-+	/* Identification */
-+	chip_id = i2c_smbus_read_byte_data(client, ADM1025_REG_CHIP_ID);
-+	if ((chip_id & 0xF0) != 0x20)
-+		return -ENODEV;
- 
--	if (kind = adm1025) {
-+	man_id = i2c_smbus_read_byte_data(client, ADM1025_REG_MAN_ID);
-+	if (man_id = 0x41)
- 		name = "adm1025";
--	} else if (kind = ne1619) {
-+	else if (man_id = 0xA1 && client->addr != 0x2E)
- 		name = "ne1619";
--	}
-+	else
-+		return -ENODEV;
-+
- 	strlcpy(info->type, name, I2C_NAME_SIZE);
- 
- 	return 0;
+My system: ASUS p6t core i7 920, with ArchLinux, kernel 2.6.31.
+
+Right after I start the computer the CPU diode temp is reported as about
+36C, and CPU fan is running at about 500rpm, which is normal. But after a
+few minutes, the CPU diode temp become misleading, reported as 47C and the
+CPU fan is running 1100rpm, I am pretty sure the 47C Tj temp of CPU is
+wrong, because the Core temps of my i7 920 is well below 42. (Tj temp of Cpu
+is generally lower than core temp by 5C).  This happens only a few minutes
+after startup.
+
+After a few experiments, I find out, blacklisting asus_atk0110 solves this
+problem. I loaded w83667hg through lm_sensors, which report right CPU temp,
+around 36C consistantly and the CPU fan is NOT spinning loudly at 1100 rpm
+anymore, but stay around 500-600rpm. This is the correctly behavior because
+the fan and temp output is consistant with the ones I got from my dual boot
+windows 7, where I am sure the reading is correct.
+
+So my question is why does asus_atk0110 provides wrong CPU temp and force
+the fan speed up? Is this a bug?
+Why do people still prefer asus_atk0110 driver than the old ones?
+
+Thanks a lot.
+
+--001636eee39ea410220474e573be
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+My system: ASUS p6t core i7 920, with ArchLinux, kernel 2.6.31.<br><br>Righ=
+t after I start the computer the CPU diode temp is reported as about 36C, a=
+nd CPU fan is running at about 500rpm, which is normal. But after a few min=
+utes, the CPU diode temp become misleading, reported as 47C and the CPU fan=
+ is running 1100rpm, I am pretty sure the 47C Tj temp of CPU is wrong, beca=
+use the Core temps of my i7 920 is well below 42. (Tj temp of Cpu is genera=
+lly lower than core temp by 5C).=A0 This happens only a few minutes=A0 afte=
+r startup. <br>
+<br>After a few experiments, I find out, blacklisting asus_atk0110 solves t=
+his problem. I loaded w83667hg through lm_sensors, which report right CPU t=
+emp, around 36C consistantly and the CPU fan is NOT spinning loudly at 1100=
+ rpm anymore, but stay around 500-600rpm. This is the correctly behavior be=
+cause the fan and temp output is consistant with the ones I got from my dua=
+l boot windows 7, where I am sure the reading is correct. <br>
+<br>So my question is why does asus_atk0110 provides wrong CPU temp and for=
+ce the fan speed up? Is this a bug? <br>Why do people still prefer asus_atk=
+0110 driver than the old ones? <br><br>Thanks a lot. <br>
+
+--001636eee39ea410220474e573be--
 
 
--- 
-Jean Delvare
+--===============6043034810263797271==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6043034810263797271==--
