@@ -1,39 +1,49 @@
-From: Marc Hulsman <m.hulsman@tudelft.nl>
-Date: Fri, 09 Oct 2009 20:12:00 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83791d) Clean up detect function
-Message-Id: <200910092212.01571.m.hulsman@tudelft.nl>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Fri, 02 Oct 2009 10:41:43 +0000
+Subject: Re: [lm-sensors] ATK0110
+Message-Id: <68676e00910020341g5a42ddd0w6cd215c25b96daec@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091006201101.220e89ef@hyperion.delvare>
-In-Reply-To: <20091006201101.220e89ef@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-On Friday 09 October 2009 10:49:03 Jean Delvare wrote:
-> > > As kind is now hard-coded to -1, there is room for code clean-ups.
-> > >
-> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > > Cc: Marc Hulsman <m.hulsman@tudelft.nl>
-> > > ---
-> >
-> > Looks good,
-> >
-> > Acked-by: Marc Hulsman <m.hulsman@tudelft.nl>
+On Thu, Oct 1, 2009 at 10:03 PM, Mark Altern <mark.altern@gmail.com> wrote:
+> Hi,
 >
-> Thanks. Can you please also test it? Just to make sure I didn't mess it
-> up.
+> Sorry to send you this abrupt email. I just have a quick question about
+> asus_atk0110. I am a little frustrated and don't know where else I can as=
+k.
 
-Unfortunately, I do not have access to the w83791d right now (maybe in two 
-weeks). However, I did check the patch quite thoroughly, so I'm reasonably 
-sure its ok.
+I'm the maintainer of the driver so I'm the right person ;-)
+lm-sensors@lm-sensors.org is the appropriate ML.
 
-Best regards,
-Marc
+> I have ASUS p6t with Core i7 920 system, the problem is that asus_atk0110
+> report wrong CPU diode temperatures, 47C while in fact is is about 36C, t=
+hus
+> forcing the CPU fan running more than 1100 rmp during idling.=C2=A0To sol=
+ve this
+> problem I blacklist this module, while instead load w83667hg, which repor=
+ts
+> the right temperature. Then the CPU fan is working correctly. Do you think
+> it is safe to do so?
 
+Are you using fancontrol/pwmconfig to control the fan?
 
+> I am just wondering why atk0110 is reporting the wrong values? do you thi=
+nk
+> this mis-behavior will be fixed in the future?
+
+It's more likely that w83667hg is reporting the "wrong" value. The
+ACPI drivers reports the temperature as reported by system firmware.
+It's possible that the firmware is compensating the raw value to give
+an estimate of the real CPU temperature (as opposed to the temperature
+of a diode sittign somewhere under the socket). In just in case send a
+copy of your DSDT (/sys/firmware/acpi/tables/DSDT).
+Also take a look at the values reported by coretemp to have an idea of
+the real core temperature.
+
+Luca
 
 _______________________________________________
 lm-sensors mailing list
