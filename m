@@ -1,94 +1,120 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 01 Oct 2009 15:10:54 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (w83627hf) Drop the force_addr module
-Message-Id: <20091001171054.423028f8@hyperion.delvare>
+Date: Tue, 06 Oct 2009 17:42:10 +0000
+Subject: [lm-sensors] hwmon: (adm1021) Clean up detect function
+Message-Id: <20091006194210.58e4f4e4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This module parameter is there to workaround broken BIOS. I'm not even
-sure if it was used in the past 5 years, and it gets in the way of
-converting the driver to the MFD infrastructure. So tell the users how
-they can do the same from user-space.
+As kind is now hard-coded to -1, there is room for code clean-ups.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Rodolfo Giometti <giometti@linux.it>
 ---
- Documentation/hwmon/w83627hf |   29 +++++++++++++++++++++++++++--
- drivers/hwmon/w83627hf.c     |   11 -----------
- 2 files changed, 27 insertions(+), 13 deletions(-)
+ drivers/hwmon/adm1021.c |   76 +++++++++++++++--------------------------------
+ 1 file changed, 25 insertions(+), 51 deletions(-)
 
---- linux-2.6.32-rc1.orig/Documentation/hwmon/w83627hf	2009-06-10 05:05:27.000000000 +0200
-+++ linux-2.6.32-rc1/Documentation/hwmon/w83627hf	2009-10-01 15:36:04.000000000 +0200
-@@ -32,8 +32,6 @@ Authors:
- Module Parameters
- -----------------
+--- linux-2.6.32-rc3.orig/drivers/hwmon/adm1021.c	2009-10-06 10:33:15.000000000 +0200
++++ linux-2.6.32-rc3/drivers/hwmon/adm1021.c	2009-10-06 11:33:22.000000000 +0200
+@@ -288,9 +288,8 @@ static int adm1021_detect(struct i2c_cli
+ 			  struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+-	int i;
+-	const char *type_name = "";
+-	int conv_rate, status, config;
++	const char *type_name;
++	int conv_rate, status, config, man_id, dev_id;
  
--* force_addr: int
--  Initialize the ISA address of the sensors
- * force_i2c: int
-   Initialize the I2C address of the sensors
- * init: int
-@@ -70,3 +68,30 @@ doesn't help, you may just ignore the bo
- For further information on this driver see the w83781d driver documentation.
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+ 		pr_debug("adm1021: detect failed, "
+@@ -303,62 +302,37 @@ static int adm1021_detect(struct i2c_cli
+ 					     ADM1021_REG_CONV_RATE_R);
+ 	config = i2c_smbus_read_byte_data(client, ADM1021_REG_CONFIG_R);
  
- [1] http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/vid
-+
-+Forcing the address
-+-------------------
-+
-+The driver used to have a module parameter named force_addr, which could
-+be used to force the base I/O address of the hardware monitoring block.
-+This was meant as a workaround for mainboards with a broken BIOS. This
-+module parameter is gone for technical reasons. If you need this feature,
-+you can obtain the same result by using the isaset tool (part of
-+lm-sensors) before loading the driver:
-+
-+# Enter the Super I/O config space
-+isaset -y -f 0x2e 0x87
-+isaset -y -f 0x2e 0x87
-+
-+# Select the hwmon logical device
-+isaset -y 0x2e 0x2f 0x07 0x0b
-+
-+# Set the base I/O address (to 0x290 in this example)
-+isaset -y 0x2e 0x2f 0x60 0x02
-+isaset -y 0x2e 0x2f 0x61 0x90
-+
-+# Exit the Super-I/O config space
-+isaset -y -f 0x2e 0xaa
-+
-+The above sequence assumes a Super-I/O config space at 0x2e/0x2f, but
-+0x4e/0x4f is also possible.
---- linux-2.6.32-rc1.orig/drivers/hwmon/w83627hf.c	2009-10-01 15:28:30.000000000 +0200
-+++ linux-2.6.32-rc1/drivers/hwmon/w83627hf.c	2009-10-01 15:36:01.000000000 +0200
-@@ -59,10 +59,6 @@ static struct platform_device *pdev;
- #define DRVNAME "w83627hf"
- enum chips { w83627hf, w83627thf, w83697hf, w83637hf, w83687thf };
- 
--static u16 force_addr;
--module_param(force_addr, ushort, 0);
--MODULE_PARM_DESC(force_addr,
--		 "Initialize the base address of the sensors");
- static u8 force_i2c = 0x1f;
- module_param(force_i2c, byte, 0);
- MODULE_PARM_DESC(force_i2c,
-@@ -1169,13 +1165,6 @@ static int __init w83627hf_find(int sioa
+-	/* Now, we do the remaining detection. */
+-	if (kind < 0) {
+-		if ((status & 0x03) != 0x00 || (config & 0x3F) != 0x00
+-		    || (conv_rate & 0xF8) != 0x00) {
+-			pr_debug("adm1021: detect failed, "
+-				 "chip not detected!\n");
+-			return -ENODEV;
+-		}
++	/* Check unused bits */
++	if ((status & 0x03) || (config & 0x3F) || (conv_rate & 0xF8)) {
++		pr_debug("adm1021: detect failed, chip not detected!\n");
++		return -ENODEV;
  	}
  
- 	superio_select(W83627HF_LD_HWM);
--	force_addr &= WINB_ALIGNMENT;
--	if (force_addr) {
--		printk(KERN_WARNING DRVNAME ": Forcing address 0x%x\n",
--		       force_addr);
--		superio_outb(WINB_BASE_REG, force_addr >> 8);
--		superio_outb(WINB_BASE_REG + 1, force_addr & 0xff);
+ 	/* Determine the chip type. */
+-	if (kind <= 0) {
+-		i = i2c_smbus_read_byte_data(client, ADM1021_REG_MAN_ID);
+-		if (i = 0x41)
+-			if ((i2c_smbus_read_byte_data(client,
+-					ADM1021_REG_DEV_ID) & 0xF0) = 0x30)
+-				kind = adm1023;
+-			else
+-				kind = adm1021;
+-		else if (i = 0x49)
+-			kind = thmc10;
+-		else if (i = 0x23)
+-			kind = gl523sm;
+-		else if ((i = 0x4d) &&
+-			 (i2c_smbus_read_byte_data(client,
+-						   ADM1021_REG_DEV_ID) = 0x01))
+-			kind = max1617a;
+-		else if (i = 0x54)
+-			kind = mc1066;
+-		/* LM84 Mfr ID in a different place, and it has more unused bits */
+-		else if (conv_rate = 0x00
+-			 && (kind = 0 /* skip extra detection */
+-			     || ((config & 0x7F) = 0x00
+-				 && (status & 0xAB) = 0x00)))
+-			kind = lm84;
+-		else
+-			kind = max1617;
 -	}
- 	val = (superio_inb(WINB_BASE_REG) << 8) |
- 	       superio_inb(WINB_BASE_REG + 1);
- 	*addr = val & WINB_ALIGNMENT;
++	man_id = i2c_smbus_read_byte_data(client, ADM1021_REG_MAN_ID);
++	dev_id = i2c_smbus_read_byte_data(client, ADM1021_REG_DEV_ID);
+ 
+-	if (kind = max1617) {
+-		type_name = "max1617";
+-	} else if (kind = max1617a) {
++	if (man_id = 0x4d && dev_id = 0x01)
+ 		type_name = "max1617a";
+-	} else if (kind = adm1021) {
+-		type_name = "adm1021";
+-	} else if (kind = adm1023) {
+-		type_name = "adm1023";
+-	} else if (kind = thmc10) {
++	else if (man_id = 0x41) {
++		if ((dev_id & 0xF0) = 0x30)
++			type_name = "adm1023";
++		else
++			type_name = "adm1021";
++	} else if (man_id = 0x49)
+ 		type_name = "thmc10";
+-	} else if (kind = lm84) {
+-		type_name = "lm84";
+-	} else if (kind = gl523sm) {
++	else if (man_id = 0x23)
+ 		type_name = "gl523sm";
+-	} else if (kind = mc1066) {
++	else if (man_id = 0x54)
+ 		type_name = "mc1066";
+-	}
++	/* LM84 Mfr ID in a different place, and it has more unused bits */
++	else if (conv_rate = 0x00
++		 && (config & 0x7F) = 0x00
++		 && (status & 0xAB) = 0x00)
++		type_name = "lm84";
++	else
++		type_name = "max1617";
++
+ 	pr_debug("adm1021: Detected chip %s at adapter %d, address 0x%02x.\n",
+ 		 type_name, i2c_adapter_id(adapter), client->addr);
+ 	strlcpy(info->type, type_name, I2C_NAME_SIZE);
 
 
 -- 
