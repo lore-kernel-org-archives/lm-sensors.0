@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 18:11:30 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (w83792d) Clean up detect function
-Message-Id: <20091006201130.4fdea915@hyperion.delvare>
+Date: Tue, 06 Oct 2009 17:43:09 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm77) Clean up detect function
+Message-Id: <20091006194309.0ce16c32@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,87 +12,110 @@ As kind is now hard-coded to -1, there is room for code clean-ups.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/w83792d.c |   61 +++++++++++++----------------------------------
- 1 file changed, 18 insertions(+), 43 deletions(-)
+The patch looks large, but most of it is really only removing one
+depth of indentation.
 
---- linux-2.6.32-rc3.orig/drivers/hwmon/w83792d.c	2009-10-06 10:33:15.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/w83792d.c	2009-10-06 12:13:47.000000000 +0200
-@@ -1273,58 +1273,33 @@ w83792d_detect(struct i2c_client *client
- 		return -ENODEV;
- 	}
+ drivers/hwmon/lm77.c |   78 ++++++++++++++++++++++++--------------------------
+ 1 file changed, 38 insertions(+), 40 deletions(-)
+
+--- linux-2.6.32-rc3.orig/drivers/hwmon/lm77.c	2009-10-06 10:33:15.000000000 +0200
++++ linux-2.6.32-rc3/drivers/hwmon/lm77.c	2009-10-06 11:44:30.000000000 +0200
+@@ -249,6 +249,7 @@ static int lm77_detect(struct i2c_client
+ 		       struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = new_client->adapter;
++	int i, cur, conf, hyst, crit, min, max;
  
--	/* The w83792d may be stuck in some other bank than bank 0. This may
--	   make reading other information impossible. Specify a force=... or
--	   force_*=... parameter, and the Winbond will be reset to the right
--	   bank. */
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+ 				     I2C_FUNC_SMBUS_WORD_DATA))
+@@ -265,51 +266,48 @@ static int lm77_detect(struct i2c_client
+ 	   4. registers cycling over 8-address boundaries
+ 
+ 	   Word-sized registers are high-byte first. */
 -	if (kind < 0) {
--		if (w83792d_read_value(client, W83792D_REG_CONFIG) & 0x80) {
--			return -ENODEV;
--		}
--		val1 = w83792d_read_value(client, W83792D_REG_BANK);
--		val2 = w83792d_read_value(client, W83792D_REG_CHIPMAN);
--		/* Check for Winbond ID if in bank 0 */
--		if (!(val1 & 0x07)) {  /* is Bank0 */
--			if (((!(val1 & 0x80)) && (val2 != 0xa3)) ||
--			     ((val1 & 0x80) && (val2 != 0x5c))) {
+-		int i, cur, conf, hyst, crit, min, max;
+ 
+-		/* addresses cycling */
+-		cur = i2c_smbus_read_word_data(new_client, 0);
+-		conf = i2c_smbus_read_byte_data(new_client, 1);
+-		hyst = i2c_smbus_read_word_data(new_client, 2);
+-		crit = i2c_smbus_read_word_data(new_client, 3);
+-		min = i2c_smbus_read_word_data(new_client, 4);
+-		max = i2c_smbus_read_word_data(new_client, 5);
+-		for (i = 8; i <= 0xff; i += 8)
+-			if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
+-			    || i2c_smbus_read_word_data(new_client, i + 2) != hyst
+-			    || i2c_smbus_read_word_data(new_client, i + 3) != crit
+-			    || i2c_smbus_read_word_data(new_client, i + 4) != min
+-			    || i2c_smbus_read_word_data(new_client, i + 5) != max)
 -				return -ENODEV;
--			}
--		}
--		/* If Winbond chip, address of chip and W83792D_REG_I2C_ADDR
--		   should match */
--		if (w83792d_read_value(client,
--					W83792D_REG_I2C_ADDR) != address) {
-+	if (w83792d_read_value(client, W83792D_REG_CONFIG) & 0x80)
-+		return -ENODEV;
-+
-+	val1 = w83792d_read_value(client, W83792D_REG_BANK);
-+	val2 = w83792d_read_value(client, W83792D_REG_CHIPMAN);
-+	/* Check for Winbond ID if in bank 0 */
-+	if (!(val1 & 0x07)) {  /* is Bank0 */
-+		if ((!(val1 & 0x80) && val2 != 0xa3) ||
-+		    ( (val1 & 0x80) && val2 != 0x5c))
+-
+-		/* sign bits */
+-		if (((cur & 0x00f0) != 0xf0 && (cur & 0x00f0) != 0x0)
+-		    || ((hyst & 0x00f0) != 0xf0 && (hyst & 0x00f0) != 0x0)
+-		    || ((crit & 0x00f0) != 0xf0 && (crit & 0x00f0) != 0x0)
+-		    || ((min & 0x00f0) != 0xf0 && (min & 0x00f0) != 0x0)
+-		    || ((max & 0x00f0) != 0xf0 && (max & 0x00f0) != 0x0))
++	/* addresses cycling */
++	cur = i2c_smbus_read_word_data(new_client, 0);
++	conf = i2c_smbus_read_byte_data(new_client, 1);
++	hyst = i2c_smbus_read_word_data(new_client, 2);
++	crit = i2c_smbus_read_word_data(new_client, 3);
++	min = i2c_smbus_read_word_data(new_client, 4);
++	max = i2c_smbus_read_word_data(new_client, 5);
++	for (i = 8; i <= 0xff; i += 8) {
++		if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
++		 || i2c_smbus_read_word_data(new_client, i + 2) != hyst
++		 || i2c_smbus_read_word_data(new_client, i + 3) != crit
++		 || i2c_smbus_read_word_data(new_client, i + 4) != min
++		 || i2c_smbus_read_word_data(new_client, i + 5) != max)
  			return -ENODEV;
--		}
- 	}
-+	/* If Winbond chip, address of chip and W83792D_REG_I2C_ADDR
-+	   should match */
-+	if (w83792d_read_value(client, W83792D_REG_I2C_ADDR) != address)
++	}
+ 
+-		/* unused bits */
+-		if (conf & 0xe0)
+-			return -ENODEV;
++	/* sign bits */
++	if (((cur & 0x00f0) != 0xf0 && (cur & 0x00f0) != 0x0)
++	 || ((hyst & 0x00f0) != 0xf0 && (hyst & 0x00f0) != 0x0)
++	 || ((crit & 0x00f0) != 0xf0 && (crit & 0x00f0) != 0x0)
++	 || ((min & 0x00f0) != 0xf0 && (min & 0x00f0) != 0x0)
++	 || ((max & 0x00f0) != 0xf0 && (max & 0x00f0) != 0x0))
 +		return -ENODEV;
  
--	/* We have either had a force parameter, or we have already detected the
--	   Winbond. Put it now into bank 0 and Vendor ID High Byte */
-+	/*  Put it now into bank 0 and Vendor ID High Byte */
- 	w83792d_write_value(client,
- 			    W83792D_REG_BANK,
- 			    (w83792d_read_value(client,
- 				W83792D_REG_BANK) & 0x78) | 0x80);
+-		/* 0x06 and 0x07 return the last read value */
+-		cur = i2c_smbus_read_word_data(new_client, 0);
+-		if (i2c_smbus_read_word_data(new_client, 6) != cur
+-		    || i2c_smbus_read_word_data(new_client, 7) != cur)
+-			return -ENODEV;
+-		hyst = i2c_smbus_read_word_data(new_client, 2);
+-		if (i2c_smbus_read_word_data(new_client, 6) != hyst
+-		    || i2c_smbus_read_word_data(new_client, 7) != hyst)
+-			return -ENODEV;
+-		min = i2c_smbus_read_word_data(new_client, 4);
+-		if (i2c_smbus_read_word_data(new_client, 6) != min
+-		    || i2c_smbus_read_word_data(new_client, 7) != min)
+-			return -ENODEV;
++	/* unused bits */
++	if (conf & 0xe0)
++		return -ENODEV;
  
- 	/* Determine the chip type. */
--	if (kind <= 0) {
--		/* get vendor ID */
--		val2 = w83792d_read_value(client, W83792D_REG_CHIPMAN);
--		if (val2 != 0x5c) {  /* the vendor is NOT Winbond */
--			return -ENODEV;
--		}
--		val1 = w83792d_read_value(client, W83792D_REG_WCHIPID);
--		if (val1 = 0x7a) {
--			kind = w83792d;
--		} else {
--			if (kind = 0)
--				dev_warn(&adapter->dev,
--					"w83792d: Ignoring 'force' parameter for"
--					" unknown chip at adapter %d, address"
--					" 0x%02x\n", i2c_adapter_id(adapter),
--					address);
--			return -ENODEV;
--		}
 -	}
-+	val1 = w83792d_read_value(client, W83792D_REG_WCHIPID);
-+	val2 = w83792d_read_value(client, W83792D_REG_CHIPMAN);
-+	if (val1 != 0x7a || val2 != 0x5c)
++	/* 0x06 and 0x07 return the last read value */
++	cur = i2c_smbus_read_word_data(new_client, 0);
++	if (i2c_smbus_read_word_data(new_client, 6) != cur
++	 || i2c_smbus_read_word_data(new_client, 7) != cur)
++		return -ENODEV;
++	hyst = i2c_smbus_read_word_data(new_client, 2);
++	if (i2c_smbus_read_word_data(new_client, 6) != hyst
++	 || i2c_smbus_read_word_data(new_client, 7) != hyst)
++		return -ENODEV;
++	min = i2c_smbus_read_word_data(new_client, 4);
++	if (i2c_smbus_read_word_data(new_client, 6) != min
++	 || i2c_smbus_read_word_data(new_client, 7) != min)
 +		return -ENODEV;
  
- 	strlcpy(info->type, "w83792d", I2C_NAME_SIZE);
+ 	strlcpy(info->type, "lm77", I2C_NAME_SIZE);
  
 
 
