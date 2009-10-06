@@ -1,44 +1,20 @@
-From: Philip Edelbrock <phil_edelbrock@edgedesign.us>
-Date: Mon, 05 Oct 2009 18:00:56 +0000
-Subject: Re: [lm-sensors] lm-sensors.org DNS problems?
-Message-Id: <9A69A03C-04AE-47A5-BC6C-60E70BC50729@edgedesign.us>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 06 Oct 2009 11:50:23 +0000
+Subject: [lm-sensors] [PATCH 0/2] asus_atk0110: refactor and support for new
+Message-Id: <20091006115023.697932717@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <ha7pkr$1rl$1@ger.gmane.org>
-In-Reply-To: <ha7pkr$1rl$1@ger.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hello Jean,
+I'm sending two patches for asus_atk0110:
+- the first one is mostly refactoring to allow easier extension of the driver;
+  it also extends GITM to handle buffers larger than 8 bytes.
+- the second one add support for enabling/disabling EC
 
-It's working fine for me here.  I can dig against the root DNS servers  
-and get good responses as well as bring up the web site.
-
-I do need to renew the domain by Dec 17th.  I put the to-do on my  
-calendar.
-
-
-Phil
-
-On Oct 3, 2009, at 8:12 AM, Ian Pilcher wrote:
-
-> I haven't been able to resolve anything in lm-sensors.org for several
-> days now.
->
-> -- 
-> = 
-> = 
-> ===================================
-> Ian Pilcher                                         arequipeno@gmail.com
-> = 
-> = 
-> ===================================
->
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Luca
 
 
 _______________________________________________
