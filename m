@@ -1,266 +1,244 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 16:17:53 +0000
-Subject: [lm-sensors] hwmon: New driver for the National Semiconductor LM73
-Message-Id: <20091006181753.7341eec3@hyperion.delvare>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 06 Oct 2009 11:50:24 +0000
+Subject: [lm-sensors] [PATCH 1/2] asus_atk0110: Refactor the code
+Message-Id: <20091006123515.580798691@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Adrien Demarez <adrien.demarez@bolloretelecom.eu>
+Refactor the code of the new style interface around GGRP (enumeration) and
+GITM (read) helpers to mimic ASL code. Also switch the read path to use
+dynamic buffers (handled by ACPI core) since ASUS expanded the return buffer
+(ASBF) in newer boards (e.g. P7P55D).
 
-The National Semiconductor LM73 is a single temperature sensor, much
-like the famous LM75.
-
-Signed-off-by: Adrien Demarez <adrien.demarez@bolloretelecom.eu>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Tested-by: Robert Hancock <hancockrwd@gmail.com>
+Tested-by: Thomas Backlund <tmb@mandriva.org>
 ---
- drivers/hwmon/Kconfig  |    9 ++
- drivers/hwmon/Makefile |    1 
- drivers/hwmon/lm73.c   |  205 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 215 insertions(+)
+ drivers/hwmon/asus_atk0110.c |  158 +++++++++++++++++++++++++++----------------
+ 1 file changed, 102 insertions(+), 56 deletions(-)
 
---- linux-2.6.32-rc3.orig/drivers/hwmon/Kconfig	2009-10-06 16:53:08.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/Kconfig	2009-10-06 18:06:40.000000000 +0200
-@@ -442,6 +442,15 @@ config SENSORS_LM70
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm70.
+Index: linux-2.6.git/drivers/hwmon/asus_atk0110.c
+=================================--- linux-2.6.git.orig/drivers/hwmon/asus_atk0110.c	2009-10-04 01:05:48.000000000 +0200
++++ linux-2.6.git/drivers/hwmon/asus_atk0110.c	2009-10-06 13:41:59.000000000 +0200
+@@ -129,9 +129,22 @@
+ 	char const *acpi_name;
+ };
  
-+config SENSORS_LM73
-+	tristate "National Semiconductor LM73"
-+	depends on I2C
-+	help
-+	  If you say yes here you get support for National Semiconductor LM73
-+	  sensor chips.
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called lm73.
-+
- config SENSORS_LM75
- 	tristate "National Semiconductor LM75 and compatibles"
- 	depends on I2C
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.32-rc3/drivers/hwmon/lm73.c	2009-10-06 18:15:03.000000000 +0200
-@@ -0,0 +1,205 @@
-+/*
-+ * LM73 Sensor driver
-+ * Based on LM75
-+ *
-+ * Copyright (C) 2007, CenoSYS (www.cenosys.com).
-+ * Copyright (C) 2009, Bollore telecom (www.bolloretelecom.eu).
-+ *
-+ * Guillaume Ligneul <guillaume.ligneul@cenosys.com>
-+ * Adrien Demarez <adrien.demarez@bolloretelecom.eu>
-+ * Jeremy Laine <jeremy.laine@bolloretelecom.eu>
-+ *
-+ * This software program is licensed subject to the GNU General Public License
-+ * (GPL).Version 2,June 1991, available at
-+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+-struct atk_acpi_buffer_u64 {
+-	union acpi_object buf;
+-	u64 value;
++/* Return buffer format:
++ * [0-3] "value" is valid flag
++ * [4-7] value
++ * [8- ] unknown stuff on newer mobos
 + */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+
-+
-+/* Addresses scanned */
-+static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
-+					0x4d, 0x4e, I2C_CLIENT_END };
-+
-+/* Insmod parameters */
-+I2C_CLIENT_INSMOD_1(lm73);
-+
-+/* LM73 registers */
-+#define LM73_REG_INPUT		0x00
-+#define LM73_REG_CONF		0x01
-+#define LM73_REG_MAX		0x02
-+#define LM73_REG_MIN		0x03
-+#define LM73_REG_CTRL		0x04
-+#define LM73_REG_ID		0x07
-+
-+#define LM73_ID			0x9001 /* or 0x190 after a swab16() */
-+#define DRVNAME			"lm73"
-+#define LM73_TEMP_MIN		(-40)
-+#define LM73_TEMP_MAX		150
-+
-+/*-----------------------------------------------------------------------*/
-+
-+
-+static ssize_t set_temp(struct device *dev, struct device_attribute *da,
-+			const char *buf, size_t count)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	long temp;
-+	short value;
-+
-+	int status = strict_strtol(buf, 10, &temp);
-+	if (status < 0)
-+		return status;
-+
-+	/* Write value */
-+	value = (short) SENSORS_LIMIT(temp/250, (LM73_TEMP_MIN*4),
-+		(LM73_TEMP_MAX*4)) << 5;
-+	i2c_smbus_write_word_data(client, attr->index, swab16(value));
-+	return count;
-+}
-+
-+static ssize_t show_temp(struct device *dev, struct device_attribute *da,
-+			 char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	/* use integer division instead of equivalent right shift to
-+	   guarantee arithmetic shift and preserve the sign */
-+	int temp = ((s16) (swab16(i2c_smbus_read_word_data(client,
-+		attr->index)))*250) / 32;
-+	return sprintf(buf, "%d\n", temp);
-+}
-+
-+
-+/*-----------------------------------------------------------------------*/
-+
-+/* sysfs attributes for hwmon */
-+
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-+			show_temp, set_temp, LM73_REG_MAX);
-+static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
-+			show_temp, set_temp, LM73_REG_MIN);
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
-+			show_temp, NULL, LM73_REG_INPUT);
-+
-+
-+static struct attribute *lm73_attributes[] = {
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_min.dev_attr.attr,
-+
-+	NULL
++struct atk_acpi_ret_buffer {
++	u32 flags;
++	u32 value;
++	u8 data[];
 +};
 +
-+static const struct attribute_group lm73_group = {
-+	.attrs = lm73_attributes,
-+};
-+
-+/*-----------------------------------------------------------------------*/
-+
-+/* device probe and removal */
-+
-+static int
-+lm73_probe(struct i2c_client *client, const struct i2c_device_id *id)
-+{
-+	struct device *hwmon_dev;
-+	int status;
-+
-+	/* Register sysfs hooks */
-+	status = sysfs_create_group(&client->dev.kobj, &lm73_group);
-+	if (status)
-+		return status;
-+
-+	hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(hwmon_dev)) {
-+		status = PTR_ERR(hwmon_dev);
-+		goto exit_remove;
++/* Input buffer used for GITM and SITM methods */
++struct atk_acpi_input_buf {
++	u32 id;
++	u32 param1;
++	u32 param2;
+ };
+ 
+ static int atk_add(struct acpi_device *device);
+@@ -439,52 +452,110 @@
+ 	return 0;
+ }
+ 
+-static int atk_read_value_new(struct atk_sensor_data *sensor, u64 *value)
++static union acpi_object *atk_ggrp(struct atk_data *data, u16 mux)
+ {
+-	struct atk_data *data = sensor->data;
+ 	struct device *dev = &data->acpi_dev->dev;
++	struct acpi_buffer buf;
++	acpi_status ret;
+ 	struct acpi_object_list params;
+-	struct acpi_buffer ret;
+ 	union acpi_object id;
+-	struct atk_acpi_buffer_u64 tmp;
+-	acpi_status status;
++	union acpi_object *pack;
+ 
+ 	id.type = ACPI_TYPE_INTEGER;
+-	id.integer.value = sensor->id;
+-
++	id.integer.value = mux;
+ 	params.count = 1;
+ 	params.pointer = &id;
+ 
+-	tmp.buf.type = ACPI_TYPE_BUFFER;
+-	tmp.buf.buffer.pointer = (u8 *)&tmp.value;
+-	tmp.buf.buffer.length = sizeof(u64);
+-	ret.length = sizeof(tmp);
+-	ret.pointer = &tmp;
++	buf.length = ACPI_ALLOCATE_BUFFER;
++	ret = acpi_evaluate_object(data->enumerate_handle, NULL, &params, &buf);
++	if (ret != AE_OK) {
++		dev_err(dev, "GGRP[%#x] ACPI exception: %s\n", mux,
++				acpi_format_exception(ret));
++		return ERR_PTR(-EIO);
 +	}
-+	i2c_set_clientdata(client, hwmon_dev);
-+
-+	dev_info(&client->dev, "%s: sensor '%s'\n",
-+		 dev_name(hwmon_dev), client->name);
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &lm73_group);
-+	return status;
++	pack = buf.pointer;
++	if (pack->type != ACPI_TYPE_PACKAGE) {
++		/* Execution was successful, but the id was not found */
++		ACPI_FREE(pack);
++		return ERR_PTR(-ENOENT);
++	}
+ 
++	if (pack->package.count < 1) {
++		dev_err(dev, "GGRP[%#x] package is too small\n", mux);
++		ACPI_FREE(pack);
++		return ERR_PTR(-EIO);
++	}
++	return pack;
 +}
 +
-+static int lm73_remove(struct i2c_client *client)
++static union acpi_object *atk_gitm(struct atk_data *data, u64 id)
 +{
-+	struct device *hwmon_dev = i2c_get_clientdata(client);
++	struct device *dev = &data->acpi_dev->dev;
++	struct atk_acpi_input_buf buf;
++	union acpi_object tmp;
++	struct acpi_object_list params;
++	struct acpi_buffer ret;
++	union acpi_object *obj;
++	acpi_status status;
 +
-+	hwmon_device_unregister(hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &lm73_group);
-+	i2c_set_clientdata(client, NULL);
-+	return 0;
++	buf.id = id;
++	buf.param1 = 0;
++	buf.param2 = 0;
++
++	tmp.type = ACPI_TYPE_BUFFER;
++	tmp.buffer.pointer = (u8 *)&buf;
++	tmp.buffer.length = sizeof(buf);
++
++	params.count = 1;
++	params.pointer = (void *)&tmp;
++
++	ret.length = ACPI_ALLOCATE_BUFFER;
+ 	status = acpi_evaluate_object_typed(data->read_handle, NULL, &params,
+ 			&ret, ACPI_TYPE_BUFFER);
+ 	if (status != AE_OK) {
+-		dev_warn(dev, "%s: ACPI exception: %s\n", __func__,
++		dev_warn(dev, "GITM[%#llx] ACPI exception: %s\n", id,
+ 				acpi_format_exception(status));
+-		return -EIO;
++		return ERR_PTR(-EIO);
+ 	}
++	obj = ret.pointer;
+ 
+-	/* Return buffer format:
+-	 * [0-3] "value" is valid flag
+-	 * [4-7] value
+-	 */
+-	if (!(tmp.value & 0xffffffff)) {
++	/* Sanity check */
++	if (obj->buffer.length < 8) {
++		dev_warn(dev, "Unexpected ASBF length: %u\n",
++				obj->buffer.length);
++		ACPI_FREE(obj);
++		return ERR_PTR(-EIO);
++	}
++	return obj;
 +}
 +
-+static const struct i2c_device_id lm73_ids[] = {
-+	{ "lm73", lm73 },
-+	{ /* LIST END */ }
-+};
-+MODULE_DEVICE_TABLE(i2c, lm73_ids);
-+
-+/* Return 0 if detection is successful, -ENODEV otherwise */
-+static int lm73_detect(struct i2c_client *new_client, int kind,
-+			struct i2c_board_info *info)
++static int atk_read_value_new(struct atk_sensor_data *sensor, u64 *value)
 +{
-+	struct i2c_adapter *adapter = new_client->adapter;
-+	u16 id;
-+	u8 ctrl;
++	struct atk_data *data = sensor->data;
++	struct device *dev = &data->acpi_dev->dev;
++	union acpi_object *obj;
++	struct atk_acpi_ret_buffer *buf;
++	int err = 0;
 +
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
-+					I2C_FUNC_SMBUS_WORD_DATA))
-+		return -ENODEV;
++	obj = atk_gitm(data, sensor->id);
++	if (IS_ERR(obj))
++		return PTR_ERR(obj);
 +
-+	/* Check device ID */
-+	id = i2c_smbus_read_word_data(new_client, LM73_REG_ID);
-+	ctrl = i2c_smbus_read_byte_data(new_client, LM73_REG_CTRL);
-+	if ((id != LM73_ID) || (ctrl & 0x10))
-+		return -ENODEV;
-+
-+	strlcpy(info->type, "lm73", I2C_NAME_SIZE);
-+
-+	return 0;
-+}
-+
-+static struct i2c_driver lm73_driver = {
-+	.class		= I2C_CLASS_HWMON,
-+	.driver = {
-+		.name	= "lm73",
-+	},
-+	.probe		= lm73_probe,
-+	.remove		= lm73_remove,
-+	.id_table	= lm73_ids,
-+	.detect		= lm73_detect,
-+	.address_data	= &addr_data,
-+};
-+
-+/* module glue */
-+
-+static int __init sensors_lm73_init(void)
-+{
-+	return i2c_add_driver(&lm73_driver);
-+}
-+
-+static void __exit sensors_lm73_exit(void)
-+{
-+	i2c_del_driver(&lm73_driver);
-+}
-+
-+MODULE_AUTHOR("Guillaume Ligneul <guillaume.ligneul@cenosys.com>");
-+MODULE_DESCRIPTION("LM73 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(sensors_lm73_init);
-+module_exit(sensors_lm73_exit);
---- linux-2.6.32-rc3.orig/drivers/hwmon/Makefile	2009-10-06 16:53:08.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/Makefile	2009-10-06 18:06:40.000000000 +0200
-@@ -57,6 +57,7 @@ obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3l
- obj-$(CONFIG_SENSORS_LIS3_SPI)	+= lis3lv02d.o lis3lv02d_spi.o
- obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
- obj-$(CONFIG_SENSORS_LM70)	+= lm70.o
-+obj-$(CONFIG_SENSORS_LM73)	+= lm73.o
- obj-$(CONFIG_SENSORS_LM75)	+= lm75.o
- obj-$(CONFIG_SENSORS_LM77)	+= lm77.o
- obj-$(CONFIG_SENSORS_LM78)	+= lm78.o
++	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
++	if (buf->flags = 0) {
+ 		/* The reading is not valid, possible causes:
+ 		 * - sensor failure
+ 		 * - enumeration was FUBAR (and we didn't notice)
+ 		 */
+-		dev_info(dev, "Failure: %#llx\n", tmp.value);
+-		return -EIO;
++		dev_warn(dev, "Read failed, sensor = %#llx\n", sensor->id);
++		err = -EIO;
++		goto out;
+ 	}
+ 
+-	*value = (tmp.value & 0xffffffff00000000ULL) >> 32;
+-
+-	return 0;
++	*value = buf->value;
++out:
++	ACPI_FREE(obj);
++	return err;
+ }
+ 
+ static int atk_read_value(struct atk_sensor_data *sensor, u64 *value)
+@@ -716,39 +787,15 @@
+ static int atk_enumerate_new_hwmon(struct atk_data *data)
+ {
+ 	struct device *dev = &data->acpi_dev->dev;
+-	struct acpi_buffer buf;
+-	acpi_status ret;
+-	struct acpi_object_list params;
+-	union acpi_object id;
+ 	union acpi_object *pack;
+ 	int err;
+ 	int i;
+ 
+ 	dev_dbg(dev, "Enumerating hwmon sensors\n");
+ 
+-	id.type = ACPI_TYPE_INTEGER;
+-	id.integer.value = ATK_MUX_HWMON;
+-	params.count = 1;
+-	params.pointer = &id;
+-
+-	buf.length = ACPI_ALLOCATE_BUFFER;
+-	ret = acpi_evaluate_object_typed(data->enumerate_handle, NULL, &params,
+-			&buf, ACPI_TYPE_PACKAGE);
+-	if (ret != AE_OK) {
+-		dev_warn(dev, METHOD_ENUMERATE ": ACPI exception: %s\n",
+-				acpi_format_exception(ret));
+-		return -ENODEV;
+-	}
+-
+-	/* Result must be a package */
+-	pack = buf.pointer;
+-
+-	if (pack->package.count < 1) {
+-		dev_dbg(dev, "%s: hwmon package is too small: %d\n", __func__,
+-				pack->package.count);
+-		err = -EINVAL;
+-		goto out;
+-	}
++	pack = atk_ggrp(data, ATK_MUX_HWMON);
++	if (IS_ERR(pack))
++		return PTR_ERR(pack);
+ 
+ 	for (i = 0; i < pack->package.count; i++) {
+ 		union acpi_object *obj = &pack->package.elements[i];
+@@ -758,8 +805,7 @@
+ 
+ 	err = data->voltage_count + data->temperature_count + data->fan_count;
+ 
+-out:
+-	ACPI_FREE(buf.pointer);
++	ACPI_FREE(pack);
+ 	return err;
+ }
+ 
 
 
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
