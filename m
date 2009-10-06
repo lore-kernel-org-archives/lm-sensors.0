@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 18:10:33 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (w83781d) Clean up detect function
-Message-Id: <20091006201033.046eecf1@hyperion.delvare>
+Date: Tue, 06 Oct 2009 17:43:34 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm83) Clean up detect function
+Message-Id: <20091006194334.3e580923@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,178 +12,115 @@ As kind is now hard-coded to -1, there is room for code clean-ups.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
-The patch looks large, but most of it is really only removing one
-depth of indentation.
+ drivers/hwmon/lm83.c |   81 ++++++++++++++++----------------------------------
+ 1 file changed, 26 insertions(+), 55 deletions(-)
 
- drivers/hwmon/w83781d.c |  131 +++++++++++++++++++----------------------------
- 1 file changed, 53 insertions(+), 78 deletions(-)
-
---- linux-2.6.32-rc3.orig/drivers/hwmon/w83781d.c	2009-10-06 10:33:15.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/w83781d.c	2009-10-06 11:55:34.000000000 +0200
-@@ -1054,11 +1054,11 @@ static int
- w83781d_detect(struct i2c_client *client, int kind,
- 	       struct i2c_board_info *info)
+--- linux-2.6.32-rc3.orig/drivers/hwmon/lm83.c	2009-10-06 10:33:15.000000000 +0200
++++ linux-2.6.32-rc3/drivers/hwmon/lm83.c	2009-10-06 11:44:50.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*
+  * lm83.c - Part of lm_sensors, Linux kernel modules for hardware
+  *          monitoring
+- * Copyright (C) 2003-2008  Jean Delvare <khali@linux-fr.org>
++ * Copyright (C) 2003-2009  Jean Delvare <khali@linux-fr.org>
+  *
+  * Heavily inspired from the lm78, lm75 and adm1021 drivers. The LM83 is
+  * a sensor chip made by National Semiconductor. It reports up to four
+@@ -295,69 +295,40 @@ static int lm83_detect(struct i2c_client
+ 		       struct i2c_board_info *info)
  {
--	int val1 = 0, val2;
-+	int val1, val2;
- 	struct w83781d_data *isa = w83781d_data_if_isa();
- 	struct i2c_adapter *adapter = client->adapter;
- 	int address = client->addr;
--	const char *client_name = "";
-+	const char *client_name;
- 	enum vendor { winbond, asus } vendid;
+ 	struct i2c_adapter *adapter = new_client->adapter;
+-	const char *name = "";
++	const char *name;
++	u8 man_id, chip_id;
  
  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-@@ -1070,98 +1070,73 @@ w83781d_detect(struct i2c_client *client
- 	if (isa)
- 		mutex_lock(&isa->update_lock);
+ 		return -ENODEV;
  
--	/* The w8378?d may be stuck in some other bank than bank 0. This may
--	   make reading other information impossible. Specify a force=... or
--	   force_*=... parameter, and the Winbond will be reset to the right
--	   bank. */
--	if (kind < 0) {
--		if (i2c_smbus_read_byte_data
--		    (client, W83781D_REG_CONFIG) & 0x80) {
--			dev_dbg(&adapter->dev, "Detection of w83781d chip "
--				"failed at step 3\n");
--			goto err_nodev;
+-	/* Now we do the detection and identification. A negative kind
+-	 * means that the driver was loaded with no force parameter
+-	 * (default), so we must both detect and identify the chip
+-	 * (actually there is only one possible kind of chip for now, LM83).
+-	 * A zero kind means that the driver was loaded with the force
+-	 * parameter, the detection step shall be skipped. A positive kind
+-	 * means that the driver was loaded with the force parameter and a
+-	 * given kind of chip is requested, so both the detection and the
+-	 * identification steps are skipped. */
+-
+-	/* Default to an LM83 if forced */
+-	if (kind = 0)
+-		kind = lm83;
+-
+-	if (kind < 0) { /* detection */
+-		if (((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS1)
+-		    & 0xA8) != 0x00) ||
+-		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS2)
+-		    & 0x48) != 0x00) ||
+-		    ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_CONFIG)
+-		    & 0x41) != 0x00)) {
+-			dev_dbg(&adapter->dev,
+-				"LM83 detection failed at 0x%02x.\n",
+-				new_client->addr);
+-			return -ENODEV;
 -		}
--		val1 = i2c_smbus_read_byte_data(client, W83781D_REG_BANK);
--		val2 = i2c_smbus_read_byte_data(client, W83781D_REG_CHIPMAN);
--		/* Check for Winbond or Asus ID if in bank 0 */
--		if ((!(val1 & 0x07)) &&
--		    (((!(val1 & 0x80)) && (val2 != 0xa3) && (val2 != 0xc3))
--		     || ((val1 & 0x80) && (val2 != 0x5c) && (val2 != 0x12)))) {
--			dev_dbg(&adapter->dev, "Detection of w83781d chip "
--				"failed at step 4\n");
-+	if (i2c_smbus_read_byte_data(client, W83781D_REG_CONFIG) & 0x80) {
-+		dev_dbg(&adapter->dev,
-+			"Detection of w83781d chip failed at step 3\n");
-+		goto err_nodev;
-+	}
-+
-+	val1 = i2c_smbus_read_byte_data(client, W83781D_REG_BANK);
-+	val2 = i2c_smbus_read_byte_data(client, W83781D_REG_CHIPMAN);
-+	/* Check for Winbond or Asus ID if in bank 0 */
-+	if (!(val1 & 0x07) &&
-+	    ((!(val1 & 0x80) && val2 != 0xa3 && val2 != 0xc3) ||
-+	     ( (val1 & 0x80) && val2 != 0x5c && val2 != 0x12))) {
-+		dev_dbg(&adapter->dev,
-+			"Detection of w83781d chip failed at step 4\n");
-+		goto err_nodev;
-+	}
-+	/* If Winbond SMBus, check address at 0x48.
-+	   Asus doesn't support, except for as99127f rev.2 */
-+	if ((!(val1 & 0x80) && val2 = 0xa3) ||
-+	    ( (val1 & 0x80) && val2 = 0x5c)) {
-+		if (i2c_smbus_read_byte_data(client, W83781D_REG_I2C_ADDR)
-+		    != address) {
-+			dev_dbg(&adapter->dev,
-+				"Detection of w83781d chip failed at step 5\n");
- 			goto err_nodev;
- 		}
--		/* If Winbond SMBus, check address at 0x48.
--		   Asus doesn't support, except for as99127f rev.2 */
--		if ((!(val1 & 0x80) && (val2 = 0xa3)) ||
--		    ((val1 & 0x80) && (val2 = 0x5c))) {
--			if (i2c_smbus_read_byte_data
--			    (client, W83781D_REG_I2C_ADDR) != address) {
--				dev_dbg(&adapter->dev, "Detection of w83781d "
--					"chip failed at step 5\n");
--				goto err_nodev;
++	/* Detection */
++	if ((i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS1) & 0xA8) ||
++	    (i2c_smbus_read_byte_data(new_client, LM83_REG_R_STATUS2) & 0x48) ||
++	    (i2c_smbus_read_byte_data(new_client, LM83_REG_R_CONFIG) & 0x41)) {
++		dev_dbg(&adapter->dev, "LM83 detection failed at 0x%02x\n",
++			new_client->addr);
++		return -ENODEV;
+ 	}
+ 
+-	if (kind <= 0) { /* identification */
+-		u8 man_id, chip_id;
+-
+-		man_id = i2c_smbus_read_byte_data(new_client,
+-		    LM83_REG_R_MAN_ID);
+-		chip_id = i2c_smbus_read_byte_data(new_client,
+-		    LM83_REG_R_CHIP_ID);
+-
+-		if (man_id = 0x01) { /* National Semiconductor */
+-			if (chip_id = 0x03) {
+-				kind = lm83;
+-			} else
+-			if (chip_id = 0x01) {
+-				kind = lm82;
 -			}
 -		}
+-
+-		if (kind <= 0) { /* identification failed */
+-			dev_info(&adapter->dev,
+-			    "Unsupported chip (man_id=0x%02X, "
+-			    "chip_id=0x%02X).\n", man_id, chip_id);
+-			return -ENODEV;
+-		}
+-	}
++	/* Identification */
++	man_id = i2c_smbus_read_byte_data(new_client, LM83_REG_R_MAN_ID);
++	if (man_id != 0x01)	/* National Semiconductor */
++		return -ENODEV;
+ 
+-	if (kind = lm83) {
++	chip_id = i2c_smbus_read_byte_data(new_client, LM83_REG_R_CHIP_ID);
++	switch (chip_id) {
++	case 0x03:
+ 		name = "lm83";
+-	} else
+-	if (kind = lm82) {
++		break;
++	case 0x01:
+ 		name = "lm82";
++		break;
++	default:
++		/* identification failed */
++		dev_info(&adapter->dev,
++			 "Unsupported chip (man_id=0x%02X, chip_id=0x%02X)\n",
++			 man_id, chip_id);
++		return -ENODEV;
  	}
  
--	/* We have either had a force parameter, or we have already detected the
--	   Winbond. Put it now into bank 0 and Vendor ID High Byte */
-+	/* Put it now into bank 0 and Vendor ID High Byte */
- 	i2c_smbus_write_byte_data(client, W83781D_REG_BANK,
- 		(i2c_smbus_read_byte_data(client, W83781D_REG_BANK)
- 		 & 0x78) | 0x80);
- 
--	/* Determine the chip type. */
--	if (kind <= 0) {
--		/* get vendor ID */
--		val2 = i2c_smbus_read_byte_data(client, W83781D_REG_CHIPMAN);
--		if (val2 = 0x5c)
--			vendid = winbond;
--		else if (val2 = 0x12)
--			vendid = asus;
--		else {
--			dev_dbg(&adapter->dev, "w83781d chip vendor is "
--				"neither Winbond nor Asus\n");
--			goto err_nodev;
--		}
--
--		val1 = i2c_smbus_read_byte_data(client, W83781D_REG_WCHIPID);
--		if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
--			kind = w83781d;
--		else if (val1 = 0x30 && vendid = winbond)
--			kind = w83782d;
--		else if (val1 = 0x40 && vendid = winbond && address = 0x2d)
--			kind = w83783s;
--		else if (val1 = 0x31)
--			kind = as99127f;
--		else {
--			if (kind = 0)
--				dev_warn(&adapter->dev, "Ignoring 'force' "
--					 "parameter for unknown chip at "
--					 "address 0x%02x\n", address);
--			goto err_nodev;
--		}
--
--		if ((kind = w83781d || kind = w83782d)
--		 && w83781d_alias_detect(client, val1)) {
--			dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
--				"be the same as ISA device\n", address);
--			goto err_nodev;
--		}
-+	/* Get the vendor ID */
-+	val2 = i2c_smbus_read_byte_data(client, W83781D_REG_CHIPMAN);
-+	if (val2 = 0x5c)
-+		vendid = winbond;
-+	else if (val2 = 0x12)
-+		vendid = asus;
-+	else {
-+		dev_dbg(&adapter->dev,
-+			"w83781d chip vendor is neither Winbond nor Asus\n");
-+		goto err_nodev;
- 	}
- 
--	if (isa)
--		mutex_unlock(&isa->update_lock);
--
--	if (kind = w83781d) {
-+	/* Determine the chip type. */
-+	val1 = i2c_smbus_read_byte_data(client, W83781D_REG_WCHIPID);
-+	if ((val1 = 0x10 || val1 = 0x11) && vendid = winbond)
- 		client_name = "w83781d";
--	} else if (kind = w83782d) {
-+	else if (val1 = 0x30 && vendid = winbond)
- 		client_name = "w83782d";
--	} else if (kind = w83783s) {
-+	else if (val1 = 0x40 && vendid = winbond && address = 0x2d)
- 		client_name = "w83783s";
--	} else if (kind = as99127f) {
-+	else if (val1 = 0x31)
- 		client_name = "as99127f";
-+	else
-+		goto err_nodev;
-+
-+	if (val1 <= 0x30 && w83781d_alias_detect(client, val1)) {
-+		dev_dbg(&adapter->dev, "Device at 0x%02x appears to "
-+			"be the same as ISA device\n", address);
-+		goto err_nodev;
- 	}
- 
-+	if (isa)
-+		mutex_unlock(&isa->update_lock);
-+
- 	strlcpy(info->type, client_name, I2C_NAME_SIZE);
- 
- 	return 0;
+ 	strlcpy(info->type, name, I2C_NAME_SIZE);
 
 
 -- 
