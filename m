@@ -1,118 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 18:09:58 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (w83l785ts) Clean up detect function
-Message-Id: <20091006200958.1141f32d@hyperion.delvare>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Wed, 07 Oct 2009 15:18:48 +0000
+Subject: Re: [lm-sensors] [PATCH] ltc4215/ltc4245: Discard obsolete detect
+Message-Id: <20091007151847.GA8496@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20090920151627.76dd424e@hyperion.delvare>
+In-Reply-To: <20090920151627.76dd424e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Linux I2C <linux-i2c@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-As kind is now hard-coded to -1, there is room for code clean-ups.
+On Sun, Sep 20, 2009 at 03:16:27PM +0200, Jean Delvare wrote:
+> There is no point in implementing a detect callback for the LTC4215
+> and LTC4245, as these devices can't be detected. It was there solely
+> to handle "force" module parameters to instantiate devices, but now
+> we have a better sysfs interface that can do the same.
+> 
+> So we can get rid of the ugly module parameters and the detect
+> callbacks. This shrinks the binary module sizes by 36% and 46%,
+> respectively.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Ira W. Snyder <iws@ovro.caltech.edu>
+> ---
+> Ira, can you please test and confirm it works OK for you?
+> 
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83l785ts.c |   70 ++++++++++++++-------------------------------
- 1 file changed, 23 insertions(+), 47 deletions(-)
+I've finally gotten around to testing this. I applied it to 2.6.31.2.
+Testing shows no problems at all. The devices are both automatically
+bound by the OF device tree, just like before.
 
---- linux-2.6.32-rc3.orig/drivers/hwmon/w83l785ts.c	2009-10-06 10:33:15.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/w83l785ts.c	2009-10-06 12:14:55.000000000 +0200
-@@ -1,7 +1,7 @@
- /*
-  * w83l785ts.c - Part of lm_sensors, Linux kernel modules for hardware
-  *               monitoring
-- * Copyright (C) 2003-2004  Jean Delvare <khali@linux-fr.org>
-+ * Copyright (C) 2003-2009  Jean Delvare <khali@linux-fr.org>
-  *
-  * Inspired from the lm83 driver. The W83L785TS-S is a sensor chip made
-  * by Winbond. It reports a single external temperature with a 1 deg
-@@ -146,60 +146,36 @@ static SENSOR_DEVICE_ATTR(temp1_max, S_I
-  */
- 
- /* Return 0 if detection is successful, -ENODEV otherwise */
--static int w83l785ts_detect(struct i2c_client *new_client, int kind,
-+static int w83l785ts_detect(struct i2c_client *client, int kind,
- 			    struct i2c_board_info *info)
- {
--	struct i2c_adapter *adapter = new_client->adapter;
-+	struct i2c_adapter *adapter = client->adapter;
-+	u16 man_id;
-+	u8 chip_id;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
- 
--	/*
--	 * Now we do the remaining detection. A negative kind means that
--	 * the driver was loaded with no force parameter (default), so we
--	 * must both detect and identify the chip (actually there is only
--	 * one possible kind of chip for now, W83L785TS-S). A zero kind means
--	 * that the driver was loaded with the force parameter, the detection
--	 * step shall be skipped. A positive kind means that the driver
--	 * was loaded with the force parameter and a given kind of chip is
--	 * requested, so both the detection and the identification steps
--	 * are skipped.
--	 */
--	if (kind < 0) { /* detection */
--		if (((w83l785ts_read_value(new_client,
--		      W83L785TS_REG_CONFIG, 0) & 0x80) != 0x00)
--		 || ((w83l785ts_read_value(new_client,
--		      W83L785TS_REG_TYPE, 0) & 0xFC) != 0x00)) {
--			dev_dbg(&adapter->dev,
--				"W83L785TS-S detection failed at 0x%02x.\n",
--				new_client->addr);
--			return -ENODEV;
--		}
-+	/* detection */
-+	if ((w83l785ts_read_value(client, W83L785TS_REG_CONFIG, 0) & 0x80)
-+	 || (w83l785ts_read_value(client, W83L785TS_REG_TYPE, 0) & 0xFC)) {
-+		dev_dbg(&adapter->dev,
-+			"W83L785TS-S detection failed at 0x%02x\n",
-+			client->addr);
-+		return -ENODEV;
- 	}
- 
--	if (kind <= 0) { /* identification */
--		u16 man_id;
--		u8 chip_id;
--
--		man_id = (w83l785ts_read_value(new_client,
--			 W83L785TS_REG_MAN_ID1, 0) << 8) +
--			 w83l785ts_read_value(new_client,
--			 W83L785TS_REG_MAN_ID2, 0);
--		chip_id = w83l785ts_read_value(new_client,
--			  W83L785TS_REG_CHIP_ID, 0);
--
--		if (man_id = 0x5CA3) { /* Winbond */
--			if (chip_id = 0x70) { /* W83L785TS-S */
--				kind = w83l785ts;			
--			}
--		}
--	
--		if (kind <= 0) { /* identification failed */
--			dev_info(&adapter->dev,
--				 "Unsupported chip (man_id=0x%04X, "
--				 "chip_id=0x%02X).\n", man_id, chip_id);
--			return -ENODEV;
--		}
-+	/* Identification */
-+	man_id = (w83l785ts_read_value(client, W83L785TS_REG_MAN_ID1, 0) << 8)
-+	       + w83l785ts_read_value(client, W83L785TS_REG_MAN_ID2, 0);
-+	chip_id = w83l785ts_read_value(client, W83L785TS_REG_CHIP_ID, 0);
-+
-+	if (man_id != 0x5CA3		/* Winbond */
-+	 || chip_id != 0x70) {		/* W83L785TS-S */
-+		dev_dbg(&adapter->dev,
-+			"Unsupported chip (man_id=0x%04X, chip_id=0x%02X)\n",
-+			man_id, chip_id);
-+		return -ENODEV;
- 	}
- 
- 	strlcpy(info->type, "w83l785ts", I2C_NAME_SIZE);
+You've got my ACK.
 
-
--- 
-Jean Delvare
+Ira
 
 _______________________________________________
 lm-sensors mailing list
