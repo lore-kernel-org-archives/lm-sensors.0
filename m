@@ -1,34 +1,38 @@
-From: Rudolf Marek <r.marek@assembler.cz>
-Date: Mon, 12 Oct 2009 20:55:43 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp: Add Lynnfield CPU
-Message-Id: <4AD397CF.90103@assembler.cz>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Wed, 07 Oct 2009 13:39:19 +0000
+Subject: [lm-sensors] [PATCH 2.6.32] hwmon: Disable s3c-hwmon build for
+Message-Id: <1254922759-21199-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090915021341.GA14957@owl>
-In-Reply-To: <20090915021341.GA14957@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+The s3c-hwmon driver depends on the arch/arm implementation of the core
+ADC support for the chip.  Since the S3C64xx version has not yet been
+merged disable building of the driver on S3C64xx for now.
 
-Hi Kent,
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/hwmon/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> Please let me know what I need to do regarding to take the maintainership. 
-> We are not experienced in doing so.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4d0d0cd..87184b5 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -684,7 +684,7 @@ config SENSORS_SHT15
+ 
+ config SENSORS_S3C
+ 	tristate "S3C24XX/S3C64XX Inbuilt ADC"
+-	depends on ARCH_S3C2410 || ARCH_S3C64XX
++	depends on ARCH_S3C2410
+ 	help
+ 	  If you say yes here you get support for the on-board ADCs of
+ 	  the Samsung S3C24XX or S3C64XX series of SoC
+-- 
+1.6.4.3
 
-Yes thats it what Jean said to you. Many thanks for this!
-
-Rudolf
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkrTl88ACgkQ3J9wPJqZRNV2hwCgopnemKT4J5dBmiir3Q8qjGhu
-vP0AniGrMsD+aZRAzcubADm4wINHLT23
-=Vukl
------END PGP SIGNATURE-----
 
 _______________________________________________
 lm-sensors mailing list
