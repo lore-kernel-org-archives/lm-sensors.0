@@ -1,49 +1,53 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 28 Oct 2009 08:54:51 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon-f71882fg: Cleanup sysfs attr
-Message-Id: <4AE806DB.3070100@redhat.com>
+From: Jonathan Cameron <Jonathan.Cameron@gmail.com>
+Date: Wed, 07 Oct 2009 16:31:47 +0000
+Subject: Re: [lm-sensors] [RFC][PATCH 0/2] LIS3LV02D I2C driver
+Message-Id: <4ACCC273.1030308@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AE02EFB.9090309@redhat.com>
-In-Reply-To: <4AE02EFB.9090309@redhat.com>
+References: <1254391591-9696-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1254391591-9696-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: eric.piel@tremplin-utc.net, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, "Trisal, Kalhan" <kalhan.trisal@intel.com>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Hi,
+Just a quick heads up wrt overlapping work.
 
-Thanks for the review!
+For the i2c support Kalhan Trisal has been posting patches for i2c
+support for this
+driver to the lm-sensors list for some time and the latest version of that
+set is also pretty clean.
 
-On 10/28/2009 09:39 AM, Jean Delvare wrote:
-> Hi Hans,
+The changes in these two patch sets should probably be reconciled before
+merging.
+
+> These patches add I2C bus support for LIS3LV02D accelerometer driver
+> and possibility to use platform configurability for
+> remapping of device axes.
 >
-> On Thu, 22 Oct 2009 12:07:55 +0200, Hans de Goede wrote:
->> hwmon-f71882fg: Cleanup sysfs attr creation 1/2
->>
->> This patch makes a number of cleanups to the sysfs attr creation
->> in the f71882fg driver, this is a preparation patch for adding f71889fg
->> support:
->>
->> * Add some comments to explain why some models need separate sysfs attr
->>    arrays for in / temp / fan / pwm
->> * Rename a number of sysfs attr arrays to make their function clearer
->> * Move the pwm#_auto_channels_temp attribute from the common to all
->>    models fan attr array to the per model auto mode pwm attr arrays, so
->>    that all the auto mode pwm attr are grouped together, and thus can be
->>    left out on models where we don't support auto pwm mode
->> * Put fan_beep attr in their own array, so that only auto mode pwm attr
->>    remain in the per model pwm sysfs attr arrays.
->> * Put the 4th special fan input for the f8000 in its own array, so that only
->>    auto mode pwm attr remain in the per model pwm sysfs attr arrays.
+> Changes are tested on linux-omap environment.
+> Applies to 2.6.32-rc1.
 >
-> Only minor comments (which I may fix myself if you have no objections):
+> Samu Onkalo (2):
+>   LIS3LV02D: axis remap, irq and resource setup / release added to
+>     platform data
+>   LIS3LV02D: I2C support
 >
+>  drivers/hwmon/Kconfig         |   17 ++++
+>  drivers/hwmon/Makefile        |    1 +
+>  drivers/hwmon/lis3lv02d.h     |    1 +
+>  drivers/hwmon/lis3lv02d_i2c.c |  183 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/lis3lv02d.h     |   13 +++
+>  5 files changed, 215 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hwmon/lis3lv02d_i2c.c
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>   
 
-I agree with all comments and I've no objections with you fixing them yourself.
-
-Thanks & Regards,
-
-Hans
 
 _______________________________________________
 lm-sensors mailing list
