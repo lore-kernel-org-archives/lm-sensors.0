@@ -1,55 +1,85 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 23 Oct 2009 07:09:49 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (it87) Fix VID reading on
-Message-Id: <20091023090949.1317dcf9@hyperion.delvare>
+Date: Thu, 08 Oct 2009 12:18:50 +0000
+Subject: Re: [lm-sensors] [PATCH 2.6.31-rc2] hwmon: add support for
+Message-Id: <20091008141850.4d9e940e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091022151923.341b444a@hyperion.delvare>
-In-Reply-To: <20091022151923.341b444a@hyperion.delvare>
+References: <73511e6c0907090641v506ba4a2pa9a1e93a69dd2fd1@mail.gmail.com>
+In-Reply-To: <73511e6c0907090641v506ba4a2pa9a1e93a69dd2fd1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 22 Oct 2009 15:19:23 +0200, Jean Delvare wrote:
-> Comparing apples to bananas doesn't seem right. Consistently use the
-> chips enum for chip type comparisons, to avoid such bugs in the
-> future.
-> 
-> The bug has been there since support for the IT8718F was added, so
-> VID never worked for this chip nor for the similar IT8720F.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> Stable team, this fix applies to 2.6.27 and 2.6.31, and everything in
-> between if they are going to see one more stable release (I guess not.)
+Hi Lu,
 
-My bad, it won't apply to 2.6.27 because IT8720F support was added in
-2.6.29. I'll send a separate patch for 2.6.27.
+Sorry for the late answer.
 
+On Sat, 11 Jul 2009 15:19:02 +0000, lu zhihe wrote:
+> > I am also curious what these PCI devices are. We do not want to have
+> > driver conflicts, so it might make more sense to add hardware
+> > monitoring functionality to an existing driver than writing a brand new
+> > driver.
 > 
->  drivers/hwmon/it87.c |    5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+>   They are Host Bridge Devices D0:F0. As driver touch North Bridge, it
+> need to avoid drivers conflict.
+> Although I test on my Lenovo F31G platform, it seems work.
 > 
-> --- linux-2.6.32-rc5.orig/drivers/hwmon/it87.c	2009-10-21 16:06:43.000000000 +0200
-> +++ linux-2.6.32-rc5/drivers/hwmon/it87.c	2009-10-21 16:44:16.000000000 +0200
-> @@ -1028,12 +1028,11 @@ static int __init it87_find(unsigned sho
->  		chip_type, *address, sio_data->revision);
->  
->  	/* Read GPIO config and VID value from LDN 7 (GPIO) */
-> -	if (chip_type != IT8705F_DEVID) {
-> +	if (sio_data->type != it87) {
->  		int reg;
->  
->  		superio_select(GPIO);
-> -		if ((chip_type = it8718) ||
-> -		    (chip_type = it8720))
-> +		if (sio_data->type = it8718 || sio_data->type = it8720)
->  			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
->  
->  		reg = superio_inb(IT87_SIO_PINX2_REG);
+>   But it need to make sure, as your suggestion.
 > 
+>   I check i915.ko and agp-intel.ko. What I found are:
+> 1. i915.ko (drivers/gpu/drm/i915) is registed as Internal Graphics
+> Device 2(D2:F0-F1) driver.
+> 2. agp-intel.ko (drivers/char/agp/intel-agp.c) is registed as Host
+> Bridge Devices D0:F0 pci driver.
 > 
+> May be gm965temp will conflict with agp-intel. And I check agp-intel
+> driver, it don't touch MCHBAR register. For GM965, it only touch:
+> 
+> /* Intel 965G registers */
+> #define I965_MSAC 0x62
+> #define I965_IFPADDR    0x70
+> 
+> And it mainly focus on Internal Graphics Device 2(D2:F0-F1) configure
+> and process.
+> It don't touch the Thermal sensor register, even don't touch MCHBAR register.
+> 
+> apg-intel focus on agpgart table setting, so I curious that it should
+> not add function as hwmon driver too.
+> 
+> What's more. I check hwmon's PCI driver, sis5595, it's ID is
+> "PCI_DEVICE_ID_SI_503". And it also register on
+> drivers/i2c/busses/i2c-sis5595 as PCI driver. The situation is similar
+> as gm965temp and agp-intel.
 
+You will notice that both the (hwmon) sis5595 and i2c-sis5595 drivers
+have a probe function which ends with:
+
+	pci_dev_get(dev);
+	return -ENODEV;
+
+Basically we have to fail the probe, otherwise the device is marked as
+busy and the second driver can't bind. This works, but it has a number
+of downsides, for example all drivers must cooperate, and it doesn't
+fit the device driver model so things like power management can be
+difficult to implement properly. And these drivers can only support one
+device, or they become more complex.
+
+It would certainly be possible to do the same in your case. However,
+while it does make sense for relatively large drivers (and sis5595 and
+i2c-sis5595 both fall into this category with 26 kB and 12 kB of source
+code, respectively), the driver you want to add is small (less than 8
+kB) so the alternative of just adding the hwmon feature to an existing
+driver is appealing. But there are other things to consider too, for
+example whether the different devices you want to support have the same
+"main" driver today or not.
+
+> Above are my opinion for PCI driver conflict.
+> Please help me to review them?
+> 
+> May be I just make some mistake, and don't notice. :-)
+
+Thanks for your analysis. I'll think about it, look at the code more
+deeply, and come back to you when I'm done.
 
 -- 
 Jean Delvare
