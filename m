@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 08 Oct 2009 09:59:04 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 08 Oct 2009 12:01:15 +0000
 Subject: Re: [lm-sensors] [PATCH v3] [hwmon] add Freescale MC13783 adc driver
-Message-Id: <4ACDB876.5020608@redhat.com>
+Message-Id: <20091008140115.026f9bff@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1254990977-32295-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1254990977-32295-1-git-send-email-u.kleine-koenig@pengutronix.de>
@@ -10,66 +10,61 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hallo Uwe,
 
-On 10/08/2009 10:36 AM, Uwe Kleine-König wrote:
-> From: Luotao Fu<l.fu@pengutronix.de>
->
+On Thu,  8 Oct 2009 10:36:17 +0200, Uwe Kleine-König wrote:
+> From: Luotao Fu <l.fu@pengutronix.de>
+> 
 > This driver provides support for the ADC integrated into the
 > Freescale MC13783 PMIC.
->
-> Signed-off-by: Luotao Fu<l.fu@pengutronix.de>
-> Signed-off-by: Sascha Hauer<s.hauer@pengutronix.de>
-> Signed-off-by: Uwe Kleine-König<u.kleine-koenig@pengutronix.de>
-> Cc: Mark Brown<broonie@opensource.wolfsonmicro.com>
-> Cc: Hans de Goede<hdegoede@redhat.com>
-> Cc: Andrew Morton<akpm@linux-foundation.org>
-> Cc: Eric Piel<eric.piel@tremplin-utc.net>
-
-Looks good,
-
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
+> 
+> Signed-off-by: Luotao Fu <l.fu@pengutronix.de>
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Eric Piel <eric.piel@tremplin-utc.net>
 > ---
 > Hello,
->
+> 
 > I picked up on a patch that was sent by Sascha Hauer back in August.  The only
 > comment was to report actual voltages (requested by Mark Brown).  This together with a few minor things is done in v3 of this patch.
->
+> 
 > Best regards
 > Uwe
->
+> 
 > Changes since v3:
->
+> 
 > - remove channels 0, 1, 3 and 4 as reading them needs more work
 > - report actual voltages not raw values
 > - some formatting cosmetics
 > - zero pad the sysfs device entries
->
+
+No, you shouldn't have done this. Our sysfs standard doesn't ask for
+zero-padding, and I'm not sure libsensors and other applications will
+like it. And I can't see any benefit.
+
+> 
 > Changes since v2:
->
+> 
 > - Add Documentation Documentation/hwmon/mc13783
 > - use sysfs_create_group
->
+> 
 > Changes since v1:
->
+> 
 > - add MODULE_ALIAS
-> - __init ->  __devinit in probe function
+> - __init -> __devinit in probe function
 > - use platform_driver_probe instead of platform_driver_register
 > ---
->   Documentation/hwmon/mc13783 |   50 +++++++++
->   drivers/hwmon/Kconfig       |    6 +
->   drivers/hwmon/Makefile      |    1 +
->   drivers/hwmon/mc13783-adc.c |  233 +++++++++++++++++++++++++++++++++++++++++++
->   4 files changed, 290 insertions(+), 0 deletions(-)
->   create mode 100644 Documentation/hwmon/mc13783
->   create mode 100644 drivers/hwmon/mc13783-adc.c
->
+>  Documentation/hwmon/mc13783 |   50 +++++++++
+>  drivers/hwmon/Kconfig       |    6 +
+>  drivers/hwmon/Makefile      |    1 +
+>  drivers/hwmon/mc13783-adc.c |  233 +++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 290 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/hwmon/mc13783
+>  create mode 100644 drivers/hwmon/mc13783-adc.c
+> 
 > diff --git a/Documentation/hwmon/mc13783 b/Documentation/hwmon/mc13783
 > new file mode 100644
 > index 0000000..ba0f8f4
@@ -77,15 +72,21 @@ Hans
 > +++ b/Documentation/hwmon/mc13783
 > @@ -0,0 +1,50 @@
 > +Kernel driver mc13783
+
+Doesn't match the actual driver name.
+
 > +==========> +
 > +Supported chips:
 > +  * Freescale Atlas MC13783
 > +    Prefix: 'mc13783'
+
+Doesn't match the actual prefix (but see below.)
+
 > +    Datasheet: http://www.freescale.com/files/rf_if/doc/data_sheet/MC13783.pdf?fsrch=1
 > +
 > +Authors:
-> +       Sascha Hauer<s.hauer@pengutronix.de>
-> +       Luotao Fu<l.fu@pengutronix.de>
+> +       Sascha Hauer <s.hauer@pengutronix.de>
+> +       Luotao Fu <l.fu@pengutronix.de>
 > +
 > +Description
 > +-----------
@@ -125,35 +126,39 @@ Hans
 > +13	General Purpose TSX2 / Touchscreen X-plate 2	0 - 2.30V	No
 > +14	General Purpose TSY1 / Touchscreen Y-plate 1	0 - 2.30V	No
 > +15	General Purpose TSY2 / Touchscreen Y-plate 2	0 - 2.30V	No
+
+I don't quite see the point in using non-ASCII characters in the table
+above. The same can be achieved easily with standard ASCII characters.
+
 > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
 > index 6857560..dd5d982 100644
 > --- a/drivers/hwmon/Kconfig
 > +++ b/drivers/hwmon/Kconfig
 > @@ -1008,6 +1008,12 @@ config SENSORS_APPLESMC
->   	  Say Y here if you have an applicable laptop and want to experience
->   	  the awesome power of applesmc.
->
+>  	  Say Y here if you have an applicable laptop and want to experience
+>  	  the awesome power of applesmc.
+>  
 > +config SENSORS_MC13783_ADC
 > +        tristate "Freescale MC13783 ADC"
 > +        depends on MFD_MC13783
 > +        help
 > +          Support for the ad converter on mc13783 pmic.
 > +
->   if ACPI
->
->   comment "ACPI drivers"
+>  if ACPI
+>  
+>  comment "ACPI drivers"
 > diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
 > index 9f46cb0..ab5a005 100644
 > --- a/drivers/hwmon/Makefile
 > +++ b/drivers/hwmon/Makefile
 > @@ -73,6 +73,7 @@ obj-$(CONFIG_SENSORS_LTC4245)	+= ltc4245.o
->   obj-$(CONFIG_SENSORS_MAX1111)	+= max1111.o
->   obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
->   obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+>  obj-$(CONFIG_SENSORS_MAX1111)	+= max1111.o
+>  obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
+>  obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
 > +obj-$(CONFIG_SENSORS_MC13783_ADC)       += mc13783-adc.o
->   obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
->   obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
->   obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+>  obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+>  obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
+>  obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
 > diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
 > new file mode 100644
 > index 0000000..0a68bd8
@@ -180,18 +185,33 @@ Hans
 > + * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 > + */
 > +
-> +#include<linux/mfd/mc13783-private.h>
-> +#include<linux/platform_device.h>
-> +#include<linux/hwmon-sysfs.h>
-> +#include<linux/completion.h>
-> +#include<linux/kernel.h>
-> +#include<linux/module.h>
-> +#include<linux/delay.h>
-> +#include<linux/hwmon.h>
-> +#include<linux/input.h>
-> +#include<linux/mutex.h>
-> +#include<linux/sched.h>
-> +#include<linux/init.h>
+> +#include <linux/mfd/mc13783-private.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/completion.h>
+
+I don't see where you need this.
+
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/delay.h>
+
+Nor this.
+
+> +#include <linux/hwmon.h>
+> +#include <linux/input.h>
+
+Nor this.
+
+> +#include <linux/mutex.h>
+
+Nor this.
+
+> +#include <linux/sched.h>
+
+Nor this.
+
+> +#include <linux/init.h>
 > +
 > +#define MC13783_ADC_NAME	"mc13783-adc"
 > +
@@ -204,6 +224,10 @@ Hans
 > +			      *devattr, char *buf)
 > +{
 > +	return sprintf(buf, MC13783_ADC_NAME "\n");
+
+hwmon device names can't include dashes. Please make this "mc13783_adc"
+or just "mc13783" (if there's no room for confusion), at your option.
+
 > +}
 > +
 > +static unsigned int mc13783_adc_read(struct device *dev,
@@ -218,9 +242,9 @@ Hans
 > +	mc13783_adc_do_conversion(priv->mc13783, MC13783_ADC_MODE_MULT_CHAN,
 > +			channel, sample);
 > +
-> +	channel&= 0x7;
+> +	channel &= 0x7;
 > +
-> +	return (sample[channel % 4]>>  (channel>  3 ? 14 : 2))&  0x3ff;
+> +	return (sample[channel % 4] >> (channel > 3 ? 14 : 2)) & 0x3ff;
 > +}
 > +
 > +static ssize_t mc13783_adc_read_raw(struct device *dev,
@@ -241,9 +265,17 @@ Hans
 > +	 * the input range of the ADC.  unit = 2.25mV = 9/4 mV.
 > +	 */
 > +	res *= 9;
-> +	res += 2400<<  2;
+> +	res += 2400 << 2;
 > +
-> +	return sprintf(buf, "%u.%02umV\n", res>>  2, (res&  3) * 25);
+> +	return sprintf(buf, "%u.%02umV\n", res >> 2, (res & 3) * 25);
+
+Err, no. Please read Documentation/hwmon/sysfs-interface again. Sysfs
+files never include the unit, and they are always integer numbers. For
+voltages we use mV as the unit so you want:
+
+	res = DIV_ROUND_CLOSEST(res * 9, 4) + 2400;
+	return sprintf(buf, "%u\n", res);
+
 > +}
 > +
 > +static ssize_t mc13783_adc_read_gp(struct device *dev,
@@ -257,10 +289,18 @@ Hans
 > +	 */
 > +	res *= 9;
 > +
-> +	return sprintf(buf, "%u.%02umV\n", res>>  2, (res&  3) * 25);
+> +	return sprintf(buf, "%u.%02umV\n", res >> 2, (res & 3) * 25);
+
+Ditto.
+
 > +}
 > +
 > +SENSOR_DEVICE_ATTR(name, S_IRUGO, mc13783_adc_show_name, NULL, 0);
+
+You don't use this attribute anywhere, you should.
+
+You also don't need SENSOR_DEVICE_ATTR here, DEVICE_ATTR would do.
+
 > +SENSOR_DEVICE_ATTR(in02_input, S_IRUGO, mc13783_adc_read_bp, NULL, 2);
 > +SENSOR_DEVICE_ATTR(in05_input, S_IRUGO, mc13783_adc_read_gp, NULL, 5);
 > +SENSOR_DEVICE_ATTR(in06_input, S_IRUGO, mc13783_adc_read_gp, NULL, 6);
@@ -273,6 +313,9 @@ Hans
 > +SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, mc13783_adc_read_gp, NULL, 13);
 > +SENSOR_DEVICE_ATTR(in14_input, S_IRUGO, mc13783_adc_read_gp, NULL, 14);
 > +SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, mc13783_adc_read_gp, NULL, 15);
+
+All these attributes should be declared static.
+
 > +
 > +static struct attribute *mc13783_attr[] > +{
 > +	&sensor_dev_attr_in02_input.dev_attr.attr,
@@ -284,6 +327,9 @@ Hans
 > +	&sensor_dev_attr_in10_input.dev_attr.attr,
 > +	&sensor_dev_attr_in11_input.dev_attr.attr,
 > +	NULL,
+
+Trailing comma not needed.
+
 > +};
 > +
 > +static const struct attribute_group mc13783_group = {
@@ -297,6 +343,9 @@ Hans
 > +	&sensor_dev_attr_in14_input.dev_attr.attr,
 > +	&sensor_dev_attr_in15_input.dev_attr.attr,
 > +	NULL,
+
+Ditto.
+
 > +};
 > +
 > +static const struct attribute_group mc13783_group_ts = {
@@ -304,6 +353,9 @@ Hans
 > +};
 > +
 > +static int __devinit mc13783_adc_probe(struct platform_device *pdev)
+
+Shouldn't this one be marked __init instead?
+
 > +{
 > +	struct mc13783_adc_priv *priv;
 > +	int ret;
@@ -315,12 +367,12 @@ Hans
 > +	priv->mc13783 = dev_get_drvdata(pdev->dev.parent);
 > +
 > +	/* Register sysfs hooks */
-> +	ret = sysfs_create_group(&pdev->dev.kobj,&mc13783_group);
+> +	ret = sysfs_create_group(&pdev->dev.kobj, &mc13783_group);
 > +	if (ret)
 > +		goto out_err_create1;
 > +
-> +	if (!(priv->mc13783->flags&  MC13783_USE_TOUCHSCREEN))
-> +		ret = sysfs_create_group(&pdev->dev.kobj,&mc13783_group_ts);
+> +	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
+> +		ret = sysfs_create_group(&pdev->dev.kobj, &mc13783_group_ts);
 > +		if (ret)
 > +			goto out_err_create2;
 > +
@@ -333,16 +385,20 @@ Hans
 > +	}
 > +
 > +	platform_set_drvdata(pdev, priv);
+
+You have a race condition here, get_drvdata could be called from a
+sysfs file before the driver data pointer is set.
+
 > +
 > +	return 0;
 > +
 > +out_err_register:
 > +
-> +	if (!(priv->mc13783->flags&  MC13783_USE_TOUCHSCREEN))
-> +		sysfs_remove_group(&pdev->dev.kobj,&mc13783_group_ts);
+> +	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
+> +		sysfs_remove_group(&pdev->dev.kobj, &mc13783_group_ts);
 > +out_err_create2:
 > +
-> +	sysfs_remove_group(&pdev->dev.kobj,&mc13783_group);
+> +	sysfs_remove_group(&pdev->dev.kobj, &mc13783_group);
 > +out_err_create1:
 > +
 > +	kfree(priv);
@@ -356,12 +412,15 @@ Hans
 > +
 > +	hwmon_device_unregister(&pdev->dev);
 > +
-> +	if (!(priv->mc13783->flags&  MC13783_USE_TOUCHSCREEN))
-> +		sysfs_remove_group(&pdev->dev.kobj,&mc13783_group_ts);
+> +	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
+> +		sysfs_remove_group(&pdev->dev.kobj, &mc13783_group_ts);
 > +
-> +	sysfs_remove_group(&pdev->dev.kobj,&mc13783_group);
+> +	sysfs_remove_group(&pdev->dev.kobj, &mc13783_group);
 > +
 > +	kfree(priv);
+
+Please set driver data to NULL first.
+
 > +
 > +	return 0;
 > +}
@@ -388,9 +447,22 @@ Hans
 > +module_exit(mc13783_adc_exit);
 > +
 > +MODULE_DESCRIPTION("MC13783 input touchscreen driver");
-> +MODULE_AUTHOR("Luotao Fu,<l.fu@pengutronix.de>");
+
+This doesn't look right.
+
+> +MODULE_AUTHOR("Luotao Fu, <l.fu@pengutronix.de>");
+
+Stray comma.
+
 > +MODULE_LICENSE("GPL");
 > +MODULE_ALIAS("platform:" MC13783_ADC_NAME);
+
+Please fix all of the above points and resubmit. And pretty please
+_test_ your driver with libsensors. This is the best way to make sure
+you have implemented the sysfs interface properly.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
