@@ -1,37 +1,43 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 23 Oct 2009 07:13:18 +0000
-Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <20091023091318.55c55203@hyperion.delvare>
+Date: Fri, 09 Oct 2009 18:57:22 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.32
+Message-Id: <20091009205722.5434b5c2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
-In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Adam,
+Hi Linus,
 
-On Fri, 23 Oct 2009 09:20:37 +1000, Adam Nielsen wrote:
-> > Here's a standalone driver for you to try:
-> > http://khali.linux-fr.org/devel/misc/it87/
-> >
-> > Build with "make", then as root, "rmmod it87&&  insmod it87.ko".
-> 
-> Works fine!  The "cpu0_vid" and "vrm" files disappear from the it87 sysfs 
-> directory, and 'sensors' no longer reports a value for the VID.  There is a 
-> log message telling me in3 is VCC (+5V), but no log message to tell me the VID 
-> is disabled.  Not sure if that's worth including, in case somebody is trying 
-> to figure out why their it87 behaves differently to someone else's.
+Please pull some hwmon subsystem fixes for Linux 2.6.32 from:
 
-I have been considering it. In general drivers should be quiet when
-everything works fine. But indeed this is a change in behavior, which
-might be worth underlining in the log. I'll add a message.
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
-> Everything else seems to work as before.
 
-Great, thanks for testing and reporting!
+ MAINTAINERS                  |    2 +-
+ drivers/hwmon/Kconfig        |    2 +-
+ drivers/hwmon/asus_atk0110.c |  339 +++++++++++++++++++++++++++++++++++-------
+ drivers/hwmon/sht15.c        |    7 +-
+ 4 files changed, 292 insertions(+), 58 deletions(-)
 
+---------------
+
+Jean Delvare (1):
+      MAINTAINERS: Fix Riku Voipio's address
+
+Luca Tettamanti (2):
+      hwmon: (asus_atk0110) Refactor the code
+      hwmon: (asus_atk0110) Enable the EC
+
+Mark Brown (1):
+      hwmon: (s3c-hwmon) Disable build for S3C64xx
+
+Rakib Mullick (1):
+      hwmon: (sht15) Fix spurious section mismatch warning
+
+Thanks,
 -- 
 Jean Delvare
 
