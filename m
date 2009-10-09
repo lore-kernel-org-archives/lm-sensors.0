@@ -1,258 +1,438 @@
-From: nyyr1@tiscali.cz
-Date: Fri, 09 Oct 2009 20:35:54 +0000
-Subject: [lm-sensors] "No sensors found!" although it87 module loaded
-Message-Id: <49C97D630013E049@nzoth.tiscali.cz>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Fri, 09 Oct 2009 08:41:58 +0000
+Subject: [lm-sensors] [PATCH v4] [hwmon] add Freescale MC13783 adc driver
+Message-Id: <1255077718-17553-1-git-send-email-u.kleine-koenig@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+From: Luotao Fu <l.fu@pengutronix.de>
+
+This driver provides support for the ADC integrated into the
+Freescale MC13783 PMIC.
+
+Signed-off-by: Luotao Fu <l.fu@pengutronix.de>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
 Hello,
 
-        does anyone have an idea?
-It is GA-EP45-DS3R mainboard...
+I fixed everything Jean pointed out.
+Jean: thanks for your comments, I wasn't aware that there is an API to
+adhere to, I just fixed the things pointed out so far.  Sorry for that.
+I hope this is better now.
 
-N.
+Now calling sensors I get:
 
-2.6.18-164.el5 #1 SMP Thu Sep 3 03:28:30 EDT 2009 x86_64 x86_64 x86_64
-GNU/Linux
+	mc13783_adc-isa-0000
+	Adapter: ISA adapter
+	in2:         +4.32 V
+	in5:         +0.00 V
+	in6:         +0.00 V
+	in7:         +0.00 V
+	in8:         +0.00 V
+	in9:         +0.00 V
+	in10:        +0.00 V
+	in11:        +0.00 V
+	in12:        +0.52 V
+	in13:        +0.47 V
+	in14:        +0.47 V
+	in15:        +0.01 V
 
-lm_sensors-2.10.7-4.el5
+I wonder why the name contains "isa".  Is this something I need to fix
+in the driver?
 
-[root@n1 /]# lsmod
-Module                  Size  Used by
-i2c_dev                43977  0=20
-ppdev                  42441  0=20
-snd_rtctimer           37025  0=20
-autofs4                63049  2=20
-it87                   57061  0=20
-hwmon_vid              35905  1 it87
-i2c_isa                39105  1 it87
-hidp                   83521  2=20
-rfcomm                104809  0=20
-l2cap                  89281  10 hidp,rfcomm
-bluetooth             118853  5 hidp,rfcomm,l2cap
-lockd                 101297  0=20
-sunrpc                198537  2 lockd
-ip6t_REJECT            38849  1=20
-ip6table_filter        36033  1=20
-ip6_tables             50049  1 ip6table_filter
-ip_conntrack_netbios_ns    36033  0=20
-ipt_REJECT             38977  1=20
-xt_state               35265  2=20
-ip_conntrack           91621  2 ip_conntrack_netbios_ns,xt_state
-nfnetlink              40457  1 ip_conntrack
-xt_tcpudp              36289  10=20
-iptable_filter         36161  1=20
-ip_tables              55201  1 iptable_filter
-x_tables               50505  6
-ip6t_REJECT,ip6_tables,ipt_REJECT,xt_state,xt_tcpudp,ip_tables
-cpufreq_ondemand       42449  2=20
-acpi_cpufreq           47937  0=20
-freq_table             40889  2 cpufreq_ondemand,acpi_cpufreq
-dm_multipath           56153  0=20
-scsi_dh                41665  1 dm_multipath
-video                  53197  0=20
-hwmon                  36553  1 it87
-backlight              39873  1 video
-sbs                    49921  0=20
-i2c_ec                 38593  1 sbs
-button                 40545  0=20
-battery                43849  0=20
-asus_acpi              50917  0=20
-acpi_memhotplug        40261  0=20
-ac                     38729  0=20
-ipv6                  432161  27 ip6t_REJECT
-xfrm_nalgo             43333  1 ipv6
-lp                     47121  0=20
-snd_hda_intel         584593  1=20
-snd_seq_dummy          37061  0=20
-nvidia              10302184  26=20
-snd_seq_oss            65473  0=20
-snd_seq_midi_event     41025  1 snd_seq_oss
-snd_seq                87777  5
-snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
-snd_seq_device         41557  3 snd_seq_dummy,snd_seq_oss,snd_seq
-snd_pcm_oss            77377  0=20
-snd_mixer_oss          49985  1 snd_pcm_oss
-snd_pcm               116681  2 snd_hda_intel,snd_pcm_oss
-snd_timer              57161  3 snd_rtctimer,snd_seq,snd_pcm
-parport_pc             62313  1=20
-snd_page_alloc         44113  2 snd_hda_intel,snd_pcm
-shpchp                 70892  0=20
-parport                73165  3 ppdev,lp,parport_pc
-ide_cd                 73825  0=20
-snd_hwdep              43593  1 snd_hda_intel
-snd                   100073  11
-snd_hda_intel,snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,=
-snd_pcm,snd_timer,snd_hwdep
-floppy                 95465  0=20
-r8169                  70853  0=20
-i2c_i801               41813  0=20
-cdrom                  68713  1 ide_cd
-mii                    38849  1 r8169
-i2c_core               56129  6
-i2c_dev,it87,i2c_isa,i2c_ec,nvidia,i2c_i801
-sg                     70377  0=20
-soundcore              41825  1 snd
-serio_raw              40517  0=20
-pcspkr                 36289  0=20
-dm_raid45              99657  0=20
-dm_message             36289  1 dm_raid45
-dm_region_hash         46145  1 dm_raid45
-dm_mem_cache           38977  1 dm_raid45
-ahci                   69449  2=20
-libata                209489  1 ahci
-sd_mod                 56513  2=20
-scsi_mod              196697  4 scsi_dh,sg,libata,sd_mod
-sha256                 41665  0=20
-cbc                    37441  0=20
-crypto_blkcipher       48321  1 cbc
-crypto_algapi          54721  2 cbc,crypto_blkcipher
-crypto_api             42945  3
-xfrm_nalgo,crypto_blkcipher,crypto_algapi
-aes_generic            59265  0=20
-aes_x86_64             58473  2=20
-dm_crypt               46665  1=20
-dm_snapshot            51977  0=20
-dm_zero                35265  0=20
-dm_mirror              54609  1=20
-dm_log                 44993  4 dm_raid45,dm_region_hash,dm_mirror
-dm_mod                101521  24
-dm_multipath,dm_raid45,dm_crypt,dm_snapshot,dm_zero,dm_mirror,dm_log
-ext3                  168401  4=20
-jbd                    94385  1 ext3
-uhci_hcd               57433  0=20
-ohci_hcd               55925  0=20
-ehci_hcd               66253  0=20
-[root@n1 /]# sensors-detect
-# sensors-detect revision 5291 (2008-06-23 23:40:46 -0700)
+I wrongly labeled the last patch as v3, should have been v4, so we have
+v3 twice.
 
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
+Changes since v3 the second:
 
-We can start with probing for (PCI) I2C or SMBus adapters.
-Do you want to probe now? (YES/no):=20
-Probing for PCI bus adapters...
-Use driver `i2c-i801' for device 0000:00:1f.3: Intel ICH10
-
-We will now try to load each adapter module in turn.
-Module `i2c-i801' already loaded.
-If you have undetectable or unsupported I2C/SMBus adapters, you can have
-them scanned by manually loading the modules before running this script.
-
-We are now going to do the I2C/SMBus adapter probings. Some chips may
-be double detected; we choose the one with the highest confidence
-value in that case.
-If you found that the adapter hung after probing a certain address,
-you can specify that address to remain unprobed.
-
-Next adapter: SMBus I801 adapter at 0500 (i2c-0)
-Do you want to scan it? (YES/no/selectively):=20
-Client found at address 0x4e
-Probing for `National Semiconductor LM75'...                No
-Probing for `Dallas Semiconductor DS75'...                  No
-Probing for `Dallas Semiconductor DS1621/DS1631'...         No
-Probing for `Analog Devices ADM1021'...                     No
-Probing for `Analog Devices ADM1021A/ADM1023'...            No
-Probing for `Maxim MAX1617'...                              No
-Probing for `Maxim MAX1617A'...                             No
-Probing for `TI THMC10'...                                  No
-Probing for `National Semiconductor LM84'...                No
-Probing for `Genesys Logic GL523SM'...                      No
-Probing for `Onsemi MC1066'...                              No
-Probing for `Maxim MAX1619'...                              No
-Probing for `National Semiconductor LM82/LM83'...           No
-Probing for `Maxim MAX6659'...                              No
-Probing for `Maxim MAX6680/MAX6681'...                      No
-Probing for `National Semiconductor LM64'...                No
-Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-Probing for `ITE IT8201R/IT8203R/IT8206R/IT8266R'...        Yes
-    (confidence 6, not a hardware monitoring chip)
-Probing for `Fintek F75111R/RG/N (GPIO)'...                 No
-Probing for `Fintek F75121R/F75122R/RG (VID+GPIO)'...       No
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-    (confidence 8, not a hardware monitoring chip)
-Probing for `EDID EEPROM'...                                No
-Client found at address 0x52
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-    (confidence 8, not a hardware monitoring chip)
-Probing for `EDID EEPROM'...                                No
-
-Next adapter: NVIDIA i2c adapter 0 at 1:00.0 (i2c-1)
-Do you want to scan it? (YES/no/selectively):=20
-Adapter cannot be probed, skipping.
-
-Next adapter: NVIDIA i2c adapter 1 at 1:00.0 (i2c-2)
-Do you want to scan it? (YES/no/selectively):=20
-Adapter cannot be probed, skipping.
-
-Next adapter: NVIDIA i2c adapter 2 at 1:00.0 (i2c-3)
-Do you want to scan it? (YES/no/selectively):=20
-Adapter cannot be probed, skipping.
-
-Some chips are also accessible through the ISA I/O ports. We have to
-write to arbitrary I/O ports to probe them. This is usually safe though.
-Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-Do you want to scan the ISA I/O ports? (YES/no):=20
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM78-J' at 0x290...     No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Some Super I/O chips may also contain sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no):=20
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       No
-Trying family `ITE'...                                      Yes
-Found `ITE IT8718F Super IO Sensors'                        Success!
-    (address 0x290, driver `it87')
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     Yes
-Found unknown chip with ID 0x0b00
-
-Some south bridges, CPUs or memory controllers may also contain
-embedded sensors. Do you want to scan for them? (YES/no):=20
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD K10 thermal sensors...                                  No
-Intel AMB FB-DIMM thermal sensor...                         No
-
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:=20
-
-Driver `it87' (should be inserted):
-  Detects correctly:
-  * ISA bus, address 0x290
-    Chip `ITE IT8718F Super IO Sensors' (confidence: 9)
-
-Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):=20
-Starting lm_sensors: No sensors found!
-Make sure you loaded all the kernel drivers you need.
-Try sensors-detect to find out which these are.
-                                                           [FAILED]
-[root@n1 /]#=20
+- remove units from sysfs files and round to integer
+- undo zero padding of the sysfs device entries
+- make some variables static
+- some naming fixes (e.g. s/-/_/ for the content of name)
+- renamed documentation to match the prefix
+- use ASCII-only for Documentation/hwmon/mc13783_adc
+- don't include unneeded headers
+- some style fixes requested by Jean Delvare
+- move probe function to .init.text
+- set platform driver data earlier to fix race condition
 
 
-______________________________________
-http://www.sportstream.cz/ - aktu=E1ln=ED sportovn=ED videa
+Changes since v3:
 
+- remove channels 0, 1, 3 and 4 as reading them needs more work
+- report actual voltages not raw values
+- some cosmetics
+- zero pad the sysfs device entries
 
+Changes since v2:
+
+- Add Documentation Documentation/hwmon/mc13783
+- use sysfs_create_group
+
+Changes since v1:
+
+- add MODULE_ALIAS
+- __init -> __devinit in probe function
+- use platform_driver_probe instead of platform_driver_register
+---
+ Documentation/hwmon/mc13783_adc |   50 +++++++++
+ drivers/hwmon/Kconfig           |    6 +
+ drivers/hwmon/Makefile          |    1 +
+ drivers/hwmon/mc13783-adc.c     |  233 +++++++++++++++++++++++++++++++++++=
+++++++++
+ 4 files changed, 290 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/mc13783_adc
+ create mode 100644 drivers/hwmon/mc13783-adc.c
+
+diff --git a/Documentation/hwmon/mc13783_adc b/Documentation/hwmon/mc13783_=
+adc
+new file mode 100644
+index 0000000..9243335
+--- /dev/null
++++ b/Documentation/hwmon/mc13783_adc
+@@ -0,0 +1,50 @@
++Kernel driver mc13783-adc
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
++Supported chips:
++  * Freescale Atlas MC13783
++    Prefix: 'mc13783_adc'
++    Datasheet: http://www.freescale.com/files/rf_if/doc/data_sheet/MC13783=
+.pdf?fsrch=3D1
++
++Authors:
++       Sascha Hauer <s.hauer@pengutronix.de>
++       Luotao Fu <l.fu@pengutronix.de>
++
++Description
++-----------
++
++The Freescale MC13783 is a Power Management and Audio Circuit. Among
++other things it contains a 10bit A/D converter. The converter has 16
++channels which can be used in different modes.
++The A/D converter has a resolution of 2.25mV. Channels 0-4 have
++a dedicated meaning with chip internal scaling applied. Channels 5-7
++can be used as general purpose inputs or alternatively in a dedicated
++mode. Channels 12-15 are occupied by the touchscreen if it's active.
++
++Currently the driver only supports channels 2 and 5-15 with no alternative
++modes for channels 5-7.
++
++See this table for the meaning of the different channels and their chip
++internal scaling:
++
++Channel	Signal						Input Range	Scaling
++--------------------------------------------------------------------------=
+-----
++0	Battery Voltage (BATT)				2.50 - 4.65V	-2.40V
++1	Battery Current (BATT - BATTISNS)		-50 - 50 mV	x20
++2	Application Supply (BP)				2.50 - 4.65V	-2.40V
++3	Charger Voltage (CHRGRAW)			0 - 10V /	/5
++							0 - 20V		/10
++4	Charger Current (CHRGISNSP-CHRGISNSN)		-0.25V - 0.25V	x4
++5	General Purpose ADIN5 / Battery Pack Thermistor	0 - 2.30V	No
++6	General Purpose ADIN6 / Backup Voltage (LICELL)	0 - 2.30V /	No /
++							1.50 - 3.50V	-1.20V
++7	General Purpose ADIN7 / UID / Die Temperature	0 - 2.30V /	No /
++							0 - 2.55V /	x0.9 / No
++8	General Purpose ADIN8				0 - 2.30V	No
++9	General Purpose ADIN9				0 - 2.30V	No
++10	General Purpose ADIN10				0 - 2.30V	No
++11	General Purpose ADIN11				0 - 2.30V	No
++12	General Purpose TSX1 / Touchscreen X-plate 1	0 - 2.30V	No
++13	General Purpose TSX2 / Touchscreen X-plate 2	0 - 2.30V	No
++14	General Purpose TSY1 / Touchscreen Y-plate 1	0 - 2.30V	No
++15	General Purpose TSY2 / Touchscreen Y-plate 2	0 - 2.30V	No
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 6857560..dd5d982 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1008,6 +1008,12 @@ config SENSORS_APPLESMC
+ 	  Say Y here if you have an applicable laptop and want to experience
+ 	  the awesome power of applesmc.
+=20
++config SENSORS_MC13783_ADC
++        tristate "Freescale MC13783 ADC"
++        depends on MFD_MC13783
++        help
++          Support for the ad converter on mc13783 pmic.
++
+ if ACPI
+=20
+ comment "ACPI drivers"
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 9f46cb0..ab5a005 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -73,6 +73,7 @@ obj-$(CONFIG_SENSORS_LTC4245)	+=3D ltc4245.o
+ obj-$(CONFIG_SENSORS_MAX1111)	+=3D max1111.o
+ obj-$(CONFIG_SENSORS_MAX1619)	+=3D max1619.o
+ obj-$(CONFIG_SENSORS_MAX6650)	+=3D max6650.o
++obj-$(CONFIG_SENSORS_MC13783_ADC)       +=3D mc13783-adc.o
+ obj-$(CONFIG_SENSORS_PC87360)	+=3D pc87360.o
+ obj-$(CONFIG_SENSORS_PC87427)	+=3D pc87427.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+=3D pcf8591.o
+diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
+new file mode 100644
+index 0000000..2540524
+--- /dev/null
++++ b/drivers/hwmon/mc13783-adc.c
+@@ -0,0 +1,233 @@
++/*
++ * Driver for the Freescale Semiconductor MC13783 adc.
++ *
++ * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserved.
++ * Copyright (C) 2009 Sascha Hauer, Pengutronix
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along=
+ with
++ * this program; if not, write to the Free Software Foundation, Inc., 51
++ * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++#include <linux/mfd/mc13783-private.h>
++#include <linux/platform_device.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/hwmon.h>
++#include <linux/init.h>
++#include <linux/err.h>
++
++#define MC13783_ADC_NAME	"mc13783-adc"
++
++struct mc13783_adc_priv {
++	struct mc13783 *mc13783;
++	struct device *hwmon_dev;
++};
++
++static ssize_t mc13783_adc_show_name(struct device *dev, struct device_att=
+ribute
++			      *devattr, char *buf)
++{
++	return sprintf(buf, "mc13783_adc\n");
++}
++
++static unsigned int mc13783_adc_read(struct device *dev,
++		struct device_attribute *devattr)
++{
++	struct platform_device *pdev =3D to_platform_device(dev);
++	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
++	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
++	unsigned int channel =3D attr->index;
++	unsigned int sample[4];
++
++	mc13783_adc_do_conversion(priv->mc13783, MC13783_ADC_MODE_MULT_CHAN,
++			channel, sample);
++
++	channel &=3D 0x7;
++
++	return (sample[channel % 4] >> (channel > 3 ? 14 : 2)) & 0x3ff;
++}
++
++static ssize_t mc13783_adc_read_raw(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	unsigned res =3D mc13783_adc_read(dev, devattr);
++
++	return sprintf(buf, "%u\n", res);
++}
++
++static ssize_t mc13783_adc_read_bp(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	unsigned res =3D mc13783_adc_read(dev, devattr);
++
++	/*
++	 * BP (channel 2) reports with offset 2.4V to the actual value to fit
++	 * the input range of the ADC.  unit =3D 2.25mV =3D 9/4 mV.
++	 */
++	res =3D DIV_ROUND_CLOSEST(res * 9, 4) + 2400;
++
++	return sprintf(buf, "%u\n", res);
++}
++
++static ssize_t mc13783_adc_read_gp(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	unsigned res =3D mc13783_adc_read(dev, devattr);
++
++	/*
++	 * input range is [0, 2.3V], res has 10 bits, so each bit
++	 * is worth 9/4 mV.
++	 */
++	res =3D DIV_ROUND_CLOSEST(res * 9, 4);
++
++	return sprintf(buf, "%u\n", res);
++}
++
++static DEVICE_ATTR(name, S_IRUGO, mc13783_adc_show_name, NULL);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, mc13783_adc_read_bp, NULL, 2=
+);
++static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, mc13783_adc_read_gp, NULL, 5=
+);
++static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, mc13783_adc_read_gp, NULL, 6=
+);
++static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, mc13783_adc_read_gp, NULL, 7=
+);
++static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, mc13783_adc_read_gp, NULL, 8=
+);
++static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, mc13783_adc_read_gp, NULL, 9=
+);
++static SENSOR_DEVICE_ATTR(in10_input, S_IRUGO, mc13783_adc_read_gp, NULL, =
+10);
++static SENSOR_DEVICE_ATTR(in11_input, S_IRUGO, mc13783_adc_read_gp, NULL, =
+11);
++static SENSOR_DEVICE_ATTR(in12_input, S_IRUGO, mc13783_adc_read_gp, NULL, =
+12);
++static SENSOR_DEVICE_ATTR(in13_input, S_IRUGO, mc13783_adc_read_gp, NULL, =
+13);
++static SENSOR_DEVICE_ATTR(in14_input, S_IRUGO, mc13783_adc_read_gp, NULL, =
+14);
++static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, mc13783_adc_read_gp, NULL, =
+15);
++
++static struct attribute *mc13783_attr[] +{
++	&dev_attr_name.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_in7_input.dev_attr.attr,
++	&sensor_dev_attr_in8_input.dev_attr.attr,
++	&sensor_dev_attr_in9_input.dev_attr.attr,
++	&sensor_dev_attr_in10_input.dev_attr.attr,
++	&sensor_dev_attr_in11_input.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group mc13783_group =3D {
++	.attrs =3D mc13783_attr,
++};
++
++/* last four channels may be occupied by the touchscreen */
++static struct attribute *mc13783_attr_ts[] +{
++	&sensor_dev_attr_in12_input.dev_attr.attr,
++	&sensor_dev_attr_in13_input.dev_attr.attr,
++	&sensor_dev_attr_in14_input.dev_attr.attr,
++	&sensor_dev_attr_in15_input.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group mc13783_group_ts =3D {
++	.attrs =3D mc13783_attr_ts,
++};
++
++static int __init mc13783_adc_probe(struct platform_device *pdev)
++{
++	struct mc13783_adc_priv *priv;
++	int ret;
++
++	priv =3D kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	priv->mc13783 =3D dev_get_drvdata(pdev->dev.parent);
++
++	platform_set_drvdata(pdev, priv);
++
++	/* Register sysfs hooks */
++	ret =3D sysfs_create_group(&pdev->dev.kobj, &mc13783_group);
++	if (ret)
++		goto out_err_create1;
++
++	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
++		ret =3D sysfs_create_group(&pdev->dev.kobj, &mc13783_group_ts);
++		if (ret)
++			goto out_err_create2;
++
++	priv->hwmon_dev =3D hwmon_device_register(&pdev->dev);
++	if (IS_ERR(priv->hwmon_dev)) {
++		ret =3D PTR_ERR(priv->hwmon_dev);
++		dev_err(&pdev->dev,
++				"hwmon_device_register failed with %d.\n", ret);
++		goto out_err_register;
++	}
++
++
++	return 0;
++
++out_err_register:
++
++	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
++		sysfs_remove_group(&pdev->dev.kobj, &mc13783_group_ts);
++out_err_create2:
++
++	sysfs_remove_group(&pdev->dev.kobj, &mc13783_group);
++out_err_create1:
++
++	platform_set_drvdata(pdev, NULL);
++	kfree(priv);
++
++	return ret;
++}
++
++static int __devexit mc13783_adc_remove(struct platform_device *pdev)
++{
++	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
++
++	hwmon_device_unregister(&pdev->dev);
++
++	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
++		sysfs_remove_group(&pdev->dev.kobj, &mc13783_group_ts);
++
++	sysfs_remove_group(&pdev->dev.kobj, &mc13783_group);
++
++	platform_set_drvdata(pdev, NULL);
++
++	kfree(priv);
++
++	return 0;
++}
++
++static struct platform_driver mc13783_adc_driver =3D {
++	.remove 	=3D __devexit_p(mc13783_adc_remove),
++	.driver		=3D {
++		.owner	=3D THIS_MODULE,
++		.name	=3D MC13783_ADC_NAME,
++	},
++};
++
++static int __init mc13783_adc_init(void)
++{
++	return platform_driver_probe(&mc13783_adc_driver, mc13783_adc_probe);
++}
++
++static void __exit mc13783_adc_exit(void)
++{
++	platform_driver_unregister(&mc13783_adc_driver);
++}
++
++module_init(mc13783_adc_init);
++module_exit(mc13783_adc_exit);
++
++MODULE_DESCRIPTION("MC13783 ADC driver");
++MODULE_AUTHOR("Luotao Fu <l.fu@pengutronix.de>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" MC13783_ADC_NAME);
+--=20
+1.6.4.3
 
 
 _______________________________________________
