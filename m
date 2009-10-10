@@ -1,53 +1,69 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 22 Oct 2009 07:27:53 +0000
-Subject: Re: [lm-sensors] [PATCH] acpi_power_meter: Don't leak ACPI error
-Message-Id: <20091022092753.1b4b9706@hyperion.delvare>
+From: Kent Liu <kent.liu@linux.intel.com>
+Date: Sat, 10 Oct 2009 06:01:18 +0000
+Subject: Re: [lm-sensors] [PATCH] coretemp: Add Lynnfield CPU
+Message-Id: <20091010060118.GA12489@wliu-linux.bj.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091022010137.GB21723@tux1.beaverton.ibm.com>
-In-Reply-To: <20091022010137.GB21723@tux1.beaverton.ibm.com>
+References: <20090915021341.GA14957@owl>
+In-Reply-To: <20090915021341.GA14957@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: djwong@us.ibm.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Wed, 21 Oct 2009 18:01:37 -0700, Darrick J. Wong wrote:
-> acpi-power-meter: Don't leak ACPI error codes to userspace
-> 
-> If the ACPI methods return an error code, we must return -EINVAL to userspace
-> to flag the error.  Right now we pass the (positive) number right through,
-> which causes echo to keep writing bogus values.
-> 
-> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Hello Rudolf
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Yes. I think Huaxu and I can take this, even though I am still on the way 
+to acquire enough documents from hardware team. As I have a lot of processors
+on hand to test, maybe it's better to gain more coverage in coretemp driver.
 
-> ---
-> 
->  drivers/acpi/power_meter.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> 
-> diff --git a/drivers/acpi/power_meter.c b/drivers/acpi/power_meter.c
-> index e6bfd77..2ef7030 100644
-> --- a/drivers/acpi/power_meter.c
-> +++ b/drivers/acpi/power_meter.c
-> @@ -294,7 +294,11 @@ static int set_acpi_trip(struct acpi_power_meter_resource *resource)
->  		return -EINVAL;
->  	}
->  
-> -	return data;
-> +	/* _PTP returns 0 on success, nonzero otherwise */
-> +	if (data)
-> +		return -EINVAL;
-> +
-> +	return 0;
->  }
->  
->  static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
+Please let me know what I need to do regarding to take the maintainership. 
+We are not experienced in doing so.
 
--- 
-Jean Delvare
+Thanks,
+Kent
+On Wed, Sep 16, 2009 at 11:24:51PM +0200, Rudolf Marek wrote:
+> Hi,
+>
+> Looks good. However I would like to see the Documentation/hwmon/coretemp 
+> updated too.
+>
+> Maybe Intel can overtake the driver maintainership because I'm quite 
+> struggling to get any info from Intel. Second reason is lack of free 
+> time.
+>
+> Thank you,
+>
+> Rudolf
+>
+> Huaxu Wan napsal(a):
+>> Add Lynnfield processor support. Lynnfield is a quad-core Nehalem based microprocessor for Desktop market, which is introduced in September 2009.
+>>
+>> Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
+>> Signed-off-by: Kent Liu <kent.liu@linux.intel.com>
+>> ---
+>>  drivers/hwmon/coretemp.c |    4 ++--
+>>  1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+>> index 93c1722..a9a21dc 100644
+>> --- a/drivers/hwmon/coretemp.c
+>> +++ b/drivers/hwmon/coretemp.c
+>> @@ -413,11 +413,11 @@ static int __init coretemp_init(void)
+>>         for_each_online_cpu(i) {
+>>                 struct cpuinfo_x86 *c = &cpu_data(i);
+>>
+>> -               /* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A */
+>> +               /* check if family 6, models 0xe, 0xf, 0x16, 0x17, 0x1A, 0x1E */
+>>                 if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
+>>                     !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
+>>                         (c->x86_model = 0x16) || (c->x86_model = 0x17) ||
+>> -                       (c->x86_model = 0x1A))) {
+>> +                       (c->x86_model = 0x1A) || (c->x86_model = 0x1E))) {
+>>
+>>                         /* supported CPU not found, but report the unknown
+>>                            family 6 CPU */
+>> --
+>
 
 _______________________________________________
 lm-sensors mailing list
