@@ -1,37 +1,41 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 01 Oct 2009 07:30:09 +0000
-Subject: Re: [lm-sensors] sensors.conf manpage name
-Message-Id: <4AC45A81.5090702@redhat.com>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Date: Sun, 11 Oct 2009 13:44:43 +0000
+Subject: [lm-sensors] How do you make lm_sensors see a hwmon device?
+Message-Id: <4AD1E14B.90604@shikadi.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AC1C369.8090901@redhat.com>
-In-Reply-To: <4AC1C369.8090901@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi all,
 
-On 10/01/2009 09:01 AM, Axel Thimm wrote:
-> Hi,
->
-> On Wed, Sep 30, 2009 at 10:12:23AM +0200, Jean Delvare wrote:
->> On Wed, 30 Sep 2009 10:10:33 +0200, Hans de Goede wrote:
->>> [hans@localhost trunk]$ svn update
->>> svn: OPTIONS of 'http://lm-sensors.org/svn/lm-sensors/trunk': could not connect to server (http://lm-sensors.org)
->>> [hans@localhost trunk]$
->>>
->>> Am I doing something wrong, or ?
->>
->> Same problem here. Axel, help?
->
-> Can you please try again (anonymous/ro works)?
+I've written a driver for a USB device that has a number of sensors on it
+(it's a PC power supply with a USB cable for voltage/current monitoring) and
+the device appears in the hwmon class.
 
-Yes it seems to work now.
+Unfortunately I can't figure out how to make lm_sensors "see" it (when I run
+"sensors" it isn't displayed, and programs like gkrellm that use lm_sensors
+don't see the device or its sensors.)  The files all seem to be in the same
+place as other devices which work, and I'm running a fairly recent version of
+lm_sensors (3.0.3.)
 
-Regards,
+Any ideas how to make my device appear to lm_sensors?
 
-Hans
+$ ls /sys/class/hwmon/hwmon[45]/device/name
+-r--r--r-- 1 root root 4.0K 2009-10-11 22:55 /sys/class/hwmon/hwmon4/device/name
+-r--r--r-- 1 root root 4.0K 2009-10-11 23:24 /sys/class/hwmon/hwmon5/device/name
+
+$ cat /sys/class/hwmon/hwmon[45]/device/name
+coretemp
+odin
+
+$ cat /sys/class/hwmon/hwmon[45]/device/temp1_input
+50000
+39000
+
+Many thanks,
+Adam.
 
 _______________________________________________
 lm-sensors mailing list
