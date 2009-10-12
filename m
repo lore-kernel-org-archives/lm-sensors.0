@@ -1,58 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 29 Oct 2009 08:18:23 +0000
-Subject: Re: [lm-sensors] [PATCH v2 6/6] sensord: Break long lines in
-Message-Id: <20091029091823.6427867d@hyperion.delvare>
+From: Ian Pilcher <arequipeno@gmail.com>
+Date: Mon, 12 Oct 2009 19:45:49 +0000
+Subject: [lm-sensors] "Dummy" sensor driver?
+Message-Id: <hb011f$2p0$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091026205757.GG4725@ubuntu>
-In-Reply-To: <20091026205757.GG4725@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 26 Oct 2009 21:57:57 +0100, Andre Prendel wrote:
-> This patch breaks long lines in function doChips().
-> ---
-> 
->  prog/sensord/sense.c |   11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> Index: sensors/prog/sensord/sense.c
-> =================================> --- sensors.orig/prog/sensord/sense.c	2009-10-26 21:32:05.000000000 +0100
-> +++ sensors/prog/sensord/sense.c	2009-10-26 21:32:23.000000000 +0100
-> @@ -209,17 +209,18 @@
->  
->  static int doChips(int action)
->  {
-> -	const sensors_chip_name *chip;
-> +	const sensors_chip_name *chip, *chip_arg;
->  	int i, j, ret = 0;
->  
-> -	for (j = 0; (ret = 0) && (j < sensord_args.numChipNames); ++ j) {
-> +	for (j = 0; j < sensord_args.numChipNames; j++) {
-> +		chip_arg = &sensord_args.chipNames[j];
->  		i = 0;
-> -		while ((ret = 0) &&
-> -		       ((chip = sensors_get_detected_chips(&sensord_args.chipNames[j], &i)) != NULL)) {
-> +		while ((chip = sensors_get_detected_chips(chip_arg, &i))) {
->  			ret = doChip(chip, action);
-> +			if (ret)
-> +				break;
+I'm currently working on a libsensors-based program, and I'd like to
+continue that work in my spare moments while I travel.  Unfortunately,
+my laptop is a Lenovo T61, which has no sensors recognized by
+lm_sensors (at least not on RHEL 5).
 
-This breaks out of the while loop but not the outermost for loop. This
-is a slight change from the original code... on purpose or not? if not,
-then a direct return might be better suited.
+Is there any such thing as a "dummy" sensor driver that can give my
+program something to chew on?  I'm not at a state yet where I need
+meaningful data.
 
->  		}
->  	}
-> -
->  	return ret;
->  }
->  
-
+Thanks!
 
 -- 
-Jean Delvare
+====================================
+Ian Pilcher                                         arequipeno@gmail.com
+====================================
+
 
 _______________________________________________
 lm-sensors mailing list
