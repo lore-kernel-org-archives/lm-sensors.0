@@ -1,262 +1,590 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Oct 2009 16:42:45 +0000
-Subject: Re: [lm-sensors] [PATCH v2 4/6] sensord: Refactoring of
-Message-Id: <20091028174245.55f6cedb@hyperion.delvare>
+From: LuZhihe <tombowfly@gmail.com>
+Date: Tue, 13 Oct 2009 13:46:32 +0000
+Subject: [lm-sensors] [PATCH 2.6.32-rc3]hwmon:gm965temp for GM/GME965 IGP
+Message-Id: <20091013211657.GA2727@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 26 Oct 2009 21:57:27 +0100, Andre Prendel wrote:
-> This patch cleans up function applyToFeature().
-> 
-> Function applyToFeature() is nearly unreadable. There are some deep
-> levels of indentation and cascades of loops makes code flow difficult to
-> read.
-> 
-> I split up this function into three smaller one. This reduces
-> indentation levels and makes code flow clearer.
-> 
-> Note:
-> This is just the first step. I'm not happy with the mechanism. IMHO
-> this generic way (function pointer) is not the best one. Hiding the
-> compiler warnings (void (label)) in rrdGetSensors_DS() and
-> rrdCGI_DEF() confirms my opinion.
-> 
-> I think a more conrete way is a better approach. So this should be
-> just the starting point for further optimizations.
-> 
-> Changes v2:
-> 
-> * Rename generate_features() to _appyToFeatures().
-> * Get rid of needless variable num.
-> * Change prototype of function pointer FeatureFN. None of the
->   functions returns with an error, so we needn't a return value.
 
-This would have been a nice little separate patch ;)
+Subject: [PATCH] hwmon:gm965temp add GM/GME965 IGP temperature
+report.[Ver0]
 
-Some problems with this patch, see below:
+Intel GM/GME965 has two on-die thermal sensors. Driver support the graphics
+hot spot temperature report.
 
-> 
-> ---
-> 
->  prog/sensord/rrd.c |  124 +++++++++++++++++++++++++++++------------------------
->  1 file changed, 70 insertions(+), 54 deletions(-)
-> Index: sensors/prog/sensord/rrd.c
-> =================================> --- sensors.orig/prog/sensord/rrd.c	2009-10-26 21:08:33.000000000 +0100
-> +++ sensors/prog/sensord/rrd.c	2009-10-26 21:14:18.000000000 +0100
-> @@ -68,7 +68,7 @@
->  #define LOADAVG "loadavg"
->  #define LOAD_AVERAGE "Load Average"
->  
-> -typedef int (*FeatureFN) (void *data, const char *rawLabel, const char *label,
-> +typedef void (*FeatureFN) (void *data, const char *rawLabel, const char *label,
->  			  const FeatureDescriptor *feature);
->  
->  static char rrdNextChar(char c)
-> @@ -137,52 +137,72 @@
->  	}
->  }
->  
-> -static int applyToFeatures(FeatureFN fn, void *data)
-> +static int _applyToFeatures(FeatureFN fn, void *data,
-> +			     const sensors_chip_name *chip,
-> +			     const ChipDescriptor *desc)
-> +{
-> +	int i;
-> +	const FeatureDescriptor *features = desc->features;
-> +	const FeatureDescriptor *feature;
-> +	const char *rawLabel;
-> +	char *label;
-> +
-> +	for (i = 0; i < MAX_RRD_SENSORS && features[i].format; ++i) {
-> +		feature = features + i;
-> +		rawLabel = feature->feature->name;
-> +
-> +		label = sensors_get_label(chip, feature->feature);
-> +		if (!label) {
-> +			sensorLog(LOG_ERR, "Error getting sensor label: %s/%s",
-> +				  chip->prefix, rawLabel);
-> +			return -1;
-> +		}
-> +
-> +		rrdCheckLabel(rawLabel, i);
-> +		fn(data, rrdLabels[i], label, feature);
-> +		free(label);
-> +	}
-> +	return 0;
-> +}
-> +
-> +static ChipDescriptor *lookup_known_chips(const sensors_chip_name *chip)
->  {
-> -	const sensors_chip_name *chip;
-> -	int i, j, ret = 0, num = 0;
-> +	int i;
->  
-> -	for (j = 0; (ret = 0) && (j < sensord_args.numChipNames); ++ j) {
-> -		i = 0;
-> -		while ((ret = 0) && ((chip = sensors_get_detected_chips(&sensord_args.chipNames[j], &i)) != NULL)) {
-> -			int index0, chipindex = -1;
-> -
-> -			/* Trick: we compare addresses here. We know it works
-> -			 * because both pointers were returned by
-> -			 * sensors_get_detected_chips(), so they refer to
-> -			 * libsensors internal structures, which do not move.
-> -			 */
-> -			for (index0 = 0; knownChips[index0].features; ++index0)
-> -				if (knownChips[index0].name = chip) {
-> -					chipindex = index0;
-> -					break;
-> -				}
-> -			if (chipindex >= 0) {
-> -				const ChipDescriptor *descriptor = &knownChips[chipindex];
-> -				const FeatureDescriptor *features = descriptor->features;
-> -
-> -				for (index0 = 0; (ret = 0) && (num < MAX_RRD_SENSORS) && features[index0].format; ++index0) {
-> -					const FeatureDescriptor *feature = features + index0;
-> -					const char *rawLabel = feature->feature->name;
-> -					char *label = NULL;
-> -
-> -					if (!(label = sensors_get_label(chip, feature->feature))) {
-> -						sensorLog(LOG_ERR, "Error getting sensor label: %s/%s", chip->prefix, rawLabel);
-> -						ret = -1;
-> -					} else  {
-> -						rrdCheckLabel(rawLabel, num);
-> -						ret = fn(data,
-> -							 rrdLabels[num],
-> -							 label, feature);
-> -						++ num;
-> -					}
-> -					if (label)
-> -						free(label);
-> -				}
-> -			}
-> +	/* Trick: we compare addresses here. We know it works
-> +	 * because both pointers were returned by
-> +	 * sensors_get_detected_chips(), so they refer to
-> +	 * libsensors internal structures, which do not move.
-> +	 */
-> +	for (i = 0; knownChips[i].features; i++) {
-> +		if (knownChips[i].name = chip) {
-> +			return &knownChips[i];
->  		}
->  	}
-> -	return ret;
-> +	return NULL;
-> +}
-> +
-> +static int applyToFeatures(FeatureFN fn, void *data)
-> +{
-> +	int i, i_detected, ret;
-> +	const sensors_chip_name *chip, *chip_arg;
-> +	ChipDescriptor *desc;
-> +
-> +	for (i = 0; i < sensord_args.numChipNames; i++) {
-> +		chip_arg = &sensord_args.chipNames[i];
-> +		i_detected = 0;
-> +		while ((chip = sensors_get_detected_chips(chip_arg,
-> +							  &i_detected))) {
-> +			desc = lookup_known_chips(chip);
-> +			if (!desc)
-> +				continue;
-> +
-> +			ret = _applyToFeatures(fn, data, chip, desc);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +	}
-> +	return 0;
->  }
->  
->  struct ds {
-> @@ -190,7 +210,7 @@
->  	const char **argv;
->  };
->  
-> -static int rrdGetSensors_DS(void *_data, const char *rawLabel,
-> +static void rrdGetSensors_DS(void *_data, const char *rawLabel,
->  			    const char *label,
->  			    const FeatureDescriptor *feature)
->  {
-> @@ -227,7 +247,6 @@
->  		sprintf(ptr, "DS:%s:GAUGE:%d:%s:%s", rawLabel, 5 *
->  			sensord_args.rrdTime, min, max);
->  	}
-> -	return 0;
->  }
->  
->  static int rrdGetSensors(const char **argv)
-> @@ -236,8 +255,8 @@
->  	struct ds data = { 0, argv};
->  	ret = applyToFeatures(rrdGetSensors_DS, &data);
->  	if (!ret && sensord_args.doLoad)
-> -		ret = rrdGetSensors_DS(&data, LOADAVG, LOAD_AVERAGE, NULL);
-> -	return ret ? -1 : data.num;
-> +		rrdGetSensors_DS(&data, LOADAVG, LOAD_AVERAGE, NULL);
-> +	return data.num;
+Chips GM/GME965 is tested, and seems work. While GM45 and more other desktop
+chips are not tested, it may be not work for them. So user need to enable
+flag "TEST_MORE" to test them.
 
-This change doesn't seem to be required, nor desired. ret can still
-hold an error value returned by applyToFeatures() and we want to
-propagate it up to the caller.
+Thanks to Tobias Hain<tobias.hain@gmx.de> for helped me to test GM965 chip too, to add desktop chips.
 
->  }
->  
->  int rrdInit(void)
-> @@ -303,7 +322,7 @@
->  	int loadAvg;
->  };
->  
-> -static int rrdCGI_DEF(void *_data, const char *rawLabel, const char *label,
-> +static void rrdCGI_DEF(void *_data, const char *rawLabel, const char *label,
->  		      const FeatureDescriptor *feature)
->  {
->  	struct gr *data = _data;
-> @@ -311,7 +330,6 @@
->  	if (!feature || (feature->rrd && (feature->type = data->type)))
->  		printf("\n\tDEF:%s=%s:%s:AVERAGE", rawLabel,
->  		       sensord_args.rrdFile, rawLabel);
-> -	return 0;
->  }
->  
->  /*
-> @@ -339,14 +357,13 @@
->  	return color;
->  }
->  
-> -static int rrdCGI_LINE(void *_data, const char *rawLabel, const char *label,
-> +static void rrdCGI_LINE(void *_data, const char *rawLabel, const char *label,
->  		       const FeatureDescriptor *feature)
->  {
->  	struct gr *data = _data;
->  	if (!feature || (feature->rrd && (feature->type = data->type)))
->  		printf("\n\tLINE2:%s#%.6x:\"%s\"", rawLabel,
->  		       rrdCGI_color(label), label);
-> -	return 0;
->  }
->  
->  static struct gr graphs[] = {
-> @@ -468,11 +485,10 @@
->  		if (!ret)
->  			ret = applyToFeatures(rrdCGI_DEF, graph);
->  		if (!ret && sensord_args.doLoad && graph->loadAvg)
-> -			ret = rrdCGI_DEF(graph, LOADAVG, LOAD_AVERAGE, NULL);
-> -		if (!ret)
-> +			rrdCGI_DEF(graph, LOADAVG, LOAD_AVERAGE, NULL);
->  			ret = applyToFeatures(rrdCGI_LINE, graph);
+Thanks to Mauro Blanco<blancomau@gmail.com> for helped me to test GME965
+chip.
 
-Messed up big time :p
+MODULE_DEVICE_TABLE calling in this path just for test, I am not quit
+sure about it. 
 
->  		if (!ret && sensord_args.doLoad && graph->loadAvg)
-> -			ret = rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
-> +			rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
->  		printf (">\n</p>\n");
->  	}
->  	printf("<p>\n<small><b>sensord</b> by "
+This path waiting for your review, please help me to improve it.
+Thank you!
 
+Signed-off-by: Lu Zhihe <tombowfly@gmail.com>
+---
 
--- 
-Jean Delvare
+diff -uprN -X linux-2.6.32-rc3.orig/Documentation/dontdiff linux-2.6.32-rc3.orig/drivers/hwmon/Kconfig linux-2.6.32-rc3/drivers/hwmon/Kconfig
+--- linux-2.6.32-rc3.orig/drivers/hwmon/Kconfig	2009-10-10 23:42:13.000000000 +0000
++++ linux-2.6.32-rc3/drivers/hwmon/Kconfig	2009-10-12 22:33:33.000000000 +0000
+@@ -372,6 +372,16 @@ config SENSORS_GL520SM
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called gl520sm.
+ 
++config SENSORS_GM965TEMP
++        tristate "Intel GM965 temperature sensor"
++        depends on PCI
++        help
++          If you say yes here you get support for GM965 IGP temperatue
++          sensor.
++
++          This driver can also be built as a module.  If so, the module
++          will be called gm965temp.
++
+ config SENSORS_CORETEMP
+ 	tristate "Intel Core/Core2/Atom temperature sensor"
+ 	depends on X86 && EXPERIMENTAL
+diff -uprN -X linux-2.6.32-rc3.orig/Documentation/dontdiff linux-2.6.32-rc3.orig/drivers/hwmon/Makefile linux-2.6.32-rc3/drivers/hwmon/Makefile
+--- linux-2.6.32-rc3.orig/drivers/hwmon/Makefile	2009-10-10 23:42:06.000000000 +0000
++++ linux-2.6.32-rc3/drivers/hwmon/Makefile	2009-10-12 22:33:33.000000000 +0000
+@@ -46,6 +46,7 @@ obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
+ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
++obj-$(CONFIG_SENSORS_GM965TEMP)	+= gm965temp.o
+ obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
+diff -uprN -X linux-2.6.32-rc3.orig/Documentation/dontdiff linux-2.6.32-rc3.orig/drivers/hwmon/gm965temp.c linux-2.6.32-rc3/drivers/hwmon/gm965temp.c
+--- linux-2.6.32-rc3.orig/drivers/hwmon/gm965temp.c	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.32-rc3/drivers/hwmon/gm965temp.c	2009-10-12 22:56:41.000000000 +0000
+@@ -0,0 +1,517 @@
++/*
++ * A hwmon driver for the Intel GM/GME965 chipset IGP
++ * temperature sensors
++ *
++ * Copyright (C) 2009 Lu Zhihe <tombowfly at gmail.com>
++ *
++ * Tested and helped improved by:
++ *
++ *    Tobias Hain <tobias.hain@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/module.h>
++#include <linux/jiffies.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
++#include <linux/pci.h>
++#include <linux/platform_device.h>
++
++#define DRVNAME "gm965temp"
++
++#if 0
++#define TEST_MORE	/*For test more desktop chipsets*/
++#endif
++#define USE_RTR   	/*Flag for report method*/
++
++enum { SHOW_TEMP, SHOW_TJMAX, SHOW_TTARGET, SHOW_LABEL } SHOW;
++
++/*Mobile Series Chipsets, read from TR1/RTR1*/
++#define PCI_DEVICE_ID_INTEL_82965GM       0x2a00
++#define PCI_DEVICE_ID_INTEL_82965GME      0x2a10
++#define PCI_DEVICE_ID_INTEL_GM45          0x2a40
++
++#ifdef TEST_MORE
++/*3 Series Chipsets, read from TSTTP.RELT*/
++#define PCI_DEVICE_ID_INTEL_Q35		  0x29b0
++#define PCI_DEVICE_ID_INTEL_G33		  0x29c0
++#define PCI_DEVICE_ID_INTEL_Q33		  0x29d0
++
++/*4 Series Chipsets, read from TSTTP.RELT*/
++#define PCI_DEVICE_ID_INTEL_Q45		  0x2e10
++#define PCI_DEVICE_ID_INTEL_G45		  0x2e20
++#define PCI_DEVICE_ID_INTEL_G41		  0x2e30
++#define PCI_DEVICE_ID_INTEL_B43_BASE	  0x2e40
++#define PCI_DEVICE_ID_INTEL_B43_SOFT_SKU  0x2e90
++#endif
++
++#define IS_GM   (data->chipset_id = PCI_DEVICE_ID_INTEL_82965GM	\
++		|| data->chipset_id = PCI_DEVICE_ID_INTEL_82965GME 	\
++		|| data->chipset_id = PCI_DEVICE_ID_INTEL_GM45)
++
++#define GM965_SYSFS_NAME_LEN              16
++
++#define MCHBAR_I965 0x48      /* MCH Memory Mapped Register BAR */
++#define MCHBAR_MASK 0xfffffc000ULL  /* bits 35:14 */
++
++static ssize_t show_label(struct device *dev,
++		struct device_attribute *devattr,
++		char *buf);
++
++static ssize_t show_temp(struct device *dev,
++				struct device_attribute *devattr,
++				char *buf);
++struct gm965temp_data {
++	struct device *hwmon_dev;
++	struct mutex update_lock;
++
++	u64 igp_base;
++	unsigned long igp_len;
++	void __iomem *igp_mmio;
++
++	unsigned int temp;
++	unsigned long chipset_id;
++};
++
++static ssize_t show_name(struct device *dev, struct device_attribute *devattr,
++			 char *buf)
++{
++	return sprintf(buf, "%s\n", DRVNAME);
++}
++
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, SHOW_TEMP);
++static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_temp, NULL, SHOW_TJMAX);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_temp, NULL,
++			SHOW_TTARGET);
++static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL, SHOW_LABEL);
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static struct attribute *gm965temp_attributes[] = {
++	&sensor_dev_attr_temp1_label.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group gm965temp_group = {
++	.attrs = gm965temp_attributes,
++};
++
++static const struct pci_device_id gm965temp_pci_ids[] = {
++#define ID(x)                                           \
++	{                                               \
++	.class          = (PCI_CLASS_BRIDGE_HOST << 8), \
++	.class_mask     = ~0,                           \
++	.vendor         = PCI_VENDOR_ID_INTEL,          \
++	.device         = x,                            \
++	.subvendor      = PCI_ANY_ID,                   \
++	.subdevice      = PCI_ANY_ID,                   \
++	}
++	ID(PCI_DEVICE_ID_INTEL_82965GM),
++	ID(PCI_DEVICE_ID_INTEL_82965GME),
++	ID(PCI_DEVICE_ID_INTEL_GM45),
++#ifdef TEST_MORE
++	ID(PCI_DEVICE_ID_INTEL_Q35),
++	ID(PCI_DEVICE_ID_INTEL_G33),
++	ID(PCI_DEVICE_ID_INTEL_Q33),
++	ID(PCI_DEVICE_ID_INTEL_Q45),
++	ID(PCI_DEVICE_ID_INTEL_G45),
++	ID(PCI_DEVICE_ID_INTEL_G41),
++	ID(PCI_DEVICE_ID_INTEL_B43_BASE),
++	ID(PCI_DEVICE_ID_INTEL_B43_SOFT_SKU),
++#endif
++	{}
++};
++
++MODULE_DEVICE_TABLE(pci, gm965temp_pci_ids);
++
++static struct platform_device *igp_pdev;
++static struct pci_dev *pcidev;
++static unsigned long devid;
++
++static u8 igp_read_byte(struct gm965temp_data *data, unsigned long offset)
++{
++	return ioread8(data->igp_mmio + offset);
++}
++
++static u16 igp_read_short(struct gm965temp_data *data, unsigned long offset)
++{
++	return ioread16(data->igp_mmio + offset);
++}
++
++static u32 igp_read_int(struct gm965temp_data *data, unsigned long offset)
++{
++	return ioread32(data->igp_mmio + offset);
++}
++
++static void igp_write_short(struct gm965temp_data *data, unsigned long offset,
++				u16 val)
++{
++	iowrite16(val, data->igp_mmio + offset);
++}
++
++static ssize_t show_label(struct device *dev,
++		struct device_attribute *devattr,
++		char *buf)
++{
++	return sprintf(buf, "GM965 IGP\n");
++}
++
++
++#define TSC1	0x1001
++#define TSS1	0x1004
++#define TR1	0x1006
++#define TOF1	0x1007
++#define RTR1	0x1008
++
++#define G_TSC1	0xCD8	/*8 bits*/
++#define G_TSS	0xCDA   /*8 bits*/
++#define TSTTP	0xCDC	/*32 bits*/
++
++#define G_TSE	0x80
++
++#define TSE	0x8000
++#define TMOV	(0x01 << 10)
++#define G_TMOV	(0x01 << 4)
++
++#define RELT_MASK  0xFF000000	/*bits 31:24*/
++#define HTPS_MASK  0xFF00	/*bits 15:8 */
++#define CTPS_MASK  0xFF	/*bits 7:0  */
++
++#define MAX_RETRIES  6
++
++static struct gm965temp_data *gm965temp_update_device(struct device *dev)
++{
++	struct gm965temp_data *data = dev_get_drvdata(dev);
++	unsigned short tsc1_val = 0;
++#ifdef USE_RTR
++	char  rtr1_val = 0;
++	unsigned char  tof1_val = 0;
++#else
++	unsigned char  tr1_val = 0;
++#endif
++	unsigned short tss1_val = 0, tmov = 0;
++	unsigned int tsttp_val = 0, htps_val = 0;
++	char relt_val = 0;
++	unsigned int tsc1 = 0, tss1 = 0, tse = 0;
++	int temp_val = 0;
++	int i = MAX_RETRIES;
++
++	data->temp = 0x0;
++	if (IS_GM) {
++		tsc1 = TSC1;
++		tss1 = TSS1;
++		tse = TSE;
++		tmov = TMOV;
++	} else {
++		tsc1 = G_TSC1;
++		tss1 = G_TSS;
++		tse = G_TSE;
++		tmov = G_TMOV;
++	}
++
++	mutex_lock(&data->update_lock);
++
++	if (IS_GM)
++		tsc1_val = igp_read_short(data, tsc1);
++	else
++		tsc1_val = igp_read_byte(data, tsc1);
++
++	if (!(tsc1_val & tse)) {
++		igp_write_short(data, tsc1, tsc1_val|tse);
++		if (IS_GM)
++			tsc1_val = igp_read_short(data, tsc1);
++		else
++			tsc1_val = igp_read_byte(data, tsc1);
++	} else {
++		if (IS_GM)
++			tss1_val = igp_read_short(data, tss1);
++		else
++			tss1_val = igp_read_byte(data, tss1);
++
++		/* Wait for the thermal sensor read ready */
++		while (!(tss1_val & tmov) && (0 < i--)) {
++			mdelay(1);
++			udelay(600);
++			if (IS_GM)
++				tss1_val = igp_read_short(data, tss1);
++			else
++				tss1_val = igp_read_byte(data, tss1);
++		}
++
++		/* function to map register values to temperatures taken from
++		* p. 358 http://www.intel.com/design/chipsets/datashts/313053.htm
++		*/
++		if (tss1_val & tmov) {
++			if (IS_GM) {
++#ifdef USE_RTR
++				rtr1_val = igp_read_byte(data, RTR1);
++				tof1_val = igp_read_byte(data, TOF1);
++				rtr1_val += tof1_val;
++				if ((rtr1_val != 0xFF) && (rtr1_val != 0x0)) {
++					data->temp = (16*rtr1_val*rtr1_val
++						- 11071*rtr1_val + 1610500)/10;
++				}
++#else
++				tr1_val = igp_read_byte(data, TR1);
++				if ((tr1_val != 0xFF) && (tr1_val != 0x0)) {
++					data->temp = (16*tr1_val*tr1_val
++						- 11071*tr1_val + 1610500)/10;
++				}
++#endif
++			} else {
++				tsttp_val = igp_read_int(data, TSTTP);
++				htps_val = (tsttp_val & HTPS_MASK) >> 8;
++				relt_val = (tsttp_val & RELT_MASK) >> 24;
++				temp_val = htps_val + relt_val;
++				data->temp = (16*temp_val*relt_val
++					- 11071*temp_val + 1610500)/10;
++			}
++		}
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++static ssize_t show_temp(struct device *dev,
++				struct device_attribute *devattr,
++				char *buf)
++{
++	struct gm965temp_data *data = dev_get_drvdata(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	unsigned int temp = 0;
++
++	if (attr->index = SHOW_TEMP) {
++		data = gm965temp_update_device(dev);
++		temp = data->temp;
++		return sprintf(buf, "%d\n", temp);
++	} else {
++		unsigned int TjMax = 110;
++		return sprintf(buf, "%d\n", TjMax*1000);
++	}
++}
++
++static int __devinit gm965temp_hwmon_init(struct platform_device *pdev)
++{
++	int res = 0;
++	struct gm965temp_data *data = platform_get_drvdata(pdev);
++
++	res = device_create_file(&pdev->dev, &dev_attr_name);
++	if (res)
++		goto exit_remove;
++
++	res = sysfs_create_group(&pdev->dev.kobj, &gm965temp_group);
++	if (res)
++		goto exit_dev;
++
++	data->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		res = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	return res;
++
++exit_remove:
++	sysfs_remove_group(&pdev->dev.kobj, &gm965temp_group);
++exit_dev:
++	device_remove_file(&pdev->dev, &dev_attr_name);
++
++	return res;
++}
++
++static int __devinit gm965temp_add(void)
++{
++	int res = -ENODEV;
++
++	/* only ever going to be one of these */
++	igp_pdev = platform_device_alloc(DRVNAME, 0);
++	if (!igp_pdev)
++		return -ENOMEM;
++
++	res = platform_device_add(igp_pdev);
++	if (res)
++		goto err;
++	return 0;
++
++err:
++	platform_device_put(igp_pdev);
++	return res;
++}
++
++static int __devinit gm965_find_registers(struct gm965temp_data *data)
++{
++	u32 val32 = 0x0UL;
++	u64 val64 = 0x0ULL;
++	int res = -ENODEV;
++
++	if (pci_read_config_dword(pcidev, MCHBAR_I965, &val32))
++		goto out;
++
++	if (!(val32 & 1))
++		pci_write_config_dword(pcidev, MCHBAR_I965, val32 | 1);
++
++	val64 = (u64)val32;
++	if (pci_read_config_dword(pcidev, MCHBAR_I965 + 4, &val32))
++		goto out;
++
++	val64 |= (u64)val32 << 32;
++	data->igp_base = val64 & MCHBAR_MASK;
++	data->igp_len = 16*1024;
++
++	data->chipset_id = devid;
++
++	res = 0;
++out:
++	pci_dev_put(pcidev);
++	return res;
++}
++
++static unsigned long chipset_ids[] = {
++	PCI_DEVICE_ID_INTEL_82965GM,
++	PCI_DEVICE_ID_INTEL_82965GME,
++	PCI_DEVICE_ID_INTEL_GM45,
++#ifdef TEST_MORE
++	PCI_DEVICE_ID_INTEL_Q35,
++	PCI_DEVICE_ID_INTEL_G33,
++	PCI_DEVICE_ID_INTEL_Q33,
++	PCI_DEVICE_ID_INTEL_Q45,
++	PCI_DEVICE_ID_INTEL_G45,
++	PCI_DEVICE_ID_INTEL_G41,
++	PCI_DEVICE_ID_INTEL_B43_BASE,
++	PCI_DEVICE_ID_INTEL_B43_SOFT_SKU,
++#endif
++	0
++};
++
++static int __devinit gm965temp_probe(struct platform_device *pdev)
++{
++	struct gm965temp_data *data = NULL;
++	struct resource *reso = NULL;
++	int res = -ENODEV;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	res = gm965_find_registers(data);
++	if (res)
++		goto err;
++	/* Set up resource regions */
++	reso = request_mem_region(data->igp_base, data->igp_len, DRVNAME);
++	if (!reso) {
++		printk(KERN_ERR "request_mem_region failed\n");
++		res = -EBUSY;
++		goto err;
++	}
++
++	data->igp_mmio = ioremap_nocache(data->igp_base, data->igp_len);
++	if (!data->igp_mmio) {
++		printk(KERN_ERR "ioremap_nocache failed\n");
++		res = -EBUSY;
++		goto err_map_failed;
++	}
++
++	platform_set_drvdata(pdev, data);
++
++	mutex_init(&data->update_lock);
++
++	res = gm965temp_hwmon_init(pdev);
++	if (res)
++		goto err_init_failed;
++
++	return res;
++
++err_init_failed:
++	iounmap(data->igp_mmio);
++	platform_set_drvdata(pdev, NULL);
++err_map_failed:
++	release_mem_region(data->igp_base, data->igp_len);
++err:
++	kfree(data);
++	return res;
++}
++
++static int __devexit gm965temp_remove(struct platform_device *pdev)
++{
++	struct gm965temp_data *data = platform_get_drvdata(pdev);
++	hwmon_device_unregister(data->hwmon_dev);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++
++	iounmap(data->igp_mmio);
++	release_mem_region(data->igp_base, data->igp_len);
++	platform_set_drvdata(pdev, NULL);
++	kfree(data);
++	return 0;
++}
++
++static struct platform_driver gm965temp_driver = {
++	.driver = {
++		.owner = THIS_MODULE,
++		.name = DRVNAME,
++	},
++	.probe = gm965temp_probe,
++	.remove = __devexit_p(gm965temp_remove),
++};
++
++static int __init gm965temp_init(void)
++{
++	int res = 0;
++	unsigned long *i = NULL;
++
++	for (i = chipset_ids; *i != 0; i++) {
++		pcidev = pci_get_device(PCI_VENDOR_ID_INTEL, *i, NULL);
++		if (!pcidev) {
++			printk(KERN_INFO "Try pci_get_device for devid 0x%lx failed\n",
++					*i);
++			pci_dev_put(pcidev);
++			return -ENODEV;
++		} else {
++			devid = *i;
++			break;
++		}
++	}
++
++	res = platform_driver_register(&gm965temp_driver);
++	if (res)
++		return res;
++
++	res = gm965temp_add();
++	if (res)
++		platform_driver_unregister(&gm965temp_driver);
++
++	return res;
++}
++
++static void __exit gm965temp_exit(void)
++{
++	platform_device_unregister(igp_pdev);
++	platform_driver_unregister(&gm965temp_driver);
++}
++
++MODULE_AUTHOR("Lu Zhihe");
++MODULE_DESCRIPTION("Intel GM965 chipset IGP temperature sensor");
++MODULE_LICENSE("GPL and additional rights");
++
++module_init(gm965temp_init);
++module_exit(gm965temp_exit);
++
 
 _______________________________________________
 lm-sensors mailing list
