@@ -1,17 +1,26 @@
-From: Onkalo Samu <samu.p.onkalo@nokia.com>
-Date: Tue, 13 Oct 2009 10:13:33 +0000
+From: "Trisal, Kalhan" <kalhan.trisal@intel.com>
+Date: Tue, 13 Oct 2009 10:32:10 +0000
 Subject: Re: [lm-sensors] [RFC][PATCH 0/2] LIS3LV02D I2C driver
-Message-Id: <1255428813.3974.9.camel@4fid08082>
+Message-Id: <3CA6C6D9F70D314CA34352990B57DA1539AE7E1D@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1254391591-9696-1-git-send-email-samu.p.onkalo@nokia.com>
 	 <4ACCC273.1030308@gmail.com> <4ACCC957.3060802@tremplin-utc.net>
-	 <4ACCCF48.5090005@tremplin-utc.net>
-In-Reply-To: <4ACCCF48.5090005@tremplin-utc.net>
+	 <4ACCCF48.5090005@tremplin-utc.net> <1255428813.3974.9.camel@4fid08082>
+In-Reply-To: <1255428813.3974.9.camel@4fid08082>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-To: ext =?ISO-8859-1?Q?=C9ric?= Piel <eric.piel@tremplin-utc.net>, "Trisal, Kalhan" <kalhan.trisal@intel.com>
+To: "samu.p.onkalo@nokia.com" <samu.p.onkalo@nokia.com>, =?utf-8?B?ZXh0IMOJcmljIFBpZWw=?= <eric.piel@tremplin-utc.net>
 Cc: Jonathan Cameron <Jonathan.Cameron@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>
+
+
+
+-----Original Message-----
+From: Onkalo Samu [mailto:samu.p.onkalo@nokia.com] 
+Sent: Tuesday, October 13, 2009 3:44 PM
+To: ext Éric Piel; Trisal, Kalhan
+Cc: Jonathan Cameron; linux-kernel@vger.kernel.org; LM Sensors; Jean Delvare; Andrew Morton
+Subject: Re: [RFC][PATCH 0/2] LIS3LV02D I2C driver
 
 On Wed, 2009-10-07 at 19:26 +0200, ext Éric Piel wrote:
 > Op 07-10-09 19:01, Éric Piel schreef:
@@ -57,12 +66,18 @@ http://marc.info/?l=linux-kernel&m5472767421625&w=2
 http://marc.info/?l=linux-kernel&m5472767421629&w=2
 
 http://marc.info/?l=linux-kernel&m5472767421639&w=2
-
+ 
 Br,
 Samu
 
 
+Hi Samu, 
+  I haven't tested your patch yet but it will work.
+   I have seen the patch, the glue layer is exactly same 
+   what I have also tested part of my driver.
 
+Br
+Kalhan
 
 _______________________________________________
 lm-sensors mailing list
