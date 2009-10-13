@@ -1,42 +1,35 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Date: Sun, 18 Oct 2009 21:25:43 +0000
-Subject: Re: [lm-sensors] How do you make lm_sensors see a hwmon device?
-Message-Id: <4ADB87D7.3090401@shikadi.net>
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Tue, 13 Oct 2009 21:49:12 +0000
+Subject: [lm-sensors] lm-sensors 3.1.1-3 not detecting sensors on Intel
+Message-Id: <alpine.DEB.2.00.0910131743530.5034@p34.internal.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AD1E14B.90604@shikadi.net>
-In-Reply-To: <4AD1E14B.90604@shikadi.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org
 
-> As there doesn't seem to be any change planned in the immediate future,
-> I've committed my code as is. If the name format changes upstream,
-> we'll have to update libsensors accordingly.
+Hello,
 
-No worries, I'll keep an eye on it.  Thanks again for your help getting it
-working!
+# uname -a
+Linux box 2.6.31.3 #2 SMP Wed Oct 14 04:55:36 EDT 2009 x86_64 GNU/Linux
 
->>> I'll post instructions on what to do once the modules are loaded when I post
->>> the code shortly.
->> Great, thanks.
-> 
-> Unfortunately I can't seem to find the time to test it, sorry.
+I have a DP55KG motherboard, it says Ibex support was added here:
+http://www.lm-sensors.org/changeset/5375
 
-No problem, it's there if you ever need to verify your HID code is working
-properly.
+# sensors
+No sensors found!
+Make sure you loaded all the kernel drivers you need.
+Try sensors-detect to find out which these are.
 
-By the way, if you are still looking at buying a PSU with sensors in it, there
-are a few alternatives to the Gigabyte that support nVidia's ESA:
-http://www.nvidia.com/object/nvidia_certified_products.html
+I have all of the modules compiled into the kernel and sensors-detect does 
+not find anything.
 
-Of course there is no Linux support that I am aware of as yet, but as ESA is
-supposed to be an open standard I wouldn't imagine it would take too long
-(still waiting to hear back with specs though.)
+00:1f.3 SMBus: Intel Corporation Ibex Peak SMBus Controller (rev 05)
 
-Cheers,
-Adam.
+Any ideas?
 
+Justin.
 
 _______________________________________________
 lm-sensors mailing list
