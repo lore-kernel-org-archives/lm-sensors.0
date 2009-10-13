@@ -1,45 +1,28 @@
-From: Riku Voipio <riku.voipio@iki.fi>
-Date: Thu, 08 Oct 2009 08:50:08 +0000
-Subject: Re: [lm-sensors] [PATCH] MAINTAINERS: Fix Riku Voipio's address
-Message-Id: <20091008085008.GA31779@kos.to>
+From: <kpyle@austin.rr.com>
+Date: Tue, 13 Oct 2009 22:13:14 +0000
+Subject: Re: [lm-sensors] sensors.conf for im-645gse-a (msi9830)
+Message-Id: <20091013221314.5V077.602614.root@hrndva-web01-z01>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091007092829.074a6d6b@hyperion.delvare>
-In-Reply-To: <20091007092829.074a6d6b@hyperion.delvare>
+References: <4A4BA746.7050803@gmx.de>
+In-Reply-To: <4A4BA746.7050803@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 07, 2009 at 09:28:29AM +0200, Jean Delvare wrote:
-> From: Jean Delvare <khali@linux-fr.org>
-> Subject: MAINTAINERS: Fix Riku Voipio's address
->=20
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Riku Voipio <riku.voipio@iki.fi>
+On 07/03/2009 12:29 PM, Hans de Goede wrote:
+> On 07/01/2009 08:13 PM, Thomas Ettwein wrote:
+> > # lm_sensors configuration file for the MSI IM-945GSE-A motherboard
+> > # Atom N270, Dual Gigabit Intel 82574L controllers, VGA, DVI
+> > # 2009-07-01 Thomas Ettwein
+>
+>
+> Thanks, it has been added to the wiki:
+> http://lm-sensors.org/wiki/Configurations/MSI/IM-945GSE-A
 
-That was an embarassing typo from me...
+I used the wiki configuration for a MSI IM-945GSE-A.  The sensors command reports that 12V is at 14.7V while a simultaneous measurement at the ATX connector with a volt meter shows 12.3V.  I don't know enough about the board to measure at the SuperIO chip used by lm_sensors on this board, but I'm assuming the sensor report is incorrect.  Could the values used to compute in5 in the wiki configuration be incorrect?  All other values reported by the sensors command seem reasonable.
 
-Ac=E1=B8=B1ed-By: Riku Voipio <riku.voipio@iki.fi>
-
-> ---
->  MAINTAINERS |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> --- linux-2.6.32-rc3.orig/MAINTAINERS	2009-10-05 10:45:48.000000000 +0200
-> +++ linux-2.6.32-rc3/MAINTAINERS	2009-10-06 21:03:31.000000000 +0200
-> @@ -2058,7 +2058,7 @@ S:	Maintained
->  F:	fs/*
-> =20
->  FINTEK F75375S HARDWARE MONITOR AND FAN CONTROLLER DRIVER
-> -M:	Riku Voipio <riku.vipio@iki.fi>
-> +M:	Riku Voipio <riku.voipio@iki.fi>
->  L:	lm-sensors@lm-sensors.org
->  S:	Maintained
->  F:	drivers/hwmon/f75375s.c
->=20
->=20
-> --=20
-> Jean Delvare
+Thanks.
 
 _______________________________________________
 lm-sensors mailing list
