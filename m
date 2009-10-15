@@ -1,47 +1,67 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 13 Oct 2009 08:40:23 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp: maintainer update
-Message-Id: <20091013104023.5b60627a@hyperion.delvare>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 15 Oct 2009 20:28:31 +0000
+Subject: [lm-sensors] [patch 1/5] hwmon: Convert fschmd to unlocked_ioctl
+Message-Id: <20091015202758.400949170@linutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091013070636.GA10273@owl>
-In-Reply-To: <20091013070636.GA10273@owl>
+References: <20091015202722.372890083@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: ALan Cox <alan@lxorguk.ukuu.org.uk>, Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org
 
-Hi Huaxu,
+The conversion of fschmd watchdog ioctl to unlocked_ioctl needs to
+protect the static watchdog_info variable for the WDIOC_GETSUPPORT
+command.
 
-On Tue, 13 Oct 2009 15:06:36 +0800, Huaxu Wan wrote:
-> From: Huaxu Wan <huaxu.wan@linux.intel.com>
-> Subject: [PATCH] coretemp: maintainers update
-> 
-> Please update the maintainer of coretemp.
-> 
+All other commands are safe w/o BKL as the called watchdog functions
+are already serialized with watchdog_lock of the sensor.
 
-Your Signed-off-by line is missing... Probably doesn't matter too much
-for this specific patch, but please think about it in the future!
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: lm-sensors@lm-sensors.org
+---
+ drivers/hwmon/fschmd.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-> ---
->  MAINTAINERS |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index ff96884..78052bf 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1480,6 +1480,7 @@ F:	mm/*cgroup*
->  
->  CORETEMP HARDWARE MONITORING DRIVER
->  M:	Rudolf Marek <r.marek@assembler.cz>
-> +M:	Huaxu Wan <huaxu.wan@intel.com>
->  L:	lm-sensors@lm-sensors.org
->  S:	Maintained
->  F:	Documentation/hwmon/coretemp
+Index: linux-2.6-tip/drivers/hwmon/fschmd.c
+=================================--- linux-2.6-tip.orig/drivers/hwmon/fschmd.c
++++ linux-2.6-tip/drivers/hwmon/fschmd.c
+@@ -844,8 +844,8 @@ static ssize_t watchdog_write(struct fil
+ 	return count;
+ }
+ 
+-static int watchdog_ioctl(struct inode *inode, struct file *filp,
+-	unsigned int cmd, unsigned long arg)
++static long watchdog_ioctl(struct file *filp, unsigned int cmd,
++			   unsigned long arg)
+ {
+ 	static struct watchdog_info ident = {
+ 		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
+@@ -857,11 +857,13 @@ static int watchdog_ioctl(struct inode *
+ 
+ 	switch (cmd) {
+ 	case WDIOC_GETSUPPORT:
++		mutex_lock(&watchdog_data_mutex);
+ 		ident.firmware_version = data->revision;
+ 		if (!nowayout)
+ 			ident.options |= WDIOF_MAGICCLOSE;
+ 		if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
+ 			ret = -EFAULT;
++		mutex_unlock(&watchdog_data_mutex);
+ 		break;
+ 
+ 	case WDIOC_GETSTATUS:
+@@ -921,7 +923,7 @@ static const struct file_operations watc
+ 	.open = watchdog_open,
+ 	.release = watchdog_release,
+ 	.write = watchdog_write,
+-	.ioctl = watchdog_ioctl,
++	.unlocked_ioctl = watchdog_ioctl,
+ };
+ 
+ 
 
 
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
