@@ -1,31 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Oct 2009 09:16:07 +0000
-Subject: Re: [lm-sensors] [PATCH 3/4] hwmon-f71882fg: Fix sysfs file removal
-Message-Id: <20091028101607.4e4eb5e8@hyperion.delvare>
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Fri, 16 Oct 2009 09:54:58 +0000
+Subject: Re: [lm-sensors] Sensors-dectect ,
+Message-Id: <alpine.DEB.2.00.0910160554380.2841@p34.internal.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AE02F6A.1080200@redhat.com>
-In-Reply-To: <4AE02F6A.1080200@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 22 Oct 2009 12:09:46 +0200, Hans de Goede wrote:
-> There is a bug in the old sysfs file removal, as it uses fxxxx_in_temp_attr
-> to remove the in and temp sysfs attributes, but fxxxx_in_temp_attr has
-> temp#_alarm, where as f71858fg_in_temp_attr has temp#_max_alarm, so
-> the temp#_max_alarm attributes for the f71858fg never get removed.
-> 
-> This patch fixes this by doing the sysfs removal exactly the same way as
-> the creation instead of being (too) clever, this will also avoid similar
-> bugs in the future.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Hi,
 
-Looks good to me.
+It depends on the chip, check for my recent thread on an Intel DP55KG, the 
+chip is not supported yet.
 
--- 
-Jean Delvare
+Justin.
+
+On Fri, 16 Oct 2009, Lars Lindquist wrote:
+
+>
+>
+> Dear Sirs,
+> I am using Ubuntu 9.04 and I have a Asus ASUS P7P55D motherboard with a intel p55 express chipset
+> I have downloaded the latest sensors-detect but no sensors are found.
+>
+> Is this a known issue or should it work ?
+>
+> Best regards
+> /Lars
+>
+> _________________________________________________________________
+> Keep your friends updated?even when you?re not signed in.
+> http://www.microsoft.com/middleeast/windows/windowslive/see-it-in-action/social-network-basics.aspx?ocid=PID23461::T:WLMTAGL:ON:WL:en-xm:SI_SB_5:092010
 
 _______________________________________________
 lm-sensors mailing list
