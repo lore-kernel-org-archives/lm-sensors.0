@@ -1,123 +1,98 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 16 Oct 2009 10:53:53 +0000
+From: Justin Piszcz <jpiszcz@lucidpixels.com>
+Date: Fri, 16 Oct 2009 13:40:51 +0000
 Subject: Re: [lm-sensors] lm-sensors 3.1.1-3 not detecting sensors on Intel
-Message-Id: <20091016125353.1c8795f4@hyperion.delvare>
+Message-Id: <alpine.DEB.2.00.0910160838500.31450@p34.internal.lan>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.2.00.0910131743530.5034@p34.internal.lan>
-	<alpine.DEB.2.00.0910140403150.15961@p34.internal.lan>
-	<alpine.DEB.2.00.0910140856190.19307@p34.internal.lan>
-	<20091015100557.22243433@hyperion.delvare>
-	<alpine.DEB.2.00.0910150422400.21030@p34.internal.lan>
-	<20091016111504.5d9cb0ba@hyperion.delvare>
-	<alpine.DEB.2.00.0910160553221.2841@p34.internal.lan>
-In-Reply-To: <alpine.DEB.2.00.0910160553221.2841@p34.internal.lan>
+References: <alpine.DEB.2.00.0910131743530.5034@p34.internal.lan> <alpine.DEB.2.00.0910140403150.15961@p34.internal.lan> <alpine.DEB.2.00.0910140856190.19307@p34.internal.lan> <20091015100557.22243433@hyperion.delvare> <alpine.DEB.2.00.0910150422400.21030@p34.internal.lan>
+ <20091016111504.5d9cb0ba@hyperion.delvare> <alpine.DEB.2.00.0910160553221.2841@p34.internal.lan> <20091016125353.1c8795f4@hyperion.delvare>
+In-Reply-To: <20091016125353.1c8795f4@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Justin Piszcz <jpiszcz@lucidpixels.com>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Fri, 16 Oct 2009 05:54:10 -0400 (EDT), Justin Piszcz wrote:
-> # ./sensors-detect 
-> # sensors-detect revision 5782 (2009-10-16 10:59:16 +0200)
-> # Board: Intel Corporation DP55KG
-> (...)
-> Some Super I/O chips contain embedded sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no): 
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-> Found `Nuvoton W83677HG-I Super IO Sensors'
->      (but no address specified)
 
-So the LPC interface to the hardware monitoring chip is disabled.
 
-> Next adapter: SMBus I801 adapter at 7000 (i2c-0)
-> Do you want to scan it? (YES/no/selectively): 
-> Client found at address 0x2c
-> Probing for `Myson MTP008'...                               No
-> Probing for `National Semiconductor LM78'...                No
-> Probing for `National Semiconductor LM79'...                No
-> Probing for `National Semiconductor LM80'...                No
-> Probing for `National Semiconductor LM85'...                No
-> Probing for `National Semiconductor LM96000 or PC8374L'...  No
-> Probing for `Analog Devices ADM1027'...                     No
-> Probing for `Analog Devices ADT7460 or ADT7463'...          No
-> Probing for `SMSC EMC6D100 or EMC6D101'...                  No
-> Probing for `SMSC EMC6D102'...                              No
-> Probing for `SMSC EMC6D103'...                              No
-> Probing for `Winbond WPCD377I'...                           No
-> Probing for `Analog Devices ADT7470'...                     No
-> Probing for `Analog Devices ADT7476'...                     No
-> Probing for `Andigilog aSC7611'...                          No
-> Probing for `Andigilog aSC7621'...                          No
-> Probing for `National Semiconductor LM87'...                No
-> Probing for `Analog Devices ADM1024'...                     No
-> Probing for `National Semiconductor LM93'...                No
-> Probing for `Winbond W83781D'...                            No
-> Probing for `Winbond W83782D'...                            No
-> Probing for `Winbond W83791D'...                            No
-> Probing for `Winbond W83792D'...                            No
-> Probing for `Winbond W83793R/G'...                          No
-> Probing for `Nuvoton W83795G/ADG'...                        No
-> Probing for `Winbond W83627HF'...                           No
-> Probing for `Winbond W83627EHF'...                          No
-> Probing for `Winbond W83627DHG'...                          No
-> Probing for `Asus AS99127F (rev.1)'...                      No
-> Probing for `Asus AS99127F (rev.2)'...                      No
-> Probing for `Asus ASB100 Bach'...                           No
-> Probing for `Genesys Logic GL518SM'...                      No
-> Probing for `Genesys Logic GL520SM'...                      No
-> Probing for `Analog Devices ADM9240'...                     No
-> Probing for `Dallas Semiconductor DS1780'...                No
-> Probing for `National Semiconductor LM81'...                No
-> Probing for `Analog Devices ADM1026'...                     No
-> Probing for `Analog Devices ADM1025'...                     No
-> Probing for `Philips NE1619'...                             No
-> Probing for `Analog Devices ADM1029'...                     No
-> Probing for `Analog Devices ADM1030'...                     No
-> Probing for `Analog Devices ADM1031'...                     No
-> Probing for `Analog Devices ADM1022'...                     No
-> Probing for `Texas Instruments THMC50'...                   No
-> Probing for `ITE IT8712F'...                                No
-> Probing for `ALi M5879'...                                  No
-> Probing for `SMSC LPC47M15x/192/292/997'...                 No
-> Probing for `SMSC DME1737'...                               No
-> Probing for `SMSC SCH5027D-NW'...                           No
-> Probing for `Winbond W83791SD'...                           No
+On Fri, 16 Oct 2009, Jean Delvare wrote:
 
-You have an unknown chip at 0x2c on the SMBus. It could be a hardware
-monitoring chip... or not.
+> On Fri, 16 Oct 2009 05:54:10 -0400 (EDT), Justin Piszcz wrote:
+>> # ./sensors-detect
+>> # sensors-detect revision 5782 (2009-10-16 10:59:16 +0200)
+>> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+>> Found `Nuvoton W83677HG-I Super IO Sensors'
+>>      (but no address specified)
+>
+> So the LPC interface to the hardware monitoring chip is disabled.
+>
+>> Probing for `Winbond W83791SD'...                           No
+>
+> You have an unknown chip at 0x2c on the SMBus. It could be a hardware
+> monitoring chip... or not.
+Ok..
 
-If you want me to investigate this, you can provide an I2C dump of the
-chip. Get i2cdump from the i2c-tools package, and then:
+>
+> If you want me to investigate this, you can provide an I2C dump of the
+> chip. Get i2cdump from the i2c-tools package, and then:
+>
+> # i2cdump 0 0x2c b
+>
+> This might confuse the chip in question though, so only try it if you
+> are ready to trigger a cold reboot.
+
+Ok, luckily it does not appear to have caused any issues:
 
 # i2cdump 0 0x2c b
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x2c, mode byte
+Continue? [Y/n] y
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+10: 00 00 00 00 00 00 00 00 00 00 80 80 80 04 7e 10    ..........????~?
+20: 75 51 c0 c3 c3 80 28 2d bd 0f de 0f 3b 1d a9 16    uQ????(-????;???
+30: 33 4d 4d c2 81 00 c2 00 ff ff ff e6 7b fb 41 6f    3MM??.?....?{?Ao
+40: 35 90 40 00 00 ff 00 ff 00 ff 00 ff 00 ff 81 7f    5?@...........??
+50: 81 7f 81 7f ff ff ff ff ff ff ff ff 0a a2 a2 ca    ????........????
+60: 8a 8a e0 aa 33 4c 4c 5a 2d 2d 64 41 41 04 42 00    ????3LLZ--dAA?B.
+70: 00 00 00 00 00 00 6c 60 f0 00 00 55 01 00 00 00    ......l`?..U?...
+80: 00 00 00 00 00 00 ff ff 00 00 fb 64 64 64 00 00    ..........?ddd..
+90: 00 59 59 59 00 00 00 00 00 00 00 00 00 00 00 00    .YYY............
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+#
 
-This might confuse the chip in question though, so only try it if you
-are ready to trigger a cold reboot.
 
-> Client found at address 0x2d
-> (...)
-> Probing for `Winbond W83627DHG'...                          Success!
->      (confidence 8, driver `use-isa-instead')
+>
+>> Client found at address 0x2d
+>> (...)
+>> Probing for `Winbond W83627DHG'...                          Success!
+>>      (confidence 8, driver `use-isa-instead')
+>
+> This is the SMBus access to the W83677HG. We don't have support for
+> that, because LPC access is faster and was always enabled on all
+> motherboards we've seen so far.
+Ok..
 
-This is the SMBus access to the W83677HG. We don't have support for
-that, because LPC access is faster and was always enabled on all
-motherboards we've seen so far.
+>
+> I doubt we'll ever add SMBus access support, for both performance and
+> source code readability reasons. If anything, we could forcibly enable
+> the device on your motherboard. But please first look for BIOS options
+> and/or a BIOS update to enable the LPC interface.
+I am checking now...yes all HW monitoring/etc IS enabled.
 
-I doubt we'll ever add SMBus access support, for both performance and
-source code readability reasons. If anything, we could forcibly enable
-the device on your motherboard. But please first look for BIOS options
-and/or a BIOS update to enable the LPC interface.
+>
+> Do you see any hardware monitoring information in the BIOS?
+Yep, see note above.  It is enabled.
 
-Do you see any hardware monitoring information in the BIOS?
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+>
+> -- 
+> Jean Delvare
+> http://khali.linux-fr.org/wishlist.html
+>
 
 _______________________________________________
 lm-sensors mailing list
