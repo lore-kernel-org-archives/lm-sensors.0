@@ -1,153 +1,72 @@
-From: Andriy Gapon <avg@icyb.net.ua>
-Date: Sat, 03 Oct 2009 10:50:54 +0000
-Subject: [lm-sensors] HECI QST utility
-Message-Id: <4AC72C8E.80907@icyb.net.ua>
+From: Lars Lindquist <lars4910@hotmail.com>
+Date: Fri, 16 Oct 2009 09:08:06 +0000
+Subject: [lm-sensors] Sensors-dectect , Ubuntu 9.04 intel p55 express chipset
+Message-Id: <BAY123-W4498C69B1AA61078CE3466CFC40@phx.gbl>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------030703060700050802060202"
+Content-Type: multipart/mixed; boundary="===============4967913120144313113=="
 List-Id: <lm-sensors.vger.kernel.org>
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030703060700050802060202
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+--===============4967913120144313113==
+Content-Type: multipart/alternative;
+	boundary="_4954ba7a-227f-413a-8860-3d528f1cfa87_"
+
+--_4954ba7a-227f-413a-8860-3d528f1cfa87_
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
 
 
-While Intel is still working on releasing public version of QST SDK for Linux,
-I've stumbled upon one interesting page on the topic:
-http://hecisys.narod.ru/
-The most precious bit of information there is GUID of QST ME client.
 
-Based on that work plus some additional experimentation and analysis, I've
-created a small console program to report basic QST information.
-The program is originally written for FreeBSD, so it might not compile/work as
-is, but it should be trivially easy to adapt it.
+Dear Sirs=2C
+I am using Ubuntu 9.04 and I have a Asus ASUS P7P55D motherboard with a int=
+el p55 express chipset
+I have downloaded the latest sensors-detect but no sensors are found.
 
-I am attaching the source here.
-It's BSD licensed.
-I hope you find it useful.
+Is this a known issue or should it work ?
 
-Sample output:
-$ heci-qst
-TEMPCPU :       -72.25
-TEMPMB2 :       34.12
-TEMPICH :       73.42
-TEMPMCH :       66.70
-FANCPU  :       875
-FANOUTL :       1409
-V12P    :       +12.226
-V50P    :       +5.089
-V33     :       +3.351
-V15     :       +1.238
-VC0     :       +1.136
+Best regards
+/Lars
+ 		 	   		 =20
+_________________________________________________________________
+Keep your friends updated=97even when you=92re not signed in.
+http://www.microsoft.com/middleeast/windows/windowslive/see-it-in-action/so=
+cial-network-basics.aspx?ocid=3DPID23461::T:WLMTAGL:ON:WL:en-xm:SI_SB_5:092=
+010=
 
-P.S. you've got to have heci/mei driver, of course:
-http://www.openamt.org/
+--_4954ba7a-227f-413a-8860-3d528f1cfa87_
+Content-Type: text/html; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Andriy Gapon
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+--></style>
+</head>
+<body class=3D'hmmessage'>
+<br>Dear Sirs=2C<br>I am using Ubuntu 9.04 and I have a Asus ASUS P7P55D mo=
+therboard with a intel p55 express chipset<br>I have downloaded the latest =
+sensors-detect but no sensors are found.<br><br>Is this a known issue or sh=
+ould it work ?<br><br>Best regards<br>/Lars<br> 		 	   		  <br /><hr />Keep=
+ your friends updated=97 <a href=3D'http://www.microsoft.com/middleeast/win=
+dows/windowslive/see-it-in-action/social-network-basics.aspx?ocid=3DPID2346=
+1::T:WLMTAGL:ON:WL:en-xm:SI_SB_5:092010' target=3D'_new'>even when you=92re=
+ not signed in.</a></body>
+</html>=
 
---------------030703060700050802060202
-Content-Type: text/plain;
- name="heci-qst.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="heci-qst.c"
+--_4954ba7a-227f-413a-8860-3d528f1cfa87_--
 
-LyotCiAqIENvcHlyaWdodCAoYykgMjAwOSBBbmRyaXkgR2Fwb24gPGF2Z0BpY3liLm5ldC51
-YT4KICogQWxsIHJpZ2h0cyByZXNlcnZlZC4KICoKICogUmVkaXN0cmlidXRpb24gYW5kIHVz
-ZSBpbiBzb3VyY2UgYW5kIGJpbmFyeSBmb3Jtcywgd2l0aCBvciB3aXRob3V0CiAqIG1vZGlm
-aWNhdGlvbiwgYXJlIHBlcm1pdHRlZCBwcm92aWRlZCB0aGF0IHRoZSBmb2xsb3dpbmcgY29u
-ZGl0aW9ucwogKiBhcmUgbWV0OgogKiAxLiBSZWRpc3RyaWJ1dGlvbnMgb2Ygc291cmNlIGNv
-ZGUgbXVzdCByZXRhaW4gdGhlIGFib3ZlIGNvcHlyaWdodAogKiAgICBub3RpY2UsIHRoaXMg
-bGlzdCBvZiBjb25kaXRpb25zIGFuZCB0aGUgZm9sbG93aW5nIGRpc2NsYWltZXIuCiAqIDIu
-IFJlZGlzdHJpYnV0aW9ucyBpbiBiaW5hcnkgZm9ybSBtdXN0IHJlcHJvZHVjZSB0aGUgYWJv
-dmUgY29weXJpZ2h0CiAqICAgIG5vdGljZSwgdGhpcyBsaXN0IG9mIGNvbmRpdGlvbnMgYW5k
-IHRoZSBmb2xsb3dpbmcgZGlzY2xhaW1lciBpbiB0aGUKICogICAgZG9jdW1lbnRhdGlvbiBh
-bmQvb3Igb3RoZXIgbWF0ZXJpYWxzIHByb3ZpZGVkIHdpdGggdGhlIGRpc3RyaWJ1dGlvbi4K
-ICoKICogVEhJUyBTT0ZUV0FSRSBJUyBQUk9WSURFRCBCWSBUSEUgQVVUSE9SIEFORCBDT05U
-UklCVVRPUlMgQVMgSVMnJyBBTkQKICogQU5ZIEVYUFJFU1MgT1IgSU1QTElFRCBXQVJSQU5U
-SUVTLCBJTkNMVURJTkcsIEJVVCBOT1QgTElNSVRFRCBUTywgVEhFCiAqIElNUExJRUQgV0FS
-UkFOVElFUyBPRiBNRVJDSEFOVEFCSUxJVFkgQU5EIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxB
-UiBQVVJQT1NFCiAqIEFSRSBESVNDTEFJTUVELiAgSU4gTk8gRVZFTlQgU0hBTEwgVEhFIEFV
-VEhPUiBPUiBDT05UUklCVVRPUlMgQkUgTElBQkxFCiAqIEZPUiBBTlkgRElSRUNULCBJTkRJ
-UkVDVCwgSU5DSURFTlRBTCwgU1BFQ0lBTCwgRVhFTVBMQVJZLCBPUiBDT05TRVFVRU5USUFM
-CiAqIERBTUFHRVMgKElOQ0xVRElORywgQlVUIE5PVCBMSU1JVEVEIFRPLCBQUk9DVVJFTUVO
-VCBPRiBTVUJTVElUVVRFIEdPT0RTCiAqIE9SIFNFUlZJQ0VTOyBMT1NTIE9GIFVTRSwgREFU
-QSwgT1IgUFJPRklUUzsgT1IgQlVTSU5FU1MgSU5URVJSVVBUSU9OKQogKiBIT1dFVkVSIENB
-VVNFRCBBTkQgT04gQU5ZIFRIRU9SWSBPRiBMSUFCSUxJVFksIFdIRVRIRVIgSU4gQ09OVFJB
-Q1QsIFNUUklDVAogKiBMSUFCSUxJVFksIE9SIFRPUlQgKElOQ0xVRElORyBORUdMSUdFTkNF
-IE9SIE9USEVSV0lTRSkgQVJJU0lORyBJTiBBTlkgV0FZCiAqIE9VVCBPRiBUSEUgVVNFIE9G
-IFRISVMgU09GVFdBUkUsIEVWRU4gSUYgQURWSVNFRCBPRiBUSEUgUE9TU0lCSUxJVFkgT0YK
-ICogU1VDSCBEQU1BR0UuCiAqLwoKI2luY2x1ZGUgPHN0ZGlvLmg+CiNpbmNsdWRlIDxzdGRs
-aWIuaD4KI2luY2x1ZGUgPHN0cmluZy5oPgojaW5jbHVkZSA8ZmNudGwuaD4KI2luY2x1ZGUg
-PHVuaXN0ZC5oPgojaW5jbHVkZSA8c3lzL2lvY3RsLmg+CiNpbmNsdWRlIDxzeXMvaGVjaS5o
-PgoKc3RydWN0IHRoZXJtX3NlbnNvcgp7CglpbnQ4X3QgdmFsaWQ7CglpbnQzMl90IHZhbHVl
-Owp9IF9fYXR0cmlidXRlX18oKHBhY2tlZCkpOwoKc3RydWN0IHZvbHRfc2Vuc29yCnsKCWlu
-dDhfdCB2YWxpZDsKCWludDMyX3QgdmFsdWU7Cn0gX19hdHRyaWJ1dGVfXygocGFja2VkKSk7
-CgpzdHJ1Y3QgZmFuX3NlbnNvcgp7CglpbnQ4X3QgdmFsaWQ7CglpbnQxNl90IHZhbHVlOwp9
-IF9fYXR0cmlidXRlX18oKHBhY2tlZCkpOwoKI2RlZmluZSBUSEVSTV9TRU5TT1JfQ09VTlQJ
-MTIKc3RydWN0IHRoZXJtX2RhdGEKewoJaW50OF90IHN0YXR1czsKCXN0cnVjdCB0aGVybV9z
-ZW5zb3IgZGF0YVtUSEVSTV9TRU5TT1JfQ09VTlRdOwp9IF9fYXR0cmlidXRlX18oKHBhY2tl
-ZCkpOwoKI2RlZmluZSBWT0xUX1NFTlNPUl9DT1VOVAk4CnN0cnVjdCB2b2x0X2RhdGEKewoJ
-aW50OF90IHN0YXR1czsKCXN0cnVjdCB2b2x0X3NlbnNvciBkYXRhW1ZPTFRfU0VOU09SX0NP
-VU5UXTsKfSBfX2F0dHJpYnV0ZV9fKChwYWNrZWQpKTsKCiNkZWZpbmUgRkFOX1NFTlNPUl9D
-T1VOVAk4CnN0cnVjdCBmYW5fZGF0YQp7CglpbnQ4X3Qgc3RhdHVzOwoJc3RydWN0IGZhbl9z
-ZW5zb3IgZGF0YVtGQU5fU0VOU09SX0NPVU5UXTsKfSBfX2F0dHJpYnV0ZV9fKChwYWNrZWQp
-KTsKCnN0cnVjdCBxc3RfY21kCnsKCXVpbnQ4X3QgY21kOwoJdWludDE2X3QgaW5fbGVuOwoJ
-dWludDE2X3Qgb3V0X2xlbjsKfSBfX2F0dHJpYnV0ZV9fKChwYWNrZWQpKTsKCiNkZWZpbmUg
-UVNUX1RIRVJNQUxfQ01ECQkweDEyCnN0YXRpYyBjb25zdCBzdHJ1Y3QgcXN0X2NtZCB0aGVy
-bV9jbWQgPSB7IFFTVF9USEVSTUFMX0NNRCwgMCwgc2l6ZW9mKHN0cnVjdCB0aGVybV9kYXRh
-KSB9OwoKI2RlZmluZSBRU1RfVk9MVF9DTUQJCTB4NTgKc3RhdGljIGNvbnN0IHN0cnVjdCBx
-c3RfY21kIHZvbHRfY21kID0geyBRU1RfVk9MVF9DTUQsIDAsIHNpemVvZihzdHJ1Y3Qgdm9s
-dF9kYXRhKSB9OwoKI2RlZmluZSBRU1RfRkFOX0NNRAkJMHgzNwpzdGF0aWMgY29uc3Qgc3Ry
-dWN0IHFzdF9jbWQgZmFuX2NtZCA9IHsgUVNUX0ZBTl9DTUQsIDAsIHNpemVvZihzdHJ1Y3Qg
-ZmFuX2RhdGEpIH07Cgpjb25zdCBjaGFyICogY29uc3QgdGVtcF9uYW1lc1tUSEVSTV9TRU5T
-T1JfQ09VTlRdID0gewoJIkNQVSIsCgkiTUIxIiwKCU5VTEwsCgkiTUIyIiwKCSJJQ0giLAoJ
-Ik1DSCIsCglOVUxMLAoJTlVMTCwKCU5VTEwsCglOVUxMLAoJTlVMTCwKCU5VTEwsCn07Cgpj
-b25zdCBjaGFyICogY29uc3Qgdm9sdF9uYW1lc1tWT0xUX1NFTlNPUl9DT1VOVF0gPSB7Cgki
-MTJQIiwKCSI1MFAiLAoJIjMzIiwKCSIxNSIsCgkiQzAiLAoJTlVMTCwKCU5VTEwsCglOVUxM
-LAp9OwoKY29uc3QgY2hhciAqIGNvbnN0IGZhbl9uYW1lc1tGQU5fU0VOU09SX0NPVU5UXSA9
-IHsKCSJDUFUiLAoJIklOTCIsCgkiT1VUTCIsCgkiQVVYIiwKCU5VTEwsCglOVUxMLAoJTlVM
-TCwKCU5VTEwsCn07CgoKc3RhdGljIGNvbnN0IHN0cnVjdCBoZWNpX2d1aWQgaHdtX2d1aWQg
-PSB7CgkweDZCNTIwNUI5LAoJMHg4MTg1LAoJMHg0NTE5LAoJezB4QjgsIDB4ODksIDB4RDks
-IDB4ODcsIDB4MjQsIDB4QjUsIDB4ODYsIDB4MDd9Cn07CgppbnQgbWFpbigpCnsKCWludCBm
-ZDsKCWludCByYzsKCWludCBpOwoKCglmZCA9IG9wZW4oIi9kZXYvaGVjaTAiLCBPX1JEV1Ip
-OwoJaWYgKGZkIDwgMCkgewoJCXBlcnJvcigiL2Rldi9oZWNpMCIpOwoJCXJldHVybiAxOwoJ
-fQoJcmMgPSBpb2N0bChmZCwgSEVDSV9DT05ORUNULCAmaHdtX2d1aWQpOwoJaWYgKHJjIDwg
-MCkgewoJCXBlcnJvcigiaW9jdGwgSEVDSV9DT05ORUNUIik7CgkJcmV0dXJuIDE7Cgl9CgoJ
-LyogUmVxdWVzdCB0ZW1wLiAqLwoJc3RydWN0IHRoZXJtX2RhdGEgdGhlcm1fZGF0YTsKCXJj
-ID0gd3JpdGUoZmQsICZ0aGVybV9jbWQsIHNpemVvZih0aGVybV9jbWQpKTsKCWlmIChyYyA8
-IDApIHsKCQlwZXJyb3IoInRoZXJtIHdyaXRlIik7CgkJcmV0dXJuIDE7Cgl9CgoJcmMgPSBy
-ZWFkKGZkLCAmdGhlcm1fZGF0YSwgc2l6ZW9mKHRoZXJtX2RhdGEpKTsKCWlmIChyYyA8IDAp
-IHsKCQlwZXJyb3IoInRoZXJtIHJlYWQiKTsKCQlyZXR1cm4gMTsKCX0KCWZvciAoaSA9IDA7
-IGkgPCBUSEVSTV9TRU5TT1JfQ09VTlQ7IGkrKykgewoJCWlmICh0aGVybV9kYXRhLmRhdGFb
-aV0udmFsaWQpIHsKCQkJaW50MzJfdCB2YWx1ZSA9IHRoZXJtX2RhdGEuZGF0YVtpXS52YWx1
-ZTsKCQkJcHJpbnRmKCJURU1QIik7CgkJCWlmICh0ZW1wX25hbWVzW2ldKQoJCQkJcHJpbnRm
-KCIlcyIsIHRlbXBfbmFtZXNbaV0pOwoJCQllbHNlCgkJCQlwcmludGYoIiUwMmQiLCBpKTsK
-CQkJcHJpbnRmKCJcdDpcdCVkLiUwMmRcbiIsIHZhbHVlIC8gMTAwLCBhYnModmFsdWUpICUg
-MTAwKTsKCQl9Cgl9CgoJLyogUmVxdWVzdCBmYW5zICovCglzdHJ1Y3QgZmFuX2RhdGEgZmFu
-X2RhdGE7CglyYyA9IHdyaXRlKGZkLCAmZmFuX2NtZCwgc2l6ZW9mKGZhbl9jbWQpKTsKCWlm
-IChyYyA8IDApIHsKCQlwZXJyb3IoImZhbiB3cml0ZSIpOwoJCXJldHVybiAxOwoJfQoKCXJj
-ID0gcmVhZChmZCwgJmZhbl9kYXRhLCBzaXplb2YoZmFuX2RhdGEpKTsKCWlmIChyYyA8IDAp
-IHsKCQlwZXJyb3IoImZhbiByZWFkIik7CgkJcmV0dXJuIDE7Cgl9Cglmb3IgKGkgPSAwOyBp
-IDwgRkFOX1NFTlNPUl9DT1VOVDsgaSsrKSB7CgkJaWYgKGZhbl9kYXRhLmRhdGFbaV0udmFs
-aWQpIHsKCQkJaW50MzJfdCB2YWx1ZSA9IGZhbl9kYXRhLmRhdGFbaV0udmFsdWU7CgkJCXBy
-aW50ZigiRkFOIik7CgkJCWlmIChmYW5fbmFtZXNbaV0pCgkJCQlwcmludGYoIiVzIiwgZmFu
-X25hbWVzW2ldKTsKCQkJZWxzZQoJCQkJcHJpbnRmKCIlMDJkIiwgaSk7CgkJCXByaW50Zigi
-XHQ6XHQlZFxuIiwgdmFsdWUpOwoJCX0KCX0KCgkvKiBSZXF1ZXN0IHZvbHRzLiAqLwoJc3Ry
-dWN0IHZvbHRfZGF0YSB2b2x0X2RhdGE7CglyYyA9IHdyaXRlKGZkLCAmdm9sdF9jbWQsIHNp
-emVvZih2b2x0X2NtZCkpOwoJaWYgKHJjIDwgMCkgewoJCXBlcnJvcigidm9sdHMgd3JpdGUi
-KTsKCQlyZXR1cm4gMTsKCX0KCglyYyA9IHJlYWQoZmQsICZ2b2x0X2RhdGEsIHNpemVvZih2
-b2x0X2RhdGEpKTsKCWlmIChyYyA8IDApIHsKCQlwZXJyb3IoInZvbHRzIHJlYWQiKTsKCQly
-ZXR1cm4gMTsKCX0KCWZvciAoaSA9IDA7IGkgPCBWT0xUX1NFTlNPUl9DT1VOVDsgaSsrKSB7
-CgkJaWYgKHZvbHRfZGF0YS5kYXRhW2ldLnZhbGlkKSB7CgkJCWludDMyX3QgdmFsdWUgPSB2
-b2x0X2RhdGEuZGF0YVtpXS52YWx1ZTsKCQkJcHJpbnRmKCJWIik7CgkJCWlmICh2b2x0X25h
-bWVzW2ldKQoJCQkJcHJpbnRmKCIlcyIsIHZvbHRfbmFtZXNbaV0pOwoJCQllbHNlCgkJCQlw
-cmludGYoIiUwMmQiLCBpKTsKCQkJcHJpbnRmKCJcdDpcdCUrZC4lMDNkXG4iLCB2YWx1ZSAv
-IDEwMDAsIGFicyh2YWx1ZSkgJSAxMDAwKTsKCQl9Cgl9CgoJY2xvc2UoZmQpOwoJcmV0dXJu
-IDA7Cn0KCg==
---------------030703060700050802060202
+
+--===============4967913120144313113==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -157,4 +76,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------030703060700050802060202--
+--===============4967913120144313113==--
