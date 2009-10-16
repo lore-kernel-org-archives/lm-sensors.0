@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 15 Oct 2009 08:52:20 +0000
+Date: Fri, 16 Oct 2009 09:15:04 +0000
 Subject: Re: [lm-sensors] lm-sensors 3.1.1-3 not detecting sensors on Intel
-Message-Id: <20091015105220.09d0dddf@hyperion.delvare>
+Message-Id: <20091016111504.5d9cb0ba@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <alpine.DEB.2.00.0910131743530.5034@p34.internal.lan>
 	<alpine.DEB.2.00.0910140403150.15961@p34.internal.lan>
@@ -35,11 +35,16 @@ On Thu, 15 Oct 2009 04:30:29 -0400 (EDT), Justin Piszcz wrote:
 > 
 > Is there anything else needed?
 
-No, for now it's enough. This would indeed be a new chip, not even
-listed on Novoton's site yet. I'll ask our contact at Nuvoton about it.
+Please give a try to the latest version of sensors-detect:
+
+http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
+
+It should find your chip now. Next step is to actually add support for
+it, but it will take more time and efforts.
 
 -- 
 Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
