@@ -1,120 +1,99 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Oct 2009 17:42:10 +0000
-Subject: [lm-sensors] hwmon: (adm1021) Clean up detect function
-Message-Id: <20091006194210.58e4f4e4@hyperion.delvare>
+Date: Mon, 19 Oct 2009 15:14:46 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (dme1737) No vid attributes for SCH311x
+Message-Id: <20091019171446.62669593@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-As kind is now hard-coded to -1, there is room for code clean-ups.
+The SCH311x chips do not have VID inputs, so the cpu0_vid and vrm
+attributes shouldn't be created for them.
+
+This fixes lm-sensors ticket #2353:
+http://www.lm-sensors.org/ticket/2353
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Tested-by: Udo van den Heuvel <udovdh@xs4all.n>
+Cc: Juerg Haefliger <juergh@gmail.com>
 ---
- drivers/hwmon/adm1021.c |   76 +++++++++++++++--------------------------------
- 1 file changed, 25 insertions(+), 51 deletions(-)
+ drivers/hwmon/dme1737.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
---- linux-2.6.32-rc3.orig/drivers/hwmon/adm1021.c	2009-10-06 10:33:15.000000000 +0200
-+++ linux-2.6.32-rc3/drivers/hwmon/adm1021.c	2009-10-06 11:33:22.000000000 +0200
-@@ -288,9 +288,8 @@ static int adm1021_detect(struct i2c_cli
- 			  struct i2c_board_info *info)
- {
- 	struct i2c_adapter *adapter = client->adapter;
--	int i;
--	const char *type_name = "";
--	int conv_rate, status, config;
-+	const char *type_name;
-+	int conv_rate, status, config, man_id, dev_id;
+--- linux-2.6.30.orig/drivers/hwmon/dme1737.c	2009-06-10 05:05:27.000000000 +0200
++++ linux-2.6.30/drivers/hwmon/dme1737.c	2009-10-19 16:25:06.000000000 +0200
+@@ -572,7 +572,7 @@ static struct dme1737_data *dme1737_upda
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		pr_debug("adm1021: detect failed, "
-@@ -303,62 +302,37 @@ static int adm1021_detect(struct i2c_cli
- 					     ADM1021_REG_CONV_RATE_R);
- 	config = i2c_smbus_read_byte_data(client, ADM1021_REG_CONFIG_R);
+ 	/* Sample register contents every 1 sec */
+ 	if (time_after(jiffies, data->last_update + HZ) || !data->valid) {
+-		if (data->type != sch5027) {
++		if (data->type = dme1737) {
+ 			data->vid = dme1737_read(data, DME1737_REG_VID) &
+ 				0x3f;
+ 		}
+@@ -1621,9 +1621,6 @@ static struct attribute *dme1737_misc_at
+ 	&sensor_dev_attr_zone1_auto_point1_temp_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_zone2_auto_point1_temp_hyst.dev_attr.attr,
+ 	&sensor_dev_attr_zone3_auto_point1_temp_hyst.dev_attr.attr,
+-	/* Misc */
+-	&dev_attr_vrm.attr,
+-	&dev_attr_cpu0_vid.attr,
+ 	NULL
+ };
  
--	/* Now, we do the remaining detection. */
--	if (kind < 0) {
--		if ((status & 0x03) != 0x00 || (config & 0x3F) != 0x00
--		    || (conv_rate & 0xF8) != 0x00) {
--			pr_debug("adm1021: detect failed, "
--				 "chip not detected!\n");
--			return -ENODEV;
--		}
-+	/* Check unused bits */
-+	if ((status & 0x03) || (config & 0x3F) || (conv_rate & 0xF8)) {
-+		pr_debug("adm1021: detect failed, chip not detected!\n");
-+		return -ENODEV;
+@@ -1631,6 +1628,18 @@ static const struct attribute_group dme1
+ 	.attrs = dme1737_misc_attr,
+ };
+ 
++/* The following struct holds VID-related attributes. Their creation
++   depends on the chip type which is determined during module load. */
++static struct attribute *dme1737_vid_attr[] = {
++	&dev_attr_vrm.attr,
++	&dev_attr_cpu0_vid.attr,
++	NULL
++};
++
++static const struct attribute_group dme1737_vid_group = {
++	.attrs = dme1737_vid_attr,
++};
++
+ /* The following structs hold the PWM attributes, some of which are optional.
+  * Their creation depends on the chip configuration which is determined during
+  * module load. */
+@@ -1902,6 +1911,9 @@ static void dme1737_remove_files(struct
+ 	if (data->type != sch5027) {
+ 		sysfs_remove_group(&dev->kobj, &dme1737_misc_group);
+ 	}
++	if (data->type = dme1737) {
++		sysfs_remove_group(&dev->kobj, &dme1737_vid_group);
++	}
+ 
+ 	sysfs_remove_group(&dev->kobj, &dme1737_group);
+ 
+@@ -1933,6 +1945,13 @@ static int dme1737_create_files(struct d
+ 		goto exit_remove;
  	}
  
- 	/* Determine the chip type. */
--	if (kind <= 0) {
--		i = i2c_smbus_read_byte_data(client, ADM1021_REG_MAN_ID);
--		if (i = 0x41)
--			if ((i2c_smbus_read_byte_data(client,
--					ADM1021_REG_DEV_ID) & 0xF0) = 0x30)
--				kind = adm1023;
--			else
--				kind = adm1021;
--		else if (i = 0x49)
--			kind = thmc10;
--		else if (i = 0x23)
--			kind = gl523sm;
--		else if ((i = 0x4d) &&
--			 (i2c_smbus_read_byte_data(client,
--						   ADM1021_REG_DEV_ID) = 0x01))
--			kind = max1617a;
--		else if (i = 0x54)
--			kind = mc1066;
--		/* LM84 Mfr ID in a different place, and it has more unused bits */
--		else if (conv_rate = 0x00
--			 && (kind = 0 /* skip extra detection */
--			     || ((config & 0x7F) = 0x00
--				 && (status & 0xAB) = 0x00)))
--			kind = lm84;
--		else
--			kind = max1617;
--	}
-+	man_id = i2c_smbus_read_byte_data(client, ADM1021_REG_MAN_ID);
-+	dev_id = i2c_smbus_read_byte_data(client, ADM1021_REG_DEV_ID);
- 
--	if (kind = max1617) {
--		type_name = "max1617";
--	} else if (kind = max1617a) {
-+	if (man_id = 0x4d && dev_id = 0x01)
- 		type_name = "max1617a";
--	} else if (kind = adm1021) {
--		type_name = "adm1021";
--	} else if (kind = adm1023) {
--		type_name = "adm1023";
--	} else if (kind = thmc10) {
-+	else if (man_id = 0x41) {
-+		if ((dev_id & 0xF0) = 0x30)
-+			type_name = "adm1023";
-+		else
-+			type_name = "adm1021";
-+	} else if (man_id = 0x49)
- 		type_name = "thmc10";
--	} else if (kind = lm84) {
--		type_name = "lm84";
--	} else if (kind = gl523sm) {
-+	else if (man_id = 0x23)
- 		type_name = "gl523sm";
--	} else if (kind = mc1066) {
-+	else if (man_id = 0x54)
- 		type_name = "mc1066";
--	}
-+	/* LM84 Mfr ID in a different place, and it has more unused bits */
-+	else if (conv_rate = 0x00
-+		 && (config & 0x7F) = 0x00
-+		 && (status & 0xAB) = 0x00)
-+		type_name = "lm84";
-+	else
-+		type_name = "max1617";
++	/* Create VID-related sysfs attributes */
++	if ((data->type = dme1737) &&
++	    (err = sysfs_create_group(&dev->kobj,
++				      &dme1737_vid_group))) {
++		goto exit_remove;
++	}
 +
- 	pr_debug("adm1021: Detected chip %s at adapter %d, address 0x%02x.\n",
- 		 type_name, i2c_adapter_id(adapter), client->addr);
- 	strlcpy(info->type, type_name, I2C_NAME_SIZE);
+ 	/* Create fan sysfs attributes */
+ 	for (ix = 0; ix < ARRAY_SIZE(dme1737_fan_group); ix++) {
+ 		if (data->has_fan & (1 << ix)) {
+@@ -2127,7 +2146,7 @@ static int dme1737_init_device(struct de
+ 	data->pwm_acz[2] = 4;	/* pwm3 -> zone3 */
+ 
+ 	/* Set VRM */
+-	if (data->type != sch5027) {
++	if (data->type = dme1737) {
+ 		data->vrm = vid_which_vrm();
+ 	}
+ 
 
 
 -- 
