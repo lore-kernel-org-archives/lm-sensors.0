@@ -1,7 +1,7 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Date: Tue, 20 Oct 2009 11:50:31 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 20 Oct 2009 11:57:47 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <4ADDA407.8030306@shikadi.net>
+Message-Id: <20091020135747.5f918b3a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
@@ -10,44 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> The raw VID value is at 0xfc, value is 0x3f, which means all VID pins
-> are high. Which means they are not wired to the CPU, otherwise at least
-> one of them would be low.
-> 
-> Now, looking at register 0x27, it appears that all VID input pins have
-> been configured for their alternative function (GPIO.) This is not the
-> default value for this register, which means that the motherboard
-> vendor decided to not use these pins for VID input but for another
-> function.
-> 
-> BTW... the pins in question are in input mode. So who knows... maybe
-> they ARE used for VID monitoring, and GPIO was preferred over true VID
-> for obscure reasons (incompatible voltage levels?) You may want to run,
-> as root:
-> 
-> isadump -f 0x800 16
-> 
-> and see if the 3rd value would make sense as a VID value for your CPU.
+On Tue, 20 Oct 2009 21:23:09 +1000, Simon Wilson wrote:
+> Interpreting the isadump is way over my head, so it looks like we're  
+> on a hiding to nowhere here unless someone can assist us with that and  
+> investigating hwmon-vid.
 
-Ah interesting.  It doesn't seem to for me though:
+See my reply to your original post.
 
-       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-0800: ff 01 cf fa f7 07 ff ff ff ff ff ff ff ff ff ff
+> What is interesting is that there is obviously a value being obtained  
+> from the motherboard - otherwise setting VRM to 100 (10.0) would also  
+> produce 0.000 V.
 
-VRM v11 (in hwmon-vid) says values can't be > 0xb2, although I don't know how
-many bits are wired up to the VID.
+This is an incorrect assumption. VID decoding is tricky and you really
+cannot assume anything like that. Only the raw VID value holds the
+truth.
 
-So is 0x802 the GPIO input?  I wonder what it's wired up to...?
+> But the calculation that it is running when the value  
+> is 110 (11.0) is resulting in a 0 value. So somehow, the formulae and  
+> cals in the VRM translation is screwy when hwmon (correctly) detects  
+> my Conroe and sets it to 11.0.
 
-> One thing we could do is teach the it87 driver to not export the VID
-> value if any of VID pins 0-3 are configured for GPIO function. That
-> wouldn't be too difficult, but would you be able to test a kernel patch?
+Your register dump makes it pretty clear that there is no VID value to
+be read in the first place. At least not from the VID value register
+0xfc).
 
-I can test an it87 patch if you need a guinea pig - especially if it'll
-compile against 2.6.30 so I don't have to reboot ;-)
-
-Cheers,
-Adam.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
