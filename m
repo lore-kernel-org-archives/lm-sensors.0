@@ -1,41 +1,53 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 05 Oct 2009 09:25:55 +0000
-Subject: Re: [lm-sensors] [PATCH 0/5] sensord: Cleanup of the sensors deamon
-Message-Id: <20091005112555.1c416b05@hyperion.delvare>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Tue, 20 Oct 2009 18:46:38 +0000
+Subject: [lm-sensors] [PATCH] [hwmon] mc13783-adc: fix module unloading
+Message-Id: <1256064398-27456-1-git-send-email-u.kleine-koenig@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090615074546.GD4667@ubuntu>
-In-Reply-To: <20090615074546.GD4667@ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sun, 4 Oct 2009 21:07:09 +0200, Andre Prendel wrote:
-> On Sat, Oct 03, 2009 at 10:35:25AM +0200, Jean Delvare wrote:
-> > Andre, any news from these sensord patches? We spent quite some time on
-> > them, and they looked promising, it would be a pity if they are finally
-> > lost.
-> 
-> no news so far :( To much other work since I changed the employer and
-> maybe I've been a bit lazy lately :)
-> 
-> Ok, I will reserve some time next week to revise the patches.
+The wrong device was passed to hwmon_device_unregister, resulting in
 
-Great, thanks.
+	mc13783 spi0.0: hwmon_device_unregister() failed: bad class ID!
 
-> BTW I did some work on the DMI configuration topic a few month ago. I
-> don't forgot this one. But it's far from being ready. So far there's
-> just a bash script for fetching the configs from lm-sensors.org and
-> another one looking for DMI data and suitable config and copy this
-> one. Is it worth to post this prototype to have something to discuss
-> or should I better finish the work? I think I will post it :)
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+Cc: Luotao Fu <l.fu@pengutronix.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Jean Delvare <khali@linux-fr.org>
+---
+Hello Jean,
 
-Feel free to post them. I can't promise anything will happen to them,
-as I also didn't have much time to work on this. But at least posted
-work is archived and may be useful in the future.
+can you either squash this into the commit you already took from me or
+take this, too?
 
--- 
-Jean Delvare
+Best regards and thanks
+Uwe
+
+ drivers/hwmon/mc13783-adc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
+index 77eead2..e69ee81 100644
+--- a/drivers/hwmon/mc13783-adc.c
++++ b/drivers/hwmon/mc13783-adc.c
+@@ -199,7 +199,7 @@ static int __devexit mc13783_adc_remove(struct platform=
+_device *pdev)
+ {
+ 	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
+=20
+-	hwmon_device_unregister(&pdev->dev);
++	hwmon_device_unregister(priv->hwmon_dev);
+=20
+ 	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
+ 		sysfs_remove_group(&pdev->dev.kobj, &mc13783_group_ts);
+--=20
+1.6.5
+
 
 _______________________________________________
 lm-sensors mailing list
