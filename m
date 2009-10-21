@@ -1,7 +1,7 @@
 From: Simon Wilson <simon@simonandkate.net>
-Date: Wed, 21 Oct 2009 12:15:34 +0000
+Date: Wed, 21 Oct 2009 12:30:42 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <20091021221534.76963ezi3qng6546@mail.simonandkate.net>
+Message-Id: <20091021223042.12991mpr87bj9b02@mail.simonandkate.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
@@ -12,66 +12,52 @@ To: lm-sensors@vger.kernel.org
 
 Quoting Jean Delvare <khali@linux-fr.org>:
 
-> Hi Simon,
+> Your register dump makes it pretty clear that there is no VID value to
+> be read in the first place. At least not from the VID value register
+> 0xfc).
+>
+> --
+> Jean Delvare
 >
 >
-> The raw VID value is at 0xfc, value is 0x3f, which means all VID pins
-> are high. Which means they are not wired to the CPU, otherwise at least
-> one of them would be low.
->
-> Now, looking at register 0x27, it appears that all VID input pins have
-> been configured for their alternative function (GPIO.) This is not the
-> default value for this register, which means that the motherboard
-> vendor decided to not use these pins for VID input but for another
-> function.
->
-> BTW... the pins in question are in input mode. So who knows... maybe
-> they ARE used for VID monitoring, and GPIO was preferred over true VID
-> for obscure reasons (incompatible voltage levels?) You may want to run,
-> as root:
->
-> isadump -f 0x800 16
 
-WARNING! Running this program can cause system crashes, data loss and worse!
-I will probe address range 0x800 to 0x80f.
-Continue? [Y/n] y
-        0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-0800: ff 21 cf fa f5 07 ff ff ff ff ff ff ff ff ff ff
+What does this mean (taken from the it87.c documentation):
 
->
-> and see if the 3rd value would make sense as a VID value for your CPU.
+"The IT8718F and IT8720F also features VID inputs (up to 8 pins) but the value
+is stored in the Super-I/O configuration space. Due to technical limitations,
+this value can currently only be read once at initialization time, so
+the driver won't notice and report changes in the VID value. The two
+upper VID bits share their pins with voltage inputs (in5 and in6) so you
+can't have both on a given board."
 
-Does it? CF hex = 207 dec... surely not 2.07V?!? According to Intel  
-the e6850 should have a VID of 1.3 or 1.35V.
+and...
 
->
-> Ask the manufacturer to confirm this, and if they do, blame it on them.
+   /* The device with the IT8718F/IT8720F VID value in it */
+   #define GPIO    0x07
 
-I can ask them in my IT job capacity - they may help... can you help  
-me with the gist of what I need to ask them? :)
+There are a few web pages out there with doco on that file (e.g.  
+http://www.lm-sensors.org/attachment/ticket/2343/hwmon-it87-add-it8720f-support.patch).
 
->
-> One thing we could do is teach the it87 driver to not export the VID
-> value if any of VID pins 0-3 are configured for GPIO function. That
-> wouldn't be too difficult, but would you be able to test a kernel patch?
->
+They seem to refer to that chip holding VID in a different space... am  
+I reading that wrongly?  :-D
 
-Happy to help - as long as you provide idiot-proof instructions LOL...  
-the closest I've ever got to kernel stuff I've ever done is loading  
-the kmod drivers, which isn't exactly difficult. Bear in mind I'm  
-running a xen kernel:
+At the end of the day, from my reading VID is what is used to  
+kickstart the CPU, correct? Ongoing V to actually run it is what is  
+measured as VCore, and this varies on modern CPUs. So what VID is  
+really doesn't matter on a running system - and as it's only read into  
+the IT8718F once on boot, reading it with lm_sensors doesn't really  
+give me much useful data. Is that a correct(ish) understanding?
 
-2.6.18-164.el5xen
+Of more real use I guess would be a range that I would expect to see  
+at VCore (which I think is what I am seeing at in0), i.e. 1.04V to  
+1.25V.
 
-I "believe" that in0 actually provides a VCore reading on this setup  
-anyway - it varies between 1.04V and 1.2V, which would seem to me to  
-be about right. Unless I'm off on the wrong track there too and that  
-needs a modifying calcluation for something else.
+In which case, as you have previously mentioned, telling the IT87  
+driver to ignore VID if it doesn't contain anything useful is probably  
+the way to go...
 
-Thanks for your help Jean, much appreciated. It's not critical, but I  
-like having things finished and working well.
+Simon.
 
-Simon
 -- 
 Simon Wilson
 www.simonandkate.net
