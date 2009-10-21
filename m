@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 20 Oct 2009 14:15:36 +0000
+From: Simon Wilson <simon@simonandkate.net>
+Date: Wed, 21 Oct 2009 12:15:34 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <20091020161536.28e7a02a@hyperion.delvare>
+Message-Id: <20091021221534.76963ezi3qng6546@mail.simonandkate.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
@@ -10,88 +10,71 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 20 Oct 2009 22:15:54 +1000, Adam Nielsen wrote:
-> > # isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
-> 
-> Ha, well I certainly get different output to Simon:
-> 
-> $ isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
-> WARNING! Running this program can cause system crashes, data loss and worse!
-> I will probe address register 0x2e and data register 0x2f.
-> Probing bank 7 using bank register 0x07.
-> Continue? [Y/n] y
-> Segmentation fault
-> 
-> Not sure that GDB is much help here:
-> 
-> Program received signal SIGSEGV, Segmentation fault.
-> 0x0000000000401068 in superio_write_key (addrregF, key=<value optimized
-> out>) at /usr/include/sys/io.h:99
-> 99        __asm__ __volatile__ ("outb %b0,%w1": :"a" (__value), "Nd" (__port));
-> 
-> I stuffed around a bit more with the command arguments and eventually got the
-> original command to work:
-> 
-> $ isadump -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
-> WARNING! Running this program can cause system crashes, data loss and worse!
-> I will probe address register 0x2e and data register 0x2f.
-> Probing bank 7 using bank register 0x07.
-> Continue? [Y/n]
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 07 00 00 00 00 00 00 00 00
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 20: 87 18 04 10 00 80 df 3f 43 89 00 00 1d 00 00 00
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 60: 00 00 08 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 70: 00 00 00 00 00 04 00 00 00 00 00 00 00 00 00 00
-> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> b0: 00 00 00 00 00 00 00 00 00 c2 00 00 00 00 00 00
-> c0: 80 1d 3f 43 09 00 00 00 00 19 00 03 08 00 00 00
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7e
-> f0: 10 40 00 00 00 00 11 00 00 00 00 00 3f 00 00 00
-> 
-> Looks pretty similar to Simon, so I think we're all good there.
+Quoting Jean Delvare <khali@linux-fr.org>:
 
-Indeed, the relevant registers have the same values, so whatever
-applies to Simon probably applies to you as well.
+> Hi Simon,
+>
+>
+> The raw VID value is at 0xfc, value is 0x3f, which means all VID pins
+> are high. Which means they are not wired to the CPU, otherwise at least
+> one of them would be low.
+>
+> Now, looking at register 0x27, it appears that all VID input pins have
+> been configured for their alternative function (GPIO.) This is not the
+> default value for this register, which means that the motherboard
+> vendor decided to not use these pins for VID input but for another
+> function.
+>
+> BTW... the pins in question are in input mode. So who knows... maybe
+> they ARE used for VID monitoring, and GPIO was preferred over true VID
+> for obscure reasons (incompatible voltage levels?) You may want to run,
+> as root:
+>
+> isadump -f 0x800 16
 
-> > as Simon already provided, to comment on your case. Just because the
-> > symptoms look similar to Simon's, doesn't mean the problem is the same,
-> > nor that the solution (if there exists any) would be the same.
-> > Although, given the same motherboard manufacturer, there is a remote
-> > chance.
-> 
-> Yup, like I say, different revisions of the same motherboard.
-> 
-> >>> One thing we could do is teach the it87 driver to not export the VID
-> >>> value if any of VID pins 0-3 are configured for GPIO function. That
-> >>> wouldn't be too difficult, but would you be able to test a kernel patch?
-> >> I can test an it87 patch if you need a guinea pig - especially if it'll
-> >> compile against 2.6.30 so I don't have to reboot ;-)
-> > 
-> > Sure, I can provide a standalone driver for any kernel version, no
-> > reboot needed unless I badly screw up ;)
-> 
-> Haha yes, of course :-)
-> 
-> Cheers,
-> Adam.
-> 
-> P.S. Just realised I had sensor programs running while I was running that,
-> that's probably the reason for the segfault :-$
+WARNING! Running this program can cause system crashes, data loss and worse!
+I will probe address range 0x800 to 0x80f.
+Continue? [Y/n] y
+        0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+0800: ff 21 cf fa f5 07 ff ff ff ff ff ff ff ff ff ff
 
-Shouldn't be, as the it87 driver doesn't access 0x2e/0x2f past
-initialization. But other kernel drivers might. As the same command
-that crashed, worked some time after, I admit I have no idea what could
-have caused the crash.
+>
+> and see if the 3rd value would make sense as a VID value for your CPU.
 
+Does it? CF hex = 207 dec... surely not 2.07V?!? According to Intel  
+the e6850 should have a VID of 1.3 or 1.35V.
+
+>
+> Ask the manufacturer to confirm this, and if they do, blame it on them.
+
+I can ask them in my IT job capacity - they may help... can you help  
+me with the gist of what I need to ask them? :)
+
+>
+> One thing we could do is teach the it87 driver to not export the VID
+> value if any of VID pins 0-3 are configured for GPIO function. That
+> wouldn't be too difficult, but would you be able to test a kernel patch?
+>
+
+Happy to help - as long as you provide idiot-proof instructions LOL...  
+the closest I've ever got to kernel stuff I've ever done is loading  
+the kmod drivers, which isn't exactly difficult. Bear in mind I'm  
+running a xen kernel:
+
+2.6.18-164.el5xen
+
+I "believe" that in0 actually provides a VCore reading on this setup  
+anyway - it varies between 1.04V and 1.2V, which would seem to me to  
+be about right. Unless I'm off on the wrong track there too and that  
+needs a modifying calcluation for something else.
+
+Thanks for your help Jean, much appreciated. It's not critical, but I  
+like having things finished and working well.
+
+Simon
 -- 
-Jean Delvare
+Simon Wilson
+www.simonandkate.net
 
 _______________________________________________
 lm-sensors mailing list
