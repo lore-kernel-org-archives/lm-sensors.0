@@ -1,7 +1,7 @@
-From: Simon Wilson <simon@simonandkate.net>
-Date: Wed, 21 Oct 2009 12:30:42 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 21 Oct 2009 12:51:29 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <20091021223042.12991mpr87bj9b02@mail.simonandkate.net>
+Message-Id: <20091021145129.26885bfc@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
@@ -10,57 +10,90 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Quoting Jean Delvare <khali@linux-fr.org>:
+Hi Simon,
 
-> Your register dump makes it pretty clear that there is no VID value to
-> be read in the first place. At least not from the VID value register
-> 0xfc).
->
-> --
-> Jean Delvare
->
->
+On Wed, 21 Oct 2009 22:15:34 +1000, Simon Wilson wrote:
+> Quoting Jean Delvare <khali@linux-fr.org>:
+> > The raw VID value is at 0xfc, value is 0x3f, which means all VID pins
+> > are high. Which means they are not wired to the CPU, otherwise at least
+> > one of them would be low.
+> >
+> > Now, looking at register 0x27, it appears that all VID input pins have
+> > been configured for their alternative function (GPIO.) This is not the
+> > default value for this register, which means that the motherboard
+> > vendor decided to not use these pins for VID input but for another
+> > function.
+> >
+> > BTW... the pins in question are in input mode. So who knows... maybe
+> > they ARE used for VID monitoring, and GPIO was preferred over true VID
+> > for obscure reasons (incompatible voltage levels?) You may want to run,
+> > as root:
+> >
+> > isadump -f 0x800 16
+> 
+> WARNING! Running this program can cause system crashes, data loss and worse!
+> I will probe address range 0x800 to 0x80f.
+> Continue? [Y/n] y
+>         0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 0800: ff 21 cf fa f5 07 ff ff ff ff ff ff ff ff ff ff
+> 
+> >
+> > and see if the 3rd value would make sense as a VID value for your CPU.
+> 
+> Does it? CF hex = 207 dec... surely not 2.07V?!? According to Intel  
+> the e6850 should have a VID of 1.3 or 1.35V.
 
-What does this mean (taken from the it87.c documentation):
+First of all, the upper 2 bits are irrelevant as only 6 GPIO3 pins have
+been setup. So the value would be 0x0f. Secondly, decoding VID values
+is somewhat more complex than that. You can look at
+drivers/hwmon/hwmon-vid.c in the kernel source tree [1], or look on the
+Intel developer web site for the VRM/VRD specification which applied to
+your CPU model.
 
-"The IT8718F and IT8720F also features VID inputs (up to 8 pins) but the value
-is stored in the Super-I/O configuration space. Due to technical limitations,
-this value can currently only be read once at initialization time, so
-the driver won't notice and report changes in the VID value. The two
-upper VID bits share their pins with voltage inputs (in5 and in6) so you
-can't have both on a given board."
+For VRM/VRD 11.0, which your CPU seems to use, 0x0f translates to
+1.519 V, which is definitely not correct. This leads me to the
+conclusion that this isn't a valid VID value.
 
-and...
+> > Ask the manufacturer to confirm this, and if they do, blame it on them.
+> 
+> I can ask them in my IT job capacity - they may help... can you help  
+> me with the gist of what I need to ask them? :)
 
-   /* The device with the IT8718F/IT8720F VID value in it */
-   #define GPIO    0x07
+Basically, we want to know:
 
-There are a few web pages out there with doco on that file (e.g.  
-http://www.lm-sensors.org/attachment/ticket/2343/hwmon-it87-add-it8720f-support.patch).
+* What are pins 13-14 and 16-19 of the IT8716F connected to on your
+  motherboard: CPU VID or something else.
+* If CPU VID, what's the trick (chip configuration steps) to get the
+  correct value?
 
-They seem to refer to that chip holding VID in a different space... am  
-I reading that wrongly?  :-D
+> > One thing we could do is teach the it87 driver to not export the VID
+> > value if any of VID pins 0-3 are configured for GPIO function. That
+> > wouldn't be too difficult, but would you be able to test a kernel patch?
+> 
+> Happy to help - as long as you provide idiot-proof instructions LOL...  
+> the closest I've ever got to kernel stuff I've ever done is loading  
+> the kmod drivers, which isn't exactly difficult. Bear in mind I'm  
+> running a xen kernel:
+> 
+> 2.6.18-164.el5xen
+> 
+> I "believe" that in0 actually provides a VCore reading on this setup  
+> anyway - it varies between 1.04V and 1.2V, which would seem to me to  
+> be about right. Unless I'm off on the wrong track there too and that  
+> needs a modifying calcluation for something else.
 
-At the end of the day, from my reading VID is what is used to  
-kickstart the CPU, correct? Ongoing V to actually run it is what is  
-measured as VCore, and this varies on modern CPUs. So what VID is  
-really doesn't matter on a running system - and as it's only read into  
-the IT8718F once on boot, reading it with lm_sensors doesn't really  
-give me much useful data. Is that a correct(ish) understanding?
+What I need is someone who can build kernel modules. It is possible
+that xen will get in our way, and Adam apparently knows more than you
+do about building kernel modules, so I think I will ask for his help.
 
-Of more real use I guess would be a range that I would expect to see  
-at VCore (which I think is what I am seeing at in0), i.e. 1.04V to  
-1.25V.
+> Thanks for your help Jean, much appreciated. It's not critical, but I  
+> like having things finished and working well.
 
-In which case, as you have previously mentioned, telling the IT87  
-driver to ignore VID if it doesn't contain anything useful is probably  
-the way to go...
-
-Simon.
+You're welcome. It doesn't look like we're progressing much though :/
 
 -- 
-Simon Wilson
-www.simonandkate.net
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
