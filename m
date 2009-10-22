@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 22 Oct 2009 12:28:46 +0000
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Date: Thu, 22 Oct 2009 23:20:37 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <20091022142846.1c347589@hyperion.delvare>
+Message-Id: <4AE0E8C5.9020806@shikadi.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
@@ -10,39 +10,21 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Adam,
+> Here's a standalone driver for you to try:
+> http://khali.linux-fr.org/devel/misc/it87/
+>
+> Build with "make", then as root, "rmmod it87&&  insmod it87.ko".
 
-On Wed, 21 Oct 2009 14:53:19 +0200, Jean Delvare wrote:
-> On Tue, 20 Oct 2009 21:50:31 +1000, Adam Nielsen wrote:
-> > I can test an it87 patch if you need a guinea pig - especially if it'll
-> > compile against 2.6.30 so I don't have to reboot ;-)
-> 
-> I'll prepare a patch as my time and health permits.
+Works fine!  The "cpu0_vid" and "vrm" files disappear from the it87 sysfs 
+directory, and 'sensors' no longer reports a value for the VID.  There is a 
+log message telling me in3 is VCC (+5V), but no log message to tell me the VID 
+is disabled.  Not sure if that's worth including, in case somebody is trying 
+to figure out why their it87 behaves differently to someone else's.
 
-Here's a standalone driver for you to try:
-http://khali.linux-fr.org/devel/misc/it87/
+Everything else seems to work as before.
 
-Build with "make", then as root, "rmmod it87 && insmod it87.ko".
-
-Should build fine on any recent kernel. Fixes in this version of the
-it87 driver:
-* Really read VID on IT8718F/IT8720F.
-* Don't expose VID if pins are in GPIO mode.
-* Don't expose fan2 if pin is in GPIO mode.
-* Don't expose fan3 if pin is in GPIO mode.
-* Don't expose pwm2 if pin is in GPIO mode.
-* Don't expose pwm3 if pin is in GPIO mode.
-
-According to the dump you sent, only item #2 should be relevant for
-your motherboard.
-
-The last 5 items affect all chip types except the IT8705F. Everyone
-else with one of the affected chips is welcome to test and report.
-
-I'll send separate patches to the mailing list soon, for review.
-
--- 
-Jean Delvare
+Cheers,
+Adam.
 
 _______________________________________________
 lm-sensors mailing list
