@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 21 Oct 2009 13:41:03 +0000
+Date: Thu, 22 Oct 2009 12:28:46 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-P35-DS3P - VID Zero value
-Message-Id: <20091021154103.466f89ae@hyperion.delvare>
+Message-Id: <20091022142846.1c347589@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
 In-Reply-To: <20091019164516.701032uxlen5ai2k@mail.simonandkate.net>
@@ -10,32 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 21 Oct 2009 23:28:38 +1000, Adam Nielsen wrote:
-> > Now you are right that the limitation of the it87 driver to only read
-> > VID at initialization time (for some of the supported chips at least,
-> > amongst which the IT8718F) makes the VID value useless on systems with
-> > CPU changing VID over time, as is your case. Even if we managed to get
-> > a valid VID reading from your IT8718F chip (assuming this is possible
-> > at all) it wouldn't be that interesting, unless we also address the
-> > driver limitation about reading VID in real-time. Which is very complex
-> > (which is why it didn't happen yet.)
+Hi Adam,
+
+On Wed, 21 Oct 2009 14:53:19 +0200, Jean Delvare wrote:
+> On Tue, 20 Oct 2009 21:50:31 +1000, Adam Nielsen wrote:
+> > I can test an it87 patch if you need a guinea pig - especially if it'll
+> > compile against 2.6.30 so I don't have to reboot ;-)
 > 
-> Are you suggesting resetting the chip occasionally to read in the VID again?
-> Because that's an interesting idea...but yes, it would be complicated :-)
+> I'll prepare a patch as my time and health permits.
 
-No, it's not a problem of resetting the chip. The problem is that the
-VID reading is in shared registers, which other drivers may access too.
-So we need proper locking to protect the access to these registers.
-This requires cooperation between the drivers. There have been some
-efforts related to this, but we're not there yet.
+Here's a standalone driver for you to try:
+http://khali.linux-fr.org/devel/misc/it87/
 
-For now we're working around the problem by only accessing the
-registers at module load time, because the kernel serializes module
-loading. But this is a hack, really.
+Build with "make", then as root, "rmmod it87 && insmod it87.ko".
+
+Should build fine on any recent kernel. Fixes in this version of the
+it87 driver:
+* Really read VID on IT8718F/IT8720F.
+* Don't expose VID if pins are in GPIO mode.
+* Don't expose fan2 if pin is in GPIO mode.
+* Don't expose fan3 if pin is in GPIO mode.
+* Don't expose pwm2 if pin is in GPIO mode.
+* Don't expose pwm3 if pin is in GPIO mode.
+
+According to the dump you sent, only item #2 should be relevant for
+your motherboard.
+
+The last 5 items affect all chip types except the IT8705F. Everyone
+else with one of the affected chips is welcome to test and report.
+
+I'll send separate patches to the mailing list soon, for review.
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
