@@ -1,69 +1,330 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 15 Oct 2009 20:28:31 +0000
-Subject: [lm-sensors] [patch 1/5] hwmon: Convert fschmd to unlocked_ioctl
-Message-Id: <20091015202758.400949170@linutronix.de>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 22 Oct 2009 10:10:33 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon-f71882fg: Add support for the
+Message-Id: <4AE02F99.4060105@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050704040101030800090202"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091015202722.372890083@linutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------050704040101030800090202
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: ALan Cox <alan@lxorguk.ukuu.org.uk>, Arnd Bergmann <arnd@arndb.de>, lm-sensors@lm-sensors.org
 
-The conversion of fschmd watchdog ioctl to unlocked_ioctl needs to
-protect the static watchdog_info variable for the WDIOC_GETSUPPORT
-command.
+This adds support for the Fintek f71889fg to the f71882fg driver,
+many thanks to Gerd v. Egidy for providing (remote) access to a
+machine which such an ic.
 
-All other commands are safe w/o BKL as the called watchdog functions
-are already serialized with watchdog_lock of the sensor.
+Note that this bit of the patch:
+-       val = SENSORS_LIMIT(val, 0, 255);
++
++       if (data->type == f71889fg)
++               val = SENSORS_LIMIT(val, -128, 127);
++       else
++               val = SENSORS_LIMIT(val, 0, 127);
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: lm-sensors@lm-sensors.org
----
- drivers/hwmon/fschmd.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+Changes behaviour for already supported models, the new behaviour is correct
+as the already supported models have bit 7 of the involved registers fixed at
+0, so the previous behaviour which allowed setting temp zone limits > 127
+was not correct.
 
-Index: linux-2.6-tip/drivers/hwmon/fschmd.c
-=================================--- linux-2.6-tip.orig/drivers/hwmon/fschmd.c
-+++ linux-2.6-tip/drivers/hwmon/fschmd.c
-@@ -844,8 +844,8 @@ static ssize_t watchdog_write(struct fil
- 	return count;
- }
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+
+--------------050704040101030800090202
+Content-Type: text/plain;
+ name="hwmon-f71882fg-add-f71889fg-support.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="hwmon-f71882fg-add-f71889fg-support.patch"
+
+hwmon-f71882fg: Add support for the f71889fg
+
+This adds support for the Fintek f71889fg to the f71882fg driver,
+many thanks to Gerd v. Egidy for providing (remote) access to a
+machine which such an ic.
+
+Note that this bit of the patch:
+-	val = SENSORS_LIMIT(val, 0, 255);
++
++	if (data->type == f71889fg)
++		val = SENSORS_LIMIT(val, -128, 127);
++	else
++		val = SENSORS_LIMIT(val, 0, 127);
+
+Changes behaviour for already supported models, the new behaviour is correct
+as the already supported models have bit 7 of the involved registers fixed at
+0, so the previous behaviour which allowed setting temp zone limits > 127
+was not correct.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+diff -up vanilla-2.6.32-rc5-git1/Documentation/hwmon/f71882fg.orig vanilla-2.6.32-rc5-git1/Documentation/hwmon/f71882fg
+--- vanilla-2.6.32-rc5-git1/Documentation/hwmon/f71882fg.orig	2009-09-10 00:13:59.000000000 +0200
++++ vanilla-2.6.32-rc5-git1/Documentation/hwmon/f71882fg	2009-10-22 11:57:10.000000000 +0200
+@@ -14,6 +14,10 @@ Supported chips:
+     Prefix: 'f71882fg'
+     Addresses scanned: none, address read from Super I/O config space
+     Datasheet: Available from the Fintek website
++  * Fintek F71889FG
++    Prefix: 'f71889fg'
++    Addresses scanned: none, address read from Super I/O config space
++    Datasheet: Should become available on the Fintek website soon
+   * Fintek F8000
+     Prefix: 'f8000'
+     Addresses scanned: none, address read from Super I/O config space
+@@ -51,6 +55,12 @@ supported. The right one to use depends 
+ motherboard, so the driver assumes that the BIOS set the method
+ properly.
  
--static int watchdog_ioctl(struct inode *inode, struct file *filp,
--	unsigned int cmd, unsigned long arg)
-+static long watchdog_ioctl(struct file *filp, unsigned int cmd,
-+			   unsigned long arg)
- {
- 	static struct watchdog_info ident = {
- 		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
-@@ -857,11 +857,13 @@ static int watchdog_ioctl(struct inode *
++Note that the lowest numbered temperature zone trip point corresponds to
++to the border between the highest and one but highest temperature zones, and
++vica versa. So the temperature zone trip points 1-4 (or 1-2) go from high temp
++to low temp! This is how things are implemented in the IC, and the driver
++mimicks this.
++
+ There are 2 modes to specify the speed of the fan, PWM duty cycle (or DC
+ voltage) mode, where 0-100% duty cycle (0-100% of 12V) is specified. And RPM
+ mode where the actual RPM of the fan (as measured) is controlled and the speed
+diff -up vanilla-2.6.32-rc5-git1/drivers/hwmon/Kconfig.orig vanilla-2.6.32-rc5-git1/drivers/hwmon/Kconfig
+--- vanilla-2.6.32-rc5-git1/drivers/hwmon/Kconfig.orig	2009-10-22 11:05:28.000000000 +0200
++++ vanilla-2.6.32-rc5-git1/drivers/hwmon/Kconfig	2009-10-22 11:58:21.000000000 +0200
+@@ -305,12 +305,12 @@ config SENSORS_F71805F
+ 	  will be called f71805f.
  
- 	switch (cmd) {
- 	case WDIOC_GETSUPPORT:
-+		mutex_lock(&watchdog_data_mutex);
- 		ident.firmware_version = data->revision;
- 		if (!nowayout)
- 			ident.options |= WDIOF_MAGICCLOSE;
- 		if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
- 			ret = -EFAULT;
-+		mutex_unlock(&watchdog_data_mutex);
- 		break;
+ config SENSORS_F71882FG
+-	tristate "Fintek F71858FG, F71862FG, F71882FG and F8000"
++	tristate "Fintek F71858FG, F71862FG, F71882FG, F71889FG and F8000"
+ 	depends on EXPERIMENTAL
+ 	help
+ 	  If you say yes here you get support for hardware monitoring
+-	  features of the Fintek F71858FG, F71862FG/71863FG, F71882FG/F71883FG
+-	  and F8000 Super-I/O chips.
++	  features of the Fintek F71858FG, F71862FG/71863FG, F71882FG/F71883FG,
++	  F71889FG and F8000 Super-I/O chips.
  
- 	case WDIOC_GETSTATUS:
-@@ -921,7 +923,7 @@ static const struct file_operations watc
- 	.open = watchdog_open,
- 	.release = watchdog_release,
- 	.write = watchdog_write,
--	.ioctl = watchdog_ioctl,
-+	.unlocked_ioctl = watchdog_ioctl,
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called f71882fg.
+diff -up vanilla-2.6.32-rc5-git1/drivers/hwmon/f71882fg.c.orig vanilla-2.6.32-rc5-git1/drivers/hwmon/f71882fg.c
+--- vanilla-2.6.32-rc5-git1/drivers/hwmon/f71882fg.c.orig	2009-10-22 11:50:15.000000000 +0200
++++ vanilla-2.6.32-rc5-git1/drivers/hwmon/f71882fg.c	2009-10-22 11:50:32.000000000 +0200
+@@ -48,6 +48,7 @@
+ #define SIO_F71858_ID		0x0507  /* Chipset ID */
+ #define SIO_F71862_ID		0x0601	/* Chipset ID */
+ #define SIO_F71882_ID		0x0541	/* Chipset ID */
++#define SIO_F71889_ID		0x0723	/* Chipset ID */
+ #define SIO_F8000_ID		0x0581	/* Chipset ID */
+ 
+ #define REGION_LENGTH		8
+@@ -95,12 +96,13 @@ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
+-enum chips { f71858fg, f71862fg, f71882fg, f8000 };
++enum chips { f71858fg, f71862fg, f71882fg, f71889fg, f8000 };
+ 
+ static const char *f71882fg_names[] = {
+ 	"f71858fg",
+ 	"f71862fg",
+ 	"f71882fg",
++	"f71889fg",
+ 	"f8000",
  };
  
+@@ -155,7 +157,7 @@ struct f71882fg_data {
+ 	u8	pwm_auto_point_hyst[2];
+ 	u8	pwm_auto_point_mapping[4];
+ 	u8	pwm_auto_point_pwm[4][5];
+-	u8	pwm_auto_point_temp[4][4];
++	s8	pwm_auto_point_temp[4][4];
+ };
+ 
+ /* Sysfs in */
+@@ -945,7 +947,7 @@ static struct f71882fg_data *f71882fg_up
+ 	/* Update once every 60 seconds */
+ 	if ( time_after(jiffies, data->last_limits + 60 * HZ ) ||
+ 			!data->valid) {
+-		if (data->type == f71882fg) {
++		if (data->type == f71882fg || data->type == f71889fg) {
+ 			data->in1_max =
+ 				f71882fg_read8(data, F71882FG_REG_IN1_HIGH);
+ 			data->in_beep =
+@@ -967,7 +969,8 @@ static struct f71882fg_data *f71882fg_up
+ 						F71882FG_REG_TEMP_HYST(1));
+ 		}
+ 
+-		if (data->type == f71862fg || data->type == f71882fg) {
++		if (data->type == f71862fg || data->type == f71882fg ||
++		    data->type == f71889fg) {
+ 			data->fan_beep = f71882fg_read8(data,
+ 						F71882FG_REG_FAN_BEEP);
+ 			data->temp_beep = f71882fg_read8(data,
+@@ -977,15 +980,39 @@ static struct f71882fg_data *f71882fg_up
+ 			data->temp_type[2] = (reg & 0x04) ? 2 : 4;
+ 			data->temp_type[3] = (reg & 0x08) ? 2 : 4;
+ 		}
+-		reg2 = f71882fg_read8(data, F71882FG_REG_PECI);
+-		if ((reg2 & 0x03) == 0x01)
+-			data->temp_type[1] = 6 /* PECI */;
+-		else if ((reg2 & 0x03) == 0x02)
+-			data->temp_type[1] = 5 /* AMDSI */;
+-		else if (data->type == f71862fg || data->type == f71882fg)
+-			data->temp_type[1] = (reg & 0x02) ? 2 : 4;
+-		else
+-			data->temp_type[1] = 2; /* Only supports BJT */
++		/* Determine temp index 1 sensor type */
++		if (data->type == f71889fg) {
++			reg2 = f71882fg_read8(data, F71882FG_REG_START);
++			switch ((reg2 & 0x60) >> 5) {
++			case 0x00:
++				data->temp_type[1] = (reg & 0x02) ? 2 : 4;
++				break;
++			case 0x01:
++				data->temp_type[1] = 5 /* AMDSI */;
++				break;
++			case 0x02:
++				reg = f71882fg_read8(data, F71882FG_REG_PECI);
++				if (reg & 0x10)
++					data->temp_type[1] = 7 /* SST */;
++				else
++					data->temp_type[1] = 6 /* PECI */;
++				break;
++			case 0x03:
++				data->temp_type[1] = 8 /* Intel Ibex */;
++				break;
++			}
++		} else {
++			reg2 = f71882fg_read8(data, F71882FG_REG_PECI);
++			if ((reg2 & 0x03) == 0x01)
++				data->temp_type[1] = 6 /* PECI */;
++			else if ((reg2 & 0x03) == 0x02)
++				data->temp_type[1] = 5 /* AMDSI */;
++			else if (data->type == f71862fg ||
++				 data->type == f71882fg)
++				data->temp_type[1] = (reg & 0x02) ? 2 : 4;
++			else /* f71858fg f8000 only support BJT */
++				data->temp_type[1] = 2;
++		}
+ 
+ 		data->pwm_enable = f71882fg_read8(data,
+ 						  F71882FG_REG_PWM_ENABLE);
+@@ -1062,7 +1089,7 @@ static struct f71882fg_data *f71882fg_up
+ 		if (data->type == f8000)
+ 			data->fan[3] = f71882fg_read16(data,
+ 						F71882FG_REG_FAN(3));
+-		if (data->type == f71882fg)
++		if (data->type == f71882fg || data->type == f71889fg)
+ 			data->in_status = f71882fg_read8(data,
+ 						F71882FG_REG_IN_STATUS);
+ 		for (nr = 0; nr < nr_ins; nr++)
+@@ -1780,7 +1807,11 @@ static ssize_t store_pwm_auto_point_temp
+ 	int pwm = to_sensor_dev_attr_2(devattr)->index;
+ 	int point = to_sensor_dev_attr_2(devattr)->nr;
+ 	long val = simple_strtol(buf, NULL, 10) / 1000;
+-	val = SENSORS_LIMIT(val, 0, 255);
++
++	if (data->type == f71889fg)
++		val = SENSORS_LIMIT(val, -128, 127);
++	else
++		val = SENSORS_LIMIT(val, 0, 127);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	f71882fg_write8(data, F71882FG_REG_POINT_TEMP(pwm, point), val);
+@@ -1871,6 +1902,7 @@ static int __devinit f71882fg_probe(stru
+ 					ARRAY_SIZE(f71858fg_in_temp_attr));
+ 			break;
+ 		case f71882fg:
++		case f71889fg:
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 					fxxxx_in1_alarm_attr,
+ 					ARRAY_SIZE(fxxxx_in1_alarm_attr));
+@@ -1908,6 +1940,7 @@ static int __devinit f71882fg_probe(stru
+ 			err = (data->pwm_enable & 0x15) != 0x15;
+ 			break;
+ 		case f71882fg:
++		case f71889fg:
+ 			err = 0;
+ 			break;
+ 		case f8000:
+@@ -1927,7 +1960,8 @@ static int __devinit f71882fg_probe(stru
+ 		if (err)
+ 			goto exit_unregister_sysfs;
+ 
+-		if (data->type == f71862fg || data->type == f71882fg) {
++		if (data->type == f71862fg || data->type == f71882fg ||
++		    data->type == f71889fg) {
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 					fxxxx_fan_beep_attr, nr_fans);
+ 			if (err)
+@@ -1950,7 +1984,23 @@ static int __devinit f71882fg_probe(stru
+ 					f8000_auto_pwm_attr,
+ 					ARRAY_SIZE(f8000_auto_pwm_attr));
+ 			break;
+-		default: /* f71858fg / f71882fg / f71889fg */
++		case f71889fg:
++			for (i = 0; i < nr_fans; i++) {
++				data->pwm_auto_point_mapping[i] =
++					f71882fg_read8(data,
++						F71882FG_REG_POINT_MAPPING(i));
++				if (data->pwm_auto_point_mapping[i] & 0x80)
++					break;
++			}
++			if (i != nr_fans) {
++				dev_warn(&pdev->dev,
++					 "Auto pwm controlled by raw digital "
++					 "data, disabling pwm auto_point sysfs"
++					 "attributes\n");
++				break;
++			}
++			/* fall through */
++		default: /* f71858fg / f71882fg */
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 				&fxxxx_auto_pwm_attr[0][0],
+ 				ARRAY_SIZE(fxxxx_auto_pwm_attr[0]) * nr_fans);
+@@ -2006,6 +2056,7 @@ static int f71882fg_remove(struct platfo
+ 					ARRAY_SIZE(f71858fg_in_temp_attr));
+ 			break;
+ 		case f71882fg:
++		case f71889fg:
+ 			f71882fg_remove_sysfs_files(pdev,
+ 					fxxxx_in1_alarm_attr,
+ 					ARRAY_SIZE(fxxxx_in1_alarm_attr));
+@@ -2027,7 +2078,8 @@ static int f71882fg_remove(struct platfo
+ 		f71882fg_remove_sysfs_files(pdev, &fxxxx_fan_attr[0][0],
+ 				ARRAY_SIZE(fxxxx_fan_attr[0]) * nr_fans);
+ 
+-		if (data->type == f71862fg || data->type == f71882fg)
++		if (data->type == f71862fg || data->type == f71882fg ||
++		    data->type == f71889fg)
+ 			f71882fg_remove_sysfs_files(pdev,
+ 					fxxxx_fan_beep_attr, nr_fans);
+ 
+@@ -2082,11 +2134,15 @@ static int __init f71882fg_find(int sioa
+ 	case SIO_F71882_ID:
+ 		sio_data->type = f71882fg;
+ 		break;
++	case SIO_F71889_ID:
++		sio_data->type = f71889fg;
++		break;
+ 	case SIO_F8000_ID:
+ 		sio_data->type = f8000;
+ 		break;
+ 	default:
+-		printk(KERN_INFO DRVNAME ": Unsupported Fintek device\n");
++		printk(KERN_INFO DRVNAME ": Unsupported Fintek device: %04x\n",
++		       (unsigned int)devid);
+ 		goto exit;
+ 	}
  
 
-
+--------------050704040101030800090202
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050704040101030800090202--
