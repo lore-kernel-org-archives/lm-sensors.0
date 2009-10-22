@@ -1,64 +1,378 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 21 Oct 2009 07:00:13 +0000
-Subject: Re: [lm-sensors] [PATCH] [hwmon] mc13783-adc: fix module unloading
-Message-Id: <20091021090013.3ed71c71@hyperion.delvare>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 22 Oct 2009 10:07:55 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon-f71882fg: Cleanup sysfs attr
+Message-Id: <4AE02EFB.9090309@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020000060805010902020107"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1256064398-27456-1-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1256064398-27456-1-git-send-email-u.kleine-koenig@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hallo Uwe,
+This is a multi-part message in MIME format.
+--------------020000060805010902020107
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, 20 Oct 2009 20:46:38 +0200, Uwe Kleine-K=F6nig wrote:
-> The wrong device was passed to hwmon_device_unregister, resulting in
->=20
-> 	mc13783 spi0.0: hwmon_device_unregister() failed: bad class ID!
->=20
-> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-> Cc: Luotao Fu <l.fu@pengutronix.de>
-> Cc: Sascha Hauer <s.hauer@pengutronix.de>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-> Cc: Eric Piel <eric.piel@tremplin-utc.net>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> ---
-> Hello Jean,
->=20
-> can you either squash this into the commit you already took from me or
-> take this, too?
+This patch makes a number of cleanups to the sysfs attr creation
+in the f71882fg driver, this is a preparation patch for adding f71889fg
+support:
 
-Folded into hwmon-add-freescale-mc13783-adc-driver.patch, thanks.
+* Add some comments to explain why some models need separate sysfs attr
+   arrays for in / temp / fan / pwm
+* Rename a number of sysfs attr arrays to make their function clearer
+* Move the pwm#_auto_channels_temp attribute from the common to all
+   models fan attr array to the per model auto mode pwm attr arrays, so
+   that all the auto mode pwm attr are grouped together, and thus can be
+   left out on models where we don't support auto pwm mode
+* Put fan_beep attr in their own array, so that only auto mode pwm attr
+   remain in the per model pwm sysfs attr arrays.
+* Put the 4th special fan input for the f8000 in its own array, so that only
+   auto mode pwm attr remain in the per model pwm sysfs attr arrays.
 
->=20
-> Best regards and thanks
-> Uwe
->=20
->  drivers/hwmon/mc13783-adc.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
-> index 77eead2..e69ee81 100644
-> --- a/drivers/hwmon/mc13783-adc.c
-> +++ b/drivers/hwmon/mc13783-adc.c
-> @@ -199,7 +199,7 @@ static int __devexit mc13783_adc_remove(struct platfo=
-rm_device *pdev)
->  {
->  	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
-> =20
-> -	hwmon_device_unregister(&pdev->dev);
-> +	hwmon_device_unregister(priv->hwmon_dev);
-> =20
->  	if (!(priv->mc13783->flags & MC13783_USE_TOUCHSCREEN))
->  		sysfs_remove_group(&pdev->dev.kobj, &mc13783_group_ts);
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
+--------------020000060805010902020107
+Content-Type: text/plain;
+ name="hwmon-f71882fg-sysfs-create-cleanup1.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="hwmon-f71882fg-sysfs-create-cleanup1.patch"
 
---=20
-Jean Delvare
+hwmon-f71882fg: Cleanup sysfs attr creation 1/2
+
+This patch makes a number of cleanups to the sysfs attr creation
+in the f71882fg driver, this is a preparation patch for adding f71889fg
+support:
+
+* Add some comments to explain why some models need separate sysfs attr
+  arrays for in / temp / fan / pwm
+* Rename a number of sysfs attr arrays to make their function clearer
+* Move the pwm#_auto_channels_temp attribute from the common to all
+  models fan attr array to the per model auto mode pwm attr arrays, so
+  that all the auto mode pwm attr are grouped together, and thus can be
+  left out on models where we don't support auto pwm mode
+* Put fan_beep attr in their own array, so that only auto mode pwm attr
+  remain in the per model pwm sysfs attr arrays.
+* Put the 4th special fan input for the f8000 in its own array, so that only
+  auto mode pwm attr remain in the per model pwm sysfs attr arrays.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+--- linux/drivers/hwmon/f71882fg.c	2009-10-13 13:15:17.000000000 +0200
++++ linux/drivers/hwmon/f71882fg.c	2009-10-21 11:53:34.000000000 +0200
+@@ -258,7 +258,9 @@
+ 
+ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+ 
+-/* Temp and in attr for the f71858fg */
++/* Temp and in attr for the f71858fg, the f71858fg is special as it
++   has its temperature indexes start at 0 (the others start at 1) and
++   it only has 3 volt inputs */
+ static struct sensor_device_attribute_2 f71858fg_in_temp_attr[] = {
+ 	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0),
+ 	SENSOR_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 0, 1),
+@@ -302,8 +304,8 @@
+ 	SENSOR_ATTR_2(temp3_fault, S_IRUGO, show_temp_fault, NULL, 0, 2),
+ };
+ 
+-/* Temp and in attr common to both the f71862fg and f71882fg */
+-static struct sensor_device_attribute_2 f718x2fg_in_temp_attr[] = {
++/* Temp and in attr common to the f71862fg, f71882fg and f71889fg */
++static struct sensor_device_attribute_2 fxxxx_in_temp_attr[] = {
+ 	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0),
+ 	SENSOR_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 0, 1),
+ 	SENSOR_ATTR_2(in2_input, S_IRUGO, show_in, NULL, 0, 2),
+@@ -371,8 +373,8 @@
+ 	SENSOR_ATTR_2(temp3_fault, S_IRUGO, show_temp_fault, NULL, 0, 3),
+ };
+ 
+-/* Temp and in attr found only on the f71882fg */
+-static struct sensor_device_attribute_2 f71882fg_in_temp_attr[] = {
++/* For models with in1 alarm capability */
++static struct sensor_device_attribute_2 fxxxx_in1_alarm_attr[] = {
+ 	SENSOR_ATTR_2(in1_max, S_IRUGO|S_IWUSR, show_in_max, store_in_max,
+ 		0, 1),
+ 	SENSOR_ATTR_2(in1_beep, S_IRUGO|S_IWUSR, show_in_beep, store_in_beep,
+@@ -383,6 +385,7 @@
+ /* Temp and in attr for the f8000
+    Note on the f8000 temp_ovt (crit) is used as max, and temp_high (max)
+    is used as hysteresis value to clear alarms
++   Also like the f71858fg its temperature indexes start at 0
+  */
+ static struct sensor_device_attribute_2 f8000_in_temp_attr[] = {
+ 	SENSOR_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0),
+@@ -435,39 +438,36 @@
+ 		      store_pwm_enable, 0, 0),
+ 	SENSOR_ATTR_2(pwm1_interpolate, S_IRUGO|S_IWUSR,
+ 		      show_pwm_interpolate, store_pwm_interpolate, 0, 0),
+-	SENSOR_ATTR_2(pwm1_auto_channels_temp, S_IRUGO|S_IWUSR,
+-		      show_pwm_auto_point_channel,
+-		      store_pwm_auto_point_channel, 0, 0),
+ 
+ 	SENSOR_ATTR_2(pwm2, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0, 1),
+ 	SENSOR_ATTR_2(pwm2_enable, S_IRUGO|S_IWUSR, show_pwm_enable,
+ 		      store_pwm_enable, 0, 1),
+ 	SENSOR_ATTR_2(pwm2_interpolate, S_IRUGO|S_IWUSR,
+ 		      show_pwm_interpolate, store_pwm_interpolate, 0, 1),
+-	SENSOR_ATTR_2(pwm2_auto_channels_temp, S_IRUGO|S_IWUSR,
+-		      show_pwm_auto_point_channel,
+-		      store_pwm_auto_point_channel, 0, 1),
+ 
+ 	SENSOR_ATTR_2(pwm3, S_IRUGO|S_IWUSR, show_pwm, store_pwm, 0, 2),
+ 	SENSOR_ATTR_2(pwm3_enable, S_IRUGO|S_IWUSR, show_pwm_enable,
+ 		      store_pwm_enable, 0, 2),
+ 	SENSOR_ATTR_2(pwm3_interpolate, S_IRUGO|S_IWUSR,
+ 		      show_pwm_interpolate, store_pwm_interpolate, 0, 2),
+-	SENSOR_ATTR_2(pwm3_auto_channels_temp, S_IRUGO|S_IWUSR,
+-		      show_pwm_auto_point_channel,
+-		      store_pwm_auto_point_channel, 0, 2),
+ };
+ 
+-/* Fan / PWM attr for the f71862fg, less pwms and less zones per pwm than the
+-   f71882fg */
+-static struct sensor_device_attribute_2 f71862fg_fan_attr[] = {
++/* Attr for models which can beep on Fan alarm */
++static struct sensor_device_attribute_2 fxxxx_fan_beep_attr[] = {
+ 	SENSOR_ATTR_2(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
+ 		store_fan_beep, 0, 0),
+ 	SENSOR_ATTR_2(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
+ 		store_fan_beep, 0, 1),
+ 	SENSOR_ATTR_2(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
+ 		store_fan_beep, 0, 2),
++};
+ 
++/* PWM attr for the f71862fg, less pwms and less zones per pwm than the
++   f71882fg / f71889fg */
++static struct sensor_device_attribute_2 f71862fg_auto_pwm_attr[] = {
++	SENSOR_ATTR_2(pwm1_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 0),
+ 	SENSOR_ATTR_2(pwm1_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      1, 0),
+@@ -487,6 +487,9 @@
+ 	SENSOR_ATTR_2(pwm1_auto_point2_temp_hyst, S_IRUGO,
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 0),
+ 
++	SENSOR_ATTR_2(pwm2_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 1),
+ 	SENSOR_ATTR_2(pwm2_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      1, 1),
+@@ -506,6 +509,9 @@
+ 	SENSOR_ATTR_2(pwm2_auto_point2_temp_hyst, S_IRUGO,
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 1),
+ 
++	SENSOR_ATTR_2(pwm3_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 2),
+ 	SENSOR_ATTR_2(pwm3_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      1, 2),
+@@ -526,8 +532,11 @@
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 2),
+ };
+ 
+-/* Fan / PWM attr common to both the f71882fg and f71858fg */
+-static struct sensor_device_attribute_2 f71882fg_f71858fg_fan_attr[] = {
++/* PWM attr common to both the f71858fg, f71882fg and f71889fg */
++static struct sensor_device_attribute_2 fxxxx_auto_pwm_attr[] = {
++	SENSOR_ATTR_2(pwm1_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 0),
+ 	SENSOR_ATTR_2(pwm1_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      0, 0),
+@@ -566,6 +575,9 @@
+ 	SENSOR_ATTR_2(pwm1_auto_point4_temp_hyst, S_IRUGO,
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 0),
+ 
++	SENSOR_ATTR_2(pwm2_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 1),
+ 	SENSOR_ATTR_2(pwm2_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      0, 1),
+@@ -604,6 +616,9 @@
+ 	SENSOR_ATTR_2(pwm2_auto_point4_temp_hyst, S_IRUGO,
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 1),
+ 
++	SENSOR_ATTR_2(pwm3_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 2),
+ 	SENSOR_ATTR_2(pwm3_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      0, 2),
+@@ -644,14 +659,7 @@
+ };
+ 
+ /* Fan / PWM attr found on the f71882fg but not on the f71858fg */
+-static struct sensor_device_attribute_2 f71882fg_fan_attr[] = {
+-	SENSOR_ATTR_2(fan1_beep, S_IRUGO|S_IWUSR, show_fan_beep,
+-		store_fan_beep, 0, 0),
+-	SENSOR_ATTR_2(fan2_beep, S_IRUGO|S_IWUSR, show_fan_beep,
+-		store_fan_beep, 0, 1),
+-	SENSOR_ATTR_2(fan3_beep, S_IRUGO|S_IWUSR, show_fan_beep,
+-		store_fan_beep, 0, 2),
+-
++static struct sensor_device_attribute_2 f71882fg_auto_pwm_attr[] = {
+ 	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 0, 3),
+ 	SENSOR_ATTR_2(fan4_full_speed, S_IRUGO|S_IWUSR,
+ 		      show_fan_full_speed,
+@@ -707,12 +715,18 @@
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 3),
+ };
+ 
+-/* Fan / PWM attr for the f8000, zones mapped to temp instead of to pwm!
+-   Also the register block at offset A0 maps to TEMP1 (so our temp2, as the
+-   F8000 starts counting temps at 0), B0 maps the TEMP2 and C0 maps to TEMP0 */
++/* Fan attr specific to the f8000 (4th fan input can only measure speed) */
+ static struct sensor_device_attribute_2 f8000_fan_attr[] = {
+ 	SENSOR_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 0, 3),
++};
+ 
++/* PWM attr for the f8000, zones mapped to temp instead of to pwm!
++   Also the register block at offset A0 maps to TEMP1 (so our temp2, as the
++   F8000 starts counting temps at 0), B0 maps the TEMP2 and C0 maps to TEMP0 */
++static struct sensor_device_attribute_2 f8000_auto_pwm_attr[] = {
++	SENSOR_ATTR_2(pwm1_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 0),
+ 	SENSOR_ATTR_2(temp1_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      0, 2),
+@@ -751,6 +765,9 @@
+ 	SENSOR_ATTR_2(temp1_auto_point4_temp_hyst, S_IRUGO,
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 2),
+ 
++	SENSOR_ATTR_2(pwm2_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 1),
+ 	SENSOR_ATTR_2(temp2_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      0, 0),
+@@ -789,6 +806,9 @@
+ 	SENSOR_ATTR_2(temp2_auto_point4_temp_hyst, S_IRUGO,
+ 		      show_pwm_auto_point_temp_hyst, NULL, 3, 0),
+ 
++	SENSOR_ATTR_2(pwm3_auto_channels_temp, S_IRUGO|S_IWUSR,
++		      show_pwm_auto_point_channel,
++		      store_pwm_auto_point_channel, 0, 2),
+ 	SENSOR_ATTR_2(temp3_auto_point1_pwm, S_IRUGO|S_IWUSR,
+ 		      show_pwm_auto_point_pwm, store_pwm_auto_point_pwm,
+ 		      0, 1),
+@@ -1847,15 +1867,15 @@
+ 			break;
+ 		case f71882fg:
+ 			err = f71882fg_create_sysfs_files(pdev,
+-					f71882fg_in_temp_attr,
+-					ARRAY_SIZE(f71882fg_in_temp_attr));
++					fxxxx_in1_alarm_attr,
++					ARRAY_SIZE(fxxxx_in1_alarm_attr));
+ 			if (err)
+ 				goto exit_unregister_sysfs;
+ 			/* fall through! */
+ 		case f71862fg:
+ 			err = f71882fg_create_sysfs_files(pdev,
+-					f718x2fg_in_temp_attr,
+-					ARRAY_SIZE(f718x2fg_in_temp_attr));
++					fxxxx_in_temp_attr,
++					ARRAY_SIZE(fxxxx_in_temp_attr));
+ 			break;
+ 		case f8000:
+ 			err = f71882fg_create_sysfs_files(pdev,
+@@ -1905,25 +1925,40 @@
+ 		switch (data->type) {
+ 		case f71862fg:
+ 			err = f71882fg_create_sysfs_files(pdev,
+-					f71862fg_fan_attr,
+-					ARRAY_SIZE(f71862fg_fan_attr));
++					fxxxx_fan_beep_attr,
++					ARRAY_SIZE(fxxxx_fan_beep_attr));
++			if (err)
++				goto exit_unregister_sysfs;
++			err = f71882fg_create_sysfs_files(pdev,
++					f71862fg_auto_pwm_attr,
++					ARRAY_SIZE(f71862fg_auto_pwm_attr));
+ 			break;
+ 		case f71882fg:
+ 			err = f71882fg_create_sysfs_files(pdev,
+-					f71882fg_fan_attr,
+-					ARRAY_SIZE(f71882fg_fan_attr));
++					fxxxx_fan_beep_attr,
++					ARRAY_SIZE(fxxxx_fan_beep_attr));
++			if (err)
++				goto exit_unregister_sysfs;
++			err = f71882fg_create_sysfs_files(pdev,
++					f71882fg_auto_pwm_attr,
++					ARRAY_SIZE(f71882fg_auto_pwm_attr));
+ 			if (err)
+ 				goto exit_unregister_sysfs;
+ 			/* fall through! */
+ 		case f71858fg:
+ 			err = f71882fg_create_sysfs_files(pdev,
+-					f71882fg_f71858fg_fan_attr,
+-					ARRAY_SIZE(f71882fg_f71858fg_fan_attr));
++					fxxxx_auto_pwm_attr,
++					ARRAY_SIZE(fxxxx_auto_pwm_attr));
+ 			break;
+ 		case f8000:
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 					f8000_fan_attr,
+ 					ARRAY_SIZE(f8000_fan_attr));
++			if (err)
++				goto exit_unregister_sysfs;
++			err = f71882fg_create_sysfs_files(pdev,
++					f8000_auto_pwm_attr,
++					ARRAY_SIZE(f8000_auto_pwm_attr));
+ 			break;
+ 		}
+ 		if (err)
+@@ -1965,22 +2000,28 @@
+ 	   below are supersets of the ones skipped. */
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+ 
+-	for (i = 0; i < ARRAY_SIZE(f718x2fg_in_temp_attr); i++)
++	for (i = 0; i < ARRAY_SIZE(fxxxx_in_temp_attr); i++)
+ 		device_remove_file(&pdev->dev,
+-					&f718x2fg_in_temp_attr[i].dev_attr);
++					&fxxxx_in_temp_attr[i].dev_attr);
+ 
+-	for (i = 0; i < ARRAY_SIZE(f71882fg_in_temp_attr); i++)
++	for (i = 0; i < ARRAY_SIZE(fxxxx_in1_alarm_attr); i++)
+ 		device_remove_file(&pdev->dev,
+-					&f71882fg_in_temp_attr[i].dev_attr);
++					&fxxxx_in1_alarm_attr[i].dev_attr);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(fxxxx_fan_attr); i++)
+ 		device_remove_file(&pdev->dev, &fxxxx_fan_attr[i].dev_attr);
+ 
+-	for (i = 0; i < ARRAY_SIZE(f71882fg_fan_attr); i++)
+-		device_remove_file(&pdev->dev, &f71882fg_fan_attr[i].dev_attr);
++	for (i = 0; i < ARRAY_SIZE(fxxxx_fan_beep_attr); i++)
++		device_remove_file(&pdev->dev,
++				   &fxxxx_fan_beep_attr[i].dev_attr);
+ 
+-	for (i = 0; i < ARRAY_SIZE(f8000_fan_attr); i++)
+-		device_remove_file(&pdev->dev, &f8000_fan_attr[i].dev_attr);
++	for (i = 0; i < ARRAY_SIZE(f71882fg_auto_pwm_attr); i++)
++		device_remove_file(&pdev->dev,
++				   &f71882fg_auto_pwm_attr[i].dev_attr);
++
++	for (i = 0; i < ARRAY_SIZE(f8000_auto_pwm_attr); i++)
++		device_remove_file(&pdev->dev,
++				   &f8000_auto_pwm_attr[i].dev_attr);
+ 
+ 	kfree(data);
+ 
+
+--------------020000060805010902020107
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020000060805010902020107--
