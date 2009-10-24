@@ -1,8 +1,10 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 Oct 2009 18:57:22 +0000
+Date: Sat, 24 Oct 2009 11:49:28 +0000
 Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.32
-Message-Id: <20091009205722.5434b5c2@hyperion.delvare>
+Message-Id: <20091024134928.3a6d5d0a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20091009205722.5434b5c2@hyperion.delvare>
+In-Reply-To: <20091009205722.5434b5c2@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,26 +18,23 @@ Please pull some hwmon subsystem fixes for Linux 2.6.32 from:
 git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
 
- MAINTAINERS                  |    2 +-
- drivers/hwmon/Kconfig        |    2 +-
- drivers/hwmon/asus_atk0110.c |  339 +++++++++++++++++++++++++++++++++++-------
- drivers/hwmon/sht15.c        |    7 +-
- 4 files changed, 292 insertions(+), 58 deletions(-)
+ MAINTAINERS             |    1 +
+ drivers/hwmon/dme1737.c |   29 ++++++++++++++++++++++++-----
+ drivers/hwmon/fschmd.c  |    2 +-
+ drivers/hwmon/it87.c    |    5 ++---
+ 4 files changed, 28 insertions(+), 9 deletions(-)
 
 ---------------
 
-Jean Delvare (1):
-      MAINTAINERS: Fix Riku Voipio's address
+Huaxu Wan (1):
+      hwmon: (coretemp) Maintainer update
 
-Luca Tettamanti (2):
-      hwmon: (asus_atk0110) Refactor the code
-      hwmon: (asus_atk0110) Enable the EC
+Jean Delvare (2):
+      hwmon: (dme1737) No vid attributes for SCH311x
+      hwmon: (it87) Fix VID reading on IT8718F/IT8720F
 
-Mark Brown (1):
-      hwmon: (s3c-hwmon) Disable build for S3C64xx
-
-Rakib Mullick (1):
-      hwmon: (sht15) Fix spurious section mismatch warning
+Roel Kluin (1):
+      hwmon: (fschmd) Fix check on unsigned in watchdog_write()
 
 Thanks,
 -- 
