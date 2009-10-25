@@ -1,79 +1,28 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Mon, 26 Oct 2009 20:56:25 +0000
-Subject: [lm-sensors] [PATCH v2 1/6] sensord: Fix coding style
-Message-Id: <20091026205625.GB4725@ubuntu>
+From: "--[ UxBoD ]--" <uxbod@splatnix.net>
+Date: Sun, 25 Oct 2009 17:18:33 +0000
+Subject: [lm-sensors] Centos 5.4, lm_sensors & Intel Atom Mini-ITX
+Message-Id: <12531094.14.1256491113186.JavaMail.root@office.splatnix.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch fixes some coding style issues.
+Hi,
 
-* Remove whitespaces between variable and increment operator.
-* Break long lines.
----
+I have three 1U rackmounts with Intel Atom 330 CPUs and would love to get lm_sensors working for temperatures.  How can I get the SVN code (as Atom has been included) to work under Centos 5.4 as no coretemp is included ?
 
- prog/sensord/rrd.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+Best Regards,
 
-Index: sensors/prog/sensord/rrd.c
-=================================--- sensors.orig/prog/sensord/rrd.c	2009-10-26 21:33:38.000000000 +0100
-+++ sensors/prog/sensord/rrd.c	2009-10-26 21:33:40.000000000 +0100
-@@ -99,7 +99,7 @@
- 		} else {
- 			buffer[i] = '_';
- 		}
--		++ i;
-+		++i;
- 	}
- 	buffer[i] = '\0';
- 
-@@ -108,7 +108,7 @@
- 
- 	/* locate duplicates */
- 	while (okay && (j < index0))
--		okay = strcmp(rrdLabels[j ++], buffer);
-+		okay = strcmp(rrdLabels[j++], buffer);
- 
- 	/* uniquify duplicate labels with _? or _?? */
- 	while (!okay) {
-@@ -449,13 +449,19 @@
- {
- 	int ret = 0, i;
- 
--	printf("#!" RRDCGI "\n\n<HTML>\n<HEAD>\n<TITLE>sensord</TITLE>\n</HEAD>\n<BODY>\n<H1>sensord</H1>\n");
-+	printf("#!" RRDCGI "\n\n<HTML>\n"
-+	       "<HEAD>\n<TITLE>sensord</TITLE>\n</HEAD>\n"
-+	       "<BODY>\n<H1>sensord</H1>\n");
-+
- 	for (i = 0; i < ARRAY_SIZE(graphs); i++) {
- 		struct gr *graph = &graphs[i];
- 
- 		printf("<H2>%s</H2>\n", graph->h2);
--		printf("<P>\n<RRD::GRAPH %s/%s.png\n\t--imginfo '<IMG SRC=" WWWDIR "/%%s WIDTH=%%lu HEIGHT=%%lu>'\n\t-a PNG\n\t-h 200 -w 800\n",
-+		printf("<P>\n<RRD::GRAPH %s/%s.png\n\t--imginfo '"
-+		       "<IMG SRC=" WWWDIR "/%%s WIDTH=%%lu HEIGHT=%%lu>'"
-+		       "\n\t-a PNG\n\t-h 200 -w 800\n",
- 		       sensord_args.cgiDir, graph->image);
-+
- 		printf("\t--lazy\n\t-v '%s'\n\t-t '%s'\n\t-x '%s'\n\t%s",
- 		       graph->axisTitle, graph->title, graph->axisDefn,
- 		       graph->options);
-@@ -469,7 +475,12 @@
- 			ret = rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
- 		printf (">\n</P>\n");
- 	}
--	printf("<p>\n<small><b>sensord</b> by <a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>, all credit to the <a href=\"http://www.lm-sensors.org/\">lm_sensors</a> crew.</small>\n</p>\n");
-+	printf("<p>\n<small><b>sensord</b> by "
-+	       "<a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>"
-+	       ", all credit to the "
-+	       "<a href=\"http://www.lm-sensors.org/\">lm_sensors</a> "
-+	       "crew.</small>\n</p>\n");
-+
- 	printf("</BODY>\n</HTML>\n");
- 
- 	return ret;
+UxBoD
+
+
+-- 
+This message has been scanned for viruses and
+dangerous content and is believed to be clean.
+
+SplatNIX IT Services :: Innovation through collaboration
+
 
 _______________________________________________
 lm-sensors mailing list
