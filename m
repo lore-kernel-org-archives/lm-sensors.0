@@ -1,25 +1,31 @@
-From: Ian Pilcher <arequipeno@gmail.com>
-Date: Tue, 06 Oct 2009 00:00:27 +0000
-Subject: [lm-sensors] c7temp --> via-cputemp
-Message-Id: <hae1ar$t8n$1@ger.gmane.org>
+From: James Spooner <jspooner@maxeler.com>
+Date: Mon, 26 Oct 2009 20:10:33 +0000
+Subject: [lm-sensors] ADT7490 Support
+Message-Id: <64c68f1f0910261310y7a04f31du290bd6ff10dc0c1a@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Would you believe that Google only now clued me in to the existence of
-the via-cputemp module?  (After all the time I spent figuring out how to
-build a decent c7temp RPM.  Sigh.)
+Hi all,
 
-sensors-detect (from 3.1.0) and http://www.lm-sensors.org/wiki/Devices
-still refer people to c7temp.  I'm thinking they should be changed.
+Referring to the recent thread on the ADT7490 (on Intel's new P55
+desktop motherboards).  I'd like to register a request for such a
+driver, and offer to help with testing as needed.  Is anyone currently
+working on a driver for this chip?
+
+Cheers,
+
+James
 
 -- 
-====================================
-Ian Pilcher                                         arequipeno@gmail.com
-====================================
+James Spooner
+Maxeler Technologies
 
+E-mail: jbs@maxeler.com
+Tel: +44 (0) 208 762 6120
+Web: www.maxeler.com
 
 _______________________________________________
 lm-sensors mailing list
