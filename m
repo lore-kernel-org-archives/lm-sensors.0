@@ -1,66 +1,51 @@
-From: Philip Edelbrock <phil@studiogeologie.com>
-Date: Wed, 11 Nov 2009 23:13:21 +0000
-Subject: Re: [lm-sensors] Netroedge legacy server is offline
-Message-Id: <2DDFAAD0-C800-4672-89E0-82AFB2E259ED@studiogeologie.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 02 Nov 2009 13:23:28 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon w83627hf: add mfd support.
+Message-Id: <20091102142328.25b9073b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3FB503C0-3F14-4ACB-BE74-7DCEA14721C6@edgedesign.us>
-In-Reply-To: <3FB503C0-3F14-4ACB-BE74-7DCEA14721C6@edgedesign.us>
+References: <1252585810-5336-2-git-send-email-giometti@linux.it>
+In-Reply-To: <1252585810-5336-2-git-send-email-giometti@linux.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Rodolfo,
 
-On Nov 11, 2009, at 10:12 AM, Philip Edelbrock wrote:
-
+On Thu, 1 Oct 2009 15:53:50 +0200, Samuel Ortiz wrote:
+> > On Thu, 24 Sep 2009 14:01:11 +0200, Rodolfo Giometti wrote:
+> > > The file has been splitted up into two parts:
+> > > 
+> > > * drivers/mfd/w83627hf-core.c      - detects the chip and define proper
+> > >                                      platform devices into mfd support
+> > > 
+> > > * drivers/hwmon/w83627hf.c         - implements the driver for hwmon
+> > >                                      functionality only
+> > > 
+> > > Signed-off-by: Rodolfo Giometti <giometti@linux.it>
+> > > ---
+> > >  drivers/hwmon/Kconfig        |    1 +
+> > >  drivers/hwmon/w83627hf.c     |  376 ++++++++++++------------------------------
+> > >  drivers/mfd/Kconfig          |   15 ++
+> > >  drivers/mfd/Makefile         |    1 +
+> > >  drivers/mfd/w83627hf-core.c  |  186 +++++++++++++++++++++
+> > >  include/linux/mfd/w83627hf.h |  118 +++++++++++++
+> > >  6 files changed, 428 insertions(+), 269 deletions(-)
+> > >  create mode 100644 drivers/mfd/w83627hf-core.c
+> > >  create mode 100644 include/linux/mfd/w83627hf.h
+> > (...)
+> > The rest starts looking good.
 >
-> Hi Jean,
->
-> On Nov 11, 2009, at 8:29 AM, Jean Delvare wrote:
->
->> Hi Philip,
->>
->> On Tue, 10 Nov 2009 19:13:19 -0800, Philip Edelbrock wrote:
->>> We're relocating and trying to consolidate/phase-out some  
->>> equipment at
->>> our company.  One side effect is an old server that hosts some
->>> mirrored files as well as some legacy files for Lm_sensors is  
->>> offline
->>> right now.
->>>
->>> If the files aren't easily and quickly relocatable, I might just try
->>> to bring that old beast back online until I get some time to do a
->>> proper relocation to a better server/service.
->>>
->>> I've put a note on the Lm_sensors wiki download page noting the
->>> temporary outage.
->>>
->>> Sorry for the late notice, I only just realized that there was still
->>> some Lm_sensors files still being hosted there by FTP.
->>
->> Thanks for taking care. I'm not totally sure how temporary or  
->> permanent
->> the outage is supposed to be. If it is temporary, I guess we can live
->> without a mirror for a few days or weeks... at least until the next
->> lm-sensors release.
->>
->> If permanent, then we have to look for a different mirror server.
->> Although this is not necessarily very appealing, I could host the  
->> files
->> myself if needed. This is only 37 MB of data total (34 MB for
->> lm-sensors and 3 MB for i2c), nothing frightening.
->
-> I can likely get the old server back up this week (today, I hope)  
-> and then we can look at relocating those files elsewhere.  I think I  
-> can probably get those moved off to managed hosting server we have.   
-> In any case, we should have plenty of time to figure out a more  
-> permanent home once I get the old server moved to the new office and  
-> fired back up.
+> Same here. As far as the MFD part is concerned, it's fine with me except for
+> this one missing WARN_ON().
+> I'll wait until we get Jean's ack for the hwmon part, and push it through my
+> for-next branch.
 
-OK, the mirror is back up!  I removed the notice from the download page.
+Any news from this patch? It would be great to have it ready for merge
+in kernel 2.6.33.
 
-
-Phil
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
