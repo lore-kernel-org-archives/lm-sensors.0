@@ -1,26 +1,112 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Date: Sun, 29 Nov 2009 08:18:51 +0000
-Subject: [lm-sensors] Wiki update: additional motherboard for existing config
-Message-Id: <4B122E6B.1030406@shikadi.net>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 03 Nov 2009 12:09:42 +0000
+Subject: [lm-sensors] [RFC PATCH 07/10] LIS3LV02D: Remove calibaration
+Message-Id: <1257250185-7929-8-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+Chip is calibrated by the manufacturer. There is no need to calibarate
+it at driver level. If the chip is used as a joystick, calibaration can
+be done using joystick device calibration mechanism.
 
-I can't figure out how to edit the wiki, but I found a ticket that said just 
-e-mail it to the list.
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |   32 +++-----------------------------
+ drivers/hwmon/lis3lv02d.h |    3 ---
+ 2 files changed, 3 insertions(+), 32 deletions(-)
 
-On this page: http://www.lm-sensors.org/wiki/Configurations/Gigabyte/G33-DS3R 
-the configuration also works on my motherboard, a Gigabyte P35-DS4.
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 0335b36..5b39257 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -344,19 +344,12 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
+ 	int x, y, z;
+ 
+ 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
+-	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
+-	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
+-	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
++	input_report_abs(pidev->input, ABS_X, x);
++	input_report_abs(pidev->input, ABS_Y, y);
++	input_report_abs(pidev->input, ABS_Z, z);
+ 	input_sync(pidev->input);
+ }
+ 
+-
+-static inline void lis3lv02d_calibrate_joystick(void)
+-{
+-	lis3lv02d_get_xyz(&lis3_dev,
+-		&lis3_dev.xcalib, &lis3_dev.ycalib, &lis3_dev.zcalib);
+-}
+-
+ int lis3lv02d_joystick_enable(void)
+ {
+ 	struct input_dev *input_dev;
+@@ -373,8 +366,6 @@ int lis3lv02d_joystick_enable(void)
+ 	lis3_dev.idev->poll_interval = MDPS_POLL_INTERVAL;
+ 	input_dev = lis3_dev.idev->input;
+ 
+-	lis3lv02d_calibrate_joystick();
+-
+ 	input_dev->name       = "ST LIS3LV02DL Accelerometer";
+ 	input_dev->phys       = DRIVER_NAME "/input0";
+ 	input_dev->id.bustype = BUS_HOST;
+@@ -430,20 +421,6 @@ static ssize_t lis3lv02d_position_show(struct device *dev,
+ 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
+ }
+ 
+-static ssize_t lis3lv02d_calibrate_show(struct device *dev,
+-				struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "(%d,%d,%d)\n", lis3_dev.xcalib, lis3_dev.ycalib, lis3_dev.zcalib);
+-}
+-
+-static ssize_t lis3lv02d_calibrate_store(struct device *dev,
+-				struct device_attribute *attr,
+-				const char *buf, size_t count)
+-{
+-	lis3lv02d_calibrate_joystick();
+-	return count;
+-}
+-
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+@@ -452,14 +429,11 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 
+ static DEVICE_ATTR(selftest, S_IRUGO, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+-static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_show,
+-	lis3lv02d_calibrate_store);
+ static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
+ 
+ static struct attribute *lis3lv02d_attributes[] = {
+ 	&dev_attr_selftest.attr,
+ 	&dev_attr_position.attr,
+-	&dev_attr_calibrate.attr,
+ 	&dev_attr_rate.attr,
+ 	NULL
+ };
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index 655875e..a692116 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -216,9 +216,6 @@ struct lis3lv02d {
+ 	struct input_polled_dev	*idev;     /* input device */
+ 	struct platform_device	*pdev;     /* platform device */
+ 	atomic_t		count;     /* interrupt count after last read */
+-	int			xcalib;    /* calibrated null value for x */
+-	int			ycalib;    /* calibrated null value for y */
+-	int			zcalib;    /* calibrated null value for z */
+ 	struct axis_conversion	ac;        /* hw -> logical axis */
+ 
+ 	u32			irq;       /* IRQ number */
+-- 
+1.5.6.3
 
-Just thought it was worth adding to the page as one more motherboard with an 
-existing config that works.
-
-Cheers,
-Adam.
 
 _______________________________________________
 lm-sensors mailing list
