@@ -1,78 +1,36 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Tue, 03 Nov 2009 20:02:13 +0000
-Subject: [lm-sensors] [PATCH v3 1/8] sensord: Fix coding style
-Message-Id: <20091103200213.GC4724@ubuntu>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 03 Nov 2009 12:09:36 +0000
+Subject: [lm-sensors] [RFC PATCH 01/10] LIS3LV02D: Send sync event
+Message-Id: <1257250185-7929-2-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch fixes some coding style issues.
+Send input_sync after each measurement round. This helps userspace to
+detect which reported values belongs to the same measurement.
 
-* Remove whitespaces between variable and increment operator.
-* Break long lines.
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
- prog/sensord/rrd.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/hwmon/lis3lv02d.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Index: sensors/prog/sensord/rrd.c
-=================================--- sensors.orig/prog/sensord/rrd.c	2009-10-26 21:33:38.000000000 +0100
-+++ sensors/prog/sensord/rrd.c	2009-10-26 21:33:40.000000000 +0100
-@@ -99,7 +99,7 @@
- 		} else {
- 			buffer[i] = '_';
- 		}
--		++ i;
-+		++i;
- 	}
- 	buffer[i] = '\0';
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index cf5afb9..7f43a3b 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -276,6 +276,7 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
+ 	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
+ 	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
+ 	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
++	input_sync(pidev->input);
+ }
  
-@@ -108,7 +108,7 @@
  
- 	/* locate duplicates */
- 	while (okay && (j < index0))
--		okay = strcmp(rrdLabels[j ++], buffer);
-+		okay = strcmp(rrdLabels[j++], buffer);
- 
- 	/* uniquify duplicate labels with _? or _?? */
- 	while (!okay) {
-@@ -449,13 +449,19 @@
- {
- 	int ret = 0, i;
- 
--	printf("#!" RRDCGI "\n\n<HTML>\n<HEAD>\n<TITLE>sensord</TITLE>\n</HEAD>\n<BODY>\n<H1>sensord</H1>\n");
-+	printf("#!" RRDCGI "\n\n<HTML>\n"
-+	       "<HEAD>\n<TITLE>sensord</TITLE>\n</HEAD>\n"
-+	       "<BODY>\n<H1>sensord</H1>\n");
-+
- 	for (i = 0; i < ARRAY_SIZE(graphs); i++) {
- 		struct gr *graph = &graphs[i];
- 
- 		printf("<H2>%s</H2>\n", graph->h2);
--		printf("<P>\n<RRD::GRAPH %s/%s.png\n\t--imginfo '<IMG SRC=" WWWDIR "/%%s WIDTH=%%lu HEIGHT=%%lu>'\n\t-a PNG\n\t-h 200 -w 800\n",
-+		printf("<P>\n<RRD::GRAPH %s/%s.png\n\t--imginfo '"
-+		       "<IMG SRC=" WWWDIR "/%%s WIDTH=%%lu HEIGHT=%%lu>'"
-+		       "\n\t-a PNG\n\t-h 200 -w 800\n",
- 		       sensord_args.cgiDir, graph->image);
-+
- 		printf("\t--lazy\n\t-v '%s'\n\t-t '%s'\n\t-x '%s'\n\t%s",
- 		       graph->axisTitle, graph->title, graph->axisDefn,
- 		       graph->options);
-@@ -469,7 +475,12 @@
- 			ret = rrdCGI_LINE(graph, LOADAVG, LOAD_AVERAGE, NULL);
- 		printf (">\n</P>\n");
- 	}
--	printf("<p>\n<small><b>sensord</b> by <a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>, all credit to the <a href=\"http://www.lm-sensors.org/\">lm_sensors</a> crew.</small>\n</p>\n");
-+	printf("<p>\n<small><b>sensord</b> by "
-+	       "<a href=\"mailto:merlin@merlin.org\">Merlin Hughes</a>"
-+	       ", all credit to the "
-+	       "<a href=\"http://www.lm-sensors.org/\">lm_sensors</a> "
-+	       "crew.</small>\n</p>\n");
-+
- 	printf("</BODY>\n</HTML>\n");
- 
- 	return ret;
+-- 
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
