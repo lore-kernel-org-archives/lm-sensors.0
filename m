@@ -1,166 +1,126 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 11 Nov 2009 21:43:00 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (smsc47m1) Only request I/O ports we
-Message-Id: <20091111224300.7ff99bda@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 03 Nov 2009 12:09:40 +0000
+Subject: [lm-sensors] [RFC PATCH 05/10] LIS3LV02D: Proper power on sequence
+Message-Id: <1257250185-7929-6-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The I/O area of the SMSC LPC47M1xx/292 chips which we use, gives access
-to a lot of registers, some of which are related to fan speed monitoring
-and control, but many are not. At the moment, the smsc47m1 driver
-requests the whole I/O port range. This could easily result in
-resource conflicts with either ACPI or other drivers.
+Lis3 accelerometer sensors have quite long power on delay (up to 125
+ms). This patch adds necessary delay to power on sequence for currently
+supported lis3 chips.
 
-Request only the I/O ports we really use, to prevent such conflicts.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
-This needs testing! If anyone around has a device supported by the
-smsc47m1 driver and has the possibility to test this patch, please do
-and report.
+ drivers/hwmon/lis3lv02d.c |   41 +++++++++++++++++++++++++++--------------
+ drivers/hwmon/lis3lv02d.h |    1 +
+ 2 files changed, 28 insertions(+), 14 deletions(-)
 
- drivers/hwmon/smsc47m1.c |   89 ++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 79 insertions(+), 10 deletions(-)
-
---- linux-2.6.32-rc6.orig/drivers/hwmon/smsc47m1.c	2009-11-11 15:29:11.000000000 +0100
-+++ linux-2.6.32-rc6/drivers/hwmon/smsc47m1.c	2009-11-11 22:15:21.000000000 +0100
-@@ -481,13 +481,85 @@ static int __init smsc47m1_find(unsigned
- 	return 0;
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index b12ee35..39b9ac8 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -50,6 +50,9 @@
+  * joystick.
+  */
+ 
++#define LIS3_PWRON_DELAY_WAI_12B	(5000)
++#define LIS3_PWRON_DELAY_WAI_8B		(3000)
++
+ struct lis3lv02d lis3_dev = {
+ 	.misc_wait   = __WAIT_QUEUE_HEAD_INITIALIZER(lis3_dev.misc_wait),
+ };
+@@ -112,6 +115,24 @@ static void lis3lv02d_get_xyz(struct lis3lv02d *lis3, int *x, int *y, int *z)
+ 	*z = lis3lv02d_get_axis(lis3->ac.z, position);
  }
  
-+/*
-+ * This function can be used to:
-+ *  - test for resource conflicts with ACPI (dev = NULL, request = 0)
-+ *  - request the resources (dev != NULL, request = 1)
-+ *  - release the resources (dev != NULL, request = 0)
-+ * We only allocate the I/O ports we really need, to minimize the risk of
-+ * conflicts with ACPI or with other drivers.
-+ */
-+static int smsc47m1_handle_resources(unsigned short address, enum chips type,
-+				     struct device *dev, int request)
++/* conversion btw sampling rate and the register values */
++static int lis3_12_rates[4] = {40, 160, 640, 2560};
++static int lis3_8_rates[2] = {100, 400};
++
++static int lis3lv02d_get_odr(void)
 +{
-+	static const u8 ports_m1[] = {
-+		/* register, region length */
-+		0x04, 1,
-+		0x33, 4,
-+		0x56, 7,
-+	};
++	u8 ctrl;
++	int val;
 +
-+	static const u8 ports_m2[] = {
-+		/* register, region length */
-+		0x04, 1,
-+		0x09, 1,
-+		0x2c, 2,
-+		0x35, 4,
-+		0x56, 7,
-+		0x69, 4,
-+	};
++	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
 +
-+	int i, ports_size, err;
-+	const u8 *ports;
-+
-+	switch (type) {
-+	case smsc47m1:
-+	default:
-+		ports = ports_m1;
-+		ports_size = ARRAY_SIZE(ports_m1);
-+		break;
-+	case smsc47m2:
-+		ports = ports_m2;
-+		ports_size = ARRAY_SIZE(ports_m2);
-+		break;
-+	}
-+
-+	for (i = 0; i + 1 < ports_size; i += 2) {
-+		unsigned short start = address + ports[i];
-+		unsigned short len = ports[i + 1];
-+
-+		if (!dev) {
-+			/* Only check for conflicts */
-+			err = acpi_check_region(start, len, DRVNAME);
-+			if (err)
-+				return err;
-+		} else if (request) {
-+			/* Request the resources */
-+			if (!request_region(start, len, DRVNAME)) {
-+				dev_err(dev, "Region 0x%hx-0x%hx already in "
-+					"use!\n", start, start + len);
-+
-+				/* Undo all requests */
-+				for (i -= 2; i >= 0; i -= 2)
-+					release_region(start, len);
-+				return -EBUSY;
-+			}
-+		} else {
-+			/* Release the resources */
-+			release_region(start, len);
-+		}
-+	}
-+
-+	return 0;
++	if (lis3_dev.whoami = WAI_12B)
++		val = lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
++	else
++		val = lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
++	return val;
 +}
 +
- static int __devinit smsc47m1_probe(struct platform_device *pdev)
+ void lis3lv02d_poweroff(struct lis3lv02d *lis3)
  {
- 	struct device *dev = &pdev->dev;
- 	struct smsc47m1_sio_data *sio_data = dev->platform_data;
- 	struct smsc47m1_data *data;
- 	struct resource *res;
--	int err = 0;
-+	int err;
- 	int fan1, fan2, fan3, pwm1, pwm2, pwm3;
+ 	/* disable X,Y,Z axis and power down */
+@@ -125,6 +146,9 @@ void lis3lv02d_poweron(struct lis3lv02d *lis3)
  
- 	static const char *names[] = {
-@@ -496,12 +568,9 @@ static int __devinit smsc47m1_probe(stru
- 	};
+ 	lis3->init(lis3);
  
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start, SMSC_EXTENT, DRVNAME)) {
--		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
--			(unsigned long)res->start,
--			(unsigned long)res->end);
--		return -EBUSY;
--	}
-+	err = smsc47m1_handle_resources(res->start, sio_data->type, dev, 1);
-+	if (err < 0)
-+		return err;
- 
- 	if (!(data = kzalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
-@@ -637,7 +706,7 @@ error_free:
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- error_release:
--	release_region(res->start, SMSC_EXTENT);
-+	smsc47m1_handle_resources(res->start, sio_data->type, dev, 0);
- 	return err;
++	/* LIS3 power on delay is quite long */
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
+ 	/*
+ 	 * Common configuration
+ 	 * BDU: (12 bits sensors only) LSB and MSB values are not updated until
+@@ -364,23 +388,10 @@ static ssize_t lis3lv02d_calibrate_store(struct device *dev,
+ 	return count;
  }
  
-@@ -650,7 +719,7 @@ static int __devexit smsc47m1_remove(str
- 	sysfs_remove_group(&pdev->dev.kobj, &smsc47m1_group);
+-/* conversion btw sampling rate and the register values */
+-static int lis3_12_rates[4] = {40, 160, 640, 2560};
+-static int lis3_8_rates[2] = {100, 400};
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+-	u8 ctrl;
+-	int val;
+-
+-	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
+-
+-	if (lis3_dev.whoami = WAI_12B)
+-		val = lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
+-	else
+-		val = lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
+-
+-	return sprintf(buf, "%d\n", val);
++	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
  
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	release_region(res->start, SMSC_EXTENT);
-+	smsc47m1_handle_resources(res->start, data->type, &pdev->dev, 0);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+@@ -430,11 +441,13 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 		printk(KERN_INFO DRIVER_NAME ": 12 bits sensor found\n");
+ 		dev->read_data = lis3lv02d_read_12;
+ 		dev->mdps_max_val = 2048;
++		dev->pwron_delay = LIS3_PWRON_DELAY_WAI_12B;
+ 		break;
+ 	case WAI_8B:
+ 		printk(KERN_INFO DRIVER_NAME ": 8 bits sensor found\n");
+ 		dev->read_data = lis3lv02d_read_8;
+ 		dev->mdps_max_val = 128;
++		dev->pwron_delay = LIS3_PWRON_DELAY_WAI_8B;
+ 		break;
+ 	default:
+ 		printk(KERN_ERR DRIVER_NAME
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index c6ae507..c57f21f 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -202,6 +202,7 @@ struct lis3lv02d {
+ 	u8			whoami;    /* indicates measurement precision */
+ 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
+ 	int			mdps_max_val;
++	int			pwron_delay;
  
-@@ -717,7 +786,7 @@ static int __init smsc47m1_device_add(un
- 	};
- 	int err;
- 
--	err = acpi_check_resource_conflict(&res);
-+	err = smsc47m1_handle_resources(address, sio_data->type, NULL, 0);
- 	if (err)
- 		goto exit;
- 
-
-
+ 	struct input_polled_dev	*idev;     /* input device */
+ 	struct platform_device	*pdev;     /* platform device */
 -- 
-Jean Delvare
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
