@@ -1,115 +1,88 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Nov 2009 15:34:06 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (adt7475) Implement
-Message-Id: <20091114163406.7270ac14@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 03 Nov 2009 12:09:39 +0000
+Subject: [lm-sensors] [RFC PATCH 04/10] lis3: fix show rate for 8 bits chips
+Message-Id: <1257250185-7929-5-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Implement the non-standard pwm_use_point2_pwm_at_crit sysfs attribute
-as the adt7473 driver did.
+From: Éric Piel <eric.piel@tremplin-utc.net>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Jordan Crouse <jordan@cosmicpenguin.net>
-Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+lis3: fix with 8 bits sensors
+
+Signed-off-by: Éric Piel <eric.piel@tremplin-utc.net>
 ---
- drivers/hwmon/adt7475.c |   42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ drivers/hwmon/lis3lv02d.c |   24 ++++++++++++++++--------
+ drivers/hwmon/lis3lv02d.h |    1 +
+ 2 files changed, 17 insertions(+), 8 deletions(-)
 
---- linux-2.6.32-rc7.orig/drivers/hwmon/adt7475.c	2009-11-14 13:15:14.000000000 +0100
-+++ linux-2.6.32-rc7/drivers/hwmon/adt7475.c	2009-11-14 14:33:53.000000000 +0100
-@@ -76,6 +76,9 @@
- #define REG_EXTEND1		0x76
- #define REG_EXTEND2		0x77
- #define REG_CONFIG5		0x7C
-+#define REG_CONFIG4		0x7D
-+
-+#define CONFIG4_MAXDUTY		0x08
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 1c8f108..b12ee35 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -127,12 +127,14 @@ void lis3lv02d_poweron(struct lis3lv02d *lis3)
  
- #define CONFIG5_TWOSCOMP	0x01
- #define CONFIG5_TEMPOFFSET	0x02
-@@ -132,6 +135,7 @@ struct adt7475_data {
- 	unsigned long limits_updated;
- 	char valid;
+ 	/*
+ 	 * Common configuration
+-	 * BDU: LSB and MSB values are not updated until both have been read.
+-	 *      So the value read will always be correct.
++	 * BDU: (12 bits sensors only) LSB and MSB values are not updated until
++	 *      both have been read. So the value read will always be correct.
+ 	 */
+-	lis3->read(lis3, CTRL_REG2, &reg);
+-	reg |= CTRL2_BDU;
+-	lis3->write(lis3, CTRL_REG2, reg);
++	if (lis3->whoami =  WAI_12B) {
++		lis3->read(lis3, CTRL_REG2, &reg);
++		reg |= CTRL2_BDU;
++		lis3->write(lis3, CTRL_REG2, reg);
++	}
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
  
-+	u8 config4;
- 	u8 config5;
- 	u16 alarms;
- 	u16 voltage[3][3];
-@@ -779,6 +783,38 @@ static ssize_t set_pwmfreq(struct device
- 	return count;
+@@ -363,7 +365,8 @@ static ssize_t lis3lv02d_calibrate_store(struct device *dev,
  }
  
-+static ssize_t show_pwm_at_crit(struct device *dev,
-+				struct device_attribute *devattr, char *buf)
-+{
-+	struct adt7475_data *data = adt7475_update_device(dev);
-+	return sprintf(buf, "%d\n", !!(data->config4 & CONFIG4_MAXDUTY));
-+}
+ /* conversion btw sampling rate and the register values */
+-static int lis3lv02dl_df_val[4] = {40, 160, 640, 2560};
++static int lis3_12_rates[4] = {40, 160, 640, 2560};
++static int lis3_8_rates[2] = {100, 400};
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+@@ -371,8 +374,13 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 	int val;
+ 
+ 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
+-	val = (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
+-	return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
 +
-+static ssize_t set_pwm_at_crit(struct device *dev,
-+			       struct device_attribute *devattr,
-+			       const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct adt7475_data *data = i2c_get_clientdata(client);
-+	long val;
-+
-+	if (strict_strtol(buf, 10, &val))
-+		return -EINVAL;
-+	if (val != 0 && val != 1)
-+		return -EINVAL;
-+
-+	mutex_lock(&data->lock);
-+	data->config4 = i2c_smbus_read_byte_data(client, REG_CONFIG4);
-+	if (val)
-+		data->config4 |= CONFIG4_MAXDUTY;
++	if (lis3_dev.whoami = WAI_12B)
++		val = lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
 +	else
-+		data->config4 &= ~CONFIG4_MAXDUTY;
-+	i2c_smbus_write_byte_data(client, REG_CONFIG4, data->config4);
-+	mutex_unlock(&data->lock);
++		val = lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
 +
-+	return count;
-+}
-+
- static SENSOR_DEVICE_ATTR_2(in1_input, S_IRUGO, show_voltage, NULL, INPUT, 0);
- static SENSOR_DEVICE_ATTR_2(in1_max, S_IRUGO | S_IWUSR, show_voltage,
- 			    set_voltage, MAX, 0);
-@@ -894,6 +930,10 @@ static SENSOR_DEVICE_ATTR_2(pwm3_auto_po
- static SENSOR_DEVICE_ATTR_2(pwm3_auto_point2_pwm, S_IRUGO | S_IWUSR, show_pwm,
- 			    set_pwm, MAX, 2);
++	return sprintf(buf, "%d\n", val);
+ }
  
-+/* Non-standard name, might need revisiting */
-+static DEVICE_ATTR(pwm_use_point2_pwm_at_crit, S_IWUSR | S_IRUGO,
-+		   show_pwm_at_crit, set_pwm_at_crit);
-+
- static struct attribute *adt7475_attrs[] = {
- 	&sensor_dev_attr_in1_input.dev_attr.attr,
- 	&sensor_dev_attr_in1_max.dev_attr.attr,
-@@ -962,6 +1002,7 @@ static struct attribute *adt7475_attrs[]
- 	&sensor_dev_attr_pwm3_auto_channels_temp.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_auto_point1_pwm.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_auto_point2_pwm.dev_attr.attr,
-+	&dev_attr_pwm_use_point2_pwm_at_crit.attr,
- 	NULL,
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index 2431c51..c6ae507 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -107,6 +107,7 @@ enum lis3lv02d_ctrl1 {
+ 	CTRL1_DF1	= 0x20,
+ 	CTRL1_PD0	= 0x40,
+ 	CTRL1_PD1	= 0x80,
++	CTRL1_DR	= 0x80, /* Data rate on 8 bits */
  };
- 
-@@ -1160,6 +1201,7 @@ static struct adt7475_data *adt7475_upda
- 	/* Limits and settings, should never change update every 60 seconds */
- 	if (time_after(jiffies, data->limits_updated + HZ * 60) ||
- 	    !data->valid) {
-+		data->config4 = adt7475_read(REG_CONFIG4);
- 		data->config5 = adt7475_read(REG_CONFIG5);
- 
- 		for (i = 0; i < ADT7475_VOLTAGE_COUNT; i++) {
-
-
+ enum lis3lv02d_ctrl2 {
+ 	CTRL2_DAS	= 0x01,
 -- 
-Jean Delvare
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
