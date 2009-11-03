@@ -1,46 +1,120 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Tue, 10 Nov 2009 20:39:44 +0000
-Subject: Re: [lm-sensors] LPC47M233 support
-Message-Id: <20091110203943.GA4795@ubuntu>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 03 Nov 2009 12:09:44 +0000
+Subject: [lm-sensors] [RFC PATCH 09/10] lis3: Scale output values to mg
+Message-Id: <1257250185-7929-10-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <63318d900911090621m4aa0c4eai39ca047accab0208@mail.gmail.com>
-In-Reply-To: <63318d900911090621m4aa0c4eai39ca047accab0208@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Nov 09, 2009 at 11:21:54AM -0300, Hans Goossen wrote:
-> Hello,
+Report output values as 1/1000 of earth gravity.
 
-Hello Hans,
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |   31 ++++++++++++++++++++++++++++---
+ drivers/hwmon/lis3lv02d.h |    4 ++++
+ 2 files changed, 32 insertions(+), 3 deletions(-)
 
-> The CHANGES file of version 3.1.0 said:
-> "Add SMSC LPC47M233 support"
-> 
-> But then in Revision 5757 said:
-> The SMSC LPC47M233 isn't currently supported
-> 
-> So what is the status of this? I've just compiled the latest stable
-> version (3.1.1) but can't get my sensors working. I've an IBM Netvista
-> M50.
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index be2eb97..7e72836 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -53,6 +53,19 @@
+ #define LIS3_PWRON_DELAY_WAI_12B	(5000)
+ #define LIS3_PWRON_DELAY_WAI_8B		(3000)
+ 
++/*
++ * LIS3LV02D spec says 1024 LSBs corresponds 1 G -> 1LSB is 1000/1024 mG
++ * LIS302D spec says: 18 mG / digit
++ * SCALING_ACCURACY is used to increase accuracy of the intermediate
++ * calculation results.
++ */
++#define LIS3_SCALING_ACCURACY           1024
++#define LIS3_2G2G_SENSITIVITY_WAI_12B	((LIS3_SCALING_ACCURACY * 1000) / 1024)
++#define LIS3_2G2G_SENSITIVITY_WAI_8B	(18 * LIS3_SCALING_ACCURACY)
++
++#define LIS3_DEFAULT_FUZZ		3
++#define LIS3_DEFAULT_FLAT		3
++
+ struct lis3lv02d lis3_dev = {
+ 	.misc_wait   = __WAIT_QUEUE_HEAD_INITIALIZER(lis3_dev.misc_wait),
+ };
+@@ -105,11 +118,16 @@ static inline int lis3lv02d_get_axis(s8 axis, int hw_values[3])
+ static void lis3lv02d_get_xyz(struct lis3lv02d *lis3, int *x, int *y, int *z)
+ {
+ 	int position[3];
++	int i;
+ 
+ 	position[0] = lis3->read_data(lis3, OUTX);
+ 	position[1] = lis3->read_data(lis3, OUTY);
+ 	position[2] = lis3->read_data(lis3, OUTZ);
+ 
++	for (i = 0; i < 3; i++)
++		position[i] = (position[i] * lis3->scale) /
++			LIS3_SCALING_ACCURACY;
++
+ 	*x = lis3lv02d_get_axis(lis3->ac.x, position);
+ 	*y = lis3lv02d_get_axis(lis3->ac.y, position);
+ 	*z = lis3lv02d_get_axis(lis3->ac.z, position);
+@@ -385,6 +403,7 @@ int lis3lv02d_joystick_enable(void)
+ {
+ 	struct input_dev *input_dev;
+ 	int err;
++	int max_val, fuzz, flat;
+ 
+ 	if (lis3_dev.idev)
+ 		return -EINVAL;
+@@ -404,9 +423,13 @@ int lis3lv02d_joystick_enable(void)
+ 	input_dev->dev.parent = &lis3_dev.pdev->dev;
+ 
+ 	set_bit(EV_ABS, input_dev->evbit);
+-	input_set_abs_params(input_dev, ABS_X, -lis3_dev.mdps_max_val, lis3_dev.mdps_max_val, 3, 3);
+-	input_set_abs_params(input_dev, ABS_Y, -lis3_dev.mdps_max_val, lis3_dev.mdps_max_val, 3, 3);
+-	input_set_abs_params(input_dev, ABS_Z, -lis3_dev.mdps_max_val, lis3_dev.mdps_max_val, 3, 3);
++	max_val = (lis3_dev.mdps_max_val * lis3_dev.scale)
++		/ LIS3_SCALING_ACCURACY;
++	fuzz = (LIS3_DEFAULT_FUZZ * lis3_dev.scale)  / LIS3_SCALING_ACCURACY;
++	flat = (LIS3_DEFAULT_FLAT * lis3_dev.scale) / LIS3_SCALING_ACCURACY;
++	input_set_abs_params(input_dev, ABS_X, -max_val, max_val, fuzz, flat);
++	input_set_abs_params(input_dev, ABS_Y, -max_val, max_val, fuzz, flat);
++	input_set_abs_params(input_dev, ABS_Z, -max_val, max_val, fuzz, flat);
+ 
+ 	err = input_register_polled_device(lis3_dev.idev);
+ 	if (err) {
+@@ -521,12 +544,14 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 		dev->read_data = lis3lv02d_read_12;
+ 		dev->mdps_max_val = 2048;
+ 		dev->pwron_delay = LIS3_PWRON_DELAY_WAI_12B;
++		dev->scale = LIS3_2G2G_SENSITIVITY_WAI_12B;
+ 		break;
+ 	case WAI_8B:
+ 		printk(KERN_INFO DRIVER_NAME ": 8 bits sensor found\n");
+ 		dev->read_data = lis3lv02d_read_8;
+ 		dev->mdps_max_val = 128;
+ 		dev->pwron_delay = LIS3_PWRON_DELAY_WAI_8B;
++		dev->scale = LIS3_2G2G_SENSITIVITY_WAI_8B;
+ 		break;
+ 	default:
+ 		printk(KERN_ERR DRIVER_NAME
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index a692116..42618b8 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -212,6 +212,10 @@ struct lis3lv02d {
+ 	s16 (*read_data) (struct lis3lv02d *lis3, int reg);
+ 	int			mdps_max_val;
+ 	int			pwron_delay;
++	int                     scale; /*
++					* relationship between 1 LBS and mG
++					* (1/1000th of earth gravity)
++					*/
+ 
+ 	struct input_polled_dev	*idev;     /* input device */
+ 	struct platform_device	*pdev;     /* platform device */
+-- 
+1.5.6.3
 
-The SMSC LPC47M233 isn't supported. There is no kernel driver
-supporting this chip.
-
-The intended driver smsc47m1 doesn't support the chip, so the hardware
-detection were removed from sensor-detect (in Revision 5757).
-
-Jean, please correct me if I'm wrong.
-
-> Any ideas ?
-> 
->      greetings,
-> 
->            hans
-
-Regards,
-Andre
 
 _______________________________________________
 lm-sensors mailing list
