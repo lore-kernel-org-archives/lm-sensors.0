@@ -1,45 +1,86 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 24 Nov 2009 08:25:37 +0000
-Subject: Re: [lm-sensors] ASUS P6T, 2.6.31-14, no pwm devices
-Message-Id: <20091124092537.0922adfc@hyperion.delvare>
+Date: Fri, 06 Nov 2009 13:15:42 +0000
+Subject: Re: [lm-sensors] [patch 1/5] hwmon: Convert fschmd to unlocked_ioctl
+Message-Id: <20091106141542.12404c5c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <8c4290000911141138v161593b0u785895e5a7960587@mail.gmail.com>
-In-Reply-To: <8c4290000911141138v161593b0u785895e5a7960587@mail.gmail.com>
+References: <20091015202722.372890083@linutronix.de>
+	<20091015202758.400949170@linutronix.de>
+In-Reply-To: <20091015202758.400949170@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Alan Cox <alan@lxorguk.ukuu.org.uk>, lm-sensors@lm-sensors.org, Hans de Goede <hdegoede@redhat.com>
 
-Hallo Reinhard,
+Hi Thomas,
 
-On Sun, 15 Nov 2009 23:08:01 +0100, Reinhard Nissl wrote:
-> Am 15.11.2009 22:53, schrieb Jean Delvare:
+Sorry for the late answer.
+
+On Thu, 15 Oct 2009 20:28:31 -0000, Thomas Gleixner wrote:
+> The conversion of fschmd watchdog ioctl to unlocked_ioctl needs to
+> protect the static watchdog_info variable for the WDIOC_GETSUPPORT
+> command.
 > 
-> >> Looks like gkrellm doesn't use libsensors so the location matters
-> >> until it supports both locations too.
-> > 
-> > Recent versions of gkrellm (2.3.1 and later) do support libsensors, if
-> > built properly.
+> All other commands are safe w/o BKL as the called watchdog functions
+> are already serialized with watchdog_lock of the sensor.
 > 
-> openSUSE 11.2 provides 2.3.1. Changelog says, they upgraded to
-> 2.3.1 about 2 years ago. But ldd /usr/gkrellm doesn't mention
-
-Do you mean "ldd /usr/bin/gkrellm"?
-
-> libsensors, although openSUSE 11.2 provides both v3 and v4.
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: lm-sensors@lm-sensors.org
+> ---
+>  drivers/hwmon/fschmd.c |    8 +++++---
+>  1 file changed, 5 insertions(+), 3 deletions(-)
 > 
-> So, looks like poor me is using a gkrellm without libsensors support.
+> Index: linux-2.6-tip/drivers/hwmon/fschmd.c
+> =================================> --- linux-2.6-tip.orig/drivers/hwmon/fschmd.c
+> +++ linux-2.6-tip/drivers/hwmon/fschmd.c
+> @@ -844,8 +844,8 @@ static ssize_t watchdog_write(struct fil
+>  	return count;
+>  }
+>  
+> -static int watchdog_ioctl(struct inode *inode, struct file *filp,
+> -	unsigned int cmd, unsigned long arg)
+> +static long watchdog_ioctl(struct file *filp, unsigned int cmd,
+> +			   unsigned long arg)
+>  {
+>  	static struct watchdog_info ident = {
+>  		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
+> @@ -857,11 +857,13 @@ static int watchdog_ioctl(struct inode *
+>  
+>  	switch (cmd) {
+>  	case WDIOC_GETSUPPORT:
+> +		mutex_lock(&watchdog_data_mutex);
+>  		ident.firmware_version = data->revision;
+>  		if (!nowayout)
+>  			ident.options |= WDIOF_MAGICCLOSE;
+>  		if (copy_to_user((void __user *)arg, &ident, sizeof(ident)))
+>  			ret = -EFAULT;
+> +		mutex_unlock(&watchdog_data_mutex);
+>  		break;
 
-I have double-checked with the relevant package maintainer and openSUSE
-11.2 has gkrellm 2.3.2, not 2.3.1. And it definitely has libsensors
-support.
+I'm not sure why we need to hold the mutex here? My understanding is
+that watchdog_data_mutex protects watchdog_data_list and each
+watchdog's kref. And the above code doesn't touch either.
 
-So either you are running an older version of openSUSE, or you somehow
-messed up your ldd command when checking.
+What I am more worried about is why ident is declared static. This
+looks like a bug to me. Instead of abusing watchdog_data_mutex to
+workaround this, I'd rather remove the "static". I guess that the
+current code happens to work because neither data->revision nor
+nowayout can change over time, but this looks needlessly fragile.
+
+Hans, any comment?
+
+>  
+>  	case WDIOC_GETSTATUS:
+> @@ -921,7 +923,7 @@ static const struct file_operations watc
+>  	.open = watchdog_open,
+>  	.release = watchdog_release,
+>  	.write = watchdog_write,
+> -	.ioctl = watchdog_ioctl,
+> +	.unlocked_ioctl = watchdog_ioctl,
+>  };
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
