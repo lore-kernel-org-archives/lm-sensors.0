@@ -1,62 +1,63 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 09 Nov 2009 10:51:54 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 09 Nov 2009 12:26:21 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (adt7475) Fix temperature fault
-Message-Id: <4AF7F44A.30001@redhat.com>
+Message-Id: <20091109132621.234441db@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091109113746.337b8062@hyperion.delvare>
 In-Reply-To: <20091109113746.337b8062@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hmm,
+Hi Hans,
 
-I've a adt7475 on my home development machine in the Netherlands
-(I'm currently in Brno).
+On Mon, 09 Nov 2009 11:51:54 +0100, Hans de Goede wrote:
+> I've a adt7475 on my home development machine in the Netherlands
+> (I'm currently in Brno).
+>=20
+> I can (and would like to) verify this fix when I'm back home (friday).
+> The adt7475 on my machine is used to control an additional fan, and has
+> no external temperature sensors connected (AFAIK).
+>=20
+> I've tested the original adt7475 driver on this machine, but I may
+> have simply out "temp1 ignore" (and temp3) in my sensors.conf missing
+> this.
 
-I can (and would like to) verify this fix when I'm back home (friday).
-The adt7475 on my machine is used to control an additional fan, and has
-no external temperature sensors connected (AFAIK).
+Thanks for the feedback. I have tested on 3 dumps I have here, one
+ADT7475 and two ADT7473. The ADT7475 reports -64=B0C for temp1 and temp3
+and has both fault bits set to 1. The two ADT7473 reports reasonable
+values for both temp1 and temp3 and have the fault bits set to 0.
+Assuming that the ADT7473 and ADT7475 are almost the same chip and
+should thus behave the same, my change would be correct.
 
-I've tested the original adt7475 driver on this machine, but I may
-have simply out "temp1 ignore" (and temp3) in my sensors.conf missing
-this.
+I have also noticed that Jordan's original code did not have the
+inversion:
 
-Regards,
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-January/022338.html
 
-Hans
+	case FAULT:
+		/* Note - only for remote1 and remote2 */
 
+		ret =3D sprintf(buf, "%d\n",
+			(data->alarms & (sattr->index ? 0x4000 : 0x8000)));
+		break;
 
-On 11/09/2009 11:37 AM, Jean Delvare wrote:
-> The logic of temperature fault flags is wrong, it shows faults when
-> there are none and vice versa. Fix it.
->
-> I can't believe this has been broken since the driver was added, 8
-> months ago, basically breaking temp1 and temp3, and nobody ever
-> complained.
->
-> Signed-off-by: Jean Delvare<khali@linux-fr.org>
-> Cc: Hans de Goede<hdegoede@redhat.com>
-> Cc: Jordan Crouse<jordan@cosmicpenguin.net>
-> ---
->   drivers/hwmon/adt7475.c |    3 +--
->   1 file changed, 1 insertion(+), 2 deletions(-)
->
-> --- linux-2.6.32-rc6.orig/drivers/hwmon/adt7475.c	2009-11-08 19:21:34.000000000 +0100
-> +++ linux-2.6.32-rc6/drivers/hwmon/adt7475.c	2009-11-08 19:22:06.000000000 +0100
-> @@ -350,8 +350,7 @@ static ssize_t show_temp(struct device *
->
->   	case FAULT:
->   		/* Note - only for remote1 and remote2 */
-> -		out = data->alarms&  (sattr->index ? 0x8000 : 0x4000);
-> -		out = out ? 0 : 1;
-> +		out = !!(data->alarms&  (sattr->index ? 0x8000 : 0x4000));
->   		break;
->
->   	default:
->
->
+but it lacked normalization (output value 0x4000 or 0x8000 instead of
+1.) Maybe when normalizing the logic was inverted by accident?
+
+The few ADT7475 data points I have found on the web suggest that on
+many boards temp1 and temp3 are not connected. This could explain why
+the bug went unnoticed so far. Why vendors use these chips, which are
+specifically designed for automatic temperature-based fan speed
+control, in designs where they don't bother wiring the thermal sensors,
+is beyond me.
+
+Anyway, I will wait for you to return home and test on your system,
+before sending the patch to Linus.
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
