@@ -1,25 +1,94 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 23 Nov 2009 12:22:50 +0000
-Subject: Re: [lm-sensors] Support for Family 10h CPUs - Not all sensors are
-Message-Id: <20091123132250.4b4f723a@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 10 Nov 2009 12:41:06 +0000
+Subject: [lm-sensors] [PATCH v2 04/10] lis3: fix show rate for 8 bits chips
+Message-Id: <1257856872-11612-5-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <232a75d96e552164f4c7073154b36172.squirrel@unimail.uni-dortmund.de>
-In-Reply-To: <232a75d96e552164f4c7073154b36172.squirrel@unimail.uni-dortmund.de>
+References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: eric.piel@tremplin-utc.net, daniel@caiaq.de, pavel@ucw.cz
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Mon, 23 Nov 2009 12:27:54 +0100, Clemens Ladisch wrote:
-> Jean Delvare wrote:
-> > +		if ($probecpu->{vendor_id} eq 'AuthenticAMC' &&
-> 
->   +		if ($probecpu->{vendor_id} eq 'AuthenticAMD' &&
+From: Éric Piel <eric.piel@tremplin-utc.net>
 
-Oops, thanks. Fixed and committed.
+lis3: fix with 8 bits sensors
 
+Signed-off-by: Éric Piel <eric.piel@tremplin-utc.net>
+---
+ drivers/hwmon/lis3lv02d.c |   24 ++++++++++++++++--------
+ drivers/hwmon/lis3lv02d.h |    1 +
+ 2 files changed, 17 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 1c8f108..b12ee35 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -127,12 +127,14 @@ void lis3lv02d_poweron(struct lis3lv02d *lis3)
+ 
+ 	/*
+ 	 * Common configuration
+-	 * BDU: LSB and MSB values are not updated until both have been read.
+-	 *      So the value read will always be correct.
++	 * BDU: (12 bits sensors only) LSB and MSB values are not updated until
++	 *      both have been read. So the value read will always be correct.
+ 	 */
+-	lis3->read(lis3, CTRL_REG2, &reg);
+-	reg |= CTRL2_BDU;
+-	lis3->write(lis3, CTRL_REG2, reg);
++	if (lis3->whoami =  WAI_12B) {
++		lis3->read(lis3, CTRL_REG2, &reg);
++		reg |= CTRL2_BDU;
++		lis3->write(lis3, CTRL_REG2, reg);
++	}
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
+ 
+@@ -363,7 +365,8 @@ static ssize_t lis3lv02d_calibrate_store(struct device *dev,
+ }
+ 
+ /* conversion btw sampling rate and the register values */
+-static int lis3lv02dl_df_val[4] = {40, 160, 640, 2560};
++static int lis3_12_rates[4] = {40, 160, 640, 2560};
++static int lis3_8_rates[2] = {100, 400};
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+@@ -371,8 +374,13 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 	int val;
+ 
+ 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
+-	val = (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
+-	return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
++
++	if (lis3_dev.whoami = WAI_12B)
++		val = lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
++	else
++		val = lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
++
++	return sprintf(buf, "%d\n", val);
+ }
+ 
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index 2431c51..c6ae507 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -107,6 +107,7 @@ enum lis3lv02d_ctrl1 {
+ 	CTRL1_DF1	= 0x20,
+ 	CTRL1_PD0	= 0x40,
+ 	CTRL1_PD1	= 0x80,
++	CTRL1_DR	= 0x80, /* Data rate on 8 bits */
+ };
+ enum lis3lv02d_ctrl2 {
+ 	CTRL2_DAS	= 0x01,
 -- 
-Jean Delvare
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
