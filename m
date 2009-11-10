@@ -1,56 +1,104 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 Nov 2009 12:18:55 +0000
-Subject: Re: [lm-sensors] [PATCH v2] k10temp: temperature sensor for AMD
-Message-Id: <20091120131855.7f8f8722@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 10 Nov 2009 12:41:10 +0000
+Subject: [lm-sensors] [PATCH v2 08/10] lis3: Sysfs entry for setting chip
+Message-Id: <1257856872-11612-9-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AF91F70.10106@ladisch.de>
-	<4B06501B.8080509@ladisch.de>
-	<87ws1l5wcl.fsf@depni.sinp.msu.ru>
-	<4B0673D7.5010006@ladisch.de>
-	<20091120123016.19d98ab4@hyperion.delvare>
-	<4B068402.7020606@ladisch.de>
-In-Reply-To: <4B068402.7020606@ladisch.de>
+References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-5-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-6-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-7-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-8-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1257856872-11612-8-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: Serge Belyshev <belyshev@depni.sinp.msu.ru>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: eric.piel@tremplin-utc.net, daniel@caiaq.de, pavel@ucw.cz
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-On Fri, 20 Nov 2009 12:56:50 +0100, Clemens Ladisch wrote:
-> Jean Delvare wrote:
-> > On Fri, 20 Nov 2009 11:47:51 +0100, Clemens Ladisch wrote:
-> > > v2: Erratum 319 now results in a warning, not an error, because it cannot
-> > >     be reliably detected; Serge Belyshev reports that his CPU sensor works.
-> > 
-> > Nack. Unreliable sensors -> the default must be to NOT bind to these
-> > CPUs. ... Otherwise your driver will _never_ make it into the
-> > kernel tree.
-> 
-> Then how did the k8temp driver make it into the kernel tree?  :-)
+It is possible to read position information at the chip measurement
+rate via sysfs. This patch adds possibility to configure chip
+measurement rate.
 
-For the K8 family, the history is the other way around: early models
-worked fine, while later models did not. So there was no objection to
-the k8temp driver initially, there really was no reason for it.
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |   49 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 48 insertions(+), 1 deletions(-)
 
-It is much harder to remove a driver from the kernel tree than to add
-it. Likewise, it is much harder to reject specific models if you have
-been supporting them before, because some users may see it as a
-regression. This is the reason why I would like us to be much more
-cautious with the family 10h CPU support than we have been for the K8
-family. Let us learn from our past errors.
-
-> > Feel free to provide a way to force the bind to happen (and still
-> > print a big fat warning that this is a very bad idea), but do NOT make
-> > it the default. 
-> 
-> Okay, I'll add a force parameter.
-> I'd guess k8temp should get the same?
-
-It would make sense, yes, even though you will get complaints from some
-users.
-
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 5b39257..be2eb97 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -133,6 +133,37 @@ static int lis3lv02d_get_odr(void)
+ 	return val;
+ }
+ 
++static int lis3lv02d_set_odr(int rate)
++{
++	u8 ctrl;
++	int i, len, shift;
++	int *rates;
++	int ret = -EINVAL;
++
++	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
++
++	if (lis3_dev.whoami = WAI_12B) {
++		len = sizeof(lis3_12_rates);
++		rates = lis3_12_rates;
++		shift = 4;
++		ctrl &= ~(CTRL1_DF0 | CTRL1_DF1);
++	} else {
++		len = sizeof(lis3_8_rates);
++		rates = lis3_8_rates;
++		shift = 7;
++		ctrl &= ~CTRL1_DR;
++	}
++
++	for (i = 0; i < len; i++)
++		if (rates[i] = rate) {
++			lis3_dev.write(&lis3_dev,
++				CTRL_REG1, ctrl | (i << shift));
++			ret = 0;
++			break;
++		}
++	return ret;
++}
++
+ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
+ {
+ 	u8 reg;
+@@ -427,9 +458,25 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
+ 
++static ssize_t lis3lv02d_rate_set(struct device *dev,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	unsigned long rate;
++
++	if (strict_strtoul(buf, 0, &rate))
++		return -EINVAL;
++
++	if (lis3lv02d_set_odr(rate))
++		return -EINVAL;
++
++	return count;
++}
++
+ static DEVICE_ATTR(selftest, S_IRUGO, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+-static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
++static DEVICE_ATTR(rate, S_IRUGO | S_IWUSR, lis3lv02d_rate_show,
++					    lis3lv02d_rate_set);
+ 
+ static struct attribute *lis3lv02d_attributes[] = {
+ 	&dev_attr_selftest.attr,
 -- 
-Jean Delvare
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
