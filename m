@@ -1,111 +1,117 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Tue, 03 Nov 2009 12:09:42 +0000
-Subject: [lm-sensors] [RFC PATCH 07/10] LIS3LV02D: Remove calibaration
-Message-Id: <1257250185-7929-8-git-send-email-samu.p.onkalo@nokia.com>
+From: chudson@kionix.com
+Date: Tue, 10 Nov 2009 18:28:48 +0000
+Subject: [lm-sensors] [RFC PATCH 2/3] mach-omap2:kxte9 accelerometer support
+Message-Id: <1257877729-25647-2-git-send-email-chudson@kionix.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1257877729-25647-1-git-send-email-chudson@kionix.com>
+In-Reply-To: <1257877729-25647-1-git-send-email-chudson@kionix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, Chris Hudson <chudson@kionix.com>
 
-Chip is calibrated by the manufacturer. There is no need to calibarate
-it at driver level. If the chip is used as a joystick, calibaration can
-be done using joystick device calibration mechanism.
+From: Chris Hudson <chudson@kionix.com>
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+This patch alters board-zoom2.c to add platform data initialization, gpio 
+configuration, and i2c-2 bus initialization in support of the kxte9 
+accelerometer on the OMAP ZoomII platform.
+
+Signed-off-by: Chris Hudson <chudson@kionix.com>
 ---
- drivers/hwmon/lis3lv02d.c |   32 +++-----------------------------
- drivers/hwmon/lis3lv02d.h |    3 ---
- 2 files changed, 3 insertions(+), 32 deletions(-)
+ arch/arm/mach-omap2/board-zoom2.c |   58 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 58 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index 0335b36..5b39257 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -344,19 +344,12 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
- 	int x, y, z;
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 4ad9b94..da59d9c 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -27,6 +27,47 @@
+ #include "mmc-twl4030.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
  
- 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
--	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
--	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
--	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
-+	input_report_abs(pidev->input, ABS_X, x);
-+	input_report_abs(pidev->input, ABS_Y, y);
-+	input_report_abs(pidev->input, ABS_Z, z);
- 	input_sync(pidev->input);
- }
- 
--
--static inline void lis3lv02d_calibrate_joystick(void)
--{
--	lis3lv02d_get_xyz(&lis3_dev,
--		&lis3_dev.xcalib, &lis3_dev.ycalib, &lis3_dev.zcalib);
--}
--
- int lis3lv02d_joystick_enable(void)
- {
- 	struct input_dev *input_dev;
-@@ -373,8 +366,6 @@ int lis3lv02d_joystick_enable(void)
- 	lis3_dev.idev->poll_interval = MDPS_POLL_INTERVAL;
- 	input_dev = lis3_dev.idev->input;
- 
--	lis3lv02d_calibrate_joystick();
--
- 	input_dev->name       = "ST LIS3LV02DL Accelerometer";
- 	input_dev->phys       = DRIVER_NAME "/input0";
- 	input_dev->id.bustype = BUS_HOST;
-@@ -430,20 +421,6 @@ static ssize_t lis3lv02d_position_show(struct device *dev,
- 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
- }
- 
--static ssize_t lis3lv02d_calibrate_show(struct device *dev,
--				struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "(%d,%d,%d)\n", lis3_dev.xcalib, lis3_dev.ycalib, lis3_dev.zcalib);
--}
--
--static ssize_t lis3lv02d_calibrate_store(struct device *dev,
--				struct device_attribute *attr,
--				const char *buf, size_t count)
--{
--	lis3lv02d_calibrate_joystick();
--	return count;
--}
--
- static ssize_t lis3lv02d_rate_show(struct device *dev,
- 			struct device_attribute *attr, char *buf)
- {
-@@ -452,14 +429,11 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
- 
- static DEVICE_ATTR(selftest, S_IRUGO, lis3lv02d_selftest_show, NULL);
- static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
--static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_show,
--	lis3lv02d_calibrate_store);
- static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
- 
- static struct attribute *lis3lv02d_attributes[] = {
- 	&dev_attr_selftest.attr,
- 	&dev_attr_position.attr,
--	&dev_attr_calibrate.attr,
- 	&dev_attr_rate.attr,
- 	NULL
++#ifdef CONFIG_SENSORS_KXTE9
++/* KIONIX KXTE9 Digital Tri-axis Accelerometer */
++#include <plat/mux.h>
++#include <linux/kxte9.h>
++#define ZOOM2_KIONIX_INT_GPIO	156
++
++static void __init zoom2_kionix_init(void)
++{
++	omap_cfg_reg(Y21_34XX_GPIO156);
++	if (gpio_request(ZOOM2_KIONIX_INT_GPIO, "kionix_irq") < 0) {
++		printk(KERN_ERR "kionix error retrieving GPIO\n");
++		return;
++	}
++	gpio_direction_input(ZOOM2_KIONIX_INT_GPIO);
++}
++
++static struct kxte9_platform_data zoom2_kxte9_data = {
++	.min_interval	= 25,
++	.poll_interval	= 200,
++
++	.axis_map_x	= 0,
++	.axis_map_y	= 1,
++	.axis_map_z	= 2,
++
++	.negate_x	= 0,
++	.negate_y	= 0,
++	.negate_z	= 0,
++
++	.ctrl_reg1_init		= TPE | WUFE | B2SE,
++	.engine_odr_init	= OB2S10 | OWUF40,
++	.int_ctrl_init		= KXTE9_IEN | KXTE9_IEA,
++	.tilt_timer_init	= 0x03,
++	.wuf_timer_init		= 0x01,
++	.b2s_timer_init		= 0x01,
++	.wuf_thresh_init	= 0x20,
++	.b2s_thresh_init	= 0x60,
++
++	.gpio = ZOOM2_KIONIX_INT_GPIO,
++};
++#endif
++
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+ 	KEY(0, 0, KEY_E),
+@@ -256,11 +297,25 @@ static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
+ 	},
  };
-diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-index 655875e..a692116 100644
---- a/drivers/hwmon/lis3lv02d.h
-+++ b/drivers/hwmon/lis3lv02d.h
-@@ -216,9 +216,6 @@ struct lis3lv02d {
- 	struct input_polled_dev	*idev;     /* input device */
- 	struct platform_device	*pdev;     /* platform device */
- 	atomic_t		count;     /* interrupt count after last read */
--	int			xcalib;    /* calibrated null value for x */
--	int			ycalib;    /* calibrated null value for y */
--	int			zcalib;    /* calibrated null value for z */
- 	struct axis_conversion	ac;        /* hw -> logical axis */
  
- 	u32			irq;       /* IRQ number */
++#ifdef CONFIG_SENSORS_KXTE9
++static struct i2c_board_info __initdata zoom2_i2c_bus2info[] = {
++	{
++		I2C_BOARD_INFO("kxte9", KXTE9_I2C_ADDR),
++		.platform_data = &zoom2_kxte9_data,
++	},
++};
++#endif
++
+ static int __init omap_i2c_init(void)
+ {
+ 	omap_register_i2c_bus(1, 2600, zoom2_i2c_boardinfo,
+ 			ARRAY_SIZE(zoom2_i2c_boardinfo));
++#ifndef CONFIG_SENSORS_KXTE9
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
++#else
++	omap_register_i2c_bus(2, 400, zoom2_i2c_bus2info,
++			ARRAY_SIZE(zoom2_i2c_bus2info));
++#endif
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+ }
+@@ -269,6 +324,9 @@ extern int __init omap_zoom2_debugboard_init(void);
+ 
+ static void __init omap_zoom2_init(void)
+ {
++#ifdef CONFIG_SENSORS_KXTE9
++	zoom2_kionix_init();
++#endif
+ 	omap_i2c_init();
+ 	omap_serial_init();
+ 	omap_zoom2_debugboard_init();
 -- 
-1.5.6.3
+1.5.4.3
 
 
 _______________________________________________
