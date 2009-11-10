@@ -1,121 +1,176 @@
-From: =?ISO-8859-1?Q?Charles_Pr=E9vot?= <charlesprevot@gmail.com>
-Date: Fri, 27 Nov 2009 22:32:35 +0000
-Subject: Re: [lm-sensors] /sys/class/hwmon/ numbering
-Message-Id: <18910e4d0911271432k735d23e9sd94f1ba0f0c47449@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5484427194303568567=="
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 10 Nov 2009 12:41:08 +0000
+Subject: [lm-sensors] [PATCH v2 06/10] LIS3LV02D: Selftest support
+Message-Id: <1257856872-11612-7-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <18910e4d0911260014m5fe3445cmf423b25e6a68bf50@mail.gmail.com>
-In-Reply-To: <18910e4d0911260014m5fe3445cmf423b25e6a68bf50@mail.gmail.com>
-To: lm-sensors@vger.kernel.org
-
---===============5484427194303568567==
-Content-Type: multipart/alternative; boundary=00032555ad7e5544c1047961debf
-
---00032555ad7e5544c1047961debf
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Nov 27, 2009 at 2:59 PM, Luca Tettamanti <kronos.it@gmail.com>wrote=
-:
-
-> On Fri, Nov 27, 2009 at 9:01 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> > Bonjour Charles,
-> > On Thu, 26 Nov 2009 09:14:45 +0100, Charles Pr=E9vot wrote:
-> >> my motherboard is a Asus MN2 SLI DELUXE with AMD CPU
-> >> below some results:
-> [...]
-> > This will indirectly solve your problem, although probably not the way
-> > you would like: the asus_atk0110 driver doesn't offer manual fan speed
-> > control facilities, instead you must select the automatic fan speed
-> > control strategy in the BIOS.
-> >
-> > I'm not sure about the ACPI thermal zone, I thought Asus boards did not
-> > have one. Luca, ever seen this before? Is it OK to use both the ACPI
-> > thermal driver and the asus_atk0110 driver at the same time?
->
-> Yes. I already have the DSDT of that board; internally TZ and ATK both
-> use the same methods but the execution of the ACPI interpreter is
-> serialized so there's no chance of conflict.
-> On this particular board the it87 driver would interfere with TZ,
-> regardless of whether asus_atk0110 is loaded or not: better not load
-> it.
-> Charles, the BIOS supports Q-FAN; in the DSDT I don't see the
-> profiles, but a "Q-Fan Ratio". Check the manual (and the BIOS itself).
->
-Exact, you were right. I don't know how I missed this one and then try to
-use fancontrol...
-Anyway, it solved my problems, and I learned a few things thanks to you all=
-.
-So thank you very much for your help Clemens, Jean and Luca.
-(btw I disabled the it87 module)
-
->
-> Luca
->
-
---00032555ad7e5544c1047961debf
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<br><br><div class=3D"gmail_quote">On Fri, Nov 27, 2009 at 2:59 PM, Luca Te=
-ttamanti <span dir=3D"ltr">&lt;<a href=3D"http://kronos.it">kronos.it</a>@<=
-a href=3D"http://gmail.com">gmail.com</a>&gt;</span> wrote:<br><blockquote =
-class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204); m=
-argin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div class=3D"im">On Fri, Nov 27, 2009 at 9:01 AM, Jean Delvare &lt;<a href=
-=3D"mailto:khali@linux-fr.org">khali@linux-fr.org</a>&gt; wrote:<br>
-</div><div class=3D"im">&gt; Bonjour Charles,<br>
-&gt; On Thu, 26 Nov 2009 09:14:45 +0100, Charles Pr=E9vot wrote:<br>
-</div><div class=3D"im">&gt;&gt; my motherboard is a Asus MN2 SLI DELUXE wi=
-th AMD CPU<br>
-&gt;&gt; below some results:<br>
-</div>[...]<br>
-<div class=3D"im">&gt; This will indirectly solve your problem, although pr=
-obably not the way<br>
-&gt; you would like: the asus_atk0110 driver doesn&#39;t offer manual fan s=
-peed<br>
-&gt; control facilities, instead you must select the automatic fan speed<br=
->
-&gt; control strategy in the BIOS.<br>
-&gt;<br>
-&gt; I&#39;m not sure about the ACPI thermal zone, I thought Asus boards di=
-d not<br>
-&gt; have one. Luca, ever seen this before? Is it OK to use both the ACPI<b=
-r>
-&gt; thermal driver and the asus_atk0110 driver at the same time?<br>
-<br>
-</div>Yes. I already have the DSDT of that board; internally TZ and ATK bot=
-h<br>
-use the same methods but the execution of the ACPI interpreter is<br>
-serialized so there&#39;s no chance of conflict.<br>
-On this particular board the it87 driver would interfere with TZ,<br>
-regardless of whether asus_atk0110 is loaded or not: better not load<br>
-it.<br>
-Charles, the BIOS supports Q-FAN; in the DSDT I don&#39;t see the<br>
-profiles, but a &quot;Q-Fan Ratio&quot;. Check the manual (and the BIOS its=
-elf).<br></blockquote><div>Exact, you were right. I don&#39;t know how I mi=
-ssed this one and then try to use fancontrol... <br>Anyway, it solved my pr=
-oblems, and I learned a few things thanks to you all. So thank you very muc=
-h for your help Clemens, Jean and Luca.<br>
-(btw I disabled the it87 module)<br></div><blockquote class=3D"gmail_quote"=
- style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.=
-8ex; padding-left: 1ex;">
-<font color=3D"#888888"><br>
-Luca<br>
-</font></blockquote></div><br>
-
---00032555ad7e5544c1047961debf--
-
-
---===============5484427194303568567==
-Content-Type: text/plain; charset="us-ascii"
+References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-5-git-send-email-samu.p.onkalo@nokia.com>
+ <1257856872-11612-6-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1257856872-11612-6-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: eric.piel@tremplin-utc.net, daniel@caiaq.de, pavel@ucw.cz
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Samu Onkalo <samu.p.onkalo@nokia.com>
+
+Selftest as specified by chip manufacturer.
+Controlled via sysfs. Response is OK / FAIL with measurement data for
+each axes. test acceptance limits are set using platform data.
+
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |   59 ++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/hwmon/lis3lv02d.h |   13 ++++++++-
+ include/linux/lis3lv02d.h |    2 +
+ 3 files changed, 71 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 39b9ac8..0335b36 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -133,6 +133,51 @@ static int lis3lv02d_get_odr(void)
+ 	return val;
+ }
+ 
++static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
++{
++	u8 reg;
++	s16 x, y, z;
++	u8 selftest;
++
++	if (lis3_dev.whoami = WAI_12B)
++		selftest = CTRL1_ST;
++	else
++		selftest = CTRL1_STP;
++
++	lis3->read(lis3, CTRL_REG1, &reg);
++	lis3->write(lis3, CTRL_REG1, (reg | selftest));
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
++	/* Read directly to avoid axis remap */
++	x = lis3->read_data(lis3, OUTX);
++	y = lis3->read_data(lis3, OUTY);
++	z = lis3->read_data(lis3, OUTZ);
++
++	/* back to normal settings */
++	lis3->write(lis3, CTRL_REG1, reg);
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
++	results[0] = x - lis3->read_data(lis3, OUTX);
++	results[1] = y - lis3->read_data(lis3, OUTY);
++	results[2] = z - lis3->read_data(lis3, OUTZ);
++
++	if (lis3->pdata) {
++		int i;
++		for (i = 0; i < 3; i++) {
++			/* Check minimum acceptance limits */
++			if (results[i] < lis3->pdata->selftest_min_limits[i])
++				return -1;
++
++			/* Check maximum acceptance limits */
++			if (results[i] > lis3->pdata->selftest_max_limits[i])
++				return -1;
++		}
++	}
++
++	/* test passed */
++	return 0;
++}
++
+ void lis3lv02d_poweroff(struct lis3lv02d *lis3)
+ {
+ 	/* disable X,Y,Z axis and power down */
+@@ -365,6 +410,17 @@ void lis3lv02d_joystick_disable(void)
+ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
+ 
+ /* Sysfs stuff */
++static ssize_t lis3lv02d_selftest_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int result;
++	s16 values[3];
++
++	result = lis3lv02d_selftest(&lis3_dev, values);
++	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
++		values[0], values[1], values[2]);
++}
++
+ static ssize_t lis3lv02d_position_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+@@ -394,12 +450,14 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
+ 
++static DEVICE_ATTR(selftest, S_IRUGO, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+ static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_show,
+ 	lis3lv02d_calibrate_store);
+ static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
+ 
+ static struct attribute *lis3lv02d_attributes[] = {
++	&dev_attr_selftest.attr,
+ 	&dev_attr_position.attr,
+ 	&dev_attr_calibrate.attr,
+ 	&dev_attr_rate.attr,
+@@ -507,4 +565,3 @@ EXPORT_SYMBOL_GPL(lis3lv02d_init_device);
+ MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer driver");
+ MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
+ MODULE_LICENSE("GPL");
+-
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index c57f21f..655875e 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -98,7 +98,7 @@ enum lis3_who_am_i {
+ 	WAI_6B		= 0x52, /* 6 bits: LIS331DLF - not supported */
+ };
+ 
+-enum lis3lv02d_ctrl1 {
++enum lis3lv02d_ctrl1_12b {
+ 	CTRL1_Xen	= 0x01,
+ 	CTRL1_Yen	= 0x02,
+ 	CTRL1_Zen	= 0x04,
+@@ -107,8 +107,17 @@ enum lis3lv02d_ctrl1 {
+ 	CTRL1_DF1	= 0x20,
+ 	CTRL1_PD0	= 0x40,
+ 	CTRL1_PD1	= 0x80,
+-	CTRL1_DR	= 0x80, /* Data rate on 8 bits */
+ };
++
++/* Delta to ctrl1_12b version */
++enum lis3lv02d_ctrl1_8b {
++	CTRL1_STM	= 0x08,
++	CTRL1_STP	= 0x10,
++	CTRL1_FS	= 0x20,
++	CTRL1_PD	= 0x40,
++	CTRL1_DR	= 0x80,
++};
++
+ enum lis3lv02d_ctrl2 {
+ 	CTRL2_DAS	= 0x01,
+ 	CTRL2_SIM	= 0x02,
+diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
+index 3cc2f2c..966648b 100644
+--- a/include/linux/lis3lv02d.h
++++ b/include/linux/lis3lv02d.h
+@@ -43,6 +43,8 @@ struct lis3lv02d_platform_data {
+ #define LIS3_WAKEUP_Z_HI	(1 << 5)
+ 	unsigned char wakeup_flags;
+ 	unsigned char wakeup_thresh;
++	s16 selftest_min_limits[3]; /* x, y, z */
++	s16 selftest_max_limits[3]; /* x, y, z */
+ };
+ 
+ #endif /* __LIS3LV02D_H_ */
+-- 
+1.5.6.3
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5484427194303568567==--
