@@ -1,116 +1,38 @@
-From: Wu Zhangjin <wuzhangjin@gmail.com>
-Date: Thu, 26 Nov 2009 06:26:44 +0000
-Subject: Re: [lm-sensors] [PATCH v2] [loongson] yeeloong2f: add platform
-Message-Id: <1259216804.4989.54.camel@falcon.domain.org>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 10 Nov 2009 12:41:03 +0000
+Subject: [lm-sensors] [PATCH v2 01/10] LIS3LV02D: Send sync event
+Message-Id: <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <9ef5a0038ec5e9b584be8c960693c434a323620a.1258803311.git.wuzhangjin@gmail.com>
-	 <9ef5a0038ec5e9b584be8c960693c434a323620a.1258803311.git.wuzhangjin@gmail.com>
-	 <20091126041047.GC23244@core.coreip.homeip.net>
-	 <1259215215.4989.38.camel@falcon.domain.org>
-	 <20091126060854.GK23244@core.coreip.homeip.net>
-In-Reply-To: <20091126060854.GK23244@core.coreip.homeip.net>
+References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, Richard Purdie <rpurdie@rpsys.net>, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-laptop@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, sfr@linuxcare.com, linux-kernel@vger.kernel.org
+To: eric.piel@tremplin-utc.net, daniel@caiaq.de, pavel@ucw.cz
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-On Wed, 2009-11-25 at 22:08 -0800, Dmitry Torokhov wrote:
-[...]
-> > > > +	/* SW_VIDEOOUT_INSERT? not included in hald-addon-input! */
-> > > > +	{KE_KEY, EVENT_CRT_DETECT, KEY_PROG1},
-> > 
-> > any available event for reporting the inserted CRT in hald-addon-input?
-> 
-> Hmm.. not really. Again, does not seem to be related to input subsystem
-> but video one.
+Send input_sync after each measurement round. This helps userspace to
+detect which reported values belongs to the same measurement.
 
-It's time to remove it from keymap now, I have done some job in the
-video_output subdriver for this event ;)
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> > > > +	/* Seems battery subdriver should report it */
-> > > > +	{KE_KEY, EVENT_OVERTEMP, KEY_PROG2},
-> > > 
-> > > Does not seem to be an input event?
-> > > 
-> > 
-> > It is not an input event, Will remove it from the keymap table.
-> >  
-> > BTW: how can we handle this stuff(overtemp...)? lm-sensors? Perhaps
-> > temp1_max_alarm or temp1_crit_alarm?
-> > 
-> 
-> Not really sure... HWMON list is a good place to ask I think.
-
-okay, will split the hwmon driver out and send it to lm-sensors mailing
-list.
-
-> 
-> > > > +	/*{KE_KEY, EVENT_AC_BAT, KEY_BATTERY},*/
-> > > > +	{KE_KEY, EVENT_CAMERA, KEY_CAMERA},	/* Fn + ESC */
-> > > > +	{KE_KEY, EVENT_SLEEP, KEY_SLEEP},	/* Fn + F1 */
-> > > > +	/* Seems not clear? not included in hald-addon-input! */
-> > > > +	{KE_KEY, EVENT_BLACK_SCREEN, KEY_PROG3},	/* Fn + F2 */
-> > > 
-> > > Do you mean "lock screen"?
-> > 
-> > not lock, close the backlight of the display, any available event here?
-> 
-> What is it then? A switch that turns off backlight? What is the expected
-> reaction to it?
-> 
-
-Yes, a switch for turning off/on the backlight, seems no need to report
-this key to the users, will remove it too.
-
-> > > > +	if (!yeeloong_hotkey_dev)
-> > > > +		return -ENOMEM;
-> > > 
-> > > Error unwinding?
-> > 
-> > Sorry, not clear what do you mean here?
-> 
-> If you just return you will have the SCI stuff that you did a few lines
-> above installed... I am concerned whether it is a good idea.
-> 
-
-get it, thanks!
-
-I have checked the return value in the module init function:
-
-[...]
-
-yeeloong_init()
-{
-	[...]
-        ret = yeeloong_hotkey_init(&yeeloong_pdev->dev);
-        if (ret) {
-                yeeloong_hotkey_exit();
-                printk(KERN_INFO "Fail init yeeloong hotkey driver.\n");
-                return ret;
-        }
-	[...]
-
-}
-
-[...]
-
-static void yeeloong_hotkey_exit(void)
-{
-        /* free irq */
-        remove_irq(SCI_IRQ_NUM, &sci_irqaction);
-	 ...
-}
-
-but as a standalone driver, It's better to do something as following:
-
-if (!yeeloong_hotkey_dev) {
-	yeeloong_hotkey_exit();
-	return -ENOMEM;
-}
-
-Thanks & Regards!
-	Wu Zhangjin
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index cf5afb9..7f43a3b 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -276,6 +276,7 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
+ 	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
+ 	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
+ 	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
++	input_sync(pidev->input);
+ }
+ 
+ 
+-- 
+1.5.6.3
 
 
 _______________________________________________
