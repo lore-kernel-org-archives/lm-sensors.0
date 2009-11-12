@@ -1,73 +1,66 @@
-From: Allen Edwards <allen.p.edwards@gmail.com>
-Date: Mon, 23 Nov 2009 16:06:54 +0000
-Subject: Re: [lm-sensors] pwmconfig can only control fan speed at beginning
-Message-Id: <39eba8470911230806x28ec213dtd278812cfe44cb88@mail.gmail.com>
+From: rodeham <rodeham.zhou@gmail.com>
+Date: Thu, 12 Nov 2009 09:23:40 +0000
+Subject: [lm-sensors] hi,how to resolve the problem,thank you
+Message-Id: <3e29351d0911120123s6a3b217fle7d999e9cf82f6ff@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8298101386793182777=="
+Content-Type: multipart/mixed; boundary="===============0118543222963085943=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <39eba8470911210719l17f35e2eoeda973ab0724130b@mail.gmail.com>
-In-Reply-To: <39eba8470911210719l17f35e2eoeda973ab0724130b@mail.gmail.com>
 To: lm-sensors@vger.kernel.org
 
---===============8298101386793182777==
-Content-Type: multipart/alternative; boundary=001517741218cf893704790c049e
+--===============0118543222963085943==
+Content-Type: multipart/alternative; boundary=001636e0addb5125f40478291958
 
---001517741218cf893704790c049e
+--001636e0addb5125f40478291958
 Content-Type: text/plain; charset=ISO-8859-1
 
->
-> > Is this acceptable?
->
-> Yes it is, even though I would be a little more cautious:
->
-> if [ -x /usr/local/sbin/fancontrol -a -r /etc/fancontrol ]
-> then
->        /usr/local/sbin/fancontrol
-> fi
->
->
-OK, thanks.  You have been a huge help and my wife is very happy with the
-result.  That makes me happy as well!
+I searched the information that is as following. how to resolve this
+problem? Thank you
 
-As I understand it, /usr/local/sbin/fancontrol will not run without being
-there or having its control file there so I am thinking I am OK without the
-added protection you offer and I think I will leave things there unless I am
-missing something other than clean programming style.
+I'm working on a project that uses a smm665 that contains a small
+eeprom device on an i2c bus connected to an intel ICH9.
 
-Again, thanks so much for your help.
+The datasheet for the smm665 specifies that a eeprom read needs
+a repeated start.
 
-Allen
+Figure 24 here:
 
---001517741218cf893704790c049e
+  http://www.summitmicro.com/prod_select/summary/SMM665/SMM665B_2089_20.pdf
+
+Does anyone happen to know if this adapter supports repeated starts?
+The kernel version I'm currently using (admittedly a bit old) does not
+appear to do so.
+
+Needless to say, vanilla reads using the smbus api don't work for this
+device (but do for an atmel eeprom that I also have access to).
+
+Thanks,
+Craig
+
+--001636e0addb5125f40478291958
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<div class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"margi=
-n:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;"><div class=3D"im=
-">&gt; Is this acceptable?<br>
+<div>I searched the information that is as following. how to resolve this p=
+roblem? Thank you</div>
+<div>=A0</div>
+<div>I&#39;m working on a project that uses a smm665 that contains a small<=
+br>eeprom device on an i2c bus connected to an intel ICH9.<br><br>The datas=
+heet for the smm665 specifies that a eeprom read needs<br>a repeated start.=
 <br>
-</div><div class=3D"im">Yes it is, even though I would be a little more cau=
-tious:<br>
-<br>
-if [ -x /usr/local/sbin/fancontrol -a -r /etc/fancontrol ]<br>
-then<br>
- =A0 =A0 =A0 =A0/usr/local/sbin/fancontrol<br>
-fi<br>
-<br></div></blockquote><div><br></div><div>OK, thanks. =A0You have been a h=
-uge help and my wife is very happy with the result. =A0That makes me happy =
-as well!</div><div><br></div><div>As I understand it, /usr/local/sbin/fanco=
-ntrol will not run without being there or having its control file there so =
-I am thinking I am OK without the added protection you offer and I think I =
-will leave things there unless I am missing something other than clean prog=
-ramming style.=A0</div>
+<br>Figure 24 here:<br><br>=A0 <a href=3D"http://www.summitmicro.com/prod_s=
+elect/summary/SMM665/SMM665B_2089_20.pdf">http://www.summitmicro.com/prod_s=
+elect/summary/SMM665/SMM665B_2089_20.pdf</a><br><br>Does anyone happen to k=
+now if this adapter supports repeated starts?<br>
+The kernel version I&#39;m currently using (admittedly a bit old) does not<=
+br>appear to do so.<br><br>Needless to say, vanilla reads using the smbus a=
+pi don&#39;t work for this<br>device (but do for an atmel eeprom that I als=
+o have access to).<br>
+<br>Thanks,<br>Craig<br></div>
 
-</div><br><div>Again, thanks so much for your help.</div><div><br></div><di=
-v>Allen</div><div><br></div>
-
---001517741218cf893704790c049e--
+--001636e0addb5125f40478291958--
 
 
---===============8298101386793182777==
+--===============0118543222963085943==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -77,4 +70,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8298101386793182777==--
+--===============0118543222963085943==--
