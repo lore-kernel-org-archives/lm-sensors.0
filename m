@@ -1,38 +1,59 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
-Date: Sun, 15 Nov 2009 15:49:33 +0000
-Subject: Re: [lm-sensors] [PATCH v2 02/10] LIS3LV02D: Correct memory leak in
-Message-Id: <4B00230D.3090808@tremplin-utc.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 13 Nov 2009 13:42:03 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Clarify autopwm trip points
+Message-Id: <20091113144203.7443070d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com> <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com> <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: daniel@caiaq.de, pavel@ucw.cz, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Op 10-11-09 13:41, Samu Onkalo schreef:
-> polled input device itself was not free'd.
->=20
-> Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C3=89ric Piel <eric.piel@tremplin-utc.net>
-> ---
->  drivers/hwmon/lis3lv02d.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-> index 7f43a3b..dbd0b05 100644
-> --- a/drivers/hwmon/lis3lv02d.c
-> +++ b/drivers/hwmon/lis3lv02d.c
-> @@ -333,6 +333,7 @@ void lis3lv02d_joystick_disable(void)
->  	if (lis3_dev.irq)
->  		misc_deregister(&lis3lv02d_misc_device);
->  	input_unregister_polled_device(lis3_dev.idev);
-> +	input_free_polled_device(lis3_dev.idev);
->  	lis3_dev.idev =3D NULL;
->  }
->  EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
+Document the case of hybrid automatic fan speed control
+implementations, where trip points are associated to both PWM output
+channels and temperature input channels.
 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+While working on the adt7473 and adt7475 drivers, I have noticed that
+their implementation of automatic fan speed control doesn't match what
+we documented in the sysfs-interface document. As the implementation
+makes sense, I believe we shall keep it and update the documentation
+accordingly.
+
+ Documentation/hwmon/sysfs-interface |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+--- linux-2.6.32-rc7.orig/Documentation/hwmon/sysfs-interface	2009-11-04 09:27:12.000000000 +0100
++++ linux-2.6.32-rc7/Documentation/hwmon/sysfs-interface	2009-11-13 14:35:24.000000000 +0100
+@@ -225,8 +225,6 @@ pwm[1-*]_auto_point[1-*]_temp_hyst
+ 		to PWM output channels.
+ 		RW
+ 
+-OR
+-
+ temp[1-*]_auto_point[1-*]_pwm
+ temp[1-*]_auto_point[1-*]_temp
+ temp[1-*]_auto_point[1-*]_temp_hyst
+@@ -235,6 +233,15 @@ temp[1-*]_auto_point[1-*]_temp_hyst
+ 		to temperature channels.
+ 		RW
+ 
++There is a third case where trip points are associated to both PWM output
++channels and temperature channels: the PWM values are associated to PWM
++output channels while the temperature values are associated to temperature
++channels. In that case, the result is determined by the mapping between
++temperature inputs and PWM outputs. When several temperature inputs are
++mapped to a given PWM output, this leads to several candidate PWM values.
++The actual result is up to the chip, but in general the highest candidate
++value (fastest fan speed) wins.
++
+ 
+ ****************
+ * Temperatures *
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
