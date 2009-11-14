@@ -1,220 +1,197 @@
-From: Sean Fidler <fidlersean@gmail.com>
-Date: Mon, 30 Nov 2009 23:08:46 +0000
-Subject: Re: [lm-sensors] LPC47M192-NC Fans
-Message-Id: <alpine.OSX.2.00.0911301803270.346@blackbird.local>
+From: Matt Sheumack <matt@sheumack.com>
+Date: Sat, 14 Nov 2009 19:38:52 +0000
+Subject: [lm-sensors] ASUS P6T, 2.6.31-14, no pwm devices
+Message-Id: <8c4290000911141138v161593b0u785895e5a7960587@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8408524910779765330=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
-In-Reply-To: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks for your assistance.
+--===============8408524910779765330==
+Content-Type: multipart/alternative; boundary=0016e6d77fa0212f33047859ed35
 
-Please find the requested information below: output of sensors-detect,
-/proc/ioports and the kernel log entry after attempting to load smsc47m1
+--0016e6d77fa0212f33047859ed35
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-##############################
-#sensors-detect revision 5249# 
-##############################
+Hi All,
 
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
+Been scanning the recent activity around how 2.6.31 has broken fan control
+on many m/boards, and am hoping to make a contribution so this problem can
+be fixed. Given that my coding skills are limited to Fortran 77, best I can
+do is help with data and test. I've not (yet) enabled the "lax" workaround,
+so I don't know if it works. Happy to follow instructions from here to
+provide H/W input.
 
-We can start with probing for (PCI) I2C or SMBus adapters.
-Do you want to probe now? (YES/no): Probing for PCI bus adapters...
-Use driver `i2c-i801' for device 0000:00:1f.3: Intel 82801DB ICH4
+Regards
 
-We will now try to load each adapter module in turn.
-Module `i2c-i801' already loaded.
-If you have undetectable or unsupported I2C/SMBus adapters, you can have
-them scanned by manually loading the modules before running this script.
+Matt
 
-We are now going to do the I2C/SMBus adapter probings. Some chips may
-be double detected; we choose the one with the highest confidence
-value in that case.
-If you found that the adapter hung after probing a certain address,
-you can specify that address to remain unprobed.
+- i7-920 + ASUS P6T.
 
-Next adapter: SMBus I801 adapter at 1880 (i2c-0)
-Do you want to scan it? (YES/no/selectively): Client found at address 0x2d
-Handled by driver `smsc47m192' (already loaded), chip type `smsc47m192'
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-     (confidence 8, not a hardware monitoring chip)
-Probing for `EDID EEPROM'...                                No
-Client found at address 0x51
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-     (confidence 8, not a hardware monitoring chip)
-Probing for `EDID EEPROM'...                                No
+What worked:
+- Under Ubuntu 9.0.4 with 2.6.14 through 2.6.16 (canonical distributions).
+- Manual modprobe w83627ehf added to rc script
+- lm-sensors 3.1.1 (tarball from sensors web-site). Fan control found 3 fan=
+s
+(1 CPU + 2 x chassis), with 2 x PWM devices (1 CPU + 1 chassis). The two m/=
+b
+connected fans were sucessfully controlled using:
 
-Next adapter: intel drm CRTDDC_A (i2c-1)
-Do you want to scan it? (YES/no/selectively): Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                Yes
-     (confidence 8, not a hardware monitoring chip)
+      Settings for hwmon8/device/pwm2:
+         Depends on hwmon8/device/temp2_input
+         Controls hwmon8/device/fan4_input
+<lm-sensors@lm-sensors.org>
+What doesn't work:
+- Under Ubuntu 9.10 with 2.6.31 (Canonical distribution, online upgrade fro=
+m
+9.0.4)
+- sensors version 3.1.1 with libsensors version 3.1.1 (canonical
+distributions)
+- sensors sees CPU and core temps + 3 fans.
+- There are no pwm-capable sensor modules installed devices found (hence no
+fan-control)
 
-Next adapter: bt878 #0 [sw] (i2c-2)
-Do you want to scan it? (YES/no/selectively): Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                No
+# sensors
+atk0110-acpi-0
+Adapter: ACPI interface
+Vcore Voltage:      +1.05 V  (min =3D  +0.80 V, max =3D  +1.60 V)
+ +3.3 Voltage:      +3.30 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+ +5 Voltage:        +4.97 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+ +12 Voltage:      +11.97 V  (min =3D +10.20 V, max =3D +13.80 V)
+CPU FAN Speed:     2481 RPM  (min =3D  600 RPM)
+CHASSIS1 FAN Speed:3590 RPM  (min =3D  600 RPM)
+CHASSIS2 FAN Speed:3245 RPM  (min =3D  600 RPM)
+POWER FAN Speed:      0 RPM  (min =3D    0 RPM)
+CPU Temperature:    +45.0=B0C  (high =3D +60.0=B0C, crit =3D +75.0=B0C)
+MB Temperature:     +40.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
 
-Some chips are also accessible through the ISA I/O ports. We have to
-write to arbitrary I/O ports to probe them. This is usually safe though.
-Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-Do you want to scan the ISA I/O ports? (YES/no): Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM78-J' at 0x290...     No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-Probing for `IPMI BMC KCS' at 0xca0...                      No
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +46.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
+...
+coretemp-isa-0007
+Adapter: ISA adapter
+Core 7:      +43.0=B0C  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
 
-Some Super I/O chips may also contain sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no): Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     Yes
-Found `SMSC LPC47M15x/192/997 Super IO Fan Sensors'
-     (but not activated)
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       No
-Trying family `ITE'...                                      No
+dmesg:
+[   13.045551] Adding 19044984k swap on /dev/md2.  Priority:-1 extents:1
+across:19044984k
+[   13.178591] nvidia: module license 'NVIDIA' taints kernel.
+[   13.178594] Disabling lock debugging due to kernel taint
+[   13.203853] Bluetooth: Generic Bluetooth USB driver ver 0.5
+[   13.203949] usbcore: registered new interface driver btusb
+[   13.222574] lp: driver loaded but no devices found
+[   13.431026]   alloc irq_desc for 24 on node 0
+[   13.431028]   alloc kstat_irqs on node 0
+[   13.431035] nvidia 0000:02:00.0: PCI INT A -> GSI 24 (level, low) -> IRQ
+24
+[   13.431040] nvidia 0000:02:00.0: setting latency timer to 64
+[   13.431147] NVRM: loading NVIDIA UNIX x86_64 Kernel Module  173.14.20
+Thu Jun 25 18:15:32 PDT 2009
+[   13.511995] coretemp coretemp.0: Using relative temperature scale!
+[   13.512023] coretemp coretemp.1: Using relative temperature scale!
+[   13.512044] coretemp coretemp.2: Using relative temperature scale!
+[   13.512065] coretemp coretemp.3: Using relative temperature scale!
+[   13.512089] coretemp coretemp.4: Using relative temperature scale!
+[   13.512111] coretemp coretemp.5: Using relative temperature scale!
+[   13.512136] coretemp coretemp.6: Using relative temperature scale!
+[   13.512161] coretemp coretemp.7: Using relative temperature scale!
+[   13.570109] cfg80211: Calling CRDA to update world regulatory domain
+[   13.797234] ip_tables: (C) 2000-2006 Netfilter Core Team
+[   14.204574] w83627ehf: Found W83627EHG chip at 0x290
+[   14.204594] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with
+ACPI region HWRE [0x290-0x299]
+[   14.204596] ACPI: If an ACPI driver is available for this device, you
+should use it instead of the native driver
 
-Some south bridges, CPUs or memory controllers may also contain
-embedded sensors. Do you want to scan for them? (YES/no): Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD K10 thermal sensors...                                  No
-Intel Core family thermal sensor...                         No
-Intel AMB FB-DIMM thermal sensor...                         No
+--=20
+Matt Sheumack
 
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue: 
-Driver `smsc47m192' (should be inserted):
-   Detects correctly:
-   * Bus `SMBus I801 adapter at 1880'
-     Busdriver `i2c-i801', I2C address 0x2d
-     Chip `smsc47m192' (confidence: 6)
+--0016e6d77fa0212f33047859ed35
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I will now generate the commands needed to load the required modules.
-Just press ENTER to continue: 
-To load everything that is needed, add this to /etc/modules:
-
-#----cut here----
-# I2C adapter drivers
-i2c-i801
-# Chip drivers
-smsc47m192
-#----cut here----
-
-Do you want to add these lines automatically? (yes/NO)
-
-################
-# /proc/ioports#
-################
-
-0000-001f : dma1
-0020-0021 : pic1
-0040-0043 : timer0
-0050-0053 : timer1
-0060-0060 : keyboard
-0064-0064 : keyboard
-0070-0071 : rtc0
-0080-008f : dma page reg
-00a0-00a1 : pic2
-00c0-00df : dma2
-00f0-00ff : fpu
-0170-0177 : 0000:00:1f.1
-   0170-0177 : ata_piix
-01f0-01f7 : 0000:00:1f.1
-   01f0-01f7 : ata_piix
-0376-0376 : 0000:00:1f.1
-   0376-0376 : ata_piix
-0378-037a : parport0
-03c0-03df : vga+
-03f2-03f2 : floppy
-03f4-03f5 : floppy
-03f6-03f6 : 0000:00:1f.1
-   03f6-03f6 : ata_piix
-03f7-03f7 : floppy
-03f8-03ff : serial
-04d0-04d1 : pnp 00:01
-0778-077a : parport0
-0cf8-0cff : PCI conf1
-1000-107f : 0000:00:1f.0
-   1000-107f : pnp 00:01
-     1000-1003 : ACPI PM1a_EVT_BLK
-     1004-1005 : ACPI PM1a_CNT_BLK
-     1008-100b : ACPI PM_TMR
-     1010-1015 : ACPI CPU throttle
-     1020-1020 : ACPI PM2_CNT_BLK
-     1028-102f : ACPI GPE0_BLK
-1180-11bf : 0000:00:1f.0
-   1180-11bf : pnp 00:01
-1800-181f : 0000:00:1d.0
-   1800-181f : uhci_hcd
-1820-183f : 0000:00:1d.1
-   1820-183f : uhci_hcd
-1840-185f : 0000:00:1d.2
-   1840-185f : uhci_hcd
-1860-186f : 0000:00:1f.1
-   1860-186f : ata_piix
-1880-189f : 0000:00:1f.3
-   1880-189f : i801_smbus
-2000-2fff : PCI Bus 0000:02
-   2000-20ff : 0000:02:02.0
-     2000-20ff : 8139too
-fe00-fe00 : pnp 00:01
-
-############
-#kernal log#
-############
-
-Nov 30 17:44:21 ubuntu kernel: [  728.046978] smsc47m1: Found SMSC LPC47M15x/LPC47M192/LPC47M997
-Nov 30 17:44:21 ubuntu kernel: [  728.046997] smsc47m1: Device is disabled, will not use
-
-On Mon, 30 Nov 2009, Jean Delvare wrote:
-
-> Hi Sean,
+Hi All,<br><br>Been scanning the recent activity around how 2.6.31 has brok=
+en fan control on many m/boards, and am hoping to make a contribution so th=
+is problem can be fixed. Given that my coding skills are limited to Fortran=
+ 77, best I can do is help with data and test. I&#39;ve not (yet) enabled t=
+he &quot;lax&quot; workaround, so I don&#39;t know if it works. Happy to fo=
+llow instructions from here to provide H/W input.<br>
+<br>Regards <br><br>Matt<br><br>- i7-920 + ASUS P6T. <br><br>What worked:<b=
+r>- Under Ubuntu 9.0.4 with 2.6.14 through 2.6.16 (canonical distributions)=
+.<br>- Manual modprobe w83627ehf added to rc script<br>- lm-sensors 3.1.1 (=
+tarball from sensors web-site). Fan control found 3 fans (1 CPU + 2 x chass=
+is), with 2 x PWM devices (1 CPU + 1 chassis). The two m/b connected fans w=
+ere sucessfully controlled using: <br>
+<br>=A0=A0=A0=A0=A0 Settings for hwmon8/device/pwm2:<br>=A0=A0 =A0 =A0 =A0 =
+Depends on hwmon8/device/temp2_input<br>=A0 =A0 =A0 =A0=A0 Controls hwmon8/=
+device/fan4_input<br><a href=3D"mailto:lm-sensors@lm-sensors.org"></a><br>W=
+hat doesn&#39;t work:<br>- Under Ubuntu 9.10 with 2.6.31 (Canonical distrib=
+ution, online upgrade from 9.0.4)<br>
+- sensors version 3.1.1 with libsensors version 3.1.1 (canonical distributi=
+ons)<br>- sensors sees CPU and core temps + 3 fans. <br>- There are no pwm-=
+capable sensor modules installed devices found (hence no fan-control)<br>
+<br># sensors<br>atk0110-acpi-0<br clear=3D"all">Adapter: ACPI interface<br=
+>Vcore Voltage:=A0=A0=A0=A0=A0 +1.05 V=A0 (min =3D=A0 +0.80 V, max =3D=A0 +=
+1.60 V)<br>=A0+3.3 Voltage:=A0=A0=A0=A0=A0 +3.30 V=A0 (min =3D=A0 +2.97 V, =
+max =3D=A0 +3.63 V)<br>=A0+5 Voltage:=A0=A0=A0=A0=A0=A0=A0 +4.97 V=A0 (min =
+=3D=A0 +4.50 V, max =3D=A0 +5.50 V)<br>
+=A0+12 Voltage:=A0=A0=A0=A0=A0 +11.97 V=A0 (min =3D +10.20 V, max =3D +13.8=
+0 V)<br>CPU FAN Speed:=A0=A0=A0=A0 2481 RPM=A0 (min =3D=A0 600 RPM)<br>CHAS=
+SIS1 FAN Speed:3590 RPM=A0 (min =3D=A0 600 RPM)<br>CHASSIS2 FAN Speed:3245 =
+RPM=A0 (min =3D=A0 600 RPM)<br>POWER FAN Speed:=A0=A0=A0=A0=A0 0 RPM=A0 (mi=
+n =3D=A0=A0=A0 0 RPM)<br>
+CPU Temperature:=A0=A0=A0 +45.0=B0C=A0 (high =3D +60.0=B0C, crit =3D +75.0=
+=B0C)=A0 <br>MB Temperature:=A0=A0=A0=A0 +40.0=B0C=A0 (high =3D +45.0=B0C, =
+crit =3D +75.0=B0C)=A0 <br><br>coretemp-isa-0000<br>Adapter: ISA adapter<br=
+>Core 0:=A0=A0=A0=A0=A0 +46.0=B0C=A0 (high =3D +80.0=B0C, crit =3D +100.0=
+=B0C)=A0 <br>
+...<br>coretemp-isa-0007<br>Adapter: ISA adapter<br>Core 7:=A0=A0=A0=A0=A0 =
++43.0=B0C=A0 (high =3D +80.0=B0C, crit =3D +100.0=B0C) <br><br>dmesg:<br>[=
+=A0=A0 13.045551] Adding 19044984k swap on /dev/md2.=A0 Priority:-1 extents=
+:1 across:19044984k<br>[=A0=A0 13.178591] nvidia: module license &#39;NVIDI=
+A&#39; taints kernel.<br>
+[=A0=A0 13.178594] Disabling lock debugging due to kernel taint<br>[=A0=A0 =
+13.203853] Bluetooth: Generic Bluetooth USB driver ver 0.5<br>[=A0=A0 13.20=
+3949] usbcore: registered new interface driver btusb<br>[=A0=A0 13.222574] =
+lp: driver loaded but no devices found<br>
+[=A0=A0 13.431026]=A0=A0 alloc irq_desc for 24 on node 0<br>[=A0=A0 13.4310=
+28]=A0=A0 alloc kstat_irqs on node 0<br>[=A0=A0 13.431035] nvidia 0000:02:0=
+0.0: PCI INT A -&gt; GSI 24 (level, low) -&gt; IRQ 24<br>[=A0=A0 13.431040]=
+ nvidia 0000:02:00.0: setting latency timer to 64<br>
+[=A0=A0 13.431147] NVRM: loading NVIDIA UNIX x86_64 Kernel Module=A0 173.14=
+.20=A0 Thu Jun 25 18:15:32 PDT 2009<br>[=A0=A0 13.511995] coretemp coretemp=
+.0: Using relative temperature scale!<br>[=A0=A0 13.512023] coretemp corete=
+mp.1: Using relative temperature scale!<br>
+[=A0=A0 13.512044] coretemp coretemp.2: Using relative temperature scale!<b=
+r>[=A0=A0 13.512065] coretemp coretemp.3: Using relative temperature scale!=
+<br>[=A0=A0 13.512089] coretemp coretemp.4: Using relative temperature scal=
+e!<br>[=A0=A0 13.512111] coretemp coretemp.5: Using relative temperature sc=
+ale!<br>
+[=A0=A0 13.512136] coretemp coretemp.6: Using relative temperature scale!<b=
+r>[=A0=A0 13.512161] coretemp coretemp.7: Using relative temperature scale!=
+<br>[=A0=A0 13.570109] cfg80211: Calling CRDA to update world regulatory do=
+main<br>
+[=A0=A0 13.797234] ip_tables: (C) 2000-2006 Netfilter Core Team<br>[=A0=A0 =
+14.204574] w83627ehf: Found W83627EHG chip at 0x290<br>[=A0=A0 14.204594] A=
+CPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI region HWRE [=
+0x290-0x299]<br>
+[=A0=A0 14.204596] ACPI: If an ACPI driver is available for this device, yo=
+u should use it instead of the native driver<br><br>-- <br>Matt Sheumack<br=
 >
-> On Mon, 30 Nov 2009 16:30:42 -0500 (EST), Sean Fidler wrote:
->> I recently installed Ubuntu Server 9.10 on a Compaq Presario
->> S4000NX. Sensor info: chip is LPC47M192-NC and the bus is
->> bus "i2c-2" "SMBus I801 adapter at 1880"
->>
->> When running "sensors" no information is shown for the CPU fan (there
->> are no entries for fans at all.) Only entries for voltages and
->> temperatures are available.
->>
->> pwmconfig states that there are no modules installed. Am I out of luck
->> with trying to control the CPU fan speed? Thanks!
->
-> Full output of sensors-detect please. The SMSC LPC47M192 is supported
-> by two drivers: smsc47m1 for the fans and smsc47m192 for the voltages
-> and temperatures. Make sure both are loaded. If it still doesn't work,
-> please also provide the contents of /proc/ioports and check for error
-> messages in your kernel logs when loading the smsc47m1 driver.
->
-> -- 
-> Jean Delvare
->
+
+--0016e6d77fa0212f33047859ed35--
+
+
+--===============8408524910779765330==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8408524910779765330==--
