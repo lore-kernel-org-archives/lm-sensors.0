@@ -1,23 +1,36 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Tue, 10 Nov 2009 12:41:06 +0000
-Subject: [lm-sensors] [PATCH v2 04/10] lis3: fix show rate for 8 bits chips
-Message-Id: <1257856872-11612-5-git-send-email-samu.p.onkalo@nokia.com>
+From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
+Date: Sun, 15 Nov 2009 15:53:34 +0000
+Subject: Re: [lm-sensors] [PATCH v2 04/10] lis3: fix show rate for 8 bits
+Message-Id: <4B0023FE.90809@tremplin-utc.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com>
- <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com>
- <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com>
- <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com>
+References: <1257856872-11612-1-git-send-email-samu.p.onkalo@nokia.com> <1257856872-11612-2-git-send-email-samu.p.onkalo@nokia.com> <1257856872-11612-3-git-send-email-samu.p.onkalo@nokia.com> <1257856872-11612-4-git-send-email-samu.p.onkalo@nokia.com> <1257856872-11612-5-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1257856872-11612-5-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-To: eric.piel@tremplin-utc.net, daniel@caiaq.de, pavel@ucw.cz
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: daniel@caiaq.de, pavel@ucw.cz, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Kalhan Trisal <kalhan.trisal@intel.com>, Christoph Plattner <christoph.plattner@gmx.at>
 
-From: Éric Piel <eric.piel@tremplin-utc.net>
+Op 10-11-09 13:41, Samu Onkalo schreef:
+> From: Éric Piel <eric.piel@tremplin-utc.net>
+> 
+> lis3: fix with 8 bits sensors
+> 
+Here is the same patch, but with a better log.
 
-lis3: fix with 8 bits sensors
+Eric
+8<--------------------------------------------------------------
+Subject: lis3: fixes for 8 bits chips
 
+Originally the driver was only targeted to 12bits sensors. When support
+for 8bits sensors was added, some slight difference in the registers
+were overlooked. This should fix it, both for initialization, and for
+displaying the rate.
+
+Reported-by: Kalhan Trisal <kalhan.trisal@intel.com>
+Reported-by: Christoph Plattner <christoph.plattner@gmx.at>
+Tested-by: Christoph Plattner <christoph.plattner@gmx.at>
+Tested-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 Signed-off-by: Éric Piel <eric.piel@tremplin-utc.net>
 ---
  drivers/hwmon/lis3lv02d.c |   24 ++++++++++++++++--------
@@ -87,7 +100,7 @@ index 2431c51..c6ae507 100644
  enum lis3lv02d_ctrl2 {
  	CTRL2_DAS	= 0x01,
 -- 
-1.5.6.3
+1.6.5.2
 
 
 _______________________________________________
