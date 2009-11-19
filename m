@@ -1,7 +1,7 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Date: Thu, 12 Nov 2009 12:05:29 +0000
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Thu, 19 Nov 2009 06:56:10 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 1/1] AMI305 magnetometer driver
-Message-Id: <4AFBFA09.5010600@jic23.retrosnub.co.uk>
+Message-Id: <20091119065610.GB3010@core.coreip.homeip.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1258011866-25972-1-git-send-email-samu.p.onkalo@nokia.com> <1258011866-25972-2-git-send-email-samu.p.onkalo@nokia.com>
 In-Reply-To: <1258011866-25972-2-git-send-email-samu.p.onkalo@nokia.com>
@@ -13,11 +13,7 @@ Cc: linux-input@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.ke
 
 Hi Samu,
 
-I'll leave the question of location for later debate and stick to review in this
-email.
-
-Couple of points below. 
-
+On Thu, Nov 12, 2009 at 09:44:26AM +0200, Samu Onkalo wrote:
 > Provide support for AMI305 / AK8974 magnetometer chips.
 > coordinates are provided as polled input device.
 > Selftest and noise filtering (polled input device fuzziness)
@@ -209,9 +205,6 @@ Couple of points below.
 > +{
 > +	return i2c_smbus_read_byte_data(chip->client, reg);
 > +}
-Do the two functions above add anything? Why not call them directly in code.
-This sort of abstraction is only useful if the device has multiple bus types.
-
 > +
 > +static int ami305_read_block(struct ami305_chip *chip, u8 reg,
 > +			     u8 *data, u8 length)
@@ -221,8 +214,7 @@ This sort of abstraction is only useful if the device has multiple bus types.
 > +				reg, length, data);
 > +	return result;
 > +}
-If you are going to have this one collapse into a single line.
-
+> +
 > +static int ami305_power(struct ami305_chip *chip, int poweron)
 > +{
 > +	int r, v;
@@ -243,8 +235,6 @@ If you are going to have this one collapse into a single line.
 > +{
 > +	int ctrl3;
 > +	int ret = 0;
-Don't need to set this to zero.
-
 > +
 > +	ctrl3 = ami305_read(chip, AMI305_CTRL3);
 > +	if (ctrl3 < 0)
@@ -258,8 +248,6 @@ Don't need to set this to zero.
 > +static int ami305_reset(struct ami305_chip *chip)
 > +{
 > +	int r = 0;
-Don't set to 0
-
 > +
 > +	/* Power on to get register access */
 > +	r = ami305_power(chip, AMI305_PWR_ON);
@@ -340,8 +328,7 @@ Don't set to 0
 > +
 > +	return err;
 > +}
-
-Comment on this would be good. It is non obvious to casual reader.
+> +
 > +static int ami305_get_axis(s8 axis, s16 hw_values[3])
 > +{
 > +	if (axis > 0)
@@ -356,10 +343,7 @@ Comment on this would be good. It is non obvious to casual reader.
 > +	int i;
 > +
 > +	ami305_start_measurement(chip);
-
-Is the failure to read condition below common?  Nasty to handle
-if so and I guess this might be the best option.  Otherwise, I'd
-go with
+> +
 > +	i = AMI305_MAX_TRY;
 > +	do {
 > +		msleep(AMI305_MEAS_DELAY);
@@ -367,14 +351,9 @@ go with
 > +			break;
 > +		i--;
 > +	} while (i > 0);
-while (i) will do just as well.
-
 > +
 > +	if (i = 0)
 > +		return -ENODEV;
-Not convinced that's the right error code.  Sure this indicates a failure
-not that the device isn't there.
-
 > +
 > +	/* X, Y, Z are in conscutive addresses. 2 * 3 bytes */
 > +	ami305_read_block(chip, AMI305_DATA_X, (u8 *)hw_values, 6);
@@ -430,8 +409,6 @@ not that the device isn't there.
 > +	int range;
 > +
 > +	range = chip->max_range;
-Roll that into the line above.
-
 > +	input_set_abs_params(input_dev, ABS_X, -range, range, fuzz, 0);
 > +	input_set_abs_params(input_dev, ABS_Y, -range, range, fuzz, 0);
 > +	input_set_abs_params(input_dev, ABS_Z, -range, range, fuzz, 0);
@@ -449,7 +426,6 @@ Roll that into the line above.
 > +
 > +	mutex_lock(&chip->lock);
 > +	status = ami305_selftest(chip) ? "OK" : "FAIL";
-Nasty, and probably better to just use 1 and 0
 > +	mutex_unlock(&chip->lock);
 > +
 > +	return sprintf(buf, "%s\n", status);
@@ -465,7 +441,10 @@ Nasty, and probably better to just use 1 and 0
 > +
 > +	/* Read from the chip to reflect real state of the HW */
 > +	status = ami305_read(chip, AMI305_CTRL1) & AMI305_CTRL1_POWER;
-Again, 1 and 0 are more common.
+
+Does not this also need chip->lock to make sure we don't interfere with
+other I2C operations?
+
 > +	return sprintf(buf, "%s\n", status ? "ON" : "OFF");
 > +}
 > +
@@ -499,6 +478,11 @@ Again, 1 and 0 are more common.
 > +
 > +static DEVICE_ATTR(fuzz, S_IRUGO | S_IWUSR, ami305_get_fuzz,
 > +					    ami305_set_fuzz);
+
+
+fuzz (along with absmin, absmax, etc) can already be fetched and
+adjusted via EVIOCGABS and EVIOCSABS.
+
 > +
 > +static struct attribute *sysfs_attrs[] = {
 > +	&dev_attr_selftest.attr,
@@ -535,6 +519,10 @@ Again, 1 and 0 are more common.
 > +	struct ami305_chip *chip = pidev->private;
 > +	ami305_add_users(chip);
 > +	ami305_poll(pidev);
+
+Why do you want to force poll here? I guess I can adjust polldev core
+to do the first poll immediately.
+
 > +}
 > +
 > +static void ami305_close(struct input_polled_dev *pidev)
@@ -679,7 +667,9 @@ Again, 1 and 0 are more common.
 > +{
 > +	struct ami305_chip *chip = i2c_get_clientdata(client);
 > +	ami305_power(chip, AMI305_PWR_OFF);
-This returns an error code under some conditions, should it not be passed on?
+
+You probably don't want to power itt on if there are no users.
+
 > +	return 0;
 > +}
 > +
@@ -767,7 +757,16 @@ This returns an error code under some conditions, should it not be passed on?
 > +};
 > +
 > +#endif /* __LINUX_I2C_AMI305_H */
+> -- 
+> 1.5.6.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+-- 
+Dmitry
 
 _______________________________________________
 lm-sensors mailing list
