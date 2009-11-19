@@ -1,46 +1,37 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Thu, 12 Nov 2009 07:44:25 +0000
-Subject: [lm-sensors] [RFC PATCH 0/1] Driver for ami305 magnetometer
-Message-Id: <1258011866-25972-1-git-send-email-samu.p.onkalo@nokia.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 19 Nov 2009 16:52:24 +0000
+Subject: [lm-sensors] [PATCH] MAINTAINERS: Add missing hwmon files
+Message-Id: <20091119175224.249d1924@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-input@vger.kernel.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
+To: lm-sensors@vger.kernel.org
 
-This patch provides driver for two sw compatible 3 axis magnetometer chips
-(AMI305 / AK8974). 
-Driver provides coordinates as polled input device.
-Chip can provide interrupt when the measurement result is ready, but
-this feature is not used. Instead, new measurement is started at polling
-event frequency. This method allows more flexible measurement interval.
-Activity level at kernel side is about the same in both interrupt and polling
-based methods. Furhtermore, this eliminate need to use interrupt line at HW
-level. 
+Add missing documentation and header files to the hardware monitoring
+subsystem section.
 
-Chip is powered on when the polled device is opened and powered down when the
-device is closed. Axes can be remapped via platform data. 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-sysfs interface:
-selftest - Perform chip specific selftest as specified by manufacturer
-active - returns chip power state: ON or OFF
-fuzz - adjust input system "fuzziness" parameter
+--- linux-2.6.32-rc7.orig/MAINTAINERS	2009-11-19 13:06:02.000000000 +0100
++++ linux-2.6.32-rc7/MAINTAINERS	2009-11-19 17:20:20.000000000 +0100
+@@ -2352,7 +2352,9 @@ HARDWARE MONITORING
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+ S:	Orphan
++F:	Documentation/hwmon/
+ F:	drivers/hwmon/
++F:	include/linux/hwmon*.h
+ 
+ HARDWARE RANDOM NUMBER GENERATOR CORE
+ M:	Matt Mackall <mpm@selenic.com>
 
-Patch is applicable to Dmitry Torokhov's input tree - next branch. 
-This tree was selected since patch requires a change to polled
-input device which is allready in that tree (open / close methods).
 
-Samu Onkalo (1):
-  AMI305 magnetometer driver
-
- drivers/misc/Kconfig       |   11 +
- drivers/misc/Makefile      |    1 +
- drivers/misc/ami305.c      |  644 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/i2c/ami305.h |   22 ++
- 4 files changed, 678 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/ami305.c
- create mode 100644 include/linux/i2c/ami305.h
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
