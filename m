@@ -1,42 +1,34 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 Nov 2009 20:19:03 +0000
-Subject: Re: [lm-sensors] [PATCH v3 0/8] sensord: Cleanup of the sensors
-Message-Id: <20091105211903.013dddb2@hyperion.delvare>
+From: Sergej <sergej.abyzov@gmail.com>
+Date: Thu, 19 Nov 2009 10:14:39 +0000
+Subject: [lm-sensors] amd phenom ii temp
+Message-Id: <379c0ddc0911190214x7808a9f9m47349413351ffa0c@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091103200144.GB4724@ubuntu>
-In-Reply-To: <20091103200144.GB4724@ubuntu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 5 Nov 2009 20:29:03 +0100, Andre Prendel wrote:
-> On Thu, Nov 05, 2009 at 10:22:03AM +0100, Jean Delvare wrote:
-> > Hi Andre,
-> 
-> Hi Jean,
-> 
-> > On Wed, 4 Nov 2009 20:17:42 +0100, Andre Prendel wrote:
-> > > On Wed, Nov 04, 2009 at 10:11:12AM +0100, Jean Delvare wrote:
-> > > > You're welcome. I've made some more minor comments, but in general I
-> > > > think your patch series is ready to be merged now. Go ahead!
-> > > 
-> > > I've just merged the patches with the minor changes due to your
-> > > comments.
-> > 
-> > Great, thanks. Nothing worth mentioning in CHANGES?
-> 
-> Damn, I forget this every time. Otherwise I think we don't need this
-> refactoring in the CHANGES file. IHMO it is'nt interesting for the
-> user, is it?
+Hi!
 
-You don't need to say too much, indeed. But the log is also for us to a
-certain extent. Mentioning that cleanups and refactoring happened is a
-good hint if anything breaks. Useful when writing the freshmeat
-announcements, too.
+As I am new to the linux-concept please answer more detailed than
+usual, if possible step-by-step.
+
+Anyhow.
+
+I have problems running lm_sensors on my computer (ASUS M4A79T Deluxe
+with amd phenom II 965BE C3). I can't get any temperature readings
+from the CPU. How do I do that? I've tried to read in many forums, and
+partly in the mail-list archive here. Then only thing I have concluded
+from this is that I have to patch the k8temp driver (or change it if I
+understood everything right).
+
+So now, please, help me to figure this out. How/what should I do to be
+able to get any temperature reeding from the CPU?
+
+Regards
 
 -- 
-Jean Delvare
+//Sergej
 
 _______________________________________________
 lm-sensors mailing list
