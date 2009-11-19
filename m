@@ -1,35 +1,62 @@
 From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Tue, 03 Nov 2009 12:09:36 +0000
-Subject: [lm-sensors] [RFC PATCH 01/10] LIS3LV02D: Send sync event
-Message-Id: <1257250185-7929-2-git-send-email-samu.p.onkalo@nokia.com>
+Date: Thu, 19 Nov 2009 09:27:17 +0000
+Subject: [lm-sensors] [PATCH v3 0/5] lis3: Feature updates
+Message-Id: <1258622842-23129-1-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Send input_sync after each measurement round. This helps userspace to
-detect which reported values belongs to the same measurement.
+This patch set is made to top of 7 previously accepted lis3 related patches in
+mm-tree:
+- I2C bus support for lis3lv02d and variant accelerometer chips...
+- Add the possibility to remap axes via platform data...
+- Send input_sync after each measurement round...
+- polled input device itself was not free'd....
+- riginally the driver was only targeted to 12bits sensors...
+- Most of the documentation and comments were written when the driver ..
+- Lis3 accelerometer sensors have quite long power on delay ..
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
----
- drivers/hwmon/lis3lv02d.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Tested with 2.6.32-RC7 which was patched with above 7 lis3 related patches.
+Tested only with 8 bit lis3 device since I don't have possibility to test
+other chips.
 
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index cf5afb9..7f43a3b 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -276,6 +276,7 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
- 	input_report_abs(pidev->input, ABS_X, x - lis3_dev.xcalib);
- 	input_report_abs(pidev->input, ABS_Y, y - lis3_dev.ycalib);
- 	input_report_abs(pidev->input, ABS_Z, z - lis3_dev.zcalib);
-+	input_sync(pidev->input);
- }
- 
- 
--- 
-1.5.6.3
+0001:
+Implement selftest feature for HW diagnostic purposes. This feature can be used
+to detect if the sensor is electrically or mechanically damaged.
+
+0002:
+Calibration functionality is removed from the driver. Chip is allready
+calibrated by the manufacturer. SW calibration doesn't improve the situation.
+
+0003:
+Added possibility to set chip sampling rate. Position entry in sysfs
+allows reading at sampling rate.
+
+0004:
+Scale output values to mg (1/1000 of earth gravity).
+Behaviour of the joystick interface is not changed. All other interfaces
+will have different scale after this patch. See further information from
+patch itself.
+
+0005:
+Update documentation to cover changes which were made by these patches.
+
+
+Samu Onkalo (5):
+  lis3: Selftest support
+  LIS3LV02D: Remove calibaration functionality
+  lis3: Sysfs entry for setting chip measurement rate
+  lis3: Scale output values to mg
+  LIS3: Update documentation to match latest changes
+
+ Documentation/hwmon/lis3lv02d |   31 ++++++--
+ drivers/hwmon/lis3lv02d.c     |  180 ++++++++++++++++++++++++++++++++---------
+ drivers/hwmon/lis3lv02d.h     |   25 +++++-
+ include/linux/lis3lv02d.h     |    3 +
+ 4 files changed, 190 insertions(+), 49 deletions(-)
 
 
 _______________________________________________
