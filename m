@@ -1,7 +1,7 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Thu, 19 Nov 2009 13:09:57 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 19 Nov 2009 13:23:06 +0000
 Subject: Re: [lm-sensors] amd phenom ii temp
-Message-Id: <4B0543A5.9090308@ladisch.de>
+Message-Id: <20091119142306.59de308f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <379c0ddc0911190214x7808a9f9m47349413351ffa0c@mail.gmail.com>
 In-Reply-To: <379c0ddc0911190214x7808a9f9m47349413351ffa0c@mail.gmail.com>
@@ -10,38 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Sergej wrote:
-> I have problems running lm_sensors on my computer (ASUS M4A79T Deluxe
-> with amd phenom II 965BE C3). I can't get any temperature readings
-> from the CPU.
+Hallo Clemens,
 
-Because the sensor driver for your CPU is not in the kernel.
+On Thu, 19 Nov 2009 14:09:57 +0100, Clemens Ladisch wrote:
+> Jean, who is the hwmon maintainer?
 
-> I've tried to read in many forums, and partly in the mail-list archive
-> here. Then only thing I have concluded from this is that I have to
-> patch the k8temp driver (or change it if I understood everything right).
+There is no maintainer, as MAINTAINERS says:
 
-Yes; there also exist several patches for new "k10temp" drivers.
-Anyway,
-1) Save the patch to a file.
-2) Get the kernel source (usually a package named "kernel-source-2.6.xx"
-   with the correct kernel configuration.
-3) Go to the kernel source's top directory, and run
-      patch < /where/you/have/put/the/patchfile
-4) Recompile the kernel: "make"
-5) Install the kernel.
+HARDWARE MONITORING
+L:      lm-sensors@lm-sensors.org
+W:      http://www.lm-sensors.org/
+S:      Orphan
+F:      drivers/hwmon/
 
-Steps 2+5 are dependent on your distribution; you should look into your
-distribution's documentation for detailed instructions.
+> Or where should new drivers be submitted?
 
-=====
+Try the lm-sensors list and see if someone picks it up. Or send it to
+Andrew Morton, sometimes he can help push new drivers upstream for
+orphaned subsystems.
 
-Jean, who is the hwmon maintainer?
-Or where should new drivers be submitted?
-
-
-Best regards,
-Clemens
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
