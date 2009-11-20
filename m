@@ -1,25 +1,83 @@
 From: Clemens Ladisch <clemens@ladisch.de>
-Date: Tue, 10 Nov 2009 08:08:16 +0000
+Date: Fri, 20 Nov 2009 08:15:23 +0000
 Subject: [lm-sensors] [PATCH] k10temp: temperature sensor for AMD Family
-Message-Id: <4AF91F70.10106@ladisch.de>
+Message-Id: <4B06501B.8080509@ladisch.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4AF91F70.10106@ladisch.de>
+In-Reply-To: <4AF91F70.10106@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
 This adds a driver for the internal temperature sensor of AMD Family 10h
 and 11h CPUs.
 
-The driver correctly detects Family 10h CPUs that do not have a reliable
-sensor (erratum 319).
-
 Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
 ---
-I did not merge this driver into k8temp because the K10 sensor interface
-is completely different from the K8 one; there wouldn't actually be any
-common code worth sharing.
+ Documentation/hwmon/k10temp |   54 +++++++++++++++++
+ drivers/hwmon/Kconfig       |   12 +++
+ drivers/hwmon/Makefile      |    1 
+ drivers/hwmon/k10temp.c     |  135 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 202 insertions(+)
 
+--- /dev/null
++++ linux-2.6/Documentation/hwmon/k10temp
+@@ -0,0 +1,54 @@
++Kernel driver k10temp
++==========+
++Supported chips:
++* AMD Family 10h processors:
++  Socket F: Quad-Core/Six-Core/Embedded AMD Opteron
++  Socket AM2+: Phenom II X3/X4
++  Socket AM3: Quad-Core Opteron, Athlon/Phenom II X2/X3/X4, Sempron II
++  mobile: Athlon II, Sempron, Turion II
++
++  Prefix: 'k10temp'
++  Addresses scanned: PCI space
++  Datasheets: see http://developer.amd.com/documentation/guides/
++    #31116: BIOS and Kernel Developer's Guide For AMD Family 10h Processors
++    #41322: Revision Guide for AMD Family 10h Processors
++
++* AMD Family 11h processors:
++  mobile: Athlon (X2), Sempron (X2), Turion X2 (Ultra)
++
++  Prefix: 'k10temp'
++  Addresses scanned: PCI space
++  Datasheets: see http://developer.amd.com/documentation/guides/
++    #41256: BIOS and Kernel Developer's Guide For AMD Family 11h Processors
++    #41788: Revision Guide for AMD Family 11h Processors
++
++Author: Clemens Ladisch <clemens@ladisch.de>
++
++Description
++-----------
++
++This driver permits reading of the internal temperature sensor of AMD
++Family 10h and 11h processors.
++
++All these processors have a sensor, but on older revisions of Family 10h
++processors, the sensor returns inconsistent values (erratum 319). The driver
++refuses to load with these revisions (DR-BA, DR-B2, DR-B3: some Embedded
++Opterons on Socket F; and Quad-Core Opteron, Phenom Triple/Quad-Core, and
++Athon Dual-Core on Socket AM2+). All later revisions (RB-C2, BL-C2, DA-C2,
++RB-C3, HY-D0) work fine; see the list above.
++
++There is one temperature value, available as temp1_input in sysfs. It is
++measured in degrees Celsius with a resolution of 1/8th degree. Please note
++that it is defined as a relative value; to quote the AMD manual:
++
++  Tctl is the processor temperatur control value, used by the platform to
++  control cooling systems. Tctl is a non-physical temperature on an arbitrary
++  scale measured in degrees. It does _not_ represent an actual physical
++  temperature like die or case temperature. Instead, it specifies the
++  processor temperature relative to the point at which the system must supply
++  the maximum cooling for the processor's specified maximum case temperature
++  and maximum thermal power dissipation.
++
++The maximum value for Tctl is usually defined as 70 degrees, so, as a rule of
++thumb, this value should not exceed 60 degrees.
 --- linux-2.6/drivers/hwmon/Kconfig
 +++ linux-2.6/drivers/hwmon/Kconfig
 @@ -222,6 +222,18 @@ config SENSORS_K8TEMP
@@ -31,7 +89,7 @@ common code worth sharing.
 +	depends on X86 && PCI
 +	help
 +	  If you say yes here you get support for the temperature
-+	  sensor(s) inside your CPU. Supported are later revisions of
++	  sensor inside your CPU. Supported are later revisions of
 +	  the AMD Family 10h and all revisions of the AMD Family 11h
 +	  microarchitectures.
 +
@@ -53,31 +111,24 @@ common code worth sharing.
  obj-$(CONFIG_SENSORS_LM63)	+= lm63.o
 --- /dev/null
 +++ linux-2.6/drivers/hwmon/k10temp.c
-@@ -0,0 +1,140 @@
+@@ -0,0 +1,135 @@
 +/*
-+ * k10temp.c - AMD Family 10h/11h hardware monitoring
++ * k10temp.c - AMD Family 10h/11h CPUs hardware monitoring
 + *
 + * Copyright (c) 2009 Clemens Ladisch <clemens@ladisch.de>
 + *
 + *
-+ * This program is free software; you can redistribute it and/or
++ * This driver is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License; either
 + * version 2 of the License, or (at your option) any later version.
 + *
-+ * This program is distributed in the hope that it will be useful,
++ * This driver is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++ * See the GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ *
-+ * AMD documentation (see <http://developer.amd.com/documentation/guides/>):
-+ * #31116: BIOS and Kernel Developer's Guide For AMD Family 10h Processors
-+ * #41256: BIOS and Kernel Developer's Guide For AMD Family 11h Processors
-+ * #41322: Revision Guide for AMD Family 10h Processors
-+ * #41788: Revision Guide for AMD Family 11h Processors
++ * along with this driver; if not, see <http://www.gnu.org/licenses/>.
 + */
 +
 +#include <linux/err.h>
@@ -93,7 +144,7 @@ common code worth sharing.
 +MODULE_LICENSE("GPL");
 +
 +#define REG_REPORTED_TEMPERATURE	0xa4
-+#define CURTMP_TO_MILLIDEGREES(regval)	(((regval) >> 21) * (1000 / 8))
++#define CURTMP_TO_MILLIDEGREES(regval)	(((regval) >> 21) * 125)
 +
 +static ssize_t show_temp(struct device *dev,
 +			 struct device_attribute *attr, char *buf)
@@ -130,33 +181,35 @@ common code worth sharing.
 +	int err;
 +
 +	if (has_erratum_319()) {
++		dev_err(&pdev->dev,
++			"unreliable CPU thermal sensor; monitoring disabled\n");
 +		err = -ENODEV;
-+		goto error;
++		goto exit;
 +	}
 +
 +	err = device_create_file(&pdev->dev,
 +				 &sensor_dev_attr_temp1_input.dev_attr);
 +	if (err)
-+		goto error;
++		goto exit;
 +
 +	err = device_create_file(&pdev->dev, &dev_attr_name);
 +	if (err)
-+		goto error_remove1;
++		goto exit_remove1;
 +
 +	hwmon_dev = hwmon_device_register(&pdev->dev);
 +	if (IS_ERR(hwmon_dev)) {
 +		err = PTR_ERR(hwmon_dev);
-+		goto error_remove2;
++		goto exit_remove2;
 +	}
 +
 +	dev_set_drvdata(&pdev->dev, hwmon_dev);
 +	return 0;
 +
-+error_remove2:
++exit_remove2:
 +	device_remove_file(&pdev->dev, &dev_attr_name);
-+error_remove1:
++exit_remove1:
 +	device_remove_file(&pdev->dev, &sensor_dev_attr_temp1_input.dev_attr);
-+error:
++exit:
 +	return err;
 +}
 +
