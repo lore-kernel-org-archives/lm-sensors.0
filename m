@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 19 Nov 2009 12:17:46 +0000
+Date: Fri, 20 Nov 2009 09:25:52 +0000
 Subject: Re: [lm-sensors] lm-sensors w83795 chip, I want to help.
-Message-Id: <20091119131746.186b1883@hyperion.delvare>
+Message-Id: <20091120102552.2aa7b5cd@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <d08fef840911182007y4793ac72w7c186e774546595b@mail.gmail.com>
 In-Reply-To: <d08fef840911182007y4793ac72w7c186e774546595b@mail.gmail.com>
@@ -10,34 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 19 Nov 2009 15:07:32 +1100, Nemykal wrote:
-> Hello
-> I have an asus z8pe-d18 motherboard and according to the asus support site,
-> it has this (w83795) hardware monitoring chip in it.
-> By googling, I found this thread:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2009-March/025551.html
+Hi Nemykal,
 
-A candidate driver was posted there, but it was not reviewed and thus
-is not merged into the kernel tree yet.
+Please keep the traffic on the list.
 
-> I am currently on 2.6.32-rc7 sources.
-> I'm on Gentoo x86_64
-> [I] sys-apps/lm_sensors 3.1.1 is installed [+sensord]
-> 
-> In that thread you asked for an i2c dump. I'm not sure how to do that.
+On Fri, 20 Nov 2009 13:53:00 +1100, Nemykal wrote:
+> I'm happy to help however I can to get this w83795 chip supported. Just tell
+> me what you'd need.
 
-The driver author already provided a dump of his chip, so I no longer
-need anything, thanks.
+I've added you to the list of users interested in W83795G support on
+wiki/Devices.
 
-> (...)
-> I want to help get this chip supported, it seems the guy who wrote the
-> original driver disappeared.
+> Where is Wei's code, actually? Even if it's not reviewed, I could still try
+> it out... hopefully it works...
 
-Wei left Nuvoton a few weeks after posting his driver, yes. His code is
-waiting for someone to pick it up and review it. But it's a relatively
-large piece of code, so it will probably take time before someone
-volunteers. Of course, if one of the lm-sensors developers had such a
-chip on their motherboard, things would be different...
+Wei's code is there:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2009-March/025480.html
+
+Attachments 0008 (wb83795.c) and 0009 (Makefile). Use at your own risk.
+Reports welcome, of course.
 
 -- 
 Jean Delvare
