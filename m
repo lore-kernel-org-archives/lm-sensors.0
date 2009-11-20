@@ -1,41 +1,37 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 Nov 2009 11:30:16 +0000
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Fri, 20 Nov 2009 11:56:50 +0000
 Subject: Re: [lm-sensors] [PATCH v2] k10temp: temperature sensor for AMD
-Message-Id: <20091120123016.19d98ab4@hyperion.delvare>
+Message-Id: <4B068402.7020606@ladisch.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AF91F70.10106@ladisch.de>
-	<4B06501B.8080509@ladisch.de>
-	<87ws1l5wcl.fsf@depni.sinp.msu.ru>
-	<4B0673D7.5010006@ladisch.de>
-In-Reply-To: <4B0673D7.5010006@ladisch.de>
+References: <4AF91F70.10106@ladisch.de>	<4B06501B.8080509@ladisch.de>	<87ws1l5wcl.fsf@depni.sinp.msu.ru>	<4B0673D7.5010006@ladisch.de> <20091120123016.19d98ab4@hyperion.delvare>
+In-Reply-To: <20091120123016.19d98ab4@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Clemens Ladisch <clemens@ladisch.de>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Serge Belyshev <belyshev@depni.sinp.msu.ru>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Fri, 20 Nov 2009 11:47:51 +0100, Clemens Ladisch wrote:
-> This adds a driver for the internal temperature sensor of AMD Family 10h
-> and 11h CPUs.
+Jean Delvare wrote:
+> On Fri, 20 Nov 2009 11:47:51 +0100, Clemens Ladisch wrote:
+> > v2: Erratum 319 now results in a warning, not an error, because it cannot
+> >     be reliably detected; Serge Belyshev reports that his CPU sensor works.
 > 
-> Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
-> ---
-> v2: Erratum 319 now results in a warning, not an error, because it cannot
->     be reliably detected; Serge Belyshev reports that his CPU sensor works.
+> Nack. Unreliable sensors -> the default must be to NOT bind to these
+> CPUs. ... Otherwise your driver will _never_ make it into the
+> kernel tree.
 
-Nack. Unreliable sensors -> the default must be to NOT bind to these
-CPUs. Feel free to provide a way to force the bind to happen (and still
-print a big fat warning that this is a very bad idea), but do NOT make
-it the default. Otherwise your driver will _never_ make it into the
-kernel tree.
+Then how did the k8temp driver make it into the kernel tree?  :-)
 
-As a side note I'd be curious to see what Serge calls "working
-sensors". We had several reports in the past of people who claimed that
-their sensors were working. After looking at their numbers, I had doubt
-this really was the case.
+> Feel free to provide a way to force the bind to happen (and still
+> print a big fat warning that this is a very bad idea), but do NOT make
+> it the default. 
 
--- 
-Jean Delvare
+Okay, I'll add a force parameter.
+I'd guess k8temp should get the same?
+
+
+Best regards,
+Clemens
 
 _______________________________________________
 lm-sensors mailing list
