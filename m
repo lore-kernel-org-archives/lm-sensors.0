@@ -1,88 +1,73 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Tue, 03 Nov 2009 12:09:39 +0000
-Subject: [lm-sensors] [RFC PATCH 04/10] lis3: fix show rate for 8 bits chips
-Message-Id: <1257250185-7929-5-git-send-email-samu.p.onkalo@nokia.com>
+From: kestas <kestas@alfa.lema.mii.lt>
+Date: Sun, 22 Nov 2009 16:17:41 +0000
+Subject: [lm-sensors] sch5017 on tyan s2925e
+Message-Id: <200911221817.41365.kestas@alfa.lema.mii.lt>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Éric Piel <eric.piel@tremplin-utc.net>
+Hello,
 
-lis3: fix with 8 bits sensors
+Tyan s2925e board with SMSC SCH5017 chip, recognised as DME1737 by sensors,.
 
-Signed-off-by: Éric Piel <eric.piel@tremplin-utc.net>
----
- drivers/hwmon/lis3lv02d.c |   24 ++++++++++++++++--------
- drivers/hwmon/lis3lv02d.h |    1 +
- 2 files changed, 17 insertions(+), 8 deletions(-)
+kernel 2.6.30
+sensors-detect revision 5569 (2008-12-15 09:36:09 +0100)
+sensors version 2.10.8 with libsensors version 2.10.8.
 
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index 1c8f108..b12ee35 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -127,12 +127,14 @@ void lis3lv02d_poweron(struct lis3lv02d *lis3)
- 
- 	/*
- 	 * Common configuration
--	 * BDU: LSB and MSB values are not updated until both have been read.
--	 *      So the value read will always be correct.
-+	 * BDU: (12 bits sensors only) LSB and MSB values are not updated until
-+	 *      both have been read. So the value read will always be correct.
- 	 */
--	lis3->read(lis3, CTRL_REG2, &reg);
--	reg |= CTRL2_BDU;
--	lis3->write(lis3, CTRL_REG2, reg);
-+	if (lis3->whoami =  WAI_12B) {
-+		lis3->read(lis3, CTRL_REG2, &reg);
-+		reg |= CTRL2_BDU;
-+		lis3->write(lis3, CTRL_REG2, reg);
-+	}
- }
- EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
- 
-@@ -363,7 +365,8 @@ static ssize_t lis3lv02d_calibrate_store(struct device *dev,
- }
- 
- /* conversion btw sampling rate and the register values */
--static int lis3lv02dl_df_val[4] = {40, 160, 640, 2560};
-+static int lis3_12_rates[4] = {40, 160, 640, 2560};
-+static int lis3_8_rates[2] = {100, 400};
- static ssize_t lis3lv02d_rate_show(struct device *dev,
- 			struct device_attribute *attr, char *buf)
- {
-@@ -371,8 +374,13 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
- 	int val;
- 
- 	lis3_dev.read(&lis3_dev, CTRL_REG1, &ctrl);
--	val = (ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4;
--	return sprintf(buf, "%d\n", lis3lv02dl_df_val[val]);
-+
-+	if (lis3_dev.whoami = WAI_12B)
-+		val = lis3_12_rates[(ctrl & (CTRL1_DF0 | CTRL1_DF1)) >> 4];
-+	else
-+		val = lis3_8_rates[(ctrl & CTRL1_DR) >> 7];
-+
-+	return sprintf(buf, "%d\n", val);
- }
- 
- static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
-diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-index 2431c51..c6ae507 100644
---- a/drivers/hwmon/lis3lv02d.h
-+++ b/drivers/hwmon/lis3lv02d.h
-@@ -107,6 +107,7 @@ enum lis3lv02d_ctrl1 {
- 	CTRL1_DF1	= 0x20,
- 	CTRL1_PD0	= 0x40,
- 	CTRL1_PD1	= 0x80,
-+	CTRL1_DR	= 0x80, /* Data rate on 8 bits */
- };
- enum lis3lv02d_ctrl2 {
- 	CTRL2_DAS	= 0x01,
--- 
-1.5.6.3
+There are 5 PWM fan connectors on board and one fan tachometer connector.
 
+All installed five fans are with PWM, PS fan tachometer output connected to 
+fan tachometer input connector on board.
+
+Sensors found only following:
+
+dme1737-i2c-0-2e
+Adapter: SMBus nForce2 adapter at 2d00
+Vdimm:     +1.79 V  (min =  +0.00 V, max =  +6.64 V)
+Vcore:     +1.20 V  (min =  +0.00 V, max =  +2.99 V)
+V3.3:      +3.36 V  (min =  +0.00 V, max =  +4.38 V)
+V5:        +5.15 V  (min =  +0.00 V, max =  +6.64 V)
+V12:      +12.29 V  (min =  +0.00 V, max = +15.94 V)
+V3.3stby:  +3.35 V  (min =  +0.00 V, max =  +4.38 V)
+Vbat:      +3.13 V  (min =  +0.00 V, max =  +4.38 V)
+SATA T:      +45 C  (low  =  -127 C, high =  +127 C)
+CPU T:       +38 C  (low  =  -127 C, high =  +127 C)
+MC55 T:      +54 C  (low  =  -127 C, high =  +127 C)
+CPU_Fan:  2330 RPM  (min =    0 RPM)
+Fan2:     1304 RPM  (min =    0 RPM)
+Fan3:     1401 RPM  (min =    0 RPM)
+Fan4:     1170 RPM  (min =    0 RPM)
+CPU_PWM:   128      (enable = 2, freq =  25000 Hz)
+Fan2_PWM:  128      (enable = 2, freq =  25000 Hz)
+Fan3_PWM:  128      (enable = 2, freq =  25000 Hz)
+cpu0_vid: +1.550 V  (VRM Version 2.5)
+
+dme1737-i2c-1-2e
+Adapter: SMBus nForce2 adapter at 2e00
+Vdimm:     +1.79 V  (min =  +0.00 V, max =  +6.64 V)
+Vcore:     +1.20 V  (min =  +0.00 V, max =  +2.99 V)
+V3.3:      +3.36 V  (min =  +0.00 V, max =  +4.38 V)
+V5:        +5.15 V  (min =  +0.00 V, max =  +6.64 V)
+V12:      +12.29 V  (min =  +0.00 V, max = +15.94 V)
+V3.3stby:  +3.35 V  (min =  +0.00 V, max =  +4.38 V)
+Vbat:      +3.13 V  (min =  +0.00 V, max =  +4.38 V)
+SATA T:      +45 C  (low  =  -127 C, high =  +127 C)
+CPU T:       +38 C  (low  =  -127 C, high =  +127 C)
+MC55 T:      +54 C  (low  =  -127 C, high =  +127 C)
+CPU_Fan:  2329 RPM  (min =    0 RPM)
+Fan2:     1304 RPM  (min =    0 RPM)
+Fan3:     1400 RPM  (min =    0 RPM)
+Fan4:     1170 RPM  (min =    0 RPM)
+CPU_PWM:   128      (enable = 2, freq =  25000 Hz)
+Fan2_PWM:  128      (enable = 2, freq =  25000 Hz)
+Fan3_PWM:  128      (enable = 2, freq =  25000 Hz)
+cpu0_vid: +1.550 V  (VRM Version 2.5)
+
+Maybe it is possible to modify dme1737, I can do testing.
+
+Kestas
 
 _______________________________________________
 lm-sensors mailing list
