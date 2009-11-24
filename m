@@ -1,86 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 24 Nov 2009 13:26:54 +0000
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Tue, 24 Nov 2009 14:09:57 +0000
 Subject: Re: [lm-sensors] [PATCH v3] k10temp: temperature sensor for AMD
-Message-Id: <20091124142654.76f4d166@hyperion.delvare>
+Message-Id: <4B0BE935.1050708@ladisch.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AF91F70.10106@ladisch.de>
-	<4B06501B.8080509@ladisch.de>
-	<87ws1l5wcl.fsf@depni.sinp.msu.ru>
-	<4B0673D7.5010006@ladisch.de>
-	<20091120123016.19d98ab4@hyperion.delvare>
-	<4B068402.7020606@ladisch.de>
-	<20091120131855.7f8f8722@hyperion.delvare>
-	<4B0A3DB6.9090703@ladisch.de>
-	<20091123145154.5b2b5735@hyperion.delvare>
-	<4B0AAA55.3040702@ladisch.de>
-	<20091123200527.1114cbc2@hyperion.delvare>
-	<4B0B9CB1.3090808@ladisch.de>
-In-Reply-To: <4B0B9CB1.3090808@ladisch.de>
+References: <4AF91F70.10106@ladisch.de>	<4B06501B.8080509@ladisch.de>	<87ws1l5wcl.fsf@depni.sinp.msu.ru>	<4B0673D7.5010006@ladisch.de>	<20091120123016.19d98ab4@hyperion.delvare>	<4B068402.7020606@ladisch.de>	<20091120131855.7f8f8722@hyperion.delvare>	<4B0A3DB6.9090703@ladisch.de>	<20091123145154.5b2b5735@hyperion.delvare>	<4B0AAA55.3040702@ladisch.de>	<20091123200527.1114cbc2@hyperion.delvare>	<4B0B9CB1.3090808@ladisch.de> <20091124142654.76f4d166@hyperion.delvare>
+In-Reply-To: <20091124142654.76f4d166@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Clemens Ladisch <clemens@ladisch.de>
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Serge Belyshev <belyshev@depni.sinp.msu.ru>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Tue, 24 Nov 2009 09:43:29 +0100, Clemens Ladisch wrote:
-> Jean Delvare wrote:
-> > On Mon, 23 Nov 2009 16:29:25 +0100, Clemens Ladisch wrote:
-> > > There still is the built-in diode to be read by the motherboard, but =
-the
-> > > internal sensor was never intended to be an absolute measurement but
-> > > just as a means for controlling the cooling.
-> >=20
-> > Still we use it for that purpose at the moment. Maybe we simply should
-> > not?
->=20
-> Well, the absolute measurements have essentially the same purpose, and
-> would not make much sense without comparing them to some absolute limit.
-
-Of course. The problem is that users don't know that the temperature
-isn't real, and then get puzzled when comparing with other temperature
-sensors in their system, which _do_ report physical temperatures.
-
-> In any case, it might make more sense to show such values as something
-> like "20 =B0C below maximum".
-
-I think so, yes. Now the difficulty is to come up with a suitable sysfs
-interface. Dropping the current interface altogether doesn't sound
-right as it will take time before a new version of libsensors is
-written and spread out and all applications add support for the new
-interface. In the meantime, I guess we want users to still see the
-approximate value.
-
-So ideally we would come up with an interface that adds up to the one
-we have currently. Future libsensors/applications could read the extra
-information to display the value in a different format so that the
-users see the difference.
-
-An idea I have about this is adding a sysfs file temp#_relative, which
-would contain the fake temperature value that is used as a reference
-for the thermal sensor in question. In the case of k10temp, the value
-would be 70000. So for example we would have:
-
-temp1_input: 46000
-temp1_relative: 70000
-
-Old applications would display this as 46=B0C while new ones would
-display "24=B0C below the limit". For coretemp this could be 85000 or
-100000 (at least in the case where we don't know the limit for sure.)
-
-If there are limits exported (temp1_max, temp1_crit etc.) the same
-offset could be applied to them too.
-
-This approach has the advantage of backwards compatibility. It may not
-be considered flexible enough though... For example it does not support
-sensors with totally arbitrary scales (where 1000 !=3D 1=B0C.) I seem to
-remember we've seen this in the past?
-
-If others have ideas about how we can support this, I'm all ears.
-
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SmVhbiBEZWx2YXJlIHdyb3RlOgo+IE9uIFR1ZSwgMjQgTm92IDIwMDkgMDk6NDM6MjkgKzAxMDAs
+IENsZW1lbnMgTGFkaXNjaCB3cm90ZToKPiA+IEluIGFueSBjYXNlLCBpdCBtaWdodCBtYWtlIG1v
+cmUgc2Vuc2UgdG8gc2hvdyBzdWNoIHZhbHVlcyBhcyBzb21ldGhpbmcKPiA+IGxpa2UgIjIwIMKw
+QyBiZWxvdyBtYXhpbXVtIi4KPiAKPiBJIHRoaW5rIHNvLCB5ZXMuIE5vdyB0aGUgZGlmZmljdWx0
+eSBpcyB0byBjb21lIHVwIHdpdGggYSBzdWl0YWJsZSBzeXNmcwo+IGludGVyZmFjZS4gRHJvcHBp
+bmcgdGhlIGN1cnJlbnQgaW50ZXJmYWNlIGFsdG9nZXRoZXIgZG9lc24ndCBzb3VuZAo+IHJpZ2h0
+IGFzIGl0IHdpbGwgdGFrZSB0aW1lIGJlZm9yZSBhIG5ldyB2ZXJzaW9uIG9mIGxpYnNlbnNvcnMg
+aXMKPiB3cml0dGVuIGFuZCBzcHJlYWQgb3V0IGFuZCBhbGwgYXBwbGljYXRpb25zIGFkZCBzdXBw
+b3J0IGZvciB0aGUgbmV3Cj4gaW50ZXJmYWNlLiBJbiB0aGUgbWVhbnRpbWUsIEkgZ3Vlc3Mgd2Ug
+d2FudCB1c2VycyB0byBzdGlsbCBzZWUgdGhlCj4gYXBwcm94aW1hdGUgdmFsdWUuCgprMTB0ZW1w
+IGlzIGEgbmV3IGRyaXZlciwgc28gbm8gb2xkIHN5c3RlbXMgd291bGQgYnJlYWsgaWYgaXQgaW50
+cm9kdWNlZAphIG5ldyBjbGFzcyBvZiBtZWFzdXJlbWVudHMgd2l0aCBuYW1lcyBsaWtlLCBlLmcu
+LCByZWx0ZW1wI18qLgpXZSBjb3VsZCBhZGQgdGhpcyBpbiBwYXJhbGxlbCB3aXRoIHRoZSBvbGQg
+aW50ZXJmYWNlLiAgSWYgd2Ugd2FudGVkIHRvLgoKPiBTbyBpZGVhbGx5IHdlIHdvdWxkIGNvbWUg
+dXAgd2l0aCBhbiBpbnRlcmZhY2UgdGhhdCBhZGRzIHVwIHRvIHRoZSBvbmUKPiB3ZSBoYXZlIGN1
+cnJlbnRseS4gRnV0dXJlIGxpYnNlbnNvcnMvYXBwbGljYXRpb25zIGNvdWxkIHJlYWQgdGhlIGV4
+dHJhCj4gaW5mb3JtYXRpb24gdG8gZGlzcGxheSB0aGUgdmFsdWUgaW4gYSBkaWZmZXJlbnQgZm9y
+bWF0IHNvIHRoYXQgdGhlCj4gdXNlcnMgc2VlIHRoZSBkaWZmZXJlbmNlLgo+IAo+IEFuIGlkZWEg
+SSBoYXZlIGFib3V0IHRoaXMgaXMgYWRkaW5nIGEgc3lzZnMgZmlsZSB0ZW1wI19yZWxhdGl2ZSwg
+d2hpY2gKPiB3b3VsZCBjb250YWluIHRoZSBmYWtlIHRlbXBlcmF0dXJlIHZhbHVlIHRoYXQgaXMg
+dXNlZCBhcyBhIHJlZmVyZW5jZQo+IGZvciB0aGUgdGhlcm1hbCBzZW5zb3IgaW4gcXVlc3Rpb24u
+IEluIHRoZSBjYXNlIG9mIGsxMHRlbXAsIHRoZSB2YWx1ZQo+IHdvdWxkIGJlIDcwMDAwLiBTbyBm
+b3IgZXhhbXBsZSB3ZSB3b3VsZCBoYXZlOgo+IAo+IHRlbXAxX2lucHV0OiA0NjAwMAo+IHRlbXAx
+X3JlbGF0aXZlOiA3MDAwMAo+IAo+IE9sZCBhcHBsaWNhdGlvbnMgd291bGQgZGlzcGxheSB0aGlz
+IGFzIDQ2wrBDIHdoaWxlIG5ldyBvbmVzIHdvdWxkCj4gZGlzcGxheSAiMjTCsEMgYmVsb3cgdGhl
+IGxpbWl0Ii4KCkluIHRoaXMgY2FzZSwgdGVtcDFfcmVsYXRpdmUgaXMgaWRlbnRpY2FsIHdpdGgg
+dGVtcDFfbWF4LiAgSW4gdGhlCmdlbmVyYWwgY2FzZSwgdGhlcmUgYWx3YXlzIG11c3QgYmUgc29t
+ZSBraW5kIG9mIGxpbWl0ICh3aGV0aGVyICJtYXgiIG9yCiJjcml0IiBvciBzb21ldGhpbmcgZWxz
+ZSkgYWdhaW5zdCB3aGljaCB0aGUgdmFsdWVzIGFyZSBtZWFzdXJlZCwKb3RoZXJ3aXNlIGEgcmVs
+YXRpdmUgdmFsdWUgd291bGQgbm90IG1ha2Ugc2Vuc2UuCgpUaGlzIG1lYW5zIHRoYXQgb25lIG9m
+IHRoZSBhbHJlYWR5IGV4aXN0aW5nIGxpbWl0IHZhbHVlcyBtdXN0IGJlIHRoZQpyZWZlcmVuY2Ug
+YmFzZSwgc28gd2UnZCBuZWVkIGp1c3QgYSBtZWNoYW5pc20gdG8gc3BlY2lmeSB3aGljaCBvZiB0
+aGVtCmlzIGl0LCBpLmUuLCAidGVtcDFfcmVsYXRpdmVfYmFzZTogbWF4Ii4gIElmIHdlJ2QgaGF2
+ZQoidGVtcDFfcmVsYXRpdmU6IDcwMDAwIiwgdGhlIGFwcGxpY2F0aW9uIHdvdWxkIGhhdmUgdG8g
+c2VhcmNoIGFtb25nIHRoZQpsaW1pdCB2YWx1ZXMgZm9yIG9uZSB3aXRoIHRoZSBzYW1lIHZhbHVl
+LgoKKEl0IGRvZXNuJ3QgcmVhbGx5IG1hdHRlciB3aGljaCBvbmUgaXMgdGhlIGJhc2UsIGFzIGFs
+bCB2YWx1ZXMgYXJlCnJlbGF0aXZlIGFueXdheSwgc28gd2UgY291bGQganVzdCBkZWZpbmUgdGhh
+dCB0ZW1wI19tYXggaXMgdGhlIGJhc2U7CnNvIHdlJ2QgaGF2ZSAidGVtcDFfcmVsYXRpdmU6IHRy
+dWUiKS4KCj4gSXQgbWF5IG5vdCBiZSBjb25zaWRlcmVkIGZsZXhpYmxlIGVub3VnaCB0aG91Z2gu
+Li4gRm9yIGV4YW1wbGUgaXQgZG9lcwo+IG5vdCBzdXBwb3J0IHNlbnNvcnMgd2l0aCB0b3RhbGx5
+IGFyYml0cmFyeSBzY2FsZXMgKHdoZXJlIDEwMDAgIT0gMcKwQy4pCgpXaGVuIHRoZSBzY2FsZSBk
+aWZmZXJzIGJ1dCBpcyBfa25vd25fLCB0aGUgZHJpdmVyIGNhbiBqdXN0IHJlc2NhbGUgaXRzCmlu
+dGVybmFsIHJlZ2lzdGVyIHZhbHVlcyB0byBtaWxsaWRlZ3JlZXMuCgpXaGVuIHdlIGhhdmUgc29t
+ZSBzY2FsZSBsaWtlICIwJS4uLjEwMCUiLCB0aGF0IHNob3VsZCBwcm9iYWJseSBiZQpleHBvcnRl
+ZCBhcyAicHdtI190YXJnZXQiIG9yIHNvbWV0aGluZyBsaWtlIHRoYXQuCgoKQmVzdCByZWdhcmRz
+LApDbGVtZW5zCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
