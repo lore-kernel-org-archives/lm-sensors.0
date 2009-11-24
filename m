@@ -1,51 +1,50 @@
-From: jrickman@myamigos.us
-Date: Wed, 25 Nov 2009 16:02:59 +0000
-Subject: Re: [lm-sensors] "modprobe coretemp" fails in Fedora Core 12
-Message-Id: <24114.199.74.155.50.1259164979.squirrel@webmail.myamigos.us>
+From: Ben Dooks <ben-linux@fluff.org>
+Date: Tue, 24 Nov 2009 09:49:02 +0000
+Subject: [lm-sensors] [patch 1/1] s3c-hwmon: fix build error
+Message-Id: <20091124095009.441485821@fluff.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1414.66.169.133.216.1258873116.squirrel@webmail.myamigos.us>
-In-Reply-To: <1414.66.169.133.216.1258873116.squirrel@webmail.myamigos.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Sun, 22 Nov 2009 00:58:36 -0600 (CST), jrickman@myamigos.us wrote:
->> When running "modprobe coretemp" in Fedora Core 12, the module fails to
->> load.
->>
->> Output from /var/log/messages:
->> Nov 22 00:30:15 acer-nas-01 kernel: i2c /dev entries driver
->> Nov 22 00:30:20 acer-nas-01 kernel: coretemp: Unknown CPU model 1c
->> Nov 22 00:30:20 acer-nas-01 kernel: coretemp: Unknown CPU model 1c
->> Nov 22 00:33:15 acer-nas-01 kernel: coretemp: Unknown CPU model 1c
->> Nov 22 00:33:15 acer-nas-01 kernel: coretemp: Unknown CPU model 1c
->>
->> Server is Acer H340 NAS with Intel Atom 230 CPU. Also tested on
->> SuperMicro
->> MBD-X7SLA-H-O motherboard with Atom 330 CPU.
->>
->> Both systems have the following files loaded:
->> lm_sensors.x86_64              3.1.1-4.fc12
->> lm_sensors-libs.x86_64         3.1.1-4.fc12
->>
->> Is there a solution to this problem?
->
-> Support for the Intel Atom was only added to the coretemp driver in
-> kernel 2.6.32, which should be released within a week or two now.
->
-> When kernel 2.6.32 is released, you will have to upgrade to this
-> kernel, or backport the coretemp driver from that kernel to the one
-> you're running.
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
->
+The previous patch, commit be4c23c93c4828d36ac9e1a88410618a61676426 was
+from the wrong tree and thus broke the current build which had the
+channel configuration name changed.
 
-Thank you very much for the update. I will look forward to the next kernel
-release.
+Fix the following build errors:
 
+drivers/hwmon/s3c-hwmon.c: In function 's3c_hwmon_probe':
+drivers/hwmon/s3c-hwmon.c:326: warning: initialization from incompatible pointer type
+drivers/hwmon/s3c-hwmon.c:331: error: dereferencing pointer to incomplete type
+drivers/hwmon/s3c-hwmon.c:336: error: dereferencing pointer to incomplete type
+
+Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+---
+ drivers/hwmon/s3c-hwmon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+Index: b/drivers/hwmon/s3c-hwmon.c
+=================================--- a/drivers/hwmon/s3c-hwmon.c	2009-11-22 17:44:39.000000000 +0000
++++ b/drivers/hwmon/s3c-hwmon.c	2009-11-22 17:48:35.000000000 +0000
+@@ -323,7 +323,7 @@ static int __devinit s3c_hwmon_probe(str
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(pdata->in); i++) {
+-		struct s3c24xx_adc_hwmon_incfg *cfg = pdata->in[i];
++		struct s3c_hwmon_chcfg *cfg = pdata->in[i];
+ 
+ 		if (!cfg)
+ 			continue;
+@@ -333,7 +333,7 @@ static int __devinit s3c_hwmon_probe(str
+ 				 "channel %d multiplier too large\n",
+ 				 i);
+ 
+-		if (cfg->divider = 0) {
++		if (cfg->div = 0) {
+ 			dev_err(&dev->dev, "channel %d divider zero\n", i);
+ 			continue;
+ 		}
 
 
 _______________________________________________
