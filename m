@@ -1,61 +1,137 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Tue, 24 Nov 2009 14:09:57 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 24 Nov 2009 20:11:34 +0000
 Subject: Re: [lm-sensors] [PATCH v3] k10temp: temperature sensor for AMD
-Message-Id: <4B0BE935.1050708@ladisch.de>
+Message-Id: <20091124211134.12971937@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AF91F70.10106@ladisch.de>	<4B06501B.8080509@ladisch.de>	<87ws1l5wcl.fsf@depni.sinp.msu.ru>	<4B0673D7.5010006@ladisch.de>	<20091120123016.19d98ab4@hyperion.delvare>	<4B068402.7020606@ladisch.de>	<20091120131855.7f8f8722@hyperion.delvare>	<4B0A3DB6.9090703@ladisch.de>	<20091123145154.5b2b5735@hyperion.delvare>	<4B0AAA55.3040702@ladisch.de>	<20091123200527.1114cbc2@hyperion.delvare>	<4B0B9CB1.3090808@ladisch.de> <20091124142654.76f4d166@hyperion.delvare>
-In-Reply-To: <20091124142654.76f4d166@hyperion.delvare>
+References: <4AF91F70.10106@ladisch.de>
+	<4B06501B.8080509@ladisch.de>
+	<87ws1l5wcl.fsf@depni.sinp.msu.ru>
+	<4B0673D7.5010006@ladisch.de>
+	<20091120123016.19d98ab4@hyperion.delvare>
+	<4B068402.7020606@ladisch.de>
+	<20091120131855.7f8f8722@hyperion.delvare>
+	<4B0A3DB6.9090703@ladisch.de>
+	<20091123145154.5b2b5735@hyperion.delvare>
+	<4B0AAA55.3040702@ladisch.de>
+	<20091123200527.1114cbc2@hyperion.delvare>
+	<4B0B9CB1.3090808@ladisch.de>
+	<20091124142654.76f4d166@hyperion.delvare>
+	<4B0BE935.1050708@ladisch.de>
+In-Reply-To: <4B0BE935.1050708@ladisch.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
-To: Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Clemens Ladisch <clemens@ladisch.de>
 Cc: Serge Belyshev <belyshev@depni.sinp.msu.ru>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-SmVhbiBEZWx2YXJlIHdyb3RlOgo+IE9uIFR1ZSwgMjQgTm92IDIwMDkgMDk6NDM6MjkgKzAxMDAs
-IENsZW1lbnMgTGFkaXNjaCB3cm90ZToKPiA+IEluIGFueSBjYXNlLCBpdCBtaWdodCBtYWtlIG1v
-cmUgc2Vuc2UgdG8gc2hvdyBzdWNoIHZhbHVlcyBhcyBzb21ldGhpbmcKPiA+IGxpa2UgIjIwIMKw
-QyBiZWxvdyBtYXhpbXVtIi4KPiAKPiBJIHRoaW5rIHNvLCB5ZXMuIE5vdyB0aGUgZGlmZmljdWx0
-eSBpcyB0byBjb21lIHVwIHdpdGggYSBzdWl0YWJsZSBzeXNmcwo+IGludGVyZmFjZS4gRHJvcHBp
-bmcgdGhlIGN1cnJlbnQgaW50ZXJmYWNlIGFsdG9nZXRoZXIgZG9lc24ndCBzb3VuZAo+IHJpZ2h0
-IGFzIGl0IHdpbGwgdGFrZSB0aW1lIGJlZm9yZSBhIG5ldyB2ZXJzaW9uIG9mIGxpYnNlbnNvcnMg
-aXMKPiB3cml0dGVuIGFuZCBzcHJlYWQgb3V0IGFuZCBhbGwgYXBwbGljYXRpb25zIGFkZCBzdXBw
-b3J0IGZvciB0aGUgbmV3Cj4gaW50ZXJmYWNlLiBJbiB0aGUgbWVhbnRpbWUsIEkgZ3Vlc3Mgd2Ug
-d2FudCB1c2VycyB0byBzdGlsbCBzZWUgdGhlCj4gYXBwcm94aW1hdGUgdmFsdWUuCgprMTB0ZW1w
-IGlzIGEgbmV3IGRyaXZlciwgc28gbm8gb2xkIHN5c3RlbXMgd291bGQgYnJlYWsgaWYgaXQgaW50
-cm9kdWNlZAphIG5ldyBjbGFzcyBvZiBtZWFzdXJlbWVudHMgd2l0aCBuYW1lcyBsaWtlLCBlLmcu
-LCByZWx0ZW1wI18qLgpXZSBjb3VsZCBhZGQgdGhpcyBpbiBwYXJhbGxlbCB3aXRoIHRoZSBvbGQg
-aW50ZXJmYWNlLiAgSWYgd2Ugd2FudGVkIHRvLgoKPiBTbyBpZGVhbGx5IHdlIHdvdWxkIGNvbWUg
-dXAgd2l0aCBhbiBpbnRlcmZhY2UgdGhhdCBhZGRzIHVwIHRvIHRoZSBvbmUKPiB3ZSBoYXZlIGN1
-cnJlbnRseS4gRnV0dXJlIGxpYnNlbnNvcnMvYXBwbGljYXRpb25zIGNvdWxkIHJlYWQgdGhlIGV4
-dHJhCj4gaW5mb3JtYXRpb24gdG8gZGlzcGxheSB0aGUgdmFsdWUgaW4gYSBkaWZmZXJlbnQgZm9y
-bWF0IHNvIHRoYXQgdGhlCj4gdXNlcnMgc2VlIHRoZSBkaWZmZXJlbmNlLgo+IAo+IEFuIGlkZWEg
-SSBoYXZlIGFib3V0IHRoaXMgaXMgYWRkaW5nIGEgc3lzZnMgZmlsZSB0ZW1wI19yZWxhdGl2ZSwg
-d2hpY2gKPiB3b3VsZCBjb250YWluIHRoZSBmYWtlIHRlbXBlcmF0dXJlIHZhbHVlIHRoYXQgaXMg
-dXNlZCBhcyBhIHJlZmVyZW5jZQo+IGZvciB0aGUgdGhlcm1hbCBzZW5zb3IgaW4gcXVlc3Rpb24u
-IEluIHRoZSBjYXNlIG9mIGsxMHRlbXAsIHRoZSB2YWx1ZQo+IHdvdWxkIGJlIDcwMDAwLiBTbyBm
-b3IgZXhhbXBsZSB3ZSB3b3VsZCBoYXZlOgo+IAo+IHRlbXAxX2lucHV0OiA0NjAwMAo+IHRlbXAx
-X3JlbGF0aXZlOiA3MDAwMAo+IAo+IE9sZCBhcHBsaWNhdGlvbnMgd291bGQgZGlzcGxheSB0aGlz
-IGFzIDQ2wrBDIHdoaWxlIG5ldyBvbmVzIHdvdWxkCj4gZGlzcGxheSAiMjTCsEMgYmVsb3cgdGhl
-IGxpbWl0Ii4KCkluIHRoaXMgY2FzZSwgdGVtcDFfcmVsYXRpdmUgaXMgaWRlbnRpY2FsIHdpdGgg
-dGVtcDFfbWF4LiAgSW4gdGhlCmdlbmVyYWwgY2FzZSwgdGhlcmUgYWx3YXlzIG11c3QgYmUgc29t
-ZSBraW5kIG9mIGxpbWl0ICh3aGV0aGVyICJtYXgiIG9yCiJjcml0IiBvciBzb21ldGhpbmcgZWxz
-ZSkgYWdhaW5zdCB3aGljaCB0aGUgdmFsdWVzIGFyZSBtZWFzdXJlZCwKb3RoZXJ3aXNlIGEgcmVs
-YXRpdmUgdmFsdWUgd291bGQgbm90IG1ha2Ugc2Vuc2UuCgpUaGlzIG1lYW5zIHRoYXQgb25lIG9m
-IHRoZSBhbHJlYWR5IGV4aXN0aW5nIGxpbWl0IHZhbHVlcyBtdXN0IGJlIHRoZQpyZWZlcmVuY2Ug
-YmFzZSwgc28gd2UnZCBuZWVkIGp1c3QgYSBtZWNoYW5pc20gdG8gc3BlY2lmeSB3aGljaCBvZiB0
-aGVtCmlzIGl0LCBpLmUuLCAidGVtcDFfcmVsYXRpdmVfYmFzZTogbWF4Ii4gIElmIHdlJ2QgaGF2
-ZQoidGVtcDFfcmVsYXRpdmU6IDcwMDAwIiwgdGhlIGFwcGxpY2F0aW9uIHdvdWxkIGhhdmUgdG8g
-c2VhcmNoIGFtb25nIHRoZQpsaW1pdCB2YWx1ZXMgZm9yIG9uZSB3aXRoIHRoZSBzYW1lIHZhbHVl
-LgoKKEl0IGRvZXNuJ3QgcmVhbGx5IG1hdHRlciB3aGljaCBvbmUgaXMgdGhlIGJhc2UsIGFzIGFs
-bCB2YWx1ZXMgYXJlCnJlbGF0aXZlIGFueXdheSwgc28gd2UgY291bGQganVzdCBkZWZpbmUgdGhh
-dCB0ZW1wI19tYXggaXMgdGhlIGJhc2U7CnNvIHdlJ2QgaGF2ZSAidGVtcDFfcmVsYXRpdmU6IHRy
-dWUiKS4KCj4gSXQgbWF5IG5vdCBiZSBjb25zaWRlcmVkIGZsZXhpYmxlIGVub3VnaCB0aG91Z2gu
-Li4gRm9yIGV4YW1wbGUgaXQgZG9lcwo+IG5vdCBzdXBwb3J0IHNlbnNvcnMgd2l0aCB0b3RhbGx5
-IGFyYml0cmFyeSBzY2FsZXMgKHdoZXJlIDEwMDAgIT0gMcKwQy4pCgpXaGVuIHRoZSBzY2FsZSBk
-aWZmZXJzIGJ1dCBpcyBfa25vd25fLCB0aGUgZHJpdmVyIGNhbiBqdXN0IHJlc2NhbGUgaXRzCmlu
-dGVybmFsIHJlZ2lzdGVyIHZhbHVlcyB0byBtaWxsaWRlZ3JlZXMuCgpXaGVuIHdlIGhhdmUgc29t
-ZSBzY2FsZSBsaWtlICIwJS4uLjEwMCUiLCB0aGF0IHNob3VsZCBwcm9iYWJseSBiZQpleHBvcnRl
-ZCBhcyAicHdtI190YXJnZXQiIG9yIHNvbWV0aGluZyBsaWtlIHRoYXQuCgoKQmVzdCByZWdhcmRz
-LApDbGVtZW5zCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
+On Tue, 24 Nov 2009 15:09:57 +0100, Clemens Ladisch wrote:
+> Jean Delvare wrote:
+> > On Tue, 24 Nov 2009 09:43:29 +0100, Clemens Ladisch wrote:
+> > > In any case, it might make more sense to show such values as something
+> > > like "20 =B0C below maximum".
+> >=20
+> > I think so, yes. Now the difficulty is to come up with a suitable sysfs
+> > interface. Dropping the current interface altogether doesn't sound
+> > right as it will take time before a new version of libsensors is
+> > written and spread out and all applications add support for the new
+> > interface. In the meantime, I guess we want users to still see the
+> > approximate value.
+>=20
+> k10temp is a new driver, so no old systems would break if it introduced
+> a new class of measurements with names like, e.g., reltemp#_*.
+
+I wasn't necessarily thinking of k10temp breaking a working system,
+more of k10temp just not working on current systems (if we don't opt
+for parallel implementations.) And there's also the coretemp case,
+where we report relative values in some cases; that case would fit in
+what we're discussing now, so we would modify an already existing
+driver.
+
+> We could add this in parallel with the old interface.  If we wanted to.
+
+I think we want to, yes. I just don't know for how long.
+
+> > So ideally we would come up with an interface that adds up to the one
+> > we have currently. Future libsensors/applications could read the extra
+> > information to display the value in a different format so that the
+> > users see the difference.
+> >=20
+> > An idea I have about this is adding a sysfs file temp#_relative, which
+> > would contain the fake temperature value that is used as a reference
+> > for the thermal sensor in question. In the case of k10temp, the value
+> > would be 70000. So for example we would have:
+> >=20
+> > temp1_input: 46000
+> > temp1_relative: 70000
+> >=20
+> > Old applications would display this as 46=B0C while new ones would
+> > display "24=B0C below the limit".
+>=20
+> In this case, temp1_relative is identical with temp1_max.  In the
+> general case, there always must be some kind of limit (whether "max" or
+> "crit" or something else) against which the values are measured,
+> otherwise a relative value would not make sense.
+
+I would love this to be true, but I can't see any reason why it would
+have to be. I can easily imagine a CPU specification reading: "This
+register contains a temperature value on an arbitrary scale; higher
+values mean higher temperatures." I'm not claiming it would be
+particularly useful... but if a CPU maker ever does this, don't we want
+to support that? (This is a real question, maybe we don't.)
+
+I really didn't expect the implementations we've seen in Intel Core or
+AMD family 10h processors. So I wouldn't be surprised if future
+implementations are different again.
+
+> This means that one of the already existing limit values must be the
+> reference base, so we'd need just a mechanism to specify which of them
+> is it, i.e., "temp1_relative_base: max".  If we'd have
+> "temp1_relative: 70000", the application would have to search among the
+> limit values for one with the same value.
+
+I fail to see why the application would care about this at all. When in
+relative mode, all other values would be offset by the temp#_relative
+value. But that value itself would not be displayed (it has no physical
+value, otherwise we wouldn't be in absolute mode, would we?)
+
+> (It doesn't really matter which one is the base, as all values are
+> relative anyway, so we could just define that temp#_max is the base;
+> so we'd have "temp1_relative: true").
+
+This is taking flexibility away from us, for no benefit that I can see.
+Am I missing something?
+
+(Additionally it wouldn't fit in libsensors as it exists today. This
+doesn't mean it can't be done, but the cost is higher, so it needs to
+bring an significant improvement.)
+
+> > It may not be considered flexible enough though... For example it does
+> > not support sensors with totally arbitrary scales (where 1000 !=3D 1=B0=
+C.)
+>=20
+> When the scale differs but is _known_, the driver can just rescale its
+> internal register values to millidegrees.
+
+Correct, and actually many drivers do that already. But the scale could
+also be totally unknown (as in my theoretical example above), only
+bounded by the register size (which would lead to pretty bad temp#_min
+and _max IMHO.)
+
+> When we have some scale like "0%...100%", that should probably be
+> exported as "pwm#_target" or something like that.
+
+That would be difficult, as we generally don't know which pwm output,
+if any, is related to a given CPU. ACPI may know more, but the ACPI
+interface to cooling zones and temperatures is very limited IMHO, and
+hard to connect to physical devices, I doubt we can get anything usable
+out of it. And anyway, deciding that cooling must be somehow
+proportional to temperature is pretty arbitrary and doesn't match what
+I've seen people do so far.
+
+--=20
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
