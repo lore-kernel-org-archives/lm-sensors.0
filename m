@@ -1,73 +1,83 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 Nov 2009 10:44:50 +0000
-Subject: Re: [lm-sensors] [PATCH] k10temp: temperature sensor for AMD Family
-Message-Id: <20091120114450.12c0be85@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 30 Nov 2009 23:47:27 +0000
+Subject: [lm-sensors] [PATCH] therm_adt746x: Record pwm invert bit at module
+Message-Id: <20091130234727.GA10295@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4AF91F70.10106@ladisch.de>
-	<4B06501B.8080509@ladisch.de>
-	<87ws1l5wcl.fsf@depni.sinp.msu.ru>
-In-Reply-To: <87ws1l5wcl.fsf@depni.sinp.msu.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Serge Belyshev <belyshev@depni.sinp.msu.ru>
-Cc: Clemens Ladisch <clemens@ladisch.de>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Michel =?iso-8859-1?Q?D=E4nzer?= <michel@daenzer.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Fri, 20 Nov 2009 10:22:50 +0000, Serge Belyshev wrote:
-> 
-> > +All these processors have a sensor, but on older revisions of Family 10h
-> > +processors, the sensor returns inconsistent values (erratum 319). The driver
-> > +refuses to load with these revisions (DR-BA, DR-B2, DR-B3: some Embedded
-> > +Opterons on Socket F; and Quad-Core Opteron, Phenom Triple/Quad-Core, and
-> > +Athon Dual-Core on Socket AM2+). All later revisions (RB-C2, BL-C2, DA-C2,
-> > +RB-C3, HY-D0) work fine; see the list above.
-> 
-> Please note that erratum actually states that the sensor only "may report
-> inconsistent values.", not that it is always broken.  As evident by my
-> own experience (tested with a userspace application), it actually works
-> perfectly on all B3 stepping processors that I have.
+In commit 0512a9a8e277a9de2820211eef964473b714ae65, we unilaterally zero the
+"pwm invert" bit in the fan behavior configuration register.  On my PowerBook
+G4, this results in the fans going to full speed at low temperature and
+shutting off at high temperature because the pwm invert bit is supposed to be
+set.
 
-We don't care that 5% of the CPU have working sensors. 95% [1] of
-theses CPUs have broken sensors and their users will ask us for help
-and we are fed up with this. So all these CPUs are blacklisted, period.
+Therefore, record the pwm invert bit at driver load time, and write the bit
+into the fan behavior control register.  This restores correct behavior on my
+PBG4 and should work around the bit being set to the wrong value after
+suspend/resume (which is what the original patch was trying to fix).  It also
+fixes a minor omission where the pwm invert bit correction is NOT performed
+when switching into automatic mode.
 
-> > +static bool __devinit has_erratum_319(void)
-> > +{
-> > +	/*
-> > +	 * Erratum 319: The thermal sensor of older Family 10h processors
-> > +	 *              (B steppings) is unreliable.
-> > +	 */
-> > +	return boot_cpu_data.x86 = 0x10 && boot_cpu_data.x86_model <= 2;
-> > +}
-> ...
-> > +	if (has_erratum_319()) {
-> > +		dev_err(&pdev->dev,
-> > +			"unreliable CPU thermal sensor; monitoring disabled\n");
-> > +		err = -ENODEV;
-> > +		goto exit;
-> > +	}
-> 
-> So, please provide an alternative for those who have a working sensor on a
-> revision B processor and want to use it.
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
 
-The alternative already exists: you can rebuild the driver yourself
-without this check.
+ drivers/macintosh/therm_adt746x.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-Or yet another alternative: become the maintainer of the hwmon
-subsystem, and do lm-sensors user support for a couple years. Then you
-will be allowed to decide what goes in.
 
-And yet another one: instead of asking others to solve your very own
-problem, why don't you try and solve it yourself? I'm sure Clemens
-would welcome patches to his driver.
-
-Thank you very much.
-
-[1] Yes these numbers are totally made up. There is no reliable way to
-tell a broken sensor from a working one anyway.
-
--- 
-Jean Delvare
+diff --git a/drivers/macintosh/therm_adt746x.c b/drivers/macintosh/therm_adt746x.c
+index 556f0fe..386a797 100644
+--- a/drivers/macintosh/therm_adt746x.c
++++ b/drivers/macintosh/therm_adt746x.c
+@@ -79,6 +79,7 @@ struct thermostat {
+ 	u8			limits[3];
+ 	int			last_speed[2];
+ 	int			last_var[2];
++	int			pwm_inv[2];
+ };
+ 
+ static enum {ADT7460, ADT7467} therm_type;
+@@ -229,19 +230,23 @@ static void write_fan_speed(struct thermostat *th, int speed, int fan)
+ 	
+ 	if (speed >= 0) {
+ 		manual = read_reg(th, MANUAL_MODE[fan]);
++		manual &= ~INVERT_MASK;
+ 		write_reg(th, MANUAL_MODE[fan],
+-			(manual|MANUAL_MASK) & (~INVERT_MASK));
++			manual | MANUAL_MASK | th->pwm_inv[fan]);
+ 		write_reg(th, FAN_SPD_SET[fan], speed);
+ 	} else {
+ 		/* back to automatic */
+ 		if(therm_type = ADT7460) {
+ 			manual = read_reg(th,
+ 				MANUAL_MODE[fan]) & (~MANUAL_MASK);
+-
++			manual &= ~INVERT_MASK;
++			manual |= th->pwm_inv[fan];
+ 			write_reg(th,
+ 				MANUAL_MODE[fan], manual|REM_CONTROL[fan]);
+ 		} else {
+ 			manual = read_reg(th, MANUAL_MODE[fan]);
++			manual &= ~INVERT_MASK;
++			manual |= th->pwm_inv[fan];
+ 			write_reg(th, MANUAL_MODE[fan], manual&(~AUTO_MASK));
+ 		}
+ 	}
+@@ -418,6 +423,10 @@ static int probe_thermostat(struct i2c_client *client,
+ 
+ 	thermostat = th;
+ 
++	/* record invert bit status because fw can corrupt it after suspend */
++	th->pwm_inv[0] = read_reg(th, MANUAL_MODE[0]) & INVERT_MASK;
++	th->pwm_inv[1] = read_reg(th, MANUAL_MODE[1]) & INVERT_MASK;
++
+ 	/* be sure to really write fan speed the first time */
+ 	th->last_speed[0] = -2;
+ 	th->last_speed[1] = -2;
 
 _______________________________________________
 lm-sensors mailing list
