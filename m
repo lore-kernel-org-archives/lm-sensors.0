@@ -1,84 +1,100 @@
-From: "Ray Copeland" <ray.copeland@aprius.com>
-Date: Thu, 17 Dec 2009 17:37:32 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for
-Message-Id: <AFEAE911EE22F64BACAB05ED86B4D4FC01C5CF2C@EXVBE012-13.exch012.intermedia.net>
+From: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>
+Date: Tue, 01 Dec 2009 07:59:59 +0000
+Subject: Re: [lm-sensors] [PATCH] therm_adt746x: Record pwm invert bit at
+Message-Id: <1259654399.5488.13238.camel@thor.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA312@EXVBE012-13.exch012.intermedia.net><AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net><AFEAE911EE22F64BACAB05ED86B4D4FC018DA328@EXVBE012-13.exch012.intermedia.net> <20091217171445.0bd28259@hyperion.delvare>
-In-Reply-To: <20091217171445.0bd28259@hyperion.delvare>
+References: <20091130234727.GA10295@tux1.beaverton.ibm.com>
+In-Reply-To: <20091130234727.GA10295@tux1.beaverton.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: djwong@us.ibm.com
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Hi, Jean, thanks for letting me know.  This is my first time sending a
-patch, and I should have sent
-it first to Darrick to have him review it before I posted directly to
-the group.  He told me how to
-rework it properly so that I will do it right next time.
-
-Sorry if this caused any problem for you.
-
-Regards,
-
-Ray Copeland
-
------Original Message-----
-From: Jean Delvare [mailto:khali@linux-fr.org] 
-Sent: Thursday, December 17, 2009 8:15 AM
-To: Ray Copeland
-Cc: linux-kernel@vger.kernel.org; lm-sensors@lm-sensors.org
-Subject: Re: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for
-linux-2.6.30 adt7462 hwmon driver
-
-Hi Ray,
-
-On Wed, 16 Dec 2009 17:26:19 -0800, Ray Copeland wrote:
-> From: Ray Copeland <ray.copeland@aprius.com>
-> Date: Wed, 16 Dec 2009
-> Subject: [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462
-hwmon driver 
+On Mon, 2009-11-30 at 15:47 -0800, Darrick J. Wong wrote: 
+> In commit 0512a9a8e277a9de2820211eef964473b714ae65, we unilaterally zero the
+> "pwm invert" bit in the fan behavior configuration register.  On my PowerBook
+> G4, this results in the fans going to full speed at low temperature and
+> shutting off at high temperature because the pwm invert bit is supposed to be
+> set.
 > 
-> Description:
+> Therefore, record the pwm invert bit at driver load time, and write the bit
+> into the fan behavior control register.  This restores correct behavior on my
+> PBG4 and should work around the bit being set to the wrong value after
+> suspend/resume (which is what the original patch was trying to fix).  It also
+> fixes a minor omission where the pwm invert bit correction is NOT performed
+> when switching into automatic mode.
 > 
-> The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All
-the 
-> for loops that use this as a limit count are of the typical form, "for
+> Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
 
-> (n = 0; n < ADT7462_VOLT_COUNT; n++)", so to loop through all voltages
+Reviewed-by: Michel Dänzer <michel@daenzer.net>
 
-> w/o missing the last one it is necessary for the count to be one
-greater 
-> than it is.  (Specifically, you will miss the +1.5V 3GPIO input with
-count 
-> = 12 vs. 13.)
-> 
-> Signed-off-by: Ray Copeland <ray.copeland@aprius.com>
-> 
-> Diff with changes vs. original adt7462.c 2.6.30 version:
-> 
-> --- adt7462.c.orig      2009-12-15 15:51:05.000000000 -0800
-> +++ adt7462.c.volt_count        2009-12-16 14:06:01.000000000 -0800
-> @@ -182,7 +182,7 @@
->   *
->   * Some, but not all, of these voltages have low/high limits.
->   */
-> -#define ADT7462_VOLT_COUNT     12
-> +#define ADT7462_VOLT_COUNT     13
-> 
->  #define ADT7462_VENDOR         0x41
->  #define ADT7462_DEVICE         0x62
+Looks great, thanks Darrick. Also FWIW, at least loading the patched
+driver works as expected on my PowerBook5,8 which has the invert bit
+disabled.
 
-While the patch looks functionally correct, it is horribly broken in
-its format. You sent a HTML mail instead of only plain text. Your
-mailer turned the tabs into spaces. And the paths are missing from the
-patch header.
 
-Please learn how to send proper patches that kernel maintainers can
-apply. Documentation/SubmittingPatches is a good start.
+> ---
+> 
+>  drivers/macintosh/therm_adt746x.c |   13 +++++++++++--
+>  1 files changed, 11 insertions(+), 2 deletions(-)
+> 
+> 
+> diff --git a/drivers/macintosh/therm_adt746x.c b/drivers/macintosh/therm_adt746x.c
+> index 556f0fe..386a797 100644
+> --- a/drivers/macintosh/therm_adt746x.c
+> +++ b/drivers/macintosh/therm_adt746x.c
+> @@ -79,6 +79,7 @@ struct thermostat {
+>  	u8			limits[3];
+>  	int			last_speed[2];
+>  	int			last_var[2];
+> +	int			pwm_inv[2];
+>  };
+>  
+>  static enum {ADT7460, ADT7467} therm_type;
+> @@ -229,19 +230,23 @@ static void write_fan_speed(struct thermostat *th, int speed, int fan)
+>  	
+>  	if (speed >= 0) {
+>  		manual = read_reg(th, MANUAL_MODE[fan]);
+> +		manual &= ~INVERT_MASK;
+>  		write_reg(th, MANUAL_MODE[fan],
+> -			(manual|MANUAL_MASK) & (~INVERT_MASK));
+> +			manual | MANUAL_MASK | th->pwm_inv[fan]);
+>  		write_reg(th, FAN_SPD_SET[fan], speed);
+>  	} else {
+>  		/* back to automatic */
+>  		if(therm_type = ADT7460) {
+>  			manual = read_reg(th,
+>  				MANUAL_MODE[fan]) & (~MANUAL_MASK);
+> -
+> +			manual &= ~INVERT_MASK;
+> +			manual |= th->pwm_inv[fan];
+>  			write_reg(th,
+>  				MANUAL_MODE[fan], manual|REM_CONTROL[fan]);
+>  		} else {
+>  			manual = read_reg(th, MANUAL_MODE[fan]);
+> +			manual &= ~INVERT_MASK;
+> +			manual |= th->pwm_inv[fan];
+>  			write_reg(th, MANUAL_MODE[fan], manual&(~AUTO_MASK));
+>  		}
+>  	}
+> @@ -418,6 +423,10 @@ static int probe_thermostat(struct i2c_client *client,
+>  
+>  	thermostat = th;
+>  
+> +	/* record invert bit status because fw can corrupt it after suspend */
+> +	th->pwm_inv[0] = read_reg(th, MANUAL_MODE[0]) & INVERT_MASK;
+> +	th->pwm_inv[1] = read_reg(th, MANUAL_MODE[1]) & INVERT_MASK;
+> +
+>  	/* be sure to really write fan speed the first time */
+>  	th->last_speed[0] = -2;
+>  	th->last_speed[1] = -2;
+
+
 
 -- 
-Jean Delvare
+Earthling Michel Dänzer           |                http://www.vmware.com
+Libre software enthusiast         |          Debian, X and DRI developer
 
 _______________________________________________
 lm-sensors mailing list
