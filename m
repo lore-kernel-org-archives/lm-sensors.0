@@ -1,150 +1,216 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 17 Dec 2009 15:58:41 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] Need ADT7462_PIN29_SHIFT for
-Message-Id: <20091217165841.432c95ce@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 01 Dec 2009 08:33:38 +0000
+Subject: [lm-sensors] [PATCH v4 1/5] lis3: Selftest support
+Message-Id: <1259656422-7697-2-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA313@EXVBE012-13.exch012.intermedia.net>
-	<AFEAE911EE22F64BACAB05ED86B4D4FC018DA31C@EXVBE012-13.exch012.intermedia.net>
-In-Reply-To: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31C@EXVBE012-13.exch012.intermedia.net>
+References: <1259656422-7697-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1259656422-7697-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ray Copeland <ray.copeland@aprius.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Arvind Vasudev <arvind.vasudev@aprius.com>
+To: eric.piel@tremplin-utc.net
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-On Wed, 16 Dec 2009 10:08:51 -0800, Ray Copeland wrote:
-> From: Ray Copeland <ray.copeland@aprius.com>
-> Date: Wed, 16 Dec 2009
-> Subject: [PATCH 2/2] Need ADT7462_PIN29_SHIFT for pin_cfg[3] linux-2.6.30 adt7462 hwmon driver
-> 
-> Description:
-> 
-> The driver uses the following expression (parentheses added for clarity) 
-> to test if the +1.5V ICH/3GPIO voltages are configured:
-> 
-> if (((data->pin_cfg[3] >> ADT7462_PIN28_SHIFT) = ADT7462_PIN28_VOLT) &&
-> !(data->pin_cfg[0] & ADT7462_VID_INPUT))
-> 
-> With "#define ADT7462_PIN28_SHIFT 6" this will never equate to "#define
-> ADT7462_PIN28_VOLT 5" because that shifts in only the PIN28 +1.5V ICH value 
-> and misses the PIN29 +1.5V 3GPIO value.  It is the combination of both these 
-> values that equates to 5 if the voltages are configured. 
-> 
-> Note the logic is essentially correct in that both these voltages must
-> be configured together, meaning you can't set one to +1.5V and have the 
-> other be something else.  Also, I think the logic just got a little confused 
-> thinking that pin 28 comes first (bit-position wise) in the pin_cfg[3], but 
-> actually the order of bits from ms to ls is pin28/29 not pin 29/28.
-> 
-> Signed-off-by: Ray Copeland <ray.copeland@aprius.com>
+Implement selftest feature as specified by chip manufacturer.
+Control: read selftest sysfs entry
+Response: "OK x y z" or "FAIL x y z"
+where x, y, and z are difference between selftest mode and normal mode.
+Test is passed when values are within acceptance limit values.
 
-I've just picked Roger Blofeld's patch:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2009-December/027503.html
+Acceptance limits are provided via platform data. See chip spesifications
+for acceptance limits. If limits are not properly set, OK / FAIL decision is
+meaningless. However, userspace application can still make decision based on
+the numeric x, y, z values.
 
-which AFAICT fixes the same bug in fewer lines.
+Selftest is meant for HW diagnostic purposes. It is not meant to be called
+during normal use of the chip. It may cause false interrupt events.
+Selftest mode delays polling of the normal results but it doesn't cause
+wrong values. Chip must be in static state during selftest.
+Any acceration during the test causes most probably failure.
 
-> 
-> Diff with changes vs. original adt7462.c 2.6.30 version:
-> 
-> --- adt7462.c	2009-12-15 15:57:47.000000000 -0800
-> +++ adt7462.c.orig	2009-12-15 15:51:05.000000000 -0800
-> @@ -97,7 +97,6 @@
->  #define		ADT7462_PIN24_SHIFT		6
->  #define		ADT7462_PIN26_VOLT_INPUT	0x08
->  #define		ADT7462_PIN25_VOLT_INPUT	0x20
-> -#define		ADT7462_PIN29_SHIFT		4	/* cfg3 */
->  #define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
->  #define		ADT7462_PIN28_VOLT		0x5
->  
-> @@ -183,7 +182,7 @@
->   *
->   * Some, but not all, of these voltages have low/high limits.
->   */
-> -#define ADT7462_VOLT_COUNT	13
-> +#define ADT7462_VOLT_COUNT	12
->  
->  #define ADT7462_VENDOR		0x41
->  #define ADT7462_DEVICE		0x62
-> @@ -325,13 +324,13 @@
->  	case 10:
->  		return 0x6A;
->  	case 11:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 0x50;
->  		break;
->  	case 12:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 0x4C;
-> @@ -384,13 +383,13 @@
->  	case 10:
->  		return 0x73;
->  	case 11:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 0x76;
->  		break;
->  	case 12:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 0x77;
-> @@ -443,13 +442,13 @@
->  	case 10:
->  		return 0x91;
->  	case 11:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 0x94;
->  		break;
->  	case 12:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 0x95;
-> @@ -535,13 +534,13 @@
->  			return "+1.5";
->  		}
->  	case 11:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return "+1.5V ICH";
->  		break;
->  	case 12:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return "+1.5V 3GPIO";
-> @@ -630,7 +629,7 @@
->  		}
->  	case 11:
->  	case 12:
-> -		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =
-> +		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =
->  					ADT7462_PIN28_VOLT &&
->  		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
->  			return 7800;
-> 
-> 
-> 
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |   67 ++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/hwmon/lis3lv02d.h |   14 ++++++++-
+ include/linux/lis3lv02d.h |    3 ++
+ 3 files changed, 81 insertions(+), 3 deletions(-)
 
-
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 39b9ac8..55ec883 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -106,9 +106,11 @@ static void lis3lv02d_get_xyz(struct lis3lv02d *lis3, int *x, int *y, int *z)
+ {
+ 	int position[3];
+ 
++	mutex_lock(&lis3->mutex);
+ 	position[0] = lis3->read_data(lis3, OUTX);
+ 	position[1] = lis3->read_data(lis3, OUTY);
+ 	position[2] = lis3->read_data(lis3, OUTZ);
++	mutex_unlock(&lis3->mutex);
+ 
+ 	*x = lis3lv02d_get_axis(lis3->ac.x, position);
+ 	*y = lis3lv02d_get_axis(lis3->ac.y, position);
+@@ -133,6 +135,55 @@ static int lis3lv02d_get_odr(void)
+ 	return val;
+ }
+ 
++static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
++{
++	u8 reg;
++	s16 x, y, z;
++	u8 selftest;
++	int ret;
++
++	mutex_lock(&lis3->mutex);
++	if (lis3_dev.whoami = WAI_12B)
++		selftest = CTRL1_ST;
++	else
++		selftest = CTRL1_STP;
++
++	lis3->read(lis3, CTRL_REG1, &reg);
++	lis3->write(lis3, CTRL_REG1, (reg | selftest));
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
++	/* Read directly to avoid axis remap */
++	x = lis3->read_data(lis3, OUTX);
++	y = lis3->read_data(lis3, OUTY);
++	z = lis3->read_data(lis3, OUTZ);
++
++	/* back to normal settings */
++	lis3->write(lis3, CTRL_REG1, reg);
++	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
++
++	results[0] = x - lis3->read_data(lis3, OUTX);
++	results[1] = y - lis3->read_data(lis3, OUTY);
++	results[2] = z - lis3->read_data(lis3, OUTZ);
++
++	ret = 0;
++	if (lis3->pdata) {
++		int i;
++		for (i = 0; i < 3; i++) {
++			/* Check against selftest acceptance limits */
++			if ((results[i] < lis3->pdata->st_min_limits[i]) ||
++			    (results[i] > lis3->pdata->st_max_limits[i])) {
++				ret = -EIO;
++				goto fail;
++			}
++		}
++	}
++
++	/* test passed */
++fail:
++	mutex_unlock(&lis3->mutex);
++	return ret;
++}
++
+ void lis3lv02d_poweroff(struct lis3lv02d *lis3)
+ {
+ 	/* disable X,Y,Z axis and power down */
+@@ -365,6 +416,17 @@ void lis3lv02d_joystick_disable(void)
+ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
+ 
+ /* Sysfs stuff */
++static ssize_t lis3lv02d_selftest_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	int result;
++	s16 values[3];
++
++	result = lis3lv02d_selftest(&lis3_dev, values);
++	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
++		values[0], values[1], values[2]);
++}
++
+ static ssize_t lis3lv02d_position_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+@@ -394,12 +456,14 @@ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
+ 
++static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
+ static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+ static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_show,
+ 	lis3lv02d_calibrate_store);
+ static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
+ 
+ static struct attribute *lis3lv02d_attributes[] = {
++	&dev_attr_selftest.attr,
+ 	&dev_attr_position.attr,
+ 	&dev_attr_calibrate.attr,
+ 	&dev_attr_rate.attr,
+@@ -455,6 +519,8 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 		return -EINVAL;
+ 	}
+ 
++	mutex_init(&dev->mutex);
++
+ 	lis3lv02d_add_fs(dev);
+ 	lis3lv02d_poweron(dev);
+ 
+@@ -507,4 +573,3 @@ EXPORT_SYMBOL_GPL(lis3lv02d_init_device);
+ MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer driver");
+ MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
+ MODULE_LICENSE("GPL");
+-
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index c57f21f..166794c 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -98,7 +98,7 @@ enum lis3_who_am_i {
+ 	WAI_6B		= 0x52, /* 6 bits: LIS331DLF - not supported */
+ };
+ 
+-enum lis3lv02d_ctrl1 {
++enum lis3lv02d_ctrl1_12b {
+ 	CTRL1_Xen	= 0x01,
+ 	CTRL1_Yen	= 0x02,
+ 	CTRL1_Zen	= 0x04,
+@@ -107,8 +107,17 @@ enum lis3lv02d_ctrl1 {
+ 	CTRL1_DF1	= 0x20,
+ 	CTRL1_PD0	= 0x40,
+ 	CTRL1_PD1	= 0x80,
+-	CTRL1_DR	= 0x80, /* Data rate on 8 bits */
+ };
++
++/* Delta to ctrl1_12b version */
++enum lis3lv02d_ctrl1_8b {
++	CTRL1_STM	= 0x08,
++	CTRL1_STP	= 0x10,
++	CTRL1_FS	= 0x20,
++	CTRL1_PD	= 0x40,
++	CTRL1_DR	= 0x80,
++};
++
+ enum lis3lv02d_ctrl2 {
+ 	CTRL2_DAS	= 0x01,
+ 	CTRL2_SIM	= 0x02,
+@@ -218,6 +227,7 @@ struct lis3lv02d {
+ 	unsigned long		misc_opened; /* bit0: whether the device is open */
+ 
+ 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
++	struct mutex		mutex;     /* Serialize poll and selftest */
+ };
+ 
+ int lis3lv02d_init_device(struct lis3lv02d *lis3);
+diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
+index 8970135..f1ca0dc 100644
+--- a/include/linux/lis3lv02d.h
++++ b/include/linux/lis3lv02d.h
+@@ -55,6 +55,9 @@ struct lis3lv02d_platform_data {
+ 	s8 axis_z;
+ 	int (*setup_resources)(void);
+ 	int (*release_resources)(void);
++	/* Limits for selftest are specified in chip data sheet */
++	s16 st_min_limits[3]; /* min pass limit x, y, z */
++	s16 st_max_limits[3]; /* max pass limit x, y, z */
+ };
+ 
+ #endif /* __LIS3LV02D_H_ */
 -- 
-Jean Delvare
+1.6.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
