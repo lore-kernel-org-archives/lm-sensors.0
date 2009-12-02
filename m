@@ -1,35 +1,40 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Wed, 02 Dec 2009 15:29:05 +0000
-Subject: Re: [lm-sensors] atk0110/BIOS discrepancies
-Message-Id: <68676e00912020729n114fc5d4m463f5d18bbcdeee1@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 02 Dec 2009 15:16:02 +0000
+Subject: [lm-sensors] [PATCH 00/11] Improvements to the adt7475 driver
+Message-Id: <20091202161602.05f9ec47@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <951278.95878.qm@web86503.mail.ird.yahoo.com>
-In-Reply-To: <951278.95878.qm@web86503.mail.ird.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Nov 24, 2009 at 2:48 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
-> On Mon, Nov 23, 2009 at 7:28 PM, false <spmurphy@talk21.com> wrote:
->>> It seems likely. Note that the driver retrieves the label strings
->>> directly from the system firmware (ACPI), it does not make them up;
->>> those labels are used by Asus windows utility so I'd trust them.
->>> Can you send me a dump of your DSDT table
->>> (/sys/firmware/acpi/tables/DSDT)?
->>
->> Attached is a gz of 3 files from that directory.
-> [...]
-> The dump puzzles me... I understand that this is a very new motherboard, right?
-[...]
-> The interfaces were reverse engineered so I'm probably missing
-> something (a version field, a feature bitmap, ...) for better
-> selecting the interface... will look into this.
+Hi all,
 
-Simon, are you able (and willing) to compile an external module?
-I'd like you to try some tweaks on the driver.
+Here are 11 patches improving the adt7475 driver. Most importantly,
+support for the ADT7490 and ADT7476 is added. In the process, I also
+added support for features which the ADT7473 and ADT7475 also have.
 
-Luca
+[PATCH 01/11] hwmon: (adt7475) Rework voltage inputs handling
+[PATCH 02/11] hwmon: (adt7475) Add missing static marker
+[PATCH 03/11] hwmon: (adt7475) Improve device detection
+[PATCH 04/11] hwmon: (adt7475) Add support for the ADT7490
+[PATCH 05/11] hwmon: (adt7475) Move sysfs files removal to a separate function
+[PATCH 06/11] hwmon: (adt7475) Handle alternative pin functions
+[PATCH 07/11] hwmon: (adt7475) Print device information on probe
+[PATCH 08/11] hwmon: (adt7475) Voltage attenuators can be bypassed
+[PATCH 09/11] hwmon: (adt7475) Add support for the ADT7476
+[PATCH 10/11] hwmon: (adt7475) Add an entry in MAINTAINERS
+[PATCH 11/11] hwmon: (adt7475) Add VID support for the ADT7476
+
+
+This patch series applies on top of the previous 3 adt7475 patches I
+sent on November 14th. You can find all the patches here:
+  ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
+
+Review and testing welcome.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
