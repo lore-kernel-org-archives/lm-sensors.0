@@ -1,171 +1,147 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 05 Dec 2009 12:35:09 +0000
-Subject: [lm-sensors] [PATCH v3] hwmon: (smsc47m1) Only request I/O ports we
-Message-Id: <20091205133509.38c2c5ea@hyperion.delvare>
+Date: Wed, 02 Dec 2009 15:41:14 +0000
+Subject: [lm-sensors] [PATCH 08/11] hwmon: (adt7475) Voltage attenuators can
+Message-Id: <20091202164114.2ea11729@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The I/O area of the SMSC LPC47M1xx chips which we use, gives access to
-a lot of registers, some of which are related to fan speed monitoring
-and control, but many are not. At the moment, the smsc47m1 driver
-requests the whole I/O port range. This could easily result in
-resource conflicts with either ACPI or other drivers.
-
-Request only the I/O ports we really use, to prevent such conflicts.
+It is possible to bypass the voltage attenuators on the +2.5V, Vccp,
++5V and +12V voltage monitoring inputs. This is useful to connect
+other voltage channels than the ones the monitoring chip was
+originally designed for. When this feature is enabled, we must not
+include the scaling factors in our computations.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
 ---
-Changes since v2:
- * Changed the calling convention of smsc47m1_handle_resources() to be
-   easier to understand.
+ drivers/hwmon/adt7475.c |   42 ++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 36 insertions(+), 6 deletions(-)
 
- drivers/hwmon/smsc47m1.c |   99 +++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 89 insertions(+), 10 deletions(-)
-
---- linux-2.6.33-rc0.orig/drivers/hwmon/smsc47m1.c	2009-12-04 18:53:50.000000000 +0100
-+++ linux-2.6.33-rc0/drivers/hwmon/smsc47m1.c	2009-12-05 13:19:36.000000000 +0100
-@@ -481,13 +481,94 @@ static int __init smsc47m1_find(unsigned
- 	return 0;
- }
+--- linux-2.6.32-rc8.orig/drivers/hwmon/adt7475.c	2009-12-02 14:31:16.000000000 +0100
++++ linux-2.6.32-rc8/drivers/hwmon/adt7475.c	2009-12-02 14:31:20.000000000 +0100
+@@ -80,6 +80,8 @@
  
-+#define CHECK		1
-+#define REQUEST		2
-+#define RELEASE		3
+ #define REG_TEMP_OFFSET_BASE	0x70
+ 
++#define REG_CONFIG2		0x73
 +
-+/*
-+ * This function can be used to:
-+ *  - test for resource conflicts with ACPI
-+ *  - request the resources
-+ *  - release the resources
-+ * We only allocate the I/O ports we really need, to minimize the risk of
-+ * conflicts with ACPI or with other drivers.
-+ */
-+static int smsc47m1_handle_resources(unsigned short address, enum chips type,
-+				     int action, struct device *dev)
-+{
-+	static const u8 ports_m1[] = {
-+		/* register, region length */
-+		0x04, 1,
-+		0x33, 4,
-+		0x56, 7,
-+	};
+ #define REG_EXTEND1		0x76
+ #define REG_EXTEND2		0x77
+ 
+@@ -92,11 +94,15 @@
+ #define REG_VTT_MIN		0x84	/* ADT7490 only */
+ #define REG_VTT_MAX		0x86	/* ADT7490 only */
+ 
++#define CONFIG2_ATTN		0x20
 +
-+	static const u8 ports_m2[] = {
-+		/* register, region length */
-+		0x04, 1,
-+		0x09, 1,
-+		0x2c, 2,
-+		0x35, 4,
-+		0x56, 7,
-+		0x69, 4,
-+	};
-+
-+	int i, ports_size, err;
-+	const u8 *ports;
-+
-+	switch (type) {
-+	case smsc47m1:
-+	default:
-+		ports = ports_m1;
-+		ports_size = ARRAY_SIZE(ports_m1);
-+		break;
-+	case smsc47m2:
-+		ports = ports_m2;
-+		ports_size = ARRAY_SIZE(ports_m2);
-+		break;
-+	}
-+
-+	for (i = 0; i + 1 < ports_size; i += 2) {
-+		unsigned short start = address + ports[i];
-+		unsigned short len = ports[i + 1];
-+
-+		switch (action) {
-+		case CHECK:
-+			/* Only check for conflicts */
-+			err = acpi_check_region(start, len, DRVNAME);
-+			if (err)
-+				return err;
-+			break;
-+		case REQUEST:
-+			/* Request the resources */
-+			if (!request_region(start, len, DRVNAME)) {
-+				dev_err(dev, "Region 0x%hx-0x%hx already in "
-+					"use!\n", start, start + len);
-+
-+				/* Undo all requests */
-+				for (i -= 2; i >= 0; i -= 2)
-+					release_region(address + ports[i],
-+						       ports[i + 1]);
-+				return -EBUSY;
-+			}
-+			break;
-+		case RELEASE:
-+			/* Release the resources */
-+			release_region(start, len);
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int __devinit smsc47m1_probe(struct platform_device *pdev)
+ #define CONFIG3_SMBALERT	0x01
+ #define CONFIG3_THERM		0x02
+ 
+ #define CONFIG4_PINFUNC		0x03
+ #define CONFIG4_MAXDUTY		0x08
++#define CONFIG4_ATTN_IN10	0x30
++#define CONFIG4_ATTN_IN43	0xC0
+ 
+ #define CONFIG5_TWOSCOMP	0x01
+ #define CONFIG5_TEMPOFFSET	0x02
+@@ -157,6 +163,7 @@ struct adt7475_data {
+ 	u8 config4;
+ 	u8 config5;
+ 	u8 has_voltage;
++	u8 bypass_attn;		/* Bypass voltage attenuator */
+ 	u8 has_pwm2:1;
+ 	u8 has_fan4:1;
+ 	u32 alarms;
+@@ -233,19 +240,24 @@ static const int adt7473_in_scaling[ADT7
+ 	{ 45, 45 },	/* Vtt */
+ };
+ 
+-static inline int reg2volt(int channel, u16 reg)
++static inline int reg2volt(int channel, u16 reg, u8 bypass_attn)
  {
- 	struct device *dev = &pdev->dev;
- 	struct smsc47m1_sio_data *sio_data = dev->platform_data;
- 	struct smsc47m1_data *data;
- 	struct resource *res;
--	int err = 0;
-+	int err;
- 	int fan1, fan2, fan3, pwm1, pwm2, pwm3;
+ 	const int *r = adt7473_in_scaling[channel];
  
- 	static const char *names[] = {
-@@ -496,12 +577,10 @@ static int __devinit smsc47m1_probe(stru
- 	};
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start, SMSC_EXTENT, DRVNAME)) {
--		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
--			(unsigned long)res->start,
--			(unsigned long)res->end);
--		return -EBUSY;
--	}
-+	err = smsc47m1_handle_resources(res->start, sio_data->type,
-+					REQUEST, dev);
-+	if (err < 0)
-+		return err;
- 
- 	if (!(data = kzalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
-@@ -637,7 +716,7 @@ error_free:
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- error_release:
--	release_region(res->start, SMSC_EXTENT);
-+	smsc47m1_handle_resources(res->start, sio_data->type, RELEASE, dev);
- 	return err;
++	if (bypass_attn & (1 << channel))
++		return DIV_ROUND_CLOSEST(reg * 2250, 1024);
+ 	return DIV_ROUND_CLOSEST(reg * (r[0] + r[1]) * 2250, r[1] * 1024);
  }
  
-@@ -650,7 +729,7 @@ static int __devexit smsc47m1_remove(str
- 	sysfs_remove_group(&pdev->dev.kobj, &smsc47m1_group);
+-static inline u16 volt2reg(int channel, long volt)
++static inline u16 volt2reg(int channel, long volt, u8 bypass_attn)
+ {
+ 	const int *r = adt7473_in_scaling[channel];
+ 	long reg;
  
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	release_region(res->start, SMSC_EXTENT);
-+	smsc47m1_handle_resources(res->start, data->type, RELEASE, &pdev->dev);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
+-	reg = (volt * r[1] * 1024) / ((r[0] + r[1]) * 2250);
++	if (bypass_attn & (1 << channel))
++		reg = (volt * 1024) / 2250;
++	else
++		reg = (volt * r[1] * 1024) / ((r[0] + r[1]) * 2250);
+ 	return SENSORS_LIMIT(reg, 0, 1023) & (0xff << 2);
+ }
  
-@@ -717,7 +796,7 @@ static int __init smsc47m1_device_add(un
- 	};
- 	int err;
+@@ -305,7 +317,8 @@ static ssize_t show_voltage(struct devic
+ 			       (data->alarms >> sattr->index) & 1);
+ 	default:
+ 		val = data->voltage[sattr->nr][sattr->index];
+-		return sprintf(buf, "%d\n", reg2volt(sattr->index, val));
++		return sprintf(buf, "%d\n",
++			       reg2volt(sattr->index, val, data->bypass_attn));
+ 	}
+ }
  
--	err = acpi_check_resource_conflict(&res);
-+	err = smsc47m1_handle_resources(address, sio_data->type, CHECK, NULL);
- 	if (err)
- 		goto exit;
+@@ -324,7 +337,8 @@ static ssize_t set_voltage(struct device
+ 
+ 	mutex_lock(&data->lock);
+ 
+-	data->voltage[sattr->nr][sattr->index] = volt2reg(sattr->index, val);
++	data->voltage[sattr->nr][sattr->index] +				volt2reg(sattr->index, val, data->bypass_attn);
+ 
+ 	if (sattr->index < ADT7475_VOLTAGE_COUNT) {
+ 		if (sattr->nr = MIN)
+@@ -1159,7 +1173,7 @@ static int adt7475_probe(struct i2c_clie
+ 
+ 	struct adt7475_data *data;
+ 	int i, ret = 0, revision;
+-	u8 config3;
++	u8 config2, config3;
+ 
+ 	data = kzalloc(sizeof(*data), GFP_KERNEL);
+ 	if (data = NULL)
+@@ -1205,6 +1219,16 @@ static int adt7475_probe(struct i2c_clie
+ 			data->has_voltage |= (1 << 0);		/* in0 */
+ 	}
+ 
++	/* Voltage attenuators can be bypassed, globally or individually */
++	config2 = adt7475_read(REG_CONFIG2);
++	if (config2 & CONFIG2_ATTN) {
++		data->bypass_attn = (0x3 << 3) | 0x3;
++	} else {
++		data->bypass_attn = ((data->config4 & CONFIG4_ATTN_IN10) >> 4) |
++				    ((data->config4 & CONFIG4_ATTN_IN43) >> 3);
++	}
++	data->bypass_attn &= data->has_voltage;
++
+ 	/* Call adt7475_read_pwm for all pwm's as this will reprogram any
+ 	   pwm's which are disabled to manual mode with 0% duty cycle */
+ 	for (i = 0; i < ADT7475_PWM_COUNT; i++)
+@@ -1251,6 +1275,12 @@ static int adt7475_probe(struct i2c_clie
+ 			 (data->has_voltage & (1 << 0)) ? " in0" : "",
+ 			 data->has_fan4 ? " fan4" : "",
+ 			 data->has_pwm2 ? " pwm2" : "");
++	if (data->bypass_attn)
++		dev_info(&client->dev, "Bypassing attenuators on:%s%s%s%s\n",
++			 (data->bypass_attn & (1 << 0)) ? " in0" : "",
++			 (data->bypass_attn & (1 << 1)) ? " in1" : "",
++			 (data->bypass_attn & (1 << 3)) ? " in3" : "",
++			 (data->bypass_attn & (1 << 4)) ? " in4" : "");
+ 
+ 	return 0;
  
 
 -- 
