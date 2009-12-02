@@ -1,31 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Dec 2009 16:20:14 +0000
-Subject: Re: [lm-sensors] [PATCH 00/11] Improvements to the adt7475 driver
-Message-Id: <20091202172014.51bd8649@hyperion.delvare>
+From: haiku hacker <haikuhacker@gmail.com>
+Date: Wed, 02 Dec 2009 15:55:12 +0000
+Subject: [lm-sensors] DME1737
+Message-Id: <d06a3f90912020755v7bf249c9u4a81f7af974b2a55@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1255222468669277528=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091202161602.05f9ec47@hyperion.delvare>
-In-Reply-To: <20091202161602.05f9ec47@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+--===============1255222468669277528==
+Content-Type: multipart/alternative; boundary=00151774098862b04b0479c0e681
 
-On Wed, 02 Dec 2009 16:59:10 +0100, Hans de Goede wrote:
-> I went over the entire set and it looks good. If you want me to
-> and send me the end result adt7475.c I can test this on my
-> Asus M2N-SLI Deluxe, which has the adt7475 as secondary hwmon
-> chip (iow it does not do much).
+--00151774098862b04b0479c0e681
+Content-Type: text/plain; charset=ISO-8859-1
 
-You can download it from here:
-http://khali.linux-fr.org/devel/misc/adt7490/
+I have had the same bios on the same motherboard: Intel Corporation D101GGC
+with the DME1737 module detected since kernel 2.6.23. I think it stopped
+being detected with kernel 2.6.30
+I used to be able to find this module with "sensors-detect". Now the output
+is:
+Sorry, no sensors were detected.
+Either your system has no sensors, or they are not supported, or
+they are connected to an I2C or SMBus adapter that is not
+supported.
+Is this a kernel issue?
 
-Thanks,
--- 
-Jean Delvare
+--00151774098862b04b0479c0e681
+Content-Type: text/html; charset=ISO-8859-1
+
+I have had the same bios on the same motherboard: Intel Corporation D101GGC with the DME1737
+module detected since kernel 2.6.23. I think it stopped being detected
+with kernel 2.6.30 <br>I used to be able to find this module with &quot;sensors-detect&quot;. Now the output is:<br>Sorry, no sensors were detected.<br>Either your system has no sensors, or they are not supported, or<br>
+they are connected to an I2C or SMBus adapter that is not<br>supported.<br>Is this a kernel issue?<br>
+
+--00151774098862b04b0479c0e681--
+
+
+--===============1255222468669277528==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1255222468669277528==--
