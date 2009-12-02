@@ -1,34 +1,43 @@
-From: marko <marko.smit@quicknet.nl>
-Date: Wed, 16 Dec 2009 20:23:45 +0000
-Subject: [lm-sensors] I got it working, with some help
-Message-Id: <op.u41r9vhq4e0zct@marko-desktop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 02 Dec 2009 15:42:38 +0000
+Subject: [lm-sensors] [PATCH 10/11] hwmon: (adt7475) Add an entry in
+Message-Id: <20091202164238.3dcd7b35@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi, I mailed you yesterday that I had trouble to get lm-sensors working.
-I had some help on a forum and it turned out to be a GRUB setting that  
-causes the problems.
-I had to replace the line GRUB_CMDLINE_LINUX_DEFAULT="quiet splash" with  
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash acpi_enforce_resources=lax"
-in the file /etc/default/grub , and then had to type sudo update-grub in  
-the terminal and then restart Ubuntu.
-This is a solution in GNU GRUB version 197~beta 4 that gets installed on  
-an ext/4 journaling file system.
+As I've just done a lot of changes to the adt7475 driver, I volunteer
+to maintain it for the year to come.
 
-Now your software is working fine, I hope it will help your program.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Jordan Crouse <jordan@cosmicpenguin.net>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+---
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-I'm sorry that I got angry at lm-sensors, it now turns out to be a missing  
-line in GRUB.
-
-Greetings,
-                    marko smit
-
+--- linux-2.6.32-rc8.orig/MAINTAINERS	2009-12-02 11:17:10.000000000 +0100
++++ linux-2.6.32-rc8/MAINTAINERS	2009-12-02 15:18:50.000000000 +0100
+@@ -327,6 +327,13 @@ M:	Colin Leroy <colin@colino.net>
+ S:	Maintained
+ F:	drivers/macintosh/therm_adt746x.c
+ 
++ADT7475 HARDWARE MONITOR DRIVER
++M:	Jean Delvare <khali@linux-fr.org>
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++F:	Documentation/hwmon/adt7475
++F:	drivers/hwmon/adt7475.c
++
+ ADVANSYS SCSI DRIVER
+ M:	Matthew Wilcox <matthew@wil.cx>
+ L:	linux-scsi@vger.kernel.org
 
 -- 
--CHF-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
