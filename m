@@ -1,65 +1,61 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 02 Dec 2009 15:29:02 +0000
-Subject: [lm-sensors] [PATCH 05/11] hwmon: (adt7475) Move sysfs files
-Message-Id: <20091202162902.12c31cc9@hyperion.delvare>
+Date: Wed, 02 Dec 2009 15:27:08 +0000
+Subject: [lm-sensors] [PATCH 03/11] hwmon: (adt7475) Improve device detection
+Message-Id: <20091202162708.456f421b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Move sysfs files removal to a separate function. The code is common to
-the device probing error path and the standard device removal path. As
-it will grow with future driver development, this avoids code
-duplication.
+Check the value of register 0x3f as part of the device detection, to
+make it more robust.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 Cc: Hans de Goede <hdegoede@redhat.com>
 Cc: Jordan Crouse <jordan@cosmicpenguin.net>
 Cc: "Darrick J. Wong" <djwong@us.ibm.com>
 ---
- drivers/hwmon/adt7475.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/hwmon/adt7475.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- linux-2.6.32-rc8.orig/drivers/hwmon/adt7475.c	2009-12-02 13:27:55.000000000 +0100
-+++ linux-2.6.32-rc8/drivers/hwmon/adt7475.c	2009-12-02 13:34:48.000000000 +0100
-@@ -1109,6 +1109,14 @@ static int adt7475_detect(struct i2c_cli
- 	return 0;
- }
+--- linux-2.6.32-rc8.orig/drivers/hwmon/adt7475.c	2009-12-02 12:53:17.000000000 +0100
++++ linux-2.6.32-rc8/drivers/hwmon/adt7475.c	2009-12-02 12:55:18.000000000 +0100
+@@ -47,6 +47,7 @@
  
-+static void adt7475_remove_files(struct i2c_client *client,
-+				 struct adt7475_data *data)
-+{
-+	sysfs_remove_group(&client->dev.kobj, &adt7475_attr_group);
-+	if (data->has_voltage & 0x39)
-+		sysfs_remove_group(&client->dev.kobj, &adt7490_attr_group);
-+}
-+
- static int adt7475_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *id)
+ #define REG_DEVID		0x3D
+ #define REG_VENDID		0x3E
++#define REG_DEVID2		0x3F
+ 
+ #define REG_STATUS1		0x41
+ #define REG_STATUS2		0x42
+@@ -1014,18 +1015,22 @@ static int adt7475_detect(struct i2c_cli
+ 			  struct i2c_board_info *info)
  {
-@@ -1156,9 +1164,7 @@ static int adt7475_probe(struct i2c_clie
- 	return 0;
+ 	struct i2c_adapter *adapter = client->adapter;
+-	int vendid, devid;
++	int vendid, devid, devid2;
+ 	const char *name;
  
- eremove:
--	sysfs_remove_group(&client->dev.kobj, &adt7475_attr_group);
--	if (data->has_voltage & 0x39)
--		sysfs_remove_group(&client->dev.kobj, &adt7490_attr_group);
-+	adt7475_remove_files(client, data);
- efree:
- 	kfree(data);
- 	return ret;
-@@ -1169,9 +1175,7 @@ static int adt7475_remove(struct i2c_cli
- 	struct adt7475_data *data = i2c_get_clientdata(client);
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
  
- 	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &adt7475_attr_group);
--	if (data->has_voltage & 0x39)
--		sysfs_remove_group(&client->dev.kobj, &adt7490_attr_group);
-+	adt7475_remove_files(client, data);
- 	kfree(data);
+ 	vendid = adt7475_read(REG_VENDID);
+-	devid = adt7475_read(REG_DEVID);
++	devid2 = adt7475_read(REG_DEVID2);
++	if (vendid != 0x41 ||		/* Analog Devices */
++	    (devid2 & 0xf8) != 0x68)
++		return -ENODEV;
  
- 	return 0;
+-	if (vendid = 0x41 && devid = 0x73)
++	devid = adt7475_read(REG_DEVID);
++	if (devid = 0x73)
+ 		name = "adt7473";
+-	else if (vendid = 0x41 && devid = 0x75 && client->addr = 0x2e)
++	else if (devid = 0x75 && client->addr = 0x2e)
+ 		name = "adt7475";
+ 	else {
+ 		dev_dbg(&adapter->dev,
 
 -- 
 Jean Delvare
