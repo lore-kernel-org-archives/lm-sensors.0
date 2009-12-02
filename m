@@ -1,86 +1,35 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Date: Tue, 01 Dec 2009 08:55:44 +0000
-Subject: Re: [lm-sensors] [PATCH v4 0/5] LIS3 feature update
-Message-Id: <4B14DA10.8040106@tremplin-utc.net>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Wed, 02 Dec 2009 15:29:05 +0000
+Subject: Re: [lm-sensors] atk0110/BIOS discrepancies
+Message-Id: <68676e00912020729n114fc5d4m463f5d18bbcdeee1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1259656422-7697-1-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1259656422-7697-1-git-send-email-samu.p.onkalo@nokia.com>
+References: <951278.95878.qm@web86503.mail.ird.yahoo.com>
+In-Reply-To: <951278.95878.qm@web86503.mail.ird.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Samu Onkalo <samu.p.onkalo@nokia.com>, Andrew Morton <akpm@osdl.org>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Op 01-12-09 09:33, Samu Onkalo schreef:
-Hi,
-All the patches look good to me :-)
+On Tue, Nov 24, 2009 at 2:48 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
+> On Mon, Nov 23, 2009 at 7:28 PM, false <spmurphy@talk21.com> wrote:
+>>> It seems likely. Note that the driver retrieves the label strings
+>>> directly from the system firmware (ACPI), it does not make them up;
+>>> those labels are used by Asus windows utility so I'd trust them.
+>>> Can you send me a dump of your DSDT table
+>>> (/sys/firmware/acpi/tables/DSDT)?
+>>
+>> Attached is a gz of 3 files from that directory.
+> [...]
+> The dump puzzles me... I understand that this is a very new motherboard, right?
+[...]
+> The interfaces were reverse engineered so I'm probably missing
+> something (a version field, a feature bitmap, ...) for better
+> selecting the interface... will look into this.
 
-Andrew, would you mind queuing these 5 patches for 2.6.33, in addition 
-the ones already there?
+Simon, are you able (and willing) to compile an external module?
+I'd like you to try some tweaks on the driver.
 
-Thanks,
-Eric
-
-
-> Changes since v3 patch set:
->
-> 0001: two if statements combined to one
->
-> 0002: added "Acked by Eric Piel" to description
->
-> 0003: Replaced with edited version by Eric Piel. Tested on 8 bit device
-> by me.
->
-> 0004: Constant names changed to shorter ones. Shorter names allowed some clean
-> up. No functional changes
->
-> 0005: added "Acked by Eric Piel" to description
->
-> Description from version 3 patch set:
->
-> This patch set is made to top of 7 previously accepted lis3 related patches in
-> mm-tree:
-> - I2C bus support for lis3lv02d and variant accelerometer chips...
-> - Add the possibility to remap axes via platform data...
-> - Send input_sync after each measurement round...
-> - polled input device itself was not free'd....
-> - riginally the driver was only targeted to 12bits sensors...
-> - Most of the documentation and comments were written when the driver ..
-> - Lis3 accelerometer sensors have quite long power on delay ..
->
-> Tested with 2.6.32-RC7 which was patched with above 7 lis3 related patches.
-> Tested only with 8 bit lis3 device since I don't have possibility to test other chips.
->
-> 0001:
-> Implement selftest feature for HW diagnostic purposes. This feature can be used to detect if the sensor is electrically or mechanically damaged.
->
-> 0002:
-> Calibration functionality is removed from the driver. Chip is allready calibrated by the manufacturer. SW calibration doesn't improve the situation.
->
-> 0003:
-> Added possibility to set chip sampling rate. Position entry in sysfs allows reading at sampling rate.
->
-> 0004:
-> Scale output values to mg (1/1000 of earth gravity).
-> Behaviour of the joystick interface is not changed. All other interfaces will have different scale after this patch. See further information from patch itself.
->
-> 0005:
-> Update documentation to cover changes which were made by these patches.
->
-> Samu Onkalo (5):
->    lis3: Selftest support
->    LIS3LV02D: Remove calibaration functionality
->    lis3: Sysfs entry for setting chip measurement rate
->    lis3: Scale output values to mg
->    LIS3: Update documentation to match latest changes
->
->   Documentation/hwmon/lis3lv02d |   31 ++++++--
->   drivers/hwmon/lis3lv02d.c     |  174 ++++++++++++++++++++++++++++++++---------
->   drivers/hwmon/lis3lv02d.h     |   23 ++++-
->   include/linux/lis3lv02d.h     |    3 +
->   4 files changed, 182 insertions(+), 49 deletions(-)
->
-
+Luca
 
 _______________________________________________
 lm-sensors mailing list
