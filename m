@@ -1,17 +1,17 @@
-From: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>
-Date: Tue, 01 Dec 2009 07:59:59 +0000
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Fri, 04 Dec 2009 02:20:11 +0000
 Subject: Re: [lm-sensors] [PATCH] therm_adt746x: Record pwm invert bit at
-Message-Id: <1259654399.5488.13238.camel@thor.local>
+Message-Id: <1259893211.2076.1243.camel@pasglop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091130234727.GA10295@tux1.beaverton.ibm.com>
 In-Reply-To: <20091130234727.GA10295@tux1.beaverton.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: djwong@us.ibm.com
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-On Mon, 2009-11-30 at 15:47 -0800, Darrick J. Wong wrote: 
+On Mon, 2009-11-30 at 15:47 -0800, Darrick J. Wong wrote:
 > In commit 0512a9a8e277a9de2820211eef964473b714ae65, we unilaterally zero the
 > "pwm invert" bit in the fan behavior configuration register.  On my PowerBook
 > G4, this results in the fans going to full speed at low temperature and
@@ -24,16 +24,13 @@ On Mon, 2009-11-30 at 15:47 -0800, Darrick J. Wong wrote:
 > suspend/resume (which is what the original patch was trying to fix).  It also
 > fixes a minor omission where the pwm invert bit correction is NOT performed
 > when switching into automatic mode.
-> 
+
+Thanks, I'll apply.
+
+Cheers,
+Ben.
+
 > Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-
-Reviewed-by: Michel Dänzer <michel@daenzer.net>
-
-Looks great, thanks Darrick. Also FWIW, at least loading the patched
-driver works as expected on my PowerBook5,8 which has the invert bit
-disabled.
-
-
 > ---
 > 
 >  drivers/macintosh/therm_adt746x.c |   13 +++++++++++--
@@ -91,10 +88,6 @@ disabled.
 >  	th->last_speed[1] = -2;
 
 
-
--- 
-Earthling Michel Dänzer           |                http://www.vmware.com
-Libre software enthusiast         |          Debian, X and DRI developer
 
 _______________________________________________
 lm-sensors mailing list
