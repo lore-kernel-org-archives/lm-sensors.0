@@ -1,28 +1,31 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Date: Tue, 01 Dec 2009 14:27:10 +0000
-Subject: Re: [lm-sensors] [PATCH v6 5/8] Loongson: YeeLoong: add hwmon driver
-Message-Id: <20091201142710.GE14064@linux-mips.org>
+From: Timothy Normand Miller <theosib@gmail.com>
+Date: Fri, 04 Dec 2009 23:15:38 +0000
+Subject: [lm-sensors] Drivers/motherboards with wattage & amperage sensors?
+Message-Id: <9871ee5f0912041515o5cebdb20sb00a241df1bf5ca9@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cover.1259664573.git.wuzhangjin@gmail.com>
- <3973cc1fdb6ff2b2e540ed93ae92dac8d7b2a38f.1259664573.git.wuzhangjin@gmail.com>
-In-Reply-To: <3973cc1fdb6ff2b2e540ed93ae92dac8d7b2a38f.1259664573.git.wuzhangjin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wu Zhangin <wuzhangjin@gmail.com>
-Cc: linux-mips@linux-mips.org, zhangfx@lemote.com, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 01, 2009 at 07:09:59PM +0800, Wu Zhangin wrote:
+Some colleagues of mine are doing some experiments where they would
+like to monitor power and current of different system components in
+real time while running various HPC workloads.  They're willing to buy
+whatever kind of motherboards they need that provide the sensors they
+need.  They're aware that, for instance, Apple computers provide all
+these sensors, but buying a cluster of MacBook Pros would be too
+expensive.
 
-> From: Wu Zhangjin <wuzhangjin@gmail.com>
-> 
-> This patch adds hwmon driver for managing the temperature of battery,
-> cpu and controlling the fan.
+Can anyone recommend a motherboard with these sensors that are
+supported by lm_sensors?
 
-And this one should now go to drivers/hwmon and become a platform driver
-as well.
+Thanks!
 
-  Ralf
+
+-- 
+Timothy Normand Miller
+http://www.cse.ohio-state.edu/~millerti
+Open Graphics Project
 
 _______________________________________________
 lm-sensors mailing list
