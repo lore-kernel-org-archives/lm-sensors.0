@@ -1,34 +1,41 @@
 From: Sven Anders <anders@anduras.de>
-Date: Fri, 04 Dec 2009 11:32:42 +0000
-Subject: [lm-sensors] [PATCH] w83793 watchdog support.
-Message-Id: <4B18F35A.5060808@anduras.de>
+Date: Fri, 04 Dec 2009 20:11:26 +0000
+Subject: Re: [lm-sensors] [PATCH] w83793 watchdog support.
+Message-Id: <4B196CEE.7060302@anduras.de>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1959474436223071931=="
+Content-Type: multipart/mixed; boundary="===============0257904885179619235=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4B18F35A.5060808@anduras.de>
+In-Reply-To: <4B18F35A.5060808@anduras.de>
 To: lm-sensors@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---===============1959474436223071931==
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms070000060102050805090503"
+--===============0257904885179619235==
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060309000708010801070003"
 
 This is a cryptographically signed message in MIME format.
 
---------------ms070000060102050805090503
+--------------ms060309000708010801070003
 Content-Type: multipart/mixed;
- boundary="------------040806020403010408080508"
+ boundary="------------060004020806050809060108"
 
 This is a multi-part message in MIME format.
---------------040806020403010408080508
-Content-Type: text/plain; charset=ISO-8859-15
+--------------060004020806050809060108
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 
-Hello!
+Sven Anders schrieb:
+> Hello!
+> 
+> I implemented watchdog support for the Winbond 83793 chipset.
+> I'll attached the patch.
+> 
+> Any comments welcome!
 
-I implemented watchdog support for the Winbond 83793 chipset.
-I'll attached the patch.
-
-Any comments welcome!
+Ok, sorry.
+I forgot to remove the debug output from the first version.
+Here is the correct one.
 
 Regards
  Sven Anders
@@ -44,7 +51,7 @@ Those who would give up essential Liberty, to purchase a little
 temporary Safety, deserve neither Liberty nor Safety.
   - Benjamin Franklin
 
---------------040806020403010408080508
+--------------060004020806050809060108
 Content-Type: text/x-patch;
  name="w83793_wdt.patch"
 Content-Transfer-Encoding: 7bit
@@ -158,7 +165,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
  static u8 w83793_read_value(struct i2c_client *client, u16 reg);
  static int w83793_write_value(struct i2c_client *client, u16 reg, u8 value);
  static int w83793_probe(struct i2c_client *client,
-@@ -1064,14 +1123,348 @@ static void w83793_init_client(struct i2
+@@ -1064,14 +1123,336 @@ static void w83793_init_client(struct i2
  	/* Start monitoring */
  	w83793_write_value(client, W83793_REG_CONFIG,
  			   w83793_read_value(client, W83793_REG_CONFIG) | 0x01);
@@ -181,12 +188,9 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +		goto leave;
 +	}
 +
-+	printk(KERN_ERR "Set Timeout to %u seconds\n", timeout);
-+
 +	stimeout = DIV_ROUND_UP(timeout, 60);
 +
 +	/* Set Timeout value (in Minutes) */
-+	printk(KERN_ERR "Set Timeout to %u minutes\n", stimeout);
 +	w83793_write_value(data->client, W83793_REG_WDT_TIMEOUT, stimeout);
 +
 +	ret = stimeout;
@@ -206,7 +210,6 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +
 +	/* Get Timeout value (in Minutes) */
 +	gtimeout = w83793_read_value(data->client, W83793_REG_WDT_TIMEOUT) * 60;
-+	printk(KERN_ERR "Get Timeout: %u seconds\n", gtimeout);
 +
 +	mutex_unlock(&data->watchdog_lock);
 +
@@ -222,8 +225,6 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +		ret = -ENODEV;
 +		goto leave;
 +	}
-+
-+	printk(KERN_ERR "Reset Timeout to %u seconds\n", timeout*60);
 +
 +	/* Set Timeout value (in Minutes) */
 +	w83793_write_value(data->client, W83793_REG_WDT_TIMEOUT, timeout);
@@ -244,11 +245,9 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +	}
 +
 +	/* Set initial timeout */
-+	printk(KERN_ERR "Set timeout: %u\n", timeout);
 +	w83793_write_value(data->client, W83793_REG_WDT_TIMEOUT, timeout);
 +
 +	/* Enable Soft Watchdog */
-+	printk(KERN_ERR "ENABLE Watchdog: 0x55\n");
 +	w83793_write_value(data->client, W83793_REG_WDT_LOCK, 0x55);
 +
 +leave:
@@ -267,7 +266,6 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +	}
 +
 +	/* Disable Soft Watchdog */
-+	printk(KERN_ERR "DISABLE Watchdog: 0xAA\n");
 +	w83793_write_value(data->client, W83793_REG_WDT_LOCK, 0xAA);
 +
 +leave:
@@ -476,8 +474,6 @@ Signed-off-by: Sven Anders <anders@anduras.de
 -	int i;
 +	int i, tmp;
 +
-+	printk(KERN_ERR "** in w83793_remove()\n");
-+
 +	/* Unregister the watchdog (if registered) */
 +	if (data->watchdog_miscdev.minor) {
 +		misc_deregister(&data->watchdog_miscdev);
@@ -500,7 +496,6 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +	}
 +
 +	/* Reset Configuration Register to Disable Watch Dog Registers */
-+	printk(KERN_ERR "Disable WATCHDOG config registers\n");
 +	tmp = w83793_read_value(client, W83793_REG_CONFIG);
 +	w83793_write_value(client, W83793_REG_CONFIG, tmp & ~0x04);
 +
@@ -519,16 +514,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
  	return 0;
  }
  
-@@ -1168,6 +1565,8 @@ static int w83793_detect(struct i2c_clie
- 	struct i2c_adapter *adapter = client->adapter;
- 	unsigned short address = client->addr;
- 
-+	printk(KERN_ERR "** in w83793_detect()\n");
-+
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		return -ENODEV;
- 	}
-@@ -1221,12 +1620,15 @@ static int w83793_probe(struct i2c_clien
+@@ -1221,6 +1620,7 @@ static int w83793_probe(struct i2c_clien
  			const struct i2c_device_id *id)
  {
  	struct device *dev = &client->dev;
@@ -536,14 +522,6 @@ Signed-off-by: Sven Anders <anders@anduras.de
  	struct w83793_data *data;
  	int i, tmp, val, err;
  	int files_fan = ARRAY_SIZE(w83793_left_fan) / 7;
- 	int files_pwm = ARRAY_SIZE(w83793_left_pwm) / 5;
- 	int files_temp = ARRAY_SIZE(w83793_temp) / 6;
- 
-+	printk(KERN_ERR "** in w83793_probe()\n");
-+
- 	data = kzalloc(sizeof(struct w83793_data), GFP_KERNEL);
- 	if (!data) {
- 		err = -ENOMEM;
 @@ -1236,6 +1638,14 @@ static int w83793_probe(struct i2c_clien
  	i2c_set_clientdata(client, data);
  	data->bank = i2c_smbus_read_byte_data(client, W83793_REG_BANKSEL);
@@ -559,7 +537,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
  
  	err = w83793_detect_subclients(client);
  	if (err)
-@@ -1398,8 +1808,76 @@ static int w83793_probe(struct i2c_clien
+@@ -1398,8 +1808,74 @@ static int w83793_probe(struct i2c_clien
  		goto exit_remove;
  	}
  
@@ -576,14 +554,12 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +	/* Enable Watchdog registers.
 +	   Set Configuration Register to Enable Watch Dog Registers
 +	   (Bit 2) = XXXX, X1XX. */
-+	printk(KERN_ERR "ENABLE WatchDog registers\n");
 +	tmp = w83793_read_value(client, W83793_REG_CONFIG);
 +	w83793_write_value(client, W83793_REG_CONFIG, tmp | 0x04);
 +
 +	/* Check, if last reboot was caused by watchdog */
 +	data->watchdog_caused_reboot =
 +	  w83793_read_value(data->client, W83793_REG_WDT_STATUS) & 0x01;
-+	printk(KERN_ERR "WatchDog status: %u\n", data->watchdog_caused_reboot);
 +
 +	/* Disable Soft Watchdog during initialiation */
 +	watchdog_disable(data);
@@ -658,7 +634,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
  	  This driver can also be built as a module.  If so, the module
  	  will be called w83793.
 
---------------040806020403010408080508
+--------------060004020806050809060108
 Content-Type: text/x-vcard; charset=utf-8;
  name="anders.vcf"
 Content-Transfer-Encoding: 7bit
@@ -680,9 +656,9 @@ version:2.1
 end:vcard
 
 
---------------040806020403010408080508--
+--------------060004020806050809060108--
 
---------------ms070000060102050805090503
+--------------ms060309000708010801070003
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -763,8 +739,8 @@ A1UEBhMCREUxCzAJBgNVBAgTAkJZMQ8wDQYDVQQHEwZQYXNzYXUxEzARBgNVBAoTCkFORFVS
 QVMgQUcxHjAcBgNVBAsTFUNlcnRpZmljYXRlIEF1dGhvcml0eTEpMCcGA1UEAxMgQU5EVVJB
 UyBBRyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxHTAbBgkqhkiG9w0BCQEWDnBraUBhbmR1cmFz
 LmRlAgMQAAUwCQYFKw4DAhoFAKCCAkwwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkq
-hkiG9w0BCQUxDxcNMDkxMjA0MTEzMjQyWjAjBgkqhkiG9w0BCQQxFgQUZlz7UOurQMBtEmSv
-3wJyAoa4Pq4wXwYJKoZIhvcNAQkPMVIwUDALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYI
+hkiG9w0BCQUxDxcNMDkxMjA0MjAxMTI3WjAjBgkqhkiG9w0BCQQxFgQU3YrAmKxkr0Rl4HEL
+yypLamZ/FQQwXwYJKoZIhvcNAQkPMVIwUDALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYI
 KoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIHD
 BgkrBgEEAYI3EAQxgbUwgbIwgaoxCzAJBgNVBAYTAkRFMQswCQYDVQQIEwJCWTEPMA0GA1UE
 BxMGUGFzc2F1MRMwEQYDVQQKEwpBTkRVUkFTIEFHMR4wHAYDVQQLExVDZXJ0aWZpY2F0ZSBB
@@ -773,16 +749,16 @@ GwYJKoZIhvcNAQkBFg5wa2lAYW5kdXJhcy5kZQIDEAAFMIHFBgsqhkiG9w0BCRACCzGBtaCB
 sjCBqjELMAkGA1UEBhMCREUxCzAJBgNVBAgTAkJZMQ8wDQYDVQQHEwZQYXNzYXUxEzARBgNV
 BAoTCkFORFVSQVMgQUcxHjAcBgNVBAsTFUNlcnRpZmljYXRlIEF1dGhvcml0eTEpMCcGA1UE
 AxMgQU5EVVJBUyBBRyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxHTAbBgkqhkiG9w0BCQEWDnBr
-aUBhbmR1cmFzLmRlAgMQAAUwDQYJKoZIhvcNAQEBBQAEggEAI4JGxboTiay6JuhEK/LG8bWW
-fa321vueF7XqOs758qXaHLR8TmR40RMo9+qQzP+GaSCMvF+y6ZHR3TcW651fqhxmQR9KkHTN
-FX0NwzsqjNZMgUO3MwMQN8/dRaByBJCcJxVHapGhFc8mlvf1WXLKdEZkFieNOvP03wz1X4M3
-8kx+4XYx0ae5T/SHqyL3vkfuVk8Uc2tXEubfgvxXuRV0BSf9BZrzufdxdeOhnGkXwrJiQNZk
-jKHduF/L/nZevrpHcYEZRRzQB8zrNsXkV+43Cch2e2aCUMja6dzgl6atysx6HQ+q3MC1Y1GL
-W2LT81Zxnat2iQIyEv419XJIXFuGVAAAAAAAAA==
---------------ms070000060102050805090503--
+aUBhbmR1cmFzLmRlAgMQAAUwDQYJKoZIhvcNAQEBBQAEggEAuv83ZAwrnJFmxy3UiG35Cm0z
+SH+ZzobNVRPNLMXSeH8gS3Jqvz37EEXjELQoQNN0AHQ/4uqLgxuqgbVjZHjkQ0q76Ifa1eHY
+4OcwvxBQuPw8KxxIhQv49CRSvAEJ+J/3Ga17PLo6LD4J3melQYQsmf65ArqpoLvEmYhMuWRv
+hYBXnXsewJc02+sa0wFkIc75KoAl0451A2pW7xRfMftWClcJRGYo1iBvSVJvm3EjYWTouUn4
+Vnk9ftDKAemj2hRba6cDz2+kZU70V97oDZurKuTwePLPCeHJBesuwJkvshwvYWW+1e/f/9o1
+T39iPermCLmGuawYlLtRCtnmarHvqQAAAAAAAA==
+--------------ms060309000708010801070003--
 
 
---===============1959474436223071931==
+--===============0257904885179619235==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -792,4 +768,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1959474436223071931==--
+--===============0257904885179619235==--
