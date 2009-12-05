@@ -1,41 +1,112 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 04 Dec 2009 08:44:05 +0000
-Subject: Re: [lm-sensors] [PATCH] therm_adt746x: Record pwm invert bit at
-Message-Id: <20091204094405.4bad9d69@hyperion.delvare>
+From: Johnny Stork <lists@openenterprise.ca>
+Date: Sat, 05 Dec 2009 02:11:19 +0000
+Subject: [lm-sensors] Dell Poweredge SC1425 Problems
+Message-Id: <4B19C147.10103@openenterprise.ca>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0474998353226681053=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091130234727.GA10295@tux1.beaverton.ibm.com>
-	<1259893211.2076.1243.camel@pasglop>
-In-Reply-To: <1259893211.2076.1243.camel@pasglop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--===============0474998353226681053==
+Content-Type: multipart/alternative;
+ boundary="------------090301000709040805060906"
+
+This is a multi-part message in MIME format.
+--------------090301000709040805060906
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: djwong@us.ibm.com, Michel =?UTF-8?B?RMOkbnplcg==?= <michel@daenzer.net>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
 
-On Fri, 04 Dec 2009 13:20:11 +1100, Benjamin Herrenschmidt wrote:
-> On Mon, 2009-11-30 at 15:47 -0800, Darrick J. Wong wrote:
-> > In commit 0512a9a8e277a9de2820211eef964473b714ae65, we unilaterally zero the
-> > "pwm invert" bit in the fan behavior configuration register.  On my PowerBook
-> > G4, this results in the fans going to full speed at low temperature and
-> > shutting off at high temperature because the pwm invert bit is supposed to be
-> > set.
-> > 
-> > Therefore, record the pwm invert bit at driver load time, and write the bit
-> > into the fan behavior control register.  This restores correct behavior on my
-> > PBG4 and should work around the bit being set to the wrong value after
-> > suspend/resume (which is what the original patch was trying to fix).  It also
-> > fixes a minor omission where the pwm invert bit correction is NOT performed
-> > when switching into automatic mode.
-> 
-> Thanks, I'll apply.
+I have tried to get lm_sensors running on a Dell PE SC1425 but it cant 
+seem to locate any sensors.
 
-This is a pretty serious bug, please make sure to send the fix to the
-stable team for kernels 2.6.31 and 2.6.32.
+I then tried Dell OM and tried to follow the instructions here
 
--- 
-Jean Delvare
+http://linux.dell.com/repo/hardware/latest/
+
+to install OM. I got as far as running  yum, but it failed
+
+yum install srvadmin-all
+
+
+Loaded plugins: dellsysid, fastestmirror
+Loading mirror speeds from cached hostfile
+ * addons: centos.arcticnetwork.ca
+ * base: centos.arcticnetwork.ca
+ * dell-community: linux.dell.com
+ * extras: centos.arcticnetwork.ca
+ * updates: centos.arcticnetwork.ca
+Setting up Install Process
+No package srvadmin-all available.
+Nothing to do
+
+
+Any  suggestions as to how I might get lm_sensors working on a Dell Poweredge SC1425?
+
+Or, Dell OM if anyone knows
+
+Thanks
+
+
+
+
+--------------090301000709040805060906
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<font size="-1"><font face="Arial">I have tried to get lm_sensors
+running on a Dell PE SC1425 but it cant seem to locate any sensors.<br>
+<br>
+I then tried Dell OM and </font></font><font size="-1"><font
+ face="Arial">tried to
+follow the instructions here<br>
+<br>
+<a class="moz-txt-link-freetext"
+ href="http://linux.dell.com/repo/hardware/latest/">http://linux.dell.com/repo/hardware/latest/</a><br>
+<br>
+to install OM. I got as far as running&nbsp; yum, but it failed</font></font><br>
+<pre>yum install srvadmin-all
+
+
+Loaded plugins: dellsysid, fastestmirror
+Loading mirror speeds from cached hostfile
+ * addons: centos.arcticnetwork.ca
+ * base: centos.arcticnetwork.ca
+ * dell-community: linux.dell.com
+ * extras: centos.arcticnetwork.ca
+ * updates: centos.arcticnetwork.ca
+Setting up Install Process
+No package srvadmin-all available.
+Nothing to do
+
+
+Any  suggestions as to how I might get lm_sensors working on a Dell Poweredge SC1425?
+
+Or, Dell OM if anyone knows
+
+Thanks
+</pre>
+<font size="-1"><font face="Arial"><br>
+</font></font><br>
+</body>
+</html>
+
+--------------090301000709040805060906--
+
+
+--===============0474998353226681053==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0474998353226681053==--
