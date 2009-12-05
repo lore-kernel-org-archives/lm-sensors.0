@@ -1,307 +1,175 @@
-From: firstname lastname <vajorie@gmail.com>
-Date: Sat, 05 Dec 2009 02:47:59 +0000
-Subject: [lm-sensors] No sensors on Acer Aspire One AOD250-1613
-Message-Id: <a03cbe4f0912041847k40be96dauae2a84ecf281cc0e@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 05 Dec 2009 12:35:09 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: (smsc47m1) Only request I/O ports we
+Message-Id: <20091205133509.38c2c5ea@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+The I/O area of the SMSC LPC47M1xx chips which we use, gives access to
+a lot of registers, some of which are related to fan speed monitoring
+and control, but many are not. At the moment, the smsc47m1 driver
+requests the whole I/O port range. This could easily result in
+resource conflicts with either ACPI or other drivers.
 
-Please CC me on replies as I am not subscribed to the list.
+Request only the I/O ports we really use, to prevent such conflicts.
 
-I have an Acer Aspire One AOD250-1613 (Android+XP), with Intel Atom
-N280. I am trying to get lm-sensors working mainly because acpi
-reports my cpu temperature as 27C... I was hoping you could help me,
-especially as Atom is marked as supported (cpucore) in lm-sensors'
-website. here's more detail about my problems and hardware:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Changes since v2:
+ * Changed the calling convention of smsc47m1_handle_resources() to be
+   easier to understand.
 
-Error: sensors-detect finds no sensors.
+ drivers/hwmon/smsc47m1.c |   99 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 89 insertions(+), 10 deletions(-)
 
-Motherboard vendor and model: I do not know how to find this out.
-Would this help at all:
-http://us.acer.com/acer/productv.do?LanguageISOCtxParam=3Den&kcond61e.c2att=
-101X051&sp=3Dpage16e&ctx2.c2att1%&link=3Dln438e&CountryISOCtxParam=3DUS&ctx=
-1g.c2att92=843&ctx1.att21k=3D1&CRC=127634522#
+--- linux-2.6.33-rc0.orig/drivers/hwmon/smsc47m1.c	2009-12-04 18:53:50.000000000 +0100
++++ linux-2.6.33-rc0/drivers/hwmon/smsc47m1.c	2009-12-05 13:19:36.000000000 +0100
+@@ -481,13 +481,94 @@ static int __init smsc47m1_find(unsigned
+ 	return 0;
+ }
+ 
++#define CHECK		1
++#define REQUEST		2
++#define RELEASE		3
++
++/*
++ * This function can be used to:
++ *  - test for resource conflicts with ACPI
++ *  - request the resources
++ *  - release the resources
++ * We only allocate the I/O ports we really need, to minimize the risk of
++ * conflicts with ACPI or with other drivers.
++ */
++static int smsc47m1_handle_resources(unsigned short address, enum chips type,
++				     int action, struct device *dev)
++{
++	static const u8 ports_m1[] = {
++		/* register, region length */
++		0x04, 1,
++		0x33, 4,
++		0x56, 7,
++	};
++
++	static const u8 ports_m2[] = {
++		/* register, region length */
++		0x04, 1,
++		0x09, 1,
++		0x2c, 2,
++		0x35, 4,
++		0x56, 7,
++		0x69, 4,
++	};
++
++	int i, ports_size, err;
++	const u8 *ports;
++
++	switch (type) {
++	case smsc47m1:
++	default:
++		ports = ports_m1;
++		ports_size = ARRAY_SIZE(ports_m1);
++		break;
++	case smsc47m2:
++		ports = ports_m2;
++		ports_size = ARRAY_SIZE(ports_m2);
++		break;
++	}
++
++	for (i = 0; i + 1 < ports_size; i += 2) {
++		unsigned short start = address + ports[i];
++		unsigned short len = ports[i + 1];
++
++		switch (action) {
++		case CHECK:
++			/* Only check for conflicts */
++			err = acpi_check_region(start, len, DRVNAME);
++			if (err)
++				return err;
++			break;
++		case REQUEST:
++			/* Request the resources */
++			if (!request_region(start, len, DRVNAME)) {
++				dev_err(dev, "Region 0x%hx-0x%hx already in "
++					"use!\n", start, start + len);
++
++				/* Undo all requests */
++				for (i -= 2; i >= 0; i -= 2)
++					release_region(address + ports[i],
++						       ports[i + 1]);
++				return -EBUSY;
++			}
++			break;
++		case RELEASE:
++			/* Release the resources */
++			release_region(start, len);
++			break;
++		}
++	}
++
++	return 0;
++}
++
+ static int __devinit smsc47m1_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct smsc47m1_sio_data *sio_data = dev->platform_data;
+ 	struct smsc47m1_data *data;
+ 	struct resource *res;
+-	int err = 0;
++	int err;
+ 	int fan1, fan2, fan3, pwm1, pwm2, pwm3;
+ 
+ 	static const char *names[] = {
+@@ -496,12 +577,10 @@ static int __devinit smsc47m1_probe(stru
+ 	};
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, SMSC_EXTENT, DRVNAME)) {
+-		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
+-			(unsigned long)res->start,
+-			(unsigned long)res->end);
+-		return -EBUSY;
+-	}
++	err = smsc47m1_handle_resources(res->start, sio_data->type,
++					REQUEST, dev);
++	if (err < 0)
++		return err;
+ 
+ 	if (!(data = kzalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+@@ -637,7 +716,7 @@ error_free:
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
+ error_release:
+-	release_region(res->start, SMSC_EXTENT);
++	smsc47m1_handle_resources(res->start, sio_data->type, RELEASE, dev);
+ 	return err;
+ }
+ 
+@@ -650,7 +729,7 @@ static int __devexit smsc47m1_remove(str
+ 	sysfs_remove_group(&pdev->dev.kobj, &smsc47m1_group);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	release_region(res->start, SMSC_EXTENT);
++	smsc47m1_handle_resources(res->start, data->type, RELEASE, &pdev->dev);
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
+ 
+@@ -717,7 +796,7 @@ static int __init smsc47m1_device_add(un
+ 	};
+ 	int err;
+ 
+-	err = acpi_check_resource_conflict(&res);
++	err = smsc47m1_handle_resources(address, sio_data->type, CHECK, NULL);
+ 	if (err)
+ 		goto exit;
+ 
 
-CPU Info (I don't know why it lists two cores, Atom has just one afaik):
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 28
-model name      : Intel(R) Atom(TM) CPU N280   @ 1.66GHz
-stepping        : 2
-cpu MHz         : 800.000
-cache size      : 512 KB
-physical id     : 0
-siblings        : 2
-core id         : 0
-cpu cores       : 1
-apicid          : 0
-initial apicid  : 0
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
-mca cmov pat clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe
-constant_tsc arch_perfmon pebs bts pni dtes64 monitor ds_cpl est tm2
-ssse3 xtpr pdcm movbe lahf_lm
-bogomips        : 3326.54
-clflush size    : 64
-power management:
-
-processor       : 1
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 28
-model name      : Intel(R) Atom(TM) CPU N280   @ 1.66GHz
-stepping        : 2
-cpu MHz         : 800.000
-cache size      : 512 KB
-physical id     : 0
-siblings        : 2
-core id         : 0
-cpu cores       : 1
-apicid          : 1
-initial apicid  : 1
-fdiv_bug        : no
-hlt_bug         : no
-f00f_bug        : no
-coma_bug        : no
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
-mca cmov pat clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe
-constant_tsc arch_perfmon pebs bts pni dtes64 monitor ds_cpl est tm2
-ssse3 xtpr pdcm movbe lahf_lm
-bogomips        : 3326.54
-clflush size    : 64
-power management:
-
-
-Lm_sensors and kernel versions
-lm-sensors: 3.1.1
-kernel: 2.6.31
-OS: Arch Linux
-
-The output of sensors (see the absurd temp just for fun):
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +26.8=B0C  (crit =3D +100.0=B0C)
-
-The output of (as root) sensors-detect:
-# sensors-detect revision 5729 (2009-06-02 15:51:29 +0200)
-# System: Acer Aspire one (laptop)
-
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
-
-Some south bridges, CPUs or memory controllers contain embedded sensors.
-Do you want to scan for them? This is totally safe. (YES/no):
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD K10 thermal sensors...                                  No
-Intel Core family thermal sensor...                         No
-Intel AMB FB-DIMM thermal sensor...                         No
-VIA C7 thermal and voltage sensors...                       No
-
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no):
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       No
-Trying family `ITE'...                                      No
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       No
-Trying family `ITE'...                                      No
-
-Some hardware monitoring chips are accessible through the ISA I/O ports.
-We have to write to arbitrary I/O ports to probe them. This is usually
-safe though. Yes, you do have ISA I/O ports even if you do not have any
-ISA slots! Do you want to scan the ISA I/O ports? (YES/no):
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Lastly, we can probe the I2C/SMBus adapters for connected hardware
-monitoring devices. This is the most risky part, and while it works
-reasonably well on most systems, it has been reported to cause trouble
-on some systems.
-Do you want to probe the I2C/SMBus adapters now? (YES/no):
-Using driver `i2c-i801' for device 0000:00:1f.3: Intel 82801G ICH7
-Module i2c-dev loaded successfully.
-
-Next adapter: SMBus I801 adapter at 6000 (i2c-0)
-Do you want to scan it? (YES/no/selectively):
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 Yes
-    (confidence 8, not a hardware monitoring chip)
-Probing for `EDID EEPROM'...                                No
-
-
-Sorry, no sensors were detected.
-This is relatively common on laptops, where thermal management is
-handled by ACPI rather than the OS.
-
-
-The output of lsmod:
-Module                  Size  Used by
-i2c_dev                 6756  0
-hwmon_vid               2844  0
-ext3                  134020  1
-jbd                    49136  1 ext3
-hfs                    46720  0
-hfsplus                76864  0
-vfat                   11132  0
-fat                    53052  1 vfat
-isofs                  33764  0
-nls_utf8                1664  0
-udf                    86564  0
-crc_itu_t               1724  1 udf
-i915                  233928  1
-drm                   156160  2 i915
-i2c_algo_bit            5888  1 i915
-aes_i586                8124  1
-aes_generic            27228  1 aes_i586
-ipv6                  279604  12
-cpufreq_userspace       3008  2
-ext2                   68964  1
-loop                   15336  2
-snd_seq_dummy           2720  0
-snd_seq_oss            31232  0
-snd_seq_midi_event      7036  1 snd_seq_oss
-snd_seq                53808  5 snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
-snd_seq_device          6792  3 snd_seq_dummy,snd_seq_oss,snd_seq
-snd_pcm_oss            40320  0
-snd_mixer_oss          17564  1 snd_pcm_oss
-joydev                 10528  0
-arc4                    1756  2
-ecb                     2812  2
-snd_hda_codec_realtek   210048  1
-fan                     4448  0
-ath9k                 239188  0
-mac80211              155788  1 ath9k
-ath                     7708  1 ath9k
-pciehp                 37020  0
-snd_hda_intel          27528  0
-usb_storage            51904  1
-snd_hda_codec          72700  2 snd_hda_codec_realtek,snd_hda_intel
-snd_hwdep               7712  1 snd_hda_codec
-pci_hotplug            28732  1 pciehp
-snd_pcm                74496  3 snd_pcm_oss,snd_hda_intel,snd_hda_codec
-snd_timer              21188  2 snd_seq,snd_pcm
-video                  20116  1 i915
-snd                    58820  11
-snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_hda_codec_=
-realtek,snd_hda_intel,snd_hda_codec,snd_hwdep,snd_pcm,snd_timer
-soundcore               6944  1 snd
-cfg80211               90364  3 ath9k,mac80211,ath
-iTCO_wdt               11072  0
-iTCO_vendor_support     3136  1 iTCO_wdt
-psmouse                60084  0
-output                  2908  1 video
-rfkill                 19696  1 cfg80211
-acpi_cpufreq            8648  0
-ac                      4224  0
-i2c_i801                9616  0
-led_class               4000  1 ath9k
-uhci_hcd               23692  0
-snd_page_alloc          8900  2 snd_hda_intel,snd_pcm
-battery                10816  0
-thermal                13912  0
-intel_agp              28604  1
-freq_table              3740  1 acpi_cpufreq
-i2c_core               21808  5 i2c_dev,i915,drm,i2c_algo_bit,i2c_i801
-wmi                     6600  0
-button                  5612  0
-sg                     27728  0
-atl1c                  32160  0
-agpgart                32660  3 drm,intel_agp
-serio_raw               5792  0
-evdev                  10240  13
-ehci_hcd               36620  0
-usbcore               154032  4 usb_storage,uhci_hcd,ehci_hcd
-processor              36076  3 acpi_cpufreq
-rtc_cmos               11344  0
-rtc_core               17976  1 rtc_cmos
-rtc_lib                 2524  1 rtc_core
-ext4                  334112  2
-mbcache                 7104  3 ext3,ext2,ext4
-jbd2                   82016  1 ext4
-crc16                   1660  1 ext4
-sd_mod                 28344  5
-ahci                   35788  2
-libata                169548  1 ahci
-scsi_mod              112468  4 usb_storage,sg,sd_mod,libata
-
-
-If a PCI chip problem (I don't know): the output of lspci -nn
-00:00.0 Host bridge [0600]: Intel Corporation Mobile 945GME Express
-Memory Controller Hub [8086:27ac] (rev 03)
-00:02.0 VGA compatible controller [0300]: Intel Corporation Mobile
-945GME Express Integrated Graphics Controller [8086:27ae] (rev 03)
-00:02.1 Display controller [0380]: Intel Corporation Mobile
-945GM/GMS/GME, 943/940GML Express Integrated Graphics Controller
-[8086:27a6] (rev 03)
-00:1b.0 Audio device [0403]: Intel Corporation 82801G (ICH7 Family)
-High Definition Audio Controller [8086:27d8] (rev 02)
-00:1c.0 PCI bridge [0604]: Intel Corporation 82801G (ICH7 Family) PCI
-Express Port 1 [8086:27d0] (rev 02)
-00:1c.1 PCI bridge [0604]: Intel Corporation 82801G (ICH7 Family) PCI
-Express Port 2 [8086:27d2] (rev 02)
-00:1c.2 PCI bridge [0604]: Intel Corporation 82801G (ICH7 Family) PCI
-Express Port 3 [8086:27d4] (rev 02)
-00:1c.3 PCI bridge [0604]: Intel Corporation 82801G (ICH7 Family) PCI
-Express Port 4 [8086:27d6] (rev 02)
-00:1d.0 USB Controller [0c03]: Intel Corporation 82801G (ICH7 Family)
-USB UHCI Controller #1 [8086:27c8] (rev 02)
-00:1d.1 USB Controller [0c03]: Intel Corporation 82801G (ICH7 Family)
-USB UHCI Controller #2 [8086:27c9] (rev 02)
-00:1d.2 USB Controller [0c03]: Intel Corporation 82801G (ICH7 Family)
-USB UHCI Controller #3 [8086:27ca] (rev 02)
-00:1d.3 USB Controller [0c03]: Intel Corporation 82801G (ICH7 Family)
-USB UHCI Controller #4 [8086:27cb] (rev 02)
-00:1d.7 USB Controller [0c03]: Intel Corporation 82801G (ICH7 Family)
-USB2 EHCI Controller [8086:27cc] (rev 02)
-00:1e.0 PCI bridge [0604]: Intel Corporation 82801 Mobile PCI Bridge
-[8086:2448] (rev e2)
-00:1f.0 ISA bridge [0601]: Intel Corporation 82801GBM (ICH7-M) LPC
-Interface Bridge [8086:27b9] (rev 02)
-00:1f.2 SATA controller [0106]: Intel Corporation 82801GBM/GHM (ICH7
-Family) SATA AHCI Controller [8086:27c5] (rev 02)
-00:1f.3 SMBus [0c05]: Intel Corporation 82801G (ICH7 Family) SMBus
-Controller [8086:27da] (rev 02)
-01:00.0 Network controller [0280]: Atheros Communications Inc. AR9285
-Wireless Network Adapter (PCI-Express) [168c:002b] (rev 01)
-03:00.0 Ethernet controller [0200]: Attansic Technology Corp. Atheros
-AR8132 / L1c Gigabit Ethernet Adapter [1969:1062] (rev c0)
-
-Part numbers of chips on your motherboard you think are the sensor
-chips (look at your motherboard):
-I rather not do that, the laptop is still under warranty...
-
-Thank you so much in advance for your help,
-V.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
