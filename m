@@ -1,106 +1,172 @@
-From: Wu Zhangin <wuzhangjin@gmail.com>
-Date: Tue, 01 Dec 2009 11:09:58 +0000
-Subject: [lm-sensors] [PATCH v6 0/8] Loongson: YeeLoong: add platform
-Message-Id: <cover.1259660040.git.wuzhangjin@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 06 Dec 2009 13:16:13 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (smsc47m1) Only request I/O ports
+Message-Id: <20091206141613.14442d77@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ralf Baechle <ralf@linux-mips.org>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-mips@linux-mips.org, zhangfx@lemote.com, Wu Zhangjin <wuzhangjin@gmail.com>
+To: lm-sensors@vger.kernel.org
 
-From: Wu Zhangjin <wuzhangjin@gmail.com>
+The I/O area of the SMSC LPC47M1xx chips which we use, gives access to
+a lot of registers, some of which are related to fan speed monitoring
+and control, but many are not. At the moment, the smsc47m1 driver
+requests the whole I/O port range. This could easily result in
+resource conflicts with either ACPI or other drivers.
 
-This patchset adds platform specific drivers for YeeLoong netbook. including
-the backlight, battery, hwmon, video output, suspend and hotkey(input) drivers.
-These drivers provide standard interfaces to the user-space applications to
-manage the relative devices:
-	
- 	 Modules			Tools
+Request only the I/O ports we really use, to prevent such conflicts.
 
-	- backlight
-	  /sys/class/backlight/		kpowersave, gnome-power-manager
-	- battery
-	  /proc/apm			kpowersave, gnome-power-manager
-	- hwmon
-	  /sys/class/hwmon/		lm-sensors, sensors-applet...
-	- video output
-	  /sys/class/video_output	?
-	- suspend
-	  /sys/power/state		kpowersave, gnome-power-manager
-	- hotkey
-	  /sys/class/input/		gnome-settings-daemon ?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/smsc47m1.c |   99 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 89 insertions(+), 10 deletions(-)
 
-To utilize the above interfaces, you are recommended to install the latest hal,
-dbus.
+--- linux-2.6.33-rc0.orig/drivers/hwmon/smsc47m1.c	2009-12-04 18:53:50.000000000 +0100
++++ linux-2.6.33-rc0/drivers/hwmon/smsc47m1.c	2009-12-05 13:19:36.000000000 +0100
+@@ -481,13 +481,94 @@ static int __init smsc47m1_find(unsigned
+ 	return 0;
+ }
+ 
++#define CHECK		1
++#define REQUEST		2
++#define RELEASE		3
++
++/*
++ * This function can be used to:
++ *  - test for resource conflicts with ACPI
++ *  - request the resources
++ *  - release the resources
++ * We only allocate the I/O ports we really need, to minimize the risk of
++ * conflicts with ACPI or with other drivers.
++ */
++static int smsc47m1_handle_resources(unsigned short address, enum chips type,
++				     int action, struct device *dev)
++{
++	static const u8 ports_m1[] = {
++		/* register, region length */
++		0x04, 1,
++		0x33, 4,
++		0x56, 7,
++	};
++
++	static const u8 ports_m2[] = {
++		/* register, region length */
++		0x04, 1,
++		0x09, 1,
++		0x2c, 2,
++		0x35, 4,
++		0x56, 7,
++		0x69, 4,
++	};
++
++	int i, ports_size, err;
++	const u8 *ports;
++
++	switch (type) {
++	case smsc47m1:
++	default:
++		ports = ports_m1;
++		ports_size = ARRAY_SIZE(ports_m1);
++		break;
++	case smsc47m2:
++		ports = ports_m2;
++		ports_size = ARRAY_SIZE(ports_m2);
++		break;
++	}
++
++	for (i = 0; i + 1 < ports_size; i += 2) {
++		unsigned short start = address + ports[i];
++		unsigned short len = ports[i + 1];
++
++		switch (action) {
++		case CHECK:
++			/* Only check for conflicts */
++			err = acpi_check_region(start, len, DRVNAME);
++			if (err)
++				return err;
++			break;
++		case REQUEST:
++			/* Request the resources */
++			if (!request_region(start, len, DRVNAME)) {
++				dev_err(dev, "Region 0x%hx-0x%hx already in "
++					"use!\n", start, start + len);
++
++				/* Undo all requests */
++				for (i -= 2; i >= 0; i -= 2)
++					release_region(address + ports[i],
++						       ports[i + 1]);
++				return -EBUSY;
++			}
++			break;
++		case RELEASE:
++			/* Release the resources */
++			release_region(start, len);
++			break;
++		}
++	}
++
++	return 0;
++}
++
+ static int __devinit smsc47m1_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct smsc47m1_sio_data *sio_data = dev->platform_data;
+ 	struct smsc47m1_data *data;
+ 	struct resource *res;
+-	int err = 0;
++	int err;
+ 	int fan1, fan2, fan3, pwm1, pwm2, pwm3;
+ 
+ 	static const char *names[] = {
+@@ -496,12 +577,10 @@ static int __devinit smsc47m1_probe(stru
+ 	};
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, SMSC_EXTENT, DRVNAME)) {
+-		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
+-			(unsigned long)res->start,
+-			(unsigned long)res->end);
+-		return -EBUSY;
+-	}
++	err = smsc47m1_handle_resources(res->start, sio_data->type,
++					REQUEST, dev);
++	if (err < 0)
++		return err;
+ 
+ 	if (!(data = kzalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+@@ -637,7 +716,7 @@ error_free:
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
+ error_release:
+-	release_region(res->start, SMSC_EXTENT);
++	smsc47m1_handle_resources(res->start, sio_data->type, RELEASE, dev);
+ 	return err;
+ }
+ 
+@@ -650,7 +729,7 @@ static int __devexit smsc47m1_remove(str
+ 	sysfs_remove_group(&pdev->dev.kobj, &smsc47m1_group);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	release_region(res->start, SMSC_EXTENT);
++	smsc47m1_handle_resources(res->start, data->type, RELEASE, &pdev->dev);
+ 	platform_set_drvdata(pdev, NULL);
+ 	kfree(data);
+ 
+@@ -717,7 +796,7 @@ static int __init smsc47m1_device_add(un
+ 	};
+ 	int err;
+ 
+-	err = acpi_check_resource_conflict(&res);
++	err = smsc47m1_handle_resources(address, sio_data->type, CHECK, NULL);
+ 	if (err)
+ 		goto exit;
+ 
 
-This v6 revision incorporates with the feedbacks from Ralf, Pavel Machek,
-Rafael J. Wysocki and Dmitry Torokhov.
 
-Changes from the old v5 revision:
-
-	- Cleanup the "select" and "depend" of the options
-	  Replace some "select"s by "depend"s to avoid potential compiling
-	  errors.
-
-	- Cleanup the hotkey(input) driver
-	  Merge several functions, Cleanup the comments, Use Switch...Case
-	  instead of the array.
-
-	- Fixup of the video output driver  
-	  Seems the video output subsystem doesn't handle the input value, we
-	  handle it outselves via !!od->request_state.
-
-	- Append the yl_ prefix to the file names
-	  yl_ prefix is needed to distinguish it with the next patchset for
-	  lynloong pc platform drivers.
-
-All changes have been tested again.
-
-Best Regards,
-     Wu Zhangjin
-
-Wu Zhangjin (8):
-  Loongson: Lemote-2F: add platform specific submenu
-  Loongson: YeeLoong: add platform specific option
-  Loongson: YeeLoong: add backlight driver
-  Loongson: YeeLoong: add battery driver
-  Loongson: YeeLoong: add hwmon driver
-  Loongson: YeeLoong: add video output driver
-  Loongson: YeeLoong: add suspend driver
-  Loongson: YeeLoong: add hotkey driver
-
- arch/mips/kernel/setup.c                           |    1 +
- arch/mips/loongson/Kconfig                         |   21 +
- arch/mips/loongson/lemote-2f/Makefile              |    7 +-
- arch/mips/loongson/lemote-2f/ec_kb3310b.c          |  130 ------
- arch/mips/loongson/lemote-2f/ec_kb3310b.h          |  188 --------
- arch/mips/loongson/lemote-2f/pm.c                  |    4 +-
- arch/mips/loongson/lemote-2f/reset.c               |    2 +-
- .../loongson/lemote-2f/yeeloong_laptop/Kconfig     |   65 +++
- .../loongson/lemote-2f/yeeloong_laptop/Makefile    |   10 +
- .../lemote-2f/yeeloong_laptop/ec_kb3310b.c         |  126 ++++++
- .../lemote-2f/yeeloong_laptop/ec_kb3310b.h         |  193 +++++++++
- .../lemote-2f/yeeloong_laptop/yl_backlight.c       |   93 ++++
- .../lemote-2f/yeeloong_laptop/yl_battery.c         |  127 ++++++
- .../loongson/lemote-2f/yeeloong_laptop/yl_hotkey.c |  452 ++++++++++++++++++++
- .../loongson/lemote-2f/yeeloong_laptop/yl_hwmon.c  |  239 +++++++++++
- .../lemote-2f/yeeloong_laptop/yl_suspend.c         |  135 ++++++
- .../loongson/lemote-2f/yeeloong_laptop/yl_vo.c     |  164 +++++++
- 17 files changed, 1635 insertions(+), 322 deletions(-)
- delete mode 100644 arch/mips/loongson/lemote-2f/ec_kb3310b.c
- delete mode 100644 arch/mips/loongson/lemote-2f/ec_kb3310b.h
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/Kconfig
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/Makefile
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/ec_kb3310b.c
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/ec_kb3310b.h
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/yl_backlight.c
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/yl_battery.c
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/yl_hotkey.c
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/yl_hwmon.c
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/yl_suspend.c
- create mode 100644 arch/mips/loongson/lemote-2f/yeeloong_laptop/yl_vo.c
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
