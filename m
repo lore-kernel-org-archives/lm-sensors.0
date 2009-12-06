@@ -1,167 +1,90 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 06 Dec 2009 13:16:13 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (smsc47m1) Only request I/O ports
-Message-Id: <20091206141613.14442d77@hyperion.delvare>
+Date: Sun, 06 Dec 2009 13:17:20 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (smsc47m1) Enable device if needed
+Message-Id: <20091206141720.0b0e1653@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The I/O area of the SMSC LPC47M1xx chips which we use, gives access to
-a lot of registers, some of which are related to fan speed monitoring
-and control, but many are not. At the moment, the smsc47m1 driver
-requests the whole I/O port range. This could easily result in
-resource conflicts with either ACPI or other drivers.
-
-Request only the I/O ports we really use, to prevent such conflicts.
+If the address is set but the device isn't enabled, attempt to enable
+it. If it won't work for any reason (resource conflict, no function
+enabled) the initial state is restored. The initial state is also
+restored on module unloading.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/smsc47m1.c |   99 +++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 89 insertions(+), 10 deletions(-)
+ drivers/hwmon/smsc47m1.c |   30 +++++++++++++++++++++++++++---
+ 1 file changed, 27 insertions(+), 3 deletions(-)
 
---- linux-2.6.33-rc0.orig/drivers/hwmon/smsc47m1.c	2009-12-04 18:53:50.000000000 +0100
-+++ linux-2.6.33-rc0/drivers/hwmon/smsc47m1.c	2009-12-05 13:19:36.000000000 +0100
-@@ -481,13 +481,94 @@ static int __init smsc47m1_find(unsigned
+--- linux-2.6.33-rc0.orig/drivers/hwmon/smsc47m1.c	2009-12-06 14:02:03.000000000 +0100
++++ linux-2.6.33-rc0/drivers/hwmon/smsc47m1.c	2009-12-06 14:08:33.000000000 +0100
+@@ -136,6 +136,7 @@ struct smsc47m1_data {
+ 
+ struct smsc47m1_sio_data {
+ 	enum chips type;
++	u8 activate;		/* Remember initial device state */
+ };
+ 
+ 
+@@ -468,17 +469,38 @@ static int __init smsc47m1_find(unsigned
+ 	superio_select();
+ 	*addr = (superio_inb(SUPERIO_REG_BASE) << 8)
+ 	      |  superio_inb(SUPERIO_REG_BASE + 1);
+-	val = superio_inb(SUPERIO_REG_ACT);
+-	if (*addr = 0 || (val & 0x01) = 0) {
+-		pr_info(DRVNAME ": Device is disabled, will not use\n");
++	if (*addr = 0) {
++		pr_info(DRVNAME ": Device address not set, will not use\n");
+ 		superio_exit();
+ 		return -ENODEV;
+ 	}
+ 
++	/* Enable only if address is set (needed at least on the
++	 * Compaq Presario S4000NX) */
++	sio_data->activate = superio_inb(SUPERIO_REG_ACT);
++	if ((sio_data->activate & 0x01) = 0) {
++		pr_info(DRVNAME ": Enabling device\n");
++		superio_outb(SUPERIO_REG_ACT, sio_data->activate | 0x01);
++	}
++
+ 	superio_exit();
  	return 0;
  }
  
-+#define CHECK		1
-+#define REQUEST		2
-+#define RELEASE		3
-+
-+/*
-+ * This function can be used to:
-+ *  - test for resource conflicts with ACPI
-+ *  - request the resources
-+ *  - release the resources
-+ * We only allocate the I/O ports we really need, to minimize the risk of
-+ * conflicts with ACPI or with other drivers.
-+ */
-+static int smsc47m1_handle_resources(unsigned short address, enum chips type,
-+				     int action, struct device *dev)
++/* Restore device to its initial state */
++static void __init smsc47m1_restore(const struct smsc47m1_sio_data *sio_data)
 +{
-+	static const u8 ports_m1[] = {
-+		/* register, region length */
-+		0x04, 1,
-+		0x33, 4,
-+		0x56, 7,
-+	};
++	if ((sio_data->activate & 0x01) = 0) {
++		superio_enter();
++		superio_select();
 +
-+	static const u8 ports_m2[] = {
-+		/* register, region length */
-+		0x04, 1,
-+		0x09, 1,
-+		0x2c, 2,
-+		0x35, 4,
-+		0x56, 7,
-+		0x69, 4,
-+	};
++		pr_info(DRVNAME ": Disabling device\n");
++		superio_outb(SUPERIO_REG_ACT, sio_data->activate);
 +
-+	int i, ports_size, err;
-+	const u8 *ports;
-+
-+	switch (type) {
-+	case smsc47m1:
-+	default:
-+		ports = ports_m1;
-+		ports_size = ARRAY_SIZE(ports_m1);
-+		break;
-+	case smsc47m2:
-+		ports = ports_m2;
-+		ports_size = ARRAY_SIZE(ports_m2);
-+		break;
++		superio_exit();
 +	}
-+
-+	for (i = 0; i + 1 < ports_size; i += 2) {
-+		unsigned short start = address + ports[i];
-+		unsigned short len = ports[i + 1];
-+
-+		switch (action) {
-+		case CHECK:
-+			/* Only check for conflicts */
-+			err = acpi_check_region(start, len, DRVNAME);
-+			if (err)
-+				return err;
-+			break;
-+		case REQUEST:
-+			/* Request the resources */
-+			if (!request_region(start, len, DRVNAME)) {
-+				dev_err(dev, "Region 0x%hx-0x%hx already in "
-+					"use!\n", start, start + len);
-+
-+				/* Undo all requests */
-+				for (i -= 2; i >= 0; i -= 2)
-+					release_region(address + ports[i],
-+						       ports[i + 1]);
-+				return -EBUSY;
-+			}
-+			break;
-+		case RELEASE:
-+			/* Release the resources */
-+			release_region(start, len);
-+			break;
-+		}
-+	}
-+
-+	return 0;
 +}
 +
- static int __devinit smsc47m1_probe(struct platform_device *pdev)
- {
- 	struct device *dev = &pdev->dev;
- 	struct smsc47m1_sio_data *sio_data = dev->platform_data;
- 	struct smsc47m1_data *data;
- 	struct resource *res;
--	int err = 0;
-+	int err;
- 	int fan1, fan2, fan3, pwm1, pwm2, pwm3;
+ #define CHECK		1
+ #define REQUEST		2
+ #define RELEASE		3
+@@ -856,6 +878,7 @@ static int __init sm_smsc47m1_init(void)
  
- 	static const char *names[] = {
-@@ -496,12 +577,10 @@ static int __devinit smsc47m1_probe(stru
- 	};
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start, SMSC_EXTENT, DRVNAME)) {
--		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
--			(unsigned long)res->start,
--			(unsigned long)res->end);
--		return -EBUSY;
--	}
-+	err = smsc47m1_handle_resources(res->start, sio_data->type,
-+					REQUEST, dev);
-+	if (err < 0)
-+		return err;
- 
- 	if (!(data = kzalloc(sizeof(struct smsc47m1_data), GFP_KERNEL))) {
- 		err = -ENOMEM;
-@@ -637,7 +716,7 @@ error_free:
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- error_release:
--	release_region(res->start, SMSC_EXTENT);
-+	smsc47m1_handle_resources(res->start, sio_data->type, RELEASE, dev);
+ exit_device:
+ 	platform_device_unregister(pdev);
++	smsc47m1_restore(&sio_data);
+ exit:
  	return err;
  }
- 
-@@ -650,7 +729,7 @@ static int __devexit smsc47m1_remove(str
- 	sysfs_remove_group(&pdev->dev.kobj, &smsc47m1_group);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	release_region(res->start, SMSC_EXTENT);
-+	smsc47m1_handle_resources(res->start, data->type, RELEASE, &pdev->dev);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- 
-@@ -717,7 +796,7 @@ static int __init smsc47m1_device_add(un
- 	};
- 	int err;
- 
--	err = acpi_check_resource_conflict(&res);
-+	err = smsc47m1_handle_resources(address, sio_data->type, CHECK, NULL);
- 	if (err)
- 		goto exit;
+@@ -863,6 +886,7 @@ exit:
+ static void __exit sm_smsc47m1_exit(void)
+ {
+ 	platform_driver_unregister(&smsc47m1_driver);
++	smsc47m1_restore(pdev->dev.platform_data);
+ 	platform_device_unregister(pdev);
+ }
  
 
 
