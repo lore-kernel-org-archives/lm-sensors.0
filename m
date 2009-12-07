@@ -1,9 +1,9 @@
 From: Sven Anders <anders@anduras.de>
-Date: Fri, 04 Dec 2009 20:11:26 +0000
+Date: Mon, 07 Dec 2009 11:41:30 +0000
 Subject: Re: [lm-sensors] [PATCH] w83793 watchdog support.
-Message-Id: <4B196CEE.7060302@anduras.de>
+Message-Id: <4B1CE9EA.8090308@anduras.de>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0257904885179619235=="
+Content-Type: multipart/mixed; boundary="===============9014894253616523208=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4B18F35A.5060808@anduras.de>
 In-Reply-To: <4B18F35A.5060808@anduras.de>
@@ -11,47 +11,67 @@ To: lm-sensors@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---===============0257904885179619235==
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060309000708010801070003"
+--===============9014894253616523208==
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms040102000403010209020903"
 
 This is a cryptographically signed message in MIME format.
 
---------------ms060309000708010801070003
+--------------ms040102000403010209020903
 Content-Type: multipart/mixed;
- boundary="------------060004020806050809060108"
+ boundary="------------030408030705070507090508"
 
 This is a multi-part message in MIME format.
---------------060004020806050809060108
+--------------030408030705070507090508
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 
 Sven Anders schrieb:
-> Hello!
-> 
-> I implemented watchdog support for the Winbond 83793 chipset.
-> I'll attached the patch.
-> 
-> Any comments welcome!
+> Sven Anders schrieb:
+>> Hello!
+>>
+>> I implemented watchdog support for the Winbond 83793 chipset.
+>> I'll attached the patch.
+>>
+>> Any comments welcome!
+>=20
+> Ok, sorry.
+> I forgot to remove the debug output from the first version.
+> Here is the correct one.
 
-Ok, sorry.
-I forgot to remove the debug output from the first version.
-Here is the correct one.
+Hello!
+
+This is the final version. I did further testing and discovered, that
+a timeout of 1 minute did not work. The chip did not restart the counter,=
+
+if I rewrite a value of 1 after 20 seconds elapsed.
+I tried to disable and re-enable the watchdog again, but it did not
+help.
+
+So, I set the default timeout value up to 2 minutes.
+
+Anybody else found time to test/review it? Any comments on the driver?
+Can you merge it to the current kernel tree? I think the merge window
+is still open?!
 
 Regards
- Sven Anders
+ Sven
 
--- 
- Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign
-                                                 /\ Support plain text e-mail
+--=20
+ Sven Anders <anders@anduras.de>                 () Ascii Ribbon Campaign=
+
+                                                 /\ Support plain text e-=
+mail
  ANDURAS service solutions AG
- Innstrasse 71 - 94036 Passau - Germany
- Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 50-55
+ Innstra=DFe 71 - 94036 Passau - Germany
+ Web: www.anduras.de - Tel: +49 (0)851-4 90 50-0 - Fax: +49 (0)851-4 90 5=
+0-55
 
-Those who would give up essential Liberty, to purchase a little
-temporary Safety, deserve neither Liberty nor Safety.
-  - Benjamin Franklin
+Rechtsform: Aktiengesellschaft - Sitz: Passau - Amtsgericht Passau HRB 60=
+32
+Mitglieder des Vorstands: Sven Anders, Marcus Junker
+Vorsitzender des Aufsichtsrats: Mark Peters
 
---------------060004020806050809060108
+--------------030408030705070507090508
 Content-Type: text/x-patch;
  name="w83793_wdt.patch"
 Content-Transfer-Encoding: 7bit
@@ -88,7 +108,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +#include <linux/reboot.h>
 +
 +/* Default values */
-+#define WATCHDOG_TIMEOUT 1	/* 1 minute default timeout */
++#define WATCHDOG_TIMEOUT 2	/* 2 minute default timeout */
  
  /* Addresses to scan */
  static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, 0x2f,
@@ -104,7 +124,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
 +static int timeout = WATCHDOG_TIMEOUT;	/* in minutes */
 +module_param(timeout, int, 0);
 +MODULE_PARM_DESC(timeout,
-+	"Watchdog timeout in minutes. 1<= timeout <=255 (default="
++	"Watchdog timeout in minutes. 2<= timeout <=255 (default="
 +				__MODULE_STRING(WATCHDOG_TIMEOUT) ")");
 +
 +static int nowayout = WATCHDOG_NOWAYOUT;
@@ -634,7 +654,7 @@ Signed-off-by: Sven Anders <anders@anduras.de
  	  This driver can also be built as a module.  If so, the module
  	  will be called w83793.
 
---------------060004020806050809060108
+--------------030408030705070507090508
 Content-Type: text/x-vcard; charset=utf-8;
  name="anders.vcf"
 Content-Transfer-Encoding: 7bit
@@ -656,9 +676,9 @@ version:2.1
 end:vcard
 
 
---------------060004020806050809060108--
+--------------030408030705070507090508--
 
---------------ms060309000708010801070003
+--------------ms040102000403010209020903
 Content-Type: application/x-pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -739,8 +759,8 @@ A1UEBhMCREUxCzAJBgNVBAgTAkJZMQ8wDQYDVQQHEwZQYXNzYXUxEzARBgNVBAoTCkFORFVS
 QVMgQUcxHjAcBgNVBAsTFUNlcnRpZmljYXRlIEF1dGhvcml0eTEpMCcGA1UEAxMgQU5EVVJB
 UyBBRyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxHTAbBgkqhkiG9w0BCQEWDnBraUBhbmR1cmFz
 LmRlAgMQAAUwCQYFKw4DAhoFAKCCAkwwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkq
-hkiG9w0BCQUxDxcNMDkxMjA0MjAxMTI3WjAjBgkqhkiG9w0BCQQxFgQU3YrAmKxkr0Rl4HEL
-yypLamZ/FQQwXwYJKoZIhvcNAQkPMVIwUDALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYI
+hkiG9w0BCQUxDxcNMDkxMjA3MTE0MTMwWjAjBgkqhkiG9w0BCQQxFgQURujv/LhpBpoUeyEz
+Ucp9Utmqp18wXwYJKoZIhvcNAQkPMVIwUDALBglghkgBZQMEAQIwCgYIKoZIhvcNAwcwDgYI
 KoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIHD
 BgkrBgEEAYI3EAQxgbUwgbIwgaoxCzAJBgNVBAYTAkRFMQswCQYDVQQIEwJCWTEPMA0GA1UE
 BxMGUGFzc2F1MRMwEQYDVQQKEwpBTkRVUkFTIEFHMR4wHAYDVQQLExVDZXJ0aWZpY2F0ZSBB
@@ -749,16 +769,16 @@ GwYJKoZIhvcNAQkBFg5wa2lAYW5kdXJhcy5kZQIDEAAFMIHFBgsqhkiG9w0BCRACCzGBtaCB
 sjCBqjELMAkGA1UEBhMCREUxCzAJBgNVBAgTAkJZMQ8wDQYDVQQHEwZQYXNzYXUxEzARBgNV
 BAoTCkFORFVSQVMgQUcxHjAcBgNVBAsTFUNlcnRpZmljYXRlIEF1dGhvcml0eTEpMCcGA1UE
 AxMgQU5EVVJBUyBBRyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxHTAbBgkqhkiG9w0BCQEWDnBr
-aUBhbmR1cmFzLmRlAgMQAAUwDQYJKoZIhvcNAQEBBQAEggEAuv83ZAwrnJFmxy3UiG35Cm0z
-SH+ZzobNVRPNLMXSeH8gS3Jqvz37EEXjELQoQNN0AHQ/4uqLgxuqgbVjZHjkQ0q76Ifa1eHY
-4OcwvxBQuPw8KxxIhQv49CRSvAEJ+J/3Ga17PLo6LD4J3melQYQsmf65ArqpoLvEmYhMuWRv
-hYBXnXsewJc02+sa0wFkIc75KoAl0451A2pW7xRfMftWClcJRGYo1iBvSVJvm3EjYWTouUn4
-Vnk9ftDKAemj2hRba6cDz2+kZU70V97oDZurKuTwePLPCeHJBesuwJkvshwvYWW+1e/f/9o1
-T39iPermCLmGuawYlLtRCtnmarHvqQAAAAAAAA==
---------------ms060309000708010801070003--
+aUBhbmR1cmFzLmRlAgMQAAUwDQYJKoZIhvcNAQEBBQAEggEAO57HAzaHOnseJ3C5zRaXBg/v
+lDouSrbpfEecPMPSP5RSaxVs5oKQST8mypbVCJMkeE9SZXKGbXDEekGSxHl1Sb4fhDL5i/vb
+lLmW5zo5aAreop5pU3L5ZGwPDqrnf75O2D+EZGJNTnr5m7MsDRpg/2Sm7JpRDq3RkOvCIC/1
+5B9qimq0sT0VgMDmYGO1WKzPwWr7lBkaD/RkfsfTVHmTJS2TFVn3KWKjtKgeCDrk4HRmz2nr
+p3cHMVkUtgguMatoRtT/j5Z8P82kRTVC5oNlwDtfGO1mXHNm67Q5X9mfw/l1XpQUKYmym3v+
+OHl4rcrrkwjfXgpgytsuw98Emibp8wAAAAAAAA==
+--------------ms040102000403010209020903--
 
 
---===============0257904885179619235==
+--===============9014894253616523208==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -768,4 +788,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0257904885179619235==--
+--===============9014894253616523208==--
