@@ -1,21 +1,25 @@
 From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 10 Dec 2009 19:10:44 +0000
+Date: Thu, 10 Dec 2009 19:13:37 +0000
 Subject: [lm-sensors] [PATCH] hwmon: sht15: Off by one error in array index
-Message-Id: <4B2147B4.5090505@cam.ac.uk>
+Message-Id: <4B214861.4030906@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4B2147B4.5090505@cam.ac.uk>
+In-Reply-To: <4B2147B4.5090505@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 
-Signed-off-by: Christoph Walser <walser@tik.eee.ethz.ch>
+Signed-off-by: Christoph Walser <walser@tik.ee.ethz.ch>
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 ---
 
 Christoph noticed some problems with the sht15 driver and was kind enough
 to send me a patch.  If no one has any issues with this, it should also go
 in stable once it merges with mainline.
+
+Sorry all. Typo in Christoph's email adress in previous version.
 
  drivers/hwmon/sht15.c |    6 +++---
  1 files changed, 3 insertions(+), 3 deletions(-)
@@ -50,6 +54,7 @@ index ebe38b6..864a371 100644
  
 -- 
 1.6.4.4
+
 
 
 _______________________________________________
