@@ -1,29 +1,27 @@
 From: Forest Bond <forest@alittletooquiet.net>
-Date: Wed, 09 Dec 2009 16:23:01 +0000
+Date: Fri, 11 Dec 2009 03:31:58 +0000
 Subject: Re: [lm-sensors] sensors-detect: probing i2c sensors racy?
-Message-Id: <20091209162301.GC3947@alittletooquiet.net>
+Message-Id: <20091211033158.GB719@alittletooquiet.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3390442346528590548=="
+Content-Type: multipart/mixed; boundary="===============5836676248479164579=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091209153225.GA3947@alittletooquiet.net>
 In-Reply-To: <20091209153225.GA3947@alittletooquiet.net>
 To: lm-sensors@vger.kernel.org
 
 
---===============3390442346528590548==
+--===============5836676248479164579==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="iVCmgExH7+hIHJ1A"
+	protocol="application/pgp-signature"; boundary="O5XBE6gyVG5Rl6Rj"
 Content-Disposition: inline
 
 
---iVCmgExH7+hIHJ1A
+--O5XBE6gyVG5Rl6Rj
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
-
-Thanks for the quick reply.
 
 On Wed, Dec 09, 2009 at 05:11:48PM +0100, Jean Delvare wrote:
 > On Wed, 9 Dec 2009 10:32:25 -0500, Forest Bond wrote:
@@ -47,13 +45,7 @@ i2c bus
 >=20
 > You must be typing very fast to be able to trigger this ;) Or udev is
 > very slow populating /dev on your machine.
-
-You got me ;).
-
-I'm doing this:
-
-  yes '' | sensors-detect 2>&1 | tee sensors-detect.log
-
+>=20
 > > I don't know anything about i2c, so I hope the language I'm using to de=
 scribe
 > > this situation is reasonable.
@@ -69,20 +61,16 @@ scribe
 > The version of the sensors-detect you're using is getting old. Please
 > give a try to the latest one:
 > http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
->=20
-> If you can still reproduce the problem, then please give a try to the
-> attached patch and report.
 
-Okay, I'll give this a try.
+This seems to work fine.  Thanks for the help.
 
-Thanks,
-Forest
+-Forest
 --=20
 Forest Bond
 http://www.alittletooquiet.net
 http://www.pytagsfs.org
 
---iVCmgExH7+hIHJ1A
+--O5XBE6gyVG5Rl6Rj
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -90,15 +78,15 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.6 (GNU/Linux)
 
-iD8DBQFLH87lRO4fQQdv5AwRAm33AJ9jAQoxKvv3gGRawYFqOsGsau5i3gCfYqyP
-kI1P+sMVD7sZSlhdJsb2NSg=
-=5gFg
+iD8DBQFLIb0uRO4fQQdv5AwRAuPeAJ41GwovhIjCOvW1q+I3ALiecmZ+IACfdwaD
+mzzM8nlo7pKo/016VDBzBmA=
+=IgDQ
 -----END PGP SIGNATURE-----
 
---iVCmgExH7+hIHJ1A--
+--O5XBE6gyVG5Rl6Rj--
 
 
---===============3390442346528590548==
+--===============5836676248479164579==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -108,4 +96,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3390442346528590548==--
+--===============5836676248479164579==--
