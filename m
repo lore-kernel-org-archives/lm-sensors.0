@@ -1,41 +1,44 @@
-From: jrickman@myamigos.us
-Date: Thu, 03 Dec 2009 09:07:33 +0000
-Subject: Re: [lm-sensors] DME1737
-Message-Id: <1061.66.169.133.216.1259831253.squirrel@webmail.myamigos.us>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Fri, 11 Dec 2009 13:04:52 +0000
+Subject: Re: [lm-sensors] ATK0110 breaks keyboard and mouse on asus p7p55d -
+Message-Id: <68676e00912110504u17d43c73u16efaeeb167741ce@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <d06a3f90912020755v7bf249c9u4a81f7af974b2a55@mail.gmail.com>
-In-Reply-To: <d06a3f90912020755v7bf249c9u4a81f7af974b2a55@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Its a simple yes or no question.
-> I guess i'm addressing the wrong mailing list.
->
-> On Wed, Dec 2, 2009 at 7:55 AM, haiku hacker <haikuhacker@gmail.com>
-> wrote:
->
->> I have had the same bios on the same motherboard: Intel Corporation
->> D101GGC
->> with the DME1737 module detected since kernel 2.6.23. I think it stopped
->> being detected with kernel 2.6.30
->> I used to be able to find this module with "sensors-detect". Now the
->> output
->> is:
->> Sorry, no sensors were detected.
->> Either your system has no sensors, or they are not supported, or
->> they are connected to an I2C or SMBus adapter that is not
->> supported.
->> Is this a kernel issue?
->>
+(your mailer didn't insert the From: header... weird)
 
-Perhaps this entry from the LM-senros FAQ is applicable?
+On Fri, Dec 11, 2009 at 12:51 AM,  <> wrote:
+> i wanted to report the above mentioned.
+> The sensors display with atk0110 itself is ok.
+> But after a while, like one or two minutes after reboot, my keyboard and my
+> mouse stops responding.
 
-http://lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
+It's very strange since I had a tester that helped my with the very same board.
+What kind of keyboard/mouse are you using? PS2 or USB?
+Can you access the machine remotely (ssh)? If so, please send me a
+dump of /proc/interrupts _after_ the keyboard becomes unresponsive.
 
+> The system is still running, i can see "things happen" ;) like
+> the seconds of my statusbar clock.
+> Its just the mouse and the keyboard, anyway i had to cold reboot.
+> After removing the driver again, everything works fine (except
+> speedstepping/turboboost, which completely freezes my box, but thats
+> another thing ;)
 
+Ok, the only difference between working and non-working is the atk0110 driver?
 
+Locate atk_ec_present function in asus_atk0110.c; put a
+
+return 0;
+
+as first instruction; recompile and see if it still locks up the keyboard.
+Also enable HWMON_DEBUG_CHIP.
+
+thanks,
+Luca
 
 _______________________________________________
 lm-sensors mailing list
