@@ -1,225 +1,62 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
-Date: Tue, 01 Dec 2009 08:53:10 +0000
-Subject: Re: [lm-sensors] [PATCH v4 1/5] lis3: Selftest support
-Message-Id: <4B14D976.4040906@tremplin-utc.net>
+From: Andrey Rahmatullin <wrar@altlinux.org>
+Date: Fri, 11 Dec 2009 18:34:52 +0000
+Subject: [lm-sensors] w83627hf fails with ENODEV on 2.6.33
+Message-Id: <20091211183452.GD5165@wrars-comp.wrarsdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1318255558445726307=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1259656422-7697-1-git-send-email-samu.p.onkalo@nokia.com> <1259656422-7697-2-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1259656422-7697-2-git-send-email-samu.p.onkalo@nokia.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+To: lm-sensors@vger.kernel.org
+
+
+--===============1318255558445726307==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="+B+y8wtTXqdUj1xM"
+Content-Disposition: inline
+
+
+--+B+y8wtTXqdUj1xM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
-To: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Op 01-12-09 09:33, Samu Onkalo schreef:
-> Implement selftest feature as specified by chip manufacturer.
-> Control: read selftest sysfs entry
-> Response: "OK x y z" or "FAIL x y z"
-> where x, y, and z are difference between selftest mode and normal mode.
-> Test is passed when values are within acceptance limit values.
->
-> Acceptance limits are provided via platform data. See chip spesifications
-> for acceptance limits. If limits are not properly set, OK / FAIL decision=
- is
-> meaningless. However, userspace application can still make decision based=
- on
-> the numeric x, y, z values.
->
-> Selftest is meant for HW diagnostic purposes. It is not meant to be called
-> during normal use of the chip. It may cause false interrupt events.
-> Selftest mode delays polling of the normal results but it doesn't cause
-> wrong values. Chip must be in static state during selftest.
-> Any acceration during the test causes most probably failure.
->
-> Signed-off-by: Samu Onkalo<samu.p.onkalo@nokia.com>
-Signed-off-by: =C3=89ric Piel <eric.piel@tremplin-utc.net>
+Hello.
+I've built v2.6.32-5254-g3067e02 with old working config and w83627hf
+cannot be loaded now (modprobe shows No such device, dmes is empty).
+On older kernels it warned about the resource conflict with ACPI, but
+acpi_enforce_resources=3Dlax is passed to the kernel, so the module worked.
+Now it doesn't show the warning and doesn't work.
 
-> ---
->   drivers/hwmon/lis3lv02d.c |   67 ++++++++++++++++++++++++++++++++++++++=
-++++++-
->   drivers/hwmon/lis3lv02d.h |   14 ++++++++-
->   include/linux/lis3lv02d.h |    3 ++
->   3 files changed, 81 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-> index 39b9ac8..55ec883 100644
-> --- a/drivers/hwmon/lis3lv02d.c
-> +++ b/drivers/hwmon/lis3lv02d.c
-> @@ -106,9 +106,11 @@ static void lis3lv02d_get_xyz(struct lis3lv02d *lis3=
-, int *x, int *y, int *z)
->   {
->   	int position[3];
->
-> +	mutex_lock(&lis3->mutex);
->   	position[0] =3D lis3->read_data(lis3, OUTX);
->   	position[1] =3D lis3->read_data(lis3, OUTY);
->   	position[2] =3D lis3->read_data(lis3, OUTZ);
-> +	mutex_unlock(&lis3->mutex);
->
->   	*x =3D lis3lv02d_get_axis(lis3->ac.x, position);
->   	*y =3D lis3lv02d_get_axis(lis3->ac.y, position);
-> @@ -133,6 +135,55 @@ static int lis3lv02d_get_odr(void)
->   	return val;
->   }
->
-> +static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
-> +{
-> +	u8 reg;
-> +	s16 x, y, z;
-> +	u8 selftest;
-> +	int ret;
-> +
-> +	mutex_lock(&lis3->mutex);
-> +	if (lis3_dev.whoami =3D WAI_12B)
-> +		selftest =3D CTRL1_ST;
-> +	else
-> +		selftest =3D CTRL1_STP;
-> +
-> +	lis3->read(lis3, CTRL_REG1,&reg);
-> +	lis3->write(lis3, CTRL_REG1, (reg | selftest));
-> +	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-> +
-> +	/* Read directly to avoid axis remap */
-> +	x =3D lis3->read_data(lis3, OUTX);
-> +	y =3D lis3->read_data(lis3, OUTY);
-> +	z =3D lis3->read_data(lis3, OUTZ);
-> +
-> +	/* back to normal settings */
-> +	lis3->write(lis3, CTRL_REG1, reg);
-> +	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-> +
-> +	results[0] =3D x - lis3->read_data(lis3, OUTX);
-> +	results[1] =3D y - lis3->read_data(lis3, OUTY);
-> +	results[2] =3D z - lis3->read_data(lis3, OUTZ);
-> +
-> +	ret =3D 0;
-> +	if (lis3->pdata) {
-> +		int i;
-> +		for (i =3D 0; i<  3; i++) {
-> +			/* Check against selftest acceptance limits */
-> +			if ((results[i]<  lis3->pdata->st_min_limits[i]) ||
-> +			    (results[i]>  lis3->pdata->st_max_limits[i])) {
-> +				ret =3D -EIO;
-> +				goto fail;
-> +			}
-> +		}
-> +	}
-> +
-> +	/* test passed */
-> +fail:
-> +	mutex_unlock(&lis3->mutex);
-> +	return ret;
-> +}
-> +
->   void lis3lv02d_poweroff(struct lis3lv02d *lis3)
->   {
->   	/* disable X,Y,Z axis and power down */
-> @@ -365,6 +416,17 @@ void lis3lv02d_joystick_disable(void)
->   EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
->
->   /* Sysfs stuff */
-> +static ssize_t lis3lv02d_selftest_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	int result;
-> +	s16 values[3];
-> +
-> +	result =3D lis3lv02d_selftest(&lis3_dev, values);
-> +	return sprintf(buf, "%s %d %d %d\n", result =3D 0 ? "OK" : "FAIL",
-> +		values[0], values[1], values[2]);
-> +}
-> +
->   static ssize_t lis3lv02d_position_show(struct device *dev,
->   				struct device_attribute *attr, char *buf)
->   {
-> @@ -394,12 +456,14 @@ static ssize_t lis3lv02d_rate_show(struct device *d=
-ev,
->   	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
->   }
->
-> +static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
->   static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
->   static DEVICE_ATTR(calibrate, S_IRUGO|S_IWUSR, lis3lv02d_calibrate_show,
->   	lis3lv02d_calibrate_store);
->   static DEVICE_ATTR(rate, S_IRUGO, lis3lv02d_rate_show, NULL);
->
->   static struct attribute *lis3lv02d_attributes[] =3D {
-> +	&dev_attr_selftest.attr,
->   	&dev_attr_position.attr,
->   	&dev_attr_calibrate.attr,
->   	&dev_attr_rate.attr,
-> @@ -455,6 +519,8 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
->   		return -EINVAL;
->   	}
->
-> +	mutex_init(&dev->mutex);
-> +
->   	lis3lv02d_add_fs(dev);
->   	lis3lv02d_poweron(dev);
->
-> @@ -507,4 +573,3 @@ EXPORT_SYMBOL_GPL(lis3lv02d_init_device);
->   MODULE_DESCRIPTION("ST LIS3LV02Dx three-axis digital accelerometer driv=
-er");
->   MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
->   MODULE_LICENSE("GPL");
-> -
-> diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-> index c57f21f..166794c 100644
-> --- a/drivers/hwmon/lis3lv02d.h
-> +++ b/drivers/hwmon/lis3lv02d.h
-> @@ -98,7 +98,7 @@ enum lis3_who_am_i {
->   	WAI_6B		=3D 0x52, /* 6 bits: LIS331DLF - not supported */
->   };
->
-> -enum lis3lv02d_ctrl1 {
-> +enum lis3lv02d_ctrl1_12b {
->   	CTRL1_Xen	=3D 0x01,
->   	CTRL1_Yen	=3D 0x02,
->   	CTRL1_Zen	=3D 0x04,
-> @@ -107,8 +107,17 @@ enum lis3lv02d_ctrl1 {
->   	CTRL1_DF1	=3D 0x20,
->   	CTRL1_PD0	=3D 0x40,
->   	CTRL1_PD1	=3D 0x80,
-> -	CTRL1_DR	=3D 0x80, /* Data rate on 8 bits */
->   };
-> +
-> +/* Delta to ctrl1_12b version */
-> +enum lis3lv02d_ctrl1_8b {
-> +	CTRL1_STM	=3D 0x08,
-> +	CTRL1_STP	=3D 0x10,
-> +	CTRL1_FS	=3D 0x20,
-> +	CTRL1_PD	=3D 0x40,
-> +	CTRL1_DR	=3D 0x80,
-> +};
-> +
->   enum lis3lv02d_ctrl2 {
->   	CTRL2_DAS	=3D 0x01,
->   	CTRL2_SIM	=3D 0x02,
-> @@ -218,6 +227,7 @@ struct lis3lv02d {
->   	unsigned long		misc_opened; /* bit0: whether the device is open */
->
->   	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
-> +	struct mutex		mutex;     /* Serialize poll and selftest */
->   };
->
->   int lis3lv02d_init_device(struct lis3lv02d *lis3);
-> diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
-> index 8970135..f1ca0dc 100644
-> --- a/include/linux/lis3lv02d.h
-> +++ b/include/linux/lis3lv02d.h
-> @@ -55,6 +55,9 @@ struct lis3lv02d_platform_data {
->   	s8 axis_z;
->   	int (*setup_resources)(void);
->   	int (*release_resources)(void);
-> +	/* Limits for selftest are specified in chip data sheet */
-> +	s16 st_min_limits[3]; /* min pass limit x, y, z */
-> +	s16 st_max_limits[3]; /* max pass limit x, y, z */
->   };
->
->   #endif /* __LIS3LV02D_H_ */
+--=20
+WBR, wRAR (ALT Linux Team)
 
+--+B+y8wtTXqdUj1xM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBCAAGBQJLIpDMAAoJEOih81koZvPBJuwH/3AQghNF527kfZJtWOvtZVj6
+lcwPzIo8VddqJgVOHlp/73+5z3UVyMQjhEm335C9C69f0wTVp4ATnxXs9Yyq8FiX
+OIai/SqQ8HDxH8S9iWG8NpIT2blDJVSoz/JWKh71O+mW4k2DgqegaYpFbUwQ05m0
+NcUsxCFsjXoxrWIiciQdW4qXGj+rxuV7JG6GqUskDntYs3DCi6mbVvUAP+pWTDxt
+oGaB9KQ4vhR2UnPIs8tYx47c857lt9NK/dyHV251u5EVdrjoCSUDl/zrQQHVT8OD
+iSSwB3ZsPN65EHrKiyjfisO7e29ItHEy1oJAc5so62pO+mD7KSFoHk/kKqtZKgI=
+=FgWW
+-----END PGP SIGNATURE-----
+
+--+B+y8wtTXqdUj1xM--
+
+
+--===============1318255558445726307==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1318255558445726307==--
