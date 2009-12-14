@@ -1,62 +1,65 @@
-From: Andrey Rahmatullin <wrar@altlinux.org>
-Date: Fri, 11 Dec 2009 18:34:52 +0000
-Subject: [lm-sensors] w83627hf fails with ENODEV on 2.6.33
-Message-Id: <20091211183452.GD5165@wrars-comp.wrarsdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1318255558445726307=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 14 Dec 2009 09:45:53 +0000
+Subject: Re: [lm-sensors] w83627hf fails with ENODEV on 2.6.33
+Message-Id: <20091214104553.3048fcda@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20091211183452.GD5165@wrars-comp.wrarsdomain>
+In-Reply-To: <20091211183452.GD5165@wrars-comp.wrarsdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Andrey,
 
---===============1318255558445726307==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="+B+y8wtTXqdUj1xM"
-Content-Disposition: inline
+On Fri, 11 Dec 2009 23:34:52 +0500, Andrey Rahmatullin wrote:
+> I've built v2.6.32-5254-g3067e02 with old working config and w83627hf
+> cannot be loaded now (modprobe shows No such device, dmes is empty).
+> On older kernels it warned about the resource conflict with ACPI, but
+> acpi_enforce_resources=lax is passed to the kernel, so the module worked.
+> Now it doesn't show the warning and doesn't work.
+
+Thanks for reporting. This was a bug in a patch of mine. Fix is below,
+I'll push it to Linus within the next few days.
+
+From: Christian Schulte <cs@schulte.it>
+Subject: hwmon: (w83627hf) Fix for "No such device"
+
+The commit b72656dbc491484765776a16eeb55ef2e90efea6 introduced
+a bug leading to the w83627hf_find function no longer finding
+any chips.
+
+Signed-off-by: Christian Schulte <cs@schulte.it>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627hf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.33-rc0.orig/drivers/hwmon/w83627hf.c	2009-12-13 09:04:29.000000000 +0100
++++ linux-2.6.33-rc0/drivers/hwmon/w83627hf.c	2009-12-13 15:59:36.000000000 +0100
+@@ -1135,6 +1135,7 @@ static int __init w83627hf_find(int sioa
+ 		"W83687THF",
+ 	};
+ 
++	sio_data->sioaddr = sioaddr;
+ 	superio_enter(sio_data);
+ 	val = force_id ? force_id : superio_inb(sio_data, DEVID);
+ 	switch (val) {
+@@ -1177,7 +1178,6 @@ static int __init w83627hf_find(int sioa
+ 	}
+ 
+ 	err = 0;
+-	sio_data->sioaddr = sioaddr;
+ 	pr_info(DRVNAME ": Found %s chip at %#x\n",
+ 		names[sio_data->type], *addr);
+ 
 
 
---+B+y8wtTXqdUj1xM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hello.
-I've built v2.6.32-5254-g3067e02 with old working config and w83627hf
-cannot be loaded now (modprobe shows No such device, dmes is empty).
-On older kernels it warned about the resource conflict with ACPI, but
-acpi_enforce_resources=3Dlax is passed to the kernel, so the module worked.
-Now it doesn't show the warning and doesn't work.
-
---=20
-WBR, wRAR (ALT Linux Team)
-
---+B+y8wtTXqdUj1xM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iQEcBAEBCAAGBQJLIpDMAAoJEOih81koZvPBJuwH/3AQghNF527kfZJtWOvtZVj6
-lcwPzIo8VddqJgVOHlp/73+5z3UVyMQjhEm335C9C69f0wTVp4ATnxXs9Yyq8FiX
-OIai/SqQ8HDxH8S9iWG8NpIT2blDJVSoz/JWKh71O+mW4k2DgqegaYpFbUwQ05m0
-NcUsxCFsjXoxrWIiciQdW4qXGj+rxuV7JG6GqUskDntYs3DCi6mbVvUAP+pWTDxt
-oGaB9KQ4vhR2UnPIs8tYx47c857lt9NK/dyHV251u5EVdrjoCSUDl/zrQQHVT8OD
-iSSwB3ZsPN65EHrKiyjfisO7e29ItHEy1oJAc5so62pO+mD7KSFoHk/kKqtZKgI=
-=FgWW
------END PGP SIGNATURE-----
-
---+B+y8wtTXqdUj1xM--
-
-
---===============1318255558445726307==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1318255558445726307==--
