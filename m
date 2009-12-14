@@ -1,42 +1,46 @@
 From: Matt Hsu <matt@0xlab.org>
-Date: Mon, 14 Dec 2009 03:29:18 +0000
+Date: Mon, 14 Dec 2009 03:57:23 +0000
 Subject: Re: [lm-sensors] Duplicated driver for LIS302-like device.
-Message-Id: <4B25B10E.1010409@0xlab.org>
+Message-Id: <4B25B7A3.6080607@0xlab.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4B21B40B.2010007@0xlab.org> <4B2241D0.3050504@cam.ac.uk>
-In-Reply-To: <4B2241D0.3050504@cam.ac.uk>
+	<4B224641.8050905@tremplin-utc.net>
+In-Reply-To: <4B224641.8050905@tremplin-utc.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: linux-input@vger.kernel.org, dmitry.torokhov@gmail.com, Samu Onkalo <samu.p.onkalo@nokia.com>, Eric Piel <eric.piel@tremplin-utc.net>, "Trisal, Kalhan" <kalhan.trisal@intel.com>, LM Sensors <lm-sensors@lm-sensors.org>
+To: =?ISO-8859-1?Q?=C9ric_Piel?= <eric.piel@tremplin-utc.net>
+Cc: Samu Onkalo <samu.p.onkalo@nokia.com>, dmitry.torokhov@gmail.com, LM Sensors <lm-sensors@lm-sensors.org>, linux-input@vger.kernel.org
 
-Jonathan Cameron wrote:
-> Hi Matt
->   
-> Gah, Not again!  So far we have had two patch sets implementing just
-> this.  Looking at the latest from Samu, Eric's patch has been sent on
-> to Andrew Morton for the current merge window (and is listed as being in
-> his mm tree).  May even have merged since I last pulled mainline.
->
-> You have my sympathies as the whole duplicating work thing happens to
-> us all from time to time.  The answer is as ever, post early and post
-> often to the relevant mailing lists. (though of course hardly anyone
-> actually keeps to this!)
->   
-    Hi Jonathan,
 
-    Thanks for your information.
-    Previously, I only went through input subsystem instead of lm-sensors.
-    And now the upstream driver seems to be implemented and merged. I 
-will cherry pick them into 0xlab kernel repository.
+> Hopefully, what you need is already there. Well, of course it depends
+> also on what interface you need in userspace for the hardware. 
+    Hi Eric,
+
+    I poked series patches you mentioned above.
+    These patches add the support of both interface.
+    That's great work. Originally, it was my next TODO, integration both 
+interfaces.
+
+    Btw, here is the demo for this device. Just FYI.
+
+    
+http://matthsu-abacus.blogspot.com/2009/12/motion-sensor-demo-on-beagleboard.html
+
+    I will cherry pick the upstream patches when they are merged into 
+2.6.33.
 
     Cheers,
     Matt
-> I've cc'd in everyone I know has an interest in this driver for any
-> thing else they might want to add.
+> There is
+> currently only position reporting (via joystick interface and sysfs
+> file), freefall detection (via a misc device) and selftest (via sysfs
+> file). Let me know if you have additional features in your
+> implementation, or some bug fixes, and we could incorporate them in the
+> lis3lv02d driver.
 >
-> Jonathan
+> See you,
+> Eric
 >   
 
 
