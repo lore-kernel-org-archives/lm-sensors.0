@@ -1,270 +1,449 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Sun, 13 Dec 2009 13:45:34 +0000
-Subject: Re: [lm-sensors] [PATCH/RFC] hwmon(asus_atk0110): debugfs interface
-Message-Id: <20091213134534.GA5011@nb-core2.darkstar.lan>
+From: "Ray Copeland" <ray.copeland@aprius.com>
+Date: Wed, 16 Dec 2009 17:58:32 +0000
+Subject: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30
+Message-Id: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01CA7E79.618D6995"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091207161429.GA24289@nb-core2.darkstar.lan>
-In-Reply-To: <20091207161429.GA24289@nb-core2.darkstar.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Dec 12, 2009 at 10:45:42PM +0100, Jean Delvare wrote:
-> Hi Luca,
-> 
-> On Mon, 7 Dec 2009 17:14:29 +0100, Luca Tettamanti wrote:
-> > Expose the raw GGRP/GITM interface via debugfs. The hwmon interface is
-> > reverse engineered and the driver tends to break on newer boards...
-> > Using this interface it's possible to poke directly at the ACPI methods without
-> > the need to recompile, reducing the guesswork and the round trips needed to
-> > support a new revisions of the interface.
-> > 
-> > Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> > ---
-> > Does it make sense to have this upstream?
-> 
-> If it makes your life easier, then yes, it certainly makes sense. The
-> size increase is reasonable.
-> 
-> However, I would like the size increase to be kept minimal when debugfs
-> is not enabled. At the moment, all the debugging code is still included
-> in that case. Functions atk_debugfs_ggrp_open, atk_debugfs_gitm_get,
-> atk_debugfs_ggrp_read, atk_debugfs_gitm_open and
-> atk_debugfs_ggrp_release are always included even when they will never
-> be called.
+This is a multi-part message in MIME format.
 
-Ok, I can wrap them up inside CONFIG_DEBUGFS.
+--===============6518689384888039629==
+Content-class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01CA7E79.618D6995"
 
-> Review (note: I don't know anything about debugfs):
-> > @@ -624,6 +630,193 @@
-> >  	return err;
-> >  }
-> >  
-> > +static int atk_debugfs_gitm_get(void *p, u64 *val)
-> > +{
-> > +	struct atk_data *data = p;
-> > +	union acpi_object *ret;
-> > +	struct atk_acpi_ret_buffer *buf;
-> > +	int err = 0;
-> > +
-> > +	if (!data->read_handle)
-> > +		return -ENODEV;
-> > +
-> > +	if (!data->debugfs.id)
-> > +		return -EINVAL;
-> > +
-> > +	ret = atk_gitm(data, data->debugfs.id);
-> > +	if (IS_ERR(ret))
-> > +		return PTR_ERR(ret);
-> > +
-> > +	buf = (void *)ret->buffer.pointer;
-> 
-> This cast looks wrong. If a cast is really needed, you should cast to
-> the right pointer type.
+This is a multi-part message in MIME format.
 
-Right.
+------_=_NextPart_001_01CA7E79.618D6995
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-> > +static int atk_debugfs_ggrp_open(struct inode *inode, struct file *file)
-> > +{
-> > +	struct atk_data *data = inode->i_private;
-> > +	union acpi_object *ret = NULL;
-> 
-> Initialization isn't needed.
+From: Ray Copeland <ray.copeland@aprius.com>
+Date: Wed, 16 Dec 2009
+Subject: [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462 =
+hwmon driver=20
 
-Ok.
+Description:
 
-> > +	u8 cls;
-> > +	char *buf = NULL;
-> > +	size_t size = 512;
-> 
-> Makes little sense to have a variable for this.
+The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All the =
 
-true :)
+for loops that use this as a limit count are of the typical form, "for=20
+(n =3D 0; n < ADT7462_VOLT_COUNT; n++)", so to loop through all voltages =
 
-> > +	int err;
-> > +	int i;
-> > +
-> > +	if (!data->enumerate_handle)
-> > +		return -ENODEV;
-> > +	if (!data->debugfs.id)
-> > +		return -EINVAL;
-> > +
-> > +	cls = (data->debugfs.id & 0xff000000) >> 24;
-> > +	ret = atk_ggrp(data, cls);
-> > +	if (IS_ERR(ret))
-> > +		return PTR_ERR(ret);
-> > +
-> > +	for (i = 0; i < ret->package.count; i++) {
-> > +		union acpi_object *pack = &ret->package.elements[i];
-> > +		union acpi_object *id;
-> > +
-> > +		if (pack->type != ACPI_TYPE_PACKAGE)
-> > +			continue;
-> > +		id = &pack->package.elements[0];
-> 
-> Are packages guaranteed to always contain at least one element?
+w/o missing the last one it is necessary for the count to be one greater =
 
-Good question. An empty package wouldn't make any sense in this context, but
-it's better to check it anyway.
+than it is.  (Specifically, you will miss the +1.5V 3GPIO input with =
+count=20
+=3D 12 vs. 13.)
 
-> > +		if (id->integer.value = data->debugfs.id) {
-> > +			/* Print the package */
-> > +			buf = kzalloc(size, GFP_KERNEL);
-> > +			if (!buf) {
-> > +				ACPI_FREE(ret);
-> > +				err = -ENOMEM;
-> > +				goto outerr;
-> > +			}
-> > +			atk_pack_print(buf, size, pack);
-> > +			break;
-> > +		}
-> > +	}
-> > +	ACPI_FREE(ret);
-> > +
-> > +	if (!buf) {
-> > +		err = -EINVAL;
-> > +		goto outerr;
-> > +	}
-> > +	file->private_data = buf;
-> > +
-> > +	return nonseekable_open(inode, file);
-> > +outerr:
-> > +	return err;
-> 
-> It makes little sense to have a common error path if you don't do
-> anything in it.
+Signed-off-by: Ray Copeland <ray.copeland@aprius.com>
 
-Ok.
+Diff with changes vs. original adt7462.c 2.6.30 version:
 
-> > +static ssize_t atk_debugfs_ggrp_read(struct file *file, char __user *buf,
-> > +		size_t count, loff_t *pos)
-> > +{
-> > +	char *str = file->private_data;
-> > +	size_t len;
-> > +
-> > +	if (!str)
-> > +		return -ENODEV;
-> 
-> This can't happen. If file->private_data is NULL, opening the file has
-> failed.
+--- adt7462.c	2009-12-15 15:57:47.000000000 -0800
++++ adt7462.c.orig	2009-12-15 15:51:05.000000000 -0800
+@@ -97,7 +97,6 @@
+ #define		ADT7462_PIN24_SHIFT		6
+ #define		ADT7462_PIN26_VOLT_INPUT	0x08
+ #define		ADT7462_PIN25_VOLT_INPUT	0x20
+-#define		ADT7462_PIN29_SHIFT		4	/* cfg3 */
+ #define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
+ #define		ADT7462_PIN28_VOLT		0x5
+=20
+@@ -183,7 +182,7 @@
+  *
+  * Some, but not all, of these voltages have low/high limits.
+  */
+-#define ADT7462_VOLT_COUNT	13
++#define ADT7462_VOLT_COUNT	12
+=20
+ #define ADT7462_VENDOR		0x41
+ #define ADT7462_DEVICE		0x62
+@@ -325,13 +324,13 @@
+ 	case 10:
+ 		return 0x6A;
+ 	case 11:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 0x50;
+ 		break;
+ 	case 12:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 0x4C;
+@@ -384,13 +383,13 @@
+ 	case 10:
+ 		return 0x73;
+ 	case 11:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 0x76;
+ 		break;
+ 	case 12:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 0x77;
+@@ -443,13 +442,13 @@
+ 	case 10:
+ 		return 0x91;
+ 	case 11:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 0x94;
+ 		break;
+ 	case 12:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 0x95;
+@@ -535,13 +534,13 @@
+ 			return "+1.5";
+ 		}
+ 	case 11:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return "+1.5V ICH";
+ 		break;
+ 	case 12:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return "+1.5V 3GPIO";
+@@ -630,7 +629,7 @@
+ 		}
+ 	case 11:
+ 	case 12:
+-		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
++		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
+ 					ADT7462_PIN28_VOLT &&
+ 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
+ 			return 7800;
 
-I thought so :) It's the first time I fiddle the _fops interface.
 
-> > +
-> > +	len = strlen(str);
-> > +
-> > +	return simple_read_from_buffer(buf, count, pos, str, len);
-> > +}
-> > +
-> > +static int atk_debugfs_ggrp_release(struct inode *inode, struct file *file)
-> > +{
-> > +	kfree(file->private_data);
-> > +	return 0;
-> > +}
-> > +
-> > +static struct file_operations atk_debugfs_ggrp_fops = {
-> 
-> Unless the API prevents it, this could be marked const.
 
-Sure.
 
-> > +	.read		= atk_debugfs_ggrp_read,
-> > +	.open		= atk_debugfs_ggrp_open,
-> > +	.release	= atk_debugfs_ggrp_release,
-> > +};
-> > +
-> > +static int atk_debugfs_init(struct atk_data *data)
-> > +{
-> > +	struct dentry *d;
-> > +	struct dentry *f;
-> > +	int err;
-> > +
-> > +	d = debugfs_create_dir("asus_atk0110", NULL);
-> > +	if (!d)
-> > +		return -ENODEV;
-> > +	if (IS_ERR(d))
-> > +		return PTR_ERR(d);
-> > +
-> > +	f = debugfs_create_x32("id", S_IWUSR, d, &data->debugfs.id);
-> 
-> A write-only file, really? I would think that reading from this file
-> would be valuable as well, and it wouldn't cost much.
+------_=_NextPart_001_01CA7E79.618D6995
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-The idea is that the user writes the ID in this file and read the data from the
-others; the value in this file does not change; but as you said it costs
-nothing to make it rw.
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.5.7654.12">
+<TITLE>[PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462 =
+hwmon driver</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/plain format -->
 
-> > +	if (!f || IS_ERR(f)) {
-> > +		err = -ENODEV;
-> > +		goto cleanup;
-> > +	}
-> > +
-> > +	f = debugfs_create_file("gitm", S_IRUSR, d, data,
-> > +			&atk_debugfs_gitm);
-> > +	if (!f || IS_ERR(f)) {
-> > +		err = -ENODEV;
-> > +		goto cleanup;
-> > +	}
-> > +
-> > +	f = debugfs_create_file("ggrp", S_IRUSR, d, data,
-> > +			&atk_debugfs_ggrp_fops);
-> > +	if (!f || IS_ERR(f)) {
-> > +		err = -ENODEV;
-> > +		goto cleanup;
-> > +	}
-> > +
-> > +	data->debugfs.root = d;
-> > +	data->debugfs.id = 0;
-> 
-> I suspect you have a race condition here. You initialize debugfs.id
-> only now, however the sysfs files which use it are already created, and
-> user-space may have accessed them already.
-> 
-> (In fact you are lucky that the data structure was kzalloc'd so
-> debugfs.id is already 0. But still...)
+<P><FONT SIZE=3D2>From: Ray Copeland &lt;ray.copeland@aprius.com&gt;<BR>
+Date: Wed, 16 Dec 2009<BR>
+Subject: [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462 =
+hwmon driver<BR>
+<BR>
+Description:<BR>
+<BR>
+The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All =
+the<BR>
+for loops that use this as a limit count are of the typical form, =
+&quot;for<BR>
+(n =3D 0; n &lt; ADT7462_VOLT_COUNT; n++)&quot;, so to loop through all =
+voltages<BR>
+w/o missing the last one it is necessary for the count to be one =
+greater<BR>
+than it is.&nbsp; (Specifically, you will miss the +1.5V 3GPIO input =
+with count<BR>
+=3D 12 vs. 13.)<BR>
+<BR>
+Signed-off-by: Ray Copeland &lt;ray.copeland@aprius.com&gt;<BR>
+<BR>
+Diff with changes vs. original adt7462.c 2.6.30 version:<BR>
+<BR>
+--- adt7462.c&nbsp;&nbsp; 2009-12-15 15:57:47.000000000 -0800<BR>
++++ adt7462.c.orig&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2009-12-15 =
+15:51:05.000000000 -0800<BR>
+@@ -97,7 +97,6 @@<BR>
+&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+ADT7462_PIN24_SHIFT&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6<BR>
+&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+ADT7462_PIN26_VOLT_INPUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+0x08<BR>
+&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+ADT7462_PIN25_VOLT_INPUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+0x20<BR>
+-#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+ADT7462_PIN29_SHIFT&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* cfg3 */<BR>
+&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+ADT7462_PIN28_SHIFT&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* cfg3 */<BR>
+&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+ADT7462_PIN28_VOLT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x5<BR>
+<BR>
+@@ -183,7 +182,7 @@<BR>
+&nbsp; *<BR>
+&nbsp; * Some, but not all, of these voltages have low/high limits.<BR>
+&nbsp; */<BR>
+-#define ADT7462_VOLT_COUNT&nbsp;&nbsp;&nbsp;&nbsp; 13<BR>
++#define ADT7462_VOLT_COUNT&nbsp;&nbsp;&nbsp;&nbsp; 12<BR>
+<BR>
+&nbsp;#define ADT7462_VENDOR &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+0x41<BR>
+&nbsp;#define ADT7462_DEVICE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+0x62<BR>
+@@ -325,13 +324,13 @@<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 10:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x6A;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x50;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x4C;<BR>
+@@ -384,13 +383,13 @@<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 10:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x73;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x76;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x77;<BR>
+@@ -443,13 +442,13 @@<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 10:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x91;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x94;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x95;<BR>
+@@ -535,13 +534,13 @@<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return &quot;+1.5&quot;;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return &quot;+1.5V =
+ICH&quot;;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return &quot;+1.5V =
+3GPIO&quot;;<BR>
+@@ -630,7 +629,7 @@<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
+-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
++&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
+&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
+&amp;&amp;<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
+!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 7800;<BR>
+<BR>
+<BR>
+<BR>
+</FONT>
+</P>
 
-Yes, right. Will fix.
+</BODY>
+</HTML>
+------_=_NextPart_001_01CA7E79.618D6995--
 
-> > +
-> > +	return 0;
-> > +cleanup:
-> > +	debugfs_remove_recursive(d);
-> > +	return err;
-> > +}
-> > +
-> > +static void atk_debugfs_cleanup(struct atk_data *data)
-> > +{
-> > +	debugfs_remove_recursive(data->debugfs.root);
-> > +}
-> > +
-> >  static int atk_add_sensor(struct atk_data *data, union acpi_object *obj)
-> >  {
-> >  	struct device *dev = &data->acpi_dev->dev;
-> > @@ -1180,6 +1373,8 @@
-> >  	if (err)
-> >  		goto cleanup;
-> >  
-> > +	atk_debugfs_init(data);
-> 
-> This function can fail, but you do not check the returned value.
-> Apparently your code will deal fine with this condition, but it is still
-> somewhat confusing, and it also means atk_debugfs_init() could be
-> simplified quite a bit: you could omit error handling almost entirely
-> in this function, if I'm not mistaken.
 
-atk_debugfs_init has to cleanup in case of errors so it doesn't leave a half
-initialized debugfs directory; the function can also fail if debugfs is not
-enabled. Anyway the debugfs interface is not vital for the driver (i.e. it does
-work fine without it), so at this point I don't care if debugfs is initialized
-or not.
-I will change the return value to void.
-
-Thanks for the review Jean, I will send you an updated version of the patch.
-
-Luca
+--===============6518689384888039629==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6518689384888039629==--
