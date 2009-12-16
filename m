@@ -1,44 +1,32 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 17 Dec 2009 15:10:09 +0000
-Subject: Re: [lm-sensors] [PATCH] adt7462: Fix pin 28 monitoring
-Message-Id: <20091217161009.3a3a106f@hyperion.delvare>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Wed, 16 Dec 2009 19:23:34 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for
+Message-Id: <20091216192334.GC10356@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <994.13667.qm@web53501.mail.re2.yahoo.com>
-In-Reply-To: <994.13667.qm@web53501.mail.re2.yahoo.com>
+References: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA312@EXVBE012-13.exch012.intermedia.net> <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
+In-Reply-To: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: roger blofeld <blofeldus@yahoo.com>
-Cc: "Darrick J. Wong" <djwong@us.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Ray Copeland <ray.copeland@aprius.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Arvind Vasudev <arvind.vasudev@aprius.com>
 
-Hi Roger,
-
-On Fri, 11 Dec 2009 18:54:54 -0800 (PST), roger blofeld wrote:
-> The ADT7462_PIN28_VOLT value is a 4-bit field, so the corresponding shift must be 4.
+On Wed, Dec 16, 2009 at 09:58:32AM -0800, Ray Copeland wrote:
+> From: Ray Copeland <ray.copeland@aprius.com>
+> Date: Wed, 16 Dec 2009
+> Subject: [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462 hwmon driver 
 > 
-> Signed-off-by: Roger Blofeld <blofeldus@yahoo.com>
-> ---
-> My mailer will whitespace damage the inline copy of the patch.
-> The attached version should be OK.
+> Description:
 > 
-> diff --git a/drivers/hwmon/adt7462.c b/drivers/hwmon/adt7462.c
-> index 1852f27..262c133 100644
-> --- a/drivers/hwmon/adt7462.c
-> +++ b/drivers/hwmon/adt7462.c
-> @@ -97,7 +97,7 @@ I2C_CLIENT_INSMOD_1(adt7462);
->  #define        ADT7462_PIN24_SHIFT        6
->  #define        ADT7462_PIN26_VOLT_INPUT    0x08
->  #define        ADT7462_PIN25_VOLT_INPUT    0x20
-> -#define        ADT7462_PIN28_SHIFT        6    /* cfg3 */
-> +#define        ADT7462_PIN28_SHIFT        4    /* cfg3 */
->  #define        ADT7462_PIN28_VOLT        0x5
->  
->  #define ADT7462_REG_ALARM1            0xB8
+> The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All the 
+<snip>
+> -#define ADT7462_VOLT_COUNT	13
+> +#define ADT7462_VOLT_COUNT	12
 
-Correct. Applied, thanks.
+Uh... I think this patch is reversed?  This part of the diff replaces 13 with
+12, which is the opposite of what I think you want.
 
--- 
-Jean Delvare
+--D
 
 _______________________________________________
 lm-sensors mailing list
