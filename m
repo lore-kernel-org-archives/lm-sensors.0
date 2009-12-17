@@ -1,22 +1,24 @@
 From: "Ray Copeland" <ray.copeland@aprius.com>
-Date: Wed, 16 Dec 2009 17:58:32 +0000
+Date: Thu, 17 Dec 2009 01:26:19 +0000
 Subject: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30
-Message-Id: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
+Message-Id: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA328@EXVBE012-13.exch012.intermedia.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01CA7E79.618D6995"
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01CA7EB8.4B916955"
 List-Id: <lm-sensors.vger.kernel.org>
+References: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
+In-Reply-To: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
 
---===============6518689384888039629==
+--===============2473336370049281732==
 Content-class: urn:content-classes:message
 Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01CA7E79.618D6995"
+	boundary="----_=_NextPart_001_01CA7EB8.4B916955"
 
 This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01CA7E79.618D6995
+------_=_NextPart_001_01CA7EB8.4B916955
 Content-Type: text/plain;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -43,103 +45,19 @@ Signed-off-by: Ray Copeland <ray.copeland@aprius.com>
 
 Diff with changes vs. original adt7462.c 2.6.30 version:
 
---- adt7462.c	2009-12-15 15:57:47.000000000 -0800
-+++ adt7462.c.orig	2009-12-15 15:51:05.000000000 -0800
-@@ -97,7 +97,6 @@
- #define		ADT7462_PIN24_SHIFT		6
- #define		ADT7462_PIN26_VOLT_INPUT	0x08
- #define		ADT7462_PIN25_VOLT_INPUT	0x20
--#define		ADT7462_PIN29_SHIFT		4	/* cfg3 */
- #define		ADT7462_PIN28_SHIFT		6	/* cfg3 */
- #define		ADT7462_PIN28_VOLT		0x5
-=20
-@@ -183,7 +182,7 @@
+--- adt7462.c.orig      2009-12-15 15:51:05.000000000 -0800
++++ adt7462.c.volt_count        2009-12-16 14:06:01.000000000 -0800
+@@ -182,7 +182,7 @@
   *
   * Some, but not all, of these voltages have low/high limits.
   */
--#define ADT7462_VOLT_COUNT	13
-+#define ADT7462_VOLT_COUNT	12
-=20
- #define ADT7462_VENDOR		0x41
- #define ADT7462_DEVICE		0x62
-@@ -325,13 +324,13 @@
- 	case 10:
- 		return 0x6A;
- 	case 11:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 0x50;
- 		break;
- 	case 12:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 0x4C;
-@@ -384,13 +383,13 @@
- 	case 10:
- 		return 0x73;
- 	case 11:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 0x76;
- 		break;
- 	case 12:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 0x77;
-@@ -443,13 +442,13 @@
- 	case 10:
- 		return 0x91;
- 	case 11:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 0x94;
- 		break;
- 	case 12:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 0x95;
-@@ -535,13 +534,13 @@
- 			return "+1.5";
- 		}
- 	case 11:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return "+1.5V ICH";
- 		break;
- 	case 12:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return "+1.5V 3GPIO";
-@@ -630,7 +629,7 @@
- 		}
- 	case 11:
- 	case 12:
--		if (data->pin_cfg[3] >> ADT7462_PIN29_SHIFT =3D=3D
-+		if (data->pin_cfg[3] >> ADT7462_PIN28_SHIFT =3D=3D
- 					ADT7462_PIN28_VOLT &&
- 		    !(data->pin_cfg[0] & ADT7462_VID_INPUT))
- 			return 7800;
+-#define ADT7462_VOLT_COUNT     12
++#define ADT7462_VOLT_COUNT     13
 
+ #define ADT7462_VENDOR         0x41
+ #define ADT7462_DEVICE         0x62
 
-
-
-------_=_NextPart_001_01CA7E79.618D6995
+------_=_NextPart_001_01CA7EB8.4B916955
 Content-Type: text/html;
 	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -180,263 +98,30 @@ Signed-off-by: Ray Copeland &lt;ray.copeland@aprius.com&gt;<BR>
 <BR>
 Diff with changes vs. original adt7462.c 2.6.30 version:<BR>
 <BR>
---- adt7462.c&nbsp;&nbsp; 2009-12-15 15:57:47.000000000 -0800<BR>
-+++ adt7462.c.orig&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2009-12-15 =
+--- adt7462.c.orig&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2009-12-15 =
 15:51:05.000000000 -0800<BR>
-@@ -97,7 +97,6 @@<BR>
-&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ADT7462_PIN24_SHIFT&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6<BR>
-&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ADT7462_PIN26_VOLT_INPUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-0x08<BR>
-&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ADT7462_PIN25_VOLT_INPUT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-0x20<BR>
--#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ADT7462_PIN29_SHIFT&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* cfg3 */<BR>
-&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ADT7462_PIN28_SHIFT&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /* cfg3 */<BR>
-&nbsp;#define&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-ADT7462_PIN28_VOLT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x5<BR>
-<BR>
-@@ -183,7 +182,7 @@<BR>
++++ adt7462.c.volt_count&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
+2009-12-16 14:06:01.000000000 -0800<BR>
+@@ -182,7 +182,7 @@<BR>
 &nbsp; *<BR>
 &nbsp; * Some, but not all, of these voltages have low/high limits.<BR>
 &nbsp; */<BR>
--#define ADT7462_VOLT_COUNT&nbsp;&nbsp;&nbsp;&nbsp; 13<BR>
-+#define ADT7462_VOLT_COUNT&nbsp;&nbsp;&nbsp;&nbsp; 12<BR>
+-#define ADT7462_VOLT_COUNT&nbsp;&nbsp;&nbsp;&nbsp; 12<BR>
++#define ADT7462_VOLT_COUNT&nbsp;&nbsp;&nbsp;&nbsp; 13<BR>
 <BR>
-&nbsp;#define ADT7462_VENDOR &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-0x41<BR>
-&nbsp;#define ADT7462_DEVICE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-0x62<BR>
-@@ -325,13 +324,13 @@<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 10:<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x6A;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x50;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x4C;<BR>
-@@ -384,13 +383,13 @@<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 10:<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x73;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x76;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x77;<BR>
-@@ -443,13 +442,13 @@<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 10:<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x91;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x94;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 0x95;<BR>
-@@ -535,13 +534,13 @@<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return &quot;+1.5&quot;;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return &quot;+1.5V =
-ICH&quot;;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; break;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return &quot;+1.5V =
-3GPIO&quot;;<BR>
-@@ -630,7 +629,7 @@<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 11:<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; case 12:<BR>
--&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN29_SHIFT =3D=3D<BR>
-+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; if (data-&gt;pin_cfg[3] =
-&gt;&gt; ADT7462_PIN28_SHIFT =3D=3D<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ADT7462_PIN28_VOLT =
-&amp;&amp;<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; =
-!(data-&gt;pin_cfg[0] &amp; ADT7462_VID_INPUT))<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return 7800;<BR>
-<BR>
-<BR>
-<BR>
+&nbsp;#define =
+ADT7462_VENDOR&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x41<BR>
+&nbsp;#define =
+ADT7462_DEVICE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0x62<BR>
 </FONT>
 </P>
 
 </BODY>
 </HTML>
-------_=_NextPart_001_01CA7E79.618D6995--
+------_=_NextPart_001_01CA7EB8.4B916955--
 
 
---===============6518689384888039629==
+--===============2473336370049281732==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -446,4 +131,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6518689384888039629==--
+--===============2473336370049281732==--
