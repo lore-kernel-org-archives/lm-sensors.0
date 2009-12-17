@@ -1,32 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 17 Dec 2009 16:14:45 +0000
+From: "Ray Copeland" <ray.copeland@aprius.com>
+Date: Thu, 17 Dec 2009 17:37:32 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for
-Message-Id: <20091217171445.0bd28259@hyperion.delvare>
+Message-Id: <AFEAE911EE22F64BACAB05ED86B4D4FC01C5CF2C@EXVBE012-13.exch012.intermedia.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA312@EXVBE012-13.exch012.intermedia.net>
-	<AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net>
-	<AFEAE911EE22F64BACAB05ED86B4D4FC018DA328@EXVBE012-13.exch012.intermedia.net>
-In-Reply-To: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA328@EXVBE012-13.exch012.intermedia.net>
+References: <AFEAE911EE22F64BACAB05ED86B4D4FC018DA312@EXVBE012-13.exch012.intermedia.net><AFEAE911EE22F64BACAB05ED86B4D4FC018DA31A@EXVBE012-13.exch012.intermedia.net><AFEAE911EE22F64BACAB05ED86B4D4FC018DA328@EXVBE012-13.exch012.intermedia.net> <20091217171445.0bd28259@hyperion.delvare>
+In-Reply-To: <20091217171445.0bd28259@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ray Copeland <ray.copeland@aprius.com>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+Hi, Jean, thanks for letting me know.  This is my first time sending a
+patch, and I should have sent
+it first to Darrick to have him review it before I posted directly to
+the group.  He told me how to
+rework it properly so that I will do it right next time.
+
+Sorry if this caused any problem for you.
+
+Regards,
+
+Ray Copeland
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: Thursday, December 17, 2009 8:15 AM
+To: Ray Copeland
+Cc: linux-kernel@vger.kernel.org; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for
+linux-2.6.30 adt7462 hwmon driver
 
 Hi Ray,
 
 On Wed, 16 Dec 2009 17:26:19 -0800, Ray Copeland wrote:
 > From: Ray Copeland <ray.copeland@aprius.com>
 > Date: Wed, 16 Dec 2009
-> Subject: [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462 hwmon driver 
+> Subject: [PATCH 1/2] Wrong ADT7462_VOLT_COUNT for linux-2.6.30 adt7462
+hwmon driver 
 > 
 > Description:
 > 
-> The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All the 
-> for loops that use this as a limit count are of the typical form, "for 
-> (n = 0; n < ADT7462_VOLT_COUNT; n++)", so to loop through all voltages 
-> w/o missing the last one it is necessary for the count to be one greater 
-> than it is.  (Specifically, you will miss the +1.5V 3GPIO input with count 
+> The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All
+the 
+> for loops that use this as a limit count are of the typical form, "for
+
+> (n = 0; n < ADT7462_VOLT_COUNT; n++)", so to loop through all voltages
+
+> w/o missing the last one it is necessary for the count to be one
+greater 
+> than it is.  (Specifically, you will miss the +1.5V 3GPIO input with
+count 
 > = 12 vs. 13.)
 > 
 > Signed-off-by: Ray Copeland <ray.copeland@aprius.com>
