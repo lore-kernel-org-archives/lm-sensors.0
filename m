@@ -1,31 +1,67 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 18 Jan 2010 08:45:56 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Do not fail if MBIF
-Message-Id: <20100118094556.1bf88126@hyperion.delvare>
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Date: Mon, 04 Jan 2010 23:43:55 +0000
+Subject: [lm-sensors] [PATCH 1/5] via686a: make PCI device id constant
+Message-Id: <4B427D3B.6080709@freemail.hu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100117220534.GA6226@nb-core2.darkstar.lan>
-In-Reply-To: <20100117220534.GA6226@nb-core2.darkstar.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: lm-sensors@lm-sensors.org
+Cc: Julia Lawall <julia@diku.dk>, cocci@diku.dk, LKML <linux-kernel@vger.kernel.org>
 
-On Sun, 17 Jan 2010 23:31:31 +0100, Juan RP wrote:
-> On Sun, 17 Jan 2010 23:05:34 +0100
-> Luca Tettamanti <kronos.it@gmail.com> wrote:
-> 
-> > MBIF (motherboard identification) is only used to print the name of
-> > the board, it's not essential for the driver; do not fail if it's
-> > missing. Based on Juan's patch.
-> > 
-> > Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> 
-> Signed-off-by: Juan RP <xtraeme@gmail.com>
+From: Márton Németh <nm127@freemail.hu>
 
-Applied, thanks!
+The id_table field of the struct pci_driver is constant in <linux/pci.h>
+so it is worth to make pci_device_id also constant.
 
--- 
-Jean Delvare
+The semantic match that finds this kind of pattern is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@r@
+identifier I1, I2, x;
+@@
+	struct I1 {
+	  ...
+	  const struct I2 *x;
+	  ...
+	};
+@s@
+identifier r.I1, y;
+identifier r.x, E;
+@@
+	struct I1 y = {
+	  .x = E,
+	};
+@c@
+identifier r.I2;
+identifier s.E;
+@@
+	const struct I2 E[] = ... ;
+@depends on !c@
+identifier r.I2;
+identifier s.E;
+@@
++	const
+	struct I2 E[] = ...;
+// </smpl>
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+Cc: Julia Lawall <julia@diku.dk>
+Cc: cocci@diku.dk
+---
+diff -u -p a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+--- a/drivers/hwmon/via686a.c 2009-12-03 04:51:21.000000000 +0100
++++ b/drivers/hwmon/via686a.c 2010-01-03 20:55:10.000000000 +0100
+@@ -767,7 +767,7 @@ static struct via686a_data *via686a_upda
+ 	return data;
+ }
+
+-static struct pci_device_id via686a_pci_ids[] = {
++static const struct pci_device_id via686a_pci_ids[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4) },
+ 	{ 0, }
+ };
 
 _______________________________________________
 lm-sensors mailing list
