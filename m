@@ -1,27 +1,32 @@
-From: Andriy Gapon <avg@icyb.net.ua>
-Date: Wed, 13 Jan 2010 08:19:30 +0000
-Subject: Re: [lm-sensors] Status/support for Linux HECI from Intel? (for
-Message-Id: <4B4D8212.6080806@icyb.net.ua>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 06 Jan 2010 10:12:52 +0000
+Subject: Re: [lm-sensors] Troubleshooting SCH5127 / DME1737
+Message-Id: <20100106111252.19b4dea2@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.1.10.0812300700410.11356@p34.internal.lan>	 <4964DB3E.6080908@intel.com>	 <alpine.DEB.1.10.0901071142200.29147@p34.internal.lan>	 <1231356111.6648.2.camel@maxim-laptop> <49937CDF.10307@frugalware.org>	 <alpine.DEB.1.10.0902121236120.19381@p34.internal.lan> <1820d69d1001040551k26cfd925q4ada6b226740ac30@mail.gmail.com>
-In-Reply-To: <1820d69d1001040551k26cfd925q4ada6b226740ac30@mail.gmail.com>
+References: <3647.66.169.133.216.1259294200.squirrel@webmail.myamigos.us>
+In-Reply-To: <3647.66.169.133.216.1259294200.squirrel@webmail.myamigos.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Gabriel C <nix.or.die@googlemail.com>
-Cc: Justin Piszcz <jpiszcz@lucidpixels.com>, Gabriel C <crazy@frugalware.org>, Maxim Levitsky <maximlevitsky@gmail.com>, Dan Williams <dan.j.williams@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-on 04/01/2010 15:51 Gabriel C said the following:
-> @Andriy there is a smallish bug in your original code .. you should
-> use ..... , abs(value) ...., abs(value) ...);
-> that will solve the negative CPU TEMP values you get with your version.
+Hi Juerg,
 
-I wasn't sure about this, my impression was that negative temperatures were
-offsets from some threshold.  E.g. Tcur - Tcrit.  In my case I saw negative
-temperature only for CPU which fitted the hypothesis.
+On Mon, 21 Dec 2009 10:18:26 -0800, Juerg Haefliger wrote:
+> > Juerg, at this point I really need your help. I would like us to add
+> > proper support for the SCH5127 to your dme1737 driver so that users
+> > don't have to learn about the force_id trick. But I can't do that
+> > safely without a datasheet. As only you have access to them, I need you
+> > to tell us in which ways, if any, the SCH5127 differs from the SCH311x.
+> 
+> It's on my todo list for the christmas break :-) I started pulling up
+> the datasheet and looking at the diffs. Give me a few days to come up
+> with a patch.
+
+Great. Anything new by now?
 
 -- 
-Andriy Gapon
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
