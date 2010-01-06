@@ -1,266 +1,176 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Wed, 13 Jan 2010 20:56:50 +0000
-Subject: [lm-sensors] [PATCH RFC 1/1] Add the sensors-config tool
-Message-Id: <20100113205650.GB1856@andre-laptop>
+From: Bill Gatliff <bgat@billgatliff.com>
+Date: Wed, 06 Jan 2010 04:30:35 +0000
+Subject: [lm-sensors] [PATCH 1/2] Use struct of_i2c_gpio_chip instead of raw
+Message-Id: <1262752236-1937-3-git-send-email-bgat@billgatliff.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1262752236-1937-1-git-send-email-bgat@billgatliff.com>
+	<1262752236-1937-2-git-send-email-bgat@billgatliff.com>
+In-Reply-To: <1262752236-1937-2-git-send-email-bgat@billgatliff.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linuxppc-dev@ozlabs.org, lm-sensors@lm-sensors.org
+Cc: Bill Gatliff <bgat@billgatliff.com>
 
-This tool helps you to configure lm-sensors. Some of the features are:
+This patch is the first in a series that improves the pca953x driver's
+support for CONFIG_OF_GPIO a.k.a. device trees.  It modifies the driver's
+chip structure definition to use a struct gpio_chip contained in a struct
+of_i2c_gpio_chip when CONFIG_OF_GPIO is set.  If OF_GPIO is not used,
+an ordinary struct gpio_chip is employed.
 
-* Download configs from lm-sensors.org and build an archive
-* Install archives into file system
-* List all the available configs
-* Install configs by vendor and board name or automatically based on DMI data
-* Show DMI data
-
+Signed-off-by: Bill Gatliff <bgat@billgatliff.com>
 ---
- prog/detect/sensors-config.py |  237 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 237 insertions(+)
+ drivers/gpio/pca953x.c |   50 ++++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 36 insertions(+), 14 deletions(-)
 
-Index: prog/detect/sensors-config.py
-=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ prog/detect/sensors-config.py	2010-01-13 20:32:29.673177231 +0100
-@@ -0,0 +1,237 @@
-+#!/usr/bin/python
+diff --git a/drivers/gpio/pca953x.c b/drivers/gpio/pca953x.c
+index b097043..9c70963 100644
+--- a/drivers/gpio/pca953x.c
++++ b/drivers/gpio/pca953x.c
+@@ -56,18 +56,34 @@ struct pca953x_chip {
+ 	unsigned gpio_start;
+ 	uint16_t reg_output;
+ 	uint16_t reg_direction;
++	struct gpio_chip *gpio_chip;
+ 
+ 	struct i2c_client *client;
+ 	struct pca953x_platform_data *dyn_pdata;
+-	struct gpio_chip gpio_chip;
+ 	char **names;
 +
-+import os
-+import sys
-+import optparse
-+import urllib
-+import re
-+
-+config_dir = '/usr/local/share/sensors/conf'
-+config_install_dir = '/etc/sensors.d'
-+dmi_dir = '/sys/class/dmi/id'
-+config_url="http://www.lm-sensors.org/wiki/Configurations"
-+
-+configs = {
-+    'ASRock' : ['AM2NF3-VSTA'],
-+    'Abit' : ['AA8-DuraMAX', 'AA8XE-Fatal1ty', 'AI7', 'AN7',
-+              'AN8-SLI', 'AV8', 'AX8', 'Aa7-Max', 'Ag7', 'KN9-Ultra',
-+              'KV8-MAX3', 'Kv8Pro', 'VA-20'],
-+    'Asus' : ['KFN4-DRE', 'M2N-SLI Deluxe'],
-+    'DFI' : ['CFX3200-M2-G-infinity', 'Lanparty NF4 Expert',
-+             'Lanparty UT 790FX'],
-+    'Epox' : ['M1697', 'MF4-Ultra3'],
-+    'Evga' : ['x58-SLI'],
++#ifdef CONFIG_OF_GPIO
++	struct of_i2c_gpio_chip i2c_gc;
++#else
++	struct gpio_chip gc;
++#endif
+ };
+ 
++static inline struct pca953x_chip *to_pca953x_chip(struct gpio_chip *gc)
++{
++#ifdef CONFIG_OF_GPIO
++	return container_of(gc, struct pca953x_chip, i2c_gc.of_gc.gc);
++#else
++	return container_of(gc, struct pca953x_chip, gc);
++#endif
 +}
 +
-+def get_vendor_list():
-+    try:
-+        dir = os.listdir(config_dir)
-+        dir.sort()
-+        return dir
 +
-+    except OSError:
-+        print "Could not find configurations in " + config_dir
-+        dir = []
-+        return dir
+ static int pca953x_write_reg(struct pca953x_chip *chip, int reg, uint16_t val)
+ {
+ 	int ret;
+ 
+-	if (chip->gpio_chip.ngpio <= 8)
++	if (chip->gpio_chip->ngpio <= 8)
+ 		ret = i2c_smbus_write_byte_data(chip->client, reg, val);
+ 	else
+ 		ret = i2c_smbus_write_word_data(chip->client, reg << 1, val);
+@@ -84,7 +100,7 @@ static int pca953x_read_reg(struct pca953x_chip *chip, int reg, uint16_t *val)
+ {
+ 	int ret;
+ 
+-	if (chip->gpio_chip.ngpio <= 8)
++	if (chip->gpio_chip->ngpio <= 8)
+ 		ret = i2c_smbus_read_byte_data(chip->client, reg);
+ 	else
+ 		ret = i2c_smbus_read_word_data(chip->client, reg << 1);
+@@ -104,7 +120,7 @@ static int pca953x_gpio_direction_input(struct gpio_chip *gc, unsigned off)
+ 	uint16_t reg_val;
+ 	int ret;
+ 
+-	chip = container_of(gc, struct pca953x_chip, gpio_chip);
++	chip = to_pca953x_chip(gc);
+ 
+ 	reg_val = chip->reg_direction | (1u << off);
+ 	ret = pca953x_write_reg(chip, PCA953X_DIRECTION, reg_val);
+@@ -122,7 +138,7 @@ static int pca953x_gpio_direction_output(struct gpio_chip *gc,
+ 	uint16_t reg_val;
+ 	int ret;
+ 
+-	chip = container_of(gc, struct pca953x_chip, gpio_chip);
++	chip = to_pca953x_chip(gc);
+ 
+ 	/* set output level */
+ 	if (val)
+@@ -152,7 +168,7 @@ static int pca953x_gpio_get_value(struct gpio_chip *gc, unsigned off)
+ 	uint16_t reg_val;
+ 	int ret;
+ 
+-	chip = container_of(gc, struct pca953x_chip, gpio_chip);
++	chip = to_pca953x_chip(gc);
+ 
+ 	ret = pca953x_read_reg(chip, PCA953X_INPUT, &reg_val);
+ 	if (ret < 0) {
+@@ -172,7 +188,7 @@ static void pca953x_gpio_set_value(struct gpio_chip *gc, unsigned off, int val)
+ 	uint16_t reg_val;
+ 	int ret;
+ 
+-	chip = container_of(gc, struct pca953x_chip, gpio_chip);
++	chip = to_pca953x_chip(gc);
+ 
+ 	if (val)
+ 		reg_val = chip->reg_output | (1u << off);
+@@ -190,7 +206,7 @@ static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
+ {
+ 	struct gpio_chip *gc;
+ 
+-	gc = &chip->gpio_chip;
++	gc = chip->gpio_chip;
+ 
+ 	gc->direction_input  = pca953x_gpio_direction_input;
+ 	gc->direction_output = pca953x_gpio_direction_output;
+@@ -265,6 +281,12 @@ static int __devinit pca953x_probe(struct i2c_client *client,
+ 	if (chip = NULL)
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_OF_GPIO
++	chip->gpio_chip = &chip->i2c_gc.of_gc.gc;
++#else
++	chip->gpio_chip = &chip->gc;
++#endif
 +
-+
-+def list_vendors():
-+    dir = get_vendor_list()
-+    for name in dir:
-+        print name
-+
-+
-+def get_board_list(vendor):
-+    try:
-+        dir = os.listdir(config_dir + '/' + vendor)
-+        dir.sort()
-+
-+        return dir
-+
-+    except:
-+        print "Could not find a configuration for " + vendor
-+        dir = []
-+        return dir
-+
-+
-+def list_boards(vendor):
-+    dir = get_board_list(vendor)
-+    for name in dir:
-+        print name
-+
-+
-+def clear_config_dir():
-+    try:
-+        dir = os.listdir(config_install_dir)
-+        for name in dir:
-+            os.remove(config_install_dir  + '/' + name)
-+
-+    except OSError:
-+        return
-+
-+
-+def install(config):
-+    sys.stdout.write('This will delete older configurations. Do you want to proceed? [y/N]: ')
-+    line = sys.stdin.readline()
-+    if (line[0] = 'N' or line[0] = 'n' or line[0] = '\n'):
-+        return
-+
-+    clear_config_dir()
-+
-+    src = config_dir + '/' + config
-+    dst = '/etc/sensors.d'
-+    os.system('cp %s %s' % (config_dir + '/' + config, '/etc/sensors.d'));
-+
-+
-+def get_dmi_data():
-+    dmi = {'sys_vendor': '',
-+           'product_name': '',
-+           'product_version': '',
-+           'board_vendor': '',
-+           'board_name': '',
-+           'board_version': '',
-+           'chassis_type': ''}
-+
-+    for key in dmi:
-+        f = open(dmi_dir + '/' + key, 'r')
-+        dmi[key] = f.read().rstrip('\n')
-+        f.close()
-+
-+    return dmi
-+
-+
-+def show_dmi():
-+    dmi = get_dmi_data()
-+    keys = dmi.keys()
-+    keys.sort()
-+    for key in keys:
-+        print key + ': ' + dmi[key]
-+
-+
-+def install_archive(archive):
-+    if (os.path.exists(config_dir) = False):
-+        os.makedirs(config_dir)
-+    os.system("tar -xzf" + archive + " -C" + config_dir)
-+
-+
-+def uninstall_archive():
-+    if (os.path.exists(config_dir) = True):
-+        os.system("rm -rf " + config_dir)
-+
-+
-+def find_board(dmi, dir):
-+    for name in dir:
-+        if (dmi['board_name'].lower().find(name.lower()) != -1):
-+            return name
-+
-+    return ''
-+
-+
-+def find_vendor(vendor, board):
-+    dmi = get_dmi_data()
-+
-+    if (vendor):
-+        dmi['board_vendor'] = vendor
-+
-+    if (board):
-+        dmi['board_name'] = board
-+
-+    dir = get_vendor_list()
-+    board_dir = ''
-+    for name in dir:
-+        if (dmi['board_vendor'].lower().lower().find(name.lower()) != -1):
-+            board_dir = get_board_list(name)
-+            board = find_board(dmi, board_dir)
-+            if (board != ''):
-+                config = name + '/' + board
-+                print 'Found a suitable configuration: ' + config
-+                sys.stdout.write('Do you want to install this configuration? [y/N]: ')
-+                line = sys.stdin.readline()
-+                if (line[0] = 'Y' or line[0] = 'y'):
-+                    install(config);
-+
-+
-+def fetch_configs():
-+    for key in configs:
-+        os.mkdir(key)
-+        boards = configs[key]
-+        for board in boards:
-+            print 'Fetch config for ' + key + '/' + board
-+            url = urllib.urlopen(config_url + '/' + key + '/' + board +
-+                                 '?format=txt')
-+
-+            data = url.read()
-+            start = data.find('{{{')
-+            start = data.find('\n', start)
-+            end = data.find('}}}')
-+            data = data[start + 1:end]
-+            url.close()
-+
-+            f = open(key + '/' + board, 'w')
-+            f.write(data)
-+            f.close()
-+
-+    os.system('tar czf configuration.tar.gz *')
-+
-+
-+def parse_cmdline():
-+    parser = optparse.OptionParser()
-+    parser.add_option('-l', '--list-vendors', dest='opt_list_vendors',
-+                      action='store_true', help='lists all the vendors');
-+    parser.add_option('-b', '--list-boards', dest='opt_list_boards',
-+                      help='lists the boards for a given vendor')
-+    parser.add_option('-i', '--install', dest='opt_install',
-+                      help='installs the given configuration')
-+    parser.add_option('-d', '--show-dmi', dest='opt_show_dmi',
-+                      action='store_true', help='shows DMI data')
-+    parser.add_option('-a', '--install-archive', dest='opt_install_archive',
-+                      help='installs the given archive')
-+    parser.add_option('-u', '--uninstall-archive',
-+                      dest='opt_uninstall_archive', action='store_true',
-+                      help='removes configurations from archive')
-+    parser.add_option('-f', '--find-board', dest='opt_find_board',
-+                      action='store_true',
-+                      help='find a configuration based on DMI data')
-+    parser.add_option('-B', '--dmi-board', dest='opt_dmi_board',
-+                      help='overwrites DMI data for board')
-+    parser.add_option('-V', '--dmi-vendor', dest='opt_dmi_vendor',
-+                      help='overwrites DMI data for vendor')
-+    parser.add_option('-t', '--fetch-configs', dest='opt_fetch_configs',
-+                      action='store_true',
-+                      help='fetches configurations from lm-sensors.org')
-+
-+    return parser.parse_args()
-+
-+
-+# Main
-+try:
-+    (options, args) = parse_cmdline()
-+
-+    if (options.opt_list_vendors):
-+        list_vendors()
-+
-+    if (options.opt_list_boards):
-+        list_boards(options.opt_list_boards)
-+
-+    if (options.opt_install):
-+        install(options.opt_install)
-+
-+    if (options.opt_show_dmi):
-+        show_dmi()
-+
-+    if (options.opt_install_archive):
-+        install_archive(options.opt_install_archive)
-+
-+    if (options.opt_uninstall_archive):
-+        uninstall_archive()
-+
-+    if (options.opt_find_board):
-+        find_vendor(options.opt_dmi_vendor, options.opt_dmi_board)
-+
-+    if (options.opt_fetch_configs):
-+        fetch_configs()
-+
-+except (OSError), e:
-+    print e
-+
-+sys.exit(0)
+ 	pdata = client->dev.platform_data;
+ 	if (pdata = NULL) {
+ 		pdata = pca953x_get_alt_pdata(client);
+@@ -306,13 +328,13 @@ static int __devinit pca953x_probe(struct i2c_client *client,
+ 		goto out_failed;
+ 
+ 
+-	ret = gpiochip_add(&chip->gpio_chip);
++	ret = gpiochip_add(chip->gpio_chip);
+ 	if (ret)
+ 		goto out_failed;
+ 
+ 	if (pdata->setup) {
+-		ret = pdata->setup(client, chip->gpio_chip.base,
+-				chip->gpio_chip.ngpio, pdata->context);
++		ret = pdata->setup(client, chip->gpio_chip->base,
++				chip->gpio_chip->ngpio, pdata->context);
+ 		if (ret < 0)
+ 			dev_warn(&client->dev, "setup failed, %d\n", ret);
+ 	}
+@@ -333,8 +355,8 @@ static int pca953x_remove(struct i2c_client *client)
+ 	int ret = 0;
+ 
+ 	if (pdata->teardown) {
+-		ret = pdata->teardown(client, chip->gpio_chip.base,
+-				chip->gpio_chip.ngpio, pdata->context);
++		ret = pdata->teardown(client, chip->gpio_chip->base,
++				chip->gpio_chip->ngpio, pdata->context);
+ 		if (ret < 0) {
+ 			dev_err(&client->dev, "%s failed, %d\n",
+ 					"teardown", ret);
+@@ -342,7 +364,7 @@ static int pca953x_remove(struct i2c_client *client)
+ 		}
+ 	}
+ 
+-	ret = gpiochip_remove(&chip->gpio_chip);
++	ret = gpiochip_remove(chip->gpio_chip);
+ 	if (ret) {
+ 		dev_err(&client->dev, "%s failed, %d\n",
+ 				"gpiochip_remove()", ret);
+-- 
+1.6.5
+
 
 _______________________________________________
 lm-sensors mailing list
