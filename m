@@ -1,35 +1,25 @@
-From: Reinhard Nissl <rnissl@gmx.de>
-Date: Sun, 31 Jan 2010 21:55:34 +0000
-Subject: Re: [lm-sensors] ATK0110 on ASUS P6T WS Pro (BIOS 0804): CHASSIS3
-Message-Id: <4B65FC56.1090905@gmx.de>
+From: Bill Gatliff <bgat@billgatliff.com>
+Date: Wed, 06 Jan 2010 04:30:34 +0000
+Subject: [lm-sensors] [PATCH 0/2] *** SUBJECT HERE ***
+Message-Id: <1262752236-1937-2-git-send-email-bgat@billgatliff.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B5C22F4.2030801@gmx.de>
-In-Reply-To: <4B5C22F4.2030801@gmx.de>
+References: <1262752236-1937-1-git-send-email-bgat@billgatliff.com>
+In-Reply-To: <1262752236-1937-1-git-send-email-bgat@billgatliff.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linuxppc-dev@ozlabs.org, lm-sensors@lm-sensors.org
+Cc: Bill Gatliff <bgat@billgatliff.com>
 
-Hi,
+*** BLURB HERE ***
 
-Am 28.01.2010 13:37, schrieb Luca Tettamanti:
+Bill Gatliff (2):
+  Use struct of_i2c_gpio_chip instead of raw struct gpio_chip
+  Reorder initialization to better support device tree data
 
-> Your board is nonetheless interesting because it has both the
-> interfaces available (and both seems to be working).
-> If you could check the exact spelling of the labels in the BIOS it
-> might help me to better understand how the interface is selected.
-> E.g. does the BIOS display "CPU Fan Speed" or "CPU FAN Speed"?
+ drivers/gpio/pca953x.c |  168 +++++++++++++++++++++++++-----------------------
+ 1 files changed, 88 insertions(+), 80 deletions(-)
 
-CPU Fan Speed
-Chassis Fan 1 Speed
-Chassis Fan 2 Speed
-Chassis Fan 3 Speed
-Power Fan Speed
-
-Bye.
--- 
-Dipl.-Inform. (FH) Reinhard Nissl
-mailto:rnissl@gmx.de
 
 _______________________________________________
 lm-sensors mailing list
