@@ -1,46 +1,28 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 29 Jan 2010 17:26:46 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (s3c-hwmon): S3C hwmon requires
-Message-Id: <20100129182646.57f79f58@hyperion.delvare>
+Date: Wed, 06 Jan 2010 15:08:17 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Fix TjMax for Atom
+Message-Id: <20100106160817.72313551@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1264694548-30722-1-git-send-email-broonie@opensource.wolfsonmicro.com>
-In-Reply-To: <1264694548-30722-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+References: <20091224073102.GA23058@ywang-moblin2.bj.intel.com>
+In-Reply-To: <20091224073102.GA23058@ywang-moblin2.bj.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Yong Wang <yong.y.wang@linux.intel.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>, Huaxu Wan <huaxu.wan@intel.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Fri, 29 Jan 2010 16:58:52 +0000, Mark Brown wrote:
-> On Fri, Jan 29, 2010 at 05:46:02PM +0100, Jean Delvare wrote:
-> 
-> > Which tree are you looking at? I can't find an option named S3C_ADC.
-> > 
-> > What I do see is CONFIG_S3C24XX_ADC, however it seems to be
-> > platform-specific, so I doubt you can just "select" it on ARCH_S3C64XX.
-> 
-> -next, it's in Ben Dook's current S3C tree.
-> 
-> > Looking at the source tree, I also don't see ADC support for
-> > ARCH_S3C64XX at all, so I am curious if this patch was correct:
-> 
-> > http://lists.lm-sensors.org/pipermail/lm-sensors/2010-January/027712.html
-> 
-> > Maybe it's correct for some external tree and/or linux-next, but not
-> > Linus' current kernel.
-> 
-> > So, Mark, I can't take your patch, and Ben, I'll remove the other patch
-> > from my tree right now. These changes should go together with the
-> > related platform changes. Carrying them in the hwmon tree when all the
-> > related changes are in another tree can only cause trouble.
-> 
-> OK, the hwmon patches should just lift straight on to Ben's current tree
-> (the ADC generalisation is already there).  I guess Ben might want your
-> ack for the hwmon side?
+Hi Yong,
 
-I'm not the hwmon subsystem maintainer, and the changes are not related
-to this subsystem anyway, they are really platform integration changes
-rather than driver changes, but you and Ben have my ack for both
-patches if it makes you feel better ;)
+On Thu, 24 Dec 2009 15:31:02 +0800, Yong Wang wrote:
+> The max junction temperature of Atom N450/D410/D510 CPUs is 100 degrees Celsius.
+> Since these CPUs are always coupled with Intel NM10 chipset in one package, the
+> best way to verify whether an Atom CPU is N450/D410/D510 is to check the host
+> bridge device.
+> 
+> Signed-off-by: Yong Wang <yong.y.wang@intel.com>
+> Acked-by: Huaxu Wan <huaxu.wan@intel.com>
+
+Applied, thanks. I've also added a Kconfig dependency on CONFIG_PCI.
 
 -- 
 Jean Delvare
