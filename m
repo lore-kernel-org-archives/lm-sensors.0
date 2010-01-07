@@ -1,7 +1,7 @@
-From: Huaxu Wan <huaxu.wan@linux.intel.com>
-Date: Thu, 07 Jan 2010 08:21:57 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 07 Jan 2010 13:02:17 +0000
 Subject: Re: [lm-sensors] sensors show hdd temp instead of cpu temp using
-Message-Id: <20100107082157.GA7536@owl>
+Message-Id: <20100107140217.2b586da4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <b4184b2f1001041651x593dec41tf7e6a0dc71acecf8@mail.gmail.com>
 In-Reply-To: <b4184b2f1001041651x593dec41tf7e6a0dc71acecf8@mail.gmail.com>
@@ -10,11 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 00:07 Thu 07 Jan, vajorie wrote:
-> On Wed, Jan 6, 2010 at 8:59 PM, Huaxu Wan <huaxu.wan@linux.intel.com> wrote:
-> 
-> Hi,
-> 
+On Thu, 7 Jan 2010 00:07:28 -0500, vajorie wrote:
 > Thanks for your response (and it's truly great to hear from intel, as
 > a side note). If I got your message right, unfortunately, I'm not
 > literate at all about the internal mechanisms of hardware monitoring
@@ -25,10 +21,31 @@ On 00:07 Thu 07 Jan, vajorie wrote:
 > now, it's 29C) and it corresponds almost perfectly to hdd temperature
 > reported in Windows (checked with a reboot from Linux to Windows). The
 > average cpu temp reported in Windows is 50C+...
-> 
+
+You are doing several wrong assumptions.
+
+You assume that the temperatures reported by hwmonitor are correct. As
+this program is not provided by your hardware vendor, this may not be
+the case. What makes you believe that hwmonitor is right and Linux is
+wrong rather than the other way around?
+
+You also assume that the temperature values reported under Windows and
+under Linux should be the same. This may not be the case, depending on
+the thermal strategy used by each OS. Many things can change the CPU
+temperature, including the voltage and frequency at which it is
+operated, its load, and the use of C states.
+
+One thing I can say for sure is that the Linux coretemp driver does NOT
+report your hard disk drive's temperature. This is simply impossible
+technically.
+
 > Is it possible that what coretemp thinks is MSR is actually not it (I
 > don't know what I'm saying at this point)?
-> 
+
+No, it's not possible. The coretemp driver is reporting the CPU's
+temperature. Possibly not accurately, but in no way it can report
+something else's temperature.
+
 > This may be related to how Acer set (wrongly?) things up with Aspire
 > One D250 (via their bios??), but I'm not sure about that. Their bios
 > (?) already has other problems with this cpu[1].
@@ -40,18 +57,11 @@ On 00:07 Thu 07 Jan, vajorie wrote:
 > 
 > Thanks again for your reply.
 > Is there any way I can help debug this?
-> 
-> [1] https://bugs.launchpad.net/ubuntu/+source/cpufreqd/+bug/422858
 
+As this is an Acer machine... Did you try the acerhdf driver already?
 
-Following the link[1], get the package. Make and run the `./burnP6 &`
-twice to occpuy whole CPU. Check whether the coretemp temperature
-increase.
-
-[1] http://pages.sbcglobal.net/redelm/cpuburn_1_4_tar.gz
-
-Thanks
-Huaxu
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
