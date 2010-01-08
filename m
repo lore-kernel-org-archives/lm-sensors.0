@@ -1,68 +1,77 @@
-From: Jeremy Jackson <jerj@coplanar.net>
-Date: Sat, 16 Jan 2010 20:53:12 +0000
-Subject: Re: [lm-sensors] dme1737 datasheet
-Message-Id: <1263675192.32139.26.camel@ragnarok>
+From: Huaxu Wan <huaxu.wan@linux.intel.com>
+Date: Fri, 08 Jan 2010 16:01:44 +0000
+Subject: Re: [lm-sensors] hwmon: (coretemp) Check the sensor existence
+Message-Id: <20100108160144.GA23650@owl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1176080449.13814.51.camel@ragnarok>
-In-Reply-To: <1176080449.13814.51.camel@ragnarok>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sat, 2010-01-16 at 12:23 -0800, Juerg Haefliger wrote:
-> Hi Jeremy,
-> 
-> 
-> > Heh ok so it's a while ago... but someone wrote a watchdog driver for
-> > SCH311x, which I have tried to apply to DME1737, but no luck!
-> >
-> > Using superiotool to dump the registers, I can see no difference when
-> > BIOS has watchdog enabled/disabled.
-> >
-> > I have compared the LDN 0xa Realtime Registers with watchdog enabled vs
-> > disabled, and there is no difference.
-> >
-> > I tried searching Logical Device Numbers that superiotool doesn't have
-> > defined, but they don't seem to exist or be enabled by the BIOS,
-> >
-> > So either the motherboard has a 2nd watchdog that the BIOS uses
-> > (although I can't find any mention of a watchdog on nForce4 Ultra) or
-> > there *is* some difference between the SCH311x with public datasheed and
-> > the DME1737.  Maybe superiotool isn't printing the full information?  I
-> > am thinking of making it dump all 255 registers of all LDNs with
-> > watchdog enabled/disabled in BIOS, in case it's hiding in there
-> > somewhere.
-> >
-> > I know it's not strictly related to lm-sensors, but can anyone help?
-> 
-> What exactly are you looking for?
+On 11:28 Fri 08 Jan, Jean Delvare wrote:
+> Hi Huaxu,
+>=20
+> On Fri, 8 Jan 2010 17:23:27 +0800, Huaxu Wan wrote:
+> >=20
+> >     hwmon: (coretemp) Check the sensor existence instead of enumeration.
+> >=20
+> >     The processor supports a digital thermal sensor if CPUID.06H.EAX[0]=
+ =3D 1.
+> >=20
+> >     Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
+> >=20
+> > ---
+> >  Documentation/hwmon/coretemp |    3 ---
+> >  drivers/hwmon/coretemp.c     |   24 +++++++-----------------
+> >  2 files changed, 7 insertions(+), 20 deletions(-)
+> >=20
+>=20
+> Hmm. I don't like it for two reasons:
+>=20
+> * Which guarantee do we have that "the processor supports a digital
+>   thermal sensor" implies that this digital thermal sensor is
+>   compatible with what the Core/Core2/Atom have? Couldn't the format
+>   change in the future?
 
-On your advice (that watchdog function of these chips is the same), I
-have modified the SCH311x linux watchdog driver to recognize the device
-ID of DME1737... but it doesn't work!
+It's quote from page 612 of Software Developer=E2=80=99s Manual V3A[1](14.5=
+.5 On
+Die Digital Thermal Sensors). Look from the history, I think it's
+compatible with Core/Core2/Atom and even the feature CPU. Actually, this
+patch has tested on old P4, Core2, i3(launched today?) system, all works
+as expected.
 
-So I'm wondering if you can look at the watchdog function, and see if
-they are really the same.
+[1] http://www.intel.com/Assets/PDF/manual/253668.pdf
 
-To test, in the BIOS, I enable watchdog, boot linux, load driver, and
-watchdog reboots the machine after 110s (BIOS timeout). So, driver fails
-to turn off wdt at load.
+> * Each CPU model has its own high temperature limit, which we use to
+>   compute the current temperature. So we can't pretend that we support
+>   all future CPU models, we really do not. Just look at how complex
+>   function adjust_tjmax is.
+>
 
-Turning watchdog off in BIOS, configuring watchdog on linux, timeout
-passes, and machine doesn't reboot.  So, driver fails to turn on
-watchdog.   
+TjMax varies with specific CPU series, sometimes even different within
+same modle for industrial temperature. At this point, we can't support
+all feature CPU models, but we can support all the released CPUs. I had
+a plan to make an investigation about those.
 
-I haven't checked if the watchdog register signals the timeout or not
-yet.  That might indicate the chip is partly programmed right.
+> It would only make sense to have "universal" support if the driver
+> could report a relative value. Unfortunately our sysfs interface
+> doesn't support this, although there have been discussions on that
+> topic lately:
+>=20
+> http://thread.gmane.org/gmane.linux.drivers.sensors/20721/focus=917317
+>=20
 
--- 
-Jeremy Jackson
-Coplanar Networks
-(519)489-4903
-http://www.coplanar.net
-jerj@coplanar.net
+This patch avoid to patch everytime for new release CPU. We foucs on
+the adjust_tjmax function calibration. I think the effort is much less
+than calibration for each CPU model.
 
+BTW, I saw openBSD[2] use the CPUID.06H.EAX[0] to identify the sensor.
+
+[2] http://archives.neohapsis.com/archives/openbsd/2007-05/2506.html
+
+--=20
+Thanks
+Huaxu
 
 _______________________________________________
 lm-sensors mailing list
