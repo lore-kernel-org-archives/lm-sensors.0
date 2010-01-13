@@ -1,89 +1,56 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 13 Jan 2010 14:37:47 +0000
+Date: Wed, 13 Jan 2010 15:20:34 +0000
 Subject: Re: [lm-sensors] Found unknown SMBus adapter 10de:0aa2 at
-Message-Id: <20100113153747.1dab14c5@hyperion.delvare>
+Message-Id: <20100113162034.2d3c2c7b@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20100113153747.1dab14c5@hyperion.delvare>
+In-Reply-To: <20100113153747.1dab14c5@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 13 Jan 2010 15:20:57 +0100, Manuel Lamotte-Schubert wrote:
-> Hi all,
->=20
-> I have an ZOTAC ION ITX-B mainboard.
-> (http://pden.zotac.com/index.php?page=3Dshop.product_details&flypage=3Dfl=
-ypage_images.tpl&product_id=168&category_id=15&option=3Dcom_virtuemart&Item=
-id=3D1)
->=20
-> I'm running Debian Lenny stable, having lm-sensors installed, Version:=20
-> 1:3.0.2-1+b2.
-> The kernel version is 2.6.32, self-compiled
->=20
-> Here's some output I get:
-> # lspci
+On Wed, 13 Jan 2010 15:49:35 +0100, Manuel Lamotte-Schubert wrote:
+> In fact, actually some minutes before your repsonse I've already run the most recent version of sensors-detect as you suggested.
+> 
+> Here's the output:
 > ...
-> 00:03.2 SMBus: nVidia Corporation Device 0aa2 (rev b1)
+> Intel Atom thermal sensor...                                Success!
+>     (driver `coretemp')
 > ...
->=20
-> # sensors-detect
+> Using driver `i2c-nforce2' for device 0000:00:03.2: nVidia Corporation nForce SMBus (MCP79)
 > ...
-> Found unknown SMBus adapter 10de:0aa2 at 0000:00:03.2.
+> Next adapter: SMBus nForce2 adapter at 4d00 (i2c-0)
+> Probing for `Winbond W83L771AWG/ASG'...                     Success!
+>     (confidence 6, driver `to-be-written')
 > ...
+> Driver `to-be-written':
+>   * Bus `SMBus nForce2 adapter at 4d00'
+>     Busdriver `i2c_nforce2', I2C address 0x4c
+>     Chip `Winbond W83L771AWG/ASG' (confidence: 6)
+> 
+> Driver `coretemp':
+>   * Chip `Intel Atom thermal sensor' (confidence: 9)
+> 
+> Note: there is no driver for Winbond W83L771AWG/ASG yet.
+> Check http://www.lm-sensors.org/wiki/Devices for updates.
+> 
+> 
+> This means that the sensor could be detected but there is no driver for using it?
 
-A more recent version of sensors-detect (lm-sensors 3.1.0 or later)
-would not show this message. Anyway, as long as the kernel itself knows
-about the device (and this is your case) it doesn't really matter.
+Yes. For the Atom CPU, support is in coretemp since kernel 2.6.32, so
+you should have it already. For the W83L771AWG/ASG, support can
+probably be added to the lm90 driver. I hoped that someone would send
+me a board with this chip, so that I could work on it, but it did not
+happen. If you send me a dump of your chip, I can give it a try.
 
-> # lspci -vv -s 00:03.2
-> 00:03.2 SMBus: nVidia Corporation Device 0aa2 (rev b1)
->         Subsystem: Device 19da:a108
->         Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-=20
-> ParErr- Stepping- SERR- FastB2B- DisINTx-
->         Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort-=20
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->         Interrupt: pin A routed to IRQ 11
->         Region 0: I/O ports at 4900 [sized]
->         Region 4: I/O ports at 4d00 [sized]
->         Region 5: I/O ports at 4e00 [sized]
->         Capabilities: [44] Power Management version 2
->                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA=20
-> PME(D0-,D1-,D2-,D3hot+,D3cold+)
->                 Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
->         Kernel driver in use: nForce2_smbus
->         Kernel modules: i2c-nforce2
+Install i2c-tools, then as root:
+# modprobe i2c-dev
+# i2cdump 0 0x4c b
 
-The i2c-nforce2 is used for the device, so it's OK.
+And send me the output.
 
->=20
-> # i2cdetect 0
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c-0.
-> I will probe address range 0x03-0x77.
-> Continue? [Y/n]
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- -- -- -- 08 -- -- -- -- -- -- --
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 40: -- -- -- -- -- -- -- -- -- -- -- -- 4c -- -- --
-> 50: 50 51 52 53 54 55 56 57 -- -- -- -- -- -- -- --
-> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 70: -- -- -- -- -- -- -- --
->=20
-> Any help would be appreciated, maybe I can help supporting it!
-
-You did not tell us which I2C/SMBus adapter i2c-0 was. But seeing the
-chips at 0x50-0x57, I would guess this is your graphics adapter, rather
-than the SMBus (unless you have 8 memory modules, but I wouldn't expect
-that on any Zotac product.) The chip at 0x4c could be a temperature
-monitoring chip, we'd need a dump to tell. But first just try a more
-recent version of sensors-detect:
-http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-
-And report the full output.
-
---=20
+-- 
 Jean Delvare
 http://khali.linux-fr.org/wishlist.html
 
