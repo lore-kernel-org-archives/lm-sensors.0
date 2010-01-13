@@ -1,56 +1,91 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 18 Jan 2010 08:14:51 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Fix TjMax for Atom
-Message-Id: <20100118091451.7f103914@hyperion.delvare>
+Date: Wed, 13 Jan 2010 14:37:47 +0000
+Subject: Re: [lm-sensors] Found unknown SMBus adapter 10de:0aa2 at
+Message-Id: <20100113153747.1dab14c5@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20091224073102.GA23058@ywang-moblin2.bj.intel.com>
-	<20100106160817.72313551@hyperion.delvare>
-	<20100110200621.564a6682@hyperion.delvare>
-	<20100111062024.GA20804@ywang-moblin2.bj.intel.com>
-	<SNT125-W147C55AB6EB65D41CAAFFFC3680@phx.gbl>
-	<20100117161518.4912be7c@hyperion.delvare>
-	<4B536502.20102@gmail.com>
-	<20100117210536.0ae0f187@hyperion.delvare>
-	<20100118065821.GA19008@ywang-moblin2.bj.intel.com>
-In-Reply-To: <20100118065821.GA19008@ywang-moblin2.bj.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Yong Wang <yong.y.wang@linux.intel.com>
-Cc: Robert Hancock <hancockrwd@gmail.com>, Yuhong Bao <yuhongbao_386@hotmail.com>, linux-kernel@vger.kernel.org, huaxu.wan@intel.com, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Mon, 18 Jan 2010 14:58:21 +0800, Yong Wang wrote:
-> On Sun, Jan 17, 2010 at 09:05:36PM +0100, Jean Delvare wrote:
-> > That's where I am confused. The patch checks for the presence of the
-> > Intel NM10, which, reading its description looks much like a south
-> > bridge and not a memory controller (north bridge). So I think the patch
-> > is wrong (or at least incomplete).
-> 
-> Sorry, I made a mistake in the patch description. The new Atom CPU is
-> coupled with integrated gfx and memory controller in one package. NM10
-> chipset is another chip. This patch does check the presence of the
-> integrated memory controller, i.e. 00:00.0 Host bridge device, which
-> will always be present no matter whether NM10 chipset is used or not.
+On Wed, 13 Jan 2010 15:20:57 +0100, Manuel Lamotte-Schubert wrote:
+> Hi all,
+>=20
+> I have an ZOTAC ION ITX-B mainboard.
+> (http://pden.zotac.com/index.php?page=3Dshop.product_details&flypage=3Dfl=
+ypage_images.tpl&product_id=168&category_id=15&option=3Dcom_virtuemart&Item=
+id=3D1)
+>=20
+> I'm running Debian Lenny stable, having lm-sensors installed, Version:=20
+> 1:3.0.2-1+b2.
+> The kernel version is 2.6.32, self-compiled
+>=20
+> Here's some output I get:
+> # lspci
+> ...
+> 00:03.2 SMBus: nVidia Corporation Device 0aa2 (rev b1)
+> ...
+>=20
+> # sensors-detect
+> ...
+> Found unknown SMBus adapter 10de:0aa2 at 0000:00:03.2.
+> ...
 
-OK. Then indeed the patch description was rather bad. Even the comments
-in the code are misleading, they mention the NM10 when they don't
-really have to.
+A more recent version of sensors-detect (lm-sensors 3.1.0 or later)
+would not show this message. Anyway, as long as the kernel itself knows
+about the device (and this is your case) it doesn't really matter.
 
-But at least if the code itself is OK... that's not that bad.
+> # lspci -vv -s 00:03.2
+> 00:03.2 SMBus: nVidia Corporation Device 0aa2 (rev b1)
+>         Subsystem: Device 19da:a108
+>         Control: I/O+ Mem- BusMaster- SpecCycle- MemWINV- VGASnoop-=20
+> ParErr- Stepping- SERR- FastB2B- DisINTx-
+>         Status: Cap+ 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=FAst >TAbort-=20
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Interrupt: pin A routed to IRQ 11
+>         Region 0: I/O ports at 4900 [sized]
+>         Region 4: I/O ports at 4d00 [sized]
+>         Region 5: I/O ports at 4e00 [sized]
+>         Capabilities: [44] Power Management version 2
+>                 Flags: PMEClk- DSI- D1- D2- AuxCurrent=3D0mA=20
+> PME(D0-,D1-,D2-,D3hot+,D3cold+)
+>                 Status: D0 PME-Enable- DSel=3D0 DScale=3D0 PME-
+>         Kernel driver in use: nForce2_smbus
+>         Kernel modules: i2c-nforce2
 
-> > Anyway, how difficult would it be to set TjMax based on the CPUID? I
-> > presume that the Intel Atom 400 and 500 series have their own CPUID
-> > value, haven't they? This would seem even easier that checking for a
-> > PCI device.
-> 
-> CPUID value (family and model number) remains the same for all Atom CPUs
-> thus far. That is why we check the new Atom CPU this way.
+The i2c-nforce2 is used for the device, so it's OK.
 
-What about the stepping value? Don't these CPU models have their own?
+>=20
+> # i2cdetect 0
+> WARNING! This program can confuse your I2C bus, cause data loss and worse!
+> I will probe file /dev/i2c-0.
+> I will probe address range 0x03-0x77.
+> Continue? [Y/n]
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00:          -- -- -- -- -- 08 -- -- -- -- -- -- --
+> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 40: -- -- -- -- -- -- -- -- -- -- -- -- 4c -- -- --
+> 50: 50 51 52 53 54 55 56 57 -- -- -- -- -- -- -- --
+> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 70: -- -- -- -- -- -- -- --
+>=20
+> Any help would be appreciated, maybe I can help supporting it!
 
-Thanks,
--- 
+You did not tell us which I2C/SMBus adapter i2c-0 was. But seeing the
+chips at 0x50-0x57, I would guess this is your graphics adapter, rather
+than the SMBus (unless you have 8 memory modules, but I wouldn't expect
+that on any Zotac product.) The chip at 0x4c could be a temperature
+monitoring chip, we'd need a dump to tell. But first just try a more
+recent version of sensors-detect:
+http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
+
+And report the full output.
+
+--=20
 Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
