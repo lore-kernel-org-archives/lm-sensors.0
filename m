@@ -1,64 +1,68 @@
 From: "Manuel Lamotte-Schubert" <mls@pronego.com>
-Date: Thu, 14 Jan 2010 17:49:27 +0000
-Subject: ***SPAM (-2.3)*** Re: Found unknown SMBus adapter 10de:0aa2 at
-Message-Id: <8493c326141f7d50cd5b9804dc2a4a98.squirrel@mail.pronego.com>
+Date: Thu, 14 Jan 2010 18:24:53 +0000
+Subject: ***SPAM (-3.0)*** Re: Found unknown SMBus adapter 10de:0aa2 at
+Message-Id: <76d45646bf33239e7a00463b16aa9c34.squirrel@mail.pronego.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Hi Jean,
 
-> On Wed, 13 Jan 2010 17:31:42 +0100, Manuel Lamotte-Schubert wrote:
->> Here's the output.
->>
->> # i2cdump 0 0x4c b
->> WARNING! This program can confuse your I2C bus, cause data loss and
->> worse!
->> I will probe file /dev/i2c-0, address 0x4c, mode byte
->> Continue? [Y/n]
->>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
->> 00: 2d 37 80 01 08 46 d8 46 d8 ff ff ff ff ff ff ff    -7???F?F?.......
->> 10: 00 00 00 00 00 00 00 04 00 6e 6e 46 d8 00 00 ff    .......?.nnF?...
->> 20: 55 0a ff ff 7f e0 ff ff ff ff ff ff ff ff ff ff    U?..??..........
->> 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 00    ................
->> c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff    ................
->> e0: 00 00 00 84 84 84 00 00 55 00 00 ff ff ff ff ff    ...???..U.......
->> f0: 08 00 00 00 84 00 00 36 80 fc 36 83 37 ff 5c 11    ?...?..6??6?7.\?
->>
->> > I hoped that someone would send
->> > me a board with this chip, so that I could work on it, but it did not
->> > happen. If you send me a dump of your chip, I can give it a try.
->> What do you need else for working on it except the board itself? Would
->> an
->> account on my machine be sufficient? What command do you need to run?
+> Hi Manuel,
 >
-> If you can rebuild a kernel with a patch applied, then you should be
-> able to do the tests for me. I'll post a patch in a few minutes.
+> On Thu, 14 Jan 2010 18:49:27 +0100, Manuel Lamotte-Schubert wrote:
+>> I've downloaded the 2.6.33-rc4 kernel and integrated your patch.
+>> Please note, that I could not apply the patch automatically.
+>> I had to apply it by hand because the line numbers from the patch file
+>> didn't match the numbers in the target files.
+>
+> I'm surprised. For one thing, "patch" is smart and can apply patches
+> even when line numbers don't match. For another, my patch was generated
+> exactly on top of 2.6.33-rc4, so it should have applied perfectly.
+
+The response from the patch program was something like "Patch failed" and
+it created the rejected files lm90.c.rej and KConfig.rej.
+
+>> Which tests shall I run now?
+>
+> Just load the lm90 driver then run "sensors", you should see an entry
+> for the W83L771 with two temperature. temp1 would be the board
+> temperature and temp2 the CPU temperature.
+
+Thats what I have already did but I was confused about the messages.
+Here's the output:
+
+# sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +52.0=B0C  (crit =3D +90.0=B0C)
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +52.0=B0C  (crit =3D +90.0=B0C)
+
+w83l771-i2c-0-4c
+Can't get adapter name
+temp1:       +51.0=B0C  (low  =3D -40.0=B0C, high =3D +70.0=B0C)
+                      (crit =3D +85.0=B0C, hyst =3D +75.0=B0C)
+temp2:       +68.5=B0C  (low  =3D -40.0=B0C, high =3D +70.0=B0C)
+                      (crit =3D +110.0=B0C, hyst =3D +100.0=B0C)
+
+I guess, the values temp1 and temp2, respectively, below the
+w83l771-i2c-0-4c are the board and CPU temperature.
+But what are the other temperatures, core 0 and core 1?
+
+Yet another question: will the patch be automatically integrated into the
+next kernel version or was it something special for me?
 >
 > --
 > Jean Delvare
+> http://khali.linux-fr.org/wishlist.html
 >
 
-Hi,
-
-I've downloaded the 2.6.33-rc4 kernel and integrated your patch.
-Please note, that I could not apply the patch automatically.
-I had to apply it by hand because the line numbers from the patch file
-didn't match the numbers in the target files.
-
-Which tests shall I run now?
-
-Cheers,
+Best regards,
 Manuel Lamotte-Schubert
 
 
