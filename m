@@ -1,124 +1,181 @@
-From: Matthieu.Rioteau@skf.com
-Date: Wed, 27 Jan 2010 11:26:00 +0000
-Subject: [lm-sensors] Can't get temperature sensor values on Atom N330
-Message-Id: <OF0C3158F5.B652D0B7-ONC12576B8.003A2BDC-C12576B8.003ECE1D@skf.com>
+From: ingo.gb@gmail.com
+Date: Mon, 18 Jan 2010 11:19:16 +0000
+Subject: [lm-sensors] strange lm_sensors readings
+Message-Id: <201001181219.16657.ingo.gb@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi all,
-I'm having troubles getting temperature sensor values on an Intel Atom=20
-N330 processor.
-The strangest thing si that a collegue of mine has exactly the same=20
-hardware and uses the same distro, and he is able to correctly get the=20
-values.
-We try to compare everything we can between our 2 systems but we saw no=20
-significant differences. So maybe you can help me fixing this boring=20
-issue.
+Hi,
 
-Here are are some basic information. I can give you more on demand if=20
-needed.
+I get readings which are some 20 degrees Centigrade off the BIOS readings. =
 
-Motherboard : Zotac IONITX A-E (ION chipset with Atom N330 core)
-Distro : Debian Squeeze amd64 (kernel 2.6.32-trunk-amd64)
-Lm-sensors : sensors version 3.1.1 with libsensors version 3.1.1
+Below a sensors-detect (I went along with the defaults) followed by a senso=
+rs=20
+command.=20
 
-Output of sensors :
---------------------------------------------------
-coretemp-isa-0000
-Adapter: ISA adapter
-ERROR: Can't get value of subfeature temp1_input: Can't read
-Core 0:       +0.0=B0C  (crit =3D +90.0=B0C)
+I have a P45TurboTwins2000 mobo from ASRock. Please let me know if there is=
+=20
+any other information you require...
+
+toad@deskarch 983\5 ~ > sudo sensors-detect=20
+Password:                                  =20
+# sensors-detect revision 5729 (2009-06-02 15:51:29 +0200)
+# System: To Be Filled By O.E.M. To Be Filled By O.E.M.  =20
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe =20
+and recommended to accept the default answers to all questions,  =20
+unless you know what you're doing.                               =20
+
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):          =20
+Silicon Integrated Systems SIS5595...                       No         =20
+VIA VT82C686 Integrated Sensors...                          No         =20
+VIA VT8231 Integrated Sensors...                            No         =20
+AMD K8 thermal sensors...                                   No         =20
+AMD K10 thermal sensors...                                  No         =20
+Intel Core family thermal sensor...                         Success!   =20
+    (driver `coretemp')                                                =20
+Intel AMB FB-DIMM thermal sensor...                         No         =20
+VIA C7 thermal and voltage sensors...                       No         =20
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.          =20
+Do you want to scan for Super I/O sensors? (YES/no):             =20
+Probing for Super-I/O at 0x2e/0x2f                               =20
+Trying family `National Semiconductor'...                   No   =20
+Trying family `SMSC'...                                     No   =20
+Trying family `VIA/Winbond/Fintek'...                       Yes  =20
+Found `Winbond W83627DHG Super IO Sensors'                  Success!
+    (address 0x290, driver `w83627ehf')                            =20
+Probing for Super-I/O at 0x4e/0x4f                                 =20
+Trying family `National Semiconductor'...                   No     =20
+Trying family `SMSC'...                                     No     =20
+Trying family `VIA/Winbond/Fintek'...                       No     =20
+Trying family `ITE'...                                      No     =20
+
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it   =20
+there, we have to read from arbitrary I/O ports to probe for such      =20
+interfaces. This is normally safe. Do you want to scan for IPMI        =20
+interfaces? (YES/no):                                                  =20
+Probing for `IPMI BMC KCS' at 0xca0...                      No         =20
+Probing for `IPMI BMC SMIC' at 0xca8...                     No         =20
+
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually =20
+safe though. Yes, you do have ISA I/O ports even if you do not have any=20
+ISA slots! Do you want to scan the ISA I/O ports? (yes/NO):            =20
+
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.                                                     =20
+Do you want to probe the I2C/SMBus adapters now? (YES/no):           =20
+Using driver `i2c-i801' for device 0000:00:1f.3: Intel ICH10         =20
+WARNING: All config files need .conf: /etc/modprobe.d/uvesafb.conf.pacsave,=
+ it=20
+will be ignored in a future release.
+Module i2c-dev loaded successfully.                                        =
+                                       =20
+
+Next adapter: SMBus I801 adapter at 0400 (i2c-0)
+Do you want to scan it? (yes/NO/selectively):  =20
+
+Next adapter: NVIDIA i2c adapter  (i2c-1)
+Do you want to scan it? (YES/no/selectively):=20
+Client found at address 0x4a                 =20
+Probing for `National Semiconductor LM75'...                No
+Probing for `Dallas Semiconductor DS75'...                  No
+Probing for `National Semiconductor LM77'...                No
+Probing for `Dallas Semiconductor DS1621/DS1631'...         No
+Probing for `National Semiconductor LM92'...                No
+Probing for `National Semiconductor LM76'...                No
+Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+Client found at address 0x4b                                 =20
+Probing for `National Semiconductor LM75'...                No
+Probing for `Dallas Semiconductor DS75'...                  No
+Probing for `National Semiconductor LM77'...                No
+Probing for `Dallas Semiconductor DS1621/DS1631'...         No
+Probing for `Maxim MAX6650/MAX6651'...                      No
+Probing for `National Semiconductor LM92'...                No
+Probing for `National Semiconductor LM76'...                No
+Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+Probing for `Analog Devices ADT7481'...                     No
+Client found at address 0x50                                 =20
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 No
+Probing for `EDID EEPROM'...                                Yes
+    (confidence 8, not a hardware monitoring chip)            =20
+Client found at address 0x51                                  =20
+Probing for `Analog Devices ADM1033'...                     No=20
+Probing for `Analog Devices ADM1034'...                     No=20
+Probing for `SPD EEPROM'...                                 No=20
+
+Next adapter: NVIDIA i2c adapter  (i2c-2)
+Do you want to scan it? (YES/no/selectively):=20
+
+Next adapter: NVIDIA i2c adapter  (i2c-3)
+Do you want to scan it? (YES/no/selectively):=20
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:                       =20
+
+Driver `w83627ehf':
+  * ISA bus, address 0x290
+    Chip `Winbond W83627DHG Super IO Sensors' (confidence: 9)
+
+Driver `coretemp':
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+Do you want to overwrite /etc/conf.d/lm_sensors? (YES/no):=20
+Copy prog/init/lm_sensors.init to /etc/rc.d/lm_sensors    =20
+for initialization at boot time.                          =20
+You should now start the lm_sensors service to load the required
+kernel modules.                                                =20
+
+Unloading i2c-dev... OK
+
+
+toad@deskarch 983\6 ~ > sensors
+coretemp-isa-0000             =20
+Adapter: ISA adapter          =20
+Core 0:      +50.0=B0C  (high =3D +78.0=B0C, crit =3D +100.0=B0C) =20
 
 coretemp-isa-0001
 Adapter: ISA adapter
-Core 1:       +3.0=B0C  (crit =3D +90.0=B0C)
+Core 1:      +44.0=B0C  (high =3D +78.0=B0C, crit =3D +100.0=B0C)
 
-coretemp-isa-0002
+w83627dhg-isa-0290
 Adapter: ISA adapter
-ERROR: Can't get value of subfeature temp1_input: Can't read
-Core 2:       +0.0=B0C  (crit =3D +90.0=B0C)
+Vcore:       +1.21 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+in1:         +1.83 V  (min =3D  +1.98 V, max =3D  +1.80 V)   ALARM
+AVCC:        +3.33 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+VCC:         +3.33 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+in4:         +1.12 V  (min =3D  +1.40 V, max =3D  +0.44 V)   ALARM
+in5:         +1.66 V  (min =3D  +1.59 V, max =3D  +0.73 V)   ALARM
+in6:         +1.70 V  (min =3D  +1.95 V, max =3D  +0.61 V)   ALARM
+3VSB:        +3.31 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+Vbat:        +3.15 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+fan1:          0 RPM  (min =3D 5273 RPM, div =3D 128)  ALARM
+fan2:       1757 RPM  (min =3D 2376 RPM, div =3D 8)  ALARM
+fan3:          0 RPM  (min =3D  753 RPM, div =3D 128)  ALARM
+fan5:          0 RPM  (min =3D 3515 RPM, div =3D 128)  ALARM
+temp1:       +35.0=B0C  (high =3D +58.0=B0C, hyst =3D +91.0=B0C)  sensor =
+=3D thermistor
+temp2:       +58.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D thermistor
+temp3:       +19.5=B0C  (high =3D +20.0=B0C, hyst =3D +20.0=B0C)  sensor =
+=3D thermistor
+cpu0_vid:   +2.050 V
 
-coretemp-isa-0003
-Adapter: ISA adapter
-Core 3:       +3.0=B0C  (crit =3D +90.0=B0C)
---------------------------------------------------
 
-Nothing significant in dmesg (from my point of view), everything is well=20
-loaded.
-
-Sensors-detect detects nothing but it's the same on my collegue's PC tha=20
-is working.
-
-Output of lsmod :
---------------------------------------------------
-Module                  Size  Used by
-coretemp                4165  0
-loop                   11767  0
-snd_hda_codec_nvhdmi     3279  1
-snd_hda_codec_realtek   235095  1
-arc4                    1274  2
-ecb                     1841  2
-ath9k                 249632  0
-snd_hda_intel          18147  0
-snd_hda_codec          54212  3=20
-snd_hda_codec_nvhdmi,snd_hda_codec_realtek,snd_hda_intel
-mac80211              135407  1 ath9k
-ath                     8006  1 ath9k
-snd_hwdep               5364  1 snd_hda_codec
-snd_pcm                60615  2 snd_hda_intel,snd_hda_codec
-cfg80211              101253  3 ath9k,mac80211,ath
-snd_timer              15502  1 snd_pcm
-evdev                   7336  4
-i2c_nforce2             5264  0
-i2c_core               15584  1 i2c_nforce2
-rfkill                 12996  1 cfg80211
-led_class               2401  1 ath9k
-pcspkr                  1699  0
-snd                    44718  6=20
-snd_hda_codec_realtek,snd_hda_intel,snd_hda_codec,snd_hwdep,snd_pcm,snd_tim=
-er
-soundcore               4598  1 snd
-snd_page_alloc          6217  2 snd_hda_intel,snd_pcm
-shpchp                 25928  0
-pci_hotplug            21171  1 shpchp
-serio_raw               3752  0
-psmouse                49521  0
-wmi                     4307  0
-processor              29479  0
-ext3                  106454  2
-jbd                    37037  1 ext3
-mbcache                 4970  1 ext3
-sd_mod                 29673  5
-crc_t10dif              1276  1 sd_mod
-ata_generic             2983  0
-ide_pci_generic         2788  0
-ide_core               76802  1 ide_pci_generic
-ahci                   31494  5
-ohci_hcd               19196  0
-libata                131655  2 ata_generic,ahci
-ehci_hcd               30578  0
-scsi_mod              121909  2 sd_mod,libata
-forcedeth              45432  0
-usbcore               121687  3 ohci_hcd,ehci_hcd
-nls_base                6377  1 usbcore
-button                  4634  0
-thermal                11674  0
-fan                     3346  0
-thermal_sys            11878  3 processor,thermal,fan
---------------------------------------------------
-
-I think lspci or i2cdetect isn't needed since the temperature is read as a =
-
-CPU register from what I understood of the code.
-
-If somebody needs more information for deeper investigation, feel free to=20
-ask for it and I'll try to quickly provide.
-
-Thanks for support,
-Matthieu
+toad@deskarch 977\7 ~ >
 
 _______________________________________________
 lm-sensors mailing list
