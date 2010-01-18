@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 18 Jan 2010 08:07:11 +0000
+Date: Mon, 18 Jan 2010 08:14:51 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Fix TjMax for Atom
-Message-Id: <20100118090711.5be2f70c@hyperion.delvare>
+Message-Id: <20100118091451.7f103914@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20091224073102.GA23058@ywang-moblin2.bj.intel.com>
 	<20100106160817.72313551@hyperion.delvare>
@@ -11,28 +11,44 @@ References: <20091224073102.GA23058@ywang-moblin2.bj.intel.com>
 	<20100117161518.4912be7c@hyperion.delvare>
 	<4B536502.20102@gmail.com>
 	<20100117210536.0ae0f187@hyperion.delvare>
-	<20100118072138.GA25107@owl>
-In-Reply-To: <20100118072138.GA25107@owl>
+	<20100118065821.GA19008@ywang-moblin2.bj.intel.com>
+In-Reply-To: <20100118065821.GA19008@ywang-moblin2.bj.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Huaxu Wan <huaxu.wan@linux.intel.com>
-Cc: Robert Hancock <hancockrwd@gmail.com>, Yuhong Bao <yuhongbao_386@hotmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, yong.y.wang@linux.intel.com
+To: Yong Wang <yong.y.wang@linux.intel.com>
+Cc: Robert Hancock <hancockrwd@gmail.com>, Yuhong Bao <yuhongbao_386@hotmail.com>, linux-kernel@vger.kernel.org, huaxu.wan@intel.com, lm-sensors@lm-sensors.org
 
-On Mon, 18 Jan 2010 15:21:38 +0800, Huaxu Wan wrote:
-> On 21:05 Sun 17 Jan, Jean Delvare wrote:
+On Mon, 18 Jan 2010 14:58:21 +0800, Yong Wang wrote:
+> On Sun, Jan 17, 2010 at 09:05:36PM +0100, Jean Delvare wrote:
+> > That's where I am confused. The patch checks for the presence of the
+> > Intel NM10, which, reading its description looks much like a south
+> > bridge and not a memory controller (north bridge). So I think the patch
+> > is wrong (or at least incomplete).
+> 
+> Sorry, I made a mistake in the patch description. The new Atom CPU is
+> coupled with integrated gfx and memory controller in one package. NM10
+> chipset is another chip. This patch does check the presence of the
+> integrated memory controller, i.e. 00:00.0 Host bridge device, which
+> will always be present no matter whether NM10 chipset is used or not.
+
+OK. Then indeed the patch description was rather bad. Even the comments
+in the code are misleading, they mention the NM10 when they don't
+really have to.
+
+But at least if the code itself is OK... that's not that bad.
+
 > > Anyway, how difficult would it be to set TjMax based on the CPUID? I
 > > presume that the Intel Atom 400 and 500 series have their own CPUID
 > > value, haven't they? This would seem even easier that checking for a
 > > PCI device.
 > 
-> Actually, all the Atom processors share the same CPUID(0x1C) and the
-> worse is not all of them has the same TjMax. That's a big problem. 
+> CPUID value (family and model number) remains the same for all Atom CPUs
+> thus far. That is why we check the new Atom CPU this way.
 
-0x1C is the product value. The stepping value could be different. There
-could also be other identification methods based on cpuid() or rdmsr()
-commands. This is done quite frequently to identify specific CPU models.
+What about the stepping value? Don't these CPU models have their own?
 
+Thanks,
 -- 
 Jean Delvare
 
