@@ -1,84 +1,164 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 14 Jan 2010 20:11:54 +0000
-Subject: Re: [lm-sensors] Found unknown SMBus adapter 10de:0aa2 at
-Message-Id: <20100114211154.37e650b3@hyperion.delvare>
+From: b13johnson@comcast.net
+Date: Wed, 20 Jan 2010 04:30:11 +0000
+Subject: [lm-sensors]  LPC47M192-NC Fans
+Message-Id: <284935213.1425811263961811650.JavaMail.root@sz0153a.westchester.pa.mail.comcast.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6832370594040291885=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100113153747.1dab14c5@hyperion.delvare>
-In-Reply-To: <20100113153747.1dab14c5@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+References: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
+In-Reply-To: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
 To: lm-sensors@vger.kernel.org
 
-On Thu, 14 Jan 2010 19:24:53 +0100, Manuel Lamotte-Schubert wrote:
-> Hi Jean,
-> > I'm surprised. For one thing, "patch" is smart and can apply patches
-> > even when line numbers don't match. For another, my patch was generated
-> > exactly on top of 2.6.33-rc4, so it should have applied perfectly.
-> 
-> The response from the patch program was something like "Patch failed" and
-> it created the rejected files lm90.c.rej and KConfig.rej.
+--===============6832370594040291885==
+Content-Type: multipart/alternative; 
+	boundary="----=_Part_74329_182988131.1263961811649"
 
-I don't know what you did, but I just double-checked and my patch
-applies just fine on top of 2.6.33-rc4.
+------=_Part_74329_182988131.1263961811649
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-> > Just load the lm90 driver then run "sensors", you should see an entry
-> > for the W83L771 with two temperature. temp1 would be the board
-> > temperature and temp2 the CPU temperature.
-> 
-> Thats what I have already did but I was confused about the messages.
-> Here's the output:
-> 
-> # sensors
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:      +52.0°C  (crit = +90.0°C)
-> 
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> Core 1:      +52.0°C  (crit = +90.0°C)
-> 
-> w83l771-i2c-0-4c
-> Can't get adapter name
-> temp1:       +51.0°C  (low  = -40.0°C, high = +70.0°C)
->                       (crit = +85.0°C, hyst = +75.0°C)
-> temp2:       +68.5°C  (low  = -40.0°C, high = +70.0°C)
->                       (crit = +110.0°C, hyst = +100.0°C)
-> 
-> I guess, the values temp1 and temp2, respectively, below the
-> w83l771-i2c-0-4c are the board and CPU temperature.
-> But what are the other temperatures, core 0 and core 1?
+Hi Jean, 
 
-Core 0 and Core 1 are reported by the digital thermal sensors that are
-built into your CPU.
+I am having what I believe is a similar problem to what Sean had. I have an HP pavilion desktop computer. I couldn't get sensors-detect to work with my smsc47m1 driver to work until I downloaded and built your modified one. Once I installed it, I got the following snippet from sensors-detect: 
 
-w83l771/temp1 is a temperature sensor integrated into the W83L771 chip,
-so it basically gives you the temperature of the mainboard.
+---------------------------------------------------------- 
+Some Super I/O chips contain embedded sensors. We have to write to 
+standard I/O ports to probe them. This is usually safe. 
+Do you want to scan for Super I/O sensors? (YES/no): y 
+Probing for Super-I/O at 0x2e/0x2f 
+Trying family `National Semiconductor'... No 
+Trying family `SMSC'... Yes 
+Found `SMSC LPC47M15x/192/997 Super IO Fan Sensors' Success! 
+(address 0x600, driver `smsc47m1') 
+Probing for Super-I/O at 0x4e/0x4f 
+Trying family `National Semiconductor'... No 
+Trying family `SMSC'... No 
+Trying family `VIA/Winbond/Nuvoton/Fintek'... No 
+Trying family `ITE'... No 
+---------------------------------------------------------- 
 
-w83l771/temp2 is a remote sensor, it could be monitoring virtually
-everything. The most common would be the CPU, but the difference
-between temp2 and the values reported by coretemp are suspicious. Maybe
-it's monitoring something else, like the GPU. You'd have to ask the
-Zotac folks. Or maybe either coretemp or the W83L771's remote sensor is
-horribly wrong.
+However, at the end I get: 
 
-> Yet another question: will the patch be automatically integrated into the
-> next kernel version or was it something special for me?
+---------------------------------------------------------- 
+Now follows a summary of the probes I have just done. 
+Just press ENTER to continue: 
 
-It was special for you. I'll send you the bill tomorrow.
+Driver `smsc47m1': 
+* ISA bus, address 0x600 
+Chip `SMSC LPC47M15x/192/997 Super IO Fan Sensors' (confidence: 9) 
+
+Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): y 
+Starting lm_sensors: loading module smsc47m1 No sensors found! 
+Make sure you loaded all the kernel drivers you need. 
+Try sensors-detect to find out which these are. 
+[FAILED] 
+Unloading i2c-dev... OK 
+---------------------------------------------------------- 
+
+If I answer no to the last question, and try to run modprobe manually, I get: 
+
+---------------------------------------------------------- 
+[root@Backup-P4 smsc47m1_driver]# modprobe smsc47m1 
+FATAL: Error inserting smsc47m1 (/lib/modules/2.6.31.9-174.fc12.i686.PAE/kernel/drivers/hwmon/smsc47m1.ko): Device or resource busy 
+---------------------------------------------------------- 
+
+The log file "messages" has the following: 
+
+---------------------------------------------------------- 
+Jan 18 23:06:51 localhost kernel: i2c /dev entries driver 
+Jan 18 23:07:05 localhost kernel: smsc47m1: Found SMSC LPC47M15x/LPC47M192/LPC47M997 
+Jan 18 23:07:05 localhost kernel: ACPI: I/O resource smsc47m1 [0x604-0x604] conflicts with ACPI region SMC_ [0x600 
+-0x65f] 
+Jan 18 23:07:05 localhost kernel: ACPI: If an ACPI driver is available for this device, you should use it instead 
+of the native driver 
+---------------------------------------------------------- 
+
+I'm running Fedora Core kernel 2.6.31.9-174.fc12.i686.PAE 
+
+Do you have any ideas? I really appreciate your help. 
+
+Thanks, 
+Bob 
 
 
+------=_Part_74329_182988131.1263961811649
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-OK, just kidding. Of course I'll push the patch in the next kernel
-version. In fact it's already queued [1].
+<html><head><style type=3D'text/css'>p { margin: 0; }</style></head><body><=
+div style=3D'font-family: Arial; font-size: 12pt; color: #000000'>Hi Jean,<=
+br><br>I am having what I believe is a similar problem to what Sean had. I =
+have an HP pavilion desktop computer. I couldn't get sensors-detect to work=
+ with my smsc47m1 driver to work until I downloaded and built your modified=
+ one. Once I installed it, I got the following snippet from sensors-detect:=
+<br><br>----------------------------------------------------------<br>Some =
+Super I/O chips contain embedded sensors. We have to write to<br>standard I=
+/O ports to probe them. This is usually safe.<br>Do you want to scan for Su=
+per I/O sensors? (YES/no): y<br>Probing for Super-I/O at 0x2e/0x2f<br>Tryin=
+g family `National Semiconductor'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br=
+>Trying family `SMSC'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp; Yes<br>Found `SMSC LPC47M15x/192/997 Super IO Fan Sensors'&=
+nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Success!<br>&nbsp;&nbsp;&nb=
+sp; (address 0x600, driver `smsc47m1')<br>Probing for Super-I/O at 0x4e/0x4=
+f<br>Trying family `National Semiconductor'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp; No<br>Trying family `SMSC'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp; No<br>Trying family `VIA/Winbond/Nuvoton/Fintek'.=
+..&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
+nbsp;&nbsp; No<br>Trying family `ITE'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>-------------------------------=
+---------------------------<br>
+<br>However, at the end I get:<br><br>-------------------------------------=
+---------------------<br>Now follows a summary of the probes I have just do=
+ne.<br>Just press ENTER to continue: <br><br>Driver `smsc47m1':<br>&nbsp; *=
+ ISA bus, address 0x600<br>&nbsp;&nbsp;&nbsp; Chip `SMSC LPC47M15x/192/997 =
+Super IO Fan Sensors' (confidence: 9)<br><br>Do you want to overwrite /etc/=
+sysconfig/lm_sensors? (YES/no): y<br>Starting lm_sensors: loading module sm=
+sc47m1 No sensors found!<br>Make sure you loaded all the kernel drivers you=
+ need.<br>Try sensors-detect to find out which these are.<br>&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [FAILED]<br>Unloading i2c-dev... OK<br>-=
+---------------------------------------------------------<br>
+<br>If I answer no to the last question, and try to run modprobe manually, =
+I get:<br><br>----------------------------------------------------------<br=
+>
+[root@Backup-P4 smsc47m1_driver]# modprobe smsc47m1<br>FATAL: Error inserti=
+ng smsc47m1 (/lib/modules/2.6.31.9-174.fc12.i686.PAE/kernel/drivers/hwmon/s=
+msc47m1.ko): Device or resource busy<br>-----------------------------------=
+-----------------------<br>
+<br>The log file "messages" has the following:<br><br>---------------------=
+-------------------------------------<br>Jan 18 23:06:51 localhost kernel: =
+i2c /dev entries driver<br>Jan 18 23:07:05 localhost kernel: smsc47m1: Foun=
+d SMSC LPC47M15x/LPC47M192/LPC47M997<br>Jan 18 23:07:05 localhost kernel: A=
+CPI: I/O resource smsc47m1 [0x604-0x604] conflicts with ACPI region SMC_ [0=
+x600<br>-0x65f]<br>Jan 18 23:07:05 localhost kernel: ACPI: If an ACPI drive=
+r is available for this device, you should use it instead <br>of the native=
+ driver<br>----------------------------------------------------------<br>
 
-[1] ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
+<br>I'm running Fedora Core kernel 2.6.31.9-174.fc12.i686.PAE<br><br>Do you=
+ have any ideas? I really appreciate your help.<br><br>Thanks,<br>Bob<br><b=
+r></div></body></html>
+------=_Part_74329_182988131.1263961811649--
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+
+--===============6832370594040291885==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6832370594040291885==--
