@@ -1,271 +1,181 @@
-From: Bill Gatliff <bgat@billgatliff.com>
-Date: Wed, 06 Jan 2010 04:30:36 +0000
-Subject: [lm-sensors] [PATCH 2/2] Reorder initialization to better support
-Message-Id: <1262752236-1937-4-git-send-email-bgat@billgatliff.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 21 Jan 2010 14:06:45 +0000
+Subject: [lm-sensors] [PATCH 7/8] hwmon: (it87) Use strict_strtol instead of
+Message-Id: <20100121150645.010dee93@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1262752236-1937-1-git-send-email-bgat@billgatliff.com>
-	<1262752236-1937-2-git-send-email-bgat@billgatliff.com>
-	<1262752236-1937-3-git-send-email-bgat@billgatliff.com>
-In-Reply-To: <1262752236-1937-3-git-send-email-bgat@billgatliff.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org, lm-sensors@lm-sensors.org
-Cc: Bill Gatliff <bgat@billgatliff.com>
+To: lm-sensors@vger.kernel.org
 
-This patch changes the initialization sequence implemented in
-pca953x_probe(), so as to simplify the retrieval of device tree
-data when device trees are used.  Incorporates the new
-of_i2c_gpiochip_add() function to register the newly-added GPIOs.
+From: Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Bill Gatliff <bgat@billgatliff.com>
+For consistency and robustness, use strict_strtol instead of
+simple_strtol.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/gpio/pca953x.c |  130 +++++++++++++++++++++--------------------------
- 1 files changed, 58 insertions(+), 72 deletions(-)
+ drivers/hwmon/it87.c |   59 +++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 44 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/gpio/pca953x.c b/drivers/gpio/pca953x.c
-index 9c70963..3a20e2f 100644
---- a/drivers/gpio/pca953x.c
-+++ b/drivers/gpio/pca953x.c
-@@ -3,6 +3,7 @@
-  *
-  *  Copyright (C) 2005 Ben Gardner <bgardner@wabtec.com>
-  *  Copyright (C) 2007 Marvell International Ltd.
-+ *  Copyright (C) 2010 Bill Gatliff <bgat@billgatliff.com>
-  *
-  *  Derived from drivers/i2c/chips/pca9539.c
-  *
-@@ -53,13 +54,13 @@ static const struct i2c_device_id pca953x_id[] = {
- MODULE_DEVICE_TABLE(i2c, pca953x_id);
+--- linux-2.6.33-rc4.orig/drivers/hwmon/it87.c	2010-01-21 14:29:18.000000000 +0100
++++ linux-2.6.33-rc4/drivers/hwmon/it87.c	2010-01-21 14:30:23.000000000 +0100
+@@ -363,7 +363,10 @@ static ssize_t set_in_min(struct device
+ 	int nr = sensor_attr->index;
  
- struct pca953x_chip {
--	unsigned gpio_start;
- 	uint16_t reg_output;
- 	uint16_t reg_direction;
-+	uint16_t reg_invert;
- 	struct gpio_chip *gpio_chip;
- 
- 	struct i2c_client *client;
--	struct pca953x_platform_data *dyn_pdata;
-+	struct pca953x_platform_data *pdata;
- 	char **names;
- 
- #ifdef CONFIG_OF_GPIO
-@@ -214,7 +215,6 @@ static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
- 	gc->set = pca953x_gpio_set_value;
- 	gc->can_sleep = 1;
- 
--	gc->base = chip->gpio_start;
- 	gc->ngpio = gpios;
- 	gc->label = chip->client->name;
- 	gc->dev = &chip->client->dev;
-@@ -222,119 +222,107 @@ static void pca953x_setup_gpio(struct pca953x_chip *chip, int gpios)
- 	gc->names = chip->names;
- }
- 
--/*
-- * Handlers for alternative sources of platform_data
-- */
- #ifdef CONFIG_OF_GPIO
--/*
-- * Translate OpenFirmware node properties into platform_data
-- */
--static struct pca953x_platform_data *
--pca953x_get_alt_pdata(struct i2c_client *client)
-+static int __devinit pca953x_get_of_pdata(struct pca953x_chip *chip)
- {
--	struct pca953x_platform_data *pdata;
- 	struct device_node *node;
- 	const uint16_t *val;
- 
--	node = dev_archdata_get_node(&client->dev.archdata);
--	if (node = NULL)
--		return NULL;
-+	node = dev_archdata_get_node(&chip->client->dev.archdata);
-+	if (!node)
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0)
 +		return -EINVAL;
  
--	pdata = kzalloc(sizeof(struct pca953x_platform_data), GFP_KERNEL);
--	if (pdata = NULL) {
--		dev_err(&client->dev, "Unable to allocate platform_data\n");
--		return NULL;
--	}
--
--	pdata->gpio_base = -1;
--	val = of_get_property(node, "linux,gpio-base", NULL);
--	if (val) {
--		if (*val < 0)
--			dev_warn(&client->dev,
--				 "invalid gpio-base in device tree\n");
--		else
--			pdata->gpio_base = *val;
--	}
-+	chip->gpio_chip->base = -1;
-+	chip->i2c_gc.of_gc.gpio_cells = 2;
+ 	mutex_lock(&data->update_lock);
+ 	data->in_min[nr] = IN_TO_REG(val);
+@@ -379,7 +382,10 @@ static ssize_t set_in_max(struct device
+ 	int nr = sensor_attr->index;
  
- 	val = of_get_property(node, "polarity", NULL);
- 	if (val)
--		pdata->invert = *val;
-+		chip->reg_invert = *val;
- 
--	return pdata;
-+	return 0;
- }
--#else
--static struct pca953x_platform_data *
--pca953x_get_alt_pdata(struct i2c_client *client)
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
 +
-+static int __devinit pca953x_gpiochip_add(struct pca953x_chip *chip)
- {
--	return NULL;
-+	struct device_node *node;
-+	node = dev_archdata_get_node(&chip->client->dev.archdata);
-+	return of_i2c_gpiochip_add(node, &chip->i2c_gc);
- }
- #endif
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
  
-+static int __devinit pca953x_get_pdata(struct pca953x_chip *chip)
-+{
-+	struct pca953x_platform_data *pdata;
+ 	mutex_lock(&data->update_lock);
+ 	data->in_max[nr] = IN_TO_REG(val);
+@@ -452,7 +458,10 @@ static ssize_t set_temp_max(struct devic
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
 +
-+	pdata = dev_get_platdata(&chip->client->dev);
-+	if (!pdata)
++	if (strict_strtol(buf, 10, &val) < 0)
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_high[nr] = TEMP_TO_REG(val);
+@@ -467,7 +476,10 @@ static ssize_t set_temp_min(struct devic
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++
++	if (strict_strtol(buf, 10, &val) < 0)
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_low[nr] = TEMP_TO_REG(val);
+@@ -510,7 +522,10 @@ static ssize_t set_sensor(struct device
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++
++	if (strict_strtol(buf, 10, &val) < 0)
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -618,9 +633,12 @@ static ssize_t set_fan_min(struct device
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
+ 	u8 reg;
+ 
++	if (strict_strtol(buf, 10, &val) < 0)
 +		return -EINVAL;
 +
-+	chip->pdata = pdata;
-+	chip->gpio_chip->base = pdata->gpio_base;
-+	chip->reg_invert = pdata->invert;
+ 	mutex_lock(&data->update_lock);
+ 	reg = it87_read_value(data, IT87_REG_FAN_DIV);
+ 	switch (nr) {
+@@ -647,10 +665,13 @@ static ssize_t set_fan_div(struct device
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
+ 	int min;
+ 	u8 old;
+ 
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
 +
-+	return 0;
-+}
+ 	mutex_lock(&data->update_lock);
+ 	old = it87_read_value(data, IT87_REG_FAN_DIV);
+ 
+@@ -689,9 +710,9 @@ static ssize_t set_pwm_enable(struct dev
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
+ 
+-	if (val < 0 || val > 2)
++	if (strict_strtol(buf, 10, &val) < 0 || val < 0 || val > 2)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -727,9 +748,9 @@ static ssize_t set_pwm(struct device *de
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
+ 
+-	if (val < 0 || val > 255)
++	if (strict_strtol(buf, 10, &val) < 0 || val < 0 || val > 255)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -747,9 +768,12 @@ static ssize_t set_pwm_freq(struct devic
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
+ 	int i;
+ 
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
 +
- static int __devinit pca953x_probe(struct i2c_client *client,
- 				   const struct i2c_device_id *id)
+ 	/* Search for the nearest available frequency */
+ 	for (i = 0; i < 7; i++) {
+ 		if (val > (pwm_freq[i] + pwm_freq[i+1]) / 2)
+@@ -871,7 +895,10 @@ static ssize_t set_fan16_min(struct devi
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++
++	if (strict_strtol(buf, 10, &val) < 0)
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN16_TO_REG(val);
+@@ -992,9 +1019,11 @@ static ssize_t store_vrm_reg(struct devi
+ 		const char *buf, size_t count)
  {
--	struct pca953x_platform_data *pdata;
- 	struct pca953x_chip *chip;
- 	int ret;
+ 	struct it87_data *data = dev_get_drvdata(dev);
+-	u32 val;
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
  
- 	chip = kzalloc(sizeof(struct pca953x_chip), GFP_KERNEL);
- 	if (chip = NULL)
- 		return -ENOMEM;
-+	chip->client = client;
+-	val = simple_strtoul(buf, NULL, 10);
+ 	data->vrm = val;
  
- #ifdef CONFIG_OF_GPIO
- 	chip->gpio_chip = &chip->i2c_gc.of_gc.gc;
-+	if (!dev_get_platdata(&client->dev))
-+		pca953x_get_of_pdata(chip);
- #else
- 	chip->gpio_chip = &chip->gc;
--#endif
--
--	pdata = client->dev.platform_data;
--	if (pdata = NULL) {
--		pdata = pca953x_get_alt_pdata(client);
--		/*
--		 * Unlike normal platform_data, this is allocated
--		 * dynamically and must be freed in the driver
--		 */
--		chip->dyn_pdata = pdata;
--	}
--
--	if (pdata = NULL) {
--		dev_dbg(&client->dev, "no platform data\n");
-+	if (!client->dev.platform_data)
-+	{
-+		dev_err(&client->dev, "no platform data\n");
- 		ret = -EINVAL;
- 		goto out_failed;
- 	}
-+#endif
- 
--	chip->client = client;
--
--	chip->gpio_start = pdata->gpio_base;
-+	pca953x_setup_gpio(chip, id->driver_data);
- 
--	chip->names = pdata->names;
-+	if (dev_get_platdata(&client->dev))
-+		pca953x_get_pdata(chip);
- 
--	/* initialize cached registers from their original values.
--	 * we can't share this chip with another i2c master.
-+	/*
-+	 * Note: we cache the values of some registers locally; this
-+	 * means that other i2c masters, if any, cannot share this
-+	 * chip with us!
- 	 */
--	pca953x_setup_gpio(chip, id->driver_data);
- 
- 	ret = pca953x_read_reg(chip, PCA953X_OUTPUT, &chip->reg_output);
- 	if (ret)
- 		goto out_failed;
--
- 	ret = pca953x_read_reg(chip, PCA953X_DIRECTION, &chip->reg_direction);
- 	if (ret)
- 		goto out_failed;
--
--	/* set platform specific polarity inversion */
--	ret = pca953x_write_reg(chip, PCA953X_INVERT, pdata->invert);
-+	ret = pca953x_write_reg(chip, PCA953X_INVERT, chip->reg_invert);
- 	if (ret)
- 		goto out_failed;
- 
--
-+#ifdef CONFIG_OF_GPIO
-+	ret = pca953x_gpiochip_add(chip);
-+#else
- 	ret = gpiochip_add(chip->gpio_chip);
-+#endif
- 	if (ret)
- 		goto out_failed;
- 
--	if (pdata->setup) {
--		ret = pdata->setup(client, chip->gpio_chip->base,
--				chip->gpio_chip->ngpio, pdata->context);
-+	if (chip->pdata && chip->pdata->setup) {
-+		ret = chip->pdata->setup(client, chip->gpio_chip->base,
-+				chip->gpio_chip->ngpio,
-+					 chip->pdata->context);
- 		if (ret < 0)
- 			dev_warn(&client->dev, "setup failed, %d\n", ret);
- 	}
-@@ -343,20 +331,19 @@ static int __devinit pca953x_probe(struct i2c_client *client,
- 	return 0;
- 
- out_failed:
--	kfree(chip->dyn_pdata);
- 	kfree(chip);
- 	return ret;
- }
- 
- static int pca953x_remove(struct i2c_client *client)
- {
--	struct pca953x_platform_data *pdata = client->dev.platform_data;
- 	struct pca953x_chip *chip = i2c_get_clientdata(client);
- 	int ret = 0;
- 
--	if (pdata->teardown) {
--		ret = pdata->teardown(client, chip->gpio_chip->base,
--				chip->gpio_chip->ngpio, pdata->context);
-+	if (chip->pdata && chip->pdata->teardown) {
-+		ret = chip->pdata->teardown(client, chip->gpio_chip->base,
-+					    chip->gpio_chip->ngpio,
-+					    chip->pdata->context);
- 		if (ret < 0) {
- 			dev_err(&client->dev, "%s failed, %d\n",
- 					"teardown", ret);
-@@ -371,7 +358,6 @@ static int pca953x_remove(struct i2c_client *client)
- 		return ret;
- 	}
- 
--	kfree(chip->dyn_pdata);
- 	kfree(chip);
- 	return 0;
- }
+ 	return count;
+
 -- 
-1.6.5
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
