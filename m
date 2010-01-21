@@ -1,113 +1,123 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 18 Jan 2010 16:12:06 +0000
+From: Wolfram Sang <w.sang@pengutronix.de>
+Date: Thu, 21 Jan 2010 15:45:02 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: add driver for ADT7411
-Message-Id: <20100118171206.40d99633@hyperion.delvare>
+Message-Id: <20100121154502.GD3738@pengutronix.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0096198034954217027=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1263817501-25333-1-git-send-email-w.sang@pengutronix.de>
 In-Reply-To: <1263817501-25333-1-git-send-email-w.sang@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Wolfram,
 
-On Mon, 18 Jan 2010 16:02:57 +0100, Wolfram Sang wrote:
-> Hi Jean,
-> > It seems to me that you are only using a small subset of the registers
-> > defined above. I suggest not defining registers you don't use, as it
-> > only makes the code bigger with no benefit. The datasheet of this chip
-> > is publicly available, if anybody needs a reference.
-> 
-> The intention was to spare other people copying this data again, but I get your
-> point and agree.
-> 
-> > Logic seems overly complex. Do you have such an unreliable I2C bus that
-> > transient failures are frequent?
-> 
-> The customer had a very "hostile" environment, so this was needed. It could be
-> rated as a special extension and dropped, of course. I saw it in some other
-> drivers (lm93) and wasn't sure about the preferred way.
+--===============0096198034954217027==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="AkbCVLjbJ9qUtAXD"
+Content-Disposition: inline
 
-I didn't remember about the lm93 precedent, I admit. Maybe the
-contributor had also a hostile environment, I just don't know.
 
-I do remember about the w83l785ts precedent though. That's a different
-case, as the problem was with the chip itself. Another chip on the same
-bus did not have any problems.
+--AkbCVLjbJ9qUtAXD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-My own position is that, unless the _chip_ itself sometimes doesn't ack
-its slave address or somehow fails, there is no reason for the chip
-driver to implement retries. If the bus is misbehaving, be it for
-hardware or software reasons, then the workaround must go in the bus
-driver.
+Hi Jean,
 
-> > > +	u8 lsb_reg = ADT7411_REG_EXT_TEMP_AIN14_LSB + (nr >> 2);
-> > > +	u8 lsb_shift = (nr & 0x03) << 1;
-> > 
-> > "2 * (nr & 0x03)" would be easier to understand.
-> 
-> Really? Will do, but when it comes to registers and bit positions, I like
-> shifting better.
+some questions arouse:
 
-And so do I, but the above shift has nothing to do with bit positions.
-The "2 *" is there because you have blocks of 2 bits. If you had blocks
-of 3 bits instead, you'd do "3 *". It just happens that "<< 1" is
-equivalent to "2 *", but what would be the "<<" equivalent of "3 *"?
+> > +static int __devinit adt7411_probe(struct i2c_client *client,
+> > +				   const struct i2c_device_id *id)
+> > +{
+> > +	int val;
+> > +	struct adt7411_data *data;
+> > +
+> > +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DAT=
+A))
+> > +		return -ENODEV;
+> > +
+> > +	val =3D i2c_smbus_read_byte_data(client, ADT7411_REG_MANUFACTURE_ID);
+> > +	if (val < 0 || val !=3D ADT7411_MANUFACTURE_ID) {
+> > +		dev_err(&client->dev, "Wrong manufacturer ID. Got %d, "
+> > +			"expected %d\n", val, ADT7411_MANUFACTURE_ID);
+> > +		return -ENODEV;
+> > +	}
+> > +
+> > +	val =3D i2c_smbus_read_byte_data(client, ADT7411_REG_DEVICE_ID);
+> > +	if (val < 0 || val !=3D ADT7411_DEVICE_ID) {
+> > +		dev_err(&client->dev, "Wrong device ID. Got %d, "
+> > +			"expected %d\n", val, ADT7411_DEVICE_ID);
+> > +		return -ENODEV;
+> > +	}
+>=20
+> This is the wrong place for this check. Device identification goes into
+> a .detect() function. By the time .probe() is called, you already know
+> what device is there.
 
-The ">>" which has something to do with bit positions is elsewhere, in
-adt7411_read_10_bit():
+Just came to think of it: That essentially kills all sanity checks for plat=
+form
+devices (or static board_infos), or am I wrong? Would it be an idea to call
+detect() for the address in the board_info, or are board_infos considered p=
+er
+se correct?
 
-		val = (ret >> lsb_shift) & 3;
+> > +	data =3D kzalloc(sizeof(*data), GFP_KERNEL);
+> > +	if (!data)
+> > +		return -ENOMEM;
+> > +
+> > +	mutex_init(&data->lsb_msb_lock);
+> > +
+> > +	data->config[0] =3D ADT7411_CFG1_START_MONITOR | ADT7411_CFG1_RESERVE=
+D1;
+> > +	data->config[1] =3D ADT7411_CFG2_ENABLE_SMBUS_TO;
+> > +	data->config[2] =3D ADT7411_CFG3_RESERVED1 | ADT7411_CFG3_REF_VDD;
+> > +
+> > +	i2c_smbus_write_byte_data(client, ADT7411_REG_CFG2, ADT7411_CFG2_RESE=
+T);
+> > +	i2c_smbus_write_byte_data(client, ADT7411_REG_CFG2, data->config[1]);
+> > +	i2c_smbus_write_byte_data(client, ADT7411_REG_CFG3, data->config[2]);
+> > +	i2c_smbus_write_byte_data(client, ADT7411_REG_CFG1, data->config[0]);
+>=20
+> This is bad practice. The BIOS/firmware might have setup the chip
+> already. Resetting and then overwriting this configuration is bad. If
+> you want to enforce a specific setup, this is a platform decision and
+> you should provide the initialization data as platform data.
 
-> > > +static ssize_t adt7411_set_bit(struct device *dev, struct device_attribute *attr,
-> > > +			     const char *buf, size_t count)
-> > > +{
-> > > +	struct sensor_device_attribute_2 *s_attr2 = to_sensor_dev_attr_2(attr);
-> > > +	struct i2c_client *client = to_i2c_client(dev);
-> > > +	struct adt7411_data *data = i2c_get_clientdata(client);
-> > > +	int reg, bit, ret;
-> > > +	unsigned long val;
-> > > +
-> > > +	ret = strict_strtoul(buf, 0, &val);
-> > > +
-> > > +	if (ret || val > 1)
-> > > +		return -EINVAL;
-> > > +
-> > > +	reg = s_attr2->index;
-> > > +	bit = s_attr2->nr;
-> > > +
-> > > +	if (val)
-> > > +		data->config[reg] |= bit;
-> > > +	else
-> > > +		data->config[reg] &= ~bit;
-> > > +
-> > > +	i2c_smbus_write_byte_data(client, ADT7411_REG_CFG1 + reg,
-> > > +		data->config[reg]);
-> > > +	return count;
-> > > +}
-> > 
-> > This assumes that nobody else ever changes the configuration registers.
-> > That's an unsafe assumption... Not only external users of the chip
-> > could (think multi-master I2C setups) but even concurrent users of your
-> > own driver could! So you want to read the register value instead of
-> > relying on a cached value. And if you want to keep a cache (which
-> > doesn't seem terribly needed to me),you also want to protect the
-> > read-modify-write operation with a mutex.
-> 
-> Right, but the mutex is needed for the non-cached I2C-based RMW, too, no?
+I assume ORing ADT7411_CFG1_START_MONITOR is OK, though? What about
+ADT7411_CFG2_ENABLE_SMBUS_TO (SMBus Timeout)? Is this a user preference or a
+driver trying to keep his bus alive?
 
-Err, yes, you're right. I'm no longer sure what I had in mind when I
-implied it was not.
+Regards,
 
-> Rest is also accepted, of course. Thanks for the review!
+   Wolfram
 
-You're welcome.
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
--- 
-Jean Delvare
+--AkbCVLjbJ9qUtAXD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAktYdn4ACgkQD27XaX1/VRuAEACdE39rg2UAx/wjcrXNWXqiVXby
+PwoAnA+ZT0Obq/LFK4gcCxunUyTTvwYf
+=xy9Z
+-----END PGP SIGNATURE-----
+
+--AkbCVLjbJ9qUtAXD--
+
+
+--===============0096198034954217027==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0096198034954217027==--
