@@ -1,86 +1,71 @@
-From: Nebojsa Trpkovic <trx.lists@gmail.com>
-Date: Thu, 28 Jan 2010 19:52:57 +0000
-Subject: [lm-sensors] monitoring multiple sensors, setting one PWM
-Message-Id: <4B61EB19.1010700@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 21 Jan 2010 13:50:16 +0000
+Subject: [lm-sensors] [PATCH 4/8] hwmon: (it87) Create vid attributes by
+Message-Id: <20100121145016.2e82a99a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello.
+From: Jean Delvare <khali@linux-fr.org>
 
-I have Asus P5Q Premium mobo. It has 5 fan headers:
-1x CPU FAN
-3x Chassis FAN
-1x Power FAN
+Only VID-related attributes are left in it87_attributes_opt, so we
+might as well rename it to it87_attributes_vid and use this group to
+create all attributes at once.
 
-CPU FAN is controled by BIOS and cannot be controled by lm_sensors.
-Chassis FANs can be conntroled by changing pwm, but echoing value in
-pwm2 changes ALL 3 Chassis FANs.
-Power FAN cannot be controled.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/it87.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-So, I've connected both CPU and system FAN to Chassis FAN headers.
-Using lm_sensors and fancontrol, I was able to make config file that
-would monitor just one temperature and set all fans accordingly.
-
-I wanted to monitor both Motherboard and CPU temperature, so I've made
-changes to fancontrol script. It is not pretty, it isn't useable for
-general population and _it_controls_just_one_pwm_, but I still decided
-to post it here just in case someone needs something similar.
-
-What I've done:
-1. removed setting of pwm at the end of the loop in function UpdateFanSpeeds
-2. added one variable to "remember" biggest pwm calculated during all
-runs through the loop
-3. set the biggest value to pwm output once we've finished all runs
-through the loop
-
-
-###########################################################
---- fancontrol.original 2010-01-28 20:13:18.837213507 +0100
-+++ fancontrol.v0.1     2010-01-28 20:13:46.227212974 +0100
-@@ -254,6 +254,7 @@
- # main function
- function UpdateFanSpeeds {
-        let fcvcount=0
-+       let biggestpwm=0
-        while (( $fcvcount < ${#AFCPWM[@]} )) # go through all pwm outputs
-        do
-                #hopefully shorter vars will improve readability:
-@@ -326,18 +327,21 @@
-                        wait $!
-                  fi
-                fi
--               echo $pwmval > $pwmo # write new value to pwm output
--               if [ $? -ne 0 ]
--               then
--                       echo "Error writing PWM value to $DIR/$pwmo"
--                       restorefans 1
--               fi
--               if [ "$DEBUG" != "" ]
--               then
--                       echo "new pwmval=$pwmval"
-+               if (( $biggestpwm < $pwmval ))
-+                   then biggestpwm=$pwmval
-                fi
-                let fcvcount=$fcvcount+1
-        done
-+       echo $biggestpwm > ${AFCPWM[0]} # write the biggest pwm value to
-pwm output
-+       if [ $? -ne 0 ]
-+       then
-+               echo "Error writing PWM value to $DIR/$pwmo"
-+               restorefans 1
-+       fi
-+       if [ "$DEBUG" != "" ]
-+       then
-+               echo "new pwmval=$biggestpwm"
-+       fi
+--- linux-2.6.33-rc4.orig/drivers/hwmon/it87.c	2010-01-19 13:30:10.000000000 +0100
++++ linux-2.6.33-rc4/drivers/hwmon/it87.c	2010-01-19 13:40:14.000000000 +0100
+@@ -1107,14 +1107,14 @@ static const struct attribute_group it87
+ 	{ .attrs = it87_attributes_pwm[2] },
+ };
+ 
+-static struct attribute *it87_attributes_opt[] = {
++static struct attribute *it87_attributes_vid[] = {
+ 	&dev_attr_vrm.attr,
+ 	&dev_attr_cpu0_vid.attr,
+ 	NULL
+ };
+ 
+-static const struct attribute_group it87_group_opt = {
+-	.attrs = it87_attributes_opt,
++static const struct attribute_group it87_group_vid = {
++	.attrs = it87_attributes_vid,
+ };
+ 
+ /* SuperIO detection - will change isa_address if a chip is found */
+@@ -1250,7 +1250,8 @@ static void it87_remove_files(struct dev
+ 			continue;
+ 		sysfs_remove_group(&dev->kobj, &it87_group_pwm[i]);
+ 	}
+-	sysfs_remove_group(&dev->kobj, &it87_group_opt);
++	if (!sio_data->skip_vid)
++		sysfs_remove_group(&dev->kobj, &it87_group_vid);
  }
+ 
+ static int __devinit it87_probe(struct platform_device *pdev)
+@@ -1335,10 +1336,8 @@ static int __devinit it87_probe(struct p
+ 		data->vrm = vid_which_vrm();
+ 		/* VID reading from Super-I/O config space if available */
+ 		data->vid = sio_data->vid_value;
+-		if ((err = device_create_file(dev,
+-		     &dev_attr_vrm))
+-		 || (err = device_create_file(dev,
+-		     &dev_attr_cpu0_vid)))
++		err = sysfs_create_group(&dev->kobj, &it87_group_vid);
++		if (err)
+ 			goto ERROR4;
+ 	}
+ 
 
- echo 'Enabling PWM on fans...'
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
