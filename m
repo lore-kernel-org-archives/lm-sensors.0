@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 21 Jan 2010 14:05:04 +0000
-Subject: [lm-sensors] [PATCH 5/8] hwmon: (it87) Add support for beep on alarm
-Message-Id: <20100121150504.3518c597@hyperion.delvare>
+Date: Thu, 21 Jan 2010 13:48:20 +0000
+Subject: [lm-sensors] [PATCH 1/8] hwmon: (it87) Display fan outputs in
+Message-Id: <20100121144820.7d933c2a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,258 +9,204 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 From: Jean Delvare <khali@linux-fr.org>
+Subject: hwmon: (it87) Display fan outputs in automatic mode as such
 
-The IT87xxF chips support beeping on alarm, if properly wired and
-configured. There is one control bit for each input type (temperature,
-fan, voltage.) Let the user see and change them.
+The it87 driver doesn't yet support automatic fan control. Let it at
+least tell the user when a fan output is in automatic mode. Also let
+the user switch from automatic mode (possibly set by the BIOS) to
+manual mode and back without losing the settings.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- Documentation/hwmon/it87 |    4 +
- drivers/hwmon/it87.c     |  122 ++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 126 insertions(+)
+ drivers/hwmon/it87.c |  100 +++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 62 insertions(+), 38 deletions(-)
 
---- linux-2.6.33-rc4.orig/drivers/hwmon/it87.c	2010-01-21 13:27:03.000000000 +0100
-+++ linux-2.6.33-rc4/drivers/hwmon/it87.c	2010-01-21 14:27:47.000000000 +0100
-@@ -128,6 +128,7 @@ superio_exit(void)
- #define IT87_SIO_GPIO5_REG	0x29
- #define IT87_SIO_PINX2_REG	0x2c	/* Pin selection */
- #define IT87_SIO_VID_REG	0xfc	/* VID value */
-+#define IT87_SIO_BEEP_PIN_REG	0xf6	/* Beep pin mapping */
- 
- /* Update battery voltage after every reading if true */
- static int update_vbat;
-@@ -187,6 +188,7 @@ static const u8 IT87_REG_FANX_MIN[]	= {
- 
- #define IT87_REG_VIN_ENABLE    0x50
- #define IT87_REG_TEMP_ENABLE   0x51
-+#define IT87_REG_BEEP_ENABLE   0x5c
- 
- #define IT87_REG_CHIPID        0x58
- 
-@@ -246,6 +248,7 @@ struct it87_sio_data {
- 	/* Values read from Super-I/O config space */
- 	u8 revision;
- 	u8 vid_value;
-+	u8 beep_pin;
- 	/* Features skipped based on config or DMI */
- 	u8 skip_vid;
- 	u8 skip_fan;
-@@ -279,6 +282,7 @@ struct it87_data {
- 	u8 vid;			/* Register encoding, combined */
- 	u8 vrm;
+--- linux-2.6.33-rc4.orig/drivers/hwmon/it87.c	2010-01-18 09:47:27.000000000 +0100
++++ linux-2.6.33-rc4/drivers/hwmon/it87.c	2010-01-18 11:10:00.000000000 +0100
+@@ -281,7 +281,14 @@ struct it87_data {
  	u32 alarms;		/* Register encoding, combined */
-+	u8 beeps;		/* Register encoding */
  	u8 fan_main_ctrl;	/* Register value */
  	u8 fan_ctl;		/* Register value */
- 
-@@ -919,6 +923,55 @@ static SENSOR_DEVICE_ATTR(temp1_alarm, S
- static SENSOR_DEVICE_ATTR(temp2_alarm, S_IRUGO, show_alarm, NULL, 17);
- static SENSOR_DEVICE_ATTR(temp3_alarm, S_IRUGO, show_alarm, NULL, 18);
- 
-+static ssize_t show_beep(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	int bitnr = to_sensor_dev_attr(attr)->index;
-+	struct it87_data *data = it87_update_device(dev);
-+	return sprintf(buf, "%u\n", (data->beeps >> bitnr) & 1);
-+}
-+static ssize_t set_beep(struct device *dev, struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	int bitnr = to_sensor_dev_attr(attr)->index;
-+	struct it87_data *data = dev_get_drvdata(dev);
-+	long val;
+-	u8 manual_pwm_ctl[3];   /* manual PWM value set by user */
 +
-+	if (strict_strtol(buf, 10, &val) < 0
-+	 || (val != 0 && val != 1))
++	/* The following 3 arrays correspond to the same registers. The
++	 * meaning of bits 6-0 depends on the value of bit 7, and we want
++	 * to preserve settings on mode changes, so we have to track all
++	 * values separately. */
++	u8 pwm_ctrl[3];		/* Register value */
++	u8 pwm_duty[3];		/* Manual PWM value set by user (bit 6-0) */
++	u8 pwm_temp_map[3];	/* PWM to temp. chan. mapping (bits 1-0) */
+ };
+ 
+ static inline int has_16bit_fans(const struct it87_data *data)
+@@ -531,6 +538,19 @@ show_sensor_offset(2);
+ show_sensor_offset(3);
+ 
+ /* 3 Fans */
++
++static int pwm_mode(const struct it87_data *data, int nr)
++{
++	int ctrl = data->fan_main_ctrl & (1 << nr);
++
++	if (ctrl = 0)					/* Full speed */
++		return 0;
++	if (data->pwm_ctrl[nr] & 0x80)			/* Automatic mode */
++		return 2;
++	else						/* Manual mode */
++		return 1;
++}
++
+ static ssize_t show_fan(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+@@ -567,7 +587,7 @@ static ssize_t show_pwm_enable(struct de
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf,"%d\n", (data->fan_main_ctrl & (1 << nr)) ? 1 : 0);
++	return sprintf(buf, "%d\n", pwm_mode(data, nr));
+ }
+ static ssize_t show_pwm(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -576,7 +596,7 @@ static ssize_t show_pwm(struct device *d
+ 	int nr = sensor_attr->index;
+ 
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf,"%d\n", data->manual_pwm_ctl[nr]);
++	return sprintf(buf, "%d\n", PWM_FROM_REG(data->pwm_duty[nr]));
+ }
+ static ssize_t show_pwm_freq(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -660,6 +680,9 @@ static ssize_t set_pwm_enable(struct dev
+ 	struct it87_data *data = dev_get_drvdata(dev);
+ 	int val = simple_strtol(buf, NULL, 10);
+ 
++	if (val < 0 || val > 2)
 +		return -EINVAL;
 +
-+	mutex_lock(&data->update_lock);
-+	data->beeps = it87_read_value(data, IT87_REG_BEEP_ENABLE);
-+	if (val)
-+		data->beeps |= (1 << bitnr);
-+	else
-+		data->beeps &= ~(1 << bitnr);
-+	it87_write_value(data, IT87_REG_BEEP_ENABLE, data->beeps);
-+	mutex_unlock(&data->update_lock);
-+	return count;
+ 	mutex_lock(&data->update_lock);
+ 
+ 	if (val = 0) {
+@@ -670,15 +693,15 @@ static ssize_t set_pwm_enable(struct dev
+ 		/* set on/off mode */
+ 		data->fan_main_ctrl &= ~(1 << nr);
+ 		it87_write_value(data, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
+-	} else if (val = 1) {
++	} else {
++		if (val = 1)				/* Manual mode */
++			data->pwm_ctrl[nr] = data->pwm_duty[nr];
++		else					/* Automatic mode */
++			data->pwm_ctrl[nr] = 0x80 | data->pwm_temp_map[nr];
++		it87_write_value(data, IT87_REG_PWM(nr), data->pwm_ctrl[nr]);
+ 		/* set SmartGuardian mode */
+ 		data->fan_main_ctrl |= (1 << nr);
+ 		it87_write_value(data, IT87_REG_FAN_MAIN_CTRL, data->fan_main_ctrl);
+-		/* set saved pwm value, clear FAN_CTLX PWM mode bit */
+-		it87_write_value(data, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
+-	} else {
+-		mutex_unlock(&data->update_lock);
+-		return -EINVAL;
+ 	}
+ 
+ 	mutex_unlock(&data->update_lock);
+@@ -697,9 +720,13 @@ static ssize_t set_pwm(struct device *de
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->manual_pwm_ctl[nr] = val;
+-	if (data->fan_main_ctrl & (1 << nr))
+-		it87_write_value(data, IT87_REG_PWM(nr), PWM_TO_REG(data->manual_pwm_ctl[nr]));
++	data->pwm_duty[nr] = PWM_TO_REG(val);
++	/* If we are in manual mode, write the duty cycle immediately;
++	 * otherwise, just store it for later use. */
++	if (!(data->pwm_ctrl[nr] & 0x80)) {
++		data->pwm_ctrl[nr] = data->pwm_duty[nr];
++		it87_write_value(data, IT87_REG_PWM(nr), data->pwm_ctrl[nr]);
++	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -1387,15 +1414,18 @@ static void __devinit it87_init_device(s
+ 	int tmp, i;
+ 	u8 mask;
+ 
+-	/* initialize to sane defaults:
+-	 * - if the chip is in manual pwm mode, this will be overwritten with
+-	 *   the actual settings on the chip (so in this case, initialization
+-	 *   is not needed)
+-	 * - if in automatic or on/off mode, we could switch to manual mode,
+-	 *   read the registers and set manual_pwm_ctl accordingly, but currently
+-	 *   this is not implemented, so we initialize to something sane */
++	/* For each PWM channel:
++	 * - If it is in automatic mode, setting to manual mode should set
++	 *   the fan to full speed by default.
++	 * - If it is in manual mode, we need a mapping to temperature
++	 *   channels to use when later setting to automatic mode later.
++	 *   Use a 1:1 mapping by default (we are clueless.)
++	 * In both cases, the value can (and should) be changed by the user
++	 * prior to switching to a different mode. */
+ 	for (i = 0; i < 3; i++) {
+-		data->manual_pwm_ctl[i] = 0xff;
++		data->pwm_temp_map[i] = i;
++		data->pwm_duty[i] = 0x7f;	/* Full speed */
++
+ 	}
+ 
+ 	/* Some chips seem to have default value 0xff for all limit
+@@ -1461,30 +1491,21 @@ static void __devinit it87_init_device(s
+ 	/* Fan input pins may be used for alternative functions */
+ 	data->has_fan &= ~sio_data->skip_fan;
+ 
+-	/* Set current fan mode registers and the default settings for the
+-	 * other mode registers */
+-	for (i = 0; i < 3; i++) {
+-		if (data->fan_main_ctrl & (1 << i)) {
+-			/* pwm mode */
+-			tmp = it87_read_value(data, IT87_REG_PWM(i));
+-			if (tmp & 0x80) {
+-				/* automatic pwm - not yet implemented, but
+-				 * leave the settings made by the BIOS alone
+-				 * until a change is requested via the sysfs
+-				 * interface */
+-			} else {
+-				/* manual pwm */
+-				data->manual_pwm_ctl[i] = PWM_FROM_REG(tmp);
+-			}
+-		}
+- 	}
+-
+ 	/* Start monitoring */
+ 	it87_write_value(data, IT87_REG_CONFIG,
+ 			 (it87_read_value(data, IT87_REG_CONFIG) & 0x36)
+ 			 | (update_vbat ? 0x41 : 0x01));
+ }
+ 
++static void it87_update_pwm_ctrl(struct it87_data *data, int nr)
++{
++	data->pwm_ctrl[nr] = it87_read_value(data, IT87_REG_PWM(nr));
++	if (data->pwm_ctrl[nr] & 0x80)	/* Automatic mode */
++		data->pwm_temp_map[nr] = data->pwm_ctrl[nr] & 0x03;
++	else				/* Manual mode */
++		data->pwm_duty[nr] = data->pwm_ctrl[nr] & 0x7f;
 +}
 +
-+static SENSOR_DEVICE_ATTR(in0_beep, S_IRUGO | S_IWUSR,
-+			  show_beep, set_beep, 1);
-+static SENSOR_DEVICE_ATTR(in1_beep, S_IRUGO, show_beep, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in2_beep, S_IRUGO, show_beep, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in3_beep, S_IRUGO, show_beep, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in4_beep, S_IRUGO, show_beep, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in5_beep, S_IRUGO, show_beep, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in6_beep, S_IRUGO, show_beep, NULL, 1);
-+static SENSOR_DEVICE_ATTR(in7_beep, S_IRUGO, show_beep, NULL, 1);
-+/* fanX_beep writability is set later */
-+static SENSOR_DEVICE_ATTR(fan1_beep, S_IRUGO, show_beep, set_beep, 0);
-+static SENSOR_DEVICE_ATTR(fan2_beep, S_IRUGO, show_beep, set_beep, 0);
-+static SENSOR_DEVICE_ATTR(fan3_beep, S_IRUGO, show_beep, set_beep, 0);
-+static SENSOR_DEVICE_ATTR(fan4_beep, S_IRUGO, show_beep, set_beep, 0);
-+static SENSOR_DEVICE_ATTR(fan5_beep, S_IRUGO, show_beep, set_beep, 0);
-+static SENSOR_DEVICE_ATTR(temp1_beep, S_IRUGO | S_IWUSR,
-+			  show_beep, set_beep, 2);
-+static SENSOR_DEVICE_ATTR(temp2_beep, S_IRUGO, show_beep, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp3_beep, S_IRUGO, show_beep, NULL, 2);
-+
- static ssize_t
- show_vrm_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ static struct it87_data *it87_update_device(struct device *dev)
  {
-@@ -1014,6 +1067,26 @@ static const struct attribute_group it87
- 	.attrs = it87_attributes,
- };
- 
-+static struct attribute *it87_attributes_beep[] = {
-+	&sensor_dev_attr_in0_beep.dev_attr.attr,
-+	&sensor_dev_attr_in1_beep.dev_attr.attr,
-+	&sensor_dev_attr_in2_beep.dev_attr.attr,
-+	&sensor_dev_attr_in3_beep.dev_attr.attr,
-+	&sensor_dev_attr_in4_beep.dev_attr.attr,
-+	&sensor_dev_attr_in5_beep.dev_attr.attr,
-+	&sensor_dev_attr_in6_beep.dev_attr.attr,
-+	&sensor_dev_attr_in7_beep.dev_attr.attr,
-+
-+	&sensor_dev_attr_temp1_beep.dev_attr.attr,
-+	&sensor_dev_attr_temp2_beep.dev_attr.attr,
-+	&sensor_dev_attr_temp3_beep.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group it87_group_beep = {
-+	.attrs = it87_attributes_beep,
-+};
-+
- static struct attribute *it87_attributes_fan16[5][3+1] = { {
- 	&sensor_dev_attr_fan1_input16.dev_attr.attr,
- 	&sensor_dev_attr_fan1_min16.dev_attr.attr,
-@@ -1107,6 +1180,14 @@ static const struct attribute_group it87
- 	{ .attrs = it87_attributes_pwm[2] },
- };
- 
-+static struct attribute *it87_attributes_fan_beep[] = {
-+	&sensor_dev_attr_fan1_beep.dev_attr.attr,
-+	&sensor_dev_attr_fan2_beep.dev_attr.attr,
-+	&sensor_dev_attr_fan3_beep.dev_attr.attr,
-+	&sensor_dev_attr_fan4_beep.dev_attr.attr,
-+	&sensor_dev_attr_fan5_beep.dev_attr.attr,
-+};
-+
- static struct attribute *it87_attributes_vid[] = {
- 	&dev_attr_vrm.attr,
- 	&dev_attr_cpu0_vid.attr,
-@@ -1174,6 +1255,10 @@ static int __init it87_find(unsigned sho
- 	if (sio_data->type = it87) {
- 		/* The IT8705F doesn't have VID pins at all */
- 		sio_data->skip_vid = 1;
-+
-+		/* The IT8705F has a different LD number for GPIO */
-+		superio_select(5);
-+		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	} else {
- 		int reg;
- 
-@@ -1207,7 +1292,11 @@ static int __init it87_find(unsigned sho
- 			pr_info("it87: in3 is VCC (+5V)\n");
- 		if (reg & (1 << 1))
- 			pr_info("it87: in7 is VCCH (+5V Stand-By)\n");
-+
-+		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	}
-+	if (sio_data->beep_pin)
-+		pr_info("it87: Beeping is supported\n");
- 
- 	/* Disable specific features based on DMI strings */
- 	board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
-@@ -1240,10 +1329,15 @@ static void it87_remove_files(struct dev
- 	int i;
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
-+	if (sio_data->beep_pin)
-+		sysfs_remove_group(&dev->kobj, &it87_group_beep);
- 	for (i = 0; i < 5; i++) {
- 		if (!(data->has_fan & (1 << i)))
- 			continue;
- 		sysfs_remove_group(&dev->kobj, &fan_group[i]);
-+		if (sio_data->beep_pin)
-+			sysfs_remove_file(&dev->kobj,
-+					  it87_attributes_fan_beep[i]);
- 	}
- 	for (i = 0; i < 3; i++) {
- 		if (sio_data->skip_pwm & (1 << 0))
-@@ -1263,6 +1357,7 @@ static int __devinit it87_probe(struct p
- 	const struct attribute_group *fan_group;
- 	int err = 0, i;
- 	int enable_pwm_interface;
-+	int fan_beep_need_rw;
- 	static const char *names[] = {
- 		"it87",
- 		"it8712",
-@@ -1311,14 +1406,40 @@ static int __devinit it87_probe(struct p
- 	if ((err = sysfs_create_group(&dev->kobj, &it87_group)))
- 		goto ERROR2;
- 
-+	if (sio_data->beep_pin) {
-+		err = sysfs_create_group(&dev->kobj, &it87_group_beep);
-+		if (err)
-+			goto ERROR4;
-+	}
-+
- 	/* Do not create fan files for disabled fans */
- 	fan_group = it87_get_fan_group(data);
-+	fan_beep_need_rw = 1;
- 	for (i = 0; i < 5; i++) {
- 		if (!(data->has_fan & (1 << i)))
- 			continue;
- 		err = sysfs_create_group(&dev->kobj, &fan_group[i]);
- 		if (err)
- 			goto ERROR4;
-+
-+		if (sio_data->beep_pin) {
-+			err = sysfs_create_file(&dev->kobj,
-+						it87_attributes_fan_beep[i]);
-+			if (err)
-+				goto ERROR4;
-+			if (!fan_beep_need_rw)
-+				continue;
-+
-+			/* As we have a single beep enable bit for all fans,
-+			 * only the first enabled fan has a writable attribute
-+			 * for it. */
-+			if (sysfs_chmod_file(&dev->kobj,
-+					     it87_attributes_fan_beep[i],
-+					     S_IRUGO | S_IWUSR))
-+				dev_dbg(dev, "chmod +w fan%d_beep failed\n",
-+					i + 1);
-+			fan_beep_need_rw = 0;
-+		}
- 	}
- 
- 	if (enable_pwm_interface) {
-@@ -1609,6 +1730,7 @@ static struct it87_data *it87_update_dev
+ 	struct it87_data *data = dev_get_drvdata(dev);
+@@ -1551,9 +1572,12 @@ static struct it87_data *it87_update_dev
  			it87_read_value(data, IT87_REG_ALARM1) |
  			(it87_read_value(data, IT87_REG_ALARM2) << 8) |
  			(it87_read_value(data, IT87_REG_ALARM3) << 16);
-+		data->beeps = it87_read_value(data, IT87_REG_BEEP_ENABLE);
- 
++
  		data->fan_main_ctrl = it87_read_value(data,
  				IT87_REG_FAN_MAIN_CTRL);
---- linux-2.6.33-rc4.orig/Documentation/hwmon/it87	2009-12-18 08:33:45.000000000 +0100
-+++ linux-2.6.33-rc4/Documentation/hwmon/it87	2010-01-21 13:41:11.000000000 +0100
-@@ -136,6 +136,10 @@ registers are read whenever any data is
- seconds since the last update). This means that you can easily miss
- once-only alarms.
+ 		data->fan_ctl = it87_read_value(data, IT87_REG_FAN_CTL);
++		for (i = 0; i < 3; i++)
++			it87_update_pwm_ctrl(data, i);
  
-+Out-of-limit readings can also result in beeping, if the chip is properly
-+wired and configured. Beeping can be enabled or disabled per sensor type
-+(temperatures, voltages and fans.)
-+
- The IT87xx only updates its values each 1.5 seconds; reading it more often
- will do no harm, but will return 'old' values.
- 
+ 		data->sensor = it87_read_value(data, IT87_REG_TEMP_ENABLE);
+ 		/* The 8705 does not have VID capability.
+
 
 -- 
 Jean Delvare
