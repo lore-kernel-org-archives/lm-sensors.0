@@ -1,59 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 20 Jan 2010 13:15:42 +0000
-Subject: Re: [lm-sensors] LPC47M192-NC Fans
-Message-Id: <20100120141542.4b28103d@hyperion.delvare>
+From: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
+Date: Sat, 23 Jan 2010 17:55:11 +0000
+Subject: [lm-sensors] Status of Andigilog asc7621 driver submitted by George
+Message-Id: <3f9a31f41001230952g6321c47bq9baf5dcfdfaf5b59@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
-In-Reply-To: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: George Joseph <George.joseph@fairview5.com>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, 20 Jan 2010 09:20:19 +0100, Gabriel C wrote:
-> On 20.01.2010 05:30, b13johnson@comcast.net wrote:
-> 
-> Hello,
-> 
-> ...
-> > [root@Backup-P4 smsc47m1_driver]# modprobe smsc47m1 
-> > FATAL: Error inserting smsc47m1 (/lib/modules/2.6.31.9-174.fc12.i686.PAE/kernel/drivers/hwmon/smsc47m1.ko): Device or resource busy 
-> > ---------------------------------------------------------- 
-> > 
-> > The log file "messages" has the following: 
-> > 
-> > ---------------------------------------------------------- 
-> > Jan 18 23:06:51 localhost kernel: i2c /dev entries driver 
-> > Jan 18 23:07:05 localhost kernel: smsc47m1: Found SMSC LPC47M15x/LPC47M192/LPC47M997 
-> > Jan 18 23:07:05 localhost kernel: ACPI: I/O resource smsc47m1 [0x604-0x604] conflicts with ACPI region SMC_ [0x600-0x65f] 
+Andigilog asc7621 driver submitted by George Joseph on 2008-05-29,
+This chip is used by various Intel Motherboards.
 
-Unfortunately, in your case ACPI reserved the whole port range. It may
-or may not need all these ports, one would have to disassemble the DSDT
-to tell. I changed the smsc47m1 driver to play fair and only request
-the ports it needs, but if ACPI on its side isn't fair, it doesn't help
-at all.
+Is it still under review and testing :
 
-> > Jan 18 23:07:05 localhost kernel: ACPI: If an ACPI driver is available for this device, you should use it instead 
-> > of the native driver 
-> > ---------------------------------------------------------- 
-> > 
-> > I'm running Fedora Core kernel 2.6.31.9-174.fc12.i686.PAE 
-> > 
-> > Do you have any ideas? I really appreciate your help. 
-> >
-> 
-> 
-> I guess you have to boot your kernel with :
-> 
-> acpi_enforce_resources=no
+http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023257.html
 
-This will certainly work, but if ACPI really accesses these ports, you
-might get in trouble (although the smsc47m1 case is probably one of the
-least dangerous, thanks to the flat I/O access model.)
+http://www.spinics.net/lists/lm-sensors/msg26915.html
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+http://www.spinics.net/lists/lm-sensors/msg26916.html
+
+http://www.lm-sensors.org/wiki/Devices
+
+Thank you,
+--
+JSR
 
 _______________________________________________
 lm-sensors mailing list
