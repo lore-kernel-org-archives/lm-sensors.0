@@ -1,70 +1,35 @@
-From: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
-Date: Sun, 24 Jan 2010 05:17:45 +0000
+From: "Constantine A. Murenin" <mureninc@gmail.com>
+Date: Sun, 24 Jan 2010 05:44:05 +0000
 Subject: Re: [lm-sensors] Status of Andigilog asc7621 driver submitted by
-Message-Id: <3f9a31f41001232105l58d36ffdp8d06231f524a98ec@mail.gmail.com>
+Message-Id: <f34ca13c1001232144t75ef8d1dqaffbe86b0c8407e7@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3f9a31f41001230952g6321c47bq9baf5dcfdfaf5b59@mail.gmail.com>
 	 <4B5B38C1.5080109@hhs.nl>
-In-Reply-To: <4B5B38C1.5080109@hhs.nl>
+	 <3f9a31f41001232105l58d36ffdp8d06231f524a98ec@mail.gmail.com>
+In-Reply-To: <3f9a31f41001232105l58d36ffdp8d06231f524a98ec@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Cc: George Joseph <George.joseph@fairview5.com>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Jaswinder Singh Rajput <jaswinderlinux@gmail.com>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-Hello Hans,
+On 24/01/2010, Jaswinder Singh Rajput <jaswinderlinux@gmail.com> wrote:
+> Many new Intel Motherboards are coming with this chip, if we complete
+>  this driver then it will be great.
 
-On Sat, Jan 23, 2010 at 11:28 PM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> Hi,
->
-> On 01/23/2010 06:52 PM, Jaswinder Singh Rajput wrote:
->>
->> Andigilog asc7621 driver submitted by George Joseph on 2008-05-29,
->> This chip is used by various Intel Motherboards.
->>
->> Is it still under review and testing :
->>
->> http://lists.lm-sensors.org/pipermail/lm-sensors/2008-May/023257.html
->>
->> http://www.spinics.net/lists/lm-sensors/msg26915.html
->>
->> http://www.spinics.net/lists/lm-sensors/msg26916.html
->>
->> http://www.lm-sensors.org/wiki/Devices
->>
->
-> I guess this is partly my fault, I started a review but never finished
-> it. One of the big problems is that George did many things completely
-> different to how every other single hwmon driver does things. Which made
-> the review harder then necessary, and more over made me wonder if we
-> should accept the driver in that incarnation at all.
->
+Really?  My understanding was that the company, Andigilog, no longer
+seem to exist since at least a couple of months ago (I don't recall
+the exact dates their web-site was taken down without any notice, but
+currently the domain has no information regarding semiconductors
+whatsoever [0]).  It would therefore seem somewhat strange if Intel
+was still using these chips in their recent designs =97 do you have some
+concrete examples?  Anyone has any more details regarding Andigilog
+and their products?
 
-George Joseph submitted the driver on 2008-05-29 and then he updated
-the driver on 2009-10-15 for 2.6.30 and many developers are able to
-test it and used it.
+C.
 
-Are you able to compile the driver with latest kernel git.
-
-> Then a lot of things happened and I never got around to doing anything
-> with it at all.
->
-
-Many new Intel Motherboards are coming with this chip, if we complete
-this driver then it will be great.
-
-> I just checked my Drafts folder, and I still have my unfinished review
-> in there. So if there is interest I can send that, note that it is
-> not a complete review though (there is a note in there which part
-> of the code is reviewed and which still needs to be reviewed).
->
-
-Please provide your review so that we can discuss about this driver
-and make relevant changes to accept it.
-
-Thank you,
---
-Jaswinder Singh.
+[0] http://translate.google.com/translate?hl=3Den&sl=3Dja&tl=3Den&u=3Dhttp%=
+3A%2F%2Fwww.andigilog.com%2F
 
 _______________________________________________
 lm-sensors mailing list
