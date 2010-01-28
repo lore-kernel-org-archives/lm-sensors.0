@@ -1,41 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 Jan 2010 08:35:18 +0000
-Subject: Re: [lm-sensors] hwmon: (coretemp) Check the sensor existence
-Message-Id: <20100111093518.069d2a8b@hyperion.delvare>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Thu, 28 Jan 2010 16:02:28 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (s3c-hwmon): S3C hwmon requires S3C_ADC
+Message-Id: <1264694548-30722-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100108160144.GA23650@owl>
-In-Reply-To: <20100108160144.GA23650@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Adam,
+The S3C hwmon driver uses the core s3c ADC API so needs to either depend
+on or select it otherwise the kernel will fail to link.  For ease of use
+selecting seems simpler, the shared ADC core is pretty much an
+implementation detail.
 
-On Mon, 11 Jan 2010 16:29:44 +1000, Adam Nielsen wrote:
-> >>> [1] http://www.intel.com/Assets/PDF/manual/253668.pdf
-> >> $ wget http://www.intel.com/Assets/PDF/manual/253668.pdf
-> >> --2010-01-08 19:05:33--  http://www.intel.com/Assets/PDF/manual/253668.pdf
-> >> Resolving www.intel.com... 88.221.93.91, 88.221.93.112
-> >> Connecting to www.intel.com|88.221.93.91|:80... connected.
-> >> HTTP request sent, awaiting response... 403 Forbidden
-> >> 2010-01-08 19:05:33 ERROR 403: Forbidden.
-> >> $ 
-> > 
-> > I can access the above link at external, I don't know why. Try the link:
-> > http://www.intel.com/products/processor/manuals/ or google "253668.pdf".
-> 
-> Try this instead:
-> 
-> $ wget http://www.intel.com/Assets/PDF/manual/253668.pdf --user-agent=""
-> 
-> Fixes the 403 for me :-)
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/hwmon/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Probably Intel protecting themselves from web suckers. Thanks for the
-tip :)
-
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 90db0ba..cc810e7 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -704,6 +704,7 @@ config SENSORS_SHT15
+ config SENSORS_S3C
+ 	tristate "S3C24XX/S3C64XX Inbuilt ADC"
+ 	depends on ARCH_S3C2410 || ARCH_S3C64XX
++	select S3C_ADC
+ 	help
+ 	  If you say yes here you get support for the on-board ADCs of
+ 	  the Samsung S3C24XX or S3C64XX series of SoC
 -- 
-Jean Delvare
+1.6.6
+
 
 _______________________________________________
 lm-sensors mailing list
