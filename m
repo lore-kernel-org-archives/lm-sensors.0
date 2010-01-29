@@ -1,108 +1,65 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 31 Jan 2010 14:03:23 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (ams) Fix device removal sequence
-Message-Id: <20100131150323.06e0c876@hyperion.delvare>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Fri, 29 Jan 2010 20:39:13 +0000
+Subject: [lm-sensors] [patch 10/10] hwmon: s3c-hwmon: Convert semaphore to
+Message-Id: <20100129203613.740626458@linutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20100129203549.526478432@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linuxppc-dev@ozlabs.org
-Cc: Christian Kujau <lists@nerdbynature.de>, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>, LM Sensors <lm-sensors@lm-sensors.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, Ben Dooks <ben-linux@fluff.org>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
 
-Some code that is in ams_exit() (the module exit code) should instead
-be called when the device (not module) is removed. It probably doesn't
-make much of a difference in the PMU case, but in the I2C case it does
-matter.
+hwmon->lock is used as a mutex. Make it a real mutex.
 
-I make no guarantee that my fix isn't racy, I'm not familiar enough
-with the ams driver code to tell for sure.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Tested-by: Christian Kujau <lists@nerdbynature.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Stelian Pop <stelian@popies.net>
-Cc: Michael Hanselmann <linux-kernel@hansmi.ch>
-Cc: stable@kernel.org
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org
 ---
-Christian tested the I2C variant of the chip, it would be nice if
-someone could test the PMU variant too.
+ drivers/hwmon/s3c-hwmon.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
- drivers/hwmon/ams/ams-core.c |   11 +++++++----
- drivers/hwmon/ams/ams-i2c.c  |    2 ++
- drivers/hwmon/ams/ams-pmu.c  |    2 ++
- drivers/hwmon/ams/ams.h      |    1 +
- 4 files changed, 12 insertions(+), 4 deletions(-)
-
---- linux-2.6.33-rc3.orig/drivers/hwmon/ams/ams-core.c	2009-06-10 05:05:27.000000000 +0200
-+++ linux-2.6.33-rc3/drivers/hwmon/ams/ams-core.c	2010-01-07 17:14:25.000000000 +0100
-@@ -213,7 +213,7 @@ int __init ams_init(void)
- 	return -ENODEV;
+Index: linux-2.6-tip/drivers/hwmon/s3c-hwmon.c
+=================================--- linux-2.6-tip.orig/drivers/hwmon/s3c-hwmon.c
++++ linux-2.6-tip/drivers/hwmon/s3c-hwmon.c
+@@ -51,7 +51,7 @@ struct s3c_hwmon_attr {
+  * @attr: The holders for the channel attributes.
+ */
+ struct s3c_hwmon {
+-	struct semaphore	lock;
++	struct mutex		lock;
+ 	struct s3c_adc_client	*client;
+ 	struct device		*hwmon_dev;
+ 
+@@ -73,14 +73,14 @@ static int s3c_hwmon_read_ch(struct devi
+ {
+ 	int ret;
+ 
+-	ret = down_interruptible(&hwmon->lock);
++	ret = mutex_lock_interruptible(&hwmon->lock);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	dev_dbg(dev, "reading channel %d\n", channel);
+ 
+ 	ret = s3c_adc_read(hwmon->client, channel);
+-	up(&hwmon->lock);
++	mutex_unlock(&hwmon->lock);
+ 
+ 	return ret;
  }
+@@ -296,7 +296,7 @@ static int __devinit s3c_hwmon_probe(str
  
--void ams_exit(void)
-+void ams_sensor_detach(void)
- {
- 	/* Remove input device */
- 	ams_input_exit();
-@@ -221,9 +221,6 @@ void ams_exit(void)
- 	/* Remove attributes */
- 	device_remove_file(&ams_info.of_dev->dev, &dev_attr_current);
+ 	platform_set_drvdata(dev, hwmon);
  
--	/* Shut down implementation */
--	ams_info.exit();
--
- 	/* Flush interrupt worker
- 	 *
- 	 * We do this after ams_info.exit(), because an interrupt might
-@@ -239,6 +236,12 @@ void ams_exit(void)
- 	pmf_unregister_irq_client(&ams_freefall_client);
- }
+-	init_MUTEX(&hwmon->lock);
++	mutex_init(&hwmon->lock);
  
-+static void __exit ams_exit(void)
-+{
-+	/* Shut down implementation */
-+	ams_info.exit();
-+}
-+
- MODULE_AUTHOR("Stelian Pop, Michael Hanselmann");
- MODULE_DESCRIPTION("Apple Motion Sensor driver");
- MODULE_LICENSE("GPL");
---- linux-2.6.33-rc3.orig/drivers/hwmon/ams/ams-i2c.c	2009-06-10 05:05:27.000000000 +0200
-+++ linux-2.6.33-rc3/drivers/hwmon/ams/ams-i2c.c	2010-01-07 17:12:46.000000000 +0100
-@@ -238,6 +238,8 @@ static int ams_i2c_probe(struct i2c_clie
- static int ams_i2c_remove(struct i2c_client *client)
- {
- 	if (ams_info.has_device) {
-+		ams_sensor_detach();
-+
- 		/* Disable interrupts */
- 		ams_i2c_set_irq(AMS_IRQ_ALL, 0);
+ 	/* Register with the core ADC driver. */
  
---- linux-2.6.33-rc3.orig/drivers/hwmon/ams/ams-pmu.c	2009-06-10 05:05:27.000000000 +0200
-+++ linux-2.6.33-rc3/drivers/hwmon/ams/ams-pmu.c	2010-01-07 17:13:47.000000000 +0100
-@@ -133,6 +133,8 @@ static void ams_pmu_get_xyz(s8 *x, s8 *y
- 
- static void ams_pmu_exit(void)
- {
-+	ams_sensor_detach();
-+
- 	/* Disable interrupts */
- 	ams_pmu_set_irq(AMS_IRQ_ALL, 0);
- 
---- linux-2.6.33-rc3.orig/drivers/hwmon/ams/ams.h	2009-06-10 05:05:27.000000000 +0200
-+++ linux-2.6.33-rc3/drivers/hwmon/ams/ams.h	2010-01-07 17:11:43.000000000 +0100
-@@ -61,6 +61,7 @@ extern struct ams ams_info;
- 
- extern void ams_sensors(s8 *x, s8 *y, s8 *z);
- extern int ams_sensor_attach(void);
-+extern void ams_sensor_detach(void);
- 
- extern int ams_pmu_init(struct device_node *np);
- extern int ams_i2c_init(struct device_node *np);
 
 
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
