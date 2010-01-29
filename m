@@ -1,32 +1,40 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Fri, 29 Jan 2010 15:28:20 +0000
+From: "Juliano F. Ravasi" <jravasi@gmail.com>
+Date: Fri, 29 Jan 2010 18:03:55 +0000
 Subject: Re: [lm-sensors] Help with asus_atk0110 module
-Message-Id: <68676e01001290728i4b38c7e0n37f30f018688c59b@mail.gmail.com>
+Message-Id: <4B63230B.6080108@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <68676e01001290037o64afca82ra3ad2a5556ecb0e6@mail.gmail.com>
 In-Reply-To: <68676e01001290037o64afca82ra3ad2a5556ecb0e6@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jan 29, 2010 at 4:20 PM, Juliano F. Ravasi <jravasi@gmail.com> wrote:
-> Luca Tettamanti wrote:
->> The module complains when it encounters an error, otherwise is very silent...
->> In this case it seems that it's not even trying to attach to the hwmon
->> interface.
->>
->> I need a copy of the DSDT (/sys/firmware/acpi/tables/DSDT).
+Luca Tettamanti wrote:
+> Ok, you were bitten by this bug:
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2010-January/027633.html
 >
-> A copy of DSDT file is attached.
+> Fix is already present in Linus' tree, you can find the patch here:
+> http://lists.lm-sensors.org/pipermail/lm-sensors/2010-January/027647.html
+>   
 
-Ok, you were bitten by this bug:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2010-January/027633.html
+Thanks! That worked!
 
-Fix is already present in Linus' tree, you can find the patch here:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2010-January/027647.html
+But it looks like the module doesn't support PWM outputs... I couldn't
+get much information from Google, and reading the source seems like it
+only supports temp/volt/fan sensors. Is this correct? Is it planned to
+support adjusting the PWM outputs in the future?
 
-Luca
+Best regards,
+
+-- 
+Juliano F. Ravasi ·· http://juliano.info/
+5105 46CC B2B7 F0CD 5F47 E740 72CA 54F4 DF37 9E96
+
+"A candle loses nothing by lighting another candle."
+    -- Erin Majors
+
+
 
 _______________________________________________
 lm-sensors mailing list
