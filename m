@@ -1,73 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 07 Jan 2010 15:06:43 +0000
-Subject: Re: [lm-sensors] [PATCH 1/5] via686a: make PCI device id constant
-Message-Id: <20100107160643.35af80a5@hyperion.delvare>
+Date: Fri, 29 Jan 2010 13:46:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adt7462) Wrong ADT7462_VOLT_COUNT
+Message-Id: <20100129144652.62d0b210@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B427D3B.6080709@freemail.hu>
-In-Reply-To: <4B427D3B.6080709@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Cc: lm-sensors@lm-sensors.org, Julia Lawall <julia@diku.dk>, LKML <linux-kernel@vger.kernel.org>, cocci@diku.dk
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-On Tue, 05 Jan 2010 00:43:55 +0100, Németh Márton wrote:
-> From: Márton Németh <nm127@freemail.hu>
-> 
-> The id_table field of the struct pci_driver is constant in <linux/pci.h>
-> so it is worth to make pci_device_id also constant.
-> 
-> The semantic match that finds this kind of pattern is as follows:
-> (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @r@
-> identifier I1, I2, x;
-> @@
-> 	struct I1 {
-> 	  ...
-> 	  const struct I2 *x;
-> 	  ...
-> 	};
-> @s@
-> identifier r.I1, y;
-> identifier r.x, E;
-> @@
-> 	struct I1 y = {
-> 	  .x = E,
-> 	};
-> @c@
-> identifier r.I2;
-> identifier s.E;
-> @@
-> 	const struct I2 E[] = ... ;
-> @depends on !c@
-> identifier r.I2;
-> identifier s.E;
-> @@
-> +	const
-> 	struct I2 E[] = ...;
-> // </smpl>
-> 
-> Signed-off-by: Márton Németh <nm127@freemail.hu>
-> Cc: Julia Lawall <julia@diku.dk>
-> Cc: cocci@diku.dk
-> ---
-> diff -u -p a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
-> --- a/drivers/hwmon/via686a.c 2009-12-03 04:51:21.000000000 +0100
-> +++ b/drivers/hwmon/via686a.c 2010-01-03 20:55:10.000000000 +0100
-> @@ -767,7 +767,7 @@ static struct via686a_data *via686a_upda
->  	return data;
->  }
-> 
-> -static struct pci_device_id via686a_pci_ids[] = {
-> +static const struct pci_device_id via686a_pci_ids[] = {
->  	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4) },
->  	{ 0, }
->  };
+From: Ray Copeland <ray.copeland@aprius.com>
+Subject: hwmon: (adt7462) Wrong ADT7462_VOLT_COUNT
 
-I've merged all 5 patches are they are doing the exact same thing to 5
-drivers. The resulting patch is applied, thanks.
+The #define ADT7462_VOLT_COUNT is wrong, it should be 13 not 12. All the 
+for loops that use this as a limit count are of the typical form, "for 
+(n = 0; n < ADT7462_VOLT_COUNT; n++)", so to loop through all voltages 
+w/o missing the last one it is necessary for the count to be one greater 
+than it is.  (Specifically, you will miss the +1.5V 3GPIO input with count 
+= 12 vs. 13.)
+
+Signed-off-by: Ray Copeland <ray.copeland@aprius.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: stable@kernel.org
+---
+ drivers/hwmon/adt7462.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-2.6.33-rc5.orig/drivers/hwmon/adt7462.c	2010-01-13 09:16:42.000000000 +0100
++++ linux-2.6.33-rc5/drivers/hwmon/adt7462.c	2010-01-29 14:31:31.000000000 +0100
+@@ -179,7 +179,7 @@ static const unsigned short normal_i2c[]
+  *
+  * Some, but not all, of these voltages have low/high limits.
+  */
+-#define ADT7462_VOLT_COUNT	12
++#define ADT7462_VOLT_COUNT	13
+ 
+ #define ADT7462_VENDOR		0x41
+ #define ADT7462_DEVICE		0x62
 
 
 -- 
