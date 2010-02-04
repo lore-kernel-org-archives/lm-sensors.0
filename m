@@ -1,10 +1,10 @@
 From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Tue, 16 Feb 2010 11:09:29 +0000
-Subject: [lm-sensors] [PATCH V2 4/6] lis3: Add skeletons for interrupt
-Message-Id: <1266318571-31083-5-git-send-email-samu.p.onkalo@nokia.com>
+Date: Thu, 04 Feb 2010 08:24:07 +0000
+Subject: [lm-sensors] [PATCH 5/6] lis3: Add skeletons for interrupt handlers
+Message-Id: <1265271848-26559-6-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
+References: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,17 +18,16 @@ Actual content for interrupt handling is provided in the
 separate patch.
 
 Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Tested-by: Daniel Mack <daniel@caiaq.de>
 ---
  drivers/hwmon/lis3lv02d.c |   87 +++++++++++++++++++++++++++++++++------------
  include/linux/lis3lv02d.h |    1 +
  2 files changed, 65 insertions(+), 23 deletions(-)
 
 diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index 50f3123..3c06350 100644
+index 5948a3a..7de42f6 100644
 --- a/drivers/hwmon/lis3lv02d.c
 +++ b/drivers/hwmon/lis3lv02d.c
-@@ -251,6 +251,9 @@ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
+@@ -276,6 +276,9 @@ static void lis3lv02d_joystick_close(struct input_polled_dev *pidev)
  
  static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
  {
@@ -38,7 +37,7 @@ index 50f3123..3c06350 100644
  	/*
  	 * Be careful: on some HP laptops the bios force DD when on battery and
  	 * the lid is closed. This leads to interrupts as soon as a little move
-@@ -260,44 +263,35 @@ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
+@@ -285,45 +288,36 @@ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
  
  	wake_up_interruptible(&lis3_dev.misc_wait);
  	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
@@ -66,6 +65,7 @@ index 50f3123..3c06350 100644
  	if (test_and_set_bit(0, &lis3_dev.misc_opened))
  		return -EBUSY; /* already open */
  
+ 	lis3lv02d_add_users(&lis3_dev);
  	atomic_set(&lis3_dev.count, 0);
 -
 -	/*
@@ -95,9 +95,9 @@ index 50f3123..3c06350 100644
  	fasync_helper(-1, file, 0, &lis3_dev.async_queue);
 -	free_irq(lis3_dev.irq, &lis3_dev);
  	clear_bit(0, &lis3_dev.misc_opened); /* release the device */
+ 	lis3lv02d_remove_users(&lis3_dev);
  	return 0;
- }
-@@ -434,6 +428,11 @@ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_enable);
+@@ -463,6 +457,11 @@ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_enable);
  
  void lis3lv02d_joystick_disable(void)
  {
@@ -109,7 +109,7 @@ index 50f3123..3c06350 100644
  	if (!lis3_dev.idev)
  		return;
  
-@@ -524,6 +523,7 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+@@ -592,6 +591,7 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
  static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
  				struct lis3lv02d_platform_data *p)
  {
@@ -117,7 +117,7 @@ index 50f3123..3c06350 100644
  	int ctrl2 = p->hipass_ctrl;
  
  	if (p->click_flags) {
-@@ -554,6 +554,18 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+@@ -622,6 +622,18 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
  	}
  	/* Configure hipass filters */
  	dev->write(dev, CTRL_REG2, ctrl2);
@@ -136,7 +136,7 @@ index 50f3123..3c06350 100644
  }
  
  /*
-@@ -562,6 +574,9 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+@@ -630,6 +642,9 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
   */
  int lis3lv02d_init_device(struct lis3lv02d *dev)
  {
@@ -146,7 +146,7 @@ index 50f3123..3c06350 100644
  	dev->whoami = lis3lv02d_read_8(dev, WHO_AM_I);
  
  	switch (dev->whoami) {
-@@ -616,6 +631,32 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+@@ -685,6 +700,32 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
  		goto out;
  	}
  
