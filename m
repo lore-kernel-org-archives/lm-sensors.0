@@ -1,48 +1,78 @@
-From: "D. Can Celasun" <dcelasun@gmail.com>
-Date: Fri, 19 Feb 2010 21:56:32 +0000
-Subject: Re: [lm-sensors] Core i3 support?
-Message-Id: <d35bed621002191356l1d17029bkcdbd71e530b287b7@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============9165733921098311755=="
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Thu, 04 Feb 2010 08:24:02 +0000
+Subject: [lm-sensors] [PATCH 0/6] lis3lv02d: Power management,
+Message-Id: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100210154404.45e8afd6@hyperion.delvare>
-	<d35bed621002101007y639fd3c7k736ef53ff400f79@mail.gmail.com>
-	<20100210204057.2ca95b0d@hyperion.delvare>
-	<d35bed621002101223ida7758fp5ccbedfe25bd3148@mail.gmail.com>
-	<20100211012105.GH29604@tux1.beaverton.ibm.com>
-	<d35bed621002102333i701a212re957efb600cbda5f@mail.gmail.com>
-	<20100211091743.287030b0@hyperion.delvare>
-	<d35bed621002110842h54c8185fqf3bf481ad63df7bf@mail.gmail.com>
-	<20100212185241.GJ29604@tux1.beaverton.ibm.com>
-	<20100212200955.05730d69@hyperion.delvare>
-In-Reply-To: <20100212200955.05730d69@hyperion.delvare>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Huaxu Wan <huaxu.wan@intel.com>, lenb@kernel.org
-
---===============9165733921098311755==
-Content-Type: multipart/alternative; boundary=00c09f82cb173d6bb4047ffb29e3
-
---00c09f82cb173d6bb4047ffb29e3
-Content-Type: text/plain; charset=ISO-8859-1
-
-Any news on this?
-
---00c09f82cb173d6bb4047ffb29e3
-Content-Type: text/html; charset=ISO-8859-1
-
-Any news on this?<br>
-
---00c09f82cb173d6bb4047ffb29e3--
-
-
---===============9165733921098311755==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: eric.piel@tremplin-utc.net
+Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
+
+Lis3 accelerometer chip family changes for power management,
+click and threshold event handling.
+
+Patch set adds interrupt handlers for click/tap events and threshold
+based events. Actual configuration which events are enabled
+is done via platform data. All the features cannot be used in parallel.
+Interrupts are implemented only for 8 bit device, since I'm not familiar
+with other devices and I don't have suitable testing environment.
+
+Changes:
+
+  lis3: Add missing constants for 8bit device
+This is quite clear. Some click feature related register definitions
+were missing.
+
+  lis3: Separate configuration function for 8 bit device
+Move platformdata based configurations for 8 bit device to
+separate function to keep common part little bit more readable.
+
+  lis3: Introduce platform data for second ff / wu unit
+8 bit device has two freefall / wakeup detection blocks. Add possibility
+to configure also the second unit. Change hipass filter configuration
+to platform data. Change is compatible with existing platform data.
+
+  lis3: Power control for the chip
+This kind of feature has been in the driver earlier. It was removed
+because saving was so small in laptop environment. However, in smaller
+devices, even a small saving need to be implemented. When driver detects
+that no-one is really interested about the acceleration, chip is powered down.
+Input device, freefall device and sysfs are controlling this. By default,
+chip is powered on to keep functionality similar to current implementation.
+
+  lis3: Add skeletons for interrupt handlers
+Interrupt handlers are added in two patches to keep changes cleaner.
+This first patch adds two dummy threaded interrupt handlers for 8 bit device. 
+
+  lis3: Interrupt handlers for 8bit wakeup and click events
+This patch adds content to dummy handlers. Depending on the chip configuration,
+either click or ff/wu handling is called. For click event, BTN input event is
+sent separately for each axes. For threshold event, coordinates are updated
+immediatelly to input device. This allows input device to be used either in
+polled mode and / or interrupt driven mode. Polling can stopped from userspace
+by via input device sysfs.
+
+Patch set applies to 2.6.33-RC6 tree.
+Tested with 2.6.32 environment for omap3
+
+Samu Onkalo (6):
+  lis3: Add missing constants for 8bit device
+  lis3: Separate configuration function for 8 bit device
+  lis3: Introduce platform data for second ff / wu unit
+  lis3: Power control for the chip
+  lis3: Add skeletons for interrupt handlers
+  lis3: Interrupt handlers for 8bit wakeup and click events
+
+ drivers/hwmon/lis3lv02d.c     |  308 +++++++++++++++++++++++++++++++++--------
+ drivers/hwmon/lis3lv02d.h     |   12 ++
+ drivers/hwmon/lis3lv02d_i2c.c |    8 +-
+ drivers/hwmon/lis3lv02d_spi.c |   12 +-
+ include/linux/lis3lv02d.h     |   12 ++
+ 5 files changed, 287 insertions(+), 65 deletions(-)
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9165733921098311755==--
