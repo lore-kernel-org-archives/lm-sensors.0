@@ -1,65 +1,91 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Feb 2010 15:22:19 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (it87) Drop dead web links in
-Message-Id: <20100211162219.77049297@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Thu, 04 Feb 2010 08:24:04 +0000
+Subject: [lm-sensors] [PATCH 2/6] lis3: Separate configuration function for
+Message-Id: <1265271848-26559-3-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net
+Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Unfortunately ITE is no longer publicly providing datasheets for their
-IT87xxF series of chips. They may send them on request if you ask
-politely.
+Separate configuration function for 8 bit version of the chip.
+This way generic part of the init function stays little bit
+more readable.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
- Documentation/hwmon/it87 |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   45 ++++++++++++++++++++++++++-------------------
+ 1 files changed, 26 insertions(+), 19 deletions(-)
 
---- linux-2.6.33-rc7.orig/Documentation/hwmon/it87	2010-02-11 15:44:56.000000000 +0100
-+++ linux-2.6.33-rc7/Documentation/hwmon/it87	2010-02-11 15:46:09.000000000 +0100
-@@ -5,31 +5,23 @@ Supported chips:
-   * IT8705F
-     Prefix: 'it87'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
--    Datasheet: Publicly available at the ITE website
--               http://www.ite.com.tw/product_info/file/pc/IT8705F_V.0.4.1.pdf
-+    Datasheet: Once publicly available at the ITE website, but no longer
-   * IT8712F
-     Prefix: 'it8712'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
--    Datasheet: Publicly available at the ITE website
--               http://www.ite.com.tw/product_info/file/pc/IT8712F_V0.9.1.pdf
--               http://www.ite.com.tw/product_info/file/pc/Errata%20V0.1%20for%20IT8712F%20V0.9.1.pdf
--               http://www.ite.com.tw/product_info/file/pc/IT8712F_V0.9.3.pdf
-+    Datasheet: Once publicly available at the ITE website, but no longer
-   * IT8716F/IT8726F
-     Prefix: 'it8716'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
--    Datasheet: Publicly available at the ITE website
--               http://www.ite.com.tw/product_info/file/pc/IT8716F_V0.3.ZIP
--               http://www.ite.com.tw/product_info/file/pc/IT8726F_V0.3.pdf
-+    Datasheet: Once publicly available at the ITE website, but no longer
-   * IT8718F
-     Prefix: 'it8718'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
--    Datasheet: Publicly available at the ITE website
--               http://www.ite.com.tw/product_info/file/pc/IT8718F_V0.2.zip
--               http://www.ite.com.tw/product_info/file/pc/IT8718F_V0%203_(for%20C%20version).zip
-+    Datasheet: Once publicly available at the ITE website, but no longer
-   * IT8720F
-     Prefix: 'it8720'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
--    Datasheet: Not yet publicly available.
-+    Datasheet: Not publicly available
-   * SiS950   [clone of IT8705F]
-     Prefix: 'it87'
-     Addresses scanned: from Super I/O config space (8 I/O ports)
-
-
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index b2f2277..99fd45d 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -521,6 +521,30 @@ int lis3lv02d_remove_fs(struct lis3lv02d *lis3)
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+ 
++static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
++				struct lis3lv02d_platform_data *p)
++{
++	if (p->click_flags) {
++		dev->write(dev, CLICK_CFG, p->click_flags);
++		dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
++		dev->write(dev, CLICK_LATENCY, p->click_latency);
++		dev->write(dev, CLICK_WINDOW, p->click_window);
++		dev->write(dev, CLICK_THSZ, p->click_thresh_z & 0xf);
++		dev->write(dev, CLICK_THSY_X,
++			(p->click_thresh_x & 0xf) |
++			(p->click_thresh_y << 4));
++	}
++
++	if (p->wakeup_flags) {
++		dev->write(dev, FF_WU_CFG_1, p->wakeup_flags);
++		dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
++		/* default to 2.5ms for now */
++		dev->write(dev, FF_WU_DURATION_1, 1);
++		/* enable high pass filter for both free-fall units */
++		dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
++	}
++}
++
+ /*
+  * Initialise the accelerometer and the various subsystems.
+  * Should be rather independent of the bus system.
+@@ -567,25 +591,8 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 	if (dev->pdata) {
+ 		struct lis3lv02d_platform_data *p = dev->pdata;
+ 
+-		if (p->click_flags && (dev->whoami = WAI_8B)) {
+-			dev->write(dev, CLICK_CFG, p->click_flags);
+-			dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
+-			dev->write(dev, CLICK_LATENCY, p->click_latency);
+-			dev->write(dev, CLICK_WINDOW, p->click_window);
+-			dev->write(dev, CLICK_THSZ, p->click_thresh_z & 0xf);
+-			dev->write(dev, CLICK_THSY_X,
+-					(p->click_thresh_x & 0xf) |
+-					(p->click_thresh_y << 4));
+-		}
+-
+-		if (p->wakeup_flags && (dev->whoami = WAI_8B)) {
+-			dev->write(dev, FF_WU_CFG_1, p->wakeup_flags);
+-			dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
+-			/* default to 2.5ms for now */
+-			dev->write(dev, FF_WU_DURATION_1, 1);
+-			/* enable high pass filter for both free-fall units */
+-			dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
+-		}
++		if (dev->whoami = WAI_8B)
++			lis3lv02d_8b_configure(dev, p);
+ 
+ 		if (p->irq_cfg)
+ 			dev->write(dev, CTRL_REG3, p->irq_cfg);
 -- 
-Jean Delvare
+1.6.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
