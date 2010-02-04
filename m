@@ -1,84 +1,47 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 25 Feb 2010 08:02:43 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (it87) Validate auto pwm settings
-Message-Id: <20100225090243.2d5b7cd8@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Thu, 04 Feb 2010 08:24:03 +0000
+Subject: [lm-sensors] [PATCH 1/6] lis3: Add missing constants for 8bit device
+Message-Id: <1265271848-26559-2-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net
+Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Before switching to automatic fan control mode, make sure that all the
-trip points make sense. Otherwise, the control loop could lead to
-weird fan behavior.
+Definitions for click were missing.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
- Documentation/hwmon/it87 |    4 ++++
- drivers/hwmon/it87.c     |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 36 insertions(+)
+ drivers/hwmon/lis3lv02d.h |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
---- linux-2.6.33-rc8.orig/Documentation/hwmon/it87	2010-02-22 08:38:21.000000000 +0100
-+++ linux-2.6.33-rc8/Documentation/hwmon/it87	2010-02-22 11:33:48.000000000 +0100
-@@ -177,3 +177,7 @@ between trip point N and trip point N+1
- the one of trip point N. The automatic control mode is less flexible
- than the manual control mode, but it reacts faster, is more robust and
- doesn't use CPU cycles.
-+
-+Trip points must be set properly before switching to automatic fan speed
-+control mode. The driver will perform basic integrity checks before
-+actually switching to automatic control mode.
---- linux-2.6.33-rc8.orig/drivers/hwmon/it87.c	2010-02-22 11:09:33.000000000 +0100
-+++ linux-2.6.33-rc8/drivers/hwmon/it87.c	2010-02-23 21:31:57.000000000 +0100
-@@ -719,6 +719,32 @@ static ssize_t set_fan_div(struct device
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-+
-+/* Returns 0 if OK, -EINVAL otherwise */
-+static int check_trip_points(struct device *dev, int nr)
-+{
-+	const struct it87_data *data = dev_get_drvdata(dev);
-+	int i, err = 0;
-+
-+	if (has_old_autopwm(data)) {
-+		for (i = 0; i < 3; i++) {
-+			if (data->auto_temp[nr][i] > data->auto_temp[nr][i + 1])
-+				err = -EINVAL;
-+		}
-+		for (i = 0; i < 2; i++) {
-+			if (data->auto_pwm[nr][i] > data->auto_pwm[nr][i + 1])
-+				err = -EINVAL;
-+		}
-+	}
-+
-+	if (err) {
-+		dev_err(dev, "Inconsistent trip points, not switching to "
-+			"automatic mode\n");
-+		dev_err(dev, "Adjust the trip points and try again\n");
-+	}
-+	return err;
-+}
-+
- static ssize_t set_pwm_enable(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t count)
- {
-@@ -731,6 +757,12 @@ static ssize_t set_pwm_enable(struct dev
- 	if (strict_strtol(buf, 10, &val) < 0 || val < 0 || val > 2)
- 		return -EINVAL;
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index e6a01f4..692e244 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -196,6 +196,16 @@ enum lis3lv02d_dd_src {
+ 	DD_SRC_IA	= 0x40,
+ };
  
-+	/* Check trip points before switching to automatic mode */
-+	if (val = 2) {
-+		if (check_trip_points(dev, nr) < 0)
-+			return -EINVAL;
-+	}
++enum lis3lv02d_click_src_8b {
++	CLICK_SINGLE_X	= 0x01,
++	CLICK_DOUBLE_X	= 0x02,
++	CLICK_SINGLE_Y	= 0x04,
++	CLICK_DOUBLE_Y	= 0x08,
++	CLICK_SINGLE_Z	= 0x10,
++	CLICK_DOUBLE_Z	= 0x20,
++	CLICK_IA	= 0x40,
++};
 +
- 	mutex_lock(&data->update_lock);
- 
- 	if (val = 0) {
-
+ struct axis_conversion {
+ 	s8	x;
+ 	s8	y;
 -- 
-Jean Delvare
+1.6.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
