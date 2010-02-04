@@ -1,83 +1,91 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 13 Feb 2010 16:07:59 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (lm90) Restore configuration on exit
-Message-Id: <20100213170759.5b93b693@hyperion.delvare>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Thu, 04 Feb 2010 08:24:05 +0000
+Subject: [lm-sensors] [PATCH 3/6] lis3: Introduce platform data for second
+Message-Id: <1265271848-26559-4-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net
+Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-Restore the chip configuration when unloading the driver. This ensures
-we don't leave the chip running if it was initially stopped.
+8 bit device has two wakeup / free fall units. It was not possible
+to configure the second unit. This patch introduces configuration
+entry to the platform data and also corresponding changes to the
+8 bit setup function.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+High pass filters were enabled by default. Patch introduces configuration
+option for high pass filter cut off frequency and also possibility to
+disable or enable the filter via platform data.
+Since the control is a new one and default state was filter enabled,
+new option is used to disable the filter. This way old platform data
+is still compatible with the change.
+
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
- drivers/hwmon/lm90.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   15 +++++++++++++--
+ include/linux/lis3lv02d.h |    9 +++++++++
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
---- linux-2.6.33-rc8.orig/drivers/hwmon/lm90.c	2010-02-13 15:50:55.000000000 +0100
-+++ linux-2.6.33-rc8/drivers/hwmon/lm90.c	2010-02-13 15:53:00.000000000 +0100
-@@ -1,7 +1,7 @@
- /*
-  * lm90.c - Part of lm_sensors, Linux kernel modules for hardware
-  *          monitoring
-- * Copyright (C) 2003-2009  Jean Delvare <khali@linux-fr.org>
-+ * Copyright (C) 2003-2010  Jean Delvare <khali@linux-fr.org>
-  *
-  * Based on the lm83 driver. The LM90 is a sensor chip made by National
-  * Semiconductor. It reports up to two temperatures (its own plus up to
-@@ -203,6 +203,8 @@ struct lm90_data {
- 	int kind;
- 	int flags;
- 
-+	u8 config_orig;		/* Original configuration register value */
-+
- 	/* registers values */
- 	s8 temp8[4];	/* 0: local low limit
- 			   1: local high limit
-@@ -840,7 +842,7 @@ exit:
- 
- static void lm90_init_client(struct i2c_client *client)
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 99fd45d..50f3123 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -524,6 +524,8 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+ 				struct lis3lv02d_platform_data *p)
  {
--	u8 config, config_orig;
-+	u8 config;
- 	struct lm90_data *data = i2c_get_clientdata(client);
- 
- 	/*
-@@ -852,7 +854,7 @@ static void lm90_init_client(struct i2c_
- 		dev_warn(&client->dev, "Initialization failed!\n");
- 		return;
- 	}
--	config_orig = config;
-+	data->config_orig = config;
- 
- 	/* Check Temperature Range Select */
- 	if (data->kind = adt7461) {
-@@ -870,7 +872,7 @@ static void lm90_init_client(struct i2c_
- 	}
- 
- 	config &= 0xBF;	/* run */
--	if (config != config_orig) /* Only write if changed */
-+	if (config != data->config_orig) /* Only write if changed */
- 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
- }
- 
-@@ -885,6 +887,10 @@ static int lm90_remove(struct i2c_client
- 		device_remove_file(&client->dev,
- 				   &sensor_dev_attr_temp2_offset.dev_attr);
- 
-+	/* Restore initial configuration */
-+	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
-+				  data->config_orig);
++	int ctrl2 = p->hipass_ctrl;
 +
- 	kfree(data);
- 	return 0;
+ 	if (p->click_flags) {
+ 		dev->write(dev, CLICK_CFG, p->click_flags);
+ 		dev->write(dev, CLICK_TIMELIMIT, p->click_time_limit);
+@@ -540,9 +542,18 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+ 		dev->write(dev, FF_WU_THS_1, p->wakeup_thresh & 0x7f);
+ 		/* default to 2.5ms for now */
+ 		dev->write(dev, FF_WU_DURATION_1, 1);
+-		/* enable high pass filter for both free-fall units */
+-		dev->write(dev, CTRL_REG2, HP_FF_WU1 | HP_FF_WU2);
++		ctrl2 ^= HP_FF_WU1; /* Xor to keep compatible with old pdata*/
++	}
++
++	if (p->wakeup_flags2) {
++		dev->write(dev, FF_WU_CFG_2, p->wakeup_flags2);
++		dev->write(dev, FF_WU_THS_2, p->wakeup_thresh2 & 0x7f);
++		/* default to 2.5ms for now */
++		dev->write(dev, FF_WU_DURATION_2, 1);
++		ctrl2 ^= HP_FF_WU2; /* Xor to keep compatible with old pdata*/
+ 	}
++	/* Configure hipass filters */
++	dev->write(dev, CTRL_REG2, ctrl2);
  }
-
-
+ 
+ /*
+diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
+index f1ca0dc..d625199 100644
+--- a/include/linux/lis3lv02d.h
++++ b/include/linux/lis3lv02d.h
+@@ -43,6 +43,15 @@ struct lis3lv02d_platform_data {
+ #define LIS3_WAKEUP_Z_HI	(1 << 5)
+ 	unsigned char wakeup_flags;
+ 	unsigned char wakeup_thresh;
++	unsigned char wakeup_flags2;
++	unsigned char wakeup_thresh2;
++#define LIS3_HIPASS_CUTFF_8HZ   0
++#define LIS3_HIPASS_CUTFF_4HZ   1
++#define LIS3_HIPASS_CUTFF_2HZ   2
++#define LIS3_HIPASS_CUTFF_1HZ   3
++#define LIS3_HIPASS1_DISABLE    (1 << 2)
++#define LIS3_HIPASS2_DISABLE    (1 << 3)
++	unsigned char hipass_ctrl;
+ #define LIS3_NO_MAP		0
+ #define LIS3_DEV_X		1
+ #define LIS3_DEV_Y		2
 -- 
-Jean Delvare
+1.6.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
