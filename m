@@ -1,106 +1,77 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 04 Feb 2010 21:26:01 +0000
+From: Steven King <sfking@fdwdc.com>
+Date: Thu, 04 Feb 2010 21:57:06 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: driver for TI tmp102 temperature
-Message-Id: <20100204132601.4b2d3939.akpm@linux-foundation.org>
+Message-Id: <201002041357.06748.sfking@fdwdc.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201002031723.49976.sfking@fdwdc.com>
-	<20100204102203.ecf4bbb5.akpm@linux-foundation.org>
-	<201002041317.37574.sfking@fdwdc.com>
-In-Reply-To: <201002041317.37574.sfking@fdwdc.com>
+References: <201002031723.49976.sfking@fdwdc.com> <20100204193712.22e8b6e7@hyperion.delvare>
+In-Reply-To: <20100204193712.22e8b6e7@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven King <sfking@fdwdc.com>
-Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Thu, 4 Feb 2010 13:17:37 -0800
-Steven King <sfking@fdwdc.com> wrote:
-
-> > checkpatch spits this warning:
+On Thursday 04 February 2010 10:37:12 Jean Delvare wrote:
+> Hi Steven,
+>
+> On Wed, 3 Feb 2010 17:23:49 -0800, Steven King wrote:
+> > The TI TMP102 is similar to the lm75.  It differs from the lm75 by having
+> > a 16 bit conf register and the temp registers have a minimum resolution
+> > of 12bits; the extended conf register can select 13 bit resolution (which
+> > this driver does) and also change the update rate (which this driver
+> > currently doesn't use).
 > >
-> >     WARNING: struct dev_pm_ops should normally be const
-> >     #387: FILE: drivers/hwmon/tmp102.c:300:
-> >     +static struct dev_pm_ops tmp102_dev_pm_ops = {
+> > Signed-off-by: Steven King <sfking@fdwdc.com>
+> > ---
 > >
-> > which seems truthful enough.
-> 
-> Indeed.   I am, however, somewhat surprised since I ran the patch thru 
-> checkpatch before posting it and no errors or warnings were reported.  Is 
-> there a version of checkpatch other than the one included in the tree that I 
-> should be using?
+> > Driver for the TI TMP102.
+>
+> Could you please send a dump of your TMP102 chip, using i2cdump in word
+> mode?
 
-It was -mm's
-checkpatchpl-extend-list-of-expected-to-be-const-structures.patch which
-found this.
+sure, like so?
 
+# ./i2cdump 0 0x4a w
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-0, address 0x4a, mode word
+Continue? [Y/n] y
+     0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
+00: d90c b062 002d 004b c01a d006 0000 0000
+08: d90c b062 002d 004b c01a d006 0000 0000
+10: d90c b062 002d 004b c01a d006 0000 0000
+18: d90c b062 002d 004b c01a d006 0000 0000
+20: d90c b062 002d 004b c01a d006 0000 0000
+28: d90c b062 002d 004b c01a d006 0000 0000
+30: d90c b062 002d 004b c01a d006 0000 0000
+38: d90c b062 002d 004b c01a d006 0000 0000
+40: d90c b062 002d 004b c01a d006 0000 0000
+48: d90c b062 002d 004b c01a d006 0000 0000
+50: d90c b062 002d 004b c01a d006 0000 0000
+58: d90c b062 002d 004b c01a d006 0000 0000
+60: d90c b062 002d 004b c01a d006 0000 0000
+68: d90c b062 002d 004b c01a d006 0000 0000
+70: d90c b062 002d 004b c01a d006 0000 0000
+78: d90c b062 002d 004b c01a d006 0000 0000
+80: d90c b062 002d 004b c01a d006 0000 0000
+88: d90c b062 002d 004b c01a d006 0000 0000
+90: d90c b062 002d 004b c01a d006 0000 0000
+98: d90c b062 002d 004b c01a d006 0000 0000
+a0: d90c b062 002d 004b c01a d006 0000 0000
+a8: d90c b062 002d 004b c01a d006 0000 0000
+b0: d90c b062 002d 004b c01a d006 0000 0000
+b8: d90c b062 002d 004b c01a d006 0000 0000
+c0: d90c b062 002d 004b c01a d006 0000 0000
+c8: d90c b062 002d 004b c01a d006 0000 0000
+d0: d90c b062 002d 004b c01a d006 0000 0000
+d8: d90c b062 002d 004b c01a d006 0000 0000
+e0: d10c b062 002d 004b c01a d006 0000 0000
+e8: d10c b062 002d 004b c01a d006 0000 0000
+f0: d10c b062 002d 004b c01a d006 0000 0000
+f8: d10c b062 002d 004b c01a d006 0000 0000
+# 
 
-From: Emese Revfy <re.emese@gmail.com>
-
-Based on Arjan's suggestion, extend the list of ops structures that should
-be const.
-
-Signed-off-by: Emese Revfy <re.emese@gmail.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Arjan van de Ven <arjan@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- scripts/checkpatch.pl |   41 ++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 39 insertions(+), 2 deletions(-)
-
-diff -puN scripts/checkpatch.pl~checkpatchpl-extend-list-of-expected-to-be-const-structures scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-extend-list-of-expected-to-be-const-structures
-+++ a/scripts/checkpatch.pl
-@@ -2654,9 +2654,46 @@ sub process {
- 		if ($line =~ /^.\s*__initcall\s*\(/) {
- 			WARN("please use device_initcall() instead of __initcall()\n" . $herecurr);
- 		}
--# check for struct file_operations, ensure they are const.
-+# check for various ops structs, ensure they are const.
-+		my $struct_ops = qr{acpi_dock_ops|
-+				address_space_operations|
-+				backlight_ops|
-+				block_device_operations|
-+				dentry_operations|
-+				dev_pm_ops|
-+				dma_map_ops|
-+				extent_io_ops|
-+				file_lock_operations|
-+				file_operations|
-+				hv_ops|
-+				ide_dma_ops|
-+				intel_dvo_dev_ops|
-+				item_operations|
-+				iwl_ops|
-+				kgdb_arch|
-+				kgdb_io|
-+				kset_uevent_ops|
-+				lock_manager_operations|
-+				microcode_ops|
-+				mtrr_ops|
-+				neigh_ops|
-+				nlmsvc_binding|
-+				pci_raw_ops|
-+				pipe_buf_operations|
-+				platform_hibernation_ops|
-+				platform_suspend_ops|
-+				proto_ops|
-+				rpc_pipe_ops|
-+				seq_operations|
-+				snd_ac97_build_ops|
-+				soc_pcmcia_socket_ops|
-+				stacktrace_ops|
-+				sysfs_ops|
-+				tty_operations|
-+				usb_mon_operations|
-+				wd_ops}x;
- 		if ($line !~ /\bconst\b/ &&
--		    $line =~ /\bstruct\s+(file_operations|seq_operations)\b/) {
-+		    $line =~ /\bstruct\s+($struct_ops)\b/) {
- 			WARN("struct $1 should normally be const\n" .
- 				$herecurr);
- 		}
-_
+-- 
+Steven King -- sfking at fdwdc dot com
 
 
 _______________________________________________
