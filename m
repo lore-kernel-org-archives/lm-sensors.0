@@ -1,543 +1,109 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 04 Feb 2010 08:19:53 +0000
+From: Wolfram Sang <w.sang@pengutronix.de>
+Date: Fri, 05 Feb 2010 23:49:43 +0000
 Subject: Re: [lm-sensors] [PATCH V2] hwmon: add driver for ADT7411 voltage &
-Message-Id: <20100204091953.56895ad9@hyperion.delvare>
+Message-Id: <20100205234943.GA32589@pengutronix.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1922227163529333754=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1265142758-10457-1-git-send-email-w.sang@pengutronix.de>
 In-Reply-To: <1265142758-10457-1-git-send-email-w.sang@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Wolfram,
 
-On Tue,  2 Feb 2010 21:32:38 +0100, Wolfram Sang wrote:
-> Add initial support for the ADT7411. Reads out all conversion results (via I2C,
-> SPI yet missing) and allows some on-the-fly configuration. Tested with a custom
-> board.
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> ---
-> 
-> Changes since V1:
-> 
-> * simplified reading 10-bit, no retries
-> * modifying a configuration bit is now protected
-> * no initial configuration is performed except START
->   (which is what the other ADT drivers do)
-> * when vdd is the reference, use a cached value for it
-> * added a detect mechanism
-> * style issues and typos found by Jean were fixed
-> 
->  Documentation/hwmon/adt7411 |   42 +++++
->  drivers/hwmon/Kconfig       |   10 ++
->  drivers/hwmon/Makefile      |    1 +
->  drivers/hwmon/adt7411.c     |  361 +++++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 414 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/adt7411
->  create mode 100644 drivers/hwmon/adt7411.c
+--===============1922227163529333754==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="a8Wt8u1KmwUX3Y2C"
+Content-Disposition: inline
 
-Review:
 
-> 
-> diff --git a/Documentation/hwmon/adt7411 b/Documentation/hwmon/adt7411
-> new file mode 100644
-> index 0000000..5571e56
-> --- /dev/null
-> +++ b/Documentation/hwmon/adt7411
-> @@ -0,0 +1,42 @@
-> +Kernel driver adt7411
-> +==========> +
-> +Supported chips:
-> +  * Analog Devices ADT7411
-> +    Prefix: 'adt7411'
-> +    Addresses scanned: 0x48, 0x4a, 0x4b
-> +    Datasheet: Publicly available at the Analog Devices website
-> +
-> +Author: Wolfram Sang (based on adt7470 by Darrick J. Wong)
-> +
-> +Description
-> +-----------
-> +
-> +This driver implements support for the Analog Devices ADT7411 chip. There may
-> +be other chips that implement this interface.
-> +
-> +The ADT7411 can use an I2C/SMBus compatible 2-wire interface or an
-> +SPI-compatible 4-wire interface. It provides a 10-bit analog to digital
-> +converter which measures 1 temperature, vdd and 8 input voltages. It has an
-> +internal temperature sensor, but an external one can also be connected (one
-> +loses 2 inputs then). There are high- and low-limit registers for all inputs.
-> +
-> +Check the datasheet for details.
-> +
-> +sysfs-Interface
-> +---------------
-> +
-> +in0_input	- vdd voltage input
-> +in[1-8]_input	- analog 1-8 input
-> +temp1_input	- temperature input
-> +
-> +Besides standard interfaces, this driver adds (0 = off, 1 = on):
-> +
-> +  adc_ref_vdd	- Use vdd as reference instead of 2.25 V
-> +  fast_sampling	- Sample at 22.5 kHz instead of 1.4 kHz, but drop filters
-> +  no_average	- Turn off averaging over 16 samples
-> +
-> +Notes
-> +-----
-> +
-> +SPI, external temperature sensor and limit-registers are not supported yet.
+--a8Wt8u1KmwUX3Y2C
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-No dash needed between limit and registers.
+> I don't quite get why adt7411_read_vdd() is responsible for updating
+> data->next_update, while it doesn't make use of its value.
+> data->next_update is only used by adt7411_show_input() so it would make
+> more sense to set it there too. It would be more flexible, as you could
+> decide that the cache (the lifetime of which is controlled by
+> data->next_update) includes both the value of vdd and the value of
+> ref_is_vdd. This would avoid reading vdd when you don't need it, and
+> guarantee that you never use uninitialized values.
 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 68cf877..c91dc98 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -170,6 +170,16 @@ config SENSORS_ADM9240
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called adm9240.
->  
-> +config SENSORS_ADT7411
-> +	tristate "Analog Devices ADT7411"
-> +	depends on I2C && EXPERIMENTAL
-> +	help
-> +	  If you say yes here you get support for the Analog Devices
-> +	  ADT7411 voltage and temperature monitoring chip.
-> +
-> +	  This driver can also be built as a module. If so, the module
-> +	  will be called adt7411.
-> +
->  config SENSORS_ADT7462
->  	tristate "Analog Devices ADT7462"
->  	depends on I2C && EXPERIMENTAL
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index 4bc215c..5fe67bf 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -29,6 +29,7 @@ obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
->  obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
->  obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
->  obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
-> +obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
->  obj-$(CONFIG_SENSORS_ADT7462)	+= adt7462.o
->  obj-$(CONFIG_SENSORS_ADT7470)	+= adt7470.o
->  obj-$(CONFIG_SENSORS_ADT7473)	+= adt7473.o
-> diff --git a/drivers/hwmon/adt7411.c b/drivers/hwmon/adt7411.c
-> new file mode 100644
-> index 0000000..6e16826
-> --- /dev/null
-> +++ b/drivers/hwmon/adt7411.c
-> @@ -0,0 +1,361 @@
-> +/*
-> + *  Driver for the ADT7411 (I2C/SPI 8 channel 10 bit ADC & temperature-sensor)
-> + *
-> + *  Copyright (C) 2008, 2010 Pengutronix
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License version 2 as
-> + *  published by the Free Software Foundation.
-> + *
-> + *  TODO: SPI, support for external temperature sensor
-> + * 	  use power-down mode for suspend?, interrupt handling?
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
-> +#include <linux/delay.h>
-> +#include <linux/mutex.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +
-> +#define ADT7411_REG_INT_TEMP_VDD_LSB		0x03
-> +#define ADT7411_REG_EXT_TEMP_AIN14_LSB		0x04
-> +#define ADT7411_REG_VDD_MSB			0x06
-> +#define ADT7411_REG_INT_TEMP_MSB		0x07
-> +#define ADT7411_REG_EXT_TEMP_AIN1_MSB		0x08
-> +
-> +#define ADT7411_REG_CFG1			0x18
-> +#define ADT7411_CFG1_START_MONITOR		(1 << 0)
-> +
-> +#define ADT7411_REG_CFG2			0x19
-> +#define ADT7411_CFG2_DISABLE_AVG		(1 << 5)
-> +
-> +#define ADT7411_REG_CFG3			0x1a
-> +#define ADT7411_CFG3_ADC_CLK_225		(1 << 0)
-> +#define ADT7411_CFG3_REF_VDD			(1 << 4)
-> +
-> +#define ADT7411_REG_DEVICE_ID			0x4d
-> +#define ADT7411_REG_MANUFACTURER_ID		0x4e
-> +
-> +#define ADT7411_DEVICE_ID			0x2
-> +#define ADT7411_MANUFACTURER_ID			0x41
-> +
-> +static const unsigned short normal_i2c[] = { 0x48, 0x4a, 0x4b, I2C_CLIENT_END };
-> +
-> +struct adt7411_data {
-> +	struct mutex device_lock;	/* for "atomic" device accesses */
-> +	unsigned long next_update;
-> +	int vdd_cached;
-> +	bool ref_is_vdd;
-> +	struct device *hwmon_dev;
-> +};
-> +
-> +/*
-> + * When reading a register containing (up to 4) lsb, all associated
-> + * msb-registers get locked by the hardware. After _one_ of those msb is read,
-> + * _all_ are unlocked. In order to use this locking correctly, reading lsb/msb
-> + * is protected here with a mutex, too.
-> + */
-> +static int adt7411_read_10_bit(struct i2c_client *client, u8 lsb_reg,
-> +				u8 msb_reg, u8 lsb_shift)
-> +{
-> +	struct adt7411_data *data = i2c_get_clientdata(client);
-> +	int val, tmp;
-> +
-> +	mutex_lock(&data->device_lock);
-> +
-> +	val = i2c_smbus_read_byte_data(client, lsb_reg);
-> +	if (val < 0)
-> +		goto exit_unlock;
-> +
-> +	tmp = (val >> lsb_shift) & 3;
-> +	val = i2c_smbus_read_byte_data(client, msb_reg);
-> +
-> +	if (val >= 0)
-> +		val = (val << 2) | tmp;
-> +
-> + exit_unlock:
-> +	mutex_unlock(&data->device_lock);
-> +
-> +	return val;
-> +}
-> +
-> +static int adt7411_modify_bit(struct i2c_client *client, u8 reg, u8 bit,
-> +				bool flag)
-> +{
-> +	struct adt7411_data *data = i2c_get_clientdata(client);
-> +	int ret, val;
-> +
-> +	mutex_lock(&data->device_lock);
-> +
-> +	ret = i2c_smbus_read_byte_data(client, reg);
-> +	if (ret < 0)
-> +		goto exit_unlock;
-> +
-> +	if (flag)
-> +		val = ret | bit;
-> +	else
-> +		val = ret & ~bit;
-> +
-> +	ret = i2c_smbus_write_byte_data(client, reg, val);
-> +
-> + exit_unlock:
-> +	mutex_unlock(&data->device_lock);
-> +	return ret;
-> +}
-> +
-> +static int adt7411_read_vdd(struct i2c_client *client)
-> +{
-> +	struct adt7411_data *data = i2c_get_clientdata(client);
-> +	int val = adt7411_read_10_bit(client, ADT7411_REG_INT_TEMP_VDD_LSB,
-> +			ADT7411_REG_VDD_MSB, 2);
-> +
-> +	if (val < 0)
-> +		return val;
-> +
-> +	data->vdd_cached = val;
-> +	data->next_update = jiffies + HZ;
-> +	return val;
-> +}
-> +
-> +static ssize_t adt7411_show_vdd(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int ret = adt7411_read_vdd(client);
-> +
-> +	return ret < 0 ? ret : sprintf(buf, "%u\n", ret * 7000 / 1024);
-> +}
-> +
-> +static ssize_t adt7411_show_temp(struct device *dev,
-> +			struct device_attribute *attr, char *buf)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int val = adt7411_read_10_bit(client, ADT7411_REG_INT_TEMP_VDD_LSB,
-> +			ADT7411_REG_INT_TEMP_MSB, 0);
-> +
-> +	if (val < 0)
-> +		return val;
-> +
-> +	val = val & 0x200 ? val - 0x400 : val; /* 10 bit signed */
-> +
-> +	return sprintf(buf, "%d\n", val * 250);
-> +}
-> +
-> +static ssize_t adt7411_show_input(struct device *dev,
-> +				  struct device_attribute *attr, char *buf)
-> +{
-> +	int nr = to_sensor_dev_attr(attr)->index;
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct adt7411_data *data = i2c_get_clientdata(client);
-> +	int v_ref, val;
-> +	u8 lsb_reg, lsb_shift;
-> +
-> +	if (time_after_eq(jiffies, data->next_update)) {
-> +		val = i2c_smbus_read_byte_data(client, ADT7411_REG_CFG3);
-> +		if (val < 0)
-> +			return val;
-> +		data->ref_is_vdd = val & ADT7411_CFG3_REF_VDD;
-> +
-> +		val = adt7411_read_vdd(client);
-> +		if (val < 0)
-> +			return val;
-> +	}
+I had the idea that reading vdd via sysfs should also update the cache. Try=
+ing
+to do this and reorganizing the code to solve some chicken-and-egg-problem
+regarding the cache, it seems I stumbled over my own feet.
 
-It's a little odd that you still read vdd even when it is not used as
-the reference. OTOH, if you do not, then data->next_update is not
-updated, which means that you'll read ADT7411_REG_CFG3 for every
-voltage input, which is worse performance-wise when reading all voltage
-inputs at once (as "sensors" does).
+I implemented it according to your suggestions and it looks cleaner, in dee=
+d. I
+just had to drop the idea that reading vdd from sysfs also updates the cach=
+e,
+as I would now need another lock for it which I think is not worth the trou=
+ble.
 
-There is a logic flaw in your code. If vdd (in0_input) is read from
-user-space before any other voltage input (and this is exactly what
-"sensors" will do), adt7411_read_vdd() will be called first, updating
-data->next_update. Then adt7411_show_input() will be called, but the
-above block will be skipped, because data->next_update has just been
-set to 1 second in the future. As a result, you'll use data->ref_is_vdd
-below while it has never been set. The compiler would have warned you
-if ref_is_vdd was a local variable rather than a struct adt7411_data
-member.
+> > +static ssize_t adt7411_set_bit(struct device *dev, struct device_attri=
+bute *attr,
+> > +			     const char *buf, size_t count)
+> > +{
+> > +	struct sensor_device_attribute_2 *s_attr2 =3D to_sensor_dev_attr_2(at=
+tr);
+> > +	struct i2c_client *client =3D to_i2c_client(dev);
+> > +	int ret;
+> > +	unsigned long flag;
+> > +
+> > +	ret =3D strict_strtoul(buf, 0, &flag);
+> > +	if (ret || flag > 1)
+> > +		return -EINVAL;
+> > +
+> > +	ret =3D adt7411_modify_bit(client, s_attr2->index, s_attr2->nr, flag);
+> > +	return ret < 0 ? ret : count;
+> > +}
+>=20
+> Calling the above function should invalidate the cache. At least
+> changing adc_ref_vdd makes the cached value data->adc_ref_vdd wrong,
+> and presumably the other settings may also affect the value of
+> data->vdd_cached. As I don't expect the user to change the settings
+> frequently, there's probably no point in trying to be smart.
 
-I don't quite get why adt7411_read_vdd() is responsible for updating
-data->next_update, while it doesn't make use of its value.
-data->next_update is only used by adt7411_show_input() so it would make
-more sense to set it there too. It would be more flexible, as you could
-decide that the cache (the lifetime of which is controlled by
-data->next_update) includes both the value of vdd and the value of
-ref_is_vdd. This would avoid reading vdd when you don't need it, and
-guarantee that you never use uninitialized values.
+I hate this driver, it makes me look pretty stupid :/
 
-> +
-> +	lsb_reg = ADT7411_REG_EXT_TEMP_AIN14_LSB + (nr >> 2);
-> +	lsb_shift = 2 * (nr & 0x03);
-> +	val = adt7411_read_10_bit(client, lsb_reg,
-> +			ADT7411_REG_EXT_TEMP_AIN1_MSB + nr, lsb_shift);
-> +	if (val < 0)
-> +		return val;
-> +
-> +	if (data->ref_is_vdd)
-> +		v_ref = data->vdd_cached * 7000 / 1024;
-> +	else
-> +		v_ref = 2250;
-> +
-> +	return sprintf(buf, "%u\n", val * v_ref / 1024);
-> +}
-> +
-> +static ssize_t adt7411_show_bit(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct sensor_device_attribute_2 *attr2 = to_sensor_dev_attr_2(attr);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int ret = i2c_smbus_read_byte_data(client, attr2->index);
-> +
-> +	return ret < 0 ? ret : sprintf(buf, "%u\n", !!(ret & attr2->nr));
-> +}
-> +
-> +static ssize_t adt7411_set_bit(struct device *dev, struct device_attribute *attr,
-> +			     const char *buf, size_t count)
-> +{
-> +	struct sensor_device_attribute_2 *s_attr2 = to_sensor_dev_attr_2(attr);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int ret;
-> +	unsigned long flag;
-> +
-> +	ret = strict_strtoul(buf, 0, &flag);
-> +	if (ret || flag > 1)
-> +		return -EINVAL;
-> +
-> +	ret = adt7411_modify_bit(client, s_attr2->index, s_attr2->nr, flag);
-> +	return ret < 0 ? ret : count;
-> +}
+I already made a V3 and will probably send it on Monday after some testing =
+with
+the hardware.
 
-Calling the above function should invalidate the cache. At least
-changing adc_ref_vdd makes the cached value data->adc_ref_vdd wrong,
-and presumably the other settings may also affect the value of
-data->vdd_cached. As I don't expect the user to change the settings
-frequently, there's probably no point in trying to be smart.
+Regards,
 
-> +
-> +#define ADT7411_BIT_ATTR(__name, __reg, __bit) \
-> +	SENSOR_DEVICE_ATTR_2(__name, S_IRUGO | S_IWUSR, adt7411_show_bit, \
-> +	adt7411_set_bit, __bit, __reg)
-> +
-> +static DEVICE_ATTR(temp1_input, S_IRUGO, adt7411_show_temp, NULL);
-> +static DEVICE_ATTR(in0_input, S_IRUGO, adt7411_show_vdd, NULL);
-> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, adt7411_show_input, NULL, 0);
-> +static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, adt7411_show_input, NULL, 1);
-> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, adt7411_show_input, NULL, 2);
-> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, adt7411_show_input, NULL, 3);
-> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, adt7411_show_input, NULL, 4);
-> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, adt7411_show_input, NULL, 5);
-> +static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, adt7411_show_input, NULL, 6);
-> +static SENSOR_DEVICE_ATTR(in8_input, S_IRUGO, adt7411_show_input, NULL, 7);
-> +static ADT7411_BIT_ATTR(no_average, ADT7411_REG_CFG2, ADT7411_CFG2_DISABLE_AVG);
-> +static ADT7411_BIT_ATTR(fast_sampling, ADT7411_REG_CFG3, ADT7411_CFG3_ADC_CLK_225);
-> +static ADT7411_BIT_ATTR(adc_ref_vdd, ADT7411_REG_CFG3, ADT7411_CFG3_REF_VDD);
-> +
-> +static struct attribute *adt7411_attrs[] = {
-> +	&dev_attr_temp1_input.attr,
-> +	&dev_attr_in0_input.attr,
-> +	&sensor_dev_attr_in1_input.dev_attr.attr,
-> +	&sensor_dev_attr_in2_input.dev_attr.attr,
-> +	&sensor_dev_attr_in3_input.dev_attr.attr,
-> +	&sensor_dev_attr_in4_input.dev_attr.attr,
-> +	&sensor_dev_attr_in5_input.dev_attr.attr,
-> +	&sensor_dev_attr_in6_input.dev_attr.attr,
-> +	&sensor_dev_attr_in7_input.dev_attr.attr,
-> +	&sensor_dev_attr_in8_input.dev_attr.attr,
-> +	&sensor_dev_attr_no_average.dev_attr.attr,
-> +	&sensor_dev_attr_fast_sampling.dev_attr.attr,
-> +	&sensor_dev_attr_adc_ref_vdd.dev_attr.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group adt7411_attr_grp = {
-> +	.attrs = adt7411_attrs,
-> +};
-> +
-> +static int adt7411_detect(struct i2c_client *client, struct i2c_board_info *info)
-> +{
-> +	int val;
-> +
-> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -ENODEV;
-> +
-> +	val = i2c_smbus_read_byte_data(client, ADT7411_REG_MANUFACTURER_ID);
-> +	if (val < 0 || val != ADT7411_MANUFACTURER_ID) {
-> +		dev_err(&client->dev, "Wrong manufacturer ID. Got %d, "
-> +			"expected %d\n", val, ADT7411_MANUFACTURER_ID);
-> +		return -ENODEV;
-> +	}
-> +
-> +	val = i2c_smbus_read_byte_data(client, ADT7411_REG_DEVICE_ID);
-> +	if (val < 0 || val != ADT7411_DEVICE_ID) {
-> +		dev_err(&client->dev, "Wrong device ID. Got %d, "
-> +			"expected %d\n", val, ADT7411_DEVICE_ID);
-> +		return -ENODEV;
-> +	}
+   Wolfram
 
-These should be debug messages, not error ones. There's nothing wrong in
-loading the adt7411 driver on a system with an ADT7411 device plus
-another device.
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-> +
-> +	strlcpy(info->type, "adt7411", I2C_NAME_SIZE);
-> +
-> +	return 0;
-> +}
-> +
-> +static int __devinit adt7411_probe(struct i2c_client *client,
-> +				   const struct i2c_device_id *id)
-> +{
-> +	struct adt7411_data *data;
-> +	int ret;
-> +
-> +	data = kzalloc(sizeof(*data), GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, data);
-> +	mutex_init(&data->device_lock);
-> +
-> +	ret = adt7411_modify_bit(client, ADT7411_REG_CFG1,
-> +				 ADT7411_CFG1_START_MONITOR, 1);
-> +	if (ret < 0)
-> +		goto exit_free;
-> +
-> +	/* force update on first occasion */
-> +	data->next_update = jiffies;
-> +
-> +	ret = sysfs_create_group(&client->dev.kobj, &adt7411_attr_grp);
-> +	if (ret)
-> +		goto exit_free;
-> +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		ret = PTR_ERR(data->hwmon_dev);
-> +		goto exit_remove;
-> +	}
-> +
-> +	dev_info(&client->dev, "successfully registered\n");
-> +
-> +	return 0;
-> +
-> + exit_remove:
-> +	sysfs_remove_group(&client->dev.kobj, &adt7411_attr_grp);
-> + exit_free:
-> +	i2c_set_clientdata(client, NULL);
-> +	kfree(data);
-> +	return ret;
-> +}
-> +
-> +static int __devexit adt7411_remove(struct i2c_client *client)
-> +{
-> +	struct adt7411_data *data = i2c_get_clientdata(client);
-> +
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +	sysfs_remove_group(&client->dev.kobj, &adt7411_attr_grp);
-> +	i2c_set_clientdata(client, NULL);
-> +	kfree(data);
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id adt7411_id[] = {
-> +	{ "adt7411", 0 },
-> +	{ }
-> +};
-> +
-> +static struct i2c_driver adt7411_driver = {
-> +	.driver		= {
-> +		.name		= "adt7411",
-> +	},
-> +	.probe  = adt7411_probe,
-> +	.remove	= __devexit_p(adt7411_remove),
-> +	.id_table = adt7411_id,
-> +	.detect = adt7411_detect,
-> +	.address_list = normal_i2c,
-> +	.class = I2C_CLASS_HWMON,
-> +};
-> +
-> +static int __init sensors_adt7411_init(void)
-> +{
-> +	return i2c_add_driver(&adt7411_driver);
-> +}
-> +module_init(sensors_adt7411_init)
-> +
-> +static void __exit sensors_adt7411_exit(void)
-> +{
-> +	i2c_del_driver(&adt7411_driver);
-> +}
-> +module_exit(sensors_adt7411_exit)
-> +
-> +MODULE_AUTHOR("Sascha Hauer <s.hauer@pengutronix.de> and "
-> +	"Wolfram Sang <w.sang@pengutronix.de>");
-> +MODULE_DESCRIPTION("ADT7411 driver");
-> +MODULE_LICENSE("GPL v2");
+--a8Wt8u1KmwUX3Y2C
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-The rest looks fine to me, thanks.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
--- 
-Jean Delvare
+iEYEARECAAYFAktsrpcACgkQD27XaX1/VRt/SgCeMb33BZezeQNwDhE+8lcVU5rx
+sOwAoKxNIBDND7VUL1lO5hurWJQpNowO
+=F2Ab
+-----END PGP SIGNATURE-----
+
+--a8Wt8u1KmwUX3Y2C--
+
+
+--===============1922227163529333754==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1922227163529333754==--
