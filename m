@@ -1,105 +1,44 @@
-From: "D. Can Celasun" <dcelasun@gmail.com>
-Date: Wed, 10 Feb 2010 12:28:49 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 10 Feb 2010 13:21:05 +0000
 Subject: Re: [lm-sensors] Core i3 support?
-Message-Id: <d35bed621002100428me1db79fh42cc9a1d30be573e@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="00504502d3615a3a63047f3e2e28"
+Message-Id: <20100210142105.27cb968a@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <d35bed621002100300n23e6b881yfa80b9b1eb7d061d@mail.gmail.com>
 In-Reply-To: <d35bed621002100300n23e6b881yfa80b9b1eb7d061d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---00504502d3615a3a63047f3e2e28
-Content-Type: multipart/alternative; boundary=00504502d3615a3a5c047f3e2e26
+On Wed, 10 Feb 2010 14:28:49 +0200, D. Can Celasun wrote:
+> Thanks for the quick reply, cpuinfo is attached.
+> 
+> Kernel is 2.6.32
 
---00504502d3615a3a5c047f3e2e26
-Content-Type: text/plain; charset=ISO-8859-1
+> cpu family	: 6
+> model		: 37
+> model name	: Intel(R) Core(TM) i3 CPU       M 330  @ 2.13GHz
 
-Thanks for the quick reply, cpuinfo is attached.
+This is model 0x25, the highest model supported by the coretemp driver
+so far is 0x1e. So your model isn't yet supported, but support could
+probably be added easily if we knew the thermal limit for this CPU
+model. Huaxu, care to send a patch for Core i3 support?
 
-Kernel is 2.6.32
+As for the SMBus, your kernel should support it, so if the i2c-i801
+driver did not bind to the device, it probably means that ACPI
+requested it first. In that case you should see a message similar to
+that one in the kernel logs:
+ACPI: I/O resource 0000:00:1f.3 [0x18e0-0x18ff] conflicts with ACPI region SMBI [0x18e0-0x18ef]
+ACPI: Device needs an ACPI driver
 
---00504502d3615a3a5c047f3e2e26
-Content-Type: text/html; charset=ISO-8859-1
+In that case, all you can do is hope that ACPI is properly handling
+thermal management on your machine.
 
-Thanks for the quick reply, cpuinfo is attached.<br><br>Kernel is 2.6.32<br>
-
---00504502d3615a3a5c047f3e2e26--
-
---00504502d3615a3a63047f3e2e28
-Content-Type: text/plain; charset=US-ASCII; name="cpuinfo.txt"
-Content-Disposition: attachment; filename="cpuinfo.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g5i3k8ys0
-
-cHJvY2Vzc29yCTogMAp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9k
-ZWwJCTogMzcKbW9kZWwgbmFtZQk6IEludGVsKFIpIENvcmUoVE0pIGkzIENQVSAgICAgICBNIDMz
-MCAgQCAyLjEzR0h6CnN0ZXBwaW5nCTogMgpjcHUgTUh6CQk6IDkzMy4wMDAKY2FjaGUgc2l6ZQk6
-IDMwNzIgS0IKcGh5c2ljYWwgaWQJOiAwCnNpYmxpbmdzCTogNApjb3JlIGlkCQk6IDAKY3B1IGNv
-cmVzCTogMgphcGljaWQJCTogMAppbml0aWFsIGFwaWNpZAk6IDAKZmRpdl9idWcJOiBubwpobHRf
-YnVnCQk6IG5vCmYwMGZfYnVnCTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNl
-cHRpb24JOiB5ZXMKY3B1aWQgbGV2ZWwJOiAxMQp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBk
-ZSBwc2UgdHNjIG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQg
-cHNlMzYgY2xmbHVzaCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbngg
-cmR0c2NwIGxtIGNvbnN0YW50X3RzYyBhcmNoX3BlcmZtb24gcGVicyBidHMgeHRvcG9sb2d5IG5v
-bnN0b3BfdHNjIGFwZXJmbXBlcmYgcG5pIGR0ZXM2NCBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRt
-MiBzc3NlMyBjeDE2IHh0cHIgcGRjbSBzc2U0XzEgc3NlNF8yIHBvcGNudCBsYWhmX2xtIGFyYXQg
-dHByX3NoYWRvdyB2bm1pIGZsZXhwcmlvcml0eSBlcHQgdnBpZApib2dvbWlwcwk6IDQyNTcuOTYK
-Y2xmbHVzaCBzaXplCTogNjQKY2FjaGVfYWxpZ25tZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2
-IGJpdHMgcGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVhbApwb3dlciBtYW5hZ2VtZW50OgoKcHJvY2Vz
-c29yCTogMQp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTog
-MzcKbW9kZWwgbmFtZQk6IEludGVsKFIpIENvcmUoVE0pIGkzIENQVSAgICAgICBNIDMzMCAgQCAy
-LjEzR0h6CnN0ZXBwaW5nCTogMgpjcHUgTUh6CQk6IDkzMy4wMDAKY2FjaGUgc2l6ZQk6IDMwNzIg
-S0IKcGh5c2ljYWwgaWQJOiAwCnNpYmxpbmdzCTogNApjb3JlIGlkCQk6IDIKY3B1IGNvcmVzCTog
-MgphcGljaWQJCTogNAppbml0aWFsIGFwaWNpZAk6IDQKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6
-IG5vCmYwMGZfYnVnCTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24J
-OiB5ZXMKY3B1aWQgbGV2ZWwJOiAxMQp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2Ug
-dHNjIG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYg
-Y2xmbHVzaCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggcmR0c2Nw
-IGxtIGNvbnN0YW50X3RzYyBhcmNoX3BlcmZtb24gcGVicyBidHMgeHRvcG9sb2d5IG5vbnN0b3Bf
-dHNjIGFwZXJmbXBlcmYgcG5pIGR0ZXM2NCBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3Nl
-MyBjeDE2IHh0cHIgcGRjbSBzc2U0XzEgc3NlNF8yIHBvcGNudCBsYWhmX2xtIGFyYXQgdHByX3No
-YWRvdyB2bm1pIGZsZXhwcmlvcml0eSBlcHQgdnBpZApib2dvbWlwcwk6IDQyNTcuOTUKY2xmbHVz
-aCBzaXplCTogNjQKY2FjaGVfYWxpZ25tZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2IGJpdHMg
-cGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVhbApwb3dlciBtYW5hZ2VtZW50OgoKcHJvY2Vzc29yCTog
-Mgp2ZW5kb3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTogMzcKbW9k
-ZWwgbmFtZQk6IEludGVsKFIpIENvcmUoVE0pIGkzIENQVSAgICAgICBNIDMzMCAgQCAyLjEzR0h6
-CnN0ZXBwaW5nCTogMgpjcHUgTUh6CQk6IDkzMy4wMDAKY2FjaGUgc2l6ZQk6IDMwNzIgS0IKcGh5
-c2ljYWwgaWQJOiAwCnNpYmxpbmdzCTogNApjb3JlIGlkCQk6IDAKY3B1IGNvcmVzCTogMgphcGlj
-aWQJCTogMQppbml0aWFsIGFwaWNpZAk6IDEKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5vCmYw
-MGZfYnVnCTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMK
-Y3B1aWQgbGV2ZWwJOiAxMQp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1z
-ciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVz
-aCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggcmR0c2NwIGxtIGNv
-bnN0YW50X3RzYyBhcmNoX3BlcmZtb24gcGVicyBidHMgeHRvcG9sb2d5IG5vbnN0b3BfdHNjIGFw
-ZXJmbXBlcmYgcG5pIGR0ZXM2NCBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2
-IHh0cHIgcGRjbSBzc2U0XzEgc3NlNF8yIHBvcGNudCBsYWhmX2xtIGFyYXQgdHByX3NoYWRvdyB2
-bm1pIGZsZXhwcmlvcml0eSBlcHQgdnBpZApib2dvbWlwcwk6IDQyNTcuOTgKY2xmbHVzaCBzaXpl
-CTogNjQKY2FjaGVfYWxpZ25tZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2IGJpdHMgcGh5c2lj
-YWwsIDQ4IGJpdHMgdmlydHVhbApwb3dlciBtYW5hZ2VtZW50OgoKcHJvY2Vzc29yCTogMwp2ZW5k
-b3JfaWQJOiBHZW51aW5lSW50ZWwKY3B1IGZhbWlseQk6IDYKbW9kZWwJCTogMzcKbW9kZWwgbmFt
-ZQk6IEludGVsKFIpIENvcmUoVE0pIGkzIENQVSAgICAgICBNIDMzMCAgQCAyLjEzR0h6CnN0ZXBw
-aW5nCTogMgpjcHUgTUh6CQk6IDkzMy4wMDAKY2FjaGUgc2l6ZQk6IDMwNzIgS0IKcGh5c2ljYWwg
-aWQJOiAwCnNpYmxpbmdzCTogNApjb3JlIGlkCQk6IDIKY3B1IGNvcmVzCTogMgphcGljaWQJCTog
-NQppbml0aWFsIGFwaWNpZAk6IDUKZmRpdl9idWcJOiBubwpobHRfYnVnCQk6IG5vCmYwMGZfYnVn
-CTogbm8KY29tYV9idWcJOiBubwpmcHUJCTogeWVzCmZwdV9leGNlcHRpb24JOiB5ZXMKY3B1aWQg
-bGV2ZWwJOiAxMQp3cAkJOiB5ZXMKZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBwYWUg
-bWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgcHNlMzYgY2xmbHVzaCBkdHMg
-YWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggcmR0c2NwIGxtIGNvbnN0YW50
-X3RzYyBhcmNoX3BlcmZtb24gcGVicyBidHMgeHRvcG9sb2d5IG5vbnN0b3BfdHNjIGFwZXJmbXBl
-cmYgcG5pIGR0ZXM2NCBtb25pdG9yIGRzX2NwbCB2bXggZXN0IHRtMiBzc3NlMyBjeDE2IHh0cHIg
-cGRjbSBzc2U0XzEgc3NlNF8yIHBvcGNudCBsYWhmX2xtIGFyYXQgdHByX3NoYWRvdyB2bm1pIGZs
-ZXhwcmlvcml0eSBlcHQgdnBpZApib2dvbWlwcwk6IDQyNTcuMDEKY2xmbHVzaCBzaXplCTogNjQK
-Y2FjaGVfYWxpZ25tZW50CTogNjQKYWRkcmVzcyBzaXplcwk6IDM2IGJpdHMgcGh5c2ljYWwsIDQ4
-IGJpdHMgdmlydHVhbApwb3dlciBtYW5hZ2VtZW50OgoK
---00504502d3615a3a63047f3e2e28
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---00504502d3615a3a63047f3e2e28--
