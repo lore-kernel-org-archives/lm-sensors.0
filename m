@@ -1,7 +1,7 @@
 From: Daniel Mack <daniel@caiaq.de>
-Date: Fri, 05 Feb 2010 02:12:18 +0000
+Date: Thu, 11 Feb 2010 19:01:52 +0000
 Subject: Re: [lm-sensors] [PATCH 0/6] lis3lv02d: Power management,
-Message-Id: <20100205021217.GL28972@buzzloop.caiaq.de>
+Message-Id: <20100211190152.GD28972@buzzloop.caiaq.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
 In-Reply-To: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
@@ -21,8 +21,13 @@ On Thu, Feb 04, 2010 at 10:24:02AM +0200, Samu Onkalo wrote:
 > Interrupts are implemented only for 8 bit device, since I'm not familiar
 > with other devices and I don't have suitable testing environment.
 
-I'll give these patches a test on my boards next week and get back to
-you.
+I tested that with an PXA3xx based board featuring a 8bit sensor, and at
+least I cannot see any regression :)
+
+You can take this as an
+
+Tested-by: Daniel Mack <daniel@caiaq.de>
+
 
 Thanks,
 Daniel
