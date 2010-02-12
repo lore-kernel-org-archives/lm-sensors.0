@@ -1,39 +1,53 @@
-From: Michael Dreher <michael.dreher@uni-konstanz.de>
-Date: Fri, 12 Feb 2010 12:46:06 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 12 Feb 2010 13:01:05 +0000
 Subject: Re: [lm-sensors] ATK0110 breaks keyboard and mouse on asus p7p55d -
-Message-Id: <201002121346.06695.michael.dreher@uni-konstanz.de>
+Message-Id: <20100212140105.266f191f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <68676e00912110504u17d43c73u16efaeeb167741ce@mail.gmail.com>
 In-Reply-To: <68676e00912110504u17d43c73u16efaeeb167741ce@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Am Mittwoch, 10. Februar 2010 20:43 schrieb Jean Delvare:
-> On Wed, 10 Feb 2010 19:57:24 +0100, Michael Dreher wrote:
-> > Am Dienstag, 9. Februar 2010 17:15 schrieb Luca Tettamanti:
-> > > Nope; the values are set by the BIOS. Fan speed is also controlled by
-> > > the BIOS (Q-FAN), try setting a different profile (like "Silent").
-> >
-> > well, I have already chosen "Silent" (and I hear no difference).
-> > And Windows 7 somehow can control the fans/sensors directly, bringing
-> > the noise down to a much lower level ...
->
-> Windows 7, or some vendor-provided application?
-
-this is windows 7 vanilla, direct from Microsoft. Shortly before the 
-login prompt, you hear a dropping down of the noise level. 
-Afterwards, I have installed the utilities from asus, and there you can
-set the temperature for CPU and MB, the standard setting is 60 degrees
-for both, and the lowest possible value (and standard setting from bios)
-is 45 degrees. But I have no idea how risky it is to play with these
-settings.
-
-Michael
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAxMiBGZWIgMjAxMCAxMzo0NjowNiArMDEwMCwgTWljaGFlbCBEcmVoZXIgd3JvdGU6
+Cj4gQW0gTWl0dHdvY2gsIDEwLiBGZWJydWFyIDIwMTAgMjA6NDMgc2NocmllYiBKZWFuIERlbHZh
+cmU6Cj4gPiBPbiBXZWQsIDEwIEZlYiAyMDEwIDE5OjU3OjI0ICswMTAwLCBNaWNoYWVsIERyZWhl
+ciB3cm90ZToKPiA+ID4gd2VsbCwgSSBoYXZlIGFscmVhZHkgY2hvc2VuICJTaWxlbnQiIChhbmQg
+SSBoZWFyIG5vIGRpZmZlcmVuY2UpLgo+ID4gPiBBbmQgV2luZG93cyA3IHNvbWVob3cgY2FuIGNv
+bnRyb2wgdGhlIGZhbnMvc2Vuc29ycyBkaXJlY3RseSwgYnJpbmdpbmcKPiA+ID4gdGhlIG5vaXNl
+IGRvd24gdG8gYSBtdWNoIGxvd2VyIGxldmVsIC4uLgo+ID4KPiA+IFdpbmRvd3MgNywgb3Igc29t
+ZSB2ZW5kb3ItcHJvdmlkZWQgYXBwbGljYXRpb24/Cj4gCj4gdGhpcyBpcyB3aW5kb3dzIDcgdmFu
+aWxsYSwgZGlyZWN0IGZyb20gTWljcm9zb2Z0LiBTaG9ydGx5IGJlZm9yZSB0aGUgCj4gbG9naW4g
+cHJvbXB0LCB5b3UgaGVhciBhIGRyb3BwaW5nIGRvd24gb2YgdGhlIG5vaXNlIGxldmVsLiAKCkNv
+dWxkIGJlIHRoZSBoYXJkd2FyZSAob3IgQUNQSSkgZG9pbmcgYXV0b21hdGljIHRlbXBlcmF0dXJl
+LWJhc2VkIGZhbgpzcGVlZCByZWd1bGF0aW9uLiBUaGUgc3lzdGVtIGlzIHVzdWFsbHkgdmVyeSBi
+dXN5IGR1cmluZyBib290LApyZXN1bHRpbmcgaW4gaGlnaCBDUFUgdGVtcGVyYXR1cmUuIFdoZW4g
+eW91IGdldCB0byB0aGUgbG9naW4gcHJvbXB0LAp0aGUgaGFyZCB3b3JrIGlzIGRvbmUgYW5kIHRo
+ZSBDUFUgbWlnaHQgZ2V0IGNvb2xlciwgbGVhZGluZyB0byBzbG93ZXIKZmFucy4KCkJ1dCBvZiBj
+b3Vyc2UgaWYgeW91IGRvbid0IG5vdGljZSB0aGUgc2FtZSBvbiBMaW51eCwgdGhlbiB0aGF0IHdv
+dWxkCmluZGVlZCBiZSBXaW5kb3dzIGRvaW5nIHNvbWV0aGluZyBhYm91dCBpdC4gVGhpcyB3b3Vs
+ZCBiZSBnb29kIG5ld3MsIHNvCmZhciBNaWNyb3NvZnQgaGFkIGJlZW4gZW50aXJlbHkgaWdub3Jp
+bmcgdGVtcGVyYXR1cmUgbWFuYWdlbWVudC4KCj4gQWZ0ZXJ3YXJkcywgSSBoYXZlIGluc3RhbGxl
+ZCB0aGUgdXRpbGl0aWVzIGZyb20gYXN1cywgYW5kIHRoZXJlIHlvdSBjYW4KPiBzZXQgdGhlIHRl
+bXBlcmF0dXJlIGZvciBDUFUgYW5kIE1CLCB0aGUgc3RhbmRhcmQgc2V0dGluZyBpcyA2MCBkZWdy
+ZWVzCj4gZm9yIGJvdGgsIGFuZCB0aGUgbG93ZXN0IHBvc3NpYmxlIHZhbHVlIChhbmQgc3RhbmRh
+cmQgc2V0dGluZyBmcm9tIGJpb3MpCj4gaXMgNDUgZGVncmVlcy4gQnV0IEkgaGF2ZSBubyBpZGVh
+IGhvdyByaXNreSBpdCBpcyB0byBwbGF5IHdpdGggdGhlc2UKPiBzZXR0aW5ncy4KCllvdSBjYW4g
+cHJvYmFibHkgYXNzdW1lIGl0IGlzIHNhZmUgaWYgdGhlIHZlbmRvciBpdHNlbGYgbGV0cyB5b3Ug
+Y2hhbmdlCnRoZSB2YWx1ZXMuIEl0IGlzIHVzdWFsbHkgYSB0cmFkZS1vZmYgYmV0d2VlbiBub2lz
+ZSBhbmQgY29tcG9uZW50CmxpZmV0aW1lLiBXaXRoIGhpZ2hlciBsaW1pdHMsIHRoZSBoYXJkd2Fy
+ZSB3aWxsIGFnZSBmYXN0ZXIuIFRoYXQgYmVpbmcKc2FpZCwgaXQgZGVwZW5kcyBvbiB3aGF0IGV4
+YWN0bHkgdGhlc2UgbGltaXRzIGFyZSBjaGFuZ2luZy4uLiBpZiB0aGV5CmFyZSBjaGFuZ2luZyB0
+aGUgdHJpcCBwb2ludHMgZm9yIGZhbiBzcGVlZCBjb250cm9sLCBvciB0aGUgQ1BVCnRocm90dGxp
+bmcsIG9yIHRoZSBlbWVyZ2VuY3kgc2h1dGRvd24sIHRoZSBlZmZlY3RzIGFyZSBxdWl0ZSBkaWZm
+ZXJlbnQuCgpBbnl3YXksIDQ1wrBDIHNlZW1zIGxpa2UgYW4gdW5yZWFzb25hYmx5IGxvdyBsaW1p
+dCB0aGVzZSBkYXlzIGZvciBhIENQVS4KU29tZSBtYWNoaW5lcyBhcmUgcnVubmluZyBob3R0ZXIg
+dGhhbiB0aGF0IGV2ZW4gd2hlbiBpZGxlLiBJIGNhbid0CnJlbWVtYmVyIGV2ZXIgc2V0dGluZyB0
+aGUgaGlnaCBsaW1pdCBmb3IgbXkgQ1BVIHRlbXBlcmF0dXJlIGJlbG93IDU1wrBDLgo0NcKwQyBt
+YXkgYmUgT0sgZm9yIHRoZSBjYXNlIHRlbXBlcmF0dXJlLCBidXQgSSB3b3VsZG4ndCBtaW5kIGlu
+Y3JlYXNpbmcKaXQgdG8gNTDCsEMuCgotLSAKSmVhbiBEZWx2YXJlCmh0dHA6Ly9raGFsaS5saW51
+eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
+b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
+ZW5zb3JzCg==
