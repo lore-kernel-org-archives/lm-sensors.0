@@ -1,67 +1,40 @@
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Date: Mon, 04 Jan 2010 23:44:08 +0000
-Subject: [lm-sensors] [PATCH 4/5] sis5595: make PCI device id constant
-Message-Id: <4B427D48.7000100@freemail.hu>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Fri, 12 Feb 2010 21:51:21 +0000
+Subject: [lm-sensors] [PATCH] i2c-scmi: Provide module aliases for automatic
+Message-Id: <20100212215121.GM29569@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20100210180116.GG29604@tux1.beaverton.ibm.com> <d35bed621002101007y639fd3c7k736ef53ff400f79@mail.gmail.com> <20100210204057.2ca95b0d@hyperion.delvare> <d35bed621002101223ida7758fp5ccbedfe25bd3148@mail.gmail.com> <20100211012105.GH29604@tux1.beaverton.ibm.com> <d35bed621002102333i701a212re957efb600cbda5f@mail.gmail.com> <20100211091743.287030b0@hyperion.delvare> <d35bed621002110842h54c8185fqf3bf481ad63df7bf@mail.gmail.com> <20100212185241.GJ29604@tux1.beaverton.ibm.com> <20100212200955.05730d69@hyperion.delvare>
+In-Reply-To: <20100212200955.05730d69@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Aurelien Jarno <aurelien@aurel32.net>, lm-sensors@lm-sensors.org
-Cc: Julia Lawall <julia@diku.dk>, cocci@diku.dk, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <khali@linux-fr.org>
+Cc: "D. Can Celasun" <dcelasun@gmail.com>, Huaxu Wan <huaxu.wan@intel.com>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, lenb@kernel.org
 
-From: Márton Németh <nm127@freemail.hu>
-
-The id_table field of the struct pci_driver is constant in <linux/pci.h>
-so it is worth to make pci_device_id also constant.
-
-The semantic match that finds this kind of pattern is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r@
-identifier I1, I2, x;
-@@
-	struct I1 {
-	  ...
-	  const struct I2 *x;
-	  ...
-	};
-@s@
-identifier r.I1, y;
-identifier r.x, E;
-@@
-	struct I1 y = {
-	  .x = E,
-	};
-@c@
-identifier r.I2;
-identifier s.E;
-@@
-	const struct I2 E[] = ... ;
-@depends on !c@
-identifier r.I2;
-identifier s.E;
-@@
-+	const
-	struct I2 E[] = ...;
-// </smpl>
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
-Cc: Julia Lawall <julia@diku.dk>
-Cc: cocci@diku.dk
+Ok, here's a quick patch to provide the module aliases.  Lightly tested, and
+requires the patch that defines ACPI_SMBUS_IBM_HID.
 ---
-diff -u -p a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
---- a/drivers/hwmon/sis5595.c 2009-12-03 04:51:21.000000000 +0100
-+++ b/drivers/hwmon/sis5595.c 2010-01-03 20:55:51.000000000 +0100
-@@ -697,7 +697,7 @@ static struct sis5595_data *sis5595_upda
- 	return data;
- }
+i2c-scmi: Provide module aliases for automatic loading
 
--static struct pci_device_id sis5595_pci_ids[] = {
-+static const struct pci_device_id sis5595_pci_ids[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_SI, PCI_DEVICE_ID_SI_503) },
- 	{ 0, }
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+---
+
+ drivers/i2c/busses/i2c-scmi.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+
+diff --git a/drivers/i2c/busses/i2c-scmi.c b/drivers/i2c/busses/i2c-scmi.c
+index 4c9fb4c..388cbdc 100644
+--- a/drivers/i2c/busses/i2c-scmi.c
++++ b/drivers/i2c/busses/i2c-scmi.c
+@@ -54,6 +54,7 @@ static const struct acpi_device_id acpi_smbus_cmi_ids[] = {
+ 	{ACPI_SMBUS_IBM_HID, (kernel_ulong_t)&ibm_smbus_methods},
+ 	{"", 0}
  };
++MODULE_DEVICE_TABLE(acpi, acpi_smbus_cmi_ids);
+ 
+ #define ACPI_SMBUS_STATUS_OK			0x00
+ #define ACPI_SMBUS_STATUS_FAIL			0x07
 
 _______________________________________________
 lm-sensors mailing list
