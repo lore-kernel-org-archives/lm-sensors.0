@@ -1,49 +1,35 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Tue, 16 Feb 2010 11:09:26 +0000
-Subject: [lm-sensors] [PATCH V2 1/6] lis3: Add missing constants for 8bit
-Message-Id: <1266318571-31083-2-git-send-email-samu.p.onkalo@nokia.com>
+From: Christian Kujau <lists@nerdbynature.de>
+Date: Tue, 16 Feb 2010 01:33:33 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (ams) Fix device removal sequence
+Message-Id: <alpine.DEB.2.01.1002151716240.28195@bogon.housecafe.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
+References: <20100131150323.06e0c876@hyperion.delvare>
+In-Reply-To: <20100131150323.06e0c876@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: eric.piel@tremplin-utc.net
-Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jean Delvare <khali@linux-fr.org>, linuxppc-dev@ozlabs.org, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Definitions for click were missing.
+Ben,
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-Acked-by: =C3=89ric Piel <eric.piel@tremplin-utc.net>
-Tested-by: Daniel Mack <daniel@caiaq.de>
----
- drivers/hwmon/lis3lv02d.h |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+I cannot find those two patches from Jean [0] in your tree, I take it 
+they'll be included and pushed to Linus in 2.6.34 then?
 
-diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-index e6a01f4..692e244 100644
---- a/drivers/hwmon/lis3lv02d.h
-+++ b/drivers/hwmon/lis3lv02d.h
-@@ -196,6 +196,16 @@ enum lis3lv02d_dd_src {
- 	DD_SRC_IA	=3D 0x40,
- };
-=20
-+enum lis3lv02d_click_src_8b {
-+	CLICK_SINGLE_X	=3D 0x01,
-+	CLICK_DOUBLE_X	=3D 0x02,
-+	CLICK_SINGLE_Y	=3D 0x04,
-+	CLICK_DOUBLE_Y	=3D 0x08,
-+	CLICK_SINGLE_Z	=3D 0x10,
-+	CLICK_DOUBLE_Z	=3D 0x20,
-+	CLICK_IA	=3D 0x40,
-+};
-+
- struct axis_conversion {
- 	s8	x;
- 	s8	y;
---=20
-1.6.0.4
+(Although I had hoped to see them in 2.6.33, I'm "testing"[1] them since 
+ -rc2 on my PowerBook)
 
+Thanks,
+Christian.
+
+[0] http://lists.ozlabs.org/pipermail/linuxppc-dev/2010-February/079958.html
+    http://lists.ozlabs.org/pipermail/linuxppc-dev/2010-February/079959.html
+[1] http://www.mail-archive.com/linuxppc-dev@lists.ozlabs.org/msg40983.html
+
+-- 
+BOFH excuse #342:
+
+HTTPD Error 4004 : very old Intel cpu - insufficient processing power
 
 _______________________________________________
 lm-sensors mailing list
