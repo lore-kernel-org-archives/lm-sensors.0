@@ -1,311 +1,242 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Fri, 19 Feb 2010 19:39:08 +0000
-Subject: [lm-sensors] [RFC PATCH v2 1/2] Add the sensors-config tool
-Message-Id: <20100219193908.GB1917@andre-laptop>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Tue, 16 Feb 2010 11:09:30 +0000
+Subject: [lm-sensors] [PATCH V2 5/6] lis3: Interrupt handlers for 8bit
+Message-Id: <1266318571-31083-6-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net
+Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
 
-This tool helps you to configure lm-sensors. Some of the features are:
+Content for the 8bit device threaded interrupt handlers.
+Depending on the interrupt line and chip configuration,
+either click or wakeup / freefall handler is called.
+In case of click, BTN_ event is sent via input device.
+In case of wakeup or freefall, input device ABS_ events
+are updated immediatelly.
 
-* Download configs from lm-sensors.org and build an archive
-* Install archives into file system
-* List all the available configs
-* Install configs by vendor and board name or automatically based on DMI data
-* Show DMI data
+It is still possible to configure interrupt line 1 for fast freefall
+detection and use the second line either for click or threshold
+based interrupts. Or both lines can be used for click / threshold
+interrupts.
 
+Polled input device can be set to stopped state and still
+get coordinate updates via input device using interrupt
+based method. Polled mode and interrupt mode can also be used parallel.
+
+BTN_ events are remapped based on existing axis remapping information.
+
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
+ drivers/hwmon/lis3lv02d.c |   98 +++++++++++++++++++++++++++++++++++++++------
+ drivers/hwmon/lis3lv02d.h |    1 +
+ include/linux/lis3lv02d.h |    2 +
+ 3 files changed, 88 insertions(+), 13 deletions(-)
 
-Index: prog/detect/sensors-config.py
-=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ prog/detect/sensors-config.py	2010-01-29 20:09:54.322635363 +0100
-@@ -0,0 +1,284 @@
-+#!/usr/bin/python
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 3c06350..56a1d34 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -121,11 +121,9 @@ static void lis3lv02d_get_xyz(struct lis3lv02d *lis3, int *x, int *y, int *z)
+ 	int position[3];
+ 	int i;
+ 
+-	mutex_lock(&lis3->mutex);
+ 	position[0] = lis3->read_data(lis3, OUTX);
+ 	position[1] = lis3->read_data(lis3, OUTY);
+ 	position[2] = lis3->read_data(lis3, OUTZ);
+-	mutex_unlock(&lis3->mutex);
+ 
+ 	for (i = 0; i < 3; i++)
+ 		position[i] = (position[i] * lis3->scale) / LIS3_ACCURACY;
+@@ -249,6 +247,19 @@ void lis3lv02d_poweron(struct lis3lv02d *lis3)
+ EXPORT_SYMBOL_GPL(lis3lv02d_poweron);
+ 
+ 
++static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
++{
++	int x, y, z;
 +
-+import os
-+import sys
-+import optparse
-+import urllib
-+import re
-+
-+config_dir = '/usr/local/share/sensors/conf'
-+config_install_dir = '/etc/sensors.d'
-+dmi_dir = '/sys/class/dmi/id'
-+#config_url="http://www.lm-sensors.org/wiki/Configurations"
-+config_url="http://localhost/configuration"
-+
-+configs = {
-+    'ASRock' : ['AM2NF3-VSTA'],
-+    'Abit' : ['AA8-DuraMAX', 'AA8XE-Fatal1ty', 'AI7', 'AN7',
-+              'AN8-SLI', 'AV8', 'AX8', 'Aa7-Max', 'Ag7', 'KN9-Ultra',
-+              'KV8-MAX3', 'Kv8Pro', 'VA-20'],
-+    'Asus' : ['KFN4-DRE', 'M2N-SLI Deluxe'],
-+    'DFI' : ['CFX3200-M2-G-infinity', 'Lanparty NF4 Expert',
-+             'Lanparty UT 790FX'],
-+    'Epox' : ['M1697', 'MF4-Ultra3'],
-+    'Evga' : ['x58-SLI'],
++	mutex_lock(&lis3_dev.mutex);
++	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
++	input_report_abs(pidev->input, ABS_X, x);
++	input_report_abs(pidev->input, ABS_Y, y);
++	input_report_abs(pidev->input, ABS_Z, z);
++	input_sync(pidev->input);
++	mutex_unlock(&lis3_dev.mutex);
 +}
 +
-+def get_vendor_list():
-+    try:
-+        dir = os.listdir(config_dir)
-+        dir.sort()
-+        return dir
+ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
+ {
+ 	if (!test_bit(0, &lis3_dev.misc_opened))
+@@ -270,13 +281,71 @@ out:
+ 	return IRQ_HANDLED;
+ }
+ 
++static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
++{
++	struct input_dev *dev = lis3->idev->input;
++	u8 click_src;
 +
-+    except OSError:
-+        print "Could not find configurations in " + config_dir
-+        dir = []
-+        return dir
++	mutex_lock(&lis3->mutex);
++	lis3->read(lis3, CLICK_SRC, &click_src);
 +
++	if (click_src & CLICK_SINGLE_X) {
++		input_report_key(dev, lis3->mapped_btns[0], 1);
++		input_report_key(dev, lis3->mapped_btns[0], 0);
++	}
 +
-+def list_vendors():
-+    dir = get_vendor_list()
-+    for name in dir:
-+        print name
++	if (click_src & CLICK_SINGLE_Y) {
++		input_report_key(dev, lis3->mapped_btns[1], 1);
++		input_report_key(dev, lis3->mapped_btns[1], 0);
++	}
 +
++	if (click_src & CLICK_SINGLE_Z) {
++		input_report_key(dev, lis3->mapped_btns[2], 1);
++		input_report_key(dev, lis3->mapped_btns[2], 0);
++	}
++	input_sync(dev);
++	mutex_unlock(&lis3->mutex);
++}
 +
-+def get_board_list(vendor):
-+    try:
-+        dir = os.listdir(config_dir + '/' + vendor)
-+        dir.sort()
++static void lis302dl_interrupt_handle_ff_wu(struct lis3lv02d *lis3)
++{
++	u8 wu1_src;
++	u8 wu2_src;
 +
-+        return dir
++	lis3->read(lis3, FF_WU_SRC_1, &wu1_src);
++	lis3->read(lis3, FF_WU_SRC_2, &wu2_src);
 +
-+    except:
-+        print "Could not find a configuration for " + vendor
-+        dir = []
-+        return dir
++	wu1_src = wu1_src & FF_WU_SRC_IA ? wu1_src : 0;
++	wu2_src = wu2_src & FF_WU_SRC_IA ? wu2_src : 0;
 +
++	/* joystick poll is internally protected by the lis3->mutex. */
++	if (wu1_src || wu2_src)
++		lis3lv02d_joystick_poll(lis3_dev.idev);
++}
 +
-+def list_boards(vendor):
-+    dir = get_board_list(vendor)
-+    for name in dir:
-+        print name
+ static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
+ {
 +
++	struct lis3lv02d *lis3 = data;
 +
-+def clear_config_dir():
-+    try:
-+        dir = os.listdir(config_install_dir)
-+        for name in dir:
-+            os.remove(config_install_dir  + '/' + name)
++	if ((lis3->pdata->irq_cfg & LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
++		lis302dl_interrupt_handle_click(lis3);
++	else
++		lis302dl_interrupt_handle_ff_wu(lis3);
 +
-+    except OSError:
-+        return
+ 	return IRQ_HANDLED;
+ }
+ 
+ static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
+ {
 +
++	struct lis3lv02d *lis3 = data;
 +
-+def install(config):
-+    sys.stdout.write('This will delete older configurations. Do you want to proceed? [y/N]: ')
-+    line = sys.stdin.readline()
-+    if (line[0] = 'N' or line[0] = 'n' or line[0] = '\n'):
-+        return
++	if ((lis3->pdata->irq_cfg & LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
++		lis302dl_interrupt_handle_click(lis3);
++	else
++		lis302dl_interrupt_handle_ff_wu(lis3);
 +
-+    clear_config_dir()
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -374,22 +443,12 @@ static struct miscdevice lis3lv02d_misc_device = {
+ 	.fops    = &lis3lv02d_misc_fops,
+ };
+ 
+-static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
+-{
+-	int x, y, z;
+-
+-	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
+-	input_report_abs(pidev->input, ABS_X, x);
+-	input_report_abs(pidev->input, ABS_Y, y);
+-	input_report_abs(pidev->input, ABS_Z, z);
+-	input_sync(pidev->input);
+-}
+-
+ int lis3lv02d_joystick_enable(void)
+ {
+ 	struct input_dev *input_dev;
+ 	int err;
+ 	int max_val, fuzz, flat;
++	int btns[] = {BTN_X, BTN_Y, BTN_Z};
+ 
+ 	if (lis3_dev.idev)
+ 		return -EINVAL;
+@@ -416,6 +475,10 @@ int lis3lv02d_joystick_enable(void)
+ 	input_set_abs_params(input_dev, ABS_Y, -max_val, max_val, fuzz, flat);
+ 	input_set_abs_params(input_dev, ABS_Z, -max_val, max_val, fuzz, flat);
+ 
++	lis3_dev.mapped_btns[0] = lis3lv02d_get_axis(abs(lis3_dev.ac.x), btns);
++	lis3_dev.mapped_btns[1] = lis3lv02d_get_axis(abs(lis3_dev.ac.y), btns);
++	lis3_dev.mapped_btns[2] = lis3lv02d_get_axis(abs(lis3_dev.ac.z), btns);
 +
-+    src = config_dir + '/' + config
-+    dst = '/etc/sensors.d'
-+    os.system('cp %s %s' % (config_dir + '/' + config, '/etc/sensors.d'));
+ 	err = input_register_polled_device(lis3_dev.idev);
+ 	if (err) {
+ 		input_free_polled_device(lis3_dev.idev);
+@@ -461,7 +524,9 @@ static ssize_t lis3lv02d_position_show(struct device *dev,
+ {
+ 	int x, y, z;
+ 
++	mutex_lock(&lis3_dev.mutex);
+ 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
++	mutex_unlock(&lis3_dev.mutex);
+ 	return sprintf(buf, "(%d,%d,%d)\n", x, y, z);
+ }
+ 
+@@ -535,6 +600,13 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
+ 		dev->write(dev, CLICK_THSY_X,
+ 			(p->click_thresh_x & 0xf) |
+ 			(p->click_thresh_y << 4));
 +
-+
-+def get_dmi_data():
-+    dmi = {'sys_vendor': '',
-+           'product_name': '',
-+           'product_version': '',
-+           'board_vendor': '',
-+           'board_name': '',
-+           'board_version': '',
-+           'chassis_type': ''}
-+
-+    for key in dmi:
-+        f = open(dmi_dir + '/' + key, 'r')
-+        dmi[key] = f.read().rstrip('\n')
-+        f.close()
-+
-+    return dmi
-+
-+
-+def show_dmi():
-+    dmi = get_dmi_data()
-+    keys = dmi.keys()
-+    keys.sort()
-+    for key in keys:
-+        print key + ': ' + dmi[key]
-+
-+
-+def install_archive(archive):
-+    if (os.path.exists(config_dir) = False):
-+        os.makedirs(config_dir)
-+    os.system("tar -xzf" + archive + " -C" + config_dir)
-+
-+
-+def uninstall_archive():
-+    if (os.path.exists(config_dir) = True):
-+        os.system("rm -rf " + config_dir)
-+
-+
-+def find_board(dmi, dir):
-+    for name in dir:
-+        if (dmi['board_name'].lower().find(name.lower()) != -1):
-+            return name
-+
-+    return ''
-+
-+
-+def find_vendor(vendor, board):
-+    dmi = get_dmi_data()
-+
-+    if (vendor):
-+        dmi['board_vendor'] = vendor
-+
-+    if (board):
-+        dmi['board_name'] = board
-+
-+    dir = get_vendor_list()
-+    board_dir = ''
-+    for name in dir:
-+        if (dmi['board_vendor'].lower().lower().find(name.lower()) != -1):
-+            board_dir = get_board_list(name)
-+            board = find_board(dmi, board_dir)
-+            if (board != ''):
-+                config = name + '/' + board
-+                print 'Found a suitable configuration: ' + config
-+                sys.stdout.write('Do you want to install this configuration? [y/N]: ')
-+                line = sys.stdin.readline()
-+                if (line[0] = 'Y' or line[0] = 'y'):
-+                    install(config);
-+
-+
-+def parse_dmi(lines):
-+    dmi = {'sys_vendor': '',
-+           'product_name': '',
-+           'product_version': '',
-+           'board_vendor': '',
-+           'board_name': [],
-+           'board_version': '',
-+           'chassis_type': ''}
-+
-+    for line in lines:
-+        if line[0] = '#':
-+            for key in dmi:
-+                start = line.find(key + ':')
-+                if start != -1:
-+                    name = line.split(':')[1]
-+                    if (key = 'board_name'):
-+                        dmi[key].append(name.strip())
-+                    else:
-+                        dmi[key] = name.strip()
-+
-+    return dmi
-+
-+def strip_lines(lines):
-+    start = end = 0;
-+    for i in range(len(lines)):
-+        if (lines[i].find('{{{') != -1):
-+            start = i + 1
-+
-+        if (lines[i].find('}}}') != -1):
-+            end = i - start
-+
-+    del lines[0:start]
-+    del lines[end:]
-+
-+def create_file(dmi, lines):
-+    if (dmi['board_vendor'] != '' and dmi['board_name'] != ''):
-+        strip_lines(lines)
-+        if (os.path.exists(dmi['board_vendor']) = False):
-+            os.mkdir(dmi['board_vendor'])
-+
-+        for board in dmi['board_name']:
-+            path = dmi['board_vendor'] + '/' + board
-+            if (os.path.exists(path)):
-+                print 'A config file for ' + dmi['board_vendor'] + '/' + \
-+                board + ' already exists. Will be overwritten.'
-+            f = open(path , 'w')
-+            f.writelines(lines)
-+            f.close()
-+
-+def fetch_configs():
-+    for key in configs:
-+        boards = configs[key]
-+        for board in boards:
-+            print 'Fetch config for ' + key + '/' + board
-+            url = urllib.urlopen(config_url + '/' + key + '/' + board +
-+                                 '?format=txt')
-+
-+            lines = url.readlines()
-+            dmi = parse_dmi(lines)
-+            if (len(dmi['board_name']) > 0):
-+                print dmi
-+
-+            create_file(dmi, lines);
-+
-+            url.close()
-+
-+    os.system('tar czf configuration.tar.gz *')
-+
-+
-+def parse_cmdline():
-+    parser = optparse.OptionParser()
-+    parser.add_option('-l', '--list-vendors', dest='opt_list_vendors',
-+                      action='store_true', help='lists all the vendors');
-+    parser.add_option('-b', '--list-boards', dest='opt_list_boards',
-+                      help='lists the boards for a given vendor')
-+    parser.add_option('-i', '--install', dest='opt_install',
-+                      help='installs the given configuration')
-+    parser.add_option('-d', '--show-dmi', dest='opt_show_dmi',
-+                      action='store_true', help='shows DMI data')
-+    parser.add_option('-a', '--install-archive', dest='opt_install_archive',
-+                      help='installs the given archive')
-+    parser.add_option('-u', '--uninstall-archive',
-+                      dest='opt_uninstall_archive', action='store_true',
-+                      help='removes configurations from archive')
-+    parser.add_option('-f', '--find-board', dest='opt_find_board',
-+                      action='store_true',
-+                      help='find a configuration based on DMI data')
-+    parser.add_option('-B', '--dmi-board', dest='opt_dmi_board',
-+                      help='overwrites DMI data for board')
-+    parser.add_option('-V', '--dmi-vendor', dest='opt_dmi_vendor',
-+                      help='overwrites DMI data for vendor')
-+    parser.add_option('-t', '--fetch-configs', dest='opt_fetch_configs',
-+                      action='store_true',
-+                      help='fetches configurations from lm-sensors.org')
-+
-+    return parser.parse_args()
-+
-+
-+# Main
-+try:
-+    (options, args) = parse_cmdline()
-+
-+    if (options.opt_list_vendors):
-+        list_vendors()
-+
-+    if (options.opt_list_boards):
-+        list_boards(options.opt_list_boards)
-+
-+    if (options.opt_install):
-+        install(options.opt_install)
-+
-+    if (options.opt_show_dmi):
-+        show_dmi()
-+
-+    if (options.opt_install_archive):
-+        install_archive(options.opt_install_archive)
-+
-+    if (options.opt_uninstall_archive):
-+        uninstall_archive()
-+
-+    if (options.opt_find_board):
-+        find_vendor(options.opt_dmi_vendor, options.opt_dmi_board)
-+
-+    if (options.opt_fetch_configs):
-+        fetch_configs()
-+
-+except (OSError), e:
-+    print e
-+
-+sys.exit(0)
++		if (dev->idev) {
++			struct input_dev *input_dev = lis3_dev.idev->input;
++			input_set_capability(input_dev, EV_KEY, BTN_X);
++			input_set_capability(input_dev, EV_KEY, BTN_Y);
++			input_set_capability(input_dev, EV_KEY, BTN_Z);
++		}
+ 	}
+ 
+ 	if (p->wakeup_flags) {
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index 692e244..8540913 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -233,6 +233,7 @@ struct lis3lv02d {
+ 	struct platform_device	*pdev;     /* platform device */
+ 	atomic_t		count;     /* interrupt count after last read */
+ 	struct axis_conversion	ac;        /* hw -> logical axis */
++	int			mapped_btns[3];
+ 
+ 	u32			irq;       /* IRQ number */
+ 	struct fasync_struct	*async_queue; /* queue for the misc device */
+diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
+index fd289b1..0e8a346 100644
+--- a/include/linux/lis3lv02d.h
++++ b/include/linux/lis3lv02d.h
+@@ -25,12 +25,14 @@ struct lis3lv02d_platform_data {
+ #define LIS3_IRQ1_FF_WU_12	(3 << 0)
+ #define LIS3_IRQ1_DATA_READY	(4 << 0)
+ #define LIS3_IRQ1_CLICK		(7 << 0)
++#define LIS3_IRQ1_MASK		(7 << 0)
+ #define LIS3_IRQ2_DISABLE	(0 << 3)
+ #define LIS3_IRQ2_FF_WU_1	(1 << 3)
+ #define LIS3_IRQ2_FF_WU_2	(2 << 3)
+ #define LIS3_IRQ2_FF_WU_12	(3 << 3)
+ #define LIS3_IRQ2_DATA_READY	(4 << 3)
+ #define LIS3_IRQ2_CLICK		(7 << 3)
++#define LIS3_IRQ2_MASK		(7 << 3)
+ #define LIS3_IRQ_OPEN_DRAIN	(1 << 6)
+ #define LIS3_IRQ_ACTIVE_LOW	(1 << 7)
+ 	unsigned char irq_cfg;
+-- 
+1.6.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
