@@ -1,32 +1,35 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 22 Feb 2010 20:57:28 +0000
-Subject: Re: [lm-sensors] asus atk0110 not working on Asus P5K-V
-Message-Id: <68676e01002221257m2851caeak5fd43d1ea2bbe9d@mail.gmail.com>
+From: Lutz Ballaschke <Lutz.Ballaschke@ebcsoft.de>
+Date: Wed, 17 Feb 2010 17:35:21 +0000
+Subject: [lm-sensors] Super I/O chip: missing VID base address
+Message-Id: <1266428121.8626.73.camel@vierstein>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B802E48.8030406@hhs.nl>
-In-Reply-To: <4B802E48.8030406@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Feb 20, 2010 at 7:47 PM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> On 02/20/2010 05:45 PM, Otto wrote:
->> At the moment my Linux server is running kernel 2.6.31-19 and using the
->> asus_atk0110 kernel module. As I discussed with Hans de Goede in Dutch
->> below, unfortunately the command `sensors` is only functioning on my
->> system when using the 'acpi_enforce_resources=lax' kernel option. Hans
->> advised me to send this email, because I have an Asus motherboard and
->> it's a bad idea to use both the acp_enforce_resources option and the
->> asus_atk0110 driver.
->
-> To be clear, iirc the problem is that although the asus_atk0110 driver loads
-> automatically, it does not work, and thus you need to specify
-> acpi_enforce_resources=lax and load the appropriate native drivers, correct?
+Hi there,
 
-Otto can you send me a copy of the DSDT (/sys/firmware/acpi/tables/DSDT)?
+i have to program parts of the super I/O chip F71862 from Fintek on a
+Jetway J7F2 x86 mini-ITX board. There is an existing linux driver
+(f71882fg) which supports the hardware monitoring function of that chip
+(FAN, TEMP, PWM) but not the VID function. 
+So i started coding to get this VID function working. Unfortunately i
+got disappointed the moment i tried to read the base address out of the
+VID configuration register: the value is 
 
-Luca
+0x00 
+
+which i suppose is not the actual IO address, is it? Confused by the
+datasheet telling the same i wondered if that means i can't use VID
+function or just have to find out the default base address (like 0x3F8
+is default for UART which is also part of the F71862 chip)
+Any idea?
+
+Thank you very much,
+
+Lutz Ballaschke
+
 
 _______________________________________________
 lm-sensors mailing list
