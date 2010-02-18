@@ -1,37 +1,36 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 06 Feb 2010 14:53:25 +0000
-Subject: Re: [lm-sensors] [PATCH V2] hwmon: add driver for ADT7411 voltage &
-Message-Id: <20100206155325.60929289@hyperion.delvare>
+Date: Thu, 18 Feb 2010 17:46:25 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (g760a) Make rpm_from_cnt static
+Message-Id: <20100218184625.6dd29565@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1265142758-10457-1-git-send-email-w.sang@pengutronix.de>
-In-Reply-To: <1265142758-10457-1-git-send-email-w.sang@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 6 Feb 2010 15:38:08 +0100, Wolfram Sang wrote:
-> 
-> > You can have reading vdd from sysfs also update the cache, but then you
-> > should also read data->ref_is_vdd at the same time. If the user is
-> > going to always read all the values at once then this is the most
-> > efficient approach.
-> 
-> Yup. Just if not, then we will have another useless read (reading adc_ref_vdd
-> when we always want to know vdd) as on embedded boards, sysfs is often used
-> directly. Also, I can't factor out the caching-routine, as show_input() needs
-> vdd only if adc_ref_vdd is set. Adding a force_flag for always reading vdd to a
-> factored out function seems a bit too complex for that case to me. I think I'll
-> leave it at the current state: show_input() does the caching, show_vdd() always
-> reads from the chip. We might end up reading vdd twice within a second. Well,
-> it shouldn't hurt that much.
+Function rpm_from_cnt is only used internally so it can be made
+static. Make it inline while we're here, for performance reasons
+(although hopefully gcc would figure out by itself...)
 
-Sure, fine with me.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Herbert Valerio Riedel <hvr@gnu.org>
+Cc: Martin Michlmayr <tbm@cyrius.com>
+---
+ drivers/hwmon/g760a.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> (...)
-> Have a nice weekend!
+--- linux-2.6.33-rc8.orig/drivers/hwmon/g760a.c	2010-02-18 16:13:16.000000000 +0100
++++ linux-2.6.33-rc8/drivers/hwmon/g760a.c	2010-02-18 16:35:22.000000000 +0100
+@@ -68,7 +68,7 @@ struct g760a_data {
+ #define PWM_FROM_CNT(cnt)	(0xff-(cnt))
+ #define PWM_TO_CNT(pwm)		(0xff-(pwm))
+ 
+-unsigned int rpm_from_cnt(u8 val, u32 clk, u16 div)
++static inline unsigned int rpm_from_cnt(u8 val, u32 clk, u16 div)
+ {
+ 	return ((val = 0x00) ? 0 : ((clk*30)/(val*div)));
+ }
 
-Thank you, same to you!
 
 -- 
 Jean Delvare
