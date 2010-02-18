@@ -1,25 +1,42 @@
-From: Martin Michlmayr <tbm@cyrius.com>
-Date: Fri, 19 Feb 2010 15:39:16 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (g760a) Make rpm_from_cnt static
-Message-Id: <20100219153916.GJ1679@jirafa.cyrius.com>
+From: david jeong <david.jeong@gmail.com>
+Date: Thu, 18 Feb 2010 00:11:47 +0000
+Subject: [lm-sensors] Support for Intel S3420GP
+Message-Id: <d2bb89841002171611l5311b3a0i13e144ad9cf88a32@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100218184625.6dd29565@hyperion.delvare>
-In-Reply-To: <20100218184625.6dd29565@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-* Jean Delvare <khali@linux-fr.org> [2010-02-18 18:46]:
-> Function rpm_from_cnt is only used internally so it can be made
-> static. Make it inline while we're here, for performance reasons
-> (although hopefully gcc would figure out by itself...)
+Hi all,
 
-Signed-off-by: Martin Michlmayr <tbm@cyrius.com>
+I've been getting a series of these messages:
 
--- 
-Martin Michlmayr
-http://www.cyrius.com/
+ CPU3: Temperature above threshold, cpu clock throttled (total events = 60949)
+ CPU7: Temperature above threshold, cpu clock throttled (total events = 60949)
+ CPU3: Temperature/speed normal
+ CPU7: Temperature/speed normal
+
+And I'd like to have some way of testing these messages as credible
+error messages.
+
+I have a SUPERMICRO CSE-833T chassis that comes with 6 fans that are
+all powered, and I've applied Arctic Silver to my Intel X3460
+heatsink.  I'm baffled at the idea that the CPU is getting enough
+cooling.
+
+First, any suggestions on other ways to validate these error messages?
+
+And second, does the ls_sensor chip have support for the Intel S3420GP
+motherboard?
+
+I'm not sure if these are sensible questions, but please do ask me to
+clarify where needed.
+
+Thanks much in advance.
+
+Warmly,
+David
 
 _______________________________________________
 lm-sensors mailing list
