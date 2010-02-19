@@ -1,109 +1,313 @@
-From: mohit chawla <mohit.chawla.binary@gmail.com>
-Date: Wed, 17 Feb 2010 18:24:14 +0000
-Subject: [lm-sensors] Core i7 temperatures query (lm_sensors Vs. BIOS)
-Message-Id: <ea74f0931002171012q9f52342ibb888aed463fa01c@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3653222115283227825=="
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Fri, 19 Feb 2010 19:39:08 +0000
+Subject: [lm-sensors] [RFC PATCH v2 1/2] Add the sensors-config tool
+Message-Id: <20100219193908.GB1917@andre-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============3653222115283227825==
-Content-Type: multipart/alternative; boundary=0016363b80de39be9a047fcfca05
+This tool helps you to configure lm-sensors. Some of the features are:
 
---0016363b80de39be9a047fcfca05
-Content-Type: text/plain; charset=ISO-8859-1
+* Download configs from lm-sensors.org and build an archive
+* Install archives into file system
+* List all the available configs
+* Install configs by vendor and board name or automatically based on DMI data
+* Show DMI data
 
-<http://a.collective-media.net/jump/idgt.phoronix/article_above;sec=article;fold=above;tile=2;sz=300x250;ord=123456789?>
-Hello folks, I have been running Mprime successfully for testing the
-stability of my i7 system when overclocked.
+---
 
-But I am concerned about the correctness of the temperatures as shown by
-lm_sensors version 3.0.2.
-
-Here's what I have observed.
-
-When I power on the computer and check the CPU temperature in the BIOS, it
-is usually around 33-34 degrees. But as soon as I boot into my OS (Ubuntu
-9.10 64 bit), lm_sensors show temperature around 23-24 degrees.
-I am using sensors_applet for Gnome panel to see the temperatures.
-
-Now the thing is that just when Gnome is loading(panels coming up,
-background loading etc.), I do see that the CPU temperature being around 33
-degrees, coming down in a second or two to 23-24 degrees.
-
-So, my question is, are these temperatures correct ? In other words, is it
-normal that CPU temps are high in BIOS ? Or is it so that when the system is
-powered on, CPU temps are usually high & when the OS has loaded, they drop
-down ?
-
-Please help me resolving this scenario, as it could lead to potential
-damages to my machine due to inaccuracy of results.
-
-Thanks.
-
---0016363b80de39be9a047fcfca05
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-
-		=09
-	=09
-
-	=09
-	=09
-		<div id=3D"post_message_112944">
-		=09
-<div style=3D"padding: 0pt 2px 10px 10px; float: right;">
-
-
-<noscript><a href=3D"http://a.collective-media.net/jump/idgt.phoronix/artic=
-le_above;sec=3Darticle;fold=3Dabove;tile=3D2;sz=3D300x250;ord=3D123456789?"=
- target=3D"_blank"><img src=3D"http://a.collective-media.net/ad/idgt.phoron=
-ix/article_above;sec=3Darticle;fold=3Dabove;tile=3D2;sz=3D300x250;ord=3D123=
-456789?" width=3D"300" height=3D"250" border=3D"0" alt=3D""></a></noscript>
-
-
-</div>
-
-			Hello folks, I have been running Mprime successfully for testing the sta=
-bility of my i7 system when overclocked.<br>
-<br>
-But I am concerned about the correctness of the temperatures as shown by lm=
-_sensors version 3.0.2.<br>
-<br>
-Here&#39;s what I have observed. <br>
-<br>
-When I power on the computer and check the CPU temperature in the BIOS,
-it is usually around 33-34 degrees. But as soon as I boot into my OS
-(Ubuntu 9.10 64 bit), lm_sensors show temperature around 23-24 degrees.<br>
-I am using sensors_applet for Gnome panel to see the temperatures.<br>
-<br>
-Now the thing is that just when Gnome is loading(panels coming up,
-background loading etc.), I do see that the CPU temperature being
-around 33 degrees, coming down in a second or two to 23-24 degrees.<br>
-<br>
-So, my question is, are these temperatures correct ? In other words, is
-it normal that CPU temps are high in BIOS ? Or is it so that when the
-system is powered on, CPU temps are usually high &amp; when the OS has
-loaded, they drop down ?<br>
-<br>
-Please help me resolving this scenario, as it could lead to potential damag=
-es to my machine due to inaccuracy of results.<br>
-<br>
-Thanks.
-		</div>
-
---0016363b80de39be9a047fcfca05--
-
-
---===============3653222115283227825==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Index: prog/detect/sensors-config.py
+=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ prog/detect/sensors-config.py	2010-01-29 20:09:54.322635363 +0100
+@@ -0,0 +1,284 @@
++#!/usr/bin/python
++
++import os
++import sys
++import optparse
++import urllib
++import re
++
++config_dir = '/usr/local/share/sensors/conf'
++config_install_dir = '/etc/sensors.d'
++dmi_dir = '/sys/class/dmi/id'
++#config_url="http://www.lm-sensors.org/wiki/Configurations"
++config_url="http://localhost/configuration"
++
++configs = {
++    'ASRock' : ['AM2NF3-VSTA'],
++    'Abit' : ['AA8-DuraMAX', 'AA8XE-Fatal1ty', 'AI7', 'AN7',
++              'AN8-SLI', 'AV8', 'AX8', 'Aa7-Max', 'Ag7', 'KN9-Ultra',
++              'KV8-MAX3', 'Kv8Pro', 'VA-20'],
++    'Asus' : ['KFN4-DRE', 'M2N-SLI Deluxe'],
++    'DFI' : ['CFX3200-M2-G-infinity', 'Lanparty NF4 Expert',
++             'Lanparty UT 790FX'],
++    'Epox' : ['M1697', 'MF4-Ultra3'],
++    'Evga' : ['x58-SLI'],
++}
++
++def get_vendor_list():
++    try:
++        dir = os.listdir(config_dir)
++        dir.sort()
++        return dir
++
++    except OSError:
++        print "Could not find configurations in " + config_dir
++        dir = []
++        return dir
++
++
++def list_vendors():
++    dir = get_vendor_list()
++    for name in dir:
++        print name
++
++
++def get_board_list(vendor):
++    try:
++        dir = os.listdir(config_dir + '/' + vendor)
++        dir.sort()
++
++        return dir
++
++    except:
++        print "Could not find a configuration for " + vendor
++        dir = []
++        return dir
++
++
++def list_boards(vendor):
++    dir = get_board_list(vendor)
++    for name in dir:
++        print name
++
++
++def clear_config_dir():
++    try:
++        dir = os.listdir(config_install_dir)
++        for name in dir:
++            os.remove(config_install_dir  + '/' + name)
++
++    except OSError:
++        return
++
++
++def install(config):
++    sys.stdout.write('This will delete older configurations. Do you want to proceed? [y/N]: ')
++    line = sys.stdin.readline()
++    if (line[0] = 'N' or line[0] = 'n' or line[0] = '\n'):
++        return
++
++    clear_config_dir()
++
++    src = config_dir + '/' + config
++    dst = '/etc/sensors.d'
++    os.system('cp %s %s' % (config_dir + '/' + config, '/etc/sensors.d'));
++
++
++def get_dmi_data():
++    dmi = {'sys_vendor': '',
++           'product_name': '',
++           'product_version': '',
++           'board_vendor': '',
++           'board_name': '',
++           'board_version': '',
++           'chassis_type': ''}
++
++    for key in dmi:
++        f = open(dmi_dir + '/' + key, 'r')
++        dmi[key] = f.read().rstrip('\n')
++        f.close()
++
++    return dmi
++
++
++def show_dmi():
++    dmi = get_dmi_data()
++    keys = dmi.keys()
++    keys.sort()
++    for key in keys:
++        print key + ': ' + dmi[key]
++
++
++def install_archive(archive):
++    if (os.path.exists(config_dir) = False):
++        os.makedirs(config_dir)
++    os.system("tar -xzf" + archive + " -C" + config_dir)
++
++
++def uninstall_archive():
++    if (os.path.exists(config_dir) = True):
++        os.system("rm -rf " + config_dir)
++
++
++def find_board(dmi, dir):
++    for name in dir:
++        if (dmi['board_name'].lower().find(name.lower()) != -1):
++            return name
++
++    return ''
++
++
++def find_vendor(vendor, board):
++    dmi = get_dmi_data()
++
++    if (vendor):
++        dmi['board_vendor'] = vendor
++
++    if (board):
++        dmi['board_name'] = board
++
++    dir = get_vendor_list()
++    board_dir = ''
++    for name in dir:
++        if (dmi['board_vendor'].lower().lower().find(name.lower()) != -1):
++            board_dir = get_board_list(name)
++            board = find_board(dmi, board_dir)
++            if (board != ''):
++                config = name + '/' + board
++                print 'Found a suitable configuration: ' + config
++                sys.stdout.write('Do you want to install this configuration? [y/N]: ')
++                line = sys.stdin.readline()
++                if (line[0] = 'Y' or line[0] = 'y'):
++                    install(config);
++
++
++def parse_dmi(lines):
++    dmi = {'sys_vendor': '',
++           'product_name': '',
++           'product_version': '',
++           'board_vendor': '',
++           'board_name': [],
++           'board_version': '',
++           'chassis_type': ''}
++
++    for line in lines:
++        if line[0] = '#':
++            for key in dmi:
++                start = line.find(key + ':')
++                if start != -1:
++                    name = line.split(':')[1]
++                    if (key = 'board_name'):
++                        dmi[key].append(name.strip())
++                    else:
++                        dmi[key] = name.strip()
++
++    return dmi
++
++def strip_lines(lines):
++    start = end = 0;
++    for i in range(len(lines)):
++        if (lines[i].find('{{{') != -1):
++            start = i + 1
++
++        if (lines[i].find('}}}') != -1):
++            end = i - start
++
++    del lines[0:start]
++    del lines[end:]
++
++def create_file(dmi, lines):
++    if (dmi['board_vendor'] != '' and dmi['board_name'] != ''):
++        strip_lines(lines)
++        if (os.path.exists(dmi['board_vendor']) = False):
++            os.mkdir(dmi['board_vendor'])
++
++        for board in dmi['board_name']:
++            path = dmi['board_vendor'] + '/' + board
++            if (os.path.exists(path)):
++                print 'A config file for ' + dmi['board_vendor'] + '/' + \
++                board + ' already exists. Will be overwritten.'
++            f = open(path , 'w')
++            f.writelines(lines)
++            f.close()
++
++def fetch_configs():
++    for key in configs:
++        boards = configs[key]
++        for board in boards:
++            print 'Fetch config for ' + key + '/' + board
++            url = urllib.urlopen(config_url + '/' + key + '/' + board +
++                                 '?format=txt')
++
++            lines = url.readlines()
++            dmi = parse_dmi(lines)
++            if (len(dmi['board_name']) > 0):
++                print dmi
++
++            create_file(dmi, lines);
++
++            url.close()
++
++    os.system('tar czf configuration.tar.gz *')
++
++
++def parse_cmdline():
++    parser = optparse.OptionParser()
++    parser.add_option('-l', '--list-vendors', dest='opt_list_vendors',
++                      action='store_true', help='lists all the vendors');
++    parser.add_option('-b', '--list-boards', dest='opt_list_boards',
++                      help='lists the boards for a given vendor')
++    parser.add_option('-i', '--install', dest='opt_install',
++                      help='installs the given configuration')
++    parser.add_option('-d', '--show-dmi', dest='opt_show_dmi',
++                      action='store_true', help='shows DMI data')
++    parser.add_option('-a', '--install-archive', dest='opt_install_archive',
++                      help='installs the given archive')
++    parser.add_option('-u', '--uninstall-archive',
++                      dest='opt_uninstall_archive', action='store_true',
++                      help='removes configurations from archive')
++    parser.add_option('-f', '--find-board', dest='opt_find_board',
++                      action='store_true',
++                      help='find a configuration based on DMI data')
++    parser.add_option('-B', '--dmi-board', dest='opt_dmi_board',
++                      help='overwrites DMI data for board')
++    parser.add_option('-V', '--dmi-vendor', dest='opt_dmi_vendor',
++                      help='overwrites DMI data for vendor')
++    parser.add_option('-t', '--fetch-configs', dest='opt_fetch_configs',
++                      action='store_true',
++                      help='fetches configurations from lm-sensors.org')
++
++    return parser.parse_args()
++
++
++# Main
++try:
++    (options, args) = parse_cmdline()
++
++    if (options.opt_list_vendors):
++        list_vendors()
++
++    if (options.opt_list_boards):
++        list_boards(options.opt_list_boards)
++
++    if (options.opt_install):
++        install(options.opt_install)
++
++    if (options.opt_show_dmi):
++        show_dmi()
++
++    if (options.opt_install_archive):
++        install_archive(options.opt_install_archive)
++
++    if (options.opt_uninstall_archive):
++        uninstall_archive()
++
++    if (options.opt_find_board):
++        find_vendor(options.opt_dmi_vendor, options.opt_dmi_board)
++
++    if (options.opt_fetch_configs):
++        fetch_configs()
++
++except (OSError), e:
++    print e
++
++sys.exit(0)
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3653222115283227825==--
