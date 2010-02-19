@@ -1,65 +1,51 @@
-From: Bancpost  Fastbanking <bnkfast10@bnkfastbnc.ro>
-Date: Sat, 27 Feb 2010 10:08:17 +0000
-Subject: [lm-sensors] Actualizarea Informatiilor si Documentelor privind
-Message-Id: <20100227050817.A4850FA4048B86DB@bnkfastbnc.ro>
+From: Reimundo Heluani <rheluani@gmail.com>
+Date: Fri, 19 Feb 2010 23:38:41 +0000
+Subject: [lm-sensors] adt746x hard shut question
+Message-Id: <e871e9151002191538x4afa9f66y722ab33abd2aa5d6@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4295359356591275578=="
+Content-Type: multipart/mixed; boundary="===============8992535580667975283=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100219055554.87322216C46B2240@rom1.ro>
-In-Reply-To: <20100219055554.87322216C46B2240@rom1.ro>
 To: lm-sensors@vger.kernel.org
 
---===============4295359356591275578==
-Content-Type: text/plain
-Content-Transfer-Encoding: 8bit
+--===============8992535580667975283==
+Content-Type: multipart/alternative; boundary=0016e64dbc0e5db17e047ffc956c
 
-                                         Stimate Client,
+--0016e64dbc0e5db17e047ffc956c
+Content-Type: text/plain; charset=ISO-8859-1
 
-ACTUALIZAREA INFORMATIILOR SI DOCUMENTELOR PRIVIND DATELE DE 
-IDENTIFICARE ALE CLIENTILOR BANC POST
+Hello list, I am running the module therm_adt746x on a powerbook g4 and the
+module seems to be doing its thing right. I can set different limits writing
+to /sys/devices/temperatures/limit_adjust and the fans seem to be responding
+correctly to both temperature and load. The problem I have is that if I run
+any compilation for more than a few minutes on performance governor, the
+system hard shuts itself down. I was wandering if this is done at the
+Hardware level, or if it's the module who's putting this limit. Also I'd
+like to know what is this limit and if it's possible to change it. As of now
+I can only compile things in powersave mode.
 
+Thanks,
 
-Bancpost isi anunta clientii ca in prezent deruleaza o campanie 
-de actualizare si completare a datelor de identificare ale 
-acestora. 
+R.
 
+--0016e64dbc0e5db17e047ffc956c
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Aceasta actiune este in conformitate cu Legea nr. 656/2002 cu 
-modificarile si completarile ulterioare si cu Regulamentul 
-Bancii Nationale a Romaniei nr. 9/2008 privind cunoasterea 
-clientelei in scopul prevenirii spalarii banilor si 
-finantarii terorismului, cu modificarile ulterioare.
+Hello list, I am running the module therm_adt746x on a powerbook g4 and the=
+ module seems to be doing its thing right. I can set different limits writi=
+ng to /sys/devices/temperatures/limit_adjust and the fans seem to be respon=
+ding correctly to both temperature and load. The problem I have is that if =
+I run any compilation for more than a few minutes on performance governor, =
+the system hard shuts itself down. I was wandering if this is done at the H=
+ardware level, or if it&#39;s the module who&#39;s putting this limit. Also=
+ I&#39;d like to know what is this limit and if it&#39;s possible to change=
+ it. As of now I can only compile things in powersave mode.<br>
+<br>Thanks, <br><br>R.<br><br>
 
-
-Termenul legal pana la care actiunea de actualizare si 
-completare a datelor trebuie finalizata este 28 februarie 2010. 
-Incepand cu aceasta data, accesul clientilor la conturile 
-proprii va fi restrictionat pana cand acestia vor da curs 
-solicitarii de furnizare / actualizare a datelor personale. 
-
-
-Tot ce trebuie sa faceti este simplu click pe linkul de mai jos 
-pentru actualizare si completarea a datelor :
-
-
-http://www.bpactualizatnetonl.com/documente/personale/bpro/net/Persoanefizice.as
-
-
-Bancpost multumeste anticipat tuturor clientilor pentru 
-sprijinul acordat ���n finalizarea acestei actiuni si pentru a 
-evita inconvenientele legate de posibila limitare a accesului
-la conturile clientului, ii invita sa-si actualizeze datele 
-persoanele cat mai curand posibil dar nu mai tarziu de 
-28.02.2010. 
-
-copyright ��� Bancpost 2010
-
-numar mesaj securizat #0019274099732
+--0016e64dbc0e5db17e047ffc956c--
 
 
-
-
---===============4295359356591275578==
+--===============8992535580667975283==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -69,4 +55,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4295359356591275578==--
+--===============8992535580667975283==--
