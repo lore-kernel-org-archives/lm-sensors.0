@@ -1,64 +1,127 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 22 Feb 2010 20:54:53 +0000
-Subject: Re: [lm-sensors] ATK0110 on older Asus board
-Message-Id: <68676e01002221254r51b693b2uc999dc8f740240bc@mail.gmail.com>
+From: Otto <otto@vanouwerkerk.com>
+Date: Sat, 20 Feb 2010 16:45:19 +0000
+Subject: Re: [lm-sensors] sensors in kernel 2.6.31
+Message-Id: <alpine.DEB.2.00.1002201734250.18810@kermit.vanouwerkerk.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="-1697266717-1765094829-1266684275=:24069"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <52ae42fa1001140656w17e9e219lad760a0687db6b20@mail.gmail.com>
-In-Reply-To: <52ae42fa1001140656w17e9e219lad760a0687db6b20@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <4B643CC1.2000003@redhat.com>
+In-Reply-To: <4B643CC1.2000003@redhat.com>
 To: lm-sensors@vger.kernel.org
 
-On Mon, Feb 22, 2010 at 9:19 PM, frollic nilsson <frollic@gmail.com> wrote:
-> On Mon, Feb 15, 2010 at 5:08 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
->> On Mon, Feb 15, 2010 at 4:31 PM, frollic nilsson <frollic@gmail.com> wrote:
->>> On Fri, Feb 12, 2010 at 11:05 AM, Luca Tettamanti <kronos.it@gmail.com> wrote:
->>>> On Thu, Feb 11, 2010 at 9:10 PM, frollic nilsson <frollic@gmail.com> wrote:
->>>>> On Thu, Feb 11, 2010 at 5:25 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
->>>>>> On Thu, Feb 11, 2010 at 04:36:53PM +0100, frollic nilsson wrote:
->>>>>>
->>>>>> Ok, this means that ACPI core is not even calling the add method.
->>>>>> I guess that I can happen if _STA reports that the device is not functional.
->>>>>
->>>>> with the extra code inserted, I get a AIDI = 1 in the logs
->>>>
->>>> As I suspected the device is disabled by the BIOS (AI-whatever is the
->>>> commercial name of the hwmon features, I guess AIDI = AI DIsable).
->>>> You should try and see if there's a relevant option in the BIOS setup
->>>> screen (btw, is there a monitoring page? does it work?)
->>>
->>> Yeah, I got the cpu temp and fan RPMs displayed in BIOS.
->>
->> Nothing to enable the hwmon or "AI-something"?
->> What about the voltages? Do you see them? Is "Vcore" is spelled all upper case?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This might sound a strange question but in other case allowed me to
-understand whether the ACPI interface was actually used by the BIOS or
-not.
+---1697266717-1765094829-1266684275=:24069
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII; format=flowed
+Content-ID: <alpine.DEB.2.00.1002201745071.3477@kermit.vanouwerkerk.com>
 
->> The resources are reserved even if the ATK0110 device itself is disabled, weird.
->> This looks like a BIOS bug to me: the device is explicitly disabled,
->> but ACPI still clams the ioports for the monitoring chip.
->> I'm not sure how to handle this mobo, but clearly it's safe to use
->> acpi_enforce_resources=lax and load the native driver.
+Hi,
+
+At the moment my Linux server is running kernel 2.6.31-19 and using the 
+asus_atk0110 kernel module. As I discussed with Hans de Goede in Dutch 
+below, unfortunately the command `sensors` is only functioning on my 
+system when using the 'acpi_enforce_resources=lax' kernel option. Hans 
+advised me to send this email, because I have an Asus motherboard and it's 
+a bad idea to use both the acp_enforce_resources option and the 
+asus_atk0110 driver.
+
+Cheers,
+Otto
+
+Ps. More info on my system is attached in the file sysinfo.txt.
+
+
+
+
+
+On Sat, 30 Jan 2010, Hans de Goede wrote:
+> Ah, dan moet je even een mailtje (in het engels) sturen naar:
+> lm-sensors@lm-sensors.org, met daarin dat de asus_atk0110 driver
+> niet werkt op jouw moederbord + het model van je moederbord.
 >
-> Well, tried the lax as well got the same "error"
+> Dan reageert de auteur van de asus_atk0110 driver vanzelf. Goed
+> mogelijk trouwens dat dit al gefixed is in een latere versie,
+> maar dat zegt hij dan wel.
 >
-> w83627ehf: Found W83627EHG chip at 0x290
-> ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI region
-> HWRE [0x290-0x299]
-> ACPI: This conflict may cause random problems and system instability
-> ACPI: If an ACPI driver is available for this device, you should use
-> it instead of the native driver
+> NB het mengen van acp_enforce_resources=lax met de asus_atk0110 driver
+> is een erg slecht idee!
+>
+> MvG,
+>
+> Hans
+---1697266717-1765094829-1266684275=:24069
+Content-Type: TEXT/PLAIN; NAME=sysinfo.txt
+Content-Transfer-Encoding: BASE64
+Content-ID: <alpine.DEB.2.00.1002201744350.24069@kermit.vanouwerkerk.com>
+Content-Description: 
+Content-Disposition: ATTACHMENT; FILENAME=sysinfo.txt
 
-Yes, this is expected. The kernel still warns you that the situation
-is potentially unsafe, but with "lax" checking it will allow you to
-load the native driver.
+cm9vdEB0b21taWU6fiMgbHNwY2kNCjAwOjAwLjAgSG9zdCBicmlkZ2U6IElu
+dGVsIENvcnBvcmF0aW9uIDgyRzMzL0czMS9QMzUvUDMxIEV4cHJlc3MgRFJB
+TSBDb250cm9sbGVyIChyZXYgMDIpDQowMDowMi4wIFZHQSBjb21wYXRpYmxl
+IGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyRzMzL0czMSBFeHBy
+ZXNzIEludGVncmF0ZWQgR3JhcGhpY3MgQ29udHJvbGxlciAocmV2IDAyKQ0K
+MDA6MDIuMSBEaXNwbGF5IGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9u
+IDgyRzMzL0czMSBFeHByZXNzIEludGVncmF0ZWQgR3JhcGhpY3MgQ29udHJv
+bGxlciAocmV2IDAyKQ0KMDA6MWEuMCBVU0IgQ29udHJvbGxlcjogSW50ZWwg
+Q29ycG9yYXRpb24gODI4MDFJIChJQ0g5IEZhbWlseSkgVVNCIFVIQ0kgQ29u
+dHJvbGxlciAjNCAocmV2IDAyKQ0KMDA6MWEuMSBVU0IgQ29udHJvbGxlcjog
+SW50ZWwgQ29ycG9yYXRpb24gODI4MDFJIChJQ0g5IEZhbWlseSkgVVNCIFVI
+Q0kgQ29udHJvbGxlciAjNSAocmV2IDAyKQ0KMDA6MWEuMiBVU0IgQ29udHJv
+bGxlcjogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFJIChJQ0g5IEZhbWlseSkg
+VVNCIFVIQ0kgQ29udHJvbGxlciAjNiAocmV2IDAyKQ0KMDA6MWEuNyBVU0Ig
+Q29udHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFJIChJQ0g5IEZh
+bWlseSkgVVNCMiBFSENJIENvbnRyb2xsZXIgIzIgKHJldiAwMikNCjAwOjFj
+LjAgUENJIGJyaWRnZTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFJIChJQ0g5
+IEZhbWlseSkgUENJIEV4cHJlc3MgUG9ydCAxIChyZXYgMDIpDQowMDoxYy4y
+IFBDSSBicmlkZ2U6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAoSUNIOSBG
+YW1pbHkpIFBDSSBFeHByZXNzIFBvcnQgMyAocmV2IDAyKQ0KMDA6MWMuNSBQ
+Q0kgYnJpZGdlOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUkgKElDSDkgRmFt
+aWx5KSBQQ0kgRXhwcmVzcyBQb3J0IDYgKHJldiAwMikNCjAwOjFkLjAgVVNC
+IENvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAoSUNIOSBG
+YW1pbHkpIFVTQiBVSENJIENvbnRyb2xsZXIgIzEgKHJldiAwMikNCjAwOjFk
+LjEgVVNCIENvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAo
+SUNIOSBGYW1pbHkpIFVTQiBVSENJIENvbnRyb2xsZXIgIzIgKHJldiAwMikN
+CjAwOjFkLjIgVVNCIENvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgy
+ODAxSSAoSUNIOSBGYW1pbHkpIFVTQiBVSENJIENvbnRyb2xsZXIgIzMgKHJl
+diAwMikNCjAwOjFkLjcgVVNCIENvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0
+aW9uIDgyODAxSSAoSUNIOSBGYW1pbHkpIFVTQjIgRUhDSSBDb250cm9sbGVy
+ICMxIChyZXYgMDIpDQowMDoxZS4wIFBDSSBicmlkZ2U6IEludGVsIENvcnBv
+cmF0aW9uIDgyODAxIFBDSSBCcmlkZ2UgKHJldiA5MikNCjAwOjFmLjAgSVNB
+IGJyaWRnZTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFJQiAoSUNIOSkgTFBD
+IEludGVyZmFjZSBDb250cm9sbGVyIChyZXYgMDIpDQowMDoxZi4yIElERSBp
+bnRlcmZhY2U6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSUIgKElDSDkpIDIg
+cG9ydCBTQVRBIElERSBDb250cm9sbGVyIChyZXYgMDIpDQowMDoxZi4zIFNN
+QnVzOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUkgKElDSDkgRmFtaWx5KSBT
+TUJ1cyBDb250cm9sbGVyIChyZXYgMDIpDQowMDoxZi41IElERSBpbnRlcmZh
+Y2U6IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAoSUNIOSBGYW1pbHkpIDIg
+cG9ydCBTQVRBIElERSBDb250cm9sbGVyIChyZXYgMDIpDQowMTowMC4wIEV0
+aGVybmV0IGNvbnRyb2xsZXI6IEF0dGFuc2ljIFRlY2hub2xvZ3kgQ29ycC4g
+TDEgR2lnYWJpdCBFdGhlcm5ldCBBZGFwdGVyIChyZXYgYjApDQowMjowMC4w
+IEV0aGVybmV0IGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0aW9uIDgyNTcy
+RUkgR2lnYWJpdCBFdGhlcm5ldCBDb250cm9sbGVyIChDb3BwZXIpIChyZXYg
+MDYpDQoNCnJvb3RAdG9tbWllOn4jIHVuYW1lIC1hDQpMaW51eCB0b21taWUu
+dmFub3V3ZXJrZXJrLmNvbSAyLjYuMzEtMTktc2VydmVyICM1Ni1VYnVudHUg
+U01QIFRodSBKYW4gMjggMDM6NDA6NDggVVRDIDIwMTAgeDg2XzY0IEdOVS9M
+aW51eA0KDQpyb290QHRvbW1pZTp+IyBzdHJpbmdzIC9kZXYvbWVtIHxncmVw
+IFA1DQpQNUstVg0KUDVLLVYNClA1Sw0KDQpyb290QHRvbW1pZTp+IyBzdHJp
+bmdzIC9kZXYvbWVtIHxncmVwIEFTVVMNCkFTVVNUZUsgQ29tcHV0ZXIgSU5D
+Lg0KQVNVU1RlSyBQZWdhc3VzDQoNCnJvb3RAdG9tbWllOn4jIGxzbW9kIHxn
+cmVwIGFzdXMgLWkNCmFzdXNfYXRrMDExMCAgICAgICAgICAgIDk0NzIgIDAN
+Cg0Kcm9vdEB0b21taWU6fiMgbHNiX3JlbGVhc2UgLWENCk5vIExTQiBtb2R1
+bGVzIGFyZSBhdmFpbGFibGUuDQpEaXN0cmlidXRvciBJRDogVWJ1bnR1DQpE
+ZXNjcmlwdGlvbjogICAgVWJ1bnR1IDkuMTANClJlbGVhc2U6ICAgICAgICA5
+LjEwDQpDb2RlbmFtZTogICAgICAga2FybWljDQo=
 
-Luca
+---1697266717-1765094829-1266684275=:24069
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+---1697266717-1765094829-1266684275=:24069--
