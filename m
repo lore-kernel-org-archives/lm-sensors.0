@@ -1,47 +1,40 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 27 Feb 2010 12:45:46 +0000
-Subject: Re: [lm-sensors] adt746x hard shut question
-Message-Id: <20100227134546.2863d3b4@hyperion.delvare>
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sat, 20 Feb 2010 18:47:36 +0000
+Subject: [lm-sensors] asus atk0110 not working on Asus P5K-V
+Message-Id: <4B802E48.8030406@hhs.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <e871e9151002191538x4afa9f66y722ab33abd2aa5d6@mail.gmail.com>
-In-Reply-To: <e871e9151002191538x4afa9f66y722ab33abd2aa5d6@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Reimundo,
-
-On Fri, 19 Feb 2010 17:51:00 -0800, Reimundo Heluani wrote:
-> On Fri, Feb 19, 2010 at 3:38 PM, Reimundo Heluani <rheluani@gmail.com>wrote:
-> > Hello list, I am running the module therm_adt746x on a powerbook g4 and the
-> > module seems to be doing its thing right. I can set different limits writing
-> > to /sys/devices/temperatures/limit_adjust and the fans seem to be responding
-> > correctly to both temperature and load. The problem I have is that if I run
-> > any compilation for more than a few minutes on performance governor, the
-> > system hard shuts itself down. I was wandering if this is done at the
-> > Hardware level, or if it's the module who's putting this limit. Also I'd
-> > like to know what is this limit and if it's possible to change it. As of now
-> > I can only compile things in powersave mode.
+On 02/20/2010 05:45 PM, Otto wrote:
+> Hi,
 >
-> Well, looking at the code for the module I see that there is a hardcoded
-> limit of 65 degrees Celsius for the CPU. Then later there is a line of the
-> form:
-> /*Set sensor1 limit higher to avoid powerdowns*/
-> and then set the limit to 65 + limit_adjust.
-> 
-> But my system (with a limit adjust of 0) powers down automatically at 70 C.
-> Are these hardcoded limits too low or should I be looking to change the
-> thermal paste + heatsink?
+> At the moment my Linux server is running kernel 2.6.31-19 and using the
+> asus_atk0110 kernel module. As I discussed with Hans de Goede in Dutch
+> below, unfortunately the command `sensors` is only functioning on my
+> system when using the 'acpi_enforce_resources=lax' kernel option. Hans
+> advised me to send this email, because I have an Asus motherboard and
+> it's a bad idea to use both the acp_enforce_resources option and the
+> asus_atk0110 driver.
+>
+> Cheers,
+> Otto
+>
 
-The therm_adt746x driver is a macintosh-specific driver not written nor
-maintained by the lm-sensors group. I tried to look at the driver's
-code but I have to admit I have no idea what they are doing with the
-limits. I also don't know how the monitoring chip is wired on the
-board. You should ask the macintosh people about your problems.
+Hi Otto,
 
--- 
-Jean Delvare
+To be clear, iirc the problem is that although the asus_atk0110 driver loads
+automatically, it does not work, and thus you need to specify
+acpi_enforce_resources=lax and load the appropriate native drivers, correct?
+
+I've changed the subject of this mail to reflect this, so that hopefully
+it will get the attention of the right persons.
+
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
