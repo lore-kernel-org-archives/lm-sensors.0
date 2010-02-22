@@ -1,17 +1,34 @@
 From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Date: Mon, 22 Feb 2010 10:57:38 +0000
+Date: Mon, 22 Feb 2010 11:28:38 +0000
 Subject: Re: [lm-sensors] reformat: [PATCH] hwmon: Driver for Andigilog
-Message-Id: <1266835538.1948.17.camel@localhost>
+Message-Id: <1266837398.1868.5.camel@localhost>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <000601caa1fd$c6dadb30$54909190$@joseph@fairview5.com>
-In-Reply-To: <000601caa1fd$c6dadb30$54909190$@joseph@fairview5.com>
+References: <1266661166.6895.2.camel@localhost>
+	 <1266744143.2133.80.camel@localhost>  <4B8186D5.501@fairview5.com>
+	 <1266818861.2443.6.camel@localhost>  <4B822449.6050700@fairview5.com>
+In-Reply-To: <4B822449.6050700@fairview5.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+To: George Joseph <george.joseph@fairview5.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, LKML <linux-kernel@vger.kernel.org>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
 
-On Sun, 2010-02-21 at 23:29 -0700, George Joseph wrote:
+Hello George,
+
+On Sun, 2010-02-21 at 23:29 -0700, George Joseph wrote: 
 > Fixed word wrap this time (I hope)...
+> ---
+> 
+> From: George Joseph <george.joseph@fairview5.com>
+>  
+> Hwmon driver for Andigilog aSC7621 family monitoring chips
+>  
+> Signed-off-by: George Joseph <george.joseph@fairview5.com>
+> ---
+> 
+> Patch against 2.6.33-rc8
+> 
+
 
 Yes, this applies cleanly thanks.
 
@@ -47,39 +64,37 @@ temp8:      +118.5°C
 
 BIOS hardware monitoring :
 
-Processor Fan speed: 949 RPM (which is same as fan1)
-Aux Fan speed: 2437 RPM (which is same as fan2)
-Front Fan speed: 0 (which is same as fan3)
-Rear Fan speed: 623 RPM (which is same as fan4)
+Processor Fan speed: 0900 (which is same as fan1)
+Aux Fan speed: 2400 (which is same as fan2)
+Front Fan speed: 0000 (which is same as fan3 and this fan is not
+installed yet)
+Rear Fan speed: 600 RPM (which is same as fan4)
 
 Processor Thermal Margin: 57 C (which is same as temp1 but without -ve)
 IOH Temperature: 52 C (which is same as temp4)
 Motherboard Ambient Temperature: 35 C (which is same as temp2)
 Voltage Regulator Temperature: 42C (which is same as temp3)
 
-V12.0 : 12.00 V (which is same as in4)
-V12.0 : 12.00 V (which is same as in4)
-V12.0 : 12.00 V (which is same as in4)
-V12.0 : 12.00 V (which is same as in4)
+V12.0 : 12.000 V (which is same as in4)
+V5.0 : 4.999 V (which is same as in3)
+V3.3 : 3.197 V (which is same as in2)
+V1.1 : 0.920 V (which is same as in1)
+VCCP : 1.080 V (which is same as in0)
+
+temp5 is same as temp1 and temp6, temp7 and temp8 never changes. So in
+my case temp5 to temp8 are not required. Please also relate your sensors
+output with your BIOS.
+
+Can we remove useless sensors like temp5 to temp8.
+And can we show the temp1 output as positive as BIOS monitoring.
 
 I am CC Andrew, Ingo, Stephen and LKML. I hope we can also get reviews
-and feedbacks from them.
+and feedback from them.
 
 Thanks,
 --
 Jaswinder Singh.
 
-> ---
-> 
-> From: George Joseph <george.joseph@fairview5.com>
->  
-> Hwmon driver for Andigilog aSC7621 family monitoring chips
->  
-> Signed-off-by: George Joseph <george.joseph@fairview5.com>
-> ---
-> 
-> Patch against 2.6.33-rc8
-> 
 >  Documentation/hwmon/asc7621 |  295 ++++++++++
 >  MAINTAINERS                 |    7 
 >  drivers/hwmon/Kconfig       |   13 
@@ -1662,6 +1677,8 @@ Jaswinder Singh.
 >  ASUS ACPI EXTRAS DRIVER
 >  M:	Corentin Chary <corentincj@iksaif.net>
 >  M:	Karol Kozimor <sziwan@users.sourceforge.net>
+
+
 
 
 
