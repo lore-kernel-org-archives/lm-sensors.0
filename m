@@ -1,110 +1,52 @@
-From: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Date: Mon, 22 Feb 2010 11:28:38 +0000
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 22 Feb 2010 13:54:33 +0000
 Subject: Re: [lm-sensors] reformat: [PATCH] hwmon: Driver for Andigilog
-Message-Id: <1266837398.1868.5.camel@localhost>
+Message-Id: <4B828C99.8010200@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1266661166.6895.2.camel@localhost>
-	 <1266744143.2133.80.camel@localhost>  <4B8186D5.501@fairview5.com>
-	 <1266818861.2443.6.camel@localhost>  <4B822449.6050700@fairview5.com>
-In-Reply-To: <4B822449.6050700@fairview5.com>
+References: <000601caa1fd$c6dadb30$54909190$@joseph@fairview5.com>
+In-Reply-To: <000601caa1fd$c6dadb30$54909190$@joseph@fairview5.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: George Joseph <george.joseph@fairview5.com>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Stephen Rothwell <sfr@canb.auug.org.au>, LKML <linux-kernel@vger.kernel.org>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Hello George,
+Hi,
 
-On Sun, 2010-02-21 at 23:29 -0700, George Joseph wrote: 
-> Fixed word wrap this time (I hope)...
+Here is a full review of the driver, see comments inline.
+
+Allthough the structure of the driver is still a bit weird,
+I must admit it works well. I don't know what it brushed me
+the wrong way last time, sorry about that.
+
+If you can do a new revision addressing the few minor comments
+I have, then I can ack this soon, and Jean will hopefully take it
+for 2.6.34 .
+
+Regards,
+
+Hans
+
+
+On 01/30/2010 11:44 PM, George Joseph wrote:
+> From: George Joseph<george.joseph@fairview5.com>
+>
+> Hwmon driver for Andigilog aSC7621 family monitoring chips.
+>
+> Signed-off-by: George Joseph<george.joseph@fairview5.com>
 > ---
-> 
-> From: George Joseph <george.joseph@fairview5.com>
->  
-> Hwmon driver for Andigilog aSC7621 family monitoring chips
->  
-> Signed-off-by: George Joseph <george.joseph@fairview5.com>
-> ---
-> 
-> Patch against 2.6.33-rc8
-> 
-
-
-Yes, this applies cleanly thanks.
-
-I have compared the sensors output of Intel WX58BP with its BIOS
-hardware monitoring.
-
-http://userweb.kernel.org/~jaswinder/Corei7/sensors_Intel_WX58P.txt :
-
-asc7621a-i2c-0-2e
-Adapter: SMBus I801 adapter at 2000
-in0:         +1.08 V  (min =  +0.00 V, max =  +3.31 V)
-in1:         +0.92 V  (min =  +0.00 V, max =  +2.99 V)  
-in2:         +3.19 V  (min =  +0.00 V, max =  +4.36 V)   
-in3:         +4.99 V  (min =  +0.00 V, max =  +6.61 V)   
-in4:        +12.00 V  (min =  +0.00 V, max = +15.94 V)   
-fan1:        949 RPM  (min =    0 RPM)
-fan2:       2437 RPM  (min =    0 RPM)
-fan3:          0 RPM  (min =    0 RPM)
-fan4:        623 RPM  (min =    0 RPM)
-temp1:       -57.5°C  (low  = -127.0°C, high =  +0.0°C)  
-                      (crit = -17.0°C)                  
-temp2:       +35.8°C  (low  = -127.0°C, high = +127.0°C)  
-                      (crit = +65.0°C)                  
-temp3:       +42.5°C  (low  = -127.0°C, high = +127.0°C)  
-                      (crit = +65.0°C)                  
-temp4:       +52.5°C  (low  = -127.0°C, high = +127.0°C)  
-                      (crit = +103.0°C)                  
-temp5:       -57.5°C                                    
-temp6:       -84.5°C                                    
-temp7:       +96.2°C                                    
-temp8:      +118.5°C      
-
-
-BIOS hardware monitoring :
-
-Processor Fan speed: 0900 (which is same as fan1)
-Aux Fan speed: 2400 (which is same as fan2)
-Front Fan speed: 0000 (which is same as fan3 and this fan is not
-installed yet)
-Rear Fan speed: 600 RPM (which is same as fan4)
-
-Processor Thermal Margin: 57 C (which is same as temp1 but without -ve)
-IOH Temperature: 52 C (which is same as temp4)
-Motherboard Ambient Temperature: 35 C (which is same as temp2)
-Voltage Regulator Temperature: 42C (which is same as temp3)
-
-V12.0 : 12.000 V (which is same as in4)
-V5.0 : 4.999 V (which is same as in3)
-V3.3 : 3.197 V (which is same as in2)
-V1.1 : 0.920 V (which is same as in1)
-VCCP : 1.080 V (which is same as in0)
-
-temp5 is same as temp1 and temp6, temp7 and temp8 never changes. So in
-my case temp5 to temp8 are not required. Please also relate your sensors
-output with your BIOS.
-
-Can we remove useless sensors like temp5 to temp8.
-And can we show the temp1 output as positive as BIOS monitoring.
-
-I am CC Andrew, Ingo, Stephen and LKML. I hope we can also get reviews
-and feedback from them.
-
-Thanks,
---
-Jaswinder Singh.
-
->  Documentation/hwmon/asc7621 |  295 ++++++++++
->  MAINTAINERS                 |    7 
->  drivers/hwmon/Kconfig       |   13 
->  drivers/hwmon/Makefile      |    1 
->  drivers/hwmon/asc7621.c     | 1233 ++++++++++++++++++++++++++++++++++++++++++++
->  5 files changed, 1549 insertions(+)
-> 
+>
+> Patch against 2.6.33-rc6.
+>
+>   Documentation/hwmon/asc7621 |  295 ++++++++++
+>   MAINTAINERS                 |    7
+>   drivers/hwmon/Kconfig       |   13
+>   drivers/hwmon/Makefile      |    1
+>   drivers/hwmon/asc7621.c     | 1266 ++++++++++++++++++++++++++++++++++++++++++++
+>   5 files changed, 1582 insertions(+)
+>
 > diff -uprN a/Documentation/hwmon/asc7621 b/Documentation/hwmon/asc7621
 > --- a/Documentation/hwmon/asc7621	1969-12-31 17:00:00.000000000 -0700
-> +++ b/Documentation/hwmon/asc7621	2010-02-21 11:47:26.000000000 -0700
+> +++ b/Documentation/hwmon/asc7621	2010-01-30 12:43:13.000000000 -0700
 > @@ -0,0 +1,295 @@
 > +Kernel driver asc7621
 > +=========
@@ -113,7 +55,7 @@ Jaswinder Singh.
 > +    Andigilog aSC7621 and aSC7621a
 > +    Prefix: 'asc7621'
 > +    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-> +    Datasheet: http://www.fairview5.com/linux/asc7621/asc7621.pdf
+> +    Datasheet: http://www.andigilog.com/downloads/aSC7621_70A06010.pdf
 > +
 > +Author:
 > +		George Joseph
@@ -230,46 +172,46 @@ Jaswinder Singh.
 > +the standards defined in "sysfs-interface".
 > +
 > +temp1_source
-> +	0 	(default) peci_legacy = 0, Remote 1 Temperature
+> +	0	(default) peci_legacy = 0, Remote 1 Temperature
 > +			peci_legacy = 1, PECI Processor Temperature 0
-> +	1 	Remote 1 Temperature
-> +	2 	Remote 2 Temperature
-> +	3 	Internal Temperature
-> +	4 	PECI Processor Temperature 0
-> +	5 	PECI Processor Temperature 1
-> +	6 	PECI Processor Temperature 2
-> +	7  PECI Processor Temperature 3
+> +	1	Remote 1 Temperature
+> +	2	Remote 2 Temperature
+> +	3	Internal Temperature
+> +	4	PECI Processor Temperature 0
+> +	5	PECI Processor Temperature 1
+> +	6	PECI Processor Temperature 2
+> +	7	PECI Processor Temperature 3
 > +
 > +temp2_source
-> +	0 	(default) Internal Temperature
-> +	1 	Remote 1 Temperature
-> +	2 	Remote 2 Temperature
-> +	3 	Internal Temperature
-> +	4 	PECI Processor Temperature 0
-> +	5 	PECI Processor Temperature 1
-> +	6 	PECI Processor Temperature 2
-> +	7 	PECI Processor Temperature 3
+> +	0	(default) Internal Temperature
+> +	1	Remote 1 Temperature
+> +	2	Remote 2 Temperature
+> +	3	Internal Temperature
+> +	4	PECI Processor Temperature 0
+> +	5	PECI Processor Temperature 1
+> +	6	PECI Processor Temperature 2
+> +	7	PECI Processor Temperature 3
 > +
 > +temp3_source
-> +	0 	(default) Remote 2 Temperature
-> +	1 	Remote 1 Temperature
-> +	2 	Remote 2 Temperature
-> +	3 	Internal Temperature
-> +	4 	PECI Processor Temperature 0
-> +	5 	PECI Processor Temperature 1
-> +	6 	PECI Processor Temperature 2
-> +	7 	PECI Processor Temperature 3
+> +	0	(default) Remote 2 Temperature
+> +	1	Remote 1 Temperature
+> +	2	Remote 2 Temperature
+> +	3	Internal Temperature
+> +	4	PECI Processor Temperature 0
+> +	5	PECI Processor Temperature 1
+> +	6	PECI Processor Temperature 2
+> +	7	PECI Processor Temperature 3
 > +
 > +temp4_source
-> +	0 	(default) peci_legacy = 0, PECI Processor Temperature 0
+> +	0	(default) peci_legacy = 0, PECI Processor Temperature 0
 > +			peci_legacy = 1, Remote 1 Temperature
-> +	1 	Remote 1 Temperature
-> +	2 	Remote 2 Temperature
-> +	3 	Internal Temperature
-> +	4 	PECI Processor Temperature 0
-> +	5 	PECI Processor Temperature 1
-> +	6 	PECI Processor Temperature 2
-> +	7 	PECI Processor Temperature 3
+> +	1	Remote 1 Temperature
+> +	2	Remote 2 Temperature
+> +	3	Internal Temperature
+> +	4	PECI Processor Temperature 0
+> +	5	PECI Processor Temperature 1
+> +	6	PECI Processor Temperature 2
+> +	7	PECI Processor Temperature 3
 > +
 > +temp[1-4]_smoothing_enable
 > +temp[1-4]_smoothing_time
@@ -283,6 +225,10 @@ Jaswinder Singh.
 > +	6	1.6 sec
 > +	7	0.8 sec
 > +
+
+This does not match the sysfs attribute, which shows / expects
+a time in ms, not a 0 - 7 index / value, please update.
+
 > +temp[1-4]_crit
 > +	When the corresponding zone temperature reaches this value,
 > +	ALL pwm outputs will got to 100%.
@@ -291,23 +237,23 @@ Jaswinder Singh.
 > +temp[5-8]_enable
 > +	The aSC7621 can also read temperatures provided by the processor
 > +	via the PECI bus.  Usually these are "core" temps and are relative
-> +	to the point where the automatic thermal control circuit starts
+> +	to the point where the automatical thermal control circuit starts
 > +	throttling.  This means that these are usually negative numbers.
 > +
 > +pwm[1-3]_enable
-> +	0		Fan off.
-> +	1		Fan on manual control.
-> +	2		Fan on automatic control and will run at the minimum pwm
-> +				if the temperature for the zone is below the minimum.
-> +	3		Fan on automatic control but will be off if the temperature
-> +				for the zone is below the minimum.
+> +	0	Fan off.
+> +	1	Fan on manual control.
+> +	2	Fan on automatic control and will run at the minimum pwm
+> +			if the temperature for the zone is below the minimum.
+> +	3	Fan on automatic control but will be off if the temperature
+> +			for the zone is below the minimum.
 > +	4-254	Ignored.
-> +	255		Fan on full.
+> +	255	Fan on full.
 > +
 > +pwm[1-3]_auto_channels
 > +	Bitmap as described in sysctl-interface with the following
 > +	exceptions...
-> +	Only the following combination of zones (and their corresponding masks)
+> +	Only the following combinations of zones (and their corresponding masks)
 > +	are valid:
 > +	1
 > +	2
@@ -318,14 +264,14 @@ Jaswinder Singh.
 > +	1,2,3,4
 > +
 > +	Special values:
-> +	0			Disabled.
-> +	16		Fan on manual control.
-> +	31		Fan on full.
+> +	0	Disabled.
+> +	16	Fan on manual control.
+> +	31	Fan on full.
 > +
 > +
 > +pwm[1-3]_invert
 > +	When set, inverts the meaning of pwm[1-3].
-> +	i.e.  when pwm = 0, the fan will be on full and
+> +	I.E.  when pwm = 0, the fan will be on full and
 > +	when pwm = 255 the fan will be off.
 > +
 > +pwm[1-3]_freq
@@ -355,7 +301,7 @@ Jaswinder Singh.
 > +	Enables or disables PECI
 > +
 > +peci_avg
-> +	Input filter average time.
+> +	Input filter averate time.
 > +
 > +	0 	0 Sec. (no Smoothing) (default)
 > +	1 	0.25 Sec.
@@ -368,7 +314,7 @@ Jaswinder Singh.
 > +
 > +peci_legacy
 > +
-> +	0	Standard Mode (default)
+> +	0 	Standard Mode (default)
 > +		Remote Diode 1 reading is associated with
 > +		Temperature Zone 1, PECI is associated with
 > +		Zone 4
@@ -402,12 +348,14 @@ Jaswinder Singh.
 > +	1 	Processor contains two domains (0,1)
 > diff -uprN a/drivers/hwmon/asc7621.c b/drivers/hwmon/asc7621.c
 > --- a/drivers/hwmon/asc7621.c	1969-12-31 17:00:00.000000000 -0700
-> +++ b/drivers/hwmon/asc7621.c	2010-02-21 10:47:06.000000000 -0700
-> @@ -0,0 +1,1233 @@
+> +++ b/drivers/hwmon/asc7621.c	2010-01-30 14:53:56.000000000 -0700
+> @@ -0,0 +1,1266 @@
 > +/*
-> + * asc7621.c - Part of lm_sensors, Linux kernel modules for hardware monitoring
-> + * Copyright (c) 2007, 2010 George Joseph  <george.joseph@fairview5.com>
-> + *
+> +    asc7621.c - Part of lm_sensors, Linux kernel modules for hardware monitoring
+> +    Copyright (c) 2007, 2010 George Joseph<george.joseph@fairview5.com>
+> +
+> +    Chip details at<http://www.andigilog.com>
+> +
 > + * This program is free software; you can redistribute it and/or modify
 > + * it under the terms of the GNU General Public License as published by
 > + * the Free Software Foundation; either version 2 of the License, or
@@ -423,15 +371,15 @@ Jaswinder Singh.
 > + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 > + */
 > +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
+> +#include<linux/module.h>
+> +#include<linux/init.h>
+> +#include<linux/slab.h>
+> +#include<linux/jiffies.h>
+> +#include<linux/i2c.h>
+> +#include<linux/hwmon.h>
+> +#include<linux/hwmon-sysfs.h>
+> +#include<linux/err.h>
+> +#include<linux/mutex.h>
 > +
 > +/* Addresses to scan */
 > +static unsigned short normal_i2c[] = {
@@ -443,13 +391,13 @@ Jaswinder Singh.
 > +	asc7621a
 > +};
 > +
-> +#define INTERVAL_HIGH		(HZ + HZ / 2)
-> +#define INTERVAL_LOW		(1 * 60 * HZ)
-> +#define PRI_NONE 		0
-> +#define PRI_LOW 		1
-> +#define PRI_HIGH 		2
-> +#define FIRST_CHIP 		asc7621
-> +#define LAST_CHIP 		asc7621a
+> +#define INTERVAL_HIGH  (HZ + HZ / 2)
+> +#define INTERVAL_LOW  (1 * 60 * HZ)
+> +#define PRI_NONE 0
+> +#define PRI_LOW 1
+> +#define PRI_HIGH 2
+> +#define FIRST_CHIP asc7621
+> +#define LAST_CHIP asc7621a
 > +
 > +struct asc7621_chip {
 > +	char *name;
@@ -463,22 +411,22 @@ Jaswinder Singh.
 > +
 > +static struct asc7621_chip asc7621_chips[] = {
 > +	{
-> +		.name = "asc7621",
-> +		.chip_type = asc7621,
-> +		.company_reg = 0x3e,
-> +		.company_id = 0x61,
-> +		.verstep_reg = 0x3f,
-> +		.verstep_id = 0x6c,
-> +		.addresses = normal_i2c,
+> +	 .name = "asc7621",
+> +	 .chip_type = asc7621,
+> +	 .company_reg = 0x3e,
+> +	 .company_id = 0x61,
+> +	 .verstep_reg = 0x3f,
+> +	 .verstep_id = 0x6c,
+> +	 .addresses = normal_i2c,
 > +	 },
 > +	{
-> +		.name = "asc7621a",
-> +		.chip_type = asc7621a,
-> +		.company_reg = 0x3e,
-> +		.company_id = 0x61,
-> +		.verstep_reg = 0x3f,
-> +		.verstep_id = 0x6d,
-> +		.addresses = normal_i2c,
+> +	 .name = "asc7621a",
+> +	 .chip_type = asc7621a,
+> +	 .company_reg = 0x3e,
+> +	 .company_id = 0x61,
+> +	 .verstep_reg = 0x3f,
+> +	 .verstep_id = 0x6d,
+> +	 .addresses = normal_i2c,
 > +	 },
 > +};
 > +
@@ -498,7 +446,7 @@ Jaswinder Singh.
 > +	struct mutex update_lock;
 > +	int valid;		/* !=0 if following fields are valid */
 > +	unsigned long last_high_reading;	/* In jiffies */
-> +	unsigned long last_low_reading;		/* In jiffies */
+> +	unsigned long last_low_reading;	/* In jiffies */
 > +	/*
 > +	 * Registers we care about occupy the corresponding index
 > +	 * in the array.  Registers we don't care about are left
@@ -537,8 +485,21 @@ Jaswinder Singh.
 > +
 > +static struct asc7621_data *asc7621_update_device(struct device *dev);
 > +
-> +#define read_byte(reg)		(i2c_smbus_read_byte_data(client, reg) & 0xff)
-> +#define write_byte(reg, data)	i2c_smbus_write_byte_data(client, reg, data)
+> +#define read_byte(reg) (i2c_smbus_read_byte_data(client, reg)&  0xff)
+
+<hmm, seems our mail clients don't like each other, the original patch has
+  a space between that ) and the &, as there should be>
+
+You are silently ignoring i2c errors here, it might be better to make
+this an inline function, and printk an error when an error happens. I'm not
+saying you should do full scale error handling where the caller aborts
+when the read fails, but a printk (and a more sane return value like 0)
+would be nice.
+
+> +#define write_byte(reg, data) i2c_smbus_write_byte_data(client, reg, data)
+
+Idem (wrt error handling).
+
 > +
 > +/*
 > + * Data Handlers
@@ -575,7 +536,7 @@ Jaswinder Singh.
 > +	SETUP_STORE_data_param(dev, attr);
 > +	long reqval;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	reqval = SENSORS_LIMIT(reqval, 0, 255);
@@ -596,8 +557,8 @@ Jaswinder Singh.
 > +	SETUP_SHOW_data_param(dev, attr);
 > +
 > +	return sprintf(buf, "%u\n",
-> +		       (data->reg[param->msb[0]] >> param->
-> +			shift[0]) & param->mask[0]);
+> +		       (data->reg[param->msb[0]]>>  param->
+> +			shift[0])&  param->mask[0]);
 > +}
 > +
 > +static ssize_t store_bitmask(struct device *dev,
@@ -605,19 +566,20 @@ Jaswinder Singh.
 > +			     const char *buf, size_t count)
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
+> +
 > +	long reqval;
 > +	u8 currval;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	reqval = SENSORS_LIMIT(reqval, 0, param->mask[0]);
 > +
-> +	reqval = (reqval & param->mask[0]) << param->shift[0];
+> +	reqval = (reqval&  param->mask[0])<<  param->shift[0];
 > +
 > +	mutex_lock(&data->update_lock);
 > +	currval = read_byte(param->msb[0]);
-> +	reqval |= (currval & ~(param->mask[0] << param->shift[0]));
+> +	reqval |= (currval&  ~(param->mask[0]<<  param->shift[0]));
 > +	data->reg[param->msb[0]] = reqval;
 > +	write_byte(param->msb[0], reqval);
 > +	mutex_unlock(&data->update_lock);
@@ -637,7 +599,7 @@ Jaswinder Singh.
 > +	u16 regval;
 > +
 > +	mutex_lock(&data->update_lock);
-> +	regval = (data->reg[param->msb[0]] << 8) | data->reg[param->lsb[0]];
+> +	regval = (data->reg[param->msb[0]]<<  8) | data->reg[param->lsb[0]];
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return sprintf(buf, "%u\n",
@@ -652,14 +614,14 @@ Jaswinder Singh.
 > +	SETUP_STORE_data_param(dev, attr);
 > +	long reqval;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
-> +	reqval > +	    (SENSORS_LIMIT((reqval) <= 0 ? 0 : 5400000 / (reqval), 0, 65534));
+> +	reqval > +	    (SENSORS_LIMIT((reqval)<= 0 ? 0 : 5400000 / (reqval), 0, 65534));
 > +
 > +	mutex_lock(&data->update_lock);
-> +	data->reg[param->msb[0]] = (reqval >> 8) & 0xff;
-> +	data->reg[param->lsb[0]] = reqval & 0xff;
+> +	data->reg[param->msb[0]] = (reqval>>  8)&  0xff;
+> +	data->reg[param->lsb[0]] = reqval&  0xff;
 > +	write_byte(param->msb[0], data->reg[param->msb[0]]);
 > +	write_byte(param->lsb[0], data->reg[param->lsb[0]]);
 > +	mutex_unlock(&data->update_lock);
@@ -669,7 +631,7 @@ Jaswinder Singh.
 > +
 > +/*
 > + * Voltages are scaled in the device so that the nominal voltage
-> + * is 3/4ths of the 0-255 range (i.e. 192).
+> + * is 3/4ths of the 0-255 range (I.E 192).
 > + * If all voltages are 'normal' then all voltage registers will
 > + * read 0xC0.  This doesn't help us if we don't have a point of refernce.
 > + * The data sheet however provides us with the full scale value for each
@@ -701,7 +663,7 @@ Jaswinder Singh.
 > +	 * The extra 2-bits therefore represent increments of 6.48mv.
 > +	 */
 > +	regval += ((asc7621_in_scaling[nr] / 256) / 4) *
-> +	    (data->reg[param->lsb[0]] >> 6);
+> +	    (data->reg[param->lsb[0]]>>  6);
 > +
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -713,6 +675,7 @@ Jaswinder Singh.
 > +			char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
+> +
 > +	u8 nr = sda->index;
 > +
 > +	return sprintf(buf, "%u\n",
@@ -727,13 +690,24 @@ Jaswinder Singh.
 > +	long reqval;
 > +	u8 nr = sda->index;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	reqval = SENSORS_LIMIT(reqval, 0, asc7621_in_scaling[nr]);
 > +
 > +	reqval = (reqval * 256) / asc7621_in_scaling[nr];
 > +
+
+reqval can now become 256:
+asc7621_in_scaling[nr] * 256 / asc7621_in_scaling[nr]
+
+Which is not what we want, you should use:
+reqval = (reqval * 255) / asc7621_in_scaling[nr];
+
+Assuming you always want to round down, most drivers use more
+"normal" rounding, iow they do:
+reqval = (reqval * 255 + 128) / asc7621_in_scaling[nr];
+
 > +	mutex_lock(&data->update_lock);
 > +	data->reg[param->msb[0]] = reqval;
 > +	write_byte(param->msb[0], reqval);
@@ -758,7 +732,7 @@ Jaswinder Singh.
 > +	long reqval;
 > +	s8 temp;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	reqval = SENSORS_LIMIT(reqval, -127000, 127000);
@@ -783,12 +757,13 @@ Jaswinder Singh.
 > +			   struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
-> +	u8 msb, lsb;
+> +	u8 msb;
+> +	u8 lsb;
 > +	int temp;
 > +
 > +	mutex_lock(&data->update_lock);
 > +	msb = data->reg[param->msb[0]];
-> +	lsb = (data->reg[param->lsb[0]] >> 6) & 0x03;
+> +	lsb = (data->reg[param->lsb[0]]>>  6)&  0x03;
 > +	temp = (((s8) msb) * 1000) + (lsb * 250);
 > +	mutex_unlock(&data->update_lock);
 > +
@@ -800,8 +775,9 @@ Jaswinder Singh.
 > +			   struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
+> +
 > +	u8 regval = data->reg[param->msb[0]];
-> +	int temp = ((s8) (regval & 0xfc) * 1000) + ((regval & 0x03) * 250);
+> +	int temp = ((s8) (regval&  0xfc) * 1000) + ((regval&  0x03) * 250);
 > +
 > +	return sprintf(buf, "%d\n", temp);
 > +}
@@ -811,16 +787,17 @@ Jaswinder Singh.
 > +			    size_t count)
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
-> +	long reqval, i, f;
+> +	long reqval;
+> +	long i, f;
 > +	s8 temp;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	reqval = SENSORS_LIMIT(reqval, -32000, 31750);
 > +	i = reqval / 1000;
 > +	f = reqval - (i * 1000);
-> +	temp = i << 2;
+> +	temp = i<<  2;
 > +	temp |= f / 250;
 > +
 > +	mutex_lock(&data->update_lock);
@@ -851,8 +828,11 @@ Jaswinder Singh.
 > +
 > +	mutex_lock(&data->update_lock);
 > +	auto_point1 = ((s8) data->reg[param->msb[1]]) * 1000;
-> +	regval > +	    ((data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0]);
+> +	regval > +	    ((data->reg[param->msb[0]]>>  param->shift[0])&  param->mask[0]);
 > +	temp = auto_point1 + asc7621_range_map[SENSORS_LIMIT(regval, 0, 15)];
+
+The SENSORS_LIMIT here is not needed, as the mask already does the limiting.
+
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return sprintf(buf, "%d\n", temp);
@@ -864,17 +844,19 @@ Jaswinder Singh.
 > +			      const char *buf, size_t count)
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
-> +	long reqval, auto_point1;
-> +	int i;
-> +	u8 currval, newval = 255;
+> +	long reqval;
+> +	long auto_point1;
+> +	int i = 0;
+> +	u8 currval = 0;
+> +	u8 newval = 255;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	mutex_lock(&data->update_lock);
 > +	auto_point1 = data->reg[param->msb[1]] * 1000;
-> +	for (i = ARRAY_SIZE(asc7621_range_map) - 1; i >= 0; i--) {
-> +		if (reqval >= auto_point1 + asc7621_range_map[i]) {
+> +	for (i = ARRAY_SIZE(asc7621_range_map) - 1; i>= 0; i--) {
+> +		if (reqval>= auto_point1 + asc7621_range_map[i]) {
 > +			newval = i;
 > +			break;
 > +		}
@@ -884,9 +866,14 @@ Jaswinder Singh.
 > +		return -EINVAL;
 > +	}
 > +
-> +	newval = (newval & param->mask[0]) << param->shift[0];
+
+For autopoint1 you use SENSORS_LIMIT, so it seems more consistent
+to me to do the same here, so instead of returning EINVAL simply
+use newval = 0
+
+> +	newval = (newval&  param->mask[0])<<  param->shift[0];
 > +	currval = read_byte(param->msb[0]);
-> +	newval |= (currval & ~(param->mask[0] << param->shift[0]));
+> +	newval |= (currval&  ~(param->mask[0]<<  param->shift[0]));
 > +	data->reg[param->msb[0]] = newval;
 > +	write_byte(param->msb[0], newval);
 > +	mutex_unlock(&data->update_lock);
@@ -897,19 +884,24 @@ Jaswinder Singh.
 > +			   struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
-> +	u8 config, altbit, regval;
+> +	u8 config;
+> +	u8 altbit;
+> +	u8 regval;
 > +	u8 map[] = {
 > +		0x01, 0x02, 0x04, 0x1f, 0x00, 0x06, 0x07, 0x10,
 > +		0x08, 0x0f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f
 > +	};
 > +
 > +	mutex_lock(&data->update_lock);
-> +	config = (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
-> +	altbit = (data->reg[param->msb[1]] >> param->shift[1]) & param->mask[1];
-> +	regval = config | (altbit << 3);
+> +	config = (data->reg[param->msb[0]]>>  param->shift[0])&  param->mask[0];
+> +	altbit = (data->reg[param->msb[1]]>>  param->shift[1])&  param->mask[1];
+> +	regval = config | (altbit<<  3);
 > +	mutex_unlock(&data->update_lock);
 > +
 > +	return sprintf(buf, "%u\n", map[SENSORS_LIMIT(regval, 0, 15)]);
+
+The SENSORS_LIMIT here is not needed, as the mask already does the limiting.
+
 > +}
 > +
 > +static ssize_t store_pwm_ac(struct device *dev,
@@ -918,7 +910,11 @@ Jaswinder Singh.
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
 > +	unsigned long reqval;
-> +	u8 currval, config, altbit, newval;
+> +
+> +	u8 currval = 0;
+> +	u8 config = 0;
+> +	u8 altbit = 0;
+> +	u8 newval = 0;
 > +	u16 map[] = {
 > +		0x04, 0x00, 0x01, 0xff, 0x02, 0xff, 0x05, 0x06,
 > +		0x08, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f,
@@ -926,24 +922,30 @@ Jaswinder Singh.
 > +		0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03,
 > +	};
 > +
-> +	if (strict_strtoul(buf, 10, &reqval))
+> +	if (strict_strtoul(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
-> +	if (reqval > 31)
+> +	if (reqval>  31)
 > +		return -EINVAL;
 > +
 > +	reqval = map[reqval];
 > +
-> +	config = reqval & 0x07;
-> +	altbit = (reqval >> 3) & 0x01;
+
+Hmm, what happens when the result here is 0xff ? According to
+the Documentation file only certain channel combi's are valid,
+I assume 0xff denotes an invalid channel combi, wouldn't it be
+better to return -EINVAL then ?
+
+> +	config = reqval&  0x07;
+> +	altbit = (reqval>>  3)&  0x01;
 > +
-> +	config = (config & param->mask[0]) << param->shift[0];
-> +	altbit = (altbit & param->mask[1]) << param->shift[1];
+> +	config = (config&  param->mask[0])<<  param->shift[0];
+> +	altbit = (altbit&  param->mask[1])<<  param->shift[1];
 > +
 > +	mutex_lock(&data->update_lock);
 > +	currval = read_byte(param->msb[0]);
-> +	newval = config | (currval & ~(param->mask[0] << param->shift[0]));
-> +	newval = altbit | (newval & ~(param->mask[1] << param->shift[1]));
+> +	newval = config | (currval&  ~(param->mask[0]<<  param->shift[0]));
+> +	newval = altbit | (newval&  ~(param->mask[1]<<  param->shift[1]));
 > +	data->reg[param->msb[0]] = newval;
 > +	write_byte(param->msb[0], newval);
 > +	mutex_unlock(&data->update_lock);
@@ -954,18 +956,22 @@ Jaswinder Singh.
 > +			       struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
-> +	u8 config, altbit, minoff, val, newval;
+> +	u8 config;
+> +	u8 altbit;
+> +	u8 minoff;
+> +	u8 val;
+> +	u8 newval;
 > +
 > +	mutex_lock(&data->update_lock);
-> +	config = (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
-> +	altbit = (data->reg[param->msb[1]] >> param->shift[1]) & param->mask[1];
-> +	minoff = (data->reg[param->msb[2]] >> param->shift[2]) & param->mask[2];
+> +	config = (data->reg[param->msb[0]]>>  param->shift[0])&  param->mask[0];
+> +	altbit = (data->reg[param->msb[1]]>>  param->shift[1])&  param->mask[1];
+> +	minoff = (data->reg[param->msb[2]]>>  param->shift[2])&  param->mask[2];
 > +	mutex_unlock(&data->update_lock);
 > +
-> +	val = config | (altbit << 3);
+> +	val = config | (altbit<<  3);
 > +	newval = 0;
 > +
-> +	if (val = 3 || val >= 10)
+> +	if (val = 3 || val>= 10)
 > +		newval = 255;
 > +	else if (val = 4)
 > +		newval = 0;
@@ -985,48 +991,52 @@ Jaswinder Singh.
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
 > +	long reqval;
-> +	u8 currval, config, altbit, newval, minoff = 255;
+> +	u8 currval = 0;
+> +	u8 config = 0;
+> +	u8 altbit = 0;
+> +	u8 newval = 0;
+> +	u8 minoff = 255;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
 > +	switch (reqval) {
-> +	case 0:
+> +	case (0):
 > +		newval = 0x04;
 > +		break;
-> +	case 1:
+> +	case (1):
 > +		newval = 0x07;
 > +		break;
-> +	case 2:
+> +	case (2):
 > +		newval = 0x00;
 > +		minoff = 1;
 > +		break;
-> +	case 3:
+> +	case (3):
 > +		newval = 0x00;
 > +		minoff = 0;
 > +		break;
-> +	case 255:
+> +	case (255):
 > +		newval = 0x03;
 > +		break;
 > +	default:
 > +		return -EINVAL;
 > +	}
 > +
-> +	config = newval & 0x07;
-> +	altbit = (newval >> 3) & 0x01;
+> +	config = newval&  0x07;
+> +	altbit = (newval>>  3)&  0x01;
 > +
 > +	mutex_lock(&data->update_lock);
-> +	config = (config & param->mask[0]) << param->shift[0];
-> +	altbit = (altbit & param->mask[1]) << param->shift[1];
+> +	config = (config&  param->mask[0])<<  param->shift[0];
+> +	altbit = (altbit&  param->mask[1])<<  param->shift[1];
 > +	currval = read_byte(param->msb[0]);
-> +	newval = config | (currval & ~(param->mask[0] << param->shift[0]));
-> +	newval = altbit | (newval & ~(param->mask[1] << param->shift[1]));
+> +	newval = config | (currval&  ~(param->mask[0]<<  param->shift[0]));
+> +	newval = altbit | (newval&  ~(param->mask[1]<<  param->shift[1]));
 > +	data->reg[param->msb[0]] = newval;
 > +	write_byte(param->msb[0], newval);
-> +	if (minoff < 255) {
-> +		minoff = (minoff & param->mask[2]) << param->shift[2];
+> +	if (minoff<  255) {
+> +		minoff = (minoff&  param->mask[2])<<  param->shift[2];
 > +		currval = read_byte(param->msb[2]);
-> +		newval > +		    minoff | (currval & ~(param->mask[2] << param->shift[2]));
+> +		newval > +		    minoff | (currval&  ~(param->mask[2]<<  param->shift[2]));
 > +		data->reg[param->msb[2]] = newval;
 > +		write_byte(param->msb[2], newval);
 > +	}
@@ -1043,9 +1053,12 @@ Jaswinder Singh.
 > +			     struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
-> +	u8 regval > +	    (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
 > +
+> +	u8 regval > +	    (data->reg[param->msb[0]]>>  param->shift[0])&  param->mask[0];
 > +	regval = SENSORS_LIMIT(regval, 0, 15);
+
+The SENSORS_LIMIT here is not needed, as the mask already does the limiting.
+
 > +
 > +	return sprintf(buf, "%u\n", asc7621_pwm_freq_map[regval]);
 > +}
@@ -1055,14 +1068,16 @@ Jaswinder Singh.
 > +			      const char *buf, size_t count)
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
+> +
 > +	unsigned long reqval;
-> +	u8 currval, newval = 255;
+> +	u8 currval = 0;
+> +	u8 newval = 255;
 > +	int i;
 > +
-> +	if (strict_strtoul(buf, 10, &reqval))
+> +	if (strict_strtoul(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_freq_map); i++) {
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_pwm_freq_map); i++) {
 > +		if (reqval = asc7621_pwm_freq_map[i]) {
 > +			newval = i;
 > +			break;
@@ -1071,11 +1086,11 @@ Jaswinder Singh.
 > +	if (newval = 255)
 > +		return -EINVAL;
 > +
-> +	newval = (newval & param->mask[0]) << param->shift[0];
+> +	newval = (newval&  param->mask[0])<<  param->shift[0];
 > +
 > +	mutex_lock(&data->update_lock);
 > +	currval = read_byte(param->msb[0]);
-> +	newval |= (currval & ~(param->mask[0] << param->shift[0]));
+> +	newval |= (currval&  ~(param->mask[0]<<  param->shift[0]));
 > +	data->reg[param->msb[0]] = newval;
 > +	write_byte(param->msb[0], newval);
 > +	mutex_unlock(&data->update_lock);
@@ -1083,14 +1098,14 @@ Jaswinder Singh.
 > +}
 > +
 > +static u32 asc7621_pwm_auto_spinup_map[] =  {
-> +	0, 100, 250, 400, 700, 1000, 2000, 4000
-> +};
+> +	0, 100, 250, 400, 700, 1000, 2000, 4000 };
 > +
 > +static ssize_t show_pwm_ast(struct device *dev,
 > +			    struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
-> +	u8 regval > +	    (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
+> +
+> +	u8 regval > +	    (data->reg[param->msb[0]]>>  param->shift[0])&  param->mask[0];
 > +
 > +	regval = SENSORS_LIMIT(regval, 0, 7);
 > +
@@ -1104,13 +1119,14 @@ Jaswinder Singh.
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
 > +	long reqval;
-> +	u8 currval, newval = 255;
+> +	u8 currval = 0;
+> +	u8 newval = 255;
 > +	u32 i;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_auto_spinup_map); i++) {
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_pwm_auto_spinup_map); i++) {
 > +		if (reqval = asc7621_pwm_auto_spinup_map[i]) {
 > +			newval = i;
 > +			break;
@@ -1119,11 +1135,11 @@ Jaswinder Singh.
 > +	if (newval = 255)
 > +		return -EINVAL;
 > +
-> +	newval = (newval & param->mask[0]) << param->shift[0];
+> +	newval = (newval&  param->mask[0])<<  param->shift[0];
 > +
 > +	mutex_lock(&data->update_lock);
 > +	currval = read_byte(param->msb[0]);
-> +	newval |= (currval & ~(param->mask[0] << param->shift[0]));
+> +	newval |= (currval&  ~(param->mask[0]<<  param->shift[0]));
 > +	data->reg[param->msb[0]] = newval;
 > +	write_byte(param->msb[0], newval);
 > +	mutex_unlock(&data->update_lock);
@@ -1131,15 +1147,18 @@ Jaswinder Singh.
 > +}
 > +
 > +static u32 asc7621_temp_smoothing_time_map[] = {
-> +	35000, 17600, 11800, 7000, 4400, 3000, 1600, 800
-> +};
+> +	35000, 17600, 11800, 7000, 4400, 3000, 1600, 800 };
 > +
 > +static ssize_t show_temp_st(struct device *dev,
 > +			    struct device_attribute *attr, char *buf)
 > +{
 > +	SETUP_SHOW_data_param(dev, attr);
-> +	u8 regval > +	    (data->reg[param->msb[0]] >> param->shift[0]) & param->mask[0];
+> +
+> +	u8 regval > +	    (data->reg[param->msb[0]]>>  param->shift[0])&  param->mask[0];
 > +	regval = SENSORS_LIMIT(regval, 0, 7);
+
+The SENSORS_LIMIT here is not needed, as the mask already does the limiting.
+
 > +
 > +	return sprintf(buf, "%u\n", asc7621_temp_smoothing_time_map[regval]);
 > +}
@@ -1150,13 +1169,14 @@ Jaswinder Singh.
 > +{
 > +	SETUP_STORE_data_param(dev, attr);
 > +	long reqval;
-> +	u8 currval, newval = 255;
+> +	u8 currval;
+> +	u8 newval = 255;
 > +	u32 i;
 > +
-> +	if (strict_strtol(buf, 10, &reqval))
+> +	if (strict_strtol(buf, 10,&reqval))
 > +		return -EINVAL;
 > +
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_pwm_auto_spinup_map); i++) {
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_pwm_auto_spinup_map); i++) {
 > +		if (reqval = asc7621_temp_smoothing_time_map[i]) {
 > +			newval = i;
 > +			break;
@@ -1166,22 +1186,21 @@ Jaswinder Singh.
 > +	if (newval = 255)
 > +		return -EINVAL;
 > +
-> +	newval = (newval & param->mask[0]) << param->shift[0];
+> +	newval = (newval&  param->mask[0])<<  param->shift[0];
 > +
 > +	mutex_lock(&data->update_lock);
 > +	currval = read_byte(param->msb[0]);
-> +	newval |= (currval & ~(param->mask[0] << param->shift[0]));
+> +	newval |= (currval&  ~(param->mask[0]<<  param->shift[0]));
 > +	data->reg[param->msb[0]] = newval;
 > +	write_byte(param->msb[0], newval);
 > +	mutex_unlock(&data->update_lock);
 > +	return count;
 > +}
 > +
-> +/*
-> + * End of data handlers
-> + *
-> + * These defines do nothing more than make the table easier
-> + * to read when wrapped at column 80.
+> +/*   End of data handlers  */
+> +
+> +/*  These defines do nothing more than make the table easier
+> + *  to read when wrapped at column 80.
 > + */
 > +
 > +/*
@@ -1403,9 +1422,9 @@ Jaswinder Singh.
 > +	if (!data->valid ||
 > +	    time_after(jiffies, data->last_high_reading + INTERVAL_HIGH)) {
 > +
-> +		for (i = 0; i < ARRAY_SIZE(asc7621_register_priorities); i++) {
+> +		for (i = 0; i<  ARRAY_SIZE(asc7621_register_priorities); i++) {
 > +			if (asc7621_register_priorities[i] = PRI_HIGH) {
-> +				data->reg[i] > +				    i2c_smbus_read_byte_data(client, i) & 0xff;
+> +				data->reg[i] > +				    i2c_smbus_read_byte_data(client, i)&  0xff;
 > +			}
 > +		}
 > +		data->last_high_reading = jiffies;
@@ -1416,9 +1435,12 @@ Jaswinder Singh.
 > +	if (!data->valid ||
 > +	    time_after(jiffies, data->last_high_reading + INTERVAL_LOW)) {
 > +
-> +		for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+
+Copy paste error last_high_reading should be last_low_reading.
+
+> +		for (i = 0; i<  ARRAY_SIZE(asc7621_params); i++) {
 > +			if (asc7621_register_priorities[i] = PRI_LOW) {
-> +				data->reg[i] > +				    i2c_smbus_read_byte_data(client, i) & 0xff;
+> +				data->reg[i] > +				    i2c_smbus_read_byte_data(client, i)&  0xff;
 > +			}
 > +		}
 > +		data->last_low_reading = jiffies;
@@ -1431,17 +1453,15 @@ Jaswinder Singh.
 > +	return data;
 > +}
 > +
-> +/*
-> + * Standard detection and initialization below
-> + *
-> + * Helper function that checks if an address is valid
+> +/* Standard detection and initialization below */
+> +
+> +/* Helper function that checks if an address is valid
 > + * for a particular chip.
 > + */
 > +
 > +static inline int valid_address_for_chip(int chip_type, int address)
 > +{
-> +	int i;
-> +
+> +	int i = 0;
 > +	for (i = 0; asc7621_chips[chip_type].addresses[i] != I2C_CLIENT_END;
 > +	     i++) {
 > +		if (asc7621_chips[chip_type].addresses[i] = address)
@@ -1456,51 +1476,61 @@ Jaswinder Singh.
 > +
 > +	/* Warn if part was not "READY" */
 > +
-> +	value = read_byte(0x40);
+> +	value = i2c_smbus_read_byte_data(client, 0x40)&  0xff;
 > +
-> +	if (value & 0x02) {
+> +	if (value&  0x02) {
 > +		dev_err(&client->dev,
 > +			"Client (%d,0x%02x) config is locked.\n",
 > +			i2c_adapter_id(client->adapter), client->addr);
 > +	};
-> +	if (!(value & 0x04)) {
+> +	if (!(value&  0x04)) {
 > +		dev_err(&client->dev, "Client (%d,0x%02x) is not ready.\n",
 > +			i2c_adapter_id(client->adapter), client->addr);
 > +	};
 > +
-> +/*
-> + * Start monitoring
-> + *
-> + * Try to clear LOCK, Set START, save everything else
-> + */
-> +	value = (value & ~0x02) | 0x01;
-> +	write_byte(0x40, value & 0xff);
+> +	/* Start monitoring */
 > +
+> +	value = i2c_smbus_read_byte_data(client, 0x40)&  0xff;
+> +	/* Try to clear LOCK, Set START, save everything else */
+> +	value = (value&  ~0x02) | 0x01;
+> +	write_byte(0x40, value&  0xff);
+> +
+
+<begin>
+
 > +	/*
 > +	 * Collect all the registers needed into a single array.
 > +	 * This way, if a register isn't actually used for anything,
 > +	 * we don't retrieve it.
 > +	 */
 > +
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
-> +		for (j = 0; j < ARRAY_SIZE(asc7621_params[i].msb); j++)
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_params); i++) {
+> +		for (j = 0; j<  ARRAY_SIZE(asc7621_params[i].msb); j++)
 > +			asc7621_register_priorities[asc7621_params[i].msb[j]] > +			    asc7621_params[i].priority;
-> +		for (j = 0; j < ARRAY_SIZE(asc7621_params[i].lsb); j++)
+> +		for (j = 0; j<  ARRAY_SIZE(asc7621_params[i].lsb); j++)
 > +			asc7621_register_priorities[asc7621_params[i].lsb[j]] > +			    asc7621_params[i].priority;
 > +	}
+
+
+The bit from <begin> till here does not belong here, but in sm_asc7621_init
+as it inits a module global level variable.
+
 > +}
+> +
+> +static struct i2c_driver asc7621_driver;
 > +
 > +static int
 > +asc7621_probe(struct i2c_client *client, const struct i2c_device_id *id)
 > +{
 > +	struct asc7621_data *data;
-> +	int i, err;
+> +	int i;
+> +	int err;
 > +
 > +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 > +		return -EIO;
 > +
 > +	data = kzalloc(sizeof(struct asc7621_data), GFP_KERNEL);
-> +	if (data = NULL)
+> +	if (data = 0)
 > +		return -ENOMEM;
 > +
 > +	i2c_set_clientdata(client, data);
@@ -1511,9 +1541,9 @@ Jaswinder Singh.
 > +	asc7621_init_client(client);
 > +
 > +	/* Create the sysfs entries */
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_params); i++) {
 > +		err > +		    device_create_file(&client->dev,
-> +				       &(asc7621_params[i].sda.dev_attr));
+> +				&(asc7621_params[i].sda.dev_attr));
 > +		if (err)
 > +			goto exit_remove;
 > +	}
@@ -1527,9 +1557,9 @@ Jaswinder Singh.
 > +	return 0;
 > +
 > +exit_remove:
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_params); i++) {
 > +		device_remove_file(&client->dev,
-> +				   &(asc7621_params[i].sda.dev_attr));
+> +				&(asc7621_params[i].sda.dev_attr));
 > +	}
 > +
 > +	i2c_set_clientdata(client, NULL);
@@ -1541,30 +1571,36 @@ Jaswinder Singh.
 > +			  struct i2c_board_info *info)
 > +{
 > +	struct i2c_adapter *adapter = client->adapter;
-> +	int company, verstep, chip_index;
+> +	int company, verstep;
 > +	struct device *dev;
+> +	int chip_index = 0;
 > +
-> +	dev = &client->dev;
+> +	dev =&client->dev;
 > +
 > +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 > +		return -ENODEV;
 > +
-> +	for (chip_index = FIRST_CHIP; chip_index <= LAST_CHIP; chip_index++) {
+> +	for (chip_index = FIRST_CHIP; chip_index<= LAST_CHIP; chip_index++) {
 > +
 > +		if (!valid_address_for_chip(chip_index, client->addr))
 > +			continue;
 > +
-> +		company = read_byte(asc7621_chips[chip_index].company_reg);
-> +		verstep = read_byte(asc7621_chips[chip_index].verstep_reg);
+> +		company = i2c_smbus_read_byte_data(client,
+> +						   asc7621_chips
+> +						   [chip_index].company_reg)&
+> +		    0xff;
+> +		verstep > +		    i2c_smbus_read_byte_data(client,
+> +					     asc7621_chips
+> +					     [chip_index].verstep_reg)&  0xff;
 > +
-> +		if (company = asc7621_chips[chip_index].company_id &&
+> +		if (company = asc7621_chips[chip_index].company_id&&
 > +		    verstep = asc7621_chips[chip_index].verstep_id) {
 > +			strlcpy(client->name, asc7621_chips[chip_index].name,
 > +				I2C_NAME_SIZE);
 > +			strlcpy(info->type, asc7621_chips[chip_index].name,
 > +				I2C_NAME_SIZE);
 > +
-> +			dev_info(&adapter->dev, "Matched %s\n",
+> +			dev_info(&adapter->dev, "  Matched %s\n",
 > +				 asc7621_chips[chip_index].name);
 > +			return 0;
 > +		}
@@ -1580,9 +1616,9 @@ Jaswinder Singh.
 > +
 > +	hwmon_device_unregister(data->class_dev);
 > +
-> +	for (i = 0; i < ARRAY_SIZE(asc7621_params); i++) {
+> +	for (i = 0; i<  ARRAY_SIZE(asc7621_params); i++) {
 > +		device_remove_file(&client->dev,
-> +				   &(asc7621_params[i].sda.dev_attr));
+> +				&(asc7621_params[i].sda.dev_attr));
 > +	}
 > +
 > +	i2c_set_clientdata(client, NULL);
@@ -1601,8 +1637,8 @@ Jaswinder Singh.
 > +static struct i2c_driver asc7621_driver = {
 > +	.class = I2C_CLASS_HWMON,
 > +	.driver = {
-> +		.name = "asc7621",
-> +	},
+> +		   .name = "asc7621",
+> +		   },
 > +	.probe = asc7621_probe,
 > +	.remove = asc7621_remove,
 > +	.id_table = asc7621_id,
@@ -1627,15 +1663,15 @@ Jaswinder Singh.
 > +module_init(sm_asc7621_init);
 > +module_exit(sm_asc7621_exit);
 > diff -uprN a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> --- a/drivers/hwmon/Kconfig	2010-02-21 09:33:51.000000000 -0700
-> +++ b/drivers/hwmon/Kconfig	2010-02-21 09:57:46.000000000 -0700
+> --- a/drivers/hwmon/Kconfig	2010-01-29 14:57:50.000000000 -0700
+> +++ b/drivers/hwmon/Kconfig	2010-01-30 12:16:17.000000000 -0700
 > @@ -277,6 +277,19 @@ config SENSORS_ASB100
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called asb100.
->  
+>   	  This driver can also be built as a module.  If so, the module
+>   	  will be called asb100.
+>
 > +config SENSORS_ASC7621
 > +	tristate "Andigilog aSC7621"
-> +	depends on HWMON && I2C
+> +	depends on HWMON&&  I2C
 > +	help
 > +	  If you say yes here you get support for the aSC7621
 > +	  family of SMBus sensors chip found on most Intel X48, X38, 975,
@@ -1646,41 +1682,45 @@ Jaswinder Singh.
 > +	  This driver can also be built as a module.  If so, the module
 > +	  will be called asc7621.
 > +
->  config SENSORS_ATXP1
->  	tristate "Attansic ATXP1 VID controller"
->  	depends on I2C && EXPERIMENTAL
+>   config SENSORS_ATXP1
+>   	tristate "Attansic ATXP1 VID controller"
+>   	depends on I2C&&  EXPERIMENTAL
 > diff -uprN a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> --- a/drivers/hwmon/Makefile	2010-02-21 09:33:51.000000000 -0700
-> +++ b/drivers/hwmon/Makefile	2010-02-21 09:55:37.000000000 -0700
+> --- a/drivers/hwmon/Makefile	2010-01-29 14:57:50.000000000 -0700
+> +++ b/drivers/hwmon/Makefile	2010-01-30 12:14:54.000000000 -0700
 > @@ -35,6 +35,7 @@ obj-$(CONFIG_SENSORS_ADT7473)	+= adt7473
->  obj-$(CONFIG_SENSORS_ADT7475)	+= adt7475.o
->  obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
->  obj-$(CONFIG_SENSORS_AMS)	+= ams/
+>   obj-$(CONFIG_SENSORS_ADT7475)	+= adt7475.o
+>   obj-$(CONFIG_SENSORS_APPLESMC)	+= applesmc.o
+>   obj-$(CONFIG_SENSORS_AMS)	+= ams/
 > +obj-$(CONFIG_SENSORS_ASC7621)	+= asc7621.o
->  obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
->  obj-$(CONFIG_SENSORS_CORETEMP)	+= coretemp.o
->  obj-$(CONFIG_SENSORS_DME1737)	+= dme1737.o
+>   obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
+>   obj-$(CONFIG_SENSORS_CORETEMP)	+= coretemp.o
+>   obj-$(CONFIG_SENSORS_DME1737)	+= dme1737.o
 > diff -uprN a/MAINTAINERS b/MAINTAINERS
-> --- a/MAINTAINERS	2010-02-21 09:33:56.000000000 -0700
-> +++ b/MAINTAINERS	2010-02-21 09:51:43.000000000 -0700
+> --- a/MAINTAINERS	2010-01-29 14:57:50.000000000 -0700
+> +++ b/MAINTAINERS	2010-01-30 12:41:11.000000000 -0700
 > @@ -964,6 +964,13 @@ W:	http://www.arm.linux.org.uk/
->  S:	Maintained
->  F:	arch/arm/vfp/
->  
+>   S:	Maintained
+>   F:	arch/arm/vfp/
+>
 > +ASC7621 HARDWARE MONITOR DRIVER
-> +M:	George Joseph <george.joseph@fairview5.com>
+> +M:	George Joseph<george.joseph@fairview5.com>
 > +L:	lm-sensors@lm-sensors.org
 > +S:	Maintained
 > +F:	Documentation/hwmon/asc7621
 > +F:	drivers/hwmon/asc7621.c
 > +
->  ASUS ACPI EXTRAS DRIVER
->  M:	Corentin Chary <corentincj@iksaif.net>
->  M:	Karol Kozimor <sziwan@users.sourceforge.net>
-
-
-
-
+>   ASUS ACPI EXTRAS DRIVER
+>   M:	Corentin Chary<corentincj@iksaif.net>
+>   M:	Karol Kozimor<sziwan@users.sourceforge.net>
+>
+>
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
 _______________________________________________
 lm-sensors mailing list
