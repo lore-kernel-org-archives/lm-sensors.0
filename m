@@ -1,201 +1,258 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Thu, 04 Feb 2010 08:24:07 +0000
-Subject: [lm-sensors] [PATCH 5/6] lis3: Add skeletons for interrupt handlers
-Message-Id: <1265271848-26559-6-git-send-email-samu.p.onkalo@nokia.com>
+From: Roman Mamedov <roman@rm.pp.ru>
+Date: Sun, 28 Feb 2010 22:25:08 +0000
+Subject: [lm-sensors] ASUS CUSL2: sensors work with 2.6.30, don't with 2.6.33
+Message-Id: <20100301032508.0f41a581@natsu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1999196112549713138=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1265271848-26559-1-git-send-email-samu.p.onkalo@nokia.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--===============1999196112549713138==
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/nMNgR69xIwmW8WdXvu3Of7n"; protocol="application/pgp-signature"
+
+--Sig_/nMNgR69xIwmW8WdXvu3Of7n
+Content-Type: multipart/mixed; boundary="MP_/b7_+eWl2kdRqLaOwD1iLGm="
+
+--MP_/b7_+eWl2kdRqLaOwD1iLGm=
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Hello.
+
+I have a Pentium III with ASUS CUSL2 motherboard. When it is booted into
+the kernel 2.6.30, the sensors are detected and work fine. But when the ker=
+nel
+is 2.6.33, no sensors are detected. I did not try any kernel versions in
+between for now. Any idea what could be the cause? Attaching sensors-detect
+outputs from under both kernels.
+
+--=20
+With respect,
+Roman
+
+--MP_/b7_+eWl2kdRqLaOwD1iLGm=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename=sensors-2.6.30.txt
+
+# sensors-detect
+# sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
+# Board: ASUSTeK Computer INC. CUSL2
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):=20
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           No
+AMD Family 11h thermal sensors...                           No
+Intel Core family thermal sensor...                         No
+Intel Atom thermal sensor...                                No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):=20
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+Found unknown chip with ID 0x8700
+    (logical device 9 has address 0x290, could be sensors)
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no):=20
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (YES/no):=20
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no):=20
+Using driver `i2c-i801' for device 0000:00:1f.3: Intel 82801BA ICH2
+Module i2c-dev loaded successfully.
+
+Next adapter: SMBus I801 adapter at e800 (i2c-0)
+Do you want to scan it? (YES/no/selectively):=20
+Client found at address 0x2d
+Handled by driver `w83781d' (already loaded), chip type `as99127f'
+Client found at address 0x48
+Handled by driver `i2c_core' (already loaded), chip type `dummy'
+    (note: this is probably NOT a sensor chip!)
+Client found at address 0x49
+Handled by driver `i2c_core' (already loaded), chip type `dummy'
+    (note: this is probably NOT a sensor chip!)
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:=20
+
+Driver `w83781d':
+  * Bus `SMBus I801 adapter at e800'
+    Busdriver `i2c_i801', I2C address 0x2d
+    Chip `as99127f' (confidence: 6)
+
+To load everything that is needed, add this to /etc/modules:
+#----cut here----
+# Chip drivers
+w83781d
+#----cut here----
+If you have some drivers built into your kernel, the list above will
+contain too many modules. Skip the appropriate ones!
+
+Do you want to add these lines automatically to /etc/modules? (yes/NO)NO
+
+Unloading i2c-dev... OK
+
+# sensors
+as99127f-i2c-0-2d
+Adapter: SMBus I801 adapter at e800
+in0:         +1.66 V  (min =3D  +1.46 V, max =3D  +1.84 V)  =20
+in1:         +1.66 V  (min =3D  +2.24 V, max =3D  +2.74 V)   ALARM
+in2:         +3.28 V  (min =3D  +2.96 V, max =3D  +3.62 V)  =20
+in3:         +2.91 V  (min =3D  +2.67 V, max =3D  +3.26 V)  =20
+in4:         +3.10 V  (min =3D  +2.40 V, max =3D  +3.58 V)  =20
+in5:         +2.90 V  (min =3D  +2.42 V, max =3D  +3.62 V)  =20
+in6:         +3.17 V  (min =3D  +2.66 V, max =3D  +3.98 V)  =20
+fan1:          0 RPM  (min =3D    0 RPM, div =3D 2)
+fan2:          0 RPM  (min =3D    0 RPM, div =3D 2)
+fan3:          0 RPM  (min =3D    0 RPM, div =3D 2)
+temp1:       +32.0=C2=B0C  (high =3D +105.0=C2=B0C, hyst =3D  +0.0=C2=B0C) =
+=20
+temp2:       +23.5=C2=B0C  (high =3D +100.0=C2=B0C, hyst =3D +92.0=C2=B0C) =
+=20
+temp3:       -31.5=C2=B0C  (high =3D +122.0=C2=B0C, hyst =3D +121.0=C2=B0C)=
+ =20
+cpu0_vid:   +1.650 V
+beep_enable:enabled
+
+--MP_/b7_+eWl2kdRqLaOwD1iLGm=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename=sensors-2.6.33.txt
+
+# sensors-detect=20
+# sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
+# Board: ASUSTeK Computer INC. CUSL2
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):=20
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           No
+AMD Family 11h thermal sensors...                           No
+Intel Core family thermal sensor...                         No
+Intel Atom thermal sensor...                                No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):=20
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+Found unknown chip with ID 0x8700
+    (logical device 9 has address 0x290, could be sensors)
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no):=20
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (YES/no):=20
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no):=20
+Using driver `i2c-i801' for device 0000:00:1f.3: Intel 82801BA ICH2
+
+Sorry, no sensors were detected.
+Either your system has no sensors, or they are not supported, or
+they are connected to an I2C or SMBus adapter that is not
+supported. If you find out what chips are on your board, check
+http://www.lm-sensors.org/wiki/Devices for driver status.
+
+--MP_/b7_+eWl2kdRqLaOwD1iLGm=--
+
+--Sig_/nMNgR69xIwmW8WdXvu3Of7n
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkuK7UQACgkQTLKSvz+PZwj6eACgkJgf8PWE9N2B9Htv1pHjRYLQ
+RY4An1E/7g/azdVB0UX/NWwHT/eSJTuK
+=rBT+
+-----END PGP SIGNATURE-----
+
+--Sig_/nMNgR69xIwmW8WdXvu3Of7n--
+
+
+--===============1999196112549713138==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: eric.piel@tremplin-utc.net
-Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Samu Onkalo <samu.p.onkalo@nokia.com>
-
-Original lis3 driver didn't provide interrupt handler(s) for
-click or threshold event handling. This patch adds threaded handlers
-for one or two interrupt lines for 8 bit device.
-Actual content for interrupt handling is provided in the
-separate patch.
-
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
----
- drivers/hwmon/lis3lv02d.c |   87 +++++++++++++++++++++++++++++++++------------
- include/linux/lis3lv02d.h |    1 +
- 2 files changed, 65 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index 5948a3a..7de42f6 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -276,6 +276,9 @@ static void lis3lv02d_joystick_close(struct input_polled_dev *pidev)
- 
- static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
- {
-+	if (!test_bit(0, &lis3_dev.misc_opened))
-+		goto out;
-+
- 	/*
- 	 * Be careful: on some HP laptops the bios force DD when on battery and
- 	 * the lid is closed. This leads to interrupts as soon as a little move
-@@ -285,45 +288,36 @@ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
- 
- 	wake_up_interruptible(&lis3_dev.misc_wait);
- 	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
-+out:
-+	if (lis3_dev.whoami = WAI_8B && lis3_dev.idev &&
-+	    lis3_dev.idev->input->users)
-+		return IRQ_WAKE_THREAD;
- 	return IRQ_HANDLED;
- }
- 
--static int lis3lv02d_misc_open(struct inode *inode, struct file *file)
-+static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
- {
--	int ret;
-+	return IRQ_HANDLED;
-+}
- 
-+static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
-+{
-+	return IRQ_HANDLED;
-+}
-+
-+static int lis3lv02d_misc_open(struct inode *inode, struct file *file)
-+{
- 	if (test_and_set_bit(0, &lis3_dev.misc_opened))
- 		return -EBUSY; /* already open */
- 
- 	lis3lv02d_add_users(&lis3_dev);
- 	atomic_set(&lis3_dev.count, 0);
--
--	/*
--	 * The sensor can generate interrupts for free-fall and direction
--	 * detection (distinguishable with FF_WU_SRC and DD_SRC) but to keep
--	 * the things simple and _fast_ we activate it only for free-fall, so
--	 * no need to read register (very slow with ACPI). For the same reason,
--	 * we forbid shared interrupts.
--	 *
--	 * IRQF_TRIGGER_RISING seems pointless on HP laptops because the
--	 * io-apic is not configurable (and generates a warning) but I keep it
--	 * in case of support for other hardware.
--	 */
--	ret = request_irq(lis3_dev.irq, lis302dl_interrupt, IRQF_TRIGGER_RISING,
--			  DRIVER_NAME, &lis3_dev);
--
--	if (ret) {
--		clear_bit(0, &lis3_dev.misc_opened);
--		printk(KERN_ERR DRIVER_NAME ": IRQ%d allocation failed\n", lis3_dev.irq);
--		return -EBUSY;
--	}
- 	return 0;
- }
- 
- static int lis3lv02d_misc_release(struct inode *inode, struct file *file)
- {
- 	fasync_helper(-1, file, 0, &lis3_dev.async_queue);
--	free_irq(lis3_dev.irq, &lis3_dev);
- 	clear_bit(0, &lis3_dev.misc_opened); /* release the device */
- 	lis3lv02d_remove_users(&lis3_dev);
- 	return 0;
-@@ -463,6 +457,11 @@ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_enable);
- 
- void lis3lv02d_joystick_disable(void)
- {
-+	if (lis3_dev.irq)
-+		free_irq(lis3_dev.irq, &lis3_dev);
-+	if (lis3_dev.pdata && lis3_dev.pdata->irq2)
-+		free_irq(lis3_dev.pdata->irq2, &lis3_dev);
-+
- 	if (!lis3_dev.idev)
- 		return;
- 
-@@ -592,6 +591,7 @@ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
- static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
- 				struct lis3lv02d_platform_data *p)
- {
-+	int err;
- 	int ctrl2 = p->hipass_ctrl;
- 
- 	if (p->click_flags) {
-@@ -622,6 +622,18 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
- 	}
- 	/* Configure hipass filters */
- 	dev->write(dev, CTRL_REG2, ctrl2);
-+
-+	if (p->irq2) {
-+		err = request_threaded_irq(p->irq2,
-+					NULL,
-+					lis302dl_interrupt_thread2_8b,
-+					IRQF_TRIGGER_RISING |
-+					IRQF_ONESHOT,
-+					DRIVER_NAME, &lis3_dev);
-+		if (err < 0)
-+			printk(KERN_ERR DRIVER_NAME
-+				"No second IRQ. Limited functionality\n");
-+	}
- }
- 
- /*
-@@ -630,6 +642,9 @@ static void lis3lv02d_8b_configure(struct lis3lv02d *dev,
-  */
- int lis3lv02d_init_device(struct lis3lv02d *dev)
- {
-+	int err;
-+	irq_handler_t thread_fn;
-+
- 	dev->whoami = lis3lv02d_read_8(dev, WHO_AM_I);
- 
- 	switch (dev->whoami) {
-@@ -685,6 +700,32 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
- 		goto out;
- 	}
- 
-+	/*
-+	 * The sensor can generate interrupts for free-fall and direction
-+	 * detection (distinguishable with FF_WU_SRC and DD_SRC) but to keep
-+	 * the things simple and _fast_ we activate it only for free-fall, so
-+	 * no need to read register (very slow with ACPI). For the same reason,
-+	 * we forbid shared interrupts.
-+	 *
-+	 * IRQF_TRIGGER_RISING seems pointless on HP laptops because the
-+	 * io-apic is not configurable (and generates a warning) but I keep it
-+	 * in case of support for other hardware.
-+	 */
-+	if (dev->whoami = WAI_8B)
-+		thread_fn = lis302dl_interrupt_thread1_8b;
-+	else
-+		thread_fn = NULL;
-+
-+	err = request_threaded_irq(dev->irq, lis302dl_interrupt,
-+				thread_fn,
-+				IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-+				DRIVER_NAME, &lis3_dev);
-+
-+	if (err < 0) {
-+		printk(KERN_ERR DRIVER_NAME "Cannot get IRQ\n");
-+		goto out;
-+	}
-+
- 	if (misc_register(&lis3lv02d_misc_device))
- 		printk(KERN_ERR DRIVER_NAME ": misc_register failed\n");
- out:
-diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
-index d625199..fd289b1 100644
---- a/include/linux/lis3lv02d.h
-+++ b/include/linux/lis3lv02d.h
-@@ -67,6 +67,7 @@ struct lis3lv02d_platform_data {
- 	/* Limits for selftest are specified in chip data sheet */
- 	s16 st_min_limits[3]; /* min pass limit x, y, z */
- 	s16 st_max_limits[3]; /* max pass limit x, y, z */
-+	int irq2;
- };
- 
- #endif /* __LIS3LV02D_H_ */
--- 
-1.6.0.4
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1999196112549713138==--
