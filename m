@@ -1,35 +1,30 @@
-From: Christian Kujau <lists@nerdbynature.de>
-Date: Tue, 16 Feb 2010 01:33:33 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ams) Fix device removal sequence
-Message-Id: <alpine.DEB.2.01.1002151716240.28195@bogon.housecafe.de>
+From: Carsten Aulbert <carsten.aulbert@aei.mpg.de>
+Date: Mon, 01 Mar 2010 12:45:53 +0000
+Subject: [lm-sensors] Activate WD chip on Tyan S7025?
+Message-Id: <201003011345.55821.carsten.aulbert@aei.mpg.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100131150323.06e0c876@hyperion.delvare>
-In-Reply-To: <20100131150323.06e0c876@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jean Delvare <khali@linux-fr.org>, linuxppc-dev@ozlabs.org, Stelian Pop <stelian@popies.net>, Michael Hanselmann <linux-kernel@hansmi.ch>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Ben,
+Hi all,
 
-I cannot find those two patches from Jean [0] in your tree, I take it 
-they'll be included and pushed to Linus in 2.6.34 then?
+I would like to try to use lm-sensors (Debian Squeeze version 3.1.2), but I 
+receive the following messages:
 
-(Although I had hoped to see them in 2.6.33, I'm "testing"[1] them since 
- -rc2 on my PowerBook)
+Found `Winbond W83627DHG-P Super IO Sensors' (address 0xa10, but not 
+activated)
 
-Thanks,
-Christian.
+Is there a known way to enable this chip?
 
-[0] http://lists.ozlabs.org/pipermail/linuxppc-dev/2010-February/079958.html
-    http://lists.ozlabs.org/pipermail/linuxppc-dev/2010-February/079959.html
-[1] http://www.mail-archive.com/linuxppc-dev@lists.ozlabs.org/msg40983.html
+Cheers
 
--- 
-BOFH excuse #342:
+Carsten
 
-HTTPD Error 4004 : very old Intel cpu - insufficient processing power
+PS: I'm currently trying lm-sensors as the IPMI card does not show sensor 
+information either, thus it might just be that the chip is "off" and needs to 
+be kicked (working with Tyan/Mitac on a solution in parallel)
 
 _______________________________________________
 lm-sensors mailing list
