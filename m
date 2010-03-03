@@ -1,50 +1,32 @@
-From: Sergey Kvachonok <ravenexp@gmail.com>
-Date: Thu, 04 Mar 2010 12:37:05 +0000
-Subject: [lm-sensors] 3.1.2 sensord duplicate RRD name problem
-Message-Id: <25a99abe1003040437t333b4007k76850b406911925d@mail.gmail.com>
+From: Dan Carpenter <error27@gmail.com>
+Date: Wed, 03 Mar 2010 07:09:14 +0000
+Subject: [lm-sensors] e5e9f44c causes buffer under-runs
+Message-Id: <20100303070914.GE5086@bicker>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-sensord fails to start with the following messages:
+Smatch complains about:  e5e9f44c2 i2c: Drop I2C_CLIENT_INSMOD_2 to 8
 
-sensord: Creating round robin database
-sensord: Error creating RRD file: /var/log/sensord.rrd: Duplicate DS name: temp1
+The original define had an "any_chip", but this patch removed it.
 
-sensors output is like this:
+-#define I2C_CLIENT_INSMOD_8(chip1, chip2, chip3, chip4, chip5, chip6, chip7, chip8) \
+-enum chips { any_chip, chip1, chip2, chip3, chip4, chip5, chip6,       \
+-            chip7, chip8 }
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +26.0 C  (high = +76.0 C, crit = +100.0 C)
+This causes some buffer under runs.
 
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +27.0 C  (high = +76.0 C, crit = +100.0 C)
+drivers/hwmon/fschmd.c +1040 fschmd_detect(33) warn: array offset '(kind-1)' can be negative (-1)
+drivers/hwmon/tmp401.c +527 tmp401_detect(37) warn: array offset '(kind-1)' can be negative (-1)
+drivers/hwmon/tmp421.c +255 tmp421_detect(30) warn: array offset '(kind-1)' can be negative (-1)
+drivers/hwmon/tmp421.c +256 tmp421_detect(31) warn: array offset '(kind-1)' can be negative (-1)
 
-it8718-isa-0290
-Adapter: ISA adapter
-Vcore:       +1.01 V  (min =  +0.00 V, max =  +4.08 V)
-V_DDR2:      +1.90 V  (min =  +0.00 V, max =  +4.08 V)
-+3.3V:       +3.38 V  (min =  +0.00 V, max =  +4.08 V)
-in3:         +3.01 V  (min =  +0.00 V, max =  +4.08 V)
-in4:         +0.38 V  (min =  +0.00 V, max =  +2.10 V)
-in7:         +3.15 V  (min =  +0.00 V, max =  +4.08 V)
-Vbat:        +3.18 V
-CPU fan:     148 RPM  (min =   10 RPM)
-System fan:    0 RPM  (min =    0 RPM)
-temp1:       -55.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
-temp2:        -2.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
-MB temp:     +17.0 C  (low  = +127.0 C, high = +60.0 C)  sensor = thermal diode
-cpu0_vid:   +3.300 V
+(From a test version of smatch).
 
-I believe the problem is that different sensors provide results with
-the same name 'temp1'.
-Are there any solutions for this problem?
-
-Thanks in advance,
-Sergey.
+regards,
+dan carpenter
 
 _______________________________________________
 lm-sensors mailing list
