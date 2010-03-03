@@ -1,45 +1,164 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 14 Mar 2010 16:17:05 +0000
-Subject: Re: [lm-sensors] Wrong temperatures reported for Core2Duo CPU in
-Message-Id: <20100314171705.67f8d29c@hyperion.delvare>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 03 Mar 2010 05:37:09 +0000
+Subject: Re: [lm-sensors] 2.6.33 on jetway nc81-lf board
+Message-Id: <20100302213709.951ee97b.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
-In-Reply-To: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
+References: <4B8C0598.2060000@xs4all.nl>
+In-Reply-To: <4B8C0598.2060000@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Udo van den Heuvel <udovdh@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Sun, 14 Mar 2010 07:41:16 -0700, lmsensorslist@nodivisions.com wrote:
-> That makes sense.  And yeah, I do generally have tons of stuff running
-> under Linux, so the system doesn't spend much time being entirely idle.
-> 
-> Well I've just upgraded my PC's case to this one:
-> 
-> http://www.newegg.com/Product/Product.aspx?Item=N82E16811233049
-> 
-> It's nothing super fancy, but it does have one of those side-vents with a
-> duct going straight to the CPU, and it also has a 120mm rear exhaust fan
-> (plus a spot in the front for an intake fan).  My old case was a nice,
-> solid In-Win case, but it was about 10 years old, and had no case fans at
-> all -- not even spots for them -- and the CPU's fan was almost right
-> against the side of the PSU.  So cooling in there was pretty suboptimal.
-> 
-> This new case is a huge improvement: my CPU is idling around 63-65C now,
-> compared to 73-75C in the old case.  Under load it goes as high as the
-> mid-80s, not into the 90s as in the old case.
-> 
-> I'd like it to be even cooler, and will probably get a front intake fan
-> next, but I'm really happy with this upgrade, especially because it's
-> solved my main complaint: the fan noise.  It's super quiet now because the
-> CPU fan and rear case fan are spinning pretty slowly, and only rarely
-> speed up -- as opposed to the CPU fan being obnoxious nearly 24/7 in the
-> old case.
+(cc lm-sensors)
 
-Hey, glad to hear that you finally solved your problem :)
+On Mon, 01 Mar 2010 19:21:12 +0100 Udo van den Heuvel <udovdh@xs4all.nl> wrote:
 
--- 
-Jean Delvare
+> Hello,
+> 
+> I just compiled 2.6.33 on a Jetway NC81-LF board with AMD 235E CPU.
+> While trying to get lm_sensors to work I get in dmesg stuff like:
+> 
+> f71882fg: Found f71862fg chip at 0x220, revision 18
+> ACPI: I/O resource f71882fg [0x220-0x227] conflicts with ACPI region
+> IP__ [0x225-0x226]
+> ACPI: If an ACPI driver is available for this device, you should use it
+> instead of the native driver
+> ACPI: I/O resource piix4_smbus [0xb00-0xb07] conflicts with ACPI region
+> SOR1 [0xb00-0xb0f]
+> ACPI: If an ACPI driver is available for this device, you should use it
+> instead of the native driver
+> 
+> 
+> No other sensor-related modules are loaded.
+> 
+> What could be wrong?
+> 
+> # lspci
+> 00:00.0 Host bridge: Advanced Micro Devices [AMD] RS780 Host Bridge
+> 00:01.0 PCI bridge: Advanced Micro Devices [AMD] RS780 PCI to PCI bridge
+> (int gfx)
+> 00:04.0 PCI bridge: Advanced Micro Devices [AMD] RS780 PCI to PCI bridge
+> (PCIE port 0)
+> 00:05.0 PCI bridge: Advanced Micro Devices [AMD] RS780 PCI to PCI bridge
+> (PCIE port 1)
+> 00:11.0 SATA controller: ATI Technologies Inc SB700/SB800 SATA
+> Controller [AHCI mode]
+> 00:12.0 USB Controller: ATI Technologies Inc SB700/SB800 USB OHCI0
+> Controller
+> 00:12.1 USB Controller: ATI Technologies Inc SB700 USB OHCI1 Controller
+> 00:12.2 USB Controller: ATI Technologies Inc SB700/SB800 USB EHCI Controller
+> 00:13.0 USB Controller: ATI Technologies Inc SB700/SB800 USB OHCI0
+> Controller
+> 00:13.1 USB Controller: ATI Technologies Inc SB700 USB OHCI1 Controller
+> 00:13.2 USB Controller: ATI Technologies Inc SB700/SB800 USB EHCI Controller
+> 00:14.0 SMBus: ATI Technologies Inc SBx00 SMBus Controller (rev 3a)
+> 00:14.1 IDE interface: ATI Technologies Inc SB700/SB800 IDE Controller
+> 00:14.2 Audio device: ATI Technologies Inc SBx00 Azalia (Intel HDA)
+> 00:14.3 ISA bridge: ATI Technologies Inc SB700/SB800 LPC host controller
+> 00:14.4 PCI bridge: ATI Technologies Inc SBx00 PCI to PCI Bridge
+> 00:14.5 USB Controller: ATI Technologies Inc SB700/SB800 USB OHCI2
+> Controller
+> 00:18.0 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron,
+> Athlon64, Sempron] HyperTransport Configuration
+> 00:18.1 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron,
+> Athlon64, Sempron] Address Map
+> 00:18.2 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron,
+> Athlon64, Sempron] DRAM Controller
+> 00:18.3 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron,
+> Athlon64, Sempron] Miscellaneous Control
+> 00:18.4 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron,
+> Athlon64, Sempron] Link Control
+> 01:05.0 VGA compatible controller: ATI Technologies Inc Radeon HD 3200
+> Graphics
+> 02:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+> RTL8111/8168B PCI Express Gigabit Ethernet controller (rev 02)
+> 03:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+> RTL8111/8168B PCI Express Gigabit Ethernet controller (rev 02)
+> 
+> # dmesg|grep -i acpi
+>  BIOS-e820: 00000000bffe0000 - 00000000bffe3000 (ACPI NVS)
+>  BIOS-e820: 00000000bffe3000 - 00000000bfff0000 (ACPI data)
+> ACPI: RSDP 00000000000f83d0 00024 (v02 RS780 )
+> ACPI: XSDT 00000000bffe3080 0004C (v01 RS780  AWRDACPI 42302E31 AWRD
+> 00000000)
+> ACPI: FACP 00000000bffea480 000F4 (v03 RS780  AWRDACPI 42302E31 AWRD
+> 00000000)
+> ACPI: DSDT 00000000bffe3200 0724B (v01 RS780  AWRDACPI 00001000 MSFT
+> 03000000)
+> ACPI: FACS 00000000bffe0000 00040
+> ACPI: SSDT 00000000bffea640 0095E (v01 PTLTD  POWERNOW 00000001  LTP
+> 00000001)
+> ACPI: HPET 00000000bffeafc0 00038 (v01 RS780  AWRDACPI 42302E31 AWRD
+> 00000098)
+> ACPI: MCFG 00000000bffeb000 0003C (v01 RS780  AWRDACPI 42302E31 AWRD
+> 00000000)
+> ACPI: APIC 00000000bffea580 00084 (v01 RS780  AWRDACPI 42302E31 AWRD
+> 00000000)
+> ACPI: Local APIC address 0xfee00000
+> ACPI: PM-Timer IO Port: 0x4008
+> ACPI: Local APIC address 0xfee00000
+> ACPI: LAPIC (acpi_id[0x00] lapic_id[0x00] enabled)
+> ACPI: LAPIC (acpi_id[0x01] lapic_id[0x01] enabled)
+> ACPI: LAPIC (acpi_id[0x02] lapic_id[0x02] disabled)
+> ACPI: LAPIC (acpi_id[0x03] lapic_id[0x03] disabled)
+> ACPI: LAPIC_NMI (acpi_id[0x00] high edge lint[0x1])
+> ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+> ACPI: LAPIC_NMI (acpi_id[0x02] high edge lint[0x1])
+> ACPI: LAPIC_NMI (acpi_id[0x03] high edge lint[0x1])
+> ACPI: IOAPIC (id[0x04] address[0xfec00000] gsi_base[0])
+> ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+> ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 low level)
+> ACPI: IRQ0 used by override.
+> ACPI: IRQ2 used by override.
+> ACPI: IRQ9 used by override.
+> Using ACPI (MADT) for SMP configuration information
+> ACPI: HPET id: 0x10b9a201 base: 0xfed00000
+> ACPI: Core revision 20091214
+> ACPI: bus type pci registered
+> ACPI: EC: Look up EC in DSDT
+> ACPI: Interpreter enabled
+> ACPI: (supports S0 S5)
+> ACPI: Using IOAPIC for interrupt routing
+> ACPI: No dock devices found.
+> ACPI: PCI Root Bridge [PCI0] (0000:00)
+> pci_root PNP0A03:00: ignoring host bridge windows from ACPI; boot with
+> "pci=use_crs" to use them
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P2P_._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCE4._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.PCE5._PRT]
+> ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.AGP_._PRT]
+> ACPI: PCI Interrupt Link [LNKA] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKB] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKC] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKD] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKE] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNKF] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNK0] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> ACPI: PCI Interrupt Link [LNK1] (IRQs 3 4 5 6 7 10 11) *0, disabled.
+> PCI: Using ACPI for IRQ routing
+> pnp: PnP ACPI init
+> ACPI: bus type pnp registered
+> pnp: PnP ACPI: found 12 devices
+> ACPI: ACPI bus type pnp unregistered
+> ACPI Warning for \_TZ_.THRM._PSL: Return Package type mismatch at index
+> 0 - found [NULL Object Descriptor], expected Reference
+> (20091214/nspredef-1040)
+> ACPI: Expecting a [Reference] package element, found type 0
+> ACPI: Invalid passive threshold
+> ACPI: Thermal Zone [THRM] (40 C)
+> ACPI: Power Button [PWRB]
+> ACPI: Power Button [PWRF]
+> ACPI: Fan [FAN] (on)
+> ACPI: I/O resource f71882fg [0x220-0x227] conflicts with ACPI region
+> IP__ [0x225-0x226]
+> ACPI: If an ACPI driver is available for this device, you should use it
+> instead of the native driver
+> (etc)
+> 
+
 
 _______________________________________________
 lm-sensors mailing list
