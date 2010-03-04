@@ -1,45 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Mar 2010 15:28:01 +0000
-Subject: Re: [lm-sensors] [patch] hwmon: saving negative errors in unsigned
-Message-Id: <20100311162801.482d96d6@hyperion.delvare>
+From: Sergey Kvachonok <ravenexp@gmail.com>
+Date: Thu, 04 Mar 2010 12:37:05 +0000
+Subject: [lm-sensors] 3.1.2 sensord duplicate RRD name problem
+Message-Id: <25a99abe1003040437t333b4007k76850b406911925d@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100311103151.GN6321@bicker>
-In-Reply-To: <20100311103151.GN6321@bicker>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Thu, 11 Mar 2010 12:08:32 +0100, Hans de Goede wrote:
-> Ack.
-> 
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
+sensord fails to start with the following messages:
 
-Applied, thanks.
+sensord: Creating round robin database
+sensord: Error creating RRD file: /var/log/sensord.rrd: Duplicate DS name: temp1
 
-> On 03/11/2010 11:31 AM, Dan Carpenter wrote:
-> > "ret" is used to store the return value for watchdog_trigger() and it
-> > should be signed for the error handling to work.
-> >
-> > Signed-off-by: Dan Carpenter<error27@gmail.com>
-> >
-> > diff --git a/drivers/hwmon/w83793.c b/drivers/hwmon/w83793.c
-> > index 9de81a4..612807d 100644
-> > --- a/drivers/hwmon/w83793.c
-> > +++ b/drivers/hwmon/w83793.c
-> > @@ -1294,7 +1294,7 @@ static int watchdog_close(struct inode *inode, struct file *filp)
-> >   static ssize_t watchdog_write(struct file *filp, const char __user *buf,
-> >   	size_t count, loff_t *offset)
-> >   {
-> > -	size_t ret;
-> > +	ssize_t ret;
-> >   	struct w83793_data *data = filp->private_data;
-> >
-> >   	if (count) {
+sensors output is like this:
 
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +26.0 C  (high = +76.0 C, crit = +100.0 C)
 
--- 
-Jean Delvare
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +27.0 C  (high = +76.0 C, crit = +100.0 C)
+
+it8718-isa-0290
+Adapter: ISA adapter
+Vcore:       +1.01 V  (min =  +0.00 V, max =  +4.08 V)
+V_DDR2:      +1.90 V  (min =  +0.00 V, max =  +4.08 V)
++3.3V:       +3.38 V  (min =  +0.00 V, max =  +4.08 V)
+in3:         +3.01 V  (min =  +0.00 V, max =  +4.08 V)
+in4:         +0.38 V  (min =  +0.00 V, max =  +2.10 V)
+in7:         +3.15 V  (min =  +0.00 V, max =  +4.08 V)
+Vbat:        +3.18 V
+CPU fan:     148 RPM  (min =   10 RPM)
+System fan:    0 RPM  (min =    0 RPM)
+temp1:       -55.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
+temp2:        -2.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
+MB temp:     +17.0 C  (low  = +127.0 C, high = +60.0 C)  sensor = thermal diode
+cpu0_vid:   +3.300 V
+
+I believe the problem is that different sensors provide results with
+the same name 'temp1'.
+Are there any solutions for this problem?
+
+Thanks in advance,
+Sergey.
 
 _______________________________________________
 lm-sensors mailing list
