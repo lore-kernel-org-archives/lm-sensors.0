@@ -1,40 +1,89 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 31 Mar 2010 13:37:19 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Don't load if ACPI
-Message-Id: <20100331153719.5c700763@hyperion.delvare>
+From: Huaxu Wan <huaxu.wan@linux.intel.com>
+Date: Fri, 05 Mar 2010 15:38:11 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from MSR
+Message-Id: <20100305153811.GB15945@owl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100330132132.GA16657@srcf.ucam.org>
-	<20100330214732.42f488ba@hyperion.delvare>
-	<20100330194835.GA32322@srcf.ucam.org>
-	<20100330223251.76c6b000@hyperion.delvare>
-	<20100330211049.GA1524@srcf.ucam.org>
-	<68676e01003301445v1b3ee070nfc0f0b53716c4740@mail.gmail.com>
-	<20100330215305.GA2220@srcf.ucam.org>
-	<20100331093004.5143415f@hyperion.delvare>
-	<20100331125122.GA16583@srcf.ucam.org>
-	<20100331152500.4b2ef6a0@hyperion.delvare>
-	<20100331132711.GA17104@srcf.ucam.org>
-In-Reply-To: <20100331132711.GA17104@srcf.ucam.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Garrett <mjg59@srcf.ucam.org>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Wed, 31 Mar 2010 14:27:11 +0100, Matthew Garrett wrote:
-> If the firmware tells us that a resource range using indexed access is 
-> reserved, it's not safe to assume that the firmware isn't using it.
 
-Whether it is safe of not is irrelevant. The user is telling us he/she
-_will_ use it nevertheless. So what is wrong with doing our best to
-avoid problems?
+The MSR IA32_TEMPERATURE_TARGET contains the TjMax value after the i series
+processers.
 
-The user paid for the hardware, and firmwares are often crappy. You
-know that better than anyone else, having worked on ACPI for some time
-now. 
+Signed-off-by: Huaxu Wan <huaxu.wan@intel.com>
+---
+ drivers/hwmon/coretemp.c |   46 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 45 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 55122d8..6039ea5 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -241,6 +241,50 @@ static int __devinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *
+ 	return tjmax;
+ }
+ 
++static int __devinit get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
++{
++	/* The 100C is default for both mobile and non mobile CPUs */
++	int err;
++	u32 eax, edx;
++	u32 val;
++
++	/* A new feature in the i series processors, the 
++	   IA32_TEMPERATURE_TARGET contains the TjMax value */
++	err = rdmsr_safe_on_cpu(id, 0x1a2, &eax, &edx);
++	if (err){
++		printk_once(KERN_WARNING DRVNAME  " : Unable to read TjMax from CPU, an"
++			" assumption value is used! \n");
++	} else {
++		val = (eax >> 16 ) & 0xff;
++		/* If the TjMax is not reasonable, an assumption value 
++		   will be used */
++		if (( val > 80) && (val < 120)){
++			printk_once(KERN_WARNING DRVNAME " : The TjMax is %d\n C", val);
++			return val * 1000;
++		}
++	}
++
++	/* For the early CPUs, an approximation is given.
++	 NOTE: the given value may not be correct. */
++	switch(c->x86_model){
++	case 0xe :
++	case 0xf :
++	case 0x16 :
++	case 0x1a :
++		printk_once(KERN_WARNING DRVNAME  " : TjMax is assumed as 100 C! \n");
++		return 100000;
++		break;
++	case 0x17 :
++	case 0x1c :		/* Atom CPUs */
++		return adjust_tjmax(c, id, dev);
++		break;
++	default :
++		printk_once(KERN_WARNING DRVNAME " : Your CPU is not support yet,"
++			"using the default TjMax: 100 C.\n");
++		return 100000;
++	}
++}
++
+ static int __devinit coretemp_probe(struct platform_device *pdev)
+ {
+ 	struct coretemp_data *data;
+@@ -283,7 +327,7 @@ static int __devinit coretemp_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	data->tjmax = adjust_tjmax(c, data->id, &pdev->dev);
++	data->tjmax = get_tjmax(c, data->id, &pdev->dev);
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
 -- 
-Jean Delvare
+1.6.3.3.363.g725cf7
+
 
 _______________________________________________
 lm-sensors mailing list
