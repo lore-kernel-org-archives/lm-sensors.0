@@ -1,45 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 05 Mar 2010 09:57:18 +0000
-Subject: Re: [lm-sensors] [Patch] hwmon: remove the deprecated adt7473 driver
-Message-Id: <20100305105718.4a680b3c@hyperion.delvare>
+From: =?UTF-8?B?w4lyaWMgUGllbA==?= <Eric.Piel@tremplin-utc.net>
+Date: Sat, 06 Mar 2010 14:26:50 +0000
+Subject: Re: [lm-sensors] [PATCH V2 0/6] lis3lv02d: click and threshold
+Message-Id: <4B92662A.4080604@tremplin-utc.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100305082008.5273.22938.sendpatchset@localhost.localdomain>
-In-Reply-To: <20100305082008.5273.22938.sendpatchset@localhost.localdomain>
+References: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1266318571-31083-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Amerigo Wang <amwang@redhat.com>
-Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, Amerigo Wang <amwang@redhat.com>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Samu Onkalo <samu.p.onkalo@nokia.com>, Andrew Morton <akpm@osdl.org>
+Cc: pavel@ucw.cz, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Fri, 5 Mar 2010 03:16:33 -0500, Amerigo Wang wrote:
+Op 16-02-10 12:09, Samu Onkalo schreef:
+> This patch set replaces my previous one.
+> (see http://www.spinics.net/lists/kernel/msg994446.html)
 > 
-> adt7473 driver is obsoleted by adt7475 driver. And it is scheduled
-> to be removed in Feb 2010.
+> Power control of the chip is dropped out since it requires more work.
+> Runtime-pm support was requested and that takes some time to implement
+> and test. I'll send it as a separate patch.
 > 
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: WANG Cong <amwang@redhat.com>
+> patches 1 - 3 are not touched compared to patch set 1 and they
+> are marked as tested-by Daniel Mack <daniel@caiaq.de> and
+> acked-by Éric Piel <eric.piel@tremplin-utc.net>.
+> Patch 4 is marked as tested-by Daniel Mack <daniel@caiaq.de>.
 > 
-> ---
-> diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-> index 0349790..8debdd6 100644
-> --- a/Documentation/feature-removal-schedule.txt
-> +++ b/Documentation/feature-removal-schedule.txt
-> @@ -449,12 +449,6 @@ Who:	Alok N Kataria <akataria@vmware.com>
->  
->  ----------------------------
->  
-> -What:	adt7473 hardware monitoring driver
-> -When:	February 2010
-> -Why:	Obsoleted by the adt7475 driver.
-> -Who:	Jean Delvare <khali@linux-fr.org>
-> -
-> ----------------------------
-> (...)
+:
+> 
+> Samu Onkalo (6):
+>   lis3: Add missing constants for 8bit device
+>   lis3: Separate configuration function for 8 bit device
+>   lis3: Introduce platform data for second ff / wu unit
+>   lis3: Add skeletons for interrupt handlers
+>   lis3: Interrupt handlers for 8bit wakeup and click events
+>   lis3: Setup poll interval limits
+(sorry for the delay, I was on holidays)
 
-Applied, thanks.
+Just had a look at the patches and they seem fine, so here is my
+Acked-by: Éric Piel <eric.piel@tremplin-utc.net>
 
--- 
-Jean Delvare
+Andrew, would you mind to pick this series of patches to replace the
+dropped one yesterday?
+
+Thanks,
+Eric
 
 _______________________________________________
 lm-sensors mailing list
