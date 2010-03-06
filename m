@@ -1,49 +1,50 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 14 Mar 2010 20:52:36 +0000
-Subject: Re: [lm-sensors] conflicts with ACPI region RUNT?
-Message-Id: <20100314215236.0af00a91@hyperion.delvare>
+Date: Sat, 06 Mar 2010 08:35:21 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: driver for TI tmp102 temperature
+Message-Id: <20100306093521.4b4f2fa8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B9D4A15.4010200@ocsystems.com>
-In-Reply-To: <4B9D4A15.4010200@ocsystems.com>
+References: <201002031723.49976.sfking@fdwdc.com>
+In-Reply-To: <201002031723.49976.sfking@fdwdc.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 14 Mar 2010 16:41:57 -0400, G. Vincent Castellano wrote:
-> I am installing Ubunto 9.10 on a D945GCLF2 Intel Atom Mini-ITX MB with the 
-> intent of running it as a server.  I have concerns about temperature because one 
-> of the hard drives has already complained to me via smartd.
-> 
-> The "sensors" command says:
-> 
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
-> 
-> This is after smsc47m1 was added to /etc/modules and the system restarted.
-> 
-> At startup, syslog is showing:
-> 
-> /var/log/syslog:Mar 14 12:26:53 m5 kernel: [    6.346129] smsc47m1: Found SMSC 
-> LPC47M15x/LPC47M192/LPC47M997
-> /var/log/syslog:Mar 14 12:26:53 m5 kernel: [    6.346201] ACPI: I/O resource 
-> smsc47m1 [0x680-0x6ff] conflicts with ACPI region RUNT [0x680-0x6ff]
-> 
-> Do I need to get with kernel developers, or just do some more of RTFM?  Or what?
+Hi Andrew,
 
-Blame the BIOS vendor. They requested _all_ runtime registers of the
-Super-I/O chip, while they probably only need a few of them. This locks
-Linux out of the chip, so the smsc47m1 driver can't access the
-registers it needs.
+Adding back Steven and the lm-sensors list...
 
-(I guess you can also blame SMSC for using a single I/O range for many
-unrelated things...)
+On Fri, 5 Mar 2010 11:53:42 -0800, Andrew Morton wrote:
+> So you're OK with the patch as-is?
 
-> Since I'm just standing up this machine, it's available for any debugging or 
-> other victimization that might speed resolution.
-> 
-> The RUNT message still appears after I set ACPI=off.
+I did not review it. And testing it doesn't seem positive. First of
+all, I get the following in my logs after loading the driver:
+
+ (null): not a tmp102
+
+Which suggests the use of an uninitialized device struct. Also, the
+detection fails early, I don't think the detection routine works.
+Looking at the code, it doesn't seem to correspond to the TMP102
+register map at all (assuming the dump I got from Steven is really from
+a TMP102) Steven, did you ever test it? Honestly, I don't think it
+makes sense to have a detect routine for this chip, given that it lacks
+identification registers. We relied on ugly detection quirks for the
+LM75 only because that chip was very popular on PC motherboards at one
+point in time. For devices used on embedded designs and which are
+always enumerated, we don't need detection routines.
+
+Then, using the tmp102 driver on the dump sent by Steven produces the
+following "sensors" output:
+
+tmp102-i2c-3-48
+Adapter: SMBus stub driver
+temp1:        +2.6°C  (high = +15.0°C, hyst =  +9.0°C)  
+
+These values are suspiciously low and smell like the wrong base unit is
+used (1/100 °C instead of 1/1000 °C). Quick code examination seems to
+confirm this.
+
+So, no, I am not OK with the patch as-is, it needs more work.
 
 -- 
 Jean Delvare
