@@ -1,44 +1,34 @@
-From: Reimundo Heluani <rheluani@gmail.com>
-Date: Sun, 28 Mar 2010 16:19:42 +0000
-Subject: [lm-sensors] w83627ef  acpi conflicts
-Message-Id: <1269793182.7864.5.camel@campari>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 08 Mar 2010 19:30:15 +0000
+Subject: Re: [lm-sensors] ACPI powermeter Invalid PMC data
+Message-Id: <20100308193015.GE22820@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello list, I am trying to diagnose a loud fan on an ASUS p5q3 deluxe.
-The chip recognized by sensors-detect is 
+On Fri, Mar 05, 2010 at 08:13:13PM +0100, Oliver Niehoerster wrote:
+> Dear Darrick Wong,
+>
+> I'm using the acpi_power_meter module of kernel 2.6.33 on Ubuntu 9.10.
+> Linux 2.6.33 #4 SMP Fri Mar 5 18:51:10 CET 2010 x86_64 GNU/Linux
+> [    0.007951] ACPI: Core revision 20091214
+>
+> I got this error message:
+> [    1.211390] power_meter ACPI000D:00: power_meterInvalid _PMC data
+> [    1.211490] power_meter: probe of ACPI000D:00 failed with error -14
+>
+> Do you know the problem? Have you an idea for solving the error?
 
-* ISA bus, address 0x290
-    Chip `Winbond W83667HG Super IO Sensors' (confidence: 9)
+It means that either ACPI isn't presenting meter data in the correct format, or
+my code is buggy. :)
 
-But on loading the driver I get
+Send me a disassembly of the DSDT/SSDT tables and I can have a look.
 
-[1556449.413770] w83627ehf: Found W83667HG chip at 0x290
-[1556449.413803] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts
-with ACPI region HWRE [0x290-0x299]
-[1556449.413806] ACPI: If an ACPI driver is available for this device,
-you should use it instead of the native driver
+[cc'ing mailing list]
 
-I am completely clueless and have no clue how to proceed.
-
-I am running 
-
-$ uname -a
-Linux campari 2.6.32-gentoo-r3 #1 SMP PREEMPT Sat Feb 6 16:39:11 PST
-2010 x86_64 Intel(R) Core(TM)2 Extreme CPU Q6850 @ 3.00GHz GenuineIntel
-GNU/Linux
-
-I couldn't find much info except an old thread in this list about this
-mobo.
-
-Cheers,
-
-R.
-
-
+--D
 
 _______________________________________________
 lm-sensors mailing list
