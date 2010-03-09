@@ -1,35 +1,30 @@
-From: Huaxu Wan <huaxu.wan@linux.intel.com>
-Date: Mon, 08 Mar 2010 14:44:53 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from
-Message-Id: <20100308144453.GA17373@owl>
+From: Prarit Bhargava <prarit@redhat.com>
+Date: Tue, 09 Mar 2010 14:58:36 +0000
+Subject: [lm-sensors] [PATCH]: coretemp: fix cpu model output
+Message-Id: <20100309145836.10304.23068.sendpatchset@prarit.bos.redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100305153811.GB15945@owl>
-In-Reply-To: <20100305153811.GB15945@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 17:19 Fri 05 Mar, Luca Tettamanti wrote:
-> 
-> Hi,
-> I'm not a native speaker but "assumption value" doesn't seem correct to me.
-> "assumed value" maybe? Or even better (IMHO) "default value"?
-> 
+Avoid hex and decimal confusion when printing out the cpu model.
 
-I meant the TjMax value may not be correct, the "default value" may mislead
-the user into thinking it is correct. I googled the "assumption value", and
-found they are used in some sentences, so I use them too :P
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
 
-
-Hi Jean,
-
-Do you have any comments on the two patches? I'll make another patch to
-update documents if they are accepted.
-
-
-Thanks
-Huaxu
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 2d7bcee..f5f975b 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -466,7 +466,7 @@ static int __init coretemp_init(void)
+ 			   family 6 CPU */
+ 			if ((c->x86 = 0x6) && (c->x86_model > 0xf))
+ 				printk(KERN_WARNING DRVNAME ": Unknown CPU "
+-					"model %x\n", c->x86_model);
++					"model 0x%x\n", c->x86_model);
+ 			continue;
+ 		}
+ 
 
 _______________________________________________
 lm-sensors mailing list
