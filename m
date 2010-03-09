@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Mar 2010 08:45:05 +0000
+Date: Tue, 09 Mar 2010 08:48:47 +0000
 Subject: Re: [lm-sensors] Upgraded my old Debian box's Kernel from 2.6.30 to
-Message-Id: <20100309094505.58e5549b@hyperion.delvare>
+Message-Id: <20100309094847.2ae9bdb8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100305222015.GR11436@alpha.zimage.com>
 In-Reply-To: <20100305222015.GR11436@alpha.zimage.com>
@@ -10,21 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Luca,
+Hi Phillip,
 
-On Mon, 8 Mar 2010 22:34:49 +0100, Luca Tettamanti wrote:
-> Would it be totally horrible to use acpi_ex_{enter,exit}_interpreter
-> inside hwmon code to serialize execution?
+On Mon, 8 Mar 2010 13:43:14 -0800, Phillip Pi wrote:
+> In older Kernels like v2.6.30, did this conflict happen too? I only 
+> remember seeing inaccurate values like for voltages. Speaking of 
+> voltages, which part is responsibile for voltages showing that I don't 
+> have in 2.6.32, but did in 2.6.30?
 
-I would be totally in favor of it if it solves actual problems (or any
-functionally equivalent solution). I guess it can't be bullet-proof, as
-both the native driver and ACPI can assume state conservation between
-device accesses, which is no longer guaranteed with someone else
-accessing the device, but it should indeed help solve at least the most
-critical problems.
+Please be specific. What chip is it, which voltages are missing?
 
-Can you please prepare a patch and send it to both the ACPI folks and
-the lm-sensors list?
+Remember that the output of sensors is influenced by the contents of
+libsensors configuration files (/etc/sensors.conf, /etc/sensors3.conf
+and/or /etc/sensors.d/* depending on your libsensors version and
+distribution choices.)
 
 -- 
 Jean Delvare
