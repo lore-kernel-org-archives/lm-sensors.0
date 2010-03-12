@@ -1,53 +1,48 @@
-From: lmsensorslist@nodivisions.com
-Date: Thu, 11 Mar 2010 20:38:05 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Fri, 12 Mar 2010 09:40:48 +0000
 Subject: Re: [lm-sensors] Wrong temperatures reported for Core2Duo CPU in
-Message-Id: <f4f807d0219cd01d74100b59ee5dbde3.squirrel@webmail.nodivisions.com>
+Message-Id: <68676e01003120140j3983387cx47765a304f412a7@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
 In-Reply-To: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-> Today I installed Windows XP on this same system, to see what it would
-> report for the core temperatures.  I installed 3 apps for this: SpeedFan,
-> Core Temp, and Real Temp.  Here's what they reported while idle and after
-> 10 minutes of high load (all 3 temperature apps reporting simultaneously):
+On Wed, Mar 10, 2010 at 7:10 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> On Wed, 10 Mar 2010 08:41:52 -0800, lmsensorslist@nodivisions.com wrote:
+>> OK, I just tested this, by running the "stress" command for a few minutes,
+>> until the coretemp values were 91C and 92C.  I then immediately shut down
+>> and went into the BIOS.  Here's the BIOS numbers:
+>>
+>> 68C CPU Die/Package Temperature
+>> 54C Motherboard Temperature
+>> 44C Motherboard Temperature
+>> 82C ICH Temperature
+>> 58C MCH Temperature
+>>
+>> And here's the same BIOS numbers after sitting there in the BIOS for 10
+>> minutes:
+>>
+>> 63C CPU Die/Package Temperature
+>> 50C Motherboard Temperature
+>> 44C Motherboard Temperature
+>> 83C ICH Temperature
+>> 54C MCH Temperature
+>>
+>> I guess the die temp is the one that corresponds to the CPU?
 >
-> SpeedFan: idle 49C, loaded 70C
-> Core Temp: idle 54C, loaded 75C
-> Real Temp: idle 59C, loaded 80C
->
-> The Core Temp & Real Temp apps explicitly show what they're using for
-> TjMax: 85C and 90C respectively.  And from the idle/load temps it looks
-> like SpeedFan is probably using 80C.  lm-sensors/coretemp are 10 degrees
-> higher still.
->
-> So which is correct?  Is the TjMax value published by Intel, and/or
-> definitively known to be a certain value?  I searched intel.com and the
-> datasheet for my CPU (the E6600) but didn't see it.  And this tomshardware
-> piece seems to say that Intel deliberately obfuscates this information
-> (read the update at the bottom):
->
-> http://www.tomshardware.com/news/intel-dts-specs,6517.html
->
-> If SpeedFan is correct, I feel much better about my CPU; but if
-> lm-sensors/coretemp is right, I'm more worried.
+> Yes, it probably comes from the CPU internal sensors, although only
+> disassembling the BIOS could tell for sure.
 
+From my experience on Asus boards the "CPU" temperature shown in the
+BIOS is usually read from the external monitoring chip, and only
+rarely from the CPU itself (using PECI - with a totally wrong tjmax -
+sigh).
+The ICH temperature is also suspiciously high.
 
-Sorry for the double-post, but I meant to re-iterate just for
-completeness' sake: the idle/loaded temps reported by lm-sensors+coretemp
-under Linux are ~73C/93C, in contrast to the lower temperatures reported
-by the 3 Windows apps mentioned above.
-
-Thanks,
-
---
-Anthony DiSante
-http://nodivisions.com/
-
-
+Luca
 
 _______________________________________________
 lm-sensors mailing list
