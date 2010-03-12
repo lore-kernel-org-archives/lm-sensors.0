@@ -1,58 +1,59 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 12 Mar 2010 10:39:44 +0000
+From: Hubert Kario <hka@qbs.com.pl>
+Date: Fri, 12 Mar 2010 16:34:02 +0000
 Subject: Re: [lm-sensors] Wrong temperatures reported for Core2Duo CPU in
-Message-Id: <20100312113944.4bbedb14@hyperion.delvare>
+Message-Id: <201003121734.02785.hka@qbs.com.pl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
 In-Reply-To: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Fri, 12 Mar 2010 10:40:48 +0100, Luca Tettamanti wrote:
-> On Wed, Mar 10, 2010 at 7:10 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Wed, 10 Mar 2010 08:41:52 -0800, lmsensorslist@nodivisions.com wrote:
-> >> OK, I just tested this, by running the "stress" command for a few minutes,
-> >> until the coretemp values were 91C and 92C.  I then immediately shut down
-> >> and went into the BIOS.  Here's the BIOS numbers:
-> >>
-> >> 68C CPU Die/Package Temperature
-> >> 54C Motherboard Temperature
-> >> 44C Motherboard Temperature
-> >> 82C ICH Temperature
-> >> 58C MCH Temperature
-> >>
-> >> And here's the same BIOS numbers after sitting there in the BIOS for 10
-> >> minutes:
-> >>
-> >> 63C CPU Die/Package Temperature
-> >> 50C Motherboard Temperature
-> >> 44C Motherboard Temperature
-> >> 83C ICH Temperature
-> >> 54C MCH Temperature
-> >>
-> >> I guess the die temp is the one that corresponds to the CPU?
-> >
-> > Yes, it probably comes from the CPU internal sensors, although only
-> > disassembling the BIOS could tell for sure.
-> 
-> From my experience on Asus boards the "CPU" temperature shown in the
-> BIOS is usually read from the external monitoring chip, and only
-> rarely from the CPU itself (using PECI - with a totally wrong tjmax -
-> sigh).
-
-Yes, but this is an Intel board here, with the QST thing, so I wouldn't
-rely on the usual assumptions.
-
-> The ICH temperature is also suspiciously high.
-
-Indeed.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpZGF5IDEyIE1hcmNoIDIwMTAgMTA6NDA6NDggTHVjYSBUZXR0YW1hbnRpIHdyb3RlOgo+
+IE9uIFdlZCwgTWFyIDEwLCAyMDEwIGF0IDc6MTAgUE0sIEplYW4gRGVsdmFyZSA8a2hhbGlAbGlu
+dXgtZnIub3JnPiB3cm90ZToKPiA+IE9uIFdlZCwgMTAgTWFyIDIwMTAgMDg6NDE6NTIgLTA4MDAs
+IGxtc2Vuc29yc2xpc3RAbm9kaXZpc2lvbnMuY29tIHdyb3RlOgo+ID4+IE9LLCBJIGp1c3QgdGVz
+dGVkIHRoaXMsIGJ5IHJ1bm5pbmcgdGhlICJzdHJlc3MiIGNvbW1hbmQgZm9yIGEgZmV3Cj4gPj4g
+bWludXRlcywgdW50aWwgdGhlIGNvcmV0ZW1wIHZhbHVlcyB3ZXJlIDkxQyBhbmQgOTJDLiAgSSB0
+aGVuCj4gPj4gaW1tZWRpYXRlbHkgc2h1dCBkb3duIGFuZCB3ZW50IGludG8gdGhlIEJJT1MuICBI
+ZXJlJ3MgdGhlIEJJT1MgbnVtYmVyczoKPiA+PiAKPiA+PiA2OEMgQ1BVIERpZS9QYWNrYWdlIFRl
+bXBlcmF0dXJlCj4gPj4gNTRDIE1vdGhlcmJvYXJkIFRlbXBlcmF0dXJlCj4gPj4gNDRDIE1vdGhl
+cmJvYXJkIFRlbXBlcmF0dXJlCj4gPj4gODJDIElDSCBUZW1wZXJhdHVyZQo+ID4+IDU4QyBNQ0gg
+VGVtcGVyYXR1cmUKPiA+PiAKPiA+PiBBbmQgaGVyZSdzIHRoZSBzYW1lIEJJT1MgbnVtYmVycyBh
+ZnRlciBzaXR0aW5nIHRoZXJlIGluIHRoZSBCSU9TIGZvciAxMAo+ID4+IG1pbnV0ZXM6Cj4gPj4g
+Cj4gPj4gNjNDIENQVSBEaWUvUGFja2FnZSBUZW1wZXJhdHVyZQo+ID4+IDUwQyBNb3RoZXJib2Fy
+ZCBUZW1wZXJhdHVyZQo+ID4+IDQ0QyBNb3RoZXJib2FyZCBUZW1wZXJhdHVyZQo+ID4+IDgzQyBJ
+Q0ggVGVtcGVyYXR1cmUKPiA+PiA1NEMgTUNIIFRlbXBlcmF0dXJlCj4gPj4gCj4gPj4gSSBndWVz
+cyB0aGUgZGllIHRlbXAgaXMgdGhlIG9uZSB0aGF0IGNvcnJlc3BvbmRzIHRvIHRoZSBDUFU/Cj4g
+PiAKPiA+IFllcywgaXQgcHJvYmFibHkgY29tZXMgZnJvbSB0aGUgQ1BVIGludGVybmFsIHNlbnNv
+cnMsIGFsdGhvdWdoIG9ubHkKPiA+IGRpc2Fzc2VtYmxpbmcgdGhlIEJJT1MgY291bGQgdGVsbCBm
+b3Igc3VyZS4KPiAKPiBGcm9tIG15IGV4cGVyaWVuY2Ugb24gQXN1cyBib2FyZHMgdGhlICJDUFUi
+IHRlbXBlcmF0dXJlIHNob3duIGluIHRoZQo+IEJJT1MgaXMgdXN1YWxseSByZWFkIGZyb20gdGhl
+IGV4dGVybmFsIG1vbml0b3JpbmcgY2hpcCwgYW5kIG9ubHkKPiByYXJlbHkgZnJvbSB0aGUgQ1BV
+IGl0c2VsZiAodXNpbmcgUEVDSSAtIHdpdGggYSB0b3RhbGx5IHdyb25nIHRqbWF4IC0KPiBzaWdo
+KS4KPiBUaGUgSUNIIHRlbXBlcmF0dXJlIGlzIGFsc28gc3VzcGljaW91c2x5IGhpZ2guCgpUaGVy
+ZSBhcmUgdGhyZWUgc2Vuc29ycyBpbiBDMkQgcHJvY2Vzc29ycyAtIHR3byBUIGp1bmN0aW9uLCBh
+bmQgb25lIFRjYXNlCgpUY2FzZSBpcyByZWFkIGJ5IG1haW5ib2FyZCwgdGhlIGRpZSBoYXMgb25s
+eSB0aGUgc2Vuc29yLCBhcyBpdCB3YXMgc2luY2UgdGhlIApkYXlzIG9mIFBJSUkgaWYgSSByZWNh
+bGwgcmlnaHQKVGp1bmN0aW9uIGFyZSByZWFkIHVzaW5nIGludGVybmFsIENQVSBjaXJjdWl0cy4K
+ClNvbWUgcHJvZ3JhbXMgdXNlIHRoZSBUaiBhbmQgc29tZSB1c2UgVGNhc2UgYXMgdGhlIHZhbHVl
+IGZvciAiQ1BVIHRlbXAiLgoKVGhlIHVzdWFsIGxvY2F0aW9uIGZvciBUY2FzZSBpcyBiZXR3ZWVu
+IHRoZSBjb3Jlcywgb24gdG9wIG9mIHRoZSBzaWxpY29uIGRpZSwgClRqdW5jdGlvbiByZXNpZGUg
+aW4gQUxVLCB0aGVvcmV0aWNhbGx5IGluIHRoZSBwbGFjZSB0aGF0IGNhbiBiZWNvbWUgdGhlIApo
+b3R0ZXN0IHVuZGVyIGxvYWQuCgpXaXRoIGdvb2QgaGVhdCBzcHJlYWRlciBhbmQgY29ycmVjdGx5
+IGFwcGxpZWQgdGhlcm1hbCBwYXN0ZSB0aGUgZGlmZmVyZW5jZSAKYmV0d2VlbiB0aGVtIHNob3Vs
+ZG4ndCBkaWZmZXIgYnkgbW9yZSB0aGFuIDEtM0MgaWRsZSBhbmQgMy01QyBvbiBsb2FkLiBJZiBp
+dCAKZG9lcywgdGhlIGhlYXQgc3ByZWFkZXIgaXNuJ3QgcGxhY2VkIGNvcnJldGx5IG9yIHRoZXJl
+IGFyZSBhaXIgYnViYmxlcyBpbiB0aGUgCnBhc3RlLgpCdXQgbW9yZSBjb21tb25seSBpdCBtZWFu
+cyB0aGF0IHRoZSBzZW5zb3JzIGFyZW4ndCBjYWxpYnJhdGVkIHByb3Blcmx5LgoKVGhlIGNvcnJl
+Y3QgdGVtcGVyYXR1cmVzIGZvciBDMkQgYW5kIEMyUSBjaGlwcyBhdCBpZGxlICh3aXRoIGFsbCBw
+b3dlciBzYXZpbmcgCmZlYXR1cmVzIE9OKSBhcmUgYWJvdXQgNC01QyBhYm92ZSBhbWJpZW50IGZv
+ciBUY2FzZSBhbmQgNi03QyBhYm92ZSBhbWJpZW50IGZvciAKVEp1bmN0aW9uLgoKTG9vayBvbiBv
+dmVyY2xvY2tpbmcgZm9ydW1zIGZvciBtb3JlIGluZm9ybWF0aW9uLCB0aGV5IHVzdWFsbHkgZGln
+IHRoZSBkZWVwZXN0IApmb3Igc3VjaCBpbmZvIDopCi0tIApIdWJlcnQgS2FyaW8KUUJTIC0gUXVh
+bGl0eSBCdXNpbmVzcyBTb2Z0d2FyZQp1bC4gS3Nhd2Vyw7N3IDMwLzg1CjAyLTY1NiBXYXJzemF3
+YQpQT0xBTkQKdGVsLiArNDggKDIyKSA2NDYtNjEtNTEsIDY0Ni03NC0yNApmYXggKzQ4ICgyMikg
+NjQ2LTYxLTUwCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
