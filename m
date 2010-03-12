@@ -1,50 +1,66 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Fri, 12 Mar 2010 09:40:48 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 12 Mar 2010 10:20:45 +0000
 Subject: Re: [lm-sensors] Wrong temperatures reported for Core2Duo CPU in
-Message-Id: <68676e01003120140j3983387cx47765a304f412a7@mail.gmail.com>
+Message-Id: <20100312112045.55cfe178@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
 In-Reply-To: <781687b2e6d2a27726f35a316f5bf821.squirrel@webmail.nodivisions.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 10, 2010 at 7:10 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> On Wed, 10 Mar 2010 08:41:52 -0800, lmsensorslist@nodivisions.com wrote:
->> OK, I just tested this, by running the "stress" command for a few minutes,
->> until the coretemp values were 91C and 92C.  I then immediately shut down
->> and went into the BIOS.  Here's the BIOS numbers:
->>
->> 68C CPU Die/Package Temperature
->> 54C Motherboard Temperature
->> 44C Motherboard Temperature
->> 82C ICH Temperature
->> 58C MCH Temperature
->>
->> And here's the same BIOS numbers after sitting there in the BIOS for 10
->> minutes:
->>
->> 63C CPU Die/Package Temperature
->> 50C Motherboard Temperature
->> 44C Motherboard Temperature
->> 83C ICH Temperature
->> 54C MCH Temperature
->>
->> I guess the die temp is the one that corresponds to the CPU?
->
-> Yes, it probably comes from the CPU internal sensors, although only
-> disassembling the BIOS could tell for sure.
-
-From my experience on Asus boards the "CPU" temperature shown in the
-BIOS is usually read from the external monitoring chip, and only
-rarely from the CPU itself (using PECI - with a totally wrong tjmax -
-sigh).
-The ICH temperature is also suspiciously high.
-
-Luca
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQW50aG9ueSwKCk9uIFRodSwgMTEgTWFyIDIwMTAgMTI6Mzg6MDUgLTA4MDAsIGxtc2Vuc29y
+c2xpc3RAbm9kaXZpc2lvbnMuY29tIHdyb3RlOgo+ID4gVG9kYXkgSSBpbnN0YWxsZWQgV2luZG93
+cyBYUCBvbiB0aGlzIHNhbWUgc3lzdGVtLCB0byBzZWUgd2hhdCBpdCB3b3VsZAo+ID4gcmVwb3J0
+IGZvciB0aGUgY29yZSB0ZW1wZXJhdHVyZXMuICBJIGluc3RhbGxlZCAzIGFwcHMgZm9yIHRoaXM6
+IFNwZWVkRmFuLAo+ID4gQ29yZSBUZW1wLCBhbmQgUmVhbCBUZW1wLiAgSGVyZSdzIHdoYXQgdGhl
+eSByZXBvcnRlZCB3aGlsZSBpZGxlIGFuZCBhZnRlcgo+ID4gMTAgbWludXRlcyBvZiBoaWdoIGxv
+YWQgKGFsbCAzIHRlbXBlcmF0dXJlIGFwcHMgcmVwb3J0aW5nIHNpbXVsdGFuZW91c2x5KToKPiA+
+Cj4gPiBTcGVlZEZhbjogaWRsZSA0OUMsIGxvYWRlZCA3MEMKPiA+IENvcmUgVGVtcDogaWRsZSA1
+NEMsIGxvYWRlZCA3NUMKPiA+IFJlYWwgVGVtcDogaWRsZSA1OUMsIGxvYWRlZCA4MEMKPiA+Cj4g
+PiBUaGUgQ29yZSBUZW1wICYgUmVhbCBUZW1wIGFwcHMgZXhwbGljaXRseSBzaG93IHdoYXQgdGhl
+eSdyZSB1c2luZyBmb3IKPiA+IFRqTWF4OiA4NUMgYW5kIDkwQyByZXNwZWN0aXZlbHkuICBBbmQg
+ZnJvbSB0aGUgaWRsZS9sb2FkIHRlbXBzIGl0IGxvb2tzCj4gPiBsaWtlIFNwZWVkRmFuIGlzIHBy
+b2JhYmx5IHVzaW5nIDgwQy4gIGxtLXNlbnNvcnMvY29yZXRlbXAgYXJlIDEwIGRlZ3JlZXMKPiA+
+IGhpZ2hlciBzdGlsbC4KClZlcnkgaW50ZXJlc3RpbmcgdGhhdCBhcHBhcmVudGx5IG5vYm9keSBh
+Z3JlZXMgb24gd2hhdCBUak1heCBpcy4KCj4gPiBTbyB3aGljaCBpcyBjb3JyZWN0PyAgSXMgdGhl
+IFRqTWF4IHZhbHVlIHB1Ymxpc2hlZCBieSBJbnRlbCwgYW5kL29yCj4gPiBkZWZpbml0aXZlbHkg
+a25vd24gdG8gYmUgYSBjZXJ0YWluIHZhbHVlPyAgSSBzZWFyY2hlZCBpbnRlbC5jb20gYW5kIHRo
+ZQo+ID4gZGF0YXNoZWV0IGZvciBteSBDUFUgKHRoZSBFNjYwMCkgYnV0IGRpZG4ndCBzZWUgaXQu
+ICBBbmQgdGhpcyB0b21zaGFyZHdhcmUKPiA+IHBpZWNlIHNlZW1zIHRvIHNheSB0aGF0IEludGVs
+IGRlbGliZXJhdGVseSBvYmZ1c2NhdGVzIHRoaXMgaW5mb3JtYXRpb24KPiA+IChyZWFkIHRoZSB1
+cGRhdGUgYXQgdGhlIGJvdHRvbSk6Cj4gPgo+ID4gaHR0cDovL3d3dy50b21zaGFyZHdhcmUuY29t
+L25ld3MvaW50ZWwtZHRzLXNwZWNzLDY1MTcuaHRtbAoKVGhpcyBpcyBvdXIgZXhwZXJpZW5jZSBh
+cyB3ZWxsLCB3ZSBhc2tlZCBJbnRlbCByZXBlYXRlZGx5IGFib3V0IHRoZQpUak1heCB2YWx1ZXMg
+Zm9yIHZhcmlvdXMgQ1BVIG1vZGVscyBidXQgY291bGRuJ3QgZ2V0IGEgY2xlYXIgYW5zd2VyLgoK
+PiA+IElmIFNwZWVkRmFuIGlzIGNvcnJlY3QsIEkgZmVlbCBtdWNoIGJldHRlciBhYm91dCBteSBD
+UFU7IGJ1dCBpZgo+ID4gbG0tc2Vuc29ycy9jb3JldGVtcCBpcyByaWdodCwgSSdtIG1vcmUgd29y
+cmllZC4KClVuZm9ydHVuYXRlbHkgeW91IHdpbGwgcHJvYmFibHkgbmV2ZXIga25vdy4gVGhlIG9u
+bHkgcmVsaWFibGUgZGF0YSBwb2ludApoZXJlIGlzIHRoZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhl
+IG9wZXJhdGluZyBwb2ludCBhbmQgVGpNYXgsIG5vdCB0aGUKYWJzb2x1dGUgdGVtcGVyYXR1cmUg
+dmFsdWVzLgoKPiBTb3JyeSBmb3IgdGhlIGRvdWJsZS1wb3N0LCBidXQgSSBtZWFudCB0byByZS1p
+dGVyYXRlIGp1c3QgZm9yCj4gY29tcGxldGVuZXNzJyBzYWtlOiB0aGUgaWRsZS9sb2FkZWQgdGVt
+cHMgcmVwb3J0ZWQgYnkgbG0tc2Vuc29ycytjb3JldGVtcAo+IHVuZGVyIExpbnV4IGFyZSB+NzND
+LzkzQywgaW4gY29udHJhc3QgdG8gdGhlIGxvd2VyIHRlbXBlcmF0dXJlcyByZXBvcnRlZAo+IGJ5
+IHRoZSAzIFdpbmRvd3MgYXBwcyBtZW50aW9uZWQgYWJvdmUuCgpUaGlua2luZyBpbiByZWxhdGl2
+ZSB0ZXJtcywgeW91ciBzeXN0ZW0gaXMgcnVubmluZyB1bmRlciBXaW5kb3dzIGF0IC0zMQppZGxl
+IGFuZCAtMTAgdW5kZXIgaGVhdnkgbG9hZDsgTGludXggYXQgLTI3IGlkbGUgYW5kIC03IHVuZGVy
+IGhlYXZ5CmxvYWQuIFNvIHRoZSBib3R0b20gbGluZSBpcyB0aGF0IHlvdXIgc3lzdGVtIHJ1bnMg
+aG90dGVyIGluIExpbnV4IHRoYW4KV2luZG93cy4gWW91IHNob3VsZCBjaGVjayBpZiB5b3UgaGF2
+ZSBzZXJ2aWNlcyBydW5uaW5nIHRoYXQgc3VjayB5b3VyCkNQVSwgb3IsIGlmIHlvdSBzZWxmLWJ1
+aWx0IHlvdXIga2VybmVsLCBpZiB5b3UgbWlzc2VkIHNvbWUgQ1BVLXJlbGF0ZWQKb3B0aW9ucyBz
+dWNoIGFzIENPTkZJR19DUFVfSURMRSwgQUNQSSwgZXRjLiBBbmQgYWxzbyBtYWtlIHN1cmUgeW91
+IGhhdmUKdGhlIGFjcGlfY3B1ZnJlcSBhbmQgY3B1ZnJlcV9jb25zZXJ2YXRpdmUgZHJpdmVycyBs
+b2FkZWQgYW5kIHVzZWQuIFRoZQoicG93ZXJ0b3AiIHV0aWxpdHkgbWlnaHQgY29tZSBpbiBoYW5k
+eSB0byB0cmFjayBzdWNoIGlzc3Vlcy4KClRoZSAyMMKwQyBkaWZmZXJlbmNlIGJldHdlZW4gaWRs
+ZSBhbmQgaGVhdnkgbG9hZCBzZWVtcyByZWFzb25hYmxlLCBteSBvd24KbW9iaWxlIENvcmUgRHVv
+IENQVSBoYXMgYW4gZXZlbiBsYXJnZXIgZGlmZmVyZW5jZSAoMzfCsEMhKS4gVGhlIDfCsEMKbWFy
+Z2luIGlzIG1vcmUgcHJvYmxlbWF0aWMsIGJ1dCB0aGF0IGJlaW5nIHNhaWQsIEkganVzdCBjaGVj
+a2VkIG1pbmUKYW5kIGl0J3MgcnVubmluZyBvbmx5IDEywrBDIGJlbG93IHRoZSBsaW1pdCB1bmRl
+ciBoZWF2eSBsb2FkLi4uIFRoYXQncwpub3Qgc28gZGlmZmVyZW50IGZyb20geW91cnMuIFNvIG1h
+eWJlIHRoZXNlIENQVXMgcmVhbGx5IHJ1biBob3QgYW5kIHNvCmJlIGl0LgoKLS0gCkplYW4gRGVs
+dmFyZQpodHRwOi8va2hhbGkubGludXgtZnIub3JnL3dpc2hsaXN0Lmh0bWwKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
+aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
