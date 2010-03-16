@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 16 Mar 2010 15:13:01 +0000
+From: Phillip Pi <ant@zimage.com>
+Date: Tue, 16 Mar 2010 15:25:03 +0000
 Subject: Re: [lm-sensors] "FATAL: Module i2c_nforce2 not found." and "FATAL:
-Message-Id: <20100316161301.21d1ce96@hyperion.delvare>
+Message-Id: <20100316152503.GC25138@alpha.zimage.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4B9E4A32.8090405@earthlink.net>
 In-Reply-To: <4B9E4A32.8090405@earthlink.net>
@@ -10,148 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Philip,
+> It's not only i2c-* modules that can't be found. Apparently
+> sensors-detect can't find _any_ module on your system. You have
+> probably broken your kernel modules system-wide.
 
-On Mon, 15 Mar 2010 07:54:42 -0700, Phillip Pi wrote:
-> Hello again.
-> 
-> I think I broke my lm_sensors or something while trying to make other 
-> things work. How come my sensors-detect command no longer finds two 
-> i2c_... modules in my old Debian installation? It used to work a few 
-> days ago.
-> 
-> # sensors-detect
-> # sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
-> # System: MICRO-STAR INTERNATIONAL CO., LTD MS-7125
-> 
-> This program will help you determine which kernel modules you need
-> to load to use lm_sensors most effectively. It is generally safe
-> and recommended to accept the default answers to all questions,
-> unless you know what you're doing.
-> 
-> Some south bridges, CPUs or memory controllers contain embedded sensors.
-> Do you want to scan for them? This is totally safe. (YES/no):
-> Silicon Integrated Systems SIS5595...                       No
-> VIA VT82C686 Integrated Sensors...                          No
-> VIA VT8231 Integrated Sensors...                            No
-> AMD K8 thermal sensors...                                   Success!
->      (driver `k8temp')
-> AMD Family 10h thermal sensors...                           No
-> AMD Family 11h thermal sensors...                           No
-> Intel Core family thermal sensor...                         No
-> Intel Atom thermal sensor...                                No
-> Intel AMB FB-DIMM thermal sensor...                         No
-> VIA C7 thermal sensor...                                    No
-> VIA Nano thermal sensor...                                  No
-> 
-> Some Super I/O chips contain embedded sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-> Trying family `ITE'...                                      No
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-> Found `Winbond W83627EHF/EF/EHG/EG Super IO Sensors'        Success!
->      (address 0x290, driver `w83627ehf')
-> 
-> Some systems (mainly servers) implement IPMI, a set of common interfaces
-> through which system health data may be retrieved, amongst other things.
-> We first try to get the information from SMBIOS. If we don't find it
-> there, we have to read from arbitrary I/O ports to probe for such
-> interfaces. This is normally safe. Do you want to scan for IPMI
-> interfaces? (YES/no):
-> Probing for `IPMI BMC KCS' at 0xca0...                      No
-> Probing for `IPMI BMC SMIC' at 0xca8...                     No
-> 
-> Some hardware monitoring chips are accessible through the ISA I/O ports.
-> We have to write to arbitrary I/O ports to probe them. This is usually
-> safe though. Yes, you do have ISA I/O ports even if you do not have any
-> ISA slots! Do you want to scan the ISA I/O ports? (yes/NO):
-> 
-> Lastly, we can probe the I2C/SMBus adapters for connected hardware
-> monitoring devices. This is the most risky part, and while it works
-> reasonably well on most systems, it has been reported to cause trouble
-> on some systems.
-> Do you want to probe the I2C/SMBus adapters now? (YES/no):
-> Using driver `i2c-nforce2' for device 0000:00:01.1: nVidia Corporation 
-> nForce4 SMBus (MCP)
-> FATAL: Module i2c_nforce2 not found.
-> Failed to load module i2c-nforce2.
-> FATAL: Module i2c_dev not found.
-> Failed to load module i2c-dev.
-> 
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
-> 
-> Driver `w83627ehf':
->    * ISA bus, address 0x290
->      Chip `Winbond W83627EHF/EF/EHG/EG Super IO Sensors' (confidence: 9)
-> 
-> Driver `k8temp':
->    * Chip `AMD K8 thermal sensors' (confidence: 9)
-> 
-> Warning: the required module w83627ehf is not currently installed
-> on your system. If it is built into the kernel then it's OK.
-> Otherwise, check http://www.lm-sensors.org/wiki/Devices for
-> driver availability.
-> 
-> Warning: the required module k8temp is not currently installed
-> on your system. If it is built into the kernel then it's OK.
-> Otherwise, check http://www.lm-sensors.org/wiki/Devices for
-> driver availability.
+Yeah so weird. I don't know what happened or how it happened.
 
-It's not only i2c-* modules that can't be found. Apparently
-sensors-detect can't find _any_ module on your system. You have
-probably broken your kernel modules system-wide.
-
-> No modules to load, skipping modules configuration.
+ 
+> > # uname -a
+> > Linux foobar 2.6.32-trunk-686 #1 SMP Sun Jan 10 06:32:16 UTC 2010 i686 
+> > GNU/Linux
 > 
-> # locate i2c-nforce2
-> /lib/modules/2.6.30-2-686/kernel/drivers/i2c/busses/i2c-nforce2-s4985.ko
-> /lib/modules/2.6.30-2-686/kernel/drivers/i2c/busses/i2c-nforce2.ko
-> /lib/modules/2.6.32-trunk-686/kernel/drivers/i2c/busses/i2c-nforce2-s4985.ko
-> /lib/modules/2.6.32-trunk-686/kernel/drivers/i2c/busses/i2c-nforce2.ko
-> # locate i2c-dev
-> /lib/modules/2.6.30-2-686/kernel/drivers/i2c/i2c-dev.ko
-> /lib/modules/2.6.32-trunk-686/kernel/drivers/i2c/i2c-dev.ko
-> /usr/include/linux/i2c-dev.h
-> /usr/include/linux/i2c-dev.h.kernel
-> /usr/share/doc/libi2c-dev
-> /usr/share/doc/libi2c-dev/changelog.Debian.gz
-> /usr/share/doc/libi2c-dev/changelog.gz
-> /usr/share/doc/libi2c-dev/copyright
-> /usr/share/doc/libi2c-dev/dev-interface.gz
-> /usr/src/linux-headers-2.6.30-2-common/include/linux/i2c-dev.h
-> /usr/src/linux-headers-2.6.32-trunk-common/include/linux/i2c-dev.h
-> /var/cache/apt/archives/libi2c-dev_3.0.2-4_all.deb
-> /var/lib/dpkg/info/libi2c-dev.list
-> /var/lib/dpkg/info/libi2c-dev.md5sums
-> /var/lib/dpkg/info/libi2c-dev.postrm
-> /var/lib/dpkg/info/libi2c-dev.preinst
-> 
-> # uname -a
-> Linux foobar 2.6.32-trunk-686 #1 SMP Sun Jan 10 06:32:16 UTC 2010 i686 
-> GNU/Linux
+> This looks good, but OTOH I have no idea if your locate database is
+> up-to-date. Try running "updatedb" first, then "locate i2c-nforce2"
+> again.
 
-This looks good, but OTOH I have no idea if your locate database is
-up-to-date. Try running "updatedb" first, then "locate i2c-nforce2"
-again.
+I installed a newer kernel 2.6.32 package (non-trunk) from apt-get
+install, trunk kernel wasn't working either, rebooted, used non-trunk
+and all works now. WEIRD!
 
-> I tried uninstalling and reinstalling lm_sensors, but that didn't help. 
-> Thank you in advance. :)
+# uname -a
+Linux foobar 2.6.32-3-686 #1 SMP Thu Feb 25 06:14:20 UTC 2010 i686 GNU/Linux
 
-This is expected, as this is a kernel issue. Could it be that you
-upgraded your kernel and did not reboot yet? If not, then please check
-if "/sbin/modprobe -c > /dev/null" reports any error.
+I noticed this kernel upgrade detected something new: 
+http://pastie.org/872083 (too long to post in here). It never detected 
+adt7473 module, but it never show it in sensors command. What is it? 
+From a quick Google search, it seems to be fan controls or something?
 
+# lsmod |grep adt7473
+adt7473                 8792  0 
+i2c_core               12648  3 adt7473,nvidia,i2c_nforce2
+# lsmod |grep w83627ehf
+<showed nothing>
+
+Weird?
 -- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+Quote of the Week: "What reason, like the careful ant, draws laboriously 
+together, the wind of accident sometimes collects in a moment." 
+--Friedrich von Schiller
+  /\___/\
+ / /\ /\ \         Phil./Ant @ http://antfarm.ma.cx (Personal Web Site)
+| |o   o| |                Ant's Quality Foraged Links: http://aqfl.net
+   \ _ /                 E-mail: philpi@earthlink.net or ant@zimage.com
+    ( )
 
 _______________________________________________
 lm-sensors mailing list
