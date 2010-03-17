@@ -1,55 +1,127 @@
-From: Robert Hancock <hancockrwd@gmail.com>
-Date: Fri, 05 Mar 2010 02:09:04 +0000
-Subject: Re: [lm-sensors] 2.6.33 on jetway nc81-lf board
-Message-Id: <4B9067C0.6050907@gmail.com>
+From: Matthew Garrett <mjg@redhat.com>
+Date: Wed, 17 Mar 2010 19:55:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Add basic support for lm64 to lm63.c
+Message-Id: <1268855722-18457-1-git-send-email-mjg@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B8C0598.2060000@xs4all.nl> <20100302213709.951ee97b.akpm@linux-foundation.org> <20100304091741.GA1995@andre-laptop> <4B8FC4F1.70605@xs4all.nl>
-In-Reply-To: <4B8FC4F1.70605@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Udo van den Heuvel <udovdh@xs4all.nl>
-Cc: Andre Prendel <andre.prendel@gmx.de>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>
 
-On 03/04/2010 08:34 AM, Udo van den Heuvel wrote:
-> On 03/04/2010 10:17 AM, Andre Prendel wrote:
->> On Tue, Mar 02, 2010 at 09:37:09PM -0800, Andrew Morton wrote:
->>> (cc lm-sensors)
->>>
->>> On Mon, 01 Mar 2010 19:21:12 +0100 Udo van den Heuvel<udovdh@xs4all.nl>  wrote:
-> (....)
->>>> No other sensor-related modules are loaded.
->>>>
->>>> What could be wrong?
->>
->> See lm-sensors FAQ Chapter3 #39:
->>
->>    http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
->
-> Thanks, but the explanation implies no real fix other than more
-> consciously choosing to put system stability at risk.
-> Is a better fix in the making?
+The lm64 appears to be an lm63 with added gpio lines. Add support for the
+hwmon functionality - gpio can be added at some later stage if someone
+has a need for them.
 
-I don't think a general fix is really possible at the kernel level. The 
-problem is that there's no way for the kernel to tell for sure whether 
-the BIOS AML or SMI code will attempt to access the sensor device. The 
-fact that your BIOS defines AML operation regions that refer to the 
-SMBus device is a hint that it may, but there's no programmatic way to 
-tell for sure. If the kernel and BIOS end up attempting to poke the 
-hardware monitoring chip at the same time, bad things are likely to 
-happen (like ACPI thermal management not working properly causing 
-overheating or critical shutdowns).
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ Documentation/hwmon/lm63 |    7 +++++++
+ drivers/hwmon/lm63.c     |   19 +++++++++++++++----
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-This problem isn't limited to Linux - loading software (at least that 
-unapproved by the board manufacturer) on Windows that randomly pokes 
-hardware sensors can cause similar problems if the BIOS attempts to 
-access the same hardware.
+diff --git a/Documentation/hwmon/lm63 b/Documentation/hwmon/lm63
+index 31660bf..b6f0495 100644
+--- a/Documentation/hwmon/lm63
++++ b/Documentation/hwmon/lm63
+@@ -7,6 +7,11 @@ Supported chips:
+     Addresses scanned: I2C 0x4c
+     Datasheet: Publicly available at the National Semiconductor website
+                http://www.national.com/pf/LM/LM63.html
++  * National Semiconductor LM64
++    Prefix: 'lm64'
++    Addresses scanned: I2C 0x18 and 0x4e
++    Datasheet: Publicly available at the National Semiconductor website
++               http://www.national.com/pf/LM/LM64.html
+ 
+ Author: Jean Delvare <khali@linux-fr.org>
+ 
+@@ -55,3 +60,5 @@ The lm63 driver will not update its values more frequently than every
+ second; reading them more often will do no harm, but will return 'old'
+ values.
+ 
++The lm64 is effectively an lm63 with gpio lines. The driver does not
++support these gpio lines at present.
+\ No newline at end of file
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index bf81aff..01b23ef 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -53,7 +53,7 @@
+  * Address is fully defined internally and cannot be changed.
+  */
+ 
+-static const unsigned short normal_i2c[] = { 0x4c, I2C_CLIENT_END };
++static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
+ 
+ /*
+  * The LM63 registers
+@@ -131,12 +131,15 @@ static struct lm63_data *lm63_update_device(struct device *dev);
+ static int lm63_detect(struct i2c_client *client, struct i2c_board_info *info);
+ static void lm63_init_client(struct i2c_client *client);
+ 
++enum chips { lm63, lm64 };
++
+ /*
+  * Driver data (common to all clients)
+  */
+ 
+ static const struct i2c_device_id lm63_id[] = {
+-	{ "lm63", 0 },
++	{ "lm63", lm63 },
++	{ "lm64", lm64 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, lm63_id);
+@@ -177,6 +180,7 @@ struct lm63_data {
+ 			   2: remote high limit */
+ 	u8 temp2_crit_hyst;
+ 	u8 alarms;
++	int kind;
+ };
+ 
+ /*
+@@ -422,6 +426,7 @@ static int lm63_detect(struct i2c_client *new_client,
+ 	struct i2c_adapter *adapter = new_client->adapter;
+ 	u8 man_id, chip_id, reg_config1, reg_config2;
+ 	u8 reg_alert_status, reg_alert_mask;
++	int address = new_client->addr;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -439,7 +444,6 @@ static int lm63_detect(struct i2c_client *new_client,
+ 			 LM63_REG_ALERT_MASK);
+ 
+ 	if (man_id != 0x01 /* National Semiconductor */
+-	 || chip_id != 0x41 /* LM63 */
+ 	 || (reg_config1 & 0x18) != 0x00
+ 	 || (reg_config2 & 0xF8) != 0x00
+ 	 || (reg_alert_status & 0x20) != 0x00
+@@ -450,7 +454,12 @@ static int lm63_detect(struct i2c_client *new_client,
+ 		return -ENODEV;
+ 	}
+ 
+-	strlcpy(info->type, "lm63", I2C_NAME_SIZE);
++	if (chip_id = 0x41 && address = 0x4c)
++		strlcpy(info->type, "lm63", I2C_NAME_SIZE);
++	else if (chip_id = 0x51 && (address = 0x18 || address = 0x4e))
++		strlcpy(info->type, "lm64", I2C_NAME_SIZE);
++	else
++		return -ENODEV;
+ 
+ 	return 0;
+ }
+@@ -471,6 +480,8 @@ static int lm63_probe(struct i2c_client *new_client,
+ 	data->valid = 0;
+ 	mutex_init(&data->update_lock);
+ 
++	data->kind = id->driver_data;
++
+ 	/* Initialize the LM63 chip */
+ 	lm63_init_client(new_client);
+ 
+-- 
+1.7.0.1
 
-The only real solution may be to check with the motherboard manufacturer 
-to see if directly accessing the hardware sensors on that board is safe. 
-(It's more likely to be OK on desktop machines than laptops, since they 
-usually have less complex thermal/fan management, but there are no 
-guarantees.)
 
 _______________________________________________
 lm-sensors mailing list
