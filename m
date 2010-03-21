@@ -1,50 +1,61 @@
-From: Sean Fidler <fidlersean@gmail.com>
-Date: Wed, 10 Mar 2010 18:00:15 +0000
-Subject: Re: [lm-sensors] LPC47M192-NC Fans
-Message-Id: <alpine.OSX.2.00.1003101259330.310@blackbird.local>
+From: Giel van Schijndel <me@mortis.eu>
+Date: Sun, 21 Mar 2010 15:37:13 +0000
+Subject: [lm-sensors] [PATCH 1/2] Hwmon: f71882fg: fixed braces coding style
+Message-Id: <1269185834-10266-1-git-send-email-me@mortis.eu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
-In-Reply-To: <alpine.OSX.2.00.0911301621550.346@blackbird.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Giel van Schijndel <me@mortis.eu>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Thanks! Yeah, I must have missed a step that step during this round.
+Fixed several coding style issues.
 
-On Wed, 10 Mar 2010, Jean Delvare wrote:
+Signed-off-by: Giel van Schijndel <me@mortis.eu>
+---
+ drivers/hwmon/f71882fg.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-> Hi Sean,
->
-> On Wed, 10 Mar 2010 11:19:44 -0500 (EST), Sean Fidler wrote:
->> Thanks for the updated driver.
->>
->> I've run into a second issue: I have to manually insmod the smsc47m1.ko
->> file before I'm able to modprobe smsc47m1.
->>
->> Previously, I used insmod once and the smsc47m1 module loaded properly
->> at boot.
->
-> I doubt it. insmod and modprobe do pretty much the same thing, except
-> that modprobe has some magic added. If you run "insmod ./smsc47m1.ko",
-> then a subsequent "modprobe smsc47m1" is a no-op: modprobe sees that the
-> module is already loaded and does nothing.
->
-> If you want to load the driver at boot time, you have 2 options:
-> 1* Use insmod, with the full path to the new module file.
-> 2* Copy the new module file over the old one in /lib/modules, and then
->   you can call modprobe.
->
-> Maybe you did 2* last time, and don't remember the step where you
-> copied the module file around.
->
-> -- 
-> Jean Delvare
->
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index a95fa42..21bc661 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -866,11 +866,11 @@ static int superio_inw(int base, int reg)
+ static inline void superio_enter(int base)
+ {
+ 	/* according to the datasheet the key must be send twice! */
+-	outb( SIO_UNLOCK_KEY, base);
+-	outb( SIO_UNLOCK_KEY, base);
++	outb(SIO_UNLOCK_KEY, base);
++	outb(SIO_UNLOCK_KEY, base);
+ }
+ 
+-static inline void superio_select( int base, int ld)
++static inline void superio_select(int base, int ld)
+ {
+ 	outb(SIO_REG_LDSEL, base);
+ 	outb(ld, base + 1);
+@@ -945,7 +945,7 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
+ 	mutex_lock(&data->update_lock);
+ 
+ 	/* Update once every 60 seconds */
+-	if ( time_after(jiffies, data->last_limits + 60 * HZ ) ||
++	if (time_after(jiffies, data->last_limits + 60 * HZ) ||
+ 			!data->valid) {
+ 		if (data->type = f71882fg || data->type = f71889fg) {
+ 			data->in1_max @@ -2151,8 +2151,7 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 	}
+ 
+ 	*address = superio_inw(sioaddr, SIO_REG_ADDR);
+-	if (*address = 0)
+-	{
++	if (*address = 0) {
+ 		printk(KERN_WARNING DRVNAME ": Base address not set\n");
+ 		goto exit;
+ 	}
+-- 
+1.6.4.4
 
---
-Twitter: endersyrinx
-GTalk: fidlersean
 
 _______________________________________________
 lm-sensors mailing list
