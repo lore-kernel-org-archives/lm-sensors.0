@@ -1,53 +1,86 @@
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Tue, 30 Mar 2010 22:29:55 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1031) Add sysfs files
-Message-Id: <20100330222955.GD20635@ovro.caltech.edu>
+From: Denny Schierz <linuxmail@4lin.net>
+Date: Mon, 22 Mar 2010 21:14:07 +0000
+Subject: [lm-sensors] G760A not working korrekt on NAS dlink 323 HW C1
+Message-Id: <1269292447.6810.21.camel@kusanagi>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0163714215542012748=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090902183322.GF2328@ovro.caltech.edu>
-In-Reply-To: <20090902183322.GF2328@ovro.caltech.edu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Mar 30, 2010 at 03:18:34PM -0700, Ira W. Snyder wrote:
-> On Wed, Sep 02, 2009 at 11:33:22AM -0700, Ira W. Snyder wrote:
-> > On Tue, Jun 30, 2009 at 11:39:18AM -0700, Ira Snyder wrote:
-> > > The ADM1030/ADM1031 chips have temperature offset registers, for both the
-> > > local and remote temperature sensors. Following the example set forth in
-> > > the LM90/ADM1032 driver, expose the offset registers to userspace.
-> > > 
-> > > Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-> > > ---
-> > > 
-> > > I have tested this with an adm1031 chip, and I see the offsets as
-> > > expected. I do not have any other compatible chips to test with, however
-> > > I read the adm1030 datasheet, and everything should work fine.
-> > > 
-> > > On the adm1031, the datasheet claims the offset registers can be used to
-> > > add/subtract 15 degC from the temperature reading. I have found that it
-> > > is actually possible to add 15 degC and subtract 16 degC. Following the
-> > > data sheet, I clamped the value to +- 15 degC, just in case other chips
-> > > are not compatible.
-> > > 
-> > >  drivers/hwmon/adm1031.c |   40 ++++++++++++++++++++++++++++++++++++++++
-> > >  1 files changed, 40 insertions(+), 0 deletions(-)
-> > > 
-> > 
-> > Any comments on this? Can it be merged for 2.6.32?
-> > 
-> 
-> Again, any comments on this? I haven't heard anything since it was
-> posted.
-> 
 
-Whoops, I must have missed when this was picked up.
+--===============0163714215542012748==
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-t2f5mmJXpWkSjKeDWDIY"
 
-I apologize for the extra mailing list traffic. Sorry.
 
-Ira
+--=-t2f5mmJXpWkSjKeDWDIY
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+hi
+
+I have a NAS from D-Link called DNS-323=C2=B9 and it has a fan controller
+G760A. the hardware revision ist C1. My problem is, after starting the
+kernel (2.6.33.1 (* in .config, nit [M] ), the fan stops. I'm not able
+to activate him, with echo, like:
+
+nas:~# cat /sys/class/hwmon/hwmon0/device/pwm1
+18
+
+echo 0 >  /sys/class/hwmon/hwmon0/device/pwm1
+nas:~# cat /sys/class/hwmon/hwmon0/device/pwm1
+18
+
+
+echo 255 >  /sys/class/hwmon/hwmon0/device/pwm1
+nas:~# cat /sys/class/hwmon/hwmon0/device/pwm1
+18
+
+I do not know, what could be the problem, so I hope, anybody knows the
+problem:
+
+nas:~# sensors
+g760a-i2c-0-3e
+Adapter: mv64xxx_i2c adapter
+fan1:       2073 RPM  ALARM
+
+lm75-i2c-0-48
+Adapter: mv64xxx_i2c adapter
+temp1:       +48.5 C  (high =3D +80.0 C, hyst =3D +75.0 C)
+
+=C2=B9 http://www.cyrius.com/debian/orion/d-link/dns-323/specs.html
+
+The revision C1 seems to be a little different, but I don't know, how
+can I figure out this.
+
+Any suggestions?
+
+cu denny
+
+--=-t2f5mmJXpWkSjKeDWDIY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkun3ZsACgkQKlzhkqt9P+D6rgCeMuuhOC0oWK2cHSJwAyWDQdV1
++6gAoJ8dp9pN5fXRPUt/z8sR79nUlPKM
+=eJ6i
+-----END PGP SIGNATURE-----
+
+--=-t2f5mmJXpWkSjKeDWDIY--
+
+
+
+--===============0163714215542012748==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0163714215542012748==--
+
