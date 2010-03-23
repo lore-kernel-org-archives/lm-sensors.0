@@ -1,86 +1,63 @@
-From: Denny Schierz <linuxmail@4lin.net>
-Date: Mon, 22 Mar 2010 21:14:07 +0000
-Subject: [lm-sensors] G760A not working korrekt on NAS dlink 323 HW C1
-Message-Id: <1269292447.6810.21.camel@kusanagi>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0163714215542012748=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 23 Mar 2010 12:43:01 +0000
+Subject: Re: [lm-sensors] G760A not working korrekt on NAS dlink 323 HW C1
+Message-Id: <20100323134301.30e109b8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1269292447.6810.21.camel@kusanagi>
+In-Reply-To: <1269292447.6810.21.camel@kusanagi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="tis-620"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
---===============0163714215542012748==
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-t2f5mmJXpWkSjKeDWDIY"
-
-
---=-t2f5mmJXpWkSjKeDWDIY
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-hi
-
-I have a NAS from D-Link called DNS-323=C2=B9 and it has a fan controller
-G760A. the hardware revision ist C1. My problem is, after starting the
-kernel (2.6.33.1 (* in .config, nit [M] ), the fan stops. I'm not able
-to activate him, with echo, like:
-
-nas:~# cat /sys/class/hwmon/hwmon0/device/pwm1
-18
-
-echo 0 >  /sys/class/hwmon/hwmon0/device/pwm1
-nas:~# cat /sys/class/hwmon/hwmon0/device/pwm1
-18
-
-
-echo 255 >  /sys/class/hwmon/hwmon0/device/pwm1
-nas:~# cat /sys/class/hwmon/hwmon0/device/pwm1
-18
-
-I do not know, what could be the problem, so I hope, anybody knows the
-problem:
-
-nas:~# sensors
-g760a-i2c-0-3e
-Adapter: mv64xxx_i2c adapter
-fan1:       2073 RPM  ALARM
-
-lm75-i2c-0-48
-Adapter: mv64xxx_i2c adapter
-temp1:       +48.5 C  (high =3D +80.0 C, hyst =3D +75.0 C)
-
-=C2=B9 http://www.cyrius.com/debian/orion/d-link/dns-323/specs.html
-
-The revision C1 seems to be a little different, but I don't know, how
-can I figure out this.
-
-Any suggestions?
-
-cu denny
-
---=-t2f5mmJXpWkSjKeDWDIY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Dies ist ein digital signierter Nachrichtenteil
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkun3ZsACgkQKlzhkqt9P+D6rgCeMuuhOC0oWK2cHSJwAyWDQdV1
-+6gAoJ8dp9pN5fXRPUt/z8sR79nUlPKM
-=eJ6i
------END PGP SIGNATURE-----
-
---=-t2f5mmJXpWkSjKeDWDIY--
-
-
-
---===============0163714215542012748==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0163714215542012748==--
-
+SGkgRGVubnksCgpPbiBNb24sIDIyIE1hciAyMDEwIDIyOjE0OjA3ICswMTAwLCBEZW5ueSBTY2hp
+ZXJ6IHdyb3RlOgo+IEkgaGF2ZSBhIE5BUyBmcm9tIEQtTGluayBjYWxsZWQgRE5TLTMyM8K5IGFu
+ZCBpdCBoYXMgYSBmYW4gY29udHJvbGxlcgo+IEc3NjBBLiB0aGUgaGFyZHdhcmUgcmV2aXNpb24g
+aXN0IEMxLiBNeSBwcm9ibGVtIGlzLCBhZnRlciBzdGFydGluZyB0aGUKPiBrZXJuZWwgKDIuNi4z
+My4xICgqIGluIC5jb25maWcsIG5pdCBbTV0gKSwgdGhlIGZhbiBzdG9wcy4gSSdtIG5vdCBhYmxl
+Cj4gdG8gYWN0aXZhdGUgaGltLCB3aXRoIGVjaG8sIGxpa2U6Cj4gCj4gbmFzOn4jIGNhdCAvc3lz
+L2NsYXNzL2h3bW9uL2h3bW9uMC9kZXZpY2UvcHdtMQo+IDE4Cj4gCj4gZWNobyAwID4gIC9zeXMv
+Y2xhc3MvaHdtb24vaHdtb24wL2RldmljZS9wd20xCj4gbmFzOn4jIGNhdCAvc3lzL2NsYXNzL2h3
+bW9uL2h3bW9uMC9kZXZpY2UvcHdtMQo+IDE4Cj4gCj4gCj4gZWNobyAyNTUgPiAgL3N5cy9jbGFz
+cy9od21vbi9od21vbjAvZGV2aWNlL3B3bTEKPiBuYXM6fiMgY2F0IC9zeXMvY2xhc3MvaHdtb24v
+aHdtb24wL2RldmljZS9wd20xCj4gMTgKPiAKPiBJIGRvIG5vdCBrbm93LCB3aGF0IGNvdWxkIGJl
+IHRoZSBwcm9ibGVtLCBzbyBJIGhvcGUsIGFueWJvZHkga25vd3MgdGhlCj4gcHJvYmxlbToKPiAK
+PiBuYXM6fiMgc2Vuc29ycwo+IGc3NjBhLWkyYy0wLTNlCj4gQWRhcHRlcjogbXY2NHh4eF9pMmMg
+YWRhcHRlcgo+IGZhbjE6ICAgICAgIDIwNzMgUlBNICBBTEFSTQoKRG9lcyB0aGlzIHZhbHVlIGNo
+YW5nZSBvdmVyIHRpbWU/IEkgZ3Vlc3Mgbm90LgoKPiAKPiBsbTc1LWkyYy0wLTQ4Cj4gQWRhcHRl
+cjogbXY2NHh4eF9pMmMgYWRhcHRlcgo+IHRlbXAxOiAgICAgICArNDguNSBDICAoaGlnaCA9ICs4
+MC4wIEMsIGh5c3QgPSArNzUuMCBDKQo+IAo+IMK5IGh0dHA6Ly93d3cuY3lyaXVzLmNvbS9kZWJp
+YW4vb3Jpb24vZC1saW5rL2Rucy0zMjMvc3BlY3MuaHRtbAo+IAo+IFRoZSByZXZpc2lvbiBDMSBz
+ZWVtcyB0byBiZSBhIGxpdHRsZSBkaWZmZXJlbnQsIGJ1dCBJIGRvbid0IGtub3csIGhvdwo+IGNh
+biBJIGZpZ3VyZSBvdXQgdGhpcy4KPiAKPiBBbnkgc3VnZ2VzdGlvbnM/CgpBY2NvcmRpbmcgdG8g
+dGhpcyBwYWdlOgpodHRwOi8vd2lraS5kbnMzMjMuaW5mby9oYXJkd2FyZTpmYW4KCmZhbiBzcGVl
+ZCBjb250cm9sIGlzIGRpZmZlcmVudCBmb3IgdGhlIHJldmlzaW9uIEMxIGhhcmR3YXJlLiBUaGlz
+CnN1Z2dlc3RzIHRoYXQgdGhlIHVuZGVybHlpbmcgaGFyZHdhcmUgZmFuIHNwZWVkIGNvbnRyb2xs
+ZXIgaXRzZWxmIGlzCmRpZmZlcmVudC4gSSB3b3VsZCBndWVzcyB0aGF0IHlvdSBkb24ndCByZWFs
+bHkgaGF2ZSBhIEc3NjBBIGNoaXAgb24KeW91ciBib2FyZC4gVGhlIExpbnV4IGtlcm5lbCBhc3N1
+bWVzIGl0IGlzIHRoZXJlIGFuZCBpbnN0YW50aWF0ZXMgc3VjaAphIGRldmljZSwgYnV0IGluIHRo
+YXQgY2FzZSBJIHdvdWxkIGJldCBpdCBpcyB3cm9uZy4KClRoZSBnNzYwYSBkcml2ZXIgbGFja3Mg
+c2FuaXR5IGNoZWNrcyB3aGVuIHJlYWRpbmcgcmVnaXN0ZXIgdmFsdWVzLiBJdApkb2Vzbid0IGNh
+dGNoIGVycm9ycyByZXBvcnRlZCBieSB0aGUgdW5kZXJseWluZyBJMkMgYWRhcHRlciBkcml2ZXIu
+IEkKYmV0IHRoYXQgdGhlIDE4IGFuZCAyMDczIHZhbHVlcyB5b3UgZ2V0IGFib3ZlIGFyZSBhY3R1
+YWxseSAtRU5PREVWCmJlaW5nIHByb2Nlc3NlZCBieSB0aGUgZHJpdmVyIGFzIGlmIG5vIGVycm9y
+IGhhZCBvY2N1cnJlZC4gLUVOT0RFViBpcwotMTksIHdoaWNoIGlzIHJlYWQgYXMgMjU1LTE5ID0g
+MjM3IGlmIHRoZSBlcnJvciBpcyBpZ25vcmVkLiBUaGUgZmFuCnNwZWVkIGNvbXB1dGF0aW9uIGZv
+cm11bGEgaW4gdGhlIGRyaXZlciBpcyAoY2xrKjMwKS8odmFsKmRpdikgd2l0aApjbGsgPSAzMjc2
+OCBhbmQgZGl2ID0gMjogKDMyNzY4KjMwKS8oMjM3KjIpID0gMjA3MywgYmluZ28uCgpGb3IgdGhl
+IHRpbWUgYmVpbmcsIGFyY2gvYXJtL21hY2gtb3Jpb241eC9kbnMzMjMtc2V0dXAuYyBzaG91bGQK
+cHJvYmFibHkgcmVmcmFpbiBmcm9tIGluc3RhbnRpYXRpbmcgYSBnNzYwYSBkZXZpY2Ugb24gcmV2
+aXNpb24gQzEKYm9hcmRzLiBZb3UnbGwgaGF2ZSB0byBkaXNjdXNzIHRoaXMgd2l0aCB3aG9ldmVy
+IGlzIGluIGNoYXJnZSBvZiB0aGlzCmZpbGUuCgpUaGVuIHlvdSBjYW4gdHJ5IHJ1bm5pbmcgaTJj
+ZGV0ZWN0IG9uIHRoZSBJMkMgYWRhcHRlciwgdG8gc2VlIGlmIGEKbXlzdGVyaW91cyBkZXZpY2Ug
+aGFzIGJlZW4gYWRkZWQuIFRoZSBJMkMgZGV2aWNlIG1hcCBpcyBzdXBwb3NlZCB0byBiZToKCi8q
+CiAqIE9uIHRoZSBETlMtMzIzIHRoZSBmb2xsb3dpbmcgZGV2aWNlcyBhcmUgYXR0YWNoZWQgdmlh
+IEkyQzoKICoKICogIGkyYyBhZGRyIHwgY2hpcCAgICAgICAgfCBkZXNjcmlwdGlvbgogKiAgMHgz
+ZSAgICAgfCBHTVQgRzc2MEFmICB8IGZhbiBzcGVlZCBQV00gY29udHJvbGxlcgogKiAgMHg0OCAg
+ICAgfCBHTVQgRzc1MS0yZiB8IHRlbXAuIHNlbnNvciBhbmQgdGhlcm0uIHdhdGNoZG9nIChMTTc1
+IGNvbXBhdGlibGUpCiAqICAweDY4ICAgICB8IFNUIE00MVQ4MCAgIHwgUlRDIHcvIGFsYXJtCiAq
+LwoKYnV0IEkgZ3Vlc3MgeW91cnMgd2lsbCBiZSBkaWZmZXJlbnQuCgotLSAKSmVhbiBEZWx2YXJl
+Cmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
+bG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCg==
