@@ -1,173 +1,125 @@
-From: "didy45@libero.it" <didy45@libero.it>
-Date: Mon, 15 Mar 2010 14:00:41 +0000
-Subject: [lm-sensors] R: Re:  R: Re: sensors not found INTEL i7
-Message-Id: <3556673.344061268661641314.JavaMail.defaultUser@defaultHost>
+From: Giel van Schijndel <me@mortis.eu>
+Date: Tue, 23 Mar 2010 23:12:15 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: f71882fg: add watchdog detection
+Message-Id: <1269385936-3440-3-git-send-email-me@mortis.eu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20100323141718.GA23172@salidar.me.mortis.eu>
+ <1269385936-3440-1-git-send-email-me@mortis.eu>
+ <1269385936-3440-2-git-send-email-me@mortis.eu>
+In-Reply-To: <1269385936-3440-2-git-send-email-me@mortis.eu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Giel van Schijndel <me@mortis.eu>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-My ubuntu is:
-Ubuntu 9.10 - Karmic Koala
+Factor out code for detecting the hardware monitor into a separate
+function. Then add a function for detecting the watchdog.
 
-My kernel version is:
-2.6.31-20-generic
+Signed-off-by: Giel van Schijndel <me@mortis.eu>
+---
+ drivers/hwmon/f71882fg.c |   74 ++++++++++++++++++++++++++++++++++++----------
+ 1 files changed, 58 insertions(+), 16 deletions(-)
 
-
->----Messaggio originale----
->Da: anothersname@googlemail.com
->Data: 15/03/2010 12.26
->A: "didy45@libero.it"<didy45@libero.it>
->Ogg: Re: [lm-sensors] R: Re: sensors not found INTEL i7
->
->On 15 March 2010 10:29, didy45@libero.it <didy45@libero.it> wrote:
->> This is the answer to sensor -s and sensors-detect:
->>
->> fabio@fabio-laptop:~$ sensors -s
->> No sensors found!
->> Make sure you loaded all the kernel drivers you need.
->> Try sensors-detect to find out which these are.
->>
->> fabio@fabio-laptop:~$ sudo sensors-detect
->> [sudo] password for fabio:
->> # sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
->> # System: Hewlett-Packard HP Pavilion dv6 Notebook PC (laptop)
->> # Board: Hewlett-Packard 3659
->>
->> This program will help you determine which kernel modules you need
->> to load to use lm_sensors most effectively. It is generally safe
->> and recommended to accept the default answers to all questions,
->> unless you know what you're doing.
->>
->> Some south bridges, CPUs or memory controllers contain embedded sensors.
->> Do you want to scan for them? This is totally safe. (YES/no): YES
->> Silicon Integrated Systems SIS5595...                       No
->> VIA VT82C686 Integrated Sensors...                          No
->> VIA VT8231 Integrated Sensors...                            No
->> AMD K8 thermal sensors...                                   No
->> AMD Family 10h thermal sensors...                           No
->> AMD Family 11h thermal sensors...                           No
->> Intel Core family thermal sensor...                         No
->> Intel Atom thermal sensor...                                No
->> Intel AMB FB-DIMM thermal sensor...                         No
->> VIA C7 thermal sensor...                                    No
->> VIA Nano thermal sensor...                                  No
->>
->> Some Super I/O chips contain embedded sensors. We have to write to
->> standard I/O ports to probe them. This is usually safe.
->> Do you want to scan for Super I/O sensors? (YES/no): YES
->> Probing for Super-I/O at 0x2e/0x2f
->> Trying family `National Semiconductor'...                   No
->> Trying family `SMSC'...                                     No
->> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
->> Trying family `ITE'...                                      No
->> Probing for Super-I/O at 0x4e/0x4f
->> Trying family `National Semiconductor'...                   No
->> Trying family `SMSC'...                                     No
->> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
->> Trying family `ITE'...                                      No
->>
->> Some hardware monitoring chips are accessible through the ISA I/O ports.
->> We have to write to arbitrary I/O ports to probe them. This is usually
->> safe though. Yes, you do have ISA I/O ports even if you do not have any
->> ISA slots! Do you want to scan the ISA I/O ports? (YES/no): YES
->> Probing for `National Semiconductor LM78' at 0x290...       No
->> Probing for `National Semiconductor LM79' at 0x290...       No
->> Probing for `Winbond W83781D' at 0x290...                   No
->> Probing for `Winbond W83782D' at 0x290...                   No
->>
->> Lastly, we can probe the I2C/SMBus adapters for connected hardware
->> monitoring devices. This is the most risky part, and while it works
->> reasonably well on most systems, it has been reported to cause trouble
->> on some systems.
->> Do you want to probe the I2C/SMBus adapters now? (YES/no): YES
->> Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3.
->> Sorry, no supported PCI bus adapters found.
->> WARNING: All config files need .conf: /etc/modprobe.d/sound, it will be
->> ignored in a future release.
->> WARNING: All config files need .conf: /etc/modprobe.d/alsa-base, it will be
->> ignored in a future release.
->> Module i2c-dev loaded successfully.
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-0)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-1)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-2)
->> Do you want to scan it? (YES/no/selectively): YES
->> Client found at address 0x50
->> Probing for `Analog Devices ADM1033'...                     No
->> Probing for `Analog Devices ADM1034'...                     No
->> Probing for `SPD EEPROM'...                                 No
->> Probing for `EDID EEPROM'...                                Yes
->>    (confidence 8, not a hardware monitoring chip)
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-3)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-4)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-5)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-6)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-7)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Sorry, no sensors were detected.
->> This is relatively common on laptops, where thermal management is
->> handled by ACPI rather than the OS.
->>
->> What do i do?
->> Help me, please!
->>
->>
->>>----Messaggio originale----
->>>Da: anothersname@googlemail.com
->>>Data: 15/03/2010 3.36
->>>A: "didy45@libero.it"<didy45@libero.it>
->>>Ogg: Re: [lm-sensors] sensors not found INTEL i7
->>>
->>>On 14 March 2010 16:09, didy45@libero.it <didy45@libero.it> wrote:
->>>> Do not function lm-sensors on hp pavillon dv6 2153el
->>>> with cpu intel i7.
->>>> After i install lmsensors and i start the sensors.
->>>> the answer is
->>>> no sensors found!
->>>> What do i do?
->>>> Can you help me?
->>>> thanks!
->>>>
->>>> _______________________________________________
->>>> lm-sensors mailing list
->>>> lm-sensors@lm-sensors.org
->>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>>
->>>
->>>Did you run sensors-detect?
->>>
->>>What did it report?
->>>
->>
->>
->>
->> _______________________________________________
->> lm-sensors mailing list
->> lm-sensors@lm-sensors.org
->> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>
->
->Which version of the Kernel are you using?
->
->Which flavour of Linux?
->
-
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 7b31e14..8006271 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -2233,6 +2233,54 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int __init f71882fg_find_watchdog(int sioaddr,
++	const struct f71882fg_sio_data *sio_data)
++{
++	switch (sio_data->type) {
++	case f71808fg:
++		break;
++
++	case f71862fg:
++	case f71882fg:
++	case f71889fg:
++		/* These have a watchdog, though it isn't implemented (yet). */
++		return -ENOSYS;
++
++	case f71858fg:
++	default:
++		/*
++		 * Confirmed (by datasheet) not to have a watchdog. That is,
++		 * except for chips matched by the 'default' label of course.
++		 */
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int __init f71882fg_find_hwmon(int sioaddr, unsigned short *hwmon_addr,
++	struct f71882fg_sio_data *sio_data)
++{
++	if (sio_data->type = f71858fg)
++		superio_select(sioaddr, SIO_F71858FG_LD_HWM);
++	else
++		superio_select(sioaddr, SIO_F71882FG_LD_HWM);
++
++	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
++		printk(KERN_WARNING DRVNAME ": Device not activated\n");
++		return -ENODEV;
++	}
++
++	*hwmon_addr = superio_inw(sioaddr, SIO_REG_ADDR);
++	if (*hwmon_addr = 0) {
++		printk(KERN_WARNING DRVNAME ": Base address not set\n");
++		return -ENODEV;
++	}
++	*hwmon_addr &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
++
++	return 0;
++}
++
+ static int __init f71882fg_find(int sioaddr, unsigned short *hwmon_addr,
+ 	struct f71882fg_sio_data *sio_data)
+ {
+@@ -2280,27 +2328,21 @@ static int __init f71882fg_find(int sioaddr, unsigned short *hwmon_addr,
+ 		goto exit;
+ 	}
+ 
+-	if (sio_data->type = f71858fg)
+-		superio_select(sioaddr, SIO_F71858FG_LD_HWM);
+-	else
+-		superio_select(sioaddr, SIO_F71882FG_LD_HWM);
+-
+-	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+-		printk(KERN_WARNING DRVNAME ": Device not activated\n");
+-		goto exit;
+-	}
+-
+-	*hwmon_addr = superio_inw(sioaddr, SIO_REG_ADDR);
+-	if (*hwmon_addr = 0) {
+-		printk(KERN_WARNING DRVNAME ": Base address not set\n");
++	err = f71882fg_find_hwmon(sioaddr, hwmon_addr, sio_data);
++	if (err)
+ 		goto exit;
+-	}
+-	*hwmon_addr &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+ 
+-	err = 0;
+ 	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %d\n",
+ 		f71882fg_names[sio_data->type],	(unsigned int)*hwmon_addr,
+ 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
++
++	err = f71882fg_find_watchdog(sioaddr, sio_data);
++	if (err = 0)
++		printk(KERN_INFO DRVNAME ": has supported watchdog\n");
++	else if (err != -ENODEV && err != -ENOSYS)
++		goto exit;
++
++	err = 0;
+ exit:
+ 	superio_exit(sioaddr);
+ 	release_region(sioaddr, 2);
+-- 
+1.6.4.4
 
 
 _______________________________________________
