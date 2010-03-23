@@ -1,136 +1,111 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 29 Mar 2010 15:25:05 +0000
-Subject: Re: [lm-sensors] G760A not working korrekt on NAS dlink 323 HW C1
-Message-Id: <20100329172505.251c81c0@hyperion.delvare>
+From: Giel van Schijndel <me@mortis.eu>
+Date: Tue, 23 Mar 2010 23:12:14 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: f71882fg: prepare for addition of
+Message-Id: <1269385936-3440-2-git-send-email-me@mortis.eu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1269292447.6810.21.camel@kusanagi>
-In-Reply-To: <1269292447.6810.21.camel@kusanagi>
+References: <20100323141718.GA23172@salidar.me.mortis.eu>
+ <1269385936-3440-1-git-send-email-me@mortis.eu>
+In-Reply-To: <1269385936-3440-1-git-send-email-me@mortis.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Giel van Schijndel <me@mortis.eu>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Denny,
+Rename the `address' variable that's used in some places to hwmon_addr
+to indicate it refers to the hardware monitor (HWMON in datasheet)
+"logical device" of the chip.
 
-On Fri, 26 Mar 2010 01:48:11 +0100, Denny Schierz wrote:
-> hi,
-> 
-> i was able to locate the chip on the board. His partnumber is AX3106
-> (PWM controller)
-> 
-> http://www.micro-bridge.com/data/Axelite/AX3106.pdf
+Signed-off-by: Giel van Schijndel <me@mortis.eu>
+---
+ drivers/hwmon/f71882fg.c |   24 ++++++++++++------------
+ 1 files changed, 12 insertions(+), 12 deletions(-)
 
-Not enough details... Not even sure if this chip is meant to control
-fans, and no clue how it is accessed (I2C or something else.)
-
-> Some debug:
-> 
-> nas:~# i2cdetect -l
-> i2c-0   i2c             mv64xxx_i2c adapter                     I2C
-> adapter
-> 
-> nas:~# i2cdetect 0
-> WARNING! This program can confuse your I2C bus, cause data loss and
-> worse!
-> I will probe file /dev/i2c-0.
-> I will probe address range 0x03-0x77.
-> Continue? [Y/n] y
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- -- -- -- -- -- -- -- 0c -- -- -- 
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- UU -- 
-> 40: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- -- 
-> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-> 60: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- -- 
-> 70: -- -- -- -- -- -- -- --  
-> 
-> 
-> so, that is the output, what now?
-
-Unfortunately, with the new i2c device driver binding model, the output
-of i2cdetect isn't that useful, because every device that has been
-instantiated by the kernel (even if the physical device doesn't exist)
-shows up. The devices above (at 0x3e, 0x48 and 0x68) are the ones
-listed in the platform code.
-
-We really need to update i2cdetect and the i2c-dev driver to better
-deal with the new binding model. But this isn't that easy.
-
-The only other one is 0x0c, which is the SMBus alert address. Support
-for this feature was added in kernel 2.6.34. This won't help you for
-the problem at hand though.
-
- I contacted the maintainer from the
-> file dns323-setup.c, but he has no time nor the hardware :-/
-> 
-> any suggestions?
-> 
-> cu denny
-> 
-> 
-> nas:~# i2cdump 0 0x0c 
-> No size specified (using byte-data access)
-> WARNING! This program can confuse your I2C bus, cause data loss and
-> worse!
-> I will probe file /dev/i2c-0, address 0xc, mode byte
-> Continue? [Y/n] y
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 10: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 20: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 30: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 40: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 50: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 60: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 70: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 80: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> 90: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> a0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> b0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> c0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> d0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> e0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-> f0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
-
-FWIW, it means that device at 0x48 (0x91 / 2) has asked the kernel for
-attention. Probably an over-temperature condition.
-
-> 
-> 
-> nas:~# i2cdump 0 0x3 
-> No size specified (using byte-data access)
-> WARNING! This program can confuse your I2C bus, cause data loss and
-> worse!
-> I will probe file /dev/i2c-0, address 0x3, mode byte
-> Continue? [Y/n] 
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-> 00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> 90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-> f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
-
-Not sure what was your idea with this, there's no chip listed at 0x03.
-Trying 0x3e would have been more useful.
-
-That being said, I fear I can't help you much further without the
-hardware in question in my hands (and even then...)
-
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index b290b87..7b31e14 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -2233,7 +2233,7 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __init f71882fg_find(int sioaddr, unsigned short *address,
++static int __init f71882fg_find(int sioaddr, unsigned short *hwmon_addr,
+ 	struct f71882fg_sio_data *sio_data)
+ {
+ 	int err = -ENODEV;
+@@ -2290,16 +2290,16 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 		goto exit;
+ 	}
+ 
+-	*address = superio_inw(sioaddr, SIO_REG_ADDR);
+-	if (*address = 0) {
++	*hwmon_addr = superio_inw(sioaddr, SIO_REG_ADDR);
++	if (*hwmon_addr = 0) {
+ 		printk(KERN_WARNING DRVNAME ": Base address not set\n");
+ 		goto exit;
+ 	}
+-	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
++	*hwmon_addr &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+ 
+ 	err = 0;
+ 	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %d\n",
+-		f71882fg_names[sio_data->type],	(unsigned int)*address,
++		f71882fg_names[sio_data->type],	(unsigned int)*hwmon_addr,
+ 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
+ exit:
+ 	superio_exit(sioaddr);
+@@ -2307,17 +2307,17 @@ exit:
+ 	return err;
+ }
+ 
+-static int __init f71882fg_device_add(unsigned short address,
++static int __init f71882fg_device_add(unsigned short hwmon_addr,
+ 	const struct f71882fg_sio_data *sio_data)
+ {
+ 	struct resource res = {
+-		.start	= address,
+-		.end	= address + REGION_LENGTH - 1,
++		.start	= hwmon_addr,
++		.end	= hwmon_addr + REGION_LENGTH - 1,
+ 		.flags	= IORESOURCE_IO,
+ 	};
+ 	int err;
+ 
+-	f71882fg_pdev = platform_device_alloc(DRVNAME, address);
++	f71882fg_pdev = platform_device_alloc(DRVNAME, hwmon_addr);
+ 	if (!f71882fg_pdev)
+ 		return -ENOMEM;
+ 
+@@ -2357,14 +2357,14 @@ static int __init f71882fg_init(void)
+ {
+ 	static const unsigned short addrs[] = { 0x2e, 0x4e };
+ 	int err = -ENODEV;
+-	unsigned short address = /* shut up compiler */ 0;
++	unsigned short hwmon_addr = /* shut up compiler */ 0;
+ 	struct f71882fg_sio_data sio_data;
+ 	int i;
+ 
+ 	memset(&sio_data, 0, sizeof(sio_data));
+ 
+ 	for (i = 0; i < ARRAY_SIZE(addrs); i++) {
+-		err = f71882fg_find(addrs[i], &address, &sio_data);
++		err = f71882fg_find(addrs[i], &hwmon_addr, &sio_data);
+ 		if (err = 0)
+ 			break;
+ 	}
+@@ -2375,7 +2375,7 @@ static int __init f71882fg_init(void)
+ 	if (err)
+ 		goto exit;
+ 
+-	err = f71882fg_device_add(address, &sio_data);
++	err = f71882fg_device_add(hwmon_addr, &sio_data);
+ 	if (err)
+ 		goto exit_driver;
+ 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+1.6.4.4
+
 
 _______________________________________________
 lm-sensors mailing list
