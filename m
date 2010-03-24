@@ -1,393 +1,463 @@
-From: "didy45@libero.it" <didy45@libero.it>
-Date: Tue, 16 Mar 2010 13:31:50 +0000
-Subject: [lm-sensors] R: Re: R: Re: R: Re: R: Re: sensors not found INTEL i7
-Message-Id: <12165053.188061268746310319.JavaMail.defaultUser@defaultHost>
+From: Dean Nelson <dnelson@redhat.com>
+Date: Wed, 24 Mar 2010 14:44:51 +0000
+Subject: [lm-sensors] 'modprobe coretemp' seeing "Unable to access MSR 0xEE,
+Message-Id: <4BAA2563.9090702@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020807090005000905090409"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-yes.
+This is a multi-part message in MIME format.
+--------------020807090005000905090409
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
->----Messaggio originale----
->Da: anothersname@googlemail.com
->Data: 16/03/2010 13.36
->A: "didy45@libero.it"<didy45@libero.it>
->Ogg: Re: [lm-sensors] R: Re: R: Re: R: Re: sensors not found INTEL i7
->
->On 16 March 2010 11:22, didy45@libero.it <didy45@libero.it> wrote:
->> I write that you say but when i digit:
->> fabio@fabio-laptop:~/lm-sensors/prog/detect$ sensors
->> No sensors found!
->> Make sure you loaded all the kernel drivers you need.
->> Try sensors-detect to find out which these are.
->>
->> and....
->>
->> fabio@fabio-laptop:~/lm-sensors/prog/detect$ sudo ./sensors-detect
->> # sensors-detect revision 5825 (2010-02-19 13:23:31 +0100)
->> # System: Hewlett-Packard HP Pavilion dv6 Notebook PC (laptop)
->> # Board: Hewlett-Packard 3659
->>
->> This program will help you determine which kernel modules you need
->> to load to use lm_sensors most effectively. It is generally safe
->> and recommended to accept the default answers to all questions,
->> unless you know what you're doing.
->>
->> Some south bridges, CPUs or memory controllers contain embedded sensors.
->> Do you want to scan for them? This is totally safe. (YES/no): YES
->> Silicon Integrated Systems SIS5595...                       No
->> VIA VT82C686 Integrated Sensors...                          No
->> VIA VT8231 Integrated Sensors...                            No
->> AMD K8 thermal sensors...                                   No
->> AMD Family 10h thermal sensors...                           No
->> AMD Family 11h thermal sensors...                           No
->> Intel Core family thermal sensor...                         Success!
->>    (driver `coretemp')
->> Intel Atom thermal sensor...                                No
->> Intel AMB FB-DIMM thermal sensor...                         No
->> VIA C7 thermal sensor...                                    No
->> VIA Nano thermal sensor...                                  No
->>
->> Some Super I/O chips contain embedded sensors. We have to write to
->> standard I/O ports to probe them. This is usually safe.
->> Do you want to scan for Super I/O sensors? (YES/no): YES
->> Probing for Super-I/O at 0x2e/0x2f
->> Trying family `National Semiconductor'...                   No
->> Trying family `SMSC'...                                     No
->> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
->> Trying family `ITE'...                                      No
->> Probing for Super-I/O at 0x4e/0x4f
->> Trying family `National Semiconductor'...                   No
->> Trying family `SMSC'...                                     No
->> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
->> Trying family `ITE'...                                      No
->>
->> Some hardware monitoring chips are accessible through the ISA I/O ports.
->> We have to write to arbitrary I/O ports to probe them. This is usually
->> safe though. Yes, you do have ISA I/O ports even if you do not have any
->> ISA slots! Do you want to scan the ISA I/O ports? (YES/no): YES
->> Probing for `National Semiconductor LM78' at 0x290...       No
->> Probing for `National Semiconductor LM79' at 0x290...       No
->> Probing for `Winbond W83781D' at 0x290...                   No
->> Probing for `Winbond W83782D' at 0x290...                   No
->>
->> Lastly, we can probe the I2C/SMBus adapters for connected hardware
->> monitoring devices. This is the most risky part, and while it works
->> reasonably well on most systems, it has been reported to cause trouble
->> on some systems.
->> Do you want to probe the I2C/SMBus adapters now? (YES/no): YES
->> Using driver `i2c-i801' for device 0000:00:1f.3: Intel 3400/5 Series (PCH)
->> WARNING: All config files need .conf: /etc/modprobe.d/sound, it will be
->> ignored in a future release.
->> WARNING: All config files need .conf: /etc/modprobe.d/alsa-base, it will be
->> ignored in a future release.
->> Module i2c-i801 loaded successfully.
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-0)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-1)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-2)
->> Do you want to scan it? (YES/no/selectively): YES
->> Client found at address 0x50
->> Probing for `Analog Devices ADM1033'...                     No
->> Probing for `Analog Devices ADM1034'...                     No
->> Probing for `SPD EEPROM'...                                 No
->> Probing for `EDID EEPROM'...                                Yes
->>    (confidence 8, not a hardware monitoring chip)
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-3)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-4)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-5)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-6)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Next adapter: NVIDIA i2c adapter  (i2c-7)
->> Do you want to scan it? (YES/no/selectively): YES
->>
->> Now follows a summary of the probes I have just done.
->> Just press ENTER to continue:
->>
->> Driver `coretemp':
->>  * Chip `Intel Core family thermal sensor' (confidence: 9)
->>
->> Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): YES
->> insserv: warning: script 'K20acpi-support' missing LSB tags and overrides
->> insserv: warning: script 'S47lm-sensors' missing LSB tags and overrides
->> insserv: warning: script 'lm_sensors' missing LSB tags and overrides
->> insserv: warning: script 'anacron' missing LSB tags and overrides
->> insserv: warning: script 'cron' missing LSB tags and overrides
->> insserv: warning: script 'apport' missing LSB tags and overrides
->> insserv: warning: script 'udev-finish' missing LSB tags and overrides
->> insserv: warning: script 'gdm' missing LSB tags and overrides
->> insserv: warning: script 'usplash' missing LSB tags and overrides
->> insserv: warning: script 'dmesg' missing LSB tags and overrides
->> insserv: warning: script 'module-init-tools' missing LSB tags and overrides
->> insserv: warning: script 'lm-sensors' missing LSB tags and overrides
->> insserv: warning: script 'failsafe-x' missing LSB tags and overrides
->> insserv: warning: script 'udevmonitor' missing LSB tags and overrides
->> insserv: warning: script 'avahi-daemon' missing LSB tags and overrides
->> insserv: warning: script 'acpid' missing LSB tags and overrides
->> insserv: warning: current start runlevel(s) (0 6) of script `umountnfs.sh'
->> overwrites defaults (empty).
->> insserv: warning: script 'ufw' missing LSB tags and overrides
->> insserv: warning: current start runlevel(s) (0 6) of script `wpa-ifupdown'
->> overwrites defaults (empty).
->> insserv: warning: current start runlevel(s) (0 6) of script `networking'
->> overwrites defaults (empty).
->> insserv: warning: current start runlevel(s) (0 6) of script `umountfs'
->> overwrites defaults (empty).
->> insserv: warning: script 'dbus' missing LSB tags and overrides
->> insserv: warning: script 'rsyslog' missing LSB tags and overrides
->> insserv: warning: script 'hal' missing LSB tags and overrides
->> insserv: warning: current start runlevel(s) (0 6) of script `sendsigs'
->> overwrites defaults (empty).
->> insserv: warning: script 'procps' missing LSB tags and overrides
->> insserv: warning: script 'hwclock' missing LSB tags and overrides
->> insserv: warning: script 'udev' missing LSB tags and overrides
->> insserv: warning: script 'rsyslog-kmsg' missing LSB tags and overrides
->> insserv: warning: script 'atd' missing LSB tags and overrides
->> insserv: warning: current start runlevel(s) (0 6) of script `umountroot'
->> overwrites defaults (empty).
->> insserv: warning: script 'hwclock-save' missing LSB tags and overrides
->> insserv: warning: script 'udevtrigger' missing LSB tags and overrides
->> insserv: warning: current start runlevel(s) (6) of script `reboot' 
-overwrites
->> defaults (empty).
->> insserv: warning: current start runlevel(s) (0) of script `halt' overwrites
->> defaults (empty).
->> insserv: warning: script 'acpi-support' missing LSB tags and overrides
->> insserv: There is a loop between service rsyslog and pulseaudio if stopped
->> insserv:  loop involving service pulseaudio at depth 3
->> insserv:  loop involving service rsyslog at depth 2
->> insserv:  loop involving service udev at depth 1
->> insserv: There is a loop between service pulseaudio and rsyslog if stopped
->> insserv: exiting without changing boot order!
->> Unloading i2c-i801... OK
->>
->> What do i do??????
->>
->>>----Messaggio originale----
->>>Da: anothersname@googlemail.com
->>>Data: 15/03/2010 18.37
->>>A: "didy45@libero.it"<didy45@libero.it>
->>>Ogg: Re: [lm-sensors] R: Re: R: Re: sensors not found INTEL i7
->>>
->>>On 15 March 2010 14:00, didy45@libero.it <didy45@libero.it> wrote:
->>>> My ubuntu is:
->>>> Ubuntu 9.10 - Karmic Koala
->>>>
->>>> My kernel version is:
->>>> 2.6.31-20-generic
->>>>
->>>>
->>>>>----Messaggio originale----
->>>>>Da: anothersname@googlemail.com
->>>>>Data: 15/03/2010 12.26
->>>>>A: "didy45@libero.it"<didy45@libero.it>
->>>>>Ogg: Re: [lm-sensors] R: Re: sensors not found INTEL i7
->>>>>
->>>>>On 15 March 2010 10:29, didy45@libero.it <didy45@libero.it> wrote:
->>>>>> This is the answer to sensor -s and sensors-detect:
->>>>>>
->>>>>> fabio@fabio-laptop:~$ sensors -s
->>>>>> No sensors found!
->>>>>> Make sure you loaded all the kernel drivers you need.
->>>>>> Try sensors-detect to find out which these are.
->>>>>>
->>>>>> fabio@fabio-laptop:~$ sudo sensors-detect
->>>>>> [sudo] password for fabio:
->>>>>> # sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
->>>>>> # System: Hewlett-Packard HP Pavilion dv6 Notebook PC (laptop)
->>>>>> # Board: Hewlett-Packard 3659
->>>>>>
->>>>>> This program will help you determine which kernel modules you need
->>>>>> to load to use lm_sensors most effectively. It is generally safe
->>>>>> and recommended to accept the default answers to all questions,
->>>>>> unless you know what you're doing.
->>>>>>
->>>>>> Some south bridges, CPUs or memory controllers contain embedded 
-sensors.
->>>>>> Do you want to scan for them? This is totally safe. (YES/no): YES
->>>>>> Silicon Integrated Systems SIS5595...                       No
->>>>>> VIA VT82C686 Integrated Sensors...                          No
->>>>>> VIA VT8231 Integrated Sensors...                            No
->>>>>> AMD K8 thermal sensors...                                   No
->>>>>> AMD Family 10h thermal sensors...                           No
->>>>>> AMD Family 11h thermal sensors...                           No
->>>>>> Intel Core family thermal sensor...                         No
->>>>>> Intel Atom thermal sensor...                                No
->>>>>> Intel AMB FB-DIMM thermal sensor...                         No
->>>>>> VIA C7 thermal sensor...                                    No
->>>>>> VIA Nano thermal sensor...                                  No
->>>>>>
->>>>>> Some Super I/O chips contain embedded sensors. We have to write to
->>>>>> standard I/O ports to probe them. This is usually safe.
->>>>>> Do you want to scan for Super I/O sensors? (YES/no): YES
->>>>>> Probing for Super-I/O at 0x2e/0x2f
->>>>>> Trying family `National Semiconductor'...                   No
->>>>>> Trying family `SMSC'...                                     No
->>>>>> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
->>>>>> Trying family `ITE'...                                      No
->>>>>> Probing for Super-I/O at 0x4e/0x4f
->>>>>> Trying family `National Semiconductor'...                   No
->>>>>> Trying family `SMSC'...                                     No
->>>>>> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
->>>>>> Trying family `ITE'...                                      No
->>>>>>
->>>>>> Some hardware monitoring chips are accessible through the ISA I/O 
-ports.
->>>>>> We have to write to arbitrary I/O ports to probe them. This is usually
->>>>>> safe though. Yes, you do have ISA I/O ports even if you do not have any
->>>>>> ISA slots! Do you want to scan the ISA I/O ports? (YES/no): YES
->>>>>> Probing for `National Semiconductor LM78' at 0x290...       No
->>>>>> Probing for `National Semiconductor LM79' at 0x290...       No
->>>>>> Probing for `Winbond W83781D' at 0x290...                   No
->>>>>> Probing for `Winbond W83782D' at 0x290...                   No
->>>>>>
->>>>>> Lastly, we can probe the I2C/SMBus adapters for connected hardware
->>>>>> monitoring devices. This is the most risky part, and while it works
->>>>>> reasonably well on most systems, it has been reported to cause trouble
->>>>>> on some systems.
->>>>>> Do you want to probe the I2C/SMBus adapters now? (YES/no): YES
->>>>>> Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3.
->>>>>> Sorry, no supported PCI bus adapters found.
->>>>>> WARNING: All config files need .conf: /etc/modprobe.d/sound, it will be
->>>>>> ignored in a future release.
->>>>>> WARNING: All config files need .conf: /etc/modprobe.d/alsa-base, it 
-will
->> be
->>>>>> ignored in a future release.
->>>>>> Module i2c-dev loaded successfully.
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-0)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-1)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-2)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>> Client found at address 0x50
->>>>>> Probing for `Analog Devices ADM1033'...                     No
->>>>>> Probing for `Analog Devices ADM1034'...                     No
->>>>>> Probing for `SPD EEPROM'...                                 No
->>>>>> Probing for `EDID EEPROM'...                                Yes
->>>>>>    (confidence 8, not a hardware monitoring chip)
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-3)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-4)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-5)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-6)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Next adapter: NVIDIA i2c adapter  (i2c-7)
->>>>>> Do you want to scan it? (YES/no/selectively): YES
->>>>>>
->>>>>> Sorry, no sensors were detected.
->>>>>> This is relatively common on laptops, where thermal management is
->>>>>> handled by ACPI rather than the OS.
->>>>>>
->>>>>> What do i do?
->>>>>> Help me, please!
->>>>>>
->>>>>>
->>>>>>>----Messaggio originale----
->>>>>>>Da: anothersname@googlemail.com
->>>>>>>Data: 15/03/2010 3.36
->>>>>>>A: "didy45@libero.it"<didy45@libero.it>
->>>>>>>Ogg: Re: [lm-sensors] sensors not found INTEL i7
->>>>>>>
->>>>>>>On 14 March 2010 16:09, didy45@libero.it <didy45@libero.it> wrote:
->>>>>>>> Do not function lm-sensors on hp pavillon dv6 2153el
->>>>>>>> with cpu intel i7.
->>>>>>>> After i install lmsensors and i start the sensors.
->>>>>>>> the answer is
->>>>>>>> no sensors found!
->>>>>>>> What do i do?
->>>>>>>> Can you help me?
->>>>>>>> thanks!
->>>>>>>>
->>>>>>>> _______________________________________________
->>>>>>>> lm-sensors mailing list
->>>>>>>> lm-sensors@lm-sensors.org
->>>>>>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>>>>>>
->>>>>>>
->>>>>>>Did you run sensors-detect?
->>>>>>>
->>>>>>>What did it report?
->>>>>>>
->>>>>>
->>>>>>
->>>>>>
->>>>>> _______________________________________________
->>>>>> lm-sensors mailing list
->>>>>> lm-sensors@lm-sensors.org
->>>>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>>>>
->>>>>
->>>>>Which version of the Kernel are you using?
->>>>>
->>>>>Which flavour of Linux?
->>>>>
->>>>
->>>>
->>>>
->>>> _______________________________________________
->>>> lm-sensors mailing list
->>>> lm-sensors@lm-sensors.org
->>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>
->>>OK
->>>
->>>I'm not familiar with Ubuntu's file layout.....
->>>
->>>You should have a file lm_sensors probably in /etc/sysconfig
->>>
->>>In that file add the following 2 lines
->>>
->>>---------------------------
->>>
->>>HWMON_MODULES="coretemp"
->>>
->>>MODULE_0=coretemp
->>>
->>>-----------------------------
->>>
->>>Once you've done that restart your lm_sensors service and let me know
->>>what happens
->>>
->>
->>
->>
->> _______________________________________________
->> lm-sensors mailing list
->> lm-sensors@lm-sensors.org
->> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
->Are you running sensors detect as root?
->
+Hi,
+
+When doing a 'modprobe coretemp' on a system installed with RHEL6 (which
+is based on linux-2.6.32), I'm seeing "Unable to access MSR 0xEE, for
+Tjmax, left at default" type errors.
+
+My question is whether this is what I should expect from the system I'm
+running on?
+
+Some of the (hopefully) relevant details can be found in the attached
+file.
+
+Thanks,
+Dean
+
+--------------020807090005000905090409
+Content-Type: text/plain;
+ name="zz"
+Content-Disposition: attachment;
+ filename="zz"
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by mx1.redhat.com id o2OEirIX019455
 
 
+ ||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+[root@dell-per710-01 ~]# modprobe coretemp
+[root@dell-per710-01 ~]# sensors -s
+[root@dell-per710-01 ~]# dmesg | tail -20
+bnx2: eth1 NIC Copper Link is Up, 1000 Mbps full duplex
+ADDRCONF(NETDEV_CHANGE): eth1: link becomes ready
+eth2: no IPv6 routers present
+eth1: no IPv6 routers present
+coretemp coretemp.0: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.1: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.2: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.3: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.4: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.5: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.6: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.7: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.8: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.9: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+coretemp coretemp.10: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+coretemp coretemp.11: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+coretemp coretemp.12: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+coretemp coretemp.13: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+coretemp coretemp.14: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+coretemp coretemp.15: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+[root@dell-per710-01 test]# sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +38.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +37.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0002
+Adapter: ISA adapter
+Core 2:      +35.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0003
+Adapter: ISA adapter
+Core 3:      +39.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0004
+Adapter: ISA adapter
+Core 4:      +39.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0005
+Adapter: ISA adapter
+Core 5:      +39.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0006
+Adapter: ISA adapter
+Core 6:      +36.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0007
+Adapter: ISA adapter
+Core 7:      +35.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0008
+Adapter: ISA adapter
+Core 8:      +38.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-0009
+Adapter: ISA adapter
+Core 9:      +37.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-000a
+Adapter: ISA adapter
+Core 10:     +35.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-000b
+Adapter: ISA adapter
+Core 11:     +39.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-000c
+Adapter: ISA adapter
+Core 12:     +39.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-000d
+Adapter: ISA adapter
+Core 13:     +39.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-000e
+Adapter: ISA adapter
+Core 14:     +35.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+coretemp-isa-000f
+Adapter: ISA adapter
+Core 15:     +35.0=C2=B0C  (high =3D +90.0=C2=B0C, crit =3D +100.0=C2=B0C=
+) =20
+
+[root@dell-per710-01 test]#=20
+
+
+ ||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+ The system I'm running on has 16 CPUs, all much like the following one:
+
+[root@dell-per710-01 ~]# cat /proc/cpuinfo
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 26
+model name	: Intel(R) Xeon(R) CPU           E5530  @ 2.40GHz
+stepping	: 5
+cpu MHz		: 2393.589
+cache size	: 8192 KB
+physical id	: 1
+siblings	: 8
+core id		: 0
+cpu cores	: 4
+apicid		: 16
+initial apicid	: 16
+fpu		: yes
+fpu_exception	: yes
+cpuid level	: 11
+wp		: yes
+flags		: fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca cmov pat ps=
+e36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall rdtscp lm con=
+stant_tsc arch_perfmon pebs bts rep_good xtopology tsc_reliable nonstop_t=
+sc aperfmperf pni dtes64 monitor ds_cpl vmx est tm2 ssse3 cx16 xtpr pdcm =
+dca sse4_1 sse4_2 popcnt lahf_lm ida tpr_shadow vnmi flexpriority ept vpi=
+d
+bogomips	: 4787.17
+clflush size	: 64
+cache_alignment	: 64
+address sizes	: 40 bits physical, 48 bits virtual
+power management:
+
+<snip>
+[root@dell-per710-01 ~]#=20
+
+
+ ||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+[root@dell-per710-01 ~]# sensors-detect
+# sensors-detect revision 1.1
+# System: Dell Inc. PowerEdge R710
+# Board: Dell Inc. 0M233H
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):=20
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 11h thermal sensors...                           No
+Intel Core family thermal sensor...                         Success!
+    (driver `coretemp')
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal and voltage sensors...                       No
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): no
+
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no): no
+
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (YES/no): no
+
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no): no
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:=20
+
+Driver `coretemp':
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no): no
+To load everything that is needed, add this to one of the system
+initialization scripts (e.g. /etc/rc.d/rc.local):
+
+#----cut here----
+# Chip drivers
+modprobe coretemp
+/usr/bin/sensors -s
+#----cut here----
+
+If you have some drivers built into your kernel, the list above will
+contain too many modules. Skip the appropriate ones! You really
+should try these commands right now to make sure everything is
+working properly. Monitoring programs won't work until the needed
+modules are loaded.
+
+[root@dell-per710-01 ~]#
+
+
+ ||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+ I also ran after adding a debug printk() following each call to
+ rdmsr_safe_on_cpu() in coretemp.c. And also setting eax and edx to 0 bef=
+ore
+ each call. The following was what I pulled from dmesg after running
+ 'modprobe coretemp'.
+
+ Notice for 0xee rdmsr_safe_on_cpu() returns a -5 or -EIO. Are the values=
+ of
+ eax=3D0x200200 and edx=3D0x100100 meaningful (aside from somewhat resemb=
+ling
+ LIST_POISON2 and LIST_POISON1)? Also notice that for CPU 11, eax=3D0x246=
+ and
+ edx=3D0xa655c68.
+
+
+debug: rdmsr_safe_on_cpu(id=3D0x0, 0x19c,) err=3D0 eax=3D0x883e0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x0, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x0, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.0: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x0, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x1, 0x19c,) err=3D0 eax=3D0x883e0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x1, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x1, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.1: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x1, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x2, 0x19c,) err=3D0 eax=3D0x88400008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x2, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x2, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.2: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x2, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x3, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x3, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x3, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.3: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x3, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x4, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x4, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x4, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.4: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x4, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x5, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x5, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x5, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.5: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x5, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x6, 0x19c,) err=3D0 eax=3D0x88400008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x6, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x6, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.6: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x6, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x7, 0x19c,) err=3D0 eax=3D0x88410008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x7, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x7, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.7: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x7, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x8, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x8, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x8, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.8: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x8, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0x9, 0x19c,) err=3D0 eax=3D0x883e0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0x9, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0x9, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.9: Unable to access MSR 0xEE, for Tjmax, left at defaul=
+t
+debug: rdmsr_safe_on_cpu(id=3D0x9, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0xa, 0x19c,) err=3D0 eax=3D0x88400008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0xa, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0xa, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.10: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+debug: rdmsr_safe_on_cpu(id=3D0xa, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0xb, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0xb, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0xb, 0xee,) err=3D-5 eax=3D0x246 edx=3D0xa6=
+55c68
+coretemp coretemp.11: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+debug: rdmsr_safe_on_cpu(id=3D0xb, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0xc, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0xc, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0xc, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.12: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+debug: rdmsr_safe_on_cpu(id=3D0xc, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0xd, 0x19c,) err=3D0 eax=3D0x883d0008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0xd, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0xd, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.13: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+debug: rdmsr_safe_on_cpu(id=3D0xd, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0xe, 0x19c,) err=3D0 eax=3D0x88400008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0xe, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0xe, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.14: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+debug: rdmsr_safe_on_cpu(id=3D0xe, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+debug: rdmsr_safe_on_cpu(id=3D0xf, 0x19c,) err=3D0 eax=3D0x88410008 edx=3D=
+0x0
+debug: rdmsr_safe_on_cpu(id=3D0xf, 0x17,) err=3D0 eax=3D0x0 edx=3D0x0
+debug: rdmsr_safe_on_cpu(id=3D0xf, 0xee,) err=3D-5 eax=3D0x200200 edx=3D0=
+x100100
+coretemp coretemp.15: Unable to access MSR 0xEE, for Tjmax, left at defau=
+lt
+debug: rdmsr_safe_on_cpu(id=3D0xf, 0x1a2,) err=3D0 eax=3D0x610a00 edx=3D0=
+x0
+
+ ||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+--------------020807090005000905090409
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020807090005000905090409--
