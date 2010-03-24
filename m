@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 24 Mar 2010 08:26:22 +0000
+Date: Wed, 24 Mar 2010 08:36:17 +0000
 Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: f71882fg: prepare for addition
-Message-Id: <4BA9CCAE.1040607@redhat.com>
+Message-Id: <4BA9CF01.6010600@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100323141718.GA23172@salidar.me.mortis.eu> <1269385936-3440-1-git-send-email-me@mortis.eu> <1269385936-3440-2-git-send-email-me@mortis.eu>
 In-Reply-To: <1269385936-3440-2-git-send-email-me@mortis.eu>
@@ -11,9 +11,12 @@ Content-Transfer-Encoding: 7bit
 To: Giel van Schijndel <me@mortis.eu>
 Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Ack.
+Correction, nack on this one see me reply to patch 4/4
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+Regards,
+
+Hans
+
 
 On 03/24/2010 12:12 AM, Giel van Schijndel wrote:
 > Rename the `address' variable that's used in some places to hwmon_addr
