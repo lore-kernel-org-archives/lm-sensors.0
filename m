@@ -1,45 +1,100 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 17 Mar 2010 07:51:44 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: asc7621 Add X58 entry in Kconfig
-Message-Id: <20100317085144.54998559@hyperion.delvare>
+From: Giel van Schijndel <me@mortis.eu>
+Date: Thu, 25 Mar 2010 13:17:42 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: f71882fg: use a muxed resource lock
+Message-Id: <1269523063-30346-2-git-send-email-me@mortis.eu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1268808892.2006.3.camel@i7.satnam>
-In-Reply-To: <1268808892.2006.3.camel@i7.satnam>
+References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
+ <1269523063-30346-1-git-send-email-me@mortis.eu>
+In-Reply-To: <1269523063-30346-1-git-send-email-me@mortis.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Giel van Schijndel <me@mortis.eu>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Wed, 17 Mar 2010 12:24:52 +0530, Jaswinder Singh Rajput wrote:
-> 
-> Intel X58 have asc7621a chip. So added X58 entry in Kconfig for asc7621.
-> Also arranged existing models in ascending order.
-> 
-> Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput@gmail.com>
-> ---
->  drivers/hwmon/Kconfig |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index e4595e6..9be8e17 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -217,8 +217,8 @@ config SENSORS_ASC7621
->  	depends on HWMON && I2C
->  	help
->  	  If you say yes here you get support for the aSC7621
-> -	  family of SMBus sensors chip found on most Intel X48, X38, 975,
-> -	  965 and 945 desktop boards.  Currently supported chips:
-> +	  family of SMBus sensors chip found on most Intel X38, X48, X58,
-> +	  945, 965 and 975 desktop boards.  Currently supported chips:
->  	  aSC7621
->  	  aSC7621a
->  
+Sleep while acquiring a resource lock on the Super I/O port. This should
+prevent collisions from causing the hardware probe to fail with -EBUSY.
 
-Applied, thanks.
+Signed-off-by: Giel van Schijndel <me@mortis.eu>
+---
+ drivers/hwmon/f71882fg.c |   28 +++++++++++++++-------------
+ 1 files changed, 15 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 7857ed3..e09416d 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -113,7 +113,7 @@ static struct platform_device *f71882fg_pdev;
+ /* Super-I/O Function prototypes */
+ static inline int superio_inb(int base, int reg);
+ static inline int superio_inw(int base, int reg);
+-static inline void superio_enter(int base);
++static inline int superio_enter(int base);
+ static inline void superio_select(int base, int ld);
+ static inline void superio_exit(int base);
+ 
+@@ -883,11 +883,20 @@ static int superio_inw(int base, int reg)
+ 	return val;
+ }
+ 
+-static inline void superio_enter(int base)
++static inline int superio_enter(int base)
+ {
++	/* Don't step on other drivers' I/O space by accident */
++	if (!request_muxed_region(base, 2, DRVNAME)) {
++		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
++				(int)base);
++		return -EBUSY;
++	}
++
+ 	/* according to the datasheet the key must be send twice! */
+ 	outb(SIO_UNLOCK_KEY, base);
+ 	outb(SIO_UNLOCK_KEY, base);
++
++	return 0;
+ }
+ 
+ static inline void superio_select(int base, int ld)
+@@ -899,6 +908,7 @@ static inline void superio_select(int base, int ld)
+ static inline void superio_exit(int base)
+ {
+ 	outb(SIO_LOCK_KEY, base);
++	release_region(base, 2);
+ }
+ 
+ static inline int fan_from_reg(u16 reg)
+@@ -2239,17 +2249,10 @@ static int f71882fg_remove(struct platform_device *pdev)
+ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 	struct f71882fg_sio_data *sio_data)
+ {
+-	int err = -ENODEV;
+ 	u16 devid;
+-
+-	/* Don't step on other drivers' I/O space by accident */
+-	if (!request_region(sioaddr, 2, DRVNAME)) {
+-		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
+-				(int)sioaddr);
+-		return -EBUSY;
+-	}
+-
+-	superio_enter(sioaddr);
++	int err = superio_enter(sioaddr);
++	if (err)
++		return err;
+ 
+ 	devid = superio_inw(sioaddr, SIO_REG_MANID);
+ 	if (devid != SIO_FINTEK_ID) {
+@@ -2306,7 +2309,6 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
+ exit:
+ 	superio_exit(sioaddr);
+-	release_region(sioaddr, 2);
+ 	return err;
+ }
+ 
 -- 
-Jean Delvare
+1.6.4.4
+
 
 _______________________________________________
 lm-sensors mailing list
