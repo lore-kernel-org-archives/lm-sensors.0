@@ -1,7 +1,7 @@
 From: Sergey Spiridonov <sena@hurd.homeunix.org>
-Date: Thu, 25 Mar 2010 16:25:27 +0000
+Date: Fri, 26 Mar 2010 14:42:38 +0000
 Subject: Re: [lm-sensors] Fujitsu D2778 sensors
-Message-Id: <ocfs77-res.ln1@legba.gamic.com>
+Message-Id: <untu77-n5l.ln1@legba.gamic.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <fphm77-hj.ln1@legba.gamic.com>
 In-Reply-To: <fphm77-hj.ln1@legba.gamic.com>
@@ -12,15 +12,11 @@ To: lm-sensors@vger.kernel.org
 
 Hi
 
-Sergey Spiridonov wrote:
+Added bug to kernel bugzilla
 
-> I will try to do BIOS upgrade, see if it helps...
-
-Updated BIOS to R1.09C, it does not help.
-
+https://bugzilla.kernel.org/show_bug.cgi?id634
 -- 
 Best regards, Sergey Spiridonov
-
 
 
 _______________________________________________
