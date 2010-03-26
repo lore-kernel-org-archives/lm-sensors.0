@@ -1,63 +1,159 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 23 Mar 2010 12:43:01 +0000
+From: Denny Schierz <linuxmail@4lin.net>
+Date: Fri, 26 Mar 2010 00:48:11 +0000
 Subject: Re: [lm-sensors] G760A not working korrekt on NAS dlink 323 HW C1
-Message-Id: <20100323134301.30e109b8@hyperion.delvare>
+Message-Id: <1269564491.3051.293.camel@mac>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8552647657812467900=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1269292447.6810.21.camel@kusanagi>
 In-Reply-To: <1269292447.6810.21.camel@kusanagi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="tis-620"
-Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-SGkgRGVubnksCgpPbiBNb24sIDIyIE1hciAyMDEwIDIyOjE0OjA3ICswMTAwLCBEZW5ueSBTY2hp
-ZXJ6IHdyb3RlOgo+IEkgaGF2ZSBhIE5BUyBmcm9tIEQtTGluayBjYWxsZWQgRE5TLTMyM8K5IGFu
-ZCBpdCBoYXMgYSBmYW4gY29udHJvbGxlcgo+IEc3NjBBLiB0aGUgaGFyZHdhcmUgcmV2aXNpb24g
-aXN0IEMxLiBNeSBwcm9ibGVtIGlzLCBhZnRlciBzdGFydGluZyB0aGUKPiBrZXJuZWwgKDIuNi4z
-My4xICgqIGluIC5jb25maWcsIG5pdCBbTV0gKSwgdGhlIGZhbiBzdG9wcy4gSSdtIG5vdCBhYmxl
-Cj4gdG8gYWN0aXZhdGUgaGltLCB3aXRoIGVjaG8sIGxpa2U6Cj4gCj4gbmFzOn4jIGNhdCAvc3lz
-L2NsYXNzL2h3bW9uL2h3bW9uMC9kZXZpY2UvcHdtMQo+IDE4Cj4gCj4gZWNobyAwID4gIC9zeXMv
-Y2xhc3MvaHdtb24vaHdtb24wL2RldmljZS9wd20xCj4gbmFzOn4jIGNhdCAvc3lzL2NsYXNzL2h3
-bW9uL2h3bW9uMC9kZXZpY2UvcHdtMQo+IDE4Cj4gCj4gCj4gZWNobyAyNTUgPiAgL3N5cy9jbGFz
-cy9od21vbi9od21vbjAvZGV2aWNlL3B3bTEKPiBuYXM6fiMgY2F0IC9zeXMvY2xhc3MvaHdtb24v
-aHdtb24wL2RldmljZS9wd20xCj4gMTgKPiAKPiBJIGRvIG5vdCBrbm93LCB3aGF0IGNvdWxkIGJl
-IHRoZSBwcm9ibGVtLCBzbyBJIGhvcGUsIGFueWJvZHkga25vd3MgdGhlCj4gcHJvYmxlbToKPiAK
-PiBuYXM6fiMgc2Vuc29ycwo+IGc3NjBhLWkyYy0wLTNlCj4gQWRhcHRlcjogbXY2NHh4eF9pMmMg
-YWRhcHRlcgo+IGZhbjE6ICAgICAgIDIwNzMgUlBNICBBTEFSTQoKRG9lcyB0aGlzIHZhbHVlIGNo
-YW5nZSBvdmVyIHRpbWU/IEkgZ3Vlc3Mgbm90LgoKPiAKPiBsbTc1LWkyYy0wLTQ4Cj4gQWRhcHRl
-cjogbXY2NHh4eF9pMmMgYWRhcHRlcgo+IHRlbXAxOiAgICAgICArNDguNSBDICAoaGlnaCA9ICs4
-MC4wIEMsIGh5c3QgPSArNzUuMCBDKQo+IAo+IMK5IGh0dHA6Ly93d3cuY3lyaXVzLmNvbS9kZWJp
-YW4vb3Jpb24vZC1saW5rL2Rucy0zMjMvc3BlY3MuaHRtbAo+IAo+IFRoZSByZXZpc2lvbiBDMSBz
-ZWVtcyB0byBiZSBhIGxpdHRsZSBkaWZmZXJlbnQsIGJ1dCBJIGRvbid0IGtub3csIGhvdwo+IGNh
-biBJIGZpZ3VyZSBvdXQgdGhpcy4KPiAKPiBBbnkgc3VnZ2VzdGlvbnM/CgpBY2NvcmRpbmcgdG8g
-dGhpcyBwYWdlOgpodHRwOi8vd2lraS5kbnMzMjMuaW5mby9oYXJkd2FyZTpmYW4KCmZhbiBzcGVl
-ZCBjb250cm9sIGlzIGRpZmZlcmVudCBmb3IgdGhlIHJldmlzaW9uIEMxIGhhcmR3YXJlLiBUaGlz
-CnN1Z2dlc3RzIHRoYXQgdGhlIHVuZGVybHlpbmcgaGFyZHdhcmUgZmFuIHNwZWVkIGNvbnRyb2xs
-ZXIgaXRzZWxmIGlzCmRpZmZlcmVudC4gSSB3b3VsZCBndWVzcyB0aGF0IHlvdSBkb24ndCByZWFs
-bHkgaGF2ZSBhIEc3NjBBIGNoaXAgb24KeW91ciBib2FyZC4gVGhlIExpbnV4IGtlcm5lbCBhc3N1
-bWVzIGl0IGlzIHRoZXJlIGFuZCBpbnN0YW50aWF0ZXMgc3VjaAphIGRldmljZSwgYnV0IGluIHRo
-YXQgY2FzZSBJIHdvdWxkIGJldCBpdCBpcyB3cm9uZy4KClRoZSBnNzYwYSBkcml2ZXIgbGFja3Mg
-c2FuaXR5IGNoZWNrcyB3aGVuIHJlYWRpbmcgcmVnaXN0ZXIgdmFsdWVzLiBJdApkb2Vzbid0IGNh
-dGNoIGVycm9ycyByZXBvcnRlZCBieSB0aGUgdW5kZXJseWluZyBJMkMgYWRhcHRlciBkcml2ZXIu
-IEkKYmV0IHRoYXQgdGhlIDE4IGFuZCAyMDczIHZhbHVlcyB5b3UgZ2V0IGFib3ZlIGFyZSBhY3R1
-YWxseSAtRU5PREVWCmJlaW5nIHByb2Nlc3NlZCBieSB0aGUgZHJpdmVyIGFzIGlmIG5vIGVycm9y
-IGhhZCBvY2N1cnJlZC4gLUVOT0RFViBpcwotMTksIHdoaWNoIGlzIHJlYWQgYXMgMjU1LTE5ID0g
-MjM3IGlmIHRoZSBlcnJvciBpcyBpZ25vcmVkLiBUaGUgZmFuCnNwZWVkIGNvbXB1dGF0aW9uIGZv
-cm11bGEgaW4gdGhlIGRyaXZlciBpcyAoY2xrKjMwKS8odmFsKmRpdikgd2l0aApjbGsgPSAzMjc2
-OCBhbmQgZGl2ID0gMjogKDMyNzY4KjMwKS8oMjM3KjIpID0gMjA3MywgYmluZ28uCgpGb3IgdGhl
-IHRpbWUgYmVpbmcsIGFyY2gvYXJtL21hY2gtb3Jpb241eC9kbnMzMjMtc2V0dXAuYyBzaG91bGQK
-cHJvYmFibHkgcmVmcmFpbiBmcm9tIGluc3RhbnRpYXRpbmcgYSBnNzYwYSBkZXZpY2Ugb24gcmV2
-aXNpb24gQzEKYm9hcmRzLiBZb3UnbGwgaGF2ZSB0byBkaXNjdXNzIHRoaXMgd2l0aCB3aG9ldmVy
-IGlzIGluIGNoYXJnZSBvZiB0aGlzCmZpbGUuCgpUaGVuIHlvdSBjYW4gdHJ5IHJ1bm5pbmcgaTJj
-ZGV0ZWN0IG9uIHRoZSBJMkMgYWRhcHRlciwgdG8gc2VlIGlmIGEKbXlzdGVyaW91cyBkZXZpY2Ug
-aGFzIGJlZW4gYWRkZWQuIFRoZSBJMkMgZGV2aWNlIG1hcCBpcyBzdXBwb3NlZCB0byBiZToKCi8q
-CiAqIE9uIHRoZSBETlMtMzIzIHRoZSBmb2xsb3dpbmcgZGV2aWNlcyBhcmUgYXR0YWNoZWQgdmlh
-IEkyQzoKICoKICogIGkyYyBhZGRyIHwgY2hpcCAgICAgICAgfCBkZXNjcmlwdGlvbgogKiAgMHgz
-ZSAgICAgfCBHTVQgRzc2MEFmICB8IGZhbiBzcGVlZCBQV00gY29udHJvbGxlcgogKiAgMHg0OCAg
-ICAgfCBHTVQgRzc1MS0yZiB8IHRlbXAuIHNlbnNvciBhbmQgdGhlcm0uIHdhdGNoZG9nIChMTTc1
-IGNvbXBhdGlibGUpCiAqICAweDY4ICAgICB8IFNUIE00MVQ4MCAgIHwgUlRDIHcvIGFsYXJtCiAq
-LwoKYnV0IEkgZ3Vlc3MgeW91cnMgd2lsbCBiZSBkaWZmZXJlbnQuCgotLSAKSmVhbiBEZWx2YXJl
-Cmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
-bG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCg==
+
+--===============8552647657812467900==
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-S1mXbo5vA94HLXH3WAb6"
+
+
+--=-S1mXbo5vA94HLXH3WAb6
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+hi,
+
+i was able to locate the chip on the board. His partnumber is AX3106
+(PWM controller)
+
+http://www.micro-bridge.com/data/Axelite/AX3106.pdf
+
+
+Some debug:
+
+nas:~# i2cdetect -l
+i2c-0   i2c             mv64xxx_i2c adapter                     I2C
+adapter
+
+nas:~# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
+I will probe file /dev/i2c-0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- 0c -- -- --=20
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --=20
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --=20
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- UU --=20
+40: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --=20
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --=20
+60: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --=20
+70: -- -- -- -- -- -- -- -- =20
+
+
+so, that is the output, what now? I contacted the maintainer from the
+file dns323-setup.c, but he has no time nor the hardware :-/
+
+any suggestions?
+
+cu denny
+
+
+nas:~# i2cdump 0 0x0c=20
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
+I will probe file /dev/i2c-0, address 0xc, mode byte
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+10: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+20: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+30: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+40: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+50: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+60: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+70: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+80: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+90: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+a0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+b0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+c0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+d0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+e0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+f0: 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91 91    ????????????????
+
+
+nas:~# i2cdump 0 0x3=20
+No size specified (using byte-data access)
+WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
+I will probe file /dev/i2c-0, address 0x3, mode byte
+Continue? [Y/n]=20
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+10: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+20: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+30: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+40: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+50: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+60: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+70: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+80: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+90: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+a0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+b0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+c0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+d0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+e0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+f0: XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX XX    XXXXXXXXXXXXXXXX
+
+
+Am Dienstag, den 23.03.2010, 13:43 +0100 schrieb Jean Delvare:
+> For the time being, arch/arm/mach-orion5x/dns323-setup.c should
+> probably refrain from instantiating a g760a device on revision C1
+> boards. You'll have to discuss this with whoever is in charge of this
+> file.
+>=20
+> Then you can try running i2cdetect on the I2C adapter, to see if a
+> mysterious device has been added. The I2C device map is supposed to
+> be:
+>=20
+> /*
+>  * On the DNS-323 the following devices are attached via I2C:
+>  *
+>  *  i2c addr | chip        | description
+>  *  0x3e     | GMT G760Af  | fan speed PWM controller
+>  *  0x48     | GMT G751-2f | temp. sensor and therm. watchdog (LM75
+> compatible)
+>  *  0x68     | ST M41T80   | RTC w/ alarm
+>  */
+>=20
+> but I guess yours will be different.=20
+
+--=-S1mXbo5vA94HLXH3WAb6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkusBEcACgkQKlzhkqt9P+BIJwCfezbOqH5DZEaIUaEmjlPgV4Ub
+O5MAn0QlhvhJF8wrXFnX6jYY5eZUE5ua
+=DF/Y
+-----END PGP SIGNATURE-----
+
+--=-S1mXbo5vA94HLXH3WAb6--
+
+
+
+--===============8552647657812467900==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8552647657812467900==--
+
