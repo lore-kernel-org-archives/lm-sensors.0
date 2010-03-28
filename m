@@ -1,48 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 04 Mar 2010 13:26:31 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (tmp421) Fix temperature conversions
-Message-Id: <20100304142631.1044370f@hyperion.delvare>
+From: Reimundo Heluani <rheluani@gmail.com>
+Date: Sun, 28 Mar 2010 16:19:42 +0000
+Subject: [lm-sensors] w83627ef  acpi conflicts
+Message-Id: <1269793182.7864.5.camel@campari>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The low bits of temperature registers are status bits, they must be
-masked out before converting the register values to temperatures.
+Hello list, I am trying to diagnose a loud fan on an ASUS p5q3 deluxe.
+The chip recognized by sensors-detect is 
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andre Prendel <andre.prendel@gmx.de>
-Cc: stable@kernel.org
----
- drivers/hwmon/tmp421.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+* ISA bus, address 0x290
+    Chip `Winbond W83667HG Super IO Sensors' (confidence: 9)
 
---- linux-2.6.34-rc0.orig/drivers/hwmon/tmp421.c	2010-03-04 14:05:09.000000000 +0100
-+++ linux-2.6.34-rc0/drivers/hwmon/tmp421.c	2010-03-04 14:13:27.000000000 +0100
-@@ -80,14 +80,16 @@ struct tmp421_data {
- 
- static int temp_from_s16(s16 reg)
- {
--	int temp = reg;
-+	/* Mask out status bits */
-+	int temp = reg & ~0xf;
- 
- 	return (temp * 1000 + 128) / 256;
- }
- 
- static int temp_from_u16(u16 reg)
- {
--	int temp = reg;
-+	/* Mask out status bits */
-+	int temp = reg & ~0xf;
- 
- 	/* Add offset for extended temperature range. */
- 	temp -= 64 * 256;
+But on loading the driver I get
+
+[1556449.413770] w83627ehf: Found W83667HG chip at 0x290
+[1556449.413803] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts
+with ACPI region HWRE [0x290-0x299]
+[1556449.413806] ACPI: If an ACPI driver is available for this device,
+you should use it instead of the native driver
+
+I am completely clueless and have no clue how to proceed.
+
+I am running 
+
+$ uname -a
+Linux campari 2.6.32-gentoo-r3 #1 SMP PREEMPT Sat Feb 6 16:39:11 PST
+2010 x86_64 Intel(R) Core(TM)2 Extreme CPU Q6850 @ 3.00GHz GenuineIntel
+GNU/Linux
+
+I couldn't find much info except an old thread in this list about this
+mobo.
+
+Cheers,
+
+R.
 
 
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
