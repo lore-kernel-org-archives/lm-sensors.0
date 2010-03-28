@@ -1,45 +1,41 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 25 Mar 2010 13:06:57 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] [RFC] hwmon: f71882fg: Add watchdog
-Message-Id: <4BAB5FF1.7060106@redhat.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Sun, 28 Mar 2010 22:11:33 +0000
+Subject: Re: [lm-sensors] w83627ef acpi conflicts
+Message-Id: <68676e01003281511w2c996bdcxc1fe8cea1e29e689@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1269385936-3440-1-git-send-email-me@mortis.eu>	<1269385936-3440-2-git-send-email-me@mortis.eu>	<1269385936-3440-3-git-send-email-me@mortis.eu>	<1269385936-3440-4-git-send-email-me@mortis.eu>	<4BA9CF57.4030504@redhat.com>	<20100324093651.GG6368@salidar.me.mortis.eu>	<4BA9EA5C.9060506@redhat.com>	<20100324153550.GK6368@salidar.me.mortis.eu>	<20100324155151.2482952f@lxorguk.ukuu.org.uk>	<20100325085450.GA20126@salidar.me.mortis.eu>	<20100325104014.GC20126@salidar.me.mortis.eu> <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
-In-Reply-To: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Giel van Schijndel <me@mortis.eu>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: lm-sensors@vger.kernel.org
 
-Hi Giel,
-
-On 03/25/2010 01:50 PM, Alan Cox wrote:
-> O>  Using Alan's patch and the one following the dashed line I can implement
->> (and have already done so) a separate watchdog driver for the Fintek
->> F71808E.
->>
->> Should I just ask for this patch to be applied together with Alan's?
->> Then submit the new driver? (I'm a bit new to the non-technical aspects
->> of Linux kernel development).
+On Sun, Mar 28, 2010 at 6:19 PM, Reimundo Heluani <rheluani@gmail.com> wrote:
+> Hello list, I am trying to diagnose a loud fan on an ASUS p5q3 deluxe.
+> The chip recognized by sensors-detect is
 >
-> I'd expect to see a submission of three patches I think
+> * ISA bus, address 0x290
+>    Chip `Winbond W83667HG Super IO Sensors' (confidence: 9)
 >
-> 1. Patch adding the muxed resource support
-> 2. Patch making the hwmon driver use it
-> 3. Patch adding the new driver which needs it
+> But on loading the driver I get
 >
-> and then we have a few other bits of code that probably should adopt it,
-> but that is a separate matter and other maintainers can do that bit.
+> [1556449.413770] w83627ehf: Found W83667HG chip at 0x290
+> [1556449.413803] ACPI: I/O resource w83627ehf [0x295-0x296] conflicts
+> with ACPI region HWRE [0x290-0x299]
+> [1556449.413806] ACPI: If an ACPI driver is available for this device,
+> you should use it instead of the native driver
 >
+> I am completely clueless and have no clue how to proceed.
 
-What Alan said :)
+It means that ACPI has reserved that IO ports for itself, so the hwmon
+chip not allowed to touch them. Starting from 2.6.31 the kernel
+actually enforces that reservation.
 
-Although I'm not sure what the proper place is to post this entire set,
-I guess linux-kernel itself, with lm_sensors in the CC.
+See the FAQ for the details:
+http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
 
-Regards,
+For Asus board you can use asus_atk0110, which used the monitoring
+interface supplied by ACPI.
 
-Hans
+Luca
 
 _______________________________________________
 lm-sensors mailing list
