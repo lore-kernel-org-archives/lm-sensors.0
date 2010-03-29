@@ -1,29 +1,40 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 31 Mar 2010 13:01:16 +0000
-Subject: Re: [lm-sensors] ADT7468 support
-Message-Id: <20100331150116.2813ef5a@hyperion.delvare>
+Date: Mon, 29 Mar 2010 20:15:25 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.34
+Message-Id: <20100329221525.1706d287@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Hi Christoph,
+Hi Linus,
 
-On Sat, 23 Sep 2006 16:28:20 +0200, Christoph Pittracher wrote:
-> Hello list,
-> what's the state in supporting the ADT7468 chip? I've got a Tyan mainboard 
-> using this one and tried the lm85 adt7463 module forcing the address.
-> I get valid FAN values (the voltage values seems ok too) but the temperature 
-> values are completely wrong.
-> 
-> Is there ongoing support for the ADT7468? Anybody working on it?
-> Should I try to hack a driver myself? If yes, patching the lm85 driver or 
-> writing a completely new one?
+Please pull hwmon subsystem fixes for Linux 2.6.34 from:
 
-If you still care, support was added to the lm85 driver in kernel
-2.6.28 (with some fixes in 2.6.29.)
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
+ drivers/hwmon/Kconfig    |    4 ++--
+ drivers/hwmon/coretemp.c |    4 ++--
+ drivers/hwmon/w83793.c   |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+---------------
+
+Dan Carpenter (1):
+      hwmon: (w83793) Saving negative errors in unsigned
+
+Dean Nelson (1):
+      hwmon: (coretemp) Add missing newline to dev_warn() message
+
+Jaswinder Singh Rajput (1):
+      hwmon: (asc7621) Add X58 entry in Kconfig
+
+Prarit Bhargava (1):
+      hwmon: (coretemp) Fix cpu model output
+
+Thanks,
 -- 
 Jean Delvare
 
