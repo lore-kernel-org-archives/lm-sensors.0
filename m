@@ -1,29 +1,25 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Date: Mon, 29 Mar 2010 18:17:54 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Mon, 29 Mar 2010 18:29:57 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] resource: shared I/O region support
-Message-Id: <4BB0EED2.4020406@zytor.com>
+Message-Id: <20100329192957.0aa66eaa@lxorguk.ukuu.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>	<1269523063-30346-1-git-send-email-me@mortis.eu>	<20100325155705.1ec79dbc@lxorguk.ukuu.org.uk>	<20100325180347.GA2761@salidar.me.mortis.eu>	<20100325181633.0313b8a5@lxorguk.ukuu.org.uk>	<20100329081834.GB27956@salidar.me.mortis.eu>	<20100329090713.1317942b@jbarnes-piketon>	<20100329173800.GA3583@salidar.me.mortis.eu>	<4BB0E73F.2080104@zytor.com> <20100329110633.702e3874@jbarnes-piketon>
+References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
+	<1269523063-30346-1-git-send-email-me@mortis.eu>
+	<20100325155705.1ec79dbc@lxorguk.ukuu.org.uk>
+	<20100325180347.GA2761@salidar.me.mortis.eu>
+	<20100325181633.0313b8a5@lxorguk.ukuu.org.uk>
+	<20100329081834.GB27956@salidar.me.mortis.eu>
+	<20100329090713.1317942b@jbarnes-piketon>
+	<20100329173800.GA3583@salidar.me.mortis.eu>
+	<4BB0E73F.2080104@zytor.com>
+	<20100329110633.702e3874@jbarnes-piketon>
 In-Reply-To: <20100329110633.702e3874@jbarnes-piketon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Giel van Schijndel <me@mortis.eu>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Hans de Goede <hdegoede@redhat.com>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Giel van Schijndel <me@mortis.eu>, Hans de Goede <hdegoede@redhat.com>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On 03/29/2010 11:06 AM, Jesse Barnes wrote:
->>
->> I have to question this approach a bit.
->>
->> I would much rather see this as a two-step process, where multiple
->> devices request the same region with a "sharable" flag, and then have a
->> mutex associated with the struct resource (perhaps we need an outer
->> container called "struct muxed_resource" or some such.)
->>
->> What I *really* object to with this patch is that it inherently assumes
->> that there is only one multiplexed resource in the entire system... but
->> of course nowhere enforces that.
-> 
 > Well that does keep it simple, and with just one user that's probably
 > best.
 > 
@@ -32,12 +28,21 @@ On 03/29/2010 11:06 AM, Jesse Barnes wrote:
 > for example that driver A does something to a shared region that breaks
 > driver B; it just makes sure they don't access the same region at the
 > same time.
-> 
 
-The common bus driver method is the obvious thing to do, but it would
-presumably be greatly helped by librarization.
+The obvious reason for not doing that kind of grand over-engineering is
+that you are assuming the devices involved are remotely related. On quite
+a few systems we have a collection of superio config interfaces on random
+low ports all with their own lock/unlock rituals. They range from
+parallel devices to watchdogs and god knows what else. Right now we have
+various bits of driver code (parport is a good one) that exist on a cross
+fingers, pray and poke model. It would be nice to fix that.
 
-	-hpa
+For most super I/O devices the muxing is basically a glorified chip select
+line. There isn't any structure to impose over it. Where you have
+structure there are better ways to do it, but one does not exclude the
+other.
+
+Alan
 
 _______________________________________________
 lm-sensors mailing list
