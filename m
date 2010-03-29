@@ -1,7 +1,7 @@
 From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Date: Mon, 29 Mar 2010 17:59:29 +0000
+Date: Mon, 29 Mar 2010 17:59:59 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] resource: shared I/O region support
-Message-Id: <20100329105929.731b055e@jbarnes-piketon>
+Message-Id: <20100329105959.41079449@jbarnes-piketon>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
 	<1269523063-30346-1-git-send-email-me@mortis.eu>
@@ -46,7 +46,8 @@ Giel van Schijndel <me@mortis.eu> wrote:
 > 
 > (I copied Alan's signed-off-by from his reply to the patch)
 
-Applied to my for-linus branch with Alan as author.
+...looking again I see it should be in my linux-next branch instead,
+I'll move it over.
 
 Thanks,
 -- 
