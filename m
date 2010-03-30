@@ -1,65 +1,45 @@
-From: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
-Date: Tue, 30 Mar 2010 14:00:30 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: sht15: Fix sht15_calc_temp
-Message-Id: <1269957630-25005-1-git-send-email-jerome.oufella@savoirfairelinux.com>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Tue, 30 Mar 2010 22:18:34 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1031) Add sysfs files
+Message-Id: <20100330221834.GC20635@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1269639013-26029-1-git-send-email-jerome.oufella@savoirfairelinux.com>
-In-Reply-To: <1269639013-26029-1-git-send-email-jerome.oufella@savoirfairelinux.com>
+References: <20090902183322.GF2328@ovro.caltech.edu>
+In-Reply-To: <20090902183322.GF2328@ovro.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I discovered two issues.
-First the previous sht15_calc_temp() loop did not iterate through the
-temppoints array since the (data->supply_uV > temppoints[i - 1].vdd)
-test is always true in this direction.
+On Wed, Sep 02, 2009 at 11:33:22AM -0700, Ira W. Snyder wrote:
+> On Tue, Jun 30, 2009 at 11:39:18AM -0700, Ira Snyder wrote:
+> > The ADM1030/ADM1031 chips have temperature offset registers, for both the
+> > local and remote temperature sensors. Following the example set forth in
+> > the LM90/ADM1032 driver, expose the offset registers to userspace.
+> > 
+> > Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+> > ---
+> > 
+> > I have tested this with an adm1031 chip, and I see the offsets as
+> > expected. I do not have any other compatible chips to test with, however
+> > I read the adm1030 datasheet, and everything should work fine.
+> > 
+> > On the adm1031, the datasheet claims the offset registers can be used to
+> > add/subtract 15 degC from the temperature reading. I have found that it
+> > is actually possible to add 15 degC and subtract 16 degC. Following the
+> > data sheet, I clamped the value to +- 15 degC, just in case other chips
+> > are not compatible.
+> > 
+> >  drivers/hwmon/adm1031.c |   40 ++++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 40 insertions(+), 0 deletions(-)
+> > 
+> 
+> Any comments on this? Can it be merged for 2.6.32?
+> 
 
-Also the two-points linear interpolation function was returning biased
-values, making the temperature reading inaccurate by a non neglectable
-factor. This is adressed using a a proportional factor based linear
-interpolation.
+Again, any comments on this? I haven't heard anything since it was
+posted.
 
-Signed-off-by: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jean Delvare <khali@linux-fr.org>
----
-
- drivers/hwmon/sht15.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
-
-
-diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
-index 864a371..a6ad93b 100644
---- a/drivers/hwmon/sht15.c
-+++ b/drivers/hwmon/sht15.c
-@@ -303,15 +303,15 @@ error_ret:
- static inline int sht15_calc_temp(struct sht15_data *data)
- {
- 	int d1 = 0;
--	int i;
-+	int i, t;
- 
--	for (i = 1; i < ARRAY_SIZE(temppoints); i++)
-+	for (i = ARRAY_SIZE(temppoints) - 1; i > 0; i--)
- 		/* Find pointer to interpolate */
--		if (data->supply_uV > temppoints[i - 1].vdd) {
--			d1 = (data->supply_uV/1000 - temppoints[i - 1].vdd)
--				* (temppoints[i].d1 - temppoints[i - 1].d1)
--				/ (temppoints[i].vdd - temppoints[i - 1].vdd)
--				+ temppoints[i - 1].d1;
-+		if (data->supply_uV >= temppoints[i - 1].vdd) {
-+			t = (data->supply_uV - temppoints[i-1].vdd) / 
-+				((temppoints[i].vdd - temppoints[i-1].vdd) / 10000);
-+
-+			d1 = (temppoints[i].d1 * t + (10000 - t) * temppoints[i-1].d1) / 10000;
- 			break;
- 		}
- 
--- 
-1.6.3.3
-
+Ira
 
 _______________________________________________
 lm-sensors mailing list
