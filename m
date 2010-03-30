@@ -1,7 +1,7 @@
-From: Gabriel C <nix.or.die@googlemail.com>
-Date: Wed, 10 Mar 2010 15:25:14 +0000
+From: "Pearson, Scott" <scott.pearson@intel.com>
+Date: Tue, 30 Mar 2010 00:38:15 +0000
 Subject: Re: [lm-sensors] Intel(r) Quiet System Technology (QST) SDK Is Now
-Message-Id: <4B97C7AE.80106@frugalware.org>
+Message-Id: <0D16118992D42940A6D6ED3288CE63CF0C986D0B1E@orsmsx510.amr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <D9E26691B3D231438C54820E5AB9FA656B976FEC@azsmsx501.amr.corp.intel.com>
 In-Reply-To: <D9E26691B3D231438C54820E5AB9FA656B976FEC@azsmsx501.amr.corp.intel.com>
@@ -10,24 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 09.03.2010 19:56, Pearson, Scott wrote:
+Gabriel,
 
-> No problem. At the same time, I also wanted to make you are aware of some other changes that occurred in conjunction with this SDK release...
-> 
-> In many desktop motherboards that utilize the just-released 5 Series chipset, version 2.0 of the Intel(R) Quiet System Technology (QST) firmware
+I was on the periphery for the driver effort and certainly not privy to any of the discussions that took place regarding commitments and support, so I cannot respond well to your query. A fact of life is that we do not have enough people to do everything and we must make - sometimes painful - decisions regarding what we can and cannot commit to doing/supporting. This is one of those places where resources were put in place for a period of time but, following that, had to be committed to other tasks...
 
-> is included. Within this firmware, we significantly revamped the command packet protocol that is used for communicating with and querying Intel(R) QST. 
+What I can tell you is that the Intel(r) Management Engine Interface (MEI) is a hardware interface that supports communications between software entities executing on the main processor and firmware entities executing on the Intel(r) Management Engine. The MEI (HECI) driver facilitates the use of this hardware interface - and that's all it does. As such, it is agnostic to the "features" of firmware entities such as Intel(r) AMT or Intel(r) QST. Upper layer software would, of course, need to understand the features and communications protocols of the particular firmware subsystems that they are communicating with but, strictly from the standpoint of the driver, the only difference from one chipset generation to another is the PCI id(s) for the MEI in the different flavor(s) of the newer generation chipset. Thus, in theory, to support (for example) the Series 5 chipset, all you should need to do is add support for the appropriate ids and you are done. If you look in the driver source at file heci.h, you will see a list of definitions for the ids that are supported. In file heci_main.c, you will see these definitions used to form a search list. Simply expand the definitions and list to include the id(s) for the missing generation(s) and you should be good to go. The ids can typically be found in the particular chipset's Specification Update document...
 
-> Any support that you may have implemented for the Intel(R) 965, Intel(R) 3 Series and/or Intel(R) 4 Series chipsets will not work with the new firmware. 
+N. Scott Pearson
+S/W Architect, Intel Channel Boards Division (iCBD)
+PC Client Group (PCCG), Intel Architecture Group (IAG)
+Desk  503-696-7818   Cell    503-702-6412
+Fax   503-696-1015   E-Mail  scott.pearson@intel.com
 
-> Within the SDK, we have included a compatibility layer that will allow software that is written to use the new 2.0 command protocol to also support the 
-> older chipsets and firmware versions. Since we have provided the full source for this compatibility layer in the SDK (the SDK actually contains no binaries; 
-> everything is in source form), you should be able to move to the new protocol - and still retain support for the legacy chipsets - quite easily...
 
-> 
-> Let me know what questions you have...
-> 
-
+-----Original Message-----
+From: Gabriel C [mailto:nix.or.die@googlemail.com] 
+Sent: Wednesday, March 10, 2010 8:24 AM
+To: Pearson, Scott
+Cc: Mark M. Hoffman; lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] Intel(r) Quiet System Technology (QST) SDK Is Now Available...
 
 Hi Scott,
 
