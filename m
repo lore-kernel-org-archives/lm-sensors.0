@@ -1,147 +1,82 @@
-From: "didy45@libero.it" <didy45@libero.it>
-Date: Mon, 15 Mar 2010 10:29:32 +0000
-Subject: [lm-sensors] R: Re:  sensors not found INTEL i7
-Message-Id: <7482707.328021268648972405.JavaMail.defaultUser@defaultHost>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Wed, 31 Mar 2010 20:05:06 +0000
+Subject: [lm-sensors] [RFC PATCH v3 2/2] Add auto config script
+Message-Id: <20100331200506.GC2002@andre-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This is the answer to sensor -s and sensors-detect:
+This shell script searches for suitable configuration files due to
+systems DMI data and installs them.
+---
 
-fabio@fabio-laptop:~$ sensors -s
-No sensors found!
-Make sure you loaded all the kernel drivers you need.
-Try sensors-detect to find out which these are.
-
-fabio@fabio-laptop:~$ sudo sensors-detect
-[sudo] password for fabio: 
-# sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
-# System: Hewlett-Packard HP Pavilion dv6 Notebook PC (laptop)
-# Board: Hewlett-Packard 3659
-
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
-
-Some south bridges, CPUs or memory controllers contain embedded sensors.
-Do you want to scan for them? This is totally safe. (YES/no): YES
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD Family 10h thermal sensors...                           No
-AMD Family 11h thermal sensors...                           No
-Intel Core family thermal sensor...                         No
-Intel Atom thermal sensor...                                No
-Intel AMB FB-DIMM thermal sensor...                         No
-VIA C7 thermal sensor...                                    No
-VIA Nano thermal sensor...                                  No
-
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no): YES
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      No
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      No
-
-Some hardware monitoring chips are accessible through the ISA I/O ports.
-We have to write to arbitrary I/O ports to probe them. This is usually
-safe though. Yes, you do have ISA I/O ports even if you do not have any
-ISA slots! Do you want to scan the ISA I/O ports? (YES/no): YES
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Lastly, we can probe the I2C/SMBus adapters for connected hardware
-monitoring devices. This is the most risky part, and while it works
-reasonably well on most systems, it has been reported to cause trouble
-on some systems.
-Do you want to probe the I2C/SMBus adapters now? (YES/no): YES
-Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3.
-Sorry, no supported PCI bus adapters found.
-WARNING: All config files need .conf: /etc/modprobe.d/sound, it will be 
-ignored in a future release.
-WARNING: All config files need .conf: /etc/modprobe.d/alsa-base, it will be 
-ignored in a future release.
-Module i2c-dev loaded successfully.
-
-Next adapter: NVIDIA i2c adapter  (i2c-0)
-Do you want to scan it? (YES/no/selectively): YES
-
-Next adapter: NVIDIA i2c adapter  (i2c-1)
-Do you want to scan it? (YES/no/selectively): YES
-
-Next adapter: NVIDIA i2c adapter  (i2c-2)
-Do you want to scan it? (YES/no/selectively): YES
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                Yes
-    (confidence 8, not a hardware monitoring chip)
-
-Next adapter: NVIDIA i2c adapter  (i2c-3)
-Do you want to scan it? (YES/no/selectively): YES
-
-Next adapter: NVIDIA i2c adapter  (i2c-4)
-Do you want to scan it? (YES/no/selectively): YES
-
-Next adapter: NVIDIA i2c adapter  (i2c-5)
-Do you want to scan it? (YES/no/selectively): YES
-
-Next adapter: NVIDIA i2c adapter  (i2c-6)
-Do you want to scan it? (YES/no/selectively): YES
-
-Next adapter: NVIDIA i2c adapter  (i2c-7)
-Do you want to scan it? (YES/no/selectively): YES
-
-Sorry, no sensors were detected.
-This is relatively common on laptops, where thermal management is
-handled by ACPI rather than the OS.
- 
-What do i do?
-Help me, please!
-
-
->----Messaggio originale----
->Da: anothersname@googlemail.com
->Data: 15/03/2010 3.36
->A: "didy45@libero.it"<didy45@libero.it>
->Ogg: Re: [lm-sensors] sensors not found INTEL i7
->
->On 14 March 2010 16:09, didy45@libero.it <didy45@libero.it> wrote:
->> Do not function lm-sensors on hp pavillon dv6 2153el
->> with cpu intel i7.
->> After i install lmsensors and i start the sensors.
->> the answer is
->> no sensors found!
->> What do i do?
->> Can you help me?
->> thanks!
->>
->> _______________________________________________
->> lm-sensors mailing list
->> lm-sensors@lm-sensors.org
->> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>
->
->Did you run sensors-detect?
->
->What did it report?
->
-
-
+Index: sensors/prog/detect/install.sh
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ sensors/prog/detect/install.sh	2010-03-31 22:00:20.015242241 +0200
+@@ -0,0 +1,58 @@
++#!/bin/bash
++
++SYSFS_PATH=3D/sys/class/dmi/id
++CONF_PATH=3D/var/lib/sensors/conf
++INSTALL_FILE=3D/etc/sensors.d/automobo.conf
++
++BOARD_VENDOR=3D`cat $SYSFS_PATH/board_vendor`
++BOARD_NAME=3D`cat $SYSFS_PATH/board_name`
++BOARD_VERSION=3D`cat $SYSFS_PATH/board_version`
++SYS_VENDOR=3D`cat $SYSFS_PATH/sys_vendor`
++PRODUCT_NAME=3D`cat $SYSFS_PATH/product_name`
++PRODUCT_VERSION=3D`cat $SYSFS_PATH/product_version`
++
++# only for testing
++#BOARD_VENDOR=3DFujitsu
++#BOARD_NAME=D2312C1
++#BOARD_VERSION=3D1.0
++#SYS_VENDOR=3DFujitsu
++#PRODUCT_NAME=D2312D2
++#PRODUCT_VERSION=3D2.0
++
++SEARCH_BOARD_VERSION=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME"_"$BOARD_V=
+ERSION
++SEARCH_BOARD=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME
++SEARCH_SYS_VERSION=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME"_"$PRODUCT_V=
+ERSION
++SEARCH_SYS=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME
++
++echo "Looking for config: $SEARCH_BOARD_VERSION"
++if [ -h "$SEARCH_BOARD_VERSION" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_BOARD_VERSION $INSTALL_FILE
++    exit 0
++fi
++
++echo "Looking for config: $SEARCH_BOARD"
++if [ -h "$SEARCH_BOARD" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_BOARD $INSTALL_FILE
++    exit 0
++fi
++
++echo "Looking for config: $SEARCH_SYS_VERSION"
++if [ -h "$SEARCH_SYS_VERSION" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_SYS_VERSION $INSTALL_FILE
++    exit 0
++fi
++
++echo "Looking for config: $SEARCH_SYS"
++if [ -h "$SEARCH_SYS" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_SYS $INSTALL_FILE
++    exit 0
++fi
++
++echo "Could not find a suitable config"
++rm -f $INSTALL_FILE
++
++exit 1
 
 _______________________________________________
 lm-sensors mailing list
