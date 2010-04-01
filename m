@@ -1,134 +1,161 @@
-From: Moofie <moofie@shaw.ca>
-Date: Sat, 10 Apr 2010 07:35:05 +0000
-Subject: Re: [lm-sensors] Soltek K8T800Pro (it87-isa-0290),
-Message-Id: <4BC02A29.1060709@shaw.ca>
+From: "Jon & Lisa Williams" <jon-lisa@doctors.org.uk>
+Date: Thu, 01 Apr 2010 19:23:40 +0000
+Subject: [lm-sensors] lm-sensors with ASUS P6TD Deluxe and Ubuntu 9.04
+Message-Id: <000001cad1d0$d5ea3820$81bea860$@org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5634278113758819905=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4BBA227C.7010205@shaw.ca>
-In-Reply-To: <4BBA227C.7010205@shaw.ca>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Thu, 08 Apr 2010 16:50:41 -0700, Moofie wrote:
->> Moofie wrote:
->>> Hello list, this is my first time posting here, and I come with some 
->>> questions about my server motherboard with the hopes that I configure 
->>> sensors on it correctly.
->>>
->>> While this Soltek board is relatively old (as the company is no longer 
->>> in business), I had never used it since the day that I bought it.  The 
->>> board was recently installed into a server role and I hope to monitor 
->>> its health from a distance.
->>>
->>> While sensors detects the correct chips installed on the board, the 
->>> values are useless.
->>>
->>> I'm wondering if anyone can shed light on how to set the values 
->>> correctly for this board.  Here's some pertinent info:
->>>
->>>
->>>
->>> ITE IT8712F, National LM90 (ISA 290h, SMBus 4Ch)
->>>
->>>
->>>
->>> acpitz-virtual-0
->>> Adapter: Virtual device
->>> temp1:       +40.0°C  (crit = +75.0°C)
->>>
->>> k8temp-pci-00c3
->>> Adapter: PCI adapter
->>> Core0 Temp:  +50.0°C
->>> Core1 Temp:  +42.0°C
->>>
->>> it87-isa-0290
->>> Adapter: ISA adapter
->>> in0:         +1.31 V  (min =  +0.00 V, max =  +4.08 V)
->>> in1:         +2.54 V  (min =  +0.00 V, max =  +4.08 V)
->>> in2:         +3.28 V  (min =  +0.00 V, max =  +4.08 V)
->>> in3:         +2.90 V  (min =  +0.00 V, max =  +4.08 V)
->>> in4:         +2.91 V  (min =  +0.00 V, max =  +4.08 V)
->>> in5:         +0.96 V  (min =  +0.00 V, max =  +4.08 V)
->>> in6:         +1.12 V  (min =  +0.00 V, max =  +4.08 V)
->>> in7:         +2.94 V  (min =  +0.00 V, max =  +4.08 V)
->>> Vbat:        +3.26 V
->>> fan1:       11250 RPM  (min = 3245 RPM)
->>> fan2:       4963 RPM  (min =    0 RPM)
->>> temp1:       +26.0°C  (low  =  -1.0°C, high = +127.0°C)  sensor = 
->>> thermistor
->>> temp2:       -86.0°C  (low  =  -1.0°C, high = +127.0°C)  sensor = 
->>> thermal diode
->>> temp3:       +14.0°C  (low  =  -1.0°C, high = +127.0°C)  sensor = 
->>> thermistor
->>>
->>> lm90-i2c-0-4c
->>> Adapter: SMBus Via Pro adapter at 5000
->>> temp1:       +38.0°C  (low  =  +0.0°C, high = +70.0°C)
->>>                       (crit = +85.0°C, hyst = +75.0°C)
->>> temp2:       +63.1°C  (low  =  +0.0°C, high = +70.0°C)
->>>                       (crit = +85.0°C, hyst = +75.0°C)
->>>
->>>
->>> If I can provide more information, let me know.
->> OK, I give, what is the LM90 chip usually used for?
-> 
-> Monitoring temperature.
-> 
->> I understand that temp1 is its own temperature.
-> 
-> Yes it is.
-> 
->> Though is that basically the only use of an lm90 chip?  To test one
->> local and one remote temperature?
-> 
-> Well, yes, that's a temperature monitoring chip, what else would you
-> want it to be used for?
-> 
+This is a multi-part message in MIME format.
 
-Oh nothing specific, I was only unclear of its function as I had an 
-ITE8705 _and_ an LM90 which seemed superfluous hence my question as to 
-its purpose.
+--===============5634278113758819905==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01CAD1D9.37AEA020"
+Content-Language: en-gb
 
->> What have people used in real world examples for this chip?  Usually M/B 
->> temp and CPU temp?  I see that temp2 jumps with the CPU temperature, I'm 
->> going to assume it's correct as it matches the BIOS readings and I will 
->> label it as such.
-> 
-> Yes, temp1 = M/B temperature and temp2 = CPU temperature is the most
-> typical usage for LM90-like chips on mainboards. On graphics cards,
-> they are used as temp1 = card temperature and temp2 = GPU temperature.
-> 
->> Though the k8 temps measure each core.  And... They're off by a few 
->> degrees (12C in the above example) so which should I take as correct? 
->> None of the above examples have compute lines so they seem to be as raw 
->> as lm-sensors believes them to be.
-> 
-> The K8 internal sensors have not impressed us by their reliability so
-> far. See the note on http://www.lm-sensors.org/wiki/Devices and various
-> reports on this list.
+This is a multi-part message in MIME format.
 
-I can't connect to the lm-sensors.org site, it keeps timing out for the 
-last few hours.  I will attempt at reading the wiki entry later.  Should 
-I start looking for an offset to garner a better reading from the k8 
-sensors?
+------=_NextPart_000_0001_01CAD1D9.37AEA020
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-> The LM90 temp1 reading should be accurate out of the box, no compute
-> statement needed. The LM90 temp2 reading might need an offset,
-> depending on the thermal diode model being used. Ideally, the BIOS
-> would have set it up properly, so that it itself reports accurate
-> temperature readings. I agree that the LM90 temp2 value is quite high
-> on your system, but I would tend to trust it, especially if the BIOS
-> reports the same.
-> 
-> 
+Hi,
 
-As in my other post to you, it's not exactly accurate, the manufacturer 
-attempted a fix and broke the rest of the BIOS.  I'm guessing with a 
-compute line to reduce the reading by 10%.
+I make use of lm-sensors to monitor CPU core temps in Ubuntu 9.04 while
+running the Folding@Home project (it thrashes the CPU) - it's been great
+with ASUS P5K and P5Q skt 775 motherboards!
+
+However, I've moved to a skt 1366 motherboard, the ASUS P6TD Deluxe (like
+many other 'Folders'), and I can't get lm-sensors to work. I downloaded the
+latest lm-sensors version (Feb 2010) and tried that - someone on the
+official Folding Forum has said that even this doesn't support the P6TD - is
+that right? If this is not right, how do you get it to work? If true, then
+is there a new version due out soon which will?
+
+Folding as DocJonz
+
+
+------=_NextPart_000_0001_01CAD1D9.37AEA020
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Arial","sans-serif";
+	color:windowtext;
+	font-weight:normal;
+	font-style:normal;}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=3DEN-GB link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Arial","sans-serif"'>Hi,<o:p></o:p=
+></span></p>
+
+<p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Arial","sans-serif"'>I
+make use of lm-sensors to monitor CPU core temps in Ubuntu 9.04 while =
+running
+the Folding@Home project (it thrashes the CPU) &#8211; it&#8217;s been =
+great
+with ASUS P5K and P5Q skt 775 motherboards!<o:p></o:p></span></p>
+
+<p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Arial","sans-serif"'>However,
+I&#8217;ve moved to a skt 1366 motherboard, the ASUS P6TD Deluxe (like =
+many
+other &#8216;Folders&#8217;), and I can&#8217;t get lm-sensors to work. =
+I
+downloaded the latest lm-sensors version (Feb 2010) and tried that - =
+someone on
+the official Folding Forum has said that even this doesn&#8217;t support =
+the
+P6TD &#8211; is that right? If this is not right, how do you get it to =
+work? If
+true, then is there a new version due out soon which =
+will?<o:p></o:p></span></p>
+
+<p class=3DMsoNormal><span =
+style=3D'font-size:10.0pt;font-family:"Arial","sans-serif"'>Folding
+as DocJonz<o:p></o:p></span></p>
+
+</div>
+
+
+<br>=
+<br>=
+</body>
+
+</html>
+
+------=_NextPart_000_0001_01CAD1D9.37AEA020--
+
+
+
+
+
+--===============5634278113758819905==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5634278113758819905==--
+
+
+
