@@ -1,37 +1,102 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 14 Apr 2010 06:51:31 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2]: hwmon: allow setting update rate from
-Message-Id: <20100414085131.0bc6e64e@hyperion.delvare>
+Date: Thu, 01 Apr 2010 12:01:52 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: sht15: Fix sht15_calc_temp
+Message-Id: <20100401140152.3141b989@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1270671720-1575-1-git-send-email-iws@ovro.caltech.edu>
-In-Reply-To: <1270671720-1575-1-git-send-email-iws@ovro.caltech.edu>
+References: <1269639013-26029-1-git-send-email-jerome.oufella@savoirfairelinux.com>
+In-Reply-To: <1269639013-26029-1-git-send-email-jerome.oufella@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Jonathan Cameron <jic23@cam.ac.uk>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Ira,
+Hi Jerome, Jonathan,
 
-On Tue, 13 Apr 2010 15:54:26 -0700, Ira W. Snyder wrote:
-> This is an experimental patch to set the update rate from userspace. An
-> example implementation is provided for the adm1031 driver.
+On Fri, 26 Mar 2010 17:30:13 -0400, Jerome Oufella wrote:
+> I discovered two issues.
+> First the previous sht15_calc_temp() loop did not iterate through the
+> temppoints array since the (data->supply_uV > temppoints[i - 1].vdd)
+> test is always true in this direction.
 > 
-> I think the modifications to the adm1031 driver turned out pretty ugly. I'd
-> be happy to drop the first patch and the userspace support from the second
-> patch.  I would keep just the parts that read the update rate from the chip
-> and use that during chip updates.
+> Also the two-points linear interpolation function was returning biased
+> values which I adressed using a different form of interpolation.
 > 
-> I can make my bootloader responsible for setting the update rate
-> appropriately in this case. The adm1031 driver will then use the programmed
-> update rate. The side effect to this is that a user cannot use i2cset to
-> change the update rate after the kernel has booted, if the driver is
-> built-in.
+> Signed-off-by: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
+> ---
 > 
-> If you can suggest a way to make the adm1031 code easier to follow while
-> preserving this change, please speak up!
+>  drivers/hwmon/sht15.c |   14 +++++++-------
+>  1 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> 
+> diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+> index 864a371..a6ad93b 100644
+> --- a/drivers/hwmon/sht15.c
+> +++ b/drivers/hwmon/sht15.c
+> @@ -303,15 +303,15 @@ error_ret:
+>  static inline int sht15_calc_temp(struct sht15_data *data)
+>  {
+>  	int d1 = 0;
+> -	int i;
+> +	int i, t;
+>  
+> -	for (i = 1; i < ARRAY_SIZE(temppoints); i++)
+> +	for (i = ARRAY_SIZE(temppoints) - 1; i > 0; i--)
+>  		/* Find pointer to interpolate */
+> -		if (data->supply_uV > temppoints[i - 1].vdd) {
+> -			d1 = (data->supply_uV/1000 - temppoints[i - 1].vdd)
+> -				* (temppoints[i].d1 - temppoints[i - 1].d1)
+> -				/ (temppoints[i].vdd - temppoints[i - 1].vdd)
+> -				+ temppoints[i - 1].d1;
+> +		if (data->supply_uV >= temppoints[i - 1].vdd) {
+> +			t = (data->supply_uV - temppoints[i-1].vdd) / 
+> +				((temppoints[i].vdd - temppoints[i-1].vdd) / 10000);
+> +
+> +			d1 = (temppoints[i].d1 * t + (10000 - t) * temppoints[i-1].d1) / 10000;
+>  			break;
+>  		}
+>  
 
-I think it should be possible to improve the patch in question. I'll
-reply with a proposal, let's see if we can make it look good enough.
+May I suggest the more simple fix below?
+
+---
+ drivers/hwmon/sht15.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- linux-2.6.34-rc3.orig/drivers/hwmon/sht15.c	2010-04-01 13:41:15.000000000 +0200
++++ linux-2.6.34-rc3/drivers/hwmon/sht15.c	2010-04-01 13:41:55.000000000 +0200
+@@ -305,10 +305,10 @@ static inline int sht15_calc_temp(struct
+ 	int d1 = 0;
+ 	int i;
+ 
+-	for (i = 1; i < ARRAY_SIZE(temppoints); i++)
++	for (i = ARRAY_SIZE(temppoints) - 1; i > 0 ;i--)
+ 		/* Find pointer to interpolate */
+ 		if (data->supply_uV > temppoints[i - 1].vdd) {
+-			d1 = (data->supply_uV/1000 - temppoints[i - 1].vdd)
++			d1 = (data->supply_uV - temppoints[i - 1].vdd)
+ 				* (temppoints[i].d1 - temppoints[i - 1].d1)
+ 				/ (temppoints[i].vdd - temppoints[i - 1].vdd)
+ 				+ temppoints[i - 1].d1;
+
+It leads to the same numbers as with Jerome's patch, with the
+advantages that 1* it is a much smaller change, more suitable for
+applying to stable kernels and 2* it avoids the magic constant number
+10000.
+
+The "/1000" seems to be a relict of former times when temppoints[*].vdd
+was probably expressed in millivolt instead of microvolt. And the
+inverted loop iteration is obviously a bug.
+
+Note that in both cases, something should be done about values which
+are outside of the temppoints array. I don't know how likely these are,
+but they are seriously mishandled. For supply_uV values below
+temppoints[0].vdd, d1 defaults to 0, so no adjustment is done at all.
+temppoints[0].d1 would seem to be a much better default, if we don't
+want to do any interpolation in that case. For supply_uV values above
+temppoints[4].vdd, we do interpolate, which seems reasonable.
+
+Opinions?
 
 -- 
 Jean Delvare
