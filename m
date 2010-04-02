@@ -1,40 +1,34 @@
 From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Thu, 01 Apr 2010 20:34:39 +0000
+Date: Fri, 02 Apr 2010 09:15:28 +0000
 Subject: Re: [lm-sensors] lm-sensors with ASUS P6TD Deluxe and Ubuntu 9.04
-Message-Id: <y2i68676e01004011334n41b3d36ez9ff6c5bc4a6b9205@mail.gmail.com>
+Message-Id: <m2r68676e01004020215ta1bfe349r4eb3bb9f0c00fb15@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <000001cad1d0$d5ea3820$81bea860$@org.uk>
 In-Reply-To: <000001cad1d0$d5ea3820$81bea860$@org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Please keep the list in CC.
+Again, please keep the list in CC.
 
-On Thu, Apr 1, 2010 at 9:59 PM, Jon & Lisa Williams
+On Thu, Apr 1, 2010 at 11:28 PM, Jon & Lisa Williams
 <jon-lisa@doctors.org.uk> wrote:
-> On Thu, Apr 1, 2010 at 9:23 PM, Jon & Lisa Williams
-> <jon-lisa@doctors.org.uk> wrote:
->>> someone on the
->>> official Folding Forum has said that even this doesn’t support the P6TD – is
->>> that right?
->>
->> asus_atk0110 driver should be able to handle the monitoring (but it
->> does not support direct fan control); if it doesn't work please report
->> back so I can fix it :-)
+>> If your kernel is recent enough (which version are you currently
+>> using?) you can load the driver with "modprobe asus_atk0110"; the
+>> module should be inserted automagically though, can you check whether
+>> it's already there or not (lsmod)?
 >
-> Is there a 'crib sheet' or 'how to' that describes the process required
-> to fix things with the asus_atk0110 driver - the 'in-and-outs' of Linux
-> are not my strong point - I'm more of a Linux n00b!!
+> The kernel is 2.6.28-18.
+> How/where do I obtain the asus_atk0110 driver (lsmod does not show it present).
 
-If your kernel is recent enough (which version are you currently
-using?) you can load the driver with "modprobe asus_atk0110"; the
-module should be inserted automagically though, can you check whether
-it's already there or not (lsmod)?
-If "sensors" still reports nothing - even after loading the driver
-manually - please include the output of "ls -l /sys/class/hwmon/",
-dmesg and a copy of the DSDT (/sys/firmware/acpi/tables/DSDT).
+Ah, the kernel is too old. The driver was first included in 2.6.30.
+I think that the easiest way to get a newer kernel is to upgrade to
+Ubuntu 9.10; in alternative you can try a packaged mainline kernel:
+http://kernel.ubuntu.com/~kernel-ppa/mainline/
+
+but this might break other things (so be sure to keep the old working
+kernel installed when trying a package from the PPA).
 
 Luca
 
