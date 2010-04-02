@@ -1,44 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Apr 2010 07:36:11 +0000
-Subject: Re: [lm-sensors] x86- smbus interfaced eeprom disappears
-Message-Id: <20100428093611.7d82b779@hyperion.delvare>
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Date: Fri, 02 Apr 2010 20:29:12 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] resource: shared I/O region support
+Message-Id: <20100402132912.4d2af552@jbarnes-piketon>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <h2j2249bc5f1004271720s33a6c07byf0db65508c6fe174@mail.gmail.com>
-In-Reply-To: <h2j2249bc5f1004271720s33a6c07byf0db65508c6fe174@mail.gmail.com>
+References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
+	<1269523063-30346-1-git-send-email-me@mortis.eu>
+	<20100325155705.1ec79dbc@lxorguk.ukuu.org.uk>
+	<20100325180347.GA2761@salidar.me.mortis.eu>
+	<20100325181633.0313b8a5@lxorguk.ukuu.org.uk>
+	<20100329081834.GB27956@salidar.me.mortis.eu>
+	<20100329090713.1317942b@jbarnes-piketon>
+	<20100329173800.GA3583@salidar.me.mortis.eu>
+	<4BB0E73F.2080104@zytor.com>
+	<20100329110633.702e3874@jbarnes-piketon>
+	<20100329192957.0aa66eaa@lxorguk.ukuu.org.uk>
+In-Reply-To: <20100329192957.0aa66eaa@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Giel van Schijndel <me@mortis.eu>, Hans de Goede <hdegoede@redhat.com>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi James,
+On Mon, 29 Mar 2010 19:29:57 +0100
+Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
 
-On Tue, 27 Apr 2010 17:20:02 -0700, mukund jampala wrote:
-> Hi Guys,
+> > Well that does keep it simple, and with just one user that's probably
+> > best.
+> > 
+> > But why not use the common bus driver method?  Muxing at the resource
+> > level only seems to solve part of the problem...  It doesn't guarantee
+> > for example that driver A does something to a shared region that breaks
+> > driver B; it just makes sure they don't access the same region at the
+> > same time.
 > 
-> I have a this wierd problem.
-> I have a smbus interfaced eeprom device which I can read/write normally
-> untill I plug-in the Fiber PCI express card I have.
+> The obvious reason for not doing that kind of grand over-engineering is
+> that you are assuming the devices involved are remotely related. On quite
+> a few systems we have a collection of superio config interfaces on random
+> low ports all with their own lock/unlock rituals. They range from
+> parallel devices to watchdogs and god knows what else. Right now we have
+> various bits of driver code (parport is a good one) that exist on a cross
+> fingers, pray and poke model. It would be nice to fix that.
 > 
-> If I insert an optical Fiber PCI express card into this x86 board, the smbus
-> interfaces eeprom which I want to access is no more accessble. I can read
-> but what is get is Junk.
-> This happens when I insert only this Card. Not anyother Card.
-> It does not report an error or so when reading/writing.
-> 
-> I can still see it in /sys/class/i2c-dev/i2c-0/.
-> If I probe the bus, the sensors-detect detects the some device at 0x50 but
-> it happens to be the case where the values I read from the device are not
-> valid.
-> However, lm-sensors does not detect the eeprom device irrecpective of where
-> the PCI card is inserted or not.
-> (...)
+> For most super I/O devices the muxing is basically a glorified chip select
+> line. There isn't any structure to impose over it. Where you have
+> structure there are better ways to do it, but one does not exclude the
+> other.
 
-Your issue has nothing to do with hardware monitoring, so you're asking
-on the wrong mailing list. Please try the linux-i2c mailing list
-instead (see MAINTAINERS).
+Well I'm not sure such over-engineering would be "grand", but it does
+seem like overkill for the devices you're covering here.  At any rate,
+the patch is in my linux-next tree, so it'll head to Linus next merge
+cycle unless some big new objections arise.
 
 -- 
-Jean Delvare
+Jesse Barnes, Intel Open Source Technology Center
 
 _______________________________________________
 lm-sensors mailing list
