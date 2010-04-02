@@ -1,126 +1,110 @@
-From: Giel van Schijndel <me@mortis.eu>
-Date: Tue, 23 Mar 2010 23:12:15 +0000
-Subject: [lm-sensors] [PATCH 3/4] hwmon: f71882fg: add watchdog detection
-Message-Id: <1269385936-3440-3-git-send-email-me@mortis.eu>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Fri, 02 Apr 2010 18:51:38 +0000
+Subject: Re: [lm-sensors] regulator: regulator_get behaviour
+Message-Id: <20100402185138.GA12817@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100323141718.GA23172@salidar.me.mortis.eu>
- <1269385936-3440-1-git-send-email-me@mortis.eu>
- <1269385936-3440-2-git-send-email-me@mortis.eu>
-In-Reply-To: <1269385936-3440-2-git-send-email-me@mortis.eu>
+References: <2122967437.461270223106350.JavaMail.root@mail.savoirfairelinux.com> <1779783481.621270223270264.JavaMail.root@mail.savoirfairelinux.com> <20100402160058.GE27613@sirena.org.uk> <20100402184403.2ea1263e@hyperion.delvare>
+In-Reply-To: <20100402184403.2ea1263e@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Giel van Schijndel <me@mortis.eu>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Jerome Oufella <jerome.oufella@savoirfairelinux.com>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Factor out code for detecting the hardware monitor into a separate
-function. Then add a function for detecting the watchdog.
+On Fri, Apr 02, 2010 at 06:44:03PM +0200, Jean Delvare wrote:
+> On Fri, 2 Apr 2010 17:00:59 +0100, Mark Brown wrote:
 
-Signed-off-by: Giel van Schijndel <me@mortis.eu>
----
- drivers/hwmon/f71882fg.c |   74 ++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 58 insertions(+), 16 deletions(-)
+> > Right, it's just returning something that won't match IS_ERR().
 
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index 7b31e14..8006271 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -2233,6 +2233,54 @@ static int f71882fg_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int __init f71882fg_find_watchdog(int sioaddr,
-+	const struct f71882fg_sio_data *sio_data)
-+{
-+	switch (sio_data->type) {
-+	case f71808fg:
-+		break;
-+
-+	case f71862fg:
-+	case f71882fg:
-+	case f71889fg:
-+		/* These have a watchdog, though it isn't implemented (yet). */
-+		return -ENOSYS;
-+
-+	case f71858fg:
-+	default:
-+		/*
-+		 * Confirmed (by datasheet) not to have a watchdog. That is,
-+		 * except for chips matched by the 'default' label of course.
-+		 */
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init f71882fg_find_hwmon(int sioaddr, unsigned short *hwmon_addr,
-+	struct f71882fg_sio_data *sio_data)
-+{
-+	if (sio_data->type = f71858fg)
-+		superio_select(sioaddr, SIO_F71858FG_LD_HWM);
-+	else
-+		superio_select(sioaddr, SIO_F71882FG_LD_HWM);
-+
-+	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
-+		printk(KERN_WARNING DRVNAME ": Device not activated\n");
-+		return -ENODEV;
-+	}
-+
-+	*hwmon_addr = superio_inw(sioaddr, SIO_REG_ADDR);
-+	if (*hwmon_addr = 0) {
-+		printk(KERN_WARNING DRVNAME ": Base address not set\n");
-+		return -ENODEV;
-+	}
-+	*hwmon_addr &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
-+
-+	return 0;
-+}
-+
- static int __init f71882fg_find(int sioaddr, unsigned short *hwmon_addr,
- 	struct f71882fg_sio_data *sio_data)
- {
-@@ -2280,27 +2328,21 @@ static int __init f71882fg_find(int sioaddr, unsigned short *hwmon_addr,
- 		goto exit;
- 	}
- 
--	if (sio_data->type = f71858fg)
--		superio_select(sioaddr, SIO_F71858FG_LD_HWM);
--	else
--		superio_select(sioaddr, SIO_F71882FG_LD_HWM);
--
--	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
--		printk(KERN_WARNING DRVNAME ": Device not activated\n");
--		goto exit;
--	}
--
--	*hwmon_addr = superio_inw(sioaddr, SIO_REG_ADDR);
--	if (*hwmon_addr = 0) {
--		printk(KERN_WARNING DRVNAME ": Base address not set\n");
-+	err = f71882fg_find_hwmon(sioaddr, hwmon_addr, sio_data);
-+	if (err)
- 		goto exit;
--	}
--	*hwmon_addr &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
- 
--	err = 0;
- 	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %d\n",
- 		f71882fg_names[sio_data->type],	(unsigned int)*hwmon_addr,
- 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
-+
-+	err = f71882fg_find_watchdog(sioaddr, sio_data);
-+	if (err = 0)
-+		printk(KERN_INFO DRVNAME ": has supported watchdog\n");
-+	else if (err != -ENODEV && err != -ENOSYS)
-+		goto exit;
-+
-+	err = 0;
- exit:
- 	superio_exit(sioaddr);
- 	release_region(sioaddr, 2);
--- 
-1.6.4.4
+> Ugly design. You're casting a random pointer to struct regulator * and
+> just hope that the user won't make use of it. Right now, you're safe
+> because the definition of struct regulator is not public, but assuming
+> it will stay that way forever is somewhat risky.
 
+If this changes we can always provide a more complex stub; for now we're
+OK.
+
+> I've never seen any API doing things that way, and I can't think of a
+> sane reason for doing things that way. It's pretty error-prone.
+
+All we're doing is stubbing out the API so that common case clients
+(which just want to switch on and off their supplies) don't need to
+either depend on it or include lots of conditional code which could
+easily end up masking error conditions.  The stub behaves as always
+on fixed voltage regulators which matches what most systems that do
+not use the regulator API actually have.
+
+> > You're asking the wrong question here.  The problem here is not that the
+> > regulator got stubbed out, the problem is that the sht15 driver is not
+> > checking the return value of regulator_get_voltage() and so is trying to
+> > use the error code that was returned as a voltage,
+
+> Error code? regulator_get_voltage() returns 0, how is that supposed to
+> be an error code?
+
+It's zero volts which is a reasonable out of range value for a
+regulator.  We could change the API to return a signed value but I'm
+having a hard time summoning the enthusiasm to do that myself.
+
+> > with predictably poor
+> > results.  It is this function that the driver needs to check, not
+> > regulator_get().
+
+> This goes against the expectations. When I have to get a reference to
+> something and then use that something, I expect the former to fail is
+> the something is not available for whatever reason. I don't expect to
+> have to do the latter to realize that the former did not actually work.
+
+Well, it did work in the sense that there's something there that
+satisfies the expectations of many users.  We could change things so
+that the consumers passed in a set of requirements for the regulator but
+that'd be a bit mroe work and at the minute we're mostly relying on
+silly combinations being filtered out at the hardware design stage.
+
+> > There are a range of reasons why an error might be
+> > returned when querying the voltage, all of which would cause the same
+> > result.
+
+> I don't quite follow you here.
+
+Examples include failure to communicate with the hardware (so we don't
+know what state it's in), or hardware that isn't actually doing
+sufficient regulation to supply a voltage (many regulators support a
+more efficient passthrough mode, and sometimes devices are connected
+directly to unregulated supplies for efficiency reasons even if the
+system mostly uses regulators).
+
+> > It is not sensible to check the return code of regulator_get() for
+> > anything other than IS_ERR().
+
+> Why can't we have the stub form of regulator_get() return NULL or
+> ERR_PTR(-ENODEV)? This would be a much friendlier API.
+
+Not really.  The overwhemling majority of users only do simple power
+control, they don't need to get or set voltages and are only interested
+in allowing the system to save some power when they're idle.  These
+drivers don't even need the power to actually get switched off, they
+just want to allow that possibility.  If we returned an error then all
+these consumers would need to conditionalise all their regulator API
+usage and find it hard to distinguish between not having any power and
+normal operation without the regulator API.  With the current approach
+these drivers can have a single code path which is used unconditionally
+and will do the right thing on systems with and without the regulator
+API.
+
+The expectation is that users which have a strong requirement that the 
+regulator API does more than this will need to depend on the regulator
+API in Kconfig or have ifdefs and so never see the stubs though they
+should still error check since individual operations may fail or not be
+supported.
+
+Looking again at the stubs we should remove the stubs for at least
+setting voltages and current limits from the API since they don't
+currently do the right thing and I can't think of any useful stub
+behaviour.  The get operations are more useful as stubs since some
+analogue parts can usefully have their configuration optimised if we
+know their supply voltages but it's just a nice to have and not a
+requirement.
 
 _______________________________________________
 lm-sensors mailing list
