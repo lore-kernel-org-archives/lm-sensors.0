@@ -1,116 +1,91 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 13 Apr 2010 08:49:15 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add sch5127 support to dme1737
-Message-Id: <20100413104915.7bc5d5fa@hyperion.delvare>
+Date: Mon, 05 Apr 2010 07:46:54 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1031) Increase update rate
+Message-Id: <20100405094654.7415b00c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <191fb4ca1001192115u22b07199h1fb4eceff0f795f@mail.gmail.com>
-In-Reply-To: <191fb4ca1001192115u22b07199h1fb4eceff0f795f@mail.gmail.com>
+References: <20100330225628.GE20635@ovro.caltech.edu>
+In-Reply-To: <20100330225628.GE20635@ovro.caltech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+Hi Ira,
 
-On Fri, 9 Apr 2010 10:20:40 -0700, Juerg Haefliger wrote:
-> Sorry for the slow response. The past few months have been quite hectic..
-
-I can understand that...
-
-> >> @@ -2329,10 +2431,10 @@
-> >>       dme1737_sio_enter(sio_cip);
-> >>
-> >>       /* Check device ID
-> >> -      * We currently know about SCH3112 (0x7c), SCH3114 (0x7d), and
-> >> -      * SCH3116 (0x7f). */
-> >> +      * We currently know about SCH3112, SCH3114, SCH3116, and SCH5127 */
-> >>       reg = force_id ? force_id : dme1737_sio_inb(sio_cip, 0x20);
-> >> -     if (!(reg = 0x7c || reg = 0x7d || reg = 0x7f)) {
-> >> +     if (!(reg = SCH3112_ID || reg = SCH3114_ID || reg = SCH3116_ID ||
-> >> +           reg = SCH5127_ID)) {
-> >>               err = -ENODEV;
-> >>               goto exit;
-> >>       }
-> >> @@ -2428,19 +2530,31 @@
-> >>               company = dme1737_read(data, DME1737_REG_COMPANY);
-> >>               device = dme1737_read(data, DME1737_REG_DEVICE);
-> >>
-> >> -             if (!((company = DME1737_COMPANY_SMSC) &&
-> >> -                   (device = SCH311X_DEVICE))) {
-> >> +             if ((company = DME1737_COMPANY_SMSC) &&
-> >> +                 (device = SCH311X_DEVICE)) {
-> >> +                     force_id = SCH3112_ID;
-> >> +             } else if ((company = DME1737_COMPANY_SMSC) &&
-> >> +                        (device = SCH5127_DEVICE)) {
-> >> +                     force_id = SCH5127_ID;
-> >> +             } else {
-> >
-> > I'm not fond of abusing force_id that way. I admit that it should work
-> > in practice, however it could break in theory, for example if more than
-> > one chip were present on a given system. I don't expect to see this any
-> > time soon, but this shows the danger of writing to a global variable
-> > that way. I'd rather do force_id => data->type => data->name, this is
-> > cleaner and shouldn't require much mode code.
+On Tue, 30 Mar 2010 15:56:28 -0700, Ira W. Snyder wrote:
+> The adm1031 chip is capable of an 8 Hz update rate, configurable at runtime
+> with the fan filter register. Increase the update rate to get faster
+> temperature readings.
 > 
-> I don't understand your proposal. Could you elaborate?
-
-I propose that you don't change the value of force_id in the driver.
-This value can be set by the user and should be considered read-only by
-the driver itself. The resulting code might be slightly larger, but it
-is also more correct:
-
-	/* Skip chip detection if module is loaded with force_id parameter */
-	switch (force_id) {
-	case SCH5127_ID:
-		data->type = sch5127;
-		break;
-	case SCH3112_ID:
-		data->type = sch311x;
-		break;
-	default:
-		company = dme1737_read(data, DME1737_REG_COMPANY);
-		device = dme1737_read(data, DME1737_REG_DEVICE);
-
-		if ((company = DME1737_COMPANY_SMSC) &&
-		    (device = SCH311X_DEVICE)) {
-			data->type = sch5127;
-		} else if ((company = DME1737_COMPANY_SMSC) &&
-			   (device = SCH5127_DEVICE)) {
-			data->type = sch311x;
-		} else {
-			err = -ENODEV;
-			goto exit_kfree;
-		}
-	}
-
-	data->name = data->type = sch5127 ? "sch5127" : "sch311x";
-
-> >>                       err = -ENODEV;
-> >>                       goto exit_kfree;
-> >>               }
-> >>       }
-> >> -     data->type = sch311x;
-> >>
-> >> -     /* Fill in the remaining client fields and initialize the mutex */
-> >> -     data->name = "sch311x";
-> >> +     if (force_id = SCH5127_ID) {
-> >> +             data->type = sch5127;
-> >> +             data->name = "sch5127";
-> >> +     } else {
-> >> +             data->type = sch311x;
-> >> +             data->name = "sch311x";
-> >> +     }
-> >
-> > This assumes that force_id MUST be either SCH5127_ID or any of
-> > SCH311x_ID. This is true, but this is enforced in a different function
-> > (dme1737_isa_detect), so it's hard to guarantee that it will always be
-> > the case in the future.
+> Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+> ---
 > 
-> Is this just a comment or do you want me to make changes? What would
-> be your suggestion?
+> This may be a bit controversial. The ADM1031 chip may use more power at a
+> higher update rate. In my (embedded) application, this doesn't matter. The
+> faster update rate is more important.
 
-This is related to the issue above, so the problem will go away if you
-follow my advice above.
+If you use the automatic fan speed control capabilities, then indeed a
+faster update rate can be benefical. But as you suspected, it is
+somewhat controversial, due to the higher power consumption possibly
+for no good reason. Also, the BIOS/firmware might have already
+configured the chip and traditionally the hwmon drivers preserve these
+settings as much as possible.
+
+> Does anyone have thoughts on this? It is easy enough for me to carry
+> myself, but I'd much rather have it upstream.
+
+I wouldn't want it upstream as is. However I can think of two
+alternative implementations which I would be happy with:
+
+1* Let the adm1031 driver accept platform data, and the update rate be
+part of that platform data. Then you can instantiate your device
+explicitly and pass the desired update rate.
+
+2* Expose the update frequency through sysfs, and make it writable.
+After all, so many monitoring devices have a configurable update rate
+that it would make sense to have a standard attribute for it. If you go
+that route, we have to standardize on it first, and add it to
+Documentation/hwmon/sysfs-interface. Then implement it in the adm1031
+driver and possibly other drivers.
+
+Note that both options aren't mutually exclusive, although one of them
+should be enough to satisfy your need.
+
+>  drivers/hwmon/adm1031.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+> index 1644b92..c7195cc 100644
+> --- a/drivers/hwmon/adm1031.c
+> +++ b/drivers/hwmon/adm1031.c
+> @@ -36,6 +36,7 @@
+>  #define ADM1031_REG_FAN_DIV(nr)		(0x20 + (nr))
+>  #define ADM1031_REG_PWM			(0x22)
+>  #define ADM1031_REG_FAN_MIN(nr)		(0x10 + (nr))
+> +#define ADM1031_REG_FAN_FILTER		(0x23)
+>  
+>  #define ADM1031_REG_TEMP_OFFSET(nr)	(0x0d + (nr))
+>  #define ADM1031_REG_TEMP_MAX(nr)	(0x14 + 4 * (nr))
+> @@ -919,6 +920,9 @@ static void adm1031_init_client(struct i2c_client *client)
+>  				ADM1031_CONF1_MONITOR_ENABLE);
+>  	}
+>  
+> +	/* Increase the ADC sampling rate -- temperatures update at 8 Hz */
+> +	read_val = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
+> +	adm1031_write_value(client, ADM1031_REG_FAN_FILTER, read_val | 0x1C);
+>  }
+>  
+>  static struct adm1031_data *adm1031_update_device(struct device *dev)
+> @@ -929,7 +933,7 @@ static struct adm1031_data *adm1031_update_device(struct device *dev)
+>  
+>  	mutex_lock(&data->update_lock);
+>  
+> -	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+> +	if (time_after(jiffies, data->last_updated + HZ / 8)
+>  	    || !data->valid) {
+>  
+>  		dev_dbg(&client->dev, "Starting adm1031 update\n");
+
 
 -- 
 Jean Delvare
