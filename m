@@ -1,71 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Apr 2010 13:04:25 +0000
-Subject: Re: [lm-sensors] Core i7 temperatures query (lm_sensors Vs. BIOS)
-Message-Id: <20100428150425.2f052975@hyperion.delvare>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Date: Mon, 05 Apr 2010 19:28:27 +0000
+Subject: [lm-sensors] [PATCH]hwmon:applesmc:Add MacBook2,
+Message-Id: <1270495707-2946-1-git-send-email-justinmattock@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>
 
-Hi Mohit,
+This patch needs to be applied on top of:
+[PATCH]hwmon:applesmc:Add support for iMac 9.
+located here:
+http://lkml.org/lkml/2010/4/2/300
 
-On Wed, 17 Feb 2010 23:42:14 +0530, mohit chawla wrote:
-> <http://a.collective-media.net/jump/idgt.phoronix/article_above;sec=3Dart=
-icle;fold=ABove;tile=3D2;sz00x250;ord=123456789?>
-> Hello folks, I have been running Mprime successfully for testing the
-> stability of my i7 system when overclocked.
->=20
-> But I am concerned about the correctness of the temperatures as shown by
-> lm_sensors version 3.0.2.
->=20
-> Here's what I have observed.
->=20
-> When I power on the computer and check the CPU temperature in the BIOS, it
-> is usually around 33-34 degrees. But as soon as I boot into my OS (Ubuntu
-> 9.10 64 bit), lm_sensors show temperature around 23-24 degrees.
-> I am using sensors_applet for Gnome panel to see the temperatures.
->=20
-> Now the thing is that just when Gnome is loading(panels coming up,
-> background loading etc.), I do see that the CPU temperature being around =
-33
-> degrees, coming down in a second or two to 23-24 degrees.
->=20
-> So, my question is, are these temperatures correct ? In other words, is it
-> normal that CPU temps are high in BIOS ?
+This patch fixes an input/output error when
+trying to read the temperature sensors in:
+/sys/devices/platform/applesmc.768
+(example)
+watch cat /sys/devices/platform/applesmc.768/temp*_input
 
-It is possible, yes. It all depends on the BIOS implementation, but
-some BIOS are in a tight busy loop all the time, which keeps one CPU
-core busy all the time, in turn resulting in a relatively high
-temperature, basically corresponding to Linux (or any other OS) under
-moderate load.
+the reason for this is the temperature sensors are wrong. Using the
+key enumeration proceedure I was able to locate the correct
+temperature sensors for this machine, and now the above 
+watch cat commands now show changing temperatures with no error.
+(BTW:If you need me to add both patches to make one patch
+for the iMac9,1 and MacBookPro2,2 let me know.)
 
-> Or is it so that when the system is
-> powered on, CPU temps are usually high & when the OS has loaded, they drop
-> down ?
 
-This is expected as well. The boot process can be pretty CPU-intensive,
-so it is no surprise to see a high temperature during boot, dropping to
-a lower value right after boot.
+ Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-> Please help me resolving this scenario, as it could lead to potential
-> damages to my machine due to inaccuracy of results.
+---
+ drivers/hwmon/applesmc.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-Another possibility is that the temperature reported by lm-sensors is
-inaccurate. If you are using the coretemp driver, it is possible that
-the critical limit is not known for your CPU model and the driver
-defaults to the wrong value. This has been an issue in the past, and
-still is for recent CPU models.
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 6ab3e78..a581f11 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -145,6 +145,9 @@ static const char *temperature_sensors_sets[][41] = {
+ /* Set 17: iMac9,1 */
+ 	{ "TA0P", "TC0D", "TC0H", "TC0P", "TG0D", "TG0H", "TH0P", "TL0P",
+ 	  "TN0D", "TN0H", "TN0P", "TO0P", "Tm0P", "Tp0P", NULL },
++/* Set 18: MacBookPro2,2 */
++	{ "TB0T", "TC0D", "TC0P", "TG0H", "TG0P", "TG0T", "TM0P", "TTF0",
++	  "Th0H", "Th1H", "Tm0P", "Ts0P", NULL },
+ };
+ 
+ /* List of keys used to read/write fan speeds */
+@@ -1355,6 +1358,8 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 16 },
+ /* iMac 9: light sensor only, temperature set 17 */
+ 	{ .accelerometer = 0, .light = 0, .temperature_set = 17 },
++/* MacBookPro2,2: accelerometer, backlight and temperature set 18 */
++	{ .accelerometer = 1, .light = 1, .temperature_set = 18 },
+ };
+ 
+ /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+@@ -1380,6 +1385,10 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro3") },
+ 		&applesmc_dmi_data[9]},
++	{ applesmc_dmi_match, "Apple MacBookPro2,2", {
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple Computer, Inc."),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro2,2") },
++		&applesmc_dmi_data[18]},
+ 	{ applesmc_dmi_match, "Apple MacBook Pro", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
+-- 
+1.6.5.GIT
 
-The value read by Core CPUs is really a relative one, so it's not
-really a problem if the current temperature reported by lm-sensors
-isn't correct. What really matters is that it is significantly lower
-than the critical limit (and high limit too, if your CPU has one.) As
-long as this is true, your CPU is safe.
-
---=20
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
