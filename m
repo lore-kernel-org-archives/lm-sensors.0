@@ -1,56 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Mon, 05 Apr 2010 13:23:47 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Tue, 06 Apr 2010 12:04:00 +0000
 Subject: Re: [lm-sensors] regulator: regulator_get behaviour without
-Message-Id: <20100405132347.GA6580@rakim.wolfsonmicro.main>
+Message-Id: <4BBB2330.5090409@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2122967437.461270223106350.JavaMail.root@mail.savoirfairelinux.com>
- <1779783481.621270223270264.JavaMail.root@mail.savoirfairelinux.com>
- <20100402160058.GE27613@sirena.org.uk>
- <20100402184403.2ea1263e@hyperion.delvare>
- <20100402185138.GA12817@opensource.wolfsonmicro.com>
- <20100402213010.4a64e50f@hyperion.delvare>
- <20100402204503.GA15237@opensource.wolfsonmicro.com>
- <20100403173745.2bf17ee6@hyperion.delvare>
-In-Reply-To: <20100403173745.2bf17ee6@hyperion.delvare>
+References: <2122967437.461270223106350.JavaMail.root@mail.savoirfairelinux.com>	<1779783481.621270223270264.JavaMail.root@mail.savoirfairelinux.com>	<20100402160058.GE27613@sirena.org.uk>	<20100402184403.2ea1263e@hyperion.delvare>	<20100402185138.GA12817@opensource.wolfsonmicro.com>	<20100402213010.4a64e50f@hyperion.delvare>	<20100402204503.GA15237@opensource.wolfsonmicro.com>	<20100403173745.2bf17ee6@hyperion.delvare> <20100405132347.GA6580@rakim.wolfsonmicro.main>
+In-Reply-To: <20100405132347.GA6580@rakim.wolfsonmicro.main>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Jerome Oufella <jerome.oufella@savoirfairelinux.com>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Liam Girdwood <lrg@slimlogic.co.uk>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org
 
-On Sat, Apr 03, 2010 at 05:37:45PM +0200, Jean Delvare wrote:
-> On Fri, 2 Apr 2010 21:45:03 +0100, Mark Brown wrote:
+On 04/05/10 14:23, Mark Brown wrote:
+> On Sat, Apr 03, 2010 at 05:37:45PM +0200, Jean Delvare wrote:
+>> On Fri, 2 Apr 2010 21:45:03 +0100, Mark Brown wrote:
+> 
+>>> In this case you don't need the if (voltage) check - the code that uses
+>>> supply_uV is going to have to cope with it being set to 0 if the driver
+>>> doesn't just give up, and the enable wants to happen anyway (perhaps
+>>> we've got a switchable supply we can't read the voltage of).  It should
+>>> never make any odds if the notifier never gets called since the supply
+>>> could be invariant.
+> 
+>> We still need to check if (voltage) to not overwrite the previous value
+>> of data->supply_uV with 0. We will probably do that as an immediate fix
+>> to the sht15 driver. But yes, the rest doesn't need a condition.
+> 
+> I was assuming that there wasn't a previous value since this was in
+> probe(), sorry.
+The option to supply this voltage via platform data is there because
+at the time or writing there were relatively few regulator drivers
+in existence at all.  The device really needs to know what this voltage
+is to function.
 
-> > In this case you don't need the if (voltage) check - the code that uses
-> > supply_uV is going to have to cope with it being set to 0 if the driver
-> > doesn't just give up, and the enable wants to happen anyway (perhaps
-> > we've got a switchable supply we can't read the voltage of).  It should
-> > never make any odds if the notifier never gets called since the supply
-> > could be invariant.
-
-> We still need to check if (voltage) to not overwrite the previous value
-> of data->supply_uV with 0. We will probably do that as an immediate fix
-> to the sht15 driver. But yes, the rest doesn't need a condition.
-
-I was assuming that there wasn't a previous value since this was in
-probe(), sorry.
-
-> Still, I'd prefer if drivers were just able to check for data->reg =
-> NULL and skip the whole thing. Would you apply the following patch?
-
-> From: Jean Delvare <khali@linux-fr.org>
-> Subject: regulator: Let drivers know when they use the stub API
-
-> Have the stub variant of regulator_get() return NULL, so that drivers
-> can (but still don't have to) handle this case specifically.
-
-I guess I'll ack it but I'd be suspicous of driver code which actually
-makes use of this - there is actual hardware which has the same features
-as the regulator that gets stubbed in and ought to be handled.  On the
-other hand, perhaps someone will come up with a good use for it.
-
-It also seems a bit odd to return a traditional error value in a success
-case but it doesn't actually make much difference.
+The underlying bug in sht15 was thrown up a while back but we never
+worked out how to fix it then (and I'll admit I managed to forget
+it existed) - sorry about that.
+> 
+>> Still, I'd prefer if drivers were just able to check for data->reg =
+>> NULL and skip the whole thing. Would you apply the following patch?
+> 
+>> From: Jean Delvare <khali@linux-fr.org>
+>> Subject: regulator: Let drivers know when they use the stub API
+> 
+>> Have the stub variant of regulator_get() return NULL, so that drivers
+>> can (but still don't have to) handle this case specifically.
+> 
+> I guess I'll ack it but I'd be suspicous of driver code which actually
+> makes use of this - there is actual hardware which has the same features
+> as the regulator that gets stubbed in and ought to be handled.  On the
+> other hand, perhaps someone will come up with a good use for it.
+> 
+> It also seems a bit odd to return a traditional error value in a success
+> case but it doesn't actually make much difference.
 
 _______________________________________________
 lm-sensors mailing list
