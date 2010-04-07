@@ -1,114 +1,168 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Fri, 02 Apr 2010 20:45:03 +0000
-Subject: Re: [lm-sensors] regulator: regulator_get behaviour
-Message-Id: <20100402204503.GA15237@opensource.wolfsonmicro.com>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Wed, 07 Apr 2010 20:22:00 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (adm1031) allow setting update rate
+Message-Id: <1270671720-1575-3-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <2122967437.461270223106350.JavaMail.root@mail.savoirfairelinux.com> <1779783481.621270223270264.JavaMail.root@mail.savoirfairelinux.com> <20100402160058.GE27613@sirena.org.uk> <20100402184403.2ea1263e@hyperion.delvare> <20100402185138.GA12817@opensource.wolfsonmicro.com> <20100402213010.4a64e50f@hyperion.delvare>
-In-Reply-To: <20100402213010.4a64e50f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Jerome Oufella <jerome.oufella@savoirfairelinux.com>, lm-sensors <lm-sensors@lm-sensors.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>
+To: lm-sensors@vger.kernel.org
 
-On Fri, Apr 02, 2010 at 09:30:10PM +0200, Jean Delvare wrote:
-> On Fri, 2 Apr 2010 19:51:38 +0100, Mark Brown wrote:
+The adm1031 chip is capable of using a runtime configurable sampling rate,
+using the fan filter register. Add support for reading and setting the
+update rate via sysfs.
 
-> > It's zero volts which is a reasonable out of range value for a
-> > regulator.  We could change the API to return a signed value but I'm
-> > having a hard time summoning the enthusiasm to do that myself.
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+---
+ drivers/hwmon/adm1031.c |   80 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 78 insertions(+), 2 deletions(-)
 
-> Sorry for playing the devil's advocate here, but deciding that 0V is an
-> error is pretty arbitrary, and deciding that a negative voltage value
-> is an error is just as arbitrary. Just because these are not common
-> cases, doesn't mean they can't happen today or tomorrow for very
-> specific setups. I'd rather see a more robust way to notifier the
-> caller that an error happened.
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index 1644b92..7a35024 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -36,6 +36,7 @@
+ #define ADM1031_REG_FAN_DIV(nr)		(0x20 + (nr))
+ #define ADM1031_REG_PWM			(0x22)
+ #define ADM1031_REG_FAN_MIN(nr)		(0x10 + (nr))
++#define ADM1031_REG_FAN_FILTER		(0x23)
+ 
+ #define ADM1031_REG_TEMP_OFFSET(nr)	(0x0d + (nr))
+ #define ADM1031_REG_TEMP_MAX(nr)	(0x14 + 4 * (nr))
+@@ -61,6 +62,8 @@
+ #define ADM1031_CONF2_TACH2_ENABLE	0x08
+ #define ADM1031_CONF2_TEMP_ENABLE(chan)	(0x10 << (chan))
+ 
++#define ADM1031_UPDATE_RATE_MASK	0x1c
++
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+ 
+@@ -75,6 +78,7 @@ struct adm1031_data {
+ 	int chip_type;
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
++	unsigned int update_rate;	/* In milliseconds */
+ 	/* The chan_select_table contains the possible configurations for
+ 	 * auto fan control.
+ 	 */
+@@ -738,6 +742,56 @@ static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 12);
+ static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 13);
+ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 14);
+ 
++/* Update Rate */
++static ssize_t show_update_rate(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm1031_data *data = i2c_get_clientdata(client);
++
++	return snprintf(buf, PAGE_SIZE, "%u\n", data->update_rate);
++}
++
++static ssize_t set_update_rate(struct device *dev,
++			       struct device_attribute *attr,
++			       const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct adm1031_data *data = i2c_get_clientdata(client);
++	unsigned int rates[] = { 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
++	unsigned int regvals[] = { 0x1c, 0x18, 0x14, 0x10, 0xc, 0x8, 0x4, 0x0 };
++	unsigned int reg;
++	int val, i;
++
++	/* both arrays must have the same number of values */
++	BUILD_BUG_ON(ARRAY_SIZE(rates) != ARRAY_SIZE(regvals));
++
++	/* find the update rate from the table */
++	val = simple_strtol(buf, NULL, 10);
++	for (i = 0; i < ARRAY_SIZE(rates); i++) {
++		if (val = rates[i])
++			break;
++	}
++
++	/* if the update rate was not found, the value is invalid */
++	if (i = ARRAY_SIZE(rates))
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++
++	/* set the new update rate while preserving other settings */
++	reg = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
++	reg &= ~ADM1031_UPDATE_RATE_MASK;
++	reg |= regvals[i];
++
++	adm1031_write_value(client, ADM1031_REG_FAN_FILTER, reg);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++static DEVICE_ATTR(update_rate, S_IRUGO | S_IWUSR, show_update_rate,
++		   set_update_rate);
++
+ static struct attribute *adm1031_attributes[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+ 	&sensor_dev_attr_fan1_div.dev_attr.attr,
+@@ -774,6 +828,7 @@ static struct attribute *adm1031_attributes[] = {
+ 
+ 	&sensor_dev_attr_auto_fan1_min_pwm.dev_attr.attr,
+ 
++	&dev_attr_update_rate.attr,
+ 	&dev_attr_alarms.attr,
+ 
+ 	NULL
+@@ -901,6 +956,9 @@ static void adm1031_init_client(struct i2c_client *client)
+ 	unsigned int read_val;
+ 	unsigned int mask;
+ 	struct adm1031_data *data = i2c_get_clientdata(client);
++	unsigned int rates[] = { 125, 250, 500, 1000, 2000, 4000, 8000, 16000 };
++	unsigned int regvals[] = { 0x1c, 0x18, 0x14, 0x10, 0xc, 0x8, 0x4, 0x0 };
++	int i;
+ 
+ 	mask = (ADM1031_CONF2_PWM1_ENABLE | ADM1031_CONF2_TACH1_ENABLE);
+ 	if (data->chip_type = adm1031) {
+@@ -919,18 +977,36 @@ static void adm1031_init_client(struct i2c_client *client)
+ 				ADM1031_CONF1_MONITOR_ENABLE);
+ 	}
+ 
++	/* Read the chip's update rate */
++	mask = ADM1031_UPDATE_RATE_MASK;
++	read_val = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
++
++	/* Find the update rate from the table */
++	for (i = 0; i < ARRAY_SIZE(regvals); i++) {
++		if ((read_val & mask) = regvals[i])
++			break;
++	}
++
++	/* the update rate was not found, use the default */
++	if (i = ARRAY_SIZE(regvals)) {
++		data->update_rate = 1000;
++		return;
++	}
++
++	data->update_rate = rates[i];
+ }
+ 
+ static struct adm1031_data *adm1031_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1031_data *data = i2c_get_clientdata(client);
++	unsigned long next_update;
+ 	int chan;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+-	    || !data->valid) {
++	next_update = data->last_updated + msecs_to_jiffies(data->update_rate);
++	if (time_after(jiffies, next_update) || !data->valid) {
+ 
+ 		dev_dbg(&client->dev, "Starting adm1031 update\n");
+ 		for (chan = 0;
+-- 
+1.5.4.3
 
-Yes, you could pass a pointer to the value or similar.  OTOH that'd mean
-managing the transition :/
-
-> OK, I get it. This indeed rules out ERR_PTR(-ENODEV). But what about
-> NULL? IS_ERR() doesn't catch NULL, so this wouldn't affect the current
-> users, as you never dereference the struct regulator pointer in the
-> stubs anyway. And at least it would let drivers that need it cleanly
-> differentiate between the cases of availability or unavailability of
-> the real regulator API. Something like (from the hwmon/sht15 driver):
-
-I'm not sure there's actually much win from this information since we do
-have cases with things like functionally limited regulators and error
-conditions which mean that drivers end up having to cope with pretty
-much all this stuff anyway.  But yes, NULL should be just as good as a
-stub.
-
-> looks much better than
-
-> /* If a regulator is available, query what the supply voltage actually is!*/
-> 	data->reg = regulator_get(data->dev, "vcc");
-> 	if (!IS_ERR(data->reg)) {
-> 		int voltage = regulator_get_voltage(data->reg);
-> 		if (voltage) {
-> 			data->supply_uV = voltage;
-> 			regulator_enable(data->reg);
-> 			/* setup a notifier block to update this if
-> 			 *  another device causes the voltage to change */
-> 			data->nb.notifier_call = &sht15_invalidate_voltage;
-> 			ret = regulator_register_notifier(data->reg, &data->nb);
-> 		}
-> 	}
-
-In this case you don't need the if (voltage) check - the code that uses
-supply_uV is going to have to cope with it being set to 0 if the driver
-doesn't just give up, and the enable wants to happen anyway (perhaps
-we've got a switchable supply we can't read the voltage of).  It should
-never make any odds if the notifier never gets called since the supply
-could be invariant.
-
-> > The expectation is that users which have a strong requirement that the 
-> > regulator API does more than this will need to depend on the regulator
-> > API in Kconfig or have ifdefs and so never see the stubs though they
-> > should still error check since individual operations may fail or not be
-> > supported.
-
-> I guess we could have ifdefs in hwmon/sht15, yes. But OTOH it looks
-> weird to have a complete stub API for the CONFIG_REGULATOR=n case, and
-> still require ifdefs from times to times. This is what make me believe
-> the stub API isn't good enough.
-
-The regulator API is kind of odd here in that there's a lot of users
-that are able to do things using it but which are largely indifferent to
-if they're happening or not since the results are optimisations of
-benefit to the system as a whole rather than directly used
-functionality.  The stubs are only attempting to cater for them and
-don't cater for the other users that do care about what happens.
-
-I agree that it's unusual but don't see any great alternatives that
-don't involve things like pushing some stuff for the stub users more
-into the core APIs (like how some platforms are integrating their clock
-management into the PM framework) and I don't think we're anywhere near
-the point where we know enough to say that's a good idea at the minute.
-
-> > Looking again at the stubs we should remove the stubs for at least
-> > setting voltages and current limits from the API since they don't
-> > currently do the right thing and I can't think of any useful stub
-> > behaviour.  The get operations are more useful as stubs since some
-> > analogue parts can usefully have their configuration optimised if we
-> > know their supply voltages but it's just a nice to have and not a
-> > requirement.
-
-> I second that. The stub API should only contain the minimum set of
-> functions that is required to keep drivers which don't depend on
-> CONFIG_REGULATOR ifdef-free. This will make its intended use case
-> clearer.
-
-Actually having thought about that one a bit more I'm not so sure for
-set_voltage() - the DVFS style drivers are in a similar position to the
-basic power switching ones, they'd like to be able to lower the supplies
-to save power but don't actually need that to happen.  Needs a bit more
-thought.
-
-There are currently some functions that don't get stubbed, like
-regulator_get_exclusive().
 
 _______________________________________________
 lm-sensors mailing list
