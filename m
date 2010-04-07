@@ -1,28 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Apr 2010 12:32:11 +0000
-Subject: Re: [lm-sensors] Andigilog asc7621 driver: Temperature scaling
-Message-Id: <20100428143211.4bff49e7@hyperion.delvare>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Wed, 07 Apr 2010 20:21:58 +0000
+Subject: [lm-sensors] [PATCH 0/2]: hwmon: allow setting update rate from
+Message-Id: <1270671720-1575-1-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4B930BB3.6030201@kenm.demon.co.uk>
-In-Reply-To: <4B930BB3.6030201@kenm.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 17 Mar 2010 08:39:17 +0100, Jean Delvare wrote:
-> Hi Ken,
-> 
-> On Sun, 07 Mar 2010 10:20:13 +0000, Ken Milmore wrote:
-> > I will try and get a patch together as soon as time permits.
-> 
-> Do you have a patch by now?
+This is an experimental patch to set the update rate from userspace. An
+example implementation is provided for the adm1031 driver.
 
-Ping Ken. Would be nice to have a patch ready soon so that it can make
-it into kernel 2.6.35.
+I think the modifications to the adm1031 driver turned out pretty ugly. I'd
+be happy to drop the first patch and the userspace support from the second
+patch.  I would keep just the parts that read the update rate from the chip
+and use that during chip updates.
 
--- 
-Jean Delvare
+I can make my bootloader responsible for setting the update rate
+appropriately in this case. The adm1031 driver will then use the programmed
+update rate. The side effect to this is that a user cannot use i2cset to
+change the update rate after the kernel has booted, if the driver is
+built-in.
+
+Thanks,
+Ira
 
 _______________________________________________
 lm-sensors mailing list
