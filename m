@@ -1,7 +1,7 @@
 From: Moofie <moofie@shaw.ca>
-Date: Thu, 08 Apr 2010 23:30:26 +0000
+Date: Thu, 08 Apr 2010 23:50:41 +0000
 Subject: Re: [lm-sensors] Soltek K8T800Pro (it87-isa-0290),
-Message-Id: <4BBE6712.100@shaw.ca>
+Message-Id: <4BBE6BD1.3050200@shaw.ca>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4BBA227C.7010205@shaw.ca>
 In-Reply-To: <4BBA227C.7010205@shaw.ca>
@@ -82,34 +82,19 @@ Moofie wrote:
 > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 >=20
 
-I have been playing with the values and I feel that I have made some=20
-progress.  Identifying the sensors is difficult as they all seem to show=20
-different patterns.
+OK, I give, what is the LM90 chip usually used for?  I understand that=20
+temp1 is its own temperature.  Though is that basically the only use of=20
+an lm90 chip?  To test one local and one remote temperature?
 
-Under it87, temp1 is almost constant, it hovers around 26C, currently=20
-it's at 24C and I've seen it go as high as 27C.  Using stress (with all=20
-the different hogs), the temperature does climb, but not right away and=20
-this leads me to believe that this is indeed a sensor and it monitors=20
-the ambient/case temperature.
+What have people used in real world examples for this chip?  Usually M/B=20
+temp and CPU temp?  I see that temp2 jumps with the CPU temperature, I'm=20
+going to assume it's correct as it matches the BIOS readings and I will=20
+label it as such.
 
-temp2 is a negative value and stays constant within a 3 degree range if=20
-set to a thermal diode, if set to thermistor it seems to stay constant=20
-at negative 55.  This is all throughout multiple stress runs, both=20
-memory, i/o, disk and CPU.  I'm assuming that this sensor is not connected.
-
-temp3 swings wildly from -110 to about 108 degrees, and all over in=20
-between.  I've tried setting it as a thermistor or diode, and it still=20
-goes all over the place.  I'm wondering what I can do with this sensor=20
-as it's not really reading correctly.  It must be sensing something, as=20
-it does produce values all over the range, I'm just stumped as to what=20
-kind of compute function I would need to use to make this thing make any=20
-kind of sense.
-
-I will further ask questions about the rest of the detected chips as I=20
-get to them, though I'd appreciate any thoughts on the above temperature=20
-sensors.
-
-Thanks!
+Though the k8 temps measure each core.  And... They're off by a few=20
+degrees (12C in the above example) so which should I take as correct?=20
+None of the above examples have compute lines so they seem to be as raw=20
+as lm-sensors believes them to be.
 
 _______________________________________________
 lm-sensors mailing list
