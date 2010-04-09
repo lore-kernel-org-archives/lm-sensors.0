@@ -1,7 +1,7 @@
 From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Thu, 08 Apr 2010 19:13:37 +0000
+Date: Fri, 09 Apr 2010 20:02:59 +0000
 Subject: Re: [lm-sensors] lm-sensors on Asus CUSL2 motherboard
-Message-Id: <g2p68676e01004081213ne8a7b69q22cb90009ef8c134@mail.gmail.com>
+Message-Id: <s2j68676e01004091302ue072ab75j62328d64ab848460@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <638607.35479.qm@web55607.mail.re4.yahoo.com>
 In-Reply-To: <638607.35479.qm@web55607.mail.re4.yahoo.com>
@@ -10,22 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Apr 8, 2010 at 7:29 PM, Lunar Cab <lunarcab@yahoo.com> wrote:
-> thank you very much for your reply. Using your advice, I've got the following message from dmesg:
+On Fri, Apr 9, 2010 at 6:12 PM, Lunar Cab <lunarcab@yahoo.com> wrote:
+[cut]
+> insserv: warning: script 'usplash' missing LSB tags and overrides
+> Unloading i2c-dev... OK
+> Unloading i2c-i801... OK
 >
-> [ 5321.294515] ACPI: I/O resource 0000:00:1f.3 [0xe800-0xe80f] conflicts with ACPI region SM00 [0xe800-0xe806]
-> [ 5321.294527] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
+> administrator@UBUNTU-INST:~$
 >
-> So, as you suggested, I probably should enable asus_atk0110 driver. Could you please tell me how to do that?
+> Is it normal?
 
-modprobe asus_atk0110, but re-reading the original mail:
+Sort of, but it's unrelated to hwmon
 
-> > I cannot get any temperature readings from them in Ubuntu 9.10 Karmic Koala
-> > (kernel 2.6.31-21-generic).
+> I am sending you my dsdt.dsl file you asked me for.
 
-the module should be auto-loaded. The board is pretty old, it might
-lack the ACPI hwmon interface. If nothing shows up even after manually
-loading the driver please send me a copy of the DSDT.
+Ah... I found the same firmware in my archive, so let me copy&past
+from a previous email message:
+
+Unfortunately the ATK0110 is not present. The registers in the ICH are
+used by ACPI for \_SI (System Indicators). Linux uses \_SI._SST to
+change the system status indicator when suspending and resuming, so
+the race condition window is pretty small. The enforcement of ACPI
+reservations was done to avoid situations where the same ports could
+be accessed by both ACPI and native drivers (without coordination).
+To revert to the old behaviour you can pass
+"acpi_enforce_resources=lax" on the kernel command line, but I cannot
+guarantee that it's a safe operation.
+
+
+> I do not know if it helps but I have "hw monitoring" tab in BIOS, which
+> shows temperatures and voltage.
+
+Yeah, but the BIOS does not have an ACPI interpreter so nothing else
+it touching the monitoring chip.
+As as I wrote above the chip seems to be used only during suspend and
+resume, so while it's not 100% safe to use lax resource checking
+chances that something goes bad are small.
+For such an old board a BIOS update is out the question, so ignoring
+the ACPI reservation is your only option if you want access to the
+monitoring chip.
 
 Luca
 
