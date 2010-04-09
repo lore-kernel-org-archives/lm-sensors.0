@@ -1,187 +1,145 @@
-From: Giel van Schijndel <me@mortis.eu>
-Date: Sun, 25 Apr 2010 10:35:40 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: f71882fg: use a muxed resource
-Message-Id: <20100425103540.GA5185@salidar.me.mortis.eu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1436475436132634802=="
+From: Tobias Flach <tobias.flach@arcor.de>
+Date: Fri, 09 Apr 2010 13:06:00 +0000
+Subject: [lm-sensors] No readings except for core temperatures on Dell
+Message-Id: <1270818360.2014.8.camel@tobias-fgis>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
- <1269523063-30346-1-git-send-email-me@mortis.eu>
- <1269523063-30346-2-git-send-email-me@mortis.eu>
-In-Reply-To: <1269523063-30346-2-git-send-email-me@mortis.eu>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
-
---===============1436475436132634802==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
-Content-Disposition: inline
-
-
---nFreZHaLTZJo0R7j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Mar 25, 2010 at 02:17:42PM +0100, Giel van Schijndel wrote:
-> Sleep while acquiring a resource lock on the Super I/O port. This should
-> prevent collisions from causing the hardware probe to fail with -EBUSY.
-
-Fix a bug which caused f71882fg_find() to pretend to be succesfull on
-Super I/O ports which didn't have a Fintek chip attached.  This was
-caused by returning 0 instead of -ENODEV, adding several 'err =3D -ENODEV'
-statements preceding the 'goto exit' statements fixed this.
-
-Patch follows this line:
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Sleep while acquiring a resource lock on the Super I/O port. This should
-prevent collisions from causing the hardware probe to fail with -EBUSY.
-
-Signed-off-by: Giel van Schijndel <me@mortis.eu>
----
- drivers/hwmon/f71882fg.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index 7857ed3..85512a7 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -113,7 +113,7 @@ static struct platform_device *f71882fg_pdev;
- /* Super-I/O Function prototypes */
- static inline int superio_inb(int base, int reg);
- static inline int superio_inw(int base, int reg);
--static inline void superio_enter(int base);
-+static inline int superio_enter(int base);
- static inline void superio_select(int base, int ld);
- static inline void superio_exit(int base);
-=20
-@@ -883,11 +883,20 @@ static int superio_inw(int base, int reg)
- 	return val;
- }
-=20
--static inline void superio_enter(int base)
-+static inline int superio_enter(int base)
- {
-+	/* Don't step on other drivers' I/O space by accident */
-+	if (!request_muxed_region(base, 2, DRVNAME)) {
-+		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
-+				(int)base);
-+		return -EBUSY;
-+	}
-+
- 	/* according to the datasheet the key must be send twice! */
- 	outb(SIO_UNLOCK_KEY, base);
- 	outb(SIO_UNLOCK_KEY, base);
-+
-+	return 0;
- }
-=20
- static inline void superio_select(int base, int ld)
-@@ -899,6 +908,7 @@ static inline void superio_select(int base, int ld)
- static inline void superio_exit(int base)
- {
- 	outb(SIO_LOCK_KEY, base);
-+	release_region(base, 2);
- }
-=20
- static inline int fan_from_reg(u16 reg)
-@@ -2239,21 +2249,15 @@ static int f71882fg_remove(struct platform_device *=
-pdev)
- static int __init f71882fg_find(int sioaddr, unsigned short *address,
- 	struct f71882fg_sio_data *sio_data)
- {
--	int err =3D -ENODEV;
- 	u16 devid;
--
--	/* Don't step on other drivers' I/O space by accident */
--	if (!request_region(sioaddr, 2, DRVNAME)) {
--		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
--				(int)sioaddr);
--		return -EBUSY;
--	}
--
--	superio_enter(sioaddr);
-+	int err =3D superio_enter(sioaddr);
-+	if (err)
-+		return err;
-=20
- 	devid =3D superio_inw(sioaddr, SIO_REG_MANID);
- 	if (devid !=3D SIO_FINTEK_ID) {
- 		pr_debug(DRVNAME ": Not a Fintek device\n");
-+		err =3D -ENODEV;
- 		goto exit;
- 	}
-=20
-@@ -2280,6 +2284,7 @@ static int __init f71882fg_find(int sioaddr, unsigned=
- short *address,
- 	default:
- 		printk(KERN_INFO DRVNAME ": Unsupported Fintek device: %04x\n",
- 		       (unsigned int)devid);
-+		err =3D -ENODEV;
- 		goto exit;
- 	}
-=20
-@@ -2290,12 +2295,14 @@ static int __init f71882fg_find(int sioaddr, unsign=
-ed short *address,
-=20
- 	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
- 		printk(KERN_WARNING DRVNAME ": Device not activated\n");
-+		err =3D -ENODEV;
- 		goto exit;
- 	}
-=20
- 	*address =3D superio_inw(sioaddr, SIO_REG_ADDR);
- 	if (*address =3D=3D 0) {
- 		printk(KERN_WARNING DRVNAME ": Base address not set\n");
-+		err =3D -ENODEV;
- 		goto exit;
- 	}
- 	*address &=3D ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
-@@ -2306,7 +2313,6 @@ static int __init f71882fg_find(int sioaddr, unsigned=
- short *address,
- 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
- exit:
- 	superio_exit(sioaddr);
--	release_region(sioaddr, 2);
- 	return err;
- }
-=20
---=20
-1.6.4.4
-
-
---=20
-Met vriendelijke groet,
-With kind regards,
-Giel van Schijndel
-
---nFreZHaLTZJo0R7j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkvUGvkACgkQZBYm/87l50LoEACgvHp5cu65SHygI2QXkUzGCk6/
-PAYAn1itfNFGLs+oipvX353DDK5Y7q0u
-=3gy2
------END PGP SIGNATURE-----
-
---nFreZHaLTZJo0R7j--
-
-
---===============1436475436132634802==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: lm-sensors@vger.kernel.org
+
+Hi all,
+
+I recently installed lm-sensors and tried to get some fan speed /
+voltage / temperature readings. I followed the installation instructions
+posted in the lm-sensors wiki and the "sensors-detect" program finds a
+thermal sensor on the core. However, nothing else is detected and I only
+get core temperature readings when I run "sensors". Is it reasonable to
+assume that the machine does not have any other sensors at all which can
+be accessed, or is there some problem with the detection of other
+sensors?
+
+I am running Ubuntu Karmic 9.10 with Kernel 2.6.31 on a Dell Optiplex
+780 machine (Intel Core 2 Duo E7500 with VT, chipset appears to be from
+the ICH10 family).
+
+Here is the output when running sensors-detect:
+
+# sensors-detect revision 5832 (2010-03-31 14:30:30 +0200)
+# System: Dell Inc. OptiPlex 780
+# Board: Dell Inc. 0C27VV
+
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
+
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no): 
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           No
+AMD Family 11h thermal sensors...                           No
+Intel Core family thermal sensor...                         Success!
+    (driver `coretemp')
+Intel Atom thermal sensor...                                No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): 
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     Yes
+Found unknown chip with ID 0x8d01
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+
+Some systems (mainly servers) implement IPMI, a set of common interfaces
+through which system health data may be retrieved, amongst other things.
+We first try to get the information from SMBIOS. If we don't find it
+there, we have to read from arbitrary I/O ports to probe for such
+interfaces. This is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no): 
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Some hardware monitoring chips are accessible through the ISA I/O ports.
+We have to write to arbitrary I/O ports to probe them. This is usually
+safe though. Yes, you do have ISA I/O ports even if you do not have any
+ISA slots! Do you want to scan the ISA I/O ports? (YES/no): 
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+
+Lastly, we can probe the I2C/SMBus adapters for connected hardware
+monitoring devices. This is the most risky part, and while it works
+reasonably well on most systems, it has been reported to cause trouble
+on some systems.
+Do you want to probe the I2C/SMBus adapters now? (YES/no): 
+Using driver `i2c-i801' for device 0000:00:1f.3: Intel ICH10
+
+Next adapter: SMBus I801 adapter at 0980 (i2c-0)
+Do you want to scan it? (YES/no/selectively): 
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 No
+Probing for `EDID EEPROM'...                                No
+Client found at address 0x52
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 No
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue: 
+
+Driver `coretemp':
+  * Chip `Intel Core family thermal sensor' (confidence: 9)
+
+Do you want to generate /etc/sysconfig/lm_sensors? (yes/NO): 
+To load everything that is needed, add this to one of the system
+initialization scripts (e.g. /etc/rc.d/rc.local):
+
+#----cut here----
+# Chip drivers
+modprobe coretemp
+/usr/bin/sensors -s
+#----cut here----
+
+If you have some drivers built into your kernel, the list above will
+contain too many modules. Skip the appropriate ones! You really
+should try these commands right now to make sure everything is
+working properly. Monitoring programs won't work until the needed
+modules are loaded.
+
+
+And this is the output when running "sudo sensors":
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +33.0°C  (high = +76.0°C, crit = +100.0°C)  
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +37.0°C  (high = +76.0°C, crit = +100.0°C)  
+
+
+I would appreciate any help!
+
+Best regards,
+Tobias
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1436475436132634802==--
