@@ -1,33 +1,40 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 26 Apr 2010 14:44:15 +0000
-Subject: Re: [lm-sensors] asus_atk0110 not detecting anything on P5LD2EB-DHS
-Message-Id: <r2m68676e01004260744w4bcea1bl363903720410faa6@mail.gmail.com>
+From: Juerg Haefliger <juergh@gmail.com>
+Date: Fri, 09 Apr 2010 17:28:25 +0000
+Subject: Re: [lm-sensors] SMSC 5027 watchdog support
+Message-Id: <k2q191fb4ca1004091028s19bf14a8we69826c064f31687@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <k2r68676e01004260718y3c0c397bpcf1892a7ae30b9f5@mail.gmail.com>
-In-Reply-To: <k2r68676e01004260718y3c0c397bpcf1892a7ae30b9f5@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Apr 26, 2010 at 4:27 PM, Doru Petrescu <pdoru@evox.ro> wrote:
-> atk0110 doesn't add anything in /sys/class/hwmon
-> the only thing there (hwmon0) is provided by eeepc_laptop module.
+Hi Thomas,
 
-Not good, it might indicate that the driver has been loaded but not
-bound to any device.
 
-> I will try a newer kernel.
+> Hi,
+>
+> I have seen that you added the SCH5027 support to the dme1737 driver.
+>
+> I have a couple of servers using the Tyan S5211 mainboard which uses the
+> watchdog on the SCH5027, but it looks like there is no driver support in
+> Linux.
+>
+> Can you please shed any light here ?
 
-BTW, the driver is fairly self contained, you should be able to
-compile the driver from a newer kernel for your current one (without
-installing the newer kernel) with something like:
+Not much light so shed here. There is no watchdog support in the
+current driver. I don't know how the watchdog functionality integrates
+with the hwmon subsystem or if this is handled in a different
+subsystem. Anybody on the list willing to enlighten me before I fire
+up google? :-)
 
-make -C /lib/modules/$(uname -r)/source O=/lib/modules/$(uname
--r)/build M=$(pwd)
-(with Makefile and driver source in the current directory)
+...juerg
 
-Luca
+
+
+> Kind regards from Vienna, Austria
+> Thomas
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
