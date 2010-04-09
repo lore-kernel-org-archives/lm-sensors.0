@@ -1,60 +1,61 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Tue, 06 Apr 2010 12:16:02 +0000
-Subject: Re: [lm-sensors] [PATCH] V3, TI ads7871 a/d converter,
-Message-Id: <4BBB2602.9000500@cam.ac.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 09 Apr 2010 09:17:33 +0000
+Subject: Re: [lm-sensors] Coretemp goes up since 2.6.31.4
+Message-Id: <20100409111733.7bb2b5fa@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1269124170-11623-1-git-send-email-pthomas8589@gmail.com>
-In-Reply-To: <1269124170-11623-1-git-send-email-pthomas8589@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/05/10 19:57, Paul Thomas wrote:
-> On Wed, Mar 31, 2010 at 8:55 AM, Jonathan Cameron <jic23@cam.ac.uk> wrote:
->> On 03/31/10 16:02, Paul Thomas wrote:
->>> Great, just a couple of responses.
->>>
->>
->> ...
->>
->>>>> +static const struct attribute_group ads7871_group = {
->>>>> +     .attrs = ads7871_attributes,
->>>>> +};
->>>>> +
->>>>> +static int __devinit ads7871_probe(struct spi_device *spi)
->>>>> +{
->>>>> +     int status, ret, err = 0;
->>>>> +     uint8_t val;
->>>>> +     struct ads7871_data *pdata;
->>>>> +
->>>> There is still a lot of debug code in here that is useful for development
->>>> but probably doesn't want to be in the final driver.
->>> I'm happy with what you think is best, but in other driver I've been
->>> glad to have a little bit in demesg.
->> Fair enough.  How much you report tends to be a personal decision, so
->> it's fine with me as is.
->>
->> Jonathan
->>
+On Thu, 08 Apr 2010 18:36:34 +0200, dienet wrote:
+> I'll try to ask You first then I'll write do LKML.
+
+Neither is correct. Please check MAINTAINERS, it says:
+
+CORETEMP HARDWARE MONITORING DRIVER
+M:      Rudolf Marek <r.marek@assembler.cz>
+M:      Huaxu Wan <huaxu.wan@intel.com>
+L:      lm-sensors@lm-sensors.org
+S:      Maintained
+F:      Documentation/hwmon/coretemp
+F:      drivers/hwmon/coretemp.c
+
+I'm adding the lm-sensors list to Cc now.
+
+> I was using 2.6.31.4 for quite some time - it works OK.
+> Command 'sensor' that gives me temperature on my C2D, was saying that  
+> cores have around 28-45 deg (min and maxs on normal day work)
+> Now on 2.6.33.1 sensors gives temperatures around 32-48 deg. I never seen  
+> 29 or below. No room temperature is changing (got two kernels installed,  
+> so I can change it quickly)
+> Who is telling the truth here? Was there any works on coretemp module  
+> since 2.6.31.4 that made the change in read-out?
+
+There were some changes to the coretemp driver in 2.6.32 and 2.6.33,
+but these shouldn't affect older CPU models and would also not change
+the readout by a few degrees. You can check if the high temperature
+limit is the same - then you can assume the driver changes did not
+affect your system. If you want to double-check, feel free to download
+the standalone version of the coretemp driver from:
+  http://khali.linux-fr.org/devel/misc/coretemp/
+You can use that driver with both kernels. If the temperature readings
+are still different, then this means that the coretemp driver is
+innocent.
+
+> I think that because that temp. change fan is working more often.
 > 
-> Is there a staging git tree for hwmon? I see this:
-> http://lm-sensors.org/kernel, but both branches look old. Should I cc
-> another mailing list with this patch? I'm just trying to understand
-> how the flow between hwmon and the upstream kernel stuff works.
+> I'm using Lenovo ThinkPad T61.
 
-Sadly hwmon is without a specific maintainer at the moment.  Andrew
-Morton is handling some patches in his role as maintainer of last
-resort and I think Jean still takes some patches in through his tree,
-though they may be mostly work on drivers he has a particular interest
-in.
+This suggests that the temperature increase is real and this isn't just
+a reporting issue. I suggest that you check
+in /proc/acpi/processor/*/power, the amount of time spent in C2 and C3
+states. Also install powertop and run it on both kernels, see if 2.6.33
+has more frequent wake-ups than 2.6.31.
 
-Jonathan
-
-
-
-
-
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
