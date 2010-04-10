@@ -1,135 +1,170 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 01 Apr 2010 06:56:31 +0000
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Sat, 10 Apr 2010 21:49:16 +0000
 Subject: Re: [lm-sensors] [RFC PATCH v3 0/2] Add sensors config tool
-Message-Id: <4BB4439F.8090604@redhat.com>
+Message-Id: <20100410214916.GA12066@andre-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100331200353.GA2002@andre-laptop>
 In-Reply-To: <20100331200353.GA2002@andre-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Andre,
+On Thu, Apr 01, 2010 at 08:56:31AM +0200, Hans de Goede wrote:
+> Hi Andre,
+>=20
+> On 03/31/2010 10:03 PM, Andre Prendel wrote:
+> >Hi Hans,
+> >
+> >At last here is a new version of the sensors config tool.
+> >
+> >
+> >Next task is the module auto loading stuff but first, what about this
+> >here?
+> >
+>=20
+> I think this all looks very good! I think the module auto loading
+> is the only remaining item to do before this could actually become
+> production ready (although we will want Jean's input on this too).
+>=20
+> The module autoloading requires 2 questions to be answered:
+>=20
+> 1) How do we store which modules are needed into the configuration
+>    files on the wiki
+>=20
+> 2) How / where / what will these modules get loaded ? Currently we
+>    have lines like these in /etc/sysconfig/lm_sensors:
+>=20
+> # The format of this file is a shell script that simply defines variables:
+> # HWMON_MODULES for hardware monitoring driver modules, and optionally
+> # BUS_MODULES for any required bus driver module (for example for I2C or =
+SPI).
+>=20
+> HWMON_MODULES=3D"it87"
+>=20
+> # For compatibility reasons, modules are also listed individually as vari=
+ables
+> #    MODULE_0, MODULE_1, MODULE_2, etc.
+> # You should use BUS_MODULES and HWMON_MODULES instead if possible.
+>=20
+> MODULE_0=3Dit87
+>=20
+>=20
+> We could add new "keys" to this file, say:
+> AUTOMOBO_HWMON_MODULES
+> AUTOMOBO_BUS_MODULES
+>=20
+> And modify the lm_sensors initscript to recognize these too, or thinking =
+more
+> about this, as we need the script which does the copying of the config fi=
+le
+> to /etc/sensors.d/automobo.conf, to extract the modules for us anyways (to
+> insert them into /etc/sysconfig/lm_sensors for example). We might just as
+> well make that script load the modules directly.
+>=20
+> This also solves a problem with the HWMON_MODULES=3D"it87" syntax, namely
+> that it does not allow specifying module parameters.
+>=20
+> Jean, could we have your input on this ?
 
-On 03/31/2010 10:03 PM, Andre Prendel wrote:
-> Hi Hans,
->
-> At last here is a new version of the sensors config tool.
->
+No reply from Jean so far. So I'd like to make a proposal.
 
-First of all many thanks for your continued work on this, it
-is looking very good, so hopefully we will be able to soon
-ship an lm_sensors with working auto-configuration of
-(known) motherboards.
+I'd suggest using the install.sh script (which installs the
+automobo.conf) to load the driver. The config file gets a "modules" tag
+specifying the module name. E.g.
 
-> Now we have a shell script doing the auto installation stuff. See
-> install.sh patch 2/2. Further I removed this part of the python
-> script.
->
+  # board_name: foo
+  # board_vendor: bar
 
-The shell script looks good, nice and simple, great!
+  # modules: tmp421
 
-> As discussed, the config files from lm-sensors.org are fetched to
-> vendor specific directories and links are made in the root config
-> directory.
+Sed gives us the module name and modprobe loads the module. I've
+extended the install.sh script to do this. See the patch below
+(load_driver function).
 
-Great!
+What do you think about this approach?
 
->
-> This looks like this:
->
-> drwxr-xr-x 2 andre andre 4096 2010-03-31 21:01 Abit
-> lrwxrwxrwx 1 andre andre   16 2010-03-31 21:01 Abit_AA8-DuraMAX ->Abit/AA8-DuraMAX
-> lrwxrwxrwx 1 andre andre   12 2010-03-31 21:01 Abit_AI7_1.0 ->Abit/AI7-1.0
-> lrwxrwxrwx 1 andre andre    8 2010-03-31 21:01 Abit_AN7 ->  Abit/AN7
-> drwxr-xr-x 2 andre andre 4096 2010-03-31 21:01 ASRock
-> lrwxrwxrwx 1 andre andre   17 2010-03-31 21:01 ASRock_M2NF3-VSTA ->ASRock/M2NF3-VSTA
-> drwxr-xr-x 2 andre andre 4096 2010-03-31 21:01 Fujitsu
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D23122A ->Fujitsu/D2312A1
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D2312A1 ->Fujitsu/D2312A1
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D2312C1 ->Fujitsu/D2312A1
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D2312C2 ->Fujitsu/D2312A1
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D2312D2_2.0 ->Fujitsu/D2312A1
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D2314A1 ->Fujitsu/D2314A1
-> lrwxrwxrwx 1 andre andre   15 2010-03-31 21:01 Fujitsu_D2314A2 ->Fujitsu/D2314A1
->
+Thanks,
+Andre
 
-Also looks good :)
-
-> The fetching tool parses headers like:
->
-> # board_vendor: Fujitsu
-> # board_name: D2312A1
-> # board_version: 1.0
->
-> Board version is optional. The block can appear mutliple times.
->
-> # board_vendor: Fujitsu
-> # board_name: D2312A1
->
-> # board_vendor: Fujitsu
-> # board_name: D23122A
->
-> # board_vendor: Fujitsu
-> # board_name: D2312C1
->
-> # board_vendor: Fujitsu
-> # board_name: D2312C2
->
-> The same rules apply to the product headers.
->
-> # sys_vendor: Fujitsu
-> # product_name: D2312D2
-> # product_version: 2.0
->
-> Next task is the module auto loading stuff but first, what about this
-> here?
->
-
-I think this all looks very good! I think the module auto loading
-is the only remaining item to do before this could actually become
-production ready (although we will want Jean's input on this too).
-
-The module autoloading requires 2 questions to be answered:
-
-1) How do we store which modules are needed into the configuration
-    files on the wiki
-
-2) How / where / what will these modules get loaded ? Currently we
-    have lines like these in /etc/sysconfig/lm_sensors:
-
-# The format of this file is a shell script that simply defines variables:
-# HWMON_MODULES for hardware monitoring driver modules, and optionally
-# BUS_MODULES for any required bus driver module (for example for I2C or SPI).
-
-HWMON_MODULES="it87"
-
-# For compatibility reasons, modules are also listed individually as variables
-#    MODULE_0, MODULE_1, MODULE_2, etc.
-# You should use BUS_MODULES and HWMON_MODULES instead if possible.
-
-MODULE_0=it87
-
-
-We could add new "keys" to this file, say:
-AUTOMOBO_HWMON_MODULES
-AUTOMOBO_BUS_MODULES
-
-And modify the lm_sensors initscript to recognize these too, or thinking more
-about this, as we need the script which does the copying of the config file
-to /etc/sensors.d/automobo.conf, to extract the modules for us anyways (to
-insert them into /etc/sysconfig/lm_sensors for example). We might just as
-well make that script load the modules directly.
-
-This also solves a problem with the HWMON_MODULES="it87" syntax, namely
-that it does not allow specifying module parameters.
-
-Jean, could we have your input on this ?
-
-Thanks & Regards,
-
-Hans
+---
+Index: sensors/prog/detect/install.sh
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ sensors/prog/detect/install.sh	2010-04-10 23:37:38.510513143 +0200
+@@ -0,0 +1,69 @@
++#!/bin/bash
++
++SYSFS_PATH=3D/sys/class/dmi/id
++CONF_PATH=3D/var/lib/sensors/conf
++INSTALL_FILE=3D/etc/sensors.d/automobo.conf
++
++BOARD_VENDOR=3D`cat $SYSFS_PATH/board_vendor`
++BOARD_NAME=3D`cat $SYSFS_PATH/board_name`
++BOARD_VERSION=3D`cat $SYSFS_PATH/board_version`
++SYS_VENDOR=3D`cat $SYSFS_PATH/sys_vendor`
++PRODUCT_NAME=3D`cat $SYSFS_PATH/product_name`
++PRODUCT_VERSION=3D`cat $SYSFS_PATH/product_version`
++
++# only for testing
++#BOARD_VENDOR=3DFujitsu
++#BOARD_NAME=D2312C1
++#BOARD_VERSION=3D1.0
++#SYS_VENDOR=3DFujitsu
++#PRODUCT_NAME=D2312D2
++#PRODUCT_VERSION=3D2.0
++
++SEARCH_BOARD_VERSION=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME"_"$BOARD_V=
+ERSION
++SEARCH_BOARD=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME
++SEARCH_SYS_VERSION=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME"_"$PRODUCT_V=
+ERSION
++SEARCH_SYS=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME
++
++load_driver()
++{
++    MODULES=3D`sed -n -e 's/^# modules: \([A-Za-z0-9=3D ]*\).*$/\1/p' $INS=
+TALL_FILE`
++    echo "Loading driver: $MODULES"
++    modprobe $MODULES
++}
++
++echo "Looking for config: $SEARCH_BOARD_VERSION"
++if [ -h "$SEARCH_BOARD_VERSION" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_BOARD_VERSION $INSTALL_FILE
++    load_driver
++    exit 0
++fi
++
++echo "Looking for config: $SEARCH_BOARD"
++if [ -h "$SEARCH_BOARD" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_BOARD $INSTALL_FILE
++    load_driver
++    exit 0
++fi
++
++echo "Looking for config: $SEARCH_SYS_VERSION"
++if [ -h "$SEARCH_SYS_VERSION" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_SYS_VERSION $INSTALL_FILE
++    load_driver
++    exit 0
++fi
++
++echo "Looking for config: $SEARCH_SYS"
++if [ -h "$SEARCH_SYS" ]; then
++    echo "Found suitable config"
++    cp -f $SEARCH_SYS $INSTALL_FILE
++    load_driver
++    exit 0
++fi
++
++echo "Could not find a suitable config"
++rm -f $INSTALL_FILE
++
++exit 1
 
 _______________________________________________
 lm-sensors mailing list
