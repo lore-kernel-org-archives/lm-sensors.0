@@ -1,43 +1,53 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 15 Apr 2010 06:44:15 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add driver for intel PCI thermal
-Message-Id: <20100415084415.1e2a2e67@hyperion.delvare>
+From: Martin Vool <mardicas@gmail.com>
+Date: Mon, 12 Apr 2010 16:52:14 +0000
+Subject: [lm-sensors] Fancontrol script improvement
+Message-Id: <v2i360a8e031004120952zcee44b71l896d64a4ecf88914@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1260546750-6206-1-git-send-email-mjg@redhat.com>
-	<20100403170917.GA11397@srcf.ucam.org>
-	<20100411102414.15b9b394@hyperion.delvare>
-	<20100414212748.ad4c3187.akpm@linux-foundation.org>
-In-Reply-To: <20100414212748.ad4c3187.akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi Andrew,
+Hello,
 
-On Wed, 14 Apr 2010 21:27:48 -0400, Andrew Morton wrote:
-> On Sun, 11 Apr 2010 10:24:14 +0200 Jean Delvare <khali@linux-fr.org> wrote:
-> > On Sat, 3 Apr 2010 18:09:17 +0100, Matthew Garrett wrote:
-> > > Jean, did you pick this up at any point? I can't see it in your git 
-> > > tree.
-> > 
-> > Maybe because I don't have a git tree ;) I'm using quilt for my hwmon
-> > patches.
-> > 
-> > Anyway, no, I did not pick this driver, I don't think I saw a public
-> > review of it, and normally I only pick patches which have been reviewed
-> > by someone I trust. Remember I am not the maintainet of the hwmon
-> > subsystem any longer. I'm trying to help as my time permits, but I make
-> > no guarantee.
-> 
-> I handle hwmon patches which Jean doesn't take or nack.
+i am writing to you because i want to ask you what do you think of my idea.
+Currently i can assign only one temperature sensor to a fan. In my
+setup i need to monitor 2 sensors and set the fan speed accordingly to
+a single fan.
 
-I've reviewed the driver meanwhile, now waiting for Matthew to submit
-an updated patch.
+It should not be very complicated to implement this, and implement it
+so that the old configuration is not deprecated, for example:
 
--- 
-Jean Delvare
+...
+FCTEMPS=3Dhwmon0/device/pwm1=3Dhwmon0/device/temp3_input:hwmon0/device/temp=
+1_input
+ hwmon0/device/pwm2=3Dhwmon0/device/temp2_input
+MINTEMP=3Dhwmon0/device/pwm1E:50=A0 hwmon0/device/pwm2@
+MAXTEMP=3Dhwmon0/device/pwm1U:60=A0 hwmon0/device/pwm2U
+...
+or
+...
+FCTEMPS=3Dhwmon0/device/pwm1=3Dhwmon0/device/temp3_input
+hwmon0/device/pwm1=3Dhwmon0/device/temp1_input
+hwmon0/device/pwm2=3Dhwmon0/device/temp2_input
+MINTEMP=3Dhwmon0/device/pwm1E hwmon0/device/pwm1P=A0 hwmon0/device/pwm2@
+MAXTEMP=3Dhwmon0/device/pwm1U hwmon0/device/pwm1`=A0 hwmon0/device/pwm2U
+
+
+i personally would prefer the first, since it is more clear on what is goin=
+g on.
+
+When the script calculates the speeds it simply has to look what is
+the highest RPM required for the monitored sensor.
+
+Since i am not used to program in shellscripts i wanted to know if you
+would like to implement this? If not then i would give it a shot, but
+the code probably wouldn't be very pretty...
+
+What do you think?
+
+
+Martin Vool
 
 _______________________________________________
 lm-sensors mailing list
