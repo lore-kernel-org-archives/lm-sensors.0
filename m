@@ -1,8 +1,10 @@
 From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Wed, 07 Apr 2010 20:21:59 +0000
+Date: Tue, 13 Apr 2010 22:54:27 +0000
 Subject: [lm-sensors] [PATCH 1/2] hwmon: add description of the update_rate
-Message-Id: <1270671720-1575-2-git-send-email-iws@ovro.caltech.edu>
+Message-Id: <1271199268-3180-2-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1270671720-1575-2-git-send-email-iws@ovro.caltech.edu>
+In-Reply-To: <1270671720-1575-2-git-send-email-iws@ovro.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
