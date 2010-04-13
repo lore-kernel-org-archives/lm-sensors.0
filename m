@@ -1,8 +1,10 @@
 From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Wed, 07 Apr 2010 20:22:00 +0000
+Date: Tue, 13 Apr 2010 22:54:28 +0000
 Subject: [lm-sensors] [PATCH 2/2] hwmon: (adm1031) allow setting update rate
-Message-Id: <1270671720-1575-3-git-send-email-iws@ovro.caltech.edu>
+Message-Id: <1271199268-3180-3-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1270671720-1575-3-git-send-email-iws@ovro.caltech.edu>
+In-Reply-To: <1270671720-1575-3-git-send-email-iws@ovro.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,11 +16,11 @@ update rate via sysfs.
 
 Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
 ---
- drivers/hwmon/adm1031.c |   80 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 78 insertions(+), 2 deletions(-)
+ drivers/hwmon/adm1031.c |   82 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 80 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
-index 1644b92..7a35024 100644
+index 1644b92..3366881 100644
 --- a/drivers/hwmon/adm1031.c
 +++ b/drivers/hwmon/adm1031.c
 @@ -36,6 +36,7 @@
@@ -46,7 +48,7 @@ index 1644b92..7a35024 100644
  	/* The chan_select_table contains the possible configurations for
  	 * auto fan control.
  	 */
-@@ -738,6 +742,56 @@ static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 12);
+@@ -738,6 +742,58 @@ static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 12);
  static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 13);
  static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 14);
  
@@ -93,6 +95,8 @@ index 1644b92..7a35024 100644
 +	reg |= regvals[i];
 +
 +	adm1031_write_value(client, ADM1031_REG_FAN_FILTER, reg);
++	data->update_rate = rates[i];
++
 +	mutex_unlock(&data->update_lock);
 +	return count;
 +}
@@ -103,7 +107,7 @@ index 1644b92..7a35024 100644
  static struct attribute *adm1031_attributes[] = {
  	&sensor_dev_attr_fan1_input.dev_attr.attr,
  	&sensor_dev_attr_fan1_div.dev_attr.attr,
-@@ -774,6 +828,7 @@ static struct attribute *adm1031_attributes[] = {
+@@ -774,6 +830,7 @@ static struct attribute *adm1031_attributes[] = {
  
  	&sensor_dev_attr_auto_fan1_min_pwm.dev_attr.attr,
  
@@ -111,7 +115,7 @@ index 1644b92..7a35024 100644
  	&dev_attr_alarms.attr,
  
  	NULL
-@@ -901,6 +956,9 @@ static void adm1031_init_client(struct i2c_client *client)
+@@ -901,6 +958,9 @@ static void adm1031_init_client(struct i2c_client *client)
  	unsigned int read_val;
  	unsigned int mask;
  	struct adm1031_data *data = i2c_get_clientdata(client);
@@ -121,7 +125,7 @@ index 1644b92..7a35024 100644
  
  	mask = (ADM1031_CONF2_PWM1_ENABLE | ADM1031_CONF2_TACH1_ENABLE);
  	if (data->chip_type = adm1031) {
-@@ -919,18 +977,36 @@ static void adm1031_init_client(struct i2c_client *client)
+@@ -919,18 +979,36 @@ static void adm1031_init_client(struct i2c_client *client)
  				ADM1031_CONF1_MONITOR_ENABLE);
  	}
  
