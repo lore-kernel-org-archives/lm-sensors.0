@@ -1,100 +1,103 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 12 Apr 2010 07:25:16 +0000
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Tue, 13 Apr 2010 19:32:50 +0000
 Subject: Re: [lm-sensors] [RFC PATCH v3 0/2] Add sensors config tool
-Message-Id: <4BC2CADC.3020105@redhat.com>
+Message-Id: <20100413193250.GA2001@andre-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100331200353.GA2002@andre-laptop>
 In-Reply-To: <20100331200353.GA2002@andre-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi,
+On Mon, Apr 12, 2010 at 09:25:16AM +0200, Hans de Goede wrote:
+> Hi,
 
-On 04/10/2010 11:49 PM, Andre Prendel wrote:
-> On Thu, Apr 01, 2010 at 08:56:31AM +0200, Hans de Goede wrote:
->> Hi Andre,
->>
->> On 03/31/2010 10:03 PM, Andre Prendel wrote:
->>> Hi Hans,
->>>
->>> At last here is a new version of the sensors config tool.
->>>
->>>
->>> Next task is the module auto loading stuff but first, what about this
->>> here?
->>>
->>
->> I think this all looks very good! I think the module auto loading
->> is the only remaining item to do before this could actually become
->> production ready (although we will want Jean's input on this too).
->>
->> The module autoloading requires 2 questions to be answered:
->>
->> 1) How do we store which modules are needed into the configuration
->>     files on the wiki
->>
->> 2) How / where / what will these modules get loaded ? Currently we
->>     have lines like these in /etc/sysconfig/lm_sensors:
->>
->> # The format of this file is a shell script that simply defines variables:
->> # HWMON_MODULES for hardware monitoring driver modules, and optionally
->> # BUS_MODULES for any required bus driver module (for example for I2C or SPI).
->>
->> HWMON_MODULES="it87"
->>
->> # For compatibility reasons, modules are also listed individually as variables
->> #    MODULE_0, MODULE_1, MODULE_2, etc.
->> # You should use BUS_MODULES and HWMON_MODULES instead if possible.
->>
->> MODULE_0=it87
->>
->>
->> We could add new "keys" to this file, say:
->> AUTOMOBO_HWMON_MODULES
->> AUTOMOBO_BUS_MODULES
->>
->> And modify the lm_sensors initscript to recognize these too, or thinking more
->> about this, as we need the script which does the copying of the config file
->> to /etc/sensors.d/automobo.conf, to extract the modules for us anyways (to
->> insert them into /etc/sysconfig/lm_sensors for example). We might just as
->> well make that script load the modules directly.
->>
->> This also solves a problem with the HWMON_MODULES="it87" syntax, namely
->> that it does not allow specifying module parameters.
->>
->> Jean, could we have your input on this ?
->
-> No reply from Jean so far. So I'd like to make a proposal.
->
-> I'd suggest using the install.sh script (which installs the
-> automobo.conf) to load the driver. The config file gets a "modules" tag
-> specifying the module name. E.g.
->
->    # board_name: foo
->    # board_vendor: bar
->
->    # modules: tmp421
->
-> Sed gives us the module name and modprobe loads the module. I've
-> extended the install.sh script to do this. See the patch below
-> (load_driver function).
->
-> What do you think about this approach?
->
+Hello Hans,
 
-Sounds fine (and the proposed code looks good), but IMHO it would be better to have
-a module statement rather then a module*s*, which specifies
-a single module, and then allow having this statement multiple times.
+> Sounds fine (and the proposed code looks good), but IMHO it would be bett=
+er to have
+> a module statement rather then a module*s*, which specifies
+> a single module, and then allow having this statement multiple times.
+>=20
+> This way we can (optionally) add module parameters. Unfortunately in some
+> rare cases this is necessary see, for example:
+> http://www.lm-sensors.org/wiki/Configurations/Abit/AN7
 
-This way we can (optionally) add module parameters. Unfortunately in some
-rare cases this is necessary see, for example:
-http://www.lm-sensors.org/wiki/Configurations/Abit/AN7
+I've revised the install.sh script a bit (see patch below). Now we can
+have the module statement multiple times along with parameters.
 
 Regards,
+Andre
 
-Hans
+---
+Index: sensors/prog/detect/install.sh
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ sensors/prog/detect/install.sh	2010-04-13 20:59:26.931071291 +0200
+@@ -0,0 +1,59 @@
++#!/bin/bash
++
++SYSFS_PATH=3D/sys/class/dmi/id
++CONF_PATH=3D/var/lib/sensors/conf
++INSTALL_FILE=3D/etc/sensors.d/automobo.conf
++
++BOARD_VENDOR=3D`cat $SYSFS_PATH/board_vendor`
++BOARD_NAME=3D`cat $SYSFS_PATH/board_name`
++BOARD_VERSION=3D`cat $SYSFS_PATH/board_version`
++SYS_VENDOR=3D`cat $SYSFS_PATH/sys_vendor`
++PRODUCT_NAME=3D`cat $SYSFS_PATH/product_name`
++PRODUCT_VERSION=3D`cat $SYSFS_PATH/product_version`
++
++# only for testing
++#BOARD_VENDOR=3DFujitsu
++#BOARD_NAME=D2312C1
++#BOARD_VERSION=3D1.0
++#SYS_VENDOR=3DFujitsu
++#PRODUCT_NAME=D2312D2
++#PRODUCT_VERSION=3D2.0
++
++SEARCH_BOARD_VERSION=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME"_"$BOARD_V=
+ERSION
++SEARCH_BOARD=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME
++SEARCH_SYS_VERSION=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME"_"$PRODUCT_V=
+ERSION
++SEARCH_SYS=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME
++
++load_drivers()
++{
++    while read a b c; do
++	if [ "$a" =3D "#" ]; then
++	    if [ "$b" =3D "module:" ]; then
++		driver=3D`echo $c | tr -d '\r'`
++		echo "Loading driver: $driver"
++		modprobe $driver
++	    fi
++	fi
++    done < $INSTALL_FILE
++}
++
++search_config()
++{
++    echo "Looking for config: $1"
++    if [ -h "$1" ]; then
++	echo "Found suitable config"
++	cp -f $1 $INSTALL_FILE
++	load_drivers
++	exit 0
++    fi
++}
++
++for search in "$SEARCH_BOARD_VERSION" "$SEARCH_BOARD" "$SEARCH_SYS_VERSION=
+" "$SEARCH_SYS"
++do
++    search_config "$search"
++done
++
++echo "Could not find a suitable config"
++rm -f $INSTALL_FILE
++
++exit 1
 
 _______________________________________________
 lm-sensors mailing list
