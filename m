@@ -1,156 +1,224 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Apr 2010 11:41:57 +0000
-Subject: Re: [lm-sensors] asus_atk0110 Not Activated  in lm_sensors-3.1.1-3
-Message-Id: <20100428134157.21beb2ad@hyperion.delvare>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Tue, 13 Apr 2010 22:59:29 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (ltc4245) expose all GPIO pins as
+Message-Id: <1271199569-3880-3-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <697978.38728.qm@web31801.mail.mud.yahoo.com>
-In-Reply-To: <697978.38728.qm@web31801.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgTWFyYywKCk9uIEZyaSwgMTYgQXByIDIwMTAgMTY6MzY6MzQgLTA3MDAgKFBEVCksIE1hcmMg
-d3JvdGU6Cj4gSGkuLi4KPiAKPiBSdW5uaWcgUmVoYXQgRmVkb3JhIENvcmUgMTIgd2l0aCBhbiBB
-c3VzIGs4bi1kcmUgbW90aGVyYm9hcmQuICBJdCBoYXMgYSBOVklERSBuRk9SQ0UgUHJvZmVzc2lv
-bmFsIDIyMDAgQ2hpcCBhcyB3ZWxsIGFzIGEgV2luYm9uZCBXODM2MjdUSEYtQSBzdXBlciBpL28g
-Y2hpcC4gVGhlIGxpbnV4IGtlcm5lbCBpcyBrZXJuZWwtMi42LjMyLjExLTk5LmZjMTIueDg2XzY0
-LiAgVXNpbmcgbG1fc2Vuc29ycy0zLjEuMS0zLmZjMTIueDg2XzY0Cj4gCj4gV2hlbiBJIHJ1biBz
-ZW5zb3JzLWRldGVjdCBJIGdldCB0aGUgZm9sbG93aW5nCj4gCj4gU29tZSBzb3V0aCBicmlkZ2Vz
-LCBDUFVzIG9yIG1lbW9yeSBjb250cm9sbGVycyBjb250YWluIGVtYmVkZGVkIHNlbnNvcnMuCj4g
-RG8geW91IHdhbnQgdG8gc2NhbiBmb3IgdGhlbT8gVGhpcyBpcyB0b3RhbGx5IHNhZmUuIChZRVMv
-bm8pOiB5Cj4gU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3RlbXMgU0lTNTU5NS4uLiAgICAgICAgICAg
-ICAgICAgICAgICAgTm8KPiBWSUEgVlQ4MkM2ODYgSW50ZWdyYXRlZCBTZW5zb3JzLi4uICAgICAg
-ICAgICAgICAgICAgICAgICAgICBObwo+IFZJQSBWVDgyMzEgSW50ZWdyYXRlZCBTZW5zb3JzLi4u
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vCj4gQU1EIEs4IHRoZXJtYWwgc2Vuc29ycy4u
-LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU3VjY2VzcyEKPiAgICAgKGRyaXZl
-ciBgazh0ZW1wJykKPiBBTUQgRmFtaWx5IDEwaCB0aGVybWFsIHNlbnNvcnMuLi4gICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObwo+IEFNRCBGYW1pbHkgMTFoIHRoZXJtYWwgc2Vuc29ycy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIE5vCj4gSW50ZWwgQ29yZSBmYW1pbHkgdGhlcm1hbCBz
-ZW5zb3IuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8KPiBJbnRlbCBBdG9tIHRoZXJtYWwg
-c2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwo+IEludGVsIEFNQiBG
-Qi1ESU1NIHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vCj4gVklB
-IEM3IHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-Tm8KPiBWSUEgTmFubyB0aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBObwo+IAo+IFNvbWUgU3VwZXIgSS9PIGNoaXBzIGNvbnRhaW4gZW1iZWRkZWQgc2Vu
-c29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bwo+IHN0YW5kYXJkIEkvTyBwb3J0cyB0byBwcm9iZSB0
-aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZS4KPiBEbyB5b3Ugd2FudCB0byBzY2FuIGZvciBTdXBl
-ciBJL08gc2Vuc29ycz8gKFlFUy9ubyk6IAo+IAo+IFNvbWUgU3VwZXIgSS9PIGNoaXBzIGNvbnRh
-aW4gZW1iZWRkZWQgc2Vuc29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bwo+IHN0YW5kYXJkIEkvTyBw
-b3J0cyB0byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZS4KPiBEbyB5b3Ugd2FudCB0
-byBzY2FuIGZvciBTdXBlciBJL08gc2Vuc29ycz8gKFlFUy9ubyk6IHkKPiBQcm9iaW5nIGZvciBT
-dXBlci1JL08gYXQgMHgyZS8weDJmCj4gVHJ5aW5nIGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1
-Y3RvcicuLi4gICAgICAgICAgICAgICAgICAgTm8KPiBUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwo+IFRyeWluZyBmYW1pbHkgYFZJ
-QS9XaW5ib25kL051dm90b24vRmludGVrJy4uLiAgICAgICAgICAgICAgIFllcwo+IEZvdW5kIGBX
-aW5ib25kIFc4MzYyN1RIRi9USEcgU3VwZXIgSU8gU2Vuc29ycycgICAgICAgICAgICAgIAo+ICAg
-ICAoYnV0IG5vdCBhY3RpdmF0ZWQpCgpUaGlzIHR5cGljYWxseSBtZWFucyB0aGF0IHRoZSB2ZW5k
-b3IgZGVjaWRlZCB0byBub3QgdXNlIHRoZSBlbWJlZGRlZApoYXJkd2FyZSBtb25pdG9yaW5nIGZl
-YXR1cmVzIG9mIHRoZSBTdXBlciBJL08gY2hpcCwgZWl0aGVyIGJlY2F1c2UgdGhleQphcmVuJ3Qg
-aW50ZXJlc3RlZCBpbiBtb25pdG9yaW5nIGF0IGFsbCwgb3IgYmVjYXVzZSB0aGV5IGhhdmUgaW5j
-bHVkZWQgYQpkZWRpY2F0ZWQgbW9uaXRvcmluZyBjaGlwIG9uIHRoZSBib2FyZC4gWW91IGNhbiB0
-ZWxsIGJldHdlZW4gdGhlc2UgdHdvCmNhc2VzIGJ5IGxvb2tpbmcgZm9yIG1vbml0b3JpbmcgaW4g
-dGhlIEJJT1Mgc2V0dXAgc2NyZWVuLgoKPiBQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHg0ZS8w
-eDRmCj4gVHJ5aW5nIGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvcicuLi4gICAgICAgICAg
-ICAgICAgICAgTm8KPiBUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBObwo+IFRyeWluZyBmYW1pbHkgYFZJQS9XaW5ib25kL051dm90b24v
-RmludGVrJy4uLiAgICAgICAgICAgICAgIE5vCj4gVHJ5aW5nIGZhbWlseSBgSVRFJy4uLiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KPiAKPiBFdmVyeXRoaW5nIGVsc2Ug
-cmV0dXJucyBhIG5vIHVudGlsLi4uCj4gCj4gTmV4dCBhZGFwdGVyOiBTTUJ1cyBuRm9yY2UyIGFk
-YXB0ZXIgYXQgNGM0MCAoaTJjLTApCj4gRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFlFUy9uby9z
-ZWxlY3RpdmVseSk6IAoKTm90ZSB0aGF0IHRoZSBuRm9yY2UyIGFuZCBsYXRlciBoYXZlIDIgU01C
-dXMgY2hhbm5lbHMsIGFuZCBhcHBhcmVudGx5CnNlbnNvcnMtZGV0ZWN0IGZvdW5kIG9ubHkgb25l
-LiBUaGlzIGNvdWxkIG1lYW4gdGhhdCBBQ1BJIHJlcXVlc3RlZCB0aGUKb3RoZXIgb25lLiBQbGVh
-c2Ugc2VhcmNoIGZvciBrZXJuZWwgbG9nIG1lc3NhZ2VzIGFzIHRoZSBpMmMtbmZvcmNlMgpkcml2
-ZXIgaXMgYmVpbmcgbG9hZGVkLgoKPiAKPiBOb3RoaW5nIGluIHRoZSBzdW1tYXJ5IGFib3V0IGl0
-Lgo+IAo+IFRoZSBrOHRlbXAgd29ya3MgZmluZS4gIEkgZ2V0IHRlbXBlcmF0dXJlcy4KPiBrOHRl
-bXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IENvcmUwIFRlbXA6ICArMzUuMMKw
-QyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo+IENvcmUxIFRlbXA6ICArMzYu
-MMKwQyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo+IAo+IGs4dGVtcC1wY2kt
-MDBjYgo+IEFkYXB0ZXI6IFBDSSBhZGFwdGVyCj4gQ29yZTAgVGVtcDogICszNi4wwrBDICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCj4gQ29yZTEgVGVtcDogICszNy4wwrBDICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCj4gCj4gQnV0IG5vIGZhbiBzcGVlZHMg
-b3IgYW55dGhpbmcgZWxzZSBiZWNhdXNlIHdoZW4gSSBhdHRlbXB0IHRvIGxvYWQgdGhlIHc4MzYy
-N2hmIG1vZHVsZXMgSSBnZXQgdGhlIGZvbGxvd2luZzogCj4gCj4gRkFUQUw6IEVycm9yIGluc2Vy
-dGluZyB3ODM2MjdoZiAoL2xpYi9tb2R1bGVzLzIuNi4zMi4xMS05OS5mYzEyLng4Nl82NC9rZXJu
-ZWwvZHJpdmVycy9od21vbi93ODM2MjdoZi5rbyk6IE5vIHN1Y2ggZGV2aWNlCgpUaGlzIGlzIGV4
-cGVjdGVkIGlmIHRoZSBkZXZpY2UgaXMgZGlzYWJsZWQuCgo+IAo+IEhlcmUgaXMgdGhlIGxzbW9k
-Cj4gCj4gTW9kdWxlICAgICAgICAgICAgICAgICAgU2l6ZSAgVXNlZCBieQo+IGZ1c2UgICAgICAg
-ICAgICAgICAgICAgNTcxODkgIDIgCj4gaHdtb25fdmlkICAgICAgICAgICAgICAgMjA5MSAgMCAK
-PiBlZXByb20gICAgICAgICAgICAgICAgICA0OTQ3ICAwIAo+IGkyY19kZXYgICAgICAgICAgICAg
-ICAgIDc1MjkgIDAgCj4gc3VucnBjICAgICAgICAgICAgICAgIDE5MzgxOSAgMSAKPiBjcHVmcmVx
-X29uZGVtYW5kICAgICAgICA4NzkzICAyIAo+IHBvd2Vybm93X2s4ICAgICAgICAgICAgMTQ3MDYg
-IDIgCj4gZnJlcV90YWJsZSAgICAgICAgICAgICAgMzk0NyAgMiBjcHVmcmVxX29uZGVtYW5kLHBv
-d2Vybm93X2s4Cj4gaXA2dF9SRUpFQ1QgICAgICAgICAgICAgNDIyMiAgMTAgCj4gbmZfY29ubnRy
-YWNrX2lwdjYgICAgICAxODUwNCAgNyAKPiBpcDZ0YWJsZV9maWx0ZXIgICAgICAgICAyNzkxICAx
-IAo+IGlwNl90YWJsZXMgICAgICAgICAgICAgMTY3NjAgIDEgaXA2dGFibGVfZmlsdGVyCj4gaXB2
-NiAgICAgICAgICAgICAgICAgIDI3OTQ2MyAgMzIgaXA2dF9SRUpFQ1QsbmZfY29ubnRyYWNrX2lw
-djYKPiB1aW5wdXQgICAgICAgICAgICAgICAgICA3MjI4ICAwIAo+IGFtZDY0X2VkYWNfbW9kICAg
-ICAgICAgMTU0ODEgIDAgCj4gdGczICAgICAgICAgICAgICAgICAgIDEwMTY5OCAgMCAKPiBpMmNf
-bmZvcmNlMiAgICAgICAgICAgICA2ODE5ICAwIAo+IGkyY19jb3JlICAgICAgICAgICAgICAgMjY4
-NzYgIDMgZWVwcm9tLGkyY19kZXYsaTJjX25mb3JjZTIKPiBlZGFjX2NvcmUgICAgICAgICAgICAg
-IDM5NTgxICA0IGFtZDY0X2VkYWNfbW9kCj4gZWRhY19tY2VfYW1kICAgICAgICAgICAgNzc0NiAg
-MSBhbWQ2NF9lZGFjX21vZAo+IGs4dGVtcCAgICAgICAgICAgICAgICAgIDM3MzUgIDAgCj4gcmFp
-ZDEgICAgICAgICAgICAgICAgICAxOTA0MyAgMiAKPiBkbV9tdWx0aXBhdGggICAgICAgICAgIDE0
-NTU4ICAwIAo+IGF0YV9nZW5lcmljICAgICAgICAgICAgIDM0NjcgIDAgCj4gcGF0YV9hY3BpICAg
-ICAgICAgICAgICAgMzM5NSAgMCAKPiBmbG9wcHkgICAgICAgICAgICAgICAgIDU0NjY2ICAwIAo+
-IHBhdGFfYW1kICAgICAgICAgICAgICAgMTEyNjkgIDQgCj4gc2F0YV9udiAgICAgICAgICAgICAg
-ICAyMDgzNCAgMyAKPiAKPiBXaGVuIEkgbG9hZCB0aGUgdzgzNjI3ZWhmIEkgZ2V0Ogo+IEZBVEFM
-OiBFcnJvciBpbnNlcnRpbmcgdzgzNjI3ZWhmICgvbGliL21vZHVsZXMvMi42LjMyLjExLTk5LmZj
-MTIueDg2XzY0L2tlcm5lbC9kcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5rbyk6IE5vIHN1Y2ggZGV2
-aWNlCgpUaGlzIGlzIGEgZGlmZmVyZW50IGRyaXZlciwgZm9yIGEgZGV2aWNlIHlvdSBkb24ndCBo
-YXZlLCBzbyBpdCB3YXNuJ3QKZXhwZWN0ZWQgdG8gbG9hZC4KCj4gCj4gV2hlbiBJIHRyeSB0aGUg
-dzgzNzgxZCBpdCBsb2FkcyBsc21vZCBzaG93cyB0aGUgZm9sbG93aW5nOgo+IE1vZHVsZSAgICAg
-ICAgICAgICAgICAgIFNpemUgIFVzZWQgYnkKPiB3ODM3ODFkICAgICAgICAgICAgICAgIDI4NzQ5
-ICAwIAo+IGZ1c2UgICAgICAgICAgICAgICAgICAgNTcxODkgIDIgCj4gaHdtb25fdmlkICAgICAg
-ICAgICAgICAgMjA5MSAgMSB3ODM3ODFkCj4gZWVwcm9tICAgICAgICAgICAgICAgICAgNDk0NyAg
-MCAKPiBpMmNfZGV2ICAgICAgICAgICAgICAgICA3NTI5ICAwIAo+IHN1bnJwYyAgICAgICAgICAg
-ICAgICAxOTM4MTkgIDEgCj4gY3B1ZnJlcV9vbmRlbWFuZCAgICAgICAgODc5MyAgMiAKPiBwb3dl
-cm5vd19rOCAgICAgICAgICAgIDE0NzA2ICAyIAo+IGZyZXFfdGFibGUgICAgICAgICAgICAgIDM5
-NDcgIDIgY3B1ZnJlcV9vbmRlbWFuZCxwb3dlcm5vd19rOAo+IGlwNnRfUkVKRUNUICAgICAgICAg
-ICAgIDQyMjIgIDEwIAo+IG5mX2Nvbm50cmFja19pcHY2ICAgICAgMTg1MDQgIDcgCj4gaXA2dGFi
-bGVfZmlsdGVyICAgICAgICAgMjc5MSAgMSAKPiBpcDZfdGFibGVzICAgICAgICAgICAgIDE2NzYw
-ICAxIGlwNnRhYmxlX2ZpbHRlcgo+IGlwdjYgICAgICAgICAgICAgICAgICAyNzk0NjMgIDMyIGlw
-NnRfUkVKRUNULG5mX2Nvbm50cmFja19pcHY2Cj4gdWlucHV0ICAgICAgICAgICAgICAgICAgNzIy
-OCAgMCAKPiBhbWQ2NF9lZGFjX21vZCAgICAgICAgIDE1NDgxICAwIAo+IHRnMyAgICAgICAgICAg
-ICAgICAgICAxMDE2OTggIDAgCj4gaTJjX25mb3JjZTIgICAgICAgICAgICAgNjgxOSAgMCAKPiBp
-MmNfY29yZSAgICAgICAgICAgICAgIDI2ODc2ICA0IHc4Mzc4MWQsZWVwcm9tLGkyY19kZXYsaTJj
-X25mb3JjZTIKPiBlZGFjX2NvcmUgICAgICAgICAgICAgIDM5NTgxICA0IGFtZDY0X2VkYWNfbW9k
-Cj4gZWRhY19tY2VfYW1kICAgICAgICAgICAgNzc0NiAgMSBhbWQ2NF9lZGFjX21vZAo+IGs4dGVt
-cCAgICAgICAgICAgICAgICAgIDM3MzUgIDAgCj4gcmFpZDEgICAgICAgICAgICAgICAgICAxOTA0
-MyAgMiAKPiBkbV9tdWx0aXBhdGggICAgICAgICAgIDE0NTU4ICAwIAo+IGF0YV9nZW5lcmljICAg
-ICAgICAgICAgIDM0NjcgIDAgCj4gcGF0YV9hY3BpICAgICAgICAgICAgICAgMzM5NSAgMCAKPiBm
-bG9wcHkgICAgICAgICAgICAgICAgIDU0NjY2ICAwIAo+IHBhdGFfYW1kICAgICAgICAgICAgICAg
-MTEyNjkgIDQgCj4gc2F0YV9udiAgICAgICAgICAgICAgICAyMDgzNCAgMyAKClRoZSB3ODM3ODFk
-IGRyaXZlciBpcyBhbiBoeWJyaWQgZHJpdmVyIHN1cHBvcnRpbmcgYm90aCBJU0EgYW5kIEkyQwpk
-ZXZpY2VzLiBGb3IgdGhpcyByZWFzb24gaXMgYWx3YXlzIGxvYWRzLCBldmVuIHdoZW4gbm8gc3Vw
-cG9ydGVkIGRldmljZQp3YXMgZm91bmQuIFRoaXMgZHJpdmVyIGlzIGZvciBvbGQgc3lzdGVtcywg
-aXQgd29uJ3QgaGVscCB5b3UuCgo+IAo+IFJ1bm5pbmcgc2Vuc29yLWRldGVjdCBhZ2FpbiBwcm9k
-dWNlcyBvcmlnaW5hbCByZXN1bHRzIGFuZCBub3RoaW5nIGlzIGxvYWRlZCBpbnRvIHRoZSAvZXRj
-L3N5c2NvbmZpZy9sbV9zZW5zb3JzLCBTbyBzdGFydGluZyBsbV9zZW5zb3JzIGdpdmVzIG1lIGEg
-d2FybmluZyB0ZWxsaW5nIG1lIGl0cyBub3QgY29uZmlndXJlZC4KCllvdSBzaG91bGQgYXQgbGVh
-c3QgZ2V0IHRoZSBrOHRlbXAgZHJpdmVyLgoKPiAKPiBTYW1lIHJlc3VsdCBhcyBkaXJlY3RseSBh
-Ym92ZSB3aGVuIEkgbG9hZCB0aGUgdzgzNzkxZCBkcml2ZSwgaGF2XGluZyByZW1vdmVkIHRoZSBv
-dGhlciwgaW5jbHVkaW5nIHRoZSB3ODM3OTJkLCB3ODM3OTMsIHc4M2w3ODV0cywgdzgzbDc4Nm5n
-LCB3bTgzMXgtaHdtb24gYW5kIHdtODM1MC1od21vbi4gVGhlIGxzbW9kIHN0YXlzIHRoZSBzYW1l
-IGFzIGFib3ZlIGV4Y2VwdCB0aGF0IHRoZSBkcml2ZXIgaXMgcmVscGxhY2UgYXQgdGhlIHNhbWUg
-cG9zaXRpb24gd2l0aCB0aGUgbmV3IGRyaXZlci4KCkxvYWRpbmcgcmFuZG9tIGRyaXZlcnMgaXMg
-bm90IHJlY29tbWVuZGVkLgoKPiAKPiBUcmllZCB2YXJpb3VzIGNvbWJpbmF0aW9ucyBhbmQgcGVy
-bXV0YXRpb25zIGFuZCBub3RoaW5nLgo+IAo+IEFueSBoZWxwIHdvdWxkIGFwcHJlY2lhdGVkLCBh
-bmQgYXBvbG9naXplcyBpZiBpdCBoYXMgYWxyZWFkeSBiZWVuIGRlYWx0IHdpdGguCgpPbiBhIHJl
-Y2VudCBBc3VzIGRlc2t0b3AgYm9hcmQsIEkgc3VzcGVjdCB0aGF0IHlvdSBoYXZlIHRvIHVzZSB0
-aGUKYXN1c19hdGswMTEwIGRyaXZlciBmb3IgKEFDUEktYmFzZWQpIG1vbml0b3JpbmcuIEl0IGlz
-IGV2ZW4gc3VwcG9zZWQgdG8KbG9hZCBhdXRvbWF0aWNhbGx5LgoKUGxlYXNlIHNlYXJjaCB5b3Vy
-IGtlcm5lbCBsb2dzIGZvciB0aGUgZXhhY3QgZXJyb3JzIHdoZW4gbG9hZGluZyB0aGUKaTJjLW5m
-b3JjZTIgYW5kIHc4MzYyN2hmIGRyaXZlcnMgKHlvdSBjYW4gdW5sb2FkIHRoZW0gYW5kIHJlbG9h
-ZCB0aGVtCnRvIHRyaWdnZXIgdGhlIG1lc3NhZ2VzIGFnYWluLikKClBsZWFzZSBhbHNvIGxvb2sg
-Zm9yIG1lc3NhZ2VzIGFib3V0IHJlc291cmNlIGNvbmZsaWN0cyBiZXR3ZWVuIEFDUEkgYW5kCm5h
-dGl2ZSBkcml2ZXJzLCBzdWNoIGFzOgpBQ1BJOiBJL08gcmVzb3VyY2UgbkZvcmNlMl9zbWJ1cyBb
-MHg3MDAtMHg3M2ZdIGNvbmZsaWN0cyB3aXRoIEFDUEkgcmVnaW9uIFNNMDAgWzB4NzAwLTB4NzNm
-XQpBQ1BJOiBEZXZpY2UgbmVlZHMgYW4gQUNQSSBkcml2ZXIKClBsZWFzZSBhbHNvIHRyeSBsb2Fk
-aW5nIHRoZSBhc3VzX2F0azAxMTAgZHJpdmVyIG1hbnVhbGx5LCBhbmQgc2VlIHdoYXQKaGFwcGVu
-cy4gUmVwb3J0IHRoZSBtZXNzYWdlcyBmcm9tIHRoZSBrZXJuZWwgbG9ncyBpZiB0aGVyZSBhcmUg
-YW55LgoKLS0gCkplYW4gRGVsdmFyZQpodHRwOi8va2hhbGkubGludXgtZnIub3JnL3dpc2hsaXN0
-Lmh0bWwKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
-LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
-c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
+Add support for exposing all GPIO pins as analog voltages. Though this is
+not an ideal use of the chip, some hardware engineers may decide that the
+LTC4245 meets their design requirements when studying the datasheet.
+
+The GPIO pins are sampled in round-robin fashion, meaning that a slow
+reader will see stale data. A userspace application can detect this,
+because it will get -EAGAIN when reading from a sysfs file which contains
+stale data.
+
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+---
+ Documentation/hwmon/ltc4245 |   13 +++++-
+ drivers/hwmon/Kconfig       |   10 +++++
+ drivers/hwmon/ltc4245.c     |   95 ++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 116 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/hwmon/ltc4245 b/Documentation/hwmon/ltc4245
+index 86b5880..1c0599f 100644
+--- a/Documentation/hwmon/ltc4245
++++ b/Documentation/hwmon/ltc4245
+@@ -72,9 +72,20 @@ in6_min_alarm		5v  output undervoltage alarm
+ in7_min_alarm		3v  output undervoltage alarm
+ in8_min_alarm		Vee (-12v) output undervoltage alarm
+ 
+-in9_input		GPIO voltage data
++in9_input		GPIO voltage data (see note 1)
++in10_input		GPIO voltage data (see note 1)
++in11_input		GPIO voltage data (see note 1)
+ 
+ power1_input		12v power usage (mW)
+ power2_input		5v  power usage (mW)
+ power3_input		3v  power usage (mW)
+ power4_input		Vee (-12v) power usage (mW)
++
++
++Note 1
++------
++
++If you have configured your kernel with CONFIG_SENSORS_LTC4245_EXTRA_GPIOS=y
++then all three GPIO voltage lines will be sampled in round-robin fashion. If
++the data becomes stale, -EAGAIN will be returned when you read the sysfs
++attribute containing the sensor reading.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index e4595e6..e9c99cb 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -623,6 +623,16 @@ config SENSORS_LTC4245
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called ltc4245.
+ 
++config SENSORS_LTC4245_EXTRA_GPIOS
++	bool "LTC4245: sample all GPIO pins as analog voltages"
++	depends on SENSORS_LTC4245
++	default n
++	help
++	  If you say yes here, the LTC4245 driver will read all of the GPIO
++	  pins in rotation, reporting them as extra voltage channels.
++
++	  Please read the Documentation/hwmon/ltc4245 file for more details.
++
+ config SENSORS_LM95241
+ 	tristate "National Semiconductor LM95241 sensor chip"
+ 	depends on I2C
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index 84e6f32..33fdc02 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -60,8 +60,70 @@ struct ltc4245_data {
+ 
+ 	/* Voltage registers */
+ 	u8 vregs[0x0d];
++
++	/* GPIO ADC registers */
++	unsigned int last_gpio;
++	int gpios[3];
+ };
+ 
++#ifdef CONFIG_SENSORS_LTC4245_EXTRA_GPIOS
++/*
++ * Update the readings from all three GPIO pins. This means that the old
++ * readings will be delayed.
++ *
++ * LOCKING: must hold data->update_lock
++ */
++static void ltc4245_update_gpios(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ltc4245_data *data = i2c_get_clientdata(client);
++	u8 gpio_curr, gpio_next, gpio, ctl;
++	int i;
++
++	/*
++	 * If the last reading was 10 seconds ago, then we mark all old GPIO
++	 * readings as stale by setting them to zero volts
++	 */
++	if (time_after(jiffies, data->last_updated + 10 * HZ)) {
++		dev_dbg(&client->dev, "Marking GPIOs invalid\n");
++		for (i = 0; i < ARRAY_SIZE(data->gpios); i++)
++			data->gpios[i] = -EAGAIN;
++	}
++
++	/* Read the GPIO voltage from the GPIOADC register */
++	gpio_curr = data->last_gpio;
++	data->gpios[gpio_curr] = data->vregs[LTC4245_GPIOADC - 0x10];
++
++	/* Find the next GPIO pin to read */
++	gpio_next = (data->last_gpio + 1) % ARRAY_SIZE(data->gpios);
++
++	/*
++	 * Calculate the correct setting for the GPIO register so it will
++	 * sample the next GPIO pin
++	 */
++	gpio = (data->cregs[LTC4245_GPIO] & 0x3f) | ((gpio_next + 1) << 6);
++	ctl = data->cregs[LTC4245_CONTROL];
++
++	/* Update the GPIO register */
++	i2c_smbus_write_byte_data(client, LTC4245_CONTROL, ctl | 0x80);
++	i2c_smbus_write_byte_data(client, LTC4245_GPIO, gpio);
++	i2c_smbus_write_byte_data(client, LTC4245_CONTROL, ctl);
++
++	/* Update saved data */
++	data->cregs[LTC4245_GPIO] = gpio;
++	data->last_gpio = gpio_next;
++}
++#else
++static void ltc4245_update_gpios(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ltc4245_data *data = i2c_get_clientdata(client);
++
++	/* Just copy the data from the the GPIOADC register */
++	data->gpios[0] = data->vregs[LTC4245_GPIOADC - 0x10];
++}
++#endif
++
+ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -93,6 +155,9 @@ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ 				data->vregs[i] = val;
+ 		}
+ 
++		/* Update GPIO readings */
++		ltc4245_update_gpios(dev);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -233,6 +298,22 @@ static ssize_t ltc4245_show_alarm(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
+ }
+ 
++static ssize_t ltc4245_show_gpio(struct device *dev,
++				 struct device_attribute *da,
++				 char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct ltc4245_data *data = ltc4245_update_device(dev);
++	int val = data->gpios[attr->index];
++
++	/* handle stale GPIO's */
++	if (val < 0)
++		return val;
++
++	/* Convert to millivolts and print */
++	return snprintf(buf, PAGE_SIZE, "%u\n", val * 10);
++}
++
+ /* These macros are used below in constructing device attribute objects
+  * for use with sysfs_create_group() to make a sysfs device file
+  * for each register.
+@@ -254,6 +335,10 @@ static ssize_t ltc4245_show_alarm(struct device *dev,
+ 	static SENSOR_DEVICE_ATTR_2(name, S_IRUGO, \
+ 	ltc4245_show_alarm, NULL, (mask), reg)
+ 
++#define LTC4245_GPIO(name, gpio_num) \
++	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
++	ltc4245_show_gpio, NULL, gpio_num)
++
+ /* Construct a sensor_device_attribute structure for each register */
+ 
+ /* Input voltages */
+@@ -293,7 +378,11 @@ LTC4245_ALARM(in7_min_alarm,	(1 << 2),	LTC4245_FAULT2);
+ LTC4245_ALARM(in8_min_alarm,	(1 << 3),	LTC4245_FAULT2);
+ 
+ /* GPIO voltages */
+-LTC4245_VOLTAGE(in9_input,			LTC4245_GPIOADC);
++LTC4245_GPIO(in9_input,				0);
++#ifdef CONFIG_SENSORS_LTC4245_EXTRA_GPIOS
++LTC4245_GPIO(in10_input,			1);
++LTC4245_GPIO(in11_input,			2);
++#endif
+ 
+ /* Power Consumption (virtual) */
+ LTC4245_POWER(power1_input,			LTC4245_12VSENSE);
+@@ -336,6 +425,10 @@ static struct attribute *ltc4245_attributes[] = {
+ 	&sensor_dev_attr_in8_min_alarm.dev_attr.attr,
+ 
+ 	&sensor_dev_attr_in9_input.dev_attr.attr,
++#ifdef CONFIG_SENSORS_LTC4245_EXTRA_GPIOS
++	&sensor_dev_attr_in10_input.dev_attr.attr,
++	&sensor_dev_attr_in11_input.dev_attr.attr,
++#endif
+ 
+ 	&sensor_dev_attr_power1_input.dev_attr.attr,
+ 	&sensor_dev_attr_power2_input.dev_attr.attr,
+-- 
+1.5.4.3
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
