@@ -1,8 +1,10 @@
 From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Wed, 07 Apr 2010 20:21:58 +0000
+Date: Tue, 13 Apr 2010 22:54:26 +0000
 Subject: [lm-sensors] [PATCH 0/2]: hwmon: allow setting update rate from
-Message-Id: <1270671720-1575-1-git-send-email-iws@ovro.caltech.edu>
+Message-Id: <1271199268-3180-1-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1270671720-1575-1-git-send-email-iws@ovro.caltech.edu>
+In-Reply-To: <1270671720-1575-1-git-send-email-iws@ovro.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,6 +23,9 @@ appropriately in this case. The adm1031 driver will then use the programmed
 update rate. The side effect to this is that a user cannot use i2cset to
 change the update rate after the kernel has booted, if the driver is
 built-in.
+
+If you can suggest a way to make the adm1031 code easier to follow while
+preserving this change, please speak up!
 
 Thanks,
 Ira
