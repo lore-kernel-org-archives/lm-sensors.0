@@ -1,58 +1,56 @@
-From: Tobias Flach <tobias.flach@arcor.de>
-Date: Mon, 19 Apr 2010 08:21:35 +0000
-Subject: Re: [lm-sensors] No readings except for core temperatures on Dell
-Message-Id: <1271665295.2014.46.camel@tobias-fgis>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Tue, 13 Apr 2010 22:59:27 +0000
+Subject: [lm-sensors] [PATCH 0/2 v2] hwmon: (ltc4245) fix GPIO support
+Message-Id: <1271199569-3880-1-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1270818360.2014.8.camel@tobias-fgis>
-In-Reply-To: <1270818360.2014.8.camel@tobias-fgis>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+This patch series fixes support for using a GPIO line as an analog input to
+the ADC on the LTC4245 chip. Jean suggested dropping support for multiple
+GPIO lines, and then adding it back as an optional feature.
 
-sorry for the late response but I wasn't able to get to the interiors of
-the machine any sooner.
+I think this is fairly unintrusive to the ltc4245 code, and the multi-GPIO
+support is well encapsulated in a seperate function, hidden behind a kernel
+configuration option.
 
-The sensor is a SMSC SCH5524. Since it is not in the list of supported
-devices I assume that I cannot be used at the moment, right? Does that
-mean that the machine has no hardware monitoring sensors at all or are
-the simply not accessible by the user?
+I have tested the sensors utility with the -EAGAIN code for stale values.
+The output looks like this:
 
-Best,
-Tobias
+ltc4245-i2c-1-22
+12V  Input:      +11.66 V
+5.0V Input:       +5.10 V
+3.3V Input:       +3.19 V
+VEE  Input:       +0.00 V
+12V  Output:     +11.66 V
+5.0V Output:      +5.08 V
+3.3V Output:      +3.19 V
+VEE  Output:      +0.00 V
+Dig 3.30v Output: +3.26 V
+ERROR: Can't get value of subfeature in10_input: Can't read
+Dig 2.25v Output: +0.00 V
+ERROR: Can't get value of subfeature in11_input: Can't read
+Dig 1.80v Output: +0.00 V
+12V  Power:      816.20 mW
+5.0V Power:        4.90 W
+3.3V Power:        1.44 W
+VEE  Power:        0.00 nW
+12V  Current:     +0.07 A
+5.0V Current:     +0.96 A
+3.3V Current:     +0.45 A
+VEE  Current:     +0.00 A
 
-On Fri, 2010-04-09 at 08:28 -0700, Juerg Haefliger wrote:
-> Hi Tobias,
-> 
-> <SNIP>
-> 
-> >
-> > Some Super I/O chips contain embedded sensors. We have to write to
-> > standard I/O ports to probe them. This is usually safe.
-> > Do you want to scan for Super I/O sensors? (YES/no):
-> > Probing for Super-I/O at 0x2e/0x2f
-> > Trying family `National Semiconductor'...                   No
-> > Trying family `SMSC'...                                     Yes
-> > Found unknown chip with ID 0x8d01
-> 
-> I don't know what this device is. It might be Dell specific. Can you
-> open the machine and try to read the part name? Must be something like
-> SMSC ...
-> 
-> ...juerg
-> 
-> 
-> 
-> > Probing for Super-I/O at 0x4e/0x4f
-> > Trying family `National Semiconductor'...                   No
-> > Trying family `SMSC'...                                     No
-> > Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-> > Trying family `ITE'...                                      No
-> >
+Using cat to read the inX_input nodes, I get the expected output:
 
+cat: in9_input: Resource temporarily unavailable
 
+So I think that the lm-sensors software will handle this method of showing
+stale values just fine.
+
+Thanks,
+Ira
 
 _______________________________________________
 lm-sensors mailing list
