@@ -1,58 +1,111 @@
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-Date: Fri, 02 Apr 2010 20:29:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] resource: shared I/O region support
-Message-Id: <20100402132912.4d2af552@jbarnes-piketon>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Tue, 13 Apr 2010 22:59:28 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (ltc4245) read only one GPIO pin
+Message-Id: <1271199569-3880-2-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
-	<1269523063-30346-1-git-send-email-me@mortis.eu>
-	<20100325155705.1ec79dbc@lxorguk.ukuu.org.uk>
-	<20100325180347.GA2761@salidar.me.mortis.eu>
-	<20100325181633.0313b8a5@lxorguk.ukuu.org.uk>
-	<20100329081834.GB27956@salidar.me.mortis.eu>
-	<20100329090713.1317942b@jbarnes-piketon>
-	<20100329173800.GA3583@salidar.me.mortis.eu>
-	<4BB0E73F.2080104@zytor.com>
-	<20100329110633.702e3874@jbarnes-piketon>
-	<20100329192957.0aa66eaa@lxorguk.ukuu.org.uk>
-In-Reply-To: <20100329192957.0aa66eaa@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Giel van Schijndel <me@mortis.eu>, Hans de Goede <hdegoede@redhat.com>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Dominik Brodowski <linux@dominikbrodowski.net>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, 29 Mar 2010 19:29:57 +0100
-Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+Read only one of the GPIO pins as an analog voltage. The ADC can be
+switched to a different GPIO pin at runtime, but this is not supported.
 
-> > Well that does keep it simple, and with just one user that's probably
-> > best.
-> > 
-> > But why not use the common bus driver method?  Muxing at the resource
-> > level only seems to solve part of the problem...  It doesn't guarantee
-> > for example that driver A does something to a shared region that breaks
-> > driver B; it just makes sure they don't access the same region at the
-> > same time.
-> 
-> The obvious reason for not doing that kind of grand over-engineering is
-> that you are assuming the devices involved are remotely related. On quite
-> a few systems we have a collection of superio config interfaces on random
-> low ports all with their own lock/unlock rituals. They range from
-> parallel devices to watchdogs and god knows what else. Right now we have
-> various bits of driver code (parport is a good one) that exist on a cross
-> fingers, pray and poke model. It would be nice to fix that.
-> 
-> For most super I/O devices the muxing is basically a glorified chip select
-> line. There isn't any structure to impose over it. Where you have
-> structure there are better ways to do it, but one does not exclude the
-> other.
+Previously, this driver would report the analog voltage of the currently
+selected GPIO pin as all three GPIO voltages: in9_input, in10_input and
+in11_input.
 
-Well I'm not sure such over-engineering would be "grand", but it does
-seem like overkill for the devices you're covering here.  At any rate,
-the patch is in my linux-next tree, so it'll head to Linus next merge
-cycle unless some big new objections arise.
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+---
+ Documentation/hwmon/ltc4245 |    4 +---
+ drivers/hwmon/ltc4245.c     |   20 ++++++--------------
+ 2 files changed, 7 insertions(+), 17 deletions(-)
 
+diff --git a/Documentation/hwmon/ltc4245 b/Documentation/hwmon/ltc4245
+index 02838a4..86b5880 100644
+--- a/Documentation/hwmon/ltc4245
++++ b/Documentation/hwmon/ltc4245
+@@ -72,9 +72,7 @@ in6_min_alarm		5v  output undervoltage alarm
+ in7_min_alarm		3v  output undervoltage alarm
+ in8_min_alarm		Vee (-12v) output undervoltage alarm
+ 
+-in9_input		GPIO #1 voltage data
+-in10_input		GPIO #2 voltage data
+-in11_input		GPIO #3 voltage data
++in9_input		GPIO voltage data
+ 
+ power1_input		12v power usage (mW)
+ power2_input		5v  power usage (mW)
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index 65c232a..84e6f32 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -45,9 +45,7 @@ enum ltc4245_cmd {
+ 	LTC4245_VEEIN			= 0x19,
+ 	LTC4245_VEESENSE		= 0x1a,
+ 	LTC4245_VEEOUT			= 0x1b,
+-	LTC4245_GPIOADC1		= 0x1c,
+-	LTC4245_GPIOADC2		= 0x1d,
+-	LTC4245_GPIOADC3		= 0x1e,
++	LTC4245_GPIOADC			= 0x1c,
+ };
+ 
+ struct ltc4245_data {
+@@ -61,7 +59,7 @@ struct ltc4245_data {
+ 	u8 cregs[0x08];
+ 
+ 	/* Voltage registers */
+-	u8 vregs[0x0f];
++	u8 vregs[0x0d];
+ };
+ 
+ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+@@ -86,9 +84,9 @@ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ 				data->cregs[i] = val;
+ 		}
+ 
+-		/* Read voltage registers -- 0x10 to 0x1f */
++		/* Read voltage registers -- 0x10 to 0x1c */
+ 		for (i = 0; i < ARRAY_SIZE(data->vregs); i++) {
+-			val = i2c_smbus_read_byte_data(client, i+0x10);
++			val = i2c_smbus_read_byte_data(client, i + 0x10);
+ 			if (unlikely(val < 0))
+ 				data->vregs[i] = 0;
+ 			else
+@@ -128,9 +126,7 @@ static int ltc4245_get_voltage(struct device *dev, u8 reg)
+ 	case LTC4245_VEEOUT:
+ 		voltage = regval * -55;
+ 		break;
+-	case LTC4245_GPIOADC1:
+-	case LTC4245_GPIOADC2:
+-	case LTC4245_GPIOADC3:
++	case LTC4245_GPIOADC:
+ 		voltage = regval * 10;
+ 		break;
+ 	default:
+@@ -297,9 +293,7 @@ LTC4245_ALARM(in7_min_alarm,	(1 << 2),	LTC4245_FAULT2);
+ LTC4245_ALARM(in8_min_alarm,	(1 << 3),	LTC4245_FAULT2);
+ 
+ /* GPIO voltages */
+-LTC4245_VOLTAGE(in9_input,			LTC4245_GPIOADC1);
+-LTC4245_VOLTAGE(in10_input,			LTC4245_GPIOADC2);
+-LTC4245_VOLTAGE(in11_input,			LTC4245_GPIOADC3);
++LTC4245_VOLTAGE(in9_input,			LTC4245_GPIOADC);
+ 
+ /* Power Consumption (virtual) */
+ LTC4245_POWER(power1_input,			LTC4245_12VSENSE);
+@@ -342,8 +336,6 @@ static struct attribute *ltc4245_attributes[] = {
+ 	&sensor_dev_attr_in8_min_alarm.dev_attr.attr,
+ 
+ 	&sensor_dev_attr_in9_input.dev_attr.attr,
+-	&sensor_dev_attr_in10_input.dev_attr.attr,
+-	&sensor_dev_attr_in11_input.dev_attr.attr,
+ 
+ 	&sensor_dev_attr_power1_input.dev_attr.attr,
+ 	&sensor_dev_attr_power2_input.dev_attr.attr,
 -- 
-Jesse Barnes, Intel Open Source Technology Center
+1.5.4.3
+
 
 _______________________________________________
 lm-sensors mailing list
