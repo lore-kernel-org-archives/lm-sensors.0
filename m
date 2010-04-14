@@ -1,69 +1,83 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 Apr 2010 08:51:07 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (it87) Properly handle wrong sensor
-Message-Id: <20100409105107.7b6784d4@hyperion.delvare>
+From: Andre Prendel <andre.prendel@gmx.de>
+Date: Wed, 14 Apr 2010 18:28:58 +0000
+Subject: [lm-sensors] [PATCH v4 2/2] Add sensors config install script
+Message-Id: <20100414182858.GC1985@andre-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Currently, if someone tries to set the thermal sensor type to an
-unsupported value, subsequent accesses to the chip may temporarily
-show the sensor in question as disabled. Use a temporary variable
-and only update the cached value on success, to prevent such
-confusion.
+This shell script searches for suitable configuration files due to
+systems DMI data, installs them and loads necessary driver(s)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/it87.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
-
---- linux-2.6.34-rc3.orig/drivers/hwmon/it87.c	2010-04-09 10:29:27.000000000 +0200
-+++ linux-2.6.34-rc3/drivers/hwmon/it87.c	2010-04-09 10:34:29.000000000 +0200
-@@ -539,15 +539,14 @@ static ssize_t set_sensor(struct device
- 
- 	struct it87_data *data = dev_get_drvdata(dev);
- 	long val;
-+	u8 reg;
- 
- 	if (strict_strtol(buf, 10, &val) < 0)
- 		return -EINVAL;
- 
--	mutex_lock(&data->update_lock);
--
--	data->sensor = it87_read_value(data, IT87_REG_TEMP_ENABLE);
--	data->sensor &= ~(1 << nr);
--	data->sensor &= ~(8 << nr);
-+	reg = it87_read_value(data, IT87_REG_TEMP_ENABLE);
-+	reg &= ~(1 << nr);
-+	reg &= ~(8 << nr);
- 	if (val = 2) {	/* backwards compatibility */
- 		dev_warn(dev, "Sensor type 2 is deprecated, please use 4 "
- 			 "instead\n");
-@@ -555,13 +554,14 @@ static ssize_t set_sensor(struct device
- 	}
- 	/* 3 = thermal diode; 4 = thermistor; 0 = disabled */
- 	if (val = 3)
--		data->sensor |= 1 << nr;
-+		reg |= 1 << nr;
- 	else if (val = 4)
--		data->sensor |= 8 << nr;
--	else if (val != 0) {
--		mutex_unlock(&data->update_lock);
-+		reg |= 8 << nr;
-+	else if (val != 0)
- 		return -EINVAL;
--	}
+Index: sensors/prog/detect/install.sh
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ sensors/prog/detect/install.sh	2010-04-13 20:59:26.931071291 +0200
+@@ -0,0 +1,59 @@
++#!/bin/bash
 +
-+	mutex_lock(&data->update_lock);
-+	data->sensor = reg;
- 	it87_write_value(data, IT87_REG_TEMP_ENABLE, data->sensor);
- 	mutex_unlock(&data->update_lock);
- 	return count;
-
--- 
-Jean Delvare
++SYSFS_PATH=3D/sys/class/dmi/id
++CONF_PATH=3D/var/lib/sensors/conf
++INSTALL_FILE=3D/etc/sensors.d/automobo.conf
++
++BOARD_VENDOR=3D`cat $SYSFS_PATH/board_vendor`
++BOARD_NAME=3D`cat $SYSFS_PATH/board_name`
++BOARD_VERSION=3D`cat $SYSFS_PATH/board_version`
++SYS_VENDOR=3D`cat $SYSFS_PATH/sys_vendor`
++PRODUCT_NAME=3D`cat $SYSFS_PATH/product_name`
++PRODUCT_VERSION=3D`cat $SYSFS_PATH/product_version`
++
++# only for testing
++#BOARD_VENDOR=3DFujitsu
++#BOARD_NAME=D2312C1
++#BOARD_VERSION=3D1.0
++#SYS_VENDOR=3DFujitsu
++#PRODUCT_NAME=D2312D2
++#PRODUCT_VERSION=3D2.0
++
++SEARCH_BOARD_VERSION=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME"_"$BOARD_V=
+ERSION
++SEARCH_BOARD=3D$CONF_PATH"/"$BOARD_VENDOR"_"$BOARD_NAME
++SEARCH_SYS_VERSION=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME"_"$PRODUCT_V=
+ERSION
++SEARCH_SYS=3D$CONF_PATH"/"$SYS_VENDOR"_"$PRODUCT_NAME
++
++load_drivers()
++{
++    while read a b c; do
++	if [ "$a" =3D "#" ]; then
++	    if [ "$b" =3D "module:" ]; then
++		driver=3D`echo $c | tr -d '\r'`
++		echo "Loading driver: $driver"
++		modprobe $driver
++	    fi
++	fi
++    done < $INSTALL_FILE
++}
++
++search_config()
++{
++    echo "Looking for config: $1"
++    if [ -h "$1" ]; then
++	echo "Found suitable config"
++	cp -f $1 $INSTALL_FILE
++	load_drivers
++	exit 0
++    fi
++}
++
++for search in "$SEARCH_BOARD_VERSION" "$SEARCH_BOARD" "$SEARCH_SYS_VERSION=
+" "$SEARCH_SYS"
++do
++    search_config "$search"
++done
++
++echo "Could not find a suitable config"
++rm -f $INSTALL_FILE
++
++exit 1
 
 _______________________________________________
 lm-sensors mailing list
