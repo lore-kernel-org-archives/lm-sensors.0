@@ -1,67 +1,72 @@
-From: <samu.p.onkalo@nokia.com>
-Date: Thu, 22 Apr 2010 06:33:03 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 09/10] lis3: Scale output values to mg
-Message-Id: <62697B07E9803846BC582181BD6FB6B826A85FBC9E@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Thu, 15 Apr 2010 10:34:07 +0000
+Subject: [lm-sensors] [PATCH 0/1] BH1770GLC / SFH7770 combined ambient light
+Message-Id: <1271327648-13497-1-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1257250185-7929-10-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1257250185-7929-10-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
 
+This patch introduces driver for Rohm BH1770GLC and Osram SFH7770
+combined ambient light and proximity sensor.
 
+Driver is divided to 3 parts. Core-part contains common functionality for
+both parts of the chips. ALS and PS specific functionalities are
+in separate files.
 
->-----Original Message-----
->From: ext Daniel Mack [mailto:daniel@caiaq.de]
->Sent: 21 April, 2010 15:10
->To: Onkalo Samu.P (Nokia-D/Tampere)
->Cc: eric.piel@tremplin-utc.net; kalhan.trisal@intel.com; lm-sensors@lm-
->sensors.org
->Subject: Re: [RFC PATCH 09/10] lis3: Scale output values to mg
->
->Hi Samu,
->
->On Tue, Nov 03, 2009 at 01:30:07PM +0100, samu.p.onkalo@nokia.com wrote:
->> Date: Tue, 3 Nov 2009 13:30:07 +0100
->> From: samu.p.onkalo@nokia.com
->> To: daniel@caiaq.de
->> CC: eric.piel@tremplin-utc.net, kalhan.trisal@intel.com,
->> 	lm-sensors@lm-sensors.org
->> Subject: RE: [RFC PATCH 09/10] lis3: Scale output values to mg
->> Message-ID: <62697B07E9803846BC582181BD6FB6B8256DACE233@NOK-EUMSG-
->02.mgdnok.nokia.com>
->>
->> >On Tue, Nov 03, 2009 at 02:09:44PM +0200, Samu Onkalo wrote:
->> >> Report output values as 1/1000 of earth gravity.
->> >
->> >Without having tried that, I assume that changes the values
->> >for all events reported? That would break all userspace
->> >clients of this device, right?
->> >
->>
->> Yes. That is one thing which need to agreed here. One possibility is
->to
->> implement this as a configurable feature for example using platform
->data.
->> In that kind of solution default value must be the old way.
->
->This hits us now in user space applictions. No big deal, we will just
->change our parsers. But I wonder whether you have a fix factor at hand
->to apply here for calculation? I'm too lazy to reverse all the thinking
->behind the conversion in order to get that number ;)
->
+ALS part is fully based on threshold interrupts. Driver doesn't provide
+direct control for threshold levels. Instead, based on sensitivity setting,
+threshold levels are updated after every interrupt. This method keeps sensor
+to follow changes in the lightning.
 
+PS part uses interrupt for high threshold events and delayed work to simulate
+missing low threshold interrupts. This way driver is able to react proximity
+on / off events using only high threshold interrupt. Proximity sensing can
+utilize up to 3 IR leds for movement detection. Driver supports 1-3 leds
+configurations.
 
-For 8 bit devices:
-unscaled_value * 18 = scaled_to_mg_value
+Platform data is used to provide IR led configuration: number of channels and
+absolute maximum operating currents for the leds.
 
-For 12 bit devices:
-unscaled_value * 0.977 = scaled_to_mg_value
+Chip is kept running only when someone keeps device handles open.
+Otherwise chip is powered down and optionally power supplies are turned off.
 
+Interfaces:
+Both parts of the driver provides results via separate misc char device.
 
+sysfs interface:
+als_calib - (RW) calibration coeffient (default is neutral value)
+als_mode  - (R)  returns current chip operational state for ALS
+als_rate  - (RW) ALS side measurement rate in ms
+als_sens  - (RW) sensitivity for changes in lightning level
+ps_calib  - (RW) calibration coeffient
+ps_leds   - (RW) IR led currents in mA
+ps_mode   - (R)  returns current chip operational state for PS
+ps_rate   - (RW) PS side measurement rates (separate rates for below /
+	         above threshold condition)
+ps_threshold - (RW) threshold levels
+chip_id   - (R)  chip version and revision information
 
--Samu
+Tested in top of 2.6.32 kernel. Applies to 2.6.34-RC3.
+
+Samu Onkalo (1):
+  misc: bh1770glc: Driver for bh1770glc combined als and ps sensor
+
+ drivers/misc/Kconfig          |   12 +
+ drivers/misc/Makefile         |    3 +
+ drivers/misc/bh1770glc.h      |  169 ++++++++++++
+ drivers/misc/bh1770glc_als.c  |  424 +++++++++++++++++++++++++++++
+ drivers/misc/bh1770glc_core.c |  301 +++++++++++++++++++++
+ drivers/misc/bh1770glc_ps.c   |  585 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/bh1770glc.h     |   39 +++
+ 7 files changed, 1533 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/bh1770glc.h
+ create mode 100644 drivers/misc/bh1770glc_als.c
+ create mode 100644 drivers/misc/bh1770glc_core.c
+ create mode 100644 drivers/misc/bh1770glc_ps.c
+ create mode 100644 include/linux/bh1770glc.h
 
 
 _______________________________________________
