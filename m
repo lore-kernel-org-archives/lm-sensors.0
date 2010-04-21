@@ -1,73 +1,45 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 25 Apr 2010 17:02:29 +0000
-Subject: Re: [lm-sensors] fancontrol EeePC,
-Message-Id: <20100425190229.2d3e2ced@hyperion.delvare>
+From: Daniel Mack <daniel@caiaq.de>
+Date: Wed, 21 Apr 2010 12:10:03 +0000
+Subject: Re: [lm-sensors] [RFC PATCH 09/10] lis3: Scale output values to mg
+Message-Id: <20100421121003.GQ30801@buzzloop.caiaq.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <p2r64d6c631004250035lca8a4234o4787745b623460bb@mail.gmail.com>
-In-Reply-To: <p2r64d6c631004250035lca8a4234o4787745b623460bb@mail.gmail.com>
+References: <1257250185-7929-10-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1257250185-7929-10-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Mildred,
+Hi Samu,
 
-On Sun, 25 Apr 2010 16:55:09 +0200, Mildred Ki'Lya wrote:
-> On 04/25/2010 01:21 PM, Jean Delvare wrote:
-> > Hi Mildred,
+On Tue, Nov 03, 2009 at 01:30:07PM +0100, samu.p.onkalo@nokia.com wrote:
+> Date: Tue, 3 Nov 2009 13:30:07 +0100
+> From: samu.p.onkalo@nokia.com
+> To: daniel@caiaq.de
+> CC: eric.piel@tremplin-utc.net, kalhan.trisal@intel.com,
+> 	lm-sensors@lm-sensors.org
+> Subject: RE: [RFC PATCH 09/10] lis3: Scale output values to mg
+> Message-ID: <62697B07E9803846BC582181BD6FB6B8256DACE233@NOK-EUMSG-02.mgdnok.nokia.com>
+> 
+> >On Tue, Nov 03, 2009 at 02:09:44PM +0200, Samu Onkalo wrote:
+> >> Report output values as 1/1000 of earth gravity.
 > >
-> > On Sun, 25 Apr 2010 09:35:58 +0200, Mildred Ki'Lya wrote:
-> >   
-> >> Hi,
-> >>
-> >> I am using fancontrol for my new EeePC, and when fancontrol exit (when I
-> >> reboot for example) the fans are set to manual mode at full speed.
-> >>
-> >> Aparently, the source code of fancontrol first tries to set the fan to safe
-> >> mode, and if it doesn't work, set it to manual at full speed. Apparently,
-> >> the EeePC safe mode is the same as automatic mode. So when we write "0" to
-> >> pwm1_enable, if we read it again, we'll see "2".
-> >>     
-> > This is a bug in the eeepc driver. If it doesn't support mode 0, it
-> > should return -EINVAL when one tries to set it.
-> >   
+> >Without having tried that, I assume that changes the values 
+> >for all events reported? That would break all userspace 
+> >clients of this device, right?
+> >
 > 
-> Well, I didn't think this was a bug, from what I read, mode 0
-> corresponds to safe mode which is the automatic mode on the EeePC, and
-> of course since this is the same as the mode 2 (automatic), when we read
-> the file back we get 2.
+> Yes. That is one thing which need to agreed here. One possibility is to
+> implement this as a configurable feature for example using platform data.
+> In that kind of solution default value must be the old way.
 
-Please read Documentation/hwmon/sysfs-interface. Mode 0 doesn't mean
-"safe mode" (whatever that means to you), it means "fan at full speed".
+This hits us now in user space applictions. No big deal, we will just
+change our parsers. But I wonder whether you have a fix factor at hand
+to apply here for calculation? I'm too lazy to reverse all the thinking
+behind the conversion in order to get that number ;)
 
-> But you certainly know better about this, so I'm not pressing the issue
-> further.
-> 
-> If I understand how fancontrol works, when the mode 0 doesn't work, it
-> set the pwm to mnual mode (1) and maximum speed.
-
-Correct. Both are almost equivalent (and for some chips, exactly
-equivalent.)
-
-> Do you think that is a
-> good choice given that for some laptops where the default mode is the
-> automatic mode (2) ? That would be a perfectly acceptable fallback when
-> fancontrol isn't in charge.
-
-We can't fallback to automatic mode by default because we have no
-guarantee that this mode is properly configured.
-
-> Do you think there is possibility in the future that fancontrol reset
-> the fan state to automatic when it quits (when specified in the
-> configuration) ? I'd be willing to work on a patch if that were the case.
-
-One sensible change would be for fancontrol to restore the mode to what
-it was when it was started. This should be the best option in all
-cases, and fairly easy to implement, too. If you send a patch doing
-this, I'll be happy to apply it.
-
--- 
-Jean Delvare
+Thanks,
+Daniel
 
 _______________________________________________
 lm-sensors mailing list
