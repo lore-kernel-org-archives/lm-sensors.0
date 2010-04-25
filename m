@@ -1,66 +1,94 @@
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Tue, 13 Apr 2010 22:58:00 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2]: hwmon: (ltc4245) fix GPIO support
-Message-Id: <20100413225800.GI19020@ovro.caltech.edu>
+From: "Mildred Ki'Lya" <mildred593@gmail.com>
+Date: Sun, 25 Apr 2010 07:35:58 +0000
+Subject: [lm-sensors] fancontrol EeePC,
+Message-Id: <p2r64d6c631004250035lca8a4234o4787745b623460bb@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2011358669079828968=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1271199323-3345-1-git-send-email-iws@ovro.caltech.edu>
-In-Reply-To: <1271199323-3345-1-git-send-email-iws@ovro.caltech.edu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 13, 2010 at 03:55:21PM -0700, Ira W. Snyder wrote:
-> This patch series fixes support for using a GPIO line as an analog input to
-> the ADC on the LTC4245 chip. Jean suggested dropping support for multiple
-> GPIO lines, and then adding it back as an optional feature.
-> 
-> I think this is fairly unintrusive to the ltc4245 code, and the multi-GPIO
-> support is well encapsulated in a seperate function, hidden behind a kernel
-> configuration option.
-> 
-> I have tested the sensors utility with the -EAGAIN code for stale values.
-> The output looks like this:
-> 
-> ltc4245-i2c-1-22
-> 12V  Input:      +11.66 V
-> 5.0V Input:       +5.10 V
-> 3.3V Input:       +3.19 V
-> VEE  Input:       +0.00 V
-> 12V  Output:     +11.66 V
-> 5.0V Output:      +5.08 V
-> 3.3V Output:      +3.19 V
-> VEE  Output:      +0.00 V
-> Dig 3.30v Output: +3.26 V
-> ERROR: Can't get value of subfeature in10_input: Can't read
-> Dig 2.25v Output: +0.00 V
-> ERROR: Can't get value of subfeature in11_input: Can't read
-> Dig 1.80v Output: +0.00 V
-> 12V  Power:      816.20 mW
-> 5.0V Power:        4.90 W
-> 3.3V Power:        1.44 W
-> VEE  Power:        0.00 nW
-> 12V  Current:     +0.07 A
-> 5.0V Current:     +0.96 A
-> 3.3V Current:     +0.45 A
-> VEE  Current:     +0.00 A
-> 
-> Using cat to read the inX_input nodes, I get the expected output:
-> 
-> cat: in9_input: Resource temporarily unavailable
-> 
-> So I think that the lm-sensors software will handle this method of showing
-> stale values just fine.
-> 
+--===============2011358669079828968==
+Content-Type: multipart/alternative; boundary=00032555623a21f8a604850ab681
 
-Whoops, I just noticed that this is the wrong patch series. I'll send
-the correct series immediately.
+--00032555623a21f8a604850ab681
+Content-Type: text/plain; charset=ISO-8859-1
 
-Please ignore it. Sorry for the noise.
+Hi,
 
-Ira
+I am using fancontrol for my new EeePC, and when fancontrol exit (when I
+reboot for example) the fans are set to manual mode at full speed.
+
+Aparently, the source code of fancontrol first tries to set the fan to safe
+mode, and if it doesn't work, set it to manual at full speed. Apparently,
+the EeePC safe mode is the same as automatic mode. So when we write "0" to
+pwm1_enable, if we read it again, we'll see "2".
+
+I could find information about EeePC fan control here:
+https://patchwork.kernel.org/patch/64435/
+
+To enable automatic mode at exit, I changed fancontrol with the following
+patch:
+
+
+--- /tmp/fancontrol    2010-04-25 09:31:58.394184626 +0200
++++ /usr/sbin/fancontrol    2010-04-25 09:21:24.161183983 +0200
+@@ -318,7 +318,7 @@
+
+     # Try pwmN_enable=0
+     echo 0 > $ENABLE 2> /dev/null
+-    if [ `cat $ENABLE` -eq 0 ]
++    if [ `cat $ENABLE` -ne 1 ]
+     then
+         # Success
+         return 0
+
+
+Do you think this change is worth including it for the next version of
+lm-sensors ?
+
+Thanks.
+
+Mildred
+
+PS: please Cc me for replies as I am not on the list
+
+--00032555623a21f8a604850ab681
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<br><br>I am using fancontrol for my new EeePC, and when fancontrol exit=
+ (when I reboot for example) the fans are set to manual mode at full speed.=
+<br><br>Aparently, the source code of fancontrol first tries to set the fan=
+ to safe mode, and if it doesn&#39;t work, set it to manual at full speed. =
+Apparently, the EeePC safe mode is the same as automatic mode. So when we w=
+rite &quot;0&quot; to pwm1_enable, if we read it again, we&#39;ll see &quot=
+;2&quot;.<br>
+<br>I could find information about EeePC fan control here: <a href=3D"https=
+://patchwork.kernel.org/patch/64435/">https://patchwork.kernel.org/patch/64=
+435/</a><br><br>To enable automatic mode at exit, I changed fancontrol with=
+ the following patch:<br>
+<br><br>--- /tmp/fancontrol=A0=A0=A0 2010-04-25 09:31:58.394184626 +0200<br=
+>+++ /usr/sbin/fancontrol=A0=A0=A0 2010-04-25 09:21:24.161183983 +0200<br>@=
+@ -318,7 +318,7 @@<br>=A0<br>=A0=A0=A0=A0 # Try pwmN_enable=3D0<br>=A0=A0=
+=A0=A0 echo 0 &gt; $ENABLE 2&gt; /dev/null<br>
+-=A0=A0=A0 if [ `cat $ENABLE` -eq 0 ]<br>+=A0=A0=A0 if [ `cat $ENABLE` -ne =
+1 ]<br>=A0=A0=A0=A0 then<br>=A0=A0=A0=A0 =A0=A0=A0 # Success<br>=A0=A0=A0=
+=A0 =A0=A0=A0 return 0<br><br><br>Do you think this change is worth includi=
+ng it for the next version of lm-sensors ?<br>
+<br>Thanks.<br><br>Mildred<br><br>PS: please Cc me for replies as I am not =
+on the list<br><br>
+
+--00032555623a21f8a604850ab681--
+
+
+--===============2011358669079828968==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2011358669079828968==--
