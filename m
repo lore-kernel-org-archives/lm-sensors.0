@@ -1,199 +1,156 @@
-From: "Jeff Rickman" <jrickman@myamigos.us>
-Date: Sat, 17 Apr 2010 00:01:22 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 28 Apr 2010 11:41:57 +0000
 Subject: Re: [lm-sensors] asus_atk0110 Not Activated  in lm_sensors-3.1.1-3
-Message-Id: <1210.66.169.124.218.1271462482.squirrel@webmail.myamigos.us>
+Message-Id: <20100428134157.21beb2ad@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <697978.38728.qm@web31801.mail.mud.yahoo.com>
 In-Reply-To: <697978.38728.qm@web31801.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-> Hi...
->
-> Runnig Rehat Fedora Core 12 with an Asus k8n-dre motherboard.  It has a
-> NVIDE nFORCE Professional 2200 Chip as well as a Winbond W83627THF-A super
-> i/o chip. The linux kernel is kernel-2.6.32.11-99.fc12.x86_64.  Using
-> lm_sensors-3.1.1-3.fc12.x86_64
->
-> When I run sensors-detect I get the following
->
-> Some south bridges, CPUs or memory controllers contain embedded sensors.
-> Do you want to scan for them? This is totally safe. (YES/no): y
-> Silicon Integrated Systems SIS5595...                       No
-> VIA VT82C686 Integrated Sensors...                          No
-> VIA VT8231 Integrated Sensors...                            No
-> AMD K8 thermal sensors...                                   Success!
->     (driver `k8temp')
-> AMD Family 10h thermal sensors...                           No
-> AMD Family 11h thermal sensors...                           No
-> Intel Core family thermal sensor...                         No
-> Intel Atom thermal sensor...                                No
-> Intel AMB FB-DIMM thermal sensor...                         No
-> VIA C7 thermal sensor...                                    No
-> VIA Nano thermal sensor...                                  No
->
-> Some Super I/O chips contain embedded sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no):
->
-> Some Super I/O chips contain embedded sensors. We have to write to
-> standard I/O ports to probe them. This is usually safe.
-> Do you want to scan for Super I/O sensors? (YES/no): y
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-> Found `Winbond W83627THF/THG Super IO Sensors'
->     (but not activated)
-> Probing for Super-I/O at 0x4e/0x4f
-> Trying family `National Semiconductor'...                   No
-> Trying family `SMSC'...                                     No
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-> Trying family `ITE'...                                      No
->
-> Everything else returns a no until...
->
-> Next adapter: SMBus nForce2 adapter at 4c40 (i2c-0)
-> Do you want to scan it? (YES/no/selectively):
->
-> Nothing in the summary about it.
->
-> The k8temp works fine.  I get temperatures.
-> k8temp-pci-00c3
-> Adapter: PCI adapter
-> Core0 Temp:  +35.0=B0C
-> Core1 Temp:  +36.0=B0C
->
-> k8temp-pci-00cb
-> Adapter: PCI adapter
-> Core0 Temp:  +36.0=B0C
-> Core1 Temp:  +37.0=B0C
->
-> But no fan speeds or anything else because when I attempt to load the
-> w83627hf modules I get the following:
->
-> FATAL: Error inserting w83627hf
-> (/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83627hf.ko):
-> No such device
->
-> Here is the lsmod
->
-> Module                  Size  Used by
-> fuse                   57189  2
-> hwmon_vid               2091  0
-> eeprom                  4947  0
-> i2c_dev                 7529  0
-> sunrpc                193819  1
-> cpufreq_ondemand        8793  2
-> powernow_k8            14706  2
-> freq_table              3947  2 cpufreq_ondemand,powernow_k8
-> ip6t_REJECT             4222  10
-> nf_conntrack_ipv6      18504  7
-> ip6table_filter         2791  1
-> ip6_tables             16760  1 ip6table_filter
-> ipv6                  279463  32 ip6t_REJECT,nf_conntrack_ipv6
-> uinput                  7228  0
-> amd64_edac_mod         15481  0
-> tg3                   101698  0
-> i2c_nforce2             6819  0
-> i2c_core               26876  3 eeprom,i2c_dev,i2c_nforce2
-> edac_core              39581  4 amd64_edac_mod
-> edac_mce_amd            7746  1 amd64_edac_mod
-> k8temp                  3735  0
-> raid1                  19043  2
-> dm_multipath           14558  0
-> ata_generic             3467  0
-> pata_acpi               3395  0
-> floppy                 54666  0
-> pata_amd               11269  4
-> sata_nv                20834  3
->
-> When I load the w83627ehf I get:
-> FATAL: Error inserting w83627ehf
-> (/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83627ehf.ko):
-> No such device
->
-> When I try the w83781d it loads lsmod shows the following:
-> Module                  Size  Used by
-> w83781d                28749  0
-> fuse                   57189  2
-> hwmon_vid               2091  1 w83781d
-> eeprom                  4947  0
-> i2c_dev                 7529  0
-> sunrpc                193819  1
-> cpufreq_ondemand        8793  2
-> powernow_k8            14706  2
-> freq_table              3947  2 cpufreq_ondemand,powernow_k8
-> ip6t_REJECT             4222  10
-> nf_conntrack_ipv6      18504  7
-> ip6table_filter         2791  1
-> ip6_tables             16760  1 ip6table_filter
-> ipv6                  279463  32 ip6t_REJECT,nf_conntrack_ipv6
-> uinput                  7228  0
-> amd64_edac_mod         15481  0
-> tg3                   101698  0
-> i2c_nforce2             6819  0
-> i2c_core               26876  4 w83781d,eeprom,i2c_dev,i2c_nforce2
-> edac_core              39581  4 amd64_edac_mod
-> edac_mce_amd            7746  1 amd64_edac_mod
-> k8temp                  3735  0
-> raid1                  19043  2
-> dm_multipath           14558  0
-> ata_generic             3467  0
-> pata_acpi               3395  0
-> floppy                 54666  0
-> pata_amd               11269  4
-> sata_nv                20834  3
->
-> Running sensor-detect again produces original results and nothing is
-> loaded into the /etc/sysconfig/lm_sensors, So starting lm_sensors gives me
-> a warning telling me its not configured.
->
-> Same result as directly above when I load the w83791d drive, hav\ing
-> removed the other, including the w83792d, w83793, w83l785ts, w83l786ng,
-> wm831x-hwmon and wm8350-hwmon. The lsmod stays the same as above except
-> that the driver is relplace at the same position with the new driver.
->
-> Tried various combinations and permutations and nothing.
->
-> Any help would appreciated, and apologizes if it has already been dealt
-> with.
->
-> Regards and thanks...
->
->_______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
-
-Looking at my "stock" FC12 boxes I see:
-
-# ls /lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83*
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83627ehf.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83627hf.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83781d.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83791d.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83792d.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83793.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83l785ts.ko
-/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83l786ng.ko
-
-What modules does "sensors-detect" say it is trying to load? The actual
-output is important.
-
-What is the output of "/var/log/messages" after the module loading errors
-occur? That info could be valuable.
-
-Perhaps the SuperIO chip is actually being detected but there is no kernel
-module support for it? Others more wise than me will know that answer.
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgTWFyYywKCk9uIEZyaSwgMTYgQXByIDIwMTAgMTY6MzY6MzQgLTA3MDAgKFBEVCksIE1hcmMg
+d3JvdGU6Cj4gSGkuLi4KPiAKPiBSdW5uaWcgUmVoYXQgRmVkb3JhIENvcmUgMTIgd2l0aCBhbiBB
+c3VzIGs4bi1kcmUgbW90aGVyYm9hcmQuICBJdCBoYXMgYSBOVklERSBuRk9SQ0UgUHJvZmVzc2lv
+bmFsIDIyMDAgQ2hpcCBhcyB3ZWxsIGFzIGEgV2luYm9uZCBXODM2MjdUSEYtQSBzdXBlciBpL28g
+Y2hpcC4gVGhlIGxpbnV4IGtlcm5lbCBpcyBrZXJuZWwtMi42LjMyLjExLTk5LmZjMTIueDg2XzY0
+LiAgVXNpbmcgbG1fc2Vuc29ycy0zLjEuMS0zLmZjMTIueDg2XzY0Cj4gCj4gV2hlbiBJIHJ1biBz
+ZW5zb3JzLWRldGVjdCBJIGdldCB0aGUgZm9sbG93aW5nCj4gCj4gU29tZSBzb3V0aCBicmlkZ2Vz
+LCBDUFVzIG9yIG1lbW9yeSBjb250cm9sbGVycyBjb250YWluIGVtYmVkZGVkIHNlbnNvcnMuCj4g
+RG8geW91IHdhbnQgdG8gc2NhbiBmb3IgdGhlbT8gVGhpcyBpcyB0b3RhbGx5IHNhZmUuIChZRVMv
+bm8pOiB5Cj4gU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3RlbXMgU0lTNTU5NS4uLiAgICAgICAgICAg
+ICAgICAgICAgICAgTm8KPiBWSUEgVlQ4MkM2ODYgSW50ZWdyYXRlZCBTZW5zb3JzLi4uICAgICAg
+ICAgICAgICAgICAgICAgICAgICBObwo+IFZJQSBWVDgyMzEgSW50ZWdyYXRlZCBTZW5zb3JzLi4u
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vCj4gQU1EIEs4IHRoZXJtYWwgc2Vuc29ycy4u
+LiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU3VjY2VzcyEKPiAgICAgKGRyaXZl
+ciBgazh0ZW1wJykKPiBBTUQgRmFtaWx5IDEwaCB0aGVybWFsIHNlbnNvcnMuLi4gICAgICAgICAg
+ICAgICAgICAgICAgICAgICBObwo+IEFNRCBGYW1pbHkgMTFoIHRoZXJtYWwgc2Vuc29ycy4uLiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIE5vCj4gSW50ZWwgQ29yZSBmYW1pbHkgdGhlcm1hbCBz
+ZW5zb3IuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8KPiBJbnRlbCBBdG9tIHRoZXJtYWwg
+c2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwo+IEludGVsIEFNQiBG
+Qi1ESU1NIHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vCj4gVklB
+IEM3IHRoZXJtYWwgc2Vuc29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+Tm8KPiBWSUEgTmFubyB0aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICBObwo+IAo+IFNvbWUgU3VwZXIgSS9PIGNoaXBzIGNvbnRhaW4gZW1iZWRkZWQgc2Vu
+c29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bwo+IHN0YW5kYXJkIEkvTyBwb3J0cyB0byBwcm9iZSB0
+aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZS4KPiBEbyB5b3Ugd2FudCB0byBzY2FuIGZvciBTdXBl
+ciBJL08gc2Vuc29ycz8gKFlFUy9ubyk6IAo+IAo+IFNvbWUgU3VwZXIgSS9PIGNoaXBzIGNvbnRh
+aW4gZW1iZWRkZWQgc2Vuc29ycy4gV2UgaGF2ZSB0byB3cml0ZSB0bwo+IHN0YW5kYXJkIEkvTyBw
+b3J0cyB0byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZS4KPiBEbyB5b3Ugd2FudCB0
+byBzY2FuIGZvciBTdXBlciBJL08gc2Vuc29ycz8gKFlFUy9ubyk6IHkKPiBQcm9iaW5nIGZvciBT
+dXBlci1JL08gYXQgMHgyZS8weDJmCj4gVHJ5aW5nIGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1
+Y3RvcicuLi4gICAgICAgICAgICAgICAgICAgTm8KPiBUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObwo+IFRyeWluZyBmYW1pbHkgYFZJ
+QS9XaW5ib25kL051dm90b24vRmludGVrJy4uLiAgICAgICAgICAgICAgIFllcwo+IEZvdW5kIGBX
+aW5ib25kIFc4MzYyN1RIRi9USEcgU3VwZXIgSU8gU2Vuc29ycycgICAgICAgICAgICAgIAo+ICAg
+ICAoYnV0IG5vdCBhY3RpdmF0ZWQpCgpUaGlzIHR5cGljYWxseSBtZWFucyB0aGF0IHRoZSB2ZW5k
+b3IgZGVjaWRlZCB0byBub3QgdXNlIHRoZSBlbWJlZGRlZApoYXJkd2FyZSBtb25pdG9yaW5nIGZl
+YXR1cmVzIG9mIHRoZSBTdXBlciBJL08gY2hpcCwgZWl0aGVyIGJlY2F1c2UgdGhleQphcmVuJ3Qg
+aW50ZXJlc3RlZCBpbiBtb25pdG9yaW5nIGF0IGFsbCwgb3IgYmVjYXVzZSB0aGV5IGhhdmUgaW5j
+bHVkZWQgYQpkZWRpY2F0ZWQgbW9uaXRvcmluZyBjaGlwIG9uIHRoZSBib2FyZC4gWW91IGNhbiB0
+ZWxsIGJldHdlZW4gdGhlc2UgdHdvCmNhc2VzIGJ5IGxvb2tpbmcgZm9yIG1vbml0b3JpbmcgaW4g
+dGhlIEJJT1Mgc2V0dXAgc2NyZWVuLgoKPiBQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHg0ZS8w
+eDRmCj4gVHJ5aW5nIGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvcicuLi4gICAgICAgICAg
+ICAgICAgICAgTm8KPiBUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBObwo+IFRyeWluZyBmYW1pbHkgYFZJQS9XaW5ib25kL051dm90b24v
+RmludGVrJy4uLiAgICAgICAgICAgICAgIE5vCj4gVHJ5aW5nIGZhbWlseSBgSVRFJy4uLiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8KPiAKPiBFdmVyeXRoaW5nIGVsc2Ug
+cmV0dXJucyBhIG5vIHVudGlsLi4uCj4gCj4gTmV4dCBhZGFwdGVyOiBTTUJ1cyBuRm9yY2UyIGFk
+YXB0ZXIgYXQgNGM0MCAoaTJjLTApCj4gRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFlFUy9uby9z
+ZWxlY3RpdmVseSk6IAoKTm90ZSB0aGF0IHRoZSBuRm9yY2UyIGFuZCBsYXRlciBoYXZlIDIgU01C
+dXMgY2hhbm5lbHMsIGFuZCBhcHBhcmVudGx5CnNlbnNvcnMtZGV0ZWN0IGZvdW5kIG9ubHkgb25l
+LiBUaGlzIGNvdWxkIG1lYW4gdGhhdCBBQ1BJIHJlcXVlc3RlZCB0aGUKb3RoZXIgb25lLiBQbGVh
+c2Ugc2VhcmNoIGZvciBrZXJuZWwgbG9nIG1lc3NhZ2VzIGFzIHRoZSBpMmMtbmZvcmNlMgpkcml2
+ZXIgaXMgYmVpbmcgbG9hZGVkLgoKPiAKPiBOb3RoaW5nIGluIHRoZSBzdW1tYXJ5IGFib3V0IGl0
+Lgo+IAo+IFRoZSBrOHRlbXAgd29ya3MgZmluZS4gIEkgZ2V0IHRlbXBlcmF0dXJlcy4KPiBrOHRl
+bXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IENvcmUwIFRlbXA6ICArMzUuMMKw
+QyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo+IENvcmUxIFRlbXA6ICArMzYu
+MMKwQyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAo+IAo+IGs4dGVtcC1wY2kt
+MDBjYgo+IEFkYXB0ZXI6IFBDSSBhZGFwdGVyCj4gQ29yZTAgVGVtcDogICszNi4wwrBDICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCj4gQ29yZTEgVGVtcDogICszNy4wwrBDICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCj4gCj4gQnV0IG5vIGZhbiBzcGVlZHMg
+b3IgYW55dGhpbmcgZWxzZSBiZWNhdXNlIHdoZW4gSSBhdHRlbXB0IHRvIGxvYWQgdGhlIHc4MzYy
+N2hmIG1vZHVsZXMgSSBnZXQgdGhlIGZvbGxvd2luZzogCj4gCj4gRkFUQUw6IEVycm9yIGluc2Vy
+dGluZyB3ODM2MjdoZiAoL2xpYi9tb2R1bGVzLzIuNi4zMi4xMS05OS5mYzEyLng4Nl82NC9rZXJu
+ZWwvZHJpdmVycy9od21vbi93ODM2MjdoZi5rbyk6IE5vIHN1Y2ggZGV2aWNlCgpUaGlzIGlzIGV4
+cGVjdGVkIGlmIHRoZSBkZXZpY2UgaXMgZGlzYWJsZWQuCgo+IAo+IEhlcmUgaXMgdGhlIGxzbW9k
+Cj4gCj4gTW9kdWxlICAgICAgICAgICAgICAgICAgU2l6ZSAgVXNlZCBieQo+IGZ1c2UgICAgICAg
+ICAgICAgICAgICAgNTcxODkgIDIgCj4gaHdtb25fdmlkICAgICAgICAgICAgICAgMjA5MSAgMCAK
+PiBlZXByb20gICAgICAgICAgICAgICAgICA0OTQ3ICAwIAo+IGkyY19kZXYgICAgICAgICAgICAg
+ICAgIDc1MjkgIDAgCj4gc3VucnBjICAgICAgICAgICAgICAgIDE5MzgxOSAgMSAKPiBjcHVmcmVx
+X29uZGVtYW5kICAgICAgICA4NzkzICAyIAo+IHBvd2Vybm93X2s4ICAgICAgICAgICAgMTQ3MDYg
+IDIgCj4gZnJlcV90YWJsZSAgICAgICAgICAgICAgMzk0NyAgMiBjcHVmcmVxX29uZGVtYW5kLHBv
+d2Vybm93X2s4Cj4gaXA2dF9SRUpFQ1QgICAgICAgICAgICAgNDIyMiAgMTAgCj4gbmZfY29ubnRy
+YWNrX2lwdjYgICAgICAxODUwNCAgNyAKPiBpcDZ0YWJsZV9maWx0ZXIgICAgICAgICAyNzkxICAx
+IAo+IGlwNl90YWJsZXMgICAgICAgICAgICAgMTY3NjAgIDEgaXA2dGFibGVfZmlsdGVyCj4gaXB2
+NiAgICAgICAgICAgICAgICAgIDI3OTQ2MyAgMzIgaXA2dF9SRUpFQ1QsbmZfY29ubnRyYWNrX2lw
+djYKPiB1aW5wdXQgICAgICAgICAgICAgICAgICA3MjI4ICAwIAo+IGFtZDY0X2VkYWNfbW9kICAg
+ICAgICAgMTU0ODEgIDAgCj4gdGczICAgICAgICAgICAgICAgICAgIDEwMTY5OCAgMCAKPiBpMmNf
+bmZvcmNlMiAgICAgICAgICAgICA2ODE5ICAwIAo+IGkyY19jb3JlICAgICAgICAgICAgICAgMjY4
+NzYgIDMgZWVwcm9tLGkyY19kZXYsaTJjX25mb3JjZTIKPiBlZGFjX2NvcmUgICAgICAgICAgICAg
+IDM5NTgxICA0IGFtZDY0X2VkYWNfbW9kCj4gZWRhY19tY2VfYW1kICAgICAgICAgICAgNzc0NiAg
+MSBhbWQ2NF9lZGFjX21vZAo+IGs4dGVtcCAgICAgICAgICAgICAgICAgIDM3MzUgIDAgCj4gcmFp
+ZDEgICAgICAgICAgICAgICAgICAxOTA0MyAgMiAKPiBkbV9tdWx0aXBhdGggICAgICAgICAgIDE0
+NTU4ICAwIAo+IGF0YV9nZW5lcmljICAgICAgICAgICAgIDM0NjcgIDAgCj4gcGF0YV9hY3BpICAg
+ICAgICAgICAgICAgMzM5NSAgMCAKPiBmbG9wcHkgICAgICAgICAgICAgICAgIDU0NjY2ICAwIAo+
+IHBhdGFfYW1kICAgICAgICAgICAgICAgMTEyNjkgIDQgCj4gc2F0YV9udiAgICAgICAgICAgICAg
+ICAyMDgzNCAgMyAKPiAKPiBXaGVuIEkgbG9hZCB0aGUgdzgzNjI3ZWhmIEkgZ2V0Ogo+IEZBVEFM
+OiBFcnJvciBpbnNlcnRpbmcgdzgzNjI3ZWhmICgvbGliL21vZHVsZXMvMi42LjMyLjExLTk5LmZj
+MTIueDg2XzY0L2tlcm5lbC9kcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5rbyk6IE5vIHN1Y2ggZGV2
+aWNlCgpUaGlzIGlzIGEgZGlmZmVyZW50IGRyaXZlciwgZm9yIGEgZGV2aWNlIHlvdSBkb24ndCBo
+YXZlLCBzbyBpdCB3YXNuJ3QKZXhwZWN0ZWQgdG8gbG9hZC4KCj4gCj4gV2hlbiBJIHRyeSB0aGUg
+dzgzNzgxZCBpdCBsb2FkcyBsc21vZCBzaG93cyB0aGUgZm9sbG93aW5nOgo+IE1vZHVsZSAgICAg
+ICAgICAgICAgICAgIFNpemUgIFVzZWQgYnkKPiB3ODM3ODFkICAgICAgICAgICAgICAgIDI4NzQ5
+ICAwIAo+IGZ1c2UgICAgICAgICAgICAgICAgICAgNTcxODkgIDIgCj4gaHdtb25fdmlkICAgICAg
+ICAgICAgICAgMjA5MSAgMSB3ODM3ODFkCj4gZWVwcm9tICAgICAgICAgICAgICAgICAgNDk0NyAg
+MCAKPiBpMmNfZGV2ICAgICAgICAgICAgICAgICA3NTI5ICAwIAo+IHN1bnJwYyAgICAgICAgICAg
+ICAgICAxOTM4MTkgIDEgCj4gY3B1ZnJlcV9vbmRlbWFuZCAgICAgICAgODc5MyAgMiAKPiBwb3dl
+cm5vd19rOCAgICAgICAgICAgIDE0NzA2ICAyIAo+IGZyZXFfdGFibGUgICAgICAgICAgICAgIDM5
+NDcgIDIgY3B1ZnJlcV9vbmRlbWFuZCxwb3dlcm5vd19rOAo+IGlwNnRfUkVKRUNUICAgICAgICAg
+ICAgIDQyMjIgIDEwIAo+IG5mX2Nvbm50cmFja19pcHY2ICAgICAgMTg1MDQgIDcgCj4gaXA2dGFi
+bGVfZmlsdGVyICAgICAgICAgMjc5MSAgMSAKPiBpcDZfdGFibGVzICAgICAgICAgICAgIDE2NzYw
+ICAxIGlwNnRhYmxlX2ZpbHRlcgo+IGlwdjYgICAgICAgICAgICAgICAgICAyNzk0NjMgIDMyIGlw
+NnRfUkVKRUNULG5mX2Nvbm50cmFja19pcHY2Cj4gdWlucHV0ICAgICAgICAgICAgICAgICAgNzIy
+OCAgMCAKPiBhbWQ2NF9lZGFjX21vZCAgICAgICAgIDE1NDgxICAwIAo+IHRnMyAgICAgICAgICAg
+ICAgICAgICAxMDE2OTggIDAgCj4gaTJjX25mb3JjZTIgICAgICAgICAgICAgNjgxOSAgMCAKPiBp
+MmNfY29yZSAgICAgICAgICAgICAgIDI2ODc2ICA0IHc4Mzc4MWQsZWVwcm9tLGkyY19kZXYsaTJj
+X25mb3JjZTIKPiBlZGFjX2NvcmUgICAgICAgICAgICAgIDM5NTgxICA0IGFtZDY0X2VkYWNfbW9k
+Cj4gZWRhY19tY2VfYW1kICAgICAgICAgICAgNzc0NiAgMSBhbWQ2NF9lZGFjX21vZAo+IGs4dGVt
+cCAgICAgICAgICAgICAgICAgIDM3MzUgIDAgCj4gcmFpZDEgICAgICAgICAgICAgICAgICAxOTA0
+MyAgMiAKPiBkbV9tdWx0aXBhdGggICAgICAgICAgIDE0NTU4ICAwIAo+IGF0YV9nZW5lcmljICAg
+ICAgICAgICAgIDM0NjcgIDAgCj4gcGF0YV9hY3BpICAgICAgICAgICAgICAgMzM5NSAgMCAKPiBm
+bG9wcHkgICAgICAgICAgICAgICAgIDU0NjY2ICAwIAo+IHBhdGFfYW1kICAgICAgICAgICAgICAg
+MTEyNjkgIDQgCj4gc2F0YV9udiAgICAgICAgICAgICAgICAyMDgzNCAgMyAKClRoZSB3ODM3ODFk
+IGRyaXZlciBpcyBhbiBoeWJyaWQgZHJpdmVyIHN1cHBvcnRpbmcgYm90aCBJU0EgYW5kIEkyQwpk
+ZXZpY2VzLiBGb3IgdGhpcyByZWFzb24gaXMgYWx3YXlzIGxvYWRzLCBldmVuIHdoZW4gbm8gc3Vw
+cG9ydGVkIGRldmljZQp3YXMgZm91bmQuIFRoaXMgZHJpdmVyIGlzIGZvciBvbGQgc3lzdGVtcywg
+aXQgd29uJ3QgaGVscCB5b3UuCgo+IAo+IFJ1bm5pbmcgc2Vuc29yLWRldGVjdCBhZ2FpbiBwcm9k
+dWNlcyBvcmlnaW5hbCByZXN1bHRzIGFuZCBub3RoaW5nIGlzIGxvYWRlZCBpbnRvIHRoZSAvZXRj
+L3N5c2NvbmZpZy9sbV9zZW5zb3JzLCBTbyBzdGFydGluZyBsbV9zZW5zb3JzIGdpdmVzIG1lIGEg
+d2FybmluZyB0ZWxsaW5nIG1lIGl0cyBub3QgY29uZmlndXJlZC4KCllvdSBzaG91bGQgYXQgbGVh
+c3QgZ2V0IHRoZSBrOHRlbXAgZHJpdmVyLgoKPiAKPiBTYW1lIHJlc3VsdCBhcyBkaXJlY3RseSBh
+Ym92ZSB3aGVuIEkgbG9hZCB0aGUgdzgzNzkxZCBkcml2ZSwgaGF2XGluZyByZW1vdmVkIHRoZSBv
+dGhlciwgaW5jbHVkaW5nIHRoZSB3ODM3OTJkLCB3ODM3OTMsIHc4M2w3ODV0cywgdzgzbDc4Nm5n
+LCB3bTgzMXgtaHdtb24gYW5kIHdtODM1MC1od21vbi4gVGhlIGxzbW9kIHN0YXlzIHRoZSBzYW1l
+IGFzIGFib3ZlIGV4Y2VwdCB0aGF0IHRoZSBkcml2ZXIgaXMgcmVscGxhY2UgYXQgdGhlIHNhbWUg
+cG9zaXRpb24gd2l0aCB0aGUgbmV3IGRyaXZlci4KCkxvYWRpbmcgcmFuZG9tIGRyaXZlcnMgaXMg
+bm90IHJlY29tbWVuZGVkLgoKPiAKPiBUcmllZCB2YXJpb3VzIGNvbWJpbmF0aW9ucyBhbmQgcGVy
+bXV0YXRpb25zIGFuZCBub3RoaW5nLgo+IAo+IEFueSBoZWxwIHdvdWxkIGFwcHJlY2lhdGVkLCBh
+bmQgYXBvbG9naXplcyBpZiBpdCBoYXMgYWxyZWFkeSBiZWVuIGRlYWx0IHdpdGguCgpPbiBhIHJl
+Y2VudCBBc3VzIGRlc2t0b3AgYm9hcmQsIEkgc3VzcGVjdCB0aGF0IHlvdSBoYXZlIHRvIHVzZSB0
+aGUKYXN1c19hdGswMTEwIGRyaXZlciBmb3IgKEFDUEktYmFzZWQpIG1vbml0b3JpbmcuIEl0IGlz
+IGV2ZW4gc3VwcG9zZWQgdG8KbG9hZCBhdXRvbWF0aWNhbGx5LgoKUGxlYXNlIHNlYXJjaCB5b3Vy
+IGtlcm5lbCBsb2dzIGZvciB0aGUgZXhhY3QgZXJyb3JzIHdoZW4gbG9hZGluZyB0aGUKaTJjLW5m
+b3JjZTIgYW5kIHc4MzYyN2hmIGRyaXZlcnMgKHlvdSBjYW4gdW5sb2FkIHRoZW0gYW5kIHJlbG9h
+ZCB0aGVtCnRvIHRyaWdnZXIgdGhlIG1lc3NhZ2VzIGFnYWluLikKClBsZWFzZSBhbHNvIGxvb2sg
+Zm9yIG1lc3NhZ2VzIGFib3V0IHJlc291cmNlIGNvbmZsaWN0cyBiZXR3ZWVuIEFDUEkgYW5kCm5h
+dGl2ZSBkcml2ZXJzLCBzdWNoIGFzOgpBQ1BJOiBJL08gcmVzb3VyY2UgbkZvcmNlMl9zbWJ1cyBb
+MHg3MDAtMHg3M2ZdIGNvbmZsaWN0cyB3aXRoIEFDUEkgcmVnaW9uIFNNMDAgWzB4NzAwLTB4NzNm
+XQpBQ1BJOiBEZXZpY2UgbmVlZHMgYW4gQUNQSSBkcml2ZXIKClBsZWFzZSBhbHNvIHRyeSBsb2Fk
+aW5nIHRoZSBhc3VzX2F0azAxMTAgZHJpdmVyIG1hbnVhbGx5LCBhbmQgc2VlIHdoYXQKaGFwcGVu
+cy4gUmVwb3J0IHRoZSBtZXNzYWdlcyBmcm9tIHRoZSBrZXJuZWwgbG9ncyBpZiB0aGVyZSBhcmUg
+YW55LgoKLS0gCkplYW4gRGVsdmFyZQpodHRwOi8va2hhbGkubGludXgtZnIub3JnL3dpc2hsaXN0
+Lmh0bWwKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
+LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
+c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
