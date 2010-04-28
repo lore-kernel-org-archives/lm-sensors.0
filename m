@@ -1,51 +1,71 @@
-From: katsuhiko.hirata@jrits.ricoh.co.jp
-Date: Tue, 20 Apr 2010 06:16:08 +0000
-Subject: [lm-sensors] Intel GM45 supported?
-Message-Id: <OFDE606C91.A9A81289-ON4925770B.00223C8F-4925770B.00226EBC@mta.ricoh.co.jp>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 28 Apr 2010 13:04:25 +0000
+Subject: Re: [lm-sensors] Core i7 temperatures query (lm_sensors Vs. BIOS)
+Message-Id: <20100428150425.2f052975@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Please tell me.
+Hi Mohit,
 
-I want to acquire the temperature of GM45 by using "lm_sensors".
+On Wed, 17 Feb 2010 23:42:14 +0530, mohit chawla wrote:
+> <http://a.collective-media.net/jump/idgt.phoronix/article_above;sec=3Dart=
+icle;fold=ABove;tile=3D2;sz00x250;ord=123456789?>
+> Hello folks, I have been running Mprime successfully for testing the
+> stability of my i7 system when overclocked.
+>=20
+> But I am concerned about the correctness of the temperatures as shown by
+> lm_sensors version 3.0.2.
+>=20
+> Here's what I have observed.
+>=20
+> When I power on the computer and check the CPU temperature in the BIOS, it
+> is usually around 33-34 degrees. But as soon as I boot into my OS (Ubuntu
+> 9.10 64 bit), lm_sensors show temperature around 23-24 degrees.
+> I am using sensors_applet for Gnome panel to see the temperatures.
+>=20
+> Now the thing is that just when Gnome is loading(panels coming up,
+> background loading etc.), I do see that the CPU temperature being around =
+33
+> degrees, coming down in a second or two to 23-24 degrees.
+>=20
+> So, my question is, are these temperatures correct ? In other words, is it
+> normal that CPU temps are high in BIOS ?
 
-1. my environment：
+It is possible, yes. It all depends on the BIOS implementation, but
+some BIOS are in a tight busy loop all the time, which keeps one CPU
+core busy all the time, in turn resulting in a relatively high
+temperature, basically corresponding to Linux (or any other OS) under
+moderate load.
 
-OS：Centos 5.3
-kernel:2.6.18-128.1.10.el5
-lm_sensors:3.1.2
-ChipSet：Intel GM45
+> Or is it so that when the system is
+> powered on, CPU temps are usually high & when the OS has loaded, they drop
+> down ?
 
-2. result(now):
+This is expected as well. The boot process can be pretty CPU-intensive,
+so it is no surprise to see a high temperature during boot, dropping to
+a lower value right after boot.
 
-[root@abo-svr gm965temp-module_o]# sensors
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +26.0°C  (high = +100.0°C, crit = +100.0°C)
+> Please help me resolving this scenario, as it could lead to potential
+> damages to my machine due to inaccuracy of results.
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +26.0°C  (high = +100.0°C, crit = +100.0°C)
+Another possibility is that the temperature reported by lm-sensors is
+inaccurate. If you are using the coretemp driver, it is possible that
+the critical limit is not known for your CPU model and the driver
+defaults to the wrong value. This has been an issue in the past, and
+still is for recent CPU models.
 
---------------------
+The value read by Core CPUs is really a relative one, so it's not
+really a problem if the current temperature reported by lm-sensors
+isn't correct. What really matters is that it is significantly lower
+than the critical limit (and high limit too, if your CPU has one.) As
+long as this is true, your CPU is safe.
 
-3.
-It has the driver referring to the following.
-
-http://lists.lm-sensors.org/pipermail/lm-sensors/2009-July/026358.html
-
-result(lsmod):
-[root@abo-svr osibadm]# lsmod | grep hwmon
-hwmon                   7365  2 gm965temp,coretemp
-
---------------------
-What is bad?
-
-best regards
-
+--=20
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
