@@ -1,34 +1,28 @@
-From: dienet <dienet@poczta.fm>
-Date: Mon, 12 Apr 2010 19:52:34 +0000
-Subject: Re: [lm-sensors] Coretemp goes up since 2.6.31.4
-Message-Id: <op.va2etwrvwcw97g@localhost>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 28 Apr 2010 12:32:11 +0000
+Subject: Re: [lm-sensors] Andigilog asc7621 driver: Temperature scaling
+Message-Id: <20100428143211.4bff49e7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100409111733.7bb2b5fa@hyperion.delvare>
-In-Reply-To: <20100409111733.7bb2b5fa@hyperion.delvare>
+References: <4B930BB3.6030201@kenm.demon.co.uk>
+In-Reply-To: <4B930BB3.6030201@kenm.demon.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 12 Apr 2010 21:11:52 +0200, Jean Delvare <khali@linux-fr.org>  
-wrote:
+On Wed, 17 Mar 2010 08:39:17 +0100, Jean Delvare wrote:
+> Hi Ken,
+> 
+> On Sun, 07 Mar 2010 10:20:13 +0000, Ken Milmore wrote:
+> > I will try and get a patch together as soon as time permits.
+> 
+> Do you have a patch by now?
 
-> Again, coretemp is never reporting a real temperature. It is reporting
-> a margin to a critical, arbitrary limit, which we don't know for sure.
-> Even if we knew it for sure, the sensor is only accurate when it isn't
-> too far from the limit. Your CPUs are running cool, way below the
-> limit, so outside of the sensor's good accuracy range. Neither 2.6.31
-> nor 2.6.33 is giving you a real temperature.
-
-Ah OK now I understand. But let me assume this: if fan is cool more often  
-then on 2.6.31, it means that there is something going on on 2.6.33 -  
-something wrong. Am I right?
+Ping Ken. Would be nice to have a patch ready soon so that it can make
+it into kernel 2.6.35.
 
 -- 
-pozdr0
-dienet
-
-"Old C programmers never die. They're just cast into void."
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
