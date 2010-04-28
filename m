@@ -1,33 +1,27 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
-Date: Fri, 16 Apr 2010 14:30:25 +0000
-Subject: Re: [lm-sensors] [PATCH] lis3lv02d: provide means to disable polled
-Message-Id: <4BC87481.2040000@tremplin-utc.net>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Wed, 28 Apr 2010 12:24:19 +0000
+Subject: Re: [lm-sensors] asus_atk0110 Not Activated in lm_sensors-3.1.1-3
+Message-Id: <s2p68676e01004280524w93c9234az452c4e30ac73e392@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.LNX.2.00.1004091453530.8345@pobox.suse.cz> <4BBF2BD1.5050107@tremplin-utc.net> <alpine.LNX.2.00.1004091532150.8345@pobox.suse.cz> <op.va86rulwgp7y00@linux-r26l.site> <62697B07E9803846BC582181BD6FB6B826A8525E8A@NOK-EUMSG-02.mgdnok.nokia.com> <op.va878jw6gp7y00@linux-r26l.site> <4BC86C9B.4010400@tremplin-utc.net> <op.va9ee2z6gp7y00@linux-r26l.site>
-In-Reply-To: <op.va9ee2z6gp7y00@linux-r26l.site>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Marcin Derlukiewicz <marcin@derlukiewicz.pl>
-Cc: samu.p.onkalo@nokia.com, jkosina@suse.cz, akpm@linux-foundation.org, pavel@ucw.cz, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-On 16/04/10 16:26, Marcin Derlukiewicz wrote:
-> Dnia 16-04-2010 o 15:56:43 Éric Piel <eric.piel@tremplin-utc.net>
-> napisał(a):
-:
->>
->> Maybe your kernel is too old to have this functionality (I don't know
->> when it was introduced). Samu is right, here to disable the joystick, I
->> can indeed do a:
->> echo 0 > /sys/devices/platform/lis3lv02d/input/input*/poll
-:
-> nope, should i paste you list?
-> my kernel is 2.6.31.12
-It's not necessary. For your kernel, I'd recommend the trick with the
-mplayer configuration file. And as Samu explained, on newer kernels the
-ability to disable totally the polling is already there.
+On Wed, Apr 28, 2010 at 1:41 PM, Jean Delvare <khali@linux-fr.org> wrote:
+>> Runnig Rehat Fedora Core 12 with an Asus k8n-dre motherboard.
+[...]
+> On a recent Asus desktop board, I suspect that you have to use the
+> asus_atk0110 driver for (ACPI-based) monitoring. It is even supposed to
+> load automatically.
+[...]
+> Please also try loading the asus_atk0110 driver manually, and see what
+> happens. Report the messages from the kernel logs if there are any.
 
-Eric
+It it doesn't work please send me a copy of the DSDT and if possible
+enable HWMON_DEBUG_CHIP.
+
+Luca
 
 _______________________________________________
 lm-sensors mailing list
