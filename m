@@ -1,110 +1,49 @@
-From: "Ira W. Snyder" <iws@ovro.caltech.edu>
-Date: Tue, 13 Apr 2010 22:59:28 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (ltc4245) read only one GPIO pin
-Message-Id: <1271199569-3880-2-git-send-email-iws@ovro.caltech.edu>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Thu, 29 Apr 2010 05:21:46 +0000
+Subject: [lm-sensors] Simple fan question
+Message-Id: <1272518506.24542.163.camel@pasglop>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Read only one of the GPIO pins as an analog voltage. The ADC can be
-switched to a different GPIO pin at runtime, but this is not supported.
+Hi folks !
 
-Previously, this driver would report the analog voltage of the currently
-selected GPIO pin as all three GPIO voltages: in9_input, in10_input and
-in11_input.
+I'm writing some support for d-link dns323 rev C1 NAS. It has a fan that
+is controlled by some non-programmable PWM circuit. Basically, all I can
+do is tweak to GPIOs that controls the feed into the circuitry for the
+fans to be off, slow or fast.
 
-Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
----
- Documentation/hwmon/ltc4245 |    4 +---
- drivers/hwmon/ltc4245.c     |   20 ++++++--------------
- 2 files changed, 7 insertions(+), 17 deletions(-)
+I don't know what the actual PWM values are for "slow" or "fast". I
+-might- be able to do some measurements but I can't promise it.
 
-diff --git a/Documentation/hwmon/ltc4245 b/Documentation/hwmon/ltc4245
-index 02838a4..86b5880 100644
---- a/Documentation/hwmon/ltc4245
-+++ b/Documentation/hwmon/ltc4245
-@@ -72,9 +72,7 @@ in6_min_alarm		5v  output undervoltage alarm
- in7_min_alarm		3v  output undervoltage alarm
- in8_min_alarm		Vee (-12v) output undervoltage alarm
- 
--in9_input		GPIO #1 voltage data
--in10_input		GPIO #2 voltage data
--in11_input		GPIO #3 voltage data
-+in9_input		GPIO voltage data
- 
- power1_input		12v power usage (mW)
- power2_input		5v  power usage (mW)
-diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
-index 65c232a..84e6f32 100644
---- a/drivers/hwmon/ltc4245.c
-+++ b/drivers/hwmon/ltc4245.c
-@@ -45,9 +45,7 @@ enum ltc4245_cmd {
- 	LTC4245_VEEIN			= 0x19,
- 	LTC4245_VEESENSE		= 0x1a,
- 	LTC4245_VEEOUT			= 0x1b,
--	LTC4245_GPIOADC1		= 0x1c,
--	LTC4245_GPIOADC2		= 0x1d,
--	LTC4245_GPIOADC3		= 0x1e,
-+	LTC4245_GPIOADC			= 0x1c,
- };
- 
- struct ltc4245_data {
-@@ -61,7 +59,7 @@ struct ltc4245_data {
- 	u8 cregs[0x08];
- 
- 	/* Voltage registers */
--	u8 vregs[0x0f];
-+	u8 vregs[0x0d];
- };
- 
- static struct ltc4245_data *ltc4245_update_device(struct device *dev)
-@@ -86,9 +84,9 @@ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
- 				data->cregs[i] = val;
- 		}
- 
--		/* Read voltage registers -- 0x10 to 0x1f */
-+		/* Read voltage registers -- 0x10 to 0x1c */
- 		for (i = 0; i < ARRAY_SIZE(data->vregs); i++) {
--			val = i2c_smbus_read_byte_data(client, i+0x10);
-+			val = i2c_smbus_read_byte_data(client, i + 0x10);
- 			if (unlikely(val < 0))
- 				data->vregs[i] = 0;
- 			else
-@@ -128,9 +126,7 @@ static int ltc4245_get_voltage(struct device *dev, u8 reg)
- 	case LTC4245_VEEOUT:
- 		voltage = regval * -55;
- 		break;
--	case LTC4245_GPIOADC1:
--	case LTC4245_GPIOADC2:
--	case LTC4245_GPIOADC3:
-+	case LTC4245_GPIOADC:
- 		voltage = regval * 10;
- 		break;
- 	default:
-@@ -297,9 +293,7 @@ LTC4245_ALARM(in7_min_alarm,	(1 << 2),	LTC4245_FAULT2);
- LTC4245_ALARM(in8_min_alarm,	(1 << 3),	LTC4245_FAULT2);
- 
- /* GPIO voltages */
--LTC4245_VOLTAGE(in9_input,			LTC4245_GPIOADC1);
--LTC4245_VOLTAGE(in10_input,			LTC4245_GPIOADC2);
--LTC4245_VOLTAGE(in11_input,			LTC4245_GPIOADC3);
-+LTC4245_VOLTAGE(in9_input,			LTC4245_GPIOADC);
- 
- /* Power Consumption (virtual) */
- LTC4245_POWER(power1_input,			LTC4245_12VSENSE);
-@@ -342,8 +336,6 @@ static struct attribute *ltc4245_attributes[] = {
- 	&sensor_dev_attr_in8_min_alarm.dev_attr.attr,
- 
- 	&sensor_dev_attr_in9_input.dev_attr.attr,
--	&sensor_dev_attr_in10_input.dev_attr.attr,
--	&sensor_dev_attr_in11_input.dev_attr.attr,
- 
- 	&sensor_dev_attr_power1_input.dev_attr.attr,
- 	&sensor_dev_attr_power2_input.dev_attr.attr,
--- 
-1.5.4.3
+Now I'm trying to do a simple hwmon driver for that in order to easy
+userspace support for these guys, and I don't really see a 'nice' way to
+expose that which would fit the interfaces documented
+Documentation/hwmon/sysfs-interface.
+
+So before I do something horrible, I felt I might poke you guys see if
+you have a good idea here :-)
+
+Before I read the above document I was thinking about a sysfs file that
+contains "off", "slow" or "fast" but it looks like this won't fit at all
+the typical hwmon APIs.
+
+Another comment while at it is when implementing the thermal control for
+PowerMacs a while back (windfarm etc...) I had to deal with two
+different type of interfaces to fans. RPM controlled and PWM controlled.
+
+The later basically let me program a percentile value (a percent of the
+duty cycle).
+
+I looks like the described sysfs interface only does RPM, or at least
+doesn't provide a way to expose the units used...
+
+Cheers,
+Ben.
+
 
 
 _______________________________________________
