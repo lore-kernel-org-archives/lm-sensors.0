@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Fri, 30 Apr 2010 07:37:55 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 30 Apr 2010 09:34:04 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (tmp401) Reorganize code to get
-Message-Id: <4BDA88D3.3090904@redhat.com>
+Message-Id: <20100430113404.2a5a0b87@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1272568622-3385-2-git-send-email-andre.prendel@gmx.de>
 In-Reply-To: <1272568622-3385-2-git-send-email-andre.prendel@gmx.de>
@@ -10,25 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Ack.
+Hi Andre,
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-
-On 04/29/2010 09:17 PM, Andre Prendel wrote:
-> Signed-off-by: Andre Prendel<andre.prendel@gmx.de>
+On Thu, 29 Apr 2010 21:17:02 +0200, Andre Prendel wrote:
+> Signed-off-by: Andre Prendel <andre.prendel@gmx.de>
 > ---
->   drivers/hwmon/tmp401.c |  249 +++++++++++++++++++++++-------------------------
->   1 files changed, 119 insertions(+), 130 deletions(-)
->
+>  drivers/hwmon/tmp401.c |  249 +++++++++++++++++++++++-------------------------
+>  1 files changed, 119 insertions(+), 130 deletions(-)
+> 
 > diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
 > index d58b40a..bd664ac 100644
 > --- a/drivers/hwmon/tmp401.c
 > +++ b/drivers/hwmon/tmp401.c
 > @@ -92,17 +92,6 @@ static const u8 TMP411_TEMP_HIGHEST_LSB[2]		= { 0x33, 0x37 };
->   #define TMP411_DEVICE_ID			0x12
->
->   /*
+>  #define TMP411_DEVICE_ID			0x12
+>  
+>  /*
 > - * Functions declarations
 > - */
 > -
@@ -40,13 +37,13 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > -static struct tmp401_data *tmp401_update_device(struct device *dev);
 > -
 > -/*
->    * Driver data (common to all clients)
->    */
->
+>   * Driver data (common to all clients)
+>   */
+>  
 > @@ -113,18 +102,6 @@ static const struct i2c_device_id tmp401_id[] = {
->   };
->   MODULE_DEVICE_TABLE(i2c, tmp401_id);
->
+>  };
+>  MODULE_DEVICE_TABLE(i2c, tmp401_id);
+>  
 > -static struct i2c_driver tmp401_driver = {
 > -	.class		= I2C_CLASS_HWMON,
 > -	.driver = {
@@ -59,33 +56,33 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > -	.address_list	= normal_i2c,
 > -};
 > -
->   /*
->    * Client data (each client gets its own)
->    */
+>  /*
+>   * Client data (each client gets its own)
+>   */
 > @@ -194,6 +171,71 @@ static u8 tmp401_crit_temp_to_register(long temp, u8 config)
->   	return (temp + 500) / 1000;
->   }
->
+>  	return (temp + 500) / 1000;
+>  }
+>  
 > +static struct tmp401_data *tmp401_update_device_reg16(
 > +	struct i2c_client *client, struct tmp401_data *data)
 > +{
 > +	int i;
 > +
-> +	for (i = 0; i<  2; i++) {
+> +	for (i = 0; i < 2; i++) {
 > +		/*
 > +		 * High byte must be read first immediately followed
 > +		 * by the low byte
 > +		 */
 > +		data->temp[i] = i2c_smbus_read_byte_data(client,
-> +			TMP401_TEMP_MSB[i])<<  8;
+> +			TMP401_TEMP_MSB[i]) << 8;
 > +		data->temp[i] |= i2c_smbus_read_byte_data(client,
 > +			TMP401_TEMP_LSB[i]);
 > +		data->temp_low[i] = i2c_smbus_read_byte_data(client,
-> +			TMP401_TEMP_LOW_LIMIT_MSB_READ[i])<<  8;
+> +			TMP401_TEMP_LOW_LIMIT_MSB_READ[i]) << 8;
 > +		data->temp_low[i] |= i2c_smbus_read_byte_data(client,
 > +			TMP401_TEMP_LOW_LIMIT_LSB[i]);
 > +		data->temp_high[i] = i2c_smbus_read_byte_data(client,
-> +			TMP401_TEMP_HIGH_LIMIT_MSB_READ[i])<<  8;
+> +			TMP401_TEMP_HIGH_LIMIT_MSB_READ[i]) << 8;
 > +		data->temp_high[i] |= i2c_smbus_read_byte_data(client,
 > +			TMP401_TEMP_HIGH_LIMIT_LSB[i]);
 > +		data->temp_crit[i] = i2c_smbus_read_byte_data(client,
@@ -93,12 +90,12 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > +
 > +		if (data->kind = tmp411) {
 > +			data->temp_lowest[i] = i2c_smbus_read_byte_data(client,
-> +				TMP411_TEMP_LOWEST_MSB[i])<<  8;
+> +				TMP411_TEMP_LOWEST_MSB[i]) << 8;
 > +			data->temp_lowest[i] |= i2c_smbus_read_byte_data(
 > +				client, TMP411_TEMP_LOWEST_LSB[i]);
 > +
 > +			data->temp_highest[i] = i2c_smbus_read_byte_data(
-> +				client, TMP411_TEMP_HIGHEST_MSB[i])<<  8;
+> +				client, TMP411_TEMP_HIGHEST_MSB[i]) << 8;
 > +			data->temp_highest[i] |= i2c_smbus_read_byte_data(
 > +				client, TMP411_TEMP_HIGHEST_LSB[i]);
 > +		}
@@ -131,17 +128,26 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > +	return data;
 > +}
 > +
->   static ssize_t show_temp_value(struct device *dev,
->   	struct device_attribute *devattr, char *buf)
->   {
+>  static ssize_t show_temp_value(struct device *dev,
+>  	struct device_attribute *devattr, char *buf)
+>  {
 > @@ -493,45 +535,24 @@ static void tmp401_init_client(struct i2c_client *client)
->   		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
->   }
->
+>  		i2c_smbus_write_byte_data(client, TMP401_CONFIG_WRITE, config);
+>  }
+>  
 > -static int tmp401_detect(struct i2c_client *client,
 > -			 struct i2c_board_info *info)
 > +static int tmp401_remove(struct i2c_client *client)
->   {
+
+I don't understand why you swapped tmp401_detect and tmp401_remove.
+They don't depend on each other so there should be no needed, and it
+makes your patch much larger, and trashed the driver history more than
+needed.
+
+So I've reverted that change, and kept all the rest, if this is fine
+with you.
+
+>  {
 > -	enum chips kind;
 > -	struct i2c_adapter *adapter = client->adapter;
 > -	u8 reg;
@@ -150,18 +156,18 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > -		return -ENODEV;
 > +	struct tmp401_data *data = i2c_get_clientdata(client);
 > +	int i;
->
+>  
 > -	/* Detect and identify the chip */
 > -	reg = i2c_smbus_read_byte_data(client, TMP401_MANUFACTURER_ID_REG);
 > -	if (reg != TMP401_MANUFACTURER_ID)
 > -		return -ENODEV;
 > +	if (data->hwmon_dev)
 > +		hwmon_device_unregister(data->hwmon_dev);
->
+>  
 > -	reg = i2c_smbus_read_byte_data(client, TMP401_DEVICE_ID_REG);
-> +	for (i = 0; i<  ARRAY_SIZE(tmp401_attr); i++)
-> +		device_remove_file(&client->dev,&tmp401_attr[i].dev_attr);
->
+> +	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++)
+> +		device_remove_file(&client->dev, &tmp401_attr[i].dev_attr);
+>  
 > -	switch (reg) {
 > -	case TMP401_DEVICE_ID:
 > -		kind = tmp401;
@@ -172,47 +178,47 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > -	default:
 > -		return -ENODEV;
 > +	if (data->kind = tmp411) {
-> +		for (i = 0; i<  ARRAY_SIZE(tmp411_attr); i++)
+> +		for (i = 0; i < ARRAY_SIZE(tmp411_attr); i++)
 > +			device_remove_file(&client->dev,
-> +					&tmp411_attr[i].dev_attr);
->   	}
->
+> +					   &tmp411_attr[i].dev_attr);
+>  	}
+>  
 > -	reg = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
-> -	if (reg&  0x1b)
+> -	if (reg & 0x1b)
 > -		return -ENODEV;
 > -
 > -	reg = i2c_smbus_read_byte_data(client, TMP401_CONVERSION_RATE_READ);
 > -	/* Datasheet says: 0x1-0x6 */
-> -	if (reg>  15)
+> -	if (reg > 15)
 > -		return -ENODEV;
 > -
 > -	strlcpy(info->type, tmp401_id[kind].name, I2C_NAME_SIZE);
 > -
 > +	kfree(data);
->   	return 0;
->   }
->
+>  	return 0;
+>  }
+>  
 > @@ -587,92 +608,60 @@ exit_remove:
->   	return err;
->   }
->
+>  	return err;
+>  }
+>  
 > -static int tmp401_remove(struct i2c_client *client)
 > +static int tmp401_detect(struct i2c_client *client,
 > +			 struct i2c_board_info *info)
->   {
+>  {
 > -	struct tmp401_data *data = i2c_get_clientdata(client);
 > -	int i;
 > -
 > -	if (data->hwmon_dev)
 > -		hwmon_device_unregister(data->hwmon_dev);
 > -
-> -	for (i = 0; i<  ARRAY_SIZE(tmp401_attr); i++)
-> -		device_remove_file(&client->dev,&tmp401_attr[i].dev_attr);
+> -	for (i = 0; i < ARRAY_SIZE(tmp401_attr); i++)
+> -		device_remove_file(&client->dev, &tmp401_attr[i].dev_attr);
 > -
 > -	if (data->kind = tmp411) {
-> -		for (i = 0; i<  ARRAY_SIZE(tmp411_attr); i++)
+> -		for (i = 0; i < ARRAY_SIZE(tmp411_attr); i++)
 > -			device_remove_file(&client->dev,
-> -					&tmp411_attr[i].dev_attr);
+> -					   &tmp411_attr[i].dev_attr);
 > -	}
 > -
 > -	kfree(data);
@@ -221,29 +227,29 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > +	enum chips kind;
 > +	struct i2c_adapter *adapter = client->adapter;
 > +	u8 reg;
->
+>  
 > -static struct tmp401_data *tmp401_update_device_reg16(
 > -	struct i2c_client *client, struct tmp401_data *data)
 > -{
 > -	int i;
 > +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 > +		return -ENODEV;
->
-> -	for (i = 0; i<  2; i++) {
+>  
+> -	for (i = 0; i < 2; i++) {
 > -		/*
 > -		 * High byte must be read first immediately followed
 > -		 * by the low byte
 > -		 */
 > -		data->temp[i] = i2c_smbus_read_byte_data(client,
-> -			TMP401_TEMP_MSB[i])<<  8;
+> -			TMP401_TEMP_MSB[i]) << 8;
 > -		data->temp[i] |= i2c_smbus_read_byte_data(client,
 > -			TMP401_TEMP_LSB[i]);
 > -		data->temp_low[i] = i2c_smbus_read_byte_data(client,
-> -			TMP401_TEMP_LOW_LIMIT_MSB_READ[i])<<  8;
+> -			TMP401_TEMP_LOW_LIMIT_MSB_READ[i]) << 8;
 > -		data->temp_low[i] |= i2c_smbus_read_byte_data(client,
 > -			TMP401_TEMP_LOW_LIMIT_LSB[i]);
 > -		data->temp_high[i] = i2c_smbus_read_byte_data(client,
-> -			TMP401_TEMP_HIGH_LIMIT_MSB_READ[i])<<  8;
+> -			TMP401_TEMP_HIGH_LIMIT_MSB_READ[i]) << 8;
 > -		data->temp_high[i] |= i2c_smbus_read_byte_data(client,
 > -			TMP401_TEMP_HIGH_LIMIT_LSB[i]);
 > -		data->temp_crit[i] = i2c_smbus_read_byte_data(client,
@@ -252,16 +258,16 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > +	reg = i2c_smbus_read_byte_data(client, TMP401_MANUFACTURER_ID_REG);
 > +	if (reg != TMP401_MANUFACTURER_ID)
 > +		return -ENODEV;
->
+>  
 > -		if (data->kind = tmp411) {
 > -			data->temp_lowest[i] = i2c_smbus_read_byte_data(client,
-> -				TMP411_TEMP_LOWEST_MSB[i])<<  8;
+> -				TMP411_TEMP_LOWEST_MSB[i]) << 8;
 > -			data->temp_lowest[i] |= i2c_smbus_read_byte_data(
 > -				client, TMP411_TEMP_LOWEST_LSB[i]);
 > +	reg = i2c_smbus_read_byte_data(client, TMP401_DEVICE_ID_REG);
->
+>  
 > -			data->temp_highest[i] = i2c_smbus_read_byte_data(
-> -				client, TMP411_TEMP_HIGHEST_MSB[i])<<  8;
+> -				client, TMP411_TEMP_HIGHEST_MSB[i]) << 8;
 > -			data->temp_highest[i] |= i2c_smbus_read_byte_data(
 > -				client, TMP411_TEMP_HIGHEST_LSB[i]);
 > -		}
@@ -274,10 +280,10 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > +		break;
 > +	default:
 > +		return -ENODEV;
->   	}
+>  	}
 > -	return data;
 > -}
->
+>  
 > -static struct tmp401_data *tmp401_update_device(struct device *dev)
 > -{
 > -	struct i2c_client *client = to_i2c_client(dev);
@@ -294,24 +300,24 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > -		data->temp_crit_hyst = i2c_smbus_read_byte_data(client,
 > -						TMP401_TEMP_CRIT_HYST);
 > +	reg = i2c_smbus_read_byte_data(client, TMP401_CONFIG_READ);
-> +	if (reg&  0x1b)
+> +	if (reg & 0x1b)
 > +		return -ENODEV;
->
+>  
 > -		data->last_updated = jiffies;
 > -		data->valid = 1;
 > -	}
 > +	reg = i2c_smbus_read_byte_data(client, TMP401_CONVERSION_RATE_READ);
 > +	/* Datasheet says: 0x1-0x6 */
-> +	if (reg>  15)
+> +	if (reg > 15)
 > +		return -ENODEV;
->
+>  
 > -	mutex_unlock(&data->update_lock);
 > +	strlcpy(info->type, tmp401_id[kind].name, I2C_NAME_SIZE);
->
+>  
 > -	return data;
 > +	return 0;
->   }
->
+>  }
+>  
 > +static struct i2c_driver tmp401_driver = {
 > +	.class		= I2C_CLASS_HWMON,
 > +	.driver = {
@@ -324,9 +330,13 @@ On 04/29/2010 09:17 PM, Andre Prendel wrote:
 > +	.address_list	= normal_i2c,
 > +};
 > +
->   static int __init tmp401_init(void)
->   {
->   	return i2c_add_driver(&tmp401_driver);
+>  static int __init tmp401_init(void)
+>  {
+>  	return i2c_add_driver(&tmp401_driver);
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
