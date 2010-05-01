@@ -1,331 +1,225 @@
-From: Marc <digitelp@yahoo.com>
-Date: Wed, 05 May 2010 02:48:26 +0000
-Subject: Re: [lm-sensors] asus_atk0110 Not Activated  in lm_sensors-3.1.1-3
-Message-Id: <902481.52154.qm@web31811.mail.mud.yahoo.com>
+From: Ken Milmore <ken@kenm.demon.co.uk>
+Date: Sat, 01 May 2010 13:08:20 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (asc7621) Bug fixes
+Message-Id: <4BDC27C4.2000205@kenm.demon.co.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------070406060901060106010503"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <697978.38728.qm@web31801.mail.mud.yahoo.com>
-In-Reply-To: <697978.38728.qm@web31801.mail.mud.yahoo.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Thanks for the advice Jeff...  But it didn't work. I updated all the softwa=
-re, including a new sensors_detect and such and still the exact same result=
-s as I described.  retried various things and no luck at all!
+This is a multi-part message in MIME format.
+--------------070406060901060106010503
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Can any one else provide some guidance on this, as to what if anything can =
-be done to get lm_sensor to work.
+Jean et al,
 
-Thanks in advance for any and all assistance.
+Find patch attached; this should apply against Linus' 2.6 tree. The 
+issues fixed here have all been discussed before on the lm_sensors list 
+(see 07/2008 and 04/2010), so hopefully they are uncontroversial.
 
-Regards,
+Having taken a brief look at the PWM control inteface in the driver, I 
+can see there are a few rough edges there but it is probably too late to 
+address them now.  In particular the pwm[1-3]_enable and 
+pwm[1-3]_auto_channels settings tend to interpret "Fan control disabled" 
+as "Fan off", which doesn't accord with the principle of least surprise, 
+or with the sysfs-interface documentation.  IMHO "Fan full on" would 
+have been a much safer default for these settings...
 
-Marc
+Kind regards,
 
---- On Fri, 4/16/10, Jeff Rickman <jrickman@myamigos.us> wrote:
-
-> From: Jeff Rickman <jrickman@myamigos.us>
-> Subject: Re: [lm-sensors] asus_atk0110 Not Activated  in lm_sensors-3.1.1=
--3
-> To: "Marc" <digitelp@yahoo.com>
-> Date: Friday, April 16, 2010, 8:15 PM
->=20
-> > Hi...
-> >
-> > Runnig Rehat Fedora Core 12 with an Asus k8n-dre
-> motherboard.=A0 It has a
-> > NVIDE nFORCE Professional 2200 Chip as well as a
-> Winbond W83627THF-A super
-> > i/o chip. The linux kernel is
-> kernel-2.6.32.11-99.fc12.x86_64.=A0 Using
-> > lm_sensors-3.1.1-3.fc12.x86_64
-> >
-> > When I run sensors-detect I get the following
-> >
-> > Some south bridges, CPUs or memory controllers contain
-> embedded sensors.
-> > Do you want to scan for them? This is totally safe.
-> (YES/no): y
-> > Silicon Integrated Systems SIS5595...=A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A0No
-> > VIA VT82C686 Integrated Sensors...=A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 No
-> > VIA VT8231 Integrated Sensors...=A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 No
-> > AMD K8 thermal sensors...=A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0=A0=A0Success!
-> >=A0 =A0=A0=A0(driver `k8temp')
-> > AMD Family 10h thermal sensors...=A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A0No
-> > AMD Family 11h thermal sensors...=A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A0No
-> > Intel Core family thermal sensor...=A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A0No
-> > Intel Atom thermal sensor...=A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 No
-> > Intel AMB FB-DIMM thermal sensor...=A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A0No
-> > VIA C7 thermal sensor...=A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 No
-> > VIA Nano thermal sensor...=A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 No
-> >
-> > Some Super I/O chips contain embedded sensors. We have
-> to write to
-> > standard I/O ports to probe them. This is usually
-> safe.
-> > Do you want to scan for Super I/O sensors? (YES/no):
-> >
-> > Some Super I/O chips contain embedded sensors. We have
-> to write to
-> > standard I/O ports to probe them. This is usually
-> safe.
-> > Do you want to scan for Super I/O sensors? (YES/no):
-> y
-> > Probing for Super-I/O at 0x2e/0x2f
-> > Trying family `National Semiconductor'...=A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A0No
-> > Trying family `SMSC'...=A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0=A0=A0No
-> > Trying family `VIA/Winbond/Nuvoton/Fintek'...=A0
-> =A0 =A0 =A0 =A0 =A0 =A0=A0=A0Yes
-> > Found `Winbond W83627THF/THG Super IO Sensors'
-> >=A0 =A0=A0=A0(but not activated)
-> > Probing for Super-I/O at 0x4e/0x4f
-> > Trying family `National Semiconductor'...=A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A0No
-> > Trying family `SMSC'...=A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0=A0=A0No
-> > Trying family `VIA/Winbond/Nuvoton/Fintek'...=A0
-> =A0 =A0 =A0 =A0 =A0 =A0=A0=A0No
-> > Trying family `ITE'...=A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 No
-> >
-> > Everything else returns a no until...
-> >
-> > Next adapter: SMBus nForce2 adapter at 4c40 (i2c-0)
-> > Do you want to scan it? (YES/no/selectively):
-> >
-> > Nothing in the summary about it.
-> >
-> > The k8temp works fine.=A0 I get temperatures.
-> > k8temp-pci-00c3
-> > Adapter: PCI adapter
-> > Core0 Temp:=A0 +35.0=B0C
-> > Core1 Temp:=A0 +36.0=B0C
-> >
-> > k8temp-pci-00cb
-> > Adapter: PCI adapter
-> > Core0 Temp:=A0 +36.0=B0C
-> > Core1 Temp:=A0 +37.0=B0C
-> >
-> > But no fan speeds or anything else because when I
-> attempt to load the
-> > w83627hf modules I get the following:
-> >
-> > FATAL: Error inserting w83627hf
-> >
-> (/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83627hf.ko):
-> > No such device
-> >
-> > Here is the lsmod
-> >
-> > Module=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 Size=A0 Used by
-> > fuse=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A057189=A0 2
-> > hwmon_vid=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A02091=A0 0
-> > eeprom=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 4947=A0 0
-> > i2c_dev=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A07529=A0 0
-> > sunrpc=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 193819=A0 1
-> > cpufreq_ondemand=A0 =A0 =A0 =A0 8793=A0
-> 2
-> > powernow_k8=A0 =A0 =A0 =A0 =A0 =A0
-> 14706=A0 2
-> > freq_table=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 3947=A0 2 cpufreq_ondemand,powernow_k8
-> > ip6t_REJECT=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A04222=A0 10
-> > nf_conntrack_ipv6=A0 =A0 =A0 18504=A0 7
-> > ip6table_filter=A0 =A0 =A0
-> =A0=A0=A02791=A0 1
-> > ip6_tables=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A016760=A0 1 ip6table_filter
-> > ipv6=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 279463=A0 32 ip6t_REJECT,nf_conntrack_ipv6
-> > uinput=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 7228=A0 0
-> > amd64_edac_mod=A0 =A0 =A0
-> =A0=A0=A015481=A0 0
-> > tg3=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A0101698=A0 0
-> > i2c_nforce2=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A06819=A0 0
-> > i2c_core=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A026876=A0 3 eeprom,i2c_dev,i2c_nforce2
-> > edac_core=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 39581=A0 4 amd64_edac_mod
-> > edac_mce_amd=A0 =A0 =A0 =A0 =A0 =A0
-> 7746=A0 1 amd64_edac_mod
-> > k8temp=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 3735=A0 0
-> > raid1=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 19043=A0 2
-> > dm_multipath=A0 =A0 =A0 =A0
-> =A0=A0=A014558=A0 0
-> > ata_generic=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A03467=A0 0
-> > pata_acpi=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A03395=A0 0
-> > floppy=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A054666=A0 0
-> > pata_amd=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A011269=A0 4
-> > sata_nv=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 20834=A0 3
-> >
-> > When I load the w83627ehf I get:
-> > FATAL: Error inserting w83627ehf
-> >
-> (/lib/modules/2.6.32.11-99.fc12.x86_64/kernel/drivers/hwmon/w83627ehf.ko):
-> > No such device
-> >
-> > When I try the w83781d it loads lsmod shows the
-> following:
-> > Module=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 Size=A0 Used by
-> > w83781d=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 28749=A0 0
-> > fuse=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A057189=A0 2
-> > hwmon_vid=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A02091=A0 1 w83781d
-> > eeprom=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 4947=A0 0
-> > i2c_dev=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A07529=A0 0
-> > sunrpc=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 193819=A0 1
-> > cpufreq_ondemand=A0 =A0 =A0 =A0 8793=A0
-> 2
-> > powernow_k8=A0 =A0 =A0 =A0 =A0 =A0
-> 14706=A0 2
-> > freq_table=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 3947=A0 2 cpufreq_ondemand,powernow_k8
-> > ip6t_REJECT=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A04222=A0 10
-> > nf_conntrack_ipv6=A0 =A0 =A0 18504=A0 7
-> > ip6table_filter=A0 =A0 =A0
-> =A0=A0=A02791=A0 1
-> > ip6_tables=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A016760=A0 1 ip6table_filter
-> > ipv6=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 279463=A0 32 ip6t_REJECT,nf_conntrack_ipv6
-> > uinput=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 7228=A0 0
-> > amd64_edac_mod=A0 =A0 =A0
-> =A0=A0=A015481=A0 0
-> > tg3=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0=A0=A0101698=A0 0
-> > i2c_nforce2=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A06819=A0 0
-> > i2c_core=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A026876=A0 4
-> w83781d,eeprom,i2c_dev,i2c_nforce2
-> > edac_core=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 39581=A0 4 amd64_edac_mod
-> > edac_mce_amd=A0 =A0 =A0 =A0 =A0 =A0
-> 7746=A0 1 amd64_edac_mod
-> > k8temp=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 3735=A0 0
-> > raid1=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 19043=A0 2
-> > dm_multipath=A0 =A0 =A0 =A0
-> =A0=A0=A014558=A0 0
-> > ata_generic=A0 =A0 =A0 =A0 =A0
-> =A0=A0=A03467=A0 0
-> > pata_acpi=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A03395=A0 0
-> > floppy=A0 =A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A054666=A0 0
-> > pata_amd=A0 =A0 =A0 =A0 =A0 =A0
-> =A0=A0=A011269=A0 4
-> > sata_nv=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 20834=A0 3
-> >
-> > Running sensor-detect again produces original results
-> and nothing is
-> > loaded into the /etc/sysconfig/lm_sensors, So starting
-> lm_sensors gives me
-> > a warning telling me its not configured.
-> >
-> > Same result as directly above when I load the w83791d
-> drive, hav\ing
-> > removed the other, including the w83792d, w83793,
-> w83l785ts, w83l786ng,
-> > wm831x-hwmon and wm8350-hwmon. The lsmod stays the
-> same as above except
-> > that the driver is relplace at the same position with
-> the new driver.
-> >
-> > Tried various combinations and permutations and
-> nothing.
-> >
-> > Any help would appreciated, and apologizes if it has
-> already been dealt
-> > with.
-> >
-> > Regards and thanks...
-> >
-> >
-> > _______________________________________________
-> > lm-sensors mailing list
-> > lm-sensors@lm-sensors.org
-> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> >
->=20
-> You may need to update your version of LM_Sensors...
->=20
-> Here is what I have on my FC12 x86_64 box running
-> 2.6.32.11-99.fc12.x86_64:
->=20
-> lm_sensors.x86_64=A0 =A0 =A0 =A0 =A0 =A0
-> =A0 =A0 =A0=A0=A03.1.2-1.fc12
-> lm_sensors-libs.x86_64=A0 =A0 =A0 =A0 =A0
-> =A0 =A0 3.1.2-1.fc12
->=20
-> Unfortunately I do not have your SuperIO chip in my
-> system.
->=20
->=20
->=20
->=20
+Ken.
 
 
-     =20
+On 28/04/10 13:32, Jean Delvare wrote:
+> On Wed, 17 Mar 2010 08:39:17 +0100, Jean Delvare wrote:
+>> Hi Ken,
+>>
+>> On Sun, 07 Mar 2010 10:20:13 +0000, Ken Milmore wrote:
+>>> I will try and get a patch together as soon as time permits.
+>>
+>> Do you have a patch by now?
+>
+> Ping Ken. Would be nice to have a patch ready soon so that it can make
+> it into kernel 2.6.35.
+>
+
+--------------070406060901060106010503
+Content-Type: text/plain;
+ name="0001-hwmon-asc7621-Bug-fixes.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0001-hwmon-asc7621-Bug-fixes.patch"
+
+From 5a9cc351ca11375a81082a06212ac45ac900b213 Mon Sep 17 00:00:00 2001
+From: Ken Milmore <ken.milmore@googlemail.com>
+Date: Sat, 1 May 2010 13:26:41 +0100
+Subject: [PATCH] hwmon: (asc7621) Bug fixes
+
+* Allow fan minimum RPM to be set to zero without triggering alarms.
+* Fix voltage scaling arithmetic and correct scale factors.
+* Correct fan1-fan4 alarm bit shifts.
+* Correct register address for temp3_smoothing_enable.
+* Read the alarm registers with high priority.
+
+Signed-off-by: Ken Milmore <ken.milmore@googlemail.com>
+---
+ drivers/hwmon/asc7621.c |   63 +++++++++++++++++++++++------------------------
+ 1 files changed, 31 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/hwmon/asc7621.c b/drivers/hwmon/asc7621.c
+index 7f94810..0f388ad 100644
+--- a/drivers/hwmon/asc7621.c
++++ b/drivers/hwmon/asc7621.c
+@@ -268,8 +268,11 @@ static ssize_t store_fan16(struct device *dev,
+ 	if (strict_strtol(buf, 10, &reqval))
+ 		return -EINVAL;
+ 
++	/* If a minimum RPM of zero is requested, then we set the register to
++	   0xffff. This value allows the fan to be stopped completely without
++	   generating an alarm. */
+ 	reqval =
+-	    (SENSORS_LIMIT((reqval) <= 0 ? 0 : 5400000 / (reqval), 0, 65534));
++	    (reqval <= 0 ? 0xffff : SENSORS_LIMIT(5400000 / reqval, 0, 0xfffe));
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->reg[param->msb[0]] = (reqval >> 8) & 0xff;
+@@ -285,8 +288,9 @@ static ssize_t store_fan16(struct device *dev,
+  * Voltages are scaled in the device so that the nominal voltage
+  * is 3/4ths of the 0-255 range (i.e. 192).
+  * If all voltages are 'normal' then all voltage registers will
+- * read 0xC0.  This doesn't help us if we don't have a point of refernce.
+- * The data sheet however provides us with the full scale value for each
++ * read 0xC0.
++ *
++ * The data sheet provides us with the 3/4 scale value for each voltage
+  * which is stored in in_scaling.  The sda->index parameter value provides
+  * the index into in_scaling.
+  *
+@@ -295,7 +299,7 @@ static ssize_t store_fan16(struct device *dev,
+  */
+ 
+ static int asc7621_in_scaling[] = {
+-	3320, 3000, 4380, 6640, 16000
++	2500, 2250, 3300, 5000, 12000
+ };
+ 
+ static ssize_t show_in10(struct device *dev, struct device_attribute *attr,
+@@ -306,19 +310,12 @@ static ssize_t show_in10(struct device *dev, struct device_attribute *attr,
+ 	u8 nr = sda->index;
+ 
+ 	mutex_lock(&data->update_lock);
+-	regval = (data->reg[param->msb[0]] * asc7621_in_scaling[nr]) / 256;
+-
+-	/* The LSB value is a 2-bit scaling of the MSB's LSbit value.
+-	 * I.E.  If the maximim voltage for this input is 6640 millivolts then
+-	 * a MSB register value of 0 = 0mv and 255 = 6640mv.
+-	 * A 1 step change therefore represents 25.9mv (6640 / 256).
+-	 * The extra 2-bits therefore represent increments of 6.48mv.
+-	 */
+-	regval += ((asc7621_in_scaling[nr] / 256) / 4) *
+-	    (data->reg[param->lsb[0]] >> 6);
+-
++	regval = (data->reg[param->msb[0]] << 8) | (data->reg[param->lsb[0]]);
+ 	mutex_unlock(&data->update_lock);
+ 
++	/* The LSB value is a 2-bit scaling of the MSB's LSbit value. */
++	regval = (regval >> 6) * asc7621_in_scaling[nr] / (0xc0 << 2);
++
+ 	return sprintf(buf, "%u\n", regval);
+ }
+ 
+@@ -331,7 +328,7 @@ static ssize_t show_in8(struct device *dev, struct device_attribute *attr,
+ 
+ 	return sprintf(buf, "%u\n",
+ 		       ((data->reg[param->msb[0]] *
+-			 asc7621_in_scaling[nr]) / 256));
++			 asc7621_in_scaling[nr]) / 0xc0));
+ }
+ 
+ static ssize_t store_in8(struct device *dev, struct device_attribute *attr,
+@@ -344,9 +341,11 @@ static ssize_t store_in8(struct device *dev, struct device_attribute *attr,
+ 	if (strict_strtol(buf, 10, &reqval))
+ 		return -EINVAL;
+ 
+-	reqval = SENSORS_LIMIT(reqval, 0, asc7621_in_scaling[nr]);
++	reqval = SENSORS_LIMIT(reqval, 0, 0xffff);
++
++	reqval = reqval * 0xc0 / asc7621_in_scaling[nr];
+ 
+-	reqval = (reqval * 255 + 128) / asc7621_in_scaling[nr];
++	reqval = SENSORS_LIMIT(reqval, 0, 0xff);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->reg[param->msb[0]] = reqval;
+@@ -846,11 +845,11 @@ static struct asc7621_param asc7621_params[] = {
+ 	PWRITE(in3_max, 3, PRI_LOW, 0x4b, 0, 0, 0, in8),
+ 	PWRITE(in4_max, 4, PRI_LOW, 0x4d, 0, 0, 0, in8),
+ 
+-	PREAD(in0_alarm, 0, PRI_LOW, 0x41, 0, 0x01, 0, bitmask),
+-	PREAD(in1_alarm, 1, PRI_LOW, 0x41, 0, 0x01, 1, bitmask),
+-	PREAD(in2_alarm, 2, PRI_LOW, 0x41, 0, 0x01, 2, bitmask),
+-	PREAD(in3_alarm, 3, PRI_LOW, 0x41, 0, 0x01, 3, bitmask),
+-	PREAD(in4_alarm, 4, PRI_LOW, 0x42, 0, 0x01, 0, bitmask),
++	PREAD(in0_alarm, 0, PRI_HIGH, 0x41, 0, 0x01, 0, bitmask),
++	PREAD(in1_alarm, 1, PRI_HIGH, 0x41, 0, 0x01, 1, bitmask),
++	PREAD(in2_alarm, 2, PRI_HIGH, 0x41, 0, 0x01, 2, bitmask),
++	PREAD(in3_alarm, 3, PRI_HIGH, 0x41, 0, 0x01, 3, bitmask),
++	PREAD(in4_alarm, 4, PRI_HIGH, 0x42, 0, 0x01, 0, bitmask),
+ 
+ 	PREAD(fan1_input, 0, PRI_HIGH, 0x29, 0x28, 0, 0, fan16),
+ 	PREAD(fan2_input, 1, PRI_HIGH, 0x2b, 0x2a, 0, 0, fan16),
+@@ -862,10 +861,10 @@ static struct asc7621_param asc7621_params[] = {
+ 	PWRITE(fan3_min, 2, PRI_LOW, 0x59, 0x58, 0, 0, fan16),
+ 	PWRITE(fan4_min, 3, PRI_LOW, 0x5b, 0x5a, 0, 0, fan16),
+ 
+-	PREAD(fan1_alarm, 0, PRI_LOW, 0x42, 0, 0x01, 0, bitmask),
+-	PREAD(fan2_alarm, 1, PRI_LOW, 0x42, 0, 0x01, 1, bitmask),
+-	PREAD(fan3_alarm, 2, PRI_LOW, 0x42, 0, 0x01, 2, bitmask),
+-	PREAD(fan4_alarm, 3, PRI_LOW, 0x42, 0, 0x01, 3, bitmask),
++	PREAD(fan1_alarm, 0, PRI_HIGH, 0x42, 0, 0x01, 2, bitmask),
++	PREAD(fan2_alarm, 1, PRI_HIGH, 0x42, 0, 0x01, 3, bitmask),
++	PREAD(fan3_alarm, 2, PRI_HIGH, 0x42, 0, 0x01, 4, bitmask),
++	PREAD(fan4_alarm, 3, PRI_HIGH, 0x42, 0, 0x01, 5, bitmask),
+ 
+ 	PREAD(temp1_input, 0, PRI_HIGH, 0x25, 0x10, 0, 0, temp10),
+ 	PREAD(temp2_input, 1, PRI_HIGH, 0x26, 0x15, 0, 0, temp10),
+@@ -886,10 +885,10 @@ static struct asc7621_param asc7621_params[] = {
+ 	PWRITE(temp3_max, 2, PRI_LOW, 0x53, 0, 0, 0, temp8),
+ 	PWRITE(temp4_max, 3, PRI_LOW, 0x35, 0, 0, 0, temp8),
+ 
+-	PREAD(temp1_alarm, 0, PRI_LOW, 0x41, 0, 0x01, 4, bitmask),
+-	PREAD(temp2_alarm, 1, PRI_LOW, 0x41, 0, 0x01, 5, bitmask),
+-	PREAD(temp3_alarm, 2, PRI_LOW, 0x41, 0, 0x01, 6, bitmask),
+-	PREAD(temp4_alarm, 3, PRI_LOW, 0x43, 0, 0x01, 0, bitmask),
++	PREAD(temp1_alarm, 0, PRI_HIGH, 0x41, 0, 0x01, 4, bitmask),
++	PREAD(temp2_alarm, 1, PRI_HIGH, 0x41, 0, 0x01, 5, bitmask),
++	PREAD(temp3_alarm, 2, PRI_HIGH, 0x41, 0, 0x01, 6, bitmask),
++	PREAD(temp4_alarm, 3, PRI_HIGH, 0x43, 0, 0x01, 0, bitmask),
+ 
+ 	PWRITE(temp1_source, 0, PRI_LOW, 0x02, 0, 0x07, 4, bitmask),
+ 	PWRITE(temp2_source, 1, PRI_LOW, 0x02, 0, 0x07, 0, bitmask),
+@@ -898,7 +897,7 @@ static struct asc7621_param asc7621_params[] = {
+ 
+ 	PWRITE(temp1_smoothing_enable, 0, PRI_LOW, 0x62, 0, 0x01, 3, bitmask),
+ 	PWRITE(temp2_smoothing_enable, 1, PRI_LOW, 0x63, 0, 0x01, 7, bitmask),
+-	PWRITE(temp3_smoothing_enable, 2, PRI_LOW, 0x64, 0, 0x01, 3, bitmask),
++	PWRITE(temp3_smoothing_enable, 2, PRI_LOW, 0x63, 0, 0x01, 3, bitmask),
+ 	PWRITE(temp4_smoothing_enable, 3, PRI_LOW, 0x3c, 0, 0x01, 3, bitmask),
+ 
+ 	PWRITE(temp1_smoothing_time, 0, PRI_LOW, 0x62, 0, 0x07, 0, temp_st),
+-- 
+1.7.1
+
+
+--------------070406060901060106010503
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------070406060901060106010503--
