@@ -1,38 +1,30 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 20 May 2010 11:57:27 +0000
-Subject: Re: [lm-sensors] Simple fan question
-Message-Id: <20100520135727.7a0e07bd@hyperion.delvare>
+Date: Tue, 04 May 2010 09:36:55 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: driver for TI tmp102 temperature
+Message-Id: <20100504113655.42623e51@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1272518506.24542.163.camel@pasglop>
-	<20100429105740.6e3b7716@hyperion.delvare>
-	<1272581806.24542.185.camel@pasglop>
-	<AANLkTilRvyWK-SEp2pgVAosaJ8GQUbbXsP4BkZBxGphU@mail.gmail.com>
-In-Reply-To: <AANLkTilRvyWK-SEp2pgVAosaJ8GQUbbXsP4BkZBxGphU@mail.gmail.com>
+References: <201003132000.35840.sfking00@yahoo.com>
+	<20100315135217.550a6aba@hyperion.delvare>
+	<20100403092340.52862542@hyperion.delvare>
+In-Reply-To: <20100403092340.52862542@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ray Lee <ray-lk@madrabbit.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, lm-sensors@lm-sensors.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Steven King <sfking00@yahoo.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>
 
-On Mon, 17 May 2010 08:59:50 -0700, Ray Lee wrote:
-> On Thu, Apr 29, 2010 at 3:56 PM, Benjamin Herrenschmidt <
-> benh@kernel.crashing.org> wrote:
-> 
-> > Now, maybe the best option is to have instead:
-> >
-> >        fan[1-*]_discrete_value
-> >                Discrete value
-> >                RW
-> >
-> >        fan[1-*]_supported values
-> >                List of supported discrete values
-> >                RO
-> >
-> 
-> Perhaps a granularity (ie, step-size) instead of a full list of values?
+Steven,
 
-A possible addition to the current API, yes. But it may not cover all
-cases: the step size isn't necessarily constant.
+On Sat, 3 Apr 2010 09:23:40 +0200, Jean Delvare wrote:
+> On Mon, 15 Mar 2010 13:52:17 +0100, Jean Delvare wrote:
+> > Here's my review. Feel free to pick whatever you like in it and ignore
+> > the rest. Then submit a final version for upstream integration.
+> 
+> Any update? Would be great to not lose all the work that both you and
+> me put in this driver so far.
+
+If you do not reply, I will do all the suggested changes myself and
+push the driver upstream.
 
 -- 
 Jean Delvare
