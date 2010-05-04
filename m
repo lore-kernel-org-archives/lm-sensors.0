@@ -1,251 +1,236 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Wed, 14 Apr 2010 18:28:40 +0000
-Subject: [lm-sensors] [PATCH v4 1/2] Add sensors config fetching tool
-Message-Id: <20100414182840.GB1985@andre-laptop>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Tue, 04 May 2010 09:55:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: applesmc: Add temperature sensor labels
+Message-Id: <1272966929-14501-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Alex Murray <murray.alex@gmail.com>, Henrik Rydberg <rydberg@euromail.se>
 
-Use this tool to:
+From: Alex Murray <murray.alex@gmail.com>
 
-* Fetch config files from lm-sensors.org
-* Build an tarball containing the configs
-* Install/Deinstall config archives
-* Manually install config files to /etc/sensors.d/
-* List available configs
+The Apple SMC uses a systematic labeling scheme for the hardware
+temperature sensors. This scheme is currently hidden from
+userland. Since the sensor set, and consequently the numbering,
+differs between models, an extensive database of configurations is
+required for an application such as fan control. This patch adds the
+SMC labels to the hwmon sysfs interface, allowing applications to use
+the sensors more intelligibly.
 
+Signed-off-by: Alex Murray <murray.alex@gmail.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 ---
-Index: prog/detect/sensors-config.py
-=================================--- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ prog/detect/sensors-config.py	2010-04-14 20:11:35.130562450 +0200
-@@ -0,0 +1,225 @@
-+#!/usr/bin/python
+ drivers/hwmon/applesmc.c |  145 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 144 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 36a0d62..8be86ef 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -657,6 +657,17 @@ out:
+ 		return snprintf(sysfsbuf, PAGE_SIZE, "(%d,%d)\n", left, right);
+ }
+ 
++/* Displays sensor key as label */
++static ssize_t applesmc_show_sensor_label(struct device *dev,
++			struct device_attribute *devattr, char *sysfsbuf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	const char *key +		temperature_sensors_sets[applesmc_temperature_set][attr->index];
 +
-+import os
-+import sys
-+import optparse
-+import urllib
-+import re
++	return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", key);
++}
 +
-+config_dir = '/var/lib/sensors/conf'
-+config_install_dir = '/etc/sensors.d'
-+dmi_dir = '/sys/class/dmi/id'
-+sensors_url = 'http://www.lm-sensors.org'
-+#sensors_url = 'http://localhost'
-+wiki_url = sensors_url + '/' + 'wiki'
+ /* Displays degree Celsius * 1000 */
+ static ssize_t applesmc_show_temperature(struct device *dev,
+ 			struct device_attribute *devattr, char *sysfsbuf)
+@@ -1124,6 +1135,86 @@ static const struct attribute_group fan_attribute_groups[] = {
+ /*
+  * Temperature sensors sysfs entries.
+  */
++static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp3_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp4_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 3);
++static SENSOR_DEVICE_ATTR(temp5_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 4);
++static SENSOR_DEVICE_ATTR(temp6_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 5);
++static SENSOR_DEVICE_ATTR(temp7_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 6);
++static SENSOR_DEVICE_ATTR(temp8_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 7);
++static SENSOR_DEVICE_ATTR(temp9_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 8);
++static SENSOR_DEVICE_ATTR(temp10_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 9);
++static SENSOR_DEVICE_ATTR(temp11_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 10);
++static SENSOR_DEVICE_ATTR(temp12_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 11);
++static SENSOR_DEVICE_ATTR(temp13_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 12);
++static SENSOR_DEVICE_ATTR(temp14_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 13);
++static SENSOR_DEVICE_ATTR(temp15_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 14);
++static SENSOR_DEVICE_ATTR(temp16_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 15);
++static SENSOR_DEVICE_ATTR(temp17_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 16);
++static SENSOR_DEVICE_ATTR(temp18_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 17);
++static SENSOR_DEVICE_ATTR(temp19_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 18);
++static SENSOR_DEVICE_ATTR(temp20_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 19);
++static SENSOR_DEVICE_ATTR(temp21_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 20);
++static SENSOR_DEVICE_ATTR(temp22_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 21);
++static SENSOR_DEVICE_ATTR(temp23_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 22);
++static SENSOR_DEVICE_ATTR(temp24_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 23);
++static SENSOR_DEVICE_ATTR(temp25_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 24);
++static SENSOR_DEVICE_ATTR(temp26_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 25);
++static SENSOR_DEVICE_ATTR(temp27_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 26);
++static SENSOR_DEVICE_ATTR(temp28_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 27);
++static SENSOR_DEVICE_ATTR(temp29_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 28);
++static SENSOR_DEVICE_ATTR(temp30_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 29);
++static SENSOR_DEVICE_ATTR(temp31_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 30);
++static SENSOR_DEVICE_ATTR(temp32_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 31);
++static SENSOR_DEVICE_ATTR(temp33_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 32);
++static SENSOR_DEVICE_ATTR(temp34_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 33);
++static SENSOR_DEVICE_ATTR(temp35_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 34);
++static SENSOR_DEVICE_ATTR(temp36_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 35);
++static SENSOR_DEVICE_ATTR(temp37_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 36);
++static SENSOR_DEVICE_ATTR(temp38_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 37);
++static SENSOR_DEVICE_ATTR(temp39_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 38);
++static SENSOR_DEVICE_ATTR(temp40_label, S_IRUGO,
++					applesmc_show_sensor_label, NULL, 39);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO,
+@@ -1205,6 +1296,50 @@ static SENSOR_DEVICE_ATTR(temp39_input, S_IRUGO,
+ static SENSOR_DEVICE_ATTR(temp40_input, S_IRUGO,
+ 					applesmc_show_temperature, NULL, 39);
+ 
++static struct attribute *label_attributes[] = {
++	&sensor_dev_attr_temp1_label.dev_attr.attr,
++	&sensor_dev_attr_temp2_label.dev_attr.attr,
++	&sensor_dev_attr_temp3_label.dev_attr.attr,
++	&sensor_dev_attr_temp4_label.dev_attr.attr,
++	&sensor_dev_attr_temp5_label.dev_attr.attr,
++	&sensor_dev_attr_temp6_label.dev_attr.attr,
++	&sensor_dev_attr_temp7_label.dev_attr.attr,
++	&sensor_dev_attr_temp8_label.dev_attr.attr,
++	&sensor_dev_attr_temp9_label.dev_attr.attr,
++	&sensor_dev_attr_temp10_label.dev_attr.attr,
++	&sensor_dev_attr_temp11_label.dev_attr.attr,
++	&sensor_dev_attr_temp12_label.dev_attr.attr,
++	&sensor_dev_attr_temp13_label.dev_attr.attr,
++	&sensor_dev_attr_temp14_label.dev_attr.attr,
++	&sensor_dev_attr_temp15_label.dev_attr.attr,
++	&sensor_dev_attr_temp16_label.dev_attr.attr,
++	&sensor_dev_attr_temp17_label.dev_attr.attr,
++	&sensor_dev_attr_temp18_label.dev_attr.attr,
++	&sensor_dev_attr_temp19_label.dev_attr.attr,
++	&sensor_dev_attr_temp20_label.dev_attr.attr,
++	&sensor_dev_attr_temp21_label.dev_attr.attr,
++	&sensor_dev_attr_temp22_label.dev_attr.attr,
++	&sensor_dev_attr_temp23_label.dev_attr.attr,
++	&sensor_dev_attr_temp24_label.dev_attr.attr,
++	&sensor_dev_attr_temp25_label.dev_attr.attr,
++	&sensor_dev_attr_temp26_label.dev_attr.attr,
++	&sensor_dev_attr_temp27_label.dev_attr.attr,
++	&sensor_dev_attr_temp28_label.dev_attr.attr,
++	&sensor_dev_attr_temp29_label.dev_attr.attr,
++	&sensor_dev_attr_temp30_label.dev_attr.attr,
++	&sensor_dev_attr_temp31_label.dev_attr.attr,
++	&sensor_dev_attr_temp32_label.dev_attr.attr,
++	&sensor_dev_attr_temp33_label.dev_attr.attr,
++	&sensor_dev_attr_temp34_label.dev_attr.attr,
++	&sensor_dev_attr_temp35_label.dev_attr.attr,
++	&sensor_dev_attr_temp36_label.dev_attr.attr,
++	&sensor_dev_attr_temp37_label.dev_attr.attr,
++	&sensor_dev_attr_temp38_label.dev_attr.attr,
++	&sensor_dev_attr_temp39_label.dev_attr.attr,
++	&sensor_dev_attr_temp40_label.dev_attr.attr,
++	NULL
++};
 +
-+def get_vendor_list():
-+    try:
-+        dir = os.listdir(config_dir)
-+        dir.sort()
-+        return dir
-+
-+    except OSError:
-+        print "Could not find configurations in " + config_dir
-+        dir = []
-+        return dir
-+
-+
-+def list_vendors():
-+    dir = get_vendor_list()
-+    for name in dir:
-+        if os.path.isdir(config_dir + '/' + name):
-+            print name
-+
-+
-+def get_board_list(vendor):
-+    try:
-+        dir = os.listdir(config_dir + '/' + vendor)
-+        dir.sort()
-+
-+        return dir
-+
-+    except:
-+        print "Could not find a configuration for " + vendor
-+        dir = []
-+        return dir
-+
-+
-+def list_boards(vendor):
-+    dir = get_board_list(vendor)
-+    for name in dir:
-+        print name
-+
-+
-+def clear_config_dir():
-+    try:
-+        dir = os.listdir(config_install_dir)
-+        for name in dir:
-+            os.remove(config_install_dir  + '/' + name)
-+
-+    except OSError:
-+        return
-+
-+
-+def install(src):
-+    sys.stdout.write('This will delete older configurations. Do you want to proceed? [y/N]: ')
-+    line = sys.stdin.readline()
-+    if (line[0] = 'N' or line[0] = 'n' or line[0] = '\n'):
-+        return
-+
-+    clear_config_dir()
-+
-+    os.system('cp %s %s' % (config_dir + '/' + src, '/etc/sensors.d/' +
-+                            src.split('/')[1]));
-+
-+
-+def install_archive(archive):
-+    if (os.path.exists(config_dir) = False):
-+        os.makedirs(config_dir)
-+    os.system("tar -xzf" + archive + " -C" + config_dir)
-+
-+
-+def uninstall_archive():
-+    if (os.path.exists(config_dir) = True):
-+        os.system("rm -rf " + config_dir)
-+
-+
-+def get_config_names():
-+    configs = []
-+    url_vendors = urllib.urlopen(wiki_url + '/Configurations/Configurations')
-+    data = url_vendors.read()
-+    it  = re.finditer(r"<a href=\"/wiki/Configurations/.*?\">(.*?)</a>", data)
-+    for m in it:
-+        url_boards = urllib.urlopen(wiki_url + '/' + m.group(1))
-+        board_data = url_boards.read()
-+        board_it  = re.finditer(r"<a href=\"/wiki/Configurations/.*?\">(Configurations/.*?)</a>", board_data)
-+        for boards_m in board_it:
-+            configs.append(boards_m.group(1))
-+
-+    return configs
-+
-+
-+def parse_dmi(lines):
-+    boards = []
-+    board = {}
-+    block_started = False
-+
-+    for line in lines:
-+        if line[0] = '#':
-+            if line.find('board_vendor') != -1 or line.find('sys_vendor') != -1:
-+                block_started = True
-+                board = {}
-+                board['vendor'] = line.split(':')[1].strip()
-+
-+            elif line.find('board_name') != -1 or line.find('product_name') != -1:
-+                board['name'] = line.split(':')[1].strip()
-+
-+            elif line.find('board_version') != -1 or line.find('product_version') != -1:
-+                board['version'] = line.split(':')[1].strip()
-+        else:
-+            if block_started = True:
-+                boards.append(board)
-+                block_started = False
-+
-+    return boards
-+
-+
-+def strip_lines(lines):
-+    start = end = 0;
-+    for i in range(len(lines)):
-+        if (lines[i].find('{{{') != -1):
-+            start = i + 1
-+
-+        if (lines[i].find('}}}') != -1):
-+            end = i - start
-+
-+    del lines[0:start]
-+    del lines[end:]
-+
-+
-+def create_file(boards, lines):
-+    orig_path = boards[0]['vendor'] + '/' + boards[0]['name']
-+    if 'version' in boards[0]:
-+        orig_path += '-' + boards[0]['version']
-+
-+    for board in boards:
-+        strip_lines(lines)
-+        if (os.path.exists(board['vendor']) = False):
-+            os.mkdir(board['vendor'])
-+
-+        if (os.path.exists(orig_path) = False):
-+            f = open(orig_path , 'w')
-+            f.writelines(lines)
-+            f.close()
-+
-+        link = board['vendor'] + '_' + board['name']
-+        if 'version' in board:
-+            link += '_' + board['version']
-+        os.symlink(orig_path, link)
-+
-+
-+def fetch_configs():
-+    configs = get_config_names()
-+
-+    for board in configs:
-+        print 'Fetch config for ' + board
-+        url = urllib.urlopen(wiki_url + '/' + board + '?format=txt')
-+
-+        lines = url.readlines()
-+        boards = parse_dmi(lines)
-+        print boards
-+        print '\n'
-+
-+        create_file(boards, lines);
-+        url.close()
-+
-+    if len(os.listdir('.')) > 0:
-+        os.system('tar czf configuration.tar.gz *')
-+
-+
-+def parse_cmdline():
-+    parser = optparse.OptionParser()
-+    parser.add_option('-l', '--list-vendors', dest='opt_list_vendors',
-+                      action='store_true', help='lists all the vendors');
-+    parser.add_option('-b', '--list-boards', dest='opt_list_boards',
-+                      help='lists the boards for a given vendor')
-+    parser.add_option('-i', '--install', dest='opt_install',
-+                      help='installs the given configuration')
-+    parser.add_option('-a', '--install-archive', dest='opt_install_archive',
-+                      help='installs the given archive')
-+    parser.add_option('-u', '--uninstall-archive',
-+                      dest='opt_uninstall_archive', action='store_true',
-+                      help='removes configurations from archive')
-+    parser.add_option('-t', '--fetch-configs', dest='opt_fetch_configs',
-+                      action='store_true',
-+                      help='fetches configurations from lm-sensors.org')
-+
-+    return parser.parse_args()
-+
-+
-+# Main
-+try:
-+    (options, args) = parse_cmdline()
-+
-+    if (options.opt_list_vendors):
-+        list_vendors()
-+
-+    if (options.opt_list_boards):
-+        list_boards(options.opt_list_boards)
-+
-+    if (options.opt_install):
-+        install(options.opt_install)
-+
-+    if (options.opt_install_archive):
-+        install_archive(options.opt_install_archive)
-+
-+    if (options.opt_uninstall_archive):
-+        uninstall_archive()
-+
-+    if (options.opt_fetch_configs):
-+        fetch_configs()
-+
-+except (OSError), e:
-+    print e
-+
-+sys.exit(0)
+ static struct attribute *temperature_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+@@ -1252,6 +1387,9 @@ static struct attribute *temperature_attributes[] = {
+ static const struct attribute_group temperature_attributes_group  	{ .attrs = temperature_attributes };
+ 
++static const struct attribute_group label_attributes_group = {
++	.attrs = label_attributes
++};
+ /* Module stuff */
+ 
+ /*
+@@ -1568,7 +1706,8 @@ static int __init applesmc_init(void)
+ 	for (i = 0;
+ 	     temperature_sensors_sets[applesmc_temperature_set][i] != NULL;
+ 	     i++) {
+-		if (temperature_attributes[i] = NULL) {
++		if (temperature_attributes[i] = NULL ||
++		    label_attributes[i] = NULL) {
+ 			printk(KERN_ERR "applesmc: More temperature sensors "
+ 				"in temperature_sensors_sets (at least %i)"
+ 				"than available sysfs files in "
+@@ -1578,6 +1717,8 @@ static int __init applesmc_init(void)
+ 		}
+ 		ret = sysfs_create_file(&pdev->dev.kobj,
+ 						temperature_attributes[i]);
++		ret = sysfs_create_file(&pdev->dev.kobj,
++						label_attributes[i]);
+ 		if (ret)
+ 			goto out_temperature;
+ 	}
+@@ -1630,6 +1771,7 @@ out_accelerometer:
+ 	if (applesmc_accelerometer)
+ 		applesmc_release_accelerometer();
+ out_temperature:
++	sysfs_remove_group(&pdev->dev.kobj, &label_attributes_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
+ out_fan_1:
+@@ -1659,6 +1801,7 @@ static void __exit applesmc_exit(void)
+ 	}
+ 	if (applesmc_accelerometer)
+ 		applesmc_release_accelerometer();
++	sysfs_remove_group(&pdev->dev.kobj, &label_attributes_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
+ 	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
+-- 
+1.6.3.3
+
 
 _______________________________________________
 lm-sensors mailing list
