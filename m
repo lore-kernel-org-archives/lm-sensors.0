@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 04 May 2010 19:19:14 +0000
+From: Alan Cox <alan@linux.intel.com>
+Date: Tue, 04 May 2010 22:53:35 +0000
 Subject: Re: [lm-sensors] [PATCH 4/4] emc1403: thermal sensor support
-Message-Id: <20100504211914.613506b4@hyperion.delvare>
+Message-Id: <20100504235335.0f236d76@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100414125205.23181.15562.stgit@localhost.localdomain>
 In-Reply-To: <20100414125205.23181.15562.stgit@localhost.localdomain>
@@ -10,27 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi again Alan,
+> I am just realizing that my indent may have been misinterpreted. All I
+> was saying was that it wasn't up to the hwmon subsystem to
+> _standardize_ on power up/down sysfs attributes. 
 
-On Tue, 4 May 2010 12:33:00 +0100, Alan Cox wrote:
-> > I have no problem with individual power up/down of devices. But this
-> > doesn't make it a hwmon-specific requirement, so I insist that it
-> > doesn't belong to the hwmon framework.
-> 
-> I guess that can stay a vendor applied patch for now as it really isn't
-> obvious where else you would put it given the need to associate it
-> accurately with a specific emc1403.
+Ah - that makes more sense
 
-I am just realizing that my indent may have been misinterpreted. All I
-was saying was that it wasn't up to the hwmon subsystem to _standardize_
-on power up/down sysfs attributes. I didn't mean to object against such
-attributes being added to a hwmon device. So feel free to add back the
-power attribute you just removed if it makes your life easier.
+I'll worry about that later - I have to work out how to fit it all into
+the mrst platform power management code which uses it for thermal
+management. I'm not sure being able to turn off the sensor doing board
+power/thermal management except via the power manager in such cases is
+a good idea 8)
 
-Sorry for the confusion.
-
--- 
-Jean Delvare
+Alan
 
 _______________________________________________
 lm-sensors mailing list
