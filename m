@@ -1,193 +1,123 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 01 May 2010 18:31:33 +0000
-Subject: Re: [lm-sensors] [Fancontrol] better support for init script error
-Message-Id: <20100501203133.3c50b792@hyperion.delvare>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Tue, 04 May 2010 13:39:02 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: applesmc: Correct sysfs fan error
+Message-Id: <1272980343-3880-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4BDC48C0.9090303@googlemail.com>
-In-Reply-To: <4BDC48C0.9090303@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-On Sat, 01 May 2010 20:16:46 +0200, foo bar wrote:
+The current code will not remove the sysfs files for fan numbers three
+and up. Also, upon exit, fans one and two are removed regardless of
+their existence.  This patch cleans up the sysfs error handling for
+the fans.
 
-You know, it's nice to know the name of people sending code to us.
-Anonymous code is unlikely to go anywhere.
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |   61 +++++++++++++++++++---------------------------
+ 1 files changed, 25 insertions(+), 36 deletions(-)
 
-> On 05/01/2010 06:42 PM, Jean Delvare wrote:
-> > Hi,
-> >
-> > On Sat, 01 May 2010 17:29:04 +0200, PyroPeter wrote:
-> >    
-> >> Some months ago, the /etc/fancontrol syntax changed,
-> >>      
-> > Please be specific. The syntax never changed, it was extended in
-> > fully backwards compatible ways, this should never have caused
-> > fancontrol to fail, unless you downgraded it.
-> >
-> >    
-> At the 28th of February I had to add DEVPATH and DEVNAME settings to my 
-> config file.
-
-Oh, yeah, that change. Indeed, it was not backwards compatible, my bad.
-The irony is that these entries were added to prevent fancontrol from
-failing in some cases, but in the end it made fancontrol fail in even
-more cases. Oh well.
-
-> Of cause this is my fault, because I manually wrote the config.
-
-Not your fault, a pwmconfig-generated file would have gone out of date
-just the same.
-
-> >> and fancontrol
-> >> exited right after startup, but the init script stated success.
-> >>
-> >> Currently there is no reliable way for a init script to check if
-> >> fancontrol started up properly.
-> >>      
-> > Running it using startproc should do the trick. That's what openSUSE
-> > does.
->
-> After reading the manpage online, I get the impression that startproc 
-> just has the advantage of checking for an already running daemon before 
-> starting it. But I will take a look at a SUSE initscript.
-
-Well...
-
-# startproc /bin/true
-# echo $?
-7
-#
-
-So apparently it can find out whether the child process exited 
-
-> Besides that, I do not get how you should check if fancontrol started up 
-> properly.
-
-It seems startproc does it for you. So you just get to check for the
-result of startproc.
-
-> The only way I could imagine is: you run fancontrol, wait some seconds 
-> and then check for the pid-file. I won't have to tell anyone how dirty 
-> that is.
-
-Hopefully you won't have to do that.
-
-> >> As fancontrol is a deamon preventing hardware damage, reliability should
-> >> be of first priority.
-> >>      
-> > This is incorrect. fancontrol is a daemon _causing_ hardware damage, if
-> > anything. The initial state of your system should be safe, so
-> > fancontrol not starting should never be a safety issue.
-> >
-> >    
-> Not for me. My mainboard has some kind of broken fan control that always 
-> sets a very low speed, which makes it acoustically indistinguishable 
-> from fancontrol but fails at high CPU loads. But that is not a 
-> fancontrol issue at the first point.
-
-Your mainboard or BIOS is broken, and/or you should select a different
-thermal profile in the BIOS setup screen. You should simply never rely
-on fancontrol to keep your system healthy. fancontrol is there to make
-your system silent, nothing else.
-
-> >> I would suggest adding a argument to fancontrol that makes it start up,
-> >> check config syntax and write permissions, and than fork to the
-> >> background, or return a positive exit code.
-> >>
-> >>
-> >> I wrote a kind of proof of concept that simply uses the existing
-> >> bash-script and "forks" by reexecuting itself in the background:
-> >>
-> >>   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-> >>   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-> >>
-> >> diff -ru lm_sensors-3.1.2-1/usr/sbin/fancontrol
-> >> lm_sensors-3.1.2-1_pyropeter/usr/sbin/fancontrol
-> >> --- lm_sensors-3.1.2-1/usr/sbin/fancontrol    2010-02-03
-> >> 03:45:15.000000000 +0100
-> >> +++ lm_sensors-3.1.2-1_pyropeter/usr/sbin/fancontrol    2010-03-07
-> >> 01:37:09.000000000 +0100
-> >> @@ -5,7 +5,9 @@
-> >>    #
-> >>    # Version 0.70
-> >>    #
-> >> -# Usage: fancontrol [CONFIGFILE]
-> >> +# Usage: fancontrol [-D] [CONFIGFILE]
-> >> +#
-> >> +# (-D causes fancontrol to 'fork' to the background after some tests)
-> >>    #
-> >>    # Dependencies:
-> >>    #   bash, egrep, sed, cut, sleep, readlink, lm_sensors :)
-> >> @@ -43,6 +45,12 @@
-> >>    #DEBUG=1
-> >>    MAX%5
-> >>
-> >> +DAEMON=0
-> >> +if [ "$1" = "-D" ]; then
-> >> +    DAEMON=1
-> >> +    shift
-> >> +fi
-> >> +
-> >>    declare -i pwmval
-> >>
-> >>    function LoadConfig {
-> >> @@ -303,7 +311,6 @@
-> >>        echo "File $PIDFILE exists, is fancontrol already running?"
-> >>        exit 1
-> >>    fi
-> >> -echo $$>  "$PIDFILE"
-> >>
-> >>    # $1 = pwm file name
-> >>    function pwmdisable()
-> >> @@ -475,6 +482,14 @@
-> >>        let fcvcount=$fcvcount+1
-> >>    done
-> >>
-> >> +if [ "$DAEMON" -gt 0 ]; then
-> >> +    echo "Forking..."
-> >> +    $0 $*&>  /dev/null&
-> >> +    exit 0
-> >> +fi
-> >> +
-> >> +echo $$>  "$PIDFILE"
-> >> +
-> >>    echo 'Starting automatic fan control...'
-> >>
-> >>    # main loop calling the main function at specified intervals
-> >>
-> >>   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-> >>   >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-> >>
-> >> I am not subscribed to this mailing list, so you need to CC me.
-> >>
-> >>      
-> > This means that the checks will be done twice.
-> There could be a second argument that skips the tests. But I don't think 
-> parsing a 400B file two time is going to harm.
-
-Sure. But then everybody says that for everything that starts when the
-machine boots, and we end up with sluggish systems.
-
-> > And if the checks are
-> > somehow incomplete, fancontrol may still fail despite the fork being
-> > successful, so it is unreliable by design.
->
-> What do you mean by "somehow incomplete"?
-
-I used a vague term on purpose.
-
-> I can't imagine a case where the old behavior is more reliable than the 
-> one I supposed, unless there are bugs in the implementation.
-
-And there are bugs in the implementation, believe me...
-
-> (Btw. I just noticed the fork itself could break in some cases, so it 
-> needs an additional if-clause :-P)
-
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 36a0d62..57c0331 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -209,6 +209,9 @@ static unsigned int applesmc_accelerometer;
+ /* Indicates whether this computer has light sensors and keyboard backlight. */
+ static unsigned int applesmc_light;
+ 
++/* The number of fans handled by the driver */
++static unsigned int fans_handled;
++
+ /* Indicates which temperature sensors set to use. */
+ static unsigned int applesmc_temperature_set;
+ 
+@@ -1530,39 +1533,24 @@ static int __init applesmc_init(void)
+ 
+ 	/* create fan files */
+ 	count = applesmc_get_fan_count();
+-	if (count < 0) {
++	if (count < 0)
+ 		printk(KERN_ERR "applesmc: Cannot get the number of fans.\n");
+-	} else {
++	else
+ 		printk(KERN_INFO "applesmc: %d fans found.\n", count);
+ 
+-		switch (count) {
+-		default:
+-			printk(KERN_WARNING "applesmc: More than 4 fans found,"
+-					" but at most 4 fans are supported"
+-						" by the driver.\n");
+-		case 4:
+-			ret = sysfs_create_group(&pdev->dev.kobj,
+-						 &fan_attribute_groups[3]);
+-			if (ret)
+-				goto out_key_enumeration;
+-		case 3:
+-			ret = sysfs_create_group(&pdev->dev.kobj,
+-						 &fan_attribute_groups[2]);
+-			if (ret)
+-				goto out_key_enumeration;
+-		case 2:
+-			ret = sysfs_create_group(&pdev->dev.kobj,
+-						 &fan_attribute_groups[1]);
+-			if (ret)
+-				goto out_key_enumeration;
+-		case 1:
+-			ret = sysfs_create_group(&pdev->dev.kobj,
+-						 &fan_attribute_groups[0]);
+-			if (ret)
+-				goto out_fan_1;
+-		case 0:
+-			;
+-		}
++	if (count > 4) {
++		count = 4;
++		printk(KERN_WARNING "applesmc: More than 4 fans found,"
++		       " but at most 4 fans are supported"
++		       " by the driver.\n");
++	}
++
++	while (fans_handled < count) {
++		ret = sysfs_create_group(&pdev->dev.kobj,
++					 &fan_attribute_groups[fans_handled]);
++		if (ret)
++			goto out_fans;
++		fans_handled++;
+ 	}
+ 
+ 	for (i = 0;
+@@ -1631,10 +1619,10 @@ out_accelerometer:
+ 		applesmc_release_accelerometer();
+ out_temperature:
+ 	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
+-out_fan_1:
+-	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
+-out_key_enumeration:
++out_fans:
++	while (fans_handled)
++		sysfs_remove_group(&pdev->dev.kobj,
++				   &fan_attribute_groups[--fans_handled]);
+ 	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
+ out_name:
+ 	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_name.attr);
+@@ -1660,8 +1648,9 @@ static void __exit applesmc_exit(void)
+ 	if (applesmc_accelerometer)
+ 		applesmc_release_accelerometer();
+ 	sysfs_remove_group(&pdev->dev.kobj, &temperature_attributes_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[0]);
+-	sysfs_remove_group(&pdev->dev.kobj, &fan_attribute_groups[1]);
++	while (fans_handled)
++		sysfs_remove_group(&pdev->dev.kobj,
++				   &fan_attribute_groups[--fans_handled]);
+ 	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
+ 	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_name.attr);
+ 	platform_device_unregister(pdev);
 -- 
-Jean Delvare
+1.6.3.3
+
 
 _______________________________________________
 lm-sensors mailing list
