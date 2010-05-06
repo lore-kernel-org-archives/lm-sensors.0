@@ -1,28 +1,24 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Sun, 23 May 2010 10:28:29 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (adm1031) allow setting update
-Message-Id: <4BF9034D.2050302@cam.ac.uk>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Thu, 06 May 2010 19:23:08 +0000
+Subject: Re: [lm-sensors] asus_atk0110 Not Activated in lm_sensors-3.1.1-3
+Message-Id: <t2n68676e01005061223sd5c2ff0eje7690164cbb673de@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1270671720-1575-3-git-send-email-iws@ovro.caltech.edu>
-In-Reply-To: <1270671720-1575-3-git-send-email-iws@ovro.caltech.edu>
+References: <s2p68676e01004280524w93c9234az452c4e30ac73e392@mail.gmail.com>
+In-Reply-To: <s2p68676e01004280524w93c9234az452c4e30ac73e392@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-...
-> @@ -75,6 +79,7 @@ struct adm1031_data {
->  	int chip_type;
->  	char valid;		/* !=0 if following fields are valid */
->  	unsigned long last_updated;	/* In jiffies */
-> +	unsigned int update_rate;	/* In milliseconds */
-Hi,
+On Wed, May 5, 2010 at 4:48 AM, Marc <digitelp@yahoo.com> wrote:
+> Thanks for the advice Jeff...  But it didn't work. I updated all the software,
+> including a new sensors_detect and such and still the exact same results
+> as I described.  retried various things and no luck at all!
 
-Just a quick comment.  Aren't the unit of a rate typically things per time period?
-(i.e. same as frequency)  If you want to go with milli seconds, then surely
-it should be called update_period.
+Enable HWMON_DEBUG_CHIP and recompile asus_atk0110 if you can; also
+send me a copy of the DSDT.
 
-Jonathan
+Luca
 
 _______________________________________________
 lm-sensors mailing list
