@@ -1,43 +1,71 @@
-From: mat <matthieu.stigler@gmail.com>
-Date: Mon, 03 May 2010 15:52:24 +0000
-Subject: [lm-sensors] Problem with intel i7: not detected
-Message-Id: <4BDEF051.7010708@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 06 May 2010 16:51:39 +0000
+Subject: Re: [lm-sensors] Problem with intel i7: not detected
+Message-Id: <20100506185139.168795dc@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4BDEF051.7010708@gmail.com>
+In-Reply-To: <4BDEF051.7010708@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi
+Hi Matthieu,
 
-I have a Dell Studio 1557 with intel i7, installed with Ubuntu 9.10. As 
-many Dell Studio, it has the problem of overheating, reaching easily 
-temperatures of 80-90, sometimes even shutting down. Now, the fan does 
-not even start...
+On Mon, 03 May 2010 21:18:33 +0530, mat wrote:
+> I have a Dell Studio 1557 with intel i7, installed with Ubuntu 9.10. As 
+> many Dell Studio, it has the problem of overheating, reaching easily 
+> temperatures of 80-90, sometimes even shutting down. Now, the fan does 
+> not even start...
 
-I really have few knowledge of that, but I tried to get better insights 
-running lm-sensors, especially hoping to see whether the fan is 
-recognized...
+That would most likely be an ACPI issue. Did you try upgrading your
+BIOS to the latest available version already?
 
-Running
-sudo sensors-detect
-I have:
-Trying family `National Semiconductor'...                   Yes
-Found unknown chip with ID 0x8502
+> I really have few knowledge of that, but I tried to get better insights 
+> running lm-sensors, especially hoping to see whether the fan is 
+> recognized...
 
-There was a similar post in the list:
-http://www.spinics.net/lists/lm-sensors/msg27726.html
+Fans are almost never supported by lm-sensors on laptops. Except for
+integrated CPU sensors (coretemp driver), lm-sensors has to rely on
+ACPI for monitoring and that usually means a couple temperature values
+being reported and that's it.
 
-But I don't really understand what was dealt there, and especially what 
-are the conclusions, especially:
--whether there is a way to have this chip detected
--whether this is likely to solve my problem of overheating /fan not working
+You may be able to use vendor-specific kernel modules though, such as
+thinkpad_acpi, eeepc-laptop etc. For some Dell laptops, there's the i8k
+driver, you should give it a try if you didn't already, but probably
+it's for older models.
 
-thanks a lot for any help/suggestion!!
+> Running
+> sudo sensors-detect
+> I have:
+> Trying family `National Semiconductor'...                   Yes
+> Found unknown chip with ID 0x8502
 
-Matthieu
+We don't know all Super-I/O chips out there. But not all of them
+include hardware monitoring features, especially on laptops, so the
+above isn't necessarily meaningful. The next investigation step would
+be to figure out which chip it is exactly, which means either taking
+your laptop apart and looking at all the chips, or asking the vendor.
+Not very appealing either way.
 
+> There was a similar post in the list:
+> http://www.spinics.net/lists/lm-sensors/msg27726.html
+> 
+> But I don't really understand what was dealt there, and especially what 
+> are the conclusions, especially:
+> -whether there is a way to have this chip detected
 
+The chip is already detected. It isn't identified though.
+
+> -whether this is likely to solve my problem of overheating /fan not working
+
+No, rather unlikely. What you want is to disassemble your ACPI tables
+(use acpidump) and have ACPI experts look at it. Maybe there's something
+wrong in there, that can be fixed by a BIOS update or worked around in
+the kernel.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
