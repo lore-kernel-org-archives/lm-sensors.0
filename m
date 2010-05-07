@@ -1,7 +1,7 @@
-From: Pavel Machek <pavel@ucw.cz>
-Date: Fri, 07 May 2010 16:07:16 +0000
+From: =?ISO-8859-1?Q?=C9ric_Piel?= <eric.piel@tremplin-utc.net>
+Date: Fri, 07 May 2010 16:09:55 +0000
 Subject: Re: [lm-sensors] [patch]hp_accel: Fix race in device removal
-Message-Id: <20100507160716.GA1506@elf.ucw.cz>
+Message-Id: <4BE43B53.9060502@tremplin-utc.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201005071804.20462.oneukum@suse.de>
 In-Reply-To: <201005071804.20462.oneukum@suse.de>
@@ -9,9 +9,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Oliver Neukum <oneukum@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Eric Piel <eric.piel@tremplin-utc.net>, Pavel Herrmann <morpheus.ibis@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Pavel Herrmann <morpheus.ibis@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, stable@kernel.org
 
-On Fri 2010-05-07 18:04:20, Oliver Neukum wrote:
+Op 07-05-10 18:04, Oliver Neukum schreef:
 > From 505056649f5ecb1ebb086981243b9870ce961a87 Mon Sep 17 00:00:00 2001
 > From: Oliver Neukum <oliver@neukum.org>
 > Date: Fri, 7 May 2010 18:02:07 +0200
@@ -21,8 +21,14 @@ On Fri 2010-05-07 18:04:20, Oliver Neukum wrote:
 > inaccessible.
 > 
 > Signed-off-by: Oliver Neukum <oneukum@suse.de>
+Ah, flushing the work before unregistering the device seemed more
+logical... but now that you mention it, I understand the race.
 
-ACK.
+Thanks
+
+Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
+
+
 > ---
 >  drivers/hwmon/hp_accel.c |    2 +-
 >  1 files changed, 1 insertions(+), 1 deletions(-)
@@ -42,9 +48,6 @@ ACK.
 >  	return lis3lv02d_remove_fs(&lis3_dev);
 >  }
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
 
 _______________________________________________
 lm-sensors mailing list
