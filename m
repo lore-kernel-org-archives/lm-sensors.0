@@ -1,29 +1,46 @@
-From: Sergey Kvachonok <ravenexp@gmail.com>
-Date: Sat, 08 May 2010 18:19:10 +0000
-Subject: Re: [lm-sensors] 3.1.2 sensord duplicate RRD name problem
-Message-Id: <AANLkTikyzPpimyaQGguEpIDDbirIPjO2e4s5ha_wPC0-@mail.gmail.com>
+From: Oliver Neukum <oneukum@suse.de>
+Date: Fri, 07 May 2010 15:47:40 +0000
+Subject: [lm-sensors] [patch]hp_accel: Fix race in device removal
+Message-Id: <201005071747.40801.oneukum@suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <25a99abe1003040437t333b4007k76850b406911925d@mail.gmail.com>
-In-Reply-To: <25a99abe1003040437t333b4007k76850b406911925d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@ucw.cz>, Pavel Herrmann <morpheus.ibis@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, stable@kernel.org
 
-On 5/6/10, Jean Delvare <khali@linux-fr.org> wrote:
-> On Thu, 6 May 2010 14:20:56 +0200, Jean Delvare wrote:
->> I have a patch ready, I'll give it some testing to make sure I got it
->> right, and then I'll post it here.
->
-> Andre, can you please comment on the patch below? Sergey, any chance
-> you could test it? It works for me on two different machines, but I may
-> not have covered all possible cases.
+From 64a9e0d8e585c65526248e6cf1659a13fb01a93a Mon Sep 17 00:00:00 2001
+From: Oliver Neukum <oliver@neukum.org>
+Date: Fri, 7 May 2010 17:41:59 +0200
+Subject: [PATCH] hp_accel: Fix race in device removal
 
-smartd starts ok, RRD contains temp1 and temp1_0. Still no idea how to
-tell which is which, but at least it starts and logs everything.
+The work queue has to be flushed after the device has been made
+inaccessible.
 
-Thanks for your hard work,
-Sergey
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
+---
+ drivers/hwmon/hp_accel.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/hp_accel.c b/drivers/hwmon/hp_accel.c
+index c8ab505..6f6e05d 100644
+--- a/drivers/hwmon/hp_accel.c
++++ b/drivers/hwmon/hp_accel.c
+@@ -328,9 +328,9 @@ static int lis3lv02d_remove(struct acpi_device *device, int type)
+ 	lis3lv02d_joystick_disable();
+ 	lis3lv02d_poweroff(&lis3_dev);
+ 
+-	flush_work(&hpled_led.work);
+ 	led_classdev_unregister(&hpled_led.led_classdev);
+-
++	flush_work(&hpled_led.work);
++	
+ 	return lis3lv02d_remove_fs(&lis3_dev);
+ }
+ 
+-- 
+1.6.4.2
+
 
 _______________________________________________
 lm-sensors mailing list
