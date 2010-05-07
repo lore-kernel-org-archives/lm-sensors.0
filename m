@@ -1,42 +1,90 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 20 May 2010 12:03:15 +0000
-Subject: Re: [lm-sensors] after some days,
-Message-Id: <20100520140315.7f01813c@hyperion.delvare>
+From: Huaxu Wan <huaxu.wan@linux.intel.com>
+Date: Fri, 07 May 2010 09:59:45 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from MSR
+Message-Id: <20100507095945.GB12190@owl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <g2p8cb75a4a1005110155u5b359f97z8e16ab5a2c475455@mail.gmail.com>
-In-Reply-To: <g2p8cb75a4a1005110155u5b359f97z8e16ab5a2c475455@mail.gmail.com>
+References: <20100305153811.GB15945@owl>
+In-Reply-To: <20100305153811.GB15945@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Cc: huaxu.wan@intel.com, khali@linux-fr.org
 
-Hi Arne,
 
-Please don't top-post.
+The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
+processers.
 
-> 2010/5/12 Jean Delvare <khali@linux-fr.org>:
-> > On Tue, 11 May 2010 11:39:33 +0200, Jean Delvare wrote:
-> > I took a look, I see the BIOS is defining an I/O region as part of
-> > PNP0C02 for the hardware monitoring chip (you probably can see it
-> > in /proc/ioports), but it doesn't seem to make any use of it. So I
-> > would rule out a BIOS interaction.
+Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
+---
+ drivers/hwmon/coretemp.c |   45 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 44 insertions(+), 1 deletions(-)
 
-On Mon, 17 May 2010 10:01:41 +0200, Arne Riecken wrote:
-> What to do now to track down the problem? I need to check the sensors
-> data. But doing sensors -s in a cron job is no real solution.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 237c68d..7a01032 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -241,6 +241,49 @@ static int __devinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *
+        return tjmax;
+ }
 
-We still have to determine whether the driver is responsible for the
-issue or not. If you can't live without the driver being loaded, we
-would have to either add an option to turn the driver to read-only
-mode, or to log all writes so that you can check what happens exactly.
-In both cases, this requires rebuilding the driver. Are you willing and
-able to do this? If you are, let me know and I'll provide a patch.
++static int __devinit get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
++{
++       /* The 100C is default for both mobile and non mobile CPUs */
++       int err;
++       u32 eax, edx;
++       u32 val;
++
++       /* A new feature of current Intel(R) processors, the
++          IA32_TEMPERATURE_TARGET(0x1a2) contains the TjMax value */
++       err = rdmsr_safe_on_cpu(id, 0x1a2, &eax, &edx);
++       if (err){
++               printk_once(KERN_WARNING DRVNAME  " : Unable to read TjMax from CPU.\n");
++       } else {
++               val = (eax >> 16 ) & 0xff;
++               /* If the TjMax is not reasonable, an assumption value
++                  will be used */
++               if (( val > 80) && (val < 120)){
++                       printk_once(KERN_INFO DRVNAME " : The TjMax is %d C. \n", val);
++                       return val * 1000;
++               }
++       }
++
++       /* For the early CPUs, an approximation is given.
++        NOTE: the given value may not be correct. */
++       switch(c->x86_model){
++       case 0xe :
++       case 0xf :
++       case 0x16 :
++       case 0x1a :
++               printk_once(KERN_WARNING DRVNAME  " : TjMax is assumed as 100 C! \n");
++               return 100000;
++               break;
++       case 0x17 :
++       case 0x1c :             /* Atom CPUs */
++               return adjust_tjmax(c, id, dev);
++               break;
++       default :
++               printk_once(KERN_WARNING DRVNAME " : Your CPU is not support yet,"
++                       "using the default TjMax: 100 C.\n");
++               return 100000;
++       }
++}
++
+ static int __devinit coretemp_probe(struct platform_device *pdev)
+ {
+        struct coretemp_data *data;
+@@ -283,7 +326,7 @@ static int __devinit coretemp_probe(struct platform_device *pdev)
+                }
+        }
 
-Honestly, I suspect a hardware defect. Nobody else ever reported a
-similar problem, while this driver is very popular.
+-       data->tjmax = adjust_tjmax(c, data->id, &pdev->dev);
++       data->tjmax = get_tjmax(c, data->id, &pdev->dev);
+        platform_set_drvdata(pdev, data);
 
--- 
-Jean Delvare
+        /* read the still undocumented IA32_TEMPERATURE_TARGET it exists
+--
+1.6.3.3.363.g725cf7
 
 _______________________________________________
 lm-sensors mailing list
