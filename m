@@ -1,7 +1,7 @@
 From: Greg KH <greg@kroah.com>
-Date: Fri, 07 May 2010 16:13:14 +0000
+Date: Fri, 07 May 2010 16:18:58 +0000
 Subject: Re: [lm-sensors] [PATCH] Device driver for DA9052 PMIC IC
-Message-Id: <20100507161314.GA20909@kroah.com>
+Message-Id: <20100507161858.GB20909@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3495EC08FA53E94AAA00CC4743D5BA7E010C1E94@pandora.diasemi.com>
 In-Reply-To: <3495EC08FA53E94AAA00CC4743D5BA7E010C1E94@pandora.diasemi.com>
@@ -16,14 +16,14 @@ On Fri, May 07, 2010 at 12:43:27PM +0100, David Dajun Chen wrote:
 > 
 > It is device driver for DA9052 Power Management IC from Dialog Semiconductor.
 
-What are we supposed to do with this?
+Oh, also please run your code through the scripts/checkpatch.pl script.
+It found:
+	total: 4635 errors, 1558 warnings, 24394 lines checked
+with this patch.
 
-Please read Documentation/SubmittingPatches for how to submit a patch
-(hint, you need to break it up, and provide a "Signed-off-by:" line, and
-send it to the correct people and subsystem mailing lists.)
-
-And why did you add a selinux file?  I think something is wrong with how
-you generated your patch.
+If you don't want to do the work to fix this up, please let me know and
+I'll be glad to move these drivers into the staging tree, where they can
+live until stuff like this is cleaned up.
 
 thanks,
 
