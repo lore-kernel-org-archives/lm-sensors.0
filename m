@@ -1,35 +1,52 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Fri, 07 May 2010 08:07:33 +0000
-Subject: Re: [lm-sensors] asus_atk0110 Not Activated in lm_sensors-3.1.1-3
-Message-Id: <w2r68676e01005070107zaee38202z10befc41ebbaef4d@mail.gmail.com>
+From: Florian Schwade <florian.schwade@googlemail.com>
+Date: Sun, 09 May 2010 20:19:11 +0000
+Subject: [lm-sensors] No temperature output with k10temp for AMD II X3 435
+Message-Id: <4BE718BF.4080101@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <s2p68676e01004280524w93c9234az452c4e30ac73e392@mail.gmail.com>
-In-Reply-To: <s2p68676e01004280524w93c9234az452c4e30ac73e392@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, May 7, 2010 at 6:48 AM, Marc <digitelp@yahoo.com> wrote:
-> Thanks for the response, but fortunately, I found the solution and its one
-> that your group ought to be telling others about.
+Hello,
+I have an AMD II X3 435 cpu. Sensors-detect successfully detects the=20
+k10temp module is needed.
 
-It's not that we're hiding it, it's even mentioned in the FAQ.
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no): y
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           Success!
+     (driver `k10temp')
+AMD Family 11h thermal sensors...                           No
+Intel Core family thermal sensor...                         No
+Intel Atom thermal sensor...                                No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
 
-> For later kernels, 2.6.32 the ACPI has gotten very strict and will not pe=
-rmit
-> older drivers to function. =C2=A0To get around all that I added acpi_enfo=
-rce_resources=3Dlax
-> to the kernel load and it did the trick.
 
-Yes, I'm aware of this (I wrote the patch that enabled strict
-validation by default). This is not the preferred solution though,
-you'll revert to having two drivers touching the same hardware without
-coordination.
-The real bug here is that asus_atk0110 - which uses the monitoring
-interface provided by Asus - is not working correctly on your board.
+I also checked that it is loaded correctly.
 
-Luca
+[florian@errorkiste ~]$ lsmod |grep k10temp
+k10temp                 2827  0
+
+If I run sensors to get the temperature the output is just:
+
+[florian@errorkiste ~]$ sensors
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:       +21.0=B0C  (high =3D +70.0=B0C)
+
+21=B0C is impossible to be the correct temperature. The BIOS reports my=20
+CPU running at something like 36=B0.
+The Kernel is: 2.6.33-ARCH
+lm-sensors version: lm_sensors 3.1.2-1
+
+I would appreciate any help. Thanks a lot!
+Regards
 
 _______________________________________________
 lm-sensors mailing list
