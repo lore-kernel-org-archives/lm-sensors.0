@@ -1,57 +1,70 @@
-From: Richard Purdie <rpurdie@rpsys.net>
-Date: Mon, 31 May 2010 21:48:32 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers: remove all
-Message-Id: <1275342512.24079.1559.camel@rex>
+From: Huaxu Wan <huaxu.wan@linux.intel.com>
+Date: Mon, 10 May 2010 03:35:25 +0000
+Subject: [lm-sensors] [PATCH 1/2 V2] hwmon: (coretemp) Detect the thermal
+Message-Id: <20100510033525.GC9181@owl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
-	 <20100531190911.GC30712@core.coreip.homeip.net>
-In-Reply-To: <20100531190911.GC30712@core.coreip.homeip.net>
+References: <20100507095459.GA12190@owl>
+In-Reply-To: <20100507095459.GA12190@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-i2c@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, George Joseph <george.joseph@fairview5.com>, Riku Voipio <riku.voipio@iki.fi>, Guillaume Ligneul <guillaume.ligneul@gmail.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Alessandro Rubini <rubini@cvml.unipv.it>, Colin Leroy <colin@colino.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, David Woodhouse <dwmw2@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Paul Gortmaker <p_gortmaker@yahoo.com>, Alessandro Zummo <a.zummo@towertech.it>, Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org, linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com, devel@driverdev.osuosl.org
+To: Huaxu Wan <huaxu.wan@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, huaxu.wan@intel.com, Carsten Emde <Carsten.Emde@osadl.org>
 
-On Mon, 2010-05-31 at 12:09 -0700, Dmitry Torokhov wrote:
-> On Mon, May 31, 2010 at 02:55:48PM +0200, Wolfram Sang wrote:
-> > I2C-drivers can use the clientdata-pointer to point to private data. As I2C
-> > devices are not really unregistered, but merely detached from their driver, it
-> > used to be the drivers obligation to clear this pointer during remove() or a
-> > failed probe(). As a couple of drivers forgot to do this, it was agreed that it
-> > was cleaner if the i2c-core does this clearance when appropriate, as there is
-> > no guarantee for the lifetime of the clientdata-pointer after remove() anyhow.
-> > This feature was added to the core with commit
-> > e4a7b9b04de15f6b63da5ccdd373ffa3057a3681 to fix the faulty drivers.
-> > 
-> > As there is no need anymore to clear the clientdata-pointer, remove all current
-> > occurrences in the drivers to simplify the code and prevent confusion.
-> > 
-> > Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > ---
-> > 
-> > Some more notes:
-> > 
-> > I waited for rc1 as I knew there were some drivers/patches coming along which
-> > needed to be processed, too.
-> > 
-> > I'd suggest that this goes via the i2c-tree, so we get rid of all occurences at
-> > once.
-> > 
-> 
-> Frankly I'd prefer taking input stuff through my tree with the goal of
-> .36 merge window just to minimize potential merge issues. This is a
-> simple cleanup patch that has no dependencies, so there is little gain
-> from doing it all in one go.
 
-How about asking Linus to take this one now, then its done and we can
-all move on rather than queuing up problems for the next merge window?
+The thermal sensors of Intel(R) CPUs can be detected by CPUID instruction,
+indicated by CPUID.06H.EAX[0].
 
-Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
+Signed-off-by: Carsten Emde <C.Emde@osadl.org>
+---
+ drivers/hwmon/coretemp.c |   24 +++++++-----------------
+ 1 files changed, 7 insertions(+), 17 deletions(-)
 
-Cheers,
-
-Richard
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index e9b7fbc..d194207 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -440,6 +440,7 @@ static int __init coretemp_init(void)
+ {
+ 	int i, err = -ENODEV;
+ 	struct pdev_entry *p, *n;
++	u32 eax;
+ 
+ 	/* quick check if we run Intel */
+ 	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+@@ -450,23 +451,12 @@ static int __init coretemp_init(void)
+ 		goto exit;
+ 
+ 	for_each_online_cpu(i) {
+-		struct cpuinfo_x86 *c = &cpu_data(i);
+-
+-		/* check if family 6, models 0xe (Pentium M DC),
+-		  0xf (Core 2 DC 65nm), 0x16 (Core 2 SC 65nm),
+-		  0x17 (Penryn 45nm), 0x1a (Nehalem), 0x1c (Atom),
+-		  0x1e (Lynnfield) */
+-		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
+-		    !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
+-			(c->x86_model = 0x16) || (c->x86_model = 0x17) ||
+-			(c->x86_model = 0x1a) || (c->x86_model = 0x1c) ||
+-			(c->x86_model = 0x1e))) {
+-
+-			/* supported CPU not found, but report the unknown
+-			   family 6 CPU */
+-			if ((c->x86 = 0x6) && (c->x86_model > 0xf))
+-				printk(KERN_WARNING DRVNAME ": Unknown CPU "
+-					"model 0x%x\n", c->x86_model);
++ 		/* check if the CPU has thermal sensor */
++ 		eax = cpuid_eax(0x06);
++ 		if (!(eax & 0x01)) {
++ 			struct cpuinfo_x86 *c = &cpu_data(i);
++ 			printk(KERN_WARNING DRVNAME ": CPU (model=0x%x)"
++ 				" has no thermal sensor!\n", c->x86_model);
+ 			continue;
+ 		}
+ 
+-- 
+1.6.3.3.363.g725cf7
 
 
 _______________________________________________
