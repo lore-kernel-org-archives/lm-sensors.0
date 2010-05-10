@@ -1,75 +1,117 @@
-From: Carsten Emde <C.Emde@osadl.org>
-Date: Mon, 17 May 2010 09:41:37 +0000
-Subject: [lm-sensors] [PATCH 1/2] Detect the thermal sensors by CPUID
-Message-Id: <20100517094340.019100599@osadl.org>
+From: Huaxu Wan <huaxu.wan@linux.intel.com>
+Date: Mon, 10 May 2010 03:50:31 +0000
+Subject: [lm-sensors] [PATCH 2/2 V2] hwmon: (coretemp) Get TjMax value from
+Message-Id: <20100510035031.GD9181@owl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100510035031.GD9181@owl> <20100514065808.GA11598@owl>
- <20100517094136.094800562@osadl.org>
+References: <20100507095945.GB12190@owl>
+In-Reply-To: <20100507095945.GB12190@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jean Delvare <khali@linux-fr.org>, Huaxu Wan <huaxu.wan@intel.com>, Carsten Emde <C.Emde@osadl.org>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, Henrique de Moraes Holschuh <hmh@hmh.eng.br>, Huaxu Wan <huaxu.wan@linux.intel.com>
+To: Huaxu Wan <huaxu.wan@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, huaxu.wan@intel.com, Carsten Emde <C.Emde@osadl.org>
 
-The thermal sensors of Intel(R) CPUs can be detected by CPUID instruction,
-indicated by CPUID.06H.EAX[0].
+The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
+processers.
 
-CC: Andrew Morton <akpm@linux-foundation.org>
-CC: Jean Delvare <khali@linux-fr.org>
-CC: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
 Signed-off-by: Carsten Emde <C.Emde@osadl.org>
-Reviewed-By: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-
 ---
- drivers/hwmon/coretemp.c |   34 +++++++++++++---------------------
- 1 file changed, 13 insertions(+), 21 deletions(-)
+ arch/x86/include/asm/msr-index.h |    2 +
+ drivers/hwmon/coretemp.c         |   52 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 52 insertions(+), 2 deletions(-)
 
-Index: head/drivers/hwmon/coretemp.c
-=================================--- head.orig/drivers/hwmon/coretemp.c
-+++ head/drivers/hwmon/coretemp.c
-@@ -451,28 +451,20 @@ static int __init coretemp_init(void)
+diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
+index 4604e6a..9bc0cf8 100644
+--- a/arch/x86/include/asm/msr-index.h
++++ b/arch/x86/include/asm/msr-index.h
+@@ -232,6 +232,8 @@
  
- 	for_each_online_cpu(i) {
- 		struct cpuinfo_x86 *c = &cpu_data(i);
--
--		/* check if family 6, models 0xe (Pentium M DC),
--		  0xf (Core 2 DC 65nm), 0x16 (Core 2 SC 65nm),
--		  0x17 (Penryn 45nm), 0x1a (Nehalem), 0x1c (Atom),
--		  0x1e (Lynnfield) */
--		if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
--		    !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
--			(c->x86_model = 0x16) || (c->x86_model = 0x17) ||
--			(c->x86_model = 0x1a) || (c->x86_model = 0x1c) ||
--			(c->x86_model = 0x1e))) {
--
--			/* supported CPU not found, but report the unknown
--			   family 6 CPU */
--			if ((c->x86 = 0x6) && (c->x86_model > 0xf))
--				printk(KERN_WARNING DRVNAME ": Unknown CPU "
--					"model 0x%x\n", c->x86_model);
--			continue;
-+		/*
-+		 * CPUID.06H.EAX[0] indicates whether the CPU has thermal
-+		 * sensors. We check this bit only, all the early CPUs
-+		 * without thermal sensors will be filtered out.
-+		 */
-+		if (c->cpuid_level >= 6 && (cpuid_eax(0x06) & 0x01)) {
-+			err = coretemp_device_add(i);
-+			if (err)
-+				goto exit_devices_unreg;
+ #define MSR_IA32_MISC_ENABLE		0x000001a0
+ 
++#define MSR_IA32_TEMPERATURE_TARGET	0x000001a2
 +
-+		} else {
-+			printk(KERN_INFO DRVNAME ": CPU (model=0x%x)"
-+				" has no thermal sensor.\n", c->x86_model);
+ /* MISC_ENABLE bits: architectural */
+ #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
+ #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index d194207..9959390 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -241,6 +241,54 @@ static int __devinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *
+ 	return tjmax;
+ }
+ 
++static int __devinit get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
++{
++	/* The 100C is default for both mobile and non mobile CPUs */
++	int err;
++	u32 eax, edx;
++	u32 val;
++
++	/* A new feature of current Intel(R) processors, the
++	   IA32_TEMPERATURE_TARGET contains the TjMax value */
++	err = rdmsr_safe_on_cpu(id, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
++	if (err){
++		dev_warn(dev, "Unable to read TjMax from CPU.\n");
++	} else {
++		val = (eax >> 16 ) & 0xff;
++		/*
++		 * If the TjMax is not plausible, an assumption
++		 * will be used
++		 */
++		if (( val > 80) && (val < 120)){
++			dev_info(dev, "TjMax is %d C. \n", val);
++			return val * 1000;
++		}
++	}
++
++	/*
++	 * An assumption is made for early CPUs and unreadable MSR.
++	 * NOTE: the given value may not be correct.
++	 */
++
++	switch(c->x86_model){
++	case 0xe :
++	case 0xf :
++	case 0x16 :
++	case 0x1a :
++		dev_warn(dev, "TjMax is assumed as 100 C! \n");
++		return 100000;
++		break;
++	case 0x17 :
++	case 0x1c :		/* Atom CPUs */
++		return adjust_tjmax(c, id, dev);
++		break;
++	default :
++		dev_warn(dev, "CPU (model=0x%x) is not supported yet,"
++			" using default TjMax of 100C.\n", c->x86_model);
++		return 100000;
++	}
++}
++
+ static int __devinit coretemp_probe(struct platform_device *pdev)
+ {
+ 	struct coretemp_data *data;
+@@ -283,14 +331,14 @@ static int __devinit coretemp_probe(struct platform_device *pdev)
  		}
--
--		err = coretemp_device_add(i);
--		if (err)
--			goto exit_devices_unreg;
  	}
- 	if (list_empty(&pdev_list)) {
- 		err = -ENODEV;
+ 
+-	data->tjmax = adjust_tjmax(c, data->id, &pdev->dev);
++	data->tjmax = get_tjmax(c, data->id, &pdev->dev);
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
+ 	   on older CPUs but not in this register, Atoms don't have it either */
+ 
+ 	if ((c->x86_model > 0xe) && (c->x86_model != 0x1c)) {
+-		err = rdmsr_safe_on_cpu(data->id, 0x1a2, &eax, &edx);
++		err = rdmsr_safe_on_cpu(data->id, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
+ 		if (err) {
+ 			dev_warn(&pdev->dev, "Unable to read"
+ 					" IA32_TEMPERATURE_TARGET MSR\n");
+-- 
+1.6.3.3.363.g725cf7
 
 
 _______________________________________________
