@@ -1,7 +1,7 @@
-From: =?ISO-8859-1?Q?=C9ric_Piel?= <eric.piel@tremplin-utc.net>
-Date: Fri, 07 May 2010 16:09:55 +0000
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Mon, 10 May 2010 22:46:32 +0000
 Subject: Re: [lm-sensors] [patch]hp_accel: Fix race in device removal
-Message-Id: <4BE43B53.9060502@tremplin-utc.net>
+Message-Id: <20100510154632.bbe181d8.akpm@linux-foundation.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201005071804.20462.oneukum@suse.de>
 In-Reply-To: <201005071804.20462.oneukum@suse.de>
@@ -9,10 +9,12 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Oliver Neukum <oneukum@suse.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Pavel Machek <pavel@ucw.cz>, Pavel Herrmann <morpheus.ibis@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, stable@kernel.org
+Cc: Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@ucw.cz>, Pavel Herrmann <morpheus.ibis@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, stable@kernel.org
 
-Op 07-05-10 18:04, Oliver Neukum schreef:
-> From 505056649f5ecb1ebb086981243b9870ce961a87 Mon Sep 17 00:00:00 2001
+On Fri, 7 May 2010 18:04:20 +0200
+Oliver Neukum <oneukum@suse.de> wrote:
+
+> >From 505056649f5ecb1ebb086981243b9870ce961a87 Mon Sep 17 00:00:00 2001
 > From: Oliver Neukum <oliver@neukum.org>
 > Date: Fri, 7 May 2010 18:02:07 +0200
 > Subject: [PATCH] hp_accel: Fix race in device removal
@@ -20,34 +22,21 @@ Op 07-05-10 18:04, Oliver Neukum schreef:
 > The work queue has to be flushed after the device has been made
 > inaccessible.
 > 
-> Signed-off-by: Oliver Neukum <oneukum@suse.de>
-Ah, flushing the work before unregistering the device seemed more
-logical... but now that you mention it, I understand the race.
 
-Thanks
+You cc'ed stable@kernel.org so presumably you think it's a pretty
+serious bug.
 
-Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
+But alas, I (and presumably others) cannot confirm that, because you
+didn't describe the bug :( This also means that if someone hits a
+problem with this driver, they won't easily be able to work out whether
+this patch will fix it.
 
 
-> ---
->  drivers/hwmon/hp_accel.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/hp_accel.c b/drivers/hwmon/hp_accel.c
-> index c8ab505..7580f55 100644
-> --- a/drivers/hwmon/hp_accel.c
-> +++ b/drivers/hwmon/hp_accel.c
-> @@ -328,8 +328,8 @@ static int lis3lv02d_remove(struct acpi_device *device, int type)
->  	lis3lv02d_joystick_disable();
->  	lis3lv02d_poweroff(&lis3_dev);
->  
-> -	flush_work(&hpled_led.work);
->  	led_classdev_unregister(&hpled_led.led_classdev);
-> +	flush_work(&hpled_led.work);
->  
->  	return lis3lv02d_remove_fs(&lis3_dev);
->  }
+Under what circumstances does it trigger?
 
+What are the observed effects when it triggers?
+
+Please always include this sort of information when sending bugfixes, thanks.
 
 _______________________________________________
 lm-sensors mailing list
