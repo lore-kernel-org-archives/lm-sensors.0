@@ -1,37 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 29 May 2010 19:47:50 +0000
-Subject: Re: [lm-sensors] k10temp module not working with AMD X2 240 and
-Message-Id: <20100529214750.15e18e79@hyperion.delvare>
+From: Huaxu Wan <huaxu.wan@linux.intel.com>
+Date: Tue, 11 May 2010 07:55:25 +0000
+Subject: [lm-sensors] [PATCH 1/2 V3] hwmon: (coretemp) Detect the thermal
+Message-Id: <20100511080112.GB19762@owl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <op.vc07mfswopt8b6@localhost.localdomain>
-In-Reply-To: <op.vc07mfswopt8b6@localhost.localdomain>
+References: <20100507095459.GA12190@owl>
+ <20100510033525.GC9181@owl>
+In-Reply-To: <20100510033525.GC9181@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Huaxu Wan <huaxu.wan@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, huaxu.wan@intel.com, Carsten Emde <Carsten.Emde@osadl.org>, Valdis.Kletnieks@vt.edu
 
-Hi Larry,
+The thermal sensors of Intel(R) CPUs can be detected by CPUID instruction,
+indicated by CPUID.06H.EAX[0].
 
-On Thu, 20 May 2010 18:26:29 -0700, Larry Gagnon wrote:
-> Using the Zotac GF-8200-C-E motherboard with an Athlon II X2 240 CPU.  
-> 'sensors-detect' finds the k10temp chip and I have modprobed the "k10temp"  
-> module successfully. I use the 2.6.33 kernel so k10temp is included.  
-> However, on running "sensors" an error is thrown that do not have the  
-> correct kernel modules loaded:
-> 
-> "No sensors found!
-> Make sure you loaded all the kernl drivers you need...".
-> 
-> Any ideas greatly appreciated.
+Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
+Signed-off-by: Carsten Emde <C.Emde@osadl.org>
+---
+ drivers/hwmon/coretemp.c |   34 +++++++++++++---------------------
+ 1 files changed, 13 insertions(+), 21 deletions(-)
 
-Which version of sensors-detect?
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index e9b7fbc..be0ddcf 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -451,28 +451,20 @@ static int __init coretemp_init(void)
 
-A number of family 10h CPU models have broken sensors, thus k10temp
-will refuse to bind to them. I guess your CPU is one of these. Please
-share the contents of /proc/cpuinfo.
+        for_each_online_cpu(i) {
+                struct cpuinfo_x86 *c = &cpu_data(i);
++               /*
++                * CPUID.06H.EAX[0] indicates whether the CPU has thermal
++                * sensors. We check this bit only, all the early CPUs
++                * without thermal sensors will be filtered out.
++                */
++               if (c->cpuid_level >= 6 && (cpuid_eax(0x06) & 0x01)) {
++                       err = coretemp_device_add(i);
++                       if (err)
++                               goto exit_devices_unreg;
 
--- 
-Jean Delvare
+-               /* check if family 6, models 0xe (Pentium M DC),
+-                 0xf (Core 2 DC 65nm), 0x16 (Core 2 SC 65nm),
+-                 0x17 (Penryn 45nm), 0x1a (Nehalem), 0x1c (Atom),
+-                 0x1e (Lynnfield) */
+-               if ((c->cpuid_level < 0) || (c->x86 != 0x6) ||
+-                   !((c->x86_model = 0xe) || (c->x86_model = 0xf) ||
+-                       (c->x86_model = 0x16) || (c->x86_model = 0x17) ||
+-                       (c->x86_model = 0x1a) || (c->x86_model = 0x1c) ||
+-                       (c->x86_model = 0x1e))) {
+-
+-                       /* supported CPU not found, but report the unknown
+-                          family 6 CPU */
+-                       if ((c->x86 = 0x6) && (c->x86_model > 0xf))
+-                               printk(KERN_WARNING DRVNAME ": Unknown CPU "
+-                                       "model 0x%x\n", c->x86_model);
+-                       continue;
+-               }
+-
+-               err = coretemp_device_add(i);
+-               if (err)
+-                       goto exit_devices_unreg;
++               } else {
++                       printk(KERN_INFO DRVNAME ": CPU (model=0x%x)"
++                               " has no thermal sensor!\n", c->x86_model);
++               }
+        }
+        if (list_empty(&pdev_list)) {
+                err = -ENODEV;
+--
+1.6.3.3.363.g725cf7
 
 _______________________________________________
 lm-sensors mailing list
