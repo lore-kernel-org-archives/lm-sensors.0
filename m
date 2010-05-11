@@ -1,33 +1,47 @@
-From: Greg KH <greg@kroah.com>
-Date: Fri, 07 May 2010 16:18:58 +0000
-Subject: Re: [lm-sensors] [PATCH] Device driver for DA9052 PMIC IC
-Message-Id: <20100507161858.GB20909@kroah.com>
+From: Dmitry Gromov <gromovd@gmail.com>
+Date: Tue, 11 May 2010 13:44:49 +0000
+Subject: Re: [lm-sensors] Intel Atom thermal sensors
+Message-Id: <AANLkTilYenvjB6qvbX2btH7agSnw3mZZxWSkwO3SJdj0@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <3495EC08FA53E94AAA00CC4743D5BA7E010C1E94@pandora.diasemi.com>
-In-Reply-To: <3495EC08FA53E94AAA00CC4743D5BA7E010C1E94@pandora.diasemi.com>
+References: <u2oe21d97a51004271247n7f5d4fbcn2a3de7429c738a08@mail.gmail.com>
+In-Reply-To: <u2oe21d97a51004271247n7f5d4fbcn2a3de7429c738a08@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Dajun Chen <Dajun.Chen@diasemi.com>
-Cc: linux-kernel@vger.kernel.org, Jonathan Cameron <jic23@cam.ac.uk>, sameo@linux.intel.com, lm-sensors@lm-sensors.org, rpurdie@rpsys.net, lrg@slimlogic.co.uk, dmitry.torokhov@gmail.com
+To: lm-sensors@vger.kernel.org
 
-On Fri, May 07, 2010 at 12:43:27PM +0100, David Dajun Chen wrote:
-> Dear all,
-> 
-> It is device driver for DA9052 Power Management IC from Dialog Semiconductor.
+Hi!
 
-Oh, also please run your code through the scripts/checkpatch.pl script.
-It found:
-	total: 4635 errors, 1558 warnings, 24394 lines checked
-with this patch.
+Well, if anyone is interested. I successfully installed Ubuntu Server 10.04:
 
-If you don't want to do the work to fix this up, please let me know and
-I'll be glad to move these drivers into the staging tree, where they can
-live until stuff like this is cleaned up.
+Linux dgwind1 2.6.32-21-generic #32-Ubuntu SMP Fri Apr 16 08:09:38 UTC
+2010 x86_64 GNU/Linux
 
-thanks,
+I re-run sensors-detect hoping it would fix configuration and allow
+Intel Atom sensors to be reported.
+It did detect those sensors... but failed to add coretemp driver to /etc/modules
 
-greg k-h
+Once I loaded coretemp driver, I was able to see 4 outputs of Atom
+temperature sensors - this is dual core N330 CPU, with hyperthreading.
+What is interesting though is that it seems like probe of one core
+reported as Core 0 and 2 and probe of the second core is reported as
+Core 1 and 3 - I thought, they'd be reported sequentially.
+
+There is also an issue with critical temperature for Atom processor.
+It is hardcoded in the driver as 90C, which is wrong, because for dual
+core Atom N330 it is only 85.2C:
+http://processorfinder.intel.com/details.aspx?sSpec=SLG9Y
+http://download.intel.com/design/processor/designex/320530.pdf
+
+I see there is a thread about a patch to read Tjmax from CPU, not sure
+if it will fix this issue or not.
+
+I'm still having issues with fan speed and adt7468 chip, but I'd
+better send separate email about it.
+
+-- 
+DG
+NJ
 
 _______________________________________________
 lm-sensors mailing list
