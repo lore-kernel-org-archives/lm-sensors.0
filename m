@@ -1,42 +1,132 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 May 2010 07:27:15 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (tmp421) Add nfactor support.
-Message-Id: <20100512092715.12639dcf@hyperion.delvare>
+From: Jeff Angielski <jeff@theptrgroup.com>
+Date: Mon, 17 May 2010 20:30:24 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (tmp421) Add nfactor support (2nd
+Message-Id: <4BF1A760.2010707@theptrgroup.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4BE81B7B.7010804@theptrgroup.com>
-	<20100511190327.GA2031@andre-laptop>
-	<4BE9B145.7000702@theptrgroup.com>
-In-Reply-To: <4BE9B145.7000702@theptrgroup.com>
+References: <20100511190327.GA2031@andre-laptop>
+In-Reply-To: <20100511190327.GA2031@andre-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Angielski <jeff@theptrgroup.com>
-Cc: lm-sensors <lm-sensors@lm-sensors.org>, Linuxppc-dev@lists.ozlabs.org, Andre Prendel <andre.prendel@gmx.de>
+To: Andre Prendel <andre.prendel@gmx.de>, linuxppc-dev@lists.ozlabs.org, Jeff Angielski <jeff@theptrgroup.com>, lm-sensors@lm-sensors.org
 
-Hi Jeff,
 
-On Tue, 11 May 2010 15:34:29 -0400, Jeff Angielski wrote:
-> On 05/11/2010 03:03 PM, Andre Prendel wrote:
-> > I'de prefer implementing the sysfs access methods in a consistent way (see other functions). That means adding the nfactor register to the tmp421_data structure and using tmp421_update_device() to update the structure.
-> 
-> I did this on purpose since the nfactor typically only changes once at 
-> runtime when you program it for your sensor.  It seemed like a waste of 
-> processing power and i2c bandwidth to read a "pseudo static" register 
-> over and over again.
-> 
-> It can easily be changed if that's what will help the community the best.
+Here is a second attempt at a patch to add nfactor support to the tmp421 driver.
 
-I get your point and it makes sense. However, we also have to ensure
-that no regular user can saturate the I2C link by repeatedly polling
-for the same register value. So, any sysfs attribute which triggers an
-immediate I2C transaction shouldn't be accessible by regular users
-(i.e. change the mode from 0644 to 0640).
+This includes the changes as suggested by Andre Prendel, the original driver author.
 
-An alternative is to slit the cache into short-lived (~ 1 or 2 seconds)
-and long-lived (1 to 5 minutes.) A number of drivers do this.
 
+From 8ebe84174ff6bd294656d77183758044f19d8900 Mon Sep 17 00:00:00 2001
+From: Jeff Angielski <jeff@theptrgroup.com>
+Date: Mon, 10 May 2010 10:26:34 -0400
+Subject: [PATCH] hwmon: (tmp421) Add nfactor support
+
+Add support for reading and writing the n-factor correction
+registers.  This is needed to compensate for the characteristics
+of a particular sensor hanging off of the remote channels.
+
+Signed-off-by: Jeff Angielski <jeff@theptrgroup.com>
+---
+ drivers/hwmon/tmp421.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 41 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/tmp421.c b/drivers/hwmon/tmp421.c
+index 738c472..ce1f6d1 100644
+--- a/drivers/hwmon/tmp421.c
++++ b/drivers/hwmon/tmp421.c
+@@ -49,6 +49,7 @@ enum chips { tmp421, tmp422, tmp423 };
+ 
+ static const u8 TMP421_TEMP_MSB[4]		= { 0x00, 0x01, 0x02, 0x03 };
+ static const u8 TMP421_TEMP_LSB[4]		= { 0x10, 0x11, 0x12, 0x13 };
++static const u8 TMP421_NFACTOR[3]		= { 0x21, 0x22, 0x23 };
+ 
+ /* Flags */
+ #define TMP421_CONFIG_SHUTDOWN			0x40
+@@ -76,6 +77,7 @@ struct tmp421_data {
+ 	int channels;
+ 	u8 config;
+ 	s16 temp[4];
++	s8 nfactor[3];
+ };
+ 
+ static int temp_from_s16(s16 reg)
+@@ -115,6 +117,10 @@ static struct tmp421_data *tmp421_update_device(struct device *dev)
+ 			data->temp[i] |= i2c_smbus_read_byte_data(client,
+ 				TMP421_TEMP_LSB[i]);
+ 		}
++		for (i = 1; i < data->channels; i++) {
++			data->nfactor[i - 1] = i2c_smbus_read_byte_data(client,
++				TMP421_NFACTOR[i - 1]);
++		}
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -157,6 +163,32 @@ static ssize_t show_fault(struct device *dev,
+ 		return sprintf(buf, "0\n");
+ }
+ 
++static ssize_t show_nfactor(struct device *dev,
++			  struct device_attribute *devattr, char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	struct tmp421_data *data = tmp421_update_device(dev);
++
++	return sprintf(buf, "%d\n", data->nfactor[index - 1]);
++}
++
++static ssize_t set_nfactor(struct device *dev,
++		struct device_attribute *devattr,
++		const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct tmp421_data *data = i2c_get_clientdata(client);
++	int index = to_sensor_dev_attr(devattr)->index;
++	int nfactor = simple_strtol(buf, NULL, 10);
++
++	mutex_lock(&data->update_lock);
++	i2c_smbus_write_byte_data(client, TMP421_NFACTOR[index - 1],
++			SENSORS_LIMIT(nfactor, -128, 127));
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
+ static mode_t tmp421_is_visible(struct kobject *kobj, struct attribute *a,
+ 				int n)
+ {
+@@ -177,19 +209,28 @@ static mode_t tmp421_is_visible(struct kobject *kobj, struct attribute *a,
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_value, NULL, 0);
+ static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_value, NULL, 1);
+ static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_fault, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_nfactor, S_IRUSR | S_IWUSR | S_IRGRP,
++		show_nfactor, set_nfactor, 1);
+ static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_value, NULL, 2);
+ static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_fault, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp3_nfactor, S_IRUSR | S_IWUSR | S_IRGRP,
++		show_nfactor, set_nfactor, 2);
+ static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_temp_value, NULL, 3);
+ static SENSOR_DEVICE_ATTR(temp4_fault, S_IRUGO, show_fault, NULL, 3);
++static SENSOR_DEVICE_ATTR(temp4_nfactor, S_IRUSR | S_IWUSR | S_IRGRP,
++		show_nfactor, set_nfactor, 3);
+ 
+ static struct attribute *tmp421_attr[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_fault.dev_attr.attr,
++	&sensor_dev_attr_temp2_nfactor.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_fault.dev_attr.attr,
++	&sensor_dev_attr_temp3_nfactor.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp4_fault.dev_attr.attr,
++	&sensor_dev_attr_temp4_nfactor.dev_attr.attr,
+ 	NULL
+ };
+ 
 -- 
-Jean Delvare
+Jeff Angielski
+The PTR Group
+www.theptrgroup.com
 
 _______________________________________________
 lm-sensors mailing list
