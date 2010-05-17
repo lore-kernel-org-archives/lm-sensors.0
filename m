@@ -1,65 +1,207 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 18 May 2010 09:02:53 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: (tmp102) Fix suspend and resume
-Message-Id: <20100518110253.58655906@hyperion.delvare>
+From: Ajai Puri <ajaipuri@yahoo.com>
+Date: Mon, 17 May 2010 16:30:27 +0000
+Subject: [lm-sensors] IPMI interface not found by sensors
+Message-Id: <74434.79338.qm@web52508.mail.re2.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="0-706316114-1274113827=:79338"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Suspend and resume functions shouldn't overwrite the configuration
-register. They should only alter the one bit they have to touch.
+--0-706316114-1274113827=:79338
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Also don't assume that register reads and writes always succeed.
-Handle errors properly, shall they happen.
+Hi,=0AI'm running a CentOS 2.6.18-164 kernel patched with the ipmisensors p=
+atch recommended for >=3D 2.6.17 versions, to try=A0and retrieve sensor inf=
+ormation through an IPMI=A0interface. =0A=0AUsing lm_sensors version 3.1.2:=
+=0A=0ASensors-detect locates=A0it as follows:=0A=0AFound `IPMI BMC KCS' at =
+0xca2...=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0 Success!=0A=A0=A0=A0 (confidence 8, driver `ipmisensors')=
+=A0=0A=A0=0AHowever, 'sensors reports 'no sensors found'. =0A=A0=0ADebuggin=
+g sensors with gdb, it would appear that=A0 no entries are added to the sen=
+sors_proc_chips_count through sensors_add_proc_chips from within sensors_re=
+ad_one_sysfs_chip. This in turn would appear to be a result of the ipmi ent=
+ry not having a "name" attribute as checked by sysfs_read_attr, under the c=
+omment /* ignore any device without name attribute */ in sysfs.c.=0A=A0=0Ai=
+pmisensors, ipmi_si and ipmi_msghandler are all loaded and running.=0A=A0=
+=0AWhat I'm not sure if I've missed a step somewhere that would add the nam=
+e attribute under the hwmon_path for this ipmi interface? Or what that "nam=
+e" attribute would look like.=0A=A0=0AOutput of sensors-detect, sensors, an=
+d dmesg (filtered for ipmi) is attached.=0A=A0=0AAny help would be apprecia=
+ted.=0A=A0=0Athanks,=0AAjai Puri mailto:ajaipuri@yahoo.com =0A=0A=0A      
+--0-706316114-1274113827=:79338
+Content-Type: text/plain; name="sensors.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="sensors.txt"
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Steven King <sfking@fdwdc.com>
----
- drivers/hwmon/tmp102.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+Tm8gc2Vuc29ycyBmb3VuZCENCk1ha2Ugc3VyZSB5b3UgbG9hZGVkIGFsbCB0
+aGUga2VybmVsIGRyaXZlcnMgeW91IG5lZWQuDQpUcnkgc2Vuc29ycy1kZXRl
+Y3QgdG8gZmluZCBvdXQgd2hpY2ggdGhlc2UgYXJlLg0KDQo=
 
---- linux-2.6.34.orig/drivers/hwmon/tmp102.c	2010-05-18 10:57:05.000000000 +0200
-+++ linux-2.6.34/drivers/hwmon/tmp102.c	2010-05-18 10:57:10.000000000 +0200
-@@ -239,19 +239,27 @@ static int __devexit tmp102_remove(struc
- static int tmp102_suspend(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-+	int config;
- 
--	tmp102_write_reg(client, TMP102_CONF_REG, TMP102_CONF_SD);
-+	config = tmp102_read_reg(client, TMP102_CONF_REG);
-+	if (config < 0)
-+		return config;
- 
--	return 0;
-+	config |= TMP102_CONF_SD;
-+	return tmp102_write_reg(client, TMP102_CONF_REG, config);
- }
- 
- static int tmp102_resume(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-+	int config;
- 
--	tmp102_write_reg(client, TMP102_CONF_REG, TMP102_CONFIG);
-+	config = tmp102_read_reg(client, TMP102_CONF_REG);
-+	if (config < 0)
-+		return config;
- 
--	return 0;
-+	config &= ~TMP102_CONF_SD;
-+	return tmp102_write_reg(client, TMP102_CONF_REG, config);
- }
- 
- static const struct dev_pm_ops tmp102_dev_pm_ops = {
+--0-706316114-1274113827=:79338
+Content-Type: text/plain; name="my_dmesg_output.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="my_dmesg_output.txt"
 
+aXBtaSBtZXNzYWdlIGhhbmRsZXIgdmVyc2lvbiAzOS4xDQpJUE1JIFN5c3Rl
+bSBJbnRlcmZhY2UgZHJpdmVyLg0KaXBtaV9zaTogVHJ5aW5nIFNNQklPUy1z
+cGVjaWZpZWQga2NzIHN0YXRlIG1hY2hpbmUgYXQgaS9vIGFkZHJlc3MgMHhj
+YTIsIHNsYXZlIGFkZHJlc3MgMHgyMCwgaXJxIDANCmlwbWk6IEZvdW5kIG5l
+dyBCTUMgKG1hbl9pZDogMHgwMDAwMDAsICBwcm9kX2lkOiAweDAwMDAsIGRl
+dl9pZDogMHgyMCkNCiBJUE1JIGtjcyBpbnRlcmZhY2UgaW5pdGlhbGl6ZWQN
+CmlwbWlzZW5zb3JzIC0gSVBNSSBCTUMgc2Vuc29ycyBpbnRlcmZhY2UNCmlw
+bWlzZW5zb3JzOiBSZWdpc3RlcmVkIElQTUkgMi4wIEJNQyBvdmVyIGludGVy
+ZmFjZSAwDQppcG1pc2Vuc29yczogU2VuZCAweDIyDQppcG1pc2Vuc29yczog
+cmVjZWl2ZWQgbWVzc2FnZQ0KaXBtaXNlbnNvcnM6IEdvdCBmaXJzdCByZXNp
+ZCAweDAwMDENCmlwbWlzZW5zb3JzOiBHZXQgU0RSIDB4MCAweDAgMHgwDQpp
+cG1pc2Vuc29yczogU2VuZCAweDIzIDB4MCAweDANCmlwbWlzZW5zb3JzOiBy
+ZWNlaXZlZCBtZXNzYWdlDQppcG1pc2Vuc29yczogR2V0IFNEUiAweDEgMHgx
+IDB4MTANCmlwbWlzZW5zb3JzOiBTZW5kIDB4MjMgMHgxIDB4MA0KaXBtaXNl
+bnNvcnM6IHJlY2VpdmVkIG1lc3NhZ2UNCmlwbWlzZW5zb3JzOiBHZXQgU0RS
+IDB4MSAweDEgMHgyMA0KaXBtaXNlbnNvcnM6IFNlbmQgMHgyMyAweDEgMHgw
+DQppcG1pc2Vuc29yczogcmVjZWl2ZWQgbWVzc2FnZQ0KaXBtaXNlbnNvcnM6
+IEdldCBTRFIgMHgxIDB4MSAweDMwDQppcG1pc2Vuc29yczogU2VuZCAweDIz
+IDB4MSAweDANCmlwbWlzZW5zb3JzOiBFcnJvciAweGNhIG9uIGNtZCAweGIv
+MHgyMw0KaXBtaXNlbnNvcnM6IHJlY2VpdmVkIG1lc3NhZ2UNCmlwbWlzZW5z
+b3JzOiBSZWR1Y2luZyBTRFIgcmVxdWVzdCBzaXplIHRvIDgNCmlwbWlzZW5z
+b3JzOiBHZXQgU0RSIDB4MCAweDAgMHgwDQppcG1pc2Vuc29yczogU2VuZCAw
+eDIzIDB4MCAweDANCmlwbWlzZW5zb3JzOiByZWNlaXZlZCBtZXNzYWdlDQpp
+cG1pc2Vuc29yczogU0RSIDA6IHR5cGUgMHgwNCAoASkNCmlwbWlzZW5zb3Jz
+OiBHZXQgU0RSIDB4MCAweDIgMHgwDQppcG1pc2Vuc29yczogU2VuZCAweDIz
+IDB4MCAweDANCmlwbWlzZW5zb3JzOiByZWNlaXZlZCBtZXNzYWdlDQppcG1p
+c2Vuc29yczogR2V0IFNEUiAweDEgMHgyIDB4OA0KaXBtaXNlbnNvcnM6IFNl
+bmQgMHgyMyAweDEgMHgwDQppcG1pc2Vuc29yczogcmVjZWl2ZWQgbWVzc2Fn
+ZQ0KaXBtaXNlbnNvcnM6IEdldCBTRFIgMHgxIDB4MiAweDEwDQppcG1pc2Vu
+c29yczogU2VuZCAweDIzIDB4MSAweDANCmlwbWlzZW5zb3JzOiByZWNlaXZl
+ZCBtZXNzYWdlDQppcG1pc2Vuc29yczogR2V0IFNEUiAweDEgMHgyIDB4MTgN
+CmlwbWlzZW5zb3JzOiBTZW5kIDB4MjMgMHgxIDB4MA0KaXBtaXNlbnNvcnM6
+IHJlY2VpdmVkIG1lc3NhZ2UNCmlwbWlzZW5zb3JzOiBHZXQgU0RSIDB4MSAw
+eDIgMHgyMA0KaXBtaXNlbnNvcnM6IFNlbmQgMHgyMyAweDEgMHgwDQppcG1p
+c2Vuc29yczogcmVjZWl2ZWQgbWVzc2FnZQ0KaXBtaXNlbnNvcnM6IEdldCBT
+RFIgMHgxIDB4MiAweDI4DQppcG1pc2Vuc29yczogU2VuZCAweDIzIDB4MSAw
+eDANCmlwbWlzZW5zb3JzOiByZWNlaXZlZCBtZXNzYWdlDQppcG1pc2Vuc29y
+czogR2V0IFNEUiAweDEgMHgyIDB4MzANCmlwbWlzZW5zb3JzOiBTZW5kIDB4
+MjMgMHgxIDB4MA0KaXBtaXNlbnNvcnM6IEVycm9yIDB4Y2Egb24gY21kIDB4
+Yi8weDIzDQppcG1pc2Vuc29yczogcmVjZWl2ZWQgbWVzc2FnZQ0KaXBtaXNl
+bnNvcnM6IElQTUkgYnVmZmVycyB0b28gc21hbGwsIGdpdmluZyB1cA0K
 
--- 
-Jean Delvare
+--0-706316114-1274113827=:79338
+Content-Type: text/plain; name="sensors-detect.txt.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="sensors-detect.txt.txt"
+
+U29tZSBTdXBlciBJL08gY2hpcHMgY29udGFpbiBlbWJlZGRlZCBzZW5zb3Jz
+LiBXZSBoYXZlIHRvIHdyaXRlIHRvDQpzdGFuZGFyZCBJL08gcG9ydHMgdG8g
+cHJvYmUgdGhlbS4gVGhpcyBpcyB1c3VhbGx5IHNhZmUuDQpEbyB5b3Ugd2Fu
+dCB0byBzY2FuIGZvciBTdXBlciBJL08gc2Vuc29ycz8gKFlFUy9ubyk6IFlF
+Uw0KUHJvYmluZyBmb3IgU3VwZXItSS9PIGF0IDB4MmUvMHgyZg0KVHJ5aW5n
+IGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvcicuLi4gICAgICAgICAg
+ICAgICAgICAgTm8NClRyeWluZyBmYW1pbHkgYFNNU0MnLi4uICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpUcnlpbmcgZmFtaWx5
+IGBWSUEvV2luYm9uZC9OdXZvdG9uL0ZpbnRlaycuLi4gICAgICAgICAgICAg
+ICBZZXMNCkZvdW5kIGBXaW5ib25kIFc4MzYyN0RIRyBTdXBlciBJTyBTZW5z
+b3JzJw0KICAgIChhZGRyZXNzIDB4YTEwLCBidXQgbm90IGFjdGl2YXRlZCkN
+ClByb2JpbmcgZm9yIFN1cGVyLUkvTyBhdCAweDRlLzB4NGYNClRyeWluZyBm
+YW1pbHkgYE5hdGlvbmFsIFNlbWljb25kdWN0b3InLi4uICAgICAgICAgICAg
+ICAgICAgIE5vDQpUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KVHJ5aW5nIGZhbWlseSBg
+VklBL1dpbmJvbmQvTnV2b3Rvbi9GaW50ZWsnLi4uICAgICAgICAgICAgICAg
+Tm8NClRyeWluZyBmYW1pbHkgYElURScuLi4gICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIE5vDQoNClNvbWUgc3lzdGVtcyAobWFpbmx5
+IHNlcnZlcnMpIGltcGxlbWVudCBJUE1JLCBhIHNldCBvZiBjb21tb24gaW50
+ZXJmYWNlcw0KdGhyb3VnaCB3aGljaCBzeXN0ZW0gaGVhbHRoIGRhdGEgbWF5
+IGJlIHJldHJpZXZlZCwgYW1vbmdzdCBvdGhlciB0aGluZ3MuDQpXZSBmaXJz
+dCB0cnkgdG8gZ2V0IHRoZSBpbmZvcm1hdGlvbiBmcm9tIFNNQklPUy4gSWYg
+d2UgZG9uJ3QgZmluZCBpdA0KdGhlcmUsIHdlIGhhdmUgdG8gcmVhZCBmcm9t
+IGFyYml0cmFyeSBJL08gcG9ydHMgdG8gcHJvYmUgZm9yIHN1Y2gNCmludGVy
+ZmFjZXMuIFRoaXMgaXMgbm9ybWFsbHkgc2FmZS4gRG8geW91IHdhbnQgdG8g
+c2NhbiBmb3IgSVBNSQ0KaW50ZXJmYWNlcz8gKFlFUy9ubyk6IFlFUw0KRm91
+bmQgYElQTUkgQk1DIEtDUycgYXQgMHhjYTIuLi4gICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgU3VjY2VzcyENCiAgICAoY29uZmlkZW5jZSA4LCBkcml2
+ZXIgYGlwbWlzZW5zb3JzJykNCg0KU29tZSBoYXJkd2FyZSBtb25pdG9yaW5n
+IGNoaXBzIGFyZSBhY2Nlc3NpYmxlIHRocm91Z2ggdGhlIElTQSBJL08gcG9y
+dHMuDQpXZSBoYXZlIHRvIHdyaXRlIHRvIGFyYml0cmFyeSBJL08gcG9ydHMg
+dG8gcHJvYmUgdGhlbS4gVGhpcyBpcyB1c3VhbGx5DQpzYWZlIHRob3VnaC4g
+WWVzLCB5b3UgZG8gaGF2ZSBJU0EgSS9PIHBvcnRzIGV2ZW4gaWYgeW91IGRv
+IG5vdCBoYXZlIGFueQ0KSVNBIHNsb3RzISBEbyB5b3Ugd2FudCB0byBzY2Fu
+IHRoZSBJU0EgSS9PIHBvcnRzPyAoWUVTL25vKTogWUVTDQpQcm9iaW5nIGZv
+ciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4JyBhdCAweDI5MC4uLiAg
+ICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3Ig
+TE03OScgYXQgMHgyOTAuLi4gICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5i
+b25kIFc4Mzc4MUQnIGF0IDB4MjkwLi4uICAgICAgICAgICAgICAgICAgIE5v
+DQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODJEJyBhdCAweDI5MC4uLiAg
+ICAgICAgICAgICAgICAgICBObw0KDQpMYXN0bHksIHdlIGNhbiBwcm9iZSB0
+aGUgSTJDL1NNQnVzIGFkYXB0ZXJzIGZvciBjb25uZWN0ZWQgaGFyZHdhcmUN
+Cm1vbml0b3JpbmcgZGV2aWNlcy4gVGhpcyBpcyB0aGUgbW9zdCByaXNreSBw
+YXJ0LCBhbmQgd2hpbGUgaXQgd29ya3MNCnJlYXNvbmFibHkgd2VsbCBvbiBt
+b3N0IHN5c3RlbXMsIGl0IGhhcyBiZWVuIHJlcG9ydGVkIHRvIGNhdXNlIHRy
+b3VibGUNCm9uIHNvbWUgc3lzdGVtcy4NCkRvIHlvdSB3YW50IHRvIHByb2Jl
+IHRoZSBJMkMvU01CdXMgYWRhcHRlcnMgbm93PyAoWUVTL25vKTogWUVTDQpG
+b3VuZCB1bmtub3duIFNNQnVzIGFkYXB0ZXIgODA4NjozYjMwIGF0IDAwMDA6
+MDA6MWYuMy4NClNvcnJ5LCBubyBzdXBwb3J0ZWQgUENJIGJ1cyBhZGFwdGVy
+cyBmb3VuZC4NCk1vZHVsZSBpMmMtZGV2IGxvYWRlZCBzdWNjZXNzZnVsbHku
+DQoNCk5leHQgYWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDA0MDAg
+KGkyYy0wKQ0KRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFlFUy9uby9zZWxl
+Y3RpdmVseSk6IFlFUw0KQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHgxYQ0K
+UHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjEnLi4uICAgICAg
+ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNl
+cyBBRE0xMDIxQS9BRE0xMDIzJy4uLiAgICAgICAgICAgIE5vDQpQcm9iaW5n
+IGZvciBgTWF4aW0gTUFYMTYxNycuLi4gICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTdBJy4uLiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBN
+YXhpbSBNQVgxNjY4Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IE5vDQpQcm9iaW5nIGZvciBgTWF4aW0gTUFYMTgwNScuLi4gICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1B
+WDE5ODknLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClBy
+b2JpbmcgZm9yIGBNYXhpbSBNQVg2NjU1L01BWDY2NTYnLi4uICAgICAgICAg
+ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgVEkgVEhNQzEwJy4uLiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
+b3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04NCcuLi4gICAgICAgICAg
+ICAgICAgTm8NClByb2JpbmcgZm9yIGBHZW5lc3lzIExvZ2ljIEdMNTIzU00n
+Li4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgT25z
+ZW1pIE1DMTA2NicuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBO
+bw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDE2MTgnLi4uICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBNYXhpbSBNQVgx
+NjE5Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9i
+aW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTgyL0xNODMnLi4u
+ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NTQvTUFY
+NjY5MCcuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
+IGBNYXhpbSBNQVg2NjgwL01BWDY2ODEnLi4uICAgICAgICAgICAgICAgICAg
+ICAgIE5vDQpQcm9iaW5nIGZvciBgVGV4YXMgSW5zdHJ1bWVudHMgQU1DNjgy
+MScuLi4gICAgICAgICAgICAgICAgICBObw0KQ2xpZW50IGZvdW5kIGF0IGFk
+ZHJlc3MgMHgxYg0KUHJvYmluZyBmb3IgYE1heGltIE1BWDY2NTAvTUFYNjY1
+MScuLi4gICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBh
+dCBhZGRyZXNzIDB4NTINClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
+RE0xMDMzJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
+ciBgQW5hbG9nIERldmljZXMgQURNMTAzNCcuLi4gICAgICAgICAgICAgICAg
+ICAgICBObw0KUHJvYmluZyBmb3IgYFNQRCBFRVBST00nLi4uICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkNsaWVudCBmb3VuZCBhdCBh
+ZGRyZXNzIDB4NTMNClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0x
+MDMzJy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
+QW5hbG9nIERldmljZXMgQURNMTAzNCcuLi4gICAgICAgICAgICAgICAgICAg
+ICBObw0KUHJvYmluZyBmb3IgYFNQRCBFRVBST00nLi4uICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgTm8NCg0KTm93IGZvbGxvd3MgYSBzdW1t
+YXJ5IG9mIHRoZSBwcm9iZXMgSSBoYXZlIGp1c3QgZG9uZS4NCkp1c3QgcHJl
+c3MgRU5URVIgdG8gY29udGludWU6DQoNCkRyaXZlciBgaXBtaXNlbnNvcnMn
+Og0KICAqIElTQSBidXMsIGFkZHJlc3MgMHhjYTINCiAgICBDaGlwIGBJUE1J
+IEJNQyBLQ1MnIChjb25maWRlbmNlOiA4KQ0KDQpEbyB5b3Ugd2FudCB0byBv
+dmVyd3JpdGUgL2V0Yy9zeXNjb25maWcvbG1fc2Vuc29ycz8gKFlFUy9ubyk6
+IFlFUw0KU3RhcnRpbmcgbG1fc2Vuc29yczogbG9hZGluZyBtb2R1bGUgaXBt
+aS1zaSBpcG1pc2Vuc29ycyBObyBzZW5zb3JzIGZvdW5kIQ0KTWFrZSBzdXJl
+IHlvdSBsb2FkZWQgYWxsIHRoZSBrZXJuZWwgZHJpdmVycyB5b3UgbmVlZC4N
+ClRyeSBzZW5zb3JzLWRldGVjdCB0byBmaW5kIG91dCB3aGljaCB0aGVzZSBh
+cmUuDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIFtGQUlMRURdDQpVbmxvYWRpbmcgaTJjLWRl
+di4uLiBPSw0K
+
+--0-706316114-1274113827=:79338
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--0-706316114-1274113827=:79338--
