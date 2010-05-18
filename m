@@ -1,148 +1,98 @@
-From: "Wan, Huaxu" <huaxu.wan@intel.com>
-Date: Tue, 18 May 2010 05:07:20 +0000
+From: Dmitry Gromov <gromovd@gmail.com>
+Date: Tue, 18 May 2010 06:45:03 +0000
 Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: Update coretemp to current
-Message-Id: <625BA99ED14B2D499DC4E29D8138F150181F574C31@shsmsx502.ccr.corp.intel.com>
+Message-Id: <AANLkTimQnaUvXs75rpTOcW7CODXWgUfzekY9FCDa5S8P@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_000_625BA99ED14B2D499DC4E29D8138F150181F574C31shsmsx502ccrc_"
+Content-Type: multipart/mixed; boundary="===============3319913875925957719=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100517094136.094800562@osadl.org>
 In-Reply-To: <20100517094136.094800562@osadl.org>
 To: lm-sensors@vger.kernel.org
 
---===============1113717577558413995==
-Content-Language: en-US
-Content-Type: multipart/alternative;
-	boundary="_000_625BA99ED14B2D499DC4E29D8138F150181F574C31shsmsx502ccrc_"
+--===============3319913875925957719==
+Content-Type: multipart/alternative; boundary=001636e907d49c21030486d8af8c
 
---_000_625BA99ED14B2D499DC4E29D8138F150181F574C31shsmsx502ccrc_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-The TjMax of N270 is 90C, according the official documents [1][2].
-
-.
-[1]http://ark.intel.com/Product.aspx?id=3D36331&processor=3DN270&spec-codes=
-=3DSLB73
-[2]http://download.intel.com/design/processor/datashts/319977.pdf
-
-Thanks
-Huaxu
-
-________________________________
-From: Dmitry Gromov [mailto:gromovd@gmail.com]
-Sent: Tuesday, May 18, 2010 12:48 PM
-To: Carsten Emde
-Cc: Andrew Morton; LKML; LM Sensors; Wan, Huaxu
-Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: Update coretemp to current Int=
-el processors
+--001636e907d49c21030486d8af8c
+Content-Type: text/plain; charset=ISO-8859-1
 
 Hi!
 
-On Mon, May 17, 2010 at 05:41, Carsten Emde <C.Emde@osadl.org<mailto:C.Emde=
-@osadl.org>> wrote:
-Hi!
+On Tue, May 18, 2010 at 01:07, Wan, Huaxu <huaxu.wan@intel.com> wrote:
 
-Here comes the current version of the coretemp patches. Huaxu did the initi=
-al
-work; Jean suggested to submit them directly to Andrew.
+>  Hi,
+>
+> The TjMax of N270 is 90C, according the official documents [1][2].
+>
+> .
+> [1]
+> http://ark.intel.com/Product.aspx?id=36331&processor=N270&spec-codes=SLB73
+> [2]http://download.intel.com/design/processor/datashts/319977.pdf
+>
+> Thanks
+> Huaxu
+>
+> Thank you, this is exactly why I;m asking. I think, "guessing" values here
+can be dangerous - who knows what critical apps they will relied upon.
 
-I made some style changes as advised by checkpatch.
-
-The patches have been tested successfully on Core 2 Duo and Quad, and on
-Nehalem and Nehalem/Westmere where temperature readings were plausible and
-changed with load as expected. When tested on an Atom processor (N270), the
-temperature values were identical to previous versions of the coretemp
-module and also changed with load. However, the readings should be higher
-by 10 to 15C as compared to the outside temperature of the processor. Huaxu=
-,
-could you check? I would guess TjMax to be 105 instead of 90C in these
-processors.
+And 90C seems to be good for N200 series of Atom CPUs only - I could not
+find TjMax value published for N330 Dual Core  (quite popular one). Intel
+only published Tcase for it:
+http://ark.intel.com/Product.aspx?id=35641
+So, if for N270 Tcase = TjMax = 90C, then, I'd suggest to use Tcase = 85.2C
+for N330 TjMax value.
 
 
-I apologize, if I ask a stupid question, but are you saying that TjMax in c=
-oretemp.c should be set to higher value than Tcase-max value specified in I=
-ntel documents?
-
-Thanks!
-
---
+-- 
 DG
 NJ
 
-
---_000_625BA99ED14B2D499DC4E29D8138F150181F574C31shsmsx502ccrc_
-Content-Type: text/html; charset="us-ascii"
+--001636e907d49c21030486d8af8c
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dus-ascii">
-<META content=3D"MSHTML 6.00.2900.5945" name=3DGENERATOR></HEAD>
-<BODY>
-<DIV dir=3Dltr align=3Dleft><FONT face=3DArial>Hi,</FONT></DIV>
-<DIV><FONT face=3DArial></FONT>&nbsp;</DIV>
-<DIV dir=3Dltr align=3Dleft><FONT face=3DArial>The TjMax of N270 is 90C, ac=
-cording the=20
-official documents [1][2].</FONT></DIV>
-<DIV dir=3Dltr align=3Dleft><FONT=20
-face=3DArial><BR>.<BR>[1]http://ark.intel.com/Product.aspx?id=3D36331&amp;p=
-rocessor=3DN270&amp;spec-codes=3DSLB73<BR>[2]http://download.intel.com/desi=
-gn/processor/datashts/319977.pdf</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV dir=3Dltr align=3Dleft><FONT face=3DArial>Thanks<BR>Huaxu</FONT></DIV>=
-<BR>
-<BLOCKQUOTE=20
-style=3D"PADDING-LEFT: 5px; MARGIN-LEFT: 5px; BORDER-LEFT: #000000 2px soli=
-d; MARGIN-RIGHT: 0px">
-  <DIV class=3DOutlookMessageHeader lang=3Den-us dir=3Dltr align=3Dleft>
-  <HR tabIndex=3D-1>
-  <FONT face=3DTahoma size=3D2><B>From:</B> Dmitry Gromov [mailto:gromovd@g=
-mail.com]=20
-  <BR><B>Sent:</B> Tuesday, May 18, 2010 12:48 PM<BR><B>To:</B> Carsten=20
-  Emde<BR><B>Cc:</B> Andrew Morton; LKML; LM Sensors; Wan,=20
-  Huaxu<BR><B>Subject:</B> Re: [lm-sensors] [PATCH 0/2] hwmon: Update coret=
-emp=20
-  to current Intel processors<BR></FONT><BR></DIV>
-  <DIV></DIV><FONT color=3D#3333ff><FONT size=3D2><FONT=20
-  face=3Dgeorgia,serif>Hi!<BR></FONT></FONT></FONT><BR>
-  <DIV class=3Dgmail_quote>On Mon, May 17, 2010 at 05:41, Carsten Emde <SPA=
-N=20
-  dir=3Dltr>&lt;<A href=3D"mailto:C.Emde@osadl.org">C.Emde@osadl.org</A>&gt=
-;</SPAN>=20
-  wrote:<BR>
-  <BLOCKQUOTE class=3Dgmail_quote=20
-  style=3D"PADDING-LEFT: 1ex; MARGIN: 0pt 0pt 0pt 0.8ex; BORDER-LEFT: rgb(2=
-04,204,204) 1px solid">Hi!<BR><BR>Here=20
-    comes the current version of the coretemp patches. Huaxu did the=20
-    initial<BR>work; Jean suggested to submit them directly to Andrew.<BR><=
-BR>I=20
-    made some style changes as advised by checkpatch.<BR><BR>The patches ha=
-ve=20
-    been tested successfully on Core 2 Duo and Quad, and on<BR>Nehalem and=
-=20
-    Nehalem/Westmere where temperature readings were plausible and<BR>chang=
-ed=20
-    with load as expected. When tested on an Atom processor (N270),=20
-    the<BR>temperature values were identical to previous versions of the=20
-    coretemp<BR>module and also changed with load. However, the readings sh=
-ould=20
-    be higher<BR>by 10 to 15C as compared to the outside temperature of the=
-=20
-    processor. Huaxu,<BR>could you check? I would guess TjMax to be 105 ins=
-tead=20
-    of 90C in these<BR>processors.<BR><BR></BLOCKQUOTE>
-  <DIV><BR>I apologize, if I ask a stupid question, but are you saying that=
-=20
-  TjMax in coretemp.c should be set to higher value than Tcase-max value=20
-  specified in Intel documents?<BR></DIV></DIV><BR>Thanks!<BR><BR>--=20
-  <BR>DG<BR>NJ<BR><BR></BLOCKQUOTE></BODY></HTML>
+<font color=3D"#3333ff"><font size=3D"2"><font face=3D"georgia,serif">Hi!<b=
+r></font></font></font><br><div class=3D"gmail_quote">On Tue, May 18, 2010 =
+at 01:07, Wan, Huaxu <span dir=3D"ltr">&lt;<a href=3D"mailto:huaxu.wan@inte=
+l.com">huaxu.wan@intel.com</a>&gt;</span> wrote:<br>
 
---_000_625BA99ED14B2D499DC4E29D8138F150181F574C31shsmsx502ccrc_--
+<blockquote class=3D"gmail_quote" style=3D"margin: 0pt 0pt 0pt 0.8ex; borde=
+r-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">
 
 
---===============1113717577558413995==
+
+<div>
+<div dir=3D"ltr" align=3D"left"><font face=3D"Arial">Hi,</font></div>
+<div><font face=3D"Arial"></font>=A0</div>
+<div dir=3D"ltr" align=3D"left"><font face=3D"Arial">The TjMax of N270 is 9=
+0C, according the=20
+official documents [1][2].</font></div>
+<div dir=3D"ltr" align=3D"left"><font face=3D"Arial"><br>.<br>[1]<a href=3D=
+"http://ark.intel.com/Product.aspx?id=3D36331&amp;processor=3DN270&amp;spec=
+-codes=3DSLB73" target=3D"_blank">http://ark.intel.com/Product.aspx?id=3D36=
+331&amp;processor=3DN270&amp;spec-codes=3DSLB73</a><br>
+
+[2]<a href=3D"http://download.intel.com/design/processor/datashts/319977.pd=
+f" target=3D"_blank">http://download.intel.com/design/processor/datashts/31=
+9977.pdf</a></font></div>
+<div>=A0</div>
+<div dir=3D"ltr" align=3D"left"><font face=3D"Arial">Thanks<br>Huaxu</font>=
+</div><br></div></blockquote><div>Thank you, this is exactly why I;m asking=
+. I think, &quot;guessing&quot; values here can be dangerous - who knows wh=
+at critical apps they will relied upon.<br>
+
+<br>And 90C seems to be good for N200 series of Atom CPUs only - I could no=
+t find TjMax value published for N330 Dual Core=A0 (quite popular one). Int=
+el only published Tcase for it:<br><a href=3D"http://ark.intel.com/Product.=
+aspx?id=3D35641">http://ark.intel.com/Product.aspx?id=3D35641</a><br>
+
+So, if for N270 Tcase =3D TjMax =3D 90C, then, I&#39;d suggest to use Tcase=
+ =3D 85.2C for N330 TjMax value.<br><br>=A0<br></div></div>-- <br>DG<br>NJ<=
+br><br>
+
+--001636e907d49c21030486d8af8c--
+
+
+--===============3319913875925957719==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -152,4 +102,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1113717577558413995==--
+--===============3319913875925957719==--
