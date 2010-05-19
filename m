@@ -1,164 +1,31 @@
-From: Andre Prendel <andre.prendel@gmx.de>
-Date: Wed, 19 May 2010 07:26:59 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 19 May 2010 13:16:26 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (tmp421) Add nfactor support (2nd
-Message-Id: <20100519072659.GA2069@andre-laptop>
+Message-Id: <20100519151626.1e1262be@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4BF1A760.2010707@theptrgroup.com>
 	<20100518113838.GA2052@andre-laptop>
 	<4BF2A5A9.6010907@theptrgroup.com>
-In-Reply-To: <4BF2A5A9.6010907@theptrgroup.com>
+	<20100519072659.GA2069@andre-laptop>
+In-Reply-To: <20100519072659.GA2069@andre-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jeff Angielski <jeff@theptrgroup.com>
-Cc: Jean Delvare <khali@linux-fr.org>, linuxppc-dev@lists.ozlabs.org, lm-sensors@lm-sensors.org
+To: Andre Prendel <andre.prendel@gmx.de>
+Cc: linuxppc-dev@lists.ozlabs.org, lm-sensors@lm-sensors.org
 
-On Tue, May 18, 2010 at 10:35:21AM -0400, Jeff Angielski wrote:
-> On 05/18/2010 07:38 AM, Andre Prendel wrote:
-> 
-> > I'd prefer starting i with 0 and as condition i < data->channels - 1.
-> > 
-> > for (i = 0; i < data->channels -1; i++) {
-> > 	data->nfactor[i] = i2c_smbus_read_byte_data(client,
-> > 		TMP421_NFACTOR[i]);
-> > }
-> > 
-> > What do you think?
-> 
-> The first channel is the local channel which does not support nfactor,
-> so we skip it.  Having the for loop start at 1 illustrates this concept.
-> 
-> > Indentation of the arguments is wrong (see other functions).
-> 
-> Should be fixed in the patch below.  
+Hi Andre,
 
-Ok, so there is only one remaining task :) Please update the documentation under
-Documentation/hwmon/tmp421. Then you will get my Acked-by.
+On Wed, 19 May 2010 09:26:59 +0200, Andre Prendel wrote:
+> Jean, should we describe this interface in Documentation/hwmon/sysfs-interface
+> too? For the moment tmp421 is the only driver implementing it.
 
-Jean, should we describe this interface in Documentation/hwmon/sysfs-interface
-too? For the moment tmp421 is the only driver implementing it. 
- 
-> I am not sure why the patch file itself still shows the function arguments 
-> off by one.  When I apply it to a raw tmp421.c all of the arguments 
-> line up correctly.
-> 
-> After rebasing the changes, I am creating the patch as:
-> 
-> $ git format-patch -1 HEAD
-> 
-> Pretty simple stuff...
-> 
-> 
-> 
-> >From 467c74e1d8118e34e84a150f18b5e55c6593c777 Mon Sep 17 00:00:00 2001
-> From: Jeff Angielski <jeff@theptrgroup.com>
-> Date: Mon, 10 May 2010 10:26:34 -0400
-> Subject: [PATCH] hwmon: (tmp421) Add nfactor support
-> 
-> Add support for reading and writing the n-factor correction
-> registers.  This is needed to compensate for the characteristics
-> of a particular sensor hanging off of the remote channels.
-> 
-> Signed-off-by: Jeff Angielski <jeff@theptrgroup.com>
-> ---
->  drivers/hwmon/tmp421.c |   41 +++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 41 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/hwmon/tmp421.c b/drivers/hwmon/tmp421.c
-> index 738c472..7944627 100644
-> --- a/drivers/hwmon/tmp421.c
-> +++ b/drivers/hwmon/tmp421.c
-> @@ -49,6 +49,7 @@ enum chips { tmp421, tmp422, tmp423 };
->  
->  static const u8 TMP421_TEMP_MSB[4]		= { 0x00, 0x01, 0x02, 0x03 };
->  static const u8 TMP421_TEMP_LSB[4]		= { 0x10, 0x11, 0x12, 0x13 };
-> +static const u8 TMP421_NFACTOR[3]		= { 0x21, 0x22, 0x23 };
->  
->  /* Flags */
->  #define TMP421_CONFIG_SHUTDOWN			0x40
-> @@ -76,6 +77,7 @@ struct tmp421_data {
->  	int channels;
->  	u8 config;
->  	s16 temp[4];
-> +	s8 nfactor[3];
->  };
->  
->  static int temp_from_s16(s16 reg)
-> @@ -115,6 +117,10 @@ static struct tmp421_data *tmp421_update_device(struct device *dev)
->  			data->temp[i] |= i2c_smbus_read_byte_data(client,
->  				TMP421_TEMP_LSB[i]);
->  		}
-> +		for (i = 1; i < data->channels; i++) {
-> +			data->nfactor[i - 1] = i2c_smbus_read_byte_data(client,
-> +				TMP421_NFACTOR[i - 1]);
-> +		}
->  		data->last_updated = jiffies;
->  		data->valid = 1;
->  	}
-> @@ -157,6 +163,32 @@ static ssize_t show_fault(struct device *dev,
->  		return sprintf(buf, "0\n");
->  }
->  
-> +static ssize_t show_nfactor(struct device *dev,
-> +			    struct device_attribute *devattr, char *buf)
-> +{
-> +	int index = to_sensor_dev_attr(devattr)->index;
-> +	struct tmp421_data *data = tmp421_update_device(dev);
-> +
-> +	return sprintf(buf, "%d\n", data->nfactor[index - 1]);
-> +}
-> +
-> +static ssize_t set_nfactor(struct device *dev,
-> +			   struct device_attribute *devattr,
-> +			   const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	struct tmp421_data *data = i2c_get_clientdata(client);
-> +	int index = to_sensor_dev_attr(devattr)->index;
-> +	int nfactor = simple_strtol(buf, NULL, 10);
-> +
-> +	mutex_lock(&data->update_lock);
-> +	i2c_smbus_write_byte_data(client, TMP421_NFACTOR[index - 1],
-> +				  SENSORS_LIMIT(nfactor, -128, 127));
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return count;
-> +}
-> +
->  static mode_t tmp421_is_visible(struct kobject *kobj, struct attribute *a,
->  				int n)
->  {
-> @@ -177,19 +209,28 @@ static mode_t tmp421_is_visible(struct kobject *kobj, struct attribute *a,
->  static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_value, NULL, 0);
->  static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp_value, NULL, 1);
->  static SENSOR_DEVICE_ATTR(temp2_fault, S_IRUGO, show_fault, NULL, 1);
-> +static SENSOR_DEVICE_ATTR(temp2_nfactor, S_IRUSR | S_IWUSR | S_IRGRP,
-> +			  show_nfactor, set_nfactor, 1);
->  static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp_value, NULL, 2);
->  static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_fault, NULL, 2);
-> +static SENSOR_DEVICE_ATTR(temp3_nfactor, S_IRUSR | S_IWUSR | S_IRGRP,
-> +			  show_nfactor, set_nfactor, 2);
->  static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_temp_value, NULL, 3);
->  static SENSOR_DEVICE_ATTR(temp4_fault, S_IRUGO, show_fault, NULL, 3);
-> +static SENSOR_DEVICE_ATTR(temp4_nfactor, S_IRUSR | S_IWUSR | S_IRGRP,
-> +			  show_nfactor, set_nfactor, 3);
->  
->  static struct attribute *tmp421_attr[] = {
->  	&sensor_dev_attr_temp1_input.dev_attr.attr,
->  	&sensor_dev_attr_temp2_input.dev_attr.attr,
->  	&sensor_dev_attr_temp2_fault.dev_attr.attr,
-> +	&sensor_dev_attr_temp2_nfactor.dev_attr.attr,
->  	&sensor_dev_attr_temp3_input.dev_attr.attr,
->  	&sensor_dev_attr_temp3_fault.dev_attr.attr,
-> +	&sensor_dev_attr_temp3_nfactor.dev_attr.attr,
->  	&sensor_dev_attr_temp4_input.dev_attr.attr,
->  	&sensor_dev_attr_temp4_fault.dev_attr.attr,
-> +	&sensor_dev_attr_temp4_nfactor.dev_attr.attr,
->  	NULL
->  };
->
-Thanks,
-Andre
+If the values are expressed in a standard unit (i.e. not raw register
+values) then yes, it would be nice to have a standard interface
+described for these files.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
