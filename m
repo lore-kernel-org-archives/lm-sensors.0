@@ -1,72 +1,56 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 29 May 2010 20:05:14 +0000
-Subject: Re: [lm-sensors] Gigabyte MA785GMT-UD2H
-Message-Id: <20100529220514.550fed78@hyperion.delvare>
+Date: Wed, 19 May 2010 12:36:15 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Add sch5127 support to dme1737
+Message-Id: <20100519143615.54087d3e@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1OI4SR-000499-9R@mendel.bio.caltech.edu>
-In-Reply-To: <E1OI4SR-000499-9R@mendel.bio.caltech.edu>
+References: <191fb4ca1001192115u22b07199h1fb4eceff0f795f@mail.gmail.com>
+In-Reply-To: <191fb4ca1001192115u22b07199h1fb4eceff0f795f@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+Hi Juerg,
 
-On Fri, 28 May 2010 11:38:59 -0700, David Mathog wrote:
-> Anybody have a sensors.conf for this board that works?
-
-I don't.
-
-> Attempting to get lm-sensors working on a Gigabyte MA785GMT-UD2H
-> motherboard on Ubuntu 10.04LTS.   Kernel is 2.6.32-22, lm-sensors is
-> 3.1.2-2, and CPU is AMD Athlon(tm) II X2 240 Processor. sensors-detect
-> added these to /etc/modules:
+On Tue, 13 Apr 2010 10:49:15 +0200, Jean Delvare wrote:
+> On Fri, 9 Apr 2010 10:20:40 -0700, Juerg Haefliger wrote:
+> > I don't understand your proposal. Could you elaborate?
 > 
->  it87
->  lm90
-
-Did you actually load the lm90 driver? It doesn't show below. Maybe it
-was for a graphics adapter?
-
-> and made some comment about k10temp.  There is no k10temp module, but
-> there is a k8temp.  modprobe k8temp doesn't change anything though.
-
-The k10temp driver was added in kernel 2.6.33. It is also available as
-a standalone driver at:
-http://khali.linux-fr.org/devel/misc/k10temp/
-
-> In any case, the output of sensors clearly isn't correct, for instance,
-> there are no 5V and 12V readings:
+> I propose that you don't change the value of force_id in the driver.
+> This value can be set by the user and should be considered read-only by
+> the driver itself. The resulting code might be slightly larger, but it
+> is also more correct:
 > 
-> it8718-isa-0228
-> Adapter: ISA adapter
-> in0:         +1.14 V  (min =  +0.00 V, max =  +4.08 V)   
-> in1:         +1.60 V  (min =  +0.00 V, max =  +4.08 V)   
-> in2:         +3.36 V  (min =  +0.00 V, max =  +4.08 V)   
-> in3:         +2.99 V  (min =  +0.00 V, max =  +4.08 V)   
-> in4:         +3.04 V  (min =  +0.00 V, max =  +4.08 V)   
-> in5:         +3.36 V  (min =  +0.00 V, max =  +4.08 V)   
-> in6:         +4.08 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
-> in7:         +2.00 V  (min =  +0.00 V, max =  +4.08 V)   
-> Vbat:        +3.12 V
-> fan1:       1662 RPM  (min =    0 RPM)
-> fan2:          0 RPM  (min =    0 RPM)
-> fan3:          0 RPM  (min =    0 RPM)
-> fan4:       1184 RPM  (min =    0 RPM)
-> temp1:       +27.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = thermistor
-> temp2:       +27.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = thermal diode
-> temp3:       +29.0°C  (low  = +127.0°C, high = +127.0°C)  sensor = thermistor
-> cpu0_vid:   +1.050 V
+> 	/* Skip chip detection if module is loaded with force_id parameter */
+> 	switch (force_id) {
+> 	case SCH5127_ID:
+> 		data->type = sch5127;
+> 		break;
+> 	case SCH3112_ID:
+> 		data->type = sch311x;
+> 		break;
+> 	default:
+> 		company = dme1737_read(data, DME1737_REG_COMPANY);
+> 		device = dme1737_read(data, DME1737_REG_DEVICE);
+> 
+> 		if ((company = DME1737_COMPANY_SMSC) &&
+> 		    (device = SCH311X_DEVICE)) {
+> 			data->type = sch5127;
+> 		} else if ((company = DME1737_COMPANY_SMSC) &&
+> 			   (device = SCH5127_DEVICE)) {
+> 			data->type = sch311x;
+> 		} else {
+> 			err = -ENODEV;
+> 			goto exit_kfree;
+> 		}
+> 	}
+> 
+> 	data->name = data->type = sch5127 ? "sch5127" : "sch311x";
 
-You "simply" need a proper configuration file. If you want help from
-us, we need the following:
+Any progress with this patch? Would be nice to finally have support for
+the SCH5127 in kernel 2.6.35.
 
-* Messages in the kernel log when loading the it87 driver.
-* If you have Windows installed on the machine, all the values reported
-  by Gigabyte's EasyTune software.
-* All the hardware monitoring values reported in the BIOS. If some
-  items oscillate between different values, we need all values.
-
+Thanks,
 -- 
 Jean Delvare
 
