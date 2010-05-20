@@ -1,59 +1,38 @@
-From: Dmitry Gromov <gromovd@gmail.com>
-Date: Wed, 19 May 2010 03:12:51 +0000
-Subject: Re: [lm-sensors] [PATCH 0/2] hwmon: Update coretemp to current
-Message-Id: <AANLkTimgz4OF48ryaLAeXmbes786iKBLT0F7_h6ytAeP@mail.gmail.com>
+From: Wim Van Sebroeck <wim@iguana.be>
+Date: Thu, 20 May 2010 07:52:29 +0000
+Subject: Re: [lm-sensors] [PATCH 3/3] [RFC] watchdog: f71808e_wdt: new
+Message-Id: <20100520075229.GO4008@infomag.iguana.be>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100510035031.GD9181@owl> <20100514065808.GA11598@owl> 
-	<20100517094136.094800562@osadl.org> <AANLkTinQlH7LhCAz00WaHqbbslcSqipzVx4tDoQKSqIL@mail.gmail.com> 
-	<625BA99ED14B2D499DC4E29D8138F150181F574C31@shsmsx502.ccr.corp.intel.com> 
-	<AANLkTimQnaUvXs75rpTOcW7CODXWgUfzekY9FCDa5S8P@mail.gmail.com> 
-	<20100519005032.GA26906@owl>
-In-Reply-To: <20100519005032.GA26906@owl>
+References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk> <1269523063-30346-1-git-send-email-me@mortis.eu> <1269523063-30346-2-git-send-email-me@mortis.eu> <1269523063-30346-3-git-send-email-me@mortis.eu> <20100330090639.GA8822@salidar.me.mortis.eu>
+In-Reply-To: <20100330090639.GA8822@salidar.me.mortis.eu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Huaxu Wan <huaxu.wan@linux.intel.com>
-Cc: "Wan, Huaxu" <huaxu.wan@intel.com>, Andrew Morton <akpm@linux-foundation.org>, LM Sensors <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>, Carsten Emde <C.Emde@osadl.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Giel van Schijndel <me@mortis.eu>
+Cc: Hans de Goede <hdegoede@redhat.com>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Wim Van Sebroeck <wim@iguana.be>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi!
+Hi Giel,
 
-On Tue, May 18, 2010 at 20:50, Huaxu Wan <huaxu.wan@linux.intel.com> wrote:
-> On 02:45 Tue 18 May, Dmitry Gromov wrote:
->> Hi!
->>
->> And 90C seems to be good for N200 series of Atom CPUs only - I could not
->> find TjMax value published for N330 Dual Core =A0(quite popular one). In=
-tel
->> only published Tcase for it:
->> http://ark.intel.com/Product.aspx?id5641
->> So, if for N270 Tcase =3D TjMax =3D 90C, then, I'd suggest to use Tcase =
-=3D 85.2C
->> for N330 TjMax value.
->
-> Quoted a sentence from [1], "Unless specified otherwise, all specificatio=
-ns for
-> the processor are at TJ =3D 90=B0C", I believe the TjMax of 330 is 90C to=
-o.
->
+> On Thu, Mar 25, 2010 at 02:17:43PM +0100, Giel van Schijndel wrote:
+> > Add a new watchdog driver for the Fintek F71808E Super I/O chip.
+> 
+> Updated patch:
+>  * fixes a bug where detection wouldn't function properly if a
+>    non-Fintek device was found (or a wrong Super I/O port chosen).
+>  * Add support for the F71882FG
+> 
+> NOTE: This patch depends on patch [1] (applied in [2]) and patch [3].
+> 
+> [1] https://patchwork.kernel.org/patch/89023/
+> [2] http://git.kernel.org/?p=linux/kernel/git/jbarnes/pci-2.6.git;a=commit;h16607809324cc796c0809630b6ae8a768404296
+> [3] https://patchwork.kernel.org/patch/88235/
 
-Well, that refers for the values in that specific table and entire
-document (which I went through as well) does not specify TjMax :(
-Similar document for N270 series does specify TjMax explicitly in Table 14:
-http://download.intel.com/design/processor/datashts/320032.pdf
+Driver looks OK to me. Can't apply it before the I/O resource sharing is in place.
+How do you want to proceed?
 
-Another document, "Thermal and Mechanical Design Guidelines" for Atom
-300 series:
-http://download.intel.com/design/processor/designex/320530.pdf
-specifies Tcase-max =3D 85.2C
-Thinking about this a bit, I think Tcase-max should be lower than
-TjMax, which probably is still 90C.
-The document itself is a good reading too.
+Kind regards,
+Wim.
 
-Anyway, thank you very much for your help, Huaxu!
-
---=20
-DG
-NJ
 
 _______________________________________________
 lm-sensors mailing list
