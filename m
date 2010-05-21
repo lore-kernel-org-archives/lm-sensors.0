@@ -1,38 +1,25 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 29 May 2010 19:40:35 +0000
-Subject: Re: [lm-sensors] [PATCH v3 2/2] hwmon: (ltc4245) expose all GPIO
-Message-Id: <20100529214035.23ce0a59@hyperion.delvare>
+From: "Larry Gagnon" <lggagnon@uniserve.com>
+Date: Fri, 21 May 2010 01:26:29 +0000
+Subject: [lm-sensors] k10temp module not working with AMD X2 240 and Zotac
+Message-Id: <op.vc07mfswopt8b6@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1274975804-13254-1-git-send-email-iws@ovro.caltech.edu>
-In-Reply-To: <1274975804-13254-1-git-send-email-iws@ovro.caltech.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ira,
+Using the Zotac GF-8200-C-E motherboard with an Athlon II X2 240 CPU.  
+'sensors-detect' finds the k10temp chip and I have modprobed the "k10temp"  
+module successfully. I use the 2.6.33 kernel so k10temp is included.  
+However, on running "sensors" an error is thrown that do not have the  
+correct kernel modules loaded:
 
-On Thu, 27 May 2010 08:56:44 -0700, Ira W. Snyder wrote:
-> Add support for exposing all GPIO pins as analog voltages. Though this is
-> not an ideal use of the chip, some hardware engineers may decide that the
-> LTC4245 meets their design requirements when studying the datasheet.
-> 
-> The GPIO pins are sampled in round-robin fashion, meaning that a slow
-> reader will see stale data. A userspace application can detect this,
-> because it will get -EAGAIN when reading from a sysfs file which contains
-> stale data.
-> 
-> Users can choose to use this feature on a per-chip basis by using either
-> platform data or the OF device tree (where applicable).
-> 
-> Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
-> ---
-> (...)
+"No sensors found!
+Make sure you loaded all the kernl drivers you need...".
 
-Applied, thanks.
+Any ideas greatly appreciated.
 
--- 
-Jean Delvare
+Larry Gagnon
 
 _______________________________________________
 lm-sensors mailing list
