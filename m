@@ -1,44 +1,67 @@
-From: Oliver Neukum <oneukum@suse.de>
-Date: Tue, 11 May 2010 06:04:45 +0000
-Subject: Re: [lm-sensors] [patch]hp_accel: Fix race in device removal
-Message-Id: <201005110804.45251.oneukum@suse.de>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Tue, 25 May 2010 12:21:27 +0000
+Subject: Re: [lm-sensors] [RFC][PATCH] Add support for TMP105
+Message-Id: <4BFBC0C7.2010401@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201005071804.20462.oneukum@suse.de> <201005110755.07717.oneukum@suse.de> <20100510225725.6bfdc4a5.akpm@linux-foundation.org>
-In-Reply-To: <20100510225725.6bfdc4a5.akpm@linux-foundation.org>
+References: <0680EC522D0CC943BC586913CF3768C003B32B4012@dbde02.ent.ti.com>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B32B4012@dbde02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>, Pavel Machek <pavel@ucw.cz>, Pavel Herrmann <morpheus.ibis@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, stable@kernel.org
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Am Dienstag, 11. Mai 2010 04:57:25 schrieb Andrew Morton:
-> On Tue, 11 May 2010 07:55:07 +0200 Oliver Neukum <oneukum@suse.de> wrote:
+On 05/25/10 13:12, Datta, Shubhrajyoti wrote:
 > 
-> > Am Dienstag, 11. Mai 2010 00:46:32 schrieb Andrew Morton:
-> > > But alas, I (and presumably others) cannot confirm that, because you
-> > > didn't describe the bug :( This also means that if someone hits a
-> > > problem with this driver, they won't easily be able to work out whether
-> > > this patch will fix it.
-> > > 
-> > > 
-> > > Under what circumstances does it trigger?
-> > > 
-> > > What are the observed effects when it triggers?
-> > > 
-> > > Please always include this sort of information when sending bugfixes, thanks.
-> > 
-> > Sorry,
-> > 
-> > the patch closes a window during which a work queue might remain
-> > active after the device is removed and would then lead to ACPI calls
-> > with undefined behavior.
+> Adds the driver support for the TMP105 temperature sensor device. The
+> interface is I2C.The driver supports the read of the temperature values.
 > 
-> Had anyone observed this in the field?  Was a machine crashing, perhaps?
+Still on the wrong list... cc'ing lm-sensors...
+Please check MAINTAINERS for the correct mailing list for patches.
 
-No, this was found during a code review.
 
-	Regards
-		Oliver
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+> ---
+>  drivers/hwmon/Kconfig |    3 ++-
+>  drivers/hwmon/lm75.c  |    2 ++
+>  2 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index a4a5352..7a137d5 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -483,7 +483,8 @@ config SENSORS_LM75
+>  		- NXP's LM75A
+>  		- ST Microelectronics STDS75
+>  		- TelCom (now Microchip) TCN75
+> -		- Texas Instruments TMP100, TMP101, TMP75, TMP175, TMP275
+> +		- Texas Instruments TMP100, TMP101, TMP105, TMP75, TMP175, 
+> +			TMP275
+>  
+>  	  This driver supports driver model based binding through board
+>  	  specific I2C device tables.
+> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+> index 8ae2cfe..5646342 100644
+> --- a/drivers/hwmon/lm75.c
+> +++ b/drivers/hwmon/lm75.c
+> @@ -46,6 +46,7 @@ enum lm75_type {		/* keep sorted in alphabetical order */
+>  	tcn75,
+>  	tmp100,
+>  	tmp101,
+> +	tmp105,
+>  	tmp175,
+>  	tmp275,
+>  	tmp75,
+> @@ -220,6 +221,7 @@ static const struct i2c_device_id lm75_ids[] = {
+>  	{ "tcn75", tcn75, },
+>  	{ "tmp100", tmp100, },
+>  	{ "tmp101", tmp101, },
+> +	{ "tmp105", tmp105, },
+>  	{ "tmp175", tmp175, },
+>  	{ "tmp275", tmp275, },
+>  	{ "tmp75", tmp75, },
+
 
 _______________________________________________
 lm-sensors mailing list
