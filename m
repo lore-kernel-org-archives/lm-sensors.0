@@ -1,12 +1,18 @@
 From: =?UTF-8?B?dHVyZ3V0IGthbGZhb8SfbHU=?= <turgut@kalfaoglu.com>
-Date: Thu, 20 May 2010 09:53:30 +0000
+Date: Tue, 25 May 2010 19:53:22 +0000
 Subject: [lm-sensors] trouble configuring an ASUS M51VA laptop
-Message-Id: <4BF5069A.7030602@kalfaoglu.com>
+Message-Id: <4BFC2AB2.7070407@kalfaoglu.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4BF5069A.7030602@kalfaoglu.com>
+In-Reply-To: <4BF5069A.7030602@kalfaoglu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
+
+I sent this message a few days, but I wonder if it was distributed..
+Thanks, -turgut
+
 
 Hi there. Under Fedora 11, I am unable to get sensors-detect to detect=20
 my laptop's ACPI details.
