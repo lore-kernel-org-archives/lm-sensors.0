@@ -1,50 +1,32 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 27 May 2010 08:56:08 +0000
+Date: Thu, 27 May 2010 09:37:01 +0000
 Subject: Re: [lm-sensors] Coretemp ERROR: Can't get value of subfeature
-Message-Id: <20100527105608.276fc3dc@hyperion.delvare>
+Message-Id: <20100527113701.5905dea1@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTil33EQzUCcwbJT_VHMZKj1FPCwrTCkH28i3FcC5@mail.gmail.com>
 In-Reply-To: <AANLkTil33EQzUCcwbJT_VHMZKj1FPCwrTCkH28i3FcC5@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Huang,
+Huang,
 
-On Thu, 27 May 2010 10:41:14 +0200, Dong Huang wrote:
-> Hello everyone,
-> 
-> i am a newbie here, want to check the temperature of my motherboard with
-> lm_sensors, unfortunately i got error message as i run sensors. So I really
-> need your help, thanks in advance.
-> 
-> (...)
-> *5. output of sensors-detect*
-> Shutting down sensors:
-> 
-> done
-> # sensors-detect revision 5729 (2009-06-02 15:51:29 +0200)
-> # System: VMware, Inc. VMware Virtual Platform
-> # Board: Intel Corporation 440BX Desktop Reference Platform
+Please keep the lm-sensors list in the loop, and please don't top-post.
 
-It makes no sense to run sensors or any _hardware_ monitoring
-application on a _virtual_ machine. Hardware monitoring should be done
-on the host system, not on the guests.
+On Thu, 27 May 2010 11:02:31 +0200, Dong Huang wrote:
+> Hi Jean,
+> thanks for the blitz answer,
+> i am testing lm_sensors, it's why on a vitual machine, and my host is not
+> linux, but windows, do you think it would work if i installed lm_sensor
+> unter my windows operating system?
 
-> (...)
-> *3. The output of sensors: *
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> ERROR: Can't get value of subfeature temp1_input: Can't read
-> Core 0:       +0.0°C  (high = +100.0°C, crit = +100.0°C)
-
-I presume that VMware simply doesn't allow guest drivers to access CPU
-MSR. Nothing we can do.
+No. lm-sensors is Linux-only. But there are many hardware monitoring
+tools available for Windows, starting with the one mainboard vendors
+often provide themselves.
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
