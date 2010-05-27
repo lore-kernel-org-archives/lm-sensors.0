@@ -1,124 +1,377 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 26 May 2010 21:10:01 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (ltc4245) expose all GPIO pins
-Message-Id: <AANLkTilGy4C8iYab6tk9qQDjL7KIafpA5r92uaTwz98m@mail.gmail.com>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Thu, 27 May 2010 15:56:44 +0000
+Subject: [lm-sensors] [PATCH v3 2/2] hwmon: (ltc4245) expose all GPIO pins
+Message-Id: <1274975804-13254-1-git-send-email-iws@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1271199569-3880-3-git-send-email-iws@ovro.caltech.edu>
-In-Reply-To: <1271199569-3880-3-git-send-email-iws@ovro.caltech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 26, 2010 at 2:56 PM, Ira W. Snyder <iws@ovro.caltech.edu> wrote:
-> On Wed, May 26, 2010 at 02:37:28PM -0600, Grant Likely wrote:
->> On Wed, May 26, 2010 at 1:39 PM, Ira W. Snyder <iws@ovro.caltech.edu> wr=
-ote:
->> > On Wed, May 26, 2010 at 08:42:22PM +0200, Jean Delvare wrote:
->> >> On Wed, 26 May 2010 10:22:44 -0700, Ira W. Snyder wrote:
->> >> > On Wed, May 26, 2010 at 06:36:59PM +0200, Jean Delvare wrote:
->> >> > > Sorry for not being clear. I wasn't objecting to the stub's exist=
-ence,
->> >> > > but to the fact that it was doing something. I expected it to do
->> >> > > nothing at all, and ltc4245_show_voltage() would be used for in9.
->> >> >
->> >> > Oh, ok. The ltc4245_show_voltage() function reads the voltage regis=
-ter
->> >> > values directly from data->vregs[]. When the extra GPIO inputs are
->> >> > enabled, I have two choices:
->> >> >
->> >> > 1) store them in the new data->gpios[] array
->> >> > 2) store them in data->vregs[]
->> >> >
->> >> > For #1, ltc4245_show_voltage() doesn't work anymore, since it reads
->> >> > voltage register values from data->vregs[].
->> >> >
->> >> > For #2, I would have to re-expand data->vregs[] to include all of t=
-he
->> >> > GPIO inputs, like it was before. Also, I would need to make
->> >> > ltc4245_get_voltage() handle the -EAGAIN error code.
->> >> >
->> >> > I think the code is easier to understand if all the GPIOs are treat=
-ed in
->> >> > the same way, and not completely special for GPIOADC1 vs GPIOADC[23=
-].
->> >> > That's why I chose #1.
->> >> >
->> >> > If I do a hybrid approach (store GPIOADC1 in data->vregs[] and
->> >> > GPIOADC[23] in data->gpios[]), then I have to make ltc4245_get_volt=
-age()
->> >> > robust against errors too. Is this what you're suggesting?
->> >>
->> >> No. But let's wait and see if you move to OF platform data, the whole
->> >> question will be moot. If you keep the config option approach, I'll
->> >> propose an iterative patch and we can discuss it then.
->> >>
->> >> > (...)
->> >> > Any thoughts about the kernel config option vs. platform data, and =
-how
->> >> > it relates to the OF bindings?
->> >>
->> >> I would prefer platform-data-based. But I fear I don't know anything
->> >> about OF bindings. Better ask the embedded folks (e.g. Grant Likely),
->> >> they will know.
->> >>
->> >
->> > Grant, you're listed in MAINTAINERS as the OF bindings maintainer. Is =
-it
->> > currently possible for the i2c OF binding to pass platform_data to hwm=
-on
->> > drivers that are probed via the device tree? If so, can you point me to
->> > an example. If not, can you suggest what I should do?
->> >
->> > Here is a short example from my device tree (a lightly modified 834x_m=
-ds
->> > device tree):
->> >
->> > i2c@3100 {
->> > =E1 =E1 =E1 =E1#address-cells =3D <1>;
->> > =E1 =E1 =E1 =E1#size-cells =3D <0>;
->> > =E1 =E1 =E1 =E1cell-index =3D <1>;
->> > =E1 =E1 =E1 =E1compatible =3D "fsl-i2c";
->> > =E1 =E1 =E1 =E1reg =3D <0x3100 0x100>;
->> > =E1 =E1 =E1 =E1interrupts =3D <15 0x8>;
->> > =E1 =E1 =E1 =E1interrupt-parent =3D <&ipic>;
->> > =E1 =E1 =E1 =E1clock-frequency =3D <400000>;
->> >
->> > =E1 =E1 =E1 =E1ltc4245@XX {
->> > =E1 =E1 =E1 =E1 =E1 =E1 =E1 =E1compatible =3D "LLTC,ltc4245";
->> > =E1 =E1 =E1 =E1 =E1 =E1 =E1 =E1reg =3D <0>; =E1 =E1 =E1// from bootloa=
-der
->> > =E1 =E1 =E1 =E1};
->> > };
->> >
->> > I'd like to be able to send platform data to the drivers/hwmon/ltc4245=
-.c
->> > driver. On my platform, this is probed automatically using the device
->> > tree snippet above.
->>
->> What is in the platform data?
->
-> A bool/int should be sufficient.
->
->> As of the .35 merge window, the device
->> node pointer lives in struct device, so it is available to all Linux
->> device drivers if CONFIG_OF is set. =A0If it is simply data that needs
->> to be passed, then the driver itself can extract it from the tree in
->> the absence of pdata. =A0If you need to pass function pointers or the
->> like, then probably the best thing to do is to register a bus notifier
->> in the platform code before registering devices. =A0That way the
->> platform code can intercept the device and register pdata before the
->> device is bound to a driver.
->
-> Ok, so I should wrap the OF detection code in CONFIG_OF in my driver,
-> right? I just quickly browsed through the code, and it seems like it
-> should be straightforward to use pdata and then fall back on OF data.
+Add support for exposing all GPIO pins as analog voltages. Though this is
+not an ideal use of the chip, some hardware engineers may decide that the
+LTC4245 meets their design requirements when studying the datasheet.
 
-Correct.  The goal is to allow the driver-specific OF adapter code to
-live with the driver, while still having as little as possible impact
-on driver design as a whole.
+The GPIO pins are sampled in round-robin fashion, meaning that a slow
+reader will see stale data. A userspace application can detect this,
+because it will get -EAGAIN when reading from a sysfs file which contains
+stale data.
 
-g.
+Users can choose to use this feature on a per-chip basis by using either
+platform data or the OF device tree (where applicable).
+
+Signed-off-by: Ira W. Snyder <iws@ovro.caltech.edu>
+---
+
+v1 -> v2:
+* use platform data or OF to configure extra GPIO support
+
+v2 -> v3:
+* use register value for current GPIO setting
+* improve documentation
+
+ Documentation/hwmon/ltc4245 |   24 ++++++-
+ drivers/hwmon/ltc4245.c     |  177 ++++++++++++++++++++++++++++++++++++++++---
+ include/linux/i2c/ltc4245.h |   21 +++++
+ 3 files changed, 211 insertions(+), 11 deletions(-)
+ create mode 100644 include/linux/i2c/ltc4245.h
+
+diff --git a/Documentation/hwmon/ltc4245 b/Documentation/hwmon/ltc4245
+index 86b5880..b478b08 100644
+--- a/Documentation/hwmon/ltc4245
++++ b/Documentation/hwmon/ltc4245
+@@ -72,9 +72,31 @@ in6_min_alarm		5v  output undervoltage alarm
+ in7_min_alarm		3v  output undervoltage alarm
+ in8_min_alarm		Vee (-12v) output undervoltage alarm
+ 
+-in9_input		GPIO voltage data
++in9_input		GPIO voltage data (see note 1)
++in10_input		GPIO voltage data (see note 1)
++in11_input		GPIO voltage data (see note 1)
+ 
+ power1_input		12v power usage (mW)
+ power2_input		5v  power usage (mW)
+ power3_input		3v  power usage (mW)
+ power4_input		Vee (-12v) power usage (mW)
++
++
++Note 1
++------
++
++If you have NOT configured the driver to sample all GPIO pins as analog
++voltages, then the in10_input and in11_input sysfs attributes will not be
++created. The driver will sample the GPIO pin that is currently connected to the
++ADC as an analog voltage, and report the value in in9_input.
++
++If you have configured the driver to sample all GPIO pins as analog voltages,
++then they will be sampled in round-robin fashion. If userspace reads too
++slowly, -EAGAIN will be returned when you read the sysfs attribute containing
++the sensor reading.
++
++The LTC4245 chip can be configured to sample all GPIO pins with two methods:
++1) platform data -- see include/linux/i2c/ltc4245.h
++2) OF device tree -- add the "ltc4245,use-extra-gpios" property to each chip
++
++The default mode of operation is to sample a single GPIO pin.
+diff --git a/drivers/hwmon/ltc4245.c b/drivers/hwmon/ltc4245.c
+index 84e6f32..d57c7a3 100644
+--- a/drivers/hwmon/ltc4245.c
++++ b/drivers/hwmon/ltc4245.c
+@@ -21,6 +21,7 @@
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
++#include <linux/i2c/ltc4245.h>
+ 
+ /* Here are names of the chip's registers (a.k.a. commands) */
+ enum ltc4245_cmd {
+@@ -60,8 +61,72 @@ struct ltc4245_data {
+ 
+ 	/* Voltage registers */
+ 	u8 vregs[0x0d];
++
++	/* GPIO ADC registers */
++	bool use_extra_gpios;
++	int gpios[3];
+ };
+ 
++/*
++ * Update the readings from the GPIO pins. If the driver has been configured to
++ * sample all GPIO's as analog voltages, a round-robin sampling method is used.
++ * Otherwise, only the configured GPIO pin is sampled.
++ *
++ * LOCKING: must hold data->update_lock
++ */
++static void ltc4245_update_gpios(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ltc4245_data *data = i2c_get_clientdata(client);
++	u8 gpio_curr, gpio_next, gpio_reg;
++	int i;
++
++	/* no extra gpio support, we're basically done */
++	if (!data->use_extra_gpios) {
++		data->gpios[0] = data->vregs[LTC4245_GPIOADC - 0x10];
++		return;
++	}
++
++	/*
++	 * If the last reading was too long ago, then we mark all old GPIO
++	 * readings as stale by setting them to -EAGAIN
++	 */
++	if (time_after(jiffies, data->last_updated + 5 * HZ)) {
++		dev_dbg(&client->dev, "Marking GPIOs invalid\n");
++		for (i = 0; i < ARRAY_SIZE(data->gpios); i++)
++			data->gpios[i] = -EAGAIN;
++	}
++
++	/*
++	 * Get the current GPIO pin
++	 *
++	 * The datasheet calls these GPIO[1-3], but we'll calculate the zero
++	 * based array index instead, and call them GPIO[0-2]. This is much
++	 * easier to think about.
++	 */
++	gpio_curr = (data->cregs[LTC4245_GPIO] & 0xc0) >> 6;
++	if (gpio_curr > 0)
++		gpio_curr -= 1;
++
++	/* Read the GPIO voltage from the GPIOADC register */
++	data->gpios[gpio_curr] = data->vregs[LTC4245_GPIOADC - 0x10];
++
++	/* Find the next GPIO pin to read */
++	gpio_next = (gpio_curr + 1) % ARRAY_SIZE(data->gpios);
++
++	/*
++	 * Calculate the correct setting for the GPIO register so it will
++	 * sample the next GPIO pin
++	 */
++	gpio_reg = (data->cregs[LTC4245_GPIO] & 0x3f) | ((gpio_next + 1) << 6);
++
++	/* Update the GPIO register */
++	i2c_smbus_write_byte_data(client, LTC4245_GPIO, gpio_reg);
++
++	/* Update saved data */
++	data->cregs[LTC4245_GPIO] = gpio_reg;
++}
++
+ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -93,6 +158,9 @@ static struct ltc4245_data *ltc4245_update_device(struct device *dev)
+ 				data->vregs[i] = val;
+ 		}
+ 
++		/* Update GPIO readings */
++		ltc4245_update_gpios(dev);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -233,6 +301,22 @@ static ssize_t ltc4245_show_alarm(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
+ }
+ 
++static ssize_t ltc4245_show_gpio(struct device *dev,
++				 struct device_attribute *da,
++				 char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct ltc4245_data *data = ltc4245_update_device(dev);
++	int val = data->gpios[attr->index];
++
++	/* handle stale GPIO's */
++	if (val < 0)
++		return val;
++
++	/* Convert to millivolts and print */
++	return snprintf(buf, PAGE_SIZE, "%u\n", val * 10);
++}
++
+ /* These macros are used below in constructing device attribute objects
+  * for use with sysfs_create_group() to make a sysfs device file
+  * for each register.
+@@ -254,6 +338,10 @@ static ssize_t ltc4245_show_alarm(struct device *dev,
+ 	static SENSOR_DEVICE_ATTR_2(name, S_IRUGO, \
+ 	ltc4245_show_alarm, NULL, (mask), reg)
+ 
++#define LTC4245_GPIO_VOLTAGE(name, gpio_num) \
++	static SENSOR_DEVICE_ATTR(name, S_IRUGO, \
++	ltc4245_show_gpio, NULL, gpio_num)
++
+ /* Construct a sensor_device_attribute structure for each register */
+ 
+ /* Input voltages */
+@@ -293,7 +381,9 @@ LTC4245_ALARM(in7_min_alarm,	(1 << 2),	LTC4245_FAULT2);
+ LTC4245_ALARM(in8_min_alarm,	(1 << 3),	LTC4245_FAULT2);
+ 
+ /* GPIO voltages */
+-LTC4245_VOLTAGE(in9_input,			LTC4245_GPIOADC);
++LTC4245_GPIO_VOLTAGE(in9_input,			0);
++LTC4245_GPIO_VOLTAGE(in10_input,		1);
++LTC4245_GPIO_VOLTAGE(in11_input,		2);
+ 
+ /* Power Consumption (virtual) */
+ LTC4245_POWER(power1_input,			LTC4245_12VSENSE);
+@@ -304,7 +394,7 @@ LTC4245_POWER(power4_input,			LTC4245_VEESENSE);
+ /* Finally, construct an array of pointers to members of the above objects,
+  * as required for sysfs_create_group()
+  */
+-static struct attribute *ltc4245_attributes[] = {
++static struct attribute *ltc4245_std_attributes[] = {
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+ 	&sensor_dev_attr_in2_input.dev_attr.attr,
+ 	&sensor_dev_attr_in3_input.dev_attr.attr,
+@@ -345,10 +435,77 @@ static struct attribute *ltc4245_attributes[] = {
+ 	NULL,
+ };
+ 
+-static const struct attribute_group ltc4245_group = {
+-	.attrs = ltc4245_attributes,
++static struct attribute *ltc4245_gpio_attributes[] = {
++	&sensor_dev_attr_in10_input.dev_attr.attr,
++	&sensor_dev_attr_in11_input.dev_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group ltc4245_std_group = {
++	.attrs = ltc4245_std_attributes,
++};
++
++static const struct attribute_group ltc4245_gpio_group = {
++	.attrs = ltc4245_gpio_attributes,
+ };
+ 
++static int ltc4245_sysfs_create_groups(struct i2c_client *client)
++{
++	struct ltc4245_data *data = i2c_get_clientdata(client);
++	struct device *dev = &client->dev;
++	int ret;
++
++	/* register the standard sysfs attributes */
++	ret = sysfs_create_group(&dev->kobj, &ltc4245_std_group);
++	if (ret) {
++		dev_err(dev, "unable to register standard attributes\n");
++		return ret;
++	}
++
++	/* if we're using the extra gpio support, register it's attributes */
++	if (data->use_extra_gpios) {
++		ret = sysfs_create_group(&dev->kobj, &ltc4245_gpio_group);
++		if (ret) {
++			dev_err(dev, "unable to register gpio attributes\n");
++			sysfs_remove_group(&dev->kobj, &ltc4245_std_group);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static void ltc4245_sysfs_remove_groups(struct i2c_client *client)
++{
++	struct ltc4245_data *data = i2c_get_clientdata(client);
++	struct device *dev = &client->dev;
++
++	if (data->use_extra_gpios)
++		sysfs_remove_group(&dev->kobj, &ltc4245_gpio_group);
++
++	sysfs_remove_group(&dev->kobj, &ltc4245_std_group);
++}
++
++static bool ltc4245_use_extra_gpios(struct i2c_client *client)
++{
++	struct ltc4245_platform_data *pdata = dev_get_platdata(&client->dev);
++#ifdef CONFIG_OF
++	struct device_node *np = client->dev.of_node;
++#endif
++
++	/* prefer platform data */
++	if (pdata)
++		return pdata->use_extra_gpios;
++
++#ifdef CONFIG_OF
++	/* fallback on OF */
++	if (of_find_property(np, "ltc4245,use-extra-gpios", NULL))
++		return true;
++#endif
++
++	return false;
++}
++
+ static int ltc4245_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+@@ -367,15 +524,16 @@ static int ltc4245_probe(struct i2c_client *client,
+ 
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
++	data->use_extra_gpios = ltc4245_use_extra_gpios(client);
+ 
+ 	/* Initialize the LTC4245 chip */
+ 	i2c_smbus_write_byte_data(client, LTC4245_FAULT1, 0x00);
+ 	i2c_smbus_write_byte_data(client, LTC4245_FAULT2, 0x00);
+ 
+ 	/* Register sysfs hooks */
+-	ret = sysfs_create_group(&client->dev.kobj, &ltc4245_group);
++	ret = ltc4245_sysfs_create_groups(client);
+ 	if (ret)
+-		goto out_sysfs_create_group;
++		goto out_sysfs_create_groups;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -386,8 +544,8 @@ static int ltc4245_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ out_hwmon_device_register:
+-	sysfs_remove_group(&client->dev.kobj, &ltc4245_group);
+-out_sysfs_create_group:
++	ltc4245_sysfs_remove_groups(client);
++out_sysfs_create_groups:
+ 	kfree(data);
+ out_kzalloc:
+ 	return ret;
+@@ -398,8 +556,7 @@ static int ltc4245_remove(struct i2c_client *client)
+ 	struct ltc4245_data *data = i2c_get_clientdata(client);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &ltc4245_group);
+-
++	ltc4245_sysfs_remove_groups(client);
+ 	kfree(data);
+ 
+ 	return 0;
+diff --git a/include/linux/i2c/ltc4245.h b/include/linux/i2c/ltc4245.h
+new file mode 100644
+index 0000000..56bda4b
+--- /dev/null
++++ b/include/linux/i2c/ltc4245.h
+@@ -0,0 +1,21 @@
++/*
++ * Platform Data for LTC4245 hardware monitor chip
++ *
++ * Copyright (c) 2010 Ira W. Snyder <iws@ovro.caltech.edu>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#ifndef LINUX_LTC4245_H
++#define LINUX_LTC4245_H
++
++#include <linux/types.h>
++
++struct ltc4245_platform_data {
++	bool use_extra_gpios;
++};
++
++#endif /* LINUX_LTC4245_H */
+-- 
+1.6.4.4
+
 
 _______________________________________________
 lm-sensors mailing list
