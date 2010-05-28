@@ -1,33 +1,92 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Fri, 14 May 2010 03:20:01 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2 V3] hwmon: (coretemp) Detect the
-Message-Id: <20100514032000.GB17786@khazad-dum.debian.net>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Date: Fri, 28 May 2010 06:13:23 +0000
+Subject: [lm-sensors] [RFC][PATCH]Add suspend and resume for LM75
+Message-Id: <0680EC522D0CC943BC586913CF3768C003B3358228@dbde02.ent.ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100507095459.GA12190@owl>
- <20100510033525.GC9181@owl>
- <20100511080112.GB19762@owl>
-In-Reply-To: <20100511080112.GB19762@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Huaxu Wan <huaxu.wan@linux.intel.com>
-Cc: huaxu.wan@intel.com, Valdis.Kletnieks@vt.edu, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, 11 May 2010, Huaxu Wan wrote:
-> +                       printk(KERN_INFO DRVNAME ": CPU (model=0x%x)"
-> +                               " has no thermal sensor!\n", c->x86_model);
 
-IMHO, it is better to drop that "!" since it is now a simple status message,
-otherwise it still looks like there is something wrong with the CPU not
-having a thermal sensor.
+There is a shutdown feature at suspend it can be enabled
+to reduce current consumption and resume it can be switched
+off.
 
-Minor thing, really, so feel free to ignore this comment.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/hwmon/lm75.c |   35 +++++++++++++++++++++++++++++++++++
+ drivers/hwmon/lm75.h |    1 +
+ 2 files changed, 36 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index 5646342..4ef1f59 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -281,6 +281,39 @@ static int lm75_detect(struct i2c_client *new_client,
+ 
+ 	return 0;
+ }
++#ifdef CONFIG_PM
++static int lm75_suspend(struct device *dev)
++{
++	int status;
++	struct i2c_client *client = to_i2c_client(dev);
++	status = lm75_read_value(client, LM75_REG_CONF);
++	if (status < 0) {
++		dev_dbg(&client->dev, "Can't read config? %d\n", status);
++		return status;
++	}
++	status = status | LM75_SHUTDOWN;
++	lm75_write_value(client, LM75_REG_CONF, status);
++	return 0;
++}
++
++static int lm75_resume(struct device *dev)
++{
++	int status;
++	struct i2c_client *client = to_i2c_client(dev);
++	status = lm75_read_value(client, LM75_REG_CONF);
++	if (status < 0) {
++		dev_dbg(&client->dev, "Can't read config? %d\n", status);
++		return status;
++	}
++	status = status & ~LM75_SHUTDOWN;
++	lm75_write_value(client, LM75_REG_CONF, status);
++	return 0;
++}
++#else
++#define lm75_suspend NULL
++#define lm75_resume NULL
++#endif /* CONFIG_PM */
++
+ 
+ static struct i2c_driver lm75_driver = {
+ 	.class		= I2C_CLASS_HWMON,
+@@ -292,6 +325,8 @@ static struct i2c_driver lm75_driver = {
+ 	.id_table	= lm75_ids,
+ 	.detect		= lm75_detect,
+ 	.address_list	= normal_i2c,
++	.suspend		= lm75_suspend,
++	.resume		= lm75_resume,
+ };
+ 
+ /*-----------------------------------------------------------------------*/
+diff --git a/drivers/hwmon/lm75.h b/drivers/hwmon/lm75.h
+index 7c93454..8e14253 100644
+--- a/drivers/hwmon/lm75.h
++++ b/drivers/hwmon/lm75.h
+@@ -30,6 +30,7 @@
+ /* straight from the datasheet */
+ #define LM75_TEMP_MIN (-55000)
+ #define LM75_TEMP_MAX 125000
++#define LM75_SHUTDOWN 1
+ 
+ /* TEMP: 0.001C/bit (-55C to +125C)
+    REG: (0.5C/bit, two's complement) << 7 */
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.5.4.7
+
 
 _______________________________________________
 lm-sensors mailing list
