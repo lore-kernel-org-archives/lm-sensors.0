@@ -1,53 +1,197 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Mon, 17 May 2010 07:06:26 +0000
-Subject: Re: [lm-sensors] No temperature output with k10temp for AMD II X3
-Message-Id: <4BF0EAF2.80104@ladisch.de>
+From: Maarten Maathuis <madman2003@gmail.com>
+Date: Fri, 28 May 2010 21:25:46 +0000
+Subject: [lm-sensors] Fintek F71889ED is unsupported (hack patch included)
+Message-Id: <AANLkTikzgi3flngEea2GeiEtAwdfRDdPaMtDq_zb6jD7@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="001636c5c2977991ef0487ae26fa"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4BE718BF.4080101@googlemail.com>
-In-Reply-To: <4BE718BF.4080101@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Jean Delvare wrote:
-> On Sun, 09 May 2010 22:19:11 +0200, Florian Schwade wrote:
-> > [florian@errorkiste ~]$ sensors
-> > k10temp-pci-00c3
-> > Adapter: PCI adapter
-> > temp1:       +21.0°C  (high = +70.0°C)
-> > 
-> > 21°C is impossible to be the correct temperature. The BIOS reports my
-> > CPU running at something like 36°.
+--001636c5c2977991ef0487ae26fa
+Content-Type: text/plain; charset=ISO-8859-1
 
-The temperature values returned by k10temp are relative; AMD says:
-| Tctl is the processor temperature control value, used by the platform to
-| control cooling systems. Tctl is a non-physical temperature on an
-| arbitrary scale measured in degrees. It does _not_ represent an actual
-| physical temperature like die or case temperature. Instead, it specifies
-| the processor temperature relative to the point at which the system must
-| supply the maximum cooling for the processor's specified maximum case
-| temperature and maximum thermal power dissipation.
+This appears to be a pretty new Super I/O IC, which i found on my new
+motherboard (MSI 870A-G54).
 
-Apparently, on your CPU, the reported values are about 15 °C lower.
+I couldn't find a datasheet, but this link
+(http://code.google.com/p/open-hardware-monitor/source/detail?r=130#)
+suggests that it can be trivially added to the f71882fg driver.
 
-lm-sensors currently does not indicate that values are not absolute.
+So i tried that, pretending it was a f71889fg.
 
-> Maybe the BIOS applies an arbitrary offset,
+This is the output i got, i appended what i think about the values:
 
-AMD doesn't publish any method to derive this offset.
+f71889ed-isa-0600
+Adapter: ISA adapter
+in0:         +1.66 V
+in1:         +0.90 V  (max =  +2.04 V)  <-- Vcore, 1.11 V when in high
+power mode, this seems accurate (compared to bios)
+in2:         +1.07 V
+in3:         +0.88 V
+in4:         +0.62 V
+in5:         +1.27 V
+in6:         +1.55 V
+in7:         +1.66 V
+in8:         +1.64 V
+fan1:        785 RPM <-- cpu fan, accurate (compared to bios)
+fan2:          0 RPM  ALARM
+fan3:          0 RPM  ALARM
+temp1:       +24.0 C  (high = +255.0 C, hyst = +251.0 C)  ALARM  <--
+cpu temp, probably accurate (compared to bios)
+                      (crit = +255.0 C, hyst = +251.0 C)  ALARM
+sensor = Intel PECI
+temp2:         FAULT  (high = +255.0 C, hyst = +251.0 C)
+                      (crit = +255.0 C, hyst = +251.0 C)  sensor = transistor
+temp3:       +33.0 C  (high = +255.0 C, hyst = +253.0 C)  ALARM   <--
+system temp, probably accurate (compared to bios)
+                      (crit = +255.0 C, hyst = +253.0 C)  ALARM
+sensor = transistor
 
-> or they get the temperature from an external sensor connected to a
-> hardware monitoring device.
+So please tell me what you think, any ideas how this can be improved.
+Especially the system voltages are horribly mis-calibrated it seems.
 
-This is usually the case, especially since most mainboards also have
-a bunch of other temperature sensors handled by the same hwmon device.
+Please CC me upon reply, i am not subscribed to the mailing-list.
+
+Maarten.
 
 
-Regards,
-Clemens
+-- 
+Life spent, a precious moment, in the wink of an eye we live and we die.
+
+--001636c5c2977991ef0487ae26fa
+Content-Type: text/x-patch; charset=US-ASCII; name="f71889ed.patch"
+Content-Disposition: attachment; filename="f71889ed.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g9ridyk20
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZjcxODgyZmcuYyBiL2RyaXZlcnMvaHdtb24vZjcx
+ODgyZmcuYwppbmRleCBhOTVmYTQyLi5iOGZkYTg5IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9u
+L2Y3MTg4MmZnLmMKKysrIGIvZHJpdmVycy9od21vbi9mNzE4ODJmZy5jCkBAIC00OCw3ICs0OCw4
+IEBACiAjZGVmaW5lIFNJT19GNzE4NThfSUQJCTB4MDUwNyAgLyogQ2hpcHNldCBJRCAqLwogI2Rl
+ZmluZSBTSU9fRjcxODYyX0lECQkweDA2MDEJLyogQ2hpcHNldCBJRCAqLwogI2RlZmluZSBTSU9f
+RjcxODgyX0lECQkweDA1NDEJLyogQ2hpcHNldCBJRCAqLwotI2RlZmluZSBTSU9fRjcxODg5X0lE
+CQkweDA3MjMJLyogQ2hpcHNldCBJRCAqLworI2RlZmluZSBTSU9fRjcxODg5RkdfSUQJCTB4MDcy
+MwkvKiBDaGlwc2V0IElEICovCisjZGVmaW5lIFNJT19GNzE4ODlFRF9JRAkJMHgwOTA5CS8qIENo
+aXBzZXQgSUQgKi8KICNkZWZpbmUgU0lPX0Y4MDAwX0lECQkweDA1ODEJLyogQ2hpcHNldCBJRCAq
+LwogCiAjZGVmaW5lIFJFR0lPTl9MRU5HVEgJCTgKQEAgLTk2LDEzICs5NywxNCBAQCBzdGF0aWMg
+dW5zaWduZWQgc2hvcnQgZm9yY2VfaWQ7CiBtb2R1bGVfcGFyYW0oZm9yY2VfaWQsIHVzaG9ydCwg
+MCk7CiBNT0RVTEVfUEFSTV9ERVNDKGZvcmNlX2lkLCAiT3ZlcnJpZGUgdGhlIGRldGVjdGVkIGRl
+dmljZSBJRCIpOwogCi1lbnVtIGNoaXBzIHsgZjcxODU4ZmcsIGY3MTg2MmZnLCBmNzE4ODJmZywg
+ZjcxODg5ZmcsIGY4MDAwIH07CitlbnVtIGNoaXBzIHsgZjcxODU4ZmcsIGY3MTg2MmZnLCBmNzE4
+ODJmZywgZjcxODg5ZmcsIGY3MTg4OWVkLCBmODAwMCB9OwogCiBzdGF0aWMgY29uc3QgY2hhciAq
+ZjcxODgyZmdfbmFtZXNbXSA9IHsKIAkiZjcxODU4ZmciLAogCSJmNzE4NjJmZyIsCiAJImY3MTg4
+MmZnIiwKIAkiZjcxODg5ZmciLAorCSJmNzE4ODllZCIsCiAJImY4MDAwIiwKIH07CiAKQEAgLTMw
+Niw3ICszMDgsNyBAQCBzdGF0aWMgc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRlXzIgZjcx
+ODU4ZmdfaW5fdGVtcF9hdHRyW10gPSB7CiAJU0VOU09SX0FUVFJfMih0ZW1wM19mYXVsdCwgU19J
+UlVHTywgc2hvd190ZW1wX2ZhdWx0LCBOVUxMLCAwLCAyKSwKIH07CiAKLS8qIFRlbXAgYW5kIGlu
+IGF0dHIgY29tbW9uIHRvIHRoZSBmNzE4NjJmZywgZjcxODgyZmcgYW5kIGY3MTg4OWZnICovCisv
+KiBUZW1wIGFuZCBpbiBhdHRyIGNvbW1vbiB0byB0aGUgZjcxODYyZmcsIGY3MTg4MmZnLCBmNzE4
+ODlmZyBhbmQgZjcxODg5ZWQgKi8KIHN0YXRpYyBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1
+dGVfMiBmeHh4eF9pbl90ZW1wX2F0dHJbXSA9IHsKIAlTRU5TT1JfQVRUUl8yKGluMF9pbnB1dCwg
+U19JUlVHTywgc2hvd19pbiwgTlVMTCwgMCwgMCksCiAJU0VOU09SX0FUVFJfMihpbjFfaW5wdXQs
+IFNfSVJVR08sIHNob3dfaW4sIE5VTEwsIDAsIDEpLApAQCAtNDc3LDcgKzQ3OSw3IEBAIHN0YXRp
+YyBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGVfMiBmeHh4eF9mYW5fYmVlcF9hdHRyW10g
+PSB7CiB9OwogCiAvKiBQV00gYXR0ciBmb3IgdGhlIGY3MTg2MmZnLCBmZXdlciBwd21zIGFuZCBm
+ZXdlciB6b25lcyBwZXIgcHdtIHRoYW4gdGhlCi0gICBmNzE4NThmZyAvIGY3MTg4MmZnIC8gZjcx
+ODg5ZmcgKi8KKyAgIGY3MTg1OGZnIC8gZjcxODgyZmcgLyBmNzE4ODlmZyAvIGY3MTg4OWVkICov
+CiBzdGF0aWMgc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRlXzIgZjcxODYyZmdfYXV0b19w
+d21fYXR0cltdID0gewogCVNFTlNPUl9BVFRSXzIocHdtMV9hdXRvX2NoYW5uZWxzX3RlbXAsIFNf
+SVJVR098U19JV1VTUiwKIAkJICAgICAgc2hvd19wd21fYXV0b19wb2ludF9jaGFubmVsLApAQCAt
+NTQ2LDcgKzU0OCw3IEBAIHN0YXRpYyBzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGVfMiBm
+NzE4NjJmZ19hdXRvX3B3bV9hdHRyW10gPSB7CiAJCSAgICAgIHNob3dfcHdtX2F1dG9fcG9pbnRf
+dGVtcF9oeXN0LCBOVUxMLCAzLCAyKSwKIH07CiAKLS8qIFBXTSBhdHRyIGNvbW1vbiB0byB0aGUg
+ZjcxODU4ZmcsIGY3MTg4MmZnIGFuZCBmNzE4ODlmZyAqLworLyogUFdNIGF0dHIgY29tbW9uIHRv
+IHRoZSBmNzE4NThmZywgZjcxODgyZmcsIGY3MTg4OWZnIGFuZCBmNzE4ODllZCAqLwogc3RhdGlj
+IHN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZV8yIGZ4eHh4X2F1dG9fcHdtX2F0dHJbNF1b
+MTRdID0geyB7CiAJU0VOU09SX0FUVFJfMihwd20xX2F1dG9fY2hhbm5lbHNfdGVtcCwgU19JUlVH
+T3xTX0lXVVNSLAogCQkgICAgICBzaG93X3B3bV9hdXRvX3BvaW50X2NoYW5uZWwsCkBAIC05NDcs
+NyArOTQ5LDcgQEAgc3RhdGljIHN0cnVjdCBmNzE4ODJmZ19kYXRhICpmNzE4ODJmZ191cGRhdGVf
+ZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldikKIAkvKiBVcGRhdGUgb25jZSBldmVyeSA2MCBzZWNv
+bmRzICovCiAJaWYgKCB0aW1lX2FmdGVyKGppZmZpZXMsIGRhdGEtPmxhc3RfbGltaXRzICsgNjAg
+KiBIWiApIHx8CiAJCQkhZGF0YS0+dmFsaWQpIHsKLQkJaWYgKGRhdGEtPnR5cGUgPT0gZjcxODgy
+ZmcgfHwgZGF0YS0+dHlwZSA9PSBmNzE4ODlmZykgeworCQlpZiAoZGF0YS0+dHlwZSA9PSBmNzE4
+ODJmZyB8fCBkYXRhLT50eXBlID09IGY3MTg4OWZnIHx8IGRhdGEtPnR5cGUgPT0gZjcxODg5ZWQp
+IHsKIAkJCWRhdGEtPmluMV9tYXggPQogCQkJCWY3MTg4MmZnX3JlYWQ4KGRhdGEsIEY3MTg4MkZH
+X1JFR19JTjFfSElHSCk7CiAJCQlkYXRhLT5pbl9iZWVwID0KQEAgLTk3MCw3ICs5NzIsNyBAQCBz
+dGF0aWMgc3RydWN0IGY3MTg4MmZnX2RhdGEgKmY3MTg4MmZnX3VwZGF0ZV9kZXZpY2Uoc3RydWN0
+IGRldmljZSAqZGV2KQogCQl9CiAKIAkJaWYgKGRhdGEtPnR5cGUgPT0gZjcxODYyZmcgfHwgZGF0
+YS0+dHlwZSA9PSBmNzE4ODJmZyB8fAotCQkgICAgZGF0YS0+dHlwZSA9PSBmNzE4ODlmZykgewor
+CQkgICAgZGF0YS0+dHlwZSA9PSBmNzE4ODlmZyB8fCBkYXRhLT50eXBlID09IGY3MTg4OWVkKSB7
+CiAJCQlkYXRhLT5mYW5fYmVlcCA9IGY3MTg4MmZnX3JlYWQ4KGRhdGEsCiAJCQkJCQlGNzE4ODJG
+R19SRUdfRkFOX0JFRVApOwogCQkJZGF0YS0+dGVtcF9iZWVwID0gZjcxODgyZmdfcmVhZDgoZGF0
+YSwKQEAgLTk4MSw3ICs5ODMsNyBAQCBzdGF0aWMgc3RydWN0IGY3MTg4MmZnX2RhdGEgKmY3MTg4
+MmZnX3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQogCQkJZGF0YS0+dGVtcF90eXBl
+WzNdID0gKHJlZyAmIDB4MDgpID8gMiA6IDQ7CiAJCX0KIAkJLyogRGV0ZXJtaW5lIHRlbXAgaW5k
+ZXggMSBzZW5zb3IgdHlwZSAqLwotCQlpZiAoZGF0YS0+dHlwZSA9PSBmNzE4ODlmZykgeworCQlp
+ZiAoZGF0YS0+dHlwZSA9PSBmNzE4ODlmZyB8fCBkYXRhLT50eXBlID09IGY3MTg4OWVkKSB7CiAJ
+CQlyZWcyID0gZjcxODgyZmdfcmVhZDgoZGF0YSwgRjcxODgyRkdfUkVHX1NUQVJUKTsKIAkJCXN3
+aXRjaCAoKHJlZzIgJiAweDYwKSA+PiA1KSB7CiAJCQljYXNlIDB4MDA6IC8qIEJKVCAvIFRoZXJt
+aXN0b3IgKi8KQEAgLTEwODMsNyArMTA4NSw3IEBAIHN0YXRpYyBzdHJ1Y3QgZjcxODgyZmdfZGF0
+YSAqZjcxODgyZmdfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2aWNlICpkZXYpCiAJCWlmIChkYXRh
+LT50eXBlID09IGY4MDAwKQogCQkJZGF0YS0+ZmFuWzNdID0gZjcxODgyZmdfcmVhZDE2KGRhdGEs
+CiAJCQkJCQlGNzE4ODJGR19SRUdfRkFOKDMpKTsKLQkJaWYgKGRhdGEtPnR5cGUgPT0gZjcxODgy
+ZmcgfHwgZGF0YS0+dHlwZSA9PSBmNzE4ODlmZykKKwkJaWYgKGRhdGEtPnR5cGUgPT0gZjcxODgy
+ZmcgfHwgZGF0YS0+dHlwZSA9PSBmNzE4ODlmZyB8fCBkYXRhLT50eXBlID09IGY3MTg4OWVkKQog
+CQkJZGF0YS0+aW5fc3RhdHVzID0gZjcxODgyZmdfcmVhZDgoZGF0YSwKIAkJCQkJCUY3MTg4MkZH
+X1JFR19JTl9TVEFUVVMpOwogCQlmb3IgKG5yID0gMDsgbnIgPCBucl9pbnM7IG5yKyspCkBAIC0x
+ODAyLDcgKzE4MDQsNyBAQCBzdGF0aWMgc3NpemVfdCBzdG9yZV9wd21fYXV0b19wb2ludF90ZW1w
+KHN0cnVjdCBkZXZpY2UgKmRldiwKIAlpbnQgcG9pbnQgPSB0b19zZW5zb3JfZGV2X2F0dHJfMihk
+ZXZhdHRyKS0+bnI7CiAJbG9uZyB2YWwgPSBzaW1wbGVfc3RydG9sKGJ1ZiwgTlVMTCwgMTApIC8g
+MTAwMDsKIAotCWlmIChkYXRhLT50eXBlID09IGY3MTg4OWZnKQorCWlmIChkYXRhLT50eXBlID09
+IGY3MTg4OWZnIHx8IGRhdGEtPnR5cGUgPT0gZjcxODg5ZWQpCiAJCXZhbCA9IFNFTlNPUlNfTElN
+SVQodmFsLCAtMTI4LCAxMjcpOwogCWVsc2UKIAkJdmFsID0gU0VOU09SU19MSU1JVCh2YWwsIDAs
+IDEyNyk7CkBAIC0xODk3LDYgKzE4OTksNyBAQCBzdGF0aWMgaW50IF9fZGV2aW5pdCBmNzE4ODJm
+Z19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCQkJYnJlYWs7CiAJCWNhc2Ug
+ZjcxODgyZmc6CiAJCWNhc2UgZjcxODg5Zmc6CisJCWNhc2UgZjcxODg5ZWQ6CiAJCQllcnIgPSBm
+NzE4ODJmZ19jcmVhdGVfc3lzZnNfZmlsZXMocGRldiwKIAkJCQkJZnh4eHhfaW4xX2FsYXJtX2F0
+dHIsCiAJCQkJCUFSUkFZX1NJWkUoZnh4eHhfaW4xX2FsYXJtX2F0dHIpKTsKQEAgLTE5MzUsNiAr
+MTkzOCw3IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IGY3MTg4MmZnX3Byb2JlKHN0cnVjdCBwbGF0
+Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCQlicmVhazsKIAkJY2FzZSBmNzE4ODJmZzoKIAkJY2FzZSBm
+NzE4ODlmZzoKKwkJY2FzZSBmNzE4ODllZDoKIAkJCWVyciA9IDA7CiAJCQlicmVhazsKIAkJY2Fz
+ZSBmODAwMDoKQEAgLTE5NTUsNyArMTk1OSw3IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IGY3MTg4
+MmZnX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCQlnb3RvIGV4aXRfdW5y
+ZWdpc3Rlcl9zeXNmczsKIAogCQlpZiAoZGF0YS0+dHlwZSA9PSBmNzE4NjJmZyB8fCBkYXRhLT50
+eXBlID09IGY3MTg4MmZnIHx8Ci0JCSAgICBkYXRhLT50eXBlID09IGY3MTg4OWZnKSB7CisJCSAg
+ICBkYXRhLT50eXBlID09IGY3MTg4OWZnIHx8IGRhdGEtPnR5cGUgPT0gZjcxODg5ZWQpIHsKIAkJ
+CWVyciA9IGY3MTg4MmZnX2NyZWF0ZV9zeXNmc19maWxlcyhwZGV2LAogCQkJCQlmeHh4eF9mYW5f
+YmVlcF9hdHRyLCBucl9mYW5zKTsKIAkJCWlmIChlcnIpCkBAIC0xOTc5LDYgKzE5ODMsNyBAQCBz
+dGF0aWMgaW50IF9fZGV2aW5pdCBmNzE4ODJmZ19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
+ICpwZGV2KQogCQkJCQlBUlJBWV9TSVpFKGY4MDAwX2F1dG9fcHdtX2F0dHIpKTsKIAkJCWJyZWFr
+OwogCQljYXNlIGY3MTg4OWZnOgorCQljYXNlIGY3MTg4OWVkOgogCQkJZm9yIChpID0gMDsgaSA8
+IG5yX2ZhbnM7IGkrKykgewogCQkJCWRhdGEtPnB3bV9hdXRvX3BvaW50X21hcHBpbmdbaV0gPQog
+CQkJCQlmNzE4ODJmZ19yZWFkOChkYXRhLApAQCAtMjA1MSw2ICsyMDU2LDcgQEAgc3RhdGljIGlu
+dCBmNzE4ODJmZ19yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJCWJyZWFr
+OwogCQljYXNlIGY3MTg4MmZnOgogCQljYXNlIGY3MTg4OWZnOgorCQljYXNlIGY3MTg4OWVkOgog
+CQkJZjcxODgyZmdfcmVtb3ZlX3N5c2ZzX2ZpbGVzKHBkZXYsCiAJCQkJCWZ4eHh4X2luMV9hbGFy
+bV9hdHRyLAogCQkJCQlBUlJBWV9TSVpFKGZ4eHh4X2luMV9hbGFybV9hdHRyKSk7CkBAIC0yMDcz
+LDcgKzIwNzksNyBAQCBzdGF0aWMgaW50IGY3MTg4MmZnX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1f
+ZGV2aWNlICpwZGV2KQogCQkJCUFSUkFZX1NJWkUoZnh4eHhfZmFuX2F0dHJbMF0pICogbnJfZmFu
+cyk7CiAKIAkJaWYgKGRhdGEtPnR5cGUgPT0gZjcxODYyZmcgfHwgZGF0YS0+dHlwZSA9PSBmNzE4
+ODJmZyB8fAotCQkgICAgZGF0YS0+dHlwZSA9PSBmNzE4ODlmZykKKwkJICAgIGRhdGEtPnR5cGUg
+PT0gZjcxODg5ZmcgfHwgZGF0YS0+dHlwZSA9PSBmNzE4ODllZCkKIAkJCWY3MTg4MmZnX3JlbW92
+ZV9zeXNmc19maWxlcyhwZGV2LAogCQkJCQlmeHh4eF9mYW5fYmVlcF9hdHRyLCBucl9mYW5zKTsK
+IApAQCAtMjA5MSw3ICsyMDk3LDcgQEAgc3RhdGljIGludCBmNzE4ODJmZ19yZW1vdmUoc3RydWN0
+IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJCQkJZjgwMDBfYXV0b19wd21fYXR0ciwKIAkJCQkJ
+QVJSQVlfU0laRShmODAwMF9hdXRvX3B3bV9hdHRyKSk7CiAJCQlicmVhazsKLQkJZGVmYXVsdDog
+LyogZjcxODU4ZmcgLyBmNzE4ODJmZyAvIGY3MTg4OWZnICovCisJCWRlZmF1bHQ6IC8qIGY3MTg1
+OGZnIC8gZjcxODgyZmcgLyBmNzE4ODlmZyAvIGY3MTg4OWVkICovCiAJCQlmNzE4ODJmZ19yZW1v
+dmVfc3lzZnNfZmlsZXMocGRldiwKIAkJCQkmZnh4eHhfYXV0b19wd21fYXR0clswXVswXSwKIAkJ
+CQlBUlJBWV9TSVpFKGZ4eHh4X2F1dG9fcHdtX2F0dHJbMF0pICogbnJfZmFucyk7CkBAIC0yMTI4
+LDkgKzIxMzQsMTIgQEAgc3RhdGljIGludCBfX2luaXQgZjcxODgyZmdfZmluZChpbnQgc2lvYWRk
+ciwgdW5zaWduZWQgc2hvcnQgKmFkZHJlc3MsCiAJY2FzZSBTSU9fRjcxODgyX0lEOgogCQlzaW9f
+ZGF0YS0+dHlwZSA9IGY3MTg4MmZnOwogCQlicmVhazsKLQljYXNlIFNJT19GNzE4ODlfSUQ6CisJ
+Y2FzZSBTSU9fRjcxODg5RkdfSUQ6CiAJCXNpb19kYXRhLT50eXBlID0gZjcxODg5Zmc7CiAJCWJy
+ZWFrOworCWNhc2UgU0lPX0Y3MTg4OUVEX0lEOgorCQlzaW9fZGF0YS0+dHlwZSA9IGY3MTg4OWVk
+OworCQlicmVhazsKIAljYXNlIFNJT19GODAwMF9JRDoKIAkJc2lvX2RhdGEtPnR5cGUgPSBmODAw
+MDsKIAkJYnJlYWs7Cg==
+--001636c5c2977991ef0487ae26fa
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--001636c5c2977991ef0487ae26fa--
