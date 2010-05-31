@@ -1,28 +1,32 @@
-From: Alan Cox <alan@linux.intel.com>
-Date: Tue, 04 May 2010 22:53:35 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] emc1403: thermal sensor support
-Message-Id: <20100504235335.0f236d76@linux.intel.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Mon, 31 May 2010 13:01:58 +0000
+Subject: Re: [lm-sensors] [PATCH] drivers: remove all
+Message-Id: <20100531130157.GA10507@rakim.wolfsonmicro.main>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100414125205.23181.15562.stgit@localhost.localdomain>
-In-Reply-To: <20100414125205.23181.15562.stgit@localhost.localdomain>
+References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
+In-Reply-To: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: linux-i2c@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, George Joseph <george.joseph@fairview5.com>, Riku Voipio <riku.voipio@iki.fi>, Guillaume Ligneul <guillaume.ligneul@gmail.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alessandro Rubini <rubini@cvml.unipv.it>, Richard Purdie <rpurdie@rpsys.net>, Colin Leroy <colin@colino.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, David Woodhouse <dwmw2@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Paul Gortmaker <p_gortmaker@yahoo.com>, Alessandro Zummo <a.zummo@towertech.it>, Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org, linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com, devel@driverdev.osuosl.org
 
-> I am just realizing that my indent may have been misinterpreted. All I
-> was saying was that it wasn't up to the hwmon subsystem to
-> _standardize_ on power up/down sysfs attributes. 
+On Mon, May 31, 2010 at 02:55:48PM +0200, Wolfram Sang wrote:
+> I2C-drivers can use the clientdata-pointer to point to private data. As I2C
+> devices are not really unregistered, but merely detached from their driver, it
+> used to be the drivers obligation to clear this pointer during remove() or a
+> failed probe(). As a couple of drivers forgot to do this, it was agreed that it
+> was cleaner if the i2c-core does this clearance when appropriate, as there is
+> no guarantee for the lifetime of the clientdata-pointer after remove() anyhow.
+> This feature was added to the core with commit
+> e4a7b9b04de15f6b63da5ccdd373ffa3057a3681 to fix the faulty drivers.
+> 
+> As there is no need anymore to clear the clientdata-pointer, remove all current
+> occurrences in the drivers to simplify the code and prevent confusion.
+> 
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
 
-Ah - that makes more sense
-
-I'll worry about that later - I have to work out how to fit it all into
-the mrst platform power management code which uses it for thermal
-management. I'm not sure being able to turn off the sensor doing board
-power/thermal management except via the power manager in such cases is
-a good idea 8)
-
-Alan
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
 _______________________________________________
 lm-sensors mailing list
