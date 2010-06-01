@@ -1,185 +1,64 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Date: Fri, 25 Jun 2010 16:07:52 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/3] hwmon: SMM665 driver documentation
-Message-Id: <4C24D458.4020407@jic23.retrosnub.co.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Tue, 01 Jun 2010 05:05:39 +0000
+Subject: Re: [lm-sensors] [PATCH] drivers: remove all
+Message-Id: <20100601050538.GA7391@core.coreip.homeip.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com> <1277476832-28480-3-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277476832-28480-3-git-send-email-guenter.roeck@ericsson.com>
+References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
+ <20100531190911.GC30712@core.coreip.homeip.net>
+ <1275342512.24079.1559.camel@rex>
+In-Reply-To: <1275342512.24079.1559.camel@rex>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Richard Purdie <rpurdie@rpsys.net>
+Cc: Wolfram Sang <w.sang@pengutronix.de>, linux-i2c@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, George Joseph <george.joseph@fairview5.com>, Riku Voipio <riku.voipio@iki.fi>, Guillaume Ligneul <guillaume.ligneul@gmail.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Alessandro Rubini <rubini@cvml.unipv.it>, Colin Leroy <colin@colino.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, David Woodhouse <dwmw2@infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>, Paul Gortmaker <p_gortmaker@yahoo.com>, Alessandro Zummo <a.zummo@towertech.it>, Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org, linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com, devel@driverdev.osuosl.org
 
-On 06/25/10 15:40, Guenter Roeck wrote:
-Looks good to me, if you are respinning for any reason, perhaps
-say where the summit website is?
-
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
->  Documentation/hwmon/smm665 |  151 ++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 151 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/smm665
+On Mon, May 31, 2010 at 10:48:32PM +0100, Richard Purdie wrote:
+> On Mon, 2010-05-31 at 12:09 -0700, Dmitry Torokhov wrote:
+> > On Mon, May 31, 2010 at 02:55:48PM +0200, Wolfram Sang wrote:
+> > > I2C-drivers can use the clientdata-pointer to point to private data. As I2C
+> > > devices are not really unregistered, but merely detached from their driver, it
+> > > used to be the drivers obligation to clear this pointer during remove() or a
+> > > failed probe(). As a couple of drivers forgot to do this, it was agreed that it
+> > > was cleaner if the i2c-core does this clearance when appropriate, as there is
+> > > no guarantee for the lifetime of the clientdata-pointer after remove() anyhow.
+> > > This feature was added to the core with commit
+> > > e4a7b9b04de15f6b63da5ccdd373ffa3057a3681 to fix the faulty drivers.
+> > > 
+> > > As there is no need anymore to clear the clientdata-pointer, remove all current
+> > > occurrences in the drivers to simplify the code and prevent confusion.
+> > > 
+> > > Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+> > > Cc: Jean Delvare <khali@linux-fr.org>
+> > > ---
+> > > 
+> > > Some more notes:
+> > > 
+> > > I waited for rc1 as I knew there were some drivers/patches coming along which
+> > > needed to be processed, too.
+> > > 
+> > > I'd suggest that this goes via the i2c-tree, so we get rid of all occurences at
+> > > once.
+> > > 
+> > 
+> > Frankly I'd prefer taking input stuff through my tree with the goal of
+> > .36 merge window just to minimize potential merge issues. This is a
+> > simple cleanup patch that has no dependencies, so there is little gain
+> > from doing it all in one go.
 > 
-> diff --git a/Documentation/hwmon/smm665 b/Documentation/hwmon/smm665
-> new file mode 100644
-> index 0000000..8c08f63
-> --- /dev/null
-> +++ b/Documentation/hwmon/smm665
-> @@ -0,0 +1,151 @@
-> +Kernel driver smm665
-> +==========
-> +
-> +Supported chips:
-> +  * Summit Microelectronics SMM465
-> +    Prefix: 'smm465'
-> +    Addresses scanned: -
-> +    Datasheet: Publicly available at the Summit Microelectronics website.
-> +  * Summit Microelectronics SMM665, SMM665B
-> +    Prefix: 'smm665'
-> +    Addresses scanned: -
-> +    Datasheet: Publicly available at the Summit Microelectronics website.
-> +  * Summit Microelectronics SMM665C
-> +    Prefix: 'smm665c'
-> +    Addresses scanned: -
-> +    Datasheet: Publicly available at the Summit Microelectronics website.
-> +  * Summit Microelectronics SMM764
-> +    Prefix: 'smm764'
-> +    Addresses scanned: -
-> +    Datasheet: Publicly available at the Summit Microelectronics website.
-> +  * Summit Microelectronics SMM766
-> +    Prefix: 'smm766'
-> +    Addresses scanned: -
-> +    Datasheet: Publicly available at the Summit Microelectronics website.
-> +
-> +Author: Guenter Roeck <guenter.roeck@ericsson.com>
-> +
-> +
-> +Module Parameters
-> +-----------------
-> +
-> +* vref: int
-> +  Default: 1250 (mV)
-> +  Reference voltage on VREF_ADC pin in mV. It should not be necessary to set
-> +  this parameter unless a non-default reference voltage is used.
-> +
-> +
-> +Description
-> +-----------
-> +
-> +[From datasheet] The SMM665 is an Active DC Output power supply Controller
-> +that monitors, margins and cascade sequences power. The part monitors six
-> +power supply channels as well as VDD, 12V input, two general-purpose analog
-> +inputs and an internal temperature sensor using a 10-bit ADC.
-> +
-> +Each monitored channel has its own high and low limits, plus a critical
-> +limit.
-> +
-> +Support for SMM465, SMM764, and SMM766 has been implemented but is untested.
-> +
-> +
-> +Usage Notes
-> +-----------
-> +
-> +This driver does not probe for devices, since there is no register which
-> +can be safely used to identify the chip. You will have to instantiate
-> +the devices explicitly. When instantiating the device, you have to specify
-> +its configuration register address.
-> +
-> +Example: the following will load the driver for an SMM665 at address 0x57
-> +on I2C bus #1:
-> +$ modprobe smm665
-> +$ echo smm665 0x57 > /sys/bus/i2c/devices/i2c-1/new_device
-> +
-> +
-> +Sysfs entries
-> +-------------
-> +
-> +This driver uses the values in the datasheet to convert ADC register values
-> +into the values specified in the sysfs-interface document. All attributes are
-> +read only.
-> +
-> +Min, max, lcrit, and crit values are used by the chip to trigger external signals
-> +and/or other activity. Triggered signals can include HEALTHY, RST, Power Off,
-> +or Fault depending on the chip configuration. The driver reports values as lcrit
-> +or crit if exceeding the limits triggers RST, Power Off, or Fault, and as min or
-> +max otherwise. For details please see the SMM665 datasheet.
-> +
-> +For SMM465 and SMM764, values for Channel E and F are reported but undefined.
-> +
-> +in1_input		12V input voltage (mV)
-> +in2_input		3.3V (VDD) input voltage (mV)
-> +in3_input		Channel A voltage (mV)
-> +in4_input		Channel B voltage (mV)
-> +in5_input		Channel C voltage (mV)
-> +in6_input		Channel D voltage (mV)
-> +in7_input		Channel E voltage (mV)
-> +in8_input		Channel F voltage (mV)
-> +in9_input		AIN1 voltage (mV)
-> +in10_input		AIN2 voltage (mV)
-> +
-> +in1_min			12v input minimum voltage (mV)
-> +in2_min			3.3V (VDD) input minimum voltage (mV)
-> +in3_min			Channel A minimum voltage (mV)
-> +in4_min			Channel B minimum voltage (mV)
-> +in5_min			Channel C minimum voltage (mV)
-> +in6_min			Channel D minimum voltage (mV)
-> +in7_min			Channel E minimum voltage (mV)
-> +in8_min			Channel F minimum voltage (mV)
-> +in9_min			AIN1 minimum voltage (mV)
-> +in10_min		AIN2 minimum voltage (mV)
-> +
-> +in1_max			12v input maximum voltage (mV)
-> +in2_max			3.3V (VDD) input maximum voltage (mV)
-> +in3_max			Channel A maximum voltage (mV)
-> +in4_max			Channel B maximum voltage (mV)
-> +in5_max			Channel C maximum voltage (mV)
-> +in6_max			Channel D maximum voltage (mV)
-> +in7_max			Channel E maximum voltage (mV)
-> +in8_max			Channel F maximum voltage (mV)
-> +in9_max			AIN1 maximum voltage (mV)
-> +in10_max		AIN2 maximum voltage (mV)
-> +
-> +in1_lcrit		12v input critical minimum voltage (mV)
-> +in2_lcrit		3.3V (VDD) input critical minimum voltage (mV)
-> +in3_lcrit		Channel A critical minimum voltage (mV)
-> +in4_lcrit		Channel B critical minimum voltage (mV)
-> +in5_lcrit		Channel C critical minimum voltage (mV)
-> +in6_lcrit		Channel D critical minimum voltage (mV)
-> +in7_lcrit		Channel E critical minimum voltage (mV)
-> +in8_lcrit		Channel F critical minimum voltage (mV)
-> +in9_lcrit		AIN1 critical minimum voltage (mV)
-> +in10_lcrit		AIN2 critical minimum voltage (mV)
-> +
-> +in1_crit		12v input critical maximum voltage (mV)
-> +in2_crit		3.3V (VDD) input critical maximum voltage (mV)
-> +in3_crit		Channel A critical maximum voltage (mV)
-> +in4_crit		Channel B critical maximum voltage (mV)
-> +in5_crit		Channel C critical maximum voltage (mV)
-> +in6_crit		Channel D critical maximum voltage (mV)
-> +in7_crit		Channel E critical maximum voltage (mV)
-> +in8_crit		Channel F critical maximum voltage (mV)
-> +in9_crit		AIN1 critical maximum voltage (mV)
-> +in10_crit		AIN2 critical maximum voltage (mV)
-> +
-> +in1_fault		12v input fault
-> +in2_fault		3.3V (VDD) input fault
-> +in3_fault		Channel A fault
-> +in4_fault		Channel B fault
-> +in5_fault		Channel C fault
-> +in6_fault		Channel D fault
-> +in7_fault		Channel E fault
-> +in8_fault		Channel F fault
-> +in9_fault		AIN1 fault
-> +in10_fault		AIN2 fault
-> +
-> +temp1_input		Chip tempererature
-> +temp1_min		Mimimum chip tempererature
-> +temp1_max		Maximum chip tempererature
-> +temp1_crit		Critical chip tempererature
-> +temp1_fault		Temperature fault
+> How about asking Linus to take this one now, then its done and we can
+> all move on rather than queuing up problems for the next merge window?
+> 
 
+That should work.
+
+Acked-by: Dmitry Torokhov <dtor@mail.ru>
+
+> Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+> 
+
+-- 
+Dmitry
 
 _______________________________________________
 lm-sensors mailing list
