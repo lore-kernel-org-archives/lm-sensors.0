@@ -1,37 +1,54 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Date: Thu, 10 Jun 2010 09:16:01 +0000
-Subject: Re: [lm-sensors] [PATCH] fix hwmon/i5k_amb.c sysfs attribute for
-Message-Id: <alpine.LNX.2.00.1006101115230.12271@pobox.suse.cz>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 01 Jun 2010 16:47:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (k10temp) Do not blacklist known
+Message-Id: <20100601184732.7a498112@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100609140000.60975b2f.kamezawa.hiroyu@jp.fujitsu.com> <20100609110719.270634a9@hyperion.delvare>
-In-Reply-To: <20100609110719.270634a9@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, mingo@redhat.com, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Eric W.Biederman" <ebiederm@xmission.com>
+To: lm-sensors@vger.kernel.org
 
-On Wed, 9 Jun 2010, Jean Delvare wrote:
+When detecting AM2+ or AM3 socket with DDR2, only blacklist cores
+which are known to exist in AM2+ format.
 
-> On Wed, 9 Jun 2010 14:00:00 +0900, KAMEZAWA Hiroyuki wrote:
-> > I'm not familiar with this area but I need this patch for lockdep in mmotm.
-> > please check.
-> > -Kame
-> > =
-> > From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-> > 
-> > i5k_amb.ko uses dynamically allocated memory (by kmalloc) for
-> > attributes passed to sysfs. So, sysfs_attr_init() should be called
-> > for working happy with lockdep.
-> 
-> Such a fix is needed, yes. I though Jiri was working on it... Jiri?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
+ drivers/hwmon/k10temp.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-It's still on my TODO list, but I haven't gotten to it yet. So whoever 
-beats me up fixing it, please merge that. Thanks.
+--- linux-2.6.35-rc1.orig/drivers/hwmon/k10temp.c	2010-05-17 18:42:27.000000000 +0200
++++ linux-2.6.35-rc1/drivers/hwmon/k10temp.c	2010-06-01 18:08:01.000000000 +0200
+@@ -112,11 +112,22 @@ static bool __devinit has_erratum_319(st
+ 	if (pkg_type != CPUID_PKGTYPE_AM2R2_AM3)
+ 		return false;
+ 
+-	/* Differentiate between AM2+ (bad) and AM3 (good) */
++	/* DDR3 memory implies socket AM3, which is good */
+ 	pci_bus_read_config_dword(pdev->bus,
+ 				  PCI_DEVFN(PCI_SLOT(pdev->devfn), 2),
+ 				  REG_DCT0_CONFIG_HIGH, &reg_dram_cfg);
+-	return !(reg_dram_cfg & DDR3_MODE);
++	if (reg_dram_cfg & DDR3_MODE)
++		return false;
++
++	/*
++	 * Unfortunately it is possible to run a socket AM3 CPU with DDR2
++	 * memory. We blacklist all the cores which do exist in socket AM2+
++	 * format. It still isn't perfect, as RB-C2 cores exist in both AM2+
++	 * and AM3 formats, but that's the best we can do.
++	 */
++	return boot_cpu_data.x86_model < 4 ||
++	       (boot_cpu_data.x86_model = 4 && boot_cpu_data.x86_mask <= 2);
++
+ }
+ 
+ static int __devinit k10temp_probe(struct pci_dev *pdev,
+
 
 -- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
