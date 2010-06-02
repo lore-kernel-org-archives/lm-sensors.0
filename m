@@ -1,120 +1,153 @@
-From: Huaxu Wan <huaxu.wan@linux.intel.com>
-Date: Mon, 10 May 2010 03:50:31 +0000
-Subject: [lm-sensors] [PATCH 2/2 V2] hwmon: (coretemp) Get TjMax value from
-Message-Id: <20100510035031.GD9181@owl>
+From: Roman Evstifeev <someuniquename@gmail.com>
+Date: Wed, 02 Jun 2010 16:57:15 +0000
+Subject: [lm-sensors] control f71889fg pwm on 2.6.34
+Message-Id: <AANLkTimzIutXVn2W2ZE1LQ-dXbNEMfuUfJ4G1733cFsM@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5798862651250544042=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100507095945.GB12190@owl>
-In-Reply-To: <20100507095945.GB12190@owl>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--===============5798862651250544042==
+Content-Type: multipart/alternative; boundary=0015175ce21268fc8804880efb5b
+
+--0015175ce21268fc8804880efb5b
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi. I have Mainboard* with F71889FG-based controller.
+* - MSI P41T-C31 (
+http://www.msi.com/index.php?func=3Dproddesc&maincat_no=3D1&prod_no=3D1792 =
+)
+
+After f71882fg module loaded - it creates bunch of the sysfs entries, and i
+can succesfully read temperature and fan speed values from it. But i can't
+control the pwm with it.
+I tried pwmconfig utility as well as writing to sysfs files directly. sysfs
+values get changed, but actual fan speed does not.
+
+
+************* dmesg ************
+[   14.238796] f71882fg: Found f71889fg chip at 0xa00, revision 21
+[   14.238935] f71882fg f71882fg.2560: Fan: 1 is in duty-cycle mode
+[   14.238936] f71882fg f71882fg.2560: Fan: 2 is in duty-cycle mode
+[   14.238938] f71882fg f71882fg.2560: Fan: 3 is in duty-cycle mode
+
+
+*********************** sensors *********************
+linux-md9k:/sys/class/hwmon # sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +39.0=B0C  (high =3D +76.0=B0C, crit =3D +100.0=B0C)
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +38.0=B0C  (high =3D +76.0=B0C, crit =3D +100.0=B0C)
+
+f71889fg-isa-0a00
+Adapter: ISA adapter
+in0:         +1.69 V
+in1:         +1.08 V  (max =3D  +2.04 V)
+in2:         +1.10 V
+in3:         +0.96 V
+in4:         +0.02 V
+in5:         +0.02 V
+in6:         +0.01 V
+in7:         +1.69 V
+in8:         +1.62 V
+fan1:          0 RPM  ALARM
+fan2:          0 RPM  ALARM
+fan3:       1538 RPM
+temp1:       +18.0=B0C  (high =3D +255.0=B0C, hyst =3D +251.0=B0C)
+                      (crit =3D +255.0=B0C, hyst =3D +251.0=B0C)  sensor =
+=3D Intel
+PECI
+temp2:       +33.0=B0C  (high =3D +255.0=B0C, hyst =3D +251.0=B0C)
+                      (crit =3D +109.0=B0C, hyst =3D +105.0=B0C)  sensor =
+=3D
+thermistor
+temp3:       +33.0=B0C  (high =3D +255.0=B0C, hyst =3D +253.0=B0C)
+                      (crit =3D +255.0=B0C, hyst =3D +253.0=B0C)  sensor =
+=3D
+transistor
+
+**************** trying manual control ************
+linux-md9k:/sys/class/hwmon # cat hwmon2/device/pwm3_enable
+1
+linux-md9k:/sys/class/hwmon # cat hwmon2/device/pwm3
+255
+linux-md9k:/sys/class/hwmon # echo 140 > hwmon2/device/pwm3
+linux-md9k:/sys/class/hwmon # echo 0 > hwmon2/device/pwm3
+linux-md9k:/sys/class/hwmon # cat hwmon2/device/pwm3
+0
+*********************************************************
+
+
+Can somebody please help me debug this?
+
+--0015175ce21268fc8804880efb5b
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi. I have Mainboard* with F71889FG-based controller.
+<br>
+* - MSI P41T-C31 ( <a href=3D"http://www.msi.com/index.php?func=3Dproddesc&=
+amp;maincat_no=3D1&amp;prod_no=3D1792">http://www.msi.com/index.php?func=3D=
+proddesc&amp;maincat_no=3D1&amp;prod_no=3D1792</a> )<br><br>After f71882fg =
+module loaded - it creates bunch of the sysfs entries, and i can succesfull=
+y read temperature and fan speed values from it. But i can&#39;t control th=
+e pwm with it.<br>
+I tried pwmconfig utility as well as writing to sysfs files directly. sysfs=
+ values get changed, but actual fan speed does not.<br><br><br>************=
+* dmesg ************<br>[=A0=A0 14.238796] f71882fg: Found f71889fg chip at=
+ 0xa00, revision 21<br>
+[=A0=A0 14.238935] f71882fg f71882fg.2560: Fan: 1 is in duty-cycle mode<br>=
+[=A0=A0 14.238936] f71882fg f71882fg.2560: Fan: 2 is in duty-cycle mode<br>=
+[=A0=A0 14.238938] f71882fg f71882fg.2560: Fan: 3 is in duty-cycle mode<br>=
+<br><br>
+*********************** sensors *********************<br>linux-md9k:/sys/cl=
+ass/hwmon # sensors<br>coretemp-isa-0000<br>Adapter: ISA adapter<br>Core 0:=
+=A0=A0=A0=A0=A0 +39.0=B0C=A0 (high =3D +76.0=B0C, crit =3D +100.0=B0C)=A0 <=
+br><br>coretemp-isa-0001<br>
+Adapter: ISA adapter<br>Core 1:=A0=A0=A0=A0=A0 +38.0=B0C=A0 (high =3D +76.0=
+=B0C, crit =3D +100.0=B0C)=A0 <br><br>f71889fg-isa-0a00<br>Adapter: ISA ada=
+pter<br>in0:=A0=A0=A0=A0=A0=A0=A0=A0 +1.69 V<br>in1:=A0=A0=A0=A0=A0=A0=A0=
+=A0 +1.08 V=A0 (max =3D=A0 +2.04 V)=A0=A0 <br>in2:=A0=A0=A0=A0=A0=A0=A0=A0 =
++1.10 V<br>
+in3:=A0=A0=A0=A0=A0=A0=A0=A0 +0.96 V<br>in4:=A0=A0=A0=A0=A0=A0=A0=A0 +0.02 =
+V<br>in5:=A0=A0=A0=A0=A0=A0=A0=A0 +0.02 V<br>in6:=A0=A0=A0=A0=A0=A0=A0=A0 +=
+0.01 V<br>in7:=A0=A0=A0=A0=A0=A0=A0=A0 +1.69 V<br>in8:=A0=A0=A0=A0=A0=A0=A0=
+=A0 +1.62 V<br>fan1:=A0=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 ALARM<br>fan2:=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 ALARM<br>fan3:=A0=A0=A0=A0=A0=A0 1538 RPM=
+<br>
+temp1:=A0=A0=A0=A0=A0=A0 +18.0=B0C=A0 (high =3D +255.0=B0C, hyst =3D +251.0=
+=B0C)=A0 <br>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0 (crit =3D +255.0=B0C, hyst =3D +251.0=B0C)=A0 sensor =3D Intel PECI<br>=
+temp2:=A0=A0=A0=A0=A0=A0 +33.0=B0C=A0 (high =3D +255.0=B0C, hyst =3D +251.0=
+=B0C)=A0 <br>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0 (crit =3D +109.0=B0C, hyst =3D +105.0=B0C)=A0 sensor =3D thermistor<br>
+temp3:=A0=A0=A0=A0=A0=A0 +33.0=B0C=A0 (high =3D +255.0=B0C, hyst =3D +253.0=
+=B0C)=A0 <br>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0 (crit =3D +255.0=B0C, hyst =3D +253.0=B0C)=A0 sensor =3D transistor<br>=
+<br>**************** trying manual control ************<br>linux-md9k:/sys/=
+class/hwmon # cat hwmon2/device/pwm3_enable <br>
+1<br>linux-md9k:/sys/class/hwmon # cat hwmon2/device/pwm3<br>255<br>linux-m=
+d9k:/sys/class/hwmon # echo 140 &gt; hwmon2/device/pwm3<br>linux-md9k:/sys/=
+class/hwmon # echo 0 &gt; hwmon2/device/pwm3<br>linux-md9k:/sys/class/hwmon=
+ # cat hwmon2/device/pwm3<br>
+0<br>*********************************************************<br><br><br>C=
+an somebody please help me debug this?<br>
+
+--0015175ce21268fc8804880efb5b--
+
+
+--===============5798862651250544042==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Huaxu Wan <huaxu.wan@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, huaxu.wan@intel.com, Carsten Emde <C.Emde@osadl.org>
-
-The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
-processers.
-
-Signed-off-by: Huaxu Wan <huaxu.wan@linux.intel.com>
-Signed-off-by: Carsten Emde <C.Emde@osadl.org>
----
- arch/x86/include/asm/msr-index.h |    2 +
- drivers/hwmon/coretemp.c         |   52 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 52 insertions(+), 2 deletions(-)
-
-diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
-index 4604e6a..9bc0cf8 100644
---- a/arch/x86/include/asm/msr-index.h
-+++ b/arch/x86/include/asm/msr-index.h
-@@ -232,6 +232,8 @@
- 
- #define MSR_IA32_MISC_ENABLE		0x000001a0
- 
-+#define MSR_IA32_TEMPERATURE_TARGET	0x000001a2
-+
- /* MISC_ENABLE bits: architectural */
- #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
- #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index d194207..9959390 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -241,6 +241,54 @@ static int __devinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *
- 	return tjmax;
- }
- 
-+static int __devinit get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
-+{
-+	/* The 100C is default for both mobile and non mobile CPUs */
-+	int err;
-+	u32 eax, edx;
-+	u32 val;
-+
-+	/* A new feature of current Intel(R) processors, the
-+	   IA32_TEMPERATURE_TARGET contains the TjMax value */
-+	err = rdmsr_safe_on_cpu(id, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
-+	if (err){
-+		dev_warn(dev, "Unable to read TjMax from CPU.\n");
-+	} else {
-+		val = (eax >> 16 ) & 0xff;
-+		/*
-+		 * If the TjMax is not plausible, an assumption
-+		 * will be used
-+		 */
-+		if (( val > 80) && (val < 120)){
-+			dev_info(dev, "TjMax is %d C. \n", val);
-+			return val * 1000;
-+		}
-+	}
-+
-+	/*
-+	 * An assumption is made for early CPUs and unreadable MSR.
-+	 * NOTE: the given value may not be correct.
-+	 */
-+
-+	switch(c->x86_model){
-+	case 0xe :
-+	case 0xf :
-+	case 0x16 :
-+	case 0x1a :
-+		dev_warn(dev, "TjMax is assumed as 100 C! \n");
-+		return 100000;
-+		break;
-+	case 0x17 :
-+	case 0x1c :		/* Atom CPUs */
-+		return adjust_tjmax(c, id, dev);
-+		break;
-+	default :
-+		dev_warn(dev, "CPU (model=0x%x) is not supported yet,"
-+			" using default TjMax of 100C.\n", c->x86_model);
-+		return 100000;
-+	}
-+}
-+
- static int __devinit coretemp_probe(struct platform_device *pdev)
- {
- 	struct coretemp_data *data;
-@@ -283,14 +331,14 @@ static int __devinit coretemp_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	data->tjmax = adjust_tjmax(c, data->id, &pdev->dev);
-+	data->tjmax = get_tjmax(c, data->id, &pdev->dev);
- 	platform_set_drvdata(pdev, data);
- 
- 	/* read the still undocumented IA32_TEMPERATURE_TARGET it exists
- 	   on older CPUs but not in this register, Atoms don't have it either */
- 
- 	if ((c->x86_model > 0xe) && (c->x86_model != 0x1c)) {
--		err = rdmsr_safe_on_cpu(data->id, 0x1a2, &eax, &edx);
-+		err = rdmsr_safe_on_cpu(data->id, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
- 		if (err) {
- 			dev_warn(&pdev->dev, "Unable to read"
- 					" IA32_TEMPERATURE_TARGET MSR\n");
--- 
-1.6.3.3.363.g725cf7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5798862651250544042==--
