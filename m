@@ -1,38 +1,54 @@
-From: Xiangfu Liu <xiangfu.z@gmail.com>
-Date: Mon, 21 Jun 2010 02:56:10 +0000
-Subject: Re: [lm-sensors] [PATCH v2 00/26] Add support for the Ingenic
-Message-Id: <4C1ED4CA.9030906@gmail.com>
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Date: Wed, 02 Jun 2010 16:34:16 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from
+Message-Id: <1275496456.32562.4.camel@maxim-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1276924111-11158-1-git-send-email-lars@metafoo.de> <20100620092610.GA4950@alpha.franken.de>
-In-Reply-To: <20100620092610.GA4950@alpha.franken.de>
+References: <20100507095945.GB12190@owl>
+	 <1275111551.3427.4.camel@maxim-laptop>  <20100531013950.GA8265@owl>
+In-Reply-To: <20100531013950.GA8265@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Ralf Baechle <ralf@linux-mips.org>, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Andrew Morton <akpm@linux-foundation.org>, Anton Vorontsov <cbouatmailru@gmail.com>, David Brownell <dbrownell@users.sourceforge.net>, David Woodhouse <dwmw2@infradead.org>, Greg Kroah-Hartman <gregkh@suse.de>, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Paul Gortmaker <p_gortmaker@yahoo.com>, Samuel Ortiz <sameo@linux.intel.com>, alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org, linux-usb@vger.kernel.org, lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com
+To: Huaxu Wan <huaxu.wan@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, huaxu.wan@intel.com, khali@linux-fr.org
 
-On 06/20/2010 05:26 PM, Thomas Bogendoerfer wrote:
-> great stuff. I have a JZ4730 based netbook, for which I started magling
-> the provided sources quite some time ago, but I didn't reach the
-> point of submitting patches... there are a lot of common stuff between
-> JZ4730 and JZ4740 so IMHO it would be a good thing not to nail
-> everthing to JZ4740 namewise. It might also a good idea to select
-> something like arch/mips/jzrisc as base directory, put the
+On Mon, 2010-05-31 at 09:39 +0800, Huaxu Wan wrote: 
+> On 08:39 Sat 29 May, Maxim Levitsky wrote:
+> > On Fri, 2010-05-07 at 17:59 +0800, Huaxu Wan wrote: 
+> > > The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
+> > > processers.
+> > 
+> > I know that TjMax on my system is 85, and now coretemp reports wrong
+> > temperatures.
+> > First of all BIOS using stupid tricks actualy reports CPU temperature
+> > through ACPI, and assuming it was correct TjMax is 85.
+> > It also shuts down the system if I 'lie' to it that cpu temperature is
+> > 85C.
+> 
+> From the list at [1], the TjMax(Tjunction) of T5450 is 100C. Does anyone
+> here can make a double check?
+> 
+> [1] http://ark.intel.com/Product.aspx?id0787&processor=T5450&spec-codes=SLA4F
 
-Hi Thomas
+This is very interesting.
 
-I would advice "xburst" instead jzrisc. because the Ingenic call
-their cpu "XBurst" series. like: XBurst JZ4740, XBurst JZ4750 ...
+With TjMax 85C, the CPUs idle temperature is reported at around 45~50C
+GPU temperature that is around 60C
 
+BIOS also reports 45~50C.
 
-> factored out code there and add JZ4730/JZ4740 in either seperate
-> files or directories.
+BIOS hooks an SMI to CPU thermal report, and stores the temperature it
+read in ram, then ACPI code reads it, reports and passes to the EC
+(embedded controller).
 
+If I write myself 85 to embedded controller, systems shuts down.
+(values less that 85, eg 84 don't shut system).
 
--- 
-Best Regards
-Xiangfu Liu
-http://www.openmobilefree.net
+Thats all I know.
+
+Best regards,
+Maxim Levitsky
+
 
 _______________________________________________
 lm-sensors mailing list
