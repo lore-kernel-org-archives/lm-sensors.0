@@ -1,74 +1,113 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 30 Jun 2010 15:30:55 +0000
-Subject: Re: [lm-sensors] [PATCH] lm-sensors: Add support for new hwmon
-Message-Id: <20100630153055.GB4974@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 03 Jun 2010 07:06:33 +0000
+Subject: Re: [lm-sensors] [RFC][PATCH]Add suspend and resume for LM75
+Message-Id: <20100603090633.6314ad93@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277877978-27726-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277877978-27726-1-git-send-email-guenter.roeck@ericsson.com>
+References: <0680EC522D0CC943BC586913CF3768C003B3358228@dbde02.ent.ti.com>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B3358228@dbde02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 30, 2010 at 11:22:48AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Wed, 30 Jun 2010 07:20:21 -0700, Guenter Roeck wrote:
-> > On Wed, Jun 30, 2010 at 09:50:51AM -0400, Jean Delvare wrote:
-> > > Hi Guenter,
-> > > 
-> > > On Tue, 29 Jun 2010 23:06:18 -0700, Guenter Roeck wrote:
-> > > > This patch adds support for the following new attributes to libsensors and
-> > > > to the sensors command.
-> > > >
-> > > > inX_lcrit
-> > > > inX_crit
-> > > > inX_fault
-> > > > temp_lcrit
-> > > > powerX_cap
-> > > > powerX_max
-> > > > powerX_crit
-> > > > powerX_alarm
-> > > > powerX_fault
-> > > > currX_lcrit
-> > > > currX_crit
-> > > > currX_fault
-> > > 
-> > > Fair enough, assuming these matches the additions to
-> > > Documentation/hwmon/sysfs-interface. I'm a little curious about
-> > > inX_fault, powerX_fault and currX_fault though. _fault files are for
-> > > hardware failures. While I can imagine a thermal diode failing, how
-> > > could a voltage or current sensor be broken?
-> >
-> > I thought about that myself, ie if it would be better to introduce
-> > _lcrit_alarm and _crit_alarm instead. My ultimate conclusion was that the chips
-> > I am working with right now are voltage controllers, and thus exceeding the limits
-> > points to a fault rather than a critical limit alarm. Action taken by the chip 
-> > is typically also drastic; raising a fault alarm is only the least drastic action
-> > possible. More likely the chip will be configured to reset the board or shut down
-> > power completely.
-> > 
-> > This applies to chips which have both "alarm" and "critical" limits.
-> > 
-> > So even if the event does not exactly match the "fault" description in the API,
-> > I concluded that "fault" is a better match to what happens than "crit_alarm" or
-> > "lcrit_alarm". I don't feel too strongly about that, though, so if you disagree 
-> > I'll be happy to change the code and API to "lcrit_alarm" and "crit_alarm"
-> > for those sensors.
-> 
-> Yes, I disagree, and yes, please change. "alarms" in the hwmon
-> framework are flags raised because of out-of-limits measurements, and
-> we should stick to this to avoid any confusion. And "faults" are
-> something else. Let's stick to this.
-> 
-Ok, I'll do that. I'll also re-submit the driver for SMM665 to reflect the changes.
+Hi Shubhrajyoti,
 
-> in[0-*]_fault should probably be removed from
-> Documentation/hwmon/sysfs-interface altogether, to clear the confusion.
+On Fri, 28 May 2010 11:31:23 +0530, Datta, Shubhrajyoti wrote:
+> 
+> There is a shutdown feature at suspend it can be enabled
+> to reduce current consumption and resume it can be switched
+> off.
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Guess so.
+Please use your full name.
 
-Guenter
+> ---
+>  drivers/hwmon/lm75.c |   35 +++++++++++++++++++++++++++++++++++
+>  drivers/hwmon/lm75.h |    1 +
+>  2 files changed, 36 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+> index 5646342..4ef1f59 100644
+> --- a/drivers/hwmon/lm75.c
+> +++ b/drivers/hwmon/lm75.c
+> @@ -281,6 +281,39 @@ static int lm75_detect(struct i2c_client *new_client,
+>  
+>  	return 0;
+>  }
+> +#ifdef CONFIG_PM
+> +static int lm75_suspend(struct device *dev)
+> +{
+> +	int status;
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	status = lm75_read_value(client, LM75_REG_CONF);
+> +	if (status < 0) {
+> +		dev_dbg(&client->dev, "Can't read config? %d\n", status);
+> +		return status;
+> +	}
+> +	status = status | LM75_SHUTDOWN;
+> +	lm75_write_value(client, LM75_REG_CONF, status);
+> +	return 0;
+> +}
+> +
+> +static int lm75_resume(struct device *dev)
+> +{
+> +	int status;
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	status = lm75_read_value(client, LM75_REG_CONF);
+> +	if (status < 0) {
+> +		dev_dbg(&client->dev, "Can't read config? %d\n", status);
+> +		return status;
+> +	}
+> +	status = status & ~LM75_SHUTDOWN;
+> +	lm75_write_value(client, LM75_REG_CONF, status);
+> +	return 0;
+> +}
+> +#else
+> +#define lm75_suspend NULL
+> +#define lm75_resume NULL
+> +#endif /* CONFIG_PM */
+> +
+>  
+>  static struct i2c_driver lm75_driver = {
+>  	.class		= I2C_CLASS_HWMON,
+> @@ -292,6 +325,8 @@ static struct i2c_driver lm75_driver = {
+>  	.id_table	= lm75_ids,
+>  	.detect		= lm75_detect,
+>  	.address_list	= normal_i2c,
+> +	.suspend		= lm75_suspend,
+> +	.resume		= lm75_resume,
+
+I get the following warning:
+
+drivers/hwmon/lm75.c:326: warning: initialization from incompatible pointer type
+drivers/hwmon/lm75.c:327: warning: initialization from incompatible pointer type
+
+so it can't be right. Look in <linux/i2c.h>, these functions want
+struct i2c_client as a parameter, not struct device.
+
+>  };
+>  
+>  /*-----------------------------------------------------------------------*/
+> diff --git a/drivers/hwmon/lm75.h b/drivers/hwmon/lm75.h
+> index 7c93454..8e14253 100644
+> --- a/drivers/hwmon/lm75.h
+> +++ b/drivers/hwmon/lm75.h
+> @@ -30,6 +30,7 @@
+>  /* straight from the datasheet */
+>  #define LM75_TEMP_MIN (-55000)
+>  #define LM75_TEMP_MAX 125000
+> +#define LM75_SHUTDOWN 1
+
+Would be better written 0x01, as this is a bit mask.
+
+>  
+>  /* TEMP: 0.001C/bit (-55C to +125C)
+>     REG: (0.5C/bit, two's complement) << 7 */
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
