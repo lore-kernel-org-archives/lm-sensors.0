@@ -1,70 +1,87 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 19 Jun 2010 14:36:56 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <20100619143656.GA2038@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 04 Jun 2010 07:33:42 +0000
+Subject: Re: [lm-sensors] [PATCH] Add detection of SMSC EMC2103 to
+Message-Id: <20100604093342.79e576c0@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1276877194-28214-2-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1276877194-28214-2-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jun 19, 2010 at 04:23:12AM -0400, Jean Delvare wrote:
-> On Fri, 18 Jun 2010 13:56:53 -0700, Guenter Roeck wrote:
-> > [...]
-> > > > +             /*
-> > > > +              * Algorithm for reading ADC, per SMM665 datasheet
-> > > > +              *
-> > > > +              *  {[S][addr][W][Ack]} {[offset][Ack]} {[S][addr][R][Nack]}
-> > > > +              * [wait 70 uS]
-> > > > +              *  {[S][addr][R][Ack]} {[datahi][Ack]} {[datalo][Ack][P]}
-> > > > +              *
-> > > > +              * To implement the first part of this exchange,
-> > > > +              * do a full read transaction and expect a failure/Nack.
-> > > > +              * This sets up the address pointer on the SMM665
-> > > > +              * and starts the ADC conversion.
-> > > > +              * Then do a two-byte read transaction.
-> > > > +              */
-> > > Is there no better way of handling this? There are protocol mangling hacks
-> > > to tell the i2c core to ignore a NAKs under some circumstances.
-> 
-> This is only available on raw I2C messages, not on the higher-level
-> i2c_smbus_*() API. And not all bus drivers support it. And that's not
-> what is needed here anyway: ignoring the nack means we would continue
-> reading from the chip, while it really doesn't want to talk to us at
-> that time.
-> 
-> > > > +             rv = i2c_smbus_read_byte_data(client, adc << 3);
-> > > > +             if (rv >= 0) {
-> 
-> You should check for -ENXIO explicitly. According to
-> Documentation/i2c/fault-codes, this is the value bus drivers should
-> return on missing Ack.
-> 
-Ok, I'll do that. I'll submit a separate patch for the sibyte
-i2c bus driver since it returns -1 - which is wrong anyway.
+Hi Steve,
 
-> > > > +                     /* No error, something is wrong. Retry. */
-> > > > +                     rv = -1;
-> > > > +                     continue;
-> > > > +             }
-> > 
-> > I looked through the core i2c code, but did not find anything I can
-> > use. 
-> > 
-> > Problem is that per smm665 specification, the first NACK is expected. So
-> > we do not just want to ignore this NACK, we want to actively check if
-> > the command "failed" as expected, and report an error if it did _not_
-> > fail.
+On Sat, 22 May 2010 18:54:15 +0100, Steve Glendinning wrote:
+> This patch allows the sensors-detect script to detect the SMSC
+> EMC2103 family of temperature sensors and fan controllers.
 > 
-> Do you really have to trigger the Nack for the ADC conversion to start?
-> Can't you just use i2c_smbus_read_byte() (no _data) for the first part
-> of the transaction?
+> Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
+> ---
+>  prog/detect/sensors-detect |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
 > 
-Unfortunately, yes. It is the only command that works.
+> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+> index 43b1095..7d59cee 100755
+> --- a/prog/detect/sensors-detect
+> +++ b/prog/detect/sensors-detect
+> @@ -1130,6 +1130,11 @@ use vars qw(@i2c_adapter_names);
+>  		i2c_addrs => [0x2c..0x2e],
+>  		i2c_detect => sub { dme1737_detect(@_, 2); },
+>  	}, {
+> +		name => "SMSC EMC2103",
+> +		driver => "smscemc",
 
-Guenter
+I don't much like this driver name. This driver won't support all the
+SMSC EMC series, so it's confusing. If nothing else, the EMC1403,
+EMC6D100, EMC6D101, EMC6D102 and EMC6D103 are already supported by two
+other drivers (emc1403 and lm85). And there are many other SMSC EMC
+chips, and I doubt they will all be compatible with the EMC2103, right?
+So I would much prefer that you name your driver "emc2103".
+
+> +		i2c_addrs => [0x2e],
+> +		i2c_detect => sub { smsc_emc2103_detect(@_); },
+> +	}, {
+>  		name => "Fintek F75121R/F75122R/RG (VID+GPIO)",
+>  		driver => "to-be-written",
+>  		i2c_addrs => [0x4e], # 0x37 not probed
+> @@ -5079,6 +5084,21 @@ sub smsc47m192_detect
+>  	return ($addr = 0x2d ? 6 : 5);
+>  }
+>  
+> +# Registers used:
+> +#   0xFD: Product ID
+> +#   0xFE: Manufacturer ID
+> +#   0xFF: Revision
+
+Your detection routine below doesn't actually use register 0xff. It
+should if possible: this would make the detection more robust.
+
+> +sub smsc_emc2103_detect
+> +{
+> +	my ($file, $addr) = @_;
+> +	return unless i2c_smbus_read_byte_data($file, 0xFE) = 0x5D;
+> +
+> +	my $product = i2c_smbus_read_byte_data($file, 0xFD);
+> +	return unless (($product = 0x24) || ($product = 0x26));
+> +
+> +	return 8;
+
+You can't grant such a high confidence value after checking only 15
+bits: it would rather be confidence 5 or 6. 
+
+Also, the detection registers seem similar to the EMC1403's, so it
+might make sense to reuse function emc1403_detect for the EMC2103,
+instead of writing a new one.
+
+> +}
+> +
+>  # Chip to detect: 1 = DME1737, 2 = SCH5027
+>  # Registers used:
+>  #   0x3E: Manufacturer ID
+
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
