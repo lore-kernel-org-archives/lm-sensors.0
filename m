@@ -1,82 +1,58 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 26 Jun 2010 02:40:10 +0000
-Subject: [lm-sensors] [PATCH/RFC 2/3] hwmon: LTC4261 driver documentation
-Message-Id: <1277520011-29782-3-git-send-email-guenter.roeck@ericsson.com>
+From: Steve Glendinning <steve.glendinning@smsc.com>
+Date: Sun, 06 Jun 2010 17:32:12 +0000
+Subject: [lm-sensors] [PATCH] Add detection of SMSC EMC2103 to sensors-detect
+Message-Id: <1275845532-19395-1-git-send-email-steve.glendinning@smsc.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/ltc4261 |   56 +++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 56 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/ltc4261
+This patch allows the sensors-detect script to detect the SMSC
+EMC2103 family of temperature sensors and fan controllers.
 
-diff --git a/Documentation/hwmon/ltc4261 b/Documentation/hwmon/ltc4261
-new file mode 100644
-index 0000000..697c8c6
---- /dev/null
-+++ b/Documentation/hwmon/ltc4261
-@@ -0,0 +1,56 @@
-+Kernel driver ltc4261
-+==========+
-+Supported chips:
-+  * Linear Technology LTC4261
-+    Prefix: 'ltc4261'
-+    Addresses scanned: -
-+    Datasheet:
-+        http://cds.linear.com/docs/Datasheet/42612fb.pdf
-+
-+Author: Guenter Roeck <guenter.roeck@ericsson.com>
-+
-+
-+Description
-+-----------
-+
-+The LTC4261/LTC4261-2 negative voltage Hot Swap controllers allow a board
-+to be safely inserted and removed from a live backplane.
-+
-+
-+Usage Notes
-+-----------
-+
-+This driver does not probe for LTC4261 devices, since there is no register
-+which can be safely used to identify the chip. You will have to instantiate
-+the devices explicitly.
-+
-+Example: the following will load the driver for an LTC4261 at address 0x23
-+on I2C bus #1:
-+$ modprobe ltc4261
-+$ echo ltc4261 0x23 > /sys/bus/i2c/devices/i2c-1/new_device
-+
-+
-+Sysfs entries
-+-------------
-+
-+Voltage readings provided by this driver are reported as obtained from the ADC
-+registers. If a set of voltage divider resistors is installed, calculate the
-+real voltage by multiplying the reported value with (R1+R2)/R2, where R1 is the
-+value of the divider resistor against the measured voltage and R2 is the value
-+of the divider resistor against Ground.
-+
-+Current reading provided by this driver is reported as obtained from the ADC
-+Current Sense register. The reported value assumes that a 1 mOhm sense resistor
-+is installed. If a different sense resistor is installed, calculate the real
-+current by dividing the reported value by the sense resistor value in mOhm.
-+
-+in1_input		ADIN input voltage (mV)
-+in2_input		ADIN2 input voltage (mV)
-+
-+in1_min_alarm		ADIN/ADIN2 input undervoltage alarm
-+in1_max_alarm		ADIN/ADIN2 input overvoltage alarm
-+
-+curr1_input		SENSE current (mA)
-+
-+curr1_alarm		SENSE overcurrent alarm
+Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
+---
+ prog/detect/sensors-detect |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index e7f5ab2..9ffaf98 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -1130,6 +1130,11 @@ use vars qw(@i2c_adapter_names);
+ 		i2c_addrs => [0x2c..0x2e],
+ 		i2c_detect => sub { dme1737_detect(@_, 2); },
+ 	}, {
++		name => "SMSC EMC2103",
++		driver => "emc2103",
++		i2c_addrs => [0x2e],
++		i2c_detect => sub { emc1403_detect(@_, 2); },
++	}, {
+ 		name => "Fintek F75121R/F75122R/RG (VID+GPIO)",
+ 		driver => "to-be-written",
+ 		i2c_addrs => [0x4e], # 0x37 not probed
+@@ -5143,7 +5148,7 @@ sub fintek_detect
+ 	return 7;
+ }
+ 
+-# Chip to detect: 0 = EMC1403, 1 = EMC1404
++# Chip to detect: 0 = EMC1403, 1 = EMC1404, 2 = EMC2103
+ # Registers used:
+ #   0xfd: Device ID register
+ #   0xfe: Vendor ID register
+@@ -5163,6 +5168,9 @@ sub emc1403_detect
+ 	} elsif ($chip = 1) {
+ 		return unless $dev_id = 0x25;
+ 		return unless $rev = 0x01;
++	} elsif ($chip = 2) {
++		return unless ($dev_id = 0x24) || ($dev_id = 0x26);
++		return unless $rev = 0x01;
+ 	}
+ 
+ 	return 6;
 -- 
-1.7.0.87.g0901d
+1.7.0.1
 
 
 _______________________________________________
