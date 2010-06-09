@@ -1,35 +1,81 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 14 Jun 2010 17:25:29 +0000
-Subject: Re: [lm-sensors] ITE IT8721F chipset support?
-Message-Id: <AANLkTikVXes9j2GSKPur8F0w35oMi9XOq9vFxAYEBu3q@mail.gmail.com>
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Date: Wed, 09 Jun 2010 05:00:00 +0000
+Subject: [lm-sensors] [PATCH] fix hwmon/i5k_amb.c sysfs attribute for lockdep
+Message-Id: <20100609140000.60975b2f.kamezawa.hiroyu@jp.fujitsu.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C136536.6010909@powercraft.nl>
-In-Reply-To: <4C136536.6010909@powercraft.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: lm-sensors@lm-sensors.org, khali@linux-fr.org, mingo@redhat.com, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
 
-On Sat, Jun 12, 2010 at 12:45 PM, Jelle de Jong
-<jelledejong@powercraft.nl> wrote:
-> The real solution would be that the asus_atk0110 module would be able
-> to set the PWM values of the iTE chipset.
+I'm not familiar with this area but I need this patch for lockdep in mmotm.
+please check.
+-Kame
+=
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-asus_atk0110 only exists to ensure that there are no concurrent
-accesses to the hwmon chip from the firmware and the native driver; as
-such it cannot provide more functionalities than what is exposed by
-ACPI code.
-I mostly understand how the profile based fan control works, but
-currently my only asus board is MIA (I'm waiting for a replacement).
+i5k_amb.ko uses dynamically allocated memory (by kmalloc) for
+attributes passed to sysfs. So, sysfs_attr_init() should be called
+for working happy with lockdep.
 
-> I understeand that the
-> ATK0110 is a proprietary solution of ASUS. Could anybody contact ASUS
-> and request for specification of the ATK0110
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+---
+ drivers/hwmon/i5k_amb.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Done that and I wasn't able to go beyond the 1st level tech support
-(as expected).
+Index: mmotm-2.6.34-Jun6/drivers/hwmon/i5k_amb.c
+=================================--- mmotm-2.6.34-Jun6.orig/drivers/hwmon/i5k_amb.c
++++ mmotm-2.6.34-Jun6/drivers/hwmon/i5k_amb.c
+@@ -289,6 +289,7 @@ static int __devinit i5k_amb_hwmon_init(
+ 			iattr->s_attr.dev_attr.attr.mode = S_IRUGO;
+ 			iattr->s_attr.dev_attr.show = show_label;
+ 			iattr->s_attr.index = k;
++			sysfs_attr_init(&iattr->s_attr.dev_attr.attr);
+ 			res = device_create_file(&pdev->dev,
+ 						 &iattr->s_attr.dev_attr);
+ 			if (res)
+@@ -303,6 +304,7 @@ static int __devinit i5k_amb_hwmon_init(
+ 			iattr->s_attr.dev_attr.attr.mode = S_IRUGO;
+ 			iattr->s_attr.dev_attr.show = show_amb_temp;
+ 			iattr->s_attr.index = k;
++			sysfs_attr_init(&iattr->s_attr.dev_attr.attr);
+ 			res = device_create_file(&pdev->dev,
+ 						 &iattr->s_attr.dev_attr);
+ 			if (res)
+@@ -318,6 +320,7 @@ static int __devinit i5k_amb_hwmon_init(
+ 			iattr->s_attr.dev_attr.show = show_amb_min;
+ 			iattr->s_attr.dev_attr.store = store_amb_min;
+ 			iattr->s_attr.index = k;
++			sysfs_attr_init(&iattr->s_attr.dev_attr.attr);
+ 			res = device_create_file(&pdev->dev,
+ 						 &iattr->s_attr.dev_attr);
+ 			if (res)
+@@ -333,6 +336,7 @@ static int __devinit i5k_amb_hwmon_init(
+ 			iattr->s_attr.dev_attr.show = show_amb_mid;
+ 			iattr->s_attr.dev_attr.store = store_amb_mid;
+ 			iattr->s_attr.index = k;
++			sysfs_attr_init(&iattr->s_attr.dev_attr.attr);
+ 			res = device_create_file(&pdev->dev,
+ 						 &iattr->s_attr.dev_attr);
+ 			if (res)
+@@ -348,6 +352,7 @@ static int __devinit i5k_amb_hwmon_init(
+ 			iattr->s_attr.dev_attr.show = show_amb_max;
+ 			iattr->s_attr.dev_attr.store = store_amb_max;
+ 			iattr->s_attr.index = k;
++			sysfs_attr_init(&iattr->s_attr.dev_attr.attr);
+ 			res = device_create_file(&pdev->dev,
+ 						 &iattr->s_attr.dev_attr);
+ 			if (res)
+@@ -362,6 +367,7 @@ static int __devinit i5k_amb_hwmon_init(
+ 			iattr->s_attr.dev_attr.attr.mode = S_IRUGO;
+ 			iattr->s_attr.dev_attr.show = show_amb_alarm;
+ 			iattr->s_attr.index = k;
++			sysfs_attr_init(&iattr->s_attr.dev_attr.attr);
+ 			res = device_create_file(&pdev->dev,
+ 						 &iattr->s_attr.dev_attr);
+ 			if (res)
 
-Luca
 
 _______________________________________________
 lm-sensors mailing list
