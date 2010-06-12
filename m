@@ -1,60 +1,67 @@
 From: Maxim Levitsky <maximlevitsky@gmail.com>
-Date: Wed, 02 Jun 2010 20:10:16 +0000
+Date: Sat, 12 Jun 2010 13:03:59 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from
-Message-Id: <1275509416.6277.2.camel@maxim-laptop>
+Message-Id: <1276347839.4481.22.camel@maxim-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100507095945.GB12190@owl>
 	 <1275111551.3427.4.camel@maxim-laptop>  <20100531013950.GA8265@owl>
 	 <1275496456.32562.4.camel@maxim-laptop>
-In-Reply-To: <1275496456.32562.4.camel@maxim-laptop>
+	 <1275509416.6277.2.camel@maxim-laptop>
+In-Reply-To: <1275509416.6277.2.camel@maxim-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Huaxu Wan <huaxu.wan@linux.intel.com>
 Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, huaxu.wan@intel.com, khali@linux-fr.org
 
-On Wed, 2010-06-02 at 19:34 +0300, Maxim Levitsky wrote: 
-> On Mon, 2010-05-31 at 09:39 +0800, Huaxu Wan wrote: 
-> > On 08:39 Sat 29 May, Maxim Levitsky wrote:
-> > > On Fri, 2010-05-07 at 17:59 +0800, Huaxu Wan wrote: 
-> > > > The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
-> > > > processers.
+On Wed, 2010-06-02 at 23:10 +0300, Maxim Levitsky wrote: 
+> On Wed, 2010-06-02 at 19:34 +0300, Maxim Levitsky wrote: 
+> > On Mon, 2010-05-31 at 09:39 +0800, Huaxu Wan wrote: 
+> > > On 08:39 Sat 29 May, Maxim Levitsky wrote:
+> > > > On Fri, 2010-05-07 at 17:59 +0800, Huaxu Wan wrote: 
+> > > > > The MSR IA32_TEMPERATURE_TARGET contains the TjMax value in the newer
+> > > > > processers.
+> > > > 
+> > > > I know that TjMax on my system is 85, and now coretemp reports wrong
+> > > > temperatures.
+> > > > First of all BIOS using stupid tricks actualy reports CPU temperature
+> > > > through ACPI, and assuming it was correct TjMax is 85.
+> > > > It also shuts down the system if I 'lie' to it that cpu temperature is
+> > > > 85C.
 > > > 
-> > > I know that TjMax on my system is 85, and now coretemp reports wrong
-> > > temperatures.
-> > > First of all BIOS using stupid tricks actualy reports CPU temperature
-> > > through ACPI, and assuming it was correct TjMax is 85.
-> > > It also shuts down the system if I 'lie' to it that cpu temperature is
-> > > 85C.
+> > > From the list at [1], the TjMax(Tjunction) of T5450 is 100C. Does anyone
+> > > here can make a double check?
+> > > 
+> > > [1] http://ark.intel.com/Product.aspx?id0787&processor=T5450&spec-codes=SLA4F
 > > 
-> > From the list at [1], the TjMax(Tjunction) of T5450 is 100C. Does anyone
-> > here can make a double check?
+> > This is very interesting.
 > > 
-> > [1] http://ark.intel.com/Product.aspx?id0787&processor=T5450&spec-codes=SLA4F
+> > With TjMax 85C, the CPUs idle temperature is reported at around 45~50C
+> > GPU temperature that is around 60C
+> > 
+> > BIOS also reports 45~50C.
+> > 
+> > BIOS hooks an SMI to CPU thermal report, and stores the temperature it
+> > read in ram, then ACPI code reads it, reports and passes to the EC
+> > (embedded controller).
+> > 
+> > If I write myself 85 to embedded controller, systems shuts down.
+> > (values less that 85, eg 84 don't shut system).
 > 
-> This is very interesting.
 > 
-> With TjMax 85C, the CPUs idle temperature is reported at around 45~50C
-> GPU temperature that is around 60C
-> 
-> BIOS also reports 45~50C.
-> 
-> BIOS hooks an SMI to CPU thermal report, and stores the temperature it
-> read in ram, then ACPI code reads it, reports and passes to the EC
-> (embedded controller).
-> 
-> If I write myself 85 to embedded controller, systems shuts down.
-> (values less that 85, eg 84 don't shut system).
+> Another clue is that right after resume from ram, after long delay
+> (~hour) the displayed temperature with TjMax 85 is 33C. Since room
+> temperature here is around 27C, this seems more plausible that 
+> 33 + 15 = 48C 
 
 
-Another clue is that right after resume from ram, after long delay
-(~hour) the displayed temperature with TjMax 85 is 33C. Since room
-temperature here is around 27C, this seems more plausible that 
-33 + 15 = 48C 
+Any update? 
+> 
+> 
+> Best regards,
+> Maxim Levitsky
+> 
 
-
-Best regards,
-Maxim Levitsky
 
 
 _______________________________________________
