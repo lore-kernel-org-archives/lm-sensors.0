@@ -1,114 +1,39 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Date: Sat, 05 Jun 2010 22:12:22 +0000
-Subject: Re: [lm-sensors] [RFC][PATCH 22/26] hwmon: Add JZ4740 ADC driver
-Message-Id: <4C0ACBC6.6050209@metafoo.de>
+From: Jelle de Jong <jelledejong@powercraft.nl>
+Date: Sat, 12 Jun 2010 10:45:10 +0000
+Subject: Re: [lm-sensors] ITE IT8721F chipset support?
+Message-Id: <4C136536.6010909@powercraft.nl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1275505397-16758-1-git-send-email-lars@metafoo.de> <1275505950-17334-6-git-send-email-lars@metafoo.de>     <4C0A87F1.8000201@jic23.retrosnub.co.uk> <4C0AA0CA.9020808@metafoo.de> <4C0ABC75.9020908@jic23.retrosnub.co.uk>
-In-Reply-To: <4C0ABC75.9020908@jic23.retrosnub.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Cc: linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Jonathan Cameron wrote:
-> On 06/05/10 20:08, Lars-Peter Clausen wrote:
->   
->> Hi
->>
->> Jonathan Cameron wrote:
->>     
->>> On 06/02/10 20:12, Lars-Peter Clausen wrote:
->>>   
->>>       
->>>> This patch adds support for the ADC module on JZ4740 SoCs.
->>>>
->>>> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
->>>> Cc: lm-sensors@lm-sensors.org
->>>> ---
->>>>  drivers/hwmon/Kconfig      |   11 ++
->>>>  drivers/hwmon/Makefile     |    1 +
->>>>  drivers/hwmon/jz4740-adc.c |  423 ++++++++++++++++++++++++++++++++++++++++++++
->>>>  include/linux/jz4740-adc.h |   25 +++
->>>>  4 files changed, 460 insertions(+), 0 deletions(-)
->>>>  create mode 100644 drivers/hwmon/jz4740-adc.c
->>>>  create mode 100644 include/linux/jz4740-adc.h
->>>>     
->>>>         
->>> Hi, I'm just wondering of one wants the majority of this driver to sit in hwmon?
->>>
->>> Looks to me like a fairly classic case for something that might be best implemented
->>> as an mfd with the hwmon, touchscreen and battery drivers separately hanging off that.
->>> You might well have someone who needs the battery driver to work, but doesn't care
->>> about hwmon and so doesn't want to build that bit in... 
->>>
->>> Just an immediate thought.  Perhaps this is the best way to do things...
->>>   
->>>       
->> I've thought about it before and rejected the idea at that time, because
->> I thought it will add more abstraction then actually needed.
->> But at that time the adc driver was not a hwmon driver yet and thus
->> didn't pull in the whole hwmon framework if you only wanted to use the
->> battery driver.
->> But the more I'm thinking about it now it might actually make sense to
->> move the common code to a MFD driver.
->>     
->>> Also after a quick look.  How is it used by the touchscreen driver?
->>> If not, please remove the reference from kconfig until it it is true.
->>>   
->>>       
->> There is no touchscreen driver yet. But if I'm going to remove the
->> reference I'm pretty sure that someone will come up and ask why it
->> actually is necessary to have a separate driver instead of putting all
->> the code into the battery driver.
->>     
-> Fair enough.  Perhaps a comment for the patch rather than in Kconfig
-> as it currently is.  People will enable it then go 'Why can't I now
-> enable the touchscreen driver?'
->
->   
-I guess that will work.
->>> Few other bits and bobs inline.
->>>   
->>>       
->>>> diff --git a/drivers/hwmon/jz4740-adc.c b/drivers/hwmon/jz4740-adc.c
->>>> new file mode 100644
->>>> index 0000000..635dfe9
->>>> --- /dev/null
->>>> +++ b/drivers/hwmon/jz4740-adc.c
->>>> @@ -0,0 +1,423 @@
->>>> + [...]
->>>> +static ssize_t jz4740_adc_read_adcin(struct device *dev,
->>>> +					struct device_attribute *dev_attr,
->>>> +					char *buf)
->>>> +{
->>>> +	struct jz4740_adc *adc = dev_get_drvdata(dev);
->>>> +	unsigned long t;
->>>> +	uint16_t val;
->>>> +
->>>> +	jz4740_adc_clk_enable(adc);
->>>> +
->>>>     
->>>>         
->>> Is there a possible race here?
->>>   
->>>       
->> Where exactly?
->>     
-> I can't recall off the top of my head if sysfs attributes can having multiple
-> simultaneous readers. If they can then thread two is just past the next line.
-> Whilst the earlier thread has passed the t = wait.... line as the interrupt has
-> fired.  The irq is then disabled by thread 1 whilst thread 2 enables the adc.
-> Clearly the timeout will prevent any serious issues but the 2nd thread is going
-> to falsely wait a second I think... ?
->   
-Hm, right. I didn't thought of that. There can be multiple simultaneous
-reads.
-Actually there are multiple issues with concurrent reads from adcin pin,
-I guess the whole function should be protected by a mutex.
-And additionally the clock is not turned off in case of an error.
+Hi Jean,
 
-- Lars
+Jean Delvare wrote, on 12-06-10 11:37:
+> Manual fan speed control isn't available on Asus desktop boards that
+> implement ATK0110, and probably never will. I fear you chose the wrong
+> board for the job, sorry.
+
+Thank you for the information and your help on the #lm-sensors irc
+channel.
+
+The real solution would be that the asus_atk0110 module would be able
+to set the PWM values of the iTE chipset. I understeand that the
+ATK0110 is a proprietary solution of ASUS. Could anybody contact ASUS
+and request for specification of the ATK0110 and IT8721F else they
+start losing more customers.
+
+I am going to switch to an other vendor and bought a Gigabyte
+GA-890GPA-UD3H with an iTE IT8720. Hopefully this will workout better.
+
+I also tried the acpi_enforce_resources=lax and used modprobe it87
+force_id=0x8720 this shows pwm input controls but non of them
+responded with pwmconfig, seems the pwm controls are not compatible.
+
+With kind regards,
+
+Jelle de Jong
 
 _______________________________________________
 lm-sensors mailing list
