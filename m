@@ -1,75 +1,122 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 24 Jun 2010 08:20:59 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (it87) Fix in7 on IT8720F
-Message-Id: <20100624102059.31c73f86@hyperion.delvare>
+From: Philip Edelbrock <phil@studiogeologie.com>
+Date: Sun, 13 Jun 2010 06:48:21 +0000
+Subject: [lm-sensors] Download mirror has been moved
+Message-Id: <EC2CDD95-9F5B-4F4D-96BE-71544E97231D@studiogeologie.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2321302827652062285=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The IT8720F has no VIN7 pin, so VCCH should always be routed
-internally to VIN7 with an internal divider. Curiously, there still
-is a configuration bit to control this, which means it can be set
-incorrectly. And even more curiously, many boards out there are
-improperly configured, even though the IT8720F datasheet claims that
-the internal routing of VCCH to VIN7 is the default setting. So we
-force the internal routing in this case.
 
-It turns out that all boards with the wrong setting are from Gigabyte,
-so I suspect a BIOS bug. But it's easy enough to workaround in the
-driver, so let's do it.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Jean-Marc Spaggiari <jean-marc@spaggiari.org>
----
- drivers/hwmon/it87.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-
---- linux-2.6.35-rc3.orig/drivers/hwmon/it87.c	2010-06-22 12:43:43.000000000 +0200
-+++ linux-2.6.35-rc3/drivers/hwmon/it87.c	2010-06-23 11:50:57.000000000 +0200
-@@ -80,6 +80,13 @@ superio_inb(int reg)
- 	return inb(VAL);
- }
- 
-+static inline void
-+superio_outb(int reg, int val)
-+{
-+	outb(reg, REG);
-+	outb(val, VAL);
-+}
-+
- static int superio_inw(int reg)
- {
- 	int val;
-@@ -1517,6 +1524,21 @@ static int __init it87_find(unsigned sho
- 			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
- 
- 		reg = superio_inb(IT87_SIO_PINX2_REG);
-+		/*
-+		 * The IT8720F has no VIN7 pin, so VCCH should always be
-+		 * routed internally to VIN7 with an internal divider.
-+		 * Curiously, there still is a configuration bit to control
-+		 * this, which means it can be set incorrectly. And even
-+		 * more curiously, many boards out there are improperly
-+		 * configured, even though the IT8720F datasheet claims
-+		 * that the internal routing of VCCH to VIN7 is the default
-+		 * setting. So we force the internal routing in this case.
-+		 */
-+		if (sio_data->type = it8720 && !(reg & (1 << 1))) {
-+			reg |= (1 << 1);
-+			superio_outb(IT87_SIO_PINX2_REG, reg);
-+			pr_notice("it87: Routing internal VCCH to in7\n");
-+		}
- 		if (reg & (1 << 0))
- 			pr_info("it87: in3 is VCC (+5V)\n");
- 		if (reg & (1 << 1))
+--===============2321302827652062285==
+Content-Type: multipart/alternative; boundary=Apple-Mail-32--395725216
 
 
--- 
-Jean Delvare
+--Apple-Mail-32--395725216
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
+
+
+Our old server Stimpy seems to be dead, so I've moved the FTP download =
+mirror to a more reliable server.  The usual DNS change delays apply.  =
+Hope folks are having/had a great weekend so far!
+
+
+Phil
+
+PHIL EDELBROCK + phil@studiogeologie.com + tel 541 753 4003 + G E O L O =
+G I E + www.studiogeologie.com=
+
+--Apple-Mail-32--395725216
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+	charset=us-ascii
+
+<html><head></head><body style=3D"word-wrap: break-word; =
+-webkit-nbsp-mode: space; -webkit-line-break: after-white-space; =
+"><div><br></div><div>Our old server Stimpy seems to be dead, so I've =
+moved the FTP download mirror to a more reliable server. &nbsp;The usual =
+DNS change delays apply. &nbsp;Hope folks are having/had a great weekend =
+so far!</div><div><br></div><div><br></div><div>Phil</div><br><div>
+<span class=3D"Apple-style-span" style=3D"border-collapse: separate; =
+color: rgb(0, 0, 0); font-family: Helvetica; font-size: medium; =
+font-style: normal; font-variant: normal; font-weight: normal; =
+letter-spacing: normal; line-height: normal; orphans: 2; text-align: =
+auto; text-indent: 0px; text-transform: none; white-space: normal; =
+widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; =
+-webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+Helvetica; font-size: medium; font-style: normal; font-variant: normal; =
+font-weight: normal; letter-spacing: normal; line-height: normal; =
+orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; =
+widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; =
+-webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0px; "><span class=3D"Apple-style-span" =
+style=3D"font-size: 12px; "><div><font class=3D"Apple-style-span" =
+color=3D"#9F5036" face=3D"Georgia" size=3D"3"><span =
+class=3D"Apple-style-span" style=3D"font-size: 13px; "><span =
+class=3D"Apple-style-span" style=3D"font-family: Times; font-size: 10px; =
+font-weight: bold; "><font class=3D"Apple-style-span" face=3D"Arial"><span=
+ class=3D"Apple-style-span" style=3D"font-weight: normal; ">PHIL =
+EDELBROCK</span></font><span class=3D"Apple-style-span" style=3D"color: =
+rgb(126, 126, 126); "><font class=3D"Apple-style-span" =
+face=3D"Arial"><span class=3D"Apple-style-span" style=3D"font-weight: =
+normal; "><span class=3D"Apple-style-span" style=3D"color: rgb(159, 80, =
+54); font-family: Georgia; font-size: 13px; ">&nbsp;+&nbsp;</span><a =
+href=3D"mailto:phil@studiogeologie.com" style=3D"text-decoration: none; =
+color: rgb(126, 126, 126); cursor: pointer; =
+">phil@studiogeologie.com</a><span class=3D"Apple-style-span" =
+style=3D"color: rgb(128, 128, 128); font-family: Verdana; font-size: =
+12px; "><font class=3D"Apple-style-span" size=3D"1"><span =
+class=3D"Apple-style-span">&nbsp;+&nbsp;</span></font><span =
+class=3D"Apple-style-span" style=3D"color: rgb(126, 126, 126); =
+font-style: italic; "><font class=3D"Apple-style-span" =
+size=3D"1">tel&nbsp;<span class=3D"Apple-style-span" style=3D"font-style: =
+normal; ">541 753 4003</span></font><span class=3D"Apple-style-span"><font=
+ class=3D"Apple-style-span" size=3D"1">&nbsp;<span =
+class=3D"Apple-style-span" style=3D"color: rgb(159, 80, 54); =
+font-family: Georgia; font-size: 12px; font-style: normal; "><font =
+class=3D"Apple-style-span" size=3D"3"><span class=3D"Apple-style-span" =
+style=3D"font-size: 13px; ">+&nbsp;</span></font><b><font =
+class=3D"Apple-style-span" size=3D"3"><span class=3D"Apple-style-span" =
+style=3D"font-size: 13px; ">G E O L O G I E</span></font></b><font =
+class=3D"Apple-style-span" size=3D"3"><span class=3D"Apple-style-span" =
+style=3D"font-size: 13px; ">&nbsp;+&nbsp;</span></font><span =
+class=3D"Apple-style-span" style=3D"color: rgb(128, 128, 128); =
+font-family: Verdana; "><span class=3D"Apple-style-span" style=3D"color: =
+rgb(126, 126, 126); font-family: Helvetica; "><font =
+class=3D"Apple-style-span" face=3D"Verdana"><span =
+class=3D"Apple-style-span" style=3D"color: rgb(128, 128, 128); "><span =
+class=3D"Apple-style-span" style=3D"color: rgb(126, 126, 126); =
+font-style: italic; "><span class=3D"Apple-style-span" =
+style=3D"font-style: normal; font-family: Helvetica; "><font =
+class=3D"Apple-style-span" face=3D"Verdana"><font =
+class=3D"Apple-style-span" size=3D"1"><span class=3D"Apple-style-span" =
+style=3D"font-size: 9px; "><span class=3D"Apple-style-span" =
+style=3D"color: rgb(128, 128, 128); "><span class=3D"Apple-style-span" =
+style=3D"font-family: Arial; font-size: 10px; "><a =
+href=3D"http://www.studiogeologie.com/" style=3D"text-decoration: none; =
+color: rgb(126, 126, 126); cursor: pointer; =
+">www.studiogeologie.com</a></span></span></span></font></font></span></sp=
+an></span></font></span></span></span></font></span></span></span></span><=
+/font></span></span></span></font></div></span></span></span></div></body>=
+</html>=
+
+--Apple-Mail-32--395725216--
+
+
+--===============2321302827652062285==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2321302827652062285==--
