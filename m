@@ -1,39 +1,35 @@
-From: Jelle de Jong <jelledejong@powercraft.nl>
-Date: Sat, 12 Jun 2010 10:45:10 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Mon, 14 Jun 2010 17:25:29 +0000
 Subject: Re: [lm-sensors] ITE IT8721F chipset support?
-Message-Id: <4C136536.6010909@powercraft.nl>
+Message-Id: <AANLkTikVXes9j2GSKPur8F0w35oMi9XOq9vFxAYEBu3q@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4C136536.6010909@powercraft.nl>
+In-Reply-To: <4C136536.6010909@powercraft.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+On Sat, Jun 12, 2010 at 12:45 PM, Jelle de Jong
+<jelledejong@powercraft.nl> wrote:
+> The real solution would be that the asus_atk0110 module would be able
+> to set the PWM values of the iTE chipset.
 
-Jean Delvare wrote, on 12-06-10 11:37:
-> Manual fan speed control isn't available on Asus desktop boards that
-> implement ATK0110, and probably never will. I fear you chose the wrong
-> board for the job, sorry.
+asus_atk0110 only exists to ensure that there are no concurrent
+accesses to the hwmon chip from the firmware and the native driver; as
+such it cannot provide more functionalities than what is exposed by
+ACPI code.
+I mostly understand how the profile based fan control works, but
+currently my only asus board is MIA (I'm waiting for a replacement).
 
-Thank you for the information and your help on the #lm-sensors irc
-channel.
+> I understeand that the
+> ATK0110 is a proprietary solution of ASUS. Could anybody contact ASUS
+> and request for specification of the ATK0110
 
-The real solution would be that the asus_atk0110 module would be able
-to set the PWM values of the iTE chipset. I understeand that the
-ATK0110 is a proprietary solution of ASUS. Could anybody contact ASUS
-and request for specification of the ATK0110 and IT8721F else they
-start losing more customers.
+Done that and I wasn't able to go beyond the 1st level tech support
+(as expected).
 
-I am going to switch to an other vendor and bought a Gigabyte
-GA-890GPA-UD3H with an iTE IT8720. Hopefully this will workout better.
-
-I also tried the acpi_enforce_resources=lax and used modprobe it87
-force_id=0x8720 this shows pwm input controls but non of them
-responded with pwmconfig, seems the pwm controls are not compatible.
-
-With kind regards,
-
-Jelle de Jong
+Luca
 
 _______________________________________________
 lm-sensors mailing list
