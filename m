@@ -1,173 +1,116 @@
-From: Markus Fischer <markus@fischer.name>
-Date: Tue, 15 Jun 2010 13:55:13 +0000
-Subject: [lm-sensors] Getting sensor information from HP ProLiant DL360
-Message-Id: <4C178641.2050903@fischer.name>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------010107030208060406000000"
+From: Juerg Haefliger <juergh@gmail.com>
+Date: Tue, 15 Jun 2010 16:59:09 +0000
+Subject: Re: [lm-sensors] Getting sensor information from HP ProLiant DL360
+Message-Id: <AANLkTinPjoxHoK2EAML5y_jn_TZsWuER8iN3MBTJx7Tm@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4C178641.2050903@fischer.name>
+In-Reply-To: <4C178641.2050903@fischer.name>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------010107030208060406000000
-Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
-Content-Transfer-Encoding: quoted-printable
+Markus,
 
-Hi,
+For HP servers, use the hplog tool that is part of the hp-health
+package which you can get from hp.com.
 
-our new machine arrived today and I'd like to get as much information=20
-out of it as possible. I'm using Debian Lenny with a=20
-2.6.26-2-vserver-amd64 kernel, arch is x86_64 .
-
-I've installed lm-sensors (sensors --version reports sensors version=20
-3.0.2 with libsensors version 3.0.2 , package is 1:3.0.2-1+b2 ) and ran=20
-"sensors-detect"; attached is the output.
-
-"sensors" only reports one information for me:
-
-$ sudo sensors
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:        +8.3=B0C  (crit =3D +31.3=B0C)
-
-I'm missing other temps, fans, CPU, etc. and I'm wondering how I could=20
-improve the situtation; I couldn't find out much what the current status=20
-of lm-sensors support for my machine is. I looked at=20
-http://lm-sensors.org/wiki/Devices and only found one reference to HP=20
-stating:
-
-"
-   SMSC 	 SCH4307 	 yes 	 	 	 	 (2010-02-11) Super I/O with hardware=20
-monitoring capabilities. Used in HP servers. Datasheets only available=20
-under NDA, no driver yet."
-
-I guess it applies to me, but I'm not sure?
-
-"sensors" suggests to load the module "ipmisensors", I search turned up=20
-http://bmcsensors-26.sourceforge.net/ for the 2.6 kernels. However, the=20
-patch available from=20
-https://sourceforge.net/project/showfiles.php?group_id=3D114509&package_id=
-=3D199597=20
-(link for ">=3D2.6.17" kernels) does not apply, and the other link=20
-"impisensors-experimental" to=20
-http://bmcsensors-26.sourceforge.net/ipmisensors/ doesn't work.
-
-Are there any other options?
-
-thanks,
-- Markus
-
---------------010107030208060406000000
-Content-Type: text/plain;
- name="sensors-detect.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="sensors-detect.txt"
-
-mate-vServer01:~# sensors-detect
-# sensors-detect revision 5249 (2008-05-11 22:56:25 +0200)
-
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
-
-We can start with probing for (PCI) I2C or SMBus adapters.
-Do you want to probe now? (YES/no):
-Probing for PCI bus adapters...
-Sorry, no supported PCI bus adapters found.
-
-If you have undetectable or unsupported I2C/SMBus adapters, you can have
-them scanned by manually loading the modules before running this script.
-
-To continue, we need module `i2c-dev' to be loaded.
-Do you want to load `i2c-dev' now? (YES/no):
-Module loaded successfully.
-
-We are now going to do the I2C/SMBus adapter probings. Some chips may
-be double detected; we choose the one with the highest confidence
-value in that case.
-If you found that the adapter hung after probing a certain address,
-you can specify that address to remain unprobed.
-
-Some chips are also accessible through the ISA I/O ports. We have to
-write to arbitrary I/O ports to probe them. This is usually safe though.
-Yes, you do have ISA I/O ports even if you do not have any ISA slots!
-Do you want to scan the ISA I/O ports? (YES/no):
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM78-J' at 0x290...     No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-Probing for `IPMI BMC KCS' at 0xca0...                      Success!
-    (confidence 4, driver `ipmisensors')
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
-
-Some Super I/O chips may also contain sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no):
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     Yes
-Found `SMSC SCH4307 Super IO Fan Sensors'                   Success!
-    (address 0x300, driver `to-be-written')
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Fintek'...                       No
-Trying family `ITE'...                                      No
-
-Some south bridges, CPUs or memory controllers may also contain
-embedded sensors. Do you want to scan for them? (YES/no):
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD K10 thermal sensors...                                  No
-Intel Core family thermal sensor...                         No
-Intel AMB FB-DIMM thermal sensor...                         No
-
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
-
-Driver `ipmisensors' (should be inserted):
-  Detects correctly:
-  * ISA bus, address 0xca0
-    Chip `IPMI BMC KCS' (confidence: 4)
-
-Driver `to-be-written' (should be inserted):
-  Detects correctly:
-  * ISA bus, address 0x300
-    Chip `SMSC SCH4307 Super IO Fan Sensors' (confidence: 9)
-
-I will now generate the commands needed to load the required modules.
-Just press ENTER to continue:
-
-To load everything that is needed, add this to /etc/modules:
-
-#----cut here----
-# You must also install and load the IPMI modules
-ipmi-si
-# Chip drivers
-# Warning: the required module ipmisensors is not currently installed
-# on your system. For status of 2.6 kernel ports check
-# http://www.lm-sensors.org/wiki/Devices. If driver is built
-# into the kernel, or unavailable, comment out the following line.
-ipmisensors
-# no driver for SMSC SCH4307 Super IO Fan Sensors yet
-#----cut here----
-
-Do you want to add these lines automatically? (yes/NO)
+...juerg
 
 
---------------010107030208060406000000
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+C100231:~# hplog -f -t
+ID     TYPE        LOCATION      STATUS  REDUNDANT FAN SPEED
+ 1  Var. Speed   System Board    Normal     Yes     Low    ( 13)
+ 2  Var. Speed   System Board    Normal     Yes     Low    ( 13)
+ 3  Var. Speed   System Board    Normal     Yes     Low    ( 29)
+ 4  Var. Speed   System Board    Normal     Yes     Low    ( 29)
+ 5  Var. Speed   System Board    Normal     Yes     Low    ( 29)
+ 6  Var. Speed   System Board    Normal     Yes     Low    ( 29)
+
+ID     TYPE        LOCATION      STATUS    CURRENT  THRESHOLD
+ 1  Basic Sensor Ambient         Normal    75F/ 24C 138F/ 59C
+ 2  Basic Sensor CPU (1)         Normal   104F/ 40C 179F/ 82C
+ 3  Basic Sensor CPU (2)         Normal   ---F/---C 179F/ 82C
+ 4  Basic Sensor Memory Board    Normal    86F/ 30C 188F/ 87C
+ 5  Basic Sensor Memory Board    Normal    84F/ 29C 188F/ 87C
+ 6  Basic Sensor Memory Board    Normal   ---F/---C 188F/ 87C
+ 7  Basic Sensor Memory Board    Normal   ---F/---C 188F/ 87C
+ 8  Basic Sensor Pwr. Supply Bay Normal   105F/ 41C 194F/ 90C
+ 9  Basic Sensor Pwr. Supply Bay Normal    93F/ 34C 149F/ 65C
+10  Basic Sensor I/O Zone        Normal   105F/ 41C 194F/ 90C
+11  Basic Sensor I/O Zone        Normal    87F/ 31C 158F/ 70C
+12  Basic Sensor I/O Zone        Normal    95F/ 35C 194F/ 90C
+13  Basic Sensor I/O Zone        Normal    86F/ 30C 167F/ 75C
+14  Basic Sensor I/O Zone        Normal    98F/ 37C 167F/ 75C
+15  Basic Sensor I/O Zone        Normal    95F/ 35C 167F/ 75C
+16  Basic Sensor I/O Zone        Normal    77F/ 25C 158F/ 70C
+17  Basic Sensor I/O Zone        Normal    80F/ 27C 158F/ 70C
+18  Basic Sensor I/O Zone        Normal    80F/ 27C 158F/ 70C
+19  Basic Sensor Processor Zone  Normal    73F/ 23C 158F/ 70C
+20  Basic Sensor Processor Zone  Normal    84F/ 29C 158F/ 70C
+21  Basic Sensor Processor Zone  Normal    87F/ 31C 176F/ 80C
+22  Basic Sensor Processor Zone  Normal    84F/ 29C 176F/ 80C
+23  Basic Sensor I/O Zone        Normal   100F/ 38C 176F/ 80C
+24  Basic Sensor Memory Board    Normal    82F/ 28C 158F/ 70C
+25  Basic Sensor Memory Board    Normal    86F/ 30C 158F/ 70C
+26  Basic Sensor Memory Board    Normal    84F/ 29C 158F/ 70C
+27  Basic Sensor I/O Zone        Normal    93F/ 34C 158F/ 70C
+28  Basic Sensor I/O Zone        Normal    80F/ 27C 158F/ 70C
+29  Basic Sensor System Board    Normal    73F/ 23C 149F/ 65C
+30  Basic Sensor I/O Zone        Normal   145F/ 63C 230F/110C
+
+
+On Tue, Jun 15, 2010 at 3:55 PM, Markus Fischer <markus@fischer.name> wrote:
+> Hi,
+>
+> our new machine arrived today and I'd like to get as much information out of
+> it as possible. I'm using Debian Lenny with a 2.6.26-2-vserver-amd64 kernel,
+> arch is x86_64 .
+>
+> I've installed lm-sensors (sensors --version reports sensors version 3.0.2
+> with libsensors version 3.0.2 , package is 1:3.0.2-1+b2 ) and ran
+> "sensors-detect"; attached is the output.
+>
+> "sensors" only reports one information for me:
+>
+> $ sudo sensors
+> acpitz-virtual-0
+> Adapter: Virtual device
+> temp1:        +8.3°C  (crit = +31.3°C)
+>
+> I'm missing other temps, fans, CPU, etc. and I'm wondering how I could
+> improve the situtation; I couldn't find out much what the current status of
+> lm-sensors support for my machine is. I looked at
+> http://lm-sensors.org/wiki/Devices and only found one reference to HP
+> stating:
+>
+> "
+>  SMSC   SCH4307         yes                             (2010-02-11) Super
+> I/O with hardware monitoring capabilities. Used in HP servers. Datasheets
+> only available under NDA, no driver yet."
+>
+> I guess it applies to me, but I'm not sure?
+>
+> "sensors" suggests to load the module "ipmisensors", I search turned up
+> http://bmcsensors-26.sourceforge.net/ for the 2.6 kernels. However, the
+> patch available from
+> https://sourceforge.net/project/showfiles.php?group_id4509&package_id9597
+> (link for ">=2.6.17" kernels) does not apply, and the other link
+> "impisensors-experimental" to
+> http://bmcsensors-26.sourceforge.net/ipmisensors/ doesn't work.
+>
+> Are there any other options?
+>
+> thanks,
+> - Markus
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------010107030208060406000000--
-
