@@ -1,189 +1,130 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 30 Jun 2010 15:50:43 +0000
-Subject: [lm-sensors] [PATCH v6 2/3] hwmon: SMM665 driver documentation
-Message-Id: <1277913044-28322-3-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 15 Jun 2010 09:59:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (it87) Export labels for internal
+Message-Id: <20100615115956.1e12f5bb@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277913044-28322-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277913044-28322-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+Some voltage sensors can be wired internally to the IT87xxF chip's own
+power supply channels. In that case, we can inform user-space that the
+wiring is known by exporting proper labels for these sensors.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- Documentation/hwmon/smm665 |  157 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 157 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/smm665
+I couldn't test this patch, so anyone with a recent IT87xxF chip is
+welcome to test and report. A stand-alone driver is also available for
+easier testing, at:
+  http://khali.linux-fr.org/devel/misc/it87/
 
-diff --git a/Documentation/hwmon/smm665 b/Documentation/hwmon/smm665
-new file mode 100644
-index 0000000..3820fc9
---- /dev/null
-+++ b/Documentation/hwmon/smm665
-@@ -0,0 +1,157 @@
-+Kernel driver smm665
-+==========
+ drivers/hwmon/it87.c |   47 +++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 45 insertions(+), 2 deletions(-)
+
+--- linux-2.6.35-rc3.orig/drivers/hwmon/it87.c	2010-05-17 18:51:21.000000000 +0200
++++ linux-2.6.35-rc3/drivers/hwmon/it87.c	2010-06-15 11:08:44.000000000 +0200
+@@ -252,6 +252,7 @@ struct it87_sio_data {
+ 	u8 revision;
+ 	u8 vid_value;
+ 	u8 beep_pin;
++	u8 internal;	/* Internal sensors can be labeled */
+ 	/* Features skipped based on config or DMI */
+ 	u8 skip_vid;
+ 	u8 skip_fan;
+@@ -1187,6 +1188,23 @@ static ssize_t show_vid_reg(struct devic
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+ 
 +
-+Supported chips:
-+  * Summit Microelectronics SMM465
-+    Prefix: 'smm465'
-+    Addresses scanned: -
-+    Datasheet:
-+      http://www.summitmicro.com/prod_select/summary/SMM465/SMM465DS.pdf
-+  * Summit Microelectronics SMM665, SMM665B
-+    Prefix: 'smm665'
-+    Addresses scanned: -
-+    Datasheet:
-+      http://www.summitmicro.com/prod_select/summary/SMM665/SMM665B_2089_20.pdf
-+  * Summit Microelectronics SMM665C
-+    Prefix: 'smm665c'
-+    Addresses scanned: -
-+    Datasheet:
-+      http://www.summitmicro.com/prod_select/summary/SMM665C/SMM665C_2125.pdf
-+  * Summit Microelectronics SMM764
-+    Prefix: 'smm764'
-+    Addresses scanned: -
-+    Datasheet:
-+      http://www.summitmicro.com/prod_select/summary/SMM764/SMM764_2098.pdf
-+  * Summit Microelectronics SMM766, SMM766B
-+    Prefix: 'smm766'
-+    Addresses scanned: -
-+    Datasheets:
-+      http://www.summitmicro.com/prod_select/summary/SMM766/SMM766_2086.pdf
-+      http://www.summitmicro.com/prod_select/summary/SMM766B/SMM766B_2122.pdf
++static ssize_t show_label(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	static const char *labels[] = {
++		"+5V",
++		"5VSB",
++		"Vbat",
++	};
++	int nr = to_sensor_dev_attr(attr)->index;
 +
-+Author: Guenter Roeck <guenter.roeck@ericsson.com>
++	return sprintf(buf, "%s\n", labels[nr]);
++}
++static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, show_label, NULL, 0);
++static SENSOR_DEVICE_ATTR(in7_label, S_IRUGO, show_label, NULL, 1);
++static SENSOR_DEVICE_ATTR(in8_label, S_IRUGO, show_label, NULL, 2);
 +
+ static ssize_t show_name(struct device *dev, struct device_attribute
+ 			 *devattr, char *buf)
+ {
+@@ -1427,6 +1445,17 @@ static const struct attribute_group it87
+ 	.attrs = it87_attributes_vid,
+ };
+ 
++static struct attribute *it87_attributes_label[] = {
++	&sensor_dev_attr_in3_label.dev_attr.attr,
++	&sensor_dev_attr_in7_label.dev_attr.attr,
++	&sensor_dev_attr_in8_label.dev_attr.attr,
++	NULL
++};
 +
-+Module Parameters
-+-----------------
++static const struct attribute_group it87_group_label = {
++	.attrs = it87_attributes_vid,
++};
 +
-+* vref: int
-+  Default: 1250 (mV)
-+  Reference voltage on VREF_ADC pin in mV. It should not be necessary to set
-+  this parameter unless a non-default reference voltage is used.
+ /* SuperIO detection - will change isa_address if a chip is found */
+ static int __init it87_find(unsigned short *address,
+ 	struct it87_sio_data *sio_data)
+@@ -1480,6 +1509,9 @@ static int __init it87_find(unsigned sho
+ 	pr_info("it87: Found IT%04xF chip at 0x%x, revision %d\n",
+ 		chip_type, *address, sio_data->revision);
+ 
++	/* in8 (Vbat) is always internal */
++	sio_data->internal = (1 << 2);
 +
+ 	/* Read GPIO config and VID value from LDN 7 (GPIO) */
+ 	if (sio_data->type = it87) {
+ 		/* The IT8705F doesn't have VID pins at all */
+@@ -1518,9 +1550,9 @@ static int __init it87_find(unsigned sho
+ 
+ 		reg = superio_inb(IT87_SIO_PINX2_REG);
+ 		if (reg & (1 << 0))
+-			pr_info("it87: in3 is VCC (+5V)\n");
++			sio_data->internal |= (1 << 0);
+ 		if (reg & (1 << 1))
+-			pr_info("it87: in7 is VCCH (+5V Stand-By)\n");
++			sio_data->internal |= (1 << 1);
+ 
+ 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	}
+@@ -1578,6 +1610,7 @@ static void it87_remove_files(struct dev
+ 	}
+ 	if (!sio_data->skip_vid)
+ 		sysfs_remove_group(&dev->kobj, &it87_group_vid);
++	sysfs_remove_group(&dev->kobj, &it87_group_label);
+ }
+ 
+ static int __devinit it87_probe(struct platform_device *pdev)
+@@ -1702,6 +1735,16 @@ static int __devinit it87_probe(struct p
+ 		if (err)
+ 			goto ERROR4;
+ 	}
 +
-+Description
-+-----------
-+
-+[From datasheet] The SMM665 is an Active DC Output power supply Controller
-+that monitors, margins and cascade sequences power. The part monitors six
-+power supply channels as well as VDD, 12V input, two general-purpose analog
-+inputs and an internal temperature sensor using a 10-bit ADC.
-+
-+Each monitored channel has its own high and low limits, plus a critical
-+limit.
-+
-+Support for SMM465, SMM764, and SMM766 has been implemented but is untested.
-+
-+
-+Usage Notes
-+-----------
-+
-+This driver does not probe for devices, since there is no register which
-+can be safely used to identify the chip. You will have to instantiate
-+the devices explicitly. When instantiating the device, you have to specify
-+its configuration register address.
-+
-+Example: the following will load the driver for an SMM665 at address 0x57
-+on I2C bus #1:
-+$ modprobe smm665
-+$ echo smm665 0x57 > /sys/bus/i2c/devices/i2c-1/new_device
-+
-+
-+Sysfs entries
-+-------------
-+
-+This driver uses the values in the datasheet to convert ADC register values
-+into the values specified in the sysfs-interface document. All attributes are
-+read only.
-+
-+Min, max, lcrit, and crit values are used by the chip to trigger external signals
-+and/or other activity. Triggered signals can include HEALTHY, RST, Power Off,
-+or Fault depending on the chip configuration. The driver reports values as lcrit
-+or crit if exceeding the limits triggers RST, Power Off, or Fault, and as min or
-+max otherwise. For details please see the SMM665 datasheet.
-+
-+For SMM465 and SMM764, values for Channel E and F are reported but undefined.
-+
-+in1_input		12V input voltage (mV)
-+in2_input		3.3V (VDD) input voltage (mV)
-+in3_input		Channel A voltage (mV)
-+in4_input		Channel B voltage (mV)
-+in5_input		Channel C voltage (mV)
-+in6_input		Channel D voltage (mV)
-+in7_input		Channel E voltage (mV)
-+in8_input		Channel F voltage (mV)
-+in9_input		AIN1 voltage (mV)
-+in10_input		AIN2 voltage (mV)
-+
-+in1_min			12v input minimum voltage (mV)
-+in2_min			3.3V (VDD) input minimum voltage (mV)
-+in3_min			Channel A minimum voltage (mV)
-+in4_min			Channel B minimum voltage (mV)
-+in5_min			Channel C minimum voltage (mV)
-+in6_min			Channel D minimum voltage (mV)
-+in7_min			Channel E minimum voltage (mV)
-+in8_min			Channel F minimum voltage (mV)
-+in9_min			AIN1 minimum voltage (mV)
-+in10_min		AIN2 minimum voltage (mV)
-+
-+in1_max			12v input maximum voltage (mV)
-+in2_max			3.3V (VDD) input maximum voltage (mV)
-+in3_max			Channel A maximum voltage (mV)
-+in4_max			Channel B maximum voltage (mV)
-+in5_max			Channel C maximum voltage (mV)
-+in6_max			Channel D maximum voltage (mV)
-+in7_max			Channel E maximum voltage (mV)
-+in8_max			Channel F maximum voltage (mV)
-+in9_max			AIN1 maximum voltage (mV)
-+in10_max		AIN2 maximum voltage (mV)
-+
-+in1_lcrit		12v input critical minimum voltage (mV)
-+in2_lcrit		3.3V (VDD) input critical minimum voltage (mV)
-+in3_lcrit		Channel A critical minimum voltage (mV)
-+in4_lcrit		Channel B critical minimum voltage (mV)
-+in5_lcrit		Channel C critical minimum voltage (mV)
-+in6_lcrit		Channel D critical minimum voltage (mV)
-+in7_lcrit		Channel E critical minimum voltage (mV)
-+in8_lcrit		Channel F critical minimum voltage (mV)
-+in9_lcrit		AIN1 critical minimum voltage (mV)
-+in10_lcrit		AIN2 critical minimum voltage (mV)
-+
-+in1_crit		12v input critical maximum voltage (mV)
-+in2_crit		3.3V (VDD) input critical maximum voltage (mV)
-+in3_crit		Channel A critical maximum voltage (mV)
-+in4_crit		Channel B critical maximum voltage (mV)
-+in5_crit		Channel C critical maximum voltage (mV)
-+in6_crit		Channel D critical maximum voltage (mV)
-+in7_crit		Channel E critical maximum voltage (mV)
-+in8_crit		Channel F critical maximum voltage (mV)
-+in9_crit		AIN1 critical maximum voltage (mV)
-+in10_crit		AIN2 critical maximum voltage (mV)
-+
-+in1_crit_alarm		12v input critical alarm
-+in2_crit_alarm		3.3V (VDD) input critical alarm
-+in3_crit_alarm		Channel A critical alarm
-+in4_crit_alarm		Channel B critical alarm
-+in5_crit_alarm		Channel C critical alarm
-+in6_crit_alarm		Channel D critical alarm
-+in7_crit_alarm		Channel E critical alarm
-+in8_crit_alarm		Channel F critical alarm
-+in9_crit_alarm		AIN1 critical alarm
-+in10_crit_alarm		AIN2 critical alarm
-+
-+temp1_input		Chip tempererature
-+temp1_min		Mimimum chip tempererature
-+temp1_max		Maximum chip tempererature
-+temp1_crit		Critical chip tempererature
-+temp1_crit_alarm	Temperature critical alarm
++	/* Export labels for internal sensors */
++	for (i = 0; i < 3; i++) {
++		if (!(sio_data->internal & (1 << i)))
++			continue;
++		err = sysfs_create_file(&dev->kobj,
++					it87_attributes_label[i]);
++		if (err)
++			goto ERROR4;
++	}
+ 
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+
+
 -- 
-1.7.0.87.g0901d
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
