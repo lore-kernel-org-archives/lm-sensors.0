@@ -1,68 +1,282 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 27 Jun 2010 22:07:09 +0000
-Subject: Re: [lm-sensors] [PATCH v3 1/4] hwmon: Driver for SMM665
-Message-Id: <20100627220709.GA7072@ericsson.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Sat, 19 Jun 2010 05:08:28 +0000
+Subject: [lm-sensors] [PATCH v2 23/26] hwmon: Add JZ4740 ADC driver
+Message-Id: <1276924111-11158-24-git-send-email-lars@metafoo.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
- <1277416861-32494-2-git-send-email-guenter.roeck@ericsson.com>
- <20100627102058.GB2845@sirena.org.uk>
- <20100627151047.GA5731@ericsson.com>
- <52840892-BE40-44D3-9454-407B074481CC@opensource.wolfsonmicro.com>
-In-Reply-To: <52840892-BE40-44D3-9454-407B074481CC@opensource.wolfsonmicro.com>
+References: <1276924111-11158-1-git-send-email-lars@metafoo.de>
+In-Reply-To: <1276924111-11158-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, Hans de Goede <hdegoede@redhat.com>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
+To: Ralf Baechle <ralf@linux-mips.org>
+Cc: linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, lm-sensors@lm-sensors.org
 
-On Sun, Jun 27, 2010 at 03:54:06PM -0400, Mark Brown wrote:
-> On 27 Jun 2010, at 16:10, Guenter Roeck wrote:
-> 
-> > On Sun, Jun 27, 2010 at 06:20:59AM -0400, Mark Brown wrote:
-> 
-> >> A bit late to the game here but this looks like the chip has some
-> >> regulator control functionality as well as monitoring functionality (and
-> >> the product page on the Summit web site suggests so also).  This means
-> >> that when fully supported in software the driver would cross multiple
-> >> subsystems so it might make sense to start off with a MFD rather than
-> >> direct I2C control?  
-> >> 
-> >> If the non-monitoring functionality can't be controlled from software
-> >> this isn't an issue.
-> > 
-> > I thought about that when I started working on the driver, but concluded that 
-> > it does not really make sense.
-> > 
-> > The chip is commonly used to control all supply voltages on a board.
-> > Changing those voltages is not a good idea. For that reason, the chip can be 
-> 
-> There's rather a lot of systems out there doing DVFS or using things like MMC
-> cards which would disagree with the idea that it's a bad idea to change supply
-> voltages at runtime. Even for fixed voltage supplies enabling and disabling at
-> runtime is useful to save power. I think it's fair to say that the overall trend is
-> towards more dynamic power management.
-> 
-> > set into read-only mode, where changing the voltages is no longer possible
-> > after initial programming.
-> 
-> This tends to be done through paranoia more than anything else - people get
-> very worried about things like accidental writes to their PMICs.
-> 
-Ok, I'll accept that.
+This patch adds support for reading the ADCIN pin of ADC unit on JZ4740 SoCs.
 
-Even then, I think it would make more sense to stick with the current approach.
-If someone wants to extend the driver at some point in the future to support
-regulator functionality, it would be straightforward to create the necessary
-mfd framework for the chip at that time. After all, the hwmon driver and with it
-most of the current code would still be required.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Cc: lm-sensors@lm-sensors.org
 
-> > While it is theoretically possible that someone might use the device to control
-> > not only fixed but also dynamic voltages, I think that is highly unlikely, given
-> > the risk involved in blowing up the board. Thus, moving the driver to mfd would 
-> > effectively serve no real purpose other than to cause confusion and add unnecessary
-> 
-> Pretty much any current generation CPU can use dynamic voltage configuration
-> for DVFS.
+---
+Changes since v1
+- Move ADC core access synchronizing from the HWMON driver to a MFD driver. The
+  ADC driver now only reads the adcin value.
+---
+ drivers/hwmon/Kconfig        |   11 +++
+ drivers/hwmon/Makefile       |    1 +
+ drivers/hwmon/jz4740-hwmon.c |  206 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 218 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/jz4740-hwmon.c
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 569082c..51fc2f6 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -446,6 +446,17 @@ config SENSORS_IT87
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called it87.
+ 
++config SENSORS_JZ4740
++	tristate "Ingenic JZ4740 SoC ADC driver"
++	depends on MACH_JZ4740
++    help
++      If you say yes here you get support for the Ingenic JZ4740 SoC ADC core.
++      It is required for the JZ4740 battery and touchscreen driver and is used
++      to synchronize access to the adc module between those two.
++
++      This driver can also be build as a module. If so, the module will be
++      called jz4740-adc.
++
+ config SENSORS_LM63
+ 	tristate "National Semiconductor LM63 and LM64"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index bca0d45..dffbdff 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
+ obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
+ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
++obj-$(CONFIG_SENSORS_JZ4740)	+= jz4740-hwmon.o
+ obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
+ obj-$(CONFIG_SENSORS_K10TEMP)	+= k10temp.o
+ obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3lv02d.o hp_accel.o
+diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
+new file mode 100644
+index 0000000..f53d15e
+--- /dev/null
++++ b/drivers/hwmon/jz4740-hwmon.c
+@@ -0,0 +1,206 @@
++/*
++ * Copyright (C) 2009-2010, Lars-Peter Clausen <lars@metafoo.de>
++ * JZ4740 SoC HWMON driver
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under  the terms of the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
++
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++
++#include <linux/mfd/core.h>
++
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++
++struct jz4740_hwmon {
++	struct resource *mem;
++	void __iomem *base;
++
++	int irq;
++
++	struct mfd_cell *cell;
++	struct device *hwmon;
++
++	struct completion read_completion;
++
++	struct mutex lock;
++};
++
++static irqreturn_t jz4740_hwmon_irq(int irq, void *data)
++{
++	struct jz4740_hwmon *hwmon = data;
++
++	complete(&hwmon->read_completion);
++	return IRQ_HANDLED;
++}
++
++static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
++	struct device_attribute *dev_attr, char *buf)
++{
++	struct jz4740_hwmon *hwmon = dev_get_drvdata(dev);
++	unsigned long t;
++	uint16_t val;
++	int ret;
++
++	mutex_lock(&hwmon->lock);
++
++	INIT_COMPLETION(hwmon->read_completion);
++
++	enable_irq(hwmon->irq);
++	hwmon->cell->enable(to_platform_device(dev));
++
++	t = wait_for_completion_interruptible_timeout(&hwmon->read_completion, HZ);
++
++	if (t > 0) {
++		val = readw(hwmon->base);
++		ret = sprintf(buf, "%d\n", val);
++	} else {
++		ret = t ? t : -ETIMEDOUT;
++	}
++
++	hwmon->cell->disable(to_platform_device(dev));
++	disable_irq(hwmon->irq);
++
++	mutex_unlock(&hwmon->lock);
++
++	return ret;
++}
++
++static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, jz4740_hwmon_read_adcin, NULL, 0);
++
++static int __devinit jz4740_hwmon_probe(struct platform_device *pdev)
++{
++	int ret;
++	struct jz4740_hwmon *hwmon;
++
++	hwmon = kmalloc(sizeof(*hwmon), GFP_KERNEL);
++
++	hwmon->cell = pdev->dev.platform_data;
++
++	hwmon->irq = platform_get_irq(pdev, 0);
++	if (hwmon->irq < 0) {
++		ret = hwmon->irq;
++		dev_err(&pdev->dev, "Failed to get platform irq: %d\n", ret);
++		goto err_free;
++	}
++
++	hwmon->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!hwmon->mem) {
++		ret = -ENOENT;
++		dev_err(&pdev->dev, "Failed to get platform mmio resource\n");
++		goto err_free;
++	}
++
++	hwmon->mem = request_mem_region(hwmon->mem->start,
++					resource_size(hwmon->mem), pdev->name);
++	if (!hwmon->mem) {
++		ret = -EBUSY;
++		dev_err(&pdev->dev, "Failed to request mmio memory region\n");
++		goto err_free;
++	}
++
++	hwmon->base = ioremap_nocache(hwmon->mem->start, resource_size(hwmon->mem));
++	if (!hwmon->base) {
++		ret = -EBUSY;
++		dev_err(&pdev->dev, "Failed to ioremap mmio memory\n");
++		goto err_release_mem_region;
++	}
++
++	init_completion(&hwmon->read_completion);
++	mutex_init(&hwmon->lock);
++
++	platform_set_drvdata(pdev, hwmon);
++
++	ret = request_irq(hwmon->irq, jz4740_hwmon_irq, 0, pdev->name, hwmon);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to request irq: %d\n", ret);
++		goto err_iounmap;
++	}
++	disable_irq(hwmon->irq);
++
++	ret = device_create_file(&pdev->dev, &sensor_dev_attr_in0_input.dev_attr);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to create sysfs file: %d\n", ret);
++		goto err_free_irq;
++	}
++
++	hwmon->hwmon = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(hwmon->hwmon)) {
++		ret = PTR_ERR(hwmon->hwmon);
++		goto err_remove_file;
++	}
++
++	return 0;
++
++err_remove_file:
++	device_remove_file(&pdev->dev, &sensor_dev_attr_in0_input.dev_attr);
++err_free_irq:
++	free_irq(hwmon->irq, hwmon);
++err_iounmap:
++	platform_set_drvdata(pdev, NULL);
++	iounmap(hwmon->base);
++err_release_mem_region:
++	release_mem_region(hwmon->mem->start, resource_size(hwmon->mem));
++err_free:
++	kfree(hwmon);
++
++	return ret;
++}
++
++static int __devexit jz4740_hwmon_remove(struct platform_device *pdev)
++{
++	struct jz4740_hwmon *hwmon = platform_get_drvdata(pdev);
++
++	hwmon_device_unregister(hwmon->hwmon);
++	device_remove_file(&pdev->dev, &sensor_dev_attr_in0_input.dev_attr);
++
++	free_irq(hwmon->irq, hwmon);
++
++	iounmap(hwmon->base);
++	release_mem_region(hwmon->mem->start, resource_size(hwmon->mem));
++
++	platform_set_drvdata(pdev, NULL);
++	kfree(hwmon);
++
++	return 0;
++}
++
++struct platform_driver jz4740_hwmon_driver = {
++	.probe	= jz4740_hwmon_probe,
++	.remove = __devexit_p(jz4740_hwmon_remove),
++	.driver = {
++		.name = "jz4740-hwmon",
++		.owner = THIS_MODULE,
++	},
++};
++
++static int __init jz4740_hwmon_init(void)
++{
++	return platform_driver_register(&jz4740_hwmon_driver);
++}
++module_init(jz4740_hwmon_init);
++
++static void __exit jz4740_hwmon_exit(void)
++{
++	platform_driver_unregister(&jz4740_hwmon_driver);
++}
++module_exit(jz4740_hwmon_exit);
++
++MODULE_DESCRIPTION("JZ4740 SoC HWMON driver");
++MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:jz4740-hwmon");
+-- 
+1.5.6.5
+
 
 _______________________________________________
 lm-sensors mailing list
