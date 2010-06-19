@@ -1,66 +1,63 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 19 Jun 2010 08:23:12 +0000
+Date: Sat, 19 Jun 2010 08:27:29 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <20100619102312.02f86e3b@hyperion.delvare>
+Message-Id: <20100619102729.2ce12447@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1276877194-28214-1-git-send-email-guenter.roeck@ericsson.com>
 	<1276877194-28214-2-git-send-email-guenter.roeck@ericsson.com>
 	<4C1BB2AC.4090308@jic23.retrosnub.co.uk>
-	<1276894613.2631.535.camel@groeck-laptop>
-In-Reply-To: <1276894613.2631.535.camel@groeck-laptop>
+	<4C1BB698.2090003@cam.ac.uk>
+	<1276888405.2631.495.camel@groeck-laptop>
+In-Reply-To: <1276888405.2631.495.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: guenter.roeck@ericsson.com
-Cc: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Fri, 18 Jun 2010 13:56:53 -0700, Guenter Roeck wrote:
-> [...]
-> > > +             /*
-> > > +              * Algorithm for reading ADC, per SMM665 datasheet
-> > > +              *
-> > > +              *  {[S][addr][W][Ack]} {[offset][Ack]} {[S][addr][R][Nack]}
-> > > +              * [wait 70 uS]
-> > > +              *  {[S][addr][R][Ack]} {[datahi][Ack]} {[datalo][Ack][P]}
-> > > +              *
-> > > +              * To implement the first part of this exchange,
-> > > +              * do a full read transaction and expect a failure/Nack.
-> > > +              * This sets up the address pointer on the SMM665
-> > > +              * and starts the ADC conversion.
-> > > +              * Then do a two-byte read transaction.
-> > > +              */
-> > Is there no better way of handling this? There are protocol mangling hacks
-> > to tell the i2c core to ignore a NAKs under some circumstances.
-
-This is only available on raw I2C messages, not on the higher-level
-i2c_smbus_*() API. And not all bus drivers support it. And that's not
-what is needed here anyway: ignoring the nack means we would continue
-reading from the chip, while it really doesn't want to talk to us at
-that time.
-
-> > > +             rv = i2c_smbus_read_byte_data(client, adc << 3);
-> > > +             if (rv >= 0) {
-
-You should check for -ENXIO explicitly. According to
-Documentation/i2c/fault-codes, this is the value bus drivers should
-return on missing Ack.
-
-> > > +                     /* No error, something is wrong. Retry. */
-> > > +                     rv = -1;
-> > > +                     continue;
-> > > +             }
+On Fri, 18 Jun 2010 12:13:25 -0700, Guenter Roeck wrote:
+> On Fri, 2010-06-18 at 14:10 -0400, Jonathan Cameron wrote:
+> > Another quick query.  Are the _min / _max attributes as defined in the
+> > abi meant for alarms?  I always thought they were to tell userspace the
+> > limits on measurement?
+> > 
+> Good question. I thought it is supposed to refer to alarm limits, but I
+> may be wrong. 
 > 
-> I looked through the core i2c code, but did not find anything I can
-> use. 
-> 
-> Problem is that per smm665 specification, the first NACK is expected. So
-> we do not just want to ignore this NACK, we want to actively check if
-> the command "failed" as expected, and report an error if it did _not_
-> fail.
+> Browsing through a couple of drivers, it _looks_ like the values are
+> used for alarm limits (eg adm1025 or lm85). Limits are not always set to
 
-Do you really have to trigger the Nack for the ADC conversion to start?
-Can't you just use i2c_smbus_read_byte() (no _data) for the first part
-of the transaction?
+Yes, these are alarms. _min and _max are really misnomers, these should
+have been _low and _high but by the time I realized it, _min and _max
+were already de facto standards and it was too late to change this.
+
+Documentation/hwmon/sysfs-interface says:
+
+Usual items are "input" (measured value), "max" (high threshold,
+"min" (low threshold).
+
+Specific occurrences are then left without details. If you think this
+document can be improved, I welcome patches.
+
+> useful values, though. This is what my CPU board returns:
+> 
+> lm85-i2c-0-2e
+> Adapter: SMBus PIIX4 adapter at 0580
+> V1.5:        +1.80 V  (min =  +0.00 V, max =  +3.32 V)   
+> VCore:       +1.29 V  (min =  +0.00 V, max =  +2.99 V)   
+> V3.3:        +3.32 V  (min =  +0.00 V, max =  +4.38 V)   
+> V5:          +5.00 V  (min =  +0.00 V, max =  +6.64 V)   
+> V12:        +12.12 V  (min =  +0.00 V, max = +15.94 V)   
+> 
+> The lm85 datasheet says: "If a voltage input either exceeds the value
+> set in the voltage high limit register or falls below the value set in
+> the voltage low limit register, the corresponding bit will be set
+> automatically by the LM85 in the interrupt status registers (41-42h)."
+> 
+> > Either way, one of us has misunderstood so perhaps the documentation needs
+> > to be more specific....
+> 
+> Agreed.
 
 -- 
 Jean Delvare
