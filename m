@@ -1,35 +1,56 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 26 Jun 2010 02:40:08 +0000
-Subject: [lm-sensors] [PATCH/RFC 0/3] hwmon: Driver for LTC4261 I2C Negative
-Message-Id: <1277520011-29782-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 20 Jun 2010 07:09:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (asc7621) Clean up and improve detect
+Message-Id: <20100620090955.1a8fe6d9@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patchset adds support for Linear Technology's LTC4261 I2C Negative Voltage
-Hot Swap Controller.
+* The dev variable is never used.
+* Detect functions only need to set info->type, not client->name.
+* Include the device address in the log message.
 
-The patchset also updates the hwmon sysfs API to document additional current
-alarm attributes.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: George Joseph <george.joseph@fairview5.com>
+Cc: Ken Milmore <ken.milmore@googlemail.com>
+---
+ drivers/hwmon/asc7621.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-The driver has only been tested with simulated hardware and is thus submitted
-for feedback/review only at this time.
+--- linux-2.6.35-rc3.orig/drivers/hwmon/asc7621.c	2010-06-06 15:20:27.000000000 +0200
++++ linux-2.6.35-rc3/drivers/hwmon/asc7621.c	2010-06-20 08:59:57.000000000 +0200
+@@ -1150,9 +1150,6 @@ static int asc7621_detect(struct i2c_cli
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	int company, verstep, chip_index;
+-	struct device *dev;
+-
+-	dev = &client->dev;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -1169,13 +1166,11 @@ static int asc7621_detect(struct i2c_cli
+ 
+ 		if (company = asc7621_chips[chip_index].company_id &&
+ 		    verstep = asc7621_chips[chip_index].verstep_id) {
+-			strlcpy(client->name, asc7621_chips[chip_index].name,
+-				I2C_NAME_SIZE);
+ 			strlcpy(info->type, asc7621_chips[chip_index].name,
+ 				I2C_NAME_SIZE);
+ 
+-			dev_info(&adapter->dev, "Matched %s\n",
+-				 asc7621_chips[chip_index].name);
++			dev_info(&adapter->dev, "Matched %s at 0x%02x\n",
++				 asc7621_chips[chip_index].name, client->addr);
+ 			return 0;
+ 		}
+ 	}
 
-I am especially interested to get feedback on the following issues/questions. 
 
-- Are the hwmon sysfs API extensions ok as documented ?
-  In this context, there will be more attributes to add for the PMBus driver
-  (currX_fault and possibly a number of power related attributes).
-  Is it better to add API changes incrementally with the respective drivers,
-  or would it be better to write a separate patch which addresses all
-  API changes in a single commit ?
-- Current sensor readings. The driver reports currents on a somewhat
-  arbitrary current sense resistor and expects board specific adjustments to
-  be made in sensors.conf. Another approach might be to define a module
-  parameter. I prefer the current approach (it seems to be a bit better aligned
-  with the hwmon sysfs API), but I am open to other ideas.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
