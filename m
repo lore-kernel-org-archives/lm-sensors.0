@@ -1,26 +1,22 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 30 Jun 2010 15:50:42 +0000
-Subject: [lm-sensors] [PATCH v6 1/3] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <1277913044-28322-2-git-send-email-guenter.roeck@ericsson.com>
+Date: Sun, 20 Jun 2010 19:19:33 +0000
+Subject: [lm-sensors] [PATCH v2 1/3] hwmon: Driver for SMM665 Six-Channel
+Message-Id: <1277061575-13831-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277913044-28322-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277913044-28322-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: lm-sensors@vger.kernel.org
 
 This driver adds support for the monitoring features of the Summit
 Microelectronics SMM665 Six-Channel Active DC Output Controller/Monitor.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 ---
  drivers/hwmon/Kconfig  |   15 +
  drivers/hwmon/Makefile |    1 +
- drivers/hwmon/smm665.c |  743 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 759 insertions(+), 0 deletions(-)
+ drivers/hwmon/smm665.c |  681 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 697 insertions(+), 0 deletions(-)
  create mode 100644 drivers/hwmon/smm665.c
 
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
@@ -63,10 +59,10 @@ index 2138ceb..55b0940 100644
  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
 diff --git a/drivers/hwmon/smm665.c b/drivers/hwmon/smm665.c
 new file mode 100644
-index 0000000..425df5b
+index 0000000..b4e7c8f
 --- /dev/null
 +++ b/drivers/hwmon/smm665.c
-@@ -0,0 +1,743 @@
+@@ -0,0 +1,681 @@
 +/*
 + * Driver for SMM665 Power Controller / Monitor
 + *
@@ -215,10 +211,10 @@ index 0000000..425df5b
 +	u16 adc[SMM665_NUM_ADC];	/* adc values (raw) */
 +	u16 faults;			/* fault status */
 +	/* The following values are in mV */
-+	int critical_min_limit[SMM665_NUM_ADC];
-+	int alarm_min_limit[SMM665_NUM_ADC];
-+	int critical_max_limit[SMM665_NUM_ADC];
-+	int alarm_max_limit[SMM665_NUM_ADC];
++	int critical_under_limit[SMM665_NUM_ADC];
++	int alarm_under_limit[SMM665_NUM_ADC];
++	int critical_over_limit[SMM665_NUM_ADC];
++	int alarm_over_limit[SMM665_NUM_ADC];
 +	struct i2c_client *cmdreg;
 +};
 +
@@ -273,7 +269,7 @@ index 0000000..425df5b
 +		 */
 +		dev_dbg(&client->dev,
 +			"Unexpected return code %d when setting ADC index", rv);
-+		return (rv < 0) ? rv : -EIO;
++		return -1;
 +	}
 +
 +	udelay(data->conversion_time);
@@ -300,7 +296,7 @@ index 0000000..425df5b
 +	if (radc != adc) {
 +		dev_dbg(&client->dev, "Unexpected RADC: Expected %d got %d",
 +			adc, radc);
-+		return -EIO;
++		return -1;
 +	}
 +	/*
 +	 * Chip replies with H/L, while SMBus expects L/H.
@@ -316,38 +312,37 @@ index 0000000..425df5b
 +{
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct smm665_data *data = i2c_get_clientdata(client);
-+	struct smm665_data *ret = data;
 +
 +	mutex_lock(&data->update_lock);
 +
 +	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
-+		int i, val;
++		int i, faults;
 +
 +		/*
 +		 * read status registers
 +		 */
-+		val = smm665_read16(client, SMM665_MISC8_STATUS1);
-+		if (unlikely(val < 0)) {
-+			ret = ERR_PTR(val);
-+			goto abort;
-+		}
-+		data->faults = val;
++		faults = smm665_read16(client, SMM665_MISC8_STATUS1);
++		if (unlikely(faults < 0))
++			data->faults = 0;
++		else
++			data->faults = faults;
 +
 +		/* Read adc registers */
 +		for (i = 0; i < SMM665_NUM_ADC; i++) {
-+			val = smm665_read_adc(data, i);
-+			if (unlikely(val < 0)) {
-+				ret = ERR_PTR(val);
-+				goto abort;
-+			}
-+			data->adc[i] = val;
++			int val = smm665_read_adc(data, i);
++			if (unlikely(val < 0))
++				data->adc[i] = 0;
++			else
++				data->adc[i] = val;
 +		}
++
 +		data->last_updated = jiffies;
 +		data->valid = 1;
 +	}
-+abort:
++
 +	mutex_unlock(&data->update_lock);
-+	return ret;
++
++	return data;
 +}
 +
 +/* Return converted value from given adc */
@@ -388,12 +383,20 @@ index 0000000..425df5b
 +	return val;
 +}
 +
++/* Return converted value from given adc */
++static int smm665_get_input(struct device *dev, int adc)
++{
++	struct smm665_data *data = smm665_update_device(dev);
++
++	return smm665_convert(data->adc[adc], adc);
++}
++
 +static int smm665_get_min(struct device *dev, int index)
 +{
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct smm665_data *data = i2c_get_clientdata(client);
 +
-+	return data->alarm_min_limit[index];
++	return data->alarm_under_limit[index];
 +}
 +
 +static int smm665_get_max(struct device *dev, int index)
@@ -401,15 +404,7 @@ index 0000000..425df5b
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct smm665_data *data = i2c_get_clientdata(client);
 +
-+	return data->alarm_max_limit[index];
-+}
-+
-+static int smm665_get_lcrit(struct device *dev, int index)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct smm665_data *data = i2c_get_clientdata(client);
-+
-+	return data->critical_min_limit[index];
++	return data->alarm_over_limit[index];
 +}
 +
 +static int smm665_get_crit(struct device *dev, int index)
@@ -417,38 +412,17 @@ index 0000000..425df5b
 +	struct i2c_client *client = to_i2c_client(dev);
 +	struct smm665_data *data = i2c_get_clientdata(client);
 +
-+	return data->critical_max_limit[index];
++	return data->critical_over_limit[index];
 +}
 +
-+static ssize_t smm665_show_crit_alarm(struct device *dev,
-+				      struct device_attribute *da, char *buf)
++static int smm665_get_fault(struct device *dev, int index)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
 +	struct smm665_data *data = smm665_update_device(dev);
-+	int val = 0;
 +
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
++	if (data->faults & (1 << index))
++		return 1;
 +
-+	if (data->faults & (1 << attr->index))
-+		val = 1;
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n", val);
-+}
-+
-+static ssize_t smm665_show_input(struct device *dev,
-+				 struct device_attribute *da, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-+	struct smm665_data *data = smm665_update_device(dev);
-+	int adc = attr->index;
-+	int val;
-+
-+	if (IS_ERR(data))
-+		return PTR_ERR(data);
-+
-+	val = smm665_convert(data->adc[adc], adc);
-+	return snprintf(buf, PAGE_SIZE, "%d\n", val);
++	return 0;
 +}
 +
 +#define SMM665_SHOW(what) \
@@ -460,10 +434,11 @@ index 0000000..425df5b
 +	return snprintf(buf, PAGE_SIZE, "%d\n", val); \
 +}
 +
++SMM665_SHOW(input);
 +SMM665_SHOW(min);
 +SMM665_SHOW(max);
-+SMM665_SHOW(lcrit);
 +SMM665_SHOW(crit);
++SMM665_SHOW(fault);
 +
 +/* These macros are used below in constructing device attribute objects
 + * for use with sysfs_create_group() to make a sysfs device file
@@ -512,49 +487,24 @@ index 0000000..425df5b
 +SMM665_ATTR(in9, max, SMM665_MISC16_ADC_DATA_AIN1);
 +SMM665_ATTR(in10, max, SMM665_MISC16_ADC_DATA_AIN2);
 +
-+/* Input voltages lcrit */
-+SMM665_ATTR(in1, lcrit, SMM665_MISC16_ADC_DATA_12V);
-+SMM665_ATTR(in2, lcrit, SMM665_MISC16_ADC_DATA_VDD);
-+SMM665_ATTR(in3, lcrit, SMM665_MISC16_ADC_DATA_A);
-+SMM665_ATTR(in4, lcrit, SMM665_MISC16_ADC_DATA_B);
-+SMM665_ATTR(in5, lcrit, SMM665_MISC16_ADC_DATA_C);
-+SMM665_ATTR(in6, lcrit, SMM665_MISC16_ADC_DATA_D);
-+SMM665_ATTR(in7, lcrit, SMM665_MISC16_ADC_DATA_E);
-+SMM665_ATTR(in8, lcrit, SMM665_MISC16_ADC_DATA_F);
-+SMM665_ATTR(in9, lcrit, SMM665_MISC16_ADC_DATA_AIN1);
-+SMM665_ATTR(in10, lcrit, SMM665_MISC16_ADC_DATA_AIN2);
-+
-+/* Input voltages crit */
-+SMM665_ATTR(in1, crit, SMM665_MISC16_ADC_DATA_12V);
-+SMM665_ATTR(in2, crit, SMM665_MISC16_ADC_DATA_VDD);
-+SMM665_ATTR(in3, crit, SMM665_MISC16_ADC_DATA_A);
-+SMM665_ATTR(in4, crit, SMM665_MISC16_ADC_DATA_B);
-+SMM665_ATTR(in5, crit, SMM665_MISC16_ADC_DATA_C);
-+SMM665_ATTR(in6, crit, SMM665_MISC16_ADC_DATA_D);
-+SMM665_ATTR(in7, crit, SMM665_MISC16_ADC_DATA_E);
-+SMM665_ATTR(in8, crit, SMM665_MISC16_ADC_DATA_F);
-+SMM665_ATTR(in9, crit, SMM665_MISC16_ADC_DATA_AIN1);
-+SMM665_ATTR(in10, crit, SMM665_MISC16_ADC_DATA_AIN2);
-+
-+/* critical alarms */
-+SMM665_ATTR(in1, crit_alarm, SMM665_FAULT_12V);
-+SMM665_ATTR(in2, crit_alarm, SMM665_FAULT_VDD);
-+SMM665_ATTR(in3, crit_alarm, SMM665_FAULT_A);
-+SMM665_ATTR(in4, crit_alarm, SMM665_FAULT_B);
-+SMM665_ATTR(in5, crit_alarm, SMM665_FAULT_C);
-+SMM665_ATTR(in6, crit_alarm, SMM665_FAULT_D);
-+SMM665_ATTR(in7, crit_alarm, SMM665_FAULT_E);
-+SMM665_ATTR(in8, crit_alarm, SMM665_FAULT_F);
-+SMM665_ATTR(in9, crit_alarm, SMM665_FAULT_AIN1);
-+SMM665_ATTR(in10, crit_alarm, SMM665_FAULT_AIN2);
++/* Faults */
++SMM665_ATTR(in1, fault, SMM665_FAULT_12V);
++SMM665_ATTR(in2, fault, SMM665_FAULT_VDD);
++SMM665_ATTR(in3, fault, SMM665_FAULT_A);
++SMM665_ATTR(in4, fault, SMM665_FAULT_B);
++SMM665_ATTR(in5, fault, SMM665_FAULT_C);
++SMM665_ATTR(in6, fault, SMM665_FAULT_D);
++SMM665_ATTR(in7, fault, SMM665_FAULT_E);
++SMM665_ATTR(in8, fault, SMM665_FAULT_F);
++SMM665_ATTR(in9, fault, SMM665_FAULT_AIN1);
++SMM665_ATTR(in10, fault, SMM665_FAULT_AIN2);
 +
 +/* Temperature */
 +SMM665_ATTR(temp1, input, SMM665_MISC16_ADC_DATA_INT_TEMP);
 +SMM665_ATTR(temp1, min, SMM665_MISC16_ADC_DATA_INT_TEMP);
 +SMM665_ATTR(temp1, max, SMM665_MISC16_ADC_DATA_INT_TEMP);
-+SMM665_ATTR(temp1, lcrit, SMM665_MISC16_ADC_DATA_INT_TEMP);
 +SMM665_ATTR(temp1, crit, SMM665_MISC16_ADC_DATA_INT_TEMP);
-+SMM665_ATTR(temp1, crit_alarm, SMM665_FAULT_TEMP);
++SMM665_ATTR(temp1, fault, SMM665_FAULT_TEMP);
 +
 +/*
 + * Finally, construct an array of pointers to members of the above objects,
@@ -564,79 +514,58 @@ index 0000000..425df5b
 +	&sensor_dev_attr_in1_input.dev_attr.attr,
 +	&sensor_dev_attr_in1_min.dev_attr.attr,
 +	&sensor_dev_attr_in1_max.dev_attr.attr,
-+	&sensor_dev_attr_in1_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in1_crit.dev_attr.attr,
-+	&sensor_dev_attr_in1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in1_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in2_input.dev_attr.attr,
 +	&sensor_dev_attr_in2_min.dev_attr.attr,
 +	&sensor_dev_attr_in2_max.dev_attr.attr,
-+	&sensor_dev_attr_in2_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in2_crit.dev_attr.attr,
-+	&sensor_dev_attr_in2_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in2_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in3_input.dev_attr.attr,
 +	&sensor_dev_attr_in3_min.dev_attr.attr,
 +	&sensor_dev_attr_in3_max.dev_attr.attr,
-+	&sensor_dev_attr_in3_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in3_crit.dev_attr.attr,
-+	&sensor_dev_attr_in3_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in3_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in4_input.dev_attr.attr,
 +	&sensor_dev_attr_in4_min.dev_attr.attr,
 +	&sensor_dev_attr_in4_max.dev_attr.attr,
-+	&sensor_dev_attr_in4_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in4_crit.dev_attr.attr,
-+	&sensor_dev_attr_in4_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in4_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in5_input.dev_attr.attr,
 +	&sensor_dev_attr_in5_min.dev_attr.attr,
 +	&sensor_dev_attr_in5_max.dev_attr.attr,
-+	&sensor_dev_attr_in5_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in5_crit.dev_attr.attr,
-+	&sensor_dev_attr_in5_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in5_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in6_input.dev_attr.attr,
 +	&sensor_dev_attr_in6_min.dev_attr.attr,
 +	&sensor_dev_attr_in6_max.dev_attr.attr,
-+	&sensor_dev_attr_in6_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in6_crit.dev_attr.attr,
-+	&sensor_dev_attr_in6_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in6_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in7_input.dev_attr.attr,
 +	&sensor_dev_attr_in7_min.dev_attr.attr,
 +	&sensor_dev_attr_in7_max.dev_attr.attr,
-+	&sensor_dev_attr_in7_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in7_crit.dev_attr.attr,
-+	&sensor_dev_attr_in7_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in7_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in8_input.dev_attr.attr,
 +	&sensor_dev_attr_in8_min.dev_attr.attr,
 +	&sensor_dev_attr_in8_max.dev_attr.attr,
-+	&sensor_dev_attr_in8_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in8_crit.dev_attr.attr,
-+	&sensor_dev_attr_in8_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in8_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in9_input.dev_attr.attr,
 +	&sensor_dev_attr_in9_min.dev_attr.attr,
 +	&sensor_dev_attr_in9_max.dev_attr.attr,
-+	&sensor_dev_attr_in9_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in9_crit.dev_attr.attr,
-+	&sensor_dev_attr_in9_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in9_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_in10_input.dev_attr.attr,
 +	&sensor_dev_attr_in10_min.dev_attr.attr,
 +	&sensor_dev_attr_in10_max.dev_attr.attr,
-+	&sensor_dev_attr_in10_lcrit.dev_attr.attr,
-+	&sensor_dev_attr_in10_crit.dev_attr.attr,
-+	&sensor_dev_attr_in10_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_in10_fault.dev_attr.attr,
 +
 +	&sensor_dev_attr_temp1_input.dev_attr.attr,
 +	&sensor_dev_attr_temp1_min.dev_attr.attr,
 +	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_lcrit.dev_attr.attr,
 +	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_fault.dev_attr.attr,
 +
 +	NULL,
 +};
@@ -662,7 +591,7 @@ index 0000000..425df5b
 +	ret = -ENOMEM;
 +	data = kzalloc(sizeof(*data), GFP_KERNEL);
 +	if (!data)
-+		goto out_return;
++		goto out_kzalloc;
 +
 +	i2c_set_clientdata(client, data);
 +	mutex_init(&data->update_lock);
@@ -671,7 +600,7 @@ index 0000000..425df5b
 +	data->cmdreg = i2c_new_dummy(adapter, (client->addr & ~SMM665_REGMASK)
 +				     | SMM665_CMDREG_BASE);
 +	if (!data->cmdreg)
-+		goto out_kfree;
++		goto out_new_dummy;
 +
 +	switch (data->type) {
 +	case smm465:
@@ -687,7 +616,7 @@ index 0000000..425df5b
 +
 +	ret = -ENODEV;
 +	if (i2c_smbus_read_byte_data(data->cmdreg, SMM665_MISC8_CMD_STS) < 0)
-+		goto out_unregister;
++		goto out_sysfs_create_group;
 +
 +	/*
 +	 * Read limits.
@@ -707,56 +636,61 @@ index 0000000..425df5b
 +	 * alarm value, depending on its configuration. This ensures that both
 +	 * critical and alarm values are initialized, even if both registers are
 +	 * configured as critical or non-critical.
++	 *
++	 * Note: Critical values for voltage channels are saved, even though
++	 * this information is currently not used by the driver. This is mostly
++	 * for consistency, though it might eventually be useful if future APIs
++	 * support reporting "critical" voltage values.
 +	 */
 +	for (i = 0; i < SMM665_NUM_ADC; i++) {
 +		int val;
 +
 +		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8);
 +		if (unlikely(val < 0))
-+			goto out_unregister;
-+		data->critical_min_limit[i] = data->alarm_min_limit[i]
++			goto out_sysfs_create_group;
++		data->critical_under_limit[i] = data->alarm_under_limit[i]
 +		  = smm665_convert(val, i);
 +		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 2);
 +		if (unlikely(val < 0))
-+			goto out_unregister;
++			goto out_sysfs_create_group;
 +		if (smm665_is_critical(val))
-+			data->critical_min_limit[i] = smm665_convert(val, i);
++			data->critical_under_limit[i] = smm665_convert(val, i);
 +		else
-+			data->alarm_min_limit[i] = smm665_convert(val, i);
++			data->alarm_under_limit[i] = smm665_convert(val, i);
 +		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 4);
 +		if (unlikely(val < 0))
-+			goto out_unregister;
-+		data->critical_max_limit[i] = data->alarm_max_limit[i]
++			goto out_sysfs_create_group;
++		data->critical_over_limit[i] = data->alarm_over_limit[i]
 +		  = smm665_convert(val, i);
 +		val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 6);
 +		if (unlikely(val < 0))
-+			goto out_unregister;
++			goto out_sysfs_create_group;
 +		if (smm665_is_critical(val))
-+			data->critical_max_limit[i] = smm665_convert(val, i);
++			data->critical_over_limit[i] = smm665_convert(val, i);
 +		else
-+			data->alarm_max_limit[i] = smm665_convert(val, i);
++			data->alarm_over_limit[i] = smm665_convert(val, i);
 +	}
 +
 +	/* Register sysfs hooks */
 +	ret = sysfs_create_group(&client->dev.kobj, &smm665_group);
 +	if (ret)
-+		goto out_unregister;
++		goto out_sysfs_create_group;
 +
 +	data->hwmon_dev = hwmon_device_register(&client->dev);
 +	if (IS_ERR(data->hwmon_dev)) {
 +		ret = PTR_ERR(data->hwmon_dev);
-+		goto out_remove_group;
++		goto out_hwmon_device_register;
 +	}
 +
 +	return 0;
 +
-+out_remove_group:
++out_hwmon_device_register:
 +	sysfs_remove_group(&client->dev.kobj, &smm665_group);
-+out_unregister:
++out_sysfs_create_group:
 +	i2c_unregister_device(data->cmdreg);
-+out_kfree:
++out_new_dummy:
 +	kfree(data);
-+out_return:
++out_kzalloc:
 +	return ret;
 +}
 +
