@@ -1,49 +1,85 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 25 Jun 2010 14:49:36 +0000
-Subject: Re: [lm-sensors] ASUS P7P55D PRO
-Message-Id: <20100625164936.608f7754@hyperion.delvare>
+From: Andreas Herrmann <herrmann.der.user@googlemail.com>
+Date: Tue, 22 Jun 2010 08:45:57 +0000
+Subject: [lm-sensors] [PATCH] hwmon,
+Message-Id: <20100622084557.GA4524@loge.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <43865.137.222.58.99.1277137848.squirrel@webmail.bris.ac.uk>
-In-Reply-To: <43865.137.222.58.99.1277137848.squirrel@webmail.bris.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, 25 Jun 2010 15:24:45 +0200, Luca Tettamanti wrote:
-> On Fri, Jun 25, 2010 at 10:38 AM, David Cussans
-> <David.Cussans@bristol.ac.uk> wrote:
-> >
-> > Luca,
-> >    Many thanks for your mail, and the information that where is an ACPI
-> > driver that should work.
-> >
-> >    Alas, I am using Scientific Linux 5.4 ( a variant of RHEL 5.x ) which
-> > uses kernel version 2.6.18, where this driver isn't present. Although I am
-> > very keen to find out how hot the CPU is running I doubt I will have time to
-> > back-port the asus_atk0110 driver and I am reluctant to risk breaking a lot
-> > of other things by moving away from a locally supported platform.
-> >
-> >    I don't really understand which firmware is using the hardware monitoring
-> > device (W83667HG-B ? ).
-> 
-> ACPI (i.e. the your BIOS). Furthermore IIRC your board has an EC
-> (external controller - basically another chip running its own
-> firmware) which polls the hwmon chip on its own.
-> 
-> > Forgive my confusion, but is it possible, even in
-> > theory, to write a user-space lm_sensors driver for this motherboard?
-> 
-> You can't do that in userspace, but yorur chip should be supported by
-> w83627ehf in recent kernels, you can try and backport it (it should be
-> fairly self-contained, while asus_atk0110 requires modification in
-> core ACPI code).
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-No, the W83667HG-B isn't supported yet. Still David can takes his
-chance and force W83667HG operation - at his own risks.
+Reported temperature for ASB1 CPUs is too high.
+Add ASB1 CPU revisions (these are also non-desktop variants) to the
+list of CPUs for which the temperature fixup is not required.
 
--- 
-Jean Delvare
+Example: (from LENOVO ThinkPad Edge 13, 01972NG, system was idle)
+
+  Current kernel reports
+
+  $ sensors
+  k8temp-pci-00c3
+  Adapter: PCI adapter
+  Core0 Temp:  +74.0=B0C
+  Core0 Temp:  +70.0=B0C
+  Core1 Temp:  +69.0=B0C
+  Core1 Temp:  +70.0=B0C
+
+  With this patch I have
+
+  $ sensors
+  k8temp-pci-00c3
+  Adapter: PCI adapter
+  Core0 Temp:  +54.0=B0C
+  Core0 Temp:  +51.0=B0C
+  Core1 Temp:  +48.0=B0C
+  Core1 Temp:  +49.0=B0C
+
+Cc: <stable@kernel.org> # .32.x .33.x, .34.x
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
+ drivers/hwmon/k8temp.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+I think this patch should go into .35.
+Patch was built against Linus' git v2.6.35-rc3-3-g9a3cde2.
+(Hope that there is no conflict with your recent fix for single core
+CPUs.)
+
+
+Thanks,
+
+Andreas
+
+
+diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+index 0ceb6d6..1fdd63e 100644
+--- a/drivers/hwmon/k8temp.c
++++ b/drivers/hwmon/k8temp.c
+@@ -180,11 +180,13 @@ static int __devinit k8temp_probe(struct pci_dev *pde=
+v,
+ 		}
+=20
+ 		if ((model >=3D 0x69) &&
+-		    !(model =3D 0xc1 || model =3D 0x6c || model =3D 0x7c)) {
++		    !(model =3D 0xc1 || model =3D 0x6c || model =3D 0x7c ||
++		      model =3D 0x6b || model =3D 0x6f || model =3D 0x7f)) {
+ 			/*
+-			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
+-			 * need additional offset, otherwise reported
+-			 * temperature is below ambient temperature
++			 * RevG desktop CPUs (i.e. no socket S1G1 or
++			 * ASB1 parts) need additional offset,
++			 * otherwise reported temperature is below
++			 * ambient temperature
+ 			 */
+ 			data->temp_offset =3D 21000;
+ 		}
+--=20
+1.7.1
+
 
 _______________________________________________
 lm-sensors mailing list
