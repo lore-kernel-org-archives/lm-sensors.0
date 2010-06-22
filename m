@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 10 Jun 2010 08:40:46 +0000
+Date: Tue, 22 Jun 2010 20:10:38 +0000
 Subject: Re: [lm-sensors] sensors.conf for DFI LP MI P55-T36 (it8720-*)
-Message-Id: <20100610104046.047d9eba@hyperion.delvare>
+Message-Id: <20100622221038.52877466@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100606154919.4066.qmail@mailserver01.ottosenfx.dk>
 In-Reply-To: <20100606154919.4066.qmail@mailserver01.ottosenfx.dk>
@@ -13,8 +13,6 @@ To: lm-sensors@vger.kernel.org
 Hi Lars,
 
 On 6 Jun 2010 15:49:19 -0000, Lars Kr.Lundin wrote:
-> Hi,
-> 
 > I have created a sensors.conf for my
 > DFI LP MI P55-T36 board at
 > http://www.eso.org/~llundin/sff/sensors.conf
@@ -23,18 +21,20 @@ On 6 Jun 2010 15:49:19 -0000, Lars Kr.Lundin wrote:
 > 
 > 1) include into the lm-sensors project anything
 >    from this file that is deemed useful.
-
-I've added a copy of your configuration file at:
-http://www.lm-sensors.org/wiki/Configurations/DFI/Lanparty%20MI%20P55-T36
-
 > 
 > 2) post corrections and improvements to the configuration.
-> 
-> Many thanks,
-> -Lars Lundin.
 
-Thank YOU for your contribution :)
+Could you please provide a dump of the configuration register space of
+your chip? I'd like to check something:
 
+# isaset -y -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
+
+(If it doesn't work, try with 0x4e 0x4f instead of 0x2e 0x2f.)
+
+Together with the output of "sensors", and the revision of your chip
+(printed in the kernel logs when you load the it87 driver).
+
+Thanks,
 -- 
 Jean Delvare
 
