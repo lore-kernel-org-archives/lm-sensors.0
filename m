@@ -1,122 +1,44 @@
-From: Philip Edelbrock <phil@studiogeologie.com>
-Date: Sun, 13 Jun 2010 06:48:21 +0000
-Subject: [lm-sensors] Download mirror has been moved
-Message-Id: <EC2CDD95-9F5B-4F4D-96BE-71544E97231D@studiogeologie.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2321302827652062285=="
+From: Severin Strobl <lists@severin-strobl.de>
+Date: Tue, 22 Jun 2010 16:16:35 +0000
+Subject: [lm-sensors] Fintek F71889ED and Core i5 650
+Message-Id: <7d5085f2fc67887ccbfebd0f0041558f@mail.blue-neutrino.com>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi,
 
---===============2321302827652062285==
-Content-Type: multipart/alternative; boundary=Apple-Mail-32--395725216
+recently I upgraded some hardware and got a MSI H55-GD65 (MS-7637) board
+and a Intel Core i5 650 CPU. The board features a Fintek 
+F71889ED sensor chip. From what I've gathered from the archives, there was
+one request some time ago
+(http://lists.lm-sensors.org/pipermail/lm-sensors/2010-May/028636.html),
+but as there is no data sheet available, adapting the f71882fg driver is
+not possible at the moment. So I guess until the data sheet is released
+there will be no progress regarding the driver. Once this will change, I'm
+more than willing to assist in testing the driver. Is there anything I can
+do right now?
+The other issue is the i5 650 CPU. When running kernel version 2.6.34 the
+coretemp driver did not recognize the CPU at all, but with the 2.6.35-rc3
+this changed. If I interpreted the changes correctly, the coretemp driver
+switched from checking the CPU model to detecting special registers?
+However the CPU is not recognized by sensors-detect (version 3.1.2 or svn
+r5842). The kernel messages produced by coretemp using 2.6.35-rc3 are:
 
+coretemp coretemp.0: TjMax is 105 C.
+coretemp coretemp.1: TjMax is 105 C.
+coretemp coretemp.2: TjMax is 105 C.
+coretemp coretemp.3: TjMax is 105 C.
 
---Apple-Mail-32--395725216
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
+Is there any information on whether this is a problem with the coretemp
+driver or the user space utils?
 
-
-Our old server Stimpy seems to be dead, so I've moved the FTP download =
-mirror to a more reliable server.  The usual DNS change delays apply.  =
-Hope folks are having/had a great weekend so far!
-
-
-Phil
-
-PHIL EDELBROCK + phil@studiogeologie.com + tel 541 753 4003 + G E O L O =
-G I E + www.studiogeologie.com=
-
---Apple-Mail-32--395725216
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html;
-	charset=us-ascii
-
-<html><head></head><body style=3D"word-wrap: break-word; =
--webkit-nbsp-mode: space; -webkit-line-break: after-white-space; =
-"><div><br></div><div>Our old server Stimpy seems to be dead, so I've =
-moved the FTP download mirror to a more reliable server. &nbsp;The usual =
-DNS change delays apply. &nbsp;Hope folks are having/had a great weekend =
-so far!</div><div><br></div><div><br></div><div>Phil</div><br><div>
-<span class=3D"Apple-style-span" style=3D"border-collapse: separate; =
-color: rgb(0, 0, 0); font-family: Helvetica; font-size: medium; =
-font-style: normal; font-variant: normal; font-weight: normal; =
-letter-spacing: normal; line-height: normal; orphans: 2; text-align: =
-auto; text-indent: 0px; text-transform: none; white-space: normal; =
-widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; =
--webkit-border-vertical-spacing: 0px; =
--webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0px; "><span class=3D"Apple-style-span" =
-style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
-Helvetica; font-size: medium; font-style: normal; font-variant: normal; =
-font-weight: normal; letter-spacing: normal; line-height: normal; =
-orphans: 2; text-indent: 0px; text-transform: none; white-space: normal; =
-widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; =
--webkit-border-vertical-spacing: 0px; =
--webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
-auto; -webkit-text-stroke-width: 0px; "><span class=3D"Apple-style-span" =
-style=3D"font-size: 12px; "><div><font class=3D"Apple-style-span" =
-color=3D"#9F5036" face=3D"Georgia" size=3D"3"><span =
-class=3D"Apple-style-span" style=3D"font-size: 13px; "><span =
-class=3D"Apple-style-span" style=3D"font-family: Times; font-size: 10px; =
-font-weight: bold; "><font class=3D"Apple-style-span" face=3D"Arial"><span=
- class=3D"Apple-style-span" style=3D"font-weight: normal; ">PHIL =
-EDELBROCK</span></font><span class=3D"Apple-style-span" style=3D"color: =
-rgb(126, 126, 126); "><font class=3D"Apple-style-span" =
-face=3D"Arial"><span class=3D"Apple-style-span" style=3D"font-weight: =
-normal; "><span class=3D"Apple-style-span" style=3D"color: rgb(159, 80, =
-54); font-family: Georgia; font-size: 13px; ">&nbsp;+&nbsp;</span><a =
-href=3D"mailto:phil@studiogeologie.com" style=3D"text-decoration: none; =
-color: rgb(126, 126, 126); cursor: pointer; =
-">phil@studiogeologie.com</a><span class=3D"Apple-style-span" =
-style=3D"color: rgb(128, 128, 128); font-family: Verdana; font-size: =
-12px; "><font class=3D"Apple-style-span" size=3D"1"><span =
-class=3D"Apple-style-span">&nbsp;+&nbsp;</span></font><span =
-class=3D"Apple-style-span" style=3D"color: rgb(126, 126, 126); =
-font-style: italic; "><font class=3D"Apple-style-span" =
-size=3D"1">tel&nbsp;<span class=3D"Apple-style-span" style=3D"font-style: =
-normal; ">541 753 4003</span></font><span class=3D"Apple-style-span"><font=
- class=3D"Apple-style-span" size=3D"1">&nbsp;<span =
-class=3D"Apple-style-span" style=3D"color: rgb(159, 80, 54); =
-font-family: Georgia; font-size: 12px; font-style: normal; "><font =
-class=3D"Apple-style-span" size=3D"3"><span class=3D"Apple-style-span" =
-style=3D"font-size: 13px; ">+&nbsp;</span></font><b><font =
-class=3D"Apple-style-span" size=3D"3"><span class=3D"Apple-style-span" =
-style=3D"font-size: 13px; ">G E O L O G I E</span></font></b><font =
-class=3D"Apple-style-span" size=3D"3"><span class=3D"Apple-style-span" =
-style=3D"font-size: 13px; ">&nbsp;+&nbsp;</span></font><span =
-class=3D"Apple-style-span" style=3D"color: rgb(128, 128, 128); =
-font-family: Verdana; "><span class=3D"Apple-style-span" style=3D"color: =
-rgb(126, 126, 126); font-family: Helvetica; "><font =
-class=3D"Apple-style-span" face=3D"Verdana"><span =
-class=3D"Apple-style-span" style=3D"color: rgb(128, 128, 128); "><span =
-class=3D"Apple-style-span" style=3D"color: rgb(126, 126, 126); =
-font-style: italic; "><span class=3D"Apple-style-span" =
-style=3D"font-style: normal; font-family: Helvetica; "><font =
-class=3D"Apple-style-span" face=3D"Verdana"><font =
-class=3D"Apple-style-span" size=3D"1"><span class=3D"Apple-style-span" =
-style=3D"font-size: 9px; "><span class=3D"Apple-style-span" =
-style=3D"color: rgb(128, 128, 128); "><span class=3D"Apple-style-span" =
-style=3D"font-family: Arial; font-size: 10px; "><a =
-href=3D"http://www.studiogeologie.com/" style=3D"text-decoration: none; =
-color: rgb(126, 126, 126); cursor: pointer; =
-">www.studiogeologie.com</a></span></span></span></font></font></span></sp=
-an></span></font></span></span></span></font></span></span></span></span><=
-/font></span></span></span></font></div></span></span></span></div></body>=
-</html>=
-
---Apple-Mail-32--395725216--
-
-
---===============2321302827652062285==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks a lot,
+Severin
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2321302827652062285==--
