@@ -1,93 +1,41 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 22 Jun 2010 11:35:33 +0000
+Date: Tue, 22 Jun 2010 14:51:42 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon,
-Message-Id: <20100622133533.083582a9@hyperion.delvare>
+Message-Id: <20100622165142.21f9901c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100622084557.GA4524@loge.amd.com>
 In-Reply-To: <20100622084557.GA4524@loge.amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Hi Andreas,
 
-On Tue, 22 Jun 2010 10:45:57 +0200, Andreas Herrmann wrote:
-> From: Andreas Herrmann <andreas.herrmann3@amd.com>
+On Tue, 22 Jun 2010 13:24:03 +0200, Andreas Herrmann wrote:
+> On Tue, Jun 22, 2010 at 01:35:33PM +0200, Jean Delvare wrote:
+> > I would like to avoid having to update this list each time a new CPU
+> > model is released. Are there more K8 models scheduled to be released?
 > 
-> Reported temperature for ASB1 CPUs is too high.
-> Add ASB1 CPU revisions (these are also non-desktop variants) to the
-> list of CPUs for which the temperature fixup is not required.
+> I am not aware of other models. I think the ASB1 parts were the last
+> updates of that CPU family. Those Athlon/Turion Neo CPUs are on the
+> market for quite some time now. I've encountered that problem because
+> I have such a CPU in my Laptop.
 > 
-> Example: (from LENOVO ThinkPad Edge 13, 01972NG, system was idle)
+> > If there are, we should come up with a better test, either by
+> > defaulting to no offset if all newer models don't need it, or by using
+> > a socket-based detection as we do in the k10temp driver, assuming this
+> > is available on the K8 as well.
 > 
->   Current kernel reports
+> Unfortunately on K8 socket type information is not provided with CPUID
+> like its done for family 0x10. Thus the socket type must be derived
+> from the CPU revision and information contained in the CPU revision
+> guide.
 > 
->   $ sensors
->   k8temp-pci-00c3
->   Adapter: PCI adapter
->   Core0 Temp:  +74.0°C
->   Core0 Temp:  +70.0°C
->   Core1 Temp:  +69.0°C
->   Core1 Temp:  +70.0°C
-> 
->   With this patch I have
-> 
->   $ sensors
->   k8temp-pci-00c3
->   Adapter: PCI adapter
->   Core0 Temp:  +54.0°C
->   Core0 Temp:  +51.0°C
->   Core1 Temp:  +48.0°C
->   Core1 Temp:  +49.0°C
-> 
-> Cc: <stable@kernel.org> # .32.x .33.x, .34.x
-> Cc: Rudolf Marek <r.marek@assembler.cz>
-> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-> ---
->  drivers/hwmon/k8temp.c |   10 ++++++----
->  1 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> I think this patch should go into .35.
+> I think (hope) that this list needs no update anymore.
 
-I agree, I've applied it, thanks for your contribution.
-
-> Patch was built against Linus' git v2.6.35-rc3-3-g9a3cde2.
-> (Hope that there is no conflict with your recent fix for single core
-> CPUs.)
-
-No, there is not.
-
-> diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-> index 0ceb6d6..1fdd63e 100644
-> --- a/drivers/hwmon/k8temp.c
-> +++ b/drivers/hwmon/k8temp.c
-> @@ -180,11 +180,13 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
->  		}
->  
->  		if ((model >= 0x69) &&
-> -		    !(model = 0xc1 || model = 0x6c || model = 0x7c)) {
-> +		    !(model = 0xc1 || model = 0x6c || model = 0x7c ||
-> +		      model = 0x6b || model = 0x6f || model = 0x7f)) {
->  			/*
-> -			 * RevG desktop CPUs (i.e. no socket S1G1 parts)
-> -			 * need additional offset, otherwise reported
-> -			 * temperature is below ambient temperature
-> +			 * RevG desktop CPUs (i.e. no socket S1G1 or
-> +			 * ASB1 parts) need additional offset,
-> +			 * otherwise reported temperature is below
-> +			 * ambient temperature
->  			 */
->  			data->temp_offset = 21000;
->  		}
-
-I would like to avoid having to update this list each time a new CPU
-model is released. Are there more K8 models scheduled to be released?
-
-If there are, we should come up with a better test, either by
-defaulting to no offset if all newer models don't need it, or by using
-a socket-based detection as we do in the k10temp driver, assuming this
-is available on the K8 as well.
+OK, let's keep the code the way it is then. I'll send the patch to
+Linus for 2.6.35 with the next batch.
 
 Thanks,
 -- 
