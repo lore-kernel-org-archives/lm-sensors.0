@@ -1,223 +1,829 @@
-From: "Wan, Huaxu" <huaxu.wan@intel.com>
-Date: Mon, 28 Jun 2010 07:14:38 +0000
-Subject: Re: [lm-sensors] Too low temp readings on overclocked Intel Atom CPU
-Message-Id: <625BA99ED14B2D499DC4E29D8138F150308467AE9B@shsmsx502.ccr.corp.intel.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 24 Jun 2010 23:05:59 +0000
+Subject: Re: [lm-sensors] [PATCH v3 1/4] hwmon: Driver for SMM665
+Message-Id: <20100624230559.GA25629@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLU142-W26CE1E8D8E3AE3FD1983A1D3C30@phx.gbl>
-In-Reply-To: <BLU142-W26CE1E8D8E3AE3FD1983A1D3C30@phx.gbl>
+References: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
+ <1277416861-32494-2-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277416861-32494-2-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Randy Dunlap <rdunlap@xenotime.net>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>
 
-Hi Ulf,
+Couple of comments inline.
 
-The accuracy of sensors deteriorate more when far away from TjMax, a
-spec say the temperature error is about +-10C at 50C. So, as you said,
- the value is more reasonable after the cup load increased.
+On Thu, Jun 24, 2010 at 06:00:58PM -0400, Guenter Roeck wrote:
+> This driver adds support for the monitoring features of the Summit
+> Microelectronics SMM665 Six-Channel Active DC Output Controller/Monitor.
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  drivers/hwmon/Kconfig  |   15 +
+>  drivers/hwmon/Makefile |    1 +
+>  drivers/hwmon/smm665.c |  744 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 760 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hwmon/smm665.c
+> 
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index e19cf8e..c45c17e 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -739,6 +739,21 @@ config SENSORS_SIS5595
+>           This driver can also be built as a module.  If so, the module
+>           will be called sis5595.
+> 
+> +config SENSORS_SMM665
+> +       tristate "Summit Microelectronics SMM665"
+> +       depends on I2C && EXPERIMENTAL
+> +       default n
+> +       help
+> +         If you say yes here you get support for the hardware monitoring
+> +         features of the Summit Microelectronics SMM665/SMM665B Six-Channel
+> +         Active DC Output Controller / Monitor.
+> +
+> +         Other supported chips are SMM465, SMM665C, SMM764, and SMM766.
+> +         Support for those chips is untested.
+> +
+> +         This driver can also be built as a module. If so, the module will
+> +         be called smm665.
+> +
+>  config SENSORS_DME1737
+>         tristate "SMSC DME1737, SCH311x and compatibles"
+>         depends on I2C && EXPERIMENTAL
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index 2138ceb..55b0940 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -86,6 +86,7 @@ obj-$(CONFIG_SENSORS_PCF8591) += pcf8591.o
+>  obj-$(CONFIG_SENSORS_S3C)      += s3c-hwmon.o
+>  obj-$(CONFIG_SENSORS_SHT15)    += sht15.o
+>  obj-$(CONFIG_SENSORS_SIS5595)  += sis5595.o
+> +obj-$(CONFIG_SENSORS_SMM665)   += smm665.o
+>  obj-$(CONFIG_SENSORS_SMSC47B397)+= smsc47b397.o
+>  obj-$(CONFIG_SENSORS_SMSC47M1) += smsc47m1.o
+>  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
+> diff --git a/drivers/hwmon/smm665.c b/drivers/hwmon/smm665.c
+> new file mode 100644
+> index 0000000..d340f61
+> --- /dev/null
+> +++ b/drivers/hwmon/smm665.c
+> @@ -0,0 +1,744 @@
+> +/*
+> + * Driver for SMM665 Power Controller / Monitor
+> + *
+> + * Copyright (C) 2010 Ericsson AB.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; version 2 of the License.
+> + *
+> + * This driver should also work for SMM465, SMM764, and SMM766, but is untested
+> + * for those chips. Only monitoring functionality is implemented.
+> + *
+> + * Datasheets:
+> + * http://www.summitmicro.com/prod_select/summary/SMM665/SMM665B_2089_20.pdf
+> + * http://www.summitmicro.com/prod_select/summary/SMM766B/SMM766B_2122.pdf
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/err.h>
+> +#include <linux/slab.h>
+> +#include <linux/i2c.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/delay.h>
+> +
+> +/* Internal reference voltage (VREF, x 1000 */
+> +#define SMM665_VREF_ADC_X1000  1250
+> +
+> +/* module parameters */
+> +static int vref = SMM665_VREF_ADC_X1000;
+> +module_param(vref, int, 0);
+> +MODULE_PARM_DESC(vref, "Reference voltage in mV");
+> +
+> +enum chips { smm465, smm665, smm665c, smm764, smm766 };
+> +
+> +/*
+> + * ADC channel addresses
+> + */
+> +#define        SMM665_MISC16_ADC_DATA_A        0x00
+> +#define        SMM665_MISC16_ADC_DATA_B        0x01
+> +#define        SMM665_MISC16_ADC_DATA_C        0x02
+> +#define        SMM665_MISC16_ADC_DATA_D        0x03
+> +#define        SMM665_MISC16_ADC_DATA_E        0x04
+> +#define        SMM665_MISC16_ADC_DATA_F        0x05
+> +#define        SMM665_MISC16_ADC_DATA_VDD      0x06
+> +#define        SMM665_MISC16_ADC_DATA_12V      0x07
+> +#define        SMM665_MISC16_ADC_DATA_INT_TEMP 0x08
+> +#define        SMM665_MISC16_ADC_DATA_AIN1     0x09
+> +#define        SMM665_MISC16_ADC_DATA_AIN2     0x0a
+> +
+> +/*
+> + * Command registers
+> + */
+> +#define        SMM665_MISC8_CMD_STS            0x80
+> +#define        SMM665_MISC8_STATUS1            0x81
+> +#define        SMM665_MISC8_STATUSS2           0x82
+> +#define        SMM665_MISC8_IO_POLARITY        0x83
+> +#define        SMM665_MISC8_PUP_POLARITY       0x84
+> +#define        SMM665_MISC8_ADOC_STATUS1       0x85
+> +#define        SMM665_MISC8_ADOC_STATUS2       0x86
+> +#define        SMM665_MISC8_WRITE_PROT         0x87
+> +#define        SMM665_MISC8_STS_TRACK          0x88
+> +
+> +/*
+> + * Configuration registers and register groups
+> + */
+> +#define SMM665_ADOC_ENABLE             0x0d
+> +#define SMM665_LIMIT_BASE              0x80    /* First limit register */
+> +
+> +/*
+> + * Limit register bit masks
+> + */
+> +#define SMM665_TRIGGER_RST             0x8000
+> +#define SMM665_TRIGGER_HEALTHY         0x4000
+> +#define SMM665_TRIGGER_POWEROFF                0x2000
+> +#define SMM665_TRIGGER_SHUTDOWN                0x1000
+> +#define SMM665_ADC_MASK                        0x03ff
+> +
+> +#define smm665_is_critical(lim)        ((lim) & (SMM665_TRIGGER_RST \
+> +                                       | SMM665_TRIGGER_POWEROFF \
+> +                                       | SMM665_TRIGGER_SHUTDOWN))
+> +/*
+> + * Fault register bit definitions
+> + * Values are merged from status registers 1/2,
+> + * with status register 1 providing the upper 8 bits.
+> + */
+> +#define SMM665_FAULT_A         0x0001
+> +#define SMM665_FAULT_B         0x0002
+> +#define SMM665_FAULT_C         0x0004
+> +#define SMM665_FAULT_D         0x0008
+> +#define SMM665_FAULT_E         0x0010
+> +#define SMM665_FAULT_F         0x0020
+> +#define SMM665_FAULT_VDD       0x0040
+> +#define SMM665_FAULT_12V       0x0080
+> +#define SMM665_FAULT_TEMP      0x0100
+> +#define SMM665_FAULT_AIN1      0x0200
+> +#define SMM665_FAULT_AIN2      0x0400
+> +
+> +/*
+> + * I2C Register addresses
+> + *
+> + * The configuration register needs to be the configured base register.
+> + * The command/status register address is derived from it.
+> + */
+> +#define SMM665_REGMASK         0x78
+> +#define SMM665_CMDREG_BASE     0x48
+> +#define SMM665_CONFREG_BASE    0x50
+> +
+> +/*
+> + *  Equations given by chip manufacturer to calculate voltage/temperature values
+> + *  vref = Reference voltage on VREF_ADC pin (module parameter)
+> + *  adc  = 10bit ADC value read back from registers
+> + */
+> +
+> +/* Voltage A-F and VDD */
+> +#define SMM665_VMON_ADC_TO_VOLTS(adc)  ((adc) * vref / 256)
+> +
+> +/* Voltage 12VIN */
+> +#define SMM665_12VIN_ADC_TO_VOLTS(adc) ((adc) * vref * 3 / 256)
+> +
+> +/* Voltage AIN1, AIN2 */
+> +#define SMM665_AIN_ADC_TO_VOLTS(adc)   ((adc) * vref / 512)
+> +
+> +/* Temp Sensor */
+> +#define SMM665_TEMP_ADC_TO_CELSIUS(adc) ((adc) <= 511) ?                  \
+> +                                        ((int)(adc) * 1000 / 4) :         \
+> +                                        (((int)(adc) - 0x400) * 1000 / 4)
+> +
+> +#define SMM665_NUM_ADC         11
+> +
+> +/*
+> + * Chip dependent ADC conversion time, in uS
+> + */
+> +#define SMM665_ADC_WAIT_SMM665 70
+> +#define SMM665_ADC_WAIT_SMM766 185
+> +
+> +struct smm665_data {
+> +       enum chips type;
+> +       int conversion_time;            /* ADC conversion time */
+> +       struct device *hwmon_dev;
+> +       struct mutex update_lock;
+> +       bool valid;
+> +       unsigned long last_updated;     /* in jiffies */
+> +       u16 adc[SMM665_NUM_ADC];        /* adc values (raw) */
+> +       u16 faults;                     /* fault status */
+> +       /* The following values are in mV */
+> +       int critical_min_limit[SMM665_NUM_ADC];
+> +       int alarm_min_limit[SMM665_NUM_ADC];
+> +       int critical_max_limit[SMM665_NUM_ADC];
+> +       int alarm_max_limit[SMM665_NUM_ADC];
+> +       struct i2c_client *cmdreg;
+> +};
+> +
+> +/*
+> + * smm665_read16()
+> + *
+> + * Read 16 bit value from <reg>, <reg+1>. Upper 8 bits are in <reg>.
+> + */
+> +static int smm665_read16(struct i2c_client *client, int reg)
+> +{
+> +       int rv, val;
+> +
+> +       rv = i2c_smbus_read_byte_data(client, reg);
+> +       if (rv < 0)
+> +               return rv;
+> +       val = rv << 8;
+> +       rv = i2c_smbus_read_byte_data(client, reg + 1);
+> +       if (rv < 0)
+> +               return rv;
+> +       val |= rv;
+> +       return val;
+> +}
+> +
+> +/*
+> + * Read adc value.
+> + */
+> +static int smm665_read_adc(struct smm665_data *data, int adc)
+> +{
+> +       struct i2c_client *client = data->cmdreg;
+> +       int rv;
+> +       int radc;
+> +
+> +       /*
+> +        * Algorithm for reading ADC, per SMM665 datasheet
+> +        *
+> +        *  {[S][addr][W][Ack]} {[offset][Ack]} {[S][addr][R][Nack]}
+> +        * [wait conversion time]
+> +        *  {[S][addr][R][Ack]} {[datahi][Ack]} {[datalo][Ack][P]}
+> +        *
+> +        * To implement the first part of this exchange,
+> +        * do a full read transaction and expect a failure/Nack.
+> +        * This sets up the address pointer on the SMM665
+> +        * and starts the ADC conversion.
+> +        * Then do a two-byte read transaction.
+> +        */
+> +       rv = i2c_smbus_read_byte_data(client, adc << 3);
+> +       if (rv != -ENXIO) {
+> +               /*
+> +                * We expect ENXIO to reflect NACK
+> +                * (per Documentation/i2c/fault-codes).
+> +                * Everything else is an error.
+> +                */
+> +               dev_dbg(&client->dev,
+> +                       "Unexpected return code %d when setting ADC index", rv);
+> +               return (rv < 0) ? rv : -EIO;
+> +       }
+> +
+> +       udelay(data->conversion_time);
+> +
+> +       /*
+> +        * Now read two bytes.
+> +        *
+> +        * Neither i2c_smbus_read_byte() nor
+> +        * i2c_smbus_read_block_data() worked here,
+> +        * so use i2c_smbus_read_word_data() instead.
+> +        * We could also try to use i2c_master_recv(),
+> +        * but that is not always supported.
+> +        */
+> +       rv = i2c_smbus_read_word_data(client, 0);
+> +       if (rv < 0) {
+> +               dev_dbg(&client->dev, "Failed to read ADC value: error %d", rv);
+> +               return -1;
+> +       }
+> +       /*
+> +        * Validate/verify readback adc channel (in bit 11..14).
+> +        * High byte is in lower 8 bit of rv, so only shift by 3.
+> +        */
+> +       radc = (rv >> 3) & 0x0f;
+> +       if (radc != adc) {
+> +               dev_dbg(&client->dev, "Unexpected RADC: Expected %d got %d",
+> +                       adc, radc);
+> +               return -EIO;
+> +       }
+> +       /*
+> +        * Chip replies with H/L, while SMBus expects L/H.
+> +        * Thus, byte order is reversed, and we have to swap
+> +        * the result.
+> +        */
+> +       rv = swab16(rv) & SMM665_ADC_MASK;
+> +
+> +       return rv;
+> +}
+> +
+> +static struct smm665_data *smm665_update_device(struct device *dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct smm665_data *data = i2c_get_clientdata(client);
+> +
+> +       mutex_lock(&data->update_lock);
+> +
+> +       if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
+> +               int i, val;
+> +
+> +               /*
+> +                * read status registers
+> +                */
+> +               val = smm665_read16(client, SMM665_MISC8_STATUS1);
+> +               if (unlikely(val < 0))
+> +                       return ERR_PTR(val);
 
-Thanks
-Huaxu
+unlock() missing. Will be fixed in v4.
 
+> +               data->faults = val;
+> +
+> +               /* Read adc registers */
+> +               for (i = 0; i < SMM665_NUM_ADC; i++) {
+> +                       val = smm665_read_adc(data, i);
+> +                       if (unlikely(val < 0))
+> +                               return ERR_PTR(val);
 
->-----Original Message-----
->From: Ulf Granlund [mailto:galsjo@hotmail.com]=20
->Sent: Sunday, June 27, 2010 4:46 AM
->To: khali@linux-fr.org
->Cc: lm-sensors@lm-sensors.org; Wan, Huaxu
->Subject: RE: [lm-sensors] Too low temp readings on overclocked=20
->Intel Atom CPU
->
->
->Hi Jean,
->I guess you are right about most of this. Clearly, the sensors=20
->are very unreliable at low temperatures.If I leave the=20
->computer switched off for a few hours in an ambient temp of 23=20
->C, and then turn it on,the senors show values in the order of=20
->-5 C for the first few minutes before the machine is warmed=20
->up,when reasonably, they should show about 23 C. And this is=20
->when the CPU is running at standardspeed. So the error that=20
->occurs from overclocking is relatively small compared to this=20
->ca 30 C error.=A0It possible that the sensors=A0perform better at=20
->higher temp, as you say, but how do I know that?=A0I can stress=20
->the machine and see=A0that I get more reasonable values when the=20
->CPU is working harder,and also the difference between=A0
->overclocked and standard speed is less pronounced at higher=20
->working load,=A0but there is no real way for me to tell when=20
->they stop beeing completely wrong and start beeing right.=A0
->Hopefully they will at least fulfill the function of turning=20
->the processor down before it burnsup, and apparently that is=20
->the only useful function they have, it seems that they can not=20
->really be used forreading the temperature.
->However, I have one last question. Since the processor only=20
->has two physical cores, butI get four readings, is there some=20
->way to tell which values are the ones from the realcores?
->Thanks for your advice,RegardsUlf
->----------------------------------------
->> Date: Wed, 23 Jun 2010 09:53:51 +0200
->> From: khali@linux-fr.org
->> To: galsjo@hotmail.com
->> CC: lm-sensors@lm-sensors.org; huaxu.wan@intel.com
->> Subject: Re: [lm-sensors] Too low temp readings on=20
->overclocked Intel Atom CPU
->>
->> Hi Ulf,
->>
->> Preliminary note: the mAtom 330 is a dual-core CPU, so you=20
->really have
->> 2 cores, not 4. I guess that each core has hyper-threading, which is
->> why you see 4 CPU entries. But I suspect that there's only one sensor
->> per core, so the coretemp driver should only display 2 values. I've
->> sent a patch fixing this, but it didn't receive any comment:
->> http://lists.lm-sensors.org/pipermail/lm-sensors/2010-May/028511.html
->>
->> About the Asrock software: it is possible that Asrock knows about the
->> problem and silently compensate for it. You'd need to ask=20
->them. But it
->> is also possible that other CPU samples have working sensors when
->> overclocked and only yours doesn't. Each CPU is unique when
->> overclocking. The only way to know for sure would be to run=20
->the Asrock
->> software on your own system.
->>
->> Don't you have an external hardware monitoring chip on your board? It
->> would probably be less influenced by overclocking, and would thus be
->> more reliable for comparing the temperature with and without
->> overclocking.
->>
->> Anyway, please note that the CPU temperature values reported by the
->> coretemp driver are notoriously inaccurate as long as they are way
->> below the critical limit. This is your case. So the bottom=20
->line is that
->> your CPU is very cool and you have no thermal issue at all.
->>
->> But beware, problems when overclocking aren't limited to a higher
->> running temperatures. All kind of issues can happen, which you won't
->> notice until things start failing mysteriously. And overclocking
->> doesn't buy you much in practice anyway, as the limiting speed factor
->> these days is more often the disk and memory speed than the=20
->CPU speed.
->>
->> Jean
->>
->> On Tue, 22 Jun 2010 11:00:37 +0200, Ulf Granlund wrote:
->>>
->>> Hi Jean, thank you for your answer.
->>> Some answers to your questions, as far as I can get them:
->>> The CPU model is "Intel Atom CPU 330 @1.6 GHz" according to=20
->system info in the BIOS.
->>> CPU Voltage: From the manual or the Asrock home page, I=20
->have not found any clear specification on exactlywhat=20
->parameters the overclocking option alters. I found some=20
->hardware review pages on the net stating thatwhen using this=20
->option ( with the highest available frequency, 2100 MHz) the=20
->CPU voltage is automaticallyset to 1.315 V. I have no idea=20
->about how reliable this information is or where they got it=20
->from. In the BIOS theoverclocking option is mentioned as "an=20
->optimized set" of overclocking parameters, indicating that at=20
->least morethan one parameter is affected.
->>>  When I load the CPU:s there is a clear raise in=20
->temperature values both when I am overclocked and when running=20
->atstandard speed, but for essentially the same CPU load=20
->(watching a movie for 5 minutes) the temperatures are about 10=20
->to 15 =B0Clower in the overclocked state, which does not seem reasonable.
->>> In the hardware reviews found on some net sites, it is=20
->mentioned that there is a (Windows) systemmonitoring software=20
->that is supplied with the system from Asrock. There is data=20
->from this softwarepresented in the reviews, where temperature=20
->readings are collected in both standard and overclocked=20
->states, andfrom that software they get temperature readings=20
->that are clearly higher when running overclocked, which seems=20
->to bethe most reasonable result. To me this seems to show that=20
->it is possible to get reliable temp readings also in the=20
->overclockedstate. But then again that software is supplied by=20
->Asrock, and I guess they have full control of all parameters.
->>> Best Regards
->>> Ulf
->>> ----------------------------------------
->>>> Date: Mon, 21 Jun 2010 23:06:05 +0200
->>>> From: khali@linux-fr.org
->>>> To: galsjo@hotmail.com
->>>> CC: lm-sensors@lm-sensors.org; huaxu.wan@intel.com
->>>> Subject: Re: [lm-sensors] Too low temp readings on=20
->overclocked Intel Atom CPU
->>>>
->>>> Hi Ulf,
->>>>
->>>> On Mon, 21 Jun 2010 12:19:50 +0200, Ulf Granlund wrote:
->>>>>
->>>>> Hello,
->>>>> I am running an Asrock Ion computer under Ubuntu 10.4. It=20
->has four Intel Atom CPU cores. In the Asrock BIOS thereis an=20
->option to introduce overclocking. I have set the frequency to=20
->1800 MHz insetad of the standard 1600 MHz..
->>>>
->>>> By doing this, you are unsupported. If you decide to use=20
->your hardware
->>>> beyond its specification, you shouldn't be surprised if it fails.
->>>>
->>>> Please tell us the exact CPU model.
->>>>
->>>> Do you know if the overclocking alters only the frequency,=20
->or also the
->>>> CPU core voltage?
->>>>
->>>>> After having the computer switched on for several hours,=20
->but the CPU:s mainly idle, the output from the sensors command=20
->is as below,in a room where ambient temperature is about 22 C.
->>>>> coretemp-isa-0000Adapter: ISA adapterCore 0: +4.0=B0C (crit=20
->=3D +90.0=B0C)
->>>>> coretemp-isa-0001Adapter: ISA adapterCore 1: +16.0=B0C=20
->(crit =3D +90.0=B0C)
->>>>> coretemp-isa-0002Adapter: ISA adapterCore 2: +3.0=B0C (crit=20
->=3D +90.0=B0C)
->>>>> coretemp-isa-0003Adapter: ISA adapterCore 3: +16.0=B0C=20
->(crit =3D +90.0=B0C)
->>>>
->>>> This is horribly formatted.
->>>>
->>>>> Clearly these temperatures are way too low.However, if I=20
->set the processor frequency to the standard 1600 MHz,I get:
->>>>> coretemp-isa-0000Adapter: ISA adapterCore 0: +17.0=B0C=20
->(crit =3D +90.0=B0C)
->>>>> coretemp-isa-0001Adapter: ISA adapterCore 1: +25.0=B0C=20
->(crit =3D +90.0=B0C)
->>>>> coretemp-isa-0002Adapter: ISA adapterCore 2: +18.0=B0C=20
->(crit =3D +90.0=B0C)
->>>>> coretemp-isa-0003Adapter: ISA adapterCore 3: +25.0=B0C=20
->(crit =3D +90.0=B0C)
->>>>> Which at least seems far more reasonable.
->>>>
->>>> This is very interesting. Adding the coretemp driver=20
->maintainer in Cc.
->>>>
->>>>> It seems that the more I overclock, the lower the=20
->temperature readings get.Can somebody explain how to get=20
->correct temp readings? It is of course more importantto me to=20
->get correct readings in the overclocked situation than in the=20
->standard situation...
->>>>> The lm-sensors version used is 3.1.2 and the linux kernel=20
->version is 2.6.32.
->>>>
->>>> First thing to check is: do the temperature values=20
->increase or decrease
->>>> when you load the CPUs?
->>>>
->>>> Then I guess you could give a try to the latest version of=20
->the driver,
->>>> as it received changes recently:
->>>> http://khali.linux-fr.org/devel/misc/coretemp/
->>>>
->>>> But anyway, odds are that the sensors are affected by=20
->overclocking and
->>>> nothing can be done, except: don't do it.
->>>>
->>>> --
->>>> Jean Delvare
-> 		 	   		 =20
->_________________________________________________________________
->V=E5rfina smileys till Messenger h=E4r!
->http://springpack.msn.se
+unlock() missing. Will be fixed in v4.
+
+> +                       data->adc[i] = val;
+> +               }
+> +               data->last_updated = jiffies;
+> +               data->valid = 1;
+> +       }
+> +
+> +       mutex_unlock(&data->update_lock);
+> +
+> +       return data;
+> +}
+> +
+> +/* Return converted value from given adc */
+> +static int smm665_convert(u16 adcval, int index)
+> +{
+> +       int val = 0;
+> +
+> +       switch (index) {
+> +       case SMM665_MISC16_ADC_DATA_12V:
+> +               val = SMM665_12VIN_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
+> +               break;
+> +
+> +       case SMM665_MISC16_ADC_DATA_VDD:
+> +       case SMM665_MISC16_ADC_DATA_A:
+> +       case SMM665_MISC16_ADC_DATA_B:
+> +       case SMM665_MISC16_ADC_DATA_C:
+> +       case SMM665_MISC16_ADC_DATA_D:
+> +       case SMM665_MISC16_ADC_DATA_E:
+> +       case SMM665_MISC16_ADC_DATA_F:
+> +               val = SMM665_VMON_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
+> +               break;
+> +
+> +       case SMM665_MISC16_ADC_DATA_AIN1:
+> +       case SMM665_MISC16_ADC_DATA_AIN2:
+> +               val = SMM665_AIN_ADC_TO_VOLTS(adcval & SMM665_ADC_MASK);
+> +               break;
+> +
+> +       case SMM665_MISC16_ADC_DATA_INT_TEMP:
+> +               val = SMM665_TEMP_ADC_TO_CELSIUS(adcval & SMM665_ADC_MASK);
+> +               break;
+> +
+> +       default:
+> +               /* If we get here, the developer messed up */
+> +               WARN_ON_ONCE(1);
+> +               break;
+> +       }
+> +
+> +       return val;
+> +}
+> +
+> +static int smm665_get_min(struct device *dev, int index)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct smm665_data *data = i2c_get_clientdata(client);
+> +
+> +       return data->alarm_min_limit[index];
+> +}
+> +
+> +static int smm665_get_max(struct device *dev, int index)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct smm665_data *data = i2c_get_clientdata(client);
+> +
+> +       return data->alarm_max_limit[index];
+> +}
+> +
+> +static int smm665_get_lcrit(struct device *dev, int index)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct smm665_data *data = i2c_get_clientdata(client);
+> +
+> +       return data->critical_min_limit[index];
+> +}
+> +
+> +static int smm665_get_crit(struct device *dev, int index)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct smm665_data *data = i2c_get_clientdata(client);
+> +
+> +       return data->critical_max_limit[index];
+> +}
+> +
+> +static ssize_t smm665_show_fault(struct device *dev,
+> +                                struct device_attribute *da, char *buf)
+> +{
+> +       struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+> +       struct smm665_data *data = smm665_update_device(dev);
+> +       int val = 0;
+> +
+> +       if (IS_ERR(data))
+> +               return PTR_ERR(data);
+> +
+> +       if (data->faults & (1 << attr->index))
+> +               val = 1;
+> +
+> +       return snprintf(buf, PAGE_SIZE, "%d\n", val);
+> +}
+> +
+> +static ssize_t smm665_show_input(struct device *dev,
+> +                                struct device_attribute *da, char *buf)
+> +{
+> +       struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+> +       struct smm665_data *data = smm665_update_device(dev);
+> +       int adc = attr->index;
+> +       int val;
+> +
+> +       if (IS_ERR(data))
+> +               return PTR_ERR(data);
+> +
+> +       val = smm665_convert(data->adc[adc], adc);
+> +       return snprintf(buf, PAGE_SIZE, "%d\n", val);
+> +}
+> +
+> +#define SMM665_SHOW(what) \
+> +  static ssize_t smm665_show_##what(struct device *dev, \
+> +                                   struct device_attribute *da, char *buf) \
+> +{ \
+> +       struct sensor_device_attribute *attr = to_sensor_dev_attr(da); \
+> +       const int val = smm665_get_##what(dev, attr->index); \
+> +       return snprintf(buf, PAGE_SIZE, "%d\n", val); \
+> +}
+> +
+> +SMM665_SHOW(min);
+> +SMM665_SHOW(max);
+> +SMM665_SHOW(lcrit);
+> +SMM665_SHOW(crit);
+> +
+> +/* These macros are used below in constructing device attribute objects
+> + * for use with sysfs_create_group() to make a sysfs device file
+> + * for each register.
+> + */
+> +
+> +#define SMM665_ATTR(name, type, cmd_idx) \
+> +       static SENSOR_DEVICE_ATTR(name##_##type, S_IRUGO, \
+> +                                 smm665_show_##type, NULL, cmd_idx)
+> +
+> +/* Construct a sensor_device_attribute structure for each register */
+> +
+> +/* Input voltages */
+> +SMM665_ATTR(in1, input, SMM665_MISC16_ADC_DATA_12V);
+> +SMM665_ATTR(in2, input, SMM665_MISC16_ADC_DATA_VDD);
+> +SMM665_ATTR(in3, input, SMM665_MISC16_ADC_DATA_A);
+> +SMM665_ATTR(in4, input, SMM665_MISC16_ADC_DATA_B);
+> +SMM665_ATTR(in5, input, SMM665_MISC16_ADC_DATA_C);
+> +SMM665_ATTR(in6, input, SMM665_MISC16_ADC_DATA_D);
+> +SMM665_ATTR(in7, input, SMM665_MISC16_ADC_DATA_E);
+> +SMM665_ATTR(in8, input, SMM665_MISC16_ADC_DATA_F);
+> +SMM665_ATTR(in9, input, SMM665_MISC16_ADC_DATA_AIN1);
+> +SMM665_ATTR(in10, input, SMM665_MISC16_ADC_DATA_AIN2);
+> +
+> +/* Input voltages min */
+> +SMM665_ATTR(in1, min, SMM665_MISC16_ADC_DATA_12V);
+> +SMM665_ATTR(in2, min, SMM665_MISC16_ADC_DATA_VDD);
+> +SMM665_ATTR(in3, min, SMM665_MISC16_ADC_DATA_A);
+> +SMM665_ATTR(in4, min, SMM665_MISC16_ADC_DATA_B);
+> +SMM665_ATTR(in5, min, SMM665_MISC16_ADC_DATA_C);
+> +SMM665_ATTR(in6, min, SMM665_MISC16_ADC_DATA_D);
+> +SMM665_ATTR(in7, min, SMM665_MISC16_ADC_DATA_E);
+> +SMM665_ATTR(in8, min, SMM665_MISC16_ADC_DATA_F);
+> +SMM665_ATTR(in9, min, SMM665_MISC16_ADC_DATA_AIN1);
+> +SMM665_ATTR(in10, min, SMM665_MISC16_ADC_DATA_AIN2);
+> +
+> +/* Input voltages max */
+> +SMM665_ATTR(in1, max, SMM665_MISC16_ADC_DATA_12V);
+> +SMM665_ATTR(in2, max, SMM665_MISC16_ADC_DATA_VDD);
+> +SMM665_ATTR(in3, max, SMM665_MISC16_ADC_DATA_A);
+> +SMM665_ATTR(in4, max, SMM665_MISC16_ADC_DATA_B);
+> +SMM665_ATTR(in5, max, SMM665_MISC16_ADC_DATA_C);
+> +SMM665_ATTR(in6, max, SMM665_MISC16_ADC_DATA_D);
+> +SMM665_ATTR(in7, max, SMM665_MISC16_ADC_DATA_E);
+> +SMM665_ATTR(in8, max, SMM665_MISC16_ADC_DATA_F);
+> +SMM665_ATTR(in9, max, SMM665_MISC16_ADC_DATA_AIN1);
+> +SMM665_ATTR(in10, max, SMM665_MISC16_ADC_DATA_AIN2);
+> +
+> +/* Input voltages lcrit */
+> +SMM665_ATTR(in1, lcrit, SMM665_MISC16_ADC_DATA_12V);
+> +SMM665_ATTR(in2, lcrit, SMM665_MISC16_ADC_DATA_VDD);
+> +SMM665_ATTR(in3, lcrit, SMM665_MISC16_ADC_DATA_A);
+> +SMM665_ATTR(in4, lcrit, SMM665_MISC16_ADC_DATA_B);
+> +SMM665_ATTR(in5, lcrit, SMM665_MISC16_ADC_DATA_C);
+> +SMM665_ATTR(in6, lcrit, SMM665_MISC16_ADC_DATA_D);
+> +SMM665_ATTR(in7, lcrit, SMM665_MISC16_ADC_DATA_E);
+> +SMM665_ATTR(in8, lcrit, SMM665_MISC16_ADC_DATA_F);
+> +SMM665_ATTR(in9, lcrit, SMM665_MISC16_ADC_DATA_AIN1);
+> +SMM665_ATTR(in10, lcrit, SMM665_MISC16_ADC_DATA_AIN2);
+> +
+> +/* Input voltages crit */
+> +SMM665_ATTR(in1, crit, SMM665_MISC16_ADC_DATA_12V);
+> +SMM665_ATTR(in2, crit, SMM665_MISC16_ADC_DATA_VDD);
+> +SMM665_ATTR(in3, crit, SMM665_MISC16_ADC_DATA_A);
+> +SMM665_ATTR(in4, crit, SMM665_MISC16_ADC_DATA_B);
+> +SMM665_ATTR(in5, crit, SMM665_MISC16_ADC_DATA_C);
+> +SMM665_ATTR(in6, crit, SMM665_MISC16_ADC_DATA_D);
+> +SMM665_ATTR(in7, crit, SMM665_MISC16_ADC_DATA_E);
+> +SMM665_ATTR(in8, crit, SMM665_MISC16_ADC_DATA_F);
+> +SMM665_ATTR(in9, crit, SMM665_MISC16_ADC_DATA_AIN1);
+> +SMM665_ATTR(in10, crit, SMM665_MISC16_ADC_DATA_AIN2);
+> +
+> +/* Faults */
+> +SMM665_ATTR(in1, fault, SMM665_FAULT_12V);
+> +SMM665_ATTR(in2, fault, SMM665_FAULT_VDD);
+> +SMM665_ATTR(in3, fault, SMM665_FAULT_A);
+> +SMM665_ATTR(in4, fault, SMM665_FAULT_B);
+> +SMM665_ATTR(in5, fault, SMM665_FAULT_C);
+> +SMM665_ATTR(in6, fault, SMM665_FAULT_D);
+> +SMM665_ATTR(in7, fault, SMM665_FAULT_E);
+> +SMM665_ATTR(in8, fault, SMM665_FAULT_F);
+> +SMM665_ATTR(in9, fault, SMM665_FAULT_AIN1);
+> +SMM665_ATTR(in10, fault, SMM665_FAULT_AIN2);
+> +
+> +/* Temperature */
+> +SMM665_ATTR(temp1, input, SMM665_MISC16_ADC_DATA_INT_TEMP);
+> +SMM665_ATTR(temp1, min, SMM665_MISC16_ADC_DATA_INT_TEMP);
+> +SMM665_ATTR(temp1, max, SMM665_MISC16_ADC_DATA_INT_TEMP);
+> +SMM665_ATTR(temp1, lcrit, SMM665_MISC16_ADC_DATA_INT_TEMP);
+> +SMM665_ATTR(temp1, crit, SMM665_MISC16_ADC_DATA_INT_TEMP);
+> +SMM665_ATTR(temp1, fault, SMM665_FAULT_TEMP);
+> +
+> +/*
+> + * Finally, construct an array of pointers to members of the above objects,
+> + * as required for sysfs_create_group()
+> + */
+> +static struct attribute *smm665_attributes[] = {
+> +       &sensor_dev_attr_in1_input.dev_attr.attr,
+> +       &sensor_dev_attr_in1_min.dev_attr.attr,
+> +       &sensor_dev_attr_in1_max.dev_attr.attr,
+> +       &sensor_dev_attr_in1_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in1_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in1_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in2_input.dev_attr.attr,
+> +       &sensor_dev_attr_in2_min.dev_attr.attr,
+> +       &sensor_dev_attr_in2_max.dev_attr.attr,
+> +       &sensor_dev_attr_in2_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in2_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in2_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in3_input.dev_attr.attr,
+> +       &sensor_dev_attr_in3_min.dev_attr.attr,
+> +       &sensor_dev_attr_in3_max.dev_attr.attr,
+> +       &sensor_dev_attr_in3_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in3_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in3_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in4_input.dev_attr.attr,
+> +       &sensor_dev_attr_in4_min.dev_attr.attr,
+> +       &sensor_dev_attr_in4_max.dev_attr.attr,
+> +       &sensor_dev_attr_in4_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in4_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in4_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in5_input.dev_attr.attr,
+> +       &sensor_dev_attr_in5_min.dev_attr.attr,
+> +       &sensor_dev_attr_in5_max.dev_attr.attr,
+> +       &sensor_dev_attr_in5_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in5_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in5_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in6_input.dev_attr.attr,
+> +       &sensor_dev_attr_in6_min.dev_attr.attr,
+> +       &sensor_dev_attr_in6_max.dev_attr.attr,
+> +       &sensor_dev_attr_in6_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in6_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in6_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in7_input.dev_attr.attr,
+> +       &sensor_dev_attr_in7_min.dev_attr.attr,
+> +       &sensor_dev_attr_in7_max.dev_attr.attr,
+> +       &sensor_dev_attr_in7_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in7_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in7_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in8_input.dev_attr.attr,
+> +       &sensor_dev_attr_in8_min.dev_attr.attr,
+> +       &sensor_dev_attr_in8_max.dev_attr.attr,
+> +       &sensor_dev_attr_in8_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in8_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in8_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in9_input.dev_attr.attr,
+> +       &sensor_dev_attr_in9_min.dev_attr.attr,
+> +       &sensor_dev_attr_in9_max.dev_attr.attr,
+> +       &sensor_dev_attr_in9_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in9_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in9_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_in10_input.dev_attr.attr,
+> +       &sensor_dev_attr_in10_min.dev_attr.attr,
+> +       &sensor_dev_attr_in10_max.dev_attr.attr,
+> +       &sensor_dev_attr_in10_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_in10_crit.dev_attr.attr,
+> +       &sensor_dev_attr_in10_fault.dev_attr.attr,
+> +
+> +       &sensor_dev_attr_temp1_input.dev_attr.attr,
+> +       &sensor_dev_attr_temp1_min.dev_attr.attr,
+> +       &sensor_dev_attr_temp1_max.dev_attr.attr,
+> +       &sensor_dev_attr_temp1_lcrit.dev_attr.attr,
+> +       &sensor_dev_attr_temp1_crit.dev_attr.attr,
+> +       &sensor_dev_attr_temp1_fault.dev_attr.attr,
+> +
+> +       NULL,
+> +};
+> +
+> +static const struct attribute_group smm665_group = {
+> +       .attrs = smm665_attributes,
+> +};
+> +
+> +static int smm665_probe(struct i2c_client *client,
+> +                       const struct i2c_device_id *id)
+> +{
+> +       struct i2c_adapter *adapter = client->adapter;
+> +       struct smm665_data *data;
+> +       int i, ret;
+> +
+> +       if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
+> +                                    | I2C_FUNC_SMBUS_WORD_DATA))
+> +               return -ENODEV;
+> +
+> +       if (i2c_smbus_read_byte_data(client, SMM665_ADOC_ENABLE) < 0)
+> +               return -ENODEV;
+> +
+> +       ret = -ENOMEM;
+> +       data = kzalloc(sizeof(*data), GFP_KERNEL);
+> +       if (!data)
+> +               goto out_return;
+> +
+> +       i2c_set_clientdata(client, data);
+> +       mutex_init(&data->update_lock);
+> +
+> +       data->type = id->driver_data;
+> +       data->cmdreg = i2c_new_dummy(adapter, (client->addr & ~SMM665_REGMASK)
+> +                                    | SMM665_CMDREG_BASE);
+> +       if (!data->cmdreg)
+> +               goto out_kfree;
+> +
+> +       switch (data->type) {
+> +       case smm465:
+> +       case smm665:
+> +               data->conversion_time = SMM665_ADC_WAIT_SMM665;
+> +               break;
+> +       case smm665c:
+> +       case smm764:
+> +       case smm766:
+> +               data->conversion_time = SMM665_ADC_WAIT_SMM766;
+> +               break;
+> +       }
+> +
+> +       ret = -ENODEV;
+> +       if (i2c_smbus_read_byte_data(data->cmdreg, SMM665_MISC8_CMD_STS) < 0)
+> +               goto out_unregister;
+> +
+> +       /*
+> +        * Read limits.
+> +        *
+> +        * Limit registers start with register SMM665_LIMIT_BASE.
+> +        * Each channel uses 8 registers, providing four limit values
+> +        * per channel. Each limit value requires two registers, with the
+> +        * high byte in the first register and the low byte in the second
+> +        * register. The first two limits are under limit values, followed
+> +        * by two over limit values.
+> +        *
+> +        * Limit register order matches the ADC register order, so we use
+> +        * ADC register defines throughout the code to index limit registers.
+> +        *
+> +        * We save the first retrieved value both as "critical" and "alarm"
+> +        * value. The second value overwrites either the critical or the
+> +        * alarm value, depending on its configuration. This ensures that both
+> +        * critical and alarm values are initialized, even if both registers are
+> +        * configured as critical or non-critical.
+> +        *
+> +        * Note: Critical values for voltage channels are saved, even though
+> +        * this information is currently not used by the driver. This is mostly
+> +        * for consistency, though it might eventually be useful if future APIs
+> +        * support reporting "critical" voltage values.
+> +        */
+> +       for (i = 0; i < SMM665_NUM_ADC; i++) {
+> +               int val;
+> +
+> +               val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8);
+> +               if (unlikely(val < 0))
+> +                       goto out_unregister;
+> +               data->critical_min_limit[i] = data->alarm_min_limit[i]
+> +                 = smm665_convert(val, i);
+> +               val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 2);
+> +               if (unlikely(val < 0))
+> +                       goto out_unregister;
+> +               if (smm665_is_critical(val))
+> +                       data->critical_min_limit[i] = smm665_convert(val, i);
+> +               else
+> +                       data->alarm_min_limit[i] = smm665_convert(val, i);
+> +               val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 4);
+> +               if (unlikely(val < 0))
+> +                       goto out_unregister;
+> +               data->critical_max_limit[i] = data->alarm_max_limit[i]
+> +                 = smm665_convert(val, i);
+> +               val = smm665_read16(client, SMM665_LIMIT_BASE + i * 8 + 6);
+> +               if (unlikely(val < 0))
+> +                       goto out_unregister;
+> +               if (smm665_is_critical(val))
+> +                       data->critical_max_limit[i] = smm665_convert(val, i);
+> +               else
+> +                       data->alarm_max_limit[i] = smm665_convert(val, i);
+> +       }
+> +
+> +       /* Register sysfs hooks */
+> +       ret = sysfs_create_group(&client->dev.kobj, &smm665_group);
+> +       if (ret)
+> +               goto out_unregister;
+> +
+> +       data->hwmon_dev = hwmon_device_register(&client->dev);
+> +       if (IS_ERR(data->hwmon_dev)) {
+> +               ret = PTR_ERR(data->hwmon_dev);
+> +               goto out_remove_group;
+> +       }
+> +
+> +       return 0;
+> +
+> +out_remove_group:
+> +       sysfs_remove_group(&client->dev.kobj, &smm665_group);
+> +out_unregister:
+> +       i2c_unregister_device(data->cmdreg);
+> +out_kfree:
+> +       kfree(data);
+> +out_return:
+> +       return ret;
+> +}
+> +
+> +static int smm665_remove(struct i2c_client *client)
+> +{
+> +       struct smm665_data *data = i2c_get_clientdata(client);
+> +
+> +       i2c_unregister_device(data->cmdreg);
+> +       hwmon_device_unregister(data->hwmon_dev);
+> +       sysfs_remove_group(&client->dev.kobj, &smm665_group);
+> +
+> +       kfree(data);
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct i2c_device_id smm665_id[] = {
+> +       {"smm465", smm465},
+> +       {"smm665", smm665},
+> +       {"smm665c", smm665c},
+> +       {"smm764", smm764},
+> +       {"smm766", smm766},
+> +       {}
+> +};
+> +
+> +MODULE_DEVICE_TABLE(i2c, smm665_id);
+> +
+> +/* This is the driver that will be inserted */
+> +static struct i2c_driver smm665_driver = {
+> +       .driver = {
+> +                  .name = "smm665",
+> +                  },
+> +       .probe = smm665_probe,
+> +       .remove = smm665_remove,
+> +       .id_table = smm665_id,
+> +};
+> +
+> +static int __init smm665_init(void)
+> +{
+> +       return i2c_add_driver(&smm665_driver);
+> +}
+> +
+> +static void __exit smm665_exit(void)
+> +{
+> +       i2c_del_driver(&smm665_driver);
+> +}
+> +
+> +MODULE_AUTHOR("Guenter Roeck");
+> +MODULE_DESCRIPTION("SMM665 driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +module_init(smm665_init);
+> +module_exit(smm665_exit);
+> --
+> 1.7.0.87.g0901d
+> 
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
