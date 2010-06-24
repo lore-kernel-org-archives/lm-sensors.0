@@ -1,43 +1,73 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 24 Jun 2010 22:00:57 +0000
-Subject: [lm-sensors] [PATCH v3 0/4] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 24 Jun 2010 08:20:59 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (it87) Fix in7 on IT8720F
+Message-Id: <20100624102059.31c73f86@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Randy Dunlap <rdunlap@xenotime.net>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: lm-sensors@vger.kernel.org
 
-This patchset adds support for the monitoring features of the Summit
-Microelectronics SMM665 Six-Channel Active DC Output Controller/Monitor.
+The IT8720F has no VIN7 pin, so VCCH should always be routed
+internally to VIN7 with an internal divider. Curiously, there still
+is a configuration bit to control this, which means it can be set
+incorrectly. And even more curiously, many boards out there are
+improperly configured, even though the IT8720F datasheet claims that
+the internal routing of VCCH to VIN7 is the default setting. So we
+force the internal routing in this case.
 
-------
+It turns out that all boards with the wrong setting are from Gigabyte,
+so I suspect a BIOS bug. But it's easy enough to workaround in the
+driver, so let's do it.
 
-v2 changes:
-- Added (untested) support for SMM465, SMM764, and SMM766.
-- Added vref module parameter to support non-default values of VREF_ADC.
-- Added an explanation describing what the chip does with _min and _max limit
-  values.
-- Removed alarm sysfs files (since the chip does not report alarm status in a
-  register, alarm detection was implemented by comparing limits with ADC readings,
-  which can as well be done in userland).
-- Replaced register enums with defines.
-- Made limit variable names better readable.
-- Removed retries from smm665_read_adc().
-- Check error reply from i2c_smbus_read_byte_data() and only accept ENXIO
-  when expecting NACK.
-- Explained reason for byte swap after reading ADC registers in some more detail.
-- Added debug messages to display the error reason when reading ADC registers
-  failed.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Jean-Marc Spaggiari <jean-marc@spaggiari.org>
+---
+ drivers/hwmon/it87.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-v3 changes:
-- Return error codes from smm665_read_adc().
-- Abort after first error in smm665_update_device() and return error code.
-- Return ADC read errors to user.
-- Added inX_lcrit and inX_crit attributes for min/max critical voltages.
-- Added tempX_lcrit attribute for critical low temperature.
-- Updated sysfs-interface to document support for new attributes.
+--- linux-2.6.35-rc3.orig/drivers/hwmon/it87.c	2010-06-22 12:43:43.000000000 +0200
++++ linux-2.6.35-rc3/drivers/hwmon/it87.c	2010-06-23 11:50:57.000000000 +0200
+@@ -80,6 +80,13 @@ superio_inb(int reg)
+ 	return inb(VAL);
+ }
+ 
++static inline void
++superio_outb(int reg, int val)
++{
++	outb(reg, REG);
++	outb(val, VAL);
++}
++
+ static int superio_inw(int reg)
+ {
+ 	int val;
+@@ -1517,6 +1524,21 @@ static int __init it87_find(unsigned sho
+ 			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
+ 
+ 		reg = superio_inb(IT87_SIO_PINX2_REG);
++		/*
++		 * The IT8720F has no VIN7 pin, so VCCH should always be
++		 * routed internally to VIN7 with an internal divider.
++		 * Curiously, there still is a configuration bit to control
++		 * this, which means it can be set incorrectly. And even
++		 * more curiously, many boards out there are improperly
++		 * configured, even though the IT8720F datasheet claims
++		 * that the internal routing of VCCH to VIN7 is the default
++		 * setting. So we force the internal routing in this case.
++		 */
++		if (sio_data->type = it8720 && !(reg & (1 << 1))) {
++			reg |= (1 << 1);
++			superio_outb(IT87_SIO_PINX2_REG, reg);
++			pr_notice("it87: Routing internal VCCH to in7\n");
++		}
+ 		if (reg & (1 << 0))
+ 			pr_info("it87: in3 is VCC (+5V)\n");
+ 		if (reg & (1 << 1))
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
