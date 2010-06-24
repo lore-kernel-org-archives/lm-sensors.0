@@ -1,66 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Jun 2010 09:30:31 +0000
-Subject: Re: [lm-sensors] [PATCH] Add detection of SMSC EMC2103 to
-Message-Id: <20100607113031.74df4327@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 24 Jun 2010 22:01:00 +0000
+Subject: [lm-sensors] [PATCH v3 3/4] hwmon: Update sysfs-interface to
+Message-Id: <1277416861-32494-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100604093342.79e576c0@hyperion.delvare>
-In-Reply-To: <20100604093342.79e576c0@hyperion.delvare>
+References: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Hi Steve,
+Added _lcrit and _crit to voltage attributes. 
+Added _lcrit to temperature attributes.
 
-On Sun,  6 Jun 2010 18:32:12 +0100, Steve Glendinning wrote:
-> This patch allows the sensors-detect script to detect the SMSC
-> EMC2103 family of temperature sensors and fan controllers.
-> 
-> Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
-> ---
->  prog/detect/sensors-detect |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
-> 
-> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> index e7f5ab2..9ffaf98 100755
-> --- a/prog/detect/sensors-detect
-> +++ b/prog/detect/sensors-detect
-> @@ -1130,6 +1130,11 @@ use vars qw(@i2c_adapter_names);
->  		i2c_addrs => [0x2c..0x2e],
->  		i2c_detect => sub { dme1737_detect(@_, 2); },
->  	}, {
-> +		name => "SMSC EMC2103",
-> +		driver => "emc2103",
-> +		i2c_addrs => [0x2e],
-> +		i2c_detect => sub { emc1403_detect(@_, 2); },
-> +	}, {
->  		name => "Fintek F75121R/F75122R/RG (VID+GPIO)",
->  		driver => "to-be-written",
->  		i2c_addrs => [0x4e], # 0x37 not probed
-> @@ -5143,7 +5148,7 @@ sub fintek_detect
->  	return 7;
->  }
->  
-> -# Chip to detect: 0 = EMC1403, 1 = EMC1404
-> +# Chip to detect: 0 = EMC1403, 1 = EMC1404, 2 = EMC2103
->  # Registers used:
->  #   0xfd: Device ID register
->  #   0xfe: Vendor ID register
-> @@ -5163,6 +5168,9 @@ sub emc1403_detect
->  	} elsif ($chip = 1) {
->  		return unless $dev_id = 0x25;
->  		return unless $rev = 0x01;
-> +	} elsif ($chip = 2) {
-> +		return unless ($dev_id = 0x24) || ($dev_id = 0x26);
-> +		return unless $rev = 0x01;
->  	}
->  
->  	return 6;
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/sysfs-interface |   21 ++++++++++++++++++++-
+ 1 files changed, 20 insertions(+), 1 deletions(-)
 
-Patch applied, thanks.
-
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index d4e2917..7f60c0d 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -107,10 +107,24 @@ in[0-*]_min	Voltage min value.
+ 		Unit: millivolt
+ 		RW
+ 		
++in[0-*]_lcrit	Voltage critical min value.
++		Unit: millivolt
++		RW
++		If voltage drops to or below this limit, the system may
++		take drastic action such as power down or reset. At the very
++		least, it should report a fault.
++
+ in[0-*]_max	Voltage max value.
+ 		Unit: millivolt
+ 		RW
+ 		
++in[0-*]_crit	Voltage critical max value.
++		Unit: millivolt
++		RW
++		If voltage reaches or exceeds this limit, the system may
++		take drastic action such as power down or reset. At the very
++		least, it should report a fault.
++
+ in[0-*]_input	Voltage input value.
+ 		Unit: millivolt
+ 		RO
+@@ -284,11 +298,16 @@ temp[1-*]_input Temperature input value.
+ 		Unit: millidegree Celsius
+ 		RO
+ 
+-temp[1-*]_crit	Temperature critical value, typically greater than
++temp[1-*]_crit	Temperature critical max value, typically greater than
+ 		corresponding temp_max values.
+ 		Unit: millidegree Celsius
+ 		RW
+ 
++temp[1-*]_lcrit	Temperature critical min value, typically lower than
++		corresponding temp_min values.
++		Unit: millidegree Celsius
++		RW
++
+ temp[1-*]_crit_hyst
+ 		Temperature hysteresis value for critical limit.
+ 		Unit: millidegree Celsius
 -- 
-Jean Delvare
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
