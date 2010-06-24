@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 24 Jun 2010 06:40:06 +0000
+Date: Thu, 24 Jun 2010 07:18:20 +0000
 Subject: Re: [lm-sensors] sensors.conf for DFI LP MI P55-T36 (it8720-*)
-Message-Id: <20100624084006.7fce8a0b@hyperion.delvare>
+Message-Id: <20100624091820.6f4025f7@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100606154919.4066.qmail@mailserver01.ottosenfx.dk>
 In-Reply-To: <20100606154919.4066.qmail@mailserver01.ottosenfx.dk>
@@ -12,57 +12,39 @@ To: lm-sensors@vger.kernel.org
 
 Hi Lars,
 
-On 23 Jun 2010 20:47:14 -0000, Lars Kr.Lundin wrote:
-> On Wed, Jun 23, 2010 at 10:31:39PM +0200, Jean Delvare wrote:
+On Thu, 24 Jun 2010 08:40:06 +0200, Jean Delvare wrote:
+> I was specifically interested in the value of register 0x1f. the lower
+> 2 bits control internal routing and scaling of in3 and in7. The IT8720F
+> datasheet documents the default value of this register as 0x03, but
+> many boards I've see had value 0x01, which isn't correct because in7
+> should _always_ be routed internally (the chip has no physical pin for
+> in7!).
 > 
-> > try instead:
-> >
-> > # isadump -y -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
-> >
-> > Thanks,
-> > --
-> > Jean Delvare
+> The bottom line is that your chip is properly configured and won't be
+> affected by the fix I'm working on.
 > 
-> $ sudo isadump -y -k 0x87,0x01,0x55,0x55 0x2e 0x2f 7
->      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00: 00 00 00 00 00 00 00 07 00 00 00 00 00 00 00 00 
-> 10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 20: 87 20 08 00 00 01 fe 30 43 10 00 00 1f 00 00 00 
-> 30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 60: 00 00 0a 20 0a 30 00 00 00 00 00 00 00 00 00 00 
-> 70: 00 00 00 00 00 04 00 00 00 00 00 00 00 00 00 00 
-> 80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> b0: 00 00 00 00 00 00 00 00 20 00 70 30 00 00 00 00 
-> c0: 01 42 30 01 00 00 00 00 01 42 30 01 00 00 00 00 
-> d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-> e0: 00 00 00 00 00 00 00 00 00 03 03 03 00 3e 3e 0c 
-> f0: 00 00 00 00 00 00 40 00 00 00 00 00 cf 00 00 00 
+> Also note that you could improve your configuration file by adding the
+> following:
 > 
-> (I have to wonder what one can learn from the above :-)
+>    label  in3  "+5V"
+>    label  in7  "5VSB"
+>    compute  in3  @ * (6.8/10+1), @ / (6.8/10+1)
+>    compute  in7  @ * (6.8/10+1), @ / (6.8/10+1)
 
-I was specifically interested in the value of register 0x1f. the lower
-2 bits control internal routing and scaling of in3 and in7. The IT8720F
-datasheet documents the default value of this register as 0x03, but
-many boards I've see had value 0x01, which isn't correct because in7
-should _always_ be routed internally (the chip has no physical pin for
-in7!).
+Oh, and while we're here, in4 is +12V. This is confirmed by this
+snapshot I've found:
+http://img19.imageshack.us/img19/6122/dmip55os2.png
 
-The bottom line is that your chip is properly configured and won't be
-affected by the fix I'm working on.
+The only missing thing is the scaling factor. Apparently it's not the
+standard one, otherwise it would read between +10.48 V and +11.32 V on
+your system, which is definitely too low.
 
-Also note that you could improve your configuration file by adding the
-following:
+Is +12V really not displayed in the hardware monitoring section of your
+BIOS? This is very surprising.
 
-   label  in3  "+5V"
-   label  in7  "5VSB"
-   compute  in3  @ * (6.8/10+1), @ / (6.8/10+1)
-   compute  in7  @ * (6.8/10+1), @ / (6.8/10+1)
+I suppose you don't have Windows running on your machine for comparison
+with the DFI software?
 
-Thanks,
 -- 
 Jean Delvare
 
