@@ -1,80 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 28 Jun 2010 06:17:47 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Properly label the
-Message-Id: <20100628081747.6f79da46@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 24 Jun 2010 22:01:01 +0000
+Subject: [lm-sensors] [PATCH v3 4/4] hwmon: Update MAINTAINERS for smm665
+Message-Id: <1277416861-32494-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100627133601.3644b03a@hyperion.delvare>
-In-Reply-To: <20100627133601.3644b03a@hyperion.delvare>
+References: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277416861-32494-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Randy Dunlap <rdunlap@xenotime.net>, Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Hi Huaxu,
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ MAINTAINERS |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-On Mon, 28 Jun 2010 13:56:25 +0800, Wan, Huaxu wrote:
-> Good pathes. Thank you, Jean. 
-> 
-> Please feel free to add the line Acked-by: Huaxu Wan <huaxu.wan@intel.com>
-
-Great, thanks for the review.
-
-> BTW, I'm not sure whether I should forward these patches to Andrew
-> Morton or you submit them again to LKML, because hwmon has no maintainer
-> at present.
-
-I have my own hwmon tree, so I'll push the patches to Linus myself.
-
-> >-----Original Message-----
-> >From: Jean Delvare [mailto:khali@linux-fr.org] 
-> >Sent: Sunday, June 27, 2010 7:36 PM
-> >To: LM Sensors
-> >Cc: Wan, Huaxu
-> >Subject: [PATCH 2/2] hwmon: (coretemp) Properly label the sensors
-> >
-> >Don't assume that CPU entry number and core ID always match. It
-> >worked in the simple cases (single CPU, no HT) but fails on
-> >multi-CPU systems.
-> >
-> >Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> >Cc: Huaxu Wan <huaxu.wan@intel.com>
-> >---
-> > drivers/hwmon/coretemp.c |    4 +++-
-> > 1 file changed, 3 insertions(+), 1 deletion(-)
-> >
-> >--- linux-2.6.35-rc3.orig/drivers/hwmon/coretemp.c	
-> >2010-06-27 10:14:51.000000000 +0200
-> >+++ linux-2.6.35-rc3/drivers/hwmon/coretemp.c	2010-06-27 
-> >10:19:19.000000000 +0200
-> >@@ -53,6 +53,7 @@ struct coretemp_data {
-> > 	struct mutex update_lock;
-> > 	const char *name;
-> > 	u32 id;
-> >+	u16 core_id;
-> > 	char valid;		/* zero until following fields 
-> >are valid */
-> > 	unsigned long last_updated;	/* in jiffies */
-> > 	int temp;
-> >@@ -75,7 +76,7 @@ static ssize_t show_name(struct device *
-> > 	if (attr->index = SHOW_NAME)
-> > 		ret = sprintf(buf, "%s\n", data->name);
-> > 	else	/* show label */
-> >-		ret = sprintf(buf, "Core %d\n", data->id);
-> >+		ret = sprintf(buf, "Core %d\n", data->core_id);
-> > 	return ret;
-> > }
-> > 
-> >@@ -304,6 +305,7 @@ static int __devinit coretemp_probe(stru
-> > 	}
-> > 
-> > 	data->id = pdev->id;
-> >+	data->core_id = c->cpu_core_id;
-> > 	data->name = "coretemp";
-> > 	mutex_init(&data->update_lock);
-> > 
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 6d119c9..2e8334d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5205,6 +5205,13 @@ M:	Nicolas Pitre <nico@fluxnic.net>
+ S:	Odd Fixes
+ F:	drivers/net/smc91x.*
+ 
++SMM665 HARDWARE MONITOR DRIVER
++M:	"Guenter Roeck" <linux@roeck-us.net>
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++F:	Documentation/hwmon/smm665
++F:	drivers/hwmon/smm665.c
++
+ SMSC47B397 HARDWARE MONITOR DRIVER
+ M:	"Mark M. Hoffman" <mhoffman@lightlink.com>
+ L:	lm-sensors@lm-sensors.org
 -- 
-Jean Delvare
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
