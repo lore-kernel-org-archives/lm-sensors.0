@@ -1,25 +1,28 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 20 Jun 2010 19:19:34 +0000
+Date: Fri, 25 Jun 2010 14:40:31 +0000
 Subject: [lm-sensors] [PATCH v2 2/3] hwmon: SMM665 driver documentation
-Message-Id: <1277061575-13831-3-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1277476832-28480-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- Documentation/hwmon/smm665 |  126 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 126 insertions(+), 0 deletions(-)
+ Documentation/hwmon/smm665 |  151 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 151 insertions(+), 0 deletions(-)
  create mode 100644 Documentation/hwmon/smm665
 
 diff --git a/Documentation/hwmon/smm665 b/Documentation/hwmon/smm665
 new file mode 100644
-index 0000000..30273a6
+index 0000000..8c08f63
 --- /dev/null
 +++ b/Documentation/hwmon/smm665
-@@ -0,0 +1,126 @@
+@@ -0,0 +1,151 @@
 +Kernel driver smm665
 +==========
 +
@@ -92,9 +95,11 @@ index 0000000..30273a6
 +into the values specified in the sysfs-interface document. All attributes are
 +read only.
 +
-+Min and max values are used by the chip to trigger external signals and/or other
-+activity. Triggered signals can include HEALTHY, RST, Power Off, or Fault depending
-+on the chip configuration. For details please see the SMM665 datasheet.
++Min, max, lcrit, and crit values are used by the chip to trigger external signals
++and/or other activity. Triggered signals can include HEALTHY, RST, Power Off,
++or Fault depending on the chip configuration. The driver reports values as lcrit
++or crit if exceeding the limits triggers RST, Power Off, or Fault, and as min or
++max otherwise. For details please see the SMM665 datasheet.
 +
 +For SMM465 and SMM764, values for Channel E and F are reported but undefined.
 +
@@ -131,6 +136,28 @@ index 0000000..30273a6
 +in9_max			AIN1 maximum voltage (mV)
 +in10_max		AIN2 maximum voltage (mV)
 +
++in1_lcrit		12v input critical minimum voltage (mV)
++in2_lcrit		3.3V (VDD) input critical minimum voltage (mV)
++in3_lcrit		Channel A critical minimum voltage (mV)
++in4_lcrit		Channel B critical minimum voltage (mV)
++in5_lcrit		Channel C critical minimum voltage (mV)
++in6_lcrit		Channel D critical minimum voltage (mV)
++in7_lcrit		Channel E critical minimum voltage (mV)
++in8_lcrit		Channel F critical minimum voltage (mV)
++in9_lcrit		AIN1 critical minimum voltage (mV)
++in10_lcrit		AIN2 critical minimum voltage (mV)
++
++in1_crit		12v input critical maximum voltage (mV)
++in2_crit		3.3V (VDD) input critical maximum voltage (mV)
++in3_crit		Channel A critical maximum voltage (mV)
++in4_crit		Channel B critical maximum voltage (mV)
++in5_crit		Channel C critical maximum voltage (mV)
++in6_crit		Channel D critical maximum voltage (mV)
++in7_crit		Channel E critical maximum voltage (mV)
++in8_crit		Channel F critical maximum voltage (mV)
++in9_crit		AIN1 critical maximum voltage (mV)
++in10_crit		AIN2 critical maximum voltage (mV)
++
 +in1_fault		12v input fault
 +in2_fault		3.3V (VDD) input fault
 +in3_fault		Channel A fault
@@ -146,6 +173,7 @@ index 0000000..30273a6
 +temp1_min		Mimimum chip tempererature
 +temp1_max		Maximum chip tempererature
 +temp1_crit		Critical chip tempererature
++temp1_fault		Temperature fault
 -- 
 1.7.0.87.g0901d
 
