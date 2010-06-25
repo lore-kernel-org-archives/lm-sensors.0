@@ -1,89 +1,185 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 30 Jun 2010 11:20:21 +0000
-Subject: Re: [lm-sensors] config for Gigabyte P55-US3L
-Message-Id: <20100630132021.5d6ff989@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 25 Jun 2010 17:49:11 +0000
+Subject: [lm-sensors] [PATCH v5 2/3] hwmon: SMM665 driver documentation
+Message-Id: <1277488152-21073-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.2.00.1006301403230.25622@localhost.localdomain>
-In-Reply-To: <alpine.DEB.2.00.1006301403230.25622@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Yuri,
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/smm665 |  157 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 157 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/smm665
 
-On Wed, 30 Jun 2010 14:04:58 +0400 (MSD), yuri.nefedov@gmail.com wrote:
-> 
->   Unfortunately wiki page (http://www.lm-sensors.org/wiki/Configurations)
->   is not working  (requires authorization).
-
-It is working. There's no rule stating that all wikis in the world have
-to be publicly writable.
-
-Actually we would love to make it writable again, if it didn't result
-in a huge amount of spam we have no time to deal with.
-
->   So I send the configuration in the attachment.
-> 
->   I used the following modules:
-> # Chip drivers
-> it87
-> coretemp
-> 
->   The output of sensors is:
-> it8720-isa-0290
-> Adapter: ISA adapter
-> VCore1:      +0.85 V  (min =  +0.66 V, max =  +1.39 V)
-> DDR15V:      +1.58 V  (min =  +1.39 V, max =  +1.60 V)
-> +3.3V:       +3.34 V  (min =  +3.14 V, max =  +3.47 V)
-> +5V:         +4.97 V  (min =  +4.76 V, max =  +5.24 V)
-> in4:         +0.00 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
-> +12V:       +11.92 V  (min = +11.37 V, max = +12.59 V)
-> in6:         +0.00 V  (min =  +0.00 V, max =  +4.08 V)   ALARM
-> -12V:       -12.01 V  (min = -10.84 V, max = -13.17 V)
-
-This one is wrong. in7 is 5VSB on all IT8720F chips, because it's
-internal. So you want:
-
-   label in7 "5VSB"
-   compute  in7  @ * (6.8/10+1), @ / (6.8/10+1)
-
-If the value isn't correct for you, then you probably need the
-following patch of mine:
-ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-it87-fix-in7-on-IT8720F.patch
-
-According to my notes, all Gigabyte boards need it (BIOS bug.)
-
-> VBat:        +3.25 V
-> CPU Fan:    1285 RPM  (min = 1000 RPM)
-> Case Fan:    928 RPM  (min =    0 RPM)
-> PCH Temp:    +32.0C  (low  = +127.0C, high = +50.0C)  sensor = thermistor
-> CPU Temp:    +24.0C  (low  = +127.0C, high = +70.0C)  sensor = thermistor
-> cpu0_vid:   +0.313 V
-> 
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:      +31.0C  (high = +84.0C, crit = +100.0C)
-> 
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> Core 1:      +27.0C  (high = +84.0C, crit = +100.0C)
-> 
-> coretemp-isa-0002
-> Adapter: ISA adapter
-> Core 2:      +37.0C  (high = +84.0C, crit = +100.0C)
-> 
-> coretemp-isa-0003
-> Adapter: ISA adapter
-> Core 3:      +27.0C  (high = +84.0C, crit = +100.0C)
-> 
->   Thank you for your wonderful program.
-
-You're welcome :)
-
+diff --git a/Documentation/hwmon/smm665 b/Documentation/hwmon/smm665
+new file mode 100644
+index 0000000..358ecc0
+--- /dev/null
++++ b/Documentation/hwmon/smm665
+@@ -0,0 +1,157 @@
++Kernel driver smm665
++==========
++
++Supported chips:
++  * Summit Microelectronics SMM465
++    Prefix: 'smm465'
++    Addresses scanned: -
++    Datasheet:
++      http://www.summitmicro.com/prod_select/summary/SMM465/SMM465DS.pdf
++  * Summit Microelectronics SMM665, SMM665B
++    Prefix: 'smm665'
++    Addresses scanned: -
++    Datasheet:
++      http://www.summitmicro.com/prod_select/summary/SMM665/SMM665B_2089_20.pdf
++  * Summit Microelectronics SMM665C
++    Prefix: 'smm665c'
++    Addresses scanned: -
++    Datasheet:
++      http://www.summitmicro.com/prod_select/summary/SMM665C/SMM665C_2125.pdf
++  * Summit Microelectronics SMM764
++    Prefix: 'smm764'
++    Addresses scanned: -
++    Datasheet:
++      http://www.summitmicro.com/prod_select/summary/SMM764/SMM764_2098.pdf
++  * Summit Microelectronics SMM766, SMM766B
++    Prefix: 'smm766'
++    Addresses scanned: -
++    Datasheets:
++      http://www.summitmicro.com/prod_select/summary/SMM766/SMM766_2086.pdf
++      http://www.summitmicro.com/prod_select/summary/SMM766B/SMM766B_2122.pdf
++
++Author: Guenter Roeck <guenter.roeck@ericsson.com>
++
++
++Module Parameters
++-----------------
++
++* vref: int
++  Default: 1250 (mV)
++  Reference voltage on VREF_ADC pin in mV. It should not be necessary to set
++  this parameter unless a non-default reference voltage is used.
++
++
++Description
++-----------
++
++[From datasheet] The SMM665 is an Active DC Output power supply Controller
++that monitors, margins and cascade sequences power. The part monitors six
++power supply channels as well as VDD, 12V input, two general-purpose analog
++inputs and an internal temperature sensor using a 10-bit ADC.
++
++Each monitored channel has its own high and low limits, plus a critical
++limit.
++
++Support for SMM465, SMM764, and SMM766 has been implemented but is untested.
++
++
++Usage Notes
++-----------
++
++This driver does not probe for devices, since there is no register which
++can be safely used to identify the chip. You will have to instantiate
++the devices explicitly. When instantiating the device, you have to specify
++its configuration register address.
++
++Example: the following will load the driver for an SMM665 at address 0x57
++on I2C bus #1:
++$ modprobe smm665
++$ echo smm665 0x57 > /sys/bus/i2c/devices/i2c-1/new_device
++
++
++Sysfs entries
++-------------
++
++This driver uses the values in the datasheet to convert ADC register values
++into the values specified in the sysfs-interface document. All attributes are
++read only.
++
++Min, max, lcrit, and crit values are used by the chip to trigger external signals
++and/or other activity. Triggered signals can include HEALTHY, RST, Power Off,
++or Fault depending on the chip configuration. The driver reports values as lcrit
++or crit if exceeding the limits triggers RST, Power Off, or Fault, and as min or
++max otherwise. For details please see the SMM665 datasheet.
++
++For SMM465 and SMM764, values for Channel E and F are reported but undefined.
++
++in1_input		12V input voltage (mV)
++in2_input		3.3V (VDD) input voltage (mV)
++in3_input		Channel A voltage (mV)
++in4_input		Channel B voltage (mV)
++in5_input		Channel C voltage (mV)
++in6_input		Channel D voltage (mV)
++in7_input		Channel E voltage (mV)
++in8_input		Channel F voltage (mV)
++in9_input		AIN1 voltage (mV)
++in10_input		AIN2 voltage (mV)
++
++in1_min			12v input minimum voltage (mV)
++in2_min			3.3V (VDD) input minimum voltage (mV)
++in3_min			Channel A minimum voltage (mV)
++in4_min			Channel B minimum voltage (mV)
++in5_min			Channel C minimum voltage (mV)
++in6_min			Channel D minimum voltage (mV)
++in7_min			Channel E minimum voltage (mV)
++in8_min			Channel F minimum voltage (mV)
++in9_min			AIN1 minimum voltage (mV)
++in10_min		AIN2 minimum voltage (mV)
++
++in1_max			12v input maximum voltage (mV)
++in2_max			3.3V (VDD) input maximum voltage (mV)
++in3_max			Channel A maximum voltage (mV)
++in4_max			Channel B maximum voltage (mV)
++in5_max			Channel C maximum voltage (mV)
++in6_max			Channel D maximum voltage (mV)
++in7_max			Channel E maximum voltage (mV)
++in8_max			Channel F maximum voltage (mV)
++in9_max			AIN1 maximum voltage (mV)
++in10_max		AIN2 maximum voltage (mV)
++
++in1_lcrit		12v input critical minimum voltage (mV)
++in2_lcrit		3.3V (VDD) input critical minimum voltage (mV)
++in3_lcrit		Channel A critical minimum voltage (mV)
++in4_lcrit		Channel B critical minimum voltage (mV)
++in5_lcrit		Channel C critical minimum voltage (mV)
++in6_lcrit		Channel D critical minimum voltage (mV)
++in7_lcrit		Channel E critical minimum voltage (mV)
++in8_lcrit		Channel F critical minimum voltage (mV)
++in9_lcrit		AIN1 critical minimum voltage (mV)
++in10_lcrit		AIN2 critical minimum voltage (mV)
++
++in1_crit		12v input critical maximum voltage (mV)
++in2_crit		3.3V (VDD) input critical maximum voltage (mV)
++in3_crit		Channel A critical maximum voltage (mV)
++in4_crit		Channel B critical maximum voltage (mV)
++in5_crit		Channel C critical maximum voltage (mV)
++in6_crit		Channel D critical maximum voltage (mV)
++in7_crit		Channel E critical maximum voltage (mV)
++in8_crit		Channel F critical maximum voltage (mV)
++in9_crit		AIN1 critical maximum voltage (mV)
++in10_crit		AIN2 critical maximum voltage (mV)
++
++in1_fault		12v input fault
++in2_fault		3.3V (VDD) input fault
++in3_fault		Channel A fault
++in4_fault		Channel B fault
++in5_fault		Channel C fault
++in6_fault		Channel D fault
++in7_fault		Channel E fault
++in8_fault		Channel F fault
++in9_fault		AIN1 fault
++in10_fault		AIN2 fault
++
++temp1_input		Chip tempererature
++temp1_min		Mimimum chip tempererature
++temp1_max		Maximum chip tempererature
++temp1_crit		Critical chip tempererature
++temp1_fault		Temperature fault
 -- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
