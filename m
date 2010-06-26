@@ -1,25 +1,26 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Jun 2010 14:40:30 +0000
-Subject: [lm-sensors] [PATCH v4 1/3] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <1277476832-28480-2-git-send-email-guenter.roeck@ericsson.com>
+Date: Sat, 26 Jun 2010 18:17:51 +0000
+Subject: [lm-sensors] [PATCH v5 1/3] hwmon: Driver for SMM665 Six-Channel
+Message-Id: <1277576273-14153-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com>
+References: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
 This driver adds support for the monitoring features of the Summit
 Microelectronics SMM665 Six-Channel Active DC Output Controller/Monitor.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 ---
  drivers/hwmon/Kconfig  |   15 +
  drivers/hwmon/Makefile |    1 +
- drivers/hwmon/smm665.c |  748 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 764 insertions(+), 0 deletions(-)
+ drivers/hwmon/smm665.c |  743 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 759 insertions(+), 0 deletions(-)
  create mode 100644 drivers/hwmon/smm665.c
 
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
@@ -62,10 +63,10 @@ index 2138ceb..55b0940 100644
  obj-$(CONFIG_SENSORS_SMSC47M192)+= smsc47m192.o
 diff --git a/drivers/hwmon/smm665.c b/drivers/hwmon/smm665.c
 new file mode 100644
-index 0000000..760afba
+index 0000000..fa0900c
 --- /dev/null
 +++ b/drivers/hwmon/smm665.c
-@@ -0,0 +1,748 @@
+@@ -0,0 +1,743 @@
 +/*
 + * Driver for SMM665 Power Controller / Monitor
 + *
@@ -706,11 +707,6 @@ index 0000000..760afba
 +	 * alarm value, depending on its configuration. This ensures that both
 +	 * critical and alarm values are initialized, even if both registers are
 +	 * configured as critical or non-critical.
-+	 *
-+	 * Note: Critical values for voltage channels are saved, even though
-+	 * this information is currently not used by the driver. This is mostly
-+	 * for consistency, though it might eventually be useful if future APIs
-+	 * support reporting "critical" voltage values.
 +	 */
 +	for (i = 0; i < SMM665_NUM_ADC; i++) {
 +		int val;
