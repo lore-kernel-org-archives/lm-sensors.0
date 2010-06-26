@@ -1,15 +1,21 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Jun 2010 17:49:09 +0000
+Date: Sat, 26 Jun 2010 18:17:50 +0000
 Subject: [lm-sensors] [PATCH v5 0/3] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <1277488152-21073-1-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1277488152-21073-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277488152-21073-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
 This patchset adds support for the monitoring features of the Summit
 Microelectronics SMM665 Six-Channel Active DC Output Controller/Monitor.
+
+Resend: Looks like copies to the mailing lists got lost the first time around.
+My apologies if you recveive this twice.
 
 ------
 
