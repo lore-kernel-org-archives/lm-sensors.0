@@ -1,14 +1,18 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Jun 2010 17:49:11 +0000
+Date: Sat, 26 Jun 2010 18:17:52 +0000
 Subject: [lm-sensors] [PATCH v5 2/3] hwmon: SMM665 driver documentation
-Message-Id: <1277488152-21073-3-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1277576273-14153-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 ---
  Documentation/hwmon/smm665 |  157 ++++++++++++++++++++++++++++++++++++++++++++
  1 files changed, 157 insertions(+), 0 deletions(-)
