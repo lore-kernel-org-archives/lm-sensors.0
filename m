@@ -1,12 +1,15 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Jun 2010 17:49:12 +0000
+Date: Sat, 26 Jun 2010 18:17:53 +0000
 Subject: [lm-sensors] [PATCH v5 3/3] hwmon: Update MAINTAINERS for smm665
-Message-Id: <1277488152-21073-4-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1277576273-14153-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
