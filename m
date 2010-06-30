@@ -1,14 +1,14 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Jun 2010 14:40:32 +0000
-Subject: [lm-sensors] [PATCH v4 3/3] hwmon: Update MAINTAINERS for smm665
-Message-Id: <1277476832-28480-4-git-send-email-guenter.roeck@ericsson.com>
+Date: Wed, 30 Jun 2010 15:50:44 +0000
+Subject: [lm-sensors] [PATCH v6 3/3] hwmon: Update MAINTAINERS for smm665
+Message-Id: <1277913044-28322-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277476832-28480-1-git-send-email-guenter.roeck@ericsson.com>
+References: <1277913044-28322-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1277913044-28322-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
