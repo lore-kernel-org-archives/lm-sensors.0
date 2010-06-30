@@ -1,60 +1,73 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 26 Jun 2010 06:52:38 +0000
-Subject: Re: [lm-sensors] [PATCH/RFC 3/3] hwmon: Update current alarm
-Message-Id: <20100626085238.603933d0@hyperion.delvare>
+From: Ethan Lawrence <e.law87@yahoo.com>
+Date: Wed, 30 Jun 2010 14:19:29 +0000
+Subject: [lm-sensors] Nuvoton W83667HG-B support request
+Message-Id: <295942.63235.qm@web120612.mail.ne1.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8101936699218164486=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277520011-29782-4-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277520011-29782-4-git-send-email-guenter.roeck@ericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+--===============8101936699218164486==
+Content-Type: multipart/alternative; boundary="0-743635677-1277907569=:63235"
 
-On Fri, 25 Jun 2010 19:40:11 -0700, Guenter Roeck wrote:
-> This patch adds currX_alarm, currX_min_alarm, and currX_max_alarm attributes
-> to the hwmon sysfs API.
-> 
-> currX_min_alarm and currX_max_alarm are already supported by the LTC4215 and
-> LTC4245 drivers. currX_alarm is supported by the LTC4261 driver.
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
->  Documentation/hwmon/sysfs-interface |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-> index d4e2917..520fa7a 100644
-> --- a/Documentation/hwmon/sysfs-interface
-> +++ b/Documentation/hwmon/sysfs-interface
-> @@ -471,6 +471,7 @@ limit-related alarms, not both. The driver should just reflect the hardware
->  implementation.
->  
->  in[0-*]_alarm
-> +curr[1-*]_alarm
->  fan[1-*]_alarm
->  temp[1-*]_alarm
->  		Channel alarm
-> @@ -482,6 +483,8 @@ OR
->  
->  in[0-*]_min_alarm
->  in[0-*]_max_alarm
-> +curr[1-*]_min_alarm
-> +curr[1-*]_max_alarm
->  fan[1-*]_min_alarm
->  fan[1-*]_max_alarm
->  temp[1-*]_min_alarm
+--0-743635677-1277907569=:63235
+Content-Type: text/plain; charset=us-ascii
 
-Applied, thanks. I also added curr[1-*]_beep, as libsensors supports it
-already. And I've removed the comment that says that current attributes
-are not implemented by any driver yet, as this comment was obviously
-obsolete.
+Hello,
+It seems my new motherbord has 'Nuvoton W83667HG-B Super IO Sensors' 
+chip which is not supported yet.
+Device wiki says that there is a driver (w83627ehf) for W83667HG chip and support for W83667HG-B will probably be added to it.
 
--- 
-Jean Delvare
+Could you please add support for the new chip?
+
+Previous support requests for this chip:
+http://lists.lm-sensors.org/pipermail/lm-sensors/2009-November/027193.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-February/027842.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-May/028545.html
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-June/028710.html
+
+
+Thanks!
+---
+Ethan
+
+
+      
+--0-743635677-1277907569=:63235
+Content-Type: text/html; charset=us-ascii
+
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman,new york,times,serif;font-size:12pt"><div>Hello,<br>
+It seems my new motherbord has 'Nuvoton W83667HG-B Super IO Sensors' 
+chip which is not supported yet.<br>
+Device wiki says that there is a driver (w83627ehf) for <a class="ext-link" href="http://www.nuvoton.com.tw/hq/enu/ProductAndSales/ProductLines/ComputerIC/SuperIO/LPCSuperIOforDesktopAndServer/W83667HG.htm">W83667HG</a>
+ chip and support for W83667HG-B will probably be added to it.<br>
+<br>
+Could you please add support for the new chip?<br>
+<br>
+Previous support requests for this chip:<br><span>
+<a target="_blank" href="http://lists.lm-sensors.org/pipermail/lm-sensors/2009-November/027193.html">http://lists.lm-sensors.org/pipermail/lm-sensors/2009-November/027193.html</a></span><br><span>
+<a target="_blank" href="http://lists.lm-sensors.org/pipermail/lm-sensors/2010-February/027842.html">http://lists.lm-sensors.org/pipermail/lm-sensors/2010-February/027842.html</a></span><br><span>
+<a target="_blank" href="http://lists.lm-sensors.org/pipermail/lm-sensors/2010-May/028545.html">http://lists.lm-sensors.org/pipermail/lm-sensors/2010-May/028545.html</a></span><br><span>
+<a target="_blank" href="http://lists.lm-sensors.org/pipermail/lm-sensors/2010-June/028710.html">http://lists.lm-sensors.org/pipermail/lm-sensors/2010-June/028710.html</a></span><br>
+<br>
+<br>
+Thanks!<br>
+---<br>
+Ethan</div>
+</div><br>
+
+      </body></html>
+--0-743635677-1277907569=:63235--
+
+
+--===============8101936699218164486==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8101936699218164486==--
