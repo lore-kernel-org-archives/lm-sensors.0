@@ -1,38 +1,43 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 30 Jun 2010 15:30:05 +0000
-Subject: [lm-sensors] [PATCH] hwmon: Remove in[0-*]_fault from
-Message-Id: <20100630173005.11c90c64@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 30 Jun 2010 15:46:15 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Remove in[0-*]_fault from
+Message-Id: <20100630154615.GC4974@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20100630173005.11c90c64@hyperion.delvare>
+In-Reply-To: <20100630173005.11c90c64@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fault files are for hardware failures that can be reported. So far
-we've seen chips reporting such failures for temperature sensors and
-fans, but not for voltages. Remove in[0-*]_fault for now. It can be
-added back later if really needed, but I doubt it.
+On Wed, Jun 30, 2010 at 11:30:05AM -0400, Jean Delvare wrote:
+> Fault files are for hardware failures that can be reported. So far
+> we've seen chips reporting such failures for temperature sensors and
+> fans, but not for voltages. Remove in[0-*]_fault for now. It can be
+> added back later if really needed, but I doubt it.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/sysfs-interface |    1 -
- 1 file changed, 1 deletion(-)
-
---- linux-2.6.35-rc3.orig/Documentation/hwmon/sysfs-interface	2010-06-30 09:10:06.000000000 +0200
-+++ linux-2.6.35-rc3/Documentation/hwmon/sysfs-interface	2010-06-30 17:24:09.000000000 +0200
-@@ -516,7 +516,6 @@ to notify open diodes, unconnected fans
- supports it. When this boolean has value 1, the measurement for that
- channel should not be trusted.
- 
--in[0-*]_fault
- fan[1-*]_fault
- temp[1-*]_fault
- 		Input fault condition
-
-
--- 
-Jean Delvare
+> ---
+>  Documentation/hwmon/sysfs-interface |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> --- linux-2.6.35-rc3.orig/Documentation/hwmon/sysfs-interface	2010-06-30 09:10:06.000000000 +0200
+> +++ linux-2.6.35-rc3/Documentation/hwmon/sysfs-interface	2010-06-30 17:24:09.000000000 +0200
+> @@ -516,7 +516,6 @@ to notify open diodes, unconnected fans
+>  supports it. When this boolean has value 1, the measurement for that
+>  channel should not be trusted.
+>  
+> -in[0-*]_fault
+>  fan[1-*]_fault
+>  temp[1-*]_fault
+>  		Input fault condition
+> 
+> 
+> -- 
+> Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
