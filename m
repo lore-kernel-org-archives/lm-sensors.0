@@ -1,59 +1,38 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 26 Jun 2010 18:17:50 +0000
-Subject: [lm-sensors] [PATCH v5 0/3] hwmon: Driver for SMM665 Six-Channel
-Message-Id: <1277576273-14153-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 30 Jun 2010 15:30:05 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Remove in[0-*]_fault from
+Message-Id: <20100630173005.11c90c64@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1277488152-21073-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1277488152-21073-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Samuel Ortiz <sameo@linux.intel.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: lm-sensors@vger.kernel.org
 
-This patchset adds support for the monitoring features of the Summit
-Microelectronics SMM665 Six-Channel Active DC Output Controller/Monitor.
+Fault files are for hardware failures that can be reported. So far
+we've seen chips reporting such failures for temperature sensors and
+fans, but not for voltages. Remove in[0-*]_fault for now. It can be
+added back later if really needed, but I doubt it.
 
-Resend: Looks like copies to the mailing lists got lost the first time around.
-My apologies if you recveive this twice.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/sysfs-interface |    1 -
+ 1 file changed, 1 deletion(-)
 
-------
+--- linux-2.6.35-rc3.orig/Documentation/hwmon/sysfs-interface	2010-06-30 09:10:06.000000000 +0200
++++ linux-2.6.35-rc3/Documentation/hwmon/sysfs-interface	2010-06-30 17:24:09.000000000 +0200
+@@ -516,7 +516,6 @@ to notify open diodes, unconnected fans
+ supports it. When this boolean has value 1, the measurement for that
+ channel should not be trusted.
+ 
+-in[0-*]_fault
+ fan[1-*]_fault
+ temp[1-*]_fault
+ 		Input fault condition
 
-v2 changes:
-- Added (untested) support for SMM465, SMM764, and SMM766.
-- Added vref module parameter to support non-default values of VREF_ADC.
-- Added an explanation describing what the chip does with _min and _max limit
-  values.
-- Removed alarm sysfs files (since the chip does not report alarm status in a
-  register, alarm detection was implemented by comparing limits with ADC readings,
-  which can as well be done in userland).
-- Replaced register enums with defines.
-- Made limit variable names better readable.
-- Removed retries from smm665_read_adc().
-- Check error reply from i2c_smbus_read_byte_data() and only accept ENXIO
-  when expecting NACK.
-- Explained reason for byte swap after reading ADC registers in some more detail.
-- Added debug messages to display the error reason when reading ADC registers
-  failed.
 
-v3 changes:
-- Return error codes from smm665_read_adc().
-- Abort after first error in smm665_update_device() and return error code.
-- Return ADC read errors to user.
-- Added inX_lcrit and inX_crit attributes for min/max critical voltages.
-- Added tempX_lcrit attribute for critical low temperature.
-- Updated sysfs-interface to document support for new attributes.
-
-v4 changes:
-- Added missing unlock in error handling of smm665_update_device().
-- Fixed minor style issue in MAINTAINERS
-- Removed update to sysfs-interface from patchset since it has already
-  been applied.
-- Added lcrit and crit attributes to driver documentation.
-
-v5 changes:
-- Removed obsolete comment
-- Added datasheet links to driver documentation.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
