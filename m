@@ -1,124 +1,163 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Thu, 22 Jul 2010 21:21:11 +0000
-Subject: Re: [lm-sensors] [PATCH 5/5] Package Level Thermal Control and
-Message-Id: <20100722212111.GC22450@linux-os.sc.intel.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 01 Jul 2010 22:02:15 +0000
+Subject: [lm-sensors] [PATCH/RFC] hwmon: Add support for W83667HG-B
+Message-Id: <1278021735-21188-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <94E56C79ECC49A4B87113985F1FEBA8D03F8AE2A4B@bgsmsx502.gar.corp.intel.com> <4C485DF1.5050407@linux.intel.com> <20100722162222.GA22450@linux-os.sc.intel.com> <20100722172726.GA4914@ericsson.com> <20100722175225.GB22450@linux-os.sc.intel.com> <20100722185814.GA5235@ericsson.com>
-In-Reply-To: <20100722185814.GA5235@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, "Wan, Huaxu" <huaxu.wan@intel.com>, lkml <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Jim Cromie <jim.cromie@gmail.com>, H Hartley Sweeten <hsweeten@visionengravers.com>, Andrew Morton <akpm@linux-foundation.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Ethan Lawrence <e.law87@yahoo.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, lars4910@hotmail.com, birdie@permonline.ru, jadcock@cox.net, binximeng@gmail.com, Guenter Roeck <guenter.roeck@ericsson.com>
 
-On Thu, Jul 22, 2010 at 11:58:14AM -0700, Guenter Roeck wrote:
-> On Thu, Jul 22, 2010 at 01:52:25PM -0400, Fenghua Yu wrote:
-> > > Just for clarification - you mention a number of sensors, but unless
-> > > I am missing something only the package sensor is implemented. Is that correct ?
-> > Do you mean "only the core sensor"? I think the Sandy Bridge only implements
-> > core sensor now. I would think in the future more sensors could be implemented.
-> > If only core sensors are implemented, there is no need to have the package
-> > level thermal hw MSRs because OS can get all package level thermal info by
-> > enumerating all core sensors in a package.
-> > 
-> Now you lost me. I understand there are the per-core sensors, read through coretemp,
-> plus one package level sensor. Do you associate this existing package level sensor
-> with any of the locations mentioned above (core, uncore, memory, other), or is
-> that unknown ? If it is unknown, you might want to mention it.
+This patch adds support for W83667HG-B to the w83627ehf driver.
 
-There are more than one package level sensor. The package level MSRs take into
-account the maximum across the whole package, which encompasses all the cores
-and other integrated components like memory controller, uncore, graphics, etc.
-Sandy Bridge implements not only core sensors but also other sensors. I take
-back what I said that Sandy Bridge only implements core sensors.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
 
+Key relevant difference between W83667HG and W83667HG-B are the Chip ID as well
+as the fan output and step output register addresses. Those differences are
+addressed with this patch.
 
-> 
-> > > 
-> > > > +Temperature is measured in degrees Celsius and measurement resolution is
-> > > > +1 degree C. Valid temperatures are from 0 to TjMax degrees C, because the actual
-> > > > +value of temperature register is in fact a delta from TjMax.
-> > > > +
-> > > From the code, it seems that negative values can be reported. Is it guaranteed 
-> > > by the chip that (TjMax - MSR_IA32_TEMPERATURE_TARGET) >= 0 ? Otherwise, the
-> > > minimum temperature would be (TjMax - 127).
-> > > 
-> > > > +Temperature known as TjMax is the maximum junction temperature of package.
-> > > > +Intel defines this temperature as 125C. At this temperature, protection
-> > > 
-> > > Your driver bails out at TjMax >= 120, so there is some inconsistency.
-> > > Also, it seems that this is not a constant, since you are reading
-> > > MSR_IA32_TEMPERATURE_TARGET to get the value.
-> > > 
-> > > Since the CPUs supporting the package sensor presumably also all support
-> > > reading TjMax, maybe you can reword the above text to reflect this.
-> > > 
-> > You are right. I forgot to update this part. I'll reword it.
-> > 
-> > > > +mechanism will perform actions to forcibly cool down the processor. Alarm
-> > > > +may be raised, if the temperature grows enough (more than TjMax) to trigger
-> > > > +the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
-> > > > +
-> > > > +temp1_input	 - Package temperature (in millidegrees Celsius).
-> > > > +temp1_crit	 - Maximum junction temperature (in millidegrees Celsius).
-> > > > +temp1_crit_alarm - Set when Out-of-spec bit is set, never clears.
-> > > > +		   Correct CPU operation is no longer guaranteed.
-> > > > +temp1_label	 - Contains string "Pysical package id X", where X is physical
-> > > 
-> > > Pysical --> Physical.
-> > > I would suggest to drop the "id" for consistency. Core sensor names don't
-> > > include "id" either.
-> > > 
-> > > I am not sure if "physical" should be included in the first place.
-> > > Also, above description suggests that future CPUs might add more sensors.
-> > > If so, the name should probably reflect the location of the current sensor,
-> > > ie be something like "Package core X" or "Core package X" or "Package X (core)".
-> > How about just using "package X" to align with coretemp for now? Currently there
-> > is no interface to tell which sensor it is.
-> > 
-> Fine with me. Maybe wait for feedback from others.
-> 
-> You use the argument that there may be other package level sensors in the future.
-> Are there any plans for this, or is this just a theory ?
-> 
+There are other relevant changes in the mapping of input sensors to fan
+control (W83667HG datasheet chapter 8.7, W83667HG-B datasheet chapter 8.5).
+However, control of those mappings is not implemented in the driver, thus the
+respective changes should not have an impact on driver operation.
 
-Not just a theory. Sandy Bridge already implements other package level sensors.
-If really need to know exactly which sensors are implemented, we might go
-through a channel before releasing the info.
+Changes made in this patch are based on information from datasheets only. The
+patch has not yet been tested with real hardware. The patch must be tested with
+real hardware before it is integrated, and is thus submitted as RFC.
 
-> Next question is how to handle future sensor types. One hwmon instance per sensor,
-> additional sensors in this driver, or even a new driver ?
+---
+ drivers/hwmon/w83627ehf.c |   44 +++++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 37 insertions(+), 7 deletions(-)
 
-Currently package level thermal just reports the maximum temperature across
-the package. Which sensor is reporting the highest temperature is not exposed.
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 0dcaba9..074e15b 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -39,6 +39,7 @@
+     w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
+     w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
+     w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
++    w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
+ */
+ 
+ #include <linux/module.h>
+@@ -55,7 +56,7 @@
+ #include <linux/io.h>
+ #include "lm75.h"
+ 
+-enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg };
++enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg, w83667hg_b };
+ 
+ /* used to set data->name = w83627ehf_device_names[data->sio_kind] */
+ static const char * w83627ehf_device_names[] = {
+@@ -63,6 +64,7 @@ static const char * w83627ehf_device_names[] = {
+ 	"w83627dhg",
+ 	"w83627dhg",
+ 	"w83667hg",
++	"w83667hg-b",
+ };
+ 
+ static unsigned short force_id;
+@@ -91,6 +93,7 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ #define SIO_W83627DHG_ID	0xa020
+ #define SIO_W83627DHG_P_ID	0xb070
+ #define SIO_W83667HG_ID 	0xa510
++#define SIO_W83667HG_B_ID	0xb350
+ #define SIO_ID_MASK		0xFFF0
+ 
+ static inline void
+@@ -201,8 +204,17 @@ static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
+ static const u8 W83627EHF_REG_FAN_START_OUTPUT[] = { 0x0a, 0x0b, 0x16, 0x65 };
+ static const u8 W83627EHF_REG_FAN_STOP_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
+ static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0c, 0x0d, 0x17, 0x66 };
+-static const u8 W83627EHF_REG_FAN_MAX_OUTPUT[] = { 0xff, 0x67, 0xff, 0x69 };
+-static const u8 W83627EHF_REG_FAN_STEP_OUTPUT[] = { 0xff, 0x68, 0xff, 0x6a };
++
++static const u8 *W83627EHF_REG_FAN_MAX_OUTPUT;
++static const u8 *W83627EHF_REG_FAN_STEP_OUTPUT;
++
++static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_COMMON[]
++						= { 0xff, 0x67, 0xff, 0x69 };
++static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
++						= { 0xff, 0x68, 0xff, 0x6a };
++
++static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
++static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
+ 
+ /*
+  * Conversions
+@@ -1343,22 +1355,35 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 	/* 627EHG and 627EHF have 10 voltage inputs; 627DHG and 667HG have 9 */
+ 	data->in_num = (sio_data->kind = w83627ehf) ? 10 : 9;
+ 	/* 667HG has 3 pwms */
+-	data->pwm_num = (sio_data->kind = w83667hg) ? 3 : 4;
++	data->pwm_num = (sio_data->kind = w83667hg
++			 || sio_data->kind = w83667hg_b) ? 3 : 4;
+ 
+ 	/* Check temp3 configuration bit for 667HG */
+-	if (sio_data->kind = w83667hg) {
++	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+ 		data->temp3_disable = w83627ehf_read_value(data,
+ 					W83627EHF_REG_TEMP_CONFIG[1]) & 0x01;
+ 		data->in6_skip = !data->temp3_disable;
+ 	}
+ 
++	if (sio_data->kind = w83667hg_b) {
++		W83627EHF_REG_FAN_MAX_OUTPUT
++		  = W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B;
++		W83627EHF_REG_FAN_STEP_OUTPUT
++		  = W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B;
++	} else {
++		W83627EHF_REG_FAN_MAX_OUTPUT
++		  = W83627EHF_REG_FAN_MAX_OUTPUT_COMMON;
++		W83627EHF_REG_FAN_STEP_OUTPUT
++		  = W83627EHF_REG_FAN_STEP_OUTPUT_COMMON;
++	}
++
+ 	/* Initialize the chip */
+ 	w83627ehf_init_device(data);
+ 
+ 	data->vrm = vid_which_vrm();
+ 	superio_enter(sio_data->sioreg);
+ 	/* Read VID value */
+-	if (sio_data->kind = w83667hg) {
++	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+ 		/* W83667HG has different pins for VID input and output, so
+ 		we can get the VID input values directly at logical device D
+ 		0xe3. */
+@@ -1409,7 +1434,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* fan4 and fan5 share some pins with the GPIO and serial flash */
+-	if (sio_data->kind = w83667hg) {
++	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+ 		fan5pin = superio_inb(sio_data->sioreg, 0x27) & 0x20;
+ 		fan4pin = superio_inb(sio_data->sioreg, 0x27) & 0x40;
+ 	} else {
+@@ -1556,6 +1581,7 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
+ 	static const char __initdata sio_name_W83627DHG[] = "W83627DHG";
+ 	static const char __initdata sio_name_W83627DHG_P[] = "W83627DHG-P";
+ 	static const char __initdata sio_name_W83667HG[] = "W83667HG";
++	static const char __initdata sio_name_W83667HG_B[] = "W83667HG-B";
+ 
+ 	u16 val;
+ 	const char *sio_name;
+@@ -1588,6 +1614,10 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
+ 		sio_data->kind = w83667hg;
+ 		sio_name = sio_name_W83667HG;
+ 		break;
++	case SIO_W83667HG_B_ID:
++		sio_data->kind = w83667hg_b;
++		sio_name = sio_name_W83667HG_B;
++		break;
+ 	default:
+ 		if (val != 0xffff)
+ 			pr_debug(DRVNAME ": unsupported chip ID: 0x%04x\n",
+-- 
+1.7.0.87.g0901d
 
-> 
-> We had was a separate discussion if the coretemp driver should be redesigned
-> to one instance per CPU. The package sensor would fit into that model,
-> since you would have
-> 
-> coretemp-isa-0000
-> Core0
-> Core1
-> ...
-> CoreN
-> Package
-> 
-> coretemp-isa-0001
-> Core0
-> Core1
-> ...
-> CoreM
-> Package
-> 
-> I personally would prefer that approach. It would avoid ambiguity associating Package X
-> with specific cores, and it would also easily expand to additional non-core future sensors.
-
-Package X shows Physical id which is unique in platform topology and can be
-got from cpuinfo. Package X doesn't have that problem, right?
-
-Maybe instead of showing "Package X", pkgtemp may show "Physical id" just like
-what cpuinfo shows?
 
 _______________________________________________
 lm-sensors mailing list
