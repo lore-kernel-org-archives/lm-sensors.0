@@ -1,41 +1,29 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Date: Fri, 23 Jul 2010 02:09:26 +0000
-Subject: [lm-sensors] [PATCH V3 1/3] hwmon: (coretemp) update hotplug
-Message-Id: <1279850968-12154-2-git-send-email-gong.chen@linux.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 01 Jul 2010 12:32:50 +0000
+Subject: [lm-sensors] libsensors licensing change
+Message-Id: <20100701143250.39ebe8d5@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-this patch fixes an unnecessary driver unregister.
-Because even none of online cpus supports coretemp, we can't
-assume new onlined cpu doesn't support it either. If related
-driver is unregistered there we have no chance to use coretemp
-from then on.
+Hi all,
 
-Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
----
- drivers/hwmon/coretemp.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+After a 1-year campaign to collect as many approvals as possible from
+all past contributors to libsensors, I am happy to announce that
+libsensors's license can finally be changed from GPL to LGPL. This
+change will make it possible for BSD and LGPL licensed libraries and
+applications to benefit from out efforts.
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 05344af..a3bad59 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -566,7 +566,9 @@ exit_devices_unreg:
- 	}
- 	mutex_unlock(&pdev_list_mutex);
- exit_driver_unreg:
-+#ifndef CONFIG_HOTPLUG_CPU
- 	platform_driver_unregister(&coretemp_driver);
-+#endif
- exit:
- 	return err;
- }
+Thanks to all former contributors who heard my call, replied to me
+positively, and made the change happen.
+
+An history and summary of the change can be found at:
+http://www.lm-sensors.org/wiki/LibsensorsLicense
+
 -- 
-1.7.2.rc3
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
