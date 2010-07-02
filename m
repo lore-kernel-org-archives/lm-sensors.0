@@ -1,81 +1,38 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 02 Jul 2010 09:49:49 +0000
+Date: Fri, 02 Jul 2010 09:51:23 +0000
 Subject: Re: [lm-sensors] [PATCH/RFC] hwmon: Add support for W83667HG-B
-Message-Id: <20100702114949.3e62ec39@hyperion.delvare>
+Message-Id: <20100702115123.18e95e14@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1278021735-21188-1-git-send-email-guenter.roeck@ericsson.com>
 	<20100702092011.0acd753f@hyperion.delvare>
-	<20100702082530.GC12911@ericsson.com>
-In-Reply-To: <20100702082530.GC12911@ericsson.com>
+	<20100702080704.GA12911@ericsson.com>
+	<20100702101345.6fe9d27a@hyperion.delvare>
+	<20100702083144.GD12911@ericsson.com>
+In-Reply-To: <20100702083144.GD12911@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: Jim Cromie <jim.cromie@gmail.com>, H Hartley Sweeten <hsweeten@visionengravers.com>, Andrew Morton <akpm@linux-foundation.org>, Ethan Lawrence <e.law87@yahoo.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lars4910@hotmail.com" <lars4910@hotmail.com>, "birdie@permonline.ru" <birdie@permonline.ru>, "jadcock@cox.net" <jadcock@cox.net>
 
-Hi Guenter,
-
-On Fri, 2 Jul 2010 01:25:30 -0700, Guenter Roeck wrote:
-> On Fri, Jul 02, 2010 at 03:20:11AM -0400, Jean Delvare wrote:
-> > On Thu, 1 Jul 2010 15:02:15 -0700, Guenter Roeck wrote:
-> > > -static const u8 W83627EHF_REG_FAN_MAX_OUTPUT[] = { 0xff, 0x67, 0xff, 0x69 };
-> > > -static const u8 W83627EHF_REG_FAN_STEP_OUTPUT[] = { 0xff, 0x68, 0xff, 0x6a };
-> > > +
-> > > +static const u8 *W83627EHF_REG_FAN_MAX_OUTPUT;
-> > > +static const u8 *W83627EHF_REG_FAN_STEP_OUTPUT;
-> > > +
-> > > +static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_COMMON[]
-> > > +						= { 0xff, 0x67, 0xff, 0x69 };
-> > > +static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
-> > > +						= { 0xff, 0x68, 0xff, 0x6a };
-> > > +
-> > > +static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
-> > > +static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
+On Fri, 2 Jul 2010 01:31:44 -0700, Guenter Roeck wrote:
+> On Fri, Jul 02, 2010 at 04:13:45AM -0400, Jean Delvare wrote:
+> > On Fri, 2 Jul 2010 01:07:04 -0700, Guenter Roeck wrote:
+> > > I'll also add a check for the HG-I.
 > > 
-> > Is it just me or these arrays aren't used anywhere?
+> > Do you have a datasheet for that one too?
 > > 
-> > I think I would just drop them. The "0xff" are suspicious in the
-> > original arrays, and the size difference between the common and
-> > W83667HG-B cases is tricky. Anyone willing to add support for this
-> > feature will need to read the datasheets anyway, so you don't add any
-> > value by including the register addresses here.
-> 
-> After removing the defines and trying to compile I remembered.
-> I _knew_ there was a reason for not removing them.
-> Guess it's too late (or early) here to do serious work.
-> 
-> The defines _are_ used, in:
-> 
-> fan_functions(fan_max_output, FAN_MAX_OUTPUT)
-> fan_functions(fan_step_output, FAN_STEP_OUTPUT)
-> 
-> which expands to W83627EHF_REG_FAN_MAX_OUTPUT and W83627EHF_REG_FAN_STEP_OUTPUT.
-> 
-> Tricky ... and that was also the reason why I retained the original 
-> global variables.
+> No. However, since we have a tester, we will have test coverage,
+> so I figured it should be worth a try. If it doesn't work
+> I can still drop it from the final patch.
 
-Tricky indeed. We normally don't accept code like this in the kernel.
+FYI, I have a datasheet, which unfortunately I am not allowed to share.
+Please let me know if you want me to look up something for you.
 
-> I'll move the pointers into per-device code as you suggested, but I'll
-> have to think about how to do that w/o having to change a lot of code.
+> I suspect it is the same as the HG with a different chip ID.
 
-If code changes are desirable, let's just do them. You can do that in a
-preliminary patch, and then your patch adding support for the
-W83667HG-B goes on top of it.
-
-> As for the 0xff - that pretty much applies to all chips supported by this driver. 
-> I guess it is supposed to mean "not supported", and as a result the code will
-> write to a non-existing register. I don't really want to touch that.
-
-I want you to touch that. Writing to non-existing registers is a bad
-idea. You never know what actually happens when you do that.
-
-> The size difference (3 entries vs. 4) doesn't matter, since the chips are both 
-> configured to have only three pwm fan controllers (even though the W83667HG
-> is supposed to have four per its datasheet). So the 4th element of the arrays
-> will not be accessed by the code if W83667HG(-B) is detected.
-
-OK.
+Beware, it's a different device number (677 vs. 667) so I would expect
+more differences.
 
 -- 
 Jean Delvare
