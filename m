@@ -1,208 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 03 Jul 2010 08:35:36 +0000
+From: "=?gb2312?Q?=B1=F6=CE=F7=C3=C9?=" <binximeng@gmail.com>
+Date: Sat, 03 Jul 2010 10:15:48 +0000
 Subject: Re: [lm-sensors] [PATCH/RFC v2] hwmon: Add support for W83667HG-B
-Message-Id: <20100703103536.2fdd833e@hyperion.delvare>
+Message-Id: <1278152148.7319.11.camel@xli51>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1278062606-29000-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1278062606-29000-1-git-send-email-guenter.roeck@ericsson.com>
+	 <20100703103536.2fdd833e@hyperion.delvare>
+In-Reply-To: <20100703103536.2fdd833e@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jim Cromie <jim.cromie@gmail.com>, H Hartley Sweeten <hsweeten@visionengravers.com>, Andrew Morton <akpm@linux-foundation.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Ethan Lawrence <e.law87@yahoo.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, lars4910@hotmail.com, birdie@permonline.ru, jadcock@cox.net, binximeng@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Jim Cromie <jim.cromie@gmail.com>, H Hartley Sweeten <hsweeten@visionengravers.com>, Andrew Morton <akpm@linux-foundation.org>, Ethan Lawrence <e.law87@yahoo.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, lars4910@hotmail.com, birdie@permonline.ru, jadcock@cox.net
 
-Hi Guenter,
-
-On Fri, 2 Jul 2010 02:23:26 -0700, Guenter Roeck wrote:
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> Key relevant difference between W83667HG and W83667HG-B are the Chip ID as well
-> as the fan output and step output register addresses. Those differences are
-> addressed with this patch.
+在 2010-07-03六的 10:35 +0200，Jean Delvare写道：
+> Hi Guenter,
 > 
-> There are other relevant changes in the mapping of input sensors to fan
-> control (W83667HG datasheet chapter 8.7, W83667HG-B datasheet chapter 8.5).
-> However, control of those mappings is not implemented in the driver, thus the
-> respective changes should not have an impact on driver operation.
+> On Fri, 2 Jul 2010 02:23:26 -0700, Guenter Roeck wrote:
+> > +    w83667hg-i   9      5       3       3      0xb340 0xc1    0x5ca3
 > 
-> Changes made in this patch are based on information from datasheets only. The
-> patch has not yet been tested with real hardware. The patch will have to be
-> tested with real hardware before it is integrated, and is thus submitted as RFC.
-> 
-> Changes in v2:
-> - Removed dash from hwmon device name.
-> - Moved global array pointers to per-device data.
-> - Added chip detection for W83667HG-I
->   (assumed to be identical to W83667HG; needs to be validated).
-> ---
->  drivers/hwmon/w83627ehf.c |   57 ++++++++++++++++++++++++++++++++++++++------
->  1 files changed, 49 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-> index 0dcaba9..099454b 100644
-> --- a/drivers/hwmon/w83627ehf.c
-> +++ b/drivers/hwmon/w83627ehf.c
-> @@ -39,6 +39,8 @@
->      w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
->      w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
->      w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
-> +    w83667hg-i   9      5       3       3      0xb340 0xc1    0x5ca3
+> As discussed before, this one is a 677 series, not 667. That being
+> said, I admit that the device ID proximity between the 667HG-B and the
+> 677HG-I is troubling, and invites to optimism as far as compatibility
+> between these two chips is concerned.
 
-As discussed before, this one is a 677 series, not 667. That being
-said, I admit that the device ID proximity between the 667HG-B and the
-677HG-I is troubling, and invites to optimism as far as compatibility
-between these two chips is concerned.
+I think we got something confused here, I was looking for the W836
+*seven* 7 HG-I driver (which has ID 0xb470) and not the W836 *six* 7
+HG-I one, although maybe someone else might benefit from that one.
 
-> +    w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
->  */
->  
->  #include <linux/module.h>
-> @@ -55,7 +57,7 @@
->  #include <linux/io.h>
->  #include "lm75.h"
->  
-> -enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg };
-> +enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg, w83667hg_b };
->  
->  /* used to set data->name = w83627ehf_device_names[data->sio_kind] */
->  static const char * w83627ehf_device_names[] = {
-> @@ -63,6 +65,7 @@ static const char * w83627ehf_device_names[] = {
->  	"w83627dhg",
->  	"w83627dhg",
->  	"w83667hg",
-> +	"w83667hg",
->  };
->  
->  static unsigned short force_id;
-> @@ -91,6 +94,8 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
->  #define SIO_W83627DHG_ID	0xa020
->  #define SIO_W83627DHG_P_ID	0xb070
->  #define SIO_W83667HG_ID 	0xa510
-> +#define SIO_W83667HG_I_ID	0xb340
-> +#define SIO_W83667HG_B_ID	0xb350
->  #define SIO_ID_MASK		0xFFF0
->  
->  static inline void
-> @@ -201,8 +206,14 @@ static const u8 W83627EHF_REG_TOLERANCE[] = { 0x07, 0x07, 0x14, 0x62 };
->  static const u8 W83627EHF_REG_FAN_START_OUTPUT[] = { 0x0a, 0x0b, 0x16, 0x65 };
->  static const u8 W83627EHF_REG_FAN_STOP_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
->  static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0c, 0x0d, 0x17, 0x66 };
-> -static const u8 W83627EHF_REG_FAN_MAX_OUTPUT[] = { 0xff, 0x67, 0xff, 0x69 };
-> -static const u8 W83627EHF_REG_FAN_STEP_OUTPUT[] = { 0xff, 0x68, 0xff, 0x6a };
-> +
-> +static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_COMMON[]
-> +						= { 0xff, 0x67, 0xff, 0x69 };
-> +static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
-> +						= { 0xff, 0x68, 0xff, 0x6a };
-> +
-> +static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
-> +static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
->  
->  /*
->   * Conversions
-> @@ -277,6 +288,11 @@ struct w83627ehf_data {
->  	struct device *hwmon_dev;
->  	struct mutex lock;
->  
-> +	const u8 *REG_FAN_START_OUTPUT;
-> +	const u8 *REG_FAN_STOP_OUTPUT;
-> +	const u8 *REG_FAN_MAX_OUTPUT;
-> +	const u8 *REG_FAN_STEP_OUTPUT;
-> +
->  	struct mutex update_lock;
->  	char valid;		/* !=0 if following fields are valid */
->  	unsigned long last_updated;	/* In jiffies */
-> @@ -1126,7 +1142,7 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
->  	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 1, 255); \
->  	mutex_lock(&data->update_lock); \
->  	data->reg[nr] = val; \
-> -	w83627ehf_write_value(data, W83627EHF_REG_##REG[nr], val); \
-> +	w83627ehf_write_value(data, data->REG_##REG[nr], val); \
->  	mutex_unlock(&data->update_lock); \
->  	return count; \
->  }
-> @@ -1343,22 +1359,37 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
->  	/* 627EHG and 627EHF have 10 voltage inputs; 627DHG and 667HG have 9 */
->  	data->in_num = (sio_data->kind = w83627ehf) ? 10 : 9;
->  	/* 667HG has 3 pwms */
-> -	data->pwm_num = (sio_data->kind = w83667hg) ? 3 : 4;
-> +	data->pwm_num = (sio_data->kind = w83667hg
-> +			 || sio_data->kind = w83667hg_b) ? 3 : 4;
->  
->  	/* Check temp3 configuration bit for 667HG */
-> -	if (sio_data->kind = w83667hg) {
-> +	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
->  		data->temp3_disable = w83627ehf_read_value(data,
->  					W83627EHF_REG_TEMP_CONFIG[1]) & 0x01;
->  		data->in6_skip = !data->temp3_disable;
->  	}
->  
-> +	data->REG_FAN_START_OUTPUT = W83627EHF_REG_FAN_START_OUTPUT;
-> +	data->REG_FAN_STOP_OUTPUT = W83627EHF_REG_FAN_STOP_OUTPUT;
-> +	if (sio_data->kind = w83667hg_b) {
-> +		data->REG_FAN_MAX_OUTPUT
-> +		  = W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B;
-> +		data->REG_FAN_STEP_OUTPUT
-> +		  = W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B;
-> +	} else {
-> +		data->REG_FAN_MAX_OUTPUT
-> +		  = W83627EHF_REG_FAN_MAX_OUTPUT_COMMON;
-> +		data->REG_FAN_STEP_OUTPUT
-> +		  = W83627EHF_REG_FAN_STEP_OUTPUT_COMMON;
-> +	}
-> +
->  	/* Initialize the chip */
->  	w83627ehf_init_device(data);
->  
->  	data->vrm = vid_which_vrm();
->  	superio_enter(sio_data->sioreg);
->  	/* Read VID value */
-> -	if (sio_data->kind = w83667hg) {
-> +	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
->  		/* W83667HG has different pins for VID input and output, so
->  		we can get the VID input values directly at logical device D
->  		0xe3. */
-> @@ -1409,7 +1440,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
->  	}
->  
->  	/* fan4 and fan5 share some pins with the GPIO and serial flash */
-> -	if (sio_data->kind = w83667hg) {
-> +	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
->  		fan5pin = superio_inb(sio_data->sioreg, 0x27) & 0x20;
->  		fan4pin = superio_inb(sio_data->sioreg, 0x27) & 0x40;
->  	} else {
-> @@ -1556,6 +1587,8 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
->  	static const char __initdata sio_name_W83627DHG[] = "W83627DHG";
->  	static const char __initdata sio_name_W83627DHG_P[] = "W83627DHG-P";
->  	static const char __initdata sio_name_W83667HG[] = "W83667HG";
-> +	static const char __initdata sio_name_W83667HG_I[] = "W83667HG-I";
-> +	static const char __initdata sio_name_W83667HG_B[] = "W83667HG-B";
->  
->  	u16 val;
->  	const char *sio_name;
-> @@ -1588,6 +1621,14 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
->  		sio_data->kind = w83667hg;
->  		sio_name = sio_name_W83667HG;
->  		break;
-> +	case SIO_W83667HG_I_ID:
-> +		sio_data->kind = w83667hg;
-> +		sio_name = sio_name_W83667HG_I;
-> +		break;
-> +	case SIO_W83667HG_B_ID:
-> +		sio_data->kind = w83667hg_b;
-> +		sio_name = sio_name_W83667HG_B;
-> +		break;
->  	default:
->  		if (val != 0xffff)
->  			pr_debug(DRVNAME ": unsupported chip ID: 0x%04x\n",
+It has at least 5 fans, with 3 pwm and 1 voltage regulatory. Using the
+w83667hg driver, I can only see the speed of fan2 and fan3 in sensors
+output. the w83627dhg-p already seems to read out 3 of the 5 fan speeds.
+The temperatures seem rather wonky, I might need to compare with the
+bios readings some more.
 
-Other than this, I have no objection, your patch looks sane.
-
-After your next iteration, I'll publish a standalone driver with your
-patch, for easier testing.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
