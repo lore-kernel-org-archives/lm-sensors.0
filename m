@@ -1,110 +1,149 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 07 Jul 2010 15:49:55 +0000
-Subject: Re: [lm-sensors] LM_Sensors Config for Supermicro X7SLA-L / X7SLA-H
-Message-Id: <20100707174955.5b3384e9@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 03 Jul 2010 22:13:21 +0000
+Subject: [lm-sensors] [PATCH v4 1/2] hwmon: w83627ehf driver cleanup
+Message-Id: <1278195202-2683-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1238.66.169.177.147.1278221517.squirrel@webmail.myamigos.us>
-In-Reply-To: <1238.66.169.177.147.1278221517.squirrel@webmail.myamigos.us>
+References: <1278195202-2683-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1278195202-2683-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>, Ethan Lawrence <e.law87@yahoo.com>, Jim Cromie <jim.cromie@gmail.com>, H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Iain <selsinork@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, lars4910@hotmail.com, birdie@permonline.ru, jadcock@cox.net, binximeng@gmail.com, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Hi Jeff,
+- Moved fan pwm register array pointers into per-instance data.
+- Only read fan pwm data for installed/supported fans.
+- Update fan max output and fan step output information from data in registers.
+- Create max_output and step_output attribute files only if respective
+  fan pwm registers exist.
 
-On Sun, 4 Jul 2010 00:31:57 -0500 (CDT), Jeff Rickman wrote:
-> This configuration has been tested on a Supermicro X7SLA-H motherboard
-> (...)
-> Any suggestions on getting the "set in3_min" and "set in3_max" values set
-> correctly for +/- 10 percent limits?
-> 
-> I determined through experimentation that the "AVCC" value from the
-> "w83627dhg-*" section of "sensors3.conf" with label "in2" is a "+3.3
-> Voltage" input. Changing values related to "in2" affected the "+3.3V
-> Voltage" line in Supermicro's "sdt" command. Thus I figured that "in3" is
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/w83627ehf.c |   59 ++++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 56 insertions(+), 3 deletions(-)
 
-This is right, AVCC stands for "Analog VCC" and is the +3.3V rail for
-the analog side of the W83627DHG.
-
-> the line used for "+12V Voltage" in "sdt". The compute line seems accurate
-> and the formula was based on info found on the LM_Sensors Wiki for another
-> chip.
-
-This is wrong. in3 is the +3.3V rail for the digital part of the
-W83627DHG. This is an internal voltage measurement channel, thus it can
-_not_ be anything else.
-
-> It appears there are 2 separate inputs, "in1" and "in4", for measuring
-> DIMM Voltage. The motherboard has 2 DIMM sockets. Removing a DIM from
-> "DIMM_B" did not affect the voltage read by either "in1" or "in4"
-> suggesting that either input could be safely ignored.
-
-More likely, one of these is _not_ the DIMM voltage. Could be +12V
-instead, see below.
-
-> I ignore Temp3 since it displays negative temperatures even though it is
-> located in a room with an ambient temperature of 78 degrees Fahrenheit.
-
-The very nice thing about SuperMicro's monitoring software is that it
-comes with a readable configuration file which instructs the tool in
-which register it should read each value. See file AllSuperD.ini. It has
-this to say about your board's voltages (edited for brevity):
-
-[Item]
-Item_Name=CPU Core Voltage
-Offset 
-
-[Item]
-Item_Name=+1.5V Voltage
-Offset&
-
-[Item]
-Item_Name=+12V Voltage
-Offset!
-
-[Item]
-Item_Name=+3.3V Voltage
-Offset"
-
-[Item]
-Item_Name=DIMM Voltage
-Offset$
-
-[Item]
-Item_Name=+5V Voltage
-Offset%
-
-[Item]
-Item_Name=+3.3Vsb Voltage
-Slave=5
-OffsetP
-
-[Item]
-Item_Name=VBAT Voltage
-Slave=5
-OffsetQ
-
-"Slave" and "Offset" refer to register addresses. As registers 0x20 to
-0x26 correspond to in0 to in6, and 0x550 to 0x551 correspond to in7 and
-in8, respectively, we have the following mappings:
-
-label in0 "Vcore"
-label in1 "+12V"
-label in2 "+3.3V"
-label in4 "Vdimm"
-label in5 "+5V"
-label in6 "+1.5V"
-label in7 "3VSB"
-label in8 "Vbat"
-
-They did not label in3, but it's simply another +3.3V per chip design::
-
-label in3 "+3.3V"
-
-Now you get to figure out the scaling factor for +12V.
-
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 0dcaba9..e01a3e9 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -277,6 +277,11 @@ struct w83627ehf_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex lock;
+ 
++	const u8 *REG_FAN_START_OUTPUT;
++	const u8 *REG_FAN_STOP_OUTPUT;
++	const u8 *REG_FAN_MAX_OUTPUT;
++	const u8 *REG_FAN_STEP_OUTPUT;
++
+ 	struct mutex update_lock;
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+@@ -524,7 +529,10 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 			}
+ 		}
+ 
+-		for (i = 0; i < 4; i++) {
++		for (i = 0; i < data->pwm_num; i++) {
++			if (!(data->has_fan & (1 << i)))
++				continue;
++
+ 			/* pwmcfg, tolerance mapped for i=0, i=1 to same reg */
+ 			if (i != 1) {
+ 				pwmcfg = w83627ehf_read_value(data,
+@@ -546,6 +554,17 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 						W83627EHF_REG_FAN_STOP_OUTPUT[i]);
+ 			data->fan_stop_time[i] = w83627ehf_read_value(data,
+ 						W83627EHF_REG_FAN_STOP_TIME[i]);
++
++			if (data->REG_FAN_MAX_OUTPUT[i] != 0xff)
++				data->fan_max_output[i] +				  w83627ehf_read_value(data,
++					       data->REG_FAN_MAX_OUTPUT[i]);
++
++			if (data->REG_FAN_STEP_OUTPUT[i] != 0xff)
++				data->fan_step_output[i] +				  w83627ehf_read_value(data,
++					       data->REG_FAN_STEP_OUTPUT[i]);
++
+ 			data->target_temp[i]  				w83627ehf_read_value(data,
+ 					W83627EHF_REG_TARGET[i]) &
+@@ -1126,7 +1145,7 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
+ 	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 1, 255); \
+ 	mutex_lock(&data->update_lock); \
+ 	data->reg[nr] = val; \
+-	w83627ehf_write_value(data, W83627EHF_REG_##REG[nr], val); \
++	w83627ehf_write_value(data, data->REG_##REG[nr], val); \
+ 	mutex_unlock(&data->update_lock); \
+ 	return count; \
+ }
+@@ -1206,12 +1225,26 @@ static struct sensor_device_attribute sda_sf3_arrays[] = {
+ 		    store_fan_stop_output, 1),
+ 	SENSOR_ATTR(pwm3_stop_output, S_IWUSR | S_IRUGO, show_fan_stop_output,
+ 		    store_fan_stop_output, 2),
++};
+ 
+-	/* pwm1 and pwm3 don't support max and step settings */
++
++/*
++ * pwm1 and pwm3 don't support max and step settings on all chips.
++ * Need to check support while generating/removing attribute files.
++ */
++static struct sensor_device_attribute sda_sf3_max_step_arrays[] = {
++	SENSOR_ATTR(pwm1_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
++		    store_fan_max_output, 0),
++	SENSOR_ATTR(pwm1_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
++		    store_fan_step_output, 0),
+ 	SENSOR_ATTR(pwm2_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
+ 		    store_fan_max_output, 1),
+ 	SENSOR_ATTR(pwm2_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
+ 		    store_fan_step_output, 1),
++	SENSOR_ATTR(pwm3_max_output, S_IWUSR | S_IRUGO, show_fan_max_output,
++		    store_fan_max_output, 2),
++	SENSOR_ATTR(pwm3_step_output, S_IWUSR | S_IRUGO, show_fan_step_output,
++		    store_fan_step_output, 2),
+ };
+ 
+ static ssize_t
+@@ -1235,6 +1268,12 @@ static void w83627ehf_device_remove_files(struct device *dev)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
+ 		device_remove_file(dev, &sda_sf3_arrays[i].dev_attr);
++	for (i = 0; i < ARRAY_SIZE(sda_sf3_max_step_arrays); i++) {
++		struct sensor_device_attribute *attr +		  &sda_sf3_max_step_arrays[i];
++		if (data->REG_FAN_STEP_OUTPUT[attr->index] != 0xff)
++			device_remove_file(dev, &attr->dev_attr);
++	}
+ 	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++)
+ 		device_remove_file(dev, &sda_sf3_arrays_fan4[i].dev_attr);
+ 	for (i = 0; i < data->in_num; i++) {
+@@ -1352,6 +1391,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 		data->in6_skip = !data->temp3_disable;
+ 	}
+ 
++	data->REG_FAN_START_OUTPUT = W83627EHF_REG_FAN_START_OUTPUT;
++	data->REG_FAN_STOP_OUTPUT = W83627EHF_REG_FAN_STOP_OUTPUT;
++	data->REG_FAN_MAX_OUTPUT = W83627EHF_REG_FAN_MAX_OUTPUT;
++	data->REG_FAN_STEP_OUTPUT = W83627EHF_REG_FAN_STEP_OUTPUT;
++
+ 	/* Initialize the chip */
+ 	w83627ehf_init_device(data);
+ 
+@@ -1440,6 +1484,15 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 			&sda_sf3_arrays[i].dev_attr)))
+ 			goto exit_remove;
+ 
++	for (i = 0; i < ARRAY_SIZE(sda_sf3_max_step_arrays); i++) {
++		struct sensor_device_attribute *attr +		  &sda_sf3_max_step_arrays[i];
++		if (data->REG_FAN_STEP_OUTPUT[attr->index] != 0xff) {
++			err = device_create_file(dev, &attr->dev_attr);
++			if (err)
++				goto exit_remove;
++		}
++	}
+ 	/* if fan4 is enabled create the sf3 files for it */
+ 	if ((data->has_fan & (1 << 3)) && data->pwm_num >= 4)
+ 		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++) {
 -- 
-Jean Delvare
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
