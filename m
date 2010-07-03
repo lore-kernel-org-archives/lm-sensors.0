@@ -1,55 +1,23 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Date: Thu, 01 Jul 2010 13:06:13 +0000
-Subject: [lm-sensors] [RFC] [PATCH] Board changes for tmp105 temperature
-Message-Id: <0680EC522D0CC943BC586913CF3768C003B360315C@dbde02.ent.ti.com>
+From: Iain <selsinork@gmail.com>
+Date: Sat, 03 Jul 2010 09:57:19 +0000
+Subject: [lm-sensors] W83667HG-B or -A
+Message-Id: <4C2F097F.4070106@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <0680EC522D0CC943BC586913CF3768C003B34A6404@dbde02.ent.ti.com>
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B34A6404@dbde02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: LM Sensors <lm-sensors@lm-sensors.org>, Tony Lindgren <tony@atomide.com>
+To: lm-sensors@vger.kernel.org
 
-Adding board configuration for the tmp105
-temperature sensor. The interface to the sensor
-is I2C.
--Removing unwanted file mode change
+Hi,
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+I have an Asus P7F-E and sensors-detect tells me I have a W83667HG-B so I was very interested to see the drivers that have been 
+posted over the last few days for the -B, especially as the asus_atk0110 driver doesn't work on this board.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 4bb2c5d..3e3b222 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -353,6 +353,11 @@ static struct i2c_board_info __initdata sdp4430_i2c_boardinfo[] = {
- 		.platform_data = &sdp4430_twldata,
- 	},
- };
-+static struct i2c_board_info __initdata sdp4430_i2c_3_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("tmp105", 0x48),
-+	},
-+};
- static int __init omap4_i2c_init(void)
- {
- 	/*
-@@ -362,7 +367,8 @@ static int __init omap4_i2c_init(void)
- 	omap_register_i2c_bus(1, 400, sdp4430_i2c_boardinfo,
- 			ARRAY_SIZE(sdp4430_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
--	omap_register_i2c_bus(3, 400, NULL, 0);
-+	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
-+				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
- 	omap_register_i2c_bus(4, 400, NULL, 0);
- 	return 0;
- }
--- 
-1.5.4.7
+However, the chip on the board is physically marked as W83667HG-A and appears to have a devid of B353.
 
+Is it reasonable to assume that the recent -B drivers will work with this chip ?  If so, I'd be happy to help out with testing.
+
+Iain
 
 _______________________________________________
 lm-sensors mailing list
