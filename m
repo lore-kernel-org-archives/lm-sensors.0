@@ -1,189 +1,179 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 09 Jul 2010 09:15:08 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add support for several
-Message-Id: <20100709111508.7e8ceabf@hyperion.delvare>
+From: "Jeff Rickman" <jrickman@myamigos.us>
+Date: Sun, 04 Jul 2010 05:31:57 +0000
+Subject: [lm-sensors] LM_Sensors Config for Supermicro X7SLA-L / X7SLA-H
+Message-Id: <1238.66.169.177.147.1278221517.squirrel@webmail.myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100706222437.GA31051@ericsson.com>
-In-Reply-To: <20100706222437.GA31051@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gunter,
+This configuration has been tested on a Supermicro X7SLA-H motherboard
+which uses an Intel Atom 330 CPU. This configuration should be compatible
+with the Supermicro X7SLA-L motherboard since both variants have 3 fan
+headers and the same Winbond 83627ZDHG-P Super I/O controller chip. The
+X7SLA-H motherboard is used in their "SUPERMICRO SYS-5015A-H 1U Barebone
+Server".
 
-On Thu, 8 Jul 2010 13:15:06 -0700, Guenter Roeck wrote:
-> This patch adds support for several JC42.4 compliant temperature sensors to
-> sensors-detect.
+Supermicro has their own "SuperoDoctor II" software for Linux. The
+following is the output from the "sdt" command included in that software:
 
-Applied, thanks.
+[root@fatman ~]# sdt
 
-> ---
-> Index: prog/detect/sensors-detect
-> =================================> --- prog/detect/sensors-detect	(revision 5851)
-> +++ prog/detect/sensors-detect	(working copy)
-> @@ -1195,6 +1195,51 @@
->  		i2c_addrs => [0x18..0x1f],
->  		i2c_detect => sub { jedec_JC42_4_detect(@_, 1); },
->  	}, {
-> +		name => "NXP SE98",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 2); },
-> +	}, {
-> +		name => "Analog Devices ADT7408",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 3); },
-> +	}, {
-> +		name => "IDT TS3000/TSE2002",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 4); },
-> +	}, {
-> +		name => "Maxim MAX6604",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 5); },
-> +	}, {
-> +		name => "Microchip MCP98242",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 6); },
-> +	}, {
-> +		name => "Microchip MCP98243",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 7); },
-> +	}, {
-> +		name => "Microchip MCP9843",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 8); },
-> +	}, {
-> +		name => "ON CAT6095/CAT34TS02",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 9); },
-> +	}, {
-> +		name => "ST STTS424E",
-> +		driver => "to-be-written",
-> +		i2c_addrs => [0x18..0x1f],
-> +		i2c_detect => sub { jedec_JC42_4_detect(@_, 10); },
-> +	}, {
+*****************************************************************************
+ Supero Doctor II - Linux version 2.71(100409)
+ Copyright(c) 1993-2010 by Super Micro Computer, Inc. http://supermicro.com/
+*****************************************************************************
+Monitored Item            High Limit  Low Limit     Status
+----------------------------------------------------------------------
+Fan1 Fan Speed                              712       1231
+Fan2 Fan Speed                            12053          0  Warning!
+Fan3 Fan Speed                              712       2410
+MCH Fan Speed                               712       5113
+CPU Core Voltage                1.48       0.92       1.17
++1.5V Voltage                   1.65       1.35       1.51
++12V Voltage                   13.24      10.75      12.34
++3.3V Voltage                   3.63       2.98       3.34
+DIMM Voltage                    1.99       1.62       1.86
++5V Voltage                     5.50       4.51       5.12
++3.3Vsb Voltage                 3.63       2.98       3.36
+VBAT Voltage                    3.30       2.70       3.25
+System Temperature            75/167                 32/89
+CPU Temperature               82/179                 26/78
+Chassis Intrusion                                     Good
+--------------------------------------------- Sun Jul  4 00:14:57 2010
 
-FYI, I moved this one right after the STTS424 entry. The output of
-sensors-detect looks slightly nicer when several chips of the same
-manufacturer are tested in a row.
+My test system currently has a failed "front chassis" fan.
 
->  		name => "Smart Battery",
->  		driver => "sbs", # ACPI driver, not sure if it always works
->  		i2c_addrs => [0x0b],
-> @@ -5314,7 +5359,10 @@
->  	return 6;
->  }
->  
-> -# Chip to detect: 0 = STTS424, 1 = SE97/SE97B
-> +# Chip to detect: 0 = STTS424, 1 = SE97/SE97B, 2 = SE98, 3 = ADT7408,
-> +#                 4 = TS3000/TSE2002, 5 = MAX6604, 6 = MCP98242,
-> +#                 7 = MCP98243, 8 = MCP9843, 9 = CAT6095 / CAT34TS02,
-> +#                 10 = STTS424E
->  # Registers used:
->  #   0x00: Capabilities
->  #   0x01: Configuration
-> @@ -5340,10 +5388,37 @@
->  
->  	if ($chip = 0) {
->  		return unless $manid = 0x10;		# STMicrolectronics
-> -		return unless $devid = 0x00;		# STTS424
-> +		return unless $devid = 0x01;		# STTS424
->  	} elsif ($chip = 1) {
->  		return unless $manid = 0x11;		# NXP
->  		return unless $devid = 0xa2;		# SE97
-> +	} elsif ($chip = 2) {
-> +		return unless $manid = 0x11;		# NXP
-> +		return unless $devid = 0xa1;		# SE98
-> +	} elsif ($chip = 3) {
-> +		return unless $manid = 0x11;		# ADT
-> +		return unless $devid = 0x08;		# ADT7408
-> +	} elsif ($chip = 4) {
-> +		return unless $manid = 0x00;		# IDT
-> +		return unless $devid = 0x29;		# TS3000/TSE2002
-> +	} elsif ($chip = 5) {
-> +		return unless $manid = 0x00;		# MAXIM
-> +		return unless $devid = 0x3e;		# MAX6604
-> +	} elsif ($chip = 6) {
-> +		return unless $manid = 0x00;		# MCP
-> +		return unless $devid = 0x20;		# MCP98242
-> +	} elsif ($chip = 7) {
-> +		return unless $manid = 0x00;		# MCP
-> +		return unless $devid = 0x21;		# MCP98243
-> +	} elsif ($chip = 8) {
-> +		return unless $manid = 0x00;		# MCP
-> +		return unless $devid = 0x00;		# MCP9843
-> +	} elsif ($chip = 9) {
-> +		return unless $manid = 0x1b;		# ONS
-> +		return unless $devid = 0x08;		# CAT6095 / CAT34TS02
-> +	} elsif ($chip = 10) {
-> +		return unless $manid = 0x10;		# STMicrolectronics
-> +		return unless $devid = 0x00;		# STTS424E02
->  	}
->  
->  	# Now, do it all again with words. Note that we get
-> @@ -5358,10 +5433,37 @@
->  	return if $manid < 0 || $devid < 0;
->  	if ($chip = 0) {
->  		return unless $manid = 0x4a10;		# STMicrolectronics
-> -		return unless ($devid & 0xfeff) = 0x0000; # STTS424
-> +		return unless ($devid & 0xfeff) = 0x0001; # STTS424
->  	} elsif ($chip = 1) {
->  		return unless $manid = 0x3111;		# NXP
->  		return unless ($devid & 0xfcff) = 0x00a2; # SE97
-> +	} elsif ($chip = 2) {
-> +		return unless $manid = 0x3111;		# NXP
-> +		return unless ($devid & 0xfcff) = 0x00a1; # SE98
-> +	} elsif ($chip = 3) {
-> +		return unless $manid = 0xd411;		# ADT
-> +		return unless $devid = 0x0108;		# ADT7408
-> +	} elsif ($chip = 4) {
-> +		return unless $manid = 0xb300;		# IDT
-> +		return unless $devid = 0x0329;		# TS3000/TSE2002
-> +	} elsif ($chip = 5) {
-> +		return unless $manid = 0x4d00;		# MAXIM
-> +		return unless $devid = 0x003e;		# MAX6604
-> +	} elsif ($chip = 6) {
-> +		return unless $manid = 0x5400;		# MCP
-> +		return unless ($devid & 0xfcff) = 0x0020; # MCP98242
-> +	} elsif ($chip = 7) {
-> +		return unless $manid = 0x5400;		# MCP
-> +		return unless ($devid & 0xfcff) = 0x0021; # MCP98243
-> +	} elsif ($chip = 8) {
-> +		return unless $manid = 0x5400;		# MCP
-> +		return unless ($devid & 0xfcff) = 0x0000; # MCP9843
-> +	} elsif ($chip = 9) {
-> +		return unless $manid = 0x091b;		# ONS
-> +		return unless ($devid & 0xe0ff) = 0x0008; # CAT6095 / CAT34TS02
-> +	} elsif ($chip = 10) {
-> +		return unless $manid = 0x4a10;		# STMicrolectronics
-> +		return unless ($devid & 0xfeff) = 0x0000; # STTS424E02
->  	}
->  
->  	return 5;
-> Index: CHANGES
-> =================================> --- CHANGES	(revision 5851)
-> +++ CHANGES	(working copy)
-> @@ -20,6 +20,7 @@
->                    Add support for STMicroelectronics STTS424
->                    Add support for NXP SE97 / SE97B
->                    Add reference to NCT6771F/NCT6772F/NCT6775F
-> +                  Add support for several JC42.4 compliant temperature sensors
->  
->  3.1.2 (2010-02-02)
->    libsensors: Support upcoming sysfs path to i2c adapters
+[root@fatman ~]# uname -a
+Linux fatman.my.home 2.6.33.5-124.fc13.x86_64 #1 SMP Fri Jun 11 09:38:12
+UTC 2010 x86_64 x86_64 x86_64 GNU/Linux
+
+[root@fatman ~]# sensors -v
+sensors version 3.1.2 with libsensors version 3.1.2
+
+[root@fatman ~]# sensors -f
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +78.8°F  (crit = +194.0°F)
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +82.4°F  (crit = +194.0°F)
+
+coretemp-isa-0002
+Adapter: ISA adapter
+Core 2:      +78.8°F  (crit = +194.0°F)
+
+coretemp-isa-0003
+Adapter: ISA adapter
+Core 3:      +82.4°F  (crit = +194.0°F)
+
+w83627dhg-isa-0290
+Adapter: ISA adapter
+Vcore:       +1.17 V  (min =  +0.92 V, max =  +1.48 V)
+DIMM_Volt:   +1.86 V  (min =  +1.62 V, max =  +2.00 V)
++3.3V:       +3.34 V  (min =  +2.98 V, max =  +3.63 V)
++12V:       +12.34 V  (min =  +2.95 V, max =  +3.60 V)   ALARM
+DIMM_Volt:   +1.86 V  (min =  +1.62 V, max =  +1.99 V)
++5V:         +5.15 V  (min =  +4.51 V, max =  +5.50 V)
++1.5V:       +1.51 V  (min =  +1.35 V, max =  +1.65 V)
+3VSB:        +3.36 V  (min =  +2.98 V, max =  +3.63 V)
+Vbat:        +3.25 V  (min =  +2.70 V, max =  +3.30 V)
+Back Fan:   2445 RPM  (min =  712 RPM, div = 8)
+P/S Fan:    1240 RPM  (min =  712 RPM, div = 8)
+MCH Fan:    5113 RPM  (min =  712 RPM, div = 8)
+Front Fan:     0 RPM  (min =  753 RPM, div = 128)  ALARM
+M/B Temp:    +89.6°F  (high = +167.0°F, hyst = +158.0°F)  sensor thermistor
+CPU Temp:    +78.8°F  (high = +179.6°F, hyst = +176.0°F)  sensor = diode
+
+My "local" Sensors "conf" file from the "/etc/sensors.d" directory:
+
+[root@fatman ~]# cat /etc/sensors.d/local.conf
+# libsensors configuration file
+# -----------------------------
+#
+# This default configuration file only includes statements which do not
+# differ from one mainboard to the next. Only label, compute and set
+# statements for internal voltage and temperature sensors are included.
+#
+# In general, local changes should not be added to this file, but rather
+# placed in custom configuration files located in /etc/sensors.d. This
+# approach makes further updates much easier.
+#
+# Such custom configuration files for specific mainboards can be found at
+# http://www.lm-sensors.org/wiki/Configurations
+
+chip "w83627dhg-*"
+
+    label in0 "Vcore"
+#    label in2 "AVCC"
+#    label in3 "+3.3V"
+    label in2 "+3.3V"
+    label in3 "+12V"
+    label in7 "3VSB"
+    label in8 "Vbat"
+
+    label in1 "DIMM_Volt"
+    label in4 "DIMM_Volt"
+    label in6 "+1.5V"
+    label in5 "+5V"
+    label fan1 "Back Fan"
+    label fan2 "P/S Fan"
+    label fan5 "Front Fan"
+    label fan4 "MCH Fan"
+
+    label temp1 "M/B Temp"
+    label temp2 "CPU Temp"
+
+#    ignore in1
+    ignore fan3
+    ignore cpu0_vid
+    ignore temp3
+
+    compute in3 @*((269/100)+1), @/((269/100)+1)
+    compute in5  @*4, @/4
+
+    set in2_min  3.3 * 0.90
+    set in2_max  3.3 * 1.10
+#    set in3_min  12 * 0.90
+#    set in3_max  12 * 1.10
+    set in7_min  3.3 * 0.90
+    set in7_max  3.3 * 1.10
+    set in8_min  3.0 * 0.90
+    set in8_max  3.0 * 1.10
 
 
--- 
-Jean Delvare
+Notes on how everything matches up:
+
+                     Motherboard
+SDT     LM_Sensors   Silkscreen  Usage
+Fan1      Fan2          Fan 1    Power Supply Fan
+Fan2      Fan5          Fan 2    Front Fan
+Fan3      Fan1          Fan 3    Back Fan
+MCH Fan   Fan4         MCH Fan   MCH Fan
+
+Any suggestions on getting the "set in3_min" and "set in3_max" values set
+correctly for +/- 10 percent limits?
+
+I determined through experimentation that the "AVCC" value from the
+"w83627dhg-*" section of "sensors3.conf" with label "in2" is a "+3.3
+Voltage" input. Changing values related to "in2" affected the "+3.3V
+Voltage" line in Supermicro's "sdt" command. Thus I figured that "in3" is
+the line used for "+12V Voltage" in "sdt". The compute line seems accurate
+and the formula was based on info found on the LM_Sensors Wiki for another
+chip.
+
+It appears there are 2 separate inputs, "in1" and "in4", for measuring
+DIMM Voltage. The motherboard has 2 DIMM sockets. Removing a DIM from
+"DIMM_B" did not affect the voltage read by either "in1" or "in4"
+suggesting that either input could be safely ignored.
+
+I ignore Temp3 since it displays negative temperatures even though it is
+located in a room with an ambient temperature of 78 degrees Fahrenheit.
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
