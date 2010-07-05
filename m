@@ -1,73 +1,57 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Thu, 22 Jul 2010 16:21:48 +0000
-Subject: [lm-sensors] [PATCH 1/5] Package Level Thermal Control and Power
-Message-Id: <20100722162148.GA21470@linux-os.sc.intel.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 05 Jul 2010 04:10:14 +0000
+Subject: [lm-sensors] [PATCH/RFC v2 0/4] hwmon: PMBus device driver
+Message-Id: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <94E56C79ECC49A4B87113985F1FEBA8D03F8AE2A4B@bgsmsx502.gar.corp.intel.com> <4C485DF1.5050407@linux.intel.com>
-In-Reply-To: <4C485DF1.5050407@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@linux.intel.com>, "Brown, Len" <len.brown@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Huaxu Wan <huaxu.wan@intel.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, "Darrick J. Wong" <djwong@us.ibm.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Crane Cai <crane.cai@amd.com>, Linus Walleij <linus.walleij@stericsson.com>, Ralf Baechle <ralf@linux-mips.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
+This patchset adds support for hardware monitoring features of PMBus devices.
 
-Add package level thermal and power limit feature support in the kernel.
+The driver has not yet been tested with actual hardware. It is submitted for
+early review and to solicit test coverage.
 
-The two MSRs and features are new starting with Intel's Sandy Bridge processor.
+A PMBus device emulator is provided for reference, to show the level of testing
+performed. I don't currently plan to submit this emulator in the final patchset.
+If there is interest to have it included, and if someone is willing to review
+the code, I will be happy to clean it up and include it.
 
-Please check Intel 64 and IA-32 Architectures SDMV Vol 3A 14.5.6 Power Limit
-Notification and 14.6 Package Level Thermal Management.
+I will test the driver with real HW for BMR453 and LTC2978 as soon as I get
+access to it. For other devices, I will add a remark that support is untested,
+unless I get feedback that a specific device was tested and is working. 
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-Reviewed-by: Len Brown <len.brown@intel.com>
 ---
+Open issues/questions:
+- The driver adds new power monitoring attributes to the hwmon sysfs API.
+  Need to get feedback if those are acceptable.
+- Currently no support for chips with multiple phases (PHASE command).
+  Adding this will require access to a system with a chip supporting
+  multiple phases (e.g., UCD9240/46/48) to determine a feasible implementation.
+- Need to add support for COEFFICIENTS command. Will require system with
+  real chip for testing, or will not add support at this time.
+- Need to add fan support. Will require system with real chip for testing, or
+  will not add support at this time.
+  Datasheets of chips with fan control support indicate that chip specific
+  code may be necessary. See UCD9240 or UCD90124 datasheets.
 
- include/asm/cpufeature.h          |    2 ++
- include/asm/msr-index.h           |    3 +++
- kernel/cpu/addon_cpuid_features.c |    2 ++
- 3 files changed, 7 insertions(+)
-
-diff --git a/arch/x86/include/asm/cpufeature.h b/arch/x86/include/asm/cpufeature.h
-index 4681459..79517b5 100644
---- a/arch/x86/include/asm/cpufeature.h
-+++ b/arch/x86/include/asm/cpufeature.h
-@@ -162,6 +162,8 @@
- #define X86_FEATURE_IDA		(7*32+ 0) /* Intel Dynamic Acceleration */
- #define X86_FEATURE_ARAT	(7*32+ 1) /* Always Running APIC Timer */
- #define X86_FEATURE_CPB		(7*32+ 2) /* AMD Core Performance Boost */
-+#define X86_FEATURE_PLN		(7*32+ 3) /* Intel Power Limit Notification */
-+#define X86_FEATURE_PTS		(7*32+ 4) /* Intel Package Thermal Status */
- 
- /* Virtualization flags: Linux defined */
- #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
-diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
-index 8c7ae43..5eaad6f 100644
---- a/arch/x86/include/asm/msr-index.h
-+++ b/arch/x86/include/asm/msr-index.h
-@@ -239,6 +239,9 @@
- 
- #define MSR_IA32_TEMPERATURE_TARGET	0x000001a2
- 
-+#define MSR_IA32_PACKAGE_THERM_STATUS		0x000001b1
-+#define MSR_IA32_PACKAGE_THERM_INTERRUPT	0x000001b2
-+
- /* MISC_ENABLE bits: architectural */
- #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
- #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
-diff --git a/arch/x86/kernel/cpu/addon_cpuid_features.c b/arch/x86/kernel/cpu/addon_cpuid_features.c
-index 10fa568..c1f4b98 100644
---- a/arch/x86/kernel/cpu/addon_cpuid_features.c
-+++ b/arch/x86/kernel/cpu/addon_cpuid_features.c
-@@ -32,6 +32,8 @@ void __cpuinit init_scattered_cpuid_features(struct cpuinfo_x86 *c)
- 	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
- 		{ X86_FEATURE_IDA,   		CR_EAX, 1, 0x00000006 },
- 		{ X86_FEATURE_ARAT,  		CR_EAX, 2, 0x00000006 },
-+		{ X86_FEATURE_PLN,		CR_EAX, 4, 0x00000006 },
-+		{ X86_FEATURE_PTS,		CR_EAX, 6, 0x00000006 },
- 		{ X86_FEATURE_APERFMPERF,	CR_ECX, 0, 0x00000006 },
- 		{ X86_FEATURE_CPB,   		CR_EDX, 9, 0x80000007 },
- 		{ X86_FEATURE_NPT,   		CR_EDX, 0, 0x8000000a },
+---
+v2 changes:
+- Calculate maximum number of attributes / sensors / booleans / labels instead
+  of using defines
+- Increased maximum number of supported pages to the PMBus maximum of 32.
+- Replaced most fixed size arrays with dynamically allocated arrays/structures.
+- Added comments and clarifications
+- Renamed local defines to start with PB_ or PMBUS_ prefix
+- Removed pages module parameter. Replaced with code to auto-detect the number
+  of supported pages.
+- Split probe code into several functions to make it better readable
+- Replaced _fault attributes with _lcrit_alarm and _crit_alarm attributes
+- Several other minor changes to address review feedback
+- PMBus emulator: Fixed fault status detection code. Also use more reasonable
+  power limits (eg 200W instead of 2kW).
 
 _______________________________________________
 lm-sensors mailing list
