@@ -1,36 +1,106 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 02 Jul 2010 09:57:34 +0000
-Subject: Re: [lm-sensors] Add an ADC with I2C interface on ARM
-Message-Id: <20100702115734.3f4faf81@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 05 Jul 2010 04:10:18 +0000
+Subject: [lm-sensors] [PATCH/RFC v2 4/4] hwmon: sysfs API updates
+Message-Id: <1278303018-22069-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <SNT129-W61DE5562B64ECD434E5D25B9CE0@phx.gbl>
-In-Reply-To: <SNT129-W61DE5562B64ECD434E5D25B9CE0@phx.gbl>
+References: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, "Darrick J. Wong" <djwong@us.ibm.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Crane Cai <crane.cai@amd.com>, Linus Walleij <linus.walleij@stericsson.com>, Ralf Baechle <ralf@linux-mips.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Salut Tony,
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/sysfs-interface |   37 +++++++++++++++++++++++++++++-----
+ 1 files changed, 31 insertions(+), 6 deletions(-)
 
-On Fri, 2 Jul 2010 11:39:49 +0200, Tony Mozi wrote:
-> Hi all,
-> I try to enable the communication between an ADC (ADS7823) and a board with an ARM chip.
-> 
-> In /dev, I have i2c-0,... i2c-3. So, I suppose that it is not necessary to add another.
-
-To add another what?
-
-> The board has already an internal ADC and I communicate with it without problem.
-> When I start my program, there is no activity on SCL and SDA.
-> I use a loop when I write on the I2C bus but I see nothing.
-> Regarding the electronic part, it's ok, supply enables.
-> Have you got ideas?
-
-It's fundamentally an I2C question, so off-topic on this list. Try the
-linux-i2c list and you'll stand a better chance to get a useful reply.
-
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index d4e2917..2dcec0f 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -421,11 +421,12 @@ power[1-*]_accuracy		Accuracy of the power meter.
+ 				Unit: Percent
+ 				RO
+ 
+-power[1-*]_alarm		1 if the system is drawing more power than the
+-				cap allows; 0 otherwise.  A poll notification is
+-				sent to this file when the power use exceeds the
+-				cap.  This file only appears if the cap is known
+-				to be enforced by hardware.
++power[1-*]_alarm		1 if the system is drawing more power than cap
++				or max allows; 0 otherwise.  A poll notification
++				is sent to this file when the power use exceeds
++				the cap or max limit. If only cap is supported,
++				this file only appears if the cap is known to be
++				enforced by hardware.
+ 				RO
+ 
+ power[1-*]_cap			If power use rises above this limit, the
+@@ -450,6 +451,18 @@ power[1-*]_cap_min		Minimum cap that can be set.
+ 				Unit: microWatt
+ 				RO
+ 
++power[1-*]_max			Maximum power.
++				Unit: microWatt
++				RW
++
++power[1-*]_crit			Critical maximum power.
++				If power rises to or above this limit, the
++				system will take drastic action to reduce power
++				consumption, such as a system shutdown. At the
++				very least, a power fault will be generated.
++				Unit: microWatt
++				RO
++
+ **********
+ * Energy *
+ **********
+@@ -471,8 +484,14 @@ limit-related alarms, not both. The driver should just reflect the hardware
+ implementation.
+ 
+ in[0-*]_alarm
++in[0-*]_crit_alarm
++curr[1-*]_alarm
++curr[1-*]_crit_alarm
++power[1-*]_alarm
++power[1-*]_crit_alarm
+ fan[1-*]_alarm
+ temp[1-*]_alarm
++temp[1-*]_crit_alarm
+ 		Channel alarm
+ 		0: no alarm
+ 		1: alarm
+@@ -482,10 +501,17 @@ OR
+ 
+ in[0-*]_min_alarm
+ in[0-*]_max_alarm
++in[0-*]_lcrit_alarm
++in[0-*]_crit_alarm
++curr[1-*]_lcrit_alarm
++curr[1-*]_crit_alarm
++power[1-*]_min_alarm
++power[1-*]_max_alarm
+ fan[1-*]_min_alarm
+ fan[1-*]_max_alarm
+ temp[1-*]_min_alarm
+ temp[1-*]_max_alarm
++temp[1-*]_lcrit_alarm
+ temp[1-*]_crit_alarm
+ 		Limit alarm
+ 		0: no alarm
+@@ -497,7 +523,6 @@ to notify open diodes, unconnected fans etc. where the hardware
+ supports it. When this boolean has value 1, the measurement for that
+ channel should not be trusted.
+ 
+-in[0-*]_fault
+ fan[1-*]_fault
+ temp[1-*]_fault
+ 		Input fault condition
 -- 
-Jean Delvare
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
