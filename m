@@ -1,52 +1,33 @@
-From: "Fenghua Yu" <fenghua.yu@intel.com>
-Date: Wed, 28 Jul 2010 19:00:48 +0000
-Subject: [lm-sensors] [PATH V2 0/5] Package Level Thermal Control and Power
-Message-Id: <1280343653-26380-1-git-send-email-fenghua.yu@intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 06 Jul 2010 14:10:29 +0000
+Subject: Re: [lm-sensors] [RFC][PATCH] suspend resume lm75
+Message-Id: <20100706161029.6b2aef3f@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1280034827-5759-1-git-send-email-fenghua.yu@intel.com>
-In-Reply-To: <1280034827-5759-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, Huaxu Wan <huaxu.wan@intel.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
+To: lm-sensors@vger.kernel.org
 
-From: Fenghua Yu <fenghua.yu@intel.com>
+On Tue, 6 Jul 2010 19:29:07 +0530, Datta, Shubhrajyoti wrote:
+> There is a shutdown feature at suspend it can be enabled
+> to reduce current consumption and resume it can be switched
+> off.
+> 
+> - Removed the unnecessary cleanups 
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  drivers/hwmon/lm75.c |   37 +++++++++++++++++++++++++++++++++++++
+>  drivers/hwmon/lm75.h |    1 +
+>  2 files changed, 38 insertions(+), 0 deletions(-)
 
-The new MSRs PACKAGE_THERM_STATUS and PACKAGE_THERM_INTERRUPT and power limit
-notification are published in Intel 64 and IA32 SDM and first implemented on
-Intel Sandy Bridge platform. The following patch set supports the new features
-in Linux kernel. 
+I have this patch in my tree already. There is no point in sending it
+over again, it won't be merged before 2.6.36-rc1.
 
-Fenghua Yu (5):
-  Package Level Thermal Control and Power Limit Notification: enable
-    features
-  Package Level Thermal Control and Power Limit Notification: pkgtemp
-    hwmon driver
-  Package Level Thermal Control and Power Limit Notification: thermal
-    throttling handler
-  Package Level Thermal Control and Power Limit Notification: power
-    limit
-  Package Level Thermal Control and Power Limit Notification: pkgtemp
-    doc
-
- Documentation/hwmon/pkgtemp                |   36 +++
- arch/x86/configs/i386_defconfig            |    1 +
- arch/x86/configs/x86_64_defconfig          |    1 +
- arch/x86/include/asm/cpufeature.h          |    2 +
- arch/x86/include/asm/msr-index.h           |   17 +-
- arch/x86/kernel/cpu/addon_cpuid_features.c |    2 +
- arch/x86/kernel/cpu/mcheck/therm_throt.c   |  209 +++++++++++---
- drivers/hwmon/Kconfig                      |    7 +
- drivers/hwmon/Makefile                     |    1 +
- drivers/hwmon/pkgtemp.c                    |  456 ++++++++++++++++++++++++++++
- 10 files changed, 691 insertions(+), 41 deletions(-)
- create mode 100644 Documentation/hwmon/pkgtemp
- create mode 100644 drivers/hwmon/pkgtemp.c
+ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-lm75-add-suspend-and-resume.patch
 
 -- 
-1.7.2
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
