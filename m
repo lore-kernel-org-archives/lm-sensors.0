@@ -1,30 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 05 Jul 2010 15:23:53 +0000
-Subject: Re: [lm-sensors] [PATCH v4 1/2] hwmon: w83627ehf driver cleanup
-Message-Id: <20100705172353.3effa134@hyperion.delvare>
+From: Tobias Preclik <tobias@preclik.de>
+Date: Sun, 18 Jul 2010 12:02:52 +0000
+Subject: [lm-sensors] W83667HG-B testing
+Message-Id: <4C42ED6C.9030903@preclik.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1278195202-2683-1-git-send-email-guenter.roeck@ericsson.com>
-	<1278195202-2683-2-git-send-email-guenter.roeck@ericsson.com>
-	<20100704132442.07a5ef40@hyperion.delvare>
-	<20100704135010.GA21500@ericsson.com>
-	<20100705135900.457764e7@hyperion.delvare>
-In-Reply-To: <20100705135900.457764e7@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Iain <selsinork@gmail.com>, binximeng@gmail.com, jadcock@cox.net, Jim Cromie <jim.cromie@gmail.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, H Hartley Sweeten <hsweeten@visionengravers.com>, Ethan Lawrence <e.law87@yahoo.com>, Andrew Morton <akpm@linux-foundation.org>, birdie@permonline.ru, lars4910@hotmail.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Mon, 5 Jul 2010 13:59:00 +0200, Jean Delvare wrote:
-> I have no further objections to your patch, so I'll apply it now. Then
-> I'll publish the patches and update the stand-alone driver, and we can
-> call for testers.
+Hi,
 
-Standalone driver is available for testing:
-http://khali.linux-fr.org/devel/misc/w83667hg/
+my Zotac board H55-ITX features the W83667HG-B chip. I downloaded and
+compiled the standalone kernel module today. Here's the sensors output:
 
--- 
-Jean Delvare
+The module loads fine:
+
+# modprobe w83627ehf
+# tail -n 1 /var/log/messages
+Jul 18 13:42:58 leela kernel: [50378.028634] w83627ehf: Found W83667HG-B
+chip at 0xa10
+# sensors
+w83667hg-isa-0a10
+Adapter: ISA adapter
+in0:         +0.98 V  (min =3D  +0.00 V, max =3D  +1.74 V) =20
+in1:         +1.11 V  (min =3D  +0.10 V, max =3D  +0.20 V)   ALARM
+in2:         +3.36 V  (min =3D  +3.95 V, max =3D  +3.28 V)   ALARM
+in3:         +3.36 V  (min =3D  +1.57 V, max =3D  +2.10 V)   ALARM
+in4:         +1.10 V  (min =3D  +1.74 V, max =3D  +1.87 V)   ALARM
+in5:         +1.18 V  (min =3D  +1.02 V, max =3D  +1.30 V) =20
+in7:         +3.28 V  (min =3D  +3.23 V, max =3D  +2.62 V)   ALARM
+in8:         +3.34 V  (min =3D  +3.18 V, max =3D  +0.05 V)   ALARM
+fan1:          0 RPM  (min =3D 3515 RPM, div =3D 128)  ALARM
+fan2:       1022 RPM  (min =3D 1638 RPM, div =3D 8)  ALARM
+fan3:          0 RPM  (min =3D  958 RPM, div =3D 128)  ALARM
+fan4:          0 RPM  (min =3D 10546 RPM, div =3D 128)  ALARM
+fan5:          0 RPM  (min =3D 3515 RPM, div =3D 128)  ALARM
+temp1:       +30.0=B0C  (high =3D -56.0=B0C, hyst =3D -17.0=B0C)  ALARM  se=
+nsor thermistor
+temp2:       +41.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D thermistor
+temp3:        -3.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D thermistor
+cpu0_vid:   +0.000 V
+
+Any more information desired?
+
+Regards,
+Tobias
 
 _______________________________________________
 lm-sensors mailing list
