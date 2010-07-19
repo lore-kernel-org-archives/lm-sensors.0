@@ -1,130 +1,22 @@
-From: Giel van Schijndel <me@mortis.eu>
-Date: Sat, 31 Jul 2010 23:31:21 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: f71882fg: Add support for the
-Message-Id: <20100731233121.GD3711@salidar.me.mortis.eu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0702292301421332640=="
+From: Chen Gong <gong.chen@linux.intel.com>
+Date: Mon, 19 Jul 2010 09:05:11 +0000
+Subject: [lm-sensors] [PATCH v2 0/3] hwmon: (coretemp) patches series
+Message-Id: <1279530314-5945-1-git-send-email-gong.chen@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100323141718.GA23172@salidar.me.mortis.eu>
- <1269385936-3440-1-git-send-email-me@mortis.eu>
- <4BA9CC64.5010807@redhat.com>
- <20100324092357.GE6368@salidar.me.mortis.eu>
- <4BA9EA0C.6070200@redhat.com>
-In-Reply-To: <4BA9EA0C.6070200@redhat.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
-
---===============0702292301421332640==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hxkXGo8AKqTJ+9QI"
-Content-Disposition: inline
-
-
---hxkXGo8AKqTJ+9QI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Mar 24, 2010 at 11:31:40 +0100, Hans de Goede wrote:
-> On 03/24/2010 10:23, Giel van Schijndel wrote:
->> On Wed, Mar 24, 2010 at 09:25:08 +0100, Hans de Goede wrote:
->>> See comments inline.
->>>
->>> On 03/24/2010 12:12 AM, Giel van Schijndel wrote:
->>>> Allow device probing to recognise the Fintek F71808E.
->>>>=20
->>>> Sysfs interface:
->>>>    * Fan/pwm control is the same as for F71889FG
->>>>    * Temperature and voltage sensor handling is largely the same as for
->>>>      the F71889FG
->>>>     - Has one temperature sensor less (doesn't have temp3)
->>>>     - Misses one voltage sensor (doesn't have V6, thus in6_input refer=
-s to
->>>>       what in7_input refers for F71889FG)
->>>>=20
->>>> For the purpose of the sysfs interface fxxxx_in_temp_attr[] is split up
->>>> such that it can largely be reused.
->>>>---
->>>>   Documentation/hwmon/f71882fg |    4 ++
->>>>   drivers/hwmon/Kconfig        |    6 ++--
->>>>   drivers/hwmon/f71882fg.c     |   80 ++++++++++++++++++++++++++++++++=
-+++++----
->>>>   3 files changed, 79 insertions(+), 11 deletions(-)
->>>>
->>>> diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
->>>> index 25e1cad..b290b87 100644
->>>> --- a/drivers/hwmon/f71882fg.c
->>>> +++ b/drivers/hwmon/f71882fg.c
->>>> @@ -1974,8 +2002,27 @@ static int __devinit f71882fg_probe(struct plat=
-form_device *pdev)
->>>> ... snip ...
->>>> +			/* fall through! */
->>>
->>> Ugh, please don't fall through, and then have an if below to only do
->>> some parts of the case falling through. This is quite confusing at
->>> first I thought your code was buggy I had to read it twice to notice
->>> the if. Instead just duplicate the following lines:
->>>> +			err =3D f71882fg_create_sysfs_files(pdev,
->>>> +					fxxxx_temp_attr,
->>>> +					ARRAY_SIZE(fxxxx_temp_attr));
->>> In the f71862fg case, end the f71862fg case with a break and remove
->>> the if test from the f71808fg case.
->>>
->>>>+		case f71808fg:
->>>>+			if (data->type =3D=3D f71808fg) {
->>>>+				err =3D f71882fg_create_sysfs_files(pdev,
->>>>+						f71808_in_attr,
->>>>+						ARRAY_SIZE(f71808_in_attr));
->>>>+				if (err)
->>>>+					goto exit_unregister_sysfs;
->>>>+			}
->>>>+			err =3D f71882fg_create_sysfs_files(pdev,
->>>>+					fxxxx_temp_attr,
->>>>+					ARRAY_SIZE(fxxxx_temp_attr));
->>>> ... snip ...
->>
->> Ack. New and improved patch follows this line.
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> hwmon: f71882fg: Add support for the Fintek F71808E
->=20
-> This new version looks good to me:
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Thanks.  Anyone else I need to poke in order to set this on track to
-mainline?
-
---=20
-Met vriendelijke groet,
-With kind regards,
-Giel van Schijndel
-
---hxkXGo8AKqTJ+9QI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkxUskkACgkQZBYm/87l50KKYwCeJULNPeFKasoXLwDaeByZbWVt
-g6oAoJYS69F3hgklQNyG6U9aXcX1+Ptv
-=5rXS
------END PGP SIGNATURE-----
-
---hxkXGo8AKqTJ+9QI--
-
-
---===============0702292301421332640==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+[PATCH v2 1/3] hwmon: (coretemp) update hotplug condition check
+[PATCH v2 2/3] hwmon: (coretemp) enable coretemp device add operation failure
+[PATCH v2 3/3] hwmon: (coretemp) documentation update and cleanup
+
+discard the original one patch for package thermal sensor and send
+them to all guys in the get_maintainers.pl
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0702292301421332640==--
