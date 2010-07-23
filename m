@@ -1,93 +1,156 @@
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-Date: Mon, 26 Jul 2010 08:16:28 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from
-Message-Id: <1280132188.22558.0.camel@maxim-laptop>
+From: Chen Gong <gong.chen@linux.intel.com>
+Date: Fri, 23 Jul 2010 02:09:28 +0000
+Subject: [lm-sensors] [PATCH V3 3/3] hwmon: (coretemp) documentation update
+Message-Id: <1279850968-12154-4-git-send-email-gong.chen@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100507095945.GB12190@owl>
-	 <1275111551.3427.4.camel@maxim-laptop>  <20100531013950.GA8265@owl>
-	 <1275496456.32562.4.camel@maxim-laptop>
-	 <1275509416.6277.2.camel@maxim-laptop>
-	 <1276347839.4481.22.camel@maxim-laptop>
-	 <625BA99ED14B2D499DC4E29D8138F1502C5405FCB0@shsmsx502.ccr.corp.intel.com>
-In-Reply-To: <625BA99ED14B2D499DC4E29D8138F1502C5405FCB0@shsmsx502.ccr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Wan, Huaxu" <huaxu.wan@intel.com>
-Cc: 'Huaxu Wan' <huaxu.wan@linux.intel.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'lm-sensors@lm-sensors.org'" <lm-sensors@lm-sensors.org>, "'khali@linux-fr.org'" <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-On Sun, 2010-06-13 at 10:27 +0800, Wan, Huaxu wrote: 
-> >On Wed, 2010-06-02 at 23:10 +0300, Maxim Levitsky wrote: 
-> >> On Wed, 2010-06-02 at 19:34 +0300, Maxim Levitsky wrote: 
-> >> > On Mon, 2010-05-31 at 09:39 +0800, Huaxu Wan wrote: 
-> >> > > On 08:39 Sat 29 May, Maxim Levitsky wrote:
-> >> > > > On Fri, 2010-05-07 at 17:59 +0800, Huaxu Wan wrote: 
-> >> > > > > The MSR IA32_TEMPERATURE_TARGET contains the TjMax 
-> >value in the newer
-> >> > > > > processers.
-> >> > > > 
-> >> > > > I know that TjMax on my system is 85, and now coretemp 
-> >reports wrong
-> >> > > > temperatures.
-> >> > > > First of all BIOS using stupid tricks actualy reports 
-> >CPU temperature
-> >> > > > through ACPI, and assuming it was correct TjMax is 85.
-> >> > > > It also shuts down the system if I 'lie' to it that 
-> >cpu temperature is
-> >> > > > 85C.
-> >> > > 
-> >> > > From the list at [1], the TjMax(Tjunction) of T5450 is 
-> >100C. Does anyone
-> >> > > here can make a double check?
-> >> > > 
-> >> > > [1] 
-> >http://ark.intel.com/Product.aspx?id0787&processor=T5450&spec
-> >-codes=SLA4F
-> >> > 
-> >> > This is very interesting.
-> >> > 
-> >> > With TjMax 85C, the CPUs idle temperature is reported at 
-> >around 45~50C
-> >> > GPU temperature that is around 50C 
-> >> > 
-> >> > BIOS also reports 45~50C.
-> >> > 
-> >> > BIOS hooks an SMI to CPU thermal report, and stores the 
-> >temperature it
-> >> > read in ram, then ACPI code reads it, reports and passes to the EC
-> >> > (embedded controller).
-> >> > 
-> >> > If I write myself 85 to embedded controller, systems shuts down.
-> >> > (values less that 85, eg 84 don't shut system).
-> >> 
-> >> 
-> >> Another clue is that right after resume from ram, after long delay
-> >> (~hour) the displayed temperature with TjMax 85 is 33C. Since room
-> >> temperature here is around 27C, this seems more plausible that 
-> >> 33 + 15 = 48C 
-> >
-> >
-> >Any update? 
-> 
-> I'm occupied by other things, sorry for slow response. But, as said in a 
-> spec, I can't remember which one now, there are too many, the relative
-> value read from DTS is accurate approaching to TjMax. The accuracy
-> deteriorates to +-10C at 50C. Any DTS reading below 50C should be
-> considered to indicate only a temperature below 50C and not a specific
-> temperature.
-> 
-> So, the value around 50C can't be taken as real chip temperature. I
-> would like this issue could be confirmed by more users to avoid it as a 
-> particular case. At the meantime, I still looking for a laptop with T5450, 
-> this may take some time. 
-> 
-> Thanks
-> Huaxu 
+update coretemp supported CPU TjMax lists and some cleanup work.
 
-Any update?
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ Documentation/hwmon/coretemp |  105 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/hwmon/Kconfig        |    2 +-
+ 2 files changed, 104 insertions(+), 3 deletions(-)
 
-Best regards,
-Maxim Levitsky
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index 92267b6..25568f8 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -21,8 +21,8 @@ Temperature is measured in degrees Celsius and measurement resolution is
+ 1 degree C. Valid temperatures are from 0 to TjMax degrees C, because
+ the actual value of temperature register is in fact a delta from TjMax.
+ 
+-Temperature known as TjMax is the maximum junction temperature of processor.
+-Intel defines this temperature as 85C or 100C. At this temperature, protection
++Temperature known as TjMax is the maximum junction temperature of processor,
++which depends on the CPU model. See table below. At this temperature, protection
+ mechanism will perform actions to forcibly cool down the processor. Alarm
+ may be raised, if the temperature grows enough (more than TjMax) to trigger
+ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+@@ -38,3 +38,104 @@ temp1_label	 - Contains string "Core X", where X is processor
+ The TjMax temperature is set to 85 degrees C if undocumented model specific
+ register (UMSR) 0xee has bit 30 set. If not the TjMax is 100 degrees C as
+ (sometimes) documented in processor datasheet.
++
++Appendix A. Known TjMax lists (TBD):
++Some information comes from ark.intel.com
++
++Process		Processor					TjMax(C)
++
++32nm		Core i3/i5/i7 Processors
++		i7 660UM/640/620, 640LM/620, 620M, 610E		105
++		i5 540UM/520/430, 540M/520/450/430		105
++		i3 330E, 370M/350/330				90 rPGA, 105 BGA
++		i3 330UM					105
++
++32nm		Core i7 Extreme Processors
++		980X						100
++
++32nm		Celeron Processors
++		U3400						105
++		P4505/P4500 					90
++
++45nm		Xeon Processors 5400 Quad-Core
++		X5492, X5482, X5472, X5470, X5460, X5450	85
++		E5472, E5462, E5450/40/30/20/10/05		85
++		L5408						95
++		L5430, L5420, L5410				70
++
++45nm		Xeon Processors 5200 Dual-Core
++		X5282, X5272, X5270, X5260			90
++		E5240						90
++		E5205, E5220					70, 90
++		L5240						70
++		L5238, L5215					95
++
++45nm		Atom Processors
++		D525/510/425/410				100
++		Z560/550/540/530P/530/520PT/520/515/510PT/510P	90
++		Z510/500					90
++		N475/470/455/450				100
++		N280/270					90
++		330/230						125
++
++45nm		Core2 Processors
++		Solo ULV SU3500/3300				100
++		T9900/9800/9600/9550/9500/9400/9300/8300/8100	105
++		T6670/6500/6400					105
++		T6600						90
++		SU9600/9400/9300				105
++		SP9600/9400					105
++		SL9600/9400/9380/9300				105
++		P9700/9600/9500/8800/8700/8600/8400/7570	105
++		P7550/7450					90
++
++45nm		Core2 Quad Processors
++		Q9100/9000					100
++
++45nm		Core2 Extreme Processors
++		X9100/9000					105
++		QX9300						100
++
++45nm		Core i3/i5/i7 Processors
++		i7 940XM/920					100
++		i7 840QM/820/740/720				100
++
++45nm		Celeron Processors
++		SU2300						100
++		900 						105
++
++65nm		Core2 Duo Processors
++		Solo U2200, U2100				100
++		U7700/7600/7500					100
++		T7800/7700/7600/7500/7400/7300/7250/7200/7100	100
++		T5870/5670/5600/5550/5500/5470/5450/5300/5270	100
++		T5250						100
++		T5800/5750/5200					85
++		L7700/7500/7400/7300/7200			100
++
++65nm		Core2 Extreme Processors
++		X7900/7800					100
++
++65nm		Core Duo Processors
++		U2500/2400					100
++		T2700/2600/2450/2400/2350/2300E/2300/2250/2050	100
++		L2500/2400/2300					100
++
++65nm		Core Solo Processors
++		U1500/1400/1300					100
++		T1400/1350/1300/1250				100
++
++65nm		Xeon Processors 5000 Quad-Core
++		X5000						90-95
++		E5000						80
++		L5000						70
++		L5318						95
++
++65nm		Xeon Processors 5000 Dual-Core
++		5080, 5063, 5060, 5050, 5030			80-90
++		5160, 5150, 5148, 5140, 5130, 5120, 5110	80
++		L5138						100
++
++65nm		Celeron Processors
++		T1700/1600					100
++		560/550/540/530					100
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index e19cf8e..d11cf2d 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -405,7 +405,7 @@ config SENSORS_CORETEMP
+ 	help
+ 	  If you say yes here you get support for the temperature
+ 	  sensor inside your CPU. Most of the family 6 CPUs
+-	  are supported. Check documentation/driver for details.
++	  are supported. Check Documentation/hwmon/coretemp for details.
+ 
+ config SENSORS_IBMAEM
+ 	tristate "IBM Active Energy Manager temperature/power sensors and control"
+-- 
+1.7.2.rc3
 
 
 _______________________________________________
