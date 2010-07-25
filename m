@@ -1,98 +1,253 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 02 Jul 2010 15:03:06 +0000
-Subject: Re: [lm-sensors] config for Gigabyte P55-US3L
-Message-Id: <20100702170306.27fc1d0b@hyperion.delvare>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Sun, 25 Jul 2010 05:13:45 +0000
+Subject: [lm-sensors] [PATH V2 3/5] Package Level Thermal Control and Power
+Message-Id: <1280034827-5759-4-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.2.00.1006301403230.25622@localhost.localdomain>
-In-Reply-To: <alpine.DEB.2.00.1006301403230.25622@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Yuri,
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-On Thu, 1 Jul 2010 16:12:54 +0400 (MSD), yuri.nefedov@gmail.com wrote:
->=20
->    Hi Jean,
->=20
-> On Wed, 30 Jun 2010, Jean Delvare wrote:
->=20
-> >>
-> >>   Unfortunately wiki page (http://www.lm-sensors.org/wiki/Configuratio=
-ns)
-> >>   is not working  (requires authorization).
-> >
-> > It is working. There's no rule stating that all wikis in the world have
-> > to be publicly writable.
-> >
->=20
->     Yes, you are right. Probably it will be good to add on this page
->     a link to mailing list with sentence to send configuration to it.
+Add package level thermal throttle interrupt support. The interrupt handler
+increases package level thermal throttle count. It also logs the event in MCE
+log.
 
-Good point, I've updated the page. Hope you like it.
+The package level thermal throttle interrupt happens across threads in a
+package. Each thread handles the interrupt individually. User level application
+is supposed to retrieve correct event count and log based on package/thread
+topology. This is the same situation for core level interrupt handler.
 
-> >> -12V:       -12.01 V  (min =3D -10.84 V, max =3D -13.17 V)
-> >
-> > This one is wrong. in7 is 5VSB on all IT8720F chips, because it's
-> > internal. So you want:
-> >
-> >   label in7 "5VSB"
-> >   compute  in7  @ * (6.8/10+1), @ / (6.8/10+1)
-> >
-> > If the value isn't correct for you, then you probably need the
-> > following patch of mine:
-> > ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvar=
-e-hwmon/hwmon-it87-fix-in7-on-IT8720F.patch
-> >
-> > According to my notes, all Gigabyte boards need it (BIOS bug.)
->=20
->     Yes this value is wrong for this motherboard:
->=20
-> 5VSB:        +3.60 V  (min =3D  +4.49 V, max =3D  +5.51 V)   ALARM
->=20
->     I did not yet tried you patch.
+core_throttle_count and package_throttle_count are used for user interface.
+Previously only throttle_count is used for core throttle count. If you think
+new core_throttle_count name breaks user interface, I can change this part.
 
-I expect the patch to work, just try it if you can. If you can't, feel
-free to try the following sequence:
+This patch also fixes a bug which defines reverse THERM_INT_LOW_ENABLE bit and
+THERM_INT_HIGH_ENABLE bit.
 
-# rmmod it87
-# isaset -y -f 0x2e 0x87
-# isaset -y -f 0x2e 0x01
-# isaset -y -f 0x2e 0x55
-# isaset -y -f 0x2e 0x55
-# isaset -y -f 0x2e 0x07
-# isaset -y -f 0x2f 7
-# isaset -y -f 0x2e 0x2c
-# isaset -y -f 0x2f 0x02 0x02
-# isaset -y -f 0x2e 0x02
-# isaset -y -f 0x2f 0x02
-# modprobe it87
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Reviewed-by: Len Brown <len.brown@intel.com>
+---
+ arch/x86/include/asm/msr-index.h         |   10 +++-
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |   89 ++++++++++++++++++++++++------
+ 2 files changed, 79 insertions(+), 20 deletions(-)
 
->     I found that it is not the only bug in BIOS.
->     Yesterday the temperature of CPU was -30C.
->     After switching off/on the temperature returned to normal.
->=20
->     Also the voltages in4 and in6 are mysterious.
->     In the attachment the plots for them (weekly-voltage2.png)
->     and load average of the system (weekly-la.png).
->     Do you have any idea that it can be?
+diff --git a/arch/x86/include/asm/msr-index.h b/arch/x86/include/asm/msr-index.h
+index 5eaad6f..f1c1b82 100644
+--- a/arch/x86/include/asm/msr-index.h
++++ b/arch/x86/include/asm/msr-index.h
+@@ -224,8 +224,8 @@
+ #define MSR_IA32_THERM_CONTROL		0x0000019a
+ #define MSR_IA32_THERM_INTERRUPT	0x0000019b
+ 
+-#define THERM_INT_LOW_ENABLE		(1 << 0)
+-#define THERM_INT_HIGH_ENABLE		(1 << 1)
++#define THERM_INT_HIGH_ENABLE		(1 << 0)
++#define THERM_INT_LOW_ENABLE		(1 << 1)
+ 
+ #define MSR_IA32_THERM_STATUS		0x0000019c
+ 
+@@ -240,8 +240,14 @@
+ #define MSR_IA32_TEMPERATURE_TARGET	0x000001a2
+ 
+ #define MSR_IA32_PACKAGE_THERM_STATUS		0x000001b1
++
++#define PACKAGE_THERM_STATUS_PROCHOT		(1 << 0)
++
+ #define MSR_IA32_PACKAGE_THERM_INTERRUPT	0x000001b2
+ 
++#define PACKAGE_THERM_INT_HIGH_ENABLE		(1 << 0)
++#define PACKAGE_THERM_INT_LOW_ENABLE		(1 << 1)
++
+ /* MISC_ENABLE bits: architectural */
+ #define MSR_IA32_MISC_ENABLE_FAST_STRING	(1ULL << 0)
+ #define MSR_IA32_MISC_ENABLE_TCC		(1ULL << 1)
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index e1a0a3b..d307f9f 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -37,7 +37,7 @@
+ /*
+  * Current thermal throttling state:
+  */
+-struct thermal_state {
++struct _thermal_state {
+ 	bool			is_throttled;
+ 
+ 	u64			next_check;
+@@ -45,6 +45,11 @@ struct thermal_state {
+ 	unsigned long		last_throttle_count;
+ };
+ 
++struct thermal_state {
++	struct _thermal_state core;
++	struct _thermal_state package;
++};
++
+ static DEFINE_PER_CPU(struct thermal_state, thermal_state);
+ 
+ static atomic_t therm_throt_en	= ATOMIC_INIT(0);
+@@ -53,11 +58,13 @@ static u32 lvtthmr_init __read_mostly;
+ 
+ #ifdef CONFIG_SYSFS
+ #define define_therm_throt_sysdev_one_ro(_name)				\
+-	static SYSDEV_ATTR(_name, 0444, therm_throt_sysdev_show_##_name, NULL)
++	static SYSDEV_ATTR(_name, 0444,					\
++			   therm_throt_sysdev_show_##_name,		\
++				   NULL)				\
+ 
+-#define define_therm_throt_sysdev_show_func(name)			\
++#define define_therm_throt_sysdev_show_func(level, name)		\
+ 									\
+-static ssize_t therm_throt_sysdev_show_##name(				\
++static ssize_t therm_throt_sysdev_show_##level##_##name(		\
+ 			struct sys_device *dev,				\
+ 			struct sysdev_attribute *attr,			\
+ 			char *buf)					\
+@@ -66,21 +73,24 @@ static ssize_t therm_throt_sysdev_show_##name(				\
+ 	ssize_t ret;							\
+ 									\
+ 	preempt_disable();	/* CPU hotplug */			\
+-	if (cpu_online(cpu))						\
++	if (cpu_online(cpu)) {						\
+ 		ret = sprintf(buf, "%lu\n",				\
+-			      per_cpu(thermal_state, cpu).name);	\
+-	else								\
++			      per_cpu(thermal_state, cpu).level.name);	\
++	} else								\
+ 		ret = 0;						\
+ 	preempt_enable();						\
+ 									\
+ 	return ret;							\
+ }
+ 
+-define_therm_throt_sysdev_show_func(throttle_count);
+-define_therm_throt_sysdev_one_ro(throttle_count);
++define_therm_throt_sysdev_show_func(core, throttle_count);
++define_therm_throt_sysdev_one_ro(core_throttle_count);
++
++define_therm_throt_sysdev_show_func(package, throttle_count);
++define_therm_throt_sysdev_one_ro(package_throttle_count);
+ 
+ static struct attribute *thermal_throttle_attrs[] = {
+-	&attr_throttle_count.attr,
++	&attr_core_throttle_count.attr,
+ 	NULL
+ };
+ 
+@@ -106,16 +116,21 @@ static struct attribute_group thermal_throttle_attr_group = {
+  *          1 : Event should be logged further, and a message has been
+  *              printed to the syslog.
+  */
+-static int therm_throt_process(bool is_throttled)
++#define CORE_LEVEL	0
++#define PACKAGE_LEVEL	1
++static int therm_throt_process(bool is_throttled, int level)
+ {
+-	struct thermal_state *state;
++	struct _thermal_state *state;
+ 	unsigned int this_cpu;
+ 	bool was_throttled;
+ 	u64 now;
+ 
+ 	this_cpu = smp_processor_id();
+ 	now = get_jiffies_64();
+-	state = &per_cpu(thermal_state, this_cpu);
++	if (level = CORE_LEVEL)
++		state = &per_cpu(thermal_state, this_cpu).core;
++	else
++		state = &per_cpu(thermal_state, this_cpu).package;
+ 
+ 	was_throttled = state->is_throttled;
+ 	state->is_throttled = is_throttled;
+@@ -132,13 +147,18 @@ static int therm_throt_process(bool is_throttled)
+ 
+ 	/* if we just entered the thermal event */
+ 	if (is_throttled) {
+-		printk(KERN_CRIT "CPU%d: Temperature above threshold, cpu clock throttled (total events = %lu)\n", this_cpu, state->throttle_count);
++		printk(KERN_CRIT "CPU%d: %s temperature above threshold, cpu clock throttled (total events = %lu)\n",
++		      this_cpu,
++		      level = CORE_LEVEL ? "Core" : "Package",
++		      state->throttle_count);
+ 
+ 		add_taint(TAINT_MACHINE_CHECK);
+ 		return 1;
+ 	}
+ 	if (was_throttled) {
+-		printk(KERN_INFO "CPU%d: Temperature/speed normal\n", this_cpu);
++		printk(KERN_INFO "CPU%d: %s temperature/speed normal\n",
++		       this_cpu,
++		       level = CORE_LEVEL ? "Core" : "Package");
+ 		return 1;
+ 	}
+ 
+@@ -149,8 +169,19 @@ static int therm_throt_process(bool is_throttled)
+ /* Add/Remove thermal_throttle interface for CPU device: */
+ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev)
+ {
+-	return sysfs_create_group(&sys_dev->kobj,
+-				  &thermal_throttle_attr_group);
++	int err;
++	struct cpuinfo_x86 *c = &cpu_data(smp_processor_id());
++
++	err = sysfs_create_group(&sys_dev->kobj, &thermal_throttle_attr_group);
++	if (err)
++		return err;
++
++	if (cpu_has(c, X86_FEATURE_PTS))
++		err = sysfs_add_file_to_group(&sys_dev->kobj,
++					      &attr_package_throttle_count.attr,
++					      thermal_throttle_attr_group.name);
++
++	return err;
+ }
+ 
+ static __cpuinit void thermal_throttle_remove_dev(struct sys_device *sys_dev)
+@@ -230,10 +261,25 @@ device_initcall(thermal_throttle_init_device);
+ static void intel_thermal_interrupt(void)
+ {
+ 	__u64 msr_val;
++	struct cpuinfo_x86 *c = &cpu_data(smp_processor_id());
+ 
+ 	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
+-	if (therm_throt_process((msr_val & THERM_STATUS_PROCHOT) != 0))
++	if (therm_throt_process(msr_val & THERM_STATUS_PROCHOT,
++				CORE_LEVEL) != 0)
+ 		mce_log_therm_throt_event(msr_val);
++
++	if (cpu_has(c, X86_FEATURE_PTS)) {
++		rdmsrl(MSR_IA32_PACKAGE_THERM_STATUS, msr_val);
++		if (therm_throt_process(msr_val & PACKAGE_THERM_STATUS_PROCHOT,
++					PACKAGE_LEVEL) != 0)
++			/*
++			 * Set up the most significant bit to notify mce log
++			 * that this thermal event is a package level event.
++			 * This is a temp solution. May be changed in the future
++			 * with mce log infrasture.
++			 */
++			mce_log_therm_throt_event(((__u64)1 << 63) | msr_val);
++	}
+ }
+ 
+ static void unexpected_thermal_interrupt(void)
+@@ -338,6 +384,13 @@ void intel_init_thermal(struct cpuinfo_x86 *c)
+ 	wrmsr(MSR_IA32_THERM_INTERRUPT,
+ 		l | (THERM_INT_LOW_ENABLE | THERM_INT_HIGH_ENABLE), h);
+ 
++	if (cpu_has(c, X86_FEATURE_PTS)) {
++		rdmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT, l, h);
++		wrmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT,
++			l | (PACKAGE_THERM_INT_LOW_ENABLE
++		  | PACKAGE_THERM_INT_HIGH_ENABLE), h);
++	}
++
+ 	smp_thermal_vector = intel_thermal_interrupt;
+ 
+ 	rdmsr(MSR_IA32_MISC_ENABLE, l, h);
+-- 
+1.7.2
 
-Not really. You'd need to ask the motherboard manufacturer. Just a
-couple random ideas:
-
-* It seems that more voltages will follow the example of Vcore in the
-future, and change over time depending on operating frequency.
-
-* Voltage inputs can always be used for temperature monitoring. We've
-seen one case of this in the past, maybe you have a similar hardware
-setup. This is traditionally implemented with a resistor and a
-thermistor of equal value at 25=C2=B0C. Unfortunately, it all depends on the
-beta value of the thermistor.
-
-
---=20
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
