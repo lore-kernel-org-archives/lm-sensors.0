@@ -1,43 +1,59 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 27 Jul 2010 20:40:17 +0000
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Wed, 28 Jul 2010 09:32:16 +0000
 Subject: Re: [lm-sensors] asus_atk0110 on a p6td deluxe
-Message-Id: <AANLkTimgMSiJX9cYzbud25zzL3zZiHvfO33E9hgNTupo@mail.gmail.com>
+Message-Id: <4C4FF920.6010609@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <724895.29279.qm@web28512.mail.ukl.yahoo.com>
 In-Reply-To: <724895.29279.qm@web28512.mail.ukl.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jul 27, 2010 at 2:45 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> On 07/27/2010 01:03 PM, Luca Tettamanti wrote:
+Hi,
+
+On 07/27/2010 10:40 PM, Luca Tettamanti wrote:
+> On Tue, Jul 27, 2010 at 2:45 PM, Hans de Goede<hdegoede@redhat.com>  wrote:
+>> Hi,
 >>
->> On Mon, Jul 26, 2010 at 11:18 PM, Marco<jjletho67-ml@yahoo.it>  wrote:
+>> On 07/27/2010 01:03 PM, Luca Tettamanti wrote:
 >>>
->>> i'm attaching the DSDT file. If i well understood  you are able to look
->>> inside
->>> it...
+>>> On Mon, Jul 26, 2010 at 11:18 PM, Marco<jjletho67-ml@yahoo.it>    wrote:
+>>>>
+>>>> i'm attaching the DSDT file. If i well understood  you are able to look
+>>>> inside
+>>>> it...
+>>>
+>>> Ok, as expected the hwmon section does not contain additional entries.
+>>>
+>>> However, in GIT3 I see at least the following entries that are
+>>> connected to the hwmon chip:
+>>>
+>>> "BCLK Frequency"
+>>> "CPU Voltage" (another one, but for a different register)
+>>> "CPU Ratio"
+>>> "QPI/DRAM Core Volt"
+>>> "DRAM Bus Voltage"
 >>
->> Ok, as expected the hwmon section does not contain additional entries.
->>
->> However, in GIT3 I see at least the following entries that are
->> connected to the hwmon chip:
->>
->> "BCLK Frequency"
->> "CPU Voltage" (another one, but for a different register)
->> "CPU Ratio"
->> "QPI/DRAM Core Volt"
->> "DRAM Bus Voltage"
+>> Hmm, this sounds like its not hwmon, but voltage and clock
+>> control!!
 >
-> Hmm, this sounds like its not hwmon, but voltage and clock
-> control!!
+> Yes I know, but I don't plan to make them writable ;-)
+>
 
-Yes I know, but I don't plan to make them writable ;-)
+Ok,
 
-Luca
+Note even when not writable we still need to think about
+how to export them API wise as for example the voltages are
+not voltage sensors, but rather voltage control, and IMHO
+we should thus differentiate them from regular voltage sensors.
+
+Regards,
+
+Hans
+
+
+> Luca
 
 _______________________________________________
 lm-sensors mailing list
