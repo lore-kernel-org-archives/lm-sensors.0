@@ -1,12 +1,15 @@
 From: "Fenghua Yu" <fenghua.yu@intel.com>
-Date: Sun, 25 Jul 2010 05:13:47 +0000
+Date: Wed, 28 Jul 2010 19:00:53 +0000
 Subject: [lm-sensors] [PATH V2 5/5] Package Level Thermal Control and Power
-Message-Id: <1280034827-5759-6-git-send-email-fenghua.yu@intel.com>
+Message-Id: <1280343653-26380-6-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1280343653-26380-1-git-send-email-fenghua.yu@intel.com>
+In-Reply-To: <1280343653-26380-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, Huaxu Wan <huaxu.wan@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
 From: Fenghua Yu <fenghua.yu@intel.com>
 
