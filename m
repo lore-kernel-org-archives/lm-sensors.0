@@ -1,169 +1,222 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 05 Jul 2010 04:10:17 +0000
-Subject: [lm-sensors] [PATCH/RFC v2 3/4] hwmon: pmbus driver documentation
-Message-Id: <1278303018-22069-4-git-send-email-guenter.roeck@ericsson.com>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Fri, 30 Jul 2010 00:13:44 +0000
+Subject: [lm-sensors] [PATCH V3 3/5] Package Level Thermal Control and Power
+Message-Id: <1280448826-12004-4-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
+References: <1280448826-12004-1-git-send-email-fenghua.yu@intel.com>
+In-Reply-To: <1280448826-12004-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, "Darrick J. Wong" <djwong@us.ibm.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Crane Cai <crane.cai@amd.com>, Linus Walleij <linus.walleij@stericsson.com>, Ralf Baechle <ralf@linux-mips.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, Huaxu Wan <huaxu.wan@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+From: Fenghua Yu <fenghua.yu@intel.com>
+
+Add package level thermal throttle interrupt support. The interrupt handler
+increases package level thermal throttle count. It also logs the event in MCE
+log.
+
+The package level thermal throttle interrupt happens across threads in a
+package. Each thread handles the interrupt individually. User level application
+is supposed to retrieve correct event count and log based on package/thread
+topology. This is the same situation for core level interrupt handler. In the
+future, interrupt may be reported only per package or per core.
+
+core_throttle_count and package_throttle_count are used for user interface.
+Previously only throttle_count is used for core throttle count. If you think
+new core_throttle_count name breaks user interface, I can change this part.
+
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Reviewed-by: Len Brown <len.brown@intel.com>
 ---
- Documentation/hwmon/pmbus |  139 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 139 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/pmbus
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |   89 ++++++++++++++++++++++++------
+ 1 files changed, 71 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-new file mode 100644
-index 0000000..f5c256b
---- /dev/null
-+++ b/Documentation/hwmon/pmbus
-@@ -0,0 +1,139 @@
-+Kernel driver pmbus
-+==========
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index e1a0a3b..d307f9f 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -37,7 +37,7 @@
+ /*
+  * Current thermal throttling state:
+  */
+-struct thermal_state {
++struct _thermal_state {
+ 	bool			is_throttled;
+ 
+ 	u64			next_check;
+@@ -45,6 +45,11 @@ struct thermal_state {
+ 	unsigned long		last_throttle_count;
+ };
+ 
++struct thermal_state {
++	struct _thermal_state core;
++	struct _thermal_state package;
++};
 +
-+Supported chips:
-+  * Ericsson BMR45X series
-+    DC/DC Converter
-+    Prefix: 'bmr45x'
-+    Addresses scanned: -
-+    Datasheet:
-+ http://archive.ericsson.net/service/internet/picov/get?DocNo(701-EN/LZT146395
-+  * Linear Technology LTC2978
-+    Octal PMBus Power Supply Monitor and Controller
-+    Prefix: 'ltc2978'
-+    Addresses scanned: -
-+    Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
-+  * Maxim MAX16064
-+    Quad Power-Supply Controller
-+    Prefix: 'max16064'
-+    Addresses scanned: -
-+    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX16064.pdf
-+  * Maxim MAX8688
-+    Digital Power-Supply Controller/Monitor
-+    Prefix: 'max8688'
-+    Addresses scanned: -
-+    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX8688.pdf
-+  * Texas Instruments UCD92xx
-+    Digital PWM System Controller
-+    Prefix: 'ucd921x', 'ucd9220', 'ucd9240'
-+    Addresses scanned: -
-+    Datasheet: http://focus.ti.com/lit/ds/symlink/ucd9240.pdf
-+  * Generic PMBus devices
-+    Prefix: 'pmbus'
-+    Addresses scanned: -
-+    Datasheet: n.a.
+ static DEFINE_PER_CPU(struct thermal_state, thermal_state);
+ 
+ static atomic_t therm_throt_en	= ATOMIC_INIT(0);
+@@ -53,11 +58,13 @@ static u32 lvtthmr_init __read_mostly;
+ 
+ #ifdef CONFIG_SYSFS
+ #define define_therm_throt_sysdev_one_ro(_name)				\
+-	static SYSDEV_ATTR(_name, 0444, therm_throt_sysdev_show_##_name, NULL)
++	static SYSDEV_ATTR(_name, 0444,					\
++			   therm_throt_sysdev_show_##_name,		\
++				   NULL)				\
+ 
+-#define define_therm_throt_sysdev_show_func(name)			\
++#define define_therm_throt_sysdev_show_func(level, name)		\
+ 									\
+-static ssize_t therm_throt_sysdev_show_##name(				\
++static ssize_t therm_throt_sysdev_show_##level##_##name(		\
+ 			struct sys_device *dev,				\
+ 			struct sysdev_attribute *attr,			\
+ 			char *buf)					\
+@@ -66,21 +73,24 @@ static ssize_t therm_throt_sysdev_show_##name(				\
+ 	ssize_t ret;							\
+ 									\
+ 	preempt_disable();	/* CPU hotplug */			\
+-	if (cpu_online(cpu))						\
++	if (cpu_online(cpu)) {						\
+ 		ret = sprintf(buf, "%lu\n",				\
+-			      per_cpu(thermal_state, cpu).name);	\
+-	else								\
++			      per_cpu(thermal_state, cpu).level.name);	\
++	} else								\
+ 		ret = 0;						\
+ 	preempt_enable();						\
+ 									\
+ 	return ret;							\
+ }
+ 
+-define_therm_throt_sysdev_show_func(throttle_count);
+-define_therm_throt_sysdev_one_ro(throttle_count);
++define_therm_throt_sysdev_show_func(core, throttle_count);
++define_therm_throt_sysdev_one_ro(core_throttle_count);
 +
-+Author: Guenter Roeck <guenter.roeck@ericsson.com>
++define_therm_throt_sysdev_show_func(package, throttle_count);
++define_therm_throt_sysdev_one_ro(package_throttle_count);
+ 
+ static struct attribute *thermal_throttle_attrs[] = {
+-	&attr_throttle_count.attr,
++	&attr_core_throttle_count.attr,
+ 	NULL
+ };
+ 
+@@ -106,16 +116,21 @@ static struct attribute_group thermal_throttle_attr_group = {
+  *          1 : Event should be logged further, and a message has been
+  *              printed to the syslog.
+  */
+-static int therm_throt_process(bool is_throttled)
++#define CORE_LEVEL	0
++#define PACKAGE_LEVEL	1
++static int therm_throt_process(bool is_throttled, int level)
+ {
+-	struct thermal_state *state;
++	struct _thermal_state *state;
+ 	unsigned int this_cpu;
+ 	bool was_throttled;
+ 	u64 now;
+ 
+ 	this_cpu = smp_processor_id();
+ 	now = get_jiffies_64();
+-	state = &per_cpu(thermal_state, this_cpu);
++	if (level = CORE_LEVEL)
++		state = &per_cpu(thermal_state, this_cpu).core;
++	else
++		state = &per_cpu(thermal_state, this_cpu).package;
+ 
+ 	was_throttled = state->is_throttled;
+ 	state->is_throttled = is_throttled;
+@@ -132,13 +147,18 @@ static int therm_throt_process(bool is_throttled)
+ 
+ 	/* if we just entered the thermal event */
+ 	if (is_throttled) {
+-		printk(KERN_CRIT "CPU%d: Temperature above threshold, cpu clock throttled (total events = %lu)\n", this_cpu, state->throttle_count);
++		printk(KERN_CRIT "CPU%d: %s temperature above threshold, cpu clock throttled (total events = %lu)\n",
++		      this_cpu,
++		      level = CORE_LEVEL ? "Core" : "Package",
++		      state->throttle_count);
+ 
+ 		add_taint(TAINT_MACHINE_CHECK);
+ 		return 1;
+ 	}
+ 	if (was_throttled) {
+-		printk(KERN_INFO "CPU%d: Temperature/speed normal\n", this_cpu);
++		printk(KERN_INFO "CPU%d: %s temperature/speed normal\n",
++		       this_cpu,
++		       level = CORE_LEVEL ? "Core" : "Package");
+ 		return 1;
+ 	}
+ 
+@@ -149,8 +169,19 @@ static int therm_throt_process(bool is_throttled)
+ /* Add/Remove thermal_throttle interface for CPU device: */
+ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev)
+ {
+-	return sysfs_create_group(&sys_dev->kobj,
+-				  &thermal_throttle_attr_group);
++	int err;
++	struct cpuinfo_x86 *c = &cpu_data(smp_processor_id());
 +
++	err = sysfs_create_group(&sys_dev->kobj, &thermal_throttle_attr_group);
++	if (err)
++		return err;
 +
-+Description
-+-----------
++	if (cpu_has(c, X86_FEATURE_PTS))
++		err = sysfs_add_file_to_group(&sys_dev->kobj,
++					      &attr_package_throttle_count.attr,
++					      thermal_throttle_attr_group.name);
 +
-+This driver supports hardware montoring for various PMBus compliant devices.
-+It supports voltage, current, power, and temperature sensors as supported
-+by the device.
++	return err;
+ }
+ 
+ static __cpuinit void thermal_throttle_remove_dev(struct sys_device *sys_dev)
+@@ -230,10 +261,25 @@ device_initcall(thermal_throttle_init_device);
+ static void intel_thermal_interrupt(void)
+ {
+ 	__u64 msr_val;
++	struct cpuinfo_x86 *c = &cpu_data(smp_processor_id());
+ 
+ 	rdmsrl(MSR_IA32_THERM_STATUS, msr_val);
+-	if (therm_throt_process((msr_val & THERM_STATUS_PROCHOT) != 0))
++	if (therm_throt_process(msr_val & THERM_STATUS_PROCHOT,
++				CORE_LEVEL) != 0)
+ 		mce_log_therm_throt_event(msr_val);
 +
-+Each monitored channel has its own high and low limits, plus a critical
-+limit.
++	if (cpu_has(c, X86_FEATURE_PTS)) {
++		rdmsrl(MSR_IA32_PACKAGE_THERM_STATUS, msr_val);
++		if (therm_throt_process(msr_val & PACKAGE_THERM_STATUS_PROCHOT,
++					PACKAGE_LEVEL) != 0)
++			/*
++			 * Set up the most significant bit to notify mce log
++			 * that this thermal event is a package level event.
++			 * This is a temp solution. May be changed in the future
++			 * with mce log infrasture.
++			 */
++			mce_log_therm_throt_event(((__u64)1 << 63) | msr_val);
++	}
+ }
+ 
+ static void unexpected_thermal_interrupt(void)
+@@ -338,6 +384,13 @@ void intel_init_thermal(struct cpuinfo_x86 *c)
+ 	wrmsr(MSR_IA32_THERM_INTERRUPT,
+ 		l | (THERM_INT_LOW_ENABLE | THERM_INT_HIGH_ENABLE), h);
+ 
++	if (cpu_has(c, X86_FEATURE_PTS)) {
++		rdmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT, l, h);
++		wrmsr(MSR_IA32_PACKAGE_THERM_INTERRUPT,
++			l | (PACKAGE_THERM_INT_LOW_ENABLE
++		  | PACKAGE_THERM_INT_HIGH_ENABLE), h);
++	}
 +
-+
-+Usage Notes
-+-----------
-+
-+This driver does not probe for PMBus devices, since there is no register
-+which can be safely used to identify the chip (The MFG_ID register is not
-+supported by all chips), and since there is no well defined address range for
-+PMBus devices. You will have to instantiate the devices explicitly.
-+
-+Example: the following will load the driver for an LTC2978 at address 0x60
-+on I2C bus #1:
-+$ modprobe pmbus
-+$ echo ltc2978 0x60 > /sys/bus/i2c/devices/i2c-1/new_device
-+
-+
-+Sysfs entries
-+-------------
-+
-+When probing the chip, the driver identifies which PMBus registers are
-+supported, and determines available sensors from this information.
-+Attribute files only exist if respective sensors are suported by the chip.
-+Labels are provided to inform the user about the sensor associated with
-+a given sysfs entry.
-+
-+The following attributes are supported. Limits are read-write; all other
-+attributes are read-only.
-+
-+inX_input		Measured voltage. From READ_VIN or READ_VOUT register.
-+inX_min			Minumum Voltage.
-+			From VIN_UV_WARN_LIMIT or VOUT_UV_WARN_LIMIT register.
-+inX_max			Maximum voltage.
-+			From VIN_OV_WARN_LIMIT or VOUT_OV_WARN_LIMIT register.
-+inX_lcrit		Critical minumum Voltage.
-+			From VIN_UV_FAULT_LIMIT or VOUT_UV_FAULT_LIMIT register.
-+inX_crit		Critical maximum voltage.
-+			From VIN_OV_FAULT_LIMIT or VOUT_OV_FAULT_LIMIT register.
-+inX_min_alarm		Voltage low alarm. From VOLTAGE_UV_WARNING status.
-+inX_max_alarm		Voltage high alarm. From VOLTAGE_OV_WARNING status.
-+inX_lcrit_alarm		Voltage critical low alarm.
-+			From VOLTAGE_UV_FAULT status.
-+inX_crit_alarm		Voltage critical high alarm.
-+			From VOLTAGE_OV_FAULT status.
-+inX_label		"vin", "vcap", or "voutY"
-+
-+currX_input		Measured current. From READ_IIN or READ_IOUT register.
-+currX_max		Maximum current.
-+			From IIN_OC_WARN_LIMIT or IOUT_OC_WARN_LIMIT register.
-+currX_lcrit		Critical minumum output current.
-+			From IOUT_UC_FAULT_LIMIT register.
-+currX_crit		Critical maximum current.
-+			From IIN_OC_FAULT_LIMIT or IOUT_OC_FAULT_LIMIT register.
-+currX_alarm		Current high alarm.
-+			From IIN_OC_WARNING or IOUT_OC_WARNING status.
-+currX_lcrit_alarm	Output current critical low alarm.
-+			From IOUT_UC_FAULT status.
-+currX_crit_alarm	Current critical high alarm.
-+			From IIN_OC_FAULT or IOUT_OC_FAULT status.
-+currX_label		"iin" or "vinY"
-+
-+powerX_input		Measured power. From READ_PIN or READ_POUT register.
-+powerX_cap		Output power cap. From POUT_MAX register.
-+powerX_max		Power limit. From PIN_OP_WARN_LIMIT or
-+			POUT_OP_WARN_LIMIT register.
-+powerX_crit		Critical output power limit.
-+			From POUT_OP_FAULT_LIMIT register.
-+powerX_alarm		Power high alarm.
-+			From PIN_OP_WARNING or POUT_OP_WARNING status.
-+powerX_crit_alarm	Output power critical high alarm.
-+			From POUT_OP_FAULT status.
-+powerX_label		"pin" or "poutY"
-+
-+tempX_input		Measured tempererature.
-+			From READ_TEMPERATURE_X register.
-+tempX_min		Mimimum tempererature. From UT_WARN_LIMIT register.
-+tempX_max		Maximum tempererature. From OT_WARN_LIMIT register.
-+tempX_lcrit		Critical low tempererature.
-+			From UT_FAULT_LIMIT register.
-+tempX_crit		Critical high tempererature.
-+			From OT_FAULT_LIMIT register.
-+tempX_min_alarm		Chip temperature low alarm. Set by comparing
-+			READ_TEMPERATURE_X with UT_WARN_LIMIT if
-+			TEMP_UT_WARNING status is set.
-+tempX_max_alarm		Chip temperature high alarm. Set by comparing
-+			READ_TEMPERATURE_X with OT_WARN_LIMIT if
-+			TEMP_OT_WARNING status is set.
-+tempX_lcrit_alarm	Chip temperature critical low alarm. Set by comparing
-+			READ_TEMPERATURE_X with UT_FAULT_LIMIT if
-+			TEMP_UT_FAULT status is set.
-+tempX_crit_alarm	Chip temperature critical high alarm. Set by comparing
-+			READ_TEMPERATURE_X with OT_FAULT_LIMIT if
-+			TEMP_OT_FAULT status is set.
+ 	smp_thermal_vector = intel_thermal_interrupt;
+ 
+ 	rdmsr(MSR_IA32_MISC_ENABLE, l, h);
 -- 
-1.7.0.87.g0901d
+1.6.0.3
 
 
 _______________________________________________
