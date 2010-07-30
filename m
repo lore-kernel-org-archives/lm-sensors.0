@@ -1,57 +1,47 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 05 Jul 2010 04:10:14 +0000
-Subject: [lm-sensors] [PATCH/RFC v2 0/4] hwmon: PMBus device driver
-Message-Id: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Fri, 30 Jul 2010 00:13:41 +0000
+Subject: [lm-sensors] [PATCH V3 0/5] Package Level Thermal Control and Power
+Message-Id: <1280448826-12004-1-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, "Darrick J. Wong" <djwong@us.ibm.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Crane Cai <crane.cai@amd.com>, Linus Walleij <linus.walleij@stericsson.com>, Ralf Baechle <ralf@linux-mips.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, Huaxu Wan <huaxu.wan@intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-This patchset adds support for hardware monitoring features of PMBus devices.
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-The driver has not yet been tested with actual hardware. It is submitted for
-early review and to solicit test coverage.
+The new MSRs PACKAGE_THERM_STATUS and PACKAGE_THERM_INTERRUPT and power limit
+notification are published in Intel 64 and IA32 SDM and first implemented on
+Intel Sandy Bridge platform. The following patch set supports the new features
+in Linux kernel. 
 
-A PMBus device emulator is provided for reference, to show the level of testing
-performed. I don't currently plan to submit this emulator in the final patchset.
-If there is interest to have it included, and if someone is willing to review
-the code, I will be happy to clean it up and include it.
+Fenghua Yu (5):
+  Package Level Thermal Control and Power Limit Notification: enable
+    features
+  Package Level Thermal Control and Power Limit Notification: pkgtemp
+    hwmon driver
+  Package Level Thermal Control and Power Limit Notification: thermal
+    throttling handler
+  Package Level Thermal Control and Power Limit Notification: power
+    limit
+  Package Level Thermal Control and Power Limit Notification: pkgtemp
+    doc
 
-I will test the driver with real HW for BMR453 and LTC2978 as soon as I get
-access to it. For other devices, I will add a remark that support is untested,
-unless I get feedback that a specific device was tested and is working. 
+ Documentation/hwmon/pkgtemp                |   36 +++
+ arch/x86/configs/i386_defconfig            |    1 +
+ arch/x86/configs/x86_64_defconfig          |    1 +
+ arch/x86/include/asm/cpufeature.h          |    2 +
+ arch/x86/include/asm/msr-index.h           |   17 +-
+ arch/x86/kernel/cpu/addon_cpuid_features.c |    2 +
+ arch/x86/kernel/cpu/mcheck/therm_throt.c   |  206 ++++++++++---
+ drivers/hwmon/Kconfig                      |    7 +
+ drivers/hwmon/Makefile                     |    1 +
+ drivers/hwmon/pkgtemp.c                    |  456 ++++++++++++++++++++++++++++
+ 10 files changed, 688 insertions(+), 41 deletions(-)
+ create mode 100644 Documentation/hwmon/pkgtemp
+ create mode 100644 drivers/hwmon/pkgtemp.c
 
----
-Open issues/questions:
-- The driver adds new power monitoring attributes to the hwmon sysfs API.
-  Need to get feedback if those are acceptable.
-- Currently no support for chips with multiple phases (PHASE command).
-  Adding this will require access to a system with a chip supporting
-  multiple phases (e.g., UCD9240/46/48) to determine a feasible implementation.
-- Need to add support for COEFFICIENTS command. Will require system with
-  real chip for testing, or will not add support at this time.
-- Need to add fan support. Will require system with real chip for testing, or
-  will not add support at this time.
-  Datasheets of chips with fan control support indicate that chip specific
-  code may be necessary. See UCD9240 or UCD90124 datasheets.
-
----
-v2 changes:
-- Calculate maximum number of attributes / sensors / booleans / labels instead
-  of using defines
-- Increased maximum number of supported pages to the PMBus maximum of 32.
-- Replaced most fixed size arrays with dynamically allocated arrays/structures.
-- Added comments and clarifications
-- Renamed local defines to start with PB_ or PMBUS_ prefix
-- Removed pages module parameter. Replaced with code to auto-detect the number
-  of supported pages.
-- Split probe code into several functions to make it better readable
-- Replaced _fault attributes with _lcrit_alarm and _crit_alarm attributes
-- Several other minor changes to address review feedback
-- PMBus emulator: Fixed fault status detection code. Also use more reasonable
-  power limits (eg 200W instead of 2kW).
 
 _______________________________________________
 lm-sensors mailing list
