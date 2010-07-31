@@ -1,53 +1,83 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Jul 2010 07:21:09 +0000
-Subject: Re: [lm-sensors] [PATCH/RFC v2 4/4] hwmon: sysfs API updates
-Message-Id: <20100706092109.776c4779@hyperion.delvare>
+From: Giel van Schijndel <me@mortis.eu>
+Date: Sat, 31 Jul 2010 21:21:35 +0000
+Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: f71882fg: use a muxed resource
+Message-Id: <20100731212135.GB3711@salidar.me.mortis.eu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7173107110093259276=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1278303018-22069-1-git-send-email-guenter.roeck@ericsson.com>
-	<1278303018-22069-5-git-send-email-guenter.roeck@ericsson.com>
-	<20100705091857.77ce0077@hyperion.delvare>
-	<20100705213953.GA27095@ericsson.com>
-In-Reply-To: <20100705213953.GA27095@ericsson.com>
-MIME-Version: 1.0
+References: <20100325125005.6d58cfaf@lxorguk.ukuu.org.uk>
+ <1269523063-30346-1-git-send-email-me@mortis.eu>
+ <1269523063-30346-2-git-send-email-me@mortis.eu>
+ <20100425103540.GA5185@salidar.me.mortis.eu>
+In-Reply-To: <20100425103540.GA5185@salidar.me.mortis.eu>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+
+
+--===============7173107110093259276==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
+Content-Disposition: inline
+
+
+--JP+T4n/bALQSJXh8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Apr 25, 2010 at 12:35:40 +0200, Giel van Schijndel wrote:
+> On Thu, Mar 25, 2010 at 14:17:42 +0100, Giel van Schijndel wrote:
+>> Sleep while acquiring a resource lock on the Super I/O port. This
+>> should prevent collisions from causing the hardware probe to fail
+>> with -EBUSY.
+>=20
+> Fix a bug which caused f71882fg_find() to pretend to be succesfull on
+> Super I/O ports which didn't have a Fintek chip attached.  This was
+> caused by returning 0 instead of -ENODEV, adding several 'err =3D
+> -ENODEV' statements preceding the 'goto exit' statements fixed this.
+>=20
+> Patch follows this line:
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Sleep while acquiring a resource lock on the Super I/O port. This
+> should prevent collisions from causing the hardware probe to fail with
+> -EBUSY.
+>=20
+> Signed-off-by: Giel van Schijndel <me@mortis.eu>
+
+All of this patch's dependencies now reside in mainline, so I'd like to
+"renew" the request for applying it.
+
+--=20
+Met vriendelijke groet,
+With kind regards,
+Giel van Schijndel
+
+--JP+T4n/bALQSJXh8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkxUk98ACgkQZBYm/87l50ISyACeKr0sv9RE0iR5Jwleotj+WIXo
+JpkAn0gdr/wNbW1ytVRo9HNvA1drgMYH
+=9U23
+-----END PGP SIGNATURE-----
+
+--JP+T4n/bALQSJXh8--
+
+
+--===============7173107110093259276==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, Andrew Morton <akpm@linux-foundation.org>, "Ira W. Snyder" <iws@ovro.caltech.edu>, "Darrick J. Wong" <djwong@us.ibm.com>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Hans de Goede <hdegoede@redhat.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Crane Cai <crane.cai@amd.com>, Linus Walleij <linus.walleij@stericsson.com>, Ralf Baechle <ralf@linux-mips.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
-
-On Mon, 5 Jul 2010 14:39:53 -0700, Guenter Roeck wrote:
-> Hi Jean,
-> 
-> I noticed I did not copy the list with my reply, so here are are again,
-> with a couple of additional comments.
-> 
-> On Mon, Jul 05, 2010 at 03:18:57AM -0400, Jean Delvare wrote:
-> > On Sun, 4 Jul 2010 21:10:18 -0700, Guenter Roeck wrote:
-> > > @@ -482,10 +501,17 @@ OR
-> > >  
-> > >  in[0-*]_min_alarm
-> > >  in[0-*]_max_alarm
-> > > +in[0-*]_lcrit_alarm
-> > > +in[0-*]_crit_alarm
-> > > +curr[1-*]_lcrit_alarm
-> > > +curr[1-*]_crit_alarm
-> > 
-> > No _min and _max alarm for curr?
-> > 
-> Oversight. pmbus devices don't support currX_min and currX_min_alarm, only
-> currX_lcrit and currX_lcrit_alarm. The ltc4245 driver already supports
-> currX_max_alarm, though, so I'll add both for consistency.
-> 
-> The ltc4245 driver only supports currX_max_alarm, not currX_min_alarm, though.
-> Wonder if that should be changed to currX_alarm, to more closely follow the API.
-> Let me know and I'll submit a patch if needed.
-
-Both should be defined and supported, and the driver author chooses
-what fits his/her chip best.
-
--- 
-Jean Delvare
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7173107110093259276==--
