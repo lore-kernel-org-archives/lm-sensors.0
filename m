@@ -1,97 +1,88 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sun, 01 Aug 2010 06:12:40 +0000
+From: Giel van Schijndel <me@mortis.eu>
+Date: Sun, 01 Aug 2010 13:22:26 +0000
 Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: f71882fg: Add support for the
-Message-Id: <4C551058.20509@redhat.com>
+Message-Id: <20100801132226.GE3711@salidar.me.mortis.eu>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1863158817347574754=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100323141718.GA23172@salidar.me.mortis.eu> <1269385936-3440-1-git-send-email-me@mortis.eu> <4BA9CC64.5010807@redhat.com> <20100324092357.GE6368@salidar.me.mortis.eu> <4BA9EA0C.6070200@redhat.com> <20100731233121.GD3711@salidar.me.mortis.eu>
-In-Reply-To: <20100731233121.GD3711@salidar.me.mortis.eu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Giel van Schijndel <me@mortis.eu>
-Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+References: <20100323141718.GA23172@salidar.me.mortis.eu>
+ <1269385936-3440-1-git-send-email-me@mortis.eu>
+ <4BA9CC64.5010807@redhat.com>
+ <20100324092357.GE6368@salidar.me.mortis.eu>
+ <4BA9EA0C.6070200@redhat.com>
+ <20100731233121.GD3711@salidar.me.mortis.eu>
+ <4C551058.20509@redhat.com>
+In-Reply-To: <4C551058.20509@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, Wim Van Sebroeck <wim@iguana.be>, Laurens Leemans <laurens@signips.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi,
 
-On 08/01/2010 01:31 AM, Giel van Schijndel wrote:
-> On Wed, Mar 24, 2010 at 11:31:40 +0100, Hans de Goede wrote:
->> On 03/24/2010 10:23, Giel van Schijndel wrote:
->>> On Wed, Mar 24, 2010 at 09:25:08 +0100, Hans de Goede wrote:
->>>> See comments inline.
->>>>
->>>> On 03/24/2010 12:12 AM, Giel van Schijndel wrote:
->>>>> Allow device probing to recognise the Fintek F71808E.
->>>>>
->>>>> Sysfs interface:
->>>>>     * Fan/pwm control is the same as for F71889FG
->>>>>     * Temperature and voltage sensor handling is largely the same as for
->>>>>       the F71889FG
->>>>>      - Has one temperature sensor less (doesn't have temp3)
->>>>>      - Misses one voltage sensor (doesn't have V6, thus in6_input refers to
->>>>>        what in7_input refers for F71889FG)
->>>>>
->>>>> For the purpose of the sysfs interface fxxxx_in_temp_attr[] is split up
->>>>> such that it can largely be reused.
->>>>> ---
->>>>>    Documentation/hwmon/f71882fg |    4 ++
->>>>>    drivers/hwmon/Kconfig        |    6 ++--
->>>>>    drivers/hwmon/f71882fg.c     |   80 +++++++++++++++++++++++++++++++++++++----
->>>>>    3 files changed, 79 insertions(+), 11 deletions(-)
->>>>>
->>>>> diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
->>>>> index 25e1cad..b290b87 100644
->>>>> --- a/drivers/hwmon/f71882fg.c
->>>>> +++ b/drivers/hwmon/f71882fg.c
->>>>> @@ -1974,8 +2002,27 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
->>>>> ... snip ...
->>>>> +			/* fall through! */
->>>>
->>>> Ugh, please don't fall through, and then have an if below to only do
->>>> some parts of the case falling through. This is quite confusing at
->>>> first I thought your code was buggy I had to read it twice to notice
->>>> the if. Instead just duplicate the following lines:
->>>>> +			err = f71882fg_create_sysfs_files(pdev,
->>>>> +					fxxxx_temp_attr,
->>>>> +					ARRAY_SIZE(fxxxx_temp_attr));
->>>> In the f71862fg case, end the f71862fg case with a break and remove
->>>> the if test from the f71808fg case.
->>>>
->>>>> +		case f71808fg:
->>>>> +			if (data->type = f71808fg) {
->>>>> +				err = f71882fg_create_sysfs_files(pdev,
->>>>> +						f71808_in_attr,
->>>>> +						ARRAY_SIZE(f71808_in_attr));
->>>>> +				if (err)
->>>>> +					goto exit_unregister_sysfs;
->>>>> +			}
->>>>> +			err = f71882fg_create_sysfs_files(pdev,
->>>>> +					fxxxx_temp_attr,
->>>>> +					ARRAY_SIZE(fxxxx_temp_attr));
->>>>> ... snip ...
+--===============1863158817347574754==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Q8BnQc91gJZX4vDc"
+Content-Disposition: inline
+
+
+--Q8BnQc91gJZX4vDc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Aug 01, 2010 at 08:12:40 +0200, Hans de Goede wrote:
+> On 08/01/2010 01:31 AM, Giel van Schijndel wrote:
+>> On Wed, Mar 24, 2010 at 11:31:40 +0100, Hans de Goede wrote:
+>>> On 03/24/2010 10:23, Giel van Schijndel wrote:
+>>>> Ack. New and improved patch follows this line.
+>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>>> hwmon: f71882fg: Add support for the Fintek F71808E
 >>>
->>> Ack. New and improved patch follows this line.
->>> ==================================>>> hwmon: f71882fg: Add support for the Fintek F71808E
+>>> This new version looks good to me:
+>>> Acked-by: Hans de Goede<hdegoede@redhat.com>
 >>
->> This new version looks good to me:
->> Acked-by: Hans de Goede<hdegoede@redhat.com>
->
-> Thanks.  Anyone else I need to poke in order to set this on track to
-> mainline?
->
+>> Thanks.  Anyone else I need to poke in order to set this on track to
+>> mainline?
+>=20
+> No,
+>=20
+> Jean should have picked this up, I guess it has fallen through the cracks.
+>=20
+> I think it is probably best if you resend this patch and the watchdog
+> patches re-based against the latest upstream rc, then I'll re-review
+> them and ack them and Jean can then put them into his tree.
 
-No,
+Ack.  I'll resend them as replies to this mail.
 
-Jean should have picked this up, I guess it has fallen through the cracks.
+--=20
+Met vriendelijke groet,
+With kind regards,
+Giel van Schijndel
 
-I think it is probably best if you resend this patch and the watchdog patches
-re-based against the latest upstream rc, then I'll re-review them and ack
-them and Jean can then put them into his tree.
+--Q8BnQc91gJZX4vDc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Thanks & Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-Hans
+iEYEARECAAYFAkxVdRAACgkQZBYm/87l50JXQgCgjGFS6DWqWtnCOu9XCa2xJxAl
+qI4AoKZVUWhecyIc3WjGvJNFtvIv8/uz
+=Hyh7
+-----END PGP SIGNATURE-----
+
+--Q8BnQc91gJZX4vDc--
+
+
+--===============1863158817347574754==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1863158817347574754==--
