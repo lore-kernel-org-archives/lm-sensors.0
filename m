@@ -1,88 +1,127 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 Aug 2010 11:58:01 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ads7871) Fix ads7871_probe
-Message-Id: <20100822135801.4861066d@hyperion.delvare>
+From: Giel van Schijndel <me@mortis.eu>
+Date: Sun, 01 Aug 2010 13:30:54 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: f71882fg: use a muxed resource lock
+Message-Id: <1280669455-31283-1-git-send-email-me@mortis.eu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282048884.2626.2.camel@phoenix>
-	<20100817161048.51b42394@hyperion.delvare>
-In-Reply-To: <20100817161048.51b42394@hyperion.delvare>
+References: <20100801132226.GE3711@salidar.me.mortis.eu>
+In-Reply-To: <20100801132226.GE3711@salidar.me.mortis.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Axel Lin <axel.lin@gmail.com>, Paul Thomas <pthomas8589@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: 
+Cc: Laurens Leemans <laurens@signips.com>, Jonathan Cameron <jic23@cam.ac.uk>, Giel van Schijndel <me@mortis.eu>, Jean Delvare <khali@linux-fr.org>, Hans de Goede <hdegoede@redhat.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Axel, Paul,
+Sleep while acquiring a resource lock on the Super I/O port. This should
+prevent collisions from causing the hardware probe to fail with -EBUSY.
 
-On Tue, 17 Aug 2010 16:10:48 +0200, Jean Delvare wrote:
-> On Tue, 17 Aug 2010 20:41:24 +0800, Axel Lin wrote:
-> > This patch moves hwmon_device_register() to the end of ads7871_probe().
-> > So we can make sure the device exists and is properly initialized
-> > before the device is exposed to user-space.
-> > 
-> > Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> > ---
-> >  drivers/hwmon/ads7871.c |   12 ++++++------
-> >  1 files changed, 6 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
-> > index b300a20..45f5829 100644
-> > --- a/drivers/hwmon/ads7871.c
-> > +++ b/drivers/hwmon/ads7871.c
-> > @@ -176,12 +176,6 @@ static int __devinit ads7871_probe(struct spi_device *spi)
-> >  	if (status < 0)
-> >  		goto error_free;
-> >  
-> > -	pdata->hwmon_dev = hwmon_device_register(&spi->dev);
-> > -	if (IS_ERR(pdata->hwmon_dev)) {
-> > -		err = PTR_ERR(pdata->hwmon_dev);
-> > -		goto error_remove;
-> > -	}
-> > -
-> >  	spi_set_drvdata(spi, pdata);
-> >  
-> >  	/* Configure the SPI bus */
-> > @@ -204,6 +198,12 @@ static int __devinit ads7871_probe(struct spi_device *spi)
-> >  		goto error_remove;
-> >  	}
-> >  
-> > +	pdata->hwmon_dev = hwmon_device_register(&spi->dev);
-> > +	if (IS_ERR(pdata->hwmon_dev)) {
-> > +		err = PTR_ERR(pdata->hwmon_dev);
-> > +		goto error_remove;
-> > +	}
-> > +
-> >  	return 0;
-> >  
-> >  error_remove:
-> 
-> Applied, thanks.
+Signed-off-by: Giel van Schijndel <me@mortis.eu>
+---
+ drivers/hwmon/f71882fg.c |   32 +++++++++++++++++++-------------
+ 1 files changed, 19 insertions(+), 13 deletions(-)
 
-Hmm, looking at the code again as I was about to send the patch to
-Linus, it seems that the above fix isn't sufficient. One problem is
-that it makes little sense to create sysfs attributes for the device if
-the probe is going to fail. So sysfs file creation should be delayed
-until after the device presence check. A second, more important problem
-is that no error code is returned if sysfs_create_group() fails. The
-probe function will return success (0) while the device is not
-registered, which means trouble when the remove function is called
-later.
-
-The second problem is caused by the presence of two local variables
-carrying error values: err and status. The latter should be dropped to
-avoid the confusion, and the former shouldn't be initialized to 0, so
-that the compiler has a chance to warn about such issues.
-
-Axel, Paul, can either of you please send an updated patch as a
-replacement for this one, fixing the two remaining issues? Thanks.
-
-As a side note, I also noticed that struct ads7871_data has an unused
-member "update_lock". Someone familiar with the device and driver
-should check whether it should be used somewhere, or if it can be
-dropped.
-
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 7857ed3..267cb92 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -113,7 +113,7 @@ static struct platform_device *f71882fg_pdev;
+ /* Super-I/O Function prototypes */
+ static inline int superio_inb(int base, int reg);
+ static inline int superio_inw(int base, int reg);
+-static inline void superio_enter(int base);
++static inline int superio_enter(int base);
+ static inline void superio_select(int base, int ld);
+ static inline void superio_exit(int base);
+ 
+@@ -883,11 +883,20 @@ static int superio_inw(int base, int reg)
+ 	return val;
+ }
+ 
+-static inline void superio_enter(int base)
++static inline int superio_enter(int base)
+ {
++	/* Don't step on other drivers' I/O space by accident */
++	if (!request_muxed_region(base, 2, DRVNAME)) {
++		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
++				base);
++		return -EBUSY;
++	}
++
+ 	/* according to the datasheet the key must be send twice! */
+ 	outb(SIO_UNLOCK_KEY, base);
+ 	outb(SIO_UNLOCK_KEY, base);
++
++	return 0;
+ }
+ 
+ static inline void superio_select(int base, int ld)
+@@ -899,6 +908,7 @@ static inline void superio_select(int base, int ld)
+ static inline void superio_exit(int base)
+ {
+ 	outb(SIO_LOCK_KEY, base);
++	release_region(base, 2);
+ }
+ 
+ static inline int fan_from_reg(u16 reg)
+@@ -2239,21 +2249,15 @@ static int f71882fg_remove(struct platform_device *pdev)
+ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 	struct f71882fg_sio_data *sio_data)
+ {
+-	int err = -ENODEV;
+ 	u16 devid;
+-
+-	/* Don't step on other drivers' I/O space by accident */
+-	if (!request_region(sioaddr, 2, DRVNAME)) {
+-		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
+-				(int)sioaddr);
+-		return -EBUSY;
+-	}
+-
+-	superio_enter(sioaddr);
++	int err = superio_enter(sioaddr);
++	if (err)
++		return err;
+ 
+ 	devid = superio_inw(sioaddr, SIO_REG_MANID);
+ 	if (devid != SIO_FINTEK_ID) {
+ 		pr_debug(DRVNAME ": Not a Fintek device\n");
++		err = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+@@ -2280,6 +2284,7 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 	default:
+ 		printk(KERN_INFO DRVNAME ": Unsupported Fintek device: %04x\n",
+ 		       (unsigned int)devid);
++		err = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+@@ -2290,12 +2295,14 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 
+ 	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+ 		printk(KERN_WARNING DRVNAME ": Device not activated\n");
++		err = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+ 	*address = superio_inw(sioaddr, SIO_REG_ADDR);
+ 	if (*address = 0) {
+ 		printk(KERN_WARNING DRVNAME ": Base address not set\n");
++		err = -ENODEV;
+ 		goto exit;
+ 	}
+ 	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+@@ -2306,7 +2313,6 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
+ exit:
+ 	superio_exit(sioaddr);
+-	release_region(sioaddr, 2);
+ 	return err;
+ }
+ 
 -- 
-Jean Delvare
+1.6.4.4
+
 
 _______________________________________________
 lm-sensors mailing list
