@@ -1,60 +1,46 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 12 Aug 2010 18:31:21 +0000
-Subject: Re: [lm-sensors] [PATCH 3/6] hwmon: (pc87427) Add support for
-Message-Id: <20100812203121.4907714f@hyperion.delvare>
+From: Sander Eikelenboom <linux@eikelenboom.it>
+Date: Sat, 07 Aug 2010 16:10:35 +0000
+Subject: Re: [lm-sensors] Support for the Fintek F71889ED ,
+Message-Id: <371881832.20100807181035@eikelenboom.it>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100811171059.4fb5813f@hyperion.delvare>
-In-Reply-To: <20100811171059.4fb5813f@hyperion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 12 Aug 2010 10:16:09 -0700, Guenter Roeck wrote:
-> On Wed, 2010-08-11 at 11:10 -0400, Jean Delvare wrote:
-> > Add initial support for PWM outputs of the PC87427 Super-I/O chip.
-> > Only mode change and manual fan speed control are supported. Automatic
-> > mode configuration isn't supported, and won't be until at least one
-> > board is known, which makes uses of the PWM outputs.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> 
-> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> 
-> Minor question inline.
-> 
-> > (...)
-> > @@ -188,6 +196,61 @@ static inline u16 fan_to_reg(unsigned lo
-> >  }
-> > 
-> >  /*
-> > + * PWM registers and conversions
-> > + */
-> > +
-> > +#define PC87427_REG_PWM_ENABLE         0x10
-> > +#define PC87427_REG_PWM_DUTY           0x12
-> > +
-> > +#define PWM_ENABLE_MODE_MASK           (7 << 4)
-> > +#define PWM_ENABLE_CTLEN               (1 << 0)
-> > +
-> > +#define PWM_MODE_MANUAL                        (0 << 4)
-> > +#define PWM_MODE_AUTO                  (1 << 4)
-> > +#define PWM_MODE_OFF                   (2 << 4)
-> > +#define PWM_MODE_ON                    (7 << 4)
-> 
-> Just wondering ... ON is 0x01110000, not 0x01000000 ?
+Hi Hans,
 
-Yes.
+In the thread mentioned below you stated that a proper driver can only be made with a datasheet.
+I have mailed fintek, but haven't got a response .. none the less when i checked today the sheets seem to be on their site (although you perhaps allready knew).
 
-> No problem with it, only that the OFF overlaps the ON bit which seems a
-> bit odd.
+http://www.fintek.com.tw/files/productfiles/F71889_ab.pdf
+http://www.fintek.com.tw/files/productfiles/F71889_V0.28P.pdf
 
-This isn't a bitfield, this is a 3-bit value (as can be deduced from
-PWM_ENABLE_MODE_MASK.) No idea why they left values 3 to 6 unused,
-instead of simply going for a 2-bit value.
+Regards,
+
+Sander
+
+Friday, July 23, 2010, 2:52:48 AM, you wrote:
+
+> On Thu, Jul 22, 2010 at 06:41:30PM -0400, Sander Eikelenboom wrote:
+>> Hi All,
+>> 
+>> Although i haven't found a datasheet on Fintek's website for this chip(Fintek F71889ED), it can be found on more and more motherboards for sale at the moment.
+>> My motherboard, a MSI 890FXA-GD70 has one. I don't know if the lm-sensors project has contacts within fintek ?
+>> 
+>> If a module comes available i would like to test it.
+
+> See http://www.spinics.net/lists/lm-sensors/msg28628.html
+
+> Guenter
+
+
+
 
 -- 
-Jean Delvare
+Best regards,
+ Sander                            mailto:linux@eikelenboom.it
+
 
 _______________________________________________
 lm-sensors mailing list
