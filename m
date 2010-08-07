@@ -1,44 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 19 Aug 2010 21:51:24 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/coretemp: Remove warnings of
-Message-Id: <20100819215124.GA8097@ericsson.com>
+From: Sergey Ivanov <icegood1980@gmail.com>
+Date: Sat, 07 Aug 2010 20:26:12 +0000
+Subject: [lm-sensors] AOpen MK33 sensors
+Message-Id: <AANLkTinMaBfP8MX8CJxE38_Wj4dazE+as-+voGy_cZVa@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282172027-640-1-git-send-email-fenghua.yu@intel.com>
- <1282172027-640-2-git-send-email-fenghua.yu@intel.com>
- <20100819092423.00f76256@hyperion.delvare>
- <4C6D8026.2060800@zytor.com>
- <20100819232655.4223e61f@hyperion.delvare>
-In-Reply-To: <20100819232655.4223e61f@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>, Fenghua Yu <fenghua.yu@intel.com>, Chen Gong <gong.chen@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Huaxu Wan <huaxu.wan@intel.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 19, 2010 at 05:26:55PM -0400, Jean Delvare wrote:
-> On Thu, 19 Aug 2010 12:04:06 -0700, H. Peter Anvin wrote:
-> > On 08/19/2010 12:24 AM, Jean Delvare wrote:
-> > > 
-> > > Thanks for the fix, but it is already in my tree:
-> > > ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/hwmon-coretemp-fix-warning.patch
-> > > 
-> > > I'll send it to Linus as part as my next batch of hwmon fixes for
-> > > 2.6.36.
-> > 
-> > Hi Jean,
-> > 
-> > Are you overall hwmon maintainer now?  That job is currently listed as
-> > Orphan in the MAINTAINERS file.
-> 
-> MAINTAINERS is correct. I do not have the time, nor the will, to be the
-> single official maintainer of the hwmon subsystem. I would be happy to
-> be a co-maintainer, but nobody stepped in to co-maintain with me.
-> 
-I can step in if needed. I don't want to step on anyone's feet, though,
-and I would not want to be the sole maintainer, at least not yet - I just
-don't know the code well enough.
+On very old system with AOpen MK33 motherboard after
+-sensor-detect; yes to all questions
+- rebooting after installing chip via686a
+- running sensors
 
-Guenter
+i obtained:
+
+via686a-isa-6000
+Adapter: ISA adapter
+CPU core:    +1.80 V  (min =3D  +0.06 V, max =3D  +3.10 V)
++2.5V:       +0.30 V  (min =3D  +0.06 V, max =3D  +3.10 V)
+I/O:         +3.36 V  (min =3D  +3.12 V, max =3D  +3.45 V)
++5V:         +5.08 V  (min =3D  +4.73 V, max =3D  +5.20 V)
++12V:       +12.12 V  (min =3D +11.35 V, max =3D +12.48 V)
+CPU Fan:    5357 RPM  (min =3D 2732 RPM, div =3D 2)
+P/S Fan:    3461 RPM  (min =3D 2922 RPM, div =3D 2)
+SYS Temp:   +146.2=B0C  (high =3D +146.2=B0C, hyst =3D -70.9=B0C)
+CPU Temp:   +146.2=B0C  (high =3D +146.2=B0C, hyst =3D -70.9=B0C)
+SBr Temp:    +22.1=B0C  (high =3D +73.8=B0C, hyst =3D +143.4=B0C)
+
+What is supposed to mean? I use to get nervous when i see cpu
+temperature as +146.2=B0C :)
+
+--=20
+Kind regards,
+Sergey Ivanov
 
 _______________________________________________
 lm-sensors mailing list
