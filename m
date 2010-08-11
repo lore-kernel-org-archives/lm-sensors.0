@@ -1,90 +1,183 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Tue, 31 Aug 2010 21:01:13 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Get TjMax value from
-Message-Id: <20100831210113.GA30682@fenghua-desk.sc.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Aug 2010 15:08:09 +0000
+Subject: [lm-sensors] [PATCH 1/6] hwmon: (pc87427) Handle disabled fan
+Message-Id: <20100811170809.284a0a17@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100507095945.GB12190@owl> <1275111551.3427.4.camel@maxim-laptop> <20100531013950.GA8265@owl> <1275496456.32562.4.camel@maxim-laptop> <1275509416.6277.2.camel@maxim-laptop> <1276347839.4481.22.camel@maxim-laptop> <625BA99ED14B2D499DC4E29D8138F1502C5405FCB0@shsmsx502.ccr.corp.intel.com> <1280132188.22558.0.camel@maxim-laptop> <1283132556.2159.9.camel@owl>
-In-Reply-To: <1283132556.2159.9.camel@owl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Huaxu Wan <huaxu.wan@linux.jf.intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "Wan, Huaxu" <huaxu.wan@intel.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'lm-sensors@lm-sensors.org'" <lm-sensors@lm-sensors.org>, "'khali@linux-fr.org'" <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-On Sun, Aug 29, 2010 at 06:42:36PM -0700, Huaxu Wan wrote:
-> On Mon, 2010-07-26 at 11:16 +0300, Maxim Levitsky wrote:
-> > On Sun, 2010-06-13 at 10:27 +0800, Wan, Huaxu wrote: 
-> > > >On Wed, 2010-06-02 at 23:10 +0300, Maxim Levitsky wrote: 
-> > > >> On Wed, 2010-06-02 at 19:34 +0300, Maxim Levitsky wrote: 
-> > > >> > On Mon, 2010-05-31 at 09:39 +0800, Huaxu Wan wrote: 
-> > > >> > > On 08:39 Sat 29 May, Maxim Levitsky wrote:
-> > > >> > > > On Fri, 2010-05-07 at 17:59 +0800, Huaxu Wan wrote: 
-> > > >> > > > > The MSR IA32_TEMPERATURE_TARGET contains the TjMax 
-> > > >value in the newer
-> > > >> > > > > processers.
-> > > >> > > > 
-> > > >> > > > I know that TjMax on my system is 85, and now coretemp 
-> > > >reports wrong
-> > > >> > > > temperatures.
-> > > >> > > > First of all BIOS using stupid tricks actualy reports 
-> > > >CPU temperature
-> > > >> > > > through ACPI, and assuming it was correct TjMax is 85.
-> > > >> > > > It also shuts down the system if I 'lie' to it that 
-> > > >cpu temperature is
-> > > >> > > > 85C.
-> > > >> > > 
-> > > >> > > From the list at [1], the TjMax(Tjunction) of T5450 is 
-> > > >100C. Does anyone
-> > > >> > > here can make a double check?
-> > > >> > > 
-> > > >> > > [1] 
-> > > >http://ark.intel.com/Product.aspx?id0787&processor=T5450&spec
-> > > >-codes=SLA4F
-> > > >> > 
-> > > >> > This is very interesting.
-> > > >> > 
-> > > >> > With TjMax 85C, the CPUs idle temperature is reported at 
-> > > >around 45~50C
-> > > >> > GPU temperature that is around 50C 
-> > > >> > 
-> > > >> > BIOS also reports 45~50C.
-> > > >> > 
-> > > >> > BIOS hooks an SMI to CPU thermal report, and stores the 
-> > > >temperature it
-> > > >> > read in ram, then ACPI code reads it, reports and passes to the EC
-> > > >> > (embedded controller).
-> > > >> > 
-> > > >> > If I write myself 85 to embedded controller, systems shuts down.
-> > > >> > (values less that 85, eg 84 don't shut system).
-> > > >> 
-> > > >> 
-> > > >> Another clue is that right after resume from ram, after long delay
-> > > >> (~hour) the displayed temperature with TjMax 85 is 33C. Since room
-> > > >> temperature here is around 27C, this seems more plausible that 
-> > > >> 33 + 15 = 48C 
-> > > >
-> > > >
-> > > >Any update? 
-> > > 
-> > > I'm occupied by other things, sorry for slow response. But, as said in a 
-> > > spec, I can't remember which one now, there are too many, the relative
-> > > value read from DTS is accurate approaching to TjMax. The accuracy
-> > > deteriorates to +-10C at 50C. Any DTS reading below 50C should be
-> > > considered to indicate only a temperature below 50C and not a specific
-> > > temperature.
-> > > 
-> > > So, the value around 50C can't be taken as real chip temperature. I
-> > > would like this issue could be confirmed by more users to avoid it as a 
-> > > particular case. At the meantime, I still looking for a laptop with T5450, 
-> > > this may take some time. 
+Most fan input pins of the PC87427 can have alternate functions.
+Update the driver to check the configuration register and only support
+fan inputs which are really used for fan monitoring.
 
-Hi, Maxim,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/pc87427.c |   67 ++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 58 insertions(+), 9 deletions(-)
 
-Could you send out thermal zone info under /proc/acpi/thermal_zone/TZ*?
+--- linux-2.6.32-rc3.orig/drivers/hwmon/pc87427.c	2009-10-02 16:11:15.000000000 +0200
++++ linux-2.6.32-rc3/drivers/hwmon/pc87427.c	2009-10-11 14:27:30.000000000 +0200
+@@ -1,7 +1,7 @@
+ /*
+  *  pc87427.c - hardware monitoring driver for the
+  *              National Semiconductor PC87427 Super-I/O chip
+- *  Copyright (C) 2006 Jean Delvare <khali@linux-fr.org>
++ *  Copyright (C) 2006, 2008  Jean Delvare <khali@linux-fr.org>
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License version 2 as
+@@ -59,12 +59,21 @@ struct pc87427_data {
+ 	u8 fan_status[8];		/* register values */
+ };
+ 
++struct pc87427_sio_data {
++	u8 has_fanin;
++};
++
+ /*
+  * Super-I/O registers and operations
+  */
+ 
+ #define SIOREG_LDSEL	0x07	/* Logical device select */
+ #define SIOREG_DEVID	0x20	/* Device ID */
++#define SIOREG_CF2	0x22	/* Configuration 2 */
++#define SIOREG_CF3	0x23	/* Configuration 3 */
++#define SIOREG_CF4	0x24	/* Configuration 4 */
++#define SIOREG_CFB	0x2B	/* Configuration B */
++#define SIOREG_CFD	0x2D	/* Configuration D */
+ #define SIOREG_ACT	0x30	/* Device activation */
+ #define SIOREG_MAP	0x50	/* I/O or memory mapping */
+ #define SIOREG_IOBASE	0x60	/* I/O base address */
+@@ -393,6 +402,7 @@ static DEVICE_ATTR(name, S_IRUGO, show_n
+ 
+ static void __devinit pc87427_init_device(struct device *dev)
+ {
++	struct pc87427_sio_data *sio_data = dev->platform_data;
+ 	struct pc87427_data *data = dev_get_drvdata(dev);
+ 	int i;
+ 	u8 reg;
+@@ -404,6 +414,8 @@ static void __devinit pc87427_init_devic
+ 
+ 	/* Check which fans are enabled */
+ 	for (i = 0; i < 8; i++) {
++		if (!(sio_data->has_fanin & (1 << i)))	/* Not wired */
++			continue;
+ 		reg = pc87427_read8_bank(data, LD_FAN, BANK_FM(i),
+ 					 PC87427_REG_FAN_STATUS);
+ 		if (reg & FAN_STATUS_MONEN)
+@@ -411,12 +423,15 @@ static void __devinit pc87427_init_devic
+ 	}
+ 
+ 	if (!data->fan_enabled) {
+-		dev_dbg(dev, "Enabling all fan inputs\n");
+-		for (i = 0; i < 8; i++)
++		dev_dbg(dev, "Enabling monitoring of all fans\n");
++		for (i = 0; i < 8; i++) {
++			if (!(sio_data->has_fanin & (1 << i)))	/* Not wired */
++				continue;
+ 			pc87427_write8_bank(data, LD_FAN, BANK_FM(i),
+ 					    PC87427_REG_FAN_STATUS,
+ 					    FAN_STATUS_MONEN);
+-		data->fan_enabled = 0xff;
++		}
++		data->fan_enabled = sio_data->has_fanin;
+ 	}
+ }
+ 
+@@ -515,7 +530,8 @@ static struct platform_driver pc87427_dr
+ 	.remove		= __devexit_p(pc87427_remove),
+ };
+ 
+-static int __init pc87427_device_add(unsigned short address)
++static int __init pc87427_device_add(unsigned short address,
++				     const struct pc87427_sio_data *sio_data)
+ {
+ 	struct resource res = {
+ 		.start	= address,
+@@ -543,6 +559,13 @@ static int __init pc87427_device_add(uns
+ 		goto exit_device_put;
+ 	}
+ 
++	err = platform_device_add_data(pdev, sio_data,
++				       sizeof(struct pc87427_sio_data));
++	if (err) {
++		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
++		goto exit_device_put;
++	}
++
+ 	err = platform_device_add(pdev);
+ 	if (err) {
+ 		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
+@@ -558,9 +581,11 @@ exit:
+ 	return err;
+ }
+ 
+-static int __init pc87427_find(int sioaddr, unsigned short *address)
++static int __init pc87427_find(int sioaddr, unsigned short *address,
++			       struct pc87427_sio_data *sio_data)
+ {
+ 	u16 val;
++	u8 cfg, cfg_b;
+ 	int i, err = 0;
+ 
+ 	/* Identify device */
+@@ -599,6 +624,29 @@ static int __init pc87427_find(int sioad
+ 		address[i] = val;
+ 	}
+ 
++	/* Check which fan inputs are wired */
++	sio_data->has_fanin = (1 << 2) | (1 << 3);	/* FANIN2, FANIN3 */
++
++	cfg = superio_inb(sioaddr, SIOREG_CF2);
++	if (!(cfg & (1 << 3)))
++		sio_data->has_fanin |= (1 << 0);	/* FANIN0 */
++	if (!(cfg & (1 << 2)))
++		sio_data->has_fanin |= (1 << 4);	/* FANIN4 */
++
++	cfg = superio_inb(sioaddr, SIOREG_CFD);
++	if (!(cfg & (1 << 0)))
++		sio_data->has_fanin |= (1 << 1);	/* FANIN1 */
++
++	cfg = superio_inb(sioaddr, SIOREG_CF4);
++	if (!(cfg & (1 << 0)))
++		sio_data->has_fanin |= (1 << 7);	/* FANIN7 */
++	cfg_b = superio_inb(sioaddr, SIOREG_CFB);
++	if (!(cfg & (1 << 1)) && (cfg_b & (1 << 3)))
++		sio_data->has_fanin |= (1 << 5);	/* FANIN5 */
++	cfg = superio_inb(sioaddr, SIOREG_CF3);
++	if ((cfg & (1 << 3)) && !(cfg_b & (1 << 5)))
++		sio_data->has_fanin |= (1 << 6);	/* FANIN6 */
++
+ exit:
+ 	superio_exit(sioaddr);
+ 	return err;
+@@ -608,9 +656,10 @@ static int __init pc87427_init(void)
+ {
+ 	int err;
+ 	unsigned short address[2];
++	struct pc87427_sio_data sio_data;
+ 
+-	if (pc87427_find(0x2e, address)
+-	 && pc87427_find(0x4e, address))
++	if (pc87427_find(0x2e, address, &sio_data)
++	 && pc87427_find(0x4e, address, &sio_data))
+ 		return -ENODEV;
+ 
+ 	/* For now the driver only handles fans so we only care about the
+@@ -623,7 +672,7 @@ static int __init pc87427_init(void)
+ 		goto exit;
+ 
+ 	/* Sets global pdev as a side effect */
+-	err = pc87427_device_add(address[0]);
++	err = pc87427_device_add(address[0], &sio_data);
+ 	if (err)
+ 		goto exit_driver;
+ 
 
-Thanks.
-
--Fenghua
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
