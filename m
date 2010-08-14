@@ -1,67 +1,95 @@
-From: Yuri Ershov <ext-yuri.ershov@nokia.com>
-Date: Fri, 27 Aug 2010 14:33:20 +0000
-Subject: [lm-sensors] [PATCH 1/2] lis3: Add device owner
-Message-Id: <ee6b20c71d49b8438ced798a9e561dbbd2991cf6.1282647258.git.ext-yuri.kululin@nokia.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 14 Aug 2010 19:45:05 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.36
+Message-Id: <20100814214505.42480679@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282919601-21821-1-git-send-email-ext-yuri.ershov@nokia.com>
-In-Reply-To: <1282919601-21821-1-git-send-email-ext-yuri.ershov@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: eric.piel@tremplin-utc.net, samu.p.onkalo@nokia.com, akpm@linux-foundation.org, daniel@caiaq.de
-Cc: ext-yuri.kululin@nokia.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, ext-yuri.ershov@nokia.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Add device owner and change /dev/freefall file operations owner
-according to the used driver
+Hi Linus,
 
-Signed-off-by: Yuri Kululin <ext-yuri.kululin@nokia.com>
----
- drivers/hwmon/lis3lv02d.c |    8 ++++++--
- drivers/hwmon/lis3lv02d.h |    2 ++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Please pull hwmon subsystem updates for Linux 2.6.35 from:
 
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index e278f0e..0f1bd36 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -591,8 +591,7 @@ static int lis3lv02d_misc_fasync(int fd, struct file *file, int on)
- 	return fasync_helper(fd, file, on, &lis3_dev.async_queue);
- }
- 
--static const struct file_operations lis3lv02d_misc_fops = {
--	.owner   = THIS_MODULE,
-+static struct file_operations lis3lv02d_misc_fops = {
- 	.llseek  = no_llseek,
- 	.read    = lis3lv02d_misc_read,
- 	.open    = lis3lv02d_misc_open,
-@@ -1007,6 +1006,11 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
- 		goto out;
- 	}
- 
-+	if (dev->owner)
-+		lis3lv02d_misc_fops.owner = dev->owner;
-+	else
-+		lis3lv02d_misc_fops.owner = THIS_MODULE;
-+
- 	if (misc_register(&lis3lv02d_misc_device))
- 		printk(KERN_ERR DRIVER_NAME ": misc_register failed\n");
- out:
-diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-index 1f0a66f..e63dd3d 100644
---- a/drivers/hwmon/lis3lv02d.h
-+++ b/drivers/hwmon/lis3lv02d.h
-@@ -258,6 +258,8 @@ struct lis3lv02d {
- 	unsigned char		irq_cfg;
- 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
- 	struct mutex		mutex;     /* Serialize poll and selftest */
-+
-+	struct module		*owner;    /* Device owner */
- };
- 
- int lis3lv02d_init_device(struct lis3lv02d *lis3);
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+We have support for new chips (SMSC EMC2103 and Nuvoton W83667HG-B),
+improvements to the pc87427 driver, and random other small fixes,
+improvements and cleanups.
+
+ Documentation/hwmon/emc2103         |   33 ++
+ Documentation/hwmon/ltc4245         |   24 +-
+ Documentation/hwmon/pc87427         |   27 +-
+ Documentation/hwmon/sysfs-interface |   29 +-
+ Documentation/hwmon/w83627ehf       |   15 +-
+ MAINTAINERS                         |   14 +
+ drivers/hwmon/Kconfig               |   14 +-
+ drivers/hwmon/Makefile              |    1 +
+ drivers/hwmon/asc7621.c             |    9 +-
+ drivers/hwmon/emc1403.c             |   33 ++
+ drivers/hwmon/emc2103.c             |  740 ++++++++++++++++++++++++++++++
+ drivers/hwmon/it87.c                |   46 ++-
+ drivers/hwmon/k8temp.c              |    3 +-
+ drivers/hwmon/lm75.c                |   39 ++
+ drivers/hwmon/lm75.h                |    1 +
+ drivers/hwmon/ltc4245.c             |  177 +++++++-
+ drivers/hwmon/pc87360.c             |   31 +-
+ drivers/hwmon/pc87427.c             |  862 ++++++++++++++++++++++++++++++++---
+ drivers/hwmon/via-cputemp.c         |    2 +-
+ drivers/hwmon/w83627ehf.c           |   97 ++++-
+ include/linux/i2c/ltc4245.h         |   21 +
+ 21 files changed, 2085 insertions(+), 133 deletions(-)
+ create mode 100644 Documentation/hwmon/emc2103
+ create mode 100644 drivers/hwmon/emc2103.c
+ create mode 100644 include/linux/i2c/ltc4245.h
+
+---------------
+
+Alan Cox (1):
+      hwmon: (emc1403) Add power support
+
+Guenter Roeck (4):
+      hwmon: Add 3 critical limit attributes to sysfs-interface
+      hwmon: Add 4 current alarm/beep attributes to sysfs-interface
+      hwmon: (w83627ehf) Driver cleanup
+      hwmon: (w83627ehf) Add support for W83667HG-B
+
+H. Peter Anvin (1):
+      hwmon: (via-cputemp) Remove bogus "SHOW" global variable
+
+Ira W. Snyder (1):
+      hwmon: (ltc4245) Expose all GPIO pins as analog voltages
+
+Jean Delvare (11):
+      hwmon: (pc87360) Fix device resource declaration
+      hwmon: (it87) Export labels for internal sensors
+      hwmon: (asc7621) Clean up and improve detect function
+      hwmon: Remove in[0-*]_fault from sysfs-interface
+      hwmon: (pc87427) Handle disabled fan inputs properly
+      hwmon: (pc87427) Minor style cleanups
+      hwmon: (pc87427) Add support for manual fan speed control
+      hwmon: (pc87427) Add support for the second logical device
+      hwmon: (pc87427) Add temperature monitoring support
+      hwmon: (pc87427) Move sysfs file removal to a separate function
+      hwmon: (pc87427) Add a maintainer
+
+Julia Lawall (1):
+      hwmon: (k8temp) Adjust confusing if indentation
+
+Randy Dunlap (1):
+      hwmon: jc42 depends on I2C
+
+Shubhrajyoti Datta (1):
+      hwmon: (lm75) Add suspend/resume feature
+
+Steve Glendinning (1):
+      hwmon: Add driver for SMSC EMC2103 temperature monitor and fan controller
+
+Thanks,
 -- 
-1.7.1.1
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
