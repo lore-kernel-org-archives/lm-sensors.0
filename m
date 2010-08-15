@@ -1,85 +1,45 @@
-From: "Fenghua Yu" <fenghua.yu@intel.com>
-Date: Wed, 18 Aug 2010 22:53:47 +0000
-Subject: [lm-sensors] [PATCH] drivers/hwmon/pkgtemp: Fix improper locking in
-Message-Id: <1282172027-640-3-git-send-email-fenghua.yu@intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 15 Aug 2010 11:46:04 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Fix harmless build warning
+Message-Id: <20100815134604.5bf145cf@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282172027-640-1-git-send-email-fenghua.yu@intel.com>
-In-Reply-To: <1282172027-640-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rudolf Marek <r.marek@assembler.cz>, Huaxu Wan <huaxu.wan@intel.com>, H Peter Anvin <hpa@zytor.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
+To: lm-sensors@vger.kernel.org
 
-From: Fenghua Yu <fenghua.yu@intel.com>
+Fix the following build warning:
 
-When a sibling is added to dev_list after a cpu is hot-removed, pdev_list_mutex
-has been locked already. But pkgtemp_device_add() tries to lock pdev_list_mutex
-again. This is incorrect. The patch fixes this issue.
+  CC [M]  drivers/hwmon/coretemp.o
+drivers/hwmon/coretemp.c: In function "coretemp_init":
+drivers/hwmon/coretemp.c:521: warning: unused variable "n"
+drivers/hwmon/coretemp.c:521: warning: unused variable "p"
 
-The patch also removes __cpuinit for pkgtemp_device_add() to avoid section
-mismatch warning.
+Introduced by commit 851b29cb3b196cb66452ec964ab5f66c9c9cd1ed. When
+you drop code, you also have to drop the variables this code was
+using.
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Cc: Huaxu Wan <huaxu.wan@intel.com>
 ---
- drivers/hwmon/pkgtemp.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/hwmon/coretemp.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/hwmon/pkgtemp.c b/drivers/hwmon/pkgtemp.c
-index 74157fc..928a016 100644
---- a/drivers/hwmon/pkgtemp.c
-+++ b/drivers/hwmon/pkgtemp.c
-@@ -276,7 +276,7 @@ struct pdev_entry {
- static LIST_HEAD(pdev_list);
- static DEFINE_MUTEX(pdev_list_mutex);
- 
--static int __cpuinit pkgtemp_device_add(unsigned int cpu)
-+static int pkgtemp_device_add(unsigned int cpu)
+--- linux-2.6.36-rc0.orig/drivers/hwmon/coretemp.c	2010-08-15 10:24:54.000000000 +0200
++++ linux-2.6.36-rc0/drivers/hwmon/coretemp.c	2010-08-15 13:39:08.000000000 +0200
+@@ -518,7 +518,6 @@ static struct notifier_block coretemp_cp
+ static int __init coretemp_init(void)
  {
- 	int err;
- 	struct platform_device *pdev;
-@@ -341,26 +341,34 @@ static void pkgtemp_device_remove(unsigned int cpu)
- {
- 	struct pdev_entry *p, *n;
- 	unsigned int i;
--	int err;
+ 	int i, err = -ENODEV;
+-	struct pdev_entry *p, *n;
  
--	mutex_lock(&pdev_list_mutex);
- 	list_for_each_entry_safe(p, n, &pdev_list, list) {
- 		if (p->cpu != cpu)
- 			continue;
- 
-+		mutex_lock(&pdev_list_mutex);
- 		platform_device_unregister(p->pdev);
- 		list_del(&p->list);
- 		kfree(p);
-+		mutex_unlock(&pdev_list_mutex);
-+		/*
-+		 * Select one of removed cpu's siblings to represent sensor
-+		 * for this package.
-+		 * If there is no more running sibling in a package, the
-+		 * package sensor for this package is not available to user
-+		 * space any more.
-+		 */
- 		for_each_cpu(i, cpu_core_mask(cpu)) {
-+			int err;
-+
- 			if (i != cpu) {
- 				err = pkgtemp_device_add(i);
- 				if (!err)
- 					break;
- 			}
- 		}
--		break;
-+		return;
- 	}
--	mutex_unlock(&pdev_list_mutex);
- }
- 
- static int __cpuinit pkgtemp_cpu_callback(struct notifier_block *nfb,
+ 	/* quick check if we run Intel */
+ 	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+
 -- 
-1.6.0.3
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
