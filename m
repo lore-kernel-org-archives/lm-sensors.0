@@ -1,7 +1,7 @@
 From: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Date: Mon, 16 Aug 2010 09:17:36 +0000
+Date: Mon, 16 Aug 2010 09:21:38 +0000
 Subject: [lm-sensors] [PATCH] hwmon,
-Message-Id: <20100816091736.GA21437@alberich.amd.com>
+Message-Id: <20100816092138.GB21437@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100622084557.GA4524@loge.amd.com>
 In-Reply-To: <20100622084557.GA4524@loge.amd.com>
@@ -12,87 +12,77 @@ To: lm-sensors@vger.kernel.org
 
 From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-Commit 8bf0223ed515be24de0c671eedaff49e78bebc9c (hwmon, k8temp: Fix
-temperature reporting for ASB1 processor revisions) fixed temperature
-reporting for ASB1 CPUs. But one dual core CPU model (model 0x6b) was
-packaged both as AM2 (desktop) and ASB1 (mobile). Thus the commit
-leads to wrong temperature reporting for the AM2 CPU part.
+The family check in k8temp is not required because the driver is
+already bound to a northbridge device only used with K8 CPUs.
 
-The solution is to determine the package type for model 0x6b.
-
-This is done using BrandId from CPUID Fn8000_0001_EBX[15:0]. See
-"Constructing the processor Name String" in "Revision Guide for AMD
-NPT Family 0Fh Processors" (Rev. 3.46).
-
-Cc: Rudolf Marek <r.marek@assembler.cz>
-Cc: stable@kernel.org [.32.x .34.x, .35.x]
-Reported-by: Vladislav Guberinic <neosisani@gmail.com>
 Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
 ---
- drivers/hwmon/k8temp.c |   27 +++++++++++++++++++++++----
- 1 files changed, 23 insertions(+), 4 deletions(-)
-
-Sorry, but I missed that model 0x6b was also packaged as AM2.
-Please apply this fix.
-
-
-Thanks,
-
-Andreas
-
+ drivers/hwmon/k8temp.c |   49 +++++++++++++++++++++--------------------------
+ 1 files changed, 22 insertions(+), 27 deletions(-)
 
 diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-index 1fdd63e..bcb1a35 100644
+index bcb1a35..2210b21 100644
 --- a/drivers/hwmon/k8temp.c
 +++ b/drivers/hwmon/k8temp.c
-@@ -143,6 +143,28 @@ static const struct pci_device_id k8temp_ids[] = {
+@@ -182,36 +182,31 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
+ 	model = boot_cpu_data.x86_model;
+ 	stepping = boot_cpu_data.x86_mask;
  
- MODULE_DEVICE_TABLE(pci, k8temp_ids);
- 
-+static int is_rev_g_desktop(u8 model)
-+{
-+	u32 brandidx;
-+
-+	if (model < 0x69)
-+		return 0;
-+
-+	if (model = 0xc1 || model = 0x6c || model = 0x7c ||
-+	    model = 0x6f || model = 0x7f)
-+		return 0;
-+
-+	if (model = 0x6b) {
-+		/* differentiate between AM2 and ASB1 */
-+		brandidx = cpuid_ebx(0x80000001);
-+		brandidx = (brandidx >> 9) & 0x1f;
-+		if (brandidx > 0xa)
-+			return 0;
+-	switch (boot_cpu_data.x86) {
+-	case 0xf:
+-		/* feature available since SH-C0, exclude older revisions */
+-		if (((model = 4) && (stepping = 0)) ||
+-		    ((model = 5) && (stepping <= 1))) {
+-			err = -ENODEV;
+-			goto exit_free;
+-		}
++	/* feature available since SH-C0, exclude older revisions */
++	if (((model = 4) && (stepping = 0)) ||
++	    ((model = 5) && (stepping <= 1))) {
++		err = -ENODEV;
++		goto exit_free;
 +	}
 +
-+	return 1;
-+}
-+
- static int __devinit k8temp_probe(struct pci_dev *pdev,
- 				  const struct pci_device_id *id)
- {
-@@ -179,9 +201,7 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
- 				 "wrong - check erratum #141\n");
- 		}
++	/*
++	 * AMD NPT family 0fh, i.e. RevF and RevG:
++	 * meaning of SEL_CORE bit is inverted
++	 */
++	if (model >= 0x40) {
++		data->swap_core_select = 1;
++		dev_warn(&pdev->dev, "Temperature readouts might be "
++			 "wrong - check erratum #141\n");
++	}
  
--		if ((model >= 0x69) &&
--		    !(model = 0xc1 || model = 0x6c || model = 0x7c ||
--		      model = 0x6b || model = 0x6f || model = 0x7f)) {
-+		if (is_rev_g_desktop(model))
- 			/*
- 			 * RevG desktop CPUs (i.e. no socket S1G1 or
- 			 * ASB1 parts) need additional offset,
-@@ -189,7 +209,6 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
- 			 * ambient temperature
- 			 */
- 			data->temp_offset = 21000;
++	if (is_rev_g_desktop(model))
+ 		/*
+-		 * AMD NPT family 0fh, i.e. RevF and RevG:
+-		 * meaning of SEL_CORE bit is inverted
++		 * RevG desktop CPUs (i.e. no socket S1G1 or
++		 * ASB1 parts) need additional offset,
++		 * otherwise reported temperature is below
++		 * ambient temperature
+ 		 */
+-		if (model >= 0x40) {
+-			data->swap_core_select = 1;
+-			dev_warn(&pdev->dev, "Temperature readouts might be "
+-				 "wrong - check erratum #141\n");
 -		}
+-
+-		if (is_rev_g_desktop(model))
+-			/*
+-			 * RevG desktop CPUs (i.e. no socket S1G1 or
+-			 * ASB1 parts) need additional offset,
+-			 * otherwise reported temperature is below
+-			 * ambient temperature
+-			 */
+-			data->temp_offset = 21000;
+-
+-		break;
+-	}
++		data->temp_offset = 21000;
  
- 		break;
- 	}
+ 	pci_read_config_byte(pdev, REG_TEMP, &scfg);
+ 	scfg &= ~(SEL_PLACE | SEL_CORE);		/* Select sensor 0, core0 */
 -- 
 1.7.2
 
