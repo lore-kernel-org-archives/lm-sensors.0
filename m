@@ -1,110 +1,92 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Aug 2010 17:44:33 +0000
-Subject: Re: [lm-sensors] [PATCH 3/42] drivers/hwmon: Adjust confusing if
-Message-Id: <20100814194433.2e9b7aef@hyperion.delvare>
+From: Charles Pillar <pillarama@gmail.com>
+Date: Mon, 16 Aug 2010 04:19:19 +0000
+Subject: [lm-sensors] pwmconfig doesn't detect correlations properly
+Message-Id: <AANLkTimrcZ6rTTCn8th4fKYaE0LeNSpxfYYhyVYKZNmw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <Pine.LNX.4.64.1008052217240.31692@ask.diku.dk>
-	<AANLkTikGYhWCVW1HqdhwqRHaph54S9U4eKi7nNLHktMV@mail.gmail.com>
-In-Reply-To: <AANLkTikGYhWCVW1HqdhwqRHaph54S9U4eKi7nNLHktMV@mail.gmail.com>
+References: <AANLkTinN=fLZZyMNfHL5CShkRDOjMTUQeV+GZChUKdWy@mail.gmail.com>
+In-Reply-To: <AANLkTinN=fLZZyMNfHL5CShkRDOjMTUQeV+GZChUKdWy@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Charles Logan <cybercorecentre@gmail.com>
-Cc: Julia Lawall <julia@diku.dk>, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi Julia, Charles,
+Hi all,
+=A0=A0 I'm new here, apologies in.advance if I do something wrong. I
+believe that I have found a bug in pwmconfig. I first observed this
+behavior many many months ago and couldn't find anyone else with the
+problem so I just assumed it was just me. I've since stumbled on it
+again so I decided to look into it myself. I don't know if anyone is
+aware of the behavior I am seeing, but here it is...
 
-On Fri, 6 Aug 2010 11:04:20 +0200, Charles Logan wrote:
-> Corrected:
-> 
-> > // <smpl>
-> > @r disable braces5@
-> > position p1,p2;
-> > statement S1,S2;
-> > @@
-> >
-> > (
-> > if (...) { ... }
-> > |
-> > if (...) S1@p1 S2@p2
-> > )
-> >
-> > @script:python@
-> > p1 << r.p1;
-> > p2 << r.p2;
-> > @@
-> >
-> > if (p1[0].column = p2[0].column):
-> >  cocci.print_main("branch",p4)
-> >  cocci.print_secs("after",p5)
-> > // </smpl>
-> 
-> 
-> 
-> On Thu, Aug 5, 2010 at 10:17 PM, Julia Lawall <julia@diku.dk> wrote:
-> > From: Julia Lawall <julia@diku.dk>
-> >
-> > Move the if(err) statement after the if into the if branch indicated by its
-> > indentation.  The preceding if(err) test implies that err cannot be nonzero
-> > unless the if branch is taken.
-> >
-> > The semantic match that finds this problem is as follows:
-> > (http://coccinelle.lip6.fr/)
-> >
-> > // <smpl>
-> > @r disable braces4@
-> > position p1,p2;
-> > statement S1,S2;
-> > @@
-> >
-> > (
-> > if (...) { ... }
-> > |
-> > if (...) S1@p1 S2@p2
-> > )
-> >
-> > @script:python@
-> > p1 << r.p1;
-> > p2 << r.p2;
-> > @@
-> >
-> > if (p1[0].column = p2[0].column):
-> >  cocci.print_main("branch",p1)
-> >  cocci.print_secs("after",p2)
-> > // </smpl>
-> >
-> > Signed-off-by: Julia Lawall <julia@diku.dk>
-> >
-> > ---
-> >  drivers/hwmon/k8temp.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-> > index 8bdf80d..b9bb3e0 100644
-> > --- a/drivers/hwmon/k8temp.c
-> > +++ b/drivers/hwmon/k8temp.c
-> > @@ -252,12 +252,13 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
-> >                                   &sensor_dev_attr_temp3_input.dev_attr);
-> >                if (err)
-> >                        goto exit_remove;
-> > -               if (data->sensorsp & SEL_PLACE)
-> > +               if (data->sensorsp & SEL_PLACE) {
-> >                        err = device_create_file(&pdev->dev,
-> >                                           &sensor_dev_attr_temp4_input.
-> >                                           dev_attr);
-> >                        if (err)
-> >                                goto exit_remove;
-> > +               }
-> >        }
-> >
-> >        err = device_create_file(&pdev->dev, &dev_attr_name);
-> >
+Take for example a board with two or more PWM controllable fans both
+which of which the speed can be measured. Thus I have:
 
-Applied, thanks. Fortunately the bug is harmless, as noted in the patch
-comment.
+/sys/class/hwmon/hwmon0/pwm1
+/sys/class/hwmon/hwmon0/pwm1_enable
+/sys/class/hwmon/hwmon0/fan1_input
+/sys/class/hwmon/hwmon0/pwm2
+/sys/class/hwmon/hwmon0/pwm2_enable
+/sys/class/hwmon/hwmon0/fan2_input
+(etc...)
 
--- 
-Jean Delvare
+pwm1 & pwm1_enable =3D fan1_input
+pwm2 & pwm2_enable =3D fan2_input
+(etc...)
+
+I think this would be a fairly common set up? Indeed I have three
+machines that are setup this way (1 board has 2 fans, the other 2 have
+3 fans each)
+
+From what I can see, pwmconfig does this:
+
+pwm1_enable=3D0
+pwm2_enable=3D0
+wait...
+for each PWM:
+=A0=A0 this pwm_enable=3D1
+=A0=A0 this pwm=3D0
+=A0=A0 for each fan
+=A0=A0 =A0 =A0compare this fan before / after
+=A0=A0 =A0 =A0this pwm_enable=3D0
+=A0=A0 =A0 =A0check fan returns to normal
+=A0=A0 next fan
+next pwm
+
+The problem with this logic is that for each PWM, the pwm_enable is
+set to 1, then the first fan is tested, after the first fan is tested,
+the pwm is disabled and never re-enabled (until the next pwm)...
+This means the pwm1=FAn1 correlation is detected, but pwm2=FAn2 is not
+- but only because the pwm_enable is still set to 0 when the second
+and subsequent fans are tested...
+
+There are several ways to fix this, but after some pondering, I think
+that this logic might be most appropriate:
+
+pwm1_enable=3D0
+pwm2_enable=3D0
+wait...
+for each PWM:
+=A0=A0 for each fan
+=A0=A0 =A0 =A0this pwm_enable=3D1
+=A0=A0 =A0 =A0this pwm=3D0
+=A0=A0 =A0 =A0compare this fan before / after
+=A0=A0 =A0 =A0this pwm_enable=3D0
+=A0=A0 =A0 =A0check fan returns to normal
+=A0=A0 next fan
+next pwm
+
+This causes the given pwm/fan to stop/start once for each fan input,
+which might seem bad, but then each fan is individually checked to
+make sure that it has begun spinning again after pwm_enable is set to
+0... (as compared to stopping and starting once per pwm...)
+I have a patch which I can supply. It fixes the problem for me, but
+I'm not 100% sure if it introduces any other problems. Let me know if
+I should email it or submit somewhere etc...
+
+I would value hearing what others think about this problem...
+
+Thanks
+Charles
 
 _______________________________________________
 lm-sensors mailing list
