@@ -1,28 +1,46 @@
-From: "Yu, Fenghua" <fenghua.yu@intel.com>
-Date: Mon, 30 Aug 2010 19:15:46 +0000
-Subject: Re: [lm-sensors] [Patch-next] therm_throt.c: fix missing { and }.
-Message-Id: <493994B35A117E4F832F97C4719C4C04A111EEDF@orsmsx505.amr.corp.intel.com>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Mon, 16 Aug 2010 01:31:17 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ads7871) Fix ads7871_probe error path
+Message-Id: <1281922277.26991.3.camel@mola>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C75D3C4.6040802@np.css.fujitsu.com>
-	<20100826060822.GA15021@fenghua-desk.sc.intel.com>
-	<4C7625D1.4060201@np.css.fujitsu.com>
- <20100827152007.27636fa5@hyperion.delvare>
- <4C7B64A8.2030208@np.css.fujitsu.com>
-In-Reply-To: <4C7B64A8.2030208@np.css.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jin Dongming <jin.dongming@np.css.fujitsu.com>, Jean Delvare <khali@linux-fr.org>
-Cc: "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, "H. Peter Anvin" <hpa@linux.jf.intel.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Paul Thomas <pthomas8589@gmail.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
 
-> So the patch for error handling should be provided as another one. I will make
-> a patch for it .
+We need to call hwmon_device_unregister() if an error is detected after
+sucessfully register hwmon device.
 
-These two patches could be sent as one patch since they are in the same small function.
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+ drivers/hwmon/ads7871.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Thanks.
+diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
+index b300a20..303db92 100644
+--- a/drivers/hwmon/ads7871.c
++++ b/drivers/hwmon/ads7871.c
+@@ -201,11 +201,13 @@ static int __devinit ads7871_probe(struct spi_device *spi)
+ 	we need to make sure we really have a chip*/
+ 	if (val != ret) {
+ 		err = -ENODEV;
+-		goto error_remove;
++		goto error_unregister;
+ 	}
+ 
+ 	return 0;
+ 
++error_unregister:
++	hwmon_device_unregister(pdata->hwmon_dev);
+ error_remove:
+ 	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
+ error_free:
+-- 
+1.7.2
 
--Fenghua
+
+
 
 _______________________________________________
 lm-sensors mailing list
