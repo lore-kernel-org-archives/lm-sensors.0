@@ -1,47 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 Aug 2010 14:21:38 +0000
-Subject: Re: [lm-sensors] Platform device driver for PMIC and lm-sensors
-Message-Id: <20100827162138.2a987795@hyperion.delvare>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Tue, 17 Aug 2010 12:41:24 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (ads7871) Fix ads7871_probe error
+Message-Id: <1282048884.2626.2.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTikQ=TNW_mZawRjiQQd2=3=zym6zG2v5a=0DzGBp@mail.gmail.com>
-In-Reply-To: <AANLkTikQ=TNW_mZawRjiQQd2=3=zym6zG2v5a=0DzGBp@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>, Paul Thomas <pthomas8589@gmail.com>, lm-sensors@lm-sensors.org
 
-Hi Alex,
+This patch moves hwmon_device_register() to the end of ads7871_probe().
+So we can make sure the device exists and is properly initialized
+before the device is exposed to user-space.
 
-On Fri, 27 Aug 2010 16:04:32 +0200, Alex Gonzalez wrote:
-> I am using a Freescale power management chip (MC13892) and a platform
-> driver provided by them that exposes battery information through the
-> sysfs as follows:
-> 
-> / # ls /sys/class/power_supply/
-> mc13892_bat      mc13892_charger
-> / # ls /sys/class/power_supply/mc13892_bat/
-> charge_now   device       status       type         voltage_now
-> current_now  power        subsystem    uevent
-> / # ls /sys/class/power_supply/mc13892_charger/
-> device     online     power      subsystem  type       uevent
-> 
-> Is this type of platform device something that lm-sensors supports?
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+ drivers/hwmon/ads7871.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-No. lm-sensors supports hwmon class devices, which implement the API
-described in Documentation/hwmon/sysfs-interface. You driver apparently
-doesn't implement this (unless it _also_ creates an hwmon class device,
-check it...)
-
-> Any other user space application that can be configured to use the
-> sysfs information?
-
-Not that I know of. If you want to monitor the values, best would be to
-simply have an hwmon class device created for the device, either by the
-driver itself, or through a generic power_supply -> hwmon bridge driver
-if this makes sense.
-
+diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
+index b300a20..45f5829 100644
+--- a/drivers/hwmon/ads7871.c
++++ b/drivers/hwmon/ads7871.c
+@@ -176,12 +176,6 @@ static int __devinit ads7871_probe(struct spi_device *spi)
+ 	if (status < 0)
+ 		goto error_free;
+ 
+-	pdata->hwmon_dev = hwmon_device_register(&spi->dev);
+-	if (IS_ERR(pdata->hwmon_dev)) {
+-		err = PTR_ERR(pdata->hwmon_dev);
+-		goto error_remove;
+-	}
+-
+ 	spi_set_drvdata(spi, pdata);
+ 
+ 	/* Configure the SPI bus */
+@@ -204,6 +198,12 @@ static int __devinit ads7871_probe(struct spi_device *spi)
+ 		goto error_remove;
+ 	}
+ 
++	pdata->hwmon_dev = hwmon_device_register(&spi->dev);
++	if (IS_ERR(pdata->hwmon_dev)) {
++		err = PTR_ERR(pdata->hwmon_dev);
++		goto error_remove;
++	}
++
+ 	return 0;
+ 
+ error_remove:
 -- 
-Jean Delvare
+1.7.0.4
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
