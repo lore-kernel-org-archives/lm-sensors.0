@@ -1,111 +1,103 @@
 From: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Date: Wed, 18 Aug 2010 08:55:00 +0000
+Date: Wed, 18 Aug 2010 09:10:52 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon,
-Message-Id: <20100818085500.GA5080@loge.amd.com>
+Message-Id: <20100818091052.GB5080@loge.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20100622084557.GA4524@loge.amd.com>
 In-Reply-To: <20100622084557.GA4524@loge.amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Aug 17, 2010 at 06:52:18PM +0200, Jean Delvare wrote:
-> On Mon, 16 Aug 2010 11:21:38 +0200, Andreas Herrmann wrote:
-> > From: Andreas Herrmann <andreas.herrmann3@amd.com>
-> >=20
-> > The family check in k8temp is not required because the driver is
-> > already bound to a northbridge device only used with K8 CPUs.
->=20
-> This check was added by... you:
-> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3Dco=
-mmitdiff;h=BB9a35f293a3c8b5d57253cdfe2f29fa2627e1b9
->=20
-> But yes, I agree it's not needed. And actually, the driver wasn't even
-> failing to bind if a different CPU model was found.
+On Tue, Aug 17, 2010 at 06:21:38PM +0200, Jean Delvare wrote:
 
-Shame on me.
+ [...]
 
-(Maybe I've done this in preparation to add family 10h support. But we
-have a separate driver for this. I can't remember the exact reason.)
+> > +static int is_rev_g_desktop(u8 model)
+> > +{
+> > +	u32 brandidx;
+> > +
+> > +	if (model < 0x69)
+> > +		return 0;
+> > +
+> > +	if (model = 0xc1 || model = 0x6c || model = 0x7c ||
+> > +	    model = 0x6f || model = 0x7f)
+> > +		return 0;
+> > +
+> > +	if (model = 0x6b) {
+> > +		/* differentiate between AM2 and ASB1 */
+> > +		brandidx = cpuid_ebx(0x80000001);
+> > +		brandidx = (brandidx >> 9) & 0x1f;
+> > +		if (brandidx > 0xa)
+> 
+> This will only catch the "AMD Sempron(tm) Processor 2RRU" entry, if I
+> read both the code and the datasheet right?
 
-> > Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
-> > ---
-> >  drivers/hwmon/k8temp.c |   49 +++++++++++++++++++++-------------------=
--------
-> >  1 files changed, 22 insertions(+), 27 deletions(-)
-> >=20
-> > diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-> > index bcb1a35..2210b21 100644
-> > --- a/drivers/hwmon/k8temp.c
-> > +++ b/drivers/hwmon/k8temp.c
-> > @@ -182,36 +182,31 @@ static int __devinit k8temp_probe(struct pci_dev =
-*pdev,
-> >  	model =3D boot_cpu_data.x86_model;
-> >  	stepping =3D boot_cpu_data.x86_mask;
-> > =20
-> > -	switch (boot_cpu_data.x86) {
-> > -	case 0xf:
-> > -		/* feature available since SH-C0, exclude older revisions */
-> > -		if (((model =3D 4) && (stepping =3D 0)) ||
-> > -		    ((model =3D 5) && (stepping <=3D 1))) {
-> > -			err =3D -ENODEV;
-> > -			goto exit_free;
-> > -		}
-> > +	/* feature available since SH-C0, exclude older revisions */
-> > +	if (((model =3D 4) && (stepping =3D 0)) ||
-> > +	    ((model =3D 5) && (stepping <=3D 1))) {
-> > +		err =3D -ENODEV;
-> > +		goto exit_free;
+No, it will catch only the dual-core CPUs
+
+	0Bh 0h AMD Turion(tm) Neo X2 Dual Core Processor L6RR (ASB1)
+	0Ch 0h AMD Athlon(tm) Neo X2 Dual Core Processor L3RR (ASB1)
+
+See revision 3.46 of the RG:
+http://support.amd.com/us/Processor_TechDocs/33610.pdf
+
+
+> Is this correct? What about the 3 other ASB1 entries in table 8? And
+> why are you comparing with 0xa while this specific value doesn't
+> match any CPU model?
+
+Hmm, wait let me double check this. (Thought the single core variants were
+not affected by this problem)
+
+Damn!
+
+Need to update this patch. I did not check table 2 which lists
+single-core AM2 CPUs.
+
+model 0x6f and 0x7f (both single core) are also provided as ASB1 and
+AM2.
+
+> > +			return 0;
 > > +	}
 > > +
-> > +	/*
-> > +	 * AMD NPT family 0fh, i.e. RevF and RevG:
-> > +	 * meaning of SEL_CORE bit is inverted
-> > +	 */
-> > +	if (model >=3D 0x40) {
-> > +		data->swap_core_select =3D 1;
-> > +		dev_warn(&pdev->dev, "Temperature readouts might be "
-> > +			 "wrong - check erratum #141\n");
-> > +	}
-> > =20
-> > +	if (is_rev_g_desktop(model))
-> >  		/*
-> > -		 * AMD NPT family 0fh, i.e. RevF and RevG:
-> > -		 * meaning of SEL_CORE bit is inverted
-> > +		 * RevG desktop CPUs (i.e. no socket S1G1 or
-> > +		 * ASB1 parts) need additional offset,
-> > +		 * otherwise reported temperature is below
-> > +		 * ambient temperature
-> >  		 */
-> > -		if (model >=3D 0x40) {
-> > -			data->swap_core_select =3D 1;
-> > -			dev_warn(&pdev->dev, "Temperature readouts might be "
-> > -				 "wrong - check erratum #141\n");
+> > +	return 1;
+> > +}
+> > +
+> >  static int __devinit k8temp_probe(struct pci_dev *pdev,
+> >  				  const struct pci_device_id *id)
+> >  {
+> > @@ -179,9 +201,7 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
+> >  				 "wrong - check erratum #141\n");
+> >  		}
+> >  
+> > -		if ((model >= 0x69) &&
+> > -		    !(model = 0xc1 || model = 0x6c || model = 0x7c ||
+> > -		      model = 0x6b || model = 0x6f || model = 0x7f)) {
+> > +		if (is_rev_g_desktop(model))
+> >  			/*
+> >  			 * RevG desktop CPUs (i.e. no socket S1G1 or
+> >  			 * ASB1 parts) need additional offset,
+> > @@ -189,7 +209,6 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
+> >  			 * ambient temperature
+> >  			 */
+> >  			data->temp_offset = 21000;
 > > -		}
-> > -
-> > -		if (is_rev_g_desktop(model))
-> > -			/*
-> > -			 * RevG desktop CPUs (i.e. no socket S1G1 or
-> > -			 * ASB1 parts) need additional offset,
-> > -			 * otherwise reported temperature is below
-> > -			 * ambient temperature
-> > -			 */
-> > -			data->temp_offset =3D 21000;
-> > -
-> > -		break;
-> > -	}
-> > +		data->temp_offset =3D 21000;
-> > =20
-> >  	pci_read_config_byte(pdev, REG_TEMP, &scfg);
-> >  	scfg &=3D ~(SEL_PLACE | SEL_CORE);		/* Select sensor 0, core0 */
->=20
-> Applied, thanks (modulo the missing curly braces, which I've added back
-> myself.)
+> >  
+> >  		break;
+> >  	}
+> 
+> I also do not like the brace change. While technically correct, it
+> could lead to mistakes on future changes, because the large comment
+> doesn't make it immediately obvious that this is currently a
+> single-statement branch.
 
-Oops.
+Ok.
 
-Thanks,
+Thanks a lot for reviewing.
+I'll come up with an updated patch.
+
+
 
 Andreas
 
