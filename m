@@ -1,57 +1,40 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Tue, 31 Aug 2010 17:30:23 +0000
-Subject: Re: [lm-sensors] [Patch-next -v2]therm_throt.c: Trival fix for a
-Message-Id: <20100831173022.GB30454@fenghua-desk.sc.intel.com>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Wed, 18 Aug 2010 22:53:46 +0000
+Subject: [lm-sensors] [PATCH] drivers/hwmon/coretemp: Remove warnings of
+Message-Id: <1282172027-640-2-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C7B6358.3040703@np.css.fujitsu.com> <20100830095753.6724bc89@hyperion.delvare> <4C7C492D.5020704@np.css.fujitsu.com> <20100831085653.711c38eb@hyperion.delvare>
-In-Reply-To: <20100831085653.711c38eb@hyperion.delvare>
+References: <1282172027-640-1-git-send-email-fenghua.yu@intel.com>
+In-Reply-To: <1282172027-640-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Jin Dongming <jin.dongming@np.css.fujitsu.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@linux.jf.intel.com>
+To: Rudolf Marek <r.marek@assembler.cz>, Huaxu Wan <huaxu.wan@intel.com>, H Peter Anvin <hpa@zytor.com>, Chen Gong <gong.chen@linux.intel.com>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-On Mon, Aug 30, 2010 at 11:56:53PM -0700, Jean Delvare wrote:
-> On Tue, 31 Aug 2010 09:13:33 +0900, Jin Dongming wrote:
-> > In unexpected_thermal_interrupt(), "LVT TMR interrupt" is used
-> > in error message.
-> > 
-> > I don't think TMR is a suitable abbreviation for thermal.
-> >   1.TMR has been used in IA32 Architectures Software Developer's
-> >     Manual, and is the abbreviation for Trigger Mode Register.
-> >   2.There is not an standard abbreviation "TMR" defined for thermal
-> >     in IA32 Architectures Software Developer's Manual.
-> >   3.Though we could understand it as Thermal Monitor Register, it is
-> >     easy to be misunderstood as a *TIMER* interrupt also.
-> > 
-> > I think this patch will fix it.
-> > 
-> > Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-> 
-> Reviewed-by: Jean Delvare <khali@linux-fr.org>
- Reviewed-by: Fenghua Yu <fenghua.yu@intel.com>
-> 
-> > ---
-> >  arch/x86/kernel/cpu/mcheck/therm_throt.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> > index d9368ee..ba52598 100644
-> > --- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> > +++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> > @@ -349,7 +349,7 @@ static void intel_thermal_interrupt(void)
-> >  
-> >  static void unexpected_thermal_interrupt(void)
-> >  {
-> > -	printk(KERN_ERR "CPU%d: Unexpected LVT TMR interrupt!\n",
-> > +	printk(KERN_ERR "CPU%d: Unexpected LVT thermal interrupt!\n",
-> >  			smp_processor_id());
-> >  	add_taint(TAINT_MACHINE_CHECK);
-> >  }
-> 
-> 
-> -- 
-> Jean Delvare
+From: Fenghua Yu <fenghua.yu@intel.com>
+
+Remove compilation warnings of unused variables p and n in coretemp_init().
+
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+---
+ drivers/hwmon/coretemp.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index c070c97..de81111 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -518,7 +518,6 @@ static struct notifier_block coretemp_cpu_notifier __refdata = {
+ static int __init coretemp_init(void)
+ {
+ 	int i, err = -ENODEV;
+-	struct pdev_entry *p, *n;
+ 
+ 	/* quick check if we run Intel */
+ 	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+-- 
+1.6.0.3
+
 
 _______________________________________________
 lm-sensors mailing list
