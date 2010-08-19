@@ -1,56 +1,43 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Thu, 26 Aug 2010 06:08:22 +0000
-Subject: Re: [lm-sensors] [Patch-next] Package Level Power limit: fix the
-Message-Id: <20100826060822.GA15021@fenghua-desk.sc.intel.com>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Thu, 19 Aug 2010 17:28:16 +0000
+Subject: [lm-sensors] [PATCH] MAINTAINERS: hwmon/coretemp: Change coretemp
+Message-Id: <1282238896-23026-1-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C75D3C4.6040802@np.css.fujitsu.com>
-In-Reply-To: <4C75D3C4.6040802@np.css.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, mingo Redhat <mingo@redhat.com>, "Brown, Len" <len.brown@intel.com>, Guenter Roeck <guenter.roeck@ericsson.com>, "H. Peter Anvin" <hpa@linux.jf.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, LKLM <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rudolf Marek <r.marek@assembler.cz>, Huaxu Wan <huaxu.wan@intel.com>, H Peter Anvin <hpa@zytor.com>, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-On Wed, Aug 25, 2010 at 07:39:00PM -0700, Jin Dongming wrote:
-> 
-> This patch is used for fixing it. But I have not confirmed this patch
-> because I don't have such machine.
-> 
-> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-> ---
-> arch/x86/kernel/cpu/mcheck/therm_throt.c | 3 ++-
-> 1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> index d9368ee..169d880 100644
-> --- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> +++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> @@ -216,7 +216,7 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
-> err = sysfs_add_file_to_group(&sys_dev->kobj,
-> &attr_core_power_limit_count.attr,
-> thermal_attr_group.name);
-> - if (cpu_has(c, X86_FEATURE_PTS))
-> + if (cpu_has(c, X86_FEATURE_PTS)) {
-> err = sysfs_add_file_to_group(&sys_dev->kobj,
-> &attr_package_throttle_count.attr,
-> thermal_attr_group.name);
-> @@ -224,6 +224,7 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
-> err = sysfs_add_file_to_group(&sys_dev->kobj,
-> &attr_package_power_limit_count.attr,
-> thermal_attr_group.name);
-> + }
-> 
-> return err;
-> }
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-The argument is right. A concise message (e.g. missing { and }) would be better.
+Huaxu and Rudolf want me to be the hwmon coretemp driver maintainer and remove
+their names from the coretemp maintainer entry.
 
-Format of this patch is broken. It would be applied to kernel tree. Could you
-generate a patch with right format?
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Acked-by: Rudolf Marek <r.marek@assembler.cz>
+Acked-by: Huaxu Wan <huaxu.wan@intel.com>
+---
+ MAINTAINERS |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Thanks.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b5b8baa..ff0cd1e 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1665,8 +1665,7 @@ F:	kernel/cgroup*
+ F:	mm/*cgroup*
+ 
+ CORETEMP HARDWARE MONITORING DRIVER
+-M:	Rudolf Marek <r.marek@assembler.cz>
+-M:	Huaxu Wan <huaxu.wan@intel.com>
++M:	Fenghua Yu <fenghua.yu@intel.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/coretemp
+-- 
+1.6.0.3
 
--Fenghua
 
 _______________________________________________
 lm-sensors mailing list
