@@ -1,80 +1,107 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 17 Aug 2010 18:42:55 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7871) Fix ads7871_probe error
-Message-Id: <20100817204255.34fe1408@hyperion.delvare>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Sun, 22 Aug 2010 14:25:26 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ads7871) Fix ads7871_probe init path
+Message-Id: <1282487126.23014.11.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1281922277.26991.3.camel@mola>
-	<20100817130747.3ee0efb9@hyperion.delvare>
-	<AANLkTi=q_jpa3GEQk7+UdAaRiJx2mBiXs4jMx1jyJ-pJ@mail.gmail.com>
-In-Reply-To: <AANLkTi=q_jpa3GEQk7+UdAaRiJx2mBiXs4jMx1jyJ-pJ@mail.gmail.com>
+In-Reply-To: <1281922277.26991.3.camel@mola>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Paul Thomas <pthomas8589@gmail.com>
-Cc: Axel Lin <axel.lin@gmail.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel <linux-kernel@vger.kernel.org>
+Cc: Paul Thomas <pthomas8589@gmail.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
 
-On Tue, 17 Aug 2010 08:15:59 -0700, Paul Thomas wrote:
-> On Tue, Aug 17, 2010 at 4:07 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> > Hi Alex,
-> >
-> > On Mon, 16 Aug 2010 09:31:17 +0800, Axel Lin wrote:
-> >> We need to call hwmon_device_unregister() if an error is detected after
-> >> sucessfully register hwmon device.
-> >>
-> >> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> >> ---
-> >>  drivers/hwmon/ads7871.c |    4 +++-
-> >>  1 files changed, 3 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
-> >> index b300a20..303db92 100644
-> >> --- a/drivers/hwmon/ads7871.c
-> >> +++ b/drivers/hwmon/ads7871.c
-> >> @@ -201,11 +201,13 @@ static int __devinit ads7871_probe(struct spi_device *spi)
-> >>       we need to make sure we really have a chip*/
-> >>       if (val != ret) {
-> >>               err = -ENODEV;
-> >> -             goto error_remove;
-> >> +             goto error_unregister;
-> >>       }
-> >>
-> >>       return 0;
-> >>
-> >> +error_unregister:
-> >> +     hwmon_device_unregister(pdata->hwmon_dev);
-> >>  error_remove:
-> >>       sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
-> >>  error_free:
-> >
-> > The bug is real, but I don't think the fix is correct. You should never
-> > have to unregister the hwmon device in the error path, because you
-> > should ensure the hardware is there and working _before_ you register
-> > the hwmon device.
-> >
-> > User-space could watch for hwmon devices being added or removed, and
-> > you don't want to trigger such events for a device which isn't going to
-> > work.
-> >
-> > So I would suggest reworking the order in which things are done,
-> > leaving hwmon_device_register() at the end of the function. This won't
-> > only fix the error path, this will also close a race window, as for the
-> > moment, the device is exposed to user-space _before_ it it properly
-> > initialized, which is wrong.
-> >
-> > Please send an updated patch and I'll be happy to apply it.
-> >
-> > --
-> > Jean Delvare
-> >
-> 
-> Should the kzalloc,  sysfs_create_group and hwmon_device_register all
-> stay in the same order just following the register check? I can send a
-> patch for that.
+From 81e895683eaecb9e196c57c36b774c0908069d83 Mon Sep 17 00:00:00 2001
+From: Axel Lin <axel.lin@gmail.com>
+Date: Sun, 22 Aug 2010 22:10:01 +0800
+Subject: [PATCH] hwmon: (ads7871) Fix ads7871_probe init path
 
-Axel already sent an updated patch, so it's all OK.
+This patch includes below fixes:
 
+1. remove 'status' variable
+2. remove unneeded initialization of 'err' variable
+3. return missing error code if sysfs_create_group fail.
+4. fix the init sequence as:
+   - check hardware existence
+   - kzalloc for ads7871_data
+   - sysfs_create_group
+   - hwmon_device_register
+
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+
+hi Jean,
+This patch is against linux-next ( on top of previous patch ).
+Reviews are welcome.
+
+I think it's ok to call sysfs_create_group() before hwmon_device_register().
+If hwmon_device_register failed, the device is not working anyway.
+We just need to make sure all the allocated resources are reclaimed in error path before return error.
+
+Regards,
+Axel
+
+ drivers/hwmon/ads7871.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
+index 45f5829..5231934 100644
+--- a/drivers/hwmon/ads7871.c
++++ b/drivers/hwmon/ads7871.c
+@@ -160,24 +160,12 @@ static const struct attribute_group ads7871_group = {
+ 
+ static int __devinit ads7871_probe(struct spi_device *spi)
+ {
+-	int status, ret, err = 0;
++	int ret, err;
+ 	uint8_t val;
+ 	struct ads7871_data *pdata;
+ 
+ 	dev_dbg(&spi->dev, "probe\n");
+ 
+-	pdata = kzalloc(sizeof(struct ads7871_data), GFP_KERNEL);
+-	if (!pdata) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
+-
+-	status = sysfs_create_group(&spi->dev.kobj, &ads7871_group);
+-	if (status < 0)
+-		goto error_free;
+-
+-	spi_set_drvdata(spi, pdata);
+-
+ 	/* Configure the SPI bus */
+ 	spi->mode = (SPI_MODE_0);
+ 	spi->bits_per_word = 8;
+@@ -195,9 +183,21 @@ static int __devinit ads7871_probe(struct spi_device *spi)
+ 	we need to make sure we really have a chip*/
+ 	if (val != ret) {
+ 		err = -ENODEV;
+-		goto error_remove;
++		goto exit;
+ 	}
+ 
++	pdata = kzalloc(sizeof(struct ads7871_data), GFP_KERNEL);
++	if (!pdata) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	err = sysfs_create_group(&spi->dev.kobj, &ads7871_group);
++	if (err < 0)
++		goto error_free;
++
++	spi_set_drvdata(spi, pdata);
++
+ 	pdata->hwmon_dev = hwmon_device_register(&spi->dev);
+ 	if (IS_ERR(pdata->hwmon_dev)) {
+ 		err = PTR_ERR(pdata->hwmon_dev);
 -- 
-Jean Delvare
+1.7.0.4
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
