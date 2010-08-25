@@ -1,118 +1,110 @@
-From: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Date: Thu, 19 Aug 2010 10:00:41 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon,
-Message-Id: <20100819100041.GA4801@loge.amd.com>
+From: Nold Danny-R59715 <R59715@freescale.com>
+Date: Wed, 25 Aug 2010 17:42:11 +0000
+Subject: [lm-sensors] Ambient temperature sensor driver
+Message-Id: <A39D6EE762981A42A5E83744F71F8460087E0581@az33exm20>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----_=_NextPart_001_01CB447C.DC3AAE55"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100622084557.GA4524@loge.amd.com>
-In-Reply-To: <20100622084557.GA4524@loge.amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Aug 19, 2010 at 10:34:42AM +0200, Jean Delvare wrote:
-  [...]
-> > Here is the updated patch considering single core and dual core ASB1
-> > CPUs. Tested with model 0x6b ASB1 CPU. I don't have instant access to
-> > model 0x6f and 0x7f CPU models.
-> 
-> Great, thanks. Looks much more in line with the datasheet.
-> 
-> I presume we will have to update is_rev_g_desktop() every time a new
-> ASB1 K8 processor is released? :(
+--===============2810338116583003616==
+Content-Class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01CB447C.DC3AAE55"
 
-My personnel assumption is that the number of new ASB1 K8 models (if
-any) is quite low.
+------_=_NextPart_001_01CB447C.DC3AAE55
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> > diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
-> > index b9bb3e0..bbfc0ad 100644
-> > --- a/drivers/hwmon/k8temp.c
-> > +++ b/drivers/hwmon/k8temp.c
-> > @@ -143,6 +143,34 @@ static const struct pci_device_id k8temp_ids[] = {
-> >  
-> >  MODULE_DEVICE_TABLE(pci, k8temp_ids);
-> >  
-> > +static int is_rev_g_desktop(u8 model)
-> 
-> Can be marked __devinit.
+Hello lm-sensors group,
 
-Ok.
+I'm developing a Linux driver for a PMIC that includes an ambient
+temperature sensor.  In trying to determine where the temperature sensor
+driver piece should belong in the Linux driver hierarchy, I discovered
+this group and the temperature sensor drivers in the /hwmon directory.
 
-> > +{
-> > +	u32 brandidx;
-> > +
-> > +	if (model < 0x69)
-> > +		return 0;
-> > +
-> > +	if (model = 0xc1 || model = 0x6c || model = 0x7c)
-> > +		return 0;
-> > +
-> > +	/*
-> > +	 * differentiate between AM2 and ASB1
-> > +	 */
-> > +
-> > +	brandidx = cpuid_ebx(0x80000001);
-> > +	brandidx = (brandidx >> 9) & 0x1f;
-> > +	if (model = 0x6b &&
-> > +	    (brandidx = 0xb || brandidx = 0xc))
-> > +		return 0;
-> > +
-> > +	if ((model = 0x6f || model = 0x7f) &&
-> > +	    (brandidx = 7 || brandidx = 9 ||
-> 
-> I've made these constants hexadecimal for consistency. I've also
-> inverted the tests so they are in the same order as in the datasheet,
-> and added some comments to make the code easier to follow.
+My question: Does a driver for an ambient temperature sensor belong in
+hwmon, and is it consistent with the lm-sensors project?  I ask because
+the purpose of this driver is not "monitoring the hardware health of
+Linux systems containing hardware health monitoring hardware".
 
-Fine with me.
-
-> > +	     brandidx = 0xc))
-> > +		return 0;
-> > +
-> > +	return 1;
-> > +}
-> > +
-> >  static int __devinit k8temp_probe(struct pci_dev *pdev,
-> >  				  const struct pci_device_id *id)
-> >  {
-> > @@ -179,17 +207,13 @@ static int __devinit k8temp_probe(struct pci_dev *pdev,
-> >  				 "wrong - check erratum #141\n");
-> >  		}
-> >  
-> > -		if ((model >= 0x69) &&
-> > -		    !(model = 0xc1 || model = 0x6c || model = 0x7c ||
-> > -		      model = 0x6b || model = 0x6f || model = 0x7f)) {
-> > -			/*
-> > -			 * RevG desktop CPUs (i.e. no socket S1G1 or
-> > -			 * ASB1 parts) need additional offset,
-> > -			 * otherwise reported temperature is below
-> > -			 * ambient temperature
-> > -			 */
-> > +		/*
-> > +		 * RevG desktop CPUs (i.e. no socket S1G1 or ASB1
-> > +		 * parts) need additional offset, otherwise reported
-> > +		 * temperature is below ambient temperature
-> > +		 */
-> > +		if (is_rev_g_desktop(model))
-> >  			data->temp_offset = 21000;
-> > -		}
-> >  
-> >  		break;
-> >  	}
-> 
-> I've adjusted your second patch so that it applies cleanly. Both
-> patches after my changes are available at:
->   ftp://ftp.kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
-> Please check.
-
-It looks good.
-
+If this driver does not belong in hwmon, is there an obvious home for
+it?
 
 Thanks,
+Danny Nold
 
-Andreas
+------_=_NextPart_001_01CB447C.DC3AAE55
+Content-Type: text/html; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+6.5.7655.10">
+<TITLE>Ambient temperature sensor driver</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Hello =
+lm-sensors group,</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">I</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&#8217;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">m developing a Linux driver for a</FONT></SPAN><SPAN =
+LANG=3D"en-us"><FONT FACE=3D"Calibri"></FONT></SPAN><SPAN =
+LANG=3D"en-us"> <FONT FACE=3D"Calibri">PMIC that includes an ambient =
+temperature sensor.</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp; In trying to determine where the temperature =
+sensor driver piece should belong in the Linux driver hierarchy, I =
+discovered</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">this group and the</FONT></SPAN><SPAN LANG=3D"en-us"> =
+<FONT FACE=3D"Calibri">temperature sensor</FONT></SPAN><SPAN =
+LANG=3D"en-us"> <FONT FACE=3D"Calibri">drivers in the /hwmon =
+directory.</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">My question: =
+Does a driver for an ambient temperature sensor</FONT></SPAN><SPAN =
+LANG=3D"en-us"> <FONT FACE=3D"Calibri">belong in hwmon, and is it =
+consistent with the lm-sensors</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri"> project?&nbsp; I ask because the purpose of this =
+driver is not</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">&#8220;</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">monitoring the hardware health of Linux systems =
+containing hardware health monitoring hardware</FONT></SPAN><SPAN =
+LANG=3D"en-us"><FONT FACE=3D"Calibri">&#8221;</FONT></SPAN><SPAN =
+LANG=3D"en-us"><FONT FACE=3D"Calibri">.</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">If this driver =
+does not belong in hwmon, is there an obvious home for =
+it?</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Thanks,</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Danny =
+Nold</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+</BODY>
+</HTML>
+------_=_NextPart_001_01CB447C.DC3AAE55--
+
+
+--===============2810338116583003616==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2810338116583003616==--
