@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 26 Aug 2010 17:08:02 +0000
+Date: Thu, 26 Aug 2010 17:51:41 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Add tempX_emergency to sysfs ABI
-Message-Id: <20100826170802.GC19423@ericsson.com>
+Message-Id: <20100826175141.GA19646@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1282838085-7210-1-git-send-email-guenter.roeck@ericsson.com>
  <20100826161022.GA1383@khazad-dum.debian.net>
@@ -41,7 +41,12 @@ On Thu, Aug 26, 2010 at 12:10:23PM -0400, Henrique de Moraes Holschuh wrote:
 > that written down than to imply it by "typically greater than corresponding
 > temp_crit"...
 > 
-Do you have a better wording in mind ?
+How about:
+        Temperature emergency max value, for chips supporting more than
+        two upper temperature limits. Must be equal or greater than
+        corresponding temp_crit values.
+        Unit: millidegree Celsius
+        RW
 
 Guenter
 
