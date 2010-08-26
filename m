@@ -1,57 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 30 Aug 2010 07:57:53 +0000
-Subject: Re: [lm-sensors] [Patch-next]therm_throt.c: Trival fix for a
-Message-Id: <20100830095753.6724bc89@hyperion.delvare>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Date: Thu, 26 Aug 2010 12:59:10 +0000
+Subject: [lm-sensors] [RFC PATCH] Make the writing to sysfs more robust.
+Message-Id: <1282827342-29579-1-git-send-email-shubhrajyoti@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C7B6358.3040703@np.css.fujitsu.com>
-In-Reply-To: <4C7B6358.3040703@np.css.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>, "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@linux.intel.com>
+To: lm-sensors@vger.kernel.org
 
-On Mon, 30 Aug 2010 16:52:56 +0900, Jin Dongming wrote:
-> In unexpected_thermal_interrupt(), "LVT TMR interrupt" is used
-> in error message.
-> 
-> I don't think TMR is a suitable abbreviation for thermal.
->   1.TMR has been used in IA32 Architectures Software Developer's
->     Manual, and is the abbreviation for Trigger Mode Register.
->   2.There is not an standard abbreviation "TMR" defined for thermal
->     in IA32 Architectures Software Developer's Manual.
->   3.Though we could understand it as Thermal Monitor Register, it is
->     easy to be misunderstood as a *TIMER* interrupt also.
-> 
-> I think this patch will fix it.
-> 
-> Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-> ---
->  arch/x86/kernel/cpu/mcheck/therm_throt.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> index d9368ee..2f9f468 100644
-> --- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> +++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-> @@ -349,7 +349,7 @@ static void intel_thermal_interrupt(void)
->  
->  static void unexpected_thermal_interrupt(void)
->  {
-> -	printk(KERN_ERR "CPU%d: Unexpected LVT TMR interrupt!\n",
-> +	printk(KERN_ERR "CPU%d: Unexpected LVT Thermal Interrupt!\n",
->  			smp_processor_id());
->  	add_taint(TAINT_MACHINE_CHECK);
->  }
+Currently we get the checkpatch warning
+consider using strict_strtol in preference to simple_strtol
+Also we should not allow any partially numeric values
 
-I see no good reason to upper-case the first letter of each word. This
-is a kernel log message, not a movie title.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/hwmon/lm75.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-Other than that, I agree with your proposal.
-
-
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index a86f2e0..9f23dfc 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -103,7 +103,11 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+ 	int nr = attr->index;
+-	long temp = simple_strtol(buf, NULL, 10);
++	long temp;
++	int error;
++	error = strict_strtol(buf, 10, &temp);
++	if (error)
++		return error;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp[nr] = LM75_TEMP_TO_REG(temp);
 -- 
-Jean Delvare
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
