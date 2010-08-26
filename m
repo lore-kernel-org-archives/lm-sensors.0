@@ -1,352 +1,231 @@
-From: support RG <support@fidit.com>
-Date: Tue, 31 Aug 2010 23:50:25 +0000
-Subject: [lm-sensors] i2c-i801 module conflict with 3400 Series Chipset
-Message-Id: <4C7D9541.3030601@fidit.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1191145193103855104=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 26 Aug 2010 15:54:36 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Fix checkpatch errors in lm90 driver
+Message-Id: <1282838076-7175-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C7934CC.4020902@fidit.com>
-In-Reply-To: <4C7934CC.4020902@fidit.com>
-To: lm-sensors@vger.kernel.org
-
-This is a multi-part message in MIME format.
---===============1191145193103855104==
-Content-Type: multipart/alternative;
- boundary="------------070305070403000400000100"
-
-This is a multi-part message in MIME format.
---------------070305070403000400000100
-Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
-Content-Transfer-Encoding: quoted-printable
-
-Hi
-is there a good place for this request ?
-
-i2c-801 module seem to be not working or conflict with  3400 Series=20
-Chipset SMBus Controller [8086:3b30]
-
-      dmesg | grep conflict
-[   17.552437] ACPI: resource 0000:00:1f.3 [0xf000-0xf01f] conflicts=20
-with ACPI region SMBI [0xf000-0xf00f]
-
-so sensors command return only one temp ?
-
-follow step by step manual from ubuntu with mkdev.sh script and launch=20
-sensors-detect
-what have i made wrong ?
-
-     sudo sensors
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:       +39.5=B0C  (crit =3D +100.0=B0C)
-
-     sudo sensors-detect
-# sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)
-# System: Dell Inc. Vostro 3500
-# Board: Dell Inc. 0G2R51
-
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
-
-Some south bridges, CPUs or memory controllers contain embedded sensors.
-Do you want to scan for them? This is totally safe. (YES/no):
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD Family 10h thermal sensors...                           No
-AMD Family 11h thermal sensors...                           No
-Intel Core family thermal sensor...                         No
-Intel Atom thermal sensor...                                No
-Intel AMB FB-DIMM thermal sensor...                         No
-VIA C7 thermal sensor...                                    No
-VIA Nano thermal sensor...                                  No
-
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no):
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      No
-Probing for Super-I/O at 0x4e/0x4f
-_Trying family `National Semiconductor'...                   Yes
-Found unknown chip with ID 0xfc11_
-
-Some systems (mainly servers) implement IPMI, a set of common interfaces
-through which system health data may be retrieved, amongst other things.
-We first try to get the information from SMBIOS. If we don't find it
-there, we have to read from arbitrary I/O ports to probe for such
-interfaces. This is normally safe. Do you want to scan for IPMI
-interfaces? (YES/no):
-Probing for `IPMI BMC KCS' at 0xca0...                      No
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
-
-Some hardware monitoring chips are accessible through the ISA I/O ports.
-We have to write to arbitrary I/O ports to probe them. This is usually
-safe though. Yes, you do have ISA I/O ports even if you do not have any
-ISA slots! Do you want to scan the ISA I/O ports? (YES/no):
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Lastly, we can probe the I2C/SMBus adapters for connected hardware
-monitoring devices. This is the most risky part, and while it works
-reasonably well on most systems, it has been reported to cause trouble
-on some systems.
-_Do you want to probe the I2C/SMBus adapters now? (YES/no):
-Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3._
-Sorry, no supported PCI bus adapters found.
-Module i2c-dev loaded successfully.
-
-Next adapter: intel drm CRTDDC_A (i2c-0)
-Do you want to scan it? (YES/no/selectively):
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                Yes
-     (confidence 8, not a hardware monitoring chip)
-Client found at address 0x51
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Client found at address 0x52
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Client found at address 0x53
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-
-Next adapter: intel drm LVDSDDC_C (i2c-1)
-Do you want to scan it? (YES/no/selectively):
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                Yes
-     (confidence 8, not a hardware monitoring chip)
-
-Next adapter: intel drm HDMIB (i2c-2)
-Do you want to scan it? (YES/no/selectively):
-
-Next adapter: DPDDC-B (i2c-3)
-Do you want to scan it? (YES/no/selectively):
-
-Sorry, no sensors were detected.
-Either your system has no sensors, or they are not supported, or
-they are connected to an I2C or SMBus adapter that is not
-supported. If you find out what chips are on your board, check
-http://www.lm-sensors.org/wiki/Devices for driver status.
-
-     sudo pwmconfig
-# pwmconfig revision 5770 (2009-09-16)
-This program will search your sensors for pulse width modulation (pwm)
-controls, and test each one to see if it controls a fan on
-your motherboard. Note that many motherboards do not have pwm
-circuitry installed, even if your sensor chip supports pwm.
-
-We will attempt to briefly stop each fan using the pwm controls.
-The program will attempt to restore each fan to full speed
-after testing. However, it is ** very important ** that you
-physically verify that the fans have been to full speed
-after the program has completed.
-
-/usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
-
-     lsmod | egrep -i "temp|core|i2c|dell"
-i2c_dev                 4970  0
-dell_wmi                1793  0
-i2c_algo_bit            5028  1 i915
-dell_laptop             6856  0
-dcdbas                  5422  1 dell_laptop
-soundcore               6620  1 snd
-i2c_i801                7722  0
-k8temp                  3024  0
-
-
---------------070305070403000400000100
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-
-<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-</head>
-<body text="#000000" bgcolor="#ffffff">
-Hi<br>
-is there a good place for this request ?<br>
-<br>
-i2c-801 module seem to be not working or conflict with&nbsp; 3400 Series
-Chipset SMBus Controller [8086:3b30]<br>
-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; dmesg | grep conflict<br>
-[&nbsp;&nbsp; 17.552437] ACPI: resource 0000:00:1f.3 [0xf000-0xf01f] conflicts
-with ACPI region SMBI [0xf000-0xf00f]<br>
-<br>
-so sensors command return only one temp ?<br>
-<br>
-follow step by step manual from ubuntu with mkdev.sh script and launch
-sensors-detect<br>
-what have i made wrong ?<br>
-<br>
-&nbsp;&nbsp;&nbsp; sudo sensors<br>
-acpitz-virtual-0<br>
-Adapter: Virtual device<br>
-temp1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +39.5&deg;C&nbsp; (crit = +100.0&deg;C)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>
-&nbsp;<br>
-&nbsp;&nbsp;&nbsp; sudo sensors-detect <br>
-# sensors-detect revision 5818 (2010-01-18 17:22:07 +0100)<br>
-# System: Dell Inc. Vostro 3500<br>
-# Board: Dell Inc. 0G2R51<br>
-<br>
-This program will help you determine which kernel modules you need<br>
-to load to use lm_sensors most effectively. It is generally safe<br>
-and recommended to accept the default answers to all questions,<br>
-unless you know what you're doing.<br>
-<br>
-Some south bridges, CPUs or memory controllers contain embedded sensors.<br>
-Do you want to scan for them? This is totally safe. (YES/no): <br>
-Silicon Integrated Systems SIS5595...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-VIA VT82C686 Integrated Sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-VIA VT8231 Integrated Sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-AMD K8 thermal sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-AMD Family 10h thermal sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-AMD Family 11h thermal sensors...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Intel Core family thermal sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Intel Atom thermal sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Intel AMB FB-DIMM thermal sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-VIA C7 thermal sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-VIA Nano thermal sensor...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-<br>
-Some Super I/O chips contain embedded sensors. We have to write to<br>
-standard I/O ports to probe them. This is usually safe.<br>
-Do you want to scan for Super I/O sensors? (YES/no): <br>
-Probing for Super-I/O at 0x2e/0x2f<br>
-Trying family `National Semiconductor'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Trying family `SMSC'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Trying family `VIA/Winbond/Nuvoton/Fintek'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Trying family `ITE'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for Super-I/O at 0x4e/0x4f<br>
-<u>Trying family `National Semiconductor'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Yes<br>
-Found unknown chip with ID 0xfc11</u><br>
-<br>
-Some systems (mainly servers) implement IPMI, a set of common interfaces<br>
-through which system health data may be retrieved, amongst other things.<br>
-We first try to get the information from SMBIOS. If we don't find it<br>
-there, we have to read from arbitrary I/O ports to probe for such<br>
-interfaces. This is normally safe. Do you want to scan for IPMI<br>
-interfaces? (YES/no): <br>
-Probing for `IPMI BMC KCS' at 0xca0...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `IPMI BMC SMIC' at 0xca8...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-<br>
-Some hardware monitoring chips are accessible through the ISA I/O ports.<br>
-We have to write to arbitrary I/O ports to probe them. This is usually<br>
-safe though. Yes, you do have ISA I/O ports even if you do not have any<br>
-ISA slots! Do you want to scan the ISA I/O ports? (YES/no): <br>
-Probing for `National Semiconductor LM78' at 0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `National Semiconductor LM79' at 0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Winbond W83781D' at 0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Winbond W83782D' at 0x290...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-<br>
-Lastly, we can probe the I2C/SMBus adapters for connected hardware<br>
-monitoring devices. This is the most risky part, and while it works<br>
-reasonably well on most systems, it has been reported to cause trouble<br>
-on some systems.<br>
-<u>Do you want to probe the I2C/SMBus adapters now? (YES/no): <br>
-Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3.</u><br>
-Sorry, no supported PCI bus adapters found.<br>
-Module i2c-dev loaded successfully.<br>
-<br>
-Next adapter: intel drm CRTDDC_A (i2c-0)<br>
-Do you want to scan it? (YES/no/selectively): <br>
-Client found at address 0x50<br>
-Probing for `Analog Devices ADM1033'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Analog Devices ADM1034'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `SPD EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `EDID EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Yes<br>
-&nbsp;&nbsp;&nbsp; (confidence 8, not a hardware monitoring chip)<br>
-Client found at address 0x51<br>
-Probing for `Analog Devices ADM1033'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Analog Devices ADM1034'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `SPD EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Client found at address 0x52<br>
-Probing for `Analog Devices ADM1033'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Analog Devices ADM1034'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `SPD EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Client found at address 0x53<br>
-Probing for `Analog Devices ADM1033'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Analog Devices ADM1034'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `SPD EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-<br>
-Next adapter: intel drm LVDSDDC_C (i2c-1)<br>
-Do you want to scan it? (YES/no/selectively): <br>
-Client found at address 0x50<br>
-Probing for `Analog Devices ADM1033'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `Analog Devices ADM1034'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `SPD EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; No<br>
-Probing for `EDID EEPROM'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Yes<br>
-&nbsp;&nbsp;&nbsp; (confidence 8, not a hardware monitoring chip)<br>
-<br>
-Next adapter: intel drm HDMIB (i2c-2)<br>
-Do you want to scan it? (YES/no/selectively): <br>
-<br>
-Next adapter: DPDDC-B (i2c-3)<br>
-Do you want to scan it? (YES/no/selectively): <br>
-<br>
-Sorry, no sensors were detected.<br>
-Either your system has no sensors, or they are not supported, or<br>
-they are connected to an I2C or SMBus adapter that is not<br>
-supported. If you find out what chips are on your board, check<br>
-<a class="moz-txt-link-freetext" href="http://www.lm-sensors.org/wiki/Devices">http://www.lm-sensors.org/wiki/Devices</a> for driver status.<br>
-<br>
-&nbsp;&nbsp;&nbsp; sudo pwmconfig <br>
-# pwmconfig revision 5770 (2009-09-16)<br>
-This program will search your sensors for pulse width modulation (pwm)<br>
-controls, and test each one to see if it controls a fan on<br>
-your motherboard. Note that many motherboards do not have pwm<br>
-circuitry installed, even if your sensor chip supports pwm.<br>
-<br>
-We will attempt to briefly stop each fan using the pwm controls.<br>
-The program will attempt to restore each fan to full speed<br>
-after testing. However, it is ** very important ** that you<br>
-physically verify that the fans have been to full speed<br>
-after the program has completed.<br>
-<br>
-/usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed<br>
-<br>
-&nbsp;&nbsp;&nbsp; lsmod | egrep -i "temp|core|i2c|dell"<br>
-i2c_dev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4970&nbsp; 0 <br>
-dell_wmi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1793&nbsp; 0 <br>
-i2c_algo_bit&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5028&nbsp; 1 i915<br>
-dell_laptop&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6856&nbsp; 0 <br>
-dcdbas&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5422&nbsp; 1 dell_laptop<br>
-soundcore&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6620&nbsp; 1 snd<br>
-i2c_i801&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 7722&nbsp; 0 <br>
-k8temp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3024&nbsp; 0 <br>
-<br>
-</body>
-</html>
-
---------------070305070403000400000100--
-
-
---===============1191145193103855104==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jean Delvare <khali@linux-fr.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, "Ira W. Snyder" <iws@ovro.caltech.edu>, "Darrick J. Wong" <djwong@us.ibm.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-i2c@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+The main rationale for this cleanup is to prepare the driver for adding max6696
+support.
+
+ drivers/hwmon/lm90.c |  110 +++++++++++++++++++++++++++++++++----------------
+ 1 files changed, 74 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 760ef72..58a5605 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -387,8 +387,13 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 	int nr = attr->index;
++	long val;
++	int err;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+ 	if (data->kind = lm99 && attr->index = 3)
+@@ -442,8 +447,13 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 	int nr = attr->index;
++	long val;
++	int err;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+ 	if (data->kind = lm99 && attr->index <= 2)
+@@ -469,7 +479,8 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 	return count;
+ }
+ 
+-static ssize_t show_temphyst(struct device *dev, struct device_attribute *devattr,
++static ssize_t show_temphyst(struct device *dev,
++			     struct device_attribute *devattr,
+ 			     char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+@@ -495,9 +506,14 @@ static ssize_t set_temphyst(struct device *dev, struct device_attribute *dummy,
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
+ 	int temp;
+ 
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
+ 	mutex_lock(&data->update_lock);
+ 	if (data->kind = adt7461)
+ 		temp = temp_from_u8_adt7461(data, data->temp8[2]);
+@@ -600,7 +616,12 @@ static ssize_t set_pec(struct device *dev, struct device_attribute *dummy,
+ 		       const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
+ 
+ 	switch (val) {
+ 	case 0:
+@@ -622,8 +643,10 @@ static DEVICE_ATTR(pec, S_IWUSR | S_IRUGO, show_pec, set_pec);
+  * Real code
+  */
+ 
+-/* The ADM1032 supports PEC but not on write byte transactions, so we need
+-   to explicitly ask for a transaction without PEC. */
++/*
++ * The ADM1032 supports PEC but not on write byte transactions, so we need
++ * to explicitly ask for a transaction without PEC.
++ */
+ static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
+ {
+ 	return i2c_smbus_xfer(client->adapter, client->addr,
+@@ -631,20 +654,22 @@ static inline s32 adm1032_write_byte(struct i2c_client *client, u8 value)
+ 			      I2C_SMBUS_WRITE, value, I2C_SMBUS_BYTE, NULL);
+ }
+ 
+-/* It is assumed that client->update_lock is held (unless we are in
+-   detection or initialization steps). This matters when PEC is enabled,
+-   because we don't want the address pointer to change between the write
+-   byte and the read byte transactions. */
+-static int lm90_read_reg(struct i2c_client* client, u8 reg, u8 *value)
++/*
++ * It is assumed that client->update_lock is held (unless we are in
++ * detection or initialization steps). This matters when PEC is enabled,
++ * because we don't want the address pointer to change between the write
++ * byte and the read byte transactions.
++ */
++static int lm90_read_reg(struct i2c_client *client, u8 reg, u8 *value)
+ {
+ 	int err;
+ 
+- 	if (client->flags & I2C_CLIENT_PEC) {
+- 		err = adm1032_write_byte(client, reg);
+- 		if (err >= 0)
+- 			err = i2c_smbus_read_byte(client);
+- 	} else
+- 		err = i2c_smbus_read_byte_data(client, reg);
++	if (client->flags & I2C_CLIENT_PEC) {
++		err = adm1032_write_byte(client, reg);
++		if (err >= 0)
++			err = i2c_smbus_read_byte(client);
++	} else
++		err = i2c_smbus_read_byte_data(client, reg);
+ 
+ 	if (err < 0) {
+ 		dev_warn(&client->dev, "Register %#02x read failed (%d)\n",
+@@ -669,14 +694,21 @@ static int lm90_detect(struct i2c_client *new_client,
+ 		return -ENODEV;
+ 
+ 	/* detection and identification */
+-	if ((man_id = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_MAN_ID)) < 0
+-	 || (chip_id = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CHIP_ID)) < 0
+-	 || (reg_config1 = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CONFIG1)) < 0
+-	 || (reg_convrate = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CONVRATE)) < 0)
++	man_id = i2c_smbus_read_byte_data(new_client, LM90_REG_R_MAN_ID);
++	if (man_id < 0)
++		return -ENODEV;
++
++	chip_id = i2c_smbus_read_byte_data(new_client, LM90_REG_R_CHIP_ID);
++	if (chip_id < 0)
++		return -ENODEV;
++
++	reg_config1 = i2c_smbus_read_byte_data(new_client, LM90_REG_R_CONFIG1);
++	if (reg_config1 < 0)
++		return -ENODEV;
++
++	reg_convrate = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_CONVRATE);
++	if (reg_convrate < 0)
+ 		return -ENODEV;
+ 
+ 	if ((address = 0x4C || address = 0x4D)
+@@ -826,16 +858,18 @@ static int lm90_probe(struct i2c_client *new_client,
+ 	lm90_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm90_group)))
++	err = sysfs_create_group(&new_client->dev.kobj, &lm90_group);
++	if (err)
+ 		goto exit_free;
+ 	if (new_client->flags & I2C_CLIENT_PEC) {
+-		if ((err = device_create_file(&new_client->dev,
+-					      &dev_attr_pec)))
++		err = device_create_file(&new_client->dev, &dev_attr_pec);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->kind != max6657 && data->kind != max6646) {
+-		if ((err = device_create_file(&new_client->dev,
+-				&sensor_dev_attr_temp2_offset.dev_attr)))
++		err = device_create_file(&new_client->dev,
++					&sensor_dev_attr_temp2_offset.dev_attr);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 
+@@ -883,9 +917,8 @@ static void lm90_init_client(struct i2c_client *client)
+ 	 * 0.125 degree resolution) and range (0x08, extend range
+ 	 * to -64 degree) mode for the remote temperature sensor.
+ 	 */
+-	if (data->kind = max6680) {
++	if (data->kind = max6680)
+ 		config |= 0x18;
+-	}
+ 
+ 	config &= 0xBF;	/* run */
+ 	if (config != data->config_orig) /* Only write if changed */
+@@ -961,9 +994,14 @@ static int lm90_read16(struct i2c_client *client, u8 regh, u8 regl, u16 *value)
+ 	 * we have to read the low byte again, and now we believe we have a
+ 	 * correct reading.
+ 	 */
+-	if ((err = lm90_read_reg(client, regh, &oldh))
+-	 || (err = lm90_read_reg(client, regl, &l))
+-	 || (err = lm90_read_reg(client, regh, &newh)))
++	err = lm90_read_reg(client, regh, &oldh);
++	if (err)
++		return err;
++	err = lm90_read_reg(client, regl, &l);
++	if (err)
++		return err;
++	err = lm90_read_reg(client, regh, &newh);
++	if (err)
+ 		return err;
+ 	if (oldh != newh) {
+ 		err = lm90_read_reg(client, regl, &l);
+-- 
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1191145193103855104==--
