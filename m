@@ -1,45 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 15 Aug 2010 11:46:04 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Fix harmless build warning
-Message-Id: <20100815134604.5bf145cf@hyperion.delvare>
+From: Yuri Ershov <ext-yuri.ershov@nokia.com>
+Date: Fri, 27 Aug 2010 14:33:19 +0000
+Subject: [lm-sensors] [PATCH 0/2] Accelerometer driver unload
+Message-Id: <1282919601-21821-1-git-send-email-ext-yuri.ershov@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net, samu.p.onkalo@nokia.com, akpm@linux-foundation.org, daniel@caiaq.de
+Cc: ext-yuri.kululin@nokia.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, ext-yuri.ershov@nokia.com
 
-Fix the following build warning:
+Hello,
 
-  CC [M]  drivers/hwmon/coretemp.o
-drivers/hwmon/coretemp.c: In function "coretemp_init":
-drivers/hwmon/coretemp.c:521: warning: unused variable "n"
-drivers/hwmon/coretemp.c:521: warning: unused variable "p"
+I2C part of lis3 accelerometer driver can be unloaded while in use which may
+cause kernel oops.
 
-Introduced by commit 851b29cb3b196cb66452ec964ab5f66c9c9cd1ed. When
-you drop code, you also have to drop the variables this code was
-using.
+These patches allow to change /dev/freefall file ops owner to prevent driver
+unloading while device in use.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Chen Gong <gong.chen@linux.intel.com>
-Cc: Rudolf Marek <r.marek@assembler.cz>
-Cc: Huaxu Wan <huaxu.wan@intel.com>
----
- drivers/hwmon/coretemp.c |    1 -
- 1 file changed, 1 deletion(-)
+Please review.
 
---- linux-2.6.36-rc0.orig/drivers/hwmon/coretemp.c	2010-08-15 10:24:54.000000000 +0200
-+++ linux-2.6.36-rc0/drivers/hwmon/coretemp.c	2010-08-15 13:39:08.000000000 +0200
-@@ -518,7 +518,6 @@ static struct notifier_block coretemp_cp
- static int __init coretemp_init(void)
- {
- 	int i, err = -ENODEV;
--	struct pdev_entry *p, *n;
- 
- 	/* quick check if we run Intel */
- 	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+Best regards,
+Yuri
 
--- 
-Jean Delvare
+Yuri Kululin (2):
+  lis3: Add device owner
+  lis3: Set device owner
+
+ drivers/hwmon/lis3lv02d.c     |    8 ++++++--
+ drivers/hwmon/lis3lv02d.h     |    2 ++
+ drivers/hwmon/lis3lv02d_i2c.c |    2 ++
+ 3 files changed, 10 insertions(+), 2 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
