@@ -1,53 +1,83 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 Aug 2010 06:53:02 +0000
-Subject: Re: [lm-sensors] [PATCH] MAINTAINERS: hwmon/coretemp: Change
-Message-Id: <20100820085302.5d29d2e3@hyperion.delvare>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Date: Fri, 27 Aug 2010 14:51:02 +0000
+Subject: [lm-sensors] [PATCH] Trivial changes to pacify the checkpatch.
+Message-Id: <1282919942-4087-1-git-send-email-shubhrajyoti@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282238896-23026-1-git-send-email-fenghua.yu@intel.com>
-In-Reply-To: <1282238896-23026-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Rudolf Marek <r.marek@assembler.cz>, Huaxu Wan <huaxu.wan@intel.com>, H Peter Anvin <hpa@zytor.com>, Guenter Roeck <guenter.roeck@ericsson.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
+To: lm-sensors@vger.kernel.org
 
-Hi Fenghua,
+Some trivial changes to pacify the checkpatch.
 
-On Thu, 19 Aug 2010 10:28:16 -0700, Fenghua Yu wrote:
-> From: Fenghua Yu <fenghua.yu@intel.com>
-> 
-> Huaxu and Rudolf want me to be the hwmon coretemp driver maintainer and remove
-> their names from the coretemp maintainer entry.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/hwmon/lm75.c |   45 ++++++++++++++++++++++++---------------------
+ 1 files changed, 24 insertions(+), 21 deletions(-)
 
-Thanks for stepping in! The coretemp driver definitely needs some
-love.
-
-> Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-> Acked-by: Rudolf Marek <r.marek@assembler.cz>
-> Acked-by: Huaxu Wan <huaxu.wan@intel.com>
-> ---
->  MAINTAINERS |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b5b8baa..ff0cd1e 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -1665,8 +1665,7 @@ F:	kernel/cgroup*
->  F:	mm/*cgroup*
->  
->  CORETEMP HARDWARE MONITORING DRIVER
-> -M:	Rudolf Marek <r.marek@assembler.cz>
-> -M:	Huaxu Wan <huaxu.wan@intel.com>
-> +M:	Fenghua Yu <fenghua.yu@intel.com>
->  L:	lm-sensors@lm-sensors.org
->  S:	Maintained
->  F:	Documentation/hwmon/coretemp
-
-Applied, thanks.
-
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index d579290..3e8a1f9 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -1,22 +1,22 @@
+ /*
+-    lm75.c - Part of lm_sensors, Linux kernel modules for hardware
+-             monitoring
+-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
++ * lm75.c - Part of lm_sensors, Linux kernel modules for hardware
++ *	 monitoring
++ * Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
+ 
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -339,9 +339,11 @@ static struct i2c_driver lm75_driver = {
+ 
+ /* register access */
+ 
+-/* All registers are word-sized, except for the configuration register.
+-   LM75 uses a high-byte first convention, which is exactly opposite to
+-   the SMBus standard. */
++/*
++ * All registers are word-sized, except for the configuration register.
++ * LM75 uses a high-byte first convention, which is exactly opposite to
++ * the SMBus standard.
++ */
+ static int lm75_read_value(struct i2c_client *client, u8 reg)
+ {
+ 	int value;
 -- 
-Jean Delvare
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
