@@ -1,55 +1,181 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 Aug 2010 20:48:05 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7871) Fix ads7871_probe init
-Message-Id: <20100822224805.0b84d94a@hyperion.delvare>
+From: support RG <support@fidit.com>
+Date: Sat, 28 Aug 2010 16:09:48 +0000
+Subject: [lm-sensors] i2c-i801 module conflict with 3400 Series Chipset
+Message-Id: <4C7934CC.4020902@fidit.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4110952533582797311=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282487126.23014.11.camel@phoenix>
-In-Reply-To: <1282487126.23014.11.camel@phoenix>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--===============4110952533582797311==
+Content-Type: multipart/alternative;
+ boundary="------------030508030800080208050303"
+
+This is a multi-part message in MIME format.
+--------------030508030800080208050303
+Content-Type: text/plain; charset="iso-8859-1"; format="flowed"
+Content-Transfer-Encoding: quoted-printable
+
+hi
+
+under ubuntu 10.04LTS
+on dell vostro 3500
+
+Intel Corporation 5 Series/3400 Series Chipset SMBus Controller=20
+[8086:3b30] (rev 06)
+
+By default i2c-i801 is in blacklist.conf
+if i remove from blacklist here it is dmesg
+
+i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) -> IRQ 18
+[   14.801179] ACPI: resource 0000:00:1f.3 [0xf000-0xf01f] conflicts=20
+with ACPI region SMBI [0xf000-0xf00f]
+[   14.801182] ACPI: If an ACPI driver is available for this device, you=20
+should use it instead of the native driver
+
+where SMBI is in DSDT_DELL_WN09.dsl
+
+                 OperationRegion (SMBI, SystemIO, ShiftLeft (SBAR,=20
+0x05), 0x10)
+                 Field (SMBI, ByteAcc, NoLock, Preserve)
+                 {
+                     HSTS,   8,
+                             Offset (0x02),
+                     HCON,   8,
+                     HCOM,   8,
+                     TXSA,   8,
+                     DAT0,   8,
+                     DAT1,   8,
+                     HBDR,   8,
+                     PECR,   8,
+                     RXSA,   8,
+                     SDAT,   16
+                 }
+
+
+lspci -vvnnxxxx
+
+00:1f.3 SMBus [0c05]: Intel Corporation 5 Series/3400 Series Chipset=20
+SMBus Controller [8086:3b30] (rev 06)
+     Subsystem: Dell Device [1028:0441]
+     Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-=20
+Stepping- SERR- FastB2B- DisINTx-
+     Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=3Dmedium >TAbort-=20
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+     Interrupt: pin C routed to IRQ 18
+     Region 0: Memory at fbc05000 (64-bit, non-prefetchable) [size=3D256]
+     Region 4: I/O ports at f000 [size=3D32]
+     Kernel modules:* i2c-i801*
+00: 86 80 30 3b 03 00 80 02 06 00 05 0c 00 00 00 00
+10: 04 50 c0 fb 00 00 00 00 00 00 00 00 00 00 00 00
+20: 01 f0 00 00 00 00 00 00 00 00 00 00 28 10 41 04
+30: 00 00 00 00 00 00 00 00 00 00 00 00 03 03 00 00
+
+finaly, _with or without i2c-i801_ and//or k8temp load at startup
+sensors return only
+
+fidit@de100816A:~$ sensors
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +39.5=B0C  (crit =3D +100.0=B0C)
+
+under everest on seven, 6 temp are detect.
+
+
+
+--------------030508030800080208050303
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Axel Lin <axel.lin@gmail.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, Paul Thomas <pthomas8589@gmail.com>, lm-sensors@lm-sensors.org
 
-Hi Axel,
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="Content-Type">
+</head>
+<body text="#000000" bgcolor="#ffffff">
+hi<br>
+<br>
+under ubuntu 10.04LTS<br>
+on dell vostro 3500<br>
+<br>
+Intel Corporation 5 Series/3400 Series Chipset SMBus Controller
+[8086:3b30] (rev 06)<br>
+<br>
+By default i2c-i801 is in blacklist.conf<br>
+if i remove from blacklist here it is dmesg<br>
+<br>
+i801_smbus 0000:00:1f.3: PCI INT C -&gt; GSI 18 (level, low) -&gt; IRQ
+18<br>
+[&nbsp;&nbsp; 14.801179] ACPI: resource 0000:00:1f.3 [0xf000-0xf01f] conflicts
+with ACPI region SMBI [0xf000-0xf00f]<br>
+[&nbsp;&nbsp; 14.801182] ACPI: If an ACPI driver is available for this device,
+you should use it instead of the native driver<br>
+<br>
+where SMBI is in DSDT_DELL_WN09.dsl<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OperationRegion (SMBI, SystemIO, ShiftLeft (SBAR,
+0x05), 0x10)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Field (SMBI, ByteAcc, NoLock, Preserve)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HSTS,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Offset (0x02), <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HCON,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HCOM,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; TXSA,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DAT0,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DAT1,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; HBDR,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; PECR,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RXSA,&nbsp;&nbsp; 8, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SDAT,&nbsp;&nbsp; 16<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; }<br>
+<br>
+<br>
+lspci -vvnnxxxx<br>
+<br>
+00:1f.3 SMBus [0c05]: Intel Corporation 5 Series/3400 Series Chipset
+SMBus Controller [8086:3b30] (rev 06)<br>
+&nbsp;&nbsp;&nbsp; Subsystem: Dell Device [1028:0441]<br>
+&nbsp;&nbsp;&nbsp; Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B- DisINTx-<br>
+&nbsp;&nbsp;&nbsp; Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort-
+&lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-<br>
+&nbsp;&nbsp;&nbsp; Interrupt: pin C routed to IRQ 18<br>
+&nbsp;&nbsp;&nbsp; Region 0: Memory at fbc05000 (64-bit, non-prefetchable) [size=256]<br>
+&nbsp;&nbsp;&nbsp; Region 4: I/O ports at f000 [size=32]<br>
+&nbsp;&nbsp;&nbsp; Kernel modules:<b> i2c-i801</b><br>
+00: 86 80 30 3b 03 00 80 02 06 00 05 0c 00 00 00 00<br>
+10: 04 50 c0 fb 00 00 00 00 00 00 00 00 00 00 00 00<br>
+20: 01 f0 00 00 00 00 00 00 00 00 00 00 28 10 41 04<br>
+30: 00 00 00 00 00 00 00 00 00 00 00 00 03 03 00 00<br>
+<br>
+finaly, <u>with or without i2c-i801</u> and//or k8temp load at startup<br>
+sensors return only<br>
+<br>
+fidit@de100816A:~$ sensors<br>
+acpitz-virtual-0<br>
+Adapter: Virtual device<br>
+temp1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +39.5&deg;C&nbsp; (crit = +100.0&deg;C)<br>
+<br>
+under everest on seven, 6 temp are detect. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>
+<br>
+<br>
+</body>
+</html>
 
-On Sun, 22 Aug 2010 22:25:26 +0800, Axel Lin wrote:
-> >From 81e895683eaecb9e196c57c36b774c0908069d83 Mon Sep 17 00:00:00 2001
-> From: Axel Lin <axel.lin@gmail.com>
-> Date: Sun, 22 Aug 2010 22:10:01 +0800
-> Subject: [PATCH] hwmon: (ads7871) Fix ads7871_probe init path
-> 
-> This patch includes below fixes:
-> 
-> 1. remove 'status' variable
-> 2. remove unneeded initialization of 'err' variable
-> 3. return missing error code if sysfs_create_group fail.
-> 4. fix the init sequence as:
->    - check hardware existence
->    - kzalloc for ads7871_data
->    - sysfs_create_group
->    - hwmon_device_register
-> 
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> ---
-> 
-> hi Jean,
-> This patch is against linux-next ( on top of previous patch ).
-> Reviews are welcome.
+--------------030508030800080208050303--
 
-Looks good. I've folded this patch into the old one, and will send the
-result to Linux shortly.
 
-> I think it's ok to call sysfs_create_group() before hwmon_device_register().
-> If hwmon_device_register failed, the device is not working anyway.
-> We just need to make sure all the allocated resources are reclaimed in error path before return error.
-
-Agreed.
-
--- 
-Jean Delvare
+--===============4110952533582797311==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4110952533582797311==--
