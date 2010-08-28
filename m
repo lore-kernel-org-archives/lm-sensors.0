@@ -1,43 +1,70 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 25 Aug 2010 14:59:51 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.36
-Message-Id: <20100825165951.0c5d0955@hyperion.delvare>
+From: =?ISO-8859-1?Q?Leo_Kr=FCger?= <mail@leokrueger.de>
+Date: Sat, 28 Aug 2010 23:16:17 +0000
+Subject: [lm-sensors] small changes in configuration file for MSI IM-945GSE-A
+Message-Id: <37bbc84b5fac675db98cc0276a74e55e@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+Hi,
 
-Please pull hwmon subsystem fixes for Linux 2.6.36 from:
+I own a MSI IM-945GSE-A motherboard and used the sample configuration file
+from http://lm-sensors.org/wiki/Configurations/MSI/IM-945GSE-A,
+which showed me around 14V for the 12V output.
+Since this would be far above specification limits, I measured the actual
+values at the ATX power connector. In addition to the 12V output, the 5V
+and the 5Vsb line differed a little.
+Below is my updated configuration file. Note that I just changed 3 lines,
+the compute lines for in4, in5 and in6.
+It would be nice if you could update the sample file in your wiki.
+Let me know if any additional steps are necessary.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+Regards,
+Leo
 
- MAINTAINERS              |    3 +--
- drivers/hwmon/ads7871.c  |   38 +++++++++++++++++++-------------------
- drivers/hwmon/coretemp.c |    1 -
- drivers/hwmon/k8temp.c   |   35 ++++++++++++++++++++++++++++++++---
- 4 files changed, 52 insertions(+), 25 deletions(-)
+# lm_sensors configuration file for the MSI IM-945GSE-A motherboard
+# Atom N270, Dual Gigabit Intel 82574L controllers, VGA, DVI
+# 2009-07-01 Thomas Ettwein
+# 2010-08-29 Leo Krueger
 
----------------
+chip "f71882fg-*"
 
-Andreas Herrmann (1):
-      hwmon: (k8temp) Differentiate between AM2 and ASB1
+# Temperature
+     label temp1       "CPU"
+     label temp2       "Systemboard"
+     ignore temp3
 
-Axel Lin (1):
-      hwmon: (ads7871) Fix ads7871_probe error paths
+# Fans
+      ignore fan1 # no connector on board
+      label fan2 "FAN"
+      ignore fan3 # no connector on board
+      ignore fan4 # no connector on board
 
-Fenghua Yu (1):
-      MAINTAINERS: hwmon/coretemp: Change maintainers
 
-Jean Delvare (1):
-      hwmon: (coretemp) Fix harmless build warning
+# Voltage
+     label in0         "3.3V"
+     label in1         "Vcore"
+     label in2         "Vdimm"
+     label in3         "Vchip"
+     label in4         "+5V"
+     label in5         "12V"
+     label in6         "5VSB"
+     label in7         "3VSB"
+     label in8         "Battery"
 
-Thanks,
--- 
-Jean Delvare
+# never change the in0, in7 and in8 compute, these are hardwired in the
+chip!
+# in4, in5, in6 were changed to match manually measured values
+     compute in0       (@ * 2), (@ / 2)
+     compute in2       (@ * 2), (@ / 2)
+     compute in3       (@ * 2), (@ / 2)
+     compute in4       (@ * 5.23), (@ / 5.23)
+     compute in5       (@ * 10.86), (@ / 10.86)
+     compute in6       (@ * 5.62), (@ / 5.62)
+     compute in7       (@ * 2), (@ / 2)
+     compute in8       (@ * 2), (@ / 2)
 
 _______________________________________________
 lm-sensors mailing list
