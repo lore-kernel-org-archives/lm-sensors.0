@@ -1,50 +1,68 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 Aug 2010 12:33:43 +0000
-Subject: Re: [lm-sensors] [RFC PATCH] Make the writing to sysfs more robust.
-Message-Id: <20100827143343.6b9b7f1f@hyperion.delvare>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Date: Tue, 31 Aug 2010 00:55:48 +0000
+Subject: [lm-sensors] [Patch-next] Trival fixes in
+Message-Id: <4C7C5314.7090404@np.css.fujitsu.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1282827342-29579-1-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1282827342-29579-1-git-send-email-shubhrajyoti@ti.com>
+References: <4C75D3C4.6040802@np.css.fujitsu.com>	<20100826060822.GA15021@fenghua-desk.sc.intel.com>	<4C7625D1.4060201@np.css.fujitsu.com> <20100827152007.27636fa5@hyperion.delvare> <4C7B64A8.2030208@np.css.fujitsu.com> <493994B35A117E4F832F97C4719C4C04A111EEDF@orsmsx505.amr.corp.intel.com>
+In-Reply-To: <493994B35A117E4F832F97C4719C4C04A111EEDF@orsmsx505.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Yu, Fenghua" <fenghua.yu@intel.com>, Jean Delvare <khali@linux-fr.org>
+Cc: "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, "H. Peter Anvin" <hpa@linux.jf.intel.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Thu, 26 Aug 2010 18:25:42 +0530, Shubhrajyoti D wrote:
-> Currently we get the checkpatch warning
-> consider using strict_strtol in preference to simple_strtol
-> Also we should not allow any partially numeric values
-> 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
->  drivers/hwmon/lm75.c |    6 +++++-
->  1 files changed, 5 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
-> index a86f2e0..9f23dfc 100644
-> --- a/drivers/hwmon/lm75.c
-> +++ b/drivers/hwmon/lm75.c
-> @@ -103,7 +103,11 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct lm75_data *data = i2c_get_clientdata(client);
->  	int nr = attr->index;
-> -	long temp = simple_strtol(buf, NULL, 10);
-> +	long temp;
-> +	int error;
+This patch fixed the following two problems.
+  1. When the feature PTS is not supported by CPU, the sysfile
+     package_power_limit_count for package should not be generated.
+  2. No matter whether a sysfile is failed to be created or not,
+     the next one will be created.
 
-Except for the missing blank line here, which I've added myself, it
-looks good. Patch applied, thanks!
+As the resolving methods:
+  1. Add missing { and } after checking PTS feature.
+  2. Fix the error handling.
 
-> +	error = strict_strtol(buf, 10, &temp);
-> +	if (error)
-> +		return error;
->  
->  	mutex_lock(&data->update_lock);
->  	data->temp[nr] = LM75_TEMP_TO_REG(temp);
+Signed-off-by: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Reviewed-by: Fenghua Yu <fenghua.yu@initel.com>
+---
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index d9368ee..79d563a 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -216,14 +216,27 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_core_power_limit_count.attr,
+ 					      thermal_attr_group.name);
+-	if (cpu_has(c, X86_FEATURE_PTS))
++	if (err)
++		goto error;
++
++	if (cpu_has(c, X86_FEATURE_PTS)) {
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_package_throttle_count.attr,
+ 					      thermal_attr_group.name);
++		if (err)
++			goto error;
++
+ 		if (cpu_has(c, X86_FEATURE_PLN))
+ 			err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					&attr_package_power_limit_count.attr,
+ 					thermal_attr_group.name);
++		if (err)
++			goto error;
++	}
++
++	return 0;
++error:
++	sysfs_remove_group(&sys_dev->kobj, &thermal_attr_group);
+ 
+ 	return err;
+ }
 -- 
-Jean Delvare
+1.7.1.1
+
 
 _______________________________________________
 lm-sensors mailing list
