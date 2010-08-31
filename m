@@ -1,17 +1,25 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Tue, 31 Aug 2010 01:02:52 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 31 Aug 2010 06:55:12 +0000
 Subject: Re: [lm-sensors] [Patch-next] Trival fixes in
-Message-Id: <20100831010251.GA28885@fenghua-desk.sc.intel.com>
+Message-Id: <20100831085512.252ffa06@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C75D3C4.6040802@np.css.fujitsu.com> <20100826060822.GA15021@fenghua-desk.sc.intel.com> <4C7625D1.4060201@np.css.fujitsu.com> <20100827152007.27636fa5@hyperion.delvare> <4C7B64A8.2030208@np.css.fujitsu.com> <493994B35A117E4F832F97C4719C4C04A111EEDF@orsmsx505.amr.corp.intel.com> <4C7C5314.7090404@np.css.fujitsu.com>
+References: <4C75D3C4.6040802@np.css.fujitsu.com>
+	<20100826060822.GA15021@fenghua-desk.sc.intel.com>
+	<4C7625D1.4060201@np.css.fujitsu.com>
+	<20100827152007.27636fa5@hyperion.delvare>
+	<4C7B64A8.2030208@np.css.fujitsu.com>
+	<493994B35A117E4F832F97C4719C4C04A111EEDF@orsmsx505.amr.corp.intel.com>
+	<4C7C5314.7090404@np.css.fujitsu.com>
 In-Reply-To: <4C7C5314.7090404@np.css.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jin Dongming <jin.dongming@np.css.fujitsu.com>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, Jean Delvare <khali@linux-fr.org>, "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, "H. Peter Anvin" <hpa@linux.jf.intel.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, "H. Peter Anvin" <hpa@linux.jf.intel.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 
-On Mon, Aug 30, 2010 at 05:55:48PM -0700, Jin Dongming wrote:
+Hi Jin
+
+On Tue, 31 Aug 2010 09:55:48 +0900, Jin Dongming wrote:
 > This patch fixed the following two problems.
 >   1. When the feature PTS is not supported by CPU, the sysfile
 >      package_power_limit_count for package should not be generated.
@@ -53,6 +61,19 @@ On Mon, Aug 30, 2010 at 05:55:48PM -0700, Jin Dongming wrote:
 >  					thermal_attr_group.name);
 > +		if (err)
 > +			goto error;
+
+Even though you are lucky that in the end it still works, this check is
+misplaced. You should instead have:
+
+		if (cpu_has(c, X86_FEATURE_PLN)) {
+			err = sysfs_add_file_to_group(&sys_dev->kobj,
+					&attr_package_power_limit_count.attr,
+					thermal_attr_group.name);
+			if (err)
+				goto error;
+		}
+
+
 > +	}
 > +
 > +	return 0;
@@ -62,12 +83,9 @@ On Mon, Aug 30, 2010 at 05:55:48PM -0700, Jin Dongming wrote:
 >  	return err;
 >  }
 
-This fix is incorrect. In this patch, a previous error prevents from adding any
-further devices. There shouldn't be such dependency among the devices.
 
-Thanks.
-
--Fenghua
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
