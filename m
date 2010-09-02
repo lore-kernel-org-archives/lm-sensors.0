@@ -1,111 +1,158 @@
-From: Andrew Lyon <andrew.lyon@gmail.com>
-Date: Fri, 17 Sep 2010 08:01:27 +0000
-Subject: Re: [lm-sensors] Supermicro X7DWA-N All fans controlled by pwm3?
-Message-Id: <AANLkTim4gMcuxAb2xLfO2oEqLhUGS6HbXPc75kWRuO8e@mail.gmail.com>
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Thu, 02 Sep 2010 12:44:07 +0000
+Subject: [lm-sensors] [PATCH] x86/hwmon: fix configuration and
+Message-Id: <4C7FB8370200007800013F40@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTik0r3VKaeG-=kattdUq=imC=UuaK6qBH-N8mCb7@mail.gmail.com>
-In-Reply-To: <AANLkTik0r3VKaeG-=kattdUq=imC=UuaK6qBH-N8mCb7@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: mingo@elte.hu, tglx@linutronix.de, hpa@zytor.com
+Cc: r.marek@assembler.cz, fenghua.yu@intel.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Wed, Sep 15, 2010 at 5:13 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Andrew,
->
-> On Tue, 14 Sep 2010 09:52:12 +0100, Andrew Lyon wrote:
->> I have a system with Supermicro X7DWA-N motherboard, according to the
->> manual it has "Winbond W83627HF w/Hardware Monitor support: W83793" so
->> I've loaded both the w83627hf and w83793 modules and several sensors
->> and fans are detected, however when I try to control fan speed I find
->> that the only pwm output which has any effect is pwm3 and it seems to
->> control all of the fans at once, also pwm1 is locked at 112:
->
-> What's the value of pwm1_enable? Could be that this PWM output is not
-> currently in manual control mode.
+- using cpuid_eax() to determine feature availability on other than
+  the current CPU is invalid
+- feature availability shopuld also be check in the hotplug code path
+- pkgtemp doesn't depend on PCI altogether (apparently just inherited
+  from coretemp)
+- coretemp really only needs PCI for Atom support
 
-The only devices with pwm and enable in the name are:
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 
-/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/temp1_pwm_enable
-/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/temp2_pwm_enable
-/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/temp3_pwm_enable
-/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/temp4_pwm_enable
-/sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/temp5_pwm_enable
+---
+ arch/x86/include/asm/cpufeature.h |    1 +
+ arch/x86/kernel/cpu/scattered.c   |    1 +
+ drivers/hwmon/Kconfig             |    5 +++--
+ drivers/hwmon/coretemp.c          |   30 ++++++++++++++----------------
+ drivers/hwmon/pkgtemp.c           |   11 +++--------
+ 5 files changed, 22 insertions(+), 26 deletions(-)
+
+--- linux-2.6.36-rc3/arch/x86/include/asm/cpufeature.h
++++ 2.6.36-rc3-x86-hwmon/arch/x86/include/asm/cpufeature.h
+@@ -168,6 +168,7 @@
+ #define X86_FEATURE_XSAVEOPT	(7*32+ 4) /* Optimized Xsave */
+ #define X86_FEATURE_PLN		(7*32+ 5) /* Intel Power Limit Notification */
+ #define X86_FEATURE_PTS		(7*32+ 6) /* Intel Package Thermal Status */
++#define X86_FEATURE_DTS		(7*32+31) /* Digital Thermal Sensor */
+ 
+ /* Virtualization flags: Linux defined, word 8 */
+ #define X86_FEATURE_TPR_SHADOW  (8*32+ 0) /* Intel TPR Shadow */
+--- linux-2.6.36-rc3/arch/x86/kernel/cpu/scattered.c
++++ 2.6.36-rc3-x86-hwmon/arch/x86/kernel/cpu/scattered.c
+@@ -31,6 +31,7 @@ void __cpuinit init_scattered_cpuid_feat
+ 	const struct cpuid_bit *cb;
+ 
+ 	static const struct cpuid_bit __cpuinitconst cpuid_bits[] = {
++		{ X86_FEATURE_DTS,		CR_EAX, 0, 0x00000006, 0 },
+ 		{ X86_FEATURE_IDA,		CR_EAX, 1, 0x00000006, 0 },
+ 		{ X86_FEATURE_ARAT,		CR_EAX, 2, 0x00000006, 0 },
+ 		{ X86_FEATURE_PLN,		CR_EAX, 4, 0x00000006, 0 },
+--- linux-2.6.36-rc3/drivers/hwmon/Kconfig
++++ 2.6.36-rc3-x86-hwmon/drivers/hwmon/Kconfig
+@@ -401,7 +401,8 @@ config SENSORS_GL520SM
+ 
+ config SENSORS_CORETEMP
+ 	tristate "Intel Core/Core2/Atom temperature sensor"
+-	depends on X86 && PCI && EXPERIMENTAL
++	depends on X86 && EXPERIMENTAL
++	depends on PCI || (!MATOM && !GENERIC_CPU && !X86_GENERIC)
+ 	help
+ 	  If you say yes here you get support for the temperature
+ 	  sensor inside your CPU. Most of the family 6 CPUs
+@@ -409,7 +410,7 @@ config SENSORS_CORETEMP
+ 
+ config SENSORS_PKGTEMP
+ 	tristate "Intel processor package temperature sensor"
+-	depends on X86 && PCI && EXPERIMENTAL
++	depends on X86 && EXPERIMENTAL
+ 	help
+ 	  If you say yes here you get support for the package level temperature
+ 	  sensor inside your CPU. Check documentation/driver for details.
+--- linux-2.6.36-rc3/drivers/hwmon/coretemp.c
++++ 2.6.36-rc3-x86-hwmon/drivers/hwmon/coretemp.c
+@@ -423,9 +423,18 @@ static int __cpuinit coretemp_device_add
+ 	int err;
+ 	struct platform_device *pdev;
+ 	struct pdev_entry *pdev_entry;
+-#ifdef CONFIG_SMP
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+-#endif
++
++	/*
++	 * CPUID.06H.EAX[0] indicates whether the CPU has thermal
++	 * sensors. We check this bit only, all the early CPUs
++	 * without thermal sensors will be filtered out.
++	 */
++	if (!cpu_has(c, X86_FEATURE_DTS)) {
++		printk(KERN_INFO DRVNAME ": CPU (model=0x%x)"
++		       " has no thermal sensor.\n", c->x86_model);
++		return 0;
++	}
+ 
+ 	mutex_lock(&pdev_list_mutex);
+ 
+@@ -527,20 +536,9 @@ static int __init coretemp_init(void)
+ 	if (err)
+ 		goto exit;
+ 
+-	for_each_online_cpu(i) {
+-		struct cpuinfo_x86 *c = &cpu_data(i);
+-		/*
+-		 * CPUID.06H.EAX[0] indicates whether the CPU has thermal
+-		 * sensors. We check this bit only, all the early CPUs
+-		 * without thermal sensors will be filtered out.
+-		 */
+-		if (c->cpuid_level >= 6 && (cpuid_eax(0x06) & 0x01))
+-			coretemp_device_add(i);
+-		else {
+-			printk(KERN_INFO DRVNAME ": CPU (model=0x%x)"
+-				" has no thermal sensor.\n", c->x86_model);
+-		}
+-	}
++	for_each_online_cpu(i)
++		coretemp_device_add(i);
++
+ 	if (list_empty(&pdev_list)) {
+ 		err = -ENODEV;
+ 		goto exit_driver_unreg;
+--- linux-2.6.36-rc3/drivers/hwmon/pkgtemp.c
++++ 2.6.36-rc3-x86-hwmon/drivers/hwmon/pkgtemp.c
+@@ -33,7 +33,6 @@
+ #include <linux/list.h>
+ #include <linux/platform_device.h>
+ #include <linux/cpu.h>
+-#include <linux/pci.h>
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ 
+@@ -281,9 +280,10 @@ static int __cpuinit pkgtemp_device_add(
+ 	int err;
+ 	struct platform_device *pdev;
+ 	struct pdev_entry *pdev_entry;
+-#ifdef CONFIG_SMP
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+-#endif
++
++	if (!cpu_has(c, X86_FEATURE_PTS))
++		return 0;
+ 
+ 	mutex_lock(&pdev_list_mutex);
+ 
+@@ -399,11 +399,6 @@ static int __init pkgtemp_init(void)
+ 		goto exit;
+ 
+ 	for_each_online_cpu(i) {
+-		struct cpuinfo_x86 *c = &cpu_data(i);
+-
+-		if (!cpu_has(c, X86_FEATURE_PTS))
+-			continue;
+-
+ 		err = pkgtemp_device_add(i);
+ 		if (err)
+ 			goto exit_devices_unreg;
 
 
-All currently set to 2.
-
->
-> Which kernel are you running?
-
-2.6.34.7
-
->
-> The w83793 driver is still marked experimental, there could be a bug in
-> it.
->
->>
->> ubermicro 0-002f # pwd
->> /sys/devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f
->> ubermicro 0-002f # lspci | grep =A01f.3
->> 00:1f.3 SMBus: Intel Corporation 631xESB/632xESB/3100 Chipset SMBus
->> Controller (rev 09)
->> ubermicro 0-002f # ls pwm?
->> pwm1 =A0pwm2 =A0pwm3 =A0pwm4 =A0pwm5 =A0pwm6 =A0pwm7 =A0pwm8
->> ubermicro 0-002f # cat pwm?
->> 112
->> 0
->> 160
->> 0
->> 0
->> 0
->> 0
->> 0
->>
->>
->> ubermicro 0-002f # echo 0 >pwm3
->> ubermicro 0-002f # sensors | grep fan
->> fan1: =A0 =A0 =A0 1564 RPM =A0(min =3D =A0712 RPM)
->> fan2: =A0 =A0 =A0 1652 RPM =A0(min =3D =A0712 RPM)
->> fan3: =A0 =A0 =A0 1636 RPM =A0(min =3D =A0712 RPM)
->> fan4: =A0 =A0 =A0 1638 RPM =A0(min =3D =A0712 RPM)
->> fan6: =A0 =A0 =A0 2351 RPM =A0(min =3D =A0712 RPM)
->> fan7: =A0 =A0 =A0 1622 RPM =A0(min =3D =A0712 RPM)
->> fan8: =A0 =A0 =A0 1605 RPM =A0(min =3D =A0712 RPM)
->>
->> ubermicro 0-002f # echo 140 >pwm3
->> ubermicro 0-002f # sensors | grep fan
->> fan1: =A0 =A0 =A0 1973 RPM =A0(min =3D =A0712 RPM)
->> fan2: =A0 =A0 =A0 2089 RPM =A0(min =3D =A0712 RPM)
->> fan3: =A0 =A0 =A0 2064 RPM =A0(min =3D =A0712 RPM)
->> fan4: =A0 =A0 =A0 2051 RPM =A0(min =3D =A0712 RPM)
->> fan6: =A0 =A0 =A0 2755 RPM =A0(min =3D =A0712 RPM)
->> fan7: =A0 =A0 =A0 2048 RPM =A0(min =3D =A0712 RPM)
->> fan8: =A0 =A0 =A0 2002 RPM =A0(min =3D =A0712 RPM)
->>
->>
->> Is it possible to gain control of the fans individually?
->
-> Very unlikely. PWM signal routing to fans is a hardware thing, it's
-> been decided by your motherboard vendor and you have to live with it.
->
-> Here I have an Asus server board with 8 fan inputs, 2 PWM output
-> controls, one controls the 2 CPU fans, and the other one controls the 6
-> case fans. So it's similar to your board, only slightly better because
-> CPU fans have their own control.
->
-> It is possible (but again unlikely) that the hardware vendor
-> implemented a user-controllable PWM routing. In that case it would
-> certainly be advertised by said vendor, and exposed in the BIOS or by
-> some custom tool. But I don't think I've ever seen this in practice.
-> And I don't think it would make too much sense (it would be cheaper to
-> route PWM outputs individually and group them at the software level if
-> needed.)
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
->
 
 _______________________________________________
 lm-sensors mailing list
