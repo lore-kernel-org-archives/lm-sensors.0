@@ -1,77 +1,112 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Date: Tue, 14 Sep 2010 06:47:48 +0000
-Subject: Re: [lm-sensors] [PATCH] x86/hwmon: fix module init
-Message-Id: <4C8F36B40200007800015E6B@vpn.id2.novell.com>
+From: Jin Dongming <jin.dongming@np.css.fujitsu.com>
+Date: Thu, 02 Sep 2010 00:36:05 +0000
+Subject: Re: [lm-sensors] [Patch-next] Trival fixes in
+Message-Id: <4C7EF175.1090005@np.css.fujitsu.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C8E139F0200007800015AA5@vpn.id2.novell.com>
- <4C8F167E.40506@linux.intel.com>
-In-Reply-To: <4C8F167E.40506@linux.intel.com>
+References: <4C75D3C4.6040802@np.css.fujitsu.com>	<20100826060822.GA15021@fenghua-desk.sc.intel.com>	<4C7625D1.4060201@np.css.fujitsu.com>	<20100827152007.27636fa5@hyperion.delvare>	<4C7B64A8.2030208@np.css.fujitsu.com>	<493994B35A117E4F832F97C4719C4C04A111EEDF@orsmsx505.amr.corp.intel.com>	<4C7C5314.7090404@np.css.fujitsu.com>	<20100831010251.GA28885@fenghua-desk.sc.intel.com>	<20100831090725.5d83eedb@hyperion.delvare>	<20100831170443.GA30454@fenghua-desk.sc.intel.com> <20100831213002.73e2f57d@hyperion.delvare>
+In-Reply-To: <20100831213002.73e2f57d@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: fenghua.yu@intel.com, khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>, "Brown, Len" <len.brown@intel.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, "H. Peter Anvin" <hpa@linux.jf.intel.com>, LKLM <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, mingo Redhat <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
 
->>> On 14.09.10 at 08:30, Chen Gong <gong.chen@linux.intel.com> wrote:
-> 于 9/13/2010 6:05 PM, Jan Beulich 写道:
->> In commit 0dca94baeab4a1a514841b0a4c8e3a51dfb4d5ae the call to
->> platform_driver_unregister() was made conditional upon !HOTPLUG_CPU,
->> but the return value from coretemp_init() was left to indicate an
->> error. This isn't correct, as the negative return value indicates to
->> the module loader that initialization failed, which isn't intended
+Hi Jean and Fenghua,
+
+Sorry for replying late.
+
+(2010/09/01 4:30), Jean Delvare wrote:
+> On Tue, 31 Aug 2010 10:04:43 -0700, Fenghua Yu wrote:
+>> On Tue, Aug 31, 2010 at 12:07:25AM -0700, Jean Delvare wrote:
+>>> On Mon, 30 Aug 2010 18:02:52 -0700, Fenghua Yu wrote:
+>>>> On Mon, Aug 30, 2010 at 05:55:48PM -0700, Jin Dongming wrote:
+>>>>> diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+>>>>> index d9368ee..79d563a 100644
+>>>>> --- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
+>>>>> +++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+>>>>> @@ -216,14 +216,27 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
+>>>>>  		err = sysfs_add_file_to_group(&sys_dev->kobj,
+>>>>>  					      &attr_core_power_limit_count.attr,
+>>>>>  					      thermal_attr_group.name);
+>>>>> -	if (cpu_has(c, X86_FEATURE_PTS))
+>>>>> +	if (err)
+>>>>> +		goto error;
+>>>>> +
+>>>>> +	if (cpu_has(c, X86_FEATURE_PTS)) {
+>>>>>  		err = sysfs_add_file_to_group(&sys_dev->kobj,
+>>>>>  					      &attr_package_throttle_count.attr,
+>>>>>  					      thermal_attr_group.name);
+>>>>> +		if (err)
+>>>>> +			goto error;
+>>>>> +
+>>>>>  		if (cpu_has(c, X86_FEATURE_PLN))
+>>>>>  			err = sysfs_add_file_to_group(&sys_dev->kobj,
+>>>>>  					&attr_package_power_limit_count.attr,
+>>>>>  					thermal_attr_group.name);
+>>>>> +		if (err)
+>>>>> +			goto error;
+>>>>> +	}
+>>>>> +
+>>>>> +	return 0;
+>>>>> +error:
+>>>>> +	sysfs_remove_group(&sys_dev->kobj, &thermal_attr_group);
+>>>>>  
+>>>>>  	return err;
+>>>>>  }
+>>>>
+>>>> This fix is incorrect. In this patch, a previous error prevents from adding any
+>>>> further devices. There shouldn't be such dependency among the devices.
+>>>
+>>> I don't quite follow you. Did you mean to write that a previous error
+>>> prevents from creating further _attributes_ for the same device? This
+>>> would be true.
+>>>
+>>> Now I don't think this is a problem because 1* such errors should never
+>>> happen anyway and 2* if they do happen then further attempts to create
+>>> the other attributes are unlikely to succeed either.
+>>
+>> I don't think there is dependency among the count files, i.e. failure to add a
+>> count file to the group shouldn't impact other files. Other filles can still be
+>> added to the group. In this case, user application only sees part of count
+>> numbers. And kernel may just warn on the failure instead of providing nothing
+>> to user.
+>>
+>> In the patch, any failure to add a file will remove the whole group. This is
+>> too strict. Kernel doesn't provide any count number to user application.
 > 
-> only !HOTPLUG_CPU can remove the driver. That is what we need to do 
-> because under the hotplug condition, we need to consider those "offline"
-> cpus. I don't understand what you are afraid. Can you give me a scinario ?
+> Oh, my bad. I missed the call to sysfs_remove_group() when reviewing
+> the code. I agree with you that it shouldn't be added.
+> 
+>> Agree with you that such errors should never happen anyway. So original code
+>> works fine.
+> 
+> The original code works indeed (except for the missing curly braces)
+> but is confusing for the reader (which is why I raised the point and we
+> are discussing it now). If you are voluntarily ignoring errors, you
+> should add a comment saying so. And it is also a good practice to use a
+> dummy variable to store the error value you'll ignore, so that the
+> intent is clear.
+> 
+I agree with your option. So I will cancel error handling of this patch and
+resend a patch just for missing { and } only.
 
-If the driver's init routine returns -ENODEV (like is the case without this
-change when HOTPLUG_CPU is enabled and there is no device found),
-the platform driver will remain registered, yet the driver memory will
-get freed (leaving dangling pointers into the driver's former image). Or
-in other words - when leaving the driver registered, the return value
-of the init function must be zero.
+And I think Fenghua could make a new patch for a comment.
 
-Jan
+Best Regards,
+Jin Dongming
 
->> here and results in dangling pointers.
->>
->> Signed-off-by: Jan Beulich<jbeulich@novell.com>
->> Cc: Chen Gong<gong.chen@linux.intel.com>
->>
->> ---
->>   drivers/hwmon/coretemp.c |    5 ++++-
->>   1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> --- linux-2.6.36-rc4/drivers/hwmon/coretemp.c	2010-09-13 08:45:02.000000000 
-> +0200
->> +++ 
-> 2.6.36-rc4-x86-coretemp-hotplug-init-return/drivers/hwmon/coretemp.c	2010-
-> 09-03 17:54:14.000000000 +0200
->> @@ -541,16 +541,19 @@ static int __init coretemp_init(void)
->>   				" has no thermal sensor.\n", c->x86_model);
->>   		}
->>   	}
->> +
->> +#ifndef CONFIG_HOTPLUG_CPU
->>   	if (list_empty(&pdev_list)) {
->>   		err = -ENODEV;
->>   		goto exit_driver_unreg;
->>   	}
->> +#endif
->>
->>   	register_hotcpu_notifier(&coretemp_cpu_notifier);
->>   	return 0;
->>
->> -exit_driver_unreg:
->>   #ifndef CONFIG_HOTPLUG_CPU
->> +exit_driver_unreg:
->>   	platform_driver_unregister(&coretemp_driver);
->>   #endif
->>   exit:
->>
->>
->>
->>
+>> If to be picky to the error handling, a patch may just ignore returning errors
+>> from sysfs_add_file_to_group.
+> 
+> This is an option, yes. Unfortunately this also means that such errors
+> won't be even logged, while I think this would be desirable.
+> 
+>> Or use err |= sysfs_add_file_to_group to collect
+>> all errors and return err but without calling sysfs_remove_group.
+> 
+> Please never use |= on non-bitwise values, it can only lead to bugs and
+> confusion.
+> 
 
 
 
