@@ -1,73 +1,47 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 17 Sep 2010 19:02:14 +0000
-Subject: Re: [lm-sensors] lmsensor not happy
-Message-Id: <1284750134.15696.93.camel@groeck-laptop>
+From: Guillem Jover <guillem@hadrons.org>
+Date: Fri, 03 Sep 2010 03:01:32 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (f75375s) Do not overwrite values
+Message-Id: <20100903030132.GA16049@gaara.hadrons.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C938514.5010804@gmail.com>
-In-Reply-To: <4C938514.5010804@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Riku Voipio <riku.voipio@iki.fi>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Fri, 2010-09-17 at 11:11 -0400, Brent Clark wrote:
-> To whom it may concern
-> 
-> I just started using Nagios'es check_sensor and immediately I started 
-> getting an error.
-> 
-> The CPU shows the tempreture is all fine, but there appears to be an 
-> additional sensor showing that somethings up.
-> 
-> Would anyone know what this is and where I could possible look.
-> 
-> Brent
-> 
-> 
-> root@chs-bac01:/usr/lib/nagios/plugins# sensors
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:      +40.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
-> 
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> Core 1:      +30.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
-> 
-> coretemp-isa-0002
-> Adapter: ISA adapter
-> Core 2:      +36.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
-> 
-> coretemp-isa-0003
-> Adapter: ISA adapter
-> Core 3:      +37.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
-> 
-> w83627dhg-isa-0290
-> Adapter: ISA adapter
-> VCore:       +1.14 V  (min =  +0.00 V, max =  +1.74 V)
-> in1:        +10.77 V  (min =  +1.80 V, max =  +3.80 V)   ALARM
-> AVCC:        +3.34 V  (min =  +0.13 V, max =  +3.26 V)   ALARM
-> 3VCC:        +3.34 V  (min =  +0.08 V, max =  +0.51 V)   ALARM
-> in4:         +1.83 V  (min =  +0.81 V, max =  +0.04 V)   ALARM
-> in5:         +1.25 V  (min =  +1.22 V, max =  +0.55 V)   ALARM
-> in6:         +0.31 V  (min =  +0.10 V, max =  +0.49 V)
-> VSB:         +3.31 V  (min =  +2.22 V, max =  +2.21 V)   ALARM
-> VBAT:        +3.25 V  (min =  +2.08 V, max =  +0.21 V)   ALARM
-> Case Fan:   2033 RPM  (min = 1259 RPM, div = 8)
-> CPU Fan:    1061 RPM  (min = 2636 RPM, div = 8)  ALARM
-> Aux Fan:       0 RPM  (min =    0 RPM, div = 128)  ALARM
-> fan4:          0 RPM  (min = 10546 RPM, div = 128)  ALARM
-> fan5:          0 RPM  (min = 10546 RPM, div = 128)  ALARM
-> Sys Temp:    +52.0\ufffdC  (high = +30.0\ufffdC, hyst = +64.0\ufffdC)  
-> sensor = diode
-> CPU Temp:    +20.0\ufffdC  (high = +80.0\ufffdC, hyst = +75.0\ufffdC)  
-> sensor = diode
-> AUX Temp:   +127.0\ufffdC  (high = +80.0\ufffdC, hyst = +75.0\ufffdC)  
+All bits in the values read from registers to be used for the next
+write were getting overwritten, avoid doing so to not mess with the
+current configuration.
 
-You mean this one ? It is probably not connected to anything on your
-board. That is why it shows 127 degrees C.
+Signed-off-by: Guillem Jover <guillem@hadrons.org>
+---
+ drivers/hwmon/f75375s.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Guenter
-
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index e5828c0..9638d58 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -298,7 +298,7 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 		return -EINVAL;
+ 
+ 	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
+-	fanmode = ~(3 << FAN_CTRL_MODE(nr));
++	fanmode &= ~(3 << FAN_CTRL_MODE(nr));
+ 
+ 	switch (val) {
+ 	case 0: /* Full speed */
+@@ -350,7 +350,7 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	conf = f75375_read8(client, F75375_REG_CONFIG1);
+-	conf = ~(1 << FAN_CTRL_LINEAR(nr));
++	conf &= ~(1 << FAN_CTRL_LINEAR(nr));
+ 
+ 	if (val = 0)
+ 		conf |= (1 << FAN_CTRL_LINEAR(nr)) ;
+-- 
+1.7.1
 
 
 _______________________________________________
