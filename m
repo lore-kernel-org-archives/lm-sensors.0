@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 03 Sep 2010 14:34:37 +0000
+Date: Fri, 03 Sep 2010 14:40:49 +0000
 Subject: Re: [lm-sensors] How to uninstall lm-sesnors
-Message-Id: <1283524477.9850.70.camel@groeck-laptop>
+Message-Id: <1283524849.9850.74.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <279409.31081.qm@web50004.mail.re2.yahoo.com>
 In-Reply-To: <279409.31081.qm@web50004.mail.re2.yahoo.com>
@@ -10,17 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2010-09-02 at 04:22 -0400, Mahmood Naderan wrote:
+On Fri, 2010-09-03 at 10:16 -0400, Jean Delvare wrote:
+> On Thu, 2 Sep 2010 01:22:20 -0700 (PDT), Mahmood Naderan wrote:
+> > Hi,
+> > How can I uninstall lm-sensors that originaly installed with "make all" and 
+> > "make install"?
 > 
-> Hi,
-> How can I uninstall lm-sensors that originaly installed with "make
-> all" and "make install"?
+> make uninstall
+> 
+Ah, I missed your reply. Obvious.
 
-Maybe someone else has a better idea, but the only way I know of is to
-remove the installed files manually.
+Anyway, I got a whole bunch of lm-sensors emails today (within the last
+hour). That isn't the first time this happened. Some of those messages
+are from several days ago. Is that our e-mail system acting up again
+(would not surprise me), or does the lm-sensors mailer have hiccups once
+in a while ?
 
+Thanks,
 Guenter
-
 
 
 
