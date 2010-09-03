@@ -1,53 +1,63 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 05 Sep 2010 16:47:51 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (f75375s) Do not overwrite
-Message-Id: <20100905184751.4fe7bc09@hyperion.delvare>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Fri, 03 Sep 2010 00:45:26 +0000
+Subject: [lm-sensors] [PATCH] therm_throt.c: Fix error handling in
+Message-Id: <1283474726-20109-1-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100903030132.GA16049@gaara.hadrons.org>
-In-Reply-To: <20100903030132.GA16049@gaara.hadrons.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guillem Jover <guillem@hadrons.org>
-Cc: Riku Voipio <riku.voipio@iki.fi>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>, Len Brown <lenb@kernel.org>, Jin Dongming <jin.dongming@np.css.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-On Fri, 3 Sep 2010 05:01:32 +0200, Guillem Jover wrote:
-> All bits in the values read from registers to be used for the next
-> write were getting overwritten, avoid doing so to not mess with the
-> current configuration.
-> 
-> Signed-off-by: Guillem Jover <guillem@hadrons.org>
-> ---
->  drivers/hwmon/f75375s.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index e5828c0..9638d58 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -298,7 +298,7 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
->  		return -EINVAL;
->  
->  	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
-> -	fanmode = ~(3 << FAN_CTRL_MODE(nr));
-> +	fanmode &= ~(3 << FAN_CTRL_MODE(nr));
->  
->  	switch (val) {
->  	case 0: /* Full speed */
-> @@ -350,7 +350,7 @@ static ssize_t set_pwm_mode(struct device *dev, struct device_attribute *attr,
->  
->  	mutex_lock(&data->update_lock);
->  	conf = f75375_read8(client, F75375_REG_CONFIG1);
-> -	conf = ~(1 << FAN_CTRL_LINEAR(nr));
-> +	conf &= ~(1 << FAN_CTRL_LINEAR(nr));
->  
->  	if (val = 0)
->  		conf |= (1 << FAN_CTRL_LINEAR(nr)) ;
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-Applied, thanks.
+Warn when sysfs_add_file_to_group fails.
 
+Also add missing curly braces.
+
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+---
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index c2a8b26..4c3cd62 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -211,20 +211,26 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev)
+ 	if (err)
+ 		return err;
+ 
+-	if (cpu_has(c, X86_FEATURE_PLN))
++	if (cpu_has(c, X86_FEATURE_PLN)) {
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_core_power_limit_count.attr,
+ 					      thermal_attr_group.name);
+-	if (cpu_has(c, X86_FEATURE_PTS))
++		WARN_ON(err);
++	}
++	if (cpu_has(c, X86_FEATURE_PTS)) {
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_package_throttle_count.attr,
+ 					      thermal_attr_group.name);
+-		if (cpu_has(c, X86_FEATURE_PLN))
++		WARN_ON(err);
++		if (cpu_has(c, X86_FEATURE_PLN)) {
+ 			err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					&attr_package_power_limit_count.attr,
+ 					thermal_attr_group.name);
++			WARN_ON(err);
++		}
++	}
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static __cpuinit void thermal_throttle_remove_dev(struct sys_device *sys_dev)
 -- 
-Jean Delvare
+1.6.0.3
+
 
 _______________________________________________
 lm-sensors mailing list
