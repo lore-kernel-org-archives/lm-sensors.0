@@ -1,33 +1,70 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 13 Sep 2010 08:03:05 +0000
-Subject: Re: [lm-sensors] [PATCH] lm75: some optimisations
-Message-Id: <20100913100305.28542955@hyperion.delvare>
+Date: Sat, 04 Sep 2010 12:39:11 +0000
+Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/coretemp: Remove warnings of
+Message-Id: <20100904143911.4461f918@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284052336-25864-1-git-send-email-shubhrajyoti@ti.com>
-	<20100909175537.GA16681@ericsson.com>
-	<20100909201128.3840431b@hyperion.delvare>
-	<30674.1284351000@localhost>
-In-Reply-To: <30674.1284351000@localhost>
+References: <1282172027-640-1-git-send-email-fenghua.yu@intel.com>
+	<1282172027-640-2-git-send-email-fenghua.yu@intel.com>
+	<20100819092423.00f76256@hyperion.delvare>
+	<4C6D8026.2060800@zytor.com>
+	<20100819232655.4223e61f@hyperion.delvare>
+	<20100819215124.GA8097@ericsson.com>
+In-Reply-To: <20100819215124.GA8097@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Valdis.Kletnieks@vt.edu
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Fenghua Yu <fenghua.yu@intel.com>, Chen Gong <gong.chen@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Huaxu Wan <huaxu.wan@intel.com>
 
-On Mon, 13 Sep 2010 00:10:00 -0400, Valdis.Kletnieks@vt.edu wrote:
-> On Thu, 09 Sep 2010 20:11:28 +0200, Jean Delvare said:
-> 
-> > Please do NOT CC linux-kernel@vger.kernel.org. We have a mailing list
-> > dedicated to hardware monitoring, there's no point to add to the 200,000
-> > messages (literally) LKML gets every year. The more messages a list
-> > gets, the fewer readers it has.
-> 
-> Any way to represent this in the MAINTAINERS file, so that people who come
-> along in the fugure know that lm-sensors gets special handling in that regard?
+Hi Guenter,
 
-Unfortunately not. The only way would be to convince the maintainers of
-scripts/get_maintainer.pl to NOT unconditionally add LKML to its output.
+On Thu, 19 Aug 2010 14:51:24 -0700, Guenter Roeck wrote:
+> On Thu, Aug 19, 2010 at 05:26:55PM -0400, Jean Delvare wrote:
+> > On Thu, 19 Aug 2010 12:04:06 -0700, H. Peter Anvin wrote:
+> > > Hi Jean,
+> > > 
+> > > Are you overall hwmon maintainer now?  That job is currently listed as
+> > > Orphan in the MAINTAINERS file.
+> > 
+> > MAINTAINERS is correct. I do not have the time, nor the will, to be the
+> > single official maintainer of the hwmon subsystem. I would be happy to
+> > be a co-maintainer, but nobody stepped in to co-maintain with me.
+>
+> I can step in if needed. I don't want to step on anyone's feet, though,
+> and I would not want to be the sole maintainer, at least not yet - I just
+> don't know the code well enough.
 
+Please don't say this lightly. This is a very serious matter :p
+
+Do you realize how much work this represents? Are you ready to take the
+load for a long period of time?
+
+If you are aware that being a subsystem (co-)maintainer can take
+several hours per week, and are ready to spend that much time on it for
+at least 6 months, then please let me know if you would be OK with the
+following:
+
+--- linux-2.6.36-rc3.orig/MAINTAINERS	2010-08-30 08:21:58.000000000 +0200
++++ linux-2.6.36-rc3/MAINTAINERS	2010-09-04 14:38:43.000000000 +0200
+@@ -2641,9 +2641,11 @@ S:	Maintained
+ F:	drivers/media/video/gspca/
+ 
+ HARDWARE MONITORING
++M:	Jean Delvare <khali@linux-fr.org>
++M:	Guenter Roeck <guenter.roeck@ericsson.com>
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+-S:	Orphan
++S:	Maintained
+ F:	Documentation/hwmon/
+ F:	drivers/hwmon/
+ F:	include/linux/hwmon*.h
+
+I am not working with you for such a long time, but collaboration went
+just fine from my perspective, so I would be very happy to co-maintain
+the hwmon subsystem with you.
+
+Thanks,
 -- 
 Jean Delvare
 
