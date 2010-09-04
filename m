@@ -1,89 +1,76 @@
-From: Keerthy <a0393675@ti.com>
-Date: Mon, 27 Sep 2010 09:31:06 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: twl4030: Driver for twl4030
-Message-Id: <4CA0618A.9030207@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 04 Sep 2010 13:42:28 +0000
+Subject: Re: [lm-sensors] SuperMicro X7SPE-HF configuration
+Message-Id: <20100904154228.36893ea3@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284632604-25303-1-git-send-email-j-keerthy@ti.com> <20100916151736.GC14165@ericsson.com> <FF55437E1F14DA4BAEB721A458B6701706C5991EB8@dbde02.ent.ti.com> <20100920140905.GB1306@ericsson.com> <20100920143834.GA1500@ericsson.com>
-In-Reply-To: <20100920143834.GA1500@ericsson.com>
+References: <70021574-9260-4E1E-88F8-AE313D6A94B8@gmail.com>
+In-Reply-To: <70021574-9260-4E1E-88F8-AE313D6A94B8@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sameo@linux.intel.com
-Cc: "J, KEERTHY" <j-keerthy@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+To: lm-sensors@vger.kernel.org
 
-Hello Sameo,
+Hi Scott,
 
-twl4030-madc  driver patch can be found here:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34947.html
+On Mon, 30 Aug 2010 16:55:53 -0400, Scott Shanafelt wrote:
+> chip "w83627dhg-*"
+> 
+> 	label in0 "Vcore"
+> 	label in1 "Vnbcore"
 
-Based on the received inputs.
-Can the twl4030-madc driver or part of the driver reside under mfd?
+This is "+1.05V" in SuperMicro's configuration file.
 
-Regards,
-Keerthy
+> 	label in2 "AVCC"
+> 	label in3 "3VCC"
+> 		set in3_min 3.3 * 0.90
+> 		set in3_max 3.3 * 1.10
+> 	label in4 "VDIMM"
+> 	label in5 "+5V"
+> 		compute in5 @*4, @/4
+> 	label in6 "+12V"
+> 		compute in6 @*16, @/16
+> 		set in6_min 12 * 0.90
+> 		set in6_max 12 * 1.10
+> 	label in7 "VSB"
 
+Better labelled as "3V3B".
 
+> 	label in8 "Vbat"
+> 
+> 	label fan1 "fan1"
+> 		ignore fan1
+> 	label fan2 "fan2"
+> 		ignore fan2
+> 	label fan3 "fan3"
+> 		ignore fan3
+> 	label fan4 "Case Fan"
+> 	label fan5 "fan5"
+> 		ignore fan5
 
+Most of these labels are pointless, they are double no-ops (once
+because they don't carry any meaning, twice because you end up ignoring
+the input anyway.) What we want is fan locations, like:
 
+	label fan2 "CPU Fan"
+	label fan4 "Case Fan"
 
-On Monday 20 September 2010 08:08 PM, Guenter Roeck wrote:
-> On Mon, Sep 20, 2010 at 10:09:05AM -0400, Guenter Roeck wrote:
->    
->> Hi,
->> On Mon, Sep 20, 2010 at 06:34:24AM -0400, J, KEERTHY wrote:
->>      
->>>
->>>        
->>>> -----Original Message-----
->>>> From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
->>>> Sent: Thursday, September 16, 2010 8:48 PM
->>>> To: J, KEERTHY
->>>> Cc: linux-omap@vger.kernel.org; lm-sensors@lm-sensors.org; Krishnamoorthy,
->>>> Balaji T
->>>> Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: twl4030: Driver for twl4030
->>>> madc module
->>>>
->>>>          
->> [...]
->>      
->>>>> +EXPORT_SYMBOL(twl4030_madc_conversion);
->>>>> +
->>>>>            
->>>> If this function is going to be called  from external code, it should not
->>>> really be defined here. I would suggest to move it to a global location
->>>> such as
->>>> mfd instead, including all related functions.
->>>>
->>>> The existence of this function export indicates that another non-hwmon
->>>> driver depends on this one, which should not really be the case. Another
->>>> reason to have a separate common driver instead, and mfd might just be the
->>>> place for it.
->>>>          
->>> Few kernel modules need to perform ADC conversion to measure battery
->>> voltage, battery temperature, VBUS voltage via twl4030_madc_conversion.
->>> the_madc is needed as those drivers will not have this device pointer.
->>>
->>>        
->> The point I was trying to make is that this function (as well as the ioctl)
->> should not be in this driver in the first place. hwmon is about providing
->> hwmon information, not about providing adc readings to another driver.
->>
->> Or, in other words, hwmon should be a consumer of information from other drivers,
->> not a producer of information to other drivers.
->>
->> There should be a higher level driver (presumably a mfd driver) to provide
->> adc readings to all consumers, ie to all callers of twl4030_madc_conversion().
->> This driver can provide all data and information needed by more than one driver,
->> and would also be the logical place for the ioctl providing raw adc readings
->> to the user.
->>
->>      
-> I just noticed that there already is a mfd core driver for tw4030. You might want
-> to consider moving the functionality to read adc values into that driver.
->
-> Guenter
->    
+We also don't want to ignore a fan which exists on the board but you
+happen to not use. "ignore fan2" shouldn't be there.
 
+> 
+> 	label temp1 "MB Temp"
+> 	label temp2 "CPU Temp"
+> 	label temp3 "Case Temp"
+> 
+> 	ignore cpu0_vid
+
+I've added an updated configuration file here:
+http://www.lm-sensors.org/wiki/Configurations/SuperMicro/X7SPA
+
+Thanks for your contribution.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
