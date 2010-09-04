@@ -1,50 +1,65 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 28 Sep 2010 15:20:23 +0000
-Subject: Re: [lm-sensors] x86/hwmon: conditionalize coretemp's dependency on
-Message-Id: <20100928172023.75607337@endymion.delvare>
+Date: Sat, 04 Sep 2010 12:23:07 +0000
+Subject: Re: [lm-sensors] Config for MSI X58 Pro-E (MS-7522)
+Message-Id: <20100904142307.2ce7f47d@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C8E18790200007800015AF7@vpn.id2.novell.com>
-	<20100924185509.GA20155@ericsson.com>
-	<4CA05F220200007800018F81@vpn.id2.novell.com>
-	<20100927121650.GB31847@ericsson.com>
-	<4CA0AE5E0200007800019097@vpn.id2.novell.com>
-	<20100927130220.GA2277@ericsson.com>
-	<20100928091759.421b5bf2@endymion.delvare>
-	<20100928120000.GA7139@ericsson.com>
-In-Reply-To: <20100928120000.GA7139@ericsson.com>
+References: <4C6BFB8A.7060300@mandel.name>
+In-Reply-To: <4C6BFB8A.7060300@mandel.name>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jan Beulich <JBeulich@novell.com>, "r.marek@assembler.cz" <r.marek@assembler.cz>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Tue, 28 Sep 2010 05:00:00 -0700, Guenter Roeck wrote:
-> On Tue, Sep 28, 2010 at 03:17:59AM -0400, Jean Delvare wrote:
-> > Do you mean it is strange from a technical perspective, or do you have
-> > evidences that it doesn't work properly? This trick come from Intel
-> > themselves, I would guess they know their business.
->
-> From a technical perspective. Hard to see what a PCI bridge ID has to do with Tjmax.
+On Mon, 30 Aug 2010 19:32:57 +0200, Olaf Mandel wrote:
+> Am 22.08.2010 16:13, schrieb Jean Delvare:
+> > On Sun, 22 Aug 2010 15:13:05 +0200, Olaf Mandel wrote:
+> -Snipp-
+> >=20
+> > The problem is that you compared the Vcore in BIOS, without CPU
+> > frequency scaling, with Vcore in sensors, with CPU frequency scaling
+> > enabled (as can be seen from the two outputs below.) This isn't fair!
+> >=20
+> Hi Jean,
+>=20
+> I have to agree, the previous compute line was wrong.
+>=20
+> > If you compare with Linux underload instead, you see Vcore (unscaled)
+> > at 1.12 V. This is definitely not 35% off compared to the BIOS's report
+> > of 1.224 V. To be honest, I would have expected both values to match
+> > exactly. I get to suspect that your Linux system is configured to
+> > prevent the CPU to enter the highest frequency states, you may want to
+> > check this.
+> >=20
+> That was indeed the case: thermal_throttle was limiting the clock speed.
+> I checked the voltage by setting the clock speed manually and it gets at
+> least closer.
+>=20
+> -Snipp-
+> >=20
+> > Your CPU cooling seems insufficient. A 56=C2=B0C difference between idl=
+e and
+> > load is very, very much. I'd be worried.
+> >=20
+> It only gets hot if I run many instances of burnK7. If I just up the
+> clock speed, it doesn't get hot.
+>=20
+> -Snipp-
+> > When you have come up with a "final" configuration file, please send it
+> > over, and I'll put it on the wiki.
+> >=20
+>=20
+> Ok, it's attached to the mail. It remained nearly unchanged, except for
+> the compute lines and the limits you suggested. The two non-trivial
+> compute lines are taken from comparison of values (BIOS<->sensors) and
+> then searching the nearest simple voltage divider that would work. The
+> values are pure guesses!
+>=20
+> Thank you again for your help!
 
-I agree. If you search the archives, you'll see I emitted exactly the
-same complaint back then.
+You're welcome. Thanks for your contribution, I've added it to the wiki:
+http://www.lm-sensors.org/wiki/Configurations/MSI/X58-Pro-E
 
-> > (...)
-> > Higher or lower doesn't make a difference. As long as the coretemp
-> > driver doesn't properly report the temperature values as being
-> > relative, users don't expect the value to change depending on the
-> > kernel version or configuration options. We have had dozens of user
-> > reports because of this.
-> > 
-> You are right, functionality would change if someone runs a kernel with PCI undefined 
-> on the specific systems which do use the PCI bridge ID to determine Tjmax. So 
-> if there are no other options, maybe the big fat warning in that case would make sense.
-> I would definitely prefer that over disabling coretemp entirely just because it _might_
-> possibly report a wrong Tjmax (which it doees anyway for many CPUs).
-
-I fully agree.
-
--- 
+--=20
 Jean Delvare
 
 _______________________________________________
