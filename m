@@ -1,75 +1,100 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 01 Sep 2010 13:54:05 +0000
-Subject: Re: [lm-sensors] i2c-i801 module conflict with 3400 Series Chipset
-Message-Id: <20100901155405.06b119a7@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 08 Sep 2010 20:03:57 +0000
+Subject: [lm-sensors] [PATCH v2] sensors-detect: Add support for max6695/96
+Message-Id: <1283976237-6067-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C7934CC.4020902@fidit.com>
-In-Reply-To: <4C7934CC.4020902@fidit.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 01 Sep 2010 15:07:50 +0200, support RG wrote:
-> as i read in Re: [lm-sensors] lmsensors doesn't detect core-i7 sensors
-> 
-> i launch latest release from svn
-> pass one step more than ever
-> 
-> Do you want to probe the I2C/SMBus adapters now? (YES/no):
-> Using driver `i2c-i801' for device 0000:00:1f.3: Intel 3400/5 Series (PCH)
-> 
-> as before
-> _>Do you want to probe the I2C/SMBus adapters now? (YES/no):
->  >Found unknown SMBus adapter 8086:3b30 at 0000:00:1f.3._
->  >Sorry, no supported PCI bus adapters found.
-> 
-> but sensors view no more and dmesg already says conflict
-> 
-> fidit@de100816A:~/lm-sensors-r5857-20100823/prog$ dmesg | grep conflict
-> [   17.201490] ACPI: resource 0000:00:1f.3 [0xf000-0xf01f] conflicts 
-> with ACPI region SMBI [0xf000-0xf00f]
-> 
-> could you help me ?
+This patch adds support for max6695/96 to sensors-detect.
+---
+v2:
+Fix and improve max6680/81 vs. max6695/96 detection code
+Remove chip=7 code from lm90_detect
 
-Poster avec un nom bidon, ça n'aide pas à avoir des réponses. La
-prochaine fois, postez avec un vrai nom...
-
-Your problem is that the ACPI BIOS requested the I/O ports of the SMBus
-control, so they are no longer available for native Linux drivers. What
-the BIOS uses the ports for, I can't tell without disassembling the
-DSDT table of the machine.
-
-> finaly, _with or without i2c-i801_ and//or k8temp load at startup
-> sensors return only
-
-Why the hell would you load the k8temp driver on an Intel system?
-
-If anything, you would load the coretemp driver, which is meant for
-Intel CPUs.
-
-> fidit@de100816A:~$ sensors
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:       +39.5°C  (crit = +100.0°C)
-
-This is quite possibly why the ACPI BIOS needed access the SMBus.
-
-> under everest on seven, 6 temp are detect.
-
-This is awfully vague. Which temperatures? From what devices?
-
-It is entirely possible that Everest decided to bypass the ACPI
-resource conflict. Something you definitely don't want to do on a
-production machine, at least not before a complete analysis of the DSDT.
-
-If you aren't happy with the situation, I suggest that you contact the
-hardware vendor and ask they how you are supposed to do hardware
-monitoring on that model.
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+---
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5857)
++++ prog/detect/sensors-detect	(working copy)
+@@ -921,8 +921,13 @@
+ 		name => "Maxim MAX6680/MAX6681",
+ 		driver => "lm90",
+ 		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
+-		i2c_detect => sub { lm90_detect(@_, 7); },
++		i2c_detect => sub { max6680_95_detect(@_, 0); },
+ 	}, {
++		name => "Maxim MAX6695/MAX6696",
++		driver => "lm90",
++		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
++		i2c_detect => sub { max6680_95_detect(@_, 1); },
++	}, {
+ 		name => "Winbond W83L771W/G",
+ 		driver => "to-be-written",
+ 		i2c_addrs => [0x4c],
+@@ -4051,10 +4056,47 @@
+ 	return $confidence;
+ }
+ 
++# Chip to detect: 0 = MAX6680/81, 1 = MAX6695/96
++# Registers used:
++#   0x03: Configuration
++#   0x04: Conversion rate
++#   0x12: Status2
++#   0x16: Overtemperature 2
++#   0xfe: Manufacturer ID
++#   0xff: Chip ID / die revision
++sub max6680_95_detect
++{
++	my ($file, $addr, $chip) = @_;
++	my $cid = i2c_smbus_read_byte_data($file, 0xff);
++	my $conf = i2c_smbus_read_byte_data($file, 0x03);
++	my $mid = i2c_smbus_read_byte_data($file, 0xfe, NO_CACHE);
++	my $emerg = i2c_smbus_read_byte_data($file, 0x16, NO_CACHE);
++	my $rate = i2c_smbus_read_byte_data($file, 0x04, NO_CACHE);
++	my $emerg2 = i2c_smbus_read_byte_data($file, 0x16, NO_CACHE);
++
++	# Check common conditions
++	return if $rate > 0x07;
++	return if $mid != 0x4d;		# Not Maxim
++	return if $cid != 0x01;		# None of the chips we are looking for
++
++	if ($chip = 0) {
++		return if ($conf & 0x03) != 0;
++		return 8 if $emerg != $emerg2;	# MAX6680/MAX6681
++	}
++	if ($chip = 1) {
++		my $status2 = i2c_smbus_read_byte_data($file, 0x12);
++
++		return if ($conf & 0x10) != 0;
++		return if ($status2 & 0x01) != 0;
++		return 8 if $emerg = $emerg2;	# MAX6695/MAX6696
++	}
++	return;
++}
++
+ # Chip to detect: 0 = LM90, 1 = LM89/LM99, 2 = LM86, 3 = ADM1032,
+ #		  4 = MAX6654, 5 = ADT7461,
+ #		  6 = MAX6646/MAX6647/MAX6648/MAX6649/MAX6692,
+-#		  7 = MAX6680/MAX6681, 8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
++#		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
+ #		  11 = W83L771AWG/ASG, 12 = MAX6690
+ # Registers used:
+ #   0x03: Configuration
+@@ -4115,12 +4157,6 @@
+ 		return if $mid != 0x4d;		# Maxim
+ 		return 8 if $cid = 0x59;	# MAX6648/MAX6692
+ 	}
+-	if ($chip = 7) {
+-		return if ($conf & 0x03) != 0;
+-		return if $rate > 0x07;
+-		return if $mid != 0x4d;		# Maxim
+-		return 8 if $cid = 0x01;	# MAX6680/MAX6681
+-	}
+ 	if ($chip = 8) {
+ 		return if ($conf & 0x2a) != 0;
+ 		return if $rate > 0x09;
 
 _______________________________________________
 lm-sensors mailing list
