@@ -1,57 +1,105 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 05 Sep 2010 16:45:22 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (f75375s) Shift control mode to
-Message-Id: <20100905184522.0825f390@hyperion.delvare>
+From: "Fenghua Yu" <fenghua.yu@intel.com>
+Date: Wed, 08 Sep 2010 00:25:50 +0000
+Subject: [lm-sensors] [PATCH v2] x86/therm_throt.c: Fix error handling in
+Message-Id: <1283905550-18571-1-git-send-email-fenghua.yu@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100903025459.GA15996@gaara.hadrons.org>
-In-Reply-To: <20100903025459.GA15996@gaara.hadrons.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guillem Jover <guillem@hadrons.org>
-Cc: Riku Voipio <riku.voipio@iki.fi>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Ingo Molnar <mingo@elte.hu>, H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Jin Dongming <jin.dongming@np.css.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-Hi Guillem,
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-On Fri, 3 Sep 2010 04:54:59 +0200, Guillem Jover wrote:
-> The spec notes that fan0 and fan1 control mode bits are located in bits
-> 7-6 and 5-4 respectively, but the FAN_CTRL_MODE macro was making the
-> bits shift by 5 instead of by 4.
-> 
-> Signed-off-by: Guillem Jover <guillem@hadrons.org>
-> ---
->  drivers/hwmon/f75375s.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index 0f58ecc..e5828c0 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -79,7 +79,7 @@ enum chips { f75373, f75375 };
->  #define F75375_REG_PWM2_DROP_DUTY	0x6C
->  
->  #define FAN_CTRL_LINEAR(nr)		(4 + nr)
-> -#define FAN_CTRL_MODE(nr)		(5 + ((nr) * 2))
-> +#define FAN_CTRL_MODE(nr)		(4 + ((nr) * 2))
->  
->  /*
->   * Data structures and manipulation thereof
+When sysfs_add_file_to_group fails, thermal_throttle_add_dev removes the
+created group and returns with the error code and the driver cleans up and
+returns with the error code. Thus the driver either installs all devices
+successfully or doesn't install any device at all.
 
-Good catch, patch applied, thanks.
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+---
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |   36 ++++++++++++++++++++++++++---
+ 1 files changed, 32 insertions(+), 4 deletions(-)
 
-Note though that it seems that this driver needs some more love in this
-area. Struct f75375_data has a member fan_timer to which the contents
-of register 0x60 (F75375_REG_FAN_TIMER) is written in
-f75375_update_device(), but this value isn't used anywhere. Secondly,
-struct member pwm_mode is _not_ initialized anywhere, although
-show_pwm_mode() exports it to user-space. And member pwm_enable is
-worse, the fans are set to full speed arbitrarily when the driver is
-loaded (in function f75375_init()), which is bad practice. So there is
-definitely room for cleanups and improvements, if you are interested in
-this driver.
-
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index c2a8b26..5099e90 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -211,19 +211,33 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev)
+ 	if (err)
+ 		return err;
+ 
+-	if (cpu_has(c, X86_FEATURE_PLN))
++	if (cpu_has(c, X86_FEATURE_PLN)) {
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_core_power_limit_count.attr,
+ 					      thermal_attr_group.name);
+-	if (cpu_has(c, X86_FEATURE_PTS))
++		if (err)
++			goto error;
++	}
++
++	if (cpu_has(c, X86_FEATURE_PTS)) {
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_package_throttle_count.attr,
+ 					      thermal_attr_group.name);
+-		if (cpu_has(c, X86_FEATURE_PLN))
++		if (err)
++			goto error;
++
++		if (cpu_has(c, X86_FEATURE_PLN)) {
+ 			err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					&attr_package_power_limit_count.attr,
+ 					thermal_attr_group.name);
++			if (err)
++				goto error;
++		}
++	}
+ 
++	return 0;
++error:
++	sysfs_remove_group(&sys_dev->kobj, &thermal_attr_group);
+ 	return err;
+ }
+ 
+@@ -275,6 +289,7 @@ static struct notifier_block thermal_throttle_cpu_notifier __cpuinitdata  static __init int thermal_throttle_init_device(void)
+ {
+ 	unsigned int cpu = 0;
++	int i;
+ 	int err;
+ 
+ 	if (!atomic_read(&therm_throt_en))
+@@ -288,13 +303,26 @@ static __init int thermal_throttle_init_device(void)
+ 	/* connect live CPUs to sysfs */
+ 	for_each_online_cpu(cpu) {
+ 		err = thermal_throttle_add_dev(get_cpu_sysdev(cpu));
+-		WARN_ON(err);
++		if (err)
++			goto error;
+ 	}
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	mutex_unlock(&therm_cpu_lock);
+ #endif
+ 
+ 	return 0;
++error:
++	WARN_ON(err);
++
++	/* cleanup. */
++	for (i = 0; i < cpu; i++)
++		thermal_throttle_remove_dev(get_cpu_sysdev(i));
++#ifdef CONFIG_HOTPLUG_CPU
++	mutex_unlock(&therm_cpu_lock);
++#endif
++	unregister_hotcpu_notifier(&thermal_throttle_cpu_notifier);
++
++	return err;
+ }
+ device_initcall(thermal_throttle_init_device);
+ 
 -- 
-Jean Delvare
+1.6.0.3
+
 
 _______________________________________________
 lm-sensors mailing list
