@@ -1,74 +1,135 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 08 Sep 2010 13:39:32 +0000
-Subject: Re: [lm-sensors] [patch 29/30] hwmon: s3c-hwmon: Use a real mutex
-Message-Id: <20100908153932.417111d0@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 09 Sep 2010 13:25:47 +0000
+Subject: [lm-sensors] [PATCH v2 4/7] hwmon: (lm90) Simplify set_temp11
+Message-Id: <1284038750-8833-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100907124636.880953480@linutronix.de>
-	<20100907125057.470704521@linutronix.de>
-In-Reply-To: <20100907125057.470704521@linutronix.de>
+References: <1284038750-8833-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1284038750-8833-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Christoph Hellwig <hch@infradead.org>, Ben Dooks <ben-linux@fluff.org>, lm-sensors@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-On Tue, 07 Sep 2010 14:33:57 -0000, Thomas Gleixner wrote:
-> The semaphore which protects the ADC is semantically a mutex. Use a
-> real mutex.
-> 
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Ben Dooks <ben-linux@fluff.org>
-> Cc: lm-sensors@lm-sensors.org
-> ---
->  drivers/hwmon/s3c-hwmon.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> Index: linux-2.6/drivers/hwmon/s3c-hwmon.c
-> =================================> --- linux-2.6.orig/drivers/hwmon/s3c-hwmon.c
-> +++ linux-2.6/drivers/hwmon/s3c-hwmon.c
-> @@ -51,7 +51,7 @@ struct s3c_hwmon_attr {
->   * @attr: The holders for the channel attributes.
->  */
->  struct s3c_hwmon {
-> -	struct semaphore	lock;
-> +	struct mutex		lock;
->  	struct s3c_adc_client	*client;
->  	struct device		*hwmon_dev;
->  
-> @@ -73,14 +73,14 @@ static int s3c_hwmon_read_ch(struct devi
->  {
->  	int ret;
->  
-> -	ret = down_interruptible(&hwmon->lock);
-> +	ret = mutex_lock_interruptible(&hwmon->lock);
->  	if (ret < 0)
->  		return ret;
->  
->  	dev_dbg(dev, "reading channel %d\n", channel);
->  
->  	ret = s3c_adc_read(hwmon->client, channel);
-> -	up(&hwmon->lock);
-> +	mutex_unlock(&hwmon->lock);
->  
->  	return ret;
->  }
-> @@ -296,7 +296,7 @@ static int __devinit s3c_hwmon_probe(str
->  
->  	platform_set_drvdata(dev, hwmon);
->  
-> -	init_MUTEX(&hwmon->lock);
-> +	mutex_init(&hwmon->lock);
->  
->  	/* Register with the core ADC driver. */
->  
-> 
-> 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm90.c |   55 +++++++++++++++++++++++++------------------------
+ 1 files changed, 28 insertions(+), 27 deletions(-)
 
-Applied, thanks.
-
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index f21dde5..11b5701 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -418,7 +418,7 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
+ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
+ 			   char *buf)
+ {
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct lm90_data *data = lm90_update_device(dev);
+ 	int temp;
+ 
+@@ -439,19 +439,20 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
+ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 			  const char *buf, size_t count)
+ {
+-	static const u8 reg[6] = {
+-		LM90_REG_W_REMOTE_LOWH,
+-		LM90_REG_W_REMOTE_LOWL,
+-		LM90_REG_W_REMOTE_HIGHH,
+-		LM90_REG_W_REMOTE_HIGHL,
+-		LM90_REG_W_REMOTE_OFFSH,
+-		LM90_REG_W_REMOTE_OFFSL,
++	struct {
++		u8 high;
++		u8 low;
++	} reg[3] = {
++		{ LM90_REG_W_REMOTE_LOWH, LM90_REG_W_REMOTE_LOWL },
++		{ LM90_REG_W_REMOTE_HIGHH, LM90_REG_W_REMOTE_HIGHL },
++		{ LM90_REG_W_REMOTE_OFFSH, LM90_REG_W_REMOTE_OFFSL }
+ 	};
+ 
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+-	int nr = attr->index;
++	int nr = attr->nr;
++	int index = attr->index;
+ 	long val;
+ 	int err;
+ 
+@@ -460,24 +461,24 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 		return err;
+ 
+ 	/* +16 degrees offset for temp2 for the LM99 */
+-	if (data->kind = lm99 && attr->index <= 2)
++	if (data->kind = lm99 && index <= 2)
+ 		val -= 16000;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	if (data->kind = adt7461)
+-		data->temp11[nr] = temp_to_u16_adt7461(data, val);
++		data->temp11[index] = temp_to_u16_adt7461(data, val);
+ 	else if (data->kind = max6646)
+-		data->temp11[nr] = temp_to_u8(val) << 8;
++		data->temp11[index] = temp_to_u8(val) << 8;
+ 	else if (!(data->flags & LM90_HAVE_REM_LIMIT_EXT))
+-		data->temp11[nr] = temp_to_s8(val) << 8;
++		data->temp11[index] = temp_to_s8(val) << 8;
+ 	else
+-		data->temp11[nr] = temp_to_s16(val);
++		data->temp11[index] = temp_to_s16(val);
+ 
+-	i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2],
+-				  data->temp11[nr] >> 8);
++	i2c_smbus_write_byte_data(client, reg[nr].high,
++				  data->temp11[index] >> 8);
+ 	if (data->flags & LM90_HAVE_REM_LIMIT_EXT)
+-		i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2 + 1],
+-					  data->temp11[nr] & 0xff);
++		i2c_smbus_write_byte_data(client, reg[nr].low,
++					  data->temp11[index] & 0xff);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -549,16 +550,16 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute
+ 	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+ }
+ 
+-static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp11, NULL, 4);
+-static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp11, NULL, 0);
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
+ static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
+ 	set_temp8, 0);
+-static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 1);
++static SENSOR_DEVICE_ATTR_2(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
++	set_temp11, 0, 1);
+ static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp8,
+ 	set_temp8, 1);
+-static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 2);
++static SENSOR_DEVICE_ATTR_2(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
++	set_temp11, 1, 2);
+ static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp8,
+ 	set_temp8, 2);
+ static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
+@@ -566,8 +567,8 @@ static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
+ static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
+ 	set_temphyst, 2);
+ static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 3);
+-static SENSOR_DEVICE_ATTR(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
+-	set_temp11, 3);
++static SENSOR_DEVICE_ATTR_2(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
++	set_temp11, 2, 3);
+ 
+ /* Individual alarm files */
+ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
 -- 
-Jean Delvare
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
