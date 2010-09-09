@@ -1,149 +1,62 @@
-From: "Virgil Gheorghiu" <virgilg@cs.uchicago.edu>
-Date: Wed, 08 Sep 2010 20:15:09 +0000
+From: Jae Sammy <jaesammy@gmail.com>
+Date: Thu, 09 Sep 2010 04:12:11 +0000
 Subject: Re: [lm-sensors] ECS H55H-I Support (Suspected IT8721F Chipset)
-Message-Id: <op.viqc7jhn752aa5@microbe.cs.uchicago.edu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----------voKsnRH9qaO05JnlBBwJCK"
+Message-Id: <AANLkTikAVn+9O1TvcxBOuZuiUm2jiRpcfJw+pMWn60iZ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTi=Bp+JJm8GoSG14X-b7BuCP_NwnxP2=nTeWWpXD@mail.gmail.com>
 In-Reply-To: <AANLkTi=Bp+JJm8GoSG14X-b7BuCP_NwnxP2=nTeWWpXD@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-------------voKsnRH9qaO05JnlBBwJCK
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
-Content-Transfer-Encoding: quoted-printable
+Was able to get temperature readings on my ECS H55H-I.  Not really
+sure how to configure the sensors.conf for my mobo but all I'm really
+interested in is temperature so I think I am there.
 
-Good afternoon, Jae, Jean,
+Not sure about the temperature scaling:
+temp1:       +49.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D thermistor
+temp2:      -128.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D disabled
+temp3:       +37.0=B0C  (low  =3D +127.0=B0C, high =3D +80.0=B0C)  sensor =
+=3D thermal diode
 
->>> Rumor says that there's a chip named IT8758E with device ID 0x8721.
-This is true. See a message about "Kernel support for ITE8758E" from a fe=
-w =20
-days back.
-This motherboard is a Shuttle SX58; rrd output from my hacked it87.ko and=
- =20
-sensors.conf can be seen here:
-http://sensors.cs.uchicago.edu/cgi-bin/kailash.rrdcgi
+49 and 37 seem pretty low but if they're right I'd be really happy.
 
-Attached are patches to it87.c (vs linux-2.6.35.4), sensors-detect (vs =20
-lm-sensors-3.1.2), and a sensors.conf for this motherboard.
-I also have a picture of the chip, and it matches the SMD packaging Jae =20
-provided.
-Please let me know how else I can help.
+Thanks for the patches Virgil!
 
-Thank you,
-Virgil Gheorghiu
-Systems Administrator
-Department of Computer Science
-The University of Chicago
-------------voKsnRH9qaO05JnlBBwJCK
-Content-Disposition: attachment; filename=it87.patch
-Content-Type: application/octet-stream; name=it87.patch
-Content-Transfer-Encoding: Base64
-
-LS0tIGl0ODcuYwkyMDEwLTA5LTAxIDEzOjE5OjAzLjAwMDAwMDAwMCAtMDUwMAor
-KysgaXQ4Ny5jLm5ldwkyMDEwLTA5LTAxIDEzOjIwOjExLjAwMDAwMDAwMCAtMDUw
-MApAQCAtMTYsNiArMTYsNyBAQAogICogICAgICAgICAgICBJVDg3MThGICBTdXBl
-ciBJL08gY2hpcCB3L0xQQyBpbnRlcmZhY2UKICAqICAgICAgICAgICAgSVQ4NzIw
-RiAgU3VwZXIgSS9PIGNoaXAgdy9MUEMgaW50ZXJmYWNlCiAgKiAgICAgICAgICAg
-IElUODcyNkYgIFN1cGVyIEkvTyBjaGlwIHcvTFBDIGludGVyZmFjZQorICogICAg
-ICAgICAgICBJVDg3NThFICBTdXBlciBJL08vY2hpcCB3L0xQQyBpbnRlcmZhY2UK
-ICAqICAgICAgICAgICAgU2lzOTUwICAgQSBjbG9uZSBvZiB0aGUgSVQ4NzA1Rgog
-ICoKICAqICBDb3B5cmlnaHQgKEMpIDIwMDEgQ2hyaXMgR2F1dGhyb24KQEAgLTU0
-LDcgKzU1LDcgQEAKIAogI2RlZmluZSBEUlZOQU1FICJpdDg3IgogCi1lbnVtIGNo
-aXBzIHsgaXQ4NywgaXQ4NzEyLCBpdDg3MTYsIGl0ODcxOCwgaXQ4NzIwIH07Citl
-bnVtIGNoaXBzIHsgaXQ4NywgaXQ4NzEyLCBpdDg3MTYsIGl0ODcxOCwgaXQ4NzIw
-LCBpdDg3NTggfTsKIAogc3RhdGljIHVuc2lnbmVkIHNob3J0IGZvcmNlX2lkOwog
-bW9kdWxlX3BhcmFtKGZvcmNlX2lkLCB1c2hvcnQsIDApOwpAQCAtMTI3LDYgKzEy
-OCw3IEBACiAjZGVmaW5lIElUODcxOEZfREVWSUQgMHg4NzE4CiAjZGVmaW5lIElU
-ODcyMEZfREVWSUQgMHg4NzIwCiAjZGVmaW5lIElUODcyNkZfREVWSUQgMHg4NzI2
-CisjZGVmaW5lIElUODc1OEVfREVWSUQgMHg4NzIxCiAjZGVmaW5lIElUODdfQUNU
-X1JFRyAgMHgzMAogI2RlZmluZSBJVDg3X0JBU0VfUkVHIDB4NjAKIApAQCAtMTQ2
-Miw2ICsxNDY0LDkgQEAKIAljYXNlIElUODcyMEZfREVWSUQ6CiAJCXNpb19kYXRh
-LT50eXBlID0gaXQ4NzIwOwogCQlicmVhazsKKwljYXNlIElUODc1OEVfREVWSUQ6
-CisJCXNpb19kYXRhLT50eXBlID0gaXQ4NzU4OworCQlicmVhazsKIAljYXNlIDB4
-ZmZmZjoJLyogTm8gZGV2aWNlIGF0IGFsbCAqLwogCQlnb3RvIGV4aXQ7CiAJZGVm
-YXVsdDoKQEAgLTE2MTgsNiArMTYyMyw3IEBACiAJCSJpdDg3MTYiLAogCQkiaXQ4
-NzE4IiwKIAkJIml0ODcyMCIsCisJCSJpdDg3NTgiCiAJfTsKIAogCXJlcyA9IHBs
-YXRmb3JtX2dldF9yZXNvdXJjZShwZGV2LCBJT1JFU09VUkNFX0lPLCAwKTsK
-
-------------voKsnRH9qaO05JnlBBwJCK
-Content-Disposition: attachment; filename=sensors-detect.patch
-Content-Type: application/octet-stream; name=sensors-detect.patch
-Content-Transfer-Encoding: Base64
-
-LS0tIHNlbnNvcnMtZGV0ZWN0CTIwMTAtMDktMDEgMTM6NTg6NTEuMDAwMDAwMDAw
-IC0wNTAwCisrKyBzZW5zb3JzLWRldGVjdC5uZXcJMjAxMC0wOS0wMSAxMzo1Nzow
-OS4wMDAwMDAwMDAgLTA1MDAKQEAgLTE4MTMsNiArMTgxMywxMiBAQAogCQlkZXZp
-ZCA9PiAweDg3MjYsCiAJCWxvZ2RldiA9PiAweDA0LAogCQlmZWF0dXJlcyA9PiBG
-RUFUX0lOIHwgRkVBVF9GQU4gfCBGRUFUX1RFTVAsCisJfSwgeworCQluYW1lID0+
-ICJJVEUgSVQ4NzU4RSBTdXBlciBJTyBTZW5zb3JzIiwKKwkJZHJpdmVyID0+ICJp
-dDg3IiwKKwkJZGV2aWQgPT4gMHg4NzIxLAorCQlsb2dkZXYgPT4gMHgwNCwKKwkJ
-ZmVhdHVyZXMgPT4gRkVBVF9JTiB8IEZFQVRfRkFOIHwgRkVBVF9URU1QLAogCX0K
-ICk7CiAK
-
-------------voKsnRH9qaO05JnlBBwJCK
-
-
-------------voKsnRH9qaO05JnlBBwJCK
-Content-Disposition: attachment; filename=sensors.conf
-Content-Type: application/octet-stream; name=sensors.conf
-Content-Transfer-Encoding: Base64
-
-Y2hpcCAiaXQ4Ny0qIiAiaXQ4NzIwLSoiCglsYWJlbCBpbjAgIlZDb3JlIDEiCgls
-YWJlbCBpbjEgIkNQVSBWVFQiCglsYWJlbCBpbjIgIkRSQU0iCglsYWJlbCBpbjMg
-Iis1ViIKCWxhYmVsIGluNCAiKzEyViIKCWxhYmVsIGluNSAiSU9IIChYNTggbGlu
-aykiCglsYWJlbCBpbjYgIiszLjNWIgoJbGFiZWwgaW43ICIrNVYgU3RkYnkiCgls
-YWJlbCBpbjggIlZCYXR0IgoKCWxhYmVsIHRlbXAzICJDUFUwIFRlbXAiCglsYWJl
-bCB0ZW1wMSAiTUIgVGVtcCIKCWxhYmVsIGZhbjIgIkNQVTAgRmFuIgoKCWlnbm9y
-ZSB0ZW1wMgoJaWdub3JlIGZhbjEKCWlnbm9yZSBmYW4zCglpZ25vcmUgY3B1MF92
-aWQKCgljb21wdXRlIGluMyAoKDYuOC8xMCkrMSkqQCAsIEAvKCg2LjgvMTApKzEp
-Cgljb21wdXRlIGluNCAoKDMwLzEwKSArMSkqQCAsIEAvKCgzMC8xMCkgKzEpCglj
-b21wdXRlIGluNyAoKDYuOC8xMCkrMSkqQCAsIEAvKCg2LjgvMTApKzEpCgoJc2V0
-IGluMF9taW4gMS4yMCAqIDAuOTUKCXNldCBpbjBfbWF4IDEuMjAgKiAxLjA1Cglz
-ZXQgaW4xX21pbiAxLjE1ICogMC45NQoJc2V0IGluMV9tYXggMS4xNSAqIDEuMDUK
-CXNldCBpbjJfbWluIDEuNjggKiAwLjk1CglzZXQgaW4yX21heCAxLjY4ICogMS4w
-NQoJc2V0IGluM19taW4gNS4wMCAqIDAuOTUKCXNldCBpbjNfbWF4IDUuMDAgKiAx
-LjA1CglzZXQgaW40X21pbiAxMi4wICogMC45NQoJc2V0IGluNF9tYXggMTIuMCAq
-IDEuMDUKCXNldCBpbjVfbWluIDEuMTIgKiAwLjk1CglzZXQgaW41X21heCAxLjEy
-ICogMS4xMAoJc2V0IGluNl9taW4gMy4zMCAqIDAuOTUKCXNldCBpbjZfbWF4IDMu
-MzAgKiAxLjA1CglzZXQgaW43X21pbiA1LjAwICogMC45NQoJc2V0IGluN19tYXgg
-NS4wMCAqIDEuMDUKCglzZXQgdGVtcDFfbWluIDE1CglzZXQgdGVtcDFfbWF4IDYw
-CglzZXQgdGVtcDNfbWluIDE1CglzZXQgdGVtcDNfbWF4IDQyCglzZXQgZmFuMl9t
-aW4gNzAwCgojIFNodXR0bGUgU1g1OEozCmNoaXAgIml0ODc1OC0qIgoJbGFiZWwg
-aW4wICJWY29yZSAxIgoJbGFiZWwgaW4xICJDUFUgVlRUIgoJbGFiZWwgaW4yICJE
-UkFNIgoJbGFiZWwgaW4zICIrNVYiCglsYWJlbCBpbjQgIisxMlYiCglsYWJlbCBp
-bjUgIklPSCAoWDU4IGxpbmspIgoJbGFiZWwgaW42ICIrMy4zViIKCWxhYmVsIGlu
-NyAiKzVWIFN0YnkiCglsYWJlbCBpbjggIlZCYXR0IgoKCWxhYmVsIHRlbXAxICJT
-eXN0ZW0gVGVtcCIKCWxhYmVsIHRlbXAyICJJT0ggVGVtcCIKCWxhYmVsIHRlbXAz
-ICJDUFUwIFRlbXAiCglsYWJlbCBmYW4yICJDUFUwIEZhbiIKCglpZ25vcmUgZmFu
-MQoJaWdub3JlIGNwdTBfdmlkCglpZ25vcmUgaW4wCglpZ25vcmUgaW40CgoJY29t
-cHV0ZSBpbjAgQCAvIDQgKyAwLjEyLCBAICogNCAtIDAuMTIKCWNvbXB1dGUgaW4x
-IEAgLSAwLjgsIEAgKyAwLjgKCWNvbXB1dGUgaW4yIEAgLyAyICsgMC4wNCwgQCAq
-IDIgLSAwLjA0Cgljb21wdXRlIGluNCBAICogMTQvMiArIDEsIEAgLyAyLzE0IC0g
-MQoJY29tcHV0ZSBpbjUgQCAtIDAuMTksIEAgKyAwLjE5Cgljb21wdXRlIGluNiBA
-ICogMyAtIDEuMTIsIEAgLyAzICsgMC40Cgljb21wdXRlIGluNyBAICogMyAtIDEu
-NTAsIEAgLyAzICsgMC41Cgljb21wdXRlIGluOCBAICsgMSwgQCAtIDEKCWNvbXB1
-dGUgZmFuMiBAIC8gMiAtIDE0MywgQCAqIDIgKyAxNDMKCglzZXQgaW4wX21pbiAx
-LjE0ICogMC45NQoJc2V0IGluMF9tYXggMS4xNCAqIDEuMTAKCXNldCBpbjFfbWlu
-IDEuMjAgKiAwLjkwCglzZXQgaW4xX21heCAxLjIwICogMS4xMAoJc2V0IGluMl9t
-aW4gMS41NCAqIDAuOTUKCXNldCBpbjJfbWF4IDEuNTQgKiAxLjA1Cgkjc2V0IGlu
-NF9taW4gMTIuMCAqIDAuOTUKCSNzZXQgaW40X21heCAxMi4wICogMS4xMAoJc2V0
-IGluNV9taW4gMS4xMCAqIDAuOTUKCXNldCBpbjVfbWF4IDEuMTAgKiAxLjA1Cglz
-ZXQgaW42X21pbiAzLjMwICogMC45NQoJc2V0IGluNl9tYXggMy4zMCAqIDEuMDUK
-CXNldCBpbjdfbWluIDUuMDAgKiAwLjk1CglzZXQgaW43X21heCA1LjAwICogMS4w
-NQoKCXNldCB0ZW1wMV9taW4gMTUKCXNldCB0ZW1wMV9tYXggNjAKCXNldCB0ZW1w
-Ml9taW4gNDAKCXNldCB0ZW1wMl9tYXggOTAKCXNldCB0ZW1wM19taW4gMjAKCXNl
-dCB0ZW1wM19tYXggNzAKCXNldCBmYW4yX21pbiA3MDAKCg==
-
-------------voKsnRH9qaO05JnlBBwJCK
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, Sep 8, 2010 at 1:15 PM, Virgil Gheorghiu
+<virgilg@cs.uchicago.edu> wrote:
+> Good afternoon, Jae, Jean,
+>
+>>>> Rumor says that there's a chip named IT8758E with device ID 0x8721.
+>
+> This is true. See a message about "Kernel support for ITE8758E" from a few
+> days back.
+> This motherboard is a Shuttle SX58; rrd output from my hacked it87.ko and
+> sensors.conf can be seen here:
+> http://sensors.cs.uchicago.edu/cgi-bin/kailash.rrdcgi
+>
+> Attached are patches to it87.c (vs linux-2.6.35.4), sensors-detect (vs
+> lm-sensors-3.1.2), and a sensors.conf for this motherboard.
+> I also have a picture of the chip, and it matches the SMD packaging Jae
+> provided.
+> Please let me know how else I can help.
+>
+> Thank you,
+> Virgil Gheorghiu
+> Systems Administrator
+> Department of Computer Science
+> The University of Chicago
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+>
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------------voKsnRH9qaO05JnlBBwJCK--
-
