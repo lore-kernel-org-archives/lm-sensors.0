@@ -1,58 +1,66 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Sat, 25 Sep 2010 13:47:05 +0000
-Subject: Re: [lm-sensors] [PATCH v2] lis3: Fix Oops with NULL platform data
-Message-Id: <4C9DFD59.6000708@cam.ac.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 09 Sep 2010 13:25:46 +0000
+Subject: [lm-sensors] [PATCH v2 3/7] hwmon: (lm90) Introduce function to
+Message-Id: <1284038750-8833-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <s5heiclngqe.wl%tiwai@suse.de>	<20100924135802.GA18109@ericsson.com>	<s5hlj6r1b5p.wl%tiwai@suse.de>	<20100924163005.7704f63e@endymion.delvare>	<4C9CBF4E.7080200@cam.ac.uk> <20100925130125.049401a0@endymion.delvare>
-In-Reply-To: <20100925130125.049401a0@endymion.delvare>
+References: <1284038750-8833-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1284038750-8833-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>
-Cc: Takashi Iwai <tiwai@suse.de>, Andrew Morton <akpm@linux-foundation.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, =?ISO-8859-1?Q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-On 09/25/10 12:01, Jean Delvare wrote:
-> On Fri, 24 Sep 2010 16:10:06 +0100, Jonathan Cameron wrote:
->> On 09/24/10 15:30, Jean Delvare wrote:
->>> That being said, I indeed would like all non-hwmon drivers to go away
->>> from drivers/hwmon. Originally we were waiting for iio to settle first,
->>> but apparently this is taking forever.
->> More developers and code reviewers always welcome!
-> 
-> Just to clear any confusion: this wasn't a criticism from my side. I
-> understand why it takes time. All I mean is that it is not reasonable
-> to delay other changes waiting for IIO to hit mainline. Because we have
-> no idea when that will happen.
-Not to worry ;)  I was just taking advantage to drop in a plug.
-It's certainly going slower than I would like and I'm fully in favour
-of drivers going into misc or similar even if we would like to
-eventually take them into IIO. This is part of the reason we
-have been trying to pin down interface naming etc in a more
-general forum than our internal list.   Basically we are trying to
-avoid a repeat of the ALS debacle. 
-> 
->>> The 4 drivers I would like to
->>> kick are: ams, hdaps, lis3lv02d and applesmc. They are primarily
->>> accelerometer device drivers. Not sure where to put them,
->>> drivers/accel(erometer), drivers/misc, drivers/misc/accel(erometer),
->>> drivers/input/accel(erometer)... Opinions welcome.
->> If the primary use is as an input device then talk to Dmitry. Some
->> accelerometers are being taken into input. There are some open questions
->> on naming etc currently being debated so anyone interested should get
->> involved in those asap.
-> 
-> Let's see if he wants them. I seem to recall he objected to them going
-> to input, on the basis that the input function was a not the key
-> feature. But apparently we have one accel driver in drivers/input/misc
-> (adxl34x) so maybe we can have more.
-Yup, Dmitry has softened somewhat on this point for device where it really
-can be argued that input is the key feature (typically the ones being used
-for exactly this purpose in smart phones) in recent months so things may
-have changed.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm90.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-Lets wait and see.
-
-Jonathan
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index a81a053..f21dde5 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -815,6 +815,15 @@ static int lm90_detect(struct i2c_client *new_client,
+ 	return 0;
+ }
+ 
++static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
++{
++	if (data->flags & LM90_HAVE_OFFSET)
++		device_remove_file(&client->dev,
++				   &sensor_dev_attr_temp2_offset.dev_attr);
++	device_remove_file(&client->dev, &dev_attr_pec);
++	sysfs_remove_group(&client->dev.kobj, &lm90_group);
++}
++
+ static int lm90_probe(struct i2c_client *new_client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -889,8 +898,7 @@ static int lm90_probe(struct i2c_client *new_client,
+ 	return 0;
+ 
+ exit_remove_files:
+-	sysfs_remove_group(&new_client->dev.kobj, &lm90_group);
+-	device_remove_file(&new_client->dev, &dev_attr_pec);
++	lm90_remove_files(new_client, data);
+ exit_free:
+ 	kfree(data);
+ exit:
+@@ -937,11 +945,7 @@ static int lm90_remove(struct i2c_client *client)
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &lm90_group);
+-	device_remove_file(&client->dev, &dev_attr_pec);
+-	if (data->flags & LM90_HAVE_OFFSET)
+-		device_remove_file(&client->dev,
+-				   &sensor_dev_attr_temp2_offset.dev_attr);
++	lm90_remove_files(client, data);
+ 
+ 	/* Restore initial configuration */
+ 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+-- 
+1.7.0.87.g0901d
 
 
 _______________________________________________
