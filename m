@@ -1,7 +1,7 @@
-From: Jae Sammy <jaesammy@gmail.com>
-Date: Thu, 09 Sep 2010 04:12:11 +0000
+From: Virgil Gheorghiu <virgilg@cs.uchicago.edu>
+Date: Thu, 09 Sep 2010 12:42:45 +0000
 Subject: Re: [lm-sensors] ECS H55H-I Support (Suspected IT8721F Chipset)
-Message-Id: <AANLkTikAVn+9O1TvcxBOuZuiUm2jiRpcfJw+pMWn60iZ@mail.gmail.com>
+Message-Id: <B1494B8A-BDBF-429C-B93C-368E0E88A296@cs.uchicago.edu>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTi=Bp+JJm8GoSG14X-b7BuCP_NwnxP2=nTeWWpXD@mail.gmail.com>
 In-Reply-To: <AANLkTi=Bp+JJm8GoSG14X-b7BuCP_NwnxP2=nTeWWpXD@mail.gmail.com>
@@ -10,52 +10,45 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Was able to get temperature readings on my ECS H55H-I.  Not really
-sure how to configure the sensors.conf for my mobo but all I'm really
-interested in is temperature so I think I am there.
+Good morning, Jae,
 
-Not sure about the temperature scaling:
-temp1:       +49.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor =
-=3D thermistor
-temp2:      -128.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor =
-=3D disabled
-temp3:       +37.0=B0C  (low  =3D +127.0=B0C, high =3D +80.0=B0C)  sensor =
-=3D thermal diode
+> Not really sure how to configure the sensors.conf for my mobo but all I'm=
+ really
+> interested in is temperature so I think I am there.
+Per your output, I'd do, for example:
 
-49 and 37 seem pretty low but if they're right I'd be really happy.
+root@box:~# mv /etc/sensors.conf{,.orig}
+root@box:~# cat <<-EOF > /etc/sensors.conf
+chip "it8758-*"
+	ignore temp2	# since sensor =3D disabled
+	label temp1 "CPU0 Temp" # check BIOS name and value
+	label temp3 "System Temp" # check BIOS name and value
 
-Thanks for the patches Virgil!
+	set temp1_min 15
+	set temp1_max 70 # min(CPU junction specs, your idea of hot :-)
+	set temp3_min 20
+	set temp3_max 80 # ibid.
+EOF
+root@box:~# sensors -s # to set the min/max values
 
-On Wed, Sep 8, 2010 at 1:15 PM, Virgil Gheorghiu
-<virgilg@cs.uchicago.edu> wrote:
-> Good afternoon, Jae, Jean,
->
->>>> Rumor says that there's a chip named IT8758E with device ID 0x8721.
->
-> This is true. See a message about "Kernel support for ITE8758E" from a few
-> days back.
-> This motherboard is a Shuttle SX58; rrd output from my hacked it87.ko and
-> sensors.conf can be seen here:
-> http://sensors.cs.uchicago.edu/cgi-bin/kailash.rrdcgi
->
-> Attached are patches to it87.c (vs linux-2.6.35.4), sensors-detect (vs
-> lm-sensors-3.1.2), and a sensors.conf for this motherboard.
-> I also have a picture of the chip, and it matches the SMD packaging Jae
-> provided.
-> Please let me know how else I can help.
->
-> Thank you,
-> Virgil Gheorghiu
-> Systems Administrator
-> Department of Computer Science
-> The University of Chicago
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+> temp1:       +49.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D thermistor
+> temp2:      -128.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D disabled
+> temp3:       +37.0=B0C  (low  =3D +127.0=B0C, high =3D +80.0=B0C)  sensor=
+ =3D thermal diode
+>=20
+> 49 and 37 seem pretty low but if they're right I'd be really happy.
+I recommend you check those values (and names) against what the BIOS report=
+s.
+There should be an entry in the BIOS labeled PC Health or similar.
+On the same page you should also see voltages for CPU, RAM, & co.
 
+Note I don't trust at all the voltage equations I wrote, since I didn't go =
+read the datasheet for the chip; it looks like it's impossible to find.
+
+Thank you,
+Virgil
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
