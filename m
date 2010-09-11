@@ -1,38 +1,47 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Tue, 28 Sep 2010 01:41:37 +0000
-Subject: Re: [lm-sensors] [patch 01/36] hwmon: New driver for the
-Message-Id: <20100928014137.GA29913@khazad-dum.debian.net>
+From: Maurus Cuelenaere <mcuelenaere@gmail.com>
+Date: Sat, 11 Sep 2010 15:24:31 +0000
+Subject: [lm-sensors] [PATCH] HWMON: Make s3c-hwmon depend on S3C_ADC
+Message-Id: <4c8b9f31.097b0e0a.0cd0.ffffe66b@mx.google.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100915163447.GB10422@ericsson.com>
-In-Reply-To: <20100915163447.GB10422@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 27 Sep 2010, Henrique de Moraes Holschuh wrote:
-> Chassis Intrusion, Bank 0, Offset 0x46, BitMask 0x40    1 = Bad, 0 > Good
->                         (Clear Bit: Bank 0, Offset 0x4d, BitMask 0x80)
-> 
-> Power Supply Failure, GP31(From W83627DHG-P)    1 = Good, 0 = Bad
+This way we don't need to modify Kconfig every time a new SoC comes along to
+make this driver support it. Also fix some typos while I'm at it.
 
-[...]
-> Is there any way to access the last two?  Do we export the GPIO pins of
-> these chips through sysfs at all?
+Signed-off-by: Maurus Cuelenaere <mcuelenaere@gmail.com>
+---
+ drivers/hwmon/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Bah, yes, we do. It's all there in sysfs, at least for the first one...
-
-> Also, I am wondering what they mean with "Fact" in the -12V reading.
-
-I've asked them about it, I hope they will answer.  All other readings from
-the new module are matching fine with SuperODoctor (SuperMicro's userspace
-monitoring application/driver through i2c-dev).
-
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 4d4d09b..3cbdc3d 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -743,14 +743,14 @@ config SENSORS_SHT15
+ 	  will be called sht15.
+ 
+ config SENSORS_S3C
+-	tristate "S3C24XX/S3C64XX Inbuilt ADC"
+-	depends on ARCH_S3C2410
++	tristate "Samsung built-in ADC"
++	depends on S3C_ADC
+ 	help
+ 	  If you say yes here you get support for the on-board ADCs of
+-	  the Samsung S3C24XX or S3C64XX series of SoC
++	  the Samsung S3C24XX, S3C64XX and other series of SoC
+ 
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called s3c-hwmo.
++	  will be called s3c-hwmon.
+ 
+ config SENSORS_S3C_RAW
+ 	bool "Include raw channel attributes in sysfs"
 -- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
