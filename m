@@ -1,132 +1,51 @@
-From: Uuhello <info@vip2.uuhello.net>
-Date: Sun, 26 Sep 2010 07:50:51 +0000
-Subject: [lm-sensors] CVS Update@linux-mips.org: linux
-Message-Id: <E1Ozm1n-0008By-LQ@flocki.atrpms.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7208555336122261016=="
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Mon, 13 Sep 2010 10:24:47 +0000
+Subject: [lm-sensors] [PATCH] x86/hwmon: pkgtemp has no dependency on PCI
+Message-Id: <4C8E180F0200007800015AF4@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
---===============7208555336122261016==
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-=0D=0A=09=09=09<html>=0D=0A=0D=0A=09=09=09=09<body style=3D"background-c=
-olor: #eeeeee;">=0D=0A=09=09=09=09<center>=0D=0A=09=09=09=09<div style=
-=3D"background-color: #226666;padding:3px 3px 3px 3px;width:610px;">=0D=
-=0A=09=09=09=09=0D=0A=09=09=09=09<table width=3D"400px;" border=3D"0" ce=
-llspacing=3D"0" cellpadding=3D"0" class=3D"bg1" style=3D"background-colo=
-r: #FFFFFF;">=0D=0A=09=09=09=09   <tr>=0D=0A=09=09=09=09=09  <td align=
-=3D"center">=0D=0A=09=09=09=09=09=09 =0D=0A=09=09=09=09=09=09 <table wid=
-th=3D"600" border=3D"0" cellspacing=3D"0" cellpadding=3D"0" class=3D"bg2=
-">=0D=0A=09=09=09=09=09=09=09<tr>=0D=0A=09=09=09=09=09=09=09   <td class=
-=3D"header" align=3D"left">=0D=0A=09=09=09=09=09=09=09=09  <div style=3D=
-"width:100%;height:75px;background-color:#76B55B;color:white;-moz-border=
--radius:5px 5px 5px 5px">=0D=0A=09=09=09=09=09=09=09=09=09<div style=3D"=
-float:right;color:white;font-weight:bold;font-size:25px;">=0D=0A=09=09=
-=09=09=09=09=09=09=09=09=0D=0A=09=09=09=09=09=09=09=09=09=09<a style=3D"=
-text-decoration:none;color:white;" href=3D"http://uuhello.com">=0D=0A=09=
-=09=09=09=09=09=09=09=09=09=09UUHello=0D=0A=09=09=09=09=09=09=09=09=09=
-=09</a>=0D=0A=09=09=09=09=09=09=09=09=09=09=0D=0A=09=09=09=09=09=09=09=
-=09=09</div>=09=09=09=09  =0D=0A=09=09=09=09=09=09=09=09=09Hello:=0D=0A=
-=09=09=09=09=09=09=09=09=09<p style=3D"font-size:15px;font-weight:bold;"=
->=0D=0A=09=09=09=09=09=09=09=09=09=09<a style=3D"color:white;" href=3D"h=
-ttp://uuhello.com/product_prot/Company/1553938.html">=0D=0A=09=09=09=09=
-=09=09=09=09=09=09=09Our customers are searching and reading your inform=
-ation. Is the information correct? Update Now!=0D=0A=09=09=09=09=09=09=
-=09=09=09=09</a>=0D=0A=09=09=09=09=09=09=09=09=09</p>=0D=0A=0D=0A=09=09=
-=09=09=09=09=09=09  </div>=0D=0A=09=09=09=09=09=09=09   </td>=0D=0A=09=
-=09=09=09=09=09=09</tr>=0D=0A=09=09=09=09=09=09=09<tr>=0D=0A=09=09=09=09=
-=09=09=09   <td valign=3D"top" class=3D"body">=0D=0A=09=09=09=09=09=09=
-=09=09  <table width=3D"100%" border=3D"0" cellspacing=3D"0" cellpadding=
-=3D"0">=0D=0A=09=09=09=09=09=09=09=09=09 <tr>=0D=0A=09=09=09=09=09=09=09=
-=09=09=09<td valign=3D"top" class=3D"mainbar" align=3D"left">=0D=0A=09=
-=09=09=09=09=09=09=09=09=09=09<div style=3D"width:100%; margin-top:10px;=
-">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09<div style=3D"width:80%;floa=
-t:left;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09<h2 style=3D"color=
-:blue">CVS Update@linux-mips.org: linux</h2>=0D=0A=09=09=09=09=09=09=09=
-=09=09=09=09=09=09<p>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09=09<b>=
-...</b> x86 reboot fixups +S: Gurgaon, India +S: <b>Kuala Lumpur</b>, <b=
->Malaysia</b> + N: Gabor   Kuti <b>.....</b> but you can do this to mark=
- internal <b>company</b> procedures or just point   out <b>......</b> If=
- +that still doesn&#39;t help, =0D=0A=09=09=09=09=09=09=09=09=09=09=09=
-=09=09</p>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=
-=09=09=09=09=09=09=09=09=09=09<a href=3D"http://uuhello.com/product_prot=
-/Company/1553938.html" style=3D"font-size:20px;font-weight:bold;text-dec=
-oration:none;color:white;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09=
-<div style=3D"width:20%;background-color:#C7A317;height:110px;float:left=
-;text-align:center;-moz-border-radius:10px 10px 10px 10px">=0D=0A=09=09=
-=09=09=09=09=09=09=09=09=09=09=09=09<p style=3D"margin-top:25px;">=0D=0A=
-=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09Please Update!=0D=0A=09=09=
-=09=09=09=09=09=09=09=09=09=09=09=09</p>=0D=0A=09=09=09=09=09=09=09=09=
-=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09</a>=0D=
-=0A=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=09=09=09=
-=09=09=09<div style=3D"clear:both"></div>=0D=0A=09=09=09=09=09=09=09=09=
-=09=09   <hr style=3D"border:1px dotted #777777">=0D=0A=09=09=09=09=09=
-=09=09=09=09=09   <br />=0D=0A=09=09=09=09=09=09=09=09=09=09   <div styl=
-e=3D"clear:both"></div>=0D=0A=09=09=09=09=09=09=09=09=09=09   <ul style=
-=3D"font-size:13px;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09  <li style=
-=3D"margin-bottom:3px;"><a style=3D"text-decoration:none;color:black" hr=
-ef=3D"http://uuhello.com">On-Demand e-Booking Engine</a></li>=0D=0A=09=
-=09=09=09=09=09=09=09=09=09=09  <li style=3D"margin-bottom:3px;"><a styl=
-e=3D"text-decoration:none;color:black" href=3D"http://uuhello.com">On-De=
-mand Shopping Cart</a></li>=0D=0A=09=09=09=09=09=09=09=09=09=09=09  <li=
- style=3D"margin-bottom:3px;"><a style=3D"text-decoration:none;color:bla=
-ck" href=3D"http://uuhello.com">On-Demand Video Conferencing</a></li>=0D=
-=0A=09=09=09=09=09=09=09=09=09=09=09  <li style=3D"margin-bottom:3px;"><=
-a style=3D"text-decoration:none;color:black" href=3D"http://uuhello.com"=
->Global e-Payment</a></li>=0D=0A=09=09=09=09=09=09=09=09=09=09=09  <li s=
-tyle=3D"margin-bottom:3px;"><a style=3D"text-decoration:none;color:black=
-" href=3D"http://uuhello.com">Global Business Search Engine</a></li>=0D=
-=0A=09=09=09=09=09=09=09=09=09=09   </ul>=0D=0A=09=09=09=09=09=09=09=09=
-=09=09   =0D=0A=09=09=09=09=09=09=09=09=09=09   <br/>=0D=0A=09=09=09=09=
-=09=09=09=09=09=09   <div>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09Cust=
-omer IP: 54.154.240.8 From: United States=0D=0A=09=09=09=09=09=09=09=09=
-=09=09   </div>=0D=0A=09=09=09=09=09=09=09=09=09=09   <br/>=0D=0A=09=09=
-=09=09=09=09=09=09=09=09   =0D=0A=09=09=09=09=09=09=09=09=09=09   <h2>UU=
-Hello, Search & Sell</h2>=0D=0A=09=09=09=09=09=09=09=09=09=09   <hr styl=
-e=3D"border:1px dotted black">=0D=0A=09=09=09=09=09=09=09=09=09=09=09<di=
-v style=3D"width:100%;height:80px;">=0D=0A=09=09=09=09=09=09=09=09=09=09=
-=09=09<div style=3D"width:30%;background-color:red;float:left;height:100=
-%;color:white;font-size:60px;font-weight:bold;text-align:center;-moz-bor=
-der-radius:5px 5px 5px 5px;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=
-=09$50=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=
-=09=09=09=09=09=09=09=09<div style=3D"width:70%;float:left;height:100%;"=
->=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09<p style=3D"margin-left:10=
-px;font-size:18px;font-weight:bold;color:blue;">=0D=0A=09=09=09=09=09=09=
-=09=09=09=09=09=09=09=09$50 Free for you to optimize your information,<b=
-r>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09=09Achieve One Minute eCo=
-mmerce!=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09</p>=0D=0A=09=09=09=
-=09=09=09=09=09=09=09=09=09=09<div style=3D"float:right;">=0D=0A=09=09=
-=09=09=09=09=09=09=09=09=09=09=09=09<a style=3D"text-decoration:none;col=
-or:#777777;font-size:13px" href=3D"http://uuhello.com">uuhello.com</a>=
-=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=
-=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=09=09=09=09=09=09</div>=
-=0D=0A=09=09=09=09=09=09=09=09=09=09</td>=0D=0A=09=09=09=09=09=09=09=09=
-=09 </tr>=0D=0A=09=09=09=09=09=09=09=09  </table>=0D=0A=09=09=09=09=09=
-=09=09   </td>=0D=0A=09=09=09=09=09=09=09</tr>=0D=0A=09=09=09=09=09=09=
-=09<tr>=0D=0A=09=09=09=09=09=09=09   <td valign=3D"middle" align=3D"left=
-" class=3D"footer" height=3D"61" style=3D"font-size:11px;color:white;bac=
-kground-color:#76B55B;">=0D=0A=09=09=09=09=09=09=09=09=09&copy; <a style=
-=3D"text-decoration:none; color:white" href=3D"http://uuhello.com">uuHel=
-lo</a>=0D=0A=09=09=09=09=09=09=09=09=09&nbsp; The search results do not=
- represent UUHello&rsquo;s position=0D=0A=09=09=09=09=09=09=09   </td>=
-=0D=0A=09=09=09=09=09=09=09</tr>=0D=0A=09=09=09=09=09=09 </table>=0D=0A=
-=09=09=09=09=09=09 =0D=0A=09=09=09=09=09  </td>=0D=0A=09=09=09=09   </tr=
->=0D=0A=09=09=09=09</table>=0D=0A=09=09=09=09</div>=0D=0A=09=09=09=09</c=
-enter>=0D=0A=09=09=09=09</body>=0D=0A=09=09=09</html>
-
-
-
---===============7208555336122261016==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: khali@linux-fr.org
+Cc: fenghua.yu@intel.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+
+Other than coretemp, from which this code was apparently derived, there
+is no PCI specific code in this driver.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+
+---
+ drivers/hwmon/Kconfig   |    2 +-
+ drivers/hwmon/pkgtemp.c |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+--- linux-2.6.36-rc4/drivers/hwmon/Kconfig	2010-09-13 08:45:02.000000000 +0200
++++ 2.6.36-rc4-x86-pkgtemp-no-pci/drivers/hwmon/Kconfig	2010-09-10 16:24:16.000000000 +0200
+@@ -409,7 +409,7 @@ config SENSORS_CORETEMP
+ 
+ config SENSORS_PKGTEMP
+ 	tristate "Intel processor package temperature sensor"
+-	depends on X86 && PCI && EXPERIMENTAL
++	depends on X86 && EXPERIMENTAL
+ 	help
+ 	  If you say yes here you get support for the package level temperature
+ 	  sensor inside your CPU. Check documentation/driver for details.
+--- linux-2.6.36-rc4/drivers/hwmon/pkgtemp.c	2010-09-13 08:45:03.000000000 +0200
++++ 2.6.36-rc4-x86-pkgtemp-no-pci/drivers/hwmon/pkgtemp.c	2010-09-03 17:54:30.000000000 +0200
+@@ -33,7 +33,6 @@
+ #include <linux/list.h>
+ #include <linux/platform_device.h>
+ #include <linux/cpu.h>
+-#include <linux/pci.h>
+ #include <asm/msr.h>
+ #include <asm/processor.h>
+ 
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7208555336122261016==--
