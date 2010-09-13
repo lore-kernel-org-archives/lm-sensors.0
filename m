@@ -1,68 +1,54 @@
-From: Chen Gong <gong.chen@linux.intel.com>
-Date: Tue, 14 Sep 2010 07:24:07 +0000
-Subject: Re: [lm-sensors] [PATCH] x86/hwmon: {core, pkg,
-Message-Id: <4C8F2317.60506@linux.intel.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Date: Mon, 13 Sep 2010 08:29:42 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: lm75: Add __devinit and __devexit
+Message-Id: <1284365862-20438-1-git-send-email-shubhrajyoti@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C8E19500200007800015B15@vpn.id2.novell.com>
-In-Reply-To: <4C8E19500200007800015B15@vpn.id2.novell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Jan Beulich <JBeulich@novell.com>
-Cc: khali@linux-fr.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-于 9/13/2010 6:30 PM, Jan Beulich 写道:
-> ... as they're being called only from a __cpuinit function.
->
-> Signed-off-by: Jan Beulich<jbeulich@novell.com>
->
-> ---
->   drivers/hwmon/coretemp.c    |    2 +-
->   drivers/hwmon/pkgtemp.c     |    2 +-
->   drivers/hwmon/via-cputemp.c |    2 +-
->   3 files changed, 3 insertions(+), 3 deletions(-)
->
-> --- linux-2.6.36-rc4/drivers/hwmon/coretemp.c	2010-09-13 08:45:02.000000000 +0200
-> +++ 2.6.36-rc4-x86-hwmon-sections/drivers/hwmon/coretemp.c	2010-09-03 17:54:14.000000000 +0200
-> @@ -480,7 +480,7 @@ exit:
->   	return err;
->   }
->
-> -static void coretemp_device_remove(unsigned int cpu)
-> +static void __cpuinit coretemp_device_remove(unsigned int cpu)
->   {
->   	struct pdev_entry *p, *n;
->   	mutex_lock(&pdev_list_mutex);
-> --- linux-2.6.36-rc4/drivers/hwmon/pkgtemp.c	2010-09-13 08:45:03.000000000 +0200
-> +++ 2.6.36-rc4-x86-hwmon-sections/drivers/hwmon/pkgtemp.c	2010-09-01 09:00:45.000000000 +0200
-> @@ -337,7 +337,7 @@ exit:
->   }
->
->   #ifdef CONFIG_HOTPLUG_CPU
-> -static void pkgtemp_device_remove(unsigned int cpu)
-> +static void __cpuinit pkgtemp_device_remove(unsigned int cpu)
->   {
->   	struct pdev_entry *p, *n;
->   	unsigned int i;
-> --- linux-2.6.36-rc4/drivers/hwmon/via-cputemp.c	2010-09-13 08:45:03.000000000 +0200
-> +++ 2.6.36-rc4-x86-hwmon-sections/drivers/hwmon/via-cputemp.c	2010-09-13 00:00:00.000000000 +0200
-> @@ -238,7 +238,7 @@ exit:
->   }
->
->   #ifdef CONFIG_HOTPLUG_CPU
-> -static void via_cputemp_device_remove(unsigned int cpu)
-> +static void __cpuinit via_cputemp_device_remove(unsigned int cpu)
->   {
->   	struct pdev_entry *p, *n;
->   	mutex_lock(&pdev_list_mutex);
->
->
->
->
 
-I think the change in the coretemp.c is needed but other 2 are 
-unnecessary because CONFIG_HOTPLUG_CPU has covered the codes final
-status after init done.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Reviewed-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm75.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index ab5b87a..028f961 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -134,7 +134,7 @@ static const struct attribute_group lm75_group = {
+ 
+ /* device probe and removal */
+ 
+-static int
++static int __devinit
+ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	struct lm75_data *data;
+@@ -196,7 +196,7 @@ exit_free:
+ 	return status;
+ }
+ 
+-static int lm75_remove(struct i2c_client *client)
++static int __devexit lm75_remove(struct i2c_client *client)
+ {
+ 	struct lm75_data *data = i2c_get_clientdata(client);
+ 
+@@ -325,7 +325,7 @@ static struct i2c_driver lm75_driver = {
+ 		.pm	= LM75_DEV_PM_OPS,
+ 	},
+ 	.probe		= lm75_probe,
+-	.remove		= lm75_remove,
++	.remove		=  __devexit_p(lm75_remove),
+ 	.id_table	= lm75_ids,
+ 	.detect		= lm75_detect,
+ 	.address_list	= normal_i2c,
+-- 
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
