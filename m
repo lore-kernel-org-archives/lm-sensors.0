@@ -1,65 +1,65 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Sep 2010 01:52:26 +0000
-Subject: [lm-sensors] [PATCH v2 3/7] hwmon: (lm90) Introduce function to
-Message-Id: <1284601950-7381-4-git-send-email-guenter.roeck@ericsson.com>
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Mon, 13 Sep 2010 10:23:05 +0000
+Subject: [lm-sensors] [PATCH] x86/hwmon: register alternate sibling upon CPU
+Message-Id: <4C8E17A90200007800015AE6@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284038750-8833-4-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1284038750-8833-4-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: fenghua.yu@intel.com, khali@linux-fr.org
+Cc: r.marek@assembler.cz, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Just like pkgtemp registers another core of the same package when one
+gets removed, coretemp should register another hyperthread (if
+available) in that situation.
+
+As pointed out in the patch fixing the respective code in pkgtemp, the
+list protectng mutex must be dropped before calling
+coretemp_device_add(), and due to the restructured loop (including an
+explicit return) the "safe" variant of the list iterator isn't needed
+anymore.
+
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+
 ---
- drivers/hwmon/lm90.c |   18 +++++++++++-------
- 1 files changed, 11 insertions(+), 7 deletions(-)
+ drivers/hwmon/coretemp.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index f628f2a..9b1d205 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -815,6 +815,15 @@ static int lm90_detect(struct i2c_client *new_client,
- 	return 0;
- }
+--- linux-2.6.36-rc4/drivers/hwmon/coretemp.c	2010-09-13 08:45:02.000000000 +0200
++++ 2.6.36-rc4-x86-coretemp-remove-deadlock/drivers/hwmon/coretemp.c	2010-09-03 17:54:14.000000000 +0200
+@@ -482,14 +482,22 @@ exit:
  
-+static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
-+{
-+	if (data->flags & LM90_HAVE_OFFSET)
-+		device_remove_file(&client->dev,
-+				   &sensor_dev_attr_temp2_offset.dev_attr);
-+	device_remove_file(&client->dev, &dev_attr_pec);
-+	sysfs_remove_group(&client->dev.kobj, &lm90_group);
-+}
-+
- static int lm90_probe(struct i2c_client *new_client,
- 		      const struct i2c_device_id *id)
+ static void coretemp_device_remove(unsigned int cpu)
  {
-@@ -889,8 +898,7 @@ static int lm90_probe(struct i2c_client *new_client,
- 	return 0;
- 
- exit_remove_files:
--	sysfs_remove_group(&new_client->dev.kobj, &lm90_group);
--	device_remove_file(&new_client->dev, &dev_attr_pec);
-+	lm90_remove_files(new_client, data);
- exit_free:
- 	kfree(data);
- exit:
-@@ -937,11 +945,7 @@ static int lm90_remove(struct i2c_client *client)
- 	struct lm90_data *data = i2c_get_clientdata(client);
- 
- 	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&client->dev.kobj, &lm90_group);
--	device_remove_file(&client->dev, &dev_attr_pec);
--	if (data->flags & LM90_HAVE_OFFSET)
--		device_remove_file(&client->dev,
--				   &sensor_dev_attr_temp2_offset.dev_attr);
-+	lm90_remove_files(client, data);
- 
- 	/* Restore initial configuration */
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
--- 
-1.7.0.87.g0901d
+-	struct pdev_entry *p, *n;
++	struct pdev_entry *p;
++	unsigned int i;
++
+ 	mutex_lock(&pdev_list_mutex);
+-	list_for_each_entry_safe(p, n, &pdev_list, list) {
+-		if (p->cpu = cpu) {
+-			platform_device_unregister(p->pdev);
+-			list_del(&p->list);
+-			kfree(p);
+-		}
++	list_for_each_entry(p, &pdev_list, list) {
++		if (p->cpu != cpu)
++			continue;
++
++		platform_device_unregister(p->pdev);
++		list_del(&p->list);
++		mutex_unlock(&pdev_list_mutex);
++		kfree(p);
++		for_each_cpu(i, cpu_sibling_mask(cpu))
++			if (i != cpu && !coretemp_device_add(i))
++				break;
++		return;
+ 	}
+ 	mutex_unlock(&pdev_list_mutex);
+ }
+
+
 
 
 _______________________________________________
