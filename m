@@ -1,54 +1,47 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 14:02:04 +0000
-Subject: [lm-sensors] [patch 30/36] hwmon: (w83795) Make W83795_REG_PWM more
-Message-Id: <20100915160204.1dd4c562@hyperion.delvare>
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Mon, 13 Sep 2010 10:14:43 +0000
+Subject: [lm-sensors] [PATCH] x86/hwmon: don't leak device attribute file
+Message-Id: <4C8E15B30200007800015AC9@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org
+Cc: fenghua.yu@intel.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Cascaded conditionals are inefficient. Reorder the fields so that
-PWM register addresses can be computed more efficiently.
+While apparently inherited from coretemp source, this particular error
+handling cleanup path wasn't copied properly (or perhaps got discarded
+intermediately and not re-added properly later).
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+
 ---
- drivers/hwmon/w83795.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ drivers/hwmon/pkgtemp.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:14:13.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:15:24.000000000 +0200
-@@ -178,15 +178,11 @@ static const u8 IN_LSB_SHIFT_IDX[][2]  #define W83795_REG_TSS(index)		(0x209 + (index))
+--- linux-2.6.36-rc4/drivers/hwmon/pkgtemp.c	2010-09-13 08:45:03.000000000 +0200
++++ 2.6.36-rc4-x86-pkgtemp-probe-error-path/drivers/hwmon/pkgtemp.c	2010-09-03 17:54:30.000000000 +0200
+@@ -224,7 +224,7 @@ static int __devinit pkgtemp_probe(struc
  
- #define PWM_OUTPUT			0
--#define PWM_START			1
--#define PWM_NONSTOP			2
--#define PWM_STOP_TIME			3
--#define PWM_FREQ			4
--#define W83795_REG_PWM(index, nr) \
--	(((nr) = 0 ? 0x210 : \
--	  (nr) = 1 ? 0x220 : \
--	  (nr) = 2 ? 0x228 : \
--	  (nr) = 3 ? 0x230 : 0x218) + (index))
-+#define PWM_FREQ			1
-+#define PWM_START			2
-+#define PWM_NONSTOP			3
-+#define PWM_STOP_TIME			4
-+#define W83795_REG_PWM(index, nr)	(0x210 + (nr) * 8 + (index))
+ 	err = sysfs_create_group(&pdev->dev.kobj, &pkgtemp_group);
+ 	if (err)
+-		goto exit_free;
++		goto exit_dev;
  
- #define W83795_REG_FTSH(index)		(0x240 + (index) * 2)
- #define W83795_REG_FTSL(index)		(0x241 + (index) * 2)
-@@ -356,8 +352,8 @@ struct w83795_data {
- 	u8 has_pwm;		/* 795g supports 8 pwm, 795adg only supports 2,
- 				 * no config register, only affected by chip
- 				 * type */
--	u8 pwm[8][5];		/* Register value, output, start, non stop, stop
--				 * time, freq */
-+	u8 pwm[8][5];		/* Register value, output, freq, start,
-+				 *  non stop, stop time */
- 	u16 clkin;		/* CLKIN frequency in kHz */
- 	u8 pwm_fcms[2];		/* Register value */
- 	u8 pwm_tfmr[6];		/* Register value */
+ 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -238,6 +238,8 @@ static int __devinit pkgtemp_probe(struc
+ 
+ exit_class:
+ 	sysfs_remove_group(&pdev->dev.kobj, &pkgtemp_group);
++exit_dev:
++	device_remove_file(&pdev->dev, &sensor_dev_attr_temp1_max.dev_attr);
+ exit_free:
+ 	kfree(data);
+ exit:
+
+
 
 
 _______________________________________________
