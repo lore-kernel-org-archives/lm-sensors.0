@@ -1,44 +1,65 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 28 Sep 2010 11:24:29 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon (coretemp): Fix build breakage if
-Message-Id: <20100928112429.GB7033@ericsson.com>
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Mon, 13 Sep 2010 10:11:05 +0000
+Subject: [lm-sensors] [PATCH] x86/hwmon: avoid deadlock on CPU removal in
+Message-Id: <4C8E14D90200007800015AAE@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285637552-1058-1-git-send-email-guenter.roeck@ericsson.com>
- <20100928082729.GA20898@elte.hu>
-In-Reply-To: <20100928082729.GA20898@elte.hu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Pekka Enberg <penberg@kernel.org>, Fenghua Yu <fenghua.yu@intel.com>, Jean Delvare <khali@linux-fr.org>
+To: khali@linux-fr.org
+Cc: fenghua.yu@intel.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Tue, Sep 28, 2010 at 04:27:29AM -0400, Ingo Molnar wrote:
-> 
-> * Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-> 
-> > Commit e40cc4bdfd4b89813f072f72bd9c7055814d3f0f introduced
-> > a build breakage if CONFIG_SMP is undefined. This commit
-> > fixes the problem.
-> 
-> This commit works around the problem in a hacky but not-so-ugly way.
-> 
-> ( You might also want to include Linus's suggestion about how to fix it 
->   for real in the future - so that we have at least some kind of record 
->   of it. )
-> 
-Done.
+pkgtemp_device_remove(), holding the list protecting mutex, calls
+pkgtemp_device_add(), which itself wants to acquire the same mutex.
+Holding the mutex over the entire loop body in pkgtemp_device_remove()
+isn't really necessary, as long as the loop gets exited after
+processing the matched CPU.
 
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > Cc: Fenghua Yu <fenghua.yu@intel.com>
-> 
-> FYI, while i dont care about my Reported-by's but you lost a Reported-by 
-> tag here - you should be as careful about them as about your own 
-> signoffs.
-> 
-Added it back in.
+Once exiting the loop after removing an eventual match, there's no
+need for using the "safe" list iterator anymore.
 
-Thanks,
-Guenter
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+
+---
+ drivers/hwmon/pkgtemp.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+--- linux-2.6.36-rc4/drivers/hwmon/pkgtemp.c	2010-09-13 08:45:03.000000000 +0200
++++ 2.6.36-rc4-x86-pkgtemp-remove-deadlock/drivers/hwmon/pkgtemp.c	2010-09-03 17:54:30.000000000 +0200
+@@ -339,17 +339,18 @@ exit:
+ #ifdef CONFIG_HOTPLUG_CPU
+ static void pkgtemp_device_remove(unsigned int cpu)
+ {
+-	struct pdev_entry *p, *n;
++	struct pdev_entry *p;
+ 	unsigned int i;
+ 	int err;
+ 
+ 	mutex_lock(&pdev_list_mutex);
+-	list_for_each_entry_safe(p, n, &pdev_list, list) {
++	list_for_each_entry(p, &pdev_list, list) {
+ 		if (p->cpu != cpu)
+ 			continue;
+ 
+ 		platform_device_unregister(p->pdev);
+ 		list_del(&p->list);
++		mutex_unlock(&pdev_list_mutex);
+ 		kfree(p);
+ 		for_each_cpu(i, cpu_core_mask(cpu)) {
+ 			if (i != cpu) {
+@@ -358,7 +359,7 @@ static void pkgtemp_device_remove(unsign
+ 					break;
+ 			}
+ 		}
+-		break;
++		return;
+ 	}
+ 	mutex_unlock(&pdev_list_mutex);
+ }
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
