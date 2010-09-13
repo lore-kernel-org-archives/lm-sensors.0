@@ -1,54 +1,48 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 27 Sep 2010 11:48:01 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon (coretemp): Fix build breakage if
-Message-Id: <20100927114801.GA31757@ericsson.com>
+Date: Mon, 13 Sep 2010 18:16:15 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: Add support for IT8512E/F and
+Message-Id: <1284401775-2214-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285530603-2510-1-git-send-email-guenter.roeck@ericsson.com>
- <20100927062510.GA17825@elte.hu>
-In-Reply-To: <20100927062510.GA17825@elte.hu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@elte.hu>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, Fenghua Yu <fenghua.yu@intel.com>, Jean Delvare <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Sep 27, 2010 at 02:25:10AM -0400, Ingo Molnar wrote:
-> 
-> * Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-> 
-> > Commit e40cc4bdfd4b89813f072f72bd9c7055814d3f0f introduced
-> > a build breakage if CONFIG_SMP is undefined. This patch
-> > fixes the problem.
-> > 
-> > Reported-by: Ingo Molnar <mingo@elte.hu>
-> > Cc: Fenghua Yu <fenghua.yu@intel.com>
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > 
-> > ---
-> >  drivers/hwmon/coretemp.c |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> > index baa842a..58a3c2d 100644
-> > --- a/drivers/hwmon/coretemp.c
-> > +++ b/drivers/hwmon/coretemp.c
-> > @@ -503,9 +503,11 @@ static void coretemp_device_remove(unsigned int cpu)
-> >  		list_del(&p->list);
-> >  		mutex_unlock(&pdev_list_mutex);
-> >  		kfree(p);
-> > +#ifdef CONFIG_SMP
-> >  		for_each_cpu(i, cpu_sibling_mask(cpu))
-> >  			if (i != cpu && !coretemp_device_add(i))
-> >  				break;
-> > +#endif
-> 
-> Wont this result in an 'unused variable i' compiler warning?
-> 
-Sigh. Yes, of course. Must have been blind when I compiled it. Serves me right, 
-for pushing this out in a hurry. You'll see rev2 of the patch in a minute.
-
-Guenter
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5858)
++++ prog/detect/sensors-detect	(working copy)
+@@ -1448,6 +1448,11 @@
+ 		devid => 0xf2,
+ 		logdev => 0x14,
+ 		features => FEAT_IN | FEAT_TEMP,
++	}, {
++		# Shouldn't be in this family, but there it is
++		name => "ITE IT8512E/F Super IO",
++		driver => "not-a-sensor",
++		devid => 0x8512,
+ 	}
+ );
+ 
+@@ -1914,7 +1919,7 @@
+ 		logdev => 0x04,
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
+-		name => "ITE IT8721F Super IO Sensors",
++		name => "ITE IT8721F/IT8758E Super IO Sensors",
+ 		driver => "to-be-written",	# it87
+ 		devid => 0x8721,
+ 		logdev => 0x04,
+Index: CHANGES
+=================================--- CHANGES	(revision 5857)
++++ CHANGES	(working copy)
+@@ -24,6 +24,7 @@
+                   Add support for NXP SE97 / SE97B
+                   Add reference to NCT6771F/NCT6772F/NCT6775F
+                   Add support for several JC42.4 compliant temperature sensors
++                  Add support for ITE IT8512E/F and IT8758E
+ 
+ 3.1.2 (2010-02-02)
+   libsensors: Support upcoming sysfs path to i2c adapters
 
 _______________________________________________
 lm-sensors mailing list
