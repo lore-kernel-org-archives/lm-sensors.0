@@ -1,7 +1,7 @@
-From: Michael Lawnick <ml.lawnick@gmx.de>
-Date: Mon, 13 Sep 2010 09:22:02 +0000
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Date: Mon, 13 Sep 2010 10:52:05 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon: lm75: Add __devinit and
-Message-Id: <4C8DED3A.5080300@gmx.de>
+Message-Id: <0680EC522D0CC943BC586913CF3768C003C210ECC4@dbde02.ent.ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1284365862-20438-1-git-send-email-shubhrajyoti@ti.com>
 In-Reply-To: <1284365862-20438-1-git-send-email-shubhrajyoti@ti.com>
@@ -10,20 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Shubhrajyoti D said the following:
-...
 
-> -static int
-> +static int __devinit
->  lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
-Are you sure?
-If I understand correctly, this function will be thrown away after
-system/module init. But what's about devices that are added later?
-I would expect them to crash on init...
 
--- 
-KR
-Michael
+> -----Original Message-----
+> From: Michael Lawnick [mailto:ml.lawnick@gmx.de]
+> Sent: Monday, September 13, 2010 2:52 PM
+> To: Datta, Shubhrajyoti
+> Cc: lm-sensors@lm-sensors.org
+> Subject: Re: [lm-sensors] [PATCH v3] hwmon: lm75: Add __devinit and
+> __devexit section initializers
+> 
+> Shubhrajyoti D said the following:
+> ...
+> 
+> > -static int
+> > +static int __devinit
+> >  lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+> Are you sure?
+> If I understand correctly, this function will be thrown away after
+> system/module init. But what's about devices that are added later?
+> I would expect them to crash on init...
+As all of these are I2C devices are I2C I thought it makes sense.
+Are you aware of devices that can be plugged/wired runtime?
+
+> 
+> --
+> KR
+> Michael
 
 _______________________________________________
 lm-sensors mailing list
