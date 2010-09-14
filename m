@@ -1,97 +1,63 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Date: Wed, 15 Sep 2010 07:35:25 +0000
-Subject: Re: [lm-sensors] [PATCH] x86/hwmon: avoid deadlock on CPU removal
-Message-Id: <4C90935D020000780001630D@vpn.id2.novell.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Date: Tue, 14 Sep 2010 06:30:22 +0000
+Subject: Re: [lm-sensors] [PATCH] x86/hwmon: fix module init
+Message-Id: <4C8F167E.40506@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C8E14D90200007800015AAE@vpn.id2.novell.com>
- <20100915001259.GA1237@fenghua-desk.sc.intel.com>
-In-Reply-To: <20100915001259.GA1237@fenghua-desk.sc.intel.com>
+References: <4C8E139F0200007800015AA5@vpn.id2.novell.com>
+In-Reply-To: <4C8E139F0200007800015AA5@vpn.id2.novell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Fenghua Yu <fenghua.yu@intel.com>
-Cc: "khali@linux-fr.org" <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Jan Beulich <JBeulich@novell.com>
+Cc: fenghua.yu@intel.com, khali@linux-fr.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
->>> On 15.09.10 at 02:13, Fenghua Yu <fenghua.yu@intel.com> wrote:
-> From: Fenghua Yu <fenghua.yu@intel.com>
-> 
-> When a sibling is added to dev_list after a cpu is hot-removed, 
-> pdev_list_mutex
-> has been locked already. But pkgtemp_device_add() tries to lock 
-> pdev_list_mutex
-> again. This is incorrect. The patch fixes this issue.
-> 
-> The patch also removes __cpuinit for pkgtemp_device_add() to avoid section
-> mismatch warning.
+于 9/13/2010 6:05 PM, Jan Beulich 写道:
+> In commit 0dca94baeab4a1a514841b0a4c8e3a51dfb4d5ae the call to
+> platform_driver_unregister() was made conditional upon !HOTPLUG_CPU,
+> but the return value from coretemp_init() was left to indicate an
+> error. This isn't correct, as the negative return value indicates to
+> the module loader that initialization failed, which isn't intended
 
-But that the wrong direction of a change - __cpuinit should be added
-to pkgtemp_device_remove() instead.
+only !HOTPLUG_CPU can remove the driver. That is what we need to do 
+because under the hotplug condition, we need to consider those "offline"
+cpus. I don't understand what you are afraid. Can you give me a scinario ?
 
-> Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+> here and results in dangling pointers.
+>
+> Signed-off-by: Jan Beulich<jbeulich@novell.com>
+> Cc: Chen Gong<gong.chen@linux.intel.com>
+>
 > ---
->  drivers/hwmon/pkgtemp.c |   18 +++++++++++++-----
->  1 files changed, 13 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/hwmon/pkgtemp.c b/drivers/hwmon/pkgtemp.c
-> index 74157fc..928a016 100644
-> --- a/drivers/hwmon/pkgtemp.c
-> +++ b/drivers/hwmon/pkgtemp.c
-> @@ -276,7 +276,7 @@ struct pdev_entry {
->  static LIST_HEAD(pdev_list);
->  static DEFINE_MUTEX(pdev_list_mutex);
->  
-> -static int __cpuinit pkgtemp_device_add(unsigned int cpu)
-> +static int pkgtemp_device_add(unsigned int cpu)
->  {
->  	int err;
->  	struct platform_device *pdev;
-> @@ -341,26 +341,34 @@ static void pkgtemp_device_remove(unsigned int cpu)
->  {
->  	struct pdev_entry *p, *n;
->  	unsigned int i;
-> -	int err;
->  
-> -	mutex_lock(&pdev_list_mutex);
->  	list_for_each_entry_safe(p, n, &pdev_list, list) {
->  		if (p->cpu != cpu)
->  			continue;
->  
-> +		mutex_lock(&pdev_list_mutex);
->  		platform_device_unregister(p->pdev);
->  		list_del(&p->list);
->  		kfree(p);
-> +		mutex_unlock(&pdev_list_mutex);
-
-While probably not very important, it's nevertheless unclear why you
-need to do the kfree() with the mutex held.
-
-Jan
-
-> +		/*
-> +		 * Select one of removed cpu's siblings to represent sensor
-> +		 * for this package.
-> +		 * If there is no more running sibling in a package, the
-> +		 * package sensor for this package is not available to user
-> +		 * space any more.
-> +		 */
->  		for_each_cpu(i, cpu_core_mask(cpu)) {
-> +			int err;
+>   drivers/hwmon/coretemp.c |    5 ++++-
+>   1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> --- linux-2.6.36-rc4/drivers/hwmon/coretemp.c	2010-09-13 08:45:02.000000000 +0200
+> +++ 2.6.36-rc4-x86-coretemp-hotplug-init-return/drivers/hwmon/coretemp.c	2010-09-03 17:54:14.000000000 +0200
+> @@ -541,16 +541,19 @@ static int __init coretemp_init(void)
+>   				" has no thermal sensor.\n", c->x86_model);
+>   		}
+>   	}
 > +
->  			if (i != cpu) {
->  				err = pkgtemp_device_add(i);
->  				if (!err)
->  					break;
->  			}
->  		}
-> -		break;
-> +		return;
->  	}
-> -	mutex_unlock(&pdev_list_mutex);
->  }
->  
->  static int __cpuinit pkgtemp_cpu_callback(struct notifier_block *nfb,
-
-
+> +#ifndef CONFIG_HOTPLUG_CPU
+>   	if (list_empty(&pdev_list)) {
+>   		err = -ENODEV;
+>   		goto exit_driver_unreg;
+>   	}
+> +#endif
+>
+>   	register_hotcpu_notifier(&coretemp_cpu_notifier);
+>   	return 0;
+>
+> -exit_driver_unreg:
+>   #ifndef CONFIG_HOTPLUG_CPU
+> +exit_driver_unreg:
+>   	platform_driver_unregister(&coretemp_driver);
+>   #endif
+>   exit:
+>
+>
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
