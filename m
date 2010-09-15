@@ -1,184 +1,206 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 18 Sep 2010 03:57:34 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (lm90) Add support for update_interval
-Message-Id: <1284782508-14951-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 15 Sep 2010 13:57:43 +0000
+Subject: [lm-sensors] [patch 18/36] hwmon: (w83795) Fix PWM duty cycle
+Message-Id: <20100915155743.2c2ad3d4@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+The PWM duty cycle frequenty attributes are improperly named
+(fanN_div instead of pwmN_div) and contain raw values instead of
+actual frequencies. Rename them and fix their contents.
+
+Also improve the logic when the user asks for a new frequency, to
+always pick the closest supported frequency. The algorithm could
+certainly be optimized, but the operation is infrequent enough that
+I don't think it's worth the effort.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
-This patch depends on the function reordering patch submitted earlier.
+ drivers/hwmon/w83795.c |   90 +++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 62 insertions(+), 28 deletions(-)
 
- drivers/hwmon/lm90.c |   89 +++++++++++++++++++++++++++++++++++++++++++++++---
- 1 files changed, 84 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 302d9eb..569f6be 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -104,6 +104,13 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
- 	max6646, w83l771, max6696 };
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:12:58.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:13:46.000000000 +0200
+@@ -200,7 +200,6 @@ static const u8 IN_LSB_SHIFT_IDX[][2]  #define W83795_REG_FCMS2		0x208
+ #define W83795_REG_TFMR(index)		(0x202 + (index))
+ #define W83795_REG_FOMC			0x20F
+-#define W83795_REG_FOPFP(index)		(0x218 + (index))
  
- /*
-+ * Maximum supported conversion rate register values per chip.
-+ * If multiple register values reflect the fastest supported conversion rate,
-+ * provide the lower value.
-+ */
-+static u8 max_convrates[] = { 9, 10, 9, 9, 8, 8, 10, 7, 6, 8, 6 };
-+
-+/*
-  * The LM90 registers
-  */
+ #define W83795_REG_TSS(index)		(0x209 + (index))
  
-@@ -201,7 +208,10 @@ struct lm90_data {
- 	int kind;
- 	int flags;
+@@ -208,18 +207,13 @@ static const u8 IN_LSB_SHIFT_IDX[][2]  #define PWM_START			1
+ #define PWM_NONSTOP			2
+ #define PWM_STOP_TIME			3
+-#define PWM_DIV				4
++#define PWM_FREQ			4
+ #define W83795_REG_PWM(index, nr) \
+ 	(((nr) = 0 ? 0x210 : \
+ 	  (nr) = 1 ? 0x220 : \
+ 	  (nr) = 2 ? 0x228 : \
+ 	  (nr) = 3 ? 0x230 : 0x218) + (index))
  
-+	int update_interval;	/* in milliseconds  */
-+
- 	u8 config_orig;		/* Original configuration register value */
-+	u8 convrate_orig;	/* Original conversion rate */
- 	u16 alert_alarms;	/* Which alarm bits trigger ALERT# */
- 				/* Upper 8 bits for max6695/96 */
- 
-@@ -325,15 +335,44 @@ static inline void lm90_select_remote_channel(struct i2c_client *client,
- 	}
+-#define W83795_REG_FOPFP_DIV(index) \
+-	(((index) < 8) ? ((index) + 1) : \
+-	 ((index) = 8) ? 12 : \
+-	 (16 << ((index) - 9)))
+-
+ #define W83795_REG_FTSH(index)		(0x240 + (index) * 2)
+ #define W83795_REG_FTSL(index)		(0x241 + (index) * 2)
+ #define W83795_REG_TFTS			0x250
+@@ -304,6 +298,50 @@ static inline s8 temp_to_reg(long val, s
+ 	return SENSORS_LIMIT((val < 0 ? -val : val) / 1000, min, max);
  }
  
-+/* Update Intervals */
-+static const unsigned int update_intervals[] = {
-+	16000, 8000, 4000, 2000, 1000, 500, 250, 125, 62, 31, 15, 7,
++static const u16 pwm_freq_cksel0[16] = {
++	1024, 512, 341, 256, 205, 171, 146, 128,
++	85, 64, 32, 16, 8, 4, 2, 1
 +};
 +
-+/*
-+ * Set conversion rate.
-+ * client->update_lock must be held when calling this function (unless we are
-+ * in detection or initialization steps).
-+ */
-+static void lm90_set_convrate(struct i2c_client *client, struct lm90_data *data,
-+			      int interval)
++static unsigned int pwm_freq_from_reg(u8 reg, u16 clkin)
 +{
-+	int i;
++	unsigned long base_clock;
 +
-+	/* find the nearest update rate from the table */
-+	for (i = 0; i < ARRAY_SIZE(update_intervals) - 1; i++) {
-+		if (interval >= update_intervals[i]
-+		    || i >= max_convrates[data->kind])
++	if (reg & 0x80) {
++		base_clock = clkin * 1000 / ((clkin = 48000) ? 384 : 256);
++		return base_clock / ((reg & 0x7f) + 1);
++	} else
++		return pwm_freq_cksel0[reg & 0x0f];
++}
++
++static u8 pwm_freq_to_reg(unsigned long val, u16 clkin)
++{
++	unsigned long base_clock;
++	u8 reg0, reg1;
++	unsigned long best0, best1;
++
++	/* Best fit for cksel = 0 */
++	for (reg0 = 0; reg0 < ARRAY_SIZE(pwm_freq_cksel0) - 1; reg0++) {
++		if (val > (pwm_freq_cksel0[reg0] +
++			   pwm_freq_cksel0[reg0 + 1]) / 2)
 +			break;
 +	}
-+	/* if not found, we point to the last entry (lowest update rate) */
++	if (val < 375)	/* cksel = 1 can't beat this */
++		return reg0;
++	best0 = pwm_freq_cksel0[reg0];
 +
-+	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE, i);
-+	data->update_interval = update_intervals[i];
++	/* Best fit for cksel = 1 */
++	base_clock = clkin * 1000 / ((clkin = 48000) ? 384 : 256);
++	reg1 = SENSORS_LIMIT(DIV_ROUND_CLOSEST(base_clock, val), 1, 128);
++	best1 = base_clock / reg1;
++	reg1 = 0x80 | (reg1 - 1);
++
++	/* Choose the closest one */
++	if (abs(val - best0) > abs(val - best1))
++		return reg1;
++	else
++		return reg0;
 +}
-+
- static struct lm90_data *lm90_update_device(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm90_data *data = i2c_get_clientdata(client);
-+	unsigned long next_update;
  
- 	mutex_lock(&data->update_lock);
+ enum chip_types {w83795g, w83795adg};
  
--	if (time_after(jiffies, data->last_updated + HZ / 2 + HZ / 10)
--	 || !data->valid) {
-+	next_update = data->last_updated
-+	  + msecs_to_jiffies(data->update_interval) + HZ / 10;
-+	if (time_after(jiffies, next_update) || !data->valid) {
- 		u8 h, l;
- 		u8 alarms;
+@@ -343,7 +381,8 @@ struct w83795_data {
+ 				 * no config register, only affected by chip
+ 				 * type */
+ 	u8 pwm[8][5];		/* Register value, output, start, non stop, stop
+-				 * time, div */
++				 * time, freq */
++	u16 clkin;		/* CLKIN frequency in kHz */
+ 	u8 pwm_fcms[2];		/* Register value */
+ 	u8 pwm_tfmr[6];		/* Register value */
+ 	u8 pwm_fomc;		/* Register value */
+@@ -688,14 +727,14 @@ show_pwm(struct device *dev, struct devi
+ 	    to_sensor_dev_attr_2(attr);
+ 	int nr = sensor_attr->nr;
+ 	int index = sensor_attr->index;
+-	u16 val;
++	unsigned int val;
  
-@@ -768,6 +807,35 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute
- 	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+ 	switch (nr) {
+ 	case PWM_STOP_TIME:
+ 		val = time_from_reg(data->pwm[index][nr]);
+ 		break;
+-	case PWM_DIV:
+-		val = W83795_REG_FOPFP_DIV(data->pwm[index][nr] & 0x0f);
++	case PWM_FREQ:
++		val = pwm_freq_from_reg(data->pwm[index][nr], data->clkin);
+ 		break;
+ 	default:
+ 		val = data->pwm[index][nr];
+@@ -716,7 +755,6 @@ store_pwm(struct device *dev, struct dev
+ 	int nr = sensor_attr->nr;
+ 	int index = sensor_attr->index;
+ 	unsigned long val;
+-	int i;
+ 
+ 	if (strict_strtoul(buf, 10, &val) < 0)
+ 		return -EINVAL;
+@@ -726,28 +764,17 @@ store_pwm(struct device *dev, struct dev
+ 	case PWM_STOP_TIME:
+ 		val = time_to_reg(val);
+ 		break;
+-	case PWM_DIV:
+-		for (i = 0; i < 16; i++) {
+-			if (W83795_REG_FOPFP_DIV(i) = val) {
+-				val = i;
+-				break;
+-			}
+-		}
+-		if (i >= 16)
+-			goto err_end;
+-		val |= w83795_read(client, W83795_REG_PWM(index, nr)) & 0x80;
++	case PWM_FREQ:
++		val = pwm_freq_to_reg(val, data->clkin);
+ 		break;
+ 	default:
+ 		val = SENSORS_LIMIT(val, 0, 0xff);
+ 		break;
+ 	}
+ 	w83795_write(client, W83795_REG_PWM(index, nr), val);
+-	data->pwm[index][nr] = val & 0xff;
++	data->pwm[index][nr] = val;
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+-err_end:
+-	mutex_unlock(&data->update_lock);
+-	return -EINVAL;
  }
  
-+static ssize_t show_update_interval(struct device *dev,
-+				    struct device_attribute *attr, char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm90_data *data = i2c_get_clientdata(client);
-+
-+	return sprintf(buf, "%u\n", data->update_interval);
-+}
-+
-+static ssize_t set_update_interval(struct device *dev,
-+				   struct device_attribute *attr,
-+				   const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm90_data *data = i2c_get_clientdata(client);
-+	unsigned long val;
-+	int err;
-+
-+	err = strict_strtoul(buf, 10, &val);
-+	if (err)
-+		return err;
-+
-+	mutex_lock(&data->update_lock);
-+	lm90_set_convrate(client, data, val);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
- static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
- static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
- static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
-@@ -799,6 +867,9 @@ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
- /* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ static ssize_t
+@@ -1502,8 +1529,8 @@ store_sf_setup(struct device *dev, struc
+ 		show_pwm, store_pwm, PWM_START, index - 1),		\
+ 	SENSOR_ATTR_2(pwm##index##_stop_time, S_IWUSR | S_IRUGO,	\
+ 		show_pwm, store_pwm, PWM_STOP_TIME, index - 1),	 \
+-	SENSOR_ATTR_2(fan##index##_div, S_IWUSR | S_IRUGO,	\
+-		show_pwm, store_pwm, PWM_DIV, index - 1),	 \
++	SENSOR_ATTR_2(pwm##index##_freq, S_IWUSR | S_IRUGO,	\
++		show_pwm, store_pwm, PWM_FREQ, index - 1),	 \
+ 	SENSOR_ATTR_2(pwm##index##_enable, S_IWUSR | S_IRUGO,		\
+ 		show_pwm_enable, store_pwm_enable, NOT_USED, index - 1), \
+ 	SENSOR_ATTR_2(fan##index##_target, S_IWUSR | S_IRUGO, \
+@@ -1685,6 +1712,10 @@ static const struct sensor_device_attrib
  
-+static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
-+		   set_update_interval);
-+
- static struct attribute *lm90_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
-@@ -819,6 +890,7 @@ static struct attribute *lm90_attributes[] = {
- 	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
- 	&dev_attr_alarms.attr,
-+	&dev_attr_update_interval.attr,
- 	NULL
- };
- 
-@@ -1138,14 +1210,19 @@ static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
- 
- static void lm90_init_client(struct i2c_client *client)
+ static void w83795_init_client(struct i2c_client *client)
  {
--	u8 config;
-+	u8 config, convrate;
- 	struct lm90_data *data = i2c_get_clientdata(client);
++	struct w83795_data *data = i2c_get_clientdata(client);
++	static const u16 clkin[4] = {	/* in kHz */
++		14318, 24000, 33333, 48000
++	};
+ 	u8 config;
  
-+	if (lm90_read_reg(client, LM90_REG_R_CONVRATE, &convrate) < 0) {
-+		dev_warn(&client->dev, "Failed to read convrate register!\n");
-+		convrate = 6;
-+	}
-+	data->convrate_orig = convrate;
+ 	if (reset)
+@@ -1697,6 +1728,9 @@ static void w83795_init_client(struct i2
+ 		w83795_write(client, W83795_REG_CONFIG,
+ 			     config | W83795_REG_CONFIG_START);
+ 	}
 +
- 	/*
- 	 * Start the conversions.
- 	 */
--	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
--				  5); /* 2 Hz */
-+	lm90_set_convrate(client, data, 500);	/* 500ms; 2Hz conversion rate */
- 	if (lm90_read_reg(client, LM90_REG_R_CONFIG1, &config) < 0) {
- 		dev_warn(&client->dev, "Initialization failed!\n");
- 		return;
-@@ -1296,6 +1373,8 @@ static int lm90_remove(struct i2c_client *client)
- 	lm90_remove_files(client, data);
++	data->clkin = clkin[(config >> 3) & 0x3];
++	dev_dbg(&client->dev, "clkin = %u kHz\n", data->clkin);
+ }
  
- 	/* Restore initial configuration */
-+	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
-+				  data->convrate_orig);
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
- 				  data->config_orig);
- 
--- 
-1.7.0.87.g0901d
+ static int w83795_get_device_id(struct i2c_client *client)
 
 
 _______________________________________________
