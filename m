@@ -1,78 +1,59 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 13 Sep 2010 14:49:45 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: lm75: Add __devinit and
-Message-Id: <20100913144945.GA593@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 15 Sep 2010 14:01:08 +0000
+Subject: [lm-sensors] [patch 25/36] hwmon: (w83795) Fix parity checks
+Message-Id: <20100915160108.268f1f38@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284365862-20438-1-git-send-email-shubhrajyoti@ti.com>
-In-Reply-To: <1284365862-20438-1-git-send-email-shubhrajyoti@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Sep 13, 2010 at 08:18:08AM -0400, Michael Lawnick wrote:
-> Datta, Shubhrajyoti said the following:
-> > 
-> > 
-> >> -----Original Message-----
-> >> From: Michael Lawnick [mailto:ml.lawnick@gmx.de]
-> >> Sent: Monday, September 13, 2010 4:42 PM
-> >> To: Datta, Shubhrajyoti
-> >> Cc: lm-sensors@lm-sensors.org
-> >> Subject: Re: [lm-sensors] [PATCH v3] hwmon: lm75: Add __devinit and
-> >> __devexit section initializers
-> >> 
-> >> Datta, Shubhrajyoti said the following:
-> >> >
-> >> >
-> >> >> -----Original Message-----
-> >> >> From: Michael Lawnick [mailto:ml.lawnick@gmx.de]
-> >> >> Sent: Monday, September 13, 2010 2:52 PM
-> >> >> To: Datta, Shubhrajyoti
-> >> >> Cc: lm-sensors@lm-sensors.org
-> >> >> Subject: Re: [lm-sensors] [PATCH v3] hwmon: lm75: Add __devinit and
-> >> >> __devexit section initializers
-> >> >>
-> >> >> Shubhrajyoti D said the following:
-> >> >> ...
-> >> >>
-> >> >> > -static int
-> >> >> > +static int __devinit
-> >> >> >  lm75_probe(struct i2c_client *client, const struct i2c_device_id
-> >> *id)
-> >> >> Are you sure?
-> >> >> If I understand correctly, this function will be thrown away after
-> >> >> system/module init. But what's about devices that are added later?
-> >> >> I would expect them to crash on init...
-> >> > As all of these are I2C devices are I2C I thought it makes sense.
-> >> > Are you aware of devices that can be plugged/wired runtime?
-> >> 
-> >> Almost all if behind a multiplexer ;-)
-> > I missed this part.
-> There even exist multiplexer that check the bus state and allow
-> connection only within stop<->start phases.
-> > 
-> >> There is just some care in synchronization needed.
-> >> We are currently working with such a system that dynamically adds buses
-> >> and drops them again (triggered by hotplug).
-> > Does it mean that all the existing drivers need to adapt.
-> 
-> I expect them to get adapted step by step when/if this really becomes an
-> issue. Maybe someday a general cleanup will necessary (and done). Anyway
-> this might be already an issue for hot plugged cards (e.g. a compact PCI
-> TV card) that has a local i2c adapter on and common devices on its local
-> bus. But either this scenario does not exist in practical life or was
-> fixed by a local code fix.
-> 
-This is an interesting use case. I didn't think about it either.
+x % 1 is obviously wrong, as it always evaluates to 0. You want
+x % 2, or x & 1, for parity checking.
 
-Looking through other drivers, it seems to be common that __devinit and __devexit 
-are used only if the device is known to be static. Some even make a destinction 
-based on the interface type (eg lm78).
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83795.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-As such, it may be better not to apply this patch.
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:14:01.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:14:03.000000000 +0200
+@@ -183,7 +183,7 @@ static const u8 IN_LSB_SHIFT_IDX[][2]  #define W83795_REG_FAN_MIN_HL(index)	(0xB6 + (index))
+ #define W83795_REG_FAN_MIN_LSB(index)	(0xC4 + (index) / 2)
+ #define W83795_REG_FAN_MIN_LSB_SHIFT(index) \
+-	(((index) % 1) ? 4 : 0)
++	(((index) & 1) ? 4 : 0)
+ 
+ #define W83795_REG_VID_CTRL		0x6A
+ 
+@@ -670,7 +670,7 @@ store_fan_min(struct device *dev, struct
+ 	data->fan_min[index] = val;
+ 	w83795_write(client, W83795_REG_FAN_MIN_HL(index), (val >> 4) & 0xff);
+ 	val &= 0x0f;
+-	if (index % 1) {
++	if (index & 1) {
+ 		val <<= 4;
+ 		val |= w83795_read(client, W83795_REG_FAN_MIN_LSB(index))
+ 		       & 0x0f;
+@@ -823,7 +823,7 @@ show_temp_src(struct device *dev, struct
+ 	u8 val = index / 2;
+ 	u8 tmp = data->temp_src[val];
+ 
+-	if (index % 1)
++	if (index & 1)
+ 		val = 4;
+ 	else
+ 		val = 0;
+@@ -850,7 +850,7 @@ store_temp_src(struct device *dev, struc
+ 	tmp = SENSORS_LIMIT(tmp, 0, 15);
+ 
+ 	mutex_lock(&data->update_lock);
+-	if (index % 1) {
++	if (index & 1) {
+ 		tmp <<= 4;
+ 		data->temp_src[val] &= 0x0f;
+ 	} else {
 
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
