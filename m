@@ -1,122 +1,48 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Sep 2010 01:52:28 +0000
-Subject: [lm-sensors] [PATCH v3 5/7] hwmon: (lm90) Add explicit support for
-Message-Id: <1284601950-7381-6-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 15 Sep 2010 14:00:48 +0000
+Subject: [lm-sensors] [patch 23/36] hwmon: (w83795) Avoid reading the same
+Message-Id: <20100915160048.7c348bfe@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/lm90 |    4 ++--
- drivers/hwmon/lm90.c     |   32 +++++++++++++++++++++-----------
- 2 files changed, 23 insertions(+), 13 deletions(-)
+Shorten driver load time by avoiding duplicate register access during
+initialization. This saves 112 ms on modprobe on my test system.
 
-diff --git a/Documentation/hwmon/lm90 b/Documentation/hwmon/lm90
-index 6a03dd4..d5ce9f4 100644
---- a/Documentation/hwmon/lm90
-+++ b/Documentation/hwmon/lm90
-@@ -63,8 +63,8 @@ Supported chips:
-     Datasheet: Publicly available at the Maxim website
-                http://www.maxim-ic.com/quick_view2.cfm/qv_pk/2578
-   * Maxim MAX6659
--    Prefix: 'max6657'
--    Addresses scanned: I2C 0x4c, 0x4d (unsupported 0x4e)
-+    Prefix: 'max6659'
-+    Addresses scanned: I2C 0x4c, 0x4d, 0x4e
-     Datasheet: Publicly available at the Maxim website
-                http://www.maxim-ic.com/quick_view2.cfm/qv_pk/2578
-   * Maxim MAX6680
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index e7ef965..68ee8f7 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -85,7 +85,7 @@
-  * and MAX6658 have address 0x4c.
-  * ADM1032-2, ADT7461-2, LM89-1, LM99-1 and MAX6646 have address 0x4d.
-  * MAX6647 has address 0x4e.
-- * MAX6659 can have address 0x4c, 0x4d or 0x4e (unsupported).
-+ * MAX6659 can have address 0x4c, 0x4d or 0x4e.
-  * MAX6680 and MAX6681 can have address 0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b,
-  * 0x4c, 0x4d or 0x4e.
-  */
-@@ -93,8 +93,8 @@
- static const unsigned short normal_i2c[] = {
- 	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
- 
--enum chips { lm90, adm1032, lm99, lm86, max6657, adt7461, max6680, max6646,
--	w83l771 };
-+enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
-+	max6646, w83l771 };
- 
- /*
-  * The LM90 registers
-@@ -176,7 +176,7 @@ static const struct i2c_device_id lm90_id[] = {
- 	{ "max6649", max6646 },
- 	{ "max6657", max6657 },
- 	{ "max6658", max6657 },
--	{ "max6659", max6657 },
-+	{ "max6659", max6659 },
- 	{ "max6680", max6680 },
- 	{ "max6681", max6680 },
- 	{ "w83l771", w83l771 },
-@@ -220,7 +220,7 @@ struct lm90_data {
- 	s16 temp11[5];	/* 0: remote input
- 			   1: remote low limit
- 			   2: remote high limit
--			   3: remote offset (except max6646 and max6657)
-+			   3: remote offset (except max6646 and max6657/58/59)
- 			   4: local input */
- 	u8 temp_hyst;
- 	u8 alarms; /* bitvector */
-@@ -766,12 +766,20 @@ static int lm90_detect(struct i2c_client *new_client,
- 		 * register. Likewise, the config1 register seems to lack a
- 		 * low nibble, so the value will be those of the previous
- 		 * read, so in our case those of the man_id register.
-+		 * MAX6659 has a third set of upper temperature limit registers.
-+		 * Those registers also return values on MAX6657 and MAX6658,
-+		 * thus the only way to detect MAX6659 is by its address.
-+		 * For this reason it will be mis-detected as MAX6657 if its
-+		 * address is 0x4C.
- 		 */
- 		if (chip_id = man_id
--		 && (address = 0x4C || address = 0x4D)
-+		 && (address = 0x4C || address = 0x4D || address = 0x4E)
- 		 && (reg_config1 & 0x1F) = (man_id & 0x0F)
- 		 && reg_convrate <= 0x09) {
--			name = "max6657";
-+			if (address = 0x4C)
-+				name = "max6657";
-+			else
-+				name = "max6659";
- 		} else
- 		/*
- 		 * The chip_id register of the MAX6680 and MAX6681 holds the
-@@ -861,14 +869,16 @@ static int lm90_probe(struct i2c_client *new_client,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83795.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:13:57.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:13:59.000000000 +0200
+@@ -1986,6 +1986,9 @@ static int w83795_probe(struct i2c_clien
+ 		data->in[i][IN_READ] = tmp;
  	}
+ 	for (i = 0; i < IN_LSB_REG_NUM; i++) {
++		if ((i = 2 && data->chip_type = w83795adg) ||
++		    (i >= 4 && !(data->has_in & (1 << (i + 11)))))
++			continue;
+ 		data->in_lsb[i][IN_MAX]  			w83795_read(client, IN_LSB_REG(i, IN_MAX));
+ 		data->in_lsb[i][IN_LOW] @@ -1995,13 +1998,17 @@ static int w83795_probe(struct i2c_clien
  
- 	/* Set chip capabilities */
--	if (data->kind != max6657 && data->kind != max6646)
-+	if (data->kind != max6657 && data->kind != max6659
-+	    && data->kind != max6646)
- 		data->flags |= LM90_HAVE_OFFSET;
- 
--	if (data->kind = max6657 || data->kind = max6646)
-+	if (data->kind = max6657 || data->kind = max6659
-+	    || data->kind = max6646)
- 		data->flags |= LM90_HAVE_LOCAL_EXT;
- 
--	if (data->kind != max6657 && data->kind != max6646
--	    && data->kind != max6680)
-+	if (data->kind != max6657 && data->kind != max6659
-+	    && data->kind != max6646 && data->kind != max6680)
- 		data->flags |= LM90_HAVE_REM_LIMIT_EXT;
- 
- 	/* Initialize the LM90 chip */
--- 
-1.7.0.87.g0901d
+ 	/* First update fan and limits */
+ 	for (i = 0; i < ARRAY_SIZE(data->fan); i++) {
++		/* Each register contains LSB for 2 fans, but we want to
++		 * read it only once to save time */
++		if ((i & 1) = 0 && (data->has_fan & (3 << i)))
++			tmp = w83795_read(client, W83795_REG_FAN_MIN_LSB(i));
++
+ 		if (!(data->has_fan & (1 << i)))
+ 			continue;
+ 		data->fan_min[i]  			w83795_read(client, W83795_REG_FAN_MIN_HL(i)) << 4;
+ 		data->fan_min[i] |-		  (w83795_read(client, W83795_REG_FAN_MIN_LSB(i)) >>
+-			W83795_REG_FAN_MIN_LSB_SHIFT(i)) & 0x0F;
++			(tmp >> W83795_REG_FAN_MIN_LSB_SHIFT(i)) & 0x0F;
+ 		data->fan[i] = w83795_read(client, W83795_REG_FAN(i)) << 4;
+ 		data->fan[i] | 		  (w83795_read(client, W83795_REG_VRLSB) >> 4) & 0x0F;
 
 
 _______________________________________________
