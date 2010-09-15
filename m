@@ -1,140 +1,114 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 27 Sep 2010 14:58:14 +0000
-Subject: Re: [lm-sensors] [2/2] hwmon: cleanup some hotplug related macro
-Message-Id: <20100927145814.GA2666@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 15 Sep 2010 13:57:33 +0000
+Subject: [lm-sensors] [patch 17/36] hwmon: (w83795) Add support for dynamic
+Message-Id: <20100915155733.1b625a4c@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285480800-14558-3-git-send-email-gong.chen@linux.intel.com>
-In-Reply-To: <1285480800-14558-3-git-send-email-gong.chen@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Chen Gong <gong.chen@linux.intel.com>
-Cc: lm-sensors@lm-sensors.org, JBeulich@novell.com, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Sun, Sep 26, 2010 at 06:00:00AM -0000, Chen Gong wrote:
-> CONFIG_HOTPLUG_CPU is used too much in some drivers.
-> This patch clean them up and add some proper __cpuinit definitons.
-> 
-> Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
-> Acked-by: Jan Beulich <jbeulich@novell.com>
-> 
-I am ok with the changes. However, they interfer with other changes 
-made by Jan earlier, which I already applied. 
+The W83795G can be configured to set the in0, in1 and/or in2 voltage
+limits dynamically based on VID input pins. Switch the respective
+sysfs attributes to read-only.
 
-It would be great if you can rebase this patch to 
-	git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-next
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83795.c |   56 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
 
-That would help me a lot.
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:12:56.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:12:58.000000000 +0200
+@@ -316,6 +316,7 @@ struct w83795_data {
+ 	u8 bank;
+ 
+ 	u32 has_in;		/* Enable monitor VIN or not */
++	u8 has_dyn_in;		/* Only in2-0 can have this */
+ 	u16 in[21][3];		/* Register value, read/high/low */
+ 	u8 in_lsb[10][3];	/* LSB Register value, high/low */
+ 	u8 has_gain;		/* has gain: in17-20 * 8 */
+@@ -450,6 +451,23 @@ static struct w83795_data *w83795_update
+ 		data->in[i][IN_READ] = tmp;
+ 	}
+ 
++	/* in0-2 can have dynamic limits (W83795G only) */
++	if (data->has_dyn_in) {
++		u8 lsb_max = w83795_read(client, IN_LSB_REG(0, IN_MAX));
++		u8 lsb_low = w83795_read(client, IN_LSB_REG(0, IN_LOW));
++
++		for (i = 0; i < 3; i++) {
++			if (!(data->has_dyn_in & (1 << i)))
++				continue;
++			data->in[i][IN_MAX] +				w83795_read(client, W83795_REG_IN[i][IN_MAX]);
++			data->in[i][IN_LOW] +				w83795_read(client, W83795_REG_IN[i][IN_LOW]);
++			data->in_lsb[i][IN_MAX] = (lsb_max >> (2 * i)) & 0x03;
++			data->in_lsb[i][IN_LOW] = (lsb_low >> (2 * i)) & 0x03;
++		}
++	}
++
+ 	/* Update fan */
+ 	for (i = 0; i < ARRAY_SIZE(data->fan); i++) {
+ 		if (!(data->has_fan & (1 << i)))
+@@ -1450,6 +1468,8 @@ store_sf_setup(struct device *dev, struc
+ 
+ #define NOT_USED			-1
+ 
++/* Don't change the attribute order, _max and _min are accessed by index
++ * somewhere else in the code */
+ #define SENSOR_ATTR_IN(index) {						\
+ 	SENSOR_ATTR_2(in##index##_input, S_IRUGO, show_in, NULL,	\
+ 		IN_READ, index), \
+@@ -1844,6 +1864,39 @@ static int device_remove_file_wrapper(st
+ 	return 0;
+ }
+ 
++static void w83795_check_dynamic_in_limits(struct i2c_client *client)
++{
++	struct w83795_data *data = i2c_get_clientdata(client);
++	u8 vid_ctl;
++	int i, err_max, err_min;
++
++	vid_ctl = w83795_read(client, W83795_REG_VID_CTRL);
++
++	/* Return immediately if VRM isn't configured */
++	if ((vid_ctl & 0x07) = 0x00 || (vid_ctl & 0x07) = 0x07)
++		return;
++
++	data->has_dyn_in = (vid_ctl >> 3) & 0x07;
++	for (i = 0; i < 2; i++) {
++		if (!(data->has_dyn_in & (1 << i)))
++			continue;
++
++		/* Voltage limits in dynamic mode, switch to read-only */
++		err_max = sysfs_chmod_file(&client->dev.kobj,
++					   &w83795_in[i][2].dev_attr.attr,
++					   S_IRUGO);
++		err_min = sysfs_chmod_file(&client->dev.kobj,
++					   &w83795_in[i][3].dev_attr.attr,
++					   S_IRUGO);
++		if (err_max || err_min)
++			dev_warn(&client->dev, "Failed to set in%d limits "
++				 "read-only (%d, %d)\n", i, err_max, err_min);
++		else
++			dev_info(&client->dev, "in%d limits set dynamically "
++				 "from VID\n", i);
++	}
++}
++
+ /* Check pins that can be used for either temperature or voltage monitoring */
+ static void w83795_apply_temp_config(struct w83795_data *data, u8 config,
+ 				     int temp_chan, int in_chan)
+@@ -2049,6 +2102,9 @@ static int w83795_probe(struct i2c_clien
+ 	if (err)
+ 		goto exit_remove;
+ 
++	if (data->chip_type = w83795g)
++		w83795_check_dynamic_in_limits(client);
++
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
 
-Thanks,
-Guenter
-
-> ---
-> drivers/hwmon/coretemp.c    |    5 ++---
->  drivers/hwmon/pkgtemp.c     |    7 ++-----
->  drivers/hwmon/via-cputemp.c |    9 ++-------
->  3 files changed, 6 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> index baa842a..887ab93 100644
-> --- a/drivers/hwmon/coretemp.c
-> +++ b/drivers/hwmon/coretemp.c
-> @@ -489,7 +489,7 @@ exit:
->  	return err;
->  }
->  
-> -static void coretemp_device_remove(unsigned int cpu)
-> +static void __cpuinit coretemp_device_remove(unsigned int cpu)
->  {
->  	struct pdev_entry *p;
->  	unsigned int i;
-> @@ -568,9 +568,8 @@ exit:
->  static void __exit coretemp_exit(void)
->  {
->  	struct pdev_entry *p, *n;
-> -#ifdef CONFIG_HOTPLUG_CPU
-> +
->  	unregister_hotcpu_notifier(&coretemp_cpu_notifier);
-> -#endif
->  	mutex_lock(&pdev_list_mutex);
->  	list_for_each_entry_safe(p, n, &pdev_list, list) {
->  		platform_device_unregister(p->pdev);
-> diff --git a/drivers/hwmon/pkgtemp.c b/drivers/hwmon/pkgtemp.c
-> index 6186041..0516d52 100644
-> --- a/drivers/hwmon/pkgtemp.c
-> +++ b/drivers/hwmon/pkgtemp.c
-> @@ -339,8 +339,7 @@ exit:
->  	return err;
->  }
->  
-> -#ifdef CONFIG_HOTPLUG_CPU
-> -static void pkgtemp_device_remove(unsigned int cpu)
-> +static void __cpuinit pkgtemp_device_remove(unsigned int cpu)
->  {
->  	struct pdev_entry *p;
->  	unsigned int i;
-> @@ -387,7 +386,6 @@ static int __cpuinit pkgtemp_cpu_callback(struct notifier_block *nfb,
->  static struct notifier_block pkgtemp_cpu_notifier __refdata = {
->  	.notifier_call = pkgtemp_cpu_callback,
->  };
-> -#endif				/* !CONFIG_HOTPLUG_CPU */
->  
->  static int __init pkgtemp_init(void)
->  {
-> @@ -425,9 +423,8 @@ exit:
->  static void __exit pkgtemp_exit(void)
->  {
->  	struct pdev_entry *p, *n;
-> -#ifdef CONFIG_HOTPLUG_CPU
-> +
->  	unregister_hotcpu_notifier(&pkgtemp_cpu_notifier);
-> -#endif
->  	mutex_lock(&pdev_list_mutex);
->  	list_for_each_entry_safe(p, n, &pdev_list, list) {
->  		platform_device_unregister(p->pdev);
-> diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
-> index ffb793a..ebbdc25 100644
-> --- a/drivers/hwmon/via-cputemp.c
-> +++ b/drivers/hwmon/via-cputemp.c
-> @@ -237,8 +237,7 @@ exit:
->  	return err;
->  }
->  
-> -#ifdef CONFIG_HOTPLUG_CPU
-> -static void via_cputemp_device_remove(unsigned int cpu)
-> +static void __cpuinit via_cputemp_device_remove(unsigned int cpu)
->  {
->  	struct pdev_entry *p, *n;
->  	mutex_lock(&pdev_list_mutex);
-> @@ -272,7 +271,6 @@ static int __cpuinit via_cputemp_cpu_callback(struct notifier_block *nfb,
->  static struct notifier_block via_cputemp_cpu_notifier __refdata = {
->  	.notifier_call = via_cputemp_cpu_callback,
->  };
-> -#endif				/* !CONFIG_HOTPLUG_CPU */
->  
->  static int __init via_cputemp_init(void)
->  {
-> @@ -313,9 +311,7 @@ static int __init via_cputemp_init(void)
->  		goto exit_driver_unreg;
->  	}
->  
-> -#ifdef CONFIG_HOTPLUG_CPU
->  	register_hotcpu_notifier(&via_cputemp_cpu_notifier);
-> -#endif
->  	return 0;
->  
->  exit_devices_unreg:
-> @@ -335,9 +331,8 @@ exit:
->  static void __exit via_cputemp_exit(void)
->  {
->  	struct pdev_entry *p, *n;
-> -#ifdef CONFIG_HOTPLUG_CPU
-> +
->  	unregister_hotcpu_notifier(&via_cputemp_cpu_notifier);
-> -#endif
->  	mutex_lock(&pdev_list_mutex);
->  	list_for_each_entry_safe(p, n, &pdev_list, list) {
->  		platform_device_unregister(p->pdev);
 
 _______________________________________________
 lm-sensors mailing list
