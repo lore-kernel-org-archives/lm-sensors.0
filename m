@@ -1,48 +1,32 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 14:00:48 +0000
-Subject: [lm-sensors] [patch 23/36] hwmon: (w83795) Avoid reading the same
-Message-Id: <20100915160048.7c348bfe@hyperion.delvare>
+Date: Wed, 15 Sep 2010 14:03:22 +0000
+Subject: [lm-sensors] [patch 36/36] hwmon: (w83795) Fix LSB reading of
+Message-Id: <20100915160322.75cbb4d6@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Shorten driver load time by avoiding duplicate register access during
-initialization. This saves 112 ms on modprobe on my test system.
+Wrong index caused the wrong register value to be read, resulting in
+random LSB for voltage limits.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/w83795.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/hwmon/w83795.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:13:57.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:13:59.000000000 +0200
-@@ -1986,6 +1986,9 @@ static int w83795_probe(struct i2c_clien
- 		data->in[i][IN_READ] = tmp;
- 	}
- 	for (i = 0; i < IN_LSB_REG_NUM; i++) {
-+		if ((i = 2 && data->chip_type = w83795adg) ||
-+		    (i >= 4 && !(data->has_in & (1 << (i + 11)))))
-+			continue;
- 		data->in_lsb[i][IN_MAX]  			w83795_read(client, IN_LSB_REG(i, IN_MAX));
- 		data->in_lsb[i][IN_LOW] @@ -1995,13 +1998,17 @@ static int w83795_probe(struct i2c_clien
- 
- 	/* First update fan and limits */
- 	for (i = 0; i < ARRAY_SIZE(data->fan); i++) {
-+		/* Each register contains LSB for 2 fans, but we want to
-+		 * read it only once to save time */
-+		if ((i & 1) = 0 && (data->has_fan & (3 << i)))
-+			tmp = w83795_read(client, W83795_REG_FAN_MIN_LSB(i));
-+
- 		if (!(data->has_fan & (1 << i)))
- 			continue;
- 		data->fan_min[i]  			w83795_read(client, W83795_REG_FAN_MIN_HL(i)) << 4;
- 		data->fan_min[i] |-		  (w83795_read(client, W83795_REG_FAN_MIN_LSB(i)) >>
--			W83795_REG_FAN_MIN_LSB_SHIFT(i)) & 0x0F;
-+			(tmp >> W83795_REG_FAN_MIN_LSB_SHIFT(i)) & 0x0F;
- 		data->fan[i] = w83795_read(client, W83795_REG_FAN(i)) << 4;
- 		data->fan[i] | 		  (w83795_read(client, W83795_REG_VRLSB) >> 4) & 0x0F;
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:16:00.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:16:03.000000000 +0200
+@@ -1405,7 +1405,7 @@ show_in(struct device *dev, struct devic
+ 		lsb_idx = IN_LSB_SHIFT_IDX[index][IN_LSB_IDX];
+ 		val <<= 2;
+ 		val |= (data->in_lsb[lsb_idx][nr] >>
+-			IN_LSB_SHIFT_IDX[lsb_idx][IN_LSB_SHIFT]) & 0x03;
++			IN_LSB_SHIFT_IDX[index][IN_LSB_SHIFT]) & 0x03;
+ 		if ((index >= 17) &&
+ 		    !((data->has_gain >> (index - 17)) & 1))
+ 			val *= 8;
 
 
 _______________________________________________
