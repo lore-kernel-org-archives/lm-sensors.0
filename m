@@ -1,131 +1,129 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Sep 2010 01:52:27 +0000
-Subject: [lm-sensors] [PATCH v3 4/7] hwmon: (lm90) Simplify set_temp11
-Message-Id: <1284601950-7381-5-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 15 Sep 2010 13:55:37 +0000
+Subject: [lm-sensors] [patch 06/36] hwmon: (w83795) Move files removal to a
+Message-Id: <20100915155537.6ecc2dc8@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/lm90.c |   55 +++++++++++++++++++++++++------------------------
- 1 files changed, 28 insertions(+), 27 deletions(-)
+Sysfs files must be removed on device removal but also when device
+registration fails. Move the code to a separate function to avoid
+code redundancy.
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 9b1d205..e7ef965 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -418,7 +418,7 @@ static ssize_t set_temp8(struct device *dev, struct device_attribute *devattr,
- static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
- 			   char *buf)
- {
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct lm90_data *data = lm90_update_device(dev);
- 	int temp;
- 
-@@ -439,19 +439,20 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
- static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
- 			  const char *buf, size_t count)
- {
--	static const u8 reg[6] = {
--		LM90_REG_W_REMOTE_LOWH,
--		LM90_REG_W_REMOTE_LOWL,
--		LM90_REG_W_REMOTE_HIGHH,
--		LM90_REG_W_REMOTE_HIGHL,
--		LM90_REG_W_REMOTE_OFFSH,
--		LM90_REG_W_REMOTE_OFFSL,
-+	struct {
-+		u8 high;
-+		u8 low;
-+	} reg[3] = {
-+		{ LM90_REG_W_REMOTE_LOWH, LM90_REG_W_REMOTE_LOWL },
-+		{ LM90_REG_W_REMOTE_HIGHH, LM90_REG_W_REMOTE_HIGHL },
-+		{ LM90_REG_W_REMOTE_OFFSH, LM90_REG_W_REMOTE_OFFSL }
- 	};
- 
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm90_data *data = i2c_get_clientdata(client);
--	int nr = attr->index;
-+	int nr = attr->nr;
-+	int index = attr->index;
- 	long val;
- 	int err;
- 
-@@ -460,24 +461,24 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
- 		return err;
- 
- 	/* +16 degrees offset for temp2 for the LM99 */
--	if (data->kind = lm99 && attr->index <= 2)
-+	if (data->kind = lm99 && index <= 2)
- 		val -= 16000;
- 
- 	mutex_lock(&data->update_lock);
- 	if (data->kind = adt7461)
--		data->temp11[nr] = temp_to_u16_adt7461(data, val);
-+		data->temp11[index] = temp_to_u16_adt7461(data, val);
- 	else if (data->kind = max6646)
--		data->temp11[nr] = temp_to_u8(val) << 8;
-+		data->temp11[index] = temp_to_u8(val) << 8;
- 	else if (data->flags & LM90_HAVE_REM_LIMIT_EXT)
--		data->temp11[nr] = temp_to_s16(val);
-+		data->temp11[index] = temp_to_s16(val);
- 	else
--		data->temp11[nr] = temp_to_s8(val) << 8;
-+		data->temp11[index] = temp_to_s8(val) << 8;
- 
--	i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2],
--				  data->temp11[nr] >> 8);
-+	i2c_smbus_write_byte_data(client, reg[nr].high,
-+				  data->temp11[index] >> 8);
- 	if (data->flags & LM90_HAVE_REM_LIMIT_EXT)
--		i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2 + 1],
--					  data->temp11[nr] & 0xff);
-+		i2c_smbus_write_byte_data(client, reg[nr].low,
-+					  data->temp11[index] & 0xff);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
-@@ -549,16 +550,16 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute
- 	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83795.c |   81 ++++++++++++++++++------------------------------
+ 1 file changed, 31 insertions(+), 50 deletions(-)
+
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:11:42.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:11:44.000000000 +0200
+@@ -1777,6 +1777,35 @@ static int w83795_detect(struct i2c_clie
+ 	return 0;
  }
  
--static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp11, NULL, 4);
--static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp11, NULL, 0);
-+static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
-+static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
- static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
- 	set_temp8, 0);
--static SENSOR_DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 1);
-+static SENSOR_DEVICE_ATTR_2(temp2_min, S_IWUSR | S_IRUGO, show_temp11,
-+	set_temp11, 0, 1);
- static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp8,
- 	set_temp8, 1);
--static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 2);
-+static SENSOR_DEVICE_ATTR_2(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
-+	set_temp11, 1, 2);
- static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp8,
- 	set_temp8, 2);
- static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
-@@ -566,8 +567,8 @@ static SENSOR_DEVICE_ATTR(temp2_crit, S_IWUSR | S_IRUGO, show_temp8,
- static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temphyst,
- 	set_temphyst, 2);
- static SENSOR_DEVICE_ATTR(temp2_crit_hyst, S_IRUGO, show_temphyst, NULL, 3);
--static SENSOR_DEVICE_ATTR(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
--	set_temp11, 3);
-+static SENSOR_DEVICE_ATTR_2(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
-+	set_temp11, 2, 3);
++static void w83795_remove_files(struct device *dev)
++{
++	struct w83795_data *data = dev_get_drvdata(dev);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(w83795_in); i++)
++		device_remove_file(dev, &w83795_in[i].dev_attr);
++
++	for (i = 0; i < ARRAY_SIZE(w83795_fan); i++)
++		device_remove_file(dev, &w83795_fan[i].dev_attr);
++
++	for (i = 0; i < ARRAY_SIZE(sda_single_files); i++)
++		device_remove_file(dev, &sda_single_files[i].dev_attr);
++
++	if (data->chip_type = w83795g) {
++		for (i = 0; i < ARRAY_SIZE(w83795_left_reg); i++)
++			device_remove_file(dev, &w83795_left_reg[i].dev_attr);
++	}
++
++	for (i = 0; i < ARRAY_SIZE(w83795_temp); i++)
++		device_remove_file(dev, &w83795_temp[i].dev_attr);
++
++	for (i = 0; i < ARRAY_SIZE(w83795_dts); i++)
++		device_remove_file(dev, &w83795_dts[i].dev_attr);
++
++	for (i = 0; i < ARRAY_SIZE(w83795_static); i++)
++		device_remove_file(dev, &w83795_static[i].dev_attr);
++}
++
+ static int w83795_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -2065,31 +2094,8 @@ static int w83795_probe(struct i2c_clien
  
- /* Individual alarm files */
- static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 0);
--- 
-1.7.0.87.g0901d
+ 	return 0;
+ 
+-	/* Unregister sysfs hooks */
+ exit_remove:
+-	for (i = 0; i < ARRAY_SIZE(w83795_in); i++)
+-		device_remove_file(dev, &w83795_in[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_fan); i++)
+-		device_remove_file(dev, &w83795_fan[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(sda_single_files); i++)
+-		device_remove_file(dev, &sda_single_files[i].dev_attr);
+-
+-	if (data->chip_type = w83795g) {
+-		for (i = 0; i < ARRAY_SIZE(w83795_left_reg); i++)
+-			device_remove_file(dev, &w83795_left_reg[i].dev_attr);
+-	}
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_temp); i++)
+-		device_remove_file(dev, &w83795_temp[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_dts); i++)
+-		device_remove_file(dev, &w83795_dts[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_static); i++)
+-		device_remove_file(dev, &w83795_static[i].dev_attr);
+-
++	w83795_remove_files(dev);
+ 	kfree(data);
+ exit:
+ 	return err;
+@@ -2098,34 +2104,9 @@ exit:
+ static int w83795_remove(struct i2c_client *client)
+ {
+ 	struct w83795_data *data = i2c_get_clientdata(client);
+-	struct device *dev = &client->dev;
+-	int i;
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_in); i++)
+-		device_remove_file(dev, &w83795_in[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_fan); i++)
+-		device_remove_file(dev, &w83795_fan[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(sda_single_files); i++)
+-		device_remove_file(dev, &sda_single_files[i].dev_attr);
+-
+-	if (data->chip_type = w83795g) {
+-		for (i = 0; i < ARRAY_SIZE(w83795_left_reg); i++)
+-			device_remove_file(dev, &w83795_left_reg[i].dev_attr);
+-	}
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_temp); i++)
+-		device_remove_file(dev, &w83795_temp[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_dts); i++)
+-		device_remove_file(dev, &w83795_dts[i].dev_attr);
+-
+-	for (i = 0; i < ARRAY_SIZE(w83795_static); i++)
+-		device_remove_file(dev, &w83795_static[i].dev_attr);
+-
++	w83795_remove_files(&client->dev);
+ 	kfree(data);
+ 
+ 	return 0;
 
 
 _______________________________________________
