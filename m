@@ -1,71 +1,71 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:56:19 +0000
-Subject: [lm-sensors] [patch 10/36] hwmon: (w83795) Move PWM attributes to a
-Message-Id: <20100915155619.16fb3870@hyperion.delvare>
+Date: Wed, 15 Sep 2010 13:57:57 +0000
+Subject: [lm-sensors] [patch 19/36] hwmon: (w83795) Rename temperature limit
+Message-Id: <20100915155757.03749f52@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use a dedicated 2D array for PWM attributes. This way, PWM attributes
-are handled the same way as other attributes, this is more consistent.
+Follow the standard for temperature limit attribute naming, so that
+libsensors will pick the values.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/w83795.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/hwmon/w83795.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:11:50.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:12:18.000000000 +0200
-@@ -1470,7 +1470,7 @@ store_sf_setup(struct device *dev, struc
- 	SENSOR_ATTR_2(fan##index##_beep, S_IWUSR | S_IRUGO,		\
- 		show_alarm_beep, store_beep, BEEP_ENABLE, index + 31) }
- 
--#define SENSOR_ATTR_PWM(index)						\
-+#define SENSOR_ATTR_PWM(index) {					\
- 	SENSOR_ATTR_2(pwm##index, S_IWUSR | S_IRUGO, show_pwm,		\
- 		store_pwm, PWM_OUTPUT, index - 1),			\
- 	SENSOR_ATTR_2(pwm##index##_nonstop, S_IWUSR | S_IRUGO,		\
-@@ -1482,7 +1482,7 @@ store_sf_setup(struct device *dev, struc
- 	SENSOR_ATTR_2(fan##index##_div, S_IWUSR | S_IRUGO,	\
- 		show_pwm, store_pwm, PWM_DIV, index - 1),	 \
- 	SENSOR_ATTR_2(pwm##index##_enable, S_IWUSR | S_IRUGO,		\
--		show_pwm_enable, store_pwm_enable, NOT_USED, index - 1)
-+		show_pwm_enable, store_pwm_enable, NOT_USED, index - 1) }
- 
- #define SENSOR_ATTR_FANIN_TARGET(index)					\
- 	SENSOR_ATTR_2(speed_cruise##index##_target, S_IWUSR | S_IRUGO, \
-@@ -1641,13 +1641,11 @@ static struct sensor_device_attribute_2
- 	SENSOR_ATTR_FANIN_TARGET(6),
- 	SENSOR_ATTR_FANIN_TARGET(7),
- 	SENSOR_ATTR_FANIN_TARGET(8),
--	SENSOR_ATTR_PWM(1),
--	SENSOR_ATTR_PWM(2),
- };
- 
--/* all registers existed in 795g than 795adg,
-- * like PWM3 - PWM8 */
--static struct sensor_device_attribute_2 w83795_left_reg[] = {
-+static struct sensor_device_attribute_2 w83795_pwm[][6] = {
-+	SENSOR_ATTR_PWM(1),
-+	SENSOR_ATTR_PWM(2),
- 	SENSOR_ATTR_PWM(3),
- 	SENSOR_ATTR_PWM(4),
- 	SENSOR_ATTR_PWM(5),
-@@ -1809,9 +1807,9 @@ static int w83795_handle_files(struct de
- 			return err;
- 	}
- 
--	if (data->chip_type = w83795g) {
--		for (i = 0; i < ARRAY_SIZE(w83795_left_reg); i++) {
--			err = fn(dev, &w83795_left_reg[i].dev_attr);
-+	for (i = 0; i < data->has_pwm; i++) {
-+		for (j = 0; j < ARRAY_SIZE(w83795_pwm[0]); j++) {
-+			err = fn(dev, &w83795_pwm[i][j].dev_attr);
- 			if (err)
- 				return err;
- 		}
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:13:46.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:13:50.000000000 +0200
+@@ -1541,13 +1541,13 @@ store_sf_setup(struct device *dev, struc
+ 		show_dts_mode, NULL, NOT_USED, index - 7),	\
+ 	SENSOR_ATTR_2(temp##index##_input, S_IRUGO, show_dts,		\
+ 		NULL, NOT_USED, index - 7),				\
+-	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_dts_ext, \
++	SENSOR_ATTR_2(temp##index##_crit, S_IRUGO | S_IWUSR, show_dts_ext, \
+ 		store_dts_ext, DTS_CRIT, NOT_USED),			\
+-	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
++	SENSOR_ATTR_2(temp##index##_crit_hyst, S_IRUGO | S_IWUSR,	\
+ 		show_dts_ext, store_dts_ext, DTS_CRIT_HYST, NOT_USED),	\
+-	SENSOR_ATTR_2(temp##index##_warn, S_IRUGO | S_IWUSR, show_dts_ext, \
++	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_dts_ext, \
+ 		store_dts_ext, DTS_WARN, NOT_USED),			\
+-	SENSOR_ATTR_2(temp##index##_warn_hyst, S_IRUGO | S_IWUSR,	\
++	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
+ 		show_dts_ext, store_dts_ext, DTS_WARN_HYST, NOT_USED),	\
+ 	SENSOR_ATTR_2(temp##index##_alarm, S_IRUGO,			\
+ 		show_alarm_beep, NULL, ALARM_STATUS, index + 17),	\
+@@ -1559,13 +1559,13 @@ store_sf_setup(struct device *dev, struc
+ 		show_temp_mode, store_temp_mode, NOT_USED, index - 1),	\
+ 	SENSOR_ATTR_2(temp##index##_input, S_IRUGO, show_temp,		\
+ 		NULL, TEMP_READ, index - 1),				\
+-	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_temp,	\
++	SENSOR_ATTR_2(temp##index##_crit, S_IRUGO | S_IWUSR, show_temp,	\
+ 		store_temp, TEMP_CRIT, index - 1),			\
+-	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
++	SENSOR_ATTR_2(temp##index##_crit_hyst, S_IRUGO | S_IWUSR,	\
+ 		show_temp, store_temp, TEMP_CRIT_HYST, index - 1),	\
+-	SENSOR_ATTR_2(temp##index##_warn, S_IRUGO | S_IWUSR, show_temp,	\
++	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_temp,	\
+ 		store_temp, TEMP_WARN, index - 1),			\
+-	SENSOR_ATTR_2(temp##index##_warn_hyst, S_IRUGO | S_IWUSR,	\
++	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
+ 		show_temp, store_temp, TEMP_WARN_HYST, index - 1),	\
+ 	SENSOR_ATTR_2(temp##index##_alarm, S_IRUGO,			\
+ 		show_alarm_beep, NULL, ALARM_STATUS,			\
+@@ -1583,9 +1583,9 @@ store_sf_setup(struct device *dev, struc
+ 		TEMP_PWM_FAN_MAP, index - 1),				\
+ 	SENSOR_ATTR_2(thermal_cruise##index, S_IWUSR | S_IRUGO,		\
+ 		show_temp_pwm, store_temp_pwm, TEMP_PWM_TTTI, index - 1), \
+-	SENSOR_ATTR_2(temp##index##_crit, S_IWUSR | S_IRUGO,		\
++	SENSOR_ATTR_2(temp##index##_warn, S_IWUSR | S_IRUGO,		\
+ 		show_temp_pwm, store_temp_pwm, TEMP_PWM_CTFS, index - 1), \
+-	SENSOR_ATTR_2(temp##index##_crit_hyst, S_IWUSR | S_IRUGO,	\
++	SENSOR_ATTR_2(temp##index##_warn_hyst, S_IWUSR | S_IRUGO,	\
+ 		show_temp_pwm, store_temp_pwm, TEMP_PWM_HCT, index - 1), \
+ 	SENSOR_ATTR_2(temp##index##_operation_hyst, S_IWUSR | S_IRUGO,	\
+ 		show_temp_pwm, store_temp_pwm, TEMP_PWM_HOT, index - 1), \
 
 
 _______________________________________________
