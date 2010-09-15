@@ -1,157 +1,54 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:55:48 +0000
-Subject: [lm-sensors] [patch 07/36] hwmon: (w83795) Move file creation to a
-Message-Id: <20100915155548.59d5ca83@hyperion.delvare>
+Date: Wed, 15 Sep 2010 14:02:04 +0000
+Subject: [lm-sensors] [patch 30/36] hwmon: (w83795) Make W83795_REG_PWM more
+Message-Id: <20100915160204.1dd4c562@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Function w83795_probe() is way too big, move file creation to a separate
-function to make it more readable.
+Cascaded conditionals are inefficient. Reorder the fields so that
+PWM register addresses can be computed more efficiently.
 
 Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/w83795.c |  121 ++++++++++++++++++++++++++----------------------
- 1 file changed, 66 insertions(+), 55 deletions(-)
+ drivers/hwmon/w83795.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:11:44.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:11:46.000000000 +0200
-@@ -1777,6 +1777,69 @@ static int w83795_detect(struct i2c_clie
- 	return 0;
- }
+--- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:14:13.000000000 +0200
++++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:15:24.000000000 +0200
+@@ -178,15 +178,11 @@ static const u8 IN_LSB_SHIFT_IDX[][2]  #define W83795_REG_TSS(index)		(0x209 + (index))
  
-+static int w83795_create_files(struct device *dev)
-+{
-+	struct w83795_data *data = dev_get_drvdata(dev);
-+	int err, i;
-+
-+	for (i = 0; i < ARRAY_SIZE(w83795_in); i++) {
-+		if (!(data->has_in & (1 << (i / 6))))
-+			continue;
-+		err = device_create_file(dev, &w83795_in[i].dev_attr);
-+		if (err)
-+			return err;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(w83795_fan); i++) {
-+		if (!(data->has_fan & (1 << (i / 5))))
-+			continue;
-+		err = device_create_file(dev, &w83795_fan[i].dev_attr);
-+		if (err)
-+			return err;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(sda_single_files); i++) {
-+		err = device_create_file(dev, &sda_single_files[i].dev_attr);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (data->chip_type = w83795g) {
-+		for (i = 0; i < ARRAY_SIZE(w83795_left_reg); i++) {
-+			err = device_create_file(dev,
-+						 &w83795_left_reg[i].dev_attr);
-+			if (err)
-+				return err;
-+		}
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(w83795_temp); i++) {
-+		if (!(data->has_temp & (1 << (i / 29))))
-+			continue;
-+		err = device_create_file(dev, &w83795_temp[i].dev_attr);
-+		if (err)
-+			return err;
-+	}
-+
-+	if (data->enable_dts != 0) {
-+		for (i = 0; i < ARRAY_SIZE(w83795_dts); i++) {
-+			if (!(data->has_dts & (1 << (i / 8))))
-+				continue;
-+			err = device_create_file(dev, &w83795_dts[i].dev_attr);
-+			if (err)
-+				return err;
-+		}
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(w83795_static); i++) {
-+		err = device_create_file(dev, &w83795_static[i].dev_attr);
-+		if (err)
-+			return err;
-+	}
-+
-+	return 0;
-+}
-+
- static void w83795_remove_files(struct device *dev)
- {
- 	struct w83795_data *data = dev_get_drvdata(dev);
-@@ -2030,61 +2093,9 @@ static int w83795_probe(struct i2c_clien
- 	data->beep_enable  		(w83795_read(client, W83795_REG_BEEP(5)) >> 7) & 0x01;
+ #define PWM_OUTPUT			0
+-#define PWM_START			1
+-#define PWM_NONSTOP			2
+-#define PWM_STOP_TIME			3
+-#define PWM_FREQ			4
+-#define W83795_REG_PWM(index, nr) \
+-	(((nr) = 0 ? 0x210 : \
+-	  (nr) = 1 ? 0x220 : \
+-	  (nr) = 2 ? 0x228 : \
+-	  (nr) = 3 ? 0x230 : 0x218) + (index))
++#define PWM_FREQ			1
++#define PWM_START			2
++#define PWM_NONSTOP			3
++#define PWM_STOP_TIME			4
++#define W83795_REG_PWM(index, nr)	(0x210 + (nr) * 8 + (index))
  
--	/* Register sysfs hooks */
--	for (i = 0; i < ARRAY_SIZE(w83795_in); i++) {
--		if (!(data->has_in & (1 << (i / 6))))
--			continue;
--		err = device_create_file(dev, &w83795_in[i].dev_attr);
--		if (err)
--			goto exit_remove;
--	}
--
--	for (i = 0; i < ARRAY_SIZE(w83795_fan); i++) {
--		if (!(data->has_fan & (1 << (i / 5))))
--			continue;
--		err = device_create_file(dev, &w83795_fan[i].dev_attr);
--		if (err)
--			goto exit_remove;
--	}
--
--	for (i = 0; i < ARRAY_SIZE(sda_single_files); i++) {
--		err = device_create_file(dev, &sda_single_files[i].dev_attr);
--		if (err)
--			goto exit_remove;
--	}
--
--	for (i = 0; i < ARRAY_SIZE(w83795_temp); i++) {
--		if (!(data->has_temp & (1 << (i / 29))))
--			continue;
--		err = device_create_file(dev, &w83795_temp[i].dev_attr);
--		if (err)
--			goto exit_remove;
--	}
--
--	if (data->enable_dts != 0) {
--		for (i = 0; i < ARRAY_SIZE(w83795_dts); i++) {
--			if (!(data->has_dts & (1 << (i / 8))))
--				continue;
--			err = device_create_file(dev, &w83795_dts[i].dev_attr);
--			if (err)
--				goto exit_remove;
--		}
--	}
--
--	if (data->chip_type = w83795g) {
--		for (i = 0; i < ARRAY_SIZE(w83795_left_reg); i++) {
--			err = device_create_file(dev,
--						 &w83795_left_reg[i].dev_attr);
--			if (err)
--				goto exit_remove;
--		}
--	}
--
--	for (i = 0; i < ARRAY_SIZE(w83795_static); i++) {
--		err = device_create_file(dev, &w83795_static[i].dev_attr);
--		if (err)
--			goto exit_remove;
--	}
-+	err = w83795_create_files(dev);
-+	if (err)
-+		goto exit_remove;
- 
- 	data->hwmon_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->hwmon_dev)) {
+ #define W83795_REG_FTSH(index)		(0x240 + (index) * 2)
+ #define W83795_REG_FTSL(index)		(0x241 + (index) * 2)
+@@ -356,8 +352,8 @@ struct w83795_data {
+ 	u8 has_pwm;		/* 795g supports 8 pwm, 795adg only supports 2,
+ 				 * no config register, only affected by chip
+ 				 * type */
+-	u8 pwm[8][5];		/* Register value, output, start, non stop, stop
+-				 * time, freq */
++	u8 pwm[8][5];		/* Register value, output, freq, start,
++				 *  non stop, stop time */
+ 	u16 clkin;		/* CLKIN frequency in kHz */
+ 	u8 pwm_fcms[2];		/* Register value */
+ 	u8 pwm_tfmr[6];		/* Register value */
 
 
 _______________________________________________
