@@ -1,48 +1,163 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 29 Sep 2010 17:05:35 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm90) Rearrange code to no longer
-Message-Id: <20100929170535.GB12475@ericsson.com>
+Date: Thu, 16 Sep 2010 02:07:14 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (adm1031) Replace update_rate sysfs
+Message-Id: <1284602835-7605-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284780642-7291-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1284780642-7291-1-git-send-email-guenter.roeck@ericsson.com>
+References: <1284602835-7605-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1284602835-7605-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-On Wed, Sep 29, 2010 at 12:48:13PM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Fri, 17 Sep 2010 20:30:42 -0700, Guenter Roeck wrote:
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> >  drivers/hwmon/lm90.c |  523 ++++++++++++++++++++++++-------------------------
-> >  1 files changed, 256 insertions(+), 267 deletions(-)
-> > 
-> 
-> Wow. Have you noticed how GNU diff gets this patch completely wrong? I
-> use quilt and quilt relies in GNU diff, and when refreshing or viewing
-> the patch, I get an output which is different from what you sent,
-> larger and less readable. It includes oddities such as:
-> 
-> -	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> -		return -ENODEV;
-> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -ENODEV;
-> 
-> And this isn't a bug in a specific version... Tried it on 4 different
-> versions of GNU diff on 2 completely different distributions. "diff -d"
-> gets it right, but the default algorithm does not.
-> 
-Interesting. I had noticed similar problems before, but for kernel development
-I use only git so I didn't see it.
+The attribute reflects an interval, not a rate.
 
-> I'll report the bug to the diffutils guys. Meanwhile, your patch is
-> nice and I'll apply it...
-> 
-Thanks ...
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/sysfs-interface |   12 +++++-----
+ drivers/hwmon/adm1031.c             |   43 +++++++++++++++++++---------------
+ 2 files changed, 30 insertions(+), 25 deletions(-)
 
-Guenter
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index ff45d1f..df0cdd2 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -91,13 +91,13 @@ name		The chip name.
+ 		I2C devices get this attribute created automatically.
+ 		RO
+ 
+-update_rate	The rate at which the chip will update readings.
+-		Unit: millisecond
++update_interval	The interval at which the chip or driver will update readings.
++		Unit: milliseconds
+ 		RW
+-		Some devices have a variable update rate. This attribute
+-		can be used to change the update rate to the desired
+-		frequency.
+-
++		Some devices have a variable update rate or interval.
++		Some drivers may want to make the update interval configurable
++		instead of using a hardcoded value. This attribute can be used
++		to change the update interval to the desired value.
+ 
+ ************
+ * Voltages *
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index 15c1a96..0683e6b 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -79,7 +79,7 @@ struct adm1031_data {
+ 	int chip_type;
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+-	unsigned int update_rate;	/* In milliseconds */
++	unsigned int update_interval;	/* In milliseconds */
+ 	/* The chan_select_table contains the possible configurations for
+ 	 * auto fan control.
+ 	 */
+@@ -743,23 +743,23 @@ static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 12);
+ static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 13);
+ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 14);
+ 
+-/* Update Rate */
+-static const unsigned int update_rates[] = {
++/* Update Interval */
++static const unsigned int update_intervals[] = {
+ 	16000, 8000, 4000, 2000, 1000, 500, 250, 125,
+ };
+ 
+-static ssize_t show_update_rate(struct device *dev,
+-				struct device_attribute *attr, char *buf)
++static ssize_t show_update_interval(struct device *dev,
++				    struct device_attribute *attr, char *buf)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1031_data *data = i2c_get_clientdata(client);
+ 
+-	return sprintf(buf, "%u\n", data->update_rate);
++	return sprintf(buf, "%u\n", data->update_interval);
+ }
+ 
+-static ssize_t set_update_rate(struct device *dev,
+-			       struct device_attribute *attr,
+-			       const char *buf, size_t count)
++static ssize_t set_update_interval(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1031_data *data = i2c_get_clientdata(client);
+@@ -771,12 +771,15 @@ static ssize_t set_update_rate(struct device *dev,
+ 	if (err)
+ 		return err;
+ 
+-	/* find the nearest update rate from the table */
+-	for (i = 0; i < ARRAY_SIZE(update_rates) - 1; i++) {
+-		if (val >= update_rates[i])
++	/*
++	 * Find the nearest update interval from the table.
++	 * Use it to determine the matching update rate.
++	 */
++	for (i = 0; i < ARRAY_SIZE(update_intervals) - 1; i++) {
++		if (val >= update_intervals[i])
+ 			break;
+ 	}
+-	/* if not found, we point to the last entry (lowest update rate) */
++	/* if not found, we point to the last entry (lowest update interval) */
+ 
+ 	/* set the new update rate while preserving other settings */
+ 	reg = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
+@@ -785,14 +788,14 @@ static ssize_t set_update_rate(struct device *dev,
+ 	adm1031_write_value(client, ADM1031_REG_FAN_FILTER, reg);
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->update_rate = update_rates[i];
++	data->update_interval = update_intervals[i];
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+ }
+ 
+-static DEVICE_ATTR(update_rate, S_IRUGO | S_IWUSR, show_update_rate,
+-		   set_update_rate);
++static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
++		   set_update_interval);
+ 
+ static struct attribute *adm1031_attributes[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+@@ -830,7 +833,7 @@ static struct attribute *adm1031_attributes[] = {
+ 
+ 	&sensor_dev_attr_auto_fan1_min_pwm.dev_attr.attr,
+ 
+-	&dev_attr_update_rate.attr,
++	&dev_attr_update_interval.attr,
+ 	&dev_attr_alarms.attr,
+ 
+ 	NULL
+@@ -981,7 +984,8 @@ static void adm1031_init_client(struct i2c_client *client)
+ 	mask = ADM1031_UPDATE_RATE_MASK;
+ 	read_val = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
+ 	i = (read_val & mask) >> ADM1031_UPDATE_RATE_SHIFT;
+-	data->update_rate = update_rates[i];
++	/* Save it as update interval */
++	data->update_interval = update_intervals[i];
+ }
+ 
+ static struct adm1031_data *adm1031_update_device(struct device *dev)
+@@ -993,7 +997,8 @@ static struct adm1031_data *adm1031_update_device(struct device *dev)
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	next_update = data->last_updated + msecs_to_jiffies(data->update_rate);
++	next_update = data->last_updated
++	  + msecs_to_jiffies(data->update_interval);
+ 	if (time_after(jiffies, next_update) || !data->valid) {
+ 
+ 		dev_dbg(&client->dev, "Starting adm1031 update\n");
+-- 
+1.7.0.87.g0901d
+
 
 _______________________________________________
 lm-sensors mailing list
