@@ -1,75 +1,100 @@
-From: Keerthy <j-keerthy@ti.com>
-Date: Thu, 16 Sep 2010 10:35:32 +0000
-Subject: [lm-sensors] [PATCH 2/2] Makefile and Kconfig changes for
-Message-Id: <1284632612-25339-1-git-send-email-j-keerthy@ti.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 16 Sep 2010 14:06:17 +0000
+Subject: Re: [lm-sensors] [PATCH 2/2] Makefile and Kconfig changes for
+Message-Id: <20100916140617.GA14165@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1284632612-25339-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1284632612-25339-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org
-Cc: j-keerthy@ti.com, balajitk@ti.com
+To: Keerthy <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-Makefile amd Kconfig Changes for twl4030-madc driver inclusion.
+On Thu, Sep 16, 2010 at 06:23:32AM -0400, Keerthy wrote:
+> Makefile amd Kconfig Changes for twl4030-madc driver inclusion.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    4 ++++
+>  drivers/hwmon/Kconfig       |    4 ++++
+>  drivers/hwmon/Makefile      |    1 +
+>  3 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index b48bacf..139137b 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -170,6 +170,8 @@ config MACH_OMAP_3430SDP
+>  	depends on ARCH_OMAP3
+>  	default y
+>  	select OMAP_PACKAGE_CBB
+> +	select HWMON
+> +	select TWL4030_MADC
+>  
+>  config MACH_NOKIA_N800
+>         bool
+> @@ -206,6 +208,8 @@ config MACH_OMAP_ZOOM3
+>  	depends on ARCH_OMAP3
+>  	default y
+>  	select OMAP_PACKAGE_CBP
+> +	select HWMON
+> +	select TWL4030_MADC
+>  
+>  config MACH_CM_T35
+>  	bool "CompuLab CM-T35 module"
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/mach-omap2/Kconfig |    4 ++++
- drivers/hwmon/Kconfig       |    4 ++++
- drivers/hwmon/Makefile      |    1 +
- 3 files changed, 9 insertions(+), 0 deletions(-)
+While it may make sense to have the above changes in a separate patch,
+the two files below should be part of patch #1, since they
+are logically part of the driver, and the driver itself won't 
+make any sense in the code without being enabled in Kconfig/Makefile.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index b48bacf..139137b 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -170,6 +170,8 @@ config MACH_OMAP_3430SDP
- 	depends on ARCH_OMAP3
- 	default y
- 	select OMAP_PACKAGE_CBB
-+	select HWMON
-+	select TWL4030_MADC
- 
- config MACH_NOKIA_N800
-        bool
-@@ -206,6 +208,8 @@ config MACH_OMAP_ZOOM3
- 	depends on ARCH_OMAP3
- 	default y
- 	select OMAP_PACKAGE_CBP
-+	select HWMON
-+	select TWL4030_MADC
- 
- config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 4d4d09b..47d66b9 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -39,6 +39,10 @@ config HWMON_DEBUG_CHIP
- 
- comment "Native drivers"
- 
-+config TWL4030_MADC
-+	tristate
-+	depends on HWMON && TWL4030_CORE
-+
- config SENSORS_ABITUGURU
- 	tristate "Abit uGuru (rev 1 & 2)"
- 	depends on X86 && EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index e3c2484..24b3b17 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -16,6 +16,7 @@ obj-$(CONFIG_SENSORS_W83792D)	+= w83792d.o
- obj-$(CONFIG_SENSORS_W83793)	+= w83793.o
- obj-$(CONFIG_SENSORS_W83781D)	+= w83781d.o
- obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
-+obj-$(CONFIG_TWL4030_MADC)      += twl4030-madc.o
- 
- obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
- obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
--- 
-1.7.0.4
+> index 4d4d09b..47d66b9 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -39,6 +39,10 @@ config HWMON_DEBUG_CHIP
+>  
+>  comment "Native drivers"
+>  
+> +config TWL4030_MADC
 
+Please use SENSORS_TWL4030_MADC or SENSORS_TWL4030 to be in line
+with all other definitions. Also, please retain alphabetical order.
+
+> +	tristate
+> +	depends on HWMON && TWL4030_CORE
+> +
+HWMON is really redundant here and should be removed.
+
+>  config SENSORS_ABITUGURU
+>  	tristate "Abit uGuru (rev 1 & 2)"
+>  	depends on X86 && EXPERIMENTAL
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index e3c2484..24b3b17 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -16,6 +16,7 @@ obj-$(CONFIG_SENSORS_W83792D)	+= w83792d.o
+>  obj-$(CONFIG_SENSORS_W83793)	+= w83793.o
+>  obj-$(CONFIG_SENSORS_W83781D)	+= w83781d.o
+>  obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
+> +obj-$(CONFIG_TWL4030_MADC)      += twl4030-madc.o
+>  
+Again, please retain alphabetical order. There is a reason for the other sensors 
+to be out of order (see comments in the Makefile), but presumably that does 
+not apply this one. If it does, please add comment/reason indicating that/if
+this is the case.
+
+>  obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
+>  obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
+> -- 
+> 1.7.0.4
+> 
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
