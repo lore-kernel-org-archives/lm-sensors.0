@@ -1,71 +1,130 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:57:57 +0000
-Subject: [lm-sensors] [patch 19/36] hwmon: (w83795) Rename temperature limit
-Message-Id: <20100915155757.03749f52@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 16 Sep 2010 01:52:25 +0000
+Subject: [lm-sensors] [PATCH v3 2/7] hwmon: (lm90) Introduce device feature
+Message-Id: <1284601950-7381-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Follow the standard for temperature limit attribute naming, so that
-libsensors will pick the values.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/w83795.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/hwmon/lm90.c |   40 ++++++++++++++++++++++++++--------------
+ 1 files changed, 26 insertions(+), 14 deletions(-)
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:13:46.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:13:50.000000000 +0200
-@@ -1541,13 +1541,13 @@ store_sf_setup(struct device *dev, struc
- 		show_dts_mode, NULL, NOT_USED, index - 7),	\
- 	SENSOR_ATTR_2(temp##index##_input, S_IRUGO, show_dts,		\
- 		NULL, NOT_USED, index - 7),				\
--	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_dts_ext, \
-+	SENSOR_ATTR_2(temp##index##_crit, S_IRUGO | S_IWUSR, show_dts_ext, \
- 		store_dts_ext, DTS_CRIT, NOT_USED),			\
--	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
-+	SENSOR_ATTR_2(temp##index##_crit_hyst, S_IRUGO | S_IWUSR,	\
- 		show_dts_ext, store_dts_ext, DTS_CRIT_HYST, NOT_USED),	\
--	SENSOR_ATTR_2(temp##index##_warn, S_IRUGO | S_IWUSR, show_dts_ext, \
-+	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_dts_ext, \
- 		store_dts_ext, DTS_WARN, NOT_USED),			\
--	SENSOR_ATTR_2(temp##index##_warn_hyst, S_IRUGO | S_IWUSR,	\
-+	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
- 		show_dts_ext, store_dts_ext, DTS_WARN_HYST, NOT_USED),	\
- 	SENSOR_ATTR_2(temp##index##_alarm, S_IRUGO,			\
- 		show_alarm_beep, NULL, ALARM_STATUS, index + 17),	\
-@@ -1559,13 +1559,13 @@ store_sf_setup(struct device *dev, struc
- 		show_temp_mode, store_temp_mode, NOT_USED, index - 1),	\
- 	SENSOR_ATTR_2(temp##index##_input, S_IRUGO, show_temp,		\
- 		NULL, TEMP_READ, index - 1),				\
--	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_temp,	\
-+	SENSOR_ATTR_2(temp##index##_crit, S_IRUGO | S_IWUSR, show_temp,	\
- 		store_temp, TEMP_CRIT, index - 1),			\
--	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
-+	SENSOR_ATTR_2(temp##index##_crit_hyst, S_IRUGO | S_IWUSR,	\
- 		show_temp, store_temp, TEMP_CRIT_HYST, index - 1),	\
--	SENSOR_ATTR_2(temp##index##_warn, S_IRUGO | S_IWUSR, show_temp,	\
-+	SENSOR_ATTR_2(temp##index##_max, S_IRUGO | S_IWUSR, show_temp,	\
- 		store_temp, TEMP_WARN, index - 1),			\
--	SENSOR_ATTR_2(temp##index##_warn_hyst, S_IRUGO | S_IWUSR,	\
-+	SENSOR_ATTR_2(temp##index##_max_hyst, S_IRUGO | S_IWUSR,	\
- 		show_temp, store_temp, TEMP_WARN_HYST, index - 1),	\
- 	SENSOR_ATTR_2(temp##index##_alarm, S_IRUGO,			\
- 		show_alarm_beep, NULL, ALARM_STATUS,			\
-@@ -1583,9 +1583,9 @@ store_sf_setup(struct device *dev, struc
- 		TEMP_PWM_FAN_MAP, index - 1),				\
- 	SENSOR_ATTR_2(thermal_cruise##index, S_IWUSR | S_IRUGO,		\
- 		show_temp_pwm, store_temp_pwm, TEMP_PWM_TTTI, index - 1), \
--	SENSOR_ATTR_2(temp##index##_crit, S_IWUSR | S_IRUGO,		\
-+	SENSOR_ATTR_2(temp##index##_warn, S_IWUSR | S_IRUGO,		\
- 		show_temp_pwm, store_temp_pwm, TEMP_PWM_CTFS, index - 1), \
--	SENSOR_ATTR_2(temp##index##_crit_hyst, S_IWUSR | S_IRUGO,	\
-+	SENSOR_ATTR_2(temp##index##_warn_hyst, S_IWUSR | S_IRUGO,	\
- 		show_temp_pwm, store_temp_pwm, TEMP_PWM_HCT, index - 1), \
- 	SENSOR_ATTR_2(temp##index##_operation_hyst, S_IWUSR | S_IRUGO,	\
- 		show_temp_pwm, store_temp_pwm, TEMP_PWM_HOT, index - 1), \
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index aafed28..f628f2a 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -142,7 +142,11 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, adt7461, max6680, max6646,
+ /*
+  * Device flags
+  */
+-#define LM90_FLAG_ADT7461_EXT		0x01	/* ADT7461 extended mode */
++#define LM90_FLAG_ADT7461_EXT	(1 << 0) /* ADT7461 extended mode	*/
++/* Device features */
++#define LM90_HAVE_OFFSET	(1 << 1) /* temperature offset register	*/
++#define LM90_HAVE_LOCAL_EXT	(1 << 2) /* extended local temperature	*/
++#define LM90_HAVE_REM_LIMIT_EXT	(1 << 3) /* extended remote limit	*/
+ 
+ /*
+  * Functions declaration
+@@ -462,17 +466,16 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
+ 	mutex_lock(&data->update_lock);
+ 	if (data->kind = adt7461)
+ 		data->temp11[nr] = temp_to_u16_adt7461(data, val);
+-	else if (data->kind = max6657 || data->kind = max6680)
+-		data->temp11[nr] = temp_to_s8(val) << 8;
+ 	else if (data->kind = max6646)
+ 		data->temp11[nr] = temp_to_u8(val) << 8;
+-	else
++	else if (data->flags & LM90_HAVE_REM_LIMIT_EXT)
+ 		data->temp11[nr] = temp_to_s16(val);
++	else
++		data->temp11[nr] = temp_to_s8(val) << 8;
+ 
+ 	i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2],
+ 				  data->temp11[nr] >> 8);
+-	if (data->kind != max6657 && data->kind != max6680
+-	    && data->kind != max6646)
++	if (data->flags & LM90_HAVE_REM_LIMIT_EXT)
+ 		i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2 + 1],
+ 					  data->temp11[nr] & 0xff);
+ 	mutex_unlock(&data->update_lock);
+@@ -847,6 +850,17 @@ static int lm90_probe(struct i2c_client *new_client,
+ 		break;
+ 	}
+ 
++	/* Set chip capabilities */
++	if (data->kind != max6657 && data->kind != max6646)
++		data->flags |= LM90_HAVE_OFFSET;
++
++	if (data->kind = max6657 || data->kind = max6646)
++		data->flags |= LM90_HAVE_LOCAL_EXT;
++
++	if (data->kind != max6657 && data->kind != max6646
++	    && data->kind != max6680)
++		data->flags |= LM90_HAVE_REM_LIMIT_EXT;
++
+ 	/* Initialize the LM90 chip */
+ 	lm90_init_client(new_client);
+ 
+@@ -859,7 +873,7 @@ static int lm90_probe(struct i2c_client *new_client,
+ 		if (err)
+ 			goto exit_remove_files;
+ 	}
+-	if (data->kind != max6657 && data->kind != max6646) {
++	if (data->flags & LM90_HAVE_OFFSET) {
+ 		err = device_create_file(&new_client->dev,
+ 					&sensor_dev_attr_temp2_offset.dev_attr);
+ 		if (err)
+@@ -925,7 +939,7 @@ static int lm90_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm90_group);
+ 	device_remove_file(&client->dev, &dev_attr_pec);
+-	if (data->kind != max6657 && data->kind != max6646)
++	if (data->flags & LM90_HAVE_OFFSET)
+ 		device_remove_file(&client->dev,
+ 				   &sensor_dev_attr_temp2_offset.dev_attr);
+ 
+@@ -1019,7 +1033,7 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+ 		lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT, &data->temp8[3]);
+ 		lm90_read_reg(client, LM90_REG_R_TCRIT_HYST, &data->temp_hyst);
+ 
+-		if (data->kind = max6657 || data->kind = max6646) {
++		if (data->flags & LM90_HAVE_LOCAL_EXT) {
+ 			lm90_read16(client, LM90_REG_R_LOCAL_TEMP,
+ 				    MAX6657_REG_R_LOCAL_TEMPL,
+ 				    &data->temp11[4]);
+@@ -1033,22 +1047,20 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+ 
+ 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h) = 0) {
+ 			data->temp11[1] = h << 8;
+-			if (data->kind != max6657 && data->kind != max6680
+-			 && data->kind != max6646
++			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_LOWL,
+ 					  &l) = 0)
+ 				data->temp11[1] |= l;
+ 		}
+ 		if (lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h) = 0) {
+ 			data->temp11[2] = h << 8;
+-			if (data->kind != max6657 && data->kind != max6680
+-			 && data->kind != max6646
++			if ((data->flags & LM90_HAVE_REM_LIMIT_EXT)
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHL,
+ 					  &l) = 0)
+ 				data->temp11[2] |= l;
+ 		}
+ 
+-		if (data->kind != max6657 && data->kind != max6646) {
++		if (data->flags & LM90_HAVE_OFFSET) {
+ 			if (lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSH,
+ 					  &h) = 0
+ 			 && lm90_read_reg(client, LM90_REG_R_REMOTE_OFFSL,
+-- 
+1.7.0.87.g0901d
 
 
 _______________________________________________
