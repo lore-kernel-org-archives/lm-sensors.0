@@ -1,73 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Sep 2010 19:43:15 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 16 Sep 2010 21:02:34 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (adm1031) Replace update_rate
-Message-Id: <1284666195.15696.35.camel@groeck-laptop>
+Message-Id: <20100916230234.34f16725@hyperion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1284602835-7605-1-git-send-email-guenter.roeck@ericsson.com>
-	 <1284602835-7605-2-git-send-email-guenter.roeck@ericsson.com>
-	 <20100916171443.0322bdb6@hyperion.delvare>
-	 <20100916153715.GE14165@ericsson.com>
-	 <20100916184237.3be9250d@hyperion.delvare>
-In-Reply-To: <20100916184237.3be9250d@hyperion.delvare>
+	<1284602835-7605-2-git-send-email-guenter.roeck@ericsson.com>
+	<20100916171443.0322bdb6@hyperion.delvare>
+	<20100916153715.GE14165@ericsson.com>
+	<20100916184237.3be9250d@hyperion.delvare>
+	<1284666195.15696.35.camel@groeck-laptop>
+In-Reply-To: <1284666195.15696.35.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Randy Dunlap <rdunlap@xenotime.net>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: guenter.roeck@ericsson.com
+Cc: Randy Dunlap <rdunlap@xenotime.net>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, 2010-09-16 at 12:42 -0400, Jean Delvare wrote:
-> On Thu, 16 Sep 2010 08:37:15 -0700, Guenter Roeck wrote:
-> > On Thu, Sep 16, 2010 at 11:14:43AM -0400, Jean Delvare wrote:
-> > > On Wed, 15 Sep 2010 19:07:14 -0700, Guenter Roeck wrote:
-> > > > The attribute reflects an interval, not a rate.
-> > > > 
-> > > > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > > > ---
-> > > >  Documentation/hwmon/sysfs-interface |   12 +++++-----
-> > > >  drivers/hwmon/adm1031.c             |   43 +++++++++++++++++++---------------
-> > > >  2 files changed, 30 insertions(+), 25 deletions(-)
-> > > > 
-> > > > diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-> > > > index ff45d1f..df0cdd2 100644
-> > > > --- a/Documentation/hwmon/sysfs-interface
-> > > > +++ b/Documentation/hwmon/sysfs-interface
-> > > > @@ -91,13 +91,13 @@ name		The chip name.
-> > > >  		I2C devices get this attribute created automatically.
-> > > >  		RO
-> > > >  
-> > > > -update_rate	The rate at which the chip will update readings.
-> > > > -		Unit: millisecond
-> > > > +update_interval	The interval at which the chip or driver will update readings.
-> > > 
-> > > I think I prefer the original wording. The attribute is really about
-> > > setting the register refresh rate at the hardware level. The fact that
-> > > register cache lifetime in the driver can be adjusted accordingly is an
-> > > optional implementation detail IMHO.
-> > > 
-> > Ok, no problem.
+On Thu, 16 Sep 2010 12:43:15 -0700, Guenter Roeck wrote:
+> On Thu, 2010-09-16 at 12:42 -0400, Jean Delvare wrote:
+> > I'd rather change all these to "millisecond", so that the document
+> > consistently uses singular for all units.
 > > 
-> > > > +		Unit: milliseconds
-> > > 
-> > > Why change? All other units are singular in the file.
-> > > 
-> > Correct for anything but "milliseconds".
+> > I also see that the indentation isn't consistent, with power and energy
+> > having 4 tabs where the rest has only 2. Bah.
 > > 
-> > I changed it to milliseconds because all other attributes specify
-> > "milliseconds". No other reason. Am I missing something ?
-> 
-> I'd rather change all these to "millisecond", so that the document
-> consistently uses singular for all units.
-> 
-> I also see that the indentation isn't consistent, with power and energy
-> having 4 tabs where the rest has only 2. Bah.
-> 
-To get beyond this ... how about you apply my rev2, and I make the other
-changes (formatting and milliseconds --> millisecond) in a subsequent
-patch ?
+> To get beyond this ... how about you apply my rev2, and I make the other
+> changes (formatting and milliseconds --> millisecond) in a subsequent
+> patch ?
 
-Guenter
+I'll do the milliseconds --> millisecond myself, no need to resend.
+Further changes would indeed belong to one or two separate patches, if
+you have time for that. This is definitely low priority though.
 
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
