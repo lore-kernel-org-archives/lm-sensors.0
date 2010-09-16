@@ -1,152 +1,160 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:57:12 +0000
-Subject: [lm-sensors] [patch 15/36] hwmon: (w83795) Clean up probe function
-Message-Id: <20100915155712.32461d3c@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 16 Sep 2010 15:49:57 +0000
+Subject: [lm-sensors] [PATCH v2 1/2] hwmon: (adm1031) Replace update_rate
+Message-Id: <1284652197-17069-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>, "Ira W. Snyder" <iws@ovro.caltech.edu>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-* The data structure is zalloc'd, so no need to set individual fields
-  to 0 explicitly.
-* Refactor the handling of pins that can be used for either
-  temperature or voltage monitoring.
-* Misc other clean-ups.
+The attribute reflects an interval, not a rate.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Ira W. Snyder <iws@ovro.caltech.edu>
 ---
- drivers/hwmon/w83795.c |   91 +++++++++++++++++-------------------------------
- 1 file changed, 34 insertions(+), 57 deletions(-)
+v2: Modified sysfs-interface text
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:12:51.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:12:53.000000000 +0200
-@@ -1844,6 +1844,26 @@ static int device_remove_file_wrapper(st
- 	return 0;
+ Documentation/hwmon/sysfs-interface |    9 +++----
+ drivers/hwmon/adm1031.c             |   43 +++++++++++++++++++---------------
+ 2 files changed, 28 insertions(+), 24 deletions(-)
+
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index ff45d1f..dcb7636 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -91,12 +91,11 @@ name		The chip name.
+ 		I2C devices get this attribute created automatically.
+ 		RO
+ 
+-update_rate	The rate at which the chip will update readings.
+-		Unit: millisecond
++update_interval	The interval at which the chip will update readings.
++		Unit: milliseconds
+ 		RW
+-		Some devices have a variable update rate. This attribute
+-		can be used to change the update rate to the desired
+-		frequency.
++		Some devices have a variable update rate or interval.
++		This attribute can be used to change it to the desired value.
+ 
+ 
+ ************
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index 15c1a96..0683e6b 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -79,7 +79,7 @@ struct adm1031_data {
+ 	int chip_type;
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+-	unsigned int update_rate;	/* In milliseconds */
++	unsigned int update_interval;	/* In milliseconds */
+ 	/* The chan_select_table contains the possible configurations for
+ 	 * auto fan control.
+ 	 */
+@@ -743,23 +743,23 @@ static SENSOR_DEVICE_ATTR(temp3_crit_alarm, S_IRUGO, show_alarm, NULL, 12);
+ static SENSOR_DEVICE_ATTR(temp3_fault, S_IRUGO, show_alarm, NULL, 13);
+ static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL, 14);
+ 
+-/* Update Rate */
+-static const unsigned int update_rates[] = {
++/* Update Interval */
++static const unsigned int update_intervals[] = {
+ 	16000, 8000, 4000, 2000, 1000, 500, 250, 125,
+ };
+ 
+-static ssize_t show_update_rate(struct device *dev,
+-				struct device_attribute *attr, char *buf)
++static ssize_t show_update_interval(struct device *dev,
++				    struct device_attribute *attr, char *buf)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1031_data *data = i2c_get_clientdata(client);
+ 
+-	return sprintf(buf, "%u\n", data->update_rate);
++	return sprintf(buf, "%u\n", data->update_interval);
  }
  
-+/* Check pins that can be used for either temperature or voltage monitoring */
-+static void w83795_apply_temp_config(struct w83795_data *data, u8 config,
-+				     int temp_chan, int in_chan)
-+{
-+	/* config is a 2-bit value */
-+	switch (config) {
-+	case 0x2: /* Voltage monitoring */
-+		data->has_in |= 1 << in_chan;
-+		break;
-+	case 0x1: /* Thermal diode */
-+		if (temp_chan >= 4)
-+			break;
-+		data->temp_mode |= 1 << temp_chan;
-+		/* fall through */
-+	case 0x3: /* Thermistor */
-+		data->has_temp |= 1 << temp_chan;
-+		break;
-+	}
-+}
-+
- static int w83795_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
+-static ssize_t set_update_rate(struct device *dev,
+-			       struct device_attribute *attr,
+-			       const char *buf, size_t count)
++static ssize_t set_update_interval(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t count)
  {
-@@ -1851,7 +1871,7 @@ static int w83795_probe(struct i2c_clien
- 	u8 tmp;
- 	struct device *dev = &client->dev;
- 	struct w83795_data *data;
--	int err = 0;
-+	int err;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct adm1031_data *data = i2c_get_clientdata(client);
+@@ -771,12 +771,15 @@ static ssize_t set_update_rate(struct device *dev,
+ 	if (err)
+ 		return err;
  
- 	data = kzalloc(sizeof(struct w83795_data), GFP_KERNEL);
- 	if (!data) {
-@@ -1867,68 +1887,26 @@ static int w83795_probe(struct i2c_clien
- 	/* Initialize the chip */
- 	w83795_init_client(client);
+-	/* find the nearest update rate from the table */
+-	for (i = 0; i < ARRAY_SIZE(update_rates) - 1; i++) {
+-		if (val >= update_rates[i])
++	/*
++	 * Find the nearest update interval from the table.
++	 * Use it to determine the matching update rate.
++	 */
++	for (i = 0; i < ARRAY_SIZE(update_intervals) - 1; i++) {
++		if (val >= update_intervals[i])
+ 			break;
+ 	}
+-	/* if not found, we point to the last entry (lowest update rate) */
++	/* if not found, we point to the last entry (lowest update interval) */
  
--	data->has_in = w83795_read(client, W83795_REG_VOLT_CTRL1);
--	data->has_in |= w83795_read(client, W83795_REG_VOLT_CTRL2) << 8;
--	/* VSEN11-9 not for 795adg */
--	if (data->chip_type = w83795adg)
--		data->has_in &= 0xf8ff;
--	data->has_fan = w83795_read(client, W83795_REG_FANIN_CTRL1);
--	data->has_fan |= w83795_read(client, W83795_REG_FANIN_CTRL2) << 8;
-+	/* Check which voltages and fans are present */
-+	data->has_in = w83795_read(client, W83795_REG_VOLT_CTRL1)
-+		     | (w83795_read(client, W83795_REG_VOLT_CTRL2) << 8);
-+	data->has_fan = w83795_read(client, W83795_REG_FANIN_CTRL1)
-+		      | (w83795_read(client, W83795_REG_FANIN_CTRL2) << 8);
+ 	/* set the new update rate while preserving other settings */
+ 	reg = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
+@@ -785,14 +788,14 @@ static ssize_t set_update_rate(struct device *dev,
+ 	adm1031_write_value(client, ADM1031_REG_FAN_FILTER, reg);
  
--	/* VDSEN12-17 and TR1-6, TD1-4 use same register */
-+	/* Check which analog temperatures and extra voltages are present */
- 	tmp = w83795_read(client, W83795_REG_TEMP_CTRL1);
- 	if (tmp & 0x20)
- 		data->enable_dts = 1;
--	else
--		data->enable_dts = 0;
--	data->has_temp = 0;
--	data->temp_mode = 0;
--	if (tmp & 0x08) {
--		if (tmp & 0x04)
--			data->has_temp |= 0x20;
--		else
--			data->has_in |= 0x10000;
--	}
--	if (tmp & 0x02) {
--		if (tmp & 0x01)
--			data->has_temp |= 0x10;
--		else
--			data->has_in |= 0x8000;
--	}
-+	w83795_apply_temp_config(data, (tmp >> 2) & 0x3, 5, 16);
-+	w83795_apply_temp_config(data, tmp & 0x3, 4, 15);
- 	tmp = w83795_read(client, W83795_REG_TEMP_CTRL2);
--	if (tmp & 0x40) {
--		data->has_temp |= 0x08;
--		if (!(tmp & 0x80))
--			data->temp_mode |= 0x08;
--	} else if (tmp & 0x80) {
--		data->has_in |= 0x100000;
--	}
--	if (tmp & 0x10) {
--		data->has_temp |= 0x04;
--		if (!(tmp & 0x20))
--			data->temp_mode |= 0x04;
--	} else if (tmp & 0x20) {
--		data->has_in |= 0x80000;
--	}
--	if (tmp & 0x04) {
--		data->has_temp |= 0x02;
--		if (!(tmp & 0x08))
--			data->temp_mode |= 0x02;
--	} else if (tmp & 0x08) {
--		data->has_in |= 0x40000;
--	}
--	if (tmp & 0x01) {
--		data->has_temp |= 0x01;
--		if (!(tmp & 0x02))
--			data->temp_mode |= 0x01;
--	} else if (tmp & 0x02) {
--		data->has_in |= 0x20000;
--	}
-+	w83795_apply_temp_config(data, tmp >> 6, 3, 20);
-+	w83795_apply_temp_config(data, (tmp >> 4) & 0x3, 2, 19);
-+	w83795_apply_temp_config(data, (tmp >> 2) & 0x3, 1, 18);
-+	w83795_apply_temp_config(data, tmp & 0x3, 0, 17);
+ 	mutex_lock(&data->update_lock);
+-	data->update_rate = update_rates[i];
++	data->update_interval = update_intervals[i];
+ 	mutex_unlock(&data->update_lock);
  
- 	/* Check DTS enable status */
--	if (data->enable_dts = 0) {
--		data->has_dts = 0;
--	} else {
-+	if (data->enable_dts) {
- 		if (1 & w83795_read(client, W83795_REG_DTSC))
- 			data->enable_dts |= 2;
- 		data->has_dts = w83795_read(client, W83795_REG_DTSE);
-@@ -2017,7 +1995,6 @@ static int w83795_probe(struct i2c_clien
- 		data->has_pwm = 2;
- 	data->pwm_fcms[0] = w83795_read(client, W83795_REG_FCMS1);
- 	data->pwm_fcms[1] = w83795_read(client, W83795_REG_FCMS2);
--	/* w83795adg only support pwm2-0 */
- 	for (i = 0; i < W83795_REG_TEMP_NUM; i++)
- 		data->pwm_tfmr[i] = w83795_read(client, W83795_REG_TFMR(i));
- 	data->pwm_fomc = w83795_read(client, W83795_REG_FOMC);
+ 	return count;
+ }
+ 
+-static DEVICE_ATTR(update_rate, S_IRUGO | S_IWUSR, show_update_rate,
+-		   set_update_rate);
++static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
++		   set_update_interval);
+ 
+ static struct attribute *adm1031_attributes[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+@@ -830,7 +833,7 @@ static struct attribute *adm1031_attributes[] = {
+ 
+ 	&sensor_dev_attr_auto_fan1_min_pwm.dev_attr.attr,
+ 
+-	&dev_attr_update_rate.attr,
++	&dev_attr_update_interval.attr,
+ 	&dev_attr_alarms.attr,
+ 
+ 	NULL
+@@ -981,7 +984,8 @@ static void adm1031_init_client(struct i2c_client *client)
+ 	mask = ADM1031_UPDATE_RATE_MASK;
+ 	read_val = adm1031_read_value(client, ADM1031_REG_FAN_FILTER);
+ 	i = (read_val & mask) >> ADM1031_UPDATE_RATE_SHIFT;
+-	data->update_rate = update_rates[i];
++	/* Save it as update interval */
++	data->update_interval = update_intervals[i];
+ }
+ 
+ static struct adm1031_data *adm1031_update_device(struct device *dev)
+@@ -993,7 +997,8 @@ static struct adm1031_data *adm1031_update_device(struct device *dev)
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	next_update = data->last_updated + msecs_to_jiffies(data->update_rate);
++	next_update = data->last_updated
++	  + msecs_to_jiffies(data->update_interval);
+ 	if (time_after(jiffies, next_update) || !data->valid) {
+ 
+ 		dev_dbg(&client->dev, "Starting adm1031 update\n");
+-- 
+1.7.0.87.g0901d
 
 
 _______________________________________________
