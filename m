@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Sep 2010 12:51:33 +0000
+Date: Thu, 16 Sep 2010 13:11:35 +0000
 Subject: Re: [lm-sensors] [PATCH v3 0/7] hwmon: Add support for MAX6695/6696
-Message-Id: <20100916125133.GB13976@ericsson.com>
+Message-Id: <20100916131135.GC13976@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1284601950-7381-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1284601950-7381-1-git-send-email-guenter.roeck@ericsson.com>
@@ -19,7 +19,7 @@ On Thu, Sep 16, 2010 at 08:18:49AM -0400, Jean Delvare wrote:
 > 
 > Please make sure wiki/Devices and sensors-detect are up-to-date.
 > 
-Will do.
+Is the patch going to make it into 2.6.36, or will it be 2.6.37 ?
 
 Guenter
 
