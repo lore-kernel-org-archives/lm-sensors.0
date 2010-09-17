@@ -1,149 +1,66 @@
-From: Fenghua Yu <fenghua.yu@intel.com>
-Date: Wed, 15 Sep 2010 00:19:49 +0000
-Subject: Re: [lm-sensors] [PATCH] x86/hwmon: register alternate sibling upon
-Message-Id: <20100915001949.GB1237@fenghua-desk.sc.intel.com>
+From: Brent Clark <brentgclark@gmail.com>
+Date: Fri, 17 Sep 2010 15:11:16 +0000
+Subject: [lm-sensors] lmsensor not happy
+Message-Id: <4C938514.5010804@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4C8E17A90200007800015AE6@vpn.id2.novell.com>
-In-Reply-To: <4C8E17A90200007800015AE6@vpn.id2.novell.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jan Beulich <JBeulich@novell.com>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "r.marek@assembler.cz" <r.marek@assembler.cz>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Sep 13, 2010 at 03:23:05AM -0700, Jan Beulich wrote:
-> Just like pkgtemp registers another core of the same package when one
-> gets removed, coretemp should register another hyperthread (if
-> available) in that situation.
-> 
-> As pointed out in the patch fixing the respective code in pkgtemp, the
-> list protectng mutex must be dropped before calling
-> coretemp_device_add(), and due to the restructured loop (including an
-> explicit return) the "safe" variant of the list iterator isn't needed
-> anymore.
-> 
-> Signed-off-by: Jan Beulich <jbeulich@novell.com>
-> Cc: Rudolf Marek <r.marek@assembler.cz>
-> 
-> ---
->  drivers/hwmon/coretemp.c |   22 +++++++++++++++-------
->  1 file changed, 15 insertions(+), 7 deletions(-)
-> 
-> --- linux-2.6.36-rc4/drivers/hwmon/coretemp.c	2010-09-13 08:45:02.000000000 +0200
-> +++ 2.6.36-rc4-x86-coretemp-remove-deadlock/drivers/hwmon/coretemp.c	2010-09-03 17:54:14.000000000 +0200
-> @@ -482,14 +482,22 @@ exit:
->  
->  static void coretemp_device_remove(unsigned int cpu)
->  {
-> -	struct pdev_entry *p, *n;
-> +	struct pdev_entry *p;
-> +	unsigned int i;
-> +
->  	mutex_lock(&pdev_list_mutex);
-> -	list_for_each_entry_safe(p, n, &pdev_list, list) {
-> -		if (p->cpu = cpu) {
-> -			platform_device_unregister(p->pdev);
-> -			list_del(&p->list);
-> -			kfree(p);
-> -		}
-> +	list_for_each_entry(p, &pdev_list, list) {
-> +		if (p->cpu != cpu)
-> +			continue;
-> +
-> +		platform_device_unregister(p->pdev);
-> +		list_del(&p->list);
-> +		mutex_unlock(&pdev_list_mutex);
-> +		kfree(p);
-> +		for_each_cpu(i, cpu_sibling_mask(cpu))
-> +			if (i != cpu && !coretemp_device_add(i))
-> +				break;
-> +		return;
->  	}
->  	mutex_unlock(&pdev_list_mutex);
->  }
-> 
-> 
-> 
+To whom it may concern
 
-I sent a patch to fix this issue before. I'll push it to Linus.
+I just started using Nagios'es check_sensor and immediately I started 
+getting an error.
 
-BTW, you patch won't be compiled in UP mode.
+The CPU shows the tempreture is all fine, but there appears to be an 
+additional sensor showing that somethings up.
 
-Thanks.
+Would anyone know what this is and where I could possible look.
 
--Fenghua
+Brent
 
-From: Fenghua Yu <fenghua.yu@intel.com>
 
-In current coretemp driver, when a CPU in dev_list is hot-removed, although its
-HT sibling is still running, its core sensor is gone and not available to user
-level application any more.
+root@chs-bac01:/usr/lib/nagios/plugins# sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +40.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
 
-When a CPU is hot-removed, its core sensor should be still available to upper
-level application as long as the hot-removed CPU's HT sibling is still running.
-A core sensor is invisible to user level only when all of siblings in a core are
-hot-removed.
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +30.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
 
-This patch fixes this issue.
+coretemp-isa-0002
+Adapter: ISA adapter
+Core 2:      +36.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
----
- drivers/hwmon/coretemp.c |   25 ++++++++++++++++++++++---
- 1 files changed, 22 insertions(+), 3 deletions(-)
+coretemp-isa-0003
+Adapter: ISA adapter
+Core 3:      +37.0\ufffdC  (high = +74.0\ufffdC, crit = +100.0\ufffdC)
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index c070c97..2257cc4 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -418,7 +418,7 @@ struct pdev_entry {
- static LIST_HEAD(pdev_list);
- static DEFINE_MUTEX(pdev_list_mutex);
- 
--static int __cpuinit coretemp_device_add(unsigned int cpu)
-+static int coretemp_device_add(unsigned int cpu)
- {
- 	int err;
- 	struct platform_device *pdev;
-@@ -483,15 +483,34 @@ exit:
- static void coretemp_device_remove(unsigned int cpu)
- {
- 	struct pdev_entry *p, *n;
--	mutex_lock(&pdev_list_mutex);
-+#ifdef CONFIG_SMP
-+	int s;
-+#endif
-+
- 	list_for_each_entry_safe(p, n, &pdev_list, list) {
- 		if (p->cpu = cpu) {
-+			mutex_lock(&pdev_list_mutex);
- 			platform_device_unregister(p->pdev);
- 			list_del(&p->list);
- 			kfree(p);
-+			mutex_unlock(&pdev_list_mutex);
-+
-+#ifdef CONFIG_SMP
-+			/*
-+			 * Add removed CPU's HT sibling to dev_list.
-+			 * If there is no sibling available, the core sensor
-+			 * is invisiable to user space any more.
-+			 */
-+			for_each_cpu(s, cpu_sibling_mask(cpu)) {
-+				if (s != cpu) {
-+					coretemp_device_add(s);
-+					break;
-+				}
-+			}
-+#endif
-+			return;
- 		}
- 	}
--	mutex_unlock(&pdev_list_mutex);
- }
- 
- static int __cpuinit coretemp_cpu_callback(struct notifier_block *nfb,
--- 
-1.6.0.3
-
+w83627dhg-isa-0290
+Adapter: ISA adapter
+VCore:       +1.14 V  (min =  +0.00 V, max =  +1.74 V)
+in1:        +10.77 V  (min =  +1.80 V, max =  +3.80 V)   ALARM
+AVCC:        +3.34 V  (min =  +0.13 V, max =  +3.26 V)   ALARM
+3VCC:        +3.34 V  (min =  +0.08 V, max =  +0.51 V)   ALARM
+in4:         +1.83 V  (min =  +0.81 V, max =  +0.04 V)   ALARM
+in5:         +1.25 V  (min =  +1.22 V, max =  +0.55 V)   ALARM
+in6:         +0.31 V  (min =  +0.10 V, max =  +0.49 V)
+VSB:         +3.31 V  (min =  +2.22 V, max =  +2.21 V)   ALARM
+VBAT:        +3.25 V  (min =  +2.08 V, max =  +0.21 V)   ALARM
+Case Fan:   2033 RPM  (min = 1259 RPM, div = 8)
+CPU Fan:    1061 RPM  (min = 2636 RPM, div = 8)  ALARM
+Aux Fan:       0 RPM  (min =    0 RPM, div = 128)  ALARM
+fan4:          0 RPM  (min = 10546 RPM, div = 128)  ALARM
+fan5:          0 RPM  (min = 10546 RPM, div = 128)  ALARM
+Sys Temp:    +52.0\ufffdC  (high = +30.0\ufffdC, hyst = +64.0\ufffdC)  
+sensor = diode
+CPU Temp:    +20.0\ufffdC  (high = +80.0\ufffdC, hyst = +75.0\ufffdC)  
+sensor = diode
+AUX Temp:   +127.0\ufffdC  (high = +80.0\ufffdC, hyst = +75.0\ufffdC)  
+ALARM  sensor = thermistor
+cpu0_vid:   +2.050 V
 
 _______________________________________________
 lm-sensors mailing list
