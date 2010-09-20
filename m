@@ -1,53 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:57:23 +0000
-Subject: [lm-sensors] [patch 16/36] hwmon: (w83795) Fix LSB reading of fan
-Message-Id: <20100915155723.27054313@hyperion.delvare>
+From: "Eric A. Hall" <eric.hall@gmail.com>
+Date: Mon, 20 Sep 2010 14:01:32 +0000
+Subject: [lm-sensors] please make smart module for lm_sensors
+Message-Id: <4C97693C.7050908@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Misplaced parentheses caused the wrong register value to be read,
-resulting in random LSB for fan speed values and limits.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83795.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+The lm_sensors documentation says that the smartmontools package should be
+used to gather and display hard drive sensor readings. While the smart
+tools are certainly very nice as a separate package, it would be very
+helpful if the smart data was integrated with lm_sensors so that the HD
+temperature could be displayed alongside all of the other sensor data (EG,
+desktop applets, SNMP agents, and other tools that use the sensor
+libraries already). Perhaps a stub sensor module that read data from
+smartd and published it to lmsensors?
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:12:53.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:12:56.000000000 +0200
-@@ -272,7 +272,7 @@ static inline u16 in_to_reg(u8 index, u1
- 
- static inline unsigned long fan_from_reg(u16 val)
- {
--	if ((val >= 0xff0) || (val = 0))
-+	if ((val = 0xfff) || (val = 0))
- 		return 0;
- 	return 1350000UL / val;
- }
-@@ -456,7 +456,7 @@ static struct w83795_data *w83795_update
- 			continue;
- 		data->fan[i] = w83795_read(client, W83795_REG_FAN(i)) << 4;
- 		data->fan[i] |-		  (w83795_read(client, W83795_REG_VRLSB >> 4)) & 0x0F;
-+		  (w83795_read(client, W83795_REG_VRLSB) >> 4) & 0x0F;
- 	}
- 
- 	/* Update temperature */
-@@ -1940,11 +1940,11 @@ static int w83795_probe(struct i2c_clien
- 		data->fan_min[i]  			w83795_read(client, W83795_REG_FAN_MIN_HL(i)) << 4;
- 		data->fan_min[i] |-		  (w83795_read(client, W83795_REG_FAN_MIN_LSB(i) >>
--			W83795_REG_FAN_MIN_LSB_SHIFT(i))) & 0x0F;
-+		  (w83795_read(client, W83795_REG_FAN_MIN_LSB(i)) >>
-+			W83795_REG_FAN_MIN_LSB_SHIFT(i)) & 0x0F;
- 		data->fan[i] = w83795_read(client, W83795_REG_FAN(i)) << 4;
- 		data->fan[i] |-		  (w83795_read(client, W83795_REG_VRLSB >> 4)) & 0x0F;
-+		  (w83795_read(client, W83795_REG_VRLSB) >> 4) & 0x0F;
- 	}
- 
- 	/* temperature and limits */
 
+I filed the same feature req with the smartmontools tracker but wanted to
+make the request here too since you folks might make this happen sooner
+
+http://sourceforge.net/apps/trac/smartmontools/ticket/100
+	
+Thanks
+
+
+-- 
+Eric A. Hall                                  http://www.eric-a-hall.com/
+Network Technology Research Group                    http://www.ntrg.com/
+Internet Core Protocols          http://www.oreilly.com/catalog/coreprot/
 
 _______________________________________________
 lm-sensors mailing list
