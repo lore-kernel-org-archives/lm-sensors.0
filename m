@@ -1,144 +1,164 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 08 Sep 2010 19:39:35 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add support for max6695/96
-Message-Id: <1283974775.7046.14.camel@groeck-laptop>
+From: <samu.p.onkalo@nokia.com>
+Date: Thu, 23 Sep 2010 05:06:22 +0000
+Subject: Re: [lm-sensors] [PATCH resent] lis3: Fix Oops with NULL platform
+Message-Id: <62697B07E9803846BC582181BD6FB6B835EF20D9D1@NOK-EUMSG-02.mgdnok.nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100706222437.GA31051@ericsson.com>
-In-Reply-To: <20100706222437.GA31051@ericsson.com>
+References: <s5htyli811o.wl%tiwai@suse.de>
+	<62697B07E9803846BC582181BD6FB6B831300D2218@NOK-EUMSG-02.mgdnok.nokia.com>
+ <s5h8w2t99gk.wl%tiwai@suse.de>
+In-Reply-To: <s5h8w2t99gk.wl%tiwai@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: tiwai@suse.de
+Cc: akpm@linux-foundation.org, Eric.Piel@tremplin-utc.net, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Jean,
+Added lm-sensors list...
 
-On Wed, 2010-09-08 at 15:06 -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Wed, 8 Sep 2010 08:35:00 -0700, Guenter Roeck wrote:
-> > This patch adds support for max6695/96 to sensors-detect.
-> > 
-> > ---
-> > Index: prog/detect/sensors-detect
-> > =================================> > --- prog/detect/sensors-detect	(revision 5857)
-> > +++ prog/detect/sensors-detect	(working copy)
-> > @@ -921,8 +921,13 @@
-> >  		name => "Maxim MAX6680/MAX6681",
-> >  		driver => "lm90",
-> >  		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
-> > -		i2c_detect => sub { lm90_detect(@_, 7); },
-> > +		i2c_detect => sub { max6680_95_detect(@_, 0); },
-> >  	}, {
-> > +		name => "Maxim MAX6695/MAX6696",
-> > +		driver => "lm90",
-> > +		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
-> > +		i2c_detect => sub { max6680_95_detect(@_, 1); },
-> > +	}, {
-> >  		name => "Winbond W83L771W/G",
-> >  		driver => "to-be-written",
-> >  		i2c_addrs => [0x4c],
-> > @@ -4051,10 +4056,46 @@
-> >  	return $confidence;
-> >  }
-> >  
-> > +# Chip to detect: 0 = MAX6680/81, 1 = MAX6695/96
-> > +# Registers used:
-> > +#   0x03: Configuration
-> > +#   0x04: Conversion rate
-> > +#   0x12: Status2
-> > +#   0x16: Overtemperature 2
-> > +#   0xfe: Manufacturer ID
-> > +#   0xff: Chip ID / die revision
-> > +sub max6680_95_detect
-> > +{
-> > +	my ($file, $addr, $chip) = @_;
-> > +	my $mid = i2c_smbus_read_byte_data($file, 0xfe);
-> > +	my $cid = i2c_smbus_read_byte_data($file, 0xff);
-> > +	my $conf = i2c_smbus_read_byte_data($file, 0x03);
-> > +	my $rate = i2c_smbus_read_byte_data($file, 0x04);
-> > +	my $emerg = i2c_smbus_read_byte_data($file, 0x16);
-> > +	my $status2 = i2c_smbus_read_byte_data($file, 0x12);
-> > +
-> > +	if ($chip = 0) {
-> > +		return if ($conf & 0x03) != 0;
-> > +		return if $rate > 0x07;
-> > +		return if $emerg != $rate;
-> 
-> Please take a look at max6657_detect(). Obviously you assume that the
-> SMBus read commands above were executed in a specific order, which
-> isn't actually guaranteed, because sensors-detect has a register cache
-> to speed up detection. You really want to pass NO_CACHE as a third
-> parameter if you want to by-pass the cache and thus ensure that the
-> read order is as desired.
-> 
-Yes, I completely missed that.
-
-> Also, as discussed before, comparing $emerg and $rate is likely to work
-> in most cases, but isn't 100% reliable. You might want to consider the
-> following sequence instead:
-> 
-> 	my $mid = i2c_smbus_read_byte_data($file, 0xfe, NO_CACHE);
-> 	my $emerg1 = i2c_smbus_read_byte_data($file, 0x16, NO_CACHE);
-> 	my $rate = i2c_smbus_read_byte_data($file, 0x04, NO_CACHE);
-> 	my $emerg2 = i2c_smbus_read_byte_data($file, 0x16, NO_CACHE);
-> 
-> 	if ($emerg1 != $emerg2)
-> 		# MAX6680/MAX6681
+>-----Original Message-----
+>From: ext Takashi Iwai [mailto:tiwai@suse.de]
+>Sent: 22 September, 2010 16:47
+>To: Onkalo Samu.P (Nokia-MS/Tampere)
+>Cc: akpm@linux-foundation.org; Eric.Piel@tremplin-utc.net; linux-
+>kernel@vger.kernel.org
+>Subject: Re: [PATCH resent] lis3: Fix Oops with NULL platform data
+>
+>At Wed, 22 Sep 2010 13:56:15 +0200,
+><samu.p.onkalo@nokia.com> wrote:
+>>
+>>
+>> Hi
+>>
+>> >-----Original Message-----
+>> >From: ext Takashi Iwai [mailto:tiwai@suse.de]
+>> >Sent: 22 September, 2010 14:34
+>> >To: Andrew Morton
+>> >Cc: Onkalo Samu.P (Nokia-MS/Tampere); =C3=89ric Piel; linux-
+>> >kernel@vger.kernel.org
+>> >Subject: [PATCH resent] lis3: Fix Oops with NULL platform data
+>> >
+>> >The recent addition of threaded irq handler causes a NULL dereference
+>> >when used with hp_accel driver, which has NULL pdata.
+>> >
+>> >Cc: <stable@kernel.org>
+>> >Signed-off-by: Takashi Iwai <tiwai@suse.de>
+>> >---
+>> >
+>> >This should go to 2.6.36 and 2.6.35-stable tree.
+>> >
+>> > drivers/hwmon/lis3lv02d.c |    6 ++++--
+>> > 1 files changed, 4 insertions(+), 2 deletions(-)
+>> >
+>> >diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+>> >index 5e15967..1c266ec 100644
+>> >--- a/drivers/hwmon/lis3lv02d.c
+>> >+++ b/drivers/hwmon/lis3lv02d.c
+>> >@@ -354,7 +354,8 @@ static irqreturn_t
+>lis302dl_interrupt_thread1_8b(int
+>> >irq, void *data)
+>> >
+>> > 	struct lis3lv02d *lis3 =3D data;
+>> >
+>> >-	if ((lis3->pdata->irq_cfg & LIS3_IRQ1_MASK) =3D LIS3_IRQ1_CLICK)
+>> >+	if (lis3->pdata &&
+>> >+	    (lis3->pdata->irq_cfg & LIS3_IRQ1_MASK) =3D LIS3_IRQ1_CLICK)
+>> > 		lis302dl_interrupt_handle_click(lis3);
+>> > 	else
+>> > 		lis302dl_interrupt_handle_ff_wu(lis3);
+>> >@@ -367,7 +368,8 @@ static irqreturn_t
+>lis302dl_interrupt_thread2_8b(int
+>> >irq, void *data)
+>> >
+>> > 	struct lis3lv02d *lis3 =3D data;
+>> >
+>> >-	if ((lis3->pdata->irq_cfg & LIS3_IRQ2_MASK) =3D LIS3_IRQ2_CLICK)
+>> >+	if (lis3->pdata &&
+>> >+	    (lis3->pdata->irq_cfg & LIS3_IRQ2_MASK) =3D LIS3_IRQ2_CLICK)
+>> > 		lis302dl_interrupt_handle_click(lis3);
+>> > 	else
+>> > 		lis302dl_interrupt_handle_ff_wu(lis3);
+>>
+>> Yes, that will remove the kernel oops definitely, but I'm wondering if
+>> this thread should be executed at all if there is no pdata available.
+>
+>We may control the caller of request_threaded_irq(), instead.
+>The revised patch is below.  (With this patch, the patch for the new
+>LIS3CD chip must be revised, too.)
+>
+>> Eric, is it so that in laptops interrupts are used for free fall
+>detection
+>> and polled input device is for joystick?
+>
+>Yes, it's so for HP laptops.
+>
+>> Interrupts can (and are used) also for other purposes but in that case
+>> some additional configurations are done based on platform data.
+>>
+>> With this patch, there are just some additional input event refreshes
+>in
+>> top of polled device updates. It should really not matter. So,
+>>
+>> Acked-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+>>
+>> -Samu
+>
+>
+>thanks,
+>
+>Takashi
+>
+>=3D>From 0e5bdc7516915e92fe471a77da36ecb75d995c0f Mon Sep 17 00:00:00 2001
+>From: Takashi Iwai <tiwai@suse.de>
+>Date: Wed, 22 Sep 2010 12:16:04 +0200
+>Subject: [PATCH] lis3: Fix Oops with NULL platform data
+>
+>The recent addition of threaded irq handler causes a NULL dereference
+>when used with hp_accel driver, which has NULL pdata.
+>
+>Signed-off-by: Takashi Iwai <tiwai@suse.de>
+>---
+>this version avoids the unnecessary thread_irq call instead of checking
+>pdata in the irq handler.
+>
+> drivers/hwmon/lis3lv02d.c |    4 ++--
+> 1 files changed, 2 insertions(+), 2 deletions(-)
+>
+>diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+>index 5e15967..0a24177 100644
+>--- a/drivers/hwmon/lis3lv02d.c
+>+++ b/drivers/hwmon/lis3lv02d.c
+>@@ -301,7 +301,7 @@ static irqreturn_t lis302dl_interrupt(int irq, void
+>*dummy)
+> 	wake_up_interruptible(&lis3_dev.misc_wait);
+> 	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
+> out:
+>-	if (lis3_dev.whoami =3D WAI_8B && lis3_dev.idev &&
+>+	if (lis3_dev.pdata && lis3_dev.whoami =3D WAI_8B && lis3_dev.idev
+>&&
+> 	    lis3_dev.idev->input->users)
+> 		return IRQ_WAKE_THREAD;
+> 	return IRQ_HANDLED;
+>@@ -742,7 +742,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+> 	 * io-apic is not configurable (and generates a warning) but I
+>keep it
+> 	 * in case of support for other hardware.
+> 	 */
+>-	if (dev->whoami =3D WAI_8B)
+>+	if (dev->pdata && dev->whoami =3D WAI_8B)
+> 		thread_fn =3D lis302dl_interrupt_thread1_8b;
 > 	else
-> 		# MAX6695/MAX6696
-> 
-> This is guaranteed to work because $mid and $rate can't have the same
-> value.
+> 		thread_fn =3D NULL;
+>--
 
-Excellent idea. I'll try that.
 
-> 
-> 
-> > +		return if $mid != 0x4d;		# Maxim
-> > +		return 8 if $cid = 0x01;	# MAX6680/MAX6681
-> > +	}
-> > +	if ($chip = 1) {
-> > +		return if ($conf & 0x10) != 0;
-> > +		return if ($status2 & 0x01) != 0;
-> > +		return if $rate > 0x07;
-> > +		return if $emerg = $rate;
-> > +		return if $mid != 0x4d;		# Maxim
-> > +		return 8 if $cid = 0x01;	# MAX6695/MAX6696
-> > +	}
-> > +	return;
-> > +}
-> > +
-> >  # Chip to detect: 0 = LM90, 1 = LM89/LM99, 2 = LM86, 3 = ADM1032,
-> >  #		  4 = MAX6654, 5 = ADT7461,
-> >  #		  6 = MAX6646/MAX6647/MAX6648/MAX6649/MAX6692,
-> > -#		  7 = MAX6680/MAX6681, 8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
-> > +#		  7 = unused, 8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
-> >  #		  11 = W83L771AWG/ASG, 12 = MAX6690
-> >  # Registers used:
-> >  #   0x03: Configuration
-> > @@ -4116,10 +4157,7 @@
-> >  		return 8 if $cid = 0x59;	# MAX6648/MAX6692
-> >  	}
-> >  	if ($chip = 7) {
-> > -		return if ($conf & 0x03) != 0;
-> > -		return if $rate > 0x07;
-> > -		return if $mid != 0x4d;		# Maxim
-> > -		return 8 if $cid = 0x01;	# MAX6680/MAX6681
-> > +		return;
-> >  	}
-> 
-> Why not skip it altogether? And same for the comment above? These are
-> arbitrary numbers, it's totally OK if they don't follow each other.
-> 
-Ok.
+With hp_accel.c irq-thread is not needed so this is ok from that point of v=
+iew.
+On the other hand, wakeup / click flags are not configured without platform=
+data
+so there is no need to run irq-thread. If the pdata is not prodived at all
+there is no need to IRQ thread.
 
-Guenter
-
-> >  	if ($chip = 8) {
-> >  		return if ($conf & 0x2a) != 0;
-> 
-> 
-
+Acked-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 
 
 _______________________________________________
