@@ -1,29 +1,34 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 24 Sep 2010 15:17:59 +0000
+From: =?ISO-8859-1?Q?=C9ric_Piel?= <Eric.Piel@tremplin-utc.net>
+Date: Fri, 24 Sep 2010 15:22:01 +0000
 Subject: Re: [lm-sensors] [PATCH v2] lis3: Fix Oops with NULL platform data
-Message-Id: <20100924151759.GC18153@ericsson.com>
+Message-Id: <4C9CC219.4090304@tremplin-utc.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <s5heiclngqe.wl%tiwai@suse.de>
- <20100924135802.GA18109@ericsson.com>
- <s5hlj6r1b5p.wl%tiwai@suse.de>
- <20100924163005.7704f63e@endymion.delvare>
- <4C9CBF4E.7080200@cam.ac.uk>
-In-Reply-To: <4C9CBF4E.7080200@cam.ac.uk>
+References: <s5heiclngqe.wl%tiwai@suse.de>	<20100924135802.GA18109@ericsson.com>	<s5hlj6r1b5p.wl%tiwai@suse.de> <20100924163005.7704f63e@endymion.delvare>
+In-Reply-To: <20100924163005.7704f63e@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jean Delvare <khali@linux-fr.org>, Takashi Iwai <tiwai@suse.de>, Andrew Morton <akpm@linux-foundation.org>, =?iso-8859-1?Q?=C9ric?= Piel <Eric.Piel@tremplin-utc.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Takashi Iwai <tiwai@suse.de>, Guenter Roeck <guenter.roeck@ericsson.com>, Andrew Morton <akpm@linux-foundation.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, Sep 24, 2010 at 11:10:06AM -0400, Jonathan Cameron wrote:
-[...]
-> Technically hwmon is orphan (according to MAINTAINERS.) But that's not to
+Op 24-09-10 16:30, Jean Delvare schreef:
+> Well, as long as the driver lives in drivers/hwmon and the hwmon
+> subsystem is maintained, it seems fair to consider the driver
+> maintained.
+> 
+> That being said, I indeed would like all non-hwmon drivers to go away
+> from drivers/hwmon. Originally we were waiting for iio to settle first,
+> but apparently this is taking forever. The 4 drivers I would like to
+> kick are: ams, hdaps, lis3lv02d and applesmc. They are primarily
+> accelerometer device drivers. Not sure where to put them,
+> drivers/accel(erometer), drivers/misc, drivers/misc/accel(erometer),
+> drivers/input/accel(erometer)... Opinions welcome.
+As maintainer of the lis3lv02d driver, I'd completely support the move too.
 
-If you pull the latest tree, you'll notice that this is no longer correct.
+IMHO, an accelerometer is just another input device (usually with 2 or 3
+axes), so moving them to drivers/input/accel would make sense.
 
-Thanks,
-Guenter
-
+Eric
 
 _______________________________________________
 lm-sensors mailing list
