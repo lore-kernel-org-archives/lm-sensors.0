@@ -1,51 +1,35 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:57:00 +0000
-Subject: [lm-sensors] [patch 14/36] hwmon: (w83795) Fix in17-in20 gain factor
-Message-Id: <20100915155700.6da99791@hyperion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 24 Sep 2010 18:50:08 +0000
+Subject: Re: [lm-sensors] x86/hwmon: fix module init for
+Message-Id: <20100924185008.GA20110@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4C8E139F0200007800015AA5@vpn.id2.novell.com>
+In-Reply-To: <4C8E139F0200007800015AA5@vpn.id2.novell.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jan Beulich <jbeulich@novell.com>
+Cc: fenghua.yu@intel.com, khali@linux-fr.org, gong.chen@linux.intel.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Gain bit set means 1x gain and cleared means 8x gain, not the other
-way around.
+On Mon, Sep 13, 2010 at 10:05:51AM -0000, Jan Beulich wrote:
+> In commit 0dca94baeab4a1a514841b0a4c8e3a51dfb4d5ae the call to
+> platform_driver_unregister() was made conditional upon !HOTPLUG_CPU,
+> but the return value from coretemp_init() was left to indicate an
+> error. This isn't correct, as the negative return value indicates to
+> the module loader that initialization failed, which isn't intended
+> here and results in dangling pointers.
+> 
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+> Cc: Chen Gong <gong.chen@linux.intel.com>
+> 
+Looks like my previous mail got lost or stuck in our e-mail system.
+Trying again. Sorry if this message is received twice.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83795.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I have not seen an Acked-by for this set of patches, nor a Nack. Since 
+(most of) the patches fix real bugs, I applied the ones which do into
+my staging tree, and the others into my -next tree.
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:12:48.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:12:51.000000000 +0200
-@@ -1335,7 +1335,7 @@ show_in(struct device *dev, struct devic
- 	case IN_READ:
- 		/* calculate this value again by sensors as sensors3.conf */
- 		if ((index >= 17) &&
--		    ((data->has_gain >> (index - 17)) & 1))
-+		    !((data->has_gain >> (index - 17)) & 1))
- 			val *= 8;
- 		break;
- 	case IN_MAX:
-@@ -1345,7 +1345,7 @@ show_in(struct device *dev, struct devic
- 		val |= (data->in_lsb[lsb_idx][nr] >>
- 			IN_LSB_SHIFT_IDX[lsb_idx][IN_LSB_SHIFT]) & 0x03;
- 		if ((index >= 17) &&
--		    ((data->has_gain >> (index - 17)) & 1))
-+		    !((data->has_gain >> (index - 17)) & 1))
- 			val *= 8;
- 		break;
- 	}
-@@ -1373,7 +1373,7 @@ store_in(struct device *dev, struct devi
- 	val = in_to_reg(index, val);
- 
- 	if ((index >= 17) &&
--	    ((data->has_gain >> (index - 17)) & 1))
-+	    !((data->has_gain >> (index - 17)) & 1))
- 		val /= 8;
- 	val = SENSORS_LIMIT(val, 0, 0x3FF);
- 	mutex_lock(&data->update_lock);
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
