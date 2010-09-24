@@ -1,34 +1,41 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Sep 2010 13:48:03 +0000
-Subject: Re: [lm-sensors] [PATCH v3 0/7] hwmon: Add support for MAX6695/6696
-Message-Id: <20100916134803.GD13976@ericsson.com>
+From: matt mooney <mfm@muteddisk.com>
+Date: Fri, 24 Sep 2010 19:17:14 +0000
+Subject: [lm-sensors] [PATCH 04/24] hwmon: change to new flag variable
+Message-Id: <ffbd189ef2d414ea7c87ffe2b40fce87877dc014.1285355033.git.mfm@muteddisk.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284601950-7381-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1284601950-7381-1-git-send-email-guenter.roeck@ericsson.com>
+References: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
+ <9968d4260be8850200cc9c7dfe08addf611468b4.1285355033.git.mfm@muteddisk.com>
+ <036514b5dd23c5af14303519d79d60d79adccbee.1285355033.git.mfm@muteddisk.com>
+In-Reply-To: <036514b5dd23c5af14303519d79d60d79adccbee.1285355033.git.mfm@muteddisk.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Thu, Sep 16, 2010 at 09:32:03AM -0400, Jean Delvare wrote:
-> On Thu, 16 Sep 2010 06:11:35 -0700, Guenter Roeck wrote:
-> > On Thu, Sep 16, 2010 at 08:18:49AM -0400, Jean Delvare wrote:
-> > > On Wed, 15 Sep 2010 18:52:23 -0700, Guenter Roeck wrote:
-> > > > This patchset cleans up the lm90 driver and adds support for
-> > > > Maxim MAX6695/6696 temperature sensors.
-> > > 
-> > > Series applied, thanks!
-> > > 
-> > > Please make sure wiki/Devices and sensors-detect are up-to-date.
-> > > 
-> > Is the patch going to make it into 2.6.36, or will it be 2.6.37 ?
-> 
-> 2.6.37. The merge window for 2.6.36 closed like 4 weeks ago, and none
-> of these patches is fixing any bug.
-> 
-Ok, makes sense. Wasn't sure how the rules are for additions to existing drivers.
+Replace EXTRA_CFLAGS with ccflags-y.
 
-Guenter
+Signed-off-by: matt mooney <mfm@muteddisk.com>
+---
+ drivers/hwmon/Makefile |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index e3c2484..764b4db 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -109,7 +109,5 @@ obj-$(CONFIG_SENSORS_W83L786NG)	+= w83l786ng.o
+ obj-$(CONFIG_SENSORS_WM831X)	+= wm831x-hwmon.o
+ obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
+ 
+-ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
+-EXTRA_CFLAGS += -DDEBUG
+-endif
++ccflags-$(CONFIG_HWMON_DEBUG_CHIP) := -DDEBUG
+ 
+-- 
+1.7.2.1
+
 
 _______________________________________________
 lm-sensors mailing list
