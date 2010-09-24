@@ -1,50 +1,55 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 14 Sep 2010 16:08:13 +0000
-Subject: Re: [lm-sensors] [PATCH v2 6/7] hwmon: (lm90) Add support for
-Message-Id: <20100914160813.GC5371@ericsson.com>
+Date: Fri, 24 Sep 2010 18:55:09 +0000
+Subject: Re: [lm-sensors] x86/hwmon: conditionalize coretemp's dependency on
+Message-Id: <20100924185509.GA20155@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1284038750-8833-1-git-send-email-guenter.roeck@ericsson.com>
- <1284038750-8833-7-git-send-email-guenter.roeck@ericsson.com>
- <20100914135253.6f218514@hyperion.delvare>
-In-Reply-To: <20100914135253.6f218514@hyperion.delvare>
+References: <4C8E18790200007800015AF7@vpn.id2.novell.com>
+In-Reply-To: <4C8E18790200007800015AF7@vpn.id2.novell.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Jan Beulich <jbeulich@novell.com>
+Cc: fenghua.yu@intel.com, khali@linux-fr.org, r.marek@assembler.cz, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Jean,
+On Mon, Sep 13, 2010 at 10:26:33AM -0000, Jan Beulich wrote:
+> PCI specific code is needed only when Atom CPUs are potentially
+> supported by the kernel.
+> 
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+> Cc: Rudolf Marek <r.marek@assembler.cz>
+> 
+> ---
+> drivers/hwmon/Kconfig |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
+> --- linux-2.6.36-rc4/drivers/hwmon/Kconfig	2010-09-13 08:45:02.000000000 +0200
+> +++ 2.6.36-rc4-x86-coretemp-maybe-pci/drivers/hwmon/Kconfig	2010-09-10 16:24:16.000000000 +0200
+> @@ -401,7 +401,8 @@ config SENSORS_GL520SM
+>  
+>  config SENSORS_CORETEMP
+>  	tristate "Intel Core/Core2/Atom temperature sensor"
+> -	depends on X86 && PCI && EXPERIMENTAL
+> +	depends on X86 && EXPERIMENTAL
+> +	depends on PCI || (!MATOM && !GENERIC_CPU && !X86_GENERIC)
+>  	help
+>  	  If you say yes here you get support for the temperature
+>  	  sensor inside your CPU. Most of the family 6 CPUs
 
-On Tue, Sep 14, 2010 at 07:52:53AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Thu, 9 Sep 2010 06:25:49 -0700, Guenter Roeck wrote:
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> >  Documentation/hwmon/lm90 |   13 ++++++-----
-> >  drivers/hwmon/lm90.c     |   51 ++++++++++++++++++++++++++++++++++-----------
-> >  2 files changed, 45 insertions(+), 19 deletions(-)
-> > (...)
-> > @@ -94,7 +94,7 @@ static const unsigned short normal_i2c[] = {
-> >  	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
-> >  
-> >  enum chips { lm90, adm1032, lm99, lm86, max6657, adt7461, max6680, max6646,
-> > -	w83l771 };
-> > +	w83l771, max6659 };
-> 
-> As the numbers are internal only, it might make sense to group max6657
-> and max6659 together for better readability.
-> 
-> No other comment, other than the patch ordering (or merging) issue
-> already pointed out in patch 5/7.
-> 
-I made all changes as suggested, and tested the resulting code. Looks good so far.
+Resending my reply to this one as well. Again, apologies if there is duplication.
 
-Once I get your comments for patch #7, I'll send you another set of patches.
-It will be the complete set for consistency; also I had a couple of conflicts
-due to the changes in #2.
+The coretemp code unconditionally calls pci functions, even if PCI is not defined.
+I am concerned that this might cause problems. It might be better to stick with
+the more generic dependency instead of trying to optimize too much.
 
-Thanks,
 Guenter
 
 _______________________________________________
