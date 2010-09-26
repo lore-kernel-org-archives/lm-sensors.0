@@ -1,39 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 25 Sep 2010 11:23:30 +0000
-Subject: [lm-sensors] Accelerometer drivers in drivers/hwmon
-Message-Id: <20100925132330.4ee5e6a7@endymion.delvare>
+From: Chen Gong <gong.chen@linux.intel.com>
+Date: Sun, 26 Sep 2010 05:59:59 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: uniform the init style of pkgtemp
+Message-Id: <1285480800-14558-2-git-send-email-gong.chen@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1285480800-14558-1-git-send-email-gong.chen@linux.intel.com>
+In-Reply-To: <1285480800-14558-1-git-send-email-gong.chen@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, Takashi Iwai <tiwai@suse.de>, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@lm-sensors.org
+Cc: JBeulich@novell.com, linux-kernel@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-Hi Dmitry,
+pkgtemp is derived from coretemp, so some reasonable
+logics should be applied onto pkgtemp, too. Such as
+the init logic here.
 
-I would like to kick the following 5 drivers out of drivers/hwmon: ams,
-hdaps, hp_accel, lis3lv02d and applesmc. These are primarily
-accelerometer devices, so the drivers do not belong to hwmon.
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
+---
+ drivers/hwmon/pkgtemp.c |   23 +++++++----------------
+ 1 files changed, 7 insertions(+), 16 deletions(-)
 
-ams, hdaps, hp_accel and lis3lv02d don't even register a hwmon device.
-They are pure accelerometer drivers as far as I can see. Would you take
-them in drivers/input/misc?
-
-applesmc is more complex, it's a multifunction device. Maybe it would
-better go to drivers/macintosh, where the other thermal management
-drivers for mac machines live.
-
-If you don't want hdaps and hp_accel, they might also fit under
-drivers/platform/x86. There are quite a few laptop-specific drivers
-living there already.
-
-If nobody wants these drivers, drivers/misc is yet another option. I'm
-open to suggestions. Virtually anything which moves these drivers
-outside of drivers/hwmon will make me happy.
-
-Thanks,
+diff --git a/drivers/hwmon/pkgtemp.c b/drivers/hwmon/pkgtemp.c
+index f119039..6186041 100644
+--- a/drivers/hwmon/pkgtemp.c
++++ b/drivers/hwmon/pkgtemp.c
+@@ -392,7 +392,6 @@ static struct notifier_block pkgtemp_cpu_notifier __refdata = {
+ static int __init pkgtemp_init(void)
+ {
+ 	int i, err = -ENODEV;
+-	struct pdev_entry *p, *n;
+ 
+ 	/* quick check if we run Intel */
+ 	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+@@ -402,31 +401,23 @@ static int __init pkgtemp_init(void)
+ 	if (err)
+ 		goto exit;
+ 
+-	for_each_online_cpu(i) {
+-		err = pkgtemp_device_add(i);
+-		if (err)
+-			goto exit_devices_unreg;
+-	}
++	for_each_online_cpu(i)
++		pkgtemp_device_add(i);
++
++#ifndef CONFIG_HOTPLUG_CPU
+ 	if (list_empty(&pdev_list)) {
+ 		err = -ENODEV;
+ 		goto exit_driver_unreg;
+ 	}
++#endif
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+ 	register_hotcpu_notifier(&pkgtemp_cpu_notifier);
+-#endif
+ 	return 0;
+ 
+-exit_devices_unreg:
+-	mutex_lock(&pdev_list_mutex);
+-	list_for_each_entry_safe(p, n, &pdev_list, list) {
+-		platform_device_unregister(p->pdev);
+-		list_del(&p->list);
+-		kfree(p);
+-	}
+-	mutex_unlock(&pdev_list_mutex);
++#ifndef CONFIG_HOTPLUG_CPU
+ exit_driver_unreg:
+ 	platform_driver_unregister(&pkgtemp_driver);
++#endif
+ exit:
+ 	return err;
+ }
 -- 
-Jean Delvare
+1.7.2.2.173.g515cc
+
 
 _______________________________________________
 lm-sensors mailing list
