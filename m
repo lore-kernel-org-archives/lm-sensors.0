@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 26 Sep 2010 19:58:59 +0000
+Date: Mon, 27 Sep 2010 00:11:57 +0000
 Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.36 - take two
-Message-Id: <1285531139-16646-1-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1285546317-18970-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1285531139-16646-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1285531139-16646-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
