@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 28 Sep 2010 00:07:04 +0000
+Date: Tue, 28 Sep 2010 00:26:34 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon (coretemp): Fix build breakage if
-Message-Id: <20100928000704.GB4875@ericsson.com>
+Message-Id: <20100928002634.GA5030@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1285588796-20956-1-git-send-email-guenter.roeck@ericsson.com>
  <20100927125946.GB2862@elte.hu>
@@ -16,43 +16,7 @@ To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Pekka Enberg <penberg@kernel.org>, Ingo Molnar <mingo@elte.hu>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Fenghua Yu <fenghua.yu@intel.com>, Jean Delvare <khali@linux-fr.org>
 
 On Mon, Sep 27, 2010 at 07:44:01PM -0400, Linus Torvalds wrote:
-> On Mon, Sep 27, 2010 at 4:27 PM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
-> > On Mon, Sep 27, 2010 at 09:02:57AM -0400, Pekka Enberg wrote:
-> >> On Mon, Sep 27, 2010 at 3:59 PM, Ingo Molnar <mingo@elte.hu> wrote:
-> >> >
-> >> > * Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-> >> >
-> >> >> +#ifdef CONFIG_SMP
-> >> >> +#endif
-> >> >> +#ifdef CONFIG_SMP
-> >> >> +#endif
-> >> >
-> >> > Hm, this tickles my uglo-meter. Is there no cleaner way, preferably one
-> >> > that doesnt involve preprocessor directives?
-> >>
-> >> Implement cpu_sibling_mask() on UP so that the loop goes away?
-> >
-> > So what is the take ? Looks like Linus won't accept my patch without someone
-> > else signing off on it. If the uglo-meter prevents it from being accepted,
-> > I'll be happy to submit the SMP cleanup patch instead. As I mentioned
-> > before, I would prefer that to go into -next.
-> 
-> I'd _much_ rather see cpu_sibling_mask() on UP, and just have the loop go away.
-> 
-> But that would be a generic change. Something like the (UNTESTED!)
-
-Which is why I didn't do it...
-
-> attached. It returns a NULL, since it would always be a bug to
-> actually _use_ the (nonexistent) mask. And that's fine for things like
-> for_each_cpu() that will then happily ignore the mask.
-> 
-> Ingo, does this make those randconfig things work? I think it's
-> prettier than the horrible "sprinkle #ifdef CONFIG_SMP around in
-> random places".
-> 
->                         Linus
+[...]
 
 >  include/linux/smp.h |    2 ++
 >  1 files changed, 2 insertions(+), 0 deletions(-)
@@ -69,13 +33,18 @@ Which is why I didn't do it...
 > +
 >  #endif /* !SMP */
 >  
-That works. Every other use of cpu_sibling_mask() is either in smp code
-or surrounded with #ifdef CONFIG_SMP.
+Not that simple. cpu_sibling_mask()  is defined in asm/smp.h, which is only
+included from linux/smp.h if SMP is defined. But many other files do include
+asm/smp.h directly. This causes the following error all over the place
+if CONFIG_SMP is not defined.
 
-Ok, I'll submit another version of the patch with the generic change after 
-some more testing.
+In file included from /opt/scratch/groeck/linux-staging/arch/x86/include/asm/apic.h:473,
+                 from arch/x86/xen/enlighten.c:46:
+/opt/scratch/groeck/linux-staging/arch/x86/include/asm/smp.h:29: error: conflicting types for cpu_sibling_mask
+include/linux/smp.h:152: note: previous definition of cpu_sibling_mask was here
 
 Guenter
+
 
 _______________________________________________
 lm-sensors mailing list
