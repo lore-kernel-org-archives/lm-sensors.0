@@ -1,51 +1,91 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 15 Sep 2010 13:41:00 +0000
-Subject: [lm-sensors] [patch 02/36] hwmon: (w83795) Misc cleanups
-Message-Id: <20100915154100.27a4ba6d@hyperion.delvare>
+From: Yuri Kululin <ext-yuri.kululin@nokia.com>
+Date: Tue, 28 Sep 2010 08:52:19 +0000
+Subject: Re: [lm-sensors] [1/2] lis3: Add device owner
+Message-Id: <4CA1ACC3.4000809@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <ee6b20c71d49b8438ced798a9e561dbbd2991cf6.1282647258.git.ext-yuri.kululin@nokia.com> <20100924202404.GA20813@ericsson.com>
+In-Reply-To: <20100924202404.GA20813@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: ext Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Yuri Ershov <ext-yuri.ershov@nokia.com>, eric.piel@tremplin-utc.net, samu.p.onkalo@nokia.com, akpm@linux-foundation.org, daniel@caiaq.de, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-* Improve driver description.
-* Drop unused macro.
-* Drop unreachable code.
+ext Guenter Roeck wrote:
+> On Fri, Aug 27, 2010 at 02:33:20PM -0000, Yuri Ershov wrote:
+>> Add device owner and change /dev/freefall file operations owner
+>> according to the used driver
+>>
+>> Signed-off-by: Yuri Kululin <ext-yuri.kululin@nokia.com>
+>>
+>> ---
+>> drivers/hwmon/lis3lv02d.c |    8 ++++++--
+>>  drivers/hwmon/lis3lv02d.h |    2 ++
+>>  2 files changed, 8 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+>> index e278f0e..0f1bd36 100644
+>> --- a/drivers/hwmon/lis3lv02d.c
+>> +++ b/drivers/hwmon/lis3lv02d.c
+>> @@ -591,8 +591,7 @@ static int lis3lv02d_misc_fasync(int fd, struct file *file, int on)
+>>  	return fasync_helper(fd, file, on, &lis3_dev.async_queue);
+>>  }
+>>  
+>> -static const struct file_operations lis3lv02d_misc_fops = {
+>> -	.owner   = THIS_MODULE,
+>> +static struct file_operations lis3lv02d_misc_fops = {
+>>  	.llseek  = no_llseek,
+>>  	.read    = lis3lv02d_misc_read,
+>>  	.open    = lis3lv02d_misc_open,
+>> @@ -1007,6 +1006,11 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+>>  		goto out;
+>>  	}
+>>  
+>> +	if (dev->owner)
+>> +		lis3lv02d_misc_fops.owner = dev->owner;
+>> +	else
+>> +		lis3lv02d_misc_fops.owner = THIS_MODULE;
+>> +
+> If you retained the static assignment to .owner above, you would not need
+> the else part here.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/hwmon/w83795.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+Yes, you are right. I can change this.
 
---- linux-2.6.36-rc4.orig/drivers/hwmon/w83795.c	2010-09-15 15:09:49.000000000 +0200
-+++ linux-2.6.36-rc4/drivers/hwmon/w83795.c	2010-09-15 15:10:28.000000000 +0200
-@@ -183,8 +183,6 @@ static const u8 IN_LSB_SHIFT_IDX[][2]  #define W83795_REG_FAN_MIN_LSB(index)	(0xC4 + (index) / 2)
- #define W83795_REG_FAN_MIN_LSB_SHIFT(index) \
- 	(((index) % 1) ? 4 : 0)
--#define W83795_REG_FAN_CTRL_SHIFT(index) \
--	(((index) > 7) ? ((index) - 8) : (index))
- 
- #define W83795_REG_VID_CTRL		0x6A
- 
-@@ -793,9 +791,6 @@ store_pwm_enable(struct device *dev, str
- 	}
- 	mutex_unlock(&data->update_lock);
- 	return count;
--
--	mutex_unlock(&data->update_lock);
--	return -EINVAL;
- }
- 
- static ssize_t
-@@ -2131,7 +2126,7 @@ static void __exit sensors_w83795_exit(v
- }
- 
- MODULE_AUTHOR("Wei Song");
--MODULE_DESCRIPTION("w83795 driver");
-+MODULE_DESCRIPTION("W83795G/ADG hardware monitoring driver");
- MODULE_LICENSE("GPL");
- 
- module_init(sensors_w83795_init);
+> Also, this depends on patch#2, which actually sets dev->owner.
+> So the problem isn't really addressed w/o patch #2. Given that,
+> I am not sure if it makes sense to have two separate patches.
+
+Ok, I can merge my patches.
+
+> If both patches were applied as one, you might not need the if ()
+> above in the first place. And if you do, you might still not have solved
+> the problem completely since .owner would not be set correctly
+> if dev->owner is NULL. 
+
+I've added "if" here to keep the situation "as is" for all other drivers
+(HP driver - hp_accel.c and spi part - lis3lv02d_spi.c. I don't have the HW to 
+test) which are using the lis3 core. If we want to avoid the issues with 
+unloading completely all parts should set the dev->owner. Not a problem to add 
+this to HP driver and lis3lv02d_spi.c.
+
+> On a higher level, reassigning the owner like this seems to be quite uncommon,
+> at least in hwmon. I would like to see an Acked-by from Eric to ensure
+> that the fix is correct.
+
+I tried to use the standard way of module usage control because all functions 
+provided by lis3lv02d_i2c.c, lis3lv02d_spi.c or hp_accel.c can be called through 
+  lis3lv02d_misc_fops file ops or joystick poll device.
+
+I can propose another solution. We can use try_module_get(owner) during device 
+registration (in lis3lv02d_add_fs()), release module by using module_put(owner) 
+  after device unregister (in lis3lv02d_remove_fs()) and do not touch 
+lis3lv02d_misc_fops. But anyway dev->owner should be set.
+
+Thanks a lot for reviewing,
+Yuri K
+> 
+> Thanks,
+> Guenter
 
 
 _______________________________________________
