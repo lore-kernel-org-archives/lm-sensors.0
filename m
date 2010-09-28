@@ -1,38 +1,30 @@
-From: Simon Farnsworth <simon.farnsworth@onelan.co.uk>
-Date: Mon, 13 Sep 2010 10:56:53 +0000
-Subject: [lm-sensors] Coretemp on Intel D510MO motherboard (Atom D510 CPU)
-Message-Id: <201009131156.53518.simon.farnsworth@onelan.co.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 28 Sep 2010 11:34:43 +0000
+Subject: [lm-sensors] [GIT PULL] urgent hwmon fixes for 2.6.36
+Message-Id: <1285673683-28202-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hello,
+Hi Linus,
 
-I'm seeing various anomalies in the temperature readings from the coretemp 
-driver on the Intel D510MO motherboard (Atom D510 CPU).
+Please pull hwmon subsystem fixes for Linux 2.6.36 from:
 
-I'm using kernel 2.6.34, and I'm seeing two sets of anomalies (confirmed by 
-reading the MSRs using msr-tools, so not just coretemp getting it wrong):
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
-1) Some boots, the coretemp sensors never return me a temperature reading at 
-all (top bit of MSR_IA32_THERM_STATUS never gets set).
-
-2) Different motherboards give different readings (by about 10C) when running 
-the same load, at an ambient (controlled by aircon) of 22C. In particular, 
-some boards give readings in the range 5 to 10C, others in the range 15C to 
-20C, and yet others in the range 25C to 30C. None of the boards appear to be 
-able to read from MSR_IA32_TEMPERATURE_TARGET, so if it's a varying TjMax, 
-there's no way to tell.
-
-I'm running BIOS revision MOPNV10J.86A.0311 which is the latest available - 
-any hints on what might be going wrong would be appreciated.
-
--- 
 Thanks,
+Guenter Roeck
 
-Simon Farnsworth
+------
+
+Guenter Roeck (1):
+      hwmon (coretemp): Fix build breakage if SMP is undefined
+
+ drivers/hwmon/coretemp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
