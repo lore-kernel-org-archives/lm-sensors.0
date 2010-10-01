@@ -1,66 +1,198 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:53 +0000
-Subject: [lm-sensors] [PATCH 29/32] drivers/hwmon/vt8231.c: Use pr_fmt and
-Message-Id: <2f9af9098da1daa404968edb93ae4387f81ec1a2.1287556801.git.joe@perches.com>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Fri, 01 Oct 2010 11:46:56 +0000
+Subject: [lm-sensors] [RFC PATCH 9/9] hwmon: lis3: Enhance lis3 selftest
+Message-Id: <1285933616-16044-10-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
+References: <1285933616-16044-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1285933616-16044-1-git-send-email-samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Roger Lucas <vt8231@hiddenengine.co.uk>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+Configure chip to data ready mode in selftest and count received
+interrupts to see that interrupt line(s) are working.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
 ---
- drivers/hwmon/vt8231.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/hwmon/lis3lv02d.c |   87 ++++++++++++++++++++++++++++++++++++++++----
+ drivers/hwmon/lis3lv02d.h |    3 +-
+ 2 files changed, 81 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
-index e6078c9..db3b2e8 100644
---- a/drivers/hwmon/vt8231.c
-+++ b/drivers/hwmon/vt8231.c
-@@ -24,6 +24,8 @@
- /* Supports VIA VT8231 South Bridge embedded sensors
- */
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 469f251..cf1b4db 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -47,6 +47,13 @@
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ #define SYSFS_POWERDOWN_DELAY 5000 /* In milliseconds */
+ 
++#define SELFTEST_OK	       0
++#define SELFTEST_FAIL	       -1
++#define SELFTEST_IRQ	       -2
 +
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -902,21 +904,19 @@ static int __devinit vt8231_device_add(unsigned short address)
- 	pdev = platform_device_alloc("vt8231", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR "vt8231: Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
++#define IRQ_LINE0	       0
++#define IRQ_LINE1	       1
++
+ /*
+  * The sensor can also generate interrupts (DRDY) but it's pretty pointless
+  * because they are generated even if the data do not change. So it's better
+@@ -197,6 +204,8 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
+ 	s16 x, y, z;
+ 	u8 selftest;
+ 	int ret;
++	u8 ctrl_reg_data;
++	unsigned char irq_cfg;
  
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
--		printk(KERN_ERR "vt8231: Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
+ 	mutex_lock(&lis3->mutex);
+ 	if (lis3_dev.whoami = WAI_12B)
+@@ -204,6 +213,20 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
+ 	else
+ 		selftest = CTRL1_STP;
  
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR "vt8231: Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
++	irq_cfg = lis3->irq_cfg;
++	if (lis3_dev.whoami = WAI_8B) {
++		lis3->data_ready_count[IRQ_LINE0] = 0;
++		lis3->data_ready_count[IRQ_LINE1] = 0;
++
++		/* Change interrupt cfg to data ready for selftest */
++		atomic_inc(&lis3_dev.wake_thread);
++		lis3->irq_cfg = LIS3_IRQ1_DATA_READY | LIS3_IRQ2_DATA_READY;
++		lis3->read(lis3, CTRL_REG3, &ctrl_reg_data);
++		lis3->write(lis3, CTRL_REG3, (ctrl_reg_data &
++				~(LIS3_IRQ1_MASK | LIS3_IRQ2_MASK)) |
++				(LIS3_IRQ1_DATA_READY | LIS3_IRQ2_DATA_READY));
++	}
++
+ 	lis3->read(lis3, CTRL_REG1, &reg);
+ 	lis3->write(lis3, CTRL_REG1, (reg | selftest));
+ 	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
+@@ -222,13 +245,33 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
+ 	results[2] = z - lis3->read_data(lis3, OUTZ);
  
+ 	ret = 0;
++
++	if (lis3_dev.whoami = WAI_8B) {
++		/* Restore original interrupt configuration */
++		atomic_dec(&lis3_dev.wake_thread);
++		lis3->write(lis3, CTRL_REG3, ctrl_reg_data);
++		lis3->irq_cfg = irq_cfg;
++
++		if ((irq_cfg & LIS3_IRQ1_MASK) &&
++			lis3->data_ready_count[IRQ_LINE0] < 2) {
++			ret = SELFTEST_IRQ;
++			goto fail;
++		}
++
++		if ((irq_cfg & LIS3_IRQ2_MASK) &&
++			lis3->data_ready_count[IRQ_LINE1] < 2) {
++			ret = SELFTEST_IRQ;
++			goto fail;
++		}
++	}
++
+ 	if (lis3->pdata) {
+ 		int i;
+ 		for (i = 0; i < 3; i++) {
+ 			/* Check against selftest acceptance limits */
+ 			if ((results[i] < lis3->pdata->st_min_limits[i]) ||
+ 			    (results[i] > lis3->pdata->st_max_limits[i])) {
+-				ret = -EIO;
++				ret = SELFTEST_FAIL;
+ 				goto fail;
+ 			}
+ 		}
+@@ -391,13 +434,24 @@ static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
+ 	mutex_unlock(&lis3->mutex);
+ }
+ 
+-static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
++static inline void lis302dl_data_ready(struct lis3lv02d *lis3, int index)
+ {
++	int dummy;
+ 
++	/* Dummy read to ack interrupt */
++	lis3lv02d_get_xyz(lis3, &dummy, &dummy, &dummy);
++	lis3->data_ready_count[index]++;
++}
++
++static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
++{
+ 	struct lis3lv02d *lis3 = data;
++	u8 irq_cfg = lis3->irq_cfg & LIS3_IRQ1_MASK;
+ 
+-	if ((lis3->irq_cfg & LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
++	if (irq_cfg = LIS3_IRQ1_CLICK)
+ 		lis302dl_interrupt_handle_click(lis3);
++	else if (unlikely(irq_cfg = LIS3_IRQ1_DATA_READY))
++		lis302dl_data_ready(lis3, IRQ_LINE0);
+ 	else
+ 		lis3lv02d_joystick_poll(lis3_dev.idev);
+ 
+@@ -406,11 +460,13 @@ static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
+ 
+ static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
+ {
+-
+ 	struct lis3lv02d *lis3 = data;
++	u8 irq_cfg = lis3->irq_cfg & LIS3_IRQ2_MASK;
+ 
+-	if ((lis3->irq_cfg & LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
++	if (irq_cfg = LIS3_IRQ2_CLICK)
+ 		lis302dl_interrupt_handle_click(lis3);
++	else if (unlikely(irq_cfg = LIS3_IRQ2_DATA_READY))
++		lis302dl_data_ready(lis3, IRQ_LINE1);
+ 	else
+ 		lis3lv02d_joystick_poll(lis3_dev.idev);
+ 
+@@ -613,12 +669,27 @@ static void lis3lv02d_sysfs_poweron(struct lis3lv02d *lis3)
+ static ssize_t lis3lv02d_selftest_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+-	int result;
+ 	s16 values[3];
+ 
++	static const char ok[] = "OK";
++	static const char fail[] = "FAIL";
++	static const char irq[] = "FAIL_IRQ";
++	const char *res;
++
+ 	lis3lv02d_sysfs_poweron(&lis3_dev);
+-	result = lis3lv02d_selftest(&lis3_dev, values);
+-	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
++	switch (lis3lv02d_selftest(&lis3_dev, values)) {
++	case SELFTEST_FAIL:
++		res = fail;
++		break;
++	case SELFTEST_IRQ:
++		res = irq;
++		break;
++	case SELFTEST_OK:
++	default:
++		res = ok;
++		break;
++	}
++	return sprintf(buf, "%s %d %d %d\n", res,
+ 		values[0], values[1], values[2]);
+ }
+ 
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index cfff63c..3b739ec 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -261,7 +261,8 @@ struct lis3lv02d {
+ 	struct fasync_struct	*async_queue; /* queue for the misc device */
+ 	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
+ 	unsigned long		misc_opened; /* bit0: whether the device is open */
+-	atomic_t                wake_thread;
++	int                     data_ready_count[2];
++	atomic_t		wake_thread;
+ 	unsigned char           irq_cfg;
+ 
+ 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
 -- 
-1.7.3.1.g432b3.dirty
+1.6.0.4
 
 
 _______________________________________________
