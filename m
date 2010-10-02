@@ -1,28 +1,41 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 28 Oct 2010 14:34:48 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (w83795) More style cleanups
-Message-Id: <20101028143448.GA4123@ericsson.com>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Sat, 02 Oct 2010 11:56:32 +0000
+Subject: [lm-sensors] Sysfs attribute to specify device range
+Message-Id: <4CA71DF0.5000309@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101028155620.5cb01b08@endymion.delvare>
-In-Reply-To: <20101028155620.5cb01b08@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Oct 28, 2010 at 09:56:20AM -0400, Jean Delvare wrote:
-> Cleanups suggested by Guenter Roeck, falling into 4 categories:
-> * Swapping test orders, because if (var = CONSTANT) is much easier to
->   read than if (CONSTANT = var).
-> * Simplifying comparisons with 0.
-> * Dropping unneeded masks.
-> * Dropping unneeded parentheses and curly braces.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Hi All,
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+This question is actually motivated by a light sensor driver
+proposed for IIO, but given we don't have an answer in our
+current abi and the problem seems a common one I thought
+I would ask you guys.  Firstly I'm not sure if you already
+have an interface for this!
 
+We have a multi range sensor, to simplify the discussion, let us
+call it an adc.  So it's range can be configured to say 0-1V, 0-2V, 0-4V.
+We would like to be able to control this via a sysfs attribute and
+have been trying to work out what to call it.
+
+in1_max is out because I believe that is used for alarms (whilst we have
+different, more general, naming for those, we don't want to muddy the
+waters by reusing the name).
+
+in1_range is a bit non specific as it isn't clear how to specify future
+devices that support say 1-2V range.  We could allow a pair of values
+to specify the range (fine as single conceptual entity).  If only one
+is present then assume the minimum is 0? 
+
+Pointers to drivers which are already handling this case, bits of the
+hwmon abi that I missed or suggestions all welcome.
+
+Thanks,
+
+Jonathan
 
 _______________________________________________
 lm-sensors mailing list
