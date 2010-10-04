@@ -1,35 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 04 Oct 2010 12:40:38 +0000
+From: Sylvain Jeaugey <sylvain@gomjabbar.ath.cx>
+Date: Mon, 04 Oct 2010 14:03:03 +0000
 Subject: Re: [lm-sensors] Nuvoton W83667HG-B
-Message-Id: <20101004144038.7ae7f50a@endymion.delvare>
+Message-Id: <alpine.DEB.2.00.1010041559490.8329@sd-21102.dedibox.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4CA11D39.20604@googlemail.com>
 In-Reply-To: <4CA11D39.20604@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgcGVyc29uIHdpdGggbm8gbmFtZSwKCk9uIFR1ZSwgMjggU2VwIDIwMTAgMDA6Mzk6NTMgKzAy
-MDAsIHR2LmRlYmlhbkBnb29nbGVtYWlsLmNvbSB3cm90ZToKPiBIaSB0aGVyZSwgSSBoYXZlIGFu
-IEFzdXMgIlNhYmVydG9vdGgiIGk1NSBtb3RoZXJib2FyZCB3aXRoIGFuIDoKPiAKPiAiSVNBIGJ1
-cywgYWRkcmVzcyAweDI5MAo+ICBDaGlwIGBOdXZvdG9uIFc4MzY2N0hHLUIgU3VwZXIgSU8gU2Vu
-c29ycycgKGNvbmZpZGVuY2U6IDkpIgo+IAo+IGFzIGRldGVjdGVkIGJ5IHNlbnNvcnMtZGV0ZWN0
-IChsbS1zZW5zb3JzIDMuMS4yLTYgb24gRGViaWFuLCBrZXJuZWwKPiAyLjYuMzUuNikuCj4gCj4g
-SWYgaXQgY2FuIGJlIG9mIGFueSBpbnRlcmVzdCB0byB5b3UgSSBjYW4gcHJvdmlkZSBhIGR1bXAg
-b2YgdGhlIGNoaXAgb3IKPiBhbnkgaW5mb3JtYXRpb24geW91IG5lZWQuIFBsZWFzZSByZXNwb25k
-IHdpdGggZGlyZWN0aW9ucyBmb3IgdGhlIG5vb2IgSQo+IGFtIG9uIGhvdyB0byBwcm9wZXJseSB1
-c2UgaTJjZHVtcCBhbmQgc3VjaCBzY2FyeSB0b29scyA7LSkgLgoKU3VwcG9ydCBmb3IgdGhpcyBk
-ZXZpY2UgaXMgYWxyZWFkeSB0aGVyZSwgYXQgbGVhc3QgaW4gdGhlIHVwY29taW5nCjIuNi4zNiBr
-ZXJuZWwuIFN1cHBvcnQgd2FzIGFkZGVkIGJ5IEd1ZW50ZXIgUm9lY2sgKENjJ2QpOgogIGh0dHA6
-Ly9naXQua2VybmVsLm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LTIuNi5n
-aXQ7YT1jb21taXQ7aMM5YWVkYWZiMjQyNjAxNzI5YmVmNDhkYjA1MmViYzA1NWNlM2FiNAoKSWYg
-eW91IGRvbid0IGZlZWwgbGlrZSBydW5uaW5nIGEgYmxlZWRpbmcgZWRnZSBrZXJuZWwsIHlvdSBj
-YW4KYWx0ZXJuYXRpdmVseSB1c2UgdGhlIHN0YW5kYWxvbmUgdmVyc2lvbiBvZiB0aGUgZHJpdmVy
-IEkgbWFkZSBhdmFpbGFibGUKYXQ6CiAgaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy9kZXZlbC9t
-aXNjL3c4MzY2N2hnLwoKSWYgeW91IGdpdmUgaXQgYSB0cnksIGEgcmVwb3J0IG9mIHN1Y2Nlc3Mg
-b3IgZmFpbHVyZSB3b3VsZCBvYnZpb3VzbHkgYmUKYXBwcmVjaWF0ZWQuCgotLSAKSmVhbiBEZWx2
-YXJlCmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxp
-c3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
-bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Mon, 4 Oct 2010, Jean Delvare wrote:
+
+> If you don't feel like running a bleeding edge kernel, you can
+> alternatively use the standalone version of the driver I made available
+> at:
+>  http://khali.linux-fr.org/devel/misc/w83667hg/
+>
+> If you give it a try, a report of success or failure would obviously be
+> appreciated.
+Then I'm jumping in to confirm that it worked for me.
+[Ubuntu 10.04, ASRock H55M/USB3.0]
+
+Sylvain
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
