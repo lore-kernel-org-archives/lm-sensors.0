@@ -1,56 +1,35 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 12 Oct 2010 15:47:18 +0000
-Subject: Re: [lm-sensors] Problem with detection or PMBus devices
-Message-Id: <20101012154718.GA8322@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 04 Oct 2010 12:40:38 +0000
+Subject: Re: [lm-sensors] Nuvoton W83667HG-B
+Message-Id: <20101004144038.7ae7f50a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101011234757.GA6245@ericsson.com>
-In-Reply-To: <20101011234757.GA6245@ericsson.com>
+References: <4CA11D39.20604@googlemail.com>
+In-Reply-To: <4CA11D39.20604@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 12, 2010 at 05:06:09AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Mon, 11 Oct 2010 16:47:57 -0700, Guenter Roeck wrote:
-> > I have been trying to add device detection for PMBus devices to sensors-detect.
-> > It works fine for LTC2978.
-> > 
-> > Problem is that BMR45x chips do not support QUICK commands. As a result, detection
-> > code fails early on.
-> > 
-> > Would it make sense to extend the detection code to also try other commands
-> > (eg BYTE_DATA) if QUICK does not work, or would that be too risky ?
-> 
-> The SMBus quick write command isn't better or worse than a few other
-> SMBus commands as far as device detection is concerned. We are using it
-> extensively for historical reasons: read commands used to lock up the
-> SMBus on some systems when ran on clock devices. But we no longer probe
-> the problematic addresses (0x69 and 0x69 mainly) anyway.
-> 
-> We already have a number of workarounds in place for specific cases
-> (see sub i2c_probe). Depending on the address at which your BMR45x chip
-> lives, a similar trick might be suitable.
-> 
-Valid address range is [0x03..0x0a, 0x0d..0x3f]. So it is quite a broad range.
-
-> We may progressively move to using SMBus byte reads as the default
-> probing method. After all, the actual device identification routines
-> all use this command type. If this would cause any trouble, we would
-> know by now. As long as i2c_safety_check() is called first, I can't
-> think of any problem resulting from this change, and this would avoid
-> the problem of adapters not supporting quick commands.
-> 
-Ok, I'll try that. Note the problem here is not the adapter - apparently
-it is the bmr chips which don't support quick commands. Other chips on the
-same adapter (such as the ltc2978 and max6696) are detected fine with
-quick commands.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgcGVyc29uIHdpdGggbm8gbmFtZSwKCk9uIFR1ZSwgMjggU2VwIDIwMTAgMDA6Mzk6NTMgKzAy
+MDAsIHR2LmRlYmlhbkBnb29nbGVtYWlsLmNvbSB3cm90ZToKPiBIaSB0aGVyZSwgSSBoYXZlIGFu
+IEFzdXMgIlNhYmVydG9vdGgiIGk1NSBtb3RoZXJib2FyZCB3aXRoIGFuIDoKPiAKPiAiSVNBIGJ1
+cywgYWRkcmVzcyAweDI5MAo+ICBDaGlwIGBOdXZvdG9uIFc4MzY2N0hHLUIgU3VwZXIgSU8gU2Vu
+c29ycycgKGNvbmZpZGVuY2U6IDkpIgo+IAo+IGFzIGRldGVjdGVkIGJ5IHNlbnNvcnMtZGV0ZWN0
+IChsbS1zZW5zb3JzIDMuMS4yLTYgb24gRGViaWFuLCBrZXJuZWwKPiAyLjYuMzUuNikuCj4gCj4g
+SWYgaXQgY2FuIGJlIG9mIGFueSBpbnRlcmVzdCB0byB5b3UgSSBjYW4gcHJvdmlkZSBhIGR1bXAg
+b2YgdGhlIGNoaXAgb3IKPiBhbnkgaW5mb3JtYXRpb24geW91IG5lZWQuIFBsZWFzZSByZXNwb25k
+IHdpdGggZGlyZWN0aW9ucyBmb3IgdGhlIG5vb2IgSQo+IGFtIG9uIGhvdyB0byBwcm9wZXJseSB1
+c2UgaTJjZHVtcCBhbmQgc3VjaCBzY2FyeSB0b29scyA7LSkgLgoKU3VwcG9ydCBmb3IgdGhpcyBk
+ZXZpY2UgaXMgYWxyZWFkeSB0aGVyZSwgYXQgbGVhc3QgaW4gdGhlIHVwY29taW5nCjIuNi4zNiBr
+ZXJuZWwuIFN1cHBvcnQgd2FzIGFkZGVkIGJ5IEd1ZW50ZXIgUm9lY2sgKENjJ2QpOgogIGh0dHA6
+Ly9naXQua2VybmVsLm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LTIuNi5n
+aXQ7YT1jb21taXQ7aMM5YWVkYWZiMjQyNjAxNzI5YmVmNDhkYjA1MmViYzA1NWNlM2FiNAoKSWYg
+eW91IGRvbid0IGZlZWwgbGlrZSBydW5uaW5nIGEgYmxlZWRpbmcgZWRnZSBrZXJuZWwsIHlvdSBj
+YW4KYWx0ZXJuYXRpdmVseSB1c2UgdGhlIHN0YW5kYWxvbmUgdmVyc2lvbiBvZiB0aGUgZHJpdmVy
+IEkgbWFkZSBhdmFpbGFibGUKYXQ6CiAgaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy9kZXZlbC9t
+aXNjL3c4MzY2N2hnLwoKSWYgeW91IGdpdmUgaXQgYSB0cnksIGEgcmVwb3J0IG9mIHN1Y2Nlc3Mg
+b3IgZmFpbHVyZSB3b3VsZCBvYnZpb3VzbHkgYmUKYXBwcmVjaWF0ZWQuCgotLSAKSmVhbiBEZWx2
+YXJlCmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxp
+c3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
+bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
