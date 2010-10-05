@@ -1,50 +1,68 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 21 Oct 2010 20:26:38 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: add generic GPIO fan driver
-Message-Id: <20101021202638.GA27794@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 05 Oct 2010 11:31:03 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (pcf8591) Register as a hwmon device
+Message-Id: <20101005133103.772a1d3a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101017154021.GB29120@kw.sim.vm.gnt>
-	<1287330612-11256-1-git-send-email-simon@sequanux.org>
-	<20101018160830.GB9033@ericsson.com>
-	<20101021200710.GR29120@kw.sim.vm.gnt>
-In-Reply-To: <20101021200710.GR29120@kw.sim.vm.gnt>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-Hi Simon,
+Register PCF8591 devices as hwmon devices. There's little point in
+implementing the standard sysfs interface if we don't register it in
+a way libsensors will pick it.
 
-On Thu, Oct 21, 2010 at 04:07:10PM -0400, Simon Guinot wrote:
-[ ... ]
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Aurelien Jarno <aurelien@aurel32.net>
+---
+ drivers/hwmon/pcf8591.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-> > > @@ -399,6 +399,15 @@ config SENSORS_GL520SM
-> > >           This driver can also be built as a module.  If so, the module
-> > >           will be called gl520sm.
-> > > 
-> > > +config SENSORS_GPIO_FAN
-> > > +       tristate "GPIO fan"
-> > > +       depends on GENERIC_GPIO
-> > > +       help
-> > > +         If you say yes here you get support for the GPIO connected fan.
-> > > +
-> > > +         This driver can also be built as a module.  If so, the module
-> > > +         will be called gpio-fan.
-> > > +
-> > 
-> > Can you move this up a bit, ahead of SENSORS_FSCHMD ? Trying to stay in sequence.
-> 
-> Ok. Let's try to figure out where is the right location :)
-> After SENSORS_GL520SM or not ?
-> 
+--- linux-2.6.36-rc6.orig/drivers/hwmon/pcf8591.c	2010-08-02 00:11:14.000000000 +0200
++++ linux-2.6.36-rc6/drivers/hwmon/pcf8591.c	2010-10-05 13:03:39.000000000 +0200
+@@ -23,6 +23,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
++#include <linux/hwmon.h>
+ 
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
+@@ -71,6 +72,7 @@ MODULE_PARM_DESC(input_mode,
+ #define REG_TO_SIGNED(reg)	(((reg) & 0x80)?((reg) - 256):(reg))
+ 
+ struct pcf8591_data {
++	struct device *hwmon_dev;
+ 	struct mutex update_lock;
+ 
+ 	u8 control;
+@@ -221,6 +223,12 @@ static int pcf8591_probe(struct i2c_clie
+ 			goto exit_sysfs_remove;
+ 	}
+ 
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_sysfs_remove;
++	}
++
+ 	return 0;
+ 
+ exit_sysfs_remove:
+@@ -234,6 +242,9 @@ exit:
+ 
+ static int pcf8591_remove(struct i2c_client *client)
+ {
++	struct pcf8591_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &pcf8591_attr_group_opt);
+ 	sysfs_remove_group(&client->dev.kobj, &pcf8591_attr_group);
+ 	kfree(i2c_get_clientdata(client));
 
-My brain must have told me that "G" comes before "F". Or so. ABCDEGF, isn't it ?
 
-After SENSORS_GL520SM. Sorry. Or whereever it fits in the alphabet,
-if I got that wrong again ;).
-
-Guenter
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
