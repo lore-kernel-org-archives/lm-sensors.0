@@ -1,198 +1,142 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
-Date: Sun, 24 Oct 2010 14:58:53 +0000
-Subject: Re: [lm-sensors] [PATCH 10/12] hwmon: lis3: Enhance lis3 selftest
-Message-Id: <4CC449AD.7010503@tremplin-utc.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 05 Oct 2010 15:38:26 +0000
+Subject: [lm-sensors] [PATCH v2 1/3] hwmon: (lm90) Introduce chip parameter
+Message-Id: <1286293108-28890-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com> <1287748654-2626-11-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1287748654-2626-11-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk, lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Op 22-10-10 13:57, Samu Onkalo schreef:
-> Configure chip to data ready mode in selftest and count received
-> interrupts to see that interrupt line(s) are working.
->
-> Signed-off-by: Samu Onkalo<samu.p.onkalo@nokia.com>
-Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
-> ---
->   drivers/hwmon/lis3lv02d.c |   87 ++++++++++++++++++++++++++++++++++++++++----
->   drivers/hwmon/lis3lv02d.h |    3 +-
->   2 files changed, 81 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-> index 9fd946c..f0343f3 100644
-> --- a/drivers/hwmon/lis3lv02d.c
-> +++ b/drivers/hwmon/lis3lv02d.c
-> @@ -48,6 +48,13 @@
->
->   #define LIS3_SYSFS_POWERDOWN_DELAY 5000 /* In milliseconds */
->
-> +#define SELFTEST_OK	       0
-> +#define SELFTEST_FAIL	       -1
-> +#define SELFTEST_IRQ	       -2
-> +
-> +#define IRQ_LINE0	       0
-> +#define IRQ_LINE1	       1
-> +
->   /*
->    * The sensor can also generate interrupts (DRDY) but it's pretty pointless
->    * because they are generated even if the data do not change. So it's better
-> @@ -198,6 +205,8 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
->   	s16 x, y, z;
->   	u8 selftest;
->   	int ret;
-> +	u8 ctrl_reg_data;
-> +	unsigned char irq_cfg;
->
->   	mutex_lock(&lis3->mutex);
->   	if (lis3_dev.whoami = WAI_12B)
-> @@ -205,6 +214,20 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
->   	else
->   		selftest = CTRL1_STP;
->
-> +	irq_cfg = lis3->irq_cfg;
-> +	if (lis3_dev.whoami = WAI_8B) {
-> +		lis3->data_ready_count[IRQ_LINE0] = 0;
-> +		lis3->data_ready_count[IRQ_LINE1] = 0;
-> +
-> +		/* Change interrupt cfg to data ready for selftest */
-> +		atomic_inc(&lis3_dev.wake_thread);
-> +		lis3->irq_cfg = LIS3_IRQ1_DATA_READY | LIS3_IRQ2_DATA_READY;
-> +		lis3->read(lis3, CTRL_REG3,&ctrl_reg_data);
-> +		lis3->write(lis3, CTRL_REG3, (ctrl_reg_data&
-> +				~(LIS3_IRQ1_MASK | LIS3_IRQ2_MASK)) |
-> +				(LIS3_IRQ1_DATA_READY | LIS3_IRQ2_DATA_READY));
-> +	}
-> +
->   	lis3->read(lis3, CTRL_REG1,&reg);
->   	lis3->write(lis3, CTRL_REG1, (reg | selftest));
->   	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-> @@ -223,13 +246,33 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
->   	results[2] = z - lis3->read_data(lis3, OUTZ);
->
->   	ret = 0;
-> +
-> +	if (lis3_dev.whoami = WAI_8B) {
-> +		/* Restore original interrupt configuration */
-> +		atomic_dec(&lis3_dev.wake_thread);
-> +		lis3->write(lis3, CTRL_REG3, ctrl_reg_data);
-> +		lis3->irq_cfg = irq_cfg;
-> +
-> +		if ((irq_cfg&  LIS3_IRQ1_MASK)&&
-> +			lis3->data_ready_count[IRQ_LINE0]<  2) {
-> +			ret = SELFTEST_IRQ;
-> +			goto fail;
-> +		}
-> +
-> +		if ((irq_cfg&  LIS3_IRQ2_MASK)&&
-> +			lis3->data_ready_count[IRQ_LINE1]<  2) {
-> +			ret = SELFTEST_IRQ;
-> +			goto fail;
-> +		}
-> +	}
-> +
->   	if (lis3->pdata) {
->   		int i;
->   		for (i = 0; i<  3; i++) {
->   			/* Check against selftest acceptance limits */
->   			if ((results[i]<  lis3->pdata->st_min_limits[i]) ||
->   			    (results[i]>  lis3->pdata->st_max_limits[i])) {
-> -				ret = -EIO;
-> +				ret = SELFTEST_FAIL;
->   				goto fail;
->   			}
->   		}
-> @@ -392,13 +435,24 @@ static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
->   	mutex_unlock(&lis3->mutex);
->   }
->
-> -static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
-> +static inline void lis302dl_data_ready(struct lis3lv02d *lis3, int index)
->   {
-> +	int dummy;
->
-> +	/* Dummy read to ack interrupt */
-> +	lis3lv02d_get_xyz(lis3,&dummy,&dummy,&dummy);
-> +	lis3->data_ready_count[index]++;
-> +}
-> +
-> +static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
-> +{
->   	struct lis3lv02d *lis3 = data;
-> +	u8 irq_cfg = lis3->irq_cfg&  LIS3_IRQ1_MASK;
->
-> -	if ((lis3->irq_cfg&  LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
-> +	if (irq_cfg = LIS3_IRQ1_CLICK)
->   		lis302dl_interrupt_handle_click(lis3);
-> +	else if (unlikely(irq_cfg = LIS3_IRQ1_DATA_READY))
-> +		lis302dl_data_ready(lis3, IRQ_LINE0);
->   	else
->   		lis3lv02d_joystick_poll(lis3->idev);
->
-> @@ -407,11 +461,13 @@ static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
->
->   static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
->   {
-> -
->   	struct lis3lv02d *lis3 = data;
-> +	u8 irq_cfg = lis3->irq_cfg&  LIS3_IRQ2_MASK;
->
-> -	if ((lis3->irq_cfg&  LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
-> +	if (irq_cfg = LIS3_IRQ2_CLICK)
->   		lis302dl_interrupt_handle_click(lis3);
-> +	else if (unlikely(irq_cfg = LIS3_IRQ2_DATA_READY))
-> +		lis302dl_data_ready(lis3, IRQ_LINE1);
->   	else
->   		lis3lv02d_joystick_poll(lis3->idev);
->
-> @@ -614,12 +670,27 @@ static void lis3lv02d_sysfs_poweron(struct lis3lv02d *lis3)
->   static ssize_t lis3lv02d_selftest_show(struct device *dev,
->   				struct device_attribute *attr, char *buf)
->   {
-> -	int result;
->   	s16 values[3];
->
-> +	static const char ok[] = "OK";
-> +	static const char fail[] = "FAIL";
-> +	static const char irq[] = "FAIL_IRQ";
-> +	const char *res;
-> +
->   	lis3lv02d_sysfs_poweron(&lis3_dev);
-> -	result = lis3lv02d_selftest(&lis3_dev, values);
-> -	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
-> +	switch (lis3lv02d_selftest(&lis3_dev, values)) {
-> +	case SELFTEST_FAIL:
-> +		res = fail;
-> +		break;
-> +	case SELFTEST_IRQ:
-> +		res = irq;
-> +		break;
-> +	case SELFTEST_OK:
-> +	default:
-> +		res = ok;
-> +		break;
-> +	}
-> +	return sprintf(buf, "%s %d %d %d\n", res,
->   		values[0], values[1], values[2]);
->   }
->
-> diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-> index d3cb662..7b22cd9 100644
-> --- a/drivers/hwmon/lis3lv02d.h
-> +++ b/drivers/hwmon/lis3lv02d.h
-> @@ -254,7 +254,8 @@ struct lis3lv02d {
->   	struct fasync_struct	*async_queue; /* queue for the misc device */
->   	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
->   	unsigned long		misc_opened; /* bit0: whether the device is open */
-> -	atomic_t                wake_thread;
-> +	int                     data_ready_count[2];
-> +	atomic_t		wake_thread;
->   	unsigned char           irq_cfg;
->
->   	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
+Instead of using switch/case and if statements in probe, define chip specific
+functionality in a parameter structure array.
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm90.c |   92 ++++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 60 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 302d9eb..9df08e1 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -190,6 +190,63 @@ static const struct i2c_device_id lm90_id[] = {
+ MODULE_DEVICE_TABLE(i2c, lm90_id);
+ 
+ /*
++ * chip type specific parameters
++ */
++struct lm90_params {
++	u32 flags;		/* Capabilities */
++	u16 alert_alarms;	/* Which alarm bits trigger ALERT# */
++				/* Upper 8 bits for max6695/96 */
++};
++
++static const struct lm90_params lm90_params[] = {
++	[adm1032] = {
++		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
++		.alert_alarms = 0x7c,
++	},
++	[adt7461] = {
++		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
++		.alert_alarms = 0x7c,
++	},
++	[lm86] = {
++		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
++		.alert_alarms = 0x7b,
++	},
++	[lm90] = {
++		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
++		.alert_alarms = 0x7b,
++	},
++	[lm99] = {
++		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
++		.alert_alarms = 0x7b,
++	},
++	[max6646] = {
++		.flags = LM90_HAVE_LOCAL_EXT,
++		.alert_alarms = 0x7c,
++	},
++	[max6657] = {
++		.flags = LM90_HAVE_LOCAL_EXT,
++		.alert_alarms = 0x7c,
++	},
++	[max6659] = {
++		.flags = LM90_HAVE_LOCAL_EXT | LM90_HAVE_EMERGENCY,
++		.alert_alarms = 0x7c,
++	},
++	[max6680] = {
++		.flags = LM90_HAVE_OFFSET,
++		.alert_alarms = 0x7c,
++	},
++	[max6696] = {
++		.flags = LM90_HAVE_LOCAL_EXT | LM90_HAVE_EMERGENCY
++		  | LM90_HAVE_EMERGENCY_ALARM | LM90_HAVE_TEMP3,
++		.alert_alarms = 0x187c,
++	},
++	[w83l771] = {
++		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
++		.alert_alarms = 0x7c,
++	},
++};
++
++/*
+  * Client data (each client gets its own)
+  */
+ 
+@@ -199,7 +256,7 @@ struct lm90_data {
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+ 	int kind;
+-	int flags;
++	u32 flags;
+ 
+ 	u8 config_orig;		/* Original configuration register value */
+ 	u16 alert_alarms;	/* Which alarm bits trigger ALERT# */
+@@ -1201,39 +1258,10 @@ static int lm90_probe(struct i2c_client *new_client,
+ 
+ 	/* Different devices have different alarm bits triggering the
+ 	 * ALERT# output */
+-	switch (data->kind) {
+-	case lm90:
+-	case lm99:
+-	case lm86:
+-		data->alert_alarms = 0x7b;
+-		break;
+-	case max6696:
+-		data->alert_alarms = 0x187c;
+-		break;
+-	default:
+-		data->alert_alarms = 0x7c;
+-		break;
+-	}
++	data->alert_alarms = lm90_params[data->kind].alert_alarms;
+ 
+ 	/* Set chip capabilities */
+-	if (data->kind != max6657 && data->kind != max6659
+-	    && data->kind != max6646 && data->kind != max6696)
+-		data->flags |= LM90_HAVE_OFFSET;
+-
+-	if (data->kind = max6657 || data->kind = max6659
+-	    || data->kind = max6646 || data->kind = max6696)
+-		data->flags |= LM90_HAVE_LOCAL_EXT;
+-
+-	if (data->kind != max6657 && data->kind != max6659
+-	    && data->kind != max6646 && data->kind != max6680
+-	    && data->kind != max6696)
+-		data->flags |= LM90_HAVE_REM_LIMIT_EXT;
+-
+-	if (data->kind = max6659 || data->kind = max6696)
+-		data->flags |= LM90_HAVE_EMERGENCY;
+-
+-	if (data->kind = max6696)
+-		data->flags |= LM90_HAVE_EMERGENCY_ALARM | LM90_HAVE_TEMP3;
++	data->flags = lm90_params[data->kind].flags;
+ 
+ 	/* Initialize the LM90 chip */
+ 	lm90_init_client(new_client);
+-- 
+1.7.3.1
 
 
 _______________________________________________
