@@ -1,139 +1,255 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
-Date: Sun, 24 Oct 2010 14:18:29 +0000
-Subject: Re: [lm-sensors] [PATCH 03/12] hwmon: lis3: Cleanup interrupt
-Message-Id: <4CC44035.5070303@tremplin-utc.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 05 Oct 2010 15:38:28 +0000
+Subject: [lm-sensors] [PATCH v2 3/3] hwmon: (lm90) Add support for
+Message-Id: <1286293108-28890-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com> <1287748654-2626-4-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1287748654-2626-4-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk, lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Op 22-10-10 13:57, Samu Onkalo schreef:
-> Irqcfg moved to chip data instead of platform data.
-> This simplifies access in interrupt handler little bit.
->
-> Input device open and close functions set status for
-> interrupt threaded handler once.
->
-> Unnecessary check for interrupt source removed since
-> it is enough that active interrupt line indicates that
-> there was an interrupt.
->
-> Signed-off-by: Samu Onkalo<samu.p.onkalo@nokia.com>
-Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
-> ---
->   drivers/hwmon/lis3lv02d.c |   33 +++++++++++----------------------
->   drivers/hwmon/lis3lv02d.h |    2 ++
->   2 files changed, 13 insertions(+), 22 deletions(-)
->
-> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-> index ade6f3a..fe97390 100644
-> --- a/drivers/hwmon/lis3lv02d.c
-> +++ b/drivers/hwmon/lis3lv02d.c
-> @@ -309,10 +309,14 @@ static void lis3lv02d_joystick_open(struct input_polled_dev *pidev)
->   {
->   	if (lis3_dev.pm_dev)
->   		pm_runtime_get_sync(lis3_dev.pm_dev);
-> +
-> +	if (lis3_dev.pdata&&  lis3_dev.whoami = WAI_8B&&  lis3_dev.idev)
-> +		atomic_set(&lis3_dev.wake_thread, 1);
->   }
->
->   static void lis3lv02d_joystick_close(struct input_polled_dev *pidev)
->   {
-> +	atomic_set(&lis3_dev.wake_thread, 0);
->   	if (lis3_dev.pm_dev)
->   		pm_runtime_put(lis3_dev.pm_dev);
->   }
-> @@ -332,8 +336,7 @@ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
->   	wake_up_interruptible(&lis3_dev.misc_wait);
->   	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
->   out:
-> -	if (lis3_dev.pdata&&  lis3_dev.whoami = WAI_8B&&  lis3_dev.idev&&
-> -	    lis3_dev.idev->input->users)
-> +	if (atomic_read(&lis3_dev.wake_thread))
->   		return IRQ_WAKE_THREAD;
->   	return IRQ_HANDLED;
->   }
-> @@ -364,31 +367,15 @@ static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
->   	mutex_unlock(&lis3->mutex);
->   }
->
-> -static void lis302dl_interrupt_handle_ff_wu(struct lis3lv02d *lis3)
-> -{
-> -	u8 wu1_src;
-> -	u8 wu2_src;
-> -
-> -	lis3->read(lis3, FF_WU_SRC_1,&wu1_src);
-> -	lis3->read(lis3, FF_WU_SRC_2,&wu2_src);
-> -
-> -	wu1_src = wu1_src&  FF_WU_SRC_IA ? wu1_src : 0;
-> -	wu2_src = wu2_src&  FF_WU_SRC_IA ? wu2_src : 0;
-> -
-> -	/* joystick poll is internally protected by the lis3->mutex. */
-> -	if (wu1_src || wu2_src)
-> -		lis3lv02d_joystick_poll(lis3_dev.idev);
-> -}
-> -
->   static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
->   {
->
->   	struct lis3lv02d *lis3 = data;
->
-> -	if ((lis3->pdata->irq_cfg&  LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
-> +	if ((lis3->irq_cfg&  LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
->   		lis302dl_interrupt_handle_click(lis3);
->   	else
-> -		lis302dl_interrupt_handle_ff_wu(lis3);
-> +		lis3lv02d_joystick_poll(lis3->idev);
->
->   	return IRQ_HANDLED;
->   }
-> @@ -398,10 +385,10 @@ static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
->
->   	struct lis3lv02d *lis3 = data;
->
-> -	if ((lis3->pdata->irq_cfg&  LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
-> +	if ((lis3->irq_cfg&  LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
->   		lis302dl_interrupt_handle_click(lis3);
->   	else
-> -		lis302dl_interrupt_handle_ff_wu(lis3);
-> +		lis3lv02d_joystick_poll(lis3->idev);
->
->   	return IRQ_HANDLED;
->   }
-> @@ -788,6 +775,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
->   	}
->
->   	mutex_init(&dev->mutex);
-> +	atomic_set(&dev->wake_thread, 0);
->
->   	lis3lv02d_add_fs(dev);
->   	lis3lv02d_poweron(dev);
-> @@ -808,6 +796,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
->   		if (dev->whoami = WAI_8B)
->   			lis3lv02d_8b_configure(dev, p);
->
-> +		dev->irq_cfg = p->irq_cfg;
->   		if (p->irq_cfg)
->   			dev->write(dev, CTRL_REG3, p->irq_cfg);
->   	}
-> diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-> index 7661e59..66e37b1 100644
-> --- a/drivers/hwmon/lis3lv02d.h
-> +++ b/drivers/hwmon/lis3lv02d.h
-> @@ -252,6 +252,8 @@ struct lis3lv02d {
->   	struct fasync_struct	*async_queue; /* queue for the misc device */
->   	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
->   	unsigned long		misc_opened; /* bit0: whether the device is open */
-> +	atomic_t                wake_thread;
-> +	unsigned char           irq_cfg;
->
->   	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
->   	struct mutex		mutex;     /* Serialize poll and selftest */
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm90.c |   97 +++++++++++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 92 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 1913f8a..520e4a1 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -151,6 +151,10 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+ #define MAX6659_REG_R_LOCAL_EMERG	0x17
+ #define MAX6659_REG_W_LOCAL_EMERG	0x17
+ 
++#define LM90_DEF_CONVRATE_RVAL	6	/* Def conversion rate register value */
++#define LM90_MAX_CONVRATE_RVAL	10	/* Max conversion rate register value */
++#define LM90_MAX_CONVRATE_MS	16000	/* Maximum conversion rate in ms */
++
+ /*
+  * Device flags
+  */
+@@ -197,6 +201,7 @@ struct lm90_params {
+ 	u32 flags;		/* Capabilities */
+ 	u16 alert_alarms;	/* Which alarm bits trigger ALERT# */
+ 				/* Upper 8 bits for max6695/96 */
++	u8 max_convrate;	/* Maximum conversion rate register value */
+ };
+ 
+ static const struct lm90_params lm90_params[] = {
+@@ -204,48 +209,59 @@ static const struct lm90_params lm90_params[] = {
+ 		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT
+ 		  | LM90_HAVE_BROKEN_ALERT,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 10,
+ 	},
+ 	[adt7461] = {
+ 		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT
+ 		  | LM90_HAVE_BROKEN_ALERT,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 10,
+ 	},
+ 	[lm86] = {
+ 		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
+ 		.alert_alarms = 0x7b,
++		.max_convrate = 9,
+ 	},
+ 	[lm90] = {
+ 		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
+ 		.alert_alarms = 0x7b,
++		.max_convrate = 9,
+ 	},
+ 	[lm99] = {
+ 		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
+ 		.alert_alarms = 0x7b,
++		.max_convrate = 9,
+ 	},
+ 	[max6646] = {
+ 		.flags = LM90_HAVE_LOCAL_EXT,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 6,
+ 	},
+ 	[max6657] = {
+ 		.flags = LM90_HAVE_LOCAL_EXT,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 8,
+ 	},
+ 	[max6659] = {
+ 		.flags = LM90_HAVE_LOCAL_EXT | LM90_HAVE_EMERGENCY,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 8,
+ 	},
+ 	[max6680] = {
+ 		.flags = LM90_HAVE_OFFSET,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 7,
+ 	},
+ 	[max6696] = {
+ 		.flags = LM90_HAVE_LOCAL_EXT | LM90_HAVE_EMERGENCY
+ 		  | LM90_HAVE_EMERGENCY_ALARM | LM90_HAVE_TEMP3,
+ 		.alert_alarms = 0x187c,
++		.max_convrate = 6,
+ 	},
+ 	[w83l771] = {
+ 		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
+ 		.alert_alarms = 0x7c,
++		.max_convrate = 8,
+ 	},
+ };
+ 
+@@ -261,9 +277,13 @@ struct lm90_data {
+ 	int kind;
+ 	u32 flags;
+ 
++	int update_interval;	/* in milliseconds */
++
+ 	u8 config_orig;		/* Original configuration register value */
++	u8 convrate_orig;	/* Original conversion rate register value */
+ 	u16 alert_alarms;	/* Which alarm bits trigger ALERT# */
+ 				/* Upper 8 bits for max6695/96 */
++	u8 max_convrate;	/* Maximum conversion rate */
+ 
+ 	/* registers values */
+ 	s8 temp8[8];	/* 0: local low limit
+@@ -385,15 +405,40 @@ static inline void lm90_select_remote_channel(struct i2c_client *client,
+ 	}
+ }
+ 
++/*
++ * Set conversion rate.
++ * client->update_lock must be held when calling this function (unless we are
++ * in detection or initialization steps).
++ */
++static void lm90_set_convrate(struct i2c_client *client, struct lm90_data *data,
++			      unsigned int interval)
++{
++	int i;
++	unsigned int update_interval;
++
++	/* find the nearest update rate */
++	for (i = 0, update_interval = LM90_MAX_CONVRATE_MS;
++	     i < LM90_MAX_CONVRATE_RVAL;
++	     i++, update_interval >>= 1)
++		if (i >= data->max_convrate
++		    || interval >= update_interval * 3 / 4)
++			break;
++
++	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE, i);
++	data->update_interval = update_interval;
++}
++
+ static struct lm90_data *lm90_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm90_data *data = i2c_get_clientdata(client);
++	unsigned long next_update;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	if (time_after(jiffies, data->last_updated + HZ / 2 + HZ / 10)
+-	 || !data->valid) {
++	next_update = data->last_updated
++	  + msecs_to_jiffies(data->update_interval) + 1;
++	if (time_after(jiffies, next_update) || !data->valid) {
+ 		u8 h, l;
+ 		u8 alarms;
+ 
+@@ -828,6 +873,34 @@ static ssize_t show_alarm(struct device *dev, struct device_attribute
+ 	return sprintf(buf, "%d\n", (data->alarms >> bitnr) & 1);
+ }
+ 
++static ssize_t show_update_interval(struct device *dev,
++				    struct device_attribute *attr, char *buf)
++{
++	struct lm90_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%u\n", data->update_interval);
++}
++
++static ssize_t set_update_interval(struct device *dev,
++				   struct device_attribute *attr,
++				   const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm90_data *data = i2c_get_clientdata(client);
++	unsigned long val;
++	int err;
++
++	err = strict_strtoul(buf, 10, &val);
++	if (err)
++		return err;
++
++	mutex_lock(&data->update_lock);
++	lm90_set_convrate(client, data, val);
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
+ static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp11, NULL, 0, 4);
+ static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp11, NULL, 0, 0);
+ static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp8,
+@@ -859,6 +932,9 @@ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
+ /* Raw alarm file for compatibility */
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
++static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
++		   set_update_interval);
++
+ static struct attribute *lm90_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+@@ -879,6 +955,7 @@ static struct attribute *lm90_attributes[] = {
+ 	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
++	&dev_attr_update_interval.attr,
+ 	NULL
+ };
+ 
+@@ -1198,14 +1275,19 @@ static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
+ 
+ static void lm90_init_client(struct i2c_client *client)
+ {
+-	u8 config;
++	u8 config, convrate;
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+ 
++	if (lm90_read_reg(client, LM90_REG_R_CONVRATE, &convrate) < 0) {
++		dev_warn(&client->dev, "Failed to read convrate register!\n");
++		convrate = LM90_DEF_CONVRATE_RVAL;
++	}
++	data->convrate_orig = convrate;
++
+ 	/*
+ 	 * Start the conversions.
+ 	 */
+-	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
+-				  5); /* 2 Hz */
++	lm90_set_convrate(client, data, 500);	/* 500ms; 2Hz conversion rate */
+ 	if (lm90_read_reg(client, LM90_REG_R_CONFIG1, &config) < 0) {
+ 		dev_warn(&client->dev, "Initialization failed!\n");
+ 		return;
+@@ -1266,6 +1348,9 @@ static int lm90_probe(struct i2c_client *new_client,
+ 	/* Set chip capabilities */
+ 	data->flags = lm90_params[data->kind].flags;
+ 
++	/* Set maximum conversion rate */
++	data->max_convrate = lm90_params[data->kind].max_convrate;
++
+ 	/* Initialize the LM90 chip */
+ 	lm90_init_client(new_client);
+ 
+@@ -1327,6 +1412,8 @@ static int lm90_remove(struct i2c_client *client)
+ 	lm90_remove_files(client, data);
+ 
+ 	/* Restore initial configuration */
++	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
++				  data->convrate_orig);
+ 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+ 				  data->config_orig);
+ 
+-- 
+1.7.3.1
 
 
 _______________________________________________
