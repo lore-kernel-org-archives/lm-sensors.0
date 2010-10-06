@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Oct 2010 21:29:18 +0000
+Date: Wed, 06 Oct 2010 21:32:21 +0000
 Subject: Re: [lm-sensors] local macro
-Message-Id: <20101006232918.21138c48@endymion.delvare>
+Message-Id: <20101006233221.7b25e2fe@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTi=t1ObqqZiamKdZGHxrWc6FEP-QqSxrsbordDTi@mail.gmail.com>
 In-Reply-To: <AANLkTi=t1ObqqZiamKdZGHxrWc6FEP-QqSxrsbordDTi@mail.gmail.com>
@@ -10,30 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Oct 2010 13:47:59 -0700, Guenter Roeck wrote:
+On Wed, 6 Oct 2010 14:02:26 -0700, Guenter Roeck wrote:
 > On Wed, 2010-10-06 at 15:54 -0400, Paul Thomas wrote:
 > > > No, both of those are runtime options internal to the ads7871, and
 > > > because we initiate a read by setting that register anyway there isn't
 > > > any additional setup cost (at least there isn't any spi cost, there is
 > > > a little additional code in show_voltage).
 > > >
-> > > Additionally gain & diff are initialized to a gain of 1 and single
-> > > ended reads which will match how the driver works now.
-> > >
-> > > I'm open to other suggestions also.
-> > >
-> > > thanks,
-> > > Paul
-> > >
-> > 
-> > I had one other question. The chip gives you a valid conversion result
-> > bit. Currently we're not checking it, if It's not a valid conversion,
-> > then what should be returned?
+> This isn't a matter of cost, but a matter of maintaining a consistent
+> ABI.
 > 
-> Possibly EIO ?
+> A brief look into the datasheet shows that the chip is a generic adc. So
+> I assume its use is not limited to voltage monitoring, and that you
+> would in fact expect to change the gain during runtime (ie not only at
+> system startup). Is this a correct assumption ?
 
-Or EAGAIN if one can hope that the next conversion will be OK.
+This is the problem with having ADC drivers in drivers/hwmon. These are
+versatile devices, they can be used for voltage monitoring but also for
+a variety of other things, and the desired interface depends on that.
+Runtime gain changes is not desirable at all for a voltage monitoring
+device.
 
+A solution to this may be to move the ADC driver itself somewhere else,
+and have a dummy driver in hwmon/ merely adding a hwmon-style interface
+on top of the main driver. Other such dummy driver could be written for
+other use cases of the ADC. I think this is what the s3c-hwmon driver
+is doing, and maybe others.
 
 -- 
 Jean Delvare
