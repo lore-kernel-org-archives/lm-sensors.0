@@ -1,358 +1,80 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Sun, 03 Oct 2010 11:18:54 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 1/9] hwmon: lis3: pm_runtime support
-Message-Id: <4CA8669E.6070006@cam.ac.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 06 Oct 2010 16:19:31 +0000
+Subject: Re: [lm-sensors] [PATCH v3 7/7] hwmon: (lm90) Add support for
+Message-Id: <20101006181931.3d8541d6@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285933616-16044-1-git-send-email-samu.p.onkalo@nokia.com>	 <1285933616-16044-2-git-send-email-samu.p.onkalo@nokia.com>	 <4CA76875.1040508@cam.ac.uk> <1286082228.2064.14.camel@noppispoppis.nmp.nokia.com>
-In-Reply-To: <1286082228.2064.14.camel-Vo7XL3ix0D0UEupzmRo7jhl4MBrZKKet0E9HWUfgJXw@public.gmane.org>
+References: <1284601950-7381-8-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1284601950-7381-8-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Cc: "eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org" <eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org" <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>, "kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On 10/03/10 06:03, Onkalo Samu wrote:
-> 
-> Thanks for comments.
-> 
-> On Sat, 2010-10-02 at 19:14 +0200, ext Jonathan Cameron wrote:
->> On 10/01/10 12:46, Samu Onkalo wrote:
->>> Add pm_runtime support to lis3 core driver.
->>> Add pm_runtime support to lis3 i2c driver.
->>>
->>> spi and hp_accel drivers are not yet supported. Old always
->>> on functionality remains for those.
->>>
->>> For sysfs there is 5 second delay before turning off the
->>> chip to avoid long ramp up delay.
->> I'm not overly familiar with the runtime stuff so looking at this based
->> on a quick read of their documentation.
->>
->> Note I'm also not that familiar with the driver :)
->>
->> One real query about the logic in lis3lv02d_i2c_resume. My reading is
->> that if we are runtime suspended when coming out of a system suspend
->> then we don't want to power up the chip?  However I'm not entirely
->> sure how the two types of power management interact so sorry if I
->> have completely misunderstood this!
->>
-> 
-> It took some time understand how this system works over the system level
-> suspend. And depending on the use, lis3 chip can be kept active or
-> powered down over the system standby :)
-The answer below covers my query (and is a handy thing to know about in
-general so thanks for that!)  I'll certainly be copying this code for
-some of my drivers when I have the time to play with runtime pm.
+Hi Guenter,
 
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-> 
-> 
->> Jonathan
->>>
->>> Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
->>> ---
->>>  drivers/hwmon/lis3lv02d.c     |   59 +++++++++++++++++++++++++++++++++++++++++
->>>  drivers/hwmon/lis3lv02d.h     |    1 +
->>>  drivers/hwmon/lis3lv02d_i2c.c |   48 +++++++++++++++++++++++++--------
->>>  3 files changed, 96 insertions(+), 12 deletions(-)
->>>
->>> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
->>> index fc591ae..eaa5bf0 100644
->>> --- a/drivers/hwmon/lis3lv02d.c
->>> +++ b/drivers/hwmon/lis3lv02d.c
->>> @@ -34,6 +34,7 @@
->>>  #include <linux/freezer.h>
->>>  #include <linux/uaccess.h>
->>>  #include <linux/miscdevice.h>
->>> +#include <linux/pm_runtime.h>
->>>  #include <asm/atomic.h>
->>>  #include "lis3lv02d.h"
->>>  
->>> @@ -43,6 +44,9 @@
->>>  #define MDPS_POLL_INTERVAL 50
->>>  #define MDPS_POLL_MIN	   0
->>>  #define MDPS_POLL_MAX	   2000
->>> +
->>> +#define SYSFS_POWERDOWN_DELAY 5000 /* In milliseconds */
->> Name is rather generic...
->>> +
->>>  /*
->>>   * The sensor can also generate interrupts (DRDY) but it's pretty pointless
->>>   * because they are generated even if the data do not change. So it's better
->>> @@ -262,6 +266,18 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
->>>  	mutex_unlock(&lis3_dev.mutex);
->>>  }
->>>  
->>> +static void lis3lv02d_joystick_open(struct input_polled_dev *pidev)
->>> +{
->>> +	if (lis3_dev.pm_dev)
->>> +		pm_runtime_get_sync(lis3_dev.pm_dev);
->>> +}
->>> +
->>> +static void lis3lv02d_joystick_close(struct input_polled_dev *pidev)
->>> +{
->>> +	if (lis3_dev.pm_dev)
->>> +		pm_runtime_put(lis3_dev.pm_dev);
->>> +}
->>> +
->>>  static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
->>>  {
->>>  	if (!test_bit(0, &lis3_dev.misc_opened))
->>> @@ -356,6 +372,9 @@ static int lis3lv02d_misc_open(struct inode *inode, struct file *file)
->>>  	if (test_and_set_bit(0, &lis3_dev.misc_opened))
->>>  		return -EBUSY; /* already open */
->>>  
->>> +	if (lis3_dev.pm_dev)
->>> +		pm_runtime_get_sync(lis3_dev.pm_dev);
->>> +
->>>  	atomic_set(&lis3_dev.count, 0);
->>>  	return 0;
->>>  }
->>> @@ -364,6 +383,8 @@ static int lis3lv02d_misc_release(struct inode *inode, struct file *file)
->>>  {
->>>  	fasync_helper(-1, file, 0, &lis3_dev.async_queue);
->>>  	clear_bit(0, &lis3_dev.misc_opened); /* release the device */
->>> +	if (lis3_dev.pm_dev)
->>> +		pm_runtime_put(lis3_dev.pm_dev);
->>>  	return 0;
->>>  }
->>>  
->>> @@ -460,6 +481,8 @@ int lis3lv02d_joystick_enable(void)
->>>  		return -ENOMEM;
->>>  
->>>  	lis3_dev.idev->poll = lis3lv02d_joystick_poll;
->>> +	lis3_dev.idev->open = lis3lv02d_joystick_open;
->>> +	lis3_dev.idev->close = lis3lv02d_joystick_close;
->>>  	lis3_dev.idev->poll_interval = MDPS_POLL_INTERVAL;
->>>  	lis3_dev.idev->poll_interval_min = MDPS_POLL_MIN;
->>>  	lis3_dev.idev->poll_interval_max = MDPS_POLL_MAX;
->>> @@ -512,12 +535,30 @@ void lis3lv02d_joystick_disable(void)
->>>  EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
->>>  
->>>  /* Sysfs stuff */
->>> +static void lis3lv02d_sysfs_poweron(struct lis3lv02d *lis3)
->>> +{
->>> +	/*
->>> +	 * SYSFS functions are fast visitors so put-call
->>> +	 * immediately after the get-call. However, keep
->>> +	 * chip running for a while and schedule delayed
->>> +	 * suspend. This way periodic sysfs calls doesn't
->>> +	 * suffer from relatively long power up time.
->>> +	 */
->>> +
->>> +	if (lis3_dev.pm_dev) {
->>> +		pm_runtime_get_sync(lis3->pm_dev);
->>> +		pm_runtime_put_noidle(lis3->pm_dev);
->>> +		pm_schedule_suspend(lis3->pm_dev, SYSFS_POWERDOWN_DELAY);
->>> +	}
->>> +}
->>> +
->>>  static ssize_t lis3lv02d_selftest_show(struct device *dev,
->>>  				struct device_attribute *attr, char *buf)
->>>  {
->>>  	int result;
->>>  	s16 values[3];
->>>  
->>> +	lis3lv02d_sysfs_poweron(&lis3_dev);
->>>  	result = lis3lv02d_selftest(&lis3_dev, values);
->>>  	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
->>>  		values[0], values[1], values[2]);
->>> @@ -528,6 +569,7 @@ static ssize_t lis3lv02d_position_show(struct device *dev,
->>>  {
->>>  	int x, y, z;
->>>  
->>> +	lis3lv02d_sysfs_poweron(&lis3_dev);
->>>  	mutex_lock(&lis3_dev.mutex);
->>>  	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
->>>  	mutex_unlock(&lis3_dev.mutex);
->>> @@ -549,6 +591,7 @@ static ssize_t lis3lv02d_rate_set(struct device *dev,
->>>  	if (strict_strtoul(buf, 0, &rate))
->>>  		return -EINVAL;
->>>  
->>> +	lis3lv02d_sysfs_poweron(&lis3_dev);
->>>  	if (lis3lv02d_set_odr(rate))
->>>  		return -EINVAL;
->>>  
->>> @@ -585,6 +628,17 @@ int lis3lv02d_remove_fs(struct lis3lv02d *lis3)
->>>  {
->>>  	sysfs_remove_group(&lis3->pdev->dev.kobj, &lis3lv02d_attribute_group);
->>>  	platform_device_unregister(lis3->pdev);
->>> +	if (lis3_dev.pm_dev) {
->>> +		/* Barrier after the sysfs remove */
->>> +		pm_runtime_barrier(lis3->pm_dev);
->>> +
->>> +		/* SYSFS may have left chip running. Turn off if necessary */
->>> +		if (!pm_runtime_suspended(lis3->pm_dev))
->>> +			lis3lv02d_poweroff(&lis3_dev);
->>> +
->>> +		pm_runtime_disable(lis3->pm_dev);
->>> +		pm_runtime_set_suspended(lis3->pm_dev);
->>> +	}
->>>  	return 0;
->>>  }
->>>  EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
->>> @@ -685,6 +739,11 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
->>>  	lis3lv02d_add_fs(dev);
->>>  	lis3lv02d_poweron(dev);
->>>  
->>> +	if (lis3_dev.pm_dev) {
->>> +		pm_runtime_set_active(dev->pm_dev);
->>> +		pm_runtime_enable(dev->pm_dev);
->>> +	}
->>> +
->>>  	if (lis3lv02d_joystick_enable())
->>>  		printk(KERN_ERR DRIVER_NAME ": joystick initialization failed\n");
->>>  
->>> diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
->>> index 8540913..3e8a208 100644
->>> --- a/drivers/hwmon/lis3lv02d.h
->>> +++ b/drivers/hwmon/lis3lv02d.h
->>> @@ -214,6 +214,7 @@ struct axis_conversion {
->>>  
->>>  struct lis3lv02d {
->>>  	void			*bus_priv; /* used by the bus layer only */
->>> +	struct device		*pm_dev; /* for pm_runtime purposes */
->>>  	int (*init) (struct lis3lv02d *lis3);
->>>  	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
->>>  	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
->>> diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
->>> index 8e5933b..b9ed1fb 100644
->>> --- a/drivers/hwmon/lis3lv02d_i2c.c
->>> +++ b/drivers/hwmon/lis3lv02d_i2c.c
->>> @@ -29,6 +29,7 @@
->>>  #include <linux/init.h>
->>>  #include <linux/err.h>
->>>  #include <linux/i2c.h>
->>> +#include <linux/pm_runtime.h>
->>>  #include "lis3lv02d.h"
->>>  
->>>  #define DRV_NAME 	"lis3lv02d_i2c"
->>> @@ -95,6 +96,7 @@ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
->>>  	lis3_dev.write	  = lis3_i2c_write;
->>>  	lis3_dev.irq	  = client->irq;
->>>  	lis3_dev.ac	  = lis3lv02d_axis_map;
->>> +	lis3_dev.pm_dev	  = &client->dev;
->>>  
->>>  	i2c_set_clientdata(client, &lis3_dev);
->>>  	ret = lis3lv02d_init_device(&lis3_dev);
->>> @@ -111,14 +113,14 @@ static int __devexit lis3lv02d_i2c_remove(struct i2c_client *client)
->>>  		pdata->release_resources();
->>>  
->>>  	lis3lv02d_joystick_disable();
->>> -	lis3lv02d_poweroff(lis3);
->>>  
->>>  	return lis3lv02d_remove_fs(&lis3_dev);
->>>  }
->>>  
->>>  #ifdef CONFIG_PM
->>> -static int lis3lv02d_i2c_suspend(struct i2c_client *client, pm_message_t mesg)
->>> +static int lis3lv02d_i2c_suspend(struct device *dev)
->>>  {
->>> +	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
->>>  	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
->>>  
->>>  	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
->>> @@ -126,18 +128,16 @@ static int lis3lv02d_i2c_suspend(struct i2c_client *client, pm_message_t mesg)
->>>  	return 0;
->>>  }
->>>  
->>> -static int lis3lv02d_i2c_resume(struct i2c_client *client)
->>> +static int lis3lv02d_i2c_resume(struct device *dev)
->>>  {
->>> +	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
->>>  	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
->>>  
->>> -	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
->>> +	if (!lis3->pdata || !lis3->pdata->wakeup_flags ||
->>> +		pm_runtime_suspended(dev))
->> I may be misunderstanding the docs on this, but I would have thought
->> we only want to power it up if it isn't in suspended state?
-> 
-> That was what I also though, but ...
-> 
-> runtime documentation says:
-> 
-> "During system resume, devices generally should be brought back to full power,
-> even if they were suspended before the system sleep began.  There are several
-> reasons for this, including:"
-> 
-> And there was quite good reasons in the doc to do that :)
-> 
-> I2C core code turns suspended child devices on. However, there are no users
-> and pm_runtime notices that. Pm_runtime calls runtime_suspend-cb soon after the 
-> system level resume. If the chip is not powered up when that happens, it is possible
-> that regulators are off and all the accesses towards the chip fails.
-I guess that makes sense in a kind of roundabout way!
-> 
-> 
-> 
-> 
-> 
->>>  		lis3lv02d_poweron(lis3);
->>> -	return 0;
->>> -}
->>>  
->>> -static void lis3lv02d_i2c_shutdown(struct i2c_client *client)
->>> -{
->>> -	lis3lv02d_i2c_suspend(client, PMSG_SUSPEND);
->>> +	return 0;
->>>  }
->>>  #else
->>>  #define lis3lv02d_i2c_suspend	NULL
->>> @@ -145,6 +145,24 @@ static void lis3lv02d_i2c_shutdown(struct i2c_client *client)
->>>  #define lis3lv02d_i2c_shutdown	NULL
->>>  #endif
->>>  
->>> +static int lis3_i2c_runtime_suspend(struct device *dev)
->>> +{
->>> +	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
->>> +	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
->>> +
->>> +	lis3lv02d_poweroff(lis3);
->>> +	return 0;
->>> +}
->>> +
->>> +static int lis3_i2c_runtime_resume(struct device *dev)
->>> +{
->>> +	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
->>> +	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
->>> +
->>> +	lis3lv02d_poweron(lis3);
->>> +	return 0;
->>> +}
->>> +
->>>  static const struct i2c_device_id lis3lv02d_id[] = {
->>>  	{"lis3lv02d", 0 },
->>>  	{}
->>> @@ -152,14 +170,20 @@ static const struct i2c_device_id lis3lv02d_id[] = {
->>>  
->>>  MODULE_DEVICE_TABLE(i2c, lis3lv02d_id);
->>>  
->>> +static const struct dev_pm_ops lis3_pm_ops = {
->>> +	SET_SYSTEM_SLEEP_PM_OPS(lis3lv02d_i2c_suspend,
->>> +				lis3lv02d_i2c_resume)
->>> +	SET_RUNTIME_PM_OPS(lis3_i2c_runtime_suspend,
->>> +			   lis3_i2c_runtime_resume,
->>> +			   NULL)
->>> +};
->>> +
->>>  static struct i2c_driver lis3lv02d_i2c_driver = {
->>>  	.driver	 = {
->>>  		.name   = DRV_NAME,
->>>  		.owner  = THIS_MODULE,
->>> +		.pm     = &lis3_pm_ops,
->>>  	},
->>> -	.suspend = lis3lv02d_i2c_suspend,
->>> -	.shutdown = lis3lv02d_i2c_shutdown,
->>> -	.resume = lis3lv02d_i2c_resume,
->>>  	.probe	= lis3lv02d_i2c_probe,
->>>  	.remove	= __devexit_p(lis3lv02d_i2c_remove),
->>>  	.id_table = lis3lv02d_id,
->>
-> 
-> 
-> 
+Sorry for being a little slow, but...
 
+On Wed, 15 Sep 2010 18:52:30 -0700, Guenter Roeck wrote:
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  Documentation/hwmon/lm90 |   17 +++
+>  drivers/hwmon/Kconfig    |    4 +-
+>  drivers/hwmon/lm90.c     |  250 ++++++++++++++++++++++++++++++++++++++++++----
+>  3 files changed, 247 insertions(+), 24 deletions(-)
+> 
+> (...)
+> @@ -154,6 +160,8 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+>  #define LM90_HAVE_LOCAL_EXT	(1 << 2) /* extended local temperature	*/
+>  #define LM90_HAVE_REM_LIMIT_EXT	(1 << 3) /* extended remote limit	*/
+>  #define LM90_HAVE_EMERGENCY	(1 << 4) /* 3rd upper (emergency) limit	*/
+> +#define LM90_HAVE_EMERGENCY_ALARM (1 << 5)/* emergency alarm		*/
+> +#define LM90_HAVE_TEMP3		(1 << 6) /* 3rd temperature sensor	*/
+>  
+>  /*
+>   * Functions declaration
+> (...)
+> @@ -1135,7 +1321,27 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+>  			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
+>  				      &data->temp8[5]);
+>  		}
+> -		lm90_read_reg(client, LM90_REG_R_STATUS, &data->alarms);
+> +		lm90_read_reg(client, LM90_REG_R_STATUS, &alarms);
+> +		data->alarms = alarms;	/* save as 16 bit value */
+> +
+> +		if (data->kind = max6696) {
+
+Wouldn't this be better written:
+
+		if (data->flags & LM90_HAVE_TEMP3) {
+
+> +			lm90_select_remote_channel(client, data, 1);
+> +			lm90_read_reg(client, LM90_REG_R_REMOTE_CRIT,
+> +				      &data->temp8[6]);
+> +			lm90_read_reg(client, MAX6659_REG_R_REMOTE_EMERG,
+> +				      &data->temp8[7]);
+> +			lm90_read16(client, LM90_REG_R_REMOTE_TEMPH,
+> +				    LM90_REG_R_REMOTE_TEMPL, &data->temp11[5]);
+> +			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_LOWH, &h))
+> +				data->temp11[6] = h << 8;
+> +			if (!lm90_read_reg(client, LM90_REG_R_REMOTE_HIGHH, &h))
+> +				data->temp11[7] = h << 8;
+> +			lm90_select_remote_channel(client, data, 0);
+> +
+
+and:
+
+		if (data->flags & (LM90_HAVE_TEMP3 | LM90_HAVE_EMERGENCY_ALARM))
+
+> +			if (!lm90_read_reg(client, MAX6696_REG_R_STATUS2,
+> +					   &alarms))
+> +				data->alarms |= alarms << 8;
+> +		}
+
+so that adding support for more chips with these features in the future
+is easier?
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
