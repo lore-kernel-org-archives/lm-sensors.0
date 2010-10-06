@@ -1,31 +1,36 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 14 Oct 2010 14:26:42 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Remove many EXPERIMENTAL flags
-Message-Id: <20101014162642.5b7018dd@endymion.delvare>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Wed, 06 Oct 2010 19:20:19 +0000
+Subject: Re: [lm-sensors] Asus P7p55D motherboard sensor issues
+Message-Id: <AANLkTin8LOmkZaGZyYLYKh71F4675M+_V_0=ytc_89z4@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101014103239.1096f962@endymion.delvare>
-In-Reply-To: <20101014103239.1096f962@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 14 Oct 2010 18:04:01 +0400, Owl wrote:
-> F71882FG still does not work properly.
-> 
-> f71882fg: Found f71862fg chip at 0x290, revision 18
-> ACPI: resource f71882fg [io  0x0290-0x0297] conflicts with ACPI region 
-> IP__ [??? 0x00000295-0x00000296 flags 0x5f]
-> ACPI: If an ACPI driver is available for this device, you should use it 
-> instead of the native driver
+On Tue, Oct 5, 2010 at 3:23 PM, MrBill <cruznredrune@gmail.com> wrote:
+> 1123 ATK0110 HWMON DRIVER
+> 1124 M:      Luca Tettamanti <kronos.it@gmail.com>
+> 1125 L:      lm-sensors@lm-sensors.org
+> 1126 S:      Maintained
+> 1127 F:      drivers/hwmon/asus_atk0110.c
+>
+>
+> I found this on the web as the person that updates this driver.
 
-Please don't top-post.
+Yes, I'm the maintainer
 
-The f71882fg driver works OK, it is simply not suitable for your system
-where ACPI wants control over the device.
+>  Im currently running Suse 11.2 and have the issue about hardware monitoring.
 
--- 
-Jean Delvare
+What issue? Can you describe the problem?
+
+> How do I go about updating the driver and getting my sensors to work with
+> this OS and Motherboard.  Any help would be greatly appreciated.
+
+The driver is fairly self-contained, you should be able to take a copy
+of it from a newer kernel and compile it for your current kernel.
+
+Luca
 
 _______________________________________________
 lm-sensors mailing list
