@@ -1,39 +1,62 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Sun, 31 Oct 2010 07:50:34 +0000
-Subject: [lm-sensors] [PATCH 8/8] hwmon: applesmc: Update copyright
-Message-Id: <1288511434-5662-9-git-send-email-rydberg@euromail.se>
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Thu, 07 Oct 2010 09:36:01 +0000
+Subject: [lm-sensors] [PATCH] coretemp: fix reading of microcode revision
+Message-Id: <4CADB0A1020000780001B335@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
-In-Reply-To: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
+To: lm-sensors@vger.kernel.org
 
-With the preceding patches, git blame assigns about half of
-the file to the present author. Add a line to the copyright
-to reflect this.
+According to the documentation, simply reading the respective MSR
+isn't sufficient: It should be written with zeros, cpuid(1) be
+executed, and then read (see arch/x86/kernel/cpu/intel.c for an
+example).
 
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+
 ---
- drivers/hwmon/applesmc.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/hwmon/coretemp.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index c09cd2e..7ae37eb 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -4,6 +4,7 @@
-  * computers.
-  *
-  * Copyright (C) 2007 Nicolas Boichat <nicolas@boichat.ch>
-+ * Copyright (C) 2010 Henrik Rydberg <rydberg@euromail.se>
-  *
-  * Based on hdaps.c driver:
-  * Copyright (C) 2005 Robert Love <rml@novell.com>
--- 
-1.7.1
+--- linux-2.6.36-rc7/drivers/hwmon/coretemp.c
++++ 2.6.36-rc7-coretemp-ucode/drivers/hwmon/coretemp.c
+@@ -292,6 +292,15 @@ static int __devinit get_tjmax(struct cp
+ 	}
+ }
+ 
++static void __devinit get_ucode_rev_on_cpu(void *edx)
++{
++	u32 eax;
++
++	wrmsr(MSR_IA32_UCODE_REV, 0, 0);
++	sync_core();
++	rdmsr(MSR_IA32_UCODE_REV, eax, *(u32 *)edx);
++}
++
+ static int __devinit coretemp_probe(struct platform_device *pdev)
+ {
+ 	struct coretemp_data *data;
+@@ -327,8 +336,13 @@ static int __devinit coretemp_probe(stru
+ 
+ 	if ((c->x86_model = 0xe) && (c->x86_mask < 0xc)) {
+ 		/* check for microcode update */
+-		rdmsr_on_cpu(data->id, MSR_IA32_UCODE_REV, &eax, &edx);
+-		if (edx < 0x39) {
++		err = smp_call_function_single(data->id, get_ucode_rev_on_cpu,
++					       &edx, 1);
++		if (err)
++			dev_warn(&pdev->dev,
++				 "Cannot determine microcode revision "
++				 "of the CPU!\n");
++		else if (edx < 0x39) {
+ 			err = -ENODEV;
+ 			dev_err(&pdev->dev,
+ 				"Errata AE18 not fixed, update BIOS or "
+
+
 
 
 _______________________________________________
