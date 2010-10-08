@@ -1,143 +1,86 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:56 +0000
-Subject: [lm-sensors] [PATCH 32/32] drivers/hwmon/w83781d.c: Use pr_fmt and
-Message-Id: <1ce82b2a1c726d252483c508053eff046abcf132.1287556801.git.joe@perches.com>
+From: Chen Gong <gong.chen@linux.intel.com>
+Date: Fri, 08 Oct 2010 05:53:35 +0000
+Subject: [lm-sensors] [PATCH V2 1/2] hwmon: uniform the init style of pkgtemp
+Message-Id: <1286517216-15640-2-git-send-email-gong.chen@linux.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
+References: <1286517216-15640-1-git-send-email-gong.chen@linux.intel.com>
+In-Reply-To: <1286517216-15640-1-git-send-email-gong.chen@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: JBeulich@novell.com, guenter.roeck@ericsson.com, linux-kernel@vger.kernel.org, Chen Gong <gong.chen@linux.intel.com>
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+pkgtemp is derived from coretemp, so some reasonable
+logics should be applied onto pkgtemp, too. Such as
+the init logic here.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Chen Gong <gong.chen@linux.intel.com>
 ---
- drivers/hwmon/w83781d.c |   29 ++++++++++++++---------------
- 1 files changed, 14 insertions(+), 15 deletions(-)
+ drivers/hwmon/pkgtemp.c |   22 ++++++++--------------
+ 1 files changed, 8 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
-index c84b9b4..d452a20 100644
---- a/drivers/hwmon/w83781d.c
-+++ b/drivers/hwmon/w83781d.c
-@@ -33,6 +33,8 @@
+diff --git a/drivers/hwmon/pkgtemp.c b/drivers/hwmon/pkgtemp.c
+index f119039..29fef42 100644
+--- a/drivers/hwmon/pkgtemp.c
++++ b/drivers/hwmon/pkgtemp.c
+@@ -35,6 +35,7 @@
+ #include <linux/cpu.h>
+ #include <asm/msr.h>
+ #include <asm/processor.h>
++#include <asm/smp.h>
  
- */
+ #define DRVNAME	"pkgtemp"
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -1798,8 +1800,7 @@ w83781d_isa_found(unsigned short address)
- 	 * individually for the probing phase. */
- 	for (port = address; port < address + W83781D_EXTENT; port++) {
- 		if (!request_region(port, 1, "w83781d")) {
--			pr_debug("w83781d: Failed to request port 0x%x\n",
--				 port);
-+			pr_debug("Failed to request port 0x%x\n", port);
- 			goto release;
- 		}
- 	}
-@@ -1811,7 +1812,7 @@ w83781d_isa_found(unsigned short address)
- 	if (inb_p(address + 2) != val
- 	 || inb_p(address + 3) != val
- 	 || inb_p(address + 7) != val) {
--		pr_debug("w83781d: Detection failed at step 1\n");
-+		pr_debug("Detection failed at step 1\n");
- 		goto release;
- 	}
- #undef REALLY_SLOW_IO
-@@ -1820,14 +1821,14 @@ w83781d_isa_found(unsigned short address)
- 	   MSB (busy flag) should be clear initially, set after the write. */
- 	save = inb_p(address + W83781D_ADDR_REG_OFFSET);
- 	if (save & 0x80) {
--		pr_debug("w83781d: Detection failed at step 2\n");
-+		pr_debug("Detection failed at step 2\n");
- 		goto release;
- 	}
- 	val = ~save & 0x7f;
- 	outb_p(val, address + W83781D_ADDR_REG_OFFSET);
- 	if (inb_p(address + W83781D_ADDR_REG_OFFSET) != (val | 0x80)) {
- 		outb_p(save, address + W83781D_ADDR_REG_OFFSET);
--		pr_debug("w83781d: Detection failed at step 3\n");
-+		pr_debug("Detection failed at step 3\n");
- 		goto release;
- 	}
+@@ -392,7 +393,6 @@ static struct notifier_block pkgtemp_cpu_notifier __refdata = {
+ static int __init pkgtemp_init(void)
+ {
+ 	int i, err = -ENODEV;
+-	struct pdev_entry *p, *n;
  
-@@ -1835,7 +1836,7 @@ w83781d_isa_found(unsigned short address)
- 	outb_p(W83781D_REG_CONFIG, address + W83781D_ADDR_REG_OFFSET);
- 	val = inb_p(address + W83781D_DATA_REG_OFFSET);
- 	if (val & 0x80) {
--		pr_debug("w83781d: Detection failed at step 4\n");
-+		pr_debug("Detection failed at step 4\n");
- 		goto release;
- 	}
- 	outb_p(W83781D_REG_BANK, address + W83781D_ADDR_REG_OFFSET);
-@@ -1844,19 +1845,19 @@ w83781d_isa_found(unsigned short address)
- 	val = inb_p(address + W83781D_DATA_REG_OFFSET);
- 	if ((!(save & 0x80) && (val != 0xa3))
- 	 || ((save & 0x80) && (val != 0x5c))) {
--		pr_debug("w83781d: Detection failed at step 5\n");
-+		pr_debug("Detection failed at step 5\n");
- 		goto release;
- 	}
- 	outb_p(W83781D_REG_I2C_ADDR, address + W83781D_ADDR_REG_OFFSET);
- 	val = inb_p(address + W83781D_DATA_REG_OFFSET);
- 	if (val < 0x03 || val > 0x77) {	/* Not a valid I2C address */
--		pr_debug("w83781d: Detection failed at step 6\n");
-+		pr_debug("Detection failed at step 6\n");
- 		goto release;
- 	}
- 
- 	/* The busy flag should be clear again */
- 	if (inb_p(address + W83781D_ADDR_REG_OFFSET) & 0x80) {
--		pr_debug("w83781d: Detection failed at step 7\n");
-+		pr_debug("Detection failed at step 7\n");
- 		goto release;
- 	}
- 
-@@ -1871,7 +1872,7 @@ w83781d_isa_found(unsigned short address)
- 		found = 1;
- 
- 	if (found)
--		pr_info("w83781d: Found a %s chip at %#x\n",
-+		pr_info("Found a %s chip at %#x\n",
- 			val = 0x30 ? "W83782D" : "W83781D", (int)address);
- 
-  release:
-@@ -1894,21 +1895,19 @@ w83781d_isa_device_add(unsigned short address)
- 	pdev = platform_device_alloc("w83781d", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR "w83781d: Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
+ 	/* quick check if we run Intel */
+ 	if (cpu_data(0).x86_vendor != X86_VENDOR_INTEL)
+@@ -402,31 +402,25 @@ static int __init pkgtemp_init(void)
+ 	if (err)
  		goto exit;
- 	}
  
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
--		printk(KERN_ERR "w83781d: Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
+-	for_each_online_cpu(i) {
+-		err = pkgtemp_device_add(i);
+-		if (err)
+-			goto exit_devices_unreg;
+-	}
++	for_each_online_cpu(i)
++		pkgtemp_device_add(i);
++
++#ifndef CONFIG_HOTPLUG_CPU
+ 	if (list_empty(&pdev_list)) {
+ 		err = -ENODEV;
+ 		goto exit_driver_unreg;
  	}
++#endif
  
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR "w83781d: Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
+ #ifdef CONFIG_HOTPLUG_CPU
+ 	register_hotcpu_notifier(&pkgtemp_cpu_notifier);
+ #endif
+ 	return 0;
  
+-exit_devices_unreg:
+-	mutex_lock(&pdev_list_mutex);
+-	list_for_each_entry_safe(p, n, &pdev_list, list) {
+-		platform_device_unregister(p->pdev);
+-		list_del(&p->list);
+-		kfree(p);
+-	}
+-	mutex_unlock(&pdev_list_mutex);
++#ifndef CONFIG_HOTPLUG_CPU
+ exit_driver_unreg:
+ 	platform_driver_unregister(&pkgtemp_driver);
++#endif
+ exit:
+ 	return err;
+ }
 -- 
-1.7.3.1.g432b3.dirty
+1.7.2.2.173.g515cc
 
 
 _______________________________________________
