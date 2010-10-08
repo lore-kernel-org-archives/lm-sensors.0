@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 08 Oct 2010 08:22:03 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp: fix reading of microcode revision
-Message-Id: <20101008102203.6d85d69f@endymion.delvare>
+From: "Jan Beulich" <JBeulich@novell.com>
+Date: Fri, 08 Oct 2010 08:59:38 +0000
+Subject: [lm-sensors] [PATCH] coretemp: fix reading of microcode revision
+Message-Id: <4CAEF99A020000780001B8C4@vpn.id2.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4CADB0A1020000780001B335@vpn.id2.novell.com>
 In-Reply-To: <4CADB0A1020000780001B335@vpn.id2.novell.com>
@@ -10,39 +10,62 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jan,
+According to the documentation, simply reading the respective MSR
+isn't sufficient: It should be written with zeros, cpuid(1) be
+executed, and then read (see arch/x86/kernel/cpu/intel.c for an
+example).
 
-On Fri, 08 Oct 2010 08:05:21 +0100, Jan Beulich wrote:
-> >>> On 07.10.10 at 20:46, Fenghua Yu <fenghua.yu@intel.com> wrote:
-> > On Thu, Oct 07, 2010 at 02:36:01AM -0700, Jan Beulich wrote:
-> >> @@ -327,8 +336,13 @@ static int __devinit coretemp_probe(stru
-> >>  
-> >>  	if ((c->x86_model = 0xe) && (c->x86_mask < 0xc)) {
-> >>  		/* check for microcode update */
-> >> -		rdmsr_on_cpu(data->id, MSR_IA32_UCODE_REV, &eax, &edx);
-> >> -		if (edx < 0x39) {
-> >> +		err = smp_call_function_single(data->id, get_ucode_rev_on_cpu,
-> >> +					       &edx, 1);
-> >> +		if (err)
-> >> +			dev_warn(&pdev->dev,
-> >> +				 "Cannot determine microcode revision "
-> >> +				 "of the CPU!\n");
-> > 
-> > When err, need to call dev_err and go to exit_free. This error handling 
-> > should
-> > be same as edx < 0x39 case.
-> 
-> Hmm, not sure - I'd prefer to consider the machine usable in this
-> (theoretical only anyway) case.
+v2: Fail probe when microcode revision cannot be determined, but is
+needed to check for proper operation.
 
-I tend to prefer Fenghua's approach, sorry. If a bad microcode revision
-is so wrong that we fail the probe when we see it, then a failure to
-determine the microcode revision should lead to the same result. As
-always, missing monitoring information is preferable to unreliable
-monitoring information.
+Signed-off-by: Jan Beulich <jbeulich@novell.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 
--- 
-Jean Delvare
+---
+ drivers/hwmon/coretemp.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
+
+--- linux-2.6.36-rc7/drivers/hwmon/coretemp.c
++++ 2.6.36-rc7-coretemp-ucode/drivers/hwmon/coretemp.c
+@@ -292,6 +292,15 @@ static int __devinit get_tjmax(struct cp
+ 	}
+ }
+ 
++static void __devinit get_ucode_rev_on_cpu(void *edx)
++{
++	u32 eax;
++
++	wrmsr(MSR_IA32_UCODE_REV, 0, 0);
++	sync_core();
++	rdmsr(MSR_IA32_UCODE_REV, eax, *(u32 *)edx);
++}
++
+ static int __devinit coretemp_probe(struct platform_device *pdev)
+ {
+ 	struct coretemp_data *data;
+@@ -327,8 +336,15 @@ static int __devinit coretemp_probe(stru
+ 
+ 	if ((c->x86_model = 0xe) && (c->x86_mask < 0xc)) {
+ 		/* check for microcode update */
+-		rdmsr_on_cpu(data->id, MSR_IA32_UCODE_REV, &eax, &edx);
+-		if (edx < 0x39) {
++		err = smp_call_function_single(data->id, get_ucode_rev_on_cpu,
++					       &edx, 1);
++		if (err) {
++			dev_err(&pdev->dev,
++				"Cannot determine microcode revision of "
++				"CPU#%u (%d)!\n", data->id, err);
++			err = -ENODEV;
++			goto exit_free;
++		} else if (edx < 0x39) {
+ 			err = -ENODEV;
+ 			dev_err(&pdev->dev,
+ 				"Errata AE18 not fixed, update BIOS or "
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
