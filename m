@@ -1,386 +1,340 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Sun, 31 Oct 2010 07:50:32 +0000
-Subject: [lm-sensors] [PATCH 6/8] hwmon: applesmc: Dynamic creation of fan
-Message-Id: <1288511434-5662-7-git-send-email-rydberg@euromail.se>
+From: Peio Popov <peio@peio.org>
+Date: Sun, 10 Oct 2010 13:08:21 +0000
+Subject: [lm-sensors] fancontrol on adt7468
+Message-Id: <AANLkTinrFCMaVLhgFfy=rdh07c-5fs8g1xDY+xvwyayP@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="0016361e88ba2c9b2c049242f0b8"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
-In-Reply-To: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--0016361e88ba2c9b2c049242f0b8
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hello,
+I am trying to keep my cpu fan noise down with fancontrol but the
+lowest possible fan speed I can reach is around 1060 RPM and I am
+looking for ways to slow the fan down or stop it.
+
+Hoping that you will be able to help me solve the problem I include
+all the information that might be relevant and helpful:
+
+I am using lm_sensors-3.1.2-2.svn5857 on fedora 13 with kernel
+2.6.34.7-56.fc13.x86_64 installed on IBM Intellistation M. Detailed
+hardware profile of my pc is available at
+http://www.smolts.org/client/show/pub_1a7d5446-bb08-4077-9820-8057f30e4b63
+.
+
+sensors-detect detected adt7468 device and here is a part of the
+sensors command output:
+adt7468-i2c-2-2e
+Adapter: SMBus I801 adapter at 3080
+in0:         +2.49 V  (min =3D  +2.38 V, max =3D  +2.62 V)
+Vcore:       +1.14 V  (min =3D  +0.82 V, max =3D  +1.40 V)
++3.3V:       +3.36 V  (min =3D  +2.97 V, max =3D  +3.63 V)
++5V:         +5.12 V  (min =3D  +4.50 V, max =3D  +5.50 V)
++12V:       +12.23 V  (min =3D  +0.00 V, max =3D +15.94 V)
+fan1:       1064 RPM  (min =3D    0 RPM)
+fan2:          0 RPM  (min =3D    0 RPM)
+fan3:          0 RPM  (min =3D    0 RPM)
+fan4:         -1 RPM  (min =3D    0 RPM)
+temp1:       +32.0=C2=B0C  (low  =3D +49.0=C2=B0C, high =3D +21.0=C2=B0C)  =
+ALARM
+M/B Temp:    +28.5=C2=B0C  (low  =3D -63.0=C2=B0C, high =3D -65.0=C2=B0C)
+temp3:       +24.5=C2=B0C  (low  =3D +34.0=C2=B0C, high =3D -65.0=C2=B0C)  =
+ALARM
+cpu0_vid:   +1.419 V
+
+The complete sensors command output is attached.
+
+I ran pwmconfig and here is the the relevant part:
+
+Testing pwm control hwmon5/device/pwm1 ...
+  hwmon5/device/fan1_input ... speed was 5192 now 1011
+    It appears that fan hwmon5/device/fan1_input
+    is controlled by pwm hwmon5/device/pwm1
+...
+    PWM 255 FAN 5004
+    PWM 240 FAN 5192
+    PWM 225 FAN 5187
+.....
+    PWM 6 FAN 4011
+    PWM 4 FAN 3958
+    PWM 2 FAN 3890
+    PWM 0 FAN 2359
+
+I am attaching the resulting /etc/fancontol file.
+
+In the hwmon5.values file i am also attaching the files and their
+values as contained in /sys/class/hwmon/hwmon5/device
+(the result of: for file in `ls -1 .`;do echo -n $file " -> "; cat $file; d=
+one)
+
+When in BIOS the CPU fan runs at constant speed of ~1400 RPM and I see
+no obvious  BIOS options or settings to control it.
+
+I am also attaching the sensors3.conf file.
+
+I would be very grateful if somebody could help me make the system quieter.
+
+Thank you very much in advance
+Peio Popov
+
+--0016361e88ba2c9b2c049242f0b8
+Content-Type: text/plain; charset=UTF-8; name="sensors.txt"
+Content-Disposition: attachment; filename="sensors.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gf3sarrc0
+
+Y29yZXRlbXAtaXNhLTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICszOC4w
+wrBDICAoaGlnaCA9ICs4NC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKSAgCgpjb3JldGVtcC1pc2Et
+MDAwMQpBZGFwdGVyOiBJU0EgYWRhcHRlcgpDb3JlIDE6ICAgICAgKzM3LjDCsEMgIChoaWdoID0g
+Kzg0LjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpICAKCmNvcmV0ZW1wLWlzYS0wMDAyCkFkYXB0ZXI6
+IElTQSBhZGFwdGVyCkNvcmUgMjogICAgICArMzMuMMKwQyAgKGhpZ2ggPSArODQuMMKwQywgY3Jp
+dCA9ICsxMDAuMMKwQykgIAoKY29yZXRlbXAtaXNhLTAwMDMKQWRhcHRlcjogSVNBIGFkYXB0ZXIK
+Q29yZSAzOiAgICAgICszNi4wwrBDICAoaGlnaCA9ICs4NC4wwrBDLCBjcml0ID0gKzEwMC4wwrBD
+KSAgCgpzY2g1MDI3LWkyYy0yLTJjCkFkYXB0ZXI6IFNNQnVzIEk4MDEgYWRhcHRlciBhdCAzMDgw
+CjVWU0I6ICAgICAgICArNS4xNCBWICAobWluID0gICs0LjUwIFYsIG1heCA9ICArNS41MCBWKSAg
+IApWY29yZTogICAgICAgKzEuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuOTkgVikg
+ICAKKzMuM1Y6ICAgICAgICszLjM3IFYgIChtaW4gPSAgKzIuOTcgViwgbWF4ID0gICszLjYzIFYp
+ICAgCmluMzogICAgICAgICArMS4xNSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS40OSBW
+KSAgIAppbjQ6ICAgICAgICAgKzEuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEuNDkg
+VikgICAKM1ZTQjogICAgICAgICszLjMxIFYgIChtaW4gPSAgKzIuOTcgViwgbWF4ID0gICszLjYz
+IFYpICAgClZiYXQ6ICAgICAgICArMy4xNSBWICAobWluID0gICsyLjcwIFYsIG1heCA9ICArMy4z
+MCBWKSAgIApmYW4xOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAg
+ICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQp0ZW1wMTogICAgICAgICBGQVVMVCAgKGxvdyAg
+PSAtMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICAKU0lPIFRlbXA6ICAgICs0NC42wrBDICAo
+bG93ICA9IC0xMjcuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIAp0ZW1wMzogICAgICAgICBGQVVM
+VCAgKGxvdyAgPSAtMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICAKCmFkdDc0NjgtaTJjLTIt
+MmUKQWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDMwODAKaW4wOiAgICAgICAgICsyLjQ5
+IFYgIChtaW4gPSAgKzIuMzggViwgbWF4ID0gICsyLjYyIFYpICAgClZjb3JlOiAgICAgICArMS4x
+NCBWICAobWluID0gICswLjgyIFYsIG1heCA9ICArMS40MCBWKSAgIAorMy4zVjogICAgICAgKzMu
+MzYgViAgKG1pbiA9ICArMi45NyBWLCBtYXggPSAgKzMuNjMgVikgICAKKzVWOiAgICAgICAgICs1
+LjEyIFYgIChtaW4gPSAgKzQuNTAgViwgbWF4ID0gICs1LjUwIFYpICAgCisxMlY6ICAgICAgICsx
+Mi4yMyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICsxNS45NCBWKSAgIApmYW4xOiAgICAgICAx
+MDY0IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAg
+IDAgUlBNKQpmYW4zOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW40OiAgICAg
+ICAgIC0xIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQp0ZW1wMTogICAgICAgKzMyLjLCsEMgIChsb3cg
+ID0gKzQ5LjDCsEMsIGhpZ2ggPSArMjEuMMKwQykgIEFMQVJNICAKTS9CIFRlbXA6ICAgICsyOC41
+wrBDICAobG93ICA9IC02My4wwrBDLCBoaWdoID0gLTY1LjDCsEMpICAKdGVtcDM6ICAgICAgICsy
+NC4ywrBDICAobG93ICA9ICszNC4wwrBDLCBoaWdoID0gLTY1LjDCsEMpICBBTEFSTSAgCmNwdTBf
+dmlkOiAgICsxLjQxOSBWCgo=
+--0016361e88ba2c9b2c049242f0b8
+Content-Type: application/octet-stream; name=fancontrol
+Content-Disposition: attachment; filename=fancontrol
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gf3sd8xo1
+
+IyBDb25maWd1cmF0aW9uIGZpbGUgZ2VuZXJhdGVkIGJ5IHB3bWNvbmZpZywgY2hhbmdlcyB3aWxs
+IGJlIGxvc3QKSU5URVJWQUw9MTAKREVWUEFUSD1od21vbjU9ZGV2aWNlcy9wY2kwMDAwOjAwLzAw
+MDA6MDA6MWYuMy9pMmMtMi8yLTAwMmUKREVWTkFNRT1od21vbjU9YWR0NzQ2OApGQ1RFTVBTPSBo
+d21vbjUvZGV2aWNlL3B3bTE9aHdtb241L2RldmljZS90ZW1wMV9pbnB1dApGQ0ZBTlM9IGh3bW9u
+NS9kZXZpY2UvcHdtMT1od21vbjUvZGV2aWNlL2ZhbjFfaW5wdXQKTUlOVEVNUD0gaHdtb241L2Rl
+dmljZS9wd20xPTQ1Ck1BWFRFTVA9IGh3bW9uNS9kZXZpY2UvcHdtMT04MApNSU5TVEFSVD0gaHdt
+b241L2RldmljZS9wd20xPTE1MApNSU5TVE9QPSBod21vbjUvZGV2aWNlL3B3bTE9MApNSU5QV009
+aHdtb241L2RldmljZS9wd20xPTAKTUFYUFdNPWh3bW9uNS9kZXZpY2UvcHdtMT0yNTAK
+--0016361e88ba2c9b2c049242f0b8
+Content-Type: text/plain; charset=US-ASCII; name="hwmon5.values.txt"
+Content-Disposition: attachment; filename="hwmon5.values.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gf3x9lm42
+
+YWxhcm1zICAtPiA4MApjcHUwX3ZpZCAgLT4gMTQxOQpkcml2ZXIgIC0+IGZhbjFfYWxhcm0gIC0+
+IDAKZmFuMV9pbnB1dCAgLT4gMTA2MQpmYW4xX21pbiAgLT4gODMKZmFuMl9hbGFybSAgLT4gMApm
+YW4yX2lucHV0ICAtPiAwCmZhbjJfbWluICAtPiAwCmZhbjNfYWxhcm0gIC0+IDAKZmFuM19pbnB1
+dCAgLT4gMApmYW4zX21pbiAgLT4gMApmYW40X2FsYXJtICAtPiAwCmZhbjRfaW5wdXQgIC0+IC0x
+CmZhbjRfbWluICAtPiAwCmh3bW9uICAtPiBpbjBfYWxhcm0gIC0+IDAKaW4wX2lucHV0ICAtPiAy
+NDkzCmluMF9tYXggIC0+IDI2MTcKaW4wX21pbiAgLT4gMjM4MwppbjFfYWxhcm0gIC0+IDAKaW4x
+X2lucHV0ICAtPiAxMTQwCmluMV9tYXggIC0+IDEzOTUKaW4xX21pbiAgLT4gODIwCmluMl9hbGFy
+bSAgLT4gMAppbjJfaW5wdXQgIC0+IDMzNjQKaW4yX21heCAgLT4gMzYyNwppbjJfbWluICAtPiAy
+OTczCmluM19hbGFybSAgLT4gMAppbjNfaW5wdXQgIC0+IDUxMTcKaW4zX21heCAgLT4gNTQ5NQpp
+bjNfbWluICAtPiA0NTA1CmluNF9hbGFybSAgLT4gMAppbjRfaW5wdXQgIC0+IDEyMjM0CmluNF9t
+YXggIC0+IDE1OTM4CmluNF9taW4gIC0+IDAKbW9kYWxpYXMgIC0+IGkyYzphZHQ3NDY4Cm5hbWUg
+IC0+IGFkdDc0NjgKcG93ZXIgIC0+IHB3bTEgIC0+IDAKcHdtMV9hdXRvX2NoYW5uZWxzICAtPiAt
+Mgpwd20xX2F1dG9fcHdtX21pbiAgLT4gMjQKcHdtMV9hdXRvX3B3bV9taW5jdGwgIC0+IDEKcHdt
+MV9lbmFibGUgIC0+IDEKcHdtMV9mcmVxICAtPiAzOApwd20yICAtPiAyNTUKcHdtMl9hdXRvX2No
+YW5uZWxzICAtPiAtMQpwd20yX2F1dG9fcHdtX21pbiAgLT4gNTQKcHdtMl9hdXRvX3B3bV9taW5j
+dGwgIC0+IDAKcHdtMl9lbmFibGUgIC0+IDAKcHdtMl9mcmVxICAtPiAzOApwd20zICAtPiAyNTUK
+cHdtM19hdXRvX2NoYW5uZWxzICAtPiAtMQpwd20zX2F1dG9fcHdtX21pbiAgLT4gMTI4CnB3bTNf
+YXV0b19wd21fbWluY3RsICAtPiAxCnB3bTNfZW5hYmxlICAtPiAwCnB3bTNfZnJlcSAgLT4gMzgK
+c3Vic3lzdGVtICAtPiB0ZW1wMV9hbGFybSAgLT4gMQp0ZW1wMV9hdXRvX3RlbXBfY3JpdCAgLT4g
+NjgwMDAKdGVtcDFfYXV0b190ZW1wX21heCAgLT4gODQwMDAKdGVtcDFfYXV0b190ZW1wX21pbiAg
+LT4gNTIwMDAKdGVtcDFfYXV0b190ZW1wX29mZiAgLT4gNDgwMDAKdGVtcDFfZmF1bHQgIC0+IDAK
+dGVtcDFfaW5wdXQgIC0+IDI5MjUwCnRlbXAxX21heCAgLT4gLTY1MDAwCnRlbXAxX21pbiAgLT4g
+NDkwMDAKdGVtcDJfYWxhcm0gIC0+IDAKdGVtcDJfYXV0b190ZW1wX2NyaXQgIC0+IDkwMDAwCnRl
+bXAyX2F1dG9fdGVtcF9tYXggIC0+IDg2MDAwCnRlbXAyX2F1dG9fdGVtcF9taW4gIC0+IDU0MDAw
+CnRlbXAyX2F1dG9fdGVtcF9vZmYgIC0+IDUwMDAwCnRlbXAyX2lucHV0ICAtPiAyNzUwMAp0ZW1w
+Ml9tYXggIC0+IC02NTAwMAp0ZW1wMl9taW4gIC0+IC02MzAwMAp0ZW1wM19hbGFybSAgLT4gMQp0
+ZW1wM19hdXRvX3RlbXBfY3JpdCAgLT4gNTAwMDAKdGVtcDNfYXV0b190ZW1wX21heCAgLT4gNTYw
+MDAKdGVtcDNfYXV0b190ZW1wX21pbiAgLT4gMzYwMDAKdGVtcDNfYXV0b190ZW1wX29mZiAgLT4g
+MzIwMDAKdGVtcDNfZmF1bHQgIC0+IDAKdGVtcDNfaW5wdXQgIC0+IDIzMjUwCnRlbXAzX21heCAg
+LT4gLTY1MDAwCnRlbXAzX21pbiAgLT4gMzQwMDAKdWV2ZW50ICAtPiBEUklWRVI9bG04NQpNT0RB
+TElBUz1pMmM6YWR0NzQ2OAp2cm0gIC0+IDExMAo=
+--0016361e88ba2c9b2c049242f0b8
+Content-Type: application/octet-stream; name="sensors3.conf"
+Content-Disposition: attachment; filename="sensors3.conf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gf3xgbkk3
+
+IyBsaWJzZW5zb3JzIGNvbmZpZ3VyYXRpb24gZmlsZQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCiMKIyBUaGlzIGRlZmF1bHQgY29uZmlndXJhdGlvbiBmaWxlIG9ubHkgaW5jbHVkZXMg
+c3RhdGVtZW50cyB3aGljaCBkbyBub3QKIyBkaWZmZXIgZnJvbSBvbmUgbWFpbmJvYXJkIHRvIHRo
+ZSBuZXh0LiBPbmx5IGxhYmVsLCBjb21wdXRlIGFuZCBzZXQKIyBzdGF0ZW1lbnRzIGZvciBpbnRl
+cm5hbCB2b2x0YWdlIGFuZCB0ZW1wZXJhdHVyZSBzZW5zb3JzIGFyZSBpbmNsdWRlZC4KIwojIElu
+IGdlbmVyYWwsIGxvY2FsIGNoYW5nZXMgc2hvdWxkIG5vdCBiZSBhZGRlZCB0byB0aGlzIGZpbGUs
+IGJ1dCByYXRoZXIKIyBwbGFjZWQgaW4gY3VzdG9tIGNvbmZpZ3VyYXRpb24gZmlsZXMgbG9jYXRl
+ZCBpbiAvZXRjL3NlbnNvcnMuZC4gVGhpcwojIGFwcHJvYWNoIG1ha2VzIGZ1cnRoZXIgdXBkYXRl
+cyBtdWNoIGVhc2llci4KIwojIFN1Y2ggY3VzdG9tIGNvbmZpZ3VyYXRpb24gZmlsZXMgZm9yIHNw
+ZWNpZmljIG1haW5ib2FyZHMgY2FuIGJlIGZvdW5kIGF0CiMgaHR0cDovL3d3dy5sbS1zZW5zb3Jz
+Lm9yZy93aWtpL0NvbmZpZ3VyYXRpb25zCgpjaGlwICJsbTc4LSoiICJsbTc5LSoiICJsbTgwLSoi
+CgogICAgbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgoKCmNoaXAgInc4Mzc5MmQtKiIKCiAgICBsYWJl
+bCBpbjAgIlZjb3JlQSIKICAgIGxhYmVsIGluMSAiVmNvcmVCIgogICAgbGFiZWwgaW42ICIrNVYi
+CiAgICBsYWJlbCBpbjcgIjVWU0IiCiAgICBsYWJlbCBpbjggIlZiYXQiCgogICAgc2V0IGluNl9t
+aW4gIDUuMCAqIDAuOTAKICAgIHNldCBpbjZfbWF4ICA1LjAgKiAxLjEwCiAgICBzZXQgaW43X21p
+biAgNS4wICogMC45MAogICAgc2V0IGluN19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjhfbWlu
+ICAzLjAgKiAwLjkwCiAgICBzZXQgaW44X21heCAgMy4wICogMS4xMAoKCmNoaXAgInc4Mzc5My0q
+IgoKICAgIGxhYmVsIGluMCAiVmNvcmVBIgogICAgbGFiZWwgaW4xICJWY29yZUIiCiAgICBsYWJl
+bCBpbjcgIis1ViIKICAgIGxhYmVsIGluOCAiNVZTQiIKICAgIGxhYmVsIGluOSAiVmJhdCIKCiAg
+ICBzZXQgaW43X21pbiAgNS4wICogMC45MAogICAgc2V0IGluN19tYXggIDUuMCAqIDEuMTAKICAg
+IHNldCBpbjhfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW44X21heCAgNS4wICogMS4xMAogICAg
+c2V0IGluOV9taW4gIDMuMCAqIDAuOTAKICAgIHNldCBpbjlfbWF4ICAzLjAgKiAxLjEwCgoKY2hp
+cCAidmlhNjg2YS0qIgoKICAgIGxhYmVsIGluMCAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiszLjNW
+IgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBsYWJlbCBpbjQgIisxMlYiCgogICAgc2V0IGluMl9t
+aW4gIDMuMyAqIDAuOTAKICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW4zX21p
+biAgNS4wICogMC45MAogICAgc2V0IGluM19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjRfbWlu
+IDEyLjAgKiAwLjkwCiAgICBzZXQgaW40X21heCAxMi4wICogMS4xMAoKCmNoaXAgImFkbTEwMjUt
+KiIgIm5lMTYxOS0qIgoKICAgIGxhYmVsIGluMSAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiszLjNW
+IgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBsYWJlbCBpbjQgIisxMlYiCiAgICBsYWJlbCBpbjUg
+IlZDQyIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45MAogICAgc2V0IGluMl9tYXggIDMuMyAq
+IDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW4zX21heCAgNS4wICog
+MS4xMAogICAgc2V0IGluNV9taW4gIDMuMyAqIDAuOTAKICAgIHNldCBpbjVfbWF4ICAzLjMgKiAx
+LjEwCiMgRGVwZW5kaW5nIG9uIGhvdyB5b3VyIGNoaXAgaXMgaGFyZHdpcmVkLCB5b3UgbWF5IG9y
+IG1heSBub3QgaGF2ZQojICsxMlYgcmVhZGluZ3MuCiMgICAgc2V0IGluNF9taW4gMTIuMCAqIDAu
+OTAKIyAgICBzZXQgaW40X21heCAxMi4wICogMS4xMAoKICAgIGxhYmVsIHRlbXAxICJDUFUgVGVt
+cCIKICAgIGxhYmVsIHRlbXAyICJNL0IgVGVtcCIKCgpjaGlwICJsbTg3LSoiICJhZG0xMDI0LSoi
+CgogICAgbGFiZWwgaW4xICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBp
+bjMgIis1ViIKICAgIGxhYmVsIGluNCAiKzEyViIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45
+MAogICAgc2V0IGluMl9tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkw
+CiAgICBzZXQgaW4zX21heCAgNS4wICogMS4xMAogICAgc2V0IGluNF9taW4gMTIuMCAqIDAuOTAK
+ICAgIHNldCBpbjRfbWF4IDEyLjAgKiAxLjEwCgogICAgbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgog
+ICAgbGFiZWwgdGVtcDIgIkNQVSBUZW1wIgoKCmNoaXAgIml0ODctKiIgIml0ODcxMi0qIiAiaXQ4
+NzE2LSoiICJpdDg3MTgtKiIgIml0ODcyMC0qIgoKICAgIGxhYmVsIGluOCAiVmJhdCIKCgpjaGlw
+ICJmc2Nwb3MtKiIgImZzY2hlci0qIgojRlNDICJIZXJtZXMiCgogICAgbGFiZWwgaW4wICIrMTJW
+IgogICAgbGFiZWwgaW4xICIrNVYiCiAgICBsYWJlbCBpbjIgIlZiYXQiCgogICAgbGFiZWwgdGVt
+cDEgIkNQVSBUZW1wIgogICAgbGFiZWwgdGVtcDIgIk0vQiBUZW1wIgogICAgbGFiZWwgdGVtcDMg
+IkF1eCBUZW1wIgoKCmNoaXAgImZzY3NjeS0qIgojRlNDICJTY3lsbGEiCgogICAgbGFiZWwgaW4w
+ICIrMTJWIgogICAgbGFiZWwgaW4xICIrNVYiCiAgICBsYWJlbCBpbjIgIiszLjNWIgoKICAgIGxh
+YmVsIHRlbXAxICJDUFUwIFRlbXAiCiAgICBsYWJlbCB0ZW1wMiAiQ1BVMSBUZW1wIgogICAgbGFi
+ZWwgdGVtcDMgIk0vQiBUZW1wIgogICAgbGFiZWwgdGVtcDQgIkF1eCBUZW1wIgoKCmNoaXAgImZz
+Y2hkcy0qIgojIEZ1aml0c3UgVGVjaG5vbG9neSBTb2x1dGlvbnMsICJIYWRlcyItQ2hpcAoKIyBU
+ZW1wZXJhdHVyZXMKICAgIGxhYmVsIHRlbXAxICJDUFUgVGVtcCIKICAgIGxhYmVsIHRlbXAyICJT
+dXBlciBJL08gVGVtcCIKICAgIGxhYmVsIHRlbXAzICJTeXN0ZW0gVGVtcCIKCiMgRmFucwogICAg
+bGFiZWwgZmFuMSAiUFNVIEZhbiIKICAgIGxhYmVsIGZhbjIgIkNQVSBGYW4iCiAgICBsYWJlbCBm
+YW4zICJTeXN0ZW0gRkFOMiIKICAgIGxhYmVsIGZhbjQgIlN5c3RlbSBGQU4zIgogICAgbGFiZWwg
+ZmFuNSAiU3lzdGVtIEZBTjQiCgojIFZvbHRhZ2VzCiAgICBsYWJlbCBpbjAgIisxMlYiCiAgICBs
+YWJlbCBpbjEgIis1ViIKICAgIGxhYmVsIGluMiAiVmJhdCIKCmNoaXAgImZzY3N5bC0qIgojIEZ1
+aml0c3UgVGVjaG5vbG9neSBTb2x1dGlvbnMsICJTeWxldXMiLUNoaXAKCiMgVGVtcGVyYXR1cmVz
+CiAgICBsYWJlbCB0ZW1wMSAiQ1BVIFRlbXAiCiAgICBsYWJlbCB0ZW1wNCAiU3VwZXIgSS9PIFRl
+bXAiCiAgICBsYWJlbCB0ZW1wNSAiTm9ydGhicmlkZ2UgVGVtcCIKCiMgRmFucwogICAgbGFiZWwg
+ZmFuMSAiQ1BVIEZhbiIKICAgIGxhYmVsIGZhbjIgIlN5c3RlbSBGQU4yIgogICAgbGFiZWwgZmFu
+MyAiU3lzdGVtIEZBTjMiCiAgICBsYWJlbCBmYW40ICJTeXN0ZW0gRkFONCIKICAgIGxhYmVsIGZh
+bjcgIlBTVSBGYW4iCgojIFZvbHRhZ2VzCiAgICBsYWJlbCBpbjAgIisxMlYiCiAgICBsYWJlbCBp
+bjEgIis1ViIKICAgIGxhYmVsIGluMiAiVmJhdCIKICAgIGxhYmVsIGluMyAiKzMuM1YiCiAgICBs
+YWJlbCBpbjUgIiszLjNWLUF1eCIKCmNoaXAgInZ0MTIxMS0qIgoKICAgIGxhYmVsIGluNSAiKzMu
+M1YiCgogICAgbGFiZWwgdGVtcDIgIlNJTyBUZW1wIgoKCmNoaXAgInZ0ODIzMS0qIgoKICAgIGxh
+YmVsIGluNSAiKzMuM1YiCgoKY2hpcCAic21zYzQ3bTE5Mi0qIgoKICAgIGxhYmVsIGluMSAiVmNv
+cmUiCiAgICBsYWJlbCBpbjIgIiszLjNWIgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBsYWJlbCBp
+bjQgIisxMlYiCiAgICBsYWJlbCBpbjUgIlZDQyIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45
+MAogICAgc2V0IGluMl9tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkw
+CiAgICBzZXQgaW4zX21heCAgNS4wICogMS4xMAogICAgc2V0IGluNF9taW4gMTIuMCAqIDAuOTAK
+ICAgIHNldCBpbjRfbWF4IDEyLjAgKiAxLjEwCiAgICBzZXQgaW41X21pbiAgMy4zICogMC45MAog
+ICAgc2V0IGluNV9tYXggIDMuMyAqIDEuMTAKCiAgICBsYWJlbCB0ZW1wMSAiU0lPIFRlbXAiCgoK
+Y2hpcCAibG04NS0qIiAibG04NWItKiIgImxtODVjLSoiICJhZG0xMDI3LSoiICJhZHQ3NDYzLSoi
+ICJhZHQ3NDY4LSoiICJlbWM2ZDEwMC0qIiAiZW1jNmQxMDItKiIKCiAgICBsYWJlbCBpbjEgIlZj
+b3JlIgogICAgbGFiZWwgaW4yICIrMy4zViIKICAgIGxhYmVsIGluMyAiKzVWIgogICAgbGFiZWwg
+aW40ICIrMTJWIgogICAgbGFiZWwgdGVtcDIgIk0vQiBUZW1wIgoKIyBNeQogICAgbGFiZWwgdGVt
+cDFfaW5wdXQgIkZhbiB0ZW1wZXJhdHVyZSIJCiAgICBsYWJlbCBmYW4xX2lucHV0ICJGYW4gUlBN
+IgoKICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjkwCiAgICBzZXQgaW4yX21heCAgMy4zICogMS4x
+MAogICAgc2V0IGluM19taW4gIDUuMCAqIDAuOTAKICAgIHNldCBpbjNfbWF4ICA1LjAgKiAxLjEw
+CgojIERlcGVuZGluZyBvbiBob3cgeW91ciBjaGlwIGlzIGhhcmR3aXJlZCwgeW91IG1heSBvciBt
+YXkgbm90IGhhdmUKIyArMTJWIHJlYWRpbmdzLgojICAgIHNldCBpbjRfbWluIDEyLjAgKiAwLjkw
+CiMgICAgc2V0IGluNF9tYXggMTIuMCAqIDEuMTAKCiAgICBsYWJlbCB0ZW1wMiAiTS9CIFRlbXAi
+CiAgICAJCgoKY2hpcCAicGM4NzM2NS0qIiAicGM4NzM2Ni0qIgoKIyBWb2x0YWdlIGlucHV0cwoK
+ICAgIGxhYmVsIGluNyAiM1ZTQiIKICAgIGxhYmVsIGluOCAiVkREIgogICAgbGFiZWwgaW45ICJW
+YmF0IgogICAgbGFiZWwgaW4xMCAiQVZERCIKCiAgICBjb21wdXRlIGluNyAgIEAqMiwgQC8yCiAg
+ICBjb21wdXRlIGluOCAgIEAqMiwgQC8yCiAgICBjb21wdXRlIGluMTAgIEAqMiwgQC8yCgojIFRo
+ZXNlIGFyZSB0aGUgb3BlcmF0aW5nIGNvbmRpdGlvbnMgYXMgcmVjb21tZW5kZWQgYnkgTmF0aW9u
+YWwKIyBTZW1pY29uZHVjdG9yCiAgICBzZXQgaW43X21pbiAgIDMuMAogICAgc2V0IGluN19tYXgg
+ICAzLjYKICAgIHNldCBpbjhfbWluICAgMy4wCiAgICBzZXQgaW44X21heCAgIDMuNgogICAgc2V0
+IGluMTBfbWluICAzLjAKICAgIHNldCBpbjEwX21heCAgMy42CiMgRGVwZW5kaW5nIG9uIHRoZSBo
+YXJkd2FyZSBzZXR1cCwgdGhlIGJhdHRlcnkgdm9sdGFnZSBtYXkgb3IgbWF5IG5vdAojIGJlIG1v
+bml0b3JlZC4KIyAgICBzZXQgaW45X21pbiAgIDIuNAojICAgIHNldCBpbjlfbWF4ICAgMy42Cgog
+ICAgbGFiZWwgdGVtcDMgIlNJTyBUZW1wIgoKICAgIHNldCB0ZW1wM19taW4gICAgMAogICAgc2V0
+IHRlbXAzX21heCAgIDcwCiAgICBzZXQgdGVtcDNfY3JpdCAgODUKCgpjaGlwICJhZG0xMDMwLSoi
+ICJhZG0xMDMxLSoiCgogICAgbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgoKCmNoaXAgInc4MzYyN2Vo
+Zi0qIiAidzgzNjI3ZGhnLSoiICJ3ODM2NjdoZy0qIgoKICAgIGxhYmVsIGluMCAiVmNvcmUiCiAg
+ICBsYWJlbCBpbjIgIkFWQ0MiCiAgICBsYWJlbCBpbjMgIiszLjNWIgogICAgbGFiZWwgaW43ICIz
+VlNCIgogICAgbGFiZWwgaW44ICJWYmF0IgoKICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjkwCiAg
+ICBzZXQgaW4yX21heCAgMy4zICogMS4xMAogICAgc2V0IGluM19taW4gIDMuMyAqIDAuOTAKICAg
+IHNldCBpbjNfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW43X21pbiAgMy4zICogMC45MAogICAg
+c2V0IGluN19tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjhfbWluICAzLjAgKiAwLjkwCiAgICBz
+ZXQgaW44X21heCAgMy4wICogMS4xMAoKCmNoaXAgImY3MTgwNWYtKiIKCiAgICBsYWJlbCBpbjAg
+IiszLjNWIgoKICAgIHNldCBpbjBfbWluICAzLjMgKiAwLjkwCiAgICBzZXQgaW4wX21heCAgMy4z
+ICogMS4xMAoKCmNoaXAgImY3MTg3MmYtKiIKCiAgICBsYWJlbCBpbjAgIiszLjNWIgogICAgbGFi
+ZWwgaW45ICJWYmF0IgogICAgbGFiZWwgaW4xMCAiM1ZTQiIKCiAgICBzZXQgaW4wX21pbiAgIDMu
+MyAqIDAuOTAKICAgIHNldCBpbjBfbWF4ICAgMy4zICogMS4xMAogICAgc2V0IGluOV9taW4gICAz
+LjAgKiAwLjkwCiAgICBzZXQgaW45X21heCAgIDMuMCAqIDEuMTAKICAgIHNldCBpbjEwX21pbiAg
+My4zICogMC45MAogICAgc2V0IGluMTBfbWF4ICAzLjMgKiAxLjEwCgoKY2hpcCAiazh0ZW1wLSoi
+CgogICAgbGFiZWwgdGVtcDEgIkNvcmUwIFRlbXAiCiAgICBsYWJlbCB0ZW1wMiAiQ29yZTAgVGVt
+cCIKICAgIGxhYmVsIHRlbXAzICJDb3JlMSBUZW1wIgogICAgbGFiZWwgdGVtcDQgIkNvcmUxIFRl
+bXAiCgoKY2hpcCAiZG1lMTczNy0qIgoKICAgIGxhYmVsIGluMCAiNVZTQiIKICAgIGxhYmVsIGlu
+MSAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiszLjNWIgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBs
+YWJlbCBpbjQgIisxMlYiCiAgICBsYWJlbCBpbjUgIjNWU0IiCiAgICBsYWJlbCBpbjYgIlZiYXQi
+CgogICAgbGFiZWwgdGVtcDIgIlNJTyBUZW1wIgoKICAgIHNldCBpbjBfbWluICA1LjAgKiAwLjkw
+CiAgICBzZXQgaW4wX21heCAgNS4wICogMS4xMAogICAgc2V0IGluMl9taW4gIDMuMyAqIDAuOTAK
+ICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW4zX21pbiAgNS4wICogMC45MAog
+ICAgc2V0IGluM19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjRfbWluIDEyLjAgKiAwLjkwCiAg
+ICBzZXQgaW40X21heCAxMi4wICogMS4xMAogICAgc2V0IGluNV9taW4gIDMuMyAqIDAuOTAKICAg
+IHNldCBpbjVfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW42X21pbiAgMy4wICogMC45MAogICAg
+c2V0IGluNl9tYXggIDMuMCAqIDEuMTAKCgpjaGlwICJzY2gzMTF4LSoiCgogICAgbGFiZWwgaW4x
+ICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBpbjMgIis1ViIKICAgIGxh
+YmVsIGluNCAiKzEyViIKICAgIGxhYmVsIGluNSAiM1ZTQiIKICAgIGxhYmVsIGluNiAiVmJhdCIK
+CiAgICBsYWJlbCB0ZW1wMiAiU0lPIFRlbXAiCgogICAgc2V0IGluMl9taW4gIDMuMyAqIDAuOTAK
+ICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW4zX21pbiAgNS4wICogMC45MAog
+ICAgc2V0IGluM19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjRfbWluIDEyLjAgKiAwLjkwCiAg
+ICBzZXQgaW40X21heCAxMi4wICogMS4xMAogICAgc2V0IGluNV9taW4gIDMuMyAqIDAuOTAKICAg
+IHNldCBpbjVfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW42X21pbiAgMy4wICogMC45MAogICAg
+c2V0IGluNl9tYXggIDMuMCAqIDEuMTAKCgpjaGlwICJzY2g1MDI3LSoiCgogICAgbGFiZWwgaW4w
+ICI1VlNCIgogICAgbGFiZWwgaW4xICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBs
+YWJlbCBpbjUgIjNWU0IiCiAgICBsYWJlbCBpbjYgIlZiYXQiCgogICAgbGFiZWwgdGVtcDIgIlNJ
+TyBUZW1wIgoKICAgIHNldCBpbjBfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW4wX21heCAgNS4w
+ICogMS4xMAogICAgc2V0IGluMl9taW4gIDMuMyAqIDAuOTAKICAgIHNldCBpbjJfbWF4ICAzLjMg
+KiAxLjEwCiAgICBzZXQgaW41X21pbiAgMy4zICogMC45MAogICAgc2V0IGluNV9tYXggIDMuMyAq
+IDEuMTAKICAgIHNldCBpbjZfbWluICAzLjAgKiAwLjkwCiAgICBzZXQgaW42X21heCAgMy4wICog
+MS4xMAoKCmNoaXAgImY3MTg4MmZnLSoiCgogICAgbGFiZWwgaW4wICIrMy4zViIKICAgIGxhYmVs
+IGluNyAiM1ZTQiIKICAgIGxhYmVsIGluOCAiVmJhdCIKCiAgICBjb21wdXRlIGluMCAgQCoyLCBA
+LzIKICAgIGNvbXB1dGUgaW43ICBAKjIsIEAvMgogICAgY29tcHV0ZSBpbjggIEAqMiwgQC8yCgoK
+Y2hpcCAiZjgwMDAtKiIKCiAgICBsYWJlbCBpbjAgIiszLjNWIgogICAgbGFiZWwgaW4xICIzVlNC
+IgogICAgbGFiZWwgaW4yICJWYmF0IgoKICAgIGNvbXB1dGUgaW4wICBAKjIsIEAvMgogICAgY29t
+cHV0ZSBpbjEgIEAqMiwgQC8yCiAgICBjb21wdXRlIGluMiAgQCoyLCBALzIKCgpjaGlwICJhZHQ3
+NDczLSoiICJhZHQ3NDc1LSoiCgogICAgbGFiZWwgaW4yICIrMy4zViIKCiAgICBzZXQgaW4yX21p
+biAgMy4zICogMC45MAogICAgc2V0IGluMl9tYXggIDMuMyAqIDEuMTAKCiAgICBsYWJlbCB0ZW1w
+MiAiQm9hcmQgVGVtcCIKCgpjaGlwICJhZHQ3NDc2LSoiICJhZHQ3NDkwLSoiCgogICAgbGFiZWwg
+aW4xICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBpbjMgIis1ViIKICAg
+IGxhYmVsIGluNCAiKzEyViIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45MAogICAgc2V0IGlu
+Ml9tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW4z
+X21heCAgNS4wICogMS4xMAojIERlcGVuZGluZyBvbiBob3cgeW91ciBBRFQ3NDc2IGlzIGhhcmR3
+aXJlZCwgeW91IG1heSBvciBtYXkgbm90IGhhdmUKIyArMTJWIHJlYWRpbmdzLgojICAgIHNldCBp
+bjRfbWluIDEyLjAgKiAwLjkwCiMgICAgc2V0IGluNF9tYXggMTIuMCAqIDEuMTAKCiAgICBsYWJl
+bCB0ZW1wMiAiTS9CIFRlbXAiCg==
+--0016361e88ba2c9b2c049242f0b8
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
-
-With the dynamic temperature group in place, the setup of fans
-can be simplified. This patch sets up the fans dynamically, removing
-a hundred lines of code.
-
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
----
- drivers/hwmon/applesmc.c |  188 +++++++++++-----------------------------------
- 1 files changed, 43 insertions(+), 145 deletions(-)
-
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index abbff0b..4ba20ec 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -77,20 +77,15 @@
- 
- #define FANS_COUNT		"FNum" /* r-o ui8 */
- #define FANS_MANUAL		"FS! " /* r-w ui16 */
--#define FAN_ACTUAL_SPEED	"F0Ac" /* r-o fpe2 (2 bytes) */
--#define FAN_MIN_SPEED		"F0Mn" /* r-o fpe2 (2 bytes) */
--#define FAN_MAX_SPEED		"F0Mx" /* r-o fpe2 (2 bytes) */
--#define FAN_SAFE_SPEED		"F0Sf" /* r-o fpe2 (2 bytes) */
--#define FAN_TARGET_SPEED	"F0Tg" /* r-w fpe2 (2 bytes) */
--#define FAN_POSITION		"F0ID" /* r-o char[16] */
-+#define FAN_ID_FMT		"F%dID" /* r-o char[16] */
- 
- /* List of keys used to read/write fan speeds */
--static const char* fan_speed_keys[] = {
--	FAN_ACTUAL_SPEED,
--	FAN_MIN_SPEED,
--	FAN_MAX_SPEED,
--	FAN_SAFE_SPEED,
--	FAN_TARGET_SPEED
-+static const char *fan_speed_fmt[] = {
-+	"F%dAc",		/* actual speed */
-+	"F%dMn",		/* minimum speed (rw) */
-+	"F%dMx",		/* maximum speed */
-+	"F%dSf",		/* safe speed - not all models */
-+	"F%dTg",		/* target speed (manual: rw) */
- };
- 
- #define INIT_TIMEOUT_MSECS	5000	/* wait up to 5s for device init ... */
-@@ -104,7 +99,8 @@ static const char* fan_speed_keys[] = {
- #define SENSOR_Y 1
- #define SENSOR_Z 2
- 
--#define to_index(attr) (to_sensor_dev_attr(attr)->index)
-+#define to_index(attr) (to_sensor_dev_attr(attr)->index & 0xffff)
-+#define to_option(attr) (to_sensor_dev_attr(attr)->index >> 16)
- 
- /* Dynamic device node attributes */
- struct applesmc_dev_attr {
-@@ -117,6 +113,7 @@ struct applesmc_node_group {
- 	char *format;				/* format string */
- 	void *show;				/* show function */
- 	void *store;				/* store function */
-+	int option;				/* function argument */
- 	struct applesmc_dev_attr *nodes;	/* dynamic node array */
- };
- 
-@@ -132,6 +129,7 @@ struct applesmc_entry {
- static struct applesmc_registers {
- 	struct mutex mutex;		/* register read/write mutex */
- 	unsigned int key_count;		/* number of SMC registers */
-+	unsigned int fan_count;		/* number of fans */
- 	unsigned int temp_count;	/* number of temperature registers */
- 	unsigned int temp_begin;	/* temperature lower index bound */
- 	unsigned int temp_end;		/* temperature upper index bound */
-@@ -152,9 +150,6 @@ static u8 backlight_state[2];
- static struct device *hwmon_dev;
- static struct input_polled_dev *applesmc_idev;
- 
--/* The number of fans handled by the driver */
--static unsigned int fans_handled;
--
- /*
-  * Last index written to key_at_index sysfs file, and value to use for all other
-  * key_at_index_* sysfs files.
-@@ -490,27 +485,12 @@ out:
- }
- 
- /*
-- * applesmc_get_fan_count - get the number of fans.
-- */
--static int applesmc_get_fan_count(void)
--{
--	int ret;
--	u8 buffer[1];
--
--	ret = applesmc_read_key(FANS_COUNT, buffer, 1);
--
--	if (ret)
--		return ret;
--	else
--		return buffer[0];
--}
--
--/*
-  * applesmc_init_smcreg_try - Try to initialize register cache. Idempotent.
-  */
- static int applesmc_init_smcreg_try(void)
- {
- 	struct applesmc_registers *s = &smcreg;
-+	u8 tmp[4];
- 	int ret;
- 
- 	if (s->init_complete)
-@@ -527,6 +507,11 @@ static int applesmc_init_smcreg_try(void)
- 	if (!s->entry)
- 		return -ENOMEM;
- 
-+	ret = applesmc_read_key(FANS_COUNT, tmp, 1);
-+	if (ret)
-+		return ret;
-+	s->fan_count = tmp[0];
-+
- 	ret = applesmc_get_lower_bound(&s->temp_begin, "T");
- 	if (ret)
- 		return ret;
-@@ -550,8 +535,8 @@ static int applesmc_init_smcreg_try(void)
- 
- 	s->init_complete = true;
- 
--	pr_info("key=%d temp=%d acc=%d, light=%d, keyb=%d\n",
--	       s->key_count, s->temp_count,
-+	pr_info("key=%d fan=%d temp=%d acc=%d, light=%d, keyb=%d\n",
-+	       s->key_count, s->fan_count, s->temp_count,
- 	       s->has_accelerometer,
- 	       s->has_left_light + s->has_right_light,
- 	       s->has_key_light);
-@@ -775,14 +760,8 @@ static ssize_t applesmc_show_fan_speed(struct device *dev,
- 	unsigned int speed = 0;
- 	char newkey[5];
- 	u8 buffer[2];
--	struct sensor_device_attribute_2 *sensor_attr -						to_sensor_dev_attr_2(attr);
- 
--	newkey[0] = fan_speed_keys[sensor_attr->nr][0];
--	newkey[1] = '0' + sensor_attr->index;
--	newkey[2] = fan_speed_keys[sensor_attr->nr][2];
--	newkey[3] = fan_speed_keys[sensor_attr->nr][3];
--	newkey[4] = 0;
-+	sprintf(newkey, fan_speed_fmt[to_option(attr)], to_index(attr));
- 
- 	ret = applesmc_read_key(newkey, buffer, 2);
- 	speed = ((buffer[0] << 8 | buffer[1]) >> 2);
-@@ -801,19 +780,13 @@ static ssize_t applesmc_store_fan_speed(struct device *dev,
- 	u32 speed;
- 	char newkey[5];
- 	u8 buffer[2];
--	struct sensor_device_attribute_2 *sensor_attr -						to_sensor_dev_attr_2(attr);
- 
- 	speed = simple_strtoul(sysfsbuf, NULL, 10);
- 
- 	if (speed > 0x4000) /* Bigger than a 14-bit value */
- 		return -EINVAL;
- 
--	newkey[0] = fan_speed_keys[sensor_attr->nr][0];
--	newkey[1] = '0' + sensor_attr->index;
--	newkey[2] = fan_speed_keys[sensor_attr->nr][2];
--	newkey[3] = fan_speed_keys[sensor_attr->nr][3];
--	newkey[4] = 0;
-+	sprintf(newkey, fan_speed_fmt[to_option(attr)], to_index(attr));
- 
- 	buffer[0] = (speed >> 6) & 0xff;
- 	buffer[1] = (speed << 2) & 0xff;
-@@ -826,15 +799,14 @@ static ssize_t applesmc_store_fan_speed(struct device *dev,
- }
- 
- static ssize_t applesmc_show_fan_manual(struct device *dev,
--			struct device_attribute *devattr, char *sysfsbuf)
-+			struct device_attribute *attr, char *sysfsbuf)
- {
- 	int ret;
- 	u16 manual = 0;
- 	u8 buffer[2];
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 
- 	ret = applesmc_read_key(FANS_MANUAL, buffer, 2);
--	manual = ((buffer[0] << 8 | buffer[1]) >> attr->index) & 0x01;
-+	manual = ((buffer[0] << 8 | buffer[1]) >> to_index(attr)) & 0x01;
- 
- 	if (ret)
- 		return ret;
-@@ -843,14 +815,13 @@ static ssize_t applesmc_show_fan_manual(struct device *dev,
- }
- 
- static ssize_t applesmc_store_fan_manual(struct device *dev,
--					 struct device_attribute *devattr,
-+					 struct device_attribute *attr,
- 					 const char *sysfsbuf, size_t count)
- {
- 	int ret;
- 	u8 buffer[2];
- 	u32 input;
- 	u16 val;
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 
- 	input = simple_strtoul(sysfsbuf, NULL, 10);
- 
-@@ -860,9 +831,9 @@ static ssize_t applesmc_store_fan_manual(struct device *dev,
- 		goto out;
- 
- 	if (input)
--		val = val | (0x01 << attr->index);
-+		val = val | (0x01 << to_index(attr));
- 	else
--		val = val & ~(0x01 << attr->index);
-+		val = val & ~(0x01 << to_index(attr));
- 
- 	buffer[0] = (val >> 8) & 0xFF;
- 	buffer[1] = val & 0xFF;
-@@ -882,14 +853,8 @@ static ssize_t applesmc_show_fan_position(struct device *dev,
- 	int ret;
- 	char newkey[5];
- 	u8 buffer[17];
--	struct sensor_device_attribute_2 *sensor_attr -						to_sensor_dev_attr_2(attr);
- 
--	newkey[0] = FAN_POSITION[0];
--	newkey[1] = '0' + sensor_attr->index;
--	newkey[2] = FAN_POSITION[2];
--	newkey[3] = FAN_POSITION[3];
--	newkey[4] = 0;
-+	sprintf(newkey, FAN_ID_FMT, to_index(attr));
- 
- 	ret = applesmc_read_key(newkey, buffer, 16);
- 	buffer[16] = 0;
-@@ -1066,62 +1031,15 @@ static struct attribute *key_enumeration_attributes[] = {
- static const struct attribute_group key_enumeration_group  	{ .attrs = key_enumeration_attributes };
- 
--/*
-- * Macro defining SENSOR_DEVICE_ATTR for a fan sysfs entries.
-- *  - show actual speed
-- *  - show/store minimum speed
-- *  - show maximum speed
-- *  - show safe speed
-- *  - show/store target speed
-- *  - show/store manual mode
-- */
--#define sysfs_fan_speeds_offset(offset) \
--static SENSOR_DEVICE_ATTR_2(fan##offset##_input, S_IRUGO, \
--			applesmc_show_fan_speed, NULL, 0, offset-1); \
--\
--static SENSOR_DEVICE_ATTR_2(fan##offset##_min, S_IRUGO | S_IWUSR, \
--	applesmc_show_fan_speed, applesmc_store_fan_speed, 1, offset-1); \
--\
--static SENSOR_DEVICE_ATTR_2(fan##offset##_max, S_IRUGO, \
--			applesmc_show_fan_speed, NULL, 2, offset-1); \
--\
--static SENSOR_DEVICE_ATTR_2(fan##offset##_safe, S_IRUGO, \
--			applesmc_show_fan_speed, NULL, 3, offset-1); \
--\
--static SENSOR_DEVICE_ATTR_2(fan##offset##_output, S_IRUGO | S_IWUSR, \
--	applesmc_show_fan_speed, applesmc_store_fan_speed, 4, offset-1); \
--\
--static SENSOR_DEVICE_ATTR(fan##offset##_manual, S_IRUGO | S_IWUSR, \
--	applesmc_show_fan_manual, applesmc_store_fan_manual, offset-1); \
--\
--static SENSOR_DEVICE_ATTR(fan##offset##_label, S_IRUGO, \
--	applesmc_show_fan_position, NULL, offset-1); \
--\
--static struct attribute *fan##offset##_attributes[] = { \
--	&sensor_dev_attr_fan##offset##_input.dev_attr.attr, \
--	&sensor_dev_attr_fan##offset##_min.dev_attr.attr, \
--	&sensor_dev_attr_fan##offset##_max.dev_attr.attr, \
--	&sensor_dev_attr_fan##offset##_safe.dev_attr.attr, \
--	&sensor_dev_attr_fan##offset##_output.dev_attr.attr, \
--	&sensor_dev_attr_fan##offset##_manual.dev_attr.attr, \
--	&sensor_dev_attr_fan##offset##_label.dev_attr.attr, \
--	NULL \
--};
--
--/*
-- * Create the needed functions for each fan using the macro defined above
-- * (4 fans are supported)
-- */
--sysfs_fan_speeds_offset(1);
--sysfs_fan_speeds_offset(2);
--sysfs_fan_speeds_offset(3);
--sysfs_fan_speeds_offset(4);
--
--static const struct attribute_group fan_attribute_groups[] = {
--	{ .attrs = fan1_attributes },
--	{ .attrs = fan2_attributes },
--	{ .attrs = fan3_attributes },
--	{ .attrs = fan4_attributes },
-+static struct applesmc_node_group fan_group[] = {
-+	{ "fan%d_label", applesmc_show_fan_position },
-+	{ "fan%d_input", applesmc_show_fan_speed, NULL, 0 },
-+	{ "fan%d_min", applesmc_show_fan_speed, applesmc_store_fan_speed, 1 },
-+	{ "fan%d_max", applesmc_show_fan_speed, NULL, 2 },
-+	{ "fan%d_safe", applesmc_show_fan_speed, NULL, 3 },
-+	{ "fan%d_output", applesmc_show_fan_speed, applesmc_store_fan_speed, 4 },
-+	{ "fan%d_manual", applesmc_show_fan_manual, applesmc_store_fan_manual },
-+	{ }
- };
- 
- static struct applesmc_node_group temp_group[] = {
-@@ -1168,7 +1086,7 @@ static int applesmc_create_nodes(struct applesmc_node_group *groups, int num)
- 		for (i = 0; i < num; i++) {
- 			node = &grp->nodes[i];
- 			sprintf(node->name, grp->format, i + 1);
--			node->sda.index = i;
-+			node->sda.index = (grp->option << 16) | (i & 0xffff);
- 			node->sda.dev_attr.show = grp->show;
- 			node->sda.dev_attr.store = grp->store;
- 			attr = &node->sda.dev_attr.attr;
-@@ -1286,7 +1204,6 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
- static int __init applesmc_init(void)
- {
- 	int ret;
--	int count;
- 
- 	if (!dmi_check_system(applesmc_whitelist)) {
- 		pr_warn("supported laptop not found!\n");
-@@ -1325,25 +1242,9 @@ static int __init applesmc_init(void)
- 	if (ret)
- 		goto out_name;
- 
--	/* create fan files */
--	count = applesmc_get_fan_count();
--	if (count < 0)
--		pr_err("Cannot get the number of fans\n");
--	else
--		pr_info("%d fans found\n", count);
--
--	if (count > 4) {
--		count = 4;
--		pr_warn("A maximum of 4 fans are supported by this driver\n");
--	}
--
--	while (fans_handled < count) {
--		ret = sysfs_create_group(&pdev->dev.kobj,
--					 &fan_attribute_groups[fans_handled]);
--		if (ret)
--			goto out_fans;
--		fans_handled++;
--	}
-+	ret = applesmc_create_nodes(fan_group, smcreg.fan_count);
-+	if (ret)
-+		goto out_info;
- 
- 	ret = applesmc_create_nodes(temp_group, smcreg.temp_count);
- 	if (ret)
-@@ -1401,9 +1302,8 @@ out_accelerometer:
- out_temperature:
- 	applesmc_destroy_nodes(temp_group);
- out_fans:
--	while (fans_handled)
--		sysfs_remove_group(&pdev->dev.kobj,
--				   &fan_attribute_groups[--fans_handled]);
-+	applesmc_destroy_nodes(fan_group);
-+out_info:
- 	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
- out_name:
- 	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_name.attr);
-@@ -1432,9 +1332,7 @@ static void __exit applesmc_exit(void)
- 	if (smcreg.has_accelerometer)
- 		applesmc_release_accelerometer();
- 	applesmc_destroy_nodes(temp_group);
--	while (fans_handled)
--		sysfs_remove_group(&pdev->dev.kobj,
--				   &fan_attribute_groups[--fans_handled]);
-+	applesmc_destroy_nodes(fan_group);
- 	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
- 	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_name.attr);
- 	applesmc_destroy_smcreg();
--- 
-1.7.1
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--0016361e88ba2c9b2c049242f0b8--
