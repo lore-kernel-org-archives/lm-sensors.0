@@ -1,63 +1,30 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Oct 2010 15:13:44 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/3] hwmon: (lm90) Introduce capability
-Message-Id: <20101006171344.52427d19@endymion.delvare>
+Date: Mon, 11 Oct 2010 20:19:11 +0000
+Subject: [lm-sensors] IT8721F/IT8758E support
+Message-Id: <20101011221911.38c8a3d7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1286293108-28890-3-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1286293108-28890-3-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 5 Oct 2010 08:38:27 -0700, Guenter Roeck wrote:
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
->  drivers/hwmon/lm90.c |    9 ++++++---
->  1 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> index 9df08e1..1913f8a 100644
-> --- a/drivers/hwmon/lm90.c
-> +++ b/drivers/hwmon/lm90.c
-> @@ -162,6 +162,7 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
->  #define LM90_HAVE_EMERGENCY	(1 << 4) /* 3rd upper (emergency) limit	*/
->  #define LM90_HAVE_EMERGENCY_ALARM (1 << 5)/* emergency alarm		*/
->  #define LM90_HAVE_TEMP3		(1 << 6) /* 3rd temperature sensor	*/
-> +#define LM90_HAVE_BROKEN_ALERT	(1 << 7) /* Broken alert		*/
->  
->  /*
->   * Driver data (common to all clients)
-> @@ -200,11 +201,13 @@ struct lm90_params {
->  
->  static const struct lm90_params lm90_params[] = {
->  	[adm1032] = {
-> -		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
-> +		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT
-> +		  | LM90_HAVE_BROKEN_ALERT,
->  		.alert_alarms = 0x7c,
->  	},
->  	[adt7461] = {
-> -		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT,
-> +		.flags = LM90_HAVE_OFFSET | LM90_HAVE_REM_LIMIT_EXT
-> +		  | LM90_HAVE_BROKEN_ALERT,
->  		.alert_alarms = 0x7c,
->  	},
->  	[lm86] = {
-> @@ -1361,7 +1364,7 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
->  		/* Disable ALERT# output, because these chips don't implement
->  		  SMBus alert correctly; they should only hold the alert line
->  		  low briefly. */
-> -		if ((data->kind = adm1032 || data->kind = adt7461)
-> +		if ((data->flags & LM90_HAVE_BROKEN_ALERT)
->  		 && (alarms & data->alert_alarms)) {
->  			dev_dbg(&client->dev, "Disabling ALERT#\n");
->  			lm90_read_reg(client, LM90_REG_R_CONFIG1, &config);
+Hi Patrick, Jae, Virgil,
 
-Applied, thanks.
+I am done adding support for the IT8721F/IT8758E to the it87 Linux
+driver. You can download a stand-alone version of the driver at:
+  http://khali.linux-fr.org/devel/misc/it87/
+
+Please test and report :) Beware the code is untested so far, as I
+don't have this chip at hand.
+
+Patrick, note that with an Asus board, it is entirely possible that the
+it87 driver can't be loaded due to ACPI requesting the I/O ports
+(you'll get a warning in the kernel log in that case) and you have to
+use the asus_atk0110 driver instead.
 
 -- 
 Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
