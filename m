@@ -1,44 +1,75 @@
-From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
-Date: Sun, 24 Oct 2010 14:59:23 +0000
-Subject: Re: [lm-sensors] [PATCH 12/12] hwmon: lis3: Release resources is
-Message-Id: <4CC449CB.1040005@tremplin-utc.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 11 Oct 2010 15:15:57 +0000
+Subject: Re: [lm-sensors] ECS H55H-I Support (Suspected IT8721F Chipset)
+Message-Id: <20101011171557.5728a277@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com> <1287748654-2626-13-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1287748654-2626-13-git-send-email-samu.p.onkalo@nokia.com>
+References: <AANLkTi=Bp+JJm8GoSG14X-b7BuCP_NwnxP2=nTeWWpXD@mail.gmail.com>
+In-Reply-To: <AANLkTi=Bp+JJm8GoSG14X-b7BuCP_NwnxP2=nTeWWpXD@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Samu Onkalo <samu.p.onkalo@nokia.com>
-Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk, lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Op 22-10-10 13:57, Samu Onkalo schreef:
-> If lis3lv02d_init_device fails, HW resources were not released
-> properly. In case of failure call release_resources if available.
->
-> Signed-off-by: Samu Onkalo<samu.p.onkalo@nokia.com>
-Acked-by: Eric Piel <eric.piel@tremplin-utc.net>
-> ---
->   drivers/hwmon/lis3lv02d_i2c.c |    5 +++++
->   1 files changed, 5 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
-> index 61c109b..94d5bde 100644
-> --- a/drivers/hwmon/lis3lv02d_i2c.c
-> +++ b/drivers/hwmon/lis3lv02d_i2c.c
-> @@ -161,7 +161,12 @@ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
->
->   	if (lis3_dev.reg_ctrl)
->   		lis3_reg_ctrl(&lis3_dev, LIS3_REG_OFF);
-> +
-> +	if (ret = 0)
-> +		return 0;
->   fail:
-> +	if (pdata&&  pdata->release_resources)
-> +		pdata->release_resources();
->   	return ret;
->   }
->
+On Thu, 9 Sep 2010 07:42:45 -0500, Virgil Gheorghiu wrote:
+> Good morning, Jae,
+>=20
+> > Not really sure how to configure the sensors.conf for my mobo but all I=
+'m really
+> > interested in is temperature so I think I am there.
+> Per your output, I'd do, for example:
+>=20
+> root@box:~# mv /etc/sensors.conf{,.orig}
+> root@box:~# cat <<-EOF > /etc/sensors.conf
+> chip "it8758-*"
+> 	ignore temp2	# since sensor =3D disabled
+> 	label temp1 "CPU0 Temp" # check BIOS name and value
+> 	label temp3 "System Temp" # check BIOS name and value
 
+This is rather unlikely IMHO. The fact that only temp3 has type thermal dio=
+de and only temp3 has its high limit set to a sensible
+value, my own guess is that temp3 is the CPU temperature. Which would
+leave temp1 for the system temperature.
+
+Obviously CPU temperature lower than system temperature is suspicious,
+so there may be some offset to apply. In any case it would be
+interesting to see what the BIOS reports.
+
+>=20
+> 	set temp1_min 15
+> 	set temp1_max 70 # min(CPU junction specs, your idea of hot :-)
+> 	set temp3_min 20
+> 	set temp3_max 80 # ibid.
+> EOF
+> root@box:~# sensors -s # to set the min/max values
+>=20
+> > temp1:       +49.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sens=
+or =3D thermistor
+> > temp2:      -128.0=B0C  (low  =3D  -1.0=B0C, high =3D +127.0=B0C)  sens=
+or =3D disabled
+> > temp3:       +37.0=B0C  (low  =3D +127.0=B0C, high =3D +80.0=B0C)  sens=
+or =3D thermal diode
+> >=20
+> > 49 and 37 seem pretty low but if they're right I'd be really happy.
+> I recommend you check those values (and names) against what the BIOS repo=
+rts.
+> There should be an entry in the BIOS labeled PC Health or similar.
+> On the same page you should also see voltages for CPU, RAM, & co.
+>=20
+> Note I don't trust at all the voltage equations I wrote, since I didn't g=
+o read
+> the datasheet for the chip; it looks like it's impossible to find.
+
+We do have a datasheet. It's not public as far as I know, we got it
+from ITE. I can confirm that your voltages are wrong, as the
+IT8721F/IT8758E has a 12mV ADC instead of 16mV as all other supported
+chips have. So all your raw voltage readings are 33% higher than they
+should be.
+
+Virgil, I'm adding you to the list of people interested in
+IT8721F/IT8758E support.
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
