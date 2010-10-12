@@ -1,199 +1,108 @@
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
-Date: Fri, 01 Oct 2010 11:46:56 +0000
-Subject: [lm-sensors] [RFC PATCH 9/9] hwmon: lis3: Enhance lis3 selftest
-Message-Id: <1285933616-16044-10-git-send-email-samu.p.onkalo@nokia.com>
+From: "H. Peter Anvin" <hpa@linux.intel.com>
+Date: Tue, 12 Oct 2010 20:22:28 +0000
+Subject: [lm-sensors] [GIT PULL] x86 fixes for 2.6.36
+Message-Id: <201010122022.o9CKMSJL023932@hera.kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285933616-16044-1-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1285933616-16044-1-git-send-email-samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: stable@kernel.org, Borislav Petkov <borislav.petkov@amd.com>, Brown Len <len.brown@intel.com>, David Rientjes <rientjes@google.com>, Fenghua Yu <fenghua.yu@initel.com>, Guenter Roeck <guenter.roeck@ericsson.com>, "H. Peter Anvin" <hpa@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Ingo Molnar <mingo@elte.hu>, Jean Delvare <khali@linux-fr.org>, Jin Dongming <jin.dongming@np.css.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russ Anderson <rja@sgi.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Configure chip to data ready mode in selftest and count received
-interrupts to see that interrupt line(s) are working.
+Hi Linus,
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
----
- drivers/hwmon/lis3lv02d.c |   87 ++++++++++++++++++++++++++++++++++++++++----
- drivers/hwmon/lis3lv02d.h |    3 +-
- 2 files changed, 81 insertions(+), 9 deletions(-)
+As previously discussed, the last set of bug fixes for 2.6.36.  The
+important one is the NUMA fix, of course.
 
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index 469f251..cf1b4db 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -47,6 +47,13 @@
- 
- #define SYSFS_POWERDOWN_DELAY 5000 /* In milliseconds */
- 
-+#define SELFTEST_OK	       0
-+#define SELFTEST_FAIL	       -1
-+#define SELFTEST_IRQ	       -2
+The following changes since commit 0acc1b2afb6ded060b7d6b1b5e6ac8a00ec47547:
+
+  Merge branch 'kvm-updates/2.6.36' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2010-10-12 09:16:01 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tip/linux-2.6-tip.git x86-fixes-for-linus
+
+Borislav Petkov (1):
+      x86, AMD, MCE thresholding: Fix the MCi_MISCj iteration order
+
+Jin Dongming (1):
+      x86, mce, therm_throt.c: Fix missing curly braces in error handling logic
+
+Yinghai Lu (1):
+      x86, numa: For each node, register the memory blocks actually used
+
+ arch/x86/kernel/cpu/mcheck/mce_amd.c     |    9 +++------
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |    3 ++-
+ arch/x86/mm/srat_64.c                    |    8 +++++---
+ 3 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/arch/x86/kernel/cpu/mcheck/mce_amd.c b/arch/x86/kernel/cpu/mcheck/mce_amd.c
+index 5e97529..39aaee5 100644
+--- a/arch/x86/kernel/cpu/mcheck/mce_amd.c
++++ b/arch/x86/kernel/cpu/mcheck/mce_amd.c
+@@ -141,6 +141,7 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
+ 				address = (low & MASK_BLKPTR_LO) >> 21;
+ 				if (!address)
+ 					break;
 +
-+#define IRQ_LINE0	       0
-+#define IRQ_LINE1	       1
-+
- /*
-  * The sensor can also generate interrupts (DRDY) but it's pretty pointless
-  * because they are generated even if the data do not change. So it's better
-@@ -197,6 +204,8 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
- 	s16 x, y, z;
- 	u8 selftest;
- 	int ret;
-+	u8 ctrl_reg_data;
-+	unsigned char irq_cfg;
+ 				address += MCG_XBLK_ADDR;
+ 			} else
+ 				++address;
+@@ -148,12 +149,8 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
+ 			if (rdmsr_safe(address, &low, &high))
+ 				break;
  
- 	mutex_lock(&lis3->mutex);
- 	if (lis3_dev.whoami = WAI_12B)
-@@ -204,6 +213,20 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
- 	else
- 		selftest = CTRL1_STP;
+-			if (!(high & MASK_VALID_HI)) {
+-				if (block)
+-					continue;
+-				else
+-					break;
+-			}
++			if (!(high & MASK_VALID_HI))
++				continue;
  
-+	irq_cfg = lis3->irq_cfg;
-+	if (lis3_dev.whoami = WAI_8B) {
-+		lis3->data_ready_count[IRQ_LINE0] = 0;
-+		lis3->data_ready_count[IRQ_LINE1] = 0;
-+
-+		/* Change interrupt cfg to data ready for selftest */
-+		atomic_inc(&lis3_dev.wake_thread);
-+		lis3->irq_cfg = LIS3_IRQ1_DATA_READY | LIS3_IRQ2_DATA_READY;
-+		lis3->read(lis3, CTRL_REG3, &ctrl_reg_data);
-+		lis3->write(lis3, CTRL_REG3, (ctrl_reg_data &
-+				~(LIS3_IRQ1_MASK | LIS3_IRQ2_MASK)) |
-+				(LIS3_IRQ1_DATA_READY | LIS3_IRQ2_DATA_READY));
+ 			if (!(high & MASK_CNTP_HI)  ||
+ 			     (high & MASK_LOCKED_HI))
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index d9368ee..169d880 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -216,7 +216,7 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_core_power_limit_count.attr,
+ 					      thermal_attr_group.name);
+-	if (cpu_has(c, X86_FEATURE_PTS))
++	if (cpu_has(c, X86_FEATURE_PTS)) {
+ 		err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					      &attr_package_throttle_count.attr,
+ 					      thermal_attr_group.name);
+@@ -224,6 +224,7 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
+ 			err = sysfs_add_file_to_group(&sys_dev->kobj,
+ 					&attr_package_power_limit_count.attr,
+ 					thermal_attr_group.name);
 +	}
-+
- 	lis3->read(lis3, CTRL_REG1, &reg);
- 	lis3->write(lis3, CTRL_REG1, (reg | selftest));
- 	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-@@ -222,13 +245,33 @@ static int lis3lv02d_selftest(struct lis3lv02d *lis3, s16 results[3])
- 	results[2] = z - lis3->read_data(lis3, OUTZ);
  
- 	ret = 0;
-+
-+	if (lis3_dev.whoami = WAI_8B) {
-+		/* Restore original interrupt configuration */
-+		atomic_dec(&lis3_dev.wake_thread);
-+		lis3->write(lis3, CTRL_REG3, ctrl_reg_data);
-+		lis3->irq_cfg = irq_cfg;
-+
-+		if ((irq_cfg & LIS3_IRQ1_MASK) &&
-+			lis3->data_ready_count[IRQ_LINE0] < 2) {
-+			ret = SELFTEST_IRQ;
-+			goto fail;
-+		}
-+
-+		if ((irq_cfg & LIS3_IRQ2_MASK) &&
-+			lis3->data_ready_count[IRQ_LINE1] < 2) {
-+			ret = SELFTEST_IRQ;
-+			goto fail;
-+		}
-+	}
-+
- 	if (lis3->pdata) {
- 		int i;
- 		for (i = 0; i < 3; i++) {
- 			/* Check against selftest acceptance limits */
- 			if ((results[i] < lis3->pdata->st_min_limits[i]) ||
- 			    (results[i] > lis3->pdata->st_max_limits[i])) {
--				ret = -EIO;
-+				ret = SELFTEST_FAIL;
- 				goto fail;
- 			}
- 		}
-@@ -391,13 +434,24 @@ static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
- 	mutex_unlock(&lis3->mutex);
+ 	return err;
  }
+diff --git a/arch/x86/mm/srat_64.c b/arch/x86/mm/srat_64.c
+index f9897f7..9c0d0d3 100644
+--- a/arch/x86/mm/srat_64.c
++++ b/arch/x86/mm/srat_64.c
+@@ -420,9 +420,11 @@ int __init acpi_scan_nodes(unsigned long start, unsigned long end)
+ 		return -1;
+ 	}
  
--static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
-+static inline void lis302dl_data_ready(struct lis3lv02d *lis3, int index)
- {
-+	int dummy;
- 
-+	/* Dummy read to ack interrupt */
-+	lis3lv02d_get_xyz(lis3, &dummy, &dummy, &dummy);
-+	lis3->data_ready_count[index]++;
-+}
+-	for_each_node_mask(i, nodes_parsed)
+-		e820_register_active_regions(i, nodes[i].start >> PAGE_SHIFT,
+-						nodes[i].end >> PAGE_SHIFT);
++	for (i = 0; i < num_node_memblks; i++)
++		e820_register_active_regions(memblk_nodeid[i],
++				node_memblk_range[i].start >> PAGE_SHIFT,
++				node_memblk_range[i].end >> PAGE_SHIFT);
 +
-+static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
-+{
- 	struct lis3lv02d *lis3 = data;
-+	u8 irq_cfg = lis3->irq_cfg & LIS3_IRQ1_MASK;
- 
--	if ((lis3->irq_cfg & LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
-+	if (irq_cfg = LIS3_IRQ1_CLICK)
- 		lis302dl_interrupt_handle_click(lis3);
-+	else if (unlikely(irq_cfg = LIS3_IRQ1_DATA_READY))
-+		lis302dl_data_ready(lis3, IRQ_LINE0);
- 	else
- 		lis3lv02d_joystick_poll(lis3_dev.idev);
- 
-@@ -406,11 +460,13 @@ static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
- 
- static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
- {
--
- 	struct lis3lv02d *lis3 = data;
-+	u8 irq_cfg = lis3->irq_cfg & LIS3_IRQ2_MASK;
- 
--	if ((lis3->irq_cfg & LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
-+	if (irq_cfg = LIS3_IRQ2_CLICK)
- 		lis302dl_interrupt_handle_click(lis3);
-+	else if (unlikely(irq_cfg = LIS3_IRQ2_DATA_READY))
-+		lis302dl_data_ready(lis3, IRQ_LINE1);
- 	else
- 		lis3lv02d_joystick_poll(lis3_dev.idev);
- 
-@@ -613,12 +669,27 @@ static void lis3lv02d_sysfs_poweron(struct lis3lv02d *lis3)
- static ssize_t lis3lv02d_selftest_show(struct device *dev,
- 				struct device_attribute *attr, char *buf)
- {
--	int result;
- 	s16 values[3];
- 
-+	static const char ok[] = "OK";
-+	static const char fail[] = "FAIL";
-+	static const char irq[] = "FAIL_IRQ";
-+	const char *res;
-+
- 	lis3lv02d_sysfs_poweron(&lis3_dev);
--	result = lis3lv02d_selftest(&lis3_dev, values);
--	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
-+	switch (lis3lv02d_selftest(&lis3_dev, values)) {
-+	case SELFTEST_FAIL:
-+		res = fail;
-+		break;
-+	case SELFTEST_IRQ:
-+		res = irq;
-+		break;
-+	case SELFTEST_OK:
-+	default:
-+		res = ok;
-+		break;
-+	}
-+	return sprintf(buf, "%s %d %d %d\n", res,
- 		values[0], values[1], values[2]);
- }
- 
-diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-index cfff63c..3b739ec 100644
---- a/drivers/hwmon/lis3lv02d.h
-+++ b/drivers/hwmon/lis3lv02d.h
-@@ -261,7 +261,8 @@ struct lis3lv02d {
- 	struct fasync_struct	*async_queue; /* queue for the misc device */
- 	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
- 	unsigned long		misc_opened; /* bit0: whether the device is open */
--	atomic_t                wake_thread;
-+	int                     data_ready_count[2];
-+	atomic_t		wake_thread;
- 	unsigned char           irq_cfg;
- 
- 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
--- 
-1.6.0.4
-
+ 	/* for out of order entries in SRAT */
+ 	sort_node_map();
+ 	if (!nodes_cover_memory(nodes)) {
 
 _______________________________________________
 lm-sensors mailing list
