@@ -1,340 +1,109 @@
-From: Peio Popov <peio@peio.org>
-Date: Sun, 10 Oct 2010 13:08:21 +0000
-Subject: [lm-sensors] fancontrol on adt7468
-Message-Id: <AANLkTinrFCMaVLhgFfy=rdh07c-5fs8g1xDY+xvwyayP@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0016361e88ba2c9b2c049242f0b8"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 13 Oct 2010 19:53:33 +0000
+Subject: Re: [lm-sensors] fancontrol on adt7468
+Message-Id: <20101013215333.3b17ab31@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <AANLkTinrFCMaVLhgFfy=rdh07c-5fs8g1xDY+xvwyayP@mail.gmail.com>
+In-Reply-To: <AANLkTinrFCMaVLhgFfy=rdh07c-5fs8g1xDY+xvwyayP@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---0016361e88ba2c9b2c049242f0b8
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Peio,
 
-Hello,
-I am trying to keep my cpu fan noise down with fancontrol but the
-lowest possible fan speed I can reach is around 1060 RPM and I am
-looking for ways to slow the fan down or stop it.
+On Sun, 10 Oct 2010 16:08:21 +0300, Peio Popov wrote:
+> I am trying to keep my cpu fan noise down with fancontrol but the
+> lowest possible fan speed I can reach is around 1060 RPM and I am
+> looking for ways to slow the fan down or stop it.
 
-Hoping that you will be able to help me solve the problem I include
-all the information that might be relevant and helpful:
+I presume this is a 4-wire fan? The non-zero minimum speed of these fans
+is often a feature, I'm afraid there's no way around it. At least this
+is what I observed with Intel fans on Pentium 4 systems. The minimum
+speed I could achieve was around 1000 RPM (which I was happy with.) On
+4-wire fans, the PWM signal is separate from the power, so even a 0%
+duty cycle can leave the fan spinning.
 
-I am using lm_sensors-3.1.2-2.svn5857 on fedora 13 with kernel
-2.6.34.7-56.fc13.x86_64 installed on IBM Intellistation M. Detailed
-hardware profile of my pc is available at
-http://www.smolts.org/client/show/pub_1a7d5446-bb08-4077-9820-8057f30e4b63
-.
+So you should check the specifications of your fan before blaming the
+ADT7468 device or is Linux driver.
 
-sensors-detect detected adt7468 device and here is a part of the
-sensors command output:
-adt7468-i2c-2-2e
-Adapter: SMBus I801 adapter at 3080
-in0:         +2.49 V  (min =3D  +2.38 V, max =3D  +2.62 V)
-Vcore:       +1.14 V  (min =3D  +0.82 V, max =3D  +1.40 V)
-+3.3V:       +3.36 V  (min =3D  +2.97 V, max =3D  +3.63 V)
-+5V:         +5.12 V  (min =3D  +4.50 V, max =3D  +5.50 V)
-+12V:       +12.23 V  (min =3D  +0.00 V, max =3D +15.94 V)
-fan1:       1064 RPM  (min =3D    0 RPM)
-fan2:          0 RPM  (min =3D    0 RPM)
-fan3:          0 RPM  (min =3D    0 RPM)
-fan4:         -1 RPM  (min =3D    0 RPM)
-temp1:       +32.0=C2=B0C  (low  =3D +49.0=C2=B0C, high =3D +21.0=C2=B0C)  =
-ALARM
-M/B Temp:    +28.5=C2=B0C  (low  =3D -63.0=C2=B0C, high =3D -65.0=C2=B0C)
-temp3:       +24.5=C2=B0C  (low  =3D +34.0=C2=B0C, high =3D -65.0=C2=B0C)  =
-ALARM
-cpu0_vid:   +1.419 V
+I also suggest checking on the motherboard if it has jumpers related to
+the fans. On my board, there are jumpers to select between 3-wire and
+4-wire fan operation. An improper setting of these or similar jumpers
+would certainly alter your ability to control the fan.
 
-The complete sensors command output is attached.
+Lastly, also keep in mind that the PWM signal goes through your
+motherboard before it reaches the fan. Board manufacturers are free to
+process the signal on the road in any way they like. Maybe IBM simply
+doesn't want the CPU fans to be stoppable for hardware safety reasons.
 
-I ran pwmconfig and here is the the relevant part:
+> Hoping that you will be able to help me solve the problem I include
+> all the information that might be relevant and helpful:
+>=20
+> I am using lm_sensors-3.1.2-2.svn5857 on fedora 13 with kernel
+> 2.6.34.7-56.fc13.x86_64 installed on IBM Intellistation M. Detailed
+> hardware profile of my pc is available at
+> http://www.smolts.org/client/show/pub_1a7d5446-bb08-4077-9820-8057f30e4b63
+> ..
+>=20
+> sensors-detect detected adt7468 device and here is a part of the
+> sensors command output:
+> adt7468-i2c-2-2e
+> Adapter: SMBus I801 adapter at 3080
+> in0:         +2.49 V  (min =3D  +2.38 V, max =3D  +2.62 V)
+> Vcore:       +1.14 V  (min =3D  +0.82 V, max =3D  +1.40 V)
+> +3.3V:       +3.36 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+> +5V:         +5.12 V  (min =3D  +4.50 V, max =3D  +5.50 V)
+> +12V:       +12.23 V  (min =3D  +0.00 V, max =3D +15.94 V)
+> fan1:       1064 RPM  (min =3D    0 RPM)
+> fan2:          0 RPM  (min =3D    0 RPM)
+> fan3:          0 RPM  (min =3D    0 RPM)
+> fan4:         -1 RPM  (min =3D    0 RPM)
+> temp1:       +32.0=B0C  (low  =3D +49.0=B0C, high =3D +21.0=B0C)  ALARM
+> M/B Temp:    +28.5=B0C  (low  =3D -63.0=B0C, high =3D -65.0=B0C)
+> temp3:       +24.5=B0C  (low  =3D +34.0=B0C, high =3D -65.0=B0C)  ALARM
+> cpu0_vid:   +1.419 V
+>=20
+> The complete sensors command output is attached.
+>=20
+> I ran pwmconfig and here is the the relevant part:
+>=20
+> Testing pwm control hwmon5/device/pwm1 ...
+>   hwmon5/device/fan1_input ... speed was 5192 now 1011
+>     It appears that fan hwmon5/device/fan1_input
+>     is controlled by pwm hwmon5/device/pwm1
+> ...
+>     PWM 255 FAN 5004
+>     PWM 240 FAN 5192
+>     PWM 225 FAN 5187
+> .....
+>     PWM 6 FAN 4011
+>     PWM 4 FAN 3958
+>     PWM 2 FAN 3890
+>     PWM 0 FAN 2359
+>=20
+> I am attaching the resulting /etc/fancontol file.
+>=20
+> In the hwmon5.values file i am also attaching the files and their
+> values as contained in /sys/class/hwmon/hwmon5/device
+> (the result of: for file in `ls -1 .`;do echo -n $file " -> "; cat $file;=
+ done)
 
-Testing pwm control hwmon5/device/pwm1 ...
-  hwmon5/device/fan1_input ... speed was 5192 now 1011
-    It appears that fan hwmon5/device/fan1_input
-    is controlled by pwm hwmon5/device/pwm1
-...
-    PWM 255 FAN 5004
-    PWM 240 FAN 5192
-    PWM 225 FAN 5187
-.....
-    PWM 6 FAN 4011
-    PWM 4 FAN 3958
-    PWM 2 FAN 3890
-    PWM 0 FAN 2359
+FYI, this is more easily achieved with: grep . *
 
-I am attaching the resulting /etc/fancontol file.
+> When in BIOS the CPU fan runs at constant speed of ~1400 RPM and I see
+> no obvious  BIOS options or settings to control it.
+>=20
+> I am also attaching the sensors3.conf file.
+>=20
+> I would be very grateful if somebody could help me make the system quiete=
+r.
 
-In the hwmon5.values file i am also attaching the files and their
-values as contained in /sys/class/hwmon/hwmon5/device
-(the result of: for file in `ls -1 .`;do echo -n $file " -> "; cat $file; d=
-one)
-
-When in BIOS the CPU fan runs at constant speed of ~1400 RPM and I see
-no obvious  BIOS options or settings to control it.
-
-I am also attaching the sensors3.conf file.
-
-I would be very grateful if somebody could help me make the system quieter.
-
-Thank you very much in advance
-Peio Popov
-
---0016361e88ba2c9b2c049242f0b8
-Content-Type: text/plain; charset=UTF-8; name="sensors.txt"
-Content-Disposition: attachment; filename="sensors.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gf3sarrc0
-
-Y29yZXRlbXAtaXNhLTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICszOC4w
-wrBDICAoaGlnaCA9ICs4NC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKSAgCgpjb3JldGVtcC1pc2Et
-MDAwMQpBZGFwdGVyOiBJU0EgYWRhcHRlcgpDb3JlIDE6ICAgICAgKzM3LjDCsEMgIChoaWdoID0g
-Kzg0LjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpICAKCmNvcmV0ZW1wLWlzYS0wMDAyCkFkYXB0ZXI6
-IElTQSBhZGFwdGVyCkNvcmUgMjogICAgICArMzMuMMKwQyAgKGhpZ2ggPSArODQuMMKwQywgY3Jp
-dCA9ICsxMDAuMMKwQykgIAoKY29yZXRlbXAtaXNhLTAwMDMKQWRhcHRlcjogSVNBIGFkYXB0ZXIK
-Q29yZSAzOiAgICAgICszNi4wwrBDICAoaGlnaCA9ICs4NC4wwrBDLCBjcml0ID0gKzEwMC4wwrBD
-KSAgCgpzY2g1MDI3LWkyYy0yLTJjCkFkYXB0ZXI6IFNNQnVzIEk4MDEgYWRhcHRlciBhdCAzMDgw
-CjVWU0I6ICAgICAgICArNS4xNCBWICAobWluID0gICs0LjUwIFYsIG1heCA9ICArNS41MCBWKSAg
-IApWY29yZTogICAgICAgKzEuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuOTkgVikg
-ICAKKzMuM1Y6ICAgICAgICszLjM3IFYgIChtaW4gPSAgKzIuOTcgViwgbWF4ID0gICszLjYzIFYp
-ICAgCmluMzogICAgICAgICArMS4xNSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS40OSBW
-KSAgIAppbjQ6ICAgICAgICAgKzEuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEuNDkg
-VikgICAKM1ZTQjogICAgICAgICszLjMxIFYgIChtaW4gPSAgKzIuOTcgViwgbWF4ID0gICszLjYz
-IFYpICAgClZiYXQ6ICAgICAgICArMy4xNSBWICAobWluID0gICsyLjcwIFYsIG1heCA9ICArMy4z
-MCBWKSAgIApmYW4xOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAg
-ICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQp0ZW1wMTogICAgICAgICBGQVVMVCAgKGxvdyAg
-PSAtMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICAKU0lPIFRlbXA6ICAgICs0NC42wrBDICAo
-bG93ICA9IC0xMjcuMMKwQywgaGlnaCA9ICsxMjcuMMKwQykgIAp0ZW1wMzogICAgICAgICBGQVVM
-VCAgKGxvdyAgPSAtMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICAKCmFkdDc0NjgtaTJjLTIt
-MmUKQWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDMwODAKaW4wOiAgICAgICAgICsyLjQ5
-IFYgIChtaW4gPSAgKzIuMzggViwgbWF4ID0gICsyLjYyIFYpICAgClZjb3JlOiAgICAgICArMS4x
-NCBWICAobWluID0gICswLjgyIFYsIG1heCA9ICArMS40MCBWKSAgIAorMy4zVjogICAgICAgKzMu
-MzYgViAgKG1pbiA9ICArMi45NyBWLCBtYXggPSAgKzMuNjMgVikgICAKKzVWOiAgICAgICAgICs1
-LjEyIFYgIChtaW4gPSAgKzQuNTAgViwgbWF4ID0gICs1LjUwIFYpICAgCisxMlY6ICAgICAgICsx
-Mi4yMyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICsxNS45NCBWKSAgIApmYW4xOiAgICAgICAx
-MDY0IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAg
-IDAgUlBNKQpmYW4zOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW40OiAgICAg
-ICAgIC0xIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQp0ZW1wMTogICAgICAgKzMyLjLCsEMgIChsb3cg
-ID0gKzQ5LjDCsEMsIGhpZ2ggPSArMjEuMMKwQykgIEFMQVJNICAKTS9CIFRlbXA6ICAgICsyOC41
-wrBDICAobG93ICA9IC02My4wwrBDLCBoaWdoID0gLTY1LjDCsEMpICAKdGVtcDM6ICAgICAgICsy
-NC4ywrBDICAobG93ICA9ICszNC4wwrBDLCBoaWdoID0gLTY1LjDCsEMpICBBTEFSTSAgCmNwdTBf
-dmlkOiAgICsxLjQxOSBWCgo=
---0016361e88ba2c9b2c049242f0b8
-Content-Type: application/octet-stream; name=fancontrol
-Content-Disposition: attachment; filename=fancontrol
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gf3sd8xo1
-
-IyBDb25maWd1cmF0aW9uIGZpbGUgZ2VuZXJhdGVkIGJ5IHB3bWNvbmZpZywgY2hhbmdlcyB3aWxs
-IGJlIGxvc3QKSU5URVJWQUw9MTAKREVWUEFUSD1od21vbjU9ZGV2aWNlcy9wY2kwMDAwOjAwLzAw
-MDA6MDA6MWYuMy9pMmMtMi8yLTAwMmUKREVWTkFNRT1od21vbjU9YWR0NzQ2OApGQ1RFTVBTPSBo
-d21vbjUvZGV2aWNlL3B3bTE9aHdtb241L2RldmljZS90ZW1wMV9pbnB1dApGQ0ZBTlM9IGh3bW9u
-NS9kZXZpY2UvcHdtMT1od21vbjUvZGV2aWNlL2ZhbjFfaW5wdXQKTUlOVEVNUD0gaHdtb241L2Rl
-dmljZS9wd20xPTQ1Ck1BWFRFTVA9IGh3bW9uNS9kZXZpY2UvcHdtMT04MApNSU5TVEFSVD0gaHdt
-b241L2RldmljZS9wd20xPTE1MApNSU5TVE9QPSBod21vbjUvZGV2aWNlL3B3bTE9MApNSU5QV009
-aHdtb241L2RldmljZS9wd20xPTAKTUFYUFdNPWh3bW9uNS9kZXZpY2UvcHdtMT0yNTAK
---0016361e88ba2c9b2c049242f0b8
-Content-Type: text/plain; charset=US-ASCII; name="hwmon5.values.txt"
-Content-Disposition: attachment; filename="hwmon5.values.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gf3x9lm42
-
-YWxhcm1zICAtPiA4MApjcHUwX3ZpZCAgLT4gMTQxOQpkcml2ZXIgIC0+IGZhbjFfYWxhcm0gIC0+
-IDAKZmFuMV9pbnB1dCAgLT4gMTA2MQpmYW4xX21pbiAgLT4gODMKZmFuMl9hbGFybSAgLT4gMApm
-YW4yX2lucHV0ICAtPiAwCmZhbjJfbWluICAtPiAwCmZhbjNfYWxhcm0gIC0+IDAKZmFuM19pbnB1
-dCAgLT4gMApmYW4zX21pbiAgLT4gMApmYW40X2FsYXJtICAtPiAwCmZhbjRfaW5wdXQgIC0+IC0x
-CmZhbjRfbWluICAtPiAwCmh3bW9uICAtPiBpbjBfYWxhcm0gIC0+IDAKaW4wX2lucHV0ICAtPiAy
-NDkzCmluMF9tYXggIC0+IDI2MTcKaW4wX21pbiAgLT4gMjM4MwppbjFfYWxhcm0gIC0+IDAKaW4x
-X2lucHV0ICAtPiAxMTQwCmluMV9tYXggIC0+IDEzOTUKaW4xX21pbiAgLT4gODIwCmluMl9hbGFy
-bSAgLT4gMAppbjJfaW5wdXQgIC0+IDMzNjQKaW4yX21heCAgLT4gMzYyNwppbjJfbWluICAtPiAy
-OTczCmluM19hbGFybSAgLT4gMAppbjNfaW5wdXQgIC0+IDUxMTcKaW4zX21heCAgLT4gNTQ5NQpp
-bjNfbWluICAtPiA0NTA1CmluNF9hbGFybSAgLT4gMAppbjRfaW5wdXQgIC0+IDEyMjM0CmluNF9t
-YXggIC0+IDE1OTM4CmluNF9taW4gIC0+IDAKbW9kYWxpYXMgIC0+IGkyYzphZHQ3NDY4Cm5hbWUg
-IC0+IGFkdDc0NjgKcG93ZXIgIC0+IHB3bTEgIC0+IDAKcHdtMV9hdXRvX2NoYW5uZWxzICAtPiAt
-Mgpwd20xX2F1dG9fcHdtX21pbiAgLT4gMjQKcHdtMV9hdXRvX3B3bV9taW5jdGwgIC0+IDEKcHdt
-MV9lbmFibGUgIC0+IDEKcHdtMV9mcmVxICAtPiAzOApwd20yICAtPiAyNTUKcHdtMl9hdXRvX2No
-YW5uZWxzICAtPiAtMQpwd20yX2F1dG9fcHdtX21pbiAgLT4gNTQKcHdtMl9hdXRvX3B3bV9taW5j
-dGwgIC0+IDAKcHdtMl9lbmFibGUgIC0+IDAKcHdtMl9mcmVxICAtPiAzOApwd20zICAtPiAyNTUK
-cHdtM19hdXRvX2NoYW5uZWxzICAtPiAtMQpwd20zX2F1dG9fcHdtX21pbiAgLT4gMTI4CnB3bTNf
-YXV0b19wd21fbWluY3RsICAtPiAxCnB3bTNfZW5hYmxlICAtPiAwCnB3bTNfZnJlcSAgLT4gMzgK
-c3Vic3lzdGVtICAtPiB0ZW1wMV9hbGFybSAgLT4gMQp0ZW1wMV9hdXRvX3RlbXBfY3JpdCAgLT4g
-NjgwMDAKdGVtcDFfYXV0b190ZW1wX21heCAgLT4gODQwMDAKdGVtcDFfYXV0b190ZW1wX21pbiAg
-LT4gNTIwMDAKdGVtcDFfYXV0b190ZW1wX29mZiAgLT4gNDgwMDAKdGVtcDFfZmF1bHQgIC0+IDAK
-dGVtcDFfaW5wdXQgIC0+IDI5MjUwCnRlbXAxX21heCAgLT4gLTY1MDAwCnRlbXAxX21pbiAgLT4g
-NDkwMDAKdGVtcDJfYWxhcm0gIC0+IDAKdGVtcDJfYXV0b190ZW1wX2NyaXQgIC0+IDkwMDAwCnRl
-bXAyX2F1dG9fdGVtcF9tYXggIC0+IDg2MDAwCnRlbXAyX2F1dG9fdGVtcF9taW4gIC0+IDU0MDAw
-CnRlbXAyX2F1dG9fdGVtcF9vZmYgIC0+IDUwMDAwCnRlbXAyX2lucHV0ICAtPiAyNzUwMAp0ZW1w
-Ml9tYXggIC0+IC02NTAwMAp0ZW1wMl9taW4gIC0+IC02MzAwMAp0ZW1wM19hbGFybSAgLT4gMQp0
-ZW1wM19hdXRvX3RlbXBfY3JpdCAgLT4gNTAwMDAKdGVtcDNfYXV0b190ZW1wX21heCAgLT4gNTYw
-MDAKdGVtcDNfYXV0b190ZW1wX21pbiAgLT4gMzYwMDAKdGVtcDNfYXV0b190ZW1wX29mZiAgLT4g
-MzIwMDAKdGVtcDNfZmF1bHQgIC0+IDAKdGVtcDNfaW5wdXQgIC0+IDIzMjUwCnRlbXAzX21heCAg
-LT4gLTY1MDAwCnRlbXAzX21pbiAgLT4gMzQwMDAKdWV2ZW50ICAtPiBEUklWRVI9bG04NQpNT0RB
-TElBUz1pMmM6YWR0NzQ2OAp2cm0gIC0+IDExMAo=
---0016361e88ba2c9b2c049242f0b8
-Content-Type: application/octet-stream; name="sensors3.conf"
-Content-Disposition: attachment; filename="sensors3.conf"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gf3xgbkk3
-
-IyBsaWJzZW5zb3JzIGNvbmZpZ3VyYXRpb24gZmlsZQojIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tCiMKIyBUaGlzIGRlZmF1bHQgY29uZmlndXJhdGlvbiBmaWxlIG9ubHkgaW5jbHVkZXMg
-c3RhdGVtZW50cyB3aGljaCBkbyBub3QKIyBkaWZmZXIgZnJvbSBvbmUgbWFpbmJvYXJkIHRvIHRo
-ZSBuZXh0LiBPbmx5IGxhYmVsLCBjb21wdXRlIGFuZCBzZXQKIyBzdGF0ZW1lbnRzIGZvciBpbnRl
-cm5hbCB2b2x0YWdlIGFuZCB0ZW1wZXJhdHVyZSBzZW5zb3JzIGFyZSBpbmNsdWRlZC4KIwojIElu
-IGdlbmVyYWwsIGxvY2FsIGNoYW5nZXMgc2hvdWxkIG5vdCBiZSBhZGRlZCB0byB0aGlzIGZpbGUs
-IGJ1dCByYXRoZXIKIyBwbGFjZWQgaW4gY3VzdG9tIGNvbmZpZ3VyYXRpb24gZmlsZXMgbG9jYXRl
-ZCBpbiAvZXRjL3NlbnNvcnMuZC4gVGhpcwojIGFwcHJvYWNoIG1ha2VzIGZ1cnRoZXIgdXBkYXRl
-cyBtdWNoIGVhc2llci4KIwojIFN1Y2ggY3VzdG9tIGNvbmZpZ3VyYXRpb24gZmlsZXMgZm9yIHNw
-ZWNpZmljIG1haW5ib2FyZHMgY2FuIGJlIGZvdW5kIGF0CiMgaHR0cDovL3d3dy5sbS1zZW5zb3Jz
-Lm9yZy93aWtpL0NvbmZpZ3VyYXRpb25zCgpjaGlwICJsbTc4LSoiICJsbTc5LSoiICJsbTgwLSoi
-CgogICAgbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgoKCmNoaXAgInc4Mzc5MmQtKiIKCiAgICBsYWJl
-bCBpbjAgIlZjb3JlQSIKICAgIGxhYmVsIGluMSAiVmNvcmVCIgogICAgbGFiZWwgaW42ICIrNVYi
-CiAgICBsYWJlbCBpbjcgIjVWU0IiCiAgICBsYWJlbCBpbjggIlZiYXQiCgogICAgc2V0IGluNl9t
-aW4gIDUuMCAqIDAuOTAKICAgIHNldCBpbjZfbWF4ICA1LjAgKiAxLjEwCiAgICBzZXQgaW43X21p
-biAgNS4wICogMC45MAogICAgc2V0IGluN19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjhfbWlu
-ICAzLjAgKiAwLjkwCiAgICBzZXQgaW44X21heCAgMy4wICogMS4xMAoKCmNoaXAgInc4Mzc5My0q
-IgoKICAgIGxhYmVsIGluMCAiVmNvcmVBIgogICAgbGFiZWwgaW4xICJWY29yZUIiCiAgICBsYWJl
-bCBpbjcgIis1ViIKICAgIGxhYmVsIGluOCAiNVZTQiIKICAgIGxhYmVsIGluOSAiVmJhdCIKCiAg
-ICBzZXQgaW43X21pbiAgNS4wICogMC45MAogICAgc2V0IGluN19tYXggIDUuMCAqIDEuMTAKICAg
-IHNldCBpbjhfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW44X21heCAgNS4wICogMS4xMAogICAg
-c2V0IGluOV9taW4gIDMuMCAqIDAuOTAKICAgIHNldCBpbjlfbWF4ICAzLjAgKiAxLjEwCgoKY2hp
-cCAidmlhNjg2YS0qIgoKICAgIGxhYmVsIGluMCAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiszLjNW
-IgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBsYWJlbCBpbjQgIisxMlYiCgogICAgc2V0IGluMl9t
-aW4gIDMuMyAqIDAuOTAKICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW4zX21p
-biAgNS4wICogMC45MAogICAgc2V0IGluM19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjRfbWlu
-IDEyLjAgKiAwLjkwCiAgICBzZXQgaW40X21heCAxMi4wICogMS4xMAoKCmNoaXAgImFkbTEwMjUt
-KiIgIm5lMTYxOS0qIgoKICAgIGxhYmVsIGluMSAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiszLjNW
-IgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBsYWJlbCBpbjQgIisxMlYiCiAgICBsYWJlbCBpbjUg
-IlZDQyIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45MAogICAgc2V0IGluMl9tYXggIDMuMyAq
-IDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW4zX21heCAgNS4wICog
-MS4xMAogICAgc2V0IGluNV9taW4gIDMuMyAqIDAuOTAKICAgIHNldCBpbjVfbWF4ICAzLjMgKiAx
-LjEwCiMgRGVwZW5kaW5nIG9uIGhvdyB5b3VyIGNoaXAgaXMgaGFyZHdpcmVkLCB5b3UgbWF5IG9y
-IG1heSBub3QgaGF2ZQojICsxMlYgcmVhZGluZ3MuCiMgICAgc2V0IGluNF9taW4gMTIuMCAqIDAu
-OTAKIyAgICBzZXQgaW40X21heCAxMi4wICogMS4xMAoKICAgIGxhYmVsIHRlbXAxICJDUFUgVGVt
-cCIKICAgIGxhYmVsIHRlbXAyICJNL0IgVGVtcCIKCgpjaGlwICJsbTg3LSoiICJhZG0xMDI0LSoi
-CgogICAgbGFiZWwgaW4xICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBp
-bjMgIis1ViIKICAgIGxhYmVsIGluNCAiKzEyViIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45
-MAogICAgc2V0IGluMl9tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkw
-CiAgICBzZXQgaW4zX21heCAgNS4wICogMS4xMAogICAgc2V0IGluNF9taW4gMTIuMCAqIDAuOTAK
-ICAgIHNldCBpbjRfbWF4IDEyLjAgKiAxLjEwCgogICAgbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgog
-ICAgbGFiZWwgdGVtcDIgIkNQVSBUZW1wIgoKCmNoaXAgIml0ODctKiIgIml0ODcxMi0qIiAiaXQ4
-NzE2LSoiICJpdDg3MTgtKiIgIml0ODcyMC0qIgoKICAgIGxhYmVsIGluOCAiVmJhdCIKCgpjaGlw
-ICJmc2Nwb3MtKiIgImZzY2hlci0qIgojRlNDICJIZXJtZXMiCgogICAgbGFiZWwgaW4wICIrMTJW
-IgogICAgbGFiZWwgaW4xICIrNVYiCiAgICBsYWJlbCBpbjIgIlZiYXQiCgogICAgbGFiZWwgdGVt
-cDEgIkNQVSBUZW1wIgogICAgbGFiZWwgdGVtcDIgIk0vQiBUZW1wIgogICAgbGFiZWwgdGVtcDMg
-IkF1eCBUZW1wIgoKCmNoaXAgImZzY3NjeS0qIgojRlNDICJTY3lsbGEiCgogICAgbGFiZWwgaW4w
-ICIrMTJWIgogICAgbGFiZWwgaW4xICIrNVYiCiAgICBsYWJlbCBpbjIgIiszLjNWIgoKICAgIGxh
-YmVsIHRlbXAxICJDUFUwIFRlbXAiCiAgICBsYWJlbCB0ZW1wMiAiQ1BVMSBUZW1wIgogICAgbGFi
-ZWwgdGVtcDMgIk0vQiBUZW1wIgogICAgbGFiZWwgdGVtcDQgIkF1eCBUZW1wIgoKCmNoaXAgImZz
-Y2hkcy0qIgojIEZ1aml0c3UgVGVjaG5vbG9neSBTb2x1dGlvbnMsICJIYWRlcyItQ2hpcAoKIyBU
-ZW1wZXJhdHVyZXMKICAgIGxhYmVsIHRlbXAxICJDUFUgVGVtcCIKICAgIGxhYmVsIHRlbXAyICJT
-dXBlciBJL08gVGVtcCIKICAgIGxhYmVsIHRlbXAzICJTeXN0ZW0gVGVtcCIKCiMgRmFucwogICAg
-bGFiZWwgZmFuMSAiUFNVIEZhbiIKICAgIGxhYmVsIGZhbjIgIkNQVSBGYW4iCiAgICBsYWJlbCBm
-YW4zICJTeXN0ZW0gRkFOMiIKICAgIGxhYmVsIGZhbjQgIlN5c3RlbSBGQU4zIgogICAgbGFiZWwg
-ZmFuNSAiU3lzdGVtIEZBTjQiCgojIFZvbHRhZ2VzCiAgICBsYWJlbCBpbjAgIisxMlYiCiAgICBs
-YWJlbCBpbjEgIis1ViIKICAgIGxhYmVsIGluMiAiVmJhdCIKCmNoaXAgImZzY3N5bC0qIgojIEZ1
-aml0c3UgVGVjaG5vbG9neSBTb2x1dGlvbnMsICJTeWxldXMiLUNoaXAKCiMgVGVtcGVyYXR1cmVz
-CiAgICBsYWJlbCB0ZW1wMSAiQ1BVIFRlbXAiCiAgICBsYWJlbCB0ZW1wNCAiU3VwZXIgSS9PIFRl
-bXAiCiAgICBsYWJlbCB0ZW1wNSAiTm9ydGhicmlkZ2UgVGVtcCIKCiMgRmFucwogICAgbGFiZWwg
-ZmFuMSAiQ1BVIEZhbiIKICAgIGxhYmVsIGZhbjIgIlN5c3RlbSBGQU4yIgogICAgbGFiZWwgZmFu
-MyAiU3lzdGVtIEZBTjMiCiAgICBsYWJlbCBmYW40ICJTeXN0ZW0gRkFONCIKICAgIGxhYmVsIGZh
-bjcgIlBTVSBGYW4iCgojIFZvbHRhZ2VzCiAgICBsYWJlbCBpbjAgIisxMlYiCiAgICBsYWJlbCBp
-bjEgIis1ViIKICAgIGxhYmVsIGluMiAiVmJhdCIKICAgIGxhYmVsIGluMyAiKzMuM1YiCiAgICBs
-YWJlbCBpbjUgIiszLjNWLUF1eCIKCmNoaXAgInZ0MTIxMS0qIgoKICAgIGxhYmVsIGluNSAiKzMu
-M1YiCgogICAgbGFiZWwgdGVtcDIgIlNJTyBUZW1wIgoKCmNoaXAgInZ0ODIzMS0qIgoKICAgIGxh
-YmVsIGluNSAiKzMuM1YiCgoKY2hpcCAic21zYzQ3bTE5Mi0qIgoKICAgIGxhYmVsIGluMSAiVmNv
-cmUiCiAgICBsYWJlbCBpbjIgIiszLjNWIgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBsYWJlbCBp
-bjQgIisxMlYiCiAgICBsYWJlbCBpbjUgIlZDQyIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45
-MAogICAgc2V0IGluMl9tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkw
-CiAgICBzZXQgaW4zX21heCAgNS4wICogMS4xMAogICAgc2V0IGluNF9taW4gMTIuMCAqIDAuOTAK
-ICAgIHNldCBpbjRfbWF4IDEyLjAgKiAxLjEwCiAgICBzZXQgaW41X21pbiAgMy4zICogMC45MAog
-ICAgc2V0IGluNV9tYXggIDMuMyAqIDEuMTAKCiAgICBsYWJlbCB0ZW1wMSAiU0lPIFRlbXAiCgoK
-Y2hpcCAibG04NS0qIiAibG04NWItKiIgImxtODVjLSoiICJhZG0xMDI3LSoiICJhZHQ3NDYzLSoi
-ICJhZHQ3NDY4LSoiICJlbWM2ZDEwMC0qIiAiZW1jNmQxMDItKiIKCiAgICBsYWJlbCBpbjEgIlZj
-b3JlIgogICAgbGFiZWwgaW4yICIrMy4zViIKICAgIGxhYmVsIGluMyAiKzVWIgogICAgbGFiZWwg
-aW40ICIrMTJWIgogICAgbGFiZWwgdGVtcDIgIk0vQiBUZW1wIgoKIyBNeQogICAgbGFiZWwgdGVt
-cDFfaW5wdXQgIkZhbiB0ZW1wZXJhdHVyZSIJCiAgICBsYWJlbCBmYW4xX2lucHV0ICJGYW4gUlBN
-IgoKICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjkwCiAgICBzZXQgaW4yX21heCAgMy4zICogMS4x
-MAogICAgc2V0IGluM19taW4gIDUuMCAqIDAuOTAKICAgIHNldCBpbjNfbWF4ICA1LjAgKiAxLjEw
-CgojIERlcGVuZGluZyBvbiBob3cgeW91ciBjaGlwIGlzIGhhcmR3aXJlZCwgeW91IG1heSBvciBt
-YXkgbm90IGhhdmUKIyArMTJWIHJlYWRpbmdzLgojICAgIHNldCBpbjRfbWluIDEyLjAgKiAwLjkw
-CiMgICAgc2V0IGluNF9tYXggMTIuMCAqIDEuMTAKCiAgICBsYWJlbCB0ZW1wMiAiTS9CIFRlbXAi
-CiAgICAJCgoKY2hpcCAicGM4NzM2NS0qIiAicGM4NzM2Ni0qIgoKIyBWb2x0YWdlIGlucHV0cwoK
-ICAgIGxhYmVsIGluNyAiM1ZTQiIKICAgIGxhYmVsIGluOCAiVkREIgogICAgbGFiZWwgaW45ICJW
-YmF0IgogICAgbGFiZWwgaW4xMCAiQVZERCIKCiAgICBjb21wdXRlIGluNyAgIEAqMiwgQC8yCiAg
-ICBjb21wdXRlIGluOCAgIEAqMiwgQC8yCiAgICBjb21wdXRlIGluMTAgIEAqMiwgQC8yCgojIFRo
-ZXNlIGFyZSB0aGUgb3BlcmF0aW5nIGNvbmRpdGlvbnMgYXMgcmVjb21tZW5kZWQgYnkgTmF0aW9u
-YWwKIyBTZW1pY29uZHVjdG9yCiAgICBzZXQgaW43X21pbiAgIDMuMAogICAgc2V0IGluN19tYXgg
-ICAzLjYKICAgIHNldCBpbjhfbWluICAgMy4wCiAgICBzZXQgaW44X21heCAgIDMuNgogICAgc2V0
-IGluMTBfbWluICAzLjAKICAgIHNldCBpbjEwX21heCAgMy42CiMgRGVwZW5kaW5nIG9uIHRoZSBo
-YXJkd2FyZSBzZXR1cCwgdGhlIGJhdHRlcnkgdm9sdGFnZSBtYXkgb3IgbWF5IG5vdAojIGJlIG1v
-bml0b3JlZC4KIyAgICBzZXQgaW45X21pbiAgIDIuNAojICAgIHNldCBpbjlfbWF4ICAgMy42Cgog
-ICAgbGFiZWwgdGVtcDMgIlNJTyBUZW1wIgoKICAgIHNldCB0ZW1wM19taW4gICAgMAogICAgc2V0
-IHRlbXAzX21heCAgIDcwCiAgICBzZXQgdGVtcDNfY3JpdCAgODUKCgpjaGlwICJhZG0xMDMwLSoi
-ICJhZG0xMDMxLSoiCgogICAgbGFiZWwgdGVtcDEgIk0vQiBUZW1wIgoKCmNoaXAgInc4MzYyN2Vo
-Zi0qIiAidzgzNjI3ZGhnLSoiICJ3ODM2NjdoZy0qIgoKICAgIGxhYmVsIGluMCAiVmNvcmUiCiAg
-ICBsYWJlbCBpbjIgIkFWQ0MiCiAgICBsYWJlbCBpbjMgIiszLjNWIgogICAgbGFiZWwgaW43ICIz
-VlNCIgogICAgbGFiZWwgaW44ICJWYmF0IgoKICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjkwCiAg
-ICBzZXQgaW4yX21heCAgMy4zICogMS4xMAogICAgc2V0IGluM19taW4gIDMuMyAqIDAuOTAKICAg
-IHNldCBpbjNfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW43X21pbiAgMy4zICogMC45MAogICAg
-c2V0IGluN19tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjhfbWluICAzLjAgKiAwLjkwCiAgICBz
-ZXQgaW44X21heCAgMy4wICogMS4xMAoKCmNoaXAgImY3MTgwNWYtKiIKCiAgICBsYWJlbCBpbjAg
-IiszLjNWIgoKICAgIHNldCBpbjBfbWluICAzLjMgKiAwLjkwCiAgICBzZXQgaW4wX21heCAgMy4z
-ICogMS4xMAoKCmNoaXAgImY3MTg3MmYtKiIKCiAgICBsYWJlbCBpbjAgIiszLjNWIgogICAgbGFi
-ZWwgaW45ICJWYmF0IgogICAgbGFiZWwgaW4xMCAiM1ZTQiIKCiAgICBzZXQgaW4wX21pbiAgIDMu
-MyAqIDAuOTAKICAgIHNldCBpbjBfbWF4ICAgMy4zICogMS4xMAogICAgc2V0IGluOV9taW4gICAz
-LjAgKiAwLjkwCiAgICBzZXQgaW45X21heCAgIDMuMCAqIDEuMTAKICAgIHNldCBpbjEwX21pbiAg
-My4zICogMC45MAogICAgc2V0IGluMTBfbWF4ICAzLjMgKiAxLjEwCgoKY2hpcCAiazh0ZW1wLSoi
-CgogICAgbGFiZWwgdGVtcDEgIkNvcmUwIFRlbXAiCiAgICBsYWJlbCB0ZW1wMiAiQ29yZTAgVGVt
-cCIKICAgIGxhYmVsIHRlbXAzICJDb3JlMSBUZW1wIgogICAgbGFiZWwgdGVtcDQgIkNvcmUxIFRl
-bXAiCgoKY2hpcCAiZG1lMTczNy0qIgoKICAgIGxhYmVsIGluMCAiNVZTQiIKICAgIGxhYmVsIGlu
-MSAiVmNvcmUiCiAgICBsYWJlbCBpbjIgIiszLjNWIgogICAgbGFiZWwgaW4zICIrNVYiCiAgICBs
-YWJlbCBpbjQgIisxMlYiCiAgICBsYWJlbCBpbjUgIjNWU0IiCiAgICBsYWJlbCBpbjYgIlZiYXQi
-CgogICAgbGFiZWwgdGVtcDIgIlNJTyBUZW1wIgoKICAgIHNldCBpbjBfbWluICA1LjAgKiAwLjkw
-CiAgICBzZXQgaW4wX21heCAgNS4wICogMS4xMAogICAgc2V0IGluMl9taW4gIDMuMyAqIDAuOTAK
-ICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW4zX21pbiAgNS4wICogMC45MAog
-ICAgc2V0IGluM19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjRfbWluIDEyLjAgKiAwLjkwCiAg
-ICBzZXQgaW40X21heCAxMi4wICogMS4xMAogICAgc2V0IGluNV9taW4gIDMuMyAqIDAuOTAKICAg
-IHNldCBpbjVfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW42X21pbiAgMy4wICogMC45MAogICAg
-c2V0IGluNl9tYXggIDMuMCAqIDEuMTAKCgpjaGlwICJzY2gzMTF4LSoiCgogICAgbGFiZWwgaW4x
-ICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBpbjMgIis1ViIKICAgIGxh
-YmVsIGluNCAiKzEyViIKICAgIGxhYmVsIGluNSAiM1ZTQiIKICAgIGxhYmVsIGluNiAiVmJhdCIK
-CiAgICBsYWJlbCB0ZW1wMiAiU0lPIFRlbXAiCgogICAgc2V0IGluMl9taW4gIDMuMyAqIDAuOTAK
-ICAgIHNldCBpbjJfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW4zX21pbiAgNS4wICogMC45MAog
-ICAgc2V0IGluM19tYXggIDUuMCAqIDEuMTAKICAgIHNldCBpbjRfbWluIDEyLjAgKiAwLjkwCiAg
-ICBzZXQgaW40X21heCAxMi4wICogMS4xMAogICAgc2V0IGluNV9taW4gIDMuMyAqIDAuOTAKICAg
-IHNldCBpbjVfbWF4ICAzLjMgKiAxLjEwCiAgICBzZXQgaW42X21pbiAgMy4wICogMC45MAogICAg
-c2V0IGluNl9tYXggIDMuMCAqIDEuMTAKCgpjaGlwICJzY2g1MDI3LSoiCgogICAgbGFiZWwgaW4w
-ICI1VlNCIgogICAgbGFiZWwgaW4xICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBs
-YWJlbCBpbjUgIjNWU0IiCiAgICBsYWJlbCBpbjYgIlZiYXQiCgogICAgbGFiZWwgdGVtcDIgIlNJ
-TyBUZW1wIgoKICAgIHNldCBpbjBfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW4wX21heCAgNS4w
-ICogMS4xMAogICAgc2V0IGluMl9taW4gIDMuMyAqIDAuOTAKICAgIHNldCBpbjJfbWF4ICAzLjMg
-KiAxLjEwCiAgICBzZXQgaW41X21pbiAgMy4zICogMC45MAogICAgc2V0IGluNV9tYXggIDMuMyAq
-IDEuMTAKICAgIHNldCBpbjZfbWluICAzLjAgKiAwLjkwCiAgICBzZXQgaW42X21heCAgMy4wICog
-MS4xMAoKCmNoaXAgImY3MTg4MmZnLSoiCgogICAgbGFiZWwgaW4wICIrMy4zViIKICAgIGxhYmVs
-IGluNyAiM1ZTQiIKICAgIGxhYmVsIGluOCAiVmJhdCIKCiAgICBjb21wdXRlIGluMCAgQCoyLCBA
-LzIKICAgIGNvbXB1dGUgaW43ICBAKjIsIEAvMgogICAgY29tcHV0ZSBpbjggIEAqMiwgQC8yCgoK
-Y2hpcCAiZjgwMDAtKiIKCiAgICBsYWJlbCBpbjAgIiszLjNWIgogICAgbGFiZWwgaW4xICIzVlNC
-IgogICAgbGFiZWwgaW4yICJWYmF0IgoKICAgIGNvbXB1dGUgaW4wICBAKjIsIEAvMgogICAgY29t
-cHV0ZSBpbjEgIEAqMiwgQC8yCiAgICBjb21wdXRlIGluMiAgQCoyLCBALzIKCgpjaGlwICJhZHQ3
-NDczLSoiICJhZHQ3NDc1LSoiCgogICAgbGFiZWwgaW4yICIrMy4zViIKCiAgICBzZXQgaW4yX21p
-biAgMy4zICogMC45MAogICAgc2V0IGluMl9tYXggIDMuMyAqIDEuMTAKCiAgICBsYWJlbCB0ZW1w
-MiAiQm9hcmQgVGVtcCIKCgpjaGlwICJhZHQ3NDc2LSoiICJhZHQ3NDkwLSoiCgogICAgbGFiZWwg
-aW4xICJWY29yZSIKICAgIGxhYmVsIGluMiAiKzMuM1YiCiAgICBsYWJlbCBpbjMgIis1ViIKICAg
-IGxhYmVsIGluNCAiKzEyViIKCiAgICBzZXQgaW4yX21pbiAgMy4zICogMC45MAogICAgc2V0IGlu
-Ml9tYXggIDMuMyAqIDEuMTAKICAgIHNldCBpbjNfbWluICA1LjAgKiAwLjkwCiAgICBzZXQgaW4z
-X21heCAgNS4wICogMS4xMAojIERlcGVuZGluZyBvbiBob3cgeW91ciBBRFQ3NDc2IGlzIGhhcmR3
-aXJlZCwgeW91IG1heSBvciBtYXkgbm90IGhhdmUKIyArMTJWIHJlYWRpbmdzLgojICAgIHNldCBp
-bjRfbWluIDEyLjAgKiAwLjkwCiMgICAgc2V0IGluNF9tYXggMTIuMCAqIDEuMTAKCiAgICBsYWJl
-bCB0ZW1wMiAiTS9CIFRlbXAiCg==
---0016361e88ba2c9b2c049242f0b8
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--=20
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---0016361e88ba2c9b2c049242f0b8--
