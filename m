@@ -1,24 +1,27 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 28 Oct 2010 14:35:45 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (w83795) Add myself as
-Message-Id: <20101028143545.GB4123@ericsson.com>
+From: Alexander Stein <alexander.stein@informatik.tu-chemnitz.de>
+Date: Wed, 13 Oct 2010 13:40:18 +0000
+Subject: [lm-sensors] Detection of W83L771AWG/ASG in lm90
+Message-Id: <201010131540.19225.alexander.stein@informatik.tu-chemnitz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101028155719.6dde7bb9@endymion.delvare>
-In-Reply-To: <20101028155719.6dde7bb9@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Oct 28, 2010 at 09:57:19AM -0400, Jean Delvare wrote:
-> I've made so many changes to the w83795 driver that it's only fair to
-> list myself as a co-author. I'll also maintain the driver for some
-> time. There's more work needed on the driver for sure.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Hello,
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+'sensors-detect' shows me there is W83L771W/G on my board:
+> Probing for `Winbond W83L771W/G'...                         Success!
+>     (confidence 6, driver `to-be-written')
+According to this wiki page http://www.lm-sensors.org/wiki/Devices support 
+should be handles by the lm90 driver. But after loading the lm90 driver, 
+'sensors' doesn't show any new device. Also loading the driver by the alias 
+"i2c:w83l771" doesn't help. Oh, i nearly forgot, I'm running 2.6.34-gentoo-
+r11.
+Any comments/suggestions?
 
+Regards,
+Alexander
 
 _______________________________________________
 lm-sensors mailing list
