@@ -1,36 +1,24 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 14 Oct 2010 07:57:53 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm85) Fix ADT7468 frequency table
-Message-Id: <20101014095753.712ac143@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 14 Oct 2010 13:29:28 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm85) Fix ADT7468 frequency
+Message-Id: <20101014132928.GC19951@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20101014095753.712ac143@endymion.delvare>
+In-Reply-To: <20101014095753.712ac143@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The ADT7468 uses the same frequency table as the ADT7463.
+On Thu, Oct 14, 2010 at 03:57:53AM -0400, Jean Delvare wrote:
+> The ADT7468 uses the same frequency table as the ADT7463.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: stable@kernel.org
+> Cc: Darrick J. Wong <djwong@us.ibm.com>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: stable@kernel.org
-Cc: Darrick J. Wong <djwong@us.ibm.com>
----
- drivers/hwmon/lm85.c |    1 +
- 1 file changed, 1 insertion(+)
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 
---- linux-2.6.36-rc7.orig/drivers/hwmon/lm85.c	2010-10-14 09:25:50.000000000 +0200
-+++ linux-2.6.36-rc7/drivers/hwmon/lm85.c	2010-10-14 09:30:12.000000000 +0200
-@@ -1259,6 +1259,7 @@ static int lm85_probe(struct i2c_client
- 	switch (data->type) {
- 	case adm1027:
- 	case adt7463:
-+	case adt7468:
- 	case emc6d100:
- 	case emc6d102:
- 		data->freq_map = adm1027_freq_map;
-
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
