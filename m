@@ -1,62 +1,54 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Fri, 15 Oct 2010 13:22:07 +0000
+From: "Jeff Rickman" <jrickman@myamigos.us>
+Date: Sat, 16 Oct 2010 07:40:11 +0000
 Subject: Re: [lm-sensors] f71882fg on Jetway NC92-330-LF
-Message-Id: <AANLkTimAQ2iCYZRZ-+R8J+ygnvxQm4hFysiQGD5Uwbd1@mail.gmail.com>
+Message-Id: <49590.75.142.173.238.1287214811.squirrel@webmail.myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTi=abRLHVUXTz=fwAiWcD1sUgdPjKxz3xY92j=8O@mail.gmail.com>
 In-Reply-To: <AANLkTi=abRLHVUXTz=fwAiWcD1sUgdPjKxz3xY92j=8O@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 15, 2010 at 10:32 AM, Jean Delvare <khali@linux-fr.org> wrote:
->> Keep the conversation on the list, we might get some insight on how to
->> proceed with this...
+> On Thu, Oct 14, 2010 at 10:39 AM, Алексей Сычев
+> <taviscaron@gmail.com> wrote:
+>> Hello.
+>> I have Jetway NC92-330-LF and interesting in your post:
+>> http://lists.lm-sensors.org/pipermail/lm-sensors/2010-April/028281.html
+>>
+>> I have compiled attached driver, but it still does not work:
+>>
+>> f71882fg: Found f71862fg chip at 0x290, revision 1
+>> ACPI: resource f71882fg [io  0x0290-0x0297] conflicts with ACPI region
+>> IP__
+>> [??? 0x00000295-0x00000296 flags 0x5f]
+>> ACPI: If an ACPI driver is available for this device, you should use it
+>> instead of the native driver
+>>
+>> Maybe i can help in something (testing, log, etc)? Working driver will
+>> be
+>> very good.
 >
-> If I understand correctly, the ACPI BIOS on this board (and hopefully
-> other Jetway boards) implements functions to read and write bytes
-> from/to the hardware monitoring chip, and you are hacking the f71882fg
-> driver to make use of them when available instead of direct I/O?
+> There was a bit of round trip with the user to adjust the driver. I'm
+> attaching a version that was confirmed working, but it's an ugly ugly
+> ugly hack. In fact if Jean sees this he's going to ask my maintainer
+> badge back :P
+> Keep the conversation on the list, we might get some insight on how to
+> proceed with this...
+>
+> Luca
+> _______________________________________________
 
-Yes that's correct. ACPI exposes read/write operations(in term of
-(offset, data) registers.
+I have this exact board and tested this driver on Fedora Core 12 and
+Fedora Core 13 "i386" code. It does work; I had to learn how to compile
+kernel modules, but the effort was worth it.
 
-> That's quite interesting, even though I think I would play it safe at
-> first and only allow reading from the chip. Who knows if the BIOS
-> includes code with read-modify-write cycles? Did you check if these
-> functions were callled by the BIOS itself?
+I do not have that exact test setup right now; it might take a few days to
+set things up again due "real life issues". If you require further
+testing, please let me know.
 
-Yes, the BIOS reads from the chip only for exposing a TZ. The writes
-are also tied to the TZ (AFAICS for setting the limit on temp1).
-Anyway the execution of ACPI methods is atomic, so the hacked driver
-cannot interrupt whatever the BIOS is doing (including a RMW cycle).
-The opposite may happen though; if we decide to go down this road it's
-possible to expose the ACPI interpreter mutex and take it before doing
-RMW in the native driver.
 
-> Of course I see that your code is currently a hack only working for
-> this board, or at best for several Jetway boards with a device
-> supported by the f71882fg driver. Ultimately it would be better to have
-> a generalized abstraction layer, so that every I/O-based hwmon driver
-> can use any available ACPI byte access function, without having to
-> hard-code every board/chip combination.
 
-The read/write operations are not standard, however if the IO range is
-reserved it's very likely that there will be an indexed field covering
-it, that may be used to access the hardware.
-If there isn't a high-level API available (like ATK0110) it would
-probably be easier to lock/unlock the ACPI interpreter to protect
-native accesses to the chip. The only exceptions are SMI and EC which
-require explicit synchronization (the latter is present on some Asus
-boards, and there's a mutex guarding the access to the hwmon chip).
-
-> That being said, if you can get this specific board to work, and even
-> if the code looks ugly, I have no objection.
-
-I'll see what I can do :)
-
-Luca
 
 _______________________________________________
 lm-sensors mailing list
