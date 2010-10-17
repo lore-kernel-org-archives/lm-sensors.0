@@ -1,46 +1,94 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 26 Oct 2010 14:01:02 +0000
-Subject: Re: [lm-sensors] via-cputemp: can't compile it
-Message-Id: <20101026140102.GA22667@ericsson.com>
+From: Simon Guinot <simon@sequanux.org>
+Date: Sun, 17 Oct 2010 15:50:12 +0000
+Subject: [lm-sensors] [PATCH 2/2] [ARM] Kirkwood: add fan support for
+Message-Id: <1287330612-11256-2-git-send-email-simon@sequanux.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <osc7c6hpu7hmbgl0afmslfbh49adnlocs5@4ax.com>
-In-Reply-To: <osc7c6hpu7hmbgl0afmslfbh49adnlocs5@4ax.com>
+References: <20101017154021.GB29120@kw.sim.vm.gnt>
+	<1287330612-11256-1-git-send-email-simon@sequanux.org>
+In-Reply-To: <1287330612-11256-1-git-send-email-simon@sequanux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 26, 2010 at 09:30:44AM -0400, Jean Delvare wrote:
-> On Sat, 23 Oct 2010 21:20:17 -0700, singumal wrote:
-> > V3.2.0 sensors-detect told me that my VIA M800 Mini-ITX has a VIA
-> > Nano thermal sensor.  Checked the lm-sensors.org wiki on Devices
-> > as instructed.  For the indicated via-cputemp driver, my CentOS
-> > 5.5 kernel is just 2.6.18 so I'd need to make a kernel module;
-> > got the Makefile and via-cputemp.c from the indicated site, but
-> > can't compile it, no instructions, doing "make" in a directory
-> > with those two files, I get a number of errors starting with:
-> > 
-> > via-cputemp.c: In function "via_cputemp_probe":
-> > via-cputemp.c:106: error: called object "cpu_data" is not a function
-> > 
-> > I already have the matching kernel-devel and kernel-headers
-> > installed in the system.
-> > 
-> > Please tell me what I am missing in assumptions or environment
-> > setup.
-> 
-> Your kernel is simply too old for the via-cputemp driver as it exists
-> today. You run kernel 2.6.18 and the via-cputemp was added in kernel
-> 2.6.33, that's over 3 years apart.
-> 
-> So you will have to adjust the code yourself, or find someone who is
-> willing to spend time on this task. But be aware that kernel developers
-> usually don't work on old versions for free.
-> 
-Or just get and compile a more recent version, such as 2.6.35, on your system,
-and see if it boots. That is what I usually do.
+From: Simon Guinot <sguinot@lacie.com>
 
-Guenter
+Signed-off-by: Simon Guinot <sguinot@lacie.com>
+---
+ arch/arm/mach-kirkwood/netspace_v2-setup.c |   43 ++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-kirkwood/netspace_v2-setup.c b/arch/arm/mach-kirkwood/netspace_v2-setup.c
+index fed264d..8e14147 100644
+--- a/arch/arm/mach-kirkwood/netspace_v2-setup.c
++++ b/arch/arm/mach-kirkwood/netspace_v2-setup.c
+@@ -30,6 +30,7 @@
+ #include <linux/gpio.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/leds.h>
++#include <linux/gpio-fan.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <mach/kirkwood.h>
+@@ -137,6 +138,46 @@ static struct platform_device netspace_v2_leds = {
+ };
+ 
+ /*****************************************************************************
++ * GPIO fan
++ ****************************************************************************/
++
++/* Designed for fan 40x40x16: ADDA AD0412LB-D50 6000rpm@12v */
++static struct gpio_fan_speed netspace_max_v2_fan_speed[] = {
++	{    0,  0 },
++	{ 1500,	15 },
++	{ 1700,	14 },
++	{ 1800,	13 },
++	{ 2100,	12 },
++	{ 3100,	11 },
++	{ 3300,	10 },
++	{ 4300,	 9 },
++	{ 5500,	 8 },
++};
++
++static unsigned netspace_max_v2_fan_ctrl[] = { 22, 7, 33, 23 };
++
++static struct gpio_fan_alarm netspace_max_v2_fan_alarm = {
++	.gpio		= 25,
++	.active_low	= 1,
++};
++
++static struct gpio_fan_platform_data netspace_max_v2_fan_data = {
++	.num_ctrl	= ARRAY_SIZE(netspace_max_v2_fan_ctrl),
++	.ctrl		= netspace_max_v2_fan_ctrl,
++	.alarm		= &netspace_max_v2_fan_alarm,
++	.num_speed	= ARRAY_SIZE(netspace_max_v2_fan_speed),
++	.speed		= netspace_max_v2_fan_speed,
++};
++
++static struct platform_device netspace_max_v2_gpio_fan = {
++	.name	= "gpio-fan",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &netspace_max_v2_fan_data,
++	},
++};
++
++/*****************************************************************************
+  * General Setup
+  ****************************************************************************/
+ 
+@@ -205,6 +246,8 @@ static void __init netspace_v2_init(void)
+ 	platform_device_register(&netspace_v2_leds);
+ 	platform_device_register(&netspace_v2_gpio_leds);
+ 	platform_device_register(&netspace_v2_gpio_buttons);
++	if (machine_is_netspace_max_v2())
++		platform_device_register(&netspace_max_v2_gpio_fan);
+ 
+ 	if (gpio_request(NETSPACE_V2_GPIO_POWER_OFF, "power-off") = 0 &&
+ 	    gpio_direction_output(NETSPACE_V2_GPIO_POWER_OFF, 0) = 0)
+-- 
+1.6.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
