@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 18 Oct 2010 20:50:34 +0000
+Date: Tue, 19 Oct 2010 06:52:21 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: add generic GPIO fan driver
-Message-Id: <20101018205034.GA10473@ericsson.com>
+Message-Id: <20101019065221.GA12406@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101017154021.GB29120@kw.sim.vm.gnt>
 	<1287330612-11256-1-git-send-email-simon@sequanux.org>
@@ -15,7 +15,6 @@ To: linux-arm-kernel@lists.infradead.org
 
 On Mon, Oct 18, 2010 at 04:36:10PM -0400, Simon Guinot wrote:
 [ ... ]
-
 > > I don't really understand the value of supporting pwm attributes,
 > > since you have to convert those to rpm anyway. Why not just stick
 > > with fan1_input and fan1_target ? This would simplify the code a lot.
@@ -27,35 +26,26 @@ On Mon, Oct 18, 2010 at 04:36:10PM -0400, Simon Guinot wrote:
 > 
 > But anyway, you are right. I just don't want the pwm interface.
 > 
-If the fancontrol script doesn't support fanX_target, and a given fan 
-doesn't support pwm, it might make sense to update it. 
+Thinking more about this, another option might be to keep using
+the pwm interface (for fancontrol), but simplify your code.
+Your transitions are currently pwm -> rpm -> ctrl and vice versa.
+However, direct conversion pwm -> ctrl should also be possible
+and would be much simpler than the two-stage conversion.
 
-Jean, any comments ?
+To do that, you could map num_speed directly to the pwm range of (0..255).
+Something like
 
-> > > +
-> > > +err_free_gpio:
-> > > +       for (i = i - 1; i >= 0; i--)
-> > > +               gpio_free(ctrl[i]);
-> > > +
-> > This misses the most recently allocated gpio pin if gpio_direction_output() failed.
-> 
-> The gpio is freed above while handling the gpio_direction_output() error.
-> 
-I missed that. Thatks for the clarification.
+	pwm = DIV_ROUND_CLOSEST(speed_index * 255, num_speed - 1);
+and
+	speed_index = pwm * (num_speed - 1) / 255;
 
-> > > +
-> > > +       dev_info(&pdev->dev, "GPIO fan initialized\n");
-> > > +
-> > Might be a good idea to add a notion of which fan was initialized.
-> > After all, there could be more than one.
-> 
-> dev_info() don't do it for me ? anyway, I will check this too.
-> 
-It probably does. Wonder what it actually shows. Can you check ?
+Then use speed_index to get control value and rpm from the speed table.
+
+Would that make sense ? You could then also provide fan1_target
+for direct fan speed control.
 
 Thanks,
 Guenter
-
 
 _______________________________________________
 lm-sensors mailing list
