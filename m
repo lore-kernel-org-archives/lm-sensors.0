@@ -1,28 +1,35 @@
-From: David Lutolf <david@lutolf.ch>
-Date: Sun, 03 Oct 2010 11:53:57 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 2/9] hwmon: lis3: regulator control
-Message-Id: <1286106837-a55c596ce45f55d605045cbc44a97e0b@lutolf.ch>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 19 Oct 2010 18:19:44 +0000
+Subject: [lm-sensors] [PATCH v2] lm-sensors: Fix error seen with
+Message-Id: <20101019181944.GA17399@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4CA8672D.2070801@cam.ac.uk>
-In-Reply-To: <4CA8672D.2070801@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@cam.ac.uk>, samu.p.onkalo@nokia.com
-Cc: "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "kuninori.morimoto.gx@renesas.com" <kuninori.morimoto.gx@renesas.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
->> There are couple of bigger changes which somebody should do to this
->> driver:
->> - Change static lis3_dev structure to a dynamically allocated one//generalize
->Definitely.
->> - Add proper error handling to the driver.
->
->Agreed, hopefully someone will step up and do it (good job for a starting out
->kernel dev perhaps?)
+The following patch fixes an error seen in sensors-detect if i2c bus numbering
+is not sequential. Problem is that in this case, $i2c_adapters[] does not exist
+for all index values, causing an error message whenever one of the non-existing
+objects is accessed.
 
-If I'm given some guidance on how to do it I'll be glad to start. I don't have much experience in C but I should have the required knowledge..
+The error message is:
+        Use of uninitialized value in string eq at ./sensors-detect line 5941.
 
-what's the procedure now? should I just take the patch, fix it (hopefuly) and test inclusion in the latest kernel?
+v2: Keep foreach loop. Check if loop object is defined in each iteration.
+
+--
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5868)
++++ prog/detect/sensors-detect	(working copy)
+@@ -5937,6 +5937,7 @@
+ 	# the adapter drivers so that the numbers will be the same. If not, then
+ 	# we only load the adapter drivers which are useful.
+ 	foreach $adap (@i2c_adapters) {
++		next unless defined $adap;
+ 		next if $adap->{autoload};
+ 		next if $adap->{driver} eq 'UNKNOWN';
+ 		next if not defined $configfile and not $adap->{used};
 
 _______________________________________________
 lm-sensors mailing list
