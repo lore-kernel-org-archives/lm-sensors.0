@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Oct 2010 18:40:46 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 19 Oct 2010 20:06:39 +0000
 Subject: Re: [lm-sensors] [PATCH v2] lm-sensors: Fix error seen with
-Message-Id: <20101019204046.5bfb746d@endymion.delvare>
+Message-Id: <1287518799.9690.269.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101019181944.GA17399@ericsson.com>
 In-Reply-To: <20101019181944.GA17399@ericsson.com>
@@ -10,35 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 19 Oct 2010 11:19:44 -0700, Guenter Roeck wrote:
-> The following patch fixes an error seen in sensors-detect if i2c bus numbering
-> is not sequential. Problem is that in this case, $i2c_adapters[] does not exist
-> for all index values, causing an error message whenever one of the non-existing
-> objects is accessed.
+On Tue, 2010-10-19 at 14:40 -0400, Jean Delvare wrote:
+> On Tue, 19 Oct 2010 11:19:44 -0700, Guenter Roeck wrote:
+> > The following patch fixes an error seen in sensors-detect if i2c bus numbering
+> > is not sequential. Problem is that in this case, $i2c_adapters[] does not exist
+> > for all index values, causing an error message whenever one of the non-existing
+> > objects is accessed.
+> > 
+> > The error message is:
+> >         Use of uninitialized value in string eq at ./sensors-detect line 5941.
+> > 
+> > v2: Keep foreach loop. Check if loop object is defined in each iteration.
+> > 
+> > --
+> > Index: prog/detect/sensors-detect
+> > =================================> > --- prog/detect/sensors-detect	(revision 5868)
+> > +++ prog/detect/sensors-detect	(working copy)
+> > @@ -5937,6 +5937,7 @@
+> >  	# the adapter drivers so that the numbers will be the same. If not, then
+> >  	# we only load the adapter drivers which are useful.
+> >  	foreach $adap (@i2c_adapters) {
+> > +		next unless defined $adap;
+> >  		next if $adap->{autoload};
+> >  		next if $adap->{driver} eq 'UNKNOWN';
+> >  		next if not defined $configfile and not $adap->{used};
+> > 
 > 
-> The error message is:
->         Use of uninitialized value in string eq at ./sensors-detect line 5941.
+> Looks good, please commit and add to the list of recommended patches.
 > 
-> v2: Keep foreach loop. Check if loop object is defined in each iteration.
-> 
-> --
-> Index: prog/detect/sensors-detect
-> =================================> --- prog/detect/sensors-detect	(revision 5868)
-> +++ prog/detect/sensors-detect	(working copy)
-> @@ -5937,6 +5937,7 @@
->  	# the adapter drivers so that the numbers will be the same. If not, then
->  	# we only load the adapter drivers which are useful.
->  	foreach $adap (@i2c_adapters) {
-> +		next unless defined $adap;
->  		next if $adap->{autoload};
->  		next if $adap->{driver} eq 'UNKNOWN';
->  		next if not defined $configfile and not $adap->{used};
-> 
+The list of recommended patches on lm-sensors.org currently points to
+r5768. Should that be r5868 ?
 
-Looks good, please commit and add to the list of recommended patches.
+Guenter
 
--- 
-Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
