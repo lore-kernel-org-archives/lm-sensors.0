@@ -1,39 +1,37 @@
-From: Rainer Koenig <Rainer.Koenig@ts.fujitsu.com>
-Date: Tue, 19 Oct 2010 12:25:40 +0000
-Subject: [lm-sensors] Driver for SMSC SCH5627 needed
-Message-Id: <4CBD8E44.8070909@ts.fujitsu.com>
+From: Juerg Haefliger <juergh@gmail.com>
+Date: Tue, 19 Oct 2010 13:47:03 +0000
+Subject: Re: [lm-sensors] Driver for SMSC SCH5627 needed
+Message-Id: <AANLkTimCDRsB+GSY4N8Zmxxawd3G+=snHTm0zZKcJids@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4CBD8E44.8070909@ts.fujitsu.com>
+In-Reply-To: <4CBD8E44.8070909@ts.fujitsu.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Rainer,
 
-I have a board that has a SMSC SCH5627 chip on it. sensors detect report
-"unknow chip SMSC 0xc601".
-Where can I get a driver for this chip?
 
-Best regards
-Rainer
+> Hi,
+>
+> I have a board that has a SMSC SCH5627 chip on it. sensors detect report
+> "unknow chip SMSC 0xc601".
+> Where can I get a driver for this chip?
 
---=20
-Dipl.-Inf. (FH) Rainer Koenig
-Project Manager Linux Clients
-Dept. TSP WPS R&D SW OSE
+First we need a datasheet. Then we can figure out if we already have a
+driver that supports a similar device and could be easily extended. No
+datasheet usually means no driver.
 
-Fujitsu Technology Solutions
-B=FCrgermeister-Ullrich-Str. 100
-86199 Augsburg
-Germany
+What board model/vendor is this? Dell machine?
 
-Telephone: +49-821-804-3321
-Telefax:   +49-821-804-2131
-Mail:      mailto:Rainer.Koenig@ts.fujitsu.com=20
+...Juerg
 
-Internet         ts.fujtsu.com
-Company Details  ts.fujitsu.com/imprint.html
 
+
+> Best regards
+> Rainer
+>
 
 _______________________________________________
 lm-sensors mailing list
