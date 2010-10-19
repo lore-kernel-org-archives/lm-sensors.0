@@ -1,114 +1,35 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:54 +0000
-Subject: [lm-sensors] [PATCH 30/32] drivers/hwmon/w83627ehf.c: Use pr_fmt
-Message-Id: <1ad0784ebd2944f51677c3be40a17e4b63a22dd0.1287556801.git.joe@perches.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 19 Oct 2010 16:48:19 +0000
+Subject: [lm-sensors] [PATCH] lm-sensors: Fix error seen with non-sequential
+Message-Id: <20101019164819.GA14549@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+The following patch fixes an error seen in sensors-detect if i2c bus numbering
+is not sequential. Problem is that in this case, $i2c_adapters[] does not exist
+for all index values, causing an error message whenever one of the non-existing 
+objects is accessed.
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/hwmon/w83627ehf.c |   23 ++++++++++-------------
- 1 files changed, 10 insertions(+), 13 deletions(-)
+The error message is:
+	Use of uninitialized value in string eq at ./sensors-detect line 5941.
 
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 072c580..073eabe 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -42,6 +42,8 @@
-     w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
- */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -1668,8 +1670,7 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
- 		break;
- 	default:
- 		if (val != 0xffff)
--			pr_debug(DRVNAME ": unsupported chip ID: 0x%04x\n",
--				 val);
-+			pr_debug("unsupported chip ID: 0x%04x\n", val);
- 		superio_exit(sioaddr);
- 		return -ENODEV;
- 	}
-@@ -1680,8 +1681,7 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
- 	    | superio_inb(sioaddr, SIO_REG_ADDR + 1);
- 	*addr = val & IOREGION_ALIGNMENT;
- 	if (*addr = 0) {
--		printk(KERN_ERR DRVNAME ": Refusing to enable a Super-I/O "
--		       "device with a base I/O port 0.\n");
-+		pr_err("Refusing to enable a Super-I/O device with a base I/O port 0\n");
- 		superio_exit(sioaddr);
- 		return -ENODEV;
- 	}
-@@ -1689,13 +1689,12 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
- 	/* Activate logical device if needed */
- 	val = superio_inb(sioaddr, SIO_REG_ENABLE);
- 	if (!(val & 0x01)) {
--		printk(KERN_WARNING DRVNAME ": Forcibly enabling Super-I/O. "
--		       "Sensor is probably unusable.\n");
-+		pr_warn("Forcibly enabling Super-I/O. Sensor is probably unusable.\n");
- 		superio_outb(sioaddr, SIO_REG_ENABLE, val | 0x01);
- 	}
- 
- 	superio_exit(sioaddr);
--	pr_info(DRVNAME ": Found %s chip at %#x\n", sio_name, *addr);
-+	pr_info("Found %s chip at %#x\n", sio_name, *addr);
- 	sio_data->sioreg = sioaddr;
- 
- 	return 0;
-@@ -1729,14 +1728,14 @@ static int __init sensors_w83627ehf_init(void)
- 
- 	if (!(pdev = platform_device_alloc(DRVNAME, address))) {
- 		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit_unregister;
- 	}
- 
- 	err = platform_device_add_data(pdev, &sio_data,
- 				       sizeof(struct w83627ehf_sio_data));
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
-+		pr_err("Platform data allocation failed\n");
- 		goto exit_device_put;
- 	}
- 
-@@ -1752,16 +1751,14 @@ static int __init sensors_w83627ehf_init(void)
- 
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
- 	/* platform_device_add calls probe() */
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
--- 
-1.7.3.1.g432b3.dirty
-
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5868)
++++ prog/detect/sensors-detect	(working copy)
+@@ -5936,7 +5936,9 @@
+ 	# If we added any module option to handle aliases, we need to load all
+ 	# the adapter drivers so that the numbers will be the same. If not, then
+ 	# we only load the adapter drivers which are useful.
+-	foreach $adap (@i2c_adapters) {
++	for (my $dev_nr = 0; $dev_nr < @i2c_adapters; $dev_nr++) {
++		next unless exists $i2c_adapters[$dev_nr];
++		$adap = $i2c_adapters[$dev_nr];
+ 		next if $adap->{autoload};
+ 		next if $adap->{driver} eq 'UNKNOWN';
+ 		next if not defined $configfile and not $adap->{used};
 
 _______________________________________________
 lm-sensors mailing list
