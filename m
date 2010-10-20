@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:49 +0000
-Subject: [lm-sensors] [PATCH 25/32] drivers/hwmon/smsc47m1.c: Use pr_fmt and
-Message-Id: <93eb55a4b0015390c488cb8fad988c2cdd3a4686.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:36 +0000
+Subject: [lm-sensors] [PATCH 12/32] drivers/hwmon/hwmon-vid.c: Use pr_fmt
+Message-Id: <6fb075d630e3fb20dc42ede9cca39c0c45ed9c0f.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -18,119 +18,52 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/smsc47m1.c |   31 +++++++++++++++----------------
- 1 files changed, 15 insertions(+), 16 deletions(-)
+ drivers/hwmon/hwmon-vid.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
-index 8fa462f..f44a89a 100644
---- a/drivers/hwmon/smsc47m1.c
-+++ b/drivers/hwmon/smsc47m1.c
-@@ -26,6 +26,8 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+index bf0862a..5328ad5 100644
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -22,6 +22,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
  #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/ioport.h>
-@@ -435,30 +437,29 @@ static int __init smsc47m1_find(unsigned short *addr,
- 	 */
- 	switch (val) {
- 	case 0x51:
--		pr_info(DRVNAME ": Found SMSC LPC47B27x\n");
-+		pr_info("Found SMSC LPC47B27x\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x59:
--		pr_info(DRVNAME ": Found SMSC LPC47M10x/LPC47M112/LPC47M13x\n");
-+		pr_info("Found SMSC LPC47M10x/LPC47M112/LPC47M13x\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x5F:
--		pr_info(DRVNAME ": Found SMSC LPC47M14x\n");
-+		pr_info("Found SMSC LPC47M14x\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x60:
--		pr_info(DRVNAME ": Found SMSC LPC47M15x/LPC47M192/LPC47M997\n");
-+		pr_info("Found SMSC LPC47M15x/LPC47M192/LPC47M997\n");
- 		sio_data->type = smsc47m1;
- 		break;
- 	case 0x6B:
- 		if (superio_inb(SUPERIO_REG_DEVREV) & 0x80) {
--			pr_debug(DRVNAME ": "
--				 "Found SMSC LPC47M233, unsupported\n");
-+			pr_debug("Found SMSC LPC47M233, unsupported\n");
- 			superio_exit();
- 			return -ENODEV;
- 		}
- 
--		pr_info(DRVNAME ": Found SMSC LPC47M292\n");
-+		pr_info("Found SMSC LPC47M292\n");
- 		sio_data->type = smsc47m2;
- 		break;
- 	default:
-@@ -470,7 +471,7 @@ static int __init smsc47m1_find(unsigned short *addr,
- 	*addr = (superio_inb(SUPERIO_REG_BASE) << 8)
- 	      |  superio_inb(SUPERIO_REG_BASE + 1);
- 	if (*addr = 0) {
--		pr_info(DRVNAME ": Device address not set, will not use\n");
-+		pr_info("Device address not set, will not use\n");
- 		superio_exit();
- 		return -ENODEV;
+ #include <linux/kernel.h>
+ #include <linux/hwmon-vid.h>
+@@ -146,8 +148,8 @@ int vid_from_reg(int val, u8 vrm)
+ 		return(val > 0x77 ? 0 : (1500000 - (val * 12500) + 500) / 1000);
+ 	default:		/* report 0 for unknown */
+ 		if (vrm)
+-			printk(KERN_WARNING "hwmon-vid: Requested unsupported "
+-			       "VRM version (%u)\n", (unsigned int)vrm);
++			pr_warn("Requested unsupported VRM version (%u)\n",
++				(unsigned int)vrm);
+ 		return 0;
  	}
-@@ -479,7 +480,7 @@ static int __init smsc47m1_find(unsigned short *addr,
- 	 * Compaq Presario S4000NX) */
- 	sio_data->activate = superio_inb(SUPERIO_REG_ACT);
- 	if ((sio_data->activate & 0x01) = 0) {
--		pr_info(DRVNAME ": Enabling device\n");
-+		pr_info("Enabling device\n");
- 		superio_outb(SUPERIO_REG_ACT, sio_data->activate | 0x01);
+ }
+@@ -246,8 +248,7 @@ u8 vid_which_vrm(void)
  	}
+ 	vrm_ret = find_vrm(eff_family, eff_model, eff_stepping, c->x86_vendor);
+ 	if (vrm_ret = 0)
+-		printk(KERN_INFO "hwmon-vid: Unknown VRM version of your "
+-		       "x86 CPU\n");
++		pr_info("Unknown VRM version of your x86 CPU\n");
+ 	return vrm_ret;
+ }
  
-@@ -494,7 +495,7 @@ static void smsc47m1_restore(const struct smsc47m1_sio_data *sio_data)
- 		superio_enter();
- 		superio_select();
- 
--		pr_info(DRVNAME ": Disabling device\n");
-+		pr_info("Disabling device\n");
- 		superio_outb(SUPERIO_REG_ACT, sio_data->activate);
- 
- 		superio_exit();
-@@ -823,28 +824,26 @@ static int __init smsc47m1_device_add(unsigned short address,
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
- 
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
- 	err = platform_device_add_data(pdev, sio_data,
- 				       sizeof(struct smsc47m1_sio_data));
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
-+		pr_err("Platform data allocation failed\n");
- 		goto exit_device_put;
- 	}
- 
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
+@@ -255,7 +256,7 @@ u8 vid_which_vrm(void)
+ #else
+ u8 vid_which_vrm(void)
+ {
+-	printk(KERN_INFO "hwmon-vid: Unknown VRM version of your CPU\n");
++	pr_info("Unknown VRM version of your CPU\n");
+ 	return 0;
+ }
+ #endif
 -- 
 1.7.3.1.g432b3.dirty
 
