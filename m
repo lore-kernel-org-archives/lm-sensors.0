@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:38 +0000
-Subject: [lm-sensors] [PATCH 14/32] drivers/hwmon/ibmaem.c: Use pr_fmt and
-Message-Id: <49a48933aca71fbd388f438b6c24791a895e886c.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:27 +0000
+Subject: [lm-sensors] [PATCH 03/32] drivers/hwmon/adt7470.c: Use pr_fmt and
+Message-Id: <80655c9b7f3a081126cde1ab505f7326fb65c583.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -18,29 +18,29 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/ibmaem.c |    4 +++-
+ drivers/hwmon/adt7470.c |    4 +++-
  1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
-index eaee546..bc6e2ab 100644
---- a/drivers/hwmon/ibmaem.c
-+++ b/drivers/hwmon/ibmaem.c
-@@ -20,6 +20,8 @@
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 9e77571..fc5da44 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -19,6 +19,8 @@
   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- #include <linux/ipmi.h>
  #include <linux/module.h>
- #include <linux/hwmon.h>
-@@ -1090,7 +1092,7 @@ static int __init aem_init(void)
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+@@ -274,7 +276,7 @@ static int adt7470_read_temperatures(struct i2c_client *client,
+ 	i2c_smbus_write_byte_data(client, ADT7470_REG_PWM_CFG(2), pwm_cfg[1]);
  
- 	res = driver_register(&aem_driver.driver);
  	if (res) {
--		printk(KERN_ERR "Can't register aem driver\n");
-+		pr_err("Can't register aem driver\n");
- 		return res;
+-		printk(KERN_ERR "ha ha, interrupted");
++		pr_err("ha ha, interrupted\n");
+ 		return -EAGAIN;
  	}
  
 -- 
