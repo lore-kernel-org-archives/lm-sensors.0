@@ -1,69 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 20 Oct 2010 20:13:45 +0000
+From: Jim Cromie <jim.cromie@gmail.com>
+Date: Wed, 20 Oct 2010 20:36:17 +0000
 Subject: Re: [lm-sensors] [PATCH] drivers/hwmon: Use pr_fmt and pr_<level>
-Message-Id: <20101020221345.0c28040e@endymion.delvare>
+Message-Id: <AANLkTinuBoVyKSm5nAwNx6H8DF6wDNNi4z4-b8wyXbaW@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1287530020.10409.594.camel@Joe-Laptop>
-	<20101020094208.3136b9dd@endymion.delvare>
-	<1287602386.2210.6.camel@cowboy>
-	<20101020213810.6b31c04e@endymion.delvare>
-	<1287604323.15567.22.camel@Joe-Laptop>
-In-Reply-To: <1287604323.15567.22.camel@Joe-Laptop>
+References: <1287530020.10409.594.camel@Joe-Laptop> <20101020094208.3136b9dd@endymion.delvare>
+ <1287602386.2210.6.camel@cowboy> <20101020213810.6b31c04e@endymion.delvare>
+ <1287604323.15567.22.camel@Joe-Laptop> <1287604743.15567.27.camel@Joe-Laptop>
+In-Reply-To: <1287604743.15567.27.camel@Joe-Laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: Joe Perches <joe@perches.com>
-Cc: dave@gnu.org, Guenter Roeck <guenter.roeck@ericsson.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Alistair John Strachan <alistair@devzero.co.uk>, Henrik Rydberg <rydberg@euromail.se>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Luca Tettamanti <kronos.it@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Juerg Haefliger <juergh@gmail.com>, Eric Piel <eric.piel@tremplin-utc.net>, Jim Cromie <jim.cromie@gmail.com>, Roger Lucas <vt8231@hiddenengine.co.uk>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>, dave@gnu.org, Guenter Roeck <guenter.roeck@ericsson.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Alistair John Strachan <alistair@devzero.co.uk>, Henrik Rydberg <rydberg@euromail.se>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Luca Tettamanti <kronos.it@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Juerg Haefliger <juergh@gmail.com>, Eric Piel <eric.piel@tremplin-utc.net>, Roger Lucas <vt8231@hiddenengine.co.uk>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
 
-On Wed, 20 Oct 2010 12:52:03 -0700, Joe Perches wrote:
-> On Wed, 2010-10-20 at 21:38 +0200, Jean Delvare wrote:
-> > On Wed, 20 Oct 2010 16:19:46 -0300, Davidlohr Bueso wrote:
-> > > Well we do have this:
-> > > #ifndef pr_fmt
-> > > #define pr_fmt(fmt) fmt
-> > > #endif
-> > I can read the code, thank you. My point is that what we have is
-> > insufficient, as Joe is proposing to use a different pr_fmt definition
-> > for pretty much all drivers in the kernel tree.
-> 
-> No, I'm proposing to use a uniform pr_fmt definition for
-> files that want a prefix on their logging messages.
+On Wed, Oct 20, 2010 at 1:59 PM, Joe Perches <joe@perches.com> wrote:
+> On Wed, 2010-10-20 at 12:52 -0700, Joe Perches wrote:
+>> So perhaps add this to include/linux/hwmon.h instead:
+>> #if defined pr_fmt
+>> #undef pr_fmt
+>> #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+>> #endif
+>
+> Nope. =A0That won't work as other non-hwmon files include it.
+>
+> drivers/platform/x86/eeepc-laptop.c:#include <linux/hwmon.h>
+> drivers/platform/x86/compal-laptop.c:#include <linux/hwmon.h>
+> drivers/platform/x86/thinkpad_acpi.c:#include <linux/hwmon.h>
+> drivers/thermal/thermal_sys.c:#include <linux/hwmon.h>
+> drivers/staging/iio/light/tsl2563.c:#include <linux/hwmon.h>
+> drivers/gpu/drm/radeon/radeon_pm.c:#include <linux/hwmon.h>
+> drivers/gpu/drm/nouveau/nouveau_pm.c:#include <linux/hwmon.h>
+> drivers/acpi/power_meter.c:#include <linux/hwmon.h>
+> drivers/input/touchscreen/ads7846.c:#include <linux/hwmon.h>
+>
+>
+>
 
-Which files can legitimately not want a prefix on their logging
-messages? How many files does this represent?
 
-> At some point, the files that do not want a prefix
-> should be converted to use #define pr_fmt(fmt) fmt.
-> 
-> Repeating from another email, there are ~1500 files that
-> use pr_<level> without using pr_fmt.  There are 335 files
-> that #define pr_fmt.
-> 
-> So I'm not saying that point in time is now.
+what about modules.h ? or device.h ?
 
-I am saying it is now.
+Id think that would cover many users without being universally inadequate,
+and Id guess one of those (or a neighbor) would cover most of the use-cases.
 
-> Another way to do this would be to standardize
-> hwmon.h so it would add:
-> 	"#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt"
-> in only 1 place.
-> 
-> So perhaps add this to include/linux/hwmon.h instead:
-> 
-> #if defined pr_fmt
-> #undef pr_fmt
-> #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> #endif
+youve got a list of 200 pr-fmt users,
+why not break them down by which format theyre using,
+and see if those formats line up with subsystems.
+Id think 6 or 7 definitions in the appropriate headers
+would give useful log-content, and avoid countless changes.
 
-And do the same in all other subsystems? What's the benefit over doing
-the same in <linux/kernel.h>.
-
-As it stands, I simply don't want your patches. As Guenter rightly
-said, these are cleanup patches which don't make the code cleaner, so
-there's no point. If you want to clean this up, please do it correctly.
-
--- 
-Jean Delvare
+KBUILD_MODNAME is always #defined by the make system.
+so if your defn built upon that, it would address all code that builds
+as modules, how many other use-cases are there ?
 
 _______________________________________________
 lm-sensors mailing list
