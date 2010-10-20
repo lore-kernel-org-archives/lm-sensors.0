@@ -1,94 +1,145 @@
-From: Simon Guinot <simon@sequanux.org>
-Date: Wed, 13 Oct 2010 11:59:51 +0000
-Subject: Re: [lm-sensors] [PATCH 4/5] hwmon: DNS323 rev C1 fan support
-Message-Id: <20101013115951.GA5649@kw.sim.vm.gnt>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4857716558040823601=="
+From: Joe Perches <joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:39 +0000
+Subject: [lm-sensors] [PATCH 15/32] drivers/hwmon/it87.c: Use pr_fmt and
+Message-Id: <ca9c0c999e7108d20fab9d4be3b310736bbdd7a6.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1274525694.1931.142.camel@pasglop>
-In-Reply-To: <1274525694.1931.142.camel@pasglop>
-To: linux-arm-kernel@lists.infradead.org
-
-
---===============4857716558040823601==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
-Content-Disposition: inline
-
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Benjamin,
-
-What is the status for the DNS323 fan support ?
-Have this patch been merged yet ?
-
-I am currently looking to add hwmon support for the GPIO fan found
-on Network Space Max v2 boards. Obviously, some attributes are shared
-with the DNS323 fan. Maybe there is some room for a generic GPIO fan
-driver ?
-
-Platform data could provide the board specific GPIO pinout and a speed
-conversion array (rpm from/to GPIO value). Here is a proposal for this
-platform data interface:
-
-struct gpio_fan {
-        const char      *name;
-        unsigned        gpio;
-        unsigned        active_low;
-};
-
-struct gpio_fan_speed {
-        int value;
-        int rpm;
-};
-
-struct gpio_fan_platform_data {
-        struct gpio_fan         *alarm; /* fan alarm GPIO. */
-        struct gpio_fan         *ctrl;  /* fan control GPIOs. */
-        int                     num_ctrl;
-        /*
-         * Speed conversion array: rpm from/to GPIO bit field.
-         * This array _must_ be sorted in ascending rpm order.
-         */
-        struct gpio_fan_speed   *speed;
-        int                     num_speed;
-};
-
-Based on this informations the GPIO fan driver could perform the
-speed conversions (pwm, rpm, GPIO value) and then provide a hwmon
-interface.
-
-Thanks for advice.
-
-Simon
-
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAky1nzcACgkQgtp0PDeOcDq7vACfWYIiuWJhfAw8Mlhslwx+3D1k
-NS8AoIB8WCIaAZo3MTkpSbKwKVFy5j6t
-=lFQf
------END PGP SIGNATURE-----
-
---5mCyUwZo2JvN/JJP--
-
-
---===============4857716558040823601==
-Content-Type: text/plain; charset="us-ascii"
+References: <20101020035346.GA20178@ericsson.com>
+In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+
+Added #define pr_fmt KBUILD_MODNAME ": " fmt
+Converted printks to pr_<level>
+Coalesced any long formats
+Removed prefixes from formats
+
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/it87.c |   30 ++++++++++++++----------------
+ 1 files changed, 14 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index f770129..3d3da59 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -36,6 +36,8 @@
+  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+@@ -1493,26 +1495,25 @@ static int __init it87_find(unsigned short *address,
+ 	case 0xffff:	/* No device at all */
+ 		goto exit;
+ 	default:
+-		pr_debug(DRVNAME ": Unsupported chip (DEVID=0x%x)\n",
+-			 chip_type);
++		pr_debug("Unsupported chip (DEVID=0x%x)\n", chip_type);
+ 		goto exit;
+ 	}
+ 
+ 	superio_select(PME);
+ 	if (!(superio_inb(IT87_ACT_REG) & 0x01)) {
+-		pr_info("it87: Device not activated, skipping\n");
++		pr_info("Device not activated, skipping\n");
+ 		goto exit;
+ 	}
+ 
+ 	*address = superio_inw(IT87_BASE_REG) & ~(IT87_EXTENT - 1);
+ 	if (*address = 0) {
+-		pr_info("it87: Base address not set, skipping\n");
++		pr_info("Base address not set, skipping\n");
+ 		goto exit;
+ 	}
+ 
+ 	err = 0;
+ 	sio_data->revision = superio_inb(DEVREV) & 0x0f;
+-	pr_info("it87: Found IT%04xF chip at 0x%x, revision %d\n",
++	pr_info("Found IT%04xF chip at 0x%x, revision %d\n",
+ 		chip_type, *address, sio_data->revision);
+ 
+ 	/* in8 (Vbat) is always internal */
+@@ -1533,7 +1534,7 @@ static int __init it87_find(unsigned short *address,
+ 		/* We need at least 4 VID pins */
+ 		reg = superio_inb(IT87_SIO_GPIO3_REG);
+ 		if (reg & 0x0f) {
+-			pr_info("it87: VID is disabled (pins used for GPIO)\n");
++			pr_info("VID is disabled (pins used for GPIO)\n");
+ 			sio_data->skip_vid = 1;
+ 		}
+ 
+@@ -1568,7 +1569,7 @@ static int __init it87_find(unsigned short *address,
+ 		if (sio_data->type = it8720 && !(reg & (1 << 1))) {
+ 			reg |= (1 << 1);
+ 			superio_outb(IT87_SIO_PINX2_REG, reg);
+-			pr_notice("it87: Routing internal VCCH to in7\n");
++			pr_notice("Routing internal VCCH to in7\n");
+ 		}
+ 		if (reg & (1 << 0))
+ 			sio_data->internal |= (1 << 0);
+@@ -1578,7 +1579,7 @@ static int __init it87_find(unsigned short *address,
+ 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	}
+ 	if (sio_data->beep_pin)
+-		pr_info("it87: Beeping is supported\n");
++		pr_info("Beeping is supported\n");
+ 
+ 	/* Disable specific features based on DMI strings */
+ 	board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
+@@ -1592,8 +1593,7 @@ static int __init it87_find(unsigned short *address,
+ 			   the PWM2 duty cycle, so we disable it.
+ 			   I use the board name string as the trigger in case
+ 			   the same board is ever used in other systems. */
+-			pr_info("it87: Disabling pwm2 due to "
+-				"hardware constraints\n");
++			pr_info("Disabling pwm2 due to hardware constraints\n");
+ 			sio_data->skip_pwm = (1 << 1);
+ 		}
+ 	}
+@@ -2086,28 +2086,26 @@ static int __init it87_device_add(unsigned short address,
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+-		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
++		pr_err("Device allocation failed\n");
+ 		goto exit;
+ 	}
+ 
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+-		       "(%d)\n", err);
++		pr_err("Device resource addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add_data(pdev, sio_data,
+ 				       sizeof(struct it87_sio_data));
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
++		pr_err("Platform data allocation failed\n");
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add(pdev);
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
+-		       err);
++		pr_err("Device addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+-- 
+1.7.3.1.g432b3.dirty
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4857716558040823601==--
