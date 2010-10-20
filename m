@@ -1,38 +1,59 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 03 Oct 2010 13:50:18 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.36-rc7
-Message-Id: <1286113818-16205-1-git-send-email-guenter.roeck@ericsson.com>
+From: Joe Perches <joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:30 +0000
+Subject: [lm-sensors] [PATCH 06/32] drivers/hwmon/asus_atk0110.c: Use pr_fmt
+Message-Id: <506bc745e46020fb99159fd73288d3b0202c99cf.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20101020035346.GA20178@ericsson.com>
+In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Luca Tettamanti <kronos.it@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+Added #define pr_fmt KBUILD_MODNAME ": " fmt
+Converted printks to pr_<level>
+Coalesced any long formats
+Removed prefixes from formats
 
-Please pull hwmon subsystem fixes for Linux 2.6.36-rc7 from:
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/asus_atk0110.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index 23b8555..2d68cf3 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -5,6 +5,8 @@
+  * See COPYING in the top level directory of the kernel tree.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/debugfs.h>
+ #include <linux/kernel.h>
+ #include <linux/hwmon.h>
+@@ -1414,14 +1416,13 @@ static int __init atk0110_init(void)
+ 
+ 	/* Make sure it's safe to access the device through ACPI */
+ 	if (!acpi_resources_are_enforced()) {
+-		pr_err("atk: Resources not safely usable due to "
+-		       "acpi_enforce_resources kernel parameter\n");
++		pr_err("Resources not safely usable due to acpi_enforce_resources kernel parameter\n");
+ 		return -EBUSY;
+ 	}
+ 
+ 	ret = acpi_bus_register_driver(&atk_driver);
+ 	if (ret)
+-		pr_info("atk: acpi_bus_register_driver failed: %d\n", ret);
++		pr_info("acpi_bus_register_driver failed: %d\n", ret);
+ 
+ 	return ret;
+ }
+-- 
+1.7.3.1.g432b3.dirty
 
-Thanks,
-Guenter Roeck
-
-------
-
-The following changes since commit c6ea21e35bf3691cad59647c771e6606067f627d:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6 (2010-10-01 15:03:37 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Giel van Schijndel (1):
-      hwmon: f71882fg: use a muxed resource lock for the Super I/O port
-
- drivers/hwmon/f71882fg.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
