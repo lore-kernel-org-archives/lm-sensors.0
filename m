@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:39 +0000
-Subject: [lm-sensors] [PATCH 15/32] drivers/hwmon/it87.c: Use pr_fmt and
-Message-Id: <ca9c0c999e7108d20fab9d4be3b310736bbdd7a6.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:34 +0000
+Subject: [lm-sensors] [PATCH 10/32] drivers/hwmon/f71882fg.c: Use pr_fmt and
+Message-Id: <b07026df29e679572be14846620aadf879963087.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -18,120 +18,98 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/it87.c |   30 ++++++++++++++----------------
- 1 files changed, 14 insertions(+), 16 deletions(-)
+ drivers/hwmon/f71882fg.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index f770129..3d3da59 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -36,6 +36,8 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 75afb3b..3f49dd3 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -18,6 +18,8 @@
+  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+  ***************************************************************************/
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
  #include <linux/module.h>
  #include <linux/init.h>
  #include <linux/slab.h>
-@@ -1493,26 +1495,25 @@ static int __init it87_find(unsigned short *address,
- 	case 0xffff:	/* No device at all */
+@@ -865,8 +867,7 @@ static inline int superio_enter(int base)
+ {
+ 	/* Don't step on other drivers' I/O space by accident */
+ 	if (!request_muxed_region(base, 2, DRVNAME)) {
+-		printk(KERN_ERR DRVNAME ": I/O address 0x%04x already in use\n",
+-				base);
++		pr_err("I/O address 0x%04x already in use\n", base);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -2192,7 +2193,7 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 
+ 	devid = superio_inw(sioaddr, SIO_REG_MANID);
+ 	if (devid != SIO_FINTEK_ID) {
+-		pr_debug(DRVNAME ": Not a Fintek device\n");
++		pr_debug("Not a Fintek device\n");
+ 		err = -ENODEV;
  		goto exit;
+ 	}
+@@ -2215,8 +2216,8 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 		sio_data->type = f8000;
+ 		break;
  	default:
--		pr_debug(DRVNAME ": Unsupported chip (DEVID=0x%x)\n",
--			 chip_type);
-+		pr_debug("Unsupported chip (DEVID=0x%x)\n", chip_type);
+-		printk(KERN_INFO DRVNAME ": Unsupported Fintek device: %04x\n",
+-		       (unsigned int)devid);
++		pr_info("Unsupported Fintek device: %04x\n",
++			(unsigned int)devid);
+ 		err = -ENODEV;
+ 		goto exit;
+ 	}
+@@ -2227,21 +2228,21 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 		superio_select(sioaddr, SIO_F71882FG_LD_HWM);
+ 
+ 	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+-		printk(KERN_WARNING DRVNAME ": Device not activated\n");
++		pr_warn("Device not activated\n");
+ 		err = -ENODEV;
  		goto exit;
  	}
  
- 	superio_select(PME);
- 	if (!(superio_inb(IT87_ACT_REG) & 0x01)) {
--		pr_info("it87: Device not activated, skipping\n");
-+		pr_info("Device not activated, skipping\n");
- 		goto exit;
- 	}
- 
- 	*address = superio_inw(IT87_BASE_REG) & ~(IT87_EXTENT - 1);
+ 	*address = superio_inw(sioaddr, SIO_REG_ADDR);
  	if (*address = 0) {
--		pr_info("it87: Base address not set, skipping\n");
-+		pr_info("Base address not set, skipping\n");
+-		printk(KERN_WARNING DRVNAME ": Base address not set\n");
++		pr_warn("Base address not set\n");
+ 		err = -ENODEV;
  		goto exit;
  	}
+ 	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
  
  	err = 0;
- 	sio_data->revision = superio_inb(DEVREV) & 0x0f;
--	pr_info("it87: Found IT%04xF chip at 0x%x, revision %d\n",
-+	pr_info("Found IT%04xF chip at 0x%x, revision %d\n",
- 		chip_type, *address, sio_data->revision);
+-	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %d\n",
++	pr_info("Found %s chip at %#x, revision %d\n",
+ 		f71882fg_names[sio_data->type],	(unsigned int)*address,
+ 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
+ exit:
+@@ -2270,20 +2271,20 @@ static int __init f71882fg_device_add(unsigned short address,
  
- 	/* in8 (Vbat) is always internal */
-@@ -1533,7 +1534,7 @@ static int __init it87_find(unsigned short *address,
- 		/* We need at least 4 VID pins */
- 		reg = superio_inb(IT87_SIO_GPIO3_REG);
- 		if (reg & 0x0f) {
--			pr_info("it87: VID is disabled (pins used for GPIO)\n");
-+			pr_info("VID is disabled (pins used for GPIO)\n");
- 			sio_data->skip_vid = 1;
- 		}
- 
-@@ -1568,7 +1569,7 @@ static int __init it87_find(unsigned short *address,
- 		if (sio_data->type = it8720 && !(reg & (1 << 1))) {
- 			reg |= (1 << 1);
- 			superio_outb(IT87_SIO_PINX2_REG, reg);
--			pr_notice("it87: Routing internal VCCH to in7\n");
-+			pr_notice("Routing internal VCCH to in7\n");
- 		}
- 		if (reg & (1 << 0))
- 			sio_data->internal |= (1 << 0);
-@@ -1578,7 +1579,7 @@ static int __init it87_find(unsigned short *address,
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	}
- 	if (sio_data->beep_pin)
--		pr_info("it87: Beeping is supported\n");
-+		pr_info("Beeping is supported\n");
- 
- 	/* Disable specific features based on DMI strings */
- 	board_vendor = dmi_get_system_info(DMI_BOARD_VENDOR);
-@@ -1592,8 +1593,7 @@ static int __init it87_find(unsigned short *address,
- 			   the PWM2 duty cycle, so we disable it.
- 			   I use the board name string as the trigger in case
- 			   the same board is ever used in other systems. */
--			pr_info("it87: Disabling pwm2 due to "
--				"hardware constraints\n");
-+			pr_info("Disabling pwm2 due to hardware constraints\n");
- 			sio_data->skip_pwm = (1 << 1);
- 		}
- 	}
-@@ -2086,28 +2086,26 @@ static int __init it87_device_add(unsigned short address,
- 	pdev = platform_device_alloc(DRVNAME, address);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
- 
- 	err = platform_device_add_resources(pdev, &res, 1);
+ 	err = platform_device_add_resources(f71882fg_pdev, &res, 1);
  	if (err) {
--		printk(KERN_ERR DRVNAME ": Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
+-		printk(KERN_ERR DRVNAME ": Device resource addition failed\n");
++		pr_err("Device resource addition failed\n");
  		goto exit_device_put;
  	}
  
- 	err = platform_device_add_data(pdev, sio_data,
- 				       sizeof(struct it87_sio_data));
+ 	err = platform_device_add_data(f71882fg_pdev, sio_data,
+ 				       sizeof(struct f71882fg_sio_data));
  	if (err) {
 -		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
 +		pr_err("Platform data allocation failed\n");
  		goto exit_device_put;
  	}
  
- 	err = platform_device_add(pdev);
+ 	err = platform_device_add(f71882fg_pdev);
  	if (err) {
--		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
+-		printk(KERN_ERR DRVNAME ": Device addition failed\n");
++		pr_err("Device addition failed\n");
  		goto exit_device_put;
  	}
  
