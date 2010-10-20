@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:35 +0000
-Subject: [lm-sensors] [PATCH 11/32] drivers/hwmon/hp_accel.c: Use pr_fmt and
-Message-Id: <a6d44b515f7e22737ee2e9b6f5449ea44ed19dc0.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:55 +0000
+Subject: [lm-sensors] [PATCH 31/32] drivers/hwmon/w83627hf.c: Use pr_fmt and
+Message-Id: <1c8f1890b6adbfe084e1443f5e5e9c7428edb3d4.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -18,55 +18,72 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/hp_accel.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ drivers/hwmon/w83627hf.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/hwmon/hp_accel.c b/drivers/hwmon/hp_accel.c
-index a56a784..3d21fa2 100644
---- a/drivers/hwmon/hp_accel.c
-+++ b/drivers/hwmon/hp_accel.c
-@@ -20,6 +20,8 @@
-  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 38e2805..bde50e3 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -39,6 +39,8 @@
+     supported yet.
+ */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- #include <linux/kernel.h>
+ #include <linux/module.h>
  #include <linux/init.h>
- #include <linux/dmi.h>
-@@ -147,7 +149,7 @@ int lis3lv02d_acpi_write(struct lis3lv02d *lis3, int reg, u8 val)
- static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
- {
- 	lis3_dev.ac = *((union axis_conversion *)dmi->driver_data);
--	printk(KERN_INFO DRIVER_NAME ": hardware type %s found.\n", dmi->ident);
-+	pr_info("hardware type %s found\n", dmi->ident);
- 
- 	return 1;
- }
-@@ -303,11 +305,10 @@ static int lis3lv02d_add(struct acpi_device *device)
- 
- 	/* If possible use a "standard" axes order */
- 	if (lis3_dev.ac.x && lis3_dev.ac.y && lis3_dev.ac.z) {
--		printk(KERN_INFO DRIVER_NAME ": Using custom axes %d,%d,%d\n",
--		       lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
-+		pr_info("Using custom axes %d,%d,%d\n",
-+			lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
- 	} else if (dmi_check_system(lis3lv02d_dmi_ids) = 0) {
--		printk(KERN_INFO DRIVER_NAME ": laptop model unknown, "
--				 "using default axes configuration\n");
-+		pr_info("laptop model unknown, using default axes configuration\n");
- 		lis3_dev.ac = lis3lv02d_axis_normal;
+ #include <linux/slab.h>
+@@ -1166,14 +1168,13 @@ static int __init w83627hf_find(int sioaddr, unsigned short *addr,
+ 	       superio_inb(sio_data, WINB_BASE_REG + 1);
+ 	*addr = val & WINB_ALIGNMENT;
+ 	if (*addr = 0) {
+-		printk(KERN_WARNING DRVNAME ": Base address not set, "
+-		       "skipping\n");
++		pr_warn("Base address not set, skipping\n");
+ 		goto exit;
  	}
  
-@@ -385,7 +386,7 @@ static int __init lis3lv02d_init_module(void)
- 	if (ret < 0)
- 		return ret;
+ 	val = superio_inb(sio_data, WINB_ACT_REG);
+ 	if (!(val & 0x01)) {
+-		printk(KERN_WARNING DRVNAME ": Enabling HWM logical device\n");
++		pr_warn("Enabling HWM logical device\n");
+ 		superio_outb(sio_data, WINB_ACT_REG, val | 0x01);
+ 	}
  
--	printk(KERN_INFO DRIVER_NAME " driver loaded.\n");
-+	pr_info("driver loaded\n");
+@@ -1789,28 +1790,26 @@ static int __init w83627hf_device_add(unsigned short address,
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+-		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
++		pr_err("Device allocation failed\n");
+ 		goto exit;
+ 	}
  
- 	return 0;
- }
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+-		       "(%d)\n", err);
++		pr_err("Device resource addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add_data(pdev, sio_data,
+ 				       sizeof(struct w83627hf_sio_data));
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
++		pr_err("Platform data allocation failed\n");
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add(pdev);
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
+-		       err);
++		pr_err("Device addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
 -- 
 1.7.3.1.g432b3.dirty
 
