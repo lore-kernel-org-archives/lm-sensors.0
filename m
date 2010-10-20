@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:29 +0000
-Subject: [lm-sensors] [PATCH 05/32] drivers/hwmon/asb100.c: Use pr_fmt and
-Message-Id: <a61e9f4678dd7d839b70599d829d6a6145e81034.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:41 +0000
+Subject: [lm-sensors] [PATCH 17/32] drivers/hwmon/lm70.c: Use pr_fmt and
+Message-Id: <a482fe578a9717ce670aca34f42edfc097b10a1f.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
 Added #define pr_fmt KBUILD_MODNAME ": " fmt
 Converted printks to pr_<level>
@@ -18,50 +18,32 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/asb100.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/hwmon/lm70.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
-index 7dada55..c02a052 100644
---- a/drivers/hwmon/asb100.c
-+++ b/drivers/hwmon/asb100.c
-@@ -36,6 +36,8 @@
-     asb100	7	3	1	4	0x31	0x0694	yes	no
- */
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index fd108cf..3b84fb5 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -24,6 +24,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
+ #include <linux/init.h>
  #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/i2c.h>
-@@ -701,8 +703,7 @@ static int asb100_detect(struct i2c_client *client,
- 	int val1, val2;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
--		pr_debug("asb100.o: detect failed, "
--				"smbus byte data not supported!\n");
-+		pr_debug("detect failed, smbus byte data not supported!\n");
- 		return -ENODEV;
+ #include <linux/kernel.h>
+@@ -67,8 +69,7 @@ static ssize_t lm70_sense_temp(struct device *dev,
+ 	 */
+ 	status = spi_write_then_read(spi, NULL, 0, &rxbuf[0], 2);
+ 	if (status < 0) {
+-		printk(KERN_WARNING
+-		"spi_write_then_read failed with status %d\n", status);
++		pr_warn("spi_write_then_read failed with status %d\n", status);
+ 		goto out;
  	}
- 
-@@ -715,7 +716,7 @@ static int asb100_detect(struct i2c_client *client,
- 			(((!(val1 & 0x80)) && (val2 != 0x94)) ||
- 			/* Check for ASB100 ID (high byte ) */
- 			((val1 & 0x80) && (val2 != 0x06)))) {
--		pr_debug("asb100: detect failed, bad chip id 0x%02x!\n", val2);
-+		pr_debug("detect failed, bad chip id 0x%02x!\n", val2);
- 		return -ENODEV;
- 	}
- 
-@@ -744,7 +745,7 @@ static int asb100_probe(struct i2c_client *client,
- 
- 	data = kzalloc(sizeof(struct asb100_data), GFP_KERNEL);
- 	if (!data) {
--		pr_debug("asb100.o: probe failed, kzalloc failed!\n");
-+		pr_debug("probe failed, kzalloc failed!\n");
- 		err = -ENOMEM;
- 		goto ERROR0;
- 	}
+ 	raw = (rxbuf[0] << 8) + rxbuf[1];
 -- 
 1.7.3.1.g432b3.dirty
 
