@@ -1,108 +1,67 @@
-From: "H. Peter Anvin" <hpa@linux.intel.com>
-Date: Tue, 12 Oct 2010 20:22:28 +0000
-Subject: [lm-sensors] [GIT PULL] x86 fixes for 2.6.36
-Message-Id: <201010122022.o9CKMSJL023932@hera.kernel.org>
+From: Joe Perches <joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:51 +0000
+Subject: [lm-sensors] [PATCH 27/32] drivers/hwmon/via686a.c: Use pr_fmt and
+Message-Id: <d6f213984afeaa0f07fe39d0849c8d80fac85661.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20101020035346.GA20178@ericsson.com>
+In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: stable@kernel.org, Borislav Petkov <borislav.petkov@amd.com>, Brown Len <len.brown@intel.com>, David Rientjes <rientjes@google.com>, Fenghua Yu <fenghua.yu@initel.com>, Guenter Roeck <guenter.roeck@ericsson.com>, "H. Peter Anvin" <hpa@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, Ingo Molnar <mingo@elte.hu>, Jean Delvare <khali@linux-fr.org>, Jin Dongming <jin.dongming@np.css.fujitsu.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Russ Anderson <rja@sgi.com>, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+Added #define pr_fmt KBUILD_MODNAME ": " fmt
+Converted printks to pr_<level>
+Coalesced any long formats
+Removed prefixes from formats
 
-As previously discussed, the last set of bug fixes for 2.6.36.  The
-important one is the NUMA fix, of course.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/via686a.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-The following changes since commit 0acc1b2afb6ded060b7d6b1b5e6ac8a00ec47547:
-
-  Merge branch 'kvm-updates/2.6.36' of git://git.kernel.org/pub/scm/virt/kvm/kvm (2010-10-12 09:16:01 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tip/linux-2.6-tip.git x86-fixes-for-linus
-
-Borislav Petkov (1):
-      x86, AMD, MCE thresholding: Fix the MCi_MISCj iteration order
-
-Jin Dongming (1):
-      x86, mce, therm_throt.c: Fix missing curly braces in error handling logic
-
-Yinghai Lu (1):
-      x86, numa: For each node, register the memory blocks actually used
-
- arch/x86/kernel/cpu/mcheck/mce_amd.c     |    9 +++------
- arch/x86/kernel/cpu/mcheck/therm_throt.c |    3 ++-
- arch/x86/mm/srat_64.c                    |    8 +++++---
- 3 files changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/arch/x86/kernel/cpu/mcheck/mce_amd.c b/arch/x86/kernel/cpu/mcheck/mce_amd.c
-index 5e97529..39aaee5 100644
---- a/arch/x86/kernel/cpu/mcheck/mce_amd.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce_amd.c
-@@ -141,6 +141,7 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
- 				address = (low & MASK_BLKPTR_LO) >> 21;
- 				if (!address)
- 					break;
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index f397ce7..13e8d21 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -30,6 +30,8 @@
+     Warning - only supports a single device.
+ */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- 				address += MCG_XBLK_ADDR;
- 			} else
- 				++address;
-@@ -148,12 +149,8 @@ void mce_amd_feature_init(struct cpuinfo_x86 *c)
- 			if (rdmsr_safe(address, &low, &high))
- 				break;
- 
--			if (!(high & MASK_VALID_HI)) {
--				if (block)
--					continue;
--				else
--					break;
--			}
-+			if (!(high & MASK_VALID_HI))
-+				continue;
- 
- 			if (!(high & MASK_CNTP_HI)  ||
- 			     (high & MASK_LOCKED_HI))
-diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-index d9368ee..169d880 100644
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-+++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -216,7 +216,7 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
- 		err = sysfs_add_file_to_group(&sys_dev->kobj,
- 					      &attr_core_power_limit_count.attr,
- 					      thermal_attr_group.name);
--	if (cpu_has(c, X86_FEATURE_PTS))
-+	if (cpu_has(c, X86_FEATURE_PTS)) {
- 		err = sysfs_add_file_to_group(&sys_dev->kobj,
- 					      &attr_package_throttle_count.attr,
- 					      thermal_attr_group.name);
-@@ -224,6 +224,7 @@ static __cpuinit int thermal_throttle_add_dev(struct sys_device *sys_dev,
- 			err = sysfs_add_file_to_group(&sys_dev->kobj,
- 					&attr_package_power_limit_count.attr,
- 					thermal_attr_group.name);
-+	}
- 
- 	return err;
- }
-diff --git a/arch/x86/mm/srat_64.c b/arch/x86/mm/srat_64.c
-index f9897f7..9c0d0d3 100644
---- a/arch/x86/mm/srat_64.c
-+++ b/arch/x86/mm/srat_64.c
-@@ -420,9 +420,11 @@ int __init acpi_scan_nodes(unsigned long start, unsigned long end)
- 		return -1;
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/pci.h>
+@@ -791,21 +793,19 @@ static int __devinit via686a_device_add(unsigned short address)
+ 	pdev = platform_device_alloc("via686a", address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+-		printk(KERN_ERR "via686a: Device allocation failed\n");
++		pr_err("Device allocation failed\n");
+ 		goto exit;
  	}
  
--	for_each_node_mask(i, nodes_parsed)
--		e820_register_active_regions(i, nodes[i].start >> PAGE_SHIFT,
--						nodes[i].end >> PAGE_SHIFT);
-+	for (i = 0; i < num_node_memblks; i++)
-+		e820_register_active_regions(memblk_nodeid[i],
-+				node_memblk_range[i].start >> PAGE_SHIFT,
-+				node_memblk_range[i].end >> PAGE_SHIFT);
-+
- 	/* for out of order entries in SRAT */
- 	sort_node_map();
- 	if (!nodes_cover_memory(nodes)) {
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+-		printk(KERN_ERR "via686a: Device resource addition failed "
+-		       "(%d)\n", err);
++		pr_err("Device resource addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add(pdev);
+ 	if (err) {
+-		printk(KERN_ERR "via686a: Device addition failed (%d)\n",
+-		       err);
++		pr_err("Device addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+-- 
+1.7.3.1.g432b3.dirty
+
 
 _______________________________________________
 lm-sensors mailing list
