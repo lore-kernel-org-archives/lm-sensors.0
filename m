@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:47 +0000
-Subject: [lm-sensors] [PATCH 23/32] drivers/hwmon/sis5595.c: Use pr_fmt and
-Message-Id: <f2fb8535e2f7cff526474857dc91cd3927f3cd11.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:38 +0000
+Subject: [lm-sensors] [PATCH 14/32] drivers/hwmon/ibmaem.c: Use pr_fmt and
+Message-Id: <49a48933aca71fbd388f438b6c24791a895e886c.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -18,45 +18,29 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/sis5595.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/hwmon/ibmaem.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
-index 79c2931..47d7ce9 100644
---- a/drivers/hwmon/sis5595.c
-+++ b/drivers/hwmon/sis5595.c
-@@ -50,6 +50,8 @@
- 	 735		0008		0735
- */
+diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
+index eaee546..bc6e2ab 100644
+--- a/drivers/hwmon/ibmaem.c
++++ b/drivers/hwmon/ibmaem.c
+@@ -20,6 +20,8 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
+ #include <linux/ipmi.h>
  #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/ioport.h>
-@@ -735,21 +737,19 @@ static int __devinit sis5595_device_add(unsigned short address)
- 	pdev = platform_device_alloc("sis5595", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR "sis5595: Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
+ #include <linux/hwmon.h>
+@@ -1090,7 +1092,7 @@ static int __init aem_init(void)
  
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
--		printk(KERN_ERR "sis5595: Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR "sis5595: Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
+ 	res = driver_register(&aem_driver.driver);
+ 	if (res) {
+-		printk(KERN_ERR "Can't register aem driver\n");
++		pr_err("Can't register aem driver\n");
+ 		return res;
  	}
  
 -- 
