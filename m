@@ -1,47 +1,58 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 20 Oct 2010 16:43:43 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 20 Oct 2010 16:45:15 +0000
 Subject: Re: [lm-sensors] [PATCH] drivers/hwmon: Use pr_fmt and pr_<level>
-Message-Id: <20101020164343.GA22572@ericsson.com>
+Message-Id: <20101020184515.38512719@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1287530020.10409.594.camel@Joe-Laptop>
- <20101020032938.GA20095@ericsson.com>
- <1287545658.10409.606.camel@Joe-Laptop>
- <20101020035346.GA20178@ericsson.com>
- <1287547662.10409.618.camel@Joe-Laptop>
- <20101020093438.07b129c8@endymion.delvare>
- <20101020144608.GA21937@ericsson.com>
- <20101020183835.202989c9@endymion.delvare>
-In-Reply-To: <20101020183835.202989c9@endymion.delvare>
+	<20101020032938.GA20095@ericsson.com>
+	<1287545658.10409.606.camel@Joe-Laptop>
+	<20101020035346.GA20178@ericsson.com>
+	<1287547662.10409.618.camel@Joe-Laptop>
+	<20101020093438.07b129c8@endymion.delvare>
+	<20101020144608.GA21937@ericsson.com>
+	<1287590890.1813.166.camel@Joe-Laptop>
+In-Reply-To: <1287590890.1813.166.camel@Joe-Laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Joe Perches <joe@perches.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Alistair John Strachan <alistair@devzero.co.uk>, Henrik Rydberg <rydberg@euromail.se>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Luca Tettamanti <kronos.it@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Juerg Haefliger <juergh@gmail.com>, Eric Piel <eric.piel@tremplin-utc.net>, Jim Cromie <jim.cromie@gmail.com>, Roger Lucas <vt8231@hiddenengine.co.uk>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
+To: Joe Perches <joe@perches.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Alistair John Strachan <alistair@devzero.co.uk>, Henrik Rydberg <rydberg@euromail.se>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Luca Tettamanti <kronos.it@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Juerg Haefliger <juergh@gmail.com>, Eric Piel <eric.piel@tremplin-utc.net>, Jim Cromie <jim.cromie@gmail.com>, Roger Lucas <vt8231@hiddenengine.co.uk>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hi Jean,
-On Wed, Oct 20, 2010 at 12:38:35PM -0400, Jean Delvare wrote:
-[ ... ]
-> 
-> I'm still using quilt so it means quite some manual work for me. Probably
-> I could automate part of it, and I would if it was happening
-> frequently. But as it stands it's rather rare.
-> 
-I tried quilt, but dumped it in favor of git. Personal preference, maybe,
-but I seem to get along with git much better than with quilt.
+Hi Joe,
 
-> OK. Well, only two of "my" drivers are affected by Joe's patch (it87
-> and pcf8591), so if you prefer the split variant, you could pick all
-> the individual patches except these two, and I take these two.
+On Wed, 20 Oct 2010 09:08:10 -0700, Joe Perches wrote:
+> On Wed, 2010-10-20 at 07:46 -0700, Guenter Roeck wrote:
+> > > * That being said, now that the hwmon subsystem maintainer is a shared
+> > >   duty between Guenter and myself, there's no single place where we can
+> > >   keep a patch touching many drivers and ensure it doesn't conflict
+> > >   with the changes in the other tree. But I would think   this is
+> > >   something for Gunter and myself to sort out, not patch contributors.
 > 
-Ok, let's do that.
+> Perhaps allow both maintainers read/write access to hwmon-next?
 
-> But first of all, I really would like the pr_fmt issue do be sorted
-> out. I don't like the idea of having to redefine it in every driver,
-> when it seems easy to avoid that. Joe?
+Guenter and myself are collaborating on the hwmon tree since a
+relatively recent date. We still have to find the best method. For now
+we have separate trees because it seemed easier that way, but we may
+change our minds later.
+
+> > > I currently have pending patches to the following hwmon drivers in my
+> > > tree: adt7475, ams, asc7621, hdaps, it87, k8temp, lm75, lm85, lm90,
+> > > pcf8591, s3c-hwmon, w83795. Two of these are affected by Joe's
+> > > patch(es). Guenter, what about you?
+> >
+> > coretemp, pkgtemp, via-cputemp, ltc4261 (new), lis3, hp_accel
 > 
-Agreed, especially since it doesn't seem to be used in many of the drivers.
+> I did these against next which includes 'hwmon-staging/hwmon-next'.
+> 
+> Shouldn't these patches apply without modification or do I need
+> to do something else?
 
-Guenter
+If you based your patches on linux-next then you're all set. I was
+asking Guenter about his affected drivers only to decide who, of him and
+me, should take which patch.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
