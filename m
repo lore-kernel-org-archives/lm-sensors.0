@@ -1,33 +1,123 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 22 Oct 2010 15:02:41 +0000
-Subject: Re: [lm-sensors] [PATCH/RFC] sensors-detect: Add detection of PMBus
-Message-Id: <20101022150241.GA31571@ericsson.com>
+From: Joe Perches <joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:33 +0000
+Subject: [lm-sensors] [PATCH 09/32] drivers/hwmon/f71805f.c: Use pr_fmt and
+Message-Id: <23cbb0d31160c359e187431af643865d0872a5a3.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101014154042.GA20794@ericsson.com>
-In-Reply-To: <20101014154042.GA20794@ericsson.com>
+References: <20101020035346.GA20178@ericsson.com>
+In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Jean,
+Added #define pr_fmt KBUILD_MODNAME ": " fmt
+Converted printks to pr_<level>
+Coalesced any long formats
+Removed prefixes from formats
 
-On Fri, Oct 22, 2010 at 09:32:31AM -0400, Jean Delvare wrote:
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/hwmon/f71805f.c |   29 +++++++++++++----------------
+ 1 files changed, 13 insertions(+), 16 deletions(-)
 
-[ ... ]
+diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
+index 525a00b..92f9497 100644
+--- a/drivers/hwmon/f71805f.c
++++ b/drivers/hwmon/f71805f.c
+@@ -28,6 +28,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+@@ -1309,7 +1311,7 @@ static int __devinit f71805f_probe(struct platform_device *pdev)
+ 
+ 	if (!(data = kzalloc(sizeof(struct f71805f_data), GFP_KERNEL))) {
+ 		err = -ENOMEM;
+-		printk(KERN_ERR DRVNAME ": Out of memory\n");
++		pr_err("Out of memory\n");
+ 		goto exit;
+ 	}
+ 
+@@ -1451,7 +1453,7 @@ static int __init f71805f_device_add(unsigned short address,
+ 	pdev = platform_device_alloc(DRVNAME, address);
+ 	if (!pdev) {
+ 		err = -ENOMEM;
+-		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
++		pr_err("Device allocation failed\n");
+ 		goto exit;
+ 	}
+ 
+@@ -1462,22 +1464,20 @@ static int __init f71805f_device_add(unsigned short address,
+ 
+ 	err = platform_device_add_resources(pdev, &res, 1);
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+-		       "(%d)\n", err);
++		pr_err("Device resource addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add_data(pdev, sio_data,
+ 				       sizeof(struct f71805f_sio_data));
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
++		pr_err("Platform data allocation failed\n");
+ 		goto exit_device_put;
+ 	}
+ 
+ 	err = platform_device_add(pdev);
+ 	if (err) {
+-		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
+-		       err);
++		pr_err("Device addition failed (%d)\n", err);
+ 		goto exit_device_put;
+ 	}
+ 
+@@ -1516,30 +1516,27 @@ static int __init f71805f_find(int sioaddr, unsigned short *address,
+ 		sio_data->fnsel1 = superio_inb(sioaddr, SIO_REG_FNSEL1);
+ 		break;
+ 	default:
+-		printk(KERN_INFO DRVNAME ": Unsupported Fintek device, "
+-		       "skipping\n");
++		pr_info("Unsupported Fintek device, skipping\n");
+ 		goto exit;
+ 	}
+ 
+ 	superio_select(sioaddr, F71805F_LD_HWM);
+ 	if (!(superio_inb(sioaddr, SIO_REG_ENABLE) & 0x01)) {
+-		printk(KERN_WARNING DRVNAME ": Device not activated, "
+-		       "skipping\n");
++		pr_warn("Device not activated, skipping\n");
+ 		goto exit;
+ 	}
+ 
+ 	*address = superio_inw(sioaddr, SIO_REG_ADDR);
+ 	if (*address = 0) {
+-		printk(KERN_WARNING DRVNAME ": Base address not set, "
+-		       "skipping\n");
++		pr_warn("Base address not set, skipping\n");
+ 		goto exit;
+ 	}
+ 	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+ 
+ 	err = 0;
+-	printk(KERN_INFO DRVNAME ": Found %s chip at %#x, revision %u\n",
+-	       names[sio_data->kind], *address,
+-	       superio_inb(sioaddr, SIO_REG_DEVREV));
++	pr_info("Found %s chip at %#x, revision %u\n",
++		names[sio_data->kind], *address,
++		superio_inb(sioaddr, SIO_REG_DEVREV));
+ 
+ exit:
+ 	superio_exit(sioaddr);
+-- 
+1.7.3.1.g432b3.dirty
 
-> 
-> Indeed these devices don't seem to fit in our detection scheme, and
-> overall seems detection-unfriendly by design. So I wouldn't bother
-> adding detection support for them for the time being. Better add kernel
-> support first, and see the actual use cases for these devices. Then we
-> can discuss the user-spac detection again if needed.
-> 
-Ok, makes sense. And, besides, someone complaining about non-support
-by sensors-detect is a good indicator of chip use ... 
-
-Thanks,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
