@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:55 +0000
-Subject: [lm-sensors] [PATCH 31/32] drivers/hwmon/w83627hf.c: Use pr_fmt and
-Message-Id: <1c8f1890b6adbfe084e1443f5e5e9c7428edb3d4.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:42 +0000
+Subject: [lm-sensors] [PATCH 18/32] drivers/hwmon/lm78.c: Use pr_fmt and
+Message-Id: <35be973bc0b3c4866421f001dabfbcab69093f72.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -18,15 +18,15 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/w83627hf.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ drivers/hwmon/lm78.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
-index 38e2805..bde50e3 100644
---- a/drivers/hwmon/w83627hf.c
-+++ b/drivers/hwmon/w83627hf.c
-@@ -39,6 +39,8 @@
-     supported yet.
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+index 72ff2c4..4cb24ea 100644
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -19,6 +19,8 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -34,51 +34,44 @@ index 38e2805..bde50e3 100644
  #include <linux/module.h>
  #include <linux/init.h>
  #include <linux/slab.h>
-@@ -1166,14 +1168,13 @@ static int __init w83627hf_find(int sioaddr, unsigned short *addr,
- 	       superio_inb(sio_data, WINB_BASE_REG + 1);
- 	*addr = val & WINB_ALIGNMENT;
- 	if (*addr = 0) {
--		printk(KERN_WARNING DRVNAME ": Base address not set, "
--		       "skipping\n");
-+		pr_warn("Base address not set, skipping\n");
- 		goto exit;
+@@ -858,7 +860,7 @@ static int __init lm78_isa_found(unsigned short address)
+ 	 * individually for the probing phase. */
+ 	for (port = address; port < address + LM78_EXTENT; port++) {
+ 		if (!request_region(port, 1, "lm78")) {
+-			pr_debug("lm78: Failed to request port 0x%x\n", port);
++			pr_debug("Failed to request port 0x%x\n", port);
+ 			goto release;
+ 		}
  	}
+@@ -920,7 +922,7 @@ static int __init lm78_isa_found(unsigned short address)
+ 		found = 1;
  
- 	val = superio_inb(sio_data, WINB_ACT_REG);
- 	if (!(val & 0x01)) {
--		printk(KERN_WARNING DRVNAME ": Enabling HWM logical device\n");
-+		pr_warn("Enabling HWM logical device\n");
- 		superio_outb(sio_data, WINB_ACT_REG, val | 0x01);
- 	}
+ 	if (found)
+-		pr_info("lm78: Found an %s chip at %#x\n",
++		pr_info("Found an %s chip at %#x\n",
+ 			val & 0x80 ? "LM79" : "LM78", (int)address);
  
-@@ -1789,28 +1790,26 @@ static int __init w83627hf_device_add(unsigned short address,
- 	pdev = platform_device_alloc(DRVNAME, address);
+  release:
+@@ -942,21 +944,19 @@ static int __init lm78_isa_device_add(unsigned short address)
+ 	pdev = platform_device_alloc("lm78", address);
  	if (!pdev) {
  		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
+-		printk(KERN_ERR "lm78: Device allocation failed\n");
 +		pr_err("Device allocation failed\n");
  		goto exit;
  	}
  
  	err = platform_device_add_resources(pdev, &res, 1);
  	if (err) {
--		printk(KERN_ERR DRVNAME ": Device resource addition failed "
+-		printk(KERN_ERR "lm78: Device resource addition failed "
 -		       "(%d)\n", err);
 +		pr_err("Device resource addition failed (%d)\n", err);
  		goto exit_device_put;
  	}
  
- 	err = platform_device_add_data(pdev, sio_data,
- 				       sizeof(struct w83627hf_sio_data));
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
-+		pr_err("Platform data allocation failed\n");
- 		goto exit_device_put;
- 	}
- 
  	err = platform_device_add(pdev);
  	if (err) {
--		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
+-		printk(KERN_ERR "lm78: Device addition failed (%d)\n",
 -		       err);
 +		pr_err("Device addition failed (%d)\n", err);
  		goto exit_device_put;
