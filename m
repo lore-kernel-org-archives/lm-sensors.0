@@ -1,7 +1,7 @@
 From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:31 +0000
-Subject: [lm-sensors] [PATCH 07/32] drivers/hwmon/coretemp.c: Use pr_fmt and
-Message-Id: <78de63116e59236eb0f4eaf7143760dc0fa9c9b2.1287556801.git.joe@perches.com>
+Date: Wed, 20 Oct 2010 06:51:45 +0000
+Subject: [lm-sensors] [PATCH 21/32] drivers/hwmon/pcf8591.c: Use pr_fmt and
+Message-Id: <e021d63730a851db5af583961145f95217f1787d.1287556801.git.joe@perches.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
 In-Reply-To: <20101020035346.GA20178@ericsson.com>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
 Added #define pr_fmt KBUILD_MODNAME ": " fmt
 Converted printks to pr_<level>
@@ -18,52 +18,32 @@ Removed prefixes from formats
 
 Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/hwmon/coretemp.c |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/hwmon/pcf8591.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 42de98d..194ca0a 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -20,6 +20,8 @@
-  * 02110-1301 USA.
-  */
+diff --git a/drivers/hwmon/pcf8591.c b/drivers/hwmon/pcf8591.c
+index dc7259d..731b09a 100644
+--- a/drivers/hwmon/pcf8591.c
++++ b/drivers/hwmon/pcf8591.c
+@@ -18,6 +18,8 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
  
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
  #include <linux/module.h>
  #include <linux/init.h>
  #include <linux/slab.h>
-@@ -445,8 +447,8 @@ static int __cpuinit coretemp_device_add(unsigned int cpu)
- 	 * without thermal sensors will be filtered out.
- 	 */
- 	if (!cpu_has(c, X86_FEATURE_DTS)) {
--		printk(KERN_INFO DRVNAME ": CPU (model=0x%x)"
--		       " has no thermal sensor.\n", c->x86_model);
-+		pr_info("CPU (model=0x%x) has no thermal sensor\n",
-+			c->x86_model);
- 		return 0;
+@@ -290,8 +292,7 @@ static struct i2c_driver pcf8591_driver = {
+ static int __init pcf8591_init(void)
+ {
+ 	if (input_mode < 0 || input_mode > 3) {
+-		printk(KERN_WARNING "pcf8591: invalid input_mode (%d)\n",
+-		       input_mode);
++		pr_warn("invalid input_mode (%d)\n", input_mode);
+ 		input_mode = 0;
  	}
- 
-@@ -466,7 +468,7 @@ static int __cpuinit coretemp_device_add(unsigned int cpu)
- 	pdev = platform_device_alloc(DRVNAME, cpu);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
- 
-@@ -478,8 +480,7 @@ static int __cpuinit coretemp_device_add(unsigned int cpu)
- 
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_free;
- 	}
- 
+ 	return i2c_add_driver(&pcf8591_driver);
 -- 
 1.7.3.1.g432b3.dirty
 
