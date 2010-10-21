@@ -1,7 +1,7 @@
 From: "Jeff Rickman" <jrickman@myamigos.us>
-Date: Thu, 21 Oct 2010 07:55:25 +0000
+Date: Thu, 21 Oct 2010 07:59:57 +0000
 Subject: Re: [lm-sensors] help with module k10temp
-Message-Id: <1468.75.142.173.238.1287647725.squirrel@webmail.myamigos.us>
+Message-Id: <1487.75.142.173.238.1287647997.squirrel@webmail.myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201010210630.31285.envite@rolamasao.org>
 In-Reply-To: <201010210630.31285.envite@rolamasao.org>
@@ -103,13 +103,13 @@ r > thermistor
 > er Envite
 >
 
-Check this URL:
+My previous reply appears to be incorrect. Apologies for the noise.
 
-http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginke=
-rnel2.6.31
-
-The title of the FAQ entry does not match your issue, but the nature of
-the problem might match the content of the FAQ entry.
+It would help to have:
+- Model of motherboard
+- Model of CPU
+- Linux "vendor" and kernel version
+- Output of "sensors -v"
 
 
 
