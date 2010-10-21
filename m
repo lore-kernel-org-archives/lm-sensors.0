@@ -1,92 +1,89 @@
 From: Simon Guinot <simon@sequanux.org>
-Date: Wed, 20 Oct 2010 07:59:31 +0000
+Date: Thu, 21 Oct 2010 20:07:10 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: add generic GPIO fan driver
-Message-Id: <20101020075931.GJ29120@kw.sim.vm.gnt>
+Message-Id: <20101021200710.GR29120@kw.sim.vm.gnt>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8027408199305893448=="
+Content-Type: multipart/mixed; boundary="===============3989054874709928033=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101017154021.GB29120@kw.sim.vm.gnt>
 	<1287330612-11256-1-git-send-email-simon@sequanux.org>
-	<1287525825.9690.313.camel@groeck-laptop>
-	<20101020001913.GI29120@kw.sim.vm.gnt>
-	<1287535826.9690.358.camel@groeck-laptop>
-In-Reply-To: <1287535826.9690.358.camel@groeck-laptop>
+	<20101018160830.GB9033@ericsson.com>
+In-Reply-To: <20101018160830.GB9033@ericsson.com>
 To: linux-arm-kernel@lists.infradead.org
 
 
---===============8027408199305893448==
+--===============3989054874709928033==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jIYo0VRlfdMI9fLa"
+	protocol="application/pgp-signature"; boundary="mjrw6G9AoRBv8oQK"
 Content-Disposition: inline
 
 
---jIYo0VRlfdMI9fLa
+--mjrw6G9AoRBv8oQK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi Guenter,
 
-On Tue, Oct 19, 2010 at 05:50:26PM -0700, Guenter Roeck wrote:
+On Mon, Oct 18, 2010 at 09:08:30AM -0700, Guenter Roeck wrote:
+> On Sun, Oct 17, 2010 at 11:50:11AM -0400, Simon Guinot wrote:
+> > From: Simon Guinot <sguinot@lacie.com>
+> >=20
+> > This patch adds hwmon support for the GPIO connected fan.
+> >=20
+> > Platform specific informations as GPIO pinout and speed conversion array
+> > (rpm from/to GPIO value) are passed to the driver via platform_data.
+> >=20
+> > Signed-off-by: Simon Guinot <sguinot@lacie.com>
+>=20
 > Hi Simon,
 >=20
-> On Tue, 2010-10-19 at 20:19 -0400, Simon Guinot wrote:
-> > Hi Guenter,
+> good start. Bunch of comments inline. Our mailer was nice enough to repla=
+ce tabs
+> with blanks, thanks to our friends at MicroSomething, so I could not run =
+the patch
+> through checkpatch.pl. Hope you did that.
+>=20
+> > ---
+> >  drivers/hwmon/Kconfig    |    9 +
+> >  drivers/hwmon/Makefile   |    1 +
+> >  drivers/hwmon/gpio-fan.c |  508 ++++++++++++++++++++++++++++++++++++++=
+++++++++
+> >  include/linux/gpio-fan.h |   43 ++++
+> >  4 files changed, 561 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/hwmon/gpio-fan.c
+> >  create mode 100644 include/linux/gpio-fan.h
 > >=20
-> > On Tue, Oct 19, 2010 at 03:03:45PM -0700, Guenter Roeck wrote:
-> > > Hi Simon,
-> > >=20
-> > > one more comment ...
-> > >=20
-> > > On Sun, 2010-10-17 at 11:50 -0400, Simon Guinot wrote:
-> > > [ ... ]
-> > > > +static int __devinit
-> > > > +fan_alarm_init(struct gpio_fan_data *fan_data, struct gpio_fan_ala=
-rm *alarm)
-> > > > +{
-> > >=20
-> > > __devinit and __devexit can cause problems if this driver is built in=
-to
-> > > the kernel, but the underlying i2c master driver is built as module.
+> > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> > index 4d4d09b..1dc57c1 100644
+> > --- a/drivers/hwmon/Kconfig
+> > +++ b/drivers/hwmon/Kconfig
+> > @@ -399,6 +399,15 @@ config SENSORS_GL520SM
+> >           This driver can also be built as a module.  If so, the module
+> >           will be called gl520sm.
 > >=20
-> > I am not sure I understand this. Are you talking about a I2C GPIO
-> > expander ? or about the hwmon registration process ?
+> > +config SENSORS_GPIO_FAN
+> > +       tristate "GPIO fan"
+> > +       depends on GENERIC_GPIO
+> > +       help
+> > +         If you say yes here you get support for the GPIO connected fa=
+n.
+> > +
+> > +         This driver can also be built as a module.  If so, the module
+> > +         will be called gpio-fan.
+> > +
 >=20
-> Not related to I2C specifically, since you don't use I2C. No idea why I
-> mentioned I2C, really. Probably because I had I2C in my mind.
+> Can you move this up a bit, ahead of SENSORS_FSCHMD ? Trying to stay in s=
+equence.
 
-gpio-fan could use I2C implicitly if the GPIOs are provided by a GPIO
-I2C expander.
-
->=20
-> Anyway, there are gpio drivers which can be loaded and unloaded. GPIO
-> pin(s) on one of those could point to the gpio-fan driver. If gpio-fan
-> is built into the kernel, but the underlying gpio driver is built as
-> module, loading the gpio driver might cause the gpio-fan probe function
-> to be called - but that function no longer exists if it is tagged as
-> __devinit.
-
-IMHO, the gpio-fan probe function will be called anyway if a "gpio-fan"
-platform device is available. If the needed GPIOs are not registered at
-this time, gpio_request() will fail and the gpio-fan probe function will
-exit.
-
-Later, even if the GPIOs are registered (via gpiochip_add()), this will
-not trigger a gpio-fan probe.
-
->=20
-> Browsing through the gpio code, it seems the problem doesn't really
-> exist, since the above scenario does not happen (unless I am missing
-> something, of course). Also, other drivers using gpio calls also use
-> __devinit and __devexit. So just ignore what I said.
-
-Ok.
+Ok. Let's try to figure out where is the right location :)
+After SENSORS_GL520SM or not ?
 
 Thanks,
 
 Simon
 
---jIYo0VRlfdMI9fLa
+--mjrw6G9AoRBv8oQK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 Content-Disposition: inline
@@ -94,15 +91,15 @@ Content-Disposition: inline
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAky+oWMACgkQgtp0PDeOcDr/DACdEUNJLDAOZMttRChr4qX6yP2m
-jKYAni/a1v8gmllONnVSLPD0Hr6bnLJ7
-=vhll
+iEYEARECAAYFAkzAnW4ACgkQgtp0PDeOcDqZogCePctWPBddqVAfCskfaSX8kWMv
+GfkAnipmHluML+sr0IoMw77pBn1aa6Ui
+=aGli
 -----END PGP SIGNATURE-----
 
---jIYo0VRlfdMI9fLa--
+--mjrw6G9AoRBv8oQK--
 
 
---===============8027408199305893448==
+--===============3989054874709928033==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -112,4 +109,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8027408199305893448==--
+--===============3989054874709928033==--
