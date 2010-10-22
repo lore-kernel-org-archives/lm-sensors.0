@@ -1,196 +1,142 @@
-From: "Zamzit" <promo1@zamzit.com>
-Date: Sun, 31 Oct 2010 07:42:50 +0000
-Subject: [lm-sensors]
-Message-Id: <2836206579008112818129@RISH-PC>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3745296112471388306=="
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Fri, 22 Oct 2010 11:57:25 +0000
+Subject: [lm-sensors] [PATCH 03/12] hwmon: lis3: Cleanup interrupt handling
+Message-Id: <1287748654-2626-4-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <87ekb9s3tn.wl%info@wore.ma.cx>
-In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
-To: lm-sensors@vger.kernel.org
-
-
---===============3745296112471388306==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_001_211B_3F907C96.53016336"
-
-
-------=_NextPart_001_211B_3F907C96.53016336
-Content-Type: text/plain; charset="windows-1252http-equivContent-Type"
-Content-Transfer-Encoding: quoted-printable
-
-   ZAMZIT.com - buy it, sell it, Zamzit!
- =20
-
-Dear friend,
-
-We would like to invite you to join the all new auction site taking the web=
- by storm. If you have tried ebay and you are fed up of paying the extortio=
-nate end of auction fees, like millions of other members, than check out ht=
-tp://www.zamzit.com/ - we only charge a small listing fee and no end of auc=
-tion fees, you keep all of your profit.
-
-If you register for free today you can take advantage of our promotional of=
-fer, you will receive a =A315/$25 credit on your account which you can use =
-to start selling your items. Act today as this will only be available for a=
- limited time, click on the link below.
-
-https://www.zamzit.com/login.php
-
-We hope to see you at Zamzit.com soon.
-
-
-
-
-=20
-
-
-Kindest Regards,
-
-
-The Zamzit Team
-
-=20
-www.zamzit.com =20
-
-
-To help stop Zamzit emails being seen as spam, please add us to your addres=
-s book!
-
-
-Copyright =A9 2010 Zamzit Ltd. All rights reserved.
-Designated trademarks and brand are property of their respective owners.
-The Zamzit logo is a trademarks of Zamzit Ltd.
-To view our Terms and Conditions and Privacy Policy please visit our websit=
-e.
-Place of Reg: England & Wales. Reg No: 6038207. VAT Reg No: GB 902 2175 65
-
-var googlead =3D "<\/script>\n\ \n\ <\/script>\n\ "; if (location.href.inde=
-xOf('http:') =3D=3D 0) { document.write(googlead); } =20
-------=_NextPart_001_211B_3F907C96.53016336
-Content-Type: text/html; charset="windows-1252http-equivContent-Type"
-Content-Transfer-Encoding: quoted-printable
-
-<HEAD>
-<META content=3D"text/html; charset=3Dwindows-1252" http-equiv=3DContent-Ty=
-pe>
-<META name=3DGENERATOR content=3D"MSHTML 8.00.7600.16671"></HEAD>
-<BODY><FONT size=3D2 face=3D"Arial, Helvetica, sans-serif">
-<DIV id=3Dmessage1009950256 class=3D"undoreset clearfix" role=3Dmain>
-<DIV id=3Dyiv344122551>
-<TABLE width=3D600>
-<TBODY>
-<TR>
-<TR>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px">
-<TABLE>
-<TBODY>
-<TR>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px"><I=
-MG style=3D"DISPLAY: block" alt=3DZamzit src=3D"http://www.zamzit.com/theme=
-s/zamzit/img/logo.gif"><BR><IMG style=3D"DISPLAY: block" alt=3D"The Commiss=
-ion Free Auction Site" src=3D"http://www.zamzit.com/themes/zamzit/img/free.=
-gif"></TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px" vA=
-lign=3Dbottom></TD></TR></TBODY></TABLE></TD></TR>
-<TR>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px">
-<DIV><IMG style=3D"DISPLAY: block" src=3D"http://www.zamzit.com/themes/zamz=
-it/img/pixel.gif" width=3D1 height=3D5></DIV>
-<TABLE border=3D0 cellSpacing=3D0 cellPadding=3D0 width=3D"100%">
-<TBODY>
-<TR>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px" wi=
-dth=3D5><IMG style=3D"DISPLAY: block" src=3D"http://www.zamzit.com/themes/z=
-amzit/img/p1_l.gif" width=3D5 height=3D27></TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; COLOR: #421d5e; FON=
-T-SIZE: 12px" class=3Dpart1 background=3Dhttp://www.zamzit.com/themes/zamzi=
-t/img/pl_bg.gif width=3D"100%"><B>&nbsp;&nbsp;&nbsp;ZAMZIT.com - buy it, se=
-ll it, Zamzit!</B></TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px" wi=
-dth=3D5><IMG style=3D"DISPLAY: block" src=3D"http://www.zamzit.com/themes/z=
-amzit/img/p2_l.gif" width=3D5 height=3D27></TD></TR></TBODY></TABLE>
-<TABLE style=3D"BORDER-BOTTOM: #c3c3c3 1px solid; BORDER-LEFT: #c3c3c3 1px =
-solid; BACKGROUND: url(http://www.zamzitjobs.com/images/zamzitlogo.jpg) no-=
-repeat center 50%; BORDER-TOP: #c3c3c3 1px solid; BORDER-RIGHT: #c3c3c3 1px=
- solid" class=3Dborder border=3D0 cellSpacing=3D1 cellPadding=3D3 width=3D"=
-100%">
-<TBODY>
-<TR height=3D15>
-<TD style=3D"BORDER-BOTTOM: #e1e2e4 1px solid; FONT-FAMILY: Arial, Helvetic=
-a, sans-serif; FONT-SIZE: 11px" id=3Dbot>&nbsp;</TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; COLOR: #000000; FON=
-T-SIZE: 11px; TEXT-DECORATION: none" id=3Dbot class=3Dsmallfont width=3D"10=
-0%" colSpan=3D3>
-<P><FONT size=3D2 face=3D"Verdana, Arial, Helvetica">Dear friend,</FONT></P>
-<P><FONT size=3D2 face=3D"Verdana, Arial, Helvetica">We would like to invit=
-e you to join the all new auction site taking the web by storm. If you have=
-&nbsp;tried ebay and you are fed up of paying the extortionate end of aucti=
-on fees, like millions of other members, than check out <A href=3D"http://w=
-ww.zamzit.com/">http://www.zamzit.com/</A> - we only charge a small listing=
- fee and no end of auction fees, you keep all of your profit.</FONT></P>
-<P><FONT size=3D2 face=3DVerdana>If you register for free today you can tak=
-e advantage of our promotional offer, you will receive a =A315/$25 credit o=
-n your account which you can use to start selling your items. Act today as =
-this will only be available for a limited time, click on the link below.</F=
-ONT></P>
-<P><FONT size=3D2 face=3DVerdana><A href=3D"https://www.zamzit.com/login.ph=
-p">https://www.zamzit.com/login.php</A></FONT></P>
-<P><FONT size=3D2 face=3DVerdana>We hope to see you at Zamzit.com soon.</FO=
-NT><BR>&nbsp;</P>
-<P><BR><FONT size=3D2 face=3DVerdana>Kindest Regards, <BR><BR></P></FONT>
-<P><FONT size=3D2 face=3DVerdana><BR>The Zamzit Team</FONT> </P></TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; COLOR: #000000; FON=
-T-SIZE: 11px; TEXT-DECORATION: none" id=3Dbot class=3Dsmallfont noWrap>&nbs=
-p;</TD></TR>
-<TR height=3D15>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px" id=
-=3Dbot width=3D11></TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px" id=
-=3Dbot width=3D"100%" colSpan=3D3><B>www.zamzit.com</B></TD>
-<TD style=3D"FONT-FAMILY: Arial, Helvetica, sans-serif; FONT-SIZE: 11px" id=
-=3Dbot noWrap>&nbsp;</TD></TR></TBODY></TABLE>
-<DIV><IMG style=3D"DISPLAY: block" src=3D"http://www.zamzit.com/themes/zamz=
-it/img/pixel.gif" width=3D1 height=3D5></DIV><BR><BR>
-<P style=3D"MARGIN: 0px; FONT-FAMILY: Arial, Helvetica, sans-serif; COLOR: =
-#75369e; FONT-SIZE: 10px" class=3Dstyle2>To help stop Zamzit emails being s=
-een as spam, please add us to your address book!</P><BR>
-<P style=3D"MARGIN: 0px; FONT-FAMILY: Arial, Helvetica, sans-serif; COLOR: =
-#999999; FONT-SIZE: 10px" class=3Dstyle1>Copyright =A9 2010 Zamzit Ltd. All=
- rights reserved.<BR>Designated trademarks and brand are property of their =
-respective owners. <BR>The Zamzit logo is a trademarks of Zamzit Ltd.<BR>To=
- view our Terms and Conditions and Privacy Policy please visit our website.=
-<BR>Place of Reg: England &amp; Wales. Reg No: 6038207. VAT Reg No: GB 902 =
-2175 65</P></TD></TR></TBODY></TABLE></DIV></DIV></FONT>
-<SCRIPT type=3Dtext/javascript>=20
-var googlead =3D "<script type=3D\"text/javascript\"><!--\n\
-google_ad_client =3D \"pub-6668309999698602\";\n\
-//728x90, created 1/28/08\n\
-google_ad_slot =3D \"3925731243\";\n\
-google_ad_width =3D 728;\n\
-google_ad_height =3D 90;\n\
-//--><\/script>\n\
-<script type=3D\"text/javascript\"\n\
-src=3D\"http://pagead2.googlesyndication.com/pagead/show_ads.js\">\n\
-<\/script>\n\
-";
-if (location.href.indexOf('http:') =3D=3D 0) {
-document.write(googlead);
-}
-=20
-</SCRIPT>
-</BODY>
-------=_NextPart_001_211B_3F907C96.53016336--
-
-
---===============3745296112471388306==
-Content-Type: text/plain; charset="us-ascii"
+References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: eric.piel@tremplin-utc.net, khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk
+Cc: lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+
+Irqcfg moved to chip data instead of platform data.
+This simplifies access in interrupt handler little bit.
+
+Input device open and close functions set status for
+interrupt threaded handler once.
+
+Unnecessary check for interrupt source removed since
+it is enough that active interrupt line indicates that
+there was an interrupt.
+
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c |   33 +++++++++++----------------------
+ drivers/hwmon/lis3lv02d.h |    2 ++
+ 2 files changed, 13 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index ade6f3a..fe97390 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -309,10 +309,14 @@ static void lis3lv02d_joystick_open(struct input_polled_dev *pidev)
+ {
+ 	if (lis3_dev.pm_dev)
+ 		pm_runtime_get_sync(lis3_dev.pm_dev);
++
++	if (lis3_dev.pdata && lis3_dev.whoami = WAI_8B && lis3_dev.idev)
++		atomic_set(&lis3_dev.wake_thread, 1);
+ }
+ 
+ static void lis3lv02d_joystick_close(struct input_polled_dev *pidev)
+ {
++	atomic_set(&lis3_dev.wake_thread, 0);
+ 	if (lis3_dev.pm_dev)
+ 		pm_runtime_put(lis3_dev.pm_dev);
+ }
+@@ -332,8 +336,7 @@ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
+ 	wake_up_interruptible(&lis3_dev.misc_wait);
+ 	kill_fasync(&lis3_dev.async_queue, SIGIO, POLL_IN);
+ out:
+-	if (lis3_dev.pdata && lis3_dev.whoami = WAI_8B && lis3_dev.idev &&
+-	    lis3_dev.idev->input->users)
++	if (atomic_read(&lis3_dev.wake_thread))
+ 		return IRQ_WAKE_THREAD;
+ 	return IRQ_HANDLED;
+ }
+@@ -364,31 +367,15 @@ static void lis302dl_interrupt_handle_click(struct lis3lv02d *lis3)
+ 	mutex_unlock(&lis3->mutex);
+ }
+ 
+-static void lis302dl_interrupt_handle_ff_wu(struct lis3lv02d *lis3)
+-{
+-	u8 wu1_src;
+-	u8 wu2_src;
+-
+-	lis3->read(lis3, FF_WU_SRC_1, &wu1_src);
+-	lis3->read(lis3, FF_WU_SRC_2, &wu2_src);
+-
+-	wu1_src = wu1_src & FF_WU_SRC_IA ? wu1_src : 0;
+-	wu2_src = wu2_src & FF_WU_SRC_IA ? wu2_src : 0;
+-
+-	/* joystick poll is internally protected by the lis3->mutex. */
+-	if (wu1_src || wu2_src)
+-		lis3lv02d_joystick_poll(lis3_dev.idev);
+-}
+-
+ static irqreturn_t lis302dl_interrupt_thread1_8b(int irq, void *data)
+ {
+ 
+ 	struct lis3lv02d *lis3 = data;
+ 
+-	if ((lis3->pdata->irq_cfg & LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
++	if ((lis3->irq_cfg & LIS3_IRQ1_MASK) = LIS3_IRQ1_CLICK)
+ 		lis302dl_interrupt_handle_click(lis3);
+ 	else
+-		lis302dl_interrupt_handle_ff_wu(lis3);
++		lis3lv02d_joystick_poll(lis3->idev);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -398,10 +385,10 @@ static irqreturn_t lis302dl_interrupt_thread2_8b(int irq, void *data)
+ 
+ 	struct lis3lv02d *lis3 = data;
+ 
+-	if ((lis3->pdata->irq_cfg & LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
++	if ((lis3->irq_cfg & LIS3_IRQ2_MASK) = LIS3_IRQ2_CLICK)
+ 		lis302dl_interrupt_handle_click(lis3);
+ 	else
+-		lis302dl_interrupt_handle_ff_wu(lis3);
++		lis3lv02d_joystick_poll(lis3->idev);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -788,6 +775,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 	}
+ 
+ 	mutex_init(&dev->mutex);
++	atomic_set(&dev->wake_thread, 0);
+ 
+ 	lis3lv02d_add_fs(dev);
+ 	lis3lv02d_poweron(dev);
+@@ -808,6 +796,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 		if (dev->whoami = WAI_8B)
+ 			lis3lv02d_8b_configure(dev, p);
+ 
++		dev->irq_cfg = p->irq_cfg;
+ 		if (p->irq_cfg)
+ 			dev->write(dev, CTRL_REG3, p->irq_cfg);
+ 	}
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index 7661e59..66e37b1 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -252,6 +252,8 @@ struct lis3lv02d {
+ 	struct fasync_struct	*async_queue; /* queue for the misc device */
+ 	wait_queue_head_t	misc_wait; /* Wait queue for the misc device */
+ 	unsigned long		misc_opened; /* bit0: whether the device is open */
++	atomic_t                wake_thread;
++	unsigned char           irq_cfg;
+ 
+ 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
+ 	struct mutex		mutex;     /* Serialize poll and selftest */
+-- 
+1.6.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3745296112471388306==--
