@@ -1,64 +1,93 @@
-From: "Fred ." <eldmannen@gmail.com>
-Date: Tue, 12 Oct 2010 07:15:03 +0000
-Subject: Re: [lm-sensors] [RFC v2] Support of chassis intrusion detection
-Message-Id: <AANLkTi=Rujc6hd41H9pEWrZAEgRd9psgtpjAV6rug=L-@mail.gmail.com>
+From: Simon Guinot <simon@sequanux.org>
+Date: Fri, 22 Oct 2010 09:29:18 +0000
+Subject: [lm-sensors] [PATCH] [ARM] Kirkwood: add fan support for Network
+Message-Id: <1287739758-26860-1-git-send-email-simon@sequanux.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090310170340.4c63de39@hyperion.delvare>
-In-Reply-To: <20090310170340.4c63de39@hyperion.delvare>
+References: <20101022043000.GA29632@ericsson.com>
+In-Reply-To: <20101022043000.GA29632@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-I am sorry tha I do not have the nescesary equipment nor skill set in
-order to be able to help test
-or contribute with code.
+From: Simon Guinot <sguinot@lacie.com>
 
-Now since the interface definition is upstreams, I hope that someone
-may implement the feature
-in at least one of the drivers.
+Signed-off-by: Simon Guinot <sguinot@lacie.com>
+---
+ arch/arm/mach-kirkwood/netspace_v2-setup.c |   43 ++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
-On Mon, Oct 11, 2010 at 12:59 AM, Guenter Roeck
-<guenter.roeck@ericsson.com> wrote:
-> On Sun, Oct 10, 2010 at 06:42:27PM -0400, Fred . wrote:
->> On Thu, Oct 7, 2010 at 4:33 PM, Guenter Roeck
->> <guenter.roeck@ericsson.com> wrote:
->> > On Thu, Oct 07, 2010 at 08:55:46AM -0400, Fred . wrote:
->> >> http://www.lm-sensors.org/ticket/2370
->> >> Ticket says the interface definition is now upstream.
->> >>
->> > It is.
->> Since it is, then I suppose its a good time to add support for this in
->> the user-space tools.
->>
->> >> Since the interface definition is upstreams, why have not support been
->> >> added to libsensors and sensors?
->> >>
->> > Browsing through the drivers, it seems that none have been converted
->> > to use the new interface. I would guess that until that has been done,
->> > it does not make sense to add untestable support for it to libsensors.
->> Which came first, the chicken or the egg?
->> Time to implement support for this in the user-space tools.
->> Hopefully support in drivers will follow.
->>
-> This is not a matter of chicken and egg. Driver support must come first,
-> to be able to test the user space tools. Besides, tools support w/o kernel
-> support doesn't provide any value at all, untested or not.
->
-> Since you state yourself that you don't have the technical knowledge to make
-> any contribution yourself, it might be a good idea to listen to those who _do_
-> have the technical knowledge when it comes to deciding what must come first.
-> You can not both claim technical knowledge good enough to determine what
-> comes first, but then claim to not have the knowledge to actually do the work.
->
-> Frankly, I think you are shooting yourself into the foot here. You keep
-> making requests without providing anything. If you had asked a bit more
-> friendly and at the very least offered to help with testing, people might
-> be more willing to support you. But all we get is your demands and a statement
-> that you will not (be able to) contribute yourself. Not really a good start.
->
-> Guenter
->
+diff --git a/arch/arm/mach-kirkwood/netspace_v2-setup.c b/arch/arm/mach-kirkwood/netspace_v2-setup.c
+index d26bf32..9e27115 100644
+--- a/arch/arm/mach-kirkwood/netspace_v2-setup.c
++++ b/arch/arm/mach-kirkwood/netspace_v2-setup.c
+@@ -35,6 +35,7 @@
+ #include <linux/gpio.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/leds.h>
++#include <linux/gpio-fan.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/time.h>
+@@ -224,6 +225,46 @@ static struct platform_device netspace_v2_leds = {
+ };
+ 
+ /*****************************************************************************
++ * GPIO fan
++ ****************************************************************************/
++
++/* Designed for fan 40x40x16: ADDA AD0412LB-D50 6000rpm@12v */
++static struct gpio_fan_speed netspace_max_v2_fan_speed[] = {
++	{    0,  0 },
++	{ 1500,	15 },
++	{ 1700,	14 },
++	{ 1800,	13 },
++	{ 2100,	12 },
++	{ 3100,	11 },
++	{ 3300,	10 },
++	{ 4300,	 9 },
++	{ 5500,	 8 },
++};
++
++static unsigned netspace_max_v2_fan_ctrl[] = { 22, 7, 33, 23 };
++
++static struct gpio_fan_alarm netspace_max_v2_fan_alarm = {
++	.gpio		= 25,
++	.active_low	= 1,
++};
++
++static struct gpio_fan_platform_data netspace_max_v2_fan_data = {
++	.num_ctrl	= ARRAY_SIZE(netspace_max_v2_fan_ctrl),
++	.ctrl		= netspace_max_v2_fan_ctrl,
++	.alarm		= &netspace_max_v2_fan_alarm,
++	.num_speed	= ARRAY_SIZE(netspace_max_v2_fan_speed),
++	.speed		= netspace_max_v2_fan_speed,
++};
++
++static struct platform_device netspace_max_v2_gpio_fan = {
++	.name	= "gpio-fan",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &netspace_max_v2_fan_data,
++	},
++};
++
++/*****************************************************************************
+  * Timer
+  ****************************************************************************/
+ 
+@@ -307,6 +348,8 @@ static void __init netspace_v2_init(void)
+ 	platform_device_register(&netspace_v2_leds);
+ 	platform_device_register(&netspace_v2_gpio_leds);
+ 	platform_device_register(&netspace_v2_gpio_buttons);
++	if (machine_is_netspace_max_v2())
++		platform_device_register(&netspace_max_v2_gpio_fan);
+ 
+ 	if (gpio_request(NETSPACE_V2_GPIO_POWER_OFF, "power-off") = 0 &&
+ 	    gpio_direction_output(NETSPACE_V2_GPIO_POWER_OFF, 0) = 0)
+-- 
+1.6.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
