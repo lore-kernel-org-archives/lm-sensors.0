@@ -1,32 +1,42 @@
-From: Ingo Molnar <mingo@elte.hu>
-Date: Fri, 08 Oct 2010 08:26:31 +0000
-Subject: Re: [lm-sensors] [PATCH v2] x86/therm_throt.c: Fix error handling
-Message-Id: <20101008082631.GE13754@elte.hu>
+From: karsten@maxi-dsl.de
+Date: Fri, 22 Oct 2010 11:56:07 +0000
+Subject: [lm-sensors] looking for help with W83795ADG
+Message-Id: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1283905550-18571-1-git-send-email-fenghua.yu@intel.com>
-In-Reply-To: <1283905550-18571-1-git-send-email-fenghua.yu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Fenghua Yu <fenghua.yu@intel.com>
-Cc: H Peter Anvin <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Jin Dongming <jin.dongming@np.css.fujitsu.com>, Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>, linux-kernel <linux-kernel@vger.kernel.org>, lm-sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
+hi lm-sensors team,
 
-* Fenghua Yu <fenghua.yu@intel.com> wrote:
+first of all many thanks for all the efforts to support the latest hardware!
 
->  #ifdef CONFIG_HOTPLUG_CPU
->  	mutex_unlock(&therm_cpu_lock);
->  #endif
+Recently I acquired a brand new hp ProLiant N36L micro server.  
+According to hp's data sheet, it contains a W83795ADG. I've installed  
+ubuntu server 10.04.01 (2.6.32-25 as of now), and lm-sensors (3.1.2,  
+from ubuntu repositories as far as I remember).
 
-> +#ifdef CONFIG_HOTPLUG_CPU
-> +	mutex_unlock(&therm_cpu_lock);
-> +#endif
+sensors-detect did not identify anything readily useable, so I was  
+happy to find http://khali.linux-fr.org/devel/misc/w83795/, linked  
+from http://lm-sensors.org/wiki/Devices.
+To be honest, I wasn't so sure what I'd need to do with this - I  
+downladed the files, did "make all" and "sudo make install" - all went  
+fine, no errors, and I could find the w83795.ko file in  
+/lib/modules/2.6.32-25-server/kernel/drivers/hwmon which appears  
+correct to me.
+I also did "sudo modprobe w83795" (no error nor output), however  
+running sensors still gives 'No sensors found!'
 
-That's all very ugly.
+I guess I'm missing something really obvious (since I don't really  
+know what I'm doing...), but don't know where to look..
 
-Thanks,
+would be grateful for any help...
 
-	Ingo
+regards -
+
+Karsten
+
 
 _______________________________________________
 lm-sensors mailing list
