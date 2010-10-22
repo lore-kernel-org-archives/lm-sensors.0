@@ -1,29 +1,43 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 28 Oct 2010 15:29:12 +0000
-Subject: Re: [lm-sensors] [patch 32/36 v2] hwmon: (w83795) Move register
-Message-Id: <20101028152912.GC4311@ericsson.com>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Fri, 22 Oct 2010 11:57:34 +0000
+Subject: [lm-sensors] [PATCH 12/12] hwmon: lis3: Release resources is case
+Message-Id: <1287748654-2626-13-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101028164757.4011d335@endymion.delvare>
-In-Reply-To: <20101028164757.4011d335@endymion.delvare>
+References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: eric.piel@tremplin-utc.net, khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk
+Cc: lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Oct 28, 2010 at 10:47:57AM -0400, Jean Delvare wrote:
-> Move initial register reads out of probe, to dedicated functions.
-> This makes the code clearer, and will be needed if we want to delay
-> calling these functions until they are needed, or want to call them
-> periodically.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+If lis3lv02d_init_device fails, HW resources were not released
+properly. In case of failure call release_resources if available.
 
-Still not sure about the scope of lsb across loop iterations, but I have not been able
-to create a failure case, nor did I find clear indication if is guaranteed (or not)
-that its value will be kept across loop iterations. But since gcc doesn't complain,
-I should not complain either without real evidence of wrongdoing ;).
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d_i2c.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
+index 61c109b..94d5bde 100644
+--- a/drivers/hwmon/lis3lv02d_i2c.c
++++ b/drivers/hwmon/lis3lv02d_i2c.c
+@@ -161,7 +161,12 @@ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
+ 
+ 	if (lis3_dev.reg_ctrl)
+ 		lis3_reg_ctrl(&lis3_dev, LIS3_REG_OFF);
++
++	if (ret = 0)
++		return 0;
+ fail:
++	if (pdata && pdata->release_resources)
++		pdata->release_resources();
+ 	return ret;
+ }
+ 
+-- 
+1.6.0.4
 
 
 _______________________________________________
