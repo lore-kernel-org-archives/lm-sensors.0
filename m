@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 22 Oct 2010 09:58:52 +0000
+Date: Fri, 22 Oct 2010 18:39:47 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] [ARM] Kirkwood: add fan support for
-Message-Id: <20101022095852.GA30634@ericsson.com>
+Message-Id: <1287772787.9690.397.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101017154021.GB29120@kw.sim.vm.gnt>
 	<1287330612-11256-1-git-send-email-simon@sequanux.org>
@@ -15,7 +15,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Oct 22, 2010 at 04:27:12AM -0400, Simon Guinot wrote:
+On Fri, 2010-10-22 at 04:27 -0400, Simon Guinot wrote:
 > Hi Nicolas,
 > 
 > On Thu, Oct 21, 2010 at 10:08:01PM -0400, Nicolas Pitre wrote:
@@ -37,9 +37,15 @@ On Fri, Oct 22, 2010 at 04:27:12AM -0400, Simon Guinot wrote:
 > There is some changes, related to the netspace_v2-setup.c file, stagged
 > in your Orion tree. At some point, a merge will be needed.
 > 
-We'll see if it causes any conflicts in the -next tree after I apply it.
+I rebased to Linus' latest tree which had some changes in
+netspace_v2-setup.c. We'll see if that solves the merge problem.
 
+Nicolas, I assume I have your implied Ack for this commit. If not,
+please let me know.
+
+Thanks,
 Guenter
+
 
 
 _______________________________________________
