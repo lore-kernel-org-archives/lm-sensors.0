@@ -1,113 +1,322 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Sat, 02 Oct 2010 17:43:47 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 5/9] hwmon: lis3: Power on corrections
-Message-Id: <4CA76F53.6050509@cam.ac.uk>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Fri, 22 Oct 2010 11:57:23 +0000
+Subject: [lm-sensors] [PATCH 01/12] hwmon: lis3: pm_runtime support
+Message-Id: <1287748654-2626-2-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285933616-16044-1-git-send-email-samu.p.onkalo@nokia.com> <1285933616-16044-6-git-send-email-samu.p.onkalo@nokia.com>
-In-Reply-To: <1285933616-16044-6-git-send-email-samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
+In-Reply-To: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Samu Onkalo <samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+To: eric.piel@tremplin-utc.net, khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk
+Cc: lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/01/10 12:46, Samu Onkalo wrote:
-> Sometimes lis3 chip seems to fail to setup factory tuning at boot up.
-> This probably happens if there is some odd power ramp down ramp up sequence
-> for example in device restart. Set boot bit in control2 register to
-> trig boot sequence manually and wait until it is finished.
-> Also restore axis enable bits in init.
-This really ought to be two separate patches.  The issues are completely
-unconnected.  I've noticed you tend to fix other things in individual
-patches as you go along. This makes the harder to review so please
-break out each conceptual change.
+Add pm_runtime support to lis3 core driver.
+Add pm_runtime support to lis3 i2c driver.
 
-Both look fine to me, so feel free to add
+spi and hp_accel drivers are not yet supported. Old always
+on functionality remains for those.
 
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-To a broken out pair of patches.
-> 
-> Signed-off-by: Samu O kalo <samu.p.onkalo@nokia.com>
-> ---
->  drivers/hwmon/lis3lv02d.c     |   19 +++++++++++--------
->  drivers/hwmon/lis3lv02d.h     |    1 +
->  drivers/hwmon/lis3lv02d_i2c.c |    2 +-
->  drivers/hwmon/lis3lv02d_spi.c |    2 +-
->  4 files changed, 14 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-> index dc777d2..81e2313 100644
-> --- a/drivers/hwmon/lis3lv02d.c
-> +++ b/drivers/hwmon/lis3lv02d.c
-> @@ -272,19 +272,22 @@ void lis3lv02d_poweron(struct lis3lv02d *lis3)
->  
->  	lis3->init(lis3);
->  
-> -	/* LIS3 power on delay is quite long */
-> -	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-> -
->  	/*
->  	 * Common configuration
->  	 * BDU: (12 bits sensors only) LSB and MSB values are not updated until
->  	 *      both have been read. So the value read will always be correct.
-> +	 * Set BOOT bit to refresh factory tuning values.
->  	 */
-> -	if (lis3->whoami =  WAI_12B) {
-> -		lis3->read(lis3, CTRL_REG2, &reg);
-> -		reg |= CTRL2_BDU;
-> -		lis3->write(lis3, CTRL_REG2, reg);
-> -	}
-> +	lis3->read(lis3, CTRL_REG2, &reg);
-> +	if (lis3->whoami =  WAI_12B)
-> +		reg |= CTRL2_BDU | CTRL2_BOOT;
-> +	else
-> +		reg |= CTRL2_BOOT_8B;
-> +	lis3->write(lis3, CTRL_REG2, reg);
-> +
-> +	/* LIS3 power on delay is quite long */
-> +	msleep(lis3->pwron_delay / lis3lv02d_get_odr());
-> +
->  	if (lis3->reg_ctrl)
->  		lis3_context_restore(lis3);
->  }
-> diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-> index 8c19185..1522855 100644
-> --- a/drivers/hwmon/lis3lv02d.h
-> +++ b/drivers/hwmon/lis3lv02d.h
-> @@ -142,6 +142,7 @@ enum lis3lv02d_ctrl2 {
->  enum lis302d_ctrl2 {
->  	HP_FF_WU2	= 0x08,
->  	HP_FF_WU1	= 0x04,
-> +	CTRL2_BOOT_8B   = 0x40,
->  };
->  
->  enum lis3lv02d_ctrl3 {
-> diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
-> index 0852bed..c5a60e4 100644
-> --- a/drivers/hwmon/lis3lv02d_i2c.c
-> +++ b/drivers/hwmon/lis3lv02d_i2c.c
-> @@ -82,7 +82,7 @@ static int lis3_i2c_init(struct lis3lv02d *lis3)
->  	if (ret < 0)
->  		return ret;
->  
-> -	reg |= CTRL1_PD0;
-> +	reg |= CTRL1_PD0 | CTRL1_Xen | CTRL1_Yen | CTRL1_Zen;
->  	return lis3->write(lis3, CTRL_REG1, reg);
->  }
->  
-> diff --git a/drivers/hwmon/lis3lv02d_spi.c b/drivers/hwmon/lis3lv02d_spi.c
-> index b9be5e3..778885d 100644
-> --- a/drivers/hwmon/lis3lv02d_spi.c
-> +++ b/drivers/hwmon/lis3lv02d_spi.c
-> @@ -50,7 +50,7 @@ static int lis3_spi_init(struct lis3lv02d *lis3)
->  	if (ret < 0)
->  		return ret;
->  
-> -	reg |= CTRL1_PD0;
-> +	reg |= CTRL1_PD0 | CTRL1_Xen | CTRL1_Yen | CTRL1_Zen;
->  	return lis3->write(lis3, CTRL_REG1, reg);
->  }
->  
+For sysfs there is 5 second delay before turning off the
+chip to avoid long ramp up delay.
+
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ drivers/hwmon/lis3lv02d.c     |   60 +++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/lis3lv02d.h     |    1 +
+ drivers/hwmon/lis3lv02d_i2c.c |   54 ++++++++++++++++++++++++++++---------
+ 3 files changed, 102 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index fc591ae..412ddc3 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -34,6 +34,7 @@
+ #include <linux/freezer.h>
+ #include <linux/uaccess.h>
+ #include <linux/miscdevice.h>
++#include <linux/pm_runtime.h>
+ #include <asm/atomic.h>
+ #include "lis3lv02d.h"
+ 
+@@ -43,6 +44,9 @@
+ #define MDPS_POLL_INTERVAL 50
+ #define MDPS_POLL_MIN	   0
+ #define MDPS_POLL_MAX	   2000
++
++#define LIS3_SYSFS_POWERDOWN_DELAY 5000 /* In milliseconds */
++
+ /*
+  * The sensor can also generate interrupts (DRDY) but it's pretty pointless
+  * because they are generated even if the data do not change. So it's better
+@@ -262,6 +266,18 @@ static void lis3lv02d_joystick_poll(struct input_polled_dev *pidev)
+ 	mutex_unlock(&lis3_dev.mutex);
+ }
+ 
++static void lis3lv02d_joystick_open(struct input_polled_dev *pidev)
++{
++	if (lis3_dev.pm_dev)
++		pm_runtime_get_sync(lis3_dev.pm_dev);
++}
++
++static void lis3lv02d_joystick_close(struct input_polled_dev *pidev)
++{
++	if (lis3_dev.pm_dev)
++		pm_runtime_put(lis3_dev.pm_dev);
++}
++
+ static irqreturn_t lis302dl_interrupt(int irq, void *dummy)
+ {
+ 	if (!test_bit(0, &lis3_dev.misc_opened))
+@@ -356,6 +372,9 @@ static int lis3lv02d_misc_open(struct inode *inode, struct file *file)
+ 	if (test_and_set_bit(0, &lis3_dev.misc_opened))
+ 		return -EBUSY; /* already open */
+ 
++	if (lis3_dev.pm_dev)
++		pm_runtime_get_sync(lis3_dev.pm_dev);
++
+ 	atomic_set(&lis3_dev.count, 0);
+ 	return 0;
+ }
+@@ -364,6 +383,8 @@ static int lis3lv02d_misc_release(struct inode *inode, struct file *file)
+ {
+ 	fasync_helper(-1, file, 0, &lis3_dev.async_queue);
+ 	clear_bit(0, &lis3_dev.misc_opened); /* release the device */
++	if (lis3_dev.pm_dev)
++		pm_runtime_put(lis3_dev.pm_dev);
+ 	return 0;
+ }
+ 
+@@ -460,6 +481,8 @@ int lis3lv02d_joystick_enable(void)
+ 		return -ENOMEM;
+ 
+ 	lis3_dev.idev->poll = lis3lv02d_joystick_poll;
++	lis3_dev.idev->open = lis3lv02d_joystick_open;
++	lis3_dev.idev->close = lis3lv02d_joystick_close;
+ 	lis3_dev.idev->poll_interval = MDPS_POLL_INTERVAL;
+ 	lis3_dev.idev->poll_interval_min = MDPS_POLL_MIN;
+ 	lis3_dev.idev->poll_interval_max = MDPS_POLL_MAX;
+@@ -512,12 +535,30 @@ void lis3lv02d_joystick_disable(void)
+ EXPORT_SYMBOL_GPL(lis3lv02d_joystick_disable);
+ 
+ /* Sysfs stuff */
++static void lis3lv02d_sysfs_poweron(struct lis3lv02d *lis3)
++{
++	/*
++	 * SYSFS functions are fast visitors so put-call
++	 * immediately after the get-call. However, keep
++	 * chip running for a while and schedule delayed
++	 * suspend. This way periodic sysfs calls doesn't
++	 * suffer from relatively long power up time.
++	 */
++
++	if (lis3->pm_dev) {
++		pm_runtime_get_sync(lis3->pm_dev);
++		pm_runtime_put_noidle(lis3->pm_dev);
++		pm_schedule_suspend(lis3->pm_dev, LIS3_SYSFS_POWERDOWN_DELAY);
++	}
++}
++
+ static ssize_t lis3lv02d_selftest_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	int result;
+ 	s16 values[3];
+ 
++	lis3lv02d_sysfs_poweron(&lis3_dev);
+ 	result = lis3lv02d_selftest(&lis3_dev, values);
+ 	return sprintf(buf, "%s %d %d %d\n", result = 0 ? "OK" : "FAIL",
+ 		values[0], values[1], values[2]);
+@@ -528,6 +569,7 @@ static ssize_t lis3lv02d_position_show(struct device *dev,
+ {
+ 	int x, y, z;
+ 
++	lis3lv02d_sysfs_poweron(&lis3_dev);
+ 	mutex_lock(&lis3_dev.mutex);
+ 	lis3lv02d_get_xyz(&lis3_dev, &x, &y, &z);
+ 	mutex_unlock(&lis3_dev.mutex);
+@@ -537,6 +579,7 @@ static ssize_t lis3lv02d_position_show(struct device *dev,
+ static ssize_t lis3lv02d_rate_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
++	lis3lv02d_sysfs_poweron(&lis3_dev);
+ 	return sprintf(buf, "%d\n", lis3lv02d_get_odr());
+ }
+ 
+@@ -549,6 +592,7 @@ static ssize_t lis3lv02d_rate_set(struct device *dev,
+ 	if (strict_strtoul(buf, 0, &rate))
+ 		return -EINVAL;
+ 
++	lis3lv02d_sysfs_poweron(&lis3_dev);
+ 	if (lis3lv02d_set_odr(rate))
+ 		return -EINVAL;
+ 
+@@ -585,6 +629,17 @@ int lis3lv02d_remove_fs(struct lis3lv02d *lis3)
+ {
+ 	sysfs_remove_group(&lis3->pdev->dev.kobj, &lis3lv02d_attribute_group);
+ 	platform_device_unregister(lis3->pdev);
++	if (lis3->pm_dev) {
++		/* Barrier after the sysfs remove */
++		pm_runtime_barrier(lis3->pm_dev);
++
++		/* SYSFS may have left chip running. Turn off if necessary */
++		if (!pm_runtime_suspended(lis3->pm_dev))
++			lis3lv02d_poweroff(&lis3_dev);
++
++		pm_runtime_disable(lis3->pm_dev);
++		pm_runtime_set_suspended(lis3->pm_dev);
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(lis3lv02d_remove_fs);
+@@ -685,6 +740,11 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 	lis3lv02d_add_fs(dev);
+ 	lis3lv02d_poweron(dev);
+ 
++	if (dev->pm_dev) {
++		pm_runtime_set_active(dev->pm_dev);
++		pm_runtime_enable(dev->pm_dev);
++	}
++
+ 	if (lis3lv02d_joystick_enable())
+ 		printk(KERN_ERR DRIVER_NAME ": joystick initialization failed\n");
+ 
+diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
+index 8540913..3e8a208 100644
+--- a/drivers/hwmon/lis3lv02d.h
++++ b/drivers/hwmon/lis3lv02d.h
+@@ -214,6 +214,7 @@ struct axis_conversion {
+ 
+ struct lis3lv02d {
+ 	void			*bus_priv; /* used by the bus layer only */
++	struct device		*pm_dev; /* for pm_runtime purposes */
+ 	int (*init) (struct lis3lv02d *lis3);
+ 	int (*write) (struct lis3lv02d *lis3, int reg, u8 val);
+ 	int (*read) (struct lis3lv02d *lis3, int reg, u8 *ret);
+diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
+index 8e5933b..6e965d7 100644
+--- a/drivers/hwmon/lis3lv02d_i2c.c
++++ b/drivers/hwmon/lis3lv02d_i2c.c
+@@ -29,6 +29,7 @@
+ #include <linux/init.h>
+ #include <linux/err.h>
+ #include <linux/i2c.h>
++#include <linux/pm_runtime.h>
+ #include "lis3lv02d.h"
+ 
+ #define DRV_NAME 	"lis3lv02d_i2c"
+@@ -95,6 +96,7 @@ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
+ 	lis3_dev.write	  = lis3_i2c_write;
+ 	lis3_dev.irq	  = client->irq;
+ 	lis3_dev.ac	  = lis3lv02d_axis_map;
++	lis3_dev.pm_dev	  = &client->dev;
+ 
+ 	i2c_set_clientdata(client, &lis3_dev);
+ 	ret = lis3lv02d_init_device(&lis3_dev);
+@@ -104,21 +106,20 @@ fail:
+ 
+ static int __devexit lis3lv02d_i2c_remove(struct i2c_client *client)
+ {
+-	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
+ 	struct lis3lv02d_platform_data *pdata = client->dev.platform_data;
+ 
+ 	if (pdata && pdata->release_resources)
+ 		pdata->release_resources();
+ 
+ 	lis3lv02d_joystick_disable();
+-	lis3lv02d_poweroff(lis3);
+ 
+ 	return lis3lv02d_remove_fs(&lis3_dev);
+ }
+ 
+ #ifdef CONFIG_PM
+-static int lis3lv02d_i2c_suspend(struct i2c_client *client, pm_message_t mesg)
++static int lis3lv02d_i2c_suspend(struct device *dev)
+ {
++	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
+ 	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
+ 
+ 	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
+@@ -126,18 +127,21 @@ static int lis3lv02d_i2c_suspend(struct i2c_client *client, pm_message_t mesg)
+ 	return 0;
+ }
+ 
+-static int lis3lv02d_i2c_resume(struct i2c_client *client)
++static int lis3lv02d_i2c_resume(struct device *dev)
+ {
++	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
+ 	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
+ 
+-	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
++	/*
++	 * pm_runtime documentation says that devices should always
++	 * be powered on at resume. Pm_runtime turns them off after system
++	 * wide resume is complete.
++	 */
++	if (!lis3->pdata || !lis3->pdata->wakeup_flags ||
++		pm_runtime_suspended(dev))
+ 		lis3lv02d_poweron(lis3);
+-	return 0;
+-}
+ 
+-static void lis3lv02d_i2c_shutdown(struct i2c_client *client)
+-{
+-	lis3lv02d_i2c_suspend(client, PMSG_SUSPEND);
++	return 0;
+ }
+ #else
+ #define lis3lv02d_i2c_suspend	NULL
+@@ -145,6 +149,24 @@ static void lis3lv02d_i2c_shutdown(struct i2c_client *client)
+ #define lis3lv02d_i2c_shutdown	NULL
+ #endif
+ 
++static int lis3_i2c_runtime_suspend(struct device *dev)
++{
++	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
++	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
++
++	lis3lv02d_poweroff(lis3);
++	return 0;
++}
++
++static int lis3_i2c_runtime_resume(struct device *dev)
++{
++	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
++	struct lis3lv02d *lis3 = i2c_get_clientdata(client);
++
++	lis3lv02d_poweron(lis3);
++	return 0;
++}
++
+ static const struct i2c_device_id lis3lv02d_id[] = {
+ 	{"lis3lv02d", 0 },
+ 	{}
+@@ -152,14 +174,20 @@ static const struct i2c_device_id lis3lv02d_id[] = {
+ 
+ MODULE_DEVICE_TABLE(i2c, lis3lv02d_id);
+ 
++static const struct dev_pm_ops lis3_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(lis3lv02d_i2c_suspend,
++				lis3lv02d_i2c_resume)
++	SET_RUNTIME_PM_OPS(lis3_i2c_runtime_suspend,
++			   lis3_i2c_runtime_resume,
++			   NULL)
++};
++
+ static struct i2c_driver lis3lv02d_i2c_driver = {
+ 	.driver	 = {
+ 		.name   = DRV_NAME,
+ 		.owner  = THIS_MODULE,
++		.pm     = &lis3_pm_ops,
+ 	},
+-	.suspend = lis3lv02d_i2c_suspend,
+-	.shutdown = lis3lv02d_i2c_shutdown,
+-	.resume = lis3lv02d_i2c_resume,
+ 	.probe	= lis3lv02d_i2c_probe,
+ 	.remove	= __devexit_p(lis3lv02d_i2c_remove),
+ 	.id_table = lis3lv02d_id,
+-- 
+1.6.0.4
 
 
 _______________________________________________
