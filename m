@@ -1,33 +1,31 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 20 Oct 2010 09:54:46 +0000
-Subject: Re: [lm-sensors] [PATCH 04/32] drivers/hwmon/applesmc.c: Use pr_fmt
-Message-Id: <4CBEBC66.3080205@euromail.se>
+From: "janc@telefonica.net" <janc@telefonica.net>
+Date: Fri, 22 Oct 2010 18:22:26 +0000
+Subject: [lm-sensors] New in this mailing list
+Message-Id: <20101022182226.GF4512@luminium.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com> <e12d6edddfdcf543308dd81dfb6b7672f578bfb5.1287556801.git.joe@perches.com>
-In-Reply-To: <e12d6edddfdcf543308dd81dfb6b7672f578bfb5.1287556801.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joe Perches <joe@perches.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 10/20/2010 08:51 AM, Joe Perches wrote:
+Hello all.
 
-> Added #define pr_fmt KBUILD_MODNAME ": " fmt
-> Converted printks to pr_<level>
-> Coalesced any long formats
-> Removed prefixes from formats
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/hwmon/applesmc.c |   60 ++++++++++++++++++++-------------------------
->  1 files changed, 27 insertions(+), 33 deletions(-)
+I just arrive to this list.
 
+Is there any way to search for words in this mailing list?
 
-Minus the comments already provided, all good.
+I have a mobo P4B with volts, temp, pump rpm and flowmeter under
+control, now I am going to change to a new ASUS P6TD v2 and I wonder if
+someone will have a good sensors3.conf to start with my new mobo.
 
-Thanks,
-Henrik
+Thanks in advanced.
+
+Regards.
+
+-- 
+email: janc@telefonica.net
+Usuario Linux: #49178
+
 
 _______________________________________________
 lm-sensors mailing list
