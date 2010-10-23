@@ -1,56 +1,83 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Date: Wed, 20 Oct 2010 20:36:17 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon: Use pr_fmt and pr_<level>
-Message-Id: <AANLkTinuBoVyKSm5nAwNx6H8DF6wDNNi4z4-b8wyXbaW@mail.gmail.com>
+From: Samu Onkalo <samu.p.onkalo@nokia.com>
+Date: Sat, 23 Oct 2010 13:39:44 +0000
+Subject: [lm-sensors] [PATCHv2] hwmon: lis3: Short explanations of platform
+Message-Id: <1287841184-4871-1-git-send-email-samu.p.onkalo@nokia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1287530020.10409.594.camel@Joe-Laptop> <20101020094208.3136b9dd@endymion.delvare>
- <1287602386.2210.6.camel@cowboy> <20101020213810.6b31c04e@endymion.delvare>
- <1287604323.15567.22.camel@Joe-Laptop> <1287604743.15567.27.camel@Joe-Laptop>
-In-Reply-To: <1287604743.15567.27.camel@Joe-Laptop>
+References: <4CC1BAEE.3030708@cam.ac.uk>
+In-Reply-To: <4CC1BAEE.3030708-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Joe Perches <joe@perches.com>
-Cc: Jean Delvare <khali@linux-fr.org>, dave@gnu.org, Guenter Roeck <guenter.roeck@ericsson.com>, Hans de Goede <j.w.r.degoede@hhs.nl>, Alistair John Strachan <alistair@devzero.co.uk>, Henrik Rydberg <rydberg@euromail.se>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Luca Tettamanti <kronos.it@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Juerg Haefliger <juergh@gmail.com>, Eric Piel <eric.piel@tremplin-utc.net>, Roger Lucas <vt8231@hiddenengine.co.uk>, lm-sensors@lm-sensors.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
 
-On Wed, Oct 20, 2010 at 1:59 PM, Joe Perches <joe@perches.com> wrote:
-> On Wed, 2010-10-20 at 12:52 -0700, Joe Perches wrote:
->> So perhaps add this to include/linux/hwmon.h instead:
->> #if defined pr_fmt
->> #undef pr_fmt
->> #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->> #endif
->
-> Nope. =A0That won't work as other non-hwmon files include it.
->
-> drivers/platform/x86/eeepc-laptop.c:#include <linux/hwmon.h>
-> drivers/platform/x86/compal-laptop.c:#include <linux/hwmon.h>
-> drivers/platform/x86/thinkpad_acpi.c:#include <linux/hwmon.h>
-> drivers/thermal/thermal_sys.c:#include <linux/hwmon.h>
-> drivers/staging/iio/light/tsl2563.c:#include <linux/hwmon.h>
-> drivers/gpu/drm/radeon/radeon_pm.c:#include <linux/hwmon.h>
-> drivers/gpu/drm/nouveau/nouveau_pm.c:#include <linux/hwmon.h>
-> drivers/acpi/power_meter.c:#include <linux/hwmon.h>
-> drivers/input/touchscreen/ads7846.c:#include <linux/hwmon.h>
->
->
->
+Short documentation at kernel doc format.
 
+Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+---
+ include/linux/lis3lv02d.h |   46 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+), 0 deletions(-)
 
-what about modules.h ? or device.h ?
+diff --git a/include/linux/lis3lv02d.h b/include/linux/lis3lv02d.h
+index c949612..d4292c8 100644
+--- a/include/linux/lis3lv02d.h
++++ b/include/linux/lis3lv02d.h
+@@ -1,6 +1,52 @@
+ #ifndef __LIS3LV02D_H_
+ #define __LIS3LV02D_H_
+ 
++/**
++ * struct lis3lv02d_platform_data - lis3 chip family platform data
++ * @click_flags:	Click detection unit configuration
++ * @click_thresh_x:	Click detection unit x axis threshold
++ * @click_thresh_y:	Click detection unit y axis threshold
++ * @click_thresh_z:	Click detection unit z axis threshold
++ * @click_time_limit:	Click detection unit time parameter
++ * @click_latency:	Click detection unit latency parameter
++ * @click_window:	Click detection unit window parameter
++ * @irq_cfg:		On chip irq source and type configuration (click /
++ *			data available / wake up, open drain, polarity)
++ * @irq_flags1:		Additional irq triggering flags for irq channel 0
++ * @irq_flags2:		Additional irq triggering flags for irq channel 1
++ * @duration1:		Wake up unit 1 duration parameter
++ * @duration2:		Wake up unit 2 duration parameter
++ * @wakeup_flags:	Wake up unit 1 flags
++ * @wakeup_thresh:	Wake up unit 1 threshold value
++ * @wakeup_flags2:	Wake up unit 2 flags
++ * @wakeup_thresh2:	Wake up unit 2 threshold value
++ * @hipass_ctrl:	High pass filter control (enable / disable, cut off
++ *			frequency)
++ * @axis_x:		Sensor orientation remapping for x-axis
++ * @axis_y:		Sensor orientation remapping for y-axis
++ * @axis_z:		Sensor orientation remapping for z-axis
++ * @driver_features:	Enable bits for different features. Disabled by default
++ * @default_rate:	Default sampling rate. 0 means reset default
++ * @setup_resources:	Interrupt line setup call back function
++ * @release_resources:	Interrupt line release call back function
++ * @st_min_limits[3]:	Selftest acceptance minimum values
++ * @st_max_limits[3]:	Selftest acceptance maximum values
++ * @irq2:		Irq line 2 number
++ *
++ * Platform data is used to setup the sensor chip. Meaning of the different
++ * chip features can be found from the data sheet. It is publicly available
++ * at www.st.com web pages. Currently the platform data is used
++ * only for the 8 bit device. The 8 bit device has two wake up / free fall
++ * detection units and click detection unit. There are plenty of ways to
++ * configure the chip which makes is quite hard to explain deeper meaning of
++ * the fields here. Behaviour of the detection blocks varies heavily depending
++ * on the configuration. For example, interrupt detection block can use high
++ * pass filtered data which makes it react to the changes in the acceleration.
++ * Irq_flags can be used to enable interrupt detection on the both edges.
++ * With proper chip configuration this produces interrupt when some trigger
++ * starts and when it goes away.
++ */
++
+ struct lis3lv02d_platform_data {
+ 	/* please note: the 'click' feature is only supported for
+ 	 * LIS[32]02DL variants of the chip and will be ignored for
+-- 
+1.6.0.4
 
-Id think that would cover many users without being universally inadequate,
-and Id guess one of those (or a neighbor) would cover most of the use-cases.
-
-youve got a list of 200 pr-fmt users,
-why not break them down by which format theyre using,
-and see if those formats line up with subsystems.
-Id think 6 or 7 definitions in the appropriate headers
-would give useful log-content, and avoid countless changes.
-
-KBUILD_MODNAME is always #defined by the make system.
-so if your defn built upon that, it would address all code that builds
-as modules, how many other use-cases are there ?
 
 _______________________________________________
 lm-sensors mailing list
