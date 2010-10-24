@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 24 Oct 2010 15:41:53 +0000
+From: Andrey Repin <hell-for-yahoo@umail.ru>
+Date: Sun, 24 Oct 2010 16:58:13 +0000
 Subject: Re: [lm-sensors] New in this mailing list
-Message-Id: <20101024154153.GB14303@ericsson.com>
+Message-Id: <1558501240.20101024205813@mtu-net.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101022182226.GF4512@luminium.local>
 In-Reply-To: <20101022182226.GF4512@luminium.local>
@@ -10,26 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Oct 24, 2010 at 02:25:02AM -0400, Andrey Repin wrote:
-> Greetings, Jean Delvare!
-> 
-> >> Is there any way to search for words in this mailing list?
-> 
-> > Just use google or any other search engine which support per-domain
-> > search:
-> >   site:lists.lm-sensors.org asus P6TD
-> 
-> Terrible suggestion. No way to sort results by date making it totally
-> pointless in case there's more than a few entries.
-> 
-Did you really enter the search term above into google ? I tried, and I only
-get five results. The site: keyword should limit the earch to lists.lm-sensors.org, 
-thus it is somewhat unlikely that you would get several pages of results.
+Greetings, Guenter Roeck!
 
-If I omit both ':' and '.' from the search term, I do get four pages of results.
-Maybe there is national differences on google search ? If so, please try www.google.com.
+>> >> Is there any way to search for words in this mailing list?
+>> 
+>> > Just use google or any other search engine which support per-domain
+>> > search:
+>> >   site:lists.lm-sensors.org asus P6TD
+>> 
+>> Terrible suggestion. No way to sort results by date making it totally
+>> pointless in case there's more than a few entries.
+>> 
+> Did you really enter the search term above into google ? I tried, and I only
+> get five results. The site: keyword should limit the earch to lists.lm-sensors.org, 
+> thus it is somewhat unlikely that you would get several pages of results.
 
-Guenter
+> If I omit both ':' and '.' from the search term, I do get four pages of results.
+> Maybe there is national differences on google search ? If so, please try www.google.com.
+
+http://www.google.ru/search?q=sensord.init+site:lists.lm-sensors.org (national
+Google domains don't matter much, besides national spam in adsense, which I
+have blocked long time ago)
+
+My question was mid:60165478.20101013180541@mtu-net.ru
+
+
+--
+WBR,
+ Andrey Repin (hell-for-yahoo@umail.ru) 24.10.2010, <20:55>
+
+Sorry for my terrible english...
+
 
 _______________________________________________
 lm-sensors mailing list
