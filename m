@@ -1,57 +1,31 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 23 Oct 2010 01:05:33 +0000
+From: =?UTF-8?B?w4lyaWMgUGllbA==?= <eric.piel@tremplin-utc.net>
+Date: Sun, 24 Oct 2010 15:05:33 +0000
 Subject: Re: [lm-sensors] [PATCH 00/12] lis3 accelerator feature update
-Message-Id: <20101023010533.GA8156@ericsson.com>
+Message-Id: <4CC44B3D.5030404@tremplin-utc.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
- <1287778096.9690.401.camel@groeck-laptop>
- <4CC221F0.5040608@tremplin-utc.net>
-In-Reply-To: <4CC221F0.5040608@tremplin-utc.net>
+In-Reply-To: <1287748654-2626-1-git-send-email-samu.p.onkalo@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: =?iso-8859-1?Q?=C9ric?= Piel <Eric.Piel@tremplin-utc.net>
-Cc: Samu Onkalo <samu.p.onkalo@nokia.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "jic23@cam.ac.uk" <jic23@cam.ac.uk>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Samu Onkalo <samu.p.onkalo@nokia.com>
+Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, jic23@cam.ac.uk, lm-sensors@lm-sensors.org, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Oct 22, 2010 at 07:44:48PM -0400, =C9ric Piel wrote:
-> Op 22-10-10 22:08, Guenter Roeck schreef:
-> > On Fri, 2010-10-22 at 07:57 -0400, Samu Onkalo wrote:
-> >> Changes are tested only with I2C interface using 8bit sensor since I d=
-on't
-> >> have other possibilities. Some features are not enabled
-> >> by default since I can't test them with all possible configurations.
-> >> Platform data contains field which controls new features.
-> >>
-> > [ ... ]
-> >>
-> >> Samu Onkalo (12):
-> >>   hwmon: lis3: pm_runtime support
-> >>   hwmon: lis3: regulator control
-> >>   hwmon: lis3: Cleanup interrupt handling
-> >>   hwmon: lis3: Update coordinates at polled device open
-> >>   hwmon: lis3: Power on corrections
-> >>   hwmon: lis3: restore axis enabled bits
-> >>   hwmon: lis3: New parameters to platform data
-> >>   hwmon: lis3: Adjust fuzziness for 8 bit device
-> >>   hwmon: lis3: use block read to access data registers
-> >>   hwmon: lis3: Enhance lis3 selftest with IRQ line test
-> >>   hwmon: lis3: Short explanations of platform data fields
-> >>   hwmon: lis3: Release resources is case of failure
-> >>
-> >>  drivers/hwmon/lis3lv02d.c     |  304 ++++++++++++++++++++++++++++++++=
-++------
-> >>  drivers/hwmon/lis3lv02d.h     |   18 +++
-> >>  drivers/hwmon/lis3lv02d_i2c.c |  127 +++++++++++++++--
-> >>  drivers/hwmon/lis3lv02d_spi.c |    2 +-
-> >>  include/linux/lis3lv02d.h     |   50 +++++++-
-> >>  5 files changed, 439 insertions(+), 62 deletions(-)
-> >>
-> > Eric, can you Ack this series ?
-> Hi, I'll try to review, test and ack the series this weekend :-)
->=20
-Thanks!
+Op 22-10-10 13:57, Samu Onkalo schreef:
+> Changes are tested only with I2C interface using 8bit sensor since I don't
+> have other possibilities. Some features are not enabled
+> by default since I can't test them with all possible configurations.
+> Platform data contains field which controls new features.
+Thanks Samu for persevering with the automatic power down feature. 
+Hopefully I'll find also some time to activate it on the hp_accel side.
 
-Guenter
+For now, I've reviewed the changes and everything looked fine, as well 
+as tested them on my HP laptop (with a 12 bits sensor). Although most of 
+the changes are not visible on this platform, at least there shouldn't 
+be any regression.
+
+Thanks,
+Eric
 
 _______________________________________________
 lm-sensors mailing list
