@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 25 Oct 2010 07:30:23 +0000
+Date: Mon, 25 Oct 2010 07:41:31 +0000
 Subject: Re: [lm-sensors] looking for help with W83795ADG
-Message-Id: <20101025093023.5fbbd8a0@endymion.delvare>
+Message-Id: <20101025094131.04b32ef3@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
 In-Reply-To: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
@@ -10,35 +10,39 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Karsten,
+On Mon, 25 Oct 2010 00:10:32 +0200, Karsten de Freese wrote:
+> .. in addition to the below, I should have mentioned that
+> 'sudo dmidecode' gave me
+> 
+> Handle 0x001B, DMI type 38, 18 bytes
+> IPMI Device Information
+>          Interface Type: KCS (Keyboard Control Style)
+>          Specification Version: 2.0
+>          I2C Slave Address: 0x10
+>          NV Storage Device: Not Present
+>          Base Address: 0x0000000000000000 (Memory-mapped)
+>          Register Spacing: Successive Byte Boundaries
+> 
+> so there is really something....
+> Based on this, I also tried 'sudo modprobe ipmi_si type=kcs ports=0x10 
+> regspacings=1', but to no avail..
+> 
+> thanks for your patience reading all this frustrated stuff...
 
-Please keep the list Cc'd!
+The base address of 0 is suspicious. I used to have this on my Asus
+board but a BIOS update fixed it. You may want to look for a BIOS
+update for your system or a BIOS option to enable the IPMI controller.
 
-On Sun, 24 Oct 2010 23:52:54 +0200, Karsten de Freese wrote:
-> I did run the new sensors-detect (see attached), and it did find some 
-> additional stuff, indicating that I should install jc42. Is there a 
-> standalone driver for this?
+Note that I did not manage to get IPMI to work on my system either so
+far, I really don't know much about it so I am probably not the best
+advice provider in this area.
 
-Now there is:
-  http://khali.linux-fr.org/devel/misc/jc42/
-
-Should work fine as long as your kernel is recent enough (2.6.26 or
-later.)
-
-> > I also see that sensors-detect suggested to use the k10temp driver,
-> > which your kernel doesn't have. You can try the standalone flavor of
-> > the drivers which I maintain at:
-> >    http://khali.linux-fr.org/devel/misc/k10temp/
-> > The accuracy of the CPU internal sensors is limited, but that's still
-> > better than nothing.
->
-> k10temp works perfectly on 1st try.. a small success at least!
-
-Great :)
+If you have technical documentation for your system, it would be
+interesting to see if they mention anything about IPMI or about the
+SMBus being multiplexed.
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
