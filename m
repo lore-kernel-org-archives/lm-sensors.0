@@ -1,114 +1,93 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:44 +0000
-Subject: [lm-sensors] [PATCH 20/32] drivers/hwmon/pc87427.c: Use pr_fmt and
-Message-Id: <8a5f258d9b494988e1ca2ded006423d9cdab8e54.1287556801.git.joe@perches.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 25 Oct 2010 21:51:50 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon changes for 2.6.37
+Message-Id: <1288044233-6567-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+Hi Linus,
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/hwmon/pc87427.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+Please pull hwmon subsystem changes for Linux 2.6.37 from:
 
-diff --git a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
-index 9ec4daa..78c3e32 100644
---- a/drivers/hwmon/pc87427.c
-+++ b/drivers/hwmon/pc87427.c
-@@ -22,6 +22,8 @@
-  *  mode, and voltages aren't supported at all.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -1077,7 +1079,7 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
- 	data = kzalloc(sizeof(struct pc87427_data), GFP_KERNEL);
- 	if (!data) {
- 		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Out of memory\n");
-+		pr_err("Out of memory\n");
- 		goto exit;
- 	}
- 
-@@ -1196,28 +1198,26 @@ static int __init pc87427_device_add(const struct pc87427_sio_data *sio_data)
- 	pdev = platform_device_alloc(DRVNAME, res[0].start);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR DRVNAME ": Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
- 
- 	err = platform_device_add_resources(pdev, res, res_count);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
- 	err = platform_device_add_data(pdev, sio_data,
- 				       sizeof(struct pc87427_sio_data));
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Platform data allocation failed\n");
-+		pr_err("Platform data allocation failed\n");
- 		goto exit_device_put;
- 	}
- 
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR DRVNAME ": Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
-@@ -1249,23 +1249,23 @@ static int __init pc87427_find(int sioaddr, struct pc87427_sio_data *sio_data)
- 
- 		val = superio_inb(sioaddr, SIOREG_ACT);
- 		if (!(val & 0x01)) {
--			printk(KERN_INFO DRVNAME ": Logical device 0x%02x "
--			       "not activated\n", logdev[i]);
-+			pr_info("Logical device 0x%02x not activated\n",
-+				logdev[i]);
- 			continue;
- 		}
- 
- 		val = superio_inb(sioaddr, SIOREG_MAP);
- 		if (val & 0x01) {
--			printk(KERN_WARNING DRVNAME ": Logical device 0x%02x "
--			       "is memory-mapped, can't use\n", logdev[i]);
-+			pr_warn("Logical device 0x%02x is memory-mapped, can't use\n",
-+				logdev[i]);
- 			continue;
- 		}
- 
- 		val = (superio_inb(sioaddr, SIOREG_IOBASE) << 8)
- 		    | superio_inb(sioaddr, SIOREG_IOBASE + 1);
- 		if (!val) {
--			printk(KERN_INFO DRVNAME ": I/O base address not set "
--			       "for logical device 0x%02x\n", logdev[i]);
-+			pr_info("I/O base address not set for logical device 0x%02x\n",
-+				logdev[i]);
- 			continue;
- 		}
- 		sio_data->address[i] = val;
--- 
-1.7.3.1.g432b3.dirty
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
+Thanks,
+Guenter Roeck
+
+------
+
+The following changes since commit 72e58063d63c5f0a7bf65312f1e3a5ed9bb5c2ff:
+
+  Merge branch 'davinci-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-davinci (2010-10-25 10:59:31 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Chen Gong (2):
+      hwmon: (pkgtemp) align driver initialization style with coretemp
+      hwmon: ({core, pkg, via-cpu}temp) remove unnecessary CONFIG_HOTPLUG_CPU ifdefs
+
+Guenter Roeck (1):
+      hwmon: LTC4261 Hardware monitoring driver
+
+Jan Beulich (4):
+      x86/hwmon: {core, pkg, via}cpu_temp_device_remove() can all be __cpuinit
+      x86/hwmon: (coretemp) cosmetic cleanup
+      x86/hwmon: remove inclusion of unnecessary headers from {core, pkg, via-cpu}temp.c
+      hwmon: (coretemp) fix reading of microcode revision (v2)
+
+Masanari Iida (1):
+      hwmon: (hp_accel) Add HP Mini 510x family support
+
+Samu Onkalo (12):
+      hwmon: lis3: pm_runtime support
+      hwmon: lis3: regulator control
+      hwmon: lis3: Cleanup interrupt handling
+      hwmon: lis3: Update coordinates at polled device open
+      hwmon: lis3: Power on corrections
+      hwmon: lis3: restore axis enabled bits
+      hwmon: lis3: New parameters to platform data
+      hwmon: lis3: Adjust fuzziness for 8 bit device
+      hwmon: lis3: use block read to access data registers
+      hwmon: lis3: Enhance lis3 selftest with IRQ line test
+      hwmon: lis3: Short explanations of platform data fields
+      hwmon: lis3: Release resources in case of failure
+
+Simon Guinot (2):
+      hwmon: add generic GPIO fan driver
+      Kirkwood: add fan support for Network Space Max v2
+
+Takashi Iwai (2):
+      hwmon: (lis3) Add support for new LIS3DC / HP3DC chip
+      hwmon: (lis3) add axes module parameter for custom axis-mapping
+
+ Documentation/hwmon/ltc4261                |   63 ++++
+ MAINTAINERS                                |    7 +
+ arch/arm/mach-kirkwood/netspace_v2-setup.c |   43 +++
+ drivers/hwmon/Kconfig                      |   20 +
+ drivers/hwmon/Makefile                     |    2 +
+ drivers/hwmon/coretemp.c                   |   28 +-
+ drivers/hwmon/gpio-fan.c                   |  558 ++++++++++++++++++++++++++++
+ drivers/hwmon/hp_accel.c                   |   32 +-
+ drivers/hwmon/lis3lv02d.c                  |  364 +++++++++++++++---
+ drivers/hwmon/lis3lv02d.h                  |   47 ++-
+ drivers/hwmon/lis3lv02d_i2c.c              |  132 ++++++-
+ drivers/hwmon/lis3lv02d_spi.c              |    5 +-
+ drivers/hwmon/ltc4261.c                    |  315 ++++++++++++++++
+ drivers/hwmon/pkgtemp.c                    |   32 +--
+ drivers/hwmon/via-cputemp.c                |   11 +-
+ include/linux/gpio-fan.h                   |   36 ++
+ include/linux/lis3lv02d.h                  |   55 +++-
+ 17 files changed, 1619 insertions(+), 131 deletions(-)
+ create mode 100644 Documentation/hwmon/ltc4261
+ create mode 100644 drivers/hwmon/gpio-fan.c
+ create mode 100644 drivers/hwmon/ltc4261.c
+ create mode 100644 include/linux/gpio-fan.h
 
 _______________________________________________
 lm-sensors mailing list
