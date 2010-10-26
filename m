@@ -1,115 +1,150 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 26 Oct 2010 19:06:23 +0000
+From: Karsten de Freese <karsten@maxi-dsl.de>
+Date: Tue, 26 Oct 2010 20:09:39 +0000
 Subject: Re: [lm-sensors] looking for help with W83795ADG
-Message-Id: <20101026210623.61cbb211@endymion.delvare>
+Message-Id: <4CC73583.7070805@maxi-dsl.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5169035969195038122=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
 In-Reply-To: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Karsten,
+This is a multi-part message in MIME format.
+--===============5169035969195038122==
+Content-Type: multipart/alternative;
+ boundary="------------030007010803050106010802"
 
-On Tue, 26 Oct 2010 20:46:48 +0200, Karsten de Freese wrote:
-> hi Jean,
->=20
-> Am 25.10.2010 09:30, schrieb Jean Delvare:
-> > Now there is:
-> >    http://khali.linux-fr.org/devel/misc/jc42/
-> >   =20
-> great - this did again work immediately :-)
->=20
-> 'sensors' now gives:
-> /
-> karsten:~$ sensors
-> jc42-i2c-0-18
-> Adapter: SMBus PIIX4 adapter at 0b00
-> temp1:       +21.5=B0C  (low  =3D  +0.0=B0C, high =3D  +0.0=B0C)  ALARM
->                        (crit =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
->=20
-> jc42-i2c-0-19
-> Adapter: SMBus PIIX4 adapter at 0b00
-> temp1:       +21.5=B0C  (low  =3D  +0.0=B0C, high =3D  +0.0=B0C)  ALARM
->                        (crit =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
+This is a multi-part message in MIME format.
+--------------030007010803050106010802
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The 0 limits are a little odd. I would expect these sensor chips to get
-up with sane defaults... But apparently they don't. I can't find any
-mention of default values for these registers in the datasheet.
+hi Jean,
 
-The good news is that your memory modules are pretty cool :)
 
->=20
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> CPU Temp (internal): +25.0=B0C  (high =3D +70.0=B0C, crit =3D +100.0=B0C)=
- /
->=20
-> So I wanted to change both names and thresholds for the two jc42=20
-> readings. I succeeded with the names (after understanding the 'bus'=20
-> statement..), but I did not manage to set temperature thresholds.
->=20
-> The current config file:
->=20
-> bus "i2c-0" "SMBus PIIX4 adapter at 0b00"
-> /
-> chip "jc42-i2c-0-18"
->          label temp1 "DRAM_0"
->          set temp1_min 0
->          set temp1_max 65
->          set temp1_crit 70
->=20
-> chip "jc42-i2c-0-19"
->          label temp1 "DRAM_1"
->          set temp1_min 0
->          set temp1_max 65
->          set temp1_crit 70/
+Am 26.10.2010 21:06, schrieb Jean Delvare:
+> I think you forgot to check the FAQ and in particular:
+> http://www.lm-sensors.org/wiki/FAQ/Chapter3#Isetnewlimitsanditdidntwork
+>
+>    
+indeed - I remember having read that before, but just forgot ..
 
-Assuming the trailing "/" is a typo, the above looks OK. Note that the
-temp1_min are not needed, as the value is already 0. As I2C writes
-aren't cheap, you may want to omit them for a slightly faster boot.
+now setting the limits does work for jc42 _min and _max values, however 
+not for _max_hyst (although the setting seems to exist)
 
->=20
-> still gives:
->=20
-> /karsten:~$ sensors
-> jc42-i2c-0-18
-> Adapter: SMBus PIIX4 adapter at 0b00
-> DRAM_0:      +21.5=B0C  (low  =3D  +0.0=B0C, high =3D  +0.0=B0C)  ALARM
->                        (crit =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
->=20
-> jc42-i2c-0-19
-> Adapter: SMBus PIIX4 adapter at 0b00
-> DRAM_1:      +21.5=B0C  (low  =3D  +0.0=B0C, high =3D  +0.0=B0C)  ALARM
->                        (crit =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
->=20
-> k10temp-pci-00c3
-> Adapter: PCI adapter
-> CPU Temp (internal): +25.5=B0C  (high =3D +70.0=B0C, crit =3D +100.0=B0C)
-> /
-> Could you think of an explanation?
+The latest config file:
 
-I think you forgot to check the FAQ and in particular:
-http://www.lm-sensors.org/wiki/FAQ/Chapter3#Isetnewlimitsanditdidntwork
+/bus "i2c-0" "SMBus PIIX4 adapter at 0b00"
 
-> thanks and regards -
->=20
-> Karsten
->=20
-> (p.s.: I'll send another mail on the IMSI topic- please let me know once =
+chip "jc42-i2c-0-18"
+         label temp1 "DRAM_0"
+         set temp1_max 60
+         set temp1_crit 70
+         set temp1_max_hyst 65
 
-> this gets boring / annoying ;-)
+chip "jc42-i2c-0-19"
+         label temp1 "DRAM_1"
+         set temp1_max 60
+         set temp1_crit 70
+         set temp1_max_hyst 65
+/
+and the latest output
+/karsten:~/temp$ sudo sensors -s
+Error: File /etc/sensors.d/jc42.conf, line 7: Failed to set value
+jc42-i2c-0-18: At least one "set" statement failed
+Error: File /etc/sensors.d/jc42.conf, line 14: Failed to set value
+jc42-i2c-0-19: At least one "set" statement failed/
 
-Honestly, you are a very pleasant user to deal with. You're looking for
-solutions by yourself before asking, you're polite, you write proper
-English and you don't top post. I wish all users were like you!
+(actually I get the same error message for the K10temp _min & _max 
+settings, but maybe these are hardwired?)
+> Honestly, you are a very pleasant user to deal with.
+>    
+Thanks.. I try my best not to look too stupid, as I'm really a Linux 
+beginner..
 
---=20
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+best regards -
+
+Karsten
+
+
+--------------030007010803050106010802
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="Content-Type">
+</head>
+<body text="#000000" bgcolor="#ffffff">
+hi Jean,<br>
+<br>
+<br>
+Am 26.10.2010 21:06, schrieb Jean Delvare:<br>
+<blockquote cite="mid:20101026210623.61cbb211@endymion.delvare"
+ type="cite">
+  <pre wrap="">I think you forgot to check the FAQ and in particular:
+<a class="moz-txt-link-freetext" href="http://www.lm-sensors.org/wiki/FAQ/Chapter3#Isetnewlimitsanditdidntwork">http://www.lm-sensors.org/wiki/FAQ/Chapter3#Isetnewlimitsanditdidntwork</a>
+
+  </pre>
+</blockquote>
+indeed - I remember having read that before, but just forgot ..<br>
+<br>
+now setting the limits does work for jc42 _min and _max values, however
+not for _max_hyst (although the setting seems to exist)<br>
+<br>
+The latest config file:<br>
+<br>
+<i>bus "i2c-0" "SMBus PIIX4 adapter at 0b00"<br>
+<br>
+chip "jc42-i2c-0-18"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; label temp1 "DRAM_0"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set temp1_max 60<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set temp1_crit 70<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set temp1_max_hyst 65<br>
+<br>
+chip "jc42-i2c-0-19"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; label temp1 "DRAM_1"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set temp1_max 60<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set temp1_crit 70<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; set temp1_max_hyst 65<br>
+</i><br>
+and the latest output<br>
+<i>karsten:~/temp$ sudo sensors -s<br>
+Error: File /etc/sensors.d/jc42.conf, line 7: Failed to set value<br>
+jc42-i2c-0-18: At least one "set" statement failed<br>
+Error: File /etc/sensors.d/jc42.conf, line 14: Failed to set value<br>
+jc42-i2c-0-19: At least one "set" statement failed</i><br>
+<br>
+(actually I get the same error message for the K10temp _min &amp; _max
+settings, but maybe these are hardwired?)<br>
+<blockquote cite="mid:20101026210623.61cbb211@endymion.delvare"
+ type="cite">
+  <pre wrap="">Honestly, you are a very pleasant user to deal with.
+  </pre>
+</blockquote>
+Thanks.. I try my best not to look too stupid, as I'm really a Linux
+beginner..<br>
+<br>
+best regards -<br>
+<br>
+Karsten<br>
+<br>
+</body>
+</html>
+
+--------------030007010803050106010802--
+
+
+--===============5169035969195038122==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5169035969195038122==--
