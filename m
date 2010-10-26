@@ -1,7 +1,7 @@
-From: Arun Raghavan <arraghav@gmail.com>
-Date: Tue, 26 Oct 2010 13:43:47 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 26 Oct 2010 14:26:23 +0000
 Subject: Re: [lm-sensors] Discrepancy between reported readings from
-Message-Id: <AANLkTi=sR2KUNms_Y__3YvUgaUZT7KfRjh1FGDbhfHqf@mail.gmail.com>
+Message-Id: <20101026162623.09355211@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTik8hx=ej8V7ti_=izz0u+daOxxy5PmBjX0ZQv8W@mail.gmail.com>
 In-Reply-To: <AANLkTik8hx=ej8V7ti_=izz0u+daOxxy5PmBjX0ZQv8W@mail.gmail.com>
@@ -10,40 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-> On Sun, 24 Oct 2010 21:40:38 -0400, Arun Raghavan wrote:
->> Thanks again for the prompt response. One more question regarding
->> coretemp: any idea how I can probe the sensor in my own source code?
->> I'm hoping to be able to probe a few times a second, while the
->> lm-sensors usage guide says max. probing frequency should be at most
->> 0.3-0.5 Hz.
+On Tue, 26 Oct 2010 09:43:47 -0400, Arun Raghavan wrote:
+> > Arun, back to your immediate issue, you have two options, either
+> > rebuild the coretemp driver with a shorter cache lifetime (replace HZ
+> > with HZ/10 in function coretemp_update_device) or access the MSR
+> > yourself from user-space (but then you lose all the power of
+> > libsensors.)
 >
-> Out of curiosity, which "usage guide" are you referring to?
->
-'Usage guide' was probably misleading, I meant the FAQ:
-http://www.lm-sensors.org/wiki/FAQ/Chapter1
+> Thanks for the suggestion, I will try it. Is it known how frequently the sensors
+> actually update the readings?
 
-[snip]
-> There's no reason why overclocking would help. Overclocking will
-> generate more heat, but the time it takes to generate it won't change.
->
-Since the maximum temperature was higher, I was hoping to see some
-intermediate reading
-between idle and fully-loaded temperatures.
+No, I have no idea, sorry. You'll have to either dig into the Intel
+documentation (but I am not sure if they actually document this detail)
+or get in touch with someone at Intel.
 
-[snip]
-> Arun, back to your immediate issue, you have two options, either
-> rebuild the coretemp driver with a shorter cache lifetime (replace HZ
-> with HZ/10 in function coretemp_update_device) or access the MSR
-> yourself from user-space (but then you lose all the power of
-> libsensors.)
->
-Thanks for the suggestion, I will try it. Is it known how frequently the sensors
-actually update the readings?
+But it's certainly updated much more frequently than the driver
+currently allows.
 
-thanks,
--arun
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
