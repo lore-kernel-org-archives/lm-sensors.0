@@ -1,28 +1,42 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 22 Oct 2010 09:59:51 +0000
-Subject: Re: [lm-sensors] [PATCH] [ARM] Kirkwood: add fan support for
-Message-Id: <20101022095951.GB30634@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 28 Oct 2010 13:16:32 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (ltc4261) Add missing newline in
+Message-Id: <20101028151632.081a0fdf@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101022043000.GA29632@ericsson.com>
-	<1287739758-26860-1-git-send-email-simon@sequanux.org>
-In-Reply-To: <1287739758-26860-1-git-send-email-simon@sequanux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 22, 2010 at 05:29:18AM -0400, Simon Guinot wrote:
-> From: Simon Guinot <sguinot@lacie.com>
+On Thu, 28 Oct 2010 06:20:23 -0700, Guenter Roeck wrote:
+> Reported-by: Joe Perches <joe@perches.com>
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+
+Obviously correct.
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+> ---
+>  drivers/hwmon/ltc4261.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> Signed-off-by: Simon Guinot <sguinot@lacie.com>
+> diff --git a/drivers/hwmon/ltc4261.c b/drivers/hwmon/ltc4261.c
+> index 2676261..15f137b 100644
+> --- a/drivers/hwmon/ltc4261.c
+> +++ b/drivers/hwmon/ltc4261.c
+> @@ -82,7 +82,7 @@ static struct ltc4261_data *ltc4261_update_device(struct device *dev)
+>  			val = i2c_smbus_read_byte_data(client, i);
+>  			if (unlikely(val < 0)) {
+>  				dev_dbg(dev,
+> -					"Failed to read ADC value: error %d",
+> +					"Failed to read ADC value: error %d\n",
+>  					val);
+>  				ret = ERR_PTR(val);
+>  				goto abort;
 
-Applied, thanks.
 
-I'll let it sit in my next tree for a couple of days to see if there are any 
-resulting conflicts.
-
-Guenter
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
