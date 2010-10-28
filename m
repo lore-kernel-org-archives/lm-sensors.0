@@ -1,45 +1,62 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 04 Oct 2010 13:29:23 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 8/9] hwmon: lis3: use block read to
-Message-Id: <20101004132923.GA3269@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 28 Oct 2010 18:10:38 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83795) Use standard attributes for
+Message-Id: <20101028201038.2af524a6@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1285933616-16044-1-git-send-email-samu.p.onkalo@nokia.com>
- <1285933616-16044-9-git-send-email-samu.p.onkalo@nokia.com>
- <4CA9BD6E.6040002@cam.ac.uk>
-In-Reply-To: <4CA9BD6E.6040002-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23-KWPb1pKIrIJaa/9Udqfwiw@public.gmane.org>
-Cc: Samu Onkalo <samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org" <eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org" <kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Oct 04, 2010 at 07:41:34AM -0400, Jonathan Cameron wrote:
-> On 10/01/10 12:46, Samu Onkalo wrote:
-> > Add optional blockread function to interface driver. If available
-> > the chip driver uses it for data register access. For 12 bit device
-> > it reads 6 bytes to get 3*16bit data. For 8 bit device it reads out
-> > 5 bytes since every second byte is dummy.
-> > This optimizes bus usage and reduces number of operations and
-> > interrupts needed for one data update.
-> 
-> Do we need to query if the i2c bus supports block reading or are they
-> all guaranteed to do so?
-> 
-Not really. It may be true that block reads happen to be supported on 
-all i2c controllers used on all boards using this chip, but that
-is pretty much a coincidence.
+Follow the standard attribute naming for the chassis intrusion
+feature. I couldn't test the beeping (my board apparently doesn't do
+that) but the alarm works fine.
 
-> I'm guessing not seeing as i2c.h has a functionality bit for it...
-> I2C_FUNC_SMBUS_READ_BLOCK_DATA
-> 
-> Otherwise looks good.  Either justify that all i2c buses will work
-> or add the functionality check and you can add.
-> 
-Should really have the check. And, for completeness, the driver should
-check if BYTE_DATA is supported as well. Besides, adding the check
-seems to be much less effort than trying to explain why it isn't needed.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ w83795.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-Guenter
+--- a/drivers/hwmon/w83795.c	2010-10-28 17:41:07.000000000 +0200
++++ a/drivers/hwmon/w83795.c	2010-10-28 18:06:27.000000000 +0200
+@@ -713,7 +713,7 @@ store_beep(struct device *dev, struct de
+ 	return count;
+ }
+ 
+-/* Write any value to clear chassis alarm */
++/* Write 0 to clear chassis alarm */
+ static ssize_t
+ store_chassis_clear(struct device *dev,
+ 		    struct device_attribute *attr, const char *buf,
+@@ -721,7 +721,10 @@ store_chassis_clear(struct device *dev,
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83795_data *data = i2c_get_clientdata(client);
+-	u8 val;
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0 || val != 0)
++		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	val = w83795_read(client, W83795_REG_CLR_CHASSIS);
+@@ -1709,8 +1712,10 @@ static const struct sensor_device_attrib
+ };
+ 
+ static const struct sensor_device_attribute_2 sda_single_files[] = {
+-	SENSOR_ATTR_2(chassis, S_IWUSR | S_IRUGO, show_alarm_beep,
++	SENSOR_ATTR_2(intrusion0_alarm, S_IWUSR | S_IRUGO, show_alarm_beep,
+ 		      store_chassis_clear, ALARM_STATUS, 46),
++	SENSOR_ATTR_2(intrusion0_beep, S_IWUSR | S_IRUGO, show_alarm_beep,
++		      store_beep, BEEP_ENABLE, 46),
+ 	SENSOR_ATTR_2(beep_enable, S_IWUSR | S_IRUGO, show_alarm_beep,
+ 		      store_beep, BEEP_ENABLE, 47),
+ #ifdef CONFIG_SENSORS_W83795_FANCTRL
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
