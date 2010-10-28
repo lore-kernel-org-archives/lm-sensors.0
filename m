@@ -1,31 +1,20 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 05 Oct 2010 16:36:13 +0000
-Subject: [lm-sensors] Call for 3.2.0
-Message-Id: <20101005183613.1b9b03c8@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 28 Oct 2010 15:10:32 +0000
+Subject: Re: [lm-sensors] [patch 30/36 v2] hwmon: (w83795) Make
+Message-Id: <20101028151032.GA4311@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi all,
+On Thu, Oct 28, 2010 at 10:45:00AM -0400, Jean Delvare wrote:
+> Cascaded conditionals are inefficient. Reorder the fields so that
+> PWM register addresses can be computed more efficiently.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-We were supposed to release lm-sensors 3.1.3 in June 2010 [1] but it
-didn't happen. There are quite a few changes pending, so I think it's
-about time for a new release.
-
-I want to go with 3.2.0 rather than 3.1.3 because of the libsensors
-license change - I think it's important enough to warrant a
-middle-digit bump.
-
-I plan to release it by the end of the week, if there are no
-objections. That is, SVN is already frozen as I speak, testing starts
-now, and release is planed for October 9th, 2010.
-
-[1] http://www.lm-sensors.org/roadmap
-
--- 
-Jean Delvare
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 
 _______________________________________________
 lm-sensors mailing list
