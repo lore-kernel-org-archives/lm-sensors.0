@@ -1,84 +1,53 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:42 +0000
-Subject: [lm-sensors] [PATCH 18/32] drivers/hwmon/lm78.c: Use pr_fmt and
-Message-Id: <35be973bc0b3c4866421f001dabfbcab69093f72.1287556801.git.joe@perches.com>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Sun, 31 Oct 2010 07:50:30 +0000
+Subject: [lm-sensors] [PATCH 4/8] hwmon: applesmc: Handle new temperature
+Message-Id: <1288511434-5662-5-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
+References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+The recent Macbooks have temperature registers of a new type.
+This patch adds the logic to handle them.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 ---
- drivers/hwmon/lm78.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/hwmon/applesmc.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
-index 72ff2c4..4cb24ea 100644
---- a/drivers/hwmon/lm78.c
-+++ b/drivers/hwmon/lm78.c
-@@ -19,6 +19,8 @@
-     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 0207618..ec92aff 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -733,13 +733,19 @@ static ssize_t applesmc_show_temperature(struct device *dev,
+ 	ret = applesmc_get_entry_by_index(index, &entry);
+ 	if (ret)
+ 		return ret;
++	if (entry.len > 2)
++		return -EINVAL;
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -858,7 +860,7 @@ static int __init lm78_isa_found(unsigned short address)
- 	 * individually for the probing phase. */
- 	for (port = address; port < address + LM78_EXTENT; port++) {
- 		if (!request_region(port, 1, "lm78")) {
--			pr_debug("lm78: Failed to request port 0x%x\n", port);
-+			pr_debug("Failed to request port 0x%x\n", port);
- 			goto release;
- 		}
- 	}
-@@ -920,7 +922,7 @@ static int __init lm78_isa_found(unsigned short address)
- 		found = 1;
+-	ret = applesmc_read_entry(&entry, buffer, 2);
++	ret = applesmc_read_entry(&entry, buffer, entry.len);
+ 	if (ret)
+ 		return ret;
  
- 	if (found)
--		pr_info("lm78: Found an %s chip at %#x\n",
-+		pr_info("Found an %s chip at %#x\n",
- 			val & 0x80 ? "LM79" : "LM78", (int)address);
+-	temp = buffer[0]*1000;
+-	temp += (buffer[1] >> 6) * 250;
++	if (entry.len = 2) {
++		temp = buffer[0]*1000;
++		temp += (buffer[1] >> 6) * 250;
++	} else {
++		temp = buffer[0] * 4000;
++	}
  
-  release:
-@@ -942,21 +944,19 @@ static int __init lm78_isa_device_add(unsigned short address)
- 	pdev = platform_device_alloc("lm78", address);
- 	if (!pdev) {
- 		err = -ENOMEM;
--		printk(KERN_ERR "lm78: Device allocation failed\n");
-+		pr_err("Device allocation failed\n");
- 		goto exit;
- 	}
- 
- 	err = platform_device_add_resources(pdev, &res, 1);
- 	if (err) {
--		printk(KERN_ERR "lm78: Device resource addition failed "
--		       "(%d)\n", err);
-+		pr_err("Device resource addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
- 	err = platform_device_add(pdev);
- 	if (err) {
--		printk(KERN_ERR "lm78: Device addition failed (%d)\n",
--		       err);
-+		pr_err("Device addition failed (%d)\n", err);
- 		goto exit_device_put;
- 	}
- 
+ 	return snprintf(sysfsbuf, PAGE_SIZE, "%u\n", temp);
+ }
 -- 
-1.7.3.1.g432b3.dirty
+1.7.1
 
 
 _______________________________________________
