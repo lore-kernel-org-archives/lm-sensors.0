@@ -1,74 +1,273 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:32 +0000
-Subject: [lm-sensors] [PATCH 08/32] drivers/hwmon/dme1737.c: Use pr_fmt and
-Message-Id: <cd6d2bea37cda67b4a06436e011fedf32351352b.1287556801.git.joe@perches.com>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Sun, 31 Oct 2010 07:50:33 +0000
+Subject: [lm-sensors] [PATCH 7/8] hwmon: applesmc: Simplify feature sysfs
+Message-Id: <1288511434-5662-8-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
+References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Juerg Haefliger <juergh@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+Given the dynamic node construction method, the setup of the
+accelerometer, light sensor and keyboard backlight sysfs nodes
+can be simplified. This patch does not contain any logic changes.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 ---
- drivers/hwmon/dme1737.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/hwmon/applesmc.c |  168 ++++++++++++++++++++-------------------------
+ 1 files changed, 75 insertions(+), 93 deletions(-)
 
-diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-index 980c17d..e9a610b 100644
---- a/drivers/hwmon/dme1737.c
-+++ b/drivers/hwmon/dme1737.c
-@@ -25,6 +25,8 @@
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 4ba20ec..c09cd2e 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -989,47 +989,27 @@ static struct led_classdev applesmc_backlight = {
+ 	.brightness_set		= applesmc_brightness_set,
+ };
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-static DEVICE_ATTR(name, 0444, applesmc_name_show, NULL);
+-
+-static DEVICE_ATTR(position, 0444, applesmc_position_show, NULL);
+-static DEVICE_ATTR(calibrate, 0644,
+-			applesmc_calibrate_show, applesmc_calibrate_store);
+-
+-static struct attribute *accelerometer_attributes[] = {
+-	&dev_attr_position.attr,
+-	&dev_attr_calibrate.attr,
+-	NULL
++static struct applesmc_node_group info_group[] = {
++	{ "name", applesmc_name_show },
++	{ "key_count", applesmc_key_count_show },
++	{ "key_at_index", applesmc_key_at_index_show, applesmc_key_at_index_store },
++	{ "key_at_index_name", applesmc_key_at_index_name_show },
++	{ "key_at_index_type", applesmc_key_at_index_type_show },
++	{ "key_at_index_data_length", applesmc_key_at_index_data_length_show },
++	{ "key_at_index_data", applesmc_key_at_index_read_show },
++	{ }
+ };
+ 
+-static const struct attribute_group accelerometer_attributes_group -	{ .attrs = accelerometer_attributes };
+-
+-static DEVICE_ATTR(light, 0444, applesmc_light_show, NULL);
+-
+-static DEVICE_ATTR(key_count, 0444, applesmc_key_count_show, NULL);
+-static DEVICE_ATTR(key_at_index, 0644,
+-		applesmc_key_at_index_show, applesmc_key_at_index_store);
+-static DEVICE_ATTR(key_at_index_name, 0444,
+-					applesmc_key_at_index_name_show, NULL);
+-static DEVICE_ATTR(key_at_index_type, 0444,
+-					applesmc_key_at_index_type_show, NULL);
+-static DEVICE_ATTR(key_at_index_data_length, 0444,
+-				applesmc_key_at_index_data_length_show, NULL);
+-static DEVICE_ATTR(key_at_index_data, 0444,
+-				applesmc_key_at_index_read_show, NULL);
+-
+-static struct attribute *key_enumeration_attributes[] = {
+-	&dev_attr_key_count.attr,
+-	&dev_attr_key_at_index.attr,
+-	&dev_attr_key_at_index_name.attr,
+-	&dev_attr_key_at_index_type.attr,
+-	&dev_attr_key_at_index_data_length.attr,
+-	&dev_attr_key_at_index_data.attr,
+-	NULL
++static struct applesmc_node_group accelerometer_group[] = {
++	{ "position", applesmc_position_show },
++	{ "calibrate", applesmc_calibrate_show, applesmc_calibrate_store },
++	{ }
+ };
+ 
+-static const struct attribute_group key_enumeration_group -	{ .attrs = key_enumeration_attributes };
++static struct applesmc_node_group light_sensor_group[] = {
++	{ "light", applesmc_light_show },
++	{ }
++};
+ 
+ static struct applesmc_node_group fan_group[] = {
+ 	{ "fan%d_label", applesmc_show_fan_position },
+@@ -1112,8 +1092,10 @@ static int applesmc_create_accelerometer(void)
+ 	struct input_dev *idev;
+ 	int ret;
+ 
+-	ret = sysfs_create_group(&pdev->dev.kobj,
+-					&accelerometer_attributes_group);
++	if (!smcreg.has_accelerometer)
++		return 0;
 +
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-@@ -2446,7 +2448,7 @@ static int __init dme1737_isa_detect(int sio_cip, unsigned short *addr)
- 	/* Get the base address of the runtime registers */
- 	if (!(base_addr = (dme1737_sio_inb(sio_cip, 0x60) << 8) |
- 			   dme1737_sio_inb(sio_cip, 0x61))) {
--		printk(KERN_ERR "dme1737: Base address not set.\n");
-+		pr_err("Base address not set\n");
- 		err = -ENODEV;
- 		goto exit;
- 	}
-@@ -2475,20 +2477,18 @@ static int __init dme1737_isa_device_add(unsigned short addr)
- 		goto exit;
++	ret = applesmc_create_nodes(accelerometer_group, 1);
+ 	if (ret)
+ 		goto out;
  
- 	if (!(pdev = platform_device_alloc("dme1737", addr))) {
--		printk(KERN_ERR "dme1737: Failed to allocate device.\n");
-+		pr_err("Failed to allocate device\n");
- 		err = -ENOMEM;
- 		goto exit;
- 	}
+@@ -1150,7 +1132,7 @@ out_idev:
+ 	input_free_polled_device(applesmc_idev);
  
- 	if ((err = platform_device_add_resources(pdev, &res, 1))) {
--		printk(KERN_ERR "dme1737: Failed to add device resource "
--		       "(err = %d).\n", err);
-+		pr_err("Failed to add device resource (err = %d)\n", err);
- 		goto exit_device_put;
- 	}
+ out_sysfs:
+-	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
++	applesmc_destroy_nodes(accelerometer_group);
  
- 	if ((err = platform_device_add(pdev))) {
--		printk(KERN_ERR "dme1737: Failed to add device (err = %d).\n",
--		       err);
-+		pr_err("Failed to add device (err = %d)\n", err);
- 		goto exit_device_put;
- 	}
+ out:
+ 	pr_warn("driver init failed (ret=%d)!\n", ret);
+@@ -1160,9 +1142,43 @@ out:
+ /* Release all ressources used by the accelerometer */
+ static void applesmc_release_accelerometer(void)
+ {
++	if (!smcreg.has_accelerometer)
++		return;
+ 	input_unregister_polled_device(applesmc_idev);
+ 	input_free_polled_device(applesmc_idev);
+-	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
++	applesmc_destroy_nodes(accelerometer_group);
++}
++
++static int applesmc_create_light_sensor(void)
++{
++	if (!smcreg.has_left_light)
++		return 0;
++	return applesmc_create_nodes(light_sensor_group, 1);
++}
++
++static void applesmc_release_light_sensor(void)
++{
++	if (!smcreg.has_left_light)
++		return;
++	applesmc_destroy_nodes(light_sensor_group);
++}
++
++static int applesmc_create_key_backlight(void)
++{
++	if (!smcreg.has_key_light)
++		return 0;
++	applesmc_led_wq = create_singlethread_workqueue("applesmc-led");
++	if (!applesmc_led_wq)
++		return -ENOMEM;
++	return led_classdev_register(&pdev->dev, &applesmc_backlight);
++}
++
++static void applesmc_release_key_backlight(void)
++{
++	if (!smcreg.has_key_light)
++		return;
++	led_classdev_unregister(&applesmc_backlight);
++	destroy_workqueue(applesmc_led_wq);
+ }
  
+ static int applesmc_dmi_match(const struct dmi_system_id *id)
+@@ -1233,15 +1249,10 @@ static int __init applesmc_init(void)
+ 	if (ret)
+ 		goto out_device;
+ 
+-	ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_name.attr);
++	ret = applesmc_create_nodes(info_group, 1);
+ 	if (ret)
+ 		goto out_smcreg;
+ 
+-	/* Create key enumeration sysfs files */
+-	ret = sysfs_create_group(&pdev->dev.kobj, &key_enumeration_group);
+-	if (ret)
+-		goto out_name;
+-
+ 	ret = applesmc_create_nodes(fan_group, smcreg.fan_count);
+ 	if (ret)
+ 		goto out_info;
+@@ -1250,32 +1261,17 @@ static int __init applesmc_init(void)
+ 	if (ret)
+ 		goto out_fans;
+ 
+-	if (smcreg.has_accelerometer) {
+-		ret = applesmc_create_accelerometer();
+-		if (ret)
+-			goto out_temperature;
+-	}
+-
+-	if (smcreg.has_left_light) {
+-		/* Add light sensor file */
+-		ret = sysfs_create_file(&pdev->dev.kobj, &dev_attr_light.attr);
+-		if (ret)
+-			goto out_accelerometer;
+-	}
++	ret = applesmc_create_accelerometer();
++	if (ret)
++		goto out_temperature;
+ 
+-	if (smcreg.has_key_light) {
+-		/* Create the workqueue */
+-		applesmc_led_wq = create_singlethread_workqueue("applesmc-led");
+-		if (!applesmc_led_wq) {
+-			ret = -ENOMEM;
+-			goto out_light_sysfs;
+-		}
++	ret = applesmc_create_light_sensor();
++	if (ret)
++		goto out_accelerometer;
+ 
+-		/* register as a led device */
+-		ret = led_classdev_register(&pdev->dev, &applesmc_backlight);
+-		if (ret < 0)
+-			goto out_light_wq;
+-	}
++	ret = applesmc_create_key_backlight();
++	if (ret)
++		goto out_light_sysfs;
+ 
+ 	hwmon_dev = hwmon_device_register(&pdev->dev);
+ 	if (IS_ERR(hwmon_dev)) {
+@@ -1288,25 +1284,17 @@ static int __init applesmc_init(void)
+ 	return 0;
+ 
+ out_light_ledclass:
+-	if (smcreg.has_key_light)
+-		led_classdev_unregister(&applesmc_backlight);
+-out_light_wq:
+-	if (smcreg.has_key_light)
+-		destroy_workqueue(applesmc_led_wq);
++	applesmc_release_key_backlight();
+ out_light_sysfs:
+-	if (smcreg.has_left_light)
+-		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
++	applesmc_release_light_sensor();
+ out_accelerometer:
+-	if (smcreg.has_accelerometer)
+-		applesmc_release_accelerometer();
++	applesmc_release_accelerometer();
+ out_temperature:
+ 	applesmc_destroy_nodes(temp_group);
+ out_fans:
+ 	applesmc_destroy_nodes(fan_group);
+ out_info:
+-	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
+-out_name:
+-	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_name.attr);
++	applesmc_destroy_nodes(info_group);
+ out_smcreg:
+ 	applesmc_destroy_smcreg();
+ out_device:
+@@ -1323,18 +1311,12 @@ out:
+ static void __exit applesmc_exit(void)
+ {
+ 	hwmon_device_unregister(hwmon_dev);
+-	if (smcreg.has_key_light) {
+-		led_classdev_unregister(&applesmc_backlight);
+-		destroy_workqueue(applesmc_led_wq);
+-	}
+-	if (smcreg.has_left_light)
+-		sysfs_remove_file(&pdev->dev.kobj, &dev_attr_light.attr);
+-	if (smcreg.has_accelerometer)
+-		applesmc_release_accelerometer();
++	applesmc_release_key_backlight();
++	applesmc_release_light_sensor();
++	applesmc_release_accelerometer();
+ 	applesmc_destroy_nodes(temp_group);
+ 	applesmc_destroy_nodes(fan_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &key_enumeration_group);
+-	sysfs_remove_file(&pdev->dev.kobj, &dev_attr_name.attr);
++	applesmc_destroy_nodes(info_group);
+ 	applesmc_destroy_smcreg();
+ 	platform_device_unregister(pdev);
+ 	platform_driver_unregister(&applesmc_driver);
 -- 
-1.7.3.1.g432b3.dirty
+1.7.1
 
 
 _______________________________________________
