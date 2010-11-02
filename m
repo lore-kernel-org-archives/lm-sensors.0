@@ -1,44 +1,44 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 02 Nov 2010 18:46:04 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: Schedule the removal of the old
-Message-Id: <1288723564.22931.48.camel@groeck-laptop>
+Date: Tue, 02 Nov 2010 16:03:43 +0000
+Subject: Re: [lm-sensors] [PATCH 1/8] hwmon: applesmc: Relax the severity of
+Message-Id: <20101102160343.GA30515@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101102174221.2e2cbcff@endymion.delvare>
-In-Reply-To: <20101102174221.2e2cbcff@endymion.delvare>
+References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
+ <1288511434-5662-2-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1288511434-5662-2-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Tue, 2010-11-02 at 12:42 -0400, Jean Delvare wrote:
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Hi Henrik,
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-
+On Sun, Oct 31, 2010 at 03:50:27AM -0400, Henrik Rydberg wrote:
+> The device init is used to reset the accelerometer. Failure to reset
+> is not severe enough to stop loading the module or to resume from
+> hibernation.  This patch relaxes failure to a warning and drops
+> output in case of success.
+> 
+> Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 > ---
->  Documentation/feature-removal-schedule.txt |   10 ++++++++++
->  1 file changed, 10 insertions(+)
+>  drivers/hwmon/applesmc.c |   24 ++----------------------
+>  1 files changed, 2 insertions(+), 22 deletions(-)
 > 
-> --- linux-2.6.37-rc1.orig/Documentation/feature-removal-schedule.txt	2010-11-02 09:19:34.000000000 +0100
-> +++ linux-2.6.37-rc1/Documentation/feature-removal-schedule.txt	2010-11-02 17:36:06.000000000 +0100
-> @@ -554,3 +554,13 @@ Why:    This is a legacy interface which
->  Who:    NeilBrown <neilb@suse.de>
+> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+> index d7a5b75..375e464 100644
+> --- a/drivers/hwmon/applesmc.c
+> +++ b/drivers/hwmon/applesmc.c
+> @@ -458,21 +458,8 @@ static int applesmc_device_init(void)
+>  	mutex_lock(&applesmc_lock);
 >  
->  ----------------------------
-> +
-> +What:	Legacy, non-standard chassis intrusion detection interface.
-> +When:	June 2011
-> +Why:	The adm9240, w83792d and w83793 hardware monitoring drivers have
-> +	legacy interfaces for chassis intrusion detection. A standard
-> +	interface has been added to each driver, so the legacy interfaces
-> +	can be removed.
-> +Who:	Jean Delvare <khali@linux-fr.org>
-> +
-> +----------------------------
-> 
-> 
+Since the callers of applesmc_device_init() now all don't check the return value,
+it might make sense to declare it as void and not bother returning an error.
 
+Otherwise looks good.
 
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
