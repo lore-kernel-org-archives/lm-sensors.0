@@ -1,57 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 29 Nov 2010 11:08:55 +0000
-Subject: Re: [lm-sensors] Coretemp on Intel D510MO motherboard (Atom D510
-Message-Id: <20101129120855.05df985e@endymion.delvare>
+From: member graysky <graysky@archlinux.us>
+Date: Tue, 02 Nov 2010 19:17:14 +0000
+Subject: [lm-sensors] Motherboard Specific Configuration - Zotac IONITX-A-U
+Message-Id: <AANLkTik-A2O0zuGijPCiDqQwh8m21ifeDAqcFGp_p53j@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7630456433975357396=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Simon,
+--===============7630456433975357396==
+Content-Type: multipart/alternative; boundary=0016367fb867b811bc049416c521
 
-On Mon, 13 Sep 2010 11:56:53 +0100, Simon Farnsworth wrote:
-> I'm seeing various anomalies in the temperature readings from the coretemp 
-> driver on the Intel D510MO motherboard (Atom D510 CPU).
-> 
-> I'm using kernel 2.6.34, and I'm seeing two sets of anomalies (confirmed by 
-> reading the MSRs using msr-tools, so not just coretemp getting it wrong):
-> 
-> 1) Some boots, the coretemp sensors never return me a temperature reading at 
-> all (top bit of MSR_IA32_THERM_STATUS never gets set).
+--0016367fb867b811bc049416c521
+Content-Type: text/plain; charset=ISO-8859-1
 
-I have no clue about that one, sorry. You'd have to ask Intel folks
-about this. Fenghua?
+I was directed by the wiki to post my config to the mailing list so a
+registered user can create an entry for my motherboard.
 
-> 2) Different motherboards give different readings (by about 10C) when running 
-> the same load, at an ambient (controlled by aircon) of 22C. In particular, 
-> some boards give readings in the range 5 to 10C, others in the range 15C to 
-> 20C, and yet others in the range 25C to 30C. None of the boards appear to be 
-> able to read from MSR_IA32_TEMPERATURE_TARGET, so if it's a varying TjMax, 
-> there's no way to tell.
-> 
-> I'm running BIOS revision MOPNV10J.86A.0311 which is the latest available - 
-> any hints on what might be going wrong would be appreciated.
+/etc/sensors3.conf
 
-The temperature value returned by the coretemp driver isn't absolute.
-It's a thermal margin from the critical limit, and the greater the
-margin, the worse the accuracy. It isn't really returning degrees
-Celsius.
+# ZOTAC IONITX-A-U Atom 330 1.6GHz Dual-Core 441 NVIDIA ION
+# needs both coretemp and lm90 modules
 
-So, if your systems are running in the 15-30 range with a critical
-limit at 100, all it means is that you are far away from the critical
-limit so your systems are running totally fine and cool and you don't
-have to worry at all.
+chip "coretemp-isa-0000"
+label temp1 "Core0"
+compute temp1 @+20,@-20
 
-I've added a FAQ entry for this, as the question hits the list
-repeatedly:
-  http://www.lm-sensors.org/wiki/FAQ/Chapter3#coretempreturnsunrealisticvalues
+chip "coretemp-isa-0001"
+label temp1 "Core1"
+compute temp1 @+20,@-20
 
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+chip "w83l771-*"
+label temp1 "M/B Temp"
+label temp2 "CPU Temp"
+
+--0016367fb867b811bc049416c521
+Content-Type: text/html; charset=ISO-8859-1
+
+I was directed by the wiki to post my config to the mailing list so a registered user can create an entry for my motherboard.<br><br>/etc/sensors3.conf<br><br># ZOTAC IONITX-A-U Atom 330 1.6GHz Dual-Core 441 NVIDIA ION<br>
+# needs both coretemp and lm90 modules<br><br>chip &quot;coretemp-isa-0000&quot;<br>label temp1 &quot;Core0&quot;<br>compute temp1 @+20,@-20<br><br>chip &quot;coretemp-isa-0001&quot;<br>label temp1 &quot;Core1&quot;<br>compute temp1 @+20,@-20<br>
+<br>chip &quot;w83l771-*&quot;<br>label temp1 &quot;M/B Temp&quot;<br>label temp2 &quot;CPU Temp&quot;<br><br><br>
+
+--0016367fb867b811bc049416c521--
+
+
+--===============7630456433975357396==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7630456433975357396==--
