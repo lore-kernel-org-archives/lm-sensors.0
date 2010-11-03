@@ -1,99 +1,127 @@
-From: Simon Guinot <simon@sequanux.org>
-Date: Tue, 09 Nov 2010 09:25:25 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (gpio-fan) Fix fan_ctrl_init error
-Message-Id: <20101109092525.GC32648@kw.sim.vm.gnt>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0311965424942720899=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 03 Nov 2010 12:50:09 +0000
+Subject: [lm-sensors] [PATCH 2/4 v2] hwmon: (w83792d) Implement the standard
+Message-Id: <20101103135009.49080490@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1289279919.14461.7.camel@mola>
- <20101109090147.155dd1e9@endymion.delvare>
- <AANLkTim9mNy+ocftWn0ZiGPyefjhc-eXj3gunFw1Q04s@mail.gmail.com>
-In-Reply-To: <AANLkTim9mNy+ocftWn0ZiGPyefjhc-eXj3gunFw1Q04s@mail.gmail.com>
-To: Axel Lin <axel.lin@gmail.com>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel <linux-kernel@vger.kernel.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Simon Guinot <sguinot@lacie.com>, lm-sensors@lm-sensors.org
-
-
---===============0311965424942720899==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DSayHWYpDlRfCAAQ"
-Content-Disposition: inline
-
-
---DSayHWYpDlRfCAAQ
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Nov 09, 2010 at 04:22:02PM +0800, Axel Lin wrote:
-> 2010/11/9 Jean Delvare <khali@linux-fr.org>:
-> > On Tue, 09 Nov 2010 13:18:39 +0800, Axel Lin wrote:
-> >> Remove sysfs entries before return -ENODEV.
-> >>
-> >> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> >> ---
-> >> =C2=A0drivers/hwmon/gpio-fan.c | =C2=A0 =C2=A04 +++-
-> >> =C2=A01 files changed, 3 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-> >> index aa701a1..d2e66b4 100644
-> >> --- a/drivers/hwmon/gpio-fan.c
-> >> +++ b/drivers/hwmon/gpio-fan.c
-> >> @@ -388,11 +388,13 @@ static int fan_ctrl_init(struct gpio_fan_data *f=
-an_data,
-> >> =C2=A0 =C2=A0 =C2=A0 fan_data->speed_index =3D get_fan_speed_index(fan=
-_data);
-> >> =C2=A0 =C2=A0 =C2=A0 if (fan_data->speed_index < 0) {
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D -ENODEV;
-> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_free_gpio;
-> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_remove_sysfs;
-> >> =C2=A0 =C2=A0 =C2=A0 }
-> >>
-> >> =C2=A0 =C2=A0 =C2=A0 return 0;
-> >>
-> >> +err_remove_sysfs:
-> >> + =C2=A0 =C2=A0 sysfs_remove_group(&pdev->dev.kobj, &gpio_fan_ctrl_gro=
-up);
-> >> =C2=A0err_free_gpio:
-> >> =C2=A0 =C2=A0 =C2=A0 for (i =3D i - 1; i >=3D 0; i--)
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 gpio_free(ctrl[i]);
-> >
-> > Oh, and while you're here, fan_alarm_init() needs some love as well.
-> > There's a "return 0" in the middle which clearly can't be correct.
-> I think this part is correct. see the comment:
->         /*
->          * If the alarm GPIO don't support interrupts, just leave
->          * without initializing the fail notification support.
->          */
->=20
-
-Yes, GPIO interrupts could not be supported. That's not an error case.
-
-Simon
-
---DSayHWYpDlRfCAAQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkzZE4UACgkQgtp0PDeOcDqOXQCgnCjAkgy0AaTNuIZGomQyc4nV
-AdoAnjsydFGAbXu/PtzfYeGZ6HK3Q00Y
-=QcAD
------END PGP SIGNATURE-----
-
---DSayHWYpDlRfCAAQ--
-
-
---===============0311965424942720899==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+We have a standard intrusion detection interface now, drivers should
+implement it. I've left the old interface in place for the time being,
+with a deprecation warning, it will be removed later.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Changes in v2:
+* Invalidate the cache instead of claiming the intrusion alarm flag is
+  0 when the user attempts to clear the intrusion flag.
+* Deprecate the chassis attribute too.
+
+ drivers/hwmon/w83792d.c |   44 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
+
+--- linux-2.6.37-rc1.orig/drivers/hwmon/w83792d.c	2010-11-03 11:45:58.000000000 +0100
++++ linux-2.6.37-rc1/drivers/hwmon/w83792d.c	2010-11-03 12:55:59.000000000 +0100
+@@ -691,7 +691,7 @@ store_pwm_mode(struct device *dev, struc
+ }
+ 
+ static ssize_t
+-show_regs_chassis(struct device *dev, struct device_attribute *attr,
++show_chassis(struct device *dev, struct device_attribute *attr,
+ 			char *buf)
+ {
+ 	struct w83792d_data *data = w83792d_update_device(dev);
+@@ -699,6 +699,16 @@ show_regs_chassis(struct device *dev, st
+ }
+ 
+ static ssize_t
++show_regs_chassis(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	dev_warn(dev,
++		 "Attribute %s is deprecated, use intrusion0_alarm instead\n",
++		 "chassis");
++	return show_chassis(dev, attr, buf);
++}
++
++static ssize_t
+ show_chassis_clear(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct w83792d_data *data = w83792d_update_device(dev);
+@@ -706,7 +716,7 @@ show_chassis_clear(struct device *dev, s
+ }
+ 
+ static ssize_t
+-store_chassis_clear(struct device *dev, struct device_attribute *attr,
++store_chassis_clear_legacy(struct device *dev, struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -714,6 +724,10 @@ store_chassis_clear(struct device *dev,
+ 	u32 val;
+ 	u8 temp1 = 0, temp2 = 0;
+ 
++	dev_warn(dev,
++		 "Attribute %s is deprecated, use intrusion0_alarm instead\n",
++		 "chassis_clear");
++
+ 	val = simple_strtoul(buf, NULL, 10);
+ 	mutex_lock(&data->update_lock);
+ 	data->chassis_clear = SENSORS_LIMIT(val, 0 ,1);
+@@ -726,6 +740,27 @@ store_chassis_clear(struct device *dev,
+ 	return count;
+ }
+ 
++static ssize_t
++store_chassis_clear(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct w83792d_data *data = i2c_get_clientdata(client);
++	unsigned long val;
++	u8 reg;
++
++	if (strict_strtoul(buf, 10, &val) || val != 0)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	reg = w83792d_read_value(client, W83792D_REG_CHASSIS_CLR);
++	w83792d_write_value(client, W83792D_REG_CHASSIS_CLR, reg | 0x80);
++	data->valid = 0;		/* Force cache refresh */
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
+ /* For Smart Fan I / Thermal Cruise */
+ static ssize_t
+ show_thermal_cruise(struct device *dev, struct device_attribute *attr,
+@@ -1012,7 +1047,9 @@ static SENSOR_DEVICE_ATTR(fan5_alarm, S_
+ static SENSOR_DEVICE_ATTR(fan6_alarm, S_IRUGO, show_alarm, NULL, 23);
+ static DEVICE_ATTR(chassis, S_IRUGO, show_regs_chassis, NULL);
+ static DEVICE_ATTR(chassis_clear, S_IRUGO | S_IWUSR,
+-			show_chassis_clear, store_chassis_clear);
++			show_chassis_clear, store_chassis_clear_legacy);
++static DEVICE_ATTR(intrusion0_alarm, S_IRUGO | S_IWUSR,
++			show_chassis, store_chassis_clear);
+ static SENSOR_DEVICE_ATTR(pwm1, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 0);
+ static SENSOR_DEVICE_ATTR(pwm2, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 1);
+ static SENSOR_DEVICE_ATTR(pwm3, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 2);
+@@ -1214,6 +1251,7 @@ static struct attribute *w83792d_attribu
+ 	&dev_attr_alarms.attr,
+ 	&dev_attr_chassis.attr,
+ 	&dev_attr_chassis_clear.attr,
++	&dev_attr_intrusion0_alarm.attr,
+ 	&sensor_dev_attr_tolerance1.dev_attr.attr,
+ 	&sensor_dev_attr_thermal_cruise1.dev_attr.attr,
+ 	&sensor_dev_attr_tolerance2.dev_attr.attr,
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0311965424942720899==--
