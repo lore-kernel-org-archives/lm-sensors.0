@@ -1,29 +1,41 @@
-From: Andrey Repin <hell-for-yahoo@umail.ru>
-Date: Sun, 28 Nov 2010 21:16:08 +0000
-Subject: Re: [lm-sensors] how to rename sensor variables
-Message-Id: <418730944.20101129001608@mtu-net.ru>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 05 Nov 2010 14:59:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ltc4261) Fix error message format
+Message-Id: <20101105155929.39a5412f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <771591.69512.qm@web111709.mail.gq1.yahoo.com>
-In-Reply-To: <771591.69512.qm@web111709.mail.gq1.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings, Mahmood Naderan!
+adapter->id is deprecated and not set by any adapter driver, so this
+was certainly not what the author wanted to use. adapter->nr maybe,
+but as dev_err() already includes this value, as well as the client's
+address, there's no point repeating them. Better print a simple error
+message in plain English words.
 
-> There is nothing about k10temp in sensors3.conf.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/ltc4261.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-It has nothing to do with specific chips.
-Also, don't top-post.
+--- linux-2.6.37-rc1.orig/drivers/hwmon/ltc4261.c	2010-11-02 09:19:35.000000000 +0100
++++ linux-2.6.37-rc1/drivers/hwmon/ltc4261.c	2010-11-05 15:56:49.000000000 +0100
+@@ -230,8 +230,7 @@ static int ltc4261_probe(struct i2c_clie
+ 		return -ENODEV;
+ 
+ 	if (i2c_smbus_read_byte_data(client, LTC4261_STATUS) < 0) {
+-		dev_err(&client->dev, "Failed to read register %d:%02x:%02x\n",
+-			adapter->id, client->addr, LTC4261_STATUS);
++		dev_err(&client->dev, "Failed to read status register\n");
+ 		return -ENODEV;
+ 	}
+ 
 
 
---
-WBR,
- Andrey Repin (hell-for-yahoo@umail.ru) 29.11.2010, <0:15>
-
-Sorry for my terrible english...
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
