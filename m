@@ -1,48 +1,53 @@
-From: "Fred ." <eldmannen@gmail.com>
-Date: Wed, 03 Nov 2010 21:37:19 +0000
-Subject: Re: [lm-sensors] [RFC v2] Support of chassis intrusion detection
-Message-Id: <AANLkTin+vWTgqOAxPqWiOZWh67g8q1jJookX-Np8_JbP@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 05 Nov 2010 02:32:09 +0000
+Subject: Re: [lm-sensors] [PATCH 4/8] hwmon: applesmc: Handle new
+Message-Id: <20101105023209.GB28308@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090310170340.4c63de39@hyperion.delvare>
-In-Reply-To: <20090310170340.4c63de39@hyperion.delvare>
+References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
+ <1288511434-5662-5-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1288511434-5662-5-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Sweet!
-Looking forward to 3.2.1. ;)
+On Sun, Oct 31, 2010 at 03:50:30AM -0400, Henrik Rydberg wrote:
+> The recent Macbooks have temperature registers of a new type.
+> This patch adds the logic to handle them.
+> 
+> Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+> ---
+>  drivers/hwmon/applesmc.c |   12 +++++++++---
+>  1 files changed, 9 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+> index 0207618..ec92aff 100644
+> --- a/drivers/hwmon/applesmc.c
+> +++ b/drivers/hwmon/applesmc.c
+> @@ -733,13 +733,19 @@ static ssize_t applesmc_show_temperature(struct device *dev,
+>  	ret = applesmc_get_entry_by_index(index, &entry);
+>  	if (ret)
+>  		return ret;
+> +	if (entry.len > 2)
+> +		return -EINVAL;
+>  
+> -	ret = applesmc_read_entry(&entry, buffer, 2);
+> +	ret = applesmc_read_entry(&entry, buffer, entry.len);
+>  	if (ret)
+>  		return ret;
+>  
+> -	temp = buffer[0]*1000;
+> -	temp += (buffer[1] >> 6) * 250;
+> +	if (entry.len = 2) {
+> +		temp = buffer[0]*1000;
 
-On Tue, Nov 2, 2010 at 2:21 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> Hi Fred,
->
-> Please don't top-post.
->
-> On Tue, 12 Oct 2010 09:15:03 +0200, Fred . wrote:
->> I am sorry tha I do not have the nescesary equipment nor skill set in
->> order to be able to help test
->> or contribute with code.
->>
->> Now since the interface definition is upstreams, I hope that someone
->> may implement the feature
->> in at least one of the drivers.
->
-> This is done now: the new w83795 hardware monitoring driver implements
-> the standard intrusion detection interface.
->
-> I have written user-space code to use that interface. I have two
-> patches, one for libsensors, one for sensors, both apply on top of
-> lm-sensors SVN, if anyone wants to give them a try. I've attached them.
-> They work OK for me, I'll commit them soon unless someone finds and
-> reports a problem with them.
->
-> Then we will have to convert the remaining drivers. I found 3 drivers
-> which need to be converted: adm9240, w83792d and w83793. If there are
-> more, please let me know.
->
-> --
-> Jean Delvare
->
+Should be 
+		temp = buffer[0] * 1000;
+
+Otherwise looks good.
+
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
