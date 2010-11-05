@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 05 Nov 2010 02:32:09 +0000
+Date: Fri, 05 Nov 2010 02:35:25 +0000
 Subject: Re: [lm-sensors] [PATCH 4/8] hwmon: applesmc: Handle new
-Message-Id: <20101105023209.GB28308@ericsson.com>
+Message-Id: <20101105023525.GC28308@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1288511434-5662-1-git-send-email-rydberg@euromail.se>
  <1288511434-5662-5-git-send-email-rydberg@euromail.se>
@@ -41,11 +41,13 @@ On Sun, Oct 31, 2010 at 03:50:30AM -0400, Henrik Rydberg wrote:
 > -	temp += (buffer[1] >> 6) * 250;
 > +	if (entry.len = 2) {
 > +		temp = buffer[0]*1000;
+> +		temp += (buffer[1] >> 6) * 250;
+> +	} else {
+> +		temp = buffer[0] * 4000;
+> +	}
 
-Should be 
-		temp = buffer[0] * 1000;
-
-Otherwise looks good.
+Another comment - in the next patch, you check for entry.len = 0.
+If that can happen, you would need to check it here as well.
 
 Guenter
 
