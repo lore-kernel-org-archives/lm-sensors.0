@@ -1,21 +1,78 @@
-From: Owl <owl@umail.ru>
-Date: Mon, 15 Nov 2010 20:06:50 +0000
-Subject: Re: [lm-sensors] Fintek F71869
-Message-Id: <4CE192DA.60705@umail.ru>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 07 Nov 2010 15:45:53 +0000
+Subject: [lm-sensors] [PATCH 4/7] hwmon: (w83795) Print the actual
+Message-Id: <20101107164553.225d0647@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4CDE47B0.5040909@umail.ru>
-In-Reply-To: <4CDE47B0.5040909@umail.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-MTQuMTEuMjAxMCAxMjo0MSwgSGFucyBkZSBHb2VkZSB3cm90ZToKPiBJIGhhdmUgZG9pbmcgc29t
-ZSB3b3JrIG9uIHRoZSBmNzE4ODJmZyBkcml2ZXIgKHdoaWNoIGlzIHRoZSBvbmUgdG8KPiB3aGlj
-aCBzdXBwb3J0IHNob3VsZCBiZSBhZGRlZCkgb24gbXkgdG9kbyBsaXN0IGZvciBhIHdoaWxlLiBX
-aGVuIEkKPiBnZXQgYXJvdW5kIHRvIGl0IChob3BlZnVsbHkgc29vbi1pc2gpLiBJJ2xsIGFsc28g
-dGFrZSBhIGxvb2sgYXQgYWRkaW5nCj4gc3VwcG9ydCBmcm8gdGhlIGY3MTg2OSBhbmQgZ2V0IGJh
-Y2sgdG8geW91LgrOyi4KCkhvdyBhYm91dCB3cm9uZyBjb3JldGVtcCB2YWx1ZXM/CgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
-bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
+Don't expose raw register values to user-space. Decode and encode
+temperature channels selected as temperature sources as needed.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ w83795.c |   30 ++++++++++++++++++++----------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
+
+--- a/drivers/hwmon/w83795.c	2010-11-05 22:01:58.000000000 +0100
++++ b/drivers/hwmon/w83795.c	2010-11-05 22:06:23.000000000 +0100
+@@ -966,17 +966,18 @@ show_temp_src(struct device *dev, struct
+ 	    to_sensor_dev_attr_2(attr);
+ 	struct w83795_data *data = w83795_update_pwm_config(dev);
+ 	int index = sensor_attr->index;
+-	u8 val = index / 2;
+-	u8 tmp = data->temp_src[val];
++	u8 tmp = data->temp_src[index / 2];
+ 
+ 	if (index & 1)
+-		val = 4;
++		tmp >>= 4;	/* Pick high nibble */
+ 	else
+-		val = 0;
+-	tmp >>= val;
+-	tmp &= 0x0f;
++		tmp &= 0x0f;	/* Pick low nibble */
+ 
+-	return sprintf(buf, "%u\n", tmp);
++	/* Look-up the actual temperature channel number */
++	if (tmp >= 4 || tss_map[tmp][index] = TSS_MAP_RESERVED)
++		return -EINVAL;		/* Shouldn't happen */
++
++	return sprintf(buf, "%u\n", (unsigned int)tss_map[tmp][index] + 1);
+ }
+ 
+ static ssize_t
+@@ -988,12 +989,21 @@ store_temp_src(struct device *dev, struc
+ 	struct sensor_device_attribute_2 *sensor_attr  	    to_sensor_dev_attr_2(attr);
+ 	int index = sensor_attr->index;
+-	unsigned long tmp;
++	int tmp;
++	unsigned long channel;
+ 	u8 val = index / 2;
+ 
+-	if (strict_strtoul(buf, 10, &tmp) < 0)
++	if (strict_strtoul(buf, 10, &channel) < 0 ||
++	    channel < 1 || channel > 14)
++		return -EINVAL;
++
++	/* Check if request can be fulfilled */
++	for (tmp = 0; tmp < 4; tmp++) {
++		if (tss_map[tmp][index] = channel - 1)
++			break;
++	}
++	if (tmp = 4)	/* No match */
+ 		return -EINVAL;
+-	tmp = SENSORS_LIMIT(tmp, 0, 15);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	if (index & 1) {
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
