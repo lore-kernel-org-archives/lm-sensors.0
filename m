@@ -1,39 +1,68 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Mon, 29 Nov 2010 16:56:55 +0000
-Subject: Re: [lm-sensors] hwmon: (w83793) Drop useless mutex
-Message-Id: <alpine.LFD.2.00.1011291756350.2900@localhost6.localdomain6>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 07 Nov 2010 15:44:05 +0000
+Subject: [lm-sensors] [PATCH 2/7] hwmon: (w83795) Expose fan control method
+Message-Id: <20101107164405.5e6b6d2a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101129141659.3429d849@endymion.delvare>
-In-Reply-To: <20101129141659.3429d849@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Expose fan control method (DC vs. PWM) using the standard sysfs
+attributes. I've made it read-only as the board should be wired for
+a given mode, the BIOS should have set up the chip for this mode, and
+you shouldn't have to change it. But it would be easy enough to make
+it changeable if someone comes up with a use case.
 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ w83795.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-On Mon, 29 Nov 2010, Arnd Bergmann wrote:
+--- a/drivers/hwmon/w83795.c	2010-10-29 14:00:07.000000000 +0200
++++ b/drivers/hwmon/w83795.c	2010-10-29 14:00:44.000000000 +0200
+@@ -916,6 +916,21 @@ store_pwm_enable(struct device *dev, str
+ }
+ 
+ static ssize_t
++show_pwm_mode(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83795_data *data = w83795_update_pwm_config(dev);
++	int index = to_sensor_dev_attr_2(attr)->index;
++	unsigned int mode;
++
++	if (data->pwm_fomc & (1 << index))
++		mode = 0;	/* DC */
++	else
++		mode = 1;	/* PWM */
++
++	return sprintf(buf, "%u\n", mode);
++}
++
++static ssize_t
+ show_temp_src(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct sensor_device_attribute_2 *sensor_attr @@ -1551,6 +1566,8 @@ store_sf_setup(struct device *dev, struc
+ 		show_pwm, store_pwm, PWM_FREQ, index - 1),	 \
+ 	SENSOR_ATTR_2(pwm##index##_enable, S_IWUSR | S_IRUGO,		\
+ 		show_pwm_enable, store_pwm_enable, NOT_USED, index - 1), \
++	SENSOR_ATTR_2(pwm##index##_mode, S_IRUGO,			\
++		show_pwm_mode, NULL, NOT_USED, index - 1),		\
+ 	SENSOR_ATTR_2(fan##index##_target, S_IWUSR | S_IRUGO, \
+ 		show_fanin, store_fanin, FANIN_TARGET, index - 1) }
+ 
+@@ -1698,7 +1715,7 @@ static const struct sensor_device_attrib
+ 	SENSOR_ATTR_DTS(14),
+ };
+ 
+-static const struct sensor_device_attribute_2 w83795_pwm[][7] = {
++static const struct sensor_device_attribute_2 w83795_pwm[][8] = {
+ 	SENSOR_ATTR_PWM(1),
+ 	SENSOR_ATTR_PWM(2),
+ 	SENSOR_ATTR_PWM(3),
 
-> On Monday 29 November 2010, Jean Delvare wrote:
-> > This is the same case as fschmd, from which the code was copied as far
-> > as I can see. So the same clean-up applies:
-> > 
-> > The WDIOC_GETSUPPORT ioctl only needs a mutex because it operates on a
-> > static variable. There is no good reason to keep this variable static,
-> > so let's just make it non-static and drop the now useless mutex
-> > altogether.
-> > 
-> > See the discussion at:
-> > http://marc.info/?l=lm-sensors&m5563869402323&w=2
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Thomas Gleixner <tglx@linutronix.de>
-> > Cc: Arnd Bergmann <arnd@arndb.de>
-> > Cc: Hans de Goede <hdegoede@redhat.com>
-> 
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
-
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
