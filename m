@@ -1,340 +1,583 @@
-From: Davide Rizzo <elpa.rizzo@gmail.com>
-Date: Mon, 08 Nov 2010 12:06:00 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 08 Nov 2010 16:52:43 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (lm95241) Check validity of input
-Message-Id: <AANLkTim76ZM7AbDW-ci239uJRH99CBY57inHL25VKwpa@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="0022153dd7cf98aa68049489721f"
+Message-Id: <20101108165243.GA17902@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101105165629.112e6df5@endymion.delvare>
 In-Reply-To: <20101105165629.112e6df5@endymion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---0022153dd7cf98aa68049489721f
-Content-Type: multipart/alternative; boundary=0022153dd7cf98aa60049489721d
+On Mon, Nov 08, 2010 at 07:06:00AM -0500, Davide Rizzo wrote:
+> Here it is as requested, against linux-2.6.37-rc1 and including Jeans' last modify.
+> 
+Davide,
 
---0022153dd7cf98aa60049489721d
-Content-Type: text/plain; charset=ISO-8859-1
+Please check Documentation/SubmittingPatches when submitting patches.
 
-Here it is as requested, against linux-2.6.37-rc1 and including Jeans' last
-modify.
+Couple of comments below.
 
-2010/11/7 Guenter Roeck <guenter.roeck@ericsson.com>
-
+> 2010/11/7 Guenter Roeck <guenter.roeck@ericsson.com<mailto:guenter.roeck@ericsson.com>>
 > On Sun, Nov 07, 2010 at 04:11:52AM -0500, Davide Rizzo wrote:
 > [ ... ]
->
-> > I already rewrote drivers/hwmon/lm95241.c without macro-generated
-> functions, I posted it to the list a long time ago but nobody cared it.
+> 
+> > I already rewrote drivers/hwmon/lm95241.c without macro-generated functions, I posted it to the list a long time ago but nobody cared it.
 > > Here it is again (including your corrections).
-> > Signed-off-by: Davide Rizzo <elpa.rizzo@gmail.com<mailto:
-> elpa.rizzo@gmail.com>>
+> > Signed-off-by: Davide Rizzo <elpa.rizzo@gmail.com<mailto:elpa.rizzo@gmail.com><mailto:elpa.rizzo@gmail.com<mailto:elpa.rizzo@gmail.com>>>
 > > ------------------------------------------------
 > >
 > Would be great if you could provide a patch on top of Jean's version.
 > There were other changes in the driver since the initial version which are
-> undone by the complete file, plus it has some unnecessary formatting
-> changes
+> undone by the complete file, plus it has some unnecessary formatting changes
 > and whitespace errors.
->
+> 
 > Guenter
->
+> 
+> 
+> 
+> --
+> All difficult problems have a simple solution. That is wrong. [A. Einstein]
 
+> Signed-off-by: Davide Rizzo <elpa.rizzo@gmail.com>
+> ---
+> Rewritten without macro-generated functions
+> 
+> --- linux-2.6.37-rc1/drivers/hwmon/lm95241.c	2010-11-01 12:54:12.000000000 +0100
+> +++ linux-2.6.37-rc1.elpa/drivers/hwmon/lm95241.c	2010-11-08 12:58:01.124914446 +0100
+> @@ -1,13 +1,11 @@
+>  /*
+> - * lm95241.c - Part of lm_sensors, Linux kernel modules for hardware
+> - *             monitoring
+> - * Copyright (C) 2008 Davide Rizzo <elpa-rizzo@gmail.com>
+> + * drivers/hwmon/lm95241.c
 
+This information is redundant and does not provide any value.
 
--- 
-All difficult problems have a simple solution. That is wrong. [A. Einstein]
+>   *
+> - * Based on the max1619 driver. The LM95241 is a sensor chip made by National
+> - *   Semiconductors.
 
---0022153dd7cf98aa60049489721d
-Content-Type: text/html; charset=ISO-8859-1
+It is no longer based on the max1619 driver ?
 
-Here it is as requested, against linux-2.6.37-rc1 and including Jeans&#39; last modify.<br><br><div class="gmail_quote">2010/11/7 Guenter Roeck <span dir="ltr">&lt;<a href="mailto:guenter.roeck@ericsson.com">guenter.roeck@ericsson.com</a>&gt;</span><br>
-<blockquote class="gmail_quote" style="margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padding-left: 1ex;">On Sun, Nov 07, 2010 at 04:11:52AM -0500, Davide Rizzo wrote:<br>
-[ ... ]<br>
-<div class="im"><br>
-&gt; I already rewrote drivers/hwmon/lm95241.c without macro-generated functions, I posted it to the list a long time ago but nobody cared it.<br>
-&gt; Here it is again (including your corrections).<br>
-</div>&gt; Signed-off-by: Davide Rizzo &lt;<a href="mailto:elpa.rizzo@gmail.com">elpa.rizzo@gmail.com</a>&lt;mailto:<a href="mailto:elpa.rizzo@gmail.com">elpa.rizzo@gmail.com</a>&gt;&gt;<br>
-&gt; ------------------------------------------------<br>
-&gt;<br>
-Would be great if you could provide a patch on top of Jean&#39;s version.<br>
-There were other changes in the driver since the initial version which are<br>
-undone by the complete file, plus it has some unnecessary formatting changes<br>
-and whitespace errors.<br>
-<font color="#888888"><br>
-Guenter<br>
-</font></blockquote></div><br><br clear="all"><br>-- <br>All difficult problems have a simple solution. That is wrong. [A. Einstein]<br>
+> - * It reports up to three temperatures (its own plus up to
+> - * two external ones). Complete datasheet can be
+> - * obtained from National's website at:
+> + * Copyright (C) 2009 Davide Rizzo <elpa.rizzo@gmail.com>
+> + *
+Should probably be 2010 or 2008, 2010.
 
---0022153dd7cf98aa60049489721d--
+> + * The LM95241 is a sensor chip made by National Semiconductors.
+> + * It reports up to three temperatures (its own plus up to two external ones).
+> + * Complete datasheet can be obtained from National's website at:
+>   *   http://www.national.com/ds.cgi/LM/LM95241.pdf
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+> @@ -36,6 +34,8 @@
+>  #include <linux/mutex.h>
+>  #include <linux/sysfs.h>
+>  
+> +#define DEVNAME "lm95241"
+> +
+>  static const unsigned short normal_i2c[] = {
+>  	0x19, 0x2a, 0x2b, I2C_CLIENT_END};
+>  
+> @@ -100,194 +100,36 @@ struct lm95241_data {
+>  	u8 config, model, trutherm;
+>  };
+>  
+> -/* Sysfs stuff */
+> -#define show_temp(value) \
+> -static ssize_t show_##value(struct device *dev, \
+> -    struct device_attribute *attr, char *buf) \
+> -{ \
+> -	struct lm95241_data *data = lm95241_update_device(dev); \
+> -	snprintf(buf, PAGE_SIZE - 1, "%d\n", \
+> -		TEMP_FROM_REG(data->value##_h, data->value##_l)); \
+> -	return strlen(buf); \
+> -}
+> -show_temp(local);
+> -show_temp(remote1);
+> -show_temp(remote2);
+> -
+> +static ssize_t show_input(struct device *dev, struct device_attribute *attr,
+> +	char *buf);
+>  static ssize_t show_interval(struct device *dev, struct device_attribute *attr,
+> -			 char *buf)
+> -{
+> -	struct lm95241_data *data = lm95241_update_device(dev);
+> -
+> -	snprintf(buf, PAGE_SIZE - 1, "%lu\n", 1000 * data->interval / HZ);
+> -	return strlen(buf);
+> -}
+> -
+> +	char *buf);
 
---0022153dd7cf98aa68049489721f
-Content-Type: text/x-patch; charset=US-ASCII; name="lm95241.c.patch"
-Content-Disposition: attachment; filename="lm95241.c.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gg9axqcb0
+Good idea to fix those alignments. However, please consider using 
 
-U2lnbmVkLW9mZi1ieTogRGF2aWRlIFJpenpvIDxlbHBhLnJpenpvQGdtYWlsLmNvbT4KLS0tClJl
-d3JpdHRlbiB3aXRob3V0IG1hY3JvLWdlbmVyYXRlZCBmdW5jdGlvbnMKCi0tLSBsaW51eC0yLjYu
-MzctcmMxL2RyaXZlcnMvaHdtb24vbG05NTI0MS5jCTIwMTAtMTEtMDEgMTI6NTQ6MTIuMDAwMDAw
-MDAwICswMTAwCisrKyBsaW51eC0yLjYuMzctcmMxLmVscGEvZHJpdmVycy9od21vbi9sbTk1MjQx
-LmMJMjAxMC0xMS0wOCAxMjo1ODowMS4xMjQ5MTQ0NDYgKzAxMDAKQEAgLTEsMTMgKzEsMTEgQEAK
-IC8qCi0gKiBsbTk1MjQxLmMgLSBQYXJ0IG9mIGxtX3NlbnNvcnMsIExpbnV4IGtlcm5lbCBtb2R1
-bGVzIGZvciBoYXJkd2FyZQotICogICAgICAgICAgICAgbW9uaXRvcmluZwotICogQ29weXJpZ2h0
-IChDKSAyMDA4IERhdmlkZSBSaXp6byA8ZWxwYS1yaXp6b0BnbWFpbC5jb20+CisgKiBkcml2ZXJz
-L2h3bW9uL2xtOTUyNDEuYwogICoKLSAqIEJhc2VkIG9uIHRoZSBtYXgxNjE5IGRyaXZlci4gVGhl
-IExNOTUyNDEgaXMgYSBzZW5zb3IgY2hpcCBtYWRlIGJ5IE5hdGlvbmFsCi0gKiAgIFNlbWljb25k
-dWN0b3JzLgotICogSXQgcmVwb3J0cyB1cCB0byB0aHJlZSB0ZW1wZXJhdHVyZXMgKGl0cyBvd24g
-cGx1cyB1cCB0bwotICogdHdvIGV4dGVybmFsIG9uZXMpLiBDb21wbGV0ZSBkYXRhc2hlZXQgY2Fu
-IGJlCi0gKiBvYnRhaW5lZCBmcm9tIE5hdGlvbmFsJ3Mgd2Vic2l0ZSBhdDoKKyAqIENvcHlyaWdo
-dCAoQykgMjAwOSBEYXZpZGUgUml6em8gPGVscGEucml6em9AZ21haWwuY29tPgorICoKKyAqIFRo
-ZSBMTTk1MjQxIGlzIGEgc2Vuc29yIGNoaXAgbWFkZSBieSBOYXRpb25hbCBTZW1pY29uZHVjdG9y
-cy4KKyAqIEl0IHJlcG9ydHMgdXAgdG8gdGhyZWUgdGVtcGVyYXR1cmVzIChpdHMgb3duIHBsdXMg
-dXAgdG8gdHdvIGV4dGVybmFsIG9uZXMpLgorICogQ29tcGxldGUgZGF0YXNoZWV0IGNhbiBiZSBv
-YnRhaW5lZCBmcm9tIE5hdGlvbmFsJ3Mgd2Vic2l0ZSBhdDoKICAqICAgaHR0cDovL3d3dy5uYXRp
-b25hbC5jb20vZHMuY2dpL0xNL0xNOTUyNDEucGRmCiAgKgogICogVGhpcyBwcm9ncmFtIGlzIGZy
-ZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKQEAgLTM2
-LDYgKzM0LDggQEAKICNpbmNsdWRlIDxsaW51eC9tdXRleC5oPgogI2luY2x1ZGUgPGxpbnV4L3N5
-c2ZzLmg+CiAKKyNkZWZpbmUgREVWTkFNRSAibG05NTI0MSIKKwogc3RhdGljIGNvbnN0IHVuc2ln
-bmVkIHNob3J0IG5vcm1hbF9pMmNbXSA9IHsKIAkweDE5LCAweDJhLCAweDJiLCBJMkNfQ0xJRU5U
-X0VORH07CiAKQEAgLTEwMCwxOTQgKzEwMCwzNiBAQCBzdHJ1Y3QgbG05NTI0MV9kYXRhIHsKIAl1
-OCBjb25maWcsIG1vZGVsLCB0cnV0aGVybTsKIH07CiAKLS8qIFN5c2ZzIHN0dWZmICovCi0jZGVm
-aW5lIHNob3dfdGVtcCh2YWx1ZSkgXAotc3RhdGljIHNzaXplX3Qgc2hvd18jI3ZhbHVlKHN0cnVj
-dCBkZXZpY2UgKmRldiwgXAotICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFy
-ICpidWYpIFwKLXsgXAotCXN0cnVjdCBsbTk1MjQxX2RhdGEgKmRhdGEgPSBsbTk1MjQxX3VwZGF0
-ZV9kZXZpY2UoZGV2KTsgXAotCXNucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFIC0gMSwgIiVkXG4iLCBc
-Ci0JCVRFTVBfRlJPTV9SRUcoZGF0YS0+dmFsdWUjI19oLCBkYXRhLT52YWx1ZSMjX2wpKTsgXAot
-CXJldHVybiBzdHJsZW4oYnVmKTsgXAotfQotc2hvd190ZW1wKGxvY2FsKTsKLXNob3dfdGVtcChy
-ZW1vdGUxKTsKLXNob3dfdGVtcChyZW1vdGUyKTsKLQorc3RhdGljIHNzaXplX3Qgc2hvd19pbnB1
-dChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCWNo
-YXIgKmJ1Zik7CiBzdGF0aWMgc3NpemVfdCBzaG93X2ludGVydmFsKHN0cnVjdCBkZXZpY2UgKmRl
-diwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCi0JCQkgY2hhciAqYnVmKQotewotCXN0
-cnVjdCBsbTk1MjQxX2RhdGEgKmRhdGEgPSBsbTk1MjQxX3VwZGF0ZV9kZXZpY2UoZGV2KTsKLQot
-CXNucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFIC0gMSwgIiVsdVxuIiwgMTAwMCAqIGRhdGEtPmludGVy
-dmFsIC8gSFopOwotCXJldHVybiBzdHJsZW4oYnVmKTsKLX0KLQorCWNoYXIgKmJ1Zik7CiBzdGF0
-aWMgc3NpemVfdCBzZXRfaW50ZXJ2YWwoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNl
-X2F0dHJpYnV0ZSAqYXR0ciwKLQkJCWNvbnN0IGNoYXIgKmJ1Ziwgc2l6ZV90IGNvdW50KQotewot
-CXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7Ci0Jc3RydWN0
-IGxtOTUyNDFfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwotCi0Jc3Ry
-aWN0X3N0cnRvbChidWYsIDEwLCAmZGF0YS0+aW50ZXJ2YWwpOwotCWRhdGEtPmludGVydmFsID0g
-ZGF0YS0+aW50ZXJ2YWwgKiBIWiAvIDEwMDA7Ci0KLQlyZXR1cm4gY291bnQ7Ci19Ci0KLSNkZWZp
-bmUgc2hvd190eXBlKGZsYWcpIFwKLXN0YXRpYyBzc2l6ZV90IHNob3dfdHlwZSMjZmxhZyhzdHJ1
-Y3QgZGV2aWNlICpkZXYsIFwKLQkJCQkgICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwg
-Y2hhciAqYnVmKSBcCi17IFwKLQlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2Ns
-aWVudChkZXYpOyBcCi0Jc3RydWN0IGxtOTUyNDFfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50
-ZGF0YShjbGllbnQpOyBcCi1cCi0Jc25wcmludGYoYnVmLCBQQUdFX1NJWkUgLSAxLCBcCi0JCWRh
-dGEtPm1vZGVsICYgUiMjZmxhZyMjTVNfTUFTSyA/ICIxXG4iIDogIjJcbiIpOyBcCi0JcmV0dXJu
-IHN0cmxlbihidWYpOyBcCi19Ci1zaG93X3R5cGUoMSk7Ci1zaG93X3R5cGUoMik7Ci0KLSNkZWZp
-bmUgc2hvd19taW4oZmxhZykgXAotc3RhdGljIHNzaXplX3Qgc2hvd19taW4jI2ZsYWcoc3RydWN0
-IGRldmljZSAqZGV2LCBcCi0gICAgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIg
-KmJ1ZikgXAoteyBcCi0Jc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQo
-ZGV2KTsgXAotCXN0cnVjdCBsbTk1MjQxX2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEo
-Y2xpZW50KTsgXAotXAotCXNucHJpbnRmKGJ1ZiwgUEFHRV9TSVpFIC0gMSwgXAotCQlkYXRhLT5j
-b25maWcgJiBSIyNmbGFnIyNERl9NQVNLID8JXAotCQkiLTEyNzAwMFxuIiA6ICIwXG4iKTsgXAot
-CXJldHVybiBzdHJsZW4oYnVmKTsgXAotfQotc2hvd19taW4oMSk7Ci1zaG93X21pbigyKTsKLQot
-I2RlZmluZSBzaG93X21heChmbGFnKSBcCi1zdGF0aWMgc3NpemVfdCBzaG93X21heCMjZmxhZyhz
-dHJ1Y3QgZGV2aWNlICpkZXYsIFwKLSAgICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwg
-Y2hhciAqYnVmKSBcCi17IFwKLQlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2Ns
-aWVudChkZXYpOyBcCi0Jc3RydWN0IGxtOTUyNDFfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50
-ZGF0YShjbGllbnQpOyBcCi1cCi0Jc25wcmludGYoYnVmLCBQQUdFX1NJWkUgLSAxLCBcCi0JCWRh
-dGEtPmNvbmZpZyAmIFIjI2ZsYWcjI0RGX01BU0sgPyBcCi0JCSIxMjcwMDBcbiIgOiAiMjU1MDAw
-XG4iKTsgXAotCXJldHVybiBzdHJsZW4oYnVmKTsgXAotfQotc2hvd19tYXgoMSk7Ci1zaG93X21h
-eCgyKTsKLQotI2RlZmluZSBzZXRfdHlwZShmbGFnKSBcCi1zdGF0aWMgc3NpemVfdCBzZXRfdHlw
-ZSMjZmxhZyhzdHJ1Y3QgZGV2aWNlICpkZXYsIFwKLQkJCQkgIHN0cnVjdCBkZXZpY2VfYXR0cmli
-dXRlICphdHRyLCBcCi0JCQkJICBjb25zdCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkgXAoteyBc
-Ci0Jc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsgXAotCXN0
-cnVjdCBsbTk1MjQxX2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsgXAot
-XAotCWxvbmcgdmFsOyBcCi0Jc3RyaWN0X3N0cnRvbChidWYsIDEwLCAmdmFsKTsgXAotXAotCWlm
-ICgodmFsID09IDEpIHx8ICh2YWwgPT0gMikpIHsgXAotXAotCQltdXRleF9sb2NrKCZkYXRhLT51
-cGRhdGVfbG9jayk7IFwKLVwKLQkJZGF0YS0+dHJ1dGhlcm0gJj0gfihUVF9NQVNLIDw8IFRUIyNm
-bGFnIyNfU0hJRlQpOyBcCi0JCWlmICh2YWwgPT0gMSkgeyBcCi0JCQlkYXRhLT5tb2RlbCB8PSBS
-IyNmbGFnIyNNU19NQVNLOyBcCi0JCQlkYXRhLT50cnV0aGVybSB8PSAoVFRfT04gPDwgVFQjI2Zs
-YWcjI19TSElGVCk7IFwKLQkJfSBcCi0JCWVsc2UgeyBcCi0JCQlkYXRhLT5tb2RlbCAmPSB+UiMj
-ZmxhZyMjTVNfTUFTSzsgXAotCQkJZGF0YS0+dHJ1dGhlcm0gfD0gKFRUX09GRiA8PCBUVCMjZmxh
-ZyMjX1NISUZUKTsgXAotCQl9IFwKLVwKLQkJZGF0YS0+dmFsaWQgPSAwOyBcCi1cCi0JCWkyY19z
-bWJ1c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBMTTk1MjQxX1JFR19SV19SRU1PVEVfTU9ERUws
-IFwKLQkJCQkJICBkYXRhLT5tb2RlbCk7IFwKLQkJaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0YShj
-bGllbnQsIExNOTUyNDFfUkVHX1JXX1RSVVRIRVJNLCBcCi0JCQkJCSAgZGF0YS0+dHJ1dGhlcm0p
-OyBcCi1cCi0JCW11dGV4X3VubG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOyBcCi1cCi0JfSBcCi0J
-cmV0dXJuIGNvdW50OyBcCi19Ci1zZXRfdHlwZSgxKTsKLXNldF90eXBlKDIpOwotCi0jZGVmaW5l
-IHNldF9taW4oZmxhZykgXAotc3RhdGljIHNzaXplX3Qgc2V0X21pbiMjZmxhZyhzdHJ1Y3QgZGV2
-aWNlICpkZXYsIFwKLQlzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2YXR0ciwgY29uc3QgY2hh
-ciAqYnVmLCBzaXplX3QgY291bnQpIFwKLXsgXAotCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQg
-PSB0b19pMmNfY2xpZW50KGRldik7IFwKLQlzdHJ1Y3QgbG05NTI0MV9kYXRhICpkYXRhID0gaTJj
-X2dldF9jbGllbnRkYXRhKGNsaWVudCk7IFwKLVwKLQlsb25nIHZhbDsgXAotCXN0cmljdF9zdHJ0
-b2woYnVmLCAxMCwgJnZhbCk7IFwKLVwKLQltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7
-IFwKLVwKLQlpZiAodmFsIDwgMCkgXAotCQlkYXRhLT5jb25maWcgfD0gUiMjZmxhZyMjREZfTUFT
-SzsgXAotCWVsc2UgXAotCQlkYXRhLT5jb25maWcgJj0gflIjI2ZsYWcjI0RGX01BU0s7IFwKLVwK
-LQlkYXRhLT52YWxpZCA9IDA7IFwKLVwKLQlpMmNfc21idXNfd3JpdGVfYnl0ZV9kYXRhKGNsaWVu
-dCwgTE05NTI0MV9SRUdfUldfQ09ORklHLCBcCi0JCWRhdGEtPmNvbmZpZyk7IFwKLVwKLQltdXRl
-eF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsgXAotXAotCXJldHVybiBjb3VudDsgXAotfQot
-c2V0X21pbigxKTsKLXNldF9taW4oMik7Ci0KLSNkZWZpbmUgc2V0X21heChmbGFnKSBcCi1zdGF0
-aWMgc3NpemVfdCBzZXRfbWF4IyNmbGFnKHN0cnVjdCBkZXZpY2UgKmRldiwgXAotCXN0cnVjdCBk
-ZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLCBjb25zdCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkg
-XAoteyBcCi0Jc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsg
-XAotCXN0cnVjdCBsbTk1MjQxX2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50
-KTsgXAotXAotCWxvbmcgdmFsOyBcCi0Jc3RyaWN0X3N0cnRvbChidWYsIDEwLCAmdmFsKTsgXAot
-XAotCW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsgXAotXAotCWlmICh2YWwgPD0gMTI3
-MDAwKSBcCi0JCWRhdGEtPmNvbmZpZyB8PSBSIyNmbGFnIyNERl9NQVNLOyBcCi0JZWxzZSBcCi0J
-CWRhdGEtPmNvbmZpZyAmPSB+UiMjZmxhZyMjREZfTUFTSzsgXAotXAotCWRhdGEtPnZhbGlkID0g
-MDsgXAotXAotCWkyY19zbWJ1c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBMTTk1MjQxX1JFR19S
-V19DT05GSUcsIFwKLQkJZGF0YS0+Y29uZmlnKTsgXAotXAotCW11dGV4X3VubG9jaygmZGF0YS0+
-dXBkYXRlX2xvY2spOyBcCi1cCi0JcmV0dXJuIGNvdW50OyBcCi19Ci1zZXRfbWF4KDEpOwotc2V0
-X21heCgyKTsKLQotc3RhdGljIERFVklDRV9BVFRSKHRlbXAxX2lucHV0LCBTX0lSVUdPLCBzaG93
-X2xvY2FsLCBOVUxMKTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMl9pbnB1dCwgU19JUlVHTywg
-c2hvd19yZW1vdGUxLCBOVUxMKTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wM19pbnB1dCwgU19J
-UlVHTywgc2hvd19yZW1vdGUyLCBOVUxMKTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMl90eXBl
-LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190eXBlMSwgc2V0X3R5cGUxKTsKLXN0YXRpYyBERVZJ
-Q0VfQVRUUih0ZW1wM190eXBlLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190eXBlMiwgc2V0X3R5
-cGUyKTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMl9taW4sIFNfSVdVU1IgfCBTX0lSVUdPLCBz
-aG93X21pbjEsIHNldF9taW4xKTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0ZW1wM19taW4sIFNfSVdV
-U1IgfCBTX0lSVUdPLCBzaG93X21pbjIsIHNldF9taW4yKTsKLXN0YXRpYyBERVZJQ0VfQVRUUih0
-ZW1wMl9tYXgsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X21heDEsIHNldF9tYXgxKTsKLXN0YXRp
-YyBERVZJQ0VfQVRUUih0ZW1wM19tYXgsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X21heDIsIHNl
-dF9tYXgyKTsKKwljb25zdCBjaGFyICpidWYsIHNpemVfdCBjb3VudCk7CitzdGF0aWMgc3NpemVf
-dCBzaG93X3R5cGUoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAq
-YXR0ciwKKwljaGFyICpidWYpOworc3RhdGljIHNzaXplX3Qgc2hvd19taW4oc3RydWN0IGRldmlj
-ZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKwljaGFyICpidWYpOworc3Rh
-dGljIHNzaXplX3Qgc2hvd19tYXgoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0
-dHJpYnV0ZSAqYXR0ciwKKwljaGFyICpidWYpOworc3RhdGljIHNzaXplX3Qgc2V0X3R5cGUoc3Ry
-dWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKKwljb25zdCBj
-aGFyICpidWYsIHNpemVfdCBjb3VudCk7CitzdGF0aWMgc3NpemVfdCBzZXRfbWluKHN0cnVjdCBk
-ZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJY29uc3QgY2hhciAq
-YnVmLCBzaXplX3QgY291bnQpOworc3RhdGljIHNzaXplX3Qgc2V0X21heChzdHJ1Y3QgZGV2aWNl
-ICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCWNvbnN0IGNoYXIgKmJ1Ziwg
-c2l6ZV90IGNvdW50KTsKKworc3RhdGljIERFVklDRV9BVFRSKHRlbXAxX2lucHV0LCBTX0lSVUdP
-LCBzaG93X2lucHV0LCBOVUxMKTsKK3N0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMl9pbnB1dCwgU19J
-UlVHTywgc2hvd19pbnB1dCwgTlVMTCk7CitzdGF0aWMgREVWSUNFX0FUVFIodGVtcDNfaW5wdXQs
-IFNfSVJVR08sIHNob3dfaW5wdXQsIE5VTEwpOworc3RhdGljIERFVklDRV9BVFRSKHRlbXAyX3R5
-cGUsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X3R5cGUsIHNldF90eXBlKTsKK3N0YXRpYyBERVZJ
-Q0VfQVRUUih0ZW1wM190eXBlLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190eXBlLCBzZXRfdHlw
-ZSk7CitzdGF0aWMgREVWSUNFX0FUVFIodGVtcDJfbWluLCBTX0lXVVNSIHwgU19JUlVHTywgc2hv
-d19taW4sIHNldF9taW4pOworc3RhdGljIERFVklDRV9BVFRSKHRlbXAzX21pbiwgU19JV1VTUiB8
-IFNfSVJVR08sIHNob3dfbWluLCBzZXRfbWluKTsKK3N0YXRpYyBERVZJQ0VfQVRUUih0ZW1wMl9t
-YXgsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X21heCwgc2V0X21heCk7CitzdGF0aWMgREVWSUNF
-X0FUVFIodGVtcDNfbWF4LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd19tYXgsIHNldF9tYXgpOwog
-c3RhdGljIERFVklDRV9BVFRSKHVwZGF0ZV9pbnRlcnZhbCwgU19JV1VTUiB8IFNfSVJVR08sIHNo
-b3dfaW50ZXJ2YWwsCi0JCSAgIHNldF9pbnRlcnZhbCk7CisJc2V0X2ludGVydmFsKTsKIAogc3Rh
-dGljIHN0cnVjdCBhdHRyaWJ1dGUgKmxtOTUyNDFfYXR0cmlidXRlc1tdID0gewogCSZkZXZfYXR0
-cl90ZW1wMV9pbnB1dC5hdHRyLApAQCAtMzA3LDYgKzE0OSwyMDcgQEAgc3RhdGljIGNvbnN0IHN0
-cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgbG05NQogCS5hdHRycyA9IGxtOTUyNDFfYXR0cmlidXRlcywK
-IH07CiAKKy8qIENvbnZlcnNpb25zICovCitzdGF0aWMgaW50IFRlbXBGcm9tUmVnKHU4IHZhbF9o
-LCB1OCB2YWxfbCkKK3sKKwlpZiAodmFsX2ggJiAweDgwKQorCQlyZXR1cm4gdmFsX2ggLSAweDEw
-MDsKKwlyZXR1cm4gdmFsX2ggKiAxMDAwICsgdmFsX2wgKiAxMDAwIC8gMjU2OworfQorCisvKiBT
-eXNmcyBzdHVmZiAqLworc3RhdGljIHNzaXplX3Qgc2hvd19pbnB1dChzdHJ1Y3QgZGV2aWNlICpk
-ZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCWNoYXIgKmJ1ZikKK3sKKwlzdHJ1
-Y3QgbG05NTI0MV9kYXRhICpkYXRhID0gbG05NTI0MV91cGRhdGVfZGV2aWNlKGRldik7CisJaW50
-IHZhbHVlOworCisJaWYgKGF0dHIgPT0gJmRldl9hdHRyX3RlbXAxX2lucHV0KQorCQl2YWx1ZSA9
-IFRlbXBGcm9tUmVnKGRhdGEtPmxvY2FsX2gsIGRhdGEtPmxvY2FsX2wpOworCWVsc2UgaWYgKGF0
-dHIgPT0gJmRldl9hdHRyX3RlbXAyX2lucHV0KQorCQl2YWx1ZSA9IFRlbXBGcm9tUmVnKGRhdGEt
-PnJlbW90ZTFfaCwgZGF0YS0+cmVtb3RlMV9sKTsKKwllbHNlCisJCXZhbHVlID0gVGVtcEZyb21S
-ZWcoZGF0YS0+cmVtb3RlMl9oLCBkYXRhLT5yZW1vdGUyX2wpOworCXNucHJpbnRmKGJ1ZiwgUEFH
-RV9TSVpFIC0gMSwgIiVkXG4iLCB2YWx1ZSk7CisJcmV0dXJuIHN0cmxlbihidWYpOworfQorCitz
-dGF0aWMgc3NpemVfdCBzaG93X2ludGVydmFsKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRl
-dmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJY2hhciAqYnVmKQoreworCXN0cnVjdCBsbTk1MjQxX2Rh
-dGEgKmRhdGEgPSBsbTk1MjQxX3VwZGF0ZV9kZXZpY2UoZGV2KTsKKworCXNucHJpbnRmKGJ1Ziwg
-UEFHRV9TSVpFIC0gMSwgIiVsdVxuIiwgMTAwMCAqIGRhdGEtPmludGVydmFsIC8gSFopOworCXJl
-dHVybiBzdHJsZW4oYnVmKTsKK30KKworc3RhdGljIHNzaXplX3Qgc2V0X2ludGVydmFsKHN0cnVj
-dCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJY29uc3QgY2hh
-ciAqYnVmLCBzaXplX3QgY291bnQpCit7CisJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRv
-X2kyY19jbGllbnQoZGV2KTsKKwlzdHJ1Y3QgbG05NTI0MV9kYXRhICpkYXRhID0gaTJjX2dldF9j
-bGllbnRkYXRhKGNsaWVudCk7CisJdW5zaWduZWQgbG9uZyB2YWw7CisKKwlpZiAoc3RyaWN0X3N0
-cnRvbChidWYsIDEwLCAmdmFsKSA8IDApCisJCXJldHVybiAtRUlOVkFMOworCisJZGF0YS0+aW50
-ZXJ2YWwgPSB2YWwgKiBIWiAvIDEwMDA7CisKKwlyZXR1cm4gY291bnQ7Cit9CisKK3N0YXRpYyBz
-c2l6ZV90IHNob3dfdHlwZShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmli
-dXRlICphdHRyLAorCWNoYXIgKmJ1ZikKK3sKKwlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0g
-dG9faTJjX2NsaWVudChkZXYpOworCXN0cnVjdCBsbTk1MjQxX2RhdGEgKmRhdGEgPSBpMmNfZ2V0
-X2NsaWVudGRhdGEoY2xpZW50KTsKKworCWlmIChhdHRyID09ICZkZXZfYXR0cl90ZW1wMl90eXBl
-KQorCQlzbnByaW50ZihidWYsIFBBR0VfU0laRSAtIDEsCisJCQlkYXRhLT5tb2RlbCAmIFIxTVNf
-TUFTSyA/ICIxXG4iIDogIjJcbiIpOworCWVsc2UKKwkJc25wcmludGYoYnVmLCBQQUdFX1NJWkUg
-LSAxLAorCQkJZGF0YS0+bW9kZWwgJiBSMk1TX01BU0sgPyAiMVxuIiA6ICIyXG4iKTsKKwlyZXR1
-cm4gc3RybGVuKGJ1Zik7Cit9CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfbWluKHN0cnVjdCBkZXZp
-Y2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJY2hhciAqYnVmKQorewor
-CXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CisJc3RydWN0
-IGxtOTUyNDFfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCisJaWYg
-KGF0dHIgPT0gJmRldl9hdHRyX3RlbXAyX21pbikKKwkJc25wcmludGYoYnVmLCBQQUdFX1NJWkUg
-LSAxLAorCQkJZGF0YS0+Y29uZmlnICYgUjFERl9NQVNLID8gIi0xMjcwMDBcbiIgOiAiMFxuIik7
-CisJZWxzZQorCQlzbnByaW50ZihidWYsIFBBR0VfU0laRSAtIDEsCisJCQlkYXRhLT5jb25maWcg
-JiBSMkRGX01BU0sgPyAiLTEyNzAwMFxuIiA6ICIwXG4iKTsKKwlyZXR1cm4gc3RybGVuKGJ1Zik7
-Cit9CisKK3N0YXRpYyBzc2l6ZV90IHNob3dfbWF4KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
-IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCisJY2hhciAqYnVmKQoreworCXN0cnVjdCBpMmNfY2xp
-ZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CisJc3RydWN0IGxtOTUyNDFfZGF0YSAq
-ZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOworCisJaWYgKGF0dHIgPT0gJmRldl9h
-dHRyX3RlbXAyX21heCkKKwkJc25wcmludGYoYnVmLCBQQUdFX1NJWkUgLSAxLAorCQkJZGF0YS0+
-Y29uZmlnICYgUjFERl9NQVNLID8gIjEyNzAwMFxuIiA6ICIyNTUwMDBcbiIpOworCWVsc2UKKwkJ
-c25wcmludGYoYnVmLCBQQUdFX1NJWkUgLSAxLAorCQkJZGF0YS0+Y29uZmlnICYgUjJERl9NQVNL
-ID8gIjEyNzAwMFxuIiA6ICIyNTUwMDBcbiIpOworCXJldHVybiBzdHJsZW4oYnVmKTsKK30KKwor
-c3RhdGljIHNzaXplX3Qgc2V0X3R5cGUoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNl
-X2F0dHJpYnV0ZSAqYXR0ciwKKwljb25zdCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkKK3sKKwlz
-dHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYpOworCXN0cnVjdCBs
-bTk1MjQxX2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKKwl1bnNpZ25l
-ZCBsb25nIHZhbDsKKworCWlmIChzdHJpY3Rfc3RydG91bChidWYsIDEwLCAmdmFsKSA8IDApCisJ
-CXJldHVybiAtRUlOVkFMOworCisJaWYgKCh2YWwgPT0gMSkgfHwgKHZhbCA9PSAyKSkgeworCQlp
-bnQgc2hpZnQ7CisJCXU4IG1hc2s7CisJCWlmIChhdHRyID09ICZkZXZfYXR0cl90ZW1wMl90eXBl
-KSB7CisJCQlzaGlmdCA9IFRUMV9TSElGVDsKKwkJCW1hc2sgPSBSMU1TX01BU0s7CisJCX0gZWxz
-ZSB7CisJCQlzaGlmdCA9IFRUMl9TSElGVDsKKwkJCW1hc2sgPSBSMk1TX01BU0s7CisJCX0KKwor
-CQltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CisKKwkJZGF0YS0+dHJ1dGhlcm0gJj0g
-fihUVF9NQVNLIDw8IHNoaWZ0KTsKKwkJaWYgKHZhbCA9PSAxKSB7CisJCQlkYXRhLT5tb2RlbCB8
-PSBtYXNrOworCQkJZGF0YS0+dHJ1dGhlcm0gfD0gKFRUX09OIDw8IHNoaWZ0KTsKKwkJfSBlbHNl
-IHsKKwkJCWRhdGEtPm1vZGVsICY9IH5tYXNrOworCQkJZGF0YS0+dHJ1dGhlcm0gfD0gKFRUX09G
-RiA8PCBzaGlmdCk7CisJCX0KKworCQlkYXRhLT52YWxpZCA9IDA7CisKKwkJaTJjX3NtYnVzX3dy
-aXRlX2J5dGVfZGF0YShjbGllbnQsIExNOTUyNDFfUkVHX1JXX1JFTU9URV9NT0RFTCwKKwkJCQkJ
-ICBkYXRhLT5tb2RlbCk7CisJCWkyY19zbWJ1c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBMTTk1
-MjQxX1JFR19SV19UUlVUSEVSTSwKKwkJCQkJICBkYXRhLT50cnV0aGVybSk7CisKKwkJbXV0ZXhf
-dW5sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CisKKwl9CisJcmV0dXJuIGNvdW50OworfQorCitz
-dGF0aWMgc3NpemVfdCBzZXRfbWluKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9h
-dHRyaWJ1dGUgKmF0dHIsCisJY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQpCit7CisJc3Ry
-dWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsKKwlzdHJ1Y3QgbG05
-NTI0MV9kYXRhICpkYXRhID0gaTJjX2dldF9jbGllbnRkYXRhKGNsaWVudCk7CisJbG9uZyB2YWw7
-CisJdTggbWFzazsKKworCWlmIChzdHJpY3Rfc3RydG9sKGJ1ZiwgMTAsICZ2YWwpIDwgMCkKKwkJ
-cmV0dXJuIC1FSU5WQUw7CisKKwlpZiAoYXR0ciA9PSAmZGV2X2F0dHJfdGVtcDJfbWluKQorCQlt
-YXNrID0gUjFERl9NQVNLOworCWVsc2UKKwkJbWFzayA9IFIyREZfTUFTSzsKKworCW11dGV4X2xv
-Y2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCWlmICh2YWwgPCAwKQorCQlkYXRhLT5jb25maWcg
-fD0gbWFzazsKKwllbHNlCisJCWRhdGEtPmNvbmZpZyAmPSBtYXNrOworCWRhdGEtPnZhbGlkID0g
-MDsKKworCWkyY19zbWJ1c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBMTTk1MjQxX1JFR19SV19D
-T05GSUcsIGRhdGEtPmNvbmZpZyk7CisKKwltdXRleF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2Nr
-KTsKKworCXJldHVybiBjb3VudDsKK30KKworc3RhdGljIHNzaXplX3Qgc2V0X21heChzdHJ1Y3Qg
-ZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAorCWNvbnN0IGNoYXIg
-KmJ1Ziwgc2l6ZV90IGNvdW50KQoreworCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19p
-MmNfY2xpZW50KGRldik7CisJc3RydWN0IGxtOTUyNDFfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xp
-ZW50ZGF0YShjbGllbnQpOworCWxvbmcgdmFsOworCXU4IG1hc2s7CisKKwlpZiAoc3RyaWN0X3N0
-cnRvbChidWYsIDEwLCAmdmFsKSA8IDApCisJCXJldHVybiAtRUlOVkFMOworCisJaWYgKGF0dHIg
-PT0gJmRldl9hdHRyX3RlbXAyX21heCkKKwkJbWFzayA9IFIxREZfTUFTSzsKKwllbHNlCisJCW1h
-c2sgPSBSMkRGX01BU0s7CisKKwltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CisKKwlp
-ZiAodmFsIDw9IDEyNzAwMCkKKwkJZGF0YS0+Y29uZmlnIHw9IFIxREZfTUFTSzsKKwllbHNlCisJ
-CWRhdGEtPmNvbmZpZyAmPSB+UjJERl9NQVNLOworCWRhdGEtPnZhbGlkID0gMDsKKworCWkyY19z
-bWJ1c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBMTTk1MjQxX1JFR19SV19DT05GSUcsIGRhdGEt
-PmNvbmZpZyk7CisKKwltdXRleF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKworCXJldHVy
-biBjb3VudDsKK30KKwogLyogUmV0dXJuIDAgaWYgZGV0ZWN0aW9uIGlzIHN1Y2Nlc3NmdWwsIC1F
-Tk9ERVYgb3RoZXJ3aXNlICovCiBzdGF0aWMgaW50IGxtOTUyNDFfZGV0ZWN0KHN0cnVjdCBpMmNf
-Y2xpZW50ICpuZXdfY2xpZW50LAogCQkJICBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gKmluZm8pCkBA
-IC0zMjIsNyArMzY1LDcgQEAgc3RhdGljIGludCBsbTk1MjQxX2RldGVjdChzdHJ1Y3QgaTJjX2Ns
-aQogCSAgICAgPT0gTUFOVUZBQ1RVUkVSX0lEKQogCSAmJiAoaTJjX3NtYnVzX3JlYWRfYnl0ZV9k
-YXRhKG5ld19jbGllbnQsIExNOTUyNDFfUkVHX1JfQ0hJUF9JRCkKIAkgICAgID49IERFRkFVTFRf
-UkVWSVNJT04pKSB7Ci0JCW5hbWUgPSAibG05NTI0MSI7CisJCW5hbWUgPSBERVZOQU1FOwogCX0g
-ZWxzZSB7CiAJCWRldl9kYmcoJmFkYXB0ZXItPmRldiwgIkxNOTUyNDEgZGV0ZWN0aW9uIGZhaWxl
-ZCBhdCAweCUwMnhcbiIsCiAJCQlhZGRyZXNzKTsKQEAgLTQ0Myw3ICs0ODYsNyBAQCBzdGF0aWMg
-c3RydWN0IGxtOTUyNDFfZGF0YSAqbG05NTI0MV91cGRhCiAKIC8qIERyaXZlciBkYXRhIChjb21t
-b24gdG8gYWxsIGNsaWVudHMpICovCiBzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQg
-bG05NTI0MV9pZFtdID0gewotCXsgImxtOTUyNDEiLCAwIH0sCisJeyBERVZOQU1FLCAwIH0sCiAJ
-eyB9CiB9OwogTU9EVUxFX0RFVklDRV9UQUJMRShpMmMsIGxtOTUyNDFfaWQpOwpAQCAtNDUxLDcg
-KzQ5NCw3IEBAIE1PRFVMRV9ERVZJQ0VfVEFCTEUoaTJjLCBsbTk1MjQxX2lkKTsKIHN0YXRpYyBz
-dHJ1Y3QgaTJjX2RyaXZlciBsbTk1MjQxX2RyaXZlciA9IHsKIAkuY2xhc3MJCT0gSTJDX0NMQVNT
-X0hXTU9OLAogCS5kcml2ZXIgPSB7Ci0JCS5uYW1lICAgPSAibG05NTI0MSIsCisJCS5uYW1lICAg
-PSBERVZOQU1FLAogCX0sCiAJLnByb2JlCQk9IGxtOTUyNDFfcHJvYmUsCiAJLnJlbW92ZQkJPSBs
-bTk1MjQxX3JlbW92ZSwKQEAgLTQ3MCw5ICs1MTMsMTAgQEAgc3RhdGljIHZvaWQgX19leGl0IHNl
-bnNvcnNfbG05NTI0MV9leGl0KAogCWkyY19kZWxfZHJpdmVyKCZsbTk1MjQxX2RyaXZlcik7CiB9
-CiAKLU1PRFVMRV9BVVRIT1IoIkRhdmlkZSBSaXp6byA8ZWxwYS1yaXp6b0BnbWFpbC5jb20+Iik7
-CitNT0RVTEVfQVVUSE9SKCJEYXZpZGUgUml6em8gPGVscGEucml6em9AZ21haWwuY29tPiIpOwog
-TU9EVUxFX0RFU0NSSVBUSU9OKCJMTTk1MjQxIHNlbnNvciBkcml2ZXIiKTsKIE1PRFVMRV9MSUNF
-TlNFKCJHUEwiKTsKIAogbW9kdWxlX2luaXQoc2Vuc29yc19sbTk1MjQxX2luaXQpOwogbW9kdWxl
-X2V4aXQoc2Vuc29yc19sbTk1MjQxX2V4aXQpOworCg==
---0022153dd7cf98aa68049489721f
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+static ssize_t show_interval(struct device *dev, struct device_attribute *attr,
+			     char *buf)
+
+ie align with '('. Otherwise there are still two sets of alignments in the code
+which doesn't really make it easier to read.
+
+Also,  Idon't think the functions should be moved. As a result, you have to declare 
+all functions, since they are used before being defined, plus the diffs get larger
+than needed. More on that below.
+
+>  static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
+> -			const char *buf, size_t count)
+> -{
+> -	struct i2c_client *client = to_i2c_client(dev);
+> -	struct lm95241_data *data = i2c_get_clientdata(client);
+> -
+> -	strict_strtol(buf, 10, &data->interval);
+> -	data->interval = data->interval * HZ / 1000;
+> -
+> -	return count;
+> -}
+> -
+> -#define show_type(flag) \
+> -static ssize_t show_type##flag(struct device *dev, \
+> -				   struct device_attribute *attr, char *buf) \
+> -{ \
+> -	struct i2c_client *client = to_i2c_client(dev); \
+> -	struct lm95241_data *data = i2c_get_clientdata(client); \
+> -\
+> -	snprintf(buf, PAGE_SIZE - 1, \
+> -		data->model & R##flag##MS_MASK ? "1\n" : "2\n"); \
+> -	return strlen(buf); \
+> -}
+> -show_type(1);
+> -show_type(2);
+> -
+> -#define show_min(flag) \
+> -static ssize_t show_min##flag(struct device *dev, \
+> -    struct device_attribute *attr, char *buf) \
+> -{ \
+> -	struct i2c_client *client = to_i2c_client(dev); \
+> -	struct lm95241_data *data = i2c_get_clientdata(client); \
+> -\
+> -	snprintf(buf, PAGE_SIZE - 1, \
+> -		data->config & R##flag##DF_MASK ?	\
+> -		"-127000\n" : "0\n"); \
+> -	return strlen(buf); \
+> -}
+> -show_min(1);
+> -show_min(2);
+> -
+> -#define show_max(flag) \
+> -static ssize_t show_max##flag(struct device *dev, \
+> -    struct device_attribute *attr, char *buf) \
+> -{ \
+> -	struct i2c_client *client = to_i2c_client(dev); \
+> -	struct lm95241_data *data = i2c_get_clientdata(client); \
+> -\
+> -	snprintf(buf, PAGE_SIZE - 1, \
+> -		data->config & R##flag##DF_MASK ? \
+> -		"127000\n" : "255000\n"); \
+> -	return strlen(buf); \
+> -}
+> -show_max(1);
+> -show_max(2);
+> -
+> -#define set_type(flag) \
+> -static ssize_t set_type##flag(struct device *dev, \
+> -				  struct device_attribute *attr, \
+> -				  const char *buf, size_t count) \
+> -{ \
+> -	struct i2c_client *client = to_i2c_client(dev); \
+> -	struct lm95241_data *data = i2c_get_clientdata(client); \
+> -\
+> -	long val; \
+> -	strict_strtol(buf, 10, &val); \
+> -\
+> -	if ((val = 1) || (val = 2)) { \
+> -\
+> -		mutex_lock(&data->update_lock); \
+> -\
+> -		data->trutherm &= ~(TT_MASK << TT##flag##_SHIFT); \
+> -		if (val = 1) { \
+> -			data->model |= R##flag##MS_MASK; \
+> -			data->trutherm |= (TT_ON << TT##flag##_SHIFT); \
+> -		} \
+> -		else { \
+> -			data->model &= ~R##flag##MS_MASK; \
+> -			data->trutherm |= (TT_OFF << TT##flag##_SHIFT); \
+> -		} \
+> -\
+> -		data->valid = 0; \
+> -\
+> -		i2c_smbus_write_byte_data(client, LM95241_REG_RW_REMOTE_MODEL, \
+> -					  data->model); \
+> -		i2c_smbus_write_byte_data(client, LM95241_REG_RW_TRUTHERM, \
+> -					  data->trutherm); \
+> -\
+> -		mutex_unlock(&data->update_lock); \
+> -\
+> -	} \
+> -	return count; \
+> -}
+> -set_type(1);
+> -set_type(2);
+> -
+> -#define set_min(flag) \
+> -static ssize_t set_min##flag(struct device *dev, \
+> -	struct device_attribute *devattr, const char *buf, size_t count) \
+> -{ \
+> -	struct i2c_client *client = to_i2c_client(dev); \
+> -	struct lm95241_data *data = i2c_get_clientdata(client); \
+> -\
+> -	long val; \
+> -	strict_strtol(buf, 10, &val); \
+> -\
+> -	mutex_lock(&data->update_lock); \
+> -\
+> -	if (val < 0) \
+> -		data->config |= R##flag##DF_MASK; \
+> -	else \
+> -		data->config &= ~R##flag##DF_MASK; \
+> -\
+> -	data->valid = 0; \
+> -\
+> -	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG, \
+> -		data->config); \
+> -\
+> -	mutex_unlock(&data->update_lock); \
+> -\
+> -	return count; \
+> -}
+> -set_min(1);
+> -set_min(2);
+> -
+> -#define set_max(flag) \
+> -static ssize_t set_max##flag(struct device *dev, \
+> -	struct device_attribute *devattr, const char *buf, size_t count) \
+> -{ \
+> -	struct i2c_client *client = to_i2c_client(dev); \
+> -	struct lm95241_data *data = i2c_get_clientdata(client); \
+> -\
+> -	long val; \
+> -	strict_strtol(buf, 10, &val); \
+> -\
+> -	mutex_lock(&data->update_lock); \
+> -\
+> -	if (val <= 127000) \
+> -		data->config |= R##flag##DF_MASK; \
+> -	else \
+> -		data->config &= ~R##flag##DF_MASK; \
+> -\
+> -	data->valid = 0; \
+> -\
+> -	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG, \
+> -		data->config); \
+> -\
+> -	mutex_unlock(&data->update_lock); \
+> -\
+> -	return count; \
+> -}
+> -set_max(1);
+> -set_max(2);
+> -
+> -static DEVICE_ATTR(temp1_input, S_IRUGO, show_local, NULL);
+> -static DEVICE_ATTR(temp2_input, S_IRUGO, show_remote1, NULL);
+> -static DEVICE_ATTR(temp3_input, S_IRUGO, show_remote2, NULL);
+> -static DEVICE_ATTR(temp2_type, S_IWUSR | S_IRUGO, show_type1, set_type1);
+> -static DEVICE_ATTR(temp3_type, S_IWUSR | S_IRUGO, show_type2, set_type2);
+> -static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_min1, set_min1);
+> -static DEVICE_ATTR(temp3_min, S_IWUSR | S_IRUGO, show_min2, set_min2);
+> -static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_max1, set_max1);
+> -static DEVICE_ATTR(temp3_max, S_IWUSR | S_IRUGO, show_max2, set_max2);
+> +	const char *buf, size_t count);
+> +static ssize_t show_type(struct device *dev, struct device_attribute *attr,
+> +	char *buf);
+> +static ssize_t show_min(struct device *dev, struct device_attribute *attr,
+> +	char *buf);
+> +static ssize_t show_max(struct device *dev, struct device_attribute *attr,
+> +	char *buf);
+> +static ssize_t set_type(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count);
+> +static ssize_t set_min(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count);
+> +static ssize_t set_max(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count);
+> +
+
+It would be better to move DEVICE_ATTR, lm95241_attributes, and lm95241_group
+after the actual functions. Then you don't need the static declarations above.
+
+> +static DEVICE_ATTR(temp1_input, S_IRUGO, show_input, NULL);
+> +static DEVICE_ATTR(temp2_input, S_IRUGO, show_input, NULL);
+> +static DEVICE_ATTR(temp3_input, S_IRUGO, show_input, NULL);
+> +static DEVICE_ATTR(temp2_type, S_IWUSR | S_IRUGO, show_type, set_type);
+> +static DEVICE_ATTR(temp3_type, S_IWUSR | S_IRUGO, show_type, set_type);
+> +static DEVICE_ATTR(temp2_min, S_IWUSR | S_IRUGO, show_min, set_min);
+> +static DEVICE_ATTR(temp3_min, S_IWUSR | S_IRUGO, show_min, set_min);
+> +static DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_max, set_max);
+> +static DEVICE_ATTR(temp3_max, S_IWUSR | S_IRUGO, show_max, set_max);
+>  static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_interval,
+> -		   set_interval);
+> +	set_interval);
+>  
+>  static struct attribute *lm95241_attributes[] = {
+>  	&dev_attr_temp1_input.attr,
+> @@ -307,6 +149,207 @@ static const struct attribute_group lm95
+>  	.attrs = lm95241_attributes,
+>  };
+>  
+> +/* Conversions */
+> +static int TempFromReg(u8 val_h, u8 val_l)
+> +{
+> +	if (val_h & 0x80)
+> +		return val_h - 0x100;
+> +	return val_h * 1000 + val_l * 1000 / 256;
+> +}
+> +
+> +/* Sysfs stuff */
+> +static ssize_t show_input(struct device *dev, struct device_attribute *attr,
+> +	char *buf)
+> +{
+> +	struct lm95241_data *data = lm95241_update_device(dev);
+> +	int value;
+> +
+> +	if (attr = &dev_attr_temp1_input)
+> +		value = TempFromReg(data->local_h, data->local_l);
+> +	else if (attr = &dev_attr_temp2_input)
+> +		value = TempFromReg(data->remote1_h, data->remote1_l);
+> +	else
+> +		value = TempFromReg(data->remote2_h, data->remote2_l);
+> +	snprintf(buf, PAGE_SIZE - 1, "%d\n", value);
+> +	return strlen(buf);
+> +}
+> +
+> +static ssize_t show_interval(struct device *dev, struct device_attribute *attr,
+> +	char *buf)
+> +{
+> +	struct lm95241_data *data = lm95241_update_device(dev);
+> +
+> +	snprintf(buf, PAGE_SIZE - 1, "%lu\n", 1000 * data->interval / HZ);
+> +	return strlen(buf);
+> +}
+> +
+> +static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +	unsigned long val;
+> +
+> +	if (strict_strtol(buf, 10, &val) < 0)
+> +		return -EINVAL;
+> +
+> +	data->interval = val * HZ / 1000;
+> +
+This accepts negative intervals and converts it to some large positive number.
+You might want to use strict_strtoul() instead.
+
+> +	return count;
+> +}
+> +
+> +static ssize_t show_type(struct device *dev, struct device_attribute *attr,
+> +	char *buf)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +
+> +	if (attr = &dev_attr_temp2_type)
+> +		snprintf(buf, PAGE_SIZE - 1,
+> +			data->model & R1MS_MASK ? "1\n" : "2\n");
+> +	else
+> +		snprintf(buf, PAGE_SIZE - 1,
+> +			data->model & R2MS_MASK ? "1\n" : "2\n");
+> +	return strlen(buf);
+> +}
+> +
+> +static ssize_t show_min(struct device *dev, struct device_attribute *attr,
+> +	char *buf)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +
+> +	if (attr = &dev_attr_temp2_min)
+> +		snprintf(buf, PAGE_SIZE - 1,
+> +			data->config & R1DF_MASK ? "-127000\n" : "0\n");
+> +	else
+> +		snprintf(buf, PAGE_SIZE - 1,
+> +			data->config & R2DF_MASK ? "-127000\n" : "0\n");
+> +	return strlen(buf);
+> +}
+> +
+> +static ssize_t show_max(struct device *dev, struct device_attribute *attr,
+> +	char *buf)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +
+> +	if (attr = &dev_attr_temp2_max)
+> +		snprintf(buf, PAGE_SIZE - 1,
+> +			data->config & R1DF_MASK ? "127000\n" : "255000\n");
+> +	else
+> +		snprintf(buf, PAGE_SIZE - 1,
+> +			data->config & R2DF_MASK ? "127000\n" : "255000\n");
+> +	return strlen(buf);
+> +}
+> +
+> +static ssize_t set_type(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +	unsigned long val;
+> +
+> +	if (strict_strtoul(buf, 10, &val) < 0)
+> +		return -EINVAL;
+> +
+> +	if ((val = 1) || (val = 2)) {
+
+Those extra () are really unnecessary.
+
+> +		int shift;
+> +		u8 mask;
+> +		if (attr = &dev_attr_temp2_type) {
+> +			shift = TT1_SHIFT;
+> +			mask = R1MS_MASK;
+> +		} else {
+> +			shift = TT2_SHIFT;
+> +			mask = R2MS_MASK;
+> +		}
+> +
+> +		mutex_lock(&data->update_lock);
+> +
+> +		data->trutherm &= ~(TT_MASK << shift);
+> +		if (val = 1) {
+> +			data->model |= mask;
+> +			data->trutherm |= (TT_ON << shift);
+> +		} else {
+> +			data->model &= ~mask;
+> +			data->trutherm |= (TT_OFF << shift);
+> +		}
+> +
+> +		data->valid = 0;
+> +
+> +		i2c_smbus_write_byte_data(client, LM95241_REG_RW_REMOTE_MODEL,
+> +					  data->model);
+> +		i2c_smbus_write_byte_data(client, LM95241_REG_RW_TRUTHERM,
+> +					  data->trutherm);
+> +
+> +		mutex_unlock(&data->update_lock);
+> +
+> +	}
+> +	return count;
+> +}
+> +
+> +static ssize_t set_min(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +	long val;
+> +	u8 mask;
+> +
+> +	if (strict_strtol(buf, 10, &val) < 0)
+> +		return -EINVAL;
+> +
+> +	if (attr = &dev_attr_temp2_min)
+> +		mask = R1DF_MASK;
+> +	else
+> +		mask = R2DF_MASK;
+> +
+> +	mutex_lock(&data->update_lock);
+> +
+> +	if (val < 0)
+> +		data->config |= mask;
+> +	else
+> +		data->config &= mask;
+> +	data->valid = 0;
+> +
+> +	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG, data->config);
+> +
+> +	mutex_unlock(&data->update_lock);
+> +
+> +	return count;
+> +}
+> +
+> +static ssize_t set_max(struct device *dev, struct device_attribute *attr,
+> +	const char *buf, size_t count)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct lm95241_data *data = i2c_get_clientdata(client);
+> +	long val;
+> +	u8 mask;
+> +
+> +	if (strict_strtol(buf, 10, &val) < 0)
+> +		return -EINVAL;
+> +
+> +	if (attr = &dev_attr_temp2_max)
+> +		mask = R1DF_MASK;
+> +	else
+> +		mask = R2DF_MASK;
+> +
+> +	mutex_lock(&data->update_lock);
+> +
+> +	if (val <= 127000)
+> +		data->config |= R1DF_MASK;
+> +	else
+> +		data->config &= ~R2DF_MASK;
+> +	data->valid = 0;
+> +
+> +	i2c_smbus_write_byte_data(client, LM95241_REG_RW_CONFIG, data->config);
+> +
+> +	mutex_unlock(&data->update_lock);
+> +
+> +	return count;
+> +}
+> +
+>  /* Return 0 if detection is successful, -ENODEV otherwise */
+>  static int lm95241_detect(struct i2c_client *new_client,
+>  			  struct i2c_board_info *info)
+> @@ -322,7 +365,7 @@ static int lm95241_detect(struct i2c_cli
+>  	     = MANUFACTURER_ID)
+>  	 && (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
+>  	     >= DEFAULT_REVISION)) {
+> -		name = "lm95241";
+> +		name = DEVNAME;
+>  	} else {
+>  		dev_dbg(&adapter->dev, "LM95241 detection failed at 0x%02x\n",
+>  			address);
+> @@ -443,7 +486,7 @@ static struct lm95241_data *lm95241_upda
+>  
+>  /* Driver data (common to all clients) */
+>  static const struct i2c_device_id lm95241_id[] = {
+> -	{ "lm95241", 0 },
+> +	{ DEVNAME, 0 },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(i2c, lm95241_id);
+> @@ -451,7 +494,7 @@ MODULE_DEVICE_TABLE(i2c, lm95241_id);
+>  static struct i2c_driver lm95241_driver = {
+>  	.class		= I2C_CLASS_HWMON,
+>  	.driver = {
+> -		.name   = "lm95241",
+> +		.name   = DEVNAME,
+>  	},
+>  	.probe		= lm95241_probe,
+>  	.remove		= lm95241_remove,
+> @@ -470,9 +513,10 @@ static void __exit sensors_lm95241_exit(
+>  	i2c_del_driver(&lm95241_driver);
+>  }
+>  
+> -MODULE_AUTHOR("Davide Rizzo <elpa-rizzo@gmail.com>");
+> +MODULE_AUTHOR("Davide Rizzo <elpa.rizzo@gmail.com>");
+>  MODULE_DESCRIPTION("LM95241 sensor driver");
+>  MODULE_LICENSE("GPL");
+>  
+>  module_init(sensors_lm95241_init);
+>  module_exit(sensors_lm95241_exit);
+> +
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---0022153dd7cf98aa68049489721f--
