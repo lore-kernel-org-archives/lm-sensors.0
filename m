@@ -1,64 +1,33 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Tue, 09 Nov 2010 15:15:01 +0000
-Subject: [lm-sensors] [PATCH 01/11] hwmon: applesmc: Add MacBookAir3, 1(3,
-Message-Id: <1289315711-3011-2-git-send-email-rydberg@euromail.se>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 09 Nov 2010 18:56:51 +0000
+Subject: Re: [lm-sensors] [PATCH 01/11] hwmon: applesmc: Add MacBookAir3, 1(3,
+Message-Id: <1289329011.22931.212.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
-In-Reply-To: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
+	 <1289315711-3011-2-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1289315711-3011-2-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Edgar Hucek <gimli@dark-green.com>, stable@kernel.org, Henrik Rydberg <rydberg@euromail.se>
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Edgar Hucek <gimli@dark-green.com>, "stable@kernel.org" <stable@kernel.org>
 
-From: Edgar Hucek <gimli@dark-green.com>
+On Tue, 2010-11-09 at 10:15 -0500, Henrik Rydberg wrote:
+> From: Edgar Hucek <gimli@dark-green.com>
+> 
+> This patch add support for the MacBookAir3,1 and MacBookAir3,2 to the
+> applesmc driver.
+> 
+> [rydberg@euromail.se: minor cleanup]
+> Cc: stable@kernel.org
+> Signed-off-by: Edgar Hucek <gimli@dark-green.com>
+> Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
 
-This patch add support for the MacBookAir3,1 and MacBookAir3,2 to the
-applesmc driver.
+Applied.
 
-[rydberg@euromail.se: minor cleanup]
-Cc: stable@kernel.org
-Signed-off-by: Edgar Hucek <gimli@dark-green.com>
-Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
----
- drivers/hwmon/applesmc.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+Thanks,
+Guenter
 
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index b6598aa..d616174 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -162,6 +162,10 @@ static const char *temperature_sensors_sets[][41] = {
- /* Set 22: MacBook Pro 7,1 */
- 	{ "TB0T", "TB1T", "TB2T", "TC0D", "TC0P", "TN0D", "TN0P", "TN0S",
- 	  "TN1D", "TN1F", "TN1G", "TN1S", "Th1H", "Ts0P", "Ts0S", NULL },
-+/* Set 23: MacBook Air 3,1 */
-+	{ "TB0T", "TB1T", "TB2T", "TC0D", "TC0E", "TC0P", "TC1E", "TCZ3",
-+	  "TCZ4", "TCZ5", "TG0E", "TG1E", "TG2E", "TGZ3", "TGZ4", "TGZ5",
-+	  "TH0F", "TH0O", "TM0P" },
- };
- 
- /* List of keys used to read/write fan speeds */
-@@ -1524,11 +1528,17 @@ static __initdata struct dmi_match_data applesmc_dmi_data[] = {
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 21 },
- /* MacBook Pro 7,1: accelerometer, backlight and temperature set 22 */
- 	{ .accelerometer = 1, .light = 1, .temperature_set = 22 },
-+/* MacBook Air 3,1: accelerometer, backlight and temperature set 23 */
-+	{ .accelerometer = 0, .light = 0, .temperature_set = 23 },
- };
- 
- /* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-  * So we need to put "Apple MacBook Pro" before "Apple MacBook". */
- static __initdata struct dmi_system_id applesmc_whitelist[] = {
-+	{ applesmc_dmi_match, "Apple MacBook Air 3", {
-+	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-+	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir3") },
-+		&applesmc_dmi_data[23]},
- 	{ applesmc_dmi_match, "Apple MacBook Air 2", {
- 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
- 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir2") },
--- 
-1.7.1
 
 
 _______________________________________________
