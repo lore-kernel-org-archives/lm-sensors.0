@@ -1,29 +1,28 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 07 Nov 2010 15:31:33 +0000
-Subject: [lm-sensors] [PATCH 0/7] More w83795 driver fixes
-Message-Id: <20101107163133.628dc371@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 09 Nov 2010 16:39:08 +0000
+Subject: Re: [lm-sensors] [08/32] drivers/hwmon/dme1737.c: Use pr_fmt and
+Message-Id: <20101109163908.GA15024@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <cd6d2bea37cda67b4a06436e011fedf32351352b.1287556801.git.joe@perches.com>
+In-Reply-To: <cd6d2bea37cda67b4a06436e011fedf32351352b.1287556801.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Juerg Haefliger <juergh@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi all,
+On Wed, Oct 20, 2010 at 06:51:32AM -0000, Joe Perches wrote:
+> Added #define pr_fmt KBUILD_MODNAME ": " fmt
+> Converted printks to pr_<level>
+> Coalesced any long formats
+> Removed prefixes from formats
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> 
+Applied.
 
-I have 7 more patches ready, fixing various problems in the w83795
-driver. My to-do list is still long, but I would like to have at least
-these fixes in kernel 2.6.37.
-
-[PATCH 1/7] hwmon: (w83795) Fix fan control mode attributes
-[PATCH 2/7] hwmon: (w83795) Expose fan control method
-[PATCH 3/7] hwmon: (w83795) List all usable temperature sources
-[PATCH 4/7] hwmon: (w83795) Print the actual temperature channels as sources
-[PATCH 5/7] hwmon: (w83795) Read the intrusion state properly
-[PATCH 6/7] hwmon: (w83795) Clear intrusion alarm immediately
-[PATCH 7/7] hwmon: (w83795) Check for BEEP pin availability
-
--- 
-Jean Delvare
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
