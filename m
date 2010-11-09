@@ -1,156 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Nov 2010 09:31:19 +0000
+From: Joe Perches <joe@perches.com>
+Date: Tue, 09 Nov 2010 09:59:44 +0000
 Subject: Re: [lm-sensors] [PATCH 19/32] drivers/hwmon/pc87360.c: Use pr_fmt
-Message-Id: <20101109103119.4cb66327@endymion.delvare>
+Message-Id: <1289296784.1823.45.camel@Joe-Laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101020035346.GA20178@ericsson.com>
-	<190459d6c56001d564155d8a73ee8e47024b6149.1287556801.git.joe@perches.com>
-In-Reply-To: <190459d6c56001d564155d8a73ee8e47024b6149.1287556801.git.joe@perches.com>
+	 <190459d6c56001d564155d8a73ee8e47024b6149.1287556801.git.joe@perches.com>
+	 <20101109103119.4cb66327@endymion.delvare>
+In-Reply-To: <20101109103119.4cb66327@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joe Perches <joe@perches.com>
+To: Jean Delvare <khali@linux-fr.org>
 Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Jim Cromie <jim.cromie@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Joe,
-
-On Tue, 19 Oct 2010 23:51:43 -0700, Joe Perches wrote:
-> Added #define pr_fmt KBUILD_MODNAME ": " fmt
-> Converted printks to pr_<level>
-> Coalesced any long formats
-> Removed prefixes from formats
+On Tue, 2010-11-09 at 10:31 +0100, Jean Delvare wrote:
+> On Tue, 19 Oct 2010 23:51:43 -0700, Joe Perches wrote:
+> > Added #define pr_fmt KBUILD_MODNAME ": " fmt
+> > Converted printks to pr_<level>
+> > Coalesced any long formats
+> > Removed prefixes from formats
+> > 
+> > Signed-off-by: Joe Perches <joe@perches.com>
+> > ---
+> >  drivers/hwmon/pc87360.c |   32 +++++++++++++-------------------
+> >  1 files changed, 13 insertions(+), 19 deletions(-)
+> The following is left in the driver:
+> #ifdef DEBUG
+> 			printk(KERN_DEBUG "pc87360: Fan 1: mon=%d "
+> 			       "ctrl=%d inv=%d\n", (confreg[0]>>2)&1,
+> 			       (confreg[0]>>3)&1, (confreg[0]>>4)&1);
+> 			printk(KERN_DEBUG "pc87360: Fan 2: mon=%d "
+> 			       "ctrl=%d inv=%d\n", (confreg[0]>>5)&1,
+> 			       (confreg[0]>>6)&1, (confreg[0]>>7)&1);
+> 			printk(KERN_DEBUG "pc87360: Fan 3: mon=%d "
+> 			       "ctrl=%d inv=%d\n", confreg[1]&1,
+> 			       (confreg[1]>>1)&1, (confreg[1]>>2)&1);
+> #endif
 > 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/hwmon/pc87360.c |   32 +++++++++++++-------------------
->  1 files changed, 13 insertions(+), 19 deletions(-)
+> Is there any reason why you didn't convert these to pr_debug()?
 
+No.  These should be converted to pr_debug as well.
 
-The following is left in the driver:
+The conversion was done via script and the script doesn't
+convert printk(KERN_DEBUG to pr_debug to avoid changing output.
 
+Let me know if you want another patch.
 
-#ifdef DEBUG
-			printk(KERN_DEBUG "pc87360: Fan 1: mon=%d "
-			       "ctrl=%d inv=%d\n", (confreg[0]>>2)&1,
-			       (confreg[0]>>3)&1, (confreg[0]>>4)&1);
-			printk(KERN_DEBUG "pc87360: Fan 2: mon=%d "
-			       "ctrl=%d inv=%d\n", (confreg[0]>>5)&1,
-			       (confreg[0]>>6)&1, (confreg[0]>>7)&1);
-			printk(KERN_DEBUG "pc87360: Fan 3: mon=%d "
-			       "ctrl=%d inv=%d\n", confreg[1]&1,
-			       (confreg[1]>>1)&1, (confreg[1]>>2)&1);
-#endif
-
-Is there any reason why you didn't convert these to pr_debug()?
-
+> > @@ -1071,14 +1072,11 @@ static int __init pc87360_find(int sioaddr, u8 *devid, unsigned short *addresses
+> >  				confreg[3] = superio_inb(sioaddr, 0x25);
+> >  
+> >  				if (confreg[2] & 0x40) {
+> > -					printk(KERN_INFO "pc87360: Using "
+> > -					       "thermistors for temperature "
+> > -					       "monitoring\n");
+> > +					pr_info("Using thermistors for temperature monitoring\n");
 > 
-> diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
-> index 68e69a4..f8459a9 100644
-> --- a/drivers/hwmon/pc87360.c
-> +++ b/drivers/hwmon/pc87360.c
-> @@ -33,6 +33,8 @@
->   *  the standard Super-I/O addresses is used (0x2E/0x2F or 0x4E/0x4F).
->   */
->  
-> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> +
->  #include <linux/module.h>
->  #include <linux/init.h>
->  #include <linux/slab.h>
-> @@ -1031,16 +1033,15 @@ static int __init pc87360_find(int sioaddr, u8 *devid, unsigned short *addresses
->  
->  		val = superio_inb(sioaddr, ACT);
->  		if (!(val & 0x01)) {
-> -			printk(KERN_INFO "pc87360: Device 0x%02x not "
-> -			       "activated\n", logdev[i]);
-> +			pr_info("Device 0x%02x not activated\n", logdev[i]);
->  			continue;
->  		}
->  
->  		val = (superio_inb(sioaddr, BASE) << 8)
->  		    | superio_inb(sioaddr, BASE + 1);
->  		if (!val) {
-> -			printk(KERN_INFO "pc87360: Base address not set for "
-> -			       "device 0x%02x\n", logdev[i]);
-> +			pr_info("Base address not set for device 0x%02x\n",
-> +				logdev[i]);
->  			continue;
->  		}
->  
-> @@ -1071,14 +1072,11 @@ static int __init pc87360_find(int sioaddr, u8 *devid, unsigned short *addresses
->  				confreg[3] = superio_inb(sioaddr, 0x25);
->  
->  				if (confreg[2] & 0x40) {
-> -					printk(KERN_INFO "pc87360: Using "
-> -					       "thermistors for temperature "
-> -					       "monitoring\n");
-> +					pr_info("Using thermistors for temperature monitoring\n");
+> I know checkpatch.pl no longer complains about long lines when they
+> include a string, but 98 columns seems excessive to me. It would be
+> easy enough to spread over two lines.
 
-I know checkpatch.pl no longer complains about long lines when they
-include a string, but 98 columns seems excessive to me. It would be
-easy enough to spread over two lines.
+Also converted via a script.
 
->  				}
->  				if (confreg[3] & 0xE0) {
-> -					printk(KERN_INFO "pc87360: VID "
-> -					       "inputs routed (mode %u)\n",
-> -					       confreg[3] >> 5);
-> +					pr_info("VID inputs routed (mode %u)\n",
-> +						confreg[3] >> 5);
->  				}
->  			}
->  		}
-> @@ -1616,7 +1614,7 @@ static int __init pc87360_device_add(unsigned short address)
->  	pdev = platform_device_alloc("pc87360", address);
->  	if (!pdev) {
->  		err = -ENOMEM;
-> -		printk(KERN_ERR "pc87360: Device allocation failed\n");
-> +		pr_err("Device allocation failed\n");
->  		goto exit;
->  	}
->  
-> @@ -1639,15 +1637,13 @@ static int __init pc87360_device_add(unsigned short address)
->  
->  	err = platform_device_add_resources(pdev, res, res_count);
->  	if (err) {
-> -		printk(KERN_ERR "pc87360: Device resources addition failed "
-> -		       "(%d)\n", err);
-> +		pr_err("Device resources addition failed (%d)\n", err);
->  		goto exit_device_put;
->  	}
->  
->  	err = platform_device_add(pdev);
->  	if (err) {
-> -		printk(KERN_ERR "pc87360: Device addition failed (%d)\n",
-> -		       err);
-> +		pr_err("Device addition failed (%d)\n", err);
->  		goto exit_device_put;
->  	}
->  
-> @@ -1666,8 +1662,7 @@ static int __init pc87360_init(void)
->  
->  	if (pc87360_find(0x2e, &devid, extra_isa)
->  	 && pc87360_find(0x4e, &devid, extra_isa)) {
-> -		printk(KERN_WARNING "pc87360: PC8736x not detected, "
-> -		       "module not inserted.\n");
-> +		pr_warn("PC8736x not detected, module not inserted\n");
->  		return -ENODEV;
->  	}
->  
-> @@ -1680,8 +1675,7 @@ static int __init pc87360_init(void)
->  	}
->  
->  	if (address = 0x0000) {
-> -		printk(KERN_WARNING "pc87360: No active logical device, "
-> -		       "module not inserted.\n");
-> +		pr_warn("No active logical device, module not inserted\n");
->  		return -ENODEV;
->  	}
->  
+If the string is split, it doesn't matter where it's split.
+The split just makes it harder to use grep.
 
+Personally, I think it's better to ignore the line length
+of format strings completely.  Once it wraps in an editor,
+it really doesn't matter how long the line is.
 
--- 
-Jean Delvare
+Of course, there are multiple strings in this file that
+use dev_<level> that are split across lines that could be
+converted as well so it's up to you if you want to leave
+those as is.  Let me know if you want another patch to
+integrate those dev_<level> format strings.
+
 
 _______________________________________________
 lm-sensors mailing list
