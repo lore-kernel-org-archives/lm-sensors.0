@@ -1,60 +1,157 @@
-From: no tellin <no.tellin@gmail.com>
-Date: Mon, 29 Nov 2010 18:48:27 +0000
-Subject: Re: [lm-sensors] Nuvoton W83677HG-I
-Message-Id: <AANLkTimJ6j1UtRKc8BYQNu4oSbiiqoLec0VZR__mJh94@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 09 Nov 2010 09:39:48 +0000
+Subject: Re: [lm-sensors] [PATCH 32/32] drivers/hwmon/w83781d.c: Use pr_fmt
+Message-Id: <20101109103948.25919efe@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101127155903.GB26489@hamsu.tarvainen.info>
-In-Reply-To: <20101127155903.GB26489@hamsu.tarvainen.info>
+References: <20101020035346.GA20178@ericsson.com>
+	<1ce82b2a1c726d252483c508053eff046abcf132.1287556801.git.joe@perches.com>
+In-Reply-To: <1ce82b2a1c726d252483c508053eff046abcf132.1287556801.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-I'm sorry, I just realized I left out an essential part of what I
-wanted to post.
+Hi Joe,
 
-I chose to link to a specific example post of mine not only as a
-general example, but as a specific example regarding Winbond and fans.
+On Tue, 19 Oct 2010 23:51:56 -0700, Joe Perches wrote:
+> Added #define pr_fmt KBUILD_MODNAME ": " fmt
+> Converted printks to pr_<level>
+> Coalesced any long formats
+> Removed prefixes from formats
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/hwmon/w83781d.c |   29 ++++++++++++++---------------
+>  1 files changed, 14 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+> index c84b9b4..d452a20 100644
+> --- a/drivers/hwmon/w83781d.c
+> +++ b/drivers/hwmon/w83781d.c
+> @@ -33,6 +33,8 @@
+>  
+>  */
+>  
+> +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+> +
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/slab.h>
+> @@ -1798,8 +1800,7 @@ w83781d_isa_found(unsigned short address)
+>  	 * individually for the probing phase. */
+>  	for (port = address; port < address + W83781D_EXTENT; port++) {
+>  		if (!request_region(port, 1, "w83781d")) {
+> -			pr_debug("w83781d: Failed to request port 0x%x\n",
+> -				 port);
+> +			pr_debug("Failed to request port 0x%x\n", port);
+>  			goto release;
+>  		}
+>  	}
+> @@ -1811,7 +1812,7 @@ w83781d_isa_found(unsigned short address)
+>  	if (inb_p(address + 2) != val
+>  	 || inb_p(address + 3) != val
+>  	 || inb_p(address + 7) != val) {
+> -		pr_debug("w83781d: Detection failed at step 1\n");
+> +		pr_debug("Detection failed at step 1\n");
 
-It's my personal experience and observation that with Winbond, lm
-sensors will usually display some reasonable values. In those cases
-where all the fan values are 0, it usually seems to be a matter of
-using the correct divisor.
+I think this would be the right time to change this to:
 
-I especially chose the Asus K8N-DL as the eample because of this very
-issue. The generic values {without a motherboard specific
-configuration file} displays a default divisor of 2 for all fans and a
-value of 0 for same. The K8N-DL not only has a different default
-divisor for all fans {4 instead of 2}, but also has a single fan with
-an exception {divisor of 1} and also requires further calculation.
+		pr_debug("Detection failed at step %d\n", 1);
 
-I'd suggest you create a motherboard specific configuration file (like
-in the example I gave) and try different divisor values.
+and do the same for all 6 messages below, so that the compiler can
+store the string only once in the binary.
+
+>  		goto release;
+>  	}
+>  #undef REALLY_SLOW_IO
+> @@ -1820,14 +1821,14 @@ w83781d_isa_found(unsigned short address)
+>  	   MSB (busy flag) should be clear initially, set after the write. */
+>  	save = inb_p(address + W83781D_ADDR_REG_OFFSET);
+>  	if (save & 0x80) {
+> -		pr_debug("w83781d: Detection failed at step 2\n");
+> +		pr_debug("Detection failed at step 2\n");
+>  		goto release;
+>  	}
+>  	val = ~save & 0x7f;
+>  	outb_p(val, address + W83781D_ADDR_REG_OFFSET);
+>  	if (inb_p(address + W83781D_ADDR_REG_OFFSET) != (val | 0x80)) {
+>  		outb_p(save, address + W83781D_ADDR_REG_OFFSET);
+> -		pr_debug("w83781d: Detection failed at step 3\n");
+> +		pr_debug("Detection failed at step 3\n");
+>  		goto release;
+>  	}
+>  
+> @@ -1835,7 +1836,7 @@ w83781d_isa_found(unsigned short address)
+>  	outb_p(W83781D_REG_CONFIG, address + W83781D_ADDR_REG_OFFSET);
+>  	val = inb_p(address + W83781D_DATA_REG_OFFSET);
+>  	if (val & 0x80) {
+> -		pr_debug("w83781d: Detection failed at step 4\n");
+> +		pr_debug("Detection failed at step 4\n");
+>  		goto release;
+>  	}
+>  	outb_p(W83781D_REG_BANK, address + W83781D_ADDR_REG_OFFSET);
+> @@ -1844,19 +1845,19 @@ w83781d_isa_found(unsigned short address)
+>  	val = inb_p(address + W83781D_DATA_REG_OFFSET);
+>  	if ((!(save & 0x80) && (val != 0xa3))
+>  	 || ((save & 0x80) && (val != 0x5c))) {
+> -		pr_debug("w83781d: Detection failed at step 5\n");
+> +		pr_debug("Detection failed at step 5\n");
+>  		goto release;
+>  	}
+>  	outb_p(W83781D_REG_I2C_ADDR, address + W83781D_ADDR_REG_OFFSET);
+>  	val = inb_p(address + W83781D_DATA_REG_OFFSET);
+>  	if (val < 0x03 || val > 0x77) {	/* Not a valid I2C address */
+> -		pr_debug("w83781d: Detection failed at step 6\n");
+> +		pr_debug("Detection failed at step 6\n");
+>  		goto release;
+>  	}
+>  
+>  	/* The busy flag should be clear again */
+>  	if (inb_p(address + W83781D_ADDR_REG_OFFSET) & 0x80) {
+> -		pr_debug("w83781d: Detection failed at step 7\n");
+> +		pr_debug("Detection failed at step 7\n");
+>  		goto release;
+>  	}
+>  
+> @@ -1871,7 +1872,7 @@ w83781d_isa_found(unsigned short address)
+>  		found = 1;
+>  
+>  	if (found)
+> -		pr_info("w83781d: Found a %s chip at %#x\n",
+> +		pr_info("Found a %s chip at %#x\n",
+>  			val = 0x30 ? "W83782D" : "W83781D", (int)address);
+>  
+>   release:
+> @@ -1894,21 +1895,19 @@ w83781d_isa_device_add(unsigned short address)
+>  	pdev = platform_device_alloc("w83781d", address);
+>  	if (!pdev) {
+>  		err = -ENOMEM;
+> -		printk(KERN_ERR "w83781d: Device allocation failed\n");
+> +		pr_err("Device allocation failed\n");
+>  		goto exit;
+>  	}
+>  
+>  	err = platform_device_add_resources(pdev, &res, 1);
+>  	if (err) {
+> -		printk(KERN_ERR "w83781d: Device resource addition failed "
+> -		       "(%d)\n", err);
+> +		pr_err("Device resource addition failed (%d)\n", err);
+>  		goto exit_device_put;
+>  	}
+>  
+>  	err = platform_device_add(pdev);
+>  	if (err) {
+> -		printk(KERN_ERR "w83781d: Device addition failed (%d)\n",
+> -		       err);
+> +		pr_err("Device addition failed (%d)\n", err);
+>  		goto exit_device_put;
+>  	}
+>  
 
 
-
-
-On Mon, Nov 29, 2010 at 12:29 AM, Tapani Tarvainen
-<lmsensors@tapanitarvainen.fi> wrote:
-> On Sat, Nov 27, 2010 at 09:25:24AM -0800, Guenter Roeck (guenter.roeck@ericsson.
->> On Sat, Nov 27, 2010 at 10:59:03AM -0500, Tapani Tarvainen wrote:
->
->> > where does one get specs for these things?
->
->> For Nuvoton, you send a request to ComputerIC@nuvoton.com and ask nicely.
->> The datasheet to ask for is probably NCT6776F (it used to be
->> NCT6775F, but it looks like they added another variant).
->
-> Thank you! Let's see if I managed to ask nicely enough. :-)
->
-> --
-> Tapani Tarvainen
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
