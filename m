@@ -1,17 +1,17 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 09 Nov 2010 16:46:28 +0000
-Subject: Re: [lm-sensors] [16/32] drivers/hwmon/lis3lv02d.c: Use pr_fmt and
-Message-Id: <20101109164628.GA16035@ericsson.com>
+Date: Tue, 09 Nov 2010 16:40:08 +0000
+Subject: Re: [lm-sensors] [09/32] drivers/hwmon/f71805f.c: Use pr_fmt and
+Message-Id: <20101109164008.GA15146@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <cdcaec8e81d54f31be9003f5f57453c46b160960.1287556801.git.joe@perches.com>
-In-Reply-To: <cdcaec8e81d54f31be9003f5f57453c46b160960.1287556801.git.joe@perches.com>
+References: <23cbb0d31160c359e187431af643865d0872a5a3.1287556801.git.joe@perches.com>
+In-Reply-To: <23cbb0d31160c359e187431af643865d0872a5a3.1287556801.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Joe Perches <joe@perches.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Eric Piel <eric.piel@tremplin-utc.net>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 06:51:40AM -0000, Joe Perches wrote:
+On Wed, Oct 20, 2010 at 06:51:33AM -0000, Joe Perches wrote:
 > Added #define pr_fmt KBUILD_MODNAME ": " fmt
 > Converted printks to pr_<level>
 > Coalesced any long formats
