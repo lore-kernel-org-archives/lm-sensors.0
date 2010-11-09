@@ -1,40 +1,24 @@
-From: Axel Lin <axel.lin@gmail.com>
-Date: Mon, 08 Nov 2010 05:11:33 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (adt7470) Return proper error code
-Message-Id: <1289193093.682.1.camel@mola>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 09 Nov 2010 02:43:34 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (adt7470) Return proper error
+Message-Id: <20101109024334.GA20251@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1289193093.682.1.camel@mola>
+In-Reply-To: <1289193093.682.1.camel@mola>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>, "Darrick J. Wong" <djwong@us.ibm.com>, lm-sensors@lm-sensors.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/hwmon/adt7470.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+On Mon, Nov 08, 2010 at 12:11:33AM -0500, Axel Lin wrote:
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> ---
 
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index 9e77571..87d92a5 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -1286,8 +1286,10 @@ static int adt7470_probe(struct i2c_client *client,
- 	init_completion(&data->auto_update_stop);
- 	data->auto_update = kthread_run(adt7470_update_thread, client,
- 					dev_name(data->hwmon_dev));
--	if (IS_ERR(data->auto_update))
-+	if (IS_ERR(data->auto_update)) {
-+		err = PTR_ERR(data->auto_update);
- 		goto exit_unregister;
-+	}
- 
- 	return 0;
- 
--- 
-1.7.2
+Applied.
 
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
