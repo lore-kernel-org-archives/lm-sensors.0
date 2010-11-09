@@ -1,17 +1,29 @@
-From: Brian Dunlavey <bdunlavey@seegrid.com>
-Date: Mon, 22 Nov 2010 20:14:07 +0000
-Subject: [lm-sensors] W83627DHG - Writing to gpio pins?
-Message-Id: <85B02441538E404DB862BA0BC9D57BBD057FE822@vmexchange01.seegrid.local>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 09 Nov 2010 16:44:08 +0000
+Subject: Re: [lm-sensors] [13/32] drivers/hwmon/hwmon.c: Use pr_fmt and
+Message-Id: <20101109164408.GA15736@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <d657ce6b56427cd2cce069275ec162da1815b196.1287556801.git.joe@perches.com>
+In-Reply-To: <d657ce6b56427cd2cce069275ec162da1815b196.1287556801.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-I have an Advantech AIMB-270 with the W83627DHG-P SuperIO chip.  The motherboard has a 10 pin GPIO header (VCC, ground and 8 IO pins).  The current w83627ehf driver supports the chip, and without doing any additional work I can read the 8 GPIO pins as digital inputs.  I'd like to write output to these pins.  Looking at the source in adm1026.c suggests this might be possible.  I suspect the proper approach would be to write a mfd driver, but I'm not sure.  Anyone out there have advice or suggestions as to where I could get help with such a task?
+On Wed, Oct 20, 2010 at 06:51:37AM -0000, Joe Perches wrote:
+> Added #define pr_fmt KBUILD_MODNAME ": " fmt
+> Converted printks to pr_<level>
+> Coalesced any long formats
+> Removed prefixes from formats
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> 
+Applied.
 
-Thanks
-Brian
+Thanks,
+Guenter
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
