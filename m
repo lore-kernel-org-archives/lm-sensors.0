@@ -1,58 +1,40 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 13 Nov 2010 17:01:36 +0000
-Subject: Re: [lm-sensors] Location for thermal drivers
-Message-Id: <20101113180136.2743fb2d@endymion.delvare>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Tue, 09 Nov 2010 15:15:11 +0000
+Subject: [lm-sensors] [PATCH 11/11] hwmon: applesmc: Update copyright
+Message-Id: <1289315711-3011-12-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1289594026.22931.388.camel@groeck-laptop>
-	<AANLkTimERGh2yGGX_E_N4ajxg_-0QTFS54QSKj2+AAfF@mail.gmail.com>
-	<1289599600.22931.406.camel@groeck-laptop>
-	<AANLkTikPt09Xdr_wvjmXhdPD8UdA-7b=AJjC+zgn8PA4@mail.gmail.com>
-	<20101113144021.GA29753@ericsson.com>
-In-Reply-To: <20101113144021.GA29753@ericsson.com>
+References: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Phil Pokorny <ppokorny@penguincomputing.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-On Sat, 13 Nov 2010 06:40:21 -0800, Guenter Roeck wrote:
-> On Sat, Nov 13, 2010 at 02:21:58AM -0500, Phil Pokorny wrote:
-> > Reading the thermal sysfs-api and code, it's seems clear that it is a
-> > very ACPI centric kind of thing.  It's involved in the coordination of
-> > temperatures and the ways (fans, throttle algorithms, etc.) to keep
-> > them in check.  It makes regular calls into the ACPI parser to
-> > evaluate values.
-> > 
-> > But this driver that Alan has written seems to be a hwmon driver.
-> > It's poking at registers, setting up A2D channels and dealing with
-> > thermistors and perhaps voltages?  Those are very hwmon like things
-> > for a driver to do.
-> > 
-> > It appears to be very similar to the coretemp and k10temp drivers that
-> > read temperatures from the internals of the CPU.
->
-> If the driver would use the hwmon framework, yes. However, it uses the thermal
-> framework, in which hwmon support is optional.
-> 
-> The thermal framework itself is acpi independent. There is no single
-> acpi call in the thermal framework code. acpi use may be true for the 
-> drivers currently registering with the thermal framework, but that
-> doesn't mean that the thermal framework itself in any way depends on 
-> or is only supposed to be used with ACPI devices. ACPI is only referenced
-> in the documentation as example.
-> 
-> If the thermal framework were to be used for acpi devices only, it would
-> presumably reside in drivers/acpi and not be independent.
-> 
-> So your reasoning isn't really correct. Putting thermal drivers into 
-> the hwmon directory doesn't really make sense. hwmon functionality
-> is an optional subset of thermal drivers, but that does not mean
-> that thermal drivers _are_ hwmon drivers.
+With the preceding patches, git blame assigns about half of
+the file to the present author. Add a line to the copyright
+to reflect this.
 
-+1
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 576dcb4..ee91d69 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -4,6 +4,7 @@
+  * computers.
+  *
+  * Copyright (C) 2007 Nicolas Boichat <nicolas@boichat.ch>
++ * Copyright (C) 2010 Henrik Rydberg <rydberg@euromail.se>
+  *
+  * Based on hdaps.c driver:
+  * Copyright (C) 2005 Robert Love <rml@novell.com>
 -- 
-Jean Delvare
+1.7.1
+
 
 _______________________________________________
 lm-sensors mailing list
