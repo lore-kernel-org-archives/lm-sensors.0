@@ -1,45 +1,56 @@
-From: Axel Lin <axel.lin@gmail.com>
-Date: Tue, 09 Nov 2010 05:18:39 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (gpio-fan) Fix fan_ctrl_init error path
-Message-Id: <1289279919.14461.7.camel@mola>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 09 Nov 2010 07:59:14 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (gpio-fan) Fix fan_ctrl_init error
+Message-Id: <20101109085914.05589cca@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1289279919.14461.7.camel@mola>
+In-Reply-To: <1289279919.14461.7.camel@mola>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Simon Guinot <sguinot@lacie.com>, lm-sensors@lm-sensors.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Simon Guinot <sguinot@lacie.com>, lm-sensors@lm-sensors.org
 
-Remove sysfs entries before return -ENODEV.
+Hi Alex,
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/hwmon/gpio-fan.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+On Tue, 09 Nov 2010 13:18:39 +0800, Axel Lin wrote:
+> Remove sysfs entries before return -ENODEV.
+> 
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> ---
+>  drivers/hwmon/gpio-fan.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
+> index aa701a1..d2e66b4 100644
+> --- a/drivers/hwmon/gpio-fan.c
+> +++ b/drivers/hwmon/gpio-fan.c
+> @@ -388,11 +388,13 @@ static int fan_ctrl_init(struct gpio_fan_data *fan_data,
+>  	fan_data->speed_index = get_fan_speed_index(fan_data);
+>  	if (fan_data->speed_index < 0) {
+>  		err = -ENODEV;
+> -		goto err_free_gpio;
+> +		goto err_remove_sysfs;
+>  	}
+>  
+>  	return 0;
+>  
+> +err_remove_sysfs:
+> +	sysfs_remove_group(&pdev->dev.kobj, &gpio_fan_ctrl_group);
+>  err_free_gpio:
+>  	for (i = i - 1; i >= 0; i--)
+>  		gpio_free(ctrl[i]);
 
-diff --git a/drivers/hwmon/gpio-fan.c b/drivers/hwmon/gpio-fan.c
-index aa701a1..d2e66b4 100644
---- a/drivers/hwmon/gpio-fan.c
-+++ b/drivers/hwmon/gpio-fan.c
-@@ -388,11 +388,13 @@ static int fan_ctrl_init(struct gpio_fan_data *fan_data,
- 	fan_data->speed_index = get_fan_speed_index(fan_data);
- 	if (fan_data->speed_index < 0) {
- 		err = -ENODEV;
--		goto err_free_gpio;
-+		goto err_remove_sysfs;
- 	}
- 
- 	return 0;
- 
-+err_remove_sysfs:
-+	sysfs_remove_group(&pdev->dev.kobj, &gpio_fan_ctrl_group);
- err_free_gpio:
- 	for (i = i - 1; i >= 0; i--)
- 		gpio_free(ctrl[i]);
+This is certainly better than the current situation, however the fact
+that you need to do this strongly suggests that the initialization
+order is wrong in the first place. Creating the sysfs attribute should
+be the last thing done by the function, after all the rest has been
+successful. Otherwise there is a small window during which user-space
+can access the attribute but the driver isn't ready to deal with the
+requests.
+
 -- 
-1.7.2
-
-
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
