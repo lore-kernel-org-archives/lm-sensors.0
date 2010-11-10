@@ -1,53 +1,136 @@
 From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 03 Nov 2010 14:43:15 +0000
-Subject: Re: [lm-sensors] [PATCH 0/8] hwmon: applesmc: Dynamic configuration
-Message-Id: <4CD17503.3070604@euromail.se>
+Date: Wed, 10 Nov 2010 18:52:07 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (applesmc) Fix checkpatch errors
+Message-Id: <4CDAE9D7.3060007@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1288511434-5662-1-git-send-email-rydberg@euromail.se> <20101103134833.GA12700@ericsson.com>
-In-Reply-To: <20101103134833.GA12700@ericsson.com>
+References: <1289415200-4928-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1289415200-4928-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On 11/03/2010 02:48 PM, Guenter Roeck wrote:
+On 11/10/2010 07:53 PM, Guenter Roeck wrote:
 
-> On Sun, Oct 31, 2010 at 03:50:26AM -0400, Henrik Rydberg wrote:
->> The amount of machines supported by this driver has increased rapidly
->> over the past years, and the detailed driver support of the many
->> flavors is quickly becoming a problem.
->>
->> This patchset introduces dynamic configuration by making the SMC
->> register set efficiently searchable, and fixes a number of outstanding
->> issues:
->>
->> * Support for all new models since MacbookPro 6.
->> * Support for variable number of cpu sensors in the MacPros.
->> * Handles the odd temperature sensor types found on new models.
->> * Fixes minor read problems on many intermediate models.
->>
->> The first patch is preparatory. The second patch adds the register
->> lookup cache. The third patch adds the dynamic temperature files, and
->> the fourth implements a new temperature register format. The fifth
->> patch makes the remaining features dynamically configured, and the
->> sixth patch sets up the fans dynamically. The seventh patch is purely
->> janitory, and the last patch updates the copyright.
->>
->> As a side-effect, the file is reduced by almost five hundred lines.
->>
-> Henrik,
+> Fix all checkpatch errors and most of the warnings.
 > 
-> since you applied your changes on top of Joe's pr_fmt patch, I assume
-> that you Ack that patch. Is that a correct assumption ?
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  drivers/hwmon/applesmc.c |   40 +++++++++++++++++++++-------------------
+>  1 files changed, 21 insertions(+), 19 deletions(-)
 > 
-> I know you sent an Ack earlier, but it was "except for comments already made",
-> so this is just for clarification.
+> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+> index 1e49b30..365761b 100644
+> --- a/drivers/hwmon/applesmc.c
+> +++ b/drivers/hwmon/applesmc.c
+> @@ -174,9 +174,8 @@ static int __wait_status(u8 val)
+>  
+>  	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+>  		udelay(us);
+> -		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = val) {
+> +		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = val)
+>  			return 0;
+> -		}
+>  	}
+>  
+>  	return -EIO;
+> @@ -431,7 +430,7 @@ static int applesmc_has_key(const char *key, bool *value)
+>  /*
+>   * applesmc_read_motion_sensor - Read motion sensor (X, Y or Z).
+>   */
+> -static int applesmc_read_motion_sensor(int index, s16* value)
+> +static int applesmc_read_motion_sensor(int index, s16 *value)
+>  {
+>  	u8 buffer[2];
+>  	int ret;
+> @@ -779,14 +778,12 @@ static ssize_t applesmc_store_fan_speed(struct device *dev,
+>  					const char *sysfsbuf, size_t count)
+>  {
+>  	int ret;
+> -	u32 speed;
+> +	unsigned long speed;
+>  	char newkey[5];
+>  	u8 buffer[2];
+>  
+> -	speed = simple_strtoul(sysfsbuf, NULL, 10);
+> -
+> -	if (speed > 0x4000) /* Bigger than a 14-bit value */
+> -		return -EINVAL;
+> +	if (strict_strtoul(sysfsbuf, 10, &speed) < 0 || speed >= 0x4000)
+> +		return -EINVAL;		/* Bigger than a 14-bit value */
 
 
-Yeah, I'm good with those changes. As far as I understand, the issue was
-regarding the extra define at the top, not the changes per se. I can certainly
-live with that extra line until something better comes along.
+Thanks for the bug fix, I forgot to include it.
+
+>
+>  	sprintf(newkey, fan_speed_fmt[to_option(attr)], to_index(attr));
+>  
+> @@ -822,10 +819,11 @@ static ssize_t applesmc_store_fan_manual(struct device *dev,
+>  {
+>  	int ret;
+>  	u8 buffer[2];
+> -	u32 input;
+> +	unsigned long input;
+>  	u16 val;
+>  
+> -	input = simple_strtoul(sysfsbuf, NULL, 10);
+> +	if (strict_strtoul(sysfsbuf, 10, &input) < 0)
+> +		return -EINVAL;
+>  
+>  	ret = applesmc_read_key(FANS_MANUAL, buffer, 2);
+>  	val = (buffer[0] << 8 | buffer[1]);
+> @@ -977,7 +975,11 @@ static ssize_t applesmc_key_at_index_show(struct device *dev,
+>  static ssize_t applesmc_key_at_index_store(struct device *dev,
+>  	struct device_attribute *attr, const char *sysfsbuf, size_t count)
+>  {
+> -	key_at_index = simple_strtoul(sysfsbuf, NULL, 10);
+> +	unsigned long newkey;
+> +
+> +	if (strict_strtoul(sysfsbuf, 10, &newkey) < 0)
+> +		return -EINVAL;
+> +	key_at_index = newkey;
+
+
+Crash alert - key_at_index is not range checked, and the remake uses this value
+as an array index...
+
+>  	return count;
+>  }
+> @@ -1193,24 +1195,24 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+>  	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
+>  	},
+>  	{ applesmc_dmi_match, "Apple MacBook Pro", {
+> -	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+> -	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
+> +	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+> +	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro") },
+>  	},
+>  	{ applesmc_dmi_match, "Apple MacBook", {
+> -	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+> -	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
+> +	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+> +	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBook") },
+>  	},
+>  	{ applesmc_dmi_match, "Apple Macmini", {
+> -	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+> -	  DMI_MATCH(DMI_PRODUCT_NAME,"Macmini") },
+> +	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+> +	  DMI_MATCH(DMI_PRODUCT_NAME, "Macmini") },
+>  	},
+>  	{ applesmc_dmi_match, "Apple MacPro", {
+>  	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+>  	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro") },
+>  	},
+>  	{ applesmc_dmi_match, "Apple iMac", {
+> -	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+> -	  DMI_MATCH(DMI_PRODUCT_NAME,"iMac") },
+> +	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+> +	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac") },
+>  	},
+>  	{ .ident = NULL }
+>  };
+
 
 Thanks,
 Henrik
