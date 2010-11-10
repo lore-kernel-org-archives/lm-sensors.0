@@ -1,58 +1,119 @@
-From: Joe Perches <joe@perches.com>
-Date: Wed, 20 Oct 2010 06:51:30 +0000
-Subject: [lm-sensors] [PATCH 06/32] drivers/hwmon/asus_atk0110.c: Use pr_fmt
-Message-Id: <506bc745e46020fb99159fd73288d3b0202c99cf.1287556801.git.joe@perches.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 10 Nov 2010 22:30:31 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (applesmc) Fix checkpatch errors and
+Message-Id: <1289428231-14950-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-In-Reply-To: <20101020035346.GA20178@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Luca Tettamanti <kronos.it@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Henrik Rydberg <rydberg@euromail.se>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Added #define pr_fmt KBUILD_MODNAME ": " fmt
-Converted printks to pr_<level>
-Coalesced any long formats
-Removed prefixes from formats
+This patch fixes all checkpatch errors and most of the checkpatch warnings.
+It also fixes the range check in applesmc_store_fan_speed().
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/asus_atk0110.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+v2:
+- Moved change in applesmc_key_at_index_store() into a previous patch
+  (Introduce a register lookup table) where a range check was added as well.
+- Updated description to indicate that a minor bug was fixed in addition
+  to the formatting changes.
 
-diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-index 23b8555..2d68cf3 100644
---- a/drivers/hwmon/asus_atk0110.c
-+++ b/drivers/hwmon/asus_atk0110.c
-@@ -5,6 +5,8 @@
-  * See COPYING in the top level directory of the kernel tree.
-  */
+ drivers/hwmon/applesmc.c |   34 ++++++++++++++++------------------
+ 1 files changed, 16 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 81792ca..ce0372f 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -174,9 +174,8 @@ static int __wait_status(u8 val)
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/debugfs.h>
- #include <linux/kernel.h>
- #include <linux/hwmon.h>
-@@ -1414,14 +1416,13 @@ static int __init atk0110_init(void)
- 
- 	/* Make sure it's safe to access the device through ACPI */
- 	if (!acpi_resources_are_enforced()) {
--		pr_err("atk: Resources not safely usable due to "
--		       "acpi_enforce_resources kernel parameter\n");
-+		pr_err("Resources not safely usable due to acpi_enforce_resources kernel parameter\n");
- 		return -EBUSY;
+ 	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+ 		udelay(us);
+-		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = val) {
++		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = val)
+ 			return 0;
+-		}
  	}
  
- 	ret = acpi_bus_register_driver(&atk_driver);
- 	if (ret)
--		pr_info("atk: acpi_bus_register_driver failed: %d\n", ret);
-+		pr_info("acpi_bus_register_driver failed: %d\n", ret);
+ 	return -EIO;
+@@ -431,7 +430,7 @@ static int applesmc_has_key(const char *key, bool *value)
+ /*
+  * applesmc_read_motion_sensor - Read motion sensor (X, Y or Z).
+  */
+-static int applesmc_read_motion_sensor(int index, s16* value)
++static int applesmc_read_motion_sensor(int index, s16 *value)
+ {
+ 	u8 buffer[2];
+ 	int ret;
+@@ -779,14 +778,12 @@ static ssize_t applesmc_store_fan_speed(struct device *dev,
+ 					const char *sysfsbuf, size_t count)
+ {
+ 	int ret;
+-	u32 speed;
++	unsigned long speed;
+ 	char newkey[5];
+ 	u8 buffer[2];
  
- 	return ret;
- }
+-	speed = simple_strtoul(sysfsbuf, NULL, 10);
+-
+-	if (speed > 0x4000) /* Bigger than a 14-bit value */
+-		return -EINVAL;
++	if (strict_strtoul(sysfsbuf, 10, &speed) < 0 || speed >= 0x4000)
++		return -EINVAL;		/* Bigger than a 14-bit value */
+ 
+ 	sprintf(newkey, fan_speed_fmt[to_option(attr)], to_index(attr));
+ 
+@@ -822,10 +819,11 @@ static ssize_t applesmc_store_fan_manual(struct device *dev,
+ {
+ 	int ret;
+ 	u8 buffer[2];
+-	u32 input;
++	unsigned long input;
+ 	u16 val;
+ 
+-	input = simple_strtoul(sysfsbuf, NULL, 10);
++	if (strict_strtoul(sysfsbuf, 10, &input) < 0)
++		return -EINVAL;
+ 
+ 	ret = applesmc_read_key(FANS_MANUAL, buffer, 2);
+ 	val = (buffer[0] << 8 | buffer[1]);
+@@ -1198,24 +1196,24 @@ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookAir") },
+ 	},
+ 	{ applesmc_dmi_match, "Apple MacBook Pro", {
+-	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBookPro") },
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro") },
+ 	},
+ 	{ applesmc_dmi_match, "Apple MacBook", {
+-	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"MacBook") },
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBook") },
+ 	},
+ 	{ applesmc_dmi_match, "Apple Macmini", {
+-	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"Macmini") },
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "Macmini") },
+ 	},
+ 	{ applesmc_dmi_match, "Apple MacPro", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
+ 	  DMI_MATCH(DMI_PRODUCT_NAME, "MacPro") },
+ 	},
+ 	{ applesmc_dmi_match, "Apple iMac", {
+-	  DMI_MATCH(DMI_BOARD_VENDOR,"Apple"),
+-	  DMI_MATCH(DMI_PRODUCT_NAME,"iMac") },
++	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
++	  DMI_MATCH(DMI_PRODUCT_NAME, "iMac") },
+ 	},
+ 	{ .ident = NULL }
+ };
 -- 
-1.7.3.1.g432b3.dirty
+1.7.3.1
 
 
 _______________________________________________
