@@ -1,10 +1,10 @@
 From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Tue, 09 Nov 2010 15:15:07 +0000
+Date: Wed, 10 Nov 2010 10:58:05 +0000
 Subject: [lm-sensors] [PATCH 07/11] hwmon: applesmc: Extract all features
-Message-Id: <1289315711-3011-8-git-send-email-rydberg@euromail.se>
+Message-Id: <1289386685-9988-3-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
-In-Reply-To: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
+References: <1289386685-9988-1-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1289386685-9988-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -22,7 +22,7 @@ Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
  1 files changed, 59 insertions(+), 182 deletions(-)
 
 diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 6663721..4e45aa7 100644
+index a2a1bb3..ddf7060 100644
 --- a/drivers/hwmon/applesmc.c
 +++ b/drivers/hwmon/applesmc.c
 @@ -106,16 +106,6 @@ static const char* fan_speed_keys[] = {
@@ -51,8 +51,8 @@ index 6663721..4e45aa7 100644
 +	bool has_key_backlight;		/* has keyboard backlight */
  	bool init_complete;		/* true when fully initialized */
  	struct applesmc_entry *cache;	/* cached key entries */
- } smcreg;
-@@ -159,12 +152,6 @@ static u8 backlight_state[2];
+ } smcreg = {
+@@ -161,12 +154,6 @@ static u8 backlight_state[2];
  static struct device *hwmon_dev;
  static struct input_polled_dev *applesmc_idev;
  
@@ -65,7 +65,7 @@ index 6663721..4e45aa7 100644
  /* The number of fans handled by the driver */
  static unsigned int fans_handled;
  
-@@ -431,6 +418,18 @@ static int applesmc_write_key(const char *key, const u8 *buffer, u8 len)
+@@ -433,6 +420,18 @@ static int applesmc_write_key(const char *key, const u8 *buffer, u8 len)
  	return applesmc_write_entry(entry, buffer, len);
  }
  
@@ -84,7 +84,7 @@ index 6663721..4e45aa7 100644
  /*
   * applesmc_read_motion_sensor - Read motion sensor (X, Y or Z).
   */
-@@ -466,7 +465,7 @@ static void applesmc_device_init(void)
+@@ -468,7 +467,7 @@ static void applesmc_device_init(void)
  	int total;
  	u8 buffer[2];
  
@@ -93,7 +93,7 @@ index 6663721..4e45aa7 100644
  		return;
  
  	for (total = INIT_TIMEOUT_MSECS; total > 0; total -= INIT_WAIT_MSECS) {
-@@ -504,6 +503,7 @@ static int applesmc_get_fan_count(void)
+@@ -506,6 +505,7 @@ static int applesmc_get_fan_count(void)
  static int applesmc_init_smcreg_try(void)
  {
  	struct applesmc_registers *s = &smcreg;
@@ -130,7 +130,7 @@ index 6663721..4e45aa7 100644
  
  	return 0;
  }
-@@ -579,7 +597,7 @@ static int applesmc_probe(struct platform_device *dev)
+@@ -585,7 +603,7 @@ static int applesmc_probe(struct platform_device *dev)
  /* Synchronize device with memorized backlight state */
  static int applesmc_pm_resume(struct device *dev)
  {
@@ -139,7 +139,7 @@ index 6663721..4e45aa7 100644
  		applesmc_write_key(BACKLIGHT_KEY, backlight_state, 2);
  	return 0;
  }
-@@ -1107,23 +1125,6 @@ static struct applesmc_node_group temp_group[] = {
+@@ -1113,23 +1131,6 @@ static struct applesmc_node_group temp_group[] = {
  /* Module stuff */
  
  /*
@@ -163,7 +163,7 @@ index 6663721..4e45aa7 100644
   * applesmc_destroy_nodes - remove files and free associated memory
   */
  static void applesmc_destroy_nodes(struct applesmc_node_group *groups)
-@@ -1237,165 +1238,38 @@ static void applesmc_release_accelerometer(void)
+@@ -1243,165 +1244,38 @@ static void applesmc_release_accelerometer(void)
  	input_free_polled_device(applesmc_idev);
  	sysfs_remove_group(&pdev->dev.kobj, &accelerometer_attributes_group);
  }
@@ -339,7 +339,7 @@ index 6663721..4e45aa7 100644
  	{ .ident = NULL }
  };
  
-@@ -1465,18 +1339,20 @@ static int __init applesmc_init(void)
+@@ -1471,18 +1345,20 @@ static int __init applesmc_init(void)
  	if (ret)
  		goto out_fans;
  
@@ -362,7 +362,7 @@ index 6663721..4e45aa7 100644
  		/* Create the workqueue */
  		applesmc_led_wq = create_singlethread_workqueue("applesmc-led");
  		if (!applesmc_led_wq) {
-@@ -1501,16 +1377,16 @@ static int __init applesmc_init(void)
+@@ -1507,16 +1383,16 @@ static int __init applesmc_init(void)
  	return 0;
  
  out_light_ledclass:
@@ -383,7 +383,7 @@ index 6663721..4e45aa7 100644
  		applesmc_release_accelerometer();
  out_temperature:
  	applesmc_destroy_nodes(temp_group);
-@@ -1537,12 +1413,13 @@ out:
+@@ -1543,12 +1419,13 @@ out:
  static void __exit applesmc_exit(void)
  {
  	hwmon_device_unregister(hwmon_dev);
