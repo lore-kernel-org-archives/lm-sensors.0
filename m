@@ -1,10 +1,10 @@
 From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Tue, 09 Nov 2010 15:15:05 +0000
+Date: Wed, 10 Nov 2010 10:58:04 +0000
 Subject: [lm-sensors] [PATCH 05/11] hwmon: applesmc: Dynamic creation of
-Message-Id: <1289315711-3011-6-git-send-email-rydberg@euromail.se>
+Message-Id: <1289386685-9988-2-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
-In-Reply-To: <1289315711-3011-1-git-send-email-rydberg@euromail.se>
+References: <1289386685-9988-1-git-send-email-rydberg@euromail.se>
+In-Reply-To: <1289386685-9988-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,7 +23,7 @@ Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
  1 files changed, 111 insertions(+), 389 deletions(-)
 
 diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index 623f71c..55abb5f 100644
+index 3963fd5..7a6ffd1 100644
 --- a/drivers/hwmon/applesmc.c
 +++ b/drivers/hwmon/applesmc.c
 @@ -84,94 +84,6 @@
@@ -160,8 +160,8 @@ index 623f71c..55abb5f 100644
 +	unsigned int temp_end;		/* temperature upper index bound */
  	bool init_complete;		/* true when fully initialized */
  	struct applesmc_entry *cache;	/* cached key entries */
- } smcreg;
-@@ -237,9 +168,6 @@ static unsigned int applesmc_light;
+ } smcreg = {
+@@ -239,9 +170,6 @@ static unsigned int applesmc_light;
  /* The number of fans handled by the driver */
  static unsigned int fans_handled;
  
@@ -190,7 +190,7 @@ index 623f71c..55abb5f 100644
  
  	return 0;
  }
-@@ -769,32 +705,38 @@ out:
+@@ -775,32 +711,38 @@ out:
  static ssize_t applesmc_show_sensor_label(struct device *dev,
  			struct device_attribute *devattr, char *sysfsbuf)
  {
@@ -239,7 +239,7 @@ index 623f71c..55abb5f 100644
  }
  
  static ssize_t applesmc_show_fan_speed(struct device *dev,
-@@ -1150,263 +1092,10 @@ static const struct attribute_group fan_attribute_groups[] = {
+@@ -1156,263 +1098,10 @@ static const struct attribute_group fan_attribute_groups[] = {
  	{ .attrs = fan4_attributes },
  };
  
@@ -506,7 +506,7 @@ index 623f71c..55abb5f 100644
  };
  
  /* Module stuff */
-@@ -1416,7 +1105,6 @@ static const struct attribute_group label_attributes_group = {
+@@ -1422,7 +1111,6 @@ static const struct attribute_group label_attributes_group = {
   */
  static int applesmc_dmi_match(const struct dmi_system_id *id)
  {
@@ -514,7 +514,7 @@ index 623f71c..55abb5f 100644
  	struct dmi_match_data* dmi_data = id->driver_data;
  	pr_info("%s detected:\n", id->ident);
  	applesmc_accelerometer = dmi_data->accelerometer;
-@@ -1426,13 +1114,65 @@ static int applesmc_dmi_match(const struct dmi_system_id *id)
+@@ -1432,13 +1120,65 @@ static int applesmc_dmi_match(const struct dmi_system_id *id)
  	pr_info(" - Model %s light sensors and backlight\n",
  		applesmc_light ? "with" : "without");
  
@@ -584,7 +584,7 @@ index 623f71c..55abb5f 100644
  /* Create accelerometer ressources */
  static int applesmc_create_accelerometer(void)
  {
-@@ -1657,7 +1397,6 @@ static int __init applesmc_init(void)
+@@ -1663,7 +1403,6 @@ static int __init applesmc_init(void)
  {
  	int ret;
  	int count;
@@ -592,7 +592,7 @@ index 623f71c..55abb5f 100644
  
  	if (!dmi_check_system(applesmc_whitelist)) {
  		pr_warn("supported laptop not found!\n");
-@@ -1716,24 +1455,9 @@ static int __init applesmc_init(void)
+@@ -1722,24 +1461,9 @@ static int __init applesmc_init(void)
  		fans_handled++;
  	}
  
@@ -620,7 +620,7 @@ index 623f71c..55abb5f 100644
  
  	if (applesmc_accelerometer) {
  		ret = applesmc_create_accelerometer();
-@@ -1783,8 +1507,7 @@ out_accelerometer:
+@@ -1789,8 +1513,7 @@ out_accelerometer:
  	if (applesmc_accelerometer)
  		applesmc_release_accelerometer();
  out_temperature:
@@ -630,7 +630,7 @@ index 623f71c..55abb5f 100644
  out_fans:
  	while (fans_handled)
  		sysfs_remove_group(&pdev->dev.kobj,
-@@ -1815,8 +1538,7 @@ static void __exit applesmc_exit(void)
+@@ -1821,8 +1544,7 @@ static void __exit applesmc_exit(void)
  	}
  	if (applesmc_accelerometer)
  		applesmc_release_accelerometer();
