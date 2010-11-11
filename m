@@ -1,38 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 11 Nov 2010 14:37:34 +0000
+From: Alexandros Diamantidis <adia@hellug.gr>
+Date: Thu, 11 Nov 2010 23:23:05 +0000
 Subject: Re: [lm-sensors] IT8721F fan control?
-Message-Id: <20101111153734.70ecdda9@endymion.delvare>
+Message-Id: <20101111232305.GA1972@hellug.gr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101106002259.GA1871@hellug.gr>
 In-Reply-To: <20101106002259.GA1871@hellug.gr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 8 Nov 2010 19:13:54 +0200, Alexandros Diamantidis wrote:
-> * Luca Tettamanti [2010-11-08 13:53]:
-> > > atk0110-acpi-0
-> > > CPU Fan Speed: =A0 =A0675000 RPM =A0(min =3D =A0600 RPM)
-> >=20
-> > There's something wrong with the reading of this fan. Can you send me
-> > a copy of the DSDT table (/sys/firmware/acpi/tables/DSDT)?
->=20
-> Oops, I hadn't noticed that!
->=20
-> In fact, that fan speed is usually read correctly, but intermittently
-> jumps to some absurd value. I don't think it's a problem of the driver,
-> since I see this in the BIOS "system info" screen as well.
+* Luca Tettamanti [2010-11-11 14:56]:
+> > For the moment I've disconnected the chassis fan because it was very
+> > distracting.
+> 
+> It should be controllable with QFan, no?
 
-This is a common problem when using external fan speed control
-solutions (potentiometers, fanbus and the like.) The degraded power
-signal makes it harder for the tachometer to sample the speed signal.
+Do you mean the BIOS Q-Fan option? It only mentions a "CPU Q-Fan", which
+is enabled and doesn't seem to do much for the front fan. The other two
+fans indeed aren't so loud, so it probably works for them. Could that
+mean that the front fan speed isn't controllable at all by the hardware?
 
-I presume that some self-controlled fans could also suffer from the
-same problem, depending on the exact implementation.
+Since even with Q-Fan enabled it's not as quiet as I'd like and
+temperatures don't rise much even under full load, I'd be nice if fans
+could go even slower if possible. My initial message was mostly a query
+about whether the native driver will allow this when complete.
 
---=20
-Jean Delvare
+* Jean Delvare [2010-11-11 15:37]:
+> > In fact, that fan speed is usually read correctly, but intermittently
+> > jumps to some absurd value. I don't think it's a problem of the driver,
+> 
+> This is a common problem when using external fan speed control
+> solutions (potentiometers, fanbus and the like.)
+
+There's nothing of the sort in use here, but maybe you're right that the
+CPU fan itself causes the misreading. No big problem anyway...
+
+Thanks again!
+
+Alexandros
 
 _______________________________________________
 lm-sensors mailing list
