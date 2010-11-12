@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 12 Nov 2010 16:41:33 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 12 Nov 2010 21:02:30 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] intel medfield: thermal_driver
-Message-Id: <20101112174133.0ce2db6f@endymion.delvare>
+Message-Id: <1289595750.22931.396.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101111154902.12776.31489.stgit@localhost.localdomain>
 In-Reply-To: <20101111154902.12776.31489.stgit@localhost.localdomain>
@@ -10,42 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 12 Nov 2010 06:57:03 -0800, Guenter Roeck wrote:
-> On Fri, Nov 12, 2010 at 05:38:21AM -0500, Alan Cox wrote:
-> > On Thu, 11 Nov 2010 12:56:54 -0800
-> > Guenter Roeck <guenter.roeck@ericsson.com> wrote:
+On Fri, 2010-11-12 at 11:41 -0500, Jean Delvare wrote:
+> On Fri, 12 Nov 2010 06:57:03 -0800, Guenter Roeck wrote:
+> > On Fri, Nov 12, 2010 at 05:38:21AM -0500, Alan Cox wrote:
+> > > On Thu, 11 Nov 2010 12:56:54 -0800
+> > > Guenter Roeck <guenter.roeck@ericsson.com> wrote:
+> > > 
+> > > > On Thu, 2010-11-11 at 10:49 -0500, Alan Cox wrote:
+> > > > > From: Durgadoss <durgadoss.r@intel.com>
+> > > > > 
+> > > > > This is the basic thermal sensor driver for Intel MID platform using the
+> > > > > Medfield chipset. It plugs in via the thermal drivers and provides sensor
+> > > > > readings for the device sensors.
+> > > > > 
+> > > > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> > > > > Signed-off-by: Alan Cox <alan@linux.intel.com>
+> > > > > ---
+> > > > > 
+> > > > As a thermal driver, shouldn't this driver be in drivers/thermal ?
+> > > 
+> > > drivers/thermal doesn't contain any drivers at all but I have no problem
+> > > with being there or hwmon - whichever is best.
 > > 
-> > > On Thu, 2010-11-11 at 10:49 -0500, Alan Cox wrote:
-> > > > From: Durgadoss <durgadoss.r@intel.com>
-> > > > 
-> > > > This is the basic thermal sensor driver for Intel MID platform using the
-> > > > Medfield chipset. It plugs in via the thermal drivers and provides sensor
-> > > > readings for the device sensors.
-> > > > 
-> > > > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-> > > > Signed-off-by: Alan Cox <alan@linux.intel.com>
-> > > > ---
-> > > > 
-> > > As a thermal driver, shouldn't this driver be in drivers/thermal ?
+> > So far, all thermal drivers, including the Intel Medfield driver, are in
+> > platform directories. Not sure if that is a good location either.
+> > drivers/thermal seems to be the natural place. That there are no drivers
+> > in drivers/thermal should not be a reason to move it elsewhere.
+> > One driver has to be the first, after all.
 > > 
-> > drivers/thermal doesn't contain any drivers at all but I have no problem
-> > with being there or hwmon - whichever is best.
+> > hwmon just doesn't seem right, since hwmon support for thermal devices is optional.
+> > 
+> > Jean, any opinion ?
 > 
-> So far, all thermal drivers, including the Intel Medfield driver, are in
-> platform directories. Not sure if that is a good location either.
-> drivers/thermal seems to be the natural place. That there are no drivers
-> in drivers/thermal should not be a reason to move it elsewhere.
-> One driver has to be the first, after all.
+> I don't really have time to formulate an educated opinion, sorry. So
+> I'll trust you :)
 > 
-> hwmon just doesn't seem right, since hwmon support for thermal devices is optional.
-> 
-> Jean, any opinion ?
+Ok ...
 
-I don't really have time to formulate an educated opinion, sorry. So
-I'll trust you :)
+It leaves the scope of hwmon, so I posted the question to lkml. We'll
+see if anyone cares. If not, my proposal is to put it into
+drivers/thermal either through my hwmon-next branch, or through a new
+thermal branch in my tree (or through someone else's tree). Not sure if
+a new branch would make me the de-facto maintainer of the thermal
+subsystem, but it seems better than putting it into drivers/hwmon.
 
--- 
-Jean Delvare
+Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
