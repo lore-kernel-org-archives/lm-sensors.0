@@ -1,32 +1,32 @@
-From: Andrey Repin <hell-for-yahoo@umail.ru>
-Date: Tue, 02 Nov 2010 15:34:23 +0000
-Subject: Re: [lm-sensors] Compiling 3.2.0
-Message-Id: <17110251823.20101102183423@mtu-net.ru>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 12 Nov 2010 20:33:45 +0000
+Subject: [lm-sensors] Location for thermal drivers
+Message-Id: <1289594026.22931.388.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <60165478.20101013180541@mtu-net.ru>
-In-Reply-To: <60165478.20101013180541@mtu-net.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, lm-sensors@lm-sensors.org
 
-Greetings, Andrey Repin!
+Hi all,
 
-> I've a kind of an issue. It was true for 3.1.2 and now for 3.2.0.
-> Programs building fine with exception of /prog/init/sensord.init - after
-> compilation, it retain all the @tokens@ typical for pre-configure scripts. But
-> as far as I can tell, the compilation does not involve configure process.
-> So, how to get past this?
+We have a review for a thermal driver for the Intel MID platform pending
+against the hwmon subsystem. See
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-November/030471.html for details.
 
-Any answers?
-Or does the absence of reaction implies that sensord is deprecated?
+I think a better location for the driver would be drivers/thermal.
+drivers/hwmon is not really a good fit, since hwmon support for thermal
+drivers is optional. Potential problem with drivers/thermal is that
+there are no thermal drivers in there (yet), and there does not seem to
+be a maintainer. Another alternative would be to put it into platform
+code, similar to the existing thermal drivers.
 
+Thought, anyone ? Is there a preferred location for thermal drivers ?
 
---
-WBR,
- Andrey Repin (hell-for-yahoo@umail.ru) 02.11.2010, <18:33>
+Thanks,
+Guenter
 
-Sorry for my terrible english...
 
 
 _______________________________________________
