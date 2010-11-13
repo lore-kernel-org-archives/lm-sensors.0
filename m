@@ -1,47 +1,52 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 03 Nov 2010 14:45:28 +0000
-Subject: Re: [lm-sensors] [PATCH 1/8] hwmon: applesmc: Relax the severity of
-Message-Id: <4CD17588.1090601@euromail.se>
+From: Owl <owl@umail.ru>
+Date: Sat, 13 Nov 2010 08:09:20 +0000
+Subject: [lm-sensors] Fintek F71869
+Message-Id: <4CDE47B0.5040909@umail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1288511434-5662-1-git-send-email-rydberg@euromail.se> <1288511434-5662-2-git-send-email-rydberg@euromail.se> <20101102160343.GA30515@ericsson.com>
-In-Reply-To: <20101102160343.GA30515@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On 11/02/2010 05:03 PM, Guenter Roeck wrote:
+Hi.
 
-> Hi Henrik,
-> 
-> On Sun, Oct 31, 2010 at 03:50:27AM -0400, Henrik Rydberg wrote:
->> The device init is used to reset the accelerometer. Failure to reset
->> is not severe enough to stop loading the module or to resume from
->> hibernation.  This patch relaxes failure to a warning and drops
->> output in case of success.
->>
->> Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
->> ---
->>  drivers/hwmon/applesmc.c |   24 ++----------------------
->>  1 files changed, 2 insertions(+), 22 deletions(-)
->>
->> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
->> index d7a5b75..375e464 100644
->> --- a/drivers/hwmon/applesmc.c
->> +++ b/drivers/hwmon/applesmc.c
->> @@ -458,21 +458,8 @@ static int applesmc_device_init(void)
->>  	mutex_lock(&applesmc_lock);
->>  
-> Since the callers of applesmc_device_init() now all don't check the return value,
-> it might make sense to declare it as void and not bother returning an error.
-> 
-> Otherwise looks good.
+Now I have Jetway NC9C-550-LF motherboard.
+Link: http://www.jetwaycomputer.com/NC9C.html
 
+MB have Intel Atom N550 processor and Fintek F71869 Super-IO chip.
 
-Sounds good, will change.
+1) According to http://www.lm-sensors.org/wiki/Devices - you "Waiting=20
+for someone with such hardware. Datasheet available.", maybe I can help=20
+with this?
 
-Henrik
+gentoo ~ # uname -a
+Linux gentoo 2.6.35-gentoo-r12 #1 SMP Tue Nov 2 13:43:58 MSK 2010 i686=20
+Intel(R) Atom(TM) CPU N550 @ 1.50GHz GenuineIntel GNU/Linux
+
+gentoo ~ # sensors-detect
+Found `Fintek F71869FG Super IO Sensors'                    Success!
+     (address 0x290, driver `to-be-written')
+
+On MB chip marked as F71869ED.
+
+2) coretemp on this MB show me wrong values:
+
+coretemp coretemp.0: Unable to read TjMax from CPU.
+coretemp coretemp.0: Using relative temperature scale!
+coretemp coretemp.1: Unable to read TjMax from CPU.
+coretemp coretemp.1: Using relative temperature scale!
+
+gentoo ~ # sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +14.0=B0C  (crit =3D +100.0=B0C)
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +19.0=B0C  (crit =3D +100.0=B0C)
+
+My sensors3.conf now empty.
+
 
 _______________________________________________
 lm-sensors mailing list
