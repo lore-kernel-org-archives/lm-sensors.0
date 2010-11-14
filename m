@@ -1,52 +1,36 @@
-From: Owl <owl@umail.ru>
-Date: Sat, 13 Nov 2010 08:09:20 +0000
-Subject: [lm-sensors] Fintek F71869
-Message-Id: <4CDE47B0.5040909@umail.ru>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Sun, 14 Nov 2010 09:41:28 +0000
+Subject: Re: [lm-sensors] Fintek F71869
+Message-Id: <4CDFAEC8.5020703@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4CDE47B0.5040909@umail.ru>
+In-Reply-To: <4CDE47B0.5040909@umail.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi.
+Hi,
 
-Now I have Jetway NC9C-550-LF motherboard.
-Link: http://www.jetwaycomputer.com/NC9C.html
+On 11/13/2010 09:09 AM, Owl wrote:
+> Hi.
+>
+> Now I have Jetway NC9C-550-LF motherboard.
+> Link: http://www.jetwaycomputer.com/NC9C.html
+>
+> MB have Intel Atom N550 processor and Fintek F71869 Super-IO chip.
+>
+> 1) According to http://www.lm-sensors.org/wiki/Devices - you "Waiting for someone with such hardware. Datasheet available.", maybe I can help with this?
+>
 
-MB have Intel Atom N550 processor and Fintek F71869 Super-IO chip.
+I have doing some work on the f71882fg driver (which is the one to
+which support should be added) on my todo list for a while. When I
+get around to it (hopefully soon-ish). I'll also take a look at adding
+support fro the f71869 and get back to you.
 
-1) According to http://www.lm-sensors.org/wiki/Devices - you "Waiting=20
-for someone with such hardware. Datasheet available.", maybe I can help=20
-with this?
+Regards,
 
-gentoo ~ # uname -a
-Linux gentoo 2.6.35-gentoo-r12 #1 SMP Tue Nov 2 13:43:58 MSK 2010 i686=20
-Intel(R) Atom(TM) CPU N550 @ 1.50GHz GenuineIntel GNU/Linux
-
-gentoo ~ # sensors-detect
-Found `Fintek F71869FG Super IO Sensors'                    Success!
-     (address 0x290, driver `to-be-written')
-
-On MB chip marked as F71869ED.
-
-2) coretemp on this MB show me wrong values:
-
-coretemp coretemp.0: Unable to read TjMax from CPU.
-coretemp coretemp.0: Using relative temperature scale!
-coretemp coretemp.1: Unable to read TjMax from CPU.
-coretemp coretemp.1: Using relative temperature scale!
-
-gentoo ~ # sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +14.0=B0C  (crit =3D +100.0=B0C)
-
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +19.0=B0C  (crit =3D +100.0=B0C)
-
-My sensors3.conf now empty.
-
+Hans
 
 _______________________________________________
 lm-sensors mailing list
