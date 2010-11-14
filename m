@@ -1,53 +1,48 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Fri, 05 Nov 2010 08:34:48 +0000
-Subject: Re: [lm-sensors] [PATCH 4/8] hwmon: applesmc: Handle new
-Message-Id: <4CD3C1A8.5050305@euromail.se>
+From: Julian Brunner <julianbrunner@googlemail.com>
+Date: Sun, 14 Nov 2010 21:40:13 +0000
+Subject: [lm-sensors] Further documentation for w83627hf module
+Message-Id: <AANLkTimY3Eu++=eQjR-VG0oOtW_1ko7AkGdcXo=8kBs3@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1288511434-5662-1-git-send-email-rydberg@euromail.se> <1288511434-5662-5-git-send-email-rydberg@euromail.se> <20101105023525.GC28308@ericsson.com>
-In-Reply-To: <20101105023525.GC28308@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
->>
+Hello,
 
->> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
->> index 0207618..ec92aff 100644
->> --- a/drivers/hwmon/applesmc.c
->> +++ b/drivers/hwmon/applesmc.c
->> @@ -733,13 +733,19 @@ static ssize_t applesmc_show_temperature(struct device *dev,
->>  	ret = applesmc_get_entry_by_index(index, &entry);
->>  	if (ret)
->>  		return ret;
->> +	if (entry.len > 2)
->> +		return -EINVAL;
->>  
->> -	ret = applesmc_read_entry(&entry, buffer, 2);
->> +	ret = applesmc_read_entry(&entry, buffer, entry.len);
->>  	if (ret)
->>  		return ret;
->>  
->> -	temp = buffer[0]*1000;
->> -	temp += (buffer[1] >> 6) * 250;
->> +	if (entry.len = 2) {
->> +		temp = buffer[0]*1000;
->> +		temp += (buffer[1] >> 6) * 250;
->> +	} else {
->> +		temp = buffer[0] * 4000;
->> +	}
-> 
-> Another comment - in the next patch, you check for entry.len = 0.
-> If that can happen, you would need to check it here as well.
+I'm trying to write an lm-sensors configuration for the mainboard
+"Kontron 986LCD-M/mITX", which uses the "Winbond W83627THF" sensor
+chip.
 
+I contacted the manufacturer to request information about how the
+sensors/fans/voltages are connected to the chip and how to convert the
+raw values to sensible information. They sent me a table listing which
+sensor/fan/voltage is connected to which pin on the chip, together
+with the used resistors and conversion formulas. They table also has a
+column saying on which lm-sensors output the sensor/fan/voltage should
+appear (inX, fanX, tempX).
 
-It cannot happen after a succesful return from get_entry(), but I will check it
-again. Earlier versions used entry.len rather than entry.valid, which can still
-be seen in a few places.
+Unfortunately, the values that are reported don't match up (for
+example, +5V is supposed to appear on in2, although values near 3.26V
+are reported). Now, I guess it's possible that they used a different
+module or a different version of the same module (to drive the sensor
+chip) when they created the table.
 
-Thanks,
-Henrik
+So I started looking for information on the "w83627hf" module that I'm
+running, to find out which input pins of the sensor chip are mapped to
+which lm-sensors outputs. Unfortunately, the documentation I found for
+this module (for example, the one at
+http://www.lm-sensors.org/browser/lm-sensors/trunk/doc/chips/w83627hf?rev222
+(I also checked the one of "w83781d" mentioned there)) doesn't seem to
+contain any information on how the sensor chip inputs translate to
+lm-sensor outputs.
+
+So, I'd be very thankful for any advice on where to look for
+information regarding this mapping from sensor chip inputs to
+lm-sensor outputs.
+
+Thanks in advance,
+ Julian Brunner
 
 _______________________________________________
 lm-sensors mailing list
