@@ -1,44 +1,49 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 11 Nov 2010 17:50:03 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 15 Nov 2010 21:04:50 +0000
 Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.37
-Message-Id: <1289497803-15160-1-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <20101115220450.586f9a2c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1288978399-16583-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1288978399-16583-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
 Hi Linus,
 
 Please pull hwmon subsystem fixes for Linux 2.6.37 from:
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+The bulk of it are late fixes to the new w83795 driver.
+
+ drivers/hwmon/amc6821.c |    2 +-
+ drivers/hwmon/lm93.c    |    4 +-
+ drivers/hwmon/lm95241.c |   19 +++-
+ drivers/hwmon/max6650.c |    2 +-
+ drivers/hwmon/w83795.c  |  207 +++++++++++++++++++++++++++++++++++++++--------
+ 5 files changed, 192 insertions(+), 42 deletions(-)
+
+---------------
+
+Hans J. Koch (1):
+      hwmon: Change mail address of Hans J. Koch
+
+Jean Delvare (8):
+      hwmon: (lm95241) Check validity of input values
+      hwmon: (w83795) Fix fan control mode attributes
+      hwmon: (w83795) Expose fan control method
+      hwmon: (w83795) List all usable temperature sources
+      hwmon: (w83795) Print the actual temperature channels as sources
+      hwmon: (w83795) Read the intrusion state properly
+      hwmon: (w83795) Clear intrusion alarm immediately
+      hwmon: (w83795) Check for BEEP pin availability
 
 Thanks,
-Guenter Roeck
-
-------
-
-The following changes since commit f6614b7bb405a9b35dd28baea989a749492c46b2:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/sfrench/cifs-2.6 (2010-11-09 10:34:48 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Axel Lin (3):
-      hwmon: (adt7470) Return proper error code for adt7470_probe()
-      hwmon: (ad7414) Return proper error code for ad7414_probe()
-      hwmon: (gpio-fan) Fix fan_ctrl_init error path
-
- drivers/hwmon/ad7414.c   |    6 ++++--
- drivers/hwmon/adt7470.c  |    4 +++-
- drivers/hwmon/gpio-fan.c |    8 ++++----
- 3 files changed, 11 insertions(+), 7 deletions(-)
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
