@@ -1,24 +1,51 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 29 Nov 2010 21:59:22 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (it87) Fix manual fan speed
-Message-Id: <1291067962.20815.162.camel@groeck-laptop>
+From: Roman Fietze <roman.fietze@telemotive.de>
+Date: Mon, 15 Nov 2010 14:14:18 +0000
+Subject: [lm-sensors] Const buffers for SMBus/I2C block write functions
+Message-Id: <201011151514.18969.roman.fietze@telemotive.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101129224211.067b0a7c@endymion.delvare>
-In-Reply-To: <20101129224211.067b0a7c@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2010-11-29 at 16:42 -0500, Jean Delvare wrote:
-> The manual fan speed control logic of the IT8721F is much different
-> from what older devices had. Update the code to properly support that.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Hello List,
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Wouldn't it help in some places, when the block write functions would
+take a const buffer pointer?
+
+Please see the diff below.
 
 
+Index: include/linux/i2c-dev.h
+=================================--- include/linux/i2c-dev.h	(revision 5881)
++++ include/linux/i2c-dev.h	(working copy)
+@@ -258,7 +258,7 @@
+ }
+ 
+ static inline __s32 i2c_smbus_write_block_data(int file, __u8 command, 
+-                                               __u8 length, __u8 *values)
++                                               __u8 length, const __u8 *values)
+ {
+ 	union i2c_smbus_data data;
+ 	int i;
+@@ -296,7 +296,7 @@
+ }
+ 
+ static inline __s32 i2c_smbus_write_i2c_block_data(int file, __u8 command,
+-                                               __u8 length, __u8 *values)
++                                               __u8 length, const __u8 *values)
+ {
+ 	union i2c_smbus_data data;
+ 	int i;
+
+
+
+Roman
+
+-- 
+Roman Fietze              Telemotive AG Buero Muehlhausen
+Breitwiesen                             73347 Muehlhausen
+Tel.: +49(0)7335/18493-45        http://www.telemotive.de
 
 _______________________________________________
 lm-sensors mailing list
