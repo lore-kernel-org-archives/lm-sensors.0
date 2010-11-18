@@ -1,128 +1,143 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 09 Nov 2010 12:08:55 +0000
-Subject: Re: [lm-sensors] [PATCH 19/32] drivers/hwmon/pc87360.c: Use pr_fmt
-Message-Id: <20101109130855.7f45e1a7@endymion.delvare>
+From: CHaoSlayeR <chaoslayer@chaoslayer.de>
+Date: Thu, 18 Nov 2010 23:49:14 +0000
+Subject: [lm-sensors] sensors.conf for GigaByte GA-770TA-UD3 (IT8720F rev. 8)
+Message-Id: <4CE5BB7A.7040100@chaoslayer.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------060808080304010502030604"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101020035346.GA20178@ericsson.com>
-	<190459d6c56001d564155d8a73ee8e47024b6149.1287556801.git.joe@perches.com>
-	<20101109103119.4cb66327@endymion.delvare>
-	<1289296784.1823.45.camel@Joe-Laptop>
-In-Reply-To: <1289296784.1823.45.camel@Joe-Laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------060808080304010502030604
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi *,
+
+right away an additional config for another motherboard:
+
+# dmidecode 2.9
+SMBIOS 2.4 present.
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: Gigabyte Technology Co., Ltd.
+        Product Name: GA-770TA-UD3
+        Version:
+        Serial Number:
+        UUID: 36434630-3439-3743-4342-4245FFFFFFFF
+        Wake-up Type: Power Switch
+        SKU Number:
+        Family:
+
+
+The config is attached.
+
+Here is some example output:
+
+it8720-isa-0228
+Adapter: ISA adapter
+Vcore:           +1.22 V  (min =3D  +0.78 V, max =3D  +1.50 V)
+Vdram:           +1.52 V  (min =3D  +1.42 V, max =3D  +1.57 V)
++3.3V:           +3.33 V  (min =3D  +3.14 V, max =3D  +3.47 V)
++5V:             +5.08 V  (min =3D  +4.76 V, max =3D  +5.24 V)
++12V:           +12.05 V  (min =3D +11.41 V, max =3D +12.62 V)
+5VSB:            +5.03 V  (min =3D  +4.76 V, max =3D  +5.24 V)
+Vbat:            +3.25 V
+CPU Fan:        1691 RPM  (min =3D 1000 RPM)
+SYS Temp:        +50.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  s=
+ensor =3D
+thermistor
+CPU Casing Temp: +40.0=B0C  (low  =3D +127.0=B0C, high =3D +70.0=B0C)  se=
+nsor =3D
+thermal diode
+
+
+Please feel free to include this config at the list of available
+motherboard configurations.
+
+
+Cheers,
+
+	Ancoron
+
+--------------060808080304010502030604
+Content-Type: text/plain;
+ name="GA-770TA-UD3-sensors.conf"
 Content-Transfer-Encoding: 7bit
-To: Joe Perches <joe@perches.com>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Jim Cromie <jim.cromie@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Disposition: attachment;
+ filename="GA-770TA-UD3-sensors.conf"
 
-Hi Joe,
+chip "it8720-isa-*"
+### Voltages
 
-On Tue, 09 Nov 2010 01:59:44 -0800, Joe Perches wrote:
-> On Tue, 2010-11-09 at 10:31 +0100, Jean Delvare wrote:
-> > On Tue, 19 Oct 2010 23:51:43 -0700, Joe Perches wrote:
-> > > Added #define pr_fmt KBUILD_MODNAME ": " fmt
-> > > Converted printks to pr_<level>
-> > > Coalesced any long formats
-> > > Removed prefixes from formats
-> > > 
-> > > Signed-off-by: Joe Perches <joe@perches.com>
-> > > ---
-> > >  drivers/hwmon/pc87360.c |   32 +++++++++++++-------------------
-> > >  1 files changed, 13 insertions(+), 19 deletions(-)
-> > The following is left in the driver:
-> > #ifdef DEBUG
-> > 			printk(KERN_DEBUG "pc87360: Fan 1: mon=%d "
-> > 			       "ctrl=%d inv=%d\n", (confreg[0]>>2)&1,
-> > 			       (confreg[0]>>3)&1, (confreg[0]>>4)&1);
-> > 			printk(KERN_DEBUG "pc87360: Fan 2: mon=%d "
-> > 			       "ctrl=%d inv=%d\n", (confreg[0]>>5)&1,
-> > 			       (confreg[0]>>6)&1, (confreg[0]>>7)&1);
-> > 			printk(KERN_DEBUG "pc87360: Fan 3: mon=%d "
-> > 			       "ctrl=%d inv=%d\n", confreg[1]&1,
-> > 			       (confreg[1]>>1)&1, (confreg[1]>>2)&1);
-> > #endif
-> > 
-> > Is there any reason why you didn't convert these to pr_debug()?
-> 
-> No.  These should be converted to pr_debug as well.
-> 
-> The conversion was done via script and the script doesn't
-> convert printk(KERN_DEBUG to pr_debug to avoid changing output.
-> 
-> Let me know if you want another patch.
+   # in5 is mysterious.
 
-I'll fix these myself, no problem.
+   label  in0  "Vcore"
+   label  in1  "Vdram"   # "DDR3" in BIOS
+   label  in2  "+3.3V"
+   label  in3  "+5V"     # Not in BIOS
+   label  in4  "+12V"
+   ignore in5
+   ignore in6
+   label  in7  "5VSB"    # Not in BIOS
+   label  in8  "Vbat"    # Not in BIOS
+   ignore cpu0_vid
 
-> 
-> > > @@ -1071,14 +1072,11 @@ static int __init pc87360_find(int sioaddr, u8 *devid, unsigned short *addresses
-> > >  				confreg[3] = superio_inb(sioaddr, 0x25);
-> > >  
-> > >  				if (confreg[2] & 0x40) {
-> > > -					printk(KERN_INFO "pc87360: Using "
-> > > -					       "thermistors for temperature "
-> > > -					       "monitoring\n");
-> > > +					pr_info("Using thermistors for temperature monitoring\n");
-> > 
-> > I know checkpatch.pl no longer complains about long lines when they
-> > include a string, but 98 columns seems excessive to me. It would be
-> > easy enough to spread over two lines.
-> 
-> Also converted via a script.
-> 
-> If the string is split, it doesn't matter where it's split.
-> The split just makes it harder to use grep.
+   # Vcore, Vdram, +3.3V and Vbat are connected directly, so no compute
+   # line is needed for these. +5V and 5VSB are internal so we use the
+   # standard scaling factor. Scaling for +12V is apparently not standard,
+   # factor 3.963 is guessed from BIOS and EasyTune values (3.943 was
+   # another candidate.)
+   compute  in3  @ * (6.8/10+1), @ / (6.8/10+1)
+   compute  in4  @ * 3.963,      @ / 3.963
+   compute  in7  @ * (6.8/10+1), @ / (6.8/10+1)
 
-I've heard this argument many times, but it doesn't really hold
-examination, I'm afraid. If nothing else, your patches are enforcing
-the use of the module name as the log message prefix. So there's no
-reason to grep for the message itself, when you can use "find" and
-search for the module name 80 times faster.
+   # The BIOS won't set any limit for voltages.
 
-Secondly, grep will find strings in binaries, and there it doesn't
-matter if the string was split in the source file or not. If you
-consider that grepping the whole kernel tree is acceptable
-performance-wise, you probably don't mind processing the binary files
-as well. The only drawback of this approach, I concede, is that it
-assumes that the module in question has already been build locally. But
-I doubt this is a problem in practice.
+   set in0_min  0.825 * 0.95
+   set in0_max  1.425 * 1.05
+   set in1_min  1.5   * 0.95
+   set in1_max  1.5   * 1.05
+   set in2_min  3.3   * 0.95
+   set in2_max  3.3   * 1.05
+   set in3_min  5     * 0.95
+   set in3_max  5     * 1.05
+   set in4_min 12     * 0.95
+   set in4_max 12     * 1.05
+   set in7_min  5     * 0.95
+   set in7_max  5     * 1.05
 
-Thirdly, log messages aren't raw messages, they are format strings, so
-grepping the sources for the output is never guaranteed to work in the
-first place, split strings or not.
+### Temperatures
 
-Fourthly, log messages aren't guaranteed to be unique over the kernel
-tree, and as the tree grows, duplicates are more frequent.
+   # The BIOS only shows 2 temperature values:
+   # - temp1: the system temprature
+   # - temp2: the CPU temperature
 
-And for completeness: if you really want to use grep, then yes, the
-point at which the strings are split does matter. If you choose
-carefully the split point, then it doesn't prevent grepping for the
-message. If you split right before or after a % format specification,
-the effect is zero with regards to grepping.
+   label temp1 "SYS Temp"
+   label temp2 "CPU Casing Temp"
+   ignore temp3
 
-> Personally, I think it's better to ignore the line length
-> of format strings completely.  Once it wraps in an editor,
-> it really doesn't matter how long the line is.
+### Fans
 
-Except that not all editors are configured to wrap. Mine in particular
-isn't - I find it very difficult to read source code when long lines
-are wrapped. So the extra characters are simply not displayed - and
-there it matters somewhat if this is just the trailing "); that I don't
-see, or half of the message.
+   label  fan1 "CPU Fan"
+   ignore fan2
+   ignore fan3
+   # ignore fan4 # doesn't exist on GA-770TA-UD3
+   ignore fan5
 
-> 
-> Of course, there are multiple strings in this file that
-> use dev_<level> that are split across lines that could be
-> converted as well so it's up to you if you want to leave
-> those as is.  Let me know if you want another patch to
-> integrate those dev_<level> format strings.
+   # Adjust for your own fans
+   set fan1_min 1000
+   # set fan3_min 3000
 
-I'll do things the way I like them, I think it will be more efficient
-for everyone than discussing the costs and benefits of split strings
-for the rest of the day ;)
-
--- 
-Jean Delvare
+--------------060808080304010502030604
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------060808080304010502030604--
