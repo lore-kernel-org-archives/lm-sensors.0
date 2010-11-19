@@ -1,40 +1,31 @@
-From: Steve Iribarne <siribarne@grid-net.com>
-Date: Fri, 19 Nov 2010 02:32:53 +0000
-Subject: [lm-sensors] MAX7501 support
-Message-Id: <4CE5E1D5.4000602@grid-net.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 19 Nov 2010 03:15:58 +0000
+Subject: Re: [lm-sensors] MAX7501 support
+Message-Id: <20101119031558.GA7094@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4CE5E1D5.4000602@grid-net.com>
+In-Reply-To: <4CE5E1D5.4000602@grid-net.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-To be more precise, it's MAX7501MUA+.
+On Thu, Nov 18, 2010 at 09:32:53PM -0500, Steve Iribarne wrote:
+> To be more precise, it's MAX7501MUA+.
+> 
+> I've looked around and didn't see anyone working on this.  Is this the case?
+> 
+> If so, I'm going to start.  I think it looks very similar to some of the
+> Maxim devices lm90.c.
+> 
+> Thoughts?  Ideas?  Suggestions?
+> 
+1) Read the datasheet. The last bullet item on the features list might give you a hint.
+2) Get rid of your "confidential" trailer when sending e-mail to open source mailing lists,
+   at least if you want to get a reply.
 
-I've looked around and didn't see anyone working on this.  Is this the case?
-
-If so, I'm going to start.  I think it looks very similar to some of the
-Maxim devices lm90.c.
-
-Thoughts?  Ideas?  Suggestions?
-
-Thanks.
--stv
-
-
--- 
-Steve Iribarne
-Sr. Software Engineer
-Embedded Devices
-
-This e-mail and any of its attachments may contain proprietary 
-information, which is privileged, confidential or subject to copyright 
-belonging to Grid Net, Inc. This e-mail is intended solely for the use 
-of the individual or entity to which it is addressed. If you are not the 
-intended recipient, you are hereby notified that any dissemination, 
-distribution, copying or action taken in relation to the contents of 
-this e-mail is strictly prohibited and may be unlawful. If you have 
-received this e-mail in error, please notify the sender immediately and 
-permanently delete.
+Cheers,
+Guenter 
 
 _______________________________________________
 lm-sensors mailing list
