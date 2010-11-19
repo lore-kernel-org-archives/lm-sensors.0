@@ -1,34 +1,46 @@
-From: Henrik Rydberg <rydberg@euromail.se>
-Date: Wed, 10 Nov 2010 22:33:28 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (applesmc) Fix checkpatch errors
-Message-Id: <4CDB1DB8.5070302@euromail.se>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 19 Nov 2010 17:41:53 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (i5k_amb) Fix compile warning
+Message-Id: <1290188513-31924-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1289428231-14950-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1289428231-14950-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On 11/10/2010 11:30 PM, Guenter Roeck wrote:
+This patch fixes the following compile warning.
 
-> This patch fixes all checkpatch errors and most of the checkpatch warnings.
-> It also fixes the range check in applesmc_store_fan_speed().
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> v2:
-> - Moved change in applesmc_key_at_index_store() into a previous patch
->   (Introduce a register lookup table) where a range check was added as well.
-> - Updated description to indicate that a minor bug was fixed in addition
->   to the formatting changes.
+drivers/hwmon/i5k_amb.c:500: warning: 'i5k_amb_ids' defined but not used
 
+The warning is seen if the driver is built into the kernel (not as module).
 
-Acked-by: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/i5k_amb.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks,
-Henrik
+diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
+index 9379834..c4c40be 100644
+--- a/drivers/hwmon/i5k_amb.c
++++ b/drivers/hwmon/i5k_amb.c
+@@ -497,12 +497,14 @@ static unsigned long chipset_ids[] = {
+ 	0
+ };
+ 
++#ifdef MODULE
+ static struct pci_device_id i5k_amb_ids[] __devinitdata = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5000_ERR) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_5400_ERR) },
+ 	{ 0, }
+ };
+ MODULE_DEVICE_TABLE(pci, i5k_amb_ids);
++#endif
+ 
+ static int __devinit i5k_amb_probe(struct platform_device *pdev)
+ {
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
