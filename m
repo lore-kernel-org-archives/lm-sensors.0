@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 19 Nov 2010 14:42:39 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lis3lv02d_i2c) Fix compile
-Message-Id: <20101119144239.GA17616@ericsson.com>
+Date: Fri, 19 Nov 2010 14:59:53 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lis3lv02d_i2c) Fix compile warnings if
+Message-Id: <1290178793-26860-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101119145510.1c59d6c4@endymion.delvare>
 In-Reply-To: <20101119145510.1c59d6c4@endymion.delvare>
@@ -10,22 +10,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 19, 2010 at 08:55:10AM -0500, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Thu, 18 Nov 2010 21:10:52 -0800, Guenter Roeck wrote:
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> 
-> When sending a patch which removes a warning, I suggest including that
-> warning in the description. Without the warning, it's difficult to
-> review the proposed code change.
-> 
-Good point. Resent with warnings added. Hopefully it makes it to the list this time.
+This commit fixes the following compile warnings.
 
-The warnings are from the "Build regressions/improvements in v2.6.37-rc2" post sent to lkml.
-There is another one in there, but I have no idea how to fix it. I'll send it to the list for input.
+From v2.6.37-rc2/m68k/m68k-allmodconfig, v2.6.37-rc2/powerpc/powerpc-randconfig:
+drivers/hwmon/lis3lv02d_i2c.c:222: warning: 'lis3_i2c_runtime_suspend' defined but not used
+drivers/hwmon/lis3lv02d_i2c.c:231: warning: 'lis3_i2c_runtime_resume' defined but not used
 
-Guenter
+From v2.6.37-rc2/sh4/sh-allyesconfig:
+drivers/hwmon/lis3lv02d_i2c.c:191: warning: 'lis3lv02d_i2c_suspend' defined but not used
+drivers/hwmon/lis3lv02d_i2c.c:201: warning: 'lis3lv02d_i2c_resume' defined but not used
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+Resent. Previous post did not make it to the mailing list. Also added the fixed
+warnings.
+
+ drivers/hwmon/lis3lv02d_i2c.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
+index 9f4bae0..16c1f48 100644
+--- a/drivers/hwmon/lis3lv02d_i2c.c
++++ b/drivers/hwmon/lis3lv02d_i2c.c
+@@ -213,12 +213,9 @@ static int lis3lv02d_i2c_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-#else
+-#define lis3lv02d_i2c_suspend	NULL
+-#define lis3lv02d_i2c_resume	NULL
+-#define lis3lv02d_i2c_shutdown	NULL
+-#endif
++#endif /* CONFIG_PM */
+ 
++#ifdef CONFIG_PM_RUNTIME
+ static int lis3_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
+@@ -236,6 +233,7 @@ static int lis3_i2c_runtime_resume(struct device *dev)
+ 	lis3lv02d_poweron(lis3);
+ 	return 0;
+ }
++#endif /* CONFIG_PM_RUNTIME */
+ 
+ static const struct i2c_device_id lis3lv02d_id[] = {
+ 	{"lis3lv02d", 0 },
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
