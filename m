@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 19 Nov 2010 16:01:35 +0000
+Date: Fri, 19 Nov 2010 18:10:59 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (lis3lv02d_i2c) Fix compile
-Message-Id: <20101119160135.GB25724@ericsson.com>
+Message-Id: <20101119181059.GA9559@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101119145510.1c59d6c4@endymion.delvare>
 In-Reply-To: <20101119145510.1c59d6c4@endymion.delvare>
@@ -31,55 +31,9 @@ On Fri, Nov 19, 2010 at 10:49:29AM -0500, Jean Delvare wrote:
 > isn't, it's still present. I don't think it can happen on x86, but
 > apparently on sh4 it can.
 > 
-One never stops learning. Looks like I'll have to use #ifdef CONFIG_PM_SLEEP.
+It can happen on x86 as well. You have to disable hibernation, suspend, and xen support.
 
 Guenter
-
-> > 
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> > Resent. Previous post did not make it to the mailing list. Also added the fixed
-> > warnings.
-> > 
-> >  drivers/hwmon/lis3lv02d_i2c.c |    8 +++-----
-> >  1 files changed, 3 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
-> > index 9f4bae0..16c1f48 100644
-> > --- a/drivers/hwmon/lis3lv02d_i2c.c
-> > +++ b/drivers/hwmon/lis3lv02d_i2c.c
-> > @@ -213,12 +213,9 @@ static int lis3lv02d_i2c_resume(struct device *dev)
-> >  
-> >  	return 0;
-> >  }
-> > -#else
-> > -#define lis3lv02d_i2c_suspend	NULL
-> > -#define lis3lv02d_i2c_resume	NULL
-> > -#define lis3lv02d_i2c_shutdown	NULL
-> > -#endif
-> > +#endif /* CONFIG_PM */
-> >  
-> > +#ifdef CONFIG_PM_RUNTIME
-> >  static int lis3_i2c_runtime_suspend(struct device *dev)
-> >  {
-> >  	struct i2c_client *client = container_of(dev, struct i2c_client, dev);
-> > @@ -236,6 +233,7 @@ static int lis3_i2c_runtime_resume(struct device *dev)
-> >  	lis3lv02d_poweron(lis3);
-> >  	return 0;
-> >  }
-> > +#endif /* CONFIG_PM_RUNTIME */
-> >  
-> >  static const struct i2c_device_id lis3lv02d_id[] = {
-> >  	{"lis3lv02d", 0 },
-> 
-> 
-> -- 
-> Jean Delvare
-
--- 
-Guenter Roeck
-Distinguished Engineer
-PDU IP Systems
 
 _______________________________________________
 lm-sensors mailing list
