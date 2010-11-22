@@ -1,196 +1,137 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sun, 21 Nov 2010 10:03:12 +0000
+From: no tellin <no.tellin@gmail.com>
+Date: Mon, 22 Nov 2010 17:06:26 +0000
 Subject: Re: [lm-sensors] lm-sensors config file for Asus K8N-DL motherboard
-Message-Id: <4CE8EE60.7050101@redhat.com>
+Message-Id: <AANLkTinGgJBKCF=JKbPpcepCkoRszmscQgerT2fsdFeX@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTinYEMqSH_PMmVOqV4bn1a9qFoagtVo4AHpG=57H@mail.gmail.com>
 In-Reply-To: <AANLkTinYEMqSH_PMmVOqV4bn1a9qFoagtVo4AHpG=57H@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Hans,
+
+On Sun, Nov 21, 2010 at 5:03 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
+>
+>
+>
+> On 11/20/2010 09:41 PM, no tellin wrote:
+>>
+>> /etc/sensors.d/asus_k8n-dl.conf
+>
+> Hmm, most asus board now a days do not allow direct access to their
+> hwmon ic's (the resources for the i2c controller/ =A0the superio ports
+> are marked as reserved in acpi).
+>
+> Did you try this with a recent kernel ? Normally the kernel should
+> disallow access to the relevant hwmon ic's and the asus_atk0110 driver
+> which gives access to hwmon info through an asus specific acpi
+> interface should autoload.
+>
+> <snip>
+>
+>> # Warning: 'sensors-detect' will report the wrong Winbond I2C chip.
+>> Board inspection
+>> # and the official manual both indicate 'w83792d'.
+>
+> Hmm, was this with a recent sensors-detect? If so that seems like
+> a bug in sensors-detect to me, can you please start a separate
+> thread about this?
+>
+> Regards,
+>
+> Hans
+>
+>
+
+Kernel:
+
+# uname -a
+Linux slizard 2.6.35.4 #1 SMP Sat Aug 28 00:05:36 EDT 2010 x86_64 AMD
+Opteron(tm) Processor 242 AuthenticAMD GNU/Linux
 
 
+Sensors detect:
 
-On 11/20/2010 09:41 PM, no tellin wrote:
-> /etc/sensors.d/asus_k8n-dl.conf
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
-Hmm, most asus board now a days do not allow direct access to their
-hwmon ic's (the resources for the i2c controller/  the superio ports
-are marked as reserved in acpi).
-
-Did you try this with a recent kernel ? Normally the kernel should
-disallow access to the relevant hwmon ic's and the asus_atk0110 driver
-which gives access to hwmon info through an asus specific acpi
-interface should autoload.
-
-<snip>
-
-> # Warning: 'sensors-detect' will report the wrong Winbond I2C chip.
-> Board inspection
-> # and the official manual both indicate 'w83792d'.
-
-Hmm, was this with a recent sensors-detect? If so that seems like
-a bug in sensors-detect to me, can you please start a separate
-thread about this?
-
-Regards,
-
-Hans
+Driver `w83627hf':
+  * ISA bus, address 0x290
+    Chip `Winbond W83627THF/THG Super IO Sensors' (confidence: 9)
 
 
->
-> chip "w83792d-*"
->
-> # All labels set to match Asus K8N-DL BIOS displayed labels. See
-> # the 'Fan Speed' and 'Voltage' screens in the BIOS.
->
-> # Voltage settings
->
->      label in0 " VCoreA"
->      label in1 " VCoreB"
->      label in2 " +3.3 V"
->      label in3 "+12.0 V"
->      label in4 " +1.5 V"
->      label in5 " +2.5 V"
->      label in6 "   5VCC"
->      label in7 "   5VSB"
->      label in8 "   Vbat"
->
->      compute in3 ((28/10)+1)*@ , @/((28/10)+1)
->
-> # Other than +3.3, +5.0 and +12.0 voltages (here set plus/minus 10%), the
-> # indicated min/max voltages are as per the Asus K8N-DL manual.
-> # These min/max ranges represent the min/max settings available in the
-> # BIOS. in4 is Chipset voltage and ranges from 1.5V to 1.8V in 0.1V
-> # increments. in5 are both CPUs DDR Voltage and ranges from 2.6V {2.5V
-> # when not set manually} to 2.9V in 0.1V increments. HT {Hyper Transport
-> # voltage} is not available through the I2C chip. It is set 'blind' and
-> # ranges from 1.20V to 1.35V in 0.05V increments.
->
->      set in2_min   3.3 * 0.90
->      set in2_max   3.3 * 1.10
->      set in3_min  12.0 * 0.90
->      set in3_max  12.0 * 1.10
->      set in4_min   1.47
->      set in4_max   1.83
->      set in5_min   2.47
->      set in5_max   2.93
->      set in6_min   5.0 * 0.90
->      set in6_max   5.0 * 1.10
->      set in7_min   5.0 * 0.90
->      set in7_max   5.0 * 1.10
->
-> # Fan settings - There are 6 fans on the motherboard. However, there is no
-> # 'fan6'. Instead, the internal label for the 6th fan is reported as 'fan7'.
-> # Who knew?
-> # Moreover, the fan labels stenciled onto the motherboard don't match what's
-> # reported in the BIOS. Alas, the labels reported in the BIOS don't match
-> # how the fans are used. What is reported as 'Front Fan 1' in the BIOS is
-> # dedicated to cooling the nVidia North Bridge chip. The commented out labels
-> # are as the BIOS labels the fans. The active labels reflect how the fans are
-> # used. You're sure to be confused. Trust the active labels.
->
-> #   label fan1 " CPU1 fan"
-> #   label fan2 " CPU2 fan"
-> #   label fan3 "Frnt1 fan"
-> #   label fan4 "Frnt2 fan"
->      label fan5 "Rear1 fan"
->      label fan7 "Rear2 fan"
->
-> # Override fan labels for your usage - The Asus K8N-DL uses the Frnt 1
-> # fan to cool the nVidia chipset.
->
->      label fan1 "   NB fan"
->      label fan2 " CPU1 fan"
->      label fan3 " CPU2 fan"
->      label fan4 "Frnt1 fan"
->
-> # Ignore unused fan connectors on the motherboard.
->
->      ignore fan7
->
-> # All of the Asus K8N-DL fan connectors require a devisor of 4 except the
-> # fan dedicated to the North Bridge. That fan requires a divisor of 1.
-> # Having said that, the NB fan reports 2X revolutions compared to the BIOS.
->
->      compute fan1 @/2,2*@
->
->      set fan1_div 1
->      set fan2_div 4
->      set fan3_div 4
->      set fan4_div 4
->      set fan5_div 4
->      set fan7_div 4
->
-> # Asus K8N-DL can allow 0 rpm for all fans when in SMART
-> # fan control mode. Set as applicable for your system.
-> #
-> # The Asus K8N-DL is based upon an nVidia nforce chipset. This is a hot
-> # chipset and comes with active (fan based) cooling. There is no
-> # temperature based fan speed control for this fan. The installed
-> # NB fan therefore always runs at ~5000 RPM. As this is a hot
-> # chipset, you probably always want to be warned when it's fan
-> # slows or stops. Set your kernel and userland programs accordingly.
->
-> #   set fan1_min 0
-> #   set fan2_min 0
-> #   set fan3_min 0
-> #   set fan4_min 0
-> #   set fan5_min 0
-> #   set fan7_min 0
->
-> # Temperature sensor settings
->
->      label temp1 "  Sys tmp"
->      label temp2 "CPU A tmp"
->      label temp3 "CPU B tmp"
->
-> # Only set tempX_type if you have PC Health [disabled]
-> # in your BIOS. Generally, the kernel {lmsensors} will
-> # correctly detect individual temperature sensor type and
-> # set values accordingly.
->
-> #    set temp1_type 2
-> #    set temp2_type 2
-> #    set temp3_type 3
->
-> # Set your temperature max values. Warning: If your values here
-> # are set higher than the values set in your BIOS, then you may
-> # shutdown at a lower temperature than you think. It's probably
-> # best to assume that shutdown will occur at the lowest setting
-> # whenever the value here and the BIOS are discrepant.
->
-> # The other possibility is that a value set here will always
-> # override the BIOS. You may or may not want that behavior.
-> # Temperautres listed here come from the example in the manual.
-> # Max CPU temp is given at 60. All temps Celsius.
->
->       set temp1_max      50
->       set temp1_max_hyst 45
-> #    set temp2_max      55
-> #    set temp2_max_hyst 50
-> #    set temp3_max      55
-> #    set temp3_max_hyst 50
->
-> # Set as appropriate for your environment
->
->       set temp2_max      60
->       set temp2_max_hyst 55
->       set temp3_max      60
->       set temp3_max_hyst 55
->
-> # READ THE MAN PAGE DOCUMENTATION OF 'sensors.conf' FOR MORE
-> # COMPLETE INFORMATION. ie:
->
-> # man sensors.conf
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+lm_senors version:
+
+# emerge -s lm_sensors
+Searching...
+[ Results for search key : lm_sensors ]
+[ Applications found : 1 ]
+
+*  sys-apps/lm_sensors
+      Latest version available: 3.2.0
+      Latest version installed: 3.1.2-r1
+      Size of files: 161 kB
+      Homepage:      http://www.lm-sensors.org/
+      Description:   Hardware Monitoring user-space utilities
+      License:       GPL-2 LGPL-2.1
+
+
+FWIW, I don't believe the K8N-DL includes support for asus_atk0110.
+The board dates back to 2005 and was never continued in later
+revisions. The board uses the nVidia CK804 chipset. Since nVidia is no
+longer in the motherboard chipset business, this board has been EOLed
+for awhile. i.e. -- There has only been the single version.
+
+This is the output from lspci:
+
+00:00.0 Memory controller: nVidia Corporation CK804 Memory Controller (rev =
+a3)
+00:01.0 ISA bridge: nVidia Corporation CK804 ISA Bridge (rev a3)
+00:01.1 SMBus: nVidia Corporation CK804 SMBus (rev a2)
+00:02.0 USB Controller: nVidia Corporation CK804 USB Controller (rev a2)
+00:02.1 USB Controller: nVidia Corporation CK804 USB Controller (rev a3)
+00:04.0 Multimedia audio controller: nVidia Corporation CK804 AC'97
+Audio Controller (rev a2)
+00:06.0 IDE interface: nVidia Corporation CK804 IDE (rev f2)
+00:07.0 IDE interface: nVidia Corporation CK804 Serial ATA Controller (rev =
+f3)
+00:08.0 IDE interface: nVidia Corporation CK804 Serial ATA Controller (rev =
+f3)
+00:09.0 PCI bridge: nVidia Corporation CK804 PCI Bridge (rev a2)
+00:0c.0 PCI bridge: nVidia Corporation CK804 PCIE Bridge (rev a3)
+00:0d.0 PCI bridge: nVidia Corporation CK804 PCIE Bridge (rev a3)
+00:0e.0 PCI bridge: nVidia Corporation CK804 PCIE Bridge (rev a3)
+00:18.0 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] HyperTransport Technology Configuration
+00:18.1 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] Address Map
+00:18.2 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] DRAM Controller
+00:18.3 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] Miscellaneous Control
+00:19.0 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] HyperTransport Technology Configuration
+00:19.1 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] Address Map
+00:19.2 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] DRAM Controller
+00:19.3 Host bridge: Advanced Micro Devices [AMD] K8
+[Athlon64/Opteron] Miscellaneous Control
+01:09.0 RAID bus controller: Silicon Image, Inc. SiI 3114
+[SATALink/SATARaid] Serial ATA Controller (rev 02)
+02:00.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5751
+Gigabit Ethernet PCI Express (rev 11)
+04:00.0 VGA compatible controller: ATI Technologies Inc R430 [Radeon
+X800 (PCIE)]
+04:00.1 Display controller: ATI Technologies Inc R430 [Radeon X800]
+(PCIE) (Secondary)
+
+Hope this helps.
+
+Guy
 
 _______________________________________________
 lm-sensors mailing list
