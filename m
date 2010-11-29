@@ -1,38 +1,136 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Mon, 29 Nov 2010 08:05:05 +0000
+From: "Jeff Rickman" <jrickman@myamigos.us>
+Date: Mon, 29 Nov 2010 09:41:35 +0000
 Subject: Re: [lm-sensors] Testing LM-Sensor Support of SCH5127 in Acer
-Message-Id: <AANLkTimdSsVqhQuASug+icaKUDcbbNzfX=5oty=hA_Fr@mail.gmail.com>
+Message-Id: <59619.75.142.173.238.1291023695.squirrel@webmail.myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 In-Reply-To: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jeff,
+Hi Juerg,
 
-Thanks for the detailed feedback.
-
-
-> Experiences so far:
+> Hi Jeff,
 >
-> (1) "fancontrol" script does work, but I would like it to run as a
-> "background" process or even as a daemon. I'm not a programmer so I don't
-> know if this is even possible or how to do it.
+> Thanks for the detailed feedback.
 >
-> (2) Fan speed on "Fan1" does go up and down with system temperatures.
+>
+>> Experiences so far:
+>>
+>> (1) "fancontrol" script does work, but I would like it to run as a
+>> "background" process or even as a daemon. I'm not a programmer so I
+>> don't
+>> know if this is even possible or how to do it.
+>>
+>> (2) Fan speed on "Fan1" does go up and down with system temperatures.
+>
+> I don't understand. Does fan1 change as a result of your running the
+> fancontrol script? The SCH5127 has a built in fan controller so you
+> shouldn't need to run any external scripts. The chip should
+> automatically take care of adjusting the fan speed based on the temp.
+> Can you please send the output of the following command:
+>
+> grep "" /sys/class/hwmon/hwmon*/*
+>
+> Thanks
+> ...Juerg
+>
 
-I don't understand. Does fan1 change as a result of your running the
-fancontrol script? The SCH5127 has a built in fan controller so you
-shouldn't need to run any external scripts. The chip should
-automatically take care of adjusting the fan speed based on the temp.
-Can you please send the output of the following command:
+No output from your command in my SSH session, but there is symbolically
+linked 'content' in that file structure.
 
-grep "" /sys/class/hwmon/hwmon*/*
+[root@anas-01 ~]# tree -af /sys/class/hwmon
+/sys/class/hwmon
+ /sys/class/hwmon/hwmon0 -> ../../devices/platform/coretemp.0/hwmon/hwmon0
+ /sys/class/hwmon/hwmon1 -> ../../devices/platform/dme1737.2160/hwmon/hwmon1
 
-Thanks
-...Juerg
+These directories have all sorts of files in both of them.
+
+[root@anas-01 ~]# ls /sys/devices/platform/coretemp.0
+driver  hwmon  modalias  name  power  subsystem  temp1_crit=20
+temp1_crit_alarm  temp1_input  temp1_label  uevent
+[root@anas-01 ~]# ls /sys/devices/platform/dme1737.2160
+driver      fan3_alarm  in1_alarm  in3_input  in5_max    pwm1            =20
+       pwm2_auto_point1_pwm     pwm3_enable     temp2_alarm  temp3_min   =20
+            zone2_auto_point3_temp
+fan1_alarm  fan3_input  in1_input  in3_max    in5_min  =20
+pwm1_auto_channels_zone  pwm2_auto_point2_pwm     pwm3_freq     =20
+temp2_fault  uevent
+fan1_input  fan3_min    in1_max    in3_min    in6_alarm=20
+pwm1_auto_point1_pwm     pwm2_enable              pwm3_ramp_rate=20
+temp2_input  zone1_auto_channels_temp
+fan1_min    fan3_type   in1_min    in4_alarm  in6_input=20
+pwm1_auto_point2_pwm     pwm2_freq                subsystem     =20
+temp2_max    zone1_auto_point1_temp
+fan1_type   hwmon       in2_alarm  in4_input  in6_max    pwm1_enable     =20
+       pwm2_ramp_rate           temp1_alarm     temp2_min  =20
+zone1_auto_point2_temp
+fan2_alarm  in0_alarm   in2_input  in4_max    in6_min    pwm1_freq       =20
+       pwm3                     temp1_fault     temp3_alarm=20
+zone1_auto_point3_temp
+fan2_input  in0_input   in2_max    in4_min    modalias   pwm1_ramp_rate  =20
+       pwm3_auto_channels_zone  temp1_input     temp3_fault=20
+zone2_auto_channels_temp
+fan2_min    in0_max     in2_min    in5_alarm  name       pwm2            =20
+       pwm3_auto_point1_pwm     temp1_max       temp3_input=20
+zone2_auto_point1_temp
+fan2_type   in0_min     in3_alarm  in5_input  power    =20
+pwm2_auto_channels_zone  pwm3_auto_point2_pwm     temp1_min     =20
+temp3_max    zone2_auto_point2_temp
+
+Hopefully the formatting doesn't look ugly. Only PWM1 (Fan1...4-pin) and
+PWM2 (Fan2...4-pin) connect to motherboard hardware. PWM3 does not have a
+motherboard connector.
+
+I did not know that SCH5127 had an internal fan controller, but I
+suspected something going on when I changed the system fan from a 3-pin
+format to a 4-pin format by reconnecting the 'blue' PWM wire on the
+header. With the PWM wire added back I saw my Fan1 speed drop to ~750 rpm;
+full speed is ~1900 rpm. I run a tool called "systemgraph" (google
+it...nice application and "open source" too) to display a webpage of
+various values it collects via Perl scripts and deposits into RRD tables
+for a nice "history" view.
+
+In the 4-pin format and no other adjustments, sensors reported the Fan1
+speed around 750 rpm and HDD temperatures are ~40 C. With the 3-pin
+format, Fan1 speed is ~1900 rpm and HDD temps are ~34 C. So in 4-wire Fan
+mode I tinkered with "pwmconfig" and "fancontrol" for a while to
+understand how the "/etc/fancontrol" config file works. I finally settled
+on this:
+
+[root@anas-01 ~]# cat /etc/fancontrol
+# Configuration file generated by pwmconfig, changes will be lost
+INTERVAL=10
+DEVPATH=3Dhwmon1=DEvices/platform/dme1737.2160
+DEVNAME=3Dhwmon1=3Dsch5127
+FCTEMPS=3D hwmon1/device/pwm1=3Dhwmon1/device/temp1_input
+FCFANS=3D hwmon1/device/pwm1=3Dhwmon1/device/fan1_input
+MINTEMP=3D hwmon1/device/pwm10
+MAXTEMP=3D hwmon1/device/pwm12
+MINSTART=3D hwmon1/device/pwm1%5
+MINSTOP=3D hwmon1/device/pwm1%4
+MINPWM=3D hwmon1/device/pwm1%4
+
+Then I edited "/etc/rc.local" to add this line:
+
+/usr/sbin/fancontrol &
+
+Fancontrol now runs in the background all the time unless I "kill it". I
+don't have a 4-pin fan with a "loose" PWM wire inside the chassis. I can
+tape and secure the PWM wire, but then I have to disconnect stuff and open
+the case when I wish to experiment. I can restore full 4-pin operation by
+removing the line added to "/etc/rc.local" and then echoing the desired
+value to "pwm1_enable" or rebooting the system. Some might call my method
+the "lazy sysadmin" approach to system thermal control. Works for me!
+
+This setup does a nice job of keeping the 4-pin fan running at it's
+maximum speed of ~1900 rpm and HDD temperatures stay below 40 Celsius even
+under load.
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
