@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 29 Nov 2010 14:53:46 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 29 Nov 2010 16:53:42 +0000
 Subject: Re: [lm-sensors] hwmon: (w83793) Drop useless mutex
-Message-Id: <20101129145346.GB19668@ericsson.com>
+Message-Id: <201011291753.42806.arnd@arndb.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101129141659.3429d849@endymion.delvare>
 In-Reply-To: <20101129141659.3429d849@endymion.delvare>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Nov 29, 2010 at 08:16:59AM -0500, Jean Delvare wrote:
+On Monday 29 November 2010, Jean Delvare wrote:
 > This is the same case as fschmd, from which the code was copied as far
 > as I can see. So the same clean-up applies:
 > 
@@ -27,7 +27,7 @@ On Mon, Nov 29, 2010 at 08:16:59AM -0500, Jean Delvare wrote:
 > Cc: Arnd Bergmann <arnd@arndb.de>
 > Cc: Hans de Goede <hdegoede@redhat.com>
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 
 _______________________________________________
 lm-sensors mailing list
