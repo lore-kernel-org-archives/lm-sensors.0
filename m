@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 30 Nov 2010 09:17:13 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 30 Nov 2010 15:50:41 +0000
 Subject: Re: [lm-sensors] [PATCH] adm1026: fix setting fan_div
-Message-Id: <20101130101713.31398e28@endymion.delvare>
+Message-Id: <20101130155041.GA27044@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101130014623.GA26439@penguintown.net>
 In-Reply-To: <20101130014623.GA26439@penguintown.net>
@@ -10,110 +10,78 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gabriele,
-
-On Mon, 29 Nov 2010 17:49:38 -0800, Gabriele Gorla wrote:
-> Prevent setting fan_div from stomping on other fans that share the same i2c register. 
-> Also allow div=1 (this is allowed in the ADM1026 datasheet) and prevent the mutex lock 
-> when no update is necessary.
+On Tue, Nov 30, 2010 at 03:04:59AM -0500, Gabriele Gorla wrote:
+> On Mon, Nov 29, 2010 at 06:29:08PM -0800, Phil Pokorny wrote:
+> > Thanks for the patch.
+> > 
+> > On Mon, Nov 29, 2010 at 5:49 PM, Gabriele Gorla <gorlik@penguintown.net>wrote:
+> > 
+> > > Prevent setting fan_div from stomping on other fans that share the same i2c
+> > > register.
+> > >
+> > 
+> > Ugh...  Wow, that was clearly wrong logic now that you point it out...
 > 
-> Signed-off-by: Gabriele Gorla <gorlik at penguintown.net>
-
-Thanks for the patch. It's hard to believe the code has been broken for
-so long and nobody complained...
-
-Please run your patch through scripts/checkpatch.pl, and fix all the
-style errors before you resubmit.
-
-> ---
+> :-)
 > 
 > 
-> diff -r -U 5 linux-source-2.6.26_orig/drivers/hwmon/adm1026.c linux-source-2.6.26/drivers/hwmon/adm1026.c
-> --- linux-source-2.6.26_orig/drivers/hwmon/adm1026.c	2008-07-13 14:51:29.000000000 -0700
-> +++ linux-source-2.6.26/drivers/hwmon/adm1026.c	2010-11-29 17:21:06.000000000 -0800
-> @@ -918,37 +918,42 @@
->  {
->  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
->  	int nr = sensor_attr->index;
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct adm1026_data *data = i2c_get_clientdata(client);
-> -	int val, orig_div, new_div, shift;
-> +	int val, orig_div, new_div;
->  
->  	val = simple_strtol(buf, NULL, 10);
-> -	new_div = DIV_TO_REG(val);
-> -	if (new_div = 0) {
-> -		return -EINVAL;
-> -	}
-> -	mutex_lock(&data->update_lock);
-> -	orig_div = data->fan_div[nr];
-> -	data->fan_div[nr] = DIV_FROM_REG(new_div);
->  
-> -	if (nr < 4) { /* 0 <= nr < 4 */
-> -		shift = 2 * nr;
-> -		adm1026_write_value(client, ADM1026_REG_FAN_DIV_0_3,
-> -			((DIV_TO_REG(orig_div) & (~(0x03 << shift))) |
-> -			(new_div << shift)));
-> -	} else { /* 3 < nr < 8 */
-> -		shift = 2 * (nr - 4);
-> -		adm1026_write_value(client, ADM1026_REG_FAN_DIV_4_7,
-> -			((DIV_TO_REG(orig_div) & (~(0x03 << (2 * shift)))) |
-> -			(new_div << shift)));
-> +	if(val<1 || val>8) {
-> +	        return -EINVAL;
+> > > Also allow div=1 (this is allowed in the ADM1026 datasheet)
+> > 
+> > 
+> > The old code didn't throw an EINVAL on most invalid divisors, it just
+> > silently converted them to the next reasonable value in the way that
+> > DIV_TO_REG worked.  If you're going to change the behavior and throw EINVAL
+> > for divisors greater than 8, perhaps you should check explicilty for the
+> > four legal values (val != 1 && val != 2 && val != 4 && val != 8)
+> 
+> the original code would refuse setting div to 1 since DIV_TO_REG(1) = 0
+> I changed to return -EINVAL for values not in the 1-8 range.
+> Anything in between gets the old behavior. If you think I should change to 
+> allow only 1,2,4,8 I can send another patch.
+> 
+> > Then you could eliminate the new_div DIV_TO_REG/REG_TO_DIV conversions and
+> > just test fan_div[nr] against val.  That would eliminate the "new_div"
+> > variable which would be good since it doesn't actually hold a "div" but a
+> > "reg" value, so it's somewhat mis-named.
+> 
+> 
+> > > and prevent the mutex lock
+> > > when no update is necessary.
+> > >
+> > If you don't take the mutex before testing the fan_div, then isn't there a
+> > possible race where you test first, but then it changes before you take the
+> > mutex to "change" it?  Is there any possible harm?  If multiple threads are
+> > trying to set the same divisor or different divisors for the same or
+> > different fans?  Just thinking out loud...
+> 
+> updates to data->fandiv[x] are atomic as there are no read-modify-writes to the 
+> structure members. If the values changes between the test and the lock, it will 
+> just be replaced with a new value.
+> The lock will take care of multiple threads trying to change div values for different 
+> fans. 
 
-As underlined by Phil already, this is a little inconsistent. You
-should reject all invalid values, as documented at the end of
-Documentation/hwmon/sysfs-interface. But this should be done in a
-separate patch, as this isn't really a bug fix and changes the driver's
-behavior on invalid input.
 
->  	}
->  
-> -	if (data->fan_div[nr] != orig_div) {
-> +	new_div = DIV_TO_REG(val);
-> +	if(data->fan_div[nr]!=DIV_FROM_REG(new_div)) {
-> +
+> If multiple threads change the div to a different value for the same fan, I think, 
+> even with the lock around the entire function, it will not be possible to figure out 
+> which value will end up in the register at the end.
 
-Undue blank line.
+The value is well defined: The last thread to acquire the lock wins.
 
-> +	        mutex_lock(&data->update_lock);
-> +		orig_div = data->fan_div[nr];
-> +		data->fan_div[nr] = DIV_FROM_REG(new_div);
-> +
-> +		if (nr < 4) { /* 0 <= nr < 4 */
-> +		        adm1026_write_value(client, ADM1026_REG_FAN_DIV_0_3,
-> +				    (DIV_TO_REG(data->fan_div[0]) << 0) |
-> +				    (DIV_TO_REG(data->fan_div[1]) << 2) |
-> +				    (DIV_TO_REG(data->fan_div[2]) << 4) |
-> +				    (DIV_TO_REG(data->fan_div[3]) << 6) );
-> +		} else { /* 3 < nr < 8 */
-> +		        adm1026_write_value(client, ADM1026_REG_FAN_DIV_4_7,
-> +				    (DIV_TO_REG(data->fan_div[4]) << 0) |
-> +				    (DIV_TO_REG(data->fan_div[5]) << 2) |
-> +				    (DIV_TO_REG(data->fan_div[6]) << 4) |
-> +				    (DIV_TO_REG(data->fan_div[7]) << 6) );
-> +		}
+> Let me know what you think.
+> 
+Problem occurs if the 1st access (the one holding the lock) changes the value for
+a fan and the second tries to change it back to the old value. As a result of your code,
+the change will happen, but the revert to the old value may be ignored (if fan_div was
+not yet updated by the time the if() statement outside the lock is executed).
+This is not ok, since it changes execution sequence. The if statement should be inside
+the lock.
 
-Note: this is horribly inefficient. In my opinion, data->fan_div should
-hold split but un-decoded register values. Calling DIV_FROM_REG() is
-cheap, calling DIV_TO_REG() is expensive. In fact DIV_TO_REG()
-shouldn't exist in the first place, as the conversion should happen in
-a single place. Again, this is material for a separate patch.
+The argument about unnecessary locking is really irrelevant; this code is not executed often
+enough to warrant introducing a race condition.
 
-> +		
->  		fixup_fan_min(dev, nr, orig_div);
-> +		mutex_unlock(&data->update_lock);
->  	}
-> -	mutex_unlock(&data->update_lock);
->  	return count;
->  }
->  
->  #define fan_offset_div(offset)						\
->  static SENSOR_DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR,		\
+Thanks,
+Guenter
 
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
