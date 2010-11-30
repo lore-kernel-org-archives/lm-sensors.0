@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 30 Nov 2010 19:44:36 +0000
+Date: Tue, 30 Nov 2010 20:30:39 +0000
 Subject: Re: [lm-sensors] [PATCH] adm1026: fix setting fan_div
-Message-Id: <20101130204436.10a65566@endymion.delvare>
+Message-Id: <20101130213039.228bfaf8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101130014623.GA26439@penguintown.net>
 In-Reply-To: <20101130014623.GA26439@penguintown.net>
@@ -10,81 +10,76 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gabriele,
+Hi Phil,
 
-On Tue, 30 Nov 2010 11:10:53 -0800, Gabriele Gorla wrote:
-> On Tue, Nov 30, 2010 at 10:17:13AM +0100, Jean Delvare wrote:
-> > > diff -r -U 5 linux-source-2.6.26_orig/drivers/hwmon/adm1026.c linux-source-2.6.26/drivers/hwmon/adm1026.c
-> > > --- linux-source-2.6.26_orig/drivers/hwmon/adm1026.c	2008-07-13 14:51:29.000000000 -0700
-> > > +++ linux-source-2.6.26/drivers/hwmon/adm1026.c	2010-11-29 17:21:06.000000000 -0800
-> > > @@ -918,37 +918,42 @@
-> > >  {
-> > >  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> > >  	int nr = sensor_attr->index;
-> > >  	struct i2c_client *client = to_i2c_client(dev);
-> > >  	struct adm1026_data *data = i2c_get_clientdata(client);
-> > > -	int val, orig_div, new_div, shift;
-> > > +	int val, orig_div, new_div;
-> > >  
-> > >  	val = simple_strtol(buf, NULL, 10);
-> > > -	new_div = DIV_TO_REG(val);
-> > > -	if (new_div = 0) {
-> > > -		return -EINVAL;
-> > > -	}
-> > > -	mutex_lock(&data->update_lock);
-> > > -	orig_div = data->fan_div[nr];
-> > > -	data->fan_div[nr] = DIV_FROM_REG(new_div);
-> > >  
-> > > -	if (nr < 4) { /* 0 <= nr < 4 */
-> > > -		shift = 2 * nr;
-> > > -		adm1026_write_value(client, ADM1026_REG_FAN_DIV_0_3,
-> > > -			((DIV_TO_REG(orig_div) & (~(0x03 << shift))) |
-> > > -			(new_div << shift)));
-> > > -	} else { /* 3 < nr < 8 */
-> > > -		shift = 2 * (nr - 4);
-> > > -		adm1026_write_value(client, ADM1026_REG_FAN_DIV_4_7,
-> > > -			((DIV_TO_REG(orig_div) & (~(0x03 << (2 * shift)))) |
-> > > -			(new_div << shift)));
-> > > +	if(val<1 || val>8) {
-> > > +	        return -EINVAL;
-> > 
-> > As underlined by Phil already, this is a little inconsistent. You
-> > should reject all invalid values, as documented at the end of
-> > Documentation/hwmon/sysfs-interface. But this should be done in a
-> > separate patch, as this isn't really a bug fix and changes the driver's
-> > behavior on invalid input.
-> 
-> Original code will reject 1 as input. I think this is a bug as div=1 is
-> valid for adm1026.
+On Tue, 30 Nov 2010 11:05:22 -0800, Phil Pokorny wrote:
+> On Tue, Nov 30, 2010 at 1:17 AM, Jean Delvare <khali@linux-fr.org> wrote:
+> > > +             mutex_lock(&data->update_lock);
+> > > +             orig_div = data->fan_div[nr];
+> > > +             data->fan_div[nr] = DIV_FROM_REG(new_div);
+> > > +
+> > > +             if (nr < 4) { /* 0 <= nr < 4 */
+> > > +                     adm1026_write_value(client, ADM1026_REG_FAN_DIV_0_3,
+> > > +                                 (DIV_TO_REG(data->fan_div[0]) << 0) |
+> > > +                                 (DIV_TO_REG(data->fan_div[1]) << 2) |
+> > > +                                 (DIV_TO_REG(data->fan_div[2]) << 4) |
+> > > +                                 (DIV_TO_REG(data->fan_div[3]) << 6) );
+> > > +             } else { /* 3 < nr < 8 */
+> > > +                     adm1026_write_value(client, ADM1026_REG_FAN_DIV_4_7,
+> > > +                                 (DIV_TO_REG(data->fan_div[4]) << 0) |
+> > > +                                 (DIV_TO_REG(data->fan_div[5]) << 2) |
+> > > +                                 (DIV_TO_REG(data->fan_div[6]) << 4) |
+> > > +                                 (DIV_TO_REG(data->fan_div[7]) << 6) );
+> > > +             }
+> >
+> > Note: this is horribly inefficient. In my opinion, data->fan_div should
+> > hold split but un-decoded register values. Calling DIV_FROM_REG() is
+> > cheap, calling DIV_TO_REG() is expensive. In fact DIV_TO_REG()
+> > shouldn't exist in the first place, as the conversion should happen in
+> > a single place. Again, this is material for a separate patch.
+>
+> I humbly suggest that you are forgetting something.  With your
+> recommendation, the REG_TO_DIV function would be called many orders of
+> magnitute more times (thousands? millions?) than the DIV_TO_REG function
+> here.  REG_TO_DIV would have to be called every time the fan speed is _read_
+> but DIV_TO_REG only needs to be called the one or two times that the fan_div
+> is _written_  So while the macros might differ in complexity, the number of
+> times they are called swamps any economy gained by changing the fan_div from
+> divisor to register value.
 
-Yes, you are correct, and this has to be fixed, I don't disagree. But
-you are also changing the behavior when the value is more than 8...
+You are right on one thing. In all honesty, I had forgotten that
+DIV_FROM_REG() would not only get called for fanX_div sysfs attributes
+but also for fanX_input and fanX_min attributes, which are obviously
+called repeatedly by monitoring applications, so their performance
+matters.
 
-> Anyway, if you think I should separate the patch and reject all invalid
-> values it's ok for me.
+And I agree with you that calling DIV_FROM_REG() in show_fan() and
+show_fan_min() - or even directly in FAN_FROM_REG() - would be costly.
 
-... and this proposed change would also change the behavior for values
-3, 5, 6 and 7. We can't really do that in a stable kernel series.
+However, we are allowed to be smart (at least I hope so!) Converting
+the divisor register value (0 to 3) into an actual scaling factor (1,
+2, 4 or 8) to divide or multiply by is inefficient. It's much better to
+use the register value directly to bit-shift the fan input value or
+limit value. Concretely, this means that, if data->fan_div[nr] contains
+a split register value, you don't want to do:
 
-Quick summary to avoid any further conclusion:
+#define FAN_FROM_REG(val, div) ((val) = 0 ? -1 : (val) = 0xff ? 0 : \
+				1350000 / ((val) * DIV_FROM_REG(div)))
 
-* The DIV_TO_REG() macro as it currently exists makes sense. It always
-  return a valid divisor value, regardless of the input being "correct"
-  or not. This goes against the recommendations of
-  Documentation/hwmon/sysfs-interface (which were written long after
-  the adm1026 driver was written) but this isn't a big issue per se.
+but:
 
-* Ergo, the current validity check on new_div is a plain bug. There's
-  no point in checking a value which is correct by construction - even
-  more so if the check itself is wrong. So the check should be removed
-  as a bug fix in stable kernel series.
+#define FAN_FROM_REG(val, div) ((val) = 0 ? -1 : (val) = 0xff ? 0 : \
+				1350000 / ((val) << (div)))
 
-* The new validity check you propose is correct, but doesn't comply
-  with Documentation/hwmon/sysfs-interface either. If we're changing
-  the behavior, we should at least follow the standard. This is why I
-  (and Phil) suggest that you change your test.
+And the same holds for FAN_TO_REG(). In the end, DIV_FROM_REG() could
+only be called from show_fan_div(), and DIV_TO_REG only called once
+from set_fan_div() - so we could in fact get rid of both macros.
 
-I hope it's all clear now :)
+> The code above is clear in and appropriate in my opinion.
+
+The code above is good enough and has the merit of not being too
+intrusive. But I still claim that my counter-proposal would make the code
+cleaner and more efficient... in a future kernel version.
 
 -- 
 Jean Delvare
