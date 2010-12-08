@@ -1,49 +1,36 @@
-From: "Matthias Zacharias" <Matthias.Zacharias@bmk-solutions.de>
-Date: Wed, 08 Dec 2010 14:35:17 +0000
-Subject: [lm-sensors] How to commit the source-code of a new driver for
-Message-Id: <4CFFA5B5020000AA000081EE@center.bmk-electronics.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 08 Dec 2010 17:46:31 +0000
+Subject: Re: [lm-sensors] How to commit the source-code of a new driver for
+Message-Id: <20101208174631.GB28993@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4CFFA5B5020000AA000081EE@center.bmk-electronics.de>
+In-Reply-To: <4CFFA5B5020000AA000081EE@center.bmk-electronics.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi together,
+On Wed, Dec 08, 2010 at 09:35:17AM -0500, Matthias Zacharias wrote:
+> Hi together,
+> 
+> which address on the lm-sensors.org is reserved for the commit of new
+> unverified drivers?
+> 
+Documentation/SubmittingPatches should give you an idea where to send patches
+(or new drivers) to. But what is "unverified" ?
 
-which address on the lm-sensors.org is reserved for the commit of new
-unverified drivers?
+> Where can I find a "HowTo" or "ReadMe" Tutorial?
 
-Where can I find a "HowTo" or "ReadMe" Tutorial?
+Documentation/SubmittingDrivers would be a good start. hwmon is no different
+to other subsystems, and follows the same rules.
 
-Best regards
-Matthias Zacharias
+Besides that, it is always a good idea to remove statements such as
+"This e-mail may contain confidential information ..." from e-mails sent
+to open source (or any other public) related mailing lists, unless you
+want to pretty much ensure that you won't get any replies. If you are
+concerned about confidentiality, don't send e-mail to public mailing lists.
 
---------------------
-BMK electronic solutions GmbH
-Werner-von-Siemens-Str. 6, Eingang 18 f
-D-86159 Augsburg
-Tel. +49 (0) 821 / 207 88 - 700
-Fax +49 (0) 821 / 207 88 - 721
-info@bmk-solutions.de
-Geschäftsführer: Dipl.-oec. Alois Knöferle
-Sitz: Augsburg
-HR-Nr.: B21197
----------------------
-
-Diese E-mail kann vertrauliche Informationen enthalten. Falls Sie diese
-E-Mail irrtümlich erhalten haben, informieren Sie bitte unverzüglich den
-Absender und löschen Sie diese E-Mail von jedem Rechner, auch von den
-Mailservern. Jede Verbreitung des Inhalts, auch die teilweise
-Verbreitung, ist in diesem Fall untersagt. Außer bei Vorsatz oder grober
-Fahrlässigkeit schliessen wir jegliche Haftung für Verluste oder Schäden
-aus, die durch Viren befallene Software oder E-Mails verursacht werden.
-
-This e-mail may contain confidential information. If you received this
-e-mail in error, please contact the sender and delete this e-mail from
-your computer, including your mailservers. Any dissemination, even
-partly, is prohibited. Except in case of gross negligence or wilful
-misconduct we accept no liability for any loss or damage caused by
-software or e-mail viruses.
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
