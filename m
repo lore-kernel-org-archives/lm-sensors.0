@@ -1,69 +1,47 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 23 Dec 2010 22:20:27 +0000
-Subject: Re: [lm-sensors] [PATCHv3 6/11] HWMON: HWMON module of DA9052
-Message-Id: <20101223222027.GA29608@ericsson.com>
+Date: Thu, 09 Dec 2010 16:58:58 +0000
+Subject: [lm-sensors] powerX_alarm sysfs attribute
+Message-Id: <20101209165858.GA521@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTin7N2HViUNSez9si7WytPkQAkTiR9NP3iUitbh4@mail.gmail.com>
-In-Reply-To: <AANLkTin7N2HViUNSez9si7WytPkQAkTiR9NP3iUitbh4@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dd diasemi <dd.diasemi@gmail.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 21, 2010 at 12:52:50PM -0500, dd diasemi wrote:
-> HWMON module for DA9052 PMIC device from Dialog Semiconductor.
-> 
-> Changes made since last submission:
-> . removed the DA9052 customized success and error codes
-> . changed da9052_manual_read() return type
-> 
-> Linux Kernel Version: 2.6.34
-> 
-> Signed-off-by: D. Chen <dchen@diasemi.com>
+Hi all,
 
-[ ... ]
+I am looking through libsensors and the hwmon sysfs ABI to identify and fix
+inconsistencies.
 
-> +
-> +static DEVICE_ATTR(name, S_IRUGO, da9052_adc_show_name, NULL);
-> +static SENSOR_DEVICE_ATTR(read_vddout, S_IRUGO,
-> +                               da9052_adc_read_start_stop, NULL,
-> +                               DA9052_ADC_VDDOUT);
-> +static SENSOR_DEVICE_ATTR(read_ich, S_IRUGO, da9052_adc_read_ich, NULL,
-> +                               DA9052_ADC_ICH);
-> +static SENSOR_DEVICE_ATTR(read_tbat, S_IRUGO, da9052_adc_read_tbat, NULL,
-> +                               DA9052_ADC_TBAT);
-> +static SENSOR_DEVICE_ATTR(read_vbat, S_IRUGO, da9052_adc_read_vbat, NULL,
-> +                               DA9052_ADC_VBAT);
-> +#if (DA9052_ADC_CONF_ADC4 = 1)
-> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, da9052_adc_read_start_stop, NULL,
-> +                               DA9052_ADC_ADCIN4);
-> +#endif
-> +#if (DA9052_ADC_CONF_ADC5 = 1)
-> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, da9052_adc_read_start_stop, NULL,
-> +                               DA9052_ADC_ADCIN5);
-> +#endif
-> +#if (DA9052_ADC_CONF_ADC6 = 1)
-> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, da9052_adc_read_start_stop, NULL,
-> +                               DA9052_ADC_ADCIN6);
-> +#endif
-> +static SENSOR_DEVICE_ATTR(read_tjunc, S_IRUGO, da9052_adc_read_tjunc, NULL,
-> +                               DA9052_ADC_TJUNC);
-> +static SENSOR_DEVICE_ATTR(read_vbbat, S_IRUGO, da9052_adc_read_vbbat, NULL,
-> +                               DA9052_ADC_VBBAT);
-> +
+One problem I noticed is powerX_alarm, which is defined as "system is drawing
+more power than the cap allows".
 
-Driver doesn't follow hwmon sysfs ABI, with no good reason.
-As for the labels, I am not sure if the provided labels reflect chip data 
-or the use of the chip on a specific board. The product brief seems to indicate
-the latter. If so, defining label attribute files is not appropriate. Labels
-can then be assigned through sensors.conf.
+powerX_cap is defined as " ... The *_cap files only appear if the cap is known
+to be enforced by hardware".
 
-The use of ifdefs in the code is excessive. There should be a single Kconfig entry
-to enable the driver. Remaining data can be provided with platform data if it is 
-mandatory, or sensors not supported on a given board can be configured to be 
-ignored via sensors.conf.
+Now there are conditions where power limits are defined and supported,
+but the hardware does not enforce it. Similar, there are devices reporting power
+alarms not associated with cap enforcement. Examples are ltc4215 and PMBus devices.
+powerX_alarm is supported by the ltc4215 driver, but there is no _cap attribute,
+and the alarm is not associated with a maximum, thus a reported alarm doesn't
+really reflect the ABI.
 
+I see a number of options:
+
+1) Introduce powerX_max as unenforced "max" attribute, in addition to powerX_cap.
+   1a) Introduce powerX_cap_alarm to reflect alarms associated with powerX_cap,
+       introduce powerX_max_alarm, and redefine the semantics of powerX_alarm 
+       to include all possible alarms
+   1b) Redefine semantics of powerX_alarm to include all possible reasons for
+       power alarms.
+
+2) Redefine the semantics of powerX_cap to include unenforced maximum power.
+   Redefine powerX_alarm to include all possible reasons for alarms.
+
+My preferred solution would be 1) with 1b), though 2) would be fine for me as well.
+Any thoughts / comments ? 
+
+Thanks,
 Guenter
 
 _______________________________________________
