@@ -1,106 +1,61 @@
-From: Juerg Haefliger <juergh@gmail.com>
-Date: Thu, 09 Dec 2010 13:46:39 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 09 Dec 2010 16:09:18 +0000
 Subject: Re: [lm-sensors] Testing LM-Sensor Support of SCH5127 in Acer
-Message-Id: <AANLkTi=LTnuQ6tVKOedc1y3_cshta462SCU-xVJUgPP-@mail.gmail.com>
+Message-Id: <20101209170918.53ace941@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 In-Reply-To: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Thu, 9 Dec 2010 12:31:28 +0100, Juerg Haefliger wrote:
->> Hi Jean and Jeff,
->>
->>
->> > On Mon, 29 Nov 2010 00:20:44 -0600 (CST), Jeff Rickman wrote:
->> >> Providing some feedback now that SCH5127 support is "mainline" in
->> >> LM_Sensors; no "force_id" option required.
->> >> (...)
->> >> [root@anas-01 ~]# service lm_sensors status
->> >> coretemp-isa-0000
->> >> Adapter: ISA adapter
->> >> Core 0:      +21.0°C  (crit = +90.0°C)
->> >>
->> >> sch5127-isa-0870
->> >> Adapter: ISA adapter
->> >> V+1.5:       +1.42 V  (min =  +1.35 V, max =  +1.65 V)
->> >> 5VTR:        +4.78 V  (min =  +4.50 V, max =  +5.48 V)
->> >> VBAT:        +3.32 V  (min =  +0.00 V, max =  +4.38 V)
->> >> V+5:         +5.09 V  (min =  +0.00 V, max =  +6.72 V)
->> >> Vccp:        +1.48 V  (min =  +1.35 V, max =  +1.49 V)
->> >> VCC:         +3.33 V  (min =  +0.00 V, max =  +4.38 V)
->> >> VTR:         +3.24 V  (min =  +0.00 V, max =  +4.38 V)
->> >> Side Fan:   2250 RPM  (min = 600 RPM)
->> >> MCH Fan:    5137 RPM  (min = 4500 RPM)
->> >> CPU Temp:    +47.6°C  (low  = +20.0°C, high = +60.0°C)
->> >> SYS Temp:    +35.1°C  (low  = +20.0°C, high = +60.0°C)
->> >>
->> >> Here is my "/etc/sensors.d/local.conf" file:
->> >>
->> >> [root@anas-01 ~]# cat /etc/sensors.d/local.conf
->> >> # libsensors configuration file
->> >> # -----------------------------
->> >>
->> >> chip "sch5127-isa-0870"
->> >>
->> >>     label in0 "V+1.5"
->> >>     label in1 "5VTR"
->> >>     label in2 "VBAT"
->> >>     label in3 "V+5"
->> >>     label in4 "Vccp"
->> >>     label in5 "VCC"
->> >>     label in6 "VTR"
->>
->> According to the datasheet (and I just double-checked the scaling
->> factors in the driver and they are correct), the voltages are as
->> follows:
->>
->> in0: 2.5V   (2.5V nominal, 3.320V max)
->> in1: Vccp   (2.25V nominal, 2.988V max)
->> in2: VCC   (3.3V nominal, 4.383V max)
->> in3: V2_IN   (1.125V nominal, 1.5V max, should be wired to scaled down 5V)
->> in4: V1_IN   (1.125V nominal, 1.5V max, should be wired to scaled down 12V)
->> in5: VTR   (3.3V nominal, 4.383V max)
->> in6: VBat   (3.0V nominal, 4.383V max)
->>
->> If the chip is hooked up according to the datasheet then the only
->> voltages that require scaling are in3 & 4.
->
-> OK, thanks for checking. Your conclusion matches mine.
->
-> Do you happen to know if any of these are internal (so that the
-> mapping/label doesn't depend on the system)? This would help. in2 and
-> in6 would be candidates, maybe in5 as well.
+On Thu, 9 Dec 2010 14:46:39 +0100, Juerg Haefliger wrote:
+> > Do you happen to know if any of these are internal (so that the
+> > mapping/label doesn't depend on the system)? This would help. in2 and
+> > in6 would be candidates, maybe in5 as well.
+> 
+> From the datasheet it looks like in2, in5 and in6 need to be wired as
+> specified otherwise the chip will not work properly under certain
+> conditions. VTR is the standby voltage and if standby mode is not
+> required, could be connected to VCC externally.
 
-From the datasheet it looks like in2, in5 and in6 need to be wired as
-specified otherwise the chip will not work properly under certain
-conditions. VTR is the standby voltage and if standby mode is not
-required, could be connected to VCC externally.
+I propose the following default configuration file section for the
+SCH5217:
 
+chip "sch5127-*"
 
-> Do you have any clue what
-> "VTR" stands for?
+   label in2  "+3.3V"
+   label in5  "3VSB"
+   label in6  "Vbat"
 
-VTR is the ATX standby voltage also called trickle voltage (courtesy
-of google :-)
+> > Do you have any clue what
+> > "VTR" stands for?
+> 
+> VTR is the ATX standby voltage also called trickle voltage (courtesy
+> of google :-)
 
+Strange, http://en.wikipedia.org/wiki/ATX doesn't mention either VTR or
+trickle voltage. It does mention "+5 V standby" though (purple wire.)
 
-> For internal voltages we can put the labels in the default
-> sensors3.conf file, to help the users.
+Anyway, I think we can assume this is what other chips name "3VSB".
+Which is strange though because apparently ATX has a +5V stand-by but
+no +3.3V standby. So I guess that 3VSB/VTR is actually 5VSB with a
+scaling factor, either internal or external.
 
-Ah. I just realized that the SCH5127 has another voltage input that
-the other dme1737 clones don't have but which isn't exposed through
-the driver. Register 0x1f, nominal 1.5V, max 2.0V.
+> > For internal voltages we can put the labels in the default
+> > sensors3.conf file, to help the users.
+> 
+> Ah. I just realized that the SCH5127 has another voltage input that
+> the other dme1737 clones don't have but which isn't exposed through
+> the driver. Register 0x1f, nominal 1.5V, max 2.0V.
 
+Ah ah! Very interesting. It could be where Jeff's mysterious +1.5V is
+connected! Could you write a patch adding support?
 
-...Juerg
-
-
-> --
-> Jean Delvare
->
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
