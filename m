@@ -1,118 +1,132 @@
-From: Grant Coady <gcoady.lk@gmail.com>
-Date: Sun, 26 Dec 2010 23:31:23 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4 v2] hwmon: (adm9240) Implement the
-Message-Id: <sqjfh693p3re5c91vcaacg4qvuhobiabfb@4ax.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 10 Dec 2010 19:50:05 +0000
+Subject: [lm-sensors] [PATCH] libsensors: Add missing attributes
+Message-Id: <1292010605-22089-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101103133650.21d4dd5a@endymion.delvare>
-In-Reply-To: <20101103133650.21d4dd5a@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+The attributes added in this patch are listed in the current version
+of the hwmon sysfs ABI, but not yet supported by libsensors.
 
-I'm sorry, other issues prevented me from testing this (I spent Xmas day 
-in hospital) -- it may be couple weeks or more before I can test that box, 
-I still have it, but need to do an OS reinstall) so I can test the new 
-stuff on it.
+This patch only adds the new attributes to libsensors. The sensors command
+will be updated in a separate patch.
 
-Cheers,
-Grant.
-
-On Wed, 3 Nov 2010 13:36:50 +0100, you wrote:
-
->We have a standard intrusion detection interface now, drivers should
->implement it. I've left the old interface in place for the time being,
->with a deprecation warning, it will be removed later.
->
->Signed-off-by: Jean Delvare <khali@linux-fr.org>
->---
->Grant, would you by any chance be still able to test the adm9240 driver?
->
-> Documentation/hwmon/adm9240 |    2 +-
-> drivers/hwmon/adm9240.c     |   32 +++++++++++++++++++++++++++++---
-> 2 files changed, 30 insertions(+), 4 deletions(-)
->
->--- linux-2.6.37-rc1.orig/drivers/hwmon/adm9240.c	2010-11-02 17:39:20.000000000 +0100
->+++ linux-2.6.37-rc1/drivers/hwmon/adm9240.c	2010-11-03 11:35:54.000000000 +0100
->@@ -20,7 +20,7 @@
->  * Alarms	16-bit map of active alarms
->  * Analog Out	0..1250 mV output
->  *
->- * Chassis Intrusion: clear CI latch with 'echo 1 > chassis_clear'
->+ * Chassis Intrusion: clear CI latch with 'echo 0 > intrusion0_alarm'
->  *
->  * Test hardware: Intel SE440BX-2 desktop motherboard --Grant
->  *
->@@ -476,13 +476,16 @@ static ssize_t set_aout(struct device *d
-> static DEVICE_ATTR(aout_output, S_IRUGO | S_IWUSR, show_aout, set_aout);
-> 
-> /* chassis_clear */
->-static ssize_t chassis_clear(struct device *dev,
->+static ssize_t chassis_clear_legacy(struct device *dev,
-> 		struct device_attribute *attr,
-> 		const char *buf, size_t count)
-> {
-> 	struct i2c_client *client = to_i2c_client(dev);
-> 	unsigned long val = simple_strtol(buf, NULL, 10);
-> 
->+	dev_warn(dev, "Attribute chassis_clear is deprecated, "
->+		 "use intrusion0_alarm instead\n");
->+
-> 	if (val = 1) {
-> 		i2c_smbus_write_byte_data(client,
-> 				ADM9240_REG_CHASSIS_CLEAR, 0x80);
->@@ -490,7 +493,29 @@ static ssize_t chassis_clear(struct devi
-> 	}
-> 	return count;
-> }
->-static DEVICE_ATTR(chassis_clear, S_IWUSR, NULL, chassis_clear);
->+static DEVICE_ATTR(chassis_clear, S_IWUSR, NULL, chassis_clear_legacy);
->+
->+static ssize_t chassis_clear(struct device *dev,
->+		struct device_attribute *attr,
->+		const char *buf, size_t count)
->+{
->+	struct i2c_client *client = to_i2c_client(dev);
->+	struct adm9240_data *data = i2c_get_clientdata(client);
->+	unsigned long val;
->+
->+	if (strict_strtoul(buf, 10, &val) || val != 0)
->+		return -EINVAL;
->+
->+	mutex_lock(&data->update_lock);
->+	i2c_smbus_write_byte_data(client, ADM9240_REG_CHASSIS_CLEAR, 0x80);
->+	data->valid = 0;		/* Force cache refresh */
->+	mutex_unlock(&data->update_lock);
->+	dev_dbg(&client->dev, "chassis intrusion latch cleared\n");
->+
->+	return count;
->+}
->+static SENSOR_DEVICE_ATTR(intrusion0_alarm, S_IRUGO | S_IWUSR, show_alarm,
->+		chassis_clear, 12);
-> 
-> static struct attribute *adm9240_attributes[] = {
-> 	&sensor_dev_attr_in0_input.dev_attr.attr,
->@@ -532,6 +557,7 @@ static struct attribute *adm9240_attribu
-> 	&dev_attr_alarms.attr,
-> 	&dev_attr_aout_output.attr,
-> 	&dev_attr_chassis_clear.attr,
->+	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
-> 	&dev_attr_cpu0_vid.attr,
-> 	NULL
-> };
->--- linux-2.6.37-rc1.orig/Documentation/hwmon/adm9240	2010-11-02 17:39:20.000000000 +0100
->+++ linux-2.6.37-rc1/Documentation/hwmon/adm9240	2010-11-02 20:08:17.000000000 +0100
->@@ -155,7 +155,7 @@ connected to a normally open switch.
-> The ADM9240 provides an internal open drain on this line, and may output
-> a 20 ms active low pulse to reset an external Chassis Intrusion latch.
-> 
->-Clear the CI latch by writing value 1 to the sysfs chassis_clear file.
->+Clear the CI latch by writing value 0 to the sysfs intrusion0_alarm file.
-> 
-> Alarm flags reported as 16-bit word
-> 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+Index: doc/libsensors-API.txt
+=================================--- doc/libsensors-API.txt	(revision 5889)
++++ doc/libsensors-API.txt	(working copy)
+@@ -11,6 +11,16 @@
+   enum sensors_feature_type SENSORS_FEATURE_INTRUSION
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_INTRUSION_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_INTRUSION_BEEP
++* Added support for various new sysfs attributes
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_HYST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_ALARM
+ 
+ 0x430	lm-sensors 3.2.0
+ * License changed from GPL to LGPL
+Index: lib/sensors.h
+=================================--- lib/sensors.h	(revision 5889)
++++ lib/sensors.h	(working copy)
+@@ -152,6 +152,8 @@
+ 	SENSORS_SUBFEATURE_IN_INPUT = SENSORS_FEATURE_IN << 8,
+ 	SENSORS_SUBFEATURE_IN_MIN,
+ 	SENSORS_SUBFEATURE_IN_MAX,
++	SENSORS_SUBFEATURE_IN_LCRIT,
++	SENSORS_SUBFEATURE_IN_CRIT,
+ 	SENSORS_SUBFEATURE_IN_ALARM = (SENSORS_FEATURE_IN << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_IN_MIN_ALARM,
+ 	SENSORS_SUBFEATURE_IN_MAX_ALARM,
+@@ -170,6 +172,9 @@
+ 	SENSORS_SUBFEATURE_TEMP_MIN,
+ 	SENSORS_SUBFEATURE_TEMP_CRIT,
+ 	SENSORS_SUBFEATURE_TEMP_CRIT_HYST,
++	SENSORS_SUBFEATURE_TEMP_LCRIT,
++	SENSORS_SUBFEATURE_TEMP_EMERGENCY,
++	SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST,
+ 	SENSORS_SUBFEATURE_TEMP_ALARM = (SENSORS_FEATURE_TEMP << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_TEMP_MAX_ALARM,
+ 	SENSORS_SUBFEATURE_TEMP_MIN_ALARM,
+@@ -178,6 +183,7 @@
+ 	SENSORS_SUBFEATURE_TEMP_TYPE,
+ 	SENSORS_SUBFEATURE_TEMP_OFFSET,
+ 	SENSORS_SUBFEATURE_TEMP_BEEP,
++	SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+@@ -185,7 +191,10 @@
+ 	SENSORS_SUBFEATURE_POWER_INPUT,
+ 	SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST,
+ 	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
++	SENSORS_SUBFEATURE_POWER_CAP,
++	SENSORS_SUBFEATURE_POWER_CAP_HYST,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
++	SENSORS_SUBFEATURE_POWER_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+ 
+Index: lib/sysfs.c
+=================================--- lib/sysfs.c	(revision 5889)
++++ lib/sysfs.c	(working copy)
+@@ -226,10 +226,14 @@
+ 	{ "min", SENSORS_SUBFEATURE_TEMP_MIN },
+ 	{ "crit", SENSORS_SUBFEATURE_TEMP_CRIT },
+ 	{ "crit_hyst", SENSORS_SUBFEATURE_TEMP_CRIT_HYST },
++	{ "lcrit", SENSORS_SUBFEATURE_TEMP_LCRIT },
++	{ "emergency", SENSORS_SUBFEATURE_TEMP_EMERGENCY },
++	{ "emergency_hyst", SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST },
+ 	{ "alarm", SENSORS_SUBFEATURE_TEMP_ALARM },
+ 	{ "min_alarm", SENSORS_SUBFEATURE_TEMP_MIN_ALARM },
+ 	{ "max_alarm", SENSORS_SUBFEATURE_TEMP_MAX_ALARM },
+ 	{ "crit_alarm", SENSORS_SUBFEATURE_TEMP_CRIT_ALARM },
++	{ "emergency_alarm", SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM },
+ 	{ "fault", SENSORS_SUBFEATURE_TEMP_FAULT },
+ 	{ "type", SENSORS_SUBFEATURE_TEMP_TYPE },
+ 	{ "offset", SENSORS_SUBFEATURE_TEMP_OFFSET },
+@@ -241,6 +245,8 @@
+ 	{ "input", SENSORS_SUBFEATURE_IN_INPUT },
+ 	{ "min", SENSORS_SUBFEATURE_IN_MIN },
+ 	{ "max", SENSORS_SUBFEATURE_IN_MAX },
++	{ "lcrit", SENSORS_SUBFEATURE_IN_LCRIT },
++	{ "crit", SENSORS_SUBFEATURE_IN_CRIT },
+ 	{ "alarm", SENSORS_SUBFEATURE_IN_ALARM },
+ 	{ "min_alarm", SENSORS_SUBFEATURE_IN_MIN_ALARM },
+ 	{ "max_alarm", SENSORS_SUBFEATURE_IN_MAX_ALARM },
+@@ -265,6 +271,9 @@
+ 	{ "input", SENSORS_SUBFEATURE_POWER_INPUT },
+ 	{ "input_highest", SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST },
+ 	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
++	{ "cap", SENSORS_SUBFEATURE_POWER_CAP },
++	{ "cap_hyst", SENSORS_SUBFEATURE_POWER_CAP_HYST },
++	{ "alarm", SENSORS_SUBFEATURE_POWER_ALARM },
+ 	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+ 	{ NULL, 0 }
+ };
+Index: CHANGES
+=================================--- CHANGES	(revision 5889)
++++ CHANGES	(working copy)
+@@ -4,7 +4,8 @@
+ SVN HEAD
+   Makefile: Check for bison and flex
+   libsensors: Add support for intrusion detection (#2370)
+-  sensors.conf.defauit: Add a section for the W83627THF
++	      Add support for new sysfs attributes
++  sensors.conf.default: Add a section for the W83627THF
+                         Add a section for the SCH5127
+   sensors: Display 3 decimal places in raw output
+            Add support for intrusion detection (#2370)
 
 _______________________________________________
 lm-sensors mailing list
