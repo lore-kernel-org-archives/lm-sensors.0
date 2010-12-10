@@ -1,40 +1,41 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 08 Dec 2010 17:11:38 +0000
-Subject: Re: [lm-sensors] Patch[1/2] Adding Core and Package Thermal
-Message-Id: <20101208171138.GA28901@ericsson.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Fri, 10 Dec 2010 10:10:50 +0000
+Subject: [lm-sensors] [PATCH] emc1403: added emc1423 support
+Message-Id: <20101210101036.12174.79352.stgit@bob.linux.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D6D887BA8C9DFF48B5233887EF04654105C0E05F4E@bgsmsx502.gar.corp.intel.com>
- <20101208162214.353e3899@endymion.delvare>
-In-Reply-To: <20101208162214.353e3899@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Wed, Dec 08, 2010 at 10:22:14AM -0500, Jean Delvare wrote:
-> On Wed, 8 Dec 2010 14:40:29 +0530, R, Durgadoss wrote:
-> > Hi Fenghua,
-> > 
-> > This patch adds the core and package thermal threshold support to coretemp.c.
-> > These thresholds can be read/written using the hwmon sysfs interfaces
-> > temp1_core_thresh[0/1] and temp1_pkg_thresh[0/1].
-> 
-> The package temperature isn't currently supported by the coretemp
-> driver but by the pkgtemp driver. It makes no sense to add support for
-> package thermal threshold to coretemp as long as the pkgtemp functionality
-> hasn't been merged back into coretemp. This was the plan, BTW, I
-> objected to the very existence of a separate pkgtemp driver since day
-> 1, and I thought we had agreed that pkgtemp would be removed and its
-> functionality would be merged into coretemp.
-> 
-Doesn't seem to be happening. Maybe we should reject further changes (other than
-bug fixes) for those drivers until the cleanup has been done.
+From: Jekyll Lai <jekyll_lai@wistron.com>
 
-What is your take on the ABI changes ? For me, there are two questions: Do we need
-new attributes ? If we do, what should be the attribute name(s) and semantics ?
+emc1423 uses the similar register and adds a hardware shutdown pin to
+protect exceed temperature. This function is set by resistor; it's not
+necessary to do anything in the driver except add the emc1423 pid of 0x23.
 
-Guenter
+Signed-off-by: Jekyll Lai <jekyll_lai@wistron.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+
+ drivers/hwmon/emc1403.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
+index 8dee3f3..9141e22 100644
+--- a/drivers/hwmon/emc1403.c
++++ b/drivers/hwmon/emc1403.c
+@@ -278,7 +278,7 @@ static int emc1403_detect(struct i2c_client *client,
+ 	/* Note: 0x25 is the 1404 which is very similar and this
+ 	   driver could be extended */
+ 	id = i2c_smbus_read_byte_data(client, THERMAL_PID_REG);
+-	if (id != 0x21)
++	if (id != 0x21 && id != 0x23)	/* 0x21:emc1403 0x23:emc1423*/
+ 		return -ENODEV;
+ 
+ 	id = i2c_smbus_read_byte_data(client, THERMAL_REVISION_REG);
+
 
 _______________________________________________
 lm-sensors mailing list
