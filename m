@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Dec 2010 14:36:46 +0000
+Date: Fri, 10 Dec 2010 14:37:59 +0000
 Subject: Re: [lm-sensors] powerX_alarm sysfs attribute
-Message-Id: <20101210153646.56102e94@endymion.delvare>
+Message-Id: <20101210153759.747fb2ef@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101209165858.GA521@ericsson.com>
 In-Reply-To: <20101209165858.GA521@ericsson.com>
@@ -10,38 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ira, Guenter,
-
-On Thu, 9 Dec 2010 16:07:08 -0800, Ira W. Snyder wrote:
-> On Thu, Dec 09, 2010 at 01:48:33PM -0800, Guenter Roeck wrote:
-> > Question for the ltc4215 driver, though, is if power1_alarm is
-> > appropriate in the first place. After reading the datasheet, I noticed
-> > that it does not really report a power problem, but "output voltage
-> > low". So I wonder it the attribute in the driver should be "in2_alarm"
-> > or possibly "in2_min_alarm" instead of power1_alarm, and if the power
-> > attributes should be dropped entirely.
+On Thu, 9 Dec 2010 13:26:13 -0800, Ira W. Snyder wrote:
+> On Thu, Dec 09, 2010 at 08:58:58AM -0800, Guenter Roeck wrote:
+> > Hi all,
+> > 
+> > I am looking through libsensors and the hwmon sysfs ABI to identify and fix
+> > inconsistencies.
+> > 
+> > One problem I noticed is powerX_alarm, which is defined as "system is drawing
+> > more power than the cap allows".
+> > 
+> > powerX_cap is defined as " ... The *_cap files only appear if the cap is known
+> > to be enforced by hardware".
+> > 
+> > Now there are conditions where power limits are defined and supported,
+> > but the hardware does not enforce it. Similar, there are devices reporting power
+> > alarms not associated with cap enforcement. Examples are ltc4215 and PMBus devices.
+> > powerX_alarm is supported by the ltc4215 driver, but there is no _cap attribute,
+> > and the alarm is not associated with a maximum, thus a reported alarm doesn't
+> > really reflect the ABI.
 > 
-> Reviewers (probably Jean) suggested the power1_input and power1_alarm
-> files when I submitted the driver. (I'm not placing blame, just
-> explaining where they came from.)
+> In the ltc4215, the power1_alarm occurs when the output voltage of the
+> chip is outside a certain range. This range is specified by external
+> resistors, specific to each application. They are not required to be a
+> specific value by the hardware.
 
-Probably not, the ltc4215 driver went upstream through Andrew Morton
-because I lacked the time to do a proper review.
+I am confused. Did you just write _output_ voltage? 
 
-> In both the ltc4215 and ltc4245 drivers, the power outputs are
-> calculated purely in software. This is very convenient for users of the
-> sensors utility.
-> 
-> I would like to keep the power1_input sysfs file.
+> I guess that the ltc4215 driver's use of powerX_alarm doesn't follow the
+> ABI document.
 
-I have no problem with this, at least as long as libsensors doesn't
-offer a way to bind current sensors to voltage sensors.
+I can confirm that. For one thing, if this has to do with voltage, it's
+not a power limit. For another, if it is a voltage _output_ limit, it
+has nothing to do with hardware monitoring.
 
-> I do not have any
-> objections to changing power1_alarm to in2_alarm or in2_min_alarm.
-
-in2_* doesn't seem right for a voltage output alarm. I'd say such a
-feature doesn't belong to the hwmon ABI in the first place.
+> In essence, the power1_alarm is connected to the chip's power good
+> output (negated). Should the ABI have a powerX_good or powerX_fail
+> attribute?
 
 -- 
 Jean Delvare
