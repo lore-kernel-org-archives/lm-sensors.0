@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 09 Dec 2010 20:45:18 +0000
+Date: Fri, 10 Dec 2010 17:37:14 +0000
 Subject: Re: [lm-sensors] [PATCH v2] lm-sensors: Add support for new hwmon
-Message-Id: <1291927518.2406.43.camel@groeck-laptop>
+Message-Id: <20101210173714.GA12627@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1278567813-9608-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1278567813-9608-1-git-send-email-guenter.roeck@ericsson.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2010-12-09 at 15:31 -0500, Jean Delvare wrote:
+On Thu, Dec 09, 2010 at 03:31:30PM -0500, Jean Delvare wrote:
 > On Thu, 9 Dec 2010 07:40:46 -0800, Guenter Roeck wrote:
 > > Actually, I think I'll have to re-do the whole patch anyway. As you pointed out,
 > > it does not reflect the documented attributes, and there are other problems 
@@ -28,12 +28,10 @@ On Thu, 2010-12-09 at 15:31 -0500, Jean Delvare wrote:
 > readable and/or more maintainable, we definitely want to consider that,
 > even if this changes the output slightly for some chips.
 > 
-Ok, makes sense.
+Related question: When making libsensors API changes, do I update the API version
+to 4.3.2, or stick with 4.3.1 ?
 
-Thanks,
 Guenter
-
-
 
 _______________________________________________
 lm-sensors mailing list
