@@ -1,42 +1,80 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Dec 2010 17:48:59 +0000
-Subject: Re: [lm-sensors] [PATCH v2] lm-sensors: Add support for new hwmon
-Message-Id: <20101210184859.0678d799@endymion.delvare>
+From: Steven Hardy <shardy@redhat.com>
+Date: Fri, 10 Dec 2010 10:20:16 +0000
+Subject: [lm-sensors] [GIT PATCH] Updated email contact details for ads7828
+Message-Id: <1291976416.3237.29.camel@shardy.csb>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1278567813-9608-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1278567813-9608-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, lm-sensors@lm-sensors.org
+Cc: trivial@kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 10 Dec 2010 09:37:14 -0800, Guenter Roeck wrote:
-> On Thu, Dec 09, 2010 at 03:31:30PM -0500, Jean Delvare wrote:
-> > On Thu, 9 Dec 2010 07:40:46 -0800, Guenter Roeck wrote:
-> > > Actually, I think I'll have to re-do the whole patch anyway. As you pointed out,
-> > > it does not reflect the documented attributes, and there are other problems 
-> > > such as how and when to display alarms. Without going into details,
-> > > I don't think we really disagree on anything
-> > 
-> > I agree.
-> > 
-> > > - the idea was to retain the existing output.
-> > 
-> > Up to a certain point, yes. Where the current output was decided
-> > because it made sense, we want to keep it as is. But being identical to
-> > the character isn't a goal per se. In particular, if switching to more
-> > generic code is possible and makes the code smaller and/or more
-> > readable and/or more maintainable, we definitely want to consider that,
-> > even if this changes the output slightly for some chips.
-> > 
-> Related question: When making libsensors API changes, do I update the API version
-> to 4.3.2, or stick with 4.3.1 ?
+Hi, 
 
-You stick with 4.3.1, as no version of libsensors was ever released
-with this number. See doc/libsensors-API.txt.
+Trivial patch updating my email contact details due to change of
+employer, and because I no longer have access to the previously used
+domain.
 
+Unfortunately I also no longer have access to any ads7828 hardware, but
+am happy to support/maintain the driver if others are able to test
+changes.
+
+Thanks, 
+
+Steve
+
+Signed-off-by: Steve Hardy <shardy@redhat.com>
+
+From 3c72783100922347afe4abf2de244997b4e54c16 Mon Sep 17 00:00:00 2001
+From: Steve Hardy <shardy@redhat.com>
+Date: Fri, 10 Dec 2010 09:38:06 +0000
+Subject: [PATCH] Updated email contact details for ads7828 driver
+
+---
+ Documentation/hwmon/ads7828 |    2 +-
+ drivers/hwmon/ads7828.c     |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
+index 75bc4be..2bbebe6 100644
+--- a/Documentation/hwmon/ads7828
++++ b/Documentation/hwmon/ads7828
+@@ -9,7 +9,7 @@ Supported chips:
+                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+ 
+ Authors:
+-        Steve Hardy <steve@linuxrealtime.co.uk>
++        Steve Hardy <shardy@redhat.com>
+ 
+ Module Parameters
+ -----------------
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index aac85f3..c42c5a6 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -4,7 +4,7 @@
+ 
+ 	This driver is based on the lm75 and other lm_sensors/hwmon drivers
+ 
+-	Written by Steve Hardy <steve@linuxrealtime.co.uk>
++	Written by Steve Hardy <shardy@redhat.com>
+ 
+ 	Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+ 
+@@ -271,7 +271,7 @@ static void __exit sensors_ads7828_exit(void)
+ 	i2c_del_driver(&ads7828_driver);
+ }
+ 
+-MODULE_AUTHOR("Steve Hardy <steve@linuxrealtime.co.uk>");
++MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
+ MODULE_DESCRIPTION("ADS7828 driver");
+ MODULE_LICENSE("GPL");
+ 
 -- 
-Jean Delvare
+1.7.1
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
