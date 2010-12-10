@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 10 Dec 2010 15:15:29 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 10 Dec 2010 16:00:23 +0000
 Subject: Re: [lm-sensors] powerX_alarm sysfs attribute
-Message-Id: <20101210151529.GB11777@ericsson.com>
+Message-Id: <20101210170023.7cbfdad5@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101209165858.GA521@ericsson.com>
 In-Reply-To: <20101209165858.GA521@ericsson.com>
@@ -10,49 +10,40 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Dec 10, 2010 at 09:37:59AM -0500, Jean Delvare wrote:
-> On Thu, 9 Dec 2010 13:26:13 -0800, Ira W. Snyder wrote:
-> > On Thu, Dec 09, 2010 at 08:58:58AM -0800, Guenter Roeck wrote:
-> > > Hi all,
-> > > 
-> > > I am looking through libsensors and the hwmon sysfs ABI to identify and fix
-> > > inconsistencies.
-> > > 
-> > > One problem I noticed is powerX_alarm, which is defined as "system is drawing
-> > > more power than the cap allows".
-> > > 
-> > > powerX_cap is defined as " ... The *_cap files only appear if the cap is known
-> > > to be enforced by hardware".
-> > > 
-> > > Now there are conditions where power limits are defined and supported,
-> > > but the hardware does not enforce it. Similar, there are devices reporting power
-> > > alarms not associated with cap enforcement. Examples are ltc4215 and PMBus devices.
-> > > powerX_alarm is supported by the ltc4215 driver, but there is no _cap attribute,
-> > > and the alarm is not associated with a maximum, thus a reported alarm doesn't
-> > > really reflect the ABI.
+On Fri, 10 Dec 2010 07:12:09 -0800, Guenter Roeck wrote:
+> On Fri, Dec 10, 2010 at 09:36:46AM -0500, Jean Delvare wrote:
+> > On Thu, 9 Dec 2010 16:07:08 -0800, Ira W. Snyder wrote:
+> > > I would like to keep the power1_input sysfs file.
 > > 
-> > In the ltc4215, the power1_alarm occurs when the output voltage of the
-> > chip is outside a certain range. This range is specified by external
-> > resistors, specific to each application. They are not required to be a
-> > specific value by the hardware.
+> > I have no problem with this, at least as long as libsensors doesn't
+> > offer a way to bind current sensors to voltage sensors.
+> > 
+> > > I do not have any
+> > > objections to changing power1_alarm to in2_alarm or in2_min_alarm.
+> > 
+> > in2_* doesn't seem right for a voltage output alarm. I'd say such a
+> > feature doesn't belong to the hwmon ABI in the first place.
 > 
-> I am confused. Did you just write _output_ voltage? 
-> 
-output is probably an inexact statement here. The chip controls the voltage
-to a board using an external transistor, and it can monitor the output voltage 
-of that transistor.
+> Why not ? You lost me there. It optionally monitors the voltage it controls,
+> and provides the monitored value(s) to the user. Many of the other recent chips
+> do the same.  ltc4215, ltc4245, ltc4261, smm655, and pretty much all PMBus devices.
+> The ltc42xx devices act as voltage switch (on/off) and don't otherwise affect
+> the controlled voltage.
+> For ltc4215, in2_input is still connected to a a sensor input (AD2IN or so), as is
+> the FB pin (which causes the alarm if the voltage connected to it drops below a
+> certain level). It doesn't make sense to state that the monitored voltage can not
+> be reported through hwmon just because it may be a voltage it controls.
 
-> > I guess that the ltc4215 driver's use of powerX_alarm doesn't follow the
-> > ABI document.
-> 
-> I can confirm that. For one thing, if this has to do with voltage, it's
-> not a power limit. For another, if it is a voltage _output_ limit, it
-> has nothing to do with hardware monitoring.
-> 
-I disagree; please also see my other reply.
+Thanks for clarifying. I didn't read the datasheet, and what Ira wrote
+confused me. If the alarm is related to the value of in2_input, then of
+course in2_alarm, in2_min_alarm (assuming in2_min is present) or
+in2_max_alarm (assuming in2_max is present) makes sense.
 
-Thanks,
-Guenter
+BTW, powerX_alarm makes no sense at all if powerX_input is computed, as
+is the case for the ltc4215 according to Ira.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
