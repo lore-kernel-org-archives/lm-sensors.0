@@ -1,266 +1,108 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Dec 2010 14:27:02 +0000
+From: "Jeff Rickman" <jrickman@myamigos.us>
+Date: Sat, 11 Dec 2010 07:02:02 +0000
 Subject: Re: [lm-sensors] Testing LM-Sensor Support of SCH5127 in Acer
-Message-Id: <20101210152702.28305a0e@endymion.delvare>
+Message-Id: <50880.75.142.173.238.1292050922.squirrel@webmail.myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 In-Reply-To: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
 Hi Juerg,
 
-On Fri, 10 Dec 2010 10:43:57 +0100, Juerg Haefliger wrote:
+> Hi Jeff,
+>
+>>> Ah. I just realized that the SCH5127 has another voltage input that
+>>> the other dme1737 clones don't have but which isn't exposed through
+>>> the driver. Register 0x1f, nominal 1.5V, max 2.0V.
+>>
+>> Ah ah! Very interesting. It could be where Jeff's mysterious +1.5V is
+>> connected! Could you write a patch adding support?
+>
 > Attached is a modified driver with support for Vtrip monitoring (1.5V,
 > in7). Could you give it a try and let me know how it goes? The new
 > driver should expose the following new sysfs files: in7_input,
 > in7_min, in7_max, in7_alarm. No user-level scaling is required. The
 > nominal voltage is 1.5V.
+>
+> Thanks
+> ...Juerg
+>
 
-The changes look overall good to me, but I have a few comments if you
-are interested:
+I successfully compiled the module. Then I removed the old module with
+"modprobe -r dme1737". Next I copied the new "dme1737.ko" module into the
+proper location in "/lib/modules/`uname -r`/kernel/drivers/hwmon" and set
+the proper permissions with "chmod"; FC14 uses permissions of '744'. Now I
+installed the kernel module with "modprobe -v dme1737" and the Console
+printed the following:
 
-> --- dme1737.c	2010-08-02 00:11:14.000000000 +0200
-> +++ /home/khali/dme1737.c	2010-12-10 14:39:04.000000000 +0100
-> @@ -75,16 +75,20 @@
->   * in4   +12V
->   * in5   VTR   (+3.3V stby)
->   * in6   Vbat
-> + * in7   Vtrip (sch5127 only)
->   *
->   * --------------------------------------------------------------------- */
->  
-> -/* Voltages (in) numbered 0-6 (ix) */
-> -#define	DME1737_REG_IN(ix)		((ix) < 5 ? 0x20 + (ix) \
-> -						  : 0x94 + (ix))
-> -#define	DME1737_REG_IN_MIN(ix)		((ix) < 5 ? 0x44 + (ix) * 2 \
-> -						  : 0x91 + (ix) * 2)
-> -#define	DME1737_REG_IN_MAX(ix)		((ix) < 5 ? 0x45 + (ix) * 2 \
-> -						  : 0x92 + (ix) * 2)
-> +/* Voltages (in) numbered 0-7 (ix) */
-> +#define	DME1737_REG_IN(ix)		((ix) < 5 ? 0x20 + (ix) : \
-> +					 (ix) < 7 ? 0x94 + (ix) : \
-> +						    0x1f)
-> +#define	DME1737_REG_IN_MIN(ix)		((ix) < 5 ? 0x44 + (ix) * 2 : \
-> +					 (ix) < 7 ? 0x91 + (ix) * 2 : \
-> +						    0x9f)
-> +#define	DME1737_REG_IN_MAX(ix)		((ix) < 5 ? 0x45 + (ix) * 2 : \
-> +					 (ix) < 7 ? 0x92 + (ix) * 2 : \
-> +						    0xa0)
+insmod /lib/modules/2.6.35.9-64.fc14.x86_64/kernel/drivers/hwmon/hwmon-vid.=
+ko
+insmod /lib/modules/2.6.35.9-64.fc14.x86_64/kernel/drivers/hwmon/dme1737.ko
 
-Maybe it is time to give up macros and go with const arrays? The macros
-are never called with a constant parameters so the compiler can't
-optimize the calls.
+So far so good.....
 
->  
->  /* Temperatures (temp) numbered 0-2 (ix) */
->  #define DME1737_REG_TEMP(ix)		(0x25 + (ix))
-> @@ -99,10 +103,11 @@
->   *    IN_TEMP_LSB(1) = [temp3, temp1]
->   *    IN_TEMP_LSB(2) = [in4, temp2]
->   *    IN_TEMP_LSB(3) = [in3, in0]
-> - *    IN_TEMP_LSB(4) = [in2, in1] */
-> + *    IN_TEMP_LSB(4) = [in2, in1]
-> + *    IN_TEMP_LSB(5) = [res, in7] */
->  #define DME1737_REG_IN_TEMP_LSB(ix)	(0x84 + (ix))
-> -static const u8 DME1737_REG_IN_LSB[] = {3, 4, 4, 3, 2, 0, 0};
-> -static const u8 DME1737_REG_IN_LSB_SHL[] = {4, 4, 0, 0, 0, 0, 4};
-> +static const u8 DME1737_REG_IN_LSB[] = {3, 4, 4, 3, 2, 0, 0, 5};
-> +static const u8 DME1737_REG_IN_LSB_SHL[] = {4, 4, 0, 0, 0, 0, 4, 4};
->  static const u8 DME1737_REG_TEMP_LSB[] = {1, 2, 1};
->  static const u8 DME1737_REG_TEMP_LSB_SHL[] = {4, 4, 0};
->  
-> @@ -143,7 +148,7 @@
->  #define DME1737_REG_ALARM1		0x41
->  #define DME1737_REG_ALARM2		0x42
->  #define DME1737_REG_ALARM3		0x83
-> -static const u8 DME1737_BIT_ALARM_IN[] = {0, 1, 2, 3, 8, 16, 17};
-> +static const u8 DME1737_BIT_ALARM_IN[] = {0, 1, 2, 3, 8, 16, 17, 18};
->  static const u8 DME1737_BIT_ALARM_TEMP[] = {4, 5, 6};
->  static const u8 DME1737_BIT_ALARM_FAN[] = {10, 11, 12, 13, 22, 23};
->  
-> @@ -188,6 +193,7 @@
->  #define HAS_PWM_MIN		(1 << 4)		/* bit 4 */
->  #define HAS_FAN(ix)		(1 << ((ix) + 5))	/* bits 5-10 */
->  #define HAS_PWM(ix)		(1 << ((ix) + 11))	/* bits 11-16 */
-> +#define HAS_IN7			(1 << 17)		/* bit 17 */
->  
->  /* ---------------------------------------------------------------------
->   * Data structures and manipulation thereof
-> @@ -245,7 +251,7 @@
->  static const int IN_NOMINAL_SCH5027[] = {5000, 2250, 3300, 1125, 1125, 3300,
->  					 3300};
->  static const int IN_NOMINAL_SCH5127[] = {2500, 2250, 3300, 1125, 1125, 3300,
-> -					 3300};
-> +					 3300, 1500};
->  #define IN_NOMINAL(type)	((type) = sch311x ? IN_NOMINAL_SCH311x : \
->  				 (type) = sch5027 ? IN_NOMINAL_SCH5027 : \
->  				 (type) = sch5127 ? IN_NOMINAL_SCH5127 : \
-> @@ -578,7 +584,7 @@
->  {
->  	struct dme1737_data *data = dev_get_drvdata(dev);
->  	int ix;
-> -	u8 lsb[5];
-> +	u8 lsb[6];
->  
->  	mutex_lock(&data->update_lock);
->  
-> @@ -601,12 +607,14 @@
->  			/* Voltage inputs are stored as 16 bit values even
->  			 * though they have only 12 bits resolution. This is
->  			 * to make it consistent with the temp inputs. */
-> -			data->in[ix] = dme1737_read(data,
-> +			if (ix != 7 || (data->has_features & HAS_IN7)) {
+Now I ran "sensors" without any changes to my "/etc/sensors.d/local.conf"
+file.
 
-It is less intrusive to do the opposite test:
+[root@anas-01 ~]# sensors
+sch5127-isa-0870
+Adapter: ISA adapter
+in0:         +1.78 V  (min =3D  +0.00 V, max =3D  +3.32 V)
+Vccp:        +1.19 V  (min =3D  +1.08 V, max =3D  +1.32 V)
+VCC:         +3.31 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+in3:         +1.14 V  (min =3D  +0.00 V, max =3D  +1.49 V)
+in4:         +1.48 V  (min =3D  +0.00 V, max =3D  +1.49 V)
+VTR:         +3.33 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+VBAT:        +3.24 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+in7:         +0.72 V  (min =3D  +1.99 V, max =3D  +0.25 V)
+Side Fan:   1884 RPM  (min =3D  700 RPM)
+MCH Fan:    5027 RPM  (min =3D 4500 RPM)
+CPU Temp:    +40.1=B0C  (low  =3D +20.0=B0C, high =3D +60.0=B0C)
+SYS Temp:    +32.9=B0C  (low  =3D +20.0=B0C, high =3D +60.0=B0C)
 
-			if (ix = 7 && !(data->has_features & HAS_IN7))
-				continue;
+For the record I have "blacklisted" the 'coretemp' module on this machine
+as it reports strange temp values (anything from ~9C to ~15C and those are
+too cold) for an Intel Atom 230 CPU (per "/proc/cpuinfo": CPU family 6,
+model 28, stepping 2) compared to the "CPU Temp" value reported by
+'sensors'.
 
-This avoids reindenting the whole block.
+"in7" is now reported but it will require a "compute (@ * 2), (@ / 2)"
+line in my "/etc/sensors.d/local.conf" to provide a reasonable value of
+1.44: 0.72 * 2 =3D 1.44, which is close enough to the BIOS reported +1.5V
+value.
 
-> +				data->in[ix] = dme1737_read(data,
->  					DME1737_REG_IN(ix)) << 8;
-> -			data->in_min[ix] = dme1737_read(data,
-> +				data->in_min[ix] = dme1737_read(data,
->  					DME1737_REG_IN_MIN(ix));
-> -			data->in_max[ix] = dme1737_read(data,
-> +				data->in_max[ix] = dme1737_read(data,
->  					DME1737_REG_IN_MAX(ix));
-> +			}
->  		}
->  
->  		/* Temp registers */
-> @@ -633,12 +641,16 @@
->  		 * which the registers are read (MSB first, then LSB) is
->  		 * important! */
->  		for (ix = 0; ix < ARRAY_SIZE(lsb); ix++) {
-> -			lsb[ix] = dme1737_read(data,
-> +			if (ix != 5 || (data->has_features & HAS_IN7)) {
-> +				lsb[ix] = dme1737_read(data,
->  					DME1737_REG_IN_TEMP_LSB(ix));
-> +			}
->  		}
->  		for (ix = 0; ix < ARRAY_SIZE(data->in); ix++) {
-> -			data->in[ix] |= (lsb[DME1737_REG_IN_LSB[ix]] <<
-> +			if (ix != 7 || (data->has_features & HAS_IN7)) {
-> +				data->in[ix] |= (lsb[DME1737_REG_IN_LSB[ix]] <<
->  					DME1737_REG_IN_LSB_SHL[ix]) & 0xf0;
-> +			}
->  		}
->  		for (ix = 0; ix < ARRAY_SIZE(data->temp); ix++) {
->  			data->temp[ix] |= (lsb[DME1737_REG_TEMP_LSB[ix]] <<
-> @@ -760,7 +772,7 @@
->  
->  /* ---------------------------------------------------------------------
->   * Voltage sysfs attributes
-> - * ix = [0-5]
-> + * ix = [0-6]
+Both "in3" and "in4" are "unknowns" to me. I know they will be external
+voltage inputs to the SCH5127, but it's a guess as to what is being
+measured. I located a "service guide" for the Acer H340, but it is useless
+in this regard. The same judgement applies to "in0". the remaining inputs
+are marked per the kernel documentation notes written by Juerg.
 
-Shouldn't this be [0-7]?
+Checking the BIOS screen for this machine shows the "V+1.5" reading out a
+steady ~1.5V.
 
->   * --------------------------------------------------------------------- */
->  
->  #define SYS_IN_INPUT	0
-> @@ -1437,7 +1449,7 @@
->   * Sysfs device attribute defines and structs
->   * --------------------------------------------------------------------- */
->  
-> -/* Voltages 0-6 */
-> +/* Voltages 0-7 */
->  
->  #define SENSOR_DEVICE_ATTR_IN(ix) \
->  static SENSOR_DEVICE_ATTR_2(in##ix##_input, S_IRUGO, \
-> @@ -1456,6 +1468,7 @@
->  SENSOR_DEVICE_ATTR_IN(4);
->  SENSOR_DEVICE_ATTR_IN(5);
->  SENSOR_DEVICE_ATTR_IN(6);
-> +SENSOR_DEVICE_ATTR_IN(7);
->  
->  /* Temperatures 1-3 */
->  
-> @@ -1678,8 +1691,7 @@
->  	.attrs = dme1737_zone3_attr,
->  };
->  
-> -
-> -/* The following struct holds temp zone hysteresis  related attributes, which
-> +/* The following struct holds temp zone hysteresis related attributes, which
+Also, a comment for Jean. I pulled the CMOS battery and booted the
+machine...before making this kernel module change. I did not see any
+change in the BIOS reported value for "VBAT" and "sensors" did not see any
+reported change; BIOS reported +3.20V and "sensors" reported +3.24V.
+Perhaps Acer makes that measurement ahead of the CMOS battery on the "+"
+voltage line? I wonder why. Or perhaps I don't understand what "VBAT" is
+supposed to measure.
 
-Cleanups are preferred as separate patches (makes backporting easier.)
+Finally, for good measure I ran "depmod -a" and rebooted the machine. The
+'updated' dme1737.ko module is correctly loaded on reboot.
 
->   * are not available in all chips. The following chips support them:
->   * DME1737, SCH311x */
->  static struct attribute *dme1737_zone_hyst_attr[] = {
-> @@ -1693,6 +1705,21 @@
->  	.attrs = dme1737_zone_hyst_attr,
->  };
->  
-> +/* The following struct holds voltage in7 related attributes, which
-> + * are not available in all chips. The following chips support them:
-> + * SCH5127 */
-> +static struct attribute *dme1737_in7_attr[] = {
-> +	&sensor_dev_attr_in7_input.dev_attr.attr,
-> +	&sensor_dev_attr_in7_min.dev_attr.attr,
-> +	&sensor_dev_attr_in7_max.dev_attr.attr,
-> +	&sensor_dev_attr_in7_alarm.dev_attr.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group dme1737_in7_group = {
-> +	.attrs = dme1737_in7_attr,
-> +};
-> +
->  /* The following structs hold the PWM attributes, some of which are optional.
->   * Their creation depends on the chip configuration which is determined during
->   * module load. */
-> @@ -1984,6 +2011,9 @@
->  	if (data->has_features & HAS_ZONE_HYST) {
->  		sysfs_remove_group(&dev->kobj, &dme1737_zone_hyst_group);
->  	}
-> +	if (data->has_features & HAS_IN7) {
-> +		sysfs_remove_group(&dev->kobj, &dme1737_in7_group);
-> +	}
->  	sysfs_remove_group(&dev->kobj, &dme1737_group);
->  
->  	if (!data->client) {
-> @@ -2028,6 +2058,11 @@
->  				      &dme1737_zone_hyst_group))) {
->  		goto exit_remove;
->  	}
-> +	if ((data->has_features & HAS_IN7) &&
-> +	    (err = sysfs_create_group(&dev->kobj,
-> +				      &dme1737_in7_group))) {
-> +		goto exit_remove;
-> +	}
+Dec 11 00:59:00 anas-01 kernel: [   24.137243] dme1737 dme1737.2160: Found
+a SCH5127 chip at 0x0870
+Dec 11 00:59:00 anas-01 kernel: [   24.167411] dme1737 dme1737.2160:
+Optional features: pwm3=3Dyes, pwm5=3Dno, pwm6=3Dno, fan3=3Dyes, fan4=3Dno,=
+ fan5=3Dno,
+fan6=3Dno.
 
-checkpatch.pl will complain. It wants:
 
-	if (data->has_features & HAS_IN7) {
-		err = sysfs_create_group(&dev->kobj, &dme1737_in7_group);
-		if (err)
-			goto exit_remove;
-	}
 
->  
->  	/* Create fan sysfs attributes */
->  	for (ix = 0; ix < ARRAY_SIZE(dme1737_fan_group); ix++) {
-> @@ -2186,7 +2221,7 @@
->  		data->has_features |= HAS_ZONE3;
->  		break;
->  	case sch5127:
-> -		data->has_features |= HAS_FAN(2) | HAS_PWM(2);
-> +		data->has_features |= HAS_FAN(2) | HAS_PWM(2) | HAS_IN7;
->  		break;
->  	default:
->  		break;
-> 
-
-Thanks,
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
