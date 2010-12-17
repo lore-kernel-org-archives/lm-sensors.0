@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 17 Dec 2010 19:59:34 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 17 Dec 2010 21:56:39 +0000
 Subject: Re: [lm-sensors] [Patch]Adding_threshold_support_to_coretemp
-Message-Id: <20101217195934.GA12933@ericsson.com>
+Message-Id: <20101217225639.0afc91b9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <D6D887BA8C9DFF48B5233887EF04654105C117387C@bgsmsx502.gar.corp.intel.com>
 In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654105C117387C@bgsmsx502.gar.corp.intel.com>
@@ -10,29 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Dec 17, 2010 at 01:17:09PM -0500, Fenghua Yu wrote:
-[ ... ]
-> > >  temp1_max   - All cooling devices should be turned on (on Core2).
-> > > +              If the IA32_TEMPERATURE_TARGET is not supported, this
-> > > +              value indicates the higher core threshold. When the CPU
-> > > +              temperature crosses this temperature, an interrupt is
-> > > +              generated.
-> The temp1_max explanation is confusing. This is not what your code is doing.
-> If both IA32_TEMPERATURE_TARGET and threshold are supported (most likely in
-> new processors), this explanation goes nowhere.
+On Fri, 17 Dec 2010 23:10:17 +0530, R, Durgadoss wrote:
+> > What is supposed to happen if this threshold is reached ? Does it mean "it is
+> > too cold",
+> > or does it mean "it is ok to turn off some of the cooling devices which were
+> > turned on earlier" ?
+> > 
+> > If it means "it is too cold", question is what the system is supposed to do
+> > about it.
+> > I am not sure if such a use would be of much value.
+> > 
+> > If it means "it is no longer too hot", the atribute name should really be
+> > temp1_max_threshold.
 > 
-Then find a better text.
+> It means "it is no longer too hot". So, shall change the name to _max_threshold.
 
-> > > +temp1_min   - Indicates the lower threshold of the core. An interrupt is
-> > > +              generated when CPU temperature crosses this threshold.
-> 
-> Guenter and Durgadoss, I don't want to discuss this back and forth. But can we
-> use temp1_max_alarm and temp1_min_alarm as the threshold interfaces? Seems they
-> are existing interfaces and won't chang legacy temp1_max meaning in coretemp?
-> 
-Those are _alarms_, ie flags, not values.
+I'm fairly certain Guenter actually meant temp1_max_hyst, per
+Documentation/hwmon/sysfs-interface.
 
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
