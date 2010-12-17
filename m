@@ -1,45 +1,44 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 17 Dec 2010 19:42:51 +0000
+Date: Fri, 17 Dec 2010 19:46:12 +0000
 Subject: Re: [lm-sensors] Testing LM-Sensor Support of SCH5127 in Acer
-Message-Id: <20101217204251.3bc1e9b6@endymion.delvare>
+Message-Id: <20101217204612.45086f60@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 In-Reply-To: <57920.75.142.173.238.1291011644.squirrel@webmail.myamigos.us>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, 17 Dec 2010 12:43:35 -0600 (CST), Jeff Rickman wrote:
-> > The SCH5127 has an automatic fan speed control mode which you should be
-> > able to setup by writing the proper values to sysfs. Should be
-> > equivalent to "fancontrol" but more reactive and less CPU-intensive.
-> 
-> I studied the sysfs entries carefully while using fancontrol
-> and not using fancontrol. I decided to do the following:
-> 
-> echo 1 > /sys/devices/platform/dme1737.2160/pwm1_enable
-> echo 255 > /sys/devices/platform/dme1737.2160/pwm1
-> 
-> Works fine.
+On Fri, 17 Dec 2010 13:04:53 -0600 (CST), Jeff Rickman wrote:
+> Changes made. Recompile successful. Old module removed. Module installs
+> without error. Output as follows:
+>=20
+> [root@anas-01 sensors]# sensors
+> sch5127-isa-0870
+> Adapter: ISA adapter
+> in0:         +1.78 V  (min =3D  +0.00 V, max =3D  +3.32 V)
+> Vccp:        +1.19 V  (min =3D  +1.08 V, max =3D  +1.32 V)
+> VCC:         +3.31 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+> in3:         +1.13 V  (min =3D  +0.00 V, max =3D  +1.49 V)
+> in4:         +1.48 V  (min =3D  +0.00 V, max =3D  +1.49 V)
+> VTR:         +3.33 V  (min =3D  +2.97 V, max =3D  +3.63 V)
+> VBAT:        +3.25 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+> in7:         +1.43 V  (min =3D  +1.35 V, max =3D  +1.65 V)
+> Side Fan:   1905 RPM  (min =3D  700 RPM)
+> MCH Fan:    5032 RPM  (min =3D 4500 RPM)
+> CPU Temp:    +41.8=B0C  (low  =3D +20.0=B0C, high =3D +60.0=B0C)
+> SYS Temp:    +32.9=B0C  (low  =3D +20.0=B0C, high =3D +60.0=B0C)
+>=20
+> 1.43 volts isn't 1.5 volts, but within +- 10 percent.
 
-This puts the fan to full speed (100% duty cycle.) This is equivalent
-to, but presumably less efficient than:
+Indeed, much better! Thanks for testing and reporting! Now, I can merge
+Juerg's patch.
 
-$ echo 0 > /sys/devices/platform/dme1737.2160/pwm1_enable
+I think we can conclude that in7 is +1.5V on your system, and in0 and
+in3 would be +5V and 5VSB (or vice-versa) with unknown scaling factors.
 
-If the noise is bearable then you're done indeed. But what I actually
-had in mind was setting to automatic mode:
-
-$ echo 2 > /sys/devices/platform/dme1737.2160/pwm1_enable
-
-And then fine-tuning the pwm1_auto_channels_zone,
-zone*_auto_channels_temp and zone*_auto_point*_temp values. This would
-let you tune the fan speeds from medium at idle to full speed under load
-(best noise/temperature trade-off.) If you try that, you'll have to
-read the documentation in Documentation/hwmon/dme1737.
-
--- 
+--=20
 Jean Delvare
 
 _______________________________________________
