@@ -1,15 +1,15 @@
 From: Matthew Garrett <mjg@redhat.com>
-Date: Thu, 16 Dec 2010 15:33:09 +0000
+Date: Fri, 17 Dec 2010 21:58:26 +0000
 Subject: [lm-sensors] [PATCH 2/2] applesmc: Perform some more sanity
-Message-Id: <1292513589-14651-2-git-send-email-mjg@redhat.com>
+Message-Id: <1292623106-31684-2-git-send-email-mjg@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1292513589-14651-1-git-send-email-mjg@redhat.com>
-In-Reply-To: <1292513589-14651-1-git-send-email-mjg@redhat.com>
+References: <20101216170018.GA8140@ericsson.com>
+In-Reply-To: <20101216170018.GA8140@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rydberg@euromail.se
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Matthew Garrett <mjg@redhat.com>
+To: guenter.roeck@ericsson.com
+Cc: rydberg@euromail.se, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Matthew Garrett <mjg@redhat.com>
 
 It seems that the two-byte temperature format is intended to be signed
 ("sp78" appears to mean "signed, decimal point, 7 bits before, 8 bits
@@ -23,10 +23,10 @@ Signed-off-by: Matthew Garrett <mjg@redhat.com>
  1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index dbe3fa6..d7ec678 100644
+index 6c98b60..c1eead4 100644
 --- a/drivers/hwmon/applesmc.c
 +++ b/drivers/hwmon/applesmc.c
-@@ -739,6 +739,10 @@ static ssize_t applesmc_show_temperature(struct device *dev,
+@@ -744,6 +744,10 @@ static ssize_t applesmc_show_temperature(struct device *dev,
  		return ret;
  
  	if (entry->len = 2) {
