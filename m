@@ -1,53 +1,43 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Date: Fri, 17 Dec 2010 21:57:08 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] applesmc: Use PnP rather
-Message-Id: <20101217215708.GA10995@srcf.ucam.org>
+From: Malte Gell <malte.gell@gmx.de>
+Date: Fri, 17 Dec 2010 08:11:54 +0000
+Subject: [lm-sensors] identifying thermal zones
+Message-Id: <201012170911.54944.malte.gell@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1292513589-14651-1-git-send-email-mjg@redhat.com> <20101216170018.GA8140@ericsson.com>
-In-Reply-To: <20101216170018.GA8140@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "rydberg@euromail.se" <rydberg@euromail.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 16, 2010 at 09:00:18AM -0800, Guenter Roeck wrote:
+Hello,
 
-> I am having trouble applying this patch to my -next tree. The driver there
-> (and in the official -next tree) has subtle differences to your version.
-> What tree is your patch based on ? Can you rebase it to the -next tree and resubmit ?
+I have an Acer Aspire 7736G laptop with Intel chipset. I have loaded the=20
+coretemp module and ran sensors-detect.
 
-My mistake - I'd pulled the patches from LKML, but it looks like there 
-was a later version of one or two.
+Now, when invoking sensors I get this output:
 
-> Couple of comments below; not necessarily complete, since I can not apply the patch.
-> I hope Henrik can comment on the merits of the patch itself, ie if it is known to work
-> with all systems.
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:       +39.0=B0C  (crit =3D +90.0=B0C)                 =20
+temp2:       +39.0=B0C  (crit =3D +90.0=B0C)                 =20
 
-> > +struct pnp_dev *pdev;
-> > +struct applesmc_pnp_device *pnp_device;
-> > +
-> Please make those variables static.
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +30.0=B0C  (high =3D +85.0=B0C, crit =3D +85.0=B0C) =20
 
-Oops! Yup.
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +27.0=B0C  (high =3D +85.0=B0C, crit =3D +85.0=B0C) =20
 
-> Just wondering ...  applesmc_pnp_device doesn't seem to be necessary. 
-> Why not just use the global variable directly if you have it anyway ?
+temp1 and temp2 are probably the two cores of the Core2Duo CPU. How can I n=
+ow=20
+identify which thermal zone "Core 0" and "Core 1" is? I would like which pi=
+ece=20
+of hardware these two temperatures refer to....
 
-This ended up left over as part of an attempt to get rid of the 
-globals...
+I use sensors version sensors-3.1.1-3.5.x86_64.
 
-> > +       pnp_set_drvdata(dev, applesmc_pnp_device);
-> > +
-> 
-> ... but then since you assign it to drvdata, can you get rid of the global variable 
-> and use pnp_get_drvdata() whereever it is needed instead ?
-
-But then I ran into some awkward issue and decided to leave it. And then 
-failed to clean everything up. I'll repost without that.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+Thanx
+Malte
 
 _______________________________________________
 lm-sensors mailing list
