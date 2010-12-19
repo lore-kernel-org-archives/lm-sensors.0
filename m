@@ -1,38 +1,51 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 17 Dec 2010 22:28:11 +0000
-Subject: Re: [lm-sensors] [Patch]Adding_threshold_support_to_coretemp
-Message-Id: <20101217222811.GC13207@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 19 Dec 2010 11:43:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83795) Silent false warning from gcc
+Message-Id: <20101219124332.24e084ca@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D6D887BA8C9DFF48B5233887EF04654105C117387C@bgsmsx502.gar.corp.intel.com>
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654105C117387C@bgsmsx502.gar.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Dec 17, 2010 at 04:56:39PM -0500, Jean Delvare wrote:
-> On Fri, 17 Dec 2010 23:10:17 +0530, R, Durgadoss wrote:
-> > > What is supposed to happen if this threshold is reached ? Does it mean "it is
-> > > too cold",
-> > > or does it mean "it is ok to turn off some of the cooling devices which were
-> > > turned on earlier" ?
-> > > 
-> > > If it means "it is too cold", question is what the system is supposed to do
-> > > about it.
-> > > I am not sure if such a use would be of much value.
-> > > 
-> > > If it means "it is no longer too hot", the atribute name should really be
-> > > temp1_max_threshold.
-> > 
-> > It means "it is no longer too hot". So, shall change the name to _max_threshold.
-> 
-> I'm fairly certain Guenter actually meant temp1_max_hyst, per
-> Documentation/hwmon/sysfs-interface.
-> 
-Definitely yes ... I must have been low on coffee or something :(.
-Thanks for correcting me.
+The code triggers a false warning with older versions of gcc:
+w83795.c: In function 'w83795_update_device':
+w83795.c:475: warning: 'lsb' may be used uninitialized in this function
 
-Guenter
+I admit that the code is a little tricky, but I see no way to write it
+differently without hurting performance. So let's just silent the
+warning with a needless initialization.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83795.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- linux-2.6.37-rc6.orig/drivers/hwmon/w83795.c	2010-12-19 11:05:32.000000000 +0100
++++ linux-2.6.37-rc6/drivers/hwmon/w83795.c	2010-12-19 11:37:57.000000000 +0100
+@@ -458,6 +458,7 @@ static void w83795_update_limits(struct
+ {
+ 	struct w83795_data *data = i2c_get_clientdata(client);
+ 	int i, limit;
++	u8 lsb;
+ 
+ 	/* Read the voltage limits */
+ 	for (i = 0; i < ARRAY_SIZE(data->in); i++) {
+@@ -479,9 +480,8 @@ static void w83795_update_limits(struct
+ 	}
+ 
+ 	/* Read the fan limits */
++	lsb = 0; /* Silent false gcc warning */
+ 	for (i = 0; i < ARRAY_SIZE(data->fan); i++) {
+-		u8 lsb;
+-
+ 		/* Each register contains LSB for 2 fans, but we want to
+ 		 * read it only once to save time */
+ 		if ((i & 1) = 0 && (data->has_fan & (3 << i)))
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
