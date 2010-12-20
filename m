@@ -1,615 +1,420 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Tue, 28 Dec 2010 10:38:57 +0000
-Subject: [lm-sensors] Patch[2/2]:hwmon:Adding_Threshold_Support_to_Coretemp.c
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654105C11DB93B@bgsmsx502.gar.corp.intel.com>
+From: Roland Stigge <stigge@antcom.de>
+Date: Mon, 20 Dec 2010 20:07:49 +0000
+Subject: [lm-sensors] [PATCH] Support for DS620
+Message-Id: <4D0FB795.3010006@antcom.de>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_"
+Content-Type: multipart/mixed; boundary="------------010106090103010904090003"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D6D887BA8C9DFF48B5233887EF04654105C1173DC8@bgsmsx502.gar.corp.intel.com>
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654105C1173DC8@bgsmsx502.gar.corp.intel.com>
-To: "Yu, Fenghua" <fenghua.yu@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "Brown, Len" <len.brown@intel.com>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
---_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+This is a multi-part message in MIME format.
+--------------010106090103010904090003
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
 Hi,
 
-I am submitting a patch to enable core thermal threshold
-Support to coretemp.c. There are two core thermal thresholds
-available through sysfs interfaces temp1_max and temp1_max_hyst.
-The temp1_max_alarm is set when temperature reaches or crosses
-above temp1_max or drops below temp1_max_hyst.
+I'm attaching a patch with support for the temperature sensor DS620
+(ds620.c). It is based on ds1621.c but the device is sufficiently
+different to warrant a separate driver. E.g., configuration registers is
+different and includes 16bit values instead of 8bit.
 
-This patch is generated against stable Linux-2.6 kernel.
+Thanks for considering.
 
-Kindly review and merge.
-----------------------------------------------------------------
-From: Durgadoss R <durgadoss.r@intel.com>
+bye,
+  Roland
 
-Date: Sun, 19 Dec 2010 22:44:54 +0530
-Subject: [PATCH 2/2] hwmon:Adding_Threshold_Support_to_Coretemp
+--------------010106090103010904090003
+Content-Type: text/x-patch;
+ name="hwmon-ds620.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="hwmon-ds620.patch"
 
-This patch adds core thermal thresholds support to coretemp.
-These thresholds can be configured via the sysfs interfaces temp1_max
-and temp1_max_hyst. An interrupt is generated when CPU temperature
-goes above temp1_max or drops below temp1_max_hyst.
-
-Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
-
----
- Documentation/hwmon/coretemp |    8 ++
- drivers/hwmon/coretemp.c     |  214 ++++++++++++++++++++++++++++++++++++++=
-----
- 2 files changed, 202 insertions(+), 20 deletions(-)
-
-diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
-index 25568f8..615fdbe 100644
---- a/Documentation/hwmon/coretemp
-+++ b/Documentation/hwmon/coretemp
-@@ -29,6 +29,14 @@ the Out-Of-Spec bit. Following table summarizes the expo=
-rted sysfs files:
-=20
- temp1_input	 - Core temperature (in millidegrees Celsius).
- temp1_max	 - All cooling devices should be turned on (on Core2).
-+		   Initialized with IA32_TEMPERATURE_TARGET if supported,
-+		   otherwise initialized with (tjmax - 20). When the CPU
-+		   temperature reaches this temperature, an interrupt is
-+		   generated and temp1_max_alarm is set.
-+temp1_max_hyst	 - If the CPU temperature falls below than temperature,
-+		   an interrupt is generated and temp1_max_alarm is reset.
-+temp1_max_alarm - Set if the temperature reaches or exceeds temp1_max.
-+		   Reset if the temperature drops to or below temp1_max_hyst.
- temp1_crit	 - Maximum junction temperature (in millidegrees Celsius).
- temp1_crit_alarm - Set when Out-of-spec bit is set, never clears.
- 		   Correct CPU operation is no longer guaranteed.
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 42de98d..025902f 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -36,11 +36,12 @@
- #include <asm/msr.h>
- #include <asm/processor.h>
- #include <asm/smp.h>
-+#include <asm/mce.h>
-=20
- #define DRVNAME	"coretemp"
-=20
--typedef enum { SHOW_TEMP, SHOW_TJMAX, SHOW_TTARGET, SHOW_LABEL,
--		SHOW_NAME } SHOW;
-+enum attributes { SHOW_TEMP, SHOW_TJMAX, CORE_TTARGET, CORE_TMIN, SHOW_LAB=
-EL,
-+		SHOW_NAME, SHOW_CRIT_ALARM, SHOW_MAX_ALARM } attrs;
-=20
- /*
-  * Functions declaration
-@@ -59,9 +60,14 @@ struct coretemp_data {
- 	int temp;
- 	int tjmax;
- 	int ttarget;
--	u8 alarm;
-+	int tmin;
-+	u8 max_alarm;
-+	u8 crit_alarm;
- };
-=20
-+static void update_alarm(struct coretemp_data *data);
-+static int set_core_threshold(struct coretemp_data *data, int temp, int th=
-res);
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index a56f6ad..700389a 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -274,6 +274,16 @@ config SENSORS_ATXP1
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called atxp1.
+ 
++config SENSORS_DS620
++	tristate "Dallas Semiconductor DS620"
++	depends on I2C
++	help
++	  If you say yes here you get support for Dallas Semiconductor
++	  DS620 sensor chip.
 +
- /*
-  * Sysfs stuff
-  */
-@@ -83,9 +89,15 @@ static ssize_t show_name(struct device *dev, struct devi=
-ce_attribute
- static ssize_t show_alarm(struct device *dev, struct device_attribute
- 			  *devattr, char *buf)
- {
--	struct coretemp_data *data =3D coretemp_update_device(dev);
--	/* read the Out-of-spec log, never clear */
--	return sprintf(buf, "%d\n", data->alarm);
-+	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
-+	struct coretemp_data *data =3D dev_get_drvdata(dev);
++	  This driver can also be built as a module.  If so, the module
++	  will be called ds620.
 +
-+	update_alarm(data);
-+	if (attr->index =3D=3D SHOW_CRIT_ALARM)
-+		/* read the Out-of-spec log, never clear */
-+		return sprintf(buf, "%d\n", data->crit_alarm);
+ config SENSORS_DS1621
+ 	tristate "Dallas Semiconductor DS1621 and DS1625"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 2479b3d..42542d7 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_SENSORS_ATXP1)	+= atxp1.o
+ obj-$(CONFIG_SENSORS_CORETEMP)	+= coretemp.o
+ obj-$(CONFIG_SENSORS_PKGTEMP)	+= pkgtemp.o
+ obj-$(CONFIG_SENSORS_DME1737)	+= dme1737.o
++obj-$(CONFIG_SENSORS_DS620)	+= ds620.o
+ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
+ obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
+ obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
+diff --git a/drivers/hwmon/ds620.c b/drivers/hwmon/ds620.c
+new file mode 100644
+index 0000000..b68c0e2
+--- /dev/null
++++ b/drivers/hwmon/ds620.c
+@@ -0,0 +1,343 @@
++/*
++    ds620.c - Support for temperature sensor and thermostat DS620
 +
-+	return sprintf(buf, "%d\n", data->max_alarm);
- }
-=20
- static ssize_t show_temp(struct device *dev,
-@@ -93,33 +105,67 @@ static ssize_t show_temp(struct device *dev,
- {
- 	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
- 	struct coretemp_data *data =3D coretemp_update_device(dev);
--	int err;
-+	int err =3D -EINVAL;
-=20
--	if (attr->index =3D=3D SHOW_TEMP)
-+	switch (attr->index) {
-+	case SHOW_TEMP:
- 		err =3D data->valid ? sprintf(buf, "%d\n", data->temp) : -EAGAIN;
--	else if (attr->index =3D=3D SHOW_TJMAX)
-+		break;
-+	case SHOW_TJMAX:
- 		err =3D sprintf(buf, "%d\n", data->tjmax);
--	else
-+		break;
-+	case CORE_TTARGET:
- 		err =3D sprintf(buf, "%d\n", data->ttarget);
-+		break;
-+	case CORE_TMIN:
-+		err =3D sprintf(buf, "%d\n", data->tmin);
-+		break;
-+	}
++    Copyright (C) 2010 Roland Stigge <stigge@antcom.de>
++    
++    based on ds1621.c by Christian W. Zuckschwerdt  <zany@triq.net>
 +
- 	return err;
- }
-=20
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
 +
-+static ssize_t store_temp(struct device *dev,
-+		struct device_attribute *devattr, const char *buf, size_t count)
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/sysfs.h>
++
++/* Addresses to scan */
++static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b, 0x4c,
++					0x4d, 0x4e, 0x4f, I2C_CLIENT_END };
++
++/* Many DS620 constants specified below */
++/* Config register used for detection          */
++/*  15   14   13   12   11   10   09    08     */
++/* |Done|NVB |THF |TLF |R1  |R0  |AUTOC|1SHOT| */
++
++/*  07   06   05   04   03   02   01    00     */
++/* |PO2 |PO1 |A2  |A1  |A0  |    |     |     | */
++#define DS620_REG_CONFIG_DONE		0x8000
++#define DS620_REG_CONFIG_NVB		0x4000
++#define DS620_REG_CONFIG_THF		0x2000
++#define DS620_REG_CONFIG_TLF		0x1000
++#define DS620_REG_CONFIG_R1 		0x0800
++#define DS620_REG_CONFIG_R0 		0x0400
++#define DS620_REG_CONFIG_AUTOC          0x0200
++#define DS620_REG_CONFIG_1SHOT		0x0100
++#define DS620_REG_CONFIG_PO2		0x0080
++#define DS620_REG_CONFIG_PO1		0x0040
++#define DS620_REG_CONFIG_A2		0x0020
++#define DS620_REG_CONFIG_A1		0x0010
++#define DS620_REG_CONFIG_A0		0x0008
++
++/* The DS620 registers */
++static const u8 DS620_REG_TEMP[3] = {
++	0xAA,		/* input, word, RO */
++	0xA2,		/* min, word, RW */
++	0xA0,		/* max, word, RW */
++};
++#define DS620_REG_CONF		0xAC /* word, RW */
++#define DS620_COM_START		0x51 /* no data */
++#define DS620_COM_STOP		0x22 /* no data */
++
++/* Conversions */
++#define ALARMS_FROM_REG(val) ((val) & \
++                              (DS620_REG_CONFIG_THF | DS620_REG_CONFIG_TLF))
++
++/* Each client has this additional data */
++struct ds620_data {
++	struct device *hwmon_dev;
++	struct mutex update_lock;
++	char valid;			/* !=0 if following fields are valid */
++	unsigned long last_updated;	/* In jiffies */
++
++	u16 temp[3];			/* Register values, word */
++	u16 conf;			/* Register encoding, combined */
++};
++
++/* Temperature registers are word-sized.
++   DS620 uses a high-byte first convention, which is exactly opposite to
++   the SMBus standard. */
++static int ds620_read_temp(struct i2c_client *client, u8 reg)
 +{
-+	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(devattr);
-+	struct coretemp_data *data =3D dev_get_drvdata(dev);
-+	unsigned long val;
-+	int err;
++	int ret;
 +
-+	if (strict_strtoul(buf, 10, &val))
-+		return -EINVAL;
-+
-+	err =3D set_core_threshold(data, val, attr->index);
-+
-+	return err ? err : count;
++	ret = i2c_smbus_read_word_data(client, reg);
++	if (ret < 0)
++		return ret;
++	return swab16(ret);
 +}
 +
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL,
- 			  SHOW_TEMP);
- static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_temp, NULL,
- 			  SHOW_TJMAX);
--static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_temp, NULL,
--			  SHOW_TTARGET);
--static DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp,
-+						store_temp, CORE_TTARGET);
-+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, show_temp,
-+						store_temp, CORE_TMIN);
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_alarm, NULL,
-+							SHOW_CRIT_ALARM);
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL,
-+							SHOW_MAX_ALARM);
- static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_name, NULL, SHOW_LABE=
-L);
- static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, SHOW_NAME);
-=20
- static struct attribute *coretemp_attributes[] =3D {
- 	&sensor_dev_attr_name.dev_attr.attr,
- 	&sensor_dev_attr_temp1_label.dev_attr.attr,
--	&dev_attr_temp1_crit_alarm.attr,
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
- 	NULL
- };
-=20
-@@ -127,6 +173,26 @@ static const struct attribute_group coretemp_group =3D=
- {
- 	.attrs =3D coretemp_attributes,
- };
-=20
-+static void update_alarm(struct coretemp_data *data)
++static int ds620_write_temp(struct i2c_client *client, u8 reg, u16 value)
 +{
-+	u32 eax, edx;
-+
-+	rdmsr_on_cpu(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
-+
-+	/* Update the critical temperature alarm */
-+	data->crit_alarm =3D (eax >> 5) & 1;
-+
-+	/* Temperature reached threshold1 */
-+	if (eax & THERM_LOG_THRESHOLD1)
-+		data->max_alarm =3D 1;
-+	/* Temperature reached threshold0 */
-+	else if (eax & THERM_LOG_THRESHOLD0)
-+		data->max_alarm =3D 0;
-+	/* If none of these cases, don't update max_alarm */
-+
-+	return;
++	return i2c_smbus_write_word_data(client, reg, swab16(value));
 +}
 +
- static struct coretemp_data *coretemp_update_device(struct device *dev)
- {
- 	struct coretemp_data *data =3D dev_get_drvdata(dev);
-@@ -138,7 +204,6 @@ static struct coretemp_data *coretemp_update_device(str=
-uct device *dev)
-=20
- 		data->valid =3D 0;
- 		rdmsr_on_cpu(data->id, MSR_IA32_THERM_STATUS, &eax, &edx);
--		data->alarm =3D (eax >> 5) & 1;
- 		/* update only if data has been valid */
- 		if (eax & 0x80000000) {
- 			data->temp =3D data->tjmax - (((eax >> 16)
-@@ -298,6 +363,106 @@ static void __devinit get_ucode_rev_on_cpu(void *edx)
- 	rdmsr(MSR_IA32_UCODE_REV, eax, *(u32 *)edx);
- }
-=20
-+/* Platform thermal Interrupt Handler */
-+static int coretemp_interrupt(__u64 msr_val)
++static void ds620_init_client(struct i2c_client *client)
 +{
++	u16 conf, new_conf;
 +
-+	if (msr_val & THERM_LOG_THRESHOLD0) {
-+		if (!(msr_val & THERM_STATUS_THRESHOLD0))
-+			pr_info("%s:Lower Threshold Reached\n", __func__);
-+		/* Reset the Threshold0 interrupt */
-+		wrmsrl(MSR_IA32_THERM_STATUS, msr_val & ~THERM_LOG_THRESHOLD0);
-+	}
++	new_conf = conf = swab16(i2c_smbus_read_word_data(client, DS620_REG_CONF));
 +
-+	if (msr_val & THERM_LOG_THRESHOLD1) {
-+		if (msr_val & THERM_STATUS_THRESHOLD1)
-+			pr_info("%s:Upper Threshold Reached\n", __func__);
-+		/* Reset the Threshold1 interrupt */
-+		wrmsrl(MSR_IA32_THERM_STATUS, msr_val & ~THERM_LOG_THRESHOLD1);
-+	}
++	/* switch to continuous conversion mode */
++	new_conf &= ~DS620_REG_CONFIG_1SHOT;
++	/* with highest precision */
++	new_conf |= DS620_REG_CONFIG_R1 | DS620_REG_CONFIG_R0;
 +
-+	return 0;
++	if (conf != new_conf)
++		i2c_smbus_write_word_data(client, DS620_REG_CONF, swab16(new_conf));
++	
++	/* start conversion */
++	i2c_smbus_write_byte(client, DS620_COM_START);
 +}
 +
-+static void configure_apic(void *info)
++static struct ds620_data *ds620_update_client(struct device *dev)
 +{
-+	u32 l;
-+	int *flag =3D (int *)info;
-+
-+	l =3D apic_read(APIC_LVTTHMR);
-+
-+	if (*flag)	/* Non-Zero flag Masks the APIC */
-+		apic_write(APIC_LVTTHMR, l | APIC_LVT_MASKED);
-+	else		/* Zero flag UnMasks the APIC */
-+		apic_write(APIC_LVTTHMR, l & ~APIC_LVT_MASKED);
-+}
-+
-+static int set_core_threshold(struct coretemp_data *data, int temp, int th=
-res)
-+{
-+	u32 eax, edx;
-+	int diff;
-+	int flag =3D 1;
-+
-+	if (temp > data->tjmax)
-+		return -EINVAL;
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds620_data *data = i2c_get_clientdata(client);
++	u16 new_conf;
 +
 +	mutex_lock(&data->update_lock);
 +
-+	diff =3D (data->tjmax - temp)/1000;
++	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
++	    || !data->valid) {
++		int i;
 +
-+	/* Mask the APIC */
-+	smp_call_function_single(data->id, &configure_apic, &flag, 1);
++		dev_dbg(&client->dev, "Starting ds620 update\n");
 +
-+	rdmsr_on_cpu(data->id, MSR_IA32_THERM_INTERRUPT, &eax, &edx);
++		data->conf = swab16(i2c_smbus_read_word_data(client, DS620_REG_CONF));
 +
-+	if (thres =3D=3D CORE_TMIN) {
-+		eax =3D (eax & ~THERM_MASK_THRESHOLD0) |
-+					(diff << THERM_SHIFT_THRESHOLD0);
-+		data->tmin =3D temp;
-+	} else {
-+		eax =3D (eax & ~THERM_MASK_THRESHOLD1) |
-+					(diff << THERM_SHIFT_THRESHOLD1);
-+		data->ttarget =3D temp;
++		for (i = 0; i < ARRAY_SIZE(data->temp); i++)
++			data->temp[i] = ds620_read_temp(client,
++							 DS620_REG_TEMP[i]);
++
++		/* reset alarms if necessary */
++		new_conf = data->conf;
++		if (data->temp[0] > data->temp[1])	/* input > min */
++			new_conf &= ~DS620_REG_CONFIG_TLF;
++		if (data->temp[0] < data->temp[2])	/* input < max */
++			new_conf &= ~DS620_REG_CONFIG_THF;
++		if (data->conf != new_conf)
++			i2c_smbus_write_word_data(client, DS620_REG_CONF,
++						  swab16(new_conf));
++
++		data->last_updated = jiffies;
++		data->valid = 1;
 +	}
-+
-+	wrmsr_on_cpu(data->id, MSR_IA32_THERM_INTERRUPT, eax, edx);
-+
-+	/* Unmask the APIC */
-+	flag =3D 0;
-+	smp_call_function_single(data->id, &configure_apic, &flag, 1);
 +
 +	mutex_unlock(&data->update_lock);
-+	return 0;
++
++	return data;
 +}
 +
-+static int __devinit config_thresh_intrpt(struct coretemp_data *data,
-+								int enable)
++static ssize_t show_temp(struct device *dev, struct device_attribute *da,
++			 char *buf)
 +{
-+	u32 eax, edx;
-+	int flag =3D 1; /* Non-Zero Flag masks the apic */
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct ds620_data *data = ds620_update_client(dev);
++	return sprintf(buf, "%d\n", ((data->temp[attr->index] / 8) * 625) / 10);
++}
 +
-+	smp_call_function_single(data->id, &configure_apic, &flag, 1);
++static ssize_t set_temp(struct device *dev, struct device_attribute *da,
++			const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct ds620_data *data = i2c_get_clientdata(client);
++	u16 val = (simple_strtol(buf, NULL, 10) * 10 / 625) * 8;
 +
-+	rdmsr_on_cpu(data->id, MSR_IA32_THERM_INTERRUPT, &eax, &edx);
++	mutex_lock(&data->update_lock);
++	data->temp[attr->index] = val;
++	ds620_write_temp(client, DS620_REG_TEMP[attr->index],
++			  data->temp[attr->index]);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
 +
-+	if (enable) {
-+		eax |=3D (THERM_INT_THRESHOLD0_ENABLE |
-+						THERM_INT_THRESHOLD1_ENABLE);
-+		platform_thermal_notify =3D coretemp_interrupt;
-+	} else {
-+		eax &=3D (~(THERM_INT_THRESHOLD0_ENABLE |
-+						THERM_INT_THRESHOLD1_ENABLE));
-+		platform_thermal_notify =3D NULL;
++static ssize_t show_alarms(struct device *dev, struct device_attribute *da,
++			   char *buf)
++{
++	struct ds620_data *data = ds620_update_client(dev);
++	return sprintf(buf, "%d\n", ALARMS_FROM_REG(data->conf));
++}
++
++static ssize_t show_alarm(struct device *dev, struct device_attribute *da,
++			  char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct ds620_data *data = ds620_update_client(dev);
++	return sprintf(buf, "%d\n", !!(data->conf & attr->index));
++}
++
++static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO, show_temp, set_temp, 1);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp, set_temp, 2);
++static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, show_alarm, NULL,
++		DS620_REG_CONFIG_TLF);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL,
++		DS620_REG_CONFIG_THF);
++
++static struct attribute *ds620_attributes[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&dev_attr_alarms.attr,
++	NULL
++};
++
++static const struct attribute_group ds620_group = {
++	.attrs = ds620_attributes,
++};
++
++
++/* Return 0 if detection is successful, -ENODEV otherwise */
++static int ds620_detect(struct i2c_client *client,
++			 struct i2c_board_info *info)
++{
++	struct i2c_adapter *adapter = client->adapter;
++	int result, conf, temp;
++	int i;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA 
++				     | I2C_FUNC_SMBUS_WORD_DATA 
++				     | I2C_FUNC_SMBUS_WRITE_BYTE))
++		return -ENODEV;
++
++	/* Now, we do the remaining detection. */
++	result = i2c_smbus_read_word_data(client, DS620_REG_CONF);
++	conf = swab16(result);
++	if (result < 0 || conf & DS620_REG_CONFIG_NVB ||
++			((conf & DS620_REG_CONFIG_DONE) &&
++			 (conf & DS620_REG_CONFIG_AUTOC)) ||
++			!((conf & DS620_REG_CONFIG_DONE) &&
++			       	!(conf & DS620_REG_CONFIG_AUTOC)) )
++		return -ENODEV;
++	/* The 3 lowest bits of a temperature should always be 0. */
++	for (i = 0; i < ARRAY_SIZE(DS620_REG_TEMP); i++) {
++		temp = i2c_smbus_read_word_data(client, DS620_REG_TEMP[i]);
++		if (temp < 0 || (temp & 0x0700))
++			return -ENODEV;
 +	}
 +
-+	wrmsr_on_cpu(data->id, MSR_IA32_THERM_INTERRUPT, eax, edx);
-+
-+	flag =3D 0; /*Flag should be zero to unmask the apic */
-+	smp_call_function_single(data->id, &configure_apic, &flag, 1);
++	strlcpy(info->type, "ds620", I2C_NAME_SIZE);
 +
 +	return 0;
 +}
 +
- static int __devinit coretemp_probe(struct platform_device *pdev)
- {
- 	struct coretemp_data *data;
-@@ -351,6 +516,10 @@ static int __devinit coretemp_probe(struct platform_de=
-vice *pdev)
- 	}
-=20
- 	data->tjmax =3D get_tjmax(c, data->id, &pdev->dev);
-+	/* Initialize ttarget value. If IA32_TEMPERATURE_TARGET is
-+	 * supported, this value will be over written below
-+	 */
-+	data->ttarget =3D data->tjmax - 20000;
- 	platform_set_drvdata(pdev, data);
-=20
- 	/*
-@@ -368,13 +537,18 @@ static int __devinit coretemp_probe(struct platform_d=
-evice *pdev)
- 		} else {
- 			data->ttarget =3D data->tjmax -
- 					(((eax >> 8) & 0xff) * 1000);
--			err =3D device_create_file(&pdev->dev,
--					&sensor_dev_attr_temp1_max.dev_attr);
--			if (err)
--				goto exit_free;
- 		}
- 	}
-=20
-+	/* Enable threshold interrupt support */
-+	config_thresh_intrpt(data, 1);
++static int ds620_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct ds620_data *data;
++	int err;
 +
-+	/* Set Initial Core thresholds.
-+	 * The lower and upper threshold values here are assumed
-+	 */
-+	set_core_threshold(data, 0, CORE_TMIN);
-+	set_core_threshold(data, data->ttarget, CORE_TTARGET);
++	data = kzalloc(sizeof(struct ds620_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
 +
- 	if ((err =3D sysfs_create_group(&pdev->dev.kobj, &coretemp_group)))
- 		goto exit_dev;
-=20
-@@ -404,7 +578,7 @@ static int __devexit coretemp_remove(struct platform_de=
-vice *pdev)
-=20
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&pdev->dev.kobj, &coretemp_group);
--	device_remove_file(&pdev->dev, &sensor_dev_attr_temp1_max.dev_attr);
-+	config_thresh_intrpt(data, 0);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
- 	return 0;
---=20
-1.6.5.2
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* Initialize the DS620 chip */
++	ds620_init_client(client);
++
++	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&client->dev.kobj, &ds620_group)))
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove_files;
++	}
++
++	dev_info(&client->dev, "temperature sensor found\n");
++
++	return 0;
++
++      exit_remove_files:
++	sysfs_remove_group(&client->dev.kobj, &ds620_group);
++      exit_free:
++	kfree(data);
++      exit:
++	return err;
++}
++
++static int ds620_remove(struct i2c_client *client)
++{
++	struct ds620_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &ds620_group);
++
++	kfree(data);
++
++	return 0;
++}
++
++static const struct i2c_device_id ds620_id[] = {
++	{ "ds620", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ds620_id);
++
++/* This is the driver that will be inserted */
++static struct i2c_driver ds620_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "ds620",
++	},
++	.probe		= ds620_probe,
++	.remove		= ds620_remove,
++	.id_table	= ds620_id,
++	.detect		= ds620_detect,
++	.address_list	= normal_i2c,
++};
++
++static int __init ds620_init(void)
++{
++	return i2c_add_driver(&ds620_driver);
++}
++
++static void __exit ds620_exit(void)
++{
++	i2c_del_driver(&ds620_driver);
++}
++
++
++MODULE_AUTHOR("Roland Stigge <stigge@antcom.de>");
++MODULE_DESCRIPTION("DS620 driver");
++MODULE_LICENSE("GPL");
++
++module_init(ds620_init);
++module_exit(ds620_exit);
 
-
---_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
-Content-Type: application/octet-stream;
-	name="0002-hwmon-Adding_Threshold_Support_to_Coretemp.patch"
-Content-Description: 0002-hwmon-Adding_Threshold_Support_to_Coretemp.patch
-Content-Disposition: attachment;
-	filename="0002-hwmon-Adding_Threshold_Support_to_Coretemp.patch"; size=10983;
-	creation-date="Mon, 20 Dec 2010 16:55:25 GMT";
-	modification-date="Mon, 20 Dec 2010 04:53:46 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbTogRHVyZ2Fkb3NzIFIgPGR1cmdhZG9zcy5yQGludGVsLmNvbT4KRGF0ZTogU3VuLCAxOSBE
-ZWMgMjAxMCAyMjo0NDo1NCArMDUzMApTdWJqZWN0OiBbUEFUQ0ggMi8yXSBod21vbjpBZGRpbmdf
-VGhyZXNob2xkX1N1cHBvcnRfdG9fQ29yZXRlbXAKClRoaXMgcGF0Y2ggYWRkcyBjb3JlIHRoZXJt
-YWwgdGhyZXNob2xkcyBzdXBwb3J0IHRvIGNvcmV0ZW1wLgpUaGVzZSB0aHJlc2hvbGRzIGNhbiBi
-ZSBjb25maWd1cmVkIHZpYSB0aGUgc3lzZnMgaW50ZXJmYWNlcyB0ZW1wMV9tYXgKYW5kIHRlbXAx
-X21heF9oeXN0LiBBbiBpbnRlcnJ1cHQgaXMgZ2VuZXJhdGVkIHdoZW4gQ1BVIHRlbXBlcmF0dXJl
-CmdvZXMgYWJvdmUgdGVtcDFfbWF4IG9yIGRyb3BzIGJlbG93IHRlbXAxX21heF9oeXN0LgoKU2ln
-bmVkLW9mZi1ieTogRHVyZ2Fkb3NzIFIgPGR1cmdhZG9zcy5yQGludGVsLmNvbT4KLS0tCiBEb2N1
-bWVudGF0aW9uL2h3bW9uL2NvcmV0ZW1wIHwgICAgOCArKwogZHJpdmVycy9od21vbi9jb3JldGVt
-cC5jICAgICB8ICAyMTQgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0t
-CiAyIGZpbGVzIGNoYW5nZWQsIDIwMiBpbnNlcnRpb25zKCspLCAyMCBkZWxldGlvbnMoLSkKCmRp
-ZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2h3bW9uL2NvcmV0ZW1wIGIvRG9jdW1lbnRhdGlvbi9o
-d21vbi9jb3JldGVtcAppbmRleCAyNTU2OGY4Li42MTVmZGJlIDEwMDY0NAotLS0gYS9Eb2N1bWVu
-dGF0aW9uL2h3bW9uL2NvcmV0ZW1wCisrKyBiL0RvY3VtZW50YXRpb24vaHdtb24vY29yZXRlbXAK
-QEAgLTI5LDYgKzI5LDE0IEBAIHRoZSBPdXQtT2YtU3BlYyBiaXQuIEZvbGxvd2luZyB0YWJsZSBz
-dW1tYXJpemVzIHRoZSBleHBvcnRlZCBzeXNmcyBmaWxlczoKIAogdGVtcDFfaW5wdXQJIC0gQ29y
-ZSB0ZW1wZXJhdHVyZSAoaW4gbWlsbGlkZWdyZWVzIENlbHNpdXMpLgogdGVtcDFfbWF4CSAtIEFs
-bCBjb29saW5nIGRldmljZXMgc2hvdWxkIGJlIHR1cm5lZCBvbiAob24gQ29yZTIpLgorCQkgICBJ
-bml0aWFsaXplZCB3aXRoIElBMzJfVEVNUEVSQVRVUkVfVEFSR0VUIGlmIHN1cHBvcnRlZCwKKwkJ
-ICAgb3RoZXJ3aXNlIGluaXRpYWxpemVkIHdpdGggKHRqbWF4IC0gMjApLiBXaGVuIHRoZSBDUFUK
-KwkJICAgdGVtcGVyYXR1cmUgcmVhY2hlcyB0aGlzIHRlbXBlcmF0dXJlLCBhbiBpbnRlcnJ1cHQg
-aXMKKwkJICAgZ2VuZXJhdGVkIGFuZCB0ZW1wMV9tYXhfYWxhcm0gaXMgc2V0LgordGVtcDFfbWF4
-X2h5c3QJIC0gSWYgdGhlIENQVSB0ZW1wZXJhdHVyZSBmYWxscyBiZWxvdyB0aGFuIHRlbXBlcmF0
-dXJlLAorCQkgICBhbiBpbnRlcnJ1cHQgaXMgZ2VuZXJhdGVkIGFuZCB0ZW1wMV9tYXhfYWxhcm0g
-aXMgcmVzZXQuCit0ZW1wMV9tYXhfYWxhcm0gLSBTZXQgaWYgdGhlIHRlbXBlcmF0dXJlIHJlYWNo
-ZXMgb3IgZXhjZWVkcyB0ZW1wMV9tYXguCisJCSAgIFJlc2V0IGlmIHRoZSB0ZW1wZXJhdHVyZSBk
-cm9wcyB0byBvciBiZWxvdyB0ZW1wMV9tYXhfaHlzdC4KIHRlbXAxX2NyaXQJIC0gTWF4aW11bSBq
-dW5jdGlvbiB0ZW1wZXJhdHVyZSAoaW4gbWlsbGlkZWdyZWVzIENlbHNpdXMpLgogdGVtcDFfY3Jp
-dF9hbGFybSAtIFNldCB3aGVuIE91dC1vZi1zcGVjIGJpdCBpcyBzZXQsIG5ldmVyIGNsZWFycy4K
-IAkJICAgQ29ycmVjdCBDUFUgb3BlcmF0aW9uIGlzIG5vIGxvbmdlciBndWFyYW50ZWVkLgpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9od21vbi9jb3JldGVtcC5jIGIvZHJpdmVycy9od21vbi9jb3JldGVt
-cC5jCmluZGV4IDQyZGU5OGQuLjAyNTkwMmYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vY29y
-ZXRlbXAuYworKysgYi9kcml2ZXJzL2h3bW9uL2NvcmV0ZW1wLmMKQEAgLTM2LDExICszNiwxMiBA
-QAogI2luY2x1ZGUgPGFzbS9tc3IuaD4KICNpbmNsdWRlIDxhc20vcHJvY2Vzc29yLmg+CiAjaW5j
-bHVkZSA8YXNtL3NtcC5oPgorI2luY2x1ZGUgPGFzbS9tY2UuaD4KIAogI2RlZmluZSBEUlZOQU1F
-CSJjb3JldGVtcCIKIAotdHlwZWRlZiBlbnVtIHsgU0hPV19URU1QLCBTSE9XX1RKTUFYLCBTSE9X
-X1RUQVJHRVQsIFNIT1dfTEFCRUwsCi0JCVNIT1dfTkFNRSB9IFNIT1c7CitlbnVtIGF0dHJpYnV0
-ZXMgeyBTSE9XX1RFTVAsIFNIT1dfVEpNQVgsIENPUkVfVFRBUkdFVCwgQ09SRV9UTUlOLCBTSE9X
-X0xBQkVMLAorCQlTSE9XX05BTUUsIFNIT1dfQ1JJVF9BTEFSTSwgU0hPV19NQVhfQUxBUk0gfSBh
-dHRyczsKIAogLyoKICAqIEZ1bmN0aW9ucyBkZWNsYXJhdGlvbgpAQCAtNTksOSArNjAsMTQgQEAg
-c3RydWN0IGNvcmV0ZW1wX2RhdGEgewogCWludCB0ZW1wOwogCWludCB0am1heDsKIAlpbnQgdHRh
-cmdldDsKLQl1OCBhbGFybTsKKwlpbnQgdG1pbjsKKwl1OCBtYXhfYWxhcm07CisJdTggY3JpdF9h
-bGFybTsKIH07CiAKK3N0YXRpYyB2b2lkIHVwZGF0ZV9hbGFybShzdHJ1Y3QgY29yZXRlbXBfZGF0
-YSAqZGF0YSk7CitzdGF0aWMgaW50IHNldF9jb3JlX3RocmVzaG9sZChzdHJ1Y3QgY29yZXRlbXBf
-ZGF0YSAqZGF0YSwgaW50IHRlbXAsIGludCB0aHJlcyk7CisKIC8qCiAgKiBTeXNmcyBzdHVmZgog
-ICovCkBAIC04Myw5ICs4OSwxNSBAQCBzdGF0aWMgc3NpemVfdCBzaG93X25hbWUoc3RydWN0IGRl
-dmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZQogc3RhdGljIHNzaXplX3Qgc2hvd19h
-bGFybShzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlCiAJCQkgICpk
-ZXZhdHRyLCBjaGFyICpidWYpCiB7Ci0Jc3RydWN0IGNvcmV0ZW1wX2RhdGEgKmRhdGEgPSBjb3Jl
-dGVtcF91cGRhdGVfZGV2aWNlKGRldik7Ci0JLyogcmVhZCB0aGUgT3V0LW9mLXNwZWMgbG9nLCBu
-ZXZlciBjbGVhciAqLwotCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLCBkYXRhLT5hbGFybSk7
-CisJc3RydWN0IHNlbnNvcl9kZXZpY2VfYXR0cmlidXRlICphdHRyID0gdG9fc2Vuc29yX2Rldl9h
-dHRyKGRldmF0dHIpOworCXN0cnVjdCBjb3JldGVtcF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZk
-YXRhKGRldik7CisKKwl1cGRhdGVfYWxhcm0oZGF0YSk7CisJaWYgKGF0dHItPmluZGV4ID09IFNI
-T1dfQ1JJVF9BTEFSTSkKKwkJLyogcmVhZCB0aGUgT3V0LW9mLXNwZWMgbG9nLCBuZXZlciBjbGVh
-ciAqLworCQlyZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwgZGF0YS0+Y3JpdF9hbGFybSk7CisK
-KwlyZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwgZGF0YS0+bWF4X2FsYXJtKTsKIH0KIAogc3Rh
-dGljIHNzaXplX3Qgc2hvd190ZW1wKHN0cnVjdCBkZXZpY2UgKmRldiwKQEAgLTkzLDMzICsxMDUs
-NjcgQEAgc3RhdGljIHNzaXplX3Qgc2hvd190ZW1wKHN0cnVjdCBkZXZpY2UgKmRldiwKIHsKIAlz
-dHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgKmF0dHIgPSB0b19zZW5zb3JfZGV2X2F0dHIo
-ZGV2YXR0cik7CiAJc3RydWN0IGNvcmV0ZW1wX2RhdGEgKmRhdGEgPSBjb3JldGVtcF91cGRhdGVf
-ZGV2aWNlKGRldik7Ci0JaW50IGVycjsKKwlpbnQgZXJyID0gLUVJTlZBTDsKIAotCWlmIChhdHRy
-LT5pbmRleCA9PSBTSE9XX1RFTVApCisJc3dpdGNoIChhdHRyLT5pbmRleCkgeworCWNhc2UgU0hP
-V19URU1QOgogCQllcnIgPSBkYXRhLT52YWxpZCA/IHNwcmludGYoYnVmLCAiJWRcbiIsIGRhdGEt
-PnRlbXApIDogLUVBR0FJTjsKLQllbHNlIGlmIChhdHRyLT5pbmRleCA9PSBTSE9XX1RKTUFYKQor
-CQlicmVhazsKKwljYXNlIFNIT1dfVEpNQVg6CiAJCWVyciA9IHNwcmludGYoYnVmLCAiJWRcbiIs
-IGRhdGEtPnRqbWF4KTsKLQllbHNlCisJCWJyZWFrOworCWNhc2UgQ09SRV9UVEFSR0VUOgogCQll
-cnIgPSBzcHJpbnRmKGJ1ZiwgIiVkXG4iLCBkYXRhLT50dGFyZ2V0KTsKKwkJYnJlYWs7CisJY2Fz
-ZSBDT1JFX1RNSU46CisJCWVyciA9IHNwcmludGYoYnVmLCAiJWRcbiIsIGRhdGEtPnRtaW4pOwor
-CQlicmVhazsKKwl9CisKIAlyZXR1cm4gZXJyOwogfQogCisKK3N0YXRpYyBzc2l6ZV90IHN0b3Jl
-X3RlbXAoc3RydWN0IGRldmljZSAqZGV2LAorCQlzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2
-YXR0ciwgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQpCit7CisJc3RydWN0IHNlbnNvcl9k
-ZXZpY2VfYXR0cmlidXRlICphdHRyID0gdG9fc2Vuc29yX2Rldl9hdHRyKGRldmF0dHIpOworCXN0
-cnVjdCBjb3JldGVtcF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7CisJdW5zaWdu
-ZWQgbG9uZyB2YWw7CisJaW50IGVycjsKKworCWlmIChzdHJpY3Rfc3RydG91bChidWYsIDEwLCAm
-dmFsKSkKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwllcnIgPSBzZXRfY29yZV90aHJlc2hvbGQoZGF0
-YSwgdmFsLCBhdHRyLT5pbmRleCk7CisKKwlyZXR1cm4gZXJyID8gZXJyIDogY291bnQ7Cit9CisK
-IHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfaW5wdXQsIFNfSVJVR08sIHNob3dfdGVt
-cCwgTlVMTCwKIAkJCSAgU0hPV19URU1QKTsKIHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVt
-cDFfY3JpdCwgU19JUlVHTywgc2hvd190ZW1wLCBOVUxMLAogCQkJICBTSE9XX1RKTUFYKTsKLXN0
-YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfbWF4LCBTX0lSVUdPLCBzaG93X3RlbXAsIE5V
-TEwsCi0JCQkgIFNIT1dfVFRBUkdFVCk7Ci1zdGF0aWMgREVWSUNFX0FUVFIodGVtcDFfY3JpdF9h
-bGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCk7CitzdGF0aWMgU0VOU09SX0RFVklDRV9B
-VFRSKHRlbXAxX21heCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfdGVtcCwKKwkJCQkJCXN0b3Jl
-X3RlbXAsIENPUkVfVFRBUkdFVCk7CitzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAxX21h
-eF9oeXN0LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190ZW1wLAorCQkJCQkJc3RvcmVfdGVtcCwg
-Q09SRV9UTUlOKTsKK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfY3JpdF9hbGFybSwg
-U19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwKKwkJCQkJCQlTSE9XX0NSSVRfQUxBUk0pOworc3Rh
-dGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9tYXhfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxh
-cm0sIE5VTEwsCisJCQkJCQkJU0hPV19NQVhfQUxBUk0pOwogc3RhdGljIFNFTlNPUl9ERVZJQ0Vf
-QVRUUih0ZW1wMV9sYWJlbCwgU19JUlVHTywgc2hvd19uYW1lLCBOVUxMLCBTSE9XX0xBQkVMKTsK
-IHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIobmFtZSwgU19JUlVHTywgc2hvd19uYW1lLCBOVUxM
-LCBTSE9XX05BTUUpOwogCiBzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqY29yZXRlbXBfYXR0cmli
-dXRlc1tdID0gewogCSZzZW5zb3JfZGV2X2F0dHJfbmFtZS5kZXZfYXR0ci5hdHRyLAogCSZzZW5z
-b3JfZGV2X2F0dHJfdGVtcDFfbGFiZWwuZGV2X2F0dHIuYXR0ciwKLQkmZGV2X2F0dHJfdGVtcDFf
-Y3JpdF9hbGFybS5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfY3JpdF9hbGFybS5kZXZf
-YXR0ci5hdHRyLAogCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfaW5wdXQuZGV2X2F0dHIuYXR0ciwK
-IAkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX2NyaXQuZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29yX2Rl
-dl9hdHRyX3RlbXAxX21heC5kZXZfYXR0ci5hdHRyLAorCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFf
-bWF4X2h5c3QuZGV2X2F0dHIuYXR0ciwKKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21heF9hbGFy
-bS5kZXZfYXR0ci5hdHRyLAogCU5VTEwKIH07CiAKQEAgLTEyNyw2ICsxNzMsMjYgQEAgc3RhdGlj
-IGNvbnN0IHN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgY29yZXRlbXBfZ3JvdXAgPSB7CiAJLmF0dHJz
-ID0gY29yZXRlbXBfYXR0cmlidXRlcywKIH07CiAKK3N0YXRpYyB2b2lkIHVwZGF0ZV9hbGFybShz
-dHJ1Y3QgY29yZXRlbXBfZGF0YSAqZGF0YSkKK3sKKwl1MzIgZWF4LCBlZHg7CisKKwlyZG1zcl9v
-bl9jcHUoZGF0YS0+aWQsIE1TUl9JQTMyX1RIRVJNX1NUQVRVUywgJmVheCwgJmVkeCk7CisKKwkv
-KiBVcGRhdGUgdGhlIGNyaXRpY2FsIHRlbXBlcmF0dXJlIGFsYXJtICovCisJZGF0YS0+Y3JpdF9h
-bGFybSA9IChlYXggPj4gNSkgJiAxOworCisJLyogVGVtcGVyYXR1cmUgcmVhY2hlZCB0aHJlc2hv
-bGQxICovCisJaWYgKGVheCAmIFRIRVJNX0xPR19USFJFU0hPTEQxKQorCQlkYXRhLT5tYXhfYWxh
-cm0gPSAxOworCS8qIFRlbXBlcmF0dXJlIHJlYWNoZWQgdGhyZXNob2xkMCAqLworCWVsc2UgaWYg
-KGVheCAmIFRIRVJNX0xPR19USFJFU0hPTEQwKQorCQlkYXRhLT5tYXhfYWxhcm0gPSAwOworCS8q
-IElmIG5vbmUgb2YgdGhlc2UgY2FzZXMsIGRvbid0IHVwZGF0ZSBtYXhfYWxhcm0gKi8KKworCXJl
-dHVybjsKK30KKwogc3RhdGljIHN0cnVjdCBjb3JldGVtcF9kYXRhICpjb3JldGVtcF91cGRhdGVf
-ZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldikKIHsKIAlzdHJ1Y3QgY29yZXRlbXBfZGF0YSAqZGF0
-YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwpAQCAtMTM4LDcgKzIwNCw2IEBAIHN0YXRpYyBzdHJ1
-Y3QgY29yZXRlbXBfZGF0YSAqY29yZXRlbXBfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2aWNlICpk
-ZXYpCiAKIAkJZGF0YS0+dmFsaWQgPSAwOwogCQlyZG1zcl9vbl9jcHUoZGF0YS0+aWQsIE1TUl9J
-QTMyX1RIRVJNX1NUQVRVUywgJmVheCwgJmVkeCk7Ci0JCWRhdGEtPmFsYXJtID0gKGVheCA+PiA1
-KSAmIDE7CiAJCS8qIHVwZGF0ZSBvbmx5IGlmIGRhdGEgaGFzIGJlZW4gdmFsaWQgKi8KIAkJaWYg
-KGVheCAmIDB4ODAwMDAwMDApIHsKIAkJCWRhdGEtPnRlbXAgPSBkYXRhLT50am1heCAtICgoKGVh
-eCA+PiAxNikKQEAgLTI5OCw2ICszNjMsMTA2IEBAIHN0YXRpYyB2b2lkIF9fZGV2aW5pdCBnZXRf
-dWNvZGVfcmV2X29uX2NwdSh2b2lkICplZHgpCiAJcmRtc3IoTVNSX0lBMzJfVUNPREVfUkVWLCBl
-YXgsICoodTMyICopZWR4KTsKIH0KIAorLyogUGxhdGZvcm0gdGhlcm1hbCBJbnRlcnJ1cHQgSGFu
-ZGxlciAqLworc3RhdGljIGludCBjb3JldGVtcF9pbnRlcnJ1cHQoX191NjQgbXNyX3ZhbCkKK3sK
-KworCWlmIChtc3JfdmFsICYgVEhFUk1fTE9HX1RIUkVTSE9MRDApIHsKKwkJaWYgKCEobXNyX3Zh
-bCAmIFRIRVJNX1NUQVRVU19USFJFU0hPTEQwKSkKKwkJCXByX2luZm8oIiVzOkxvd2VyIFRocmVz
-aG9sZCBSZWFjaGVkXG4iLCBfX2Z1bmNfXyk7CisJCS8qIFJlc2V0IHRoZSBUaHJlc2hvbGQwIGlu
-dGVycnVwdCAqLworCQl3cm1zcmwoTVNSX0lBMzJfVEhFUk1fU1RBVFVTLCBtc3JfdmFsICYgflRI
-RVJNX0xPR19USFJFU0hPTEQwKTsKKwl9CisKKwlpZiAobXNyX3ZhbCAmIFRIRVJNX0xPR19USFJF
-U0hPTEQxKSB7CisJCWlmIChtc3JfdmFsICYgVEhFUk1fU1RBVFVTX1RIUkVTSE9MRDEpCisJCQlw
-cl9pbmZvKCIlczpVcHBlciBUaHJlc2hvbGQgUmVhY2hlZFxuIiwgX19mdW5jX18pOworCQkvKiBS
-ZXNldCB0aGUgVGhyZXNob2xkMSBpbnRlcnJ1cHQgKi8KKwkJd3Jtc3JsKE1TUl9JQTMyX1RIRVJN
-X1NUQVRVUywgbXNyX3ZhbCAmIH5USEVSTV9MT0dfVEhSRVNIT0xEMSk7CisJfQorCisJcmV0dXJu
-IDA7Cit9CisKK3N0YXRpYyB2b2lkIGNvbmZpZ3VyZV9hcGljKHZvaWQgKmluZm8pCit7CisJdTMy
-IGw7CisJaW50ICpmbGFnID0gKGludCAqKWluZm87CisKKwlsID0gYXBpY19yZWFkKEFQSUNfTFZU
-VEhNUik7CisKKwlpZiAoKmZsYWcpCS8qIE5vbi1aZXJvIGZsYWcgTWFza3MgdGhlIEFQSUMgKi8K
-KwkJYXBpY193cml0ZShBUElDX0xWVFRITVIsIGwgfCBBUElDX0xWVF9NQVNLRUQpOworCWVsc2UJ
-CS8qIFplcm8gZmxhZyBVbk1hc2tzIHRoZSBBUElDICovCisJCWFwaWNfd3JpdGUoQVBJQ19MVlRU
-SE1SLCBsICYgfkFQSUNfTFZUX01BU0tFRCk7Cit9CisKK3N0YXRpYyBpbnQgc2V0X2NvcmVfdGhy
-ZXNob2xkKHN0cnVjdCBjb3JldGVtcF9kYXRhICpkYXRhLCBpbnQgdGVtcCwgaW50IHRocmVzKQor
-eworCXUzMiBlYXgsIGVkeDsKKwlpbnQgZGlmZjsKKwlpbnQgZmxhZyA9IDE7CisKKwlpZiAodGVt
-cCA+IGRhdGEtPnRqbWF4KQorCQlyZXR1cm4gLUVJTlZBTDsKKworCW11dGV4X2xvY2soJmRhdGEt
-PnVwZGF0ZV9sb2NrKTsKKworCWRpZmYgPSAoZGF0YS0+dGptYXggLSB0ZW1wKS8xMDAwOworCisJ
-LyogTWFzayB0aGUgQVBJQyAqLworCXNtcF9jYWxsX2Z1bmN0aW9uX3NpbmdsZShkYXRhLT5pZCwg
-JmNvbmZpZ3VyZV9hcGljLCAmZmxhZywgMSk7CisKKwlyZG1zcl9vbl9jcHUoZGF0YS0+aWQsIE1T
-Ul9JQTMyX1RIRVJNX0lOVEVSUlVQVCwgJmVheCwgJmVkeCk7CisKKwlpZiAodGhyZXMgPT0gQ09S
-RV9UTUlOKSB7CisJCWVheCA9IChlYXggJiB+VEhFUk1fTUFTS19USFJFU0hPTEQwKSB8CisJCQkJ
-CShkaWZmIDw8IFRIRVJNX1NISUZUX1RIUkVTSE9MRDApOworCQlkYXRhLT50bWluID0gdGVtcDsK
-Kwl9IGVsc2UgeworCQllYXggPSAoZWF4ICYgflRIRVJNX01BU0tfVEhSRVNIT0xEMSkgfAorCQkJ
-CQkoZGlmZiA8PCBUSEVSTV9TSElGVF9USFJFU0hPTEQxKTsKKwkJZGF0YS0+dHRhcmdldCA9IHRl
-bXA7CisJfQorCisJd3Jtc3Jfb25fY3B1KGRhdGEtPmlkLCBNU1JfSUEzMl9USEVSTV9JTlRFUlJV
-UFQsIGVheCwgZWR4KTsKKworCS8qIFVubWFzayB0aGUgQVBJQyAqLworCWZsYWcgPSAwOworCXNt
-cF9jYWxsX2Z1bmN0aW9uX3NpbmdsZShkYXRhLT5pZCwgJmNvbmZpZ3VyZV9hcGljLCAmZmxhZywg
-MSk7CisKKwltdXRleF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKKwlyZXR1cm4gMDsKK30K
-Kworc3RhdGljIGludCBfX2RldmluaXQgY29uZmlnX3RocmVzaF9pbnRycHQoc3RydWN0IGNvcmV0
-ZW1wX2RhdGEgKmRhdGEsCisJCQkJCQkJCWludCBlbmFibGUpCit7CisJdTMyIGVheCwgZWR4Owor
-CWludCBmbGFnID0gMTsgLyogTm9uLVplcm8gRmxhZyBtYXNrcyB0aGUgYXBpYyAqLworCisJc21w
-X2NhbGxfZnVuY3Rpb25fc2luZ2xlKGRhdGEtPmlkLCAmY29uZmlndXJlX2FwaWMsICZmbGFnLCAx
-KTsKKworCXJkbXNyX29uX2NwdShkYXRhLT5pZCwgTVNSX0lBMzJfVEhFUk1fSU5URVJSVVBULCAm
-ZWF4LCAmZWR4KTsKKworCWlmIChlbmFibGUpIHsKKwkJZWF4IHw9IChUSEVSTV9JTlRfVEhSRVNI
-T0xEMF9FTkFCTEUgfAorCQkJCQkJVEhFUk1fSU5UX1RIUkVTSE9MRDFfRU5BQkxFKTsKKwkJcGxh
-dGZvcm1fdGhlcm1hbF9ub3RpZnkgPSBjb3JldGVtcF9pbnRlcnJ1cHQ7CisJfSBlbHNlIHsKKwkJ
-ZWF4ICY9ICh+KFRIRVJNX0lOVF9USFJFU0hPTEQwX0VOQUJMRSB8CisJCQkJCQlUSEVSTV9JTlRf
-VEhSRVNIT0xEMV9FTkFCTEUpKTsKKwkJcGxhdGZvcm1fdGhlcm1hbF9ub3RpZnkgPSBOVUxMOwor
-CX0KKworCXdybXNyX29uX2NwdShkYXRhLT5pZCwgTVNSX0lBMzJfVEhFUk1fSU5URVJSVVBULCBl
-YXgsIGVkeCk7CisKKwlmbGFnID0gMDsgLypGbGFnIHNob3VsZCBiZSB6ZXJvIHRvIHVubWFzayB0
-aGUgYXBpYyAqLworCXNtcF9jYWxsX2Z1bmN0aW9uX3NpbmdsZShkYXRhLT5pZCwgJmNvbmZpZ3Vy
-ZV9hcGljLCAmZmxhZywgMSk7CisKKwlyZXR1cm4gMDsKK30KKwogc3RhdGljIGludCBfX2Rldmlu
-aXQgY29yZXRlbXBfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIHsKIAlzdHJ1
-Y3QgY29yZXRlbXBfZGF0YSAqZGF0YTsKQEAgLTM1MSw2ICs1MTYsMTAgQEAgc3RhdGljIGludCBf
-X2RldmluaXQgY29yZXRlbXBfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAl9
-CiAKIAlkYXRhLT50am1heCA9IGdldF90am1heChjLCBkYXRhLT5pZCwgJnBkZXYtPmRldik7CisJ
-LyogSW5pdGlhbGl6ZSB0dGFyZ2V0IHZhbHVlLiBJZiBJQTMyX1RFTVBFUkFUVVJFX1RBUkdFVCBp
-cworCSAqIHN1cHBvcnRlZCwgdGhpcyB2YWx1ZSB3aWxsIGJlIG92ZXIgd3JpdHRlbiBiZWxvdwor
-CSAqLworCWRhdGEtPnR0YXJnZXQgPSBkYXRhLT50am1heCAtIDIwMDAwOwogCXBsYXRmb3JtX3Nl
-dF9kcnZkYXRhKHBkZXYsIGRhdGEpOwogCiAJLyoKQEAgLTM2OCwxMyArNTM3LDE4IEBAIHN0YXRp
-YyBpbnQgX19kZXZpbml0IGNvcmV0ZW1wX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBk
-ZXYpCiAJCX0gZWxzZSB7CiAJCQlkYXRhLT50dGFyZ2V0ID0gZGF0YS0+dGptYXggLQogCQkJCQko
-KChlYXggPj4gOCkgJiAweGZmKSAqIDEwMDApOwotCQkJZXJyID0gZGV2aWNlX2NyZWF0ZV9maWxl
-KCZwZGV2LT5kZXYsCi0JCQkJCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfbWF4LmRldl9hdHRyKTsK
-LQkJCWlmIChlcnIpCi0JCQkJZ290byBleGl0X2ZyZWU7CiAJCX0KIAl9CiAKKwkvKiBFbmFibGUg
-dGhyZXNob2xkIGludGVycnVwdCBzdXBwb3J0ICovCisJY29uZmlnX3RocmVzaF9pbnRycHQoZGF0
-YSwgMSk7CisKKwkvKiBTZXQgSW5pdGlhbCBDb3JlIHRocmVzaG9sZHMuCisJICogVGhlIGxvd2Vy
-IGFuZCB1cHBlciB0aHJlc2hvbGQgdmFsdWVzIGhlcmUgYXJlIGFzc3VtZWQKKwkgKi8KKwlzZXRf
-Y29yZV90aHJlc2hvbGQoZGF0YSwgMCwgQ09SRV9UTUlOKTsKKwlzZXRfY29yZV90aHJlc2hvbGQo
-ZGF0YSwgZGF0YS0+dHRhcmdldCwgQ09SRV9UVEFSR0VUKTsKKwogCWlmICgoZXJyID0gc3lzZnNf
-Y3JlYXRlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwgJmNvcmV0ZW1wX2dyb3VwKSkpCiAJCWdvdG8g
-ZXhpdF9kZXY7CiAKQEAgLTQwNCw3ICs1NzgsNyBAQCBzdGF0aWMgaW50IF9fZGV2ZXhpdCBjb3Jl
-dGVtcF9yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAogCWh3bW9uX2Rldmlj
-ZV91bnJlZ2lzdGVyKGRhdGEtPmh3bW9uX2Rldik7CiAJc3lzZnNfcmVtb3ZlX2dyb3VwKCZwZGV2
-LT5kZXYua29iaiwgJmNvcmV0ZW1wX2dyb3VwKTsKLQlkZXZpY2VfcmVtb3ZlX2ZpbGUoJnBkZXYt
-PmRldiwgJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9tYXguZGV2X2F0dHIpOworCWNvbmZpZ190aHJl
-c2hfaW50cnB0KGRhdGEsIDApOwogCXBsYXRmb3JtX3NldF9kcnZkYXRhKHBkZXYsIE5VTEwpOwog
-CWtmcmVlKGRhdGEpOwogCXJldHVybiAwOwotLSAKMS42LjUuMgoK
-
---_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
-Content-Type: text/plain; name="ATT00001..txt"
-Content-Description: ATT00001..txt
-Content-Disposition: attachment; filename="ATT00001..txt"; size=156;
-	creation-date="Mon, 20 Dec 2010 11:42:39 GMT";
-	modification-date="Mon, 20 Dec 2010 11:42:39 GMT"
-Content-Transfer-Encoding: base64
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCmxtLXNlbnNv
-cnMgbWFpbGluZyBsaXN0DQpsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnDQpodHRwOi8vbGlzdHMu
-bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
-
---_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
+--------------010106090103010904090003
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -619,4 +424,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_--
+--------------010106090103010904090003--
