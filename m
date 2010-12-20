@@ -1,42 +1,48 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Date: Sat, 18 Dec 2010 15:39:50 +0000
+From: Mikael =?ISO-8859-1?Q?Str=F6m?= <mikael@sesamiq.com>
+Date: Mon, 20 Dec 2010 13:44:34 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2 V3] applesmc: Use PnP rather than
-Message-Id: <20101218153950.GA22649@srcf.ucam.org>
+Message-Id: <1292852674.2118.10.camel@mike-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101217221618.GA13207@ericsson.com> <1292624661-32474-1-git-send-email-mjg@redhat.com> <20101218042320.GA14104@ericsson.com> <20101218093719.GA1493@polaris.bitmath.org> <20101218144329.GB21801@srcf.ucam.org> <20101218153012.GA1506@polaris.bitmath.org>
-In-Reply-To: <20101218153012.GA1506@polaris.bitmath.org>
+References: <20101217221618.GA13207@ericsson.com>
+	 <1292624661-32474-1-git-send-email-mjg@redhat.com>
+	 <20101218042320.GA14104@ericsson.com>
+	 <20101218093719.GA1493@polaris.bitmath.org>
+	 <20101218110954.7a2ca190@endymion.delvare>
+	 <20101218103139.GA1668@polaris.bitmath.org>
+	 <878vzngvyn.fsf@sonic.technologeek.org>
+	 <20101218115742.GA2063@polaris.bitmath.org>
+In-Reply-To: <20101218115742.GA2063@polaris.bitmath.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: Henrik Rydberg <rydberg@euromail.se>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Cc: Julien BLACHE <jb@jblache.org>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 
-On Sat, Dec 18, 2010 at 04:30:12PM +0100, Henrik Rydberg wrote:
-> > Hm. Is this an oops or a lockdep warning?
-> 
-> It is a null-pointer dereference in sysfs_create_file(). Probably the
-> kernel is asking the same question as I did - do you actually see the
-> sysfs nodes when testing the patch?
-
-Yup. Not sure what's happening there. I'll try to figure that out.
-
-> > > So where to attach the sysfs nodes... There is also a userspace issue
-> > > here, since a lot of applications are hard-wired to
-> > > /sys/devices/platform/applesmc.768/.
-> > 
-> > The correct sysfs ABI is to use the /sys/class interface and the names 
-> > under there rather than assuming a hardwired platform device path.
-> 
-> Still breaks user-space, but it seems this is already under control.
-
-If it turns out that there's code that relies on it then we could 
-obviously retain the platform device, but it's kind of ugly. sysfs 
-paths aren't intended to be hardcoded.
-
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCgpJIGtub3cgbm90aGluZyBhYm91dCB0aGUgYmFja2dyb3VuZCB0byB0aGUgbWFpbCBiZWxv
+dywgYnV0IGlmIGl0J3Mgb2YKYW55IGhlbHAsIG1hY2ZhbmN0bGQgdXNlcyB0aGUgZm9sbG93aW5n
+IGhhcmR3aXJlZCBwYXRocywKCnJlYWRpbmc6Cgovc3lzL2RldmljZXMvcGxhdGZvcm0vYXBwbGVz
+bWMuNzY4L3RlbXA8bj5faW5wdXQKCmFuZCB3cml0aW5nOgoKL3N5cy9kZXZpY2VzL3BsYXRmb3Jt
+L2FwcGxlc21jLjc2OC9mYW4xX21pbgovc3lzL2RldmljZXMvcGxhdGZvcm0vYXBwbGVzbWMuNzY4
+L2ZhbjJfbWluCi9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9hcHBsZXNtYy43NjgvZmFuMV9tYW51YWwK
+L3N5cy9kZXZpY2VzL3BsYXRmb3JtL2FwcGxlc21jLjc2OC9mYW4yX21hbnVhbAoKSWYgYW55IG9m
+IHRob3NlIGFyZSB0byBiZSBicm9rZW4sIHBsZWFzZSBhZHZpY2UgaW4gYWR2YW5jZSBzbyBpIGNh
+bgp1cGRhdGUgdGhlIHNvdXJjZSBiZWZvcmUgeW91IGJyZWFrIGl0LCBhdm9pZGluZyB0aGF0IHRo
+ZSB1c2VycyBmcnkgdGhlaXIKTWFjQm9va3MuCgpUaGFua3MsCk1pa2UKCi0tIApNaWthZWwgU3Ry
+w7ZtIDxtaWthZWxAc2VzYW1pcS5jb20+CgpPbiBTYXQsIDIwMTAtMTItMTggYXQgMTI6NTcgKzAx
+MDAsIEhlbnJpayBSeWRiZXJnIHdyb3RlOgo+IE9uIFNhdCwgRGVjIDE4LCAyMDEwIGF0IDEyOjI5
+OjUyUE0gKzAxMDAsIEp1bGllbiBCTEFDSEUgd3JvdGU6Cj4gPiAiSGVucmlrIFJ5ZGJlcmciIDxy
+eWRiZXJnQGV1cm9tYWlsLnNlPiB3cm90ZToKPiA+IAo+ID4gSGksCj4gPiAKPiA+ID4+IFdoaWNo
+IGFwcGxpY2F0aW9ucz8gbGlic2Vuc29ycy1iYXNlZCBhcHBsaWNhdGlvbnMgZGVmaW5pdGVseSBk
+b24ndAo+ID4gPj4gaGFyZC13aXJlIGFueXRoaW5nLgo+ID4gPgo+ID4gPiBUaGUgb25lcyBJIGFt
+IHRoaW5raW5nIG9mIGFyZSBwb21tZWQgYW5kIG1hY2ZhbmN0bGQsIHRoZXJlIGFyZQo+ID4gPiBw
+cm9iYWJseSBvdGhlcnMuIFRoZSBzeXNmcyBub2RlcyBoYXZlIGJlZW4gYXJvdW5kIGEgd2hpbGUs
+IHNvIGl0IGlzCj4gPiA+IG5vdCByZWFsbHkgc3VycHJpc2luZy4gSWYgdGhlcmUgaXMgYSBwb2xp
+Y3kgc2F5aW5nIGl0IGlzIG9rIHRvIGJyZWFrCj4gPiA+IHVzZXJzcGFjZSBpbiB0aGlzIGNhc2Us
+IHRoYXQncyBmaW5lLgo+ID4gCj4gPiBJJ3ZlIGp1c3QgY2hhbmdlZCBwb21tZWQgdG8gcHJvYmUg
+Zm9yIGFwcGxlc21jIHRocm91Z2ggL3N5cy9jbGFzcy9od21vbiwKPiA+IHNvIHlvdSBjYW4gZ28g
+YWhlYWQgYW5kIGJyZWFrIGl0IGFzIGZhciBhcyBJJ20gY29uY2VybmVkIDopCj4gCj4gR3JlYXQs
+IHRoYW5rcyBKdWxpZW4uIEFuZCBtYWNmYW5jdGxkIHNob3VsZCBub3QgYmUgYSBwcm9ibGVtIGVp
+dGhlciAoY2NpbmcgdGhlIGF1dGhvcikuCj4gCj4gSGVucmlrCj4gCgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
+bG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCg==
