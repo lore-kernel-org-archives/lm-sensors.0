@@ -1,48 +1,53 @@
-From: Mikael =?ISO-8859-1?Q?Str=F6m?= <mikael@sesamiq.com>
-Date: Mon, 20 Dec 2010 13:44:34 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 20 Dec 2010 13:57:21 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2 V3] applesmc: Use PnP rather than
-Message-Id: <1292852674.2118.10.camel@mike-laptop>
+Message-Id: <20101220145721.4c58ff3e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101217221618.GA13207@ericsson.com>
-	 <1292624661-32474-1-git-send-email-mjg@redhat.com>
-	 <20101218042320.GA14104@ericsson.com>
-	 <20101218093719.GA1493@polaris.bitmath.org>
-	 <20101218110954.7a2ca190@endymion.delvare>
-	 <20101218103139.GA1668@polaris.bitmath.org>
-	 <878vzngvyn.fsf@sonic.technologeek.org>
-	 <20101218115742.GA2063@polaris.bitmath.org>
-In-Reply-To: <20101218115742.GA2063@polaris.bitmath.org>
+	<1292624661-32474-1-git-send-email-mjg@redhat.com>
+	<20101218042320.GA14104@ericsson.com>
+	<20101218093719.GA1493@polaris.bitmath.org>
+	<20101218110954.7a2ca190@endymion.delvare>
+	<20101218103139.GA1668@polaris.bitmath.org>
+	<878vzngvyn.fsf@sonic.technologeek.org>
+	<20101218115742.GA2063@polaris.bitmath.org>
+	<1292852674.2118.10.camel@mike-laptop>
+In-Reply-To: <1292852674.2118.10.camel@mike-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
-To: Henrik Rydberg <rydberg@euromail.se>
-Cc: Julien BLACHE <jb@jblache.org>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Mikael =?ISO-8859-1?B?U3Ry9m0=?= <mikael@sesamiq.com>
+Cc: Henrik Rydberg <rydberg@euromail.se>, Julien BLACHE <jb@jblache.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Matthew Garrett <mjg@redhat.com>
 
-SGksCgpJIGtub3cgbm90aGluZyBhYm91dCB0aGUgYmFja2dyb3VuZCB0byB0aGUgbWFpbCBiZWxv
-dywgYnV0IGlmIGl0J3Mgb2YKYW55IGhlbHAsIG1hY2ZhbmN0bGQgdXNlcyB0aGUgZm9sbG93aW5n
-IGhhcmR3aXJlZCBwYXRocywKCnJlYWRpbmc6Cgovc3lzL2RldmljZXMvcGxhdGZvcm0vYXBwbGVz
-bWMuNzY4L3RlbXA8bj5faW5wdXQKCmFuZCB3cml0aW5nOgoKL3N5cy9kZXZpY2VzL3BsYXRmb3Jt
-L2FwcGxlc21jLjc2OC9mYW4xX21pbgovc3lzL2RldmljZXMvcGxhdGZvcm0vYXBwbGVzbWMuNzY4
-L2ZhbjJfbWluCi9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9hcHBsZXNtYy43NjgvZmFuMV9tYW51YWwK
-L3N5cy9kZXZpY2VzL3BsYXRmb3JtL2FwcGxlc21jLjc2OC9mYW4yX21hbnVhbAoKSWYgYW55IG9m
-IHRob3NlIGFyZSB0byBiZSBicm9rZW4sIHBsZWFzZSBhZHZpY2UgaW4gYWR2YW5jZSBzbyBpIGNh
-bgp1cGRhdGUgdGhlIHNvdXJjZSBiZWZvcmUgeW91IGJyZWFrIGl0LCBhdm9pZGluZyB0aGF0IHRo
-ZSB1c2VycyBmcnkgdGhlaXIKTWFjQm9va3MuCgpUaGFua3MsCk1pa2UKCi0tIApNaWthZWwgU3Ry
-w7ZtIDxtaWthZWxAc2VzYW1pcS5jb20+CgpPbiBTYXQsIDIwMTAtMTItMTggYXQgMTI6NTcgKzAx
-MDAsIEhlbnJpayBSeWRiZXJnIHdyb3RlOgo+IE9uIFNhdCwgRGVjIDE4LCAyMDEwIGF0IDEyOjI5
-OjUyUE0gKzAxMDAsIEp1bGllbiBCTEFDSEUgd3JvdGU6Cj4gPiAiSGVucmlrIFJ5ZGJlcmciIDxy
-eWRiZXJnQGV1cm9tYWlsLnNlPiB3cm90ZToKPiA+IAo+ID4gSGksCj4gPiAKPiA+ID4+IFdoaWNo
-IGFwcGxpY2F0aW9ucz8gbGlic2Vuc29ycy1iYXNlZCBhcHBsaWNhdGlvbnMgZGVmaW5pdGVseSBk
-b24ndAo+ID4gPj4gaGFyZC13aXJlIGFueXRoaW5nLgo+ID4gPgo+ID4gPiBUaGUgb25lcyBJIGFt
-IHRoaW5raW5nIG9mIGFyZSBwb21tZWQgYW5kIG1hY2ZhbmN0bGQsIHRoZXJlIGFyZQo+ID4gPiBw
-cm9iYWJseSBvdGhlcnMuIFRoZSBzeXNmcyBub2RlcyBoYXZlIGJlZW4gYXJvdW5kIGEgd2hpbGUs
-IHNvIGl0IGlzCj4gPiA+IG5vdCByZWFsbHkgc3VycHJpc2luZy4gSWYgdGhlcmUgaXMgYSBwb2xp
-Y3kgc2F5aW5nIGl0IGlzIG9rIHRvIGJyZWFrCj4gPiA+IHVzZXJzcGFjZSBpbiB0aGlzIGNhc2Us
-IHRoYXQncyBmaW5lLgo+ID4gCj4gPiBJJ3ZlIGp1c3QgY2hhbmdlZCBwb21tZWQgdG8gcHJvYmUg
-Zm9yIGFwcGxlc21jIHRocm91Z2ggL3N5cy9jbGFzcy9od21vbiwKPiA+IHNvIHlvdSBjYW4gZ28g
-YWhlYWQgYW5kIGJyZWFrIGl0IGFzIGZhciBhcyBJJ20gY29uY2VybmVkIDopCj4gCj4gR3JlYXQs
-IHRoYW5rcyBKdWxpZW4uIEFuZCBtYWNmYW5jdGxkIHNob3VsZCBub3QgYmUgYSBwcm9ibGVtIGVp
-dGhlciAoY2NpbmcgdGhlIGF1dGhvcikuCj4gCj4gSGVucmlrCj4gCgoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
-bG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCg==
+On Mon, 20 Dec 2010 21:44:34 +0800, Mikael Str=F6m wrote:
+> Hi,
+>=20
+> I know nothing about the background to the mail below, but if it's of
+> any help, macfanctld uses the following hardwired paths,
+>=20
+> reading:
+>=20
+> /sys/devices/platform/applesmc.768/temp<n>_input
+>=20
+> and writing:
+>=20
+> /sys/devices/platform/applesmc.768/fan1_min
+> /sys/devices/platform/applesmc.768/fan2_min
+> /sys/devices/platform/applesmc.768/fan1_manual
+> /sys/devices/platform/applesmc.768/fan2_manual
+>=20
+> If any of those are to be broken, please advice in advance so i can
+> update the source before you break it, avoiding that the users fry their
+> MacBooks.
+
+I would expect the kernel driver to behave sanely in the absence of a
+user-space application. Isn't it the case? If not, I consider it a
+serious bug in the driver, which should be addressed ASAP.
+
+--=20
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
