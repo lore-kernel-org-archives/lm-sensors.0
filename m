@@ -1,62 +1,61 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 24 Dec 2010 02:08:18 +0000
+From: =?euc-kr?B?x9S47cHW?= <myungjoo.ham@samsung.com>
+Date: Fri, 24 Dec 2010 02:37:37 +0000
 Subject: Re: [lm-sensors] [PATCH v3] drivers/hwmon NTC Thermistor Initial
-Message-Id: <20101224020818.GA30014@ericsson.com>
+Message-Id: <32587438.55821293158257086.JavaMail.weblogic@epv6ml06>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1292842122-3992-1-git-send-email-myungjoo.ham@samsung.com>
 In-Reply-To: <1292842122-3992-1-git-send-email-myungjoo.ham@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 23, 2010 at 08:36:04PM -0500, MyungJoo Ham wrote:
-[ ... ]
-> >> +int ntc_thermistor_read(struct device *dev)
-> >> +{
-> >> + =A0 =A0 =A0 return _ntc_thermistor_read(dev_get_drvdata(dev));
-> >> +}
-> >
-> > Function should be removed since it is no longer exported.
-> >
->=20
-> I have been considering to use this function at the board file in the
-> kernel space.
-
-That means you would have to export the function, and we are back to square=
- one,
-ie you really use a hwmon driver to provide functions to a non-hwmon driver.
-
-> However, if it is removed, the driver may have a weird callback (a) or
-> the board file
-> may need to access sysfs filesystem and depends on sysfs (b).
->=20
-> (a): add "int (*read_thermistor)(struct platform_device *pdev)" at
-> struct ntc_thermistor_platform_data (in include/linux/ntc.h) and let
-> ntc_thermistor_probe provide callback thru pdata back to the caller of
-> platform_device_register().
->=20
-> (b): read "/sysfs/devices/platform/blahblah/temp1_input"
-> and keep /sysfs mounted always.
->=20
-> Are these approaches fine?
->=20
-Again, problem is that in order to have this functionality, you force=20
-hwmon to be active for the board you are talking about. This is,
-no matter how you do it, not the correct approach. Maybe someone wants to
-build a kernel with no hwmon support. Then what ? This won't work.
-
-If the adc values need to be used by non-hwmon driver(s), there should be=20
-an independent driver providing adc values, a hwmon driver to convert the=20
-adc values as appropriate via the hwmon sysfs ABI, and other drivers as nee=
-ded,
-such as your board driver, doing whatever they want to do with the adc valu=
-es.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+ClNlbmRlciA6IEd1ZW50ZXIgUm9lY2s8Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20+Cj4gT24g
+VGh1LCBEZWMgMjMsIDIwMTAgYXQgMDg6MzY6MDRQTSAtMDUwMCwgTXl1bmdKb28gSGFtIHdyb3Rl
+Ogo+IFsgLi4uIF0KPiA+ID4+ICtpbnQgbnRjX3RoZXJtaXN0b3JfcmVhZChzdHJ1Y3QgZGV2aWNl
+ICpkZXYpCj4gPiA+PiArewo+ID4gPj4gKyA/ID8gPyByZXR1cm4gX250Y190aGVybWlzdG9yX3Jl
+YWQoZGV2X2dldF9kcnZkYXRhKGRldikpOwo+ID4gPj4gK30KPiA+ID4KPiA+ID4gRnVuY3Rpb24g
+c2hvdWxkIGJlIHJlbW92ZWQgc2luY2UgaXQgaXMgbm8gbG9uZ2VyIGV4cG9ydGVkLgo+ID4gPgo+
+ID4gCj4gPiBJIGhhdmUgYmVlbiBjb25zaWRlcmluZyB0byB1c2UgdGhpcyBmdW5jdGlvbiBhdCB0
+aGUgYm9hcmQgZmlsZSBpbiB0aGUKPiA+IGtlcm5lbCBzcGFjZS4KPiAKPiBUaGF0IG1lYW5zIHlv
+dSB3b3VsZCBoYXZlIHRvIGV4cG9ydCB0aGUgZnVuY3Rpb24sIGFuZCB3ZSBhcmUgYmFjayB0byBz
+cXVhcmUgb25lLAo+IGllIHlvdSByZWFsbHkgdXNlIGEgaHdtb24gZHJpdmVyIHRvIHByb3ZpZGUg
+ZnVuY3Rpb25zIHRvIGEgbm9uLWh3bW9uIGRyaXZlci4KPiAKClllcywgdGhpcyBod21vbiBkcml2
+ZXIgaXMgdXNlZCBieSBhbm90aGVyIChib2FyZCBmaWxlKSB3aGVuIENPTkZJR19IV01PTiBhbmQK
+Q09ORklHX05UQ18uLi4uIGlzICJ5Ii4gT3RoZXJ3aXNlLCB0aGUgY29kZSB0aGF0IHJlcXVpcmVz
+IGh3bW9uIGRyaXZlciBpcyBub3QKY29tcGlsZWQgYW5kIGEgZHVtbXkgaXMgdXNlZCBpbnN0ZWFk
+LiBUaHVzLCB3ZSBkb24ndCBuZWVkIEVYUE9SVCBhbnl3YXkuCgo+ID4gSG93ZXZlciwgaWYgaXQg
+aXMgcmVtb3ZlZCwgdGhlIGRyaXZlciBtYXkgaGF2ZSBhIHdlaXJkIGNhbGxiYWNrIChhKSBvcgo+
+ID4gdGhlIGJvYXJkIGZpbGUKPiA+IG1heSBuZWVkIHRvIGFjY2VzcyBzeXNmcyBmaWxlc3lzdGVt
+IGFuZCBkZXBlbmRzIG9uIHN5c2ZzIChiKS4KPiA+IAo+ID4gKGEpOiBhZGQgImludCAoKnJlYWRf
+dGhlcm1pc3Rvcikoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikiIGF0Cj4gPiBzdHJ1Y3Qg
+bnRjX3RoZXJtaXN0b3JfcGxhdGZvcm1fZGF0YSAoaW4gaW5jbHVkZS9saW51eC9udGMuaCkgYW5k
+IGxldAo+ID4gbnRjX3RoZXJtaXN0b3JfcHJvYmUgcHJvdmlkZSBjYWxsYmFjayB0aHJ1IHBkYXRh
+IGJhY2sgdG8gdGhlIGNhbGxlciBvZgo+ID4gcGxhdGZvcm1fZGV2aWNlX3JlZ2lzdGVyKCkuCj4g
+PiAKPiA+IChiKTogcmVhZCAiL3N5c2ZzL2RldmljZXMvcGxhdGZvcm0vYmxhaGJsYWgvdGVtcDFf
+aW5wdXQiCj4gPiBhbmQga2VlcCAvc3lzZnMgbW91bnRlZCBhbHdheXMuCj4gPiAKPiA+IEFyZSB0
+aGVzZSBhcHByb2FjaGVzIGZpbmU/Cj4gPiAKPiBBZ2FpbiwgcHJvYmxlbSBpcyB0aGF0IGluIG9y
+ZGVyIHRvIGhhdmUgdGhpcyBmdW5jdGlvbmFsaXR5LCB5b3UgZm9yY2UgCj4gaHdtb24gdG8gYmUg
+YWN0aXZlIGZvciB0aGUgYm9hcmQgeW91IGFyZSB0YWxraW5nIGFib3V0LiBUaGlzIGlzLAo+IG5v
+IG1hdHRlciBob3cgeW91IGRvIGl0LCBub3QgdGhlIGNvcnJlY3QgYXBwcm9hY2guIE1heWJlIHNv
+bWVvbmUgd2FudHMgdG8KPiBidWlsZCBhIGtlcm5lbCB3aXRoIG5vIGh3bW9uIHN1cHBvcnQuIFRo
+ZW4gd2hhdCA/IFRoaXMgd29uJ3Qgd29yay4KPiAKPiBJZiB0aGUgYWRjIHZhbHVlcyBuZWVkIHRv
+IGJlIHVzZWQgYnkgbm9uLWh3bW9uIGRyaXZlcihzKSwgdGhlcmUgc2hvdWxkIGJlIAo+IGFuIGlu
+ZGVwZW5kZW50IGRyaXZlciBwcm92aWRpbmcgYWRjIHZhbHVlcywgYSBod21vbiBkcml2ZXIgdG8g
+Y29udmVydCB0aGUgCj4gYWRjIHZhbHVlcyBhcyBhcHByb3ByaWF0ZSB2aWEgdGhlIGh3bW9uIHN5
+c2ZzIEFCSSwgYW5kIG90aGVyIGRyaXZlcnMgYXMgbmVlZGVkLAo+IHN1Y2ggYXMgeW91ciBib2Fy
+ZCBkcml2ZXIsIGRvaW5nIHdoYXRldmVyIHRoZXkgd2FudCB0byBkbyB3aXRoIHRoZSBhZGMgdmFs
+dWVzLgoKSWYgaHdtb24gYW5kIG50YyBpcyBub3QgYWN0aXZlIChub3QgeSksIGl0IHdvbid0IHNp
+bXBseSB1c2UgaXQuIFRoZSB1c2VyIHdpbGwgbG9zZQpyZWxhdGVkIGZlYXR1cmVzLCBidXQgd2ls
+bCBiZSBhYmxlIHRvIHJ1biB0aGUga2VybmVsIGFueXdheS4KCkZvciBleGFtcGxlLCBpbiBjYXNl
+IChhKSwgd2UgbWF5IGVpdGhlciBza2lwIChieSB1c2luZyBzb21lICNpZikgcmVnaXN0ZXJpbmcg
+b3IKaGFuZGxlIGVycm9yIGZyb20gcGxhdGZvcm1fZHJpdmVyX3JlZ2lzdGVyIHByb3Blcmx5OyBq
+dXN0IGRvbid0IHN0YXJ0IHRoZSBzZXJ2aWNlL2Z1bmN0aW9uCnRoYXQgcmVxdWlyZXMgbnRjLiBJ
+biBjYXNlIChiKSwgaXQgd291bGQgYmUgYWxtb3N0IHNhbWUgd2l0aCB0aGUgbGF0dGVyIG1ldGhv
+ZCBvZiBjYXNlIChhKS4KIAo+IAo+IFRoYW5rcywKPiBHdWVudGVyCj4gCgoKQ2hlZXJzIQpNeXVu
+Z0pvbwoKIE15dW5nSm9vIEhhbSAox9S47cHWKQpNb2JpbGUgU29mdHdhcmUgUGxhdGZvcm0gTGFi
+LApEaWdpdGFsIE1lZGlhIGFuZCBDb21tdW5pY2F0aW9ucyAoRE1DKSBCdXNpbmVzcwpTYW1zdW5n
+IEVsZWN0cm9uaWNzCmNlbGw6ICs4Mi0xMC02NzE0LTI4NTggLyBvZmZpY2U6ICs4Mi0zMS0yNzkt
+ODAzMwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
