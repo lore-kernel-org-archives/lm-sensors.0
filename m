@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 24 Dec 2010 03:09:43 +0000
+Date: Fri, 24 Dec 2010 05:42:04 +0000
 Subject: Re: [lm-sensors] [PATCH v3] drivers/hwmon NTC Thermistor Initial
-Message-Id: <20101224030943.GA30130@ericsson.com>
+Message-Id: <20101224054204.GA30389@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1292842122-3992-1-git-send-email-myungjoo.ham@samsung.com>
 In-Reply-To: <1292842122-3992-1-git-send-email-myungjoo.ham@samsung.com>
@@ -34,7 +34,9 @@ On Thu, Dec 23, 2010 at 09:37:37PM -0500, 함명주 wrote:
 > CONFIG_NTC_.... is "y". Otherwise, the code that requires hwmon driver is not
 > compiled and a dummy is used instead. Thus, we don't need EXPORT anyway.
 > 
-Have you tried to compile the driver as module ?
+After browsing through the kernel source - such a dependency on CONFIG_HWMON
+would be the first in the kernel. I think such a dependency is broken, and
+I won't be the one to approve it.
 
 Guenter
 
