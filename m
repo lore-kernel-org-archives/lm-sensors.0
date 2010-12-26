@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 26 Dec 2010 03:18:23 +0000
+From: Roland Stigge <stigge@antcom.de>
+Date: Sun, 26 Dec 2010 23:20:48 +0000
 Subject: Re: [lm-sensors] [PATCH] Support for DS620
-Message-Id: <20101226031823.GA3524@ericsson.com>
+Message-Id: <4D17CDD0.5030100@antcom.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D0FB795.3010006@antcom.de>
 In-Reply-To: <4D0FB795.3010006@antcom.de>
@@ -10,24 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Dec 25, 2010 at 06:05:59PM -0500, Roland Stigge wrote:
-> Hi,
-> 
-> thanks again for your valuable feedback!
-> 
-> Attaching the updated patch including your proposed changes.
-> 
-> bye,
->   Roland
+On 26/12/10 04:18, Guenter Roeck wrote:
+>> Added support for Dallas Semiconductor DS620
+>>
+>> Signed-off-by: Roland Stigge <stigge@antcom.de>
+>>
+> Queued for -next.
 
-> Added support for Dallas Semiconductor DS620
-> 
-> Signed-off-by: Roland Stigge <stigge@antcom.de>
-> 
-Queued for -next.
+Thanks in advance!
 
-Thanks,
-Guenter
+Another question: I will need to write a driver for the MAX518 DAC. What
+is the appropriate place?
+
+* hwmon (well, it is an analog _output_, not a monioring input)
+* gpio (it is an analog, not _digital_ 0/1 output)
+* misc
+
+?
+
+bye,
+  Roland
 
 _______________________________________________
 lm-sensors mailing list
