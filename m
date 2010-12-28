@@ -1,14 +1,16 @@
 From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Mon, 20 Dec 2010 06:21:43 +0000
+Date: Tue, 28 Dec 2010 10:38:57 +0000
 Subject: [lm-sensors] Patch[2/2]:hwmon:Adding_Threshold_Support_to_Coretemp.c
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654105C1173DC8@bgsmsx502.gar.corp.intel.com>
+Message-Id: <D6D887BA8C9DFF48B5233887EF04654105C11DB93B@bgsmsx502.gar.corp.intel.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_002_D6D887BA8C9DFF48B5233887EF04654105C1173DC8bgsmsx502garc_"
+Content-Type: multipart/mixed; boundary="_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_"
 List-Id: <lm-sensors.vger.kernel.org>
-To: "Yu, Fenghua" <fenghua.yu@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "Brown, Len" <len.brown@intel.com>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <D6D887BA8C9DFF48B5233887EF04654105C1173DC8@bgsmsx502.gar.corp.intel.com>
+In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654105C1173DC8@bgsmsx502.gar.corp.intel.com>
+To: "Yu, Fenghua" <fenghua.yu@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "Brown, Len" <len.brown@intel.com>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
---_002_D6D887BA8C9DFF48B5233887EF04654105C1173DC8bgsmsx502garc_
+--_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 
@@ -391,14 +393,14 @@ vice *pdev)
 1.6.5.2
 
 
---_002_D6D887BA8C9DFF48B5233887EF04654105C1173DC8bgsmsx502garc_
+--_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
 Content-Type: application/octet-stream;
 	name="0002-hwmon-Adding_Threshold_Support_to_Coretemp.patch"
 Content-Description: 0002-hwmon-Adding_Threshold_Support_to_Coretemp.patch
 Content-Disposition: attachment;
 	filename="0002-hwmon-Adding_Threshold_Support_to_Coretemp.patch"; size=10983;
-	creation-date="Mon, 20 Dec 2010 11:25:25 GMT";
-	modification-date="Sun, 19 Dec 2010 23:23:46 GMT"
+	creation-date="Mon, 20 Dec 2010 16:55:25 GMT";
+	modification-date="Mon, 20 Dec 2010 04:53:46 GMT"
 Content-Transfer-Encoding: base64
 
 RnJvbTogRHVyZ2Fkb3NzIFIgPGR1cmdhZG9zcy5yQGludGVsLmNvbT4KRGF0ZTogU3VuLCAxOSBE
@@ -595,7 +597,19 @@ PmRldiwgJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9tYXguZGV2X2F0dHIpOworCWNvbmZpZ190aHJl
 c2hfaW50cnB0KGRhdGEsIDApOwogCXBsYXRmb3JtX3NldF9kcnZkYXRhKHBkZXYsIE5VTEwpOwog
 CWtmcmVlKGRhdGEpOwogCXJldHVybiAwOwotLSAKMS42LjUuMgoK
 
---_002_D6D887BA8C9DFF48B5233887EF04654105C1173DC8bgsmsx502garc_
+--_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
+Content-Type: text/plain; name="ATT00001..txt"
+Content-Description: ATT00001..txt
+Content-Disposition: attachment; filename="ATT00001..txt"; size=156;
+	creation-date="Mon, 20 Dec 2010 11:42:39 GMT";
+	modification-date="Mon, 20 Dec 2010 11:42:39 GMT"
+Content-Transfer-Encoding: base64
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCmxtLXNlbnNv
+cnMgbWFpbGluZyBsaXN0DQpsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnDQpodHRwOi8vbGlzdHMu
+bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+
+--_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -605,4 +619,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---_002_D6D887BA8C9DFF48B5233887EF04654105C1173DC8bgsmsx502garc_--
+--_003_D6D887BA8C9DFF48B5233887EF04654105C11DB93Bbgsmsx502garc_--
