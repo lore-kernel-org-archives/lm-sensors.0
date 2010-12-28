@@ -1,7 +1,7 @@
 From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Mon, 20 Dec 2010 06:18:43 +0000
+Date: Tue, 28 Dec 2010 10:37:04 +0000
 Subject: [lm-sensors]
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654105C1173DBD@bgsmsx502.gar.corp.intel.com>
+Message-Id: <D6D887BA8C9DFF48B5233887EF04654105C11DB939@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87ekb9s3tn.wl%info@wore.ma.cx>
 In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "Yu, Fenghua" <fenghua.yu@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, "Brown, Len" <len.brown@intel.com>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>
-Cc: "x86@kernel.org" <x86@kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
 Hi,
 
@@ -154,9 +154,6 @@ index 4b68326..e12246f 100644
  	if (therm_throt_process(msr_val & THERM_STATUS_PROCHOT,
  				THERMAL_THROTTLING_EVENT,
  				CORE_LEVEL) != 0)
--- 
-1.6.5.2
-
 
 _______________________________________________
 lm-sensors mailing list
