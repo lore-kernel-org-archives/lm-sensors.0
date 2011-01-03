@@ -1,12 +1,12 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 03 Jan 2011 14:53:40 +0000
+Date: Mon, 03 Jan 2011 18:09:19 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: driver for Sensirion SHT21 humidity
-Message-Id: <20110103145340.GA25600@ericsson.com>
+Message-Id: <1294078159.9786.9.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101229134511.cc466ac0.urs.fleisch@gmail.com>
- <4D1DF097.1080200@cam.ac.uk>
- <20110103081448.f96c413e.urs.fleisch@gmail.com>
- <4D21ADCB.4070206@cam.ac.uk>
+	 <4D1DF097.1080200@cam.ac.uk>
+	 <20110103081448.f96c413e.urs.fleisch@gmail.com>
+	 <4D21ADCB.4070206@cam.ac.uk>
 In-Reply-To: <4D21ADCB.4070206@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -14,7 +14,7 @@ Content-Transfer-Encoding: 7bit
 To: Jonathan Cameron <jic23@cam.ac.uk>
 Cc: Urs Fleisch <urs.fleisch@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
 
-On Mon, Jan 03, 2011 at 06:06:51AM -0500, Jonathan Cameron wrote:
+On Mon, 2011-01-03 at 06:06 -0500, Jonathan Cameron wrote:
 > On 01/03/11 07:14, Urs Fleisch wrote:
 > > Hi Jonathan,
 > When posting an updated driver, use the form
@@ -38,49 +38,25 @@ On Mon, Jan 03, 2011 at 06:06:51AM -0500, Jonathan Cameron wrote:
 > >> standard (well humidity is pretty unusual but no one ever complained about
 > >> the sht15 afaik!)
 > >
-Might make sense to document it in the ABI, though.
+I have been thinking about this, and would like to get Jean's input.
 
-> > The user_register attribute is now replaced by
-> > temp1_resolution_bits, humidity1_resolution_bits,
-> Those two aren't in the documentation for hwmon.
-> Guenter/Jean, how should this be done?
-> Is there actualy a use case that means these can't both be set
-> by platform data?  Also, if these are acceptable, should they have
-> some means of indicating which combination of values are available?
-> 
-> > in0_min_alarm, heater_enable
-> > attributes. in0_min_alarm is used for the "end of battery" state, the other
-> > attributes are non-standard. Unfortunately, the temperature and humidity
-> > resolutions are not independent. Is this acceptable?
-> Up to maintainers.  Other than trying to work out some way of indicating valid
-> options for the two resolution attributes I'd be happy with these.
+Humidity doesn't really sound like "hardware monitoring"; more like
+environmental monitoring. But on the other side, even though humidity
+doesn't really monitor the HW, it does monitor operational conditions,
+and its reported values may have impact on system operation (eg cause a
+shutdown if humidity is too high, to prevent HW damage).
 
-I am opposed to non-ABI attributes. That doesn't mean that I am opposed to
-extending the ABI; if the ABI needs to be extended, it should be extended
-instead of providing non-standard attributes. But there should be a use case
-for extending the ABI - meaning new ABI attributes should provide value not just
-for one chip, but for others as well.
+So question is if hwmon should include explicit environmental monitoring
+attributes or not, and if hwmon and environmental monitoring can and
+should be separated to start with (for example, what if any is the
+difference between environment temperature and hw monitoring
+temperature ?).
 
-sysfs attributes should only be used for values expected to change during
-runtime. "resolution" and "heater_enable" sounds like it might fit better into
-platform data. System wide information can also be set using driver parameters.
-
-> >
-> >>> +   userreg_changed = status ^ SHT21_RES_MASK;
-> >> This needs a comment.  Why exclusive or with a mask?
-> >>> +   if (status != userreg_changed) {
-> >>> +           dev_err(&client->dev, "user register settings did not stick\n");
-> >> This does seem a somewhat paranoid check. Is it really needed in
-> >> a production driver?  If this has been seen in the wild, then fair enough!
-> >
-> > The resolution bits of the user register are toggled and read back to make
-> > sure that this is really an SHT21 device.\
-> Rely on platform data to get this right rather than an adhoc test that
-> might well pass on some random devices.
-> 
-Yes.
+Thoughts, anyone ?
 
 Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
