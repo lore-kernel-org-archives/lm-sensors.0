@@ -1,51 +1,89 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 09 Jan 2011 20:56:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon (dme1737): add support for in7
-Message-Id: <20110109215612.2442513c@endymion.delvare>
+From: "Patrik Jakobsson" <patrik.jakobsson@home.se>
+Date: Tue, 04 Jan 2011 14:00:07 +0000
+Subject: [lm-sensors] Thermal zone driver for Intel US15W (aka Poulsbo)
+Message-Id: <8B2C4C296C324A81A72BF93D6EC435F1@mail2world.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5573123906679861657=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Juerg,
+This is a multi-part message in MIME format.
 
-On Thu, 16 Dec 2010 11:19:37 +0100, Juerg Haefliger wrote:
-> This patch adds support for the 1.5V voltage monitoring input (in7) of
-> the SMSC SCH5127 chip.
-> 
-> Signed-off-by: Juerg Haefliger <juergh at gmail.com>
+--===============5573123906679861657==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0BB6_01CBABD4.A3497D70"
+Content-Class: urn:content-classes:message
 
-Looks very good, and thanks for updating the documentation too. Minor
-comments on that part:
+This is a multi-part message in MIME format.
 
-> Index: linux-2.6.36/Documentation/hwmon/dme1737
-> =================================> --- linux-2.6.36.orig/Documentation/hwmon/dme1737	2010-12-10 10:29:14.552904312 +0100
-> +++ linux-2.6.36/Documentation/hwmon/dme1737	2010-12-10 10:32:25.072431720 +0100
-> @@ -42,7 +42,7 @@
->  This driver implements support for the hardware monitoring capabilities of the
->  SMSC DME1737 and Asus A8000 (which are the same), SMSC SCH5027, SCH311x,
->  and SCH5127 Super-I/O chips. These chips feature monitoring of 3 temp sensors
-> -temp[1-3] (2 remote diodes and 1 internal), 7 voltages in[0-6] (6 external and
-> +temp[1-3] (2 remote diodes and 1 internal), 8 voltages in[0-7] (7 external and
+------=_NextPart_000_0BB6_01CBABD4.A3497D70
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-It would be more correct to write: "up to 8 voltages", as most chips
-only have 7.
+Hello
 
->  1 internal) and up to 6 fan speeds fan[1-6]. Additionally, the chips implement
+I have written a Linux kernel module for reading temperature from the
+Intel US15W chip (aka Poulsbo). It is based on a bash script released
+for the Fit-PC2. There is no documentation available so I'm not sure
+what the register manipulation does. Also the readings are not very
+accurate so I was hoping someone on this list could help me figure out
+how this works so it can be improved.
 
-1 internal only, really? Aren't VTR (+3.3V standby) and Vbat internal
-too? I thought they were used as power sources for the chip itself.
+The driver reads two sensor values from the host-bridge (0x8086:0x8100)
+by some PCI config space magic, then converts it into celsius.
 
->  up to 5 PWM outputs pwm[1-3,5-6] for controlling fan speeds both manually and
->  automatically.
+Driver can be found at:=20
 
-I've applied your patch nevertheless, as it is good enough as is.
+https://github.com/patjak/fitpc2_tz
 
--- 
-Jean Delvare
+Any ideas are welcome
+
+Thanks
+Patrik Jakobsson
+
+
+
+<P><p><font face=3D"Arial, Helvetica, sans-serif" size=3D"2" style=3D"font-=
+size:13.5px">______________________________________________________________=
+_<BR>Hitta k=E4rleken med hj=E4lp av v=E5rt matchningstest - <a href=3D"htt=
+p://spray.matchaffinity.se/?mtcmk=3D614114">Klicka h=E4r!</a></font>
+------=_NextPart_000_0BB6_01CBABD4.A3497D70
+Content-Type: text/html
+Content-Transfer-Encoding: 7bit
+
+<HTML>
+<BODY>
+Hello<br>
+<br>
+I have written a Linux kernel module for reading temperature from the Intel US15W chip (aka Poulsbo). It is based on a bash script released for the Fit-PC2. There is no documentation available so I'm not sure what the register manipulation does. Also the readings are not very accurate so I was hoping someone on this list could help me figure out how this works so it can be improved.<br>
+<br>
+The driver reads two sensor values from the host-bridge (0x8086:0x8100) by some PCI config space magic, then converts it into celsius.<br>
+<br>
+Driver can be found at: <br>
+<div>https://github.com/patjak/fitpc2_tz<br>
+<br>
+Any ideas are welcome<br>
+<br>
+Thanks<br>
+Patrik Jakobsson<br>
+</div>
+</BODY></HTML>
+
+
+<P><p><font face="Arial, Helvetica, sans-serif" size="2" style="font-size:13.5px">_______________________________________________________________<BR>Hitta k���rleken med hj���lp av v���rt matchningstest - <a href="http://spray.matchaffinity.se/?mtcmk=614114">Klicka h���r!</a></font>
+------=_NextPart_000_0BB6_01CBABD4.A3497D70--
+
+
+
+--===============5573123906679861657==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5573123906679861657==--
+
