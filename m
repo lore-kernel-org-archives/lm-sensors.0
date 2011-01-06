@@ -1,28 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 06 Jan 2011 17:54:05 +0000
-Subject: Re: [lm-sensors] f75375s detected but no temp output
-Message-Id: <20110106185405.410fad84@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 06 Jan 2011 15:30:19 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Add humidity attribute to sysfs ABI
+Message-Id: <1294329642-9282-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
-In-Reply-To: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 25 Dec 2010 14:15:46 +0100, Pali Roh=E1r wrote:
-> Where is the problem? And why is no f75375s temp detected by lm sensors?
+The humidity attribute is already supported by the sht15 driver, and another
+driver supporting it is about to be added. Make it official.
 
-Nvidia binary driver, right? It misses four lines of code that would let
-hwmon drivers bind to its I2C adapters. The code exists for 4 or 5
-years now, it's even included in Gentoo [1] but Nvidia never bothered
-applying it. Complain to them.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/sysfs-interface |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-[1] http://gentoo.zugaina.org/portage/x11-drivers/nvidia-drivers/files/NVID=
-IA_i2c-hwmon.patch
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index 5997b5e..033fe76 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -505,6 +505,15 @@ energy[1-*]_input		Cumulative energy use
+ 				RO
+ 
+ 
++************
++* Humidity *
++************
++
++humidity[1-*]_input		Humidity
++				Unit: percent
++				RO
++
++
+ **********
+ * Alarms *
+ **********
+-- 
+1.7.3.1
 
---=20
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
