@@ -1,45 +1,25 @@
-From: DB <Freddog_de@yahoo.co.uk>
-Date: Tue, 04 Jan 2011 10:50:17 +0000
-Subject: Re: [lm-sensors] Problem making lmsensors
-Message-Id: <4D22FB69.7030706@yahoo.co.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 06 Jan 2011 21:11:19 +0000
+Subject: Re: [lm-sensors] Nvidia GeForce 310M support?
+Message-Id: <20110106221119.4fb35713@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D224799.4050300@yahoo.co.uk>
-In-Reply-To: <4D224799.4050300@yahoo.co.uk>
+References: <AANLkTi=yaGq5Hwv=so2-S=oQMw=CNadR_m--hHUkcnwW@mail.gmail.com>
+In-Reply-To: <AANLkTi=yaGq5Hwv=so2-S=oQMw=CNadR_m--hHUkcnwW@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 01/04/2011 11:45 AM, DB wrote:
-> On 01/03/2011 11:11 PM, Guenter Roeck wrote:
->> Did you run make clean after installing flex and bison ?
->>
->>
-> Hi Guenter,
->
-> No, I didn't try make clean last night. I've just tried it now & cannot
-> find anyway to make it work! Not even a man page....
-> Here are my results:
->
-> [Dave@Fedora-Blue LM-Sensors]$ make clean
-> make: *** No rule to make target `clean'. Stop.
-> [Dave@Fedora-Blue LM-Sensors]$ su
-> Password:
-> [root@Fedora-Blue LM-Sensors]# makeclean
-> bash: makeclean: command not found
-> [root@Fedora-Blue LM-Sensors]# make clean
-> make: *** No rule to make target `clean'. Stop.
->
-> Seems like noone/notheing wants to do that!
->
-> Thanks
->
-> Dave
+On Tue, 21 Dec 2010 12:19:01 +0530, Zenwalker wrote:
+> I have Nvidia Chip. I tried installing lm-sensors, but it said my chip isnt
+> supported yet and contact you guys. Hence i am! Did i missed out any version
+> 2 check if its already supported or when it shall be?
 
-No Problem - was in the wrong directory!!!  Must get my glasses changed!
+Please send the full output of:
+http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
 
-Dave
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
