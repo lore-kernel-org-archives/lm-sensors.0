@@ -1,32 +1,28 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 18 Jan 2011 14:40:00 +0000
-Subject: Re: [lm-sensors] Erratic value of MCH temp. (0C),
-Message-Id: <AANLkTi=DMGX1Jnt_C1JmjdBvGLr7kN3XiAnd3hT3b3y0@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 06 Jan 2011 17:54:05 +0000
+Subject: Re: [lm-sensors] f75375s detected but no temp output
+Message-Id: <20110106185405.410fad84@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1294052867.1860.36.camel@Asus5>
-In-Reply-To: <1294052867.1860.36.camel@Asus5>
+References: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
+In-Reply-To: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 17, 2011 at 9:17 PM, Joris Creyghton <jorisctn@gmail.com> wrote:
-> It's working fine.
+On Sat, 25 Dec 2010 14:15:46 +0100, Pali Roh=E1r wrote:
+> Where is the problem? And why is no f75375s temp detected by lm sensors?
 
-Excellent :) I'll send a patch upstream.
+Nvidia binary driver, right? It misses four lines of code that would let
+hwmon drivers bind to its I2C adapters. The code exists for 4 or 5
+years now, it's even included in Gentoo [1] but Nvidia never bothered
+applying it. Complain to them.
 
->
-> I have looked into your source and would like to suggest to change the
-> comment in line 33, which reads:
->
->     /* Old interface has broken fan monitoring */
->
-> The main problem with the old interface was that it didn't communicate the
-> MCH temperature.
+[1] http://gentoo.zugaina.org/portage/x11-drivers/nvidia-drivers/files/NVID=
+IA_i2c-hwmon.patch
 
-Yes, it was a thinko on my part :-)
-
-Luca
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
