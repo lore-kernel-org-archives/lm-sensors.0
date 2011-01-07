@@ -1,7 +1,7 @@
-From: Roland Stigge <stigge@antcom.de>
-Date: Fri, 07 Jan 2011 10:24:21 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 07 Jan 2011 11:34:23 +0000
 Subject: Re: [lm-sensors] [PATCH] Support for DS620
-Message-Id: <4D26E9D5.7050302@antcom.de>
+Message-Id: <20110107113423.GA14011@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D0FB795.3010006@antcom.de>
 In-Reply-To: <4D0FB795.3010006@antcom.de>
@@ -10,32 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+On Fri, Jan 07, 2011 at 05:24:21AM -0500, Roland Stigge wrote:
+> Hi,
+> 
+> On 01/07/2011 02:39 AM, Guenter Roeck wrote:
+> >> I'm attaching my updated patch. You can also merge from git.antcom.de,
+> >> repo linux-2.6, branch ds620.
+> >>
+> >> I also added a runtime configuration device attribute for the thermostat
+> >> functionality.
+> >>
+> > Unfortunately, that adds a non-standard and non-documented ABI attribute, so no one
+> > will be able to use it. Also, from reading the specification, it seems like it would more
+> > appropriate to set this through platform data (if it really has to be configurable).
+> 
+> Oops, sorry!
+> 
+> What can we do if we want to make it configurable at runtime? I'm not
+> using it currently this way, but users could be. Or should we just make
+> ist platform data to adhere to spec restrictions?
+> 
+I would suggest to implement it as platform data. If anyone ever needs it runtime-configurable,
+we can still think about some way to do it.
 
-On 01/07/2011 02:39 AM, Guenter Roeck wrote:
->> I'm attaching my updated patch. You can also merge from git.antcom.de,
->> repo linux-2.6, branch ds620.
->>
->> I also added a runtime configuration device attribute for the thermostat
->> functionality.
->>
-> Unfortunately, that adds a non-standard and non-documented ABI attribute, so no one
-> will be able to use it. Also, from reading the specification, it seems like it would more
-> appropriate to set this through platform data (if it really has to be configurable).
+> > Btw, can you write Documentation/hwmon/ds620 ? I completely forgot to ask for that.
+> 
+> It was already included in the last patches, since you already asked
+> about it. :-)
+> 
+I must be blind :(.
 
-Oops, sorry!
-
-What can we do if we want to make it configurable at runtime? I'm not
-using it currently this way, but users could be. Or should we just make
-ist platform data to adhere to spec restrictions?
-
-> Btw, can you write Documentation/hwmon/ds620 ? I completely forgot to ask for that.
-
-It was already included in the last patches, since you already asked
-about it. :-)
-
-bye,
-  Roland
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
