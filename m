@@ -1,61 +1,76 @@
 From: "J, KEERTHY" <j-keerthy@ti.com>
-Date: Fri, 07 Jan 2011 11:32:31 +0000
+Date: Fri, 07 Jan 2011 12:24:13 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030 madc
-Message-Id: <AANLkTik-zMPu+y+ksVHBORk0JkcqiuMLKyFhkrBpr+X1@mail.gmail.com>
+Message-Id: <AANLkTinkNNhrq+b5eiE7XrYQUsR2-vVD08btqM81KJA1@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1294286200-16446-1-git-send-email-j-keerthy@ti.com>
-	<20110106120433.GC17184@sirena.org.uk>
-	<AANLkTinuwejAgJ+F0e4LFAhR-gL8bfFmyOwHdSEWAsRw@mail.gmail.com>
-	<20110107104455.GB9209@opensource.wolfsonmicro.com>
-In-Reply-To: <20110107104455.GB9209@opensource.wolfsonmicro.com>
+References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
+	<20110106053328.GA7489@ericsson.com>
+	<20110106120713.GD17184@sirena.org.uk>
+	<20110106150430.GA9053@ericsson.com>
+	<20110106202142.GC8018@opensource.wolfsonmicro.com>
+	<1294350903.9786.103.camel@groeck-laptop>
+In-Reply-To: <1294350903.9786.103.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org, mikko.k.ylinen@nokia.com, linux-omap@vger.kernel.org, amit.kucheria@canonical.com, balajitk@ti.com
+To: guenter.roeck@ericsson.com, sameo@linux.intel.com
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-On Fri, Jan 7, 2011 at 4:14 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Fri, Jan 07, 2011 at 02:55:45PM +0530, J, KEERTHY wrote:
->> On Thu, Jan 6, 2011 at 5:34 PM, Mark Brown
->> > On Thu, Jan 06, 2011 at 09:26:40AM +0530, Keerthy wrote:
+On Fri, Jan 7, 2011 at 3:25 AM, Guenter Roeck
+<guenter.roeck@ericsson.com> wrote:
+> On Thu, 2011-01-06 at 15:21 -0500, Mark Brown wrote:
+>> On Thu, Jan 06, 2011 at 07:04:30AM -0800, Guenter Roeck wrote:
+>> > On Thu, Jan 06, 2011 at 07:07:13AM -0500, Mark Brown wrote:
+>>
+>> > > Why? =A0It's not like hwmon has an unreasonably large core or simila=
+r.
+>>
+>> > Because it creates an unnecessary dependency, and because it is not hw=
+mon's
+>> > responsibility to provide infrastructure for other subsystems or drive=
+rs.
+>>
+>> hwmon isn't really doing anything, though. =A0The *driver* is doing
+>> something but it doesn't really impact the core that much. =A0Not that I=
+'m
+>> particularly sold on putting the ADC core in here, but total NACK based
+>> on that alone seems rather harsh.
 >
->> >> +static ssize_t madc_read(struct device *dev,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attribute =
-*devattr, char *buf)
->> >> +{
->> >> + =A0 =A0 struct sensor_device_attribute *attr =3D to_sensor_dev_attr=
-(devattr);
+> Possibly. However, I had suggested the following earlier (to the 1st
+> version of the patch):
 >
-> ...
+>> I commented on this a couple of times below - the driver mixes generic
+>> ADC reading functions with hwmon functionality. Generic ADC reading
+>> functionality should be moved into another driver, possibly to mfd.
 >
->> >> + =A0 =A0 return sprintf(buf, "%ld\n", val);
+> Obviously that was ignored. Maybe someone is willing to listen this time
+> around.
 >
->> > Does this return data in the appropriate units - milivolts for voltage=
-s?
->
->> This function returns the raw channel values read and not in terms of the
->> units.
->
-> It needs to convert the values into real world units before they go to
-> userspace - look at what applications like sensors do with the values.
->
-Ok. Converting to the real world units will be added.
+I am sorry for not responding on the generic ADC handling part. Since many
+other ADC drivers are part of hwmon i thought hwmon was the appropriate
+place. However I can surely split the generic ADC handling part in mfd and
+only hardware monitoring part in hwmon as suggested.
 
->> >> + =A0 =A0 case TWL4030_MADC_RT:
->> >> + =A0 =A0 default:
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+> I won't let people break modularity just for convenience in a subsystem
+> I am responsible for. And forcing the hwmon subsystem, and with it a
+> specific hwmon driver, to exist just because the adc functionality it
+> provides is needed by some other (most likely unrelated) subsystem /
+> driver _does_ break modularity. Worse, it is completely unnecessary to
+> do so. Other twl4030 functionality was extracted into generic code.
+> twl-core.c, twl4030-codec.c, twl4030-irq.c, twl4030-power.c are all in
+> mfd. I fail to see the problem with mfd/twl4030-adc.c.
 >
->> > This looks odd - the function won't actually do anything for non-SW
->> > conversions but won't return an error?
+> Guenter
 >
->> Ok. In the case of RT conversion request no software setting is required
->> and it is signal driven. So the function does nothing in case of RT.
 >
-> Again, the biggest problem is that the code isn't clear.
+>
 
-OK. I will add comments explaining the flow.
->
+Hello Samuel,
+
+Is it ok to have the generic ADC functionality in mfd as a separate file?
+
+Regards,
+Keerthy
 
 _______________________________________________
 lm-sensors mailing list
