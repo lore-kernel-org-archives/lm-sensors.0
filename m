@@ -1,16 +1,16 @@
 From: Roland Stigge <stigge@antcom.de>
-Date: Sun, 09 Jan 2011 11:34:08 +0000
+Date: Sun, 09 Jan 2011 14:31:39 +0000
 Subject: Re: [lm-sensors] [PATCH] Support for DS620
-Message-Id: <4D299D30.1060105@antcom.de>
+Message-Id: <4D29C6CB.6020706@antcom.de>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------020103010007020005040104"
+Content-Type: multipart/mixed; boundary="------------040602090808040001090902"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D0FB795.3010006@antcom.de>
 In-Reply-To: <4D0FB795.3010006@antcom.de>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------020103010007020005040104
+--------------040602090808040001090902
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
@@ -28,12 +28,17 @@ Update attached. :-)
 bye,
   Roland
 
---------------020103010007020005040104
+
+--------------040602090808040001090902
 Content-Type: text/x-patch;
  name="ds620.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
  filename="ds620.patch"
+
+HWMON driver for Dallas Semiconductor DS620 temperature sensor and thermostat
+
+Signed-off-by: Roland Stigge <stigge@antcom.de>
 
 diff --git a/Documentation/hwmon/ds620 b/Documentation/hwmon/ds620
 new file mode 100644
@@ -479,7 +484,7 @@ index 0000000..736bb87
 +
 +#endif /* _LINUX_DS620_H */
 
---------------020103010007020005040104
+--------------040602090808040001090902
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -489,4 +494,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------020103010007020005040104--
+--------------040602090808040001090902--
