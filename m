@@ -1,40 +1,69 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 04 Jan 2011 19:42:12 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: driver for Sensirion SHT21 humidity
-Message-Id: <1294170132.9786.52.camel@groeck-laptop>
+From: Anish Patel <anish.mailing.list@gmail.com>
+Date: Sat, 15 Jan 2011 18:35:06 +0000
+Subject: [lm-sensors] LM94
+Message-Id: <4D31E8DA.7000503@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1502163622766309727=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20101229134511.cc466ac0.urs.fleisch@gmail.com>
-	 <4D1DF097.1080200@cam.ac.uk>
-	 <20110103081448.f96c413e.urs.fleisch@gmail.com>
-	 <4D21ADCB.4070206@cam.ac.uk>	<1294078159.9786.9.camel@groeck-laptop>
-	 <4D230ED0.8060008@cam.ac.uk>	<20110104152837.GA32138@ericsson.com>
-	 <20110104200001.3328dae3.urs.fleisch@gmail.com>
-In-Reply-To: <20110104200001.3328dae3.urs.fleisch@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--===============1502163622766309727==
+Content-Type: multipart/alternative;
+ boundary="------------090401030200090804030000"
+
+This is a multi-part message in MIME format.
+--------------090401030200090804030000
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Urs Fleisch <urs.fleisch@gmail.com>
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
 
-On Tue, 2011-01-04 at 14:00 -0500, Urs Fleisch wrote:
-> > Uses I know of are indeed more general environment monitoring.
-> > Not seen one of these in conventional hardware monitoring but could be wrong.
-> > I guess, Urs will have a better idea of where these tend to be used?
-> 
-> Mobile phones could be a promising market for humidity sensors in a Linux system. Fujitsu already sells a mobile phone with built-in temperature and humidity sensors. So we hope to see also Linux-based mobile phones (e.g. Android, MeGoo) with a humidity sensor. Such a sensor could be used to monitor environmental conditions, but there could be other applications too, some of them may not make sense and others can not be foreseen. The humidity sensor could also be used to monitor the hardware of the phone, in this situation, hwmon makes sense. If a sensor can be used for various application, there is probably not one true category. There may be other sensors in hwmon, which can be used for applications other than hardware monitoring. I chose the hwmon directory because the sht15 was already there.
-> 
-> > Highly unusual way of detecting and returning errors.
-> 
-> If this is a problem, I can alter the code. I could also drop all user-register related attributes if they cause problems with the ABI.
-> 
-Please.
+Hello All,
 
-Thanks,
-Guenter
+I have tested the LM94 sensor with the LM93 driver and this override command
+/echo lm93 0x2e > /sys/bus/i2c/devices/i2c-0/new_device
 
 
+/Thanks
+Anish
+
+
+
+--------------090401030200090804030000
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+  </head>
+  <body bgcolor="#ffffff" text="#000000">
+    Hello All,<br>
+    <br>
+    I have tested the LM94 sensor with the LM93 driver and this override
+    command<br>
+    <i>echo lm93 0x2e &gt; /sys/bus/i2c/devices/i2c-0/new_device<br>
+      <br>
+      <br>
+    </i>Thanks<br>
+    Anish<br>
+    <br>
+    <br>
+  </body>
+</html>
+
+--------------090401030200090804030000--
+
+
+--===============1502163622766309727==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1502163622766309727==--
