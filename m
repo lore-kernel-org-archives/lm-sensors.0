@@ -1,1010 +1,637 @@
-From: Joris Creyghton <jorisctn@gmail.com>
-Date: Wed, 12 Jan 2011 15:01:19 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Mon, 17 Jan 2011 12:49:58 +0000
 Subject: Re: [lm-sensors] Erratic value of MCH temp. (0C),
-Message-Id: <1294844479.1906.19.camel@Asus5>
+Message-Id: <AANLkTimoVGYR1e=QpgZ2C+ASHJxnzHqBgwhCnrhpBfEU@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-FUbB94N2RM6Tb8RSz6YW"
+Content-Type: multipart/mixed; boundary="0015175cba3aaf03fd049a0a38b8"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1294052867.1860.36.camel@Asus5>
 In-Reply-To: <1294052867.1860.36.camel@Asus5>
 To: lm-sensors@vger.kernel.org
 
-
---=-FUbB94N2RM6Tb8RSz6YW
-Content-Type: multipart/alternative; boundary="=-76t/gmfzuZzQpr+Q9PUM"
-
-
---=-76t/gmfzuZzQpr+Q9PUM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
-On Wed, 2011-01-12 at 15:03 +0100, Luca Tettamanti wrote:
-
-> On Tue, Jan 11, 2011 at 3:23 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
-> > On Tue, Jan 11, 2011 at 3:07 PM, Joris Creyghton <jorisctn@gmail.com> wrote:
-> >> Both display 4 fan's, they agree about the CPU fan, but the new interface
-> >> assigns one value to a NB fan (North Bridge =? Memory Control Hub (MCH)).
-> >> There is no such fan on the Sabertooth board. There are 2 chassis fans and a
-> >> power fan though.
-> >
-> > The names are supplied by the BIOS, so this is another bug.
-> > HWF2 is named "CHASSIS3" in the old interface and "Power" in the new.
-> > HWF4 is "POWER" in the old interface but "NB" in the new one.
-> > They probably swapped the labels... you can try and raise the issue with Asus.
-> 
-> Oh, BTW: is there an updated BIOS for the board? This issue should be
-> visible also under Windows... I guess someone should have noticed.
-> It might make sense to let the user override the labels, Jean what do you think?
-> 
-> Joris, can you also send me the output of dmidecode?
-> 
-> L
-
-Hi Luca,
-
-I have attached the output of dmidecode of the unmodified system.
-
-I have also  looked into the BIOS output, and the assignment of the fans
-corresponds with the output of the sensors command on the system with
-the new driver.
-I read them from the BIOS screen output:
-
-
-        CPU fan            927
-        Chassis fan 1    629
-        Chassis fan 2    484
-        Power fan        [N/A]
-        NB fan             760
-
-I have the latest BIOS version (0603) for the Sabertooth X58 board.
-However, the Asus site has a 2010/11/09 update with the same version
-number, while mine says build date 10/29/10.
-I don't know if there is any difference between the two.
-
-I'm prepaired to look into that, if you think that makes sense.
-
-
-
---=-76t/gmfzuZzQpr+Q9PUM
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.30.3">
-</HEAD>
-<BODY>
-On Wed, 2011-01-12 at 15:03 +0100, Luca Tettamanti wrote:
-<BLOCKQUOTE TYPE=CITE>
-<PRE>
-On Tue, Jan 11, 2011 at 3:23 PM, Luca Tettamanti &lt;<A HREF="mailto:kronos.it@gmail.com">kronos.it@gmail.com</A>&gt; wrote:
-&gt; On Tue, Jan 11, 2011 at 3:07 PM, Joris Creyghton &lt;<A HREF="mailto:jorisctn@gmail.com">jorisctn@gmail.com</A>&gt; wrote:
-&gt;&gt; Both display 4 fan's, they agree about the CPU fan, but the new interface
-&gt;&gt; assigns one value to a NB fan (North Bridge =? Memory Control Hub (MCH)).
-&gt;&gt; There is no such fan on the Sabertooth board. There are 2 chassis fans and a
-&gt;&gt; power fan though.
-&gt;
-&gt; The names are supplied by the BIOS, so this is another bug.
-&gt; HWF2 is named &quot;CHASSIS3&quot; in the old interface and &quot;Power&quot; in the new.
-&gt; HWF4 is &quot;POWER&quot; in the old interface but &quot;NB&quot; in the new one.
-&gt; They probably swapped the labels... you can try and raise the issue with Asus.
-
-Oh, BTW: is there an updated BIOS for the board? This issue should be
-visible also under Windows... I guess someone should have noticed.
-It might make sense to let the user override the labels, Jean what do you think?
-
-Joris, can you also send me the output of dmidecode?
-
-L
-</PRE>
-</BLOCKQUOTE>
-Hi Luca,<BR>
-<BR>
-I have attached the output of dmidecode of the unmodified system.<BR>
-<BR>
-I have also&nbsp; looked into the BIOS output, and the assignment of the fans corresponds with the output of the sensors command on the system with the new driver.<BR>
-I read them from the BIOS screen output:<BR>
-<BR>
-<BLOCKQUOTE>
-    CPU fan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 927<BR>
-    Chassis fan 1&nbsp;&nbsp;&nbsp; 629<BR>
-    Chassis fan 2&nbsp;&nbsp;&nbsp; 484<BR>
-    Power fan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [N/A]<BR>
-    NB fan&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 760<BR>
-</BLOCKQUOTE>
-I have the latest BIOS version (0603) for the Sabertooth X58 board.<BR>
-However, the Asus site has a 2010/11/09 update with the same version number, while mine says build date 10/29/10.<BR>
-I don't know if there is any difference between the two.<BR>
-<BR>
-I'm prepaired to look into that, if you think that makes sense.<BR>
-<BR>
-<BR>
-</BODY>
-</HTML>
-
---=-76t/gmfzuZzQpr+Q9PUM--
-
---=-FUbB94N2RM6Tb8RSz6YW
-Content-Disposition: attachment; filename="dmidecode.txt"
-Content-Type: text/plain; name="dmidecode.txt"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
-# dmidecode 2.9
-SMBIOS 2.5 present.
-80 structures occupying 3027 bytes.
-Table at 0x000F0700.
-
-Handle 0x0000, DMI type 0, 24 bytes
-BIOS Information
-	Vendor: American Megatrends Inc.
-	Version: 0603   
-	Release Date: 10/29/2010
-	Address: 0xF0000
-	Runtime Size: 64 kB
-	ROM Size: 2048 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		ESCD support is available
-		Boot from CD is supported
-		Selectable boot is supported
-		BIOS ROM is socketed
-		EDD is supported
-		5.25"/1.2 MB floppy services are supported (int 13h)
-		3.5"/720 KB floppy services are supported (int 13h)
-		3.5"/2.88 MB floppy services are supported (int 13h)
-		Print screen service is supported (int 5h)
-		8042 keyboard services are supported (int 9h)
-		Serial services are supported (int 14h)
-		Printer services are supported (int 17h)
-		CGA/mono video services are supported (int 10h)
-		ACPI is supported
-		USB legacy is supported
-		LS-120 boot is supported
-		ATAPI Zip drive boot is supported
-		BIOS boot specification is supported
-		Targeted content distribution is supported
-	BIOS Revision: 8.15
-
-Handle 0x0001, DMI type 1, 27 bytes
-System Information
-	Manufacturer: System manufacturer
-	Product Name: System Product Name
-	Version: System Version
-	Serial Number: System Serial Number
-	UUID: C0A1001F-C600-0007-10D5-BCAEC519E749
-	Wake-up Type: Power Switch
-	SKU Number: To Be Filled By O.E.M.
-	Family: To Be Filled By O.E.M.
-
-Handle 0x0002, DMI type 2, 15 bytes
-Base Board Information
-	Manufacturer: ASUSTeK Computer INC.
-	Product Name: SABERTOOTH X58
-	Version: Rev 1.xx
-	Serial Number: 107765870002617
-	Asset Tag: To Be Filled By O.E.M.
-	Features:
-		Board is a hosting board
-		Board is replaceable
-	Location In Chassis: To Be Filled By O.E.M.
-	Chassis Handle: 0x0003
-	Type: Motherboard
-	Contained Object Handles: 0
-
-Handle 0x0003, DMI type 3, 21 bytes
-Chassis Information
-	Manufacturer: Chassis Manufacture
-	Type: Desktop
-	Lock: Not Present
-	Version: Chassis Version
-	Serial Number: Chassis Serial Number
-	Asset Tag: Asset-1234567890
-	Boot-up State: Safe
-	Power Supply State: Safe
-	Thermal State: Safe
-	Security Status: None
-	OEM Information: 0x00000001
-	Height: Unspecified
-	Number Of Power Cords: 1
-	Contained Elements: 0
-
-Handle 0x0004, DMI type 4, 40 bytes
-Processor Information
-	Socket Designation: LGA1366
-	Type: Central Processor
-	Family: <OUT OF SPEC>
-	Manufacturer: Intel            
-	ID: A5 06 01 00 FF FB EB BF
-	Version: Intel(R) Core(TM) i7 CPU 950 @ 3.07GHz              
-	Voltage: 1.2 V
-	External Clock: 133 MHz
-	Max Speed: 3066 MHz
-	Current Speed: 3066 MHz
-	Status: Populated, Enabled
-	Upgrade: Other
-	L1 Cache Handle: 0x0005
-	L2 Cache Handle: 0x0006
-	L3 Cache Handle: 0x0007
-	Serial Number: To Be Filled By O.E.M.
-	Asset Tag: To Be Filled By O.E.M.
-	Part Number: To Be Filled By O.E.M.
-	Core Count: 4
-	Core Enabled: 4
-	Thread Count: 8
-	Characteristics:
-		64-bit capable
-
-Handle 0x0005, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L1-Cache
-	Configuration: Enabled, Not Socketed, Level 1
-	Operational Mode: Write Through
-	Location: Internal
-	Installed Size: 256 KB
-	Maximum Size: 256 KB
-	Supported SRAM Types:
-		Other
-	Installed SRAM Type: Other
-	Speed: Unknown
-	Error Correction Type: Parity
-	System Type: Instruction
-	Associativity: 4-way Set-associative
-
-Handle 0x0006, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L2-Cache
-	Configuration: Enabled, Not Socketed, Level 2
-	Operational Mode: Write Through
-	Location: Internal
-	Installed Size: 1024 KB
-	Maximum Size: 1024 KB
-	Supported SRAM Types:
-		Other
-	Installed SRAM Type: Other
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Unified
-	Associativity: 8-way Set-associative
-
-Handle 0x0007, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: L3-Cache
-	Configuration: Enabled, Not Socketed, Level 3
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 8192 KB
-	Maximum Size: 8192 KB
-	Supported SRAM Types:
-		Other
-	Installed SRAM Type: Other
-	Speed: Unknown
-	Error Correction Type: Single-bit ECC
-	System Type: Unified
-	Associativity: 16-way Set-associative
-
-Handle 0x0008, DMI type 5, 28 bytes
-Memory Controller Information
-	Error Detecting Method: 64-bit ECC
-	Error Correcting Capabilities:
-		None
-	Supported Interleave: One-way Interleave
-	Current Interleave: One-way Interleave
-	Maximum Memory Module Size: 4096 MB
-	Maximum Total Memory Size: 24576 MB
-	Supported Speeds:
-		70 ns
-		60 ns
-	Supported Memory Types:
-		DIMM
-		SDRAM
-	Memory Module Voltage: 3.3 V
-	Associated Memory Slots: 6
-		0x0009
-		0x000A
-		0x000B
-		0x000C
-		0x000D
-		0x000E
-	Enabled Error Correcting Capabilities:
-		None
-
-Handle 0x0009, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: DIMM0
-	Bank Connections: 1
-	Current Speed: 1 ns
-	Type: DIMM
-	Installed Size: 2048 MB (Single-bank Connection)
-	Enabled Size: 2048 MB (Single-bank Connection)
-	Error Status: OK
-
-Handle 0x000A, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: DIMM1
-	Bank Connections: 2
-	Current Speed: 1 ns
-	Type: DIMM
-	Installed Size: 2048 MB (Single-bank Connection)
-	Enabled Size: 2048 MB (Single-bank Connection)
-	Error Status: OK
-
-Handle 0x000B, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: DIMM2
-	Bank Connections: 3
-	Current Speed: 1 ns
-	Type: DIMM
-	Installed Size: 2048 MB (Single-bank Connection)
-	Enabled Size: 2048 MB (Single-bank Connection)
-	Error Status: OK
-
-Handle 0x000C, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: DIMM3
-	Bank Connections: 4
-	Current Speed: 1 ns
-	Type: DIMM
-	Installed Size: 2048 MB (Single-bank Connection)
-	Enabled Size: 2048 MB (Single-bank Connection)
-	Error Status: OK
-
-Handle 0x000D, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: DIMM4
-	Bank Connections: 5
-	Current Speed: 1 ns
-	Type: DIMM
-	Installed Size: 2048 MB (Single-bank Connection)
-	Enabled Size: 2048 MB (Single-bank Connection)
-	Error Status: OK
-
-Handle 0x000E, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: DIMM5
-	Bank Connections: 6
-	Current Speed: 1 ns
-	Type: DIMM
-	Installed Size: 2048 MB (Single-bank Connection)
-	Enabled Size: 2048 MB (Single-bank Connection)
-	Error Status: OK
-
-Handle 0x000F, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: PS/2 Keyboard
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Keyboard
-	External Connector Type: PS/2
-	Port Type: Keyboard Port
-
-Handle 0x0010, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: PS/2 Mouse
-	Internal Connector Type: None
-	External Reference Designator: PS/2 Mouse
-	External Connector Type: PS/2
-	Port Type: Mouse Port
-
-Handle 0x0011, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB12
-	Internal Connector Type: None
-	External Reference Designator: USB12
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x0012, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB34
-	Internal Connector Type: None
-	External Reference Designator: USB34
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x0013, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB_3_12
-	Internal Connector Type: None
-	External Reference Designator: USB56
-	External Connector Type: Access Bus (USB)
-	Port Type: USB
-
-Handle 0x0014, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: IE1394_1
-	Internal Connector Type: None
-	External Reference Designator: IEEE1394 1
-	External Connector Type: IEEE 1394
-	Port Type: Firewire (IEEE P1394)
-
-Handle 0x0015, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: LAN1
-	Internal Connector Type: None
-	External Reference Designator: GbE LAN 1
-	External Connector Type: RJ-45
-	Port Type: Network Port
-
-Handle 0x0016, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: AUDIO
-	Internal Connector Type: None
-	External Reference Designator: AUDIO
-	External Connector Type: Other
-	Port Type: Audio Port
-
-Handle 0x0017, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Audio Line Out1
-	Internal Connector Type: None
-	External Reference Designator: Audio Line Out1
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x0018, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Audio Line Out2
-	Internal Connector Type: None
-	External Reference Designator: Audio Line Out2
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x0019, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Audio Line Out3
-	Internal Connector Type: None
-	External Reference Designator: Audio Line Out3
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x001A, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Audio Line Out4
-	Internal Connector Type: None
-	External Reference Designator: Audio Line Out4
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x001B, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Audio Line Out5
-	Internal Connector Type: None
-	External Reference Designator: Audio Line Out5
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x001C, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Audio Line Out6
-	Internal Connector Type: None
-	External Reference Designator: Audio Line Out6
-	External Connector Type: Mini Jack (headphones)
-	Port Type: Audio Port
-
-Handle 0x001D, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: F_ESATA
-	Internal Connector Type: None
-	External Reference Designator: F_ESATA
-	External Connector Type: SAS/SATA Plug Receptacle
-	Port Type: SATA
-
-Handle 0x001E, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: ESATA
-	Internal Connector Type: None
-	External Reference Designator: ESATA
-	External Connector Type: SAS/SATA Plug Receptacle
-	Port Type: SATA
-
-Handle 0x001F, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA1
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0020, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA2
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0021, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA3
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0022, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA4
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0023, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA5
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0024, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA6
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0025, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA_6G_1
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0026, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SATA_6G_2
-	Internal Connector Type: SAS/SATA Plug Receptacle
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: SATA
-
-Handle 0x0027, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB56
-	Internal Connector Type: Access Bus (USB)
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: USB
-
-Handle 0x0028, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB78
-	Internal Connector Type: Access Bus (USB)
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: USB
-
-Handle 0x0029, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB910
-	Internal Connector Type: Access Bus (USB)
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: USB
-
-Handle 0x002A, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: USB1112
-	Internal Connector Type: Access Bus (USB)
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: USB
-
-Handle 0x002B, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: IE1394_2
-	Internal Connector Type: IEEE 1394
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Firewire (IEEE P1394)
-
-Handle 0x002C, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: AAFP
-	Internal Connector Type: Mini Jack (headphones)
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Audio Port
-
-Handle 0x002D, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: CPU_FAN
-	Internal Connector Type: Other
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x002E, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: PWR_FAN
-	Internal Connector Type: Other
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x002F, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: CHA_FAN1
-	Internal Connector Type: Other
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x0030, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: CHA_FAN2
-	Internal Connector Type: Other
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x0031, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: CHA_FAN3
-	Internal Connector Type: Other
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x0032, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: NB_FAN
-	Internal Connector Type: Other
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x0033, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SPDIF_OUT
-	Internal Connector Type: On Board Sound Input From CD-ROM
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Audio Port
-
-Handle 0x0034, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: FP_AUDIO
-	Internal Connector Type: On Board Sound Input From CD-ROM
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Audio Port
-
-Handle 0x0035, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCIEX1_1
-	Type: 64-bit PCI Express
-	Current Usage: In Use
-	Length: Short
-	ID: 1
-	Characteristics:
-		3.3 V is provided
-		Opening is shared
-		PME signal is supported
-
-Handle 0x0036, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCIEX1_2
-	Type: 32-bit PCI Express
-	Current Usage: In Use
-	Length: Short
-	ID: 2
-	Characteristics:
-		3.3 V is provided
-		Opening is shared
-		PME signal is supported
-
-Handle 0x0037, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI1
-	Type: 32-bit PCI
-	Current Usage: Available
-	Length: Short
-	ID: 3
-	Characteristics:
-		3.3 V is provided
-		Opening is shared
-		PME signal is supported
-
-Handle 0x0038, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCIEX16_1
-	Type: 32-bit PCI
-	Current Usage: Available
-	Length: Short
-	ID: 4
-	Characteristics:
-		3.3 V is provided
-		Opening is shared
-		PME signal is supported
-
-Handle 0x0039, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCIEX16_2
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Short
-	ID: 5
-	Characteristics:
-		3.3 V is provided
-		Opening is shared
-		PME signal is supported
-
-Handle 0x003A, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCIEX16_3
-	Type: 32-bit PCI Express
-	Current Usage: Available
-	Length: Short
-	ID: 6
-	Characteristics:
-		3.3 V is provided
-		Opening is shared
-		PME signal is supported
-
-Handle 0x003B, DMI type 10, 6 bytes
-On Board Device Information
-	Type: Ethernet
-	Status: Enabled
-	Description:  Onboard Ethernet
-
-Handle 0x003C, DMI type 11, 5 bytes
-OEM Strings
-	String 1: To Be Filled By O.E.M.
-	String 2: To Be Filled By O.E.M.
-	String 3: To Be Filled By O.E.M.
-	String 4: To Be Filled By O.E.M.
-
-Handle 0x003D, DMI type 13, 22 bytes
-BIOS Language Information
-	Installable Languages: 6
-		en|US|iso8859-1
-		zh|ZH|iso8859-1
-		de|DE|iso8859-1
-		cn|CN|iso8859-1
-		fr|FR|iso8859-1
-		ja|JP|unicode-1
-	Currently Installed Language: en|US|iso8859-1
-
-Handle 0x003E, DMI type 15, 55 bytes
-System Event Log
-	Area Length: 1008 bytes
-	Header Start Offset: 0x2010
-	Data Start Offset: 0x2010
-	Access Method: OEM-specific
-	Access Address: Unknown
-	Status: Valid, Not Full
-	Change Token: 0x00000000
-	Header Format: No Header
-	Supported Log Type Descriptors: 1
-	Descriptor 1: OEM-specific
-	Data Format 1: POST results bitmap
-
-Handle 0x003F, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: Multi-bit ECC
-	Maximum Capacity: 24 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 6
-
-Handle 0x0040, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Array Handle: 0x003F
-	Partition Width: 0
-
-Handle 0x0041, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x003F
-	Error Information Handle: Not Provided
-	Total Width: 72 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM0
-	Bank Locator: BANK0
-	Type: Other
-	Type Detail: Other
-	Speed: 1066 MHz (0.9 ns)
-	Manufacturer: Manufacturer00
-	Serial Number: SerNum00
-	Asset Tag: AssetTagNum0
-	Part Number: ModulePartNumber00
-
-Handle 0x0042, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Device Handle: 0x0041
-	Memory Array Mapped Address Handle: 0x0040
-	Partition Row Position: 1
-	Interleave Position: Unknown
-	Interleaved Data Depth: 2
-
-Handle 0x0043, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x003F
-	Error Information Handle: Not Provided
-	Total Width: 72 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM1
-	Bank Locator: BANK1
-	Type: Other
-	Type Detail: Other
-	Speed: 1066 MHz (0.9 ns)
-	Manufacturer: Manufacturer01
-	Serial Number: SerNum01
-	Asset Tag: AssetTagNum1
-	Part Number: ModulePartNumber01
-
-Handle 0x0044, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Device Handle: 0x0043
-	Memory Array Mapped Address Handle: 0x0040
-	Partition Row Position: 1
-	Interleave Position: Unknown
-	Interleaved Data Depth: 2
-
-Handle 0x0045, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x003F
-	Error Information Handle: Not Provided
-	Total Width: 72 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM2
-	Bank Locator: BANK2
-	Type: Other
-	Type Detail: Other
-	Speed: 1066 MHz (0.9 ns)
-	Manufacturer: Manufacturer02
-	Serial Number: SerNum02
-	Asset Tag: AssetTagNum2
-	Part Number: ModulePartNumber02
-
-Handle 0x0046, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Device Handle: 0x0045
-	Memory Array Mapped Address Handle: 0x0040
-	Partition Row Position: 1
-	Interleave Position: Unknown
-	Interleaved Data Depth: 2
-
-Handle 0x0047, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x003F
-	Error Information Handle: Not Provided
-	Total Width: 72 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM3
-	Bank Locator: BANK3
-	Type: Other
-	Type Detail: Other
-	Speed: 1066 MHz (0.9 ns)
-	Manufacturer: Manufacturer03
-	Serial Number: SerNum03
-	Asset Tag: AssetTagNum3
-	Part Number: ModulePartNumber03
-
-Handle 0x0048, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Device Handle: 0x0047
-	Memory Array Mapped Address Handle: 0x0040
-	Partition Row Position: 1
-	Interleave Position: Unknown
-	Interleaved Data Depth: 2
-
-Handle 0x0049, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x003F
-	Error Information Handle: Not Provided
-	Total Width: 72 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM4
-	Bank Locator: BANK4
-	Type: Other
-	Type Detail: Other
-	Speed: 1066 MHz (0.9 ns)
-	Manufacturer: Manufacturer04
-	Serial Number: SerNum04
-	Asset Tag: AssetTagNum4
-	Part Number: ModulePartNumber04
-
-Handle 0x004A, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Device Handle: 0x0049
-	Memory Array Mapped Address Handle: 0x0040
-	Partition Row Position: 1
-	Interleave Position: Unknown
-	Interleaved Data Depth: 2
-
-Handle 0x004B, DMI type 17, 27 bytes
-Memory Device
-	Array Handle: 0x003F
-	Error Information Handle: Not Provided
-	Total Width: 72 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: DIMM5
-	Bank Locator: BANK5
-	Type: Other
-	Type Detail: Other
-	Speed: 1066 MHz (0.9 ns)
-	Manufacturer: Manufacturer05
-	Serial Number: SerNum05
-	Asset Tag: AssetTagNum5
-	Part Number: ModulePartNumber05
-
-Handle 0x004C, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x000000003FF
-	Range Size: 1 kB
-	Physical Device Handle: 0x004B
-	Memory Array Mapped Address Handle: 0x0040
-	Partition Row Position: 1
-	Interleave Position: Unknown
-	Interleaved Data Depth: 2
-
-Handle 0x004D, DMI type 32, 20 bytes
-System Boot Information
-	Status: No errors detected
-
-Handle 0x004E, DMI type 139, 54 bytes
-OEM-specific Type
-	Header and Data:
-		8B 36 4E 00 00 1F C6 00 00 07 10 D5 04 04 32 55
-		F8 00 A2 02 A1 00 40 63 43 10 FE 81 03 DF 40 B2
-		00 20 00 73 3C 10 08 00 00 00 00 00 00 00 00 00
-		00 00 00 00 00 01
-	Strings:
-		V1394GUID
-
-Handle 0x004F, DMI type 127, 4 bytes
-End Of Table
-
-
---=-FUbB94N2RM6Tb8RSz6YW
+--0015175cba3aaf03fd049a0a38b8
+Content-Type: text/plain; charset=UTF-8
+
+On Wed, Jan 12, 2011 at 4:01 PM, Joris Creyghton <jorisctn@gmail.com> wrote:
+> I have attached the output of dmidecode of the unmodified system.
+
+Sorry for the delay :)
+I've updated the driver to automatically select the correct interface
+on your board.
+Compile and load it without any additional parameter.
+
+> I have the latest BIOS version (0603) for the Sabertooth X58 board.
+> However, the Asus site has a 2010/11/09 update with the same version number,
+> while mine says build date 10/29/10.
+> I don't know if there is any difference between the two.
+
+Nah, they should be the same.
+
+Luca
+
+--0015175cba3aaf03fd049a0a38b8
+Content-Type: text/x-csrc; charset=US-ASCII; name="asus_atk0110.c"
+Content-Disposition: attachment; filename="asus_atk0110.c"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gj1dh0mn1
+
+LyoKICogQ29weXJpZ2h0IChDKSAyMDA3LTIwMDkgTHVjYSBUZXR0YW1hbnRpIDxrcm9ub3MuaXRA
+Z21haWwuY29tPgogKgogKiBUaGlzIGZpbGUgaXMgcmVsZWFzZWQgdW5kZXIgdGhlIEdQTHYyCiAq
+IFNlZSBDT1BZSU5HIGluIHRoZSB0b3AgbGV2ZWwgZGlyZWN0b3J5IG9mIHRoZSBrZXJuZWwgdHJl
+ZS4KICovCgojZGVmaW5lIHByX2ZtdChmbXQpIEtCVUlMRF9NT0ROQU1FICI6ICIgZm10CiNkZWZp
+bmUgREVCVUcKCiNpbmNsdWRlIDxsaW51eC9kZWJ1Z2ZzLmg+CiNpbmNsdWRlIDxsaW51eC9rZXJu
+ZWwuaD4KI2luY2x1ZGUgPGxpbnV4L2h3bW9uLmg+CiNpbmNsdWRlIDxsaW51eC9saXN0Lmg+CiNp
+bmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4KI2luY2x1ZGUg
+PGxpbnV4L2RtaS5oPgoKI2luY2x1ZGUgPGFjcGkvYWNwaS5oPgojaW5jbHVkZSA8YWNwaS9hY3Bp
+eGYuaD4KI2luY2x1ZGUgPGFjcGkvYWNwaV9kcml2ZXJzLmg+CiNpbmNsdWRlIDxhY3BpL2FjcGlf
+YnVzLmg+CgoKI2RlZmluZSBBVEtfSElEICJBVEswMTEwIgoKc3RhdGljIGJvb2wgbmV3X2lmOwpt
+b2R1bGVfcGFyYW0obmV3X2lmLCBib29sLCAwKTsKTU9EVUxFX1BBUk1fREVTQyhuZXdfaWYsICJP
+dmVycmlkZSBkZXRlY3Rpb24gaGV1cmlzdGljIGFuZCBmb3JjZSB0aGUgdXNlIG9mIHRoZSBuZXcg
+QVRLMDExMCBpbnRlcmZhY2UiKTsKCnN0YXRpYyBjb25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCBf
+X2luaXRjb25zdCBhdGtfZm9yY2VfbmV3X2lmW10gPSB7Cgl7CgkJLyogT2xkIGludGVyZmFjZSBo
+YXMgYnJva2VuIGZhbiBtb25pdG9yaW5nICovCgkJLmlkZW50ID0gIkFzdXMgU2FiZXJ0b290aCBY
+NTgiLAoJCS5tYXRjaGVzID0gewoJCQlETUlfTUFUQ0goRE1JX0JPQVJEX05BTUUsICJTQUJFUlRP
+T1RIIFg1OCIpCgkJfQoJfSwKCXsgfQp9OwoKLyogTWluaW11bSB0aW1lIGJldHdlZW4gcmVhZGlu
+Z3MsIGVuZm9yY2VkIGluIG9yZGVyIHRvIGF2b2lkCiAqIGhvZ2dpbmcgdGhlIENQVS4KICovCiNk
+ZWZpbmUgQ0FDSEVfVElNRQkJSFoKCiNkZWZpbmUgQk9BUkRfSUQJCSJNQklGIgojZGVmaW5lIE1F
+VEhPRF9FTlVNRVJBVEUJIkdHUlAiCiNkZWZpbmUgTUVUSE9EX1JFQUQJCSJHSVRNIgojZGVmaW5l
+IE1FVEhPRF9XUklURQkJIlNJVE0iCiNkZWZpbmUgTUVUSE9EX09MRF9SRUFEX1RNUAkiUlRNUCIK
+I2RlZmluZSBNRVRIT0RfT0xEX1JFQURfVkxUCSJSVkxUIgojZGVmaW5lIE1FVEhPRF9PTERfUkVB
+RF9GQU4JIlJGQU4iCiNkZWZpbmUgTUVUSE9EX09MRF9FTlVNX1RNUAkiVFNJRiIKI2RlZmluZSBN
+RVRIT0RfT0xEX0VOVU1fVkxUCSJWU0lGIgojZGVmaW5lIE1FVEhPRF9PTERfRU5VTV9GQU4JIkZT
+SUYiCgojZGVmaW5lIEFUS19NVVhfSFdNT04JCTB4MDAwMDAwMDZVTEwKI2RlZmluZSBBVEtfTVVY
+X01HTVQJCTB4MDAwMDAwMTFVTEwKCiNkZWZpbmUgQVRLX0NMQVNTX01BU0sJCTB4ZmYwMDAwMDBV
+TEwKI2RlZmluZSBBVEtfQ0xBU1NfRlJFUV9DVEwJMHgwMzAwMDAwMFVMTAojZGVmaW5lIEFUS19D
+TEFTU19GQU5fQ1RMCTB4MDQwMDAwMDBVTEwKI2RlZmluZSBBVEtfQ0xBU1NfSFdNT04JCTB4MDYw
+MDAwMDBVTEwKI2RlZmluZSBBVEtfQ0xBU1NfTUdNVAkJMHgxMTAwMDAwMFVMTAoKI2RlZmluZSBB
+VEtfVFlQRV9NQVNLCQkweDAwZmYwMDAwVUxMCiNkZWZpbmUgSFdNT05fVFlQRV9WT0xUCQkweDAw
+MDIwMDAwVUxMCiNkZWZpbmUgSFdNT05fVFlQRV9URU1QCQkweDAwMDMwMDAwVUxMCiNkZWZpbmUg
+SFdNT05fVFlQRV9GQU4JCTB4MDAwNDAwMDBVTEwKCiNkZWZpbmUgQVRLX0VMRU1FTlRfSURfTUFT
+SwkweDAwMDBmZmZmVUxMCgojZGVmaW5lIEFUS19FQ19JRAkJMHgxMTA2MDAwNFVMTAoKZW51bSBh
+dGtfcGFja19tZW1iZXIgewoJSFdNT05fUEFDS19GTEFHUywKCUhXTU9OX1BBQ0tfTkFNRSwKCUhX
+TU9OX1BBQ0tfTElNSVQxLAoJSFdNT05fUEFDS19MSU1JVDIsCglIV01PTl9QQUNLX0VOQUJMRQp9
+OwoKLyogTmV3IHBhY2thZ2UgZm9ybWF0ICovCiNkZWZpbmUgX0hXTU9OX05FV19QQUNLX1NJWkUJ
+NwojZGVmaW5lIF9IV01PTl9ORVdfUEFDS19GTEFHUwkwCiNkZWZpbmUgX0hXTU9OX05FV19QQUNL
+X05BTUUJMQojZGVmaW5lIF9IV01PTl9ORVdfUEFDS19VTksxCTIKI2RlZmluZSBfSFdNT05fTkVX
+X1BBQ0tfVU5LMgkzCiNkZWZpbmUgX0hXTU9OX05FV19QQUNLX0xJTUlUMQk0CiNkZWZpbmUgX0hX
+TU9OX05FV19QQUNLX0xJTUlUMgk1CiNkZWZpbmUgX0hXTU9OX05FV19QQUNLX0VOQUJMRQk2Cgov
+KiBPbGQgcGFja2FnZSBmb3JtYXQgKi8KI2RlZmluZSBfSFdNT05fT0xEX1BBQ0tfU0laRQk1CiNk
+ZWZpbmUgX0hXTU9OX09MRF9QQUNLX0ZMQUdTCTAKI2RlZmluZSBfSFdNT05fT0xEX1BBQ0tfTkFN
+RQkxCiNkZWZpbmUgX0hXTU9OX09MRF9QQUNLX0xJTUlUMQkyCiNkZWZpbmUgX0hXTU9OX09MRF9Q
+QUNLX0xJTUlUMgkzCiNkZWZpbmUgX0hXTU9OX09MRF9QQUNLX0VOQUJMRQk0CgoKc3RydWN0IGF0
+a19kYXRhIHsKCXN0cnVjdCBkZXZpY2UgKmh3bW9uX2RldjsKCWFjcGlfaGFuZGxlIGF0a19oYW5k
+bGU7CglzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFjcGlfZGV2OwoKCWJvb2wgb2xkX2ludGVyZmFjZTsK
+CgkvKiBvbGQgaW50ZXJmYWNlICovCglhY3BpX2hhbmRsZSBydG1wX2hhbmRsZTsKCWFjcGlfaGFu
+ZGxlIHJ2bHRfaGFuZGxlOwoJYWNwaV9oYW5kbGUgcmZhbl9oYW5kbGU7CgkvKiBuZXcgaW50ZWZh
+Y2UgKi8KCWFjcGlfaGFuZGxlIGVudW1lcmF0ZV9oYW5kbGU7CglhY3BpX2hhbmRsZSByZWFkX2hh
+bmRsZTsKCWFjcGlfaGFuZGxlIHdyaXRlX2hhbmRsZTsKCglib29sIGRpc2FibGVfZWM7CgoJaW50
+IHZvbHRhZ2VfY291bnQ7CglpbnQgdGVtcGVyYXR1cmVfY291bnQ7CglpbnQgZmFuX2NvdW50OwoJ
+c3RydWN0IGxpc3RfaGVhZCBzZW5zb3JfbGlzdDsKCglzdHJ1Y3QgewoJCXN0cnVjdCBkZW50cnkg
+KnJvb3Q7CgkJdTMyIGlkOwoJfSBkZWJ1Z2ZzOwp9OwoKCnR5cGVkZWYgc3NpemVfdCAoKnN5c2Zz
+X3Nob3dfZnVuYykoc3RydWN0IGRldmljZSAqZGV2LAoJCQlzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0
+ZSAqYXR0ciwgY2hhciAqYnVmKTsKCnN0YXRpYyBjb25zdCBzdHJ1Y3QgYWNwaV9kZXZpY2VfaWQg
+YXRrX2lkc1tdID0gewoJe0FUS19ISUQsIDB9LAoJeyIiLCAwfSwKfTsKTU9EVUxFX0RFVklDRV9U
+QUJMRShhY3BpLCBhdGtfaWRzKTsKCiNkZWZpbmUgQVRUUl9OQU1FX1NJWkUgMTYgLyogV29yc3Qg
+Y2FzZSBpcyAidGVtcE5faW5wdXQiICovCgpzdHJ1Y3QgYXRrX3NlbnNvcl9kYXRhIHsKCXN0cnVj
+dCBsaXN0X2hlYWQgbGlzdDsKCXN0cnVjdCBhdGtfZGF0YSAqZGF0YTsKCXN0cnVjdCBkZXZpY2Vf
+YXR0cmlidXRlIGxhYmVsX2F0dHI7CglzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSBpbnB1dF9hdHRy
+OwoJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgbGltaXQxX2F0dHI7CglzdHJ1Y3QgZGV2aWNlX2F0
+dHJpYnV0ZSBsaW1pdDJfYXR0cjsKCWNoYXIgbGFiZWxfYXR0cl9uYW1lW0FUVFJfTkFNRV9TSVpF
+XTsKCWNoYXIgaW5wdXRfYXR0cl9uYW1lW0FUVFJfTkFNRV9TSVpFXTsKCWNoYXIgbGltaXQxX2F0
+dHJfbmFtZVtBVFRSX05BTUVfU0laRV07CgljaGFyIGxpbWl0Ml9hdHRyX25hbWVbQVRUUl9OQU1F
+X1NJWkVdOwoJdTY0IGlkOwoJdTY0IHR5cGU7Cgl1NjQgbGltaXQxOwoJdTY0IGxpbWl0MjsKCXU2
+NCBjYWNoZWRfdmFsdWU7Cgl1bnNpZ25lZCBsb25nIGxhc3RfdXBkYXRlZDsgLyogaW4gamlmZmll
+cyAqLwoJYm9vbCBpc192YWxpZDsKCWNoYXIgY29uc3QgKmFjcGlfbmFtZTsKfTsKCi8qIFJldHVy
+biBidWZmZXIgZm9ybWF0OgogKiBbMC0zXSAidmFsdWUiIGlzIHZhbGlkIGZsYWcKICogWzQtN10g
+dmFsdWUKICogWzgtIF0gdW5rbm93biBzdHVmZiBvbiBuZXdlciBtb2JvcwogKi8Kc3RydWN0IGF0
+a19hY3BpX3JldF9idWZmZXIgewoJdTMyIGZsYWdzOwoJdTMyIHZhbHVlOwoJdTggZGF0YVtdOwp9
+OwoKLyogSW5wdXQgYnVmZmVyIHVzZWQgZm9yIEdJVE0gYW5kIFNJVE0gbWV0aG9kcyAqLwpzdHJ1
+Y3QgYXRrX2FjcGlfaW5wdXRfYnVmIHsKCXUzMiBpZDsKCXUzMiBwYXJhbTE7Cgl1MzIgcGFyYW0y
+Owp9OwoKc3RhdGljIGludCBhdGtfYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKc3Rh
+dGljIGludCBhdGtfcmVtb3ZlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgdHlwZSk7
+CnN0YXRpYyB2b2lkIGF0a19wcmludF9zZW5zb3Ioc3RydWN0IGF0a19kYXRhICpkYXRhLCB1bmlv
+biBhY3BpX29iamVjdCAqb2JqKTsKc3RhdGljIGludCBhdGtfcmVhZF92YWx1ZShzdHJ1Y3QgYXRr
+X3NlbnNvcl9kYXRhICpzZW5zb3IsIHU2NCAqdmFsdWUpOwpzdGF0aWMgdm9pZCBhdGtfZnJlZV9z
+ZW5zb3JzKHN0cnVjdCBhdGtfZGF0YSAqZGF0YSk7CgpzdGF0aWMgc3RydWN0IGFjcGlfZHJpdmVy
+IGF0a19kcml2ZXIgPSB7CgkubmFtZQk9IEFUS19ISUQsCgkuY2xhc3MJPSAiaHdtb24iLAoJLmlk
+cwk9IGF0a19pZHMsCgkub3BzCT0gewoJCS5hZGQJPSBhdGtfYWRkLAoJCS5yZW1vdmUJPSBhdGtf
+cmVtb3ZlLAoJfSwKfTsKCiNkZWZpbmUgaW5wdXRfdG9fYXRrX3NlbnNvcihhdHRyKSBcCgljb250
+YWluZXJfb2YoYXR0ciwgc3RydWN0IGF0a19zZW5zb3JfZGF0YSwgaW5wdXRfYXR0cikKCiNkZWZp
+bmUgbGFiZWxfdG9fYXRrX3NlbnNvcihhdHRyKSBcCgljb250YWluZXJfb2YoYXR0ciwgc3RydWN0
+IGF0a19zZW5zb3JfZGF0YSwgbGFiZWxfYXR0cikKCiNkZWZpbmUgbGltaXQxX3RvX2F0a19zZW5z
+b3IoYXR0cikgXAoJY29udGFpbmVyX29mKGF0dHIsIHN0cnVjdCBhdGtfc2Vuc29yX2RhdGEsIGxp
+bWl0MV9hdHRyKQoKI2RlZmluZSBsaW1pdDJfdG9fYXRrX3NlbnNvcihhdHRyKSBcCgljb250YWlu
+ZXJfb2YoYXR0ciwgc3RydWN0IGF0a19zZW5zb3JfZGF0YSwgbGltaXQyX2F0dHIpCgpzdGF0aWMg
+c3NpemVfdCBhdGtfaW5wdXRfc2hvdyhzdHJ1Y3QgZGV2aWNlICpkZXYsCgkJc3RydWN0IGRldmlj
+ZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikKewoJc3RydWN0IGF0a19zZW5zb3JfZGF0YSAq
+cyA9IGlucHV0X3RvX2F0a19zZW5zb3IoYXR0cik7Cgl1NjQgdmFsdWU7CglpbnQgZXJyOwoKCWVy
+ciA9IGF0a19yZWFkX3ZhbHVlKHMsICZ2YWx1ZSk7CglpZiAoZXJyKQoJCXJldHVybiBlcnI7CgoJ
+aWYgKHMtPnR5cGUgPT0gSFdNT05fVFlQRV9URU1QKQoJCS8qIEFDUEkgcmV0dXJucyBkZWNpZGVn
+cmVlICovCgkJdmFsdWUgKj0gMTAwOwoKCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVsbHVcbiIsIHZh
+bHVlKTsKfQoKc3RhdGljIHNzaXplX3QgYXRrX2xhYmVsX3Nob3coc3RydWN0IGRldmljZSAqZGV2
+LAoJCXN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFyICpidWYpCnsKCXN0cnVjdCBh
+dGtfc2Vuc29yX2RhdGEgKnMgPSBsYWJlbF90b19hdGtfc2Vuc29yKGF0dHIpOwoKCXJldHVybiBz
+cHJpbnRmKGJ1ZiwgIiVzXG4iLCBzLT5hY3BpX25hbWUpOwp9CgpzdGF0aWMgc3NpemVfdCBhdGtf
+bGltaXQxX3Nob3coc3RydWN0IGRldmljZSAqZGV2LAoJCXN0cnVjdCBkZXZpY2VfYXR0cmlidXRl
+ICphdHRyLCBjaGFyICpidWYpCnsKCXN0cnVjdCBhdGtfc2Vuc29yX2RhdGEgKnMgPSBsaW1pdDFf
+dG9fYXRrX3NlbnNvcihhdHRyKTsKCXU2NCB2YWx1ZSA9IHMtPmxpbWl0MTsKCglpZiAocy0+dHlw
+ZSA9PSBIV01PTl9UWVBFX1RFTVApCgkJdmFsdWUgKj0gMTAwOwoKCXJldHVybiBzcHJpbnRmKGJ1
+ZiwgIiVsbGRcbiIsIHZhbHVlKTsKfQoKc3RhdGljIHNzaXplX3QgYXRrX2xpbWl0Ml9zaG93KHN0
+cnVjdCBkZXZpY2UgKmRldiwKCQlzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwgY2hhciAq
+YnVmKQp7CglzdHJ1Y3QgYXRrX3NlbnNvcl9kYXRhICpzID0gbGltaXQyX3RvX2F0a19zZW5zb3Io
+YXR0cik7Cgl1NjQgdmFsdWUgPSBzLT5saW1pdDI7CgoJaWYgKHMtPnR5cGUgPT0gSFdNT05fVFlQ
+RV9URU1QKQoJCXZhbHVlICo9IDEwMDsKCglyZXR1cm4gc3ByaW50ZihidWYsICIlbGxkXG4iLCB2
+YWx1ZSk7Cn0KCnN0YXRpYyBzc2l6ZV90IGF0a19uYW1lX3Nob3coc3RydWN0IGRldmljZSAqZGV2
+LAoJCQkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsIGNoYXIgKmJ1ZikKewoJcmV0dXJu
+IHNwcmludGYoYnVmLCAiYXRrMDExMFxuIik7Cn0Kc3RhdGljIHN0cnVjdCBkZXZpY2VfYXR0cmli
+dXRlIGF0a19uYW1lX2F0dHIgPQoJCV9fQVRUUihuYW1lLCAwNDQ0LCBhdGtfbmFtZV9zaG93LCBO
+VUxMKTsKCnN0YXRpYyB2b2lkIGF0a19pbml0X2F0dHJpYnV0ZShzdHJ1Y3QgZGV2aWNlX2F0dHJp
+YnV0ZSAqYXR0ciwgY2hhciAqbmFtZSwKCQlzeXNmc19zaG93X2Z1bmMgc2hvdykKewoJYXR0ci0+
+YXR0ci5uYW1lID0gbmFtZTsKCWF0dHItPmF0dHIubW9kZSA9IDA0NDQ7CglhdHRyLT5zaG93ID0g
+c2hvdzsKCWF0dHItPnN0b3JlID0gTlVMTDsKfQoKCnN0YXRpYyB1bmlvbiBhY3BpX29iamVjdCAq
+YXRrX2dldF9wYWNrX21lbWJlcihzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEsCgkJCQkJCXVuaW9uIGFj
+cGlfb2JqZWN0ICpwYWNrLAoJCQkJCQllbnVtIGF0a19wYWNrX21lbWJlciBtKQp7Cglib29sIG9s
+ZF9pZiA9IGRhdGEtPm9sZF9pbnRlcmZhY2U7CglpbnQgb2Zmc2V0OwoKCXN3aXRjaCAobSkgewoJ
+Y2FzZSBIV01PTl9QQUNLX0ZMQUdTOgoJCW9mZnNldCA9IG9sZF9pZiA/IF9IV01PTl9PTERfUEFD
+S19GTEFHUyA6IF9IV01PTl9ORVdfUEFDS19GTEFHUzsKCQlicmVhazsKCWNhc2UgSFdNT05fUEFD
+S19OQU1FOgoJCW9mZnNldCA9IG9sZF9pZiA/IF9IV01PTl9PTERfUEFDS19OQU1FIDogX0hXTU9O
+X05FV19QQUNLX05BTUU7CgkJYnJlYWs7CgljYXNlIEhXTU9OX1BBQ0tfTElNSVQxOgoJCW9mZnNl
+dCA9IG9sZF9pZiA/IF9IV01PTl9PTERfUEFDS19MSU1JVDEgOgoJCQkJICBfSFdNT05fTkVXX1BB
+Q0tfTElNSVQxOwoJCWJyZWFrOwoJY2FzZSBIV01PTl9QQUNLX0xJTUlUMjoKCQlvZmZzZXQgPSBv
+bGRfaWYgPyBfSFdNT05fT0xEX1BBQ0tfTElNSVQyIDoKCQkJCSAgX0hXTU9OX05FV19QQUNLX0xJ
+TUlUMjsKCQlicmVhazsKCWNhc2UgSFdNT05fUEFDS19FTkFCTEU6CgkJb2Zmc2V0ID0gb2xkX2lm
+ID8gX0hXTU9OX09MRF9QQUNLX0VOQUJMRSA6CgkJCQkgIF9IV01PTl9ORVdfUEFDS19FTkFCTEU7
+CgkJYnJlYWs7CglkZWZhdWx0OgoJCXJldHVybiBOVUxMOwoJfQoKCXJldHVybiAmcGFjay0+cGFj
+a2FnZS5lbGVtZW50c1tvZmZzZXRdOwp9CgoKLyogTmV3IHBhY2thZ2UgZm9ybWF0IGlzOgogKiAt
+IGZsYWcgKGludCkKICoJY2xhc3MgLSB1c2VkIGZvciBkZS1tdXhpbmcgdGhlIHJlcXVlc3QgdG8g
+dGhlIGNvcnJlY3QgR0lUbgogKgl0eXBlICh2b2x0LCB0ZW1wLCBmYW4pCiAqCXNlbnNvciBpZCB8
+CiAqCXNlbnNvciBpZCAtIHVzZWQgZm9yIGRlLW11eGluZyB0aGUgcmVxdWVzdCBfaW5zaWRlXyB0
+aGUgR0lUbgogKiAtIG5hbWUgKHN0cikKICogLSB1bmtub3duIChpbnQpCiAqIC0gdW5rbm93biAo
+aW50KQogKiAtIGxpbWl0MSAoaW50KQogKiAtIGxpbWl0MiAoaW50KQogKiAtIGVuYWJsZSAoaW50
+KQogKgogKiBUaGUgb2xkIHBhY2thZ2UgaGFzIHRoZSBzYW1lIGZvcm1hdCBidXQgaXQncyBtaXNz
+aW5nIHRoZSB0d28gdW5rbm93biBmaWVsZHMuCiAqLwpzdGF0aWMgaW50IHZhbGlkYXRlX2h3bW9u
+X3BhY2soc3RydWN0IGF0a19kYXRhICpkYXRhLCB1bmlvbiBhY3BpX29iamVjdCAqb2JqKQp7Cglz
+dHJ1Y3QgZGV2aWNlICpkZXYgPSAmZGF0YS0+YWNwaV9kZXYtPmRldjsKCXVuaW9uIGFjcGlfb2Jq
+ZWN0ICp0bXA7Cglib29sIG9sZF9pZiA9IGRhdGEtPm9sZF9pbnRlcmZhY2U7CglpbnQgY29uc3Qg
+ZXhwZWN0ZWRfc2l6ZSA9IG9sZF9pZiA/IF9IV01PTl9PTERfUEFDS19TSVpFIDoKCQkJCQkgICBf
+SFdNT05fTkVXX1BBQ0tfU0laRTsKCglpZiAob2JqLT50eXBlICE9IEFDUElfVFlQRV9QQUNLQUdF
+KSB7CgkJZGV2X3dhcm4oZGV2LCAiSW52YWxpZCB0eXBlOiAlZFxuIiwgb2JqLT50eXBlKTsKCQly
+ZXR1cm4gLUVJTlZBTDsKCX0KCglpZiAob2JqLT5wYWNrYWdlLmNvdW50ICE9IGV4cGVjdGVkX3Np
+emUpIHsKCQlkZXZfd2FybihkZXYsICJJbnZhbGlkIHBhY2thZ2Ugc2l6ZTogJWQsIGV4cGVjdGVk
+OiAlZFxuIiwKCQkJCW9iai0+cGFja2FnZS5jb3VudCwgZXhwZWN0ZWRfc2l6ZSk7CgkJcmV0dXJu
+IC1FSU5WQUw7Cgl9CgoJdG1wID0gYXRrX2dldF9wYWNrX21lbWJlcihkYXRhLCBvYmosIEhXTU9O
+X1BBQ0tfRkxBR1MpOwoJaWYgKHRtcC0+dHlwZSAhPSBBQ1BJX1RZUEVfSU5URUdFUikgewoJCWRl
+dl93YXJuKGRldiwgIkludmFsaWQgdHlwZSAoZmxhZyk6ICVkXG4iLCB0bXAtPnR5cGUpOwoJCXJl
+dHVybiAtRUlOVkFMOwoJfQoKCXRtcCA9IGF0a19nZXRfcGFja19tZW1iZXIoZGF0YSwgb2JqLCBI
+V01PTl9QQUNLX05BTUUpOwoJaWYgKHRtcC0+dHlwZSAhPSBBQ1BJX1RZUEVfU1RSSU5HKSB7CgkJ
+ZGV2X3dhcm4oZGV2LCAiSW52YWxpZCB0eXBlIChuYW1lKTogJWRcbiIsIHRtcC0+dHlwZSk7CgkJ
+cmV0dXJuIC1FSU5WQUw7Cgl9CgoJLyogRG9uJ3QgY2hlY2suLi4gd2UgZG9uJ3Qga25vdyB3aGF0
+IHRoZXkncmUgdXNlZnVsIGZvciBhbnl3YXkgKi8KI2lmIDAKCXRtcCA9ICZvYmotPnBhY2thZ2Uu
+ZWxlbWVudHNbSFdNT05fUEFDS19VTksxXTsKCWlmICh0bXAtPnR5cGUgIT0gQUNQSV9UWVBFX0lO
+VEVHRVIpIHsKCQlkZXZfd2FybihkZXYsICJJbnZhbGlkIHR5cGUgKHVuazEpOiAlZFxuIiwgdG1w
+LT50eXBlKTsKCQlyZXR1cm4gLUVJTlZBTDsKCX0KCgl0bXAgPSAmb2JqLT5wYWNrYWdlLmVsZW1l
+bnRzW0hXTU9OX1BBQ0tfVU5LMl07CglpZiAodG1wLT50eXBlICE9IEFDUElfVFlQRV9JTlRFR0VS
+KSB7CgkJZGV2X3dhcm4oZGV2LCAiSW52YWxpZCB0eXBlICh1bmsyKTogJWRcbiIsIHRtcC0+dHlw
+ZSk7CgkJcmV0dXJuIC1FSU5WQUw7Cgl9CiNlbmRpZgoKCXRtcCA9IGF0a19nZXRfcGFja19tZW1i
+ZXIoZGF0YSwgb2JqLCBIV01PTl9QQUNLX0xJTUlUMSk7CglpZiAodG1wLT50eXBlICE9IEFDUElf
+VFlQRV9JTlRFR0VSKSB7CgkJZGV2X3dhcm4oZGV2LCAiSW52YWxpZCB0eXBlIChsaW1pdDEpOiAl
+ZFxuIiwgdG1wLT50eXBlKTsKCQlyZXR1cm4gLUVJTlZBTDsKCX0KCgl0bXAgPSBhdGtfZ2V0X3Bh
+Y2tfbWVtYmVyKGRhdGEsIG9iaiwgSFdNT05fUEFDS19MSU1JVDIpOwoJaWYgKHRtcC0+dHlwZSAh
+PSBBQ1BJX1RZUEVfSU5URUdFUikgewoJCWRldl93YXJuKGRldiwgIkludmFsaWQgdHlwZSAobGlt
+aXQyKTogJWRcbiIsIHRtcC0+dHlwZSk7CgkJcmV0dXJuIC1FSU5WQUw7Cgl9CgoJdG1wID0gYXRr
+X2dldF9wYWNrX21lbWJlcihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfRU5BQkxFKTsKCWlmICh0bXAt
+PnR5cGUgIT0gQUNQSV9UWVBFX0lOVEVHRVIpIHsKCQlkZXZfd2FybihkZXYsICJJbnZhbGlkIHR5
+cGUgKGVuYWJsZSk6ICVkXG4iLCB0bXAtPnR5cGUpOwoJCXJldHVybiAtRUlOVkFMOwoJfQoKCWF0
+a19wcmludF9zZW5zb3IoZGF0YSwgb2JqKTsKCglyZXR1cm4gMDsKfQoKI2lmZGVmIERFQlVHCnN0
+YXRpYyBjaGFyIGNvbnN0ICphdGtfc2Vuc29yX3R5cGUodW5pb24gYWNwaV9vYmplY3QgKmZsYWdz
+KQp7Cgl1NjQgdHlwZSA9IGZsYWdzLT5pbnRlZ2VyLnZhbHVlICYgQVRLX1RZUEVfTUFTSzsKCWNo
+YXIgY29uc3QgKndoYXQ7CgoJc3dpdGNoICh0eXBlKSB7CgljYXNlIEhXTU9OX1RZUEVfVk9MVDoK
+CQl3aGF0ID0gInZvbHRhZ2UiOwoJCWJyZWFrOwoJY2FzZSBIV01PTl9UWVBFX1RFTVA6CgkJd2hh
+dCA9ICJ0ZW1wZXJhdHVyZSI7CgkJYnJlYWs7CgljYXNlIEhXTU9OX1RZUEVfRkFOOgoJCXdoYXQg
+PSAiZmFuIjsKCQlicmVhazsKCWRlZmF1bHQ6CgkJd2hhdCA9ICJ1bmtub3duIjsKCQlicmVhazsK
+CX0KCglyZXR1cm4gd2hhdDsKfQojZW5kaWYKCnN0YXRpYyB2b2lkIGF0a19wcmludF9zZW5zb3Io
+c3RydWN0IGF0a19kYXRhICpkYXRhLCB1bmlvbiBhY3BpX29iamVjdCAqb2JqKQp7CiNpZmRlZiBE
+RUJVRwoJc3RydWN0IGRldmljZSAqZGV2ID0gJmRhdGEtPmFjcGlfZGV2LT5kZXY7Cgl1bmlvbiBh
+Y3BpX29iamVjdCAqZmxhZ3M7Cgl1bmlvbiBhY3BpX29iamVjdCAqbmFtZTsKCXVuaW9uIGFjcGlf
+b2JqZWN0ICpsaW1pdDE7Cgl1bmlvbiBhY3BpX29iamVjdCAqbGltaXQyOwoJdW5pb24gYWNwaV9v
+YmplY3QgKmVuYWJsZTsKCWNoYXIgY29uc3QgKndoYXQ7CgoJZmxhZ3MgPSBhdGtfZ2V0X3BhY2tf
+bWVtYmVyKGRhdGEsIG9iaiwgSFdNT05fUEFDS19GTEFHUyk7CgluYW1lID0gYXRrX2dldF9wYWNr
+X21lbWJlcihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfTkFNRSk7CglsaW1pdDEgPSBhdGtfZ2V0X3Bh
+Y2tfbWVtYmVyKGRhdGEsIG9iaiwgSFdNT05fUEFDS19MSU1JVDEpOwoJbGltaXQyID0gYXRrX2dl
+dF9wYWNrX21lbWJlcihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfTElNSVQyKTsKCWVuYWJsZSA9IGF0
+a19nZXRfcGFja19tZW1iZXIoZGF0YSwgb2JqLCBIV01PTl9QQUNLX0VOQUJMRSk7CgoJd2hhdCA9
+IGF0a19zZW5zb3JfdHlwZShmbGFncyk7CgoJZGV2X2RiZyhkZXYsICIlczogJSNsbHggJXMgWyVs
+bHUtJWxsdV0gJXNcbiIsIHdoYXQsCgkJCWZsYWdzLT5pbnRlZ2VyLnZhbHVlLAoJCQluYW1lLT5z
+dHJpbmcucG9pbnRlciwKCQkJbGltaXQxLT5pbnRlZ2VyLnZhbHVlLCBsaW1pdDItPmludGVnZXIu
+dmFsdWUsCgkJCWVuYWJsZS0+aW50ZWdlci52YWx1ZSA/ICJlbmFibGVkIiA6ICJkaXNhYmxlZCIp
+OwojZW5kaWYKfQoKc3RhdGljIGludCBhdGtfcmVhZF92YWx1ZV9vbGQoc3RydWN0IGF0a19zZW5z
+b3JfZGF0YSAqc2Vuc29yLCB1NjQgKnZhbHVlKQp7CglzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEgPSBz
+ZW5zb3ItPmRhdGE7CglzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmZGF0YS0+YWNwaV9kZXYtPmRldjsK
+CXN0cnVjdCBhY3BpX29iamVjdF9saXN0IHBhcmFtczsKCXVuaW9uIGFjcGlfb2JqZWN0IGlkOwoJ
+YWNwaV9zdGF0dXMgc3RhdHVzOwoJYWNwaV9oYW5kbGUgbWV0aG9kOwoKCXN3aXRjaCAoc2Vuc29y
+LT50eXBlKSB7CgljYXNlIEhXTU9OX1RZUEVfVk9MVDoKCQltZXRob2QgPSBkYXRhLT5ydmx0X2hh
+bmRsZTsKCQlicmVhazsKCWNhc2UgSFdNT05fVFlQRV9URU1QOgoJCW1ldGhvZCA9IGRhdGEtPnJ0
+bXBfaGFuZGxlOwoJCWJyZWFrOwoJY2FzZSBIV01PTl9UWVBFX0ZBTjoKCQltZXRob2QgPSBkYXRh
+LT5yZmFuX2hhbmRsZTsKCQlicmVhazsKCWRlZmF1bHQ6CgkJcmV0dXJuIC1FSU5WQUw7Cgl9CgoJ
+aWQudHlwZSA9IEFDUElfVFlQRV9JTlRFR0VSOwoJaWQuaW50ZWdlci52YWx1ZSA9IHNlbnNvci0+
+aWQ7CgoJcGFyYW1zLmNvdW50ID0gMTsKCXBhcmFtcy5wb2ludGVyID0gJmlkOwoKCXN0YXR1cyA9
+IGFjcGlfZXZhbHVhdGVfaW50ZWdlcihtZXRob2QsIE5VTEwsICZwYXJhbXMsIHZhbHVlKTsKCWlm
+IChzdGF0dXMgIT0gQUVfT0spIHsKCQlkZXZfd2FybihkZXYsICIlczogQUNQSSBleGNlcHRpb246
+ICVzXG4iLCBfX2Z1bmNfXywKCQkJCWFjcGlfZm9ybWF0X2V4Y2VwdGlvbihzdGF0dXMpKTsKCQly
+ZXR1cm4gLUVJTzsKCX0KCglyZXR1cm4gMDsKfQoKc3RhdGljIHVuaW9uIGFjcGlfb2JqZWN0ICph
+dGtfZ2dycChzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEsIHUxNiBtdXgpCnsKCXN0cnVjdCBkZXZpY2Ug
+KmRldiA9ICZkYXRhLT5hY3BpX2Rldi0+ZGV2OwoJc3RydWN0IGFjcGlfYnVmZmVyIGJ1ZjsKCWFj
+cGlfc3RhdHVzIHJldDsKCXN0cnVjdCBhY3BpX29iamVjdF9saXN0IHBhcmFtczsKCXVuaW9uIGFj
+cGlfb2JqZWN0IGlkOwoJdW5pb24gYWNwaV9vYmplY3QgKnBhY2s7CgoJaWQudHlwZSA9IEFDUElf
+VFlQRV9JTlRFR0VSOwoJaWQuaW50ZWdlci52YWx1ZSA9IG11eDsKCXBhcmFtcy5jb3VudCA9IDE7
+CglwYXJhbXMucG9pbnRlciA9ICZpZDsKCglidWYubGVuZ3RoID0gQUNQSV9BTExPQ0FURV9CVUZG
+RVI7CglyZXQgPSBhY3BpX2V2YWx1YXRlX29iamVjdChkYXRhLT5lbnVtZXJhdGVfaGFuZGxlLCBO
+VUxMLCAmcGFyYW1zLCAmYnVmKTsKCWlmIChyZXQgIT0gQUVfT0spIHsKCQlkZXZfZXJyKGRldiwg
+IkdHUlBbJSN4XSBBQ1BJIGV4Y2VwdGlvbjogJXNcbiIsIG11eCwKCQkJCWFjcGlfZm9ybWF0X2V4
+Y2VwdGlvbihyZXQpKTsKCQlyZXR1cm4gRVJSX1BUUigtRUlPKTsKCX0KCXBhY2sgPSBidWYucG9p
+bnRlcjsKCWlmIChwYWNrLT50eXBlICE9IEFDUElfVFlQRV9QQUNLQUdFKSB7CgkJLyogRXhlY3V0
+aW9uIHdhcyBzdWNjZXNzZnVsLCBidXQgdGhlIGlkIHdhcyBub3QgZm91bmQgKi8KCQlBQ1BJX0ZS
+RUUocGFjayk7CgkJcmV0dXJuIEVSUl9QVFIoLUVOT0VOVCk7Cgl9CgoJaWYgKHBhY2stPnBhY2th
+Z2UuY291bnQgPCAxKSB7CgkJZGV2X2VycihkZXYsICJHR1JQWyUjeF0gcGFja2FnZSBpcyB0b28g
+c21hbGxcbiIsIG11eCk7CgkJQUNQSV9GUkVFKHBhY2spOwoJCXJldHVybiBFUlJfUFRSKC1FSU8p
+OwoJfQoJcmV0dXJuIHBhY2s7Cn0KCnN0YXRpYyB1bmlvbiBhY3BpX29iamVjdCAqYXRrX2dpdG0o
+c3RydWN0IGF0a19kYXRhICpkYXRhLCB1NjQgaWQpCnsKCXN0cnVjdCBkZXZpY2UgKmRldiA9ICZk
+YXRhLT5hY3BpX2Rldi0+ZGV2OwoJc3RydWN0IGF0a19hY3BpX2lucHV0X2J1ZiBidWY7Cgl1bmlv
+biBhY3BpX29iamVjdCB0bXA7CglzdHJ1Y3QgYWNwaV9vYmplY3RfbGlzdCBwYXJhbXM7CglzdHJ1
+Y3QgYWNwaV9idWZmZXIgcmV0OwoJdW5pb24gYWNwaV9vYmplY3QgKm9iajsKCWFjcGlfc3RhdHVz
+IHN0YXR1czsKCglidWYuaWQgPSBpZDsKCWJ1Zi5wYXJhbTEgPSAwOwoJYnVmLnBhcmFtMiA9IDA7
+CgoJdG1wLnR5cGUgPSBBQ1BJX1RZUEVfQlVGRkVSOwoJdG1wLmJ1ZmZlci5wb2ludGVyID0gKHU4
+ICopJmJ1ZjsKCXRtcC5idWZmZXIubGVuZ3RoID0gc2l6ZW9mKGJ1Zik7CgoJcGFyYW1zLmNvdW50
+ID0gMTsKCXBhcmFtcy5wb2ludGVyID0gKHZvaWQgKikmdG1wOwoKCXJldC5sZW5ndGggPSBBQ1BJ
+X0FMTE9DQVRFX0JVRkZFUjsKCXN0YXR1cyA9IGFjcGlfZXZhbHVhdGVfb2JqZWN0X3R5cGVkKGRh
+dGEtPnJlYWRfaGFuZGxlLCBOVUxMLCAmcGFyYW1zLAoJCQkmcmV0LCBBQ1BJX1RZUEVfQlVGRkVS
+KTsKCWlmIChzdGF0dXMgIT0gQUVfT0spIHsKCQlkZXZfd2FybihkZXYsICJHSVRNWyUjbGx4XSBB
+Q1BJIGV4Y2VwdGlvbjogJXNcbiIsIGlkLAoJCQkJYWNwaV9mb3JtYXRfZXhjZXB0aW9uKHN0YXR1
+cykpOwoJCXJldHVybiBFUlJfUFRSKC1FSU8pOwoJfQoJb2JqID0gcmV0LnBvaW50ZXI7CgoJLyog
+U2FuaXR5IGNoZWNrICovCglpZiAob2JqLT5idWZmZXIubGVuZ3RoIDwgOCkgewoJCWRldl93YXJu
+KGRldiwgIlVuZXhwZWN0ZWQgQVNCRiBsZW5ndGg6ICV1XG4iLAoJCQkJb2JqLT5idWZmZXIubGVu
+Z3RoKTsKCQlBQ1BJX0ZSRUUob2JqKTsKCQlyZXR1cm4gRVJSX1BUUigtRUlPKTsKCX0KCXJldHVy
+biBvYmo7Cn0KCnN0YXRpYyB1bmlvbiBhY3BpX29iamVjdCAqYXRrX3NpdG0oc3RydWN0IGF0a19k
+YXRhICpkYXRhLAoJCXN0cnVjdCBhdGtfYWNwaV9pbnB1dF9idWYgKmJ1ZikKewoJc3RydWN0IGRl
+dmljZSAqZGV2ID0gJmRhdGEtPmFjcGlfZGV2LT5kZXY7CglzdHJ1Y3QgYWNwaV9vYmplY3RfbGlz
+dCBwYXJhbXM7Cgl1bmlvbiBhY3BpX29iamVjdCB0bXA7CglzdHJ1Y3QgYWNwaV9idWZmZXIgcmV0
+OwoJdW5pb24gYWNwaV9vYmplY3QgKm9iajsKCWFjcGlfc3RhdHVzIHN0YXR1czsKCgl0bXAudHlw
+ZSA9IEFDUElfVFlQRV9CVUZGRVI7Cgl0bXAuYnVmZmVyLnBvaW50ZXIgPSAodTggKilidWY7Cgl0
+bXAuYnVmZmVyLmxlbmd0aCA9IHNpemVvZigqYnVmKTsKCglwYXJhbXMuY291bnQgPSAxOwoJcGFy
+YW1zLnBvaW50ZXIgPSAmdG1wOwoKCXJldC5sZW5ndGggPSBBQ1BJX0FMTE9DQVRFX0JVRkZFUjsK
+CXN0YXR1cyA9IGFjcGlfZXZhbHVhdGVfb2JqZWN0X3R5cGVkKGRhdGEtPndyaXRlX2hhbmRsZSwg
+TlVMTCwgJnBhcmFtcywKCQkJJnJldCwgQUNQSV9UWVBFX0JVRkZFUik7CglpZiAoc3RhdHVzICE9
+IEFFX09LKSB7CgkJZGV2X3dhcm4oZGV2LCAiU0lUTVslI3hdIEFDUEkgZXhjZXB0aW9uOiAlc1xu
+IiwgYnVmLT5pZCwKCQkJCWFjcGlfZm9ybWF0X2V4Y2VwdGlvbihzdGF0dXMpKTsKCQlyZXR1cm4g
+RVJSX1BUUigtRUlPKTsKCX0KCW9iaiA9IHJldC5wb2ludGVyOwoKCS8qIFNhbml0eSBjaGVjayAq
+LwoJaWYgKG9iai0+YnVmZmVyLmxlbmd0aCA8IDgpIHsKCQlkZXZfd2FybihkZXYsICJVbmV4cGVj
+dGVkIEFTQkYgbGVuZ3RoOiAldVxuIiwKCQkJCW9iai0+YnVmZmVyLmxlbmd0aCk7CgkJQUNQSV9G
+UkVFKG9iaik7CgkJcmV0dXJuIEVSUl9QVFIoLUVJTyk7Cgl9CglyZXR1cm4gb2JqOwp9CgpzdGF0
+aWMgaW50IGF0a19yZWFkX3ZhbHVlX25ldyhzdHJ1Y3QgYXRrX3NlbnNvcl9kYXRhICpzZW5zb3Is
+IHU2NCAqdmFsdWUpCnsKCXN0cnVjdCBhdGtfZGF0YSAqZGF0YSA9IHNlbnNvci0+ZGF0YTsKCXN0
+cnVjdCBkZXZpY2UgKmRldiA9ICZkYXRhLT5hY3BpX2Rldi0+ZGV2OwoJdW5pb24gYWNwaV9vYmpl
+Y3QgKm9iajsKCXN0cnVjdCBhdGtfYWNwaV9yZXRfYnVmZmVyICpidWY7CglpbnQgZXJyID0gMDsK
+CglvYmogPSBhdGtfZ2l0bShkYXRhLCBzZW5zb3ItPmlkKTsKCWlmIChJU19FUlIob2JqKSkKCQly
+ZXR1cm4gUFRSX0VSUihvYmopOwoKCWJ1ZiA9IChzdHJ1Y3QgYXRrX2FjcGlfcmV0X2J1ZmZlciAq
+KW9iai0+YnVmZmVyLnBvaW50ZXI7CglpZiAoYnVmLT5mbGFncyA9PSAwKSB7CgkJLyogVGhlIHJl
+YWRpbmcgaXMgbm90IHZhbGlkLCBwb3NzaWJsZSBjYXVzZXM6CgkJICogLSBzZW5zb3IgZmFpbHVy
+ZQoJCSAqIC0gZW51bWVyYXRpb24gd2FzIEZVQkFSIChhbmQgd2UgZGlkbid0IG5vdGljZSkKCQkg
+Ki8KCQlkZXZfd2FybihkZXYsICJSZWFkIGZhaWxlZCwgc2Vuc29yID0gJSNsbHhcbiIsIHNlbnNv
+ci0+aWQpOwoJCWVyciA9IC1FSU87CgkJZ290byBvdXQ7Cgl9CgoJKnZhbHVlID0gYnVmLT52YWx1
+ZTsKb3V0OgoJQUNQSV9GUkVFKG9iaik7CglyZXR1cm4gZXJyOwp9CgpzdGF0aWMgaW50IGF0a19y
+ZWFkX3ZhbHVlKHN0cnVjdCBhdGtfc2Vuc29yX2RhdGEgKnNlbnNvciwgdTY0ICp2YWx1ZSkKewoJ
+aW50IGVycjsKCglpZiAoIXNlbnNvci0+aXNfdmFsaWQgfHwKCSAgICB0aW1lX2FmdGVyKGppZmZp
+ZXMsIHNlbnNvci0+bGFzdF91cGRhdGVkICsgQ0FDSEVfVElNRSkpIHsKCQlpZiAoc2Vuc29yLT5k
+YXRhLT5vbGRfaW50ZXJmYWNlKQoJCQllcnIgPSBhdGtfcmVhZF92YWx1ZV9vbGQoc2Vuc29yLCB2
+YWx1ZSk7CgkJZWxzZQoJCQllcnIgPSBhdGtfcmVhZF92YWx1ZV9uZXcoc2Vuc29yLCB2YWx1ZSk7
+CgoJCXNlbnNvci0+aXNfdmFsaWQgPSB0cnVlOwoJCXNlbnNvci0+bGFzdF91cGRhdGVkID0gamlm
+ZmllczsKCQlzZW5zb3ItPmNhY2hlZF92YWx1ZSA9ICp2YWx1ZTsKCX0gZWxzZSB7CgkJKnZhbHVl
+ID0gc2Vuc29yLT5jYWNoZWRfdmFsdWU7CgkJZXJyID0gMDsKCX0KCglyZXR1cm4gZXJyOwp9Cgoj
+aWZkZWYgQ09ORklHX0RFQlVHX0ZTCnN0YXRpYyBpbnQgYXRrX2RlYnVnZnNfZ2l0bV9nZXQodm9p
+ZCAqcCwgdTY0ICp2YWwpCnsKCXN0cnVjdCBhdGtfZGF0YSAqZGF0YSA9IHA7Cgl1bmlvbiBhY3Bp
+X29iamVjdCAqcmV0OwoJc3RydWN0IGF0a19hY3BpX3JldF9idWZmZXIgKmJ1ZjsKCWludCBlcnIg
+PSAwOwoKCWlmICghZGF0YS0+cmVhZF9oYW5kbGUpCgkJcmV0dXJuIC1FTk9ERVY7CgoJaWYgKCFk
+YXRhLT5kZWJ1Z2ZzLmlkKQoJCXJldHVybiAtRUlOVkFMOwoKCXJldCA9IGF0a19naXRtKGRhdGEs
+IGRhdGEtPmRlYnVnZnMuaWQpOwoJaWYgKElTX0VSUihyZXQpKQoJCXJldHVybiBQVFJfRVJSKHJl
+dCk7CgoJYnVmID0gKHN0cnVjdCBhdGtfYWNwaV9yZXRfYnVmZmVyICopcmV0LT5idWZmZXIucG9p
+bnRlcjsKCWlmIChidWYtPmZsYWdzKQoJCSp2YWwgPSBidWYtPnZhbHVlOwoJZWxzZQoJCWVyciA9
+IC1FSU87CgoJcmV0dXJuIGVycjsKfQoKREVGSU5FX1NJTVBMRV9BVFRSSUJVVEUoYXRrX2RlYnVn
+ZnNfZ2l0bSwKCQkJYXRrX2RlYnVnZnNfZ2l0bV9nZXQsCgkJCU5VTEwsCgkJCSIweCUwOGxseFxu
+IikKCnN0YXRpYyBpbnQgYXRrX2FjcGlfcHJpbnQoY2hhciAqYnVmLCBzaXplX3Qgc3osIHVuaW9u
+IGFjcGlfb2JqZWN0ICpvYmopCnsKCWludCByZXQgPSAwOwoKCXN3aXRjaCAob2JqLT50eXBlKSB7
+CgljYXNlIEFDUElfVFlQRV9JTlRFR0VSOgoJCXJldCA9IHNucHJpbnRmKGJ1Ziwgc3osICIweCUw
+OGxseFxuIiwgb2JqLT5pbnRlZ2VyLnZhbHVlKTsKCQlicmVhazsKCWNhc2UgQUNQSV9UWVBFX1NU
+UklORzoKCQlyZXQgPSBzbnByaW50ZihidWYsIHN6LCAiJXNcbiIsIG9iai0+c3RyaW5nLnBvaW50
+ZXIpOwoJCWJyZWFrOwoJfQoKCXJldHVybiByZXQ7Cn0KCnN0YXRpYyB2b2lkIGF0a19wYWNrX3By
+aW50KGNoYXIgKmJ1Ziwgc2l6ZV90IHN6LCB1bmlvbiBhY3BpX29iamVjdCAqcGFjaykKewoJaW50
+IHJldDsKCWludCBpOwoKCWZvciAoaSA9IDA7IGkgPCBwYWNrLT5wYWNrYWdlLmNvdW50OyBpKysp
+IHsKCQl1bmlvbiBhY3BpX29iamVjdCAqb2JqID0gJnBhY2stPnBhY2thZ2UuZWxlbWVudHNbaV07
+CgoJCXJldCA9IGF0a19hY3BpX3ByaW50KGJ1Ziwgc3osIG9iaik7CgkJaWYgKHJldCA+PSBzeikK
+CQkJYnJlYWs7CgkJYnVmICs9IHJldDsKCQlzeiAtPSByZXQ7Cgl9Cn0KCnN0YXRpYyBpbnQgYXRr
+X2RlYnVnZnNfZ2dycF9vcGVuKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmaWxl
+KQp7CglzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEgPSBpbm9kZS0+aV9wcml2YXRlOwoJY2hhciAqYnVm
+ID0gTlVMTDsKCXVuaW9uIGFjcGlfb2JqZWN0ICpyZXQ7Cgl1OCBjbHM7CglpbnQgaTsKCglpZiAo
+IWRhdGEtPmVudW1lcmF0ZV9oYW5kbGUpCgkJcmV0dXJuIC1FTk9ERVY7CglpZiAoIWRhdGEtPmRl
+YnVnZnMuaWQpCgkJcmV0dXJuIC1FSU5WQUw7CgoJY2xzID0gKGRhdGEtPmRlYnVnZnMuaWQgJiAw
+eGZmMDAwMDAwKSA+PiAyNDsKCXJldCA9IGF0a19nZ3JwKGRhdGEsIGNscyk7CglpZiAoSVNfRVJS
+KHJldCkpCgkJcmV0dXJuIFBUUl9FUlIocmV0KTsKCglmb3IgKGkgPSAwOyBpIDwgcmV0LT5wYWNr
+YWdlLmNvdW50OyBpKyspIHsKCQl1bmlvbiBhY3BpX29iamVjdCAqcGFjayA9ICZyZXQtPnBhY2th
+Z2UuZWxlbWVudHNbaV07CgkJdW5pb24gYWNwaV9vYmplY3QgKmlkOwoKCQlpZiAocGFjay0+dHlw
+ZSAhPSBBQ1BJX1RZUEVfUEFDS0FHRSkKCQkJY29udGludWU7CgkJaWYgKCFwYWNrLT5wYWNrYWdl
+LmNvdW50KQoJCQljb250aW51ZTsKCQlpZCA9ICZwYWNrLT5wYWNrYWdlLmVsZW1lbnRzWzBdOwoJ
+CWlmIChpZC0+aW50ZWdlci52YWx1ZSA9PSBkYXRhLT5kZWJ1Z2ZzLmlkKSB7CgkJCS8qIFByaW50
+IHRoZSBwYWNrYWdlICovCgkJCWJ1ZiA9IGt6YWxsb2MoNTEyLCBHRlBfS0VSTkVMKTsKCQkJaWYg
+KCFidWYpIHsKCQkJCUFDUElfRlJFRShyZXQpOwoJCQkJcmV0dXJuIC1FTk9NRU07CgkJCX0KCQkJ
+YXRrX3BhY2tfcHJpbnQoYnVmLCA1MTIsIHBhY2spOwoJCQlicmVhazsKCQl9Cgl9CglBQ1BJX0ZS
+RUUocmV0KTsKCglpZiAoIWJ1ZikKCQlyZXR1cm4gLUVJTlZBTDsKCglmaWxlLT5wcml2YXRlX2Rh
+dGEgPSBidWY7CgoJcmV0dXJuIG5vbnNlZWthYmxlX29wZW4oaW5vZGUsIGZpbGUpOwp9CgpzdGF0
+aWMgc3NpemVfdCBhdGtfZGVidWdmc19nZ3JwX3JlYWQoc3RydWN0IGZpbGUgKmZpbGUsIGNoYXIg
+X191c2VyICpidWYsCgkJc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBvcykKewoJY2hhciAqc3RyID0g
+ZmlsZS0+cHJpdmF0ZV9kYXRhOwoJc2l6ZV90IGxlbiA9IHN0cmxlbihzdHIpOwoKCXJldHVybiBz
+aW1wbGVfcmVhZF9mcm9tX2J1ZmZlcihidWYsIGNvdW50LCBwb3MsIHN0ciwgbGVuKTsKfQoKc3Rh
+dGljIGludCBhdGtfZGVidWdmc19nZ3JwX3JlbGVhc2Uoc3RydWN0IGlub2RlICppbm9kZSwgc3Ry
+dWN0IGZpbGUgKmZpbGUpCnsKCWtmcmVlKGZpbGUtPnByaXZhdGVfZGF0YSk7CglyZXR1cm4gMDsK
+fQoKc3RhdGljIGNvbnN0IHN0cnVjdCBmaWxlX29wZXJhdGlvbnMgYXRrX2RlYnVnZnNfZ2dycF9m
+b3BzID0gewoJLnJlYWQJCT0gYXRrX2RlYnVnZnNfZ2dycF9yZWFkLAoJLm9wZW4JCT0gYXRrX2Rl
+YnVnZnNfZ2dycF9vcGVuLAoJLnJlbGVhc2UJPSBhdGtfZGVidWdmc19nZ3JwX3JlbGVhc2UsCgku
+bGxzZWVrCQk9IG5vX2xsc2VlaywKfTsKCnN0YXRpYyB2b2lkIGF0a19kZWJ1Z2ZzX2luaXQoc3Ry
+dWN0IGF0a19kYXRhICpkYXRhKQp7CglzdHJ1Y3QgZGVudHJ5ICpkOwoJc3RydWN0IGRlbnRyeSAq
+ZjsKCglkYXRhLT5kZWJ1Z2ZzLmlkID0gMDsKCglkID0gZGVidWdmc19jcmVhdGVfZGlyKCJhc3Vz
+X2F0azAxMTAiLCBOVUxMKTsKCWlmICghZCB8fCBJU19FUlIoZCkpCgkJcmV0dXJuOwoKCWYgPSBk
+ZWJ1Z2ZzX2NyZWF0ZV94MzIoImlkIiwgU19JUlVTUiB8IFNfSVdVU1IsIGQsICZkYXRhLT5kZWJ1
+Z2ZzLmlkKTsKCWlmICghZiB8fCBJU19FUlIoZikpCgkJZ290byBjbGVhbnVwOwoKCWYgPSBkZWJ1
+Z2ZzX2NyZWF0ZV9maWxlKCJnaXRtIiwgU19JUlVTUiwgZCwgZGF0YSwKCQkJJmF0a19kZWJ1Z2Zz
+X2dpdG0pOwoJaWYgKCFmIHx8IElTX0VSUihmKSkKCQlnb3RvIGNsZWFudXA7CgoJZiA9IGRlYnVn
+ZnNfY3JlYXRlX2ZpbGUoImdncnAiLCBTX0lSVVNSLCBkLCBkYXRhLAoJCQkmYXRrX2RlYnVnZnNf
+Z2dycF9mb3BzKTsKCWlmICghZiB8fCBJU19FUlIoZikpCgkJZ290byBjbGVhbnVwOwoKCWRhdGEt
+PmRlYnVnZnMucm9vdCA9IGQ7CgoJcmV0dXJuOwpjbGVhbnVwOgoJZGVidWdmc19yZW1vdmVfcmVj
+dXJzaXZlKGQpOwp9CgpzdGF0aWMgdm9pZCBhdGtfZGVidWdmc19jbGVhbnVwKHN0cnVjdCBhdGtf
+ZGF0YSAqZGF0YSkKewoJZGVidWdmc19yZW1vdmVfcmVjdXJzaXZlKGRhdGEtPmRlYnVnZnMucm9v
+dCk7Cn0KCiNlbHNlIC8qIENPTkZJR19ERUJVR19GUyAqLwoKc3RhdGljIHZvaWQgYXRrX2RlYnVn
+ZnNfaW5pdChzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEpCnsKfQoKc3RhdGljIHZvaWQgYXRrX2RlYnVn
+ZnNfY2xlYW51cChzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEpCnsKfQojZW5kaWYKCnN0YXRpYyBpbnQg
+YXRrX2FkZF9zZW5zb3Ioc3RydWN0IGF0a19kYXRhICpkYXRhLCB1bmlvbiBhY3BpX29iamVjdCAq
+b2JqKQp7CglzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmZGF0YS0+YWNwaV9kZXYtPmRldjsKCXVuaW9u
+IGFjcGlfb2JqZWN0ICpmbGFnczsKCXVuaW9uIGFjcGlfb2JqZWN0ICpuYW1lOwoJdW5pb24gYWNw
+aV9vYmplY3QgKmxpbWl0MTsKCXVuaW9uIGFjcGlfb2JqZWN0ICpsaW1pdDI7Cgl1bmlvbiBhY3Bp
+X29iamVjdCAqZW5hYmxlOwoJc3RydWN0IGF0a19zZW5zb3JfZGF0YSAqc2Vuc29yOwoJY2hhciBj
+b25zdCAqYmFzZV9uYW1lOwoJY2hhciBjb25zdCAqbGltaXQxX25hbWU7CgljaGFyIGNvbnN0ICps
+aW1pdDJfbmFtZTsKCXU2NCB0eXBlOwoJaW50IGVycjsKCWludCAqbnVtOwoJaW50IHN0YXJ0OwoK
+CWlmIChvYmotPnR5cGUgIT0gQUNQSV9UWVBFX1BBQ0tBR0UpIHsKCQkvKiB3ZnQgaXMgdGhpcz8g
+Ki8KCQlkZXZfd2FybihkZXYsICJVbmtub3duIHR5cGUgZm9yIEFDUEkgb2JqZWN0OiAoJWQpXG4i
+LAoJCQkJb2JqLT50eXBlKTsKCQlyZXR1cm4gLUVJTlZBTDsKCX0KCgllcnIgPSB2YWxpZGF0ZV9o
+d21vbl9wYWNrKGRhdGEsIG9iaik7CglpZiAoZXJyKQoJCXJldHVybiBlcnI7CgoJLyogT2ssIHdl
+IGhhdmUgYSB2YWxpZCBod21vbiBwYWNrYWdlICovCgl0eXBlID0gYXRrX2dldF9wYWNrX21lbWJl
+cihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfRkxBR1MpLT5pbnRlZ2VyLnZhbHVlCgkgICAgICAgJiBB
+VEtfVFlQRV9NQVNLOwoKCXN3aXRjaCAodHlwZSkgewoJY2FzZSBIV01PTl9UWVBFX1ZPTFQ6CgkJ
+YmFzZV9uYW1lID0gImluIjsKCQlsaW1pdDFfbmFtZSA9ICJtaW4iOwoJCWxpbWl0Ml9uYW1lID0g
+Im1heCI7CgkJbnVtID0gJmRhdGEtPnZvbHRhZ2VfY291bnQ7CgkJc3RhcnQgPSAwOwoJCWJyZWFr
+OwoJY2FzZSBIV01PTl9UWVBFX1RFTVA6CgkJYmFzZV9uYW1lID0gInRlbXAiOwoJCWxpbWl0MV9u
+YW1lID0gIm1heCI7CgkJbGltaXQyX25hbWUgPSAiY3JpdCI7CgkJbnVtID0gJmRhdGEtPnRlbXBl
+cmF0dXJlX2NvdW50OwoJCXN0YXJ0ID0gMTsKCQlicmVhazsKCWNhc2UgSFdNT05fVFlQRV9GQU46
+CgkJYmFzZV9uYW1lID0gImZhbiI7CgkJbGltaXQxX25hbWUgPSAibWluIjsKCQlsaW1pdDJfbmFt
+ZSA9ICJtYXgiOwoJCW51bSA9ICZkYXRhLT5mYW5fY291bnQ7CgkJc3RhcnQgPSAxOwoJCWJyZWFr
+OwoJZGVmYXVsdDoKCQlkZXZfd2FybihkZXYsICJVbmtub3duIHNlbnNvciB0eXBlOiAlI2xseFxu
+IiwgdHlwZSk7CgkJcmV0dXJuIC1FSU5WQUw7Cgl9CgoJZW5hYmxlID0gYXRrX2dldF9wYWNrX21l
+bWJlcihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfRU5BQkxFKTsKCWlmICghZW5hYmxlLT5pbnRlZ2Vy
+LnZhbHVlKQoJCS8qIHNlbnNvciBpcyBkaXNhYmxlZCAqLwoJCXJldHVybiAwOwoKCWZsYWdzID0g
+YXRrX2dldF9wYWNrX21lbWJlcihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfRkxBR1MpOwoJbmFtZSA9
+IGF0a19nZXRfcGFja19tZW1iZXIoZGF0YSwgb2JqLCBIV01PTl9QQUNLX05BTUUpOwoJbGltaXQx
+ID0gYXRrX2dldF9wYWNrX21lbWJlcihkYXRhLCBvYmosIEhXTU9OX1BBQ0tfTElNSVQxKTsKCWxp
+bWl0MiA9IGF0a19nZXRfcGFja19tZW1iZXIoZGF0YSwgb2JqLCBIV01PTl9QQUNLX0xJTUlUMik7
+CgoJc2Vuc29yID0ga3phbGxvYyhzaXplb2YoKnNlbnNvciksIEdGUF9LRVJORUwpOwoJaWYgKCFz
+ZW5zb3IpCgkJcmV0dXJuIC1FTk9NRU07CgoJc2Vuc29yLT5hY3BpX25hbWUgPSBrc3RyZHVwKG5h
+bWUtPnN0cmluZy5wb2ludGVyLCBHRlBfS0VSTkVMKTsKCWlmICghc2Vuc29yLT5hY3BpX25hbWUp
+IHsKCQllcnIgPSAtRU5PTUVNOwoJCWdvdG8gb3V0OwoJfQoKCUlOSVRfTElTVF9IRUFEKCZzZW5z
+b3ItPmxpc3QpOwoJc2Vuc29yLT50eXBlID0gdHlwZTsKCXNlbnNvci0+ZGF0YSA9IGRhdGE7Cglz
+ZW5zb3ItPmlkID0gZmxhZ3MtPmludGVnZXIudmFsdWU7CglzZW5zb3ItPmxpbWl0MSA9IGxpbWl0
+MS0+aW50ZWdlci52YWx1ZTsKCWlmIChkYXRhLT5vbGRfaW50ZXJmYWNlKQoJCXNlbnNvci0+bGlt
+aXQyID0gbGltaXQyLT5pbnRlZ2VyLnZhbHVlOwoJZWxzZQoJCS8qIFRoZSB1cHBlciBsaW1pdCBp
+cyBleHByZXNzZWQgYXMgZGVsdGEgZnJvbSBsb3dlciBsaW1pdCAqLwoJCXNlbnNvci0+bGltaXQy
+ID0gc2Vuc29yLT5saW1pdDEgKyBsaW1pdDItPmludGVnZXIudmFsdWU7CgoJc25wcmludGYoc2Vu
+c29yLT5pbnB1dF9hdHRyX25hbWUsIEFUVFJfTkFNRV9TSVpFLAoJCQkiJXMlZF9pbnB1dCIsIGJh
+c2VfbmFtZSwgc3RhcnQgKyAqbnVtKTsKCWF0a19pbml0X2F0dHJpYnV0ZSgmc2Vuc29yLT5pbnB1
+dF9hdHRyLAoJCQlzZW5zb3ItPmlucHV0X2F0dHJfbmFtZSwKCQkJYXRrX2lucHV0X3Nob3cpOwoK
+CXNucHJpbnRmKHNlbnNvci0+bGFiZWxfYXR0cl9uYW1lLCBBVFRSX05BTUVfU0laRSwKCQkJIiVz
+JWRfbGFiZWwiLCBiYXNlX25hbWUsIHN0YXJ0ICsgKm51bSk7CglhdGtfaW5pdF9hdHRyaWJ1dGUo
+JnNlbnNvci0+bGFiZWxfYXR0ciwKCQkJc2Vuc29yLT5sYWJlbF9hdHRyX25hbWUsCgkJCWF0a19s
+YWJlbF9zaG93KTsKCglzbnByaW50ZihzZW5zb3ItPmxpbWl0MV9hdHRyX25hbWUsIEFUVFJfTkFN
+RV9TSVpFLAoJCQkiJXMlZF8lcyIsIGJhc2VfbmFtZSwgc3RhcnQgKyAqbnVtLCBsaW1pdDFfbmFt
+ZSk7CglhdGtfaW5pdF9hdHRyaWJ1dGUoJnNlbnNvci0+bGltaXQxX2F0dHIsCgkJCXNlbnNvci0+
+bGltaXQxX2F0dHJfbmFtZSwKCQkJYXRrX2xpbWl0MV9zaG93KTsKCglzbnByaW50ZihzZW5zb3It
+PmxpbWl0Ml9hdHRyX25hbWUsIEFUVFJfTkFNRV9TSVpFLAoJCQkiJXMlZF8lcyIsIGJhc2VfbmFt
+ZSwgc3RhcnQgKyAqbnVtLCBsaW1pdDJfbmFtZSk7CglhdGtfaW5pdF9hdHRyaWJ1dGUoJnNlbnNv
+ci0+bGltaXQyX2F0dHIsCgkJCXNlbnNvci0+bGltaXQyX2F0dHJfbmFtZSwKCQkJYXRrX2xpbWl0
+Ml9zaG93KTsKCglsaXN0X2FkZCgmc2Vuc29yLT5saXN0LCAmZGF0YS0+c2Vuc29yX2xpc3QpOwoJ
+KCpudW0pKys7CgoJcmV0dXJuIDE7Cm91dDoKCWtmcmVlKHNlbnNvci0+YWNwaV9uYW1lKTsKCWtm
+cmVlKHNlbnNvcik7CglyZXR1cm4gZXJyOwp9CgpzdGF0aWMgaW50IGF0a19lbnVtZXJhdGVfb2xk
+X2h3bW9uKHN0cnVjdCBhdGtfZGF0YSAqZGF0YSkKewoJc3RydWN0IGRldmljZSAqZGV2ID0gJmRh
+dGEtPmFjcGlfZGV2LT5kZXY7CglzdHJ1Y3QgYWNwaV9idWZmZXIgYnVmOwoJdW5pb24gYWNwaV9v
+YmplY3QgKnBhY2s7CglhY3BpX3N0YXR1cyBzdGF0dXM7CglpbnQgaSwgcmV0OwoJaW50IGNvdW50
+ID0gMDsKCgkvKiBWb2x0YWdlcyAqLwoJYnVmLmxlbmd0aCA9IEFDUElfQUxMT0NBVEVfQlVGRkVS
+OwoJc3RhdHVzID0gYWNwaV9ldmFsdWF0ZV9vYmplY3RfdHlwZWQoZGF0YS0+YXRrX2hhbmRsZSwK
+CQkJTUVUSE9EX09MRF9FTlVNX1ZMVCwgTlVMTCwgJmJ1ZiwgQUNQSV9UWVBFX1BBQ0tBR0UpOwoJ
+aWYgKHN0YXR1cyAhPSBBRV9PSykgewoJCWRldl93YXJuKGRldiwgTUVUSE9EX09MRF9FTlVNX1ZM
+VCAiOiBBQ1BJIGV4Y2VwdGlvbjogJXNcbiIsCgkJCQlhY3BpX2Zvcm1hdF9leGNlcHRpb24oc3Rh
+dHVzKSk7CgoJCXJldHVybiAtRU5PREVWOwoJfQoKCXBhY2sgPSBidWYucG9pbnRlcjsKCWZvciAo
+aSA9IDE7IGkgPCBwYWNrLT5wYWNrYWdlLmNvdW50OyBpKyspIHsKCQl1bmlvbiBhY3BpX29iamVj
+dCAqb2JqID0gJnBhY2stPnBhY2thZ2UuZWxlbWVudHNbaV07CgoJCXJldCA9IGF0a19hZGRfc2Vu
+c29yKGRhdGEsIG9iaik7CgkJaWYgKHJldCA+IDApCgkJCWNvdW50Kys7Cgl9CglBQ1BJX0ZSRUUo
+YnVmLnBvaW50ZXIpOwoKCS8qIFRlbXBlcmF0dXJlcyAqLwoJYnVmLmxlbmd0aCA9IEFDUElfQUxM
+T0NBVEVfQlVGRkVSOwoJc3RhdHVzID0gYWNwaV9ldmFsdWF0ZV9vYmplY3RfdHlwZWQoZGF0YS0+
+YXRrX2hhbmRsZSwKCQkJTUVUSE9EX09MRF9FTlVNX1RNUCwgTlVMTCwgJmJ1ZiwgQUNQSV9UWVBF
+X1BBQ0tBR0UpOwoJaWYgKHN0YXR1cyAhPSBBRV9PSykgewoJCWRldl93YXJuKGRldiwgTUVUSE9E
+X09MRF9FTlVNX1RNUCAiOiBBQ1BJIGV4Y2VwdGlvbjogJXNcbiIsCgkJCQlhY3BpX2Zvcm1hdF9l
+eGNlcHRpb24oc3RhdHVzKSk7CgoJCXJldCA9IC1FTk9ERVY7CgkJZ290byBjbGVhbnVwOwoJfQoK
+CXBhY2sgPSBidWYucG9pbnRlcjsKCWZvciAoaSA9IDE7IGkgPCBwYWNrLT5wYWNrYWdlLmNvdW50
+OyBpKyspIHsKCQl1bmlvbiBhY3BpX29iamVjdCAqb2JqID0gJnBhY2stPnBhY2thZ2UuZWxlbWVu
+dHNbaV07CgoJCXJldCA9IGF0a19hZGRfc2Vuc29yKGRhdGEsIG9iaik7CgkJaWYgKHJldCA+IDAp
+CgkJCWNvdW50Kys7Cgl9CglBQ1BJX0ZSRUUoYnVmLnBvaW50ZXIpOwoKCS8qIEZhbnMgKi8KCWJ1
+Zi5sZW5ndGggPSBBQ1BJX0FMTE9DQVRFX0JVRkZFUjsKCXN0YXR1cyA9IGFjcGlfZXZhbHVhdGVf
+b2JqZWN0X3R5cGVkKGRhdGEtPmF0a19oYW5kbGUsCgkJCU1FVEhPRF9PTERfRU5VTV9GQU4sIE5V
+TEwsICZidWYsIEFDUElfVFlQRV9QQUNLQUdFKTsKCWlmIChzdGF0dXMgIT0gQUVfT0spIHsKCQlk
+ZXZfd2FybihkZXYsIE1FVEhPRF9PTERfRU5VTV9GQU4gIjogQUNQSSBleGNlcHRpb246ICVzXG4i
+LAoJCQkJYWNwaV9mb3JtYXRfZXhjZXB0aW9uKHN0YXR1cykpOwoKCQlyZXQgPSAtRU5PREVWOwoJ
+CWdvdG8gY2xlYW51cDsKCX0KCglwYWNrID0gYnVmLnBvaW50ZXI7Cglmb3IgKGkgPSAxOyBpIDwg
+cGFjay0+cGFja2FnZS5jb3VudDsgaSsrKSB7CgkJdW5pb24gYWNwaV9vYmplY3QgKm9iaiA9ICZw
+YWNrLT5wYWNrYWdlLmVsZW1lbnRzW2ldOwoKCQlyZXQgPSBhdGtfYWRkX3NlbnNvcihkYXRhLCBv
+YmopOwoJCWlmIChyZXQgPiAwKQoJCQljb3VudCsrOwoJfQoJQUNQSV9GUkVFKGJ1Zi5wb2ludGVy
+KTsKCglyZXR1cm4gY291bnQ7CmNsZWFudXA6CglhdGtfZnJlZV9zZW5zb3JzKGRhdGEpOwoJcmV0
+dXJuIHJldDsKfQoKc3RhdGljIGludCBhdGtfZWNfcHJlc2VudChzdHJ1Y3QgYXRrX2RhdGEgKmRh
+dGEpCnsKCXN0cnVjdCBkZXZpY2UgKmRldiA9ICZkYXRhLT5hY3BpX2Rldi0+ZGV2OwoJdW5pb24g
+YWNwaV9vYmplY3QgKnBhY2s7Cgl1bmlvbiBhY3BpX29iamVjdCAqZWM7CglpbnQgcmV0OwoJaW50
+IGk7CgoJcGFjayA9IGF0a19nZ3JwKGRhdGEsIEFUS19NVVhfTUdNVCk7CglpZiAoSVNfRVJSKHBh
+Y2spKSB7CgkJaWYgKFBUUl9FUlIocGFjaykgPT0gLUVOT0VOVCkgewoJCQkvKiBUaGUgTUdNVCBj
+bGFzcyBkb2VzIG5vdCBleGlzdHMgLSB0aGF0J3Mgb2sgKi8KCQkJZGV2X2RiZyhkZXYsICJDbGFz
+cyAlI2xseCBub3QgZm91bmRcbiIsIEFUS19NVVhfTUdNVCk7CgkJCXJldHVybiAwOwoJCX0KCQly
+ZXR1cm4gUFRSX0VSUihwYWNrKTsKCX0KCgkvKiBTZWFyY2ggdGhlIEVDICovCgllYyA9IE5VTEw7
+Cglmb3IgKGkgPSAwOyBpIDwgcGFjay0+cGFja2FnZS5jb3VudDsgaSsrKSB7CgkJdW5pb24gYWNw
+aV9vYmplY3QgKm9iaiA9ICZwYWNrLT5wYWNrYWdlLmVsZW1lbnRzW2ldOwoJCXVuaW9uIGFjcGlf
+b2JqZWN0ICppZDsKCgkJaWYgKG9iai0+dHlwZSAhPSBBQ1BJX1RZUEVfUEFDS0FHRSkKCQkJY29u
+dGludWU7CgoJCWlkID0gJm9iai0+cGFja2FnZS5lbGVtZW50c1swXTsKCQlpZiAoaWQtPnR5cGUg
+IT0gQUNQSV9UWVBFX0lOVEVHRVIpCgkJCWNvbnRpbnVlOwoKCQlpZiAoaWQtPmludGVnZXIudmFs
+dWUgPT0gQVRLX0VDX0lEKSB7CgkJCWVjID0gb2JqOwoJCQlicmVhazsKCQl9Cgl9CgoJcmV0ID0g
+KGVjICE9IE5VTEwpOwoJaWYgKCFyZXQpCgkJLyogVGhlIHN5c3RlbSBoYXMgbm8gRUMgKi8KCQlk
+ZXZfZGJnKGRldiwgIkVDIG5vdCBmb3VuZFxuIik7CgoJQUNQSV9GUkVFKHBhY2spOwoJcmV0dXJu
+IHJldDsKfQoKc3RhdGljIGludCBhdGtfZWNfZW5hYmxlZChzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEp
+CnsKCXN0cnVjdCBkZXZpY2UgKmRldiA9ICZkYXRhLT5hY3BpX2Rldi0+ZGV2OwoJdW5pb24gYWNw
+aV9vYmplY3QgKm9iajsKCXN0cnVjdCBhdGtfYWNwaV9yZXRfYnVmZmVyICpidWY7CglpbnQgZXJy
+OwoKCW9iaiA9IGF0a19naXRtKGRhdGEsIEFUS19FQ19JRCk7CglpZiAoSVNfRVJSKG9iaikpIHsK
+CQlkZXZfZXJyKGRldiwgIlVuYWJsZSB0byBxdWVyeSBFQyBzdGF0dXNcbiIpOwoJCXJldHVybiBQ
+VFJfRVJSKG9iaik7Cgl9CglidWYgPSAoc3RydWN0IGF0a19hY3BpX3JldF9idWZmZXIgKilvYmot
+PmJ1ZmZlci5wb2ludGVyOwoKCWlmIChidWYtPmZsYWdzID09IDApIHsKCQlkZXZfZXJyKGRldiwg
+IlVuYWJsZSB0byBxdWVyeSBFQyBzdGF0dXNcbiIpOwoJCWVyciA9IC1FSU87Cgl9IGVsc2UgewoJ
+CWVyciA9IChidWYtPnZhbHVlICE9IDApOwoJCWRldl9kYmcoZGV2LCAiRUMgaXMgJXNhYmxlZFxu
+IiwKCQkJCWVyciA/ICJlbiIgOiAiZGlzIik7Cgl9CgoJQUNQSV9GUkVFKG9iaik7CglyZXR1cm4g
+ZXJyOwp9CgpzdGF0aWMgaW50IGF0a19lY19jdGwoc3RydWN0IGF0a19kYXRhICpkYXRhLCBpbnQg
+ZW5hYmxlKQp7CglzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmZGF0YS0+YWNwaV9kZXYtPmRldjsKCXVu
+aW9uIGFjcGlfb2JqZWN0ICpvYmo7CglzdHJ1Y3QgYXRrX2FjcGlfaW5wdXRfYnVmIHNpdG07Cglz
+dHJ1Y3QgYXRrX2FjcGlfcmV0X2J1ZmZlciAqZWNfcmV0OwoJaW50IGVyciA9IDA7CgoJc2l0bS5p
+ZCA9IEFUS19FQ19JRDsKCXNpdG0ucGFyYW0xID0gZW5hYmxlOwoJc2l0bS5wYXJhbTIgPSAwOwoK
+CW9iaiA9IGF0a19zaXRtKGRhdGEsICZzaXRtKTsKCWlmIChJU19FUlIob2JqKSkgewoJCWRldl9l
+cnIoZGV2LCAiRmFpbGVkIHRvICVzYWJsZSB0aGUgRUNcbiIsCgkJCQllbmFibGUgPyAiZW4iIDog
+ImRpcyIpOwoJCXJldHVybiBQVFJfRVJSKG9iaik7Cgl9CgllY19yZXQgPSAoc3RydWN0IGF0a19h
+Y3BpX3JldF9idWZmZXIgKilvYmotPmJ1ZmZlci5wb2ludGVyOwoJaWYgKGVjX3JldC0+ZmxhZ3Mg
+PT0gMCkgewoJCWRldl9lcnIoZGV2LCAiRmFpbGVkIHRvICVzYWJsZSB0aGUgRUNcbiIsCgkJCQll
+bmFibGUgPyAiZW4iIDogImRpcyIpOwoJCWVyciA9IC1FSU87Cgl9IGVsc2UgewoJCWRldl9pbmZv
+KGRldiwgIkVDICVzYWJsZWRcbiIsCgkJCQllbmFibGUgPyAiZW4iIDogImRpcyIpOwoJfQoKCUFD
+UElfRlJFRShvYmopOwoJcmV0dXJuIGVycjsKfQoKc3RhdGljIGludCBhdGtfZW51bWVyYXRlX25l
+d19od21vbihzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEpCnsKCXN0cnVjdCBkZXZpY2UgKmRldiA9ICZk
+YXRhLT5hY3BpX2Rldi0+ZGV2OwoJdW5pb24gYWNwaV9vYmplY3QgKnBhY2s7CglpbnQgZXJyOwoJ
+aW50IGk7CgoJZXJyID0gYXRrX2VjX3ByZXNlbnQoZGF0YSk7CglpZiAoZXJyIDwgMCkKCQlyZXR1
+cm4gZXJyOwoJaWYgKGVycikgewoJCWVyciA9IGF0a19lY19lbmFibGVkKGRhdGEpOwoJCWlmIChl
+cnIgPCAwKQoJCQlyZXR1cm4gZXJyOwoJCS8qIElmIHRoZSBFQyB3YXMgZGlzYWJsZWQgd2Ugd2ls
+bCBkaXNhYmxlIGl0IGFnYWluIG9uIHVubG9hZCAqLwoJCWRhdGEtPmRpc2FibGVfZWMgPSBlcnI7
+CgoJCWVyciA9IGF0a19lY19jdGwoZGF0YSwgMSk7CgkJaWYgKGVycikgewoJCQlkYXRhLT5kaXNh
+YmxlX2VjID0gZmFsc2U7CgkJCXJldHVybiBlcnI7CgkJfQoJfQoKCWRldl9kYmcoZGV2LCAiRW51
+bWVyYXRpbmcgaHdtb24gc2Vuc29yc1xuIik7CgoJcGFjayA9IGF0a19nZ3JwKGRhdGEsIEFUS19N
+VVhfSFdNT04pOwoJaWYgKElTX0VSUihwYWNrKSkKCQlyZXR1cm4gUFRSX0VSUihwYWNrKTsKCglm
+b3IgKGkgPSAwOyBpIDwgcGFjay0+cGFja2FnZS5jb3VudDsgaSsrKSB7CgkJdW5pb24gYWNwaV9v
+YmplY3QgKm9iaiA9ICZwYWNrLT5wYWNrYWdlLmVsZW1lbnRzW2ldOwoKCQlhdGtfYWRkX3NlbnNv
+cihkYXRhLCBvYmopOwoJfQoKCWVyciA9IGRhdGEtPnZvbHRhZ2VfY291bnQgKyBkYXRhLT50ZW1w
+ZXJhdHVyZV9jb3VudCArIGRhdGEtPmZhbl9jb3VudDsKCglBQ1BJX0ZSRUUocGFjayk7CglyZXR1
+cm4gZXJyOwp9CgpzdGF0aWMgaW50IGF0a19jcmVhdGVfZmlsZXMoc3RydWN0IGF0a19kYXRhICpk
+YXRhKQp7CglzdHJ1Y3QgYXRrX3NlbnNvcl9kYXRhICpzOwoJaW50IGVycjsKCglsaXN0X2Zvcl9l
+YWNoX2VudHJ5KHMsICZkYXRhLT5zZW5zb3JfbGlzdCwgbGlzdCkgewoJCXN5c2ZzX2F0dHJfaW5p
+dCgmcy0+aW5wdXRfYXR0ci5hdHRyKTsKCQllcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGF0YS0+
+aHdtb25fZGV2LCAmcy0+aW5wdXRfYXR0cik7CgkJaWYgKGVycikKCQkJcmV0dXJuIGVycjsKCQlz
+eXNmc19hdHRyX2luaXQoJnMtPmxhYmVsX2F0dHIuYXR0cik7CgkJZXJyID0gZGV2aWNlX2NyZWF0
+ZV9maWxlKGRhdGEtPmh3bW9uX2RldiwgJnMtPmxhYmVsX2F0dHIpOwoJCWlmIChlcnIpCgkJCXJl
+dHVybiBlcnI7CgkJc3lzZnNfYXR0cl9pbml0KCZzLT5saW1pdDFfYXR0ci5hdHRyKTsKCQllcnIg
+PSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGF0YS0+aHdtb25fZGV2LCAmcy0+bGltaXQxX2F0dHIpOwoJ
+CWlmIChlcnIpCgkJCXJldHVybiBlcnI7CgkJc3lzZnNfYXR0cl9pbml0KCZzLT5saW1pdDJfYXR0
+ci5hdHRyKTsKCQllcnIgPSBkZXZpY2VfY3JlYXRlX2ZpbGUoZGF0YS0+aHdtb25fZGV2LCAmcy0+
+bGltaXQyX2F0dHIpOwoJCWlmIChlcnIpCgkJCXJldHVybiBlcnI7Cgl9CgoJZXJyID0gZGV2aWNl
+X2NyZWF0ZV9maWxlKGRhdGEtPmh3bW9uX2RldiwgJmF0a19uYW1lX2F0dHIpOwoKCXJldHVybiBl
+cnI7Cn0KCnN0YXRpYyB2b2lkIGF0a19yZW1vdmVfZmlsZXMoc3RydWN0IGF0a19kYXRhICpkYXRh
+KQp7CglzdHJ1Y3QgYXRrX3NlbnNvcl9kYXRhICpzOwoKCWxpc3RfZm9yX2VhY2hfZW50cnkocywg
+JmRhdGEtPnNlbnNvcl9saXN0LCBsaXN0KSB7CgkJZGV2aWNlX3JlbW92ZV9maWxlKGRhdGEtPmh3
+bW9uX2RldiwgJnMtPmlucHV0X2F0dHIpOwoJCWRldmljZV9yZW1vdmVfZmlsZShkYXRhLT5od21v
+bl9kZXYsICZzLT5sYWJlbF9hdHRyKTsKCQlkZXZpY2VfcmVtb3ZlX2ZpbGUoZGF0YS0+aHdtb25f
+ZGV2LCAmcy0+bGltaXQxX2F0dHIpOwoJCWRldmljZV9yZW1vdmVfZmlsZShkYXRhLT5od21vbl9k
+ZXYsICZzLT5saW1pdDJfYXR0cik7Cgl9CglkZXZpY2VfcmVtb3ZlX2ZpbGUoZGF0YS0+aHdtb25f
+ZGV2LCAmYXRrX25hbWVfYXR0cik7Cn0KCnN0YXRpYyB2b2lkIGF0a19mcmVlX3NlbnNvcnMoc3Ry
+dWN0IGF0a19kYXRhICpkYXRhKQp7CglzdHJ1Y3QgbGlzdF9oZWFkICpoZWFkID0gJmRhdGEtPnNl
+bnNvcl9saXN0OwoJc3RydWN0IGF0a19zZW5zb3JfZGF0YSAqcywgKnRtcDsKCglsaXN0X2Zvcl9l
+YWNoX2VudHJ5X3NhZmUocywgdG1wLCBoZWFkLCBsaXN0KSB7CgkJa2ZyZWUocy0+YWNwaV9uYW1l
+KTsKCQlrZnJlZShzKTsKCX0KfQoKc3RhdGljIGludCBhdGtfcmVnaXN0ZXJfaHdtb24oc3RydWN0
+IGF0a19kYXRhICpkYXRhKQp7CglzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmZGF0YS0+YWNwaV9kZXYt
+PmRldjsKCWludCBlcnI7CgoJZGV2X2RiZyhkZXYsICJyZWdpc3RlcmluZyBod21vbiBkZXZpY2Vc
+biIpOwoJZGF0YS0+aHdtb25fZGV2ID0gaHdtb25fZGV2aWNlX3JlZ2lzdGVyKGRldik7CglpZiAo
+SVNfRVJSKGRhdGEtPmh3bW9uX2RldikpCgkJcmV0dXJuIFBUUl9FUlIoZGF0YS0+aHdtb25fZGV2
+KTsKCglkZXZfZGJnKGRldiwgInBvcHVsYXRpbmcgc3lzZnMgZGlyZWN0b3J5XG4iKTsKCWVyciA9
+IGF0a19jcmVhdGVfZmlsZXMoZGF0YSk7CglpZiAoZXJyKQoJCWdvdG8gcmVtb3ZlOwoKCXJldHVy
+biAwOwpyZW1vdmU6CgkvKiBDbGVhbnVwIHRoZSByZWdpc3RlcmVkIGZpbGVzICovCglhdGtfcmVt
+b3ZlX2ZpbGVzKGRhdGEpOwoJaHdtb25fZGV2aWNlX3VucmVnaXN0ZXIoZGF0YS0+aHdtb25fZGV2
+KTsKCXJldHVybiBlcnI7Cn0KCnN0YXRpYyBpbnQgYXRrX3Byb2JlX2lmKHN0cnVjdCBhdGtfZGF0
+YSAqZGF0YSkKewoJc3RydWN0IGRldmljZSAqZGV2ID0gJmRhdGEtPmFjcGlfZGV2LT5kZXY7Cglh
+Y3BpX2hhbmRsZSByZXQ7CglhY3BpX3N0YXR1cyBzdGF0dXM7CglpbnQgZXJyID0gMDsKCgkvKiBS
+VE1QOiByZWFkIHRlbXBlcmF0dXJlICovCglzdGF0dXMgPSBhY3BpX2dldF9oYW5kbGUoZGF0YS0+
+YXRrX2hhbmRsZSwgTUVUSE9EX09MRF9SRUFEX1RNUCwgJnJldCk7CglpZiAoQUNQSV9TVUNDRVNT
+KHN0YXR1cykpCgkJZGF0YS0+cnRtcF9oYW5kbGUgPSByZXQ7CgllbHNlCgkJZGV2X2RiZyhkZXYs
+ICJtZXRob2QgIiBNRVRIT0RfT0xEX1JFQURfVE1QICIgbm90IGZvdW5kOiAlc1xuIiwKCQkJCWFj
+cGlfZm9ybWF0X2V4Y2VwdGlvbihzdGF0dXMpKTsKCgkvKiBSVkxUOiByZWFkIHZvbHRhZ2UgKi8K
+CXN0YXR1cyA9IGFjcGlfZ2V0X2hhbmRsZShkYXRhLT5hdGtfaGFuZGxlLCBNRVRIT0RfT0xEX1JF
+QURfVkxULCAmcmV0KTsKCWlmIChBQ1BJX1NVQ0NFU1Moc3RhdHVzKSkKCQlkYXRhLT5ydmx0X2hh
+bmRsZSA9IHJldDsKCWVsc2UKCQlkZXZfZGJnKGRldiwgIm1ldGhvZCAiIE1FVEhPRF9PTERfUkVB
+RF9WTFQgIiBub3QgZm91bmQ6ICVzXG4iLAoJCQkJYWNwaV9mb3JtYXRfZXhjZXB0aW9uKHN0YXR1
+cykpOwoKCS8qIFJGQU46IHJlYWQgZmFuIHN0YXR1cyAqLwoJc3RhdHVzID0gYWNwaV9nZXRfaGFu
+ZGxlKGRhdGEtPmF0a19oYW5kbGUsIE1FVEhPRF9PTERfUkVBRF9GQU4sICZyZXQpOwoJaWYgKEFD
+UElfU1VDQ0VTUyhzdGF0dXMpKQoJCWRhdGEtPnJmYW5faGFuZGxlID0gcmV0OwoJZWxzZQoJCWRl
+dl9kYmcoZGV2LCAibWV0aG9kICIgTUVUSE9EX09MRF9SRUFEX0ZBTiAiIG5vdCBmb3VuZDogJXNc
+biIsCgkJCQlhY3BpX2Zvcm1hdF9leGNlcHRpb24oc3RhdHVzKSk7CgoJLyogRW51bWVyYXRpb24g
+Ki8KCXN0YXR1cyA9IGFjcGlfZ2V0X2hhbmRsZShkYXRhLT5hdGtfaGFuZGxlLCBNRVRIT0RfRU5V
+TUVSQVRFLCAmcmV0KTsKCWlmIChBQ1BJX1NVQ0NFU1Moc3RhdHVzKSkKCQlkYXRhLT5lbnVtZXJh
+dGVfaGFuZGxlID0gcmV0OwoJZWxzZQoJCWRldl9kYmcoZGV2LCAibWV0aG9kICIgTUVUSE9EX0VO
+VU1FUkFURSAiIG5vdCBmb3VuZDogJXNcbiIsCgkJCQlhY3BpX2Zvcm1hdF9leGNlcHRpb24oc3Rh
+dHVzKSk7CgoJLyogRGUtbXVsdGlwbGV4ZXIgKHJlYWQpICovCglzdGF0dXMgPSBhY3BpX2dldF9o
+YW5kbGUoZGF0YS0+YXRrX2hhbmRsZSwgTUVUSE9EX1JFQUQsICZyZXQpOwoJaWYgKEFDUElfU1VD
+Q0VTUyhzdGF0dXMpKQoJCWRhdGEtPnJlYWRfaGFuZGxlID0gcmV0OwoJZWxzZQoJCWRldl9kYmco
+ZGV2LCAibWV0aG9kICIgTUVUSE9EX1JFQUQgIiBub3QgZm91bmQ6ICVzXG4iLAoJCQkJYWNwaV9m
+b3JtYXRfZXhjZXB0aW9uKHN0YXR1cykpOwoKCS8qIERlLW11bHRpcGxleGVyICh3cml0ZSkgKi8K
+CXN0YXR1cyA9IGFjcGlfZ2V0X2hhbmRsZShkYXRhLT5hdGtfaGFuZGxlLCBNRVRIT0RfV1JJVEUs
+ICZyZXQpOwoJaWYgKEFDUElfU1VDQ0VTUyhzdGF0dXMpKQoJCWRhdGEtPndyaXRlX2hhbmRsZSA9
+IHJldDsKCWVsc2UKCQlkZXZfZGJnKGRldiwgIm1ldGhvZCAiIE1FVEhPRF9XUklURSAiIG5vdCBm
+b3VuZDogJXNcbiIsCgkJCQkgYWNwaV9mb3JtYXRfZXhjZXB0aW9uKHN0YXR1cykpOwoKCS8qIENo
+ZWNrIGZvciBod21vbiBtZXRob2RzOiBmaXJzdCBjaGVjayAib2xkIiBzdHlsZSBtZXRob2RzOyBu
+b3RlIHRoYXQKCSAqIGJvdGggbWF5IGJlIHByZXNlbnQ6IGluIHRoaXMgY2FzZSB3ZSBzdGljayB0
+byB0aGUgb2xkIGludGVyZmFjZTsKCSAqIGFuYWx5c2lzIG9mIG11bHRpcGxlIERTRFRzIGluZGlj
+YXRlcyB0aGF0IHdoZW4gYm90aCBpbnRlcmZhY2VzCgkgKiBhcmUgcHJlc2VudCB0aGUgbmV3IG9u
+ZSAoR0dSUC9HSVRNKSBpcyBub3QgZnVuY3Rpb25hbC4KCSAqLwoJaWYgKG5ld19pZikKCQlkZXZf
+aW5mbyhkZXYsICJPdmVycmlkaW5nIGludGVyZmFjZSBkZXRlY3Rpb25cbiIpOwoJaWYgKGRhdGEt
+PnJ0bXBfaGFuZGxlICYmIGRhdGEtPnJ2bHRfaGFuZGxlICYmIGRhdGEtPnJmYW5faGFuZGxlICYm
+ICFuZXdfaWYpCgkJZGF0YS0+b2xkX2ludGVyZmFjZSA9IHRydWU7CgllbHNlIGlmIChkYXRhLT5l
+bnVtZXJhdGVfaGFuZGxlICYmIGRhdGEtPnJlYWRfaGFuZGxlICYmCgkJCWRhdGEtPndyaXRlX2hh
+bmRsZSkKCQlkYXRhLT5vbGRfaW50ZXJmYWNlID0gZmFsc2U7CgllbHNlCgkJZXJyID0gLUVOT0RF
+VjsKCglyZXR1cm4gZXJyOwp9CgpzdGF0aWMgaW50IGF0a19hZGQoc3RydWN0IGFjcGlfZGV2aWNl
+ICpkZXZpY2UpCnsKCWFjcGlfc3RhdHVzIHJldDsKCWludCBlcnI7CglzdHJ1Y3QgYWNwaV9idWZm
+ZXIgYnVmOwoJdW5pb24gYWNwaV9vYmplY3QgKm9iajsKCXN0cnVjdCBhdGtfZGF0YSAqZGF0YTsK
+CglkZXZfZGJnKCZkZXZpY2UtPmRldiwgImFkZGluZy4uLlxuIik7CgoJZGF0YSA9IGt6YWxsb2Mo
+c2l6ZW9mKCpkYXRhKSwgR0ZQX0tFUk5FTCk7CglpZiAoIWRhdGEpCgkJcmV0dXJuIC1FTk9NRU07
+CgoJZGF0YS0+YWNwaV9kZXYgPSBkZXZpY2U7CglkYXRhLT5hdGtfaGFuZGxlID0gZGV2aWNlLT5o
+YW5kbGU7CglJTklUX0xJU1RfSEVBRCgmZGF0YS0+c2Vuc29yX2xpc3QpOwoJZGF0YS0+ZGlzYWJs
+ZV9lYyA9IGZhbHNlOwoKCWJ1Zi5sZW5ndGggPSBBQ1BJX0FMTE9DQVRFX0JVRkZFUjsKCXJldCA9
+IGFjcGlfZXZhbHVhdGVfb2JqZWN0X3R5cGVkKGRhdGEtPmF0a19oYW5kbGUsIEJPQVJEX0lELCBO
+VUxMLAoJCQkmYnVmLCBBQ1BJX1RZUEVfUEFDS0FHRSk7CglpZiAocmV0ICE9IEFFX09LKSB7CgkJ
+ZGV2X2RiZygmZGV2aWNlLT5kZXYsICJhdGs6IG1ldGhvZCBNQklGIG5vdCBmb3VuZFxuIik7Cgl9
+IGVsc2UgewoJCW9iaiA9IGJ1Zi5wb2ludGVyOwoJCWlmIChvYmotPnBhY2thZ2UuY291bnQgPj0g
+MikgewoJCQl1bmlvbiBhY3BpX29iamVjdCAqaWQgPSAmb2JqLT5wYWNrYWdlLmVsZW1lbnRzWzFd
+OwoJCQlpZiAoaWQtPnR5cGUgPT0gQUNQSV9UWVBFX1NUUklORykKCQkJCWRldl9kYmcoJmRldmlj
+ZS0+ZGV2LCAiYm9hcmQgSUQgPSAlc1xuIiwKCQkJCQlpZC0+c3RyaW5nLnBvaW50ZXIpOwoJCX0K
+CQlBQ1BJX0ZSRUUoYnVmLnBvaW50ZXIpOwoJfQoKCWVyciA9IGF0a19wcm9iZV9pZihkYXRhKTsK
+CWlmIChlcnIpIHsKCQlkZXZfZXJyKCZkZXZpY2UtPmRldiwgIk5vIHVzYWJsZSBod21vbiBpbnRl
+cmZhY2UgZGV0ZWN0ZWRcbiIpOwoJCWdvdG8gb3V0OwoJfQoKCWlmIChkYXRhLT5vbGRfaW50ZXJm
+YWNlKSB7CgkJZGV2X2RiZygmZGV2aWNlLT5kZXYsICJVc2luZyBvbGQgaHdtb24gaW50ZXJmYWNl
+XG4iKTsKCQllcnIgPSBhdGtfZW51bWVyYXRlX29sZF9od21vbihkYXRhKTsKCX0gZWxzZSB7CgkJ
+ZGV2X2RiZygmZGV2aWNlLT5kZXYsICJVc2luZyBuZXcgaHdtb24gaW50ZXJmYWNlXG4iKTsKCQll
+cnIgPSBhdGtfZW51bWVyYXRlX25ld19od21vbihkYXRhKTsKCX0KCWlmIChlcnIgPCAwKQoJCWdv
+dG8gb3V0OwoJaWYgKGVyciA9PSAwKSB7CgkJZGV2X2luZm8oJmRldmljZS0+ZGV2LAoJCQkgIk5v
+IHVzYWJsZSBzZW5zb3IgZGV0ZWN0ZWQsIGJhaWxpbmcgb3V0XG4iKTsKCQllcnIgPSAtRU5PREVW
+OwoJCWdvdG8gb3V0OwoJfQoKCWVyciA9IGF0a19yZWdpc3Rlcl9od21vbihkYXRhKTsKCWlmIChl
+cnIpCgkJZ290byBjbGVhbnVwOwoKCWF0a19kZWJ1Z2ZzX2luaXQoZGF0YSk7CgoJZGV2aWNlLT5k
+cml2ZXJfZGF0YSA9IGRhdGE7CglyZXR1cm4gMDsKY2xlYW51cDoKCWF0a19mcmVlX3NlbnNvcnMo
+ZGF0YSk7Cm91dDoKCWlmIChkYXRhLT5kaXNhYmxlX2VjKQoJCWF0a19lY19jdGwoZGF0YSwgMCk7
+CglrZnJlZShkYXRhKTsKCXJldHVybiBlcnI7Cn0KCnN0YXRpYyBpbnQgYXRrX3JlbW92ZShzdHJ1
+Y3QgYWNwaV9kZXZpY2UgKmRldmljZSwgaW50IHR5cGUpCnsKCXN0cnVjdCBhdGtfZGF0YSAqZGF0
+YSA9IGRldmljZS0+ZHJpdmVyX2RhdGE7CglkZXZfZGJnKCZkZXZpY2UtPmRldiwgInJlbW92aW5n
+Li4uXG4iKTsKCglkZXZpY2UtPmRyaXZlcl9kYXRhID0gTlVMTDsKCglhdGtfZGVidWdmc19jbGVh
+bnVwKGRhdGEpOwoKCWF0a19yZW1vdmVfZmlsZXMoZGF0YSk7CglhdGtfZnJlZV9zZW5zb3JzKGRh
+dGEpOwoJaHdtb25fZGV2aWNlX3VucmVnaXN0ZXIoZGF0YS0+aHdtb25fZGV2KTsKCglpZiAoZGF0
+YS0+ZGlzYWJsZV9lYykgewoJCWlmIChhdGtfZWNfY3RsKGRhdGEsIDApKQoJCQlkZXZfZXJyKCZk
+ZXZpY2UtPmRldiwgIkZhaWxlZCB0byBkaXNhYmxlIEVDXG4iKTsKCX0KCglrZnJlZShkYXRhKTsK
+CglyZXR1cm4gMDsKfQoKc3RhdGljIGludCBfX2luaXQgYXRrMDExMF9pbml0KHZvaWQpCnsKCWlu
+dCByZXQ7CgoJLyogTWFrZSBzdXJlIGl0J3Mgc2FmZSB0byBhY2Nlc3MgdGhlIGRldmljZSB0aHJv
+dWdoIEFDUEkgKi8KCWlmICghYWNwaV9yZXNvdXJjZXNfYXJlX2VuZm9yY2VkKCkpIHsKCQlwcl9l
+cnIoIlJlc291cmNlcyBub3Qgc2FmZWx5IHVzYWJsZSBkdWUgdG8gYWNwaV9lbmZvcmNlX3Jlc291
+cmNlcyBrZXJuZWwgcGFyYW1ldGVyXG4iKTsKCQlyZXR1cm4gLUVCVVNZOwoJfQoKCWlmIChkbWlf
+Y2hlY2tfc3lzdGVtKGF0a19mb3JjZV9uZXdfaWYpKQoJCW5ld19pZiA9IHRydWU7CgoJcmV0ID0g
+YWNwaV9idXNfcmVnaXN0ZXJfZHJpdmVyKCZhdGtfZHJpdmVyKTsKCWlmIChyZXQpCgkJcHJfaW5m
+bygiYWNwaV9idXNfcmVnaXN0ZXJfZHJpdmVyIGZhaWxlZDogJWRcbiIsIHJldCk7CgoJcmV0dXJu
+IHJldDsKfQoKc3RhdGljIHZvaWQgX19leGl0IGF0azAxMTBfZXhpdCh2b2lkKQp7CglhY3BpX2J1
+c191bnJlZ2lzdGVyX2RyaXZlcigmYXRrX2RyaXZlcik7Cn0KCm1vZHVsZV9pbml0KGF0azAxMTBf
+aW5pdCk7Cm1vZHVsZV9leGl0KGF0azAxMTBfZXhpdCk7CgpNT0RVTEVfTElDRU5TRSgiR1BMIik7
+Cg==
+--0015175cba3aaf03fd049a0a38b8
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -1014,5 +641,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---=-FUbB94N2RM6Tb8RSz6YW--
-
+--0015175cba3aaf03fd049a0a38b8--
