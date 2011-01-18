@@ -1,7 +1,7 @@
 From: Anish Patel <anish.mailing.list@gmail.com>
-Date: Tue, 18 Jan 2011 00:46:36 +0000
+Date: Tue, 18 Jan 2011 17:33:13 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (lm93) Add support for LM94
-Message-Id: <4D34E2EC.8050500@gmail.com>
+Message-Id: <4D35CED9.6050005@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D34C19A.7070707@gmail.com>
 In-Reply-To: <4D34C19A.7070707@gmail.com>
@@ -16,12 +16,10 @@ On 01/17/11 17:47, Guenter Roeck wrote:
 >>
 > Hint - top posting is discouraged.
 >
-sorry, won't do it again
 > I don't mind, but not even the "official" datasheet from National (dated
 > 07/15/2010) lists 0x7a as supported stepping. Do you have information
 > that this version of the chip exists ?
-yes, i have about 15 boards here with an LM94 that have the 0x7a ID
-i will post the i2cdump tomorrow morning.
+>
 > Thanks,
 > Guenter
 >
@@ -120,9 +118,29 @@ i will post the i2cdump tomorrow morning.
 >>>    MODULE_DEVICE_TABLE(i2c, lm93_id);
 >
 >
+dump of LM94
 
+i2cdump -y 0 0x2e
+No size specified (using byte-data access)
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
+00: 00 00 00 00 00 00 35 80 35 80 00 00 00 00 00 00    ......5?5?......
+10: 80 35 80 35 00 80 00 80 80 35 80 35 00 80 00 80    ?5?5.?.??5?5.?.?
+20: 00 22 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ."..............
+30: 00 00 00 00 00 30 00 00 00 80 80 00 00 00 01 7a    .....0...??...?z
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+50: 35 80 22 00 35 80 bd bd bc af c2 bc b0 ae c5 c3    5?".5???????????
+60: 73 ab d4 ed ff c1 00 00 00 00 00 2c 00 00 fc ff    s???.?.....,..?.
+70: fc ff fc ff fc ff 00 00 80 80 80 80 80 80 80 80    ?.?.?...????????
+80: 3c 3c 23 23 00 00 00 00 00 00 00 00 00 00 00 00<<##............
+90: 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff    ................
+a0: 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff    ................
+b0: ff ff 17 17 fc ff fc ff fc ff fc ff 00 00 00 00    ..???.?.?.?.....
+c0: 44 44 00 00 00 00 00 11 00 00 00 00 00 00 00 00    DD.....?........
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
+e0: 00 3f 00 80 03 ff 0f ff 0f 07 ff 07 ff 3f 00 00    .?.??.?.??.?.?..
+f0: 09 09 08 08 06 10 04 08 0c 20 08 08 10 09 09 09    ????????? ??????
 
-
+img - http://img152.imageshack.us/img152/5526/dsc00870w.jpg
 
 _______________________________________________
 lm-sensors mailing list
