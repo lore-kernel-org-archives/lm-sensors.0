@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 19 Jan 2011 07:33:22 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 19 Jan 2011 08:50:53 +0000
 Subject: Re: [lm-sensors] user question about how to load xeontemp
-Message-Id: <20110119073322.GA13904@ericsson.com>
+Message-Id: <20110119095053.0e4de6c1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <AANLkTimtTrZuU2VXQ0b=1_Z38hOQC-sst5B0F=YEdzL7@mail.gmail.com>
 In-Reply-To: <AANLkTimtTrZuU2VXQ0b=1_Z38hOQC-sst5B0F=YEdzL7@mail.gmail.com>
@@ -10,36 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jan 19, 2011 at 01:29:28AM -0500, Jerry Lin wrote:
-> > S5500HCV board spec shows a TMP75 sensor. Can you try to load the lm75 module instead?
+On Tue, 18 Jan 2011 21:51:23 -0800, Guenter Roeck wrote:
+> On Wed, Jan 19, 2011 at 12:16:12AM -0500, Jerry Lin wrote:
 > 
-> "sudo modprobe lm75" yields no error message, but "sudo
-> sensors-detect" yields the same result. ("modprobe -l | grep lm75"
-> yields "kernel/drivers/hwmon/lm75.ko"). I'm not totally sure that I'm
-> doing this correctly:
+> Please don't top-post.
 > 
-You would have to run "modprobe -r adm1021" first.
+> > Thanks for the quick response. As far as I know, max1617 was suggested
+> > by sensors-detect (or something else suggested it -- I didn't type it
+> > in myself).
 
-Anyway, the board supports DDR3, and DDR3 has JC42 compliant temperature sensors
-which are usually at i2c address 0x18..0x1f. So, especially if you have four DDR3 
-DIMMs installed, that is probably what you have there.
+This is entirely possible, the max1617 has very bad detection (no
+device nor manufacturer ID) so false positives are frequent. We should
+probably drop detection altogether.
 
-Anyway, please load
-	http://khali.linux-fr.org/devel/misc/sensors-detect
-and run it. This is the latest version of sensors-detect. It should detect 
-if the CPU supports sensors or not, and if the sensors at 0x18.. are jc42 sensors.
-Make sure you remove the adm1021 driver before you run sensors-detect.
+> S5500HCV board spec shows a TMP75 sensor. Can you try to load the lm75 module instead?
 
-> sudo modprobe lm75
-> [and then]
-> sudo sensors-detect
-> 
-sensors-detect can only detect a sensor if the driver for it isn't loaded yet.
+Note that the lm75 driver only detects the original LM75 devices. Other
+supported devices such as the TMP75 need to be instantiated explicitly.
 
-Also, you might want to run "modprobe ipmi-si" as suggested by the sensors-detect
-output.
+> > Unfortunately, "sudo modprobe coretemp" yields "FATAL: Error inserting
+> > coretemp (/lib/modules/2.6.32-27-generic/kernel/drivers/hwmon/coretemp.ko):
+> > No such device"
+> >
+> "No such device" indicates that the driver failed to load, typically because 
+> the core does not support built-in temperature sensors.
+> Odd - I thought that all recent Intel CPUs support core temperature sensors.
+> Looks like this one doesn't.
 
-Guenter 
+Universal detection was only added to the coretemp driver in kernel
+2.6.35, while Jerry runs kernel 2.6.32.
+
+Jerry, please try the stand-alone coretemp driver at:
+  http://khali.linux-fr.org/devel/misc/coretemp/
+This is basically the version from the latest kernel, with some
+compatibility bits added so that it builds and runs on older kernels
+too.
+
+Installation instructions can be downloaded from:
+  http://khali.linux-fr.org/devel/misc/INSTALL
+This is a document I just wrote, let me know if it contains errors or
+can be improved in any way.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
