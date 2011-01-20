@@ -1,146 +1,88 @@
-From: Anish Patel <anish.mailing.list@gmail.com>
-Date: Tue, 18 Jan 2011 17:33:13 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm93) Add support for LM94
-Message-Id: <4D35CED9.6050005@gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Thu, 20 Jan 2011 21:27:56 +0000
+Subject: [lm-sensors] [PATCH] HWMON: (lis3lv02d) Convert SPI to dev_pm_ops
+Message-Id: <1295558876-25061-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D34C19A.7070707@gmail.com>
-In-Reply-To: <4D34C19A.7070707@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 01/17/11 17:47, Guenter Roeck wrote:
-> On Mon, 2011-01-17 at 17:24 -0500, Anish Patel wrote:
->> please add device id 0x7a for the LM94 as well.
->>
-> Hint - top posting is discouraged.
->
-> I don't mind, but not even the "official" datasheet from National (dated
-> 07/15/2010) lists 0x7a as supported stepping. Do you have information
-> that this version of the chip exists ?
->
-> Thanks,
-> Guenter
->
->> thanks
->>
->> On 01/17/11 17:41, Guenter Roeck wrote:
->>> This patch adds basic support for LM94 to the LM93 driver. LM94 specific
->>> sensors and features are not supported.
->>>
->>> Signed-off-by: Guenter Roeck<guenter.roeck@ericsson.com>
->>> ---
->>>    Documentation/hwmon/lm93 |    7 +++++++
->>>    drivers/hwmon/lm93.c     |   19 +++++++++++++++++--
->>>    2 files changed, 24 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/Documentation/hwmon/lm93 b/Documentation/hwmon/lm93
->>> index 7a10616..f3b2ad2 100644
->>> --- a/Documentation/hwmon/lm93
->>> +++ b/Documentation/hwmon/lm93
->>> @@ -6,6 +6,10 @@ Supported chips:
->>>        Prefix 'lm93'
->>>        Addresses scanned: I2C 0x2c-0x2e
->>>        Datasheet: http://www.national.com/ds.cgi/LM/LM93.pdf
->>> +  * National Semiconductor LM94
->>> +    Prefix 'lm94'
->>> +    Addresses scanned: I2C 0x2c-0x2e
->>> +    Datasheet: http://www.national.com/ds.cgi/LM/LM94.pdf
->>>
->>>    Authors:
->>>    	Mark M. Hoffman<mhoffman@lightlink.com>
->>> @@ -56,6 +60,9 @@ previous motherboard management ASICs and uses some of the LM85's features
->>>    for dynamic Vccp monitoring and PROCHOT. It is designed to monitor a dual
->>>    processor Xeon class motherboard with a minimum of external components.
->>>
->>> +LM94 is also supported in LM93 compatible mode. Extra sensors and features of
->>> +LM94 are not supported.
->>> +
->>>
->>>    User Interface
->>>    --------------
->>> diff --git a/drivers/hwmon/lm93.c b/drivers/hwmon/lm93.c
->>> index c9ed14e..4a8b984 100644
->>> --- a/drivers/hwmon/lm93.c
->>> +++ b/drivers/hwmon/lm93.c
->>> @@ -135,6 +135,10 @@
->>>    #define LM93_MFR_ID		0x73
->>>    #define LM93_MFR_ID_PROTOTYPE	0x72
->>>
->>> +/* LM94 REGISTER VALUES */
->>> +#define LM94_MFR_ID		0x79
->>> +#define LM94_MFR_ID_PROTOTYPE	0x78
->>> +
->>>    /* SMBus capabilities */
->>>    #define LM93_SMBUS_FUNC_FULL (I2C_FUNC_SMBUS_BYTE_DATA | \
->>>    		I2C_FUNC_SMBUS_WORD_DATA | I2C_FUNC_SMBUS_BLOCK_DATA)
->>> @@ -2504,6 +2508,7 @@ static int lm93_detect(struct i2c_client *client, struct i2c_board_info *info)
->>>    {
->>>    	struct i2c_adapter *adapter = client->adapter;
->>>    	int mfr, ver;
->>> +	const char *name;
->>>
->>>    	if (!i2c_check_functionality(adapter, LM93_SMBUS_FUNC_MIN))
->>>    		return -ENODEV;
->>> @@ -2517,13 +2522,22 @@ static int lm93_detect(struct i2c_client *client, struct i2c_board_info *info)
->>>    	}
->>>
->>>    	ver = lm93_read_byte(client, LM93_REG_VER);
->>> -	if (ver != LM93_MFR_ID&&   ver != LM93_MFR_ID_PROTOTYPE) {
->>> +	switch (ver) {
->>> +	case LM93_MFR_ID:
->>> +	case LM93_MFR_ID_PROTOTYPE:
->>> +		name = "lm93";
->>> +		break;
->>> +	case LM94_MFR_ID:
->>> +	case LM94_MFR_ID_PROTOTYPE:
->>> +		name = "lm94";
->>> +		break;
->>> +	default:
->>>    		dev_dbg(&adapter->dev,
->>>    			"detect failed, bad version id 0x%02x!\n", ver);
->>>    		return -ENODEV;
->>>    	}
->>>
->>> -	strlcpy(info->type, "lm93", I2C_NAME_SIZE);
->>> +	strlcpy(info->type, name, I2C_NAME_SIZE);
->>>    	dev_dbg(&adapter->dev,"loading %s at %d,0x%02x\n",
->>>    		client->name, i2c_adapter_id(client->adapter),
->>>    		client->addr);
->>> @@ -2602,6 +2616,7 @@ static int lm93_remove(struct i2c_client *client)
->>>
->>>    static const struct i2c_device_id lm93_id[] = {
->>>    	{ "lm93", 0 },
->>> +	{ "lm94", 0 },
->>>    	{ }
->>>    };
->>>    MODULE_DEVICE_TABLE(i2c, lm93_id);
->
->
-dump of LM94
+There is a move to deprecate bus-specific PM operations and move to
+using dev_pm_ops instead in order to reduce the amount of boilerplate
+code in buses and facilitiate updates to the PM core. Do this move for
+the lis3lv02d SPI driver.
 
-i2cdump -y 0 0x2e
-No size specified (using byte-data access)
-      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 00 00 00 00 00 00 35 80 35 80 00 00 00 00 00 00    ......5?5?......
-10: 80 35 80 35 00 80 00 80 80 35 80 35 00 80 00 80    ?5?5.?.??5?5.?.?
-20: 00 22 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ."..............
-30: 00 00 00 00 00 30 00 00 00 80 80 00 00 00 01 7a    .....0...??...?z
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-50: 35 80 22 00 35 80 bd bd bc af c2 bc b0 ae c5 c3    5?".5???????????
-60: 73 ab d4 ed ff c1 00 00 00 00 00 2c 00 00 fc ff    s???.?.....,..?.
-70: fc ff fc ff fc ff 00 00 80 80 80 80 80 80 80 80    ?.?.?...????????
-80: 3c 3c 23 23 00 00 00 00 00 00 00 00 00 00 00 00<<##............
-90: 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff    ................
-a0: 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff 00 ff    ................
-b0: ff ff 17 17 fc ff fc ff fc ff fc ff 00 00 00 00    ..???.?.?.?.....
-c0: 44 44 00 00 00 00 00 11 00 00 00 00 00 00 00 00    DD.....?........
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
-e0: 00 3f 00 80 03 ff 0f ff 0f 07 ff 07 ff 3f 00 00    .?.??.?.??.?.?..
-f0: 09 09 08 08 06 10 04 08 0c 20 08 08 10 09 09 09    ????????? ??????
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/hwmon/lis3lv02d_spi.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-img - http://img152.imageshack.us/img152/5526/dsc00870w.jpg
+diff --git a/drivers/hwmon/lis3lv02d_spi.c b/drivers/hwmon/lis3lv02d_spi.c
+index 2549de1..c1f8a8f 100644
+--- a/drivers/hwmon/lis3lv02d_spi.c
++++ b/drivers/hwmon/lis3lv02d_spi.c
+@@ -16,6 +16,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/workqueue.h>
+ #include <linux/spi/spi.h>
++#include <linux/pm.h>
+ 
+ #include "lis3lv02d.h"
+ 
+@@ -88,9 +89,10 @@ static int __devexit lis302dl_spi_remove(struct spi_device *spi)
+ 	return lis3lv02d_remove_fs(&lis3_dev);
+ }
+ 
+-#ifdef CONFIG_PM
+-static int lis3lv02d_spi_suspend(struct spi_device *spi, pm_message_t mesg)
++#ifdef CONFIG_PM_SLEEP
++static int lis3lv02d_spi_suspend(struct device *dev)
+ {
++	struct spi_device *spi = to_spi_device(dev);
+ 	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
+ 
+ 	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
+@@ -99,8 +101,9 @@ static int lis3lv02d_spi_suspend(struct spi_device *spi, pm_message_t mesg)
+ 	return 0;
+ }
+ 
+-static int lis3lv02d_spi_resume(struct spi_device *spi)
++static int lis3lv02d_spi_resume(struct device *dev)
+ {
++	struct spi_device *spi = to_spi_device(dev);
+ 	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
+ 
+ 	if (!lis3->pdata || !lis3->pdata->wakeup_flags)
+@@ -108,21 +111,19 @@ static int lis3lv02d_spi_resume(struct spi_device *spi)
+ 
+ 	return 0;
+ }
+-
+-#else
+-#define lis3lv02d_spi_suspend	NULL
+-#define lis3lv02d_spi_resume	NULL
+ #endif
+ 
++static SIMPLE_DEV_PM_OPS(lis3lv02d_spi_pm, lis3lv02d_spi_suspend,
++			 lis3lv02d_spi_resume);
++
+ static struct spi_driver lis302dl_spi_driver = {
+ 	.driver	 = {
+ 		.name   = DRV_NAME,
+ 		.owner  = THIS_MODULE,
++		.pm	= &lis3lv02d_spi_pm,
+ 	},
+ 	.probe	= lis302dl_spi_probe,
+ 	.remove	= __devexit_p(lis302dl_spi_remove),
+-	.suspend = lis3lv02d_spi_suspend,
+-	.resume  = lis3lv02d_spi_resume,
+ };
+ 
+ static int __init lis302dl_init(void)
+-- 
+1.7.2.3
+
 
 _______________________________________________
 lm-sensors mailing list
