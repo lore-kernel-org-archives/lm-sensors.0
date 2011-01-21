@@ -1,221 +1,43 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 28 Jan 2011 02:36:29 +0000
-Subject: [lm-sensors] [PATCH v3 2/5] hwmon: (pmbus) Add support for Maxim
-Message-Id: <1296182192-28562-3-git-send-email-guenter.roeck@ericsson.com>
+From: Fenghua Yu <fenghua.yu@intel.com>
+Date: Fri, 21 Jan 2011 04:12:40 +0000
+Subject: [lm-sensors] [PATCH] x86, mcheck,
+Message-Id: <20110121041239.GB26954@linux-os.sc.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <D6D887BA8C9DFF48B5233887EF046541094482ED6A@bgsmsx502.gar.corp.intel.com> <20110120221704.GA26954@linux-os.sc.intel.com> <20110121022611.GC9496@ericsson.com>
+In-Reply-To: <20110121022611.GC9496@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: H Peter Anvin <hpa@zytor.com>, Ingo Molnar <mingo@elte.hu>, Thomas Gleixner <tglx@linutronix.de>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, linux-kernel <linux-kernel@vger.kernel.org>
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+In therm_throt.c, commit 9e76a97efd31a08cb19d0ba12013b8fb4ad3e474 patch
+doesn't export the symbol platform_thermal_notify.
+
+Other drivers (e.g. drivers/hwmon/coretemp.c) can not find the symbol
+platform_thermal_notify when defining threshould interrupt handler.
+
+Please apply this patch to allow threshold interrupt handler in coretemp.
+
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 ---
- drivers/hwmon/Kconfig   |   10 +++
- drivers/hwmon/Makefile  |    1 +
- drivers/hwmon/max8688.c |  158 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 169 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/max8688.c
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 7c36091..e88ab93 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -757,6 +757,16 @@ config SENSORS_PMBUS
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
- 
-+config SENSORS_MAX8688
-+	tristate "Maxim MAX8688"
-+	default n
-+	help
-+	  If you say yes here you get hardware monitoring support for Maxim
-+	  MAX8688.
-+
-+	  This driver can also be built as a module. If so, the module will
-+	  be called max8688.
-+
- endif # PMBUS
- 
- config SENSORS_SHT15
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index f7f158b..00c2e77 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -115,6 +115,7 @@ obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
- # PMBus drivers
- obj-$(CONFIG_PMBUS)		+= pmbus_core.o
- obj-$(CONFIG_SENSORS_PMBUS)	+= pmbus.o
-+obj-$(CONFIG_SENSORS_MAX8688)	+= max8688.o
- 
- ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
-diff --git a/drivers/hwmon/max8688.c b/drivers/hwmon/max8688.c
-new file mode 100644
-index 0000000..c38396e
---- /dev/null
-+++ b/drivers/hwmon/max8688.c
-@@ -0,0 +1,158 @@
-+/*
-+ * Hardware monitoring driver for Maxim MAX8688
-+ *
-+ * Copyright (c) 2011 Ericsson AB.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include "pmbus.h"
-+
-+#define MAX8688_MFG_STATUS		0xd8
-+
-+#define MAX8688_STATUS_OC_FAULT		(1 << 4)
-+#define MAX8688_STATUS_OV_FAULT		(1 << 5)
-+#define MAX8688_STATUS_OV_WARNING	(1 << 8)
-+#define MAX8688_STATUS_UV_FAULT		(1 << 9)
-+#define MAX8688_STATUS_UV_WARNING	(1 << 10)
-+#define MAX8688_STATUS_UC_FAULT		(1 << 11)
-+#define MAX8688_STATUS_OC_WARNING	(1 << 12)
-+#define MAX8688_STATUS_OT_FAULT		(1 << 13)
-+#define MAX8688_STATUS_OT_WARNING	(1 << 14)
-+
-+static int max8688_get_status(struct i2c_client *client, int page, int reg)
-+{
-+	int ret = 0;
-+	int mfg_status;
-+
-+	if (page)
-+		return -EINVAL;
-+
-+	switch (reg) {
-+	case PMBUS_STATUS_VOUT:
-+		mfg_status = pmbus_read_word_data(client, 0,
-+						  MAX8688_MFG_STATUS);
-+		if (mfg_status < 0)
-+			return mfg_status;
-+		if (mfg_status & MAX8688_STATUS_UV_WARNING)
-+			ret |= PB_VOLTAGE_UV_WARNING;
-+		if (mfg_status & MAX8688_STATUS_UV_FAULT)
-+			ret |= PB_VOLTAGE_UV_FAULT;
-+		if (mfg_status & MAX8688_STATUS_OV_WARNING)
-+			ret |= PB_VOLTAGE_OV_WARNING;
-+		if (mfg_status & MAX8688_STATUS_OV_FAULT)
-+			ret |= PB_VOLTAGE_OV_FAULT;
-+		break;
-+	case PMBUS_STATUS_IOUT:
-+		mfg_status = pmbus_read_word_data(client, 0,
-+						  MAX8688_MFG_STATUS);
-+		if (mfg_status < 0)
-+			return mfg_status;
-+		if (mfg_status & MAX8688_STATUS_UC_FAULT)
-+			ret |= PB_IOUT_UC_FAULT;
-+		if (mfg_status & MAX8688_STATUS_OC_WARNING)
-+			ret |= PB_IOUT_OC_WARNING;
-+		if (mfg_status & MAX8688_STATUS_OC_FAULT)
-+			ret |= PB_IOUT_OC_FAULT;
-+		break;
-+	case PMBUS_STATUS_TEMPERATURE:
-+		mfg_status = pmbus_read_word_data(client, 0,
-+						  MAX8688_MFG_STATUS);
-+		if (mfg_status < 0)
-+			return mfg_status;
-+		if (mfg_status & MAX8688_STATUS_OT_WARNING)
-+			ret |= PB_TEMP_OT_WARNING;
-+		if (mfg_status & MAX8688_STATUS_OT_FAULT)
-+			ret |= PB_TEMP_OT_FAULT;
-+		break;
-+	default:
-+		ret = -ENODATA;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+static struct pmbus_driver_info max8688_info = {
-+	.pages = 1,
-+	.direct[PSC_VOLTAGE_IN] = true,
-+	.direct[PSC_VOLTAGE_OUT] = true,
-+	.direct[PSC_TEMPERATURE] = true,
-+	.direct[PSC_CURRENT_OUT] = true,
-+	.m[PSC_VOLTAGE_IN] = 19995,
-+	.b[PSC_VOLTAGE_IN] = 0,
-+	.R[PSC_VOLTAGE_IN] = -1,
-+	.m[PSC_VOLTAGE_OUT] = 19995,
-+	.b[PSC_VOLTAGE_OUT] = 0,
-+	.R[PSC_VOLTAGE_OUT] = -1,
-+	.m[PSC_CURRENT_OUT] = 23109,
-+	.b[PSC_CURRENT_OUT] = 0,
-+	.R[PSC_CURRENT_OUT] = -2,
-+	.m[PSC_TEMPERATURE] = -7612,
-+	.b[PSC_TEMPERATURE] = 335,
-+	.R[PSC_TEMPERATURE] = -3,
-+	.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_IOUT | PMBUS_HAVE_TEMP
-+		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_IOUT
-+		| PMBUS_HAVE_STATUS_TEMP,
-+	.get_status = max8688_get_status,
-+};
-+
-+static int max8688_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	return pmbus_do_probe(client, id, &max8688_info);
-+}
-+
-+static int max8688_remove(struct i2c_client *client)
-+{
-+	return pmbus_do_remove(client);
-+}
-+
-+static const struct i2c_device_id max8688_id[] = {
-+	{"max8688", 0},
-+	{ }
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, max8688_id);
-+
-+/* This is the driver that will be inserted */
-+static struct i2c_driver max8688_driver = {
-+	.driver = {
-+		   .name = "max8688",
-+		   },
-+	.probe = max8688_probe,
-+	.remove = max8688_remove,
-+	.id_table = max8688_id,
-+};
-+
-+static int __init max8688_init(void)
-+{
-+	return i2c_add_driver(&max8688_driver);
-+}
-+
-+static void __exit max8688_exit(void)
-+{
-+	i2c_del_driver(&max8688_driver);
-+}
-+
-+MODULE_AUTHOR("Guenter Roeck");
-+MODULE_DESCRIPTION("PMBus driver for Maxim MAX8688");
-+MODULE_LICENSE("GPL");
-+module_init(max8688_init);
-+module_exit(max8688_exit);
--- 
-1.7.3.1
+ arch/x86/kernel/cpu/mcheck/therm_throt.c |    1 +
+ 1 files changed, 1 insertion(+)
 
+
+diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+index e12246f..6f8c5e9 100644
+--- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
++++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
+@@ -59,6 +59,7 @@ struct thermal_state {
+ 
+ /* Callback to handle core threshold interrupts */
+ int (*platform_thermal_notify)(__u64 msr_val);
++EXPORT_SYMBOL(platform_thermal_notify);
+ 
+ static DEFINE_PER_CPU(struct thermal_state, thermal_state);
+ 
 
 _______________________________________________
 lm-sensors mailing list
