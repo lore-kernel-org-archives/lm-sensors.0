@@ -1,101 +1,82 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Date: Mon, 31 Jan 2011 10:43:47 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: twl4030: Driver for twl4030 madc
-Message-Id: <20110131104346.GA5954@sortiz-mobl>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Sat, 22 Jan 2011 15:07:11 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Override interface
+Message-Id: <1295708831-10623-1-git-send-email-kronos.it@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1294287457-2438-1-git-send-email-j-keerthy@ti.com>
- <20110106053328.GA7489@ericsson.com>
- <20110106120713.GD17184@sirena.org.uk>
- <20110106150430.GA9053@ericsson.com>
- <20110106202142.GC8018@opensource.wolfsonmicro.com>
- <1294350903.9786.103.camel@groeck-laptop>
- <AANLkTinkNNhrq+b5eiE7XrYQUsR2-vVD08btqM81KJA1@mail.gmail.com>
- <AANLkTinDVZe0eefrPZsMoUyzqfQOxZsDOaD0VG3OqXyT@mail.gmail.com>
-In-Reply-To: <AANLkTinDVZe0eefrPZsMoUyzqfQOxZsDOaD0VG3OqXyT@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "balajitk@ti.com" <balajitk@ti.com>, guenter.roeck@ericsson.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-Hi Keerthy,
+ASUS Sabertooth X58 has a bug in ACPI that prevents the reading of MCH
+temperature when the "old" ATK0110 interface is used. Add a DMI entry
+to override the detection heuristic and force the use of the "new"
+interface on this board.
 
-On Sat, Jan 22, 2011 at 10:19:33PM +0530, J, KEERTHY wrote:
-> On Fri, Jan 7, 2011 at 5:42 PM, J, KEERTHY <j-keerthy@ti.com> wrote:
-> > On Fri, Jan 7, 2011 at 3:25 AM, Guenter Roeck
-> > <guenter.roeck@ericsson.com> wrote:
-> >> On Thu, 2011-01-06 at 15:21 -0500, Mark Brown wrote:
-> >>> On Thu, Jan 06, 2011 at 07:04:30AM -0800, Guenter Roeck wrote:
-> >>> > On Thu, Jan 06, 2011 at 07:07:13AM -0500, Mark Brown wrote:
-> >>>
-> >>> > > Why? =A0It's not like hwmon has an unreasonably large core or sim=
-ilar.
-> >>>
-> >>> > Because it creates an unnecessary dependency, and because it is not=
- hwmon's
-> >>> > responsibility to provide infrastructure for other subsystems or dr=
-ivers.
-> >>>
-> >>> hwmon isn't really doing anything, though. =A0The *driver* is doing
-> >>> something but it doesn't really impact the core that much. =A0Not tha=
-t I'm
-> >>> particularly sold on putting the ADC core in here, but total NACK bas=
-ed
-> >>> on that alone seems rather harsh.
-> >>
-> >> Possibly. However, I had suggested the following earlier (to the 1st
-> >> version of the patch):
-> >>
-> >>> I commented on this a couple of times below - the driver mixes generic
-> >>> ADC reading functions with hwmon functionality. Generic ADC reading
-> >>> functionality should be moved into another driver, possibly to mfd.
-> >>
-> >> Obviously that was ignored. Maybe someone is willing to listen this ti=
-me
-> >> around.
-> >>
-> > I am sorry for not responding on the generic ADC handling part. Since m=
-any
-> > other ADC drivers are part of hwmon i thought hwmon was the appropriate
-> > place. However I can surely split the generic ADC handling part in mfd =
-and
-> > only hardware monitoring part in hwmon as suggested.
-> >
-> >> I won't let people break modularity just for convenience in a subsystem
-> >> I am responsible for. And forcing the hwmon subsystem, and with it a
-> >> specific hwmon driver, to exist just because the adc functionality it
-> >> provides is needed by some other (most likely unrelated) subsystem /
-> >> driver _does_ break modularity. Worse, it is completely unnecessary to
-> >> do so. Other twl4030 functionality was extracted into generic code.
-> >> twl-core.c, twl4030-codec.c, twl4030-irq.c, twl4030-power.c are all in
-> >> mfd. I fail to see the problem with mfd/twl4030-adc.c.
-> >>
-> >> Guenter
-> >>
-> >>
-> >>
-> >
-> > Hello Samuel,
-> >
-> > Is it ok to have the generic ADC functionality in mfd as a separate fil=
-e?
-> >
-> > Regards,
-> > Keerthy
-> >
->=20
-> Hello Samuel,
->=20
-> We need your valuable inputs. Can generic ADC functionality can be in
-> mfd as a separate file?
-If it's really generic and doesn't mix hwmon stuff in the middle, then yes.
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Tested-by: Joris Creyghton <jorisctn@gmail.com>
+---
+ drivers/hwmon/asus_atk0110.c |   23 ++++++++++++++++++++++-
+ 1 files changed, 22 insertions(+), 1 deletions(-)
 
-Cheers,
-Samuel.
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index 2d68cf3..b5e8920 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -13,6 +13,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/dmi.h>
+ 
+ #include <acpi/acpi.h>
+ #include <acpi/acpixf.h>
+@@ -22,6 +23,21 @@
+ 
+ #define ATK_HID "ATK0110"
+ 
++static bool new_if;
++module_param(new_if, bool, 0);
++MODULE_PARM_DESC(new_if, "Override detection heuristic and force the use of the new ATK0110 interface");
++
++static const struct dmi_system_id __initconst atk_force_new_if[] = {
++	{
++		/* Old interface has broken MCH temp monitoring */
++		.ident = "Asus Sabertooth X58",
++		.matches = {
++			DMI_MATCH(DMI_BOARD_NAME, "SABERTOOTH X58")
++		}
++	},
++	{ }
++};
++
+ /* Minimum time between readings, enforced in order to avoid
+  * hogging the CPU.
+  */
+@@ -1302,7 +1318,9 @@ static int atk_probe_if(struct atk_data *data)
+ 	 * analysis of multiple DSDTs indicates that when both interfaces
+ 	 * are present the new one (GGRP/GITM) is not functional.
+ 	 */
+-	if (data->rtmp_handle && data->rvlt_handle && data->rfan_handle)
++	if (new_if)
++		dev_info(dev, "Overriding interface detection\n");
++	if (data->rtmp_handle && data->rvlt_handle && data->rfan_handle && !new_if)
+ 		data->old_interface = true;
+ 	else if (data->enumerate_handle && data->read_handle &&
+ 			data->write_handle)
+@@ -1420,6 +1438,9 @@ static int __init atk0110_init(void)
+ 		return -EBUSY;
+ 	}
+ 
++	if (dmi_check_system(atk_force_new_if))
++		new_if = true;
++
+ 	ret = acpi_bus_register_driver(&atk_driver);
+ 	if (ret)
+ 		pr_info("acpi_bus_register_driver failed: %d\n", ret);
+-- 
+1.7.2.3
 
---=20
-Intel Open Source Technology Centre
-http://oss.intel.com/
 
 _______________________________________________
 lm-sensors mailing list
