@@ -1,85 +1,65 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 24 Jan 2011 21:27:23 +0000
+From: Audio Phile <da_audiophile@yahoo.com>
+Date: Mon, 24 Jan 2011 21:41:31 +0000
 Subject: Re: [lm-sensors] insane readings on Asus A7M266 motherboard
-Message-Id: <20110124222723.6a558f89@endymion.delvare>
+Message-Id: <377878.52986.qm@web36601.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <761574.42437.qm@web36601.mail.mud.yahoo.com>
 In-Reply-To: <761574.42437.qm@web36601.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, 24 Jan 2011 13:10:29 -0800 (PST), Audio Phile wrote:
-> --- On Mon, 1/24/11, Jean Delvare <khali@linux-fr.org> wrote:
-> 
-> > This alone is usually a good hint that the VIA686A/B
-> > integrated sensors
-> > aren't used on the board.
-> 
-> I thought so too but it worked for years until I had to reinstall.
+Thank you!  This absolutely solved my problem!  I do remember now having to=
+ do this addition to grub2's /boot/grub/grub.conf to make it work in the pa=
+st.
 
-No, it did not. The VIA686A/B sensors are _not_ used on this board, I
-am totally positive on this.
+# sensors
+as99127f-i2c-0-2d
+Adapter: SMBus Via Pro adapter at e800
+in0:         +1.74 V  (min =3D  +1.65 V, max =3D  +2.05 V)  =20
+in1:         +2.48 V  (min =3D  +1.65 V, max =3D  +2.05 V)  =20
+in2:         +3.22 V  (min =3D  +2.96 V, max =3D  +3.63 V)  =20
+in3:         +2.99 V  (min =3D  +2.67 V, max =3D  +3.28 V)  =20
+in4:         +3.14 V  (min =3D  +2.51 V, max =3D  +3.79 V)  =20
+in5:         +0.51 V  (min =3D  +0.08 V, max =3D  +1.02 V)  =20
+in6:         +0.86 V  (min =3D  +0.54 V, max =3D  +1.17 V)  =20
+fan1:       2721 RPM  (min =3D 5273 RPM, div =3D 2)
+fan2:          0 RPM  (min =3D 337500 RPM, div =3D 2)
+fan3:          0 RPM  (min =3D   -1 RPM, div =3D 2)
+temp1:       +34.0=B0C  (high =3D  +0.0=B0C, hyst =3D -128.0=B0C) =20
+temp2:       +52.0=B0C  (high =3D +100.0=B0C, hyst =3D +75.0=B0C) =20
+temp3:        -0.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C) =20
+cpu0_vid:   +1.750 V
+beep_enable:enabled
 
-> > The A7M266, as most Asus board at the time, is using an
-> > Asus-specific
-> > ASIC for hardware monitoring, rather than the sensors
-> > integrated in the
-> > south bridge. In your case, that would be an AS99127F, so
-> > you should
-> > load the w83781d driver rather than the via686a driver.
-> > sensors-detect
-> > should have told you exactly this,
-> 
-> I tried this:
-> 
-> # rmmod via686a
-> # modprobe w83781d
-> # sensors
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
 
-So for some reason the AS99127F isn't usable by the w83781d driver.
+--- On Mon, 1/24/11, Jean Delvare <khali@linux-fr.org> wrote:
 
-> > BTW. If it did not,
-> > please send the
-> > full output of sensors-detect for analysis.
-> 
-> Attached. 
-> (...)
-> Lastly, we can probe the I2C/SMBus adapters for connected hardware
-> monitoring devices. This is the most risky part, and while it works
-> reasonably well on most systems, it has been reported to cause trouble
-> on some systems.
-> Do you want to probe the I2C/SMBus adapters now? (YES/no): YES
-> Using driver `i2c-viapro' for device 0000:00:04.4: VIA Technologies VT82C686 Apollo ACPI
-> Module i2c-dev loaded successfully.
-> 
-> Next adapter: NVIDIA i2c adapter  (i2c-0)
-> Do you want to scan it? (YES/no/selectively): YES
-> 
-> Next adapter: NVIDIA i2c adapter  (i2c-1)
-> Do you want to scan it? (YES/no/selectively): YES
-> 
-> Next adapter: NVIDIA i2c adapter  (i2c-2)
-> Do you want to scan it? (YES/no/selectively): YES
+> The VIA Pro SMBus isn't probed, meaning that the driver
+> failed to bind
+> to the device. You should see some error message in the
+> kernel logs
+> when i2c-viapro is loaded.
+>=20
+> One possible cause is an ACPI resource conflict [1]. I am a
+> little
+> surprised as I didn't expect this kind of problem on such
+> an old board.
+> If this is the case, booting with
+> acpi_enforce_resources=3Dlax should
+> solve your problem.
+>=20
+> [1] http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworki=
+nginkernel2.6.31
+>=20
+> --=20
+> Jean Delvare
+> http://khali.linux-fr.org/wishlist.html
+>=20
 
-The VIA Pro SMBus isn't probed, meaning that the driver failed to bind
-to the device. You should see some error message in the kernel logs
-when i2c-viapro is loaded.
 
-One possible cause is an ACPI resource conflict [1]. I am a little
-surprised as I didn't expect this kind of problem on such an old board.
-If this is the case, booting with acpi_enforce_resources=lax should
-solve your problem.
-
-[1] http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
-
--- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+     =20
 
 _______________________________________________
 lm-sensors mailing list
