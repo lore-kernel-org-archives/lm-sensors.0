@@ -1,32 +1,40 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 10 Jan 2011 01:37:48 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon (dme1737): cleanups
-Message-Id: <20110110013748.GB27677@ericsson.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Tue, 25 Jan 2011 15:09:15 +0000
+Subject: [lm-sensors] [PATCH] lis33: turn down the no IRQ message
+Message-Id: <20110125150910.18731.92369.stgit@bob.linux.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTimTbiT_swuiyaHP9rLmN2iUfqPyu_gfq16QY-zv@mail.gmail.com>
-In-Reply-To: <AANLkTimTbiT_swuiyaHP9rLmN2iUfqPyu_gfq16QY-zv@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 09, 2011 at 04:02:02PM -0500, Jean Delvare wrote:
-> Hi Juerg,
-> 
-> Sorry for the late review.
-> 
-> On Thu, 16 Dec 2010 11:21:40 +0100, Juerg Haefliger wrote:
-> > Minor cleanups. Mostly removing assignments in if statements to get
-> > rid of checkpatch errors.
-> > 
-> > Signed-off-by: Juerg Haefliger <juergh at gmail.com>
-[ ... ]
-> 
-> Patch applied, thanks!
-> 
-Hope that won't conflict with Joe's pr_fmt changes. We'll see...
+From: Kalhan Trisal <kalhan.trisal@intel.com>
 
-Guenter
+Turn down the no IRQ message - on some platforms that's a normal state of
+affairs.
+
+Signed-off-by: Kalhan Trisal <kalhan.trisal@intel.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
+
+ drivers/hwmon/lis3lv02d.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 1b674b7..d805e8e 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -957,7 +957,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 
+ 	/* bail if we did not get an IRQ from the bus layer */
+ 	if (!dev->irq) {
+-		pr_err("No IRQ. Disabling /dev/freefall\n");
++		pr_debug("No IRQ. Disabling /dev/freefall\n");
+ 		goto out;
+ 	}
+ 
+
 
 _______________________________________________
 lm-sensors mailing list
