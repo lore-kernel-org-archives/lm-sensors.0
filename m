@@ -1,25 +1,21 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 22 Jan 2011 20:46:52 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) Override interface
-Message-Id: <20110122204652.GA22384@ericsson.com>
+Date: Tue, 25 Jan 2011 16:21:06 +0000
+Subject: [lm-sensors] i2ctools: Need capability to write SMBus block command
+Message-Id: <20110125162106.GA8024@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1295708831-10623-1-git-send-email-kronos.it@gmail.com>
-In-Reply-To: <1295708831-10623-1-git-send-email-kronos.it@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 22, 2011 at 10:07:11AM -0500, Luca Tettamanti wrote:
-> ASUS Sabertooth X58 has a bug in ACPI that prevents the reading of MCH
-> temperature when the "old" ATK0110 interface is used. Add a DMI entry
-> to override the detection heuristic and force the use of the "new"
-> interface on this board.
-> 
-> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-> Tested-by: Joris Creyghton <jorisctn@gmail.com>
+Hi,
 
-Applied.
+I need the capability to write a SMBus block command with i2ctools.
+
+Not an issue writing it myself. Question is if to expand i2cset to include
+that capability, or to write a new command (i2csetblock ?) to do it.
+
+Thoughts ?
 
 Thanks,
 Guenter
