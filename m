@@ -1,28 +1,38 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 21 Jan 2011 17:04:16 +0000
-Subject: Re: [lm-sensors] [PATCH] HWMON: (lis3lv02d) Convert SPI to
-Message-Id: <1295629456.9786.442.camel@groeck-laptop>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Tue, 25 Jan 2011 14:24:37 +0000
+Subject: [lm-sensors] [PATCH] lis33: add retries for SPI mode
+Message-Id: <20110125142426.9713.52651.stgit@bob.linux.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1295558876-25061-1-git-send-email-broonie@opensource.wolfsonmicro.com>
-In-Reply-To: <1295558876-25061-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2011-01-20 at 16:27 -0500, Mark Brown wrote:
-> There is a move to deprecate bus-specific PM operations and move to
-> using dev_pm_ops instead in order to reduce the amount of boilerplate
-> code in buses and facilitiate updates to the PM core. Do this move for
-> the lis3lv02d SPI driver.
-> 
-> Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+From: Kalhan Trisal <kalhan.trisal@intel.com>
 
-Applied to -next.
+Turn down the no IRQ message - on some platforms that's a normal state of
+affairs.
 
-Thanks,
-Guenter
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+---
 
+ drivers/hwmon/lis3lv02d.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
+index 1b674b7..d805e8e 100644
+--- a/drivers/hwmon/lis3lv02d.c
++++ b/drivers/hwmon/lis3lv02d.c
+@@ -957,7 +957,7 @@ int lis3lv02d_init_device(struct lis3lv02d *dev)
+ 
+ 	/* bail if we did not get an IRQ from the bus layer */
+ 	if (!dev->irq) {
+-		pr_err("No IRQ. Disabling /dev/freefall\n");
++		pr_debug("No IRQ. Disabling /dev/freefall\n");
+ 		goto out;
+ 	}
+ 
 
 
 _______________________________________________
