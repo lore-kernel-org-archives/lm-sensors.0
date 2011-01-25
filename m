@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 25 Jan 2011 16:22:30 +0000
+Date: Tue, 25 Jan 2011 16:22:54 +0000
 Subject: Re: [lm-sensors] [PATCH] lis33: turn down the no IRQ message
-Message-Id: <20110125162230.GB8024@ericsson.com>
+Message-Id: <20110125162254.GC8024@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110125150910.18731.92369.stgit@bob.linux.org.uk>
 In-Reply-To: <20110125150910.18731.92369.stgit@bob.linux.org.uk>
@@ -10,19 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jan 25, 2011 at 11:19:20AM -0500, Alan Cox wrote:
-> > > Basically though if dev->irq is not set it means there is no IRQ, and
-> > > that isn't neccessarily an error.
-> > > 
-> > Difference is developer knowledge (no irq) vs. user understanding. Sure, no irq 
-> > implies no freefall, and that is not an error. However, the user won't know that,
-> > and thus might appreciate a note.
+On Tue, Jan 25, 2011 at 10:09:15AM -0500, Alan Cox wrote:
+> From: Kalhan Trisal <kalhan.trisal@intel.com>
 > 
-> Unfortunately what happens is the user of the case it's not an error gets
-> a big scary message and panics thinking the device is broken.
+> Turn down the no IRQ message - on some platforms that's a normal state of
+> affairs.
 > 
-Hmm ... ok, I'll accept that, and redirect any resulting support cases to you ;).
+> Signed-off-by: Kalhan Trisal <kalhan.trisal@intel.com>
+> Signed-off-by: Alan Cox <alan@linux.intel.com>
 
+Applied.
+
+Thanks,
 Guenter
 
 _______________________________________________
