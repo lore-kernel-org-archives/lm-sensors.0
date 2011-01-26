@@ -1,37 +1,45 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 23 Jan 2011 16:55:51 +0000
-Subject: Re: [lm-sensors] 2.6.38-rc1/-2: applesmc lockdep warning
-Message-Id: <20110123165551.GA26435@ericsson.com>
+Date: Wed, 26 Jan 2011 21:52:24 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.38
+Message-Id: <1296078744-21895-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110122134513.1e1d512a@stein>
- <20110122200002.GA1677@polaris.bitmath.org>
- <20110122204050.GB22252@ericsson.com>
- <20110122205254.GA2854@polaris.bitmath.org>
- <20110123000016.387cde2c@stein>
- <20110123133857.GA2641@polaris.bitmath.org>
- <20110123163035.3d692745@stein>
-In-Reply-To: <20110123163035.3d692745@stein>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Henrik Rydberg <rydberg@euromail.se>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Sun, Jan 23, 2011 at 10:30:35AM -0500, Stefan Richter wrote:
-> On Jan 23 Henrik Rydberg wrote:
-> > On Sun, Jan 23, 2011 at 12:00:16AM +0100, Stefan Richter wrote:
-> > > With this patch, there is no lockdep warning anymore.  Thanks.
-> > 
-> > Thank you Stefan. How about a Tested-by, now that I forgot to add a
-> > Reported-by to the patch?
-> 
-> If it hasn't been committed yet,
-> Reported-and-tested-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Hi Linus,
 
-Added and applied.
+Please pull hwmon subsystem fixes for Linux 2.6.38 from:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
 Thanks,
-Guenter
+Guenter Roeck
+
+------
+
+The following changes since commit 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5:
+
+  Linux 2.6.38-rc2 (2011-01-21 19:01:34 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Henrik Rydberg (1):
+      hwmon: (applesmc) Properly initialize lockdep attributes
+
+Kalhan Trisal (1):
+      hwmon: (lis3) turn down the no IRQ message
+
+Luca Tettamanti (1):
+      hwmon: (asus_atk0110) Override interface detection on Sabertooth X58
+
+ drivers/hwmon/applesmc.c     |    1 +
+ drivers/hwmon/asus_atk0110.c |   23 ++++++++++++++++++++++-
+ drivers/hwmon/lis3lv02d.c    |    2 +-
+ 3 files changed, 24 insertions(+), 2 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
