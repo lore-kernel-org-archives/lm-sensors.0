@@ -1,59 +1,154 @@
-From: tip-bot for Fenghua Yu <fenghua.yu@intel.com>
-Date: Fri, 21 Jan 2011 15:37:10 +0000
-Subject: [lm-sensors] [tip:x86/urgent] x86, mcheck,
-Message-Id: <tip-f21bbec9ffcaf73e99938209e52b757d93f9133b@git.kernel.org>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 28 Jan 2011 02:36:30 +0000
+Subject: [lm-sensors] [PATCH v3 3/5] hwmon: (pmbus) Add support for Maxim
+Message-Id: <1296182192-28562-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110121041239.GB26954@linux-os.sc.intel.com>
-In-Reply-To: <20110121041239.GB26954@linux-os.sc.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-tip-commits@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, durgadoss.r@intel.com, hpa@zytor.com, mingo@redhat.com, lm-sensors@lm-sensors.org, fenghua.yu@intel.com, khali@linux-fr.org, tglx@linutronix.de, guenter.roeck@ericsson.com, mingo@elte.hu
+To: lm-sensors@vger.kernel.org
 
-Commit-ID:  f21bbec9ffcaf73e99938209e52b757d93f9133b
-Gitweb:     http://git.kernel.org/tip/f21bbec9ffcaf73e99938209e52b757d93f9133b
-Author:     Fenghua Yu <fenghua.yu@intel.com>
-AuthorDate: Thu, 20 Jan 2011 20:12:40 -0800
-Committer:  Ingo Molnar <mingo@elte.hu>
-CommitDate: Fri, 21 Jan 2011 14:11:12 +0100
-
-x86, mcheck, therm_throt.c: Export symbol platform_thermal_notify to allow coretemp to handler intr
-
-In therm_throt.c, commit
-9e76a97efd31a08cb19d0ba12013b8fb4ad3e474 patch doesn't export
-the symbol platform_thermal_notify.
-
-Other drivers (e.g. drivers/hwmon/coretemp.c) can not find the
-symbol platform_thermal_notify when defining threshould
-interrupt handler.
-
-Please apply this patch to allow threshold interrupt handler in
-coretemp.
-
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
-Cc: R Durgadoss <durgadoss.r@intel.com>
-Cc: khali@linux-fr.org <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org <lm-sensors@lm-sensors.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-LKML-Reference: <20110121041239.GB26954@linux-os.sc.intel.com>
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- arch/x86/kernel/cpu/mcheck/therm_throt.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/hwmon/Kconfig    |   10 +++++
+ drivers/hwmon/Makefile   |    1 +
+ drivers/hwmon/max16064.c |   91 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 102 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/max16064.c
 
-diff --git a/arch/x86/kernel/cpu/mcheck/therm_throt.c b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-index e12246f..6f8c5e9 100644
---- a/arch/x86/kernel/cpu/mcheck/therm_throt.c
-+++ b/arch/x86/kernel/cpu/mcheck/therm_throt.c
-@@ -59,6 +59,7 @@ struct thermal_state {
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index e88ab93..6578627 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -757,6 +757,16 @@ config SENSORS_PMBUS
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called pmbus.
  
- /* Callback to handle core threshold interrupts */
- int (*platform_thermal_notify)(__u64 msr_val);
-+EXPORT_SYMBOL(platform_thermal_notify);
++config SENSORS_MAX16064
++	tristate "Maxim MAX16064"
++	default n
++	help
++	  If you say yes here you get hardware monitoring support for Maxim
++	  MAX16064.
++
++	  This driver can also be built as a module. If so, the module will
++	  be called max16064.
++
+ config SENSORS_MAX8688
+ 	tristate "Maxim MAX8688"
+ 	default n
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 00c2e77..9c83d0d 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -115,6 +115,7 @@ obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
+ # PMBus drivers
+ obj-$(CONFIG_PMBUS)		+= pmbus_core.o
+ obj-$(CONFIG_SENSORS_PMBUS)	+= pmbus.o
++obj-$(CONFIG_SENSORS_MAX16064)	+= max16064.o
+ obj-$(CONFIG_SENSORS_MAX8688)	+= max8688.o
  
- static DEFINE_PER_CPU(struct thermal_state, thermal_state);
- 
+ ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
+diff --git a/drivers/hwmon/max16064.c b/drivers/hwmon/max16064.c
+new file mode 100644
+index 0000000..c751bc8
+--- /dev/null
++++ b/drivers/hwmon/max16064.c
+@@ -0,0 +1,91 @@
++/*
++ * Hardware monitoring driver for Maxim MAX16064
++ *
++ * Copyright (c) 2011 Ericsson AB.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/i2c.h>
++#include "pmbus.h"
++
++static struct pmbus_driver_info max16064_info = {
++	.pages = 4,
++	.direct[PSC_VOLTAGE_IN] = true,
++	.direct[PSC_VOLTAGE_OUT] = true,
++	.direct[PSC_TEMPERATURE] = true,
++	.m[PSC_VOLTAGE_IN] = 19995,
++	.b[PSC_VOLTAGE_IN] = 0,
++	.R[PSC_VOLTAGE_IN] = -1,
++	.m[PSC_VOLTAGE_OUT] = 19995,
++	.b[PSC_VOLTAGE_OUT] = 0,
++	.R[PSC_VOLTAGE_OUT] = -1,
++	.m[PSC_TEMPERATURE] = -7612,
++	.b[PSC_TEMPERATURE] = 335,
++	.R[PSC_TEMPERATURE] = -3,
++	.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_TEMP
++		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_TEMP,
++	.func[1] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
++	.func[2] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
++	.func[3] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
++};
++
++static int max16064_probe(struct i2c_client *client,
++			  const struct i2c_device_id *id)
++{
++	return pmbus_do_probe(client, id, &max16064_info);
++}
++
++static int max16064_remove(struct i2c_client *client)
++{
++	return pmbus_do_remove(client);
++}
++
++static const struct i2c_device_id max16064_id[] = {
++	{"max16064", 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, max16064_id);
++
++/* This is the driver that will be inserted */
++static struct i2c_driver max16064_driver = {
++	.driver = {
++		   .name = "max16064",
++		   },
++	.probe = max16064_probe,
++	.remove = max16064_remove,
++	.id_table = max16064_id,
++};
++
++static int __init max16064_init(void)
++{
++	return i2c_add_driver(&max16064_driver);
++}
++
++static void __exit max16064_exit(void)
++{
++	i2c_del_driver(&max16064_driver);
++}
++
++MODULE_AUTHOR("Guenter Roeck");
++MODULE_DESCRIPTION("PMBus driver for Maxim MAX16064");
++MODULE_LICENSE("GPL");
++module_init(max16064_init);
++module_exit(max16064_exit);
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
