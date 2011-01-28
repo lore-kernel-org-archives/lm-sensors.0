@@ -1,56 +1,90 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 28 Jan 2011 09:25:17 +0000
+Date: Fri, 28 Jan 2011 09:39:09 +0000
 Subject: Re: [lm-sensors] Identifying i2c devices on Asus P8P67 sandybridge
-Message-Id: <20110128102517.6f7da7b1@endymion.delvare>
+Message-Id: <20110128103909.46ceb3f6@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D40E39E.4030406@cfl.rr.com>
 In-Reply-To: <4D40E39E.4030406@cfl.rr.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, 27 Jan 2011 23:51:00 -0500, Phillip Susi wrote:
-> On 01/27/2011 12:14 PM, Jean Delvare wrote:
-> >>> I am surprised by the tRAS though, it seems way too high, there may be a
-> >>> bug in the script.
-> >>
-> >> It should be 6-8-6-24.
-> >
-> > Really? Is this what memtest86 is report? It's a long time since I last
-> > saw a memory module with the 3 first digits not being the same.
-> 
-> memtest86 seems to hang or reboot.
+Hi Phillip,
 
-FWIW, last time I experienced this, it was caused by a mouse connected
-to the serial port of the machine. Disconnecting the mouse fixed it.
+On Thu, 27 Jan 2011 13:47:39 -0500, Phillip Susi wrote:
+> On 1/27/2011 12:14 PM, Jean Delvare wrote:
+> > I wholeheartedly agree that pwmconfig and fancontrol suck. They are
+> > afternoon hacks that have grown too old, and I wouldn't recommend
+> > anyone to use them. I wish someone interested would write a proper tool
+> > (i.e. not written in bash to start with) to deal with manual fan speed
+> > control. And automatic fan speed control, too.
+>=20
+> Frequency control started off in user space too, then moved to the
+> kernel.  Maybe it is time for the same to be done with fan speed.  A
+> generic fan control driver could be written to interface with the hwmon
+> devices.
 
-Also, there are various versions of memtest86 and memtest86+ around,
-trying a different version might work around the bug. OTOH, old
-versions probably won't know how to deal with DDR3.
+Well, if you thought that the CPU frequency scaling case was difficult
+and that explained why it took so long to get right, please realize
+that thermal regulation is one order of magnitude more complex.
 
-> I am now quite confused because the 
-> part number that I ordered was OCZ3P11600C6LV4GK and was listed on 
-> newegg as having 6-8-6-24 timings.  That is the part number listed on 
-> the retail packaging, but the SPD decodes with decode-dimms ( release 
-> 3.0.3 ) as having part number OCZ3P1600C6LV2G with 7-7-7-33 timing.  The 
-> Asus bios has an SPD decode utility that agrees with the part number, 
-> but shows 7-7-7 for cas, trcp, trp, but 16 for tras, not 33.  Despite 
-> showing tRas as 16 in the SPD, it defaults to driving it at 18.  It also 
-> lists a bunch of additional timings, none of which are 33.  I can find 
-> neither part number on OCZ's web site.
+> The problem is that it still would require manual configuration of which
+> temperature sensors should govern which fan pwm controls, since the
+> platform does not provide that information.
 
-Oh well. The market of memory modules has gone crazy. And the number of
-timing values has literally exploded since DDR2. My BIOS offers to let
-me tweak each setting manually and I got totally frightened by the
-length of the list (of course I set it all back to auto and ran away.)
+Yes, this is the problem exactly. Except for embedded design and vendor
+machines (e.g. Apple), the kernel has no clue how fan inputs, fan
+outputs and temperature inputs relate to each other. Nor does it have a
+clue on what each temperature sensor is measuring, or which part of the
+machine each fan is cooling.
 
-Anyway, I don't think this will be a big issue in practice. All I
-really meant was: take the output of decode-dimms with a grain of salt,
-while it should be OK on SDRAM and DDR, DDR2 and DDR3 support isn't too
-well tested and the reported values may be incorrect.
+This is the reason why configuration is difficult, and why it has to
+happen in user-space. The only way this could be addressed in the PC
+world is if ACPI (or any similarly broadly adopted specification) was
+to give vendors a way to describe all these relations in a simple and
+unambiguous way. But then again I don't expect it to happen anytime
+soon, as PC board manufacturers use their proprietary tuning software
+as differentiators on the market.
 
--- 
+OTOH, I strongly believe that thermal management should NOT be
+OS-dependent in the first place. We have chips which can do automatic
+fan speed control, it's up to the BIOS to program them at start-up to
+avoid any overheating of the system. Letting the user select a profile
+(as Asus is doing) is nice, and as long as the BIOS does its job
+properly and gives enough flexibility, it should be enough in practice
+for 95% of the users. Fine-tuning at run-time would be nice to have,
+but I don't expect my parents to use it. Maybe not even me.
+
+> > And even with the two statements above, I still claim that native
+> > hwmon drivers are doing a much better job than any ACPI implementation
+> > I've seen. And don't believe it makes me happy: I would love all
+> > systems to have hardware monitoring support working out of the box
+> > thanks to a brilliant ACPI specification and no-less brilliant
+> > implementations. But I don't expect this to happen any time soon :(
+>=20
+> Indeed.  It seems to me that vendors just don't care to do it right in
+> the standard way since they can just ship a windows driver that will
+> make 99% of their customers happy.
+
+Sad but true :(
+
+> That is another reason I was
+> wondering about doing it with an SSDT.  If I could, it would show
+> clearly that it CAN be done, and pressure could be put on vendors to
+> start doing it the right way.
+
+Sure, but I'm not holding my breath. Once I reported to a board vendor
+(Jetway) that their TZ code was reading the temperature from the wrong
+register, returning a constant 9=B0C instead of the actual temperature
+value. It would have been fixed with changing one constant in the DSDT.
+I never got any reply, and they never fixed it.
+
+But well, one can certainly hope that some vendors are better than
+others, and dream that the trend is for them to get more open to their
+customers.
+
+--=20
 Jean Delvare
 
 _______________________________________________
