@@ -1,45 +1,73 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 26 Jan 2011 21:52:24 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.38
-Message-Id: <1296078744-21895-1-git-send-email-guenter.roeck@ericsson.com>
+From: stigge@antcom.de
+Date: Sat, 29 Jan 2011 16:04:01 +0000
+Subject: [lm-sensors] [PATCH] max6639.c: Set reasonable default PWM frequency
+Message-Id: <1296317041-28718-1-git-send-email-stigge@antcom.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+max6639.c: Set reasonable default PWM frequency
 
-Please pull hwmon subsystem fixes for Linux 2.6.38 from:
+This patch initializes register CONFIG3 to a reasonable default PWM frequency
+of 25kHz, to prevent audible sound in fan.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+Signed-off-by: Roland Stigge <stigge@antcom.de>
 
-Thanks,
-Guenter Roeck
-
-------
-
-The following changes since commit 1bae4ce27c9c90344f23c65ea6966c50ffeae2f5:
-
-  Linux 2.6.38-rc2 (2011-01-21 19:01:34 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Henrik Rydberg (1):
-      hwmon: (applesmc) Properly initialize lockdep attributes
-
-Kalhan Trisal (1):
-      hwmon: (lis3) turn down the no IRQ message
-
-Luca Tettamanti (1):
-      hwmon: (asus_atk0110) Override interface detection on Sabertooth X58
-
- drivers/hwmon/applesmc.c     |    1 +
- drivers/hwmon/asus_atk0110.c |   23 ++++++++++++++++++++++-
- drivers/hwmon/lis3lv02d.c    |    2 +-
- 3 files changed, 24 insertions(+), 2 deletions(-)
+diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
+index 40fd878..f20d997 100644
+--- a/drivers/hwmon/max6639.c
++++ b/drivers/hwmon/max6639.c
+@@ -64,9 +64,12 @@ static unsigned short normal_i2c[] = { 0x2c, 0x2e, 0x2f, I2C_CLIENT_END };
+ #define MAX6639_GCONFIG_POR			0x40
+ #define MAX6639_GCONFIG_DISABLE_TIMEOUT		0x20
+ #define MAX6639_GCONFIG_CH2_LOCAL		0x10
++#define MAX6639_GCONFIG_PWM_FREQ_HI		0x08
+ 
+ #define MAX6639_FAN_CONFIG1_PWM			0x80
+ 
++#define MAX6639_FAN_CONFIG3_THERM_FULL_SPEED	0x40
++
+ static const int rpm_ranges[] = { 2000, 4000, 8000, 16000 };
+ 
+ #define FAN_FROM_REG(val, div, rpm_range)	((val) = 0 ? -1 : \
+@@ -430,7 +433,7 @@ static int max6639_init_client(struct i2c_client *client)
+ 	int rpm_range = 1; /* default: 4000 RPM */
+ 	int err = 0;
+ 
+-	/* Reset chip to default values */
++	/* Reset chip to default values, see below for GCONFIG setup */
+ 	err = i2c_smbus_write_byte_data(client, MAX6639_REG_GCONFIG,
+ 				  MAX6639_GCONFIG_POR);
+ 	if (err)
+@@ -472,6 +475,16 @@ static int max6639_init_client(struct i2c_client *client)
+ 		if (err)
+ 			goto exit;
+ 
++		/*
++		 * /THERM full speed enable,
++		 * PWM frequency 25kHz, see also GCONFIG below
++		 */
++		err = i2c_smbus_write_byte_data(client,
++			MAX6639_REG_FAN_CONFIG3(i),
++			MAX6639_FAN_CONFIG3_THERM_FULL_SPEED | 0x03);
++		if (err)
++			goto exit;
++
+ 		/* Max. temp. 80C/90C/100C */
+ 		data->temp_therm[i] = 80;
+ 		data->temp_alert[i] = 90;
+@@ -500,7 +513,8 @@ static int max6639_init_client(struct i2c_client *client)
+ 	}
+ 	/* Start monitoring */
+ 	err = i2c_smbus_write_byte_data(client, MAX6639_REG_GCONFIG,
+-		MAX6639_GCONFIG_DISABLE_TIMEOUT | MAX6639_GCONFIG_CH2_LOCAL);
++		MAX6639_GCONFIG_DISABLE_TIMEOUT | MAX6639_GCONFIG_CH2_LOCAL |
++		MAX6639_GCONFIG_PWM_FREQ_HI);
+ exit:
+ 	return err;
+ }
 
 _______________________________________________
 lm-sensors mailing list
