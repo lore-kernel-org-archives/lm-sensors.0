@@ -1,7 +1,7 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Sat, 29 Jan 2011 19:13:41 +0000
+From: David Anderson <davea42@gmail.com>
+Date: Sun, 30 Jan 2011 20:49:30 +0000
 Subject: Re: [lm-sensors] W83795AG on SuperMicro 7046T-NTR+ board
-Message-Id: <20110129191341.GB1896@khazad-dum.debian.net>
+Message-Id: <4D45CEDA.7090608@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D44621B.40506@earthlink.net>
 In-Reply-To: <4D44621B.40506@earthlink.net>
@@ -10,23 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 29 Jan 2011, David Anderson wrote:
-> Supermicro support supplied the following info
-> on the Winbond W83795AG on SuperMicro 7046T-NTR+ board
+Thanks for the info provided by all in this thread.
+w83795.c compiled and installed (64bit)  --  and
+combined with the appropriate new  conf (based on X8SAX/C7X58 conf )
+I now have meaningful temp and fan readings.   Much appreciated.
+Till Ubuntu gets up to  2.6.37 I'll probably have to redo the process
+(beginning with recompile)  with each new kernel, but that is fine.
 
-Compare it with my posts about the X8SAX/C7X58 and the config file that
-resulted from it, and you will be able to extrapolate the correct config
-file for the 7046T-NTR+.
-
-The supermicro-supplied data is in the list archives, and the final
-config file is in the lm-sensors site (and probably in the list archives
-as well).
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+Thanks again.
+DavidAnderson
 
 _______________________________________________
 lm-sensors mailing list
