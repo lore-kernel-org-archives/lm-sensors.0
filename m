@@ -1,143 +1,158 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 31 Jan 2011 16:32:51 +0000
-Subject: [lm-sensors] libsensors: Add more sysfs attributes
-Message-Id: <20110131163251.GA4542@ericsson.com>
+Date: Mon, 31 Jan 2011 17:57:56 +0000
+Subject: [lm-sensors] sensors-detect: Add capability to detect various EMC
+Message-Id: <20110131175756.GA5048@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The following patch updates libsensors to support recently added sysfs attributes.
-
-This does not include the new humidity attribute; this will be a separate patch
-since it requires a new sensor feature type.
+This patch adds support for various EMC temperature sensors to sensors-detect.
 
 --
-Index: doc/libsensors-API.txt
-=================================--- doc/libsensors-API.txt	(revision 5909)
-+++ doc/libsensors-API.txt	(working copy)
-@@ -14,13 +14,25 @@
- * Added support for various new sysfs attributes
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT_ALARM
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_HYST
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT
-   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT_ALARM
-+  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT_ALARM
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5909)
++++ prog/detect/sensors-detect	(working copy)
+@@ -1195,16 +1195,36 @@
+ 		i2c_addrs => [0x2f],
+ 		i2c_detect => sub { fintek_detect(@_, 7); },
+ 	}, {
++		name => "SMSC EMC1002",
++		driver => "to-be-written",
++		i2c_addrs => [0x3c, 0x3d, 0x4c, 0x4d],
++		i2c_detect => sub { emc1403_detect(@_, 4); },
++	}, {
+ 		name => "SMSC EMC1023",
+ 		driver => "to-be-written",	# emc1023
+ 		i2c_addrs => [0x48, 0x49, 0x4c, 0x4d],
+ 		i2c_detect => sub { emc1023_detect(@_, 0); },
+ 	}, {
++		name => "SMSC EMC1033",
++		driver => "to-be-written",
++		i2c_addrs => [0x3c, 0x3d, 0x4c, 0x4d],
++		i2c_detect => sub { emc1403_detect(@_, 5); },
++	}, {
+ 		name => "SMSC EMC1043",
+ 		driver => "to-be-written",	# emc1023
+ 		i2c_addrs => [0x48, 0x49, 0x4c, 0x4d],
+ 		i2c_detect => sub { emc1023_detect(@_, 1); },
+ 	}, {
++		name => "SMSC EMC1046",
++		driver => "to-be-written",
++		i2c_addrs => [0x4c, 0x4d],
++		i2c_detect => sub { emc1403_detect(@_, 6); },
++	}, {
++		name => "SMSC EMC1047",
++		driver => "to-be-written",
++		i2c_addrs => [0x10, 0x18],
++		i2c_detect => sub { emc1403_detect(@_, 7); },
++	}, {
+ 		name => "SMSC EMC1053",
+ 		driver => "to-be-written",	# emc1023
+ 		i2c_addrs => [0x48, 0x49, 0x4c, 0x4d],
+@@ -1215,6 +1235,26 @@
+ 		i2c_addrs => [0x48, 0x49, 0x4c, 0x4d],
+ 		i2c_detect => sub { emc1023_detect(@_, 3); },
+ 	}, {
++		name => "SMSC EMC1072",
++		driver => "to-be-written",
++		i2c_addrs => [0x1c, 0x3c, 0x4c, 0x5c, 0x6c, 0x7c],
++		i2c_detect => sub { emc1403_detect(@_, 8); },
++	}, {
++		name => "SMSC EMC1073",
++		driver => "to-be-written",
++		i2c_addrs => [0x1c, 0x3c, 0x4c, 0x5c, 0x6c, 0x7c],
++		i2c_detect => sub { emc1403_detect(@_, 9); },
++	}, {
++		name => "SMSC EMC1074",
++		driver => "to-be-written",
++		i2c_addrs => [0x1c, 0x3c, 0x4c, 0x5c, 0x6c, 0x7c],
++		i2c_detect => sub { emc1403_detect(@_, 10); },
++	}, {
++		name => "SMSC EMC1402",
++		driver => "to-be-written",
++		i2c_addrs => [0x18, 0x19, 0x4c, 0x4d],
++		i2c_detect => sub { emc1403_detect(@_, 11); },
++	}, {
+ 		name => "SMSC EMC1403",
+ 		driver => "emc1403",
+ 		i2c_addrs => [0x18, 0x2a, 0x4c, 0x4d],
+@@ -1230,6 +1270,11 @@
+ 		i2c_addrs => [0x18, 0x2a, 0x4c, 0x4d],
+ 		i2c_detect => sub { emc1403_detect(@_, 3); },
+ 	}, {
++		name => "SMSC EMC1424",
++		driver => "to-be-written",
++		i2c_addrs => [0x4c],
++		i2c_detect => sub { emc1403_detect(@_, 12); },
++	}, {
+ 		name => "ST STTS424",
+ 		driver => "jc42",
+ 		i2c_addrs => [0x18..0x1f],
+@@ -5434,7 +5479,11 @@
+ 	return 7;
+ }
  
- 0x430	lm-sensors 3.2.0
- * License changed from GPL to LGPL
-Index: lib/sensors.h
-=================================--- lib/sensors.h	(revision 5909)
-+++ lib/sensors.h	(working copy)
-@@ -160,6 +160,8 @@
- 	SENSORS_SUBFEATURE_IN_MIN_ALARM,
- 	SENSORS_SUBFEATURE_IN_MAX_ALARM,
- 	SENSORS_SUBFEATURE_IN_BEEP,
-+	SENSORS_SUBFEATURE_IN_LCRIT_ALARM,
-+	SENSORS_SUBFEATURE_IN_CRIT_ALARM,
+-# Chip to detect: 0 = EMC1403, 1 = EMC1404, 2 = EMC2103, 3 = EMC1423
++# Chip to detect: 0 = EMC1403, 1 = EMC1404, 2 = EMC2103, 3 = EMC1423,
++#	4 = EMC1033, 5 = EMC1073, 6 = EMC1074, 7 = EMC1046, 8 = EMC1047,
++#	9 = EMC1402, 10 = EMC1072, 11 = EMC1424, 12 = EMC1002
++#	4 = EMC1002, 5 = EMC1033, 6 = EMC1046, 7 = EMC1047, 8 = EMC1072,
++#	9 = EMC1073, 10 = EMC1074, 11 = EMC1402, 12 = EMC1424
+ # Registers used:
+ #   0xfd: Device ID register
+ #   0xfe: Vendor ID register
+@@ -5448,18 +5497,45 @@
  
- 	SENSORS_SUBFEATURE_FAN_INPUT = SENSORS_FEATURE_FAN << 8,
- 	SENSORS_SUBFEATURE_FAN_MIN,
-@@ -186,6 +188,7 @@
- 	SENSORS_SUBFEATURE_TEMP_OFFSET,
- 	SENSORS_SUBFEATURE_TEMP_BEEP,
- 	SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM,
-+	SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM,
+ 	return unless $man_id = 0x5d;	# SMSC
  
- 	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
- 	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
-@@ -195,18 +198,27 @@
- 	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
- 	SENSORS_SUBFEATURE_POWER_CAP,
- 	SENSORS_SUBFEATURE_POWER_CAP_HYST,
-+	SENSORS_SUBFEATURE_POWER_MAX,
-+	SENSORS_SUBFEATURE_POWER_CRIT,
- 	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
- 	SENSORS_SUBFEATURE_POWER_ALARM,
-+	SENSORS_SUBFEATURE_POWER_CAP_ALARM,
-+	SENSORS_SUBFEATURE_POWER_MAX_ALARM,
-+	SENSORS_SUBFEATURE_POWER_CRIT_ALARM,
+-	if ($chip = 0) {
++	if ($chip = 0) {		# EMC1403
+ 		return unless $dev_id = 0x21;
+ 		return unless $rev = 0x01;
+-	} elsif ($chip = 1) {
++	} elsif ($chip = 1) {		# EMC1404
+ 		return unless $dev_id = 0x25;
+ 		return unless $rev = 0x01;
+-	} elsif ($chip = 2) {
++	} elsif ($chip = 2) {		# EMC2103
+ 		return unless ($dev_id = 0x24) || ($dev_id = 0x26);
+ 		return unless $rev = 0x01;
+-	} elsif ($chip = 3) {
++	} elsif ($chip = 3) {		# EMC1423
+ 		return unless $dev_id = 0x23;
+ 		return unless $rev = 0x01;
++	} elsif ($chip = 4) {		# EMC1002
++		return unless ($dev_id = 0x02) || ($dev_id = 0x03);
++		return unless $rev = 0x01;
++	} elsif ($chip = 5) {		# EMC1033
++		return unless ($dev_id = 0x0a) || ($dev_id = 0x0b);
++		return unless $rev = 0x01;
++	} elsif ($chip = 6) {		# EMC1046
++		return unless $dev_id = 0x1a;
++		return unless $rev = 0x01;
++	} elsif ($chip = 7) {		# EMC1047
++		return unless $dev_id = 0x1c;
++		return unless $rev = 0x01;
++	} elsif ($chip = 8) {		# EMC1072
++		return unless $dev_id = 0x20;
++		return unless $rev = 0x03;
++	} elsif ($chip = 9) {		# EMC1073
++		return unless $dev_id = 0x21;
++		return unless $rev = 0x03;
++	} elsif ($chip = 10) {		# EMC1074
++		return unless $dev_id = 0x25;
++		return unless $rev = 0x03;
++	} elsif ($chip = 11) {		# EMC1402
++		return unless $dev_id = 0x20;
++		return unless $rev = 0x01;
++	} elsif ($chip = 12) {		# EMC1424
++		return unless $dev_id = 0x27;
++		return unless $rev = 0x01;
+ 	}
  
- 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
- 
- 	SENSORS_SUBFEATURE_CURR_INPUT = SENSORS_FEATURE_CURR << 8,
- 	SENSORS_SUBFEATURE_CURR_MIN,
- 	SENSORS_SUBFEATURE_CURR_MAX,
-+	SENSORS_SUBFEATURE_CURR_LCRIT,
-+	SENSORS_SUBFEATURE_CURR_CRIT,
- 	SENSORS_SUBFEATURE_CURR_ALARM = (SENSORS_FEATURE_CURR << 8) | 0x80,
- 	SENSORS_SUBFEATURE_CURR_MIN_ALARM,
- 	SENSORS_SUBFEATURE_CURR_MAX_ALARM,
- 	SENSORS_SUBFEATURE_CURR_BEEP,
-+	SENSORS_SUBFEATURE_CURR_LCRIT_ALARM,
-+	SENSORS_SUBFEATURE_CURR_CRIT_ALARM,
- 
- 	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
- 
-Index: lib/sysfs.c
-=================================--- lib/sysfs.c	(revision 5909)
-+++ lib/sysfs.c	(working copy)
-@@ -234,6 +234,7 @@
- 	{ "max_alarm", SENSORS_SUBFEATURE_TEMP_MAX_ALARM },
- 	{ "crit_alarm", SENSORS_SUBFEATURE_TEMP_CRIT_ALARM },
- 	{ "emergency_alarm", SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM },
-+	{ "lcrit_alarm", SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM },
- 	{ "fault", SENSORS_SUBFEATURE_TEMP_FAULT },
- 	{ "type", SENSORS_SUBFEATURE_TEMP_TYPE },
- 	{ "offset", SENSORS_SUBFEATURE_TEMP_OFFSET },
-@@ -250,6 +251,8 @@
- 	{ "alarm", SENSORS_SUBFEATURE_IN_ALARM },
- 	{ "min_alarm", SENSORS_SUBFEATURE_IN_MIN_ALARM },
- 	{ "max_alarm", SENSORS_SUBFEATURE_IN_MAX_ALARM },
-+	{ "lcrit_alarm", SENSORS_SUBFEATURE_IN_LCRIT_ALARM },
-+	{ "crit_alarm", SENSORS_SUBFEATURE_IN_CRIT_ALARM },
- 	{ "beep", SENSORS_SUBFEATURE_IN_BEEP },
- 	{ NULL, 0 }
- };
-@@ -273,7 +276,12 @@
- 	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
- 	{ "cap", SENSORS_SUBFEATURE_POWER_CAP },
- 	{ "cap_hyst", SENSORS_SUBFEATURE_POWER_CAP_HYST },
-+	{ "cap_alarm", SENSORS_SUBFEATURE_POWER_CAP_ALARM },
- 	{ "alarm", SENSORS_SUBFEATURE_POWER_ALARM },
-+	{ "max", SENSORS_SUBFEATURE_POWER_MAX },
-+	{ "max_alarm", SENSORS_SUBFEATURE_POWER_MAX_ALARM },
-+	{ "crit", SENSORS_SUBFEATURE_POWER_CRIT },
-+	{ "crit_alarm", SENSORS_SUBFEATURE_POWER_CRIT_ALARM },
- 	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
- 	{ NULL, 0 }
- };
-@@ -287,9 +295,13 @@
- 	{ "input", SENSORS_SUBFEATURE_CURR_INPUT },
- 	{ "min", SENSORS_SUBFEATURE_CURR_MIN },
- 	{ "max", SENSORS_SUBFEATURE_CURR_MAX },
-+	{ "lcrit", SENSORS_SUBFEATURE_CURR_LCRIT },
-+	{ "crit", SENSORS_SUBFEATURE_CURR_CRIT },
- 	{ "alarm", SENSORS_SUBFEATURE_CURR_ALARM },
- 	{ "min_alarm", SENSORS_SUBFEATURE_CURR_MIN_ALARM },
- 	{ "max_alarm", SENSORS_SUBFEATURE_CURR_MAX_ALARM },
-+	{ "lcrit_alarm", SENSORS_SUBFEATURE_CURR_LCRIT_ALARM },
-+	{ "crit_alarm", SENSORS_SUBFEATURE_CURR_CRIT_ALARM },
- 	{ "beep", SENSORS_SUBFEATURE_CURR_BEEP },
- 	{ NULL, 0 }
- };
+ 	return 6;
 
 _______________________________________________
 lm-sensors mailing list
