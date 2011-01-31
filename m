@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 31 Jan 2011 08:07:37 +0000
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Date: Mon, 31 Jan 2011 17:11:01 +0000
 Subject: Re: [lm-sensors] W83795AG on SuperMicro 7046T-NTR+ board
-Message-Id: <20110131090737.300862a3@endymion.delvare>
+Message-Id: <20110131171101.GE16932@khazad-dum.debian.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D44621B.40506@earthlink.net>
 In-Reply-To: <4D44621B.40506@earthlink.net>
@@ -10,87 +10,70 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 30 Jan 2011 13:13:24 -0800, David Anderson wrote:
-> Here is a configure file that worked (to go with the new
-> kernel module).  It may not be perfect.  inserted it as
-> /etc/sensors.d/w83795ag.conf
-> 
-> chip "w83795-*"
+Here is the latest version of my C7X58 config, for reference.  I did
+have to ask supermicro for clarifications, to derive a correct formula
+for in5.  The first data they sent was bogus.
 
-This can't work, as the chip will be named w83795adg-* or w83795g-* by
-libsensors.
+#
+# Data for SuperMicro C7X58 and X8SAX boards, revision 1.1 or 2.0
+# Scaling factors kindly provided by SuperMicro support.
+# 
+# Board has two sensor chips, w83627dhg is not used for temperature,
+# fans or voltage sensing.  BIOS allows one to set w83795adg
+# parameters, such as voltage or PWM fan control and default strategy.
+#
 
-> 
->     label fan1 "Fan1"
->     label fan2 "Fan2"
->     label fan3 "Fan3"
->     label fan4 "Fan4"
->     label fan5 "Fan5"
->     label fan6 "Fan6"
->     label fan7 "fanignore"
->     label fan8 "Fan8"
-> 
->     label in0  "vCPU2"
->     label in1  "vCPU1"
->     label in3  "+5V"
->     label in4  "+12V"
->     label in5  "5vSB"
->     label in6  "vcpu2dimm"
->     label in7  "vcpu1dimm"
->     label in11 "VTT"
->     label in12 "+3.3V"
->     label in13 "+3.3Vsb"
->     label in14 "Vbatt"
-> 
-> 
->     label temp5 "System temp"
->     label temp7 "CPU1 temp"
->     label temp8 "CPU2 temp"
-> 
->     compute in3 @*(40/10), @/(40/10)
->     compute in4 @*(10/66.2), @/(10/66.2)
+chip "w83795adg-*"
 
-This is extremely unlikely. Scaling factors are never less than 1.0.
+label fan1 "CPU Fan"
 
->     compute in5 @*(40/10), @/(40/10)
-> 
-> 
-> 
-> 
-> chip "w83627hf-*"
-> 
-> # SuperIO chip used only for the FDC, UARTs and GPIO
-> # SENSORS ARE NOT WIRED
-> # Power Supply Failure, GP31(From W83627DHG-P)    1 = Good, 0 = Bad
+label in0  "CPU Core"
+label in2  "DIMM"
+label in3  "+5V"
+label in4  "+12V"
+label in5  "-12V"
+label in11 "VTT"
+label in12 "+3.3V"
+label in13 "+3.3Vsb"
+label in14 "Vbatt"
 
-There is some inconsistency here. A W83627DHG-P chip would be named
-w83627dhg-* by libsensors, not w83627hf-*.
+label temp6 "System temperature"
+label temp7 "CPU temperature"
 
-> 
-> ignore fan1
-> ignore fan2
-> ignore fan3
-> ignore fan4
-> ignore fan5
-> ignore temp1
-> ignore temp2
-> ignore temp3
-> ignore in0
-> ignore in1
-> ignore in2
-> ignore in3
-> ignore in4
-> ignore in5
-> ignore in6
-> ignore in7
-> ignore in8
-> ignore cpu0_vid
+compute in3 @*4, @/4
+compute in4 @*6.62, @/6.62
+compute in5 (@-2.048)*24.2 + 2.048, ((@-2.048)/24.2)+2.048
 
-It's more efficient to just not load the w83627hf (or w83627ehf) driver
-on this board.
+chip "w83627dhg-*"
+
+# SuperIO chip used only for the FDC, UARTs and GPIO
+# SENSORS ARE NOT WIRED
+# Power Supply Failure, GP31(From W83627DHG-P)    1 = Good, 0 = Bad
+
+ignore fan1
+ignore fan2
+ignore fan3
+ignore fan4
+ignore fan5
+ignore temp1
+ignore temp2
+ignore temp3
+ignore in0
+ignore in1
+ignore in2
+ignore in3
+ignore in4
+ignore in5
+ignore in6
+ignore in7
+ignore in8
+ignore cpu0_vid
 
 -- 
-Jean Delvare
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
 
 _______________________________________________
 lm-sensors mailing list
