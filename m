@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 30 Jan 2011 21:18:52 +0000
+Date: Mon, 31 Jan 2011 08:07:37 +0000
 Subject: Re: [lm-sensors] W83795AG on SuperMicro 7046T-NTR+ board
-Message-Id: <20110130221852.559f147a@endymion.delvare>
+Message-Id: <20110131090737.300862a3@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D44621B.40506@earthlink.net>
 In-Reply-To: <4D44621B.40506@earthlink.net>
@@ -10,63 +10,84 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
+On Sun, 30 Jan 2011 13:13:24 -0800, David Anderson wrote:
+> Here is a configure file that worked (to go with the new
+> kernel module).  It may not be perfect.  inserted it as
+> /etc/sensors.d/w83795ag.conf
+> 
+> chip "w83795-*"
 
-On Sat, 29 Jan 2011 10:53:15 -0800, David Anderson wrote:
-> Supermicro support supplied the following info
-> on the Winbond W83795AG on SuperMicro 7046T-NTR+ board
-> 
-> Bus Type = SMBus
-> One W83795AG
-> 
-> Windbond W83795AG, Slave Address=0x2f (0x5E in 8-Bit format)
-> ==============================> Fan1 Fan Speed, Offset 0x2e		RPM = 84375/Data
-> Fan2 Fan Speed, Offset 0x2f		RPM = 84375/Data
-> Fan3 Fan Speed, Offset 0x30		RPM = 84375/Data
-> Fan4 Fan Speed, Offset 0x31		RPM = 84375/Data
-> Fan5 Fan Speed, Offset 0x32		RPM = 84375/Data
-> Fan6 Fan Speed, Offset 0x33		RPM = 84375/Data
-> Fan7 Fan Speed, Offset 0x34		RPM = 84375/Data
-> Fan8 Fan Speed, Offset 0x35		RPM = 84375/Data
-> Fan9 Fan Speed, Offset 0x36		RPM = 84375/Data
-> CPU1 Voltage, Offset 0x11		Voltage = Data* 0.008
-> CPU2 Voltage, Offset 0x10		Voltage = Data* 0.008
-> +1.5V Voltage, Offset 0x12		Voltage = Data* 0.008
-> +5V Voltage, Offset 0x13		Voltage = Data* 0.008 * (40/10)
-> +12V Voltage, Offset 0x14		Voltage = Data* 0.008/ (10./66.2)
-> +5VSB Voltage, Offset 0x15		Voltage = Data* 0.008 * (40/10)
-> CPU1 DIMM Voltage, Offset 0x17		Voltage = Data* 0.008
-> CPU2 DIMM Voltage, Offset 0x16		Voltage = Data* 0.008
-> +3.3V Voltage, Offset 0x1c		Voltage = Data* 0.024
-> +3.3VSB Voltage, Offset 0x1d		Voltage = Data* 0.024
-> VBAT Voltage, Offset 0x1e		Voltage = Data* 0.024
-> CPU1 Temperature, Offset 0x26		Temperature = Data
-> CPU2 Temperature, Offset 0x27		Temperature = Data
-> System Temperature, Offset 0x1f		Temperature = Data
-> Chassis Intrusion, Bank 0, Offset 0x46, BitMask 0x40	1 = Bad, 0 = Good
-> 			(Clear Bit: Bank 0, Offset 0x4d, BitMask 0x80)
-> 
-> 
-> Power Supply Failure, GP21(From W83527HG)		1 = Good, 0 = Bad
-> 
-> 
-> I don't yet understand how to use this info though. Ubuntu 10.10.
+This can't work, as the chip will be named w83795adg-* or w83795g-* by
+libsensors.
 
-This tells you that the board uses a Winbond W83795 chip (not sure which one
-exactly, as I know of two variants "G" and "ADG" and they told you
-"AG" which I don't think exists...) for hardware monitoring. This
-device is supported by "my" w83795 driver, which is available since
-kernel 2.6.37 or as a standalone driver at:
-  http://khali.linux-fr.org/devel/misc/w83795/
+> 
+>     label fan1 "Fan1"
+>     label fan2 "Fan2"
+>     label fan3 "Fan3"
+>     label fan4 "Fan4"
+>     label fan5 "Fan5"
+>     label fan6 "Fan6"
+>     label fan7 "fanignore"
+>     label fan8 "Fan8"
+> 
+>     label in0  "vCPU2"
+>     label in1  "vCPU1"
+>     label in3  "+5V"
+>     label in4  "+12V"
+>     label in5  "5vSB"
+>     label in6  "vcpu2dimm"
+>     label in7  "vcpu1dimm"
+>     label in11 "VTT"
+>     label in12 "+3.3V"
+>     label in13 "+3.3Vsb"
+>     label in14 "Vbatt"
+> 
+> 
+>     label temp5 "System temp"
+>     label temp7 "CPU1 temp"
+>     label temp8 "CPU2 temp"
+> 
+>     compute in3 @*(40/10), @/(40/10)
+>     compute in4 @*(10/66.2), @/(10/66.2)
 
-More specifically, the above data, together with the w83795 source
-code, tells you how to write a libsensors configuration file for your
-board. To make your job easier, I have documented the mapping between
-pins, symbols, registers and sysfs entries:
-  http://lists.lm-sensors.org/pipermail/lm-sensors/2011-January/031163.html
+This is extremely unlikely. Scaling factors are never less than 1.0.
 
-Apparently you managed to write a configuration file already, this
-document should help you confirm if you got it all right or not.
+>     compute in5 @*(40/10), @/(40/10)
+> 
+> 
+> 
+> 
+> chip "w83627hf-*"
+> 
+> # SuperIO chip used only for the FDC, UARTs and GPIO
+> # SENSORS ARE NOT WIRED
+> # Power Supply Failure, GP31(From W83627DHG-P)    1 = Good, 0 = Bad
+
+There is some inconsistency here. A W83627DHG-P chip would be named
+w83627dhg-* by libsensors, not w83627hf-*.
+
+> 
+> ignore fan1
+> ignore fan2
+> ignore fan3
+> ignore fan4
+> ignore fan5
+> ignore temp1
+> ignore temp2
+> ignore temp3
+> ignore in0
+> ignore in1
+> ignore in2
+> ignore in3
+> ignore in4
+> ignore in5
+> ignore in6
+> ignore in7
+> ignore in8
+> ignore cpu0_vid
+
+It's more efficient to just not load the w83627hf (or w83627ehf) driver
+on this board.
 
 -- 
 Jean Delvare
