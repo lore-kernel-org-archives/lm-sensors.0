@@ -1,80 +1,143 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Jan 2011 21:08:55 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.38
-Message-Id: <20110112220855.0b98a80e@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 31 Jan 2011 16:32:51 +0000
+Subject: [lm-sensors] libsensors: Add more sysfs attributes
+Message-Id: <20110131163251.GA4542@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+The following patch updates libsensors to support recently added sysfs attributes.
 
-Please pull hwmon subsystem updates for Linux 2.6.38 from:
+This does not include the new humidity attribute; this will be a separate patch
+since it requires a new sensor feature type.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
-
-Small cleanups in various drivers, with support for one new device
-(SMSC EMC1423) and improved support for another (SMSC SCH5127), and
-standardization of the intrusion detection interface.
-
- Documentation/feature-removal-schedule.txt |   10 ++
- Documentation/hwmon/adm9240                |    2 +-
- Documentation/hwmon/ads7828                |    2 +-
- Documentation/hwmon/dme1737                |   12 +-
- Documentation/hwmon/w83627hf               |   22 ++++
- Documentation/hwmon/w83793                 |    2 +-
- drivers/hwmon/Kconfig                      |    4 +-
- drivers/hwmon/adm9240.c                    |   32 +++++-
- drivers/hwmon/ads7828.c                    |    4 +-
- drivers/hwmon/dme1737.c                    |  189 ++++++++++++++++++---------
- drivers/hwmon/emc1403.c                    |   16 ++-
- drivers/hwmon/fschmd.c                     |    5 +-
- drivers/hwmon/it87.c                       |   30 ++---
- drivers/hwmon/lm78.c                       |   14 +-
- drivers/hwmon/pc87360.c                    |   53 ++++-----
- drivers/hwmon/pc87427.c                    |   26 ++--
- drivers/hwmon/via686a.c                    |   14 ++-
- drivers/hwmon/w83781d.c                    |   29 ++---
- drivers/hwmon/w83792d.c                    |   44 ++++++-
- drivers/hwmon/w83793.c                     |   38 +++++-
- drivers/hwmon/w83795.c                     |    4 +-
- 21 files changed, 370 insertions(+), 182 deletions(-)
-
----------------
-
-Jean Delvare (9):
-      hwmon: (w83795) Silent false warning from gcc
-      hwmon: (via686a) Initialize fan_div values
-      hwmon: (adm9240) Implement the standard intrusion detection interface
-      hwmon: (w83792d) Implement the standard intrusion detection interface
-      hwmon: (w83793) Implement the standard intrusion detection interface
-      hwmon: Schedule the removal of the old intrusion detection interfaces
-      hwmon: (fschmd) Drop useless mutex
-      hwmon: (w83793) Drop useless mutex
-      hwmon: (w83627hf) Document W83627THF voltage pin mapping
-
-Jekyll Lai (1):
-      hwmon: (emc1403) Add EMC1423 support
-
-Joe Perches (5):
-      hwmon: (it87) Use pr_fmt and pr_<level>
-      hwmon: (lm78) Use pr_fmt and pr_<level>
-      hwmon: (pc87360) Use pr_fmt and pr_<level>
-      hwmon: (pc87427) Use pr_fmt and pr_<level>
-      hwmon: (w83781d) Use pr_fmt and pr_<level>
-
-Juerg Haefliger (2):
-      hwmon: (dme1737) Add support for in7 for SCH5127
-      hwmon: (dme1737) Minor cleanups
-
-Steven Hardy (1):
-      hwmon: (ads7828) Update email contact details
-
-Thanks,
--- 
-Jean Delvare
+--
+Index: doc/libsensors-API.txt
+=================================--- doc/libsensors-API.txt	(revision 5909)
++++ doc/libsensors-API.txt	(working copy)
+@@ -14,13 +14,25 @@
+ * Added support for various new sysfs attributes
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_HYST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT_ALARM
+ 
+ 0x430	lm-sensors 3.2.0
+ * License changed from GPL to LGPL
+Index: lib/sensors.h
+=================================--- lib/sensors.h	(revision 5909)
++++ lib/sensors.h	(working copy)
+@@ -160,6 +160,8 @@
+ 	SENSORS_SUBFEATURE_IN_MIN_ALARM,
+ 	SENSORS_SUBFEATURE_IN_MAX_ALARM,
+ 	SENSORS_SUBFEATURE_IN_BEEP,
++	SENSORS_SUBFEATURE_IN_LCRIT_ALARM,
++	SENSORS_SUBFEATURE_IN_CRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_FAN_INPUT = SENSORS_FEATURE_FAN << 8,
+ 	SENSORS_SUBFEATURE_FAN_MIN,
+@@ -186,6 +188,7 @@
+ 	SENSORS_SUBFEATURE_TEMP_OFFSET,
+ 	SENSORS_SUBFEATURE_TEMP_BEEP,
+ 	SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM,
++	SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+@@ -195,18 +198,27 @@
+ 	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
+ 	SENSORS_SUBFEATURE_POWER_CAP,
+ 	SENSORS_SUBFEATURE_POWER_CAP_HYST,
++	SENSORS_SUBFEATURE_POWER_MAX,
++	SENSORS_SUBFEATURE_POWER_CRIT,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_POWER_ALARM,
++	SENSORS_SUBFEATURE_POWER_CAP_ALARM,
++	SENSORS_SUBFEATURE_POWER_MAX_ALARM,
++	SENSORS_SUBFEATURE_POWER_CRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+ 
+ 	SENSORS_SUBFEATURE_CURR_INPUT = SENSORS_FEATURE_CURR << 8,
+ 	SENSORS_SUBFEATURE_CURR_MIN,
+ 	SENSORS_SUBFEATURE_CURR_MAX,
++	SENSORS_SUBFEATURE_CURR_LCRIT,
++	SENSORS_SUBFEATURE_CURR_CRIT,
+ 	SENSORS_SUBFEATURE_CURR_ALARM = (SENSORS_FEATURE_CURR << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_CURR_MIN_ALARM,
+ 	SENSORS_SUBFEATURE_CURR_MAX_ALARM,
+ 	SENSORS_SUBFEATURE_CURR_BEEP,
++	SENSORS_SUBFEATURE_CURR_LCRIT_ALARM,
++	SENSORS_SUBFEATURE_CURR_CRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
+ 
+Index: lib/sysfs.c
+=================================--- lib/sysfs.c	(revision 5909)
++++ lib/sysfs.c	(working copy)
+@@ -234,6 +234,7 @@
+ 	{ "max_alarm", SENSORS_SUBFEATURE_TEMP_MAX_ALARM },
+ 	{ "crit_alarm", SENSORS_SUBFEATURE_TEMP_CRIT_ALARM },
+ 	{ "emergency_alarm", SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM },
++	{ "lcrit_alarm", SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM },
+ 	{ "fault", SENSORS_SUBFEATURE_TEMP_FAULT },
+ 	{ "type", SENSORS_SUBFEATURE_TEMP_TYPE },
+ 	{ "offset", SENSORS_SUBFEATURE_TEMP_OFFSET },
+@@ -250,6 +251,8 @@
+ 	{ "alarm", SENSORS_SUBFEATURE_IN_ALARM },
+ 	{ "min_alarm", SENSORS_SUBFEATURE_IN_MIN_ALARM },
+ 	{ "max_alarm", SENSORS_SUBFEATURE_IN_MAX_ALARM },
++	{ "lcrit_alarm", SENSORS_SUBFEATURE_IN_LCRIT_ALARM },
++	{ "crit_alarm", SENSORS_SUBFEATURE_IN_CRIT_ALARM },
+ 	{ "beep", SENSORS_SUBFEATURE_IN_BEEP },
+ 	{ NULL, 0 }
+ };
+@@ -273,7 +276,12 @@
+ 	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
+ 	{ "cap", SENSORS_SUBFEATURE_POWER_CAP },
+ 	{ "cap_hyst", SENSORS_SUBFEATURE_POWER_CAP_HYST },
++	{ "cap_alarm", SENSORS_SUBFEATURE_POWER_CAP_ALARM },
+ 	{ "alarm", SENSORS_SUBFEATURE_POWER_ALARM },
++	{ "max", SENSORS_SUBFEATURE_POWER_MAX },
++	{ "max_alarm", SENSORS_SUBFEATURE_POWER_MAX_ALARM },
++	{ "crit", SENSORS_SUBFEATURE_POWER_CRIT },
++	{ "crit_alarm", SENSORS_SUBFEATURE_POWER_CRIT_ALARM },
+ 	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+ 	{ NULL, 0 }
+ };
+@@ -287,9 +295,13 @@
+ 	{ "input", SENSORS_SUBFEATURE_CURR_INPUT },
+ 	{ "min", SENSORS_SUBFEATURE_CURR_MIN },
+ 	{ "max", SENSORS_SUBFEATURE_CURR_MAX },
++	{ "lcrit", SENSORS_SUBFEATURE_CURR_LCRIT },
++	{ "crit", SENSORS_SUBFEATURE_CURR_CRIT },
+ 	{ "alarm", SENSORS_SUBFEATURE_CURR_ALARM },
+ 	{ "min_alarm", SENSORS_SUBFEATURE_CURR_MIN_ALARM },
+ 	{ "max_alarm", SENSORS_SUBFEATURE_CURR_MAX_ALARM },
++	{ "lcrit_alarm", SENSORS_SUBFEATURE_CURR_LCRIT_ALARM },
++	{ "crit_alarm", SENSORS_SUBFEATURE_CURR_CRIT_ALARM },
+ 	{ "beep", SENSORS_SUBFEATURE_CURR_BEEP },
+ 	{ NULL, 0 }
+ };
 
 _______________________________________________
 lm-sensors mailing list
