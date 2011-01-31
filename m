@@ -1,7 +1,7 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Date: Mon, 31 Jan 2011 17:11:01 +0000
+From: David Anderson <davea42@gmail.com>
+Date: Mon, 31 Jan 2011 18:22:45 +0000
 Subject: Re: [lm-sensors] W83795AG on SuperMicro 7046T-NTR+ board
-Message-Id: <20110131171101.GE16932@khazad-dum.debian.net>
+Message-Id: <4D46FDF5.6020008@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D44621B.40506@earthlink.net>
 In-Reply-To: <4D44621B.40506@earthlink.net>
@@ -10,70 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Here is the latest version of my C7X58 config, for reference.  I did
-have to ask supermicro for clarifications, to derive a correct formula
-for in5.  The first data they sent was bogus.
+On 01/31/2011 12:07 AM, Jean Delvare wrote:
+> On Sun, 30 Jan 2011 13:13:24 -0800, David Anderson wrote:
+>> Here is a configure file that worked (to go with the new
+>> kernel module).  It may not be perfect.  inserted it as
+>> /etc/sensors.d/w83795ag.conf
+>>
+>> chip "w83795-*"
+> This can't work, as the chip will be named w83795adg-* or w83795g-* by
+> libsensors.
 
-#
-# Data for SuperMicro C7X58 and X8SAX boards, revision 1.1 or 2.0
-# Scaling factors kindly provided by SuperMicro support.
-# 
-# Board has two sensor chips, w83627dhg is not used for temperature,
-# fans or voltage sensing.  BIOS allows one to set w83795adg
-# parameters, such as voltage or PWM fan control and default strategy.
-#
+It is in fact a     w83795adg    as reported by dmesg.
+The supermicro folks had a typo in what they sent me, as you suggested 
+earlier.
 
-chip "w83795adg-*"
+  They also sent
++12V Voltage, Offset 0x14        Voltage = Data* 0.008/ (10./66.2)
+which I had as
+    compute in4 @*(10.0/66.2), @/(10.0/66.2)
+Aha. Notice I misread what they sent me.     They used  '/   /' and I 
+used '*  /'.
+My reading of the algebra was careless.
 
-label fan1 "CPU Fan"
+So I switched to Henrique's equation which is an accurate representation:
 
-label in0  "CPU Core"
-label in2  "DIMM"
-label in3  "+5V"
-label in4  "+12V"
-label in5  "-12V"
-label in11 "VTT"
-label in12 "+3.3V"
-label in13 "+3.3Vsb"
-label in14 "Vbatt"
+    compute in4 @*6.62, @/6.62
 
-label temp6 "System temperature"
-label temp7 "CPU temperature"
+which gives a more sensible output (11.94 volts).
 
-compute in3 @*4, @/4
-compute in4 @*6.62, @/6.62
-compute in5 (@-2.048)*24.2 + 2.048, ((@-2.048)/24.2)+2.048
 
-chip "w83627dhg-*"
+Thanks again for all the help.
+David Anderson
 
-# SuperIO chip used only for the FDC, UARTs and GPIO
-# SENSORS ARE NOT WIRED
-# Power Supply Failure, GP31(From W83627DHG-P)    1 = Good, 0 = Bad
-
-ignore fan1
-ignore fan2
-ignore fan3
-ignore fan4
-ignore fan5
-ignore temp1
-ignore temp2
-ignore temp3
-ignore in0
-ignore in1
-ignore in2
-ignore in3
-ignore in4
-ignore in5
-ignore in6
-ignore in7
-ignore in8
-ignore cpu0_vid
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
 
 _______________________________________________
 lm-sensors mailing list
