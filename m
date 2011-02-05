@@ -1,160 +1,129 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 26 Feb 2011 17:50:48 +0000
-Subject: [lm-sensors] [PATCH v5 3/5] hwmon: (pmbus) Add support for Maxim
-Message-Id: <1298742650-9789-4-git-send-email-guenter.roeck@ericsson.com>
+From: Hans-Joachim Baader <hjb@pro-linux.de>
+Date: Sat, 05 Feb 2011 14:57:14 +0000
+Subject: [lm-sensors] Config for QNAP TS-509
+Message-Id: <20110205145714.GH29679@kilauea.hjbaader.home>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7633110134344864661=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1298742650-9789-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1298742650-9789-1-git-send-email-guenter.roeck@ericsson.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+
+--===============7633110134344864661==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lHGcFxmlz1yfXmOs"
+Content-Disposition: inline
+
+
+--lHGcFxmlz1yfXmOs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I just configured my QNAP TS-509 NAS and I'm happy to share the results
+with you. Hopefully they find their way into the Wiki (I don't have an acco=
+unt).
+I think the original QNAP firmware doesn't use lm-sensors, so I had to
+try myself.
+
+System: Debian Squeeze
+Kernel: 2.6.32
+Drivers: coretemp, it87
+
+Board info:
+        Manufacturer: QNAP
+        Product Name: TS-509-Q025MB(T187)
+        Version: V1.00
+
+Config:
+
+chip "it87-*" "it8712-*" "it8716-*" "it8718-*" "it8720-*"
+
+    label in0   " CPU Core"
+    label in1   "  +1.80V"
+    label in2   "  +3.30V"
+    label in3   "  +5.00V"
+    label in4   " +12.00V"
+    label in5   "  +1.50V"
+    label in6   "  +1.05V"
+    label in7   "  +1.20V"
+    label in8   "    Vbat"
+    label temp1 "CPU Temp"
+    label temp2 "SysTemp1"
+    label temp3 "SysTemp2"
+    label fan2  " SysFan1"
+
+    compute in0  @ * (6 / 5),  @ / (6 / 5)
+    compute in3  @ * (5 / 3),  @ / (5 / 3)
+    compute in4  @ * (4 / 1),  @ / (4 / 1)
+
+    set in0_max  1.25 * 1.05
+    set in0_min  1.25 * 0.95
+    set in1_max  1.8 * 1.05
+    set in1_min  1.8 * 0.95
+    set in2_max  3.3 * 1.05
+    set in2_min  3.3 * 0.95
+    set in3_max  5.0 * 1.05
+    set in3_min  5.0 * 0.95
+    set in4_max 12.0 * 1.05
+    set in4_min 12.0 * 0.95
+    set in5_max  1.5 * 1.05
+    set in5_min  1.5 * 0.95
+    set in6_max  1.05 * 1.05
+    set in6_min  1.05 * 0.95
+    set in7_max  1.2 * 1.05
+    set in7_min  1.2 * 0.95
+
+    set fan2_min 500
+
+    set temp1_max 55
+    set temp1_min 10
+    set temp2_max 60
+    set temp2_min 10
+    set temp3_max 55
+    set temp3_min 10
+
+    ignore fan1
+    ignore fan3
+    ignore fan4
+    ignore fan5
+
+
+Some min and max values are a little arbitrary, and the calculation is
+partly based on guessing. Change it if it doesn't work for you. If someone
+has better data, please contribute!
+
+Best regards,
+hjb
+--=20
+Pro-Linux - Germany's largest volunteer Linux support site
+http://www.pro-linux.de/          Public Key ID 0x3DDBDDEA
+
+--lHGcFxmlz1yfXmOs
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iD8DBQFNTWVKLbySPj3b3eoRAiKoAJ9qG4EY1IH+yEwcGLKFHjtNlh5GpwCfQmJH
+ArsmWp7CTPv9ir/AYyvY6Xo=
+=ARZU
+-----END PGP SIGNATURE-----
+
+--lHGcFxmlz1yfXmOs--
+
+
+--===============7633110134344864661==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, Greg Schnorr <gschnorr@cisco.com>, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
-
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
----
- drivers/hwmon/Kconfig    |   10 +++++
- drivers/hwmon/Makefile   |    1 +
- drivers/hwmon/max16064.c |   91 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 102 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/max16064.c
-
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index cac65d7..60f5d39 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -758,6 +758,16 @@ config SENSORS_PMBUS
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
- 
-+config SENSORS_MAX16064
-+	tristate "Maxim MAX16064"
-+	default n
-+	help
-+	  If you say yes here you get hardware monitoring support for Maxim
-+	  MAX16064.
-+
-+	  This driver can also be built as a module. If so, the module will
-+	  be called max16064.
-+
- config SENSORS_MAX8688
- 	tristate "Maxim MAX8688"
- 	default n
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 00c2e77..9c83d0d 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -115,6 +115,7 @@ obj-$(CONFIG_SENSORS_WM8350)	+= wm8350-hwmon.o
- # PMBus drivers
- obj-$(CONFIG_PMBUS)		+= pmbus_core.o
- obj-$(CONFIG_SENSORS_PMBUS)	+= pmbus.o
-+obj-$(CONFIG_SENSORS_MAX16064)	+= max16064.o
- obj-$(CONFIG_SENSORS_MAX8688)	+= max8688.o
- 
- ifeq ($(CONFIG_HWMON_DEBUG_CHIP),y)
-diff --git a/drivers/hwmon/max16064.c b/drivers/hwmon/max16064.c
-new file mode 100644
-index 0000000..1d6d717
---- /dev/null
-+++ b/drivers/hwmon/max16064.c
-@@ -0,0 +1,91 @@
-+/*
-+ * Hardware monitoring driver for Maxim MAX16064
-+ *
-+ * Copyright (c) 2011 Ericsson AB.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include "pmbus.h"
-+
-+static struct pmbus_driver_info max16064_info = {
-+	.pages = 4,
-+	.direct[PSC_VOLTAGE_IN] = true,
-+	.direct[PSC_VOLTAGE_OUT] = true,
-+	.direct[PSC_TEMPERATURE] = true,
-+	.m[PSC_VOLTAGE_IN] = 19995,
-+	.b[PSC_VOLTAGE_IN] = 0,
-+	.R[PSC_VOLTAGE_IN] = -1,
-+	.m[PSC_VOLTAGE_OUT] = 19995,
-+	.b[PSC_VOLTAGE_OUT] = 0,
-+	.R[PSC_VOLTAGE_OUT] = -1,
-+	.m[PSC_TEMPERATURE] = -7612,
-+	.b[PSC_TEMPERATURE] = 335,
-+	.R[PSC_TEMPERATURE] = -3,
-+	.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_TEMP
-+		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_TEMP,
-+	.func[1] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+	.func[2] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+	.func[3] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+};
-+
-+static int max16064_probe(struct i2c_client *client,
-+			  const struct i2c_device_id *id)
-+{
-+	return pmbus_do_probe(client, id, &max16064_info);
-+}
-+
-+static int max16064_remove(struct i2c_client *client)
-+{
-+	return pmbus_do_remove(client);
-+}
-+
-+static const struct i2c_device_id max16064_id[] = {
-+	{"max16064", 0},
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, max16064_id);
-+
-+/* This is the driver that will be inserted */
-+static struct i2c_driver max16064_driver = {
-+	.driver = {
-+		   .name = "max16064",
-+		   },
-+	.probe = max16064_probe,
-+	.remove = max16064_remove,
-+	.id_table = max16064_id,
-+};
-+
-+static int __init max16064_init(void)
-+{
-+	return i2c_add_driver(&max16064_driver);
-+}
-+
-+static void __exit max16064_exit(void)
-+{
-+	i2c_del_driver(&max16064_driver);
-+}
-+
-+MODULE_AUTHOR("Guenter Roeck");
-+MODULE_DESCRIPTION("PMBus driver for Maxim MAX16064");
-+MODULE_LICENSE("GPL");
-+module_init(max16064_init);
-+module_exit(max16064_exit);
--- 
-1.7.3.1
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7633110134344864661==--
