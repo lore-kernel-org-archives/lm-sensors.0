@@ -1,87 +1,154 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Feb 2011 15:49:07 +0000
-Subject: [lm-sensors] [PATCH v2 3/5] hwmon: (w83627ehf) Optimize multi-bank
-Message-Id: <1297352949-25602-4-git-send-email-guenter.roeck@ericsson.com>
+Date: Sat, 05 Feb 2011 17:45:24 +0000
+Subject: Re: [lm-sensors] libsensors: Add more sysfs attributes
+Message-Id: <20110205174524.GC26562@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Assume that each register is banked, and set the bank for each access.
-Cache the bank number so it only needs to be set if it changes.
+On Mon, Jan 31, 2011 at 11:32:51AM -0500, Guenter Roeck wrote:
+> The following patch updates libsensors to support recently added sysfs attributes.
+> 
+> This does not include the new humidity attribute; this will be a separate patch
+> since it requires a new sensor feature type.
+> 
+ping ... hope this didn't get lost because of the missing [PATCH]. 
+Should I resend my recent patches ?
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/w83627ehf.c |   26 +++++++++++---------------
- 1 files changed, 11 insertions(+), 15 deletions(-)
+Guenter
 
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index b4f489e..8c39085 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -304,6 +304,7 @@ struct w83627ehf_data {
- 	unsigned long last_updated;	/* In jiffies */
- 
- 	/* Register values */
-+	u8 bank;		/* current register bank */
- 	u8 in_num;		/* number of in inputs we have */
- 	u8 in[10];		/* Register value */
- 	u8 in_max[10];		/* Register value */
-@@ -347,21 +348,19 @@ struct w83627ehf_sio_data {
- 	enum kinds kind;
- };
- 
--/* Registers 0x50-0x5f are banked */
-+/*
-+ * On older chips, only registers 0x50-0x5f are banked.
-+ * On more recent chips, all registers are banked.
-+ * Assume that is the case and set the bank number for each access.
-+ * Cache the bank number so it only needs to be set if it changes.
-+ */
- static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
- {
--	if ((reg & 0x00f0) = 0x50) {
--		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
--		outb_p(reg >> 8, data->addr + DATA_REG_OFFSET);
--	}
--}
--
--/* Not strictly necessary, but play it safe for now */
--static inline void w83627ehf_reset_bank(struct w83627ehf_data *data, u16 reg)
--{
--	if (reg & 0xff00) {
-+	u8 bank = reg >> 8;
-+	if (data->bank != bank) {
- 		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
--		outb_p(0, data->addr + DATA_REG_OFFSET);
-+		outb_p(bank, data->addr + DATA_REG_OFFSET);
-+		data->bank = bank;
- 	}
- }
- 
-@@ -379,10 +378,8 @@ static u16 w83627ehf_read_value(struct w83627ehf_data *data, u16 reg)
- 		       data->addr + ADDR_REG_OFFSET);
- 		res = (res << 8) + inb_p(data->addr + DATA_REG_OFFSET);
- 	}
--	w83627ehf_reset_bank(data, reg);
- 
- 	mutex_unlock(&data->lock);
--
- 	return res;
- }
- 
-@@ -401,7 +398,6 @@ static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg,
- 		       data->addr + ADDR_REG_OFFSET);
- 	}
- 	outb_p(value & 0xff, data->addr + DATA_REG_OFFSET);
--	w83627ehf_reset_bank(data, reg);
- 
- 	mutex_unlock(&data->lock);
- 	return 0;
--- 
-1.7.3.1
-
+> --
+> Index: doc/libsensors-API.txt
+> =================================> --- doc/libsensors-API.txt	(revision 5909)
+> +++ doc/libsensors-API.txt	(working copy)
+> @@ -14,13 +14,25 @@
+>  * Added support for various new sysfs attributes
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT_ALARM
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT_ALARM
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_HYST
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT
+>    enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_ALARM
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_ALARM
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX_ALARM
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT_ALARM
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT_ALARM
+> +  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT_ALARM
+>  
+>  0x430	lm-sensors 3.2.0
+>  * License changed from GPL to LGPL
+> Index: lib/sensors.h
+> =================================> --- lib/sensors.h	(revision 5909)
+> +++ lib/sensors.h	(working copy)
+> @@ -160,6 +160,8 @@
+>  	SENSORS_SUBFEATURE_IN_MIN_ALARM,
+>  	SENSORS_SUBFEATURE_IN_MAX_ALARM,
+>  	SENSORS_SUBFEATURE_IN_BEEP,
+> +	SENSORS_SUBFEATURE_IN_LCRIT_ALARM,
+> +	SENSORS_SUBFEATURE_IN_CRIT_ALARM,
+>  
+>  	SENSORS_SUBFEATURE_FAN_INPUT = SENSORS_FEATURE_FAN << 8,
+>  	SENSORS_SUBFEATURE_FAN_MIN,
+> @@ -186,6 +188,7 @@
+>  	SENSORS_SUBFEATURE_TEMP_OFFSET,
+>  	SENSORS_SUBFEATURE_TEMP_BEEP,
+>  	SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM,
+> +	SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM,
+>  
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+> @@ -195,18 +198,27 @@
+>  	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
+>  	SENSORS_SUBFEATURE_POWER_CAP,
+>  	SENSORS_SUBFEATURE_POWER_CAP_HYST,
+> +	SENSORS_SUBFEATURE_POWER_MAX,
+> +	SENSORS_SUBFEATURE_POWER_CRIT,
+>  	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
+>  	SENSORS_SUBFEATURE_POWER_ALARM,
+> +	SENSORS_SUBFEATURE_POWER_CAP_ALARM,
+> +	SENSORS_SUBFEATURE_POWER_MAX_ALARM,
+> +	SENSORS_SUBFEATURE_POWER_CRIT_ALARM,
+>  
+>  	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+>  
+>  	SENSORS_SUBFEATURE_CURR_INPUT = SENSORS_FEATURE_CURR << 8,
+>  	SENSORS_SUBFEATURE_CURR_MIN,
+>  	SENSORS_SUBFEATURE_CURR_MAX,
+> +	SENSORS_SUBFEATURE_CURR_LCRIT,
+> +	SENSORS_SUBFEATURE_CURR_CRIT,
+>  	SENSORS_SUBFEATURE_CURR_ALARM = (SENSORS_FEATURE_CURR << 8) | 0x80,
+>  	SENSORS_SUBFEATURE_CURR_MIN_ALARM,
+>  	SENSORS_SUBFEATURE_CURR_MAX_ALARM,
+>  	SENSORS_SUBFEATURE_CURR_BEEP,
+> +	SENSORS_SUBFEATURE_CURR_LCRIT_ALARM,
+> +	SENSORS_SUBFEATURE_CURR_CRIT_ALARM,
+>  
+>  	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
+>  
+> Index: lib/sysfs.c
+> =================================> --- lib/sysfs.c	(revision 5909)
+> +++ lib/sysfs.c	(working copy)
+> @@ -234,6 +234,7 @@
+>  	{ "max_alarm", SENSORS_SUBFEATURE_TEMP_MAX_ALARM },
+>  	{ "crit_alarm", SENSORS_SUBFEATURE_TEMP_CRIT_ALARM },
+>  	{ "emergency_alarm", SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM },
+> +	{ "lcrit_alarm", SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM },
+>  	{ "fault", SENSORS_SUBFEATURE_TEMP_FAULT },
+>  	{ "type", SENSORS_SUBFEATURE_TEMP_TYPE },
+>  	{ "offset", SENSORS_SUBFEATURE_TEMP_OFFSET },
+> @@ -250,6 +251,8 @@
+>  	{ "alarm", SENSORS_SUBFEATURE_IN_ALARM },
+>  	{ "min_alarm", SENSORS_SUBFEATURE_IN_MIN_ALARM },
+>  	{ "max_alarm", SENSORS_SUBFEATURE_IN_MAX_ALARM },
+> +	{ "lcrit_alarm", SENSORS_SUBFEATURE_IN_LCRIT_ALARM },
+> +	{ "crit_alarm", SENSORS_SUBFEATURE_IN_CRIT_ALARM },
+>  	{ "beep", SENSORS_SUBFEATURE_IN_BEEP },
+>  	{ NULL, 0 }
+>  };
+> @@ -273,7 +276,12 @@
+>  	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
+>  	{ "cap", SENSORS_SUBFEATURE_POWER_CAP },
+>  	{ "cap_hyst", SENSORS_SUBFEATURE_POWER_CAP_HYST },
+> +	{ "cap_alarm", SENSORS_SUBFEATURE_POWER_CAP_ALARM },
+>  	{ "alarm", SENSORS_SUBFEATURE_POWER_ALARM },
+> +	{ "max", SENSORS_SUBFEATURE_POWER_MAX },
+> +	{ "max_alarm", SENSORS_SUBFEATURE_POWER_MAX_ALARM },
+> +	{ "crit", SENSORS_SUBFEATURE_POWER_CRIT },
+> +	{ "crit_alarm", SENSORS_SUBFEATURE_POWER_CRIT_ALARM },
+>  	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+>  	{ NULL, 0 }
+>  };
+> @@ -287,9 +295,13 @@
+>  	{ "input", SENSORS_SUBFEATURE_CURR_INPUT },
+>  	{ "min", SENSORS_SUBFEATURE_CURR_MIN },
+>  	{ "max", SENSORS_SUBFEATURE_CURR_MAX },
+> +	{ "lcrit", SENSORS_SUBFEATURE_CURR_LCRIT },
+> +	{ "crit", SENSORS_SUBFEATURE_CURR_CRIT },
+>  	{ "alarm", SENSORS_SUBFEATURE_CURR_ALARM },
+>  	{ "min_alarm", SENSORS_SUBFEATURE_CURR_MIN_ALARM },
+>  	{ "max_alarm", SENSORS_SUBFEATURE_CURR_MAX_ALARM },
+> +	{ "lcrit_alarm", SENSORS_SUBFEATURE_CURR_LCRIT_ALARM },
+> +	{ "crit_alarm", SENSORS_SUBFEATURE_CURR_CRIT_ALARM },
+>  	{ "beep", SENSORS_SUBFEATURE_CURR_BEEP },
+>  	{ NULL, 0 }
+>  };
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
