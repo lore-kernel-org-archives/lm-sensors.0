@@ -1,86 +1,28 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 03 Feb 2011 08:09:05 +0000
-Subject: Re: [lm-sensors] [PATCH 02/19] jz4740: mfd_cell is now implicitly
-Message-Id: <20110203090905.46f57a56@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 05 Feb 2011 17:32:33 +0000
+Subject: [lm-sensors] [PATCH] Update doc/donations
+Message-Id: <20110205173233.GA26562@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110202195417.228e2656@queued.net>
-	<20110202195824.6ebbddff@queued.net>
-In-Reply-To: <20110202195824.6ebbddff@queued.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andres Salomon <dilinger@queued.net>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, Lars-Peter Clausen <lars@metafoo.de>
+To: lm-sensors@vger.kernel.org
 
-Hi Andres,
+This patch updates the donations file the latest information.
 
-On Wed, 2 Feb 2011 19:58:24 -0800, Andres Salomon wrote:
-> 
-> No need to explicitly set the cell's platform_data/data_size.
-> 
-> Signed-off-by: Andres Salomon <dilinger@queued.net>
-> ---
->  drivers/hwmon/jz4740-hwmon.c   |    2 +-
->  drivers/mfd/jz4740-adc.c       |    4 ----
->  drivers/power/jz4740-battery.c |    2 +-
->  3 files changed, 2 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
-> index 1c8b3d9..40f106d 100644
-> --- a/drivers/hwmon/jz4740-hwmon.c
-> +++ b/drivers/hwmon/jz4740-hwmon.c
-> @@ -112,7 +112,7 @@ static int __devinit jz4740_hwmon_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  	}
->  
-> -	hwmon->cell = pdev->dev.platform_data;
-> +	hwmon->cell = mfd_get_cell(pdev);
->  
->  	hwmon->irq = platform_get_irq(pdev, 0);
->  	if (hwmon->irq < 0) {
-> diff --git a/drivers/mfd/jz4740-adc.c b/drivers/mfd/jz4740-adc.c
-> index 0cc5979..aa518b9 100644
-> --- a/drivers/mfd/jz4740-adc.c
-> +++ b/drivers/mfd/jz4740-adc.c
-> @@ -232,8 +232,6 @@ const struct mfd_cell jz4740_adc_cells[] = {
->  		.name = "jz4740-hwmon",
->  		.num_resources = ARRAY_SIZE(jz4740_hwmon_resources),
->  		.resources = jz4740_hwmon_resources,
-> -		.platform_data = (void *)&jz4740_adc_cells[0],
-> -		.data_size = sizeof(struct mfd_cell),
->  
->  		.enable = jz4740_adc_cell_enable,
->  		.disable = jz4740_adc_cell_disable,
-> @@ -243,8 +241,6 @@ const struct mfd_cell jz4740_adc_cells[] = {
->  		.name = "jz4740-battery",
->  		.num_resources = ARRAY_SIZE(jz4740_battery_resources),
->  		.resources = jz4740_battery_resources,
-> -		.platform_data = (void *)&jz4740_adc_cells[1],
-> -		.data_size = sizeof(struct mfd_cell),
->  
->  		.enable = jz4740_adc_cell_enable,
->  		.disable = jz4740_adc_cell_disable,
-> diff --git a/drivers/power/jz4740-battery.c b/drivers/power/jz4740-battery.c
-> index 02414db..0938650 100644
-> --- a/drivers/power/jz4740-battery.c
-> +++ b/drivers/power/jz4740-battery.c
-> @@ -258,7 +258,7 @@ static int __devinit jz_battery_probe(struct platform_device *pdev)
->  		return -ENOMEM;
->  	}
->  
-> -	jz_battery->cell = pdev->dev.platform_data;
-> +	jz_battery->cell = mfd_get_cell(pdev);
->  
->  	jz_battery->irq = platform_get_irq(pdev, 0);
->  	if (jz_battery->irq < 0) {
-
-I have no objection, but I can't test the changes either. I presume
-these changes should be merged through the mfd tree?
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
--- 
-Jean Delvare
+--
+Index: doc/donations
+=================================--- doc/donations	(revision 5911)
++++ doc/donations	(working copy)
+@@ -119,3 +119,8 @@
+ 		This board has a Winbond W83795ADG, SMBus is	Jean Delvare
+ 		multiplexed with GPIOs.
+ 		Drivers developed: w83795
++
++lleo19		Intel DH57JG with i3-540 CPU, 4GB RAM, chassis,	2011-01
++		and power supply.				Guenter Roeck
++		Used to add support for NCT6775F (W83677HG-I)
++		to w83627ehf driver.
 
 _______________________________________________
 lm-sensors mailing list
