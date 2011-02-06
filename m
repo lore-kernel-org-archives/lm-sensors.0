@@ -1,55 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 07 Feb 2011 21:27:59 +0000
-Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <1297114079.24938.36.camel@groeck-laptop>
+From: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Date: Sun, 06 Feb 2011 10:41:35 +0000
+Subject: Re: [lm-sensors] f75375s detected but no temp output
+Message-Id: <AANLkTim0n3gmR3_sJR8igw83+TBdx3JfPf_U=e6NYDK3@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110205175852.GA26672@ericsson.com>
-In-Reply-To: <20110205175852.GA26672@ericsson.com>
+References: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
+In-Reply-To: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2011-02-07 at 15:35 -0500, Jean Delvare wrote:
-> On Mon, 7 Feb 2011 09:44:12 -0800, Guenter Roeck wrote:
-> > Hi Andrew,
-> > 
-> > On Mon, Feb 07, 2011 at 11:50:48AM -0500, Andrew Lutomirski wrote:
-> > [ ... ]
-> > > >
-> > > > So what you'll have to do is to set a minimum speed, and the problem will go away.
-> > > 
-> > > I admit I'm a bit confused as to what fan2_min does.  I have a minimum
-> > > (to warn?) fan speed set in BIOS, which seems to have nothing to do
-> > > with the initial value of fan2_min.  Changing fan2_min will cause
-> > > fan2_alarm to become set or unset, when I decrease min below input,
-> > > alarm stays set until I read it once.
-> > > 
-> > Interesting; it means that it works, but the BIOS seems to use another set
-> > of registers to set the minimum speed.
-> 
-> The BIOS doesn't necessarily use limit registers. It is totally
-> possible that the speed is simply checked at boot time against the
-> specified limit, and the hardware monitoring chip isn't even aware of
-> it.
-> 
-> Motherboard vendors have been under- or even misusing the hardware
-> monitoring features of the chips they selected for years, and while it
-> gets slowly better over time, it's still dangerous to assume that they
-> always know what they are doing and that they always do the right thing.
-> 
-Good point. Maybe not dangerous, but it might well be a fallacy or maybe
-a delusion ;).
+2011/1/6 Jean Delvare <khali@linux-fr.org>:
+> On Sat, 25 Dec 2010 14:15:46 +0100, Pali Rohár wrote:
+>> Where is the problem? And why is no f75375s temp detected by lm sensors?
+>
+> Nvidia binary driver, right? It misses four lines of code that would let
+> hwmon drivers bind to its I2C adapters. The code exists for 4 or 5
+> years now, it's even included in Gentoo [1] but Nvidia never bothered
+> applying it. Complain to them.
+>
+> [1] http://gentoo.zugaina.org/portage/x11-drivers/nvidia-drivers/files/NVIDIA_i2c-hwmon.patch
+>
+> --
+> Jean Delvare
+>
 
-However, adding smartfan features would really require a board using it.
-So that will have to wait until someone is willing to do that.
+Yes, I'm using nvidia binary driver. I applied this patch on nvidia
+driver but still does not working (same problem). I checked
+I2C_CLASS_HWMON is defined to (1<<0)
 
-I'll do something else, though - let users configure SmartFan IV if it
-was configured at startup. That should be safe enough.
+Any ideas?
 
-Guenter
-
-
+-- 
+Pali Rohár
+pali.rohar@gmail.com
 
 _______________________________________________
 lm-sensors mailing list
