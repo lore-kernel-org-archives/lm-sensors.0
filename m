@@ -1,86 +1,95 @@
 From: "Ian Dobson" <i.dobson@planet-ian.com>
-Date: Sun, 06 Feb 2011 11:59:40 +0000
+Date: Sun, 06 Feb 2011 13:37:48 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <BFBD69D2563545659C4720532D957B6F@portable2>
+Message-Id: <AC3A8E93874A409D80AD24AB38D3E91B@portable2>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-
-
---------------------------------------------------
-From: "Jean Delvare" <khali@linux-fr.org>
-Sent: Sunday, February 06, 2011 11:00 AM
-To: "Guenter Roeck" <guenter.roeck@ericsson.com>
-Cc: "Andrea Rizzolo" <andrea.rizzolo@gmail.com>; <lm-sensors@lm-sensors.org>
-Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F, 
-NCT6776F
-
-> On Sun, 6 Feb 2011 10:56:29 +0100, Jean Delvare wrote:
->> As for the other chips in this family, in2, in3, in7 and in8 are
->> internal voltages so their mapping and scaling is fixed. The pin names
->> also strongly suggest connecting Vcore to in0, and I've never seen a
->> board manufacturer diverge from this. So you can start with the
->> following config statements:
->>
->> chip "nct6775-*" "nct66776-*"
->
-> Err, typo here of course, I meant:
->
-> chip "nct6775-*" "nct6776-*"
->
-> Sorry.
->
->>
->>     label in0 "Vcore"
->>     label in2 "AVCC"
->>     label in3 "+3.3V"
->>     label in7 "3VSB"
->>     label in8 "Vbat"
->>
->>     set in2_min  3.3 * 0.90
->>     set in2_max  3.3 * 1.10
->>     set in3_min  3.3 * 0.90
->>     set in3_max  3.3 * 1.10
->>     set in7_min  3.3 * 0.90
->>     set in7_max  3.3 * 1.10
->>     set in8_min  3.0 * 0.90
->>     set in8_max  3.0 * 1.10
->>
->> This leaves only 4 voltage inputs to configure, presumably for +5V,
->> +12V, and possibly 5VSB and Vdimm. Check the labels and values in the
->> BIOS (write them all down if they fluctuate) and maybe we can figure it
->> out.
->>
->
->
-> -- 
-> Jean Delvare
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
-OK looking in the specs on the w83627ehf bank0 3b-3f are the minimum fan 
-speeds, on the n6776f they're not defined.
-
-There appears to be a dual usage register "CPUFAN MODE Register / CPUFAN 
-TOLERRANCE Register - Index 02h (Bank 2)" and the actual limit is readable 
-in (CPUFANIN) Fan Count Limit High-byte Register - Index 3Ch (Bank 6), but 
-that's read only. Maybe it's better if we handle the fan lo limit within the 
-driver rather than through the chip.
-
-Regards
-Ian Dobson
- 
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+CgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9t
+OiAiSmVhbiBEZWx2YXJlIiA8a2hhbGlAbGludXgtZnIub3JnPgpTZW50OiBTdW5kYXksIEZlYnJ1
+YXJ5IDA2LCAyMDExIDEwOjU2IEFNClRvOiAiR3VlbnRlciBSb2VjayIgPGd1ZW50ZXIucm9lY2tA
+ZXJpY3Nzb24uY29tPgpDYzogIkFuZHJlYSBSaXp6b2xvIiA8YW5kcmVhLnJpenpvbG9AZ21haWwu
+Y29tPjsgPGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc+ClN1YmplY3Q6IFJlOiBbbG0tc2Vuc29y
+c10gU3RhbmRhbG9uZSBkcml2ZXIgZm9yIFc4MzY3N0hHLUksIE5DVDY3NzVGLCAKTkNUNjc3NkYK
+Cj4gT24gU2F0LCA1IEZlYiAyMDExIDExOjE1OjI1IC0wODAwLCBHdWVudGVyIFJvZWNrIHdyb3Rl
+Ogo+PiBPbiBTYXQsIEZlYiAwNSwgMjAxMSBhdCAwMjowMDowOVBNIC0wNTAwLCBBbmRyZWEgUml6
+em9sbyB3cm90ZToKPj4gPiBoaSwKPj4gPiB0aGFuayB5b3UgdmVyeSBtdWNoLCBoZXJlIG9uIGlu
+dGVsIERINTdKRyBpdCB3b3Jrcy4gYHNlbnNvcnNgIG91dHB1dDoKPj4gPgo+PiA+IG5jdDY3NzUt
+aXNhLTA2ODAKPj4gPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+PiA+IGluMDogICAgICAgICArMC45
+MyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS43NCBWKQo+PiA+IGluMTogICAgICAgICAr
+MC43OCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgIEFMQVJNCj4+ID4gaW4y
+OiAgICAgICAgICszLjQxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxB
+Uk0KPj4gPiBpbjM6ICAgICAgICAgKzMuNDEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAu
+MDAgVikgICBBTEFSTQo+PiA+IGluNDogICAgICAgICArMS4yNiBWICAobWluID0gICswLjAwIFYs
+IG1heCA9ICArMC4wMCBWKSAgIEFMQVJNCj4+ID4gaW41OiAgICAgICAgICswLjc4IFYgIChtaW4g
+PSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPj4gPiBpbjY6ICAgICAgICAgKzEu
+MDYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQo+PiA+IGluNzog
+ICAgICAgICArMy4zNiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgIEFMQVJN
+Cj4+ID4gaW44OiAgICAgICAgICszLjMwIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAw
+IFYpICAgQUxBUk0KPj4gPiBmYW4xOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBk
+aXYgPSAyKSAgQUxBUk0KPj4gPiBmYW4yOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBN
+LCBkaXYgPSAyKSAgQUxBUk0KPj4gPiBmYW4zOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAg
+UlBNLCBkaXYgPSAyKSAgQUxBUk0KPj4gPiBmYW40OiAgICAgICAgICAwIFJQTSAgKGRpdiA9IDIp
+ICBBTEFSTQo+PiA+IHRlbXAxOiAgICAgICArMzEuMLBDICAoaGlnaCA9ICArMC4wsEMsIGh5c3Qg
+PSAgKzAuMLBDKSAgQUxBUk0gIHNlbnNvciA9IAo+PiA+IGRpb2RlCj4+ID4gdGVtcDI6ICAgICAg
+ICszMi4wsEMgIChoaWdoID0gKzgwLjCwQywgaHlzdCA9ICs3NS4wsEMpICBzZW5zb3IgPSBkaW9k
+ZQo+PiA+IHRlbXAzOiAgICAgICArMjMuMLBDICAoaGlnaCA9ICs4MC4wsEMsIGh5c3QgPSArNzUu
+MLBDKSAgc2Vuc29yID0gCj4+ID4gdGhlcm1pc3Rvcgo+PiA+IGNwdTBfdmlkOiAgICsyLjA1MCBW
+Cj4+Cj4+IEhpIEFuZHJlYSwKPj4KPj4gZXhjZWxsZW50IC0gdGhhdCBtYXRjaGVzIHRoZSBvdXRw
+dXQgSSBnZXQuIE5vdyBhbGwgd2UgaGF2ZSB0byBkbyBpcyB0byAKPj4gbWF0Y2ggdGhlIHZhbHVl
+cwo+PiB0byBhY3R1YWwgdm9sdGFnZXMuIGluMiBhbmQgaW4zIG1hdGNoIHRoZSAzLjNWIHNlZW4g
+aW4gdGhlIEJJT1MsIGJ1dCBmb3IgCj4+IHRoZSBvdGhlcnMKPj4gSSBoYXZlIG5vIGlkZWEuCj4K
+PiBBcyBmb3IgdGhlIG90aGVyIGNoaXBzIGluIHRoaXMgZmFtaWx5LCBpbjIsIGluMywgaW43IGFu
+ZCBpbjggYXJlCj4gaW50ZXJuYWwgdm9sdGFnZXMgc28gdGhlaXIgbWFwcGluZyBhbmQgc2NhbGlu
+ZyBpcyBmaXhlZC4gVGhlIHBpbiBuYW1lcwo+IGFsc28gc3Ryb25nbHkgc3VnZ2VzdCBjb25uZWN0
+aW5nIFZjb3JlIHRvIGluMCwgYW5kIEkndmUgbmV2ZXIgc2VlbiBhCj4gYm9hcmQgbWFudWZhY3R1
+cmVyIGRpdmVyZ2UgZnJvbSB0aGlzLiBTbyB5b3UgY2FuIHN0YXJ0IHdpdGggdGhlCj4gZm9sbG93
+aW5nIGNvbmZpZyBzdGF0ZW1lbnRzOgo+Cj4gY2hpcCAibmN0Njc3NS0qIiAibmN0NjY3NzYtKiIK
+Pgo+ICAgIGxhYmVsIGluMCAiVmNvcmUiCj4gICAgbGFiZWwgaW4yICJBVkNDIgo+ICAgIGxhYmVs
+IGluMyAiKzMuM1YiCj4gICAgbGFiZWwgaW43ICIzVlNCIgo+ICAgIGxhYmVsIGluOCAiVmJhdCIK
+Pgo+ICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjkwCj4gICAgc2V0IGluMl9tYXggIDMuMyAqIDEu
+MTAKPiAgICBzZXQgaW4zX21pbiAgMy4zICogMC45MAo+ICAgIHNldCBpbjNfbWF4ICAzLjMgKiAx
+LjEwCj4gICAgc2V0IGluN19taW4gIDMuMyAqIDAuOTAKPiAgICBzZXQgaW43X21heCAgMy4zICog
+MS4xMAo+ICAgIHNldCBpbjhfbWluICAzLjAgKiAwLjkwCj4gICAgc2V0IGluOF9tYXggIDMuMCAq
+IDEuMTAKPgo+IFRoaXMgbGVhdmVzIG9ubHkgNCB2b2x0YWdlIGlucHV0cyB0byBjb25maWd1cmUs
+IHByZXN1bWFibHkgZm9yICs1ViwKPiArMTJWLCBhbmQgcG9zc2libHkgNVZTQiBhbmQgVmRpbW0u
+IENoZWNrIHRoZSBsYWJlbHMgYW5kIHZhbHVlcyBpbiB0aGUKPiBCSU9TICh3cml0ZSB0aGVtIGFs
+bCBkb3duIGlmIHRoZXkgZmx1Y3R1YXRlKSBhbmQgbWF5YmUgd2UgY2FuIGZpZ3VyZSBpdAo+IG91
+dC4KPgo+IC0tIAo+IEplYW4gRGVsdmFyZQo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KPiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+IGxtLXNlbnNv
+cnNAbG0tc2Vuc29ycy5vcmcKPiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9sbS1zZW5zb3JzCgpPSyBIZXJlJ3MgdGhlIGluZm9tYXRpb24KbmN0Njc3Ni1pc2Et
+MDI5MApBZGFwdGVyOiBJU0EgYWRhcHRlcgpWY29yZTogICAgICAgKzEuMTggViAgKG1pbiA9ICAr
+MC4wMCBWLCBtYXggPSAgKzEuNzQgVikKaW4xOiAgICAgICAgICsxLjAyIFYgIChtaW4gPSAgKzAu
+MDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KQVZDQzogICAgICAgICszLjM2IFYgIChtaW4g
+PSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCiszLjNWOiAgICAgICArMy4zNCBWICAobWluID0g
+ICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQppbjQ6ICAgICAgICAgKzEuMDMgViAgKG1pbiA9ICAr
+MC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQppbjU6ICAgICAgICAgKzIuMDQgViAgKG1p
+biA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQppbjY6ICAgICAgICAgKzAuNzgg
+ViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQozVlNCOiAgICAgICAg
+KzMuNDIgViAgKG1pbiA9ICArMi45OCBWLCBtYXggPSAgKzMuNjMgVikKVmJhdDogICAgICAgICsz
+LjMwIFYgIChtaW4gPSAgKzIuNzAgViwgbWF4ID0gICszLjMwIFYpICAgQUxBUk0KZmFuMTogICAg
+ICAgIDU1MCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCmZhbjI6ICAgICAgIDEwMTMgUlBN
+ICAobWluID0gICAgMCBSUE0pICBBTEFSTQpmYW4zOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAg
+IDAgUlBNKSAgQUxBUk0KZmFuNDogICAgICAgIDgyNCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFM
+QVJNCmZhbjU6ICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pICBBTEFSTQp0ZW1wMTog
+ICAgICAgKzI0LjDCsEMgIChoaWdoID0gICswLjDCsEMsIGh5c3QgPSAgKzAuMMKwQykgIEFMQVJN
+ICBzZW5zb3IgPSAKdGhlcm1pc3Rvcgp0ZW1wMjogICAgICAgLTYwLjDCsEMgIChoaWdoID0gKzgw
+LjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9IGRpb2RlCnRlbXAzOiAgICAgICArMzgu
+MMKwQyAgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vuc29yID0gCnRoZXJt
+aXN0b3IKY3B1MF92aWQ6ICAgKzIuMDUwIFYKCmFuZCBCSU9TCkNQVSB0ZW1wIDQzCk1CIHRlbXAg
+MjUKCkNQVSBWb2x0IDEuMTE0LTEuMTE3NgozLjNWb2x0ICAgICAzLjM2IC0gMy4zNAo1Vm9sdCAg
+ICAgNS4xNjAKMTJWb2x0ICAxMi4yODgKClNvIGl0IGxvb2tzIGFzIGlmIGluNCAqIDUgaXMgNVZv
+bHQsIGluNSAqIDYgaXMgMTJ2b2x0LiBUaGlzIGlzIG9uIGEgYXN1cyAKcDhwNjcgcHJvLCBidXQg
+SSd2ZSBzZWVuIHRoZSBzYW1lIHZhbHVlcyBvbiBhIGFzdXMgcDhwNjcgZGVsdXguCgpMb29raW5n
+IGluIHRoZSBuNjc3NmYgc3BlY2lmaWNhdGlvbiBpZiBsb29rcyBhcyBpZiBBVVhUSU4odGVtcDMp
+IGFuZCBpbjYgCnNoYXJlIHRoZSBzYW1lIHBpbiAocGluIDEwOSkgc28gd2UgY2FuJ3QgaGF2ZSBi
+b3RoIGVuYWJsZWQuCgpSZWdhcmRzCklhbiBEb2Jzb24KIAoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycwo=
