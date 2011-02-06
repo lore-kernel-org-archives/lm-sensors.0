@@ -1,77 +1,63 @@
-From: "Ian Dobson" <i.dobson@planet-ian.com>
-Date: Sat, 05 Feb 2011 21:46:22 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sun, 06 Feb 2011 01:00:02 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <6CD4D8D93D8640C1A4AA666F580F0E02@portable2>
+Message-Id: <20110206010002.GA27852@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="ks_c_5601-1987"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-CgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9t
-OiAiR3VlbnRlciBSb2VjayIgPGd1ZW50ZXIucm9lY2tAZXJpY3Nzb24uY29tPgpTZW50OiBTYXR1
-cmRheSwgRmVicnVhcnkgMDUsIDIwMTEgODoxNSBQTQpUbzogIkFuZHJlYSBSaXp6b2xvIiA8YW5k
-cmVhLnJpenpvbG9AZ21haWwuY29tPgpDYzogPGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc+ClN1
-YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gU3RhbmRhbG9uZSBkcml2ZXIgZm9yIFc4MzY3N0hHLUks
-IApOQ1Q2Nzc1RixOQ1Q2Nzc2RgoKPiBPbiBTYXQsIEZlYiAwNSwgMjAxMSBhdCAwMjowMDowOVBN
-IC0wNTAwLCBBbmRyZWEgUml6em9sbyB3cm90ZToKPj4gaGksCj4+IHRoYW5rIHlvdSB2ZXJ5IG11
-Y2gsIGhlcmUgb24gaW50ZWwgREg1N0pHIGl0IHdvcmtzLiBgc2Vuc29yc2Agb3V0cHV0Ogo+Pgo+
-PiBuY3Q2Nzc1LWlzYS0wNjgwCj4+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4+IGluMDogICAgICAg
-ICArMC45MyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS43NCBWKQo+PiBpbjE6ICAgICAg
-ICAgKzAuNzggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQo+PiBp
-bjI6ICAgICAgICAgKzMuNDEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBB
-TEFSTQo+PiBpbjM6ICAgICAgICAgKzMuNDEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAu
-MDAgVikgICBBTEFSTQo+PiBpbjQ6ICAgICAgICAgKzEuMjYgViAgKG1pbiA9ICArMC4wMCBWLCBt
-YXggPSAgKzAuMDAgVikgICBBTEFSTQo+PiBpbjU6ICAgICAgICAgKzAuNzggViAgKG1pbiA9ICAr
-MC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQo+PiBpbjY6ICAgICAgICAgKzEuMDYgViAg
-KG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQo+PiBpbjc6ICAgICAgICAg
-KzMuMzYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFSTQo+PiBpbjg6
-ICAgICAgICAgKzMuMzAgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgICBBTEFS
-TQo+PiBmYW4xOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBkaXYgPSAyKSAgQUxB
-Uk0KPj4gZmFuMjogICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSwgZGl2ID0gMikgIEFM
-QVJNCj4+IGZhbjM6ICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0sIGRpdiA9IDIpICBB
-TEFSTQo+PiBmYW40OiAgICAgICAgICAwIFJQTSAgKGRpdiA9IDIpICBBTEFSTQo+PiB0ZW1wMTog
-ICAgICAgKzMxLjCwQyAgKGhpZ2ggPSAgKzAuMLBDLCBoeXN0ID0gICswLjCwQykgIEFMQVJNICBz
-ZW5zb3IgPSAKPj4gZGlvZGUKPj4gdGVtcDI6ICAgICAgICszMi4wsEMgIChoaWdoID0gKzgwLjCw
-QywgaHlzdCA9ICs3NS4wsEMpICBzZW5zb3IgPSBkaW9kZQo+PiB0ZW1wMzogICAgICAgKzIzLjCw
-QyAgKGhpZ2ggPSArODAuMLBDLCBoeXN0ID0gKzc1LjCwQykgIHNlbnNvciA9IAo+PiB0aGVybWlz
-dG9yCj4+IGNwdTBfdmlkOiAgICsyLjA1MCBWCj4+Cj4gSGkgQW5kcmVhLAo+Cj4gZXhjZWxsZW50
-IC0gdGhhdCBtYXRjaGVzIHRoZSBvdXRwdXQgSSBnZXQuIE5vdyBhbGwgd2UgaGF2ZSB0byBkbyBp
-cyB0byAKPiBtYXRjaCB0aGUgdmFsdWVzCj4gdG8gYWN0dWFsIHZvbHRhZ2VzLiBpbjIgYW5kIGlu
-MyBtYXRjaCB0aGUgMy4zViBzZWVuIGluIHRoZSBCSU9TLCBidXQgZm9yIAo+IHRoZSBvdGhlcnMK
-PiBJIGhhdmUgbm8gaWRlYS4KPgo+IFRoYW5rcywKPiBHdWVudGVyCj4KPgo+IF9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKPiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gaHR0cDovL2xpc3RzLmxtLXNlbnNv
-cnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwoKSGksCgpOb3QgYmFkLCB0aGUgcmVz
-dWx0cyBsb29rIGFsbW9zdCB0aGUgc2FtZSBhcyB0aGUgc3RhbmRhbG9uZSAiaGFjayIgZHJpdmVy
-IApmb3IgdGhlIG42Nzc2IEknbSB3b3JraW5nIG9uLCBsb29rcyBhcyBpZiBJIGNhbiBzdG9wIG5v
-dy4gVGhlIG9ubHkgdGhpbmcgSSdtIApzZWVpbmcgaXMgdGhhdCBvbiBmYW4gaGVhZGVycyB3aGVy
-ZSBubyBmYW4gaXMgYXR0YWNoZWQgSSdtIHNlZWluZyAxNjRSUE0uCgpUaGUgTkNUNjc3NkYgc2Vl
-bXMgdG8gdXNlIGEgMTMtYml0IGNvdW50ZXIgZm9yIHRoZSBmYW5zLiBUaGUgUlBNIGZvcm11bGEg
-aXMgClJQTSA9IDEuMzVlNiAvIGNvdW50LiBUaGUgdmFsdWUgMS4zNWU2IHZhbHVlIG1pZ2h0IGNv
-bWUgZnJvbSBhIDIyLjUga0h6IApjb3VudGVyLiBOb3cgaWYgdGhlIGNvdW50ZXIgcmVhY2hlcyB0
-aGUgbWF4aW11bSB2YWx1ZSwgd2hpY2ggaXMgODE5MSBmb3IgYSAKMTMtYml0IGNvdW50ZXIsIHdl
-IGdldCBleGFjdGx5IGFuIFJQTSBvZiAxNjQuODE1MDQxLgoKbmN0Njc3Ni1pc2EtMDI5MApBZGFw
-dGVyOiBJU0EgYWRhcHRlcgppbjA6ICAgICAgICAgKzEuMTggViAgKG1pbiA9ICArMC45NSBWLCBt
-YXggPSAgKzEuMjYgVikKaW4xOiAgICAgICAgICsxLjAyIFYgIChtaW4gPSAgKzAuOTAgViwgbWF4
-ID0gICsxLjIwIFYpCmluMjogICAgICAgICArMy4zNiBWICAobWluID0gICszLjAxIFYsIG1heCA9
-ICArMy41MCBWKQppbjM6ICAgICAgICAgKzMuMzQgViAgKG1pbiA9ICArMy4wMSBWLCBtYXggPSAg
-KzMuNTAgVikKaW40OiAgICAgICAgICsxLjAzIFYgIChtaW4gPSAgKzEuMDAgViwgbWF4ID0gICsx
-LjEwIFYpCmluNTogICAgICAgICArMi4wNCBWICAobWluID0gICsxLjkwIFYsIG1heCA9ICArMi4w
-MCBWKSAgIEFMQVJNCmluNjogICAgICAgICArMC44MCBWICAobWluID0gICswLjc3IFYsIG1heCA9
-ICArMC45MCBWKQppbjc6ICAgICAgICAgKzMuNDIgViAgKG1pbiA9ICArMy4wMSBWLCBtYXggPSAg
-KzMuNTAgVikKaW44OiAgICAgICAgICszLjMwIFYgIChtaW4gPSAgKzMuMDEgViwgbWF4ID0gICsz
-LjUwIFYpCmZhbjE6ICAgICAgICA1MzAgUlBNICAobWluID0gICAgMCBSUE0pICBBTEFSTQpmYW4y
-OiAgICAgICAxMDMwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKSAgQUxBUk0KZmFuMzogICAgICAgIDE2
-NCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCmZhbjQ6ICAgICAgICA3ODQgUlBNICAobWlu
-ID0gICAgMCBSUE0pICBBTEFSTQpmYW41OiAgICAgICAgMTY0IFJQTSAgKG1pbiA9ICAgIDAgUlBN
-KSAgQUxBUk0KdGVtcDE6ICAgICAgICsyMy4wwrBDICAoaGlnaCA9ICszNS4wwrBDLCBoeXN0ID0g
-KzM3LjDCsEMpICBzZW5zb3IgPSAKdGhlcm1pc3Rvcgp0ZW1wMjogICAgICAgLTYwLjDCsEMgICho
-aWdoID0gKzUwLjDCsEMsIGh5c3QgPSArNTUuMMKwQykgIHNlbnNvciA9IGRpb2RlCnRlbXAzOiAg
-ICAgICArMzcuMMKwQyAgKGhpZ2ggPSArNTAuMMKwQywgaHlzdCA9ICs1NS4wwrBDKSAgc2Vuc29y
-ID0gCnRoZXJtaXN0b3IKY3B1MF92aWQ6ICAgKzIuMDUwIFYKCgpSZWdhcmRzCklhbiBEb2Jzb24g
-CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
-c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
-bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCg==
+Hi Ian,
+On Sat, Feb 05, 2011 at 04:46:22PM -0500, Ian Dobson wrote:
+> 
+[ ... ]
+> 
+> Not bad, the results look almost the same as the standalone "hack" driver 
+> for the n6776 I'm working on, looks as if I can stop now. The only thing I'm 
+> seeing is that on fan headers where no fan is attached I'm seeing 164RPM.
+> 
+Can you try again ? I updated the code to address the problem.
+
+> The NCT6776F seems to use a 13-bit counter for the fans. The RPM formula is 
+> RPM = 1.35e6 / count. The value 1.35e6 value might come from a 22.5 kHz 
+> counter. Now if the counter reaches the maximum value, which is 8191 for a 
+> 13-bit counter, we get exactly an RPM of 164.815041.
+> 
+> nct6776-isa-0290
+> Adapter: ISA adapter
+> in0:         +1.18 V  (min =  +0.95 V, max =  +1.26 V)
+> in1:         +1.02 V  (min =  +0.90 V, max =  +1.20 V)
+> in2:         +3.36 V  (min =  +3.01 V, max =  +3.50 V)
+> in3:         +3.34 V  (min =  +3.01 V, max =  +3.50 V)
+> in4:         +1.03 V  (min =  +1.00 V, max =  +1.10 V)
+> in5:         +2.04 V  (min =  +1.90 V, max =  +2.00 V)   ALARM
+> in6:         +0.80 V  (min =  +0.77 V, max =  +0.90 V)
+> in7:         +3.42 V  (min =  +3.01 V, max =  +3.50 V)
+> in8:         +3.30 V  (min =  +3.01 V, max =  +3.50 V)
+> fan1:        530 RPM  (min =    0 RPM)  ALARM
+> fan2:       1030 RPM  (min =    0 RPM)  ALARM
+> fan3:        164 RPM  (min =    0 RPM)  ALARM
+> fan4:        784 RPM  (min =    0 RPM)  ALARM
+> fan5:        164 RPM  (min =    0 RPM)  ALARM
+> temp1:       +23.0°C  (high = +35.0°C, hyst = +37.0°C)  sensor = 
+> thermistor
+> temp2:       -60.0°C  (high = +50.0°C, hyst = +55.0°C)  sensor = diode
+
+This doesn't look good either. Can you report the raw values you get when reading
+registers 0x150/0x151, 0x75/0x76, 0x152, and 0x200 ?
+
+I have been wondering if I should retrieve the temperature values from 0x73/0x75/0x77.
+This is another set of temperature registers supported by both chips and used as
+fan monitoring source. 0x150 and 0x200 specify the temperature source for 0x151 and
+0x75, respectively.
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
