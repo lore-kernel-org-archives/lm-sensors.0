@@ -1,7 +1,7 @@
 From: "Ian Dobson" <i.dobson@planet-ian.com>
-Date: Sun, 06 Feb 2011 10:14:09 +0000
+Date: Sun, 06 Feb 2011 11:59:40 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <70A4B8A7E6AF453C8F763A3EA5F9D7D2@portable2>
+Message-Id: <BFBD69D2563545659C4720532D957B6F@portable2>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
@@ -66,8 +66,14 @@ NCT6776F
 > lm-sensors@lm-sensors.org
 > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
-OK, That might take some time, the box is currently transcoding/processing a 
-large job and I don't really want to stop it and restart it.
+OK looking in the specs on the w83627ehf bank0 3b-3f are the minimum fan 
+speeds, on the n6776f they're not defined.
+
+There appears to be a dual usage register "CPUFAN MODE Register / CPUFAN 
+TOLERRANCE Register - Index 02h (Bank 2)" and the actual limit is readable 
+in (CPUFANIN) Fan Count Limit High-byte Register - Index 3Ch (Bank 6), but 
+that's read only. Maybe it's better if we handle the fan lo limit within the 
+driver rather than through the chip.
 
 Regards
 Ian Dobson
