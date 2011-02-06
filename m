@@ -1,94 +1,50 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 06 Feb 2011 16:04:46 +0000
+Date: Sun, 06 Feb 2011 16:13:02 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <20110206160446.GA30271@ericsson.com>
+Message-Id: <20110206161302.GB30271@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Feb 06, 2011 at 06:59:40AM -0500, Ian Dobson wrote:
+Hi Ian,
+On Sun, Feb 06, 2011 at 04:36:10AM -0500, Ian Dobson wrote:
+[ ... ]
+> >> temp2:       -60.0°C  (high = +50.0°C, hyst = +55.0°C)  sensor = diode
+> >
+> > This doesn't look good either. Can you report the raw values you get when 
+> > reading
+> > registers 0x150/0x151, 0x75/0x76, 0x152, and 0x200 ?
+> >
+> > I have been wondering if I should retrieve the temperature values from 
+> > 0x73/0x75/0x77.
+> > This is another set of temperature registers supported by both chips and 
+> > used as
+> > fan monitoring source. 0x150 and 0x200 specify the temperature source for 
+> > 0x151 and
+> > 0x75, respectively.
+> >
+> > Thanks,
+> > Guenter
 > 
+>  0x150 = 0
+>  0x151 = 0
+>  0x075 = 31
+>  0x076 = 0
+>  0x152 = 0
+>  0x200 = c
 > 
-> --------------------------------------------------
-> From: "Jean Delvare" <khali@linux-fr.org>
-> Sent: Sunday, February 06, 2011 11:00 AM
-> To: "Guenter Roeck" <guenter.roeck@ericsson.com>
-> Cc: "Andrea Rizzolo" <andrea.rizzolo@gmail.com>; <lm-sensors@lm-sensors.org>
-> Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F, 
-> NCT6776F
-> 
-> > On Sun, 6 Feb 2011 10:56:29 +0100, Jean Delvare wrote:
-> >> As for the other chips in this family, in2, in3, in7 and in8 are
-> >> internal voltages so their mapping and scaling is fixed. The pin names
-> >> also strongly suggest connecting Vcore to in0, and I've never seen a
-> >> board manufacturer diverge from this. So you can start with the
-> >> following config statements:
-> >>
-> >> chip "nct6775-*" "nct66776-*"
-> >
-> > Err, typo here of course, I meant:
-> >
-> > chip "nct6775-*" "nct6776-*"
-> >
-> > Sorry.
-> >
-> >>
-> >>     label in0 "Vcore"
-> >>     label in2 "AVCC"
-> >>     label in3 "+3.3V"
-> >>     label in7 "3VSB"
-> >>     label in8 "Vbat"
-> >>
-> >>     set in2_min  3.3 * 0.90
-> >>     set in2_max  3.3 * 1.10
-> >>     set in3_min  3.3 * 0.90
-> >>     set in3_max  3.3 * 1.10
-> >>     set in7_min  3.3 * 0.90
-> >>     set in7_max  3.3 * 1.10
-> >>     set in8_min  3.0 * 0.90
-> >>     set in8_max  3.0 * 1.10
-> >>
-> >> This leaves only 4 voltage inputs to configure, presumably for +5V,
-> >> +12V, and possibly 5VSB and Vdimm. Check the labels and values in the
-> >> BIOS (write them all down if they fluctuate) and maybe we can figure it
-> >> out.
-> >>
-> >
-> >
-> > -- 
-> > Jean Delvare
-> >
-> > _______________________________________________
-> > lm-sensors mailing list
-> > lm-sensors@lm-sensors.org
-> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-> OK looking in the specs on the w83627ehf bank0 3b-3f are the minimum fan 
-> speeds, on the n6776f they're not defined.
-> 
-> There appears to be a dual usage register "CPUFAN MODE Register / CPUFAN 
-> TOLERRANCE Register - Index 02h (Bank 2)" and the actual limit is readable 
+Looks like they are using PECI agent 0 as monitoring source. Odd, though, that 0x150 
+reads zero but reports -60 degrees C. Is that fluctuating ?
 
-I should have that one already, and read it with nct6775_update_pwm().
-
-> in (CPUFANIN) Fan Count Limit High-byte Register - Index 3Ch (Bank 6), but 
-> that's read only. Maybe it's better if we handle the fan lo limit within the 
-> driver rather than through the chip.
-> 
-Wonder if that is really read-only.
-
-There are also registers 0x105/0x205/0x305, "Stop Value Register".
-Naming is odd, but the description seems to be what we are looking for,
-at least for thermal cruise mode.
-There is also the "Start-up value register", which is the fan's start speed
-in thermal cruise mode.
+Also, can you dump registers 0x100, 0x200, 0x300, and 0x621 to 0x626 ? Those registers
+define the mapping from temperature sources to registers (0x152 was wrong; should have said 0x622).
 
 Thanks,
-Guenter 
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
