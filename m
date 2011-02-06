@@ -1,47 +1,28 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 06 Feb 2011 16:13:02 +0000
+Date: Sun, 06 Feb 2011 16:28:22 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <20110206161302.GB30271@ericsson.com>
+Message-Id: <20110206162822.GC30271@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ian,
-On Sun, Feb 06, 2011 at 04:36:10AM -0500, Ian Dobson wrote:
+On Sun, Feb 06, 2011 at 08:37:48AM -0500, Ian Dobson wrote:
 [ ... ]
-> >> temp2:       -60.0°C  (high = +50.0°C, hyst = +55.0°C)  sensor = diode
-> >
-> > This doesn't look good either. Can you report the raw values you get when 
-> > reading
-> > registers 0x150/0x151, 0x75/0x76, 0x152, and 0x200 ?
-> >
-> > I have been wondering if I should retrieve the temperature values from 
-> > 0x73/0x75/0x77.
-> > This is another set of temperature registers supported by both chips and 
-> > used as
-> > fan monitoring source. 0x150 and 0x200 specify the temperature source for 
-> > 0x151 and
-> > 0x75, respectively.
-> >
-> > Thanks,
-> > Guenter
 > 
->  0x150 = 0
->  0x151 = 0
->  0x075 = 31
->  0x076 = 0
->  0x152 = 0
->  0x200 = c
+> Looking in the n6776f specification if looks as if AUXTIN(temp3) and in6 
+> share the same pin (pin 109) so we can't have both enabled.
 > 
-Looks like they are using PECI agent 0 as monitoring source. Odd, though, that 0x150 
-reads zero but reports -60 degrees C. Is that fluctuating ?
+So they got rid of that for the nct6775f and w83667-b but reintroduced it
+for nct6776f. Oh well. Would have been too simple otherwise.
 
-Also, can you dump registers 0x100, 0x200, 0x300, and 0x621 to 0x626 ? Those registers
-define the mapping from temperature sources to registers (0x152 was wrong; should have said 0x622).
+Added complexity is that the sources for all temperature registers are now
+selectable, but the status registers are still hardcoded.
+Going to be fun to sort that out. Looks like I'll have to think about that 
+a bit more.
 
 Thanks,
 Guenter
