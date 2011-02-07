@@ -1,52 +1,49 @@
-From: Andrew Lutomirski <luto@mit.edu>
-Date: Mon, 07 Feb 2011 13:56:29 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 07 Feb 2011 14:39:56 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <AANLkTimmGrMEm7gpdgf+Pbz-HuskXi0PiyinqLFqCkWb@mail.gmail.com>
+Message-Id: <20110207143956.GA1682@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Feb 7, 2011 at 2:33 AM, Jean Delvare <khali@linux-fr.org> wrote:
+On Mon, Feb 07, 2011 at 02:40:00AM -0500, Jean Delvare wrote:
 > On Sun, 6 Feb 2011 20:50:05 -0800, Guenter Roeck wrote:
->> On Sun, Feb 06, 2011 at 10:50:02PM -0500, Andy Lutomirski wrote:
->> > On 02/05/2011 12:58 PM, Guenter Roeck wrote:
->> > > Hi,
->> > >
->> > > a standalone driver for W83667HG-I (NCT6771F, NCT6775F) and NCT6776F
->> > > is available for testing at http://roeck-us.net/linux/drivers/w83627=
-ehf/.
->> > >
->> > > Please test and let me know if there are any problems.
->> >
->> > It appears to mostly work on an Intel DH67GD (nct6775). =A0There are t=
-wo
->> > issues:
->> >
->> > 1. The first time I ran 'sensors', my CPU fan showed 0 RPM instead of
->> > the correct value (~134). =A0Running it again shows the correct value.
->> >
->> If you check the log, you might see a notice that the fan divisors were =
-modified.
->> Can you check ?
+> > On Sun, Feb 06, 2011 at 10:50:02PM -0500, Andy Lutomirski wrote:
+> > > 2. PWM control doesn't seem to have any effect.  (The BIOS PWM control
+> > > settings definitely work.)
+> >
+> > Ok, I'll look into it.
+> 
+> I had already noticed that the W83667HG was more complex than the
+> previous chips in this respect, and had even started writing a patch to
+> address the problem (which was never tested and is maybe not even
+> finished, I can't remember.) I don't know if the W83677HG-I is similar
+> in this respect, or even worse. Here is what I had back then (June
+> 2009!) if it is of any interest to you:
+> 
+> ---
+>  drivers/hwmon/w83627ehf.c |   87 ++++++++++++++++++++++++++++++++++++++-------
+>  1 file changed, 74 insertions(+), 13 deletions(-)
+> 
+> --- linux-2.6.31-rc1.orig/drivers/hwmon/w83627ehf.c	2009-06-25 09:32:17.000000000 +0200
+> +++ linux-2.6.31-rc1/drivers/hwmon/w83627ehf.c	2009-06-25 15:22:18.000000000 +0200
+> @@ -198,6 +198,10 @@ static const u8 W83627EHF_REG_TOLERANCE[
+>  static const u8 W83627EHF_REG_FAN_MIN_OUTPUT[] = { 0x08, 0x09, 0x15, 0x64 };
+>  static const u8 W83627EHF_REG_FAN_STOP_TIME[] = { 0x0C, 0x0D, 0x17, 0x66 };
+>  
+> +/* W83667HG-specific fan controller routing */
+> +#define W83667HG_REG_FANCTRL2_SEL	0x62
+> +#define W83667HG_REG_FANCTRL4_SEL	0x7C
+> +
+Unfortunately, both registers are no longer defined in nct665/nct6776.
 
-Yes, I got a message.  dmesg shows:
+Thanks,
+Guenter
 
-[51676.259546] w83627ehf: Found NCT6775 chip at 0x290
-[51678.246682] w83627ehf w83627ehf.656: Increasing fan2 clock divider
-from 32 to 64
-
-The second line happens on the first call to 'sensors'.  Rebooting
-triggers it again, but rmmod/insmod does not.
-
-Should the driver just fix up the divisors on load instead of on first read?
-
-I'm happy to test patches (especially for fan control) on my board.
-
---Andy
 
 _______________________________________________
 lm-sensors mailing list
