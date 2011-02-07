@@ -1,7 +1,7 @@
-From: Andrew Lutomirski <luto@mit.edu>
-Date: Mon, 07 Feb 2011 20:32:23 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 07 Feb 2011 20:35:04 +0000
 Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
-Message-Id: <AANLkTi=eDoC9kF8J+pFzjU09de7qnQn3ZQfdob_kPJWX@mail.gmail.com>
+Message-Id: <20110207213504.5d7450c9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110205175852.GA26672@ericsson.com>
 In-Reply-To: <20110205175852.GA26672@ericsson.com>
@@ -10,48 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Feb 7, 2011 at 3:26 PM, Guenter Roeck
-<guenter.roeck@ericsson.com> wrote:
+On Mon, 7 Feb 2011 09:44:12 -0800, Guenter Roeck wrote:
 > Hi Andrew,
->
-> On Mon, 2011-02-07 at 14:53 -0500, Andrew Lutomirski wrote:
+> 
+> On Mon, Feb 07, 2011 at 11:50:48AM -0500, Andrew Lutomirski wrote:
 > [ ... ]
->> >
->> > Anyway, please try again. I updated the code to fix the pwmX_enable bug.
->>
->> Mostly works.
->>
->> If I set pwm2_enable to 1, then pwm2 controls the fan.
->>
->> If I try to set pwm2_enable to 5, I get:
->>
->> # echo 5 >pwm2_enable
->> bash: echo: write error: Invalid argument
->>
-> For now that is on purpose. Problem is that if SmartFanIV mode was not
-> initialized by the BIOS, it probably won't work. There are lots of
-> parameters which have to be configured. So one can not just let users
-> enable it without forcing them to configure all the other parameters ..
-> which is currently not possible with the sysfs ABI.
+> > >
+> > > So what you'll have to do is to set a minimum speed, and the problem will go away.
+> > 
+> > I admit I'm a bit confused as to what fan2_min does.  I have a minimum
+> > (to warn?) fan speed set in BIOS, which seems to have nothing to do
+> > with the initial value of fan2_min.  Changing fan2_min will cause
+> > fan2_alarm to become set or unset, when I decrease min below input,
+> > alarm stays set until I read it once.
+> > 
+> Interesting; it means that it works, but the BIOS seems to use another set
+> of registers to set the minimum speed.
 
-I guess what you'd want is a "set lots of parameters all at once" interface.
+The BIOS doesn't necessarily use limit registers. It is totally
+possible that the speed is simply checked at boot time against the
+specified limit, and the hardware monitoring chip isn't even aware of
+it.
 
->
-> So this is really a one-way street for now.
->
-> Nuvoton's position on this matter is that fan control should be left to
-> the board vendor to prevent system damage, ie that users should not try
-> to configure it at all other than through the BIOS. They might have a
-> point.
+Motherboard vendors have been under- or even misusing the hardware
+monitoring features of the chips they selected for years, and while it
+gets slowly better over time, it's still dangerous to assume that they
+always know what they are doing and that they always do the right thing.
 
-Fair enough.  I actually plan to let BIOS configure everything, since
-it seems to work nicely.  But as long as there is a driver that offers
-fan control, might as well have it work properly.  (I care a lot more
-about the sensors than the fan control.)
-
-Should there be a "read-only" module option?
-
---Andy
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
