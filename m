@@ -1,28 +1,43 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 16 Feb 2011 15:09:55 +0000
-Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (jc42) more helpful
-Message-Id: <20110216150955.GB14076@ericsson.com>
+Date: Tue, 08 Feb 2011 16:42:48 +0000
+Subject: [lm-sensors] Intel boards utilizing QST for fan control
+Message-Id: <20110208164248.GC13717@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D5BCA87.7010204@ladisch.de>
- <4D5BCAD0.4080204@ladisch.de>
-In-Reply-To: <4D5BCAD0.4080204@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 16, 2011 at 08:02:08AM -0500, Clemens Ladisch wrote:
-> The documentation lists standard numbers and chip names in excruciating
-> detail, but that's all it does.  To help mere mortals in deciding
-> whether to enable this driver, mention what this sensor is for and in
-> which systems it might be found.
-> 
-> Also add a link to the actual JC 42.4 specification.
-> 
-> Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Hi all,
 
-Applied.
+there are a number of Intel boards using Intel's "Quiet System Technology"
+or QST for temperature monitoring and fan control.
+
+This functionality is currently not supported by Linux. If your board uses QST,
+you will not be able to see the temperature readings used to determine fan speeds, 
+and you will not be able to display fan speeds.
+
+Background:
+
+Intel provides an open source SDK which can be used to access QST information.
+You can get this SDK from 
+	http://software.intel.com/en-us/articles/Intel_Quiet_System_Technology_Software_Development_Kit/
+
+This SDK depends on a Linux driver named heci. This driver was made available by Intel 
+at http://sourceforge.net/projects/openamt/. The driver was included in the Linux kernel
+staging tree for a period of time. Unfortunately, Intel abandoned the project and requested
+the driver to be removed from the kernel, which happened with 2.6.32. See "Linux support" at
+	http://www.thinkwiki.org/wiki/Intel_Active_Management_Technology_%28AMT%29
+for details. Too bad, since the driver seemed to be in pretty good shape.
+
+In summary, if you want to buy an Intel board and want to see voltage and fan monitoring 
+data in Linux, check the board specification if it utilizes QST for fan control. If it does,
+the board may not be optimal for your purpose, and you might want to look for another board
+instead.
+
+If you do have such a board and want its fan control to be supported by the Linux kernel,
+I would suggest to get in touch with Intel and request such support. Maybe they reconsider
+their position if enough people request it.
 
 Thanks,
 Guenter
