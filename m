@@ -1,67 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 09 Feb 2011 15:33:32 +0000
-Subject: Re: [lm-sensors] [PATCH v2] sensors-detect: Add capability to
-Message-Id: <20110209163332.11390be7@endymion.delvare>
+From: Jeff Sadowski <jeff.sadowski@gmail.com>
+Date: Tue, 08 Feb 2011 03:08:42 +0000
+Subject: [lm-sensors] Intel BOXDH57DD driver?
+Message-Id: <AANLkTimuGHXHLovH57zR3tC3v1Gf7gyPgr10Zoc7i-kR@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110208204952.GA15232@ericsson.com>
-In-Reply-To: <20110208204952.GA15232@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 9 Feb 2011 07:01:04 -0800, Guenter Roeck wrote:
-> On Wed, Feb 09, 2011 at 08:02:55AM -0500, Jean Delvare wrote:
-> > So we have to think about the usage of the EMC devices in question. Do
-> > you know if any of these are being, or will be, used on PC boards?
-> > Remember that the purpose of sensors-detect is not to be a universal
-> > hardware monitoring device detector. It's primarily aimed at PC users.
-> > Users of embedded devices or exotic hardware should know what hardware
-> > monitoring devices they have, and these device should be instantiated by
-> > the kernel directly, rather than being detected from user-space.
->
-> No idea. It wasn't specifically that I need it or that we are going to use 
-> any of the chips. I just got into it after the recent emc driver submission,
-> and figured that since I tracked down the addresses and chip IDs, I might
-> as well put my knowledge to some use.
-> 
-> Also, while you are right about platform data on embedded devices
-> for the running code, there are additional aspects to consider.
-> 
-> First, I have often seen that HW specs for embedded devices can more or less
-> only be seeen as guidance. Not only do chips show up on unexpected addresses,
-> I have seen instances where chips were not there at all, or undocumented
-> chips show up. This gets difficult if one has to port linux to some older device,
-> where the HW designers may no longer be there.
+Kernel version:
+2.6.35
+lmsensors version
+sensors version 3.1.2 with libsensors version 3.1.2
 
-Missing chips are easy to deal with (i2c_new_probed_device()) and
-irrelevant to this discussion anyway.
 
-Chips at the wrong address can be spotted with i2cdetect, not need for
-sensors-detect.
+I'd like to write a driver for my motherboards Temperature/Voltage
+monitoring. I have an Intel BOXDH57DD motherboard. When I run
+"sensors-detect" I get
 
-For unexpected chips, I agree that sensors-detect can be useful (on the
-assumption that we are looking for a hardware monitoring device.)
+Driver `to-be-written':
+ * ISA bus, address 0x680
+   Chip `Nuvoton W83677HG-I Super IO Sensors' (confidence: 9)
 
-> Second, there is the case of people porting Linux to a box which wasn't supposed
-> to run Linux.
-> 
-> In both cases, sensors-detect can be a very useful tool to help figuring out
-> what is actually there.
+I've looked on the net for some more information and found some links
+to this mailing list. In one post the guy did a "modprobe w83627ehf
+force_id=0xa510" and was able to read some of his info I did this as
+well and see some of my sensors. Now I'd like to improve upon this. I
+downloaded the source code for w83627ehf and have been rummaging
+through it and looking at how it is put together.
 
-I wouldn't disagree. But as this isn't the primary use case for the
-script, and probing all addresses has known downsides, you would have
-to introduce a special flag if you really want to probe addresses which
-we know aren't used on PC hardware. We really don't want it to happen
-by default.
+I also took notes of what my motherboard showed in the bios
 
-> How about removing the new addresses from the list ? Would you be ok 
-> with the patch if I do that ?
+CPU Core Temperature 32.0 C
+PCH Temperature 59.00 C
+VR Temperature 56.00 C
+Memory Temperature 24.50 C
++12V  12.203V
++5V  5.189V
++3.3V  3.427V
++1.5V  1.476V
+CPU 1 Vccp  1.84V
+CPU Fan 0977
 
-Yes, I would be perfectly OK then.
-
--- 
-Jean Delvare
+It looked like it was going to be a real pain to add another
+temperature sensor to the w83627ehf driver and I was wondering if
+there is a way to write a non kernel module driver. I'd like to get to
+the raw reported info and I could dissect it do calculations on it and
+then report that. I have some experience writing drivers but not a
+lot. I wrote my own driver for my desktop aviator 2040 (posted on
+ubuntuorums.org) and I wrote a driver for my Vernier Go!Temp with help
+from Vernier (posted on fedoraforums.org). I think I could help with a
+kernel module as well but I'd need to do some real studying of your
+project. I could not follow the w83627ehf driver source code. It was
+too complicated for me to follow without knowing more info.
 
 _______________________________________________
 lm-sensors mailing list
