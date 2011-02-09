@@ -1,36 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 25 Feb 2011 19:15:43 +0000
-Subject: Re: [lm-sensors] W83795G Supermicro H8DGU-F
-Message-Id: <20110225201543.46954439@endymion.delvare>
+From: Owl <owl@umail.ru>
+Date: Wed, 09 Feb 2011 09:48:51 +0000
+Subject: [lm-sensors] coretemp output changed after loading acpi_cpufreq
+Message-Id: <4D526303.6060506@umail.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <77E104072DACA94993E7A23504E0C29F0559E9@ROCMXUS22.cs.myharris.net>
-In-Reply-To: <77E104072DACA94993E7A23504E0C29F0559E9@ROCMXUS22.cs.myharris.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+gentoo ~ # uname -a
+Linux gentoo 2.6.36-gentoo-r7 #1 SMP Fri Jan 14 14:34:23 MSK 2011 i686=20
+Intel(R) Atom(TM) CPU N550 @ 1.50GHz GenuineIntel GNU/Linux
 
-Hi Ray,
+gentoo ~ # sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +18.0=B0C  (crit =3D +100.0=B0C)
 
-On Fri, 25 Feb 2011 18:51:34 +0000, Ubelhart, Ray wrote:
-> Thank you for getting back to me and especially the driver it works great. I was using the older version because I was under the impression that it was necessary based upon the combination of applications and OS I need (lm_sensors, net-snmp, CentOS 5.5).
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +22.0=B0C  (crit =3D +100.0=B0C)
 
-Please don't top-post, and keep the list in Cc.
+gentoo ~ # modprobe acpi_cpufreq
+gentoo ~ # sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +37.0=B0C  (crit =3D +100.0=B0C)
 
-> If lm_sensors greater than 3.0 works on CentOS 5.5 x86_64 2.6.18-194 is there any net-snmp version dependencies to use lm_sensors-3.2?
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +41.0=B0C  (crit =3D +100.0=B0C)
 
-As mentioned on
-http://www.lm-sensors.org/wiki/Download
-you need net-snmp >= 5.5 for lm-sensors 3.x compatibility.
-
-> Where can I download an rpm install for lm_sensors-3.2?
-
-We do not provide binary packages, sorry. You may take your chance on
-http://atrpms.net/
-
--- 
-Jean Delvare
+It's normal?
+I think, second output is much closer to BIOS values.
 
 _______________________________________________
 lm-sensors mailing list
