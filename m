@@ -1,73 +1,148 @@
-From: Lucas Stach <dev@lynxeye.de>
-Date: Mon, 28 Feb 2011 23:24:37 +0000
-Subject: Re: [lm-sensors] hwmon API update
-Message-Id: <1298935477.5974.32.camel@workstation>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 09 Feb 2011 17:52:15 +0000
+Subject: [lm-sensors] [PATCH resend] libsensors: Add support for additional
+Message-Id: <20110209175215.GA19821@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D57CC24.1040306@free.fr>
-In-Reply-To: <4D57CC24.1040306@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am Montag, den 28.02.2011, 10:42 -0800 schrieb Guenter Roeck:
-> On Mon, Feb 28, 2011 at 12:50:45PM -0500, Lucas Stach wrote:
-> > Hello all,
-> >  
-> > let me revive this discussion a bit. After reading some things about the
-> > matter I think the way to go is to use Intels thermal framework. It
-> > should be easy to add the needed temp_get and fan_set functions to the
-> > affected hwmon drivers. 
-> > 
-> > But then one problem still persists: when the hwmon driver probes a
-> > device it automatically creates the sysfs entries. This is unintended
-> > behaviour from nouveau's point of view. The sensor value is not the real
-> > temperature value; it has to be scaled with some factor and an offset
-> > hard-coded in the video bios tables. This scaling could only be done on
-> > nouveau's side, so the hwmon driver is exposing an interface with wrong
-> > values to the userspace.
-> > 
-> > We need a way to use the hwmon i2c driver without exposing this
-> > interface. Do you have any preferred way how we could achieve this?
-> > 
-> The whole point of the hwmon subsystem is to expose hardware monitoring
-> attributes to userspace. A hwmon driver without sysfs attributes does not
-> make sense.
-> 
-> Guenter
+Update libsensors to support recently added sysfs attributes.
 
-I see your point. So the best way to move forward is to write a separate
-module which exposes the thermal framework API and duplicate the needed
-code.
+The patch does not include support for the new humidity attribute;
+this will be a separate patch since it requires a new sensor feature type.
 
-Who does the review for thermal api drivers? I remember some discussion
-about the Intel medfield driver which landed in the platform directory,
-but I think a driver like the one for adt747x has to go
-to /drivers/thermal where I couldn't find a maintainer. Could you give
-me some hint here?
+--
+Resending earlier patch, trying to get it out of my queue.
+Only change is to mark is as patch in the headline.
 
---Lucas
-> 
-> > I see two ways to do this:
-> > 1. Sort out if we need the sysfs entries in the probe function. This
-> > could be done with some name postfix in the board_info. Downside: adds
-> > some noise to this function.
-> > 
-> > 2. Creating a new module which only exposes the thermal framework API.
-> > This leads to code duplication and we end up with two drivers for the
-> > same i2c monitoring chip. On the other hand this _could_ lead to cleaner
-> > code and we could move this part to drivers/thermal instead of
-> > drivers/hwmon. I don't like the code duplication, do you see any chance
-> > to avoid this in case this is the way to go?
-> > 
-> > Please comment on my thoughts, we need your feedback to bring up an API
-> > everyone could agree on. I'm willing to hack together a prototype over
-> > the next week, but want to avoid running in a completely wrong
-> > direction.
-> > 
-> > -- Lucas
+CHANGES already includes a line for added attributes, so no change should be needed there.
 
-
+Index: doc/libsensors-API.txt
+=================================--- doc/libsensors-API.txt	(revision 5914)
++++ doc/libsensors-API.txt	(working copy)
+@@ -14,13 +14,25 @@
+ * Added support for various new sysfs attributes
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_LCRIT_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_IN_CRIT_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_HYST
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT
+   enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CAP_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_MAX_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_POWER_CRIT_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_LCRIT_ALARM
++  enum sensors_subfeature_type SENSORS_SUBFEATURE_CURR_CRIT_ALARM
+ 
+ 0x430	lm-sensors 3.2.0
+ * License changed from GPL to LGPL
+Index: lib/sensors.h
+=================================--- lib/sensors.h	(revision 5914)
++++ lib/sensors.h	(working copy)
+@@ -160,6 +160,8 @@
+ 	SENSORS_SUBFEATURE_IN_MIN_ALARM,
+ 	SENSORS_SUBFEATURE_IN_MAX_ALARM,
+ 	SENSORS_SUBFEATURE_IN_BEEP,
++	SENSORS_SUBFEATURE_IN_LCRIT_ALARM,
++	SENSORS_SUBFEATURE_IN_CRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_FAN_INPUT = SENSORS_FEATURE_FAN << 8,
+ 	SENSORS_SUBFEATURE_FAN_MIN,
+@@ -186,6 +188,7 @@
+ 	SENSORS_SUBFEATURE_TEMP_OFFSET,
+ 	SENSORS_SUBFEATURE_TEMP_BEEP,
+ 	SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM,
++	SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE = SENSORS_FEATURE_POWER << 8,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST,
+@@ -195,18 +198,27 @@
+ 	SENSORS_SUBFEATURE_POWER_INPUT_LOWEST,
+ 	SENSORS_SUBFEATURE_POWER_CAP,
+ 	SENSORS_SUBFEATURE_POWER_CAP_HYST,
++	SENSORS_SUBFEATURE_POWER_MAX,
++	SENSORS_SUBFEATURE_POWER_CRIT,
+ 	SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL = (SENSORS_FEATURE_POWER << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_POWER_ALARM,
++	SENSORS_SUBFEATURE_POWER_CAP_ALARM,
++	SENSORS_SUBFEATURE_POWER_MAX_ALARM,
++	SENSORS_SUBFEATURE_POWER_CRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_ENERGY_INPUT = SENSORS_FEATURE_ENERGY << 8,
+ 
+ 	SENSORS_SUBFEATURE_CURR_INPUT = SENSORS_FEATURE_CURR << 8,
+ 	SENSORS_SUBFEATURE_CURR_MIN,
+ 	SENSORS_SUBFEATURE_CURR_MAX,
++	SENSORS_SUBFEATURE_CURR_LCRIT,
++	SENSORS_SUBFEATURE_CURR_CRIT,
+ 	SENSORS_SUBFEATURE_CURR_ALARM = (SENSORS_FEATURE_CURR << 8) | 0x80,
+ 	SENSORS_SUBFEATURE_CURR_MIN_ALARM,
+ 	SENSORS_SUBFEATURE_CURR_MAX_ALARM,
+ 	SENSORS_SUBFEATURE_CURR_BEEP,
++	SENSORS_SUBFEATURE_CURR_LCRIT_ALARM,
++	SENSORS_SUBFEATURE_CURR_CRIT_ALARM,
+ 
+ 	SENSORS_SUBFEATURE_VID = SENSORS_FEATURE_VID << 8,
+ 
+Index: lib/sysfs.c
+=================================--- lib/sysfs.c	(revision 5914)
++++ lib/sysfs.c	(working copy)
+@@ -234,6 +234,7 @@
+ 	{ "max_alarm", SENSORS_SUBFEATURE_TEMP_MAX_ALARM },
+ 	{ "crit_alarm", SENSORS_SUBFEATURE_TEMP_CRIT_ALARM },
+ 	{ "emergency_alarm", SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM },
++	{ "lcrit_alarm", SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM },
+ 	{ "fault", SENSORS_SUBFEATURE_TEMP_FAULT },
+ 	{ "type", SENSORS_SUBFEATURE_TEMP_TYPE },
+ 	{ "offset", SENSORS_SUBFEATURE_TEMP_OFFSET },
+@@ -250,6 +251,8 @@
+ 	{ "alarm", SENSORS_SUBFEATURE_IN_ALARM },
+ 	{ "min_alarm", SENSORS_SUBFEATURE_IN_MIN_ALARM },
+ 	{ "max_alarm", SENSORS_SUBFEATURE_IN_MAX_ALARM },
++	{ "lcrit_alarm", SENSORS_SUBFEATURE_IN_LCRIT_ALARM },
++	{ "crit_alarm", SENSORS_SUBFEATURE_IN_CRIT_ALARM },
+ 	{ "beep", SENSORS_SUBFEATURE_IN_BEEP },
+ 	{ NULL, 0 }
+ };
+@@ -273,7 +276,12 @@
+ 	{ "input_lowest", SENSORS_SUBFEATURE_POWER_INPUT_LOWEST },
+ 	{ "cap", SENSORS_SUBFEATURE_POWER_CAP },
+ 	{ "cap_hyst", SENSORS_SUBFEATURE_POWER_CAP_HYST },
++	{ "cap_alarm", SENSORS_SUBFEATURE_POWER_CAP_ALARM },
+ 	{ "alarm", SENSORS_SUBFEATURE_POWER_ALARM },
++	{ "max", SENSORS_SUBFEATURE_POWER_MAX },
++	{ "max_alarm", SENSORS_SUBFEATURE_POWER_MAX_ALARM },
++	{ "crit", SENSORS_SUBFEATURE_POWER_CRIT },
++	{ "crit_alarm", SENSORS_SUBFEATURE_POWER_CRIT_ALARM },
+ 	{ "average_interval", SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL },
+ 	{ NULL, 0 }
+ };
+@@ -287,9 +295,13 @@
+ 	{ "input", SENSORS_SUBFEATURE_CURR_INPUT },
+ 	{ "min", SENSORS_SUBFEATURE_CURR_MIN },
+ 	{ "max", SENSORS_SUBFEATURE_CURR_MAX },
++	{ "lcrit", SENSORS_SUBFEATURE_CURR_LCRIT },
++	{ "crit", SENSORS_SUBFEATURE_CURR_CRIT },
+ 	{ "alarm", SENSORS_SUBFEATURE_CURR_ALARM },
+ 	{ "min_alarm", SENSORS_SUBFEATURE_CURR_MIN_ALARM },
+ 	{ "max_alarm", SENSORS_SUBFEATURE_CURR_MAX_ALARM },
++	{ "lcrit_alarm", SENSORS_SUBFEATURE_CURR_LCRIT_ALARM },
++	{ "crit_alarm", SENSORS_SUBFEATURE_CURR_CRIT_ALARM },
+ 	{ "beep", SENSORS_SUBFEATURE_CURR_BEEP },
+ 	{ NULL, 0 }
+ };
 
 _______________________________________________
 lm-sensors mailing list
