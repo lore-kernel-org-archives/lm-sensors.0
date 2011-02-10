@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Feb 2011 03:35:52 +0000
-Subject: [lm-sensors] [PATCH 6/6] hwmon: (w83627ehf) Add support for ncd6775
-Message-Id: <1297308953-3479-7-git-send-email-guenter.roeck@ericsson.com>
+Date: Thu, 10 Feb 2011 03:35:53 +0000
+Subject: [lm-sensors] [PATCH 6/6] hwmon: (w83627ehf) Add support for Nuvoton
+Message-Id: <1297308953-3479-8-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110210031249.GB22858@ericsson.com>
 In-Reply-To: <20110210031249.GB22858@ericsson.com>
