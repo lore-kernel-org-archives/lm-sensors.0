@@ -1,132 +1,654 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 21 Feb 2011 19:47:53 +0000
-Subject: Re: [lm-sensors] [PATCH-v2:RFC][hwmon]:Merging_Pkgtemp_with_Coretemp
-Message-Id: <20110221194753.GA10158@ericsson.com>
+Date: Thu, 10 Feb 2011 03:07:57 +0000
+Subject: [lm-sensors] [PATCH resend] sensors: Add support for additional
+Message-Id: <20110210030757.GA22858@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1297637681-1275-1-git-send-email-durgadoss.r@intel.com>
-In-Reply-To: <1297637681-1275-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Feb 21, 2011 at 04:33:49AM -0500, R, Durgadoss wrote:
-> Hi Guenter,
->=20
-> Sorry for the delayed response due to the weekend.
->=20
-> > I tried to install your patch, but must have done something wrong - it =
-crashes
-> > for
-> > me with a null pointer access. System is running 2.6.35, so it might no=
-t be the
-> > driver's fault but something I missed while backporting it.
-> >=20
->=20
-> Yes. This patch will apply cleanly on any kernel version above 2.6.36-sta=
-ble.
-> I prefer creating these patches on 2.6.38-rc4.
-> I should have specified it while sending the patch..Sorry that I missed i=
-t.
->=20
->=20
-I applied the patch as-is to the latest kernel as of two hours ago and load=
-ed it.
-This resulted in a null pointer dereference crash - exactly the same as I g=
-ot
-when trying with 2.6.35. CPU is i3-540.
+This patch adds support for additional sensor attributes to the sensors command.
+It is essentially a re-submit of a patch submitted earlier, plus support
+for additional sensor attributes which have been added to the sysfs ABI
+since the original patch was submitted.
 
-> > > +static DEFINE_MUTEX(update_lock);
-> > >
-> > Not a good idea. You don't want any global variables.
->=20
-> Ok. Shall move it back into the structure.
->=20
-> > > +/* Attributes per physical CPU */
-> > > +static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, DRV_NAME);
-> > > +static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, show_tjmax, NULL, 0);
-> > > +/* Coretemp attributes */
-> > > +static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_name, NULL, COR=
-EID);
-> > > +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-> > > +static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, show_ttarget, NULL, 0);
-> > > +static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, show_crit_alarm=
-, NULL,
-> > 0);
-> > > +/* Packagetemp attributes */
-> > > +static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_name, NULL,
-> > PHYS_PROCID);
-> > > +static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
-> > > +static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO, show_ttarget, NULL, 1);
-> > > +static SENSOR_DEVICE_ATTR(temp2_crit_alarm, S_IRUGO, show_crit_alarm=
-, NULL,
-> > 1);
-> > >
-> > Still not the right approach here. I could not test the driver, but sin=
-ce you
-> > only have two sets of sensors it can not do what it is supposed to do i=
-f there
-> > are multiple cores. Again, we would expect a single instance of the dri=
-ver
-> > to handle all cores plus the package sensor. Looks like you merged core=
- temp
-> > with pkg temp, but you still create an instance of the driver per core.
-> > And I am not sure if the package temp now shows up on each core.
->=20
-> I think we are missing something here.
->=20
-> In 2.6.35 version of the coretemp, there is no #ifdef CONFIG_SMP
-> in the probe function. This creates a hwmon device for every core
-> Of the CPU. (In fact I verified this in one board that was running
-> 2.6.35 kernel. Though the board had only One physical CPU, there were
-> two instances of the hwmon device, Created by Coretemp. And both of them
-> showed exactly same temperature always.)
-> The same board running a 2.6.37 showed only one hwmon device.
-> Then I figured out that this is due to the SMP check in the probe
-> function. This check eliminates the creation of redundant coretemp attrib=
-utes.
-> (These were created for all cores in a Physical CPU in older kernels)
-> Hence, in newer kernels, there will be one set of attributes(temp1*) for =
-all cores
-> in a Physical CPU created by Coretemp and other set (temp2*) of attribute=
-s for PKG temp.
->=20
-> Kindly correct me if I am wrong.
->=20
-Yes, you are. With a 4-core CPU, the assumption is that there would be eith=
-er four=20
-or five tempX_input attributes, one per core plus optionally another one fo=
-r the package.
-Your code only has temp1_input and temp2_input, thus it can not do what we =
-expected to see
-from the merged driver. This has nothing to do with CONFIG_SMP.
+This patch rewrites significant paths of chips.c to make it easier to add
+additional attributes. A thorough review would therefore be helpful.
 
-There is supposed to be one temperature reading per physical core.
-On 2.6.38-r55+, output with i3-540 is
+--
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +16.0=B0C  (high =3D +89.0=B0C, crit =3D +105.0=B0C)
+Resubmitting this one as well. Question is how to proceed with it 
+if no one has time for a thorough review. Maybe commit and clean up
+with subsequent patches if needed ? 
 
-coretemp-isa-0002
-Adapter: ISA adapter
-Core 2:       +23.0=B0C  (high =3D +89.0=B0C, crit =3D +105.0=B0C)
-
-Again, expected output would be along the line of=20
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +16.0=B0C  (high =3D +89.0=B0C, crit =3D +105.0=B0C)
-Core 2:       +23.0=B0C  (high =3D +89.0=B0C, crit =3D +105.0=B0C)
-
-ie there should be only one instance of the driver instead of two for the t=
-wo cores.
-You don't see Core 1 and Core 3 because those are virtual (hyperthreading) =
-cores,
-not physical cores. This is the effect you are talking about above
-(ie the change affects physical vs. virtual cores, not physical CPUs).
-
-Guenter
+Index: prog/sensors/chips.c
+=================================--- prog/sensors/chips.c	(revision 5917)
++++ prog/sensors/chips.c	(working copy)
+@@ -126,38 +126,124 @@
+ 	return max_size + 2;
+ }
+ 
+-static void print_temp_limits(double limit1, double limit2,
+-			      const char *name1, const char *name2, int alarm)
++static void print_limits(struct sensor_limit_data *sensors,
++			 int sensor_count,
++			 struct sensor_limit_data *alarms,
++			 int alarm_count, int label_size,
++			 const char *fmt)
+ {
+-	if (fahrenheit) {
+-		limit1 = deg_ctof(limit1);
+-		limit2 = deg_ctof(limit2);
+-        }
++	int i, j;
++	int first = 1;
+ 
+-	if (name2) {
+-		printf("(%-4s = %+5.1f%s, %-4s = %+5.1f%s)  ",
+-		       name1, limit1, degstr,
+-		       name2, limit2, degstr);
+-	} else if (name1) {
+-		printf("(%-4s = %+5.1f%s)                  ",
+-		       name1, limit1, degstr);
+-	} else {
+-		printf("                                  ");
++	for (i = 0; i < sensor_count; i++) {
++		if (!(i & 1)) {
++			if (i)
++				printf("\n%*s", label_size + 10, "");
++			printf("(");
++		} else if (i)
++			printf(", ");
++		printf(fmt, sensors[i].name, sensors[i].value, sensors[i].unit);
++		if ((i & 1) || i = sensor_count - 1) {
++			printf(")  ");
++			if (first && alarm_count) {
++				printf("  ALARM");
++				if (alarm_count > 1 || alarms[0].name) {
++					printf("(");
++					for (j = 0; j < alarm_count; j++) {
++						printf("%s", alarms[j].name);
++						if (j < alarm_count - 1)
++							printf(", ");
++					}
++					printf(")");
++				}
++				first = 0;
++			}
++		}
+ 	}
++}
+ 
+-	if (alarm)
+-		printf("ALARM  ");
++static void get_sensor_limit_data(const sensors_chip_name *name,
++				  const sensors_feature *feature,
++				  const struct sensor_limits *ts,
++				  struct sensor_limit_data *ts_data,
++				  int *ts_sensors,
++				  struct sensor_limit_data *ts_alarm_data,
++				  int *ts_alarms)
++{
++	const sensors_subfeature *sf;
++
++	for (; ts->subfeature >= 0; ts++) {
++		sf = sensors_get_subfeature(name, feature, ts->subfeature);
++		if (sf) {
++			if (ts->alarm && get_value(name, sf)) {
++				ts_alarm_data[*ts_alarms].name = ts->name;
++				(*ts_alarms)++;
++			} else if (!ts->alarm) {
++				ts_data[*ts_sensors].value
++				  = get_value(name, sf);
++				ts_data[*ts_sensors].name = ts->name;
++				(*ts_sensors)++;
++			}
++			if (ts->exists) {
++				get_sensor_limit_data(name, feature, ts->exists,
++						      ts_data, ts_sensors,
++						      ts_alarm_data, ts_alarms);
++			}
++		} else if (!sf && ts->nexists)
++			get_sensor_limit_data(name, feature, ts->nexists,
++					      ts_data, ts_sensors,
++					      ts_alarm_data, ts_alarms);
++	}
+ }
+ 
++static const struct sensor_limits temp_alarms[] = {
++	{ SENSORS_SUBFEATURE_TEMP_LCRIT_ALARM, NULL, NULL, 1, "LCRIT" },
++	{ SENSORS_SUBFEATURE_TEMP_MIN_ALARM, NULL, NULL, 1, "MIN" },
++	{ SENSORS_SUBFEATURE_TEMP_MAX_ALARM, NULL, NULL, 1, "MAX" },
++	{ SENSORS_SUBFEATURE_TEMP_CRIT_ALARM, NULL, NULL, 1, "CRIT" },
++	{ SENSORS_SUBFEATURE_TEMP_EMERGENCY_ALARM, NULL, NULL, 1, "EMERGENCY" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits temp_max_sensors[] = {
++	{ SENSORS_SUBFEATURE_TEMP_MAX_HYST, NULL, NULL, 0, "hyst" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits temp_crit_sensors[] = {
++	{ SENSORS_SUBFEATURE_TEMP_CRIT_HYST, NULL, NULL, 0, "crit hyst" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits temp_emergency_sensors[] = {
++	{ SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST, NULL, NULL, 0,
++	    "emergency hyst" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits temp_sensors[] = {
++	{ SENSORS_SUBFEATURE_TEMP_ALARM, NULL, temp_alarms, 1, NULL },
++	{ SENSORS_SUBFEATURE_TEMP_MIN, NULL, NULL, 0, "low" },
++	{ SENSORS_SUBFEATURE_TEMP_MAX, temp_max_sensors, NULL, 0, "high" },
++	{ SENSORS_SUBFEATURE_TEMP_LCRIT, NULL, NULL, 0, "crit low" },
++	{ SENSORS_SUBFEATURE_TEMP_CRIT, temp_crit_sensors, NULL, 0, "crit" },
++	{ SENSORS_SUBFEATURE_TEMP_EMERGENCY, temp_emergency_sensors, NULL, 0,
++	    "emergency" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
+ static void print_chip_temp(const sensors_chip_name *name,
+ 			    const sensors_feature *feature,
+ 			    int label_size)
+ {
+-	const sensors_subfeature *sf, *sfmin, *sfmax, *sfcrit, *sfhyst;
+-	double val, limit1, limit2;
+-	const char *s1, *s2;
+-	int alarm, crit_displayed = 0;
++	struct sensor_limit_data sensors[8];
++	struct sensor_limit_data alarms[5];
++	int sensor_count, alarm_count;
++	const sensors_subfeature *sf;
++	double val;
+ 	char *label;
++	int i;
++	char fmt[32];
+ 
+ 	if (!(label = sensors_get_label(name, feature))) {
+ 		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
+@@ -168,80 +254,6 @@
+ 	free(label);
+ 
+ 	sf = sensors_get_subfeature(name, feature,
+-				    SENSORS_SUBFEATURE_TEMP_ALARM);
+-	alarm = sf && get_value(name, sf);
+-
+-	sfmin = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_TEMP_MIN);
+-	sfmax = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_TEMP_MAX);
+-	sfcrit = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_CRIT);
+-	if (sfmax) {
+-		sf = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_MAX_ALARM);
+-		if (sf && get_value(name, sf))
+-			alarm |= 1;
+-
+-     		if (sfmin) {
+-			limit1 = get_value(name, sfmin);
+-			s1 = "low";
+-			limit2 = get_value(name, sfmax);
+-			s2 = "high";
+-
+-			sf = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_MIN_ALARM);
+-			if (sf && get_value(name, sf))
+-				alarm |= 1;
+-		} else {
+-			limit1 = get_value(name, sfmax);
+-			s1 = "high";
+-
+-			sfhyst = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_MAX_HYST);
+-			if (sfhyst) {
+-				limit2 = get_value(name, sfhyst);
+-				s2 = "hyst";
+-			} else if (sfcrit) {
+-				limit2 = get_value(name, sfcrit);
+-				s2 = "crit";
+-
+-				sf = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_CRIT_ALARM);
+-				if (sf && get_value(name, sf))
+-					alarm |= 1;
+-				crit_displayed = 1;
+-			} else {
+-				limit2 = 0;
+-				s2 = NULL;
+-			}
+-		}
+-	} else if (sfcrit) {
+-		limit1 = get_value(name, sfcrit);
+-		s1 = "crit";
+-
+-		sfhyst = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_CRIT_HYST);
+-		if (sfhyst) {
+-			limit2 = get_value(name, sfhyst);
+-			s2 = "hyst";
+-		} else {
+-			limit2 = 0;
+-			s2 = NULL;
+-		}
+-
+-		sf = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_CRIT_ALARM);
+-		if (sf && get_value(name, sf))
+-			alarm |= 1;
+-		crit_displayed = 1;
+-	} else {
+-		limit1 = limit2 = 0;
+-		s1 = s2 = NULL;
+-	}
+-
+-
+-	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_TEMP_FAULT);
+ 	if (sf && get_value(name, sf)) {
+ 		printf("   FAULT  ");
+@@ -256,30 +268,21 @@
+ 		} else
+ 			printf("     N/A  ");
+ 	}
+-	print_temp_limits(limit1, limit2, s1, s2, alarm);
+ 
+-	if (!crit_displayed && sfcrit) {
+-		limit1 = get_value(name, sfcrit);
+-		s1 = "crit";
++	sensor_count = alarm_count = 0;
++	get_sensor_limit_data(name, feature, temp_sensors,
++			      sensors, &sensor_count,
++			      alarms, &alarm_count);
+ 
+-		sfhyst = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_CRIT_HYST);
+-		if (sfhyst) {
+-			limit2 = get_value(name, sfhyst);
+-			s2 = "hyst";
+-		} else {
+-			limit2 = 0;
+-			s2 = NULL;
+-		}
++	if (fahrenheit)
++		for (i = 0; i < sensor_count; i++)
++			sensors[i].value = deg_ctof(sensors[i].value);
+ 
+-		sf = sensors_get_subfeature(name, feature,
+-					SENSORS_SUBFEATURE_TEMP_CRIT_ALARM);
+-		alarm = sf && get_value(name, sf);
++	strcpy(fmt, "%-4s = %+5.1f");
++	strcat(fmt, degstr);
++	print_limits(sensors, sensor_count, alarms, alarm_count, label_size,
++		     fmt);
+ 
+-		printf("\n%*s", label_size + 10, "");
+-		print_temp_limits(limit1, limit2, s1, s2, alarm);
+-	}
+-
+ 	/* print out temperature sensor info */
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_TEMP_TYPE);
+@@ -302,13 +305,33 @@
+ 	printf("\n");
+ }
+ 
++static const struct sensor_limits voltage_alarms[] = {
++	{ SENSORS_SUBFEATURE_IN_LCRIT_ALARM, NULL, NULL, 1, "LCRIT" },
++	{ SENSORS_SUBFEATURE_IN_MIN_ALARM, NULL, NULL, 1, "MIN" },
++	{ SENSORS_SUBFEATURE_IN_MAX_ALARM, NULL, NULL, 1, "MAX" },
++	{ SENSORS_SUBFEATURE_IN_CRIT_ALARM, NULL, NULL, 1, "CRIT" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits voltage_sensors[] = {
++	{ SENSORS_SUBFEATURE_IN_ALARM, NULL, voltage_alarms, 1, NULL },
++	{ SENSORS_SUBFEATURE_IN_LCRIT, NULL, NULL, 0, "crit min" },
++	{ SENSORS_SUBFEATURE_IN_MIN, NULL, NULL, 0, "min" },
++	{ SENSORS_SUBFEATURE_IN_MAX, NULL, NULL, 0, "max" },
++	{ SENSORS_SUBFEATURE_IN_CRIT, NULL, NULL, 0, "crit max" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
+ static void print_chip_in(const sensors_chip_name *name,
+ 			  const sensors_feature *feature,
+ 			  int label_size)
+ {
+-	const sensors_subfeature *sf, *sfmin, *sfmax;
+-	double val, alarm_max, alarm_min;
++	const sensors_subfeature *sf;
+ 	char *label;
++	struct sensor_limit_data sensors[4];
++	struct sensor_limit_data alarms[4];
++	int sensor_count, alarm_count;
++	double val;
+ 
+ 	if (!(label = sensors_get_label(name, feature))) {
+ 		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
+@@ -321,50 +344,18 @@
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_IN_INPUT);
+ 	if (sf && get_input_value(name, sf, &val) = 0)
+-		printf("%+6.2f V", val);
++		printf("%+6.2f V  ", val);
+ 	else
+-		printf("     N/A");
++		printf("     N/A  ");
+ 
+-	sfmin = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_IN_MIN);
+-	sfmax = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_IN_MAX);
+-	if (sfmin && sfmax)
+-		printf("  (min = %+6.2f V, max = %+6.2f V)",
+-		       get_value(name, sfmin),
+-		       get_value(name, sfmax));
+-	else if (sfmin)
+-		printf("  (min = %+6.2f V)",
+-		       get_value(name, sfmin));
+-	else if (sfmax)
+-		printf("  (max = %+6.2f V)",
+-		       get_value(name, sfmax));
++	sensor_count = alarm_count = 0;
++	get_sensor_limit_data(name, feature, voltage_sensors,
++			      sensors, &sensor_count,
++			      alarms, &alarm_count);
+ 
+-	sf = sensors_get_subfeature(name, feature,
+-				    SENSORS_SUBFEATURE_IN_ALARM);
+-	sfmin = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_IN_MIN_ALARM);
+-	sfmax = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_IN_MAX_ALARM);
+-	if (sfmin || sfmax) {
+-		alarm_max = sfmax ? get_value(name, sfmax) : 0;
+-		alarm_min = sfmin ? get_value(name, sfmin) : 0;
++	print_limits(sensors, sensor_count, alarms, alarm_count, label_size,
++		     "%s = %+6.2f V");
+ 
+-		if (alarm_min || alarm_max) {
+-			printf(" ALARM (");
+-
+-			if (alarm_min)
+-				printf("MIN");
+-			if (alarm_max)
+-				printf("%sMAX", (alarm_min) ? ", " : "");
+-
+-			printf(")");
+-		}
+-	} else if (sf) {
+-		printf("   %s",
+-		       get_value(name, sf) ? "ALARM" : "");
+-	}
+-
+ 	printf("\n");
+ }
+ 
+@@ -450,15 +441,53 @@
+ 	*prefixstr = scale->unit;
+ }
+ 
++static const struct sensor_limits power_alarms[] = {
++	{ SENSORS_SUBFEATURE_POWER_CAP_ALARM, NULL, NULL, 1, "CAP" },
++	{ SENSORS_SUBFEATURE_POWER_MAX_ALARM, NULL, NULL, 1, "MAX" },
++	{ SENSORS_SUBFEATURE_POWER_CRIT_ALARM, NULL, NULL, 1, "CRIT" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits power_inst_highest[] = {
++	{ SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST, NULL, NULL, 0, "max" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits power_inst_max[] = {
++	{ SENSORS_SUBFEATURE_POWER_MAX, NULL, NULL, 0, "max" },
++	{ SENSORS_SUBFEATURE_POWER_CRIT, NULL, NULL, 0, "crit" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits power_inst_sensors[] = {
++	{ SENSORS_SUBFEATURE_POWER_ALARM, NULL, power_alarms, 1, NULL },
++	{ SENSORS_SUBFEATURE_POWER_INPUT_LOWEST, power_inst_highest,
++	    power_inst_max, 0, "min" },
++	{ SENSORS_SUBFEATURE_POWER_CAP, NULL, NULL, 0, "cap" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits power_avg_sensors[] = {
++	{ SENSORS_SUBFEATURE_POWER_ALARM, NULL, NULL, 1, NULL },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST, NULL, NULL, 0, "min" },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST, NULL, NULL, 0, "max" },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL, NULL, NULL, 0,
++	    "interval" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
+ static void print_chip_power(const sensors_chip_name *name,
+ 			     const sensors_feature *feature,
+ 			     int label_size)
+ {
+ 	double val;
+-	int need_space = 0;
+-	const sensors_subfeature *sf, *sfmin, *sfmax, *sfint;
++	const sensors_subfeature *sf;
++	struct sensor_limit_data sensors[4];
++	struct sensor_limit_data alarms[3];
++	int sensor_count, alarm_count;
+ 	char *label;
+ 	const char *unit;
++	int i;
+ 
+ 	if (!(label = sensors_get_label(name, feature))) {
+ 		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
+@@ -468,60 +497,36 @@
+ 	print_label(label, label_size);
+ 	free(label);
+ 
++	sensor_count = alarm_count = 0;
++
+ 	/* Power sensors come in 2 flavors: instantaneous and averaged.
+ 	   To keep things simple, we assume that each sensor only implements
+ 	   one flavor. */
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_POWER_INPUT);
+ 	if (sf) {
+-		sfmin = sensors_get_subfeature(name, feature,
+-					       SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST);
+-		sfmax = sensors_get_subfeature(name, feature,
+-					       SENSORS_SUBFEATURE_POWER_INPUT_LOWEST);
+-		sfint = NULL;
++		get_sensor_limit_data(name, feature, power_inst_sensors,
++				      sensors, &sensor_count, alarms,
++				      &alarm_count);
+ 	} else {
+-		sf = sensors_get_subfeature(name, feature,
+-					    SENSORS_SUBFEATURE_POWER_AVERAGE);
+-		sfmin = sensors_get_subfeature(name, feature,
+-					       SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST);
+-		sfmax = sensors_get_subfeature(name, feature,
+-					       SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST);
+-		sfint = sensors_get_subfeature(name, feature,
+-					       SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL);
++		get_sensor_limit_data(name, feature, power_avg_sensors,
++				      sensors, &sensor_count, alarms,
++				      &alarm_count);
+ 	}
+ 
+ 	if (sf && get_input_value(name, sf, &val) = 0) {
+ 		scale_value(&val, &unit);
+-		printf("%6.2f %sW", val, unit);
++		printf("%6.2f %sW  ", val, unit);
+ 	} else
+-		printf("     N/A");
++		printf("     N/A  ");
+ 
+-	if (sfmin || sfmax || sfint) {
+-		printf("  (");
++	for (i = 0; i < sensor_count; i++)
++		scale_value(&sensors[i].value, &sensors[i].unit);
+ 
+-		if (sfmin) {
+-			val = get_value(name, sfmin);
+-			scale_value(&val, &unit);
+-			printf("min = %6.2f %sW", val, unit);
+-			need_space = 1;
+-		}
++	if (sensor_count)
++		print_limits(sensors, sensor_count, alarms, alarm_count,
++			     label_size, "%s = %6.2f %sW");
+ 
+-		if (sfmax) {
+-			val = get_value(name, sfmax);
+-			scale_value(&val, &unit);
+-			printf("%smax = %6.2f %sW", (need_space ? ", " : ""),
+-			       val, unit);
+-			need_space = 1;
+-		}
+-
+-		if (sfint) {
+-			printf("%sinterval = %6.2f s", (need_space ? ", " : ""),
+-			       get_value(name, sfint));
+-			need_space = 1;
+-		}
+-		printf(")");
+-	}
+-
+ 	printf("\n");
+ }
+ 
+@@ -595,13 +600,33 @@
+ 	free(label);
+ }
+ 
++static const struct sensor_limits current_alarms[] = {
++	{ SENSORS_SUBFEATURE_CURR_LCRIT_ALARM, NULL, NULL, 1, "LCRIT" },
++	{ SENSORS_SUBFEATURE_CURR_MIN_ALARM, NULL, NULL, 1, "MIN" },
++	{ SENSORS_SUBFEATURE_CURR_MAX_ALARM, NULL, NULL, 1, "MAX" },
++	{ SENSORS_SUBFEATURE_CURR_CRIT_ALARM, NULL, NULL, 1, "CRIT" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
++static const struct sensor_limits current_sensors[] = {
++	{ SENSORS_SUBFEATURE_CURR_ALARM, NULL, current_alarms, 1, NULL },
++	{ SENSORS_SUBFEATURE_CURR_LCRIT, NULL, NULL, 0, "crit min" },
++	{ SENSORS_SUBFEATURE_CURR_MIN, NULL, NULL, 0, "min" },
++	{ SENSORS_SUBFEATURE_CURR_MAX, NULL, NULL, 0, "max" },
++	{ SENSORS_SUBFEATURE_CURR_CRIT, NULL, NULL, 0, "crit max" },
++	{ -1, NULL, NULL, 0, NULL }
++};
++
+ static void print_chip_curr(const sensors_chip_name *name,
+ 			    const sensors_feature *feature,
+ 			    int label_size)
+ {
+-	const sensors_subfeature *sf, *sfmin, *sfmax;
+-	double alarm_max, alarm_min, val;
++	const sensors_subfeature *sf;
++	double val;
+ 	char *label;
++	struct sensor_limit_data sensors[4];
++	struct sensor_limit_data alarms[4];
++	int sensor_count, alarm_count;
+ 
+ 	if (!(label = sensors_get_label(name, feature))) {
+ 		fprintf(stderr, "ERROR: Can't get label of feature %s!\n",
+@@ -614,50 +639,18 @@
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_CURR_INPUT);
+ 	if (sf && get_input_value(name, sf, &val) = 0)
+-		printf("%+6.2f A", val);
++		printf("%+6.2f A  ", val);
+ 	else
+-		printf("     N/A");
++		printf("     N/A  ");
+ 
+-	sfmin = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_CURR_MIN);
+-	sfmax = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_CURR_MAX);
+-	if (sfmin && sfmax)
+-		printf("  (min = %+6.2f A, max = %+6.2f A)",
+-		       get_value(name, sfmin),
+-		       get_value(name, sfmax));
+-	else if (sfmin)
+-		printf("  (min = %+6.2f A)",
+-		       get_value(name, sfmin));
+-	else if (sfmax)
+-		printf("  (max = %+6.2f A)",
+-		       get_value(name, sfmax));
++	sensor_count = alarm_count = 0;
++	get_sensor_limit_data(name, feature, current_sensors,
++			      sensors, &sensor_count,
++			      alarms, &alarm_count);
+ 
+-	sf = sensors_get_subfeature(name, feature,
+-				    SENSORS_SUBFEATURE_CURR_ALARM);
+-	sfmin = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_CURR_MIN_ALARM);
+-	sfmax = sensors_get_subfeature(name, feature,
+-				       SENSORS_SUBFEATURE_CURR_MAX_ALARM);
+-	if (sfmin || sfmax) {
+-		alarm_max = sfmax ? get_value(name, sfmax) : 0;
+-		alarm_min = sfmin ? get_value(name, sfmin) : 0;
++	print_limits(sensors, sensor_count, alarms, alarm_count, label_size,
++		     "%s = %+6.2f A");
+ 
+-		if (alarm_min || alarm_max) {
+-			printf(" ALARM (");
+-
+-			if (alarm_min)
+-				printf("MIN");
+-			if (alarm_max)
+-				printf("%sMAX", (alarm_min) ? ", " : "");
+-
+-			printf(")");
+-		}
+-	} else if (sf) {
+-		printf("   %s",
+-		       get_value(name, sf) ? "ALARM" : "");
+-	}
+-
+ 	printf("\n");
+ }
+ 
+Index: prog/sensors/chips.h
+=================================--- prog/sensors/chips.h	(revision 5917)
++++ prog/sensors/chips.h	(working copy)
+@@ -24,6 +24,29 @@
+ 
+ #include "lib/sensors.h"
+ 
++/*
++ * Retrieved limits
++ */
++struct sensor_limit_data {
++	double value;
++	const char *name;
++	const char *unit;
++};
++
++/*
++ * Limit data structure. Used to create a table of supported limits for a given
++ * feature.
++ */
++struct sensor_limits {
++	int subfeature;				/* Limit we are looking for */
++	const struct sensor_limits *exists;	/* Secondary limits if limit
++						   exists */
++	const struct sensor_limits *nexists;	/* Secondary limits if limit
++						   does not exist */
++	int alarm;				/* true if this is an alarm */
++	const char *name;			/* limit name to be printed */
++};
++
+ void print_chip_raw(const sensors_chip_name *name);
+ void print_chip(const sensors_chip_name *name);
+ 
 
 _______________________________________________
 lm-sensors mailing list
