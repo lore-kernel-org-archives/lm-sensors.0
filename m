@@ -1,36 +1,43 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 19 Feb 2011 20:47:15 +0000
-Subject: Re: [lm-sensors] [PATCH 2/4] Move hp_accel to drivers/platform/x86
-Message-Id: <20110219204715.GB1728@ericsson.com>
+Date: Fri, 11 Feb 2011 06:10:33 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.38
+Message-Id: <1297404633-19309-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110219142503.77aadd2d@endymion.delvare>
-In-Reply-To: <20110219142503.77aadd2d@endymion.delvare>
+References: <1296078744-21895-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1296078744-21895-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Sat, Feb 19, 2011 at 08:25:03AM -0500, Jean Delvare wrote:
-> The hp_accel driver isn't a hardware monitoring driver, so it doesn't
-> belong to drivers/hwmon. Move it to drivers/platform/x86, assuming HP
-> doesn't ship non-x86 laptops.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Eric Piel <eric.piel@tremplin-utc.net>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> Not tested due to lack of hardware.
-> 
->  drivers/hwmon/Kconfig           |   59 -----
->  drivers/hwmon/Makefile          |    1
->  drivers/hwmon/hp_accel.c        |  405 ---------------------------------------
->  drivers/platform/x86/Kconfig    |   18 +
->  drivers/platform/x86/Makefile   |    1
->  drivers/platform/x86/hp_accel.c |  405 +++++++++++++++++++++++++++++++++++++++
->  6 files changed, 424 insertions(+), 465 deletions(-)
-> 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Hi Linus,
 
+Please pull hwmon subsystem fixes for Linux 2.6.38 from:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Thanks,
+Guenter Roeck
+
+------
+
+The following changes since commit 100b33c8bd8a3235fd0b7948338d6cbb3db3c63d:
+
+  Linux 2.6.38-rc4 (2011-02-07 16:03:55 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Dirk Eibach (1):
+      hwmon: (lm63) Consider LM64 temperature offset
+
+Guenter Roeck (1):
+      hwmon: (emc1403) Fix I2C address range
+
+ drivers/hwmon/emc1403.c |    2 +-
+ drivers/hwmon/lm63.c    |   59 +++++++++++++++++++++++++++++++++++++---------
+ 2 files changed, 48 insertions(+), 13 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
