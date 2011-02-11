@@ -1,299 +1,437 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Feb 2011 02:59:47 +0000
-Subject: [lm-sensors] [PATCH 5/6] hwmon: (w83627ehf) Improve support for
-Message-Id: <1297308953-3479-6-git-send-email-guenter.roeck@ericsson.com>
+Date: Fri, 11 Feb 2011 17:20:26 +0000
+Subject: [lm-sensors] [PATCH v3 1/7] hwmon: (w83627ehf) Unify temperature
+Message-Id: <1297444832-10874-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add support for 4th temperature sensor on W83677HG-B.
-Display temperature labels on W83677HG-B to report temperature sources.
+This patch unifies temperature register access, and replaces simple_strtoXXX
+with strict_strtoXXX throughout the driver.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- Documentation/hwmon/w83627ehf |   19 ++++--
- drivers/hwmon/w83627ehf.c     |  140 ++++++++++++++++++++++++++++++++---------
- 2 files changed, 122 insertions(+), 37 deletions(-)
+ drivers/hwmon/w83627ehf.c |  219 +++++++++++++++++++++++----------------------
+ 1 files changed, 113 insertions(+), 106 deletions(-)
 
-diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
-index 13d5561..0643019 100644
---- a/Documentation/hwmon/w83627ehf
-+++ b/Documentation/hwmon/w83627ehf
-@@ -39,16 +39,21 @@ This driver implements support for the Winbond W83627EHF, W83627EHG,
- W83627DHG, W83627DHG-P, W83667HG and W83667HG-B super I/O chips.
- We will refer to them collectively as Winbond chips.
- 
--The chips implement three temperature sensors, five fan rotation
--speed sensors, ten analog voltage sensors (only nine for the 627DHG), one
--VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG), alarms
--with beep warnings (control unimplemented), and some automatic fan
-+The chips implement three temperature sensors (up to four for 667HG-B),
-+five fan rotation speed sensors, ten analog voltage sensors (only nine for the
-+627DHG), one VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG),
-+alarms with beep warnings (control unimplemented), and some automatic fan
- regulation strategies (plus manual fan control mode).
- 
-+The temperature sensor sources on W82677HG-B are configurable. temp4 is only
-+reported if its temperature source differs from the temperature sources of the
-+other three temperature sensors. The configured source for each of the
-+temperature sensors is reported in tempX_label.
-+
- Temperatures are measured in degrees Celsius and measurement resolution is 1
--degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
--the temperature gets higher than high limit; it stays on until the temperature
--falls below the hysteresis value.
-+degC for temp1 and temp4, and 0.5 degC for temp2 and temp3. An alarm is
-+triggered when the temperature gets higher than high limit; it stays on until
-+the temperature falls below the hysteresis value.
- 
- Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
- triggered if the rotation speed has dropped below a programmable limit. Fan
 diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 7a71425..8c35e82 100644
+index 073eabe..66e6855 100644
 --- a/drivers/hwmon/w83627ehf.c
 +++ b/drivers/hwmon/w83627ehf.c
-@@ -39,7 +39,7 @@
-     w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
-     w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
-     w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
--    w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
-+    w83667hg-b   9      5       3       4      0xb350 0xc1    0x5ca3
- */
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -164,10 +164,10 @@ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
+@@ -164,13 +164,10 @@ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
  #define W83627EHF_REG_IN(nr)		((nr < 7) ? (0x20 + (nr)) : \
  					 (0x550 + (nr) - 7))
  
--static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250 };
--static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253 };
--static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255 };
--static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252 };
-+static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250, 0x7e };
-+static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253, 0 };
-+static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255, 0 };
-+static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
+-#define W83627EHF_REG_TEMP1		0x27
+-#define W83627EHF_REG_TEMP1_HYST	0x3a
+-#define W83627EHF_REG_TEMP1_OVER	0x39
+-static const u16 W83627EHF_REG_TEMP[] = { 0x150, 0x250 };
+-static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x153, 0x253 };
+-static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x155, 0x255 };
+-static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0x152, 0x252 };
++static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250 };
++static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253 };
++static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255 };
++static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252 };
  
  /* Fan clock dividers are spread over the following five registers */
  #define W83627EHF_REG_FANDIV1		0x47
-@@ -213,6 +213,19 @@ static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
+@@ -216,6 +213,15 @@ static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
  static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
  static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
  
-+static const char *const w83667hg_b_temp_label[] = {
-+	"SYSTIN",
-+	"CPUTIN",
-+	"AUXTIN",
-+	"AMDTSI",
-+	"PECI Agent 1",
-+	"PECI Agent 2",
-+	"PECI Agent 3",
-+	"PECI Agent 4"
-+};
++static inline int is_word_sized(u16 reg)
++{
++	return (((reg & 0xff00) = 0x100
++	      || (reg & 0xff00) = 0x200)
++	     && ((reg & 0x00ff) = 0x50
++	      || (reg & 0x00ff) = 0x53
++	      || (reg & 0x00ff) = 0x55));
++}
 +
-+#define NUM_REG_TEMP	4
-+
- static inline int is_word_sized(u16 reg)
- {
- 	return (((reg & 0xff00) = 0x100
-@@ -294,6 +307,9 @@ struct w83627ehf_data {
- 	struct device *hwmon_dev;
- 	struct mutex lock;
+ /*
+  * Conversions
+  */
+@@ -247,21 +253,19 @@ div_from_reg(u8 reg)
+ }
  
-+	u8 temp_src[NUM_REG_TEMP];
-+	const char * const *temp_label;
-+
- 	const u8 *REG_FAN_START_OUTPUT;
- 	const u8 *REG_FAN_STOP_OUTPUT;
- 	const u8 *REG_FAN_MAX_OUTPUT;
-@@ -314,9 +330,9 @@ struct w83627ehf_data {
+ static inline int
+-temp1_from_reg(s8 reg)
++temp_from_reg(u16 reg, s16 regval)
+ {
+-	return reg * 1000;
++	if (is_word_sized(reg))
++		return LM75_TEMP_FROM_REG(regval);
++	return regval * 1000;
+ }
+ 
+-static inline s8
+-temp1_to_reg(long temp, int min, int max)
++static inline s16
++temp_to_reg(u16 reg, long temp)
+ {
+-	if (temp <= min)
+-		return min / 1000;
+-	if (temp >= max)
+-		return max / 1000;
+-	if (temp < 0)
+-		return (temp - 500) / 1000;
+-	return (temp + 500) / 1000;
++	if (is_word_sized(reg))
++		return LM75_TEMP_TO_REG(temp);
++	return DIV_ROUND_CLOSEST(SENSORS_LIMIT(temp, -127000, 128000), 1000);
+ }
+ 
+ /* Some of analog inputs have internal scaling (2x), 8mV is ADC LSB */
+@@ -308,12 +312,9 @@ struct w83627ehf_data {
  	u8 fan_div[5];
  	u8 has_fan;		/* some fan inputs can be disabled */
  	u8 temp_type[3];
--	s16 temp[3];
--	s16 temp_max[3];
--	s16 temp_max_hyst[3];
-+	s16 temp[4];
-+	s16 temp_max[4];
-+	s16 temp_max_hyst[4];
+-	s8 temp1;
+-	s8 temp1_max;
+-	s8 temp1_max_hyst;
+-	s16 temp[2];
+-	s16 temp_max[2];
+-	s16 temp_max_hyst[2];
++	s16 temp[3];
++	s16 temp_max[3];
++	s16 temp_max_hyst[3];
  	u32 alarms;
  
  	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
-@@ -339,7 +355,7 @@ struct w83627ehf_data {
- 	u8 vid;
- 	u8 vrm;
- 
--	u8 temp3_disable;
-+	u8 have_temp;
- 	u8 in6_skip;
+@@ -344,15 +345,6 @@ struct w83627ehf_sio_data {
+ 	enum kinds kind;
  };
  
-@@ -577,12 +593,18 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+-static inline int is_word_sized(u16 reg)
+-{
+-	return (((reg & 0xff00) = 0x100
+-	      || (reg & 0xff00) = 0x200)
+-	     && ((reg & 0x00ff) = 0x50
+-	      || (reg & 0x00ff) = 0x53
+-	      || (reg & 0x00ff) = 0x55));
+-}
+-
+ /* Registers 0x50-0x5f are banked */
+ static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
+ {
+@@ -586,13 +578,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
  		}
  
  		/* Measured temperatures and limits */
--		for (i = 0; i < 3; i++) {
--			data->temp[i] = w83627ehf_read_value(data,
--					W83627EHF_REG_TEMP[i]);
--			data->temp_max[i] = w83627ehf_read_value(data,
--					    W83627EHF_REG_TEMP_OVER[i]);
--			data->temp_max_hyst[i] = w83627ehf_read_value(data,
-+		for (i = 0; i < NUM_REG_TEMP; i++) {
-+			if (!(data->have_temp & (1 << i)))
-+				continue;
-+			data->temp[i]
-+			  = w83627ehf_read_value(data, W83627EHF_REG_TEMP[i]);
-+			if (i > 2)
-+				break;
-+			data->temp_max[i]
-+			  = w83627ehf_read_value(data,
-+						 W83627EHF_REG_TEMP_OVER[i]);
-+			data->temp_max_hyst[i]
-+			  = w83627ehf_read_value(data,
- 						 W83627EHF_REG_TEMP_HYST[i]);
- 		}
+-		data->temp1 = w83627ehf_read_value(data,
+-			      W83627EHF_REG_TEMP1);
+-		data->temp1_max = w83627ehf_read_value(data,
+-				  W83627EHF_REG_TEMP1_OVER);
+-		data->temp1_max_hyst = w83627ehf_read_value(data,
+-				       W83627EHF_REG_TEMP1_HYST);
+-		for (i = 0; i < 2; i++) {
++		for (i = 0; i < 3; i++) {
+ 			data->temp[i] = w83627ehf_read_value(data,
+ 					W83627EHF_REG_TEMP[i]);
+ 			data->temp_max[i] = w83627ehf_read_value(data,
+@@ -641,8 +627,11 @@ store_in_##reg (struct device *dev, struct device_attribute *attr, \
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
+ 	int nr = sensor_attr->index; \
+-	u32 val = simple_strtoul(buf, NULL, 10); \
+- \
++	unsigned long val; \
++	int err; \
++	err = strict_strtoul(buf, 10, &val); \
++	if (err < 0) \
++		return err; \
+ 	mutex_lock(&data->update_lock); \
+ 	data->in_##reg[nr] = in_to_reg(val, nr); \
+ 	w83627ehf_write_value(data, W83627EHF_REG_IN_##REG(nr), \
+@@ -746,10 +735,15 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	unsigned int val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
+ 	unsigned int reg;
+ 	u8 new_div;
  
-@@ -844,6 +866,15 @@ static struct sensor_device_attribute sda_fan_div[] = {
++	err = strict_strtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++
+ 	mutex_lock(&data->update_lock);
+ 	if (!val) {
+ 		/* No min limit, alarm disabled */
+@@ -761,14 +755,14 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 		   even with the highest divider (128) */
+ 		data->fan_min[nr] = 254;
+ 		new_div = 7; /* 128 = (1 << 7) */
+-		dev_warn(dev, "fan%u low limit %u below minimum %u, set to "
++		dev_warn(dev, "fan%u low limit %lu below minimum %u, set to "
+ 			 "minimum\n", nr + 1, val, fan_from_reg(254, 128));
+ 	} else if (!reg) {
+ 		/* Speed above this value cannot possibly be represented,
+ 		   even with the lowest divider (1) */
+ 		data->fan_min[nr] = 1;
+ 		new_div = 0; /* 1 = (1 << 0) */
+-		dev_warn(dev, "fan%u low limit %u above maximum %u, set to "
++		dev_warn(dev, "fan%u low limit %lu above maximum %u, set to "
+ 			 "maximum\n", nr + 1, val, fan_from_reg(1, 1));
+ 	} else {
+ 		/* Automatically pick the best divider, i.e. the one such
+@@ -847,37 +841,7 @@ static struct sensor_device_attribute sda_fan_div[] = {
  	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
  };
  
-+static ssize_t
-+show_temp_label(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	return sprintf(buf, "%s\n", data->temp_label[data->temp_src[nr]]);
-+}
-+
- #define show_temp_reg(REG, reg) \
+-#define show_temp1_reg(reg) \
+-static ssize_t \
+-show_##reg(struct device *dev, struct device_attribute *attr, \
+-	   char *buf) \
+-{ \
+-	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
+-	return sprintf(buf, "%d\n", temp1_from_reg(data->reg)); \
+-}
+-show_temp1_reg(temp1);
+-show_temp1_reg(temp1_max);
+-show_temp1_reg(temp1_max_hyst);
+-
+-#define store_temp1_reg(REG, reg) \
+-static ssize_t \
+-store_temp1_##reg(struct device *dev, struct device_attribute *attr, \
+-		  const char *buf, size_t count) \
+-{ \
+-	struct w83627ehf_data *data = dev_get_drvdata(dev); \
+-	long val = simple_strtol(buf, NULL, 10); \
+- \
+-	mutex_lock(&data->update_lock); \
+-	data->temp1_##reg = temp1_to_reg(val, -128000, 127000); \
+-	w83627ehf_write_value(data, W83627EHF_REG_TEMP1_##REG, \
+-			      data->temp1_##reg); \
+-	mutex_unlock(&data->update_lock); \
+-	return count; \
+-}
+-store_temp1_reg(OVER, max);
+-store_temp1_reg(HYST, max_hyst);
+-
+-#define show_temp_reg(reg) \
++#define show_temp_reg(REG, reg) \
  static ssize_t \
  show_##reg(struct device *dev, struct device_attribute *attr, \
-@@ -897,8 +928,16 @@ static struct sensor_device_attribute sda_temp_input[] = {
- 	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
- 	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
- 	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
-+	SENSOR_ATTR(temp4_input, S_IRUGO, show_temp, NULL, 3),
+ 	   char *buf) \
+@@ -886,11 +850,11 @@ show_##reg(struct device *dev, struct device_attribute *attr, \
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
+ 	int nr = sensor_attr->index; \
+ 	return sprintf(buf, "%d\n", \
+-		       LM75_TEMP_FROM_REG(data->reg[nr])); \
++		       temp_from_reg(W83627EHF_REG_##REG[nr], data->reg[nr])); \
+ }
+-show_temp_reg(temp);
+-show_temp_reg(temp_max);
+-show_temp_reg(temp_max_hyst);
++show_temp_reg(TEMP, temp);
++show_temp_reg(TEMP_OVER, temp_max);
++show_temp_reg(TEMP_HYST, temp_max_hyst);
+ 
+ #define store_temp_reg(REG, reg) \
+ static ssize_t \
+@@ -900,10 +864,13 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
+ 	int nr = sensor_attr->index; \
+-	long val = simple_strtol(buf, NULL, 10); \
+- \
++	int err; \
++	long val; \
++	err = strict_strtol(buf, 10, &val); \
++	if (err < 0) \
++		return err; \
+ 	mutex_lock(&data->update_lock); \
+-	data->reg[nr] = LM75_TEMP_TO_REG(val); \
++	data->reg[nr] = temp_to_reg(W83627EHF_REG_TEMP_##REG[nr], val); \
+ 	w83627ehf_write_value(data, W83627EHF_REG_TEMP_##REG[nr], \
+ 			      data->reg[nr]); \
+ 	mutex_unlock(&data->update_lock); \
+@@ -922,27 +889,27 @@ show_temp_type(struct device *dev, struct device_attribute *attr, char *buf)
+ }
+ 
+ static struct sensor_device_attribute sda_temp_input[] = {
+-	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp1, NULL, 0),
+-	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 0),
+-	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 1),
++	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
++	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
++	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
  };
  
-+static struct sensor_device_attribute sda_temp_label[] = {
-+	SENSOR_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL, 0),
-+	SENSOR_ATTR(temp2_label, S_IRUGO, show_temp_label, NULL, 1),
-+	SENSOR_ATTR(temp3_label, S_IRUGO, show_temp_label, NULL, 2),
-+	SENSOR_ATTR(temp4_label, S_IRUGO, show_temp_label, NULL, 3),
-+};
-+ 
  static struct sensor_device_attribute sda_temp_max[] = {
- 	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp_max,
+-	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp1_max,
+-		    store_temp1_max, 0),
+-	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR, show_temp_max,
++	SENSOR_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp_max,
  		    store_temp_max, 0),
-@@ -1328,10 +1367,13 @@ static void w83627ehf_device_remove_files(struct device *dev)
- 		device_remove_file(dev, &sda_target_temp[i].dev_attr);
- 		device_remove_file(dev, &sda_tolerance[i].dev_attr);
- 	}
--	for (i = 0; i < 3; i++) {
--		if ((i = 2) && data->temp3_disable)
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
- 			continue;
- 		device_remove_file(dev, &sda_temp_input[i].dev_attr);
-+		device_remove_file(dev, &sda_temp_label[i].dev_attr);
-+		if (i > 2)
-+			break;
- 		device_remove_file(dev, &sda_temp_max[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_max_hyst[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
-@@ -1354,12 +1396,14 @@ static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
- 		w83627ehf_write_value(data, W83627EHF_REG_CONFIG,
+-	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR, show_temp_max,
++	SENSOR_ATTR(temp2_max, S_IRUGO | S_IWUSR, show_temp_max,
+ 		    store_temp_max, 1),
++	SENSOR_ATTR(temp3_max, S_IRUGO | S_IWUSR, show_temp_max,
++		    store_temp_max, 2),
+ };
+ 
+ static struct sensor_device_attribute sda_temp_max_hyst[] = {
+-	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp1_max_hyst,
+-		    store_temp1_max_hyst, 0),
+-	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
++	SENSOR_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
+ 		    store_temp_max_hyst, 0),
+-	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
++	SENSOR_ATTR(temp2_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
+ 		    store_temp_max_hyst, 1),
++	SENSOR_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR, show_temp_max_hyst,
++		    store_temp_max_hyst, 2),
+ };
+ 
+ static struct sensor_device_attribute sda_temp_alarm[] = {
+@@ -978,9 +945,14 @@ store_pwm_mode(struct device *dev, struct device_attribute *attr,
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	u32 val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
+ 	u16 reg;
+ 
++	err = strict_strtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++
+ 	if (val > 1)
+ 		return -EINVAL;
+ 	mutex_lock(&data->update_lock);
+@@ -1001,7 +973,14 @@ store_pwm(struct device *dev, struct device_attribute *attr,
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255);
++	unsigned long val;
++	int err;
++
++	err = strict_strtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	val = SENSORS_LIMIT(val, 0, 255);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm[nr] = val;
+@@ -1017,9 +996,14 @@ store_pwm_enable(struct device *dev, struct device_attribute *attr,
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	u32 val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
+ 	u16 reg;
+ 
++	err = strict_strtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++
+ 	if (!val || (val > 4))
+ 		return -EINVAL;
+ 	mutex_lock(&data->update_lock);
+@@ -1040,7 +1024,7 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
+ 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
+ 	int nr = sensor_attr->index; \
+-	return sprintf(buf, "%d\n", temp1_from_reg(data->reg[nr])); \
++	return sprintf(buf, "%d\n", data->reg[nr] * 1000); \
+ }
+ 
+ show_tol_temp(tolerance)
+@@ -1053,7 +1037,14 @@ store_target_temp(struct device *dev, struct device_attribute *attr,
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 127000);
++	long val;
++	int err;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	val = SENSORS_LIMIT(DIV_ROUND_CLOSEST(val, 1000), 0, 127);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->target_temp[nr] = val;
+@@ -1070,8 +1061,15 @@ store_tolerance(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	u16 reg;
++	long val;
++	int err;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
+ 	/* Limit the temp to 0C - 15C */
+-	u8 val = temp1_to_reg(simple_strtoul(buf, NULL, 10), 0, 15000);
++	val = SENSORS_LIMIT(DIV_ROUND_CLOSEST(val, 1000), 0, 15);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	reg = w83627ehf_read_value(data, W83627EHF_REG_TOLERANCE[nr]);
+@@ -1154,7 +1152,12 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
+ 	int nr = sensor_attr->index; \
+-	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 1, 255); \
++	unsigned long val; \
++	int err; \
++	err = strict_strtoul(buf, 10, &val); \
++	if (err < 0) \
++		return err; \
++	val = SENSORS_LIMIT(val, 1, 255); \
+ 	mutex_lock(&data->update_lock); \
+ 	data->reg[nr] = val; \
+ 	w83627ehf_write_value(data, data->REG_##REG[nr], val); \
+@@ -1185,8 +1188,12 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
+ 	int nr = sensor_attr->index; \
+-	u8 val = step_time_to_reg(simple_strtoul(buf, NULL, 10), \
+-					data->pwm_mode[nr]); \
++	unsigned long val; \
++	int err; \
++	err = strict_strtoul(buf, 10, &val); \
++	if (err < 0) \
++		return err; \
++	val = step_time_to_reg(val, data->pwm_mode[nr]); \
+ 	mutex_lock(&data->update_lock); \
+ 	data->reg[nr] = val; \
+ 	w83627ehf_write_value(data, W83627EHF_REG_##REG[nr], val); \
+@@ -1336,10 +1343,10 @@ static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
  				      tmp | 0x01);
  
--	/* Enable temp2 and temp3 if needed */
--	for (i = 1; i < 3; i++) {
-+	/* Enable temperature sensors if needed */
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
-+			continue;
-+		if (!W83627EHF_REG_TEMP_CONFIG[i])
-+			continue;
+ 	/* Enable temp2 and temp3 if needed */
+-	for (i = 0; i < 2; i++) {
++	for (i = 1; i < 3; i++) {
  		tmp = w83627ehf_read_value(data,
  					   W83627EHF_REG_TEMP_CONFIG[i]);
--		if ((i = 2) && data->temp3_disable)
--			continue;
+-		if ((i = 1) && data->temp3_disable)
++		if ((i = 2) && data->temp3_disable)
+ 			continue;
  		if (tmp & 0x01)
  			w83627ehf_write_value(data,
- 					      W83627EHF_REG_TEMP_CONFIG[i],
-@@ -1417,11 +1461,39 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 	data->pwm_num = (sio_data->kind = w83667hg
- 			 || sio_data->kind = w83667hg_b) ? 3 : 4;
- 
-+	data->have_temp = 0x07;
+@@ -1400,7 +1407,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
  	/* Check temp3 configuration bit for 667HG */
- 	if (sio_data->kind = w83667hg) {
--		data->temp3_disable = w83627ehf_read_value(data,
--					W83627EHF_REG_TEMP_CONFIG[2]) & 0x01;
--		data->in6_skip = !data->temp3_disable;
-+		u8 reg;
-+
-+		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
-+		if (reg & 0x01)
-+			data->have_temp &= ~(1 << 2);
-+		else
-+			data->in6_skip = 1; /* Either temp3 or in6 */
-+	} else if (sio_data->kind = w83667hg_b) {
-+		u8 reg;
-+
-+		reg = w83627ehf_read_value(data, 0x4a);
-+		data->temp_src[0] = reg >> 5;
-+		reg = w83627ehf_read_value(data, 0x49);
-+		data->temp_src[1] = reg & 0x07;
-+		data->temp_src[2] = (reg >> 4)  & 0x07;
-+
-+		/*
-+		 * W83667HG-B has another temperature register at 0x7e.
-+		 * The temperature source is selected with register 0x7d.
-+		 * Support it if the source differs from already reported
-+		 * sources.
-+		 */
-+		reg = w83627ehf_read_value(data, 0x7d);
-+		reg &= 0x07;
-+		if (reg != data->temp_src[0] && reg != data->temp_src[1]
-+		    && reg != data->temp_src[2]) {
-+			data->temp_src[3] = reg;
-+			data->have_temp |= 1 << 3;
-+		}
-+		data->temp_label = w83667hg_b_temp_label;
+ 	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+ 		data->temp3_disable = w83627ehf_read_value(data,
+-					W83627EHF_REG_TEMP_CONFIG[1]) & 0x01;
++					W83627EHF_REG_TEMP_CONFIG[2]) & 0x01;
+ 		data->in6_skip = !data->temp3_disable;
  	}
  
- 	data->REG_FAN_START_OUTPUT = W83627EHF_REG_FAN_START_OUTPUT;
-@@ -1584,13 +1656,21 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	for (i = 0; i < 3; i++) {
--		if ((i = 2) && data->temp3_disable)
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
- 			continue;
--		if ((err = device_create_file(dev,
--				&sda_temp_input[i].dev_attr))
--			|| (err = device_create_file(dev,
--				&sda_temp_max[i].dev_attr))
-+		err = device_create_file(dev, &sda_temp_input[i].dev_attr);
-+		if (err)
-+			goto exit_remove;
-+		if (data->temp_label) {
-+			err = device_create_file(dev,
-+						 &sda_temp_label[i].dev_attr);
-+			if (err)
-+				goto exit_remove;
-+		}
-+		if (i > 2)
-+			break;
-+		if ((err = device_create_file(dev, &sda_temp_max[i].dev_attr))
- 			|| (err = device_create_file(dev,
- 				&sda_temp_max_hyst[i].dev_attr))
- 			|| (err = device_create_file(dev,
 -- 
 1.7.3.1
 
