@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 11 Feb 2011 17:20:27 +0000
-Subject: [lm-sensors] [PATCH v3 2/7] hwmon: (w83627ehf) Fixed most
-Message-Id: <1297444832-10874-3-git-send-email-guenter.roeck@ericsson.com>
+Date: Mon, 14 Feb 2011 19:35:35 +0000
+Subject: [lm-sensors] [PATCH v4 02/10] hwmon: (w83627ehf) Fixed most
+Message-Id: <1297712143-7431-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -14,11 +14,11 @@ making the code less readable.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/w83627ehf.c |  146 +++++++++++++++++++++++++-------------------
- 1 files changed, 83 insertions(+), 63 deletions(-)
+ drivers/hwmon/w83627ehf.c |  149 +++++++++++++++++++++++++-------------------
+ 1 files changed, 85 insertions(+), 64 deletions(-)
 
 diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 66e6855..b4f489e 100644
+index 66e6855..1128eac 100644
 --- a/drivers/hwmon/w83627ehf.c
 +++ b/drivers/hwmon/w83627ehf.c
 @@ -1,10 +1,10 @@
@@ -365,7 +365,17 @@ index 66e6855..b4f489e 100644
  				goto exit_remove;
  		}
  
-@@ -1733,7 +1752,8 @@ static int __init sensors_w83627ehf_init(void)
+@@ -1696,7 +1715,8 @@ static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
+ 	/* Activate logical device if needed */
+ 	val = superio_inb(sioaddr, SIO_REG_ENABLE);
+ 	if (!(val & 0x01)) {
+-		pr_warn("Forcibly enabling Super-I/O. Sensor is probably unusable.\n");
++		pr_warn("Forcibly enabling Super-I/O. "
++			"Sensor is probably unusable.\n");
+ 		superio_outb(sioaddr, SIO_REG_ENABLE, val | 0x01);
+ 	}
+ 
+@@ -1733,7 +1753,8 @@ static int __init sensors_w83627ehf_init(void)
  	if (err)
  		goto exit;
  
