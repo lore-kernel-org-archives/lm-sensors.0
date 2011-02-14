@@ -1,43 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 06 Feb 2011 15:56:06 +0000
-Subject: Re: [lm-sensors] f75375s detected but no temp output
-Message-Id: <20110206165606.063ea575@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 14 Feb 2011 19:35:33 +0000
+Subject: [lm-sensors] [PATCH v4 00/10] hwmon: (w83627ehf) Add support for
+Message-Id: <1297712143-7431-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
-In-Reply-To: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 6 Feb 2011 11:41:35 +0100, Pali Roh=E1r wrote:
-> 2011/1/6 Jean Delvare <khali@linux-fr.org>:
-> > On Sat, 25 Dec 2010 14:15:46 +0100, Pali Roh=E1r wrote:
-> >> Where is the problem? And why is no f75375s temp detected by lm sensor=
-s?
-> >
-> > Nvidia binary driver, right? It misses four lines of code that would let
-> > hwmon drivers bind to its I2C adapters. The code exists for 4 or 5
-> > years now, it's even included in Gentoo [1] but Nvidia never bothered
-> > applying it. Complain to them.
-> >
-> > [1] http://gentoo.zugaina.org/portage/x11-drivers/nvidia-drivers/files/=
-NVIDIA_i2c-hwmon.patch
-> >
-> > --
-> > Jean Delvare
-> >
->=20
-> Yes, I'm using nvidia binary driver. I applied this patch on nvidia
-> driver but still does not working (same problem). I checked
-> I2C_CLASS_HWMON is defined to (1<<0)
+The following patch series adds support for NCT6775F and NCT6776F to the
+w83627ehf driver. It also includes some cleanup and adds support for
+the fourth temperature sensor on W83677HG-B.
 
-In fact it looks like your hwmon chip is not on the same bus as other
-graphics cards, so you should drop the (port =3D 2) test in the patch,
-and just set pI2cAdapter->class =3D I2C_CLASS_HWMON for all adapters.
+v4:
+- Store rpm instead of raw fan speed readings
+- For NCT6775F, increase fan divisor if the fan speed reads 0
+  [ On NCT6775F, fan speed readings can return 0 instead of 0xff if the
+    fan divisor value is too low ]
+- Separate changes into more patches to simplify review
 
---=20
-Jean Delvare
+v3:
+- Documentation: Remove references to datasheets which no longer exist
+- Documentation: Add information about limits of SmartFan IV support.
+- SmartFan III mode is not supported on NCT6776F, so remove related attributes
+  and refuse to configure it.
+- (additional patch) Improve support for chips with 16-bit fan count registers
+
+v2:
+- W83677HG-B does share the AUXTIN/VIN3 pin, so we can not skip this check.
+- Cosmetic changes to fix a couple of checkpatch errors and to undo some
+  unnecessary formatting changes in patch 5.
+- Patch 1 introduced a bug in temp_to_reg which was fixed in a later patch.
+  Modified code to not introduce the bug in the first place.
+- Two dev_dbg messages were changed to dev_info for testing. Changed back
+  to dev_dbg.
+
+The patched driver can be downloaded as stand-alone driver from
+	http://www.roeck-us.net/linux/drivers/w83627ehf/
 
 _______________________________________________
 lm-sensors mailing list
