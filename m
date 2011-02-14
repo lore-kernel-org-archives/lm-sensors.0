@@ -1,211 +1,95 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Feb 2011 18:57:26 +0000
-Subject: [lm-sensors] [PATCH v4 4/4] hwmon: (lm85) Add support for EMC6D103S
-Message-Id: <1298660246-6484-5-git-send-email-guenter.roeck@ericsson.com>
+Date: Mon, 14 Feb 2011 19:35:43 +0000
+Subject: [lm-sensors] [PATCH v4 10/10] hwmon: (w83627ehf) Store rpm instead
+Message-Id: <1297712143-7431-11-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-EMC6D103S is similar to EMC6D103, only it does not support registers 62[5:7],
-6D[0:7], and 6E[0:7]. Register respective sysfs attributes and update affected
-registers for all other chips only.
+Since the fan speed value can be above 0xff, we can no longer use
+that value to determine if the fan speed reading is valid. This
+makes it difficult to manipulate the stored fan speed register value.
+
+If we store rpm instead of the fan speed register value, we do not
+need to correct it if the fan divisor value is changed, and the above
+mentioned problem no longer exists.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
 ---
- Documentation/hwmon/lm85 |   12 +++++++-
- drivers/hwmon/lm85.c     |   75 +++++++++++++++++++++++++++++++--------------
- 2 files changed, 62 insertions(+), 25 deletions(-)
+ drivers/hwmon/w83627ehf.c |   27 +++++++++------------------
+ 1 files changed, 9 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/hwmon/lm85 b/Documentation/hwmon/lm85
-index 239258a..7c49fea 100644
---- a/Documentation/hwmon/lm85
-+++ b/Documentation/hwmon/lm85
-@@ -26,6 +26,14 @@ Supported chips:
-     Prefix: 'emc6d102'
-     Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-     Datasheet: http://www.smsc.com/main/catalog/emc6d102.html
-+  * SMSC EMC6D103
-+    Prefix: 'emc6d103'
-+    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-+    Datasheet: http://www.smsc.com/main/catalog/emc6d103.html
-+  * SMSC EMC6D103S
-+    Prefix: 'emc6d103s'
-+    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
-+    Datasheet: http://www.smsc.com/main/catalog/emc6d103s.html
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index df6e502..460292b 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -452,7 +452,7 @@ struct w83627ehf_data {
+ 	u8 in[10];		/* Register value */
+ 	u8 in_max[10];		/* Register value */
+ 	u8 in_min[10];		/* Register value */
+-	u16 fan[5];
++	unsigned int rpm[5];
+ 	u16 fan_min[5];
+ 	u8 fan_div[5];
+ 	u8 has_fan;		/* some fan inputs can be disabled */
+@@ -775,11 +775,14 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
  
- Authors:
-         Philip Pokorny <ppokorny@penguincomputing.com>,
-@@ -122,9 +130,11 @@ to be register compatible. The EMC6D100 offers all the features of the
- EMC6D101 plus additional voltage monitoring and system control features.
- Unfortunately it is not possible to distinguish between the package
- versions on register level so these additional voltage inputs may read
--zero. The EMC6D102 features addtional ADC bits thus extending precision
-+zero. EMC6D102 and EMC6D103 feature additional ADC bits thus extending precision
- of voltage and temperature channels.
- 
-+SMSC EMC6D103S is similar to EMC6D103, but does not support pwm#_auto_pwm_minctl
-+and temp#_auto_temp_off.
- 
- Hardware Configurations
- -----------------------
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-index fbb5189..cf47e6e 100644
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -41,7 +41,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
- enum chips {
- 	any_chip, lm85b, lm85c,
- 	adm1027, adt7463, adt7468,
--	emc6d100, emc6d102, emc6d103
-+	emc6d100, emc6d102, emc6d103, emc6d103s
- };
- 
- /* The LM85 registers */
-@@ -350,6 +350,7 @@ static const struct i2c_device_id lm85_id[] = {
- 	{ "emc6d101", emc6d100 },
- 	{ "emc6d102", emc6d102 },
- 	{ "emc6d103", emc6d103 },
-+	{ "emc6d103s", emc6d103s },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, lm85_id);
-@@ -1068,13 +1069,7 @@ static struct attribute *lm85_attributes[] = {
- 	&sensor_dev_attr_pwm1_auto_pwm_min.dev_attr.attr,
- 	&sensor_dev_attr_pwm2_auto_pwm_min.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_auto_pwm_min.dev_attr.attr,
--	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
--	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
--	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
- 
--	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
--	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
--	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
- 	&sensor_dev_attr_temp1_auto_temp_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_auto_temp_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_auto_temp_min.dev_attr.attr,
-@@ -1095,6 +1090,26 @@ static const struct attribute_group lm85_group = {
- 	.attrs = lm85_attributes,
- };
- 
-+static struct attribute *lm85_attributes_minctl[] = {
-+	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
-+};
+ 		/* Measured fan speeds and limits */
+ 		for (i = 0; i < 5; i++) {
++			u16 reg;
 +
-+static const struct attribute_group lm85_group_minctl = {
-+	.attrs = lm85_attributes_minctl,
-+};
-+
-+static struct attribute *lm85_attributes_temp_off[] = {
-+	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
-+};
-+
-+static const struct attribute_group lm85_group_temp_off = {
-+	.attrs = lm85_attributes_temp_off,
-+};
-+
- static struct attribute *lm85_attributes_in4[] = {
- 	&sensor_dev_attr_in4_input.dev_attr.attr,
- 	&sensor_dev_attr_in4_min.dev_attr.attr,
-@@ -1242,16 +1257,9 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
- 		case LM85_VERSTEP_EMC6D103_A1:
- 			type_name = "emc6d103";
- 			break;
--		/*
--		 * Registers apparently missing in EMC6D103S/EMC6D103:A2
--		 * compared to EMC6D103:A0, EMC6D103:A1, and EMC6D102
--		 * (according to the data sheets), but used unconditionally
--		 * in the driver: 62[5:7], 6D[0:7], and 6E[0:7].
--		 * So skip EMC6D103S for now.
- 		case LM85_VERSTEP_EMC6D103S:
- 			type_name = "emc6d103s";
- 			break;
--		 */
- 		}
- 	} else {
- 		dev_dbg(&adapter->dev,
-@@ -1267,6 +1275,10 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
- static void lm85_remove_files(struct i2c_client *client, struct lm85_data *data)
- {
- 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
-+	if (data->type != emc6d103s) {
-+		sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
-+		sysfs_remove_group(&client->dev.kobj, &lm85_group_temp_off);
-+	}
- 	if (!data->has_vid5)
- 		sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
- 	if (data->type = emc6d100)
-@@ -1295,6 +1307,7 @@ static int lm85_probe(struct i2c_client *client,
- 	case emc6d100:
- 	case emc6d102:
- 	case emc6d103:
-+	case emc6d103s:
- 		data->freq_map = adm1027_freq_map;
- 		break;
- 	default:
-@@ -1312,6 +1325,17 @@ static int lm85_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_kfree;
+ 			if (!(data->has_fan & (1 << i)))
+ 				continue;
  
-+	/* minctl and temp_off exist on all chips except emc6d103s */
-+	if (data->type != emc6d103s) {
-+		err = sysfs_create_group(&client->dev.kobj, &lm85_group_minctl);
-+		if (err)
-+			goto err_kfree;
-+		err = sysfs_create_group(&client->dev.kobj,
-+					 &lm85_group_temp_off);
-+		if (err)
-+			goto err_kfree;
-+	}
-+
- 	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
- 	   as a sixth digital VID input rather than an analog input. */
- 	if (data->type = adt7463 || data->type = adt7468) {
-@@ -1475,7 +1499,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			/* More alarm bits */
- 			data->alarms |= lm85_read_value(client,
- 						EMC6D100_REG_ALARM3) << 16;
--		} else if (data->type = emc6d102 || data->type = emc6d103) {
-+		} else if (data->type = emc6d102 || data->type = emc6d103 ||
-+			   data->type = emc6d103s) {
- 			/* Have to read LSB bits after the MSB ones because
- 			   the reading of the MSB bits has frozen the
- 			   LSBs (backward from the ADM1027).
-@@ -1560,17 +1585,19 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			}
- 		}
+-			data->fan[i] = w83627ehf_read_value(data,
+-							    data->REG_FAN[i]);
++			reg = w83627ehf_read_value(data, data->REG_FAN[i]);
++			data->rpm[i] = data->fan_from_reg(reg,
++							  data->fan_div[i]);
  
--		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
--		data->autofan[0].min_off = (i & 0x20) != 0;
--		data->autofan[1].min_off = (i & 0x40) != 0;
--		data->autofan[2].min_off = (i & 0x80) != 0;
-+		if (data->type != emc6d103s) {
-+			i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
-+			data->autofan[0].min_off = (i & 0x20) != 0;
-+			data->autofan[1].min_off = (i & 0x40) != 0;
-+			data->autofan[2].min_off = (i & 0x80) != 0;
+ 			if (data->has_fan_min & (1 << i))
+ 				data->fan_min[i] = w83627ehf_read_value(data,
+@@ -789,9 +792,8 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 			   divider can be increased, let's try that for next
+ 			   time */
+ 			if (data->has_fan_div
+-			    && (data->fan[i] >= 0xff
+-				|| (sio_data->kind = nct6775
+-				    && data->fan[i] = 0x00))
++			    && (reg >= 0xff || (sio_data->kind = nct6775
++						&& reg = 0x00))
+ 			    && data->fan_div[i] < 0x07) {
+ 				dev_dbg(dev, "Increasing fan%d "
+ 					"clock divider from %u to %u\n",
+@@ -984,8 +986,7 @@ show_fan(struct device *dev, struct device_attribute *attr, char *buf)
+ 	struct w83627ehf_data *data = w83627ehf_update_device(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+-	return sprintf(buf, "%d\n",
+-		       data->fan_from_reg(data->fan[nr], data->fan_div[nr]));
++	return sprintf(buf, "%d\n", data->rpm[nr]);
+ }
  
--		i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
--		data->zone[0].hyst = i >> 4;
--		data->zone[1].hyst = i & 0x0f;
-+			i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
-+			data->zone[0].hyst = i >> 4;
-+			data->zone[1].hyst = i & 0x0f;
- 
--		i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
--		data->zone[2].hyst = i >> 4;
-+			i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
-+			data->zone[2].hyst = i >> 4;
-+		}
- 
- 		data->last_config = jiffies;
- 	}  /* last_config */
+ static ssize_t
+@@ -1078,16 +1079,6 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 	/* Write both the fan clock divider (if it changed) and the new
+ 	   fan min (unconditionally) */
+ 	if (new_div != data->fan_div[nr]) {
+-		/* Preserve the fan speed reading */
+-		if (data->fan[nr] != 0xff) {
+-			if (new_div > data->fan_div[nr])
+-				data->fan[nr] >>= new_div - data->fan_div[nr];
+-			else if (data->fan[nr] & 0x80)
+-				data->fan[nr] = 0xff;
+-			else
+-				data->fan[nr] <<= data->fan_div[nr] - new_div;
+-		}
+-
+ 		dev_dbg(dev, "fan%u clock divider changed from %u to %u\n",
+ 			nr + 1, div_from_reg(data->fan_div[nr]),
+ 			div_from_reg(new_div));
 -- 
 1.7.3.1
 
