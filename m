@@ -1,364 +1,221 @@
-From: Dirk Eibach <eibach@gdsys.de>
-Date: Mon, 14 Feb 2011 13:21:50 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: Add support for Texas Instruments
-Message-Id: <1297689710-17840-1-git-send-email-eibach@gdsys.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 14 Feb 2011 19:35:42 +0000
+Subject: [lm-sensors] [PATCH v4 09/10] hwmon: (w83627ehf) Use 16 bit fan
+Message-Id: <1297712143-7431-10-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110214112228.59269651@endymion.delvare>
-In-Reply-To: <20110214112228.59269651@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org, Dirk Eibach <eibach@gdsys.de>
+To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Dirk Eibach <eibach@gdsys.de>
+Some of the chips supported by this driver have 13 bit or 16 bit fan count
+registers. This patch improves support for those registers, specifically for
+NCT6775F. With the changes in this patch, fan speed is reported correctly even
+if the fan divider is set to a low value, which results in a fan speed reading
+above 0xff.
+
+With this patch, the width of fan count registers is no longer used to determine
+if the chip has fan divider register(s) or not. A dedicated flag is used instead
+to determine if this is the case.
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
-Changes since v1:
-- fixed/extended Documentation
-- removed unused register definitions
-- hardcoded PGA fullscale table size
-- made sure patch applies against v2.6.38-rc4
-- reordered functions to avoid forward declaration
-- results from i2c_smbus_read_word_data() are handled correctly
-- moved locking into ads1015_read_value()
-- removed unnecessray clearing of bit
-- proper error handling in ads1015_read_value()
-- use DIV_ROUND_CLOSEST for scaling result
-- removed detect()
+ drivers/hwmon/w83627ehf.c |   86 +++++++++++++++++++++++++++++++--------------
+ 1 files changed, 59 insertions(+), 27 deletions(-)
 
- Documentation/hwmon/ads1015 |   33 ++++++
- drivers/hwmon/Kconfig       |   10 ++
- drivers/hwmon/Makefile      |    1 +
- drivers/hwmon/ads1015.c     |  246 +++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 290 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/ads1015
- create mode 100644 drivers/hwmon/ads1015.c
-
-diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
-new file mode 100644
-index 0000000..e2dc689
---- /dev/null
-+++ b/Documentation/hwmon/ads1015
-@@ -0,0 +1,33 @@
-+Kernel driver ads1015
-+==========+
-+Supported chips:
-+  * Texas Instruments ADS1015
-+    Prefix: 'ads1015'
-+    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
-+    Datasheet: Publicly available at the Texas Instruments website :
-+               http://focus.ti.com/lit/ds/symlink/ads1015.pdf
-+
-+Authors:
-+        Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
-+
-+Description
-+-----------
-+
-+This driver implements support for the Texas Instruments ADS1015.
-+
-+This device is a 12-bit A-D converter with 4 inputs.
-+
-+The inputs can be used single ended or in certain differential combinations.
-+
-+On certain systems it makes sense to access absolute voltage values as well
-+as voltage differences. So all available combinations are made available by
-+8 "virtual" inputs:
-+in0: Voltage over AIN0 and AIN1.
-+in1: Voltage over AIN0 and AIN3.
-+in2: Voltage over AIN1 and AIN3.
-+in3: Voltage over AIN2 and AIN3.
-+in4: Voltage over AIN0 and GND.
-+in5: Voltage over AIN1 and GND.
-+in6: Voltage over AIN2 and GND.
-+in7: Voltage over AIN3 and GND.
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 773e484..7e247f7 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -871,6 +871,16 @@ config SENSORS_SMSC47B397
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called smsc47b397.
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index b3b4f2b..df6e502 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -234,7 +234,7 @@ static const u16 NCT6775_REG_FAN_STOP_TIME[] = { 0x107, 0x207, 0x307 };
+ static const u16 NCT6775_REG_PWM[] = { 0x109, 0x209, 0x309 };
+ static const u16 NCT6775_REG_FAN_MAX_OUTPUT[] = { 0x10a, 0x20a, 0x30a };
+ static const u16 NCT6775_REG_FAN_STEP_OUTPUT[] = { 0x10b, 0x20b, 0x30b };
+-static const u16 NCT6776_REG_FAN[] = { 0x630, 0x632, 0x634, 0x636, 0x638 };
++static const u16 NCT6775_REG_FAN[] = { 0x630, 0x632, 0x634, 0x636, 0x638 };
+ static const u16 NCT6776_REG_FAN_MIN[] = { 0x63a, 0x63c, 0x63e, 0x640, 0x642};
  
-+config SENSORS_ADS1015
-+	tristate "Texas Instruments ADS1015"
-+	depends on I2C
-+	help
-+	  If you say yes here you get support for Texas Instruments ADS1015
-+	  12-bit 4-input ADC device.
-+
-+	  This driver can also be built as a module.  If so, the module
-+	  will be called ads1015.
-+
- config SENSORS_ADS7828
- 	tristate "Texas Instruments ADS7828"
- 	depends on I2C
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index dde02d9..aae4036 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
- obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
- obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
- obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
-+obj-$(CONFIG_SENSORS_ADS1015)	+= ads1015.o
- obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
- obj-$(CONFIG_SENSORS_ADS7871)	+= ads7871.o
- obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
-diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-new file mode 100644
-index 0000000..7fb30ae
---- /dev/null
-+++ b/drivers/hwmon/ads1015.c
-@@ -0,0 +1,246 @@
-+/*
-+ * ads1015.c - lm_sensors driver for ads1015 12-bit 4-input ADC
-+ * (C) Copyright 2010
-+ * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
-+ *
-+ * Based on the ads7828 driver by Steve Hardy.
-+ *
-+ * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads1015.pdf
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/jiffies.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+
-+/* ADS1015 registers */
-+enum {
-+	ADS1015_CONVERSION = 0,
-+	ADS1015_CONFIG = 1,
-+};
-+
-+/* PGA fullscale voltages in mV */
-+static const unsigned int fullscale_table[8] = {
-+	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
-+
-+/* Addresses to scan */
-+static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
-+	I2C_CLIENT_END };
-+
-+/* Each client has this additional data */
-+struct ads1015_data {
-+	struct device *hwmon_dev;
-+	struct mutex update_lock; /* mutex protect updates */
-+};
-+
-+static s32 ads1015_read_reg(struct i2c_client *client, unsigned int reg)
-+{
-+	s32 data = i2c_smbus_read_word_data(client, reg);
-+
-+	return (data < 0) ? data : swab16(data);
+ static const u16 NCT6775_REG_TEMP[]
+@@ -342,21 +342,36 @@ static inline u8 step_time_to_reg(unsigned int msec, u8 mode)
+ 						(msec + 200) / 400), 1, 255);
+ }
+ 
+-static inline unsigned int
+-fan_from_reg(int reg, u16 val, unsigned int div)
++static unsigned int fan_from_reg8(u16 reg, unsigned int divreg)
+ {
+-	if (val = 0)
++	if (reg = 0 || reg = 255)
+ 		return 0;
+-	if (is_word_sized(reg)) {
+-		if ((val & 0xff1f) = 0xff1f)
+-			return 0;
+-		val = (val & 0x1f) | ((val & 0xff00) >> 3);
+-	} else {
+-		if (val = 255 || div = 0)
+-			return 0;
+-		val *= div;
+-	}
+-	return 1350000U / val;
++	return 1350000U / (reg << divreg);
 +}
 +
-+static s32 ads1015_write_reg(struct i2c_client *client, unsigned int reg,
-+			     u16 val)
++static unsigned int fan_from_reg13(u16 reg, unsigned int divreg)
 +{
-+	return i2c_smbus_write_word_data(client, reg, swab16(val));
++	if ((reg & 0xff1f) = 0xff1f)
++		return 0;
++
++	reg = (reg & 0x1f) | ((reg & 0xff00) >> 3);
++
++	if (reg = 0)
++		return 0;
++
++	return 1350000U / reg;
 +}
 +
-+static int ads1015_read_value(struct i2c_client *client, unsigned int channel,
-+			      int *value)
++static unsigned int fan_from_reg16(u16 reg, unsigned int divreg)
 +{
-+	u16 config;
-+	s16 conversion;
-+	unsigned int pga;
-+	int fullscale;
-+	unsigned int k;
-+	struct ads1015_data *data = i2c_get_clientdata(client);
-+	int res;
++	if (reg = 0 || reg = 0xffff)
++		return 0;
 +
-+	mutex_lock(&data->update_lock);
++	/*
++	 * Even though the registers are 16 bit wide, the fan divisor
++	 * still applies.
++	 */
++	return 1350000U / (reg << divreg);
+ }
+ 
+ static inline unsigned int
+@@ -424,6 +439,9 @@ struct w83627ehf_data {
+ 	const u16 *REG_FAN_MAX_OUTPUT;
+ 	const u16 *REG_FAN_STEP_OUTPUT;
+ 
++	unsigned int (*fan_from_reg)(u16 reg, unsigned int divreg);
++	unsigned int (*fan_from_reg_min)(u16 reg, unsigned int divreg);
 +
-+	/* get fullscale voltage */
-+	res = ads1015_read_reg(client, ADS1015_CONFIG);
-+	if (res < 0)
-+		goto err_unlock;
-+	config = res;
-+	pga = (config >> 9) & 0x0007;
-+	fullscale = fullscale_table[pga];
-+
-+	/* set channel and start single conversion */
-+	config &= ~(0x0007 << 12);
-+	config |= (1 << 15) | (1 << 8) | (channel & 0x0007) << 12;
-+
-+	/* wait until conversion finished */
-+	res = ads1015_write_reg(client, ADS1015_CONFIG, config);
-+	if (res < 0)
-+		goto err_unlock;
-+	for (k = 0; k < 5; ++k) {
-+		schedule_timeout(msecs_to_jiffies(1));
-+		res = ads1015_read_reg(client, ADS1015_CONFIG);
-+		if (res < 0)
-+			goto err_unlock;
-+		config = res;
-+		if (config & (1 << 15))
-+			break;
-+	}
-+	if (k = 5)
-+		return -EIO;
-+
-+	res = ads1015_read_reg(client, ADS1015_CONVERSION);
-+	if (res < 0)
-+		goto err_unlock;
-+	conversion = res;
-+
-+	mutex_unlock(&data->update_lock);
-+
-+	*value = DIV_ROUND_CLOSEST(conversion * fullscale, 0x7ff0);
-+
-+	return 0;
-+
-+err_unlock:
-+	mutex_unlock(&data->update_lock);
-+	return res;
-+}
-+
-+/* sysfs callback function */
-+static ssize_t show_in(struct device *dev, struct device_attribute *da,
-+	char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-+	struct i2c_client *client = to_i2c_client(dev);
-+	int in;
-+	int res;
-+
-+	res = ads1015_read_value(client, attr->index, &in);
-+
-+	return (res < 0) ? res : sprintf(buf, "%d\n", in);
-+}
-+
-+#define in_reg(offset)\
-+static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,\
-+	NULL, offset)
-+
-+in_reg(0);
-+in_reg(1);
-+in_reg(2);
-+in_reg(3);
-+in_reg(4);
-+in_reg(5);
-+in_reg(6);
-+in_reg(7);
-+
-+static struct attribute *ads1015_attributes[] = {
-+	&sensor_dev_attr_in0_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	NULL
-+};
-+
-+static const struct attribute_group ads1015_group = {
-+	.attrs = ads1015_attributes,
-+};
-+
-+static int ads1015_remove(struct i2c_client *client)
-+{
-+	struct ads1015_data *data = i2c_get_clientdata(client);
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &ads1015_group);
-+	kfree(data);
-+	return 0;
-+}
-+
-+static int ads1015_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct ads1015_data *data;
-+	int err;
-+
-+	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	i2c_set_clientdata(client, data);
-+	mutex_init(&data->update_lock);
-+
-+	/* Register sysfs hooks */
-+	err = sysfs_create_group(&client->dev.kobj, &ads1015_group);
-+	if (err)
-+		goto exit_free;
-+
-+	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove;
-+	}
-+
-+	return 0;
-+
-+exit_remove:
-+	sysfs_remove_group(&client->dev.kobj, &ads1015_group);
-+exit_free:
-+	kfree(data);
-+exit:
-+	return err;
-+}
-+
-+static const struct i2c_device_id ads1015_id[] = {
-+	{ "ads1015", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ads1015_id);
-+
-+/* This is the driver that will be inserted */
-+static struct i2c_driver ads1015_driver = {
-+	.class = I2C_CLASS_HWMON,
-+	.driver = {
-+		.name = "ads1015",
-+	},
-+	.probe = ads1015_probe,
-+	.remove = ads1015_remove,
-+	.id_table = ads1015_id,
-+	.address_list = normal_i2c,
-+};
-+
-+static int __init sensors_ads1015_init(void)
-+{
-+	return i2c_add_driver(&ads1015_driver);
-+}
-+
-+static void __exit sensors_ads1015_exit(void)
-+{
-+	i2c_del_driver(&ads1015_driver);
-+}
-+
-+MODULE_AUTHOR("Dirk Eibach <eibach@gdsys.de>");
-+MODULE_DESCRIPTION("ADS1015 driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(sensors_ads1015_init);
-+module_exit(sensors_ads1015_exit);
+ 	struct mutex update_lock;
+ 	char valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+@@ -439,6 +457,7 @@ struct w83627ehf_data {
+ 	u8 fan_div[5];
+ 	u8 has_fan;		/* some fan inputs can be disabled */
+ 	u8 has_fan_min;		/* some fans don't have min register */
++	bool has_fan_div;
+ 	u8 temp_type[3];
+ 	s16 temp[9];
+ 	s16 temp_max[9];
+@@ -769,8 +788,8 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 			/* If we failed to measure the fan speed and clock
+ 			   divider can be increased, let's try that for next
+ 			   time */
+-			if (!is_word_sized(data->REG_FAN[i])
+-			    && (data->fan[i] = 0xff
++			if (data->has_fan_div
++			    && (data->fan[i] >= 0xff
+ 				|| (sio_data->kind = nct6775
+ 				    && data->fan[i] = 0x00))
+ 			    && data->fan_div[i] < 0x07) {
+@@ -966,9 +985,7 @@ show_fan(struct device *dev, struct device_attribute *attr, char *buf)
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	return sprintf(buf, "%d\n",
+-		       fan_from_reg(data->REG_FAN[nr],
+-				    data->fan[nr],
+-				    div_from_reg(data->fan_div[nr])));
++		       data->fan_from_reg(data->fan[nr], data->fan_div[nr]));
+ }
+ 
+ static ssize_t
+@@ -978,9 +995,8 @@ show_fan_min(struct device *dev, struct device_attribute *attr, char *buf)
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	return sprintf(buf, "%d\n",
+-		       fan_from_reg(data->REG_FAN_MIN[nr],
+-				    data->fan_min[nr],
+-				    div_from_reg(data->fan_div[nr])));
++		       data->fan_from_reg_min(data->fan_min[nr],
++					      data->fan_div[nr]));
+ }
+ 
+ static ssize_t
+@@ -1010,7 +1026,11 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+-	if (is_word_sized(data->REG_FAN_MIN[nr])) {
++	if (!data->has_fan_div) {
++		/*
++		 * Only NCT6776F for now, so we know that this is a 13 bit
++		 * register
++		 */
+ 		if (!val) {
+ 			val = 0xff1f;
+ 		} else {
+@@ -1034,7 +1054,7 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 		new_div = 7; /* 128 = (1 << 7) */
+ 		dev_warn(dev, "fan%u low limit %lu below minimum %u, set to "
+ 			 "minimum\n", nr + 1, val,
+-			 fan_from_reg(data->REG_FAN_MIN[nr], 254, 128));
++			 data->fan_from_reg_min(254, 7));
+ 	} else if (!reg) {
+ 		/* Speed above this value cannot possibly be represented,
+ 		   even with the lowest divider (1) */
+@@ -1042,7 +1062,7 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 		new_div = 0; /* 1 = (1 << 0) */
+ 		dev_warn(dev, "fan%u low limit %lu above maximum %u, set to "
+ 			 "maximum\n", nr + 1, val,
+-			 fan_from_reg(data->REG_FAN_MIN[nr], 1, 1));
++			 data->fan_from_reg_min(1, 0));
+ 	} else {
+ 		/* Automatically pick the best divider, i.e. the one such
+ 		   that the min limit will correspond to a register value
+@@ -1943,9 +1963,12 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (sio_data->kind = nct6775) {
++		data->has_fan_div = true;
++		data->fan_from_reg = fan_from_reg16;
++		data->fan_from_reg_min = fan_from_reg8;
+ 		data->REG_PWM = NCT6775_REG_PWM;
+ 		data->REG_TARGET = NCT6775_REG_TARGET;
+-		data->REG_FAN = W83627EHF_REG_FAN;
++		data->REG_FAN = NCT6775_REG_FAN;
+ 		data->REG_FAN_MIN = W83627EHF_REG_FAN_MIN;
+ 		data->REG_FAN_START_OUTPUT = NCT6775_REG_FAN_START_OUTPUT;
+ 		data->REG_FAN_STOP_OUTPUT = NCT6775_REG_FAN_STOP_OUTPUT;
+@@ -1953,14 +1976,20 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 		data->REG_FAN_MAX_OUTPUT = NCT6775_REG_FAN_MAX_OUTPUT;
+ 		data->REG_FAN_STEP_OUTPUT = NCT6775_REG_FAN_STEP_OUTPUT;
+ 	} else if (sio_data->kind = nct6776) {
++		data->has_fan_div = false;
++		data->fan_from_reg = fan_from_reg13;
++		data->fan_from_reg_min = fan_from_reg13;
+ 		data->REG_PWM = NCT6775_REG_PWM;
+ 		data->REG_TARGET = NCT6775_REG_TARGET;
+-		data->REG_FAN = NCT6776_REG_FAN;
++		data->REG_FAN = NCT6775_REG_FAN;
+ 		data->REG_FAN_MIN = NCT6776_REG_FAN_MIN;
+ 		data->REG_FAN_START_OUTPUT = NCT6775_REG_FAN_START_OUTPUT;
+ 		data->REG_FAN_STOP_OUTPUT = NCT6775_REG_FAN_STOP_OUTPUT;
+ 		data->REG_FAN_STOP_TIME = NCT6775_REG_FAN_STOP_TIME;
+ 	} else if (sio_data->kind = w83667hg_b) {
++		data->has_fan_div = true;
++		data->fan_from_reg = fan_from_reg8;
++		data->fan_from_reg_min = fan_from_reg8;
+ 		data->REG_PWM = W83627EHF_REG_PWM;
+ 		data->REG_TARGET = W83627EHF_REG_TARGET;
+ 		data->REG_FAN = W83627EHF_REG_FAN;
+@@ -1973,6 +2002,9 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 		data->REG_FAN_STEP_OUTPUT  		  W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B;
+ 	} else {
++		data->has_fan_div = true;
++		data->fan_from_reg = fan_from_reg8;
++		data->fan_from_reg_min = fan_from_reg8;
+ 		data->REG_PWM = W83627EHF_REG_PWM;
+ 		data->REG_TARGET = W83627EHF_REG_TARGET;
+ 		data->REG_FAN = W83627EHF_REG_FAN;
 -- 
-1.5.6.5
+1.7.3.1
 
 
 _______________________________________________
