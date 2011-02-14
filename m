@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 11 Feb 2011 17:20:26 +0000
-Subject: [lm-sensors] [PATCH v3 1/7] hwmon: (w83627ehf) Unify temperature
-Message-Id: <1297444832-10874-2-git-send-email-guenter.roeck@ericsson.com>
+Date: Mon, 14 Feb 2011 19:35:34 +0000
+Subject: [lm-sensors] [PATCH v4 01/10] hwmon: (w83627ehf) Unify temperature
+Message-Id: <1297712143-7431-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
