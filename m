@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 12 Feb 2011 21:26:23 +0000
+Date: Mon, 14 Feb 2011 06:03:06 +0000
 Subject: Re: [lm-sensors] [PATCH v3 7/7] hwmon: (w83627ehf) Use 16 bit fan
-Message-Id: <20110212212623.GB9635@ericsson.com>
+Message-Id: <20110214060306.GB20636@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1297444832-10874-8-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1297444832-10874-8-git-send-email-guenter.roeck@ericsson.com>
@@ -42,18 +42,23 @@ On Sat, Feb 12, 2011 at 01:56:09PM -0500, Andrew Lutomirski wrote:
 > 
 > I have no idea what's going on either.
 > 
-Do you always get an output with div=8, or was that at a higher fan speed ?
-
-Also, does it ever report 0xff in the 8-bit register, or does it always 
-switch to 0x00 ?
-
 > I tried writing 0x80 to 0x508 (which is supposed to turn the whole
 > thing on), but the only bits that seem to stick are 0x7, so I have no
 > idea what's going on.
 > 
-If you set 0x508 to 0, you might see 0xff in the 8-bit register; at least
-this is what I see. The register seems to be write-only.
+Here is what I got from Nuvoton.
 
+The chip has an internal "abort time" when waiting for the next pulse from the fan.
+If this abort time expires and no pulse was received, all fan count and rpm registers
+will return 0. This can happen if 1) the fan speed is very low and/or 2) if
+the divisor setting is too low.
+
+This means we can not depend on a reading of 0xff to determine if the divisor
+is too low. A reading of 0x0 (for 8 bit and 16 bit fan count registers as well
+as RPM) can also indicate that the divisor was too low.
+
+I'll have to think about how to proceed. Best approach might be to increase the divisor
+if the fan count returns 0. If anyone has a better idea, please let me know.
 
 Thanks,
 Guenter
