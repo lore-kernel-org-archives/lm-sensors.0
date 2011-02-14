@@ -1,213 +1,311 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 19 Feb 2011 16:41:55 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (lm85) Add support for EM6D103S
-Message-Id: <1298133715-1910-1-git-send-email-guenter.roeck@ericsson.com>
+Date: Mon, 14 Feb 2011 19:35:37 +0000
+Subject: [lm-sensors] [PATCH v4 04/10] hwmon: (w83627ehf) Improve support
+Message-Id: <1297712143-7431-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-EM6D103S is similar to EMC6D103, only it does not support registers 62[5:7],
-6D[0:7], and 6E[0:7]. Register respective sysfs attributes and update affected
-registers for all other chips only.
+Add support for 4th temperature sensor on W83677HG-B.
+Display temperature labels on W83677HG-B to report temperature sources.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/lm85.c |   97 ++++++++++++++++++++++++++++++++-----------------
- 1 files changed, 63 insertions(+), 34 deletions(-)
+ Documentation/hwmon/w83627ehf |   19 +++--
+ drivers/hwmon/w83627ehf.c     |  155 ++++++++++++++++++++++++++++++++--------
+ 2 files changed, 136 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-index d2cc286..d4dd824 100644
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -41,7 +41,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
- enum chips {
- 	any_chip, lm85b, lm85c,
- 	adm1027, adt7463, adt7468,
--	emc6d100, emc6d102, emc6d103
-+	emc6d100, emc6d102, emc6d103, emc6d103s
+diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
+index 13d5561..0643019 100644
+--- a/Documentation/hwmon/w83627ehf
++++ b/Documentation/hwmon/w83627ehf
+@@ -39,16 +39,21 @@ This driver implements support for the Winbond W83627EHF, W83627EHG,
+ W83627DHG, W83627DHG-P, W83667HG and W83667HG-B super I/O chips.
+ We will refer to them collectively as Winbond chips.
+ 
+-The chips implement three temperature sensors, five fan rotation
+-speed sensors, ten analog voltage sensors (only nine for the 627DHG), one
+-VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG), alarms
+-with beep warnings (control unimplemented), and some automatic fan
++The chips implement three temperature sensors (up to four for 667HG-B),
++five fan rotation speed sensors, ten analog voltage sensors (only nine for the
++627DHG), one VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG),
++alarms with beep warnings (control unimplemented), and some automatic fan
+ regulation strategies (plus manual fan control mode).
+ 
++The temperature sensor sources on W82677HG-B are configurable. temp4 is only
++reported if its temperature source differs from the temperature sources of the
++other three temperature sensors. The configured source for each of the
++temperature sensors is reported in tempX_label.
++
+ Temperatures are measured in degrees Celsius and measurement resolution is 1
+-degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
+-the temperature gets higher than high limit; it stays on until the temperature
+-falls below the hysteresis value.
++degC for temp1 and temp4, and 0.5 degC for temp2 and temp3. An alarm is
++triggered when the temperature gets higher than high limit; it stays on until
++the temperature falls below the hysteresis value.
+ 
+ Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
+ triggered if the rotation speed has dropped below a programmable limit. Fan
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 5a627b9..d10fe70 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -39,7 +39,7 @@
+     w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
+     w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
+     w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
+-    w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
++    w83667hg-b   9      5       3       4      0xb350 0xc1    0x5ca3
+ */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+@@ -164,10 +164,10 @@ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
+ #define W83627EHF_REG_IN(nr)		((nr < 7) ? (0x20 + (nr)) : \
+ 					 (0x550 + (nr) - 7))
+ 
+-static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250 };
+-static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253 };
+-static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255 };
+-static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252 };
++static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250, 0x7e };
++static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253, 0 };
++static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255, 0 };
++static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
+ 
+ /* Fan clock dividers are spread over the following five registers */
+ #define W83627EHF_REG_FANDIV1		0x47
+@@ -213,6 +213,19 @@ static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
+ static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
+ static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
+ 
++static const char *const w83667hg_b_temp_label[] = {
++	"SYSTIN",
++	"CPUTIN",
++	"AUXTIN",
++	"AMDTSI",
++	"PECI Agent 1",
++	"PECI Agent 2",
++	"PECI Agent 3",
++	"PECI Agent 4"
++};
++
++#define NUM_REG_TEMP	4
++
+ static inline int is_word_sized(u16 reg)
+ {
+ 	return (((reg & 0xff00) = 0x100
+@@ -294,6 +307,9 @@ struct w83627ehf_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex lock;
+ 
++	u8 temp_src[NUM_REG_TEMP];
++	const char * const *temp_label;
++
+ 	const u8 *REG_FAN_START_OUTPUT;
+ 	const u8 *REG_FAN_STOP_OUTPUT;
+ 	const u8 *REG_FAN_MAX_OUTPUT;
+@@ -314,9 +330,9 @@ struct w83627ehf_data {
+ 	u8 fan_div[5];
+ 	u8 has_fan;		/* some fan inputs can be disabled */
+ 	u8 temp_type[3];
+-	s16 temp[3];
+-	s16 temp_max[3];
+-	s16 temp_max_hyst[3];
++	s16 temp[4];
++	s16 temp_max[4];
++	s16 temp_max_hyst[4];
+ 	u32 alarms;
+ 
+ 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
+@@ -339,7 +355,7 @@ struct w83627ehf_data {
+ 	u8 vid;
+ 	u8 vrm;
+ 
+-	u8 temp3_disable;
++	u8 have_temp;
+ 	u8 in6_skip;
  };
  
- /* The LM85 registers */
-@@ -352,6 +352,7 @@ static const struct i2c_device_id lm85_id[] = {
- 	{ "emc6d101", emc6d100 },
- 	{ "emc6d102", emc6d102 },
- 	{ "emc6d103", emc6d103 },
-+	{ "emc6d103s", emc6d103s },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, lm85_id);
-@@ -935,16 +936,18 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
- 		| (data->pwm_freq[nr] & 0x07));
+@@ -577,12 +593,18 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 		}
  
- /* Update temp_auto_hyst and temp_auto_off */
--	data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
--		data->zone[nr].limit) - TEMP_FROM_REG(
--		data->zone[nr].off_desired));
--	if (nr = 0 || nr = 1) {
--		lm85_write_value(client, LM85_REG_AFAN_HYST1,
--			(data->zone[0].hyst << 4)
--			| data->zone[1].hyst);
--	} else {
--		lm85_write_value(client, LM85_REG_AFAN_HYST2,
--			(data->zone[2].hyst << 4));
-+	if (data->type != emc6d103s) {
-+		data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
-+			data->zone[nr].limit) - TEMP_FROM_REG(
-+			data->zone[nr].off_desired));
-+		if (nr = 0 || nr = 1) {
-+			lm85_write_value(client, LM85_REG_AFAN_HYST1,
-+				(data->zone[0].hyst << 4)
-+				| data->zone[1].hyst);
-+		} else {
-+			lm85_write_value(client, LM85_REG_AFAN_HYST2,
-+				(data->zone[2].hyst << 4));
-+		}
+ 		/* Measured temperatures and limits */
+-		for (i = 0; i < 3; i++) {
+-			data->temp[i] = w83627ehf_read_value(data,
+-					W83627EHF_REG_TEMP[i]);
+-			data->temp_max[i] = w83627ehf_read_value(data,
+-					    W83627EHF_REG_TEMP_OVER[i]);
+-			data->temp_max_hyst[i] = w83627ehf_read_value(data,
++		for (i = 0; i < NUM_REG_TEMP; i++) {
++			if (!(data->have_temp & (1 << i)))
++				continue;
++			data->temp[i]
++			  = w83627ehf_read_value(data, W83627EHF_REG_TEMP[i]);
++			if (i > 2)
++				break;
++			data->temp_max[i]
++			  = w83627ehf_read_value(data,
++						 W83627EHF_REG_TEMP_OVER[i]);
++			data->temp_max_hyst[i]
++			  = w83627ehf_read_value(data,
+ 						 W83627EHF_REG_TEMP_HYST[i]);
+ 		}
+ 
+@@ -844,6 +866,15 @@ static struct sensor_device_attribute sda_fan_div[] = {
+ 	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
+ };
+ 
++static ssize_t
++show_temp_label(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = w83627ehf_update_device(dev);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	return sprintf(buf, "%s\n", data->temp_label[data->temp_src[nr]]);
++}
++
+ #define show_temp_reg(REG, reg) \
+ static ssize_t \
+ show_##reg(struct device *dev, struct device_attribute *attr, \
+@@ -897,6 +928,14 @@ static struct sensor_device_attribute sda_temp_input[] = {
+ 	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
+ 	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
+ 	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
++	SENSOR_ATTR(temp4_input, S_IRUGO, show_temp, NULL, 3),
++};
++
++static struct sensor_device_attribute sda_temp_label[] = {
++	SENSOR_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL, 0),
++	SENSOR_ATTR(temp2_label, S_IRUGO, show_temp_label, NULL, 1),
++	SENSOR_ATTR(temp3_label, S_IRUGO, show_temp_label, NULL, 2),
++	SENSOR_ATTR(temp4_label, S_IRUGO, show_temp_label, NULL, 3),
+ };
+ 
+ static struct sensor_device_attribute sda_temp_max[] = {
+@@ -1328,10 +1367,13 @@ static void w83627ehf_device_remove_files(struct device *dev)
+ 		device_remove_file(dev, &sda_target_temp[i].dev_attr);
+ 		device_remove_file(dev, &sda_tolerance[i].dev_attr);
  	}
- 	mutex_unlock(&data->update_lock);
- 	return count;
-@@ -1084,13 +1087,7 @@ static struct attribute *lm85_attributes[] = {
- 	&sensor_dev_attr_pwm1_auto_pwm_min.dev_attr.attr,
- 	&sensor_dev_attr_pwm2_auto_pwm_min.dev_attr.attr,
- 	&sensor_dev_attr_pwm3_auto_pwm_min.dev_attr.attr,
--	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
--	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
--	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
+-	for (i = 0; i < 3; i++) {
+-		if ((i = 2) && data->temp3_disable)
++	for (i = 0; i < NUM_REG_TEMP; i++) {
++		if (!(data->have_temp & (1 << i)))
+ 			continue;
+ 		device_remove_file(dev, &sda_temp_input[i].dev_attr);
++		device_remove_file(dev, &sda_temp_label[i].dev_attr);
++		if (i > 2)
++			break;
+ 		device_remove_file(dev, &sda_temp_max[i].dev_attr);
+ 		device_remove_file(dev, &sda_temp_max_hyst[i].dev_attr);
+ 		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
+@@ -1354,12 +1396,14 @@ static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
+ 		w83627ehf_write_value(data, W83627EHF_REG_CONFIG,
+ 				      tmp | 0x01);
  
--	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
--	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
--	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
- 	&sensor_dev_attr_temp1_auto_temp_min.dev_attr.attr,
- 	&sensor_dev_attr_temp2_auto_temp_min.dev_attr.attr,
- 	&sensor_dev_attr_temp3_auto_temp_min.dev_attr.attr,
-@@ -1111,6 +1108,26 @@ static const struct attribute_group lm85_group = {
- 	.attrs = lm85_attributes,
- };
+-	/* Enable temp2 and temp3 if needed */
+-	for (i = 1; i < 3; i++) {
++	/* Enable temperature sensors if needed */
++	for (i = 0; i < NUM_REG_TEMP; i++) {
++		if (!(data->have_temp & (1 << i)))
++			continue;
++		if (!W83627EHF_REG_TEMP_CONFIG[i])
++			continue;
+ 		tmp = w83627ehf_read_value(data,
+ 					   W83627EHF_REG_TEMP_CONFIG[i]);
+-		if ((i = 2) && data->temp3_disable)
+-			continue;
+ 		if (tmp & 0x01)
+ 			w83627ehf_write_value(data,
+ 					      W83627EHF_REG_TEMP_CONFIG[i],
+@@ -1417,11 +1461,52 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 	data->pwm_num = (sio_data->kind = w83667hg
+ 			 || sio_data->kind = w83667hg_b) ? 3 : 4;
  
-+static struct attribute *lm85_attributes_minctl[] = {
-+	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
-+	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
-+	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
-+};
++	data->have_temp = 0x07;
+ 	/* Check temp3 configuration bit for 667HG */
+-	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+-		data->temp3_disable = w83627ehf_read_value(data,
+-					W83627EHF_REG_TEMP_CONFIG[2]) & 0x01;
+-		data->in6_skip = !data->temp3_disable;
++	if (sio_data->kind = w83667hg) {
++		u8 reg;
 +
-+static const struct attribute_group lm85_group_minctl = {
-+	.attrs = lm85_attributes_minctl,
-+};
++		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
++		if (reg & 0x01)
++			data->have_temp &= ~(1 << 2);
++		else
++			data->in6_skip = 1; /* Either temp3 or in6 */
++	} else if (sio_data->kind = w83667hg_b) {
++		u8 reg;
 +
-+static struct attribute *lm85_attributes_temp_off[] = {
-+	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
-+	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
-+	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
-+};
++		reg = w83627ehf_read_value(data, 0x4a);
++		data->temp_src[0] = reg >> 5;
++		reg = w83627ehf_read_value(data, 0x49);
++		data->temp_src[1] = reg & 0x07;
++		data->temp_src[2] = (reg >> 4)  & 0x07;
 +
-+static const struct attribute_group lm85_group_temp_off = {
-+	.attrs = lm85_attributes_temp_off,
-+};
-+
- static struct attribute *lm85_attributes_in4[] = {
- 	&sensor_dev_attr_in4_input.dev_attr.attr,
- 	&sensor_dev_attr_in4_min.dev_attr.attr,
-@@ -1258,16 +1275,9 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
- 		case LM85_VERSTEP_EMC6D103_A1:
- 			type_name = "emc6d103";
- 			break;
--		/*
--		 * Registers apparently missing in EMC6D103S/EMC6D103:A2
--		 * compared to EMC6D103:A0, EMC6D103:A1, and EMC6D102
--		 * (according to the data sheets), but used unconditionally
--		 * in the driver: 62[5:7], 6D[0:7], and 6E[0:7].
--		 * So skip EMC6D103S for now.
- 		case LM85_VERSTEP_EMC6D103S:
- 			type_name = "emc6d103s";
- 			break;
--		 */
- 		}
- 	} else {
- 		dev_dbg(&adapter->dev,
-@@ -1302,6 +1312,7 @@ static int lm85_probe(struct i2c_client *client,
- 	case emc6d100:
- 	case emc6d102:
- 	case emc6d103:
-+	case emc6d103s:
- 		data->freq_map = adm1027_freq_map;
- 		break;
- 	default:
-@@ -1319,6 +1330,17 @@ static int lm85_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_kfree;
- 
-+	/* minctl and temp_off exist on all chips except emc6d103s */
-+	if (data->type != emc6d103s) {
-+		err = sysfs_create_group(&client->dev.kobj, &lm85_group_minctl);
-+		if (err)
-+			goto err_kfree;
-+		err = sysfs_create_group(&client->dev.kobj,
-+					 &lm85_group_temp_off);
-+		if (err)
-+			goto err_kfree;
-+	}
-+
- 	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
- 	   as a sixth digital VID input rather than an analog input. */
- 	data->vid = lm85_read_value(client, LM85_REG_VID);
-@@ -1345,6 +1367,8 @@ static int lm85_probe(struct i2c_client *client,
- 	/* Error out and cleanup code */
-  err_remove_files:
- 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
-+	sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
-+	sysfs_remove_group(&client->dev.kobj, &lm85_group_temp_off);
- 	sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
- 	if (data->type = emc6d100)
- 		sysfs_remove_group(&client->dev.kobj, &lm85_group_in567);
-@@ -1358,6 +1382,8 @@ static int lm85_remove(struct i2c_client *client)
- 	struct lm85_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
-+	sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
-+	sysfs_remove_group(&client->dev.kobj, &lm85_group_temp_off);
- 	sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
- 	if (data->type = emc6d100)
- 		sysfs_remove_group(&client->dev.kobj, &lm85_group_in567);
-@@ -1487,7 +1513,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			/* More alarm bits */
- 			data->alarms |= lm85_read_value(client,
- 						EMC6D100_REG_ALARM3) << 16;
--		} else if (data->type = emc6d102 || data->type = emc6d103) {
-+		} else if (data->type = emc6d102 || data->type = emc6d103 ||
-+			   data->type = emc6d103s) {
- 			/* Have to read LSB bits after the MSB ones because
- 			   the reading of the MSB bits has frozen the
- 			   LSBs (backward from the ADM1027).
-@@ -1573,17 +1600,19 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 			}
- 		}
- 
--		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
--		data->autofan[0].min_off = (i & 0x20) != 0;
--		data->autofan[1].min_off = (i & 0x40) != 0;
--		data->autofan[2].min_off = (i & 0x80) != 0;
-+		if (data->type != emc6d103s) {
-+			i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
-+			data->autofan[0].min_off = (i & 0x20) != 0;
-+			data->autofan[1].min_off = (i & 0x40) != 0;
-+			data->autofan[2].min_off = (i & 0x80) != 0;
- 
--		i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
--		data->zone[0].hyst = i >> 4;
--		data->zone[1].hyst = i & 0x0f;
-+			i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
-+			data->zone[0].hyst = i >> 4;
-+			data->zone[1].hyst = i & 0x0f;
- 
--		i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
--		data->zone[2].hyst = i >> 4;
-+			i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
-+			data->zone[2].hyst = i >> 4;
++		/*
++		 * W83667HG-B has another temperature register at 0x7e.
++		 * The temperature source is selected with register 0x7d.
++		 * Support it if the source differs from already reported
++		 * sources.
++		 */
++		reg = w83627ehf_read_value(data, 0x7d);
++		reg &= 0x07;
++		if (reg != data->temp_src[0] && reg != data->temp_src[1]
++		    && reg != data->temp_src[2]) {
++			data->temp_src[3] = reg;
++			data->have_temp |= 1 << 3;
 +		}
++
++		/*
++		 * Chip supports either AUXTIN or VIN3. Try to find out which
++		 * one.
++		 */
++		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
++		if (data->temp_src[2] = 2 && (reg & 0x01))
++			data->have_temp &= ~(1 << 2);
++
++		if ((data->temp_src[2] = 2 && (data->have_temp & (1 << 2)))
++		    || (data->temp_src[3] = 2 && (data->have_temp & (1 << 3))))
++			data->in6_skip = 1;
++
++		data->temp_label = w83667hg_b_temp_label;
+ 	}
  
- 		data->last_config = jiffies;
- 	}  /* last_config */
+ 	data->REG_FAN_START_OUTPUT = W83627EHF_REG_FAN_START_OUTPUT;
+@@ -1584,13 +1669,21 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	for (i = 0; i < 3; i++) {
+-		if ((i = 2) && data->temp3_disable)
++	for (i = 0; i < NUM_REG_TEMP; i++) {
++		if (!(data->have_temp & (1 << i)))
+ 			continue;
+-		if ((err = device_create_file(dev,
+-				&sda_temp_input[i].dev_attr))
+-			|| (err = device_create_file(dev,
+-				&sda_temp_max[i].dev_attr))
++		err = device_create_file(dev, &sda_temp_input[i].dev_attr);
++		if (err)
++			goto exit_remove;
++		if (data->temp_label) {
++			err = device_create_file(dev,
++						 &sda_temp_label[i].dev_attr);
++			if (err)
++				goto exit_remove;
++		}
++		if (i > 2)
++			break;
++		if ((err = device_create_file(dev, &sda_temp_max[i].dev_attr))
+ 			|| (err = device_create_file(dev,
+ 				&sda_temp_max_hyst[i].dev_attr))
+ 			|| (err = device_create_file(dev,
 -- 
 1.7.3.1
 
