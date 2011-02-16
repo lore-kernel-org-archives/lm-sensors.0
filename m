@@ -1,8 +1,10 @@
 From: Keerthy <j-keerthy@ti.com>
-Date: Wed, 16 Feb 2011 12:40:03 +0000
+Date: Wed, 16 Feb 2011 12:59:29 +0000
 Subject: [lm-sensors] [PATCH 2/2] hwmon: twl4030: Hwmon Driver for TWL4030
-Message-Id: <1297859283-8350-1-git-send-email-j-keerthy@ti.com>
+Message-Id: <1297861017-10057-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1297859283-8350-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1297859283-8350-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -190,7 +192,7 @@ index 0000000..4a61e8a
 +			S_IRUGO, madc_read, NULL, 11);
 +static SENSOR_DEVICE_ATTR(in12_main_battery_voltage,
 +			S_IRUGO, madc_read, NULL, 12);
-+static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 13);
++static SENSOR_DEVICE_ATTR(in15_input, S_IRUGO, madc_read, NULL, 15);
 +
 +static struct attribute *twl4030_madc_attributes[] = {
 +	&sensor_dev_attr_in0_battery_type.dev_attr.attr,
