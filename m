@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 15 Feb 2011 01:23:52 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 16 Feb 2011 15:11:47 +0000
 Subject: Re: [lm-sensors] [PATCH] sensors-detect: DDR3 SPD EEPROM support
-Message-Id: <20110215012352.GA28194@ericsson.com>
+Message-Id: <20110216161147.09cdff99@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D54FC00.1010600@ladisch.de>
 In-Reply-To: <4D54FC00.1010600@ladisch.de>
@@ -10,11 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Feb 11, 2011 at 04:06:08AM -0500, Clemens Ladisch wrote:
+Hi Clemens,
+
+On Fri, 11 Feb 2011 10:06:08 +0100, Clemens Ladisch wrote:
 > This adds CRC-16 calculation, needed to correctly detect DDR3 SPD EEPROMs.
 > 
-For DDR3: Tested-by: Guenter Roeck <guenter.roeck@ericsson.com>
-
 > --- a/prog/detect/sensors-detect
 > +++ b/prog/detect/sensors-detect
 > @@ -5265,18 +5265,43 @@
@@ -32,6 +32,10 @@ For DDR3: Tested-by: Guenter Roeck <guenter.roeck@ericsson.com>
 > -	for (my $i = 0; $i <= 62; $i++) {
 > -		$checksum += i2c_smbus_read_byte_data($file, $i);
 > +	if ($device_type >= 1 and $device_type <= 10) {
+
+Device type 9 (FB-DIMM) also uses the CRC16, so this test is not
+correct. Not sure about type 10 (what the hell is "FB-DIMM Probe"?)
+
 > +		for (my $i = 0; $i <= 62; $i++) {
 > +			$checksum += i2c_smbus_read_byte_data($file, $i);
 > +		}
@@ -64,12 +68,14 @@ For DDR3: Tested-by: Guenter Roeck <guenter.roeck@ericsson.com>
 > -	return 8 if $checksum = i2c_smbus_read_byte_data($file, 63);
 >  	return;
 >  }
->  
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+Other than this, your patch looks good and works for me. So I've
+applied it with just the device type checks changed. Thanks for your
+contribution!
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
