@@ -1,35 +1,27 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Wed, 16 Feb 2011 13:01:49 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (jc42) fix type mismatch
-Message-Id: <4D5BCABD.1060106@ladisch.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 16 Feb 2011 15:09:16 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (jc42) fix type mismatch
+Message-Id: <20110216150916.GA14076@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D5BCA87.7010204@ladisch.de>
-In-Reply-To: <4D5BCA87.7010204@ladisch.de>
+ <4D5BCABD.1060106@ladisch.de>
+In-Reply-To: <4D5BCABD.1060106@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Clemens Ladisch <clemens@ladisch.de>
+Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-In set_temp_crit_hyst(), make the variable 'val' have the correct
-type for strict_strtoul().
+On Wed, Feb 16, 2011 at 08:01:49AM -0500, Clemens Ladisch wrote:
+> In set_temp_crit_hyst(), make the variable 'val' have the correct
+> type for strict_strtoul().
+> 
+> Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
 
-Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
----
- drivers/hwmon/jc42.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied.
 
---- a/drivers/hwmon/jc42.c
-+++ b/drivers/hwmon/jc42.c
-@@ -332,7 +332,7 @@ static ssize_t set_temp_crit_hyst(struct
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct jc42_data *data = i2c_get_clientdata(client);
--	long val;
-+	unsigned long val;
- 	int diff, hyst;
- 	int err;
- 	int ret = count;
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
