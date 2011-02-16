@@ -1,76 +1,41 @@
-From: 4ernov <4ernov@gmail.com>
-Date: Wed, 02 Feb 2011 11:33:37 +0000
-Subject: Re: [lm-sensors] How to distinguish sensors on Xeon multi-socket
-Message-Id: <AANLkTikvzBkHuzkFBm8Ka1kfBZWuuHmWTqieGZPPjerK@mail.gmail.com>
+From: Keerthy <j-keerthy@ti.com>
+Date: Wed, 16 Feb 2011 12:38:06 +0000
+Subject: [lm-sensors] [PATCH 0/2] twl4030-madc driver
+Message-Id: <1297859166-8267-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201102012323.13215.4ernov@gmail.com>
-In-Reply-To: <201102012323.13215.4ernov@gmail.com>
+References: <1284632590-25266-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1284632590-25266-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
 
-2011/2/2 Jean Delvare <khali@linux-fr.org>:
-> On Wed, 2 Feb 2011 12:34:44 +0300, 4ernov wrote:
->> 2011/2/2 Jean Delvare <khali@linux-fr.org>:
->> > On Tue, Feb 01, 2011 at 03:23:13PM -0500, Alexey Chernov wrote:
->> > > Hello,
->> > >
->> > > I have two socket motherboard with two Xeon's 5345 installed on them, so
->> > > overall it's 8 cores. Using lm_sensors all of them are detected correctly out
->> > > of the box, but the problem is that after certain Linux kernel upgrade (I
->> > > believe it's somewhere around 2.6.32) matching kernel on both processors
->> > > started to be called identically. I have two 'Core 0', two 'Core 1' etc. and
->> > > it drives mad many applications which use lm_sensors. Here's the output of
->> >
->> > These are badly written applications, which need to be fixed
->> > regardless of what the coretemp did, does, or will do. Label uniqueness
->> > across multiple sensor devices isn't and has never been guaranteed. We
->> > only guarantee uniqueness of symbols within each given chip.
->> > Application which needs unique keys must use the combination of the
->> > chip name + the symbol name; definitely not the label.
->>
->> That's right and this is what I want to do with one of them but the
->> question is how to do it properly. Thank you for suggestion on unique
->> keys. What is "symbol name"? Does it stand for sensors_feature struct
->> or label?
->
-> Symbol names are things like "in0" or "temp1". Which in libsensors
-> indeed corresponds to sensors_feature structure.
->
->> > (...)
->> > In the meantime, a workaround would be to align the hwmon device
->> > numbers with the CPU number, so that the user can at least look-up
->> > in /proc/cpuinfo to find out who is who. But there is no guarantee for
->> > the CPU enumeration order to stay the same across reboots, so the
->> > interest would be limited in practice.
->>
->> Is it about lm-sensors or the applications? As for the applications I
->
-> The workaround would be in the coretemp driver. But it would only let
-> you look-up manually which coretemp entry corresponds to which physical
-> CPU. It wouldn't help with bogus applications which rely on label
-> uniqueness.
->
->> think it's the possible solution because the list of sensors could be
->> generated on every startup of the app and if there were some mapping
->> between hwmon and, say, 'core id' in /proc/cpuinfo, the processors can
->> be recognized.
->
-> Really, I don't think we want to invest any development time in this.
-> Applications shouldn't have to do this, the coretemp driver should
-> simply group sensors together when they belong to the same CPU.
+MADC(Monitoring ADC) driver enables monitoring analog signals using
+analog-to-digital conversion (ADC) on the input source. 
+The previous discussion concluded in keeping the generic ADC
+functionality and the hwmon separate. The discussion can be found here:
 
-Ok, so I'll simply use "the chip name + the symbol name" as you
-suggested for now without any hints on what the sensor is. I believe
-correct enumeration of sensors is better anyway than ignoring some of
-sensors because of relying on unique labels.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
 
-Thank you all very much for help and detailed information!
+Keerthy (2):
+  mfd: twl4030: Driver for twl4030 madc module
+  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
 
-> --
-> Jean Delvare
->
+ Documentation/hwmon/twl4030-madc-hwmon |   45 ++
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/twl4030-madc-hwmon.c     |  155 +++++++
+ drivers/mfd/Kconfig                    |   10 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/twl4030-madc.c             |  721 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-madc.h       |  132 ++++++
+ 8 files changed, 1075 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+ create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+ create mode 100644 drivers/mfd/twl4030-madc.c
+ create mode 100644 include/linux/i2c/twl4030-madc.h
+
 
 _______________________________________________
 lm-sensors mailing list
