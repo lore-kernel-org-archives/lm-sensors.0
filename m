@@ -1,13 +1,15 @@
 From: Keerthy <j-keerthy@ti.com>
-Date: Wed, 16 Feb 2011 12:39:50 +0000
+Date: Wed, 16 Feb 2011 12:58:53 +0000
 Subject: [lm-sensors] [PATCH 1/2] mfd: twl4030: Driver for twl4030 madc
-Message-Id: <1297859270-8313-1-git-send-email-j-keerthy@ti.com>
+Message-Id: <1297861008-10021-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1297859270-8313-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1297859270-8313-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
-Cc: mikko.k.ylinen@nokia.com, j-keerthy@ti.com, linux-omap@vger.kernel.org, amit.kucheria@canonical.com
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
 
 Introducing a driver for MADC on TWL4030 powerIC. MADC stands for monitoring
 ADC. This driver monitors the real time conversion of analog signals like
@@ -23,9 +25,9 @@ http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
 
  drivers/mfd/Kconfig              |   10 +
  drivers/mfd/Makefile             |    1 +
- drivers/mfd/twl4030-madc.c       |  721 ++++++++++++++++++++++++++++++++++++++
+ drivers/mfd/twl4030-madc.c       |  723 ++++++++++++++++++++++++++++++++++++++
  include/linux/i2c/twl4030-madc.h |  132 +++++++
- 4 files changed, 864 insertions(+), 0 deletions(-)
+ 4 files changed, 866 insertions(+), 0 deletions(-)
  create mode 100644 drivers/mfd/twl4030-madc.c
  create mode 100644 include/linux/i2c/twl4030-madc.h
 
@@ -64,10 +66,10 @@ index a54e2c7..2922cc2 100644
  obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
 diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
 new file mode 100644
-index 0000000..f6584a9
+index 0000000..711bfff
 --- /dev/null
 +++ b/drivers/mfd/twl4030-madc.c
-@@ -0,0 +1,721 @@
+@@ -0,0 +1,723 @@
 +/*
 + *
 + * TWL4030 MADC module driver-This driver monitors the real time
@@ -144,6 +146,8 @@ index 0000000..f6584a9
 +	{1, 1},		/* CHANNEL 10 NA */
 +	{15, 100},	/* CHANNEL 11 */
 +	{1, 4},		/* CHANNEL 12 */
++	{1, 1},		/* CHANNEL 13 NA */
++	{1, 1},		/* CHANNEL 14 NA */
 +	{5, 11},	/* CHANNEL 15 */
 +};
 +
