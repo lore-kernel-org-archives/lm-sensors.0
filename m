@@ -1,104 +1,28 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Thu, 17 Feb 2011 08:22:40 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (k10temp) add support for AMD Family
-Message-Id: <4D5CDAD0.7030006@ladisch.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 17 Feb 2011 17:26:39 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (k10temp) add support for AMD
+Message-Id: <20110217172639.GA19982@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4D5CDAD0.7030006@ladisch.de>
+In-Reply-To: <4D5CDAD0.7030006@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Clemens Ladisch <clemens@ladisch.de>
+Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Add the PCI ID to support the internal temperature sensor of the
-AMD "Llano" and "Brazos" processor families.
+On Thu, Feb 17, 2011 at 03:22:40AM -0500, Clemens Ladisch wrote:
+> Add the PCI ID to support the internal temperature sensor of the
+> AMD "Llano" and "Brazos" processor families.
+> 
+> Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
 
-Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
----
- Documentation/hwmon/k10temp |    8 +++++++-
- drivers/hwmon/Kconfig       |    6 +++---
- drivers/hwmon/k10temp.c     |    5 +++--
- 3 files changed, 13 insertions(+), 6 deletions(-)
+Applied, thanks.
 
---- a/Documentation/hwmon/k10temp
-+++ b/Documentation/hwmon/k10temp
-@@ -9,6 +9,8 @@ Supported chips:
-   Socket S1G3: Athlon II, Sempron, Turion II
- * AMD Family 11h processors:
-   Socket S1G2: Athlon (X2), Sempron (X2), Turion X2 (Ultra)
-+* AMD Family 12h processors: "Llano"
-+* AMD Family 14h processors: "Brazos" (C/E/G-Series)
- 
-   Prefix: 'k10temp'
-   Addresses scanned: PCI space
-@@ -17,10 +19,14 @@ Supported chips:
-     http://support.amd.com/us/Processor_TechDocs/31116.pdf
-   BIOS and Kernel Developer's Guide (BKDG) for AMD Family 11h Processors:
-     http://support.amd.com/us/Processor_TechDocs/41256.pdf
-+  BIOS and Kernel Developer's Guide (BKDG) for AMD Family 14h Models 00h-0Fh Processors:
-+    http://support.amd.com/us/Processor_TechDocs/43170.pdf
-   Revision Guide for AMD Family 10h Processors:
-     http://support.amd.com/us/Processor_TechDocs/41322.pdf
-   Revision Guide for AMD Family 11h Processors:
-     http://support.amd.com/us/Processor_TechDocs/41788.pdf
-+  Revision Guide for AMD Family 14h Models 00h-0Fh Processors:
-+    http://support.amd.com/us/Processor_TechDocs/47534.pdf
-   AMD Family 11h Processor Power and Thermal Data Sheet for Notebooks:
-     http://support.amd.com/us/Processor_TechDocs/43373.pdf
-   AMD Family 10h Server and Workstation Processor Power and Thermal Data Sheet:
-@@ -34,7 +40,7 @@ Description
- -----------
- 
- This driver permits reading of the internal temperature sensor of AMD
--Family 10h and 11h processors.
-+Family 10h/11h/12h/14h processors.
- 
- All these processors have a sensor, but on those for Socket F or AM2+,
- the sensor may return inconsistent values (erratum 319).  The driver
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -238,13 +238,13 @@ config SENSORS_K8TEMP
- 	  will be called k8temp.
- 
- config SENSORS_K10TEMP
--	tristate "AMD Phenom/Sempron/Turion/Opteron temperature sensor"
-+	tristate "AMD Family 10h/11h/12h/14h temperature sensor"
- 	depends on X86 && PCI
- 	help
- 	  If you say yes here you get support for the temperature
- 	  sensor(s) inside your CPU. Supported are later revisions of
--	  the AMD Family 10h and all revisions of the AMD Family 11h
--	  microarchitectures.
-+	  the AMD Family 10h and all revisions of the AMD Family 11h,
-+	  12h (Llano), and 14h (Brazos) microarchitectures.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called k10temp.
---- a/drivers/hwmon/k10temp.c
-+++ b/drivers/hwmon/k10temp.c
-@@ -1,5 +1,5 @@
- /*
-- * k10temp.c - AMD Family 10h/11h processor hardware monitoring
-+ * k10temp.c - AMD Family 10h/11h/12h/14h processor hardware monitoring
-  *
-  * Copyright (c) 2009 Clemens Ladisch <clemens@ladisch.de>
-  *
-@@ -25,7 +25,7 @@
- #include <linux/pci.h>
- #include <asm/processor.h>
- 
--MODULE_DESCRIPTION("AMD Family 10h/11h CPU core temperature monitor");
-+MODULE_DESCRIPTION("AMD Family 10h/11h/12h/14h CPU core temperature monitor");
- MODULE_AUTHOR("Clemens Ladisch <clemens@ladisch.de>");
- MODULE_LICENSE("GPL");
- 
-@@ -208,6 +208,7 @@ static void __devexit k10temp_remove(str
- static const struct pci_device_id k10temp_id_table[] = {
- 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_10H_NB_MISC) },
- 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_11H_NB_MISC) },
-+	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
- 	{}
- };
- MODULE_DEVICE_TABLE(pci, k10temp_id_table);
+Since it meets the requirements for a stable patch, I applied it to the
+patch list for 2.6.38 and added Cc: stable@kernel.org.
+
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
