@@ -1,82 +1,104 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Date: Mon, 28 Feb 2011 04:57:18 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2 v2] mfd: twl4030: Driver for twl4030
-Message-Id: <AANLkTin8hJk3qUysA84ZPoRPH7P-DdjN8BN2-KzJttt-@mail.gmail.com>
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Thu, 17 Feb 2011 08:22:40 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (k10temp) add support for AMD Family
+Message-Id: <4D5CDAD0.7030006@ladisch.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1298560713-18790-1-git-send-email-j-keerthy@ti.com>
-	<20110228010045.GD2749@sortiz-mobl>
-In-Reply-To: <20110228010045.GD2749@sortiz-mobl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Mon, Feb 28, 2011 at 6:30 AM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> Hi Keerthy,
->
-> On Thu, Feb 24, 2011 at 08:48:33PM +0530, Keerthy wrote:
->> Introducing a driver for MADC on TWL4030 powerIC. MADC stands for monito=
-ring
->> ADC. This driver monitors the real time conversion of analog signals like
->> battery temperature, battery cuurent etc.
-> Looks mostly good to me, one minor comment though:
->
->> +static int twl4030_madc_read_channels(struct twl4030_madc_data *madc,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u8=
- reg_base, u16 channels, int *buf)
->> +{
->> + =A0 =A0 int count =3D 0, count_req =3D 0;
->> + =A0 =A0 u8 reg, i;
->> +
->> + =A0 =A0 for (i =3D 0; i < TWL4030_MADC_MAX_CHANNELS; i++) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (channels & (1 << i)) {
-> You may want to use for_each_set_bit() here.
->
+Add the PCI ID to support the internal temperature sensor of the
+AMD "Llano" and "Brazos" processor families.
 
-Ok.
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D reg_base + 2 * i;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 buf[i] =3D twl4030_madc_channe=
-l_raw_read(madc, reg);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (buf[i] < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(madc->=
-dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Unable to rea=
-d register 0x%X\n", reg);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 count_req++;
-> For a clearer code, just call continue here, and the following blck will =
-look
-> nicer.
->
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+---
+ Documentation/hwmon/k10temp |    8 +++++++-
+ drivers/hwmon/Kconfig       |    6 +++---
+ drivers/hwmon/k10temp.c     |    5 +++--
+ 3 files changed, 13 insertions(+), 6 deletions(-)
 
-I will call continue.
->> +static irqreturn_t twl4030_madc_threaded_irq_handler(int irq, void *_ma=
-dc)
->> +{
->> + =A0 =A0 struct twl4030_madc_data *madc =3D _madc;
->> + =A0 =A0 const struct twl4030_madc_conversion_method *method;
->> + =A0 =A0 u8 isr_val, imr_val;
->> + =A0 =A0 int i, len, ret;
->> + =A0 =A0 struct twl4030_madc_request *r;
->
-> Don't you want to take the madc lock around here ?
-
-Ok.
->
-> Cheers,
-> Samuel.
->
-> --
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
->
-
-
-
---=20
-Regards and Thanks,
-Keerthy
+--- a/Documentation/hwmon/k10temp
++++ b/Documentation/hwmon/k10temp
+@@ -9,6 +9,8 @@ Supported chips:
+   Socket S1G3: Athlon II, Sempron, Turion II
+ * AMD Family 11h processors:
+   Socket S1G2: Athlon (X2), Sempron (X2), Turion X2 (Ultra)
++* AMD Family 12h processors: "Llano"
++* AMD Family 14h processors: "Brazos" (C/E/G-Series)
+ 
+   Prefix: 'k10temp'
+   Addresses scanned: PCI space
+@@ -17,10 +19,14 @@ Supported chips:
+     http://support.amd.com/us/Processor_TechDocs/31116.pdf
+   BIOS and Kernel Developer's Guide (BKDG) for AMD Family 11h Processors:
+     http://support.amd.com/us/Processor_TechDocs/41256.pdf
++  BIOS and Kernel Developer's Guide (BKDG) for AMD Family 14h Models 00h-0Fh Processors:
++    http://support.amd.com/us/Processor_TechDocs/43170.pdf
+   Revision Guide for AMD Family 10h Processors:
+     http://support.amd.com/us/Processor_TechDocs/41322.pdf
+   Revision Guide for AMD Family 11h Processors:
+     http://support.amd.com/us/Processor_TechDocs/41788.pdf
++  Revision Guide for AMD Family 14h Models 00h-0Fh Processors:
++    http://support.amd.com/us/Processor_TechDocs/47534.pdf
+   AMD Family 11h Processor Power and Thermal Data Sheet for Notebooks:
+     http://support.amd.com/us/Processor_TechDocs/43373.pdf
+   AMD Family 10h Server and Workstation Processor Power and Thermal Data Sheet:
+@@ -34,7 +40,7 @@ Description
+ -----------
+ 
+ This driver permits reading of the internal temperature sensor of AMD
+-Family 10h and 11h processors.
++Family 10h/11h/12h/14h processors.
+ 
+ All these processors have a sensor, but on those for Socket F or AM2+,
+ the sensor may return inconsistent values (erratum 319).  The driver
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -238,13 +238,13 @@ config SENSORS_K8TEMP
+ 	  will be called k8temp.
+ 
+ config SENSORS_K10TEMP
+-	tristate "AMD Phenom/Sempron/Turion/Opteron temperature sensor"
++	tristate "AMD Family 10h/11h/12h/14h temperature sensor"
+ 	depends on X86 && PCI
+ 	help
+ 	  If you say yes here you get support for the temperature
+ 	  sensor(s) inside your CPU. Supported are later revisions of
+-	  the AMD Family 10h and all revisions of the AMD Family 11h
+-	  microarchitectures.
++	  the AMD Family 10h and all revisions of the AMD Family 11h,
++	  12h (Llano), and 14h (Brazos) microarchitectures.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called k10temp.
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -1,5 +1,5 @@
+ /*
+- * k10temp.c - AMD Family 10h/11h processor hardware monitoring
++ * k10temp.c - AMD Family 10h/11h/12h/14h processor hardware monitoring
+  *
+  * Copyright (c) 2009 Clemens Ladisch <clemens@ladisch.de>
+  *
+@@ -25,7 +25,7 @@
+ #include <linux/pci.h>
+ #include <asm/processor.h>
+ 
+-MODULE_DESCRIPTION("AMD Family 10h/11h CPU core temperature monitor");
++MODULE_DESCRIPTION("AMD Family 10h/11h/12h/14h CPU core temperature monitor");
+ MODULE_AUTHOR("Clemens Ladisch <clemens@ladisch.de>");
+ MODULE_LICENSE("GPL");
+ 
+@@ -208,6 +208,7 @@ static void __devexit k10temp_remove(str
+ static const struct pci_device_id k10temp_id_table[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_10H_NB_MISC) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_11H_NB_MISC) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(pci, k10temp_id_table);
 
 _______________________________________________
 lm-sensors mailing list
