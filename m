@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 18 Feb 2011 13:08:14 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 18 Feb 2011 14:54:56 +0000
 Subject: Re: [lm-sensors] [PATCH] lm85: extend to support emc6d103 chips
-Message-Id: <20110218130813.GA27225@ericsson.com>
+Message-Id: <20110218155456.4993a725@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D5E343702000078000329C1@vpn.id2.novell.com>
 In-Reply-To: <4D5E343702000078000329C1@vpn.id2.novell.com>
@@ -10,25 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Feb 18, 2011 at 03:06:13AM -0500, Guenter Roeck wrote:
-> Jan,
+Hallo Jan,
+
+On Fri, 18 Feb 2011 08:18:26 +0000, Jan Beulich wrote:
+> The interface is identical emc6d102, so all that needs to be added are
+> some definitions and their uses.
 > 
-> On Fri, Feb 18, 2011 at 02:56:23AM -0500, Jan Beulich wrote:
-> > The interface is identical emc6d102, so all that needs to be added are
-> > some definitions and their uses.
-> > 
-> > Registers apparently missing in emc6d103:A2 compared to emc6d103:A0,
-> > emc6d103:A1, and emc6d102 (according to the data sheets), but used
-> > unconditionally in the driver: 62[5:7], 6D[0:7], and 6E[0:7]. For that
-> > reason, A2 stepping chips don't get enabled for the time being.
-> > 
-> > Signed-off-by: Jan Beulich <jbeulich@novell.com>
-> > 
-Applied. Added Cc: stable@kernel.org since it matches stable criteria.
+> Registers apparently missing in emc6d103:A2 compared to emc6d103:A0,
+> emc6d103:A1, and emc6d102 (according to the data sheets), but used
+> unconditionally in the driver: 62[5:7], 6D[0:7], and 6E[0:7]. For that
+> reason, A2 stepping chips don't get enabled for the time being.
 
-sensors-detect update will follow.
+The EMC6D103 datasheet on smsc.com doesn't mention revision A2, so I'm
+curious where you got this information?
 
-Guenter
+BTW, could you please provide a dump of your chip? I'd like to add it
+to my collection. Use i2cdump with the i2c-dev kernel driver.
+
+> 
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+> 
+> ---
+>  drivers/hwmon/Kconfig |    2 +-
+>  drivers/hwmon/lm85.c  |   20 ++++++++++++++++++--
+>  2 files changed, 19 insertions(+), 3 deletions(-)
+
+Sorry for being a little late in the game, but can you please also
+update Documentation/hwmon/lm85?
+
+The patch looks good otherwise.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
