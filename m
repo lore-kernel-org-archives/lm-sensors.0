@@ -1,382 +1,494 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Feb 2011 15:49:06 +0000
-Subject: [lm-sensors] [PATCH v2 2/5] hwmon: (w83627ehf) Fixed most
-Message-Id: <1297352949-25602-3-git-send-email-guenter.roeck@ericsson.com>
+From: Dirk Eibach <eibach@gdsys.de>
+Date: Fri, 18 Feb 2011 10:15:58 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: Add support for Texas Instruments
+Message-Id: <1298024158-21076-1-git-send-email-eibach@gdsys.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20110217134203.0556a7ab@endymion.delvare>
+In-Reply-To: <20110217134203.0556a7ab@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org, Dirk Eibach <eibach@gdsys.de>
 
-This cleanup fixes most of the checkpatch warnings and errors in the w83627ehf
-driver. Remaining warnings and errors are left untouched on purpose to avoid
-making the code less readable.
-
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Dirk Eibach <eibach@gdsys.de>
 ---
- drivers/hwmon/w83627ehf.c |  146 +++++++++++++++++++++++++-------------------
- 1 files changed, 83 insertions(+), 63 deletions(-)
+Changes since v1:
+- fixed/extended Documentation
+- removed unused register definitions
+- hardcoded PGA fullscale table size
+- made sure patch applies against v2.6.38-rc4
+- reordered functions to avoid forward declaration
+- results from i2c_smbus_read_word_data() are handled correctly
+- moved locking into ads1015_read_value()
+- removed unnecessray clearing of bit
+- proper error handling in ads1015_read_value()
+- use DIV_ROUND_CLOSEST for scaling result
+- removed detect()
 
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 66e6855..b4f489e 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -1,10 +1,10 @@
- /*
-     w83627ehf - Driver for the hardware monitoring functionality of
--                the Winbond W83627EHF Super-I/O chip
-+		the Winbond W83627EHF Super-I/O chip
-     Copyright (C) 2005  Jean Delvare <khali@linux-fr.org>
-     Copyright (C) 2006  Yuan Mu (Winbond),
--                        Rudolf Marek <r.marek@assembler.cz>
--                        David Hubbard <david.c.hubbard@gmail.com>
-+			Rudolf Marek <r.marek@assembler.cz>
-+			David Hubbard <david.c.hubbard@gmail.com>
- 			Daniel J Blueman <daniel.blueman@gmail.com>
+Changes since v2:
+- removed *all* leftovers from detect()
+- fixed return with mutex held
+- made sysfs representation configurable
+  (hope this will be the reference implementation for generations to come ;)
+
+ Documentation/hwmon/ads1015 |   72 +++++++++++
+ drivers/hwmon/Kconfig       |   10 ++
+ drivers/hwmon/Makefile      |    1 +
+ drivers/hwmon/ads1015.c     |  295 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/ads1015.h |   30 +++++
+ 5 files changed, 408 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/ads1015
+ create mode 100644 drivers/hwmon/ads1015.c
+ create mode 100644 include/linux/i2c/ads1015.h
+
+diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
+new file mode 100644
+index 0000000..2494e99
+--- /dev/null
++++ b/Documentation/hwmon/ads1015
+@@ -0,0 +1,72 @@
++Kernel driver ads1015
++==========+
++Supported chips:
++  * Texas Instruments ADS1015
++    Prefix: 'ads1015'
++    Datasheet: Publicly available at the Texas Instruments website :
++               http://focus.ti.com/lit/ds/symlink/ads1015.pdf
++
++Authors:
++        Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
++
++Description
++-----------
++
++This driver implements support for the Texas Instruments ADS1015.
++
++This device is a 12-bit A-D converter with 4 inputs.
++
++The inputs can be used single ended or in certain differential combinations.
++
++The inputs are mapped to 8 sysfs input files in0_input - in7_input.
++The mapping can be configured using platform data or devicetree.
++
++Data sources for configuration:
++0: Voltage over AIN0 and AIN1.
++1: Voltage over AIN0 and AIN3.
++2: Voltage over AIN1 and AIN3.
++3: Voltage over AIN2 and AIN3.
++4: Voltage over AIN0 and GND.
++5: Voltage over AIN1 and GND.
++6: Voltage over AIN2 and GND.
++7: Voltage over AIN3 and GND.
++Any other value: disable
++
++By default in0_input is mapped to source 0, in1_input to source 1 and so on.
++
++Platform Data
++-------------
++
++In linux/i2c/ads1015.h platform data is defined as:
++
++struct ads1015_platform_data {
++	int exported_channels[8];
++};
++
++exported_channels contains the data sources for the 8 sysfs input files.
++
++Example:
++struct ads1015_platform_data data = {
++	4, 2, -1, -1, -1, -1, -1, -1 };
++
++In this case only in0_input and in1_input would be created.
++in0_input would give the voltage over AIN0 and GND.
++in0_input would give the voltage over AIN1 and AIN3.
++
++Devicetree
++----------
++
++The ads1015 node may have an "exported-channels" property with 8 integer
++values. The 8 values are the data sources for the 8 sysfs input files.
++
++Example:
++ads1015@49 {
++	compatible = "ti,ads1015";
++	reg = <0x49>;
++	exported-channels = < 4 2 0xff 0xff 0xff 0xff 0xff 0xff >;
++};
++
++In this case only in0_input and in1_input would be created.
++in0_input would give the voltage over AIN0 and GND.
++in0_input would give the voltage over AIN1 and AIN3.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 773e484..7e247f7 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -871,6 +871,16 @@ config SENSORS_SMSC47B397
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called smsc47b397.
  
-     Shamelessly ripped from the w83627hf driver
-@@ -35,7 +35,7 @@
- 
-     Chip        #vin    #fan    #pwm    #temp  chip IDs       man ID
-     w83627ehf   10      5       4       3      0x8850 0x88    0x5ca3
--                                               0x8860 0xa1
-+					       0x8860 0xa1
-     w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
-     w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
-     w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
-@@ -61,7 +61,7 @@
- enum kinds { w83627ehf, w83627dhg, w83627dhg_p, w83667hg, w83667hg_b };
- 
- /* used to set data->name = w83627ehf_device_names[data->sio_kind] */
--static const char * w83627ehf_device_names[] = {
-+static const char * const w83627ehf_device_names[] = {
- 	"w83627ehf",
- 	"w83627dhg",
- 	"w83627dhg",
-@@ -80,7 +80,7 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
-  */
- 
- #define W83627EHF_LD_HWM	0x0b
--#define W83667HG_LD_VID 	0x0d
-+#define W83667HG_LD_VID		0x0d
- 
- #define SIO_REG_LDSEL		0x07	/* Logical device select */
- #define SIO_REG_DEVID		0x20	/* Device ID (2 bytes) */
-@@ -94,7 +94,7 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
- #define SIO_W83627EHG_ID	0x8860
- #define SIO_W83627DHG_ID	0xa020
- #define SIO_W83627DHG_P_ID	0xb070
--#define SIO_W83667HG_ID 	0xa510
-+#define SIO_W83667HG_ID		0xa510
- #define SIO_W83667HG_B_ID	0xb350
- #define SIO_ID_MASK		0xFFF0
- 
-@@ -138,7 +138,7 @@ superio_exit(int ioreg)
-  * ISA constants
-  */
- 
--#define IOREGION_ALIGNMENT	~7
-+#define IOREGION_ALIGNMENT	(~7)
- #define IOREGION_OFFSET		5
- #define IOREGION_LENGTH		2
- #define ADDR_REG_OFFSET		0
-@@ -279,7 +279,8 @@ static inline long in_from_reg(u8 reg, u8 nr)
- 
- static inline u8 in_to_reg(u32 val, u8 nr)
- {
--	return SENSORS_LIMIT(((val + (scale_in[nr] / 2)) / scale_in[nr]), 0, 255);
-+	return SENSORS_LIMIT(((val + (scale_in[nr] / 2)) / scale_in[nr]), 0,
-+			     255);
- }
- 
- /*
-@@ -321,7 +322,8 @@ struct w83627ehf_data {
- 	u8 pwm_enable[4]; /* 1->manual
- 			     2->thermal cruise mode (also called SmartFan I)
- 			     3->fan speed cruise mode
--			     4->variable thermal cruise (also called SmartFan III) */
-+			     4->variable thermal cruise (also called
-+				SmartFan III) */
- 	u8 pwm_num;		/* number of pwm */
- 	u8 pwm[4];
- 	u8 target_temp[4];
-@@ -384,7 +386,8 @@ static u16 w83627ehf_read_value(struct w83627ehf_data *data, u16 reg)
- 	return res;
- }
- 
--static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg, u16 value)
-+static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg,
-+				 u16 value)
- {
- 	int word_sized = is_word_sized(reg);
- 
-@@ -518,7 +521,7 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
- 			   time */
- 			if (data->fan[i] = 0xff
- 			 && data->fan_div[i] < 0x07) {
--			 	dev_dbg(dev, "Increasing fan%d "
-+				dev_dbg(dev, "Increasing fan%d "
- 					"clock divider from %u to %u\n",
- 					i + 1, div_from_reg(data->fan_div[i]),
- 					div_from_reg(data->fan_div[i] + 1));
-@@ -548,16 +551,16 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
- 				((pwmcfg >> W83627EHF_PWM_MODE_SHIFT[i]) & 1)
- 				? 0 : 1;
- 			data->pwm_enable[i] -					((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
--						& 3) + 1;
-+				((pwmcfg >> W83627EHF_PWM_ENABLE_SHIFT[i])
-+				& 3) + 1;
- 			data->pwm[i] = w83627ehf_read_value(data,
- 						W83627EHF_REG_PWM[i]);
- 			data->fan_start_output[i] = w83627ehf_read_value(data,
--						W83627EHF_REG_FAN_START_OUTPUT[i]);
-+					W83627EHF_REG_FAN_START_OUTPUT[i]);
- 			data->fan_stop_output[i] = w83627ehf_read_value(data,
--						W83627EHF_REG_FAN_STOP_OUTPUT[i]);
-+					W83627EHF_REG_FAN_STOP_OUTPUT[i]);
- 			data->fan_stop_time[i] = w83627ehf_read_value(data,
--						W83627EHF_REG_FAN_STOP_TIME[i]);
-+					W83627EHF_REG_FAN_STOP_TIME[i]);
- 
- 			if (data->REG_FAN_MAX_OUTPUT[i] != 0xff)
- 				data->fan_max_output[i] @@ -611,7 +614,8 @@ show_##reg(struct device *dev, struct device_attribute *attr, \
- 	   char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%ld\n", in_from_reg(data->reg[nr], nr)); \
- }
-@@ -621,11 +625,12 @@ show_in_reg(in_max)
- 
- #define store_in_reg(REG, reg) \
- static ssize_t \
--store_in_##reg (struct device *dev, struct device_attribute *attr, \
--			const char *buf, size_t count) \
-+store_in_##reg(struct device *dev, struct device_attribute *attr, \
-+	       const char *buf, size_t count) \
- { \
- 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	unsigned long val; \
- 	int err; \
-@@ -643,7 +648,8 @@ store_in_##reg (struct device *dev, struct device_attribute *attr, \
- store_in_reg(MIN, min)
- store_in_reg(MAX, max)
- 
--static ssize_t show_alarm(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
-+			  char *buf)
- {
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev);
- 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-@@ -678,29 +684,29 @@ static struct sensor_device_attribute sda_in_alarm[] = {
- };
- 
- static struct sensor_device_attribute sda_in_min[] = {
--       SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
--       SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
--       SENSOR_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 2),
--       SENSOR_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 3),
--       SENSOR_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 4),
--       SENSOR_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 5),
--       SENSOR_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 6),
--       SENSOR_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 7),
--       SENSOR_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 8),
--       SENSOR_ATTR(in9_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 9),
-+	SENSOR_ATTR(in0_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 0),
-+	SENSOR_ATTR(in1_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 1),
-+	SENSOR_ATTR(in2_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 2),
-+	SENSOR_ATTR(in3_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 3),
-+	SENSOR_ATTR(in4_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 4),
-+	SENSOR_ATTR(in5_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 5),
-+	SENSOR_ATTR(in6_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 6),
-+	SENSOR_ATTR(in7_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 7),
-+	SENSOR_ATTR(in8_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 8),
-+	SENSOR_ATTR(in9_min, S_IWUSR | S_IRUGO, show_in_min, store_in_min, 9),
- };
- 
- static struct sensor_device_attribute sda_in_max[] = {
--       SENSOR_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 0),
--       SENSOR_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 1),
--       SENSOR_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 2),
--       SENSOR_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 3),
--       SENSOR_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 4),
--       SENSOR_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 5),
--       SENSOR_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 6),
--       SENSOR_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 7),
--       SENSOR_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 8),
--       SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
-+	SENSOR_ATTR(in0_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 0),
-+	SENSOR_ATTR(in1_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 1),
-+	SENSOR_ATTR(in2_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 2),
-+	SENSOR_ATTR(in3_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 3),
-+	SENSOR_ATTR(in4_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 4),
-+	SENSOR_ATTR(in5_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 5),
-+	SENSOR_ATTR(in6_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 6),
-+	SENSOR_ATTR(in7_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 7),
-+	SENSOR_ATTR(in8_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 8),
-+	SENSOR_ATTR(in9_max, S_IWUSR | S_IRUGO, show_in_max, store_in_max, 9),
- };
- 
- #define show_fan_reg(reg) \
-@@ -709,7 +715,8 @@ show_##reg(struct device *dev, struct device_attribute *attr, \
- 	   char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", \
- 		       fan_from_reg(data->reg[nr], \
-@@ -847,7 +854,8 @@ show_##reg(struct device *dev, struct device_attribute *attr, \
- 	   char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", \
- 		       temp_from_reg(W83627EHF_REG_##REG[nr], data->reg[nr])); \
-@@ -862,7 +870,8 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
- 	    const char *buf, size_t count) \
- { \
- 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	int err; \
- 	long val; \
-@@ -925,11 +934,12 @@ static struct sensor_device_attribute sda_temp_type[] = {
- };
- 
- #define show_pwm_reg(reg) \
--static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, \
--				char *buf) \
-+static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
-+			  char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", data->reg[nr]); \
- }
-@@ -1022,7 +1032,8 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
- 				char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", data->reg[nr] * 1000); \
- }
-@@ -1141,16 +1152,18 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
- 		       char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", data->reg[nr]); \
--}\
-+} \
- static ssize_t \
- store_##reg(struct device *dev, struct device_attribute *attr, \
- 			    const char *buf, size_t count) \
--{\
-+{ \
- 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	unsigned long val; \
- 	int err; \
-@@ -1175,10 +1188,12 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
- 				char *buf) \
- { \
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	return sprintf(buf, "%d\n", \
--			step_time_from_reg(data->reg[nr], data->pwm_mode[nr])); \
-+			step_time_from_reg(data->reg[nr], \
-+					   data->pwm_mode[nr])); \
- } \
- \
- static ssize_t \
-@@ -1186,7 +1201,8 @@ store_##reg(struct device *dev, struct device_attribute *attr, \
- 			const char *buf, size_t count) \
- { \
- 	struct w83627ehf_data *data = dev_get_drvdata(dev); \
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr); \
-+	struct sensor_device_attribute *sensor_attr = \
-+		to_sensor_dev_attr(attr); \
- 	int nr = sensor_attr->index; \
- 	unsigned long val; \
- 	int err; \
-@@ -1387,7 +1403,8 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 		goto exit;
- 	}
- 
--	if (!(data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL))) {
-+	data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL);
-+	if (!data) {
- 		err = -ENOMEM;
- 		goto exit_release;
- 	}
-@@ -1508,10 +1525,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 	w83627ehf_update_fan_div(data);
- 
- 	/* Register sysfs hooks */
--  	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++)
--		if ((err = device_create_file(dev,
--			&sda_sf3_arrays[i].dev_attr)))
-+	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++) {
-+		err = device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
-+		if (err)
- 			goto exit_remove;
++config SENSORS_ADS1015
++	tristate "Texas Instruments ADS1015"
++	depends on I2C
++	help
++	  If you say yes here you get support for Texas Instruments ADS1015
++	  12-bit 4-input ADC device.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called ads1015.
++
+ config SENSORS_ADS7828
+ 	tristate "Texas Instruments ADS7828"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index dde02d9..aae4036 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
+ obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
+ obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
+ obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
++obj-$(CONFIG_SENSORS_ADS1015)	+= ads1015.o
+ obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
+ obj-$(CONFIG_SENSORS_ADS7871)	+= ads7871.o
+ obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+new file mode 100644
+index 0000000..cf7aff4
+--- /dev/null
++++ b/drivers/hwmon/ads1015.c
+@@ -0,0 +1,295 @@
++/*
++ * ads1015.c - lm_sensors driver for ads1015 12-bit 4-input ADC
++ * (C) Copyright 2010
++ * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
++ *
++ * Based on the ads7828 driver by Steve Hardy.
++ *
++ * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads1015.pdf
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/i2c/ads1015.h>
++
++/* ADS1015 registers */
++enum {
++	ADS1015_CONVERSION = 0,
++	ADS1015_CONFIG = 1,
++};
++
++/* PGA fullscale voltages in mV */
++static const unsigned int fullscale_table[8] = {
++	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
++
++/* Default set of exported channels */
++#define ADS1015_CONFIG_CHANNELS 8
++static const int default_channels[ADS1015_CONFIG_CHANNELS] = {
++	0, 1, 2, 3, 4, 5, 6, 7 };
++
++/* strings for sysfs */
++static const char *input_names[8] = {
++	"in0_input",
++	"in1_input",
++	"in2_input",
++	"in3_input",
++	"in4_input",
++	"in5_input",
++	"in6_input",
++	"in7_input"
++};
++
++struct ads1015_data {
++	struct device *hwmon_dev;
++	struct mutex update_lock; /* mutex protect updates */
++	struct sensor_device_attribute attr[ADS1015_CONFIG_CHANNELS];
++	struct attribute *attr_table[ADS1015_CONFIG_CHANNELS + 1];
++	struct attribute_group attr_group;
++};
++
++static s32 ads1015_read_reg(struct i2c_client *client, unsigned int reg)
++{
++	s32 data = i2c_smbus_read_word_data(client, reg);
++
++	return (data < 0) ? data : swab16(data);
++}
++
++static s32 ads1015_write_reg(struct i2c_client *client, unsigned int reg,
++			     u16 val)
++{
++	return i2c_smbus_write_word_data(client, reg, swab16(val));
++}
++
++static int ads1015_read_value(struct i2c_client *client, unsigned int channel,
++			      int *value)
++{
++	u16 config;
++	s16 conversion;
++	unsigned int pga;
++	int fullscale;
++	unsigned int k;
++	struct ads1015_data *data = i2c_get_clientdata(client);
++	int res;
++
++	mutex_lock(&data->update_lock);
++
++	/* get fullscale voltage */
++	res = ads1015_read_reg(client, ADS1015_CONFIG);
++	if (res < 0)
++		goto err_unlock;
++	config = res;
++	pga = (config >> 9) & 0x0007;
++	fullscale = fullscale_table[pga];
++
++	/* set channel and start single conversion */
++	config &= ~(0x0007 << 12);
++	config |= (1 << 15) | (1 << 8) | (channel & 0x0007) << 12;
++
++	/* wait until conversion finished */
++	res = ads1015_write_reg(client, ADS1015_CONFIG, config);
++	if (res < 0)
++		goto err_unlock;
++	for (k = 0; k < 5; ++k) {
++		schedule_timeout(msecs_to_jiffies(1));
++		res = ads1015_read_reg(client, ADS1015_CONFIG);
++		if (res < 0)
++			goto err_unlock;
++		config = res;
++		if (config & (1 << 15))
++			break;
 +	}
- 
- 	for (i = 0; i < ARRAY_SIZE(sda_sf3_max_step_arrays); i++) {
- 		struct sensor_device_attribute *attr @@ -1525,8 +1543,9 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 	/* if fan4 is enabled create the sf3 files for it */
- 	if ((data->has_fan & (1 << 3)) && data->pwm_num >= 4)
- 		for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays_fan4); i++) {
--			if ((err = device_create_file(dev,
--				&sda_sf3_arrays_fan4[i].dev_attr)))
-+			err = device_create_file(dev,
-+					&sda_sf3_arrays_fan4[i].dev_attr);
-+			if (err)
- 				goto exit_remove;
- 		}
- 
-@@ -1733,7 +1752,8 @@ static int __init sensors_w83627ehf_init(void)
- 	if (err)
- 		goto exit;
- 
--	if (!(pdev = platform_device_alloc(DRVNAME, address))) {
-+	pdev = platform_device_alloc(DRVNAME, address);
-+	if (!pdev) {
- 		err = -ENOMEM;
- 		pr_err("Device allocation failed\n");
- 		goto exit_unregister;
++	if (k = 5) {
++		res = -EIO;
++		goto err_unlock;
++	}
++
++	res = ads1015_read_reg(client, ADS1015_CONVERSION);
++	if (res < 0)
++		goto err_unlock;
++	conversion = res;
++
++	mutex_unlock(&data->update_lock);
++
++	*value = DIV_ROUND_CLOSEST(conversion * fullscale, 0x7ff0);
++
++	return 0;
++
++err_unlock:
++	mutex_unlock(&data->update_lock);
++	return res;
++}
++
++/* sysfs callback function */
++static ssize_t show_in(struct device *dev, struct device_attribute *da,
++	char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct i2c_client *client = to_i2c_client(dev);
++	int in;
++	int res;
++
++	res = ads1015_read_value(client, attr->index, &in);
++
++	return (res < 0) ? res : sprintf(buf, "%d\n", in);
++}
++
++/*
++ * Driver interface
++ */
++
++static int ads1015_remove(struct i2c_client *client)
++{
++	struct ads1015_data *data = i2c_get_clientdata(client);
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
++	kfree(data);
++	return 0;
++}
++
++static void ads1015_get_exported_channels(struct i2c_client *client,
++					  int *exported_channels)
++{
++	struct ads1015_platform_data *pdata = dev_get_platdata(&client->dev);
++#ifdef CONFIG_OF
++	struct device_node *np = client->dev.of_node;
++	const int *of_channels;
++	int of_channels_size;
++#endif
++
++	/* prefer platform data */
++	if (pdata) {
++		memcpy(exported_channels, pdata->exported_channels,
++		       sizeof(default_channels));
++		return;
++	}
++
++#ifdef CONFIG_OF
++	/* fallback on OF */
++	of_channels = of_get_property(np, "exported-channels",
++				      &of_channels_size);
++	if (of_channels && (of_channels_size = sizeof(default_channels))) {
++		memcpy(exported_channels, of_channels,
++		       sizeof(default_channels));
++		return;
++	}
++#endif
++
++	/* fallback on default configuration */
++	memcpy(exported_channels, default_channels, sizeof(default_channels));
++}
++
++/* create sysfs attribute according to channel setup */
++static struct attribute *ads1015_export_channel(struct i2c_client *client,
++						unsigned int input, int channel)
++{
++	struct ads1015_data *data = i2c_get_clientdata(client);
++	struct sensor_device_attribute attr +		SENSOR_ATTR(input, S_IRUGO, show_in, NULL, channel);
++
++	attr_name(attr.dev_attr) = input_names[input];
++
++	memcpy(&data->attr[input], &attr, sizeof(attr));
++
++	return &data->attr[input].dev_attr.attr;
++}
++
++static int ads1015_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct ads1015_data *data;
++	int err;
++	int exported_channels[ADS1015_CONFIG_CHANNELS];
++	unsigned int k;
++	unsigned int act_attr = 0;
++
++	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* Register sysfs hooks */
++	data->attr_group.attrs = data->attr_table;
++	ads1015_get_exported_channels(client, exported_channels);
++	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
++		int channel = exported_channels[k];
++		if ((channel < 0) || (channel > 7))
++			continue;
++		data->attr_table[act_attr++] +			ads1015_export_channel(client, k, channel);
++	}
++	err = sysfs_create_group(&client->dev.kobj, &data->attr_group);
++	if (err)
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
++exit_free:
++	kfree(data);
++exit:
++	return err;
++}
++
++static const struct i2c_device_id ads1015_id[] = {
++	{ "ads1015", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ads1015_id);
++
++static struct i2c_driver ads1015_driver = {
++	.driver = {
++		.name = "ads1015",
++	},
++	.probe = ads1015_probe,
++	.remove = ads1015_remove,
++	.id_table = ads1015_id,
++};
++
++static int __init sensors_ads1015_init(void)
++{
++	return i2c_add_driver(&ads1015_driver);
++}
++
++static void __exit sensors_ads1015_exit(void)
++{
++	i2c_del_driver(&ads1015_driver);
++}
++
++MODULE_AUTHOR("Dirk Eibach <eibach@gdsys.de>");
++MODULE_DESCRIPTION("ADS1015 driver");
++MODULE_LICENSE("GPL");
++
++module_init(sensors_ads1015_init);
++module_exit(sensors_ads1015_exit);
+diff --git a/include/linux/i2c/ads1015.h b/include/linux/i2c/ads1015.h
+new file mode 100644
+index 0000000..152bf5f
+--- /dev/null
++++ b/include/linux/i2c/ads1015.h
+@@ -0,0 +1,30 @@
++/*
++ * Platform Data for ADS1015 12-bit 4-input ADC
++ * (C) Copyright 2010
++ * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef LINUX_ADS1015_H
++#define LINUX_ADS1015_H
++
++#include <linux/types.h>
++
++struct ads1015_platform_data {
++	int exported_channels[8];
++};
++
++#endif /* LINUX_ADS1015_H */
 -- 
-1.7.3.1
+1.5.6.5
 
 
 _______________________________________________
