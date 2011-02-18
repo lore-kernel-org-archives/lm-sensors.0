@@ -1,100 +1,109 @@
-From: "Jan Beulich" <JBeulich@novell.com>
-Date: Fri, 18 Feb 2011 07:56:23 +0000
-Subject: [lm-sensors] [PATCH] lm85: extend to support emc6d103 chips
-Message-Id: <4D5E343702000078000329C1@vpn.id2.novell.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 18 Feb 2011 08:06:13 +0000
+Subject: Re: [lm-sensors] [PATCH] lm85: extend to support emc6d103 chips
+Message-Id: <20110218080613.GA26203@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4D5E343702000078000329C1@vpn.id2.novell.com>
+In-Reply-To: <4D5E343702000078000329C1@vpn.id2.novell.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The interface is identical emc6d102, so all that needs to be added are
-some definitions and their uses.
+Jan,
 
-Registers apparently missing in emc6d103:A2 compared to emc6d103:A0,
-emc6d103:A1, and emc6d102 (according to the data sheets), but used
-unconditionally in the driver: 62[5:7], 6D[0:7], and 6E[0:7]. For that
-reason, A2 stepping chips don't get enabled for the time being.
+On Fri, Feb 18, 2011 at 02:56:23AM -0500, Jan Beulich wrote:
+> The interface is identical emc6d102, so all that needs to be added are
+> some definitions and their uses.
+> 
+> Registers apparently missing in emc6d103:A2 compared to emc6d103:A0,
+> emc6d103:A1, and emc6d102 (according to the data sheets), but used
+> unconditionally in the driver: 62[5:7], 6D[0:7], and 6E[0:7]. For that
+> reason, A2 stepping chips don't get enabled for the time being.
+> 
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
+> 
+> ---
+>  drivers/hwmon/Kconfig |    2 +-
+>  drivers/hwmon/lm85.c  |   14 ++++++++++++--
+>  2 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> --- 2.6.38-rc5/drivers/hwmon/Kconfig
+> +++ 2.6.38-rc5-lm85-emc6d103/drivers/hwmon/Kconfig
+> @@ -574,7 +574,7 @@ config SENSORS_LM85
+>  	help
+>  	  If you say yes here you get support for National Semiconductor LM85
+>  	  sensor chips and clones: ADM1027, ADT7463, ADT7468, EMC6D100,
+> -	  EMC6D101 and EMC6D102.
+> +	  EMC6D101, EMC6D102, and EMC6D103.
+>  
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called lm85.
+> --- 2.6.38-rc5/drivers/hwmon/lm85.c
+> +++ 2.6.38-rc5-lm85-emc6d103/drivers/hwmon/lm85.c
+> @@ -41,7 +41,7 @@ static const unsigned short normal_i2c[]
+>  enum chips {
+>  	any_chip, lm85b, lm85c,
+>  	adm1027, adt7463, adt7468,
+> -	emc6d100, emc6d102
+> +	emc6d100, emc6d102, emc6d103
+>  };
+>  
+>  /* The LM85 registers */
+> @@ -90,6 +90,9 @@ enum chips {
+>  #define	LM85_VERSTEP_EMC6D100_A0        0x60
+>  #define	LM85_VERSTEP_EMC6D100_A1        0x61
+>  #define	LM85_VERSTEP_EMC6D102		0x65
+> +#define	LM85_VERSTEP_EMC6D103_A0	0x68
+> +#define	LM85_VERSTEP_EMC6D103_A1	0x69
+> +#define	LM85_VERSTEP_EMC6D103_A2	0x6A
+>  
+>  #define	LM85_REG_CONFIG			0x40
+>  
+> @@ -348,6 +351,7 @@ static const struct i2c_device_id lm85_i
+>  	{ "emc6d100", emc6d100 },
+>  	{ "emc6d101", emc6d100 },
+>  	{ "emc6d102", emc6d102 },
+> +	{ "emc6d103", emc6d103 },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(i2c, lm85_id);
+> @@ -1250,6 +1254,11 @@ static int lm85_detect(struct i2c_client
+>  		case LM85_VERSTEP_EMC6D102:
+>  			type_name = "emc6d102";
+>  			break;
+> +		case LM85_VERSTEP_EMC6D103_A0:
+> +		case LM85_VERSTEP_EMC6D103_A1:
+> +		/* case LM85_VERSTEP_EMC6D103_A2: */
 
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
+The comment from the commit log should be here as well.
+Otherwise, people won't know why the line is commented out.
 
----
- drivers/hwmon/Kconfig |    2 +-
- drivers/hwmon/lm85.c  |   14 ++++++++++++--
- 2 files changed, 13 insertions(+), 3 deletions(-)
-
---- 2.6.38-rc5/drivers/hwmon/Kconfig
-+++ 2.6.38-rc5-lm85-emc6d103/drivers/hwmon/Kconfig
-@@ -574,7 +574,7 @@ config SENSORS_LM85
- 	help
- 	  If you say yes here you get support for National Semiconductor LM85
- 	  sensor chips and clones: ADM1027, ADT7463, ADT7468, EMC6D100,
--	  EMC6D101 and EMC6D102.
-+	  EMC6D101, EMC6D102, and EMC6D103.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called lm85.
---- 2.6.38-rc5/drivers/hwmon/lm85.c
-+++ 2.6.38-rc5-lm85-emc6d103/drivers/hwmon/lm85.c
-@@ -41,7 +41,7 @@ static const unsigned short normal_i2c[]
- enum chips {
- 	any_chip, lm85b, lm85c,
- 	adm1027, adt7463, adt7468,
--	emc6d100, emc6d102
-+	emc6d100, emc6d102, emc6d103
- };
- 
- /* The LM85 registers */
-@@ -90,6 +90,9 @@ enum chips {
- #define	LM85_VERSTEP_EMC6D100_A0        0x60
- #define	LM85_VERSTEP_EMC6D100_A1        0x61
- #define	LM85_VERSTEP_EMC6D102		0x65
-+#define	LM85_VERSTEP_EMC6D103_A0	0x68
-+#define	LM85_VERSTEP_EMC6D103_A1	0x69
-+#define	LM85_VERSTEP_EMC6D103_A2	0x6A
- 
- #define	LM85_REG_CONFIG			0x40
- 
-@@ -348,6 +351,7 @@ static const struct i2c_device_id lm85_i
- 	{ "emc6d100", emc6d100 },
- 	{ "emc6d101", emc6d100 },
- 	{ "emc6d102", emc6d102 },
-+	{ "emc6d103", emc6d103 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, lm85_id);
-@@ -1250,6 +1254,11 @@ static int lm85_detect(struct i2c_client
- 		case LM85_VERSTEP_EMC6D102:
- 			type_name = "emc6d102";
- 			break;
-+		case LM85_VERSTEP_EMC6D103_A0:
-+		case LM85_VERSTEP_EMC6D103_A1:
-+		/* case LM85_VERSTEP_EMC6D103_A2: */
-+			type_name = "emc6d103";
-+			break;
- 		}
- 	} else {
- 		dev_dbg(&adapter->dev,
-@@ -1283,6 +1292,7 @@ static int lm85_probe(struct i2c_client 
- 	case adt7468:
- 	case emc6d100:
- 	case emc6d102:
-+	case emc6d103:
- 		data->freq_map = adm1027_freq_map;
- 		break;
- 	default:
-@@ -1468,7 +1478,7 @@ static struct lm85_data *lm85_update_dev
- 			/* More alarm bits */
- 			data->alarms |= lm85_read_value(client,
- 						EMC6D100_REG_ALARM3) << 16;
--		} else if (data->type = emc6d102) {
-+		} else if (data->type = emc6d102 || data->type = emc6d103) {
- 			/* Have to read LSB bits after the MSB ones because
- 			   the reading of the MSB bits has frozen the
- 			   LSBs (backward from the ADM1027).
-
-
-
+> +			type_name = "emc6d103";
+> +			break;
+>  		}
+>  	} else {
+>  		dev_dbg(&adapter->dev,
+> @@ -1283,6 +1292,7 @@ static int lm85_probe(struct i2c_client 
+>  	case adt7468:
+>  	case emc6d100:
+>  	case emc6d102:
+> +	case emc6d103:
+>  		data->freq_map = adm1027_freq_map;
+>  		break;
+>  	default:
+> @@ -1468,7 +1478,7 @@ static struct lm85_data *lm85_update_dev
+>  			/* More alarm bits */
+>  			data->alarms |= lm85_read_value(client,
+>  						EMC6D100_REG_ALARM3) << 16;
+> -		} else if (data->type = emc6d102) {
+> +		} else if (data->type = emc6d102 || data->type = emc6d103) {
+>  			/* Have to read LSB bits after the MSB ones because
+>  			   the reading of the MSB bits has frozen the
+>  			   LSBs (backward from the ADM1027).
+> 
+> 
+> 
 
 _______________________________________________
 lm-sensors mailing list
