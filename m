@@ -1,76 +1,216 @@
-From: Clemens Ladisch <clemens@ladisch.de>
-Date: Wed, 16 Feb 2011 13:02:08 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: (jc42) more helpful documentation
-Message-Id: <4D5BCAD0.4080204@ladisch.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 19 Feb 2011 16:41:55 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm85) Add support for EM6D103S
+Message-Id: <1298133715-1910-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D5BCA87.7010204@ladisch.de>
-In-Reply-To: <4D5BCA87.7010204@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-The documentation lists standard numbers and chip names in excruciating
-detail, but that's all it does.  To help mere mortals in deciding
-whether to enable this driver, mention what this sensor is for and in
-which systems it might be found.
+EM6D103S is similar to EMC6D103, only it does not support registers 62[5:7],
+6D[0:7], and 6E[0:7]. Register respective sysfs attributes and update affected
+registers for all other chips only.
 
-Also add a link to the actual JC 42.4 specification.
-
-Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- Documentation/hwmon/jc42 |    9 +++++++--
- drivers/hwmon/Kconfig    |   11 ++++++-----
- 2 files changed, 13 insertions(+), 7 deletions(-)
+ drivers/hwmon/lm85.c |   97 ++++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 63 insertions(+), 34 deletions(-)
 
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -455,13 +455,14 @@ config SENSORS_JZ4740
- 	  called jz4740-hwmon.
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index d2cc286..d4dd824 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -41,7 +41,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+ enum chips {
+ 	any_chip, lm85b, lm85c,
+ 	adm1027, adt7463, adt7468,
+-	emc6d100, emc6d102, emc6d103
++	emc6d100, emc6d102, emc6d103, emc6d103s
+ };
  
- config SENSORS_JC42
--	tristate "JEDEC JC42.4 compliant temperature sensors"
-+	tristate "JEDEC JC42.4 compliant memory module temperature sensors"
- 	depends on I2C
- 	help
--	  If you say yes here you get support for Jedec JC42.4 compliant
--	  temperature sensors. Support will include, but not be limited to,
--	  ADT7408, CAT34TS02,, CAT6095, MAX6604, MCP9805, MCP98242, MCP98243,
--	  MCP9843, SE97, SE98, STTS424, TSE2002B3, and TS3000B3.
-+	  If you say yes here, you get support for JEDEC JC42.4 compliant
-+	  temperature sensors, which are used on many DDR3 memory modules for
-+	  mobile devices and servers.  Support will include, but not be limited
-+	  to, ADT7408, CAT34TS02, CAT6095, MAX6604, MCP9805, MCP98242, MCP98243,
-+	  MCP9843, SE97, SE98, STTS424(E), TSE2002B3, and TS3000B3.
+ /* The LM85 registers */
+@@ -352,6 +352,7 @@ static const struct i2c_device_id lm85_id[] = {
+ 	{ "emc6d101", emc6d100 },
+ 	{ "emc6d102", emc6d102 },
+ 	{ "emc6d103", emc6d103 },
++	{ "emc6d103s", emc6d103s },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, lm85_id);
+@@ -935,16 +936,18 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
+ 		| (data->pwm_freq[nr] & 0x07));
  
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called jc42.
---- a/Documentation/hwmon/jc42
-+++ b/Documentation/hwmon/jc42
-@@ -51,7 +51,8 @@ Supported chips:
-   * JEDEC JC 42.4 compliant temperature sensor chips
-     Prefix: 'jc42'
-     Addresses scanned: I2C 0x18 - 0x1f
--    Datasheet: -
-+    Datasheet:
-+	http://www.jedec.org/sites/default/files/docs/4_01_04R19.pdf
+ /* Update temp_auto_hyst and temp_auto_off */
+-	data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
+-		data->zone[nr].limit) - TEMP_FROM_REG(
+-		data->zone[nr].off_desired));
+-	if (nr = 0 || nr = 1) {
+-		lm85_write_value(client, LM85_REG_AFAN_HYST1,
+-			(data->zone[0].hyst << 4)
+-			| data->zone[1].hyst);
+-	} else {
+-		lm85_write_value(client, LM85_REG_AFAN_HYST2,
+-			(data->zone[2].hyst << 4));
++	if (data->type != emc6d103s) {
++		data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
++			data->zone[nr].limit) - TEMP_FROM_REG(
++			data->zone[nr].off_desired));
++		if (nr = 0 || nr = 1) {
++			lm85_write_value(client, LM85_REG_AFAN_HYST1,
++				(data->zone[0].hyst << 4)
++				| data->zone[1].hyst);
++		} else {
++			lm85_write_value(client, LM85_REG_AFAN_HYST2,
++				(data->zone[2].hyst << 4));
++		}
+ 	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+@@ -1084,13 +1087,7 @@ static struct attribute *lm85_attributes[] = {
+ 	&sensor_dev_attr_pwm1_auto_pwm_min.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_auto_pwm_min.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_auto_pwm_min.dev_attr.attr,
+-	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
+-	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
+-	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
  
- Author:
- 	Guenter Roeck <guenter.roeck@ericsson.com>
-@@ -60,7 +61,11 @@ Author:
- Description
- -----------
+-	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
+-	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
+-	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_auto_temp_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_auto_temp_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_auto_temp_min.dev_attr.attr,
+@@ -1111,6 +1108,26 @@ static const struct attribute_group lm85_group = {
+ 	.attrs = lm85_attributes,
+ };
  
--This driver implements support for JEDEC JC 42.4 compliant temperature sensors.
-+This driver implements support for JEDEC JC 42.4 compliant temperature sensors,
-+which are used on many DDR3 memory modules for mobile devices and servers. Some
-+systems use the sensor to prevent memory overheating by automatically throttling
-+the memory controller.
++static struct attribute *lm85_attributes_minctl[] = {
++	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
++	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
++	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
++};
 +
- The driver auto-detects the chips listed above, but can be manually instantiated
- to support other JC 42.4 compliant chips.
++static const struct attribute_group lm85_group_minctl = {
++	.attrs = lm85_attributes_minctl,
++};
++
++static struct attribute *lm85_attributes_temp_off[] = {
++	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
++	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
++	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
++};
++
++static const struct attribute_group lm85_group_temp_off = {
++	.attrs = lm85_attributes_temp_off,
++};
++
+ static struct attribute *lm85_attributes_in4[] = {
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
+@@ -1258,16 +1275,9 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
+ 		case LM85_VERSTEP_EMC6D103_A1:
+ 			type_name = "emc6d103";
+ 			break;
+-		/*
+-		 * Registers apparently missing in EMC6D103S/EMC6D103:A2
+-		 * compared to EMC6D103:A0, EMC6D103:A1, and EMC6D102
+-		 * (according to the data sheets), but used unconditionally
+-		 * in the driver: 62[5:7], 6D[0:7], and 6E[0:7].
+-		 * So skip EMC6D103S for now.
+ 		case LM85_VERSTEP_EMC6D103S:
+ 			type_name = "emc6d103s";
+ 			break;
+-		 */
+ 		}
+ 	} else {
+ 		dev_dbg(&adapter->dev,
+@@ -1302,6 +1312,7 @@ static int lm85_probe(struct i2c_client *client,
+ 	case emc6d100:
+ 	case emc6d102:
+ 	case emc6d103:
++	case emc6d103s:
+ 		data->freq_map = adm1027_freq_map;
+ 		break;
+ 	default:
+@@ -1319,6 +1330,17 @@ static int lm85_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_kfree;
  
++	/* minctl and temp_off exist on all chips except emc6d103s */
++	if (data->type != emc6d103s) {
++		err = sysfs_create_group(&client->dev.kobj, &lm85_group_minctl);
++		if (err)
++			goto err_kfree;
++		err = sysfs_create_group(&client->dev.kobj,
++					 &lm85_group_temp_off);
++		if (err)
++			goto err_kfree;
++	}
++
+ 	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
+ 	   as a sixth digital VID input rather than an analog input. */
+ 	data->vid = lm85_read_value(client, LM85_REG_VID);
+@@ -1345,6 +1367,8 @@ static int lm85_probe(struct i2c_client *client,
+ 	/* Error out and cleanup code */
+  err_remove_files:
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
++	sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
++	sysfs_remove_group(&client->dev.kobj, &lm85_group_temp_off);
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
+ 	if (data->type = emc6d100)
+ 		sysfs_remove_group(&client->dev.kobj, &lm85_group_in567);
+@@ -1358,6 +1382,8 @@ static int lm85_remove(struct i2c_client *client)
+ 	struct lm85_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
++	sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
++	sysfs_remove_group(&client->dev.kobj, &lm85_group_temp_off);
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
+ 	if (data->type = emc6d100)
+ 		sysfs_remove_group(&client->dev.kobj, &lm85_group_in567);
+@@ -1487,7 +1513,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			/* More alarm bits */
+ 			data->alarms |= lm85_read_value(client,
+ 						EMC6D100_REG_ALARM3) << 16;
+-		} else if (data->type = emc6d102 || data->type = emc6d103) {
++		} else if (data->type = emc6d102 || data->type = emc6d103 ||
++			   data->type = emc6d103s) {
+ 			/* Have to read LSB bits after the MSB ones because
+ 			   the reading of the MSB bits has frozen the
+ 			   LSBs (backward from the ADM1027).
+@@ -1573,17 +1600,19 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			}
+ 		}
+ 
+-		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
+-		data->autofan[0].min_off = (i & 0x20) != 0;
+-		data->autofan[1].min_off = (i & 0x40) != 0;
+-		data->autofan[2].min_off = (i & 0x80) != 0;
++		if (data->type != emc6d103s) {
++			i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
++			data->autofan[0].min_off = (i & 0x20) != 0;
++			data->autofan[1].min_off = (i & 0x40) != 0;
++			data->autofan[2].min_off = (i & 0x80) != 0;
+ 
+-		i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
+-		data->zone[0].hyst = i >> 4;
+-		data->zone[1].hyst = i & 0x0f;
++			i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
++			data->zone[0].hyst = i >> 4;
++			data->zone[1].hyst = i & 0x0f;
+ 
+-		i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
+-		data->zone[2].hyst = i >> 4;
++			i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
++			data->zone[2].hyst = i >> 4;
++		}
+ 
+ 		data->last_config = jiffies;
+ 	}  /* last_config */
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
