@@ -1,38 +1,23 @@
-From: Keerthy <j-keerthy@ti.com>
-Date: Thu, 24 Feb 2011 15:29:41 +0000
-Subject: [lm-sensors] [PATCH 0/2 v2] twl4030-madc driver
-Message-Id: <1298560661-18749-1-git-send-email-j-keerthy@ti.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sun, 20 Feb 2011 19:51:41 +0000
+Subject: Re: [lm-sensors] [PATCH 3/4 v2] Move lis3lv02d drivers to
+Message-Id: <20110220195141.GA6010@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org
-Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, j-keerthy@ti.com
+To: lm-sensors@vger.kernel.org
 
-MADC(Monitoring ADC) driver enables monitoring analog signals using
-analog-to-digital conversion (ADC) on the input source.
-The previous discussion concluded in keeping the generic ADC
-functionality and the hwmon separate. The discussion can be found here:
+On Sun, Feb 20, 2011 at 07:19:54AM -0500, Jean Delvare wrote:
+> The lis3lv02d drivers aren't hardware monitoring drivers, so the don't
+> belong to drivers/hwmon. Move them to drivers/misc, short of a better
+> home.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Eric Piel <eric.piel@tremplin-utc.net>
+> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
-
-Keerthy (2):
-  mfd: twl4030: Driver for twl4030 madc module
-  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
-
- Documentation/hwmon/twl4030-madc-hwmon |   45 ++
- drivers/hwmon/Kconfig                  |   10 +
- drivers/hwmon/Makefile                 |    1 +
- drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++
- drivers/mfd/Kconfig                    |   10 +
- drivers/mfd/Makefile                   |    1 +
- drivers/mfd/twl4030-madc.c             |  815 ++++++++++++++++++++++++++++++++
- include/linux/i2c/twl4030-madc.h       |  142 ++++++
- 8 files changed, 1177 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
- create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
- create mode 100644 drivers/mfd/twl4030-madc.c
- create mode 100644 include/linux/i2c/twl4030-madc.h
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
 
 
 _______________________________________________
