@@ -1,33 +1,41 @@
-From: Eric Sandeen <sandeen@sandeen.net>
-Date: Sat, 26 Feb 2011 14:51:47 +0000
-Subject: [lm-sensors] Fintek F71869FG
-Message-Id: <4D691383.1070100@sandeen.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 23 Feb 2011 03:54:14 +0000
+Subject: [lm-sensors] New sysfs attribute for fan control: fan pulses per
+Message-Id: <20110223035414.GA18074@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D3B1D27.7010600@klerik.cz>
-In-Reply-To: <4D3B1D27.7010600@klerik.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi List, Hans - 
+Hi all,
 
-I recently got a new motherboard with the F71869FG chip.
+while working on NCT6776F support, I realized that there is a fan control
+attribute which is not currently supported by the syfs ABI: The number of
+fan pulses per revolution. On the NCT6776F, this can be configured in Bank 6,
+registers 0x44 to 0x46. Possible values are 0..3 for 4, 1, 2, or 3 pulses 
+per revolution.
 
-Found `Fintek F71869FG Super IO Sensors'                    Success!
-    (address 0x290, driver `to-be-written')
-...
-Note: there is no driver for Fintek F71869FG Super IO Sensors yet.
-Check http://www.lm-sensors.org/wiki/Devices for updates.
+I encountered the same parameter when working on PMBus devices. At the time,
+I thought this was a variant of a fan divisor (ie a divisor of 1, 2, 3, or 4),
+but apparently it is different and independent of the fan divisor.
 
-The wiki says "Waiting for someone with such hardware. Datasheet available."
+Question is if it would make sense to merge support for this attribute into fan[1-*]_div,
+or if we should define a new attribute specifically for fan pulses per revolution.
 
-I'd be happy to test, if the datasheet is available and if the chip doesn't look too hard to support.
+Merging it into fan[1-*]_div would mean we would have to permit new values for it,
+and we would need a more complex description. Changing the value could be ambiguous
+if there is ever a chip which supports both fan divisor and pulse/revolution
+configuration registers (NCT6776F and PMBus devices don't, so we would be safe there).
 
-I thought about diving into it myself, but someone like Hans will likely be much more efficient ;)
+A new attribute (fanX_pulses ? fanX_ppr ?) would be more straightforward,
+but ... it would be a new attribute.
+
+Any thoughts ?
 
 Thanks,
--Eric
+Guenter
+ 
 
 _______________________________________________
 lm-sensors mailing list
