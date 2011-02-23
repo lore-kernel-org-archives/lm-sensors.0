@@ -1,60 +1,76 @@
-From: "Juergen Bausa" <Juergen.Bausa@web.de>
-Date: Wed, 23 Feb 2011 20:18:47 +0000
-Subject: [lm-sensors] dme177737: pwm not working
-Message-Id: <1127565282.7281701.1298492327176.JavaMail.fmail@mwmweb086>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 23 Feb 2011 20:33:17 +0000
+Subject: Re: [lm-sensors] dme177737: pwm not working
+Message-Id: <1298493197.1735.5.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1127565282.7281701.1298492327176.JavaMail.fmail@mwmweb086>
+In-Reply-To: <1127565282.7281701.1298492327176.JavaMail.fmail@mwmweb086>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-CkFmdGVyIHVwZ3JhZGluZyBmcm9tIGRlYmlhbiBsZW5ueSAoa2VybmVsIDIuNi4yNikgdG8gc3F1
-ZWV6ZSAoa2VybmVsIDIuNi4zMikgZmFuY29udHJvbCAKc3RvcHBlZCB3b3JraW5nLiBJIHJhbiBz
-ZW5zb3JzLWRldGVjdCBhbmQgSSBoYXZlIHRoZSBkbWUxNzM3IG1vZHVsZSBsb2FkZWQsCmJ1dCBw
-d21jb25maWcgc2F5czoKCi91c3Ivc2Jpbi9wd21jb25maWc6IFRoZXJlIGFyZSBubyBwd20tY2Fw
-YWJsZSBzZW5zb3IgbW9kdWxlcyBpbnN0YWxsZWQKCkkgYWxzbyBub3RpY2VkIHRoYXQgd2hpbGUg
-aW4gbGVubnkgdGhlIGRtZTE3MzcgcmVwb3J0ZWQgdGhlIGZvdW5kIHB3bXMgaW4gdGhlIGxvZywK
-dGhlcmUgaXMgbm8gbWVzc2FnZSBmcm9tIGRtZTE3MzcgdW5kZXIgc3F1ZWV6ZS4KCkhvd2V2ZXIs
-IHNvbWUgY29udHJvbHMgYXJlIHRoZXJlOgoKamJhQGxpc2E6L3N5cy9jbGFzcy9od21vbi9od21v
-bjEkIGxsCmluc2dlc2FtdCAwCmxyd3hyd3hyd3ggMSByb290IHJvb3QgICAgMCAyMy4gRmViIDIx
-OjAxIGRldmljZSAtPiAuLi8uLi8uLi9BVEswMTEwOjAwCi1yLS1yLS1yLS0gMSByb290IHJvb3Qg
-NDA5NiAyMy4gRmViIDIxOjAxIGZhbjFfaW5wdXQKLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2
-IDIzLiBGZWIgMjE6MDEgZmFuMV9sYWJlbAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMu
-IEZlYiAyMTowMSBmYW4xX21heAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAy
-MTowMSBmYW4xX21pbgotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTowMSBm
-YW4yX2lucHV0Ci1yLS1yLS1yLS0gMSByb290IHJvb3QgNDA5NiAyMy4gRmViIDIxOjAxIGZhbjJf
-bGFiZWwKLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgZmFuMl9tYXgK
-LXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgZmFuMl9taW4KLXItLXIt
-LXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgaW4wX2lucHV0Ci1yLS1yLS1yLS0g
-MSByb290IHJvb3QgNDA5NiAyMy4gRmViIDIxOjAxIGluMF9sYWJlbAotci0tci0tci0tIDEgcm9v
-dCByb290IDQwOTYgMjMuIEZlYiAyMTowMSBpbjBfbWF4Ci1yLS1yLS1yLS0gMSByb290IHJvb3Qg
-NDA5NiAyMy4gRmViIDIxOjAxIGluMF9taW4KLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIz
-LiBGZWIgMjE6MDEgaW4xX2lucHV0Ci1yLS1yLS1yLS0gMSByb290IHJvb3QgNDA5NiAyMy4gRmVi
-IDIxOjAxIGluMV9sYWJlbAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTow
-MSBpbjFfbWF4Ci1yLS1yLS1yLS0gMSByb290IHJvb3QgNDA5NiAyMy4gRmViIDIxOjAxIGluMV9t
-aW4KLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgaW4yX2lucHV0Ci1y
-LS1yLS1yLS0gMSByb290IHJvb3QgNDA5NiAyMy4gRmViIDIxOjAxIGluMl9sYWJlbAotci0tci0t
-ci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTowMSBpbjJfbWF4Ci1yLS1yLS1yLS0gMSBy
-b290IHJvb3QgNDA5NiAyMy4gRmViIDIxOjAxIGluMl9taW4KLXItLXItLXItLSAxIHJvb3Qgcm9v
-dCA0MDk2IDIzLiBGZWIgMjE6MDEgaW4zX2lucHV0Ci1yLS1yLS1yLS0gMSByb290IHJvb3QgNDA5
-NiAyMy4gRmViIDIxOjAxIGluM19sYWJlbAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMu
-IEZlYiAyMTowMSBpbjNfbWF4Ci1yLS1yLS1yLS0gMSByb290IHJvb3QgNDA5NiAyMy4gRmViIDIx
-OjAxIGluM19taW4KLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgbmFt
-ZQpkcnd4ci14ci14IDIgcm9vdCByb290ICAgIDAgMjMuIEZlYiAyMTowMSBwb3dlcgpscnd4cnd4
-cnd4IDEgcm9vdCByb290ICAgIDAgMjMuIEZlYiAyMTowMSBzdWJzeXN0ZW0gLT4gLi4vLi4vLi4v
-Li4vLi4vLi4vLi4vY2xhc3MvaHdtb24KLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBG
-ZWIgMjE6MDEgdGVtcDFfY3JpdAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAy
-MTowMSB0ZW1wMV9pbnB1dAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTow
-MSB0ZW1wMV9sYWJlbAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTowMSB0
-ZW1wMV9tYXgKLXItLXItLXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgdGVtcDJf
-Y3JpdAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTowMSB0ZW1wMl9pbnB1
-dAotci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTowMSB0ZW1wMl9sYWJlbAot
-ci0tci0tci0tIDEgcm9vdCByb290IDQwOTYgMjMuIEZlYiAyMTowMSB0ZW1wMl9tYXgKLXJ3LXIt
-LXItLSAxIHJvb3Qgcm9vdCA0MDk2IDIzLiBGZWIgMjE6MDEgdWV2ZW50CgpBbnkgaWRlYSwgd2hh
-dCBJIGNhbiBkbyB0byBzb2x2ZSB0aGlzPyBJIHdhbnQgbXkgZmFuY29udHJvbCBiYWNrIQoKSnVl
-cmdlbgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KU2Nob24gZ2Vow7ZydD8gV0VCLkRFIGhhdCBlaW5lbiBnZW5pYWxlbiBQaGlzaGlu
-Zy1GaWx0ZXIgaW4gZGllClRvb2xiYXIgZWluZ2ViYXV0ISBodHRwOi8vcHJvZHVrdGUud2ViLmRl
-L2dvL3Rvb2xiYXIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
+On Wed, 2011-02-23 at 15:18 -0500, Juergen Bausa wrote:
+> After upgrading from debian lenny (kernel 2.6.26) to squeeze (kernel 2.6.32) fancontrol 
+> stopped working. I ran sensors-detect and I have the dme1737 module loaded,
+> but pwmconfig says:
+> 
+> /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
+> 
+> I also noticed that while in lenny the dme1737 reported the found pwms in the log,
+> there is no message from dme1737 under squeeze.
+> 
+> However, some controls are there:
+> 
+> jba@lisa:/sys/class/hwmon/hwmon1$ ll
+> insgesamt 0
+> lrwxrwxrwx 1 root root    0 23. Feb 21:01 device -> ../../../ATK0110:00
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan1_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan1_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan1_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan1_min
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan2_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan2_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan2_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 fan2_min
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in0_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in0_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in0_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in0_min
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in1_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in1_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in1_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in1_min
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in2_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in2_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in2_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in2_min
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in3_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in3_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in3_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 in3_min
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 name
+> drwxr-xr-x 2 root root    0 23. Feb 21:01 power
+> lrwxrwxrwx 1 root root    0 23. Feb 21:01 subsystem -> ../../../../../../../class/hwmon
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp1_crit
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp1_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp1_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp1_max
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp2_crit
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp2_input
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp2_label
+> -r--r--r-- 1 root root 4096 23. Feb 21:01 temp2_max
+> -rw-r--r-- 1 root root 4096 23. Feb 21:01 uevent
+> 
+> Any idea, what I can do to solve this? I want my fancontrol back!
+
+Do you see any related output with dmesg ?
+
+Guenter
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
