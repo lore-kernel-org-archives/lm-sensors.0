@@ -1,54 +1,105 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 17 Feb 2011 19:23:07 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (k10temp) add support for AMD
-Message-Id: <20110217202307.7281f403@endymion.delvare>
+Date: Thu, 24 Feb 2011 10:23:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm75) Speed up detection
+Message-Id: <20110224112322.3a47636e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D5CDAD0.7030006@ladisch.de>
-	<20110217172639.GA19982@ericsson.com>
-	<20110217190838.381962f6@endymion.delvare>
-	<20110217183934.GB20387@ericsson.com>
-In-Reply-To: <20110217183934.GB20387@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>, lm-sensors@lm-sensors.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, 17 Feb 2011 10:39:34 -0800, Guenter Roeck wrote:
-> On Thu, Feb 17, 2011 at 01:08:38PM -0500, Jean Delvare wrote:
-> > On Thu, 17 Feb 2011 09:26:39 -0800, Guenter Roeck wrote:
-> > > On Thu, Feb 17, 2011 at 03:22:40AM -0500, Clemens Ladisch wrote:
-> > > > Add the PCI ID to support the internal temperature sensor of the
-> > > > AMD "Llano" and "Brazos" processor families.
-> > > > 
-> > > > Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
-> > > 
-> > > Applied, thanks.
-> > > 
-> > > Since it meets the requirements for a stable patch, I applied it to the
-> > > patch list for 2.6.38 and added Cc: stable@kernel.org.
-> > 
-> > Can we have a sensors-detect patch too?
-> > 
-> Prepared that, but I am getting the following from the ddr3 patch.
-> 
-> prog/detect/sensors-detect
-> Useless use of private variable in void context at prog/detect/sensors-detect line 5287.
-> 
-> Code is
-> 	} elsif ($device_type => 9 && $device_type <= 11) {
-> 
-> Should that be 
-> 	} elsif ($device_type >= 9 && $device_type <= 11) {
-> instead ?
+Make the LM75/LM75A device detection faster:
 
-Yes, you're totally right.
+* Don't read the current temperature value when we don't use it.
+* Check for unused bits in the configuration register as soon as we
+  have read its value.
+* Don't use word reads, not all devices support this, and some which
+  don't misbehave when you try.
+* Check for cycling register values every 40 register addresses
+  instead of every 8, it's 5 times faster and just as efficient.
 
-> Odd, I didn't notice that before when I tried the ddr3 patch.
+Some of these improvements come straight from the user-space
+sensors-detect script, so both detection routines are in line now.
 
-This is the part I modified from Clemens' original patch. What's really
-odd is that I didn't notice the warning on my end. I see it now...
-Sorry, I've just fixed it.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Lennart Sorensen <lsorense@csclub.uwaterloo.ca>
+---
+ drivers/hwmon/lm75.c |   40 +++++++++++++++++++---------------------
+ 1 file changed, 19 insertions(+), 21 deletions(-)
+
+--- linux-2.6.38-rc5.orig/drivers/hwmon/lm75.c	2011-02-24 08:47:12.000000000 +0100
++++ linux-2.6.38-rc5/drivers/hwmon/lm75.c	2011-02-24 10:57:46.000000000 +0100
+@@ -240,7 +240,7 @@ static int lm75_detect(struct i2c_client
+ {
+ 	struct i2c_adapter *adapter = new_client->adapter;
+ 	int i;
+-	int cur, conf, hyst, os;
++	int conf, hyst, os;
+ 	bool is_lm75a = 0;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+@@ -261,8 +261,10 @@ static int lm75_detect(struct i2c_client
+ 	   register 7, and unused registers return 0xff rather than the
+ 	   last read value. */
+ 
+-	cur = i2c_smbus_read_word_data(new_client, 0);
++	/* Unused bits */
+ 	conf = i2c_smbus_read_byte_data(new_client, 1);
++	if (conf & 0xe0)
++		return -ENODEV;
+ 
+ 	/* First check for LM75A */
+ 	if (i2c_smbus_read_byte_data(new_client, 7) = LM75A_ID) {
+@@ -273,33 +275,29 @@ static int lm75_detect(struct i2c_client
+ 		 || i2c_smbus_read_byte_data(new_client, 6) != 0xff)
+ 			return -ENODEV;
+ 		is_lm75a = 1;
+-		hyst = i2c_smbus_read_word_data(new_client, 2);
+-		os = i2c_smbus_read_word_data(new_client, 3);
++		hyst = i2c_smbus_read_byte_data(new_client, 2);
++		os = i2c_smbus_read_byte_data(new_client, 3);
+ 	} else { /* Traditional style LM75 detection */
+ 		/* Unused addresses */
+-		hyst = i2c_smbus_read_word_data(new_client, 2);
+-		if (i2c_smbus_read_word_data(new_client, 4) != hyst
+-		 || i2c_smbus_read_word_data(new_client, 5) != hyst
+-		 || i2c_smbus_read_word_data(new_client, 6) != hyst
+-		 || i2c_smbus_read_word_data(new_client, 7) != hyst)
++		hyst = i2c_smbus_read_byte_data(new_client, 2);
++		if (i2c_smbus_read_byte_data(new_client, 4) != hyst
++		 || i2c_smbus_read_byte_data(new_client, 5) != hyst
++		 || i2c_smbus_read_byte_data(new_client, 6) != hyst
++		 || i2c_smbus_read_byte_data(new_client, 7) != hyst)
+ 			return -ENODEV;
+-		os = i2c_smbus_read_word_data(new_client, 3);
+-		if (i2c_smbus_read_word_data(new_client, 4) != os
+-		 || i2c_smbus_read_word_data(new_client, 5) != os
+-		 || i2c_smbus_read_word_data(new_client, 6) != os
+-		 || i2c_smbus_read_word_data(new_client, 7) != os)
++		os = i2c_smbus_read_byte_data(new_client, 3);
++		if (i2c_smbus_read_byte_data(new_client, 4) != os
++		 || i2c_smbus_read_byte_data(new_client, 5) != os
++		 || i2c_smbus_read_byte_data(new_client, 6) != os
++		 || i2c_smbus_read_byte_data(new_client, 7) != os)
+ 			return -ENODEV;
+ 	}
+ 
+-	/* Unused bits */
+-	if (conf & 0xe0)
+-		return -ENODEV;
+-
+ 	/* Addresses cycling */
+-	for (i = 8; i < 0xff; i += 8) {
++	for (i = 8; i <= 248; i += 40) {
+ 		if (i2c_smbus_read_byte_data(new_client, i + 1) != conf
+-		 || i2c_smbus_read_word_data(new_client, i + 2) != hyst
+-		 || i2c_smbus_read_word_data(new_client, i + 3) != os)
++		 || i2c_smbus_read_byte_data(new_client, i + 2) != hyst
++		 || i2c_smbus_read_byte_data(new_client, i + 3) != os)
+ 			return -ENODEV;
+ 		if (is_lm75a && i2c_smbus_read_byte_data(new_client, i + 7)
+ 				!= LM75A_ID)
+
 
 -- 
 Jean Delvare
