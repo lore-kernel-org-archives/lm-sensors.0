@@ -1,1292 +1,572 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 20 Feb 2011 12:18:49 +0000
-Subject: [lm-sensors] [PATCH 2/4 v2] Move hp_accel to drivers/platform/x86
-Message-Id: <20110220131849.7cf01314@endymion.delvare>
+Date: Thu, 24 Feb 2011 16:48:07 +0000
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: Add support for Texas
+Message-Id: <20110224174807.41c7597f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20110217134203.0556a7ab@endymion.delvare>
+ <1298024158-21076-1-git-send-email-eibach@gdsys.de>
+In-Reply-To: <1298024158-21076-1-git-send-email-eibach@gdsys.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Dirk Eibach <eibach@gdsys.de>
+Cc: linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org
 
-The hp_accel driver isn't a hardware monitoring driver, so it doesn't
-belong to drivers/hwmon. Move it to drivers/platform/x86, assuming HP
-doesn't ship non-x86 laptops.
+Hi Dirk,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
----
-Changes since v1:
-* Update hp_accel driver path in Documentation/hwmon/lis3lv02d.
-* Move hpfall.c to Documentation/laptops.
+Sorry for the late reply.
 
-Not tested due to lack of hardware.
+On Fri, 18 Feb 2011 11:15:58 +0100, Dirk Eibach wrote:
+> Signed-off-by: Dirk Eibach <eibach@gdsys.de>
+> ---
+> Changes since v1:
+> - fixed/extended Documentation
+> - removed unused register definitions
+> - hardcoded PGA fullscale table size
+> - made sure patch applies against v2.6.38-rc4
+> - reordered functions to avoid forward declaration
+> - results from i2c_smbus_read_word_data() are handled correctly
+> - moved locking into ads1015_read_value()
+> - removed unnecessray clearing of bit
+> - proper error handling in ads1015_read_value()
+> - use DIV_ROUND_CLOSEST for scaling result
+> - removed detect()
+> 
+> Changes since v2:
+> - removed *all* leftovers from detect()
+> - fixed return with mutex held
+> - made sysfs representation configurable
+>   (hope this will be the reference implementation for generations to come ;)
 
- Documentation/hwmon/hpfall.c    |  146 --------------
- Documentation/hwmon/lis3lv02d   |    4 
- Documentation/laptops/hpfall.c  |  146 ++++++++++++++
- drivers/hwmon/Kconfig           |   59 -----
- drivers/hwmon/Makefile          |    1 
- drivers/hwmon/hp_accel.c        |  405 ---------------------------------------
- drivers/platform/x86/Kconfig    |   18 +
- drivers/platform/x86/Makefile   |    1 
- drivers/platform/x86/hp_accel.c |  405 +++++++++++++++++++++++++++++++++++++++
- 9 files changed, 572 insertions(+), 613 deletions(-)
+Thanks for your continued work on this driver. The changes this time
+are important enough to warrant a full review. Here we go:
 
---- linux-2.6.38-rc5.orig/drivers/hwmon/hp_accel.c	2011-02-19 16:50:32.000000000 +0100
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,405 +0,0 @@
--/*
-- *  hp_accel.c - Interface between LIS3LV02DL driver and HP ACPI BIOS
-- *
-- *  Copyright (C) 2007-2008 Yan Burman
-- *  Copyright (C) 2008 Eric Piel
-- *  Copyright (C) 2008-2009 Pavel Machek
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/dmi.h>
--#include <linux/module.h>
--#include <linux/types.h>
--#include <linux/platform_device.h>
--#include <linux/interrupt.h>
--#include <linux/delay.h>
--#include <linux/wait.h>
--#include <linux/poll.h>
--#include <linux/freezer.h>
--#include <linux/uaccess.h>
--#include <linux/leds.h>
--#include <acpi/acpi_drivers.h>
--#include <asm/atomic.h>
--#include "lis3lv02d.h"
--
--#define DRIVER_NAME     "lis3lv02d"
--#define ACPI_MDPS_CLASS "accelerometer"
--
--/* Delayed LEDs infrastructure ------------------------------------ */
--
--/* Special LED class that can defer work */
--struct delayed_led_classdev {
--	struct led_classdev led_classdev;
--	struct work_struct work;
--	enum led_brightness new_brightness;
--
--	unsigned int led;		/* For driver */
--	void (*set_brightness)(struct delayed_led_classdev *data, enum led_brightness value);
--};
--
--static inline void delayed_set_status_worker(struct work_struct *work)
--{
--	struct delayed_led_classdev *data -			container_of(work, struct delayed_led_classdev, work);
--
--	data->set_brightness(data, data->new_brightness);
--}
--
--static inline void delayed_sysfs_set(struct led_classdev *led_cdev,
--			      enum led_brightness brightness)
--{
--	struct delayed_led_classdev *data = container_of(led_cdev,
--			     struct delayed_led_classdev, led_classdev);
--	data->new_brightness = brightness;
--	schedule_work(&data->work);
--}
--
--/* HP-specific accelerometer driver ------------------------------------ */
--
--/* For automatic insertion of the module */
--static struct acpi_device_id lis3lv02d_device_ids[] = {
--	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
--	{"", 0},
--};
--MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
--
--
--/**
-- * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
-- * @lis3: pointer to the device struct
-- *
-- * Returns 0 on success.
-- */
--int lis3lv02d_acpi_init(struct lis3lv02d *lis3)
--{
--	struct acpi_device *dev = lis3->bus_priv;
--	if (acpi_evaluate_object(dev->handle, METHOD_NAME__INI,
--				 NULL, NULL) != AE_OK)
--		return -EINVAL;
--
--	return 0;
--}
--
--/**
-- * lis3lv02d_acpi_read - ACPI ALRD method: read a register
-- * @lis3: pointer to the device struct
-- * @reg:    the register to read
-- * @ret:    result of the operation
-- *
-- * Returns 0 on success.
-- */
--int lis3lv02d_acpi_read(struct lis3lv02d *lis3, int reg, u8 *ret)
--{
--	struct acpi_device *dev = lis3->bus_priv;
--	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
--	struct acpi_object_list args = { 1, &arg0 };
--	unsigned long long lret;
--	acpi_status status;
--
--	arg0.integer.value = reg;
--
--	status = acpi_evaluate_integer(dev->handle, "ALRD", &args, &lret);
--	*ret = lret;
--	return (status != AE_OK) ? -EINVAL : 0;
--}
--
--/**
-- * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
-- * @lis3: pointer to the device struct
-- * @reg:    the register to write to
-- * @val:    the value to write
-- *
-- * Returns 0 on success.
-- */
--int lis3lv02d_acpi_write(struct lis3lv02d *lis3, int reg, u8 val)
--{
--	struct acpi_device *dev = lis3->bus_priv;
--	unsigned long long ret; /* Not used when writting */
--	union acpi_object in_obj[2];
--	struct acpi_object_list args = { 2, in_obj };
--
--	in_obj[0].type          = ACPI_TYPE_INTEGER;
--	in_obj[0].integer.value = reg;
--	in_obj[1].type          = ACPI_TYPE_INTEGER;
--	in_obj[1].integer.value = val;
--
--	if (acpi_evaluate_integer(dev->handle, "ALWR", &args, &ret) != AE_OK)
--		return -EINVAL;
--
--	return 0;
--}
--
--static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
--{
--	lis3_dev.ac = *((union axis_conversion *)dmi->driver_data);
--	pr_info("hardware type %s found\n", dmi->ident);
--
--	return 1;
--}
--
--/* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
-- * If the value is negative, the opposite of the hw value is used. */
--#define DEFINE_CONV(name, x, y, z)			      \
--	static union axis_conversion lis3lv02d_axis_##name = \
--		{ .as_array = { x, y, z } }
--DEFINE_CONV(normal, 1, 2, 3);
--DEFINE_CONV(y_inverted, 1, -2, 3);
--DEFINE_CONV(x_inverted, -1, 2, 3);
--DEFINE_CONV(z_inverted, 1, 2, -3);
--DEFINE_CONV(xy_swap, 2, 1, 3);
--DEFINE_CONV(xy_rotated_left, -2, 1, 3);
--DEFINE_CONV(xy_rotated_left_usd, -2, 1, -3);
--DEFINE_CONV(xy_swap_inverted, -2, -1, 3);
--DEFINE_CONV(xy_rotated_right, 2, -1, 3);
--DEFINE_CONV(xy_swap_yz_inverted, 2, -1, -3);
--
--#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
--	.ident = _ident,				\
--	.callback = lis3lv02d_dmi_matched,		\
--	.matches = {					\
--		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
--	},						\
--	.driver_data = &lis3lv02d_axis_##_axis		\
--}
--
--#define AXIS_DMI_MATCH2(_ident, _class1, _name1,	\
--				_class2, _name2,	\
--				_axis) {		\
--	.ident = _ident,				\
--	.callback = lis3lv02d_dmi_matched,		\
--	.matches = {					\
--		DMI_MATCH(DMI_##_class1, _name1),	\
--		DMI_MATCH(DMI_##_class2, _name2),	\
--	},						\
--	.driver_data = &lis3lv02d_axis_##_axis		\
--}
--static struct dmi_system_id lis3lv02d_dmi_ids[] = {
--	/* product names are truncated to match all kinds of a same model */
--	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
--	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
--	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
--	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
--	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
--	AXIS_DMI_MATCH("NC2710", "HP Compaq 2710", xy_swap),
--	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
--	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
--	AXIS_DMI_MATCH("HP2140", "HP 2140", xy_swap_inverted),
--	AXIS_DMI_MATCH("NC653x", "HP Compaq 653", xy_rotated_left_usd),
--	AXIS_DMI_MATCH("NC6730b", "HP Compaq 6730b", xy_rotated_left_usd),
--	AXIS_DMI_MATCH("NC6730s", "HP Compaq 6730s", xy_swap),
--	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
--	AXIS_DMI_MATCH("NC6710x", "HP Compaq 6710", xy_swap_yz_inverted),
--	AXIS_DMI_MATCH("NC6715x", "HP Compaq 6715", y_inverted),
--	AXIS_DMI_MATCH("NC693xx", "HP EliteBook 693", xy_rotated_right),
--	AXIS_DMI_MATCH("NC693xx", "HP EliteBook 853", xy_swap),
--	/* Intel-based HP Pavilion dv5 */
--	AXIS_DMI_MATCH2("HPDV5_I",
--			PRODUCT_NAME, "HP Pavilion dv5",
--			BOARD_NAME, "3603",
--			x_inverted),
--	/* AMD-based HP Pavilion dv5 */
--	AXIS_DMI_MATCH2("HPDV5_A",
--			PRODUCT_NAME, "HP Pavilion dv5",
--			BOARD_NAME, "3600",
--			y_inverted),
--	AXIS_DMI_MATCH("DV7", "HP Pavilion dv7", x_inverted),
--	AXIS_DMI_MATCH("HP8710", "HP Compaq 8710", y_inverted),
--	AXIS_DMI_MATCH("HDX18", "HP HDX 18", x_inverted),
--	AXIS_DMI_MATCH("HPB432x", "HP ProBook 432", xy_rotated_left),
--	AXIS_DMI_MATCH("HPB442x", "HP ProBook 442", xy_rotated_left),
--	AXIS_DMI_MATCH("HPB452x", "HP ProBook 452", y_inverted),
--	AXIS_DMI_MATCH("HPB522x", "HP ProBook 522", xy_swap),
--	AXIS_DMI_MATCH("HPB532x", "HP ProBook 532", y_inverted),
--	AXIS_DMI_MATCH("Mini510x", "HP Mini 510", xy_rotated_left_usd),
--	{ NULL, }
--/* Laptop models without axis info (yet):
-- * "NC6910" "HP Compaq 6910"
-- * "NC2400" "HP Compaq nc2400"
-- * "NX74x0" "HP Compaq nx74"
-- * "NX6325" "HP Compaq nx6325"
-- * "NC4400" "HP Compaq nc4400"
-- */
--};
--
--static void hpled_set(struct delayed_led_classdev *led_cdev, enum led_brightness value)
--{
--	struct acpi_device *dev = lis3_dev.bus_priv;
--	unsigned long long ret; /* Not used when writing */
--	union acpi_object in_obj[1];
--	struct acpi_object_list args = { 1, in_obj };
--
--	in_obj[0].type          = ACPI_TYPE_INTEGER;
--	in_obj[0].integer.value = !!value;
--
--	acpi_evaluate_integer(dev->handle, "ALED", &args, &ret);
--}
--
--static struct delayed_led_classdev hpled_led = {
--	.led_classdev = {
--		.name			= "hp::hddprotect",
--		.default_trigger	= "none",
--		.brightness_set		= delayed_sysfs_set,
--		.flags                  = LED_CORE_SUSPENDRESUME,
--	},
--	.set_brightness = hpled_set,
--};
--
--static acpi_status
--lis3lv02d_get_resource(struct acpi_resource *resource, void *context)
--{
--	if (resource->type = ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
--		struct acpi_resource_extended_irq *irq;
--		u32 *device_irq = context;
--
--		irq = &resource->data.extended_irq;
--		*device_irq = irq->interrupts[0];
--	}
--
--	return AE_OK;
--}
--
--static void lis3lv02d_enum_resources(struct acpi_device *device)
--{
--	acpi_status status;
--
--	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
--					lis3lv02d_get_resource, &lis3_dev.irq);
--	if (ACPI_FAILURE(status))
--		printk(KERN_DEBUG DRIVER_NAME ": Error getting resources\n");
--}
--
--static int lis3lv02d_add(struct acpi_device *device)
--{
--	int ret;
--
--	if (!device)
--		return -EINVAL;
--
--	lis3_dev.bus_priv = device;
--	lis3_dev.init = lis3lv02d_acpi_init;
--	lis3_dev.read = lis3lv02d_acpi_read;
--	lis3_dev.write = lis3lv02d_acpi_write;
--	strcpy(acpi_device_name(device), DRIVER_NAME);
--	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
--	device->driver_data = &lis3_dev;
--
--	/* obtain IRQ number of our device from ACPI */
--	lis3lv02d_enum_resources(device);
--
--	/* If possible use a "standard" axes order */
--	if (lis3_dev.ac.x && lis3_dev.ac.y && lis3_dev.ac.z) {
--		pr_info("Using custom axes %d,%d,%d\n",
--			lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
--	} else if (dmi_check_system(lis3lv02d_dmi_ids) = 0) {
--		pr_info("laptop model unknown, using default axes configuration\n");
--		lis3_dev.ac = lis3lv02d_axis_normal;
--	}
--
--	/* call the core layer do its init */
--	ret = lis3lv02d_init_device(&lis3_dev);
--	if (ret)
--		return ret;
--
--	INIT_WORK(&hpled_led.work, delayed_set_status_worker);
--	ret = led_classdev_register(NULL, &hpled_led.led_classdev);
--	if (ret) {
--		lis3lv02d_joystick_disable();
--		lis3lv02d_poweroff(&lis3_dev);
--		flush_work(&hpled_led.work);
--		return ret;
--	}
--
--	return ret;
--}
--
--static int lis3lv02d_remove(struct acpi_device *device, int type)
--{
--	if (!device)
--		return -EINVAL;
--
--	lis3lv02d_joystick_disable();
--	lis3lv02d_poweroff(&lis3_dev);
--
--	led_classdev_unregister(&hpled_led.led_classdev);
--	flush_work(&hpled_led.work);
--
--	return lis3lv02d_remove_fs(&lis3_dev);
--}
--
--
--#ifdef CONFIG_PM
--static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
--{
--	/* make sure the device is off when we suspend */
--	lis3lv02d_poweroff(&lis3_dev);
--	return 0;
--}
--
--static int lis3lv02d_resume(struct acpi_device *device)
--{
--	lis3lv02d_poweron(&lis3_dev);
--	return 0;
--}
--#else
--#define lis3lv02d_suspend NULL
--#define lis3lv02d_resume NULL
--#endif
--
--/* For the HP MDPS aka 3D Driveguard */
--static struct acpi_driver lis3lv02d_driver = {
--	.name  = DRIVER_NAME,
--	.class = ACPI_MDPS_CLASS,
--	.ids   = lis3lv02d_device_ids,
--	.ops = {
--		.add     = lis3lv02d_add,
--		.remove  = lis3lv02d_remove,
--		.suspend = lis3lv02d_suspend,
--		.resume  = lis3lv02d_resume,
--	}
--};
--
--static int __init lis3lv02d_init_module(void)
--{
--	int ret;
--
--	if (acpi_disabled)
--		return -ENODEV;
--
--	ret = acpi_bus_register_driver(&lis3lv02d_driver);
--	if (ret < 0)
--		return ret;
--
--	pr_info("driver loaded\n");
--
--	return 0;
--}
--
--static void __exit lis3lv02d_exit_module(void)
--{
--	acpi_bus_unregister_driver(&lis3lv02d_driver);
--}
--
--MODULE_DESCRIPTION("Glue between LIS3LV02Dx and HP ACPI BIOS and support for disk protection LED.");
--MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
--MODULE_LICENSE("GPL");
--
--module_init(lis3lv02d_init_module);
--module_exit(lis3lv02d_exit_module);
--
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.38-rc5/drivers/platform/x86/hp_accel.c	2011-02-20 12:58:24.000000000 +0100
-@@ -0,0 +1,405 @@
-+/*
-+ *  hp_accel.c - Interface between LIS3LV02DL driver and HP ACPI BIOS
-+ *
-+ *  Copyright (C) 2007-2008 Yan Burman
-+ *  Copyright (C) 2008 Eric Piel
-+ *  Copyright (C) 2008-2009 Pavel Machek
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/dmi.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/wait.h>
-+#include <linux/poll.h>
-+#include <linux/freezer.h>
-+#include <linux/uaccess.h>
-+#include <linux/leds.h>
-+#include <linux/atomic.h>
-+#include <acpi/acpi_drivers.h>
-+#include "../../hwmon/lis3lv02d.h"
-+
-+#define DRIVER_NAME     "lis3lv02d"
-+#define ACPI_MDPS_CLASS "accelerometer"
-+
-+/* Delayed LEDs infrastructure ------------------------------------ */
-+
-+/* Special LED class that can defer work */
-+struct delayed_led_classdev {
-+	struct led_classdev led_classdev;
-+	struct work_struct work;
-+	enum led_brightness new_brightness;
-+
-+	unsigned int led;		/* For driver */
-+	void (*set_brightness)(struct delayed_led_classdev *data, enum led_brightness value);
-+};
-+
-+static inline void delayed_set_status_worker(struct work_struct *work)
-+{
-+	struct delayed_led_classdev *data +			container_of(work, struct delayed_led_classdev, work);
-+
-+	data->set_brightness(data, data->new_brightness);
-+}
-+
-+static inline void delayed_sysfs_set(struct led_classdev *led_cdev,
-+			      enum led_brightness brightness)
-+{
-+	struct delayed_led_classdev *data = container_of(led_cdev,
-+			     struct delayed_led_classdev, led_classdev);
-+	data->new_brightness = brightness;
-+	schedule_work(&data->work);
-+}
-+
-+/* HP-specific accelerometer driver ------------------------------------ */
-+
-+/* For automatic insertion of the module */
-+static struct acpi_device_id lis3lv02d_device_ids[] = {
-+	{"HPQ0004", 0}, /* HP Mobile Data Protection System PNP */
-+	{"", 0},
-+};
-+MODULE_DEVICE_TABLE(acpi, lis3lv02d_device_ids);
-+
-+
-+/**
-+ * lis3lv02d_acpi_init - ACPI _INI method: initialize the device.
-+ * @lis3: pointer to the device struct
-+ *
-+ * Returns 0 on success.
-+ */
-+int lis3lv02d_acpi_init(struct lis3lv02d *lis3)
-+{
-+	struct acpi_device *dev = lis3->bus_priv;
-+	if (acpi_evaluate_object(dev->handle, METHOD_NAME__INI,
-+				 NULL, NULL) != AE_OK)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+/**
-+ * lis3lv02d_acpi_read - ACPI ALRD method: read a register
-+ * @lis3: pointer to the device struct
-+ * @reg:    the register to read
-+ * @ret:    result of the operation
-+ *
-+ * Returns 0 on success.
-+ */
-+int lis3lv02d_acpi_read(struct lis3lv02d *lis3, int reg, u8 *ret)
-+{
-+	struct acpi_device *dev = lis3->bus_priv;
-+	union acpi_object arg0 = { ACPI_TYPE_INTEGER };
-+	struct acpi_object_list args = { 1, &arg0 };
-+	unsigned long long lret;
-+	acpi_status status;
-+
-+	arg0.integer.value = reg;
-+
-+	status = acpi_evaluate_integer(dev->handle, "ALRD", &args, &lret);
-+	*ret = lret;
-+	return (status != AE_OK) ? -EINVAL : 0;
-+}
-+
-+/**
-+ * lis3lv02d_acpi_write - ACPI ALWR method: write to a register
-+ * @lis3: pointer to the device struct
-+ * @reg:    the register to write to
-+ * @val:    the value to write
-+ *
-+ * Returns 0 on success.
-+ */
-+int lis3lv02d_acpi_write(struct lis3lv02d *lis3, int reg, u8 val)
-+{
-+	struct acpi_device *dev = lis3->bus_priv;
-+	unsigned long long ret; /* Not used when writting */
-+	union acpi_object in_obj[2];
-+	struct acpi_object_list args = { 2, in_obj };
-+
-+	in_obj[0].type          = ACPI_TYPE_INTEGER;
-+	in_obj[0].integer.value = reg;
-+	in_obj[1].type          = ACPI_TYPE_INTEGER;
-+	in_obj[1].integer.value = val;
-+
-+	if (acpi_evaluate_integer(dev->handle, "ALWR", &args, &ret) != AE_OK)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int lis3lv02d_dmi_matched(const struct dmi_system_id *dmi)
-+{
-+	lis3_dev.ac = *((union axis_conversion *)dmi->driver_data);
-+	pr_info("hardware type %s found\n", dmi->ident);
-+
-+	return 1;
-+}
-+
-+/* Represents, for each axis seen by userspace, the corresponding hw axis (+1).
-+ * If the value is negative, the opposite of the hw value is used. */
-+#define DEFINE_CONV(name, x, y, z)			      \
-+	static union axis_conversion lis3lv02d_axis_##name = \
-+		{ .as_array = { x, y, z } }
-+DEFINE_CONV(normal, 1, 2, 3);
-+DEFINE_CONV(y_inverted, 1, -2, 3);
-+DEFINE_CONV(x_inverted, -1, 2, 3);
-+DEFINE_CONV(z_inverted, 1, 2, -3);
-+DEFINE_CONV(xy_swap, 2, 1, 3);
-+DEFINE_CONV(xy_rotated_left, -2, 1, 3);
-+DEFINE_CONV(xy_rotated_left_usd, -2, 1, -3);
-+DEFINE_CONV(xy_swap_inverted, -2, -1, 3);
-+DEFINE_CONV(xy_rotated_right, 2, -1, 3);
-+DEFINE_CONV(xy_swap_yz_inverted, 2, -1, -3);
-+
-+#define AXIS_DMI_MATCH(_ident, _name, _axis) {		\
-+	.ident = _ident,				\
-+	.callback = lis3lv02d_dmi_matched,		\
-+	.matches = {					\
-+		DMI_MATCH(DMI_PRODUCT_NAME, _name)	\
-+	},						\
-+	.driver_data = &lis3lv02d_axis_##_axis		\
-+}
-+
-+#define AXIS_DMI_MATCH2(_ident, _class1, _name1,	\
-+				_class2, _name2,	\
-+				_axis) {		\
-+	.ident = _ident,				\
-+	.callback = lis3lv02d_dmi_matched,		\
-+	.matches = {					\
-+		DMI_MATCH(DMI_##_class1, _name1),	\
-+		DMI_MATCH(DMI_##_class2, _name2),	\
-+	},						\
-+	.driver_data = &lis3lv02d_axis_##_axis		\
-+}
-+static struct dmi_system_id lis3lv02d_dmi_ids[] = {
-+	/* product names are truncated to match all kinds of a same model */
-+	AXIS_DMI_MATCH("NC64x0", "HP Compaq nc64", x_inverted),
-+	AXIS_DMI_MATCH("NC84x0", "HP Compaq nc84", z_inverted),
-+	AXIS_DMI_MATCH("NX9420", "HP Compaq nx9420", x_inverted),
-+	AXIS_DMI_MATCH("NW9440", "HP Compaq nw9440", x_inverted),
-+	AXIS_DMI_MATCH("NC2510", "HP Compaq 2510", y_inverted),
-+	AXIS_DMI_MATCH("NC2710", "HP Compaq 2710", xy_swap),
-+	AXIS_DMI_MATCH("NC8510", "HP Compaq 8510", xy_swap_inverted),
-+	AXIS_DMI_MATCH("HP2133", "HP 2133", xy_rotated_left),
-+	AXIS_DMI_MATCH("HP2140", "HP 2140", xy_swap_inverted),
-+	AXIS_DMI_MATCH("NC653x", "HP Compaq 653", xy_rotated_left_usd),
-+	AXIS_DMI_MATCH("NC6730b", "HP Compaq 6730b", xy_rotated_left_usd),
-+	AXIS_DMI_MATCH("NC6730s", "HP Compaq 6730s", xy_swap),
-+	AXIS_DMI_MATCH("NC651xx", "HP Compaq 651", xy_rotated_right),
-+	AXIS_DMI_MATCH("NC6710x", "HP Compaq 6710", xy_swap_yz_inverted),
-+	AXIS_DMI_MATCH("NC6715x", "HP Compaq 6715", y_inverted),
-+	AXIS_DMI_MATCH("NC693xx", "HP EliteBook 693", xy_rotated_right),
-+	AXIS_DMI_MATCH("NC693xx", "HP EliteBook 853", xy_swap),
-+	/* Intel-based HP Pavilion dv5 */
-+	AXIS_DMI_MATCH2("HPDV5_I",
-+			PRODUCT_NAME, "HP Pavilion dv5",
-+			BOARD_NAME, "3603",
-+			x_inverted),
-+	/* AMD-based HP Pavilion dv5 */
-+	AXIS_DMI_MATCH2("HPDV5_A",
-+			PRODUCT_NAME, "HP Pavilion dv5",
-+			BOARD_NAME, "3600",
-+			y_inverted),
-+	AXIS_DMI_MATCH("DV7", "HP Pavilion dv7", x_inverted),
-+	AXIS_DMI_MATCH("HP8710", "HP Compaq 8710", y_inverted),
-+	AXIS_DMI_MATCH("HDX18", "HP HDX 18", x_inverted),
-+	AXIS_DMI_MATCH("HPB432x", "HP ProBook 432", xy_rotated_left),
-+	AXIS_DMI_MATCH("HPB442x", "HP ProBook 442", xy_rotated_left),
-+	AXIS_DMI_MATCH("HPB452x", "HP ProBook 452", y_inverted),
-+	AXIS_DMI_MATCH("HPB522x", "HP ProBook 522", xy_swap),
-+	AXIS_DMI_MATCH("HPB532x", "HP ProBook 532", y_inverted),
-+	AXIS_DMI_MATCH("Mini510x", "HP Mini 510", xy_rotated_left_usd),
-+	{ NULL, }
-+/* Laptop models without axis info (yet):
-+ * "NC6910" "HP Compaq 6910"
-+ * "NC2400" "HP Compaq nc2400"
-+ * "NX74x0" "HP Compaq nx74"
-+ * "NX6325" "HP Compaq nx6325"
-+ * "NC4400" "HP Compaq nc4400"
-+ */
-+};
-+
-+static void hpled_set(struct delayed_led_classdev *led_cdev, enum led_brightness value)
-+{
-+	struct acpi_device *dev = lis3_dev.bus_priv;
-+	unsigned long long ret; /* Not used when writing */
-+	union acpi_object in_obj[1];
-+	struct acpi_object_list args = { 1, in_obj };
-+
-+	in_obj[0].type          = ACPI_TYPE_INTEGER;
-+	in_obj[0].integer.value = !!value;
-+
-+	acpi_evaluate_integer(dev->handle, "ALED", &args, &ret);
-+}
-+
-+static struct delayed_led_classdev hpled_led = {
-+	.led_classdev = {
-+		.name			= "hp::hddprotect",
-+		.default_trigger	= "none",
-+		.brightness_set		= delayed_sysfs_set,
-+		.flags                  = LED_CORE_SUSPENDRESUME,
-+	},
-+	.set_brightness = hpled_set,
-+};
-+
-+static acpi_status
-+lis3lv02d_get_resource(struct acpi_resource *resource, void *context)
-+{
-+	if (resource->type = ACPI_RESOURCE_TYPE_EXTENDED_IRQ) {
-+		struct acpi_resource_extended_irq *irq;
-+		u32 *device_irq = context;
-+
-+		irq = &resource->data.extended_irq;
-+		*device_irq = irq->interrupts[0];
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static void lis3lv02d_enum_resources(struct acpi_device *device)
-+{
-+	acpi_status status;
-+
-+	status = acpi_walk_resources(device->handle, METHOD_NAME__CRS,
-+					lis3lv02d_get_resource, &lis3_dev.irq);
-+	if (ACPI_FAILURE(status))
-+		printk(KERN_DEBUG DRIVER_NAME ": Error getting resources\n");
-+}
-+
-+static int lis3lv02d_add(struct acpi_device *device)
-+{
-+	int ret;
-+
-+	if (!device)
-+		return -EINVAL;
-+
-+	lis3_dev.bus_priv = device;
-+	lis3_dev.init = lis3lv02d_acpi_init;
-+	lis3_dev.read = lis3lv02d_acpi_read;
-+	lis3_dev.write = lis3lv02d_acpi_write;
-+	strcpy(acpi_device_name(device), DRIVER_NAME);
-+	strcpy(acpi_device_class(device), ACPI_MDPS_CLASS);
-+	device->driver_data = &lis3_dev;
-+
-+	/* obtain IRQ number of our device from ACPI */
-+	lis3lv02d_enum_resources(device);
-+
-+	/* If possible use a "standard" axes order */
-+	if (lis3_dev.ac.x && lis3_dev.ac.y && lis3_dev.ac.z) {
-+		pr_info("Using custom axes %d,%d,%d\n",
-+			lis3_dev.ac.x, lis3_dev.ac.y, lis3_dev.ac.z);
-+	} else if (dmi_check_system(lis3lv02d_dmi_ids) = 0) {
-+		pr_info("laptop model unknown, using default axes configuration\n");
-+		lis3_dev.ac = lis3lv02d_axis_normal;
-+	}
-+
-+	/* call the core layer do its init */
-+	ret = lis3lv02d_init_device(&lis3_dev);
-+	if (ret)
-+		return ret;
-+
-+	INIT_WORK(&hpled_led.work, delayed_set_status_worker);
-+	ret = led_classdev_register(NULL, &hpled_led.led_classdev);
-+	if (ret) {
-+		lis3lv02d_joystick_disable();
-+		lis3lv02d_poweroff(&lis3_dev);
-+		flush_work(&hpled_led.work);
-+		return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+static int lis3lv02d_remove(struct acpi_device *device, int type)
-+{
-+	if (!device)
-+		return -EINVAL;
-+
-+	lis3lv02d_joystick_disable();
-+	lis3lv02d_poweroff(&lis3_dev);
-+
-+	led_classdev_unregister(&hpled_led.led_classdev);
-+	flush_work(&hpled_led.work);
-+
-+	return lis3lv02d_remove_fs(&lis3_dev);
-+}
-+
-+
-+#ifdef CONFIG_PM
-+static int lis3lv02d_suspend(struct acpi_device *device, pm_message_t state)
-+{
-+	/* make sure the device is off when we suspend */
-+	lis3lv02d_poweroff(&lis3_dev);
-+	return 0;
-+}
-+
-+static int lis3lv02d_resume(struct acpi_device *device)
-+{
-+	lis3lv02d_poweron(&lis3_dev);
-+	return 0;
-+}
-+#else
-+#define lis3lv02d_suspend NULL
-+#define lis3lv02d_resume NULL
-+#endif
-+
-+/* For the HP MDPS aka 3D Driveguard */
-+static struct acpi_driver lis3lv02d_driver = {
-+	.name  = DRIVER_NAME,
-+	.class = ACPI_MDPS_CLASS,
-+	.ids   = lis3lv02d_device_ids,
-+	.ops = {
-+		.add     = lis3lv02d_add,
-+		.remove  = lis3lv02d_remove,
-+		.suspend = lis3lv02d_suspend,
-+		.resume  = lis3lv02d_resume,
-+	}
-+};
-+
-+static int __init lis3lv02d_init_module(void)
-+{
-+	int ret;
-+
-+	if (acpi_disabled)
-+		return -ENODEV;
-+
-+	ret = acpi_bus_register_driver(&lis3lv02d_driver);
-+	if (ret < 0)
-+		return ret;
-+
-+	pr_info("driver loaded\n");
-+
-+	return 0;
-+}
-+
-+static void __exit lis3lv02d_exit_module(void)
-+{
-+	acpi_bus_unregister_driver(&lis3lv02d_driver);
-+}
-+
-+MODULE_DESCRIPTION("Glue between LIS3LV02Dx and HP ACPI BIOS and support for disk protection LED.");
-+MODULE_AUTHOR("Yan Burman, Eric Piel, Pavel Machek");
-+MODULE_LICENSE("GPL");
-+
-+module_init(lis3lv02d_init_module);
-+module_exit(lis3lv02d_exit_module);
-+
---- linux-2.6.38-rc5.orig/drivers/hwmon/Kconfig	2011-02-20 12:58:24.000000000 +0100
-+++ linux-2.6.38-rc5/drivers/hwmon/Kconfig	2011-02-20 12:58:24.000000000 +0100
-@@ -2,12 +2,6 @@
- # Hardware monitoring chip drivers configuration
- #
- 
--config SENSORS_LIS3LV02D
--	tristate
--	depends on INPUT
--	select INPUT_POLLDEV
--	default n
--
- menuconfig HWMON
- 	tristate "Hardware Monitoring support"
- 	depends on HAS_IOMEM
-@@ -1132,40 +1126,6 @@ config SENSORS_ULTRA45
- 	  This driver provides support for the Ultra45 workstation environmental
- 	  sensors.
- 
--config SENSORS_LIS3_SPI
--	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer (SPI)"
--	depends on !ACPI && SPI_MASTER && INPUT
--	select SENSORS_LIS3LV02D
--	default n
--	help
--	  This driver provides support for the LIS3LV02Dx accelerometer connected
--	  via SPI. The accelerometer data is readable via
--	  /sys/devices/platform/lis3lv02d.
--
--	  This driver also provides an absolute input class device, allowing
--	  the laptop to act as a pinball machine-esque joystick.
--
--	  This driver can also be built as modules.  If so, the core module
--	  will be called lis3lv02d and a specific module for the SPI transport
--	  is called lis3lv02d_spi.
--
--config SENSORS_LIS3_I2C
--	tristate "STMicroeletronics LIS3LV02Dx three-axis digital accelerometer (I2C)"
--	depends on I2C && INPUT
--	select SENSORS_LIS3LV02D
--	default n
--	help
--	  This driver provides support for the LIS3LV02Dx accelerometer connected
--	  via I2C. The accelerometer data is readable via
--	  /sys/devices/platform/lis3lv02d.
--
--	  This driver also provides an absolute input class device, allowing
--	  the device to act as a pinball machine-esque joystick.
--
--	  This driver can also be built as modules.  If so, the core module
--	  will be called lis3lv02d and a specific module for the I2C transport
--	  is called lis3lv02d_i2c.
--
- config SENSORS_APPLESMC
- 	tristate "Apple SMC (Motion sensor, light sensor, keyboard backlight)"
- 	depends on INPUT && X86
-@@ -1213,25 +1173,6 @@ config SENSORS_ATK0110
- 	  This driver can also be built as a module. If so, the module
- 	  will be called asus_atk0110.
- 
--config HP_ACCEL
--	tristate "HP laptop accelerometer"
--	depends on INPUT
--	select SENSORS_LIS3LV02D
--	select NEW_LEDS
--	select LEDS_CLASS
--	default n
--	help
--	  This driver provides support for the "Mobile Data Protection System 3D"
--	  or "3D DriveGuard" feature of HP laptops. On such systems the driver
--	  should load automatically (via ACPI alias).
--
--	  Support for a led indicating disk protection will be provided as
--	  hp::hddprotect. For more information on the feature, refer to
--	  Documentation/hwmon/lis3lv02d.
--
--	  To compile this driver as a module, choose M here: the module will
--	  be called hp_accel.
--
- endif # ACPI
- 
- endif # HWMON
---- linux-2.6.38-rc5.orig/drivers/hwmon/Makefile	2011-02-20 12:58:24.000000000 +0100
-+++ linux-2.6.38-rc5/drivers/hwmon/Makefile	2011-02-20 12:58:24.000000000 +0100
-@@ -10,7 +10,6 @@ obj-$(CONFIG_SENSORS_LIS3LV02D) += lis3l
- 
- # APCI drivers
- obj-$(CONFIG_SENSORS_ATK0110)	+= asus_atk0110.o
--obj-$(CONFIG_HP_ACCEL)		+= hp_accel.o
- 
- # Native drivers
- # asb100, then w83781d go first, as they can override other drivers' addresses.
---- linux-2.6.38-rc5.orig/drivers/platform/x86/Kconfig	2011-02-19 16:50:32.000000000 +0100
-+++ linux-2.6.38-rc5/drivers/platform/x86/Kconfig	2011-02-20 12:58:24.000000000 +0100
-@@ -138,6 +138,24 @@ config TC1100_WMI
- 	  This is a driver for the WMI extensions (wireless and bluetooth power
- 	  control) of the HP Compaq TC1100 tablet.
- 
-+config HP_ACCEL
-+	tristate "HP laptop accelerometer"
-+	depends on INPUT && ACPI
-+	select SENSORS_LIS3LV02D
-+	select NEW_LEDS
-+	select LEDS_CLASS
-+	help
-+	  This driver provides support for the "Mobile Data Protection System 3D"
-+	  or "3D DriveGuard" feature of HP laptops. On such systems the driver
-+	  should load automatically (via ACPI alias).
-+
-+	  Support for a led indicating disk protection will be provided as
-+	  hp::hddprotect. For more information on the feature, refer to
-+	  Documentation/hwmon/lis3lv02d.
-+
-+	  To compile this driver as a module, choose M here: the module will
-+	  be called hp_accel.
-+
- config HP_WMI
- 	tristate "HP WMI extras"
- 	depends on ACPI_WMI
---- linux-2.6.38-rc5.orig/drivers/platform/x86/Makefile	2011-02-19 16:50:32.000000000 +0100
-+++ linux-2.6.38-rc5/drivers/platform/x86/Makefile	2011-02-20 12:58:24.000000000 +0100
-@@ -12,6 +12,7 @@ obj-$(CONFIG_DELL_LAPTOP)	+= dell-laptop
- obj-$(CONFIG_DELL_WMI)		+= dell-wmi.o
- obj-$(CONFIG_ACER_WMI)		+= acer-wmi.o
- obj-$(CONFIG_ACERHDF)		+= acerhdf.o
-+obj-$(CONFIG_HP_ACCEL)		+= hp_accel.o
- obj-$(CONFIG_HP_WMI)		+= hp-wmi.o
- obj-$(CONFIG_TC1100_WMI)	+= tc1100-wmi.o
- obj-$(CONFIG_SONY_LAPTOP)	+= sony-laptop.o
---- linux-2.6.38-rc5.orig/Documentation/hwmon/hpfall.c	2011-01-05 21:20:44.000000000 +0100
-+++ /dev/null	1970-01-01 00:00:00.000000000 +0000
-@@ -1,146 +0,0 @@
--/* Disk protection for HP machines.
-- *
-- * Copyright 2008 Eric Piel
-- * Copyright 2009 Pavel Machek <pavel@ucw.cz>
-- *
-- * GPLv2.
-- */
--
--#include <stdio.h>
--#include <stdlib.h>
--#include <unistd.h>
--#include <fcntl.h>
--#include <sys/stat.h>
--#include <sys/types.h>
--#include <string.h>
--#include <stdint.h>
--#include <errno.h>
--#include <signal.h>
--#include <sys/mman.h>
--#include <sched.h>
--
--char unload_heads_path[64];
--
--int set_unload_heads_path(char *device)
--{
--	char devname[64];
--
--	if (strlen(device) <= 5 || strncmp(device, "/dev/", 5) != 0)
--		return -EINVAL;
--	strncpy(devname, device + 5, sizeof(devname));
--
--	snprintf(unload_heads_path, sizeof(unload_heads_path),
--				"/sys/block/%s/device/unload_heads", devname);
--	return 0;
--}
--int valid_disk(void)
--{
--	int fd = open(unload_heads_path, O_RDONLY);
--	if (fd < 0) {
--		perror(unload_heads_path);
--		return 0;
--	}
--
--	close(fd);
--	return 1;
--}
--
--void write_int(char *path, int i)
--{
--	char buf[1024];
--	int fd = open(path, O_RDWR);
--	if (fd < 0) {
--		perror("open");
--		exit(1);
--	}
--	sprintf(buf, "%d", i);
--	if (write(fd, buf, strlen(buf)) != strlen(buf)) {
--		perror("write");
--		exit(1);
--	}
--	close(fd);
--}
--
--void set_led(int on)
--{
--	write_int("/sys/class/leds/hp::hddprotect/brightness", on);
--}
--
--void protect(int seconds)
--{
--	write_int(unload_heads_path, seconds*1000);
--}
--
--int on_ac(void)
--{
--//	/sys/class/power_supply/AC0/online
--}
--
--int lid_open(void)
--{
--//	/proc/acpi/button/lid/LID/state
--}
--
--void ignore_me(void)
--{
--	protect(0);
--	set_led(0);
--}
--
--int main(int argc, char **argv)
--{
--	int fd, ret;
--	struct sched_param param;
--
--	if (argc = 1)
--		ret = set_unload_heads_path("/dev/sda");
--	else if (argc = 2)
--		ret = set_unload_heads_path(argv[1]);
--	else
--		ret = -EINVAL;
--
--	if (ret || !valid_disk()) {
--		fprintf(stderr, "usage: %s <device> (default: /dev/sda)\n",
--				argv[0]);
--		exit(1);
--	}
--
--	fd = open("/dev/freefall", O_RDONLY);
--	if (fd < 0) {
--		perror("/dev/freefall");
--		return EXIT_FAILURE;
--	}
--
--	daemon(0, 0);
--	param.sched_priority = sched_get_priority_max(SCHED_FIFO);
--	sched_setscheduler(0, SCHED_FIFO, &param);
--	mlockall(MCL_CURRENT|MCL_FUTURE);
--
--	signal(SIGALRM, ignore_me);
--
--	for (;;) {
--		unsigned char count;
--
--		ret = read(fd, &count, sizeof(count));
--		alarm(0);
--		if ((ret = -1) && (errno = EINTR)) {
--			/* Alarm expired, time to unpark the heads */
--			continue;
--		}
--
--		if (ret != sizeof(count)) {
--			perror("read");
--			break;
--		}
--
--		protect(21);
--		set_led(1);
--		if (1 || on_ac() || lid_open())
--			alarm(2);
--		else
--			alarm(20);
--	}
--
--	close(fd);
--	return EXIT_SUCCESS;
--}
---- linux-2.6.38-rc5.orig/Documentation/hwmon/lis3lv02d	2010-08-02 00:11:14.000000000 +0200
-+++ linux-2.6.38-rc5/Documentation/hwmon/lis3lv02d	2011-02-20 12:59:02.000000000 +0100
-@@ -17,8 +17,8 @@ Description
- This driver provides support for the accelerometer found in various HP laptops
- sporting the feature officially called "HP Mobile Data Protection System 3D" or
- "HP 3D DriveGuard". It detects automatically laptops with this sensor. Known
--models (full list can be found in drivers/hwmon/hp_accel.c) will have their
--axis automatically oriented on standard way (eg: you can directly play
-+models (full list can be found in drivers/platform/x86/hp_accel.c) will have
-+their axis automatically oriented on standard way (eg: you can directly play
- neverball). The accelerometer data is readable via
- /sys/devices/platform/lis3lv02d. Reported values are scaled
- to mg values (1/1000th of earth gravity).
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ linux-2.6.38-rc5/Documentation/laptops/hpfall.c	2011-01-05 21:20:44.000000000 +0100
-@@ -0,0 +1,146 @@
-+/* Disk protection for HP machines.
-+ *
-+ * Copyright 2008 Eric Piel
-+ * Copyright 2009 Pavel Machek <pavel@ucw.cz>
-+ *
-+ * GPLv2.
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+#include <string.h>
-+#include <stdint.h>
-+#include <errno.h>
-+#include <signal.h>
-+#include <sys/mman.h>
-+#include <sched.h>
-+
-+char unload_heads_path[64];
-+
-+int set_unload_heads_path(char *device)
-+{
-+	char devname[64];
-+
-+	if (strlen(device) <= 5 || strncmp(device, "/dev/", 5) != 0)
-+		return -EINVAL;
-+	strncpy(devname, device + 5, sizeof(devname));
-+
-+	snprintf(unload_heads_path, sizeof(unload_heads_path),
-+				"/sys/block/%s/device/unload_heads", devname);
-+	return 0;
-+}
-+int valid_disk(void)
-+{
-+	int fd = open(unload_heads_path, O_RDONLY);
-+	if (fd < 0) {
-+		perror(unload_heads_path);
-+		return 0;
-+	}
-+
-+	close(fd);
-+	return 1;
-+}
-+
-+void write_int(char *path, int i)
-+{
-+	char buf[1024];
-+	int fd = open(path, O_RDWR);
-+	if (fd < 0) {
-+		perror("open");
-+		exit(1);
-+	}
-+	sprintf(buf, "%d", i);
-+	if (write(fd, buf, strlen(buf)) != strlen(buf)) {
-+		perror("write");
-+		exit(1);
-+	}
-+	close(fd);
-+}
-+
-+void set_led(int on)
-+{
-+	write_int("/sys/class/leds/hp::hddprotect/brightness", on);
-+}
-+
-+void protect(int seconds)
-+{
-+	write_int(unload_heads_path, seconds*1000);
-+}
-+
-+int on_ac(void)
-+{
-+//	/sys/class/power_supply/AC0/online
-+}
-+
-+int lid_open(void)
-+{
-+//	/proc/acpi/button/lid/LID/state
-+}
-+
-+void ignore_me(void)
-+{
-+	protect(0);
-+	set_led(0);
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int fd, ret;
-+	struct sched_param param;
-+
-+	if (argc = 1)
-+		ret = set_unload_heads_path("/dev/sda");
-+	else if (argc = 2)
-+		ret = set_unload_heads_path(argv[1]);
-+	else
-+		ret = -EINVAL;
-+
-+	if (ret || !valid_disk()) {
-+		fprintf(stderr, "usage: %s <device> (default: /dev/sda)\n",
-+				argv[0]);
-+		exit(1);
-+	}
-+
-+	fd = open("/dev/freefall", O_RDONLY);
-+	if (fd < 0) {
-+		perror("/dev/freefall");
-+		return EXIT_FAILURE;
-+	}
-+
-+	daemon(0, 0);
-+	param.sched_priority = sched_get_priority_max(SCHED_FIFO);
-+	sched_setscheduler(0, SCHED_FIFO, &param);
-+	mlockall(MCL_CURRENT|MCL_FUTURE);
-+
-+	signal(SIGALRM, ignore_me);
-+
-+	for (;;) {
-+		unsigned char count;
-+
-+		ret = read(fd, &count, sizeof(count));
-+		alarm(0);
-+		if ((ret = -1) && (errno = EINTR)) {
-+			/* Alarm expired, time to unpark the heads */
-+			continue;
-+		}
-+
-+		if (ret != sizeof(count)) {
-+			perror("read");
-+			break;
-+		}
-+
-+		protect(21);
-+		set_led(1);
-+		if (1 || on_ac() || lid_open())
-+			alarm(2);
-+		else
-+			alarm(20);
-+	}
-+
-+	close(fd);
-+	return EXIT_SUCCESS;
-+}
+>  Documentation/hwmon/ads1015 |   72 +++++++++++
+>  drivers/hwmon/Kconfig       |   10 ++
+>  drivers/hwmon/Makefile      |    1 +
+>  drivers/hwmon/ads1015.c     |  295 +++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/i2c/ads1015.h |   30 +++++
+>  5 files changed, 408 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/hwmon/ads1015
+>  create mode 100644 drivers/hwmon/ads1015.c
+>  create mode 100644 include/linux/i2c/ads1015.h
+> 
+> diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
+> new file mode 100644
+> index 0000000..2494e99
+> --- /dev/null
+> +++ b/Documentation/hwmon/ads1015
+> @@ -0,0 +1,72 @@
+> +Kernel driver ads1015
+> +==========> +
+> +Supported chips:
+> +  * Texas Instruments ADS1015
+> +    Prefix: 'ads1015'
+> +    Datasheet: Publicly available at the Texas Instruments website :
+> +               http://focus.ti.com/lit/ds/symlink/ads1015.pdf
+> +
+> +Authors:
+> +        Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
+> +
+> +Description
+> +-----------
+> +
+> +This driver implements support for the Texas Instruments ADS1015.
+> +
+> +This device is a 12-bit A-D converter with 4 inputs.
+> +
+> +The inputs can be used single ended or in certain differential combinations.
+> +
+> +The inputs are mapped to 8 sysfs input files in0_input - in7_input.
+> +The mapping can be configured using platform data or devicetree.
+> +
+> +Data sources for configuration:
+> +0: Voltage over AIN0 and AIN1.
+> +1: Voltage over AIN0 and AIN3.
+> +2: Voltage over AIN1 and AIN3.
+> +3: Voltage over AIN2 and AIN3.
+> +4: Voltage over AIN0 and GND.
+> +5: Voltage over AIN1 and GND.
+> +6: Voltage over AIN2 and GND.
+> +7: Voltage over AIN3 and GND.
+> +Any other value: disable
+> +
+> +By default in0_input is mapped to source 0, in1_input to source 1 and so on.
+
+I see that you went for dynamic naming of sysfs files. I would have
+used a different strategy which would make the code much more simple.
+You can keep static sysfs file names, and instantiate them
+conditionally. Maybe you were not aware of this, but it is perfectly
+fine for an hwmon device to number its inputs non-linearly, and as a
+matter of fact many hwmon driver do this.
+
+For example, a setup where each input is used single-ended would result
+in a hwmon device with attributes in4_input, in5_input, in6_input and
+in7_input.
+
+> +
+> +Platform Data
+> +-------------
+> +
+> +In linux/i2c/ads1015.h platform data is defined as:
+> +
+> +struct ads1015_platform_data {
+> +	int exported_channels[8];
+> +};
+> +
+> +exported_channels contains the data sources for the 8 sysfs input files.
+> +
+> +Example:
+> +struct ads1015_platform_data data = {
+> +	4, 2, -1, -1, -1, -1, -1, -1 };
+> +
+> +In this case only in0_input and in1_input would be created.
+> +in0_input would give the voltage over AIN0 and GND.
+> +in0_input would give the voltage over AIN1 and AIN3.
+
+With my proposal, the platform data could be a single bitfield, where
+each bit says enable or disable the corresponding sysfs attribute. For
+example:
+
+struct ads1015_platform_data {
+	unsigned int channels;
+};
+
+Example:
+struct ads1015_platform_data data = {
+	.channels = (1 << 4) | (1 << 2)
+}
+
+The only drawback of my proposal is that you can't create the
+attributes by group, you have to create them individually. Not a
+problem in practice though. I suggest that you give it a try and see
+what you prefer.
+
+> +
+> +Devicetree
+> +----------
+> +
+> +The ads1015 node may have an "exported-channels" property with 8 integer
+> +values. The 8 values are the data sources for the 8 sysfs input files.
+> +
+> +Example:
+> +ads1015@49 {
+> +	compatible = "ti,ads1015";
+> +	reg = <0x49>;
+> +	exported-channels = < 4 2 0xff 0xff 0xff 0xff 0xff 0xff >;
+> +};
+> +
+> +In this case only in0_input and in1_input would be created.
+> +in0_input would give the voltage over AIN0 and GND.
+> +in0_input would give the voltage over AIN1 and AIN3.
+
+You meant "in1_input" the second time.
+
+Do you have an actual need for this? I think devicetree attributes have
+to be discussed and documented appropriately? I admit I am not too
+familiar with this.
+
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 773e484..7e247f7 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -871,6 +871,16 @@ config SENSORS_SMSC47B397
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called smsc47b397.
+>  
+> +config SENSORS_ADS1015
+> +	tristate "Texas Instruments ADS1015"
+> +	depends on I2C
+> +	help
+> +	  If you say yes here you get support for Texas Instruments ADS1015
+> +	  12-bit 4-input ADC device.
+> +
+> +	  This driver can also be built as a module.  If so, the module
+> +	  will be called ads1015.
+> +
+>  config SENSORS_ADS7828
+>  	tristate "Texas Instruments ADS7828"
+>  	depends on I2C
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index dde02d9..aae4036 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -29,6 +29,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
+>  obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
+>  obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
+>  obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
+> +obj-$(CONFIG_SENSORS_ADS1015)	+= ads1015.o
+>  obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
+>  obj-$(CONFIG_SENSORS_ADS7871)	+= ads7871.o
+>  obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
+> diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+> new file mode 100644
+> index 0000000..cf7aff4
+> --- /dev/null
+> +++ b/drivers/hwmon/ads1015.c
+> @@ -0,0 +1,295 @@
+> +/*
+> + * ads1015.c - lm_sensors driver for ads1015 12-bit 4-input ADC
+> + * (C) Copyright 2010
+> + * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
+> + *
+> + * Based on the ads7828 driver by Steve Hardy.
+> + *
+> + * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads1015.pdf
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/i2c.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/err.h>
+> +#include <linux/mutex.h>
+
+You have to include <linux/of.h> for device tree support.
+
+> +#include <linux/i2c/ads1015.h>
+> +
+> +/* ADS1015 registers */
+> +enum {
+> +	ADS1015_CONVERSION = 0,
+> +	ADS1015_CONFIG = 1,
+> +};
+> +
+> +/* PGA fullscale voltages in mV */
+> +static const unsigned int fullscale_table[8] = {
+> +	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
+> +
+> +/* Default set of exported channels */
+> +#define ADS1015_CONFIG_CHANNELS 8
+> +static const int default_channels[ADS1015_CONFIG_CHANNELS] = {
+> +	0, 1, 2, 3, 4, 5, 6, 7 };
+> +
+> +/* strings for sysfs */
+> +static const char *input_names[8] = {
+> +	"in0_input",
+> +	"in1_input",
+> +	"in2_input",
+> +	"in3_input",
+> +	"in4_input",
+> +	"in5_input",
+> +	"in6_input",
+> +	"in7_input"
+> +};
+> +
+> +struct ads1015_data {
+> +	struct device *hwmon_dev;
+> +	struct mutex update_lock; /* mutex protect updates */
+> +	struct sensor_device_attribute attr[ADS1015_CONFIG_CHANNELS];
+> +	struct attribute *attr_table[ADS1015_CONFIG_CHANNELS + 1];
+> +	struct attribute_group attr_group;
+> +};
+> +
+> +static s32 ads1015_read_reg(struct i2c_client *client, unsigned int reg)
+> +{
+> +	s32 data = i2c_smbus_read_word_data(client, reg);
+> +
+> +	return (data < 0) ? data : swab16(data);
+> +}
+> +
+> +static s32 ads1015_write_reg(struct i2c_client *client, unsigned int reg,
+> +			     u16 val)
+> +{
+> +	return i2c_smbus_write_word_data(client, reg, swab16(val));
+> +}
+> +
+> +static int ads1015_read_value(struct i2c_client *client, unsigned int channel,
+> +			      int *value)
+> +{
+> +	u16 config;
+> +	s16 conversion;
+> +	unsigned int pga;
+> +	int fullscale;
+> +	unsigned int k;
+> +	struct ads1015_data *data = i2c_get_clientdata(client);
+> +	int res;
+> +
+> +	mutex_lock(&data->update_lock);
+> +
+> +	/* get fullscale voltage */
+> +	res = ads1015_read_reg(client, ADS1015_CONFIG);
+> +	if (res < 0)
+> +		goto err_unlock;
+> +	config = res;
+> +	pga = (config >> 9) & 0x0007;
+> +	fullscale = fullscale_table[pga];
+
+You only read the fullscale value. Now that we have platform data
+attached to the device, don't you think it would make sense to let the
+user set it, possibly even define different values for each "virtual
+channel"? I can imagine that different scaling factors make sense for
+single-ended vs. differential measurements, or even for different
+single-ended inputs.
+
+This is just a question, BTW, this feature can be added later if needed.
+
+> +
+> +	/* set channel and start single conversion */
+> +	config &= ~(0x0007 << 12);
+> +	config |= (1 << 15) | (1 << 8) | (channel & 0x0007) << 12;
+> +
+> +	/* wait until conversion finished */
+> +	res = ads1015_write_reg(client, ADS1015_CONFIG, config);
+> +	if (res < 0)
+> +		goto err_unlock;
+> +	for (k = 0; k < 5; ++k) {
+> +		schedule_timeout(msecs_to_jiffies(1));
+> +		res = ads1015_read_reg(client, ADS1015_CONFIG);
+> +		if (res < 0)
+> +			goto err_unlock;
+> +		config = res;
+> +		if (config & (1 << 15))
+> +			break;
+> +	}
+> +	if (k = 5) {
+> +		res = -EIO;
+> +		goto err_unlock;
+> +	}
+> +
+> +	res = ads1015_read_reg(client, ADS1015_CONVERSION);
+> +	if (res < 0)
+> +		goto err_unlock;
+> +	conversion = res;
+> +
+> +	mutex_unlock(&data->update_lock);
+> +
+> +	*value = DIV_ROUND_CLOSEST(conversion * fullscale, 0x7ff0);
+> +
+> +	return 0;
+> +
+> +err_unlock:
+> +	mutex_unlock(&data->update_lock);
+> +	return res;
+> +}
+> +
+> +/* sysfs callback function */
+> +static ssize_t show_in(struct device *dev, struct device_attribute *da,
+> +	char *buf)
+> +{
+> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	int in;
+> +	int res;
+> +
+> +	res = ads1015_read_value(client, attr->index, &in);
+> +
+> +	return (res < 0) ? res : sprintf(buf, "%d\n", in);
+> +}
+> +
+> +/*
+> + * Driver interface
+> + */
+> +
+> +static int ads1015_remove(struct i2c_client *client)
+> +{
+> +	struct ads1015_data *data = i2c_get_clientdata(client);
+> +	hwmon_device_unregister(data->hwmon_dev);
+> +	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
+> +	kfree(data);
+> +	return 0;
+> +}
+> +
+> +static void ads1015_get_exported_channels(struct i2c_client *client,
+> +					  int *exported_channels)
+> +{
+> +	struct ads1015_platform_data *pdata = dev_get_platdata(&client->dev);
+> +#ifdef CONFIG_OF
+> +	struct device_node *np = client->dev.of_node;
+> +	const int *of_channels;
+> +	int of_channels_size;
+> +#endif
+> +
+> +	/* prefer platform data */
+> +	if (pdata) {
+> +		memcpy(exported_channels, pdata->exported_channels,
+> +		       sizeof(default_channels));
+> +		return;
+> +	}
+> +
+> +#ifdef CONFIG_OF
+> +	/* fallback on OF */
+> +	of_channels = of_get_property(np, "exported-channels",
+> +				      &of_channels_size);
+> +	if (of_channels && (of_channels_size = sizeof(default_channels))) {
+> +		memcpy(exported_channels, of_channels,
+> +		       sizeof(default_channels));
+> +		return;
+> +	}
+> +#endif
+> +
+> +	/* fallback on default configuration */
+> +	memcpy(exported_channels, default_channels, sizeof(default_channels));
+> +}
+
+Why don't you just return a pointer to the data? You only need the data
+during probe and you make no changes to it, so I see no need to copy
+the data.
+
+> +
+> +/* create sysfs attribute according to channel setup */
+> +static struct attribute *ads1015_export_channel(struct i2c_client *client,
+> +						unsigned int input, int channel)
+> +{
+> +	struct ads1015_data *data = i2c_get_clientdata(client);
+> +	struct sensor_device_attribute attr > +		SENSOR_ATTR(input, S_IRUGO, show_in, NULL, channel);
+> +
+> +	attr_name(attr.dev_attr) = input_names[input];
+> +
+> +	memcpy(&data->attr[input], &attr, sizeof(attr));
+> +
+> +	return &data->attr[input].dev_attr.attr;
+> +}
+> +
+> +static int ads1015_probe(struct i2c_client *client,
+> +			 const struct i2c_device_id *id)
+> +{
+> +	struct ads1015_data *data;
+> +	int err;
+> +	int exported_channels[ADS1015_CONFIG_CHANNELS];
+> +	unsigned int k;
+> +	unsigned int act_attr = 0;
+
+"act"?
+
+> +
+> +	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
+> +	if (!data) {
+> +		err = -ENOMEM;
+> +		goto exit;
+> +	}
+> +
+> +	i2c_set_clientdata(client, data);
+> +	mutex_init(&data->update_lock);
+> +
+> +	/* Register sysfs hooks */
+> +	data->attr_group.attrs = data->attr_table;
+> +	ads1015_get_exported_channels(client, exported_channels);
+> +	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
+> +		int channel = exported_channels[k];
+> +		if ((channel < 0) || (channel > 7))
+
+You don't need all these parentheses.
+
+> +			continue;
+
+Is there any benefit in continuing here, as opposed to breaking?
+Breaking would let you use k below to index data->attr_table, instead
+of tracking act_attr separately.
+
+> +		data->attr_table[act_attr++] > +			ads1015_export_channel(client, k, channel);
+> +	}
+> +	err = sysfs_create_group(&client->dev.kobj, &data->attr_group);
+> +	if (err)
+> +		goto exit_free;
+> +
+> +	data->hwmon_dev = hwmon_device_register(&client->dev);
+> +	if (IS_ERR(data->hwmon_dev)) {
+> +		err = PTR_ERR(data->hwmon_dev);
+> +		goto exit_remove;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_remove:
+> +	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
+> +exit_free:
+> +	kfree(data);
+> +exit:
+> +	return err;
+> +}
+> +
+> +static const struct i2c_device_id ads1015_id[] = {
+> +	{ "ads1015", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, ads1015_id);
+> +
+> +static struct i2c_driver ads1015_driver = {
+> +	.driver = {
+> +		.name = "ads1015",
+> +	},
+> +	.probe = ads1015_probe,
+> +	.remove = ads1015_remove,
+> +	.id_table = ads1015_id,
+> +};
+> +
+> +static int __init sensors_ads1015_init(void)
+> +{
+> +	return i2c_add_driver(&ads1015_driver);
+> +}
+> +
+> +static void __exit sensors_ads1015_exit(void)
+> +{
+> +	i2c_del_driver(&ads1015_driver);
+> +}
+> +
+> +MODULE_AUTHOR("Dirk Eibach <eibach@gdsys.de>");
+> +MODULE_DESCRIPTION("ADS1015 driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +module_init(sensors_ads1015_init);
+> +module_exit(sensors_ads1015_exit);
+> diff --git a/include/linux/i2c/ads1015.h b/include/linux/i2c/ads1015.h
+> new file mode 100644
+> index 0000000..152bf5f
+> --- /dev/null
+> +++ b/include/linux/i2c/ads1015.h
+> @@ -0,0 +1,30 @@
+> +/*
+> + * Platform Data for ADS1015 12-bit 4-input ADC
+> + * (C) Copyright 2010
+> + * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef LINUX_ADS1015_H
+> +#define LINUX_ADS1015_H
+> +
+> +#include <linux/types.h>
+
+You don't use anything from that header file.
+
+> +
+> +struct ads1015_platform_data {
+> +	int exported_channels[8];
+> +};
+> +
+> +#endif /* LINUX_ADS1015_H */
+
 
 -- 
 Jean Delvare
