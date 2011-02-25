@@ -1,29 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 26 Feb 2011 14:06:46 +0000
-Subject: Re: [lm-sensors] [PATCH v4 0/4] hwmon: Add support for EMC6D103S
-Message-Id: <20110226150646.6a3c97a7@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 25 Feb 2011 17:21:26 +0000
+Subject: [lm-sensors] [PATCH v3 3/4] hwmon: (lm85) Do not update hysteresis
+Message-Id: <1298654487-30232-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1298660246-6484-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1298660246-6484-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 25 Feb 2011 10:57:22 -0800, Guenter Roeck wrote:
-> This patchset adds support for EMC6D103S, plus some additional cleanups.
-> 
-> v4:
-> - Replaced vid5 configuration macro with boolean
-> - Swapped parameters of lm85_remove_files()
-> - Removed now unnecessary variable off_desired
+So far, the driver updates temp_auto_hyst and temp_auto_off if temp_auto_min changes.
+This may cause problems if temp_auto_off was not configured before configuring
+temp_auto_min, because one of the variables used (off_desired) is not initialized
+in this case.
 
-Looks alright this time. For the whole patch set:
+To simplify the code, and for consistency with other drivers, no longer update the delta
+between "min" and "off" until the user sets the "off" value again.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm85.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 1a9540a..a2fcf67 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -936,18 +936,6 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
+ 		((data->zone[nr].range & 0x0f) << 4)
+ 		| (data->pwm_freq[nr] & 0x07));
+ 
+-/* Update temp_auto_hyst and temp_auto_off */
+-	data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
+-		data->zone[nr].limit) - TEMP_FROM_REG(
+-		data->zone[nr].off_desired));
+-	if (nr = 0 || nr = 1) {
+-		lm85_write_value(client, LM85_REG_AFAN_HYST1,
+-			(data->zone[0].hyst << 4)
+-			| data->zone[1].hyst);
+-	} else {
+-		lm85_write_value(client, LM85_REG_AFAN_HYST2,
+-			(data->zone[2].hyst << 4));
+-	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
