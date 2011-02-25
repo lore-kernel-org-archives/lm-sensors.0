@@ -1,575 +1,214 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 24 Feb 2011 16:48:07 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: Add support for Texas
-Message-Id: <20110224174807.41c7597f@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 25 Feb 2011 18:57:26 +0000
+Subject: [lm-sensors] [PATCH v4 4/4] hwmon: (lm85) Add support for EMC6D103S
+Message-Id: <1298660246-6484-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110217134203.0556a7ab@endymion.delvare>
- <1298024158-21076-1-git-send-email-eibach@gdsys.de>
-In-Reply-To: <1298024158-21076-1-git-send-email-eibach@gdsys.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dirk Eibach <eibach@gdsys.de>
-Cc: linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Dirk,
+EMC6D103S is similar to EMC6D103, only it does not support registers 62[5:7],
+6D[0:7], and 6E[0:7]. Register respective sysfs attributes and update affected
+registers for all other chips only.
 
-Sorry for the late reply.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+---
+ Documentation/hwmon/lm85 |   12 +++++++-
+ drivers/hwmon/lm85.c     |   75 +++++++++++++++++++++++++++++++--------------
+ 2 files changed, 62 insertions(+), 25 deletions(-)
 
-On Fri, 18 Feb 2011 11:15:58 +0100, Dirk Eibach wrote:
-> Signed-off-by: Dirk Eibach <eibach@gdsys.de>
-> ---
-> Changes since v1:
-> - fixed/extended Documentation
-> - removed unused register definitions
-> - hardcoded PGA fullscale table size
-> - made sure patch applies against v2.6.38-rc4
-> - reordered functions to avoid forward declaration
-> - results from i2c_smbus_read_word_data() are handled correctly
-> - moved locking into ads1015_read_value()
-> - removed unnecessray clearing of bit
-> - proper error handling in ads1015_read_value()
-> - use DIV_ROUND_CLOSEST for scaling result
-> - removed detect()
-> 
-> Changes since v2:
-> - removed *all* leftovers from detect()
-> - fixed return with mutex held
-> - made sysfs representation configurable
->   (hope this will be the reference implementation for generations to come ;)
-
-Thanks for your continued work on this driver. The changes this time
-are important enough to warrant a full review. Here we go:
-
->  Documentation/hwmon/ads1015 |   72 +++++++++++
->  drivers/hwmon/Kconfig       |   10 ++
->  drivers/hwmon/Makefile      |    1 +
->  drivers/hwmon/ads1015.c     |  295 +++++++++++++++++++++++++++++++++++++++++++
->  include/linux/i2c/ads1015.h |   30 +++++
->  5 files changed, 408 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/ads1015
->  create mode 100644 drivers/hwmon/ads1015.c
->  create mode 100644 include/linux/i2c/ads1015.h
-> 
-> diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
-> new file mode 100644
-> index 0000000..2494e99
-> --- /dev/null
-> +++ b/Documentation/hwmon/ads1015
-> @@ -0,0 +1,72 @@
-> +Kernel driver ads1015
-> +==========> +
-> +Supported chips:
-> +  * Texas Instruments ADS1015
-> +    Prefix: 'ads1015'
-> +    Datasheet: Publicly available at the Texas Instruments website :
-> +               http://focus.ti.com/lit/ds/symlink/ads1015.pdf
-> +
-> +Authors:
-> +        Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
-> +
-> +Description
-> +-----------
-> +
-> +This driver implements support for the Texas Instruments ADS1015.
-> +
-> +This device is a 12-bit A-D converter with 4 inputs.
-> +
-> +The inputs can be used single ended or in certain differential combinations.
-> +
-> +The inputs are mapped to 8 sysfs input files in0_input - in7_input.
-> +The mapping can be configured using platform data or devicetree.
-> +
-> +Data sources for configuration:
-> +0: Voltage over AIN0 and AIN1.
-> +1: Voltage over AIN0 and AIN3.
-> +2: Voltage over AIN1 and AIN3.
-> +3: Voltage over AIN2 and AIN3.
-> +4: Voltage over AIN0 and GND.
-> +5: Voltage over AIN1 and GND.
-> +6: Voltage over AIN2 and GND.
-> +7: Voltage over AIN3 and GND.
-> +Any other value: disable
-> +
-> +By default in0_input is mapped to source 0, in1_input to source 1 and so on.
-
-I see that you went for dynamic naming of sysfs files. I would have
-used a different strategy which would make the code much more simple.
-You can keep static sysfs file names, and instantiate them
-conditionally. Maybe you were not aware of this, but it is perfectly
-fine for an hwmon device to number its inputs non-linearly, and as a
-matter of fact many hwmon driver do this.
-
-For example, a setup where each input is used single-ended would result
-in a hwmon device with attributes in4_input, in5_input, in6_input and
-in7_input.
-
-> +
-> +Platform Data
-> +-------------
-> +
-> +In linux/i2c/ads1015.h platform data is defined as:
-> +
-> +struct ads1015_platform_data {
-> +	int exported_channels[8];
-> +};
-> +
-> +exported_channels contains the data sources for the 8 sysfs input files.
-> +
-> +Example:
-> +struct ads1015_platform_data data = {
-> +	4, 2, -1, -1, -1, -1, -1, -1 };
-> +
-> +In this case only in0_input and in1_input would be created.
-> +in0_input would give the voltage over AIN0 and GND.
-> +in0_input would give the voltage over AIN1 and AIN3.
-
-With my proposal, the platform data could be a single bitfield, where
-each bit says enable or disable the corresponding sysfs attribute. For
-example:
-
-struct ads1015_platform_data {
-	unsigned int channels;
-};
-
-Example:
-struct ads1015_platform_data data = {
-	.channels = (1 << 4) | (1 << 2)
-}
-
-The only drawback of my proposal is that you can't create the
-attributes by group, you have to create them individually. Not a
-problem in practice though. I suggest that you give it a try and see
-what you prefer.
-
-> +
-> +Devicetree
-> +----------
-> +
-> +The ads1015 node may have an "exported-channels" property with 8 integer
-> +values. The 8 values are the data sources for the 8 sysfs input files.
-> +
-> +Example:
-> +ads1015@49 {
-> +	compatible = "ti,ads1015";
-> +	reg = <0x49>;
-> +	exported-channels = < 4 2 0xff 0xff 0xff 0xff 0xff 0xff >;
-> +};
-> +
-> +In this case only in0_input and in1_input would be created.
-> +in0_input would give the voltage over AIN0 and GND.
-> +in0_input would give the voltage over AIN1 and AIN3.
-
-You meant "in1_input" the second time.
-
-Do you have an actual need for this? I think devicetree attributes have
-to be discussed and documented appropriately? I admit I am not too
-familiar with this.
-
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 773e484..7e247f7 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -871,6 +871,16 @@ config SENSORS_SMSC47B397
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called smsc47b397.
->  
-> +config SENSORS_ADS1015
-> +	tristate "Texas Instruments ADS1015"
-> +	depends on I2C
-> +	help
-> +	  If you say yes here you get support for Texas Instruments ADS1015
-> +	  12-bit 4-input ADC device.
-> +
-> +	  This driver can also be built as a module.  If so, the module
-> +	  will be called ads1015.
-> +
->  config SENSORS_ADS7828
->  	tristate "Texas Instruments ADS7828"
->  	depends on I2C
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index dde02d9..aae4036 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -29,6 +29,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
->  obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
->  obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
->  obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
-> +obj-$(CONFIG_SENSORS_ADS1015)	+= ads1015.o
->  obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
->  obj-$(CONFIG_SENSORS_ADS7871)	+= ads7871.o
->  obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
-> diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-> new file mode 100644
-> index 0000000..cf7aff4
-> --- /dev/null
-> +++ b/drivers/hwmon/ads1015.c
-> @@ -0,0 +1,295 @@
-> +/*
-> + * ads1015.c - lm_sensors driver for ads1015 12-bit 4-input ADC
-> + * (C) Copyright 2010
-> + * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
-> + *
-> + * Based on the ads7828 driver by Steve Hardy.
-> + *
-> + * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads1015.pdf
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
-
-You have to include <linux/of.h> for device tree support.
-
-> +#include <linux/i2c/ads1015.h>
-> +
-> +/* ADS1015 registers */
-> +enum {
-> +	ADS1015_CONVERSION = 0,
-> +	ADS1015_CONFIG = 1,
-> +};
-> +
-> +/* PGA fullscale voltages in mV */
-> +static const unsigned int fullscale_table[8] = {
-> +	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
-> +
-> +/* Default set of exported channels */
-> +#define ADS1015_CONFIG_CHANNELS 8
-> +static const int default_channels[ADS1015_CONFIG_CHANNELS] = {
-> +	0, 1, 2, 3, 4, 5, 6, 7 };
-> +
-> +/* strings for sysfs */
-> +static const char *input_names[8] = {
-> +	"in0_input",
-> +	"in1_input",
-> +	"in2_input",
-> +	"in3_input",
-> +	"in4_input",
-> +	"in5_input",
-> +	"in6_input",
-> +	"in7_input"
-> +};
-> +
-> +struct ads1015_data {
-> +	struct device *hwmon_dev;
-> +	struct mutex update_lock; /* mutex protect updates */
-> +	struct sensor_device_attribute attr[ADS1015_CONFIG_CHANNELS];
-> +	struct attribute *attr_table[ADS1015_CONFIG_CHANNELS + 1];
-> +	struct attribute_group attr_group;
-> +};
-> +
-> +static s32 ads1015_read_reg(struct i2c_client *client, unsigned int reg)
-> +{
-> +	s32 data = i2c_smbus_read_word_data(client, reg);
-> +
-> +	return (data < 0) ? data : swab16(data);
-> +}
-> +
-> +static s32 ads1015_write_reg(struct i2c_client *client, unsigned int reg,
-> +			     u16 val)
-> +{
-> +	return i2c_smbus_write_word_data(client, reg, swab16(val));
-> +}
-> +
-> +static int ads1015_read_value(struct i2c_client *client, unsigned int channel,
-> +			      int *value)
-> +{
-> +	u16 config;
-> +	s16 conversion;
-> +	unsigned int pga;
-> +	int fullscale;
-> +	unsigned int k;
-> +	struct ads1015_data *data = i2c_get_clientdata(client);
-> +	int res;
-> +
-> +	mutex_lock(&data->update_lock);
-> +
-> +	/* get fullscale voltage */
-> +	res = ads1015_read_reg(client, ADS1015_CONFIG);
-> +	if (res < 0)
-> +		goto err_unlock;
-> +	config = res;
-> +	pga = (config >> 9) & 0x0007;
-> +	fullscale = fullscale_table[pga];
-
-You only read the fullscale value. Now that we have platform data
-attached to the device, don't you think it would make sense to let the
-user set it, possibly even define different values for each "virtual
-channel"? I can imagine that different scaling factors make sense for
-single-ended vs. differential measurements, or even for different
-single-ended inputs.
-
-This is just a question, BTW, this feature can be added later if needed.
-
-> +
-> +	/* set channel and start single conversion */
-> +	config &= ~(0x0007 << 12);
-> +	config |= (1 << 15) | (1 << 8) | (channel & 0x0007) << 12;
-> +
-> +	/* wait until conversion finished */
-> +	res = ads1015_write_reg(client, ADS1015_CONFIG, config);
-> +	if (res < 0)
-> +		goto err_unlock;
-> +	for (k = 0; k < 5; ++k) {
-> +		schedule_timeout(msecs_to_jiffies(1));
-> +		res = ads1015_read_reg(client, ADS1015_CONFIG);
-> +		if (res < 0)
-> +			goto err_unlock;
-> +		config = res;
-> +		if (config & (1 << 15))
-> +			break;
-> +	}
-> +	if (k = 5) {
-> +		res = -EIO;
-> +		goto err_unlock;
-> +	}
-> +
-> +	res = ads1015_read_reg(client, ADS1015_CONVERSION);
-> +	if (res < 0)
-> +		goto err_unlock;
-> +	conversion = res;
-> +
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	*value = DIV_ROUND_CLOSEST(conversion * fullscale, 0x7ff0);
-> +
-> +	return 0;
-> +
-> +err_unlock:
-> +	mutex_unlock(&data->update_lock);
-> +	return res;
-> +}
-> +
-> +/* sysfs callback function */
-> +static ssize_t show_in(struct device *dev, struct device_attribute *da,
-> +	char *buf)
-> +{
-> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-> +	struct i2c_client *client = to_i2c_client(dev);
-> +	int in;
-> +	int res;
-> +
-> +	res = ads1015_read_value(client, attr->index, &in);
-> +
-> +	return (res < 0) ? res : sprintf(buf, "%d\n", in);
-> +}
-> +
-> +/*
-> + * Driver interface
-> + */
-> +
-> +static int ads1015_remove(struct i2c_client *client)
-> +{
-> +	struct ads1015_data *data = i2c_get_clientdata(client);
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
-> +	kfree(data);
-> +	return 0;
-> +}
-> +
-> +static void ads1015_get_exported_channels(struct i2c_client *client,
-> +					  int *exported_channels)
-> +{
-> +	struct ads1015_platform_data *pdata = dev_get_platdata(&client->dev);
-> +#ifdef CONFIG_OF
-> +	struct device_node *np = client->dev.of_node;
-> +	const int *of_channels;
-> +	int of_channels_size;
-> +#endif
-> +
-> +	/* prefer platform data */
-> +	if (pdata) {
-> +		memcpy(exported_channels, pdata->exported_channels,
-> +		       sizeof(default_channels));
-> +		return;
-> +	}
-> +
-> +#ifdef CONFIG_OF
-> +	/* fallback on OF */
-> +	of_channels = of_get_property(np, "exported-channels",
-> +				      &of_channels_size);
-> +	if (of_channels && (of_channels_size = sizeof(default_channels))) {
-> +		memcpy(exported_channels, of_channels,
-> +		       sizeof(default_channels));
-> +		return;
-> +	}
-> +#endif
-> +
-> +	/* fallback on default configuration */
-> +	memcpy(exported_channels, default_channels, sizeof(default_channels));
-> +}
-
-Why don't you just return a pointer to the data? You only need the data
-during probe and you make no changes to it, so I see no need to copy
-the data.
-
-> +
-> +/* create sysfs attribute according to channel setup */
-> +static struct attribute *ads1015_export_channel(struct i2c_client *client,
-> +						unsigned int input, int channel)
-> +{
-> +	struct ads1015_data *data = i2c_get_clientdata(client);
-> +	struct sensor_device_attribute attr > +		SENSOR_ATTR(input, S_IRUGO, show_in, NULL, channel);
-> +
-> +	attr_name(attr.dev_attr) = input_names[input];
-> +
-> +	memcpy(&data->attr[input], &attr, sizeof(attr));
-> +
-> +	return &data->attr[input].dev_attr.attr;
-> +}
-> +
-> +static int ads1015_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id)
-> +{
-> +	struct ads1015_data *data;
-> +	int err;
-> +	int exported_channels[ADS1015_CONFIG_CHANNELS];
-> +	unsigned int k;
-> +	unsigned int act_attr = 0;
-
-"act"?
-
-> +
-> +	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
-> +	if (!data) {
-> +		err = -ENOMEM;
-> +		goto exit;
-> +	}
-> +
-> +	i2c_set_clientdata(client, data);
-> +	mutex_init(&data->update_lock);
-> +
-> +	/* Register sysfs hooks */
-> +	data->attr_group.attrs = data->attr_table;
-> +	ads1015_get_exported_channels(client, exported_channels);
-> +	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
-> +		int channel = exported_channels[k];
-> +		if ((channel < 0) || (channel > 7))
-
-You don't need all these parentheses.
-
-> +			continue;
-
-Is there any benefit in continuing here, as opposed to breaking?
-Breaking would let you use k below to index data->attr_table, instead
-of tracking act_attr separately.
-
-> +		data->attr_table[act_attr++] > +			ads1015_export_channel(client, k, channel);
-> +	}
-> +	err = sysfs_create_group(&client->dev.kobj, &data->attr_group);
-> +	if (err)
-> +		goto exit_free;
-> +
-> +	data->hwmon_dev = hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		err = PTR_ERR(data->hwmon_dev);
-> +		goto exit_remove;
-> +	}
-> +
-> +	return 0;
-> +
-> +exit_remove:
-> +	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
-> +exit_free:
-> +	kfree(data);
-> +exit:
-> +	return err;
-> +}
-> +
-> +static const struct i2c_device_id ads1015_id[] = {
-> +	{ "ads1015", 0 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ads1015_id);
-> +
-> +static struct i2c_driver ads1015_driver = {
-> +	.driver = {
-> +		.name = "ads1015",
-> +	},
-> +	.probe = ads1015_probe,
-> +	.remove = ads1015_remove,
-> +	.id_table = ads1015_id,
-> +};
-> +
-> +static int __init sensors_ads1015_init(void)
-> +{
-> +	return i2c_add_driver(&ads1015_driver);
-> +}
-> +
-> +static void __exit sensors_ads1015_exit(void)
-> +{
-> +	i2c_del_driver(&ads1015_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Dirk Eibach <eibach@gdsys.de>");
-> +MODULE_DESCRIPTION("ADS1015 driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(sensors_ads1015_init);
-> +module_exit(sensors_ads1015_exit);
-> diff --git a/include/linux/i2c/ads1015.h b/include/linux/i2c/ads1015.h
-> new file mode 100644
-> index 0000000..152bf5f
-> --- /dev/null
-> +++ b/include/linux/i2c/ads1015.h
-> @@ -0,0 +1,30 @@
-> +/*
-> + * Platform Data for ADS1015 12-bit 4-input ADC
-> + * (C) Copyright 2010
-> + * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#ifndef LINUX_ADS1015_H
-> +#define LINUX_ADS1015_H
-> +
-> +#include <linux/types.h>
-
-You don't use anything from that header file.
-
-> +
-> +struct ads1015_platform_data {
-> +	int exported_channels[8];
-> +};
-> +
-> +#endif /* LINUX_ADS1015_H */
-
-
+diff --git a/Documentation/hwmon/lm85 b/Documentation/hwmon/lm85
+index 239258a..7c49fea 100644
+--- a/Documentation/hwmon/lm85
++++ b/Documentation/hwmon/lm85
+@@ -26,6 +26,14 @@ Supported chips:
+     Prefix: 'emc6d102'
+     Addresses scanned: I2C 0x2c, 0x2d, 0x2e
+     Datasheet: http://www.smsc.com/main/catalog/emc6d102.html
++  * SMSC EMC6D103
++    Prefix: 'emc6d103'
++    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
++    Datasheet: http://www.smsc.com/main/catalog/emc6d103.html
++  * SMSC EMC6D103S
++    Prefix: 'emc6d103s'
++    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
++    Datasheet: http://www.smsc.com/main/catalog/emc6d103s.html
+ 
+ Authors:
+         Philip Pokorny <ppokorny@penguincomputing.com>,
+@@ -122,9 +130,11 @@ to be register compatible. The EMC6D100 offers all the features of the
+ EMC6D101 plus additional voltage monitoring and system control features.
+ Unfortunately it is not possible to distinguish between the package
+ versions on register level so these additional voltage inputs may read
+-zero. The EMC6D102 features addtional ADC bits thus extending precision
++zero. EMC6D102 and EMC6D103 feature additional ADC bits thus extending precision
+ of voltage and temperature channels.
+ 
++SMSC EMC6D103S is similar to EMC6D103, but does not support pwm#_auto_pwm_minctl
++and temp#_auto_temp_off.
+ 
+ Hardware Configurations
+ -----------------------
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index fbb5189..cf47e6e 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -41,7 +41,7 @@ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
+ enum chips {
+ 	any_chip, lm85b, lm85c,
+ 	adm1027, adt7463, adt7468,
+-	emc6d100, emc6d102, emc6d103
++	emc6d100, emc6d102, emc6d103, emc6d103s
+ };
+ 
+ /* The LM85 registers */
+@@ -350,6 +350,7 @@ static const struct i2c_device_id lm85_id[] = {
+ 	{ "emc6d101", emc6d100 },
+ 	{ "emc6d102", emc6d102 },
+ 	{ "emc6d103", emc6d103 },
++	{ "emc6d103s", emc6d103s },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, lm85_id);
+@@ -1068,13 +1069,7 @@ static struct attribute *lm85_attributes[] = {
+ 	&sensor_dev_attr_pwm1_auto_pwm_min.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_auto_pwm_min.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_auto_pwm_min.dev_attr.attr,
+-	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
+-	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
+-	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
+ 
+-	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
+-	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
+-	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_auto_temp_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_auto_temp_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_auto_temp_min.dev_attr.attr,
+@@ -1095,6 +1090,26 @@ static const struct attribute_group lm85_group = {
+ 	.attrs = lm85_attributes,
+ };
+ 
++static struct attribute *lm85_attributes_minctl[] = {
++	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
++	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
++	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
++};
++
++static const struct attribute_group lm85_group_minctl = {
++	.attrs = lm85_attributes_minctl,
++};
++
++static struct attribute *lm85_attributes_temp_off[] = {
++	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
++	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
++	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
++};
++
++static const struct attribute_group lm85_group_temp_off = {
++	.attrs = lm85_attributes_temp_off,
++};
++
+ static struct attribute *lm85_attributes_in4[] = {
+ 	&sensor_dev_attr_in4_input.dev_attr.attr,
+ 	&sensor_dev_attr_in4_min.dev_attr.attr,
+@@ -1242,16 +1257,9 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
+ 		case LM85_VERSTEP_EMC6D103_A1:
+ 			type_name = "emc6d103";
+ 			break;
+-		/*
+-		 * Registers apparently missing in EMC6D103S/EMC6D103:A2
+-		 * compared to EMC6D103:A0, EMC6D103:A1, and EMC6D102
+-		 * (according to the data sheets), but used unconditionally
+-		 * in the driver: 62[5:7], 6D[0:7], and 6E[0:7].
+-		 * So skip EMC6D103S for now.
+ 		case LM85_VERSTEP_EMC6D103S:
+ 			type_name = "emc6d103s";
+ 			break;
+-		 */
+ 		}
+ 	} else {
+ 		dev_dbg(&adapter->dev,
+@@ -1267,6 +1275,10 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
+ static void lm85_remove_files(struct i2c_client *client, struct lm85_data *data)
+ {
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
++	if (data->type != emc6d103s) {
++		sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
++		sysfs_remove_group(&client->dev.kobj, &lm85_group_temp_off);
++	}
+ 	if (!data->has_vid5)
+ 		sysfs_remove_group(&client->dev.kobj, &lm85_group_in4);
+ 	if (data->type = emc6d100)
+@@ -1295,6 +1307,7 @@ static int lm85_probe(struct i2c_client *client,
+ 	case emc6d100:
+ 	case emc6d102:
+ 	case emc6d103:
++	case emc6d103s:
+ 		data->freq_map = adm1027_freq_map;
+ 		break;
+ 	default:
+@@ -1312,6 +1325,17 @@ static int lm85_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_kfree;
+ 
++	/* minctl and temp_off exist on all chips except emc6d103s */
++	if (data->type != emc6d103s) {
++		err = sysfs_create_group(&client->dev.kobj, &lm85_group_minctl);
++		if (err)
++			goto err_kfree;
++		err = sysfs_create_group(&client->dev.kobj,
++					 &lm85_group_temp_off);
++		if (err)
++			goto err_kfree;
++	}
++
+ 	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
+ 	   as a sixth digital VID input rather than an analog input. */
+ 	if (data->type = adt7463 || data->type = adt7468) {
+@@ -1475,7 +1499,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			/* More alarm bits */
+ 			data->alarms |= lm85_read_value(client,
+ 						EMC6D100_REG_ALARM3) << 16;
+-		} else if (data->type = emc6d102 || data->type = emc6d103) {
++		} else if (data->type = emc6d102 || data->type = emc6d103 ||
++			   data->type = emc6d103s) {
+ 			/* Have to read LSB bits after the MSB ones because
+ 			   the reading of the MSB bits has frozen the
+ 			   LSBs (backward from the ADM1027).
+@@ -1560,17 +1585,19 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			}
+ 		}
+ 
+-		i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
+-		data->autofan[0].min_off = (i & 0x20) != 0;
+-		data->autofan[1].min_off = (i & 0x40) != 0;
+-		data->autofan[2].min_off = (i & 0x80) != 0;
++		if (data->type != emc6d103s) {
++			i = lm85_read_value(client, LM85_REG_AFAN_SPIKE1);
++			data->autofan[0].min_off = (i & 0x20) != 0;
++			data->autofan[1].min_off = (i & 0x40) != 0;
++			data->autofan[2].min_off = (i & 0x80) != 0;
+ 
+-		i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
+-		data->zone[0].hyst = i >> 4;
+-		data->zone[1].hyst = i & 0x0f;
++			i = lm85_read_value(client, LM85_REG_AFAN_HYST1);
++			data->zone[0].hyst = i >> 4;
++			data->zone[1].hyst = i & 0x0f;
+ 
+-		i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
+-		data->zone[2].hyst = i >> 4;
++			i = lm85_read_value(client, LM85_REG_AFAN_HYST2);
++			data->zone[2].hyst = i >> 4;
++		}
+ 
+ 		data->last_config = jiffies;
+ 	}  /* last_config */
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
