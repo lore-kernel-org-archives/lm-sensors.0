@@ -1,78 +1,73 @@
-From: Allen Weiner <alweiner7@hotmail.com>
-Date: Sun, 27 Feb 2011 22:23:16 +0000
-Subject: [lm-sensors] IT8721 on Biostar motherboards
-Message-Id: <BAY146-w28BC7C153ED76FE05A390CF7DF0@phx.gbl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1525342570481971207=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 25 Feb 2011 18:57:25 +0000
+Subject: [lm-sensors] [PATCH v4 3/4] hwmon: (lm85) Do not update hysteresis
+Message-Id: <1298660246-6484-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1525342570481971207==
-Content-Type: multipart/alternative;
-	boundary="_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_"
+So far, the driver updates temp_auto_hyst and temp_auto_off if temp_auto_min changes.
+This may cause problems if temp_auto_off was not configured before configuring
+temp_auto_min, because one of the variables used (off_desired) is not initialized
+in this case.
 
---_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+To simplify the code, and for consistency with other drivers, no longer update the delta
+between "min" and "off" until the user sets the "off" value again.
 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm85.c |   17 -----------------
+ 1 files changed, 0 insertions(+), 17 deletions(-)
 
-I run Fedora 14 on a PC with a Biostar TA890FXE motherboard (Super I/O chip=
- ITE IT8721).
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 590226a..fbb5189 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -283,10 +283,6 @@ struct lm85_zone {
+ 	u8 hyst;	/* Low limit hysteresis. (0-15) */
+ 	u8 range;	/* Temp range, encoded */
+ 	s8 critical;	/* "All fans ON" temp limit */
+-	u8 off_desired; /* Actual "off" temperature specified.  Preserved
+-			 * to prevent "drift" as other autofan control
+-			 * values change.
+-			 */
+ 	u8 max_desired; /* Actual "max" temperature specified.  Preserved
+ 			 * to prevent "drift" as other autofan control
+ 			 * values change.
+@@ -892,7 +888,6 @@ static ssize_t set_temp_auto_temp_off(struct device *dev,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	min = TEMP_FROM_REG(data->zone[nr].limit);
+-	data->zone[nr].off_desired = TEMP_TO_REG(val);
+ 	data->zone[nr].hyst = HYST_TO_REG(min - val);
+ 	if (nr = 0 || nr = 1) {
+ 		lm85_write_value(client, LM85_REG_AFAN_HYST1,
+@@ -935,18 +930,6 @@ static ssize_t set_temp_auto_temp_min(struct device *dev,
+ 		((data->zone[nr].range & 0x0f) << 4)
+ 		| (data->pwm_freq[nr] & 0x07));
+ 
+-/* Update temp_auto_hyst and temp_auto_off */
+-	data->zone[nr].hyst = HYST_TO_REG(TEMP_FROM_REG(
+-		data->zone[nr].limit) - TEMP_FROM_REG(
+-		data->zone[nr].off_desired));
+-	if (nr = 0 || nr = 1) {
+-		lm85_write_value(client, LM85_REG_AFAN_HYST1,
+-			(data->zone[0].hyst << 4)
+-			| data->zone[1].hyst);
+-	} else {
+-		lm85_write_value(client, LM85_REG_AFAN_HYST2,
+-			(data->zone[2].hyst << 4));
+-	}
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-- 
+1.7.3.1
 
-I installed the standalone LM-sensors driver for the ITE IT8721 chip. Howev=
-er module IT87 will not load due to a conflict of I/O ports with ACPI.
-
-For Asus motherboards using IT87xx chips=2C the workaround for getting sens=
-ors data is to use an ACPI driver asus_atk0110.
-
-Is there a similar workaround for getting sensors data available or being p=
-lanned for Biostar motherboards using IT87xx chips?
-
-(FWIW=2C it appears that the author of asus_atk0110=2C Luca Tettamanti=2C h=
-as no affiliation with Asus.) 		 	   		  =
-
---_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style><!--
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Tahoma
-}
---></style>
-</head>
-<body class=3D'hmmessage'>
-I run Fedora 14 on a PC with a Biostar TA890FXE motherboard (Super I/O chip=
- ITE IT8721).<br><br>I installed the standalone LM-sensors driver for the I=
-TE IT8721 chip. However module IT87 will not load due to a conflict of I/O =
-ports with ACPI.<br><br>For Asus motherboards using IT87xx chips=2C the wor=
-karound for getting sensors data is to use an ACPI driver asus_atk0110.<br>=
-<br>Is there a similar workaround for getting sensors data available or bei=
-ng planned for Biostar motherboards using IT87xx chips?<br><br>(FWIW=2C it =
-appears that the author of asus_atk0110=2C Luca Tettamanti=2C has no affili=
-ation with Asus.) 		 	   		  </body>
-</html>=
-
---_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_--
-
-
---===============1525342570481971207==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1525342570481971207==--
