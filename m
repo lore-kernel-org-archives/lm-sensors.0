@@ -1,38 +1,88 @@
-From: Keerthy <j-keerthy@ti.com>
-Date: Mon, 28 Feb 2011 09:58:54 +0000
-Subject: [lm-sensors] [PATCH 0/2 v4] twl4030-madc driver
-Message-Id: <1298886414-14947-1-git-send-email-j-keerthy@ti.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 25 Feb 2011 18:57:23 +0000
+Subject: [lm-sensors] [PATCH v4 1/4] hwmon: (lm85) Use boolean to determine
+Message-Id: <1298660246-6484-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com, khali@linux-fr.org
-Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org, j-keerthy@ti.com
+To: lm-sensors@vger.kernel.org
 
-MADC(Monitoring ADC) driver enables monitoring analog signals using
-analog-to-digital conversion (ADC) on the input source.
-The previous discussion concluded in keeping the generic ADC
-functionality and the hwmon separate. The discussion can be found here:
+ADT7463 and ADT7468 optionally support VID5 instead of the standard +12V
+measurement input. Use a boolean to identify the chip configuration instead of
+hardcoding it several times.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm85.c |   25 +++++++++++++------------
+ 1 files changed, 13 insertions(+), 12 deletions(-)
 
-Keerthy (2):
-  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
-  mfd: twl4030: Driver for twl4030 madc module
-
- Documentation/hwmon/twl4030-madc-hwmon |   45 ++
- drivers/hwmon/Kconfig                  |   10 +
- drivers/hwmon/Makefile                 |    1 +
- drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++
- drivers/mfd/Kconfig                    |   10 +
- drivers/mfd/Makefile                   |    1 +
- drivers/mfd/twl4030-madc.c             |  812 ++++++++++++++++++++++++++++++++
- include/linux/i2c/twl4030-madc.h       |  142 ++++++
- 8 files changed, 1174 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
- create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
- create mode 100644 drivers/mfd/twl4030-madc.c
- create mode 100644 include/linux/i2c/twl4030-madc.h
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index d2cc286..2253676 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -306,6 +306,8 @@ struct lm85_data {
+ 	const int *freq_map;
+ 	enum chips type;
+ 
++	bool has_vid5;	/* true if VID5 is configured for ADT7463 or ADT7468 */
++
+ 	struct mutex update_lock;
+ 	int valid;		/* !=0 if following fields are valid */
+ 	unsigned long last_reading;	/* In jiffies */
+@@ -420,8 +422,7 @@ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
+ 	struct lm85_data *data = lm85_update_device(dev);
+ 	int vid;
+ 
+-	if ((data->type = adt7463 || data->type = adt7468) &&
+-	    (data->vid & 0x80)) {
++	if (data->has_vid5) {
+ 		/* 6-pin VID (VRM 10) */
+ 		vid = vid_from_reg(data->vid & 0x3f, data->vrm);
+ 	} else {
+@@ -1321,9 +1322,13 @@ static int lm85_probe(struct i2c_client *client,
+ 
+ 	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
+ 	   as a sixth digital VID input rather than an analog input. */
+-	data->vid = lm85_read_value(client, LM85_REG_VID);
+-	if (!((data->type = adt7463 || data->type = adt7468) &&
+-	    (data->vid & 0x80)))
++	if (data->type = adt7463 || data->type = adt7468) {
++		u8 vid = lm85_read_value(client, LM85_REG_VID);
++		if (vid & 0x80)
++			data->has_vid5 = true;
++	}
++
++	if (!data->has_vid5)
+ 		if ((err = sysfs_create_group(&client->dev.kobj,
+ 					&lm85_group_in4)))
+ 			goto err_remove_files;
+@@ -1457,11 +1462,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			    lm85_read_value(client, LM85_REG_FAN(i));
+ 		}
+ 
+-		if (!((data->type = adt7463 || data->type = adt7468) &&
+-		    (data->vid & 0x80))) {
+-			data->in[4] = lm85_read_value(client,
+-				      LM85_REG_IN(4));
+-		}
++		if (!data->has_vid5)
++			data->in[4] = lm85_read_value(client, LM85_REG_IN(4));
+ 
+ 		if (data->type = adt7468)
+ 			data->cfg5 = lm85_read_value(client, ADT7468_REG_CFG5);
+@@ -1528,8 +1530,7 @@ static struct lm85_data *lm85_update_device(struct device *dev)
+ 			    lm85_read_value(client, LM85_REG_FAN_MIN(i));
+ 		}
+ 
+-		if (!((data->type = adt7463 || data->type = adt7468) &&
+-		    (data->vid & 0x80))) {
++		if (!data->has_vid5)  {
+ 			data->in_min[4] = lm85_read_value(client,
+ 					  LM85_REG_IN_MIN(4));
+ 			data->in_max[4] = lm85_read_value(client,
+-- 
+1.7.3.1
 
 
 _______________________________________________
