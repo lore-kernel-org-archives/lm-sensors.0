@@ -1,13 +1,15 @@
-From: Banque Postale  <Service@BanquePostale.fr>
-Date: Thu, 24 Feb 2011 23:50:41 +0000
+From: Banque Postale <Service@BanquePostale.fr>
+Date: Fri, 25 Feb 2011 08:13:49 +0000
 Subject: [lm-sensors] Banque Postale - Proteger Votre Carte credit.C'est
-Message-Id: <201102242350.p1ONofSV023776@www23.aname.net>
+Message-Id: <201102250813.p1P8DnTE016934@www16.aname.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2425754215280848465=="
+Content-Type: multipart/mixed; boundary="===============0654047350733321294=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201102242350.p1ONofSV023776@www23.aname.net>
+In-Reply-To: <201102242350.p1ONofSV023776@www23.aname.net>
 To: lm-sensors@vger.kernel.org
 
---===============2425754215280848465==
+--===============0654047350733321294==
 Content-Type: text/html
 Content-Transfer-Encoding: quoted-printable
 
@@ -96,7 +98,7 @@ rif;"><div><span class=3D"style10">
     </div></td></tr></tbody></table></td></tr></tbody></table>
 
 
---===============2425754215280848465==
+--===============0654047350733321294==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -106,4 +108,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2425754215280848465==--
+--===============0654047350733321294==--
