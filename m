@@ -1,313 +1,482 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Feb 2011 15:49:08 +0000
-Subject: [lm-sensors] [PATCH v2 4/5] hwmon: (w83627ehf) Improve support for
-Message-Id: <1297352949-25602-5-git-send-email-guenter.roeck@ericsson.com>
+From: Dirk Eibach <eibach@gdsys.de>
+Date: Fri, 25 Feb 2011 13:18:17 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: Add support for Texas Instruments
+Message-Id: <1298639897-26856-1-git-send-email-eibach@gdsys.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20110224174807.41c7597f@endymion.delvare>
+In-Reply-To: <20110224174807.41c7597f@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org, Dirk Eibach <eibach@gdsys.de>
 
-Add support for 4th temperature sensor on W83677HG-B.
-Display temperature labels on W83677HG-B to report temperature sources.
-
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Dirk Eibach <eibach@gdsys.de>
 ---
- Documentation/hwmon/w83627ehf |   19 +++--
- drivers/hwmon/w83627ehf.c     |  155 ++++++++++++++++++++++++++++++++--------
- 2 files changed, 136 insertions(+), 38 deletions(-)
+Changes since v1:
+- fixed/extended Documentation
+- removed unused register definitions
+- hardcoded PGA fullscale table size
+- made sure patch applies against v2.6.38-rc4
+- reordered functions to avoid forward declaration
+- results from i2c_smbus_read_word_data() are handled correctly
+- moved locking into ads1015_read_value()
+- removed unnecessray clearing of bit
+- proper error handling in ads1015_read_value()
+- use DIV_ROUND_CLOSEST for scaling result
+- removed detect()
 
-diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
-index 13d5561..0643019 100644
---- a/Documentation/hwmon/w83627ehf
-+++ b/Documentation/hwmon/w83627ehf
-@@ -39,16 +39,21 @@ This driver implements support for the Winbond W83627EHF, W83627EHG,
- W83627DHG, W83627DHG-P, W83667HG and W83667HG-B super I/O chips.
- We will refer to them collectively as Winbond chips.
- 
--The chips implement three temperature sensors, five fan rotation
--speed sensors, ten analog voltage sensors (only nine for the 627DHG), one
--VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG), alarms
--with beep warnings (control unimplemented), and some automatic fan
-+The chips implement three temperature sensors (up to four for 667HG-B),
-+five fan rotation speed sensors, ten analog voltage sensors (only nine for the
-+627DHG), one VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG),
-+alarms with beep warnings (control unimplemented), and some automatic fan
- regulation strategies (plus manual fan control mode).
- 
-+The temperature sensor sources on W82677HG-B are configurable. temp4 is only
-+reported if its temperature source differs from the temperature sources of the
-+other three temperature sensors. The configured source for each of the
-+temperature sensors is reported in tempX_label.
+Changes since v2:
+- removed *all* leftovers from detect()
+- fixed return with mutex held
+- made sysfs representation configurable
+  (hope this will be the reference implementation for generations to come ;)
+
+Changes since v3:
+- included linux/of.h
+- remove linux/types.h from header file
+- sysfs is now configured with a bitmask
+- assume big-endian of-properties
+
+Documentation/hwmon/ads1015 |   67 ++++++++++
+ drivers/hwmon/Kconfig       |   10 ++
+ drivers/hwmon/Makefile      |    1 +
+ drivers/hwmon/ads1015.c     |  283 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/ads1015.h |   28 +++++
+ 5 files changed, 389 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/ads1015
+ create mode 100644 drivers/hwmon/ads1015.c
+ create mode 100644 include/linux/i2c/ads1015.h
+
+diff --git a/Documentation/hwmon/ads1015 b/Documentation/hwmon/ads1015
+new file mode 100644
+index 0000000..56ee797
+--- /dev/null
++++ b/Documentation/hwmon/ads1015
+@@ -0,0 +1,67 @@
++Kernel driver ads1015
++==========+
++Supported chips:
++  * Texas Instruments ADS1015
++    Prefix: 'ads1015'
++    Datasheet: Publicly available at the Texas Instruments website :
++               http://focus.ti.com/lit/ds/symlink/ads1015.pdf
 +
- Temperatures are measured in degrees Celsius and measurement resolution is 1
--degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
--the temperature gets higher than high limit; it stays on until the temperature
--falls below the hysteresis value.
-+degC for temp1 and temp4, and 0.5 degC for temp2 and temp3. An alarm is
-+triggered when the temperature gets higher than high limit; it stays on until
-+the temperature falls below the hysteresis value.
- 
- Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
- triggered if the rotation speed has dropped below a programmable limit. Fan
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 8c39085..63d193d 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -39,7 +39,7 @@
-     w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
-     w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
-     w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
--    w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
-+    w83667hg-b   9      5       3       4      0xb350 0xc1    0x5ca3
- */
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -164,10 +164,10 @@ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
- #define W83627EHF_REG_IN(nr)		((nr < 7) ? (0x20 + (nr)) : \
- 					 (0x550 + (nr) - 7))
- 
--static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250 };
--static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253 };
--static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255 };
--static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252 };
-+static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250, 0x7e };
-+static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253, 0 };
-+static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255, 0 };
-+static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
- 
- /* Fan clock dividers are spread over the following five registers */
- #define W83627EHF_REG_FANDIV1		0x47
-@@ -213,6 +213,19 @@ static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
- static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
- static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
- 
-+static const char *const w83667hg_b_temp_label[] = {
-+	"SYSTIN",
-+	"CPUTIN",
-+	"AUXTIN",
-+	"AMDTSI",
-+	"PECI Agent 1",
-+	"PECI Agent 2",
-+	"PECI Agent 3",
-+	"PECI Agent 4"
++Authors:
++        Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
++
++Description
++-----------
++
++This driver implements support for the Texas Instruments ADS1015.
++
++This device is a 12-bit A-D converter with 4 inputs.
++
++The inputs can be used single ended or in certain differential combinations.
++
++The inputs can be exported to 8 sysfs input files in0_input - in7_input:
++in0: Voltage over AIN0 and AIN1.
++in1: Voltage over AIN0 and AIN3.
++in2: Voltage over AIN1 and AIN3.
++in3: Voltage over AIN2 and AIN3.
++in4: Voltage over AIN0 and GND.
++in5: Voltage over AIN1 and GND.
++in6: Voltage over AIN2 and GND.
++in7: Voltage over AIN3 and GND.
++
++Which inputs are exported can be configured using platform data or devicetree.
++
++By default all inputs are exported.
++
++Platform Data
++-------------
++
++In linux/i2c/ads1015.h platform data is defined as:
++
++struct ads1015_platform_data {
++	unsigned int exported_channels;
 +};
 +
-+#define NUM_REG_TEMP	4
++exported_channels is a bitmask that specifies which inputs should be exported.
 +
- static inline int is_word_sized(u16 reg)
- {
- 	return (((reg & 0xff00) = 0x100
-@@ -294,6 +307,9 @@ struct w83627ehf_data {
- 	struct device *hwmon_dev;
- 	struct mutex lock;
- 
-+	u8 temp_src[NUM_REG_TEMP];
-+	const char * const *temp_label;
++Example:
++struct ads1015_platform_data data = {
++	.exported_channels = (1 << 2) | (1 << 4)
++};
 +
- 	const u8 *REG_FAN_START_OUTPUT;
- 	const u8 *REG_FAN_STOP_OUTPUT;
- 	const u8 *REG_FAN_MAX_OUTPUT;
-@@ -314,9 +330,9 @@ struct w83627ehf_data {
- 	u8 fan_div[5];
- 	u8 has_fan;		/* some fan inputs can be disabled */
- 	u8 temp_type[3];
--	s16 temp[3];
--	s16 temp_max[3];
--	s16 temp_max_hyst[3];
-+	s16 temp[4];
-+	s16 temp_max[4];
-+	s16 temp_max_hyst[4];
- 	u32 alarms;
++In this case only in2_input and in4_input would be created.
++
++Devicetree
++----------
++
++The ads1015 node may have an "exported-channels" property.
++exported_channels is a bitmask that specifies which inputs should be exported.
++
++Example:
++ads1015@49 {
++	compatible = "ti,ads1015";
++	reg = <0x49>;
++	exported-channels = < 0x14 >;
++};
++
++In this case only in2_input and in4_input would be created.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 773e484..7e247f7 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -871,6 +871,16 @@ config SENSORS_SMSC47B397
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called smsc47b397.
  
- 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
-@@ -339,7 +355,7 @@ struct w83627ehf_data {
- 	u8 vid;
- 	u8 vrm;
- 
--	u8 temp3_disable;
-+	u8 have_temp;
- 	u8 in6_skip;
- };
- 
-@@ -577,12 +593,18 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
- 		}
- 
- 		/* Measured temperatures and limits */
--		for (i = 0; i < 3; i++) {
--			data->temp[i] = w83627ehf_read_value(data,
--					W83627EHF_REG_TEMP[i]);
--			data->temp_max[i] = w83627ehf_read_value(data,
--					    W83627EHF_REG_TEMP_OVER[i]);
--			data->temp_max_hyst[i] = w83627ehf_read_value(data,
-+		for (i = 0; i < NUM_REG_TEMP; i++) {
-+			if (!(data->have_temp & (1 << i)))
-+				continue;
-+			data->temp[i]
-+			  = w83627ehf_read_value(data, W83627EHF_REG_TEMP[i]);
-+			if (i > 2)
-+				break;
-+			data->temp_max[i]
-+			  = w83627ehf_read_value(data,
-+						 W83627EHF_REG_TEMP_OVER[i]);
-+			data->temp_max_hyst[i]
-+			  = w83627ehf_read_value(data,
- 						 W83627EHF_REG_TEMP_HYST[i]);
- 		}
- 
-@@ -844,6 +866,15 @@ static struct sensor_device_attribute sda_fan_div[] = {
- 	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
- };
- 
-+static ssize_t
-+show_temp_label(struct device *dev, struct device_attribute *attr, char *buf)
++config SENSORS_ADS1015
++	tristate "Texas Instruments ADS1015"
++	depends on I2C
++	help
++	  If you say yes here you get support for Texas Instruments ADS1015
++	  12-bit 4-input ADC device.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called ads1015.
++
+ config SENSORS_ADS7828
+ 	tristate "Texas Instruments ADS7828"
+ 	depends on I2C
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index dde02d9..aae4036 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_SENSORS_ADM1026)	+= adm1026.o
+ obj-$(CONFIG_SENSORS_ADM1029)	+= adm1029.o
+ obj-$(CONFIG_SENSORS_ADM1031)	+= adm1031.o
+ obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
++obj-$(CONFIG_SENSORS_ADS1015)	+= ads1015.o
+ obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
+ obj-$(CONFIG_SENSORS_ADS7871)	+= ads7871.o
+ obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+new file mode 100644
+index 0000000..7d593bb
+--- /dev/null
++++ b/drivers/hwmon/ads1015.c
+@@ -0,0 +1,283 @@
++/*
++ * ads1015.c - lm_sensors driver for ads1015 12-bit 4-input ADC
++ * (C) Copyright 2010
++ * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
++ *
++ * Based on the ads7828 driver by Steve Hardy.
++ *
++ * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads1015.pdf
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/of.h>
++
++#include <linux/i2c/ads1015.h>
++
++/* ADS1015 registers */
++enum {
++	ADS1015_CONVERSION = 0,
++	ADS1015_CONFIG = 1,
++};
++
++/* PGA fullscale voltages in mV */
++static const unsigned int fullscale_table[8] = {
++	6144, 4096, 2048, 1024, 512, 256, 256, 256 };
++
++#define ADS1015_CONFIG_CHANNELS 8
++#define ADS1015_DEFAULT_CHANNELS 0xff
++
++struct ads1015_data {
++	struct device *hwmon_dev;
++	struct mutex update_lock; /* mutex protect updates */
++	struct attribute *attr_table[ADS1015_CONFIG_CHANNELS + 1];
++	struct attribute_group attr_group;
++};
++
++static s32 ads1015_read_reg(struct i2c_client *client, unsigned int reg)
 +{
-+	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	return sprintf(buf, "%s\n", data->temp_label[data->temp_src[nr]]);
++	s32 data = i2c_smbus_read_word_data(client, reg);
++
++	return (data < 0) ? data : swab16(data);
 +}
 +
- #define show_temp_reg(REG, reg) \
- static ssize_t \
- show_##reg(struct device *dev, struct device_attribute *attr, \
-@@ -897,6 +928,14 @@ static struct sensor_device_attribute sda_temp_input[] = {
- 	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
- 	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
- 	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
-+	SENSOR_ATTR(temp4_input, S_IRUGO, show_temp, NULL, 3),
++static s32 ads1015_write_reg(struct i2c_client *client, unsigned int reg,
++			     u16 val)
++{
++	return i2c_smbus_write_word_data(client, reg, swab16(val));
++}
++
++static int ads1015_read_value(struct i2c_client *client, unsigned int channel,
++			      int *value)
++{
++	u16 config;
++	s16 conversion;
++	unsigned int pga;
++	int fullscale;
++	unsigned int k;
++	struct ads1015_data *data = i2c_get_clientdata(client);
++	int res;
++
++	mutex_lock(&data->update_lock);
++
++	/* get fullscale voltage */
++	res = ads1015_read_reg(client, ADS1015_CONFIG);
++	if (res < 0)
++		goto err_unlock;
++	config = res;
++	pga = (config >> 9) & 0x0007;
++	fullscale = fullscale_table[pga];
++
++	/* set channel and start single conversion */
++	config &= ~(0x0007 << 12);
++	config |= (1 << 15) | (1 << 8) | (channel & 0x0007) << 12;
++
++	/* wait until conversion finished */
++	res = ads1015_write_reg(client, ADS1015_CONFIG, config);
++	if (res < 0)
++		goto err_unlock;
++	for (k = 0; k < 5; ++k) {
++		schedule_timeout(msecs_to_jiffies(1));
++		res = ads1015_read_reg(client, ADS1015_CONFIG);
++		if (res < 0)
++			goto err_unlock;
++		config = res;
++		if (config & (1 << 15))
++			break;
++	}
++	if (k = 5) {
++		res = -EIO;
++		goto err_unlock;
++	}
++
++	res = ads1015_read_reg(client, ADS1015_CONVERSION);
++	if (res < 0)
++		goto err_unlock;
++	conversion = res;
++
++	mutex_unlock(&data->update_lock);
++
++	*value = DIV_ROUND_CLOSEST(conversion * fullscale, 0x7ff0);
++
++	return 0;
++
++err_unlock:
++	mutex_unlock(&data->update_lock);
++	return res;
++}
++
++/* sysfs callback function */
++static ssize_t show_in(struct device *dev, struct device_attribute *da,
++	char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct i2c_client *client = to_i2c_client(dev);
++	int in;
++	int res;
++
++	res = ads1015_read_value(client, attr->index, &in);
++
++	return (res < 0) ? res : sprintf(buf, "%d\n", in);
++}
++
++#define in_reg(offset)\
++static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,\
++	NULL, offset)
++
++in_reg(0);
++in_reg(1);
++in_reg(2);
++in_reg(3);
++in_reg(4);
++in_reg(5);
++in_reg(6);
++in_reg(7);
++
++static struct attribute *all_attributes[] = {
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_in7_input.dev_attr.attr,
 +};
 +
-+static struct sensor_device_attribute sda_temp_label[] = {
-+	SENSOR_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL, 0),
-+	SENSOR_ATTR(temp2_label, S_IRUGO, show_temp_label, NULL, 1),
-+	SENSOR_ATTR(temp3_label, S_IRUGO, show_temp_label, NULL, 2),
-+	SENSOR_ATTR(temp4_label, S_IRUGO, show_temp_label, NULL, 3),
- };
- 
- static struct sensor_device_attribute sda_temp_max[] = {
-@@ -1328,10 +1367,13 @@ static void w83627ehf_device_remove_files(struct device *dev)
- 		device_remove_file(dev, &sda_target_temp[i].dev_attr);
- 		device_remove_file(dev, &sda_tolerance[i].dev_attr);
- 	}
--	for (i = 0; i < 3; i++) {
--		if ((i = 2) && data->temp3_disable)
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
- 			continue;
- 		device_remove_file(dev, &sda_temp_input[i].dev_attr);
-+		device_remove_file(dev, &sda_temp_label[i].dev_attr);
-+		if (i > 2)
-+			break;
- 		device_remove_file(dev, &sda_temp_max[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_max_hyst[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
-@@ -1354,12 +1396,14 @@ static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
- 		w83627ehf_write_value(data, W83627EHF_REG_CONFIG,
- 				      tmp | 0x01);
- 
--	/* Enable temp2 and temp3 if needed */
--	for (i = 1; i < 3; i++) {
-+	/* Enable temperature sensors if needed */
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
++/*
++ * Driver interface
++ */
++
++static int ads1015_remove(struct i2c_client *client)
++{
++	struct ads1015_data *data = i2c_get_clientdata(client);
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
++	kfree(data);
++	return 0;
++}
++
++static unsigned int ads1015_get_exported_channels(struct i2c_client *client)
++{
++	struct ads1015_platform_data *pdata = dev_get_platdata(&client->dev);
++#ifdef CONFIG_OF
++	struct device_node *np = client->dev.of_node;
++	const __be32 *of_channels;
++	int of_channels_size;
++#endif
++
++	/* prefer platform data */
++	if (pdata)
++		return pdata->exported_channels;
++
++#ifdef CONFIG_OF
++	/* fallback on OF */
++	of_channels = of_get_property(np, "exported-channels",
++				      &of_channels_size);
++	if (of_channels && (of_channels_size = sizeof(*of_channels)))
++		return be32_to_cpup(of_channels);
++#endif
++
++	/* fallback on default configuration */
++	return ADS1015_DEFAULT_CHANNELS;
++}
++
++static int ads1015_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct ads1015_data *data;
++	int err;
++	unsigned int exported_channels;
++	unsigned int k;
++	unsigned int n = 0;
++
++	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* build sysfs attribute group */
++	data->attr_group.attrs = data->attr_table;
++	exported_channels = ads1015_get_exported_channels(client);
++	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
++		if (!(exported_channels & (1<<k)))
 +			continue;
-+		if (!W83627EHF_REG_TEMP_CONFIG[i])
-+			continue;
- 		tmp = w83627ehf_read_value(data,
- 					   W83627EHF_REG_TEMP_CONFIG[i]);
--		if ((i = 2) && data->temp3_disable)
--			continue;
- 		if (tmp & 0x01)
- 			w83627ehf_write_value(data,
- 					      W83627EHF_REG_TEMP_CONFIG[i],
-@@ -1417,11 +1461,52 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 	data->pwm_num = (sio_data->kind = w83667hg
- 			 || sio_data->kind = w83667hg_b) ? 3 : 4;
- 
-+	data->have_temp = 0x07;
- 	/* Check temp3 configuration bit for 667HG */
--	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
--		data->temp3_disable = w83627ehf_read_value(data,
--					W83627EHF_REG_TEMP_CONFIG[2]) & 0x01;
--		data->in6_skip = !data->temp3_disable;
-+	if (sio_data->kind = w83667hg) {
-+		u8 reg;
++		data->attr_table[n++] +			all_attributes[k];
++	}
++	err = sysfs_create_group(&client->dev.kobj, &data->attr_group);
++	if (err)
++		goto exit_free;
 +
-+		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
-+		if (reg & 0x01)
-+			data->have_temp &= ~(1 << 2);
-+		else
-+			data->in6_skip = 1; /* Either temp3 or in6 */
-+	} else if (sio_data->kind = w83667hg_b) {
-+		u8 reg;
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
 +
-+		reg = w83627ehf_read_value(data, 0x4a);
-+		data->temp_src[0] = reg >> 5;
-+		reg = w83627ehf_read_value(data, 0x49);
-+		data->temp_src[1] = reg & 0x07;
-+		data->temp_src[2] = (reg >> 4)  & 0x07;
++	return 0;
 +
-+		/*
-+		 * W83667HG-B has another temperature register at 0x7e.
-+		 * The temperature source is selected with register 0x7d.
-+		 * Support it if the source differs from already reported
-+		 * sources.
-+		 */
-+		reg = w83627ehf_read_value(data, 0x7d);
-+		reg &= 0x07;
-+		if (reg != data->temp_src[0] && reg != data->temp_src[1]
-+		    && reg != data->temp_src[2]) {
-+			data->temp_src[3] = reg;
-+			data->have_temp |= 1 << 3;
-+		}
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
++exit_free:
++	kfree(data);
++exit:
++	return err;
++}
 +
-+		/*
-+		 * Chip supports either AUXTIN or VIN3. Try to find out which
-+		 * one.
-+		 */
-+		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
-+		if (data->temp_src[2] = 2 && (reg & 0x01))
-+			data->have_temp &= ~(1 << 2);
++static const struct i2c_device_id ads1015_id[] = {
++	{ "ads1015", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ads1015_id);
 +
-+		if ((data->temp_src[2] = 2 && (data->have_temp & (1 << 2)))
-+		    || (data->temp_src[3] = 2 && (data->have_temp & (1 << 3))))
-+			data->in6_skip = 1;
++static struct i2c_driver ads1015_driver = {
++	.driver = {
++		.name = "ads1015",
++	},
++	.probe = ads1015_probe,
++	.remove = ads1015_remove,
++	.id_table = ads1015_id,
++};
 +
-+		data->temp_label = w83667hg_b_temp_label;
- 	}
- 
- 	data->REG_FAN_START_OUTPUT = W83627EHF_REG_FAN_START_OUTPUT;
-@@ -1584,13 +1669,21 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	for (i = 0; i < 3; i++) {
--		if ((i = 2) && data->temp3_disable)
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
- 			continue;
--		if ((err = device_create_file(dev,
--				&sda_temp_input[i].dev_attr))
--			|| (err = device_create_file(dev,
--				&sda_temp_max[i].dev_attr))
-+		err = device_create_file(dev, &sda_temp_input[i].dev_attr);
-+		if (err)
-+			goto exit_remove;
-+		if (data->temp_label) {
-+			err = device_create_file(dev,
-+						 &sda_temp_label[i].dev_attr);
-+			if (err)
-+				goto exit_remove;
-+		}
-+		if (i > 2)
-+			break;
-+		if ((err = device_create_file(dev, &sda_temp_max[i].dev_attr))
- 			|| (err = device_create_file(dev,
- 				&sda_temp_max_hyst[i].dev_attr))
- 			|| (err = device_create_file(dev,
++static int __init sensors_ads1015_init(void)
++{
++	return i2c_add_driver(&ads1015_driver);
++}
++
++static void __exit sensors_ads1015_exit(void)
++{
++	i2c_del_driver(&ads1015_driver);
++}
++
++MODULE_AUTHOR("Dirk Eibach <eibach@gdsys.de>");
++MODULE_DESCRIPTION("ADS1015 driver");
++MODULE_LICENSE("GPL");
++
++module_init(sensors_ads1015_init);
++module_exit(sensors_ads1015_exit);
+diff --git a/include/linux/i2c/ads1015.h b/include/linux/i2c/ads1015.h
+new file mode 100644
+index 0000000..8541c6a
+--- /dev/null
++++ b/include/linux/i2c/ads1015.h
+@@ -0,0 +1,28 @@
++/*
++ * Platform Data for ADS1015 12-bit 4-input ADC
++ * (C) Copyright 2010
++ * Dirk Eibach, Guntermann & Drunck GmbH <eibach@gdsys.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef LINUX_ADS1015_H
++#define LINUX_ADS1015_H
++
++struct ads1015_platform_data {
++	unsigned int exported_channels;
++};
++
++#endif /* LINUX_ADS1015_H */
 -- 
-1.7.3.1
+1.5.6.5
 
 
 _______________________________________________
