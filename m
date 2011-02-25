@@ -1,37 +1,33 @@
-From: Andres Salomon <dilinger@queued.net>
-Date: Sat, 12 Feb 2011 08:16:17 +0000
-Subject: Re: [lm-sensors] [PATCH 03/17] jz4740: mfd_cell is now implicitly
-Message-Id: <20110212001617.43b42988@queued.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 25 Feb 2011 18:57:22 +0000
+Subject: [lm-sensors] [PATCH v4 0/4] hwmon: Add support for EMC6D103S
+Message-Id: <1298660246-6484-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110211180250.483936cc@queued.net>
-	<20110212035138.GA6859@ericsson.com>
-In-Reply-To: <20110212035138.GA6859@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Anton Vorontsov <cbouatmailru@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: lm-sensors@vger.kernel.org
 
-On Fri, 11 Feb 2011 19:51:38 -0800
-Guenter Roeck <guenter.roeck@ericsson.com> wrote:
+This patchset adds support for EMC6D103S, plus some additional cleanups.
 
-> On Fri, Feb 11, 2011 at 09:02:50PM -0500, Andres Salomon wrote:
-> > 
-> > No need to explicitly set the cell's platform_data/data_size.
-> > 
-> > Modify clients to use mfd_get_cell helper function instead of
-> > accessing platform_data directly.
-> > 
-> > Signed-off-by: Andres Salomon <dilinger@queued.net>
-> 
-> I don't see anything different to the previous version of this patch
-> (which was Acked by Jean already), and there is no changelog available
-> for the complete series either.
+v4:
+- Replaced vid5 configuration macro with boolean
+- Swapped parameters of lm85_remove_files()
+- Removed now unnecessary variable off_desired
 
-It is exactly the same; sorry, I should've added Jean's ACK.
+v3:
+- Separated patch into multiple patches to limit amount of changes per patch.
+- In driver documentation, don't refer to chip registers but only to affected
+  sysfs attributes.
+- No longer update temp_auto_hyst and temp_auto_off if auto_temp_min is set.
+- Add macro to determine if vid5 is configured on adt7463 and adt7468.
+- Remove sysfs attribute files in a separate function. Only remove sysfs files
+  if previously created.
 
-For patches where there was a difference, I tried to have the patch
-description be more.. descriptive.
+v2:
+- Fixed typo in subject
+  Added EMC66D103 and EMC6D103S to driver documentation
+
 
 _______________________________________________
 lm-sensors mailing list
