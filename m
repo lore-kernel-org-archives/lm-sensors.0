@@ -1,47 +1,51 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 Feb 2011 22:23:58 +0000
+From: "Juergen Bausa" <Juergen.Bausa@web.de>
+Date: Sat, 26 Feb 2011 14:32:18 +0000
 Subject: Re: [lm-sensors] dme177737: pwm not working
-Message-Id: <1298499838.1735.27.camel@groeck-laptop>
+Message-Id: <699553039.1147347.1298730738515.JavaMail.fmail@mwmweb008>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1127565282.7281701.1298492327176.JavaMail.fmail@mwmweb086>
 In-Reply-To: <1127565282.7281701.1298492327176.JavaMail.fmail@mwmweb086>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2011-02-23 at 17:12 -0500, Juergen Bausa wrote:
-> >Do you see any related output with dmesg ?
-> 
-> nothing:
-> 
-> jba@lisa:~$ dmesg | grep dme1737
-> jba@lisa:~$ dmesg | grep pwm
-> jba@lisa:~$ 
-> 
-> Juergen
-
-Should have noticed earlier: You other email shows 
-
-jba@lisa:/sys/class/hwmon/hwmon1$ ll
-insgesamt 0
-lrwxrwxrwx 1 root root    0 23. Feb 21:01 device -> ../../../ATK0110:00
-
-which indicates the loaded module is atk0110, not dme1737. Which afaik
-means that the device is detected as ASUS ACPI device. It loads the
-asus_atk0110 driver which does not support pwm attributes.
-
-Not sure what to do about that, especially since this suggests that
-ACPI claims access to the dme1737 registers, and parallel access may
-cause trouble.
-
-Guenter
-
-
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+ClZvbjogIkd1ZW50ZXIgUm9lY2siIDxndWVudGVyLnJvZWNrQGVyaWNzc29uLmNvbT4KR2VzZW5k
+ZXQ6IDIzLjAyLjIwMTEgMjM6MjM6NTgKCj5PbiBXZWQsIDIwMTEtMDItMjMgYXQgMTc6MTIgLTA1
+MDAsIEp1ZXJnZW4gQmF1c2Egd3JvdGU6Cj4+ID5EbyB5b3Ugc2VlIGFueSByZWxhdGVkIG91dHB1
+dCB3aXRoIGRtZXNnID8KPj4gCj4+IG5vdGhpbmc6Cj4+IAo+PiBqYmFAbGlzYTp+JCBkbWVzZyB8
+IGdyZXAgZG1lMTczNwo+PiBqYmFAbGlzYTp+JCBkbWVzZyB8IGdyZXAgcHdtCj4+IGpiYUBsaXNh
+On4kIAo+PiAKPj4gSnVlcmdlbgo+Cj5TaG91bGQgaGF2ZSBub3RpY2VkIGVhcmxpZXI6IFlvdSBv
+dGhlciBlbWFpbCBzaG93cyAKPgo+amJhQGxpc2E6L3N5cy9jbGFzcy9od21vbi9od21vbjEkIGxs
+Cj5pbnNnZXNhbXQgMAo+bHJ3eHJ3eHJ3eCAxIHJvb3Qgcm9vdCAgICAwIDIzLiBGZWIgMjE6MDEg
+ZGV2aWNlIC0+IC4uLy4uLy4uL0FUSzAxMTA6MDAKPgo+d2hpY2ggaW5kaWNhdGVzIHRoZSBsb2Fk
+ZWQgbW9kdWxlIGlzIGF0azAxMTAsIG5vdCBkbWUxNzM3LiBXaGljaCBhZmFpawo+bWVhbnMgdGhh
+dCB0aGUgZGV2aWNlIGlzIGRldGVjdGVkIGFzIEFTVVMgQUNQSSBkZXZpY2UuIEl0IGxvYWRzIHRo
+ZQo+YXN1c19hdGswMTEwIGRyaXZlciB3aGljaCBkb2VzIG5vdCBzdXBwb3J0IHB3bSBhdHRyaWJ1
+dGVzLgo+Cj5Ob3Qgc3VyZSB3aGF0IHRvIGRvIGFib3V0IHRoYXQsIGVzcGVjaWFsbHkgc2luY2Ug
+dGhpcyBzdWdnZXN0cyB0aGF0Cj5BQ1BJIGNsYWltcyBhY2Nlc3MgdG8gdGhlIGRtZTE3MzcgcmVn
+aXN0ZXJzLCBhbmQgcGFyYWxsZWwgYWNjZXNzIG1heQo+Y2F1c2UgdHJvdWJsZS4KClRoYW5rcyBm
+b3IgdGhlIHRpcCwgdGhhdCBoZWxwZWQgYSBsb3QuIFNlYXJjaGluZyB0aGUgd2ViIEkgZm91bmQg
+c29tZSBjYXNlcywgd2hlcmUgdGhlIAphc3VzX2F0azAxMTAgcHJldmVudGVkIG90aGVyIG1vZHVs
+ZXMgZnJvbSB3b3JraW5nIGNvcnJlY3RseS4gTW9zdGx5IGl0IHdhcyBzdWdnZXN0ZWQgdG8KYWRk
+ICJhY3BpX2VuZm9yY2VfcmVzb3VyY2VzPWxheCIgdG8gdGhlIGtlcm5lbCBwYXJhbWV0ZXJzLiBB
+bGx0aG91Z2ggc29tZSBwZW9wbGUgc2F5IHRoaXMgCm1heSBiZSBkYW5nZXJvdXMgKG90aGVycyBz
+YWlkIGl0IGlzIG5vdCkgSSB0cmllZCBpdCBhbmQgbm93IHRoZSBwd21zIGFyZSB0aGVyZSBhZ2Fp
+biEKCkhvd2V2ZXIsIG5leHQgcHJvYmxlbSB3YXMsIHRoYXQgYWZ0ZXIgZWFjaCBib290LCBod21v
+bjEgYW5kIGh3bW9uMiAoZG1lMTczNyBhbmQgCmFzdXNfYXRrMDExMCkgbWF5IGNoYW5nZS4gQXMg
+YSByZXN1bHQsIEkgd2FzIG5vdCBhYmxlIHRvIHdyaXRlIGZpeGVkIGFkcmVzc2VzIGZvciB0aGUg
+cHdtIGluCnRoZSBjb25maWd1cmF0aW9uIGZpbGUgZm9yIHRoZSBmYW4tY29udHJvbGxlci4gQWZ0
+ZXIgYmxhY2tsaXN0aW5nIHRoZSBhc3VzX2F0azAxMTAgdGhpcyBwcm9ibGVtIHdhcyAKYWxzbyBz
+b2x2ZWQuIEFzIEkgZG9udCBuZWVkIGFueSBvZiB0aGUgb3V0cHV0cyBvZiB0aGUgYXN1c19hdGsw
+MTEwIEkgZG9udCB0aGluayB0aGlzIGlzIHByb2JsZW0uCk1vc3Qgb3V0cHV0cyBhcmUgYWxzbyBn
+aXZlbiBieSB0aGUgZG1lMTczNy4KCkNvdWxkIGFueW9uZSBwbGVhc2UgY29tbWVudCBvbiB0aGlz
+PyBDb3VsZCBpdCBiZSBkYW5nZXJvdXMgdG8gYWRkICJhY3BpX2VuZm9yY2VfcmVzb3VyY2VzPWxh
+eCIKdG8gdGhlIGtlcm5lbCBwYXJhbWV0ZXJzPyBJZiBzbywgd2hhdCBjb3VsZCBoYXBwZW4/IEFu
+ZCwgaXMgdGhlcmUgYW55IHJlYXNvbiB0byBub3QgYmxhY2tsaXN0IHRoZSAKYXN1c19hdGswMTEw
+IG1vZHVsZT8KCkp1ZXJnZW4KCj4KPkd1ZW50ZXIKPgo+Cj4KPgoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KU2Nob24gZ2Vow7ZydD8g
+V0VCLkRFIGhhdCBlaW5lbiBnZW5pYWxlbiBQaGlzaGluZy1GaWx0ZXIgaW4gZGllClRvb2xiYXIg
+ZWluZ2ViYXV0ISBodHRwOi8vcHJvZHVrdGUud2ViLmRlL2dvL3Rvb2xiYXIKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
+aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
