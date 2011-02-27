@@ -1,26 +1,78 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 20 Feb 2011 19:51:41 +0000
-Subject: Re: [lm-sensors] [PATCH 3/4 v2] Move lis3lv02d drivers to
-Message-Id: <20110220195141.GA6010@ericsson.com>
+From: Allen Weiner <alweiner7@hotmail.com>
+Date: Sun, 27 Feb 2011 22:23:16 +0000
+Subject: [lm-sensors] IT8721 on Biostar motherboards
+Message-Id: <BAY146-w28BC7C153ED76FE05A390CF7DF0@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1525342570481971207=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Feb 20, 2011 at 07:19:54AM -0500, Jean Delvare wrote:
-> The lis3lv02d drivers aren't hardware monitoring drivers, so the don't
-> belong to drivers/hwmon. Move them to drivers/misc, short of a better
-> home.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Eric Piel <eric.piel@tremplin-utc.net>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+--===============1525342570481971207==
+Content-Type: multipart/alternative;
+	boundary="_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_"
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+--_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
+
+I run Fedora 14 on a PC with a Biostar TA890FXE motherboard (Super I/O chip=
+ ITE IT8721).
+
+I installed the standalone LM-sensors driver for the ITE IT8721 chip. Howev=
+er module IT87 will not load due to a conflict of I/O ports with ACPI.
+
+For Asus motherboards using IT87xx chips=2C the workaround for getting sens=
+ors data is to use an ACPI driver asus_atk0110.
+
+Is there a similar workaround for getting sensors data available or being p=
+lanned for Biostar motherboards using IT87xx chips?
+
+(FWIW=2C it appears that the author of asus_atk0110=2C Luca Tettamanti=2C h=
+as no affiliation with Asus.) 		 	   		  =
+
+--_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Tahoma
+}
+--></style>
+</head>
+<body class=3D'hmmessage'>
+I run Fedora 14 on a PC with a Biostar TA890FXE motherboard (Super I/O chip=
+ ITE IT8721).<br><br>I installed the standalone LM-sensors driver for the I=
+TE IT8721 chip. However module IT87 will not load due to a conflict of I/O =
+ports with ACPI.<br><br>For Asus motherboards using IT87xx chips=2C the wor=
+karound for getting sensors data is to use an ACPI driver asus_atk0110.<br>=
+<br>Is there a similar workaround for getting sensors data available or bei=
+ng planned for Biostar motherboards using IT87xx chips?<br><br>(FWIW=2C it =
+appears that the author of asus_atk0110=2C Luca Tettamanti=2C has no affili=
+ation with Asus.) 		 	   		  </body>
+</html>=
+
+--_e1fefabb-e1c6-4baf-ba28-a068ef8de66e_--
+
+
+--===============1525342570481971207==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1525342570481971207==--
