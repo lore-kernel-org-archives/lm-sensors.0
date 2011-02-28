@@ -1,8 +1,10 @@
 From: Keerthy <j-keerthy@ti.com>
-Date: Mon, 28 Feb 2011 05:56:41 +0000
+Date: Mon, 28 Feb 2011 06:17:41 +0000
 Subject: [lm-sensors] [PATCH 1/2 v3] hwmon: twl4030: Hwmon Driver for
-Message-Id: <1298872392-4914-1-git-send-email-j-keerthy@ti.com>
+Message-Id: <1298873141-5617-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1298872392-4914-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1298872392-4914-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
