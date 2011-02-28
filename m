@@ -1,8 +1,10 @@
 From: Keerthy <j-keerthy@ti.com>
-Date: Mon, 28 Feb 2011 05:56:49 +0000
+Date: Mon, 28 Feb 2011 06:17:51 +0000
 Subject: [lm-sensors] [PATCH 2/2 v3] mfd: twl4030: Driver for twl4030 madc
-Message-Id: <1298872406-4957-1-git-send-email-j-keerthy@ti.com>
+Message-Id: <1298873151-5655-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1298872406-4957-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1298872406-4957-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
