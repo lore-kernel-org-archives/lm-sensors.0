@@ -1,50 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 16 Feb 2011 16:15:19 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (jc42) do not allow writing to
-Message-Id: <20110216161519.GA14458@ericsson.com>
+From: Keerthy <j-keerthy@ti.com>
+Date: Mon, 28 Feb 2011 05:56:03 +0000
+Subject: [lm-sensors] [PATCH 0/2 v3] twl4030-madc driver
+Message-Id: <1298872374-4878-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D5BCA87.7010204@ladisch.de>
- <4D5BCAEE.6030502@ladisch.de>
- <20110216145049.GC13872@ericsson.com>
- <4D5BE927.7000306@ladisch.de>
- <20110216152028.GA14199@ericsson.com>
- <4D5BEF7E.4010409@ladisch.de>
-In-Reply-To: <4D5BEF7E.4010409@ladisch.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Clemens Ladisch <clemens@ladisch.de>
-Cc: Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
 
-On Wed, Feb 16, 2011 at 10:38:38AM -0500, Clemens Ladisch wrote:
-> Guenter Roeck wrote:
-> > On Wed, Feb 16, 2011 at 10:11:35AM -0500, Clemens Ladisch wrote:
-> > > Guenter Roeck wrote:
-> > > > On Wed, Feb 16, 2011 at 08:02:38AM -0500, Clemens Ladisch wrote:
-> > > > > +		readonly = config & JC42_CFG_TCRIT_LOCK;
-> > > > 
-> > > > You are assigning a non-bool to a bool. I can see that recent C compilers
-> > > > do the right thing, but I am not sure if that is always the case.
-> > > > So I would prefer
-> > > > 		readonly = !!(config & JC42_CFG_TCRIT_LOCK);
-> > > > 
-> > > > Same for the assignments below. I can make that change if you are ok with it.
-> > > 
-> > > I cannot imagine how a compiler could get this wrong even if it tried
-> > > to, but if you think so, go ahead.  :)
-> > 
-> > I don't know. Maybe I am just paranoid. Using !! is how I usually see it done.
-> 
-> Usually, !! is used to convert non-zero to the _integer_ 1.  With
-> a compiler that implements bool, this conversion is already implied.
-> On older compilers, someone might be tempted to do "#define bool int",
-> but this is not an issue with the compilers required by Linux.
-> 
-I looked up other drivers, and they do the same, so I'll declare it safe 
-and apply your patch without modification.
+MADC(Monitoring ADC) driver enables monitoring analog signals using
+analog-to-digital conversion (ADC) on the input source.
+The previous discussion concluded in keeping the generic ADC
+functionality and the hwmon separate. The discussion can be found here:
 
-Thanks,
-Guenter
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+
+Keerthy (2):
+  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+  mfd: twl4030: Driver for twl4030 madc module
+
+ Documentation/hwmon/twl4030-madc-hwmon |   45 ++
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/twl4030-madc-hwmon.c     |  153 ++++++
+ drivers/mfd/Kconfig                    |   10 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/twl4030-madc.c             |  813 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-madc.h       |  142 ++++++
+ 8 files changed, 1175 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+ create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+ create mode 100644 drivers/mfd/twl4030-madc.c
+ create mode 100644 include/linux/i2c/twl4030-madc.h
+
 
 _______________________________________________
 lm-sensors mailing list
