@@ -1,66 +1,132 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 04 Mar 2011 17:58:02 +0000
-Subject: [lm-sensors] [PATCH v5 07/11] hwmon: (w83627ehf) Permit enabling
-Message-Id: <1299261486-15190-8-git-send-email-guenter.roeck@ericsson.com>
+From: Uuhello <info@vip2.uuhello.net>
+Date: Tue, 01 Mar 2011 18:45:47 +0000
+Subject: [lm-sensors] CVS Update@linux-mips.org: linux
+Message-Id: <E1PuUb3-0005mv-Fj@flocki.atrpms.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6223452355492921847=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--===============6223452355492921847==
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+=0D=0A=09=09=09<html>=0D=0A=0D=0A=09=09=09=09<body style=3D"background-c=
+olor: #eeeeee;">=0D=0A=09=09=09=09<center>=0D=0A=09=09=09=09<div style=
+=3D"background-color: #226666;padding:3px 3px 3px 3px;width:610px;">=0D=
+=0A=09=09=09=09=0D=0A=09=09=09=09<table width=3D"400px;" border=3D"0" ce=
+llspacing=3D"0" cellpadding=3D"0" class=3D"bg1" style=3D"background-colo=
+r: #FFFFFF;">=0D=0A=09=09=09=09   <tr>=0D=0A=09=09=09=09=09  <td align=
+=3D"center">=0D=0A=09=09=09=09=09=09 =0D=0A=09=09=09=09=09=09 <table wid=
+th=3D"600" border=3D"0" cellspacing=3D"0" cellpadding=3D"0" class=3D"bg2=
+">=0D=0A=09=09=09=09=09=09=09<tr>=0D=0A=09=09=09=09=09=09=09   <td class=
+=3D"header" align=3D"left">=0D=0A=09=09=09=09=09=09=09=09  <div style=3D=
+"width:100%;height:75px;background-color:#76B55B;color:white;-moz-border=
+-radius:5px 5px 5px 5px">=0D=0A=09=09=09=09=09=09=09=09=09<div style=3D"=
+float:right;color:white;font-weight:bold;font-size:25px;">=0D=0A=09=09=
+=09=09=09=09=09=09=09=09=0D=0A=09=09=09=09=09=09=09=09=09=09<a style=3D"=
+text-decoration:none;color:white;" href=3D"http://uuhello.com">=0D=0A=09=
+=09=09=09=09=09=09=09=09=09=09UUHello=0D=0A=09=09=09=09=09=09=09=09=09=
+=09</a>=0D=0A=09=09=09=09=09=09=09=09=09=09=0D=0A=09=09=09=09=09=09=09=
+=09=09</div>=09=09=09=09  =0D=0A=09=09=09=09=09=09=09=09=09Hello:=0D=0A=
+=09=09=09=09=09=09=09=09=09<p style=3D"font-size:15px;font-weight:bold;"=
+>=0D=0A=09=09=09=09=09=09=09=09=09=09<a style=3D"color:white;" href=3D"h=
+ttp://uuhello.com/product_prot/Company/1553938.html">=0D=0A=09=09=09=09=
+=09=09=09=09=09=09=09Our customers are searching and reading your inform=
+ation. Is the information correct? Update Now!=0D=0A=09=09=09=09=09=09=
+=09=09=09=09</a>=0D=0A=09=09=09=09=09=09=09=09=09</p>=0D=0A=0D=0A=09=09=
+=09=09=09=09=09=09  </div>=0D=0A=09=09=09=09=09=09=09   </td>=0D=0A=09=
+=09=09=09=09=09=09</tr>=0D=0A=09=09=09=09=09=09=09<tr>=0D=0A=09=09=09=09=
+=09=09=09   <td valign=3D"top" class=3D"body">=0D=0A=09=09=09=09=09=09=
+=09=09  <table width=3D"100%" border=3D"0" cellspacing=3D"0" cellpadding=
+=3D"0">=0D=0A=09=09=09=09=09=09=09=09=09 <tr>=0D=0A=09=09=09=09=09=09=09=
+=09=09=09<td valign=3D"top" class=3D"mainbar" align=3D"left">=0D=0A=09=
+=09=09=09=09=09=09=09=09=09=09<div style=3D"width:100%; margin-top:10px;=
+">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09<div style=3D"width:80%;floa=
+t:left;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09<h2 style=3D"color=
+:blue">CVS Update@linux-mips.org: linux</h2>=0D=0A=09=09=09=09=09=09=09=
+=09=09=09=09=09=09<p>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09=09<b>=
+...</b> x86 reboot fixups +S: Gurgaon, India +S: <b>Kuala Lumpur</b>, <b=
+>Malaysia</b> + N: Gabor   Kuti <b>.....</b> but you can do this to mark=
+ internal <b>company</b> procedures or just point   out <b>......</b> If=
+ +that still doesn&#39;t help, =0D=0A=09=09=09=09=09=09=09=09=09=09=09=
+=09=09</p>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=
+=09=09=09=09=09=09=09=09=09=09<a href=3D"http://uuhello.com/product_prot=
+/Company/1553938.html" style=3D"font-size:20px;font-weight:bold;text-dec=
+oration:none;color:white;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09=
+<div style=3D"width:20%;background-color:#C7A317;height:110px;float:left=
+;text-align:center;-moz-border-radius:10px 10px 10px 10px">=0D=0A=09=09=
+=09=09=09=09=09=09=09=09=09=09=09=09<p style=3D"margin-top:25px;">=0D=0A=
+=09=09=09=09=09=09=09=09=09=09=09=09=09=09=09Please Update!=0D=0A=09=09=
+=09=09=09=09=09=09=09=09=09=09=09=09</p>=0D=0A=09=09=09=09=09=09=09=09=
+=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09</a>=0D=
+=0A=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=09=09=09=
+=09=09=09<div style=3D"clear:both"></div>=0D=0A=09=09=09=09=09=09=09=09=
+=09=09   <hr style=3D"border:1px dotted #777777">=0D=0A=09=09=09=09=09=
+=09=09=09=09=09   <br />=0D=0A=09=09=09=09=09=09=09=09=09=09   <div styl=
+e=3D"clear:both"></div>=0D=0A=09=09=09=09=09=09=09=09=09=09   <ul style=
+=3D"font-size:13px;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09  <li style=
+=3D"margin-bottom:3px;"><a style=3D"text-decoration:none;color:black" hr=
+ef=3D"http://uuhello.com">On-Demand e-Booking Engine</a></li>=0D=0A=09=
+=09=09=09=09=09=09=09=09=09=09  <li style=3D"margin-bottom:3px;"><a styl=
+e=3D"text-decoration:none;color:black" href=3D"http://uuhello.com">On-De=
+mand Shopping Cart</a></li>=0D=0A=09=09=09=09=09=09=09=09=09=09=09  <li=
+ style=3D"margin-bottom:3px;"><a style=3D"text-decoration:none;color:bla=
+ck" href=3D"http://uuhello.com">On-Demand Video Conferencing</a></li>=0D=
+=0A=09=09=09=09=09=09=09=09=09=09=09  <li style=3D"margin-bottom:3px;"><=
+a style=3D"text-decoration:none;color:black" href=3D"http://uuhello.com"=
+>Global e-Payment</a></li>=0D=0A=09=09=09=09=09=09=09=09=09=09=09  <li s=
+tyle=3D"margin-bottom:3px;"><a style=3D"text-decoration:none;color:black=
+" href=3D"http://uuhello.com">Global Business Search Engine</a></li>=0D=
+=0A=09=09=09=09=09=09=09=09=09=09   </ul>=0D=0A=09=09=09=09=09=09=09=09=
+=09=09   =0D=0A=09=09=09=09=09=09=09=09=09=09   <br/>=0D=0A=09=09=09=09=
+=09=09=09=09=09=09   <div>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09Cust=
+omer IP: 16.144.160.128 From: United States=0D=0A=09=09=09=09=09=09=09=
+=09=09=09   </div>=0D=0A=09=09=09=09=09=09=09=09=09=09   <br/>=0D=0A=09=
+=09=09=09=09=09=09=09=09=09   =0D=0A=09=09=09=09=09=09=09=09=09=09   <h2=
+>UUHello, Search & Sell</h2>=0D=0A=09=09=09=09=09=09=09=09=09=09   <hr s=
+tyle=3D"border:1px dotted black">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=
+<div style=3D"width:100%;height:80px;">=0D=0A=09=09=09=09=09=09=09=09=09=
+=09=09=09<div style=3D"width:30%;background-color:red;float:left;height:=
+100%;color:white;font-size:60px;font-weight:bold;text-align:center;-moz-=
+border-radius:5px 5px 5px 5px;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=
+=09=09$50=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=
+=09=09=09=09=09=09=09=09=09<div style=3D"width:70%;float:left;height:100=
+%;">=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09<p style=3D"margin-left=
+:10px;font-size:18px;font-weight:bold;color:blue;">=0D=0A=09=09=09=09=09=
+=09=09=09=09=09=09=09=09=09$50 Free for you to optimize your information=
+,<br>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09=09Achieve One Minute=
+ eCommerce!=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09</p>=0D=0A=09=09=
+=09=09=09=09=09=09=09=09=09=09=09<div style=3D"float:right;">=0D=0A=09=
+=09=09=09=09=09=09=09=09=09=09=09=09=09<a style=3D"text-decoration:none;=
+color:#777777;font-size:13px" href=3D"http://uuhello.com">uuhello.com</a=
+>=0D=0A=09=09=09=09=09=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=
+=09=09=09=09=09=09=09=09</div>=0D=0A=09=09=09=09=09=09=09=09=09=09=09</d=
+iv>=0D=0A=09=09=09=09=09=09=09=09=09=09</td>=0D=0A=09=09=09=09=09=09=09=
+=09=09 </tr>=0D=0A=09=09=09=09=09=09=09=09  </table>=0D=0A=09=09=09=09=
+=09=09=09   </td>=0D=0A=09=09=09=09=09=09=09</tr>=0D=0A=09=09=09=09=09=
+=09=09<tr>=0D=0A=09=09=09=09=09=09=09   <td valign=3D"middle" align=3D"l=
+eft" class=3D"footer" height=3D"61" style=3D"font-size:11px;color:white;=
+background-color:#76B55B;">=0D=0A=09=09=09=09=09=09=09=09=09&copy; <a st=
+yle=3D"text-decoration:none; color:white" href=3D"http://uuhello.com">uu=
+Hello</a>=0D=0A=09=09=09=09=09=09=09=09=09&nbsp; The search results do n=
+ot represent UUHello&rsquo;s position=0D=0A=09=09=09=09=09=09=09   </td>=
+=0D=0A=09=09=09=09=09=09=09</tr>=0D=0A=09=09=09=09=09=09 </table>=0D=0A=
+=09=09=09=09=09=09 =0D=0A=09=09=09=09=09  </td>=0D=0A=09=09=09=09   </tr=
+>=0D=0A=09=09=09=09</table>=0D=0A=09=09=09=09</div>=0D=0A=09=09=09=09</c=
+enter>=0D=0A=09=09=09=09</body>=0D=0A=09=09=09</html>
+
+
+
+--===============6223452355492921847==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Ian Dobson <i.dobson@planet-ian.com>, Andy Lutomirski <luto@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, binximeng@gmail.com, lmsensors@tapanitarvainen.fi, andrea.rizzolo@gmail.com, jeff.sadowski@gmail.com, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
-
-If SmartFan IV mode was configured at startup, it should be possible
-to re-enable it later on.
-
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/w83627ehf.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 2420f1c..2f17f99 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -346,7 +346,10 @@ struct w83627ehf_data {
- 			     2->thermal cruise mode (also called SmartFan I)
- 			     3->fan speed cruise mode
- 			     4->variable thermal cruise (also called
--				SmartFan III) */
-+				SmartFan III)
-+			     5->enhanced variable thermal cruise (also called
-+				SmartFan IV) */
-+	u8 pwm_enable_orig[4];	/* original value of pwm_enable */
- 	u8 pwm_num;		/* number of pwm */
- 	u8 pwm[4];
- 	u8 target_temp[4];
-@@ -1055,7 +1058,7 @@ store_pwm_enable(struct device *dev, struct device_attribute *attr,
- 	if (err < 0)
- 		return err;
- 
--	if (!val || (val > 4))
-+	if (!val || (val > 4 && val != data->pwm_enable_orig[nr]))
- 		return -EINVAL;
- 	mutex_lock(&data->update_lock);
- 	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
-@@ -1617,6 +1620,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 	/* Read fan clock dividers immediately */
- 	w83627ehf_update_fan_div(data);
- 
-+	/* Read pwm data to save original values */
-+	w83627ehf_update_pwm_common(dev, data);
-+	for (i = 0; i < data->pwm_num; i++)
-+		data->pwm_enable_orig[i] = data->pwm_enable[i];
-+
- 	/* Register sysfs hooks */
- 	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++) {
- 		err = device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
--- 
-1.7.3.1
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6223452355492921847==--
