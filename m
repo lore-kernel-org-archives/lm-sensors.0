@@ -1,26 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 04 Mar 2011 14:34:21 +0000
-Subject: Re: [lm-sensors] Fintek F71808E
-Message-Id: <20110304153421.321a3584@endymion.delvare>
+From: Keerthy <j-keerthy@ti.com>
+Date: Tue, 01 Mar 2011 13:54:06 +0000
+Subject: [lm-sensors] [PATCH 0/2 v5] twl4030-madc driver
+Message-Id: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110304143718.71f7ca46@RunningPinguin.chalmion.homelinux.net>
-In-Reply-To: <20110304143718.71f7ca46@RunningPinguin.chalmion.homelinux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
+Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
 
-On Fri, 4 Mar 2011 14:37:18 +0100, Jonathan Michalon wrote:
-> The Fintek F71808E hwmon chip is currently unsupported under Linux.
-> I'm the (happy) owner of that chip, and in such any developer interested in
-> supporting it may ask me to test code. Furthermore, I can code in C but have no
-> knowledge in kernel development... nevertheless if I may be useful in some way,
-> please let me know.
+MADC(Monitoring ADC) driver enables monitoring analog signals using
+analog-to-digital conversion (ADC) on the input source.
+The previous discussion concluded in keeping the generic ADC
+functionality and the hwmon separate. The discussion can be found here:
 
-I've added your request to wiki/Devices.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
 
--- 
-Jean Delvare
+Keerthy (2):
+  mfd: twl4030: Driver for twl4030 madc module
+  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+
+ Documentation/hwmon/twl4030-madc-hwmon |   45 ++
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/twl4030-madc-hwmon.c     |  157 +++++++
+ drivers/mfd/Kconfig                    |   10 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/twl4030-madc.c             |  802 ++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030-madc.h       |  141 ++++++
+ 8 files changed, 1167 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
+ create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
+ create mode 100644 drivers/mfd/twl4030-madc.c
+ create mode 100644 include/linux/i2c/twl4030-madc.h
+
 
 _______________________________________________
 lm-sensors mailing list
