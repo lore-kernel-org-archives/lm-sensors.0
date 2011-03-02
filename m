@@ -1,39 +1,33 @@
-From: Keerthy <j-keerthy@ti.com>
-Date: Tue, 01 Mar 2011 13:54:06 +0000
-Subject: [lm-sensors] [PATCH 0/2 v5] twl4030-madc driver
-Message-Id: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Date: Wed, 02 Mar 2011 10:15:13 +0000
+Subject: Re: [lm-sensors] [PATCH 0/2 v5] twl4030-madc driver
+Message-Id: <20110302101512.GC16181@sortiz-mobl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1298986926-31180-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, sameo@linux.intel.com
-Cc: mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, j-keerthy@ti.com, linux-omap@vger.kernel.org
+To: Keerthy <j-keerthy@ti.com>
+Cc: lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, mikko.k.ylinen@nokia.com, amit.kucheria@canonical.com, linux-omap@vger.kernel.org
 
-MADC(Monitoring ADC) driver enables monitoring analog signals using
-analog-to-digital conversion (ADC) on the input source.
-The previous discussion concluded in keeping the generic ADC
-functionality and the hwmon separate. The discussion can be found here:
+Hi Keerthy,
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+On Tue, Mar 01, 2011 at 07:12:06PM +0530, Keerthy wrote:
+> MADC(Monitoring ADC) driver enables monitoring analog signals using
+> analog-to-digital conversion (ADC) on the input source.
+> The previous discussion concluded in keeping the generic ADC
+> functionality and the hwmon separate. The discussion can be found here:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg41805.html
+Thanks a lot, I applied those 2 patches.
 
-Keerthy (2):
-  mfd: twl4030: Driver for twl4030 madc module
-  hwmon: twl4030: Hwmon Driver for TWL4030 MADC
+Cheers,
+Samuel.
 
- Documentation/hwmon/twl4030-madc-hwmon |   45 ++
- drivers/hwmon/Kconfig                  |   10 +
- drivers/hwmon/Makefile                 |    1 +
- drivers/hwmon/twl4030-madc-hwmon.c     |  157 +++++++
- drivers/mfd/Kconfig                    |   10 +
- drivers/mfd/Makefile                   |    1 +
- drivers/mfd/twl4030-madc.c             |  802 ++++++++++++++++++++++++++++++++
- include/linux/i2c/twl4030-madc.h       |  141 ++++++
- 8 files changed, 1167 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/twl4030-madc-hwmon
- create mode 100644 drivers/hwmon/twl4030-madc-hwmon.c
- create mode 100644 drivers/mfd/twl4030-madc.c
- create mode 100644 include/linux/i2c/twl4030-madc.h
-
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
 
 _______________________________________________
 lm-sensors mailing list
