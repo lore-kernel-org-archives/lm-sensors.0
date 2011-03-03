@@ -1,38 +1,116 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 26 Mar 2011 19:56:24 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.39
-Message-Id: <1301169714-25636-1-git-send-email-guenter.roeck@ericsson.com>
+From: per.dalen@appeartv.com
+Date: Thu, 03 Mar 2011 16:53:58 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm90) Add support for max6642
+Message-Id: <49052.79.160.13.2.1299171238.squirrel@webmail.s7.itpays.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+Signed-off-by: Per Dalen <per.dalen at appeartv.com>
 
-Please pull hwmon subsystem fixes for Linux 2.6.39 from:
+---
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 812781c..cc57f49 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -49,6 +49,8 @@
+  * chips, but support three temperature sensors instead of two. MAX6695
+  * and MAX6696 only differ in the pinout so they can be treated identically.
+  *
++ * This driver also supports the MAX6642 a sensor chips made by Maxim.
++ *
+  * This driver also supports the ADT7461 chip from Analog Devices.
+  * It's supported in both compatibility and extended mode. It is mostly
+  * compatible with LM90 except for a data format difference for the
+@@ -95,13 +97,15 @@
+  * MAX6659 can have address 0x4c, 0x4d or 0x4e.
+  * MAX6680 and MAX6681 can have address 0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b,
+  * 0x4c, 0x4d or 0x4e.
++ * MAX6642 can have address 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e or
+0x4f.
+  */
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+ static const unsigned short normal_i2c[] = {
+-	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x4c, 0x4d, 0x4e, I2C_CLIENT_END };
++	0x18, 0x19, 0x1a, 0x29, 0x2a, 0x2b, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d,
++	0x4e, 0x4f, I2C_CLIENT_END };
 
-Thanks,
-Guenter Roeck
+ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+-	max6646, w83l771, max6696 };
++	max6646, w83l771, max6696, max6642 };
 
-------
+ /*
+  * The LM90 registers
+@@ -188,6 +192,7 @@ static const struct i2c_device_id lm90_id[] = {
+ 	{ "max6681", max6680 },
+ 	{ "max6695", max6696 },
+ 	{ "max6696", max6696 },
++	{ "max6642", max6642 },
+ 	{ "w83l771", w83l771 },
+ 	{ }
+ };
+@@ -231,6 +236,11 @@ static const struct lm90_params lm90_params[] = {
+ 		.alert_alarms = 0x7b,
+ 		.max_convrate = 9,
+ 	},
++	[max6642] = {
++		.flags = LM90_HAVE_LOCAL_EXT,
++		.alert_alarms = 0x7c,
++		.max_convrate = 8,
++	},
+ 	[max6646] = {
+ 		.flags = LM90_HAVE_LOCAL_EXT,
+ 		.alert_alarms = 0x7c,
+@@ -1089,7 +1099,8 @@ static int lm90_detect(struct i2c_client *new_client,
+ 	struct i2c_adapter *adapter = new_client->adapter;
+ 	int address = new_client->addr;
+ 	const char *name = NULL;
+-	int man_id, chip_id, reg_config1, reg_convrate;
++	int man_id, chip_id, reg_config1, reg_convrate, reg_local_high,
++	    reg_remote_high;
 
-The following changes since commit 16c29dafcc86024048f1dbb8349d31cb22c7c55a:
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+@@ -1102,7 +1113,11 @@ static int lm90_detect(struct i2c_client *new_client,
+ 	 || (reg_config1 = i2c_smbus_read_byte_data(new_client,
+ 						LM90_REG_R_CONFIG1)) < 0
+ 	 || (reg_convrate = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CONVRATE)) < 0)
++						LM90_REG_R_CONVRATE)) < 0
++	 || (reg_local_high = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_LOCAL_HIGH)) < 0
++	 || (reg_remote_high = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_REMOTE_HIGHH)) < 0)
+ 		return -ENODEV;
 
-  Merge branch 'syscore' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6 (2011-03-25 21:07:59 -0700)
+ 	if ((address = 0x4C || address = 0x4D)
+@@ -1233,7 +1248,22 @@ static int lm90_detect(struct i2c_client *new_client,
+ 		 && (reg_config1 & 0x3f) = 0x00
+ 		 && reg_convrate <= 0x07) {
+ 			name = "max6646";
++		} else
++		/*
++		 * The MAX6642 do NOT have a chip_id register. Reading from
++		 * that address will return the last read value, which in our
++		 * case is those of the man_id register. The local_high register
++		 * is equal to 0x46 and remote_high register is equal to 0x78.
++		 */
++		if (chip_id = man_id
++		 && (address = 0x48 || address = 0x49 || address = 0x4A ||
++		     address = 0x4B || address = 0x4C || address = 0x4D ||
++		     address = 0x4E || address = 0x4F)
++		 && (reg_local_high & 0x46) = 0x46
++		 && (reg_remote_high & 0x78) = 0x78) {
++			name = "max6642";
+ 		}
++
+ 	} else
+ 	if (address = 0x4C
+ 	 && man_id = 0x5C) { /* Winbond/Nuvoton */
 
-are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Guenter Roeck (1):
-      hwmon: (pmbus) Fix temperature limit register access
-
- drivers/hwmon/pmbus_core.c |   70 ++++++++++++++++++++++---------------------
- 1 files changed, 36 insertions(+), 34 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
