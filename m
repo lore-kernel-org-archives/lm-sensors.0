@@ -1,50 +1,133 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Fri, 18 Mar 2011 14:56:46 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 0/3] Support for all SHT15 features
-Message-Id: <20110318145646.GA2082@v0n.mtl.sfl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 03 Mar 2011 08:27:09 +0000
+Subject: [lm-sensors] hwmon: (ads1015) Drop dynamic attribute group
+Message-Id: <20110303092709.4ce3fe3a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1300301050-15529-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1300301050-15529-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Mar 18, 2011 at 08:48:04AM +0100, Jean Delvare wrote:
-> On Thu, 17 Mar 2011 15:36:24 -0700, Guenter Roeck wrote:
-> > On Thu, 2011-03-17 at 16:02 -0400, Vivien Didelot wrote:
-> > > The ability to switch resolution will mainly impact transfer speeds and
-> > > power consumption, depending on the sensor. It makes sense to use the
-> > > number of bits rather than keywords or predefined codes as they will most
-> > > probably be different with each manufacturer.
-> > 
-> > FWIW, I don't think resolution should be an attribute either. None of
-> > the other hwmon drivers had this requirement so far, even if the chip
-> > supports it; instead, a reasonable default is selected. I don't see a
-> > difference to this chip.
-> 
-> To be honest, requests in this direction have happened in the past, and
-> have been silently ignored so far, so it can certainly be discussed.
-> 
-> My opinion on this is that selecting a specific resolution makes sense
-> (the notion of "reasonable default" doesn't always work) but the value
-> of changing the setting at run-time seems very low. So I'd let the
-> desired resolution be passed as platform data, be optionally logged at
-> device initialization time, but I wouldn't have a sysfs attribute for
-> this.
-> 
-> Now if someone comes up with a reasonable scenario where changing the
-> resolution manually at run-time is required, I'm all hears. But if the
-> main concern is power consumption, I suspect that the switching should
-> be integrated in the standard power management framework, rather than
-> done manually through sysfs.
-I agree with that.
-I was thinking about the impact of the calculation speed, but I don't find
-any relevant case which needs to change the resolution at runtime.
-So I will remove resolution attributes as well.
-> 
-> -- 
-> Jean Delvare
+It is cheaper to handle attributes individually.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Dirk Eibach <eibach@gdsys.de>
+---
+In my tests, my version saves 14 bytes on the binary driver, plus 96
+bytes of alloc'd memory per device (struct ads1015_data size is down
+from 136 bytes to 40 bytes on x86-64.)
+
+Dirk, I will leave it up to you whether we apply this patch or not. Oh,
+and by the way, I would appreciate if you could add yourself to
+MAINTAINERS as the maintainer of the ads1015 driver.
+
+ drivers/hwmon/ads1015.c |   50 ++++++++++++++++-------------------------------
+ 1 file changed, 18 insertions(+), 32 deletions(-)
+
+--- linux-2.6.38-rc6.orig/drivers/hwmon/ads1015.c	2011-03-03 09:10:21.000000000 +0100
++++ linux-2.6.38-rc6/drivers/hwmon/ads1015.c	2011-03-03 09:16:05.000000000 +0100
+@@ -51,8 +51,6 @@ static const unsigned int fullscale_tabl
+ struct ads1015_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock; /* mutex protect updates */
+-	struct attribute *attr_table[ADS1015_CONFIG_CHANNELS + 1];
+-	struct attribute_group attr_group;
+ };
+ 
+ static s32 ads1015_read_reg(struct i2c_client *client, unsigned int reg)
+@@ -141,28 +139,15 @@ static ssize_t show_in(struct device *de
+ 	return (res < 0) ? res : sprintf(buf, "%d\n", in);
+ }
+ 
+-#define in_reg(offset)\
+-static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,\
+-	NULL, offset)
+-
+-in_reg(0);
+-in_reg(1);
+-in_reg(2);
+-in_reg(3);
+-in_reg(4);
+-in_reg(5);
+-in_reg(6);
+-in_reg(7);
+-
+-static struct attribute *all_attributes[] = {
+-	&sensor_dev_attr_in0_input.dev_attr.attr,
+-	&sensor_dev_attr_in1_input.dev_attr.attr,
+-	&sensor_dev_attr_in2_input.dev_attr.attr,
+-	&sensor_dev_attr_in3_input.dev_attr.attr,
+-	&sensor_dev_attr_in4_input.dev_attr.attr,
+-	&sensor_dev_attr_in5_input.dev_attr.attr,
+-	&sensor_dev_attr_in6_input.dev_attr.attr,
+-	&sensor_dev_attr_in7_input.dev_attr.attr,
++static const struct sensor_device_attribute ads1015_in[] = {
++	SENSOR_ATTR(in0_input, S_IRUGO, show_in, NULL, 0),
++	SENSOR_ATTR(in1_input, S_IRUGO, show_in, NULL, 1),
++	SENSOR_ATTR(in2_input, S_IRUGO, show_in, NULL, 2),
++	SENSOR_ATTR(in3_input, S_IRUGO, show_in, NULL, 3),
++	SENSOR_ATTR(in4_input, S_IRUGO, show_in, NULL, 4),
++	SENSOR_ATTR(in5_input, S_IRUGO, show_in, NULL, 5),
++	SENSOR_ATTR(in6_input, S_IRUGO, show_in, NULL, 6),
++	SENSOR_ATTR(in7_input, S_IRUGO, show_in, NULL, 7),
+ };
+ 
+ /*
+@@ -172,8 +157,11 @@ static struct attribute *all_attributes[
+ static int ads1015_remove(struct i2c_client *client)
+ {
+ 	struct ads1015_data *data = i2c_get_clientdata(client);
++	int k;
++
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
++	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k)
++		device_remove_file(&client->dev, &ads1015_in[k].dev_attr);
+ 	kfree(data);
+ 	return 0;
+ }
+@@ -210,7 +198,6 @@ static int ads1015_probe(struct i2c_clie
+ 	int err;
+ 	unsigned int exported_channels;
+ 	unsigned int k;
+-	unsigned int n = 0;
+ 
+ 	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
+ 	if (!data) {
+@@ -222,16 +209,14 @@ static int ads1015_probe(struct i2c_clie
+ 	mutex_init(&data->update_lock);
+ 
+ 	/* build sysfs attribute group */
+-	data->attr_group.attrs = data->attr_table;
+ 	exported_channels = ads1015_get_exported_channels(client);
+ 	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
+ 		if (!(exported_channels & (1<<k)))
+ 			continue;
+-		data->attr_table[n++] = all_attributes[k];
++		err = device_create_file(&client->dev, &ads1015_in[k].dev_attr);
++		if (err)
++			goto exit_free;
+ 	}
+-	err = sysfs_create_group(&client->dev.kobj, &data->attr_group);
+-	if (err)
+-		goto exit_free;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -242,7 +227,8 @@ static int ads1015_probe(struct i2c_clie
+ 	return 0;
+ 
+ exit_remove:
+-	sysfs_remove_group(&client->dev.kobj, &data->attr_group);
++	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k)
++		device_remove_file(&client->dev, &ads1015_in[k].dev_attr);
+ exit_free:
+ 	kfree(data);
+ exit:
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
