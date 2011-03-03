@@ -1,84 +1,62 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Date: Wed, 02 Mar 2011 18:16:51 +0000
+From: "Eibach, Dirk" <Eibach@gdsys.de>
+Date: Thu, 03 Mar 2011 07:53:01 +0000
 Subject: Re: [lm-sensors] [PATCH v4] hwmon: Add support for Texas
-Message-Id: <20110302181651.GA24054@pengutronix.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7896776257402210192=="
+Message-Id: <48D3D52125C49B43AE880038E2E5314BB5BE6C@SRV101.gdsys.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110224174807.41c7597f@endymion.delvare>
- <1298639897-26856-1-git-send-email-eibach@gdsys.de>
- <20110302185718.3c0e06dc@endymion.delvare>
-In-Reply-To: <20110302185718.3c0e06dc@endymion.delvare>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Dirk Eibach <eibach@gdsys.de>, linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org
-
-
---===============7896776257402210192==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LZvS9be/3tNcYl/X"
-Content-Disposition: inline
-
-
---LZvS9be/3tNcYl/X
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-> > +#ifdef CONFIG_OF
-> > +	/* fallback on OF */
-> > +	of_channels =3D of_get_property(np, "exported-channels",
-> > +				      &of_channels_size);
-> > +	if (of_channels && (of_channels_size =3D=3D sizeof(*of_channels)))
-> > +		return be32_to_cpup(of_channels);
-> > +#endif
->=20
-> The be32 thing looks odd. I don't get the idea, but as I don't know
-> much about devicetree, I'll trust you.
-
-That's okay. The properties are be32 (coming from powerpc).
-
-Still, there is a new property defined which _always_ needs
-
-a) CCing devicetree-discuss (get_maintainer helps here)
-b) Documentation in Documentation/devicetree/bindings
-
-because it needs to be a lot more stable than platform_data.
-
-(I already lost the original mail, so I sadly can't forward it)
-
-Regards,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---LZvS9be/3tNcYl/X
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAk1uiZMACgkQD27XaX1/VRuKVQCcCl2gktfLIVFlib1/uQi1yDpe
-MLUAn238BQ+kPb+WCKpIDlQ05nypgZqG
-=zf8L
------END PGP SIGNATURE-----
-
---LZvS9be/3tNcYl/X--
-
-
---===============7896776257402210192==
-Content-Type: text/plain; charset="us-ascii"
+References: <20110302185718.3c0e06dc@endymion.delvare>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, rdunlap@xenotime.net, linux-doc@vger.kernel.org
+
+Hi Jean,
+
+> Patch applied. Two things I'd still like to comment on:
+
+Ahh, good news :)
+
+> Besides this, there is still more dynamic attribute handling 
+> than I expected. It looks OK, but I'll propose a patch making 
+> it more static.
+> You'll tell me what you think.
+
+I put the attributes in a group because I thought handling single
+attributes is clumsy and error prone.
+Anyway I am looking forward to your proposal.
+Will this be a v5 or a separate patch?
+
+> --
+> Jean Delvare
+
+Chhers
+Dirk
+------------------------------------------------------------------------------------------------
+Messe-Highlights 2011. Wir freuen uns auf Ihren Besuch.                                         
+
+CeBIT 2011 
+In Hannover - 01.03. bis 05.03.2011 - Halle 12, Stand C50
+
+ATC Global 2011 
+Amsterdam - 08.03. bis 10.03.2011 - Halle 9, Stand R404
+------------------------------------------------------------------------------------------------
+Guntermann & Drunck GmbH Systementwicklung 
+Dortmunder Str. 4a 
+D-57234 Wilnsdorf - Germany 
+Tel: +49 (0) 27 39 / 89 01 - 100  Fax: +49 (0) 27 39 / 89 01 - 120 
+E-Mail: sales@gdsys.de - Web: www.gdsys.de
+------------------------------------------------------------------------------------------------
+Geschaftsfuhrer: 
+Udo Guntermann - Martin Drunck - Reiner Ruelmann - Klaus Tocke
+HRB 2884, Amtsgericht Siegen - WEEE-Reg.-Nr. DE30763240
+USt.-Id.-Nr. DE 126575222 - Steuer-Nr. 342 / 5835 / 1041
+------------------------------------------------------------------------------------------------
+DQS-zertifiziert nach ISO 9001:2000
+------------------------------------------------------------------------------------------------
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7896776257402210192==--
