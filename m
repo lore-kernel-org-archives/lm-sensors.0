@@ -1,124 +1,63 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Date: Tue, 15 Mar 2011 16:02:43 +0000
-Subject: [lm-sensors] [RFC PATCH 3/5] hwmon: lis3: Change exported function
-Message-Id: <1300204965-7209-4-git-send-email-ilkka.koskinen@nokia.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 04 Mar 2011 17:58:02 +0000
+Subject: [lm-sensors] [PATCH v5 07/11] hwmon: (w83627ehf) Permit enabling
+Message-Id: <1299261486-15190-8-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1300204965-7209-1-git-send-email-ilkka.koskinen@nokia.com>
-In-Reply-To: <1300204965-7209-1-git-send-email-ilkka.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, samu.p.onkalo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
-Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Ian Dobson <i.dobson@planet-ian.com>, Andy Lutomirski <luto@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, binximeng@gmail.com, lmsensors@tapanitarvainen.fi, andrea.rizzolo@gmail.com, jeff.sadowski@gmail.com, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Change exported functions to use the device given as parameter
-instead of the global one.
+If SmartFan IV mode was configured at startup, it should be possible
+to re-enable it later on.
 
-Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/hp_accel.c      |    4 ++--
- drivers/hwmon/lis3lv02d.c     |    6 +++---
- drivers/hwmon/lis3lv02d.h     |    4 ++--
- drivers/hwmon/lis3lv02d_i2c.c |    2 +-
- drivers/hwmon/lis3lv02d_spi.c |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/hwmon/w83627ehf.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/hp_accel.c b/drivers/hwmon/hp_accel.c
-index 3d21fa2..14f8578 100644
---- a/drivers/hwmon/hp_accel.c
-+++ b/drivers/hwmon/hp_accel.c
-@@ -320,7 +320,7 @@ static int lis3lv02d_add(struct acpi_device *device)
- 	INIT_WORK(&hpled_led.work, delayed_set_status_worker);
- 	ret = led_classdev_register(NULL, &hpled_led.led_classdev);
- 	if (ret) {
--		lis3lv02d_joystick_disable();
-+		lis3lv02d_joystick_disable(&lis3_dev);
- 		lis3lv02d_poweroff(&lis3_dev);
- 		flush_work(&hpled_led.work);
- 		return ret;
-@@ -334,7 +334,7 @@ static int lis3lv02d_remove(struct acpi_device *device, int type)
- 	if (!device)
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 2420f1c..2f17f99 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -346,7 +346,10 @@ struct w83627ehf_data {
+ 			     2->thermal cruise mode (also called SmartFan I)
+ 			     3->fan speed cruise mode
+ 			     4->variable thermal cruise (also called
+-				SmartFan III) */
++				SmartFan III)
++			     5->enhanced variable thermal cruise (also called
++				SmartFan IV) */
++	u8 pwm_enable_orig[4];	/* original value of pwm_enable */
+ 	u8 pwm_num;		/* number of pwm */
+ 	u8 pwm[4];
+ 	u8 target_temp[4];
+@@ -1055,7 +1058,7 @@ store_pwm_enable(struct device *dev, struct device_attribute *attr,
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (!val || (val > 4))
++	if (!val || (val > 4 && val != data->pwm_enable_orig[nr]))
  		return -EINVAL;
+ 	mutex_lock(&data->update_lock);
+ 	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
+@@ -1617,6 +1620,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 	/* Read fan clock dividers immediately */
+ 	w83627ehf_update_fan_div(data);
  
--	lis3lv02d_joystick_disable();
-+	lis3lv02d_joystick_disable(&lis3_dev);
- 	lis3lv02d_poweroff(&lis3_dev);
- 
- 	led_classdev_unregister(&hpled_led.led_classdev);
-diff --git a/drivers/hwmon/lis3lv02d.c b/drivers/hwmon/lis3lv02d.c
-index 0e0e84c..b2558c7 100644
---- a/drivers/hwmon/lis3lv02d.c
-+++ b/drivers/hwmon/lis3lv02d.c
-@@ -610,7 +610,7 @@ static struct miscdevice lis3lv02d_misc_device = {
- 	.fops    = &lis3lv02d_misc_fops,
- };
- 
--int lis3lv02d_joystick_enable(void)
-+int lis3lv02d_joystick_enable(struct lis3lv02d *lis3)
- {
- 	struct input_dev *input_dev;
- 	int err;
-@@ -668,7 +668,7 @@ int lis3lv02d_joystick_enable(void)
- }
- EXPORT_SYMBOL_GPL(lis3lv02d_joystick_enable);
- 
--void lis3lv02d_joystick_disable(void)
-+void lis3lv02d_joystick_disable(struct lis3lv02d *lis3)
- {
- 	if (lis3_dev.irq)
- 		free_irq(lis3_dev.irq, &lis3_dev);
-@@ -934,7 +934,7 @@ int lis3lv02d_init_device(struct lis3lv02d *lis3)
- 		pm_runtime_enable(lis3->pm_dev);
- 	}
- 
--	if (lis3lv02d_joystick_enable())
-+	if (lis3lv02d_joystick_enable(lis3))
- 		pr_err("joystick initialization failed\n");
- 
- 	/* passing in platform specific data is purely optional and only
-diff --git a/drivers/hwmon/lis3lv02d.h b/drivers/hwmon/lis3lv02d.h
-index a193958..49cb1f1 100644
---- a/drivers/hwmon/lis3lv02d.h
-+++ b/drivers/hwmon/lis3lv02d.h
-@@ -282,8 +282,8 @@ struct lis3lv02d {
- };
- 
- int lis3lv02d_init_device(struct lis3lv02d *lis3);
--int lis3lv02d_joystick_enable(void);
--void lis3lv02d_joystick_disable(void);
-+int lis3lv02d_joystick_enable(struct lis3lv02d *lis3);
-+void lis3lv02d_joystick_disable(struct lis3lv02d *lis3);
- void lis3lv02d_poweroff(struct lis3lv02d *lis3);
- void lis3lv02d_poweron(struct lis3lv02d *lis3);
- int lis3lv02d_remove_fs(struct lis3lv02d *lis3);
-diff --git a/drivers/hwmon/lis3lv02d_i2c.c b/drivers/hwmon/lis3lv02d_i2c.c
-index d834505..fa0cea1 100644
---- a/drivers/hwmon/lis3lv02d_i2c.c
-+++ b/drivers/hwmon/lis3lv02d_i2c.c
-@@ -182,7 +182,7 @@ static int __devexit lis3lv02d_i2c_remove(struct i2c_client *client)
- 	if (pdata && pdata->release_resources)
- 		pdata->release_resources();
- 
--	lis3lv02d_joystick_disable();
-+	lis3lv02d_joystick_disable(lis3);
- 	lis3lv02d_remove_fs(&lis3_dev);
- 
- 	if (lis3_dev.reg_ctrl)
-diff --git a/drivers/hwmon/lis3lv02d_spi.c b/drivers/hwmon/lis3lv02d_spi.c
-index c1f8a8f..b2c1be1 100644
---- a/drivers/hwmon/lis3lv02d_spi.c
-+++ b/drivers/hwmon/lis3lv02d_spi.c
-@@ -83,7 +83,7 @@ static int __devinit lis302dl_spi_probe(struct spi_device *spi)
- static int __devexit lis302dl_spi_remove(struct spi_device *spi)
- {
- 	struct lis3lv02d *lis3 = spi_get_drvdata(spi);
--	lis3lv02d_joystick_disable();
-+	lis3lv02d_joystick_disable(lis3);
- 	lis3lv02d_poweroff(lis3);
- 
- 	return lis3lv02d_remove_fs(&lis3_dev);
++	/* Read pwm data to save original values */
++	w83627ehf_update_pwm_common(dev, data);
++	for (i = 0; i < data->pwm_num; i++)
++		data->pwm_enable_orig[i] = data->pwm_enable[i];
++
+ 	/* Register sysfs hooks */
+ 	for (i = 0; i < ARRAY_SIZE(sda_sf3_arrays); i++) {
+ 		err = device_create_file(dev, &sda_sf3_arrays[i].dev_attr);
 -- 
-1.7.0.4
+1.7.3.1
 
 
 _______________________________________________
