@@ -1,49 +1,49 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 18 Mar 2011 13:40:00 +0000
-Subject: Re: [lm-sensors] Update on DS1721, DS1631, DS1631A, DS1731
-Message-Id: <20110318134000.GB9655@ericsson.com>
+Date: Fri, 04 Mar 2011 02:04:24 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: Add tachometer pulses per fan
+Message-Id: <1299204264-10435-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110318042048.GA8315@ericsson.com>
-In-Reply-To: <20110318042048.GA8315@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Some fan control chips support a configuration register to set the number of
+tachometer pulses per fan revolution. Add an ABI attribute to support this
+configuration register.
 
-On Fri, Mar 18, 2011 at 07:04:24AM -0400, Jean Delvare wrote:
-> On Fri, 18 Mar 2011 03:28:51 -0700, Guenter Roeck wrote:
-> > On Fri, Mar 18, 2011 at 03:57:58AM -0400, Jean Delvare wrote:
-> > > If memory serves, at least the DS1631 supports better resolution than
-> > > the ds1621 driver currently offers. So claiming that it is supported
-> > > isn't completely exact. What the driver supports is really the DS1621
-> > > and the other chips happen to emulate it.
-> > > 
-> > > It should really not be difficult to add proper support for all chips,
-> > > I just could never find the time to look into it. The chips I have here
-> > > are: one DS1621, two DS1631+ and two DS1624+.
-> > > 
-> > Sure, can do that. What would you suggest ? Pick the best available resolution ?
-> 
-> By default, sure, why not? If anybody needs specific configuration,
-> they can add platform data.
-> 
-> > Also, if we do that, I would use i2c_device_id to select the part, and not try
-> > to auto-detect it. Another option would be to play with the configuration register 
-> > and try detecting chip types this way (ie set bit 3,4 and observe the result). 
-> 
-> You aren't allowed to write to the device in the detect function.
-> 
-> > Not sure if that is a good idea, though. Any thoughts on this ?
-> 
-> As I said before, I would blast detection code completely, and rely on
-> explicit instantiation for all devices (i.e. trust i2c_device_id).
-> 
-Ok, sounds like a plan.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+v2: Added more details to attribute description
 
-Thanks,
-Guenter
+ Documentation/hwmon/sysfs-interface |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index c6559f1..83a6987 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -187,6 +187,17 @@ fan[1-*]_div	Fan divisor.
+ 		Note that this is actually an internal clock divisor, which
+ 		affects the measurable speed range, not the read value.
+ 
++fan[1-*]_pulses	Number of tachometer pulses per fan revolution.
++		Integer value, typically between 1 and 4.
++		RW
++		This value is a characteristic of the fan connected to the
++		device's input, so it has to be set in accordance with the fan
++		model.
++		Should only be created if the chip has a register to configure
++		the number of pulses. In the absence of such a register (and
++		thus attribute) the value assumed by all devices is 2 pulses
++		per fan revolution.
++
+ fan[1-*]_target
+ 		Desired fan speed
+ 		Unit: revolution/min (RPM)
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
