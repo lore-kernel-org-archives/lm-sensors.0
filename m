@@ -1,101 +1,90 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 21 Mar 2011 19:04:41 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 2.6.39
-Message-Id: <20110321200441.73f62e56@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 04 Mar 2011 17:57:58 +0000
+Subject: [lm-sensors] [PATCH v5 03/11] hwmon: (w83627ehf) Optimize
+Message-Id: <1299261486-15190-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Ian Dobson <i.dobson@planet-ian.com>, Andy Lutomirski <luto@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, binximeng@gmail.com, lmsensors@tapanitarvainen.fi, andrea.rizzolo@gmail.com, jeff.sadowski@gmail.com, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-Hi Linus,
+Assume that each register is banked, and set the bank for each access.
+Cache the bank number so it only needs to be set if it changes.
 
-Please pull hwmon subsystem updates for Linux 2.6.38 from:
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/w83627ehf.c |   26 +++++++++++---------------
+ 1 files changed, 11 insertions(+), 15 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
-
-We have support for two new devices: Analog Devices ADS1015 and SMSC
-SCH5627. And the lis3lv02d modules were finally kicked out of
-drivers/hwmon.
-
- .../devicetree/bindings/hwmon/ads1015.txt          |   73 ++
- Documentation/hwmon/ads1015                        |   72 ++
- Documentation/hwmon/lm75                           |    5 +
- Documentation/hwmon/sch5627                        |   22 +
- Documentation/hwmon/w83795                         |  127 +++
- Documentation/{hwmon => laptops}/hpfall.c          |    0
- Documentation/{hwmon => misc-devices}/lis3lv02d    |    4 +-
- MAINTAINERS                                        |   21 +-
- drivers/hwmon/Kconfig                              |   85 +--
- drivers/hwmon/Makefile                             |    5 +-
- drivers/hwmon/abituguru.c                          |    4 +-
- drivers/hwmon/abituguru3.c                         |    4 +-
- drivers/hwmon/ads1015.c                            |  337 ++++++++
- drivers/hwmon/lm75.c                               |   66 +-
- drivers/hwmon/sch5627.c                            |  858 ++++++++++++++++++++
- drivers/hwmon/sht15.c                              |    6 +-
- drivers/misc/Kconfig                               |    9 +
- drivers/misc/Makefile                              |    1 +
- drivers/misc/lis3lv02d/Kconfig                     |   37 +
- drivers/misc/lis3lv02d/Makefile                    |    7 +
- drivers/{hwmon => misc/lis3lv02d}/lis3lv02d.c      |    3 +-
- drivers/{hwmon => misc/lis3lv02d}/lis3lv02d.h      |    0
- drivers/{hwmon => misc/lis3lv02d}/lis3lv02d_i2c.c  |    2 +-
- drivers/{hwmon => misc/lis3lv02d}/lis3lv02d_spi.c  |    0
- drivers/platform/x86/Kconfig                       |   18 +
- drivers/platform/x86/Makefile                      |    1 +
- drivers/{hwmon => platform/x86}/hp_accel.c         |    7 +-
- include/linux/i2c/ads1015.h                        |   36 +
- 28 files changed, 1702 insertions(+), 108 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/hwmon/ads1015.txt
- create mode 100644 Documentation/hwmon/ads1015
- create mode 100644 Documentation/hwmon/sch5627
- create mode 100644 Documentation/hwmon/w83795
- rename Documentation/{hwmon => laptops}/hpfall.c (100%)
- rename Documentation/{hwmon => misc-devices}/lis3lv02d (96%)
- create mode 100644 drivers/hwmon/ads1015.c
- create mode 100644 drivers/hwmon/sch5627.c
- create mode 100644 drivers/misc/lis3lv02d/Kconfig
- create mode 100644 drivers/misc/lis3lv02d/Makefile
- rename drivers/{hwmon => misc/lis3lv02d}/lis3lv02d.c (99%)
- rename drivers/{hwmon => misc/lis3lv02d}/lis3lv02d.h (100%)
- rename drivers/{hwmon => misc/lis3lv02d}/lis3lv02d_i2c.c (99%)
- rename drivers/{hwmon => misc/lis3lv02d}/lis3lv02d_spi.c (100%)
- rename drivers/{hwmon => platform/x86}/hp_accel.c (99%)
- create mode 100644 include/linux/i2c/ads1015.h
-
----------------
-
-Dirk Eibach (2):
-      hwmon: Add support for Texas Instruments ADS1015
-      hwmon: (ads1015) Make gain and datarate configurable
-
-Hans de Goede (2):
-      hwmon: (abituguru*) Update my email address
-      hwmon: New driver for SMSC SCH5627
-
-Jean Delvare (7):
-      hwmon: (w83795) Document pin mapping
-      Let Kconfig handle lis3lv02d dependencies
-      Move hp_accel to drivers/platform/x86
-      Move lis3lv02d drivers to drivers/misc
-      hp_accel: Fix driver name
-      hwmon: (lm75) Speed up detection
-      hwmon: (ads1015) Drop dynamic attribute group
-
-Justin P. Mattock (1):
-      hwmon: (sht15) Spelling fix
-
-Len Sorensen (1):
-      hwmon: (lm75) Add detection of the National Semiconductor LM75A
-
-Vivien Didelot (1):
-      hwmon: (sht15) Fix integer overflow in humidity calculation
-
-Thanks,
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 1128eac..5a627b9 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -304,6 +304,7 @@ struct w83627ehf_data {
+ 	unsigned long last_updated;	/* In jiffies */
+ 
+ 	/* Register values */
++	u8 bank;		/* current register bank */
+ 	u8 in_num;		/* number of in inputs we have */
+ 	u8 in[10];		/* Register value */
+ 	u8 in_max[10];		/* Register value */
+@@ -347,21 +348,19 @@ struct w83627ehf_sio_data {
+ 	enum kinds kind;
+ };
+ 
+-/* Registers 0x50-0x5f are banked */
++/*
++ * On older chips, only registers 0x50-0x5f are banked.
++ * On more recent chips, all registers are banked.
++ * Assume that is the case and set the bank number for each access.
++ * Cache the bank number so it only needs to be set if it changes.
++ */
+ static inline void w83627ehf_set_bank(struct w83627ehf_data *data, u16 reg)
+ {
+-	if ((reg & 0x00f0) = 0x50) {
+-		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
+-		outb_p(reg >> 8, data->addr + DATA_REG_OFFSET);
+-	}
+-}
+-
+-/* Not strictly necessary, but play it safe for now */
+-static inline void w83627ehf_reset_bank(struct w83627ehf_data *data, u16 reg)
+-{
+-	if (reg & 0xff00) {
++	u8 bank = reg >> 8;
++	if (data->bank != bank) {
+ 		outb_p(W83627EHF_REG_BANK, data->addr + ADDR_REG_OFFSET);
+-		outb_p(0, data->addr + DATA_REG_OFFSET);
++		outb_p(bank, data->addr + DATA_REG_OFFSET);
++		data->bank = bank;
+ 	}
+ }
+ 
+@@ -379,10 +378,8 @@ static u16 w83627ehf_read_value(struct w83627ehf_data *data, u16 reg)
+ 		       data->addr + ADDR_REG_OFFSET);
+ 		res = (res << 8) + inb_p(data->addr + DATA_REG_OFFSET);
+ 	}
+-	w83627ehf_reset_bank(data, reg);
+ 
+ 	mutex_unlock(&data->lock);
+-
+ 	return res;
+ }
+ 
+@@ -401,7 +398,6 @@ static int w83627ehf_write_value(struct w83627ehf_data *data, u16 reg,
+ 		       data->addr + ADDR_REG_OFFSET);
+ 	}
+ 	outb_p(value & 0xff, data->addr + DATA_REG_OFFSET);
+-	w83627ehf_reset_bank(data, reg);
+ 
+ 	mutex_unlock(&data->lock);
+ 	return 0;
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
