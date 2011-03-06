@@ -1,319 +1,185 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 04 Mar 2011 17:57:59 +0000
-Subject: [lm-sensors] [PATCH v5 04/11] hwmon: (w83627ehf) Improve support
-Message-Id: <1299261486-15190-5-git-send-email-guenter.roeck@ericsson.com>
+From: Lunar Cab <lunarcab@yahoo.com>
+Date: Sun, 06 Mar 2011 14:46:55 +0000
+Subject: [lm-sensors] GPU temp for Asus agp-v8200 deluxe graphics card
+Message-Id: <62498.99181.qm@web55602.mail.re4.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2133685221338867471=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--===============2133685221338867471==
+Content-Type: multipart/alternative; boundary="0-1620049993-1299422815=:99181"
+
+--0-1620049993-1299422815=:99181
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Dear friends,
+
+I'd like to have your advice on how to get the GPU temperature for my graph=
+ics card.
+
+My system:
+motherboard: Asus CUSL2
+graphics card: Asus agp-v8200 deluxe
+OS: Ubuntu 9.10 (Karmic) kernel 2.6.31-14
+acpi_enforce_resources=3Dlax option activated in grub
+
+The final output of sensors-detect is:
+
+Driver `w83781d':
+=A0 * Bus `NVIDIA i2c adapter '
+=A0=A0=A0 Busdriver `nvidia', I2C address 0x2d (and 0x48 0x49)
+=A0=A0=A0 Chip `Winbond W83781D' (confidence: 8)
+=A0 * Bus `SMBus I801 adapter at e800'
+=A0=A0=A0 Busdriver `i2c_i801', I2C address 0x2d (and 0x48 0x49)
+=A0=A0=A0 Chip `Asus AS99127F (rev.1)' (confidence: 8)
+
+After modprobe for all mentioned drivers "sensors" gives me:
+
+administrator@UBUNTU:~$ sensors
+as99127f-i2c-3-2d
+Adapter: SMBus I801 adapter at e800
+in0:=A0=A0=A0=A0=A0=A0=A0=A0 +1.68 V=A0 (min =3D=A0 +1.46 V, max =3D=A0 +1.=
+84 V)=A0=A0=20
+in1:=A0=A0=A0=A0=A0=A0=A0=A0 +1.68 V=A0 (min =3D=A0 +2.24 V, max =3D=A0 +2.=
+74 V)=A0=A0 ALARM
+in2:=A0=A0=A0=A0=A0=A0=A0=A0 +3.44 V=A0 (min =3D=A0 +2.96 V, max =3D=A0 +3.=
+62 V)=A0=A0=20
+in3:=A0=A0=A0=A0=A0=A0=A0=A0 +2.91 V=A0 (min =3D=A0 +2.67 V, max =3D=A0 +3.=
+26 V)=A0=A0=20
+in4:=A0=A0=A0=A0=A0=A0=A0=A0 +2.98 V=A0 (min =3D=A0 +2.40 V, max =3D=A0 +3.=
+58 V)=A0=A0=20
+in5:=A0=A0=A0=A0=A0=A0=A0=A0 +3.01 V=A0 (min =3D=A0 +2.42 V, max =3D=A0 +3.=
+62 V)=A0=A0=20
+in6:=A0=A0=A0=A0=A0=A0=A0=A0 +4.08 V=A0 (min =3D=A0 +2.66 V, max =3D=A0 +3.=
+98 V)=A0=A0 ALARM
+fan1:=A0=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D =
+2)
+fan2:=A0=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D =
+2)
+fan3:=A0=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0=A0 0 RPM, div =3D =
+2)
+temp1:=A0=A0=A0=A0=A0=A0 +34.0=B0C=A0 (high =3D +105.0=B0C, hyst =3D=A0 +0.=
+0=B0C)=A0=20
+temp2:=A0=A0=A0=A0=A0=A0 +24.0=B0C=A0 (high =3D +100.0=B0C, hyst =3D +92.0=
+=B0C)=A0=20
+temp3:=A0=A0=A0=A0=A0=A0 -31.5=B0C=A0 (high =3D +122.0=B0C, hyst =3D +121.0=
+=B0C)=A0=20
+cpu0_vid:=A0=A0 +1.650 V
+beep_enable:enabled
+
+So, there is no GPU temperature listing. I have recommended nvidia driver i=
+nstalled (nvidia-96-kernel). Playing with nvidia-settings I have:
+
+---------------
+administrator@UBUNTU:~$ nvidia-settings -q gpucoretemp -t
+administrator@UBUNTU:~$=20
+---------------
+administrator@UBUNTU:~$ nvidia-settings -q gpucoretemp
+
+
+administrator@UBUNTU:~$=20
+---------------
+administrator@UBUNTU:~$ nvidia-settings -e gpucoretemp
+
+Attribute 'GPUCoreTemp':
+=A0 - Attribute is not written to the rc file.
+=A0 Reports the current core temperature in Celsius of the GPU driving the =
+X
+=A0 screen.
+
+administrator@UBUNTU:~$=20
+---------------
+
+Nothing. nvclock -T outputs:
+
+administrator@UBUNTU:~$ sudo nvclock -T
+[sudo] password for administrator:=20
+Error: temperature monitoring isn't supported on your videocard.
+administrator@UBUNTU:~$=20
+
+I know for sure that my graphics card does have a thermal control chip; in =
+Windows using Asus SmartDoctor software I can get temperature not only for =
+GPU, but also for GRAM.
+
+So, is there any way to enable temperature monitoring for agp-v8200 in ubun=
+tu?
+
+
+
+
+=0A=0A=0A      
+--0-1620049993-1299422815=:99181
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<table cellspacing=3D"0" cellpadding=3D"0" border=3D"0" ><tr><td valign=3D"=
+top" style=3D"font: inherit;">Dear friends,<br><br>I'd like to have your ad=
+vice on how to get the GPU temperature for my graphics card.<br><br>My syst=
+em:<br>motherboard: Asus CUSL2<br>graphics card: Asus agp-v8200 deluxe<br>O=
+S: Ubuntu 9.10 (Karmic) kernel 2.6.31-14<br>acpi_enforce_resources=3Dlax op=
+tion activated in grub<br><br>The final output of sensors-detect is:<br><br=
+>Driver `w83781d':<br>&nbsp; * Bus `NVIDIA i2c adapter '<br>&nbsp;&nbsp;&nb=
+sp; Busdriver `nvidia', I2C address 0x2d (and 0x48 0x49)<br>&nbsp;&nbsp;&nb=
+sp; Chip `Winbond W83781D' (confidence: 8)<br>&nbsp; * Bus `SMBus I801 adap=
+ter at e800'<br>&nbsp;&nbsp;&nbsp; Busdriver `i2c_i801', I2C address 0x2d (=
+and 0x48 0x49)<br>&nbsp;&nbsp;&nbsp; Chip `Asus AS99127F (rev.1)' (confiden=
+ce: 8)<br><br>After modprobe for all mentioned drivers "sensors" gives me:<=
+br><br>administrator@UBUNTU:~$ sensors<br>as99127f-i2c-3-2d<br>Adapter: SMB=
+us
+ I801 adapter at e800<br>in0:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; +1.68 V&nbsp; (min =3D&nbsp; +1.46 V, max =3D&nbsp; +1.84 V)&nbsp;&nbsp;=
+ <br>in1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.68 V&nbsp; (mi=
+n =3D&nbsp; +2.24 V, max =3D&nbsp; +2.74 V)&nbsp;&nbsp; ALARM<br>in2:&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.44 V&nbsp; (min =3D&nbsp; +2.=
+96 V, max =3D&nbsp; +3.62 V)&nbsp;&nbsp; <br>in3:&nbsp;&nbsp;&nbsp;&nbsp;&n=
+bsp;&nbsp;&nbsp;&nbsp; +2.91 V&nbsp; (min =3D&nbsp; +2.67 V, max =3D&nbsp; =
++3.26 V)&nbsp;&nbsp; <br>in4:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; +2.98 V&nbsp; (min =3D&nbsp; +2.40 V, max =3D&nbsp; +3.58 V)&nbsp;&nbsp;=
+ <br>in5:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.01 V&nbsp; (mi=
+n =3D&nbsp; +2.42 V, max =3D&nbsp; +3.62 V)&nbsp;&nbsp; <br>in6:&nbsp;&nbsp=
+;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +4.08 V&nbsp; (min =3D&nbsp; +2.66 V,=
+ max =3D&nbsp; +3.98 V)&nbsp;&nbsp;
+ ALARM<br>fan1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM=
+&nbsp; (min =3D&nbsp;&nbsp;&nbsp; 0 RPM, div =3D 2)<br>fan2:&nbsp;&nbsp;&nb=
+sp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM&nbsp; (min =3D&nbsp;&nbsp;&nb=
+sp; 0 RPM, div =3D 2)<br>fan3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp;&nbsp; 0 RPM&nbsp; (min =3D&nbsp;&nbsp;&nbsp; 0 RPM, div =3D 2)<br>temp1=
+:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +34.0=B0C&nbsp; (high =3D +105.0=B0C,=
+ hyst =3D&nbsp; +0.0=B0C)&nbsp; <br>temp2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nb=
+sp; +24.0=B0C&nbsp; (high =3D +100.0=B0C, hyst =3D +92.0=B0C)&nbsp; <br>tem=
+p3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -31.5=B0C&nbsp; (high =3D +122.0=B0=
+C, hyst =3D +121.0=B0C)&nbsp; <br>cpu0_vid:&nbsp;&nbsp; +1.650 V<br>beep_en=
+able:enabled<br><br>So, there is no GPU temperature listing. I have recomme=
+nded nvidia driver installed (nvidia-96-kernel). Playing with nvidia-settin=
+gs I have:<br><br>---------------<br>administrator@UBUNTU:~$ nvidia-setting=
+s -q gpucoretemp
+ -t<br>administrator@UBUNTU:~$ <br>---------------<br>administrator@UBUNTU:=
+~$ nvidia-settings -q gpucoretemp<br><br><br>administrator@UBUNTU:~$ <br>--=
+-------------<br>administrator@UBUNTU:~$ nvidia-settings -e gpucoretemp<br>=
+<br>Attribute 'GPUCoreTemp':<br>&nbsp; - Attribute is not written to the rc=
+ file.<br>&nbsp; Reports the current core temperature in Celsius of the GPU=
+ driving the X<br>&nbsp; screen.<br><br>administrator@UBUNTU:~$ <br>-------=
+--------<br><br>Nothing. nvclock -T outputs:<br><br>administrator@UBUNTU:~$=
+ sudo nvclock -T<br>[sudo] password for administrator: <br>Error: temperatu=
+re monitoring isn't supported on your videocard.<br>administrator@UBUNTU:~$=
+ <br><br>I know for sure that my graphics card does have a thermal control =
+chip; in Windows using Asus SmartDoctor software I can get temperature not =
+only for GPU, but also for GRAM.<br><br>So, is there any way to enable temp=
+erature monitoring for agp-v8200 in
+ ubuntu?<br><br><br><br><br></td></tr></table><br>=0A=0A      
+--0-1620049993-1299422815=:99181--
+
+
+--===============2133685221338867471==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Ian Dobson <i.dobson@planet-ian.com>, Andy Lutomirski <luto@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, binximeng@gmail.com, lmsensors@tapanitarvainen.fi, andrea.rizzolo@gmail.com, jeff.sadowski@gmail.com, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
-
-Add support for 4th temperature sensor on W83677HG-B.
-Display temperature labels on W83677HG-B to report temperature sources.
-
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/w83627ehf |   19 +++--
- drivers/hwmon/w83627ehf.c     |  155 ++++++++++++++++++++++++++++++++--------
- 2 files changed, 136 insertions(+), 38 deletions(-)
-
-diff --git a/Documentation/hwmon/w83627ehf b/Documentation/hwmon/w83627ehf
-index 13d5561..0643019 100644
---- a/Documentation/hwmon/w83627ehf
-+++ b/Documentation/hwmon/w83627ehf
-@@ -39,16 +39,21 @@ This driver implements support for the Winbond W83627EHF, W83627EHG,
- W83627DHG, W83627DHG-P, W83667HG and W83667HG-B super I/O chips.
- We will refer to them collectively as Winbond chips.
- 
--The chips implement three temperature sensors, five fan rotation
--speed sensors, ten analog voltage sensors (only nine for the 627DHG), one
--VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG), alarms
--with beep warnings (control unimplemented), and some automatic fan
-+The chips implement three temperature sensors (up to four for 667HG-B),
-+five fan rotation speed sensors, ten analog voltage sensors (only nine for the
-+627DHG), one VID (6 pins for the 627EHF/EHG, 8 pins for the 627DHG and 667HG),
-+alarms with beep warnings (control unimplemented), and some automatic fan
- regulation strategies (plus manual fan control mode).
- 
-+The temperature sensor sources on W82677HG-B are configurable. temp4 is only
-+reported if its temperature source differs from the temperature sources of the
-+other three temperature sensors. The configured source for each of the
-+temperature sensors is reported in tempX_label.
-+
- Temperatures are measured in degrees Celsius and measurement resolution is 1
--degC for temp1 and 0.5 degC for temp2 and temp3. An alarm is triggered when
--the temperature gets higher than high limit; it stays on until the temperature
--falls below the hysteresis value.
-+degC for temp1 and temp4, and 0.5 degC for temp2 and temp3. An alarm is
-+triggered when the temperature gets higher than high limit; it stays on until
-+the temperature falls below the hysteresis value.
- 
- Fan rotation speeds are reported in RPM (rotations per minute). An alarm is
- triggered if the rotation speed has dropped below a programmable limit. Fan
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 5a627b9..d10fe70 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -39,7 +39,7 @@
-     w83627dhg    9      5       4       3      0xa020 0xc1    0x5ca3
-     w83627dhg-p  9      5       4       3      0xb070 0xc1    0x5ca3
-     w83667hg     9      5       3       3      0xa510 0xc1    0x5ca3
--    w83667hg-b   9      5       3       3      0xb350 0xc1    0x5ca3
-+    w83667hg-b   9      5       3       4      0xb350 0xc1    0x5ca3
- */
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -164,10 +164,10 @@ static const u16 W83627EHF_REG_FAN_MIN[] = { 0x3b, 0x3c, 0x3d, 0x3e, 0x55c };
- #define W83627EHF_REG_IN(nr)		((nr < 7) ? (0x20 + (nr)) : \
- 					 (0x550 + (nr) - 7))
- 
--static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250 };
--static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253 };
--static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255 };
--static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252 };
-+static const u16 W83627EHF_REG_TEMP[] = { 0x27, 0x150, 0x250, 0x7e };
-+static const u16 W83627EHF_REG_TEMP_HYST[] = { 0x3a, 0x153, 0x253, 0 };
-+static const u16 W83627EHF_REG_TEMP_OVER[] = { 0x39, 0x155, 0x255, 0 };
-+static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
- 
- /* Fan clock dividers are spread over the following five registers */
- #define W83627EHF_REG_FANDIV1		0x47
-@@ -213,6 +213,19 @@ static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_COMMON[]
- static const u8 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
- static const u8 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[] = { 0x68, 0x6a, 0x6c };
- 
-+static const char *const w83667hg_b_temp_label[] = {
-+	"SYSTIN",
-+	"CPUTIN",
-+	"AUXTIN",
-+	"AMDTSI",
-+	"PECI Agent 1",
-+	"PECI Agent 2",
-+	"PECI Agent 3",
-+	"PECI Agent 4"
-+};
-+
-+#define NUM_REG_TEMP	4
-+
- static inline int is_word_sized(u16 reg)
- {
- 	return (((reg & 0xff00) = 0x100
-@@ -294,6 +307,9 @@ struct w83627ehf_data {
- 	struct device *hwmon_dev;
- 	struct mutex lock;
- 
-+	u8 temp_src[NUM_REG_TEMP];
-+	const char * const *temp_label;
-+
- 	const u8 *REG_FAN_START_OUTPUT;
- 	const u8 *REG_FAN_STOP_OUTPUT;
- 	const u8 *REG_FAN_MAX_OUTPUT;
-@@ -314,9 +330,9 @@ struct w83627ehf_data {
- 	u8 fan_div[5];
- 	u8 has_fan;		/* some fan inputs can be disabled */
- 	u8 temp_type[3];
--	s16 temp[3];
--	s16 temp_max[3];
--	s16 temp_max_hyst[3];
-+	s16 temp[4];
-+	s16 temp_max[4];
-+	s16 temp_max_hyst[4];
- 	u32 alarms;
- 
- 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
-@@ -339,7 +355,7 @@ struct w83627ehf_data {
- 	u8 vid;
- 	u8 vrm;
- 
--	u8 temp3_disable;
-+	u8 have_temp;
- 	u8 in6_skip;
- };
- 
-@@ -577,12 +593,18 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
- 		}
- 
- 		/* Measured temperatures and limits */
--		for (i = 0; i < 3; i++) {
--			data->temp[i] = w83627ehf_read_value(data,
--					W83627EHF_REG_TEMP[i]);
--			data->temp_max[i] = w83627ehf_read_value(data,
--					    W83627EHF_REG_TEMP_OVER[i]);
--			data->temp_max_hyst[i] = w83627ehf_read_value(data,
-+		for (i = 0; i < NUM_REG_TEMP; i++) {
-+			if (!(data->have_temp & (1 << i)))
-+				continue;
-+			data->temp[i]
-+			  = w83627ehf_read_value(data, W83627EHF_REG_TEMP[i]);
-+			if (i > 2)
-+				break;
-+			data->temp_max[i]
-+			  = w83627ehf_read_value(data,
-+						 W83627EHF_REG_TEMP_OVER[i]);
-+			data->temp_max_hyst[i]
-+			  = w83627ehf_read_value(data,
- 						 W83627EHF_REG_TEMP_HYST[i]);
- 		}
- 
-@@ -844,6 +866,15 @@ static struct sensor_device_attribute sda_fan_div[] = {
- 	SENSOR_ATTR(fan5_div, S_IRUGO, show_fan_div, NULL, 4),
- };
- 
-+static ssize_t
-+show_temp_label(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	return sprintf(buf, "%s\n", data->temp_label[data->temp_src[nr]]);
-+}
-+
- #define show_temp_reg(REG, reg) \
- static ssize_t \
- show_##reg(struct device *dev, struct device_attribute *attr, \
-@@ -897,6 +928,14 @@ static struct sensor_device_attribute sda_temp_input[] = {
- 	SENSOR_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0),
- 	SENSOR_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1),
- 	SENSOR_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2),
-+	SENSOR_ATTR(temp4_input, S_IRUGO, show_temp, NULL, 3),
-+};
-+
-+static struct sensor_device_attribute sda_temp_label[] = {
-+	SENSOR_ATTR(temp1_label, S_IRUGO, show_temp_label, NULL, 0),
-+	SENSOR_ATTR(temp2_label, S_IRUGO, show_temp_label, NULL, 1),
-+	SENSOR_ATTR(temp3_label, S_IRUGO, show_temp_label, NULL, 2),
-+	SENSOR_ATTR(temp4_label, S_IRUGO, show_temp_label, NULL, 3),
- };
- 
- static struct sensor_device_attribute sda_temp_max[] = {
-@@ -1328,10 +1367,13 @@ static void w83627ehf_device_remove_files(struct device *dev)
- 		device_remove_file(dev, &sda_target_temp[i].dev_attr);
- 		device_remove_file(dev, &sda_tolerance[i].dev_attr);
- 	}
--	for (i = 0; i < 3; i++) {
--		if ((i = 2) && data->temp3_disable)
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
- 			continue;
- 		device_remove_file(dev, &sda_temp_input[i].dev_attr);
-+		device_remove_file(dev, &sda_temp_label[i].dev_attr);
-+		if (i > 2)
-+			break;
- 		device_remove_file(dev, &sda_temp_max[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_max_hyst[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
-@@ -1354,12 +1396,14 @@ static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
- 		w83627ehf_write_value(data, W83627EHF_REG_CONFIG,
- 				      tmp | 0x01);
- 
--	/* Enable temp2 and temp3 if needed */
--	for (i = 1; i < 3; i++) {
-+	/* Enable temperature sensors if needed */
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
-+			continue;
-+		if (!W83627EHF_REG_TEMP_CONFIG[i])
-+			continue;
- 		tmp = w83627ehf_read_value(data,
- 					   W83627EHF_REG_TEMP_CONFIG[i]);
--		if ((i = 2) && data->temp3_disable)
--			continue;
- 		if (tmp & 0x01)
- 			w83627ehf_write_value(data,
- 					      W83627EHF_REG_TEMP_CONFIG[i],
-@@ -1417,11 +1461,52 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 	data->pwm_num = (sio_data->kind = w83667hg
- 			 || sio_data->kind = w83667hg_b) ? 3 : 4;
- 
-+	data->have_temp = 0x07;
- 	/* Check temp3 configuration bit for 667HG */
--	if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
--		data->temp3_disable = w83627ehf_read_value(data,
--					W83627EHF_REG_TEMP_CONFIG[2]) & 0x01;
--		data->in6_skip = !data->temp3_disable;
-+	if (sio_data->kind = w83667hg) {
-+		u8 reg;
-+
-+		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
-+		if (reg & 0x01)
-+			data->have_temp &= ~(1 << 2);
-+		else
-+			data->in6_skip = 1; /* Either temp3 or in6 */
-+	} else if (sio_data->kind = w83667hg_b) {
-+		u8 reg;
-+
-+		reg = w83627ehf_read_value(data, 0x4a);
-+		data->temp_src[0] = reg >> 5;
-+		reg = w83627ehf_read_value(data, 0x49);
-+		data->temp_src[1] = reg & 0x07;
-+		data->temp_src[2] = (reg >> 4)  & 0x07;
-+
-+		/*
-+		 * W83667HG-B has another temperature register at 0x7e.
-+		 * The temperature source is selected with register 0x7d.
-+		 * Support it if the source differs from already reported
-+		 * sources.
-+		 */
-+		reg = w83627ehf_read_value(data, 0x7d);
-+		reg &= 0x07;
-+		if (reg != data->temp_src[0] && reg != data->temp_src[1]
-+		    && reg != data->temp_src[2]) {
-+			data->temp_src[3] = reg;
-+			data->have_temp |= 1 << 3;
-+		}
-+
-+		/*
-+		 * Chip supports either AUXTIN or VIN3. Try to find out which
-+		 * one.
-+		 */
-+		reg = w83627ehf_read_value(data, W83627EHF_REG_TEMP_CONFIG[2]);
-+		if (data->temp_src[2] = 2 && (reg & 0x01))
-+			data->have_temp &= ~(1 << 2);
-+
-+		if ((data->temp_src[2] = 2 && (data->have_temp & (1 << 2)))
-+		    || (data->temp_src[3] = 2 && (data->have_temp & (1 << 3))))
-+			data->in6_skip = 1;
-+
-+		data->temp_label = w83667hg_b_temp_label;
- 	}
- 
- 	data->REG_FAN_START_OUTPUT = W83627EHF_REG_FAN_START_OUTPUT;
-@@ -1584,13 +1669,21 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	for (i = 0; i < 3; i++) {
--		if ((i = 2) && data->temp3_disable)
-+	for (i = 0; i < NUM_REG_TEMP; i++) {
-+		if (!(data->have_temp & (1 << i)))
- 			continue;
--		if ((err = device_create_file(dev,
--				&sda_temp_input[i].dev_attr))
--			|| (err = device_create_file(dev,
--				&sda_temp_max[i].dev_attr))
-+		err = device_create_file(dev, &sda_temp_input[i].dev_attr);
-+		if (err)
-+			goto exit_remove;
-+		if (data->temp_label) {
-+			err = device_create_file(dev,
-+						 &sda_temp_label[i].dev_attr);
-+			if (err)
-+				goto exit_remove;
-+		}
-+		if (i > 2)
-+			break;
-+		if ((err = device_create_file(dev, &sda_temp_max[i].dev_attr))
- 			|| (err = device_create_file(dev,
- 				&sda_temp_max_hyst[i].dev_attr))
- 			|| (err = device_create_file(dev,
--- 
-1.7.3.1
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2133685221338867471==--
