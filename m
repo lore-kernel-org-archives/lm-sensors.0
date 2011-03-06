@@ -1,42 +1,47 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 13 Mar 2011 14:37:26 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon/f71882fg: Fix a typo in a comment
-Message-Id: <20110313143725.GA10535@ericsson.com>
+From: "Ian Dobson" <i.dobson@planet-ian.com>
+Date: Sun, 06 Mar 2011 12:38:24 +0000
+Subject: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan RPM
+Message-Id: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1300020634-7724-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1300020634-7724-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 13, 2011 at 10:00:52AM -0400, Jean Delvare wrote:
-> On Sun, 13 Mar 2011 13:50:32 +0100, Hans de Goede wrote:
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > ---
-> >  drivers/hwmon/f71882fg.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-> > index bebc57e..9cb52f5 100644
-> > --- a/drivers/hwmon/f71882fg.c
-> > +++ b/drivers/hwmon/f71882fg.c
-> > @@ -37,7 +37,7 @@
-> >  #define SIO_F71858FG_LD_HWM	0x02	/* Hardware monitor logical device */
-> >  #define SIO_F71882FG_LD_HWM	0x04	/* Hardware monitor logical device */
-> >  #define SIO_UNLOCK_KEY		0x87	/* Key to enable Super-I/O */
-> > -#define SIO_LOCK_KEY		0xAA	/* Key to diasble Super-I/O */
-> > +#define SIO_LOCK_KEY		0xAA	/* Key to disable Super-I/O */
-> >  
-> >  #define SIO_REG_LDSEL		0x07	/* Logical device select */
-> >  #define SIO_REG_DEVID		0x20	/* Device ID (2 bytes) */
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-Applied.
+Hello All,
 
-Thanks,
-Guenter
+Firstly I'd like to thank Guenter for all his work adding support for the 
+nct6776f superIO chip.
+
+During my testing of the driver on a Asus p8p67 pro motherboard and a Arctic 
+cooling fan I've come across a small problem that the RPM reading is 
+sometimes incorrect, usually the incorrect reading is almost double the 
+expected value and is only incorrect for 2 seconds (Next actual read from 
+the chip). Looking at the tacho signal from the fan with an oscilloscope  I 
+can see short pulses/dropouts which cause the incorrect reading. Looking 
+through the data sheet I see that the nct6776f and nct6775f both support 
+de-bouncing the fan rpm signal (logical device b address 0xf0 bit 1-5 for 
+nct6776f or 1-4 for nct6775f). After enabling the rpm de-bounce for the CPU 
+fan I've not seen any more miss readings. I tested for 24hours and usually I 
+see a incorrect reading within 10-30 minutes.
+
+The first question is, should we offer the possibility to enable rpm 
+de-bounce for chips that support it? If yes then what interface should we 
+use? I can see 3 possibilities:-
+1) Through sysfs fanX_debounce (0/1). I already have a patch for this and 
+the diff is about 60 lines of code
+2) Through a module parameter (fan_debounce=X) where X could be 0/1 for 
+disable/enable for all fans or a decimal value which is the bit pattern for 
+the de-bounce to enable.
+3) Always enable the fan de-bounce if the chip supports it.
+
+Note enabling de-bounce does not appear to have any negative effects.
+
+Regards
+Ian Dobson
+
+ 
+
 
 _______________________________________________
 lm-sensors mailing list
