@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 06 Mar 2011 20:05:45 +0000
+From: Robert Kaiser <kairo@kairo.at>
+Date: Mon, 07 Mar 2011 02:50:28 +0000
 Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan RPM
-Message-Id: <20110306200545.GA10820@ericsson.com>
+Message-Id: <il1h5n$ljf$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 In-Reply-To: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
@@ -10,35 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Ian,
+Guenter Roeck schrieb:
+> As it is, I am really much more concerned that I am unable to get an
+> Acked-by: for the patch series, much less a Reviewed-by:, nor a Tested-by:
+> from anyone but you. That might result in the series not making it into 2.6.39,
+> which I think would be unfortunate.
 
-On Sun, Mar 06, 2011 at 02:40:30PM -0500, Ian Dobson wrote:
-[ ... ]
-> 
-> I've put out a request to the other people I know of who are using your 
-> standalone driver (with my de-bounce patch) to test it and let me know how 
-> they get along.
-> 
-Great!
+If I had time, any knowledge of kernel code or even C, and it was easy 
+to test this (without compiling a kernel myself, and with some nice doc 
+telling all steps I need), then I'd look into helping there.
+But then, right now, all of those factors are lacking, unfortunately - 
+and my new Intel DH67CL board with something that is probably once of 
+those chips creates other problems as well (thinking no display is 
+connected), so sensors are not the most important factor, just a nice 
+tool to play with... ;-)
 
-> I'd rather wait abit with my de-bounce patch, I'd rather get the driver into 
-> .39 and then look at adding changes. You've done alot of work on this driver 
-> and it would be a shame if it doesn't make it into the next merge window.
-> 
-That is not really a problem. If you submit it, I'll be happy to review it and
-sign it off. I could theoretically just push the rest of the patches as well,
-but I don't like to do that without someone else at having a look.
-Not that I don't trust my code, but I know that I am not perfect, and something
-might have slipped by. Better safe than sorry.
+Robert Kaiser
 
-> I'll do a full code review tomorrow but as you've already covered the 
-> comments I've had I don't think I'll find anything new, you already have my 
-> tested-by:
-> 
-Sounds good.
-
-Thanks,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
