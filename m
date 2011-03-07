@@ -1,63 +1,81 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 16 Mar 2011 15:20:22 +0000
-Subject: Re: [lm-sensors] [PATCH v5 00/11] hwmon: (w83627ehf) Add support
-Message-Id: <20110316152022.GC28824@ericsson.com>
+From: "Ian Dobson" <i.dobson@planet-ian.com>
+Date: Mon, 07 Mar 2011 18:55:56 +0000
+Subject: [lm-sensors] [PATCH v1 01/01] hwmon: (w83627ehf) Add fan debounce
+Message-Id: <79C9F834B6F9462F9F9E4C4E42A973A5@portable2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 16, 2011 at 05:49:20AM -0400, Michiel wrote:
-> Hi,
->=20
-> I installed the stand alone module you created for the nct6775f and
-> basic functionality seems OK. Although the voltage sensor readings seem
-> a bit nonsensical. This is on an ASRock 870iCafe motherboard.
-> ( http://www.asrock.com/mb/overview.asp?Model=870iCafe )
->=20
-Thanks for testing.
+Hello,
 
-The voltage values are not surprising; you'll have to figure out actual vol=
-tages
-and add scaling factors to sensors3.conf.
+The nct6776f and nct6775f support debouncing the fan RPM signal, this can 
+help improve the stability of th RPM signal for some fans (Arctic cooling 
+fans for example).
+This patch adds a module parameter fan_debounce, which when set to 1 enables 
+debounce for all fans that the chip supports.
+I've based this diff on the standalone w83627ehf driver from 7.3.2011 09:54, 
+using diff -uN standardversion  myversion
 
-> It has 2 4pin fan connectors and 1 3pin connector. I'm still trying to
-> configure those for use with fancontrol. But I'm not there yet..
->=20
-> Thanks for all time and hard work you punt in to lm-sensors ! :-)
-> =20
-> > k10temp-pci-00c3
-> > Adapter: PCI adapter
-> > temp1:       +17.5=EF=BF=BD=EF=BF=BDC  (high =3D +70.0=EF=BF=BD=EF=BF=
-=BDC)                 =20
-> >=20
-> > nct6775-isa-0290
-> > Adapter: ISA adapter
-> > in0:         +0.99 V  (min =3D  +0.00 V, max =3D  +1.74 V)  =20
-> > in1:         +1.85 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in2:         +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in3:         +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in4:         +0.06 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in5:         +1.67 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in6:         +1.70 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in7:         +3.44 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in8:         +3.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > fan1:       1095 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
-> > fan2:       1095 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
-> > fan3:       1180 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
-> > SYSTIN:      +30.0=EF=BF=BD=EF=BF=BDC  (high =3D  +0.0=EF=BF=BD=EF=BF=
-=BDC, hyst =3D  +0.0=EF=BF=BD=EF=BF=BDC)  ALARM  sensor =3D thermistor
-> > CPUTIN:      +26.5=EF=BF=BD=EF=BF=BDC  (high =3D +80.0=EF=BF=BD=EF=BF=
-=BDC, hyst =3D +75.0=EF=BF=BD=EF=BF=BDC)  sensor =3D thermistor
-> > AUXTIN:      -12.5=EF=BF=BD=EF=BF=BDC  (high =3D +80.0=EF=BF=BD=EF=BF=
-=BDC, hyst =3D +75.0=EF=BF=BD=EF=BF=BDC)  sensor =3D thermistor
+Regards
+Ian Dobson
 
-Must be pretty cold where you live ;).
 
-Guenter
+--- w83627ehf.c.std	2011-03-04 17:01:18.630954100 +0100
++++ w83627ehf.c	2011-03-07 18:22:33.878852000 +0100
+@@ -79,6 +79,10 @@
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+
++static unsigned short fan_debounce;
++module_param(fan_debounce, ushort, 0);
++MODULE_PARM_DESC(fan_debounce, "Enable de-bouncing for fan RPM signal");
++
+ #define DRVNAME "w83627ehf"
+
+ /*
+@@ -236,6 +240,7 @@
+ static const u16 NCT6775_REG_FAN_STEP_OUTPUT[] = { 0x10b, 0x20b, 0x30b };
+ static const u16 NCT6775_REG_FAN[] = { 0x630, 0x632, 0x634, 0x636, 0x638 };
+ static const u16 NCT6776_REG_FAN_MIN[] = { 0x63a, 0x63c, 0x63e, 0x640, 
+0x642};
++static const u8 NCT6776_REG_FAN_DEBOUNCE = 0xf0;
+
+ static const u16 NCT6775_REG_TEMP[]
+ 	= { 0x27, 0x150, 0x250, 0x73, 0x75, 0x77, 0x62b, 0x62c, 0x62d };
+@@ -2297,6 +2302,7 @@
+ 	static const char __initdata sio_name_NCT6776[] = "NCT6776F";
+
+ 	u16 val;
++	u8 tmp;
+ 	const char *sio_name;
+
+ 	superio_enter(sioaddr);
+@@ -2369,6 +2375,22 @@
+ 	pr_info("Found %s chip at %#x\n", sio_name, *addr);
+ 	sio_data->sioreg = sioaddr;
+
++	if ( fan_debounce = 1 && (sio_data->kind = nct6775
++			|| sio_data->kind = nct6776 )) {
++		superio_enter(sio_data->sioreg);
++		superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
++		tmp = superio_inb(sio_data->sioreg, NCT6776_REG_FAN_DEBOUNCE );
++		if ( sio_data->kind = nct6776 ) {
++			superio_outb(sio_data->sioreg, NCT6776_REG_FAN_DEBOUNCE,
++				0x3e | tmp );
++		} else {
++			superio_outb(sio_data->sioreg, NCT6776_REG_FAN_DEBOUNCE,
++				0x1e | tmp );
++		}
++		superio_exit(sio_data->sioreg);
++		pr_info("Enabling fan debounce for chip %s\n", sio_name);
++	}
++
+ 	return 0;
+ }
+
+
 
 _______________________________________________
 lm-sensors mailing list
