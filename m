@@ -1,21 +1,84 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 22 Mar 2011 14:58:43 +0000
-Subject: [lm-sensors] [PATCH 0/3] hwmon: (pmbus) PMBus bug fixes and code
-Message-Id: <1300806192-1168-1-git-send-email-guenter.roeck@ericsson.com>
+Date: Mon, 07 Mar 2011 16:38:57 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (pmbus) Continuously update
+Message-Id: <1299515937-9138-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1299515937-9138-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1299515937-9138-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Greg Schnorr <gschnorr@cisco.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
 
-The following patches remove a stale variable, fix a bug in temperature sensor
-code, and rewrite sensor detection code to be table based instead of hardcoded.
+PMBus only has one set of limit registers for up to three temperature sensors.
+Thus, changing a limit for one of the temperature sensors affects limits for
+other temperature sensors in the same page (and potentially multiple pages
+depending on the chip implementation). To handle this situation, re-read all
+temperature limit registers when updating sensor data. This way, all affected
+temperature limits are updated whenever the limit for a single sensor is
+changed.
 
-The first two patches will got into 2.6.39.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus_core.c |   14 ++++++++++----
+ 1 files changed, 10 insertions(+), 4 deletions(-)
 
-I am not sure about the infrastructure change. It does not change functionality
-and reduces code size. Does that make it a candidate for 2.6.39, or should it
-better wait for 2.6.40 ? Feedback is welcome.
+diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
+index e9dda58..92540c9 100644
+--- a/drivers/hwmon/pmbus_core.c
++++ b/drivers/hwmon/pmbus_core.c
+@@ -1308,13 +1308,19 @@ static void pmbus_find_attributes(struct i2c_client *client,
+ 			 * Always compare current temperature against the limit
+ 			 * registers to determine alarm conditions for a
+ 			 * specific sensor.
++			 *
++			 * Since there is only one set of limit registers for
++			 * up to three temperature sensors, we need to update
++			 * all limit registers after the limit was changed for
++			 * one of the sensors. This ensures that correct limits
++			 * are reported for all temperature sensors.
+ 			 */
+ 			if (pmbus_check_word_register
+ 			    (client, page, PMBUS_UT_WARN_LIMIT)) {
+ 				i1 = data->num_sensors;
+ 				pmbus_add_sensor(data, "temp", "min", in_index,
+ 						 page, PMBUS_UT_WARN_LIMIT,
+-						 PSC_TEMPERATURE, false);
++						 PSC_TEMPERATURE, true);
+ 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
+ 					pmbus_add_boolean_cmp(data, "temp",
+ 						"min_alarm", in_index, i1, i0,
+@@ -1329,7 +1335,7 @@ static void pmbus_find_attributes(struct i2c_client *client,
+ 				pmbus_add_sensor(data, "temp", "lcrit",
+ 						 in_index, page,
+ 						 PMBUS_UT_FAULT_LIMIT,
+-						 PSC_TEMPERATURE, false);
++						 PSC_TEMPERATURE, true);
+ 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
+ 					pmbus_add_boolean_cmp(data, "temp",
+ 						"lcrit_alarm", in_index, i1, i0,
+@@ -1343,7 +1349,7 @@ static void pmbus_find_attributes(struct i2c_client *client,
+ 				i1 = data->num_sensors;
+ 				pmbus_add_sensor(data, "temp", "max", in_index,
+ 						 page, PMBUS_OT_WARN_LIMIT,
+-						 PSC_TEMPERATURE, false);
++						 PSC_TEMPERATURE, true);
+ 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
+ 					pmbus_add_boolean_cmp(data, "temp",
+ 						"max_alarm", in_index, i0, i1,
+@@ -1357,7 +1363,7 @@ static void pmbus_find_attributes(struct i2c_client *client,
+ 				i1 = data->num_sensors;
+ 				pmbus_add_sensor(data, "temp", "crit", in_index,
+ 						 page, PMBUS_OT_FAULT_LIMIT,
+-						 PSC_TEMPERATURE, false);
++						 PSC_TEMPERATURE, true);
+ 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
+ 					pmbus_add_boolean_cmp(data, "temp",
+ 						"crit_alarm", in_index, i0, i1,
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
