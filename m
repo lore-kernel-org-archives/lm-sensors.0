@@ -1,38 +1,37 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 03 Mar 2011 19:12:03 +0000
-Subject: Re: [lm-sensors] [PATCH v3] hwmon: Add support for LTC4151
-Message-Id: <1299179523.18605.6.camel@groeck-laptop>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Mon, 07 Mar 2011 03:05:33 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: twl4030-madc-hwmon: add "platform:"
+Message-Id: <1299467133.3879.5.camel@mola>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <44705.79.160.13.2.1299179601.squirrel@webmail.s7.itpays.net>
-In-Reply-To: <44705.79.160.13.2.1299179601.squirrel@webmail.s7.itpays.net>
+References: <1299466949.3879.0.camel@mola>
+In-Reply-To: <1299466949.3879.0.camel@mola>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: J Keerthy <j-keerthy@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-Hi Per,
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf (platform: prefix MODALIAS
+with "platform:"), the platform modalias is prefixed with "platform:".
 
-On Thu, 2011-03-03 at 14:13 -0500, per.dalen@appeartv.com wrote:
-> LTC4151 is High Voltage I2C Current and Voltage Monitor from Linear
-> Technology.
-> 
-> Signed-off-by: Per Dalen <per.dalen@appeartv.com>
-> 
-Almost ok, except
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+ drivers/hwmon/twl4030-madc-hwmon.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-[ ... ]
+diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
+index 97e22be..de58191 100644
+--- a/drivers/hwmon/twl4030-madc-hwmon.c
++++ b/drivers/hwmon/twl4030-madc-hwmon.c
+@@ -154,4 +154,4 @@ module_exit(twl4030_madc_hwmon_exit);
+ MODULE_DESCRIPTION("TWL4030 ADC Hwmon driver");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("J Keerthy");
+-MODULE_ALIAS("twl4030_madc_hwmon");
++MODULE_ALIAS("platform:twl4030_madc_hwmon");
+-- 
+1.7.2
 
-> +	case LTC4151_SENSE_H:
-> +		/*
-> +		 * 20uV resolution. Convert to current as measured with
-> +		 * an 1 uOhm sense resistor, in mA.
-
-	1 mOhm
-
-No need to resubmit; I'll take care of that.
-
-Thanks,
-Guenter
 
 
 
