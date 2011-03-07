@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 07 Mar 2011 05:21:34 +0000
+From: Robert Kaiser <kairo@kairo.at>
+Date: Mon, 07 Mar 2011 14:59:21 +0000
 Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan RPM
-Message-Id: <20110307052134.GA12049@ericsson.com>
+Message-Id: <il2rsa$tpi$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 In-Reply-To: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
@@ -10,32 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Mar 06, 2011 at 09:50:28PM -0500, Robert Kaiser wrote:
-> Guenter Roeck schrieb:
-> > As it is, I am really much more concerned that I am unable to get an
-> > Acked-by: for the patch series, much less a Reviewed-by:, nor a Tested-by:
-> > from anyone but you. That might result in the series not making it into 2.6.39,
-> > which I think would be unfortunate.
-> 
-> If I had time, any knowledge of kernel code or even C, and it was easy 
-> to test this (without compiling a kernel myself, and with some nice doc 
-> telling all steps I need), then I'd look into helping there.
-> But then, right now, all of those factors are lacking, unfortunately - 
-> and my new Intel DH67CL board with something that is probably once of 
-> those chips creates other problems as well (thinking no display is 
-> connected), so sensors are not the most important factor, just a nice 
-> tool to play with... ;-)
-> 
-This is a Sandy Bridge board, isn't it ? 
+Guenter Roeck schrieb:
+> This is a Sandy Bridge board, isn't it ?
 
-Maybe you can try a kernel from the -next tree; that might solve your problem.
-That means you would have to download, compile and install the kernel, though.
+Yes, it is.
 
-To test a standalone driver, all you have to do is to download it, then run "make" 
-followed by "sudo make install". You don't have to build the entire kernel.
+> Maybe you can try a kernel from the -next tree; that might solve your problem.
+> That means you would have to download, compile and install the kernel, though.
 
-Thanks,
-Guenter
+Hrm, exactly what I want to avoid, updating openSUSE Factory quite often 
+already is experimental enough for me on a production machine, but I'm 
+using Kernel:HEAD there, which is currently some recent 2.6.38-rc and I 
+should be 2.6.39-rc once the merge window has closed.
+
+Still, do you know something I don't on my error that you suggest that? 
+Chris Wilson on intel-gfx was somewhat clueless as to why this happens...
+
+> To test a standalone driver, all you have to do is to download it, then run "make"
+> followed by "sudo make install". You don't have to build the entire kernel.
+
+That sounds good.
+Can I download your standalone driver in a git clone or similar way? 
+Pulling the files one by one over http doesn't sound ideal to me. :)
+
+Robert Kaiser
+
 
 _______________________________________________
 lm-sensors mailing list
