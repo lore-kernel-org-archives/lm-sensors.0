@@ -1,76 +1,44 @@
 From: Robert Kaiser <kairo@kairo.at>
-Date: Thu, 10 Mar 2011 20:05:04 +0000
-Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan
-Message-Id: <ilbatg$r2t$1@dough.gmane.org>
+Date: Thu, 10 Mar 2011 20:08:28 +0000
+Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan RPM
+Message-Id: <ilbb3t$sbb$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 In-Reply-To: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Guenter Roeck schrieb:
-> On Thu, Mar 10, 2011 at 06:53:28AM -0500, Guenter Roeck wrote:
-> [ ... ]
->>>
->>> So first question is what chip he has.
->>>
->> ... answer is NCT6775F, from Robert's log. It uses the "old" registers for the min
->> speed settings, so presumably that should be correct. Yet, there must be a reason
->> for the alarm. Maybe it is the "maximum RPM" register after all - the NCT6775F
->> has that set of registers as well.
->>
-> Doesn't look like the "maximum RPM" register is the culprit. I have a system with NCT6775F
-> (not using its fan controls, though). Looks like one can not write into that register, so it
-> must be a status register. Maybe it reports the maximum RPM the chip has seen.
+Robert Kaiser schrieb:
+> nct6775-isa-0290
 
-OK, so here's a bit of shortened output of my tests:
+> in1: +1.11 V (min =3D +0.00 V, max =3D +0.00 V) ALARM
+> in4: +1.02 V (min =3D +0.00 V, max =3D +0.00 V) ALARM
+> in5: +1.05 V (min =3D +0.00 V, max =3D +0.00 V) ALARM
+> in6: +1.08 V (min =3D +0.00 V, max =3D +0.00 V) ALARM
 
+So I guess we don't know what they are and therefore they have the=20
+default names and probably "bogus" values, right?
 
-# echo 5000 > /sys/devices/platform/w83627ehf.656/fan2_min
-# sensors
-[...]
-fan2:                    0 RPM  (min = 5037 RPM, div = 4)
-[...]
+> fan2: 1110 RPM (min =3D 0 RPM, div =3D 32) ALARM
 
-# sensors
-[...]
-fan2:                 1102 RPM  (min = 5113 RPM, div = 8)  ALARM
-[...]
+This is the CPU fan here, FWIW.
 
-# sensors
-[...]
-fan2:                 1095 RPM  (min = 5113 RPM, div = 8)  ALARM
-[...]
+> SYSTIN: +39.0=B0C (high =3D +0.0=B0C, hyst =3D +0.0=B0C) ALARM sensor =3D=
+ diode
+> CPUTIN: +38.0=B0C (high =3D +80.0=B0C, hyst =3D +75.0=B0C) sensor =3D dio=
+de
+> SMBUSMASTER 1: +54.0=B0C (high =3D +80.0=B0C, hyst =3D +75.0=B0C) sensor =
+=3D diode
+> PCH_CHIP_CPU_MAX_TEMP: +65.0=B0C
+> SMBUSMASTER 2: +0.0=B0C (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
 
-# sensors
-[...]
-fan2:                 1061 RPM  (min = 5113 RPM, div = 8)  ALARM
-[...]
-
-# echo 0 > /sys/devices/platform/w83627ehf.656/fan2_min
-# sensors
-[...]
-fan2:                 1054 RPM  (min =    0 RPM, div = 8)
-[...]
-
-# sensors
-[...]
-fan2:                 1095 RPM  (min =    0 RPM, div = 8)
-[...]
-
-# sensors
-[...]
-fan2:                 1061 RPM  (min =    0 RPM, div = 8)
-[...]
-
-
-So, in short, it looks like it's correct that this is a minimum, but it 
-might get triggered very early in the cycle or so and when re-setting 
-the alarm due to that re-writing of the minimum, everything is OK.
+What do those actually mean? Is there some doc about them that an=20
+non-wizard like me can understand?
 
 Robert Kaiser
+
 
 
 _______________________________________________
