@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Mar 2011 22:11:31 +0000
+Date: Thu, 10 Mar 2011 22:15:07 +0000
 Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan
-Message-Id: <20110310221131.GA29548@ericsson.com>
+Message-Id: <20110310221507.GB29548@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 In-Reply-To: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
@@ -10,102 +10,74 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 10, 2011 at 04:03:58PM -0500, Robert Kaiser wrote:
-> Ian Dobson schrieb:
-> > Any chance you can have a look in the BIOS and email the exact values
-> > you see there.
-> 
-> Ah, right, good idea, wrote a note and will do so tomorrow when I get up 
-> and boot the machine!
-> 
-> > What
-> > motherboard do you have? Maybe the manufacturer has some documentation.
-> 
-> As I mentioned in the first message where I posted this, I have an Intel 
-> DH67CL - as this is one of the relatively new Sandy Bridge 
-> graphics-enabled board, I guess we'll see those in wider circulation in 
-> the next months (esp. once the B3 version with the fixed SATA channels 
-> is available everywhere).
-> 
-> > Maybe something similar would be correct for your board. If you add this
-> > to your config file
-> 
-> I'll look into that - are your values better for those voltages that 
-> already get named (and calculated) by Guenther's standalone driver or 
-> are those just duplicates of what it already does by default?
-> 
 Hi Robert,
 
-this is what I configured for my board (Intel DH57JG). Some of it is guessing,
-some of it is common practice with Winbond/Nuvoton chips.
+On Thu, Mar 10, 2011 at 03:05:04PM -0500, Robert Kaiser wrote:
+> Guenter Roeck schrieb:
+> > On Thu, Mar 10, 2011 at 06:53:28AM -0500, Guenter Roeck wrote:
+> > [ ... ]
+> >>>
+> >>> So first question is what chip he has.
+> >>>
+> >> ... answer is NCT6775F, from Robert's log. It uses the "old" registers for the min
+> >> speed settings, so presumably that should be correct. Yet, there must be a reason
+> >> for the alarm. Maybe it is the "maximum RPM" register after all - the NCT6775F
+> >> has that set of registers as well.
+> >>
+> > Doesn't look like the "maximum RPM" register is the culprit. I have a system with NCT6775F
+> > (not using its fan controls, though). Looks like one can not write into that register, so it
+> > must be a status register. Maybe it reports the maximum RPM the chip has seen.
+> 
+> OK, so here's a bit of shortened output of my tests:
+> 
+> 
+> # echo 5000 > /sys/devices/platform/w83627ehf.656/fan2_min
+> # sensors
+> [...]
+> fan2:                    0 RPM  (min = 5037 RPM, div = 4)
+> [...]
+> 
+> # sensors
+> [...]
+> fan2:                 1102 RPM  (min = 5113 RPM, div = 8)  ALARM
+> [...]
+> 
+> # sensors
+> [...]
+> fan2:                 1095 RPM  (min = 5113 RPM, div = 8)  ALARM
+> [...]
+> 
+> # sensors
+> [...]
+> fan2:                 1061 RPM  (min = 5113 RPM, div = 8)  ALARM
+> [...]
+> 
+> # echo 0 > /sys/devices/platform/w83627ehf.656/fan2_min
+> # sensors
+> [...]
+> fan2:                 1054 RPM  (min =    0 RPM, div = 8)
+> [...]
+> 
+> # sensors
+> [...]
+> fan2:                 1095 RPM  (min =    0 RPM, div = 8)
+> [...]
+> 
+> # sensors
+> [...]
+> fan2:                 1061 RPM  (min =    0 RPM, div = 8)
+> [...]
+> 
+> 
+> So, in short, it looks like it's correct that this is a minimum, but it 
+> might get triggered very early in the cycle or so and when re-setting 
+> the alarm due to that re-writing of the minimum, everything is OK.
+> 
+Looks like it.
 
-chip "nct6775-*"
-
-    label in0 "VCore"
-    label in1 "+12V"
-    label in2 "AVCC"
-    label in3 "+3.3V"
-    label in4 "+5V"
-    label in5 "+1.5V"
-#    label in6 "VIN3"
-    label in7 "VSB"
-    label in8 "VBAT"
-
-    compute in1 (16 *@) ,  (@/16)
-    compute in4 (4*@) ,  (@/4)
-    compute in5 (2*@) ,  (@/2)
-#    compute in6 (5*@) ,  (@/5)
-
-    set in0_min   0.5
-    set in1_min   12*0.9
-    set in1_max   12*1.1
-    set in2_min   3.3*0.9
-    set in2_max   3.3*1.1
-    set in3_min   3.3*0.95
-    set in3_max   3.3*1.05
-    set in4_min   5*0.95
-    set in4_max   5*1.05
-    set in5_min   1.5*0.95
-    set in5_max   1.5*1.05
-    set in7_min  3.3 * 0.90
-    set in7_max  3.3 * 1.10
-    set in8_min  3.0 * 0.90
-    set in8_max  3.0 * 1.10
-
-    ignore in6
-
-Regarding the temperature sensor labels - those are straight from the chip manual.
-The NCT677x chips are quite flexible in temperature channel to fan control assignments.
-SYSTIN, CPUIN, and AUXTIN are actual pins on the NCT6557F, the PCH_ values are
-from the PCH (Sandy Bridge in your case), and then there are several PECI channel
-values which come from the CPU. The complete list of possible temperature sources
-for NCT6775F is
-
-SYSTIN
-CPUTIN
-AUXTIN
-AMD SB-TSI
-PECI Agent 0
-PECI Agent 1
-PECI Agent 2
-PECI Agent 3
-PECI Agent 4
-PECI Agent 5
-PECI Agent 6
-PECI Agent 7
-PCH_CHIP_CPU_MAX_TEMP
-PCH_CHIP_TEMP
-PCH_CPU_TEMP
-PCH_MCH_TEMP
-PCH_DIMM0_TEMP
-PCH_DIMM1_TEMP
-PCH_DIMM2_TEMP
-PCH_DIMM3_TEMP
-
-Hope this helps,
+Thanks a lot for the testing!
 
 Guenter
-
 
 _______________________________________________
 lm-sensors mailing list
