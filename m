@@ -1,12 +1,35 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 09 Mar 2011 19:57:16 +0000
-Subject: [lm-sensors] [PATCH 10/10] hwmon/f71882fg: Add support for f71808e
-Message-Id: <1299700636-9699-11-git-send-email-hdegoede@redhat.com>
+Date: Thu, 10 Mar 2011 07:54:02 +0000
+Subject: Re: [lm-sensors] [PATCH 10/10] hwmon/f71882fg: Add support for
+Message-Id: <4D78839A.8040703@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------050201050902000204000702"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <1299700636-9699-11-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1299700636-9699-11-git-send-email-hdegoede@redhat.com>
 To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------050201050902000204000702
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Self-NACK to previous version, it has the number of temps for
+the f71808e versus all the other models swapped.
+
+Attached is a fixed version.
+
+--------------050201050902000204000702
+Content-Type: text/plain;
+ name="0010-hwmon-f71882fg-Add-support-for-f71808e.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0010-hwmon-f71882fg-Add-support-for-f71808e.patch"
+
+From 4c2c7872b14054c57182d837f402b8e2cd323a81 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Wed, 9 Mar 2011 19:40:50 +0100
+Subject: [PATCH 10/10] hwmon/f71882fg: Add support for f71808e
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
@@ -14,7 +37,7 @@ Signed-off-by: Hans de Goede <hdegoede@redhat.com>
  1 files changed, 40 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index 753c756..84fbf36 100644
+index 753c756..bebc57e 100644
 --- a/drivers/hwmon/f71882fg.c
 +++ b/drivers/hwmon/f71882fg.c
 @@ -47,6 +47,7 @@
@@ -92,8 +115,8 @@ index 753c756..84fbf36 100644
  	struct f71882fg_data *data = dev_get_drvdata(dev);
 -	int nr, reg;
 +	int nr, reg, point;
- 	int nr_fans = (data->type = f71882fg) ? 4 : 3;
-+	int nr_temps = (data->type = f71808e) ? 3 : 2;
+ 	int nr_fans = (data->type == f71882fg) ? 4 : 3;
++	int nr_temps = (data->type == f71808e) ? 2 : 3;
  
  	mutex_lock(&data->update_lock);
  
@@ -116,25 +139,29 @@ index 753c756..84fbf36 100644
 +			switch (data->type) {
 +			default:
  				for (point = 0; point < 5; point++) {
- 					data->pwm_auto_point_pwm[nr][point]  						f71882fg_read8(data,
+ 					data->pwm_auto_point_pwm[nr][point] =
+ 						f71882fg_read8(data,
 @@ -1135,13 +1143,14 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
  							F71882FG_REG_POINT_TEMP
  							(nr, point));
  				}
 -			} else {
--				if (data->type = f71869) {
--					data->pwm_auto_point_pwm[nr][0] -						f71882fg_read8(data,
+-				if (data->type == f71869) {
+-					data->pwm_auto_point_pwm[nr][0] =
+-						f71882fg_read8(data,
 -							F71882FG_REG_POINT_PWM
 -							(nr, 0));
 -				}
 +				break;
 +			case f71808e:
 +			case f71869:
-+				data->pwm_auto_point_pwm[nr][0] +					f71882fg_read8(data,
++				data->pwm_auto_point_pwm[nr][0] =
++					f71882fg_read8(data,
 +						F71882FG_REG_POINT_PWM(nr, 0));
 +				/* Fall through */
 +			case f71862fg:
- 				data->pwm_auto_point_pwm[nr][1]  					f71882fg_read8(data,
+ 				data->pwm_auto_point_pwm[nr][1] =
+ 					f71882fg_read8(data,
  						F71882FG_REG_POINT_PWM
 @@ -1158,6 +1167,7 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
  					f71882fg_read8(data,
@@ -157,9 +184,9 @@ index 753c756..84fbf36 100644
 @@ -2032,7 +2043,7 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
  	struct f71882fg_data *data;
  	struct f71882fg_sio_data *sio_data = pdev->dev.platform_data;
- 	int err, i, nr_fans = (sio_data->type = f71882fg) ? 4 : 3;
+ 	int err, i, nr_fans = (sio_data->type == f71882fg) ? 4 : 3;
 -	int nr_temps = 3;
-+	int nr_temps = (sio_data->type = f71808e) ? 3 : 2;
++	int nr_temps = (sio_data->type == f71808e) ? 2 : 3;
  	u8 start_reg, reg;
  
  	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
@@ -201,9 +228,9 @@ index 753c756..84fbf36 100644
 @@ -2262,7 +2277,7 @@ static int f71882fg_remove(struct platform_device *pdev)
  {
  	struct f71882fg_data *data = platform_get_drvdata(pdev);
- 	int i, nr_fans = (data->type = f71882fg) ? 4 : 3;
+ 	int i, nr_fans = (data->type == f71882fg) ? 4 : 3;
 -	int nr_temps = 3;
-+	int nr_temps = (data->type = f71808e) ? 3 : 2;
++	int nr_temps = (data->type == f71808e) ? 2 : 3;
  	u8 start_reg = f71882fg_read8(data, F71882FG_REG_START);
  
  	platform_set_drvdata(pdev, NULL);
@@ -229,7 +256,14 @@ index 753c756..84fbf36 100644
 1.7.3.2
 
 
+--------------050201050902000204000702
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------050201050902000204000702--
