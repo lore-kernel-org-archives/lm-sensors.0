@@ -1,83 +1,74 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 Mar 2011 22:15:07 +0000
+From: Robert Kaiser <kairo@kairo.at>
+Date: Thu, 10 Mar 2011 23:17:55 +0000
 Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan
-Message-Id: <20110310221507.GB29548@ericsson.com>
+Message-Id: <ilbm78$rp2$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 In-Reply-To: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Robert,
+Guenter Roeck schrieb:
+> this is what I configured for my board (Intel DH57JG). Some of it is gues=
+sing,
+> some of it is common practice with Winbond/Nuvoton chips.
 
-On Thu, Mar 10, 2011 at 03:05:04PM -0500, Robert Kaiser wrote:
-> Guenter Roeck schrieb:
-> > On Thu, Mar 10, 2011 at 06:53:28AM -0500, Guenter Roeck wrote:
-> > [ ... ]
-> >>>
-> >>> So first question is what chip he has.
-> >>>
-> >> ... answer is NCT6775F, from Robert's log. It uses the "old" registers for the min
-> >> speed settings, so presumably that should be correct. Yet, there must be a reason
-> >> for the alarm. Maybe it is the "maximum RPM" register after all - the NCT6775F
-> >> has that set of registers as well.
-> >>
-> > Doesn't look like the "maximum RPM" register is the culprit. I have a system with NCT6775F
-> > (not using its fan controls, though). Looks like one can not write into that register, so it
-> > must be a status register. Maybe it reports the maximum RPM the chip has seen.
-> 
-> OK, so here's a bit of shortened output of my tests:
-> 
-> 
-> # echo 5000 > /sys/devices/platform/w83627ehf.656/fan2_min
-> # sensors
-> [...]
-> fan2:                    0 RPM  (min = 5037 RPM, div = 4)
-> [...]
-> 
-> # sensors
-> [...]
-> fan2:                 1102 RPM  (min = 5113 RPM, div = 8)  ALARM
-> [...]
-> 
-> # sensors
-> [...]
-> fan2:                 1095 RPM  (min = 5113 RPM, div = 8)  ALARM
-> [...]
-> 
-> # sensors
-> [...]
-> fan2:                 1061 RPM  (min = 5113 RPM, div = 8)  ALARM
-> [...]
-> 
-> # echo 0 > /sys/devices/platform/w83627ehf.656/fan2_min
-> # sensors
-> [...]
-> fan2:                 1054 RPM  (min =    0 RPM, div = 8)
-> [...]
-> 
-> # sensors
-> [...]
-> fan2:                 1095 RPM  (min =    0 RPM, div = 8)
-> [...]
-> 
-> # sensors
-> [...]
-> fan2:                 1061 RPM  (min =    0 RPM, div = 8)
-> [...]
-> 
-> 
-> So, in short, it looks like it's correct that this is a minimum, but it 
-> might get triggered very early in the cycle or so and when re-setting 
-> the alarm due to that re-writing of the minimum, everything is OK.
-> 
-Looks like it.
+I'll look into applying your settings and see how well they work, but=20
+I'll first get the BIOS reading tomorrow as Ian suggested.
 
-Thanks a lot for the testing!
 
-Guenter
+> Regarding the temperature sensor labels - those are straight from the chi=
+p manual.
+
+OK, so I have those:
+
+SYSTIN:                +40.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C) =
+ ALARM=20
+  sensor =3D diode
+
+I guess this means "System temperature", whatever that means in practice=20
+as to where the sensor sits (I've never fully understood that one, even=20
+on older systems where it often was called "MB temp" or so).
+
+CPUTIN:                +39.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C) =
+ sensor=20
+=3D diode
+
+That one is probably "CPU temperature" from a CPU sensor in the style as=20
+it's existed for ages, even before the cores had their own additional=20
+sensors.
+
+SMBUSMASTER 1:         +55.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C) =
+ sensor=20
+=3D diode
+
+Hmm, that seems to be an "SMBUS MASTER", wherever that one really sits=20
+in practice (fun that it's hotter than the other two).
+
+PCH_CHIP_CPU_MAX_TEMP: +65.0=B0C
+
+Is that some allowed max temp of the CPU (i.e. where it shuts down) or=20
+the highest seen temp of the CPU?
+
+SMBUSMASTER 2:          +0.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+
+Not sure what that is, given that it seems to be zero (and I'm sure=20
+nothing in my system is at freezing temperature, even if we had that=20
+outside a few times in the last week).
+
+> PCH_MCH_TEMP
+> PCH_DIMM0_TEMP
+> PCH_DIMM1_TEMP
+> PCH_DIMM2_TEMP
+> PCH_DIMM3_TEMP
+
+Now those would sound cool, but I guess it's not reporting them.
+
+Robert Kaiser
+
+
 
 _______________________________________________
 lm-sensors mailing list
