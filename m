@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 12 Mar 2011 21:56:15 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Sat, 12 Mar 2011 22:54:50 +0000
 Subject: Re: [lm-sensors] extreme fan rpms with atk0110
-Message-Id: <20110312225615.7e353e31@endymion.delvare>
+Message-Id: <AANLkTikJgk1pWKFdXqyaXK=VTGQC-_9Zxn7=TzqdWDzt@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110312212759.3c9e0e56@endymion.delvare>
 In-Reply-To: <20110312212759.3c9e0e56@endymion.delvare>
@@ -10,42 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Anders,
+On Sat, Mar 12, 2011 at 11:45 PM, Anders Kullenberg <akullen@swipnet.se> wrote:
+> Hi,
+>
+> Sorry about the top-post, but I don't know what it means. Never used a
+> mail-list before and I guess it has to with that.
 
-On Sat, 12 Mar 2011 22:39:42 +0100, Anders Kullenberg wrote:
-> Thanks for the quick reply.
+No, it means that you should not write your answer at the top of the
+email. Instead reply inline, addressing each point separately (like
+I'm doing right now).
+See for example this link:
+http://www.dickgaughan.co.uk/usenet/guide/faq08-topp.html
 
-Please don't top-post.
+> Should I reply only to your address?
 
-> I checked the BIOS readings. They are normal, even below 800rpm. I have the
-> asus q-fan enabled in the bios that should control fan speeds. I tried to
-> disable it, didn't change anything.
-> It is possible to select ACPI 1.0, 2.0 or 3.0 in the bios, any
-> recommendations on that?
+No, and keep the list in CC.
 
-I'd go for ACPI 2.0 as the best compromise between recentness and
-support level, but in the end it really depends on what the BIOS adds
-in each case, and whether Linux properly supports that yet or not. But
-anyway it probably doesn't matter for the problem at hand.
+> I have attached what I think is the DSDT, used this method:"sudo cat
+> /sys/firmware/acpi/tables/DSDT > /tmp/DSDT" is that correct?
 
-> The fans are not any special stuff as far as I'm aware. They are connected
-> to the motherboard directly, no potentiometers used in the installation.
+Yes, that's correct. I'll take a look tomorrow.
 
-OK. Maybe you should send your board's DSDT to Luca for analysis then.
-
-> I found no chip "atk0110-*" section in /etc/sensors3.conf, what config is
-> used then, where should I put the compute statements?
-
-The ATK0110 usually doesn't need any configuration, as the driver knows
-all the scaling factors and labels. But you are free to add a new
-configuration section for it if you really have to.
-
-I'm a little surprised as the M2V isn't a recent board, so it should be
-already supported, or more users would have reported by now. Did you
-look for a BIOS update for your board?
-
--- 
-Jean Delvare
+Luca
 
 _______________________________________________
 lm-sensors mailing list
