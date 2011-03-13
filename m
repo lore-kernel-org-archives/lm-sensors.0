@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sun, 13 Mar 2011 15:12:08 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 13 Mar 2011 15:27:45 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: New driver for SMSC SCH5627 hwmon
-Message-Id: <4D7CDEC8.5060308@redhat.com>
+Message-Id: <20110313162745.14e54818@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1299871683-3945-1-git-send-email-hdegoede@redhat.com>
 In-Reply-To: <1299871683-3945-1-git-send-email-hdegoede@redhat.com>
@@ -10,74 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Hi Hans,
 
-On 03/13/2011 03:00 PM, Jean Delvare wrote:
-> Hi Hans,
->
-> On Sun, 13 Mar 2011 13:39:34 +0100, Hans de Goede wrote:
->> Hi,
->>
->> On 03/12/2011 12:09 PM, Jean Delvare wrote:
->>
->> Thanks for the review! I've prepared a new version of the
->> patch addressing all your comments, below are some remarks
->> from me wrt those comments which warrant a reply.
->
-> Thanks for the quick update. Below are my comments to some of your
-> comments:
->
->>>> +static int sch5627_read_virtual_reg12(struct sch5627_data *data, u16 msb_reg,
->>>> +				      u16 lsn_reg, int high_nibble)
->>>> +{
->>>> +	int msb, lsn = -1;
->>>
->>> Useless initialization, unless I'm blind.
->>>
->>>> +
->>>> +	/* Read MSB first, this will cause the matching LSN to be latched */
->>>
->>> I.e. reverse from 16-bit values? How weird :(
->>
->> Yep, this also means we cannot read the lsn register once for 2 12 bit reads,
->> I had code for that (which the useless initialization you spotted was a left
->> over of).
->
-> Why not? Can't you read MSB1, MSB2 and then LSN? If latching is done
-> per-nibble, that should work.
->
+On Sun, 13 Mar 2011 13:43:24 +0100, Hans de Goede wrote:
+> SMSC SCH5627 Super I/O chips include complete hardware monitoring
+> capabilities. They can monitor up to 5 voltages, 4 fans and 8 temperatures.
+> 
+> The hardware monitoring part of the SMSC SCH5627 is accessed by talking
+> through an embedded microcontroller. An application note describing the
+> protocol for communicating with the microcontroller is available upon
+> request. Please mail me if you want a copy.
+> 
+> Changes since version 1:
+> * Properly format multi line comments
+> * Avoid a potential divide by 0
+> * Use pr_err / pr_warn / pr_err instead of printk
+> 
+> Changes since version 2:
+> * Various cleanups as result of a thorough review by Jean Delvare
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  Documentation/hwmon/sch5627 |   22 ++
+>  MAINTAINERS                 |    7 +
+>  drivers/hwmon/Kconfig       |    9 +
+>  drivers/hwmon/Makefile      |    1 +
+>  drivers/hwmon/sch5627.c     |  855 +++++++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 894 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/hwmon/sch5627
+>  create mode 100644 drivers/hwmon/sch5627.c
 
-True, that will likely work, but would lead to really ugly / convoluted code.
-Given that quite a few of the lsn's live in their own register anyways (iow
-we will only save a few reads by combining lsn reads) I don't think this is
-worth the trouble.
+This version looks very good to me, with only one minor comment left
+from me:
 
->>>> +static int reg_to_rpm(u16 reg)
->>>> +{
->>>> +	if (reg = 0)
->>>> +		reg = 1;
->>>
->>> This arbitrary decision is discussable. I presume that reg = 0 means an
->>> error condition, either an internal one or a problem with the fan. This
->>> would rather be reported to user-space as 0 (0 RPM) or a negative error
->>> code (libsensors does handle -EIO gracefully) rather than an impossible
->>> sped of 5400540 RPM.
->>>
->>
->> Agreed, since the app note says 0xFFFF is the fan fault value, we should
->> really never see 0, so I've changed the code to return -EIO in this case.
->
-> And value 0xFFFF should probably be reported as 0 RPM, rather than 82
-> RPM as your driver does today.
+> (...)
+> +static int sch5627_read_limits(struct sch5627_data *data)
 
-Agreed, I'm actually seeing the 82 value on my test machine (as fanX_min
-value), so this is definitely worth fixing.
+Only called from a __devinit function, so it could be __devinit.
 
-I'll do a v4 of the patch with this fixed tonight.
-
-Regards,
-
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
