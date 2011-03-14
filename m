@@ -1,37 +1,83 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Sat, 12 Mar 2011 22:54:50 +0000
+From: "Anders Kullenberg" <akullen@swipnet.se>
+Date: Mon, 14 Mar 2011 20:39:19 +0000
 Subject: Re: [lm-sensors] extreme fan rpms with atk0110
-Message-Id: <AANLkTikJgk1pWKFdXqyaXK=VTGQC-_9Zxn7=TzqdWDzt@mail.gmail.com>
+Message-Id: <000001cbe287$e555d120$b0017360$@se>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110312212759.3c9e0e56@endymion.delvare>
 In-Reply-To: <20110312212759.3c9e0e56@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sat, Mar 12, 2011 at 11:45 PM, Anders Kullenberg <akullen@swipnet.se> wrote:
-> Hi,
->
-> Sorry about the top-post, but I don't know what it means. Never used a
-> mail-list before and I guess it has to with that.
+Hi Jean,
 
-No, it means that you should not write your answer at the top of the
-email. Instead reply inline, addressing each point separately (like
-I'm doing right now).
-See for example this link:
-http://www.dickgaughan.co.uk/usenet/guide/faq08-topp.html
+> =C4mne: Re: [lm-sensors] extreme fan rpms with atk0110
+>=20
+> Anders,
+>=20
+> On Sat, 12 Mar 2011 22:39:42 +0100, Anders Kullenberg wrote:
+> > Thanks for the quick reply.
+>=20
+> Please don't top-post.
 
-> Should I reply only to your address?
+Sorry for that, now I know how to do it.
 
-No, and keep the list in CC.
+>=20
+> > I checked the BIOS readings. They are normal, even below 800rpm. I
+> have the
+> > asus q-fan enabled in the bios that should control fan speeds. I
+> tried to
+> > disable it, didn't change anything.
+> > It is possible to select ACPI 1.0, 2.0 or 3.0 in the bios, any
+> > recommendations on that?
+>=20
+> I'd go for ACPI 2.0 as the best compromise between recentness and
+> support level, but in the end it really depends on what the BIOS adds
+> in each case, and whether Linux properly supports that yet or not. But
+> anyway it probably doesn't matter for the problem at hand.
 
-> I have attached what I think is the DSDT, used this method:"sudo cat
-> /sys/firmware/acpi/tables/DSDT > /tmp/DSDT" is that correct?
+I switched the setting to ACPI 2.0
 
-Yes, that's correct. I'll take a look tomorrow.
+>=20
+> > The fans are not any special stuff as far as I'm aware. They are
+> connected
+> > to the motherboard directly, no potentiometers used in the
+> installation.
+>=20
+> OK. Maybe you should send your board's DSDT to Luca for analysis then.
 
-Luca
+Done.
+
+>=20
+> > I found no chip "atk0110-*" section in /etc/sensors3.conf, what
+> config is
+> > used then, where should I put the compute statements?
+>=20
+> The ATK0110 usually doesn't need any configuration, as the driver knows
+> all the scaling factors and labels. But you are free to add a new
+> configuration section for it if you really have to.
+>=20
+> I'm a little surprised as the M2V isn't a recent board, so it should be
+> already supported, or more users would have reported by now. Did you
+> look for a BIOS update for your board?
+
+Have the latest bios available from asus homepage.
+
+>=20
+> --
+> Jean Delvare
+
+Some more info. Don't know if it is of use but I have configured munin to
+read the sensor output.
+Over the last ~24hour both the fan RPM readings has decreased with ~4000 rpm
+in a very stable decrease over time.
+During the same period the temp readings have been very stable on the same
+level.
+
+Thanks
+Anders
+
 
 _______________________________________________
 lm-sensors mailing list
