@@ -1,68 +1,45 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 11 Mar 2011 17:47:29 +0000
-Subject: Re: [lm-sensors] RFC: nct6776f support in the w83627ehf and fan
-Message-Id: <20110311174729.GA1481@ericsson.com>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Tue, 15 Mar 2011 21:47:12 +0000
+Subject: [lm-sensors] [PATCH] hwmon: sht15: fix integer overflow in humidity
+Message-Id: <1300225632-24746-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
-In-Reply-To: <BE6F61DB46364D4B839ED3F50CDFDFAB@portable2>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Mar 11, 2011 at 12:09:22PM -0500, Robert Kaiser wrote:
-> Ian Dobson schrieb:
-> > Any chance you can have a look in the BIOS and email the exact values
-> > you see there.
->=20
-> Right at initial boot of the day I had this there (thought I'd give you=20
-> all values and not just voltages, in case other settings warrant a=20
-> comparison as well):
->=20
-> CPU Fan               1028 RPM
-> Front Fan                0 RPM
-> Rear Fan                 0 RPM
->=20
-> Processor Temperature   61=B0C
-> PCH Temperature         43=B0C
-> Memory Temperature      24=B0C
-> VR Temperature          31=B0C
->=20
-> +12.0V               12.23 V
-> +5.0V                 5.03 V
-> +3.3V                 3.32 V
-> Memory Vcc            1.57 V
-> Processor Vcc         1.20 V
-> PCH Vcc               1.08 V
-> +3.3 Standby          3.42 V
->=20
-> Now, a few hours later (sorry, didn't get to it right away), sensors=20
-> gives me the following:
->=20
+An integer overflow occurs in the calculation of RHlinear when the
+relative humidity is greater than around 30%. The consequence is a subtle
+(but noticeable) error in the resulting humidity measurement.
 
-My wild guess:
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+---
+ drivers/hwmon/sht15.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> nct6775-isa-0290
-> Adapter: ISA adapter
-> Vcore:         +1.16 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-> in1:           +1.11 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-	=3D 12V (*11)
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index a610e78..2c586fc 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -333,11 +333,11 @@ static inline int sht15_calc_humid(struct sht15_data *data)
+ 
+ 	const int c1 = -4;
+ 	const int c2 = 40500; /* x 10 ^ -6 */
+-	const int c3 = -2800; /* x10 ^ -9 */
++	const int c3 = -28; /* x 10 ^ -7 */
+ 
+ 	RHlinear = c1*1000
+ 		+ c2 * data->val_humid/1000
+-		+ (data->val_humid * data->val_humid * c3)/1000000;
++		+ (data->val_humid * data->val_humid * c3) / 10000;
+ 	return (temp - 25000) * (10000 + 80 * data->val_humid)
+ 		/ 1000000 + RHlinear;
+ }
+-- 
+1.7.1
 
-> AVCC:          +3.31 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> +3.3V:         +3.31 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> in4:           +1.02 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-	=3D 5V (*5)
-
-> in5:           +1.05 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-	=3D Memory Vcc (*1.5)
-
-> in6:           +1.08 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-	=3D PCH Vcc
-
-> 3VSB:          +3.41 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> Vbat:          +3.38 V  (min =3D  +2.70 V, max =3D  +3.30 V)   ALARM
-
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
