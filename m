@@ -1,49 +1,54 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 04 Mar 2011 19:59:57 +0000
+From: Michiel <michiel@ettema.net>
+Date: Wed, 16 Mar 2011 09:49:20 +0000
 Subject: Re: [lm-sensors] [PATCH v5 00/11] hwmon: (w83627ehf) Add support
-Message-Id: <1299268797.18605.71.camel@groeck-laptop>
+Message-Id: <1300268960.2000.12.camel@zolder>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-	 <AANLkTinNrOG69Kzy=ZfRjurOedsz2Oazt-FT-m3Ro6Gg@mail.gmail.com>
-In-Reply-To: <AANLkTinNrOG69Kzy=ZfRjurOedsz2Oazt-FT-m3Ro6Gg@mail.gmail.com>
+In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andrew Lutomirski <luto@mit.edu>
-Cc: Jean Delvare <khali@linux-fr.org>, Ian Dobson <i.dobson@planet-ian.com>, Randy Dunlap <rdunlap@xenotime.net>, "binximeng@gmail.com" <binximeng@gmail.com>, "lmsensors@tapanitarvainen.fi" <lmsensors@tapanitarvainen.fi>, "andrea.rizzolo@gmail.com" <andrea.rizzolo@gmail.com>, "jeff.sadowski@gmail.com" <jeff.sadowski@gmail.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Fri, 2011-03-04 at 13:50 -0500, Andrew Lutomirski wrote:
-> On Fri, Mar 4, 2011 at 12:57 PM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
-> > The following patch series adds support for NCT6775F and NCT6776F to the
-> > w83627ehf driver. It also includes some cleanup and adds support for
-> > the fourth temperature sensor on W83677HG-B.
-> >
-> > No code changes since v4. Resubmitting and widening audience in the hope that
-> > someone may find the time to review the changes prior to the next commit window.
-> 
-> I'm not sure my review is worth much, but the driver seems to work.  I've tested
-> fan speed measurement, changing pwm2_enable to 1, changing the fan speed,
-> and changing back to 5.  Everything looks good.
-> 
-> The only weird thing I noticed is that, the first time I ran sensors, I got:
-> fan2:                    0 RPM  (min =    0 RPM, div = 64)
-> and thereafter I get
-> fan2:                  136 RPM  (min =    0 RPM, div = 64)  ALARM
-> 
-> I suspect (although I haven't checked) that sensors is just reading
-> div after it's already changed to 64.
-> 
-The driver reads rpm, finds it to be zero, and increases div as result
-(NCT6775F may report zero rpm if div is too low). That explains the
-first reading.
+Hi,
 
-What I don't understand is the alarm you get with the 2nd reading. Any
-idea where this might come from ? Is it sticky, or do you see it only
-once ?
+I installed the stand alone module you created for the nct6775f and
+basic functionality seems OK. Although the voltage sensor readings seem
+a bit nonsensical. This is on an ASRock 870iCafe motherboard.
+( http://www.asrock.com/mb/overview.asp?Model=870iCafe )
 
-Thanks,
-Guenter
+It has 2 4pin fan connectors and 1 3pin connector. I'm still trying to
+configure those for use with fancontrol. But I'm not there yet..
+
+Thanks for all time and hard work you punt in to lm-sensors ! :-)
+=20
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1:       +17.5=EF=BF=BD=EF=BF=BDC  (high =3D +70.0=EF=BF=BD=EF=BF=BDC=
+)                 =20
+>=20
+> nct6775-isa-0290
+> Adapter: ISA adapter
+> in0:         +0.99 V  (min =3D  +0.00 V, max =3D  +1.74 V)  =20
+> in1:         +1.85 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in2:         +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in3:         +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in4:         +0.06 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in5:         +1.67 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in6:         +1.70 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in7:         +3.44 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> in8:         +3.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
+> fan1:       1095 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
+> fan2:       1095 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
+> fan3:       1180 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
+> SYSTIN:      +30.0=EF=BF=BD=EF=BF=BDC  (high =3D  +0.0=EF=BF=BD=EF=BF=BDC=
+, hyst =3D  +0.0=EF=BF=BD=EF=BF=BDC)  ALARM  sensor =3D thermistor
+> CPUTIN:      +26.5=EF=BF=BD=EF=BF=BDC  (high =3D +80.0=EF=BF=BD=EF=BF=BDC=
+, hyst =3D +75.0=EF=BF=BD=EF=BF=BDC)  sensor =3D thermistor
+> AUXTIN:      -12.5=EF=BF=BD=EF=BF=BDC  (high =3D +80.0=EF=BF=BD=EF=BF=BDC=
+, hyst =3D +75.0=EF=BF=BD=EF=BF=BDC)  sensor =3D thermistor
+> cpu0_vid:   +0.375 V
+
 
 
 
