@@ -1,36 +1,35 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 07 Mar 2011 22:08:39 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Improve support for paged
-Message-Id: <20110307220839.GB14789@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 16 Mar 2011 21:41:42 +0000
+Subject: [lm-sensors] Call for 3.3.0
+Message-Id: <20110316224142.0493f53b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299341303-32570-1-git-send-email-guenter.roeck@ericsson.com>
- <C99A914D.5A89C%gschnorr@cisco.com>
-In-Reply-To: <C99A914D.5A89C%gschnorr@cisco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Schnorr <gschnorr@cisco.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Randy Dunlap <rdunlap@xenotime.net>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Mar 07, 2011 at 04:42:37PM -0500, Greg Schnorr wrote:
-> Verified this patch works as expected on such "fan rich" hardware...
-> 
-> On 3/5/11 8:08 AM, "Guenter Roeck" <guenter.roeck@ericsson.com> wrote:
-> 
-> > So far, it seemed like fans would either all be in page 0, or that
-> > there would be one page per fan.
-> > 
-> > Turns out this was a wrong assumption. There is at least one PMBus
-> > fan controller which supports three pages with four fans each.
-> > Update code to handle this situation.
-> > 
-> > Reported-by: Greg Schnorr <gschnorr@cisco.com>
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> Acked-by: Greg Schnorr <gschnorr@cisco.com>
-> 
-Thanks!
+Hi all,
 
-Guenter
+Last release of lm-sensors (3.2.0) was in October 2010, 5 months ago.
+The list of changes since then is getting large, so it's time for a new
+release. The changes are important enough that I would go for 3.3.0
+rather than 3.2.1 as originally planned.
+
+This decision is motivated by the long list of new attributes and even
+new sensor types handled by libsensors and sensors. Other changes worth
+mentioning are Guenter's generic code to display limit values in
+"sensors", the removal of some arbitrary limits in libsensors attribute
+enumeration code, and the usual addition of many new devices to
+sensors-detect.
+
+The planned schedule is as follows:
+* Saturday, March 19th, 2011: SVN freeze
+* March 20th to 25th: Testing and bug fixing
+* Saturday, March 26th, 2011: Release
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
