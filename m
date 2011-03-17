@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 16 Mar 2011 21:04:14 +0000
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Thu, 17 Mar 2011 20:02:11 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 0/3] Support for all SHT15 features
-Message-Id: <1300309454.20292.112.camel@groeck-laptop>
+Message-Id: <20110317200210.GA26660@v0n.mtl.sfl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1300301050-15529-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 In-Reply-To: <1300301050-15529-1-git-send-email-vivien.didelot@savoirfairelinux.com>
@@ -10,51 +10,60 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2011-03-16 at 14:44 -0400, Vivien Didelot wrote:
-> The SHT15 sensor supports several functionalities such as i/o
-> checksumming, an embedded heater for dew point cross-validation, two
-> resolution settings and a device-specific feature known as OTP reload.
-> This set of patches brings the ability to use these features.
-> 
-> The first patch adds support for CRC calculation.
-> 
-> The second patch adds the ability to read the status register through
-> several sysfs attributes.
-> 
-> The last one adds support to change the status register, through
-> those individual sysfs attributes.
-> 
-> Jerome Oufella (1):
->   hwmon: sht15: add checksum validation support
-> 
-> Vivien Didelot (2):
->   hwmon: sht15: add support for reading the status register
->   hwmon: sht15: add support for writing the status register
-> 
->  drivers/hwmon/sht15.c |  525 ++++++++++++++++++++++++++++++++++++++++++++++---
->  1 files changed, 499 insertions(+), 26 deletions(-)
-> 
-All those undocumented sysfs attributes ....
+Thanks for your comments Guenter,
 
-Two questions:
-- Which of the new attributes are really expected to change during
-  runtime ?
-  If an attribute is not expected to change during runtime, it should be
-  configured statically (eg with platform data or device tree), and not
-  with a sysfs attribute.
-- For any remaining attributes, does they really add value ?
-  If they adds value, it may add value for other drivers as well and may
-  warrant an ABI extension. If so, that should be discussed.
+> Two questions:
+> - Which of the new attributes are really expected to change during
+>   runtime ?
+>   If an attribute is not expected to change during runtime, it should be
+>   configured statically (eg with platform data or device tree), and not
+>   with a sysfs attribute.
 
-Either case, I would expect attributes to be documented. If that means
-that driver documentation needs to be added in the first place because
-it does not exist - maybe that should be first priority anyway before
-adding new functionality to a driver.
+The battery_alarm and heater_enable attributes are expected to
+change during runtime. The heater should not be enabled all the time, it
+just needs to be set for a short period for validation purposes (e.g.
+cross-validating the dew point calculation). And of course, the battery
+fault alarm is important, as measurements become invalid if the sensor's
+power source falls below 2.47 V (not all platforms have power regulators).
 
-Thanks,
-Guenter
+The ability to switch resolution will mainly impact transfer speeds and
+power consumption, depending on the sensor. It makes sense to use the
+number of bits rather than keywords or predefined codes as they will most
+probably be different with each manufacturer.
+Wether it might be a runtime attribute or not, I guess, will depend on the
+ability to change the resolution depending on the power profile on mobile
+platforms. Would it be insightful?
 
+> - For any remaining attributes, does they really add value ?
+>   If they adds value, it may add value for other drivers as well and may
+>   warrant an ABI extension. If so, that should be discussed.
 
+The checksumming attribute adds value in my opinion as not all sensors are
+closely tied to the platform itself, and thus might suffer from data
+corruption. Other devices supporting that feature will benefit from that.
+We chose the "checksumming" attribute name based on the only example of
+similar attribute found in drivers/s390/net/qeth_l3_sys.c.
+I think the name is quite explicit for the feature.
+
+The last feature, OTP reload, is very device-specific and allows saving
+10ms for each measurement while loosing on precision. Here again, power
+consumption will be affected.
+
+> 
+> Either case, I would expect attributes to be documented. If that means
+> that driver documentation needs to be added in the first place because
+> it does not exist - maybe that should be first priority anyway before
+> adding new functionality to a driver.
+
+I think that checksumming and resolution should become part of the
+documentation. Do you see any impediment?
+
+Concerning device-specific attributes, should their naming be normalized?
+e.g. by prefixing the attribute name with the device driver name or
+similar? In either case, I will add documentation to the patch.
+
+Regards,
+Vivien.
 
 _______________________________________________
 lm-sensors mailing list
