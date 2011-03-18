@@ -1,40 +1,71 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 13 Mar 2011 19:34:47 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.38
-Message-Id: <1300044887-30680-1-git-send-email-guenter.roeck@ericsson.com>
+Date: Fri, 18 Mar 2011 04:20:48 +0000
+Subject: [lm-sensors] Update on DS1721, DS1631, DS1631A, DS1731
+Message-Id: <20110318042048.GA8315@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1296078744-21895-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1296078744-21895-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+Hi all,
 
-Please pull hwmon subsystem fixes for Linux 2.6.38 from:
+I confirmed that DS1721, DS1631, DS1631A, and DS1731
+work with the existing ds1621 driver:
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+DS1721 (2x):
+ds1621-i2c-5-48
+Adapter: i2c-devantech-iss at bus 002 device 034
+temp1:        +23.5=B0C  (low  =3D +10.0=B0C, high =3D +70.0=B0C)
 
-Thanks,
-Guenter Roeck
+ds1621-i2c-5-49
+Adapter: i2c-devantech-iss at bus 002 device 034
+temp1:        +23.5=B0C  (low  =3D +10.0=B0C, high =3D +70.0=B0C)
 
-------
+DS1631:
+ds1621-i2c-5-4a
+Adapter: i2c-devantech-iss at bus 002 device 034
+temp1:        +23.0=B0C  (low  =3D +10.0=B0C, high =3D +70.0=B0C)
 
-The following changes since commit a5abba989deceb731047425812d268daf7536575:
+DS1631A:
+ds1621-i2c-5-4b
+Adapter: i2c-devantech-iss at bus 002 device 034
+temp1:        +23.0=B0C  (low  =3D +10.0=B0C, high =3D +70.0=B0C)
 
-  Linux 2.6.38-rc8 (2011-03-07 21:09:37 -0800)
+DS1731:
+ds1621-i2c-5-4c
+Adapter: i2c-devantech-iss at bus 002 device 034
+temp1:        +23.5=B0C  (low  =3D +10.0=B0C, high =3D +70.0=B0C)
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+Output from sensors-detect:
 
-Hans de Goede (2):
-      hwmon/f71882fg: Fix a typo in a comment
-      hwmon/f71882fg: Set platform drvdata to NULL later
+Driver `ds1621':
+  * Bus `i2c-devantech-iss at bus 002 device 034'
+    Busdriver `i2c_devantech_iss', I2C address 0x48
+    Chip `Dallas Semiconductor DS1621/DS1631' (confidence: 3)
+  * Bus `i2c-devantech-iss at bus 002 device 034'
+    Busdriver `i2c_devantech_iss', I2C address 0x49
+    Chip `Dallas Semiconductor DS1621/DS1631' (confidence: 3)
+  * Bus `i2c-devantech-iss at bus 002 device 034'
+    Busdriver `i2c_devantech_iss', I2C address 0x4a
+    Chip `Dallas Semiconductor DS1621/DS1631' (confidence: 3)
+  * Bus `i2c-devantech-iss at bus 002 device 034'
+    Busdriver `i2c_devantech_iss', I2C address 0x4b
+    Chip `Dallas Semiconductor DS1621/DS1631' (confidence: 3)
+  * Bus `i2c-devantech-iss at bus 002 device 034'
+    Busdriver `i2c_devantech_iss', I2C address 0x4c
+    Chip `Dallas Semiconductor DS1621/DS1631' (confidence: 3)
 
- drivers/hwmon/f71882fg.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The chips still support register 0xee, even though that is not documented
+in the datasheets.
+
+Auto-detection and sensors-detect may or may not work depending
+on chip configuration (it always works after power-up).
+Explicit device instantiation always works.
+
+I'll update the list of supported devices to reflect this information.
+
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
