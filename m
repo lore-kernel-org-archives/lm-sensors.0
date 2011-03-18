@@ -1,18 +1,20 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 16 Mar 2011 20:46:44 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 18 Mar 2011 21:02:40 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ads1015) Make gain and datarate
-Message-Id: <20110316204644.GA15557@angua.secretlab.ca>
+Message-Id: <20110318220240.399ade64@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110312081809.GB9347@angua.secretlab.ca>
  <1300269715-15819-1-git-send-email-eibach@gdsys.de>
 In-Reply-To: <1300269715-15819-1-git-send-email-eibach@gdsys.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: Dirk Eibach <eibach@gdsys.de>
-Cc: lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, rdunlap@xenotime.net, khali@linux-fr.org
+Cc: lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, rdunlap@xenotime.net, devicetree-discuss@lists.ozlabs.org, w.sang@pengutronix.de
 
-On Wed, Mar 16, 2011 at 11:01:55AM +0100, Dirk Eibach wrote:
+Hi Dirk,
+
+On Wed, 16 Mar 2011 11:01:55 +0100, Dirk Eibach wrote:
 > Configuration for ads1015 gain and datarate is possible via
 > devicetree or platform data.
 > 
@@ -25,9 +27,6 @@ On Wed, Mar 16, 2011 at 11:01:55AM +0100, Dirk Eibach wrote:
 > - improved patch description
 > 
 > Signed-off-by: Dirk Eibach <eibach@gdsys.de>
-
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-
 > ---
 >  .../devicetree/bindings/hwmon/ads1015.txt          |   73 +++++++++++++
 >  Documentation/devicetree/bindings/i2c/ads1015.txt  |   29 -----
@@ -37,6 +36,10 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  5 files changed, 202 insertions(+), 67 deletions(-)
 >  create mode 100644 Documentation/devicetree/bindings/hwmon/ads1015.txt
 >  delete mode 100644 Documentation/devicetree/bindings/i2c/ads1015.txt
+
+Took me a little longer than I expected to review this, but here we go
+finally:
+
 > 
 > diff --git a/Documentation/devicetree/bindings/hwmon/ads1015.txt b/Documentation/devicetree/bindings/hwmon/ads1015.txt
 > new file mode 100644
@@ -61,8 +64,18 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +  7: Voltage over AIN3 and GND.
 > +
 > +Each channel can be configured indvidually:
+
+Spelling: individually.
+
 > + - pga ist the programmable gain amplifier
+
+"is", not "ist" ;)
+
 > +    0: FS = +/- 6.144 V
+
+Please include the term "full scale" in the description, otherwise it's
+not clear what "FS" means.
+
 > +    1: FS = +/- 4.096 V
 > +    2: FS = +/- 2.048 V (default)
 > +    3: FS = +/- 1.024 V
@@ -76,6 +89,13 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +    4: 1600
 > +    5: 2400
 > +    6: 3300
+
+These sample rates make me wonder if hwmon is really the right
+subsystem for this device. hwmon is more like 2 samples per second.
+
+As you documented the default value for pga, you should do the same for
+data_rate.
+
 > +
 > +1) The /ads1015 node
 > +
@@ -83,6 +103,9 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +
 > +   - compatible : must be "ti,ads1015"
 > +   - reg : I2C busaddress of the device
+
+Missing space between "bus" and "address".
+
 > +   - #address-cells : must be <1>
 > +   - #size-cells : must be <0>
 > +
@@ -109,8 +132,16 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +
 > +   - ti,gain : the programmable gain amplifier setting
 > +   - ti,datarate : the converter datarate
+
+Missing space between "data" and "rate" (the second time, of course.)
+It's also confusing to have "datarate" for the property, but
+"data_rate" as the struct member.
+
 > +
 > +  Example ADS1015 node:
+
+This is an example channel node, not ADS1015 node.
+
 > +
 > +    channel@4 {
 > +	    reg = <4>;
@@ -122,6 +153,13 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > index 985e24d..0000000
 > --- a/Documentation/devicetree/bindings/i2c/ads1015.txt
 > +++ /dev/null
+
+For the next iteration, please consider that the file was originally
+located in Documentation/devicetree/bindings/hwmon. This is where I put
+it upon recommendation by Grant Likely. So this new patch should modify
+the document in-place, rather than create a new one and delete the old
+one.
+
 > @@ -1,29 +0,0 @@
 > -ADS1015 (I2C)
 > -
@@ -169,14 +207,34 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  	unsigned int exported_channels;
 > +	struct ads1015_channel_data channel_data[ADS1015_CONFIG_CHANNELS];
 >  };
+
+These structure definitions do not match the actual ones in
+<linux/i2c/ads1015.h>. This is a common problem when you duplicate
+code... It doesn't stay magically in sync.
+
 >  
 >  exported_channels is a bitmask that specifies which inputs should be exported.
+
+exported_channels no longer exists.
+
 >  
 > +channel_data contains configuration data for the exported inputs:
+
+It was underlined before that the term "exported" should be avoided
+here. "for the used input combinations" would sound better.
+
 > +- pga ist the programmable gain amplifier
+
+"is"
+
 > +  0: FS = +/- 6.144 V
 > +  1: FS = +/- 4.096 V
 > +  2: FS = +/- 2.048 V (default)
+
+I fail to see how this default is relevant when using platform data. If
+the value isn't specified as part of the channel data, it'll be read as
+0 by the driver, not 2.
+
 > +  3: FS = +/- 1.024 V
 > +  4: FS = +/- 0.512 V
 > +  5: FS = +/- 0.256 V
@@ -189,6 +247,12 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +  5: 2400
 > +  6: 3300
 > +
+
+The duplicate documentation between Documentation/hwmon/ads1015 and
+Documentation/devicetree/bindings/hwmon/ads1015.txt is somewhat
+unpleasant. It will be difficult to keep things in sync over time. I
+wonder if this could be avoided.
+
 >  Example:
 >  struct ads1015_platform_data data = {
 > -	.exported_channels = (1 << 2) | (1 << 4)
@@ -197,9 +261,15 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +		[4] = { .enabled = true, .pga = 4, .data_rate = 5 },
 > +	}
 >  };
+
+This looks pretty good, I have to admit :)
+
 >  
 > -In this case only in2_input and in4_input would be created.
 > +In this case only in2_input(FS +/- 4.096 V, 128 SPS) and in4_input
+
+Space missing before opening parenthesis.
+
 > +(FS +/- 0.512 V, 2400 SPS) would be created.
 >  
 >  Devicetree
@@ -243,6 +313,16 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  #define ADS1015_DEFAULT_CHANNELS 0xff
 > +#define ADS1015_DEFAULT_PGA 2
 > +#define ADS1015_DEFAULT_DATA_RATE 4
+
+Does it really make sense to have a default configuration? The chip
+needs proper configuration to be usable at all, I would think it makes
+sense to make the platform or devicetree data mandatory. I am
+particularly worried about the case where the PGA is set improperly: the
+input voltage could be over what the chip supports?
+
+Or asking the other way around: do you see any problem with making the
+platform data or devicetree data mandatory?
+
 >  
 >  struct ads1015_data {
 >  	struct device *hwmon_dev;
@@ -276,8 +356,15 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > -	pga = (config >> 9) & 0x0007;
 >  	fullscale = fullscale_table[pga];
 > +	conversion_time_ms = 1 + 1000 / data_rate_table[data_rate];
+
+Maybe a suitable use case for DIV_ROUND_UP()?
+
 >  
 >  	/* set channel and start single conversion */
+
+You don't only set the channel and start the conversion. You also set
+the PGA and data rate.
+
 > -	config &= ~(0x0007 << 12);
 > -	config |= (1 << 15) | (1 << 8) | (channel & 0x0007) << 12;
 > +	config &= 0x001f;
@@ -298,6 +385,14 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  		res = ads1015_read_reg(client, ADS1015_CONFIG);
 >  		if (res < 0)
 >  			goto err_unlock;
+
+This could be done more efficiently: msleep(conversion_time_ms) before
+the loop, and msleep(1) inside the loop (after reading the register.)
+
+That being said... As the conversion rate is known in advance, the
+retry loop should never be needed, should it? Did you ever see it
+trigger?
+
 > @@ -166,29 +178,83 @@ static int ads1015_remove(struct i2c_client *client)
 >  	return 0;
 >  }
@@ -343,7 +438,15 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +
 > +		property = of_get_property(node, "reg", &len);
 > +		if (!property || (len < sizeof(int))) {
+
+For consistency with the following tests, you should test for len !sizeof(int). Note that you can omit the parentheses around this test,
+BTW, and same below.
+
 > +			dev_err(&client->dev, "ads1015: invalid reg on %s\n",
+
+The leading "ads1015:" in all error messages is redundant, as dev_err()
+will include the client name already.
+
 > +				node->full_name);
 > +			continue;
 > +		}
@@ -352,6 +455,10 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +		if (channel > ADS1015_CONFIG_CHANNELS) {
 > +			dev_err(&client->dev, "ads1015: invalid addr=%x on %s\n",
 > +				channel, node->full_name);
+
+"addr" is misleading, it is a channel number (sort of, at least), not
+an address. I'm sure you can come up with a more useful error message.
+
 > +			continue;
 > +		}
 > +
@@ -369,9 +476,15 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 > +		if (property && (len = sizeof(int))) {
 > +			data_rate = be32_to_cpup(property);
 > +			if (data_rate > 7)
+
+I count only 6 possible data rates.
+
 > +				dev_err(&client->dev,
 > +					"ads1015: invalid data_rate on %s\n",
 > +					node->full_name);
+
+Curly braces would be appreciated, for readability and consistency.
+
 > +		}
 > +
 > +		data->channel_data[channel].enabled = true;
@@ -385,13 +498,27 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  	/* fallback on default configuration */
 > -	return ADS1015_DEFAULT_CHANNELS;
 > +fallback_default:
+
+Use of goto and label is discouraged, except for error paths. If you
+feel the need for it, it suggests that the devicetree parsing code
+should be moved to a separate function. Maybe this would let you merge
+the two #ifdef CONFIG_OF blocks, which would be nice, and also get rid
+of the following warning I'm seeing:
+
+drivers/hwmon/ads1015.c: In function ‘ads1015_get_exported_channels’:
+drivers/hwmon/ads1015.c:252:1: warning: label ‘fallback_default’ defined but not used
+
+
+
 > +	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
 > +		data->channel_data[k].enabled = true;
 > +		data->channel_data[k].pga = ADS1015_DEFAULT_PGA;
 > +		data->channel_data[k].data_rate = ADS1015_DEFAULT_DATA_RATE;
 > +	}
->  }
->  
+
+As said earlier, I'm really not sure that this default makes any sense.
+
+>  }  
 >  static int ads1015_probe(struct i2c_client *client,
 > @@ -196,7 +262,6 @@ static int ads1015_probe(struct i2c_client *client,
 >  {
@@ -407,6 +534,10 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  	/* build sysfs attribute group */
 > -	exported_channels = ads1015_get_exported_channels(client);
 > +	ads1015_get_exported_channels(client);
+
+This function would rather be named ads1015_get_channels_config or
+similar.
+
 >  	for (k = 0; k < ADS1015_CONFIG_CHANNELS; ++k) {
 > -		if (!(exported_channels & (1<<k)))
 > +		if (!data->channel_data[k].enabled)
@@ -422,6 +553,9 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  #define LINUX_ADS1015_H
 >  
 > +#define ADS1015_CONFIG_CHANNELS 8
+
+I can't make sense of the "CONFIG" part in the name.
+
 > +
 > +struct ads1015_channel_data {
 > +	bool enabled;
@@ -435,13 +569,10 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 >  };
 >  
 >  #endif /* LINUX_ADS1015_H */
-> -- 
-> 1.5.6.5
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
+
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
