@@ -1,10 +1,8 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 21 Mar 2011 10:07:32 +0000
-Subject: Re: [lm-sensors] Call for 3.3.0
-Message-Id: <4D872364.8070408@redhat.com>
+From: Andrew Lyon <andrew.lyon@gmail.com>
+Date: Sat, 19 Mar 2011 14:04:42 +0000
+Subject: [lm-sensors] no sensors on Alix 2D13 with module lm90 and kernel
+Message-Id: <AANLkTinPOhCOkZLEfzE9cK2j3rbUTMxmfvLtm1OP7bwq@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110316224142.0493f53b@endymion.delvare>
-In-Reply-To: <20110316224142.0493f53b@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,32 +10,23 @@ To: lm-sensors@vger.kernel.org
 
 Hi,
 
-On 03/20/2011 05:19 PM, Jean Delvare wrote:
-> Hi Hans,
->
-> On Thu, 17 Mar 2011 12:28:51 +0100, Hans de Goede wrote:
->> On 03/17/2011 10:59 AM, Jean Delvare wrote:
->>> On Thu, 17 Mar 2011 09:26:57 +0100, Hans de Goede wrote:
->>>> I have not been able to make time yet to add detection of the new
->>>> models handled by f71882fg, in as far as they are not already
->>>> present (some probably are haven't checked). I think it would be
->>>> good to have this in place before 3.3.0. Note I cannot test
->>>> these changes, so they might as well be done by someone else
->>>> (hint hint).
->>>
->>> Hint received. Here's the patch I have come up with:
->>
->> Looks good, thanks.
->
-> Care to update wiki/Devices?
+The subject sums it up really, I've just upgraded my Alix 2D13 system
+(http://www.pcengines.ch/alix2d13.htm) from 2.6.37 to 2.6.38 and the
+sensors have disappeared, lm90 still loads and there are no errors but
+no sensors are detected.
 
-Done, I've updated all Fintek models which are newly supported,
-added the F718xxA + F81865 / F81866 models where are newly detected,
-but not yet supported and updated the entry for the SMSC SCH5627 too.
+What's really strange is that there seem to have been no changes to
+the lm90 code between the working and broken versions:
 
-Regards,
+alixbuild src # diff linux-2.6.37-gentoo-r2/drivers/hwmon/lm90.c
+linux-2.6.38-gentoo/./drivers/hwmon/lm90.c
+alixbuild src # diff
+linux-2.6.37-gentoo-r2/./include/config/sensors/lm90.h
+linux-2.6.38-gentoo/./include/config/sensors/lm90.h
 
-Hans
+Very strange, any ideas?
+
+Andy
 
 _______________________________________________
 lm-sensors mailing list
