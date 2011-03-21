@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 20 Mar 2011 16:19:11 +0000
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 21 Mar 2011 10:07:32 +0000
 Subject: Re: [lm-sensors] Call for 3.3.0
-Message-Id: <20110320171911.5012cb33@endymion.delvare>
+Message-Id: <4D872364.8070408@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110316224142.0493f53b@endymion.delvare>
 In-Reply-To: <20110316224142.0493f53b@endymion.delvare>
@@ -10,27 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+Hi,
 
-On Thu, 17 Mar 2011 12:28:51 +0100, Hans de Goede wrote:
-> On 03/17/2011 10:59 AM, Jean Delvare wrote:
-> > On Thu, 17 Mar 2011 09:26:57 +0100, Hans de Goede wrote:
-> >> I have not been able to make time yet to add detection of the new
-> >> models handled by f71882fg, in as far as they are not already
-> >> present (some probably are haven't checked). I think it would be
-> >> good to have this in place before 3.3.0. Note I cannot test
-> >> these changes, so they might as well be done by someone else
-> >> (hint hint).
-> >
-> > Hint received. Here's the patch I have come up with:
-> 
-> Looks good, thanks.
+On 03/20/2011 05:19 PM, Jean Delvare wrote:
+> Hi Hans,
+>
+> On Thu, 17 Mar 2011 12:28:51 +0100, Hans de Goede wrote:
+>> On 03/17/2011 10:59 AM, Jean Delvare wrote:
+>>> On Thu, 17 Mar 2011 09:26:57 +0100, Hans de Goede wrote:
+>>>> I have not been able to make time yet to add detection of the new
+>>>> models handled by f71882fg, in as far as they are not already
+>>>> present (some probably are haven't checked). I think it would be
+>>>> good to have this in place before 3.3.0. Note I cannot test
+>>>> these changes, so they might as well be done by someone else
+>>>> (hint hint).
+>>>
+>>> Hint received. Here's the patch I have come up with:
+>>
+>> Looks good, thanks.
+>
+> Care to update wiki/Devices?
 
-Care to update wiki/Devices?
+Done, I've updated all Fintek models which are newly supported,
+added the F718xxA + F81865 / F81866 models where are newly detected,
+but not yet supported and updated the entry for the SMSC SCH5627 too.
 
-Thanks,
--- 
-Jean Delvare
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
