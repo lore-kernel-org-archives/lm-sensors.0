@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 22 Mar 2011 15:03:12 +0000
+Date: Tue, 22 Mar 2011 15:51:33 +0000
 Subject: [lm-sensors] [PATCH 3/3] hwmon: (pmbus) Introduce infrastructure to
-Message-Id: <1300806192-1168-4-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <20110322155133.GA30400@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1300806192-1168-4-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1300806192-1168-4-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,6 +16,9 @@ and reduces code size.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
+Looks like our mailer swallowed this one the first time around, so I am
+trying to resend. My apologies if you receive it twice.
+
  drivers/hwmon/pmbus_core.c |  935 ++++++++++++++++++++------------------------
  1 files changed, 421 insertions(+), 514 deletions(-)
 
