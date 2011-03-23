@@ -1,42 +1,86 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 03 Mar 2011 09:37:49 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ads1015) Add MAINTAINERS entry
-Message-Id: <20110303103749.4942d913@endymion.delvare>
+Date: Wed, 23 Mar 2011 20:47:02 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (f71882fg) Secure chip property
+Message-Id: <20110323214702.69fa03ac@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299142002-13080-1-git-send-email-eibach@gdsys.de>
-In-Reply-To: <1299142002-13080-1-git-send-email-eibach@gdsys.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu,  3 Mar 2011 09:46:42 +0100, Dirk Eibach wrote:
-> Signed-off-by: Dirk Eibach <eibach@gdsys.de>
-> ---
->  MAINTAINERS |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 531c5cf..6c999e3 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -365,6 +365,14 @@ W:	http://wiki-analog.com/ADP8860
->  S:	Supported
->  F:	drivers/video/backlight/adp8860_bl.c
->  
-> +ADS1015 HARDWARE MONITOR DRIVER
-> +M:	Dirk Eibach <eibach@gdsys.de>
-> +L:	lm-sensors@lm-sensors.org
-> +S:	Maintained
-> +F:	Documentation/hwmon/ads1015
-> +F:	drivers/hwmon/ads1015.c
-> +F:	include/linux/i2c/ads1015.h
-> +
->  ADT746X FAN DRIVER
->  M:	Colin Leroy <colin@colino.net>
->  S:	Maintained
+Using C99-style array initialization will ensure definitions won't
+drift if the chips enum gets new values added.
 
-Perfect! Applied, thanks.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/hwmon/f71882fg.c |   48 +++++++++++++++++++++++-----------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
+
+--- linux-2.6.39-rc0.orig/drivers/hwmon/f71882fg.c	2011-03-23 10:34:23.000000000 +0100
++++ linux-2.6.39-rc0/drivers/hwmon/f71882fg.c	2011-03-23 14:53:29.000000000 +0100
+@@ -120,36 +120,36 @@ static const char *f71882fg_names[] = {
+ };
+ 
+ static const char f71882fg_has_in[8][F71882FG_MAX_INS] = {
+-	{ 1, 1, 1, 1, 1, 1, 0, 1, 1 }, /* f71808e */
+-	{ 1, 1, 1, 0, 0, 0, 0, 0, 0 }, /* f71858fg */
+-	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71862fg */
+-	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71869 */
+-	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71882fg */
+-	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71889fg */
+-	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71889ed */
+-	{ 1, 1, 1, 0, 0, 0, 0, 0, 0 }, /* f8000 */
++	[f71808e]	= { 1, 1, 1, 1, 1, 1, 0, 1, 1 },
++	[f71858fg]	= { 1, 1, 1, 0, 0, 0, 0, 0, 0 },
++	[f71862fg]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
++	[f71869]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
++	[f71882fg]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
++	[f71889fg]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
++	[f71889ed]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
++	[f8000]		= { 1, 1, 1, 0, 0, 0, 0, 0, 0 },
+ };
+ 
+ static const char f71882fg_has_in1_alarm[8] = {
+-	0, /* f71808e */
+-	0, /* f71858fg */
+-	0, /* f71862fg */
+-	0, /* f71869 */
+-	1, /* f71882fg */
+-	1, /* f71889fg */
+-	1, /* f71889ed */
+-	0, /* f8000 */
++	[f71808e]	= 0,
++	[f71858fg]	= 0,
++	[f71862fg]	= 0,
++	[f71869]	= 0,
++	[f71882fg]	= 1,
++	[f71889fg]	= 1,
++	[f71889ed]	= 1,
++	[f8000]		= 0,
+ };
+ 
+ static const char f71882fg_has_beep[8] = {
+-	0, /* f71808e */
+-	0, /* f71858fg */
+-	1, /* f71862fg */
+-	1, /* f71869 */
+-	1, /* f71882fg */
+-	1, /* f71889fg */
+-	1, /* f71889ed */
+-	0, /* f8000 */
++	[f71808e]	= 0,
++	[f71858fg]	= 0,
++	[f71862fg]	= 1,
++	[f71869]	= 1,
++	[f71882fg]	= 1,
++	[f71889fg]	= 1,
++	[f71889ed]	= 1,
++	[f8000]		= 0,
+ };
+ 
+ static struct platform_device *f71882fg_pdev;
+
 
 -- 
 Jean Delvare
