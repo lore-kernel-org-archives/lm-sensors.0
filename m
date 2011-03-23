@@ -1,84 +1,99 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 07 Mar 2011 16:38:57 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (pmbus) Continuously update
-Message-Id: <1299515937-9138-3-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 23 Mar 2011 20:48:41 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (f71882fg) Per-chip fan/temperature
+Message-Id: <20110323214841.113ebfcc@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299515937-9138-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1299515937-9138-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Greg Schnorr <gschnorr@cisco.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: lm-sensors@vger.kernel.org
 
-PMBus only has one set of limit registers for up to three temperature sensors.
-Thus, changing a limit for one of the temperature sensors affects limits for
-other temperature sensors in the same page (and potentially multiple pages
-depending on the chip implementation). To handle this situation, re-read all
-temperature limit registers when updating sensor data. This way, all affected
-temperature limits are updated whenever the limit for a single sensor is
-changed.
+Use tables to list the count of fan and temperature inputs for all
+supported chips, almost similar to (but more simple than) what is
+already done for voltage inputs. This avoids repeating the same tests
+in different functions, and will make it easier to add support for
+chips with a different count of fan or temperature inputs.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/hwmon/pmbus_core.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
+Hans, I think this should make adding support for the F81865 easier.
+And it even makes the binary slightly smaller on x86-64. What do you
+think?
 
-diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
-index e9dda58..92540c9 100644
---- a/drivers/hwmon/pmbus_core.c
-+++ b/drivers/hwmon/pmbus_core.c
-@@ -1308,13 +1308,19 @@ static void pmbus_find_attributes(struct i2c_client *client,
- 			 * Always compare current temperature against the limit
- 			 * registers to determine alarm conditions for a
- 			 * specific sensor.
-+			 *
-+			 * Since there is only one set of limit registers for
-+			 * up to three temperature sensors, we need to update
-+			 * all limit registers after the limit was changed for
-+			 * one of the sensors. This ensures that correct limits
-+			 * are reported for all temperature sensors.
- 			 */
- 			if (pmbus_check_word_register
- 			    (client, page, PMBUS_UT_WARN_LIMIT)) {
- 				i1 = data->num_sensors;
- 				pmbus_add_sensor(data, "temp", "min", in_index,
- 						 page, PMBUS_UT_WARN_LIMIT,
--						 PSC_TEMPERATURE, false);
-+						 PSC_TEMPERATURE, true);
- 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
- 					pmbus_add_boolean_cmp(data, "temp",
- 						"min_alarm", in_index, i1, i0,
-@@ -1329,7 +1335,7 @@ static void pmbus_find_attributes(struct i2c_client *client,
- 				pmbus_add_sensor(data, "temp", "lcrit",
- 						 in_index, page,
- 						 PMBUS_UT_FAULT_LIMIT,
--						 PSC_TEMPERATURE, false);
-+						 PSC_TEMPERATURE, true);
- 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
- 					pmbus_add_boolean_cmp(data, "temp",
- 						"lcrit_alarm", in_index, i1, i0,
-@@ -1343,7 +1349,7 @@ static void pmbus_find_attributes(struct i2c_client *client,
- 				i1 = data->num_sensors;
- 				pmbus_add_sensor(data, "temp", "max", in_index,
- 						 page, PMBUS_OT_WARN_LIMIT,
--						 PSC_TEMPERATURE, false);
-+						 PSC_TEMPERATURE, true);
- 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
- 					pmbus_add_boolean_cmp(data, "temp",
- 						"max_alarm", in_index, i0, i1,
-@@ -1357,7 +1363,7 @@ static void pmbus_find_attributes(struct i2c_client *client,
- 				i1 = data->num_sensors;
- 				pmbus_add_sensor(data, "temp", "crit", in_index,
- 						 page, PMBUS_OT_FAULT_LIMIT,
--						 PSC_TEMPERATURE, false);
-+						 PSC_TEMPERATURE, true);
- 				if (info->func[page] & PMBUS_HAVE_STATUS_TEMP) {
- 					pmbus_add_boolean_cmp(data, "temp",
- 						"crit_alarm", in_index, i0, i1,
+ drivers/hwmon/f71882fg.c |   36 ++++++++++++++++++++++++++++++------
+ 1 file changed, 30 insertions(+), 6 deletions(-)
+
+--- linux-2.6.39-rc0.orig/drivers/hwmon/f71882fg.c	2011-03-23 14:53:29.000000000 +0100
++++ linux-2.6.39-rc0/drivers/hwmon/f71882fg.c	2011-03-23 18:58:55.000000000 +0100
+@@ -152,6 +152,28 @@ static const char f71882fg_has_beep[8]  	[f8000]		= 0,
+ };
+ 
++static const char f71882fg_nr_fans[8] = {
++	[f71808e]	= 3,
++	[f71858fg]	= 3,
++	[f71862fg]	= 3,
++	[f71869]	= 3,
++	[f71882fg]	= 4,
++	[f71889fg]	= 3,
++	[f71889ed]	= 3,
++	[f8000]		= 3,
++};
++
++static const char f71882fg_nr_temps[8] = {
++	[f71808e]	= 2,
++	[f71858fg]	= 3,
++	[f71862fg]	= 3,
++	[f71869]	= 3,
++	[f71882fg]	= 3,
++	[f71889fg]	= 3,
++	[f71889ed]	= 3,
++	[f8000]		= 3,
++};
++
+ static struct platform_device *f71882fg_pdev;
+ 
+ /* Super-I/O Function prototypes */
+@@ -1071,9 +1093,9 @@ static u16 f71882fg_read_temp(struct f71
+ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
+ {
+ 	struct f71882fg_data *data = dev_get_drvdata(dev);
++	int nr_fans = f71882fg_nr_fans[data->type];
++	int nr_temps = f71882fg_nr_temps[data->type];
+ 	int nr, reg, point;
+-	int nr_fans = (data->type = f71882fg) ? 4 : 3;
+-	int nr_temps = (data->type = f71808e) ? 2 : 3;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -2042,8 +2064,9 @@ static int __devinit f71882fg_probe(stru
+ {
+ 	struct f71882fg_data *data;
+ 	struct f71882fg_sio_data *sio_data = pdev->dev.platform_data;
+-	int err, i, nr_fans = (sio_data->type = f71882fg) ? 4 : 3;
+-	int nr_temps = (sio_data->type = f71808e) ? 2 : 3;
++	int nr_fans = f71882fg_nr_fans[sio_data->type];
++	int nr_temps = f71882fg_nr_temps[sio_data->type];
++	int err, i;
+ 	u8 start_reg, reg;
+ 
+ 	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
+@@ -2276,8 +2299,9 @@ exit_free:
+ static int f71882fg_remove(struct platform_device *pdev)
+ {
+ 	struct f71882fg_data *data = platform_get_drvdata(pdev);
+-	int i, nr_fans = (data->type = f71882fg) ? 4 : 3;
+-	int nr_temps = (data->type = f71808e) ? 2 : 3;
++	int nr_fans = f71882fg_nr_fans[data->type];
++	int nr_temps = f71882fg_nr_temps[data->type];
++	int i;
+ 	u8 start_reg = f71882fg_read8(data, F71882FG_REG_START);
+ 
+ 	if (data->hwmon_dev)
+
+
 -- 
-1.7.3.1
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
