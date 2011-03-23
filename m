@@ -1,70 +1,92 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 31 Mar 2011 13:58:16 +0000
-Subject: Re: [lm-sensors] testing "w83627ehf" on Asrock ION 330 HT
-Message-Id: <20110331135816.GA21547@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 23 Mar 2011 20:50:04 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (f71882fg) Document all supported
+Message-Id: <20110323215004.5b9ab7b0@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201103310124.08484.tomasdeltell@gmx.es>
-In-Reply-To: <201103310124.08484.tomasdeltell@gmx.es>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 31, 2011 at 04:06:28AM -0400, Jean Delvare wrote:
-> On Thu, 31 Mar 2011 01:24:08 +0200, Tomàs Deltell Bonell wrote:
-> > I'm trying to install w83627ehf driver on my Asrock ION 330 HT with Mandriva 
-> > 2010.2, kernel 2.6.33.7 and lm-sensors 3.1.2. When i try to compile i get this 
-> > error:
-> > 
-> > $ make
-> >   CC [M]  /home/user/w83627ehf/w83627ehf.o
-> > /home/user/w83627ehf/w83627ehf.c: on function ‘w83627ehf_find’:
-> > /home/user/w83627ehf/w83627ehf.c:2385: error: implicit declaration of 
-> > ‘pr_warn’ function
-> > make[2]: *** [/home/user/w83627ehf/w83627ehf.o] Error 1
-> > make[1]: *** [_module_/home/user/w83627ehf] Error 2
-> > make: *** [modules] Error 2
-> > 
-> > and i don't know how to continue
-> 
-> Where do you get this driver from? The one I host at
->   http://khali.linux-fr.org/devel/misc/w83627ehf/
-> includes a compatibility patch for the problem you are reporting. And
-> the one Guenter is hosting at
->   http://roeck-us.net/linux/drivers/w83627ehf/
-> includes variants for older kernels (2.6.18 and RHEL 5.4 as I
-> understand it.)
-> 
-> BTW, Guenter, I don't think it makes sense that we both maintain a
-> standalone w83627ehf driver. Mine is lagging behind these days (lacks
-> support for the NCT6776F) but yours is less user-friendly IMHO (separate
-> source files for older kernels.) Maybe we can combine our efforts to
-> have a single, up-to-date and user-friendly driver? First question
-> being: do you plan to keep your driver alive at all, or was it just
-> there for the times when you were working on adding NCT6776F support?
-> 
-It was only intended for the NCT6775F/NCT6776F support, so, no, I did
-not plan to keep it alive.
+The list of supported devices was not always well documented in all
+places. Clarify and list all devices in documentation, Kconfig and
+the driver itself.
 
-> FYI, I am using quilt to maintain my standalone drivers. This lets me
-> keep the compatibility layer separated from the original driver code.
-> That way it is very easy for me to update to a new base version of the
-> driver - I simply pop the compatibility patch, update the driver, push
-> the compatibility patch again and refresh it as needed. Then I upload
-> the result to my website. I don't know if you have such a workflow on
-> your side.
-> 
-I could do the same with git - just create separate branches for
-the different versions. So far I just copied the standalone drivers from
-the actual trees, though. In my development flow, I have a separate branch
-for each of the drivers I am working on, and sometimes even multiple branches
-(eg one for bug fixes, one for cleanup, and one for new development).
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+---
+ Documentation/hwmon/f71882fg |   11 +++++++++++
+ drivers/hwmon/Kconfig        |   14 +++++++++++---
+ drivers/hwmon/f71882fg.c     |    2 +-
+ 3 files changed, 23 insertions(+), 4 deletions(-)
 
-I agree that we should only maintain a single version of the standalone driver.
-Let me know your preference - I can delete mine and have it point to yours.
+--- linux-2.6.39-rc0.orig/Documentation/hwmon/f71882fg	2011-03-23 10:34:22.000000000 +0100
++++ linux-2.6.39-rc0/Documentation/hwmon/f71882fg	2011-03-23 21:16:41.000000000 +0100
+@@ -2,6 +2,10 @@ Kernel driver f71882fg
+ ===========
+ 
+ Supported chips:
++  * Fintek F71808E
++    Prefix: 'f71808e'
++    Addresses scanned: none, address read from Super I/O config space
++    Datasheet: Not public
+   * Fintek F71858FG
+     Prefix: 'f71858fg'
+     Addresses scanned: none, address read from Super I/O config space
+@@ -30,6 +34,13 @@ Supported chips:
+     Prefix: 'f8000'
+     Addresses scanned: none, address read from Super I/O config space
+     Datasheet: Not public
++  * Fintek F81801U
++    Prefix: 'f71889fg'
++    Addresses scanned: none, address read from Super I/O config space
++    Datasheet: Not public
++    Note: This is the 64-pin variant of the F71889FG, they have the
++	  same device ID and are fully compatible as far as hardware
++	  monitoring is concerned.
+ 
+ Author: Hans de Goede <hdegoede@redhat.com>
+ 
+--- linux-2.6.39-rc0.orig/drivers/hwmon/Kconfig	2011-03-23 14:38:41.000000000 +0100
++++ linux-2.6.39-rc0/drivers/hwmon/Kconfig	2011-03-23 21:11:03.000000000 +0100
+@@ -315,11 +315,19 @@ config SENSORS_F71805F
+ 	  will be called f71805f.
+ 
+ config SENSORS_F71882FG
+-	tristate "Fintek F71858FG, F71862FG, F71882FG, F71889FG and F8000"
++	tristate "Fintek F71882FG and compatibles"
+ 	help
+ 	  If you say yes here you get support for hardware monitoring
+-	  features of the Fintek F71858FG, F71862FG/71863FG, F71882FG/F71883FG,
+-	  F71889FG and F8000 Super-I/O chips.
++	  features of many Fintek Super-I/O (LPC) chips. The currently
++	  supported chips are:
++	    F71808E
++	    F71858FG
++	    F71862FG and F71863FG
++	    F71869F and F71869E
++	    F71882FG and F71883FG
++	    F71889FG and F81801U
++	    F71889ED
++	    F8000
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called f71882fg.
+--- linux-2.6.39-rc0.orig/drivers/hwmon/f71882fg.c	2011-03-23 18:58:55.000000000 +0100
++++ linux-2.6.39-rc0/drivers/hwmon/f71882fg.c	2011-03-23 21:09:41.000000000 +0100
+@@ -114,7 +114,7 @@ static const char *f71882fg_names[] = {
+ 	"f71862fg",
+ 	"f71869", /* Both f71869f and f71869e, reg. compatible and same id */
+ 	"f71882fg",
+-	"f71889fg",
++	"f71889fg", /* f81801u too, same id */
+ 	"f71889ed",
+ 	"f8000",
+ };
 
-Thanks,
-Guenter
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
