@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 24 Mar 2011 03:30:02 +0000
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 24 Mar 2011 08:13:02 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (f71882fg) Secure chip property
-Message-Id: <20110324033002.GA15395@ericsson.com>
+Message-Id: <4D8AFD0E.5020900@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110323214702.69fa03ac@endymion.delvare>
 In-Reply-To: <20110323214702.69fa03ac@endymion.delvare>
@@ -10,16 +10,91 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 23, 2011 at 04:47:02PM -0400, Jean Delvare wrote:
+Hi,
+
+I like.
+
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+
+Regards,
+
+Hans
+
+On 03/23/2011 09:47 PM, Jean Delvare wrote:
 > Using C99-style array initialization will ensure definitions won't
 > drift if the chips enum gets new values added.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Hans de Goede <hdegoede@redhat.com>
-
-Excellent idea.
-
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+>
+> Signed-off-by: Jean Delvare<khali@linux-fr.org>
+> Cc: Hans de Goede<hdegoede@redhat.com>
+> ---
+>   drivers/hwmon/f71882fg.c |   48 +++++++++++++++++++++++-----------------------
+>   1 file changed, 24 insertions(+), 24 deletions(-)
+>
+> --- linux-2.6.39-rc0.orig/drivers/hwmon/f71882fg.c	2011-03-23 10:34:23.000000000 +0100
+> +++ linux-2.6.39-rc0/drivers/hwmon/f71882fg.c	2011-03-23 14:53:29.000000000 +0100
+> @@ -120,36 +120,36 @@ static const char *f71882fg_names[] = {
+>   };
+>
+>   static const char f71882fg_has_in[8][F71882FG_MAX_INS] = {
+> -	{ 1, 1, 1, 1, 1, 1, 0, 1, 1 }, /* f71808e */
+> -	{ 1, 1, 1, 0, 0, 0, 0, 0, 0 }, /* f71858fg */
+> -	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71862fg */
+> -	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71869 */
+> -	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71882fg */
+> -	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71889fg */
+> -	{ 1, 1, 1, 1, 1, 1, 1, 1, 1 }, /* f71889ed */
+> -	{ 1, 1, 1, 0, 0, 0, 0, 0, 0 }, /* f8000 */
+> +	[f71808e]	= { 1, 1, 1, 1, 1, 1, 0, 1, 1 },
+> +	[f71858fg]	= { 1, 1, 1, 0, 0, 0, 0, 0, 0 },
+> +	[f71862fg]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+> +	[f71869]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+> +	[f71882fg]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+> +	[f71889fg]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+> +	[f71889ed]	= { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+> +	[f8000]		= { 1, 1, 1, 0, 0, 0, 0, 0, 0 },
+>   };
+>
+>   static const char f71882fg_has_in1_alarm[8] = {
+> -	0, /* f71808e */
+> -	0, /* f71858fg */
+> -	0, /* f71862fg */
+> -	0, /* f71869 */
+> -	1, /* f71882fg */
+> -	1, /* f71889fg */
+> -	1, /* f71889ed */
+> -	0, /* f8000 */
+> +	[f71808e]	= 0,
+> +	[f71858fg]	= 0,
+> +	[f71862fg]	= 0,
+> +	[f71869]	= 0,
+> +	[f71882fg]	= 1,
+> +	[f71889fg]	= 1,
+> +	[f71889ed]	= 1,
+> +	[f8000]		= 0,
+>   };
+>
+>   static const char f71882fg_has_beep[8] = {
+> -	0, /* f71808e */
+> -	0, /* f71858fg */
+> -	1, /* f71862fg */
+> -	1, /* f71869 */
+> -	1, /* f71882fg */
+> -	1, /* f71889fg */
+> -	1, /* f71889ed */
+> -	0, /* f8000 */
+> +	[f71808e]	= 0,
+> +	[f71858fg]	= 0,
+> +	[f71862fg]	= 1,
+> +	[f71869]	= 1,
+> +	[f71882fg]	= 1,
+> +	[f71889fg]	= 1,
+> +	[f71889ed]	= 1,
+> +	[f8000]		= 0,
+>   };
+>
+>   static struct platform_device *f71882fg_pdev;
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
