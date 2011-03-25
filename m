@@ -1,30 +1,62 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Date: Wed, 02 Mar 2011 10:33:54 +0000
-Subject: Re: [lm-sensors] [PATCH] jz4740: silence warnings related to
-Message-Id: <20110302103353.GD16181@sortiz-mobl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 25 Mar 2011 15:19:23 +0000
+Subject: [lm-sensors] [PATCH] Add all new Fintek chips to default config
+Message-Id: <20110325161923.4fd7e1b1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110301133548.6acb5170@debxo>
-In-Reply-To: <20110301133548.6acb5170@debxo>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andres Salomon <dilinger@queued.net>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Anton Vorontsov <cbouatmailru@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi Andres,
+Hans, given that the f71882fg driver delegates the scaling of internal
+voltages to user-space, I think we need the following config entries
+for the new Fintek chips to have good-looking outputs by default?
 
-On Tue, Mar 01, 2011 at 01:35:48PM -0800, Andres Salomon wrote:
-> 
-> mfd_get_cell returns a const, so change the jz4740 clients to store
-> a const mfd cell.  This silences type mismatch warnings.
-Patch applied, thanks.
+Index: etc/sensors.conf.default
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D--- etc/sensors.conf.default	(r=E9vision 5945)
++++ etc/sensors.conf.default	(copie de travail)
+@@ -433,7 +433,8 @@
+     set in6_max  3.0 * 1.10
+=20
+=20
+-chip "f71882fg-*"
++chip "f71808e-*" "f71862fg-*" "f71869-*" "f71882fg-*" \
++     "f71889fg-*" "f71889ed-*" "f71889a-*"
+=20
+     label in0 "+3.3V"
+     label in7 "3VSB"
+@@ -444,7 +445,7 @@
+     compute in8  @*2, @/2
+=20
+=20
+-chip "f8000-*"
++chip "f71858fg-*" "f8000-*"
+=20
+     label in0 "+3.3V"
+     label in1 "3VSB"
+@@ -455,6 +456,17 @@
+     compute in2  @*2, @/2
+=20
+=20
++chip "f81865f-*"
++
++    label in0 "+3.3V"
++    label in5 "3VSB"
++    label in6 "Vbat"
++
++    compute in0  @*2, @/2
++    compute in5  @*2, @/2
++    compute in6  @*2, @/2
++
++
+ chip "adt7473-*" "adt7475-*"
+=20
+     label in2 "+3.3V"
 
-Cheers,
-Samuel.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
