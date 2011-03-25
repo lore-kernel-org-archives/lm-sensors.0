@@ -1,61 +1,106 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 29 Mar 2011 07:10:33 +0000
-Subject: Re: [lm-sensors] lm-sensors 3.3.0 has been released!
-Message-Id: <20110329091033.5736b939@endymion.delvare>
+From: mike <mikpolniak@roadrunner.com>
+Date: Fri, 25 Mar 2011 12:22:08 +0000
+Subject: [lm-sensors] add new chipset ID to f71882fg.c for Fintek F71889AD
+Message-Id: <20110325082208.6196573b@slack64.homefree.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110328094824.66a37c40@endymion.delvare>
-In-Reply-To: <20110328094824.66a37c40@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Phil,
+FYI this is new Intel SandyBridge board with Fintek F71889AD chipset:
 
-D'oh! I had made the changes to the Download page, but indeed they were
-lost. Either I forgot to save them, or the server somehow didn't get
-them. Either way, thanks, for stepping in!
+ run >>sensors-detect
 
-On Mon, 28 Mar 2011 19:43:42 -0700, Philip Edelbrock wrote:
-> 
-> OK, thanks Jean.  I've copied the bundle and sig to the mirror.
-> 
-> I have also updated the download page (it was still referring to 3.2.0) as best I could, but of course feel free to revise as needed.
-> 
-> Thanks again, all!  Always interesting to see what new support has been added.
-> 
-> 
-> Phil
-> 
-> On Mar 28, 2011, at 12:48 AM, Jean Delvare wrote:
-> 
-> > Hi all,
-> > 
-> > I just released lm-sensors 3.3.0 as announced ten days ago.
-> > This release adds support for intrusion detection and humidity sensors,
-> > as well as many new attributes for existing sensor types.
-> > 
-> > Most important changes are:
-> > * Support for intrusion detection sensors.
-> > * Support for humidity sensors.
-> > * Support for many subfeatures implemented by new hwmon drivers.
-> > * Some arbitrary limits removed from libsensors.
-> > * New generic limit printing code in "sensors".
-> > * New chips known by sensors-detect, as usual.
-> > 
-> > See CHANGES for the details.
-> > 
-> > Phil, please copy the new release to your mirror as your time permits.
-> > 
-> > -- 
-> > Jean Delvare
-> 
-> PHIL EDELBROCK + phil@studiogeologie.com + tel 541 753 4003 + G E O L O G I E + www.studiogeologie.com
-> 
+# sensors-detect revision 5861 (2010-09-21 17:21:05 +0200)
+# System: MSI MS-7678
+# Board: MSI H67MA-E45 (MS-7678)
 
+This program will help you determine which kernel modules you need
+to load to use lm_sensors most effectively. It is generally safe
+and recommended to accept the default answers to all questions,
+unless you know what you're doing.
 
--- 
-Jean Delvare
+Some south bridges, CPUs or memory controllers contain embedded sensors.
+Do you want to scan for them? This is totally safe. (YES/no):
+Module cpuid loaded successfully.
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           No
+AMD Family 11h thermal sensors...                           No
+Intel digital thermal sensor...                             Success!
+    (driver `coretemp')
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
+
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no):
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+Found unknown chip with ID 0x1005
+    (logical device 4 has address 0x290, could be sensors)
+****************************************************************
+using kernel-2.6.38
+
+add this line to f71882fg.c
+
+#define SIO_F71889_ID           0x1005  /* Chipset ID */
+
+*************************************************************
+then run>>sensors
+sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +16.0°C  (high = +80.0°C, crit = +98.0°C)     
+
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +21.0°C  (high = +80.0°C, crit = +98.0°C)     
+
+coretemp-isa-0002
+Adapter: ISA adapter
+Core 2:      +20.0°C  (high = +80.0°C, crit = +98.0°C)
+
+coretemp-isa-0003
+Adapter: ISA adapter
+Core 3:      +25.0°C  (high = +80.0°C, crit = +98.0°C)     
+
+f71889fg-isa-0290
+Adapter: ISA adapter
+in0:         +1.66 V
+in1:         +0.74 V  (max =  +2.04 V)   
+in2:         +0.07 V
+in3:         +0.97 V
+in4:         +1.12 V
+in5:         +0.74 V
+in6:         +1.04 V
+in7:         +1.61 V
+in8:         +1.64 V
+fan1:        557 RPM
+fan2:          0 RPM  ALARM
+fan3:          0 RPM  ALARM
+temp1:       +19.0°C  (high = +255.0°C, hyst = +251.0°C)  ALARM
+                      (crit = +255.0°C, hyst = +251.0°C)  ALARM
+sensor = Intel PECI
+temp2:       +24.0°C  (high = +255.0°C, hyst = +251.0°C)  ALARM
+                      (crit = +255.0°C, hyst = +251.0°C)  ALARM
+sensor = thermistor
+temp3:       +21.0°C  (high = +255.0°C, hyst = +253.0°C)  ALARM
+                      (crit = +255.0°C, hyst = +253.0°C)  ALARM
+sensor = transistor
+
+Just need help in configuring the actual values of the in* voltages.
 
 _______________________________________________
 lm-sensors mailing list
