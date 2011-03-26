@@ -1,29 +1,38 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 01 Mar 2011 16:03:23 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2 v5] hwmon: twl4030: Hwmon Driver for
-Message-Id: <20110301160323.GA6983@ericsson.com>
+Date: Sat, 26 Mar 2011 19:56:24 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.39
+Message-Id: <1301169714-25636-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1298986956-31255-1-git-send-email-j-keerthy@ti.com>
-In-Reply-To: <1298986956-31255-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Keerthy <j-keerthy@ti.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "mikko.k.ylinen@nokia.com" <mikko.k.ylinen@nokia.com>, "amit.kucheria@canonical.com" <amit.kucheria@canonical.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Tue, Mar 01, 2011 at 08:42:36AM -0500, Keerthy wrote:
-> This driver exposes the sysfs nodes of the TWL4030 MADC module.
-> All the voltage channel values are expressed in terms of mV. Channel 13
-> and channel 14 are reserved. There are channels which represent
-> temperature and current the output is represented by celcius
-> and mA respectively.
-> 
-> Signed-off-by: Keerthy <j-keerthy@ti.com>
+Hi Linus,
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Please pull hwmon subsystem fixes for Linux 2.6.39 from:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
 Thanks,
-Guenter
+Guenter Roeck
+
+------
+
+The following changes since commit 16c29dafcc86024048f1dbb8349d31cb22c7c55a:
+
+  Merge branch 'syscore' of git://git.kernel.org/pub/scm/linux/kernel/git/rafael/suspend-2.6 (2011-03-25 21:07:59 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Guenter Roeck (1):
+      hwmon: (pmbus) Fix temperature limit register access
+
+ drivers/hwmon/pmbus_core.c |   70 ++++++++++++++++++++++---------------------
+ 1 files changed, 36 insertions(+), 34 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
