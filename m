@@ -1,47 +1,41 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 04 Mar 2011 17:58:06 +0000
-Subject: [lm-sensors] [PATCH v5 11/11] hwmon: (w83627ehf) Update Kconfig for
-Message-Id: <1299261486-15190-12-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 26 Mar 2011 10:05:18 +0000
+Subject: [lm-sensors] [GIT PULL] More hwmon updates for 2.6.39
+Message-Id: <20110326110518.5c631e12@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Ian Dobson <i.dobson@planet-ian.com>, Andy Lutomirski <luto@mit.edu>, Randy Dunlap <rdunlap@xenotime.net>, binximeng@gmail.com, lmsensors@tapanitarvainen.fi, andrea.rizzolo@gmail.com, jeff.sadowski@gmail.com, lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/Kconfig |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Hi Linus,
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 297bc9a..c100802 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -1083,7 +1083,7 @@ config SENSORS_W83627HF
- 	  will be called w83627hf.
- 
- config SENSORS_W83627EHF
--	tristate "Winbond W83627EHF/EHG/DHG, W83667HG"
-+	tristate "Winbond W83627EHF/EHG/DHG, W83667HG, NCT6775F, NCT6776F"
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for the hardware
-@@ -1094,7 +1094,8 @@ config SENSORS_W83627EHF
- 	  chip suited for specific Intel processors that use PECI such as
- 	  the Core 2 Duo.
- 
--	  This driver also supports the W83667HG chip.
-+	  This driver also supports Nuvoton W83667HG, W83667HG-B, NCT6775F
-+	  (also known as W83667HG-I), and NCT6776F.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called w83627ehf.
+Please pull more hwmon subsystem updates for Linux 2.6.39 from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+We have support for two new devices: Fintek F71889A and F81865F.
+
+ Documentation/hwmon/f71882fg |   19 ++++++
+ drivers/hwmon/Kconfig        |   17 +++++-
+ drivers/hwmon/f71882fg.c     |  126 ++++++++++++++++++++++++++++--------------
+ 3 files changed, 117 insertions(+), 45 deletions(-)
+
+---------------
+
+Hans de Goede (1):
+      hwmon: (f71882fg) Add support for the F71889A
+
+Jean Delvare (4):
+      hwmon: (f71882fg) Secure chip property definition arrays
+      hwmon: (f71882fg) Per-chip fan/temperature input count tables
+      hwmon: (f71882fg) Document all supported devices
+      hwmon: (f71882fg) Add support for the F81865F
+
+Thanks,
 -- 
-1.7.3.1
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
