@@ -1,53 +1,27 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Tue, 08 Mar 2011 06:23:34 +0000
-Subject: Re: [lm-sensors] [PATCH:hwmon:v4:]Merging_pkgtemp_with_coretemp
-Message-Id: <D6D887BA8C9DFF48B5233887EF0465410947330AC3@bgsmsx502.gar.corp.intel.com>
+From: =?utf-8?q?Tom=C3=A0s_Deltell_Bonell?= <tomasdeltell@gmx.es>
+Date: Wed, 30 Mar 2011 23:24:08 +0000
+Subject: [lm-sensors]  testing "w83627ehf" on Asrock ION 330 HT
+Message-Id: <201103310124.08484.tomasdeltell@gmx.es>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299101865-10797-1-git-send-email-durgadoss.r@intel.com>
-In-Reply-To: <1299101865-10797-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+I'm trying to install w83627ehf driver on my Asrock ION 330 HT with Mandriva 
+2010.2, kernel 2.6.33.7 and lm-sensors 3.1.2. When i try to compile i get this 
+error:
 
-> > > Subject: [PATCH:hwmon:v4:]Merging_pkgtemp_with_coretemp
-> > >
-> > > This patch merges the pkgtemp driver with the coretemp driver.
-> > > This merged driver creates one hwmon device per physical CPU.
-> > >
-> > > Changes from v3 of this patch:
-> > > Added appropriate support for CONFIG_HOTPLUG_CPU.
-> > >
-> 
-> Problem is that you don't provide a complete changelog ... meaning I have no
+$ make
+  CC [M]  /home/user/w83627ehf/w83627ehf.o
+/home/user/w83627ehf/w83627ehf.c: on function ‘w83627ehf_find’:
+/home/user/w83627ehf/w83627ehf.c:2385: error: implicit declaration of 
+‘pr_warn’ function
+make[2]: *** [/home/user/w83627ehf/w83627ehf.o] Error 1
+make[1]: *** [_module_/home/user/w83627ehf] Error 2
+make: *** [modules] Error 2
 
-I shall provide a complete changelog for all versions of this patch, from now on.
-
-> if you addressed the crash problem I reported earlier, much less how you
-
-I tested these patch sets on a Core i5 machine, I did not get any crash.
-That's why I did not talk about this.
-But If you can send me the crash logs,
-I shall look into them and try to reproduce and see
-What is going on .. 
-
-> 
-> In other words, you are loading a lot of work on me. I don't have the time for
-
-Sorry for that.
-
-> right now, so you'll have to be patient.
-
-I tested these patch sets on some boards that I have.
-Since I am too new to this, I do not know whether I covered all
-Corner cases. There is a fair chance that something might break..
-Hence, I would wait for these patches to be tested
-and reviewed by you at your convenience.
-
-Thanks,
-Durga
+and i don't know how to continue
 
 _______________________________________________
 lm-sensors mailing list
