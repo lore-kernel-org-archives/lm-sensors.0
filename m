@@ -1,89 +1,46 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 27 Apr 2011 14:31:12 +0000
-Subject: Re: [lm-sensors] Patch v5 Merge Pkgtemp with coretemp
-Message-Id: <20110427143112.GA23165@ericsson.com>
+From: "J, KEERTHY" <j-keerthy@ti.com>
+Date: Fri, 01 Apr 2011 12:51:43 +0000
+Subject: [lm-sensors] Query: Omap temperature sensor driver design
+Message-Id: <AANLkTimsX-=1Qe8F3=gJM75_TYP9SujTFTH6uvXncWRC@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D6D887BA8C9DFF48B5233887EF046541095182D2CC@bgsmsx502.gar.corp.intel.com>
-In-Reply-To: <D6D887BA8C9DFF48B5233887EF046541095182D2CC@bgsmsx502.gar.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: linux-omap@vger.kernel.org, KEERTHY J <j-keerthy@ti.com>
 
-Hi Durga,
+Hello All,
 
-On Wed, Apr 27, 2011 at 02:24:19AM -0400, R, Durgadoss wrote:
-> Hi Guenter,
-> 
-> Thanks for the comments.
-> Shall fix them and resubmit the patch.
-> But, I need clarifications on few things here.
-> 
-> > 
-> > Functionality-wise, there is still a problem: If one core of a HT CPU
-> > is taken offline, the driver used to replace it with its sibling if
-> > it was online. This way the core's temperature was still displayed as
-> > long as at least one of the HT cores was online. This is no longer the case.
-> 
-> I knew it..but I was thinking to do it as a separate patch,
-> Once this gets acked. If we have to add this support, the following is
-> my way of doing it:
-> When a cpu with a core_id is offlined,
-> check whether there is any other cpu with same core_id(by looping
-> through for_each_online_cpu()). If so, get that online.
-> Please let me know if there are any alternatives.
-> 
-The original code (which you deleted) handled that case pretty well.
+I am trying to implement a driver for the OMAP temperature sensor.
+It is an on chip sensor.
 
-	for_each_cpu(i, cpu_sibling_mask(cpu))
-		if (i != cpu && !coretemp_device_add(i))
-			break;
+The sensor is responsible for reporting the temperature. The sensor
+has configurable thresholds. The user can configure the thresholds.
+An interrupt will be generated as soon as there the temperature
+thresholds are crossed.
 
-> > You should update Documentation/hwmon/coretemp to reflect your changes.
-> 
-> Should that be a separate patch or part of this patch ?
-> 
-Part of this patch.
+Two possible approaches for the driver:
 
-> > > +       /*
-> > > +        * Initialize ttarget value. Eventually this will be
-> > > +        * initialized with the value from MSR_IA32_THERM_INTERRUPT
-> > > +        * register. If IA32_TEMPERATURE_TARGET is supported, this
-> > > +        * value will be over written below.
-> > > +        * To Do: Patch to initialize ttarget from MSR_IA32_THERM_INTERRUPT
-> > > +        */
-> > Do you plan to submit a separate patch to address this ?
-> 
-> Yes. I already submitted a patch for this. Since we wanted any new patch
-> On coretemp should be done only after merging pkgtemp, I withheld that patch.
-> 
-Maybe it wouild make sense to mention that in your intro (not part of the commit log).
+1) The entire driver resides in drivers/hwmon directory. The driver
+containing all the sysfs nodes to be exposed to the user.
+The interrupt handlers are also part of this driver. The device
+registration happens in a OMAP arch specific file residing
+in arch/arm/mach-omap2 directory.
 
-> > >         for_each_online_cpu(i)
-> > > -               coretemp_device_add(i);
-> > > +               get_core_online(i);
-> > >
-> > This code should now be in the probe function, and be called before
-> > the hwmon device is registered.
-> 
-> Our probe function itself is called by coretemp_device_add()
-> which in turn is called by get_core_online(). So, If I move this code
-> to probe, not sure how the probe itself will be called. Hence, I feel
-> this code should be here only. Let me know your thoughts.
-> 
-Problem is that get_core_online() handles both adding a new processor and adding
-a new core, which results in a lot of if statements and isn't really clean.
+2) The intialization and the interrupt handling done in a
+separate driver file residing in in arch/arm/mach-omap2 or
+drivers/misc directory.
+The device registration happens in a OMAP arch specific file residing
+in arch/arm/mach-omap2 directory.
+Only the sysfs nodes will be exposed through a hwmon
+driver residing in drivers/hwmon.
 
-Maybe you can separate adding processors (or platform devices), which needs to be 
-handled from the _init function, and adding cores, which should be handled from within 
-the platform device, ie from the _probe function. This way, the _init function would
-only create the platform devices (one per processor), and the _probe function would
-initialize the per-processor information, create the package sensor attributes, create
-the core attributes, and finally register with hwmon.
+Please suggest the best alternative among the two or if any new
+design for the requirements is better.
 
-Thanks,
-Guenter
-
+-- 
+Regards and Thanks,
+Keerthy
 
 _______________________________________________
 lm-sensors mailing list
