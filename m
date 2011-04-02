@@ -1,156 +1,90 @@
-From: Darren Hart <dvhart@linux.intel.com>
-Date: Fri, 15 Apr 2011 14:11:31 +0000
-Subject: Re: [lm-sensors] w83795 fan control not working
-Message-Id: <4DA85213.4030504@linux.intel.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 02 Apr 2011 15:58:37 +0000
+Subject: [lm-sensors] [RFC PATCH] hwmon: Add SubmittingHwmonPatches to
+Message-Id: <1301760379-13038-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110407150007.51dd1c06@endymion.delvare>
-In-Reply-To: <20110407150007.51dd1c06@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+When writing hardware monitoring drivers, there are some common pitfalls which
+keep coming up in code reviews. This patch provides a document describing all
+those pitfalls and how to avoid them.
 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/SubmittingHwmonPatches |   58 ++++++++++++++++++++++++++++
+ 1 files changed, 58 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/SubmittingHwmonPatches
 
-On 04/15/2011 12:59 AM, Jean Delvare wrote:
-> On Thu, 14 Apr 2011 22:30:53 -0700, Darren Hart wrote:
->> After trying a different kernel, I was able to get reading from the
->> w83795 again. I applied the fan to the chipset until it reached it's
->> lowest point (52.5C while idle). I then positioned the fan away from the
->> chipset and watched the temperature rise until it reached 84.5C and the
->> fans sped up to > 4000RPM.
->>
->> FAN 1            | 2401.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 2            | 0.000      | RPM        | nr    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 3            | 2401.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 4            | 4356.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 5            | 3969.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->>
->>
->> Given that the system is idle, and Super Mictro stated the chipset
->> should not exceed 75C, and I have no obstructions in the case and no
->> expansion boards to add heat, something appears to be wrong.
->>
->> Here is an annotated log of the experiment, one reading every 10 seconds:
->>
->> dvhart@rage:~$ while true; do sensors w83795g-i2c-0-2f | grep temp1;
->> sleep 10; done
->> temp1:       +61.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +59.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +57.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +56.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +55.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +54.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +53.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +52.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +52.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +53.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +55.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +56.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +58.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +60.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +61.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +63.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +64.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +65.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +66.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +67.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +68.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +69.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +70.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +71.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +72.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +72.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +73.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +74.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +75.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +75.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +76.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +77.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +77.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +77.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +78.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +78.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +79.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +79.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +79.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +80.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +80.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +80.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +81.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +81.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +81.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +81.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +82.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +82.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +82.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +82.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +82.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +83.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +84.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->>
->> Fan speed jumped up at this point:
->>
->> FAN 1            | 2401.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 2            | 0.000      | RPM        | nr    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 3            | 2401.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 4            | 4356.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->> FAN 5            | 3969.000   | RPM        | ok    | 400.000   | 576.000
->>   | 784.000   | 33856.000 | 34225.000 | 34596.000
->>
->> And stayed at high speed until:
->>
->> temp1:       +79.2=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +79.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +79.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +79.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +80.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +80.5=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->> temp1:       +81.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
->>
->> And sped up again here.
->> And so on.
->=20
-> The W83795ADG can be programmed to switch fans to full speed when
-> certain temperature limits are exceeded. The driver doesn't currently
-> expose these settings, but my guess is that's what you're seeing.
-> According to the datasheet, the default value for temperature limit
-> registers for this mechanism is 0x50, that is... 80=B0C.
+diff --git a/Documentation/hwmon/SubmittingHwmonPatches b/Documentation/hwmon/SubmittingHwmonPatches
+new file mode 100644
+index 0000000..867f383
+--- /dev/null
++++ b/Documentation/hwmon/SubmittingHwmonPatches
+@@ -0,0 +1,58 @@
++* It should be unnecessary to mention, but please read and follow 
++    Documentation/SubmitChecklist
++    Documentation/SubmittingDrivers
++    Documentation/SubmittingPatches
++    Documentation/CodingStyle
++
++* Running your patch through checkpatch does not mean its formatting is clean.
++  If unsure about indentation in your new driver, run it through Lindent.
++  Lindent is not perfect, and you may have to do some minor cleanup, but it is a
++  good start.
++
++* If you do have checkpatch warnings, please refrain from explanations such as
++  "I don't like that coding style". Keep in mind that each unnecessary warning
++  helps hiding a real problem. If you don't like the kernel coding style, don't
++  write kernel drivers.
++
++* If you add a new driver, consider adding yourself to MAINTAINERS.
++
++* Document new drivers in Documentation/hwmon/<Driver_Name>. If you add
++  functionality to an existing driver, make sure the documentation is up to date.
++
++* When updating an existing driver, make sure the information in Kconfig is up
++  to date.
++
++* When adding a new driver, add it to Kconfig and Makefile in alphabetical
++  order.
++
++* Make sure there are no race conditions in the probe function. Specifically,
++  initialize your chip first, then create sysfs entries, then register with the
++  hwmon subsystem.
++
++* If your driver has a detect function, make sure it is silent. Specifically, it
++  should not create messages such as "Chip XXX not found/supported". Keep in
++  mind that the detect function will run on all detected chips. Unnecessary
++  messages will just pollute the kernel log and not provide any value.
++
++* Do not write to chip registers in the _detect function. Keep in mind that the
++  chip might not be what your driver believes it is, and writing to it might
++  cause a bad misconfiguration.
++
++* Avoid forward declarations if you can. Rearrange the code if necessary.
++
++* Avoid function macros. While it may save a line or so in the source, it
++  obfuscates the code and makes code review more difficult. It may also result
++  in code which is more complicated than necessary.
++
++* When writing a new driver, do not provide deprecated sysfs attributes.
++
++* Do not create non-ABI attributes unless really needed. If you have to use
++  non-ABI attributes, or you believe you do, discuss it on the mailing list
++  first. Either case, provide a detailed explanation why you need the non-ABI
++  attribute(s).
++  For reference, the ABI is in specified in Documentation/hwmon/sysfs-interface.
++
++* If you add functionality to an existing driver, and the addition requires some
++  cleanup or structural changes, split your patch into a cleanup part and the
++  actual addition. This makes it easier to review your changes, and to bisect
++  any resulting problems.
+-- 
+1.7.3.1
 
-Which is consistent with Super Micro saying the chipset must remain
-below 75C. A fan brings it down 30C. I'm looking into adding a fan or
-replacing the heat sink, or both. With that, I'll be giving up on
-fancontrol for this machine - since it behaves itself just fine when the
-chipset isn't overheating.
-
---=20
-Darren Hart
-Intel Open Source Technology Center
-Yocto Project - Linux Kernel
 
 _______________________________________________
 lm-sensors mailing list
