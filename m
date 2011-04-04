@@ -1,23 +1,34 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 29 Apr 2011 08:31:16 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (lm85) Add missing list
-Message-Id: <20110429083116.GB9151@ericsson.com>
+From: "Yu, Fenghua" <fenghua.yu@intel.com>
+Date: Mon, 04 Apr 2011 18:16:51 +0000
+Subject: Re: [lm-sensors] [PATCH:hwmon:v4:]Merging_pkgtemp_with_coretemp
+Message-Id: <493994B35A117E4F832F97C4719C4C04EDA31B08@orsmsx505.amr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110429102338.7d814f85@endymion.delvare>
-In-Reply-To: <20110429102338.7d814f85@endymion.delvare>
+References: <1299101865-10797-1-git-send-email-durgadoss.r@intel.com>
+In-Reply-To: <1299101865-10797-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Apr 29, 2011 at 04:23:38AM -0400, Jean Delvare wrote:
-> Fixes kernel bug #34072:
-> https://bugzilla.kernel.org/show_bug.cgi?id4072
+> This patch merges the pkgtemp driver with the coretemp driver.
+> This merged driver creates one hwmon device per physical CPU.
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+> Changes from v3 of this patch:
+> Added appropriate support for CONFIG_HOTPLUG_CPU.
+> 
+> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> ---
+>  drivers/hwmon/coretemp.c |  618 ++++++++++++++++++++++++++++++++++----
+> --------
+>  1 files changed, 455 insertions(+), 163 deletions(-)
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+You patch needs to remove pkgtemp.c file as well.
+
+Please publish your test results on Sandybridge and non-Sandybridge.
+
+Thanks.
+
+-Fenghua
 
 _______________________________________________
 lm-sensors mailing list
