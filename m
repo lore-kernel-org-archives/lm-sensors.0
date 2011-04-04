@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 03 Apr 2011 21:21:13 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 04 Apr 2011 16:15:29 +0000
 Subject: Re: [lm-sensors] [RFC PATCH] hwmon: Add SubmittingHwmonPatches to
-Message-Id: <20110403212112.GA9518@ericsson.com>
+Message-Id: <20110404181529.372f43fc@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1301760379-13038-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1301760379-13038-1-git-send-email-guenter.roeck@ericsson.com>
@@ -10,164 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Apr 03, 2011 at 11:37:48AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sat, 2 Apr 2011 09:06:19 -0700, Guenter Roeck wrote:
-> > When writing hardware monitoring drivers, there are some common pitfalls which
-> > keep coming up in code reviews. This patch provides a document describing all
-> > those pitfalls and how to avoid them.
-> 
-> FWIW, for the i2c subsystem I decided to publish my recommendations on
-> a wiki, rather than in the kernel tree:
->   https://i2c.wiki.kernel.org/index.php/Linux_2.6_I2C_development_FAQ
-> 
-> We could have a similar wiki for the hwmon subsystem if you think this
-> would be useful. It would also be possible to create a page in the
-> lm-sensors.org wiki, as both projects are tightly related anyway.
-> 
-Yes, I think that would be useful. I think we should have the document
-in the kernel as well, though, since many people won't read the wiki,
-and because having it in the kernel makes it official (or at least more so).
+Hi Guenter,
 
+On Sun, 3 Apr 2011 14:21:13 -0700, Guenter Roeck wrote:
+> On Sun, Apr 03, 2011 at 11:37:48AM -0400, Jean Delvare wrote:
+> > Hi Guenter,
 > > 
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> >  Documentation/hwmon/SubmittingHwmonPatches |   58 ++++++++++++++++++++++++++++
-> >  1 files changed, 58 insertions(+), 0 deletions(-)
-> >  create mode 100644 Documentation/hwmon/SubmittingHwmonPatches
-> 
-> I object to this file name. None of the other files in this directory
-> follows this naming/case convention. Use
-> Documentation/hwmon/submitting-patches please.
-> 
-Fine with me.
-
+> > On Sat, 2 Apr 2011 09:06:19 -0700, Guenter Roeck wrote:
+> > > When writing hardware monitoring drivers, there are some common pitfalls which
+> > > keep coming up in code reviews. This patch provides a document describing all
+> > > those pitfalls and how to avoid them.
 > > 
-> > diff --git a/Documentation/hwmon/SubmittingHwmonPatches b/Documentation/hwmon/SubmittingHwmonPatches
-> > new file mode 100644
-> > index 0000000..867f383
-> > --- /dev/null
-> > +++ b/Documentation/hwmon/SubmittingHwmonPatches
-> > @@ -0,0 +1,58 @@
-> > +* It should be unnecessary to mention, but please read and follow 
-> > +    Documentation/SubmitChecklist
-> > +    Documentation/SubmittingDrivers
-> > +    Documentation/SubmittingPatches
-> > +    Documentation/CodingStyle
-> > +
-> > +* Running your patch through checkpatch does not mean its formatting is clean.
-> > +  If unsure about indentation in your new driver, run it through Lindent.
-> > +  Lindent is not perfect, and you may have to do some minor cleanup, but it is a
-> > +  good start.
-> > +
-> > +* If you do have checkpatch warnings, please refrain from explanations such as
-> > +  "I don't like that coding style". Keep in mind that each unnecessary warning
-> > +  helps hiding a real problem. If you don't like the kernel coding style, don't
-> > +  write kernel drivers.
-> > +
-> > +* If you add a new driver, consider adding yourself to MAINTAINERS.
-> > +
-> > +* Document new drivers in Documentation/hwmon/<Driver_Name>. If you add
-> > +  functionality to an existing driver, make sure the documentation is up to date.
-> > +
-> > +* When updating an existing driver, make sure the information in Kconfig is up
-> > +  to date.
-> > +
-> > +* When adding a new driver, add it to Kconfig and Makefile in alphabetical
-> > +  order.
-> > +
-> > +* Make sure there are no race conditions in the probe function. Specifically,
-> > +  initialize your chip first, then create sysfs entries, then register with the
-> > +  hwmon subsystem.
-> 
-> What really matters is fully initializing the device before creating
-> the sysfs attributes. The order between sysfs attributes creation and
-> hwmon subsystem registration can't be enforced, as not all hwmon
-> devices are backed up by a physical device, so you sometimes _have_ to
-> create the hwmon device first, and attributes second.
-> 
-Ok, I'll rephrase.
+> > FWIW, for the i2c subsystem I decided to publish my recommendations on
+> > a wiki, rather than in the kernel tree:
+> >   https://i2c.wiki.kernel.org/index.php/Linux_2.6_I2C_development_FAQ
+> > 
+> > We could have a similar wiki for the hwmon subsystem if you think this
+> > would be useful. It would also be possible to create a page in the
+> > lm-sensors.org wiki, as both projects are tightly related anyway.
+> > 
+> Yes, I think that would be useful. I think we should have the document
+> in the kernel as well, though, since many people won't read the wiki,
+> and because having it in the kernel makes it official (or at least more so).
 
-> > +
-> > +* If your driver has a detect function, make sure it is silent. Specifically, it
-> 
-> "Silent" is a little too restrictive. Debug messages are fine, and
-> messages printed after a successful detection are relatively common
-> amongst hwmon drivers.
-> 
-Ok.
+Meaning we'd have to maintain the document in two different places?
+Maybe... but think twice before you go that route.
 
-> > +  should not create messages such as "Chip XXX not found/supported". Keep in
-> 
-> "print messages" or "log messages" would be more appropriate than
-> "create messages".
-> 
-Ok.
+> > > (...)
+> > > +* Avoid function macros. While it may save a line or so in the source, it
+> > > +  obfuscates the code and makes code review more difficult. It may also result
+> > > +  in code which is more complicated than necessary.
+> > 
+> > See my review of your max16065 driver ;)
+> > 
+> Guess you mean to avoid complex maros as well. Ok, no problem.
 
-> > +  mind that the detect function will run on all detected chips. Unnecessary
-> > +  messages will just pollute the kernel log and not provide any value.
-> > +
-> > +* Do not write to chip registers in the _detect function. Keep in mind that the
-> > +  chip might not be what your driver believes it is, and writing to it might
-> > +  cause a bad misconfiguration.
-> 
-> To be complete: you shouldn't write to the chip before you have already
-> gathered enough data to be certain that the detection is successful.
-> See w83795_detect() in drivers/hwmon/w83795.c for a case where I had to
-> write to the chip to determine the exact chip type.
-> 
-> Not sure if you want to mention this though, it might confuse more than
-> help the reader.
-> 
-Depends on the scope of the document. If we want it to be helpful for us (as a checklist),
-it should be mentioned. Since I want to be able to use it as checklist, I think it would
-make sense to mention it.
+Maybe I misunderstood "function macros" in your sentence. Did you mean
+functions with parameters, or macro-generated functions? I thought the
+first, but maybe you meant the second. Well, this point needs
+clarification apparently ;)
 
-> > +
-> > +* Avoid forward declarations if you can. Rearrange the code if necessary.
-> > +
-> > +* Avoid function macros. While it may save a line or so in the source, it
-> > +  obfuscates the code and makes code review more difficult. It may also result
-> > +  in code which is more complicated than necessary.
-> 
-> See my review of your max16065 driver ;)
-> 
-Guess you mean to avoid complex maros as well. Ok, no problem.
+> (...)
+> Overall this was mostly to initiate a discussion. Maybe it would make sense to add it
+> to the wiki first, and copy it into the kernel after it stabilizes. This way it would
+> not just be my document, but give the community a chance to participate.
+> What do you think ?
 
-> > +
-> > +* When writing a new driver, do not provide deprecated sysfs attributes.
-> > +
-> > +* Do not create non-ABI attributes unless really needed. If you have to use
-> 
-> I'd use "non-standard" rather than "non-ABI".
-> 
-Ok.
+We two are the maintainers of the hwmon subsystem, so this
+documentation must be ours. Don't ask the community at large how they
+want to contribute, you won't like the answer ;) In fact, the reason
+you felt the need to write this document is, in part, because you want
+to set the rules contributors should follow to make you (and me) happy.
 
-> > +  non-ABI attributes, or you believe you do, discuss it on the mailing list
-> > +  first. Either case, provide a detailed explanation why you need the non-ABI
-> > +  attribute(s).
-> > +  For reference, the ABI is in specified in Documentation/hwmon/sysfs-interface.
-> > +
-> > +* If you add functionality to an existing driver, and the addition requires some
-> > +  cleanup or structural changes, split your patch into a cleanup part and the
-> > +  actual addition. This makes it easier to review your changes, and to bisect
-> > +  any resulting problems.
-> 
-> As a general comment, you may want to group the items in 3 sections:
-> items which apply to new drivers, items which apply to driver changes
-> and items which apply to both. This will add some structure to the
-> document, making it less boring to read than a long flat list.
-> 
-Makes sense.
+I'm fine with the document (both its existence and its content. In fact
+I find it curious that I wrote a guidance document to i2c subsystem
+contributors and never felt the need to do the same for hwmon subsystem
+contributors. I can't really explain it.
 
-Overall this was mostly to initiate a discussion. Maybe it would make sense to add it
-to the wiki first, and copy it into the kernel after it stabilizes. This way it would
-not just be my document, but give the community a chance to participate.
-What do you think ?
-
-Thanks,
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
