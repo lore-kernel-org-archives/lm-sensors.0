@@ -1,77 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 12 Apr 2011 17:09:45 +0000
-Subject: Re: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c
-Message-Id: <20110412190945.3da2f2c0@endymion.delvare>
+From: Andre Przywara <andre.przywara@amd.com>
+Date: Wed, 06 Apr 2011 08:38:01 +0000
+Subject: [lm-sensors] [PATCH] hwmon/k10temp: add support for Fam15h
+Message-Id: <1302079081-22572-1-git-send-email-andre.przywara@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110410160433.GA22075@localhost>
-In-Reply-To: <20110410160433.GA22075@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 12 Apr 2011 19:02:19 +0200, Ian Dobson wrote:
-> Hi,
-> 
-> --------------------------------------------------
-> From: "Mike Campin" <lm_sensors@ootsa.homelinux.net>
-> Sent: Sunday, April 10, 2011 6:04 PM
-> To: <lm-sensors@lm-sensors.org>
-> Subject: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c onASRock 
-> Extreme4
-> 
-> > Hi,
-> >
-> > Only 2 of the 5 fans are showing up on my ASRock P67 Extreme4 motherboard.
-> > It due to the NCT6776 global configuration register 0x1c and 0x24 values.
-> > The fans work if I modify these registers prior to loading the w83627ehf
-> > driver.
-> >
-> > My question is where are these registers initialized? Should I ask ASRock
-> > to fix the BIOS?
-> >
-> >  isadump -y -k 0x87,0x87 0x2e 0x2f
-> >
-> >          0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> >     00: ff ff 00 ff ff ff ff 02 ff ff ff ff ff ff ff ff
-> >     10: ff ff ff ff ff ff ff ff ff ff f8 0e 00 00 ff ff
-> >     20: c3 33 ff 00 5c 00 00 98 00 ff 20 00 80 00 00 01
-> >     30: 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >
-> >  isaset -y -f 0x2e 0x87
-> >  isaset -y -f 0x2e 0x87
-> >  isaset -y 0x2e 0x2f 0x1c 0x3
-> >  isaset -y 0x2e 0x2f 0x24 0x1c
-> >
-> > Thanks, Mike
-> >
-> > -- 
-> > Mike Campin
-> > lm_sensors@ootsa.homelinux.net
-> >
-> > _______________________________________________
-> > lm-sensors mailing list
-> > lm-sensors@lm-sensors.org
-> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-> ASRock designed the board, so they should setup the hardware monitoring chip 
-> correctly. Allowing users to change the chip configuration is a really bad 
-> idea, as many of the pins can have different functionality/electrical 
-> spcifications depending on the config. Setting up a pin incorrectly could 
-> blow the chip (Configuring a pin so that it's a source that's connected to 
-> an unprotected/limited sink for example).
-> 
-> So ASRock should fix the BIOS.
+AMDs upcoming CPUs use the same mechanism for the internal
+temperature reporting as the Fam10h CPUs, so we just needed to add
+the appropriate PCI-ID to the list.
+This allows to use the k10temp driver on those CPUs.
+While at it change the Kconfig entry to be more generic.
 
-Seconded. But before flaming Asrock, two things worth checking:
-* Availability of a BIOS update fixing the issue.
-* Options in the BIOS to enable/disable the monitoring of specific
-  fans. I can imagine that the BIOS skips the configuration steps for
-  fans for which monitoring was disabled (although that would probably
-  mean more code than just doing it unconditionally...)
+Signed-off-by: Andre Przywara <andre.przywara@amd.com>
+---
+ drivers/hwmon/Kconfig   |    4 ++--
+ drivers/hwmon/k10temp.c |    1 +
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 060ef63..95b5516 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -238,13 +238,13 @@ config SENSORS_K8TEMP
+ 	  will be called k8temp.
+ 
+ config SENSORS_K10TEMP
+-	tristate "AMD Family 10h/11h/12h/14h temperature sensor"
++	tristate "AMD Family 10h+ temperature sensor"
+ 	depends on X86 && PCI
+ 	help
+ 	  If you say yes here you get support for the temperature
+ 	  sensor(s) inside your CPU. Supported are later revisions of
+ 	  the AMD Family 10h and all revisions of the AMD Family 11h,
+-	  12h (Llano), and 14h (Brazos) microarchitectures.
++	  12h (Llano), 14h (Brazos) and 15h (Bulldozer) microarchitectures.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called k10temp.
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index 82bf65a..bdfa72b 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -209,6 +209,7 @@ static const struct pci_device_id k10temp_id_table[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_10H_NB_MISC) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_11H_NB_MISC) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(pci, k10temp_id_table);
 -- 
-Jean Delvare
+1.6.4
+
+
 
 _______________________________________________
 lm-sensors mailing list
