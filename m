@@ -1,86 +1,68 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 16 Apr 2011 08:20:17 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] i8k: Integrate with the hwmon subsystem
-Message-Id: <20110416102017.523b721f@endymion.delvare>
+From: Aleksej Serdjukov <deletesoftware@yandex.ru>
+Date: Wed, 06 Apr 2011 17:38:56 +0000
+Subject: [lm-sensors] testing "w83627ehf" and "k10temp" on ASRock E350M1
+Message-Id: <4D9CA530.9030100@yandex.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110413172856.06682baf@endymion.delvare>
-In-Reply-To: <20110413172856.06682baf@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+Hi.
 
-On Fri, 15 Apr 2011 04:20:12 -0700, Guenter Roeck wrote:
-> On Fri, Apr 15, 2011 at 03:37:58AM -0400, Jean Delvare wrote:
-> > On Thu, 14 Apr 2011 11:41:47 -0700, Guenter Roeck wrote:
-> > > On Wed, 2011-04-13 at 11:28 -0400, Jean Delvare wrote:
-> > > > @@ -590,6 +732,11 @@ static int __init i8k_init(void)
-> > > >  	if (!proc_i8k)
-> > > >  		return -ENOENT;
-> > > >  
-> > > > +	if (i8k_init_hwmon()) {
-> > > > +		remove_proc_entry("i8k", NULL);
-> > > > +		return -ENODEV;
-> > > > +	}
-> > > > +
-> > > Should that be something like
-> > > 	err = i8k_init_hwmon();
-> > > 	if (err)
-> > > 		goto remove_proc;
-> > > 
-> > > 	...
-> > > 
-> > > remove_proc:
-> > > 	remove_proc_entry("i8k", NULL);
-> > > 	return err;
-> > 
-> > I would have done exactly this if it were my driver. However I noticed
-> > that the error code from i8k_probe() is not preserved, so I decided to
-> > follow the same logic for consistency.
-> > 
-> Both are independent of each other. If a rule is not followed at one place 
-> it doesn't mean that it should not be followed elsewhere.
+I've got this computer with ASRock E350M1, and have no idea what the 
+temperatures should actually be.
 
-I don't necessarily agree. Mixing conventions within a single function
-can make things confusing and increase the risk of introducing bugs
-later.
+This is on Debian 6.0:
+Linux 2.6.32-5-amd64 #1 SMP Mon Mar 7 21:35:22 UTC 2011 x86_64 GNU/Linux
 
-> Besides, my main point
-> was to follow the one-function-exit rule; retaining the error code was a side
-> effect as 
-> 
-> 	err = i8k_init_hwmon();
-> 	if (err) {
-> 		err = -ENODEV;
-> 		goto remove_proc;
-> 	}
-> 
-> didn't seem to make much sense.
 
-OK, I get it now. I'll send an updated patch.
+IIRC, UEFI Setup was showing about 52°C on the motherboard or chipset, 
+and 49-52 on the CPU.
 
-> Is there a generic rule that error codes shall be retained ? I looked for it,
-> but did not find it. If not I should add it to the hwmon driver guidelines.
+About a week ago I've installed the "w83627ehf" from 
+<http://roeck-us.net/linux/drivers/w83627ehf/>, and saw that those 
+temperatures don't go over 53 or 54°C. So I changed the UEFI setting 
+more and more for slower fan speed (today it was 6). So the speed was 
+about 4000, while the full speed is about 4900 and 9 is a hundred or a 
+couple of hundred less. Temperatures didn't go over 54 (or maybe 55) °C. 
+Idle CPU (at 800MHz thanks to Cool'n'Quiet) went down to 46°C more and more.
 
-I don't remember reading it anywhere, it's just common sense for me
-after years of code review.
+Today, however, while the CPU was not loaded much, the fan appeared to 
+be full speed again (at least according to the sensors applet).
 
-> > If you think this is a blocker, then I'll write a preliminary patch to
-> > preserve the error code returned by i8k_probe(), and then update my own
-> > patch in the way you suggested above.
->
-> I'll leave it up to you. 
-> 
-> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> 
-> for both patches.
+But the new sensors-detect was also mentioning "k10temp" (and the old 
+one in Debian didn't work), so today I installed a new k10temp, and it 
+showed 60°C for something.
 
-Thanks.
+Now I have set the fan speed to full in UEFI, and here is what "sensors" 
+shows:
 
--- 
-Jean Delvare
+
+nct6775-isa-0290
+Adapter: ISA adapter
+Vcore:       +1.08 V  (min =  +0.00 V, max =  +1.74 V)
+in1:         +1.03 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+AVCC:        +3.33 V  (min =  +2.98 V, max =  +3.63 V)
++3.3V:       +3.33 V  (min =  +2.98 V, max =  +3.63 V)
+in4:         +1.39 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+in5:         +1.86 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+in6:         +1.66 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+3VSB:        +3.44 V  (min =  +2.98 V, max =  +3.63 V)
+Vbat:        +3.39 V  (min =  +2.70 V, max =  +3.30 V)   ALARM
+fan1:          0 RPM  (min =    0 RPM, div = 128)
+fan2:       4963 RPM  (min =    0 RPM, div = 8)  ALARM
+fan3:          0 RPM  (min =    0 RPM, div = 128)
+fan4:          0 RPM  (div = 128)
+SYSTIN:      +51.0°C  (high =  +0.0°C, hyst =  +0.0°C)  ALARM  sensor = 
+thermistor
+CPUTIN:      +45.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
+AUXTIN:       -9.0°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
+cpu0_vid:   +0.000 V
+
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:       +58.0°C  (high = +70.0°C, crit = +75.0°C)
 
 _______________________________________________
 lm-sensors mailing list
