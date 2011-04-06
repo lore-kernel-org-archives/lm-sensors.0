@@ -1,49 +1,42 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 06 Apr 2011 07:32:22 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 06 Apr 2011 08:01:36 +0000
 Subject: Re: [lm-sensors] [PATCH 1/1] [hwmon] nct1008: Initial NCT1008 driver
-Message-Id: <20110406073222.GD23562@ericsson.com>
+Message-Id: <20110406100136.20fcff9e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1302059183-29631-1-git-send-email-achew@nvidia.com>
- <20110406092358.07e8ca78@endymion.delvare>
-In-Reply-To: <20110406092358.07e8ca78@endymion.delvare>
+	<20110406050929.GA22741@ericsson.com>
+	<20110406065048.GA23290@ericsson.com>
+In-Reply-To: <20110406065048.GA23290@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "achew@nvidia.com" <achew@nvidia.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "w30289@motorola.com" <w30289@motorola.com>, "toddpoynor@google.com" <toddpoynor@google.com>, "wni@nvidia.com" <wni@nvidia.com>, "olofj@chromium.org" <olofj@chromium.org>
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: achew@nvidia.com, wni@nvidia.com, w30289@motorola.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, olofj@chromium.org, toddpoynor@google.com
 
-Hi Jean,
+On Tue, 5 Apr 2011 23:50:48 -0700, Guenter Roeck wrote:
+> On Wed, Apr 06, 2011 at 01:09:29AM -0400, Guenter Roeck wrote:
+> > On Tue, Apr 05, 2011 at 11:06:23PM -0400, achew@nvidia.com wrote:
+> > > From: Andrew Chew <achew@nvidia.com>
+> > >
+> > > This is a digital temperature sensor I2C peripheral from ON Semiconductor.
+> > >
+> > > Signed-off-by: Andrew Chew <achew@nvidia.com>
+> > 
+> > Comments inline. Note that this is not a complete review.
+> > 
+> Actually, turns out it would be much simpler to add support for this chip
+> to the lm90 driver. It is pretty much identical to ADT7461. Even more
+> interesting is that the chip ID is identical to the ADT7461A chip ID.
 
-On Wed, Apr 06, 2011 at 03:23:58AM -0400, Jean Delvare wrote:
-> Hi Andrew,
-> 
-[ ... ]
-> > +
-> > +/* Register Addresses */
-> > +#define LOCAL_TEMP_RD			0x00
-> > +#define EXT_HI_TEMP_RD			0x01
-> > +#define EXT_LO_TEMP_RD			0x10
-> > +#define STATUS_RD			0x02
-> > +#define CONFIG_RD			0x03
-> > +
-> > +#define CONFIG_WR			0x09
-> > +#define CONV_RATE_WR			0x0A
-> > +#define LOCAL_TEMP_HI_LIMIT_WR		0x0B
-> > +#define EXT_TEMP_HI_LIMIT_HI_BYTE	0x0D
-> > +#define OFFSET_WR			0x11
-> > +#define EXT_THERM_LIMIT_WR		0x19
-> > +#define LOCAL_THERM_LIMIT_WR		0x20
-> > +#define THERM_HYSTERESIS_WR		0x21
-> 
-> These register definitions look very familiar to me. Have you looked at
-> the lm90 driver to check has difficult it would be to add support for
-> the NCT1008? I bet it will only take a few lines of code.
-> 
-After I spent a couple of hours reviewing the driver, I noticed that the chip is functionally
-identical to ADT7461A (the only difference is the package; even the chip ID is the same),
-and the ADT7461A is in turn functionally identical to ADT7461. Sigh :(.
+This isn't exactly surprising, if you consider that Analog Devices sold
+part (all?) of its monitoring chip line to On Semi in December 2007:
+http://www.analog.com/en/content/Parts_List_Sold_to_On_Semiconductor/fca.html
 
-Guenter
+So NCT1008 is probably just the new name of the ADT7461A and odds are
+they are exactly the same chip.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
