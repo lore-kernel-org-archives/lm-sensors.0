@@ -1,77 +1,48 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 21 Apr 2011 13:35:19 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon/sch5627: Trigger Vbat measurements
-Message-Id: <1303392919-3667-2-git-send-email-hdegoede@redhat.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 06 Apr 2011 23:41:32 +0000
+Subject: [lm-sensors] [PATCH 4/7] hwmon: (pmbus) Use device specific
+Message-Id: <1302133295-17302-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The sch5627 needs to be explicitly told to start an adc conversion
-for Vbat, once in a while. Without this Vbat may read 0, and will never
-get updated.
+Fan control implementation tends to be device specific, so start using
+the device specific function call to read fan configuration registers.
 
-Signed-off-By: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Reviewed-by: Tom Grennan <tom.grennan@ericsson.com>
 ---
- drivers/hwmon/sch5627.c |   17 ++++++++++++++++-
- 1 files changed, 16 insertions(+), 1 deletions(-)
+ drivers/hwmon/pmbus_core.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/sch5627.c b/drivers/hwmon/sch5627.c
-index 09a47bf..e23ea34 100644
---- a/drivers/hwmon/sch5627.c
-+++ b/drivers/hwmon/sch5627.c
-@@ -94,6 +94,7 @@ static const char * const SCH5627_IN_LABELS[SCH5627_NO_IN] = {
- struct sch5627_data {
- 	unsigned short addr;
- 	struct device *hwmon_dev;
-+	u8 control;
- 	u8 temp_max[SCH5627_NO_TEMPS];
- 	u8 temp_crit[SCH5627_NO_TEMPS];
- 	u16 fan_min[SCH5627_NO_FANS];
-@@ -101,6 +102,7 @@ struct sch5627_data {
- 	struct mutex update_lock;
- 	char valid;			/* !=0 if following fields are valid */
- 	unsigned long last_updated;	/* In jiffies */
-+	unsigned long last_battery;	/* In jiffies */
- 	u16 temp[SCH5627_NO_TEMPS];
- 	u16 fan[SCH5627_NO_FANS];
- 	u16 in[SCH5627_NO_IN];
-@@ -327,6 +329,14 @@ static struct sch5627_data *sch5627_update_device(struct device *dev)
- 		}
+diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
+index 43ec105..98799ba 100644
+--- a/drivers/hwmon/pmbus_core.c
++++ b/drivers/hwmon/pmbus_core.c
+@@ -1295,9 +1295,7 @@ static void pmbus_add_fan_attributes(struct i2c_client *client,
+ 				break;
  
- 		data->last_updated = jiffies;
-+	}
-+
-+	/* Trigger a Vbat voltage measurement every minute */
-+	if (time_after(jiffies, data->last_battery + 60 * HZ) ||
-+	    !data->valid) {
-+		sch5627_write_virtual_reg(data, SCH5627_REG_CTRL,
-+					  data->control | 0x10);
-+		data->last_battery = jiffies;
- 		data->valid = 1;
- 	}
- abort:
-@@ -714,11 +724,16 @@ static int __devinit sch5627_probe(struct platform_device *pdev)
- 		err = val;
- 		goto error;
- 	}
--	if (!(val & 0x01)) {
-+	data->control = val;
-+	if (!(data->control & 0x01)) {
- 		pr_err("hardware monitoring not enabled\n");
- 		err = -ENODEV;
- 		goto error;
- 	}
-+	/* Trigger a Vbat voltage measurement, so that we get a valid reading
-+	   the first time we read Vbat */
-+	sch5627_write_virtual_reg(data, SCH5627_REG_CTRL,
-+				  data->control | 0x10);
+ 			if (!pmbus_check_word_register(client, page,
+-						       pmbus_fan_registers[f])
+-			    || !pmbus_check_byte_register(client, page,
+-						pmbus_fan_config_registers[f]))
++						       pmbus_fan_registers[f]))
+ 				break;
  
- 	/*
- 	 * Read limits, we do this only once as reading a register on
+ 			/*
+@@ -1305,7 +1303,7 @@ static void pmbus_add_fan_attributes(struct i2c_client *client,
+ 			 * Each fan configuration register covers multiple fans,
+ 			 * so we have to do some magic.
+ 			 */
+-			regval = pmbus_read_byte_data(client, page,
++			regval = _pmbus_read_byte_data(client, page,
+ 				pmbus_fan_config_registers[f]);
+ 			if (regval < 0 ||
+ 			    (!(regval & (PB_FAN_1_INSTALLED >> ((f & 1) * 4)))))
 -- 
-1.7.4.4
+1.7.3.1
 
 
 _______________________________________________
