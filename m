@@ -1,183 +1,276 @@
-From: wni@nvidia.com
-Date: Fri, 15 Apr 2011 11:00:28 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon (lm90) Add alarm function for nct1008
-Message-Id: <1302865228-7185-4-git-send-email-wni@nvidia.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 06 Apr 2011 23:41:33 +0000
+Subject: [lm-sensors] [PATCH 5/7] hwmon: (pmbus) Add support for TI UCD9200
+Message-Id: <1302133295-17302-6-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1302865228-7185-1-git-send-email-wni@nvidia.com>
-In-Reply-To: <1302865228-7185-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khali@linux-fr.org, guenter.roeck@ericsson.com
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, olofj@chromium.org, achew@nvidia.com, Wei Ni <wni@nvidia.com>
+To: lm-sensors@vger.kernel.org
 
-From: Wei Ni <wni@nvidia.com>
+This patch adds hardware monitoring support for TI UCD9220, UCD9222, UCD9224,
+UCD9240, UCD9244, UCD9246, and UCD9248 Digital PWM System Controllers.
 
-This patch add alarm function for nct1008.
-
-Signed-off-by: Wei Ni <wni@nvidia.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Reviewed-by: Tom Grennan <tom.grennan@ericsson.com>
 ---
- drivers/hwmon/lm90.c    |   59 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/nct1008.h |    1 +
- 2 files changed, 60 insertions(+), 0 deletions(-)
+ drivers/hwmon/Kconfig   |   10 ++
+ drivers/hwmon/Makefile  |    1 +
+ drivers/hwmon/ucd9200.c |  210 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 221 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/ucd9200.c
 
-diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-index 8b639b0..11a0a9d 100644
---- a/drivers/hwmon/lm90.c
-+++ b/drivers/hwmon/lm90.c
-@@ -83,6 +83,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/sysfs.h>
-+#include <linux/interrupt.h>
- #include <linux/nct1008.h>
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 060ef63..a1aaf34 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -831,6 +831,16 @@ config SENSORS_MAX8688
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called max8688.
  
- /*
-@@ -275,6 +276,8 @@ static const struct lm90_params lm90_params[] = {
- struct lm90_data {
- 	struct device *hwmon_dev;
- 	struct mutex update_lock;
-+	struct work_struct work;
-+	struct i2c_client *client;
- 	char valid; /* zero until following fields are valid */
- 	unsigned long last_updated; /* in jiffies */
- 	int kind;
-@@ -308,6 +311,7 @@ struct lm90_data {
- 			   7: remote 2 high limit (ma6695/96 only) */
- 	u8 temp_hyst;
- 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
-+	void (*alarm_fn)(int irq);
- };
++config SENSORS_UCD9200
++	tristate "TI UCD9220, UCD9222, UCD9224, UCD9240, UCD9244, UCD9246, UCD9248"
++	default n
++	help
++	  If you say yes here you get hardware monitoring support for TI
++	  UCD9220, UCD9222, UCD9224, UCD9240, UCD9244, UCD9246, and UCD9248.
++
++	  This driver can also be built as a module. If so, the module will
++	  be called ucd9200.
++
+ endif # PMBUS
  
- /*
-@@ -1104,6 +1108,27 @@ static void lm90_disable(struct i2c_client *client)
- 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, value);
- }
+ config SENSORS_SHT15
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 967d0ea..99c87df 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -121,6 +121,7 @@ obj-$(CONFIG_SENSORS_PMBUS)	+= pmbus.o
+ obj-$(CONFIG_SENSORS_MAX16064)	+= max16064.o
+ obj-$(CONFIG_SENSORS_MAX34440)	+= max34440.o
+ obj-$(CONFIG_SENSORS_MAX8688)	+= max8688.o
++obj-$(CONFIG_SENSORS_UCD9200)	+= ucd9200.o
  
-+static void lm90_work_func(struct work_struct *work)
+ ccflags-$(CONFIG_HWMON_DEBUG_CHIP) := -DDEBUG
+ 
+diff --git a/drivers/hwmon/ucd9200.c b/drivers/hwmon/ucd9200.c
+new file mode 100644
+index 0000000..ffcc1cf
+--- /dev/null
++++ b/drivers/hwmon/ucd9200.c
+@@ -0,0 +1,210 @@
++/*
++ * Hardware monitoring driver for ucd9200 series Digital PWM System Controllers
++ *
++ * Copyright (C) 2011 Ericsson AB.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/i2c/pmbus.h>
++#include "pmbus.h"
++
++#define UCD9200_PHASE_INFO	0xd2
++#define UCD9200_DEVICE_ID	0xfd
++
++enum chips { ucd9200, ucd9220, ucd9222, ucd9224, ucd9240, ucd9244, ucd9246,
++	     ucd9248 };
++
++static const struct i2c_device_id ucd9200_id[] = {
++	{"ucd9200", ucd9200},
++	{"ucd9220", ucd9220},
++	{"ucd9222", ucd9222},
++	{"ucd9224", ucd9224},
++	{"ucd9240", ucd9240},
++	{"ucd9244", ucd9244},
++	{"ucd9246", ucd9246},
++	{"ucd9248", ucd9248},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, ucd9200_id);
++
++static int ucd9200_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
 +{
-+	struct lm90_data *data = container_of(work, struct lm90_data, work);
-+	int irq = data->client->irq;
++	u8 block_buffer[I2C_SMBUS_BLOCK_MAX + 1];
++	struct pmbus_driver_info *info;
++	const struct i2c_device_id *mid;
++	int i, j, ret;
 +
-+	mutex_lock(&data->update_lock);
++	if (!i2c_check_functionality(client->adapter,
++				     I2C_FUNC_SMBUS_BYTE_DATA |
++				     I2C_FUNC_SMBUS_BLOCK_DATA))
++		return -ENODEV;
 +
-+	if (data->alarm_fn)
-+		data->alarm_fn(irq);
++	ret = i2c_smbus_read_block_data(client, UCD9200_DEVICE_ID,
++					block_buffer);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to read device ID\n");
++		return ret;
++	}
++	block_buffer[ret] = '\0';
++	dev_info(&client->dev, "Device ID %s\n", block_buffer);
 +
-+	mutex_unlock(&data->update_lock);
-+}
++	mid = NULL;
++	for (i = 0; i < ARRAY_SIZE(ucd9200_id); i++) {
++		mid = &ucd9200_id[i];
++		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
++			break;
++	}
++	if (!mid || !strlen(mid->name)) {
++		dev_err(&client->dev, "Unsupported device\n");
++		return -ENODEV;
++	}
++	if (id->driver_data != ucd9200 && id->driver_data != mid->driver_data)
++		dev_notice(&client->dev,
++			   "Device mismatch: Configured %s, detected %s\n",
++			   id->name, mid->name);
 +
-+static irqreturn_t lm90_irq(int irq, void *dev_id)
-+{
-+	struct lm90_data *data = dev_id;
-+	schedule_work(&data->work);
++	info = kzalloc(sizeof(struct pmbus_driver_info), GFP_KERNEL);
++	if (!info)
++		return -ENOMEM;
 +
-+	return IRQ_HANDLED;
-+}
-+
- /* Return 0 if detection is successful, -ENODEV otherwise */
- static int lm90_detect(struct i2c_client *new_client,
- 		       struct i2c_board_info *info)
-@@ -1417,9 +1442,22 @@ static void lm90_configure_client(struct i2c_client *client)
- 		/* THERM hysteresis */
- 		value = pdata->hysteresis;
- 		i2c_smbus_write_byte_data(client, LM90_REG_W_TCRIT_HYST, value);
-+
-+		data->alarm_fn = pdata->alarm_fn;
- 	}
- }
- 
-+static int lm90_configure_irq(struct lm90_data *data)
-+{
-+	if (data->alarm_fn && data->client->irq) {
-+		INIT_WORK(&data->work, lm90_work_func);
-+		return request_irq(data->client->irq, lm90_irq,
-+				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-+				"lm90", data);
-+	} else
-+		return 0;
-+}
-+
- static int lm90_probe(struct i2c_client *new_client,
- 		      const struct i2c_device_id *id)
- {
-@@ -1432,6 +1470,7 @@ static int lm90_probe(struct i2c_client *new_client,
- 		err = -ENOMEM;
- 		goto exit;
- 	}
-+	data->client = new_client;
- 	i2c_set_clientdata(new_client, data);
- 	mutex_init(&data->update_lock);
- 
-@@ -1459,6 +1498,10 @@ static int lm90_probe(struct i2c_client *new_client,
- 	if (new_client->dev.platform_data)
- 		lm90_configure_client(new_client);
- 
-+	err = lm90_configure_irq(data);
-+	if (err)
-+		goto exit_free;
-+
- 	/* Register sysfs hooks */
- 	err = sysfs_create_group(&new_client->dev.kobj, &lm90_group);
- 	if (err)
-@@ -1499,6 +1542,9 @@ static int lm90_probe(struct i2c_client *new_client,
- 		goto exit_remove_files;
- 	}
- 
-+	if (data->alarm_fn && client->irq)
-+		schedule_work(&data->work);
-+
- 	return 0;
- 
- exit_remove_files:
-@@ -1513,6 +1559,8 @@ static int lm90_remove(struct i2c_client *client)
- {
- 	struct lm90_data *data = i2c_get_clientdata(client);
- 
-+	if (data->alarm_fn && client->irq)
-+		cancel_work_sync(&data->work);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	lm90_remove_files(client, data);
- 
-@@ -1569,13 +1617,24 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
- #ifdef CONFIG_PM
- static int lm90_suspend(struct i2c_client *client, pm_message_t state)
- {
-+	if (client->irq)
-+		disable_irq(client->irq);
- 	lm90_disable(client);
-+
- 	return 0;
- }
- 
- static int lm90_resume(struct i2c_client *client)
- {
-+	struct lm90_data *data = i2c_get_clientdata(client);
-+
- 	lm90_enable(client);
-+	if (client->irq) {
-+		enable_irq(client->irq);
-+		if (data->alarm_fn)
-+			schedule_work(&data->work);
++	ret = i2c_smbus_read_block_data(client, UCD9200_PHASE_INFO,
++					block_buffer);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to read phase information\n");
++		goto out;
 +	}
 +
- 	return 0;
- }
- #endif
-diff --git a/include/linux/nct1008.h b/include/linux/nct1008.h
-index 3a6ed69..8e36860 100644
---- a/include/linux/nct1008.h
-+++ b/include/linux/nct1008.h
-@@ -33,6 +33,7 @@ struct nct1008_platform_data {
- 	long shutdown_ext_limit;
- 	long shutdown_local_limit;
- 	long throttle_ext_limit;
-+	void (*alarm_fn)(int irq);
- };
- 
- #endif /* _LINUX_NCT1008_H */
++	/*
++	 * Calculate number of configured pages (rails) from PHASE_INFO
++	 * register.
++	 * Rails have to be sequential, so we can abort after finding
++	 * the first unconfigured rail.
++	 */
++	info->pages = 0;
++	for (i = 0; i < ret; i++) {
++		if (!block_buffer[i])
++			break;
++		info->pages++;
++	}
++	if (!info->pages) {
++		dev_err(&client->dev, "No rails configured\n");
++		ret = -ENODEV;
++		goto out;
++	}
++	dev_info(&client->dev, "%d rails configured\n", info->pages);
++
++	/*
++	 * Set PHASE registers on all pages to 0xff to ensure that phase
++	 * specific commands will apply to all phases of a given page (rail).
++	 * This only affects the READ_IOUT and READ_TEMPERATURE2 registers.
++	 * READ_IOUT will return the sum of currents of all phases of a rail,
++	 * and READ_TEMPERATURE2 will return the maximum temperature detected
++	 * for the the phases of the rail.
++	 */
++	for (i = 0; i < info->pages; i++) {
++		/*
++		 * Setting PAGE & PHASE fails once in a while for no obvious
++		 * reason, so we need to retry a couple of times.
++		 */
++		for (j = 0; j < 3; j++) {
++			ret = i2c_smbus_write_byte_data(client, PMBUS_PAGE, i);
++			if (ret < 0)
++				continue;
++			ret = i2c_smbus_write_byte_data(client, PMBUS_PHASE,
++							0xff);
++			if (ret < 0)
++				continue;
++			break;
++		}
++		if (ret < 0) {
++			dev_err(&client->dev,
++				"Failed to initialize PHASE registers\n");
++			goto out;
++		}
++	}
++	if (info->pages > 1)
++		i2c_smbus_write_byte_data(client, PMBUS_PAGE, 0);
++
++	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT |
++			PMBUS_HAVE_IIN | PMBUS_HAVE_PIN |
++			PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT |
++			PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT |
++			PMBUS_HAVE_POUT | PMBUS_HAVE_TEMP |
++			PMBUS_HAVE_TEMP2 | PMBUS_HAVE_STATUS_TEMP;
++
++	for (i = 1; i < info->pages; i++)
++		info->func[i] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT |
++			PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT |
++			PMBUS_HAVE_POUT |
++			PMBUS_HAVE_TEMP2 | PMBUS_HAVE_STATUS_TEMP;
++
++	/* ucd9240 supports a single fan */
++	if (mid->driver_data = ucd9240)
++		info->func[0] |= PMBUS_HAVE_FAN12 | PMBUS_HAVE_STATUS_FAN12;
++
++	ret = pmbus_do_probe(client, mid, info);
++	if (ret < 0)
++		goto out;
++	return 0;
++out:
++	kfree(info);
++	return ret;
++}
++
++static int ucd9200_remove(struct i2c_client *client)
++{
++	int ret;
++	const struct pmbus_driver_info *info;
++
++	info = pmbus_get_driver_info(client);
++	ret = pmbus_do_remove(client);
++	kfree(info);
++	return ret;
++}
++
++
++/* This is the driver that will be inserted */
++static struct i2c_driver ucd9200_driver = {
++	.driver = {
++		.name = "ucd9200",
++	},
++	.probe = ucd9200_probe,
++	.remove = ucd9200_remove,
++	.id_table = ucd9200_id,
++};
++
++static int __init ucd9200_init(void)
++{
++	return i2c_add_driver(&ucd9200_driver);
++}
++
++static void __exit ucd9200_exit(void)
++{
++	i2c_del_driver(&ucd9200_driver);
++}
++
++MODULE_AUTHOR("Guenter Roeck");
++MODULE_DESCRIPTION("PMBus driver for TI UCD922x, UCD924x");
++MODULE_LICENSE("GPL");
++module_init(ucd9200_init);
++module_exit(ucd9200_exit);
 -- 
-1.7.0
+1.7.3.1
 
 
 _______________________________________________
