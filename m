@@ -1,32 +1,130 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 06 Apr 2011 06:50:48 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 06 Apr 2011 07:23:58 +0000
 Subject: Re: [lm-sensors] [PATCH 1/1] [hwmon] nct1008: Initial NCT1008 driver
-Message-Id: <20110406065048.GA23290@ericsson.com>
+Message-Id: <20110406092358.07e8ca78@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1302059183-29631-1-git-send-email-achew@nvidia.com>
- <20110406050929.GA22741@ericsson.com>
-In-Reply-To: <20110406050929.GA22741@ericsson.com>
+In-Reply-To: <1302059183-29631-1-git-send-email-achew@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "achew@nvidia.com" <achew@nvidia.com>
-Cc: "wni@nvidia.com" <wni@nvidia.com>, "w30289@motorola.com" <w30289@motorola.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "olofj@chromium.org" <olofj@chromium.org>, "toddpoynor@google.com" <toddpoynor@google.com>
+To: achew@nvidia.com
+Cc: guenter.roeck@ericsson.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, w30289@motorola.com, toddpoynor@google.com, wni@nvidia.com, olofj@chromium.org
 
-On Wed, Apr 06, 2011 at 01:09:29AM -0400, Guenter Roeck wrote:
-> On Tue, Apr 05, 2011 at 11:06:23PM -0400, achew@nvidia.com wrote:
-> > From: Andrew Chew <achew@nvidia.com>
-> >
-> > This is a digital temperature sensor I2C peripheral from ON Semiconductor.
-> >
-> > Signed-off-by: Andrew Chew <achew@nvidia.com>
-> 
-> Comments inline. Note that this is not a complete review.
-> 
-Actually, turns out it would be much simpler to add support for this chip
-to the lm90 driver. It is pretty much identical to ADT7461. Even more
-interesting is that the chip ID is identical to the ADT7461A chip ID.
+Hi Andrew,
 
-Guenter
+On Tue, 5 Apr 2011 20:06:23 -0700, achew@nvidia.com wrote:
+> From: Andrew Chew <achew@nvidia.com>
+> 
+> This is a digital temperature sensor I2C peripheral from ON Semiconductor.
+> 
+> Signed-off-by: Andrew Chew <achew@nvidia.com>
+> ---
+>  drivers/hwmon/Kconfig   |   11 ++
+>  drivers/hwmon/Makefile  |    1 +
+>  drivers/hwmon/nct1008.c |  423 +++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 435 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hwmon/nct1008.c
+> 
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 060ef63..daa6159 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -738,6 +738,17 @@ config SENSORS_MAX6650
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called max6650.
+>  
+> +config SENSORS_NCT1008
+> +	tristate "ON Semiconductor Temperature Sensor"
+> +	default n
+
+Default n is the default, so there's no point mentioning it.
+
+> +	depends on I2C
+> +	help
+> +	  Say yes here if you wish to include the ON Semiconductor
+> +	  NCT1008 Temperature sensor.
+> +
+> +	  This driver can also be built as a module.  If so, the module
+> +	  will be called nct1008.
+> +
+>  config SENSORS_PC87360
+>  	tristate "National Semiconductor PC87360 family"
+>  	select HWMON_VID
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index 967d0ea..803893c 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -87,6 +87,7 @@ obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
+>  obj-$(CONFIG_SENSORS_MAX6639)	+= max6639.o
+>  obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+>  obj-$(CONFIG_SENSORS_MC13783_ADC)+= mc13783-adc.o
+> +obj-$(CONFIG_SENSORS_NCT1008)	+= nct1008.o
+>  obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+>  obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
+>  obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+> diff --git a/drivers/hwmon/nct1008.c b/drivers/hwmon/nct1008.c
+> new file mode 100644
+> index 0000000..ebae3b6
+> --- /dev/null
+> +++ b/drivers/hwmon/nct1008.c
+> @@ -0,0 +1,423 @@
+> +/*
+> + * Driver for NCT1008, temperature monitoring device from ON Semiconductors
+> + *
+> + * Copyright (c) 2010, NVIDIA Corporation.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+> + */
+> +
+> +
+> +#include <linux/interrupt.h>
+> +#include <linux/mutex.h>
+> +#include <linux/module.h>
+> +#include <linux/i2c.h>
+> +#include <linux/slab.h>
+> +#include <linux/err.h>
+> +#include <linux/gpio.h>
+> +
+> +#include <linux/nct1008.h>
+> +#include <linux/hwmon.h>
+> +
+> +#define DRIVER_NAME "nct1008"
+> +
+> +/* Register Addresses */
+> +#define LOCAL_TEMP_RD			0x00
+> +#define EXT_HI_TEMP_RD			0x01
+> +#define EXT_LO_TEMP_RD			0x10
+> +#define STATUS_RD			0x02
+> +#define CONFIG_RD			0x03
+> +
+> +#define CONFIG_WR			0x09
+> +#define CONV_RATE_WR			0x0A
+> +#define LOCAL_TEMP_HI_LIMIT_WR		0x0B
+> +#define EXT_TEMP_HI_LIMIT_HI_BYTE	0x0D
+> +#define OFFSET_WR			0x11
+> +#define EXT_THERM_LIMIT_WR		0x19
+> +#define LOCAL_THERM_LIMIT_WR		0x20
+> +#define THERM_HYSTERESIS_WR		0x21
+
+These register definitions look very familiar to me. Have you looked at
+the lm90 driver to check has difficult it would be to add support for
+the NCT1008? I bet it will only take a few lines of code.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
