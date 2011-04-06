@@ -1,42 +1,92 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Apr 2011 12:23:34 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/k10temp: add support for Fam15h
-Message-Id: <20110406142334.7776e714@endymion.delvare>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Wed, 06 Apr 2011 21:13:16 +0000
+Subject: [lm-sensors] [PATCH 3/3] Make all it87 drivers SMP safe.
+Message-Id: <1302124396-22449-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1302079081-22572-1-git-send-email-andre.przywara@amd.com>
-In-Reply-To: <1302079081-22572-1-git-send-email-andre.przywara@amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
+Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
-On Wed, 06 Apr 2011 12:57:53 +0200, Clemens Ladisch wrote:
-> Andre Przywara wrote:
-> > AMDs upcoming CPUs use the same mechanism for the internal
-> > temperature reporting as the Fam10h CPUs, so we just needed to add
-> > the appropriate PCI-ID to the list.
-> > This allows to use the k10temp driver on those CPUs.
-> > While at it change the Kconfig entry to be more generic.
-> > 
-> > Signed-off-by: Andre Przywara <andre.przywara@amd.com>
-> 
-> Acked-by: Clemens Ladisch <clemens@ladisch.de>
-> 
-> > ---
-> >  Documentation/hwmon/k10temp |    3 ++-
-> >  drivers/hwmon/Kconfig       |    4 ++--
-> >  drivers/hwmon/k10temp.c     |    5 +++--
-> >  3 files changed, 7 insertions(+), 5 deletions(-)
+03 - Adds changes to hwmon driver to use the new lock.
 
-Applied, thanks. I've also added detection to sensors-detect [1], added
-an entry in the wiki [2] and updated my standalone k10temp driver [3].
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
 
-[1] http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-[2] http://www.lm-sensors.org/wiki/Devices
-[3] http://khali.linux-fr.org/devel/misc/k10temp/
-
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 297bc9a..afe671a 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -436,6 +436,7 @@ config SENSORS_IBMPEX
+ config SENSORS_IT87
+ 	tristate "ITE IT87xx and compatibles"
+ 	select HWMON_VID
++	select IT87_LOCK
+ 	help
+ 	  If you say yes here you get support for ITE IT8705F, IT8712F,
+ 	  IT8716F, IT8718F, IT8720F, IT8721F, IT8726F and IT8758E sensor
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 316b648..bc32535 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -55,6 +55,8 @@
+ #include <linux/dmi.h>
+ #include <linux/acpi.h>
+ #include <linux/io.h>
++#include <linux/spinlock.h>
++#include <linux/it87_lock.h>
+ 
+ #define DRVNAME "it87"
+ 
+@@ -110,7 +112,9 @@ superio_select(int ldn)
+ 
+ static inline void
+ superio_enter(void)
++__acquires(&it87_io_lock)
+ {
++	spin_lock(&it87_io_lock);
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -119,9 +123,11 @@ superio_enter(void)
+ 
+ static inline void
+ superio_exit(void)
++__releases(&it87_io_lock)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
++	spin_unlock(&it87_io_lock);
+ }
+ 
+ /* Logical device 4 registers */
+@@ -1899,8 +1905,12 @@ static int __devexit it87_remove(struct platform_device *pdev)
+    would slow down the IT87 access and should not be necessary. */
+ static int it87_read_value(struct it87_data *data, u8 reg)
+ {
++	int ret;
++	spin_lock(&it87_io_lock);
+ 	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
+-	return inb_p(data->addr + IT87_DATA_REG_OFFSET);
++	ret = inb_p(data->addr + IT87_DATA_REG_OFFSET);
++	spin_unlock(&it87_io_lock);
++	return ret;
+ }
+ 
+ /* Must be called with data->update_lock held, except during initialization.
+@@ -1908,8 +1918,10 @@ static int it87_read_value(struct it87_data *data, u8 reg)
+    would slow down the IT87 access and should not be necessary. */
+ static void it87_write_value(struct it87_data *data, u8 reg, u8 value)
+ {
++	spin_lock(&it87_io_lock);
+ 	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
+ 	outb_p(value, data->addr + IT87_DATA_REG_OFFSET);
++	spin_unlock(&it87_io_lock);
+ }
+ 
+ /* Return 1 if and only if the PWM interface is safe to use */
 -- 
-Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
