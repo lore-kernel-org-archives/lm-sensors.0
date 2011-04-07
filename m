@@ -1,152 +1,37 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 06 Apr 2011 17:17:53 +0000
-Subject: [lm-sensors] [PATCH v3] hwmon: Add submitting-patches checklist to
-Message-Id: <1302110273-23692-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 07 Apr 2011 08:12:23 +0000
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: Add submitting-patches checklist
+Message-Id: <20110407101223.5f681fce@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1302110273-23692-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1302110273-23692-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-When writing hardware monitoring drivers, there are some common pitfalls which
-keep coming up in code reviews. This patch provides a document describing all
-those pitfalls and how to avoid them.
+On Wed, 6 Apr 2011 10:17:53 -0700, Guenter Roeck wrote:
+> When writing hardware monitoring drivers, there are some common pitfalls which
+> keep coming up in code reviews. This patch provides a document describing all
+> those pitfalls and how to avoid them.
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
-v3: Added header describing what the document is about.
-    Added details on testing requirements.
-    Added a bullet item describing when and when not to provide a detect function.
-    Added a bullet item describing wich attributes should be supported.
-    Added a bullet item asking driver authors to check if a driver already
-    exists.
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-v2: Renamed and reorganized document. Added more items and clarifications
-    from review feedback.
+Minor suggestion below - but no need to resend.
 
- Documentation/hwmon/submitting-patches |  110 ++++++++++++++++++++++++++++++++
- 1 files changed, 110 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/submitting-patches
+> +* Provide a detect function only if a chip can be detected reliably. On the
+> +  other side, if the chip can be detected reliably, provide a detect function.
 
-diff --git a/Documentation/hwmon/submitting-patches b/Documentation/hwmon/submitting-patches
-new file mode 100644
-index 0000000..3c0073f
---- /dev/null
-+++ b/Documentation/hwmon/submitting-patches
-@@ -0,0 +1,110 @@
-+	How to Get Your Patch Accepted Into the Hwmon Subsystem
-+	-------------------------------------------------------
-+
-+This text is is a collection of suggestions for people writing patches or
-+drivers for the hwmon subsystem. Following these suggestions will greatly
-+increase the chances of your change being accepted.
-+
-+
-+1. General
-+----------
-+
-+* It should be unnecessary to mention, but please read and follow 
-+    Documentation/SubmitChecklist
-+    Documentation/SubmittingDrivers
-+    Documentation/SubmittingPatches
-+    Documentation/CodingStyle
-+
-+* If your patch generates checkpatch warnings, please refrain from explanations
-+  such as "I don't like that coding style". Keep in mind that each unnecessary
-+  warning helps hiding a real problem. If you don't like the kernel coding
-+  style, don't write kernel drivers.
-+
-+* Please test your patch thoroughly. We are not your test group.
-+  Sometimes a patch can not or not completely be tested because of missing
-+  hardware. In such cases, you should test-build the code on at least one
-+  architecture. If run-time testing was not achieved, it should be written
-+  explicitly below the patch header.
-+
-+* If your patch (or the driver) is affected by configuration options such as
-+  CONFIG_SMP or CONFIG_HOTPLUG, make sure it compiles for all configuration
-+  variants.
-+
-+
-+2. Adding functionality to existing drivers
-+-------------------------------------------
-+
-+* Make sure the documentation in Documentation/hwmon/<driver_name> is up to
-+  date.
-+
-+* Make sure the information in Kconfig is up to date.
-+
-+* If the added functionality requires some cleanup or structural changes, split
-+  your patch into a cleanup part and the actual addition. This makes it easier
-+  to review your changes, and to bisect any resulting problems.
-+
-+* Never mix bug fixes, cleanup, and functional enhancements in a single patch.
-+
-+
-+3. New drivers
-+--------------
-+
-+* Running your patch or driver file(s) through checkpatch does not mean its
-+  formatting is clean. If unsure about formatting in your new driver, run it
-+  through Lindent. Lindent is not perfect, and you may have to do some minor
-+  cleanup, but it is a good start.
-+
-+* Consider adding yourself to MAINTAINERS.
-+
-+* Document the driver in Documentation/hwmon/<driver_name>.
-+
-+* Add the driver to Kconfig and Makefile in alphabetical order.
-+
-+* Make sure that all dependencies are listed in Kconfig. For new drivers, it
-+  is most likely prudent to add a dependency on EXPERIMENTAL.
-+
-+* Avoid forward declarations if you can. Rearrange the code if necessary.
-+
-+* Avoid calculations in macros and macro-generated functions. While such macros
-+  may save a line or so in the source, it obfuscates the code and makes code
-+  review more difficult. It may also result in code which is more complicated
-+  than necessary. Use inline functions or just regular functions instead.
-+
-+* If the driver has a detect function, make sure it is silent. Debug messages
-+  and messages printed after a successful detection are acceptable, but it
-+  must not print messages such as "Chip XXX not found/supported".
-+
-+  Keep in mind that the detect function will run for all drivers supporting an
-+  address if a chip is detected on that address. Unnecessary messages will just
-+  pollute the kernel log and not provide any value.
-+
-+* Provide a detect function only if a chip can be detected reliably. On the
-+  other side, if the chip can be detected reliably, provide a detect function.
-+
-+* Avoid writing to chip registers in the detect function. If you have to write,
-+  only do it after you have already gathered enough data to be certain that the
-+  detection is going to be successful.
-+  
-+  Keep in mind that the chip might not be what your driver believes it is, and
-+  writing to it might cause a bad misconfiguration.
-+
-+* Make sure there are no race conditions in the probe function. Specifically,
-+  completely initialize your chip first, then create sysfs entries and register
-+  with the hwmon subsystem.
-+
-+* Do not provide support for deprecated sysfs attributes.
-+
-+* Do not create non-standard attributes unless really needed. If you have to use
-+  non-standard attributes, or you believe you do, discuss it on the mailing list
-+  first. Either case, provide a detailed explanation why you need the
-+  non-standard attribute(s).
-+  Standard attributes are specified in Documentation/hwmon/sysfs-interface.
-+
-+* When deciding which sysfs attributes to support, look at the chip's
-+  capabilities. While we do not expect your driver to support everything the
-+  chip may offer, it should at least support all limits and alarms.
-+
-+* Last but not least, please check if a driver for your chip already exists
-+  before starting to write a new driver. Especially for temperature sensors,
-+  new chips are often variants of previously released chips. In some cases,
-+  a presumably new chip may simply have been relabeled.
+Could be expressed in a more compact way as:
+
+* Provide a detect function if and only if a chip can be detected reliably.
+
+(But maybe this is the mathematician in me speaking!)
+
 -- 
-1.7.3.1
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
