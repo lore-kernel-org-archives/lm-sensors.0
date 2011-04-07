@@ -1,126 +1,184 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 07 Apr 2011 07:26:12 +0000
+From: Aleksej Serdjukov <deletesoftware@yandex.ru>
+Date: Thu, 07 Apr 2011 09:11:44 +0000
 Subject: Re: [lm-sensors] testing "w83627ehf" and "k10temp" on ASRock E350M1
-Message-Id: <20110407092612.29beb5f7@endymion.delvare>
+Message-Id: <4D9D7FD0.8060107@yandex.ru>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D9CA530.9030100@yandex.ru>
 In-Reply-To: <4D9CA530.9030100@yandex.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Aleksej, Guenter,
+(sorry, the CCs seem to have confused Thunderbird)
+On 2011-04-07 11:26, Jean Delvare wrote:
+ > Hi Aleksej, Guenter,
+ >
+ > On Wed, 6 Apr 2011 15:54:56 -0700, Guenter Roeck wrote:
+ >> On Wed, Apr 06, 2011 at 01:38:56PM -0400, Aleksej Serdjukov wrote:
+ >>> Today, however, while the CPU was not loaded much, the fan appeared to
+ >>> be full speed again (at least according to the sensors applet).
+ >
+ > It's always nice to get user reports, but...
 
-On Wed, 6 Apr 2011 15:54:56 -0700, Guenter Roeck wrote:
-> On Wed, Apr 06, 2011 at 01:38:56PM -0400, Aleksej Serdjukov wrote:
-> > I've got this computer with ASRock E350M1, and have no idea what the=20
-> > temperatures should actually be.
-> >=20
-> > This is on Debian 6.0:
-> > Linux 2.6.32-5-amd64 #1 SMP Mon Mar 7 21:35:22 UTC 2011 x86_64 GNU/Linux
-> >=20
-> >=20
-> > IIRC, UEFI Setup was showing about 52=B0C on the motherboard or chipset=
-,=20
-> > and 49-52 on the CPU.
-> >=20
-> > About a week ago I've installed the "w83627ehf" from=20
-> > <http://roeck-us.net/linux/drivers/w83627ehf/>, and saw that those=20
-> > temperatures don't go over 53 or 54=B0C. So I changed the UEFI setting =
+The wiki says the driver "needs testing" (though as of 2011-02-01).  I 
+thought that at least AUXTIN being negative was something worth reporting.
 
-> > more and more for slower fan speed (today it was 6). So the speed was=20
-> > about 4000, while the full speed is about 4900 and 9 is a hundred or a =
+ > what is your problem exactly? Do you have an actual question?
 
-> > couple of hundred less. Temperatures didn't go over 54 (or maybe 55) =
-=B0C.=20
-> > Idle CPU (at 800MHz thanks to Cool'n'Quiet) went down to 46=B0C more an=
-d more.
-> >=20
-> > Today, however, while the CPU was not loaded much, the fan appeared to =
+My problem is the noise the fan is making at full-on speed. I want it to 
+be reasonably quiet, but I don't know why it is following the speed 
+chosen (between 1 and 9) and not just trying to keep the chosen CPU 
+temperature; and why yesterday it suddenly got to maximum without me 
+changing the setting or the non-temp1 temperatures being ordinary.
 
-> > be full speed again (at least according to the sensors applet).
 
-It's always nice to get user reports, but... what is your problem
-exactly? Do you have an actual question?
+Since k10temp shown 60-65°C, I set the fan speed to full and posted here.
 
-> > But the new sensors-detect was also mentioning "k10temp" (and the old=20
-> > one in Debian didn't work), so today I installed a new k10temp, and it =
+Also, the only clear statement about temperatures of E-350 I found is 
+that the maximum is 90. Reviews talk about 30 or 50. Where should I stop 
+with the quietness?
 
-> > showed 60=B0C for something.
 
-Please note that the internal sensors in AMD CPUs have never need
-considered accurate. Some models are better than others but it general
-the temperature reported by k8temp or k10temp should be taken with a
-grain of salt. Also note that the internal digital sensor is not
-located as the same place as the analog sensors used by the external
-monitoring chip, so it is expected that the reported temperatures are
-different.
+ >>> But the new sensors-detect was also mentioning "k10temp" (and the old
+ >>> one in Debian didn't work), so today I installed a new k10temp, and it
+ >>> showed 60°C for something.
+ >
+ > Please note that the internal sensors in AMD CPUs have never need
+ > considered accurate. Some models are better than others but it general
 
-> >=20
-> > Now I have set the fan speed to full in UEFI, and here is what "sensors=
-"=20
-> > shows:
-> >=20
-> >=20
-> > nct6775-isa-0290
-> > Adapter: ISA adapter
-> > Vcore:       +1.08 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-> > in1:         +1.03 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
->=20
-> 	Possibly 12V (*12)
->=20
-> > AVCC:        +3.33 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > +3.3V:       +3.33 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > in4:         +1.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-> > in5:         +1.86 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
->=20
-> No idea what in4/in5 might be.
+So can I ignore it when choosing fan speed? Or see that it doesn't go to 
+the 90°C maximum?
 
-DDR3 runs at +1.8V so in5 could be Vdimm. Best is to check what the
-BIOS is printing, and compare.
 
->=20
-> > in6:         +1.66 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
->=20
-> 	This one might be 5V (*3)
->=20
-> Guenter
->=20
-> > 3VSB:        +3.44 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > Vbat:        +3.39 V  (min =3D  +2.70 V, max =3D  +3.30 V)   ALARM
-> > fan1:          0 RPM  (min =3D    0 RPM, div =3D 128)
-> > fan2:       4963 RPM  (min =3D    0 RPM, div =3D 8)  ALARM
-> > fan3:          0 RPM  (min =3D    0 RPM, div =3D 128)
-> > fan4:          0 RPM  (div =3D 128)
-> > SYSTIN:      +51.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM=
-  sensor =3D  thermistor
-> > CPUTIN:      +45.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  senso=
-r =3D thermistor
+ >>> in1:         +1.03 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+ >>
+ >> 	Possibly 12V (*12)
+ >>
+ >>> AVCC:        +3.33 V  (min =  +2.98 V, max =  +3.63 V)
+ >>> +3.3V:       +3.33 V  (min =  +2.98 V, max =  +3.63 V)
+ >>> in4:         +1.39 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+ >>> in5:         +1.86 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+ >>
+ >> No idea what in4/in5 might be.
+ >
+ > DDR3 runs at +1.8V so in5 could be Vdimm. Best is to check what the
+ > BIOS is printing, and compare.
 
-These temperatures look reasonable to me. Find out which is the CPU
-temperature by putting some load on the CPU: the CPU temperature will
-raise faster and higher. You should also set appropriate limits for
-temp1 and write them to the chip with "sensors -s".
+Settings in UEFI:
+DRAM : 1.507
++1V  : 1.10
+FCH  : 1.10
++1.8V: 1.85
 
-> > AUXTIN:       -9.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  senso=
-r =3D thermistor
 
-Can obviously be ignored.
 
-> > cpu0_vid:   +0.000 V
+== START COMPARISON #1 =======================
+UEFI's H/W pane said:
 
-Same here... unless this is a bug in the driver.
+CPU Temp: 44  (got there from 40 since reboot)
+M/B Temp: 44  (got there from 43 since reboot)
 
-Makes me wonder if we should have our driver check for VID =3D 0V and
-disable the cpuN_vid file in this case.
+Vcore: 1.304 V
++12 V: 12.196 V
++5.00: 4.992 V
++3.30: 3.328 V
 
-> > k10temp-pci-00c3
-> > Adapter: PCI adapter
-> > temp1:       +58.0=B0C  (high =3D +70.0=B0C, crit =3D +75.0=B0C)
 
---=20
-Jean Delvare
+sensors after boot:
+
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:       +57.5°C  (high = +70.0°C, crit = +75.0°C)
+
+nct6775-isa-0290
+Adapter: ISA adapter
+Vcore:       +1.13 V  (min =  +0.00 V, max =  +1.74 V)
+in1:         +1.00 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+AVCC:        +3.33 V  (min =  +2.98 V, max =  +3.63 V)
++3.3V:       +3.33 V  (min =  +2.98 V, max =  +3.63 V)
+in4:         +1.38 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+in5:         +1.86 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+in6:         +1.66 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+3VSB:        +3.44 V  (min =  +2.98 V, max =  +3.63 V)
+Vbat:        +3.39 V  (min =  +2.70 V, max =  +3.30 V)   ALARM
+fan1:          0 RPM  (min =    0 RPM, div = 64)
+fan2:       4963 RPM  (min =    0 RPM, div = 8)  ALARM
+fan3:          0 RPM  (min =    0 RPM, div = 128)
+fan4:          0 RPM  (div = 128)
+SYSTIN:      +45.0°C  (high =  +0.0°C, hyst =  +0.0°C)  ALARM  sensor = 
+thermistor
+CPUTIN:      +43.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
+AUXTIN:       -8.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
+cpu0_vid:   +0.000 V
+
+== END #1 =============================
+
+
+
+== START COMPARISON #2 =======================
+
+UEFI's H/W Monitor pane said:
+
+VCore: 1.304
++12  : 12.144
++5   : 4.9?2
++3.3 : 3.328
+
+
+sensors after boot:
+
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:       +63.0°C  (high = +70.0°C, crit = +75.0°C)
+
+nct6775-isa-0290
+Adapter: ISA adapter
+Vcore:       +1.08 V  (min =  +0.00 V, max =  +1.74 V)
+in1:         +1.02 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+AVCC:        +3.33 V  (min =  +2.98 V, max =  +3.63 V)
++3.3V:       +3.33 V  (min =  +2.98 V, max =  +3.63 V)
+in4:         +1.39 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+in5:         +1.86 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+in6:         +1.66 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+3VSB:        +3.44 V  (min =  +2.98 V, max =  +3.63 V)
+Vbat:        +3.39 V  (min =  +2.70 V, max =  +3.30 V)   ALARM
+fan1:          0 RPM  (min =    0 RPM, div = 32)
+fan2:       5113 RPM  (min =    0 RPM, div = 8)  ALARM
+fan3:          0 RPM  (min =    0 RPM, div = 128)
+fan4:          0 RPM  (div = 128)
+SYSTIN:      +53.0°C  (high =  +0.0°C, hyst =  +0.0°C)  ALARM  sensor = 
+thermistor
+CPUTIN:      +50.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
+AUXTIN:       -9.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
+cpu0_vid:   +0.000 V
+
+== END #2 =============================
+
+
+ >>> in6:         +1.66 V  (min =  +0.00 V, max =  +0.00 V)   ALARM
+ >>
+ >> 	This one might be 5V (*3)
+
+UEFI: +5.00: 4.992 V
+
+4.992 / 3 = 1.664
+1.66 * 3 = 4.98
+
+
+ >>> SYSTIN:      +51.0°C  (high =  +0.0°C, hyst =  +0.0°C)  ALARM 
+sensor =  thermistor
+ >>> CPUTIN:      +45.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = 
+thermistor
+ >
+ > These temperatures look reasonable to me. Find out which is the CPU
+ > temperature by putting some load on the CPU: the CPU temperature will
+ > raise faster and higher. You should also set appropriate limits for
+ > temp1 and write them to the chip with "sensors -s".
+
+CPUTIN and temp1 slowly increased (CPUTIN from 44-46 to 48-49, temp1 
+from 56 to 67-69).
+
 
 _______________________________________________
 lm-sensors mailing list
