@@ -1,503 +1,705 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 26 Apr 2011 21:38:58 +0000
-Subject: Re: [lm-sensors] [PATCHv1 -next] HWMON: HWMON module of DA9052 PMIC
-Message-Id: <1303853938.31666.147.camel@groeck-laptop>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Thu, 07 Apr 2011 17:44:04 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (sht15) general code clean-up
+Message-Id: <1302198246-22212-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E2CAE7F7B064EA49B5CE7EE9A4BB167D151B89B21E@KCINPUNHJCMS01.kpit.com>
-In-Reply-To: <E2CAE7F7B064EA49B5CE7EE9A4BB167D151B89B21E@KCINPUNHJCMS01.kpit.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ashish Jangam <Ashish.Jangam@kpitcummins.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Dajun Chen <Dajun.Chen@diasemi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Tue, 2011-04-26 at 07:36 -0400, Ashish Jangam wrote:
-> Hi,
-> 
-> HWMON Driver for Dialog Semiconductor DA9052 PMICs.
-> 
-> Changes made since last submission:
-> . Changed the return format for charging current, bat temperature
->         and junction temperature
-> . conversion of temperature to mill degree
-> 
-> Signed-off-by: D. Chen <dchen@diasemi.com>
+* Add a documentation file for the device.
+* Respect a bit more the kernel-doc syntax.
+* Rename some variables for clarity.
+* Move the creation of sysfs attributes after the end of the
+  initialization in the probe function, and remove them in the error
+  path.
+* Release regulator in the error path.
 
-Full name here please.
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ Documentation/hwmon/sht15 |   43 ++++++++
+ drivers/hwmon/sht15.c     |  264 +++++++++++++++++++++++++++------------------
+ include/linux/sht15.h     |   12 ++-
+ 3 files changed, 208 insertions(+), 111 deletions(-)
+ create mode 100644 Documentation/hwmon/sht15
 
-Before resubmitting, please fix all checkpatch errors and warnings.
-
-The patch format (especially with added text at the end) violates
-Documentation/SubmittingPatches, #15, and actually makes it impossible
-to integrate the patch without manually editing it. Please follow the 
-canonical patch format.
-
-> ---
-> 
-> diff -Naur linux-next-20110421.orig/Documentation/hwmon/da9052 linux-next-20110421/Documentation/hwmon/da9052
-> --- linux-next-20110421.orig/Documentation/hwmon/da9052 1970-01-01 05:00:00.000000000 +0500
-> +++ linux-next-20110421/Documentation/hwmon/da9052      2011-04-26 14:58:54.000000000 +0500
-> @@ -0,0 +1,54 @@
-> +Kernel driver da9052-hwmon
-> +=============
-> +
-> +Supported chips:
-> +  * Dialog Semiconductors DA9052 PMICs
-> +    Prefix: 'da9052'
-> +    Datasheet: Kindly visit www.dialog-semiconductor.com and request for the
-> +               official datasheet.
-> +
-> +Authors: David Dajun Chen <dchen@diasemi.com>
-> +
-> +Description
-> +-----------
-> +
-> +The DA9052 provides an Analogue to Digital Converter (ADC) with 10 bits
-> +resolution and track and hold circuitry combined with an analogue input
-> +multiplexer. The analogue input multiplexer will allow conversion of up to 10
-> +different inputs. The track and hold circuit ensures stable input voltages at
-> +the input of the ADC during the conversion.
-> +
-> +The ADC is used to measure the following inputs:
-> +Channel 0: VDDOUT - measurement of the system voltage
-> +Channel 1: ICH - internal battery charger current measurement
-> +Channel 2: TBAT - output from the battery NTC
-> +Channel 3: VBAT - measurement of the battery voltage
-> +Channel 4: ADC_IN4 - high impedance input (0 - 2.5V)
-> +Channel 5: ADC_IN5 - high impedance input (0 - 2.5V)
-> +Channel 6: ADC_IN6 - high impedance input (0 - 2.5V)
-> +Channel 7: XY - TSI interface to measure the X and Y voltage of the touch
-> +screen resistive potentiometers
-> +Channel 8: Internal Tjunc. - sense (internal temp. sensor)
-> +Channel 9: VBBAT - measurement of the backup battery voltage
-> +
-> +By using sysfs attributes we can measure the system voltage VDDOUT, the battery
-> +charging current ICH, battery temperature TBAT, battery junction temperature
-> +TJUNC, battery voltage VBAT and the back up battery voltage VBBAT.
-> +
-> +Voltage Monitoring
-> +------------------
-> +
-> +Voltages are sampled by a 10 bit ADC.  Voltages in millivolts are 1.465
-> +times the ADC value.
-> +
-> +Temperature Monitoring
-> +----------------------
-> +
-> +Temperatures are sampled by a 10 bit ADC.  Chip and battery temperatures
-> +are available.  The chip temperature is calculated as:
-> +
-> +       Degrees celsius = (512.18 - data) / 1.0983
-> +
-> +while the battery temperature calculation will depend on the NTC
-> +thermistor component.
-> +
-You have tbat and tjunc. The tbat calculation is the one described here,
-yet you say that it would be the chip temperature, and that it would
-depend on the NTC. The tjunc calculation (which one would assume to be
-the chip temperature) is not mentioned/documented here. This is a bit
-confusing. Can you clarify ?
-
-> diff -Naur linux-next-20110421.orig/drivers/hwmon/da9052-hwmon.c linux-next-20110421/drivers/hwmon/da9052-hwmon.c
-> --- linux-next-20110421.orig/drivers/hwmon/da9052-hwmon.c       1970-01-01 05:00:00.000000000 +0500
-> +++ linux-next-20110421/drivers/hwmon/da9052-hwmon.c    2011-04-26 14:16:50.000000000 +0500
-> @@ -0,0 +1,329 @@
-> +/*
-> + * HWMON Driver for Dialog DA9052
-> + *
-> + * Copyright(c) 2009 Dialog Semiconductor Ltd.
-> + *
- 2011 ?
-
-> + * Author: David Dajun Chen <dchen@diasemi.com>
-> + *
-> + *  This program is free software; you can redistribute  it and/or modify it
-> + *  under  the terms of  the GNU General  Public License as published by the
-> + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> + *  option) any later version.
-> + *
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/slab.h>
-> +#include <linux/init.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/platform_device.h>
-> +
-> +#include <linux/mfd/da9052/da9052.h>
-> +#include <linux/mfd/da9052/reg.h>
-> +
-> +#define DA9052_ADC_CHANNELS(id, func_name, name)\
-> +       static SENSOR_DEVICE_ATTR(in##id##_label, S_IRUGO, show_label,\
-> +                                 NULL, name);\
-> +       static SENSOR_DEVICE_ATTR(in##id##_input, S_IRUGO, func_name,\
-> +                                 NULL, name)
-> +
-This macro results in a checkpatch error. I would suggest to get rid of
-it entirely.
-
-> +struct da9052_hwmon {
-> +       struct da9052   *da9052;
-> +       struct device   *class_device;
-> +       struct mutex    hwmon_lock;
-> +};
-> +
-> +static const char *input_names[] = {
-> +       [DA9052_ADC_VDDOUT]     =       "VDDOUT",
-> +       [DA9052_ADC_ICH]                =       "CHARGING CURRENT",
-> +       [DA9052_ADC_TBAT]               =       "BATTERY TEMP",
-> +       [DA9052_ADC_VBAT]               =       "BATTERY VOLTAGE",
-> +       [DA9052_ADC_IN4]                =       "ADC IN4",
-> +       [DA9052_ADC_IN5]                =       "ADC IN5",
-> +       [DA9052_ADC_IN6]                =       "ADC IN6",
-> +       [DA9052_ADC_TJUNC]      =       "BATTERY JUNCTION TEMP",
-> +       [DA9052_ADC_VBBAT]      =       "BACK-UP BATTERY VOLTAGE",
-> +};
-> +
-> +static int da9052_enable_vddout_channel(struct da9052 *da9052)
-> +{
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(da9052, DA9052_ADC_CONT_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret |= DA9052_ADCCONT_AUTOVDDEN;
-> +       return da9052_reg_write(da9052, DA9052_ADC_CONT_REG, ret);
-> +}
-> +
-> +static int da9052_disable_vddout_channel(struct da9052 *da9052)
-> +{
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(da9052, DA9052_ADC_CONT_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret &= ~DA9052_ADCCONT_AUTOVDDEN;
-> +       return da9052_reg_write(da9052, DA9052_ADC_CONT_REG, ret);
-> +
-> +}
-> +
-> +static ssize_t da9052_read_vddout(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret = -EIO;
-> +
-No need to initialize ret.
-
-> +       mutex_lock(&hwmon->hwmon_lock);
-> +
-> +       ret = da9052_enable_vddout_channel(hwmon->da9052);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_VDD_RES_REG);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-This means the function will exist without even trying to disable the
-vddout channel. Is this acceptable ?
-
-> +       ret = da9052_disable_vddout_channel(hwmon->da9052);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-> +       mutex_unlock(&hwmon->hwmon_lock);
-> +       return sprintf(buf, "%u\n", ret);
-
-You sometimes use %u and sometimes %d, even if the variable is known to
-be non-negative. Since the variable is always declared as int, please
-use %d throughout.
-
-> +
-> +hwmon_err:
-> +       mutex_unlock(&hwmon->hwmon_lock);
-> +       return ret;
-> +}
-> +
-> +static ssize_t da9052_read_ich(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_ICHG_AV_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       /* Equivalent to 3.9mA/bit in register ICHG_AV */
-> +       ret = DIV_ROUND_CLOSEST(ret * 39, 10);
-> +       return sprintf(buf, "%d\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_tbat(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_TBAT_RES_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       /* Degrees celsius = (512.18-ret) / 1.0983 */
-> +       ret = 512180 - (ret * 1000);
-> +       ret = DIV_ROUND_CLOSEST(ret * 10000, 10983);
-> +       return sprintf(buf, "%d\n", ret);
-
-If the original value of ret is 0, the maximum possible value for ret 
-during calculation is 512180 * 10000 = 5,121,800,000 which is above the
-32 bit (or, rather, 31 bit) integer range. You might want to use s64 to
-avoid overflows.
-
-> +}
-> +
-> +static ssize_t da9052_read_vbat(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, DA9052_ADC_VBAT);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%u\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_misc_channel(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int channel = to_sensor_dev_attr(devattr)->index;
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, channel);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%u\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_tjunc(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int temp;
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_TJUNC_RES_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       temp = ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_T_OFFSET_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       /* Degrees celsius = 1.708 * (TJUNC_RES - T_OFFSET) - 108.8 */
-> +       ret = 1708 * (temp - ret) - 108800;
-> +       return sprintf(buf, "%d\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_vbbat(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, DA9052_ADC_VBBAT);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%u\n", ret);
-> +
-> +}
-> +
-> +static ssize_t da9052_hwmon_show_name(struct device *dev,
-> +               struct device_attribute *devattr, char *buf)
-> +{
-> +       return sprintf(buf, "da9052-hwmon\n");
-> +}
-> +
-> +static ssize_t show_label(struct device *dev,
-> +                         struct device_attribute *devattr, char *buf)
-> +{
-> +       return sprintf(buf, "%s\n", input_names[to_sensor_dev_attr(devattr)->index]);
-> +}
-> +
-> +DA9052_ADC_CHANNELS(0, da9052_read_vddout, DA9052_ADC_VDDOUT);
-> +DA9052_ADC_CHANNELS(3, da9052_read_vbat, DA9052_ADC_VBAT);
-> +DA9052_ADC_CHANNELS(4, da9052_read_misc_channel, DA9052_ADC_IN4);
-> +DA9052_ADC_CHANNELS(5, da9052_read_misc_channel, DA9052_ADC_IN5);
-> +DA9052_ADC_CHANNELS(6, da9052_read_misc_channel, DA9052_ADC_IN6);
-> +DA9052_ADC_CHANNELS(9, da9052_read_vbbat, DA9052_ADC_VBBAT);
-> +static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, da9052_read_ich, NULL,
-> +                               DA9052_ADC_ICH);
-> +static SENSOR_DEVICE_ATTR(curr1_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_TJUNC);
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, da9052_read_tbat, NULL,
-> +                               DA9052_ADC_TBAT);
-> +static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_TBAT);
-> +static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, da9052_read_tjunc, NULL,
-> +                               DA9052_ADC_TJUNC);
-> +static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_TJUNC);
-> +
-> +static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
-> +
-> +static struct attribute *da9052_attr[] = {
-> +       &dev_attr_name.attr,
-> +
-> +       &sensor_dev_attr_in0_input.dev_attr.attr,
-> +       &sensor_dev_attr_in0_label.dev_attr.attr,
-> +       &sensor_dev_attr_curr1_input.dev_attr.attr,
-> +       &sensor_dev_attr_curr1_label.dev_attr.attr,
-> +       &sensor_dev_attr_temp1_input.dev_attr.attr,
-> +       &sensor_dev_attr_temp1_label.dev_attr.attr,
-> +       &sensor_dev_attr_in3_input.dev_attr.attr,
-> +       &sensor_dev_attr_in3_label.dev_attr.attr,
-> +       &sensor_dev_attr_in4_input.dev_attr.attr,
-> +       &sensor_dev_attr_in4_label.dev_attr.attr,
-> +       &sensor_dev_attr_in5_input.dev_attr.attr,
-> +       &sensor_dev_attr_in5_label.dev_attr.attr,
-> +       &sensor_dev_attr_in6_input.dev_attr.attr,
-> +       &sensor_dev_attr_in6_label.dev_attr.attr,
-> +       &sensor_dev_attr_temp2_input.dev_attr.attr,
-> +       &sensor_dev_attr_temp2_label.dev_attr.attr,
-> +       &sensor_dev_attr_in9_input.dev_attr.attr,
-> +       &sensor_dev_attr_in9_label.dev_attr.attr,
-> +       NULL
-> +};
-> +
-> +static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
-> +
-> +static int __init da9052_hwmon_probe(struct platform_device *pdev)
-> +{
-> +       struct da9052_hwmon *hwmon;
-> +       int ret;
-> +
-> +       hwmon = kzalloc(sizeof(struct da9052_hwmon), GFP_KERNEL);
-> +       if (!hwmon)
-> +               return -ENOMEM;
-> +
-> +       mutex_init(&hwmon->hwmon_lock);
-> +       hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
-> +
-> +       platform_set_drvdata(pdev, hwmon);
-> +
-> +       hwmon->class_device = hwmon_device_register(&pdev->dev);
-> +       if (IS_ERR(hwmon->class_device)) {
-> +               ret = PTR_ERR(hwmon->class_device);
-> +               goto err_mem;
-> +       }
-> +
-> +       ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
-> +       if (ret)
-> +               goto err_sysfs;
-> +
-Please create sysfs entries before registering the hwmon device.
-
-> +       return 0;
-> +
-> +err_sysfs:
-> +       hwmon_device_unregister(hwmon->class_device);
-> +err_mem:
-> +       kfree(hwmon);
-> +       return ret;
-> +}
-> +
-> +static int __devexit da9052_hwmon_remove(struct platform_device *pdev)
-> +{
-> +       struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
-> +
-> +       mutex_destroy(&hwmon->hwmon_lock);
-
-Read functions can still be called here, resulting in trouble since the
-mutex is gone. You should destroy the mutex only after unregistering the
-hwmon device and after removing the sysfs entries.
-
-> +       hwmon_device_unregister(hwmon->class_device);
-> +       sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> +       kfree(hwmon);
-> +
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver da9052_hwmon_driver = {
-> +       .driver = {
-> +               .name           = "da9052-hwmon",
-> +               .owner  = THIS_MODULE,
-> +       },
-> +       .probe          = da9052_hwmon_probe,
-> +       .remove         = __devexit_p(da9052_hwmon_remove),
-> +
-> +};
-> +
-> +static int __init da9052_hwmon_init(void)
-> +{
-> +
-> +       return platform_driver_register(&da9052_hwmon_driver);
-> +}
-> +module_init(da9052_hwmon_init);
-> +
-> +static void __exit da9052_hwmon_exit(void)
-> +{
-> +       platform_driver_unregister(&da9052_hwmon_driver);
-> +}
-> +module_exit(da9052_hwmon_exit);
-> +
-> +MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
-> +MODULE_DESCRIPTION("DA9052 ADC driver");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_ALIAS("platform:da9052-hwmon");
-> diff -Naur linux-next-20110421.orig/drivers/hwmon/Kconfig linux-next-20110421/drivers/hwmon/Kconfig
-> --- linux-next-20110421.orig/drivers/hwmon/Kconfig      2011-04-26 09:31:34.000000000 +0500
-> +++ linux-next-20110421/drivers/hwmon/Kconfig   2011-04-26 14:27:08.000000000 +0500
-> @@ -303,6 +303,16 @@
->           This driver can also be built as a module.  If so, the module
->           will be called ds1621.
-> 
-> +config SENSORS_DA9052_ADC
-> +       tristate "Dialog DA9052 HWMON"
-> +       depends on PMIC_DA9052
-> +       help
-> +         Say y here to support the ADC found on
-> +         Dialog Semiconductor DA9052 PMIC.
-> +
-> +         This driver can also be built as module. If so, the module
-> +         will be called da9052-hwmon.
-> +
->  config SENSORS_I5K_AMB
->         tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
->         depends on PCI && EXPERIMENTAL
-> diff -Naur linux-next-20110421.orig/drivers/hwmon/Makefile linux-next-20110421/drivers/hwmon/Makefile
-> --- linux-next-20110421.orig/drivers/hwmon/Makefile     2011-04-26 09:31:34.000000000 +0500
-> +++ linux-next-20110421/drivers/hwmon/Makefile  2011-04-26 14:24:49.000000000 +0500
-> @@ -41,6 +41,7 @@
->  obj-$(CONFIG_SENSORS_ATXP1)            += atxp1.o
->  obj-$(CONFIG_SENSORS_CORETEMP) += coretemp.o
->  obj-$(CONFIG_SENSORS_PKGTEMP)  += pkgtemp.o
-> +obj-$(CONFIG_SENSORS_DA9052_ADC)       += da9052-hwmon.o
->  obj-$(CONFIG_SENSORS_DME1737)  += dme1737.o
->  obj-$(CONFIG_SENSORS_DS620)            += ds620.o
->  obj-$(CONFIG_SENSORS_DS1621)           += ds1621.o
-> 
-> 
-> 
-> Regards,
-> Ashish
-> 
-> 
-
+diff --git a/Documentation/hwmon/sht15 b/Documentation/hwmon/sht15
+new file mode 100644
+index 0000000..50c07f5
+--- /dev/null
++++ b/Documentation/hwmon/sht15
+@@ -0,0 +1,43 @@
++Kernel driver sht15
++=========+
++Authors:
++  * Wouter Horre
++  * Jonathan Cameron
++
++Supported chips:
++  * Sensirion SHT10
++    Prefix: 'sht10'
++
++  * Sensirion SHT11
++    Prefix: 'sht11'
++
++  * Sensirion SHT15
++    Prefix: 'sht15'
++
++  * Sensirion SHT71
++    Prefix: 'sht71'
++
++  * Sensirion SHT75
++    Prefix: 'sht75'
++
++Datasheet: Publicly available at the Sensirion website
++http://www.sensirion.ch/en/pdf/product_information/Datasheet-humidity-sensor-SHT1x.pdf
++
++Description
++-----------
++
++The SHT10, SHT11, SHT15, SHT71, and SHT75 are humidity and temperature
++sensors.
++
++The devices communicate using two GPIO lines and use the default
++resolution settings of 14 bits for temperature and 12 bits for humidity.
++
++Note: The regulator supply name is set to "vcc".
++
++Sysfs interface
++---------------
++
++* temp1_input:     temperature input
++* humidity1_input: humidity input
++
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index 1a9c32d..711c06a 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -9,16 +9,7 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  *
+- * Currently ignoring checksum on readings.
+- * Default resolution only (14bit temp, 12bit humidity)
+- * Ignoring battery status.
+- * Heater not enabled.
+- * Timings are all conservative.
+- *
+- * Data sheet available (1/2009) at
+- * http://www.sensirion.ch/en/pdf/product_information/Datasheet-humidity-sensor-SHT1x.pdf
+- *
+- * Regulator supply name = vcc
++ * For further information, see the Documentation/hwmon/sht15 file.
+  */
+ 
+ #include <linux/interrupt.h>
+@@ -39,17 +30,17 @@
+ #include <linux/slab.h>
+ #include <asm/atomic.h>
+ 
+-#define SHT15_MEASURE_TEMP	3
+-#define SHT15_MEASURE_RH	5
++#define SHT15_MEASURE_TEMP		3
++#define SHT15_MEASURE_RH		5
+ 
+-#define SHT15_READING_NOTHING	0
+-#define SHT15_READING_TEMP	1
+-#define SHT15_READING_HUMID	2
++#define SHT15_READING_NOTHING		0
++#define SHT15_READING_TEMP		1
++#define SHT15_READING_HUMID		2
+ 
+ /* Min timings in nsecs */
+-#define SHT15_TSCKL		100	/* clock low */
+-#define SHT15_TSCKH		100	/* clock high */
+-#define SHT15_TSU		150	/* data setup time */
++#define SHT15_TSCKL			100	/* clock low */
++#define SHT15_TSCKH			100	/* clock high */
++#define SHT15_TSU			150	/* data setup time */
+ 
+ /**
+  * struct sht15_temppair - elements of voltage dependant temp calc
+@@ -61,9 +52,7 @@ struct sht15_temppair {
+ 	int d1;
+ };
+ 
+-/* Table 9 from data sheet - relates temperature calculation
+- * to supply voltage.
+- */
++/* Table 9 from datasheet - relates temperature calculation to supply voltage */
+ static const struct sht15_temppair temppoints[] = {
+ 	{ 2500000, -39400 },
+ 	{ 3000000, -39600 },
+@@ -74,27 +63,27 @@ static const struct sht15_temppair temppoints[] = {
+ 
+ /**
+  * struct sht15_data - device instance specific data
+- * @pdata:	platform data (gpio's etc)
+- * @read_work:	bh of interrupt handler
+- * @wait_queue:	wait queue for getting values from device
+- * @val_temp:	last temperature value read from device
+- * @val_humid: 	last humidity value read from device
+- * @flag:	status flag used to identify what the last request was
+- * @valid:	are the current stored values valid (start condition)
+- * @last_updat:	time of last update
+- * @read_lock:	mutex to ensure only one read in progress
+- *		at a time.
+- * @dev:	associate device structure
+- * @hwmon_dev:	device associated with hwmon subsystem
+- * @reg:	associated regulator (if specified)
+- * @nb:		notifier block to handle notifications of voltage changes
+- * @supply_uV:	local copy of supply voltage used to allow
+- *		use of regulator consumer if available
+- * @supply_uV_valid:   indicates that an updated value has not yet
+- *		been obtained from the regulator and so any calculations
+- *		based upon it will be invalid.
+- * @update_supply_work:	work struct that is used to update the supply_uV
+- * @interrupt_handled:	flag used to indicate a hander has been scheduled
++ * @pdata:		platform data (gpio's etc).
++ * @read_work:		bh of interrupt handler.
++ * @wait_queue:		wait queue for getting values from device.
++ * @val_temp:		last temperature value read from device.
++ * @val_humid:		last humidity value read from device.
++ * @flag:		status flag used to identify what the last request was.
++ * @measures_valid:	are the current stored measures valid (start condition).
++ * @last_measure:	time of last measure.
++ * @read_lock:		mutex to ensure only one read in progress at a time.
++ * @dev:		associate device structure.
++ * @hwmon_dev:		device associated with hwmon subsystem.
++ * @reg:		associated regulator (if specified).
++ * @nb:			notifier block to handle notifications of voltage
++ *                      changes.
++ * @supply_uV:		local copy of supply voltage used to allow use of
++ *                      regulator consumer if available.
++ * @supply_uV_valid:	indicates that an updated value has not yet been
++ *			obtained from the regulator and so any calculations
++ *			based upon it will be invalid.
++ * @update_supply_work:	work struct that is used to update the supply_uV.
++ * @interrupt_handled:	flag used to indicate a handler has been scheduled.
+  */
+ struct sht15_data {
+ 	struct sht15_platform_data	*pdata;
+@@ -103,8 +92,8 @@ struct sht15_data {
+ 	uint16_t			val_temp;
+ 	uint16_t			val_humid;
+ 	u8				flag;
+-	u8				valid;
+-	unsigned long			last_updat;
++	u8				measures_valid;
++	unsigned long			last_measure;
+ 	struct mutex			read_lock;
+ 	struct device			*dev;
+ 	struct device			*hwmon_dev;
+@@ -125,6 +114,7 @@ struct sht15_data {
+ static void sht15_connection_reset(struct sht15_data *data)
+ {
+ 	int i;
++
+ 	gpio_direction_output(data->pdata->gpio_data, 1);
+ 	ndelay(SHT15_TSCKL);
+ 	gpio_set_value(data->pdata->gpio_sck, 0);
+@@ -136,14 +126,14 @@ static void sht15_connection_reset(struct sht15_data *data)
+ 		ndelay(SHT15_TSCKL);
+ 	}
+ }
++
+ /**
+  * sht15_send_bit() - send an individual bit to the device
+  * @data:	device state data
+  * @val:	value of bit to be sent
+- **/
++ */
+ static inline void sht15_send_bit(struct sht15_data *data, int val)
+ {
+-
+ 	gpio_set_value(data->pdata->gpio_data, val);
+ 	ndelay(SHT15_TSU);
+ 	gpio_set_value(data->pdata->gpio_sck, 1);
+@@ -154,12 +144,12 @@ static inline void sht15_send_bit(struct sht15_data *data, int val)
+ 
+ /**
+  * sht15_transmission_start() - specific sequence for new transmission
+- *
+  * @data:	device state data
++ *
+  * Timings for this are not documented on the data sheet, so very
+  * conservative ones used in implementation. This implements
+  * figure 12 on the data sheet.
+- **/
++ */
+ static void sht15_transmission_start(struct sht15_data *data)
+ {
+ 	/* ensure data is high and output */
+@@ -180,23 +170,26 @@ static void sht15_transmission_start(struct sht15_data *data)
+ 	gpio_set_value(data->pdata->gpio_sck, 0);
+ 	ndelay(SHT15_TSCKL);
+ }
++
+ /**
+  * sht15_send_byte() - send a single byte to the device
+  * @data:	device state
+  * @byte:	value to be sent
+- **/
++ */
+ static void sht15_send_byte(struct sht15_data *data, u8 byte)
+ {
+ 	int i;
++
+ 	for (i = 0; i < 8; i++) {
+ 		sht15_send_bit(data, !!(byte & 0x80));
+ 		byte <<= 1;
+ 	}
+ }
++
+ /**
+  * sht15_wait_for_response() - checks for ack from device
+  * @data:	device state
+- **/
++ */
+ static int sht15_wait_for_response(struct sht15_data *data)
+ {
+ 	gpio_direction_input(data->pdata->gpio_data);
+@@ -220,27 +213,30 @@ static int sht15_wait_for_response(struct sht15_data *data)
+  *
+  * On entry, sck is output low, data is output pull high
+  * and the interrupt disabled.
+- **/
++ */
+ static int sht15_send_cmd(struct sht15_data *data, u8 cmd)
+ {
+ 	int ret = 0;
++
+ 	sht15_transmission_start(data);
+ 	sht15_send_byte(data, cmd);
+ 	ret = sht15_wait_for_response(data);
+ 	return ret;
+ }
++
+ /**
+- * sht15_update_single_val() - get a new value from device
++ * sht15_measure() - get a new value from device
+  * @data:		device instance specific data
+  * @command:		command sent to request value
+  * @timeout_msecs:	timeout after which comms are assumed
+  *			to have failed are reset.
+- **/
+-static inline int sht15_update_single_val(struct sht15_data *data,
+-					  int command,
+-					  int timeout_msecs)
++ */
++static int sht15_measure(struct sht15_data *data,
++			 int command,
++			 int timeout_msecs)
+ {
+ 	int ret;
++
+ 	ret = sht15_send_cmd(data, command);
+ 	if (ret)
+ 		return ret;
+@@ -267,27 +263,27 @@ static inline int sht15_update_single_val(struct sht15_data *data,
+ }
+ 
+ /**
+- * sht15_update_vals() - get updated readings from device if too old
++ * sht15_update_measures() - get updated measures from device if too old
+  * @data:	device state
+- **/
+-static int sht15_update_vals(struct sht15_data *data)
++ */
++static int sht15_update_measures(struct sht15_data *data)
+ {
+ 	int ret = 0;
+ 	int timeout = HZ;
+ 
+ 	mutex_lock(&data->read_lock);
+-	if (time_after(jiffies, data->last_updat + timeout)
+-	    || !data->valid) {
++	if (time_after(jiffies, data->last_measure + timeout)
++	    || !data->measures_valid) {
+ 		data->flag = SHT15_READING_HUMID;
+-		ret = sht15_update_single_val(data, SHT15_MEASURE_RH, 160);
++		ret = sht15_measure(data, SHT15_MEASURE_RH, 160);
+ 		if (ret)
+ 			goto error_ret;
+ 		data->flag = SHT15_READING_TEMP;
+-		ret = sht15_update_single_val(data, SHT15_MEASURE_TEMP, 400);
++		ret = sht15_measure(data, SHT15_MEASURE_TEMP, 400);
+ 		if (ret)
+ 			goto error_ret;
+-		data->valid = 1;
+-		data->last_updat = jiffies;
++		data->measures_valid = 1;
++		data->last_measure = jiffies;
+ 	}
+ error_ret:
+ 	mutex_unlock(&data->read_lock);
+@@ -300,7 +296,7 @@ error_ret:
+  * @data:	device state
+  *
+  * As per section 4.3 of the data sheet.
+- **/
++ */
+ static inline int sht15_calc_temp(struct sht15_data *data)
+ {
+ 	int d1 = temppoints[0].d1;
+@@ -316,7 +312,7 @@ static inline int sht15_calc_temp(struct sht15_data *data)
+ 			break;
+ 		}
+ 
+-	return data->val_temp*10 + d1;
++	return data->val_temp * 10 + d1;
+ }
+ 
+ /**
+@@ -325,23 +321,35 @@ static inline int sht15_calc_temp(struct sht15_data *data)
+  *
+  * This is the temperature compensated version as per section 4.2 of
+  * the data sheet.
+- **/
++ *
++ * The sensor is assumed to be V3, which is compatible with V4.
++ * Humidity conversion coefficients are shown in table 7 of the datasheet.
++ */
+ static inline int sht15_calc_humid(struct sht15_data *data)
+ {
+-	int RHlinear; /* milli percent */
++	int rh_linear; /* milli percent */
+ 	int temp = sht15_calc_temp(data);
+ 
+ 	const int c1 = -4;
+ 	const int c2 = 40500; /* x 10 ^ -6 */
+-	const int c3 = -28; /* x 10 ^ -7 */
++	const int c3 = -28;   /* x 10 ^ -7 */
+ 
+-	RHlinear = c1*1000
+-		+ c2 * data->val_humid/1000
++	rh_linear = c1 * 1000
++		+ c2 * data->val_humid / 1000
+ 		+ (data->val_humid * data->val_humid * c3) / 10000;
+ 	return (temp - 25000) * (10000 + 80 * data->val_humid)
+-		/ 1000000 + RHlinear;
++		/ 1000000 + rh_linear;
+ }
+ 
++/**
++ * sht15_show_temp() - show temperature measurement value in sysfs
++ * @dev:	device.
++ * @attr:	device attribute.
++ * @buf:	sysfs buffer where measurement values are written to.
++ *
++ * Will be called on read access to temp1_input sysfs attribute.
++ * Returns number of bytes written into buffer, negative errno on error.
++ */
+ static ssize_t sht15_show_temp(struct device *dev,
+ 			       struct device_attribute *attr,
+ 			       char *buf)
+@@ -350,12 +358,21 @@ static ssize_t sht15_show_temp(struct device *dev,
+ 	struct sht15_data *data = dev_get_drvdata(dev);
+ 
+ 	/* Technically no need to read humidity as well */
+-	ret = sht15_update_vals(data);
++	ret = sht15_update_measures(data);
+ 
+ 	return ret ? ret : sprintf(buf, "%d\n",
+ 				   sht15_calc_temp(data));
+ }
+ 
++/**
++ * sht15_show_humidity() - show humidity measurement value in sysfs
++ * @dev:	device.
++ * @attr:	device attribute.
++ * @buf:	sysfs buffer where measurement values are written to.
++ *
++ * Will be called on read access to humidity1_input sysfs attribute.
++ * Returns number of bytes written into buffer, negative errno on error.
++ */
+ static ssize_t sht15_show_humidity(struct device *dev,
+ 				   struct device_attribute *attr,
+ 				   char *buf)
+@@ -363,11 +380,12 @@ static ssize_t sht15_show_humidity(struct device *dev,
+ 	int ret;
+ 	struct sht15_data *data = dev_get_drvdata(dev);
+ 
+-	ret = sht15_update_vals(data);
++	ret = sht15_update_measures(data);
+ 
+ 	return ret ? ret : sprintf(buf, "%d\n", sht15_calc_humid(data));
+ 
+-};
++}
++
+ static ssize_t show_name(struct device *dev,
+ 			 struct device_attribute *attr,
+ 			 char *buf)
+@@ -397,6 +415,7 @@ static const struct attribute_group sht15_attr_group = {
+ static irqreturn_t sht15_interrupt_fired(int irq, void *d)
+ {
+ 	struct sht15_data *data = d;
++
+ 	/* First disable the interrupt */
+ 	disable_irq_nosync(irq);
+ 	atomic_inc(&data->interrupt_handled);
+@@ -406,7 +425,10 @@ static irqreturn_t sht15_interrupt_fired(int irq, void *d)
+ 	return IRQ_HANDLED;
+ }
+ 
+-/* Each byte of data is acknowledged by pulling the data line
++/**
++ * sht15_ack() - Send an ack to the device
++ *
++ * Each byte of data is acknowledged by pulling the data line
+  * low for one clock pulse.
+  */
+ static void sht15_ack(struct sht15_data *data)
+@@ -421,12 +443,13 @@ static void sht15_ack(struct sht15_data *data)
+ 
+ 	gpio_direction_input(data->pdata->gpio_data);
+ }
++
+ /**
+  * sht15_end_transmission() - notify device of end of transmission
+  * @data:	device state
+  *
+  * This is basically a NAK. (single clock pulse, data high)
+- **/
++ */
+ static void sht15_end_transmission(struct sht15_data *data)
+ {
+ 	gpio_direction_output(data->pdata->gpio_data, 1);
+@@ -444,12 +467,13 @@ static void sht15_bh_read_data(struct work_struct *work_s)
+ 	struct sht15_data *data
+ 		= container_of(work_s, struct sht15_data,
+ 			       read_work);
++
+ 	/* Firstly, verify the line is low */
+ 	if (gpio_get_value(data->pdata->gpio_data)) {
+-		/* If not, then start the interrupt again - care
+-		   here as could have gone low in meantime so verify
+-		   it hasn't!
+-		*/
++		/*
++		 * If not, then start the interrupt again - care here as could
++		 * have gone low in meantime so verify it hasn't!
++		 */
+ 		atomic_set(&data->interrupt_handled, 0);
+ 		enable_irq(gpio_to_irq(data->pdata->gpio_data));
+ 		/* If still not occured or another handler has been scheduled */
+@@ -457,6 +481,7 @@ static void sht15_bh_read_data(struct work_struct *work_s)
+ 		    || atomic_read(&data->interrupt_handled))
+ 			return;
+ 	}
++
+ 	/* Read the data back from the device */
+ 	for (i = 0; i < 16; ++i) {
+ 		val <<= 1;
+@@ -468,6 +493,7 @@ static void sht15_bh_read_data(struct work_struct *work_s)
+ 		if (i = 7)
+ 			sht15_ack(data);
+ 	}
++
+ 	/* Tell the device we are done */
+ 	sht15_end_transmission(data);
+ 
+@@ -500,10 +526,10 @@ static void sht15_update_voltage(struct work_struct *work_s)
+  *
+  * Note that as the notification code holds the regulator lock, we have
+  * to schedule an update of the supply voltage rather than getting it directly.
+- **/
++ */
+ static int sht15_invalidate_voltage(struct notifier_block *nb,
+-				unsigned long event,
+-				void *ignored)
++				    unsigned long event,
++				    void *ignored)
+ {
+ 	struct sht15_data *data = container_of(nb, struct sht15_data, nb);
+ 
+@@ -521,7 +547,7 @@ static int __devinit sht15_probe(struct platform_device *pdev)
+ 
+ 	if (!data) {
+ 		ret = -ENOMEM;
+-		dev_err(&pdev->dev, "kzalloc failed");
++		dev_err(&pdev->dev, "kzalloc failed\n");
+ 		goto error_ret;
+ 	}
+ 
+@@ -533,13 +559,16 @@ static int __devinit sht15_probe(struct platform_device *pdev)
+ 	init_waitqueue_head(&data->wait_queue);
+ 
+ 	if (pdev->dev.platform_data = NULL) {
+-		dev_err(&pdev->dev, "no platform data supplied");
++		dev_err(&pdev->dev, "no platform data supplied\n");
+ 		goto err_free_data;
+ 	}
+ 	data->pdata = pdev->dev.platform_data;
+-	data->supply_uV = data->pdata->supply_mv*1000;
++	data->supply_uV = data->pdata->supply_mv * 1000;
+ 
+-/* If a regulator is available, query what the supply voltage actually is!*/
++	/*
++	 * If a regulator is available,
++	 * query what the supply voltage actually is!
++	 */
+ 	data->reg = regulator_get(data->dev, "vcc");
+ 	if (!IS_ERR(data->reg)) {
+ 		int voltage;
+@@ -549,28 +578,34 @@ static int __devinit sht15_probe(struct platform_device *pdev)
+ 			data->supply_uV = voltage;
+ 
+ 		regulator_enable(data->reg);
+-		/* setup a notifier block to update this if another device
+-		 *  causes the voltage to change */
++		/*
++		 * Setup a notifier block to update this if another device
++		 * causes the voltage to change
++		 */
+ 		data->nb.notifier_call = &sht15_invalidate_voltage;
+ 		ret = regulator_register_notifier(data->reg, &data->nb);
++		if (ret) {
++			dev_err(&pdev->dev,
++				"regulator notifier request failed\n");
++			regulator_disable(data->reg);
++			regulator_put(data->reg);
++			goto err_free_data;
++		}
+ 	}
+-/* Try requesting the GPIOs */
++
++	/* Try requesting the GPIOs */
+ 	ret = gpio_request(data->pdata->gpio_sck, "SHT15 sck");
+ 	if (ret) {
+-		dev_err(&pdev->dev, "gpio request failed");
+-		goto err_free_data;
++		dev_err(&pdev->dev, "gpio request failed\n");
++		goto err_release_reg;
+ 	}
+ 	gpio_direction_output(data->pdata->gpio_sck, 0);
++
+ 	ret = gpio_request(data->pdata->gpio_data, "SHT15 data");
+ 	if (ret) {
+-		dev_err(&pdev->dev, "gpio request failed");
++		dev_err(&pdev->dev, "gpio request failed\n");
+ 		goto err_release_gpio_sck;
+ 	}
+-	ret = sysfs_create_group(&pdev->dev.kobj, &sht15_attr_group);
+-	if (ret) {
+-		dev_err(&pdev->dev, "sysfs create failed");
+-		goto err_release_gpio_data;
+-	}
+ 
+ 	ret = request_irq(gpio_to_irq(data->pdata->gpio_data),
+ 			  sht15_interrupt_fired,
+@@ -578,30 +613,44 @@ static int __devinit sht15_probe(struct platform_device *pdev)
+ 			  "sht15 data",
+ 			  data);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "failed to get irq for data line");
++		dev_err(&pdev->dev, "failed to get irq for data line\n");
+ 		goto err_release_gpio_data;
+ 	}
+ 	disable_irq_nosync(gpio_to_irq(data->pdata->gpio_data));
+ 	sht15_connection_reset(data);
+ 	sht15_send_cmd(data, 0x1E);
+ 
++	ret = sysfs_create_group(&pdev->dev.kobj, &sht15_attr_group);
++	if (ret) {
++		dev_err(&pdev->dev, "sysfs create failed\n");
++		goto err_release_irq;
++	}
++
+ 	data->hwmon_dev = hwmon_device_register(data->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		ret = PTR_ERR(data->hwmon_dev);
+-		goto err_release_irq;
++		goto err_release_sysfs_group;
+ 	}
++
+ 	return 0;
+ 
++err_release_sysfs_group:
++	sysfs_remove_group(&pdev->dev.kobj, &sht15_attr_group);
+ err_release_irq:
+ 	free_irq(gpio_to_irq(data->pdata->gpio_data), data);
+ err_release_gpio_data:
+ 	gpio_free(data->pdata->gpio_data);
+ err_release_gpio_sck:
+ 	gpio_free(data->pdata->gpio_sck);
++err_release_reg:
++	if (!IS_ERR(data->reg)) {
++		regulator_unregister_notifier(data->reg, &data->nb);
++		regulator_disable(data->reg);
++		regulator_put(data->reg);
++	}
+ err_free_data:
+ 	kfree(data);
+ error_ret:
+-
+ 	return ret;
+ }
+ 
+@@ -609,8 +658,10 @@ static int __devexit sht15_remove(struct platform_device *pdev)
+ {
+ 	struct sht15_data *data = platform_get_drvdata(pdev);
+ 
+-	/* Make sure any reads from the device are done and
+-	 * prevent new ones from beginning */
++	/*
++	 * Make sure any reads from the device are done and
++	 * prevent new ones beginning
++	 */
+ 	mutex_lock(&data->read_lock);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&pdev->dev.kobj, &sht15_attr_group);
+@@ -625,10 +676,10 @@ static int __devexit sht15_remove(struct platform_device *pdev)
+ 	gpio_free(data->pdata->gpio_sck);
+ 	mutex_unlock(&data->read_lock);
+ 	kfree(data);
++
+ 	return 0;
+ }
+ 
+-
+ /*
+  * sht_drivers simultaneously refers to __devinit and __devexit function
+  * which causes spurious section mismatch warning. So use __refdata to
+@@ -673,7 +724,6 @@ static struct platform_driver __refdata sht_drivers[] = {
+ 	},
+ };
+ 
+-
+ static int __init sht15_init(void)
+ {
+ 	int ret;
+diff --git a/include/linux/sht15.h b/include/linux/sht15.h
+index 046bce0..1e30214 100644
+--- a/include/linux/sht15.h
++++ b/include/linux/sht15.h
+@@ -8,14 +8,18 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
++ *
++ * For further information, see the Documentation/hwmon/sht15 file.
+  */
+ 
+ /**
+  * struct sht15_platform_data - sht15 connectivity info
+- * @gpio_data:	no. of gpio to which bidirectional data line is connected
+- * @gpio_sck:	no. of gpio to which the data clock is connected.
+- * @supply_mv:	supply voltage in mv. Overridden by regulator if available.
+- **/
++ * @gpio_data:		no. of gpio to which bidirectional data line is
++ *			connected.
++ * @gpio_sck:		no. of gpio to which the data clock is connected.
++ * @supply_mv:		supply voltage in mv. Overridden by regulator if
++ *			available.
++ */
+ struct sht15_platform_data {
+ 	int gpio_data;
+ 	int gpio_sck;
+-- 
+1.7.1
 
 
 _______________________________________________
