@@ -1,109 +1,97 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 18 Apr 2011 20:49:41 +0000
-Subject: [lm-sensors] [PATCH 3/4] hwmon: (max16064) Add driver documentation
-Message-Id: <1303159782-2687-4-git-send-email-guenter.roeck@ericsson.com>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Thu, 07 Apr 2011 21:27:20 +0000
+Subject: [lm-sensors] [PATCH v2 3/3] Change hwmon it87 driver to use
+Message-Id: <1302211640-8159-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: [PATCH v2 0/3] Make all it87 drivers SMP safe.
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
+Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
-MAX16064 has its own driver, thus should have its own documentation instead of
-being mentioned in the generic PMBus driver documentation.
+03 - Adds changes to hwmon driver to use the new lock.
+   This patch adds changes to drivers/hwmon/it87.c to use it87_io_lock
+to serialize access to the hardware. Added __acquire and __release
+annotations wherever needed.
+   Change it87 driver entry in Kconfig to issue "select IT87_LOCK"
+directive to compile it87_io_lock into the kernel.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/max16064 |   62 ++++++++++++++++++++++++++++++++++++++++++
- Documentation/hwmon/pmbus    |    5 ---
- 2 files changed, 62 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/hwmon/max16064
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
 
-diff --git a/Documentation/hwmon/max16064 b/Documentation/hwmon/max16064
-new file mode 100644
-index 0000000..4172899
---- /dev/null
-+++ b/Documentation/hwmon/max16064
-@@ -0,0 +1,62 @@
-+Kernel driver max16064
-+===========
-+
-+Supported chips:
-+  * Maxim MAX16064
-+    Prefix: 'max16064'
-+    Addresses scanned: -
-+    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX16064.pdf
-+
-+Author: Guenter Roeck <guenter.roeck@ericsson.com>
-+
-+
-+Description
-+-----------
-+
-+This driver supports hardware montoring for Maxim MAX16064 Quad Power-Supply
-+Controller with Active-Voltage Output Control and PMBus Interface.
-+
-+The driver is a client driver to the core PMBus driver.
-+Please see Documentation/hwmon/pmbus for details on PMBus client drivers.
-+
-+
-+Usage Notes
-+-----------
-+
-+This driver does not auto-detect devices. You will have to instantiate the
-+devices explicitly. Please see Documentation/i2c/instantiating-devices for
-+details.
-+
-+
-+Platform data support
-+---------------------
-+
-+The driver supports standard PMBus driver platform data.
-+
-+
-+Sysfs entries
-+-------------
-+
-+The following attributes are supported. Limits are read-write; all other
-+attributes are read-only.
-+
-+in[1-4]_label		"vout[1-4]"
-+in[1-4]_input		Measured voltage. From READ_VOUT register.
-+in[1-4]_min		Minumum Voltage. From VOUT_UV_WARN_LIMIT register.
-+in[1-4]_max		Maximum voltage. From VOUT_OV_WARN_LIMIT register.
-+in[1-4]_lcrit		Critical minumum Voltage. VOUT_UV_FAULT_LIMIT register.
-+in[1-4]_crit		Critical maximum voltage. From VOUT_OV_FAULT_LIMIT register.
-+in[1-4]_min_alarm	Voltage low alarm. From VOLTAGE_UV_WARNING status.
-+in[1-4]_max_alarm	Voltage high alarm. From VOLTAGE_OV_WARNING status.
-+in[1-4]_lcrit_alarm	Voltage critical low alarm. From VOLTAGE_UV_FAULT status.
-+in[1-4]_crit_alarm	Voltage critical high alarm. From VOLTAGE_OV_FAULT status.
-+
-+temp1_input		Measured temperature. From READ_TEMPERATURE_1 register.
-+temp1_max		Maximum temperature. From OT_WARN_LIMIT register.
-+temp1_crit		Critical high temperature. From OT_FAULT_LIMIT register.
-+temp1_max_alarm		Chip temperature high alarm. Set by comparing
-+			READ_TEMPERATURE_1 with OT_WARN_LIMIT if TEMP_OT_WARNING
-+			status is set.
-+temp1_crit_alarm	Chip temperature critical high alarm. Set by comparing
-+			READ_TEMPERATURE_1 with OT_FAULT_LIMIT if TEMP_OT_FAULT
-+			status is set.
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index 2a3049e..8c78fea 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -13,11 +13,6 @@ Supported chips:
-     Prefix: 'ltc2978'
-     Addresses scanned: -
-     Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
--  * Maxim MAX16064
--    Quad Power-Supply Controller
--    Prefix: 'max16064'
--    Addresses scanned: -
--    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX16064.pdf
-   * Maxim MAX34440
-     PMBus 6-Channel Power-Supply Manager
-     Prefixes: 'max34440'
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 297bc9a..afe671a 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -436,6 +436,7 @@ config SENSORS_IBMPEX
+ config SENSORS_IT87
+ 	tristate "ITE IT87xx and compatibles"
+ 	select HWMON_VID
++	select IT87_LOCK
+ 	help
+ 	  If you say yes here you get support for ITE IT8705F, IT8712F,
+ 	  IT8716F, IT8718F, IT8720F, IT8721F, IT8726F and IT8758E sensor
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 316b648..bc32535 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -55,6 +55,8 @@
+ #include <linux/dmi.h>
+ #include <linux/acpi.h>
+ #include <linux/io.h>
++#include <linux/spinlock.h>
++#include <linux/it87_lock.h>
+ 
+ #define DRVNAME "it87"
+ 
+@@ -110,7 +112,9 @@ superio_select(int ldn)
+ 
+ static inline void
+ superio_enter(void)
++__acquires(&it87_io_lock)
+ {
++	spin_lock(&it87_io_lock);
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -119,9 +123,11 @@ superio_enter(void)
+ 
+ static inline void
+ superio_exit(void)
++__releases(&it87_io_lock)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
++	spin_unlock(&it87_io_lock);
+ }
+ 
+ /* Logical device 4 registers */
+@@ -1899,8 +1905,12 @@ static int __devexit it87_remove(struct platform_device *pdev)
+    would slow down the IT87 access and should not be necessary. */
+ static int it87_read_value(struct it87_data *data, u8 reg)
+ {
++	int ret;
++	spin_lock(&it87_io_lock);
+ 	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
+-	return inb_p(data->addr + IT87_DATA_REG_OFFSET);
++	ret = inb_p(data->addr + IT87_DATA_REG_OFFSET);
++	spin_unlock(&it87_io_lock);
++	return ret;
+ }
+ 
+ /* Must be called with data->update_lock held, except during initialization.
+@@ -1908,8 +1918,10 @@ static int it87_read_value(struct it87_data *data, u8 reg)
+    would slow down the IT87 access and should not be necessary. */
+ static void it87_write_value(struct it87_data *data, u8 reg, u8 value)
+ {
++	spin_lock(&it87_io_lock);
+ 	outb_p(reg, data->addr + IT87_ADDR_REG_OFFSET);
+ 	outb_p(value, data->addr + IT87_DATA_REG_OFFSET);
++	spin_unlock(&it87_io_lock);
+ }
+ 
+ /* Return 1 if and only if the PWM interface is safe to use */
 -- 
-1.7.3.1
 
 
 _______________________________________________
