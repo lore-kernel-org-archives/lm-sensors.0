@@ -1,183 +1,317 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 19 Apr 2011 15:59:40 +0000
-Subject: [lm-sensors] [PATCH 2/6] hwmon: (pmbus) Expand scope of device
-Message-Id: <1303228784-17909-3-git-send-email-guenter.roeck@ericsson.com>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Thu, 07 Apr 2011 21:26:47 +0000
+Subject: [lm-sensors] [PATCH v2 2/3] Change IT87 drivers to use it87_io_lock.
+Message-Id: <1302211607-8121-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: [PATCH v2 0/3] Make all it87 drivers SMP safe.
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
+Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
-Some devices use non-standard registers to access various functionality.
-This does not only affect status registers, but other registers as well.
-Rename local get_status function to get_byte_data to reflect this requirement.
+02 - Adds changes to watchdog drivers to use the new lock.
+   This patch changes it8712f_wdt.c and it87_wdt.c to use the new
+it87_io_lock to serialize access to the hardware.
+   The routines accessing the hardware are being called from module init,
+open, ioctl and module exit routines and hence it is sufficient to use
+calls to spin_lock and spin_unlock to acquire and release the locks. For
+the same reasons it87_wdt.c has extensive changes to remove calls to
+spin_lock_irqsave and spin_unlock_irqrestore. The lock is now acquired
+in superio_enter and released in superio_exit. This is now identical
+to the code in drivers/hwmon/it87.c and drivers/watchdog/it8712f_wdt.c.
+Added __acquire and __release annotations wherever needed.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Reviewed-by: Tom Grennan <tom.grennan@ericsson.com>
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
 ---
- drivers/hwmon/max34440.c   |    6 +++---
- drivers/hwmon/max8688.c    |    4 ++--
- drivers/hwmon/pmbus.h      |   10 ++++------
- drivers/hwmon/pmbus_core.c |   29 ++++++++++++++++++-----------
- 4 files changed, 27 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/hwmon/max34440.c b/drivers/hwmon/max34440.c
-index 992b701..db11e1a 100644
---- a/drivers/hwmon/max34440.c
-+++ b/drivers/hwmon/max34440.c
-@@ -32,7 +32,7 @@ enum chips { max34440, max34441 };
- #define MAX34440_STATUS_OT_FAULT	(1 << 5)
- #define MAX34440_STATUS_OT_WARN		(1 << 6)
+diff --git a/drivers/watchdog/it8712f_wdt.c b/drivers/watchdog/it8712f_wdt.c
+index b32c6c0..03a3e89 100644
+--- a/drivers/watchdog/it8712f_wdt.c
++++ b/drivers/watchdog/it8712f_wdt.c
+@@ -32,6 +32,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
++#include <linux/it87_lock.h>
  
--static int max34440_get_status(struct i2c_client *client, int page, int reg)
-+static int max34440_read_byte_data(struct i2c_client *client, int page, int reg)
- {
- 	int ret;
- 	int mfg_status;
-@@ -108,7 +108,7 @@ static struct pmbus_driver_info max34440_info[] = {
- 		.func[11] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
- 		.func[12] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
- 		.func[13] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
--		.get_status = max34440_get_status,
-+		.read_byte_data = max34440_read_byte_data,
- 	},
- 	[max34441] = {
- 		.pages = 12,
-@@ -149,7 +149,7 @@ static struct pmbus_driver_info max34440_info[] = {
- 		.func[9] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
- 		.func[10] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
- 		.func[11] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
--		.get_status = max34440_get_status,
-+		.read_byte_data = max34440_read_byte_data,
- 	},
- };
+ #define NAME "it8712f_wdt"
  
-diff --git a/drivers/hwmon/max8688.c b/drivers/hwmon/max8688.c
-index 8ebfef2..7fb93f4 100644
---- a/drivers/hwmon/max8688.c
-+++ b/drivers/hwmon/max8688.c
-@@ -37,7 +37,7 @@
- #define MAX8688_STATUS_OT_FAULT		(1 << 13)
- #define MAX8688_STATUS_OT_WARNING	(1 << 14)
+@@ -51,7 +52,6 @@ MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
  
--static int max8688_get_status(struct i2c_client *client, int page, int reg)
-+static int max8688_read_byte_data(struct i2c_client *client, int page, int reg)
- {
- 	int ret = 0;
- 	int mfg_status;
-@@ -110,7 +110,7 @@ static struct pmbus_driver_info max8688_info = {
- 	.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_IOUT | PMBUS_HAVE_TEMP
- 		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_IOUT
- 		| PMBUS_HAVE_STATUS_TEMP,
--	.get_status = max8688_get_status,
-+	.read_byte_data = max8688_read_byte_data,
- };
+ static unsigned long wdt_open;
+ static unsigned expect_close;
+-static spinlock_t io_lock;
+ static unsigned char revision;
  
- static int max8688_probe(struct i2c_client *client,
-diff --git a/drivers/hwmon/pmbus.h b/drivers/hwmon/pmbus.h
-index a81f7f2..50647ab 100644
---- a/drivers/hwmon/pmbus.h
-+++ b/drivers/hwmon/pmbus.h
-@@ -281,13 +281,11 @@ struct pmbus_driver_info {
- 
- 	u32 func[PMBUS_PAGES];	/* Functionality, per page */
- 	/*
--	 * The get_status function maps manufacturing specific status values
--	 * into PMBus standard status values.
--	 * This function is optional and only necessary if chip specific status
--	 * register values have to be mapped into standard PMBus status register
--	 * values.
-+	 * The following functions map manufacturing specific register values
-+	 * to PMBus standard register values. Specify only if mapping is
-+	 * necessary.
- 	 */
--	int (*get_status)(struct i2c_client *client, int page, int reg);
-+	int (*read_byte_data)(struct i2c_client *client, int page, int reg);
- 	/*
- 	 * The identify function determines supported PMBus functionality.
- 	 * This function is only necessary if a chip driver supports multiple
-diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
-index 4e42a29..43ec105 100644
---- a/drivers/hwmon/pmbus_core.c
-+++ b/drivers/hwmon/pmbus_core.c
-@@ -270,18 +270,22 @@ const struct pmbus_driver_info *pmbus_get_driver_info(struct i2c_client *client)
+ /* Dog Food address - We use the game port address */
+@@ -122,8 +122,9 @@ static inline void superio_select(int ldn)
  }
- EXPORT_SYMBOL_GPL(pmbus_get_driver_info);
  
--static int pmbus_get_status(struct i2c_client *client, int page, int reg)
-+/*
-+ * _pmbus_read_byte_data() is similar to pmbus_read_byte_data(), but checks if
-+ * a device specific mapping funcion exists and calls it if necessary.
-+ */
-+static int _pmbus_read_byte_data(struct i2c_client *client, int page, int reg)
+ static inline void superio_enter(void)
++__acquires(&it87_io_lock)
  {
- 	struct pmbus_data *data = i2c_get_clientdata(client);
- 	const struct pmbus_driver_info *info = data->info;
- 	int status;
+-	spin_lock(&io_lock);
++	spin_lock(&it87_io_lock);
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -131,10 +132,11 @@ static inline void superio_enter(void)
+ }
  
--	if (info->get_status) {
--		status = info->get_status(client, page, reg);
-+	if (info->read_byte_data) {
-+		status = info->read_byte_data(client, page, reg);
- 		if (status != -ENODATA)
- 			return status;
+ static inline void superio_exit(void)
++__releases(&it87_io_lock)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
+-	spin_unlock(&io_lock);
++	spin_unlock(&it87_io_lock);
+ }
+ 
+ static inline void it8712f_wdt_ping(void)
+@@ -382,8 +384,6 @@ static int __init it8712f_wdt_init(void)
+ {
+ 	int err = 0;
+ 
+-	spin_lock_init(&io_lock);
+-
+ 	if (it8712f_wdt_find(&address))
+ 		return -ENODEV;
+ 
+diff --git a/drivers/watchdog/it87_wdt.c b/drivers/watchdog/it87_wdt.c
+index dad2924..87ac31d 100644
+--- a/drivers/watchdog/it87_wdt.c
++++ b/drivers/watchdog/it87_wdt.c
+@@ -42,6 +42,7 @@
+ #include <linux/reboot.h>
+ #include <linux/uaccess.h>
+ #include <linux/io.h>
++#include <linux/it87_lock.h>
+ 
+ #include <asm/system.h>
+ 
+@@ -136,7 +137,6 @@
+ 
+ static	unsigned int base, gpact, ciract, max_units;
+ static	unsigned long wdt_status;
+-static	DEFINE_SPINLOCK(spinlock);
+ 
+ static	int nogameport = DEFAULT_NOGAMEPORT;
+ static	int exclusive  = DEFAULT_EXCLUSIVE;
+@@ -163,7 +163,9 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started, default="
+ /* Superio Chip */
+ 
+ static inline void superio_enter(void)
++__acquires(&it87_io_lock)
+ {
++	spin_lock(&it87_io_lock);
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -171,9 +173,11 @@ static inline void superio_enter(void)
+ }
+ 
+ static inline void superio_exit(void)
++__releases(&it87_io_lock)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
++	spin_unlock(&it87_io_lock);
+ }
+ 
+ static inline void superio_select(int ldn)
+@@ -253,9 +257,6 @@ static void wdt_keepalive(void)
+ 
+ static void wdt_start(void)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 
+ 	superio_select(GPIO);
+@@ -266,14 +267,10 @@ static void wdt_start(void)
+ 	wdt_update_timeout();
+ 
+ 	superio_exit();
+-	spin_unlock_irqrestore(&spinlock, flags);
+ }
+ 
+ static void wdt_stop(void)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 
+ 	superio_select(GPIO);
+@@ -284,7 +281,6 @@ static void wdt_stop(void)
+ 		superio_outb(0x00, WDTVALMSB);
+ 
+ 	superio_exit();
+-	spin_unlock_irqrestore(&spinlock, flags);
+ }
+ 
+ /**
+@@ -299,8 +295,6 @@ static void wdt_stop(void)
+ 
+ static int wdt_set_timeout(int t)
+ {
+-	unsigned long flags;
+-
+ 	if (t < 1 || t > max_units * 60)
+ 		return -EINVAL;
+ 
+@@ -309,14 +303,12 @@ static int wdt_set_timeout(int t)
+ 	else
+ 		timeout = t;
+ 
+-	spin_lock_irqsave(&spinlock, flags);
+ 	if (test_bit(WDTS_TIMER_RUN, &wdt_status)) {
+ 		superio_enter();
+ 		superio_select(GPIO);
+ 		wdt_update_timeout();
+ 		superio_exit();
  	}
--	return  pmbus_read_byte_data(client, page, reg);
-+	return pmbus_read_byte_data(client, page, reg);
+-	spin_unlock_irqrestore(&spinlock, flags);
+ 	return 0;
  }
  
- static struct pmbus_data *pmbus_update_device(struct device *dev)
-@@ -302,38 +306,41 @@ static struct pmbus_data *pmbus_update_device(struct device *dev)
- 			if (!(info->func[i] & PMBUS_HAVE_STATUS_VOUT))
- 				continue;
- 			data->status[PB_STATUS_VOUT_BASE + i]
--			  = pmbus_get_status(client, i, PMBUS_STATUS_VOUT);
-+			  = _pmbus_read_byte_data(client, i, PMBUS_STATUS_VOUT);
- 		}
- 		for (i = 0; i < info->pages; i++) {
- 			if (!(info->func[i] & PMBUS_HAVE_STATUS_IOUT))
- 				continue;
- 			data->status[PB_STATUS_IOUT_BASE + i]
--			  = pmbus_get_status(client, i, PMBUS_STATUS_IOUT);
-+			  = _pmbus_read_byte_data(client, i, PMBUS_STATUS_IOUT);
- 		}
- 		for (i = 0; i < info->pages; i++) {
- 			if (!(info->func[i] & PMBUS_HAVE_STATUS_TEMP))
- 				continue;
- 			data->status[PB_STATUS_TEMP_BASE + i]
--			  = pmbus_get_status(client, i,
--					     PMBUS_STATUS_TEMPERATURE);
-+			  = _pmbus_read_byte_data(client, i,
-+						  PMBUS_STATUS_TEMPERATURE);
- 		}
- 		for (i = 0; i < info->pages; i++) {
- 			if (!(info->func[i] & PMBUS_HAVE_STATUS_FAN12))
- 				continue;
- 			data->status[PB_STATUS_FAN_BASE + i]
--			  = pmbus_get_status(client, i, PMBUS_STATUS_FAN_12);
-+			  = _pmbus_read_byte_data(client, i,
-+						  PMBUS_STATUS_FAN_12);
+@@ -335,11 +327,8 @@ static int wdt_set_timeout(int t)
+ 
+ static int wdt_get_status(int *status)
+ {
+-	unsigned long flags;
+-
+ 	*status = 0;
+ 	if (testmode) {
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 		superio_select(GPIO);
+ 		if (superio_inb(WDTCTRL) & WDT_ZERO) {
+@@ -349,7 +338,6 @@ static int wdt_get_status(int *status)
  		}
  
- 		for (i = 0; i < info->pages; i++) {
- 			if (!(info->func[i] & PMBUS_HAVE_STATUS_FAN34))
- 				continue;
- 			data->status[PB_STATUS_FAN34_BASE + i]
--			  = pmbus_get_status(client, i, PMBUS_STATUS_FAN_34);
-+			  = _pmbus_read_byte_data(client, i,
-+						  PMBUS_STATUS_FAN_34);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 	if (test_and_clear_bit(WDTS_KEEPALIVE, &wdt_status))
+ 		*status |= WDIOF_KEEPALIVEPING;
+@@ -557,16 +545,13 @@ static int __init it87_wdt_init(void)
+ 	int try_gameport = !nogameport;
+ 	u16 chip_type;
+ 	u8  chip_rev;
+-	unsigned long flags;
+ 
+ 	wdt_status = 0;
+ 
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 	chip_type = superio_inw(CHIPID);
+ 	chip_rev  = superio_inb(CHIPREV) & 0x0f;
+ 	superio_exit();
+-	spin_unlock_irqrestore(&spinlock, flags);
+ 
+ 	switch (chip_type) {
+ 	case IT8702_ID:
+@@ -599,7 +584,6 @@ static int __init it87_wdt_init(void)
+ 		return -ENODEV;
+ 	}
+ 
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 
+ 	superio_select(GPIO);
+@@ -617,14 +601,12 @@ static int __init it87_wdt_init(void)
+ 		gpact = superio_inb(ACTREG);
+ 		superio_outb(0x01, ACTREG);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 		if (request_region(base, 1, WATCHDOG_NAME))
+ 			set_bit(WDTS_USE_GP, &wdt_status);
+ 		else
+ 			rc = -EIO;
+ 	} else {
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 
+ 	/* If we haven't Gameport support, try to get CIR support */
+@@ -642,7 +624,6 @@ static int __init it87_wdt_init(void)
+ 			goto err_out;
+ 		}
+ 		base = CIR_BASE;
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 
+ 		superio_select(CIR);
+@@ -656,7 +637,6 @@ static int __init it87_wdt_init(void)
  		}
  
- 		if (info->func[0] & PMBUS_HAVE_STATUS_INPUT)
- 			data->status[PB_STATUS_INPUT_BASE]
--			  = pmbus_get_status(client, 0, PMBUS_STATUS_INPUT);
-+			  = _pmbus_read_byte_data(client, 0,
-+						  PMBUS_STATUS_INPUT);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
  
- 		for (i = 0; i < data->num_sensors; i++) {
- 			struct pmbus_sensor *sensor = &data->sensors[i];
+ 	if (timeout < 1 || timeout > max_units * 60) {
+@@ -686,6 +666,7 @@ static int __init it87_wdt_init(void)
+ 
+ 	/* Initialize CIR to use it as keepalive source */
+ 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
++		spin_lock(&it87_io_lock);
+ 		outb(0x00, CIR_RCR(base));
+ 		outb(0xc0, CIR_TCR1(base));
+ 		outb(0x5c, CIR_TCR2(base));
+@@ -693,6 +674,7 @@ static int __init it87_wdt_init(void)
+ 		outb(0x00, CIR_BDHR(base));
+ 		outb(0x01, CIR_BDLR(base));
+ 		outb(0x09, CIR_IER(base));
++		spin_unlock(&it87_io_lock);
+ 	}
+ 
+ 	printk(KERN_INFO PFX "Chip IT%04x revision %d initialized. "
+@@ -707,21 +689,17 @@ err_out_reboot:
+ err_out_region:
+ 	release_region(base, test_bit(WDTS_USE_GP, &wdt_status) ? 1 : 8);
+ 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 		superio_select(CIR);
+ 		superio_outb(ciract, ACTREG);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ err_out:
+ 	if (try_gameport) {
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 		superio_select(GAMEPORT);
+ 		superio_outb(gpact, ACTREG);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 
+ 	return rc;
+@@ -729,10 +707,6 @@ err_out:
+ 
+ static void __exit it87_wdt_exit(void)
+ {
+-	unsigned long flags;
+-	int nolock;
+-
+-	nolock = !spin_trylock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 	superio_select(GPIO);
+ 	superio_outb(0x00, WDTCTRL);
+@@ -748,8 +722,6 @@ static void __exit it87_wdt_exit(void)
+ 		superio_outb(ciract, ACTREG);
+ 	}
+ 	superio_exit();
+-	if (!nolock)
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 
+ 	misc_deregister(&wdt_miscdev);
+ 	unregister_reboot_notifier(&wdt_notifier);
 -- 
-1.7.3.1
 
 
 _______________________________________________
