@@ -1,87 +1,382 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 05 Apr 2011 18:03:50 +0000
-Subject: Re: [lm-sensors] [RFC PATCH] hwmon: Add SubmittingHwmonPatches to
-Message-Id: <20110405180350.GB19316@ericsson.com>
+From: Andreas Herrmann <herrmann.der.user@googlemail.com>
+Date: Fri, 08 Apr 2011 13:54:07 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: Add driver for AMD family 15h
+Message-Id: <20110408135407.GA12014@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1301760379-13038-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1301760379-13038-1-git-send-email-guenter.roeck@ericsson.com>
+References: <20110404160733.GA11818@alberich.amd.com>
+ <20110405144536.GA5054@alberich.amd.com>
+ <20110406135424.GC2177@alberich.amd.com>
+In-Reply-To: <20110406135424.GC2177@alberich.amd.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Thomas Renninger <trenn@suse.de>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Clemens Ladisch <clemens@ladisch.de>
 
-Hi Jean,
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
 
-On Mon, Apr 04, 2011 at 12:15:29PM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sun, 3 Apr 2011 14:21:13 -0700, Guenter Roeck wrote:
-> > On Sun, Apr 03, 2011 at 11:37:48AM -0400, Jean Delvare wrote:
-> > > Hi Guenter,
-> > > 
-> > > On Sat, 2 Apr 2011 09:06:19 -0700, Guenter Roeck wrote:
-> > > > When writing hardware monitoring drivers, there are some common pitfalls which
-> > > > keep coming up in code reviews. This patch provides a document describing all
-> > > > those pitfalls and how to avoid them.
-> > > 
-> > > FWIW, for the i2c subsystem I decided to publish my recommendations on
-> > > a wiki, rather than in the kernel tree:
-> > >   https://i2c.wiki.kernel.org/index.php/Linux_2.6_I2C_development_FAQ
-> > > 
-> > > We could have a similar wiki for the hwmon subsystem if you think this
-> > > would be useful. It would also be possible to create a page in the
-> > > lm-sensors.org wiki, as both projects are tightly related anyway.
-> > > 
-> > Yes, I think that would be useful. I think we should have the document
-> > in the kernel as well, though, since many people won't read the wiki,
-> > and because having it in the kernel makes it official (or at least more so).
-> 
-> Meaning we'd have to maintain the document in two different places?
-> Maybe... but think twice before you go that route.
-> 
-Good point. Your I2C document is a bit higher level anyway. I'll stick
-with the kernel version.
+This CPU family provides NB register values to gather following
+TDP information
 
-> > > > (...)
-> > > > +* Avoid function macros. While it may save a line or so in the source, it
-> > > > +  obfuscates the code and makes code review more difficult. It may also result
-> > > > +  in code which is more complicated than necessary.
-> > > 
-> > > See my review of your max16065 driver ;)
-> > > 
-> > Guess you mean to avoid complex maros as well. Ok, no problem.
-> 
-> Maybe I misunderstood "function macros" in your sentence. Did you mean
-> functions with parameters, or macro-generated functions? I thought the
-> first, but maybe you meant the second. Well, this point needs
-> clarification apparently ;)
-> 
-I meant macro-generated functions. I rephrased it to "Avoid calculations
-in macros and macro-generated functions".
+* ProcessorPwrWatts: Specifies in Watts the maximum amount of power
+  the processor can support.
+* CurrPwrWatts: Specifies in Watts the current amount of power being
+  consumed by the processor.
 
-> > (...)
-> > Overall this was mostly to initiate a discussion. Maybe it would make sense to add it
-> > to the wiki first, and copy it into the kernel after it stabilizes. This way it would
-> > not just be my document, but give the community a chance to participate.
-> > What do you think ?
-> 
-> We two are the maintainers of the hwmon subsystem, so this
-> documentation must be ours. Don't ask the community at large how they
-> want to contribute, you won't like the answer ;) In fact, the reason
-> you felt the need to write this document is, in part, because you want
-> to set the rules contributors should follow to make you (and me) happy.
-> 
-Plus to generate a checklist for myself.
+This driver provides
 
-> I'm fine with the document (both its existence and its content. In fact
-> I find it curious that I wrote a guidance document to i2c subsystem
-> contributors and never felt the need to do the same for hwmon subsystem
-> contributors. I can't really explain it.
-> 
-Sweet little mysteries of life ;)
+* power1_max (ProcessorPwrWatts)
+* power1_input (CurrPwrWatts)
+
+Changes from v2:
+ - fix format strings
+ - removed paranoid checks for existense of functions 3 and 5
+ - changed return type of function f15h_power_is_internal_node0
+ - use power1_max instead of power1_cap
+ - use dev_warn instead of WARN_ON
+ - rebased against 2.6.39-rc2
+ - added Documentation/hwmon/f15h_power
+
+Changes from v3:
+ - read static power information only once (during driver initialization)
+ - made use of attribute groups
+ - renamed f15h_power to fam15h_power
+
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
+ Documentation/hwmon/fam15h_power |   37 ++++++
+ drivers/hwmon/Kconfig            |   10 ++
+ drivers/hwmon/Makefile           |    1 +
+ drivers/hwmon/fam15h_power.c     |  229 ++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 277 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/fam15h_power
+ create mode 100644 drivers/hwmon/fam15h_power.c
+
+At this stage I consider the _max attribute as the right one for
+reporting ProcessorPwrWatts.
+
+Hopefully I've addressed all your coments.
+Please apply.
+
 
 Thanks,
-Guenter
+
+Andreas
+
+diff --git a/Documentation/hwmon/fam15h_power b/Documentation/hwmon/fam15h_power
+new file mode 100644
+index 0000000..2f4d291
+--- /dev/null
++++ b/Documentation/hwmon/fam15h_power
+@@ -0,0 +1,37 @@
++Kernel driver fam15h_power
++=============
++
++Supported chips:
++* AMD Family 15h Processors
++
++  Prefix: 'fam15h_power'
++  Addresses scanned: PCI space
++  Datasheets:
++  BIOS and Kernel Developer's Guide (BKDG) For AMD Family 15h Processors
++    (not yet published)
++
++Author: Andreas Herrmann <andreas.herrmann3@amd.com>
++
++Description
++-----------
++
++This driver permits reading of registers providing power information
++of AMD Family 15h processors.
++
++For AMD Family 15h processors the following power values can be
++calculated using different processor northbridge function registers:
++
++* BasePwrWatts: Specifies in watts the maximum amount of power
++  consumed by the processor for NB and logic external to the core.
++* ProcessorPwrWatts: Specifies in watts the maximum amount of power
++  the processor can support.
++* CurrPwrWatts: Specifies in watts the current amount of power being
++  consumed by the processor.
++
++This driver provides ProcessorPwrWatts and CurrPwrWatts:
++* power1_max (ProcessorPwrWatts)
++* power1_input (CurrPwrWatts)
++
++On multi-node processors the calculated value is for the entire
++package and not for a single node. Thus the driver creates sysfs
++attributes only for internal node0 of a multi-node processor.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 060ef63..fb3e334 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -249,6 +249,16 @@ config SENSORS_K10TEMP
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called k10temp.
+ 
++config SENSORS_FAM15H_POWER
++	tristate "AMD Family 15h processor power"
++	depends on X86 && PCI
++	help
++	  If you say yes here you get support for processor power
++	  information of your AMD family 15h CPU.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called fam15h_power.
++
+ config SENSORS_ASB100
+ 	tristate "Asus ASB100 Bach"
+ 	depends on X86 && I2C && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 967d0ea..236d3f9 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
+ obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
+ obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
+ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
++obj-$(CONFIG_SENSORS_FAM15H_POWER) += fam15h_power.o
+ obj-$(CONFIG_SENSORS_FSCHMD)	+= fschmd.o
+ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+new file mode 100644
+index 0000000..cb6eb99
+--- /dev/null
++++ b/drivers/hwmon/fam15h_power.c
+@@ -0,0 +1,229 @@
++/*
++ * fam15h_power.c - AMD Family 15h processor power monitoring
++ *
++ * Copyright (c) 2011 Advanced Micro Devices, Inc.
++ * Author: Andreas Herrmann <andreas.herrmann3@amd.com>
++ *
++ *
++ * This driver is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This driver is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++ * See the GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this driver; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/err.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/bitops.h>
++#include <asm/processor.h>
++
++MODULE_DESCRIPTION("AMD Family 15h CPU processor power monitor");
++MODULE_AUTHOR("Andreas Herrmann <andreas.herrmann3@amd.com>");
++MODULE_LICENSE("GPL");
++
++/* D18F3 */
++#define REG_NORTHBRIDGE_CAP		0xe8
++
++/* D18F4 */
++#define REG_PROCESSOR_TDP		0x1b8
++
++/* D18F5 */
++#define REG_TDP_RUNNING_AVERAGE		0xe0
++#define REG_TDP_LIMIT3			0xe8
++
++struct fam15h_power_data {
++	struct device *hwmon_dev;
++	unsigned int tdp_to_watt;
++	unsigned int base_tdp;
++	unsigned int processor_pwr_watts;
++};
++
++static ssize_t show_power(struct device *dev,
++			  struct device_attribute *attr, char *buf)
++{
++	u32 val, tdp_limit, running_avg_range;
++	s32 running_avg_capture;
++	u64 curr_pwr_watts;
++	struct pci_dev *f4 = to_pci_dev(dev);
++	struct fam15h_power_data *data = pci_get_drvdata(f4);
++
++	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
++				  REG_TDP_RUNNING_AVERAGE, &val);
++	running_avg_capture = (val >> 4) & 0x3fffff;
++	running_avg_capture = sign_extend32(running_avg_capture, 22);
++	running_avg_range = val & 0xf;
++
++	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
++				  REG_TDP_LIMIT3, &val);
++
++	tdp_limit = val >> 16;
++	curr_pwr_watts = tdp_limit  + data->base_tdp -
++		(s32)(running_avg_capture >> (running_avg_range + 1));
++	curr_pwr_watts *= data->tdp_to_watt;
++
++	/*
++	 * Convert to microWatt
++	 *
++	 * power is in Watt provided as fixed point integer with
++	 * scaling factor 1/(2^16).  For conversion we use
++	 * (10^6)/(2^16) = 15625/(2^10)
++	 */
++	curr_pwr_watts = (curr_pwr_watts * 15625) >> 10;
++	return sprintf(buf, "%u\n", (unsigned int) curr_pwr_watts);
++}
++static DEVICE_ATTR(power1_input, S_IRUGO, show_power, NULL);
++
++static ssize_t show_power_max(struct device *dev,
++			     struct device_attribute *attr, char *buf)
++{
++	struct pci_dev *f4 = to_pci_dev(dev);
++	struct fam15h_power_data *data = pci_get_drvdata(f4);
++
++	return sprintf(buf, "%u\n", data->processor_pwr_watts);
++}
++static DEVICE_ATTR(power1_max, S_IRUGO, show_power_max, NULL);
++
++static ssize_t show_name(struct device *dev,
++			 struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "fam15h_power\n");
++}
++static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
++
++static struct attribute *fam15h_power_attrs[] = {
++	&dev_attr_power1_input.attr,
++	&dev_attr_power1_max.attr,
++	&dev_attr_name.attr,
++	NULL
++};
++
++static struct attribute_group fam15h_power_attr_group = {
++	.attrs	= fam15h_power_attrs,
++};
++
++static bool __devinit fam15h_power_is_internal_node0(struct pci_dev *f4)
++{
++	u32 val;
++
++	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 3),
++				  REG_NORTHBRIDGE_CAP, &val);
++	if ((val & BIT(29)) && ((val >> 30) & 3))
++		return false;
++
++	return true;
++}
++
++static void __devinit fam15h_power_init_data(struct pci_dev *f4,
++					     struct fam15h_power_data *data)
++{
++	u32 val;
++	u64 tmp;
++
++	pci_read_config_dword(f4, REG_PROCESSOR_TDP, &val);
++	data->base_tdp = val >> 16;
++	tmp = val & 0xffff;
++
++	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
++				  REG_TDP_LIMIT3, &val);
++
++	data->tdp_to_watt = ((val & 0x3ff) << 6) | ((val >> 10) & 0x3f);
++	tmp *= data->tdp_to_watt;
++
++	/* result not allowed to be >= 256W */
++	if ((tmp>>16) >= 256)
++		dev_warn(&f4->dev, "Bogus value for ProcessorPwrWatts "
++			 "(processor_pwr_watts>=%u)\n",
++			 (unsigned int) (tmp >> 16));
++
++	/* convert to microWatt */
++	data->processor_pwr_watts = (tmp * 15625) >> 10;
++}
++
++static int __devinit fam15h_power_probe(struct pci_dev *pdev,
++					const struct pci_device_id *id)
++{
++	struct fam15h_power_data *data;
++	struct device *dev;
++	int err;
++
++	if (!fam15h_power_is_internal_node0(pdev)) {
++		err = -ENODEV;
++		goto exit;
++	}
++
++	data = kzalloc(sizeof(struct fam15h_power_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++	fam15h_power_init_data(pdev, data);
++
++	dev = &pdev->dev;
++	err = sysfs_create_group(&dev->kobj, &fam15h_power_attr_group);
++	if (err)
++		goto exit_free_data;
++
++	data->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove_group;
++	}
++	pci_set_drvdata(pdev, data);
++
++	return 0;
++
++exit_remove_group:
++	sysfs_remove_group(&dev->kobj, &fam15h_power_attr_group);
++exit_free_data:
++	kfree(data);
++exit:
++	return err;
++}
++
++static void __devexit fam15h_power_remove(struct pci_dev *pdev)
++{
++	struct device *dev;
++	struct fam15h_power_data *data = pci_get_drvdata(pdev);
++
++	dev = &pdev->dev;
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&dev->kobj, &fam15h_power_attr_group);
++	pci_set_drvdata(pdev, NULL);
++	kfree(data);
++}
++
++static DEFINE_PCI_DEVICE_TABLE(fam15h_power_id_table) = {
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
++	{}
++};
++MODULE_DEVICE_TABLE(pci, fam15h_power_id_table);
++
++static struct pci_driver fam15h_power_driver = {
++	.name = "fam15h_power",
++	.id_table = fam15h_power_id_table,
++	.probe = fam15h_power_probe,
++	.remove = __devexit_p(fam15h_power_remove),
++};
++
++static int __init fam15h_power_init(void)
++{
++	return pci_register_driver(&fam15h_power_driver);
++}
++
++static void __exit fam15h_power_exit(void)
++{
++	pci_unregister_driver(&fam15h_power_driver);
++}
++
++module_init(fam15h_power_init)
++module_exit(fam15h_power_exit)
+-- 
+1.7.4.1
+
 
 _______________________________________________
 lm-sensors mailing list
