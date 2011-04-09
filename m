@@ -1,49 +1,73 @@
-From: Rebel <atr_temp@mail.ru>
-Date: Fri, 08 Apr 2011 18:06:48 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 09 Apr 2011 08:02:25 +0000
 Subject: Re: [lm-sensors] ITE IT8721F, IT8758E it87 standalone driver report
-Message-Id: <1362362958.20110408220648@mail.ru>
+Message-Id: <20110409100225.3abaf56e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <2610648201.20110407001722@mail.ru>
 In-Reply-To: <2610648201.20110407001722@mail.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1251"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8sIEplYW4uCgpZb3Ugd3JvdGU6Cgo+PiArNS4wMFYgNC45ODhWCj4+ICsxMi4wViAxMS44
-MTZWCgo+IEZvciB0aGVzZSB0d28sIHdlIHdvdWxkIG5lZWQgbW9yZSB2YWx1ZXMgZnJvbSB0aGUg
-QklPUyB0byBjb25jbHVkZSwgYXMKPiB3ZSBoYXZlIDQgY2FuZGlkYXRlcyAoaW4wLCBpbjEsIGlu
-MiBhbmQgaW42LikKCk1vcmUgdmFsdWVzPyBCdXQgdGhlcmUgaXMgbm8gbW9yZSB2YWx1ZXMgaW4g
-bXkgQklPUy4KCj4+IEFmdGVyIHRoaXMgIGkgIHJ1biAgc2Vuc29ycyAgYnV0ICBpdCAgb3V0cHV0
-cyAgdGVtcDEsIHRlbXAyIGFuZCBzbyBvbiAobm8gbXkKPj4gbGFiZWxzKS4gIE5leHQgIGkgIHJ1
-biAgInNlbnNvcnMgIC1jIC9ldGMvc2Vuc29ycy5jb25mIiAgYW5kICBvdXRwdXQgIHdhcwo+PiBj
-b3JyZWN0LiAgQW5kIGFmdGVyIGRlbGV0aW5nIGNoaXAgYW5kIGxhYmVscyBmcm9tIGNvbmZpZ3Vy
-YXRpb24gZmlsZSB0b28uCgo+IFRoaXMgaXMgc2ltcGx5IG5vdCBwb3NzaWJsZS4gInNlbnNvcnMi
-IHJlYWRzIHRoZSBjb25maWd1cmF0aW9uIGZpbGVzCj4gYWdhaW4gZWFjaCB0aW1lIHRvIHJ1biBp
-dC4KCkkgIGRvbid0IGtub3cgaG93IGl0IGNhbiBiZSwgYnV0IGJlZm9yZSBydW5uaW5nIHNlbnNv
-cnMzIGF0IGZpcnN0IHRpbWUsCi9ldGMvc2Vuc29ycy5kIHdhcyBhbiBlbXB0eSBmb2xkZXIsIGJ1
-dCBub3cgdGhlcmUgaXMgaXQ4NzIxLmNvbmYgd2ljaApob2xkcyBkYXRhIGkgcHV0IGludG8gL2V0
-Yy9zZW5zb3JzLmNvbmYKCj4+IEFsbCAgbmV4dCAgdGltZXMgIHJ1bm5pbmcgIHNlbnNvcnMgd2l0
-aG91dCAtYyB0aGUgb3V0cHV0IHdhcwo+PiBjb3JyZWN0LCB3aHk/Cgo+IE5vdCBzdXJlIHdoYXQg
-eW91IGRpZCBleGFjdGx5LCBidXQgL2V0Yy9zZW5zb3JzLmNvbmYgaXMgbm90IHVzZWQgYnkKPiBs
-bS1zZW5zb3JzIDMueCBpZiAvZXRjL3NlbnNvcnMzLmNvbmYgaXMgcHJlc2VudC4gL2V0Yy9zZW5z
-b3JzMy5jb25mIGlzCj4gYWx3YXlzIGNoZWNrZWQgZmlyc3QsIHRvIG1ha2UgaXQgcG9zc2libGUg
-dG8gaGF2ZSBib3RoIGxtLXNlbnNvcnMgMiBhbmQKPiBsbS1zZW5zb3JzIDMgaW5zdGFsbGVkIG9u
-IGEgZ2l2ZW4gbWFjaGluZSAoYWx0aG91Z2ggbm9ib2R5IHNob3VsZCBiZQo+IGRvaW5nIHRoaXMg
-YW55IGxvbmdlci4pCgpIZXJlIGlzIHRoZSBsb2cgb2YgbXkgYWN0aW9uczoKLSAgIGkgIGhhdmUg
-IHJlbW92ZWQgICBvbGQgICBzZW5zb3JzMiAoYXB0LWdldCByZW1vdmUgbG0tc2Vuc29ycykgYnV0
-IG1heSBiZQpVYnVudHUgaGFzbid0IGRlbGV0ZWQgdGhlIG9sZCBjb25maWcgZmlsZS4KLSAgaSAg
-Y29tcGlsZWQgIG5ldyBzZW5zb3JzIGZyb20gc291cmNlcyBhbmQgcnVuIGl0IHdpdGhvdXQgcGFy
-YW1ldGVycwoodGhlIG91dHB1dCB3YXMgdGVtcDEgZmFuMSBhbmQgc28gb24pCi0gaW4gL2V0Yy9z
-ZW5zb3JzLmNvbmYgaSBwdXQgbXkgY2hpcCBhbmQgc29tZSBsYWJlbHMKLSAgcnVuICBuZXdseSAg
-YnVpbHQgc2Vuc29ycyB3aXRoIGNvbmZpZyAvZXRjL3NybnNvcnMuY29uZgoic2Vuc29ycyAgLWMg
-IC9ldGMvc2Vuc29ycy5jb25mIiAgYW5kIG91dHB1dCB3YXMgd2l0aCBjb3JyZWN0IGxhYmVscyBp
-CnB1dCBpbiAvZXRjL3NlbnNvcnMuY29uZgotICBpICBoYXZlICBkZWxldGVkIG15IGNoaXAgYW5k
-IGxhYmVzbHMgZnJvbSAvZXRjL3NybnNvcnMuY29uZiBhbmQgcnVuCnNlbnNvcnMgYWdhaW4gd2l0
-aG91dCBjb25maWcsIG91dHB1dCB3YXMgY29ycmVjdCB3aXRoIG15IGxhYmVscwoKSSAgdGhpbmss
-ICB3aGVuICBpIHJ1biBzZW5zb3JzIHdpdGggZWRpdGVkIGNvbmZpZyAvZXRjL3NlbnNvcnMuY29u
-ZiBpdApjcmVhdGVzIGZpbGUgaW4gL2V0Yy9zZW5zb3JzLmQuIElzIGl0IHJpZ2h0PwoKLS0gCtEg
-8+Lg5uXt6OXsLAogUmViZWwgICAgICAgICAgICAgICAgICAgICAgICAgaHR0cDovL3d3dy5hbGVr
-c2FuZHIucnUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
+On Fri, 8 Apr 2011 22:06:48 +0400, Rebel wrote:
+> Hello, Jean.
+> 
+> You wrote:
+> 
+> >> +5.00V 4.988V
+> >> +12.0V 11.816V
+> 
+> > For these two, we would need more values from the BIOS to conclude, as
+> > we have 4 candidates (in0, in1, in2 and in6.)
+> 
+> More values? But there is no more values in my BIOS.
+
+I mean more samples for a given values. Often monitored values
+oscillate between two or three values. On some systems you have to
+leave and re-enter the monitoring screen in the BIOS to get new values,
+but most of them update the values every second automatically.
+
+> > This is simply not possible. "sensors" reads the configuration files
+> > again each time to run it.
+> 
+> I  don't know how it can be, but before running sensors3 at first time,
+> /etc/sensors.d was an empty folder, but now there is it8721.conf wich
+> holds data i put into /etc/sensors.conf
+
+Either you live in the 4th dimension, or your distribution has extra
+code doing that kind of magic. The code at lm-sensors.org doesn't do
+anything like this.
+
+> > Not sure what you did exactly, but /etc/sensors.conf is not used by
+> > lm-sensors 3.x if /etc/sensors3.conf is present. /etc/sensors3.conf is
+> > always checked first, to make it possible to have both lm-sensors 2 and
+> > lm-sensors 3 installed on a given machine (although nobody should be
+> > doing this any longer.)
+> 
+> Here is the log of my actions:
+> -   i  have  removed   old   sensors2 (apt-get remove lm-sensors) but may be
+> Ubuntu hasn't deleted the old config file.
+> -  i  compiled  new sensors from sources and run it without parameters
+> (the output was temp1 fan1 and so on)
+> - in /etc/sensors.conf i put my chip and some labels
+> -  run  newly  built sensors with config /etc/srnsors.conf
+> "sensors  -c  /etc/sensors.conf"  and output was with correct labels i
+> put in /etc/sensors.conf
+> -  i  have  deleted my chip and labesls from /etc/srnsors.conf and run
+> sensors again without config, output was correct with my labels
+> 
+> I  think,  when  i run sensors with edited config /etc/sensors.conf it
+> creates file in /etc/sensors.d. Is it right?
+
+Our code doesn't do this, no. Your Linux distribution, maybe, but this
+is the first time I hear of this.
+
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
