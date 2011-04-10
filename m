@@ -1,22 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Apr 2011 15:47:31 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/2] isaset: Add support for word
-Message-Id: <20110414154731.GD4838@ericsson.com>
+From: Ian Pilcher <arequipeno@gmail.com>
+Date: Sun, 10 Apr 2011 15:28:34 +0000
+Subject: Re: [lm-sensors] Standalone driver for W83677HG-I, NCT6775F,
+Message-Id: <insib3$5fb$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110412225640.0d385e8b@endymion.delvare>
-In-Reply-To: <20110412225640.0d385e8b@endymion.delvare>
+References: <20110205175852.GA26672@ericsson.com>
+In-Reply-To: <20110205175852.GA26672@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 12, 2011 at 04:56:40PM -0400, Jean Delvare wrote:
-> Sometimes the hardware expects 16-bit or 32-bit writes rather than byte
-> writes. Add support to isaset so that the user can ask for such writes.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Just a quick note that this driver (10-Mar-2011?) seems to be working
+well on my Intel DQ67SW.  Temperature and fan monitoring were pretty
+easy to set up (no thermistors, thank goodness!); I haven't bothered
+with fan control, since that seems to be working "automagically".
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+As always, trying to figure out how they've wired up the voltages will
+be the most challenging part.  I was hoping that Intel might be more
+forthcoming in this area than other manufacturers, but that does not
+appear to be the case.
+
+With a bit of luck, I should be able to post a config for this board
+relatively shortly.
+
+What kernel version is this updated driver likely to appear in?  I'd
+love to get rid of the DKMS hackery.
+
+Thanks!
+
+-- 
+====================================
+Ian Pilcher                                         arequipeno@gmail.com
+"If you're going to shift my paradigm ... at least buy me dinner first."
+====================================
+
 
 _______________________________________________
 lm-sensors mailing list
