@@ -1,21 +1,49 @@
-From: "Fred ." <eldmannen@gmail.com>
-Date: Thu, 21 Apr 2011 15:28:58 +0000
-Subject: [lm-sensors] Monitor temperature for Nvidia graphics card?
-Message-Id: <BANLkTinEKiqT9tz=QCRFHZDDp4Z3cQLCAw@mail.gmail.com>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Mon, 11 Apr 2011 23:53:22 +0000
+Subject: [lm-sensors] [PATCH v4 2/2] Use "request_muxed_region" in it87
+Message-Id: <1302566002-23962-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1302565858-23849-1-git-send-email-natg@google.com>
+In-Reply-To: <1302565858-23849-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
+Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
-Hello
-I have GeForce 8600 GT.
-I have lm_sensors 3.2.0, kernel 2.6.38, nvidia driver 270.41.06.
+02 - Chages to hwmon it87 driver to use "request_muxed_region"
+Serialize access to the hardware by using "request_muxed_region" macro defined
+by Alan Cox. Call to this macro will hold off the requestor if the resource is
+currently busy.
 
-Isn't monitoring of GPU temperature on Nvidia graphics card supported?
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
+---
 
-I ran 'sudo sensors-detect', but it doesn't seem like it found module
-for GeForce?
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 316b648..1dc04d4 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -111,6 +111,9 @@ superio_select(int ldn)
+ static inline void
+ superio_enter(void)
+ {
++	while (!request_muxed_region(REG, 2, DRVNAME))
++		continue;
++
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -122,6 +125,7 @@ superio_exit(void)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
++	release_region(REG, 2);
+ }
+ 
+ /* Logical device 4 registers */
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
