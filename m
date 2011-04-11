@@ -1,48 +1,48 @@
 From: Nat Gurumoorthy <natg@google.com>
-Date: Mon, 11 Apr 2011 23:53:22 +0000
-Subject: [lm-sensors] [PATCH v4 2/2] Use "request_muxed_region" in it87
-Message-Id: <1302566002-23962-1-git-send-email-natg@google.com>
+Date: Mon, 11 Apr 2011 23:50:58 +0000
+Subject: [lm-sensors] [PATCH v4 0/2] Make all it87 drivers SMP safe
+Message-Id: <1302565858-23849-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1302565858-23849-1-git-send-email-natg@google.com>
-In-Reply-To: <1302565858-23849-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
 Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
+There are 3 different drivers that touch the it87 hardware registers.
+The 3 drivers have been written independently and access the it87 hardware
+registers assuming they are the only driver accessing it. This change
+attempts to serialize access to the hardware by using
+"request_muxed_region" macro defined by Alan Cox. Call to this macro
+will hold off the requestor if the resource is currently busy.
+The use of the above macro makes it possible to get rid of
+spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
+This also greatly simplifies the implementation of it87_wdt.c driver.
+
+01 - Changes to it87 watchdog driver to use "request_muxed_region"
+ drivers/watchdog/it8712f_wdt.c
+ drivers/watchdog/it87_wdt.c
+
 02 - Chages to hwmon it87 driver to use "request_muxed_region"
-Serialize access to the hardware by using "request_muxed_region" macro defined
-by Alan Cox. Call to this macro will hold off the requestor if the resource is
-currently busy.
+ drivers/hwmon/it87.c
+
+ drivers/hwmon/it87.c           |    4 ++++
+ drivers/watchdog/it8712f_wdt.c |    9 ++++-----
+ drivers/watchdog/it87_wdt.c    |   39 ++++-----------------------------------
+ 3 files changed, 12 insertions(+), 40 deletions(-)
 
 Signed-off-by: Nat Gurumoorthy <natg@google.com>
----
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 316b648..1dc04d4 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -111,6 +111,9 @@ superio_select(int ldn)
- static inline void
- superio_enter(void)
- {
-+	while (!request_muxed_region(REG, 2, DRVNAME))
-+		continue;
-+
- 	outb(0x87, REG);
- 	outb(0x01, REG);
- 	outb(0x55, REG);
-@@ -122,6 +125,7 @@ superio_exit(void)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
-+	release_region(REG, 2);
- }
- 
- /* Logical device 4 registers */
--- 
-1.7.3.1
+Patch History:
+v4:
+- Remove extra braces in superio_enter routines.
+
+v3:
+- Totally abandon the spinlock based approach and use "request_muxed_region" to
+  hold off requestors if the resource is busy.
+
+v2:
+- More verbose patch headers. Add In-Reply-To: field.
 
 
 _______________________________________________
