@@ -1,7 +1,7 @@
-From: Philip Pokorny <ppokorny@penguincomputing.com>
-Date: Tue, 12 Apr 2011 15:52:13 +0000
+From: Erik Brakkee <erik@brakkee.org>
+Date: Tue, 12 Apr 2011 17:09:32 +0000
 Subject: Re: [lm-sensors] System instability with Supermicro X8DTi-F and
-Message-Id: <9008CCA0-2FA1-4AFA-A740-D43BD4B3C5A6@penguincomputing.com>
+Message-Id: <4DA4874C.7090403@brakkee.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4DA43970.6040605@brakkee.org>
 In-Reply-To: <4DA43970.6040605@brakkee.org>
@@ -10,59 +10,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Your own experience says that fancontrol, lmsensors and a BMC do not  
-have a way to coordinate actions which leads to errors and faults.
+Philip Pokorny wrote:
+> Your own experience says that fancontrol, lmsensors and a BMC do not 
+> have a way to coordinate actions which leads to errors and faults.
+>
+> And as Jean has said, the Winbond chip has a paged register set that 
+> requires coordination to access.  The BMC code has now way to 
+> coordinate access with the OS.
+>
+> Jean mentions thermal trip points. I believe that the winbond chip 
+> includes it's own autonomous fan speed control seperate from the BMC 
+> monitoring. What if you just reprogram the fan control curves in the 
+> Winbond chip once at boot if you don't like the ES BIOS fan control 
+> curve?
+I am probably not going to do that because it sounds risky.
+>
+> Otherwise, no I don't think what you want is possible.
+So that's clear now. The solution I have now is also acceptable. (Also, 
+I did not receive Jean's mail).
+>
+> How hot were the CPU under full load with the ES fan curve that you 
+> felt they needed to be colder?
+Under full CPU load for a longer time, it can get up to 85-90 degrees 
+Celsius when I use the lowest setting in the motherboard. With maximum 
+cooling it gets to 72 degrees in such a case. When I use fancontrol I 
+can make it such that it is around 59 degrees while idle and at most 75 
+degrees when fully loaded. A temperature of 59 degrees is the 
+temperature just after it starts up so the minimum temperature. Right  
+now I am just using a setting which is one higher than the lowest in the 
+motherboard and that is acceptable, but it will be a bit louder under 
+idle conditions. Under full load it will get approximately 80 degrees.
+>
+>
+> Phil P.
+>
 
-And as Jean has said, the Winbond chip has a paged register set that  
-requires coordination to access.  The BMC code has now way to  
-coordinate access with the OS.
-
-Jean mentions thermal trip points. I believe that the winbond chip  
-includes it's own autonomous fan speed control seperate from the BMC  
-monitoring. What if you just reprogram the fan control curves in the  
-Winbond chip once at boot if you don't like the ES BIOS fan control  
-curve?
-
-Otherwise, no I don't think what you want is possible.
-
-How hot were the CPU under full load with the ES fan curve that you  
-felt they needed to be colder?
-
-Phil P.
 
 -- 
-Philip Pokorny, RHCE
-Chief Hardware Architect
-PENGUIN COMPUTING, Inc
-www.penguincomputing.com
 
-On Apr 12, 2011, at 8:33 AM, Erik Brakkee <erik@brakkee.org> wrote:
+Nonsense and other useful things: http://brakkee.org
+MountainHoppers: http://mountainhoppers.nl
+Track Detective: http://trackdetective.com
+Twitter: http://twitter.com/ErikBrakkee
 
-> Philip Pokorny wrote:
->> Your motherboard BIOS includes fan speed control and a BMC for  
->> sensor monitoring
->>
->> Use ipmitool and perhaps bmcsensors module to monitor sensors.
->>
->> Go into the bios and under hardware monitoring arrow down to see  
->> fan speeds and then select the ES fan profile (lowest) rather than  
->> Off, performance, balanced. That should make the fan speeds much  
->> slower and quieter
-> These are the steps that I already took.  But I would like to use  
-> fancontrol because then I can make it really quiet most of the time,  
-> yet keep the server relatively cool when under high load. Are you  
-> saying that it is not possible to use fancontrol in combination with  
-> my motherboard?
->>
->> Phil P.
->>
-> Nonsense and other useful things: http://brakkee.org
-> MountainHoppers: http://mountainhoppers.nl
-> Track Detective: http://trackdetective.com
-> Twitter: http://twitter.com/ErikBrakkee
->
->
->
+
+
 
 _______________________________________________
 lm-sensors mailing list
