@@ -1,705 +1,141 @@
-From: Darren Hart <dvhart@linux.intel.com>
-Date: Sat, 09 Apr 2011 00:11:35 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 12 Apr 2011 12:16:55 +0000
 Subject: Re: [lm-sensors] w83795 fan control not working
-Message-Id: <4D9FA437.8090906@linux.intel.com>
+Message-Id: <20110412141655.40e55bbb@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110407150007.51dd1c06@endymion.delvare>
 In-Reply-To: <20110407150007.51dd1c06@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hey Jean,
+Hi Darren,
+
+On Fri, 08 Apr 2011 17:11:35 -0700, Darren Hart wrote:
+> Hey Jean,
+>=20
+> I really appreciate your thoughts here. I'll respond inline, but let me
+> give a summary. I've contacted SuperMicro and am hoping they'll get back
+> to with a contact to help get some answer regarding how IPMI (WPCM450R)
+> and W83795-ADG (I checked the chip, -ADG) are supposed to interact and
+> still allow the OS to read temperature and control fans.
+>=20
+> You are correct about temp1, that has to be the northbridge, it is
+> located right behind the PCI-E slots (which appears to be common
+> practice) and has a very inadequate heat sink. I'm considering replacing
+> it with a much more substantial heatsink and possible adding a tunnel to
+> direct air over it. I've asked SuperMicro for a recommendation here as
+
+FWIW, I was able to decrease the north bridge temperature on my own
+dual-Xeon board by replacing the front case from a 59 m3/h model to a
+92 m3/h model. So the air flow in the case definitely matters.
+
+> well. If I can get that temperature down, my guess is the BIOS fan
+> control might be able to do a much better job and I won't need the
+> w83795-adg fancontrol from the OS quite so bad.
+
+This is certainly true.
+
+> >> (...)
+> >> $ sensors | grep =B0C
+> >> Core 0:      +26.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 1:      +26.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 2:      +24.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 8:      +22.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> temp1:       +40.0=B0C  (high =3D +138.0=B0C, hyst =3D +96.0=B0C)  sen=
+sor =3D thermistor
+> >> temp2:       -61.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D thermistor
+> >> temp3:       +36.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
+or =3D thermistor
+> >> temp1:       +75.0=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
+> >>                       (crit =3D +127.0=B0C, hyst =3D +127.0=B0C)  sens=
+or =3D thermal diode
+> >> temp5:       +35.8=B0C  (high =3D +127.0=B0C, hyst =3D +127.0=B0C)
+> >>                       (crit =3D +75.0=B0C, hyst =3D +70.0=B0C)  sensor=
+ =3D thermistor
+> >> temp7:       +24.8=B0C  (high =3D +95.0=B0C, hyst =3D +92.0=B0C)
+> >>                       (crit =3D +95.0=B0C, hyst =3D +92.0=B0C)  sensor=
+ =3D Intel PECI
+> >> temp8:       +23.0=B0C  (high =3D +95.0=B0C, hyst =3D +92.0=B0C)
+> >>                       (crit =3D +95.0=B0C, hyst =3D +92.0=B0C)  sensor=
+ =3D Intel PECI
+> >> Core 9:      +25.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 10:     +24.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 0:      +24.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 1:      +21.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 2:      +20.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 8:      +15.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 9:      +22.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C)
+> >> Core 10:     +19.0=B0C  (high =3D +81.0=B0C, crit =3D +101.0=B0C) =20
+> >=20
+> > Unrelated to your issue, but the core numbering by coretemp is
+> > surprising. I'm curious if you see the same in /proc/cpuinfo.
+>=20
+> No I do not. The Core ID you see above refers to physical cores per
+> socket (there are six per socket). I had also found this odd and wrote
+> one of the authors of coretemp about it. There appears to be some effort
+> ongoing to try and get those numbers to align with what is used in the
+> rest of the system to identify CPUs. Note that cpuinfo lists 24 CPUs due
+> to hyper-threading, while coretemp is only concerned with physical cores.
+
+It's correct that the coretemp driver skips hyperthread siblings. But
+the core numbering is supposed to be correct (i.e. in line
+with /proc/cpuinfo) since kernel 2.6.35. And it works fine for me.
+
+> >> (...)
+> >> I read somewhere during my hours of searching for a solution to this t=
+hat
+> >> both CPU fans are controlled by the same pwm signal, so that is not
+> >> surprising. It's too bad about the case fans though, I really like to =
+run
+> >> the larger quiet fan up before bringing up the smaller front fan, but,
+> >> it is what it is.
+> >=20
+> > As you don't seem to be using the second CPU fan header, you could
+> > cheat and plug your large rear fan in this header, so pwm1 would
+> > control it (if we manage to get this to work at all...)
+>=20
+> Turns out if I turn both fan housing around and flip the fans I can get
+> them both in the system (barely). I have it running like this for now -
+> but I think it's overkill really, and the CPUs don't break 40C even
+> under a 24 way kernel compile or four parallel 24 way poky builds.
+
+My limited experience with similar hardware is that the CPUs don't heat
+much, and you have to focus on board (mainly north bridge) cooling and
+not CPU cooling.
+
+> > Didn't you get an error message in the kernel logs related to w83795
+> > register 0x001? This is where the driver gets the chip type from.
+>=20
+> Hrm... looking back I see various errors reading ranging from 0x011
+> through 0x46, but I don't see 0x001.
 
-I really appreciate your thoughts here. I'll respond inline, but let me
-give a summary. I've contacted SuperMicro and am hoping they'll get back
-to with a contact to help get some answer regarding how IPMI (WPCM450R)
-and W83795-ADG (I checked the chip, -ADG) are supposed to interact and
-still allow the OS to read temperature and control fans.
+On a second thought, that's possible. In case of a bank mismatch, the
+driver won't even notice the problem and won't report any error. Just,
+you'll get the value read from (or worse, written to) a different
+register in the chip.
 
-You are correct about temp1, that has to be the northbridge, it is
-located right behind the PCI-E slots (which appears to be common
-practice) and has a very inadequate heat sink. I'm considering replacing
-it with a much more substantial heatsink and possible adding a tunnel to
-direct air over it. I've asked SuperMicro for a recommendation here as
-well. If I can get that temperature down, my guess is the BIOS fan
-control might be able to do a much better job and I won't need the
-w83795-adg fancontrol from the OS quite so bad.
+> (...)
+> As this board is available with and without the BMC, I wonder if they
+> just don't expect people to use the W83795 if they have the BMC? That
 
+Maybe, yes.
 
-On 04/08/2011 05:46 AM, Jean Delvare wrote:
-> Hi Darren,
-> 
-> On Thu, 07 Apr 2011 13:59:13 -0700, Darren Hart wrote:
->> On 04/07/2011 06:00 AM, Jean Delvare wrote:
->>> On Wed, 06 Apr 2011 16:41:07 -0700, Darren Hart wrote:
->>>> Quiet State:
->>>> temp1:       +83.5°C  (high = +127.0°C, hyst = +127.0°C)
->>>>              (crit = +127.0°C, hyst = +127.0°C)  sensor = thermal diode
->>>
->>> This is very hot.
->>
->> It is... and yet it's much hotter than anything reported by coretemp (which
->> I assumed would have some of the higher temperatures).
-> 
-> Not necessarily, depending on your cooling mechanism. These days,
-> several parts of the system can be much hotter than the CPU, in
-> particular the graphics chip (for high end graphics cards) and the
-> north bridge.
+> would be fine if IPMI could control fan speed, but from what I can tell,
+> it can only report on it.
 
-bingo, north bridge
+I'm not familiar with IPMI, sorry, but indeed I've never heard of fan
+speed control using this way.
 
-> 
->> Any idea what temp1 might be measuring?
-> 
-> Could be the north bridge. On my own Intel 5500-based system, I am
-> using an external sensor to monitor the north bridge temperature, and
-> here is what I get:
-> 
-> TR2 Temp:     +92.2°C  (high = +85.0°C, hyst = +82.0°C)    ALARM
->                        (crit = +90.0°C, crit hyst = +87.0°C)  sensor = thermistor
-> 
-> And I've already seen it hotter than this.
-> 
->> $ sensors | grep °C
->> Core 0:      +26.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 1:      +26.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 2:      +24.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 8:      +22.0°C  (high = +81.0°C, crit = +101.0°C)
->> temp1:       +40.0°C  (high = +138.0°C, hyst = +96.0°C)  sensor = thermistor
->> temp2:       -61.0°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
->> temp3:       +36.5°C  (high = +80.0°C, hyst = +75.0°C)  sensor = thermistor
->> temp1:       +75.0°C  (high = +127.0°C, hyst = +127.0°C)
->>                       (crit = +127.0°C, hyst = +127.0°C)  sensor = thermal diode
->> temp5:       +35.8°C  (high = +127.0°C, hyst = +127.0°C)
->>                       (crit = +75.0°C, hyst = +70.0°C)  sensor = thermistor
->> temp7:       +24.8°C  (high = +95.0°C, hyst = +92.0°C)
->>                       (crit = +95.0°C, hyst = +92.0°C)  sensor = Intel PECI
->> temp8:       +23.0°C  (high = +95.0°C, hyst = +92.0°C)
->>                       (crit = +95.0°C, hyst = +92.0°C)  sensor = Intel PECI
->> Core 9:      +25.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 10:     +24.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 0:      +24.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 1:      +21.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 2:      +20.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 8:      +15.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 9:      +22.0°C  (high = +81.0°C, crit = +101.0°C)
->> Core 10:     +19.0°C  (high = +81.0°C, crit = +101.0°C)  
-> 
-> Unrelated to your issue, but the core numbering by coretemp is
-> surprising. I'm curious if you see the same in /proc/cpuinfo.
+But then again, if vendors would just let us select thermal trip points
+for fan speed control in the BIOS, I think we could live without fan
+control support on the OS side. Sigh.
 
-No I do not. The Core ID you see above refers to physical cores per
-socket (there are six per socket). I had also found this odd and wrote
-one of the authors of coretemp about it. There appears to be some effort
-ongoing to try and get those numbers to align with what is used in the
-rest of the system to identify CPUs. Note that cpuinfo lists 24 CPUs due
-to hyper-threading, while coretemp is only concerned with physical cores.
-
-> 
-> Please note that the temperatures reported by coretemp are not real,
-> absolute °C. They are a delta from the critical limit, the accuracy of
-> which degrades quickly with large deltas (i.e. low temperatures.) So,
-> all that can be said from the above "Core" temperature values is that
-> your CPUs run very cool and way below their critical limit (which is
-> good.)
-
-Noted! Thanks.
-
-> 
-> Two of the three temperatures reported by the w83627ehf driver look
-> sane, so my advice to not load this driver might not have been correct.
-> It may be better to load it, and configure libsensors to ignore all the
-> unused inputs. 
-
-OK.
-
-> 
->>>> (...)
->>>> pwmconfig reports the following:
->>>>
->>>> ---------------------------
->>>> Found the following devices:
->>>>    hwmon0/device is max1617
->>>
->>> This would be very surprising and smells like a misdetection. Which
->>> could, in turn, explain (some of) your problems. What the use of the
->>> adm1021 driver suggested by sensors-detect?
->>
->> Hrm, I noticed it reports:
->> Intel Core family thermal sensor...                         No
->> But if I load coretemp I get 12 sane temperature readings...
-> 
-> Presumably you are using a relatively old version of the sensors-detect
-> script. This version:
->   http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-> should find the Intel Core family thermal sensor. It might also solve
-> the adm1021 mystery... Could be that you have thermal sensors in your
-> memory modules, and the jc42 driver would report their temperature.
-> 
->> It does not detect adm1021, but it did report:
-> 
-> How did the adm1021 driver get loaded in the first place then? Please
-> note that sensors-detect needs hwmon drivers to be unloaded first to be
-> most efficient. 
-
-Perhaps it was detected under the Ubuntu kernel, not sure.
-
-> 
->> Trying family `National Semiconductor'...                   Yes
->> Found unknown chip with ID 0x1a11
-> 
-> No idea what it is, and this is somewhat surprising as you already have
-> one identified Super-I/O chip (W83627DHG-P, as documented by
-> Supermicro.)
-> 
->> However Kconfig says:
->>
->> │ If you say yes here you get support for Analog Devices ADM1021          │
->> │ and ADM1023 sensor chips and clones: Maxim MAX1617 and MAX1617A,        │
->> │ Genesys Logic GL523SM, National Semiconductor LM84, TI THMC10,          │
->> │ and the XEON processor built-in sensor.  
->>
->> These are XEON CPUs, is this an older interface that has been replaced by
->> something else?
-> 
-> This really only applies to an old generation of Xeon processors which
-> were popular in 2003. These days this help text is seriously
-> misleading, I'll fix it. Thanks for reporting.
-
-Cool, thanks.
-
->>> I presume that the output
->>> for the supposed max1617 chip in "sensors" is plain wrong? I would
->>> advise that you do not load the adm1021 driver.
->>
->> OK, unloaded.
->>
->>>>    hwmon1/device is w83627dhg
->>>
->>> Super-I/O (multifunction) chip, probably not used for monitoring.
->>> Unloading the w83627ehf driver would make running pwmconfig much easier.
->>
->> Done
-> 
-> As noted above, this driver might still be somewhat useful after all.
-
-Got it.
-
->>> (...)
->>> The next steps in pwmconfig should tell. One thing worth noting is that
->>> you have 6 fan inputs used on the W83795ADG, but the chip has only two
->>> fan control outputs. So it is impossible that you have one control per
->>> fan. On my board, pwm1 controls both CPU fans and pwm2 controls all 6
->>> case fans.
->>
->>
->> I read somewhere during my hours of searching for a solution to this that
->> both CPU fans are controlled by the same pwm signal, so that is not
->> surprising. It's too bad about the case fans though, I really like to run
->> the larger quiet fan up before bringing up the smaller front fan, but,
->> it is what it is.
-> 
-> As you don't seem to be using the second CPU fan header, you could
-> cheat and plug your large rear fan in this header, so pwm1 would
-> control it (if we manage to get this to work at all...)
-
-Turns out if I turn both fan housing around and flip the fans I can get
-them both in the system (barely). I have it running like this for now -
-but I think it's overkill really, and the CPUs don't break 40C even
-under a 24 way kernel compile or four parallel 24 way poky builds.
-
-> 
-> BTW, the Supermicro documentation is pretty clear that fan control is
-> only supported when using 4-pin fans. Is it what you're using?
-
-Yes, all 4 fans are 4-pin - and they are all the recommended SuperMicro
-fans.
-
-> 
->> I ran pwmconfig again with adm1021, ipmi_si, and w83627ehf unloaded. This
->> time it detected 8 pwm interfaces, and only pwm1 failed to enter manual mode.
->>
->>    hwmon2/device is w83795g
-> 
-> Ouch. Last time your chip was a W83795ADG (the small version with only
-> 2 fan control outputs) and now you are supposed to have a W83795G (the
-> big version with 8 fan control outputs.) The Supermicro product
-> description doesn't tell which is present, but to be fair, I've never
-> seen a W83795G on a PC mainboard so far, only W83795ADG.
-
-
-Physical inspection confirms this is a W83795-ADG.
-
-
-> 
-> Anyway, this suggests unreliable I/O on the SMBus. So even though you
-> have unloaded ipmi_si, which should guarantee that the Linux host isn't
-> accessing the chip through IPMI, I suspect that something else is still
-> accessing the chip in our back. A BMC for remote management?
-
-
-Correct, this version of the board has a WPCM450R BMC.
-
-
-> 
-> Didn't you get an error message in the kernel logs related to w83795
-> register 0x001? This is where the driver gets the chip type from.
-
-
-Hrm... looking back I see various errors reading ranging from 0x011
-through 0x46, but I don't see 0x001.
-
-
-> I think I get what's happening. The W83795G/ADG chips have so-called
-> banked registers, which means that you have to select the right bank
-> before accessing a given register. To improve register access time, the
-> driver remembers the currently selected bank, and only selects a
-> different bank when needed. Now, if somebody else accesses the chip
-> in our back, this assumption gets wrong suddenly.
-
-That makes sense.
-
-> 
-> I could change the driver to unconditionally set the bank before any
-> register access, at the price of severely decreased performance.
-> However, even this would not completely solve the problem, as whoever
-> else is accessing the chip might do so between the w83795 driver
-> setting the bank and the w83795 driver reading (or writing) the
-> register value - and nothing can be done against this.
-
-Yeah, just narrows the race window, not a fix.
-
-> 
-> The bottom line is that using the W83795 driver in a multi-master I2C
-> setup (and I strongly suspect this is what Supermicro did) is a bad
-> hardware design mistake. This hardware monitoring device wasn't
-> designed with this use case in mind.
-
-As this board is available with and without the BMC, I wonder if they
-just don't expect people to use the W83795 if they have the BMC? That
-would be fine if IPMI could control fan speed, but from what I can tell,
-it can only report on it.
-
-> 
->> Found the following PWM controls:
->>    hwmon2/device/pwm1
->> hwmon2/device/pwm1 is currently setup for automatic speed control.
->> In general, automatic mode is preferred over manual mode, as
->> it is more efficient and it reacts faster. Are you sure that
->> you want to setup this output for manual control? (n) y
->> hwmon2/device/pwm1 stuck to 125
->>
->> While trying to turn them off, I watched syslog:
->>
->> During pwm3 test:
->> Apr  7 08:40:48 rage kernel: [ 1617.363333] w83795 0-002f: Failed to read from register 0x023, err -6
-> 
-> The driver was temporarily unable to read the in19 value.
-> 
->> I then searched for the pwm controls manually and tried adjusting them.
->> I was able reduce fan noise considerably by echo'ing 0 to pwm1, and I
->> brought it back up by echo'ing 125 to it. I didn't notice any change
-> 
-> Odd, this is exactly what pwmconfig is doing. It's hard to explain how
-> pwmconfig could consistently fail and your manual attempt worked right
-> away. It may not work always though?
-
-
-I did find windows where they were ineffective.
-
-
-> 
->> with the other pwms. Also, the fan speed as reported by sensors stayed
->> constant, even though they obviously had slowed down considerably.
-> 
-> My bet is that you don't have pwm3 to pwm8 anyway, so it's expected
-> they had no effect.
-> 
->>
->> # for PWM in $(find . -name "pwm[0-8]"); do echo $PWM; echo 0 > $PWM; echo -n "Off ($(cat $PWM))..."; sleep 5; echo 125 > $PWM; echo "On ($(cat $PWM))"; done
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm1
->> Off (0)...On (119)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm2
->> Off (0)...On (0)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm3
->> Off (0)...On (0)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm4
->> Off (0)...On (0)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm5
->> Off (0)...On (0)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm6
->> Off (0)...On (0)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm7
->> Off (0)...On (0)
->> ./devices/pci0000:00/0000:00:1f.3/i2c-0/0-002f/pwm8
->> Off (0)...On (0)
->>
->> I ran pwmconfig again... and it didn't complain about pwm1 not entering
->> manual mode. It was also able to bring the fans up and shut them down
->> with pwm1. It did NOT detect a correlation however.
-> 
-> This is all consistent with my theory about random bank switches.
-
-
-Agreed.
-
-
-> 
->> I hit a bug in pwmconfig when configuring the pwm temperature input and fan speeds:
->>
->> --------------
->> Enter the low temperature (degree C)
->> below which the fan should spin at minimum speed (20): 35
->>
->> Enter the high temperature (degree C)
->> over which the fan should spin at maximum speed (60): /usr/sbin/pwmconfig: line 923: [: -eq: unary operator expected
->> /usr/sbin/pwmconfig: line 949: [: -eq: unary operator expected
->> --------------
->>
->> 923:
->>                        if [ $FAN_MIN -eq 0 ]
->> 949:
->>                         if [ $FAN_MIN -eq 0 ]
-> 
-> Your line numbers don't match mine, which means you aren't using the
-> latest upstream version of pwmconfig. So I can't help, sorry.
-
-
-OK, I'll probably wait to hear back from SuperMicro and get back to this
-next week. I'll be traveling this coming week (Embedded Linux
-Conference) and will be away from the machine. If I have cause to
-continue working with pwmconfig, I'll grab the latest and see about
-cleaning some of any remaining issues up.
-
-
-> 
->>
->> Apparently, earlier in the script (line 877):
->>
->>                 FAN_MIN=`echo $fanactive_min|cut -d' ' -f$REPLY`
->>
->> sets FAN_MIN to "" instead of a number. Adding some debug confirms this:
->> 		FAN_MIN=`echo $fanactive_min|cut -d' ' -f$REPLY`
->>                 # dvhart debug
->>                 if [ -z "$FAN_MIN" ]; then
->>                         echo "FAN_MIN detection failed, setting to 0."
->>                         FAN_MIN=0
->>                 fi
->>
->> ------------
->> FAN_MIN detection failed, setting to 0.
->> ------------
-> 
-> This certainly explains why a correlation couldn't be found. Your
-> workaround however is not correct. If fanactive_min has fewer elements
-> than expected, this means that CURRENT_SPEEDS too, but you don't know
-> which ones are missing, because CURRENT_SPEEDS is a string, not an
-> array. We should really be using proper bash arrays for robustness, but
-> I simply don't have the time to work on this these days.
-> 
-> Overall the pwmconfig (and fancontrol) code isn't good quality, partly
-> because it started as an afternoon hack and has grown way too old,
-> partly because writing nice and efficient code in bash can be quite
-> challenging. I think someone posted on the lm-sensors list to announce
-> a rewrite in C, which might be a better starting point.
-
-
-OK, good to know. This seems like a perfect candidate for Python. I like
-system scripts to remain easily hackable on a running system, and C
-makes that a bit harder. (I'm fine with the language, don't get me
-wrong, just for system control, something like Python seems to be a
-better fit). Maybe I'll look into that if we can get this driver sorted
-out on my whacky board.
-
-
-> 
->>
->> ------------
->> Enter the low temperature (degree C)
->> below which the fan should spin at minimum speed (20): 35
->>
->> Enter the high temperature (degree C)
->> over which the fan should spin at maximum speed (60): 
->> Enter the minimum PWM value (0-255)
->> at which the fan STOPS spinning (press t to test) (100): t
->>
->> Now we decrease the PWM value to figure out the lowest usable value.
->> We will use a slightly greater value as the minimum speed.
->> ------------
->>
->> After fixing that, the detection of the lowest value (where the fan
->> stops) ran for 30 minutes without indicating any forward progress or
->> making an audibly detectable change in fan speed. I tried adjusting
->> it manually, and was able to make several speed adjustments, finding
->> the min value somewhere between 35 and 50 (sys reports 'pwm1_start:
-> 
-> This suggests more problems in pwmconfig, it isn't supposed to behave
-> that way. But again the root cause is probably the kernel driver not
-> behaving in the standard way pwmconfig expects. In turn caused by the
-> hardware playing tricks on you.
-> 
->> 48'). Before I could finish, the interface stopped responding to
->> commands. I reloaded the w83795 module, and pwmconfig then reported:
->>
->> /usr/sbin/pwmconfig: There are no fan-capable sensor modules installed
->>
->> And sensors only reported:
->>
->> # sensors
->> w83795g-i2c-0-2f
->> Adapter: SMBus I801 adapter at 0400
->> beep_enable:enabled
-> 
-> Wow. Your system is very strange. I can't even think of how such an
-> output would be possible at all.
-
-:-)
-
-> 
->>> Does the board manual say whether the case fans are supposed to be
->>> controllable, or only the CPU fans?
->>
->> It is rather vague on the topic unfortunately:
->>
->> "Fan status monitor with firmware control and CPU fan auto-off in sleep mode"
->> "Pule Width Modulation (PWM) Fan Control"
->> "The PC health monitor can check the RPM status of the cooling fans. The
->> onboard CPU and chassis fans are controlled by Thermal Management via BIOS
->> (under Hardware Monitoring in the Advanced Setting)."
-> 
-> I read this as: all fans should be controllable. 
-
-I'm concerned it's intended to be read as:
-
-"BIOS controls the fans and you can see the status in the health
-monitor"... hrm perhaps I need to see about running windows on a spare
-drive and check out this health monitor thing. If I can reliably control
-the fans with that while still using the BMC, it might bode well for
-getting this to work.... now where am I going to get a windows CD... hrm...
-
-> 
->> And under the Nuvoton WPCM450R Controller (the baseboard management
->> controller):
->> "The WPCM450R communicates with onboard components via six SMBus interfaces,
->> fan control, and Platform Environment Control Interface (PECI) buses."
-> 
-> This seems to be a complex setup, unfortunately the block diagram in
-> the manual mentions neither SMBus nor PECI.
-
-I've asked for help from SuperMicro, we'll see if they're so inclined.
-
-> 
->> The case fans are definitely controllable given my experiment above on pwm1.
->> pwm2 doesn't appear to do anything... and I'm not sure what 3-8 are supposed
->> to do :-)
-> 
-> As said before, I am certain you won't have pwm3-8 at all so they
-> aren't supposed to do anything.
-> 
->>>> (...)
->>>> dmesg reports:
->>>> $ dmesg | grep 83795
->>>> [   12.643929] i2c i2c-0: Found w83795adg rev. B at 0x2f
->>>> [   12.883789] w83795 0-002f: PECI agent 1 Tbase temperature: 100
->>>> [   12.903779] w83795 0-002f: PECI agent 2 Tbase temperature: 100
->>>> [ 2288.932629] w83795 0-002f: Failed to read from register 0x030, err -6
->>>> [ 2613.292773] w83795 0-002f: Failed to write to register 0x040, err -6
->>>> [ 2693.333461] w83795 0-002f: Failed to read from register 0x01e, err -11
->>>
->>> -6 is -ENXIO, returned by the i2c-i801 driver when a slave I2C device
->>> doesn't answer. -11 is -EAGAIN, meaning arbitration loss, which can
->>> happen on multi-master I2C buses, and I guess IPMI is implemented
->>> exactly that way.
->>>
->>>> Am I doing something wrong?
->>>
->>> Yes. You are using IPMI and a native Linux driver to access the same
->>> monitoring chip. Both access methods don't know of each other and are
->>> not synchronized.
->>
->> OK, I removed the ipmi_si driver early on and am still seeing the
->> problems described above.
-> 
-> Probably caused by concurrent accesses from the BMC.
-> 
->>>> Can I provide any additional information to
->>>> help narrow down what might be wrong?
->>>
->>> Choose between IPMI and native drivers. If you want to use IPMI on this
->>> board, then you have to forget about the w83795 driver. And about
->>> software-driven fan speed control too, I'm afraid.
->>
->> Does that mean all IPMI features? I'd hate to have to lose SOL and power control.
-> 
-> It's hard to tell what exactly IPMI is doing. Clearly if you want to
-> use IPMI then the w83795 driver is out IMHO, and you'll suffer from the
-> lack of integration between IPMI and libsensors.
-
-
-I don't like that answer ;-)
-
-
->>> Did you look for a BIOS or IPMI firmware update already?
->>
->> IPMI is current.
->> BIOS had an update available. After hunting down a FreeDOS USB boot image, I
->> managed to flash it. pwmconfig is much happier now, and the sensors report
->> the fan speed correctly now. pwmconfig walked through the PWM:RPM mapping
->> for fan2_input, and all three fans dropped along with it. When it started
->> in on fan4_input produced an error:
->>
->> ----------
->>   hwmon2/device/fan4_input ... speed was 4285 now 1058
->>     It appears that fan hwmon2/device/fan4_input
->>     is controlled by pwm hwmon2/device/pwm1
->> /usr/sbin/pwmconfig: line 464: hwmon2/device: expression recursion level exceeded (error token is "device")
->> Testing is complete.
->> ----------
->>
->> line 464
->> fanactive="$(($j+${fanactive}))" #not supported yet by fancontrol
-> 
-> I had never seen this error message before. But I also don't have the
-> line above in my copy of pwmconfig either. Are you by any chance using a
-> packaged version with custom patches?
-
-
-Possibly, just whatever is in Ubuntu 10.10. See above for my thoughts on
-continuing to work with pwmconfig.
-
-
-> 
->> fancontrol appears to work now as well. It appears all my fans are connected
->> to the same PWM control, which is pretty unfortunate, but things are MUCH
->> better now than they were. It appears there are a few scripting bugs in
->> pwmconfig (at least in my distro version) that can be corrected with
-> 
-> Please test the upstream version. If you find bugs in your distro
-> version which aren't upstream, report to them, not us. And please ask
-> them to push their changes upstream (if they are good) or drop them (if
-> not.)
-
-Nod.
-
-> 
->> some string checking, but the core problem appears to be a buggy BIOS -
->> big surprise ;-)
-> 
-> I don't want to bash your optimism, but... My personal impression is
-> that there is a severe design issue on this board, which will prevent
-> you from using the w83795 driver.
-
-
-Understood, we'll see what SuperMicro has to say.
-
-
-> 
->> I am not sure which temperature sensor to use to control pwm1. I don't trust
->> the temp1 input of 82C, temp5 reads 39 idle, and 7 and 8 read about 25 idle.
->> While the coretemp sensors read 24-29.
->>
->> temp1:       +82.5°C  (high = +127.0°C, hyst = +127.0°C)  
->>                       (crit = +127.0°C, hyst = +127.0°C)  sensor = thermal diode
->> temp5:       +39.0°C  (high = +127.0°C, hyst = +127.0°C)  
->>                       (crit = +75.0°C, hyst = +70.0°C)  sensor = thermistor
->> temp7:       +25.0°C  (high = +95.0°C, hyst = +92.0°C)  
->>                       (crit = +95.0°C, hyst = +92.0°C)  sensor = Intel PECI
->> temp8:       +22.8°C  (high = +95.0°C, hyst = +92.0°C)  
->>                       (crit = +95.0°C, hyst = +92.0°C)  sensor = Intel PECI
-> 
-> temp5 is the system (board) temperature temp7 is CPU1 and temp8 is
-> CPU2. I would use temp5 for case fans, and temp7 for CPU fans. A
-> perfect fan control system would allow you to take the max or average
-> of multiple temperatures, but we don't support this.
-> 
-> But then again, in your case, software driven fan control seems out of
-> the question. Way too dangerous when you don't know if you'll be able
-> to access the monitoring chip the next minute. I really wish board
-> vendors would let people tweak the automatic fan speed control settings
-> in the BIOS. Asus offers several profiles, which is better than
-> nothing, but it would seem fair to let the user set the temperature
-> limits manually. Sigh.
-
-This board has several profiles as well, and I think original problem
-(periodic absurdly loud fans) stems from the poorly cooled north bridge.
-
-> 
->> # sensors | grep Core
->> Core 0:      +27.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 1:      +28.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 2:      +27.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 8:      +25.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 9:      +28.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 10:     +26.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 0:      +25.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 1:      +23.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 2:      +21.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 8:      +17.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 9:      +24.0°C  (high = +81.0°C, crit = +101.0°C)  
->> Core 10:     +20.0°C  (high = +81.0°C, crit = +101.0°C)  
->>
->>
->> And as I'm typing this, dmesg started spewing a lot of errors and temp1-5 now report 0°C
->>
->> [ 1056.545180] w83795 0-002f: Failed to write to register 0x040, err -6
->> [ 1056.585158] w83795 0-002f: Failed to read from register 0x041, err -6
->> [ 1056.605143] w83795 0-002f: Failed to read from register 0x042, err -6
->> [ 1056.645123] w83795 0-002f: Failed to read from register 0x043, err -6
->> [ 1056.685094] w83795 0-002f: Failed to read from register 0x044, err -6
->> [ 1056.705084] w83795 0-002f: Failed to read from register 0x045, err -6
->> [ 1056.745057] w83795 0-002f: Failed to read from register 0x046, err -6
->> [ 1056.765044] w83795 0-002f: Failed to write to register 0x040, err -6
->> ....
->> [ 1060.442767] w83795 0-002f: Failed to set bank to 2, err -6
->> [ 1060.482745] w83795 0-002f: Failed to set bank to 2, err -6
->> [ 1060.502728] w83795 0-002f: Failed to set bank to 2, err -6
->> ...
->> [ 1060.702605] w83795 0-002f: Failed to read from register 0x040, err -6
->> [ 1060.722590] w83795 0-002f: Failed to read from register 0x046, err -6
->> [ 1060.762569] w83795 0-002f: Failed to write to register 0x040, err -6
->> ...
->> and on for pages.
->>
->> Reloading w83795 stops the messages, but the w83795 sensors don't come back.
->>
->> OK, that's a ton of data, hopefully it's good data.
-> 
-> Oh, I suddenly have an idea what may be going on. If I'm right, it even
-> worse than I thought at first.
-> 
-> I guess that your SMBus is multiplexed. The errors -6 (-ENXIO) mean the
-> W83795ADG chip is unreachable, presumably because the multiplexer was
-> switched to a different segment. If the multiplexer is out of the
-> operating system's control (as seems to be the case here) then you
-> really have to give up the w83795 driver, much to my despair.
-
-
-So this board without the BMC option may very well work just fine. Sigh.
-
-
-> You may be able to get the w83795 driver working again by invoking
-> ipmitool. If IPMI know how to switch back to the right SMBus segment,
-> it may leave it selected afterwards. But anyway this is just a trick,
-> nothing you can rely on in the long run, as the conflict between w83795
-> and the BMC isn't one we can solve.
-
-"ipmi sensor" stops reporting data once it goes AWOL as well.
-
-> 
-> It might be the right time for you to ask the Supermicro support for a
-> detailed topology of the I2C/SMBus on this board.
-> 
-
-Done.
-
-Thanks Jean,
-
--- 
-Darren Hart
-Intel Open Source Technology Center
-Yocto Project - Linux Kernel
+--=20
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
