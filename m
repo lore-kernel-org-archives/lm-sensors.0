@@ -1,50 +1,283 @@
-From: Aleksej Serdjukov <deletesoftware@yandex.ru>
-Date: Wed, 13 Apr 2011 10:10:54 +0000
-Subject: Re: [lm-sensors] testing "w83627ehf" and "k10temp" on ASRock E350M1
-Message-Id: <4DA576AE.6020505@yandex.ru>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Tue, 12 Apr 2011 20:49:47 +0000
+Subject: [lm-sensors] [PATCH v5 1/2] Use "request_muxed_region" in it87
+Message-Id: <1302641387-30264-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D9CA530.9030100@yandex.ru>
-In-Reply-To: <4D9CA530.9030100@yandex.ru>
+References: <1302641290-30212-1-git-send-email-natg@google.com>
+In-Reply-To: <1302641290-30212-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
+Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
-T24gMjAxMS0wNC0wNyAxNjoyNCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+IE9uIFRodSwgMDcgQXBy
-IDIwMTEgMTM6MTE6NDQgKzA0MDAsIEFsZWtzZWogU2VyZGp1a292IHdyb3RlOgo+IE5lZ2F0aXZl
-IHRlbXBlcmF0dXJlIGFyZSByZWxhdGl2ZWx5IGNvbW1vbiBhbmQgdXN1YWxseSBtZWFuIHRoYXQg
-dGhlCj4gdGhlcm1hbCBzZW5zb3IgaW4gcXVlc3Rpb24gaXMgbWlzc2luZyAodGVtcGVyYXR1cmUg
-bW9uaXRvcmluZyBjaGFubmVsCj4gaXMgdW51c2VkLikgTm90aGluZyB0byB3b3JyeSBhYm91dCwg
-anVzdCBpZ25vcmUgdGhlIHJlYWRpbmcuIFdlIHdpbGwKPiBvbmx5IGludmVzdGlnYXRlIGlmIHlv
-dSBoYXZlIGFuIGV2aWRlbmNlIHRoYXQgdGhlIHRlbXBlcmF0dXJlIHZhbHVlCj4gc2hvdWxkIGJl
-IHJlcG9ydGVkIGNvcnJlY3RseSAodGhlIEJJT1Mgb3IgYW5vdGhlciBPUyBpcyByZXBvcnRpbmcg
-aXQuKQoKSSd2ZSBzZWVuIEFVWFRJTiBoYXZlIHZhbHVlcyBvZiAtOS41LCAtOSwgLTguNSAoY2hh
-bmdlcyB3aXRoIG5vIHJlc3RhcnQgCm5lZWRlZCkuCgo+PiBTbyBjYW4gSSBpZ25vcmUgaXQgd2hl
-biBjaG9vc2luZyBmYW4gc3BlZWQ/IE9yIHNlZSB0aGF0IGl0IGRvZXNuJ3QgZ28gdG8KPj4gdGhl
-IDkwwrBDIG1heGltdW0/Cj4KPiBJbiB5b3VyIHNwZWNpZmljIGNhc2UsIHRoZSBrMTB0ZW1wIGRy
-aXZlciBzZWVtcyB0byByZXBvcnQgcmVhc29uYWJsZQo+IHZhbHVlcyBzbyB0aGVyZSBpcyBubyBy
-ZWFzb24gdG8gaWdub3JlIGl0LgoKWWVzdGVyZGF5IEkgd2F0Y2hlZCB0aGUgZmFuIHNwZWVkIHdo
-aWxlIGNvbXByZXNzaW5nLCBhbmQgaXQgc3dpdGNoZWQgCmZyb20gYmVpbmcgYXV0by1jb250cm9s
-bGVkICh+NDAwMC00MzAwKSB0byBmdWxsLXNwZWVkIGFmdGVyIHRlbXAxIHNob3duIAo2OMKwQyAo
-dGhlbiBjb21wcmVzc2lvbiBlbmRlZCkuIFRoZSB0ZW1wZXJhdHVyZXMgd2VudCBkb3duIHF1aWNr
-bHksIGJ1dCAKdGhlIGZhbiBzcGVlZCBzZWVtZWQgdG8gbmV2ZXIgZ28gYmVsb3cgNDgwMCBhZnRl
-ciB0aGF0ICh1bmxlc3MgSSBtaXNzZWQgCmFub3RoZXIgaGVhdC11cCkuCgoKPj4gVmNvcmU6ICAg
-ICAgICsxLjEzIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsxLjc0IFYpCj4KPiBEb2VzIHRo
-aXMgdmFsdWUgaW5jcmVhc2UgaWYgeW91IHB1dCBtdWNoIGxvYWQgb24gdGhlIENQVT8gSXQncyBx
-dWl0ZQo+IGRpZmZlcmVudCBmcm9tIHRoZSAxLjMwNCBWIHJlcG9ydGVkIGJ5IFVFRkkuCgpTaW5j
-ZSBJIHR1cm5lZCBDNiBvbiBpbiBVRUZJLCBWY29yZSBpbiBzZW5zb3JzIGlzIGFib3V0IDAuNS0w
-LjYgViB3aGVuIAppZGxlICh0aGF0IGlzIG1lbnRpb25lZCBpbiBhIFJ1c3NpYW4gcmV2aWV3IHdp
-dGggYSBzY3JlZW5zaG90OiAKPGh0dHA6Ly93d3cub3ZlcmNsb2NrZXJzLnVhL21vdGhlcmJvYXJk
-L2FtZC1hcHUtemFjYXRlLykuCgoKPj4gQ1BVVElOIGFuZCB0ZW1wMSBzbG93bHkgaW5jcmVhc2Vk
-IChDUFVUSU4gZnJvbSA0NC00NiB0byA0OC00OSwgdGVtcDEKPj4gZnJvbSA1NiB0byA2Ny02OSku
-Cj4KPiA2OcKwQyBpcyBkYW5nZXJvdXNseSBjbG9zZSB0byB0aGUgbGltaXRzLiBXaGljaCBpcyBv
-ZGQgZ2l2ZW4gdGhlIGhpZ2gKPiBmYW4gc3BlZWQuIEFyZSB5b3Ugc3VyZSB0aGUgY2FzZSBnZXRz
-IGVub3VnaCBjb29saW5nIGZyb20gdGhlIG91dHNpZGUgLwo+IGNhbiBnZXQgdGhlIGhvdCBhaXIg
-ZXZhY3VhdGVkIHByb3Blcmx5PwoKU28sIGlzIGl0IGRhbmdlcm91cyB3aXRoIHRoZSB0YWJsZSBt
-YXhpbXVtIGZvciB0aGUgQVBVIGJlaW5nIDkwwrAsIGFuZCAKd2l0aCB0aGUgTVNJIEUzNTBJQS1F
-NDUgYXV0byBtb2RlIHN0YXJ0aW5nIHRoZSBmYW4gYXQgNzAgKHNhbWUgcmV2aWV3LCAKcGFnZSAz
-KT8KCgpGV0lXLCBpbiA8aHR0cDovL3BhdGNod29yay5jb3JlYm9vdC5vcmcvcGF0Y2gvMjY4Ny8+
-IFNjb3R0IHdyb3RlICJUaGUgClNJTyBpcyBOdXZvdG9uIE5DVDU1NzJELiIKCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcg
-bGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnMK
+01 - Changes to it87 watchdog driver to use "request_muxed_region"
+Serialize access to the hardware by using "request_muxed_region" macro defined
+by Alan Cox. Call to this macro will hold off the requestor if the resource is
+currently busy.
+
+The use of the above macro makes it possible to get rid of
+spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
+This also greatly simplifies the implementation of it87_wdt.c driver.
+
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
+---
+
+diff --git a/drivers/watchdog/it8712f_wdt.c b/drivers/watchdog/it8712f_wdt.c
+index 6143f52..51bfbc0 100644
+--- a/drivers/watchdog/it8712f_wdt.c
++++ b/drivers/watchdog/it8712f_wdt.c
+@@ -51,7 +51,6 @@ MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
+ 
+ static unsigned long wdt_open;
+ static unsigned expect_close;
+-static spinlock_t io_lock;
+ static unsigned char revision;
+ 
+ /* Dog Food address - We use the game port address */
+@@ -123,7 +122,11 @@ static inline void superio_select(int ldn)
+ 
+ static inline void superio_enter(void)
+ {
+-	spin_lock(&io_lock);
++	/*
++	 * Reserve REG and REG + 1 for exclusive access.
++	 */
++	(void) request_muxed_region(REG, 2, NAME);
++
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -134,7 +137,7 @@ static inline void superio_exit(void)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
+-	spin_unlock(&io_lock);
++	release_region(REG, 2);
+ }
+ 
+ static inline void it8712f_wdt_ping(void)
+@@ -382,8 +385,6 @@ static int __init it8712f_wdt_init(void)
+ {
+ 	int err = 0;
+ 
+-	spin_lock_init(&io_lock);
+-
+ 	if (it8712f_wdt_find(&address))
+ 		return -ENODEV;
+ 
+diff --git a/drivers/watchdog/it87_wdt.c b/drivers/watchdog/it87_wdt.c
+index b1bc72f..ac7d26a 100644
+--- a/drivers/watchdog/it87_wdt.c
++++ b/drivers/watchdog/it87_wdt.c
+@@ -137,7 +137,6 @@
+ 
+ static	unsigned int base, gpact, ciract, max_units, chip_type;
+ static	unsigned long wdt_status;
+-static	DEFINE_SPINLOCK(spinlock);
+ 
+ static	int nogameport = DEFAULT_NOGAMEPORT;
+ static	int exclusive  = DEFAULT_EXCLUSIVE;
+@@ -165,6 +164,11 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started, default="
+ 
+ static inline void superio_enter(void)
+ {
++	/*
++	 * Reserve REG and REG + 1 for exclusive access.
++	 */
++	(void) request_muxed_region(REG, 2, WATCHDOG_NAME);
++
+ 	outb(0x87, REG);
+ 	outb(0x01, REG);
+ 	outb(0x55, REG);
+@@ -175,6 +179,7 @@ static inline void superio_exit(void)
+ {
+ 	outb(0x02, REG);
+ 	outb(0x02, VAL);
++	release_region(REG, 2);
+ }
+ 
+ static inline void superio_select(int ldn)
+@@ -257,9 +262,6 @@ static void wdt_keepalive(void)
+ 
+ static void wdt_start(void)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 
+ 	superio_select(GPIO);
+@@ -270,14 +272,10 @@ static void wdt_start(void)
+ 	wdt_update_timeout();
+ 
+ 	superio_exit();
+-	spin_unlock_irqrestore(&spinlock, flags);
+ }
+ 
+ static void wdt_stop(void)
+ {
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 
+ 	superio_select(GPIO);
+@@ -288,7 +286,6 @@ static void wdt_stop(void)
+ 		superio_outb(0x00, WDTVALMSB);
+ 
+ 	superio_exit();
+-	spin_unlock_irqrestore(&spinlock, flags);
+ }
+ 
+ /**
+@@ -303,8 +300,6 @@ static void wdt_stop(void)
+ 
+ static int wdt_set_timeout(int t)
+ {
+-	unsigned long flags;
+-
+ 	if (t < 1 || t > max_units * 60)
+ 		return -EINVAL;
+ 
+@@ -313,14 +308,12 @@ static int wdt_set_timeout(int t)
+ 	else
+ 		timeout = t;
+ 
+-	spin_lock_irqsave(&spinlock, flags);
+ 	if (test_bit(WDTS_TIMER_RUN, &wdt_status)) {
+ 		superio_enter();
+ 		superio_select(GPIO);
+ 		wdt_update_timeout();
+ 		superio_exit();
+ 	}
+-	spin_unlock_irqrestore(&spinlock, flags);
+ 	return 0;
+ }
+ 
+@@ -339,11 +332,8 @@ static int wdt_set_timeout(int t)
+ 
+ static int wdt_get_status(int *status)
+ {
+-	unsigned long flags;
+-
+ 	*status = 0;
+ 	if (testmode) {
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 		superio_select(GPIO);
+ 		if (superio_inb(WDTCTRL) & WDT_ZERO) {
+@@ -353,7 +343,6 @@ static int wdt_get_status(int *status)
+ 		}
+ 
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 	if (test_and_clear_bit(WDTS_KEEPALIVE, &wdt_status))
+ 		*status |= WDIOF_KEEPALIVEPING;
+@@ -560,16 +549,13 @@ static int __init it87_wdt_init(void)
+ 	int rc = 0;
+ 	int try_gameport = !nogameport;
+ 	u8  chip_rev;
+-	unsigned long flags;
+ 
+ 	wdt_status = 0;
+ 
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 	chip_type = superio_inw(CHIPID);
+ 	chip_rev  = superio_inb(CHIPREV) & 0x0f;
+ 	superio_exit();
+-	spin_unlock_irqrestore(&spinlock, flags);
+ 
+ 	switch (chip_type) {
+ 	case IT8702_ID:
+@@ -603,7 +589,6 @@ static int __init it87_wdt_init(void)
+ 		return -ENODEV;
+ 	}
+ 
+-	spin_lock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 
+ 	superio_select(GPIO);
+@@ -621,14 +606,12 @@ static int __init it87_wdt_init(void)
+ 		gpact = superio_inb(ACTREG);
+ 		superio_outb(0x01, ACTREG);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 		if (request_region(base, 1, WATCHDOG_NAME))
+ 			set_bit(WDTS_USE_GP, &wdt_status);
+ 		else
+ 			rc = -EIO;
+ 	} else {
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 
+ 	/* If we haven't Gameport support, try to get CIR support */
+@@ -646,7 +629,6 @@ static int __init it87_wdt_init(void)
+ 			goto err_out;
+ 		}
+ 		base = CIR_BASE;
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 
+ 		superio_select(CIR);
+@@ -660,7 +642,6 @@ static int __init it87_wdt_init(void)
+ 		}
+ 
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 
+ 	if (timeout < 1 || timeout > max_units * 60) {
+@@ -711,21 +692,17 @@ err_out_reboot:
+ err_out_region:
+ 	release_region(base, test_bit(WDTS_USE_GP, &wdt_status) ? 1 : 8);
+ 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 		superio_select(CIR);
+ 		superio_outb(ciract, ACTREG);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ err_out:
+ 	if (try_gameport) {
+-		spin_lock_irqsave(&spinlock, flags);
+ 		superio_enter();
+ 		superio_select(GAMEPORT);
+ 		superio_outb(gpact, ACTREG);
+ 		superio_exit();
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 	}
+ 
+ 	return rc;
+@@ -733,10 +710,6 @@ err_out:
+ 
+ static void __exit it87_wdt_exit(void)
+ {
+-	unsigned long flags;
+-	int nolock;
+-
+-	nolock = !spin_trylock_irqsave(&spinlock, flags);
+ 	superio_enter();
+ 	superio_select(GPIO);
+ 	superio_outb(0x00, WDTCTRL);
+@@ -752,8 +725,6 @@ static void __exit it87_wdt_exit(void)
+ 		superio_outb(ciract, ACTREG);
+ 	}
+ 	superio_exit();
+-	if (!nolock)
+-		spin_unlock_irqrestore(&spinlock, flags);
+ 
+ 	misc_deregister(&wdt_miscdev);
+ 	unregister_reboot_notifier(&wdt_notifier);
+-- 
+1.7.3.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
