@@ -1,7 +1,7 @@
 From: Nat Gurumoorthy <natg@google.com>
-Date: Mon, 11 Apr 2011 22:05:22 +0000
-Subject: [lm-sensors] [PATCH v3 0/2] Make all it87 drivers SMP safe
-Message-Id: <1302559522-18899-1-git-send-email-natg@google.com>
+Date: Tue, 12 Apr 2011 20:48:10 +0000
+Subject: [lm-sensors] [PATCH v5 0/2] Make all it87 drivers SMP safe
+Message-Id: <1302641290-30212-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -26,14 +26,20 @@ This also greatly simplifies the implementation of it87_wdt.c driver.
 02 - Chages to hwmon it87 driver to use "request_muxed_region"
  drivers/hwmon/it87.c
 
- drivers/hwmon/it87.c           |    4 ++++
- drivers/watchdog/it8712f_wdt.c |    9 ++++-----
- drivers/watchdog/it87_wdt.c    |   39 ++++-----------------------------------
- 3 files changed, 12 insertions(+), 40 deletions(-)
+ drivers/hwmon/it87.c           |    6 +++++
+ drivers/watchdog/it8712f_wdt.c |   11 +++++----
+ drivers/watchdog/it87_wdt.c    |   41 +++++----------------------------------
+ 3 files changed, 18 insertions(+), 40 deletions(-)
 
 Signed-off-by: Nat Gurumoorthy <natg@google.com>
 
 Patch History:
+v5:
+- Remove unnecessary while from superio_enter.
+
+v4:
+- Remove extra braces in superio_enter routines.
+
 v3:
 - Totally abandon the spinlock based approach and use "request_muxed_region" to
   hold off requestors if the resource is busy.
