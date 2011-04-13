@@ -1,106 +1,233 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 07 Apr 2011 10:09:36 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm90) Add support for ADT7461A and
-Message-Id: <20110407120936.5a095862@endymion.delvare>
+Date: Wed, 13 Apr 2011 15:28:56 +0000
+Subject: [lm-sensors] [PATCH 1/2] i8k: Integrate with the hwmon subsystem
+Message-Id: <20110413172856.06682baf@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1302104479-13363-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1302104479-13363-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Andrew Chew <achew@nvidia.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+Let i8k create an hwmon class device so that libsensors will expose
+the CPU temperature and fan speeds to monitoring applications.
 
-On Wed, 6 Apr 2011 08:41:19 -0700, Guenter Roeck wrote:
-> This patch adds support for ADT7461A and NCT1008 to the lm90 driver.
-> Both chips have identical functionality and report the same manufacturing ID
-> and device ID values.
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> Would this be a candidate for 2.6.39 and possibly -stable ?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Massimo Dal Zotto <dz@debian.org>
+---
+Note: I don't get why CONFIG_I8K is the "Processor type and features"
+menu, and why the driver lives in drivers/char. Wouldn't
+drivers/arch/x86 be a better place?
 
-2.6.39, why not. Stable, don't ask me, I have never been keen on the
-"support for new devices doesn't have to follow the stability rules"
-policy, but apparently I am in the minority.
+ arch/x86/Kconfig   |    1 
+ drivers/char/i8k.c |  148 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 149 insertions(+)
 
-In this specific case, please keep in mind that people can easily
-instantiate I2C devices from user-space now, and the chip you are adding
-support for is 100% compatible with one we already support, so a
-workaround already exists in the absence of official support.
+--- linux-2.6.39-rc3.orig/drivers/char/i8k.c	2011-03-15 19:45:31.000000000 +0100
++++ linux-2.6.39-rc3/drivers/char/i8k.c	2011-04-13 16:51:33.000000000 +0200
+@@ -5,6 +5,9 @@
+  *
+  * Copyright (C) 2001  Massimo Dal Zotto <dz@debian.org>
+  *
++ * Hwmon integration:
++ * Copyright (C) 2011  Jean Delvare <khali@linux-fr.org>
++ *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the
+  * Free Software Foundation; either version 2, or (at your option) any
+@@ -24,6 +27,8 @@
+ #include <linux/dmi.h>
+ #include <linux/capability.h>
+ #include <linux/mutex.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ 
+@@ -58,6 +63,7 @@
+ 
+ static DEFINE_MUTEX(i8k_mutex);
+ static char bios_version[4];
++static struct device *i8k_hwmon_dev;
+ 
+ MODULE_AUTHOR("Massimo Dal Zotto (dz@debian.org)");
+ MODULE_DESCRIPTION("Driver for accessing SMM BIOS on Dell laptops");
+@@ -455,6 +461,142 @@ static int i8k_open_fs(struct inode *ino
+ 	return single_open(file, i8k_proc_show, NULL);
+ }
+ 
++
++/*
++ * Hwmon interface
++ */
++
++static ssize_t i8k_hwmon_show_temp(struct device *dev,
++				   struct device_attribute *devattr,
++				   char *buf)
++{
++	int cpu_temp;
++
++	cpu_temp = i8k_get_temp(0);
++	return sprintf(buf, "%d\n", cpu_temp * 1000);
++}
++
++static ssize_t i8k_hwmon_show_fan(struct device *dev,
++				  struct device_attribute *devattr,
++				  char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	int fan_speed;
++
++	fan_speed = i8k_get_fan_speed(index);
++	return sprintf(buf, "%d\n", fan_speed);
++}
++
++static ssize_t i8k_hwmon_show_label(struct device *dev,
++				    struct device_attribute *devattr,
++				    char *buf)
++{
++	static const char *labels[4] = {
++		"i8k",
++		"CPU",
++		"Left Fan",
++		"Right Fan",
++	};
++	int index = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%s\n", labels[index]);
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, i8k_hwmon_show_temp, NULL);
++static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, i8k_hwmon_show_fan, NULL,
++			  I8K_FAN_LEFT);
++static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, i8k_hwmon_show_fan, NULL,
++			  I8K_FAN_RIGHT);
++static SENSOR_DEVICE_ATTR(name, S_IRUGO, i8k_hwmon_show_label, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, i8k_hwmon_show_label, NULL, 1);
++static SENSOR_DEVICE_ATTR(fan1_label, S_IRUGO, i8k_hwmon_show_label, NULL, 2);
++static SENSOR_DEVICE_ATTR(fan2_label, S_IRUGO, i8k_hwmon_show_label, NULL, 3);
++
++static void i8k_hwmon_remove_files(struct device *dev)
++{
++	device_remove_file(dev, &dev_attr_temp1_input);
++	device_remove_file(dev, &sensor_dev_attr_fan1_input.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_fan2_input.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_temp1_label.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_fan1_label.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_fan2_label.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_name.dev_attr);
++}
++
++static int __init i8k_init_hwmon(void)
++{
++	int err;
++
++	i8k_hwmon_dev = hwmon_device_register(NULL);
++	if (IS_ERR(i8k_hwmon_dev)) {
++		err = PTR_ERR(i8k_hwmon_dev);
++		i8k_hwmon_dev = NULL;
++		printk(KERN_ERR "i8k: hwmon registration failed (%d)\n", err);
++		return err;
++	}
++
++	/* Required name attribute */
++	err = device_create_file(i8k_hwmon_dev,
++				 &sensor_dev_attr_name.dev_attr);
++	if (err)
++		goto exit_unregister;
++
++	/* CPU temperature attributes */
++	err = device_create_file(i8k_hwmon_dev, &dev_attr_temp1_input);
++	if (err)
++		goto exit_remove_files;
++	err = device_create_file(i8k_hwmon_dev,
++				 &sensor_dev_attr_temp1_label.dev_attr);
++	if (err)
++		goto exit_remove_files;
++
++	/* Left fan attributes, if left fan is present */
++	err = i8k_get_fan_status(I8K_FAN_LEFT);
++	if (err < 0) {
++		dev_dbg(i8k_hwmon_dev,
++			"Not creating %s fan attributes (%d)\n", "left", err);
++	} else {
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan1_input.dev_attr);
++		if (err)
++			goto exit_remove_files;
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan1_label.dev_attr);
++		if (err)
++			goto exit_remove_files;
++	}
++
++	/* Right fan attributes, if right fan is present */
++	err = i8k_get_fan_status(I8K_FAN_RIGHT);
++	if (err < 0) {
++		dev_dbg(i8k_hwmon_dev,
++			"Not creating %s fan attributes (%d)\n", "right", err);
++	} else {
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan2_input.dev_attr);
++		if (err)
++			goto exit_remove_files;
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan2_label.dev_attr);
++		if (err)
++			goto exit_remove_files;
++	}
++
++	return 0;
++
++ exit_remove_files:
++	i8k_hwmon_remove_files(i8k_hwmon_dev);
++ exit_unregister:
++	hwmon_device_unregister(i8k_hwmon_dev);
++	return err;
++}
++
++static void __exit i8k_exit_hwmon(void)
++{
++	i8k_hwmon_remove_files(i8k_hwmon_dev);
++	hwmon_device_unregister(i8k_hwmon_dev);
++}
++
+ static struct dmi_system_id __initdata i8k_dmi_table[] = {
+ 	{
+ 		.ident = "Dell Inspiron",
+@@ -590,6 +732,11 @@ static int __init i8k_init(void)
+ 	if (!proc_i8k)
+ 		return -ENOENT;
+ 
++	if (i8k_init_hwmon()) {
++		remove_proc_entry("i8k", NULL);
++		return -ENODEV;
++	}
++
+ 	printk(KERN_INFO
+ 	       "Dell laptop SMM driver v%s Massimo Dal Zotto (dz@debian.org)\n",
+ 	       I8K_VERSION);
+@@ -599,6 +746,7 @@ static int __init i8k_init(void)
+ 
+ static void __exit i8k_exit(void)
+ {
++	i8k_exit_hwmon();
+ 	remove_proc_entry("i8k", NULL);
+ }
+ 
+--- linux-2.6.39-rc3.orig/arch/x86/Kconfig	2011-03-30 10:57:16.000000000 +0200
++++ linux-2.6.39-rc3/arch/x86/Kconfig	2011-04-13 17:10:16.000000000 +0200
+@@ -919,6 +919,7 @@ config TOSHIBA
+ 
+ config I8K
+ 	tristate "Dell laptop support"
++	select HWMON
+ 	---help---
+ 	  This adds a driver to safely access the System Management Mode
+ 	  of the CPU on the Dell Inspiron 8000. The System Management Mode
 
-> 
->  drivers/hwmon/Kconfig |    8 ++++----
->  drivers/hwmon/lm90.c  |    6 ++++++
-
-Please follow your own brand new hwmon patch submission guide and
-update Documentation/hwmon/lm90 as well. SCNR :)
-
->  2 files changed, 10 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 060ef63..92d0251 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -618,10 +618,10 @@ config SENSORS_LM90
->  	depends on I2C
->  	help
->  	  If you say yes here you get support for National Semiconductor LM90,
-> -	  LM86, LM89 and LM99, Analog Devices ADM1032 and ADT7461, Maxim
-> -	  MAX6646, MAX6647, MAX6648, MAX6649, MAX6657, MAX6658, MAX6659,
-> -	  MAX6680, MAX6681, MAX6692, MAX6695, MAX6696, and Winbond/Nuvoton
-> -	  W83L771W/G/AWG/ASG sensor chips.
-> +	  LM86, LM89 and LM99, Analog Devices ADM1032, ADT7461, and ADT7461A,
-> +	  Maxim MAX6646, MAX6647, MAX6648, MAX6649, MAX6657, MAX6658, MAX6659,
-> +	  MAX6680, MAX6681, MAX6692, MAX6695, MAX6696, ON Semiconductor NCT1008,
-> +	  and Winbond/Nuvoton W83L771W/G/AWG/ASG sensor chips.
-
-As a side note, I find it weird that On Semi uses the same chip name
-prefix (NCT) has Nuvoton...
-
->  
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called lm90.
-> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> index 812781c..0aa892c 100644
-> --- a/drivers/hwmon/lm90.c
-> +++ b/drivers/hwmon/lm90.c
-
-This source file includes a list of supported chips in its header
-comment. The "Addresses to scan" comment also lists which chips can
-live at which address. Please update both sections.
-
-It might make sense to drop the big header comment in the future, and
-redirect the reader to the documentation file, after ensuring that it
-contains all the required information. This would avoid having to
-update two different lists which are essentially redundant with each
-new chip we add support for.
-
-> @@ -174,6 +174,7 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
->  static const struct i2c_device_id lm90_id[] = {
->  	{ "adm1032", adm1032 },
->  	{ "adt7461", adt7461 },
-> +	{ "adt7461a", adt7461 },
->  	{ "lm90", lm90 },
->  	{ "lm86", lm86 },
->  	{ "lm89", lm86 },
-> @@ -1153,6 +1154,11 @@ static int lm90_detect(struct i2c_client *new_client,
->  		 && (reg_config1 & 0x1B) = 0x00
->  		 && reg_convrate <= 0x0A) {
->  			name = "adt7461";
-> +		} else
-> +		if (chip_id = 0x57 /* ADT7461A, NCT1008 */
-> +		 && (reg_config1 & 0x1B) = 0x00
-> +		 && reg_convrate <= 0x0A) {
-> +			name = "adt7461a";
->  		}
->  	} else
->  	if (man_id = 0x4D) { /* Maxim */
-
-Other than this, these changes look good and I'll be happy to pick the
-patch in my tree when it's ready.
 
 -- 
 Jean Delvare
