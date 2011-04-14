@@ -1,37 +1,43 @@
 From: Harry G McGavran Jr <w5pny@arrl.net>
-Date: Thu, 14 Apr 2011 15:19:29 +0000
+Date: Thu, 14 Apr 2011 15:24:42 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <20110414151929.C79821A9866@localhost.localdomain>
+Message-Id: <20110414152442.4BD3C1A9866@localhost.localdomain>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="==_Exmh_1302794650_16160"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 14 Apr 2011 09:57:23 +0200 Jean Delvare wrote:
-> 
-> Will be difficult to find a developer motivated to write a driver for 2
-> users of 2006 hardware, I'm afraid. Do you have anything to offer in
-> return? I have a wishlist:
->   http://khali.linux-fr.org/wishlist.html
+This is a multipart MIME message.
 
-I looked at your wishlist, and at the moment, I've only got
-one or two short RJ45 cables and possiblye and HDMI cable,
-but I'd have to check if its male/male.  Might be able to
-come up with more from your list at a later time.
+--==_Exmh_1302794650_16160
+Content-Type: text/plain; charset=us-ascii
 
-> 
-> Meanwhile I've added detection support to sensors-detect:
->   http://khali.linux-fr.org/devel/misc/sensors-detect
-> If you could test and report, that would be great. Proper detection of
-> the chip may bring more user requests to support the chip (although the
-> old age of the chip makes this event rather unlikely.)
 
- # sensors-detect revision 5960 (2011-04-14 09:20:09 +0200)
- # System: Dell Inc. Precision WorkStation 670
- # Board: Dell Inc. 0XC837
+When I looked at a copy of sent mail on my previous message,
+I noticed sedit (I still prefer exmh) or some subsequent
+action messed up the formatting of the two data files
+I included, so I will include them as attachments here,
+and you'll be able to read them better (especially the
+i2cdump output).
+
+
+Thanks again --
+
+	Harry McGavran
+
+
+
+
+--==_Exmh_1302794650_16160
+Content-Type: text/plain ; name="Delvare_sensors_detect.txt"; charset=us-ascii
+Content-Description: Delvare_sensors_detect.txt
+Content-Disposition: attachment; filename="Delvare_sensors_detect.txt"
+
+# sensors-detect revision 5960 (2011-04-14 09:20:09 +0200)
+# System: Dell Inc. Precision WorkStation 670
+# Board: Dell Inc. 0XC837
 
 This program will help you determine which kernel modules you need
 to load to use lm_sensors most effectively. It is generally safe
@@ -98,8 +104,7 @@ Do you want to scan it? (YES/no/selectively):
 Next adapter: NVIDIA i2c adapter  (i2c-1)
 Do you want to scan it? (YES/no/selectively): 
 Next adapter: NVIDIA i2c adapter  (i2c-2)
-Do you want to scan it? (YES/no/selectively): 
-Client found at address 0x50
+Do you want to scan it? (YES/no/selectively): Client found at address 0x50
 Probing for `Analog Devices ADM1033'...                     No
 Probing for `Analog Devices ADM1034'...                     No
 Probing for `SPD EEPROM'...                                 No
@@ -119,8 +124,7 @@ Probing for `Analog Devices ADM1034'...                     No
 Probing for `SPD EEPROM'...                                 No
 
 Next adapter: SMBus I801 adapter at e8a0 (i2c-3)
-Do you want to scan it? (YES/no/selectively): 
-Client found at address 0x2e
+Do you want to scan it? (YES/no/selectively): Client found at address 0x2e
 Probing for `Myson MTP008'...                               No
 Probing for `National Semiconductor LM78'...                No
 Probing for `National Semiconductor LM79'...                No
@@ -194,19 +198,10 @@ they are connected to an I2C or SMBus adapter that is not
 supported. If you find out what chips are on your board, check
 http://www.lm-sensors.org/wiki/Devices for driver status.
 
-> 
-> A register dump of the chip would be welcome too. You can obtain it by
-> loading the i2c-dev kernel driver and running i2cdump (from the
-> i2c-tools package):
-> 
-> # modprobe i2c-dev
-> # i2cdump N 0x2e
-> 
-> where N is the i2c bus number displayed by sensors-detect, and 0x2e the
-> actual chip address on that bus (can be one of 0x2c, 0x2d or 0x2e.)
-> 
-
-i2cdump 3 0x2e
+--==_Exmh_1302794650_16160
+Content-Type: text/plain ; name="i2cdump_3_0x2e.txt"; charset=us-ascii
+Content-Description: i2cdump_3_0x2e.txt
+Content-Disposition: attachment; filename="i2cdump_3_0x2e.txt"
 
      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
 00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
@@ -226,46 +221,25 @@ d0: 00 ff ff ff ff ff ff ff ff ff ff 6f ff ff ff ff    ...........o....
 e0: 00 08 a0 2a e8 00 40 00 18 00 00 00 00 00 00 00    .??*?.@.?.......
 f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00    ................
 
+--==_Exmh_1302794650_16160
+Content-Type: text/plain; charset=us-ascii
 
-
-> While the EMC6W201 is a pretty complex chip with many advanced
-> features, basic monitoring of voltages, fans and temperatures shouldn't
-> be that hard to implement.
-> 
-> Ric, out of curiosity, are you still interested in EMC6W201 support?
-> 
-> -- 
-> Jean Delvare
-
-Thanks Jean for your reply and a possible glimmer of hope.
-
-If I come up with anything wish-list I'll let you know AND
-if you need any more info from my machine, I'll try to
-come up with it.
-
-Thanks for your reply!  
-
-	Harry McGavran
-
-
-
--- 
 
 Harry G. McGavran, Jr.
 
 E-mail: w5pny@arrl.net
 
 
--- 
-
-Harry G. McGavran, Jr.
-
-E-mail: w5pny@arrl.net
-
-
-
+--==_Exmh_1302794650_16160
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--==_Exmh_1302794650_16160--
+
+
