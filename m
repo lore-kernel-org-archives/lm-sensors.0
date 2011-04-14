@@ -1,38 +1,58 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 17 Apr 2011 20:59:04 +0000
-Subject: Re: [lm-sensors] wrong voltages on D525MWV
-Message-Id: <20110417225904.4b273f8d@endymion.delvare>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Thu, 14 Apr 2011 21:36:36 +0000
+Subject: [lm-sensors] [PATCH v6 0/2] Make all it87 drivers SMP safe
+Message-Id: <1302816996-6345-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E1QApIq-0002zf-00.serafim_home-mail-ru@f134.mail.ru>
-In-Reply-To: <E1QApIq-0002zf-00.serafim_home-mail-ru@f134.mail.ru>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
+Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
 
-Please keep the list Cc'd.
+There are 3 different drivers that touch the it87 hardware registers.
+The 3 drivers have been written independently and access the it87 hardware
+registers assuming they are the only driver accessing it. This change
+attempts to serialize access to the hardware by using
+"request_muxed_region" macro defined by Alan Cox. Call to this macro
+will hold off the requestor if the resource is currently busy.
+The use of the above macro makes it possible to get rid of
+spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
+This also greatly simplifies the implementation of it87_wdt.c driver.
 
-On Sun, 17 Apr 2011 23:54:21 +0400, Серафим Сухенький wrote:
-> Sat, 16 Apr 2011 08:59:27 +0200 письмо от Jean Delvare <khali@linux-fr.org>:
-> > Failing that, if you are able to gather several samples of each of 12V,
-> > 5V and 5Vstby in the BIOS, we can guess the scaling factors from the
-> > sample differences, and from that, find the pin mapping.
-> 
-> 
-> If I'd like to guess scalings myself, then I have to write down voltages from bios, then write down voltages from lm-sensors,
-> then make voltages change and repeat few times? When I have several different samples I can guess. Am I right?
-> 
-> How can I make voltages change? Don't they differ when I meashure them from bios and from booted OS?
+01 - Changes to it87 watchdog driver to use "request_muxed_region"
+ drivers/watchdog/it8712f_wdt.c
+ drivers/watchdog/it87_wdt.c
 
-+5V and +12V aren't voltages you can control. But almost all the time
-the values displayed by the BIOS oscillate between two values, due to
-PSU imperfection, measurement noise, load variations, etc. So it's
-enough to stay in the BIOS for a minute. Sometimes you have to
-leave/enter the screen to get new readings, but in most cases it's
-updated in real-time.
+02 - Chages to hwmon it87 driver to use "request_muxed_region"
+ drivers/hwmon/it87.c
 
--- 
-Jean Delvare
+ drivers/hwmon/it87.c           |   30 +++++++++++++-
+ drivers/watchdog/it8712f_wdt.c |   50 +++++++++++++++++++++---
+ drivers/watchdog/it87_wdt.c    |   80 +++++++++++++++++++++------------------
+ 3 files changed, 113 insertions(+), 47 deletions(-)
+
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
+
+Patch History:
+v6:
+- Pay attention to value returned by request_muxed_region. The first call to
+  request_muxed_region will attempt 10 times to reserve the region before it
+  gives up. This will typically get called from the driver init routines. If this
+  succeeds then subsequent calls wait forever for the resource to be available.
+
+v5:
+- Remove unnecessary while from superio_enter.
+
+v4:
+- Remove extra braces in superio_enter routines.
+
+v3:
+- Totally abandon the spinlock based approach and use "request_muxed_region" to
+  hold off requestors if the resource is busy.
+
+v2:
+- More verbose patch headers. Add In-Reply-To: field.
+
 
 _______________________________________________
 lm-sensors mailing list
