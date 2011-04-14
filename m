@@ -1,7 +1,7 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Wed, 13 Apr 2011 11:34:49 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 14 Apr 2011 21:37:55 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/4] hwmon: (sht15) general code clean-up
-Message-Id: <4DA58A59.4040900@cam.ac.uk>
+Message-Id: <1302817075.26780.578.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1302636879-16615-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 In-Reply-To: <1302636879-16615-2-git-send-email-vivien.didelot@savoirfairelinux.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/12/11 20:34, Vivien Didelot wrote:
+On Tue, 2011-04-12 at 15:34 -0400, Vivien Didelot wrote:
 > * Add a documentation file for the device.
 > * Respect a bit more the kernel-doc syntax.
 > * Rename some variables for clarity.
@@ -18,7 +18,12 @@ On 04/12/11 20:34, Vivien Didelot wrote:
 > * Use an enum for states (actions being done).
 > 
 > Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
+
+Applied to -next.
+
+Thanks,
+Guenter
+
 
 
 _______________________________________________
