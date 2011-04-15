@@ -1,139 +1,165 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date: Sat, 30 Apr 2011 10:07:05 +0000
-Subject: Re: [lm-sensors] [RFC 1/5] platform-drivers-x86: add support for
-Message-Id: <20110430110705.5ca3376b@lxorguk.ukuu.org.uk>
+From: wni@nvidia.com
+Date: Fri, 15 Apr 2011 11:00:27 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon (lm90) Support to configure nct1008
+Message-Id: <1302865228-7185-3-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1304115712-5299-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<1304115712-5299-2-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1304115712-5299-2-git-send-email-vivien.didelot@savoirfairelinux.com>
+References: <1302865228-7185-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1302865228-7185-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Cc: linux-kernel@vger.kernel.org, Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>, platform-driver-x86@vger.kernel.org, linux-serial@vger.kernel.org, lm-sensors@lm-sensors.org
+To: khali@linux-fr.org, guenter.roeck@ericsson.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, olofj@chromium.org, achew@nvidia.com, Wei Ni <wni@nvidia.com>
 
-> + * ts5xxx_sbcinfo_set() - set the SBC info structure with the current SBC's info
-> + * @sbcinfo:		structure containing SBC info to set.
-> + */
-> +void ts5xxx_sbcinfo_set(struct ts5xxx_sbcinfo *sbcinfo)
-> +{
-> +	memcpy(sbcinfo, &ts_sbcinfo, sizeof(*sbcinfo));
-> +}
-> +EXPORT_SYMBOL(ts5xxx_sbcinfo_set);
+From: Wei Ni <wni@nvidia.com>
 
-You export this but it's not clear who for or why - and there is also no
-locking, so it seems to be an internal interface ?
+This patch add support to configure nct1008 from platform data.
 
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ drivers/hwmon/lm90.c    |   66 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/nct1008.h |   38 +++++++++++++++++++++++++++
+ 2 files changed, 104 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/nct1008.h
 
-> +/**
-> + * ts_find_sbc_config() - find a SBC configuration from an id
-> + * @id:			ID of the board to find.
-> + */
-> +static inline struct ts_sbc_config *ts_find_sbc_config(u8 id)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(ts_sbcs_configs); i++)
-> +		if (id = ts_sbcs_configs[i].id)
-> +			return &ts_sbcs_configs[i];
-> +
-> +	return NULL;
-> +}
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 1c2ee3f..8b639b0 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -83,6 +83,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/nct1008.h>
+ 
+ /*
+  * Addresses to scan
+@@ -1358,6 +1359,67 @@ static void lm90_init_client(struct i2c_client *client)
+ 		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, config);
+ }
+ 
++static void lm90_configure_client(struct i2c_client *client)
++{
++	struct lm90_data *data = i2c_get_clientdata(client);
++	u8 value;
++	u16 value16;
++
++	if (strcmp(client->name, "nct1008")) {
++		struct nct1008_platform_data *pdata = client->dev.platform_data;
++
++		/*
++		 * Initial Configuration - device is placed in standby and
++		 * ALERT/THERM2 pin is configured as THERM2
++		 */
++		lm90_read_reg(client, LM90_REG_R_CONFIG1, &value);
++		if (pdata->ext_range)
++			value |= 0x24;
++		else
++			value |= 0x20;
++		i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, value);
++
++		/* Check Temperature Range Select */
++		if (value & 0x04)
++			data->flags |= LM90_FLAG_ADT7461_EXT;
++
++		/* Temperature conversion rate */
++		value = pdata->conv_rate;
++		i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE, value);
++
++		/* External temperature h/w shutdown limit */
++		value = temp_to_u8_adt7461(data, pdata->shutdown_ext_limit);
++		i2c_smbus_write_byte_data(client, LM90_REG_W_REMOTE_CRIT,
++					  value);
++
++		/* Local temperature h/w shutdown limit */
++		value = temp_to_u8_adt7461(data, pdata->shutdown_local_limit);
++		i2c_smbus_write_byte_data(client, LM90_REG_W_LOCAL_CRIT, value);
++
++		/* External Temperature Throttling limit */
++		value16 = temp_to_u16_adt7461(data, pdata->throttle_ext_limit);
++		i2c_smbus_write_byte_data(client, LM90_REG_W_REMOTE_HIGHH,
++					  value16 >> 8);
++		if (data->flags & LM90_HAVE_REM_LIMIT_EXT)
++			i2c_smbus_write_byte_data(client,
++						  LM90_REG_W_REMOTE_HIGHL,
++						  value16 & 0xff);
++
++		/* Local Temperature Throttling limit */
++		value = pdata->ext_range ? 191 : 127;
++		i2c_smbus_write_byte_data(client, LM90_REG_W_LOCAL_HIGH, value);
++
++		/* Remote channel offset */
++		value = pdata->offset;
++		i2c_smbus_write_byte_data(client,
++					  LM90_REG_W_REMOTE_OFFSH, value);
++
++		/* THERM hysteresis */
++		value = pdata->hysteresis;
++		i2c_smbus_write_byte_data(client, LM90_REG_W_TCRIT_HYST, value);
++	}
++}
++
+ static int lm90_probe(struct i2c_client *new_client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1393,6 +1455,10 @@ static int lm90_probe(struct i2c_client *new_client,
+ 	/* Initialize the LM90 chip */
+ 	lm90_init_client(new_client);
+ 
++	/* Configure the LM90 chip from platform_data */
++	if (new_client->dev.platform_data)
++		lm90_configure_client(new_client);
++
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&new_client->dev.kobj, &lm90_group);
+ 	if (err)
+diff --git a/include/linux/nct1008.h b/include/linux/nct1008.h
+new file mode 100644
+index 0000000..3a6ed69
+--- /dev/null
++++ b/include/linux/nct1008.h
+@@ -0,0 +1,38 @@
++/*
++ * include/linux/nct1008.h
++ *
++ * NCT1008, temperature monitoring device from ON Semiconductors
++ *
++ * Copyright (c) 2010, NVIDIA Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
++ */
++
++#ifndef _LINUX_NCT1008_H
++#define _LINUX_NCT1008_H
++
++#include <linux/types.h>
++
++struct nct1008_platform_data {
++	bool ext_range;
++	u8 conv_rate;
++	u8 offset;
++	u8 hysteresis;
++	long shutdown_ext_limit;
++	long shutdown_local_limit;
++	long throttle_ext_limit;
++};
++
++#endif /* _LINUX_NCT1008_H */
+-- 
+1.7.0
 
-gcc will figure out inlines for you in static stuff and normally very well
-
-> +
-> +/**
-> + * ts_sbcinfo_detect() - detect the TS board
-> + * @sbcinfo:		structure where to store the detected board's info.
-> + */
-> +static int ts_sbcinfo_detect(struct ts5xxx_sbcinfo *sbcinfo)
-> +{
-> +	u8 temp;
-> +	struct ts_sbc_config *sbc;
-> +	int ret = 0;
-> +
-> +	memset(sbcinfo, 0, sizeof(*sbcinfo));
-> +
-> +	if (!request_region(IOADDR_SBCID, 4, "TS-SBC"))
-> +		return -EBUSY;
-> +
-> +	temp = inb(IOADDR_SBCID);
-> +	/* If it is a 3x00 SBC only match against the first 3 bits */
-> +	if (temp & 0x07)
-> +		temp &= 0x07;
-
-So if this is compiled into a kernel we blindly inb this address and some
-platform just crashed on boot. Is this board like other embedded ones in
-that there is some safe way to check if its such a board first ?
-
-> +
-> +	sbc = ts_find_sbc_config(temp);
-> +	if (!sbc) {
-> +		ret = -ENODEV;
-
-Assuming you've indentified the board properly this case might be worth a
-pr_err giving the fact it seemed to be a TS-5xxx, the config number and
-that it is unknown - that will help anyone with future boards realise
-their config isn't supported.
-
-
-> +
-> +/**
-> + * ts_sbcinfo_proc_read() - function called when a read access is done on
-> + *                          /proc/ts-sbcinfo
-> + */
-> +static int ts_sbcinfo_proc_read(char *page, char **start, off_t off,
-> +				int count, int *eof, void *data)
-> +{
-> +	int to_copy = (procfs_buffer_size <= count) ?
-> +		procfs_buffer_size - off : count;
-
-> +
-> +	if (off + to_copy >= procfs_buffer_size) {
-> +		to_copy = procfs_buffer_size - off;
-> +		*eof = 1;
-> +	}
-
-Suppose off is 0x7FFFFFFF and count = 100
-
-	to_copy = 100
-	off + to_copy >= procfs_buffer_size   [off_t may be 32bit]
-
-	100 + 0x7FFFFFFF (wraps) < buffer size
-
-
-> +static int __init ts5xxx_sbcinfo_init(void)
-> +{
-> +	int err;
-> +
-> +	err = ts_sbcinfo_detect(&ts_sbcinfo);
-> +	if (err < 0) {
-> +		printk(KERN_ERR KBUILD_MODNAME
-> +		       ": Failed to get SBC information\n");
-> +		return err;
-> +	}
-
-Well that will depend why and probably the caller can give the best
-information including silence if the board is just not a ts-5xxx
-
-> +	proc_entry = create_proc_read_entry(PROCFS_NAME, S_IRUGO, NULL,
-> +					    ts_sbcinfo_proc_read, 0);
-> +	if (proc_entry = NULL) {
-> +		printk(KERN_ERR KBUILD_MODNAME
-> +		       ": Failed to create proc entry\n");
-
-pr_err
-
-> +		return -ENOMEM;
-> +	}
-> +
-> +	procfs_buffer_size = ts_sbcinfo_init_buffer(procfs_buffer, &ts_sbcinfo);
-> +	printk(KBUILD_MODNAME ": TS SBC's info driver loaded.\n");
-
-Printk not needed
-
-Alan
 
 _______________________________________________
 lm-sensors mailing list
