@@ -1,137 +1,184 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Wed, 06 Apr 2011 21:12:54 +0000
-Subject: [lm-sensors] [PATCH 1/3] Make all it87 drivers SMP safe.
-Message-Id: <1302124374-22381-1-git-send-email-natg@google.com>
+From: wni@nvidia.com
+Date: Fri, 15 Apr 2011 11:00:28 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon (lm90) Add alarm function for nct1008
+Message-Id: <1302865228-7185-4-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1302865228-7185-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1302865228-7185-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
+To: khali@linux-fr.org, guenter.roeck@ericsson.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, olofj@chromium.org, achew@nvidia.com, Wei Ni <wni@nvidia.com>
 
-01 - Adds relevant lock files.
+From: Wei Ni <wni@nvidia.com>
 
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
+This patch add alarm function for nct1008.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
 ---
-diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
-index 31649b7..562f345 100644
---- a/drivers/watchdog/Kconfig
-+++ b/drivers/watchdog/Kconfig
-@@ -2,6 +2,18 @@
- # Watchdog device configuration
- #
+ drivers/hwmon/lm90.c    |   59 +++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/nct1008.h |    1 +
+ 2 files changed, 60 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 8b639b0..11a0a9d 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -83,6 +83,7 @@
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+ #include <linux/sysfs.h>
++#include <linux/interrupt.h>
+ #include <linux/nct1008.h>
  
-+# This has to come before the WATCHDOG menuconfig
-+# because it can be selected by drivers/hwmon/it87.c
-+config IT87_LOCK
-+	bool
-+	default n
-+	---help---
-+	  This defines the global lock needed by all IT87 drivers that
-+	  touch the Super I/0 chipset used on many motherboards. This
-+	  is needed to serialize access to the registers in SMP
-+	  systems. All it87 drivers will select this Kconfig option to compile
-+	  the lock into the kernel.
+ /*
+@@ -275,6 +276,8 @@ static const struct lm90_params lm90_params[] = {
+ struct lm90_data {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
++	struct work_struct work;
++	struct i2c_client *client;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+ 	int kind;
+@@ -308,6 +311,7 @@ struct lm90_data {
+ 			   7: remote 2 high limit (ma6695/96 only) */
+ 	u8 temp_hyst;
+ 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
++	void (*alarm_fn)(int irq);
+ };
+ 
+ /*
+@@ -1104,6 +1108,27 @@ static void lm90_disable(struct i2c_client *client)
+ 	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, value);
+ }
+ 
++static void lm90_work_func(struct work_struct *work)
++{
++	struct lm90_data *data = container_of(work, struct lm90_data, work);
++	int irq = data->client->irq;
 +
- menuconfig WATCHDOG
- 	bool "Watchdog Timer Support"
- 	---help---
-@@ -565,6 +577,7 @@ config ITCO_VENDOR_SUPPORT
- config IT8712F_WDT
- 	tristate "IT8712F (Smart Guardian) Watchdog Timer"
- 	depends on X86
-+	select IT87_LOCK
- 	---help---
- 	  This is the driver for the built-in watchdog timer on the IT8712F
- 	  Super I/0 chipset used on many motherboards.
-@@ -578,6 +591,7 @@ config IT8712F_WDT
- config IT87_WDT
- 	tristate "IT87 Watchdog Timer"
- 	depends on X86 && EXPERIMENTAL
-+	select IT87_LOCK
- 	---help---
- 	  This is the driver for the hardware watchdog on the ITE IT8702,
- 	  IT8712, IT8716, IT8718, IT8720, IT8726, IT8712 Super I/O chips.
-diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
-index 20e44c4..6895445 100644
---- a/drivers/watchdog/Makefile
-+++ b/drivers/watchdog/Makefile
-@@ -81,6 +81,7 @@ obj-$(CONFIG_ITCO_WDT) += iTCO_wdt.o
- ifeq ($(CONFIG_ITCO_VENDOR_SUPPORT),y)
- obj-$(CONFIG_ITCO_WDT) += iTCO_vendor_support.o
- endif
-+obj-$(CONFIG_IT87_LOCK) += it87_lock.o
- obj-$(CONFIG_IT8712F_WDT) += it8712f_wdt.o
- obj-$(CONFIG_IT87_WDT) += it87_wdt.o
- obj-$(CONFIG_HP_WATCHDOG) += hpwdt.o
-diff --git a/drivers/watchdog/it87_lock.c b/drivers/watchdog/it87_lock.c
-new file mode 100644
-index 0000000..06c0b49
---- /dev/null
-+++ b/drivers/watchdog/it87_lock.c
-@@ -0,0 +1,27 @@
-+/*
-+ *      IT87xxx super IO chipset access lock
-+ *
-+ *      Copyright (c) 2011 Nat Gurumoorthy <natg@google.com>
-+ *
-+ *      Based on info and code taken from:
-+ *
-+ *      drivers/char/watchdog/scx200_wdt.c
-+ *      drivers/hwmon/it87.c
-+ *      IT8712F EC-LPC I/O Preliminary Specification 0.8.2
-+ *      IT8712F EC-LPC I/O Preliminary Specification 0.9.3
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License as
-+ *      published by the Free Software Foundation; either version 2 of the
-+ *      License, or (at your option) any later version.
-+ *
-+ *      The author(s) of this software shall not be held liable for damages
-+ *      of any nature resulting due to the use of this software. This
-+ *      software is provided AS-IS with no warranties.
-+ */
++	mutex_lock(&data->update_lock);
 +
-+#include <linux/module.h>
-+#include <linux/spinlock.h>
++	if (data->alarm_fn)
++		data->alarm_fn(irq);
 +
-+DEFINE_SPINLOCK(it87_io_lock);
-+EXPORT_SYMBOL(it87_io_lock);
-diff --git a/include/linux/it87_lock.h b/include/linux/it87_lock.h
-new file mode 100644
-index 0000000..ae91ce5
---- /dev/null
-+++ b/include/linux/it87_lock.h
-@@ -0,0 +1,28 @@
-+/*
-+ *      IT87xxx super IO chipset access lock
-+ *
-+ *      Copyright (c) 2011 Nat Gurumoorthy <natg@google.com>
-+ *
-+ *      Based on info and code taken from:
-+ *
-+ *      drivers/char/watchdog/scx200_wdt.c
-+ *      drivers/hwmon/it87.c
-+ *      IT8712F EC-LPC I/O Preliminary Specification 0.8.2
-+ *      IT8712F EC-LPC I/O Preliminary Specification 0.9.3
-+ *
-+ *      This program is free software; you can redistribute it and/or
-+ *      modify it under the terms of the GNU General Public License as
-+ *      published by the Free Software Foundation; either version 2 of the
-+ *      License, or (at your option) any later version.
-+ *
-+ *      The author(s) of this software shall not be held liable for damages
-+ *      of any nature resulting due to the use of this software. This
-+ *      software is provided AS-IS with no warranties.
-+ */
++	mutex_unlock(&data->update_lock);
++}
 +
-+#include <linux/spinlock.h>
++static irqreturn_t lm90_irq(int irq, void *dev_id)
++{
++	struct lm90_data *data = dev_id;
++	schedule_work(&data->work);
 +
-+/*
-+ * Global lock used by all it87 drivers to serialize access to hardware.
-+ */
-+extern spinlock_t it87_io_lock;
----
++	return IRQ_HANDLED;
++}
++
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int lm90_detect(struct i2c_client *new_client,
+ 		       struct i2c_board_info *info)
+@@ -1417,9 +1442,22 @@ static void lm90_configure_client(struct i2c_client *client)
+ 		/* THERM hysteresis */
+ 		value = pdata->hysteresis;
+ 		i2c_smbus_write_byte_data(client, LM90_REG_W_TCRIT_HYST, value);
++
++		data->alarm_fn = pdata->alarm_fn;
+ 	}
+ }
+ 
++static int lm90_configure_irq(struct lm90_data *data)
++{
++	if (data->alarm_fn && data->client->irq) {
++		INIT_WORK(&data->work, lm90_work_func);
++		return request_irq(data->client->irq, lm90_irq,
++				IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
++				"lm90", data);
++	} else
++		return 0;
++}
++
+ static int lm90_probe(struct i2c_client *new_client,
+ 		      const struct i2c_device_id *id)
+ {
+@@ -1432,6 +1470,7 @@ static int lm90_probe(struct i2c_client *new_client,
+ 		err = -ENOMEM;
+ 		goto exit;
+ 	}
++	data->client = new_client;
+ 	i2c_set_clientdata(new_client, data);
+ 	mutex_init(&data->update_lock);
+ 
+@@ -1459,6 +1498,10 @@ static int lm90_probe(struct i2c_client *new_client,
+ 	if (new_client->dev.platform_data)
+ 		lm90_configure_client(new_client);
+ 
++	err = lm90_configure_irq(data);
++	if (err)
++		goto exit_free;
++
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&new_client->dev.kobj, &lm90_group);
+ 	if (err)
+@@ -1499,6 +1542,9 @@ static int lm90_probe(struct i2c_client *new_client,
+ 		goto exit_remove_files;
+ 	}
+ 
++	if (data->alarm_fn && client->irq)
++		schedule_work(&data->work);
++
+ 	return 0;
+ 
+ exit_remove_files:
+@@ -1513,6 +1559,8 @@ static int lm90_remove(struct i2c_client *client)
+ {
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+ 
++	if (data->alarm_fn && client->irq)
++		cancel_work_sync(&data->work);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	lm90_remove_files(client, data);
+ 
+@@ -1569,13 +1617,24 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ #ifdef CONFIG_PM
+ static int lm90_suspend(struct i2c_client *client, pm_message_t state)
+ {
++	if (client->irq)
++		disable_irq(client->irq);
+ 	lm90_disable(client);
++
+ 	return 0;
+ }
+ 
+ static int lm90_resume(struct i2c_client *client)
+ {
++	struct lm90_data *data = i2c_get_clientdata(client);
++
+ 	lm90_enable(client);
++	if (client->irq) {
++		enable_irq(client->irq);
++		if (data->alarm_fn)
++			schedule_work(&data->work);
++	}
++
+ 	return 0;
+ }
+ #endif
+diff --git a/include/linux/nct1008.h b/include/linux/nct1008.h
+index 3a6ed69..8e36860 100644
+--- a/include/linux/nct1008.h
++++ b/include/linux/nct1008.h
+@@ -33,6 +33,7 @@ struct nct1008_platform_data {
+ 	long shutdown_ext_limit;
+ 	long shutdown_local_limit;
+ 	long throttle_ext_limit;
++	void (*alarm_fn)(int irq);
+ };
+ 
+ #endif /* _LINUX_NCT1008_H */
+-- 
+1.7.0
+
 
 _______________________________________________
 lm-sensors mailing list
