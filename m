@@ -1,53 +1,221 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 10 Apr 2011 07:08:48 +0000
+From: Darren Hart <dvhart@linux.intel.com>
+Date: Fri, 15 Apr 2011 04:57:11 +0000
 Subject: Re: [lm-sensors] hwmon: (adm1021) Clarify documentation regarding
-Message-Id: <20110410090848.773423a1@endymion.delvare>
+Message-Id: <4DA7D027.9080503@linux.intel.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------000504030008010900050804"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110409183156.215fa01e@endymion.delvare>
 In-Reply-To: <20110409183156.215fa01e@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Darren,
+This is a multi-part message in MIME format.
+--------------000504030008010900050804
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Sat, 09 Apr 2011 16:15:45 -0700, Darren Hart wrote:
-> On 04/09/2011 01:39 PM, Guenter Roeck wrote:
-> > On Sat, Apr 09, 2011 at 12:31:56PM -0400, Jean Delvare wrote:
-> >> Recent Xeon processor thermal sensors are supported by the coretemp
-> >> driver and not the adm1021 driver. Only one old generation of Xeon
-> >> processors (the first Netburst ones) are supported by the adm1021
-> >> driver.
+
+
+On 04/10/2011 12:08 AM, Jean Delvare wrote:
+> Hi Darren,
 > 
-> In addition to changing the kernel config help, is there a way to avoid
-> loading this driver for non netburst type CPUs? Someway to blacklist
-> later CPUs from using this driver? Seems this would make sensors-detect
-> and such behave better.
+> On Sat, 09 Apr 2011 16:15:45 -0700, Darren Hart wrote:
+>> On 04/09/2011 01:39 PM, Guenter Roeck wrote:
+>>> On Sat, Apr 09, 2011 at 12:31:56PM -0400, Jean Delvare wrote:
+>>>> Recent Xeon processor thermal sensors are supported by the coretemp
+>>>> driver and not the adm1021 driver. Only one old generation of Xeon
+>>>> processors (the first Netburst ones) are supported by the adm1021
+>>>> driver.
+>>
+>> In addition to changing the kernel config help, is there a way to avoid
+>> loading this driver for non netburst type CPUs? Someway to blacklist
+>> later CPUs from using this driver? Seems this would make sensors-detect
+>> and such behave better.
+> 
+> This is all the other way around. The adm1021 driver doesn't auto-load
+> on PC systems. The way it usually goes is that sensors-detect will
+> detect a compatible device, and it will set the adm1021 driver to be
+> loaded when the lm_sensors service is started. The adm1021 driver, in
+> turn, tries to detect compatible devices, and bind to them if found.
+> 
+> So the problem boils down to two related issues:
+> * The sensors-detect script seemingly misdetected a device on your
+>   system.
+> * The adm1021 got loaded and misdetected the same device.
+> Which is expected as in general sensors-detect has the same detection
+> code as hwmon drivers on the kernel side.
+> 
+> That being said, this can only be fixed if you provide the full output
+> of sensors-detect on your system after unloading all hwmon drivers
+> (stopping the lm_sensors service sometimes do, but not always, depends
+> on the distribution) and a dump of the misdetected device. This will
+> confirm the misdetection and hopefully offer a way to avoid it.
 
-This is all the other way around. The adm1021 driver doesn't auto-load
-on PC systems. The way it usually goes is that sensors-detect will
-detect a compatible device, and it will set the adm1021 driver to be
-loaded when the lm_sensors service is started. The adm1021 driver, in
-turn, tries to detect compatible devices, and bind to them if found.
+This system is really throwing me for a loop. After returning from ELC I
+powered it back up and have been completely unable to get sensors to
+read anything from w83795 or ipmi-si even. Running sensors-detect
+(without any hwmon modules loaded) finds only ipmi-si and w83627ehf, but
+sensors only reports on w83627ehf).
 
-So the problem boils down to two related issues:
-* The sensors-detect script seemingly misdetected a device on your
-  system.
-* The adm1021 got loaded and misdetected the same device.
-Which is expected as in general sensors-detect has the same detection
-code as hwmon drivers on the kernel side.
+I have attached the typescript of the sensors-detect session, but it
+isn't very interesting. If I stumble across another odd set modules
+detected, I'll report back to the list.
 
-That being said, this can only be fixed if you provide the full output
-of sensors-detect on your system after unloading all hwmon drivers
-(stopping the lm_sensors service sometimes do, but not always, depends
-on the distribution) and a dump of the misdetected device. This will
-confirm the misdetection and hopefully offer a way to avoid it.
+/me scratches head...
 
 -- 
-Jean Delvare
+Darren Hart
+Intel Open Source Technology Center
+Yocto Project - Linux Kernel
+
+--------------000504030008010900050804
+Content-Type: application/octet-stream;
+ name="typescript"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="typescript"
+
+U2NyaXB0IHN0YXJ0ZWQgb24gVGh1IDE0IEFwciAyMDExIDA5OjUwOjAxIFBNIFBEVAobXTI7
+fi9zb3VyY2UvbGludXgvbGludXgtMi42LmdpdAcbWzMyOzFtZHZoYXJ0QHJhZ2U6bGludXgt
+Mi42LmdpdCQgG1swbXNlbnNvci1kZXRlY3QICAgICAgICAgICAgIG1tDc2Vuc29yLWRldGVj
+dAgICAgICAgICAgICAh1c2Vuc29yLWRldGVjdAgICAgICAgICAgICAhkc2Vuc29yLWRldGVj
+dAgICAgICAgICAgICAhvc2Vuc29yLWRldGVjdAgICAgICAgICAgICAggc2Vuc29yLWRldGVj
+dAgICAgICAgICAgICAgNCltzdWRvXSBwYXNzd29yZCBmb3IgZHZoYXJ0OiANCnN1ZG86IHNl
+bnNvci1kZXRlY3Q6IGNvbW1hbmQgbm90IGZvdW5kDQobXTI7fi9zb3VyY2UvbGludXgvbGlu
+dXgtMi42LmdpdAcbWzMyOzFtZHZoYXJ0QHJhZ2U6bGludXgtMi42LmdpdCQgG1swbXN1ZG8g
+c2Vuc29yLWRldGVjdAgICAgICAhzLWRldGVjdAgICAgICAgNCiMgc2Vuc29ycy1kZXRlY3Qg
+cmV2aXNpb24gNTgxOCAoMjAxMC0wMS0xOCAxNzoyMjowNyArMDEwMCkNCiMgU3lzdGVtOiBT
+dXBlcm1pY3JvIFg4RFRMDQoNClRoaXMgcHJvZ3JhbSB3aWxsIGhlbHAgeW91IGRldGVybWlu
+ZSB3aGljaCBrZXJuZWwgbW9kdWxlcyB5b3UgbmVlZA0KdG8gbG9hZCB0byB1c2UgbG1fc2Vu
+c29ycyBtb3N0IGVmZmVjdGl2ZWx5LiBJdCBpcyBnZW5lcmFsbHkgc2FmZQ0KYW5kIHJlY29t
+bWVuZGVkIHRvIGFjY2VwdCB0aGUgZGVmYXVsdCBhbnN3ZXJzIHRvIGFsbCBxdWVzdGlvbnMs
+DQp1bmxlc3MgeW91IGtub3cgd2hhdCB5b3UncmUgZG9pbmcuDQoNClNvbWUgc291dGggYnJp
+ZGdlcywgQ1BVcyBvciBtZW1vcnkgY29udHJvbGxlcnMgY29udGFpbiBlbWJlZGRlZCBzZW5z
+b3JzLg0KRG8geW91IHdhbnQgdG8gc2NhbiBmb3IgdGhlbT8gVGhpcyBpcyB0b3RhbGx5IHNh
+ZmUuIChZRVMvbm8pOiANClNpbGljb24gSW50ZWdyYXRlZCBTeXN0ZW1zIFNJUzU1OTUuLi4g
+ICAgICAgICAgICAgICAgICAgICAgIE5vDQpWSUEgVlQ4MkM2ODYgSW50ZWdyYXRlZCBTZW5z
+b3JzLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KVklBIFZUODIzMSBJbnRlZ3Jh
+dGVkIFNlbnNvcnMuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NCkFNRCBLOCB0
+aGVybWFsIHNlbnNvcnMuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5v
+DQpBTUQgRmFtaWx5IDEwaCB0aGVybWFsIHNlbnNvcnMuLi4gICAgICAgICAgICAgICAgICAg
+ICAgICAgICBObw0KQU1EIEZhbWlseSAxMWggdGhlcm1hbCBzZW5zb3JzLi4uICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgTm8NCkludGVsIENvcmUgZmFtaWx5IHRoZXJtYWwgc2Vuc29y
+Li4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpJbnRlbCBBdG9tIHRoZXJtYWwgc2Vu
+c29yLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KSW50ZWwgQU1CIEZC
+LURJTU0gdGhlcm1hbCBzZW5zb3IuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8NClZJ
+QSBDNyB0aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIE5vDQpWSUEgTmFubyB0aGVybWFsIHNlbnNvci4uLiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICBObw0KDQpTb21lIFN1cGVyIEkvTyBjaGlwcyBjb250YWluIGVtYmVk
+ZGVkIHNlbnNvcnMuIFdlIGhhdmUgdG8gd3JpdGUgdG8NCnN0YW5kYXJkIEkvTyBwb3J0cyB0
+byBwcm9iZSB0aGVtLiBUaGlzIGlzIHVzdWFsbHkgc2FmZS4NCkRvIHlvdSB3YW50IHRvIHNj
+YW4gZm9yIFN1cGVyIEkvTyBzZW5zb3JzPyAoWUVTL25vKTogWUVTDQpQcm9iaW5nIGZvciBT
+dXBlci1JL08gYXQgMHgyZS8weDJmDQpUcnlpbmcgZmFtaWx5IGBOYXRpb25hbCBTZW1pY29u
+ZHVjdG9yJy4uLiAgICAgICAgICAgICAgICAgICBObw0KVHJ5aW5nIGZhbWlseSBgU01TQycu
+Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClRyeWluZyBmYW1p
+bHkgYFZJQS9XaW5ib25kL051dm90b24vRmludGVrJy4uLiAgICAgICAgICAgICAgIFllcw0K
+Rm91bmQgYFdpbmJvbmQgVzgzNjI3REhHLVAgU3VwZXIgSU8gU2Vuc29ycycgICAgICAgICAg
+ICAgICAgU3VjY2VzcyENCiAgICAoYWRkcmVzcyAweGExMCwgZHJpdmVyIGB3ODM2MjdlaGYn
+KQ0KUHJvYmluZyBmb3IgU3VwZXItSS9PIGF0IDB4NGUvMHg0Zg0KVHJ5aW5nIGZhbWlseSBg
+TmF0aW9uYWwgU2VtaWNvbmR1Y3RvcicuLi4gICAgICAgICAgICAgICAgICAgWWVzDQpGb3Vu
+ZCB1bmtub3duIGNoaXAgd2l0aCBJRCAweDFhMTENCg0KU29tZSBzeXN0ZW1zIChtYWlubHkg
+c2VydmVycykgaW1wbGVtZW50IElQTUksIGEgc2V0IG9mIGNvbW1vbiBpbnRlcmZhY2VzDQp0
+aHJvdWdoIHdoaWNoIHN5c3RlbSBoZWFsdGggZGF0YSBtYXkgYmUgcmV0cmlldmVkLCBhbW9u
+Z3N0IG90aGVyIHRoaW5ncy4NCldlIGZpcnN0IHRyeSB0byBnZXQgdGhlIGluZm9ybWF0aW9u
+IGZyb20gU01CSU9TLiBJZiB3ZSBkb24ndCBmaW5kIGl0DQp0aGVyZSwgd2UgaGF2ZSB0byBy
+ZWFkIGZyb20gYXJiaXRyYXJ5IEkvTyBwb3J0cyB0byBwcm9iZSBmb3Igc3VjaA0KaW50ZXJm
+YWNlcy4gVGhpcyBpcyBub3JtYWxseSBzYWZlLiBEbyB5b3Ugd2FudCB0byBzY2FuIGZvciBJ
+UE1JDQppbnRlcmZhY2VzPyAoWUVTL25vKTogWUVTDQpGb3VuZCBgSVBNSSBCTUMgS0NTJyBh
+dCAweGNhMi4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBTdWNjZXNzIQ0KICAgIChj
+b25maWRlbmNlIDgsIGRyaXZlciBgaXBtaXNlbnNvcnMnKQ0KDQpTb21lIGhhcmR3YXJlIG1v
+bml0b3JpbmcgY2hpcHMgYXJlIGFjY2Vzc2libGUgdGhyb3VnaCB0aGUgSVNBIEkvTyBwb3J0
+cy4NCldlIGhhdmUgdG8gd3JpdGUgdG8gYXJiaXRyYXJ5IEkvTyBwb3J0cyB0byBwcm9iZSB0
+aGVtLiBUaGlzIGlzIHVzdWFsbHkNCnNhZmUgdGhvdWdoLiBZZXMsIHlvdSBkbyBoYXZlIElT
+QSBJL08gcG9ydHMgZXZlbiBpZiB5b3UgZG8gbm90IGhhdmUgYW55DQpJU0Egc2xvdHMhIERv
+IHlvdSB3YW50IHRvIHNjYW4gdGhlIElTQSBJL08gcG9ydHM/ICh5ZXMvTk8pOiBZRVMNClBy
+b2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgnIGF0IDB4MjkwLi4uICAg
+ICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc5JyBhdCAw
+eDI5MC4uLiAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgxRCcgYXQgMHgy
+OTAuLi4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4Mzc4
+MkQnIGF0IDB4MjkwLi4uICAgICAgICAgICAgICAgICAgIE5vDQoNCkxhc3RseSwgd2UgY2Fu
+IHByb2JlIHRoZSBJMkMvU01CdXMgYWRhcHRlcnMgZm9yIGNvbm5lY3RlZCBoYXJkd2FyZQ0K
+bW9uaXRvcmluZyBkZXZpY2VzLiBUaGlzIGlzIHRoZSBtb3N0IHJpc2t5IHBhcnQsIGFuZCB3
+aGlsZSBpdCB3b3Jrcw0KcmVhc29uYWJseSB3ZWxsIG9uIG1vc3Qgc3lzdGVtcywgaXQgaGFz
+IGJlZW4gcmVwb3J0ZWQgdG8gY2F1c2UgdHJvdWJsZQ0Kb24gc29tZSBzeXN0ZW1zLg0KRG8g
+eW91IHdhbnQgdG8gcHJvYmUgdGhlIEkyQy9TTUJ1cyBhZGFwdGVycyBub3c/IChZRVMvbm8p
+OiBZRVMNClVzaW5nIGRyaXZlciBgaTJjLWk4MDEnIGZvciBkZXZpY2UgMDAwMDowMDoxZi4z
+OiBJbnRlbCBJQ0gxMA0KTW9kdWxlIGkyYy1pODAxIGxvYWRlZCBzdWNjZXNzZnVsbHkuDQpG
+QVRBTDogTW9kdWxlIGkyY19kZXYgbm90IGZvdW5kLg0KRmFpbGVkIHRvIGxvYWQgbW9kdWxl
+IGkyYy1kZXYuDQoNCk5leHQgYWRhcHRlcjogU01CdXMgSTgwMSBhZGFwdGVyIGF0IDA0MDAg
+KGkyYy0wKQ0KRG8geW91IHdhbnQgdG8gc2NhbiBpdD8gKFlFUy9uby9zZWxlY3RpdmVseSk6
+IFlFUw0KQ2FuJ3Qgb3BlbiAvZGV2L2kyYy0wDQpOb3cgZm9sbG93cyBhIHN1bW1hcnkgb2Yg
+dGhlIHByb2JlcyBJIGhhdmUganVzdCBkb25lLg0KSnVzdCBwcmVzcyBFTlRFUiB0byBjb250
+aW51ZTogDQoNCkRyaXZlciBgdzgzNjI3ZWhmJzoNCiAgKiBJU0EgYnVzLCBhZGRyZXNzIDB4
+YTEwDQogICAgQ2hpcCBgV2luYm9uZCBXODM2MjdESEctUCBTdXBlciBJTyBTZW5zb3JzJyAo
+Y29uZmlkZW5jZTogOSkNCg0KRHJpdmVyIGBpcG1pc2Vuc29ycyc6DQogICogSVNBIGJ1cywg
+YWRkcmVzcyAweGNhMg0KICAgIENoaXAgYElQTUkgQk1DIEtDUycgKGNvbmZpZGVuY2U6IDgp
+DQoNCldhcm5pbmc6IHRoZSByZXF1aXJlZCBtb2R1bGUgaXBtaXNlbnNvcnMgaXMgbm90IGN1
+cnJlbnRseSBpbnN0YWxsZWQNCm9uIHlvdXIgc3lzdGVtLiBJZiBpdCBpcyBidWlsdCBpbnRv
+IHRoZSBrZXJuZWwgdGhlbiBpdCdzIE9LLg0KT3RoZXJ3aXNlLCBjaGVjayBodHRwOi8vd3d3
+LmxtLXNlbnNvcnMub3JnL3dpa2kvRGV2aWNlcyBmb3INCmRyaXZlciBhdmFpbGFiaWxpdHku
+DQoNClRvIGxvYWQgZXZlcnl0aGluZyB0aGF0IGlzIG5lZWRlZCwgYWRkIHRoaXMgdG8gL2V0
+Yy9tb2R1bGVzOg0KIy0tLS1jdXQgaGVyZS0tLS0NCiMgQWRhcHRlciBkcml2ZXJzDQppcG1p
+LXNpDQojIENoaXAgZHJpdmVycw0KdzgzNjI3ZWhmDQojLS0tLWN1dCBoZXJlLS0tLQ0KSWYg
+eW91IGhhdmUgc29tZSBkcml2ZXJzIGJ1aWx0IGludG8geW91ciBrZXJuZWwsIHRoZSBsaXN0
+IGFib3ZlIHdpbGwNCmNvbnRhaW4gdG9vIG1hbnkgbW9kdWxlcy4gU2tpcCB0aGUgYXBwcm9w
+cmlhdGUgb25lcyENCg0KRG8geW91IHdhbnQgdG8gYWRkIHRoZXNlIGxpbmVzIGF1dG9tYXRp
+Y2FsbHkgdG8gL2V0Yy9tb2R1bGVzPyAoeWVzL05PKVlFUw0KU3VjY2Vzc2Z1bCENCg0KTW9u
+aXRvcmluZyBwcm9ncmFtcyB3b24ndCB3b3JrIHVudGlsIHRoZSBuZWVkZWQgbW9kdWxlcyBh
+cmUNCmxvYWRlZC4gWW91IG1heSB3YW50IHRvIHJ1biAnL2V0Yy9pbml0LmQvbW9kdWxlLWlu
+aXQtdG9vbHMgc3RhcnQnDQp0byBsb2FkIHRoZW0uDQoNClVubG9hZGluZyBpMmMtaTgwMS4u
+LiBPSw0KDQobXTI7fi9zb3VyY2UvbGludXgvbGludXgtMi42LmdpdAcbWzMyOzFtZHZoYXJ0
+QHJhZ2U6bGludXgtMi42LmdpdCQgG1swbWNhdCAvZXRjL21vZHVsZXMgDQojIC9ldGMvbW9k
+dWxlczoga2VybmVsIG1vZHVsZXMgdG8gbG9hZCBhdCBib290IHRpbWUuDQojDQojIFRoaXMg
+ZmlsZSBjb250YWlucyB0aGUgbmFtZXMgb2Yga2VybmVsIG1vZHVsZXMgdGhhdCBzaG91bGQg
+YmUgbG9hZGVkDQojIGF0IGJvb3QgdGltZSwgb25lIHBlciBsaW5lLiBMaW5lcyBiZWdpbm5p
+bmcgd2l0aCAiIyIgYXJlIGlnbm9yZWQuDQoNCmxvb3ANCmxwDQpydGMNCg0KIyBHZW5lcmF0
+ZWQgYnkgc2Vuc29ycy1kZXRlY3Qgb24gVGh1IEFwciAxNCAyMTo1MDo0MCAyMDExDQojIEFk
+YXB0ZXIgZHJpdmVycw0KaXBtaS1zaQ0KIyBDaGlwIGRyaXZlcnMNCnc4MzYyN2VoZg0KG10y
+O34vc291cmNlL2xpbnV4L2xpbnV4LTIuNi5naXQHG1szMjsxbWR2aGFydEByYWdlOmxpbnV4
+LTIuNi5naXQkIBtbMG1zdWRvIC9ldGMvaW5pdC5kL21vZHVsZS1pbml0LXRvb2xzIHN0YXJ0
+DQpSYXRoZXIgdGhhbiBpbnZva2luZyBpbml0IHNjcmlwdHMgdGhyb3VnaCAvZXRjL2luaXQu
+ZCwgdXNlIHRoZSBzZXJ2aWNlKDgpDQp1dGlsaXR5LCBlLmcuIHNlcnZpY2UgbW9kdWxlLWlu
+aXQtdG9vbHMgc3RhcnQNCg0KU2luY2UgdGhlIHNjcmlwdCB5b3UgYXJlIGF0dGVtcHRpbmcg
+dG8gaW52b2tlIGhhcyBiZWVuIGNvbnZlcnRlZCB0byBhbg0KVXBzdGFydCBqb2IsIHlvdSBt
+YXkgYWxzbyB1c2UgdGhlIHN0YXJ0KDgpIHV0aWxpdHksIGUuZy4gc3RhcnQgbW9kdWxlLWlu
+aXQtdG9vbHMNCm1vZHVsZS1pbml0LXRvb2xzIHN0b3Avd2FpdGluZw0KG10yO34vc291cmNl
+L2xpbnV4L2xpbnV4LTIuNi5naXQHG1szMjsxbWR2aGFydEByYWdlOmxpbnV4LTIuNi5naXQk
+IBtbMG1zZW5zb3JzDQp3ODM2MjdkaGctaXNhLTBhMTANCkFkYXB0ZXI6IElTQSBhZGFwdGVy
+DQpWY29yZTogICAgICAgKzAuODIgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEuNzQg
+VikgICANCmluMTogICAgICAgICArMC44MCBWICAobWluID0gICsxLjQzIFYsIG1heCA9ICAr
+MC4yMyBWKSAgIEFMQVJNDQpBVkNDOiAgICAgICAgKzMuMzggViAgKG1pbiA9ICArMi4wNSBW
+LCBtYXggPSAgKzEuMDQgVikgICBBTEFSTQ0KVkNDOiAgICAgICAgICszLjM4IFYgIChtaW4g
+PSAgKzMuMzMgViwgbWF4ID0gICszLjE1IFYpICAgQUxBUk0NCmluNDogICAgICAgICArMS4w
+OSBWICAobWluID0gICswLjkwIFYsIG1heCA9ICArMS4wNyBWKSAgIEFMQVJNDQppbjU6ICAg
+ICAgICAgKzAuODAgViAgKG1pbiA9ICArMC42OSBWLCBtYXggPSAgKzEuNDQgVikgICANCmlu
+NjogICAgICAgICArMC44MCBWICAobWluID0gICsxLjk0IFYsIG1heCA9ICArMC43MCBWKSAg
+IEFMQVJNDQozVlNCOiAgICAgICAgKzMuMzggViAgKG1pbiA9ICArMC4zMCBWLCBtYXggPSAg
+KzEuMTUgVikgICBBTEFSTQ0KVmJhdDogICAgICAgICszLjEwIFYgIChtaW4gPSAgKzEuMTIg
+ViwgbWF4ID0gICsyLjgzIFYpICAgQUxBUk0NCmZhbjE6ICAgICAgICAgIDAgUlBNICAobWlu
+ID0gIDMyOSBSUE0sIGRpdiA9IDEyOCkgIEFMQVJNDQpmYW4yOiAgICAgICAgICAwIFJQTSAg
+KG1pbiA9IDEwNTQ2IFJQTSwgZGl2ID0gMTI4KSAgQUxBUk0NCmZhbjM6ICAgICAgICAgIDAg
+UlBNICAobWluID0gMjEwOSBSUE0sIGRpdiA9IDEyOCkgIEFMQVJNDQpmYW41OiAgICAgICAg
+ICAwIFJQTSAgKG1pbiA9IDQyMTg3IFJQTSwgZGl2ID0gMTYpICBBTEFSTQ0KdGVtcDE6ICAg
+ICAgICs0MS4wwrBDICAoaGlnaCA9ICsyMDIuMMKwQywgaHlzdCA9ICs5Ni4wwrBDKSAgc2Vu
+c29yID0gdGhlcm1pc3Rvcg0KdGVtcDI6ICAgICAgIC02My4wwrBDICAoaGlnaCA9ICs4MC4w
+wrBDLCBoeXN0ID0gKzc1LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9yDQp0ZW1wMzogICAg
+ICAgKzM3LjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNv
+ciA9IHRoZXJtaXN0b3INCmNwdTBfdmlkOiAgICswLjAwMCBWDQoNChtdMjt+L3NvdXJjZS9s
+aW51eC9saW51eC0yLjYuZ2l0BxtbMzI7MW1kdmhhcnRAcmFnZTpsaW51eC0yLjYuZ2l0JCAb
+WzBtZXhpdA0KZXhpdA0KClNjcmlwdCBkb25lIG9uIFRodSAxNCBBcHIgMjAxMSAwOTo1MTox
+NSBQTSBQRFQK
+--------------000504030008010900050804
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------000504030008010900050804--
