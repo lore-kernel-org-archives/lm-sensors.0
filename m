@@ -1,57 +1,55 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Thu, 14 Apr 2011 21:36:36 +0000
-Subject: [lm-sensors] [PATCH v6 0/2] Make all it87 drivers SMP safe
-Message-Id: <1302816996-6345-1-git-send-email-natg@google.com>
+From: Jarod Wilson <jarod@wilsonet.com>
+Date: Fri, 15 Apr 2011 21:07:03 +0000
+Subject: Re: [lm-sensors] [PATCH v6 0/2] Make all it87 drivers SMP safe
+Message-Id: <25810A23-EB28-4FBF-8CEB-487313F0E16E@wilsonet.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1302816996-6345-1-git-send-email-natg@google.com>
+In-Reply-To: <1302816996-6345-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Nat Gurumoorthy <natg@google.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>, Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, =?iso-8859-1?Q?=22Juan_Jes=FAs_Garc=EDa_de_Soria=22?= <skandalfo@gmail.com>
 
-There are 3 different drivers that touch the it87 hardware registers.
-The 3 drivers have been written independently and access the it87 hardware
-registers assuming they are the only driver accessing it. This change
-attempts to serialize access to the hardware by using
-"request_muxed_region" macro defined by Alan Cox. Call to this macro
-will hold off the requestor if the resource is currently busy.
-The use of the above macro makes it possible to get rid of
-spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
-This also greatly simplifies the implementation of it87_wdt.c driver.
+On Apr 14, 2011, at 5:36 PM, Nat Gurumoorthy wrote:
 
-01 - Changes to it87 watchdog driver to use "request_muxed_region"
- drivers/watchdog/it8712f_wdt.c
- drivers/watchdog/it87_wdt.c
+> There are 3 different drivers that touch the it87 hardware registers.
+> The 3 drivers have been written independently and access the it87 hardware
+> registers assuming they are the only driver accessing it. This change
+> attempts to serialize access to the hardware by using
+> "request_muxed_region" macro defined by Alan Cox. Call to this macro
+> will hold off the requestor if the resource is currently busy.
+> The use of the above macro makes it possible to get rid of
+> spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
+> This also greatly simplifies the implementation of it87_wdt.c driver.
+>=20
+> 01 - Changes to it87 watchdog driver to use "request_muxed_region"
+> drivers/watchdog/it8712f_wdt.c
+> drivers/watchdog/it87_wdt.c
+>=20
+> 02 - Chages to hwmon it87 driver to use "request_muxed_region"
+> drivers/hwmon/it87.c
+>=20
+> drivers/hwmon/it87.c           |   30 +++++++++++++-
+> drivers/watchdog/it8712f_wdt.c |   50 +++++++++++++++++++++---
+> drivers/watchdog/it87_wdt.c    |   80 +++++++++++++++++++++--------------=
+----
+> 3 files changed, 113 insertions(+), 47 deletions(-)
 
-02 - Chages to hwmon it87 driver to use "request_muxed_region"
- drivers/hwmon/it87.c
+FYI,
 
- drivers/hwmon/it87.c           |   30 +++++++++++++-
- drivers/watchdog/it8712f_wdt.c |   50 +++++++++++++++++++++---
- drivers/watchdog/it87_wdt.c    |   80 +++++++++++++++++++++------------------
- 3 files changed, 113 insertions(+), 47 deletions(-)
+$ head -n 4 drivers/media/rc/ite-cir.c
+/*
+ * Driver for ITE Tech Inc. IT8712F/IT8512 CIR
+ *
+ * Copyright (C) 2010 Juan Jes=FAs Garc=EDa de Soria <skandalfo@gmail.com>
 
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
 
-Patch History:
-v6:
-- Pay attention to value returned by request_muxed_region. The first call to
-  request_muxed_region will attempt 10 times to reserve the region before it
-  gives up. This will typically get called from the driver init routines. If this
-  succeeds then subsequent calls wait forever for the resource to be available.
+--=20
+Jarod Wilson
+jarod@wilsonet.com
 
-v5:
-- Remove unnecessary while from superio_enter.
 
-v4:
-- Remove extra braces in superio_enter routines.
-
-v3:
-- Totally abandon the spinlock based approach and use "request_muxed_region" to
-  hold off requestors if the resource is busy.
-
-v2:
-- More verbose patch headers. Add In-Reply-To: field.
 
 
 _______________________________________________
