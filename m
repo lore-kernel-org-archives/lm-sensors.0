@@ -1,317 +1,89 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Thu, 07 Apr 2011 21:26:47 +0000
-Subject: [lm-sensors] [PATCH v2 2/3] Change IT87 drivers to use it87_io_lock.
-Message-Id: <1302211607-8121-1-git-send-email-natg@google.com>
+From: wni@nvidia.com
+Date: Fri, 15 Apr 2011 11:00:26 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Add suspend/resume support
+Message-Id: <1302865228-7185-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: [PATCH v2 0/3] Make all it87 drivers SMP safe.
+References: <1302865228-7185-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1302865228-7185-1-git-send-email-wni@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
+To: khali@linux-fr.org, guenter.roeck@ericsson.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, olofj@chromium.org, achew@nvidia.com, Wei Ni <wni@nvidia.com>
 
-02 - Adds changes to watchdog drivers to use the new lock.
-   This patch changes it8712f_wdt.c and it87_wdt.c to use the new
-it87_io_lock to serialize access to the hardware.
-   The routines accessing the hardware are being called from module init,
-open, ioctl and module exit routines and hence it is sufficient to use
-calls to spin_lock and spin_unlock to acquire and release the locks. For
-the same reasons it87_wdt.c has extensive changes to remove calls to
-spin_lock_irqsave and spin_unlock_irqrestore. The lock is now acquired
-in superio_enter and released in superio_exit. This is now identical
-to the code in drivers/hwmon/it87.c and drivers/watchdog/it8712f_wdt.c.
-Added __acquire and __release annotations wherever needed.
+From: Wei Ni <wni@nvidia.com>
 
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
+This patch adds suspend/resume support.
+Stop lm90 in suspend, and run it in resume.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
 ---
+ drivers/hwmon/lm90.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/watchdog/it8712f_wdt.c b/drivers/watchdog/it8712f_wdt.c
-index b32c6c0..03a3e89 100644
---- a/drivers/watchdog/it8712f_wdt.c
-+++ b/drivers/watchdog/it8712f_wdt.c
-@@ -32,6 +32,7 @@
- #include <linux/spinlock.h>
- #include <linux/uaccess.h>
- #include <linux/io.h>
-+#include <linux/it87_lock.h>
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 2f94f95..1c2ee3f 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -1085,6 +1085,24 @@ static DEVICE_ATTR(pec, S_IWUSR | S_IRUGO, show_pec, set_pec);
+  * Real code
+  */
  
- #define NAME "it8712f_wdt"
- 
-@@ -51,7 +52,6 @@ MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
- 
- static unsigned long wdt_open;
- static unsigned expect_close;
--static spinlock_t io_lock;
- static unsigned char revision;
- 
- /* Dog Food address - We use the game port address */
-@@ -122,8 +122,9 @@ static inline void superio_select(int ldn)
++static void lm90_enable(struct i2c_client *client)
++{
++	u8 value;
++
++	lm90_read_reg(client, LM90_REG_R_CONFIG1, &value);
++	value &= ~0x40;
++	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, value);
++}
++
++static void lm90_disable(struct i2c_client *client)
++{
++	u8 value;
++
++	lm90_read_reg(client, LM90_REG_R_CONFIG1, &value);
++	value |= 0x40;
++	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1, value);
++}
++
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int lm90_detect(struct i2c_client *new_client,
+ 		       struct i2c_board_info *info)
+@@ -1482,6 +1500,20 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ 	}
  }
  
- static inline void superio_enter(void)
-+__acquires(&it87_io_lock)
- {
--	spin_lock(&io_lock);
-+	spin_lock(&it87_io_lock);
- 	outb(0x87, REG);
- 	outb(0x01, REG);
- 	outb(0x55, REG);
-@@ -131,10 +132,11 @@ static inline void superio_enter(void)
- }
++#ifdef CONFIG_PM
++static int lm90_suspend(struct i2c_client *client, pm_message_t state)
++{
++	lm90_disable(client);
++	return 0;
++}
++
++static int lm90_resume(struct i2c_client *client)
++{
++	lm90_enable(client);
++	return 0;
++}
++#endif
++
+ static struct i2c_driver lm90_driver = {
+ 	.class		= I2C_CLASS_HWMON,
+ 	.driver = {
+@@ -1493,6 +1525,10 @@ static struct i2c_driver lm90_driver = {
+ 	.id_table	= lm90_id,
+ 	.detect		= lm90_detect,
+ 	.address_list	= normal_i2c,
++#ifdef CONFIG_PM
++	.suspend	= lm90_suspend,
++	.resume		= lm90_resume,
++#endif
+ };
  
- static inline void superio_exit(void)
-+__releases(&it87_io_lock)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
--	spin_unlock(&io_lock);
-+	spin_unlock(&it87_io_lock);
- }
- 
- static inline void it8712f_wdt_ping(void)
-@@ -382,8 +384,6 @@ static int __init it8712f_wdt_init(void)
- {
- 	int err = 0;
- 
--	spin_lock_init(&io_lock);
--
- 	if (it8712f_wdt_find(&address))
- 		return -ENODEV;
- 
-diff --git a/drivers/watchdog/it87_wdt.c b/drivers/watchdog/it87_wdt.c
-index dad2924..87ac31d 100644
---- a/drivers/watchdog/it87_wdt.c
-+++ b/drivers/watchdog/it87_wdt.c
-@@ -42,6 +42,7 @@
- #include <linux/reboot.h>
- #include <linux/uaccess.h>
- #include <linux/io.h>
-+#include <linux/it87_lock.h>
- 
- #include <asm/system.h>
- 
-@@ -136,7 +137,6 @@
- 
- static	unsigned int base, gpact, ciract, max_units;
- static	unsigned long wdt_status;
--static	DEFINE_SPINLOCK(spinlock);
- 
- static	int nogameport = DEFAULT_NOGAMEPORT;
- static	int exclusive  = DEFAULT_EXCLUSIVE;
-@@ -163,7 +163,9 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started, default="
- /* Superio Chip */
- 
- static inline void superio_enter(void)
-+__acquires(&it87_io_lock)
- {
-+	spin_lock(&it87_io_lock);
- 	outb(0x87, REG);
- 	outb(0x01, REG);
- 	outb(0x55, REG);
-@@ -171,9 +173,11 @@ static inline void superio_enter(void)
- }
- 
- static inline void superio_exit(void)
-+__releases(&it87_io_lock)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
-+	spin_unlock(&it87_io_lock);
- }
- 
- static inline void superio_select(int ldn)
-@@ -253,9 +257,6 @@ static void wdt_keepalive(void)
- 
- static void wdt_start(void)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 
- 	superio_select(GPIO);
-@@ -266,14 +267,10 @@ static void wdt_start(void)
- 	wdt_update_timeout();
- 
- 	superio_exit();
--	spin_unlock_irqrestore(&spinlock, flags);
- }
- 
- static void wdt_stop(void)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 
- 	superio_select(GPIO);
-@@ -284,7 +281,6 @@ static void wdt_stop(void)
- 		superio_outb(0x00, WDTVALMSB);
- 
- 	superio_exit();
--	spin_unlock_irqrestore(&spinlock, flags);
- }
- 
- /**
-@@ -299,8 +295,6 @@ static void wdt_stop(void)
- 
- static int wdt_set_timeout(int t)
- {
--	unsigned long flags;
--
- 	if (t < 1 || t > max_units * 60)
- 		return -EINVAL;
- 
-@@ -309,14 +303,12 @@ static int wdt_set_timeout(int t)
- 	else
- 		timeout = t;
- 
--	spin_lock_irqsave(&spinlock, flags);
- 	if (test_bit(WDTS_TIMER_RUN, &wdt_status)) {
- 		superio_enter();
- 		superio_select(GPIO);
- 		wdt_update_timeout();
- 		superio_exit();
- 	}
--	spin_unlock_irqrestore(&spinlock, flags);
- 	return 0;
- }
- 
-@@ -335,11 +327,8 @@ static int wdt_set_timeout(int t)
- 
- static int wdt_get_status(int *status)
- {
--	unsigned long flags;
--
- 	*status = 0;
- 	if (testmode) {
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 		superio_select(GPIO);
- 		if (superio_inb(WDTCTRL) & WDT_ZERO) {
-@@ -349,7 +338,6 @@ static int wdt_get_status(int *status)
- 		}
- 
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 	if (test_and_clear_bit(WDTS_KEEPALIVE, &wdt_status))
- 		*status |= WDIOF_KEEPALIVEPING;
-@@ -557,16 +545,13 @@ static int __init it87_wdt_init(void)
- 	int try_gameport = !nogameport;
- 	u16 chip_type;
- 	u8  chip_rev;
--	unsigned long flags;
- 
- 	wdt_status = 0;
- 
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 	chip_type = superio_inw(CHIPID);
- 	chip_rev  = superio_inb(CHIPREV) & 0x0f;
- 	superio_exit();
--	spin_unlock_irqrestore(&spinlock, flags);
- 
- 	switch (chip_type) {
- 	case IT8702_ID:
-@@ -599,7 +584,6 @@ static int __init it87_wdt_init(void)
- 		return -ENODEV;
- 	}
- 
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 
- 	superio_select(GPIO);
-@@ -617,14 +601,12 @@ static int __init it87_wdt_init(void)
- 		gpact = superio_inb(ACTREG);
- 		superio_outb(0x01, ACTREG);
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 		if (request_region(base, 1, WATCHDOG_NAME))
- 			set_bit(WDTS_USE_GP, &wdt_status);
- 		else
- 			rc = -EIO;
- 	} else {
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 
- 	/* If we haven't Gameport support, try to get CIR support */
-@@ -642,7 +624,6 @@ static int __init it87_wdt_init(void)
- 			goto err_out;
- 		}
- 		base = CIR_BASE;
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 
- 		superio_select(CIR);
-@@ -656,7 +637,6 @@ static int __init it87_wdt_init(void)
- 		}
- 
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 
- 	if (timeout < 1 || timeout > max_units * 60) {
-@@ -686,6 +666,7 @@ static int __init it87_wdt_init(void)
- 
- 	/* Initialize CIR to use it as keepalive source */
- 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
-+		spin_lock(&it87_io_lock);
- 		outb(0x00, CIR_RCR(base));
- 		outb(0xc0, CIR_TCR1(base));
- 		outb(0x5c, CIR_TCR2(base));
-@@ -693,6 +674,7 @@ static int __init it87_wdt_init(void)
- 		outb(0x00, CIR_BDHR(base));
- 		outb(0x01, CIR_BDLR(base));
- 		outb(0x09, CIR_IER(base));
-+		spin_unlock(&it87_io_lock);
- 	}
- 
- 	printk(KERN_INFO PFX "Chip IT%04x revision %d initialized. "
-@@ -707,21 +689,17 @@ err_out_reboot:
- err_out_region:
- 	release_region(base, test_bit(WDTS_USE_GP, &wdt_status) ? 1 : 8);
- 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 		superio_select(CIR);
- 		superio_outb(ciract, ACTREG);
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- err_out:
- 	if (try_gameport) {
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 		superio_select(GAMEPORT);
- 		superio_outb(gpact, ACTREG);
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 
- 	return rc;
-@@ -729,10 +707,6 @@ err_out:
- 
- static void __exit it87_wdt_exit(void)
- {
--	unsigned long flags;
--	int nolock;
--
--	nolock = !spin_trylock_irqsave(&spinlock, flags);
- 	superio_enter();
- 	superio_select(GPIO);
- 	superio_outb(0x00, WDTCTRL);
-@@ -748,8 +722,6 @@ static void __exit it87_wdt_exit(void)
- 		superio_outb(ciract, ACTREG);
- 	}
- 	superio_exit();
--	if (!nolock)
--		spin_unlock_irqrestore(&spinlock, flags);
- 
- 	misc_deregister(&wdt_miscdev);
- 	unregister_reboot_notifier(&wdt_notifier);
+ static int __init sensors_lm90_init(void)
 -- 
+1.7.0
 
 
 _______________________________________________
