@@ -1,63 +1,148 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 07 Apr 2011 14:52:05 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: Driver for MAX16065/MAX16066
-Message-Id: <20110407145205.GA31369@ericsson.com>
+From: =?utf-8?Q?=D0=A1=D0=B5=D1=80=D0=B0=D1=84=D0=B8=D0=BC_=D0=A1=D1=83=D1=85=D0=B5=D0
+Date: Fri, 15 Apr 2011 20:07:40 +0000
+Subject: [lm-sensors] wrong voltages on D525MWV
+Message-Id: <E1QApIq-0002zf-00.serafim_home-mail-ru@f134.mail.ru>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7630884489353754584=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1302135933-29561-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1302135933-29561-1-git-send-email-guenter.roeck@ericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 06, 2011 at 08:25:33PM -0400, Guenter Roeck wrote:
-> This patch adds hardware monitoring support for Maxim MAX16065, MAX16066,
-> MAX16067, MAX16068, MAX16070, and MAX16071 flash-configurable system managers
-> and monitors with nonvolatile fault registers.
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> v2:
-> 
-> - Added support for MAX16067, MAX16068, MAX16070, and MAX16070 (untested).
 
-	... and MAX16071, not MAX16070 twice ;)
+--===============7630884489353754584==
+Content-Type: multipart/alternative;
+	boundary="--ALT--42ne1bH81302898060"
 
-> - Refer to Documentation/i2c/instantiating-devices for details about device
->   instantiation.
-> - Define and use MAX16065_SCALE(x) instead of MAX16065_SCALE_BASE + x.
-> - Replace MAX16065_SECONDARY(x), MAX16065_CRIT(x), and MAX16065_LCRIT(x) with
->   MAX16065_LIMIT(l, x), where l is 0, 1, or 2.
-> - Removed several unused / duplicate defines.
-> - Replaced function macros with inline functions.
-> - Replaced secondary[], lcrit[], and crit[] arrays in max16065_data with
->   two-dimensional array limit[nLimit][nAdc].
-> - In max16065_read_adc(), use single 16-bit read instead of two 8-bit read
->   operations to ensure that data is consistent.
-> - In max16065_update_device(), only read device registers if the device supports
->   it. Specifically, use data->num_adc instead of MAX16065_NUM_ADC, and only read
->   current sense information if supported and enabled.
-> - In max16065_show_alarm(), use to_i2c_client(dev) directly and drop 'client'
->   variable.
-> - Use unlikely() for all error checks.
-> - Use single function to read and set all limits.
-> - When setting a limit, ensure that limit range is valid.
-> - In sensor groups, remove unnecessary ',' after NULL entries.
-> - Rearranged sensor groups to be more flexible regarding the number of supported
->   sensors. Use sysfs_create_file() instead of sysfs_create_group() to create
->   sysfs entries for groups supporting a variable number of sensors (voltages and
->   voltage limits).
-> 
-Should have mentioned: Platform data to configure the current sense resistor value
-is not there yet. Right now I have no means to test that (I use a test board, not
-the real HW). Plan is to add that with a patch once I get real HW (with its own 
-kernel and platform files) to play with.
 
-Thanks,
-Guenter
+----ALT--42ne1bH81302898060
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 
+SGkhCgpJIGhhdmUgSW50ZWwgRDUyNU1XIFagIG1vdGhlcmJvYXJkICggaHR0cDovL3d3dy5pbnRl
+bC5jb20vUHJvZHVjdHMvRGVza3RvcC9Nb3RoZXJib2FyZHMvZGItZDUyNW13L0Q1MjVNVy1vdmVy
+dmlldy5odG0gKGh0dHA6Ly93d3cuaW50ZWwuY29tL1Byb2R1Y3RzL0Rlc2t0b3AvTW90aGVyYm9h
+cmRzL2RiLWQ1MjVtdy9ENTI1TVctb3ZlcnZpZXcuaHRtKSApLCB3aXRoIGxhc3QgQklPUyB2ZXJz
+aW9uIGluc3RhbGxlZC4KCklmIEkgbG9vayB0aHJvdWdoIHZvbHRhZ2VzIGluIGJpb3MsIHRoZW4g
+SSBzZWUgc29tZXRoaW5nIGxpa2U6CjEyViA6IDEyLjI0OQo1VjogNS4wOTQKMy4zVjogMy4zNgo1
+VnN0Ymc6IDUuMTQ1ClZjY3A6IDEuMTg0CgpBbmQgc2Vuc29ycyBzaG93IHdyb25nIHZvbHRhZ2Vz
+OgoKcm9vdEBjYXJwYzp+IyBzZW5zb3JzCmNvcmV0ZW1wLWlzYS0wMDAwCkFkYXB0ZXI6IElTQSBh
+ZGFwdGVyCkNvcmUgMDqgoKCgoCArMTYuMMKwQ6AgKGNyaXQgPSArMTAwLjDCsEMpoKCgoKCgoKCg
+oKCgoKCgoKAgCgpjb3JldGVtcC1pc2EtMDAwMgpBZGFwdGVyOiBJU0EgYWRhcHRlcgpDb3JlIDE6
+oKCgoKCgICs4LjDCsEOgIChjcml0ID0gKzEwMC4wwrBDKaCgoKCgoKCgoKCgoKCgoKCgIAoKdzgz
+NjI3ZGhnLWlzYS0wMjkwCkFkYXB0ZXI6IElTQSBhZGFwdGVyClZjb3JlOqCgoKCgoCArMS4xOSBW
+oCAobWluID2gICswLjAwIFYsIG1heCA9oCArMS43NCBWKaCgIAppbjE6oKCgoKCgoKAgKzEuNTkg
+VqAgKG1pbiA9oCArMS43MiBWLCBtYXggPaAgKzEuMDIgVimgoCBBTEFSTQpBVkNDOqCgoKCgoKAg
+KzMuMzkgVqAgKG1pbiA9oCArMi45OCBWLCBtYXggPaAgKzMuNjMgVimgoCAKVkNDOqCgoKCgoKCg
+ICszLjM5IFagIChtaW4gPaAgKzIuOTggViwgbWF4ID2gICszLjYzIFYpoKAgCmluNDqgoKCgoKCg
+oCArMS44NiBWoCAobWluID2gICswLjgyIFYsIG1heCA9oCArMS41NCBWKaCgIEFMQVJNCmluNTqg
+oKCgoKCgoCArMS4yMCBWoCAobWluID2gICswLjk4IFYsIG1heCA9oCArMS45OCBWKaCgIAppbjY6
+oKCgoKCgoKAgKzEuNTkgVqAgKG1pbiA9oCArMi4wMyBWLCBtYXggPaAgKzEuNTQgVimgoCBBTEFS
+TQozVlNCOqCgoKCgoKAgKzMuMzkgVqAgKG1pbiA9oCArMi45OCBWLCBtYXggPaAgKzMuNjMgVimg
+oCAKVmJhdDqgoKCgoKCgICszLjI2IFagIChtaW4gPaAgKzIuNzAgViwgbWF4ID2gICszLjMwIFYp
+oKAgCmZhbjE6oKCgoKCgoKCgIDAgUlBNoCAobWluID2gIDU4NSBSUE0sIGRpdiA9IDEyOCmgIEFM
+QVJNCmZhbjI6oKCgoKCgoKCgIDAgUlBNoCAobWluID2gIDQzOSBSUE0sIGRpdiA9IDEyOCmgIEFM
+QVJNCmZhbjM6oKCgoKCgoKCgIDAgUlBNoCAobWluID0gMzY2OCBSUE0sIGRpdiA9IDgpoCBBTEFS
+TQpmYW40OqCgoKCgoKCgoCAwIFJQTaAgKG1pbiA9IDg2NTMgUlBNLCBkaXYgPSA0KaAgQUxBUk0K
+ZmFuNTqgoKCgoKCgoKAgMCBSUE2gIChtaW4gPSA2NjE3IFJQTSwgZGl2ID0gNCmgIEFMQVJNCnRl
+bXAxOqCgoKCgoCArNDUuMMKwQ6AgKGhpZ2ggPSAtMzMuMMKwQywgaHlzdCA9IC00Ni4wwrBDKaAg
+QUxBUk2gIHNlbnNvciA9IHRyYW5zaXN0b3IKdGVtcDI6oKCgoKCgICs0MS4wwrBDoCAoaGlnaCA9
+ICs4MC4wwrBDLCBoeXN0ID0gKzc1LjDCsEMpoCBzZW5zb3IgPSBkaW9kZQp0ZW1wMzqgoKCgoKAg
+KzM5LjXCsEOgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQymgIHNlbnNvciA9IGRp
+b2RlCmNwdTBfdmlkOqCgICsyLjA1MCBWCgpGYW5zIGxvb2sgb2sgKGJ1dCBJIGRpZG4ndCB0ZXN0
+IHRoZW0pLgoKSGVyZSBpcyBvdXRwdXQgb2Ygc2Vuc29ycy1kZXRlY3QgKGFmdGVyIHNheWluZyAi
+eWVzIiB0byBhbGwgcXVlc3Rpb25zKToKCkRyaXZlciBgdzgzNjI3ZWhmJzoKoCAqIElTQSBidXMs
+IGFkZHJlc3MgMHgyOTAKoKCgIENoaXAgYFdpbmJvbmQgVzgzNjI3REhHLVAgU3VwZXIgSU8gU2Vu
+c29ycycgKGNvbmZpZGVuY2U6IDkpCgpEcml2ZXIgYGNvcmV0ZW1wJzoKoCAqIENoaXAgYEludGVs
+IEF0b20gdGhlcm1hbCBzZW5zb3InIChjb25maWRlbmNlOiA5KQoKVG8gbG9hZCBldmVyeXRoaW5n
+IHRoYXQgaXMgbmVlZGVkLCBhZGQgdGhpcyB0byAvZXRjL21vZHVsZXM6CiMtLS0tY3V0IGhlcmUt
+LS0tCiMgQ2hpcCBkcml2ZXJzCmNvcmV0ZW1wCnc4MzYyN2VoZgojLS0tLWN1dCBoZXJlLS0tLQoK
+TW9kdWxlcyBhcmUgbG9hZGVkLgoKQ2FuIHlvdSBoZWxwIG1lIHdpdGggdm9sdGFnZXM/CgpUaGFu
+a3MhCgo=
+
+
+----ALT--42ne1bH81302898060
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: base64
+
+CjxIVE1MPjxCT0RZPjx0dD48L3R0PkhpITxicj48YnI+SSBoYXZlIEludGVsIEQ1MjVNVyBWJm5i
+c3A7IG1vdGhlcmJvYXJkICg8YSBocmVmPSJodHRwOi8vd3d3LmludGVsLmNvbS9Qcm9kdWN0cy9E
+ZXNrdG9wL01vdGhlcmJvYXJkcy9kYi1kNTI1bXcvRDUyNU1XLW92ZXJ2aWV3Lmh0bSI+aHR0cDov
+L3d3dy5pbnRlbC5jb20vUHJvZHVjdHMvRGVza3RvcC9Nb3RoZXJib2FyZHMvZGItZDUyNW13L0Q1
+MjVNVy1vdmVydmlldy5odG08L2E+PHNwYW4gaWQ9Il9wbGFpbl90ZXh0X21hcmtlciI+KSw8L3Nw
+YW4+IHdpdGggbGFzdCBCSU9TIHZlcnNpb24gaW5zdGFsbGVkLjxicj48YnI+SWYgSSBsb29rIHRo
+cm91Z2ggdm9sdGFnZXMgaW4gYmlvcywgdGhlbiBJIHNlZSBzb21ldGhpbmcgbGlrZTo8YnI+MTJW
+IDogMTIuMjQ5PGJyPjVWOiA1LjA5NDxicj4zLjNWOiAzLjM2PGJyPjVWc3RiZzogNS4xNDU8YnI+
+VmNjcDogMS4xODQ8YnI+PGJyPkFuZCBzZW5zb3JzIHNob3cgd3Jvbmcgdm9sdGFnZXM6PGJyPjxi
+cj5yb290QGNhcnBjOn4jIHNlbnNvcnM8YnI+Y29yZXRlbXAtaXNhLTAwMDA8YnI+QWRhcHRlcjog
+SVNBIGFkYXB0ZXI8YnI+Q29yZSAwOiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyArMTYu
+MMKwQyZuYnNwOyAoY3JpdCA9ICsxMDAuMMKwQykmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsgPGJyPjxicj5jb3JldGVtcC1pc2EtMDAwMjxicj5BZGFwdGVyOiBJ
+U0EgYWRhcHRlcjxicj5Db3JlIDE6Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+ICs4LjDCsEMmbmJzcDsgKGNyaXQgPSArMTAwLjDCsEMpJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IDxicj48YnI+dzgzNjI3ZGhnLWlzYS0wMjkwPGJyPkFkYXB0
+ZXI6IElTQSBhZGFwdGVyPGJyPlZjb3JlOiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyArMS4xOSBWJm5ic3A7IChtaW4gPSZuYnNwOyArMC4wMCBWLCBtYXggPSZuYnNwOyArMS43
+NCBWKSZuYnNwOyZuYnNwOyA8YnI+aW4xOiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyArMS41OSBWJm5ic3A7IChtaW4gPSZuYnNwOyArMS43MiBWLCBtYXgg
+PSZuYnNwOyArMS4wMiBWKSZuYnNwOyZuYnNwOyBBTEFSTTxicj5BVkNDOiZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyArMy4zOSBWJm5ic3A7IChtaW4gPSZuYnNwOyAr
+Mi45OCBWLCBtYXggPSZuYnNwOyArMy42MyBWKSZuYnNwOyZuYnNwOyA8YnI+VkNDOiZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyArMy4zOSBWJm5ic3A7ICht
+aW4gPSZuYnNwOyArMi45OCBWLCBtYXggPSZuYnNwOyArMy42MyBWKSZuYnNwOyZuYnNwOyA8YnI+
+aW40OiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyArMS44
+NiBWJm5ic3A7IChtaW4gPSZuYnNwOyArMC44MiBWLCBtYXggPSZuYnNwOyArMS41NCBWKSZuYnNw
+OyZuYnNwOyBBTEFSTTxicj5pbjU6Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7ICsxLjIwIFYmbmJzcDsgKG1pbiA9Jm5ic3A7ICswLjk4IFYsIG1heCA9Jm5i
+c3A7ICsxLjk4IFYpJm5ic3A7Jm5ic3A7IDxicj5pbjY6Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7ICsxLjU5IFYmbmJzcDsgKG1pbiA9Jm5ic3A7ICsyLjAz
+IFYsIG1heCA9Jm5ic3A7ICsxLjU0IFYpJm5ic3A7Jm5ic3A7IEFMQVJNPGJyPjNWU0I6Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7ICszLjM5IFYmbmJzcDsgKG1pbiA9
+Jm5ic3A7ICsyLjk4IFYsIG1heCA9Jm5ic3A7ICszLjYzIFYpJm5ic3A7Jm5ic3A7IDxicj5WYmF0
+OiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyArMy4yNiBWJm5ic3A7
+IChtaW4gPSZuYnNwOyArMi43MCBWLCBtYXggPSZuYnNwOyArMy4zMCBWKSZuYnNwOyZuYnNwOyA8
+YnI+ZmFuMTombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsgMCBSUE0mbmJzcDsgKG1pbiA9Jm5ic3A7IDU4NSBSUE0sIGRpdiA9IDEyOCkmbmJzcDsg
+QUxBUk08YnI+ZmFuMjombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsgMCBSUE0mbmJzcDsgKG1pbiA9Jm5ic3A7IDQzOSBSUE0sIGRpdiA9IDEyOCkm
+bmJzcDsgQUxBUk08YnI+ZmFuMzombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsgMCBSUE0mbmJzcDsgKG1pbiA9IDM2NjggUlBNLCBkaXYgPSA4KSZu
+YnNwOyBBTEFSTTxicj5mYW40OiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyZuYnNwOyAwIFJQTSZuYnNwOyAobWluID0gODY1MyBSUE0sIGRpdiA9IDQpJm5i
+c3A7IEFMQVJNPGJyPmZhbjU6Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7IDAgUlBNJm5ic3A7IChtaW4gPSA2NjE3IFJQTSwgZGl2ID0gNCkmbmJz
+cDsgQUxBUk08YnI+dGVtcDE6Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7ICs0
+NS4wwrBDJm5ic3A7IChoaWdoID0gLTMzLjDCsEMsIGh5c3QgPSAtNDYuMMKwQykmbmJzcDsgQUxB
+Uk0mbmJzcDsgc2Vuc29yID0gdHJhbnNpc3Rvcjxicj50ZW1wMjombmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsmbmJzcDsmbmJzcDsgKzQxLjDCsEMmbmJzcDsgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9
+ICs3NS4wwrBDKSZuYnNwOyBzZW5zb3IgPSBkaW9kZTxicj50ZW1wMzombmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsgKzM5LjXCsEMmbmJzcDsgKGhpZ2ggPSArODAuMMKwQywgaHlz
+dCA9ICs3NS4wwrBDKSZuYnNwOyBzZW5zb3IgPSBkaW9kZTxicj5jcHUwX3ZpZDombmJzcDsmbmJz
+cDsgKzIuMDUwIFY8YnI+PHNwYW4gaWQ9Il9wbGFpbl90ZXh0X21hcmtlciI+PC9zcGFuPjxicj5G
+YW5zIGxvb2sgb2sgKGJ1dCBJIGRpZG4ndCB0ZXN0IHRoZW0pLjxicj48YnI+SGVyZSBpcyBvdXRw
+dXQgb2Ygc2Vuc29ycy1kZXRlY3QgKGFmdGVyIHNheWluZyAieWVzIiB0byBhbGwgcXVlc3Rpb25z
+KTo8YnI+PGJyPkRyaXZlciBgdzgzNjI3ZWhmJzo8YnI+Jm5ic3A7ICogSVNBIGJ1cywgYWRkcmVz
+cyAweDI5MDxicj4mbmJzcDsmbmJzcDsmbmJzcDsgQ2hpcCBgV2luYm9uZCBXODM2MjdESEctUCBT
+dXBlciBJTyBTZW5zb3JzJyAoY29uZmlkZW5jZTogOSk8YnI+PGJyPkRyaXZlciBgY29yZXRlbXAn
+Ojxicj4mbmJzcDsgKiBDaGlwIGBJbnRlbCBBdG9tIHRoZXJtYWwgc2Vuc29yJyAoY29uZmlkZW5j
+ZTogOSk8YnI+PGJyPlRvIGxvYWQgZXZlcnl0aGluZyB0aGF0IGlzIG5lZWRlZCwgYWRkIHRoaXMg
+dG8gL2V0Yy9tb2R1bGVzOjxicj4jLS0tLWN1dCBoZXJlLS0tLTxicj4jIENoaXAgZHJpdmVyczxi
+cj5jb3JldGVtcDxicj53ODM2MjdlaGY8YnI+Iy0tLS1jdXQgaGVyZS0tLS08YnI+PGJyPk1vZHVs
+ZXMgYXJlIGxvYWRlZC48YnI+PGJyPkNhbiB5b3UgaGVscCBtZSB3aXRoIHZvbHRhZ2VzPzxicj48
+YnI+VGhhbmtzITxicj48YnI+PHNwYW4gaWQ9Il9wbGFpbl90ZXh0X21hcmtlciI+PC9zcGFuPjwv
+Qk9EWT48L0hUTUw+Cg==
+
+----ALT--42ne1bH81302898060--
+
+
+--===============7630884489353754584==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7630884489353754584==--
