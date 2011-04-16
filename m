@@ -1,75 +1,48 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Apr 2011 08:08:46 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add code to detect
-Message-Id: <20110406100846.3a6389e8@endymion.delvare>
+Date: Sat, 16 Apr 2011 12:17:13 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (jc42) Change I2C detection class
+Message-Id: <20110416141713.333d6e51@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110406072137.GB23562@ericsson.com>
-In-Reply-To: <20110406072137.GB23562@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 6 Apr 2011 00:21:37 -0700, Guenter Roeck wrote:
-> This patch adds code to detect ADT7461A / NCT1008 to sensors-detect.
-> 
-> ---
-> 
-> Index: prog/detect/sensors-detect
-> =================================> --- prog/detect/sensors-detect	(revision 5954)
-> +++ prog/detect/sensors-detect	(working copy)
-> @@ -1045,6 +1045,11 @@
->  		i2c_addrs => [0x4c..0x4d],
->  		i2c_detect => sub { lm90_detect(@_, 5); },
->  	}, {
-> +		name => "Analog Devices ADT7461A, ON Semiconductor NCT1008",
-> +		driver => "to-be-written",	# lm90
-> +		i2c_addrs => [0x4c..0x4d],
-> +		i2c_detect => sub { lm90_detect(@_, 13); },
-> +	}, {
->  		name => "Analog Devices ADT7481",
->  		driver => "to-be-written",
->  		i2c_addrs => [0x4c, 0x4b],
-> @@ -4317,7 +4322,8 @@
->  #		  4 = MAX6654, 5 = ADT7461,
->  #		  6 = MAX6646/MAX6647/MAX6648/MAX6649/MAX6692,
->  #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
-> -#		  11 = W83L771AWG/ASG, 12 = MAX6690
-> +#		  11 = W83L771AWG/ASG, 12 = MAX6690,
-> +#		  13 = ADT7461A/NCT1008
->  # Registers used:
->  #   0x03: Configuration
->  #   0x04: Conversion rate
-> @@ -4416,6 +4422,12 @@
->  		return if $mid != 0x4d;		# Maxim
->  		return 8 if $cid = 0x09;	# MAX6690
->  	}
-> +	if ($chip = 13) {
-> +		return if ($conf & 0x1b) != 0;
-> +		return if $rate > 0x0a;
-> +		return if $mid != 0x41;		# Analog Devices
-> +		return 8 if $cid = 0x57;	# ADT7461A, NCT1008
-> +	}
->  	return;
->  }
->  
-> Index: CHANGES
-> =================================> --- CHANGES	(revision 5954)
-> +++ CHANGES	(working copy)
-> @@ -1,6 +1,9 @@
->  lm-sensors CHANGES file
->  -----------------------
->  
-> +head
-> +  sensors-detect: Add detection of ADT7461A / NCT1008
-> +
->  3.3.0 (2011-03-28)
->    Makefile: Check for bison and flex
->    libsensors: Add support for intrusion detection (#2370)
-> 
+While the JC42-compatible chips are temperature sensors, I2C_CLASS_SPD
+makes more sense because these chips always live on memory modules.
 
-Looks alright, please commit. Please add the new chips to wiki/Devices
-too.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+---
+Guenter, what do you think?
+
+ drivers/hwmon/jc42.c |    2 +-
+ include/linux/i2c.h  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+--- linux-2.6.39-rc3.orig/drivers/hwmon/jc42.c	2011-03-15 22:52:51.000000000 +0100
++++ linux-2.6.39-rc3/drivers/hwmon/jc42.c	2011-04-16 09:31:47.000000000 +0200
+@@ -213,7 +213,7 @@ static const struct dev_pm_ops jc42_dev_
+ 
+ /* This is the driver that will be inserted */
+ static struct i2c_driver jc42_driver = {
+-	.class		= I2C_CLASS_HWMON,
++	.class		= I2C_CLASS_SPD,
+ 	.driver = {
+ 		.name	= "jc42",
+ 		.pm = JC42_DEV_PM_OPS,
+--- linux-2.6.39-rc3.orig/include/linux/i2c.h	2011-04-15 18:08:30.000000000 +0200
++++ linux-2.6.39-rc3/include/linux/i2c.h	2011-04-16 09:48:50.000000000 +0200
+@@ -400,7 +400,7 @@ void i2c_unlock_adapter(struct i2c_adapt
+ /* i2c adapter classes (bitmask) */
+ #define I2C_CLASS_HWMON		(1<<0)	/* lm_sensors, ... */
+ #define I2C_CLASS_DDC		(1<<3)	/* DDC bus on graphics adapters */
+-#define I2C_CLASS_SPD		(1<<7)	/* SPD EEPROMs and similar */
++#define I2C_CLASS_SPD		(1<<7)	/* Memory modules */
+ 
+ /* Internal numbers to terminate lists */
+ #define I2C_CLIENT_END		0xfffeU
+
 
 -- 
 Jean Delvare
