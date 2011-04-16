@@ -1,26 +1,249 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 21 Apr 2011 18:26:23 +0000
-Subject: Re: [lm-sensors] please help me with my project
-Message-Id: <20110421202623.05e66f26@endymion.delvare>
+Date: Sat, 16 Apr 2011 08:21:33 +0000
+Subject: [lm-sensors] [PATCH 1/2 v2] i8k: Integrate with the hwmon subsystem
+Message-Id: <20110416102133.49423c34@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <200405042111.24488.crotariu@vega.it.nuigalway.ie>
-In-Reply-To: <200405042111.24488.crotariu@vega.it.nuigalway.ie>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Gerry,
+Let i8k create an hwmon class device so that libsensors will expose
+the CPU temperature and fan speeds to monitoring applications.
 
-On Thu, 21 Apr 2011 17:35:20 +0100, Gerry Gorman wrote:
-> Hi Cosmin, I saw your profile on Linkedin.com and I think you have skills
-> that are very relevant to a job I have open with a client of mine. They a
-> bio sensing product development company based in Dublin and they're looking
-> for a Signal Processing engineer. It's mostly embedded development using C
-> C++ Linux and algorithm design as well as scripting in Matlab. Would you be
-> interested in hearing more about this role?
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Massimo Dal Zotto <dz@debian.org>
+---
+Note: I don't get why CONFIG_I8K is the "Processor type and features"
+menu, and why the driver lives in drivers/char. Wouldn't
+drivers/arch/x86 be a better place?
 
-You are writing to a mailing list.
+Changes since v1:
+* Follow the one-function-exit rule in i8k_init().
+
+ arch/x86/Kconfig   |    1 
+ drivers/char/i8k.c |  152 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 153 insertions(+)
+
+--- linux-2.6.39-rc3.orig/drivers/char/i8k.c	2011-04-13 17:49:51.000000000 +0200
++++ linux-2.6.39-rc3/drivers/char/i8k.c	2011-04-16 10:14:38.000000000 +0200
+@@ -5,6 +5,9 @@
+  *
+  * Copyright (C) 2001  Massimo Dal Zotto <dz@debian.org>
+  *
++ * Hwmon integration:
++ * Copyright (C) 2011  Jean Delvare <khali@linux-fr.org>
++ *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License as published by the
+  * Free Software Foundation; either version 2, or (at your option) any
+@@ -24,6 +27,8 @@
+ #include <linux/dmi.h>
+ #include <linux/capability.h>
+ #include <linux/mutex.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ 
+@@ -58,6 +63,7 @@
+ 
+ static DEFINE_MUTEX(i8k_mutex);
+ static char bios_version[4];
++static struct device *i8k_hwmon_dev;
+ 
+ MODULE_AUTHOR("Massimo Dal Zotto (dz@debian.org)");
+ MODULE_DESCRIPTION("Driver for accessing SMM BIOS on Dell laptops");
+@@ -455,6 +461,142 @@ static int i8k_open_fs(struct inode *ino
+ 	return single_open(file, i8k_proc_show, NULL);
+ }
+ 
++
++/*
++ * Hwmon interface
++ */
++
++static ssize_t i8k_hwmon_show_temp(struct device *dev,
++				   struct device_attribute *devattr,
++				   char *buf)
++{
++	int cpu_temp;
++
++	cpu_temp = i8k_get_temp(0);
++	return sprintf(buf, "%d\n", cpu_temp * 1000);
++}
++
++static ssize_t i8k_hwmon_show_fan(struct device *dev,
++				  struct device_attribute *devattr,
++				  char *buf)
++{
++	int index = to_sensor_dev_attr(devattr)->index;
++	int fan_speed;
++
++	fan_speed = i8k_get_fan_speed(index);
++	return sprintf(buf, "%d\n", fan_speed);
++}
++
++static ssize_t i8k_hwmon_show_label(struct device *dev,
++				    struct device_attribute *devattr,
++				    char *buf)
++{
++	static const char *labels[4] = {
++		"i8k",
++		"CPU",
++		"Left Fan",
++		"Right Fan",
++	};
++	int index = to_sensor_dev_attr(devattr)->index;
++
++	return sprintf(buf, "%s\n", labels[index]);
++}
++
++static DEVICE_ATTR(temp1_input, S_IRUGO, i8k_hwmon_show_temp, NULL);
++static SENSOR_DEVICE_ATTR(fan1_input, S_IRUGO, i8k_hwmon_show_fan, NULL,
++			  I8K_FAN_LEFT);
++static SENSOR_DEVICE_ATTR(fan2_input, S_IRUGO, i8k_hwmon_show_fan, NULL,
++			  I8K_FAN_RIGHT);
++static SENSOR_DEVICE_ATTR(name, S_IRUGO, i8k_hwmon_show_label, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, i8k_hwmon_show_label, NULL, 1);
++static SENSOR_DEVICE_ATTR(fan1_label, S_IRUGO, i8k_hwmon_show_label, NULL, 2);
++static SENSOR_DEVICE_ATTR(fan2_label, S_IRUGO, i8k_hwmon_show_label, NULL, 3);
++
++static void i8k_hwmon_remove_files(struct device *dev)
++{
++	device_remove_file(dev, &dev_attr_temp1_input);
++	device_remove_file(dev, &sensor_dev_attr_fan1_input.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_fan2_input.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_temp1_label.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_fan1_label.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_fan2_label.dev_attr);
++	device_remove_file(dev, &sensor_dev_attr_name.dev_attr);
++}
++
++static int __init i8k_init_hwmon(void)
++{
++	int err;
++
++	i8k_hwmon_dev = hwmon_device_register(NULL);
++	if (IS_ERR(i8k_hwmon_dev)) {
++		err = PTR_ERR(i8k_hwmon_dev);
++		i8k_hwmon_dev = NULL;
++		printk(KERN_ERR "i8k: hwmon registration failed (%d)\n", err);
++		return err;
++	}
++
++	/* Required name attribute */
++	err = device_create_file(i8k_hwmon_dev,
++				 &sensor_dev_attr_name.dev_attr);
++	if (err)
++		goto exit_unregister;
++
++	/* CPU temperature attributes */
++	err = device_create_file(i8k_hwmon_dev, &dev_attr_temp1_input);
++	if (err)
++		goto exit_remove_files;
++	err = device_create_file(i8k_hwmon_dev,
++				 &sensor_dev_attr_temp1_label.dev_attr);
++	if (err)
++		goto exit_remove_files;
++
++	/* Left fan attributes, if left fan is present */
++	err = i8k_get_fan_status(I8K_FAN_LEFT);
++	if (err < 0) {
++		dev_dbg(i8k_hwmon_dev,
++			"Not creating %s fan attributes (%d)\n", "left", err);
++	} else {
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan1_input.dev_attr);
++		if (err)
++			goto exit_remove_files;
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan1_label.dev_attr);
++		if (err)
++			goto exit_remove_files;
++	}
++
++	/* Right fan attributes, if right fan is present */
++	err = i8k_get_fan_status(I8K_FAN_RIGHT);
++	if (err < 0) {
++		dev_dbg(i8k_hwmon_dev,
++			"Not creating %s fan attributes (%d)\n", "right", err);
++	} else {
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan2_input.dev_attr);
++		if (err)
++			goto exit_remove_files;
++		err = device_create_file(i8k_hwmon_dev,
++					 &sensor_dev_attr_fan2_label.dev_attr);
++		if (err)
++			goto exit_remove_files;
++	}
++
++	return 0;
++
++ exit_remove_files:
++	i8k_hwmon_remove_files(i8k_hwmon_dev);
++ exit_unregister:
++	hwmon_device_unregister(i8k_hwmon_dev);
++	return err;
++}
++
++static void __exit i8k_exit_hwmon(void)
++{
++	i8k_hwmon_remove_files(i8k_hwmon_dev);
++	hwmon_device_unregister(i8k_hwmon_dev);
++}
++
+ static struct dmi_system_id __initdata i8k_dmi_table[] = {
+ 	{
+ 		.ident = "Dell Inspiron",
+@@ -580,6 +722,7 @@ static int __init i8k_probe(void)
+ static int __init i8k_init(void)
+ {
+ 	struct proc_dir_entry *proc_i8k;
++	int err;
+ 
+ 	/* Are we running on an supported laptop? */
+ 	if (i8k_probe())
+@@ -590,15 +733,24 @@ static int __init i8k_init(void)
+ 	if (!proc_i8k)
+ 		return -ENOENT;
+ 
++	err = i8k_init_hwmon();
++	if (err)
++		goto exit_remove_proc;
++
+ 	printk(KERN_INFO
+ 	       "Dell laptop SMM driver v%s Massimo Dal Zotto (dz@debian.org)\n",
+ 	       I8K_VERSION);
+ 
+ 	return 0;
++
++ exit_remove_proc:
++	remove_proc_entry("i8k", NULL);
++	return err;
+ }
+ 
+ static void __exit i8k_exit(void)
+ {
++	i8k_exit_hwmon();
+ 	remove_proc_entry("i8k", NULL);
+ }
+ 
+--- linux-2.6.39-rc3.orig/arch/x86/Kconfig	2011-04-13 17:49:51.000000000 +0200
++++ linux-2.6.39-rc3/arch/x86/Kconfig	2011-04-16 10:02:20.000000000 +0200
+@@ -919,6 +919,7 @@ config TOSHIBA
+ 
+ config I8K
+ 	tristate "Dell laptop support"
++	select HWMON
+ 	---help---
+ 	  This adds a driver to safely access the System Management Mode
+ 	  of the CPU on the Dell Inspiron 8000. The System Management Mode
 
 -- 
 Jean Delvare
