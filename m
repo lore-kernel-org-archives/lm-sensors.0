@@ -1,24 +1,45 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 24 Apr 2011 08:44:24 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asc7621) Drop duplicate dependency
-Message-Id: <20110424084424.GA9032@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 18 Apr 2011 20:35:44 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (smm665) Fix spelling error in
+Message-Id: <20110418223544.591b20d0@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110424091937.02f4943e@endymion.delvare>
-In-Reply-To: <20110424091937.02f4943e@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Apr 24, 2011 at 03:19:37AM -0400, Jean Delvare wrote:
-> The config SENSORS_ASC7621 entry is inside an if HWMON / endif block,
-> so it already depends on HWMON.
+On Mon, 18 Apr 2011 13:42:23 -0700, Guenter Roeck wrote:
+> tempererature may sound interesting, but temperature is still preferred.
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  Documentation/hwmon/smm665 |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/hwmon/smm665 b/Documentation/hwmon/smm665
+> index 3820fc9..59e3161 100644
+> --- a/Documentation/hwmon/smm665
+> +++ b/Documentation/hwmon/smm665
+> @@ -150,8 +150,8 @@ in8_crit_alarm		Channel F critical alarm
+>  in9_crit_alarm		AIN1 critical alarm
+>  in10_crit_alarm		AIN2 critical alarm
+>  
+> -temp1_input		Chip tempererature
+> -temp1_min		Mimimum chip tempererature
+> -temp1_max		Maximum chip tempererature
+> -temp1_crit		Critical chip tempererature
+> +temp1_input		Chip temperature
+> +temp1_min		Mimimum chip temperature
+> +temp1_max		Maximum chip temperature
+> +temp1_crit		Critical chip temperature
+>  temp1_crit_alarm	Temperature critical alarm
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Nice :D
 
-Guenter
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
