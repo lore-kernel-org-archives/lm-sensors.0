@@ -1,15 +1,25 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 18 Apr 2011 20:49:38 +0000
-Subject: [lm-sensors] [PATCH 0/4] hwmon: (pmbus) Documentation updates
-Message-Id: <1303159782-2687-1-git-send-email-guenter.roeck@ericsson.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Date: Mon, 18 Apr 2011 22:27:58 +0000
+Subject: Re: [lm-sensors] [PATCH 0/4] hwmon: (pmbus) Documentation updates
+Message-Id: <20110418152758.2028d8e0.rdunlap@xenotime.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1303159782-2687-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1303159782-2687-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The following set of patches cleans up PMBus driver documentation, and adds
-documentation files for chips with a dedicated driver. 
+On Mon, 18 Apr 2011 13:49:38 -0700 Guenter Roeck wrote:
+
+> The following set of patches cleans up PMBus driver documentation, and adds
+> documentation files for chips with a dedicated driver. 
+
+Looks good.  Please push these and the spelling patch thru the HWMON tree.
+
+Thanks,
+---
+~Randy
 
 _______________________________________________
 lm-sensors mailing list
