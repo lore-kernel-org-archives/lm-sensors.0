@@ -1,61 +1,116 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Wed, 06 Apr 2011 21:12:20 +0000
-Subject: [lm-sensors] [PATCH 0/3] Make all it87 drivers SMP safe.
-Message-Id: <1302124340-22338-1-git-send-email-natg@google.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 18 Apr 2011 20:49:40 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (max8688) Add driver documentation
+Message-Id: <1303159782-2687-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
+To: lm-sensors@vger.kernel.org
 
-There are 3 different drivers that touch the it87 hardware registers.
-The 3 drivers have been written independently and access the it87 hardware
-registers assuming they are the only driver accessing it. This change
-attempts to serialize access to the hardware by defining a global spinlock
-it87_io_lock in a file it87_lock.c. This lock has to be acquired by each
-of the it87 drivers before it can access the hardware. We have defined
-a new Kconfig option IT87_LOCK. When it is selected it87_lock.c is compiled
-into the kernel thereby making the lock global and accessable to the it87
-drivers which are typically built as loadable modules. All the it87 drivers
-select IT87_LOCK to compile the lock into the kernel.
-The routines accessing the hardware are being called from module init,
-open, ioctl and module exit routines and hence it is sufficient to use
-calls to spin_lock and spin_unlock to acquire and release the locks. For
-the same reasons it87_wdt.c has extensive changes to remove calls to
-spin_lock_irqsave and spin_unlock_irqrestore. The lock is now acquired
-in superio_enter and released in superio_exit. This is now identical
-to the code in drivers/hwmon/it87.c and drivers/watchdog/it8712f_wdt.c.
-Added __acquire and __release annotations wherever needed.
+MAX8688 has its own driver, thus should have its own documentation instead of
+being mentioned in the generic PMBus driver documentation.
 
-01 - Adds the relevant lock files.
- drivers/watchdog/Kconfig
- drivers/watchdog/Makefile
- drivers/watchdog/it87_lock.c
- include/linux/it87_lock.h
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/max8688 |   69 +++++++++++++++++++++++++++++++++++++++++++
+ Documentation/hwmon/pmbus   |    5 ---
+ 2 files changed, 69 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/hwmon/max8688
 
-02 - Adds changes to watchdog drivers to use the new lock.
- drivers/watchdog/it8712f_wdt.c
- drivers/watchdog/it87_wdt.c
+diff --git a/Documentation/hwmon/max8688 b/Documentation/hwmon/max8688
+new file mode 100644
+index 0000000..0ddd3a4
+--- /dev/null
++++ b/Documentation/hwmon/max8688
+@@ -0,0 +1,69 @@
++Kernel driver max8688
++==========+
++Supported chips:
++  * Maxim MAX8688
++    Prefix: 'max8688'
++    Addresses scanned: -
++    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX8688.pdf
++
++Author: Guenter Roeck <guenter.roeck@ericsson.com>
++
++
++Description
++-----------
++
++This driver supports hardware montoring for Maxim MAX8688 Digital Power-Supply
++Controller/Monitor with PMBus Interface.
++
++The driver is a client driver to the core PMBus driver. Please see
++Documentation/hwmon/pmbus for details on PMBus client drivers.
++
++
++Usage Notes
++-----------
++
++This driver does not auto-detect devices. You will have to instantiate the
++devices explicitly. Please see Documentation/i2c/instantiating-devices for
++details.
++
++
++Platform data support
++---------------------
++
++The driver supports standard PMBus driver platform data.
++
++
++Sysfs entries
++-------------
++
++The following attributes are supported. Limits are read-write; all other
++attributes are read-only.
++
++in1_label		"vout1"
++in1_input		Measured voltage. From READ_VOUT register.
++in1_min			Minumum Voltage. From VOUT_UV_WARN_LIMIT register.
++in1_max			Maximum voltage. From VOUT_OV_WARN_LIMIT register.
++in1_lcrit		Critical minumum Voltage. VOUT_UV_FAULT_LIMIT register.
++in1_crit		Critical maximum voltage. From VOUT_OV_FAULT_LIMIT register.
++in1_min_alarm		Voltage low alarm. From VOLTAGE_UV_WARNING status.
++in1_max_alarm		Voltage high alarm. From VOLTAGE_OV_WARNING status.
++in1_lcrit_alarm		Voltage critical low alarm. From VOLTAGE_UV_FAULT status.
++in1_crit_alarm		Voltage critical high alarm. From VOLTAGE_OV_FAULT status.
++
++curr1_label		"iout1"
++curr1_input		Measured current. From READ_IOUT register.
++curr1_max		Maximum current. From IOUT_OC_WARN_LIMIT register.
++curr1_crit		Critical maximum current. From IOUT_OC_FAULT_LIMIT register.
++curr1_max_alarm		Current high alarm. From IOUT_OC_WARN_LIMIT register.
++curr1_crit_alarm	Current critical high alarm. From IOUT_OC_FAULT status.
++
++temp1_input		Measured temperature. From READ_TEMPERATURE_1 register.
++temp1_max		Maximum temperature. From OT_WARN_LIMIT register.
++temp1_crit		Critical high temperature. From OT_FAULT_LIMIT register.
++temp1_max_alarm		Chip temperature high alarm. Set by comparing
++			READ_TEMPERATURE_1 with OT_WARN_LIMIT if TEMP_OT_WARNING
++			status is set.
++temp1_crit_alarm	Chip temperature critical high alarm. Set by comparing
++			READ_TEMPERATURE_1 with OT_FAULT_LIMIT if TEMP_OT_FAULT
++			status is set.
+diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
+index ef8555a..2a3049e 100644
+--- a/Documentation/hwmon/pmbus
++++ b/Documentation/hwmon/pmbus
+@@ -28,11 +28,6 @@ Supported chips:
+     Prefixes: 'max34441'
+     Addresses scanned: -
+     Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX34441.pdf
+-  * Maxim MAX8688
+-    Digital Power-Supply Controller/Monitor
+-    Prefix: 'max8688'
+-    Addresses scanned: -
+-    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX8688.pdf
+   * Generic PMBus devices
+     Prefix: 'pmbus'
+     Addresses scanned: -
+-- 
+1.7.3.1
 
-03 - Adds changes to hwmon driver to use the new lock.
- drivers/hwmon/Kconfig
- drivers/hwmon/it87.c
-
-
- drivers/hwmon/Kconfig          |    1 +
- drivers/hwmon/it87.c           |   14 ++++++++++++-
- drivers/watchdog/Kconfig       |   12 +++++++++++
- drivers/watchdog/Makefile      |    1 +
- drivers/watchdog/it8712f_wdt.c |   10 ++++----
- drivers/watchdog/it87_lock.c   |   27 +++++++++++++++++++++++++
- drivers/watchdog/it87_wdt.c    |   42 ++++++---------------------------------
- include/linux/it87_lock.h      |   28 ++++++++++++++++++++++++++
- 8 files changed, 96 insertions(+), 41 deletions(-)
- create mode 100644 drivers/watchdog/it87_lock.c
- create mode 100644 include/linux/it87_lock.h
-
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
 
 _______________________________________________
 lm-sensors mailing list
