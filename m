@@ -1,49 +1,17 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Mon, 11 Apr 2011 23:50:58 +0000
-Subject: [lm-sensors] [PATCH v4 0/2] Make all it87 drivers SMP safe
-Message-Id: <1302565858-23849-1-git-send-email-natg@google.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 19 Apr 2011 15:59:38 +0000
+Subject: [lm-sensors] [PATCH 0/6] hwmon: (pmbus) PMBus bug fixes and
+Message-Id: <1303228784-17909-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
+To: lm-sensors@vger.kernel.org
 
-There are 3 different drivers that touch the it87 hardware registers.
-The 3 drivers have been written independently and access the it87 hardware
-registers assuming they are the only driver accessing it. This change
-attempts to serialize access to the hardware by using
-"request_muxed_region" macro defined by Alan Cox. Call to this macro
-will hold off the requestor if the resource is currently busy.
-The use of the above macro makes it possible to get rid of
-spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
-This also greatly simplifies the implementation of it87_wdt.c driver.
+The following series of patches improves the PMBus infrastructure and adds
+support for several new PMBus chips.
 
-01 - Changes to it87 watchdog driver to use "request_muxed_region"
- drivers/watchdog/it8712f_wdt.c
- drivers/watchdog/it87_wdt.c
-
-02 - Chages to hwmon it87 driver to use "request_muxed_region"
- drivers/hwmon/it87.c
-
- drivers/hwmon/it87.c           |    4 ++++
- drivers/watchdog/it8712f_wdt.c |    9 ++++-----
- drivers/watchdog/it87_wdt.c    |   39 ++++-----------------------------------
- 3 files changed, 12 insertions(+), 40 deletions(-)
-
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
-
-Patch History:
-v4:
-- Remove extra braces in superio_enter routines.
-
-v3:
-- Totally abandon the spinlock based approach and use "request_muxed_region" to
-  hold off requestors if the resource is busy.
-
-v2:
-- More verbose patch headers. Add In-Reply-To: field.
-
+Resubmitting the series with added documentation for new drivers.
 
 _______________________________________________
 lm-sensors mailing list
