@@ -1,61 +1,77 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 18 Apr 2011 20:49:39 +0000
-Subject: [lm-sensors] [PATCH 1/4] hwmon: (pmbus) Documentation updates
-Message-Id: <1303159782-2687-2-git-send-email-guenter.roeck@ericsson.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 21 Apr 2011 13:35:19 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon/sch5627: Trigger Vbat measurements
+Message-Id: <1303392919-3667-2-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fix spelling, correct label name error, and add missing attribute to PMBus
-driver documentation.
+The sch5627 needs to be explicitly told to start an adc conversion
+for Vbat, once in a while. Without this Vbat may read 0, and will never
+get updated.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-By: Hans de Goede <hdegoede@redhat.com>
 ---
- Documentation/hwmon/pmbus |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/hwmon/sch5627.c |   17 ++++++++++++++++-
+ 1 files changed, 16 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index f2d42e8..ef8555a 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -175,11 +175,13 @@ currX_crit		Critical maximum current.
- 			From IIN_OC_FAULT_LIMIT or IOUT_OC_FAULT_LIMIT register.
- currX_alarm		Current high alarm.
- 			From IIN_OC_WARNING or IOUT_OC_WARNING status.
-+currX_max_alarm		Current high alarm.
-+			From IIN_OC_WARN_LIMIT or IOUT_OC_WARN_LIMIT status.
- currX_lcrit_alarm	Output current critical low alarm.
- 			From IOUT_UC_FAULT status.
- currX_crit_alarm	Current critical high alarm.
- 			From IIN_OC_FAULT or IOUT_OC_FAULT status.
--currX_label		"iin" or "vinY"
-+currX_label		"iin" or "ioutY"
+diff --git a/drivers/hwmon/sch5627.c b/drivers/hwmon/sch5627.c
+index 09a47bf..e23ea34 100644
+--- a/drivers/hwmon/sch5627.c
++++ b/drivers/hwmon/sch5627.c
+@@ -94,6 +94,7 @@ static const char * const SCH5627_IN_LABELS[SCH5627_NO_IN] = {
+ struct sch5627_data {
+ 	unsigned short addr;
+ 	struct device *hwmon_dev;
++	u8 control;
+ 	u8 temp_max[SCH5627_NO_TEMPS];
+ 	u8 temp_crit[SCH5627_NO_TEMPS];
+ 	u16 fan_min[SCH5627_NO_FANS];
+@@ -101,6 +102,7 @@ struct sch5627_data {
+ 	struct mutex update_lock;
+ 	char valid;			/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
++	unsigned long last_battery;	/* In jiffies */
+ 	u16 temp[SCH5627_NO_TEMPS];
+ 	u16 fan[SCH5627_NO_FANS];
+ 	u16 in[SCH5627_NO_IN];
+@@ -327,6 +329,14 @@ static struct sch5627_data *sch5627_update_device(struct device *dev)
+ 		}
  
- powerX_input		Measured power. From READ_PIN or READ_POUT register.
- powerX_cap		Output power cap. From POUT_MAX register.
-@@ -193,13 +195,13 @@ powerX_crit_alarm	Output power critical high alarm.
- 			From POUT_OP_FAULT status.
- powerX_label		"pin" or "poutY"
+ 		data->last_updated = jiffies;
++	}
++
++	/* Trigger a Vbat voltage measurement every minute */
++	if (time_after(jiffies, data->last_battery + 60 * HZ) ||
++	    !data->valid) {
++		sch5627_write_virtual_reg(data, SCH5627_REG_CTRL,
++					  data->control | 0x10);
++		data->last_battery = jiffies;
+ 		data->valid = 1;
+ 	}
+ abort:
+@@ -714,11 +724,16 @@ static int __devinit sch5627_probe(struct platform_device *pdev)
+ 		err = val;
+ 		goto error;
+ 	}
+-	if (!(val & 0x01)) {
++	data->control = val;
++	if (!(data->control & 0x01)) {
+ 		pr_err("hardware monitoring not enabled\n");
+ 		err = -ENODEV;
+ 		goto error;
+ 	}
++	/* Trigger a Vbat voltage measurement, so that we get a valid reading
++	   the first time we read Vbat */
++	sch5627_write_virtual_reg(data, SCH5627_REG_CTRL,
++				  data->control | 0x10);
  
--tempX_input		Measured tempererature.
-+tempX_input		Measured temperature.
- 			From READ_TEMPERATURE_X register.
--tempX_min		Mimimum tempererature. From UT_WARN_LIMIT register.
--tempX_max		Maximum tempererature. From OT_WARN_LIMIT register.
--tempX_lcrit		Critical low tempererature.
-+tempX_min		Mimimum temperature. From UT_WARN_LIMIT register.
-+tempX_max		Maximum temperature. From OT_WARN_LIMIT register.
-+tempX_lcrit		Critical low temperature.
- 			From UT_FAULT_LIMIT register.
--tempX_crit		Critical high tempererature.
-+tempX_crit		Critical high temperature.
- 			From OT_FAULT_LIMIT register.
- tempX_min_alarm		Chip temperature low alarm. Set by comparing
- 			READ_TEMPERATURE_X with UT_WARN_LIMIT if
+ 	/*
+ 	 * Read limits, we do this only once as reading a register on
 -- 
-1.7.3.1
+1.7.4.4
 
 
 _______________________________________________
