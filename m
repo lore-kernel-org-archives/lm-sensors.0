@@ -1,63 +1,105 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 01 Apr 2011 15:41:14 +0000
-Subject: Re: [lm-sensors] Query: Omap temperature sensor driver design
-Message-Id: <20110401154114.GB30343@ericsson.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 21 Apr 2011 13:44:17 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon/f71882fg: Split has_beep in
+Message-Id: <1303393458-4001-1-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTimsX-=1Qe8F3=gJM75_TYP9SujTFTH6uvXncWRC@mail.gmail.com>
-In-Reply-To: <AANLkTimsX-=1Qe8F3=gJM75_TYP9SujTFTH6uvXncWRC@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Fri, Apr 01, 2011 at 08:39:43AM -0400, J, KEERTHY wrote:
-> Hello All,
-> 
-> I am trying to implement a driver for the OMAP temperature sensor.
-> It is an on chip sensor.
-> 
-> The sensor is responsible for reporting the temperature. The sensor
-> has configurable thresholds. The user can configure the thresholds.
-> An interrupt will be generated as soon as there the temperature
-> thresholds are crossed.
-> 
-> Two possible approaches for the driver:
-> 
-> 1) The entire driver resides in drivers/hwmon directory. The driver
-> containing all the sysfs nodes to be exposed to the user.
-> The interrupt handlers are also part of this driver. The device
-> registration happens in a OMAP arch specific file residing
-> in arch/arm/mach-omap2 directory.
-> 
-> 2) The intialization and the interrupt handling done in a
-> separate driver file residing in in arch/arm/mach-omap2 or
-> drivers/misc directory.
-> The device registration happens in a OMAP arch specific file residing
-> in arch/arm/mach-omap2 directory.
-> Only the sysfs nodes will be exposed through a hwmon
-> driver residing in drivers/hwmon.
-> 
-That really depends if it does anything else besides hw monitoring.
-A hw monitoring driver can support interrupts, and trigger a poll event 
-on an alarm file if it gets one. But it should only perform hw monitoring 
-functionality. If that interrupt triggers other activity, a thermal subsystem
-driver may be more appropriate.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/hwmon/f71882fg.c |   28 +++++++++++++++++++++-------
+ 1 files changed, 21 insertions(+), 7 deletions(-)
 
-Thanks,
-Guenter
-
-> Please suggest the best alternative among the two or if any new
-> design for the requirements is better.
-> 
-> -- 
-> Regards and Thanks,
-> Keerthy
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index ca07a32..16330db 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -149,7 +149,7 @@ static const char f71882fg_has_in1_alarm[] = {
+ 	[f81865f]	= 1,
+ };
+ 
+-static const char f71882fg_has_beep[] = {
++static const char f71882fg_fan_has_beep[] = {
+ 	[f71808e]	= 0,
+ 	[f71858fg]	= 0,
+ 	[f71862fg]	= 1,
+@@ -175,6 +175,19 @@ static const char f71882fg_nr_fans[] = {
+ 	[f81865f]	= 2,
+ };
+ 
++static const char f71882fg_temp_has_beep[] = {
++	[f71808e]	= 0,
++	[f71858fg]	= 0,
++	[f71862fg]	= 1,
++	[f71869]	= 1,
++	[f71882fg]	= 1,
++	[f71889fg]	= 1,
++	[f71889ed]	= 1,
++	[f71889a]	= 1,
++	[f8000]		= 0,
++	[f81865f]	= 1,
++};
++
+ static const char f71882fg_nr_temps[] = {
+ 	[f71808e]	= 2,
+ 	[f71858fg]	= 3,
+@@ -1146,12 +1159,13 @@ static struct f71882fg_data *f71882fg_update_device(struct device *dev)
+ 			data->temp_type[3] = (reg & 0x08) ? 2 : 4;
+ 		}
+ 
+-		if (f71882fg_has_beep[data->type]) {
++		if (f71882fg_fan_has_beep[data->type])
+ 			data->fan_beep = f71882fg_read8(data,
+ 						F71882FG_REG_FAN_BEEP);
++
++		if (f71882fg_temp_has_beep[data->type])
+ 			data->temp_beep = f71882fg_read8(data,
+ 						F71882FG_REG_TEMP_BEEP);
+-		}
+ 
+ 		data->pwm_enable = f71882fg_read8(data,
+ 						  F71882FG_REG_PWM_ENABLE);
+@@ -2140,7 +2154,7 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
+ 		if (err)
+ 			goto exit_unregister_sysfs;
+ 
+-		if (f71882fg_has_beep[data->type]) {
++		if (f71882fg_temp_has_beep[data->type]) {
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 					&fxxxx_temp_beep_attr[0][0],
+ 					ARRAY_SIZE(fxxxx_temp_beep_attr[0])
+@@ -2221,7 +2235,7 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
+ 		if (err)
+ 			goto exit_unregister_sysfs;
+ 
+-		if (f71882fg_has_beep[data->type]) {
++		if (f71882fg_fan_has_beep[data->type]) {
+ 			err = f71882fg_create_sysfs_files(pdev,
+ 					fxxxx_fan_beep_attr, nr_fans);
+ 			if (err)
+@@ -2343,7 +2357,7 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 				&fxxxx_temp_attr[0][0],
+ 				ARRAY_SIZE(fxxxx_temp_attr[0]) * nr_temps);
+ 		}
+-		if (f71882fg_has_beep[data->type]) {
++		if (f71882fg_temp_has_beep[data->type]) {
+ 			f71882fg_remove_sysfs_files(pdev,
+ 			       &fxxxx_temp_beep_attr[0][0],
+ 			       ARRAY_SIZE(fxxxx_temp_beep_attr[0]) * nr_temps);
+@@ -2366,7 +2380,7 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 		f71882fg_remove_sysfs_files(pdev, &fxxxx_fan_attr[0][0],
+ 				ARRAY_SIZE(fxxxx_fan_attr[0]) * nr_fans);
+ 
+-		if (f71882fg_has_beep[data->type]) {
++		if (f71882fg_fan_has_beep[data->type]) {
+ 			f71882fg_remove_sysfs_files(pdev,
+ 					fxxxx_fan_beep_attr, nr_fans);
+ 		}
+-- 
+1.7.4.4
 
 
 _______________________________________________
