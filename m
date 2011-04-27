@@ -1,34 +1,27 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 06 Apr 2011 00:47:15 +0000
-Subject: Re: [lm-sensors] [PATCH v5 00/11] hwmon: (w83627ehf) Add support
-Message-Id: <20110406004715.GB21882@ericsson.com>
+From: =?UTF-8?Q?David_Santamar=C3=ADa_Rogado?= <howl.nsp@gmail.com>
+Date: Wed, 27 Apr 2011 20:10:54 +0000
+Subject: [lm-sensors] Gigabyte MA785GM-US2H motherboard configuration
+Message-Id: <BANLkTimA9Uj9DbC+cG8hrpDXZL+6jTGW9w@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1299261486-15190-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Apr 05, 2011 at 08:33:52PM -0400, Michael D Powell wrote:
-> 
-> Perhaps I'm missing something obvious or simple, but I always get fan
-> RPM of zero from lm sensors and can't seem to debug it.  Thanks in
-> advance for developing support for the
-> nct6775f.
-> 
-> Here's my setup:
-> 
-> Intel DH57DD board with core i5-750 cpu
+The configuration for Gigabyte MA785GM-US2H
+http://www.lm-sensors.org/wiki/Configurations/Gigabyte/MA785GM-US2H is
+wrong, at least for rev 1.0 of the mobo. in7 is not +12V, is an
+strange voltage that varies with the frequency of the cores. Is
+possible to determinate approximately it's value knowing the highest
+freq of all the cores in the system. If there are doubts, with that
+config and an Athlon II 250 the voltage show by in7 with the
+multiplier is about 24 V.
 
-I suspect you have the same problem I have with the DH57JG board: That Intel 
-does not use the fan control from the NCT6775F, but their own fan control
-implementation in one of the Intel support chips. See if you can find
-the technical documentation of your board (should be somewhere on the Intel
-web site) and check if it mentions anything about fan control.
-
-Thanks,
-Guenter
+I can provide the config the works with my MA785GM-US2H rev 1.0. The
+only thing I doesn't know sure are the fans because I have only tested
+cpu fan. Anyway it's based on a UD2H cfg found on the internet, being
+identical motherboards only differing in dolby theatre support over
+spdif.
 
 _______________________________________________
 lm-sensors mailing list
