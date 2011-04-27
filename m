@@ -1,82 +1,121 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 27 Apr 2011 19:49:56 +0000
-Subject: Re: [lm-sensors] [PATCH v7 1/2] Use "request_muxed_region" in it87
-Message-Id: <20110427194956.GA24382@ericsson.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Wed, 27 Apr 2011 13:05:10 +0000
+Subject: [lm-sensors] PATCH: systemd integration version 2
+Message-Id: <4DB81486.2010700@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020802030801090404060405"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1303153127-11717-1-git-send-email-natg@google.com>
- <1303153204-11784-1-git-send-email-natg@google.com>
- <20110422044451.GB524@ericsson.com>
- <BANLkTikGGO76ToGaRJ0foSc-Yp6Fe4C97g@mail.gmail.com>
-In-Reply-To: <BANLkTikGGO76ToGaRJ0foSc-Yp6Fe4C97g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------020802030801090404060405
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Natarajan Gurumoorthy <natg@google.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Wim Van Sebroeck <wim@iguana.be>, Mike Waychison <mikew@google.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>
 
-On Wed, Apr 27, 2011 at 01:49:01PM -0400, Natarajan Gurumoorthy wrote:
-> Guenter,
-> 
-> On Thu, Apr 21, 2011 at 9:44 PM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
-> > >  /**
-> > > @@ -303,8 +308,6 @@ static void wdt_stop(void)
-> > >
-> > >  static int wdt_set_timeout(int t)
-> > >  {
-> > > -       unsigned long flags;
-> > > -
-> > >         if (t < 1 || t > max_units * 60)
-> > >                 return -EINVAL;
-> > >
-> > > @@ -313,14 +316,14 @@ static int wdt_set_timeout(int t)
-> > >         else
-> > >                 timeout = t;
-> > >
-> > > -       spin_lock_irqsave(&spinlock, flags);
-> > >         if (test_bit(WDTS_TIMER_RUN, &wdt_status)) {
-> > > -               superio_enter();
-> > > +               if (superio_enter())
-> > > +                       return -EBUSY;
-> > > +
-> > I don't think you can do that here. You are moving the lock,
-> > meaning test_bit is no longer protected by the lock.
-> >
-> I am not sure I am in agreement with your here. If you look at other
-> places in the original driver I see sections of code in "wdt_ioctl"
-> that look as follows:
->         case WDIOC_SETOPTIONS:
->                 if (get_user(new_options, uarg.i))
->                         return -EFAULT;
-> 
->                 switch (new_options) {
->                 case WDIOS_DISABLECARD:
->                         if (test_bit(WDTS_TIMER_RUN, &wdt_status))
->                                 wdt_stop();
->                         clear_bit(WDTS_TIMER_RUN, &wdt_status);
->                         return 0;
-> 
->                 case WDIOS_ENABLECARD:
->                         if (!test_and_set_bit(WDTS_TIMER_RUN, &wdt_status))
->                                 wdt_start();
->                         return 0;
-> 
->                 default:
->                         return -EFAULT;
->                 }
-> 
-> They have run through manipulating the "WDTS_TIMER_RUN" bit in
-> wdt_status without touching the spinlock. "wdt_stop" does acquire the
-> spinlock before touching the hardware through superio_enter. It seems
-> to me that the original writers of this driver were using the spinlock
-> to isolate access to the hardware and we will be achieving the same by
-> the use of "request_muxed_region" call from superio_enter.
-> 
-Agreed. Thanks for the clarification.
+Hi,
 
-Guenter
+The attached patch:
+1) uses systemd's systemctl to start / stop / enable the lm_sensors service on
+systemd systems (such as Fedora 15)
+2) recognizes the new /run dir for run time info (as used by systemd systems)
+as a possible place where the udev db can live
+3) adds a lm_sensor.service file to install under /lib/systemd/system
+
+Version 2:
+1) adds detection that the lm_sensor.service still needs to be installed
+    under /lib/systemd/system to sensors-detect
+2) has a better description for the .service file
+
+Please review, I'll push it to svn myself once acked.
+
+Regards,
+
+Hans
+
+--------------020802030801090404060405
+Content-Type: text/plain;
+ name="lm_sensors-systemd.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="lm_sensors-systemd.patch"
+
+Index: prog/init/lm_sensors.service
+===================================================================
+--- prog/init/lm_sensors.service	(revision 0)
++++ prog/init/lm_sensors.service	(revision 0)
+@@ -0,0 +1,14 @@
++[Unit]
++Description=Initialize hardware monitoring sensors
++After=syslog.target
++
++[Service]
++EnvironmentFile=/etc/sysconfig/lm_sensors
++Type=oneshot
++RemainAfterExit=yes
++ExecStart=-/sbin/modprobe -qab $BUS_MODULES $HWMON_MODULES
++ExecStart=/usr/bin/sensors -s
++ExecStop=-/sbin/modprobe -qabr $BUS_MODULES $HWMON_MODULES
++
++[Install]
++WantedBy=multi-user.target
+Index: prog/detect/sensors-detect
+===================================================================
+--- prog/detect/sensors-detect	(revision 5939)
++++ prog/detect/sensors-detect	(working copy)
+@@ -2339,7 +2339,7 @@
+ 	if (!$use_udev) {
+ 		# Try some known default udev db locations, just in case
+ 		if (-e '/dev/.udev.tdb' || -e '/dev/.udev'
+-		 || -e '/dev/.udevdb') {
++		 || -e '/dev/.udevdb' || -e '/run/udev') {
+ 			$use_udev = 1;
+ 			$dev_i2c = '/dev/i2c-';
+ 		}
+@@ -6378,6 +6378,22 @@
+ 		}
+ 		close(SYSCONFIG);
+ 
++		if (-x "/bin/systemctl" && -d "/lib/systemd/system" &&
++		    ! -f "/lib/systemd/system/lm_sensors.service") {
++			print "Copy prog/init/lm_sensors.service to /lib/systemd/system\n".
++			      "And run systemctl enable lm_sensors.service\n".
++			      "for initialization at boot time.\n";
++			return;
++		}
++
++		if (-x "/bin/systemctl" &&
++		    -f "/lib/systemd/system/lm_sensors.service") {
++			system("/bin/systemctl", "enable", "lm_sensors.service");
++			system("/bin/systemctl", "start", "lm_sensors.service");
++			# All done, don't check for /etc/init.d/lm_sensors
++			return;
++		}
++
+ 		print "Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors\n".
+ 		      "for initialization at boot time.\n"
+ 			unless -f "/etc/init.d/lm_sensors";
+@@ -6433,8 +6449,10 @@
+ 		exit -1;
+ 	}
+ 
+-	if (-x "/sbin/service" && -f "/etc/init.d/lm_sensors" &&
+-	    -f "/var/lock/subsys/lm_sensors") {
++	if (-x "/bin/systemctl" && -f "/lib/systemd/system/lm_sensors.service") {
++		system("/bin/systemctl", "stop", "lm_sensors.service");
++	} elsif (-x "/sbin/service" && -f "/etc/init.d/lm_sensors" &&
++		 -f "/var/lock/subsys/lm_sensors") {
+ 		system("/sbin/service", "lm_sensors", "stop");
+ 	}
+ 
+
+--------------020802030801090404060405
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020802030801090404060405--
