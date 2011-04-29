@@ -1,306 +1,71 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Wed, 06 Apr 2011 21:13:05 +0000
-Subject: [lm-sensors] [PATCH 2/3] Make all it87 drivers SMP safe.
-Message-Id: <1302124385-22417-1-git-send-email-natg@google.com>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Fri, 29 Apr 2011 22:21:47 +0000
+Subject: [lm-sensors] [RFC 0/5] Support for Technologic Systems TS-5500 board
+Message-Id: <1304115712-5299-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>
-Cc: Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, Nat Gurumoorthy <natg@google.com>
+To: linux-kernel@vger.kernel.org
+Cc: platform-driver-x86@vger.kernel.org, linux-serial@vger.kernel.org, lm-sensors@lm-sensors.org
 
-02 - Adds changes to watchdog drivers to use the new lock.
+This set of patches is a request for comments. It brings the complete support
+for the TS-5500 Single Board Computer from Technologic Systems.
 
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
----
+The first patch adds detection for TS-5xxx boards (it also works for TS-3xxx
+boards).
 
-diff --git a/drivers/watchdog/it8712f_wdt.c b/drivers/watchdog/it8712f_wdt.c
-index b32c6c0..03a3e89 100644
---- a/drivers/watchdog/it8712f_wdt.c
-+++ b/drivers/watchdog/it8712f_wdt.c
-@@ -32,6 +32,7 @@
- #include <linux/spinlock.h>
- #include <linux/uaccess.h>
- #include <linux/io.h>
-+#include <linux/it87_lock.h>
- 
- #define NAME "it8712f_wdt"
- 
-@@ -51,7 +52,6 @@ MODULE_PARM_DESC(nowayout, "Disable watchdog shutdown on close");
- 
- static unsigned long wdt_open;
- static unsigned expect_close;
--static spinlock_t io_lock;
- static unsigned char revision;
- 
- /* Dog Food address - We use the game port address */
-@@ -122,8 +122,9 @@ static inline void superio_select(int ldn)
- }
- 
- static inline void superio_enter(void)
-+__acquires(&it87_io_lock)
- {
--	spin_lock(&io_lock);
-+	spin_lock(&it87_io_lock);
- 	outb(0x87, REG);
- 	outb(0x01, REG);
- 	outb(0x55, REG);
-@@ -131,10 +132,11 @@ static inline void superio_enter(void)
- }
- 
- static inline void superio_exit(void)
-+__releases(&it87_io_lock)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
--	spin_unlock(&io_lock);
-+	spin_unlock(&it87_io_lock);
- }
- 
- static inline void it8712f_wdt_ping(void)
-@@ -382,8 +384,6 @@ static int __init it8712f_wdt_init(void)
- {
- 	int err = 0;
- 
--	spin_lock_init(&io_lock);
--
- 	if (it8712f_wdt_find(&address))
- 		return -ENODEV;
- 
-diff --git a/drivers/watchdog/it87_wdt.c b/drivers/watchdog/it87_wdt.c
-index dad2924..87ac31d 100644
---- a/drivers/watchdog/it87_wdt.c
-+++ b/drivers/watchdog/it87_wdt.c
-@@ -42,6 +42,7 @@
- #include <linux/reboot.h>
- #include <linux/uaccess.h>
- #include <linux/io.h>
-+#include <linux/it87_lock.h>
- 
- #include <asm/system.h>
- 
-@@ -136,7 +137,6 @@
- 
- static	unsigned int base, gpact, ciract, max_units;
- static	unsigned long wdt_status;
--static	DEFINE_SPINLOCK(spinlock);
- 
- static	int nogameport = DEFAULT_NOGAMEPORT;
- static	int exclusive  = DEFAULT_EXCLUSIVE;
-@@ -163,7 +163,9 @@ MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started, default="
- /* Superio Chip */
- 
- static inline void superio_enter(void)
-+__acquires(&it87_io_lock)
- {
-+	spin_lock(&it87_io_lock);
- 	outb(0x87, REG);
- 	outb(0x01, REG);
- 	outb(0x55, REG);
-@@ -171,9 +173,11 @@ static inline void superio_enter(void)
- }
- 
- static inline void superio_exit(void)
-+__releases(&it87_io_lock)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
-+	spin_unlock(&it87_io_lock);
- }
- 
- static inline void superio_select(int ldn)
-@@ -253,9 +257,6 @@ static void wdt_keepalive(void)
- 
- static void wdt_start(void)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 
- 	superio_select(GPIO);
-@@ -266,14 +267,10 @@ static void wdt_start(void)
- 	wdt_update_timeout();
- 
- 	superio_exit();
--	spin_unlock_irqrestore(&spinlock, flags);
- }
- 
- static void wdt_stop(void)
- {
--	unsigned long flags;
--
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 
- 	superio_select(GPIO);
-@@ -284,7 +281,6 @@ static void wdt_stop(void)
- 		superio_outb(0x00, WDTVALMSB);
- 
- 	superio_exit();
--	spin_unlock_irqrestore(&spinlock, flags);
- }
- 
- /**
-@@ -299,8 +295,6 @@ static void wdt_stop(void)
- 
- static int wdt_set_timeout(int t)
- {
--	unsigned long flags;
--
- 	if (t < 1 || t > max_units * 60)
- 		return -EINVAL;
- 
-@@ -309,14 +303,12 @@ static int wdt_set_timeout(int t)
- 	else
- 		timeout = t;
- 
--	spin_lock_irqsave(&spinlock, flags);
- 	if (test_bit(WDTS_TIMER_RUN, &wdt_status)) {
- 		superio_enter();
- 		superio_select(GPIO);
- 		wdt_update_timeout();
- 		superio_exit();
- 	}
--	spin_unlock_irqrestore(&spinlock, flags);
- 	return 0;
- }
- 
-@@ -335,11 +327,8 @@ static int wdt_set_timeout(int t)
- 
- static int wdt_get_status(int *status)
- {
--	unsigned long flags;
--
- 	*status = 0;
- 	if (testmode) {
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 		superio_select(GPIO);
- 		if (superio_inb(WDTCTRL) & WDT_ZERO) {
-@@ -349,7 +338,6 @@ static int wdt_get_status(int *status)
- 		}
- 
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 	if (test_and_clear_bit(WDTS_KEEPALIVE, &wdt_status))
- 		*status |= WDIOF_KEEPALIVEPING;
-@@ -557,16 +545,13 @@ static int __init it87_wdt_init(void)
- 	int try_gameport = !nogameport;
- 	u16 chip_type;
- 	u8  chip_rev;
--	unsigned long flags;
- 
- 	wdt_status = 0;
- 
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 	chip_type = superio_inw(CHIPID);
- 	chip_rev  = superio_inb(CHIPREV) & 0x0f;
- 	superio_exit();
--	spin_unlock_irqrestore(&spinlock, flags);
- 
- 	switch (chip_type) {
- 	case IT8702_ID:
-@@ -599,7 +584,6 @@ static int __init it87_wdt_init(void)
- 		return -ENODEV;
- 	}
- 
--	spin_lock_irqsave(&spinlock, flags);
- 	superio_enter();
- 
- 	superio_select(GPIO);
-@@ -617,14 +601,12 @@ static int __init it87_wdt_init(void)
- 		gpact = superio_inb(ACTREG);
- 		superio_outb(0x01, ACTREG);
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 		if (request_region(base, 1, WATCHDOG_NAME))
- 			set_bit(WDTS_USE_GP, &wdt_status);
- 		else
- 			rc = -EIO;
- 	} else {
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 
- 	/* If we haven't Gameport support, try to get CIR support */
-@@ -642,7 +624,6 @@ static int __init it87_wdt_init(void)
- 			goto err_out;
- 		}
- 		base = CIR_BASE;
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 
- 		superio_select(CIR);
-@@ -656,7 +637,6 @@ static int __init it87_wdt_init(void)
- 		}
- 
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 
- 	if (timeout < 1 || timeout > max_units * 60) {
-@@ -686,6 +666,7 @@ static int __init it87_wdt_init(void)
- 
- 	/* Initialize CIR to use it as keepalive source */
- 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
-+		spin_lock(&it87_io_lock);
- 		outb(0x00, CIR_RCR(base));
- 		outb(0xc0, CIR_TCR1(base));
- 		outb(0x5c, CIR_TCR2(base));
-@@ -693,6 +674,7 @@ static int __init it87_wdt_init(void)
- 		outb(0x00, CIR_BDHR(base));
- 		outb(0x01, CIR_BDLR(base));
- 		outb(0x09, CIR_IER(base));
-+		spin_unlock(&it87_io_lock);
- 	}
- 
- 	printk(KERN_INFO PFX "Chip IT%04x revision %d initialized. "
-@@ -707,21 +689,17 @@ err_out_reboot:
- err_out_region:
- 	release_region(base, test_bit(WDTS_USE_GP, &wdt_status) ? 1 : 8);
- 	if (!test_bit(WDTS_USE_GP, &wdt_status)) {
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 		superio_select(CIR);
- 		superio_outb(ciract, ACTREG);
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- err_out:
- 	if (try_gameport) {
--		spin_lock_irqsave(&spinlock, flags);
- 		superio_enter();
- 		superio_select(GAMEPORT);
- 		superio_outb(gpact, ACTREG);
- 		superio_exit();
--		spin_unlock_irqrestore(&spinlock, flags);
- 	}
- 
- 	return rc;
-@@ -729,10 +707,6 @@ err_out:
- 
- static void __exit it87_wdt_exit(void)
- {
--	unsigned long flags;
--	int nolock;
--
--	nolock = !spin_trylock_irqsave(&spinlock, flags);
- 	superio_enter();
- 	superio_select(GPIO);
- 	superio_outb(0x00, WDTCTRL);
-@@ -748,8 +722,6 @@ static void __exit it87_wdt_exit(void)
- 		superio_outb(ciract, ACTREG);
- 	}
- 	superio_exit();
--	if (!nolock)
--		spin_unlock_irqrestore(&spinlock, flags);
- 
- 	misc_deregister(&wdt_miscdev);
- 	unregister_reboot_notifier(&wdt_notifier);
--- 
+The second patch adds GPIO support.
+
+The third patch adds support for the RS-485 feature of the ts-5500 SBC.
+
+The fourth patch adds support for the TS-5500 LEDs.
+
+The fifth patch adds support for the analogic to digital converter feature of
+the board.
+
+Jerome Oufella (1):
+  gpio: add support for Technologic Systems TS-5500 GPIOs
+
+Jonas Fonseca (3):
+  platform-drivers-x86: add support for Technologic Systems TS-5xxx
+    detection
+  leds: add support for Technologic Systems TS-5500 leds
+  hwmon: add support for Technologic Systems TS-5500 A-D converter
+
+Vivien Didelot (1):
+  serial: add support for Technologic Systems TS-5500 RS-485 serial
+    port
+
+ Documentation/ts5xxx-sbcinfo.txt      |   47 +++
+ MAINTAINERS                           |   11 +
+ drivers/gpio/Kconfig                  |   10 +
+ drivers/gpio/Makefile                 |    1 +
+ drivers/gpio/ts5500-gpio.c            |  528 +++++++++++++++++++++++++++++++++
+ drivers/hwmon/Kconfig                 |   10 +
+ drivers/hwmon/Makefile                |    1 +
+ drivers/hwmon/ts5500-adc.c            |  481 ++++++++++++++++++++++++++++++
+ drivers/leds/Kconfig                  |   12 +
+ drivers/leds/Makefile                 |    1 +
+ drivers/leds/leds-ts5500.c            |  211 +++++++++++++
+ drivers/platform/x86/Kconfig          |   11 +
+ drivers/platform/x86/Makefile         |    1 +
+ drivers/platform/x86/ts5xxx-sbcinfo.c |  254 ++++++++++++++++
+ drivers/tty/serial/8250.c             |   30 ++
+ drivers/tty/serial/Kconfig            |   19 ++
+ drivers/tty/serial/Makefile           |    1 +
+ drivers/tty/serial/ts5500-auto485.c   |   45 +++
+ include/linux/ts5500-gpio.h           |   68 +++++
+ include/linux/ts5xxx-sbcinfo.h        |   42 +++
+ 20 files changed, 1784 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/ts5xxx-sbcinfo.txt
+ create mode 100644 drivers/gpio/ts5500-gpio.c
+ create mode 100644 drivers/hwmon/ts5500-adc.c
+ create mode 100644 drivers/leds/leds-ts5500.c
+ create mode 100644 drivers/platform/x86/ts5xxx-sbcinfo.c
+ create mode 100644 drivers/tty/serial/ts5500-auto485.c
+ create mode 100644 include/linux/ts5500-gpio.h
+ create mode 100644 include/linux/ts5xxx-sbcinfo.h
 
 
 _______________________________________________
