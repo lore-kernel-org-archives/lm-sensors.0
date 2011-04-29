@@ -1,41 +1,44 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 26 Apr 2011 08:09:03 +0000
-Subject: Re: [lm-sensors] Any idea to support Fintek F71808A
-Message-Id: <4DB67D9F.2000401@redhat.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 29 Apr 2011 08:23:38 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm85) Add missing list terminators
+Message-Id: <20110429102338.7d814f85@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BANLkTinFxPuMEuM-ZOandTcnAwxeWKgx5g@mail.gmail.com>
-In-Reply-To: <BANLkTinFxPuMEuM-ZOandTcnAwxeWKgx5g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Fixes kernel bug #34072:
+https://bugzilla.kernel.org/show_bug.cgi?id4072
 
-On 04/25/2011 06:19 PM, D.B. Tsai wrote:
-> Hi Hans
->
-> Sorry for the late reply, since I only can access this board in the
-> working day.
-> Thank you for your driver, and it seems that it's working correctly in
-> my motherboard. The attachment is the output of dmesg and sensors.
->
-> Best Wishes,
->
-> Dong-Bang Tsai    蔡東邦
-> Ph.D. Student in Applied Physics at Stanford University
-> 史丹佛大學應用物理所博士班
-> -----------------------------------
-> Web : http://www.dbtsai.com
-> Phone : +1-650-383-8392  (USA)
->              +886-910-008-392 (Taiwan)
->
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm85.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks, everything looks good.
+--- linux-2.6.39-rc5.orig/drivers/hwmon/lm85.c	2011-04-12 11:05:32.000000000 +0200
++++ linux-2.6.39-rc5/drivers/hwmon/lm85.c	2011-04-29 09:50:12.000000000 +0200
+@@ -1094,6 +1094,7 @@ static struct attribute *lm85_attributes
+ 	&sensor_dev_attr_pwm1_auto_pwm_minctl.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_auto_pwm_minctl.dev_attr.attr,
+ 	&sensor_dev_attr_pwm3_auto_pwm_minctl.dev_attr.attr,
++	NULL
+ };
+ 
+ static const struct attribute_group lm85_group_minctl = {
+@@ -1104,6 +1105,7 @@ static struct attribute *lm85_attributes
+ 	&sensor_dev_attr_temp1_auto_temp_off.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_auto_temp_off.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_auto_temp_off.dev_attr.attr,
++	NULL
+ };
+ 
+ static const struct attribute_group lm85_group_temp_off = {
 
-Regards,
 
-Hans
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
