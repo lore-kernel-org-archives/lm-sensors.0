@@ -1,45 +1,23 @@
-From: Axel Lin <axel.lin@gmail.com>
-Date: Sun, 01 May 2011 15:34:55 +0000
-Subject: [lm-sensors] [PATCH] hwmon: twl4030-madc-hwmon: Return proper error
-Message-Id: <1304264095.2327.2.camel@phoenix>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sun, 01 May 2011 15:43:44 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: twl4030-madc-hwmon: Return proper
+Message-Id: <20110501154344.GA21906@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1304264095.2327.2.camel@phoenix>
+In-Reply-To: <1304264095.2327.2.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: J Keerthy <j-keerthy@ti.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, J Keerthy <j-keerthy@ti.com>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/hwmon/twl4030-madc-hwmon.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+On Sun, May 01, 2011 at 11:34:55AM -0400, Axel Lin wrote:
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
-index de58191..5724074 100644
---- a/drivers/hwmon/twl4030-madc-hwmon.c
-+++ b/drivers/hwmon/twl4030-madc-hwmon.c
-@@ -98,7 +98,6 @@ static const struct attribute_group twl4030_madc_group = {
- static int __devinit twl4030_madc_hwmon_probe(struct platform_device *pdev)
- {
- 	int ret;
--	int status;
- 	struct device *hwmon;
- 
- 	ret = sysfs_create_group(&pdev->dev.kobj, &twl4030_madc_group);
-@@ -107,7 +106,7 @@ static int __devinit twl4030_madc_hwmon_probe(struct platform_device *pdev)
- 	hwmon = hwmon_device_register(&pdev->dev);
- 	if (IS_ERR(hwmon)) {
- 		dev_err(&pdev->dev, "hwmon_device_register failed.\n");
--		status = PTR_ERR(hwmon);
-+		ret = PTR_ERR(hwmon);
- 		goto err_reg;
- 	}
- 
--- 
-1.7.1
+Good catch. Applied.
 
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
