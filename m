@@ -1,74 +1,37 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Fri, 06 May 2011 18:55:15 +0000
-Subject: [lm-sensors] [PATCH v8 2/2] Use "request_muxed_region" in it87
-Message-Id: <1304708115-10451-1-git-send-email-natg@google.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 03 May 2011 11:58:26 +0000
+Subject: Re: [lm-sensors] Monitor temperature for Nvidia graphics card?
+Message-Id: <20110503135826.51f8dd46@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1304707960-10178-1-git-send-email-natg@google.com>
-In-Reply-To: <1304707960-10178-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-Cc: mikew@google.com, Nat Gurumoorthy <natg@google.com>
+To: lm-sensors@vger.kernel.org
 
-02 - Chages to hwmon it87 driver to use "request_muxed_region"
-Serialize access to the hardware by using "request_muxed_region" macro defined
-by Alan Cox. Call to this macro will hold off the requestor if the resource is
-currently busy. "superio_enter" will return an error if call to 
-"request_muxed_region" fails. Rest of the code change is to ripple an error
-return from superio_enter to the top level.
+On Thu, 21 Apr 2011 17:28:58 +0200, Fred . wrote:
+> Hello
+> I have GeForce 8600 GT.
+> I have lm_sensors 3.2.0, kernel 2.6.38, nvidia driver 270.41.06.
+> 
+> Isn't monitoring of GPU temperature on Nvidia graphics card supported?
 
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
----
+Assuming you're speaking of the binary driver provided by Nvidia, then
+yes it is "supported", but not by lm-sensors. You have to use the
+nvidia-settings tool provided by Nvidia with their driver.
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 316b648..fa3ff02 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -108,13 +108,20 @@ superio_select(int ldn)
- 	outb(ldn, VAL);
- }
- 
--static inline void
-+static inline int
- superio_enter(void)
- {
-+	/*
-+	 * Try to reserve REG and REG + 1 for exclusive access.
-+	 */
-+	if (!request_muxed_region(REG, 2, DRVNAME))
-+		return -EBUSY;
-+
- 	outb(0x87, REG);
- 	outb(0x01, REG);
- 	outb(0x55, REG);
- 	outb(0x55, REG);
-+	return 0;
- }
- 
- static inline void
-@@ -122,6 +129,7 @@ superio_exit(void)
- {
- 	outb(0x02, REG);
- 	outb(0x02, VAL);
-+	release_region(REG, 2);
- }
- 
- /* Logical device 4 registers */
-@@ -1546,7 +1554,9 @@ static int __init it87_find(unsigned short *address,
- 	u16 chip_type;
- 	const char *board_vendor, *board_name;
- 
--	superio_enter();
-+	if (superio_enter())
-+		return -EBUSY;
-+
- 	chip_type = force_id ? force_id : superio_inw(DEVID);
- 
- 	switch (chip_type) {
+> I ran 'sudo sensors-detect', but it doesn't seem like it found module
+> for GeForce?
+
+All that sensors-detect can do is probe the I2C buses of the graphics
+adapter for known monitoring chips, but 1* nvidia disabled probing on
+the I2C buses, I don't know if this is by malice or stupidity and 2*
+not all sensors are in I2C chips anyway (at least not on Radeon cards -
+I guess the same applies to Nvidia.) So in practice it doesn't work.
+Hopefully the advent of nouveau will help a lot in this area, even
+though there are still a few rough edges at the moment.
+
 -- 
-1.7.3.1
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
