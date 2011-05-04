@@ -1,42 +1,22 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 16 May 2011 15:26:35 +0000
-Subject: [lm-sensors] [PATCH] i8k: avoid lahf in 64bit code
-Message-Id: <20110516152635.GA13796@nb-core2.darkstar.lan>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date: Wed, 04 May 2011 09:32:23 +0000
+Subject: Re: [lm-sensors] [PATCH v7 0/2] Make all it87 drivers SMP safe
+Message-Id: <20110504103223.547dd9e1@lxorguk.ukuu.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1303153127-11717-1-git-send-email-natg@google.com>
+In-Reply-To: <1303153127-11717-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Nat Gurumoorthy <natg@google.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>, Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org
 
-i8k uses lahf to read the flag register in 64 bit code; early 64 bit
-CPUs, however, lack this instruction and we get an invalid opcode
-exception at runtime.
-Use pushf to load the flag register into the stack instead.
+All looks good to me.
 
-Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
-Reported-by: Jeff Rickman <jrickman@myamigos.us>
-Tested-by: Jeff Rickman <jrickman@myamigos.us>
-Tested-by: Harry G McGavran Jr <w5pny@arrl.net>
-Cc: stable@kernel.org
----
- drivers/char/i8k.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Parport can also be made to behave politely and I'll post a patch for
+that.
 
-diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
-index d72433f..ee01716 100644
---- a/drivers/char/i8k.c
-+++ b/drivers/char/i8k.c
-@@ -139,8 +139,8 @@ static int i8k_smm(struct smm_regs *regs)
- 		"movl %%edi,20(%%rax)\n\t"
- 		"popq %%rdx\n\t"
- 		"movl %%edx,0(%%rax)\n\t"
--		"lahf\n\t"
--		"shrl $8,%%eax\n\t"
-+		"pushfq\n\t"
-+		"popq %%rax\n\t"
- 		"andl $1,%%eax\n"
- 		:"=a"(rc)
- 		:    "a"(regs)
+Acked-by: Alan Cox <alan@linux.intel.com>
 
 _______________________________________________
 lm-sensors mailing list
