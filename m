@@ -1,7 +1,7 @@
-From: Niclas Knuts <niclas@je-suunnittelu.fi>
-Date: Wed, 04 May 2011 09:44:21 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 04 May 2011 16:11:56 +0000
 Subject: Re: [lm-sensors] Using lm-sensors with TWL4030
-Message-Id: <4DC11FF5.5020408@je-suunnittelu.fi>
+Message-Id: <20110504161156.GB8443@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4DBFE717.1060000@je-suunnittelu.fi>
 In-Reply-To: <4DBFE717.1060000@je-suunnittelu.fi>
@@ -10,48 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 4.5.2011 11:18, Jean Delvare wrote:
+On Wed, May 04, 2011 at 04:18:01AM -0400, Jean Delvare wrote:
 > On Wed, 04 May 2011 10:08:12 +0300, Niclas Knuts wrote:
->> On 3.5.2011 15:25, Jean Delvare wrote:
->>> On Tue, 03 May 2011 14:59:37 +0300, Niclas Knuts wrote:
->>>> On 3.5.2011 14:42, Jean Delvare wrote:
->>>>> On Tue, 03 May 2011 14:29:27 +0300, Niclas Knuts wrote:
->>>>>> I am trying to setup lm-sensors for use with the Texas Instruments
->>>>>> TWL4030 Chip (the main processor is  a OMAP3503). But I cannot seem to
->>>>>> get it to detect the chip. I have added the hwmon drivers and I am using
->>>>>> up to date MADC drivers that I have backported to kernel 2.6.32 (I am
->>>>>> running Angstrom).
->>>>> Disclaimer: I don't know a thing about this chip nor its drivers.
->>>>>
->>>>> There is no detection support for this device in sensors-detect, if
->>>>> this was your question. I don't think this device can be detected from
->>>>> user-space.
->>>> I am aware that the automatic detect doesn't work, I have read through
->>>> the sensors-detect script.
->>>>> My understanding is that the drivers for the TWL4030 should all get
->>>>> loaded automatically thanks to module aliases, as long as the TWL4030
->>>>> itself is properly registered during platform setup. Check in lsmod
->>>>> whether twl4030-madc and twl4030-madc-hwmon are actually loaded. If
->>>>> not, try loading them manually
->>>> lsmod doesn't show the drivers, but they should have been compiled into
->>>> the kernel, not as modules. Maybe
->>>> that is the problem?
->>> No, this shouldn't make a difference. Check under /sys/devices/platform
->>> if the platform devices have been properly created
->> Ok, they are missing from there. I guess there is some problem with
->> compiling in the drivers then.
+> > On 3.5.2011 15:25, Jean Delvare wrote:
+> > > On Tue, 03 May 2011 14:59:37 +0300, Niclas Knuts wrote:
+> > >> On 3.5.2011 14:42, Jean Delvare wrote:
+> > >>> On Tue, 03 May 2011 14:29:27 +0300, Niclas Knuts wrote:
+> > >>>> I am trying to setup lm-sensors for use with the Texas Instruments
+> > >>>> TWL4030 Chip (the main processor is  a OMAP3503). But I cannot seem to
+> > >>>> get it to detect the chip. I have added the hwmon drivers and I am using
+> > >>>> up to date MADC drivers that I have backported to kernel 2.6.32 (I am
+> > >>>> running Angstrom).
+> > >>> Disclaimer: I don't know a thing about this chip nor its drivers.
+> > >>>
+> > >>> There is no detection support for this device in sensors-detect, if
+> > >>> this was your question. I don't think this device can be detected from
+> > >>> user-space.
+> > >> I am aware that the automatic detect doesn't work, I have read through
+> > >> the sensors-detect script.
+> > >>> My understanding is that the drivers for the TWL4030 should all get
+> > >>> loaded automatically thanks to module aliases, as long as the TWL4030
+> > >>> itself is properly registered during platform setup. Check in lsmod
+> > >>> whether twl4030-madc and twl4030-madc-hwmon are actually loaded. If
+> > >>> not, try loading them manually
+> > >> lsmod doesn't show the drivers, but they should have been compiled into
+> > >> the kernel, not as modules. Maybe
+> > >> that is the problem?
+> > > No, this shouldn't make a difference. Check under /sys/devices/platform
+> > > if the platform devices have been properly created
+> > Ok, they are missing from there. I guess there is some problem with 
+> > compiling in the drivers then.
+> 
 > Again, no. Modules or built-in should make no difference.
->
->> Is it enough to compile them in or do I
->> initialize them in the board specific files in any way?
+> 
+> > Is it enough to compile them in or do I 
+> > initialize them in the board specific files in any way?
+> 
 > Please take a look at:
 > drivers/mfd/twl-core.c
->
+> 
 > As I understand it, the board code has to instantiate one of the I2C
 > devices listed in twl_ids. This will call twl_probe() which in turn
 > should instantiate all the relevant platform devices.
 > arch/arm/mach-omap2 contains many examples:
->
+> 
 > $ grep -rI '"twl4030"' arch/
 > arch/arm/mach-omap2/board-omap3stalker.c:	 I2C_BOARD_INFO("twl4030", 0x48),
 > arch/arm/mach-omap2/board-igep0020.c:		I2C_BOARD_INFO("twl4030", 0x48),
@@ -63,23 +65,15 @@ On 4.5.2011 11:18, Jean Delvare wrote:
 > arch/arm/mach-omap2/board-ldp.c:		I2C_BOARD_INFO("twl4030", 0x48),
 > arch/arm/mach-omap2/board-omap3touchbook.c:		I2C_BOARD_INFO("twl4030", 0x48),
 > arch/arm/mach-omap2/board-omap3logic.c:		I2C_BOARD_INFO("twl4030", 0x48),
->
+> 
 > That being said, I can't find any code to instantiate
 > twl4030_madc_hwmon, so it might as well be that this part is missing
 > from the upstream kernel. Cc'ing Keerthy and Axel Lin who probably know
 > what's going on.
->
-Keerthy, thanks for the patch that you sent to Steve the other day, I 
-also solved my problems. So now I have the hw_mon
-drivers up and running on a 2.6.32 version of the kernel. However it 
-seems that the measurements are a bit odd. In the
-patch description it says that it should report the values in mV. But 
-checking for example in12 (which should be batteyr voltage)
-I get 632 as value, any idea what could cause this? I have updated the 
-MADC drivers.
+> 
+There was an exchange about that last night. Keerthy mentioned that he would submit a patch.
 
-Regards,
-Niclas Knuts
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
