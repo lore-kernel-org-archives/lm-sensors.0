@@ -1,7 +1,7 @@
 From: Niclas Knuts <niclas@je-suunnittelu.fi>
-Date: Wed, 04 May 2011 09:31:00 +0000
+Date: Wed, 04 May 2011 09:44:21 +0000
 Subject: Re: [lm-sensors] Using lm-sensors with TWL4030
-Message-Id: <4DC11CD4.3000808@je-suunnittelu.fi>
+Message-Id: <4DC11FF5.5020408@je-suunnittelu.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4DBFE717.1060000@je-suunnittelu.fi>
 In-Reply-To: <4DBFE717.1060000@je-suunnittelu.fi>
@@ -69,11 +69,17 @@ On 4.5.2011 11:18, Jean Delvare wrote:
 > from the upstream kernel. Cc'ing Keerthy and Axel Lin who probably know
 > what's going on.
 >
-Success! With Keerthys twl-core patch I am able to get hw_mon up and 
-running.
+Keerthy, thanks for the patch that you sent to Steve the other day, I 
+also solved my problems. So now I have the hw_mon
+drivers up and running on a 2.6.32 version of the kernel. However it 
+seems that the measurements are a bit odd. In the
+patch description it says that it should report the values in mV. But 
+checking for example in12 (which should be batteyr voltage)
+I get 632 as value, any idea what could cause this? I have updated the 
+MADC drivers.
 
-Cheers,
-Niclas
+Regards,
+Niclas Knuts
 
 _______________________________________________
 lm-sensors mailing list
