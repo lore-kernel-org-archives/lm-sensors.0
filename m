@@ -1,31 +1,94 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 20 May 2011 14:32:15 +0000
-Subject: Re: [lm-sensors] SMbus smart battery
-Message-Id: <20110520163215.503b4085@endymion.delvare>
+Date: Wed, 04 May 2011 15:31:29 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] hwmon/sch5627: Add a
+Message-Id: <20110504173129.27bc9617@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLU146-W898929E5BCD0B8FBDF065CF8E0@phx.gbl>
-In-Reply-To: <BLU146-W898929E5BCD0B8FBDF065CF8E0@phx.gbl>
+References: <1303392919-3667-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1303392919-3667-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 19 May 2011 13:07:22 +0200, Fernando Lopez wrote:
-> I'm trying to attached an smbus external sensor to my laptop battery connector (5 pins), so I can develop an application to communicate with. The problem is that, after having read the lm-sensors info, load drivers and install lm tools, apparently I can send i2c/smbus commands to some "i2c" adapter, but these are not the adapter I need to communicate with my sensor attached to the battery, and I do not have any idea how I can find it, if this is possible
+Hi Hans,
+
+On Thu, 21 Apr 2011 15:35:18 +0200, Hans de Goede wrote:
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+This patch adds the following warning:
+
+  CC [M]  drivers/hwmon/sch5627.o
+drivers/hwmon/sch5627.c:243:12: warning: ‘sch5627_write_virtual_reg’ defined but not used
+
+I get the point of splitting the changes into two separate patches, but
+I'd rather introduce sch5627_write_virtual_reg() in the second patch,
+where it is used, to avoid this warning.
+
+Other than this, the code looks good, with just one suggestion below:
+
+> ---
+>  drivers/hwmon/sch5627.c |   26 ++++++++++++++++++++++----
+>  1 files changed, 22 insertions(+), 4 deletions(-)
 > 
-> Could anyone give me any advice?
+> diff --git a/drivers/hwmon/sch5627.c b/drivers/hwmon/sch5627.c
+> index 9a51dcc..09a47bf 100644
+> --- a/drivers/hwmon/sch5627.c
+> +++ b/drivers/hwmon/sch5627.c
+> @@ -140,7 +140,7 @@ static inline void superio_exit(int base)
+>  	release_region(base, 2);
+>  }
+>  
+> -static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
+> +static int sch5627_send_cmd(struct sch5627_data *data, u8 cmd, u16 reg, u8 v)
+>  {
+>  	u8 val;
+>  	int i;
+> @@ -163,10 +163,14 @@ static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
+>  	outb(0x80, data->addr + 3);
+>  
+>  	/* Write Request Packet Header */
+> -	outb(0x02, data->addr + 4); /* Access Type: VREG read */
+> +	outb(cmd, data->addr + 4); /* VREG Access Type read:0x02 write:0x03 */
 
-It would be easier if you would at least show us the output of
-"i2cdetect -l" on your laptop, so that we know which I2C buses you're
-seeing.
+It might make sense to introduce defines for the read and write command
+values? I think it would make the code more readable.
 
-The SMBus channel with the Smart Battery is typically used by ACPI
-directly and not exposed to the OS. You'll have to check in the DSDT of
-your laptop to see if there is any way to access it. There are two
-standard implementations for which drivers exist (SMBUS01/CMI/i2c-scmi)
-or could be written (ACPI0001 and ACPI0005 if I remember correctly),
-and it is also possible that your BIOS vendor implemented enough ACPI
-functions to write a custom driver with limited capabilities.
+>  	outb(0x01, data->addr + 5); /* # of Entries: 1 Byte (8-bit) */
+>  	outb(0x04, data->addr + 2); /* Mailbox AP to first data entry loc. */
+>  
+> +	/* Write Value field */
+> +	if (cmd = 0x03)
+> +		outb(v, data->addr + 4);
+> +
+>  	/* Write Address field */
+>  	outb(reg & 0xff, data->addr + 6);
+>  	outb(reg >> 8, data->addr + 7);
+> @@ -224,8 +228,22 @@ static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
+>  	 * But if we do that things don't work, so let's not.
+>  	 */
+>  
+> -	/* Read Data from Mailbox */
+> -	return inb(data->addr + 4);
+> +	/* Read Value field */
+> +	if (cmd = 0x02)
+> +		return inb(data->addr + 4);
+> +
+> +	return 0;
+> +}
+> +
+> +static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
+> +{
+> +	return sch5627_send_cmd(data, 0x02, reg, 0);
+> +}
+> +
+> +static int sch5627_write_virtual_reg(struct sch5627_data *data,
+> +				     u16 reg, u8 val)
+> +{
+> +	return sch5627_send_cmd(data, 0x03, reg, val);
+>  }
+>  
+>  static int sch5627_read_virtual_reg16(struct sch5627_data *data, u16 reg)
+
 
 -- 
 Jean Delvare
