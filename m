@@ -1,7 +1,7 @@
 From: Niclas Knuts <niclas@je-suunnittelu.fi>
-Date: Wed, 04 May 2011 08:39:00 +0000
+Date: Wed, 04 May 2011 09:31:00 +0000
 Subject: Re: [lm-sensors] Using lm-sensors with TWL4030
-Message-Id: <4DC110A4.4040203@je-suunnittelu.fi>
+Message-Id: <4DC11CD4.3000808@je-suunnittelu.fi>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4DBFE717.1060000@je-suunnittelu.fi>
 In-Reply-To: <4DBFE717.1060000@je-suunnittelu.fi>
@@ -69,13 +69,10 @@ On 4.5.2011 11:18, Jean Delvare wrote:
 > from the upstream kernel. Cc'ing Keerthy and Axel Lin who probably know
 > what's going on.
 >
-Ok, thanks for the help. I am using the board-omap3beagle.c as a base 
-for this product, and I checked that the initialization is there.
-I also checked that Keerthy had submitted a patch to fix some issues 
-with the twl-core.c, I'll try the patch and let you
-know if there is any improvement.
+Success! With Keerthys twl-core patch I am able to get hw_mon up and 
+running.
 
-Regards,
+Cheers,
 Niclas
 
 _______________________________________________
