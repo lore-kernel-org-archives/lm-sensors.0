@@ -1,96 +1,44 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 25 May 2011 18:55:36 +0000
-Subject: Re: [lm-sensors] [PATCH] MAX6642: Better detection schema
-Message-Id: <1306349736.2163.465.camel@groeck-laptop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 05 May 2011 10:10:52 +0000
+Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
+Message-Id: <20110505121052.468b5ff3@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DDD40D6.8050101@appeartv.com>
-In-Reply-To: <4DDD40D6.8050101@appeartv.com>
+References: <20110414034609.476411A9866@localhost.localdomain>
+In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Per,
+Hi Harry,
 
-On Wed, 2011-05-25 at 13:48 -0400, Per Dal=C3=A9n wrote:
-> Made the improvement for the detection schema suggested by Guenter Roeck.
-> ---
-> Check for non-existing registers, registers 0x04, 0x06 and 0xff, which
-> are supported by other Maxim chips. Reading such registers returns the
-> previously read value.
->=20
-> Signed-off-by: Per Dalen <per.dalen@appeartv.com>
-> ---
->=20
-> diff --git a/drivers/hwmon/max6642.c b/drivers/hwmon/max6642.c
-> index 0f9fc40..69c7f9e 100644
-> --- a/drivers/hwmon/max6642.c
-> +++ b/drivers/hwmon/max6642.c
-> @@ -64,6 +64,14 @@ static const unsigned short normal_i2c[] =3D {
->  #define MAX6642_REG_W_REMOTE_HIGH	0x0D
->=20
->  /*
-> + * Registers for detection tests, these registers isn't pressent and
-> + * will only show the last valid register read.
-> + */
-> +#define MAX6642_REG_R_DUMMY_1          0x04
-> +#define MAX6642_REG_R_DUMMY_2          0x06
-> +#define MAX6642_REG_R_DUMMY_3          0xFF
-> +
-> +/*
->   * Conversions
->   */
->=20
-> @@ -126,14 +134,16 @@ static int max6642_detect(struct i2c_client *client,
->  			  struct i2c_board_info *info)
->  {
->  	struct i2c_adapter *adapter =3D client->adapter;
-> -	u8 reg_config, reg_status, man_id;
-> +	u8 reg_config, reg_status, man_id, dummy_reg1, dummy_reg2;
->=20
->  	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
->  		return -ENODEV;
->=20
->  	/* identification */
->  	man_id =3D i2c_smbus_read_byte_data(client, MAX6642_REG_R_MAN_ID);
-> -	if (man_id !=3D 0x4D)
-> +	dummy_reg1 =3D i2c_smbus_read_byte_data(client, MAX6642_REG_R_DUMMY_1);
-> +	if ((man_id !=3D 0x4D) &&
-> +	    (man_id !=3D dummy_reg1))
+On Thu, 14 Apr 2011 09:57:23 +0200, Jean Delvare wrote:
+> Meanwhile I've added detection support to sensors-detect:
+>   http://khali.linux-fr.org/devel/misc/sensors-detect
+> If you could test and report, that would be great. Proper detection of
+> the chip may bring more user requests to support the chip (although the
+> old age of the chip makes this event rather unlikely.)
 
-Please drop all the unnecessary () and the unnecessary line break. Also,
-I think the logic is wrong. It should be
+Can you please test?
 
-	if (man_id !=3D 0x4d || man_id !=3D dummy_reg1)
+> A register dump of the chip would be welcome too. You can obtain it by
+> loading the i2c-dev kernel driver and running i2cdump (from the
+> i2c-tools package):
+> 
+> # modprobe i2c-dev
+> # i2cdump N 0x2e
+> 
+> where N is the i2c bus number displayed by sensors-detect, and 0x2e the
+> actual chip address on that bus (can be one of 0x2c, 0x2d or 0x2e.)
 
->  		return -ENODEV;
->=20
->  	/*
-> @@ -142,9 +152,13 @@ static int max6642_detect(struct i2c_client *client,
->  	 * zero in the status register.
->  	 */
->  	reg_config =3D i2c_smbus_read_byte_data(client, MAX6642_REG_R_CONFIG);
-> +	dummy_reg1 =3D i2c_smbus_read_byte_data(client, MAX6642_REG_R_DUMMY_2);
->  	reg_status =3D i2c_smbus_read_byte_data(client, MAX6642_REG_R_STATUS);
-> -	if (((reg_config & 0x0f) !=3D 0x00) ||
-> -	    ((reg_status & 0x2b) !=3D 0x00))
-> +	dummy_reg2 =3D i2c_smbus_read_byte_data(client, MAX6642_REG_R_DUMMY_3);
-> +	if ((reg_config & 0x0f) !=3D 0x00 ||
-> +	    (reg_status & 0x2b) !=3D 0x00 ||
-> +	    reg_config !=3D dummy_reg1 ||
-> +	    reg_status !=3D dummy_reg2)
+Can I get this register dump, please?
 
-Please remove unnecessary line breaks.
+> Ric, out of curiosity, are you still interested in EMC6W201 support?
 
-I think it is better to read all dummy registers right after reading
-man_id. This way we know for sure that the MAX6642 will return 0x4d when
-reading those registers, and you can check each of the registers against
-man_id in the first if statement above.
+Ric?
 
-Thanks,
-Guenter
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
