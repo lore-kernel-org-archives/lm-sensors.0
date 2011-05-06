@@ -1,32 +1,154 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 May 2011 11:45:06 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: New driver for the SMSC EMC6W201
-Message-Id: <20110527134506.3d5f9f01@endymion.delvare>
+Date: Fri, 06 May 2011 11:37:39 +0000
+Subject: [lm-sensors] [PATCH 2.2] hwmon: (max6650) Properly support the
+Message-Id: <20110506133739.452576b6@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110523183108.720ae2ac@endymion.delvare>
-In-Reply-To: <20110523183108.720ae2ac@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 24 May 2011 10:10:05 -0700, Guenter Roeck wrote:
-> On Mon, May 23, 2011 at 12:31:08PM -0400, Jean Delvare wrote:
-> > This is a new driver for the SMSC EMC6W201 hardware monitoring device.
-> > The device is functionally close to the EMC6D100 series, but is
-> > register-incompatible.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Tested-by: Harry G McGavran Jr <w5pny@w5pny.com>
-> > Tested-by: Jeff Rickman <jrickman@myamigos.us>
-> 
-> Only concern I have is that you don't always validate error returns from
-> i2c_smbus_read_byte_data(). If an error occurs, this will result in odd
-> temperature and voltage readings. Not sure if that is a real problem, so
+The MAX6650 has only one fan input.
 
-Probably not a big deal in practice, but you're right, it is
-inconsistent and could be improved. I'll submit a patch today. Thanks
-for the review!
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: "Hans J. Koch" <hjk@hansjkoch.de>
+---
+ Documentation/hwmon/max6650 |   12 ++++++++----
+ drivers/hwmon/max6650.c     |   34 ++++++++++++++++++++++++++++------
+ 2 files changed, 36 insertions(+), 10 deletions(-)
+
+--- linux-2.6.39-rc6.orig/Documentation/hwmon/max6650	2011-05-06 10:32:11.000000000 +0200
++++ linux-2.6.39-rc6/Documentation/hwmon/max6650	2011-05-06 11:00:26.000000000 +0200
+@@ -2,10 +2,14 @@ Kernel driver max6650
+ ========== 
+ Supported chips:
+-  * Maxim 6650 / 6651
++  * Maxim MAX6650
+     Prefix: 'max6650'
+     Addresses scanned: none
+     Datasheet: http://pdfserv.maxim-ic.com/en/ds/MAX6650-MAX6651.pdf
++  * Maxim MAX6651
++    Prefix: 'max6651'
++    Addresses scanned: none
++    Datasheet: http://pdfserv.maxim-ic.com/en/ds/MAX6650-MAX6651.pdf
+ 
+ Authors:
+     Hans J. Koch <hjk@hansjkoch.de>
+@@ -15,10 +19,10 @@ Authors:
+ Description
+ -----------
+ 
+-This driver implements support for the Maxim 6650/6651
++This driver implements support for the Maxim MAX6650 and MAX6651.
+ 
+-The 2 devices are very similar, but the Maxim 6550 has a reduced feature
+-set, e.g. only one fan-input, instead of 4 for the 6651.
++The 2 devices are very similar, but the MAX6550 has a reduced feature
++set, e.g. only one fan-input, instead of 4 for the MAX6651.
+ 
+ The driver is not able to distinguish between the 2 devices.
+ 
+--- linux-2.6.39-rc6.orig/drivers/hwmon/max6650.c	2011-05-06 10:32:11.000000000 +0200
++++ linux-2.6.39-rc6/drivers/hwmon/max6650.c	2011-05-06 11:11:20.000000000 +0200
+@@ -116,7 +116,8 @@ static struct max6650_data *max6650_upda
+  */
+ 
+ static const struct i2c_device_id max6650_id[] = {
+-	{ "max6650", 0 },
++	{ "max6650", 1 },
++	{ "max6651", 4 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, max6650_id);
+@@ -138,6 +139,7 @@ struct max6650_data
+ {
+ 	struct device *hwmon_dev;
+ 	struct mutex update_lock;
++	int nr_fans;
+ 	char valid; /* zero until following fields are valid */
+ 	unsigned long last_updated; /* in jiffies */
+ 
+@@ -489,9 +491,6 @@ static mode_t max6650_attrs_visible(stru
+ 
+ static struct attribute *max6650_attrs[] = {
+ 	&sensor_dev_attr_fan1_input.dev_attr.attr,
+-	&sensor_dev_attr_fan2_input.dev_attr.attr,
+-	&sensor_dev_attr_fan3_input.dev_attr.attr,
+-	&sensor_dev_attr_fan4_input.dev_attr.attr,
+ 	&dev_attr_fan1_target.attr,
+ 	&dev_attr_fan1_div.attr,
+ 	&dev_attr_pwm1_enable.attr,
+@@ -509,6 +508,17 @@ static struct attribute_group max6650_at
+ 	.is_visible = max6650_attrs_visible,
+ };
+ 
++static struct attribute *max6651_attrs[] = {
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan3_input.dev_attr.attr,
++	&sensor_dev_attr_fan4_input.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group max6651_attr_grp = {
++	.attrs = max6651_attrs,
++};
++
+ /*
+  * Real code
+  */
+@@ -526,6 +536,7 @@ static int max6650_probe(struct i2c_clie
+ 
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
++	data->nr_fans = id->driver_data;
+ 
+ 	/*
+ 	 * Initialize the max6650 chip
+@@ -537,6 +548,12 @@ static int max6650_probe(struct i2c_clie
+ 	err = sysfs_create_group(&client->dev.kobj, &max6650_attr_grp);
+ 	if (err)
+ 		goto err_free;
++	/* 3 additional fan inputs for the MAX6651 */
++	if (data->nr_fans = 4) {
++		err = sysfs_create_group(&client->dev.kobj, &max6651_attr_grp);
++		if (err)
++			goto err_remove;
++	}
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (!IS_ERR(data->hwmon_dev))
+@@ -544,6 +561,9 @@ static int max6650_probe(struct i2c_clie
+ 
+ 	err = PTR_ERR(data->hwmon_dev);
+ 	dev_err(&client->dev, "error registering hwmon device.\n");
++	if (data->nr_fans = 4)
++		sysfs_remove_group(&client->dev.kobj, &max6651_attr_grp);
++err_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
+ err_free:
+ 	kfree(data);
+@@ -554,8 +574,10 @@ static int max6650_remove(struct i2c_cli
+ {
+ 	struct max6650_data *data = i2c_get_clientdata(client);
+ 
+-	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
+ 	hwmon_device_unregister(data->hwmon_dev);
++	if (data->nr_fans = 4)
++		sysfs_remove_group(&client->dev.kobj, &max6651_attr_grp);
++	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
+ 	kfree(data);
+ 	return 0;
+ }
+@@ -668,7 +690,7 @@ static struct max6650_data *max6650_upda
+ 						       MAX6650_REG_SPEED);
+ 		data->config = i2c_smbus_read_byte_data(client,
+ 							MAX6650_REG_CONFIG);
+-		for (i = 0; i < 4; i++) {
++		for (i = 0; i < data->nr_fans; i++) {
+ 			data->tach[i] = i2c_smbus_read_byte_data(client,
+ 								 tach_reg[i]);
+ 		}
+
 
 -- 
 Jean Delvare
