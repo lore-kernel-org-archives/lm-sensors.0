@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 May 2011 07:49:21 +0000
+Date: Sat, 07 May 2011 11:47:21 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <20110507094921.458a8219@endymion.delvare>
+Message-Id: <20110507134721.415706a8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
@@ -10,28 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 5 May 2011 18:30:41 +0200, Jean Delvare wrote:
-> On Thu, 05 May 2011 09:16:19 -0600, Harry G McGavran Jr wrote:
-> > FWIW: I installed the i8kutils and driver and forceloaded the driver.
-> > They seem to be able to read the fan speeds, but not the CPU 
-> > temperature.  So, there is some code around that works with
-> > this machine, but not entirely.  That may be a place to look too.
-> 
-> Huh. I don't know if this is good news... If the BIOS gets the fan
-> speeds from the EMC6W201, then we will get a resource conflict if you
-> try using a native driver for the EMC6W201. If the BIOS gets the fan
-> speeds from somewhere else, then a native driver for the EMC6W201 may
-> not be that useful to you. D'oh.
+Hi Harry, Ric and Jeff,
 
-Oh, BTW, if you're using the i8k driver, you may want to give a try to
-my modified version here:
-  http://khali.linux-fr.org/devel/misc/i8k/
-Generic instructions can be found here:
+On Thu, 05 May 2011 10:40:28 -0600, Harry G McGavran Jr wrote:
+> I can hope for an lm-sensors driver...
+
+I found some time to work on EMC6W201 support and I have something for
+you to test. My standalone driver for this chip can be downloaded from:
+  http://khali.linux-fr.org/devel/misc/emc6w201/
+You only need i2c-compat.h for kernels <= 2.6.32. I build-tested the
+driver down to kernel 2.6.27, older kernels may or may not work.
+emc6w201.conf is a template configuration file, copy to /etc/sensors.d
+and add statements as needed. Generic build instructions are available
+at:
   http://khali.linux-fr.org/devel/misc/INSTALL
 
-This version of the i8k driver has proper hwmon subsystem integration,
-so whatever the i8k driver reports should show up in the output of
-"sensors".
+At this point the driver only supports basic monitoring, in read-only
+mode. It seems to work reasonably well on the dumps sent by Harry and
+Jeff, but real hardware can behave differently.
+
+Anyway, let me know how it goes.
 
 -- 
 Jean Delvare
