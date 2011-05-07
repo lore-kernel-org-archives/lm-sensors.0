@@ -1,40 +1,74 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 03 May 2011 12:24:07 +0000
-Subject: Re: [lm-sensors] Config file for Gigabyte GA-EX38-DS4
-Message-Id: <20110503142407.13bce2f3@endymion.delvare>
+From: Nat Gurumoorthy <natg@google.com>
+Date: Sat, 07 May 2011 05:19:24 +0000
+Subject: [lm-sensors] [PATCH v9 0/2] Make all it87 drivers SMP safe
+Message-Id: <1304745564-13003-1-git-send-email-natg@google.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org
+Cc: mikew@google.com, Nat Gurumoorthy <natg@google.com>
 
-On Tue, 19 Apr 2011 23:26:38 +0200, Marc Muehlfeld wrote:
-> I created a sensors3.conf for my Gigabyte GA-EX38-DS4. Maybe someone with an 
-> account can add this to the wiki.
+There are 3 different drivers that touch the it87 hardware registers.
+The 3 drivers have been written independently and access the it87 hardware
+registers assuming they are the only driver accessing it. This change
+attempts to serialize access to the hardware by using
+"request_muxed_region" macro defined by Alan Cox. Call to this macro
+will hold off the requestor if the resource is currently busy.
+The use of the above macro makes it possible to get rid of
+spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
+This also greatly simplifies the implementation of it87_wdt.c driver.
 
-I've added it:
-http://www.lm-sensors.org/wiki/Configurations/Gigabyte/EX38-DS4
-Thanks for your contribution.
+01 - Changes to it87 watchdog driver to use "request_muxed_region"
+ drivers/watchdog/it8712f_wdt.c
+ drivers/watchdog/it87_wdt.c
 
-> chip "it8718-*"
-> 
->         # Voltages
->         label   in0 "CPU Vcore"
->         label   in1 "DDR"
-> (...)
->         set in0_min  1.120 * 0.95
->         set in0_max  1.120 * 1.05
+02 - Chages to hwmon it87 driver to use "request_muxed_region"
+ drivers/hwmon/it87.c
 
-I'd be surprised if your CPU doesn't change its core voltage depending
-on the frequency. Almost all modern x86 CPUs do this.
+ drivers/hwmon/it87.c           |   31 +++++---
+ drivers/watchdog/it8712f_wdt.c |   62 +++++++++++----
+ drivers/watchdog/it87_wdt.c    |  165 +++++++++++++++++++++++----------------
+ 3 files changed, 161 insertions(+), 97 deletions(-)
 
->         set in1_min  1.89  * 0.95
->         set in1_max  1.89  * 1.05
+Signed-off-by: Nat Gurumoorthy <natg@google.com>
 
-Overclocked RAM? DDR2 normally runs at 1.8 V.
+Patch History:
+v9:
+- More clean up in drivers/hwmon/it87.c. More fixes that of
+  the type in V8 that got missed in drivers/watchdog/it8712f_wdt.c.
 
--- 
-Jean Delvare
+v8:
+- Return the error actually returned by superio_enter and not -EBUSY.
+  Notifier routines return NOTIFY_DONE even if underlying calls from
+  notifier to routines that invoke superio_enter return with error.
+  Make sure release routines returns do proper clean up even if calls to
+  superio_enter fail.
+
+v7:
+- superio_enter return error if call to "request_muxed_region" fails. Rest
+  of the changes deal with error returns from superio_enter. Changes to
+  it87_wdt.c are untested.
+
+v6:
+- Pay attention to value returned by request_muxed_region. The first call to
+  request_muxed_region will attempt 10 times to reserve the region before it
+  gives up. This will typically get called from the driver init routines. If this
+  succeeds then subsequent calls wait forever for the resource to be available.
+
+v5:
+- Remove unnecessary while from superio_enter.
+
+v4:
+- Remove extra braces in superio_enter routines.
+
+v3:
+- Totally abandon the spinlock based approach and use "request_muxed_region" to
+  hold off requestors if the resource is busy.
+
+v2:
+- More verbose patch headers. Add In-Reply-To: field.
+
 
 _______________________________________________
 lm-sensors mailing list
