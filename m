@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 08 May 2011 09:18:06 +0000
+Date: Sun, 08 May 2011 09:25:07 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <20110508111806.1e830f35@endymion.delvare>
+Message-Id: <20110508112507.63f6b398@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
@@ -12,66 +12,60 @@ To: lm-sensors@vger.kernel.org
 
 Hi Harry,
 
-On Sat, 07 May 2011 10:23:57 -0600, Harry G McGavran Jr wrote:
-> Here is the output from /usr/bin/sensors with the
-> ecm6w201 driver you just gave us AND from the
-> new i8k driver you mentioned in an earlier e-mail today.
+On Sat, 07 May 2011 18:05:08 -0600, Harry G McGavran Jr wrote:
+> On Sat, 7 May 2011 13:47:21 +0200 Jean Delvare wrote:
+> > I found some time to work on EMC6W201 support and I have something for
+> > you to test. My standalone driver for this chip can be downloaded from:
+> >   http://khali.linux-fr.org/devel/misc/emc6w201/
+> > You only need i2c-compat.h for kernels <= 2.6.32. I build-tested the
+> > driver down to kernel 2.6.27, older kernels may or may not work.
+> > emc6w201.conf is a template configuration file, copy to /etc/sensors.d
+> > and add statements as needed. Generic build instructions are available
+> > at:
+> >   http://khali.linux-fr.org/devel/misc/INSTALL
+> > 
+> > At this point the driver only supports basic monitoring, in read-only
+> > mode. It seems to work reasonably well on the dumps sent by Harry and
+> > Jeff, but real hardware can behave differently.
+> > 
+> > Anyway, let me know how it goes.
+> 
+> I spent a fair amount of time playing with the emc6w201 you mentioned
+> above.  I wanted to let you know that it seems to be working really
+> well.  It's an absolutely amazing relief to have this after all this time!
+> 
+> All the apps I've tried that depend on it seem to work fine.
+
+Great :)
+
+> For the time being I've left out emc6w201.conf from sensors.d
+> in case you do some more fine tuning of anything.
 >
-> i8k-virtual-0
-> Adapter: Virtual device
-> Left Fan:   64710 RPM
-> Right Fan:  48420 RPM
-> CPU:         -22.0 C                                    
+> I have labels for temp1, temp5, and temp6; and fan1 and fan3
+> seem to be the fans that were reported by hddtemp.
 
-I presume that you had to pass force=1 or ignore_dmi=1 or both to get
-the i8k driver to load at all?
+I guess you mean i8k, not hddtemp. And yes, I agree, see my warning in
+a previous reply.
 
-The output above revealed a bug in my version of the i8k driver, the
--22 is really an error code (EINVAL) and not a temperature, so it
-should be reported as such. Did you ever see a valid temperature
-reported? If it's always wrong, I guess the driver shouldn't create the
-entry in the first place. I've just fixed that, you can download the
-updated driver.
+If/when you have a good configuration file for your system, please
+share it and I'll put it on the wiki.
 
-As for the fan speed values, they are off by a factor 30. Load the i8k
-driver with option fan_mult=1 (the default is 30) and you'll get correct
-fan speeds. You'll notice these are the same speeds as reported by the
-emc6w201 driver. This is good because it means both drivers are working
-fine, but this is also bad because it means that both drivers poke at
-the same piece of hardware. So you should really only use i8k, or
-emc6w201, but not both drivers at the same time.
+> Are you planning on any further changes?  If so, I'll wait
+> before putting my .conf file in sensors.d.
 
-> emc6w201-i2c-3-2e
-> Adapter: SMBus I801 adapter at e8a0
-> in0:         +1.82 V  (min =  +1.64 V, max =  +1.98 V)
-> in1:         +1.26 V  (min =  +0.78 V, max =  +1.70 V)
-> in2:         +3.33 V  (min =  +3.08 V, max =  +3.52 V)
-> in3:         +5.10 V  (min =  +4.66 V, max =  +5.34 V)
-> in4:         +1.51 V  (min =  +1.40 V, max =  +1.60 V)
-> in5:         +0.00 V  (min =  +0.78 V, max =  +1.70 V)
-> fan1:       1614 RPM  (min =  300 RPM)
-> fan2:          0 RPM  (min =  300 RPM)
-> fan3:       2153 RPM  (min =  200 RPM)
-> fan4:          0 RPM  (min =   82 RPM)
-> fan5:          0 RPM  (min =   82 RPM)
-> temp1:       +54.0 C  (low  = -127.0 C, high = +88.0 C)  
-> temp2:        +0.0 C  (low  = -127.0 C, high = +88.0 C)  
-> temp3:        +0.0 C  (low  = -127.0 C, high = +60.0 C)  
-> temp4:        +0.0 C  (low  = -127.0 C, high = +55.0 C)  
-> temp5:       +48.0 C  (low  = -127.0 C, high = +75.0 C)  
-> temp6:       +44.0 C  (low  = -127.0 C, high = +80.0 C)  
+Further possible improvements to the driver would be extra features
+(e.g. temperature offsets, alarm bits, maybe fan control.) The
+monitoring part should be as good as we can get already, so I don't
+expect any change that would cause incompatibilities in the
+configuration file.
 
-This looks pretty good, I'd say. I guess you have a single CPU in the
-machine, which explains the missing in5 and temp2. in1 would be the CPU
-core voltage, and temp1 the CPU temperature. If the machine is using
-DDR2 memory, in0 may be the memory voltage. This would leave maybe in4
-for +12V, with scaling factor 8, or for battery voltage with scaling
-factor 2. BTW, does the BIOS print any temperature, voltage or fan
-speed? This would help us get the labels and scaling factors right.
+BTW, you can test your configuration file with "sensors -c" first, and
+only copy it to /etc/sensors.d/ when you're happy with the results.
+This avoids doing the tuning work as root.
 
-> Thanks for your work on this!!!
+> Thanks a bundle!
 
-You're welcome.
+You're welcome. Wish list below - hint hint ;)
 
 -- 
 Jean Delvare
