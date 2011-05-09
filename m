@@ -1,72 +1,22 @@
-From: Harry G McGavran Jr <w5pny@w5pny.com>
-Date: Mon, 09 May 2011 19:50:41 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 09 May 2011 20:07:10 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <20110509195041.4D03D1A987F@localhost.localdomain>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="==_Exmh_1304970638_16180"
+Message-Id: <20110509220710.5aa0812f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multipart MIME message.
-
---==_Exmh_1304970638_16180
-Content-Type: text/plain; charset=us-ascii
-
-On Mon, 9 May 2011 21:42:31 +0200 Jean Delvare wrote:
-> Hi Jeff,
+On Mon, 09 May 2011 13:50:41 -0600, Harry G McGavran Jr wrote:
+> On Mon, 9 May 2011 21:42:31 +0200 Jean Delvare wrote:
+> > This is a valuable observation. I presume that these CPUs are too old
+> > to be multicore, best they could have it hyperthreading. Harry, can you
+> > please share the contents of /proc/cpuinfo?
 > 
-> On Sun, 08 May 2011 22:32:16 -0500, Jeff Rickman wrote:
-> > What Harry's comments tell me is the original "i8k" code lacks 
-> > appropriate code to operate in a SMP environment. I think the Console 
-> > messages are trying to say that for "non-programmers" like myself.
-> > 
-> > Note these differences:
-> > - Harry has a single CPU; I have 2 CPU.
-> 
-> This is a valuable observation. I presume that these CPUs are too old
-> to be multicore, best they could have it hyperthreading. Harry, can you
-> please share the contents of /proc/cpuinfo?
-
-Attached below ...
-
-> 
-> Jeff, could you please try booting with parameter max_cpus=1? I wonder
-> if it would make a difference. If it does, that would confirm your
-> theory.
-> 
-> > - We both run the same Dell BIOS A07 code.
-> > - Harry's Linux kernel is slightly older than my 2.6.35.12-90 Fedora code.
-> > - I think we would all agree that Jean's changes do not cause my crash 
-> > since that code works on Harry's machine but not on mine.
-> > 
-> > Time permitting, I will start doing the research to submit a properly 
-> > documented bug against Fedora Core 14 regarding this code. I suspect 
-> > this issue will also reside in FC15 so that is another point to check if 
-> > time allows. jean raises the real question: does anyone in the Fedora 
-> > team want to fix this?
-> 
-> I've seen this nug hit an openSUSE user (on a laptop with one
-> multi-core CPU), so it's definitely not specific to Fedora. It may be
-> related to the version of gcc used by the distribution though. If
-> Fedora people aren't interested, we may open a bug on
-> bugzilla.kernel.org instead.
-> 
-> > In closing, I agree with Harry: it is very nice to have some hardware 
-> > monitoring in a Dell platform.
-> 
-> I'm glad you like it :)
-> 
-> -- 
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
-
-
---==_Exmh_1304970638_16180
-Content-Type: text/plain ; name="cpuinfo.txt"; charset=us-ascii
-Content-Description: cpuinfo.txt
-Content-Disposition: attachment; filename="cpuinfo.txt"
+> Attached below ...
 
 processor	: 0
 vendor_id	: GenuineIntel
@@ -93,26 +43,20 @@ cache_alignment	: 128
 address sizes	: 36 bits physical, 48 bits virtual
 power management:
 
+Interesting... Your CPU is slightly more recent than Jeff's (stepping
+10 instead of 1), both advertise HT but yours has it disabled. Maybe
+there's an option in the BIOS to enable or disable HT? Or maybe Linux
+didn't like HT for some reason (in which case it should say so in the
+boot messages.)
 
---==_Exmh_1304970638_16180
-Content-Type: text/plain; charset=us-ascii
+It also seems like Jeff has CPUfreq enabled on his system and you do
+not. It's unrelated to hardware monitoring, but for the sake of power
+savings, it might be worth investigating.
 
-
-Harry G. McGavran, Jr.
-
-E-mail: w5pny@w5pny.com
-
-
---==_Exmh_1304970638_16180
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---==_Exmh_1304970638_16180--
-
-
