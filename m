@@ -1,213 +1,101 @@
-From: Jeff Rickman <jrickman@myamigos.us>
-Date: Tue, 10 May 2011 15:05:29 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Wed, 11 May 2011 12:43:35 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <4DC95439.8080001@myamigos.us>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050403060106030800080900"
+Message-Id: <20110511124334.GA23421@nb-core2.darkstar.lan>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050403060106030800080900
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, May 10, 2011 at 10:05:29AM -0500, Jeff Rickman wrote:
+> On 5/10/2011 9:24 AM, Jean Delvare wrote:
+> >Hi Jeff,
+> >
+> >On Tue, 10 May 2011 08:54:21 -0500, Jeff Rickman wrote:
+> >>I checked for any packages that could manipulate the CPU frequency. I
+> >>only found "cpuspeed". I removed the "cpuspeed" package and rebooted to
+> >>ensure a known state. Attempting to install the "stock i8k" module
+> >>causes a crash. Reboot to return to known state.
+> >>
+> >>I changed the "maxcpus=4" in "grub.conf" to "maxcpus=1". Reboot.
+> >>
+> >>Attempt to load "stock i8k" module. Crash. "/proc/cpuinfo" shows 1 CPU.
+> >
+> >Care to try again with maxcpus=0? I seem to recall that this disables
+> >even more of SMP than maxcpus=1 does.
+> >
+> >>Return system to previous configuration with "cpuspeed" and reboot.
+> >>
+> >>My only other choice would be to physically pull CPU2, leaving CPU1 in
+> >>the system, but we know that config should work based on Harry's testing.
+> >
+> >We don't, actually. You have different software environments and maybe
+> >different BIOS options. And not exactly the same hardware either...
+> >
+> >But I totally understand that you don't want to physically remove the
+> >second CPU. I'm not even sure if that would help.
+> >
+> >OTOH, if you see an option in the BIOS to disable HT, that would be
+> >worth trying.
+> >
+> 
+> Slightly different crash with "maxcpus=0". See attached.
 
-On 5/10/2011 9:24 AM, Jean Delvare wrote:
-> Hi Jeff,
->
-> On Tue, 10 May 2011 08:54:21 -0500, Jeff Rickman wrote:
->> I checked for any packages that could manipulate the CPU frequency. I
->> only found "cpuspeed". I removed the "cpuspeed" package and rebooted to
->> ensure a known state. Attempting to install the "stock i8k" module
->> causes a crash. Reboot to return to known state.
->>
->> I changed the "maxcpus=4" in "grub.conf" to "maxcpus=1". Reboot.
->>
->> Attempt to load "stock i8k" module. Crash. "/proc/cpuinfo" shows 1 CPU.
->
-> Care to try again with maxcpus=0? I seem to recall that this disables
-> even more of SMP than maxcpus=1 does.
->
->> Return system to previous configuration with "cpuspeed" and reboot.
->>
->> My only other choice would be to physically pull CPU2, leaving CPU1 in
->> the system, but we know that config should work based on Harry's testing.
->
-> We don't, actually. You have different software environments and maybe
-> different BIOS options. And not exactly the same hardware either...
->
-> But I totally understand that you don't want to physically remove the
-> second CPU. I'm not even sure if that would help.
->
-> OTOH, if you see an option in the BIOS to disable HT, that would be
-> worth trying.
->
+From the log:
 
-Slightly different crash with "maxcpus=0". See attached.
+> [   74.591343] invalid opcode: 0000 [#1] SMP
+[...]
+> [   74.592309] Code: 52 8b 58 04 8b 48 08 8b 50 0c 8b 70 10 8b 78 14 58 e6 b2 e6 84 48 87 04 24 89 58 04 89 48 08 89 50 0c 89 70 10 89 78 14 5a 89 10 <9f> c1 e8 08 83 e0 01 85 c0 ba ea ff ff ff 75 0f 41 8b 08 66 83
+> May 10 09:54:59 XX kernel: [   74.592309] RIP  [<ffffffffa0362041>] i8k_smm+0x41/0x65 [i8k]
 
-I will have to go the that office to change the BIOS in that machine for 
-retest. It could be a few days.
+   0:   52                      push   %rdx
+   1:   8b 58 04                mov    0x4(%rax),%ebx
+   4:   8b 48 08                mov    0x8(%rax),%ecx
+   7:   8b 50 0c                mov    0xc(%rax),%edx
+   a:   8b 70 10                mov    0x10(%rax),%esi
+   d:   8b 78 14                mov    0x14(%rax),%edi
+  10:   58                      pop    %rax
+  11:   e6 b2                   out    %al,$0xb2
+  13:   e6 84                   out    %al,$0x84
+  15:   48 87 04 24             xchg   %rax,(%rsp)
+  19:   89 58 04                mov    %ebx,0x4(%rax)
+  1c:   89 48 08                mov    %ecx,0x8(%rax)
+  1f:   89 50 0c                mov    %edx,0xc(%rax)
+  22:   89 70 10                mov    %esi,0x10(%rax)
+  25:   89 78 14                mov    %edi,0x14(%rax)
+  28:   5a                      pop    %rdx
+  29:   89 10                   mov    %edx,(%rax)
+  2b:*  9f                      lahf        <-- trapping instruction
+  2c:   c1 e8 08                shr    $0x8,%eax
+  2f:   83 e0 01                and    $0x1,%eax
+  32:   85 c0                   test   %eax,%eax
+  34:   ba ea ff ff ff          mov    $0xffffffea,%edx
+  39:   75 0f                   jne    0x4a
+  3b:   41 8b 08                mov    (%r8),%ecx
 
+lahf is present in the assembly block inside the driver in i8k_smm; lahf
+moves the lowest byte of eflags into ah.
+Wikipedia[1] tells me that:
 
---------------050403060106030800080900
-Content-Type: text/plain;
- name="Dell_Sensors_Testing_3.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="Dell_Sensors_Testing_3.txt"
+  Early AMD64 and Intel 64 CPUs lacked LAHF and SAHF instructions. AMD
+  introduced the instructions with their Athlon 64, Opteron and Turion 64
+  revision D processors in March 2005 while Intel introduced
+  the instructions with the Pentium 4 G1 stepping in December 2005.
 
-QWZ0ZXIgYSByZWJvb3Qgd2l0aCAibWF4Y3B1cz0wIiBpbiAiL2Jvb3QvZ3J1Yi9ncnViLmNv
-bmYiLCAiY3B1c3BlZWQiIHJlbW92ZWQsIGFuZCBsb2FkaW5nIHRoZSAic3RvY2sgaThrIiBk
-cml2ZXINCiANCltyb290QFhYIH5dJCBjYXQgL3Byb2MvY3B1aW5mbw0KcHJvY2Vzc29yICAg
-ICAgIDogMA0KdmVuZG9yX2lkICAgICAgIDogR2VudWluZUludGVsDQpjcHUgZmFtaWx5ICAg
-ICAgOiAxNQ0KbW9kZWwgICAgICAgICAgIDogNA0KbW9kZWwgbmFtZSAgICAgIDogSW50ZWwo
-UikgWGVvbihUTSkgQ1BVIDMuMDBHSHoNCnN0ZXBwaW5nICAgICAgICA6IDENCmNwdSBNSHog
-ICAgICAgICA6IDI5OTIuMjYyDQpjYWNoZSBzaXplICAgICAgOiAxMDI0IEtCDQpmcHUgICAg
-ICAgICAgICAgOiB5ZXMNCmZwdV9leGNlcHRpb24gICA6IHllcw0KY3B1aWQgbGV2ZWwgICAg
-IDogNQ0Kd3AgICAgICAgICAgICAgIDogeWVzDQpmbGFncyAgICAgICAgICAgOiBmcHUgdm1l
-IGRlIHBzZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSBjbW92
-IHBhdCBwc2UzNiBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0IHRt
-IHBiZSBzeXNjYWxsIG54IGxtIGNvbnN0YW50X3RzYyB1cCBwZWJzIGJ0cyBwbmkgZHRlczY0
-IG1vbml0b3IgZHNfY3BsIGNpZCBjeDE2IHh0cHINCmJvZ29taXBzICAgICAgICA6IDU5ODQu
-NTINCmNsZmx1c2ggc2l6ZSAgICA6IDY0DQpjYWNoZV9hbGlnbm1lbnQgOiAxMjgNCmFkZHJl
-c3Mgc2l6ZXMgICA6IDM2IGJpdHMgcGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVhbA0KcG93ZXIg
-bWFuYWdlbWVudDoNCiANCltyb290QFhYIH5dIyBtb2Rwcm9iZSAtdiBpOGsNCmluc21vZCAv
-bGliL21vZHVsZXMvMi42LjM1LjEyLTkwLmZjMTQueDg2XzY0L2tlcm5lbC9kcml2ZXJzL2No
-YXIvaThrLmtvDQogDQpNZXNzYWdlIGZyb20gc3lzbG9nZEBYWCBhdCBNYXkgMTAgMDk6NTQ6
-NTkgLi4uDQoga2VybmVsOlsgICA3NC41OTEzNDNdIGludmFsaWQgb3Bjb2RlOiAwMDAwIFsj
-MV0gU01QDQogDQpNZXNzYWdlIGZyb20gc3lzbG9nZEBYWCBhdCBNYXkgMTAgMDk6NTQ6NTkg
-Li4uDQoga2VybmVsOlsgICA3NC41OTEzNzNdIGxhc3Qgc3lzZnMgZmlsZTogL3N5cy9kZXZp
-Y2VzL3ZpcnR1YWwvdmMvdmNzYTYvdWV2ZW50DQogDQpNZXNzYWdlIGZyb20gc3lzbG9nZEBY
-WCBhdCBNYXkgMTAgMDk6NTQ6NTkgLi4uDQoga2VybmVsOlsgICA3NC41OTIyNDFdIFN0YWNr
-Og0KIA0KTWVzc2FnZSBmcm9tIHN5c2xvZ2RAWFggYXQgTWF5IDEwIDA5OjU0OjU5IC4uLg0K
-IGtlcm5lbDpbICAgNzQuNTkyMzA5XSBDYWxsIFRyYWNlOg0KIA0KTWVzc2FnZSBmcm9tIHN5
-c2xvZ2RAWFggYXQgTWF5IDEwIDA5OjU0OjU5IC4uLg0KIGtlcm5lbDpbICAgNzQuNTkyMzA5
-XSBDb2RlOiA1MiA4YiA1OCAwNCA4YiA0OCAwOCA4YiA1MCAwYyA4YiA3MCAxMCA4YiA3OCAx
-NCA1OCBlNiBiMiBlNiA4NCA0OCA4NyAwNCAyNCA4OSA1OCAwNCA4OSA0OCAwOCA4OSA1MCAw
-YyA4OSA3MCAxMCA4OSA3OCAxNCA1YSA4OSAxMCA8OWY+IGMxIGU4IDA4IDgzIGUwIDAxIDg1
-IGMwIGJhIGVhIGZmIGZmIGZmIDc1IDBmIDQxIDhiIDA4IDY2IDgzDQpTZWdtZW50YXRpb24g
-ZmF1bHQNCg0KW3Jvb3RAWFggfl0jIHRhaWwgLTUwIC92YXIvbG9nL21lc3NhZ2VzDQpNYXkg
-MTAgMDk6NTQ6MTQgWFggc21hcnRkWzE0NzBdOiBEZXZpY2U6IC9kZXYvc2RhIFtTQVRdLCBp
-cyBTTUFSVCBjYXBhYmxlLiBBZGRpbmcgdG8gIm1vbml0b3IiIGxpc3QuDQpNYXkgMTAgMDk6
-NTQ6MTQgWFggc21hcnRkWzE0NzBdOiBNb25pdG9yaW5nIDEgQVRBIGFuZCAwIFNDU0kgZGV2
-aWNlcw0KTWF5IDEwIDA5OjU0OjE0IFhYIHNtYXJ0ZFsxNDcwXTogRGV2aWNlOiAvZGV2L3Nk
-YSBbU0FUXSwgaW5pdGlhbCBUZW1wZXJhdHVyZSBpcyAzNCBDZWxzaXVzIChNaW4vTWF4ID8/
-LzM0KQ0KTWF5IDEwIDA5OjU0OjE0IFhYIHNtYXJ0ZFsxNDczXTogc21hcnRkIGhhcyBmb3Jr
-KCllZCBpbnRvIGJhY2tncm91bmQgbW9kZS4gTmV3IFBJRD0xNDczLg0KTWF5IDEwIDA5OjU0
-OjI0IFhYIGtlcm5lbDogWyAgIDQwLjIxNjA1M10gdHlwZT0xMzA1IGF1ZGl0KDEzMDUwMzky
-NjQuOTI5OjE1MDE2KTogYXVpZD00Mjk0OTY3Mjk1IHNlcz00Mjk0OTY3Mjk1IG9wPSJyZW1v
-dmUgcnVsZSIga2V5PShudWxsKSBsaXN0PTQgcmVzPTENCk1heSAxMCAwOTo1NDoyNCBYWCBr
-ZXJuZWw6IFsgICA0MC4yMTYwODldIHR5cGU9MTMwNSBhdWRpdCgxMzA1MDM5MjY0LjkyOTox
-NTAxNyk6IGF1ZGl0X2VuYWJsZWQ9MCBvbGQ9MSBhdWlkPTQyOTQ5NjcyOTUgc2VzPTQyOTQ5
-NjcyOTUgcmVzPTENCk1heSAxMCAwOTo1NDoyNSBYWCBrZXJuZWw6IFsgICA0MC43OTA0NDVd
-IHJlYWRhaGVhZC1jb2xsZWN0b3I6IHNvcnRpbmcNCk1heSAxMCAwOTo1NDoyNSBYWCBrZXJu
-ZWw6IFsgICA0MC44ODM1NjJdIHJlYWRhaGVhZC1jb2xsZWN0b3I6IGZpbmlzaGVkDQpNYXkg
-MTAgMDk6NTQ6MjggWFggbnRwZFsxMzc4XTogRGVmZXJyaW5nIEROUyBmb3IgMC5mZWRvcmEu
-cG9vbC5udHAub3JnIDENCk1heSAxMCAwOTo1NDoyOCBYWCBudHBkWzEzNzhdOiAwLjAuMC4w
-IGMwMTYgMDYgcmVzdGFydA0KTWF5IDEwIDA5OjU0OjI4IFhYIG50cGRbMTM3OF06IDAuMC4w
-LjAgYzAxMiAwMiBmcmVxX3NldCBrZXJuZWwgLTI5LjY2MCBQUE0NCk1heSAxMCAwOTo1NDoz
-MCBYWCBudHBkX2ludHJlc1sxNTA1XTogRE5TIDAuZmVkb3JhLnBvb2wubnRwLm9yZyAtPiAy
-MTYuNDUuNTcuMzgNCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTEzNDNd
-IGludmFsaWQgb3Bjb2RlOiAwMDAwIFsjMV0gU01QDQpNYXkgMTAgMDk6NTQ6NTkgWFgga2Vy
-bmVsOiBbICAgNzQuNTkxMzczXSBsYXN0IHN5c2ZzIGZpbGU6IC9zeXMvZGV2aWNlcy92aXJ0
-dWFsL3ZjL3Zjc2E2L3VldmVudA0KTWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5lbDogWyAgIDc0
-LjU5MTM4OV0gQ1BVIDANCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTEz
-OTddIE1vZHVsZXMgbGlua2VkIGluOiBpOGsoKykgYWN0X3BvbGljZSBjbHNfZmxvdyBjbHNf
-ZncgY2xzX3UzMiBzY2hfdGJmIHNjaF9wcmlvIHNjaF9odGIgc2NoX2hmc2Mgc2NoX2luZ3Jl
-c3Mgc2NoX3NmcSB4dF90aW1lIHh0X2Nvbm5saW1pdCB4dF9yZWFsbSBpcHRhYmxlX3JhdyB4
-dF9jb21tZW50IHh0X3JlY2VudCB4dF9wb2xpY3kgaXB0X1VMT0cgaXB0X1JFRElSRUNUIGlw
-dF9ORVRNQVAgaXB0X01BU1FVRVJBREUgaXB0X0VDTiBpcHRfZWNuIGlwdF9DTFVTVEVSSVAg
-aXB0X2FoIGlwdF9hZGRydHlwZSBuZl9uYXRfdGZ0cCBuZl9uYXRfc25tcF9iYXNpYyBuZl9u
-YXRfc2lwIG5mX25hdF9wcHRwIG5mX25hdF9wcm90b19ncmUgbmZfbmF0X2lyYyBuZl9uYXRf
-aDMyMyBuZl9uYXRfZnRwIG5mX25hdF9hbWFuZGEgdHNfa21wIG5mX2Nvbm50cmFja19hbWFu
-ZGEgbmZfY29ubnRyYWNrX3NhbmUgbmZfY29ubnRyYWNrX3RmdHAgbmZfY29ubnRyYWNrX3Np
-cCBuZl9jb25udHJhY2tfcHJvdG9fc2N0cCBuZl9jb25udHJhY2tfcHB0cCBuZl9jb25udHJh
-Y2tfcHJvdG9fZ3JlIG5mX2Nvbm50cmFja19uZXRsaW5rIG5mX2Nvbm50cmFja19uZXRiaW9z
-X25zIG5mX2Nvbm50cmFja19pcmMgbmZfY29ubnRyYWNrX2gzMjMgbmZfY29ubnRyYWNrX2Z0
-cCB4dF9UUFJPWFkgbmZfdHByb3h5X2NvcmUgeHRfdGNwbXNzIHh0X3BrdHR5cGUgeHRfcGh5
-c2RldiB4dF9vd25lciB4dF9ORlFVRVVFIHh0X05GTE9HIG5mbmV0bGlua19sb2cgeHRfbXVs
-dGlwb3J0IHh0X21hcmsgeHRfbWFjIHh0X2xpbWl0IHh0X2xlbmd0aCB4dF9pcHJhbmdlIHh0
-X2hlbHBlciB4dF9oYXNobGltaXQgeHRfRFNDUCB4dF9kc2NwIHh0X2RjY3AgeHRfY29ubm1h
-cmsgeHRfQ0xBU1NJRlkgaXB0X0xPRyBpcHRhYmxlX25hdCBuZl9uYXQgaXB0YWJsZV9tYW5n
-bGUgbmZuZXRsaW5rIGUxMDAwIGRjZGJhcyBtaWNyb2NvZGUgaVRDT193ZHQgaVRDT192ZW5k
-b3Jfc3VwcG9ydCBpMg0KTWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5lbDogY19pODAxIHNlcmlv
-X3JhdyBlNzUyeF9lZGFjIHNocGNocCBlZGFjX2NvcmUgZmlyZXdpcmVfb2hjaSBmaXJld2ly
-ZV9jb3JlIGNyY19pdHVfdCBub3V2ZWF1IHR0bSBkcm1fa21zX2hlbHBlciBkcm0gaTJjX2Fs
-Z29fYml0IHZpZGVvIG91dHB1dCBpMmNfY29yZSBbbGFzdCB1bmxvYWRlZDogc2NzaV93YWl0
-X3NjYW5dDQpNYXkgMTAgMDk6NTQ6NTkgWFgga2VybmVsOiBbICAgNzQuNTkxOTgzXQ0KTWF5
-IDEwIDA5OjU0OjU5IFhYIGtlcm5lbDogWyAgIDc0LjU5MTk5M10gUGlkOiAxNTU3LCBjb21t
-OiBtb2Rwcm9iZSBOb3QgdGFpbnRlZCAyLjYuMzUuMTItOTAuZmMxNC54ODZfNjQgIzEgMFU3
-NTY1L1ByZWNpc2lvbiBXb3JrU3RhdGlvbiA2NzAgICANCk1heSAxMCAwOTo1NDo1OSBYWCBr
-ZXJuZWw6IFsgICA3NC41OTIwMTVdIFJJUDogMDAxMDpbPGZmZmZmZmZmYTAzNjIwNDE+XSAg
-WzxmZmZmZmZmZmEwMzYyMDQxPl0gaThrX3NtbSsweDQxLzB4NjUgW2k4a10NCk1heSAxMCAw
-OTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIwNDNdIFJTUDogMDAxODpmZmZmODgwMDdk
-Y2IzZWEwICBFRkxBR1M6IDAwMDEwMjQ2DQpNYXkgMTAgMDk6NTQ6NTkgWFgga2VybmVsOiBb
-ICAgNzQuNTkyMDU2XSBSQVg6IGZmZmY4ODAwN2RjYjNlYjggUkJYOiAwMDAwMDAwMDAwMDAw
-MDAwIFJDWDogMDAwMDAwMDAwMDAwMDAwMA0KTWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5lbDog
-WyAgIDc0LjU5MjA3M10gUkRYOiAwMDAwMDAwMDQ0NDk0MTQ3IFJTSTogMDAwMDAwMDAwMDAw
-MDAwMCBSREk6IDAwMDAwMDAwMDAwMDAwMDANCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6
-IFsgICA3NC41OTIwOTBdIFJCUDogZmZmZjg4MDA3ZGNiM2VhOCBSMDg6IGZmZmY4ODAwN2Rj
-YjNlYjggUjA5OiAwMDAwMDAwMDAwMDBmZWEzDQpNYXkgMTAgMDk6NTQ6NTkgWFgga2VybmVs
-OiBbICAgNzQuNTkyMTA3XSBSMTA6IGZmZmZmZmZmYTAzNjJkMTAgUjExOiAwMDAwMDAwMDAw
-MDAwMDAwIFIxMjogMDAwMDAwMDAwMDAwMDAwMA0KTWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5l
-bDogWyAgIDc0LjU5MjEyM10gUjEzOiAwMDAwMDAwMDAyMTdjMDQwIFIxNDogMDAwMDAwMDAw
-MDAwMDAwMCBSMTU6IDAwMDAwMDAwMDIxNzU2YzANCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJu
-ZWw6IFsgICA3NC41OTIxNDFdIEZTOiAgMDAwMDdmYzgyMDViYjcyMCgwMDAwKSBHUzpmZmZm
-ODgwMDAyMDAwMDAwKDAwMDApIGtubEdTOjAwMDAwMDAwMDAwMDAwMDANCk1heSAxMCAwOTo1
-NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIxNThdIENTOiAgMDAxMCBEUzogMDAwMCBFUzog
-MDAwMCBDUjA6IDAwMDAwMDAwODAwNTAwM2INCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6
-IFsgICA3NC41OTIxNzJdIENSMjogMDAwMDAwM2ExMzZlMTIwMCBDUjM6IDAwMDAwMDAwN2U2
-ZDQwMDAgQ1I0OiAwMDAwMDAwMDAwMDAwNmYwDQpNYXkgMTAgMDk6NTQ6NTkgWFgga2VybmVs
-OiBbICAgNzQuNTkyMTg5XSBEUjA6IDAwMDAwMDAwMDAwMDAwMDAgRFIxOiAwMDAwMDAwMDAw
-MDAwMDAwIERSMjogMDAwMDAwMDAwMDAwMDAwMA0KTWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5l
-bDogWyAgIDc0LjU5MjIwN10gRFIzOiAwMDAwMDAwMDAwMDAwMDAwIERSNjogMDAwMDAwMDBm
-ZmZmMGZmMCBEUjc6IDAwMDAwMDAwMDAwMDA0MDANCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJu
-ZWw6IFsgICA3NC41OTIyMjRdIFByb2Nlc3MgbW9kcHJvYmUgKHBpZDogMTU1NywgdGhyZWFk
-aW5mbyBmZmZmODgwMDdkY2IyMDAwLCB0YXNrIGZmZmY4ODAwN2VhNTJlODApDQpNYXkgMTAg
-MDk6NTQ6NTkgWFgga2VybmVsOiBbICAgNzQuNTkyMjQxXSBTdGFjazoNCk1heSAxMCAwOTo1
-NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIyNTBdICBmZmZmZmZmZmEwMzY2MDAwIGZmZmY4
-ODAwN2RjYjNlZDggZmZmZmZmZmZhMDM2MjFkMiAwMDAwMDAwMDQ0NDk0MTQ3DQpNYXkgMTAg
-MDk6NTQ6NTkgWFgga2VybmVsOiBbICAgNzQuNTkyMjc3XSA8MD4gNDQ0NTRjNGMwMDAwMDAw
-MCAwMDAwMDAwMDAwMDAwMDAwIGZmZmZmZmZmYTAzNjIyMWMgZmZmZjg4MDA3ZGNiM2YwOA0K
-TWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5lbDogWyAgIDc0LjU5MjMwOV0gPDA+IGZmZmZmZmZm
-YTAzNjYwYTcgZmZmZjg4MDA3ZGNiM2YyOCBmZmZmZmZmZjgxMDZhZTUwIGZmZmZmZmZmYTAz
-NjYwMDANCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIzMDldIENhbGwg
-VHJhY2U6DQpNYXkgMTAgMDk6NTQ6NTkgWFgga2VybmVsOiBbICAgNzQuNTkyMzA5XSAgWzxm
-ZmZmZmZmZmEwMzY2MDAwPl0gPyBpOGtfaW5pdCsweDAvMHgxYWQgW2k4a10NCk1heSAxMCAw
-OTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIzMDldICBbPGZmZmZmZmZmYTAzNjIxZDI+
-XSBpOGtfZ2V0X2RlbGxfc2lnbmF0dXJlKzB4MjgvMHg0OCBbaThrXQ0KTWF5IDEwIDA5OjU0
-OjU5IFhYIGtlcm5lbDogWyAgIDc0LjU5MjMwOV0gIFs8ZmZmZmZmZmZhMDM2MjIxYz5dID8g
-aThrX2dldF9kbWlfZGF0YSsweGUvMHgyYyBbaThrXQ0KTWF5IDEwIDA5OjU0OjU5IFhYIGtl
-cm5lbDogWyAgIDc0LjU5MjMwOV0gIFs8ZmZmZmZmZmZhMDM2NjBhNz5dIGk4a19pbml0KzB4
-YTcvMHgxYWQgW2k4a10NCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIz
-MDldICBbPGZmZmZmZmZmODEwNmFlNTA+XSA/IF9fYmxvY2tpbmdfbm90aWZpZXJfY2FsbF9j
-aGFpbisweDU2LzB4NjANCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIz
-MDldICBbPGZmZmZmZmZmYTAzNjYwMDA+XSA/IGk4a19pbml0KzB4MC8weDFhZCBbaThrXQ0K
-TWF5IDEwIDA5OjU0OjU5IFhYIGtlcm5lbDogWyAgIDc0LjU5MjMwOV0gIFs8ZmZmZmZmZmY4
-MTAwMjFhMT5dIGRvX29uZV9pbml0Y2FsbCsweDVlLzB4MTU1DQpNYXkgMTAgMDk6NTQ6NTkg
-WFgga2VybmVsOiBbICAgNzQuNTkyMzA5XSAgWzxmZmZmZmZmZjgxMDdkMTU1Pl0gc3lzX2lu
-aXRfbW9kdWxlKzB4YTYvMHgxZTQNCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3
-NC41OTIzMDldICBbPGZmZmZmZmZmODEwMDljZjI+XSBzeXN0ZW1fY2FsbF9mYXN0cGF0aCsw
-eDE2LzB4MWINCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3NC41OTIzMDldIENv
-ZGU6IDUyIDhiIDU4IDA0IDhiIDQ4IDA4IDhiIDUwIDBjIDhiIDcwIDEwIDhiIDc4IDE0IDU4
-IGU2IGIyIGU2IDg0IDQ4IDg3IDA0IDI0IDg5IDU4IDA0IDg5IDQ4IDA4IDg5IDUwIDBjIDg5
-IDcwIDEwIDg5IDc4IDE0IDVhIDg5IDEwIDw5Zj4gYzEgZTggMDggODMgZTAgMDEgODUgYzAg
-YmEgZWEgZmYgZmYgZmYgNzUgMGYgNDEgOGIgMDggNjYgODMNCk1heSAxMCAwOTo1NDo1OSBY
-WCBrZXJuZWw6IFsgICA3NC41OTIzMDldIFJJUCAgWzxmZmZmZmZmZmEwMzYyMDQxPl0gaThr
-X3NtbSsweDQxLzB4NjUgW2k4a10NCk1heSAxMCAwOTo1NDo1OSBYWCBrZXJuZWw6IFsgICA3
-NC41OTIzMDldICBSU1AgPGZmZmY4ODAwN2RjYjNlYTA+DQpNYXkgMTAgMDk6NTQ6NTkgWFgg
-a2VybmVsOiBbICAgNzQuNTk4NzgzXSAtLS1bIGVuZCB0cmFjZSBhNDEzMTU4ZGE4Zjc1M2E4
-IF0tLS0NCltyb290QFhYIH5dIw0KIA0KIA==
---------------050403060106030800080900
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Jeff's CPU does indeed lack lahf (see cpuinfo), so the driver should not
+unconditionally use the intruction.
+The driver should check X86_FEATURE_LAHF_LM or use use a different
+method to read EFLAFS (pushf?).
+
+drivers/char/toshiba.c (tosh_smm) also suffers from the same issue.
+
+Luca
+[1] http://en.wikipedia.org/wiki/X86-64
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------050403060106030800080900--
