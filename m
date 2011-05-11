@@ -1,7 +1,7 @@
 From: Jeff Rickman <jrickman@myamigos.us>
-Date: Wed, 11 May 2011 17:23:29 +0000
+Date: Wed, 11 May 2011 17:59:35 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <4DCAC611.5050903@myamigos.us>
+Message-Id: <4DCACE87.5070400@myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
@@ -79,9 +79,67 @@ On 5/11/2011 10:08 AM, Jean Delvare wrote:
 >
 > Thanks,
 
-Preliminary feedback...seeing new errors. New "i8k" module reporting 'no 
-such device' when inserted. More details to follow when I finish testing 
-and capture outputs.
+[test results]
+compile new i8k module
+no compile errors noticed
+do not load new i8k module
+do not copy new module to /lib/modules tree
+
+load "stock" driver (to verify baseline behavior)
+non-fatal crash results
+reboot
+
+remove "stock" i8k module
+copy new i8k module to /lib/modules/`uname -r`/kernel/drivers/char
+run depmod -a
+
+modinfo /lib/modules/`uname -r`/kernel/drivers/char/i8k.ko 
+
+filename: 
+/lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko
+license:        GPL
+description:    Driver for accessing SMM BIOS on Dell laptops
+author:         Massimo Dal Zotto (dz@debian.org)
+srcversion:     0FCA3FE04945CA449B9A849
+depends:
+vermagic:       2.6.35.12-90.fc14.x86_64 SMP mod_unload
+parm:           force:Force loading without checking for supported 
+models (bool)
+parm:           ignore_dmi:Continue probing hardware even if DMI data 
+does not match (bool)
+parm:           restricted:Allow fan control if SYS_ADMIN capability set 
+(bool)
+parm:           power_status:Report power status in /proc/i8k (bool)
+parm:           fan_mult:Factor to multiply fan speed with (int)
+
+load new i8k module
+
+modprobe -v i8k
+insmod /lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko
+FATAL: Error inserting i8k 
+(/lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko): No 
+such device
+
+from /var/log/messages
+May 11 12:39:11 XX kernel: [  263.320306] i8k: unable to get SMM Dell 
+signature
+
+modprobe -v i8k force
+insmod /lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko 
+force
+
+from /var/log/messages
+May 11 12:39:11 XX kernel: [  263.320306] i8k: unable to get SMM Dell 
+signature
+May 11 12:40:52 XX kernel: [  365.019189] i8k: unable to get SMM Dell 
+signature
+May 11 12:40:52 XX kernel: [  365.020148] i8k: unable to get SMM BIOS 
+version
+May 11 12:40:52 XX kernel: [  365.027736] Dell laptop SMM driver v1.14 
+21/02/2005 Massimo Dal Zotto (dz@debian.org)
+
+I will guess that this detection issue is not due to the changes made by 
+Jean and Luca. This module may be at a dead end for my hardware.
 
 
 _______________________________________________
