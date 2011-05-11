@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 10 May 2011 18:33:26 +0000
+Date: Wed, 11 May 2011 13:40:14 +0000
 Subject: Re: [lm-sensors] [PATCH 2/2] hwmon/sch5627: Trigger Vbat
-Message-Id: <20110510203326.4a8a9450@endymion.delvare>
+Message-Id: <20110511154014.6f1cc065@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110504174240.1491e1d4@endymion.delvare>
 In-Reply-To: <20110504174240.1491e1d4@endymion.delvare>
@@ -10,15 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Hans,
+On Wed, 11 May 2011 14:31:41 +0200, Hans de Goede wrote:
+> The sch5627 needs to be explicitly told to start an adc conversion
+> for Vbat, once in a while. Without this Vbat may read 0, and will never
+> get updated.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/hwmon/sch5627.c |   23 ++++++++++++++++++++++-
+>  1 files changed, 22 insertions(+), 1 deletions(-)
 
-On Wed, 04 May 2011 19:55:42 +0200, Hans de Goede wrote:
-> Ah, I should have read better before saying I had a question about this
-> in my previous mail. I'll take over your suggestions and do a new
-> version of this patch set tomorrow.
-
-Kernel 2.6.39 final is probably not too far away by now, if you want
-this fix in, please send updated patches quickly.
+Applied, thanks.
 
 -- 
 Jean Delvare
