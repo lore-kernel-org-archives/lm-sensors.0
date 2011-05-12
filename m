@@ -1,40 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 11 May 2011 19:03:02 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Thu, 12 May 2011 13:02:08 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <20110511210302.22ffd227@endymion.delvare>
+Message-Id: <BANLkTi=Kdh=P-mOO+fejhML2hnxX70cpww@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 11 May 2011 14:43:35 +0200, Luca Tettamanti wrote:
-> lahf is present in the assembly block inside the driver in i8k_smm; lahf
-> moves the lowest byte of eflags into ah.
-> Wikipedia[1] tells me that:
-> 
->   Early AMD64 and Intel 64 CPUs lacked LAHF and SAHF instructions. AMD
->   introduced the instructions with their Athlon 64, Opteron and Turion 64
->   revision D processors in March 2005 while Intel introduced
->   the instructions with the Pentium 4 G1 stepping in December 2005.
-> 
-> Jeff's CPU does indeed lack lahf (see cpuinfo), so the driver should not
-> unconditionally use the intruction.
-> The driver should check X86_FEATURE_LAHF_LM or use use a different
-> method to read EFLAFS (pushf?).
+On Wed, May 11, 2011 at 7:59 PM, Jeff Rickman <jrickman@myamigos.us> wrote:
+> [test results]
+> load new i8k module
+>
+> modprobe -v i8k
+> insmod /lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko
+> FATAL: Error inserting i8k
+> (/lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko): No such
+> device
+>
+> from /var/log/messages
+> May 11 12:39:11 XX kernel: [  263.320306] i8k: unable to get SMM Dell
+> signature
+>
+> modprobe -v i8k force
+> insmod /lib/modules/2.6.35.12-90.fc14.x86_64/kernel/drivers/char/i8k.ko
+> force
+>
+> from /var/log/messages
+> May 11 12:39:11 XX kernel: [  263.320306] i8k: unable to get SMM Dell
+> signature
+> May 11 12:40:52 XX kernel: [  365.019189] i8k: unable to get SMM Dell
+> signature
+> May 11 12:40:52 XX kernel: [  365.020148] i8k: unable to get SMM BIOS
+> version
+> May 11 12:40:52 XX kernel: [  365.027736] Dell laptop SMM driver v1.14
+> 21/02/2005 Massimo Dal Zotto (dz@debian.org)
+>
+> I will guess that this detection issue is not due to the changes made by
+> Jean and Luca. This module may be at a dead end for my hardware.
 
-Thanks for the investigation, BTW... Brilliant!
+Hum, maybe my change is not correct. It should be possible to verify
+to functionality of the patch on Harry's machine
 
-> drivers/char/toshiba.c (tosh_smm) also suffers from the same issue.
-
-That one currently depends on X86_32, which I seem to understand is
-unaffected by the bug. But if this driver is ever extended to work on
-64-bit machines, then yes, care will be needed.
-
--- 
-Jean Delvare
+Luca
 
 _______________________________________________
 lm-sensors mailing list
