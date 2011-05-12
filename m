@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 12 May 2011 16:00:51 +0000
+From: Harry G McGavran Jr <w5pny@w5pny.com>
+Date: Thu, 12 May 2011 16:11:50 +0000
 Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
-Message-Id: <20110512180051.50b1525b@endymion.delvare>
+Message-Id: <20110512161150.A000F1A987F@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110414034609.476411A9866@localhost.localdomain>
 In-Reply-To: <20110414034609.476411A9866@localhost.localdomain>
@@ -9,6 +9,68 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+------- =_aaaaaaaaaa0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <25820.1305216710.1@kahu.w5pny.comcast.net>
+
+ulimit -c
+81920
+
+On Thu, 12 May 2011 18:00:51 +0200 Jean Delvare wrote:
+
+------- =_aaaaaaaaaa0
+Content-Type: message/rfc822
+Content-ID: <25820.1305216710.2@kahu.w5pny.comcast.net>
+Content-Description: original message
+
+Return-Path: khali@linux-fr.org
+Delivery-Date: Thu, 12 May 2011 10:08:34 -0600
+Return-Path: <khali@linux-fr.org>
+X-Original-To: w5pny@localhost.localdomain
+Delivered-To: w5pny@localhost.localdomain
+Received: from kahu.w5pny.comcast.net (localhost.localdomain [127.0.0.1])
+	by localhost.localdomain (Postfix) with ESMTP id B09221A9865
+	for <w5pny@localhost.localdomain>; Thu, 12 May 2011 10:08:34 -0600 (MDT)
+X-Apparently-To: w5pny@w5pny.com via 74.6.114.38; Thu, 12 May 2011 09:02:21 -0700
+X-YahooFilteredBulk: 212.85.147.21
+Received-SPF: none (mta1025.biz.mail.mud.yahoo.com: domain of khali@linux-fr.org does not designate permitted sender hosts)
+X-YMailISG: XpSk3fccZApIGqRdol7.I_eI9OkkbnfQv2a.P_HimnqVclE2
+ .Gv2pnkqejyTCp2TXjumG9aOfGrN82cnU9gFqKwuWbI_mXMc25ltIJgNPipQ
+ .0XbOXA.M1WbwuIji39KVFmqnNB2l8RqzGFn5lQEyIhm73ACOYhlowAXUMWq
+ ujyFKGixVse_6QQKZ.QPZPmpYBzN6vptPkuMWpURSMl4rI9BKm1rUiNEVURg
+ bFIYdz7gxGVhwhBTN7eNbMk6hIgWnuHPGQBgwg24sCYyZNLwt2Pb.D8P9m9s
+ mwfKNAU_ySSMQz1bnGIzNTDcOoHchCDOxN2MGVXAURL8SVEzG6qsKpszTng0
+ 17RUCnzeF_2jCS8XcMgRUMB5Z98faCZj1spAGH2ATiOoF4YbP.magOyj9pzS
+ xygnJ50ZJiMGS3TANVuQKEzGP4ZhK3aYUkN4bEpzLNJCVxDrAr1QYl8kfHrj
+ zEx00L8PXvuFsdg_jl6qUObLbiGkjQGmwgcWTxRxIJrVZjJa4w--
+X-Originating-IP: [212.85.147.21]
+Authentication-Results: mta1025.biz.mail.mud.yahoo.com  from=linux-fr.org; domainkeys=neutral (no sig);  from=linux-fr.org; dkim=neutral (no sig)
+Received: from pop1.biz.mail.vip.sp1.yahoo.com [69.147.84.46]
+	by kahu.w5pny.comcast.net with POP3 (fetchmail-6.3.19)
+	for <w5pny@localhost.localdomain> (single-drop); Thu, 12 May 2011 10:08:34 -0600 (MDT)
+Received: from 127.0.0.1  (EHLO services.gcu-squad.org) (212.85.147.21)
+  by mta1025.biz.mail.mud.yahoo.com with SMTP; Thu, 12 May 2011 09:02:21 -0700
+Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
+	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1QKZTB-0006Dq-8r
+	(TLSv1:AES128-SHA:128)
+	(envelope-from <khali@linux-fr.org>)
+	; Thu, 12 May 2011 19:14:37 +0200
+Date: Thu, 12 May 2011 18:00:51 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: w5pny@w5pny.com
+Cc: Jeff Rickman <jrickman@myamigos.us>, Ric <fhj52rags@yahoo.com>,
+ lm-sensors@lm-sensors.org, Luca Tettamanti <kronos.it@gmail.com>
+Subject: Re: [lm-sensors] Will there ever be EMC6w201 support?
+Message-ID: <20110512180051.50b1525b@endymion.delvare>
+In-Reply-To: <20110512151841.B706F1A987F@localhost.localdomain>
+References: <20110512154743.64d11d7b@endymion.delvare>
+	<20110512151841.B706F1A987F@localhost.localdomain>
+X-Mailer: Claws Mail 3.7.5 (GTK+ 2.20.1; x86_64-unknown-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+X-filter: ifile 1.3.8 => ALSA
 
 On Thu, 12 May 2011 09:18:41 -0600, Harry G McGavran Jr wrote:
 > The latest i8k insmod's ok, but when I run /usr/bin/sensors
@@ -58,7 +120,27 @@ makes me feel sad because Luca's findings were very promising :(
 -- 
 Jean Delvare
 
+------- =_aaaaaaaaaa0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <25820.1305216710.3@kahu.w5pny.comcast.net>
+
+-- 
+
+Harry G. McGavran, Jr.
+
+E-mail: w5pny@w5pny.com
+
+
+
+
+------- =_aaaaaaaaaa0
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+------- =_aaaaaaaaaa0--
