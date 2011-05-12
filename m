@@ -1,51 +1,51 @@
 From: Steve.Glendinning@smsc.com
-Date: Wed, 11 May 2011 18:53:59 +0000
+Date: Thu, 12 May 2011 08:26:29 +0000
 Subject: Re: [lm-sensors] [PATCH] Document existing support for SMSC EMC2300
-Message-Id: <OF0D100F13.1B9EE948-ONC125788D.0067D1E0-C125788D.0067D1E3@smsc.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2152312653383462213=="
+Message-Id: <OF63DC6DEC.2D155EFB-ONC125788E.002E5E7B-C125788E.002E5EC7@smsc.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1305037288-16695-1-git-send-email-steve.glendinning@smsc.com>
 In-Reply-To: <1305037288-16695-1-git-send-email-steve.glendinning@smsc.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2152312653383462213==
+--=_mixed 002E5EC6C125788E_MIME-Version: 1.0
 Content-Type: text/html; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-<FONT face=3D"Default Sans Serif,Verdana,Arial,Helvetica,sans-serif" size=
-=3D2><DIV><DIV>Hi all,</DIV><DIV>&nbsp;</DIV><DIV>&gt;Datasheet says that 0=
-x20, 0x23, 0x24, 0x43..0x45, and 0x4a..0x4d are<BR>&gt;all <BR>&gt;zero on =
-the EMC2300. Most interesting would be 0x45, 0x4b, and 0x4d, <BR>&gt;which =
-are initialized with 0x00 on the EMC2300 but 0xff for the <BR>&gt;EMC6D103S=
-. <BR></DIV><DIV>The datasheet lies :-)</DIV><DIV>&nbsp;</DIV><DIV>They ret=
-urn the same as the EMC6D103S, i.e. 0xff for 0x45, 0x4b, and 0x4d.</DIV><DI=
-V>&nbsp;</DIV><DIV>&gt;&gt;&nbsp;&gt;&nbsp;EMC2300&nbsp;doesn't&nbsp;have&n=
-bsp;all&nbsp;the&nbsp;voltage&nbsp;inputs&nbsp;that&nbsp;EMC6D103S&nbsp;has=
-, <BR>&gt;&gt;&nbsp;&gt;&nbsp;so&nbsp;reports&nbsp;in0,&nbsp;in3&nbsp;and&n=
-bsp;in4&nbsp;all&nbsp;as&nbsp;zero. <BR>&gt;&gt;&nbsp; <BR>&gt;&gt;&nbsp;Wo=
-uldn't&nbsp;this&nbsp;be&nbsp;good&nbsp;way&nbsp;to&nbsp;differentiate&nbsp=
-;between&nbsp;the&nbsp;parts?&nbsp;What <BR>&gt;&gt;&nbsp;values&nbsp;are&n=
-bsp;returned&nbsp;by&nbsp;the&nbsp;EMC2300&nbsp;for&nbsp;registers&nbsp;0x2=
-0,&nbsp;0x23,&nbsp;0x24, <BR>&gt;&gt;&nbsp;0x44,&nbsp;0x45,&nbsp;0x4a,&nbsp=
-;0x4b&nbsp;0x4c&nbsp;and&nbsp;0x4d? <BR></DIV><DIV>I thought of this, yes t=
-he missing&nbsp;voltage inputs all always return 0.&nbsp; I don't have an E=
-MC6D103S handy though, so I'm not able to check its behaviour if those pins=
- are either not connected or connected to ground.&nbsp; Presumably it could=
- also return 0 in some cases so the detection would not be 100% foolproof?<=
-/DIV><DIV>&nbsp;</DIV><DIV>I figured the safe option was to leave the extra=
- inputs visible, as I didn't want to risk blocking access to them on parts =
-where they're present.</DIV><DIV><BR>&gt;&gt;&nbsp;BTW,&nbsp;if&nbsp;you&nb=
-sp;could&nbsp;provide&nbsp;a&nbsp;register&nbsp;dump&nbsp;for&nbsp;the&nbsp=
-;EMC2300&nbsp;(using<BR>&gt;the <BR>&gt;&gt;&nbsp;i2c-dev&nbsp;kernel&nbsp;=
-driver&nbsp;and&nbsp;i2cdump&nbsp;tool&nbsp;from&nbsp;the&nbsp;i2c-tools&nb=
-sp;package)<BR>&gt;that <BR>&gt;&gt;&nbsp;would&nbsp;be&nbsp;appreciated. <=
-/DIV><DIV>&nbsp;</DIV><DIV>I'll see if I can get this dump for you tomorrow=
-.</DIV><DIV>&nbsp;</DIV><DIV>Steve</DIV><DIV>&nbsp;</DIV></DIV></FONT>=
+<FONT face="Default Sans Serif,Verdana,Arial,Helvetica,sans-serif" size=2><DIV>Hi Jean,<BR><DIV><BR>&gt;&gt;&gt;&nbsp;BTW,&nbsp;if&nbsp;you&nbsp;could&nbsp;provide&nbsp;a&nbsp;register&nbsp;dump&nbsp;for&nbsp;the&nbsp;EMC2300&nbsp;(using <BR>&gt;&gt;the&nbsp; <BR>&gt;&gt;&gt;&nbsp;i2c-dev&nbsp;kernel&nbsp;driver&nbsp;and&nbsp;i2cdump&nbsp;tool&nbsp;from&nbsp;the&nbsp;i2c-tools<BR>&gt;package) <BR>&gt;&gt;that&nbsp; <BR>&gt;&gt;&gt;&nbsp;would&nbsp;be&nbsp;appreciated.&nbsp; <BR></DIV><DIV>Dump as requested:</DIV><DIV>&nbsp;</DIV><DIV><A href="mailto:ste@mustafa:~$" target=blank>ste@mustafa:~$</A> sudo i2cdump 3 0x2e b<BR>WARNING! This program can confuse your I2C bus, cause data loss and worse!<BR>I will probe file /dev/i2c-3, address 0x2e, mode byte<BR>Continue? [Y/n] <BR>&nbsp;&nbsp;&nbsp;&nbsp; 0&nbsp; 1&nbsp; 2&nbsp; 3&nbsp; 4&nbsp; 5&nbsp; 6&nbsp; 7&nbsp; 8&nbsp; 9&nbsp; a&nbsp; b&nbsp; c&nbsp; d&nbsp; e&nbsp; f&nbsp;&nbsp;&nbsp; 0123456789abcdef<BR>00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>20: bf ff ff ff ff ff 00 ff dd 02 ff ff ff ff ff ff&nbsp;&nbsp;&nbsp; ?.......??......<BR>30: ff ff ff 00 00 00 00 00 00 00 00 00 00 00 5c 6a&nbsp;&nbsp;&nbsp; ..............\j<BR>40: 04 00 00 00 00 ff 00 ff 00 ff 00 ff 00 ff 81 7f&nbsp;&nbsp;&nbsp; ?.............??<BR>50: 81 7f 81 7f ff ff ff ff ff ff ff ff 62 62 62 c3&nbsp;&nbsp;&nbsp; ????........bbb?<BR>60: c3 c3 e0 00 80 80 80 80 80 80 64 64 64 44 40 00&nbsp;&nbsp;&nbsp; ???.??????dddD@.<BR>70: ff ff ff 09 09 09 09 07 07 00 00 00 40 00 ec 10&nbsp;&nbsp;&nbsp; ...??????...@.??<BR>80: 1e a4 0e 00 00 ff ff ff ff 03 57 57 0b 0b 0b 00&nbsp;&nbsp;&nbsp; ???......?WW???.<BR>90: 04 04 04 04 0c 0c 0c 5a f1 00 00 00 23 00 00 00&nbsp;&nbsp;&nbsp; ???????Z?...#...<BR>a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................<BR>f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00&nbsp;&nbsp;&nbsp; ................</DIV><DIV>&nbsp;</DIV><DIV>&nbsp;</DIV><DIV>Steve</DIV></DIV></FONT>
+--=_mixed 002E5EC6C125788E_Content-Type: application/octet-stream; name="i2cdump.txt"
+Content-Disposition: attachment; filename="i2cdump.txt"
+Content-Transfer-Encoding: base64
 
+c3RlQG11c3RhZmE6fiQgc3VkbyBpMmNkdW1wIDMgMHgyZSBiCldBUk5JTkchIFRoaXMgcHJvZ3Jh
+bSBjYW4gY29uZnVzZSB5b3VyIEkyQyBidXMsIGNhdXNlIGRhdGEgbG9zcyBhbmQgd29yc2UhCkkg
+d2lsbCBwcm9iZSBmaWxlIC9kZXYvaTJjLTMsIGFkZHJlc3MgMHgyZSwgbW9kZSBieXRlCkNvbnRp
+bnVlPyBbWS9uXSAKICAgICAwICAxICAyICAzICA0ICA1ICA2ICA3ICA4ICA5ICBhICBiICBjICBk
+ICBlICBmICAgIDAxMjM0NTY3ODlhYmNkZWYKMDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4uLi4uLi4uLi4KMTA6IDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4uLi4uLi4uLi4K
+MjA6IGJmIGZmIGZmIGZmIGZmIGZmIDAwIGZmIGRkIDAyIGZmIGZmIGZmIGZmIGZmIGZmICAgID8u
+Li4uLi4uPz8uLi4uLi4KMzA6IGZmIGZmIGZmIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDVjIDZhICAgIC4uLi4uLi4uLi4uLi4uXGoKNDA6IDA0IDAwIDAwIDAwIDAwIGZmIDAwIGZm
+IDAwIGZmIDAwIGZmIDAwIGZmIDgxIDdmICAgID8uLi4uLi4uLi4uLi4uPz8KNTA6IDgxIDdmIDgx
+IDdmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIGZmIDYyIDYyIDYyIGMzICAgID8/Pz8uLi4uLi4uLmJi
+Yj8KNjA6IGMzIGMzIGUwIDAwIDgwIDgwIDgwIDgwIDgwIDgwIDY0IDY0IDY0IDQ0IDQwIDAwICAg
+ID8/Py4/Pz8/Pz9kZGREQC4KNzA6IGZmIGZmIGZmIDA5IDA5IDA5IDA5IDA3IDA3IDAwIDAwIDAw
+IDQwIDAwIGVjIDEwICAgIC4uLj8/Pz8/Py4uLkAuPz8KODA6IDFlIGE0IDBlIDAwIDAwIGZmIGZm
+IGZmIGZmIDAzIDU3IDU3IDBiIDBiIDBiIDAwICAgID8/Py4uLi4uLj9XVz8/Py4KOTA6IDA0IDA0
+IDA0IDA0IDBjIDBjIDBjIDVhIGYxIDAwIDAwIDAwIDIzIDAwIDAwIDAwICAgID8/Pz8/Pz9aPy4u
+LiMuLi4KYTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+ICAgIC4uLi4uLi4uLi4uLi4uLi4KYjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4uLi4uLi4uLi4KYzA6IDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4uLi4uLi4uLi4KZDA6IDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4u
+Li4uLi4uLi4KZTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwICAgIC4uLi4uLi4uLi4uLi4uLi4KZjA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwICAgIC4uLi4uLi4uLi4uLi4uLi4KCg=
 
---===============2152312653383462213==
-Content-Type: text/plain; charset="us-ascii"
+--=_mixed 002E5EC6C125788E_Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
@@ -54,4 +54,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2152312653383462213==--
+--=_mixed 002E5EC6C125788E_=--
