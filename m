@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 13 May 2011 09:24:18 +0000
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Date: Fri, 13 May 2011 09:41:29 +0000
 Subject: Re: [lm-sensors] [PATCHv6 1/1] Hwmon: Merge Pkgtemp with Coretemp
-Message-Id: <20110513092418.GA16051@ericsson.com>
+Message-Id: <D6D887BA8C9DFF48B5233887EF046541095AD0494B@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1305196125-10157-1-git-send-email-durgadoss.r@intel.com>
 In-Reply-To: <1305196125-10157-1-git-send-email-durgadoss.r@intel.com>
@@ -10,68 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, May 13, 2011 at 01:46:09AM -0400, R, Durgadoss wrote:
-> Hi Guenter,
-> 
-> Thanks for the comments.
-> Some clarifications..
-> 
-> +static struct platform_device *coretemp_get_pdev(unsigned int cpu)
-> > > +{
-> > > +       return NULL;
-> > 
-> > Unless I am missing something, there should still be one pdev entry.
-> > But because you never return it, the driver will never instantiate
-> > the one supported core. You should return the one and only list entry here.
-> > 
-> > It might be worthwhile testing the driver in a non-SMP configuration
-> > to make sure that it works.
-> 
-> Yes You are right...I have to return the one pdev entry here..
-> Added that code for my next version of patch and tested in a non-smp
-> Configuration. Works for me without crash.
-> 
-> But, My machine had only one core, in non-smp config(which cannot be offlined)
-> So could not test HOTPLU_CPU support with non-smp.
-> 
-> > > +static void coretemp_remove_core(struct platform_data *pdata,
-> > > +                               struct device *dev, int indx)
-> > > +{
-> > > +       int i;
-> > > +       struct temp_data *tdata = pdata->core_data[indx];
-> > > +
+Hi Guenter,
+
 > > > +       mutex_lock(&tdata->update_lock);
-> > > +
-> > I don't think the lock helps anything here. _If_ another caller tries
-> > to acquire the lock while you hold it here, it will get it right after
-> > the unlock below, just before you remove the data. Oops.
-> > If that ever happens, the code has a severe problem somewhere.
-> > 
+> > > > +
+> > > I don't think the lock helps anything here. _If_ another caller tries
+> > > to acquire the lock while you hold it here, it will get it right after
+> > > the unlock below, just before you remove the data. Oops.
+> > > If that ever happens, the code has a severe problem somewhere.
+> > >
+> >
+> > I agree that the scenario you mentioned can happen.
+> > But to protect it, we need a global lock, that is
+> > alive even if we delete the temp_data.
+> > Should I add a lock in platform_data structure ?
+> >
+> My reasoning was that _if_ the scenario protected by the lock can happen,
+> ie you have a file access while a core is removed, you are in big trouble
+> anyway. A lock anywhere would not help you, since the access to the per-core
+> data you are trying to remove is already underway.
 > 
-> I agree that the scenario you mentioned can happen.
-> But to protect it, we need a global lock, that is
-> alive even if we delete the temp_data.
-> Should I add a lock in platform_data structure ?
+> > > > +       /* Remove the sysfs attributes */
+> > > > +       for (i = 0; i < MAX_ATTRS; i++)
+> > > > +               device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
+> > > > +
 > 
-My reasoning was that _if_ the scenario protected by the lock can happen,
-ie you have a file access while a core is removed, you are in big trouble
-anyway. A lock anywhere would not help you, since the access to the per-core
-data you are trying to remove is already underway.
+> My understanding is that once you removed the sysfs files associated with a
+> core,
+> it is safe to remove its tdata entry since sysfs access to the data associated
+> with the core is no longer possible. So a lock should not be needed here.
+> 
+> I am curious - did you experience a scenario which made you believe
+> that you need the lock ?
+> 
 
-> > > +       /* Remove the sysfs attributes */
-> > > +       for (i = 0; i < MAX_ATTRS; i++)
-> > > +               device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
-> > > +
-
-My understanding is that once you removed the sysfs files associated with a core,
-it is safe to remove its tdata entry since sysfs access to the data associated
-with the core is no longer possible. So a lock should not be needed here.
-
-I am curious - did you experience a scenario which made you believe
-that you need the lock ?
+No I did not experience. While offlining this core, we can possibly unload the whole module..
+That's the thought with which I included the lock.
 
 Thanks,
-Guenter
+Durga
+
 
 _______________________________________________
 lm-sensors mailing list
