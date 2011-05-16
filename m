@@ -1,76 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 05 May 2011 20:55:11 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Drop MAX6650/51 detection
-Message-Id: <20110505225511.0eb5070d@endymion.delvare>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Mon, 16 May 2011 15:26:35 +0000
+Subject: [lm-sensors] [PATCH] i8k: avoid lahf in 64bit code
+Message-Id: <20110516152635.GA13796@nb-core2.darkstar.lan>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Drop MAX6650/51 detection. It's unreliable, and that's not the kind
-of chip I expect to be seen in a PC. People who have this chip know
-that they do, they don't need sensors-detect to tell them.
+i8k uses lahf to read the flag register in 64 bit code; early 64 bit
+CPUs, however, lack this instruction and we get an invalid opcode
+exception at runtime.
+Use pushf to load the flag register into the stack instead.
+
+Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+Reported-by: Jeff Rickman <jrickman@myamigos.us>
+Tested-by: Jeff Rickman <jrickman@myamigos.us>
+Tested-by: Harry G McGavran Jr <w5pny@arrl.net>
+Cc: stable@kernel.org
 ---
-I plan to drop detection from the max6650 driver too, for the same
-reason.
+ drivers/char/i8k.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- prog/detect/sensors-detect |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
-
---- lm-sensors.orig/prog/detect/sensors-detect	2011-05-05 22:46:59.000000000 +0200
-+++ lm-sensors/prog/detect/sensors-detect	2011-05-05 22:51:11.000000000 +0200
-@@ -848,11 +848,6 @@ use vars qw(@i2c_adapter_names);
- 		i2c_addrs => [0x2c, 0x2e, 0x2f],
- 		i2c_detect => sub { max6639_detect(@_); },
- 	}, {
--		name => "Maxim MAX6650/MAX6651",
--		driver => "max6650",
--		i2c_addrs => [0x1b, 0x1f, 0x48, 0x4b],
--		i2c_detect => sub { max6650_detect(@_); },
--	}, {
- 		name => "Maxim MAX6655/MAX6656",
- 		driver => "max6655",
- 		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
-@@ -5776,34 +5771,6 @@ sub max6639_detect
- 	return 6;
- }
- 
--# The max6650 has no device ID register. However, a few registers have
--# spare bits, which are documented as being always zero on read. We read
--# all of these registers check the spare bits. Any non-zero means this
--# is not a max6650/1.
--#
--# The always zero bits are:
--#   configuration byte register (0x02) - top 2 bits
--#   gpio status register (0x14) - top 3 bits
--#   alarm enable register (0x08) - top 3 bits
--#   alarm status register (0x0A) - top 3 bits
--#   tachometer count time register (0x16) - top 6 bits
--# Additionally, not all values are possible for lower 3 bits of
--# the configuration register.
--sub max6650_detect
--{
--	my ($file, $addr) = @_;
--
--	my $conf = i2c_smbus_read_byte_data($file, 0x02);
--
--	return if i2c_smbus_read_byte_data($file, 0x16) & 0xFC;
--	return if i2c_smbus_read_byte_data($file, 0x0A) & 0xE0;
--	return if i2c_smbus_read_byte_data($file, 0x08) & 0xE0;
--	return if i2c_smbus_read_byte_data($file, 0x14) & 0xE0;
--	return if ($conf & 0xC0) or ($conf & 0x07) > 4;
--
--	return 2;
--}
--
- sub max6655_detect
- {
- 	my ($file, $addr) = @_;
-
-
--- 
-Jean Delvare
+diff --git a/drivers/char/i8k.c b/drivers/char/i8k.c
+index d72433f..ee01716 100644
+--- a/drivers/char/i8k.c
++++ b/drivers/char/i8k.c
+@@ -139,8 +139,8 @@ static int i8k_smm(struct smm_regs *regs)
+ 		"movl %%edi,20(%%rax)\n\t"
+ 		"popq %%rdx\n\t"
+ 		"movl %%edx,0(%%rax)\n\t"
+-		"lahf\n\t"
+-		"shrl $8,%%eax\n\t"
++		"pushfq\n\t"
++		"popq %%rax\n\t"
+ 		"andl $1,%%eax\n"
+ 		:"=a"(rc)
+ 		:    "a"(regs)
 
 _______________________________________________
 lm-sensors mailing list
