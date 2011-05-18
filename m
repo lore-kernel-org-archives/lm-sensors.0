@@ -1,71 +1,80 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Wed, 18 May 2011 16:16:58 +0000
-Subject: [lm-sensors] [PATCH V2 0/2] staging:iio:adc:as1531 driver port from
-Message-Id: <1305735420-23293-1-git-send-email-jic23@cam.ac.uk>
+From: Fabien Marteau <fabien.marteau@armadeus.com>
+Date: Wed, 18 May 2011 17:01:50 +0000
+Subject: Re: [lm-sensors] [PATCH V2 0/2] staging:iio:adc:as1531 driver port
+Message-Id: <4DD3FB7E.2020806@armadeus.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1305733172-18519-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1305733172-18519-1-git-send-email-jic23@cam.ac.uk>
+References: <1305733172-18519-1-git-send-email-jic23@cam.ac.uk> <1305735420-23293-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1305735420-23293-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: fabien.marteau@armadeus.com
-Cc: guenter.roeck@ericsson.com, linux-iio@vger.kernel.org, lm-sensors@lm-sensors.org, Jonathan Cameron <jic23@cam.ac.uk>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: guenter.roeck@ericsson.com, linux-iio@vger.kernel.org, lm-sensors@lm-sensors.org
 
-V2: Fix the various issues Guenter found.
+Dear Jonathan,
 
-Original message -
+Thanks for all the work you done to re-write this driver under iio. I
+will try to find time this week to test this new version under my platform.
 
-Dear All,
+It was just a little tricky hwmon driver, it's really nice that you
+spend time to write a good driver.
 
-This is a quick initial port of the as1531 driver Fabien submitted
-to the lm-sensors mailing list.
+Fabien M
 
-Based on top of a large series I just sent to Greg KH and posted to
-linux-iio. That has a few other dependencies, so might be easier
-to just to wait for them all to be in a standard tree (linux-next
-or mainline).
-
-Dropped from hwmon driver - max and min values.
-
-Stuff to add at some point (i.e. when needed)
-
-1) Differential channels - trivial to do, just add a few more entries to
-the channels array and some signed bits in read_raw
-
-2) Buffered read support - straight forward case where all channels have
-to be explicitly requested anyway.
-
-3) Other devices trivially added:
-as1530 is directly compatible.
-as1532/1533 look like 4 channel equivalents (add iio_chan_spec arrays).
-
-The other similarly numbered parts are different enough to need their
-own drivers.
-
-Fabien, as more of the code in the first patch is yours than mine,
-I've put you as author of that one.
-
-The second is mostly stuff you'd have gotten in review to the hwmon
-driver anyway.
-
-Jonathan
-
-Fabien Marteau (1):
-  staging:iio:adc: as1531 driver initial conversion from hwmon
-    submission.
-
-Jonathan Cameron (1):
-  staging:iio:adc:as1351 general cleanup and conversion to standard
-    functions.
-
- drivers/staging/iio/adc/Kconfig  |   10 +++
- drivers/staging/iio/adc/Makefile |    2 +
- drivers/staging/iio/adc/as1531.c |  166 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 178 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/iio/adc/as1531.c
-
--- 
-1.7.3.4
+On 18/05/2011 18:16, Jonathan Cameron wrote:
+> V2: Fix the various issues Guenter found.
+> 
+> Original message -
+> 
+> Dear All,
+> 
+> This is a quick initial port of the as1531 driver Fabien submitted
+> to the lm-sensors mailing list.
+> 
+> Based on top of a large series I just sent to Greg KH and posted to
+> linux-iio. That has a few other dependencies, so might be easier
+> to just to wait for them all to be in a standard tree (linux-next
+> or mainline).
+> 
+> Dropped from hwmon driver - max and min values.
+> 
+> Stuff to add at some point (i.e. when needed)
+> 
+> 1) Differential channels - trivial to do, just add a few more entries to
+> the channels array and some signed bits in read_raw
+> 
+> 2) Buffered read support - straight forward case where all channels have
+> to be explicitly requested anyway.
+> 
+> 3) Other devices trivially added:
+> as1530 is directly compatible.
+> as1532/1533 look like 4 channel equivalents (add iio_chan_spec arrays).
+> 
+> The other similarly numbered parts are different enough to need their
+> own drivers.
+> 
+> Fabien, as more of the code in the first patch is yours than mine,
+> I've put you as author of that one.
+> 
+> The second is mostly stuff you'd have gotten in review to the hwmon
+> driver anyway.
+> 
+> Jonathan
+> 
+> Fabien Marteau (1):
+>   staging:iio:adc: as1531 driver initial conversion from hwmon
+>     submission.
+> 
+> Jonathan Cameron (1):
+>   staging:iio:adc:as1351 general cleanup and conversion to standard
+>     functions.
+> 
+>  drivers/staging/iio/adc/Kconfig  |   10 +++
+>  drivers/staging/iio/adc/Makefile |    2 +
+>  drivers/staging/iio/adc/as1531.c |  166 ++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 178 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/staging/iio/adc/as1531.c
+> 
 
 
 _______________________________________________
