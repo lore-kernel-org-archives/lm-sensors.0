@@ -1,50 +1,110 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 17 May 2011 13:38:05 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Wed, 18 May 2011 13:09:13 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: Driver for as1531,
-Message-Id: <20110517133805.GA4006@ericsson.com>
+Message-Id: <4DD3C4F9.2000806@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <fabien.marteau@armadeus.com>
- <1305553154-18195-2-git-send-email-fabien.marteau@armadeus.com>
- <20110516153900.GA31255@ericsson.com>
- <4DD21E5E.9000605@armadeus.com>
- <4DD23EED.4010201@cam.ac.uk>
-In-Reply-To: <4DD23EED.4010201@cam.ac.uk>
+References: <fabien.marteau@armadeus.com> <1305553154-18195-2-git-send-email-fabien.marteau@armadeus.com>
+In-Reply-To: <1305553154-18195-2-git-send-email-fabien.marteau@armadeus.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: "fabien.marteau@armadeus.com" <fabien.marteau@armadeus.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: fabien.marteau@armadeus.com
+Cc: khali@linux-fr.org, guenter.roeck@ericsson.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Tue, May 17, 2011 at 05:25:01AM -0400, Jonathan Cameron wrote:
-> On 05/17/11 08:06, Fabien Marteau wrote:
-> > Hi Guenter,
-> > 
-> > Thanks for the review.
-> > 
-> > On 16/05/2011 17:39, Guenter Roeck wrote:
-> >> On Mon, May 16, 2011 at 09:39:14AM -0400, fabien.marteau@armadeus.com wrote:
-> >>> From: Fabien Marteau <fabien.marteau@armadeus.com>
-> >>>
-> >>>
-> >> Some description, such as "Dhis driver adds support for xxx" would be nice.
-> >>
-> >> Also, I wonder if this driver belongs into hwmon in the first place. It is
-> >> a generic ADC chip with high conversion rate. iio would probably be more
-> >> appropriate and also much better in supporting high speed readings.
-> > I provided this driver "as is" because it's a driver that work well on
-> > our platform. I thought that iio was not stable enough driver framework
-> > to be used.
-> > I can rewrite it under iio framework but I have no time for this moment
-> > to do that. You think it's better to wait for an iio driver or to
-> > continue commiting this ?
-> I'd say that if you primary use is hwmon, put it there for now and we can think
-> about moving it at a later date depending on how people are actually using it.
-> Guenter, would that be ok for you?
+On 05/16/11 14:39, fabien.marteau@armadeus.com wrote:
+> From: Fabien Marteau <fabien.marteau@armadeus.com>
+> 
+Had a few minutes so done a quick port to IIO with minimal code changes.
+Now looking at cleaning things up so actually reading the code rather
+than cut and paste.  The message is somewhat 'novel'. 
 
-Yes, that would be ok.
+...
 
-Thanks,
-Guenter
+So we have a spi device that only talks in 1 bit words?
+1) I'm amazed any spi controllers support that.
+2) Doesn't look necessary from the data sheet google furnished me with.
+
+Looks like it will quite happily work with 8 bit transfers. Suggested replacement code below.
+> +static int as1531_message(struct spi_device *spi, int cmd, int *ret_value)
+> +{
+> +	struct spi_message	message;
+> +	struct spi_transfer	x[1];
+> +	int status, i;
+> +	u8	cmd_send;
+> +	unsigned char buf[64];
+> +	unsigned char buf_read[64];
+> +
+> +	cmd_send = cmd;
+> +
+> +	spi_message_init(&message);
+> +	memset(x, 0, sizeof x);
+> +	memset(buf, 0, sizeof(buf));
+> +	memset(buf_read, 0, sizeof(buf_read));
+> +
+> +	for (i = 0; i < 8; i++) {
+> +		buf[i] = ((cmd_send & 0x80)>>7);
+> +		cmd_send = cmd_send << 1;
+> +	}
+> +
+> +	x[0].tx_buf = buf;
+> +	x[0].len = 24;
+> +	x[0].rx_buf = buf_read;
+> +	x[0].speed_hz = AS1531_SPI_SPEED;
+> +	x[0].bits_per_word = 1;
+> +	spi_message_add_tail(&x[0], &message);
+> +
+> +	status = spi_sync(spi, &message);
+> +	if (status < 0)
+> +		return status;
+> +
+> +	*ret_value = buf_read[11] & 0x01;
+> +	for (i = 12; i < 23 ; i++) {
+> +		*ret_value = *ret_value << 1;
+> +		*ret_value = *ret_value | (buf_read[i]&0x01);
+> +	}
+> +
+> +	return 0;
+> +}
+static int as1531_message(struct spi_device *spi, int cmd, u16 *ret_value)
+{
+	int status;
+	u8 cmd_send = cmd;
+	struct spi_message message;
+	struct spi_transfer x[2] = {
+		{
+			.len = 1,
+			/* this should be default anyway - so could drop */
+			.bits_per_word = 8,
+			/* This should be set in board config really */
+			.speed_hz = AS1531_SPI_SPEED,
+			.rx_buf = &cmd_send,
+		}, {
+			.len = 2,
+			.bits_per_word = 8,
+			.speed_hz = AS1531_SPI_SPEED,
+			.tx_buf = ret_value,
+		}
+	};
+
+	spi_message_init(&message);
+	spi_message_add_tail(&x[0], &message);
+	spi_message_add_tail(&x[1], &message);
+
+	status = spi_sync(spi, &message);
+	if (status < 0)
+		return status;
+
+	*ret_value = (be16_to_cpup(ret_value) >> 2) & 0xFFF;
+
+	return 0;
+}
+
+Obviously also requires changing the type of the element passed
+as ret_value.  Could set the bits_per_word of the second transfer
+to 16 and avoid the endianness conversion, but I'm not sure how
+many spi masters support that.
+
+Jonathan
 
 _______________________________________________
 lm-sensors mailing list
