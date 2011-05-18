@@ -1,39 +1,54 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 02 May 2011 08:49:04 +0000
-Subject: Re: [lm-sensors] HELP with  and [msi p67a-gd65]
-Message-Id: <4DBE7000.7060606@redhat.com>
+From: "Javier S. Pedro" <javier@javispedro.com>
+Date: Wed, 18 May 2011 12:32:03 +0000
+Subject: Re: [lm-sensors] asus_atk0110 causes mouse and keyboard freeze in
+Message-Id: <ir0e83$31j$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <SNT141-w55955A6C97713857828A23A19C0@phx.gbl>
-In-Reply-To: <SNT141-w55955A6C97713857828A23A19C0@phx.gbl>
+References: <4CF7B282.10007@verizon.net>
+In-Reply-To: <4CF7B282.10007@verizon.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Did you get somewhere with this?
 
-On 05/01/2011 01:35 PM, Jean Delvare wrote:
-> On Sun, 1 May 2011 11:03:59 +0000, Jose =C1lvarez wrote:
->>> Chip ID 0x1005appears to be a F71889 a standalone drive is available he=
-re
->>> http://people.fedoraproject.org/~jwrdegoede/f71882fg/
->>>
->>> Just manually download the driver to some directory than do a make&&  s=
-udo
->>> make install&&  modprobe f71882fg
->
-> FWIW, the "official" (i.e. somewhat maintained and reasonably
-> up-to-date) standalone version of the f71882fg driver is the one at:
->    http://khali.linux-fr.org/devel/misc/f71882fg/
->
-> Hans, maybe you should remove yours altogether, to avoid confusion?
->
+I too have a P7P55D. While I do not normally use atk0110, I decided to 
+build it (2.6.37), load it on a system that had a few days of uptime and 
+bang! keyboard and mouse were locked in 7 seconds.
 
-Agreed, done.
+(Tue, 07 Dec 2010 15:12:40 +0100) Luca Tettamanti:
+> Ok, excellent. When the keyboard freezes ssh into the machine and take a
+> snapshot of /proc/interrupts, then press a few keys and take another
+> snapshot.
+> Please also send me the dmesg (after the lock up).
 
-Regards,
+i8042 seems to stop sending interrupts as seen on a /proc/interrupts diff:
 
-Hans
+7c7
+<  16:       3322       3315       3313       3289   IO-APIC-fasteoi   
+ehci_hcd:usb1, EMU10K1, nvidia
+---
+>  16:       3343       3336       3331       3309   IO-APIC-fasteoi   
+ehci_hcd:usb1, EMU10K1, nvidia
+11,12c11,12
+<  40:      25414      25283      25248      25192   PCI-MSI-edge      
+ahci
+<  41:       3527       3533       3579       3598   PCI-MSI-edge      
+eth0
+---
+>  40:      25440      25310      25278      25221   PCI-MSI-edge      
+ahci
+>  41:       3533       3538       3584       3603   PCI-MSI-edge      
+eth0
+15c15
+< LOC:     145024     158135     165464      99774   Local timer 
+interrupts
+---
+> LOC:     145282     158207     165545      99944   Local timer 
+interrupts
+
+Nothing was on dmesg after lockup, so no idea why this happens.
+
 
 _______________________________________________
 lm-sensors mailing list
