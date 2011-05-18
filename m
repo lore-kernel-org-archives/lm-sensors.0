@@ -1,46 +1,67 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 27 May 2011 09:51:29 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.40
-Message-Id: <1306489889-20741-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Wed, 18 May 2011 15:39:30 +0000
+Subject: [lm-sensors] [PATCH 0/2] staging:iio:adc:as1531 driver port from
+Message-Id: <1305733172-18519-1-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4DD26311.7070905@armadeus.com>
+In-Reply-To: <4DD26311.7070905@armadeus.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: fabien.marteau@armadeus.com
+Cc: guenter.roeck@ericsson.com, linux-iio@vger.kernel.org, lm-sensors@lm-sensors.org, Jonathan Cameron <jic23@cam.ac.uk>
 
-Hi Linus,
+Dear All,
 
-Please pull hwmon subsystem fixes for Linux 2.6.40 from:
+This is a quick initial port of the as1531 driver Fabien submitted
+to the lm-sensors mailing list.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+Based on top of a large series I just sent to Greg KH and posted to
+linux-iio. That has a few other dependencies, so might be easier
+to just to wait for them all to be in a standard tree (linux-next
+or mainline).
 
-Thanks,
-Guenter Roeck
+Dropped from hwmon driver - max and min values.
 
-------
+Stuff to add at some point (i.e. when needed)
 
-The following changes since commit dc7acbb2518f250050179c8581a972df3b6a24f1:
+1) Differential channels - trivial to do, just add a few more entries to
+the channels array and some signed bits in read_raw
 
-  Merge branch 'upstream/tidy-xen-mmu-2.6.39' of git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen (2011-05-26 19:01:15 -0700)
+2) Buffered read support - straight forward case where all channels have
+to be explicitly requested anyway.
 
-are available in the git repository at:
+3) Other devices trivially added:
+as1530 is directly compatible.
+as1532/1533 look like 4 channel equivalents (add iio_chan_spec arrays).
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+The other similarly numbered parts are different enough to need their
+own drivers.
 
-Guenter Roeck (2):
-      hwmon: (coretemp) Update comments describing the handling of HT CPUs
-      hwmon: (pmbus) Initialize sysfs attributes
+Fabien, as more of the code in the first patch is yours than mine,
+I've put you as author of that one.
 
-Jean Delvare (1):
-      hwmon: (coretemp) Fix section mismatch
+The second is mostly stuff you'd have gotten in review to the hwmon
+driver anyway.
 
-Sergey Senozhatsky (1):
-      hwmon: (coretemp) Initialize sysfs attributes
 
- drivers/hwmon/coretemp.c   |   16 +++++++++-------
- drivers/hwmon/pmbus_core.c |    1 +
- 2 files changed, 10 insertions(+), 7 deletions(-)
+Fabien Marteau (1):
+  staging:iio:adc: as1531 driver initial conversion from hwmon
+    submission.
+
+Jonathan Cameron (1):
+  staging:iio:adc:as1351 general cleanup and conversion to standard
+    functions.
+
+ drivers/staging/iio/adc/Kconfig  |   10 ++
+ drivers/staging/iio/adc/Makefile |    2 +
+ drivers/staging/iio/adc/as1531.c |  168 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 180 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/iio/adc/as1531.c
+
+-- 
+1.7.3.4
+
 
 _______________________________________________
 lm-sensors mailing list
