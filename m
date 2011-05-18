@@ -1,9 +1,9 @@
 From: Harry G McGavran Jr <w5pny@w5pny.com>
-Date: Wed, 18 May 2011 16:11:33 +0000
+Date: Wed, 18 May 2011 16:18:44 +0000
 Subject: Re: [lm-sensors] EMC6W201 module - Dell Sensors Testing
-Message-Id: <20110518161133.212F91A987F@localhost.localdomain>
+Message-Id: <20110518161844.22A261A987F@localhost.localdomain>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="==_Exmh_1305735090_33110"
+Content-Type: multipart/mixed; boundary="==_Exmh_1305735514_33110"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4DD30DD1.4080909@myamigos.us>
 In-Reply-To: <4DD30DD1.4080909@myamigos.us>
@@ -11,18 +11,21 @@ To: lm-sensors@vger.kernel.org
 
 This is a multipart MIME message.
 
---==_Exmh_1305735090_33110
+--==_Exmh_1305735514_33110
 Content-Type: text/plain; charset=us-ascii
 
 
-Here is my stab at a conf file.
+I had misspelled "ignore" for in5 in that conf file
+in a line that was commented out for single-CPUs.
 
-    Harry McGavran
+This fixes that...  Oh well...
+
+	Harry McGavran
 
 
 
 
---==_Exmh_1305735090_33110
+--==_Exmh_1305735514_33110
 Content-Type: application/octet-stream ; name="sensors3a-Dell-Precision-670.conf"
 Content-Description: sensors3a-Dell-Precision-670.conf
 Content-Transfer-Encoding: base64
@@ -53,7 +56,7 @@ ICNpZ25vcmUgdGVtcDIKICAgI2lnbm9yZSB0ZW1wMwogICAjaWdub3JlIHRlbXA0CiAgICNsYWJl
 bCAgdGVtcDUgICJSZW1vdGUgRGlvZGUgNSIKICAgI2xhYmVsICB0ZW1wNiAgIkNhc2UgVGVtcCIK
 Cg==
 
---==_Exmh_1305735090_33110
+--==_Exmh_1305735514_33110
 Content-Type: text/plain; charset=us-ascii
 
 
@@ -62,7 +65,7 @@ Harry G. McGavran, Jr.
 E-mail: w5pny@w5pny.com
 
 
---==_Exmh_1305735090_33110
+--==_Exmh_1305735514_33110
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -72,6 +75,6 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---==_Exmh_1305735090_33110--
+--==_Exmh_1305735514_33110--
 
 
