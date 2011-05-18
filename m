@@ -1,116 +1,102 @@
-From: Jan Wagner <waja@cyconet.org>
-Date: Tue, 17 May 2011 09:33:44 +0000
-Subject: Re: [lm-sensors] FAULT status of sensors
-Message-Id: <201105171133.48391.waja@cyconet.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3610581193038570826=="
+From: Jeff Rickman <jrickman@myamigos.us>
+Date: Wed, 18 May 2011 00:07:45 +0000
+Subject: [lm-sensors] EMC6W201 module - Dell Sensors Testing
+Message-Id: <4DD30DD1.4080909@myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201105162023.54718.waja@cyconet.org>
-In-Reply-To: <201105162023.54718.waja@cyconet.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
---===============3610581193038570826==
-Content-Type: multipart/signed;
-  boundary="nextPart1546508.g8RzjYMLXs";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-
---nextPart1546508.g8RzjYMLXs
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Hi Jonathan,
-
-thanks for your bugreport.
-
-On Tuesday 17 May 2011 09:36:00 Jean Delvare wrote:
-> On Mon, 16 May 2011 19:32:52 -0700, Guenter Roeck wrote:
-> > On Mon, May 16, 2011 at 02:23:44PM -0400, Jan Wagner wrote:
-> > > we got a bugreport[1] against our nagios-plugins package. Unfortunate=
-ly
-> > > we are unsure about what "FAULT" means.
-> > > In case this is a hardware problem of a sensor in form of it got
-> > > damaged, we would report "CRITICAL", as a problem occured.
-> > > If this means there is a problem detecting the sensor or something
-> > > software like problem, we would report "UNKNOWN" as this not means a
-> > > hardware problem happened.
-> >=20
-> > It is supposed to indicate a HW problem. Here is the text describing the
-> > sysfs attribute:
-> >=20
-> > "Each input channel may have an associated fault file. This can be used
-> >=20
-> >  to notify open diodes, unconnected fans etc. where the hardware
-> >  supports it. When this boolean has value 1, the measurement for that
-> >  channel should not be trusted."
-> >=20
-> > Note that "critical" in the hwmon ABI means that a critical limit has
-> > been reached. You would get a "critical" alarm in this case. You might
-> > have a terminology problem if you use "critical" for a hardware failure.
-> >=20
-> > An undetected sensor should not show up in the first place.
->=20
-> In fact, FAULT can happen in two different cases. First case (most
-> common) is unused channel by the manufacturer and the channel should
-> indeed be ignored. Second case is thermal diode dying or fan stalling,
-> and reporting this makes sense. So I would:
-> * Ignore sensor channels which report FAULT when you start monitoring.
-> * Report FAULT as an actual problem if it happens later during
->   monitoring, for a channel which reported real values before. The
->   terminology is up to you.
-
-(Jean: many thanks for your clarification)
-
-This means, that FAULT can be happen, if the hardware conditions are fine a=
-nd=20
-hardware is failing too.
-
-On Saturday 26 February 2011 00:07:22 Jonathan Wiltshire wrote:
-> The attached patch causes check_sensors to return a critical status if
-> faulty sensors are detected.
-
-=46or nagios-plugins this means, we don't know if there is exactly a proble=
-m. We=20
-should report "UNKNOWN" via check_sensors if "FAULT" is reported by the=20
-sensor. As the source of this may also not a problem with the hardware=20
-conditions itself, something like --ignore-fault needs to be implemented to=
-o.
-
-With kind regards, Jan.
-=2D-=20
-Never write mail to <waja@spamfalle.info>, you have been warned!
-=2D----BEGIN GEEK CODE BLOCK-----
-Version: 3.12
-GIT d-- s+: a C+++ UL++++ P+ L+++ E--- W+++ N+++ o++ K++ w--- O M V- PS PE =
-Y++
-PGP++ t-- 5 X R tv- b+ DI D+ G++ e++ h---- r+++ y++++=20
-=2D-----END GEEK CODE BLOCK------
-
---nextPart1546508.g8RzjYMLXs
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iD8DBQBN0kD49u6Dud+QFyQRAn3MAJ9Vi7h/VMdgD3VCcBcqPtik6b3VmQCg10tq
-JQvIrl/ibIigdQ93mkMTXyI=
-=sZ4o
------END PGP SIGNATURE-----
-
---nextPart1546508.g8RzjYMLXs--
 
 
---===============3610581193038570826==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-------- Original Message --------
+Date: 	Tue, 17 May 2011 19:50:00 -0400
+
+
+Download emc6w201 files.
+Did not need "i2c-compat.h" file since my kernel > 2.6.32
+
+Output of "uname -a"
+Linux XX.xx.xx.xx 2.6.35.12-90.fc14.x86_64 #1 SMP Fri Apr 22 16:01:29
+UTC 2011 x86_64 x86_64 x86_64 GNU/Linux
+Platform is Dell Precision 670 Workstation with A07 BIOS
+
+CPU info
+vendor_id : GenuineIntel
+cpu family : 15
+model : 4
+model name : Intel(R) Xeon(TM) CPU 3.00GHz
+stepping : 1
+cpu MHz : 750.000 ("cpuspeed" package is enabled)
+cache size : 1024 KB
+
+Compile the emc6w201 module
+Copy provided "emc6w201.conf" file to "/etc/sensors.d" directory
+
+Run "modprobe -v emc6w201"
+No faults on Console. No faults captured to Syslog
+Run "sensors". System kicks me out.
+Reboot required
+Unable to duplicate issue with "sensors"
+Reboot
+
+Run "modprobe -v emc6w201" without using "i8k" module
+No errors on Console. No errors in Syslog.
+"emc6w201" module installs
+
+Selected "lsmod" output
+Module Size Used by
+emc6w201 8742 0
+~SNIP~
+i2c_core 27212 6 emc6w201,i2c_i801,nouveau,drm_kms_helper,drm,i2c_algo_bit
+
+Output from "sensors"
+emc6w201-i2c-2-2e
+Adapter: SMBus I801 adapter at ece0
+in0: +1.80 V (min = +1.64 V, max = +1.98 V)
+in1: +1.36 V (min = +0.78 V, max = +1.70 V)
++3.3V: +3.38 V (min = +3.08 V, max = +3.52 V)
++5V: +5.08 V (min = +4.66 V, max = +5.34 V)
+in4: +1.51 V (min = +1.40 V, max = +1.60 V)
+in5: +1.35 V (min = +0.78 V, max = +1.70 V)
+fan1: 1498 RPM (min = 300 RPM)
+fan2: 1795 RPM (min = 300 RPM)
+fan3: 1899 RPM (min = 200 RPM)
+fan4: 0 RPM (min = 82 RPM)
+fan5: 0 RPM (min = 82 RPM)
+temp1: +46.0°C (low = -127.0°C, high = +88.0°C)
+temp2: +48.0°C (low = -127.0°C, high = +88.0°C)
+temp3: +45.0°C (low = -127.0°C, high = +60.0°C)
+temp4: +41.0°C (low = -127.0°C, high = +55.0°C)
+temp5: +44.0°C (low = -127.0°C, high = +75.0°C)
+Case Temp: +42.0°C (low = -127.0°C, high = +80.0°C)
+
+My own guesses at voltages since I am not near this machine right now...
+in0 could be VDIMM since "lshw" reports 400MHz DDR memory
+in4 could be +12V and requires a *8 scaling factor.
+in1 & in5 could be Vcore lines??
+
+If time permits, I need to carefully check voltage lines inside the 
+system with a digital VOM to compare to "sensors" output. Next, I want 
+to pull a memory stick or two to see if they are DDR or DDR2. Then I 
+need to do "load" experiments in an attempt to identify the physical 
+CPUs in the "sensors" output.
+
+Since this system has 2 physical CPU packages and each CPU has
+hyperthreading enabled, I wonder which temp sensors from [1-5] would be
+useful?
+
+I noticed that "coretemp" does not load on this platform. Perhaps the
+platform/CPU/whatever is too old or not instrumented for "coretemp", or 
+"coretemp" isn't instrumented for this Intel CPU family?
+
+I will have to inspect this system to see if the physical fans are
+3-wire or PWM and what fan headers are on the motherboard and how/if 
+they are identified.
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3610581193038570826==--
