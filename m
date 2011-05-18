@@ -1,10 +1,10 @@
 From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Wed, 18 May 2011 15:39:31 +0000
+Date: Wed, 18 May 2011 16:16:59 +0000
 Subject: [lm-sensors] =?utf-8?q?=5BPATCH_1/2=5D_staging=3Aiio=3Aadc=3A_as1?=
-Message-Id: <1305733172-18519-2-git-send-email-jic23@cam.ac.uk>
+Message-Id: <1305735420-23293-2-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DD26311.7070905@armadeus.com>
-In-Reply-To: <4DD26311.7070905@armadeus.com>
+References: <1305733172-18519-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1305733172-18519-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -13,13 +13,14 @@ Cc: guenter.roeck@ericsson.com, linux-iio@vger.kernel.org, lm-sensors@lm-sensors
 
 From: Fabien Marteau <fabien.marteau@armadeus.com>
 
+V2: Fix double mutex unlock and whitespace (Guenter Roeck).
 Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 ---
  drivers/staging/iio/adc/Kconfig  |   10 ++
  drivers/staging/iio/adc/Makefile |    2 +
- drivers/staging/iio/adc/as1531.c |  212 ++++++++++++++++++++++++++++++++++=
+ drivers/staging/iio/adc/as1531.c |  209 ++++++++++++++++++++++++++++++++++=
 ++++
- 3 files changed, 224 insertions(+), 0 deletions(-)
+ 3 files changed, 221 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/staging/iio/adc/Kconfig b/drivers/staging/iio/adc/Kcon=
 fig
@@ -58,10 +59,10 @@ index 1d9b3f5..027b94e2 100644
 diff --git a/drivers/staging/iio/adc/as1531.c b/drivers/staging/iio/adc/as1=
 531.c
 new file mode 100644
-index 0000000..7222549
+index 0000000..1724c39
 --- /dev/null
 +++ b/drivers/staging/iio/adc/as1531.c
-@@ -0,0 +1,212 @@
+@@ -0,0 +1,209 @@
 +/*
 + * as1531.c
 + *
@@ -169,10 +170,10 @@ index 0000000..7222549
 +			   int *val2,
 +			   long m)
 +{
-+
 +	int status =3D 0;
 +	int ret_value =3D 0;
 +	struct as1531_state *st =3D iio_priv(indio_dev);
++
 +	if (mutex_lock_interruptible(&st->lock))
 +		return -ERESTARTSYS;
 +
@@ -183,14 +184,11 @@ index 0000000..7222549
 +				&ret_value);
 +	mutex_unlock(&st->lock);
 +	if (status < 0)
-+		goto out;
-+=09
++		return status;
++
 +	*val =3D ret_value*2500/4096;
 +
 +	return IIO_VAL_INT;
-+out:
-+	mutex_unlock(&st->lock);
-+	return status;
 +}
 +
 +static const struct iio_chan_spec as1531_channels[] =3D {
