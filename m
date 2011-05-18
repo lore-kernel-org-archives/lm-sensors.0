@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 18 May 2011 14:24:26 +0000
+From: "R, Durgadoss" <durgadoss.r@intel.com>
+Date: Wed, 18 May 2011 15:32:04 +0000
 Subject: Re: [lm-sensors] [PATCHv8 1/1] Hwmon: Merge Pkgtemp with Coretemp
-Message-Id: <20110518142426.GA10953@ericsson.com>
+Message-Id: <D6D887BA8C9DFF48B5233887EF046541095ADA9D6A@bgsmsx502.gar.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1305729702-11126-1-git-send-email-durgadoss.r@intel.com>
 In-Reply-To: <1305729702-11126-1-git-send-email-durgadoss.r@intel.com>
@@ -10,122 +10,101 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Durga,
+Hi Guenter,
 
-On Wed, May 18, 2011 at 10:41:42AM -0400, Durgadoss R wrote:
-> This patch merges the pkgtemp with coretemp driver.
-> The sysfs interfaces for all cores in the same pkg
-> are shown under one directory, in hwmon. It also
-> supports CONFIG_HOTPLUG_CPU. So, the sysfs interfaces
-> are created when each core comes online and are
-> removed when it goes offline.
+First of All, Thanks for the quick reply.
+
+> > v8:
+> > * Fixed retrieval of phys_proc_id in probe
+> > * Added coretemp_remove_device to handle CPU offlining properly
 > 
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+> There is no coretemp_remove_device() in the code. You mean
+> coretemp_device_remove(), presumably.
 
-[ ... ]
-> v8:
-> * Fixed retrieval of phys_proc_id in probe
-> * Added coretemp_remove_device to handle CPU offlining properly
+oops.. my bad.. :(
 
-There is no coretemp_remove_device() in the code. You mean
-coretemp_device_remove(), presumably.
-
-[ ... ]
-> +static struct platform_device *coretemp_get_pdev(unsigned int cpu)
-> +{
-> +       struct pdev_entry *p;
-> +
-> +       mutex_lock(&pdev_list_mutex);
-> +       list_for_each_entry(p, &pdev_list, list)
-> +               if (p->cpu = cpu) {
-> +                       mutex_unlock(&pdev_list_mutex);
-> +                       return p->pdev;
-> +               }
 > 
-I have been wondering about this. In the non-SMP case, can there ever be more than one entry ?
-
-If so, you should not need the loop but could just use list_first_entry() instead.
-
-[ ... ]
-> -static void __cpuinit coretemp_device_remove(unsigned int cpu)
-> +static void coretemp_device_remove(unsigned int cpu)
->  {
->         struct pdev_entry *p;
-> -       unsigned int i;
+> [ ... ]
+> > +static struct platform_device *coretemp_get_pdev(unsigned int cpu)
+> > +{
+> > +       struct pdev_entry *p;
+> > +
+> > +       mutex_lock(&pdev_list_mutex);
+> > +       list_for_each_entry(p, &pdev_list, list)
+> > +               if (p->cpu = cpu) {
+> > +                       mutex_unlock(&pdev_list_mutex);
+> > +                       return p->pdev;
+> > +               }
+> >
+> I have been wondering about this. In the non-SMP case, can there ever be more
+> than one entry ?
 > 
->         mutex_lock(&pdev_list_mutex);
->         list_for_each_entry(p, &pdev_list, list) {
+> If so, you should not need the loop but could just use list_first_entry()
+> instead.
 
-I think this should be list_for_each_safe() since you remove p. 
+Did not know about the list_first_entry() function..shall use it hereafter..
 
-> +       #ifdef CONFIG_SMP
-> +               if (p->phys_proc_id != cpu_data(cpu).phys_proc_id)
-> +                       continue;
-> +       #else
->                 if (p->cpu != cpu)
->                         continue;
-> +       #endif
 > 
-#ifdef at column 0, please.
+> [ ... ]
+> > -static void __cpuinit coretemp_device_remove(unsigned int cpu)
+> > +static void coretemp_device_remove(unsigned int cpu)
+> >  {
+> >         struct pdev_entry *p;
+> > -       unsigned int i;
+> >
+> >         mutex_lock(&pdev_list_mutex);
+> >         list_for_each_entry(p, &pdev_list, list) {
+> 
+> I think this should be list_for_each_safe() since you remove p.
+> 
+> > +       #ifdef CONFIG_SMP
+> > +               if (p->phys_proc_id != cpu_data(cpu).phys_proc_id)
+> > +                       continue;
+> > +       #else
+> >                 if (p->cpu != cpu)
+> >                         continue;
+> > +       #endif
+> >
+> #ifdef at column 0, please.
+> 
 
-I wonder about the !SMP case. Doesn't that imply that there is only one CPU ?
-If so, why compare the CPU ID ?
+Didn't know this rule..And checkpatch.pl did not teach me either :)
 
-[ ... ]
-> +{
-> +       int i;
-> +
-> +       /* Find online cores, except pkgtemp data */
-> +       for (i = MAX_CORE_DATA - 1; i >= 0; --i) {
+> I wonder about the !SMP case. Doesn't that imply that there is only one CPU ?
+> If so, why compare the CPU ID ?
+> 
 
-Not that it matters, but starting at 0 and iterating upwards is more common.
-Is that just personal preference, or do you have a reason ? Just wondering.
+Agree that there will be only one entry..Shall change it accordingly..
 
-> +               if (pdata->core_data[i] &&
-> +                       !pdata->core_data[i]->is_pkg_data) {
-> +                       return 1;
+> [ ... ]
+> > +{
+> > +       int i;
+> > +
+> > +       /* Find online cores, except pkgtemp data */
+> > +       for (i = MAX_CORE_DATA - 1; i >= 0; --i) {
+> 
+> Not that it matters, but starting at 0 and iterating upwards is more common.
+> Is that just personal preference, or do you have a reason ? Just wondering.
+> 
 
-Please return a boolean.
+Initially I had this code in coretemp_remove. There, the pkgtemp will be
+removed after all its cores are removed if we loop this way.
+Wanted to keep the same code here too..
 
-> +               }
-> +       }
-> +       return 0;
-> +}
-> +
-[ ... ]
-> +
-> +static void put_core_offline(unsigned int cpu)
-> +{
-> +       int i, indx;
-> +       struct platform_data *pdata;
-> +       struct platform_device *pdev = coretemp_get_pdev(cpu);
-> +
-> +       /* If the physical CPU device does not exist, just return */
-> +       if (!pdev)
-> +               return;
-> +
-> +       pdata = platform_get_drvdata(pdev);
-> +
-> +       indx = get_attr_no(cpu, 0);
-> +
-> +       if (pdata->core_data[indx] && pdata->core_data[indx]->cpu = cpu)
-> +               coretemp_remove_core(pdata, &pdev->dev, indx);
-> +
-> +       /* Online the HT version of this core, if any */
-> +       for_each_cpu(i, cpu_sibling_mask(cpu))
-> +               if (i != cpu) {
-> +                       get_core_online(i);
-> +                       break;
-> +               }
-> +
-> +       /* If all cores in this pkg are offline, remove the device */
-> +       if (!is_any_core_online(pdata))
-> +               coretemp_device_remove(cpu);
+But again as you said, it doesn't matter.. Should I change ??
 
-Where do you remove the package sensor entry ?
+> > +       /* If all cores in this pkg are offline, remove the device */
+> > +       if (!is_any_core_online(pdata))
+> > +               coretemp_device_remove(cpu);
+> 
+> Where do you remove the package sensor entry ?
+
+Coretemp_device_remove will call platform_device_unregister,
+Which in turn calls coretemp_remove. This will remove the pkgtemp
+entry and do other cleanups like removing the name attr etc..
 
 Thanks,
-Guenter
+Durga
 
 _______________________________________________
 lm-sensors mailing list
