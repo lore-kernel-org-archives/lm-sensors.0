@@ -1,49 +1,77 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 May 2011 16:26:58 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Add comments describing
-Message-Id: <20110524162658.GA13687@ericsson.com>
+From: Fernando Lopez <fndlopez@hotmail.com>
+Date: Thu, 19 May 2011 11:07:22 +0000
+Subject: [lm-sensors] SMbus smart battery
+Message-Id: <BLU146-W898929E5BCD0B8FBDF065CF8E0@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7823839642341241914=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1306184738-4933-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1306184738-4933-1-git-send-email-guenter.roeck@ericsson.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+--===============7823839642341241914==
+Content-Type: multipart/alternative;
+	boundary="_32f7b0f3-d7ce-4c9e-b979-7bdd8e78a0fc_"
 
-On Tue, May 24, 2011 at 07:41:41AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Mon, 23 May 2011 14:05:38 -0700, Guenter Roeck wrote:
-> > The coretemp driver provides a single set of device attributes for each physical
-> > core of a HT CPU to avoid duplicate sensors. This functionality was introduced
-> > with commit d883b9f0977269d519469da72faec6a7f72cb489.
-> > 
-> > Commit e40cc4bdfd4b89813f072f72bd9c7055814d3f0f extends this functionality to
-> > register the HT sibling of a CPU which is taken offline, to ensure that
-> > sensor attributes are provided if at least one HT sibling of a core is online.
-> > 
-> > Add comments into the code describing the functionality in some more detail.
-> > 
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > Cc: Fenghua Yu <fenghua.yu@intel.com>
-> > Cc: Durgadoss R <durgadoss.r@intel.com>
-> > ---
-> > I am not completely happy with the added comments nor with the description
-> > above, so please feel free to chime in if you have an idea for a better
-> > description.
-> 
-> The comment above looks OK to me. For the in-code comments, I have a
-> few suggestions, see below.
-> 
+--_32f7b0f3-d7ce-4c9e-b979-7bdd8e78a0fc_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Turns out Linus already merged this version of the patch. I'll create an update patch 
-for the changes and submit it.
 
-Guenter
+Hi all=2C
+
+I'm trying to attached an smbus external sensor to my laptop battery connec=
+tor (5 pins)=2C so I can develop an application to communicate with. The pr=
+oblem is that=2C after having read the lm-sensors info=2C load drivers and =
+install lm tools=2C apparently I can send i2c/smbus commands to some "i2c" =
+adapter=2C but these are not the adapter I need to communicate with my sens=
+or attached to the battery=2C and I do not have any idea how I can find it=
+=2C if this is possible
+
+Could anyone give me any advice?
+
+Regads!
+ 		 	   		  =
+
+--_32f7b0f3-d7ce-4c9e-b979-7bdd8e78a0fc_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Tahoma
+}
+--></style>
+</head>
+<body class=3D'hmmessage'>
+Hi all=2C<br><br>I'm trying to attached an smbus external sensor to my lapt=
+op battery connector (5 pins)=2C so I can develop an application to communi=
+cate with. The problem is that=2C after having read the lm-sensors info=2C =
+load drivers and install lm tools=2C apparently I can send i2c/smbus comman=
+ds to some "i2c" adapter=2C but these are not the adapter I need to communi=
+cate with my sensor attached to the battery=2C and I do not have any idea h=
+ow I can find it=2C if this is possible<br><br>Could anyone give me any adv=
+ice?<br><br>Regads!<br> 		 	   		  </body>
+</html>=
+
+--_32f7b0f3-d7ce-4c9e-b979-7bdd8e78a0fc_--
+
+
+--===============7823839642341241914==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7823839642341241914==--
