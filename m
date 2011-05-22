@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 May 2011 13:23:10 +0000
+From: Harry G McGavran Jr <w5pny@w5pny.com>
+Date: Sun, 22 May 2011 15:11:08 +0000
 Subject: Re: [lm-sensors] Updated emc6w201 driver
-Message-Id: <20110522152310.1c286a61@endymion.delvare>
+Message-Id: <20110522151108.98FAB12EBF2@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110522102625.7e065405@endymion.delvare>
 In-Reply-To: <20110522102625.7e065405@endymion.delvare>
@@ -10,28 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 22 May 2011 10:26:25 +0200, Jean Delvare wrote:
+
+This is great!!  Thanks very much once again!  
+I'll give this a try....
+
+	Harry McGavran
+
+
+
+
+On Sun, 22 May 2011 10:26:25 +0200 Jean Delvare wrote:
+> Hi Harry, hi Jeff,
+> 
+> I just updated the driver at:
+>   http://khali.linux-fr.org/devel/misc/emc6w201/
+> 
+> Changes in this version:
+> * All limits can be changed.
+> 
+> Basically this means you can now add "set" statements to your
+> configuration file to adjust the limits as needed. If I remember
+> correctly, voltage as well as high temperature limits were already good
+> from the BIOS so you shouldn't have to change them. Fan limits were
+> pretty low so you may want to adjust them, same for low temperature
+> limits.
+> 
+> Beware though: the monitoring chip may be configured and wired to take
+> action on out-of-limits events. The low temperature limits may have
+> been disabled by Dell on purpose, so that temperature alarms can only
+> reflect over-temperature conditions and appropriate action can be
+> taken (e.g. speeding up all fans, beeping or shutting the system down.)
+> So you should be prudent when changing the limits.
+> 
 > Feedback welcome. I intend to prepare a patch based on this version of
 > the driver and submit it for inclusion in the upstream kernel.
+> 
+> -- 
+> Jean Delvare
 
-I am writing a short documentation for the driver. There I want to list
-the hardware known to have the EMC6W201 chip, as the chip is rare so the
-list should be short. It looks like:
-
-* Dell Precision 670 workstation
-* Gigabyte 2CEWH mainboard
-
-Which makes me wonder... Could it be that the Dell Precision 670
-workstation is actually based on that Gigabyte 2CEWH mainboard? Could
-you please check the output of dmidecode, in particular the board
-section, to see if there is any reference to Gigabyte? Does the output
-of lspci look like the specifications listed here?
-
-http://www.gigabyte.fr/products/product-page.aspx?pid80#sp
-
-Thanks,
 -- 
-Jean Delvare
+
+Harry G. McGavran, Jr.
+
+E-mail: w5pny@w5pny.com
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
