@@ -1,109 +1,54 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Wed, 04 May 2011 17:53:46 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon/sch5627: Add a
-Message-Id: <4DC192AA.50208@redhat.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 23 May 2011 18:44:30 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Fix compile error if
+Message-Id: <1306177601-8812-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1303392919-3667-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1303392919-3667-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+cpu_sibling_mask() is not defined unless CONFIG_SMP is defined, so it must not
+be used directly in the code without ifdef protection.
+To solve the problem and avoid ifdefs in the code, define for_each_sibling()
+and use it instead.
 
-On 05/04/2011 05:31 PM, Jean Delvare wrote:
-> Hi Hans,
->
-> On Thu, 21 Apr 2011 15:35:18 +0200, Hans de Goede wrote:
->> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
->
-> This patch adds the following warning:
->
->    CC [M]  drivers/hwmon/sch5627.o
-> drivers/hwmon/sch5627.c:243:12: warning: ‘sch5627_write_virtual_reg’ defined but not used
->
-> I get the point of splitting the changes into two separate patches, but
-> I'd rather introduce sch5627_write_virtual_reg() in the second patch,
-> where it is used, to avoid this warning.
->
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Durgadoss R <durgadoss.r@intel.com>
+---
+ drivers/hwmon/coretemp.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Ok, I'll move the introduction of the sch5627_write_virtual_reg function to the
-next patch, and adjust the commit msg.
-> Other than this, the code looks good, with just one suggestion below:
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 5c7cd60..a00245e 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -51,10 +51,12 @@
+ #define TO_PHYS_ID(cpu)		cpu_data(cpu).phys_proc_id
+ #define TO_CORE_ID(cpu)		cpu_data(cpu).cpu_core_id
+ #define TO_ATTR_NO(cpu)		(TO_CORE_ID(cpu) + BASE_SYSFS_ATTR_NO)
++#define for_each_sibling(i, cpu)	for_each_cpu(i, cpu_sibling_mask(cpu))
+ #else
+ #define TO_PHYS_ID(cpu)		(cpu)
+ #define TO_CORE_ID(cpu)		(cpu)
+ #define TO_ATTR_NO(cpu)		(cpu)
++#define for_each_sibling(i, cpu)	for (i = 0; false; )
+ #endif
+ 
+ /*
+@@ -762,7 +764,7 @@ static void __cpuinit put_core_offline(unsigned int cpu)
+ 		coretemp_remove_core(pdata, &pdev->dev, indx);
+ 
+ 	/* Online the HT version of this core, if any */
+-	for_each_cpu(i, cpu_sibling_mask(cpu)) {
++	for_each_sibling(i, cpu) {
+ 		if (i != cpu) {
+ 			get_core_online(i);
+ 			break;
+-- 
+1.7.3.1
 
-Will take over your suggestion as well. I'll send a new version when you
-answer my question to your comments on the next patch.
-
-Regards,
-
-Hans
-
->
->> ---
->>   drivers/hwmon/sch5627.c |   26 ++++++++++++++++++++++----
->>   1 files changed, 22 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/hwmon/sch5627.c b/drivers/hwmon/sch5627.c
->> index 9a51dcc..09a47bf 100644
->> --- a/drivers/hwmon/sch5627.c
->> +++ b/drivers/hwmon/sch5627.c
->> @@ -140,7 +140,7 @@ static inline void superio_exit(int base)
->>   	release_region(base, 2);
->>   }
->>
->> -static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
->> +static int sch5627_send_cmd(struct sch5627_data *data, u8 cmd, u16 reg, u8 v)
->>   {
->>   	u8 val;
->>   	int i;
->> @@ -163,10 +163,14 @@ static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
->>   	outb(0x80, data->addr + 3);
->>
->>   	/* Write Request Packet Header */
->> -	outb(0x02, data->addr + 4); /* Access Type: VREG read */
->> +	outb(cmd, data->addr + 4); /* VREG Access Type read:0x02 write:0x03 */
->
-> It might make sense to introduce defines for the read and write command
-> values? I think it would make the code more readable.
->
->>   	outb(0x01, data->addr + 5); /* # of Entries: 1 Byte (8-bit) */
->>   	outb(0x04, data->addr + 2); /* Mailbox AP to first data entry loc. */
->>
->> +	/* Write Value field */
->> +	if (cmd = 0x03)
->> +		outb(v, data->addr + 4);
->> +
->>   	/* Write Address field */
->>   	outb(reg&  0xff, data->addr + 6);
->>   	outb(reg>>  8, data->addr + 7);
->> @@ -224,8 +228,22 @@ static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
->>   	 * But if we do that things don't work, so let's not.
->>   	 */
->>
->> -	/* Read Data from Mailbox */
->> -	return inb(data->addr + 4);
->> +	/* Read Value field */
->> +	if (cmd = 0x02)
->> +		return inb(data->addr + 4);
->> +
->> +	return 0;
->> +}
->> +
->> +static int sch5627_read_virtual_reg(struct sch5627_data *data, u16 reg)
->> +{
->> +	return sch5627_send_cmd(data, 0x02, reg, 0);
->> +}
->> +
->> +static int sch5627_write_virtual_reg(struct sch5627_data *data,
->> +				     u16 reg, u8 val)
->> +{
->> +	return sch5627_send_cmd(data, 0x03, reg, val);
->>   }
->>
->>   static int sch5627_read_virtual_reg16(struct sch5627_data *data, u16 reg)
->
->
 
 _______________________________________________
 lm-sensors mailing list
