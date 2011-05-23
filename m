@@ -1,40 +1,30 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 17 May 2011 15:17:22 +0000
-Subject: Re: [lm-sensors] [PATCHv7 1/1] Hwmon: Merge Pkgtemp with Coretemp
-Message-Id: <20110517151722.GA4385@ericsson.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Date: Mon, 23 May 2011 17:49:58 +0000
+Subject: Re: [lm-sensors] linux-next: Tree for May 23 (hwmon/coretemp.c)
+Message-Id: <20110523104958.98ef4d1a.randy.dunlap@oracle.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1305384608-17357-1-git-send-email-durgadoss.r@intel.com>
-In-Reply-To: <1305384608-17357-1-git-send-email-durgadoss.r@intel.com>
+References: <20110523154518.5e27cfb0.sfr@canb.auug.org.au>
+In-Reply-To: <20110523154518.5e27cfb0.sfr@canb.auug.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, Rudolf Marek <r.marek@assembler.cz>, lm-sensors@lm-sensors.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Fenghua Yu <fenghua.yu@intel.com>
 
-On Tue, May 17, 2011 at 01:51:44AM -0400, R, Durgadoss wrote:
-> Hi Guenter,
-> 
-> > Hi,
-> > 
-> > I did some testing on a SandyBridge system with two CPUs.
-> > 
-> > If I take all cores of the second CPU offline, the second instance of the
-> > driver
-> > still sticks around and tries to display the package sensor temperature.
-> > However, the temperature is always reported as "N/A". I think the driver
-> > instance should be removed if all cores of a CPU are offline.
-> 
-> I agree with you that the driver instance should be removed, in this case.
-> But how can we find that all cores of a CPU are offline ?
-> One way is to use a "count" variable and manipulate it when cores are
-> Onlined/offlined. Kindly let me know of any better ways to implement this.
-> 
-You can define a counter in platform_data, or write a simple function to count
-the number of online cores for a given physical processor in pdev_list.
+On Mon, 23 May 2011 15:45:18 +1000 Stephen Rothwell wrote:
 
-A simpler mechanism might be to use cpu_core_mask(). Not sure if that works, though.
+> Hi all,
+> 
+> Changes since 20110520:
 
-Thanks,
-Guenter
+when CONFIG_SMP is not enabled:
+
+drivers/hwmon/coretemp.c:765: error: implicit declaration of function 'cpu_sibling_mask'
+
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 _______________________________________________
 lm-sensors mailing list
