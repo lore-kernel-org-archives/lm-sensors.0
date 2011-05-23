@@ -1,26 +1,636 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 11 May 2011 13:05:11 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon/sch5627: Add sch5627_send_cmd
-Message-Id: <20110511150511.1af77e4e@endymion.delvare>
+Date: Mon, 23 May 2011 16:31:08 +0000
+Subject: [lm-sensors] [PATCH] hwmon: New driver for the SMSC EMC6W201
+Message-Id: <20110523183108.720ae2ac@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1305117101-4325-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1305117101-4325-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 11 May 2011 14:31:40 +0200, Hans de Goede wrote:
-> This patch generalizes sch5627_read_virtual_reg so that it can
-> be used to write virtual regs too.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/hwmon/sch5627.c |   23 +++++++++++++++++++----
->  1 files changed, 19 insertions(+), 4 deletions(-)
-> (...)
+This is a new driver for the SMSC EMC6W201 hardware monitoring device.
+The device is functionally close to the EMC6D100 series, but is
+register-incompatible.
 
-Applied, thanks.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Tested-by: Harry G McGavran Jr <w5pny@w5pny.com>
+Tested-by: Jeff Rickman <jrickman@myamigos.us>
+---
+ Documentation/hwmon/emc6w201 |   42 +++
+ drivers/hwmon/Kconfig        |   10 
+ drivers/hwmon/Makefile       |    1 
+ drivers/hwmon/emc6w201.c     |  539 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 592 insertions(+)
+
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.40-rc0/drivers/hwmon/emc6w201.c	2011-05-23 11:33:11.000000000 +0200
+@@ -0,0 +1,539 @@
++/*
++ * emc6w201.c - Hardware monitoring driver for the SMSC EMC6W201
++ * Copyright (C) 2011  Jean Delvare <khali@linux-fr.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++
++/*
++ * Addresses to scan
++ */
++
++static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
++
++/*
++ * The EMC6W201 registers
++ */
++
++#define EMC6W201_REG_IN(nr)		(0x20 + (nr))
++#define EMC6W201_REG_TEMP(nr)		(0x26 + (nr))
++#define EMC6W201_REG_FAN(nr)		(0x2C + (nr) * 2)
++#define EMC6W201_REG_COMPANY		0x3E
++#define EMC6W201_REG_VERSTEP		0x3F
++#define EMC6W201_REG_CONFIG		0x40
++#define EMC6W201_REG_IN_LOW(nr)		(0x4A + (nr) * 2)
++#define EMC6W201_REG_IN_HIGH(nr)	(0x4B + (nr) * 2)
++#define EMC6W201_REG_TEMP_LOW(nr)	(0x56 + (nr) * 2)
++#define EMC6W201_REG_TEMP_HIGH(nr)	(0x57 + (nr) * 2)
++#define EMC6W201_REG_FAN_MIN(nr)	(0x62 + (nr) * 2)
++
++enum { input, min, max } subfeature;
++
++/*
++ * Per-device data
++ */
++
++struct emc6w201_data {
++	struct device *hwmon_dev;
++	struct mutex update_lock;
++	char valid; /* zero until following fields are valid */
++	unsigned long last_updated; /* in jiffies */
++
++	/* registers values */
++	u8 in[3][6];
++	s8 temp[3][6];
++	u16 fan[2][5];
++};
++
++/*
++ * Combine LSB and MSB registers in a single value
++ * Locking: must be called with data->update_lock held
++ */
++static u16 emc6w201_read16(struct i2c_client *client, u8 reg)
++{
++	int lsb, msb;
++
++	lsb = i2c_smbus_read_byte_data(client, reg);
++	msb = i2c_smbus_read_byte_data(client, reg + 1);
++	if (lsb < 0 || msb < 0) {
++		dev_err(&client->dev, "16-bit read failed at 0x%02x\n", reg);
++		return 0xFFFF;	/* Arbitrary value */
++	}
++
++	return (msb << 8) | lsb;
++}
++
++/*
++ * Write 16-bit value to LSB and MSB registers
++ * Locking: must be called with data->update_lock held
++ */
++static int emc6w201_write16(struct i2c_client *client, u8 reg, u16 val)
++{
++	int err;
++
++	err = i2c_smbus_write_byte_data(client, reg, val & 0xff);
++	if (!err)
++		err = i2c_smbus_write_byte_data(client, reg + 1, val >> 8);
++	if (err < 0)
++		dev_err(&client->dev, "16-bit write failed at 0x%02x\n", reg);
++
++	return err;
++}
++
++static struct emc6w201_data *emc6w201_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct emc6w201_data *data = i2c_get_clientdata(client);
++	int nr;
++
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
++		for (nr = 0; nr < 6; nr++) {
++			data->in[input][nr] +				i2c_smbus_read_byte_data(client,
++						EMC6W201_REG_IN(nr));
++			data->in[min][nr] +				i2c_smbus_read_byte_data(client,
++						EMC6W201_REG_IN_LOW(nr));
++			data->in[max][nr] +				i2c_smbus_read_byte_data(client,
++						EMC6W201_REG_IN_HIGH(nr));
++		}
++
++		for (nr = 0; nr < 6; nr++) {
++			data->temp[input][nr] +				i2c_smbus_read_byte_data(client,
++						EMC6W201_REG_TEMP(nr));
++			data->temp[min][nr] +				i2c_smbus_read_byte_data(client,
++						EMC6W201_REG_TEMP_LOW(nr));
++			data->temp[max][nr] +				i2c_smbus_read_byte_data(client,
++						EMC6W201_REG_TEMP_HIGH(nr));
++		}
++
++		for (nr = 0; nr < 5; nr++) {
++			data->fan[input][nr] +				emc6w201_read16(client,
++						EMC6W201_REG_FAN(nr));
++			data->fan[min][nr] +				emc6w201_read16(client,
++						EMC6W201_REG_FAN_MIN(nr));
++		}
++
++		data->last_updated = jiffies;
++		data->valid = 1;
++	}
++
++	mutex_unlock(&data->update_lock);
++
++	return data;
++}
++
++/*
++ * Sysfs callback functions
++ */
++
++static const u16 nominal_mv[6] = { 2500, 1500, 3300, 5000, 1500, 1500 };
++
++static ssize_t show_in(struct device *dev, struct device_attribute *devattr,
++	char *buf)
++{
++	struct emc6w201_data *data = emc6w201_update_device(dev);
++	int sf = to_sensor_dev_attr_2(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++
++	return sprintf(buf, "%u\n",
++		       (unsigned)data->in[sf][nr] * nominal_mv[nr] / 0xC0);
++}
++
++static ssize_t set_in(struct device *dev, struct device_attribute *devattr,
++		      const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct emc6w201_data *data = i2c_get_clientdata(client);
++	int sf = to_sensor_dev_attr_2(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++	int err;
++	long val;
++	u8 reg;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	val = DIV_ROUND_CLOSEST(val * 0xC0, nominal_mv[nr]);
++	reg = (sf = min) ? EMC6W201_REG_IN_LOW(nr)
++			  : EMC6W201_REG_IN_HIGH(nr);
++
++	mutex_lock(&data->update_lock);
++	data->in[sf][nr] = SENSORS_LIMIT(val, 0, 255);
++	err = i2c_smbus_write_byte_data(client, reg, data->in[sf][nr]);
++	mutex_unlock(&data->update_lock);
++
++	return err < 0 ? err : count;
++}
++
++static ssize_t show_temp(struct device *dev, struct device_attribute *devattr,
++	char *buf)
++{
++	struct emc6w201_data *data = emc6w201_update_device(dev);
++	int sf = to_sensor_dev_attr_2(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++
++	return sprintf(buf, "%d\n", (int)data->temp[sf][nr] * 1000);
++}
++
++static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct emc6w201_data *data = i2c_get_clientdata(client);
++	int sf = to_sensor_dev_attr_2(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++	int err;
++	long val;
++	u8 reg;
++
++	err = strict_strtol(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	val /= 1000;
++	reg = (sf = min) ? EMC6W201_REG_TEMP_LOW(nr)
++			  : EMC6W201_REG_TEMP_HIGH(nr);
++
++	mutex_lock(&data->update_lock);
++	data->temp[sf][nr] = SENSORS_LIMIT(val, -127, 128);
++	err = i2c_smbus_write_byte_data(client, reg, data->temp[sf][nr]);
++	mutex_unlock(&data->update_lock);
++
++	return err < 0 ? err : count;
++}
++
++static ssize_t show_fan(struct device *dev, struct device_attribute *devattr,
++	char *buf)
++{
++	struct emc6w201_data *data = emc6w201_update_device(dev);
++	int sf = to_sensor_dev_attr_2(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++	unsigned rpm;
++
++	if (data->fan[sf][nr] = 0 || data->fan[sf][nr] = 0xFFFF)
++		rpm = 0;
++	else
++		rpm = 5400000U / data->fan[sf][nr];
++
++	return sprintf(buf, "%u\n", rpm);
++}
++
++static ssize_t set_fan(struct device *dev, struct device_attribute *devattr,
++		       const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct emc6w201_data *data = i2c_get_clientdata(client);
++	int sf = to_sensor_dev_attr_2(devattr)->index;
++	int nr = to_sensor_dev_attr_2(devattr)->nr;
++	int err;
++	unsigned long val;
++
++	err = strict_strtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	if (val = 0) {
++		val = 0xFFFF;
++	} else {
++		val = DIV_ROUND_CLOSEST(5400000U, val);
++		val = SENSORS_LIMIT(val, 0, 0xFFFE);
++	}
++
++	mutex_lock(&data->update_lock);
++	data->fan[sf][nr] = val;
++	err = emc6w201_write16(client, EMC6W201_REG_FAN_MIN(nr),
++			       data->fan[sf][nr]);
++	mutex_unlock(&data->update_lock);
++
++	return err < 0 ? err : count;
++}
++
++static SENSOR_DEVICE_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, input);
++static SENSOR_DEVICE_ATTR_2(in0_min, S_IRUGO | S_IWUSR, show_in, set_in,
++			    0, min);
++static SENSOR_DEVICE_ATTR_2(in0_max, S_IRUGO | S_IWUSR, show_in, set_in,
++			    0, max);
++static SENSOR_DEVICE_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 1, input);
++static SENSOR_DEVICE_ATTR_2(in1_min, S_IRUGO | S_IWUSR, show_in, set_in,
++			    1, min);
++static SENSOR_DEVICE_ATTR_2(in1_max, S_IRUGO | S_IWUSR, show_in, set_in,
++			    1, max);
++static SENSOR_DEVICE_ATTR_2(in2_input, S_IRUGO, show_in, NULL, 2, input);
++static SENSOR_DEVICE_ATTR_2(in2_min, S_IRUGO | S_IWUSR, show_in, set_in,
++			    2, min);
++static SENSOR_DEVICE_ATTR_2(in2_max, S_IRUGO | S_IWUSR, show_in, set_in,
++			    2, max);
++static SENSOR_DEVICE_ATTR_2(in3_input, S_IRUGO, show_in, NULL, 3, input);
++static SENSOR_DEVICE_ATTR_2(in3_min, S_IRUGO | S_IWUSR, show_in, set_in,
++			    3, min);
++static SENSOR_DEVICE_ATTR_2(in3_max, S_IRUGO | S_IWUSR, show_in, set_in,
++			    3, max);
++static SENSOR_DEVICE_ATTR_2(in4_input, S_IRUGO, show_in, NULL, 4, input);
++static SENSOR_DEVICE_ATTR_2(in4_min, S_IRUGO | S_IWUSR, show_in, set_in,
++			    4, min);
++static SENSOR_DEVICE_ATTR_2(in4_max, S_IRUGO | S_IWUSR, show_in, set_in,
++			    4, max);
++static SENSOR_DEVICE_ATTR_2(in5_input, S_IRUGO, show_in, NULL, 5, input);
++static SENSOR_DEVICE_ATTR_2(in5_min, S_IRUGO | S_IWUSR, show_in, set_in,
++			    5, min);
++static SENSOR_DEVICE_ATTR_2(in5_max, S_IRUGO | S_IWUSR, show_in, set_in,
++			    5, max);
++
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, input);
++static SENSOR_DEVICE_ATTR_2(temp1_min, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    0, min);
++static SENSOR_DEVICE_ATTR_2(temp1_max, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    0, max);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 1, input);
++static SENSOR_DEVICE_ATTR_2(temp2_min, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    1, min);
++static SENSOR_DEVICE_ATTR_2(temp2_max, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    1, max);
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, input);
++static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    2, min);
++static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    2, max);
++static SENSOR_DEVICE_ATTR_2(temp4_input, S_IRUGO, show_temp, NULL, 3, input);
++static SENSOR_DEVICE_ATTR_2(temp4_min, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    3, min);
++static SENSOR_DEVICE_ATTR_2(temp4_max, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    3, max);
++static SENSOR_DEVICE_ATTR_2(temp5_input, S_IRUGO, show_temp, NULL, 4, input);
++static SENSOR_DEVICE_ATTR_2(temp5_min, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    4, min);
++static SENSOR_DEVICE_ATTR_2(temp5_max, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    4, max);
++static SENSOR_DEVICE_ATTR_2(temp6_input, S_IRUGO, show_temp, NULL, 5, input);
++static SENSOR_DEVICE_ATTR_2(temp6_min, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    5, min);
++static SENSOR_DEVICE_ATTR_2(temp6_max, S_IRUGO | S_IWUSR, show_temp, set_temp,
++			    5, max);
++
++static SENSOR_DEVICE_ATTR_2(fan1_input, S_IRUGO, show_fan, NULL, 0, input);
++static SENSOR_DEVICE_ATTR_2(fan1_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
++			    0, min);
++static SENSOR_DEVICE_ATTR_2(fan2_input, S_IRUGO, show_fan, NULL, 1, input);
++static SENSOR_DEVICE_ATTR_2(fan2_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
++			    1, min);
++static SENSOR_DEVICE_ATTR_2(fan3_input, S_IRUGO, show_fan, NULL, 2, input);
++static SENSOR_DEVICE_ATTR_2(fan3_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
++			    2, min);
++static SENSOR_DEVICE_ATTR_2(fan4_input, S_IRUGO, show_fan, NULL, 3, input);
++static SENSOR_DEVICE_ATTR_2(fan4_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
++			    3, min);
++static SENSOR_DEVICE_ATTR_2(fan5_input, S_IRUGO, show_fan, NULL, 4, input);
++static SENSOR_DEVICE_ATTR_2(fan5_min, S_IRUGO | S_IWUSR, show_fan, set_fan,
++			    4, min);
++
++static struct attribute *emc6w201_attributes[] = {
++	&sensor_dev_attr_in0_input.dev_attr.attr,
++	&sensor_dev_attr_in0_min.dev_attr.attr,
++	&sensor_dev_attr_in0_max.dev_attr.attr,
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in1_max.dev_attr.attr,
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in2_max.dev_attr.attr,
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in3_max.dev_attr.attr,
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in4_max.dev_attr.attr,
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
++
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp4_input.dev_attr.attr,
++	&sensor_dev_attr_temp4_min.dev_attr.attr,
++	&sensor_dev_attr_temp4_max.dev_attr.attr,
++	&sensor_dev_attr_temp5_input.dev_attr.attr,
++	&sensor_dev_attr_temp5_min.dev_attr.attr,
++	&sensor_dev_attr_temp5_max.dev_attr.attr,
++	&sensor_dev_attr_temp6_input.dev_attr.attr,
++	&sensor_dev_attr_temp6_min.dev_attr.attr,
++	&sensor_dev_attr_temp6_max.dev_attr.attr,
++
++	&sensor_dev_attr_fan1_input.dev_attr.attr,
++	&sensor_dev_attr_fan1_min.dev_attr.attr,
++	&sensor_dev_attr_fan2_input.dev_attr.attr,
++	&sensor_dev_attr_fan2_min.dev_attr.attr,
++	&sensor_dev_attr_fan3_input.dev_attr.attr,
++	&sensor_dev_attr_fan3_min.dev_attr.attr,
++	&sensor_dev_attr_fan4_input.dev_attr.attr,
++	&sensor_dev_attr_fan4_min.dev_attr.attr,
++	&sensor_dev_attr_fan5_input.dev_attr.attr,
++	&sensor_dev_attr_fan5_min.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group emc6w201_group = {
++	.attrs = emc6w201_attributes,
++};
++
++/*
++ * Driver interface
++ */
++
++/* Return 0 if detection is successful, -ENODEV otherwise */
++static int emc6w201_detect(struct i2c_client *client,
++			   struct i2c_board_info *info)
++{
++	struct i2c_adapter *adapter = client->adapter;
++	int company, verstep, config;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	/* Identification */
++	company = i2c_smbus_read_byte_data(client, EMC6W201_REG_COMPANY);
++	if (company != 0x5C)
++		return -ENODEV;
++	verstep = i2c_smbus_read_byte_data(client, EMC6W201_REG_VERSTEP);
++	if (verstep < 0 || (verstep & 0xF0) != 0xB0)
++		return -ENODEV;
++	if ((verstep & 0x0F) > 2) {
++		dev_dbg(&client->dev, "Unknwown EMC6W201 stepping %d\n",
++			verstep & 0x0F);
++		return -ENODEV;
++	}
++
++	/* Check configuration */
++	config = i2c_smbus_read_byte_data(client, EMC6W201_REG_CONFIG);
++	if ((config & 0xF4) != 0x04)
++		return -ENODEV;
++	if (!(config & 0x01)) {
++		dev_err(&client->dev, "Monitoring not enabled\n");
++		return -ENODEV;
++	}
++
++	strlcpy(info->type, "emc6w201", I2C_NAME_SIZE);
++
++	return 0;
++}
++
++static int emc6w201_probe(struct i2c_client *client,
++			  const struct i2c_device_id *id)
++{
++	struct emc6w201_data *data;
++	int err;
++
++	data = kzalloc(sizeof(struct emc6w201_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* Create sysfs attribute */
++	err = sysfs_create_group(&client->dev.kobj, &emc6w201_group);
++	if (err)
++		goto exit_free;
++
++	/* Expose as a hwmon device */
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++ exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &emc6w201_group);
++ exit_free:
++	kfree(data);
++ exit:
++	return err;
++}
++
++static int emc6w201_remove(struct i2c_client *client)
++{
++	struct emc6w201_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &emc6w201_group);
++	kfree(data);
++
++	return 0;
++}
++
++static const struct i2c_device_id emc6w201_id[] = {
++	{ "emc6w201", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, emc6w201_id);
++
++static struct i2c_driver emc6w201_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "emc6w201",
++	},
++	.probe		= emc6w201_probe,
++	.remove		= emc6w201_remove,
++	.id_table	= emc6w201_id,
++	.detect		= emc6w201_detect,
++	.address_list	= normal_i2c,
++};
++
++static int __init sensors_emc6w201_init(void)
++{
++	return i2c_add_driver(&emc6w201_driver);
++}
++module_init(sensors_emc6w201_init);
++
++static void __exit sensors_emc6w201_exit(void)
++{
++	i2c_del_driver(&emc6w201_driver);
++}
++module_exit(sensors_emc6w201_exit);
++
++MODULE_AUTHOR("Jean Delvare <khali@linux-fr.org>");
++MODULE_DESCRIPTION("SMSC EMC6W201 hardware monitoring driver");
++MODULE_LICENSE("GPL");
+--- linux-2.6.40-rc0.orig/drivers/hwmon/Kconfig	2011-05-23 11:33:10.000000000 +0200
++++ linux-2.6.40-rc0/drivers/hwmon/Kconfig	2011-05-23 11:33:11.000000000 +0200
+@@ -936,6 +936,16 @@ config SENSORS_EMC2103
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called emc2103.
+ 
++config SENSORS_EMC6W201
++	tristate "SMSC EMC6W201"
++	depends on I2C
++	help
++	  If you say yes here you get support for the SMSC EMC6W201
++	  hardware monitoring chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called emc6w201.
++
+ config SENSORS_SMSC47M1
+ 	tristate "SMSC LPC47M10x and compatibles"
+ 	help
+--- linux-2.6.40-rc0.orig/drivers/hwmon/Makefile	2011-05-23 11:33:05.000000000 +0200
++++ linux-2.6.40-rc0/drivers/hwmon/Makefile	2011-05-23 11:33:11.000000000 +0200
+@@ -47,6 +47,7 @@ obj-$(CONFIG_SENSORS_DS620)	+= ds620.o
+ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
+ obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
+ obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
++obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
+ obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
+ obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
+ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6.40-rc0/Documentation/hwmon/emc6w201	2011-05-23 18:23:25.000000000 +0200
+@@ -0,0 +1,42 @@
++Kernel driver emc6w201
++===========
++
++Supported chips:
++  * SMSC EMC6W201
++    Prefix: 'emc6w201'
++    Addresses scanned: I2C 0x2c, 0x2d, 0x2e
++    Datasheet: Not public
++
++Author: Jean Delvare <khali@linux-fr.org>
++
++
++Description
++-----------
++
++From the datasheet:
++
++"The EMC6W201 is an environmental monitoring device with automatic fan
++control capability and enhanced system acoustics for noise suppression.
++This ACPI compliant device provides hardware monitoring for up to six
++voltages (including its own VCC) and five external thermal sensors,
++measures the speed of up to five fans, and controls the speed of
++multiple DC fans using three Pulse Width Modulator (PWM) outputs. Note
++that it is possible to control more than three fans by connecting two
++fans to one PWM output. The EMC6W201 will be available in a 36-pin
++QFN package."
++
++The device is functionally close to the EMC6D100 series, but is
++register-incompatible.
++
++The driver currently only supports the monitoring of the voltages,
++temperatures and fan speeds. Limits can be changed. Alarms are not
++supported, and neither is fan speed control.
++
++
++Known Systems With EMC6W201
++---------------------------
++
++The EMC6W201 is a rare device, only found on a few systems, made in
++2005 and 2006. Known systems with this device:
++* Dell Precision 670 workstation
++* Gigabyte 2CEWH mainboard
+
 
 -- 
 Jean Delvare
