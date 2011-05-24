@@ -1,73 +1,37 @@
-From: Nat Gurumoorthy <natg@google.com>
-Date: Sat, 07 May 2011 05:19:24 +0000
-Subject: [lm-sensors] [PATCH v9 0/2] Make all it87 drivers SMP safe
-Message-Id: <1304745564-13003-1-git-send-email-natg@google.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 May 2011 19:48:23 +0000
+Subject: [lm-sensors] [PATCH 1/5] hwmon: (pmbus) Initialize sysfs attributes
+Message-Id: <1306267814-31505-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org
-Cc: mikew@google.com, Nat Gurumoorthy <natg@google.com>
+To: lm-sensors@vger.kernel.org
 
-There are 3 different drivers that touch the it87 hardware registers.
-The 3 drivers have been written independently and access the it87 hardware
-registers assuming they are the only driver accessing it. This change
-attempts to serialize access to the hardware by using
-"request_muxed_region" macro defined by Alan Cox. Call to this macro
-will hold off the requestor if the resource is currently busy.
-The use of the above macro makes it possible to get rid of
-spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
-This also greatly simplifies the implementation of it87_wdt.c driver.
+Initialize sysfs attrs before device_create_file() call to suppress
+lockdep_init_map() warning:
 
-01 - Changes to it87 watchdog driver to use "request_muxed_region"
- drivers/watchdog/it8712f_wdt.c
- drivers/watchdog/it87_wdt.c
+WARNING: at kernel/lockdep.c:2701 lockdep_init_map+0x12d/0x140()
 
-02 - Chages to hwmon it87 driver to use "request_muxed_region"
- drivers/hwmon/it87.c
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus_core.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
- drivers/hwmon/it87.c           |   31 +++++---
- drivers/watchdog/it8712f_wdt.c |   62 +++++++++++----
- drivers/watchdog/it87_wdt.c    |  165 +++++++++++++++++++++++----------------
- 3 files changed, 161 insertions(+), 97 deletions(-)
-
-Signed-off-by: Nat Gurumoorthy <natg@google.com>
-
-Patch History:
-v9:
-- More clean up in drivers/hwmon/it87.c. More fixes that of
-  the type in V8 that got missed in drivers/watchdog/it8712f_wdt.c.
-
-v8:
-- Return the error actually returned by superio_enter and not -EBUSY.
-  Notifier routines return NOTIFY_DONE even if underlying calls from
-  notifier to routines that invoke superio_enter return with error.
-  Make sure release routines returns do proper clean up even if calls to
-  superio_enter fail.
-
-v7:
-- superio_enter return error if call to "request_muxed_region" fails. Rest
-  of the changes deal with error returns from superio_enter. Changes to
-  it87_wdt.c are untested.
-
-v6:
-- Pay attention to value returned by request_muxed_region. The first call to
-  request_muxed_region will attempt 10 times to reserve the region before it
-  gives up. This will typically get called from the driver init routines. If this
-  succeeds then subsequent calls wait forever for the resource to be available.
-
-v5:
-- Remove unnecessary while from superio_enter.
-
-v4:
-- Remove extra braces in superio_enter routines.
-
-v3:
-- Totally abandon the spinlock based approach and use "request_muxed_region" to
-  hold off requestors if the resource is busy.
-
-v2:
-- More verbose patch headers. Add In-Reply-To: field.
+diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
+index 98799ba..354770e 100644
+--- a/drivers/hwmon/pmbus_core.c
++++ b/drivers/hwmon/pmbus_core.c
+@@ -707,6 +707,7 @@ do {									\
+ 	struct sensor_device_attribute *a				\
+ 	    = &data->_type##s[data->num_##_type##s].attribute;		\
+ 	BUG_ON(data->num_attributes >= data->max_attributes);		\
++	sysfs_attr_init(&a->dev_attr.attr);				\
+ 	a->dev_attr.attr.name = _name;					\
+ 	a->dev_attr.attr.mode = _mode;					\
+ 	a->dev_attr.show = _show;					\
+-- 
+1.7.3.1
 
 
 _______________________________________________
