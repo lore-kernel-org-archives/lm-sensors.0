@@ -1,97 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 May 2011 08:44:40 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: New driver sch5636
-Message-Id: <20110527104440.786c9f06@endymion.delvare>
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Date: Tue, 24 May 2011 11:28:31 +0000
+Subject: [lm-sensors] [PATCH] coretemp: Initialize sysfs attrs
+Message-Id: <20110524112831.GA5520@swordfish.minsk.epam.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1306255997-4337-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1306255997-4337-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Hans,
+Initialize sysfs attrs before device_create_file() call to suppress lockdep_init_map()
+warning:
 
-On Fri, 27 May 2011 10:01:26 +0200, Hans de Goede wrote:
-> On 05/26/2011 09:09 PM, Jean Delvare wrote:
-> > On Tue, 24 May 2011 18:53:17 +0200, Hans de Goede wrote:
-> >> +#define SIO_UNLOCK_KEY		0x55	/* Key to enable Super-I/O */
-> >> +#define SIO_LOCK_KEY		0xAA	/* Key to disable Super-I/O */
-> >
-> > Each being used only once, I'm not sure if you really need defines.
-> 
-> idem as above, and the same goes for many other drivers, AFAIK all superio
-> drivers do it like this...
+[    3.653628] WARNING: at kernel/lockdep.c:2885 lockdep_init_map+0xea/0x43c()
+[    3.653698] Modules linked in:
+[    3.654835] Pid: 1, comm: swapper Not tainted 2.6.39-dbg-git8-05624-g46187f8 #576
+[    3.656014] Call Trace:
+[    3.657139]  [<ffffffff8103e4b4>] warn_slowpath_common+0x7e/0x96
+[    3.658298]  [<ffffffff8103e4e1>] warn_slowpath_null+0x15/0x17
+[    3.659460]  [<ffffffff8106d7b9>] lockdep_init_map+0xea/0x43c
+[    3.660616]  [<ffffffff81163c1a>] sysfs_add_file_mode+0x5d/0xa8
+[    3.661785]  [<ffffffff81163c71>] sysfs_add_file+0xc/0xe
+[    3.662929]  [<ffffffff81163d26>] sysfs_create_file+0x23/0x25
+[    3.664045]  [<ffffffff813724d1>] device_create_file+0x14/0x16
+[    3.665172]  [<ffffffff81460ed4>] coretemp_probe+0xf9/0x185
+[    3.666306]  [<ffffffff8137638e>] platform_drv_probe+0x12/0x14
+[    3.667420]  [<ffffffff81375321>] driver_probe_device+0xb0/0x14b
+[    3.668542]  [<ffffffff8137546d>] __device_attach+0x35/0x3a
+[    3.669710]  [<ffffffff81375438>] ? __driver_attach+0x7c/0x7c
+[    3.670816]  [<ffffffff8137426b>] bus_for_each_drv+0x54/0x88
+[    3.671921]  [<ffffffff81375231>] device_attach+0x77/0x9b
+[    3.673027]  [<ffffffff81374aef>] bus_probe_device+0x22/0x39
+[    3.674137]  [<ffffffff81373235>] device_add+0x3c1/0x550
+[    3.675249]  [<ffffffff81371ed9>] ? dev_set_name+0x3c/0x3e
+[    3.676371]  [<ffffffff813769f3>] platform_device_add+0x10c/0x156
+[    3.677491]  [<ffffffff8146af9c>] get_core_online+0xab/0x16e
+[    3.678608]  [<ffffffff81ad8070>] coretemp_init+0x4b/0x80
+[    3.679724]  [<ffffffff81ad8025>] ? hwmon_init+0xee/0xee
+[    3.680853]  [<ffffffff8100020a>] do_one_initcall+0x7a/0x13c
+[    3.681975]  [<ffffffff81aaac74>] kernel_init+0xe1/0x15b
+[    3.683081]  [<ffffffff8147e4e4>] kernel_thread_helper+0x4/0x10
+[    3.684174]  [<ffffffff8102d48c>] ? finish_task_switch+0x76/0xf0
+[    3.685266]  [<ffffffff81477918>] ? retint_restore_args+0x13/0x13
+[    3.686356]  [<ffffffff81aaab93>] ? start_kernel+0x3ee/0x3ee
+[    3.687425]  [<ffffffff8147e4e0>] ? gs_change+0x13/0x13
+[    3.688489] ---[ end trace 7392ad3e6a92ae39 ]---
 
-All drivers for SMSC super-I/O devices, maybe. ITE, VIA, Winbond,
-Nuvoton and Fintek super-I/O devices need a multi-byte key to activate
-the configuration space, so such defines just don't work.
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 
-Anyway this isn't very important, I have not problem if you keep the
-defines the way they are.
+---
 
-> >> (...)
-> >> +static int sch5636_send_cmd(struct sch5636_data *data, u8 cmd, u16 reg, u8 v)
-> >> +{
-> >
-> > This looks very similar to the SCH5627. Have you considered having a
-> > single driver for both? Or at least having a common part?
-> 
-> Actually it is identical, I've considered having a single driver but there
-> are quite a lot of differences, and I've a feeling we may see more Fujitsu
-> solutions based on the sch5636, so it seemed better to make to make it a
-> clean new driver (also keeping in mind that we may need to support multiple
-> models with it in the future).
-> 
-> Thinking more about this, I think this may be best handled as follows:
-> 
-> Have a sch5627-common.ko which contains the sch5627_send_cmd + read / write
-> virtual reg functions, as well as the sch5627_find and sch5627_device_add
-> functions (which will now find and device_add both the sch5627 and sch5636,
-> and have a sch5627.ko and a sch5636.ko which contain the actual driver(s),
-> and do the platform_driver[un]register. Loading either if these 2 will
-> automatically also load sch5627-common.ko (since they use symbols from it)
-> which will then do the find + device add.
-> 
-> Does this sound like an idea?
+ drivers/hwmon/coretemp.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-This is exactly what I had in mind, actually. Except that I would name
-the common module "sch56xx" for neutrality.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 9577c43..d9e70ac 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -350,6 +350,7 @@ static int get_pkg_tjmax(unsigned int cpu, struct device *dev)
+ 
+ static int create_name_attr(struct platform_data *pdata, struct device *dev)
+ {
++	sysfs_attr_init(&pdata->name_attr.attr);
+ 	pdata->name_attr.attr.name = "name";
+ 	pdata->name_attr.attr.mode = S_IRUGO;
+ 	pdata->name_attr.show = show_name;
+@@ -372,6 +373,7 @@ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
+ 	for (i = 0; i < MAX_ATTRS; i++) {
+ 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+ 			attr_no);
++		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
+ 		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
+ 		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
+ 		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
 
-> >> (...)
-> >> +	if (strcmp(id, "THS")) {
-> >> +		pr_err("Unknown Fujitsu id: '%s'\n", id);
-> >
-> > This could print complete garbage, you have no guarantee that the bytes
-> > are in the 32-126 range.
-> >
-> 
-> Good point, still I would like to print it as a string so that if a user
-> encounters a new device before I know about it, they can give me the
-> 3 letter Fujitsu ID. I see 2 options:
-> 
-> 1) Always print it as %02x%02x%02x
-> 2) Sanity check and print as string if sanity check matches, else
->     as %02x%02x%02x.
-
-Both are fine with me. Option 1 is easiest to implement, option 2 will
-make discovering new devices easier. Up to you, really.
-
-> > (...)
-> > Out of curiosity, why are you checking 0x4e first, when all other
-> > drivers check 0x2e first?
-> 
-> Because the 2 boards (sch5627 + sch5636) have them at 0x4e rather
-> then 0x2e. And before your review of the sch5627 driver it used
-> to print an error when it could not find the chip it 0x2e...
-> 
-> Anyways if we change this, we should fix it in the sch5627 driver too.
-
-No need to change it, it makes sense to check the most popular address
-first. I was just curious.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
