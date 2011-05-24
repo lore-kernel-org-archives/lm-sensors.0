@@ -1,39 +1,38 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 20 May 2011 14:00:45 +0000
-Subject: Re: [lm-sensors] [PATCHv3 6/11] HWMON: Fixed point conversion gives
-Message-Id: <20110520140045.GC23076@ericsson.com>
+Date: Tue, 24 May 2011 19:48:47 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: (ibmpex) Initialize sysfs attributes
+Message-Id: <1306267814-31505-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E2CAE7F7B064EA49B5CE7EE9A4BB167D151BDC3D33@KCINPUNHJCMS01.kpit.com>
-In-Reply-To: <E2CAE7F7B064EA49B5CE7EE9A4BB167D151BDC3D33@KCINPUNHJCMS01.kpit.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ashish Jangam <Ashish.Jangam@kpitcummins.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Dajun Chen <Dajun.Chen@diasemi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Fri, May 20, 2011 at 06:57:18AM -0400, Ashish Jangam wrote:
-> Hi,
-> 
-> As requested approximation of battery temperature calculation with fixed point conversion is tried but it causes couple of link time errors, like undefined reference to __aeabi_i2d at sprintf(). Have a look at the function da9052_read_tbat(); we feel that this function should not be supported else there will be a prerequisite to the support the required floating point library. Enabling FPE_NWFPE support in the kernel gives the same link time errors.
-> 
-You have defined
+Initialize dynamically allocated sysfs attributes before device_create_file()
+call to suppress lockdep_init_map() warning if lockdep debugging is enabled.
 
-#define LOGN2          0.693147181
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+Compile tested only.
 
-and use it, which makes the entire calculation a floating point calculation
-and defeats the purpose. The idea would have been to define something like 
+ drivers/hwmon/ibmpex.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-#define CAL_LOG2(nr)	((int)((ilog2(nr) - ilog2(100)) * 693147181LL / 1000000000LL))
+diff --git a/drivers/hwmon/ibmpex.c b/drivers/hwmon/ibmpex.c
+index 06d4eaf..41dbf81 100644
+--- a/drivers/hwmon/ibmpex.c
++++ b/drivers/hwmon/ibmpex.c
+@@ -358,6 +358,7 @@ static int create_sensor(struct ibmpex_bmc_data *data, int type,
+ 	else if (type = POWER_SENSOR)
+ 		sprintf(n, power_sensor_name_templates[func], "power", counter);
+ 
++	sysfs_attr_init(&data->sensors[sensor].attr[func].dev_attr.attr);
+ 	data->sensors[sensor].attr[func].dev_attr.attr.name = n;
+ 	data->sensors[sensor].attr[func].dev_attr.attr.mode = S_IRUGO;
+ 	data->sensors[sensor].attr[func].dev_attr.show = ibmpex_show_sensor;
+-- 
+1.7.3.1
 
-Also, there is no need for rounding, say, 0.003355705 to 0.0034, or 2.5 to 3.
-Add a few digits, like above, and remove them afterwards.
-
-	x * 2.5 = x * 5 / 2.
-	x * 33.55705 = x * 3355705 / 100000
-
-Just be careful that you don't get overflows.
-
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
