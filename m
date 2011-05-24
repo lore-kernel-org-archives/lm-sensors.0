@@ -1,41 +1,38 @@
-From: Marcelo Coelho <marcelocoelho@gmail.com>
-Date: Sun, 29 May 2011 21:59:15 +0000
-Subject: Re: [lm-sensors] Working configuration for intel D945GCLF
-Message-Id: <BANLkTin8nyh1mw4qndcJLKaNf0+-V-yfkw@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 May 2011 19:48:47 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon: (s3c) Initialize sysfs attributes
+Message-Id: <1306267814-31505-6-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BANLkTikVJz5rUrtdHEY82Lc8yoggnyA8HA@mail.gmail.com>
-In-Reply-To: <BANLkTikVJz5rUrtdHEY82Lc8yoggnyA8HA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Initialize dynamically allocated sysfs attributes before device_create_file()
+call to suppress lockdep_init_map() warning if lockdep debugging is enabled.
 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+Compile tested only.
 
->> chip "smsc47m1-*"
->> =A0 =A0 label fan1 "fan case"
->> # The minimum speed for fans with this chip is 1300. So, if you have a
->> disconnected fan
->> # your best option is to ignore it
->
-> This statement is incorrect. The minimum speed actually depends on the
-> fan clock divisor value, which can be 1, 2, 4 or 8. With a divisor
-> value of 8, the minimum is 650 RPM.
+ drivers/hwmon/s3c-hwmon.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Didn't know this. Thanks for the heads-up, although my idea was to set
-the min to zero, because that fan is disconnected, and the driver said
-it was an invalid value. Just wanted to avoid having ALARM in front of
-it ...
+diff --git a/drivers/hwmon/s3c-hwmon.c b/drivers/hwmon/s3c-hwmon.c
+index 92b42db..731d1f3 100644
+--- a/drivers/hwmon/s3c-hwmon.c
++++ b/drivers/hwmon/s3c-hwmon.c
+@@ -232,6 +232,7 @@ static int s3c_hwmon_create_attr(struct device *dev,
+ 
+ 	attr = &attrs->in;
+ 	attr->index = channel;
++	sysfs_attr_init(&attr->dev_attr.attr);
+ 	attr->dev_attr.attr.name  = attrs->in_name;
+ 	attr->dev_attr.attr.mode  = S_IRUGO;
+ 	attr->dev_attr.show = s3c_hwmon_ch_show;
+-- 
+1.7.3.1
 
-
-> Updated, thanks.
-
-You're welcome :)
-
-
-Best regards,
-Marcelo Coelho
 
 _______________________________________________
 lm-sensors mailing list
