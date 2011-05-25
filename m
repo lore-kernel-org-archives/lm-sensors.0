@@ -1,79 +1,74 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 04 May 2011 16:11:56 +0000
-Subject: Re: [lm-sensors] Using lm-sensors with TWL4030
-Message-Id: <20110504161156.GB8443@ericsson.com>
+From: =?ISO-8859-1?Q?Per_Dal=E9n?= <per.dalen@appeartv.com>
+Date: Wed, 25 May 2011 16:56:01 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of MAX6642
+Message-Id: <4DDD34A1.2050405@appeartv.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DBFE717.1060000@je-suunnittelu.fi>
-In-Reply-To: <4DBFE717.1060000@je-suunnittelu.fi>
+References: <20110217195640.GA20934@ericsson.com>
+In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 04, 2011 at 04:18:01AM -0400, Jean Delvare wrote:
-> On Wed, 04 May 2011 10:08:12 +0300, Niclas Knuts wrote:
-> > On 3.5.2011 15:25, Jean Delvare wrote:
-> > > On Tue, 03 May 2011 14:59:37 +0300, Niclas Knuts wrote:
-> > >> On 3.5.2011 14:42, Jean Delvare wrote:
-> > >>> On Tue, 03 May 2011 14:29:27 +0300, Niclas Knuts wrote:
-> > >>>> I am trying to setup lm-sensors for use with the Texas Instruments
-> > >>>> TWL4030 Chip (the main processor is  a OMAP3503). But I cannot seem to
-> > >>>> get it to detect the chip. I have added the hwmon drivers and I am using
-> > >>>> up to date MADC drivers that I have backported to kernel 2.6.32 (I am
-> > >>>> running Angstrom).
-> > >>> Disclaimer: I don't know a thing about this chip nor its drivers.
-> > >>>
-> > >>> There is no detection support for this device in sensors-detect, if
-> > >>> this was your question. I don't think this device can be detected from
-> > >>> user-space.
-> > >> I am aware that the automatic detect doesn't work, I have read through
-> > >> the sensors-detect script.
-> > >>> My understanding is that the drivers for the TWL4030 should all get
-> > >>> loaded automatically thanks to module aliases, as long as the TWL4030
-> > >>> itself is properly registered during platform setup. Check in lsmod
-> > >>> whether twl4030-madc and twl4030-madc-hwmon are actually loaded. If
-> > >>> not, try loading them manually
-> > >> lsmod doesn't show the drivers, but they should have been compiled into
-> > >> the kernel, not as modules. Maybe
-> > >> that is the problem?
-> > > No, this shouldn't make a difference. Check under /sys/devices/platform
-> > > if the platform devices have been properly created
-> > Ok, they are missing from there. I guess there is some problem with 
-> > compiling in the drivers then.
-> 
-> Again, no. Modules or built-in should make no difference.
-> 
-> > Is it enough to compile them in or do I 
-> > initialize them in the board specific files in any way?
-> 
-> Please take a look at:
-> drivers/mfd/twl-core.c
-> 
-> As I understand it, the board code has to instantiate one of the I2C
-> devices listed in twl_ids. This will call twl_probe() which in turn
-> should instantiate all the relevant platform devices.
-> arch/arm/mach-omap2 contains many examples:
-> 
-> $ grep -rI '"twl4030"' arch/
-> arch/arm/mach-omap2/board-omap3stalker.c:	 I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-igep0020.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-omap3evm.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-2430sdp.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-omap3beagle.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-3430sdp.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-igep0030.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-ldp.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-omap3touchbook.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> arch/arm/mach-omap2/board-omap3logic.c:		I2C_BOARD_INFO("twl4030", 0x48),
-> 
-> That being said, I can't find any code to instantiate
-> twl4030_madc_hwmon, so it might as well be that this part is missing
-> from the upstream kernel. Cc'ing Keerthy and Axel Lin who probably know
-> what's going on.
-> 
-There was an exchange about that last night. Keerthy mentioned that he would submit a patch.
+This patch adds detection of MAX6642 to sensors-detect.
 
-Guenter
+Signed-off-by: Per Dalen <per.dalen@appeartv.com>
+---
+
+--- prog/detect/sensors-detect  (revision 5975)
++++ prog/detect/sensors-detect  (working copy)
+@@ -848,6 +848,11 @@
+                i2c_addrs => [0x2c, 0x2e, 0x2f],
+                i2c_detect => sub { max6639_detect(@_); },
+        }, {
++               name => "Maxim MAX6642",
++               driver => "max6642",
++               i2c_addrs => [0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e,
+0x4f],
++               i2c_detect => sub { max6642_detect(@_); },
++       }, {
+                name => "Maxim MAX6655/MAX6656",
+                driver => "max6655",
+                i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
+@@ -5779,6 +5784,36 @@
+        return 6;
+ }
+
++# Chip to detect: MAX6642
++# Registers used:
++#   0x02: Status register
++#   0x03: Configuration register
++#   0xfe: Manufacturer ID
++#   0x04,0x06,0xff: No registers
++# We use the 0x04,0x06 and 0xff addresses (unused) to improve the
+reliability.
++# These are not real registers and will always return the last returned
+value.
++# This isn't documented.
++sub max6642_detect
++{
++       my ($file, $addr) = @_;
++       my ($man_id, $conf, $status);
++
++       $man_id = i2c_smbus_read_byte_data($file, 0xfe, NO_CACHE);
++       return if i2c_smbus_read_byte_data($file, 0x04, NO_CACHE) !$man_id;
++       $status = i2c_smbus_read_byte_data($file, 0x02, NO_CACHE);
++       return if i2c_smbus_read_byte_data($file, 0x06, NO_CACHE) !$status;
++       $conf = i2c_smbus_read_byte_data($file, 0x03, NO_CACHE);
++       return if i2c_smbus_read_byte_data($file, 0xff, NO_CACHE) != $conf;
++
++       return unless $man_id = 0x4d;  # Maxim
++       # Bit 5, 3, 1 and 0 should be zero
++       return unless ($status & 0x2b) = 0x00;
++       # The 4 lower bits should be zero
++       return unless ($conf & 0x0f) = 0x00;
++
++       return 6;
++}
++
+ sub max6655_detect
+ {
+        my ($file, $addr) = @_;
 
 _______________________________________________
 lm-sensors mailing list
