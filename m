@@ -1,40 +1,32 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 22 May 2011 08:31:55 +0000
-Subject: Re: [lm-sensors] EMC6W201 module - Dell Sensors Testing
-Message-Id: <20110522103155.6e5b4523@endymion.delvare>
+From: Carl Morris <cmorris@flexstar.com>
+Date: Wed, 25 May 2011 18:12:27 +0000
+Subject: [lm-sensors] WPCD374L question
+Message-Id: <4DDD468B.2060106@flexstar.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DD30DD1.4080909@myamigos.us>
-In-Reply-To: <4DD30DD1.4080909@myamigos.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 21 May 2011 17:04:28 -0600, Harry G McGavran Jr wrote:
-> 
-> I think the other windows sensors program I have is correct and
-> that fan1 is the CPU fan and fan3 is the Case or Chassis fan.
-> 
-> I think that's they Rick found it, and I think that is the
-> way it is on my system too.
-> 
-> So, that last .conf file I posted for Dell 670 and emc6w201
-> should be correct.
+All,
+	Just joined the list, I'm writing because the wiki/Devices
+page specifically asked me to contact lm-sensors if I was using the WPCD374L
+(replaced PC8374L according to Winbond) chip.  I searched the archives for
+info on how to monitor data from this chip and found one thread from a
+couple of years ago asking for info when using the latest version of
+sensors-detect.
 
-OK, thanks for the information, I've updated my copy accordingly.
+I get the "Found 'Nat. Semi. PC8374L Super IO Sensors' (but not activated)"
+message, but nothing else that seems to be related.  And of course, I
+can't seem to get any data from it when I run /usr/bin/sensors.
 
-> It would be nice to know what "Remote Diode 5" is really
-> temperature sensing.
+I'm new to all this and pretty clueless about Linux in general (I'm an
+embedded FW for storage guy), but if anybody has any clues or wants
+any info from me as implied by the wiki/Devices page let me know.
 
-I can think of only two ways to know:
-1* Find the information in the documentation, or ask Dell.
-2* Try to guess with physical experiments. Either by correlating the
-   variations with specific system activity, or using a hair dryer :)
-   I've done it once, and it works, but I'm not sure the motherboard
-   really enjoyed it.
+Thanks.
 
--- 
-Jean Delvare
+	-- Carl Morris, Flexstar, Boulder, CO
 
 _______________________________________________
 lm-sensors mailing list
