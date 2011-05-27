@@ -1,22 +1,46 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date: Wed, 04 May 2011 09:32:23 +0000
-Subject: Re: [lm-sensors] [PATCH v7 0/2] Make all it87 drivers SMP safe
-Message-Id: <20110504103223.547dd9e1@lxorguk.ukuu.org.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 27 May 2011 09:51:29 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.40
+Message-Id: <1306489889-20741-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1303153127-11717-1-git-send-email-natg@google.com>
-In-Reply-To: <1303153127-11717-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nat Gurumoorthy <natg@google.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, Wim Van Sebroeck <wim@iguana.be>, Mike Waychison <mikew@google.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-All looks good to me.
+Hi Linus,
 
-Parport can also be made to behave politely and I'll post a patch for
-that.
+Please pull hwmon subsystem fixes for Linux 2.6.40 from:
 
-Acked-by: Alan Cox <alan@linux.intel.com>
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Thanks,
+Guenter Roeck
+
+------
+
+The following changes since commit dc7acbb2518f250050179c8581a972df3b6a24f1:
+
+  Merge branch 'upstream/tidy-xen-mmu-2.6.39' of git://git.kernel.org/pub/scm/linux/kernel/git/jeremy/xen (2011-05-26 19:01:15 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Guenter Roeck (2):
+      hwmon: (coretemp) Update comments describing the handling of HT CPUs
+      hwmon: (pmbus) Initialize sysfs attributes
+
+Jean Delvare (1):
+      hwmon: (coretemp) Fix section mismatch
+
+Sergey Senozhatsky (1):
+      hwmon: (coretemp) Initialize sysfs attributes
+
+ drivers/hwmon/coretemp.c   |   16 +++++++++-------
+ drivers/hwmon/pmbus_core.c |    1 +
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
