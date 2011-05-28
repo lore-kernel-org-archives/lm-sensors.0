@@ -1,45 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 28 May 2011 12:38:29 +0000
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Sat, 28 May 2011 18:41:40 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon/sch5627: Factor our some code to
-Message-Id: <20110528143829.54e34869@endymion.delvare>
+Message-Id: <4DE141E4.1000903@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20110528143829.54e34869@endymion.delvare>
+In-Reply-To: <20110528143829.54e34869@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 28 May 2011 09:21:23 +0200, Hans de Goede wrote:
-> This patch adds a new sch56xx-common.ko which contains code which will al=
-so
-> be used in the new sch5636 driver.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/hwmon/Kconfig          |    5 +
->  drivers/hwmon/Makefile         |    1 +
->  drivers/hwmon/sch5627.c        |  334 +++-------------------------------=
------
->  drivers/hwmon/sch56xx-common.c |  336 ++++++++++++++++++++++++++++++++++=
-++++++
->  drivers/hwmon/sch56xx-common.h |   24 +++
->  5 files changed, 390 insertions(+), 310 deletions(-)
->  create mode 100644 drivers/hwmon/sch56xx-common.c
->  create mode 100644 drivers/hwmon/sch56xx-common.h
-> (...)
-> --- /dev/null
-> +++ b/drivers/hwmon/sch56xx-common.c
-> (...)
-> +#define SIO_SCH56XX_LD_EM	0x0C	/* Embedded =C5=B3Controller Logical Dev =
-*/
+Hi,
 
-A regular "u" will do... I don't know you used but that wasn't even a
-Greek mu.
+On 05/28/2011 02:38 PM, Jean Delvare wrote:
+> On Sat, 28 May 2011 09:21:23 +0200, Hans de Goede wrote:
+>> This patch adds a new sch56xx-common.ko which contains code which will also
+>> be used in the new sch5636 driver.
+>>
+>> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
+>> ---
+>>   drivers/hwmon/Kconfig          |    5 +
+>>   drivers/hwmon/Makefile         |    1 +
+>>   drivers/hwmon/sch5627.c        |  334 +++------------------------------------
+>>   drivers/hwmon/sch56xx-common.c |  336 ++++++++++++++++++++++++++++++++++++++++
+>>   drivers/hwmon/sch56xx-common.h |   24 +++
+>>   5 files changed, 390 insertions(+), 310 deletions(-)
+>>   create mode 100644 drivers/hwmon/sch56xx-common.c
+>>   create mode 100644 drivers/hwmon/sch56xx-common.h
+>> (...)
+>> --- /dev/null
+>> +++ b/drivers/hwmon/sch56xx-common.c
+>> (...)
+>> +#define SIO_SCH56XX_LD_EM	0x0C	/* Embedded ųController Logical Dev */
+>
+> A regular "u" will do... I don't know you used but that wasn't even a
+> Greek mu.
 
+Oh, oops wrong compose sequence. I know the right one now, giving:
+µController, or I can just use a regular u if you prefer :)
 
-All the rest looks pretty good.
+So do you want me to resend, with this fixed, or will you fix this in
+your tree?
 
---=20
-Jean Delvare
+Regards,
+
+Hans
 
 _______________________________________________
 lm-sensors mailing list
