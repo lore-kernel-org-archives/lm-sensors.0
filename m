@@ -1,46 +1,44 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 03 May 2011 12:03:24 +0000
-Subject: Re: [lm-sensors] Adding 83627ehf input to sensors
-Message-Id: <20110503140324.39502603@endymion.delvare>
+Date: Sat, 28 May 2011 12:38:29 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon/sch5627: Factor our some code to
+Message-Id: <20110528143829.54e34869@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DBEE857.3010709@ridgellc.com>
-In-Reply-To: <4DBEE857.3010709@ridgellc.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, 02 May 2011 10:22:31 -0700, Mike Eneboe wrote:
-> I have a Lanner 8875B and it implements power supply fault sensing on 2 
-> GPIO bits (36 and 37) of 83627ehf chip.  I cannot figure out how to 
-> integrate those 2 pins into the sensors functionality so that I can get 
-> simpler enclosure monitoring for ALL aspects.
-> 
-> Can you give me a clue on how to do this?
+On Sat, 28 May 2011 09:21:23 +0200, Hans de Goede wrote:
+> This patch adds a new sch56xx-common.ko which contains code which will al=
+so
+> be used in the new sch5636 driver.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/hwmon/Kconfig          |    5 +
+>  drivers/hwmon/Makefile         |    1 +
+>  drivers/hwmon/sch5627.c        |  334 +++-------------------------------=
+-----
+>  drivers/hwmon/sch56xx-common.c |  336 ++++++++++++++++++++++++++++++++++=
+++++++
+>  drivers/hwmon/sch56xx-common.h |   24 +++
+>  5 files changed, 390 insertions(+), 310 deletions(-)
+>  create mode 100644 drivers/hwmon/sch56xx-common.c
+>  create mode 100644 drivers/hwmon/sch56xx-common.h
+> (...)
+> --- /dev/null
+> +++ b/drivers/hwmon/sch56xx-common.c
+> (...)
+> +#define SIO_SCH56XX_LD_EM	0x0C	/* Embedded =C5=B3Controller Logical Dev =
+*/
 
-lm-sensors currently doesn't have any support for this, even though it
-could certainly be supported. It's not too different from the chassis
-intrusion detection feature.
+A regular "u" will do... I don't know you used but that wasn't even a
+Greek mu.
 
-However, in practice it will be more difficult, because it is based on
-GPIOs rather than dedicated pins, so we need board-specific information
-to implement it. And we'd need a driver for the GPIO pins of the
-W83627EHF and compatible devices, which doesn't exist currently. So
-that's a long way to go.
 
-> I'm using Ubuntu 10.04 LTS.
-> 
-> Regards,
-> 
-> Mike Eneboe
-> Ridge Partners, LLC
-> 
-> P.S. Does anyone have a link to a comprehensive document for how all the 
-> signals are brought into the OS and how to link them to ACPI?
+All the rest looks pretty good.
 
-"ACPI" and "comprehensive" can't match, I'm afraid.
-
--- 
+--=20
 Jean Delvare
 
 _______________________________________________
