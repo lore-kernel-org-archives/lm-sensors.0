@@ -1,210 +1,278 @@
-From: Andrew Krueger <jaidormi@gmail.com>
-Date: Mon, 16 May 2011 16:44:51 +0000
-Subject: Re: [lm-sensors] Feature request: smsc47b397 (SCH5307-NS)
-Message-Id: <BANLkTi=7T-VTNJ3oz_V4Ky4yW3QX7X_Y=g@mail.gmail.com>
+From: David George <david.george@ska.ac.za>
+Date: Tue, 31 May 2011 15:19:00 +0000
+Subject: [lm-sensors] max1668 support revisited
+Message-Id: <BANLkTi=0dC7=naE2wY6Wf5scaAtzT9bGwQ@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5389937064255193054=="
+Content-Type: multipart/mixed; boundary="20cf300514546d982104a493ece1"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BANLkTi=+PGMPhMWz9vQA3v90vBRFvrnnYg@mail.gmail.com>
-In-Reply-To: <BANLkTi=+PGMPhMWz9vQA3v90vBRFvrnnYg@mail.gmail.com>
 To: lm-sensors@vger.kernel.org
 
---===============5389937064255193054==
-Content-Type: multipart/alternative; boundary=0015175df130d870ab04a3675ffe
-
---0015175df130d870ab04a3675ffe
+--20cf300514546d982104a493ece1
 Content-Type: text/plain; charset=ISO-8859-1
 
-Hi Juerg,
+Hi All.
 
-> That would certainly help. I'll ask my contact at SMSC.
+I have written a kernel driver for the Maxim part MAX1668, which I
+have attached to this email. I have tested this code on a MAX1805 and
+it seems to work.
 
-Thanks so much for offering to ask someone from SMSC.  What a help.
+I'm not really sure how to go about publishing it and was hoping for
+some advice from this list.
 
-> Which model is this?
-
-The model is xw6400.  It's a workstation with Intel 5000X chipset.
-
-> What makes you think it should? Is this feature mentioned somewhere in
-> the doc of the server? If it's handled by the BIOS, then there
-> usuallly are some controls in the BIOS. Never heard of a machine that
-> does automatic fan control without providing some knobs through the
-> BIOS. If your BIOS doesn't have any, it's unlikely, that there is HW
-> supported fan control.
-
-Yes, it is mentioned in the docs and the advertising copy.  From their
-QuickSpecs doc:
-http://h18000.www1.hp.com/products/quickspecs/12505_na/12505_na.pdf
-Adaptive Cooling : Fan control parameters are set according to detected
-hardware configuration for optimal acoustics
-
-The only BIOS settings available are 5 or 6 discrete settings for fan idle
-RPM of the case fans.  These don't seem to change under load either.
-I guess I don't know conclusively that there should be BIOS control for
-real-time fan speed changes.  Although it seems odd since I believe the SMSC
-chip supports it.  I have owned numerous laptops that changed their CPU fan
-speeds depending on heat, independent of the OS/drivers.  I have a
-recollection of numerous Intel desktop boards doing the same thing.
-
-Perhaps I am mixing fact and fantasy here.
-
-Although I should note, the CPU fans are PWM controlled (I can remove the
-control pin and they jump from 1400RPM to ~5000), yet I have seen no BIOS
-setting that affects this nor a Windows driver that affects it.  No CPU load
-or temperature setting seems to make a difference either.  The fan idle
-speed setting in the BIOS does not change the CPU fan speed.  Then why have
-PWM control on them at all?  Something seems amiss.
-
-Thanks for your help,
-Andrew
+Kind regards,
+David
 
 
-On Mon, May 16, 2011 at 3:58 AM, Juerg Haefliger <juergh@gmail.com> wrote:
+-- 
+David George
+Karoo Array Telescope
+Tel: +27 11 442-2434
+Email: david.george@ska.ac.za
 
-> Hi Andrew,
->
->
-> > Could someone please tell me what it would take to gain PWM control via
-> this
-> > chip?  A proper data sheet from SMSC?
->
-> That would certainly help. I'll ask my contact at SMSC.
->
->
-> > Are there other techniques I could
-> > try or that others have worked on?
-> >
-> > The chip is used in my HP workstation and seems not to adapt fan RPM to
-> CPU
-> > temperatures, whatsoever.
->
-> Which model is this?
->
->
-> > My understanding is that this should be done
-> > automatically at the BIOS/chip level, but it is not.
->
-> What makes you think it should? Is this feature mentioned somewhere in
-> the doc of the server? If it's handled by the BIOS, then there
-> usuallly are some controls in the BIOS. Never heard of a machine that
-> does automatic fan control without providing some knobs through the
-> BIOS. If your BIOS doesn't have any, it's unlikely, that there is HW
-> supported fan control.
->
-> ...Juerg
->
->
-> > Thus my search for a
-> > driver + userspace solution.
-> >
-> > Thanks,
-> > Andrew
-> >
-> > _______________________________________________
-> > lm-sensors mailing list
-> > lm-sensors@lm-sensors.org
-> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> >
->
+--20cf300514546d982104a493ece1
+Content-Type: text/x-csrc; charset=US-ASCII; name="max1668.c"
+Content-Disposition: attachment; filename="max1668.c"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_goczk00n0
 
---0015175df130d870ab04a3675ffe
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi Juerg,<br><br>&gt; That would certainly help. I&#39;ll ask my contact at=
- SMSC.<br><br>Thanks so much for offering to ask someone from SMSC.=A0 What=
- a help.<br><br>&gt; Which model is this?<br><br>The model is xw6400.=A0 It=
-&#39;s a workstation with Intel 5000X chipset.<br>
-<br>
-&gt; What makes you think it should? Is this feature mentioned somewhere in=
-<br>
-&gt; the doc of the server? If it&#39;s handled by the BIOS, then there<br>=
-&gt; usuallly are some controls in the BIOS. Never heard of a machine that<=
-br>
-&gt; does automatic fan control without providing some knobs through the<br=
->&gt; BIOS. If your BIOS doesn&#39;t have any, it&#39;s unlikely, that ther=
-e is HW<br>
-&gt; supported fan control.<br><br>Yes, it is mentioned in the docs and the=
- advertising copy.=A0 From their QuickSpecs doc:<br><a href=3D"http://h1800=
-0.www1.hp.com/products/quickspecs/12505_na/12505_na.pdf">http://h18000.www1=
-.hp.com/products/quickspecs/12505_na/12505_na.pdf</a><br>
-Adaptive Cooling : Fan control parameters are set according to detected har=
-dware configuration for optimal acoustics<br><br>The only BIOS settings ava=
-ilable are 5 or 6 discrete settings for fan idle RPM of the case fans.=A0 T=
-hese don&#39;t seem to change under load either.<br>
-I guess I don&#39;t know conclusively that there should be BIOS control for=
- real-time fan speed changes.=A0 Although it seems odd since I believe the =
-SMSC chip supports it.=A0 I have owned numerous laptops that changed their =
-CPU fan speeds depending on heat, independent of the OS/drivers.=A0 I have =
-a recollection of numerous Intel desktop boards doing the same thing.<br>
-<br>Perhaps I am mixing fact and fantasy here.<br><br>Although I should not=
-e, the CPU fans are PWM controlled (I can remove the control pin and they j=
-ump from 1400RPM to ~5000), yet I have seen no BIOS setting that affects th=
-is nor a Windows driver that affects it.=A0 No CPU load or temperature sett=
-ing seems to make a difference either.=A0 The fan idle speed setting in the=
- BIOS does not change the CPU fan speed.=A0 Then why have PWM control on th=
-em at all?=A0 Something seems amiss.<br>
-<br>Thanks for your help,<br>Andrew<br><br><br><div class=3D"gmail_quote">O=
-n Mon, May 16, 2011 at 3:58 AM, Juerg Haefliger <span dir=3D"ltr">&lt;<a hr=
-ef=3D"mailto:juergh@gmail.com" target=3D"_blank">juergh@gmail.com</a>&gt;</=
-span> wrote:<br>
-
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex">Hi Andrew,<br>
-<div><br>
-<br>
-&gt; Could someone please tell me what it would take to gain PWM control vi=
-a this<br>
-&gt; chip?=A0 A proper data sheet from SMSC?<br>
-<br>
-</div>That would certainly help. I&#39;ll ask my contact at SMSC.<br>
-<div><br>
-<br>
-&gt; Are there other techniques I could<br>
-&gt; try or that others have worked on?<br>
-&gt;<br>
-&gt; The chip is used in my HP workstation and seems not to adapt fan RPM t=
-o CPU<br>
-&gt; temperatures, whatsoever.<br>
-<br>
-</div>Which model is this?<br>
-<div><br>
-<br>
-&gt; My understanding is that this should be done<br>
-&gt; automatically at the BIOS/chip level, but it is not.<br>
-<br>
-</div>What makes you think it should? Is this feature mentioned somewhere i=
-n<br>
-the doc of the server? If it&#39;s handled by the BIOS, then there<br>
-usuallly are some controls in the BIOS. Never heard of a machine that<br>
-does automatic fan control without providing some knobs through the<br>
-BIOS. If your BIOS doesn&#39;t have any, it&#39;s unlikely, that there is H=
-W<br>
-supported fan control.<br>
-<br>
-...Juerg<br>
-<div><br>
-<br>
-&gt; Thus my search for a<br>
-&gt; driver + userspace solution.<br>
-&gt;<br>
-&gt; Thanks,<br>
-&gt; Andrew<br>
-&gt;<br>
-</div>&gt; _______________________________________________<br>
-&gt; lm-sensors mailing list<br>
-&gt; <a href=3D"mailto:lm-sensors@lm-sensors.org" target=3D"_blank">lm-sens=
-ors@lm-sensors.org</a><br>
-&gt; <a href=3D"http://lists.lm-sensors.org/mailman/listinfo/lm-sensors" ta=
-rget=3D"_blank">http://lists.lm-sensors.org/mailman/listinfo/lm-sensors</a>=
-<br>
-&gt;<br>
-</blockquote></div><br>
-
---0015175df130d870ab04a3675ffe--
-
-
---===============5389937064255193054==
+LyoKCiAgICBDb3B5cmlnaHQgKGMpIDIwMTEgRGF2aWQgR2VvcmdlIDxkYXZpZC5nZW9yZ2VAc2th
+LmFjLnphPgoKICAgIGJhc2VkIG9uIGFkbTEwMjEuYwogICAgc29tZSBjcmVkaXQgdG8gQ2hyaXN0
+b3BoIFNjaGV1cmVyLCBidXQgbGFyZ2VseSBhIHJld3JpdGUKCiAgICBUaGlzIHByb2dyYW0gaXMg
+ZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQogICAg
+aXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBw
+dWJsaXNoZWQgYnkKICAgIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhlciB2ZXJz
+aW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCiAgICAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRlciB2
+ZXJzaW9uLgoKICAgIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0
+IGl0IHdpbGwgYmUgdXNlZnVsLAogICAgYnV0IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0
+IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKICAgIE1FUkNIQU5UQUJJTElUWSBvciBGSVRO
+RVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKICAgIEdOVSBHZW5lcmFsIFB1
+YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCgogICAgWW91IHNob3VsZCBoYXZlIHJlY2Vp
+dmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKICAgIGFsb25nIHdp
+dGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBGcmVlIFNvZnR3YXJlCiAgICBG
+b3VuZGF0aW9uLCBJbmMuLCA2NzUgTWFzcyBBdmUsIENhbWJyaWRnZSwgTUEgMDIxMzksIFVTQS4K
+Ki8KCiNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4KI2lu
+Y2x1ZGUgPGxpbnV4L3NsYWIuaD4KI2luY2x1ZGUgPGxpbnV4L2ppZmZpZXMuaD4KI2luY2x1ZGUg
+PGxpbnV4L2kyYy5oPgojaW5jbHVkZSA8bGludXgvaHdtb24uaD4KI2luY2x1ZGUgPGxpbnV4L2h3
+bW9uLXN5c2ZzLmg+CiNpbmNsdWRlIDxsaW51eC9lcnIuaD4KI2luY2x1ZGUgPGxpbnV4L211dGV4
+Lmg+CgovKiBBZGRyZXNzZXMgdG8gc2NhbiAqLwpzdGF0aWMgdW5zaWduZWQgc2hvcnQgbm9ybWFs
+X2kyY1tdID0gewogIDB4MTgsIDB4MTksIDB4MWEsIDB4MjksIDB4MmEsIDB4MmIsIDB4NGMsIDB4
+NGQsIDB4NGUsIEkyQ19DTElFTlRfRU5EIH07CgplbnVtIGNoaXBzIHsKICBtYXgxNjY4LCBtYXgx
+ODA1LCBtYXgxOTg5IH07CgovKiBtYXgxNjY4IGNvbnN0YW50cyBzcGVjaWZpZWQgYmVsb3cgKi8K
+Ci8qIFRoZSBtYXgxNjY4IHJlZ2lzdGVycyAqLwovKiBSZWFkLW9ubHkgKi8KCi8qIG1heDE4MDUg
+ZG9lcyBub3QgaGF2ZSBSRU1PVEUzIGFuZCBSRU1PVEU0ICovCi8qIGRvbnQgZGlmZmVyZW50aWF0
+ZSBiZXR3ZWVuIGxvY2FsIGFuZCByZW1vdGUgKi8KI2RlZmluZSBNQVgxNjY4X1JFR19URU1QKG5y
+KSAgICAgICAgICAgIChucikKI2RlZmluZSBNQVgxNjY4X1JFR19TVEFUVVMxICAgICAgICAgICAg
+IDB4MDUKI2RlZmluZSBNQVgxNjY4X1JFR19TVEFUVVMyICAgICAgICAgICAgIDB4MDYKI2RlZmlu
+ZSBNQVgxNjY4X1JFR19NQU5fSUQgICAgICAgICAgICAgIDB4ZmUKLyogMHg0ZCA9IE1heGltICov
+CiNkZWZpbmUgTUFYMTY2OF9SRUdfREVWX0lEICAgICAgICAgICAgICAweGZmCi8qIE1BWDE2Njgg
+PSAweDAzLCBNQVgxODA1ID0gMHgwNSwgTUFYMTk4OSA9IDB4MGIgKi8KCi8qIFRoZXNlIHVzZSBk
+aWZmZXJlbnQgYWRkcmVzc2VzIGZvciByZWFkaW5nL3dyaXRpbmcgKi8KI2RlZmluZSBNQVgxNjY4
+X1JFR19DT05GSUdfUiAgICAgICAgICAgIDB4MDcKI2RlZmluZSBNQVgxNjY4X1JFR19DT05GSUdf
+VyAgICAgICAgICAgIDB4MTIKCi8qIGxpbWl0cyAqLwoKLyogd3JpdGUgaGlnaCBsaW1pdHMgKi8K
+I2RlZmluZSBNQVgxNjY4X1JFR19MSU1IX1dSKG5yKQkJKDB4MTMgKyAyICogKG5yKSkKLyogd3Jp
+dGUgbG93IGxpbWl0cyAqLwojZGVmaW5lIE1BWDE2NjhfUkVHX0xJTUxfV1IobnIpCQkoMHgxNCAr
+IDIgKiAobnIpKQoKLyogcmVhZCBoaWdoIGxpbWl0cyAqLwojZGVmaW5lIE1BWDE2NjhfUkVHX0xJ
+TUhfUkQobnIpCQkoMHgwOCArIDIgKiAobnIpKQovKiByZWFkIGxvdyBsaW1pdHMgKi8KI2RlZmlu
+ZSBNQVgxNjY4X1JFR19MSU1MX1JEKG5yKQkJKDB4MDkgKyAyICogKG5yKSkKCi8qIEluaXRpYWwg
+dmFsdWVzICovCgovKiBFYWNoIGNsaWVudCBoYXMgdGhpcyBhZGRpdGlvbmFsIGRhdGEgKi8Kc3Ry
+dWN0IG1heDE2NjhfZGF0YSB7CglzdHJ1Y3QgZGV2aWNlICpod21vbl9kZXY7CgllbnVtIGNoaXBz
+IHR5cGU7CgoJc3RydWN0IG11dGV4IHVwZGF0ZV9sb2NrOwoJY2hhciB2YWxpZDsJCS8qICE9MCBp
+ZiBmb2xsb3dpbmcgZmllbGRzIGFyZSB2YWxpZCAqLwoJdW5zaWduZWQgbG9uZyBsYXN0X3VwZGF0
+ZWQ7CS8qIEluIGppZmZpZXMgKi8KCiAgLyogMXggbG9jYWwgYW5kIDR4IHJlbW90ZSAqLwoJaW50
+IHRlbXBfbWF4WzVdOwoJaW50IHRlbXBfbWluWzVdOwoJaW50IHRlbXBbNV07Cgl1MTYgYWxhcm1z
+Owp9OwoKc3RhdGljIGludCBtYXgxNjY4X3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQs
+CgkJCSBjb25zdCBzdHJ1Y3QgaTJjX2RldmljZV9pZCAqaWQpOwpzdGF0aWMgaW50IG1heDE2Njhf
+ZGV0ZWN0KHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsCgkJCSAgc3RydWN0IGkyY19ib2FyZF9p
+bmZvICppbmZvKTsKc3RhdGljIGludCBtYXgxNjY4X3JlbW92ZShzdHJ1Y3QgaTJjX2NsaWVudCAq
+Y2xpZW50KTsKc3RhdGljIHN0cnVjdCBtYXgxNjY4X2RhdGEgKm1heDE2NjhfdXBkYXRlX2Rldmlj
+ZShzdHJ1Y3QgZGV2aWNlICpkZXYpOwoKLyogKGFtYWx5c2gpIHJlYWQgb25seSBtb2RlLCBvdGhl
+cndpc2UgYW55IGxpbWl0J3Mgd3JpdGluZyBjb25mdXNlIEJJT1MgKi8Kc3RhdGljIGludCByZWFk
+X29ubHk7CgpzdGF0aWMgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgbWF4MTY2OF9pZFtdID0g
+ewoJeyAibWF4MTY2OCIsIG1heDE2NjggfSwKCXsgIm1heDE4MDUiLCBtYXgxODA1IH0sCgl7ICJt
+YXgxOTg5IiwgbWF4MTk4OSB9LAoJeyB9Cn07Ck1PRFVMRV9ERVZJQ0VfVEFCTEUoaTJjLCBtYXgx
+NjY4X2lkKTsKCi8qIFRoaXMgaXMgdGhlIGRyaXZlciB0aGF0IHdpbGwgYmUgaW5zZXJ0ZWQgKi8K
+c3RhdGljIHN0cnVjdCBpMmNfZHJpdmVyIG1heDE2NjhfZHJpdmVyID0gewoJLmNsYXNzCQk9IEky
+Q19DTEFTU19IV01PTiwKCS5kcml2ZXIgPSB7CgkJLm5hbWUJPSAibWF4MTY2OCIsCgl9LAoJLnBy
+b2JlCQk9IG1heDE2NjhfcHJvYmUsCgkucmVtb3ZlCQk9IG1heDE2NjhfcmVtb3ZlLAoJLmlkX3Rh
+YmxlCT0gbWF4MTY2OF9pZCwKCS5kZXRlY3QJCT0gbWF4MTY2OF9kZXRlY3QsCgkuYWRkcmVzc19s
+aXN0CT0gbm9ybWFsX2kyYywKfTsKCnN0YXRpYyBzc2l6ZV90IHNob3dfdGVtcChzdHJ1Y3QgZGV2
+aWNlICpkZXYsCgkJCSBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2YXR0ciwgY2hhciAqYnVm
+KQp7CglpbnQgaW5kZXggPSB0b19zZW5zb3JfZGV2X2F0dHIoZGV2YXR0ciktPmluZGV4OwoJc3Ry
+dWN0IG1heDE2NjhfZGF0YSAqZGF0YSA9IG1heDE2NjhfdXBkYXRlX2RldmljZShkZXYpOwoKCXJl
+dHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLCBkYXRhLT50ZW1wW2luZGV4XSk7Cn0KCnN0YXRpYyBz
+c2l6ZV90IHNob3dfdGVtcF9tYXgoc3RydWN0IGRldmljZSAqZGV2LAoJCQkgICAgIHN0cnVjdCBk
+ZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLCBjaGFyICpidWYpCnsKCWludCBpbmRleCA9IHRvX3Nl
+bnNvcl9kZXZfYXR0cihkZXZhdHRyKS0+aW5kZXg7CglzdHJ1Y3QgbWF4MTY2OF9kYXRhICpkYXRh
+ID0gbWF4MTY2OF91cGRhdGVfZGV2aWNlKGRldik7CgoJcmV0dXJuIHNwcmludGYoYnVmLCAiJWRc
+biIsIGRhdGEtPnRlbXBfbWF4W2luZGV4XSk7Cn0KCnN0YXRpYyBzc2l6ZV90IHNob3dfdGVtcF9t
+aW4oc3RydWN0IGRldmljZSAqZGV2LAoJCQkgICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpk
+ZXZhdHRyLCBjaGFyICpidWYpCnsKCWludCBpbmRleCA9IHRvX3NlbnNvcl9kZXZfYXR0cihkZXZh
+dHRyKS0+aW5kZXg7CglzdHJ1Y3QgbWF4MTY2OF9kYXRhICpkYXRhID0gbWF4MTY2OF91cGRhdGVf
+ZGV2aWNlKGRldik7CgoJcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIGRhdGEtPnRlbXBfbWlu
+W2luZGV4XSk7Cn0KCnN0YXRpYyBzc2l6ZV90IHNob3dfYWxhcm0oc3RydWN0IGRldmljZSAqZGV2
+LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKCQkJICBjaGFyICpidWYpCnsKCWludCBp
+bmRleCA9IHRvX3NlbnNvcl9kZXZfYXR0cihhdHRyKS0+aW5kZXg7CglzdHJ1Y3QgbWF4MTY2OF9k
+YXRhICpkYXRhID0gbWF4MTY2OF91cGRhdGVfZGV2aWNlKGRldik7CglyZXR1cm4gc3ByaW50Zihi
+dWYsICIldVxuIiwgKGRhdGEtPmFsYXJtcyA+PiBpbmRleCkgJiAxKTsKfQoKc3RhdGljIHNzaXpl
+X3Qgc2hvd19hbGFybXMoc3RydWN0IGRldmljZSAqZGV2LAoJCQkgICBzdHJ1Y3QgZGV2aWNlX2F0
+dHJpYnV0ZSAqYXR0ciwKCQkJICAgY2hhciAqYnVmKQp7CglzdHJ1Y3QgbWF4MTY2OF9kYXRhICpk
+YXRhID0gbWF4MTY2OF91cGRhdGVfZGV2aWNlKGRldik7CglyZXR1cm4gc3ByaW50ZihidWYsICIl
+dVxuIiwgZGF0YS0+YWxhcm1zKTsKfQoKc3RhdGljIHNzaXplX3Qgc2V0X3RlbXBfbWF4KHN0cnVj
+dCBkZXZpY2UgKmRldiwKCQkJICAgIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkZXZhdHRyLAoJ
+CQkgICAgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQpCnsKCWludCBpbmRleCA9IHRvX3Nl
+bnNvcl9kZXZfYXR0cihkZXZhdHRyKS0+aW5kZXg7CglzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50
+ID0gdG9faTJjX2NsaWVudChkZXYpOwoJc3RydWN0IG1heDE2NjhfZGF0YSAqZGF0YSA9IGkyY19n
+ZXRfY2xpZW50ZGF0YShjbGllbnQpOwoJbG9uZyB0ZW1wID0gc2ltcGxlX3N0cnRvbChidWYsIE5V
+TEwsIDEwKSAvIDEwMDA7CgoJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwoJZGF0YS0+
+dGVtcF9tYXhbaW5kZXhdID0gU0VOU09SU19MSU1JVCh0ZW1wLCAtMTI4LCAxMjcpOwoJaWYgKCFy
+ZWFkX29ubHkpCgkJaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0YShjbGllbnQsIE1BWDE2NjhfUkVH
+X0xJTUhfV1IoaW5kZXgpLAoJCQkJCSAgZGF0YS0+dGVtcF9tYXhbaW5kZXhdKTsKCW11dGV4X3Vu
+bG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwoKCXJldHVybiBjb3VudDsKfQoKc3RhdGljIHNzaXpl
+X3Qgc2V0X3RlbXBfbWluKHN0cnVjdCBkZXZpY2UgKmRldiwKCQkJICAgIHN0cnVjdCBkZXZpY2Vf
+YXR0cmlidXRlICpkZXZhdHRyLAoJCQkgICAgY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQp
+CnsKCWludCBpbmRleCA9IHRvX3NlbnNvcl9kZXZfYXR0cihkZXZhdHRyKS0+aW5kZXg7CglzdHJ1
+Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYpOwoJc3RydWN0IG1heDE2
+NjhfZGF0YSAqZGF0YSA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwoJbG9uZyB0ZW1wID0g
+c2ltcGxlX3N0cnRvbChidWYsIE5VTEwsIDEwKSAvIDEwMDA7CgoJbXV0ZXhfbG9jaygmZGF0YS0+
+dXBkYXRlX2xvY2spOwoJZGF0YS0+dGVtcF9taW5baW5kZXhdID0gU0VOU09SU19MSU1JVCh0ZW1w
+LCAtMTI4LCAxMjcpOwoJaWYgKCFyZWFkX29ubHkpCgkJaTJjX3NtYnVzX3dyaXRlX2J5dGVfZGF0
+YShjbGllbnQsIE1BWDE2NjhfUkVHX0xJTUxfV1IoaW5kZXgpLAoJCQkJCSAgZGF0YS0+dGVtcF9t
+aW5baW5kZXhdKTsKCW11dGV4X3VubG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwoKCXJldHVybiBj
+b3VudDsKfQoKc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9pbnB1dCwgU19JUlVHTywg
+c2hvd190ZW1wLCBOVUxMLCAwKTsKc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9tYXgs
+IFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X3RlbXBfbWF4LAoJCQkgIHNldF90ZW1wX21heCwgMCk7
+CnN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfbWluLCBTX0lXVVNSIHwgU19JUlVHTywg
+c2hvd190ZW1wX21pbiwKCQkJICBzZXRfdGVtcF9taW4sIDApOwpzdGF0aWMgU0VOU09SX0RFVklD
+RV9BVFRSKHRlbXAyX2lucHV0LCBTX0lSVUdPLCBzaG93X3RlbXAsIE5VTEwsIDEpOwpzdGF0aWMg
+U0VOU09SX0RFVklDRV9BVFRSKHRlbXAyX21heCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfdGVt
+cF9tYXgsCgkJCSAgc2V0X3RlbXBfbWF4LCAxKTsKc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0
+ZW1wMl9taW4sIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X3RlbXBfbWluLAoJCQkgIHNldF90ZW1w
+X21pbiwgMSk7CnN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDNfaW5wdXQsIFNfSVJVR08s
+IHNob3dfdGVtcCwgTlVMTCwgMCk7CnN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDNfbWF4
+LCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190ZW1wX21heCwKCQkJICBzZXRfdGVtcF9tYXgsIDIp
+OwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAzX21pbiwgU19JV1VTUiB8IFNfSVJVR08s
+IHNob3dfdGVtcF9taW4sCgkJCSAgc2V0X3RlbXBfbWluLCAyKTsKc3RhdGljIFNFTlNPUl9ERVZJ
+Q0VfQVRUUih0ZW1wNF9pbnB1dCwgU19JUlVHTywgc2hvd190ZW1wLCBOVUxMLCAxKTsKc3RhdGlj
+IFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wNF9tYXgsIFNfSVdVU1IgfCBTX0lSVUdPLCBzaG93X3Rl
+bXBfbWF4LAoJCQkgIHNldF90ZW1wX21heCwgMyk7CnN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIo
+dGVtcDRfbWluLCBTX0lXVVNSIHwgU19JUlVHTywgc2hvd190ZW1wX21pbiwKCQkJICBzZXRfdGVt
+cF9taW4sIDMpOwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXA1X2lucHV0LCBTX0lSVUdP
+LCBzaG93X3RlbXAsIE5VTEwsIDEpOwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXA1X21h
+eCwgU19JV1VTUiB8IFNfSVJVR08sIHNob3dfdGVtcF9tYXgsCgkJCSAgc2V0X3RlbXBfbWF4LCA0
+KTsKc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wNV9taW4sIFNfSVdVU1IgfCBTX0lSVUdP
+LCBzaG93X3RlbXBfbWluLAoJCQkgIHNldF90ZW1wX21pbiwgNCk7CgpzdGF0aWMgU0VOU09SX0RF
+VklDRV9BVFRSKHRlbXAxX21heF9hbGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgMTQp
+OwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAxX21pbl9hbGFybSwgU19JUlVHTywgc2hv
+d19hbGFybSwgTlVMTCwgMTMpOwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAyX21pbl9h
+bGFybSwgU19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgNyk7CnN0YXRpYyBTRU5TT1JfREVWSUNF
+X0FUVFIodGVtcDJfbWF4X2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCA2KTsKc3Rh
+dGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wM19taW5fYWxhcm0sIFNfSVJVR08sIHNob3dfYWxh
+cm0sIE5VTEwsIDUpOwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAzX21heF9hbGFybSwg
+U19JUlVHTywgc2hvd19hbGFybSwgTlVMTCwgNCk7CnN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIo
+dGVtcDRfbWluX2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAzKTsKc3RhdGljIFNF
+TlNPUl9ERVZJQ0VfQVRUUih0ZW1wNF9tYXhfYWxhcm0sIFNfSVJVR08sIHNob3dfYWxhcm0sIE5V
+TEwsIDIpOwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXA1X21pbl9hbGFybSwgU19JUlVH
+Tywgc2hvd19hbGFybSwgTlVMTCwgMSk7CnN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDVf
+bWF4X2FsYXJtLCBTX0lSVUdPLCBzaG93X2FsYXJtLCBOVUxMLCAwKTsKCi8qIE9wZW4tY2lyY3Vp
+dCBkaW9kZSBhbGFybSAqLwpzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXBfZmF1bHRfb3Bl
+biwgIFNfSVJVR08sIHNob3dfYWxhcm0sIE5VTEwsIDEyKTsKLyogQW55IHRocmVzaG9sZCBhbGFy
+bSBzZXQgKi8Kc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wX2ZhdWx0X2FsYXJtLCBTX0lS
+VUdPLCBzaG93X2FsYXJtLCBOVUxMLCAxMSk7CgpzdGF0aWMgREVWSUNFX0FUVFIoYWxhcm1zLCBT
+X0lSVUdPLCBzaG93X2FsYXJtcywgTlVMTCk7CgpzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqbWF4
+MTY2OF9hdHRyaWJ1dGVzW10gPSB7Cgkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21heC5kZXZfYXR0
+ci5hdHRyLAoJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9taW4uZGV2X2F0dHIuYXR0ciwKCSZzZW5z
+b3JfZGV2X2F0dHJfdGVtcDFfaW5wdXQuZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2X2F0dHJf
+dGVtcDJfbWF4LmRldl9hdHRyLmF0dHIsCgkmc2Vuc29yX2Rldl9hdHRyX3RlbXAyX21pbi5kZXZf
+YXR0ci5hdHRyLAoJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMl9pbnB1dC5kZXZfYXR0ci5hdHRyLAoJ
+JnNlbnNvcl9kZXZfYXR0cl90ZW1wM19tYXguZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2X2F0
+dHJfdGVtcDNfbWluLmRldl9hdHRyLmF0dHIsCgkmc2Vuc29yX2Rldl9hdHRyX3RlbXAzX2lucHV0
+LmRldl9hdHRyLmF0dHIsCgkmc2Vuc29yX2Rldl9hdHRyX3RlbXA0X21heC5kZXZfYXR0ci5hdHRy
+LAoJJnNlbnNvcl9kZXZfYXR0cl90ZW1wNF9taW4uZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2
+X2F0dHJfdGVtcDRfaW5wdXQuZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDVf
+bWF4LmRldl9hdHRyLmF0dHIsCgkmc2Vuc29yX2Rldl9hdHRyX3RlbXA1X21pbi5kZXZfYXR0ci5h
+dHRyLAoJJnNlbnNvcl9kZXZfYXR0cl90ZW1wNV9pbnB1dC5kZXZfYXR0ci5hdHRyLAoKCSZzZW5z
+b3JfZGV2X2F0dHJfdGVtcDFfbWF4X2FsYXJtLmRldl9hdHRyLmF0dHIsCgkmc2Vuc29yX2Rldl9h
+dHRyX3RlbXAxX21pbl9hbGFybS5kZXZfYXR0ci5hdHRyLAoJJnNlbnNvcl9kZXZfYXR0cl90ZW1w
+Ml9tYXhfYWxhcm0uZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDJfbWluX2Fs
+YXJtLmRldl9hdHRyLmF0dHIsCgkmc2Vuc29yX2Rldl9hdHRyX3RlbXAzX21heF9hbGFybS5kZXZf
+YXR0ci5hdHRyLAoJJnNlbnNvcl9kZXZfYXR0cl90ZW1wM19taW5fYWxhcm0uZGV2X2F0dHIuYXR0
+ciwKCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDRfbWF4X2FsYXJtLmRldl9hdHRyLmF0dHIsCgkmc2Vu
+c29yX2Rldl9hdHRyX3RlbXA0X21pbl9hbGFybS5kZXZfYXR0ci5hdHRyLAoJJnNlbnNvcl9kZXZf
+YXR0cl90ZW1wNV9tYXhfYWxhcm0uZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2X2F0dHJfdGVt
+cDVfbWluX2FsYXJtLmRldl9hdHRyLmF0dHIsCgoJJnNlbnNvcl9kZXZfYXR0cl90ZW1wX2ZhdWx0
+X29wZW4uZGV2X2F0dHIuYXR0ciwKCSZzZW5zb3JfZGV2X2F0dHJfdGVtcF9mYXVsdF9hbGFybS5k
+ZXZfYXR0ci5hdHRyLAoKCSZkZXZfYXR0cl9hbGFybXMuYXR0ciwKCU5VTEwKfTsKCnN0YXRpYyBj
+b25zdCBzdHJ1Y3QgYXR0cmlidXRlX2dyb3VwIG1heDE2NjhfZ3JvdXAgPSB7CgkuYXR0cnMgPSBt
+YXgxNjY4X2F0dHJpYnV0ZXMsCn07CgovKiBSZXR1cm4gMCBpZiBkZXRlY3Rpb24gaXMgc3VjY2Vz
+c2Z1bCwgLUVOT0RFViBvdGhlcndpc2UgKi8Kc3RhdGljIGludCBtYXgxNjY4X2RldGVjdChzdHJ1
+Y3QgaTJjX2NsaWVudCAqY2xpZW50LAoJCQkgIHN0cnVjdCBpMmNfYm9hcmRfaW5mbyAqaW5mbykK
+ewoJc3RydWN0IGkyY19hZGFwdGVyICphZGFwdGVyID0gY2xpZW50LT5hZGFwdGVyOwoJY29uc3Qg
+Y2hhciAqdHlwZV9uYW1lOwoJaW50IHN0YXR1cywgY29uZmlnLCBtYW5faWQsIGRldl9pZDsKCglp
+ZiAoIWkyY19jaGVja19mdW5jdGlvbmFsaXR5KGFkYXB0ZXIsIEkyQ19GVU5DX1NNQlVTX0JZVEVf
+REFUQSkpIHsKCQlwcl9kZWJ1ZygibWF4MTY2ODogZGV0ZWN0IGZhaWxlZCwgIgoJCQkgInNtYnVz
+IGJ5dGUgZGF0YSBub3Qgc3VwcG9ydGVkIVxuIik7CgkJcmV0dXJuIC1FTk9ERVY7Cgl9CgoJc3Rh
+dHVzID0gKGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YShjbGllbnQsIE1BWDE2NjhfUkVHX1NUQVRV
+UzEpIDw8IDgpIHwKCSAgICAgICAgICBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEoY2xpZW50LCBN
+QVgxNjY4X1JFR19TVEFUVVMyKTsKCgljb25maWcgPSBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEo
+Y2xpZW50LCBNQVgxNjY4X1JFR19DT05GSUdfUik7CgoJLyogRGV0ZXJtaW5lIHRoZSBjaGlwIHR5
+cGUuICovCgltYW5faWQgPSBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEoY2xpZW50LCBNQVgxNjY4
+X1JFR19NQU5fSUQpOwoJZGV2X2lkID0gaTJjX3NtYnVzX3JlYWRfYnl0ZV9kYXRhKGNsaWVudCwg
+TUFYMTY2OF9SRUdfREVWX0lEKTsKCiAgdHlwZV9uYW1lID0gTlVMTDsKCiAgaWYgKG1hbl9pZCA9
+PSAweDRkKSB7CiAgICBzd2l0Y2ggKGRldl9pZCl7CiAgICAgICBjYXNlIDB4MzogCiAgICAgICAg
+IHR5cGVfbmFtZSA9ICJtYXgxNjY4IjsKICAgICAgICAgYnJlYWs7CiAgICAgICBjYXNlIDB4NTog
+CiAgICAgICAgIHR5cGVfbmFtZSA9ICJtYXgxODA1IjsKICAgICAgICAgYnJlYWs7CiAgICAgICBj
+YXNlIDB4YjogCiAgICAgICAgIHR5cGVfbmFtZSA9ICJtYXgxOTg5IjsKICAgICAgICAgYnJlYWs7
+CiAgICB9CiAgfQoJLyogQ2hlY2sgZm9yIHVuc3VwcG9ydGVkIHBhcnQgKi8KCWlmICghdHlwZV9u
+YW1lKSB7CgkJcHJfZGVidWcoIm1heDE2Njg6IHVuc3VwcG9ydGVkIHBhcnQgLSBtYW5pZCAleCwg
+ZGV2aWQgJXhcbiIsIG1hbl9pZCwgZGV2X2lkKTsKCQlyZXR1cm4gLUVOT0RFVjsKCX0KCglwcl9k
+ZWJ1ZygibWF4MTY2ODogRGV0ZWN0ZWQgY2hpcCAlcyBhdCBhZGFwdGVyICVkLCBhZGRyZXNzIDB4
+JTAyeC5cbiIsCgkJIHR5cGVfbmFtZSwgaTJjX2FkYXB0ZXJfaWQoYWRhcHRlciksIGNsaWVudC0+
+YWRkcik7CglzdHJsY3B5KGluZm8tPnR5cGUsIHR5cGVfbmFtZSwgSTJDX05BTUVfU0laRSk7CgoJ
+cmV0dXJuIDA7Cn0KCnN0YXRpYyBpbnQgbWF4MTY2OF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAq
+Y2xpZW50LAoJCQkgY29uc3Qgc3RydWN0IGkyY19kZXZpY2VfaWQgKmlkKQp7CglzdHJ1Y3QgbWF4
+MTY2OF9kYXRhICpkYXRhOwoJaW50IGVycjsKCglkYXRhID0ga3phbGxvYyhzaXplb2Yoc3RydWN0
+IG1heDE2NjhfZGF0YSksIEdGUF9LRVJORUwpOwoJaWYgKCFkYXRhKSB7CgkJcHJfZGVidWcoIm1h
+eDE2Njg6IGRldGVjdCBmYWlsZWQsIGt6YWxsb2MgZmFpbGVkIVxuIik7CgkJZXJyID0gLUVOT01F
+TTsKCQlnb3RvIGVycm9yMDsKCX0KCglpMmNfc2V0X2NsaWVudGRhdGEoY2xpZW50LCBkYXRhKTsK
+CWRhdGEtPnR5cGUgPSBpZC0+ZHJpdmVyX2RhdGE7CgltdXRleF9pbml0KCZkYXRhLT51cGRhdGVf
+bG9jayk7CgoJLyogUmVnaXN0ZXIgc3lzZnMgaG9va3MgKi8KCWlmICgoZXJyID0gc3lzZnNfY3Jl
+YXRlX2dyb3VwKCZjbGllbnQtPmRldi5rb2JqLCAmbWF4MTY2OF9ncm91cCkpKQoJCWdvdG8gZXJy
+b3IxOwoKCWRhdGEtPmh3bW9uX2RldiA9IGh3bW9uX2RldmljZV9yZWdpc3RlcigmY2xpZW50LT5k
+ZXYpOwoJaWYgKElTX0VSUihkYXRhLT5od21vbl9kZXYpKSB7CgkJZXJyID0gUFRSX0VSUihkYXRh
+LT5od21vbl9kZXYpOwoJCWdvdG8gZXJyb3IzOwoJfQoKCXJldHVybiAwOwoKZXJyb3IzOgoJc3lz
+ZnNfcmVtb3ZlX2dyb3VwKCZjbGllbnQtPmRldi5rb2JqLCAmbWF4MTY2OF9ncm91cCk7CmVycm9y
+MToKCWtmcmVlKGRhdGEpOwplcnJvcjA6CglyZXR1cm4gZXJyOwp9CgpzdGF0aWMgaW50IG1heDE2
+NjhfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCnsKCXN0cnVjdCBtYXgxNjY4X2Rh
+dGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKCglod21vbl9kZXZpY2VfdW5y
+ZWdpc3RlcihkYXRhLT5od21vbl9kZXYpOwoJc3lzZnNfcmVtb3ZlX2dyb3VwKCZjbGllbnQtPmRl
+di5rb2JqLCAmbWF4MTY2OF9ncm91cCk7CgoJa2ZyZWUoZGF0YSk7CglyZXR1cm4gMDsKfQoKc3Rh
+dGljIHN0cnVjdCBtYXgxNjY4X2RhdGEgKm1heDE2NjhfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2
+aWNlICpkZXYpCnsKCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRl
+dik7CglzdHJ1Y3QgbWF4MTY2OF9kYXRhICpkYXRhID0gaTJjX2dldF9jbGllbnRkYXRhKGNsaWVu
+dCk7CgoJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwoKCWlmICh0aW1lX2FmdGVyKGpp
+ZmZpZXMsIGRhdGEtPmxhc3RfdXBkYXRlZCArIEhaICsgSFogLyAyKQoJICAgIHx8ICFkYXRhLT52
+YWxpZCkgewoJCWludCBpOwoKCQlkZXZfZGJnKCZjbGllbnQtPmRldiwgIlN0YXJ0aW5nIG1heDE2
+NjggdXBkYXRlXG4iKTsKCgkJZm9yIChpID0gMDsgaSA8IDU7IGkrKykgewoJCQlkYXRhLT50ZW1w
+W2ldID0gMTAwMCAqCgkJCQkoczgpIGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0YSgKCQkJCQljbGll
+bnQsIE1BWDE2NjhfUkVHX1RFTVAoaSkpOwoJCQlkYXRhLT50ZW1wX21heFtpXSA9IDEwMDAgKgoJ
+CQkJKHM4KSBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGEoCgkJCQkJY2xpZW50LCBNQVgxNjY4X1JF
+R19MSU1IX1JEKGkpKTsKCQkJZGF0YS0+dGVtcF9taW5baV0gPSAxMDAwICoKCQkJCShzOCkgaTJj
+X3NtYnVzX3JlYWRfYnl0ZV9kYXRhKAoJCQkJCWNsaWVudCwgTUFYMTY2OF9SRUdfTElNTF9SRChp
+KSk7CgkJfQoJCWRhdGEtPmFsYXJtcyA9CiAgICAgICAoKGkyY19zbWJ1c19yZWFkX2J5dGVfZGF0
+YShjbGllbnQsIE1BWDE2NjhfUkVHX1NUQVRVUzEpICYgMHg3OCkgPDwgOCkgfAogICAgICAgICBp
+MmNfc21idXNfcmVhZF9ieXRlX2RhdGEoY2xpZW50LCBNQVgxNjY4X1JFR19TVEFUVVMyKTsKCgkJ
+ZGF0YS0+bGFzdF91cGRhdGVkID0gamlmZmllczsKCQlkYXRhLT52YWxpZCA9IDE7Cgl9CgoJbXV0
+ZXhfdW5sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CgoJcmV0dXJuIGRhdGE7Cn0KCnN0YXRpYyBp
+bnQgX19pbml0IHNlbnNvcnNfbWF4MTY2OF9pbml0KHZvaWQpCnsKCXJldHVybiBpMmNfYWRkX2Ry
+aXZlcigmbWF4MTY2OF9kcml2ZXIpOwp9CgpzdGF0aWMgdm9pZCBfX2V4aXQgc2Vuc29yc19tYXgx
+NjY4X2V4aXQodm9pZCkKewoJaTJjX2RlbF9kcml2ZXIoJm1heDE2NjhfZHJpdmVyKTsKfQoKTU9E
+VUxFX0FVVEhPUiAoIkRhdmlkIEdlb3JnZSA8ZGF2aWQuZ2VvcmdlQHNrYS5hYy56YT4iKTsKTU9E
+VUxFX0RFU0NSSVBUSU9OKCJtYXgxNjY4IGRyaXZlciIpOwpNT0RVTEVfTElDRU5TRSgiR1BMIik7
+Cgptb2R1bGVfcGFyYW0ocmVhZF9vbmx5LCBib29sLCAwKTsKTU9EVUxFX1BBUk1fREVTQyhyZWFk
+X29ubHksICJEb24ndCBzZXQgYW55IHZhbHVlcywgcmVhZCBvbmx5IG1vZGUiKTsKCm1vZHVsZV9p
+bml0KHNlbnNvcnNfbWF4MTY2OF9pbml0KQptb2R1bGVfZXhpdChzZW5zb3JzX21heDE2NjhfZXhp
+dCkK
+--20cf300514546d982104a493ece1
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -214,4 +282,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5389937064255193054==--
+--20cf300514546d982104a493ece1--
