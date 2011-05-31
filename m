@@ -1,38 +1,42 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Date: Fri, 20 May 2011 11:48:39 +0000
-Subject: Re: [lm-sensors] [PATCH v9 1/2] Use "request_muxed_region" in it87
-Message-Id: <20110520114839.GS17887@infomag.iguana.be>
+From: "Fred ." <eldmannen@gmail.com>
+Date: Tue, 31 May 2011 17:31:45 +0000
+Subject: [lm-sensors] bug, I get -2 minus temperature
+Message-Id: <BANLkTikqbDkfbazwjWB4kd24Jn5AG=Aj3w@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1304745564-13003-1-git-send-email-natg@google.com> <1304745647-13051-1-git-send-email-natg@google.com>
-In-Reply-To: <1304745647-13051-1-git-send-email-natg@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Nat Gurumoorthy <natg@google.com>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, linux-watchdog@vger.kernel.org, mikew@google.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-Hi Nat,
+$ sensors
+it8718-isa-0290
+Adapter: ISA adapter
+in0:         +1.15 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in1:         +1.79 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in2:         +3.26 V  (min =3D  +0.00 V, max =3D  +4.08 V)
++5V:         +2.96 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in4:         +0.19 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in5:         +0.02 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in6:         +0.10 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+in7:         +3.10 V  (min =3D  +0.00 V, max =3D  +4.08 V)
+Vbat:        +3.12 V
+fan1:       1901 RPM  (min =3D   10 RPM)
+fan2:          0 RPM  (min =3D    0 RPM)
+fan3:          0 RPM  (min =3D    0 RPM)
+fan4:          0 RPM  (min =3D    0 RPM)
+temp1:       +54.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D thermistor
+temp2:       +36.0=B0C  (low  =3D +127.0=B0C, high =3D +60.0=B0C)  sensor =
+=3D thermal diode
+temp3:        -2.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor =
+=3D thermistor
 
-> 01 - Changes to it87 watchdog driver to use "request_muxed_region"
-> Serialize access to the hardware by using "request_muxed_region" macro defined
-> by Alan Cox. Call to this macro will hold off the requestor if the resource is
-> currently busy. 
-> 
-> The use of the above macro makes it possible to get rid of
-> spinlocks in it8712f_wdt.c and it87_wdt.c watchdog drivers.
-> This also greatly simplifies the implementation of it87_wdt.c driver.
-> 
->  "superio_enter" will return an error if call to "request_muxed_region" fails. 
-> Rest of the code change is to ripple an error return from superio_enter to
-> the top level.
-> 
-> Signed-off-by: Nat Gurumoorthy <natg@google.com>
+It says -2.0=B0C, thats crazy! It must be some bug!
+Nothing in my computer is -2.0=B0C, thats ice cold!
 
-Added to linux-2.6-watchdog-next.
+Please fix this bug.
 
-Kind regards,
-Wim.
-
+Also, the other values are they ok or bad?
 
 _______________________________________________
 lm-sensors mailing list
