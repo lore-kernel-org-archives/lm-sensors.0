@@ -1,119 +1,59 @@
-From: =?ISO-8859-1?Q?Per_Dal=E9n?= <per.dalen@appeartv.com>
-Date: Fri, 27 May 2011 08:08:21 +0000
-Subject: Re: [lm-sensors] [PATCH v2] sensors-detect: Add detection of MAX6642
-Message-Id: <4DDF5BF5.8030406@appeartv.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 31 May 2011 14:15:20 +0000
+Subject: [lm-sensors] [PATCH RFC] hwmon: (coretemp) Fix TjMax detection for
+Message-Id: <1306851320-7851-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DDE1CFF.1020906@appeartv.com>
-In-Reply-To: <4DDE1CFF.1020906@appeartv.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 05/26/2011 09:33 PM, Jean Delvare wrote:
-> Hi Per,
+Commit a321cedb12904114e2ba5041a3673ca24deb09c9 excludes CPU models 0xe, 0xf,
+and 0x16 from TjMax temperature adjustment, even though several of those CPUs
+are known to have TiMax other than 100 degrees C, and even though the code in
+adjust_tjmax() explicitly handles those CPUs and points to a Web document
+listing several of the affected CPU IDs.
 
-Hi Jean,
+Reinstate TjMax adjustment for CPUs with model ID 0xe, 0xf, and 0x16.
 
-I'll fix the sensors-detect and MAX6642 driver during (or right after)
-the weekend in the way you suggest. Thanks for the tips.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Huaxu Wan <huaxu.wan@linux.intel.com>
+Cc: Carsten Emde <C.Emde@osadl.org>
+Cc: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Yong Wang <yong.y.wang@linux.intel.com>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+---
+Reason for sending this as RFC is that I don't know if the original change to
+exclude the affected CPU IDs from adjustment was made on purpose or not. Please
+let me know if you recall the reasons for this exclusion.
 
->=20
-> On Thu, 26 May 2011 11:27:27 +0200, Per Dal=E9n wrote:
->> Changed according to the suggestions from Guenter Roeck:
->>
->> * Check the manufacturer ID directly. Fastens the test if it's not a
->> Maxim chip.
->> * Read the other non-existing registers after the manufacturer ID.
->=20
-> THis is better but I'm not completely happy yet.
->=20
->> This patch adds detection of MAX6642 to sensors-detect.
->>
->> Signed-off-by: Per Dalen <per.dalen@appeartv.com>
->> ---
->>
->> --- prog/detect/sensors-detect	(revision 5975)
->> +++ prog/detect/sensors-detect	(working copy)
->> @@ -848,6 +848,11 @@
->>  		i2c_addrs =3D> [0x2c, 0x2e, 0x2f],
->>  		i2c_detect =3D> sub { max6639_detect(@_); },
->>  	}, {
->> +		name =3D> "Maxim MAX6642",
->> +		driver =3D> "max6642",
->> +		i2c_addrs =3D> [0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f],
->=20
-> Better written: [0x48..0x4f]
->=20
->> +		i2c_detect =3D> sub { max6642_detect(@_); },
->> +	}, {
->>  		name =3D> "Maxim MAX6655/MAX6656",
->>  		driver =3D> "max6655",
->>  		i2c_addrs =3D> [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
->> @@ -5779,6 +5784,36 @@
->>  	return 6;
->>  }
->>
->> +# Chip to detect: MAX6642
->> +# Registers used:
->> +#   0x02: Status register
->> +#   0x03: Configuration register
->> +#   0xfe: Manufacturer ID
->> +#   0x04,0x06,0xff: No registers
->> +# We use the 0x04,0x06 and 0xff addresses (unused) to improve the
->=20
-> Space after comma please.
->=20
->> reliability.
->=20
-> Please disable line wrapping in your e-mail client before sending patches.
->=20
->> +# These are not real registers and will always return the last returned
->> value.
->> +# This isn't documented.
->> +sub max6642_detect
->> +{
->> +	my ($file, $addr) =3D @_;
->> +	my ($man_id, $conf, $status);
->> +
->> +	$man_id =3D i2c_smbus_read_byte_data($file, 0xfe, NO_CACHE);
->> +	return unless $man_id =3D 0x4d;	# Maxim
->> +	return if i2c_smbus_read_byte_data($file, 0x04, NO_CACHE) !=3D $man_id;
->> +	return if i2c_smbus_read_byte_data($file, 0x06, NO_CACHE) !=3D $man_id;
->> +	return if i2c_smbus_read_byte_data($file, 0xff, NO_CACHE) !=3D $man_id;
->> +	$status =3D i2c_smbus_read_byte_data($file, 0x02, NO_CACHE);
->=20
-> At this point you should check the unused status bits immediately (so
-> that you can exit if they don't meet the expectations.) Then you should
-> read non-registers 0x04, 0x06 and 0xff again. This is the only reliable
-> way to make sure that there are no registers at these addresses. It is
-> perfectly possible (though unlikely) that a given chip does have values
-> 0x4d for all of registers 0x04, 0x06, 0xfe and 0xff.
->=20
-> See max6657_detect() for an example.
->=20
->> +	$conf =3D i2c_smbus_read_byte_data($file, 0x03, NO_CACHE);
->=20
-> NO_CACHE is not needed here, as this register 0x03 does exist. Only use
-> NO_CACHE when you really need it, it's expensive!
->=20
->> +
->> +	# Bit 5, 3, 1 and 0 should be zero
->> +	return unless ($status & 0x2b) =3D 0x00;
->> +	# The 4 lower bits should be zero
->> +	return unless ($conf & 0x0f) =3D 0x00;
->> +
->> +	return 6;
->> +}
->> +
->>  sub max6655_detect
->>  {
->>  	my ($file, $addr) =3D @_;
->=20
->=20
+ drivers/hwmon/coretemp.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-BR
-Per
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index de3d246..897a257 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -308,12 +308,12 @@ static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+ 	 */
+ 
+ 	switch (c->x86_model) {
+-	case 0xe:
+-	case 0xf:
+-	case 0x16:
+ 	case 0x1a:
+ 		dev_warn(dev, "TjMax is assumed as 100 C!\n");
+ 		return 100000;
++	case 0xe:
++	case 0xf:
++	case 0x16:		/* Core 2 CPUs */
+ 	case 0x17:
+ 	case 0x1c:		/* Atom CPUs */
+ 		return adjust_tjmax(c, id, dev);
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
