@@ -1,40 +1,43 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 01 May 2011 20:52:40 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 2.6.39
-Message-Id: <1304283160-22587-1-git-send-email-guenter.roeck@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 31 May 2011 19:50:51 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Relax target temperature
+Message-Id: <20110531215051.663df5ef@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1301169714-25636-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1301169714-25636-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+The current temperature range check of MSR_IA32_TEMPERATURE_TARGET
+seems too strict to me, some TjMax values documented in
+Documentation/hwmon/coretemp wouldn't pass. Relax the check so that
+all the documented values pass.
 
-Please pull hwmon subsystem fixes for Linux 2.6.39 from:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Carsten Emde <C.Emde@osadl.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+---
+I'm not even sure why we need to check the range. Why would the
+value read from the MSR be wrong?
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+ drivers/hwmon/coretemp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Guenter Roeck
+--- linux-3.0-rc1.orig/drivers/hwmon/coretemp.c	2011-05-30 20:45:09.000000000 +0200
++++ linux-3.0-rc1/drivers/hwmon/coretemp.c	2011-05-31 19:36:09.000000000 +0200
+@@ -296,7 +296,7 @@ static int get_tjmax(struct cpuinfo_x86
+ 		 * If the TjMax is not plausible, an assumption
+ 		 * will be used
+ 		 */
+-		if (val > 80 && val < 120) {
++		if (val >= 70 && val <= 125) {
+ 			dev_info(dev, "TjMax is %d C.\n", val);
+ 			return val * 1000;
+ 		}
 
-------
 
-The following changes since commit 1be6a1f89f131e9c3d22f819ec542be9cda8c9e3:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi-rc-fixes-2.6 (2011-04-29 16:27:52 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Axel Lin (1):
-      hwmon: (twl4030-madc-hwmon) Return proper error if hwmon_device_register fails
-
- drivers/hwmon/twl4030-madc-hwmon.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
