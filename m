@@ -1,37 +1,67 @@
-From: Jeff Rickman <jrickman@myamigos.us>
-Date: Thu, 30 Jun 2011 23:27:23 +0000
-Subject: Re: [lm-sensors] Using Asus P5Q-E sensors/pwm
-Message-Id: <4E0D065B.6000704@myamigos.us>
+From: "Yu, Fenghua" <fenghua.yu@intel.com>
+Date: Wed, 01 Jun 2011 18:32:44 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Further relax
+Message-Id: <493994B35A117E4F832F97C4719C4C04011E3427A6@orsmsx505.amr.corp.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110628194643.GM21173@epicure.lazyet.homelinux.net>
-In-Reply-To: <20110628194643.GM21173@epicure.lazyet.homelinux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 6/30/2011 3:53 PM, Jean Delvare wrote:
-> On Thu, 30 Jun 2011 22:42:30 +0200, Etienne Buira wrote:
->> On Thu, Jun 30, 2011 at 01:47:15PM +0200, Jean Delvare wrote:
->>> Is it OK if you disable smart fan control altogether? If even the
->>> fastest smart fan setting doesn't work for you, then maybe your cooling
->>> solution is simply not adequate.
->>
->> q-fan turbo is most of the time enough, it is just not smart enough to
->> figure out my weird cooling installation when the weather is getting
->> warmy (though, nothing seems to be really boiling, but some temps might
->> reduce parts lifetimes). And it obviously cannot figure out when I don't
->> care about noise, and when I do.
->
-> I would certainly appreciate if Asus could add fine-tuning to their
-> BIOS rather than arbitrary thermal profiles (if nothing else, just to
-> see what each profiles does exactly.) And I would appreciate even more
-> if we had a way to adjust the values at runtime.
->
+> -----Original Message-----
+> From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
+> Sent: Wednesday, June 01, 2011 11:09 AM
+> To: lm-sensors@lm-sensors.org
+> Cc: Guenter Roeck; Carsten Emde; Yu, Fenghua; Jean Delvare
+> Subject: [PATCH] hwmon: (coretemp) Further relax temperature range
+> checks
+> 
+> Further relax temperature range checks after reading the
+> IA32_TEMPERATURE_TARGET
+> register. If the register returns a value other than 0 in bits 16..32,
+> assume
+> that the returned value is correct.
+> 
+> This change applies to both packet and core temperature limits.
+> 
+> Cc: Carsten Emde <C.Emde@osadl.org>
+> Cc: Fenghua Yu <fenghua.yu@intel.com>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  drivers/hwmon/coretemp.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+> index 1680977..85e9379 100644
+> --- a/drivers/hwmon/coretemp.c
+> +++ b/drivers/hwmon/coretemp.c
+> @@ -296,7 +296,7 @@ static int get_tjmax(struct cpuinfo_x86 *c, u32 id,
+> struct device *dev)
+>  		 * If the TjMax is not plausible, an assumption
+>  		 * will be used
+>  		 */
+> -		if (val >= 70 && val <= 125) {
+> +		if (val) {
+>  			dev_info(dev, "TjMax is %d C.\n", val);
+>  			return val * 1000;
+>  		}
+> @@ -326,7 +326,7 @@ static int get_pkg_tjmax(unsigned int cpu, struct
+> device *dev)
+>  	err = rdmsr_safe_on_cpu(cpu, MSR_IA32_TEMPERATURE_TARGET, &eax,
+> &edx);
+>  	if (!err) {
+>  		val = (eax >> 16) & 0xff;
+> -		if (val > 80 && val < 120)
+> +		if (val)
+>  			return val * 1000;
+>  	}
+>  	dev_warn(dev, "Unable to read Pkg-TjMax from CPU:%u\n", cpu);
+> --
+> 1.7.3.1
 
-I agree with Jean. I and many of my friends use Asus boards exclusively 
-for desktop purposes (non-work related builds). Fine-tuning the 
-fans/cooling profiles would be appreciated for the same reasons.
+Acked-by: Fenghua Yu <fenghua.yu@intel.com>
+
 
 _______________________________________________
 lm-sensors mailing list
