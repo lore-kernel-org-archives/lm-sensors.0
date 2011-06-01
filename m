@@ -1,82 +1,89 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 01 Jun 2011 20:18:07 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Relax target temperature
-Message-Id: <20110601221807.341a2d41@endymion.delvare>
+From: =?ISO-8859-1?Q?Per_Dal=E9n?= <per.dalen@appeartv.com>
+Date: Wed, 01 Jun 2011 06:44:19 +0000
+Subject: Re: [lm-sensors] MAX6642 chip detection and other stuff
+Message-Id: <4DE5DFC3.7030201@appeartv.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------020601030805020202000209"
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110531215051.663df5ef@endymion.delvare>
-In-Reply-To: <20110531215051.663df5ef@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <20110528045113.GA8833@ericsson.com>
+In-Reply-To: <20110528045113.GA8833@ericsson.com>
 To: lm-sensors@vger.kernel.org
 
-On Wed, 1 Jun 2011 09:12:11 -0700, Guenter Roeck wrote:
-> On Wed, 2011-06-01 at 05:40 -0400, Jean Delvare wrote:
-> > I would be perfectly happy to not have any sanity check on the value,
-> > but this requires that we know upfront which CPU models have bits 23:16
-> > of MSR 0x1a2 implemented, and which do not. As my experiment above
-> > shows, some models have the MSR implemented but not bits 23:16, and
-> > checking for value 0 is the only way to handle them in a generic way.
-> > 
-> > According to the SDM, MSR 0x1a2 is supposed to only exist in Nehalem
-> > (i.e. family 6 model 0x1a) and Sandy Bridge CPUs (family and model
-> > unknown to me) but I guess it will also exist in future CPUs.
-> > 
-> > I see two possible implementations:
-> > 
-> > 1* Go by the SDM. First check that we are on a model which supports
-> > MSR_TEMPERATURE_TARGET before calling it, and always trust the result.
-> > For other models, use the heuristic we had before (adjust_tjmax). The
-> > major drawback is that we will have to update the list of CPU models
-> > supporting MSR_TEMPERATURE_TARGET as they are released by Intel. We
-> > just went away from having to continuously maintain a device list in
-> > the coretemp driver and it seems wrong to go back to this situation
-> > again.
-> > 
-> > 2* Go by my experimental result. Read MSR_TEMPERATURE_TARGET
-> > unconditionally, but only use the result if there was no I/O error and
-> > the value isn't 0. In other cases, don't emit any warning message and
-> > simply fallback to the heuristic we had before (adjust_tjmax). This is
-> > closer to what we have at the moment, and has the advantage that it
-> > won't require further updates.
-> > 
-> > Implementation 2 clearly has my favors.
-> > 
-> Definitely. 1* doesn't look like very compelling.
+This is a multi-part message in MIME format.
+--------------020601030805020202000209
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Hi Guenter and Jean,
+
+Sorry for the delay. Much stuff at work...
+Here's (Jean's ;) patch.
+
+BR
+Per
+
+On 05/28/2011 04:04 PM, Guenter Roeck wrote:
+> Hi Jean,
 > 
-> > For stable kernel series, I'd rather just apply the patch I submitted,
-> > because it is the least intrusive option and we aren't aware of any
-> > actual system requiring a more intrusive fix.
->
-> Do we really want/need this in -stable ? Just wondering. 
+> On Sat, May 28, 2011 at 04:36:31AM -0400, Jean Delvare wrote:
+>> Hi Guenter,
+>>
+>> On Fri, 27 May 2011 21:51:13 -0700, Guenter Roeck wrote:
+>>> The attached patch (on top of Per's most recent patch) works quite nicely.
+>>> Per, maybe you can just merge it with your patch and resubmit it.
+>>
+>> Looks good, pretty much what I had in mind. But I think you could make
+>> the code even more compact:
+>>
+>> 	/* sanity check */
+>> 	if (i2c_smbus_read_byte_data(client, 0x04) != 0x4D
+>> 	 || i2c_smbus_read_byte_data(client, 0x06) != 0x4D
+>> 	 || i2c_smbus_read_byte_data(client, 0xff) != 0x4D)
+>> 		return -ENODEV;
+>>
+> Yes, you are right. I didn't do it to avoid a checkpatch warning, but forgot
+> that I don't use a variable anymore.
+> 
+> Guenter
 
-In all honesty, I don't know. I did not have any bug report, but if
-someone were to hit that one, all they would get is a wrong TjMax,
-that's not necessarily something people will notice.
 
-In fact it depends when MSR_TEMPERATURE_TARGET started reporting valid
-values in bits 23:16. I know models 0xe, 0xf and 0x1c do not, but I am
-unsure about 0x16 and 0x17 (for which we know some models have TjMax
-outside the original range check.) Officially supported started with
-Nehalem but you never know...
+--------------020601030805020202000209
+Content-Type: text/plain;
+ name="0002-hwmon-max6642-Improve-chip-detection.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="0002-hwmon-max6642-Improve-chip-detection.patch"
 
-Also, I can only suppose that bits 23:16 of the MSR will be supported
-by all Intel CPUs moving forward, and it seems reasonable to imagine
-that at least one model will get outside the current check at some
-point in the future (if it isn't already the case.) Pushing the fix to
-stable now would anticipate this. Best would be to find an actual CPU
-model affected by the bug, but I don't have one at hand and finding one
-would take much time, which I suspect would be better spent differently.
+Improve the detection of MAX6642 by reading non exciting registers (0x04, 0x06 and 0xff). The value of those registers should be the same as the last valid resister read.
 
-> We do need the second part of 2*, ie unconditionally calling
-> adjust_tjmax().
+Signed-off-by: Per Dalen <per.dalen@appeartv.com>
+---
+diff --git a/drivers/hwmon/max6642.c b/drivers/hwmon/max6642.c
+index 0f9fc40..4fb0564 100644
+--- a/drivers/hwmon/max6642.c
++++ b/drivers/hwmon/max6642.c
+@@ -136,6 +136,12 @@ static int max6642_detect(struct i2c_client *client,
+ 	if (man_id != 0x4D)
+ 		return -ENODEV;
+ 
++	/* sanity check */
++	if (i2c_smbus_read_byte_data(client, 0x04) != 0x4D
++	    || i2c_smbus_read_byte_data(client, 0x06) != 0x4D
++	    || i2c_smbus_read_byte_data(client, 0xff) != 0x4D)
++		return -ENODEV;
++
+ 	/*
+ 	 * We read the config and status register, the 4 lower bits in the
+ 	 * config register should be zero and bit 5, 3, 1 and 0 should be
 
-Yes we do.
-
--- 
-Jean Delvare
+--------------020601030805020202000209
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------020601030805020202000209--
