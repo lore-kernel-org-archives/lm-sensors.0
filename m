@@ -1,43 +1,51 @@
-From: Lucas Stach <dev@lynxeye.de>
-Date: Thu, 30 Jun 2011 23:44:21 +0000
-Subject: [lm-sensors] [RFC 0/2] add new hwmon core interface
-Message-Id: <1309477462.18912.26.camel@tellur>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 01 Jun 2011 18:08:43 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Further relax temperature
+Message-Id: <1306951723-9040-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean, Guenter and others,
+Further relax temperature range checks after reading the IA32_TEMPERATURE_TARGET
+register. If the register returns a value other than 0 in bits 16..32, assume
+that the returned value is correct.
 
-quite some time ago we talked about adding a new hwmon core interface to
-make the attributes of the drivers easily accessible to other kernel
-modules. The following patch does this. It is a heavy WIP and does not
-reflect the full potential of this interface, but i would like to hear
-some opinions before I spend more time on this.
+This change applies to both packet and core temperature limits.
 
-A short functional summary to make it more easy for you to grok this:
-basically every driver that wants to provide this interface allocates a
-hwmon_device_instance, fills out the cap values to reflect the
-capabilities of the driver/hardware and links this struct as driverdata
-the hwmon_device returned by hwmon_device_register.
+Cc: Carsten Emde <C.Emde@osadl.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/coretemp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-hwmon_create_sysfs creates sysfs accessors according to the specified
-caps and routes accesses through the attribute get and set functions of
-the hwmon_device_instance.
-
-The second patch is only a hackish dummy driver to showcase the new
-interface.
-
-Missing from this interface is a clean way to get/set trip points and
-the alarm sysfs accessors are currently unimplemented.
-
-Could you please give me some feedback? Is this the right direction or
-am I doing something obviously wrong? Please CC me as I'm not on the
-list.
-
-Thanks,
-Lucas
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 1680977..85e9379 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -296,7 +296,7 @@ static int get_tjmax(struct cpuinfo_x86 *c, u32 id, struct device *dev)
+ 		 * If the TjMax is not plausible, an assumption
+ 		 * will be used
+ 		 */
+-		if (val >= 70 && val <= 125) {
++		if (val) {
+ 			dev_info(dev, "TjMax is %d C.\n", val);
+ 			return val * 1000;
+ 		}
+@@ -326,7 +326,7 @@ static int get_pkg_tjmax(unsigned int cpu, struct device *dev)
+ 	err = rdmsr_safe_on_cpu(cpu, MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
+ 	if (!err) {
+ 		val = (eax >> 16) & 0xff;
+-		if (val > 80 && val < 120)
++		if (val)
+ 			return val * 1000;
+ 	}
+ 	dev_warn(dev, "Unable to read Pkg-TjMax from CPU:%u\n", cpu);
+-- 
+1.7.3.1
 
 
 _______________________________________________
