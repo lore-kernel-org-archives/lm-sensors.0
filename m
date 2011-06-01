@@ -1,35 +1,32 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Mon, 27 Jun 2011 16:56:26 +0000
-Subject: Re: [lm-sensors] coretemp: Support for Intel Atom E6XX CPU
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654109E84A62C7@bgsmsx502.gar.corp.intel.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 01 Jun 2011 18:19:40 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon/f71882fg: Add support for the f71869a
+Message-Id: <1306952380.2163.1758.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201106271220.51953.alexander.stein@systec-electronic.com>
-	 <20110627164108.777c2e28@endymion.delvare>
-	 <1309191054.8271.636.camel@groeck-laptop>
-	 <D6D887BA8C9DFF48B5233887EF04654109E84A62C0@bgsmsx502.gar.corp.intel.com>
- <1309193405.8271.645.camel@groeck-laptop>
-In-Reply-To: <1309193405.8271.645.camel@groeck-laptop>
+References: <1306676086-6253-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1306676086-6253-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "guenter.roeck@ericsson.com" <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>
+To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-> Unfortunately, looking at Alexander's /proc/cpuinfo output, it looks
-> like the E6xx chips have no mention of E6xx in the CPU ID string, which
-> unfortunately kills the idea.
+On Sun, 2011-05-29 at 09:34 -0400, Hans de Goede wrote:
+> The f71869a is almost the same as the f71869f/e, except that it has
+> the normal number of temp and pwm zones for a f71882fg derived chip, rather
+> then the limited number of the f71869f/e.
 > 
-> Do you know if there is _any_ means to distinguish E6xx from E6xxT ?
-> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Tested-by: Max Baldwin <archerseven@gmail.com>
 
-Sorry I do not know. But I can ask some folks here and get back
-to you guys. Should not take more time, once I identify the right
-person to ask :-)
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+
+Jean, did you pick this up, or do you want me to take it ?
+Should be a candidate for 3.0 ?
 
 Thanks,
-Durga
+Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
