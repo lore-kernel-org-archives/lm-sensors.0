@@ -1,52 +1,21 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 18 Jun 2011 15:24:46 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.0
-Message-Id: <1308410686-21334-1-git-send-email-guenter.roeck@ericsson.com>
+From: "support.webvisions.com.ua" <support@webvisions.com.ua>
+Date: Thu, 02 Jun 2011 12:34:54 +0000
+Subject: [lm-sensors] MB BLKD945GCLF2
+Message-Id: <1307018095.16532.3.camel@wifi.ua-top.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110606170230.2bda2a14@endymion.delvare>
-In-Reply-To: <20110606170230.2bda2a14@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
-
-Please pull hwmon subsystem fixes for Linux 3.0 from:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Thanks,
-Guenter Roeck
-
-------
-
-The following changes since commit 95d17b7168eacf1f97f2d1d087ebe7a648c30051:
-
-  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound-2.6 (2011-06-17 10:37:57 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Guenter Roeck (4):
-      hwmon: (asus_atk0110) Consolidate sysfs attribute initialization
-      hwmon: (ibmaem) Initialize sysfs attributes
-      hwmon: (ibmpex) Initialize sysfs attributes
-      hwmon: (s3c) Initialize sysfs attributes
-
-Jean Delvare (1):
-      hwmon: (coretemp) Drop unused struct members
-
- drivers/hwmon/asus_atk0110.c |    5 +----
- drivers/hwmon/coretemp.c     |    4 ----
- drivers/hwmon/ibmaem.c       |    2 ++
- drivers/hwmon/ibmpex.c       |    1 +
- drivers/hwmon/s3c-hwmon.c    |    2 ++
- 5 files changed, 6 insertions(+), 8 deletions(-)
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgZ3V5cywgY2FuIHlvdSBhZGQgc3VwcG9ydCBmb3IgSW50ZWwgbW90aGVyYm9hcmQgQkxLRDk0
+NUdDTEYyCgoKW3Jvb3RAc2VydmVyIHRtcF0jIHNlbnNvcnMKY29yZXRlbXAtaXNhLTAwMDAKQWRh
+cHRlcjogSVNBIGFkYXB0ZXIKQ29yZSAwOiAgICAgICsxOC4wwrBDICAoY3JpdCA9ICs5MC4wwrBD
+KSAgICAgICAgICAgICAgICAgIAoKY29yZXRlbXAtaXNhLTAwMDEKQWRhcHRlcjogSVNBIGFkYXB0
+ZXIKQ29yZSAxOiAgICAgICsxOS4wwrBDICAoY3JpdCA9ICs5MC4wwrBDKSAgICAgICAgICAgICAg
+ICAgIAoKW3Jvb3RAc2VydmVyIHRtcF0jIHNlbnNvcnMgLXYKc2Vuc29ycyB2ZXJzaW9uIDMuMS4y
+K1NWTiB3aXRoIGxpYnNlbnNvcnMgdmVyc2lvbiAzLjEuMitTVk4KCgpUaGFua3MKCgotLSAKV0JS
+LCBBbGV4YW5kZXIgVXJjaGVua28KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
+b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
+ZW5zb3JzCg==
