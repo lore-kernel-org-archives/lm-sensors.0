@@ -1,201 +1,99 @@
-From: Valentijn Scholten <valentijnscholten@hotmail.com>
-Date: Thu, 23 Jun 2011 21:26:28 +0000
-Subject: Re: [lm-sensors] Intel(r) Quiet System Technology (QST) SDK Is Now
-Message-Id: <loom.20110623T232310-485@post.gmane.org>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Mon, 06 Jun 2011 20:48:34 +0000
+Subject: Re: [lm-sensors] [RFC 3/5] serial: add support for Technologic
+Message-Id: <20110606164834.5894deda@v0nbox>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <D9E26691B3D231438C54820E5AB9FA656B976FEC@azsmsx501.amr.corp.intel.com>
-In-Reply-To: <D9E26691B3D231438C54820E5AB9FA656B976FEC@azsmsx501.amr.corp.intel.com>
+References: <1304115712-5299-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+	<1304115712-5299-4-git-send-email-vivien.didelot@savoirfairelinux.com>
+	<20110430111753.69466ae5@lxorguk.ukuu.org.uk>
+In-Reply-To: <20110430111753.69466ae5@lxorguk.ukuu.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-serial@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Pearson, Scott <scott.pearson <at> intel.com> writes:
+Hi,
+Sorry for the late reply to this comment.
 
->  eration chipset. Thus, in theory, to support (for example) the Series 5 
-chipset, all you should need to do is
-> add support for the appropriate ids and you are done. If you look in the 
-driver source at file heci.h, you
-> will see a list of definitions for the ids that are supported. In file 
-heci_main.c, you will see these
-> definitions used to form a search list. Simply expand the definitions and list 
-to include the id(s) for the
-> missing generation(s) and you should be good to go. The ids can typically be 
-found in the particular
-> chipset's Specification Update document...
-I found an interesting post on the intel forums containing some intel patch info 
-the get the heci driver working with the newer chipsets.
+On Sat, 30 Apr 2011 11:17:53
++0100, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote :
+> > --- a/drivers/tty/serial/8250.c
+> > +++ b/drivers/tty/serial/8250.c
+> > @@ -109,6 +109,13 @@ static unsigned int skip_txen_test; /* force
+> > skip of txen test at init time */
+> >  #define CONFIG_HUB6 1
+> >
+> >  #include <asm/serial.h>
+> > +
+> > +/* TS-5500 related stuff */
+> > +#ifdef CONFIG_SERIAL_8250_TS5500_485_TIMER
+> > +#define TS5500_TIMER2_SPEED_ADDR        0x42
+> > +#define TS5500_485_SERIAL_PORT                0x02
+> > +#endif
+> > +
+> >  /*
+> >   * SERIAL_PORT_DFNS tells us about built-in ports that have no
+> >   * standard enumeration mechanism.   Platforms that can find all
+> > @@ -437,6 +444,25 @@ static void au_serial_out(struct uart_port *p,
+> > int offset, int value)
+> >          __raw_writel(value, p->membase + offset);
+> >  }
+> >
+> > +#ifdef CONFIG_SERIAL_8250_TS5500_485_TIMER
+> > +void serial8250_ts5500_set_termios(struct uart_port *port,
+> > +                                   struct ktermios *new,
+> > +                                   struct ktermios *old)
+> > +{
+> > +        u16 speed;
+> > +
+> > +        if (new->c_ospeed >= 9600 && port->line =
+> > TS5500_485_SERIAL_PORT) {
+> > +                speed = ((115200 * 2) / new->c_ospeed);
+> > +
+> > +                /* This should be written by low byte followed by
+> > high byte */
+> > +                spin_lock_irq(&port->lock);
+> > +                outb((speed & 0x0F), TS5500_TIMER2_SPEED_ADDR);
+> > +                outb((speed >> 8), TS5500_TIMER2_SPEED_ADDR);
+> > +                spin_unlock_irq(&port->lock);
+> > +        }
+> > +}
+> > +#endif
+>
+> Please don't put board specific magic in this file, we are desperately
+> trying to get rid of it.
+>
+> > +
+> >  static unsigned int tsi_serial_in(struct uart_port *p, int offset)
+> >  {
+> >          unsigned int tmp;
+> > @@ -2464,6 +2490,10 @@ serial8250_do_set_termios(struct uart_port
+> > *port, struct ktermios *termios,
+> >          /* Don't rewrite B0 */
+> >          if (tty_termios_baud_rate(termios))
+> >                  tty_termios_encode_baud_rate(termios, baud, baud);
+> > +
+> > +#ifdef CONFIG_SERIAL_8250_TS5500_485_TIMER
+> > +        serial8250_ts5500_set_termios(port, termios, old);
+> > +#endif
+> >  }
+> >  EXPORT_SYMBOL(serial8250_do_set_termios);
+>
+> Provide your own set_termios method and then call into this one (which
+> is why it is exported)
 
-I just compiled the heci driver and can confirm it works with Intel QST SDK on a 
-DH55TC motherboard. Running Debian Squeeze = kernel 2.6.32.
-On 2.6.36+kernels the driver doesn't compile due to some ioctl changes.
+I don't really understand how to do this. I've written my own
+ts5500_serial8250_set_termios() function, which first makes a call to
+serial8250_do_set_termios(), but I don't know how to make the platform
+uses this one now. I've seen the plat_serial8250_port structure which
+has a set_termios field, but I didn't find an example of usage of this
+structure with this field. Maybe that's not the good way to "hook" the
+serial8250_do_set_termios() function.
+Could you please explain how to do this?
 
-Output:
-
-
-Intel(R) Quiet System Technology Status Display Demo
-Copyright (C) 2007-2008, Intel Corporation. All Rights Reserved.
-
-The QST Subsystem is configured and operational
-
-Current Lock Mask:
-
-   Configuration:        Locked
-   Health Thresholds:    Unlocked
-   Manual Fan Control:   Unlocked
-   SST Bus Resources:    Read-Only
-   Chipset Resources:    Read-Only
-
-Sensor Configuration/Status Summary:
-
-   Temperature Sensor 1:
-
-      Health:            Normal
-      Usage:             Processor Temperature
-      Reading:           30.60
-
-      NonCrit:           95.000
-      Crit:              97.000
-      NonRecov:          99.000
-
-   Temperature Sensor 3:
-
-      Health:            Normal
-      Usage:             Peripheral Controller Hub (PCH) Temperature
-      Reading:           59.00
-
-      NonCrit:           110.000
-      Crit:              114.000
-      NonRecov:          117.000
-
-   Temperature Sensor 4:
-
-      Health:            Normal
-      Usage:             Voltage Regulator Temperature
-      Reading:           43.00
-
-      NonCrit:           113.000
-      Crit:              117.000
-      NonRecov:          121.000
-
-
-   Temperature Sensor 5:
-
-      Health:            Normal
-      Usage:             Memory DIMM Temperature
-      Reading:           34.00
-
-      NonCrit:           113.000
-      Crit:              117.000
-      NonRecov:          121.000
-
-   Fan Speed Sensor 1:
-
-      Health:            Normal
-      Usage:             Processor Fan
-      Reading:           644
-
-      NonCrit:           300.000
-      Crit:              250.000
-      NonRecov:          200.000
-
-   Voltage Sensor 1:
-
-      Health:            Normal
-      Usage:             +12 Volts
-      Reading:           12.172
-
-      NonCrit Low:       11.400
-      Crit Low:          11.100
-      NonRecov Low:      10.800
-
-      NonCrit High:      12.600
-      Crit High:         12.900
-      NonRecov High:     13.200
-
-   Voltage Sensor 2:
-
-
-      Health:            Normal
-      Usage:             +5 Volts
-      Reading:           4.937
-
-      NonCrit Low:       4.750
-      Crit Low:          4.625
-      NonRecov Low:      4.500
-
-      NonCrit High:      5.250
-      Crit High:         5.375
-      NonRecov High:     5.500
-
-   Voltage Sensor 3:
-
-      Health:            Normal
-      Usage:             +3.3 Volts
-      Reading:           3.286
-
-      NonCrit Low:       3.135
-      Crit Low:          3.053
-      NonRecov Low:      2.970
-
-      NonCrit High:      3.465
-      Crit High:         3.548
-      NonRecov High:     3.630
-
-   Voltage Sensor 4:
-
-      Health:            Normal
-      Usage:             +1.5 Volts
-      Reading:           1.533
-
-      NonCrit Low:       1.425
-      Crit Low:          1.415
-      NonRecov Low:      1.400
-
-      NonCrit High:      1.575
-      Crit High:         1.585
-      NonRecov High:     1.600
-
-
-   Voltage Sensor 5:
-
-      Health:            Normal
-      Usage:             Processor Vcc
-      Reading:           0.932
-
-      NonCrit Low:       0.463
-      Crit Low:          0.363
-      NonRecov Low:      0.263
-
-      NonCrit High:      1.863
-      Crit High:         1.963
-      NonRecov High:     2.063
-
-Fan Speed Controller Configuration/Status Summary:
-
-   Fan Speed Controller 1:
-
-      Health:            Normal
-      Usage:             Processor Fan Controller
-      Control:           Automatic
-      Duty Cycle:        20.00
-
-   Fan Speed Controller 2:
-
-      Health:            Normal
-      Usage:             Chassis Inlet Fan Controller
-      Control:           Automatic
-      Duty Cycle:        30.00
-
-   Fan Speed Controller 3:
-
-      Health:            Normal
-      Usage:             Chassis Outlet Fan Controller
-      Control:           Automatic
-      Duty Cycle:        30.00
-
-Good news.
-
+Regards,
+Vivien.
 
 _______________________________________________
 lm-sensors mailing list
