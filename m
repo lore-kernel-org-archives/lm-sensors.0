@@ -1,21 +1,25 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 08 Jun 2011 13:52:42 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon-vid: Fix typo in VIA CPU name
-Message-Id: <20110608135241.GA7193@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 06 Jun 2011 15:02:30 +0000
+Subject: Re: [lm-sensors] [GIT PULL] hwmon fixes for 3.0
+Message-Id: <20110606170230.2bda2a14@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110608124103.17ea9318@endymion.delvare>
-In-Reply-To: <20110608124103.17ea9318@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 08, 2011 at 06:41:03AM -0400, Jean Delvare wrote:
-> It's Nehemiah, not Nemiah.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Hi Guenter,
 
-Acked-by: Guenter Roeck {guenter.roeck@ericsson.com>
+On Sun, 5 Jun 2011 08:06:58 -0700, Guenter Roeck wrote:
+> Jean Delvare (1):
+>       hwmon: (coretemp) Relax target temperature range check
+
+This one didn't have stable@kernel.org in Cc, but I think it would make
+sense to push it to 2.6.35 - 2.6.39 stable series. Do you have any
+objection to me doing so?
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
