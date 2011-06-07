@@ -1,28 +1,34 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 16 Jun 2011 19:17:54 +0000
-Subject: Re: [lm-sensors] Info when using LM-sensors
-Message-Id: <20110616211754.2a8ef0a7@endymion.delvare>
+From: Randy <singularity_2@yahoo.com>
+Date: Tue, 07 Jun 2011 00:25:10 +0000
+Subject: [lm-sensors] i2c device w/o registers
+Message-Id: <609440.53865.qm@web30206.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <53204.64801.qm@web65410.mail.ac4.yahoo.com>
-In-Reply-To: <53204.64801.qm@web65410.mail.ac4.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 14 Jun 2011 10:05:55 -0700 (PDT), Guillermo de las Nieves wrote:
-> Good afternoon again.
->=20
-> Could you please give me the information about the voltage of each pin wh=
-en using a motherborad:
->=20
-> =A0=A0=A0=A0 Gigabyte: 954PL-S3
-> =A0=A0=A0=A0 Sensor: it8718-isa-0290
+I have an ADC (MCP3424) that doesn't use registers/commands. 
 
-No, we can't. Only the board vendor could tell you for sure.
+To configure the device, you simply write the configuration to the appropriate 
+I2C device address.
 
---=20
-Jean Delvare
+To read the sensor data, you simply issue a read to the device, which will 
+return the ADC sample and the current control register (3 or 4 bytes total, 
+depending on mode).
+
+All the commands in i2c-tools and the i2c drivers, except for the read/write 
+byte commands, want to take an additional register parameter.  This extra param 
+going over the wire messes up the chip.
+
+Is there any simple way to support devices that don't support registers?  I 
+searched the archive, and found some requests for a i2c_smbus_read_word() 
+command, but that's about it.
+
+thanks,
+
+Randy
+
 
 _______________________________________________
 lm-sensors mailing list
