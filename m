@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 07 Jun 2011 06:48:12 +0000
+From: Ben Dooks <ben@trinity.fluff.org>
+Date: Tue, 07 Jun 2011 08:18:39 +0000
 Subject: Re: [lm-sensors] i2c device w/o registers
-Message-Id: <20110607084812.6e012a55@endymion.delvare>
+Message-Id: <20110607081838.GF16731@trinity.fluff.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <609440.53865.qm@web30206.mail.mud.yahoo.com>
 In-Reply-To: <609440.53865.qm@web30206.mail.mud.yahoo.com>
@@ -10,9 +10,8 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Randy,
 
-On Mon, 6 Jun 2011 17:25:10 -0700 (PDT), Randy wrote:
+On Mon, Jun 06, 2011 at 05:25:10PM -0700, Randy wrote:
 > I have an ADC (MCP3424) that doesn't use registers/commands. 
 > 
 > To configure the device, you simply write the configuration to the appropriate 
@@ -30,18 +29,15 @@ On Mon, 6 Jun 2011 17:25:10 -0700 (PDT), Randy wrote:
 > searched the archive, and found some requests for a i2c_smbus_read_word() 
 > command, but that's about it.
 
-This question would have better been asked on the linux-i2c list,
-methinks.
-
-Anyway, the I2C commands you need aren't part of the SMBus command
-subset, so you have to use raw I2C messaging. The functions you need
-are i2c_master_send() and i2c_master_recv() in kernel space. In
-user space, you'd simply call read() and write() on the device node. I
-don't think there's any example of this in i2c-tools, but the i2c-dev
-driver supports it.
+you can send direct i2c commands to the device without any register
+access by using i2c_transfer with an "struct i2c_msg" to do anything
+you like.
 
 -- 
-Jean Delvare
+Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
+
+Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+
 
 _______________________________________________
 lm-sensors mailing list
