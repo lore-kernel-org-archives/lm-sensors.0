@@ -1,25 +1,61 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 30 Jun 2011 16:22:59 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (via-cputemp) Add VID reporting
-Message-Id: <1309450979.2343.33.camel@groeck-laptop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 07 Jun 2011 19:27:22 +0000
+Subject: [lm-sensors] Question about coretemp ttarget
+Message-Id: <20110607212722.14cafbfb@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110630161717.76f5082b@endymion.delvare>
-In-Reply-To: <20110630161717.76f5082b@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2011-06-30 at 10:17 -0400, Jean Delvare wrote:
-> At least VIA family 6 model D CPU report the VID settings in a MSR,
-> so expose the value to user-space. Not sure about model A.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Hi Durgadoss, Fenghua and Guenter,
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+With commit 199e0de7f5df31a4fc485d4aaaf8a07718252ace (hwmon: (coretemp)
+Merge pkgtemp with coretemp), the following piece of code was added to
+the coretemp driver:
 
++static void update_ttarget(__u8 cpu_model, struct temp_data *tdata,
++                               struct device *dev)
++{
++       int err;
++       u32 eax, edx;
++
++       /*
++        * Initialize ttarget value. Eventually this will be
++        * initialized with the value from MSR_IA32_THERM_INTERRUPT
++        * register. If IA32_TEMPERATURE_TARGET is supported, this
++        * value will be over written below.
++        * To Do: Patch to initialize ttarget from MSR_IA32_THERM_INTERRUPT
++        */
++       tdata->ttarget =3D tdata->tjmax - 20000;
 
+I have questions and concerns about this (on top of the fact that this
+side change was not documented and should have been submitted as a
+separate patch, if it is really correct.)
 
+1* Where does the magic 20=B0C constant come from? Is this just an
+   arbitrary approximation, or is it really correct?
+
+2* Do all Intel CPUs with DTS really have a target temperature? So far,
+   the tempX_max limit (which corresponds to ttarget) was only created
+   conditionally, on new CPU models. Older models did not have it. As a
+   matter of fact, the documentation file says that the feature is only
+   available since Core 2. Please remember that we do NOT want to
+   present fake limits to user-space. Any limit exposed to user-space
+   should correspond to a real attribute of the CPU (or core.)
+
+3* Why is the "to do" item not done yet? We have already just made
+   significant changes to the coretemp driver, which break user-space
+   compatibility to some degree. I don't want to do it again with the
+   next kernel version. So if MSR_IA32_THERM_INTERRUPT can be used to
+   get a better value for tdata->ttarget, then please let's implement
+   it properly right now, for kernel 3.0.
+
+If anyone has comments on this, please speak up.
+
+Thanks,
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
