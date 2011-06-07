@@ -1,7 +1,7 @@
-From: Randy <singularity_2@yahoo.com>
-Date: Tue, 07 Jun 2011 18:57:59 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 07 Jun 2011 19:02:16 +0000
 Subject: Re: [lm-sensors] i2c device w/o registers
-Message-Id: <32807.14980.qm@web30207.mail.mud.yahoo.com>
+Message-Id: <20110607190216.GA3900@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <609440.53865.qm@web30206.mail.mud.yahoo.com>
 In-Reply-To: <609440.53865.qm@web30206.mail.mud.yahoo.com>
@@ -10,54 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks.  I did the equivalent of this by modifying i2c_smbus_xfer_emulated() and 
-making my own read message, and it works.
-
-Maybe I'll try to call i2c_transfer directly as your recommended, since that 
-sounds cleaner.
-
-thanks,
-
-Randy
-
-
-
------ Original Message ----
-From: Ben Dooks <ben@trinity.fluff.org>
-To: Randy <singularity_2@yahoo.com>
-Cc: lm-sensors@lm-sensors.org
-Sent: Tue, June 7, 2011 1:18:39 AM
-Subject: Re: [lm-sensors] i2c device w/o registers
-
-
-On Mon, Jun 06, 2011 at 05:25:10PM -0700, Randy wrote:
-> I have an ADC (MCP3424) that doesn't use registers/commands. 
+On Tue, Jun 07, 2011 at 02:57:59PM -0400, Randy wrote:
+> Thanks.  I did the equivalent of this by modifying i2c_smbus_xfer_emulated() and 
+> making my own read message, and it works.
 > 
-> To configure the device, you simply write the configuration to the appropriate 
-
-> I2C device address.
+> Maybe I'll try to call i2c_transfer directly as your recommended, since that 
+> sounds cleaner.
 > 
-> To read the sensor data, you simply issue a read to the device, which will 
-> return the ADC sample and the current control register (3 or 4 bytes total, 
-> depending on mode).
-> 
-> All the commands in i2c-tools and the i2c drivers, except for the read/write 
-> byte commands, want to take an additional register parameter.  This extra param 
->
-> going over the wire messes up the chip.
-> 
-> Is there any simple way to support devices that don't support registers?  I 
-> searched the archive, and found some requests for a i2c_smbus_read_word() 
-> command, but that's about it.
+Might be a good idea, at least if you plan to submit your driver ;).
 
-you can send direct i2c commands to the device without any register
-access by using i2c_transfer with an "struct i2c_msg" to do anything
-you like.
-
--- 
-Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
-
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
