@@ -1,36 +1,35 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 22 Jun 2011 02:50:16 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (zl6100) Add new chip support
-Message-Id: <20110622025016.GA20421@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 08 Jun 2011 10:41:03 +0000
+Subject: [lm-sensors] [PATCH] hwmon-vid: Fix typo in VIA CPU name
+Message-Id: <20110608124103.17ea9318@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1308707361-15558-1-git-send-email-b29983@freescale.com>
-In-Reply-To: <1308707361-15558-1-git-send-email-b29983@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jun 21, 2011 at 09:49:21PM -0400, b29983@freescale.com wrote:
-> From: Tang Yuantian <B29983@freescale.com>
-> 
->         The ZL6100 is a digital power controller with Power Monitoring support.
->         It provides an I2C/SMBus digital interface that enables the user to
->         configure all aspects of the device operation as well as monitor the
->         input and output parameters. It accepts most standard PMBus commands.
->         Four parameters are output here which are Output Current, Output Voltage,
->         Local Temperature and Remote Temperature.
-> 
->         This chip is currently used on some PowerPC platform.
-> 
-> Signed-off-by: Tang Yuantian <b29983@freescale.com>
+It's Nehemiah, not Nemiah.
 
-Hi,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/hwmon-vid.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Did you try the generic pmbus driver ? Any reason why you did not use
-the pmbus framework ?
+--- linux-3.0-rc2.orig/drivers/hwmon/hwmon-vid.c	2011-05-20 10:41:54.000000000 +0200
++++ linux-3.0-rc2/drivers/hwmon/hwmon-vid.c	2011-06-08 12:22:19.000000000 +0200
+@@ -202,7 +202,7 @@ static struct vrm_model vrm_models[] = {
+ 
+ 	{X86_VENDOR_CENTAUR, 0x6, 0x7, ANY, 85},	/* Eden ESP/Ezra */
+ 	{X86_VENDOR_CENTAUR, 0x6, 0x8, 0x7, 85},	/* Ezra T */
+-	{X86_VENDOR_CENTAUR, 0x6, 0x9, 0x7, 85},	/* Nemiah */
++	{X86_VENDOR_CENTAUR, 0x6, 0x9, 0x7, 85},	/* Nehemiah */
+ 	{X86_VENDOR_CENTAUR, 0x6, 0x9, ANY, 17},	/* C3-M, Eden-N */
+ 	{X86_VENDOR_CENTAUR, 0x6, 0xA, 0x7, 0},		/* No information */
+ 	{X86_VENDOR_CENTAUR, 0x6, 0xA, ANY, 13},	/* C7, Esther */
 
-Thanks,
-Guenter
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
