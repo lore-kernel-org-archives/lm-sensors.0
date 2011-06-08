@@ -1,37 +1,67 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 11 Jun 2011 15:42:27 +0000
-Subject: Re: [lm-sensors] WPCD374L question
-Message-Id: <20110611174227.433c5e45@endymion.delvare>
+Date: Wed, 08 Jun 2011 13:18:43 +0000
+Subject: [lm-sensors] [PATCH] Don't point the user to the ipmisensors driver
+Message-Id: <20110608151843.357fa29c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4DDD468B.2060106@flexstar.com>
-In-Reply-To: <4DDD468B.2060106@flexstar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 11 Jun 2011 08:56:10 -0600, Carl Morris wrote:
-> Hi Jean,
-> 
-> On 6/11/2011 8:10 AM, Jean Delvare wrote:
-> > I would be the one who posted the call for contact. Meanwhile, looking
-> > at ticket:
-> >    http://www.lm-sensors.org/ticket/2182
-> > it seems that everything is solved, both in sensors-detect and in the
-> > lm85 driver, so the call should be cleared. I've just done that.
-> >
-> > As far as your system is concerned, I can't say anything without the
-> > complete output of (a recent version of) sensors-detect. Maybe your
-> > system simply doesn't implement hardware monitoring, or it has a not
-> > yet supported device.
-> 
-> Thanks for the reply.  In our investigation of how to solve our
-> immediate problem we learned about IPMI and used it to create our
-> solution.  Making it work with sensors-detect is now a low/nonexistent
-> priority.  If you would like me to harvest some info for you anyway
-> I can do that, but for me the issue is closed.  Thanks again...
+The development of the ipmisensors driver stalled 5 years ago, the
+driver isn't usable, so stop pointing the users to it, it only confuses
+them. See https://bugzilla.novell.com/show_bug.cgi?idU8756 for
+example.
 
-No need. If you're happy with your current solution, all is fine!
+---
+I have this patch in openSUSE for 1.5 year, any objection to me
+getting it upstream for everyone's benefit?
+
+ prog/detect/sensors-detect |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+--- lm-sensors.orig/prog/detect/sensors-detect	2011-06-08 14:59:16.000000000 +0200
++++ lm-sensors/prog/detect/sensors-detect	2011-06-08 15:12:04.000000000 +0200
+@@ -1356,12 +1356,12 @@ use vars qw(@i2c_adapter_names);
+ @ipmi_ifs = (
+ 	{
+ 		name => "IPMI BMC KCS",
+-		driver => "ipmisensors",
++		driver => "to-be-written",	# ipmisensors
+ 		isa_addrs => [0x0ca0],
+ 		isa_detect => sub { ipmi_detect(@_); },
+ 	}, {
+ 		name => "IPMI BMC SMIC",
+-		driver => "ipmisensors",
++		driver => "to-be-written",	# ipmisensors
+ 		isa_addrs => [0x0ca8],
+ 		isa_detect => sub { ipmi_detect(@_); },
+ 	}
+@@ -6039,6 +6039,7 @@ sub w83781d_isa_detect
+ sub ipmi_from_smbios
+ {
+ 	my ($version, $if, @ipmi_if);
++	my $ipmi_driver = "to-be-written";	# ipmisensors
+ 
+ 	return 0 unless check_dmidecode_version();
+ 
+@@ -6074,13 +6075,13 @@ sub ipmi_from_smbios
+ 						 $if->{type}));
+ 		}
+ 		print "Success!\n".
+-		      "    (confidence 8, driver `ipmisensors')\n";
++		      "    (confidence 8, driver `$ipmi_driver')\n";
+ 		my $new_hash = {
+ 			conf => 8,
+ 			isa_addr => $if->{addr} || 0,
+ 			chipname => $if->{type},
+ 		};
+-		add_isa_to_chips_detected("ipmisensors", $new_hash);
++		add_isa_to_chips_detected($ipmi_driver, $new_hash);
+ 	}
+ 
+ 	return scalar @ipmi_if;
+
 
 -- 
 Jean Delvare
