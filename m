@@ -1,20 +1,22 @@
 From: "Sangita P." <biwi@sworldonline.com>
-Date: Wed, 08 Jun 2011 18:40:35 +0000
+Date: Wed, 08 Jun 2011 22:46:55 +0000
 Subject: [lm-sensors] Sweet Home Tips
-Message-Id: <329247815054622@vpc151>
+Message-Id: <80473202354816@vpc151>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1305173959828222094=="
+Content-Type: multipart/mixed; boundary="===============4776864588297642756=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <329247815054622@vpc151>
+In-Reply-To: <329247815054622@vpc151>
 To: lm-sensors@vger.kernel.org
 
 This is a multi-part message in MIME format
 
---===============1305173959828222094==
-Content-Type: multipart/alternative; charset=UTF-8; boundary="=_W81nUcgyGAHCXfdTtOyRNnYm0CuI0mda"
+--===============4776864588297642756==
+Content-Type: multipart/alternative; charset=UTF-8; boundary="qPWqDNTyftgQ=_oGEf2zPtQw6mns6ymqqy"
 
 This is a multi-part message in MIME format
 
---=_W81nUcgyGAHCXfdTtOyRNnYm0CuI0mda
+--qPWqDNTyftgQ=_oGEf2zPtQw6mns6ymqqy
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
@@ -46,9 +48,9 @@ Sangita
 =20
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-This mail was sent to lm-sensors@lm-sensors.org  dated 08/06/2011
+This mail was sent to lm-sensors@lm-sensors.org  dated 09/06/2011
 
---=_W81nUcgyGAHCXfdTtOyRNnYm0CuI0mda
+--qPWqDNTyftgQ=_oGEf2zPtQw6mns6ymqqy
 Content-Type: text/html; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
@@ -98,15 +100,15 @@ href=3D"mailto:sangita@sweethometips.com">sangita@sweethometips.com</a=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D</div>
     <div>This mail was sent to&nbsp;lm-sensors@lm-sensors.org&nbsp; da=
-ted 08/06/2011</div>
+ted 09/06/2011</div>
   </body>
 </html>
 
---=_W81nUcgyGAHCXfdTtOyRNnYm0CuI0mda--
+--qPWqDNTyftgQ=_oGEf2zPtQw6mns6ymqqy--
 
 
 
---===============1305173959828222094==
+--===============4776864588297642756==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -116,5 +118,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1305173959828222094==--
+--===============4776864588297642756==--
 
