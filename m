@@ -1,32 +1,47 @@
-From: "Ian Dobson" <i.dobson@planet-ian.com>
-Date: Thu, 02 Jun 2011 13:45:44 +0000
-Subject: Re: [lm-sensors] MB BLKD945GCLF2
-Message-Id: <B787D6F3DEC44DE79A8C8362A2100370@portable2>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 09 Jun 2011 13:19:48 +0000
+Subject: Re: [lm-sensors] pmbus driver
+Message-Id: <20110609131948.GA11436@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1307018095.16532.3.camel@wifi.ua-top.net>
-In-Reply-To: <1307018095.16532.3.camel@wifi.ua-top.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGksCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpG
-cm9tOiAic3VwcG9ydC53ZWJ2aXNpb25zLmNvbS51YSIgPHN1cHBvcnRAd2VidmlzaW9ucy5jb20u
-dWE+ClNlbnQ6IFRodXJzZGF5LCBKdW5lIDAyLCAyMDExIDI6MzQgUE0KVG86IDxsbS1zZW5zb3Jz
-QGxtLXNlbnNvcnMub3JnPgpTdWJqZWN0OiBbbG0tc2Vuc29yc10gTUIgQkxLRDk0NUdDTEYyCgo+
-IEhpIGd1eXMsIGNhbiB5b3UgYWRkIHN1cHBvcnQgZm9yIEludGVsIG1vdGhlcmJvYXJkIEJMS0Q5
-NDVHQ0xGMgo+Cj4KPiBbcm9vdEBzZXJ2ZXIgdG1wXSMgc2Vuc29ycwo+IGNvcmV0ZW1wLWlzYS0w
-MDAwCj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPiBDb3JlIDA6ICAgICAgKzE4LjDCsEMgIChjcml0
-ID0gKzkwLjDCsEMpCj4KPiBjb3JldGVtcC1pc2EtMDAwMQo+IEFkYXB0ZXI6IElTQSBhZGFwdGVy
-Cj4gQ29yZSAxOiAgICAgICsxOS4wwrBDICAoY3JpdCA9ICs5MC4wwrBDKQo+Cj4gW3Jvb3RAc2Vy
-dmVyIHRtcF0jIHNlbnNvcnMgLXYKPiBzZW5zb3JzIHZlcnNpb24gMy4xLjIrU1ZOIHdpdGggbGli
-c2Vuc29ycyB2ZXJzaW9uIDMuMS4yK1NWTgo+Cj4KPiBUaGFua3MKPgo+Cj4gLS0gCj4gV0JSLCBB
-bGV4YW5kZXIgVXJjaGVua28KPgo+Cj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwo+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cj4gbG0tc2Vuc29yc0Bs
-bS1zZW5zb3JzLm9yZwo+IGh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xtLXNlbnNvcnMKCldoYXQgZG8geW91IHNlZSB3aGVuIHlvdSBydW4gc2Vuc29ycy1kZXRl
-Y3Q/CgpEb2VzIHRoaXMgYm9hcmQgYWN0dWFsbHkgaGF2ZSBhIEhXIG1vbml0b3JpbmcgY2hpcD8K
-ClJlZ2FyZHMKSWFuIERvYnNvbgogCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3JzCg==
+Hi Vivek,
+
+On Thu, Jun 09, 2011 at 07:58:03AM -0400, Vivek Bardia wrote:
+> Hi Guenter,
+> 
+> I do not know if this is the right way to ask you about PMBus driver
+> implementation done by you. Do direct me to the right forum if not.
+> 
+The lm-sensors mailing list would be the best place to ask, but this will do.
+I am copying the list.
+
+> If a PMIC just has one temperature die sensor only, it does not support PAGE
+> and PHASE commands, and is just a PMBus based buck controller; then does the
+> driver written by you support such a hardware.
+> 
+The driver supports BMR45x, which are the same type of controller. So, yes, the driver
+should work. Just give it a try. If the generic driver doesn't work, you (or I)
+can write a little front-end driver to tell the PMBus core driver which registers are 
+supported. Worst case the driver may need some patches, but that is unlikely.
+
+Do you have a datasheet ?
+
+Thanks,
+Guenter
+
+> some inputs from you can help me decide whether I need to write another driver
+> or not. The pmic driver will be used by a voltage regulator driver.
+> 
+> Regards,
+> Vivek
+> 
+> 
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
