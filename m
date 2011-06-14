@@ -1,74 +1,46 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Fri, 10 Jun 2011 17:51:02 +0000
-Subject: Re: [lm-sensors] [PATCHv1 1/1]Hwmon: Add core/pkg Threshold Support
-Message-Id: <D6D887BA8C9DFF48B5233887EF046541095B015113@bgsmsx502.gar.corp.intel.com>
+From: Guillermo de las Nieves <nieves20002001@yahoo.com>
+Date: Tue, 14 Jun 2011 17:05:55 +0000
+Subject: [lm-sensors] Info when using LM-sensors
+Message-Id: <53204.64801.qm@web65410.mail.ac4.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0499766861172462359=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1307721288-7463-1-git-send-email-durgadoss.r@intel.com>
-In-Reply-To: <1307721288-7463-1-git-send-email-durgadoss.r@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+--===============0499766861172462359==
+Content-Type: multipart/alternative; boundary="0-224876243-1308071155=:64801"
 
-> > +static ssize_t store_ttarget(struct device *dev,
-> > +				struct device_attribute *devattr,
-> > +				const char *buf, size_t count)
-> > +{
-> > +	struct platform_data *pdata = dev_get_drvdata(dev);
-> > +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-> > +	struct temp_data *tdata = pdata->core_data[attr->index];
-> > +	u32 eax, edx;
-> > +	unsigned long val;
-> > +	int diff;
-> > +
-> > +	if (strict_strtoul(buf, 10, &val))
-> > +		return -EINVAL;
-> > +
-> > +	diff = (tdata->tjmax - val) / 1000;
-> > +
-> We need some range checking here. What if val > tjmax ?
-> Also, THERM_MASK_THRESHOLD1 is 7 bits wide, so you'll never want to
-> accept a value larger than 127.
-> 
+--0-224876243-1308071155=:64801
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-I will add code to check val > tjmax.
+Good afternoon again.=0A=0ACould you please give me the information about t=
+he voltage of each pin when using a motherborad:=0A=0A=A0=A0=A0=A0 Gigabyte=
+: 954PL-S3=0A=A0=A0=A0=A0 Sensor: it8718-isa-0290=0A=0AThanks for your aten=
+tion,=0A=0AGuillermo=0A
+--0-224876243-1308071155=:64801
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> > +	/* Initialize ttarget with bits 16:22 of MSR_IA32_THERM_INTERRUPT */
-> > +	err = rdmsr_safe_on_cpu(tdata->cpu, MSR_IA32_THERM_INTERRUPT,
-> > +				&eax, &edx);
-> > +	if (err)
-> > +		dev_warn(dev, "unable to read MSR_IA32_THERM_INTERRUPT\n");
-> 
-> So ttarget would be 0 in this case ? Doesn't that mean that we should
-> not provide the max/max_hyst attributes in the first place if that is
-> the case ?
-> 
+<html><body><div style=3D"color:#000; background-color:#fff; font-family:ti=
+mes new roman, new york, times, serif;font-size:12pt"><div>Good afternoon a=
+gain.</div><div><br></div><div>Could you please give me the information abo=
+ut the voltage of each pin when using a motherborad:</div><div><br></div><d=
+iv><span>&nbsp;&nbsp;&nbsp;&nbsp; Gigabyte: 954PL-S3</span></div><div><span=
+>&nbsp;&nbsp;&nbsp;&nbsp; Sensor: it8718-isa-0290</span></div><div><br><spa=
+n></span></div><div><span>Thanks for your atention,</span></div><div><br><s=
+pan></span></div><div><span>Guillermo<br></span></div></div></body></html>
+--0-224876243-1308071155=:64801--
 
-I completely agree with you. This means in the create_core_data function,
-I will add code to check the accessibility of this register. Accordingly,
-Will create these two interfaces.
 
-I had thought of this..But all CPUs that have THERM_STATUS register accessible,
-Should have this register accessible also, ideally. So, I thought it is
-Unlikely that this rdmsr fails. Hence did not bother much about creating
-these interfaces.
+--===============0499766861172462359==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Anyway, would like to try implementing this change and see how it goes.
-
-> Also, are you sure that MSR_IA32_THERM_INTERRUPT exists on all CPUs with
-> temp sensor support, and that the (undocumented)
-> MSR_IA32_TEMPERATURE_TARGET is no longer needed ?
-
-Yes..It exists on all CPUs that have THERM_STATUS MSR.
-We need MSR_IA32_TEMPERATURE_TARGET just to find TjMax.
-Also, I tried my best to find documentation about MSR_IA32_TEMPERATURE_TARGET
-but in Vain.
-
-Thanks,
-Durga
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0499766861172462359==--
