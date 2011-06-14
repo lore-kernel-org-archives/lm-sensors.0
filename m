@@ -1,574 +1,747 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 10 Jun 2011 16:12:23 +0000
-Subject: Re: [lm-sensors] [PATCHv4 6/11] HWMON: Added lookup table for bat
-Message-Id: <1307722343.8271.192.camel@groeck-laptop>
+From: Donggeun Kim <dg77.kim@samsung.com>
+Date: Tue, 14 Jun 2011 05:36:06 +0000
+Subject: [lm-sensors] [PATCH v7] drivers/hwmon NTC Thermistor Initial
+Message-Id: <1308029766-3254-1-git-send-email-dg77.kim@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <E2CAE7F7B064EA49B5CE7EE9A4BB167D151C250625@KCINPUNHJCMS01.kpit.com>
-In-Reply-To: <E2CAE7F7B064EA49B5CE7EE9A4BB167D151C250625@KCINPUNHJCMS01.kpit.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ashish Jangam <Ashish.Jangam@kpitcummins.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, Dajun Chen <Dajun.Chen@diasemi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Ashish,
+This patch adds support for NTC Thermistor series. In this release, the
+following thermistors are supported: NCP15WB473, NCP18WB473, NCP03WB473,
+and NCP15WL333. This driver is based on the datasheet of MURATA.
 
-On Fri, 2011-06-10 at 05:38 -0400, Ashish Jangam wrote:
-> Hi Guenter,
-> 
-> ilog2() function return int value which is causing 18% - 50% difference in the actual temperature value therefore the fixed point approx is replaced by lookup table which is computed by a formula.
-> 
-The headline is quite misleading, since you don't submit a patch to
-change ilog2() to a lookup table; instead, this is the complete driver.
-One would expect to see the driver description here.
+The driver in the patch does conversion from the raw ADC value
+(either voltage or resistence) to temperature. In order to use
+voltage values as input, the circuit schematics should be provided
+with the platform data. A compensation table for each type of thermistor
+is provided for the conversion.
 
-> Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
-> Signed-off-by: David Dajun Chen <dchen@diasemi.com>
+Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
+Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
+Signed-off-by: KyungMin Park <kyungmin.park@samsung.com>
 
-If David wrote the driver and you are in the internal signoff path,
-sequence of signoffs should be David first, then you.
+--
+Updates
+v7
+- move header file location
+- rename header and driver file
+- style fixes
+v6
+- updated Documentation/hwmon/ntc
+- style fixes
+v5
+- use binary search on sorted table
+- removed unnecessary attributes
+- style fixes
+v4
+- put in alphabetic order in Kconfig/Makefile
+- handle additional error cases
+- remove the exported function
+v3
+- style fixes
+- removed symbol exports
+- avoid divide-by-zero
+- omitted files added (Kconfig/Makefile)
+- removed unnecessary codes
+- return error values, not default values for errors.
+v2
+- added Documentation/hwmon/ntc
+- followed hwmon sysfs
+- detached the monitoring service
+(thank you for the comments, Guenter Roeck)
+---
+ Documentation/hwmon/ntc_thermistor           |   95 +++++
+ drivers/hwmon/Kconfig                        |   13 +
+ drivers/hwmon/Makefile                       |    1 +
+ drivers/hwmon/ntc_thermistor.c               |  477 ++++++++++++++++++++++++++
+ include/linux/platform_data/ntc_thermistor.h |   53 +++
+ 5 files changed, 639 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/ntc_thermistor
+ create mode 100644 drivers/hwmon/ntc_thermistor.c
+ create mode 100644 include/linux/platform_data/ntc_thermistor.h
 
-> --
-... and the version change log should be here.
-
-> diff --git a/Documentation/hwmon/da9052 b/Documentation/hwmon/da9052
-> new file mode 100755
-> index 0000000..0b7930f
-> --- /dev/null
-> +++ b/Documentation/hwmon/da9052
-> @@ -0,0 +1,58 @@
-> +Kernel driver da9052-hwmon
-> +=============
-> +
-> +Supported chips:
-> +  * Dialog Semiconductors DA9052 PMICs
-> +    Prefix: 'da9052'
-> +    Datasheet: Kindly visit www.dialog-semiconductor.com and request for the
-> +               official datasheet.
-> +
-> +Authors: David Dajun Chen <dchen@diasemi.com>
-
-s/Authors/Author/
-
-(or list all the authors if there is more than one)
-
-> +
-> +Description
-> +-----------
-> +
-> +The DA9052 provides an Analogue to Digital Converter (ADC) with 10 bits
-> +resolution and track and hold circuitry combined with an analogue input
-> +multiplexer. The analogue input multiplexer will allow conversion of up to 10
-> +different inputs. The track and hold circuit ensures stable input voltages at
-> +the input of the ADC during the conversion.
-> +
-> +The ADC is used to measure the following inputs:
-> +Channel 0: VDDOUT - measurement of the system voltage
-> +Channel 1: ICH - internal battery charger current measurement
-> +Channel 2: TBAT - output from the battery NTC
-> +Channel 3: VBAT - measurement of the battery voltage
-> +Channel 4: ADC_IN4 - high impedance input (0 - 2.5V)
-> +Channel 5: ADC_IN5 - high impedance input (0 - 2.5V)
-> +Channel 6: ADC_IN6 - high impedance input (0 - 2.5V)
-> +Channel 7: XY - TSI interface to measure the X and Y voltage of the touch
-> +screen resistive potentiometers
-> +Channel 8: Internal Tjunc. - sense (internal temp. sensor)
-> +Channel 9: VBBAT - measurement of the backup battery voltage
-> +
-> +By using sysfs attributes we can measure the system voltage VDDOUT, the battery
-> +charging current ICH, battery temperature TBAT, battery junction temperature
-> +TJUNC, battery voltage VBAT and the back up battery voltage VBBAT.
-> +
-> +Voltage Monitoring
-> +------------------
-> +
-> +Voltages are sampled by a 10 bit ADC.  Voltages in millivolts are 1.465
-> +times the ADC value.
-> +
-> +Temperature Monitoring
-> +----------------------
-> +
-> +Temperatures are sampled by a 10 bit ADC.  Junction and battery temperatures
-> +are monitored by the ADC channels.
-> +
-> +The junction temperature is calculated:
-> +       Degrees celsius = 1.708 * (TJUNC_RES - T_OFFSET) - 108.8
-> +The junction temperature attribute is supported by the driver.
-> +
-> +The battery temperature is calculated:
-> +       Degree Celcius = 1 / (t1 + 1/298)- 273
-> +where t1 = (1/B)* ln(( ADCval * 2.5)/(R25*ITBAT*255))
-> +Default values of R25, B, ITBAT are 10e3, 3380 and 50e-6 respectively.
-> +
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 3236a45..da5ff6d 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -303,6 +303,16 @@ config SENSORS_DS1621
->           This driver can also be built as a module.  If so, the module
->           will be called ds1621.
-> 
-> +config SENSORS_DA9052_ADC
-> +        tristate "Dialog DA9052 HWMON"
-> +        depends on PMIC_DA9052
-> +        help
-> +          Say y here to support the ADC found on
-> +          Dialog Semiconductor DA9052 PMIC.
-> +
-> +          This driver can also be built as module. If so, the module
-> +          will be called da9052-hwmon.
-> +
->  config SENSORS_I5K_AMB
->         tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
->         depends on PCI && EXPERIMENTAL
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index f7c0c28..88b81ca 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -42,6 +42,7 @@ obj-$(CONFIG_SENSORS_ASC7621) += asc7621.o
->  obj-$(CONFIG_SENSORS_ATXP1)    += atxp1.o
->  obj-$(CONFIG_SENSORS_CORETEMP)+= coretemp.o
->  obj-$(CONFIG_SENSORS_PKGTEMP)+= pkgtemp.o
-> +obj-$(CONFIG_SENSORS_DA9052_ADC)+= da9052-hwmon.o
->  obj-$(CONFIG_SENSORS_DME1737)+= dme1737.o
->  obj-$(CONFIG_SENSORS_DS620)    += ds620.o
->  obj-$(CONFIG_SENSORS_DS1621)   += ds1621.o
-> diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-> new file mode 100755
-> index 0000000..0e54508
-> --- /dev/null
-> +++ b/drivers/hwmon/da9052-hwmon.c
-> @@ -0,0 +1,376 @@
-> +/*
-> + * HWMON Driver for Dialog DA9052
-> + *
-> + * Copyright(c) 2011 Dialog Semiconductor Ltd.
-> + *
-> + * Author: David Dajun Chen <dchen@diasemi.com>
-> + *
-> + *  This program is free software; you can redistribute  it and/or modify it
-> + *  under  the terms of  the GNU General  Public License as published by the
-> + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> + *  option) any later version.
-> + *
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/mfd/da9052/da9052.h>
-> +#include <linux/mfd/da9052/reg.h>
-> +
-> +struct da9052_hwmon {
-> +       struct da9052   *da9052;
-> +       struct device   *class_device;
-> +       struct mutex    hwmon_lock;
-> +};
-> +static const char * const input_names[] = {
-> +       [DA9052_ADC_VDDOUT]     =       "VDDOUT",
-> +       [DA9052_ADC_ICH]                =       "CHARGING CURRENT",
-> +       [DA9052_ADC_TBAT]               =       "BATTERY TEMP",
-> +       [DA9052_ADC_VBAT]               =       "BATTERY VOLTAGE",
-> +       [DA9052_ADC_IN4]                =       "ADC IN4",
-> +       [DA9052_ADC_IN5]                =       "ADC IN5",
-> +       [DA9052_ADC_IN6]                =       "ADC IN6",
-> +       [DA9052_ADC_TJUNC]      =       "BATTERY JUNCTION TEMP",
-> +       [DA9052_ADC_VBBAT]      =       "BACK-UP BATTERY VOLTAGE",
-> +};
-> +
-> +/*
-> + * TBAT look-up table is computed from the R90 reg (8 bit register)
-> + * as below.
-> + * TBAT = 1/(t1+1/298) - 273
-> + * where t1 = (1/B)* ln(( ADCval * 2.5)/(R25*ITBAT*255))
-> + * Default values are R25 = 10e3, B = 3380, ITBAT = 50e-6
-> + * Example:
-> + * R25E3, B380, ITBATPe-6, ADCVALbd calculates
-> + * TBAT = 20 degrees Centrigrade
-> + * For R90 reading of 0, a value of -1 is returned, as log of 0
-> + * is undefined.
-> +*/
-> +static const int8_t tbat_lookup[] = {
-
-Array should have a fixed size, to avoid size mismatches.
-
-> +       -1, 183, 144, 124, 111, 102, 94,  88,  83,  79,  75,  72,  69,  66,  63,
-
--1 here doesn't provide any useful value here. Presumably it means an
-error, but it does not really reflect one, but results in a temperature
-of -1 degrees C. If an index value of 0 reflects an error, you should
-check that value before the lookup and return an error instead of a
-temperature of -1 degress C. Also see below.
-
-> +       61,  59,  57,  55,  53,  52,  50,  49,  48,  46,  45,  44,  43,  42,
-> +       41,  40,  39,  38,  37,  36,  35,  35,  34,  33,  32,  32,  31,  30,
-> +       30,  29,  28,  28,  27,  27,  26,  26,  25,  25,  24,  24,  23,  23,
-> +       22,  22,  21,  21,  20,  20,  20,  19,  19,  18,  18,  18,  17,  17,
-> +       17,  16,  16,  16,  15,  15,  15,  14,  14,  14,  13,  13,  13,  12,
-> +       12,  12,  12,  11,  11,  11,  11,  10,  10,  10,  10,  9,   9,   9,
-> +       9,   8,   8,   8,   8,   7,   7,   7,   7,   7,   6,   6,   6,   6,
-> +       6,   5,   5,   5,   5,   5,   4,   4,   4,   4,   4,   3,   3,   3,
-> +       3,   3,   3,   2,   2,   2,   2,   2,   1,   1,   1,   1,   1,   1,
-> +       1,   0,   0,   0,   0,   0,   0,   -1,  -1,  -1,  -1,  -1,  -1,  -1,
-> +       -2,  -2,  -2,  -2,  -2,  -2,  -2,  -3,  -3,  -3,  -3,  -3,  -3,  -3,
-> +       -3,  -4,  -4,  -4,  -4,  -4,  -4,  -4,   -4, -5,  -5,  -5,  -5,  -5,
-> +       -5,  -5,  -5,  -5,  -6,  -6,  -6,  -6,  -6,  -6,  -6,  -6,  -6,  -7,
-> +       -7,  -7,  -7,  -7,  -7,  -7,  -7,  -7,  -8,  -8,  -8,  -8,  -8,  -8,
-> +       -8,  -8,  -8,  -8,  -8,  -9,  -9,  -9,  -9,  -9,  -9,  -9,  -9,  -9,
-> +       -9,  -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -11,
-> +       -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -12, -12, -12, -12,
-> +       -12, -12, -12
-> +};
-> +
-> +static int da9052_enable_vddout_channel(struct da9052 *da9052)
-> +{
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(da9052, DA9052_ADC_CONT_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret |= DA9052_ADCCONT_AUTOVDDEN;
-> +       return da9052_reg_write(da9052, DA9052_ADC_CONT_REG, ret);
-> +}
-> +
-> +static int da9052_disable_vddout_channel(struct da9052 *da9052)
-> +{
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(da9052, DA9052_ADC_CONT_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret &= ~DA9052_ADCCONT_AUTOVDDEN;
-> +       return da9052_reg_write(da9052, DA9052_ADC_CONT_REG, ret);
-> +
-> +}
-> +
-> +static ssize_t da9052_read_vddout(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret, vdd = -1;
-> +
-> +       mutex_lock(&hwmon->hwmon_lock);
-> +
-> +       ret = da9052_enable_vddout_channel(hwmon->da9052);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_VDD_RES_REG);
-> +       if (ret < 0)
-> +               pr_err("failed to read VDD_RES_REG\n");
-> +       else
-> +               vdd = ret;
-> +
-> +       ret = da9052_disable_vddout_channel(hwmon->da9052);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-> +       if (vdd >= 0) {
-> +               mutex_unlock(&hwmon->hwmon_lock);
-> +               return sprintf(buf, "%d\n", vdd);
-> +       }
-> +hwmon_err:
-> +       mutex_unlock(&hwmon->hwmon_lock);
-> +       return ret;
-> +}
-> +
-> +static ssize_t da9052_read_ich(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_ICHG_AV_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       /* Equivalent to 3.9mA/bit in register ICHG_AV */
-> +       ret = DIV_ROUND_CLOSEST(ret * 39, 10);
-> +       return sprintf(buf, "%d\n", ret);
-
-	return sprintf(buf, "%d\n", DIV_ROUND_CLOSEST(ret * 39, 10));
-
-> +}
-> +
-> +static ssize_t da9052_read_tbat(struct device *dev,
-> +                       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret, tbat;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_TBAT_RES_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       tbat = tbat_lookup[ret];
-
-What if ret >= 256 ? I think you should have something like
-
-	if (ret = 0 || ret >= ARRAY_SIZE(tbat_lookup))
-		return -EIO;
-
-> +       return sprintf(buf, "%d\n", (tbat*1000));
-
-You are unnecessarily loosing accuracy here. You might consider using a
-16-bit table and store temperatures in 10-th of degree C. Also, with
-
-	return sprintf(buf, "%d\n", tbat_lookup[ret] * 1000);
-
-you would no longer need tbat.
-
-> +}
-> +
-> +static ssize_t da9052_read_vbat(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, DA9052_ADC_VBAT);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%d\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_misc_channel(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int channel = to_sensor_dev_attr(devattr)->index;
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, channel);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%d\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_tjunc(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int temp;
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_TJUNC_RES_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       temp = ret;
-
-Instead of reading ret and assigning to temp, you can assign to temp
-directly. Saves you the additional assignment. And if you were to use
-variable names such as tjunc and toffset instead of temp and ret, the
-variable names would actually have some meaning.
-
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_T_OFFSET_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       /* Degrees celsius = 1.708 * (TJUNC_RES - T_OFFSET) - 108.8 */
-> +       ret = 1708 * (temp - ret) - 108800;
-> +       return sprintf(buf, "%d\n", ret);
-
-You can do that calculation directly. No need to assign to ret.
-
-	return sprintf(buf, "%d\n", 1708 * (temp - ret) - 108800);
-> +}
-> +
-> +static ssize_t da9052_read_vbbat(struct device *dev,
-> +       struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, DA9052_ADC_VBBAT);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%d\n", ret);
-> +
-> +}
-> +
-> +static ssize_t da9052_hwmon_show_name(struct device *dev,
-> +               struct device_attribute *devattr, char *buf)
-> +{
-> +       return sprintf(buf, "da9052-hwmon\n");
-> +}
-> +
-> +static ssize_t show_label(struct device *dev,
-> +                         struct device_attribute *devattr, char *buf)
-> +{
-> +       return sprintf(buf, "%s\n",
-> +                       input_names[to_sensor_dev_attr(devattr)->index]);
-> +}
-> +
-> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, da9052_read_vddout, NULL,
-> +                               DA9052_ADC_ICH);
-> +static SENSOR_DEVICE_ATTR(in0_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_ICH);
-> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, da9052_read_vbat, NULL,
-> +                               DA9052_ADC_VBAT);
-> +static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_VBAT);
-> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, da9052_read_misc_channel, NULL,
-> +                               DA9052_ADC_IN4);
-> +static SENSOR_DEVICE_ATTR(in4_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_IN4);
-> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, da9052_read_misc_channel, NULL,
-> +                               DA9052_ADC_IN5);
-> +static SENSOR_DEVICE_ATTR(in5_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_IN5);
-> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, da9052_read_misc_channel, NULL,
-> +                               DA9052_ADC_IN6);
-> +static SENSOR_DEVICE_ATTR(in6_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_IN6);
-> +static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, da9052_read_vbbat, NULL,
-> +                               DA9052_ADC_VBBAT);
-> +static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_VBBAT);
-> +static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, da9052_read_ich, NULL,
-> +                               DA9052_ADC_ICH);
-> +static SENSOR_DEVICE_ATTR(curr1_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_ICH);
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, da9052_read_tbat, NULL,
-> +                               DA9052_ADC_TBAT);
-> +static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_TBAT);
-> +
-> +static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, da9052_read_tjunc, NULL,
-> +                               DA9052_ADC_TJUNC);
-> +static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_label, NULL,
-> +                               DA9052_ADC_TJUNC);
-> +
-> +static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
-> +
-> +static struct attribute *da9052_attr[] = {
-> +       &dev_attr_name.attr,
-> +
-> +       &sensor_dev_attr_in0_input.dev_attr.attr,
-> +       &sensor_dev_attr_in0_label.dev_attr.attr,
-> +       &sensor_dev_attr_in3_input.dev_attr.attr,
-> +       &sensor_dev_attr_in3_label.dev_attr.attr,
-> +       &sensor_dev_attr_in4_input.dev_attr.attr,
-> +       &sensor_dev_attr_in4_label.dev_attr.attr,
-> +       &sensor_dev_attr_in5_input.dev_attr.attr,
-> +       &sensor_dev_attr_in5_label.dev_attr.attr,
-> +       &sensor_dev_attr_in6_input.dev_attr.attr,
-> +       &sensor_dev_attr_in6_label.dev_attr.attr,
-> +       &sensor_dev_attr_in9_input.dev_attr.attr,
-> +       &sensor_dev_attr_in9_label.dev_attr.attr,
-> +       &sensor_dev_attr_curr1_input.dev_attr.attr,
-> +       &sensor_dev_attr_curr1_label.dev_attr.attr,
-> +       &sensor_dev_attr_temp1_input.dev_attr.attr,
-> +       &sensor_dev_attr_temp1_label.dev_attr.attr,
-> +       &sensor_dev_attr_temp2_input.dev_attr.attr,
-> +       &sensor_dev_attr_temp2_label.dev_attr.attr,
-> +       NULL
-> +};
-> +
-> +static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
-> +
-> +static int __init da9052_hwmon_probe(struct platform_device *pdev)
-> +{
-> +       struct da9052_hwmon *hwmon;
-> +       int ret;
-> +
-> +       hwmon = kzalloc(sizeof(struct da9052_hwmon), GFP_KERNEL);
-> +       if (!hwmon)
-> +               return -ENOMEM;
-> +
-> +       mutex_init(&hwmon->hwmon_lock);
-> +       hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
-> +
-> +       platform_set_drvdata(pdev, hwmon);
-> +
-> +       ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
-> +       if (ret)
-> +               goto err_mem;
-> +
-> +       hwmon->class_device = hwmon_device_register(&pdev->dev);
-> +       if (IS_ERR(hwmon->class_device)) {
-> +               ret = PTR_ERR(hwmon->class_device);
-> +               sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> +               goto err_mem;
-
-Please use the commonly used error path cleanup.
-
-		ret = PTR_ERR(hwmon->class_device);
-		goto err_sysfs;
-		
-> +       }
-> +
-> +       return 0;
-> +
-err_sysfs:
-	sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-
-> +err_mem:
-> +       kfree(hwmon);
-> +       return ret;
-> +}
-> +
-> +static int __devexit da9052_hwmon_remove(struct platform_device *pdev)
-> +{
-> +       struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
-> +
-> +       hwmon_device_unregister(hwmon->class_device);
-> +       sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> +       kfree(hwmon);
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver da9052_hwmon_driver = {
-> +       .driver = {
-> +               .name           = "da9052-hwmon",
-> +               .owner  = THIS_MODULE,
-> +       },
-> +       .probe  = da9052_hwmon_probe,
-> +       .remove = __devexit_p(da9052_hwmon_remove),
-> +
-> +};
-> +
-> +static int __init da9052_hwmon_init(void)
-> +{
-> +
-> +       return platform_driver_register(&da9052_hwmon_driver);
-> +}
-> +module_init(da9052_hwmon_init);
-> +
-> +static void __exit da9052_hwmon_exit(void)
-> +{
-> +       platform_driver_unregister(&da9052_hwmon_driver);
-> +}
-> +module_exit(da9052_hwmon_exit);
-> +
-> +MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
-> +MODULE_DESCRIPTION("DA9052 HWMON driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:da9052-hwmon");
-> +
-> +
-Empty lines at the end will cause a git warning,
-> 
-> 
-> Regards,
-> Ashish
-> 
-... and there should be no additional text after the end of the patch.
-
+diff --git a/Documentation/hwmon/ntc_thermistor b/Documentation/hwmon/ntc_thermistor
+new file mode 100644
+index 0000000..2ee3e0d
+--- /dev/null
++++ b/Documentation/hwmon/ntc_thermistor
+@@ -0,0 +1,95 @@
++Kernel driver ntc_thermistor
++========+
++Supported thermistors:
++* Murata NTC Thermistors "Chip" Type
++  Prefix: 'ncp'
++  NCPxxWB473: NCP15WB473, NCP18WB473, NCP21WB473, NCP03WB473
++  NCPxxWL333: NCP15WL333
++  Datasheet: Publicly available at Murata
++
++Other NTC thermistors can be supported simply by adding compensation
++tables; e.g., NCP15WL333 support is added by the table ncpXXwl333.
++
++Authors:
++	MyungJoo Ham <myungjoo.ham@samsung.com>
++
++Description
++-----------
++
++The NTC thermistor is a simple thermistor that requires users to provide the
++resistance and lookup the corresponding compensation table to get the
++temperature input.
++
++The NTC driver provides lookup tables with a linear approximation function
++and four circuit models with an option not to use any of the four models.
++
++The four circuit models provided are:
++
++	$: resister, [TH]: the thermistor
++
++ 1. connect = NTC_CONNECTED_POSITIVE, pullup_ohm > 0
++
++   [pullup_uV]
++       |    |
++      [TH]  $ (pullup_ohm)
++       |    |
++       +----+-----------------------[read_uV]
++       |
++       $ (pulldown_ohm)
++       |
++      --- (ground)
++
++ 2. connect = NTC_CONNECTED_POSITIVE, pullup_ohm = 0 (not-connected)
++
++   [pullup_uV]
++       |
++      [TH]
++       |
++       +----------------------------[read_uV]
++       |
++       $ (pulldown_ohm)
++       |
++      --- (ground)
++
++ 3. connect = NTC_CONNECTED_GROUND, pulldown_ohm > 0
++
++   [pullup_uV]
++       |
++       $ (pullup_ohm)
++       |
++       +----+-----------------------[read_uV]
++       |    |
++      [TH]  $ (pulldown_ohm)
++       |    |
++      -------- (ground)
++
++ 4. connect = NTC_CONNECTED_GROUND, pulldown_ohm = 0 (not-connected)
++
++   [pullup_uV]
++       |
++       $ (pullup_ohm)
++       |
++       +----------------------------[read_uV]
++       |
++      [TH]
++       |
++      --- (ground)
++
++When one of the four circuit models is used, read_uV, pullup_uV, pullup_ohm,
++pulldown_ohm, and connect should be provided. When none of the four models
++are suitable or the user can get the resistance directly, the user should
++provide read_ohm and _not_ provide the others.
++
++Sysfs Interface
++---------------
++name		the mandatory global attribute, the thermistor name.
++
++temp1_type	always 4 (thermistor)
++		RO
++
++temp1_input	measure the temperature and provide the measured value.
++		(reading this file initiates the reading procedure.)
++		RO
++
++Note that each NTC thermistor has only _one_ thermistor; thus, only temp1 exists.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 16db83c..ebf0b74 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -767,6 +767,19 @@ config SENSORS_MAX6650
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called max6650.
+ 
++config SENSORS_NTC_THERMISTOR
++	tristate "NTC thermistor support"
++	help
++	  This driver supports NTC thermistors sensor reading and its
++	  interpretation. The driver can also monitor the temperature and
++	  send notifications about the temperature.
++
++	  Currently, this driver supports
++	  NCP15WB473, NCP18WB473, NCP21WB473, NCP03WB473, and NCP15WL333.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called ntc-thermistor.
++
+ config SENSORS_PC87360
+ 	tristate "National Semiconductor PC87360 family"
+ 	select HWMON_VID
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 28061cf..e4ab597 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -91,6 +91,7 @@ obj-$(CONFIG_SENSORS_MAX6639)	+= max6639.o
+ obj-$(CONFIG_SENSORS_MAX6642)	+= max6642.o
+ obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+ obj-$(CONFIG_SENSORS_MC13783_ADC)+= mc13783-adc.o
++obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
+ obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+ obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
+ obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+new file mode 100644
+index 0000000..494137b
+--- /dev/null
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -0,0 +1,477 @@
++/*
++ * ntc_thermistor.c - NTC Thermistors
++ *
++ *  Copyright (C) 2010 Samsung Electronics
++ *  MyungJoo Ham <myungjoo.ham@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <linux/math64.h>
++#include <linux/platform_device.h>
++#include <linux/err.h>
++
++#include <linux/platform_data/ntc_thermistor.h>
++
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++
++struct ntc_compensation {
++	int		temp_C;
++	unsigned int	ohm;
++};
++
++/*
++ * A compensation table should be sorted by the values of .ohm
++ * in descending order.
++ * The following compensation tables are from the specification of Murata NTC
++ * Thermistors Datasheet
++ */
++const struct ntc_compensation ncpXXwb473[] = {
++	{ .temp_C	= -40, .ohm	= 1747920 },
++	{ .temp_C	= -35, .ohm	= 1245428 },
++	{ .temp_C	= -30, .ohm	= 898485 },
++	{ .temp_C	= -25, .ohm	= 655802 },
++	{ .temp_C	= -20, .ohm	= 483954 },
++	{ .temp_C	= -15, .ohm	= 360850 },
++	{ .temp_C	= -10, .ohm	= 271697 },
++	{ .temp_C	= -5, .ohm	= 206463 },
++	{ .temp_C	= 0, .ohm	= 158214 },
++	{ .temp_C	= 5, .ohm	= 122259 },
++	{ .temp_C	= 10, .ohm	= 95227 },
++	{ .temp_C	= 15, .ohm	= 74730 },
++	{ .temp_C	= 20, .ohm	= 59065 },
++	{ .temp_C	= 25, .ohm	= 47000 },
++	{ .temp_C	= 30, .ohm	= 37643 },
++	{ .temp_C	= 35, .ohm	= 30334 },
++	{ .temp_C	= 40, .ohm	= 24591 },
++	{ .temp_C	= 45, .ohm	= 20048 },
++	{ .temp_C	= 50, .ohm	= 16433 },
++	{ .temp_C	= 55, .ohm	= 13539 },
++	{ .temp_C	= 60, .ohm	= 11209 },
++	{ .temp_C	= 65, .ohm	= 9328 },
++	{ .temp_C	= 70, .ohm	= 7798 },
++	{ .temp_C	= 75, .ohm	= 6544 },
++	{ .temp_C	= 80, .ohm	= 5518 },
++	{ .temp_C	= 85, .ohm	= 4674 },
++	{ .temp_C	= 90, .ohm	= 3972 },
++	{ .temp_C	= 95, .ohm	= 3388 },
++	{ .temp_C	= 100, .ohm	= 2902 },
++	{ .temp_C	= 105, .ohm	= 2494 },
++	{ .temp_C	= 110, .ohm	= 2150 },
++	{ .temp_C	= 115, .ohm	= 1860 },
++	{ .temp_C	= 120, .ohm	= 1615 },
++	{ .temp_C	= 125, .ohm	= 1406 },
++};
++const struct ntc_compensation ncpXXwl333[] = {
++	{ .temp_C	= -40, .ohm	= 1610154 },
++	{ .temp_C	= -35, .ohm	= 1130850 },
++	{ .temp_C	= -30, .ohm	= 802609 },
++	{ .temp_C	= -25, .ohm	= 575385 },
++	{ .temp_C	= -20, .ohm	= 416464 },
++	{ .temp_C	= -15, .ohm	= 304219 },
++	{ .temp_C	= -10, .ohm	= 224193 },
++	{ .temp_C	= -5, .ohm	= 166623 },
++	{ .temp_C	= 0, .ohm	= 124850 },
++	{ .temp_C	= 5, .ohm	= 94287 },
++	{ .temp_C	= 10, .ohm	= 71747 },
++	{ .temp_C	= 15, .ohm	= 54996 },
++	{ .temp_C	= 20, .ohm	= 42455 },
++	{ .temp_C	= 25, .ohm	= 33000 },
++	{ .temp_C	= 30, .ohm	= 25822 },
++	{ .temp_C	= 35, .ohm	= 20335 },
++	{ .temp_C	= 40, .ohm	= 16115 },
++	{ .temp_C	= 45, .ohm	= 12849 },
++	{ .temp_C	= 50, .ohm	= 10306 },
++	{ .temp_C	= 55, .ohm	= 8314 },
++	{ .temp_C	= 60, .ohm	= 6746 },
++	{ .temp_C	= 65, .ohm	= 5503 },
++	{ .temp_C	= 70, .ohm	= 4513 },
++	{ .temp_C	= 75, .ohm	= 3721 },
++	{ .temp_C	= 80, .ohm	= 3084 },
++	{ .temp_C	= 85, .ohm	= 2569 },
++	{ .temp_C	= 90, .ohm	= 2151 },
++	{ .temp_C	= 95, .ohm	= 1809 },
++	{ .temp_C	= 100, .ohm	= 1529 },
++	{ .temp_C	= 105, .ohm	= 1299 },
++	{ .temp_C	= 110, .ohm	= 1108 },
++	{ .temp_C	= 115, .ohm	= 949 },
++	{ .temp_C	= 120, .ohm	= 817 },
++	{ .temp_C	= 125, .ohm	= 707 },
++};
++
++struct ntc_data {
++	struct device *hwmon_dev;
++	struct ntc_thermistor_platform_data *pdata;
++	const struct ntc_compensation *comp;
++	struct device *dev;
++	int n_comp;
++	char name[PLATFORM_NAME_SIZE];
++	int maxtemp;
++	int mintemp;
++};
++
++static inline u64 div64_u64_safe(u64 dividend, u64 divisor)
++{
++	if (divisor = 0 && dividend = 0)
++		return 0;
++	if (divisor = 0)
++		return UINT_MAX;
++	return div64_u64(dividend, divisor);
++}
++
++static unsigned int get_ohm_of_thermistor(struct ntc_data *data,
++		unsigned int uV)
++{
++	struct ntc_thermistor_platform_data *pdata = data->pdata;
++	u64 mV = uV / 1000;
++	u64 pmV = pdata->pullup_uV / 1000;
++	u64 N, puO, pdO;
++	puO = pdata->pullup_ohm;
++	pdO = pdata->pulldown_ohm;
++
++	if (mV = 0) {
++		if (pdata->connect = NTC_CONNECTED_POSITIVE)
++			return UINT_MAX;
++		return 0;
++	}
++	if (mV >= pmV)
++		return (pdata->connect = NTC_CONNECTED_POSITIVE) ?
++			0 : UINT_MAX;
++
++	if (pdata->connect = NTC_CONNECTED_POSITIVE && puO = 0)
++		N = div64_u64_safe(pdO * (pmV - mV), mV);
++	else if (pdata->connect = NTC_CONNECTED_GROUND && pdO = 0)
++		N = div64_u64_safe(puO * mV, pmV - mV);
++	else if (pdata->connect = NTC_CONNECTED_POSITIVE)
++		N = div64_u64_safe(pdO * puO * (pmV - mV),
++				puO * mV - pdO * (pmV - mV));
++	else
++		N = div64_u64_safe(pdO * puO * mV, pdO * (pmV - mV) - puO * mV);
++
++	return (unsigned int) N;
++}
++
++static int lookup_comp(struct ntc_data *data,
++		unsigned int ohm, int *i_low, int *i_high)
++{
++	int start, end, mid;
++
++	/* Do a binary search on compensation table */
++	start = 0;
++	end = data->n_comp;
++
++	while (end > start) {
++		mid = start + (end - start) / 2;
++		if (data->comp[mid].ohm < ohm)
++			end = mid;
++		else if (data->comp[mid].ohm > ohm)
++			start = mid + 1;
++		else
++			break;
++	}
++
++	if (mid = 0) {
++		if (data->comp[mid].ohm > ohm) {
++			*i_high = mid;
++			*i_low = mid + 1;
++			return 0;
++		} else {
++			*i_low = mid;
++			*i_high = -1;
++			return -EINVAL;
++		}
++	}
++	if (mid = (data->n_comp - 1)) {
++		if (data->comp[mid].ohm <= ohm) {
++			*i_low = mid;
++			*i_high = mid - 1;
++			return 0;
++		} else {
++			*i_low = -1;
++			*i_high = mid;
++			return -EINVAL;
++		}
++	}
++
++	if (data->comp[mid].ohm <= ohm) {
++		*i_low = mid;
++		*i_high = mid - 1;
++	}
++	if (data->comp[mid].ohm > ohm) {
++		*i_low = mid + 1;
++		*i_high = mid;
++	}
++
++	return 0;
++}
++
++static int get_temp_mC(struct ntc_data *data, unsigned int ohm, int *temp)
++{
++	int low, high;
++	int ret;
++
++	ret = lookup_comp(data, ohm, &low, &high);
++	if (ret) {
++		/* Unable to use linear approximation */
++		if (low != -1)
++			*temp = data->comp[low].temp_C * 1000;
++		else if (high != -1)
++			*temp = data->comp[high].temp_C * 1000;
++		else
++			return ret;
++	} else {
++		*temp = data->comp[low].temp_C * 1000 +
++			((data->comp[high].temp_C - data->comp[low].temp_C) *
++			 1000 * ((int)ohm - (int)data->comp[low].ohm)) /
++			((int)data->comp[high].ohm - (int)data->comp[low].ohm);
++	}
++
++	return 0;
++}
++
++static int _ntc_thermistor_read(struct ntc_data *data, int *temp)
++{
++	int ret;
++	int read_ohm, read_uV;
++	unsigned int ohm = 0;
++
++	if (data->pdata->read_ohm) {
++		read_ohm = data->pdata->read_ohm();
++		if (read_ohm < 0)
++			return -EINVAL;
++		ohm = (unsigned int)read_ohm;
++	}
++
++	if (data->pdata->read_uV) {
++		read_uV = data->pdata->read_uV();
++		if (read_uV < 0)
++			return -EINVAL;
++		ohm = get_ohm_of_thermistor(data, (unsigned int)read_uV);
++	}
++
++	ret = get_temp_mC(data, ohm, temp);
++	if (ret) {
++		dev_dbg(data->dev, "Sensor reading function not available.\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static ssize_t ntc_show_name(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct ntc_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", data->name);
++}
++
++static ssize_t ntc_show_type(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "4\n");
++}
++
++static ssize_t ntc_show_temp(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct ntc_data *data = dev_get_drvdata(dev);
++	int temp, ret;
++
++	ret = _ntc_thermistor_read(data, &temp);
++	if (ret)
++		return ret;
++	return sprintf(buf, "%d\n", temp);
++}
++
++static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGO, ntc_show_type, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, ntc_show_temp, NULL, 0);
++static DEVICE_ATTR(name, S_IRUGO, ntc_show_name, NULL);
++
++static struct attribute *ntc_attributes[] = {
++	&dev_attr_name.attr,
++	&sensor_dev_attr_temp1_type.dev_attr.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group ntc_attr_group = {
++	.attrs = ntc_attributes,
++};
++
++static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
++{
++	struct ntc_data *data;
++	struct ntc_thermistor_platform_data *pdata = pdev->dev.platform_data;
++	int ret = 0, i;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "No platform init data supplied.\n");
++		return -ENODEV;
++	}
++
++	/* Either one of the two is required. */
++	if (!pdata->read_uV && !pdata->read_ohm) {
++		dev_err(&pdev->dev, "Both read_uV and read_ohm missing."
++				"Need either one of the two.\n");
++		return -EINVAL;
++	}
++
++	if (pdata->read_uV && pdata->read_ohm) {
++		dev_warn(&pdev->dev, "Only one of read_uV and read_ohm "
++				"is needed; ignoring read_uV.\n");
++		pdata->read_uV = NULL;
++	}
++
++	if (pdata->read_uV && (pdata->pullup_uV = 0 ||
++				(pdata->pullup_ohm = 0 && pdata->connect =
++				 NTC_CONNECTED_GROUND) ||
++				(pdata->pulldown_ohm = 0 && pdata->connect =
++				 NTC_CONNECTED_POSITIVE) ||
++				(pdata->connect != NTC_CONNECTED_POSITIVE &&
++				 pdata->connect != NTC_CONNECTED_GROUND))) {
++		dev_err(&pdev->dev, "Required data to use read_uV not "
++				"supplied.\n");
++		return -EINVAL;
++	}
++
++	data = kzalloc(sizeof(struct ntc_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->dev = &pdev->dev;
++	data->pdata = pdata;
++	strncpy(data->name, pdev->id_entry->name, PLATFORM_NAME_SIZE);
++
++	switch (pdev->id_entry->driver_data) {
++	case TYPE_NCPXXWB473:
++		data->comp = ncpXXwb473;
++		data->n_comp = ARRAY_SIZE(ncpXXwb473);
++		break;
++	case TYPE_NCPXXWL333:
++		data->comp = ncpXXwl333;
++		data->n_comp = ARRAY_SIZE(ncpXXwl333);
++		break;
++	default:
++		dev_err(&pdev->dev, "Unknown device type: %lu(%s)\n",
++				pdev->id_entry->driver_data,
++				pdev->id_entry->name);
++		ret = -EINVAL;
++		goto err;
++	}
++
++	data->mintemp = INT_MAX;
++	data->maxtemp = INT_MIN;
++
++	/*
++	 * The compensation table is sorted by ohm value. Although it is
++	 * normally assumed that the temperature value monotonically
++	 * increases or decreases with the ohm value, but there could be
++	 * different thermistors.
++	 */
++	for (i = 0; i < data->n_comp; i++) {
++		if (data->comp[i].temp_C > data->maxtemp)
++			data->maxtemp = data->comp[i].temp_C;
++		if (data->comp[i].temp_C < data->mintemp)
++			data->mintemp = data->comp[i].temp_C;
++	}
++
++	if (data->mintemp != INT_MAX || data->maxtemp != INT_MIN) {
++		dev_err(data->dev, "error in compensation table\n");
++		ret = -EINVAL;
++		goto err;
++	}
++
++	platform_set_drvdata(pdev, data);
++
++	ret = sysfs_create_group(&data->dev->kobj, &ntc_attr_group);
++	if (ret) {
++		dev_err(data->dev, "unable to create sysfs files\n");
++		goto err;
++	}
++
++	data->hwmon_dev = hwmon_device_register(data->dev);
++	if (IS_ERR_OR_NULL(data->hwmon_dev)) {
++		dev_err(data->dev, "unable to register as hwmon device.\n");
++		ret = -EINVAL;
++		goto err_after_sysfs;
++	}
++
++	dev_info(&pdev->dev, "Thermistor %s:%d (type: %s/%lu) successfully probed.\n",
++			pdev->name, pdev->id, pdev->id_entry->name,
++			pdev->id_entry->driver_data);
++	return 0;
++err_after_sysfs:
++	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
++err:
++	kfree(data);
++	return ret;
++}
++
++static int __devexit ntc_thermistor_remove(struct platform_device *pdev)
++{
++	struct ntc_data *data = platform_get_drvdata(pdev);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
++	platform_set_drvdata(pdev, NULL);
++
++	kfree(data);
++
++	return 0;
++}
++
++static const struct platform_device_id ntc_thermistor_id[] = {
++	{ "ncp15wb473", TYPE_NCPXXWB473 },
++	{ "ncp18wb473", TYPE_NCPXXWB473 },
++	{ "ncp21wb473", TYPE_NCPXXWB473 },
++	{ "ncp03wb473", TYPE_NCPXXWB473 },
++	{ "ncp15wl333", TYPE_NCPXXWL333 },
++	{ },
++};
++
++static struct platform_driver ntc_thermistor_driver = {
++	.driver = {
++		.name = "ntc-thermistor",
++		.owner = THIS_MODULE,
++	},
++	.probe = ntc_thermistor_probe,
++	.remove = __devexit_p(ntc_thermistor_remove),
++	.id_table = ntc_thermistor_id,
++};
++
++static int __init ntc_thermistor_init(void)
++{
++	return platform_driver_register(&ntc_thermistor_driver);
++}
++
++module_init(ntc_thermistor_init);
++
++static void __exit ntc_thermistor_cleanup(void)
++{
++	platform_driver_unregister(&ntc_thermistor_driver);
++}
++
++module_exit(ntc_thermistor_cleanup);
++
++MODULE_DESCRIPTION("NTC Thermistor Driver");
++MODULE_AUTHOR("MyungJoo Ham <myungjoo.ham@samsung.com>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ntc-thermistor");
+diff --git a/include/linux/platform_data/ntc_thermistor.h b/include/linux/platform_data/ntc_thermistor.h
+new file mode 100644
+index 0000000..abd2862
+--- /dev/null
++++ b/include/linux/platform_data/ntc_thermistor.h
+@@ -0,0 +1,53 @@
++/*
++ * ntc_thermistor.h - NTC Thermistors
++ *
++ *  Copyright (C) 2010 Samsung Electronics
++ *  MyungJoo Ham <myungjoo.ham@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++#ifndef _LINUX_NTC_H
++#define _LINUX_NTC_H
++
++enum ntc_thermistor_type {
++	TYPE_NCPXXWB473,
++	TYPE_NCPXXWL333,
++};
++
++struct ntc_thermistor_platform_data {
++	/*
++	 * One (not both) of read_uV and read_ohm should be provided and only
++	 * one of the two should be provided.
++	 * Both functions should return negative value for an error case.
++	 *
++	 * pullup_uV, pullup_ohm, pulldown_ohm, and connect are required to use
++	 * read_uV()
++	 *
++	 * How to setup pullup_ohm, pulldown_ohm, and connect is
++	 * described at Documentation/hwmon/ntc
++	 *
++	 * pullup/down_ohm: 0 for infinite / not-connected
++	 */
++	int (*read_uV)(void);
++	unsigned int pullup_uV;
++
++	unsigned int pullup_ohm;
++	unsigned int pulldown_ohm;
++	enum { NTC_CONNECTED_POSITIVE, NTC_CONNECTED_GROUND } connect;
++
++	int (*read_ohm)(void);
++};
++
++#endif /* _LINUX_NTC_H */
+-- 
+1.7.4.1
 
 
 _______________________________________________
