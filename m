@@ -1,124 +1,133 @@
-From: "Yu, Fenghua" <fenghua.yu@intel.com>
-Date: Thu, 09 Jun 2011 21:01:22 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Further relax
-Message-Id: <493994B35A117E4F832F97C4719C4C04012FEF5FC9@orsmsx505.amr.corp.intel.com>
+From: Scott Lipcon <slipcon@gmail.com>
+Date: Wed, 15 Jun 2011 13:01:20 +0000
+Subject: [lm-sensors] NCT6775F driver
+Message-Id: <BANLkTimDkWRZ53GL5erkDaFqqj3kJBOj9A@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3915904832292512972=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <493994B35A117E4F832F97C4719C4C04011E3427A6@orsmsx505.amr.corp.intel.com>
-In-Reply-To: <493994B35A117E4F832F97C4719C4C04011E3427A6@orsmsx505.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: Thursday, June 09, 2011 1:19 AM
-> To: Yu, Fenghua
-> Cc: Guenter Roeck; lm-sensors@lm-sensors.org; Carsten Emde; R,
-> Durgadoss
-> Subject: Re: [PATCH] hwmon: (coretemp) Further relax temperature range
-> checks
-> 
-> Hi Fenghua,
-> 
-> On Wed, 8 Jun 2011 18:01:12 -0700, Yu, Fenghua wrote:
-> > > From: Jean Delvare [mailto:khali@linux-fr.org]
-> > > Sent: Wednesday, June 08, 2011 2:31 AM
-> > > To: Guenter Roeck
-> > > Cc: lm-sensors@lm-sensors.org; Carsten Emde; Yu, Fenghua; R,
-> Durgadoss
-> > > Subject: Re: [PATCH] hwmon: (coretemp) Further relax temperature
-> range
-> > > checks
-> > >
-> > > I have investigated this a little further, and have questions /
-> action
-> > > items for Fenghua and Durgadoss (or anyone else at Intel...)
-> > >
-> > > The Software Developer's Manual says that MSR 1A2h has scope
-> "Thread"
-> > > for Nehalem, but scope "Unique" for Sandy Bridge.
-> > >
-> > > 1* "Unique" isn't a valid scope value for a Sandy Bridge MSR. It
-> should
-> > >    be one of "Package", "Core" or "Thread". "Unique" is only used
-> for
-> > >    Pentium 4 and Atom models. This should be fixed by whoever is
-> > >    responsible for the document at Intel.
-> > >
-> > > 2* "Thread" seems wrong for Nehalem. Experience shows that thermal
-> > >    sensors are per-core [1], so I would expect scope "Core" for
-> > >    MSR_TEMPERATURE_TARGET. I would love to have confirmation from
-> > >    someone at Intel, and documentation fixed if needs be.
-> > >
-> > > [1] See commit d883b9f0977269d519469da72faec6a7f72cb489,
-> > >     "hwmon: (coretemp) Skip duplicate CPU entries".
-> > >
-> > > 3* Assuming that "Unique" becomes "Package" for Sandy Bridge, this
-> can
-> > >    mean two things: either the MSR was actually changed from
-> > >    per-thread/core to per-package when Sandy Bridge was developed,
-> or
-> > >    it was already per-package in Nehalem and documentation is
-> wrong. I
-> > >    would love to have someone at Intel clarify this point, and
-> > >    documentation fixed if needs be.
-> > >
-> > > 4* Regardless of the technically correct answer to point 3 above, I
-> > >    have never seen any multi-core CPU supported by the coretemp
-> driver
-> > >    report different tjmax values for different cores. Did anyone
-> ever
-> > >    see this? If not, I would feel comfortable reading tjmax from
-> > >    MSR_TEMPERATURE_TARGET only once per package for all models.
-> This
-> > >    would make driver initialization faster.
-> >
-> > I contacted SDM author and hardware architect.
-> 
-> Thanks a lot for doing this!
-> 
-> > Yes, the "Unique" term for Sandy Bridge is wrong. It should be
-> "Thread" instead. Next SDM will fix this..
-> 
-> This would bring it in line with Nehalem. However this doesn't look
-> right. Remember that IA32_THERM_STATUS (MSR 19Ch) has scope "Core", so
-> IA32_TEMPERATURE_TARGET (MSR 1A2h) can't have scope "Thread", because
-> you need to combine the values from both MSRs to return the current
-> temperature. IA32_TEMPERATURE_TARGET must have a scope equal to or
-> broader than the scope of IA32_THERM_STATUS, otherwise the computation
-> is not possible. What do the SDM author and hardware architect have to
-> say about this?
-> 
-> Furthermore, on Sandy Bridge, IA32_PACKAGE_THERM_STATUS (MSR 1B1h) has
-> scope "Package" but it is a relative value (just as IA32_THERM_STATUS.)
-> To what can it be relative, if there is no package-level Temperature
-> Target available? For this reason I really believe that
-> IA32_TEMPERATURE_TARGET (MSR 1A2h) has scope "Package" on Sandy Bridge.
-> Again, I am curious what your contacts will have to say about this.
-> 
+--===============3915904832292512972==
+Content-Type: multipart/alternative; boundary=bcaec53f9539b0551504a5bfbf59
 
-Your argument is valid. Next SDM will change the scope to "Package" for SNB. The scope for Nehalem is still "Thread". I think they just want to keep it a quirk of legacy on Nehalem.
+--bcaec53f9539b0551504a5bfbf59
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> > The interface was defined by in P4 as per thread. They believe there
-> is no viable usage of setting different temp targets on siblings.
-> > So one could say the architecture of per-thread interface is a quirk
-> of legacy.
-> >
-> > And you can read the target temperature on one thread and it will
-> apply to all cores in a package.
-> 
-> OK, great. I'll prepare a patch, I'll post it when I am done testing
-> it.
+Hello,
 
-I think we can work on the patch to view the package scope for this MSR. I believe you will add a comment to explain why we need this patch.
+I've got a new machine - Intel DP67DE motherboard, Core i5 CPU.
 
-> 
-> Thanks,
-> --
-> Jean Delvare
+sensors-detect shows that it has a NCT6775F chip, so I've compiled the
+driver from http://roeck-us.net/linux/drivers/w83627ehf/  and it
+successfully detects and provides output, although I'm doubting some of the
+values, and wanted to see if I could help debug/test driver updates.
+
+Here's the current output:
+
+
+
+ nct6775-isa-0290
+Adapter: ISA adapter
+VCore:         +0.89 V  (min =3D  +0.50 V, max =3D  +1.74 V)
++12V:         +17.54 V  (min =3D +10.75 V, max =3D +13.18 V)   ALARM
+AVCC:          +3.41 V  (min =3D  +2.98 V, max =3D  +3.63 V)
++3.3V:         +3.41 V  (min =3D  +3.14 V, max =3D  +3.47 V)
++5V:           +4.19 V  (min =3D  +4.74 V, max =3D  +5.25 V)   ALARM
++1.3V:         +1.06 V  (min =3D  +1.17 V, max =3D  +1.43 V)   ALARM
+VSB:           +3.42 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+VBAT:          +3.38 V  (min =3D  +2.40 V, max =3D  +3.60 V)
+fan1:          620 RPM  (min =3D    0 RPM, div =3D 32)  ALARM
+fan2:         1054 RPM  (min =3D    0 RPM, div =3D 32)  ALARM
+fan3:          620 RPM  (min =3D    0 RPM, div =3D 32)  ALARM
+fan4:            0 RPM  (div =3D 128)
+SYSTIN:        +28.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM  =
+sensor =3D
+diode
+CPUTIN:        +27.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D diode
+PECI Agent 0:  +32.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D diode
+PCH_CHIP_TEMP: +45.0=B0C
+PECI Agent 1:   +0.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+cpu0_vid:     +2.050 V
+
+
+
+The voltages are a bit surprising - obviously the three with ALARM are out
+of range.  I'm not sure if I can validate these in the BIOS but I'll try
+tonight when I'm home, but somehow I really doubt my +12V is putting out
++17.5.
+
+I'm not sure why the first 3 fans are showing ALARM, but the values seem
+reasonable.  The motherboard only has 3 fan connectors, so fan4 =3D 0 makes
+sense.
+
+The coretemp module reports 4 temperatures (for each of my 4 cpu cores?)
+between 36C and 42C.
+
+Thanks,
+Scott
+
+--bcaec53f9539b0551504a5bfbf59
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hello,<div><br></div><div>I&#39;ve got a new machine - Intel DP67DE motherb=
+oard, Core i5 CPU.</div><div><br></div><div>sensors-detect shows that it ha=
+s a NCT6775F chip, so I&#39;ve compiled the driver from=A0<a href=3D"http:/=
+/roeck-us.net/linux/drivers/w83627ehf/">http://roeck-us.net/linux/drivers/w=
+83627ehf/</a> =A0and it successfully detects and provides output, although =
+I&#39;m doubting some of the values, and wanted to see if I could help debu=
+g/test driver updates. =A0=A0</div>
+<div><br></div><div>Here&#39;s the current output:</div><div><br></div><div=
+><br></div><div><br></div><div>=A0nct6775-isa-0290</div><div>Adapter: ISA a=
+dapter</div><div>VCore: =A0 =A0 =A0 =A0 +0.89 V =A0(min =3D =A0+0.50 V, max=
+ =3D =A0+1.74 V) =A0=A0</div>
+<div>+12V: =A0 =A0 =A0 =A0 +17.54 V =A0(min =3D +10.75 V, max =3D +13.18 V)=
+ =A0 ALARM</div><div>AVCC: =A0 =A0 =A0 =A0 =A0+3.41 V =A0(min =3D =A0+2.98 =
+V, max =3D =A0+3.63 V) =A0=A0</div><div>+3.3V: =A0 =A0 =A0 =A0 +3.41 V =A0(=
+min =3D =A0+3.14 V, max =3D =A0+3.47 V) =A0=A0</div><div>+5V: =A0 =A0 =A0 =
+=A0 =A0 +4.19 V =A0(min =3D =A0+4.74 V, max =3D =A0+5.25 V) =A0 ALARM</div>
+<div>+1.3V: =A0 =A0 =A0 =A0 +1.06 V =A0(min =3D =A0+1.17 V, max =3D =A0+1.4=
+3 V) =A0 ALARM</div><div>VSB: =A0 =A0 =A0 =A0 =A0 +3.42 V =A0(min =3D =A0+2=
+.98 V, max =3D =A0+3.63 V) =A0=A0</div><div>VBAT: =A0 =A0 =A0 =A0 =A0+3.38 =
+V =A0(min =3D =A0+2.40 V, max =3D =A0+3.60 V) =A0=A0</div><div>fan1: =A0 =
+=A0 =A0 =A0 =A0620 RPM =A0(min =3D =A0 =A00 RPM, div =3D 32) =A0ALARM</div>
+<div>fan2: =A0 =A0 =A0 =A0 1054 RPM =A0(min =3D =A0 =A00 RPM, div =3D 32) =
+=A0ALARM</div><div>fan3: =A0 =A0 =A0 =A0 =A0620 RPM =A0(min =3D =A0 =A00 RP=
+M, div =3D 32) =A0ALARM</div><div>fan4: =A0 =A0 =A0 =A0 =A0 =A00 RPM =A0(di=
+v =3D 128)</div><div>SYSTIN: =A0 =A0 =A0 =A0+28.0=B0C =A0(high =3D =A0+0.0=
+=B0C, hyst =3D =A0+0.0=B0C) =A0ALARM =A0sensor =3D diode</div>
+<div>CPUTIN: =A0 =A0 =A0 =A0+27.0=B0C =A0(high =3D +80.0=B0C, hyst =3D +75.=
+0=B0C) =A0sensor =3D diode</div><div>PECI Agent 0: =A0+32.0=B0C =A0(high =
+=3D +80.0=B0C, hyst =3D +75.0=B0C) =A0sensor =3D diode</div><div>PCH_CHIP_T=
+EMP: +45.0=B0C =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0</div>
+<div>PECI Agent 1: =A0 +0.0=B0C =A0(high =3D +80.0=B0C, hyst =3D +75.0=B0C)=
+ =A0</div><div>cpu0_vid: =A0 =A0 +2.050 V</div><div><br></div><div><br></di=
+v><div><br></div><div>The voltages are a bit surprising - obviously the thr=
+ee with ALARM are out of range. =A0I&#39;m not sure if I can validate these=
+ in the BIOS but I&#39;ll try tonight when I&#39;m home, but somehow I real=
+ly doubt my +12V is putting out +17.5. =A0=A0</div>
+<div><br></div><div>I&#39;m not sure why the first 3 fans are showing ALARM=
+, but the values seem reasonable. =A0The motherboard only has 3 fan connect=
+ors, so fan4 =3D 0 makes sense. =A0=A0</div><div><br></div><div>The coretem=
+p module reports 4 temperatures (for each of my 4 cpu cores?) between 36C a=
+nd 42C.</div>
+<div><br></div><div>Thanks,</div><div>Scott</div>
+
+--bcaec53f9539b0551504a5bfbf59--
+
+
+--===============3915904832292512972==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3915904832292512972==--
