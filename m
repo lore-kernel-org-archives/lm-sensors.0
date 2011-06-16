@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 16 Jun 2011 20:27:54 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 16 Jun 2011 20:32:41 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-D525 core temps N/A?
-Message-Id: <20110616202754.GA20243@ericsson.com>
+Message-Id: <20110616223241.38580cd9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <12337942.277431308248481343.JavaMail.defaultUser@defaultHost>
 In-Reply-To: <12337942.277431308248481343.JavaMail.defaultUser@defaultHost>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jun 16, 2011 at 04:23:44PM -0400, Guenter Roeck wrote:
+On Thu, 16 Jun 2011 13:23:44 -0700, Guenter Roeck wrote:
 > On Thu, Jun 16, 2011 at 04:06:10PM -0400, everythingsfree@lineone.net wrote:
 > > Thanks Guenter & Jean for the replies.
 > > 
@@ -35,12 +35,14 @@ On Thu, Jun 16, 2011 at 04:23:44PM -0400, Guenter Roeck wrote:
 > The build worked for me with linux-headers-2.6.32-25-server.
 > Can you update your system to the latest kernel version and try again ?
 > It should be 2.6.32-32 as far as I can see.
-> 
-Sorry, I got that wrong; it was 2.6.35-25, not 2.6.32-25.
 
-Wel'll have to add the missing defines manually. I'll send you an update later tonight.
+FWIW my own backport of the coretemp driver at:
+http://khali.linux-fr.org/devel/misc/coretemp/
+includes compatibility quirks which may help. I don't know if Guenter's
+has the same.
 
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
