@@ -1,43 +1,48 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 30 Jun 2011 17:29:50 +0000
-Subject: [lm-sensors] [PATCH 1/4] hwmon: (pmbus) Drop check for PMBus
-Message-Id: <1309454993-8641-2-git-send-email-guenter.roeck@ericsson.com>
+From: Clemens Ladisch <clemens@ladisch.de>
+Date: Thu, 16 Jun 2011 11:45:55 +0000
+Subject: [lm-sensors] hwmon: (k10temp) update documentation
+Message-Id: <4DF9ECF3.20700@ladisch.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Some PMBus devices do not support the PMBus revision register, so don't check
-if it exists.
+Add some CPU series IDs and links to the Fam12h datasheets.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/pmbus_core.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
 
-diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
-index 354770e..bd613e7 100644
---- a/drivers/hwmon/pmbus_core.c
-+++ b/drivers/hwmon/pmbus_core.c
-@@ -1430,12 +1430,8 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
+--- a/Documentation/hwmon/k10temp
++++ b/Documentation/hwmon/k10temp
+@@ -9,8 +9,8 @@ Supported chips:
+   Socket S1G3: Athlon II, Sempron, Turion II
+ * AMD Family 11h processors:
+   Socket S1G2: Athlon (X2), Sempron (X2), Turion X2 (Ultra)
+-* AMD Family 12h processors: "Llano"
+-* AMD Family 14h processors: "Brazos" (C/E/G-Series)
++* AMD Family 12h processors: "Llano" (E2/A4/A6/A8-Series)
++* AMD Family 14h processors: "Brazos" (C/E/G/Z-Series)
+ * AMD Family 15h processors: "Bulldozer"
  
--	/*
--	 * Bail out if status register or PMBus revision register
--	 * does not exist.
--	 */
--	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0
--	    || i2c_smbus_read_byte_data(client, PMBUS_REVISION) < 0) {
-+	/* Bail out if PMBus status register does not exist. */
-+	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0) {
- 		dev_err(&client->dev,
- 			"Status or revision register not found\n");
- 		ret = -ENODEV;
--- 
-1.7.3.1
-
+   Prefix: 'k10temp'
+@@ -20,12 +20,16 @@ Supported chips:
+     http://support.amd.com/us/Processor_TechDocs/31116.pdf
+   BIOS and Kernel Developer's Guide (BKDG) for AMD Family 11h Processors:
+     http://support.amd.com/us/Processor_TechDocs/41256.pdf
++  BIOS and Kernel Developer's Guide (BKDG) for AMD Family 12h Processors:
++    http://support.amd.com/us/Processor_TechDocs/41131.pdf
+   BIOS and Kernel Developer's Guide (BKDG) for AMD Family 14h Models 00h-0Fh Processors:
+     http://support.amd.com/us/Processor_TechDocs/43170.pdf
+   Revision Guide for AMD Family 10h Processors:
+     http://support.amd.com/us/Processor_TechDocs/41322.pdf
+   Revision Guide for AMD Family 11h Processors:
+     http://support.amd.com/us/Processor_TechDocs/41788.pdf
++  Revision Guide for AMD Family 12h Processors:
++    http://support.amd.com/us/Processor_TechDocs/44739.pdf
+   Revision Guide for AMD Family 14h Models 00h-0Fh Processors:
+     http://support.amd.com/us/Processor_TechDocs/47534.pdf
+   AMD Family 11h Processor Power and Thermal Data Sheet for Notebooks:
 
 _______________________________________________
 lm-sensors mailing list
