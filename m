@@ -1,43 +1,138 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 17 Jun 2011 19:25:43 +0000
-Subject: Re: [lm-sensors] Atom D525 (on GA-D525TUD)
-Message-Id: <20110617212543.6f9100e6@endymion.delvare>
+From: Gary Myers <gary@gaztronics.co.uk>
+Date: Thu, 16 Jun 2011 15:55:25 +0000
+Subject: [lm-sensors] Config for Gigabyte GA-870A-UD3
+Message-Id: <4DFA276D.1020307@gaztronics.co.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------010403030808020609070401"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, 18 Nov 2010 09:31:36 +0200, Thanasis wrote:
-> ~ # sensors
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> ERROR: Can't get value of subfeature temp1_input: Can't read
-> Core 0:       +0.0=B0C  (crit =3D +100.0=B0C)                =20
->=20
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> ERROR: Can't get value of subfeature temp1_input: Can't read
-> Core 1:       +0.0=B0C  (crit =3D +100.0=B0C)                =20
-> (...)
->  ~ #
->=20
-> Is the above ERROR normal?
+This is a multi-part message in MIME format.
+--------------010403030808020609070401
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-No, it is not. A more recent version of lm-sensors would display N/A as
-the temperature instead of the error message, but the problem remains.
+Hi,
 
-> Is there something I can/should do/configure about it?
+I have modified one of the config files from the Wiki and tweaked it for 
+my new Gigabyte GA-870A-UD3 motherboard. After much blasting of freezer 
+spray and un-plugging of fans, I reached the config for the version 
+attached; which plays nice with gnome-sensors-applet.
 
-This is a hardware or driver issue, not sure yet. We had similar
-reports for other Atom CPUs, I don't know if this means these CPUs just
-don't have working sensors, or if there's any workaround the driver
-could apply to get them to work. Nothing you can do as a user anyway.
+My contact email is listed in the file if other people come up with any 
+better mods.
 
---=20
-Jean Delvare
+Regards from England  :)
+
+--
+Gary Myers MIET MBCS CITP
+http://www.gaztronics.net/
+http://www.ban-plt.co.uk/
+
+--------------010403030808020609070401
+Content-Type: text/plain;
+ name="sensors3.conf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="sensors3.conf"
+
+# libsensors3 configuration file for the Gigabyte GA-870A-UD3 rev 3.0
+# based on configuration file for the Gigabyte GA-790XTA-UD4 from Wiki with modifications.
+# 2011-06-16 Gary Myers <gary@gaztronics.net>
+# Updates welcome.
+
+# CPU sensor
+
+chip "k10temp-*"
+
+   label temp1 "CPU Temp (K10)" # Set for gnome-sensors-applet.
+				# See second CPU temp below.
+
+# Motherboard sensors
+
+chip "it8720-isa-*"
+
+### Voltages
+
+   label  in0  "Vcore"
+   label  in1  "DDR3 1.5V" # as labelled in the BIOS.
+   label  in2  "+3.3V"
+   label  in3  "+5V"     # Not shown in BIOS.
+   label  in4  "+12V"
+   ignore in5		 # Ambiguous - ignoring.
+   ignore in6		 # Ambiguous - ignoring.
+   label  in7  "5VSB"    # Not shown in BIOS.
+   label  in8  "Vbat"    # Not shown in BIOS.
+   ignore cpu0_vid
+
+   # "Vcore", "DDR3 1.5V", "+3.3V" and "Vbat" are connected directly, so no compute
+   # line is needed for these. +5V and 5VSB are internal so we use the
+   # standard scaling factor. Scaling for +12V is apparently not standard,
+   # factor 3.963 is guessed from BIOS and EasyTune values (3.943 was
+   # another candidate.)
+   compute  in3  @ * (6.8/10+1), @ / (6.8/10+1)
+   compute  in4  @ * 3.963,      @ / 3.963
+   compute  in7  @ * (6.8/10+1), @ / (6.8/10+1)
+
+   # The BIOS will not set any limit for voltages.
+
+   set in0_min  0.825 * 0.95
+   set in0_max  1.425 * 1.05
+   set in1_min  1.5   * 0.95
+   set in1_max  1.5   * 1.05
+   set in2_min  3.3   * 0.95
+   set in2_max  3.3   * 1.05
+   set in3_min  5     * 0.95
+   set in3_max  5     * 1.05
+   set in4_min 12     * 0.95
+   set in4_max 12     * 1.05
+   set in7_min  5     * 0.95
+   set in7_max  5     * 1.05
+
+### Temperatures
+
+   label temp1 "System Temp"
+   # This sensor appears to be around or inside the ITE8720F chip.
+   # The temperature drops if the chip and board area are cooled with
+   # freezer spray. This sensor may be over-reading!
+   # Adjustment applied to match internal case thermal sensor from my Antec P160.
+   compute temp1  (@ -20),  (@ + 20)
+   set   temp1_min 0
+   set   temp1_max 50 # Tropical ambient max plus a bit
+
+   label temp2  "CPU Temp"
+   # This sensor can show 2 degrees difference to the K10 sensor.
+   # The end user can choose which one they prefer.
+   set   temp2_min 0
+   set   temp2_max 70 # Set to match your BIOS "CPU Warning Temperature"
+
+   ignore temp3	# No idea what this sensor is for. It always shows
+		# +78 deg C regardless of BIOS settings.
+
+### Fans
+
+   # Label based on motherboard connectors.
+   label fan1 "CPU Fan"		# M/B label: CPU_FAN (4-pin - near ATX 12V)
+   label fan5 "Power Fan"	# M/B label: PWR_FAN (3-pin - near ATX)
+   label fan2 "System Fan 1"	# M/B label: SYS_FAN1 (4-pin - near F_PANEL)
+   label fan3 "System Fan 2"	# M/B label: SYS_FAN2 (3-pin - near SATA3_4)
+
+   # Minimum fan speeds.
+   # Comment/un-comment fan headers you are using if you want alarms.
+   set fan1_min 300	# CPU Fan
+   set fan5_min 300	# Power Fan
+   #set fan2_min 300	# System Fan 1
+   set fan3_min 300	# System Fan 2
+
+
+--------------010403030808020609070401
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------010403030808020609070401--
