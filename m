@@ -1,7 +1,7 @@
 From: Randy <singularity_2@yahoo.com>
-Date: Mon, 13 Jun 2011 21:18:11 +0000
+Date: Thu, 16 Jun 2011 20:11:12 +0000
 Subject: Re: [lm-sensors] i2c device w/o registers
-Message-Id: <115776.8303.qm@web30207.mail.mud.yahoo.com>
+Message-Id: <971811.53473.qm@web30208.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <609440.53865.qm@web30206.mail.mud.yahoo.com>
 In-Reply-To: <609440.53865.qm@web30206.mail.mud.yahoo.com>
@@ -10,18 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Thanks Jean.  The user-space method worked great.
+I got it working by creating a very basic slave device driver for my ADC 
+converter.
 
-For kernel space access, is there an easy way to get a reference to the i2c 
-client (struct i2c_client *client) to pass to i2c_master_recv(), since I can't 
-do open() via a kernel module?  I've searched all around, but can't find such an 
-example.  I think my system would be cleaner as a kernel module (my I2C devices 
-are ADCs, so I'd use a different analog driver over i2c for different chips in 
-my system, and they'd all publish common analog read commands...).
+For anyone in the same situation, there is a good link here: 
+http://www.embedded-bits.co.uk/?s=i2c
 
-Thanks,
+But you're right, this was probably more appropriate for the linux i2c list.
 
-Randy
+Thanks.
 
 
 
