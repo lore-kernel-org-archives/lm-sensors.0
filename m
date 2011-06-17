@@ -1,65 +1,52 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 13 Jun 2011 17:14:04 +0000
-Subject: Re: [lm-sensors] [PATCHv2 1/1] Hwmon: Add core_pkg Threshold
-Message-Id: <20110613171404.GC2629@ericsson.com>
+From: Steve Glendinning <steve.glendinning@smsc.com>
+Date: Fri, 17 Jun 2011 15:44:48 +0000
+Subject: [lm-sensors] [PATCH] [RFC] lm85: fix PWM control on SMSC EMC2300 &
+Message-Id: <1308325488-26386-1-git-send-email-steve.glendinning@smsc.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1307791723-28272-1-git-send-email-durgadoss.r@intel.com>
-In-Reply-To: <1307791723-28272-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Durga,
+This patch works around a quirk of the hardware's implementation to
+allow raw PWM fan drive values to be set.  Without it the device
+never leaves auto control mode so the PWM output request is ignored.
 
-On Sat, Jun 11, 2011 at 07:28:43AM -0400, Durgadoss R wrote:
-> This patch adds the core and pkg support to coretemp.
-> These thresholds can be configured via the sysfs interfaces tempX_max
-> and tempX_max_hyst. An interrupt is generated when CPU temperature reaches
-> or crosses above tempX_max OR drops below tempX_max_hyst.
-> 
-> This patch is based on the documentation in IA Manual vol 3A, that can be
-> downloaded from here:
-> http://download.intel.com/design/processor/manuals/253668.pdf
-> 
-> Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+I'm not sure if this is the right place for the workaround, comments?
 
-[ ... ]
+Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
+---
+ drivers/hwmon/lm85.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-> +			size_t count) = { NULL, NULL, NULL, NULL, NULL,
-> +					store_ttarget, store_tmin };
-> +	static const char *names[TOTAL_ATTRS] = {
->  					"temp%d_label", "temp%d_crit_alarm",
-> -					"temp%d_max", "temp%d_input",
-> -					"temp%d_crit" };
-> +					"temp%d_imput", "temp%d_crit",
-
-s/imput/input/
-
-Seems like we need another round of detailed testing ...
-
-> +					"temp%d_max_alarm", "temp%d_max",
-> +					"temp%d_max_hyst" };
->  
-> -	for (i = 0; i < MAX_ATTRS; i++) {
-> +	for (i = 0; i < tdata->attr_size; i++) {
->  		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
->  			attr_no);
->  		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
->  		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
->  		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
-> +		if (rw_ptr[i])
-> +			tdata->sd_attrs[i].dev_attr.attr.mode |= S_IWUSR;
->  		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
-> -		tdata->sd_attrs[i].dev_attr.store = NULL;
-> +		tdata->sd_attrs[i].dev_attr.store = rw_ptr[i];
-
-Since you check for rw_ptr above anyway, you might as well move this assignment
-into the if branch above. The NULL assignment is not necessary anyway, since the
-entire structure is pre-initialized from kzalloc().
-
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index da72dc1..f4e124b 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -1146,8 +1146,21 @@ static const struct attribute_group lm85_group_in567 = {
+ 
+ static void lm85_init_client(struct i2c_client *client)
+ {
++	struct lm85_data *data = i2c_get_clientdata(client);
+ 	int value;
+ 
++	/* For emc2300 & emc6d103s when auto temp min is the default value,
++	 * pwm can never be controlled manually, so change this */
++	if (data->type = emc6d103s) {
++		int nr;
++
++		for (nr = 0; nr < 3; nr++) {
++			data->zone[nr].limit = TEMP_TO_REG(-127000);
++			lm85_write_value(client, LM85_REG_AFAN_LIMIT(nr),
++				data->zone[nr].limit);
++		}
++	}
++
+ 	/* Start monitoring if needed */
+ 	value = lm85_read_value(client, LM85_REG_CONFIG);
+ 	if (!(value & 0x01)) {
+-- 
+1.7.4.1
 
 
 _______________________________________________
