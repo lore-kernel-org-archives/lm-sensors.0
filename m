@@ -1,46 +1,60 @@
-From: Micah Gersten <micahg@ubuntu.com>
-Date: Tue, 14 Jun 2011 05:29:49 +0000
-Subject: [lm-sensors] sensors-detect won't recognize 3.0 kernel
-Message-Id: <4DF6F1CD.9030001@ubuntu.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 17 Jun 2011 15:07:59 +0000
+Subject: Re: [lm-sensors] sensors-detect won't recognize 3.0 kernel
+Message-Id: <20110617170759.6a57c096@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4DF6F1CD.9030001@ubuntu.com>
+In-Reply-To: <4DF6F1CD.9030001@ubuntu.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Hi Micah,
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, 14 Jun 2011 00:29:49 -0500, Micah Gersten wrote:
+> I filed this bug [1] in Launchpad for Ubuntu and attached the
+> following patch:
+> 
+> 
+> +--- lm-sensors-3-3.2.0.orig/prog/detect/sensors-detect
+> ++++ lm-sensors-3-3.2.0/prog/detect/sensors-detect
+> +@@ -2258,7 +2258,8 @@ use vars qw(@kernel_version $kernel_arch
+> +
+> + sub initialize_kernel_version
+> + {
+> +-      `uname -r` =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
+> ++      #Third decimal only for point releases starting with 3.0
+> ++      `uname -r` =~ /(\d+)\.(\d+)(\.(\d+))?(.*)/;
+> +       @kernel_version = ($1, $2, $3, $4);
+> +       chomp($kernel_arch = `uname -m`);
+> +
 
-I filed this bug [1] in Launchpad for Ubuntu and attached the
-following patch:
+Did you actually test your patch? I fail to see how it could work.
+@kernel_version would contain (2, 6, .39, 39) for kernel 2.6.39.1. I
+have the following instead:
 
+@@ -2462,8 +2462,8 @@
+ 
+ sub initialize_kernel_version
+ {
+-	`uname -r` =~ /(\d+)\.(\d+)\.(\d+)(.*)/;
+-	@kernel_version = ($1, $2, $3, $4);
++	`uname -r` =~ /(\d+)\.(\d+)(?:\.(\d+))?(.*)/;
++	@kernel_version = ($1, $2, $3 || 0, $4);
+ 	chomp($kernel_arch = `uname -m`);
+ 
+ 	# We only support kernels >= 2.6.5
 
-+--- lm-sensors-3-3.2.0.orig/prog/detect/sensors-detect
-++++ lm-sensors-3-3.2.0/prog/detect/sensors-detect
-+@@ -2258,7 +2258,8 @@ use vars qw(@kernel_version $kernel_arch
-+
-+ sub initialize_kernel_version
-+ {
-+-      `uname -r` =3D~ /(\d+)\.(\d+)\.(\d+)(.*)/;
-++      #Third decimal only for point releases starting with 3.0
-++      `uname -r` =3D~ /(\d+)\.(\d+)(\.(\d+))?(.*)/;
-+       @kernel_version =3D ($1, $2, $3, $4);
-+       chomp($kernel_arch =3D `uname -m`);
-+
+which properly sets @kernel_version to (2, 6, 39, .1).
 
-Thanks,
-Micah
+That being said, I would much prefer if Linus could just get a life and
+stick with 3-number versions, i.e. 3.0.0. Updating user-space at wide
+to cope with this change is just wasting everyone's time at the moment,
+for no benefit.
 
-[1] https://bugs.launchpad.net/bugs/797001
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk328b0ACgkQTniv4aqX/VnAnACfXxwI1xGCCprG6BLkcV1gEimL
-ncEAnjSJ1pPDfE33tLwe9P4SI9ls9xin
-=8AqL
------END PGP SIGNATURE-----
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
