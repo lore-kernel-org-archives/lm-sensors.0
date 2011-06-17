@@ -1,40 +1,29 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Jun 2011 09:32:27 +0000
-Subject: Re: [lm-sensors] sensors doesn't show my fans,
-Message-Id: <20110621113227.1bc8a378@endymion.delvare>
+From: singumal <qdmd-pu1o@dea.spamcon.org>
+Date: Fri, 17 Jun 2011 03:56:39 +0000
+Subject: [lm-sensors] Possible to set low temperature limit?
+Message-Id: <e1klv65nq0br7o0p7eic89047t49qjtedr@4ax.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110621102050.59dbd8dc@endymion.delvare>
-In-Reply-To: <20110621102050.59dbd8dc@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Mark,
+My sensors output is like this:
 
-Please always keep discussions on the mailing list. Others may be
-interested and/or have ideas.
+f81865f-isa-0a00
+...
+System Temperature:  +35.0=B0C  (high =3D +85.0=B0C, hyst =3D +81.0=B0C)
+                              (crit =3D +100.0=B0C, hyst =3D +96.0=B0C)  se=
+nsor =3D transistor
 
-On Tue, 21 Jun 2011 12:15:18 +0300, Mark Bloch wrote:
-> I'll try to email HP, I don't think they'll help much.
+Is there any way to be able to get an ALARM if a sensor
+transistor isn't installed?  With no transistor it tends to show
+low or negative temperatures.  (Actually on a different
+motherboard/sensor).  I suspect the answer is "no, there's no
+hardware limit for low temperature to cause an ALARM", just want
+to confirm that I'd have to do this check myself.
 
-You're probably right, but sometimes we have good surprises, and the
-sole fact of asking may help them realize that there is a need. This
-may pay over time, if not now.
 
-> I think the Super-I/O chip is :
-> http://www.plxtech.com/products/expresslane/pex8518
-
-This would be surprising, as in general Super-I/O chips have nothing to
-do with PCI. But maybe that chip is simply following the LPC
-specification (which almost all Super-I/O chips follow) and is thus
-seen by sensors-detect as a Super-I/O chips even if it is not actually
-a Super-I/O chip.
-
-Anyway, if it's really a PEX8518 then this is of no interest to us.
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
