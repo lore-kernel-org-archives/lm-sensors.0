@@ -1,40 +1,31 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 16 Jun 2011 18:54:13 +0000
-Subject: Re: [lm-sensors] asus_atk0110 causes mouse and keyboard freeze in
-Message-Id: <20110616205413.21294f6b@endymion.delvare>
+Date: Fri, 17 Jun 2011 18:57:43 +0000
+Subject: [lm-sensors] asus_atk0110 and suspend-to-disk
+Message-Id: <20110617205743.28aaf44a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4CF7B282.10007@verizon.net>
-In-Reply-To: <4CF7B282.10007@verizon.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 15 Jun 2011 17:25:08 +0200, Luca Tettamanti wrote:
-> On Wed, Jun 15, 2011 at 2:13 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
-> > On Wed, Jun 8, 2011 at 1:20 PM, Javier <javier@javispedro.com> wrote:
-> >> 2011/6/8 Luca Tettamanti <kronos.it@gmail.com>:
-> >>> I'll take a look ASAP (but this weekend I'll be AFK). Does your kernel
-> >>> have ACPI_CUSTOM_METHOD enabled?
-> >>
-> >> No, but I can easily rebuild it (do not worry).
-> >
-> > Yes please, ACPI_CUSTOM_METHOD will be needed; I'm preparing a patched
-> > version of the DSDT and the driver.
-> 
-> I'm attaching a patched version of the monitoring method.
-> Boot the kernel with ACPI_CUSTOM_METHOD enabled and do *not* load
-> asus_atk0110; load the override with:
-> cat DSDT.aml > /sys/kernel/debug/acpi/custom_method
-> If everything looks good then try asus_atk0110 and see if it's stable.
-> If it still locks up the machine I'll have to try a different
-> approach...
+Hi Luca,
 
-Note that the asus_atk0110 driver will autoload on most systems which
-need it thanks to the module alias, so if you don't want this to
-happen, you'll have to blacklist the driver
-in /etc/modprobe.d/something.
+Since a few days now, my wife has a new system based on an Asus P5QL Pro
+motherboard, which uses your asus_atk0110 driver. She noticed that,
+with this new board, CPU fan speed bumps to maximum when resuming from
+suspend-to-disk (hibernation.) In the BIOS I have set the CPU fan speed
+control to silent mode, and apparently system-to-disk loses the
+setting, so the fan goes to full speed on resume. Very annoying.
 
+Have you ever heard of this problem?
+
+I understand that the asus_atk0110 driver only reads from the
+monitoring device and doesn't attempt to configure it, so I very much
+doubt it is related to the problem in any way. But do you think there is any way to
+save and restore the settings at suspend/resume through the ATK0110
+interface so that they aren't lost?
+
+Thanks,
 -- 
 Jean Delvare
 
