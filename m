@@ -1,31 +1,52 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 05 Jun 2011 15:06:58 +0000
-Subject: [lm-sensors] =?utf-8?q?=5BGIT_PULL=5D_hwmon_fixes_for_3=2E0?=
-Message-Id: <1307286418-26876-1-git-send-email-guenter.roeck@ericsson.com>
+From: Valentijn Scholten <valentijnscholten@hotmail.com>
+Date: Sat, 18 Jun 2011 23:58:28 +0000
+Subject: Re: [lm-sensors] Intel boards utilizing QST for fan control
+Message-Id: <loom.20110619T015750-226@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="macroman"
-Content-Transfer-Encoding: base64
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@vger.kernel.org
 
-SGkgTGludXMsCgpQbGVhc2UgcHVsbCBod21vbiBzdWJzeXN0ZW0gZml4ZXMgZm9yIExpbnV4IDMu
-MCBmcm9tOgoKICAgIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dp
-dC9ncm9lY2svc3RhZ2luZy5naXQgaHdtb24tZm9yLWxpbnVzCgpUaGFua3MsCkd1ZW50ZXIgUm9l
-Y2sKCi0tLS0tLQoKVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA1NTkyMmM5ZDFi
-ODRiODljYjk0NmM3NzdmZGRjY2IzMjQ3ZTdkZjJjOgoKICBMaW51eCAzLjAtcmMxICgyMDExLTA1
-LTI5IDE3OjQzOjM2IC0wNzAwKQoKYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkg
-YXQ6CiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2dyb2Vj
-ay9zdGFnaW5nLmdpdCBod21vbi1mb3ItbGludXMKCkd1ZW50ZXIgUm9lY2sgKDIpOgogICAgICBo
-d21vbjogKGNvcmV0ZW1wKSBGaXggVGpNYXggZGV0ZWN0aW9uIGZvciBvbGRlciBDUFVzCiAgICAg
-IGh3bW9uOiAoY29yZXRlbXApIEZ1cnRoZXIgcmVsYXggdGVtcGVyYXR1cmUgcmFuZ2UgY2hlY2tz
-CgpKZWFuIERlbHZhcmUgKDEpOgogICAgICBod21vbjogKGNvcmV0ZW1wKSBSZWxheCB0YXJnZXQg
-dGVtcGVyYXR1cmUgcmFuZ2UgY2hlY2sKClBlciBEYWxlbiAoMSk6CiAgICAgIGh3bW9uOiAobWF4
-NjY0MikgUmVuYW1lIHRlbXBfZmF1bHQgc3lzZnMgYXR0cmlidXRlIHRvIHRlbXAyX2ZhdWx0CgpQ
-ZXIgRGFsw6luICgxKToKICAgICAgaHdtb246IChtYXg2NjQyKTogQmV0dGVyIGNoaXAgZGV0ZWN0
-aW9uIHNjaGVtYQoKIGRyaXZlcnMvaHdtb24vY29yZXRlbXAuYyB8ICAgMjMgKysrKy0tLS0tLS0t
-LS0tLS0tLS0tLS0KIGRyaXZlcnMvaHdtb24vbWF4NjY0Mi5jICB8ICAgMjIgKysrKysrKysrKysr
-KysrKysrLS0tLQogMiBmaWxlcyBjaGFuZ2VkLCAyMiBpbnNlcnRpb25zKCspLCAyMyBkZWxldGlv
-bnMoLSkKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
-LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
-c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
+Guenter Roeck <guenter.roeck <at> ericsson.com> writes:
+> 
+> Intel provides an open source SDK which can be used to access QST information.
+> You can get this SDK from 
+> 	http://software.intel.com/en-
+us/articles/Intel_Quiet_System_Technology_Software_Development_Kit/
+> 
+> This SDK depends on a Linux driver named heci. This driver was made available 
+by Intel 
+> at http://sourceforge.net/projects/openamt/. The driver was included in the 
+Linux kernel
+> staging tree for a period of time. Unfortunately, Intel abandoned the project 
+and requested
+> the driver to be removed from the kernel, which happened with 2.6.32. See 
+"Linux support" at
+> 	
+http://www.thinkwiki.org/wiki/Intel_Active_Management_Technology_%28AMT%29
+> for details. Too bad, since the driver seemed to be in pretty good shape.
+> 
+> In summary, if you want to buy an Intel board and want to see voltage and fan 
+monitoring 
+> data in Linux, check the board specification if it utilizes QST for fan 
+control. If it does,
+> the board may not be optimal for your purpose, and you might want to look for 
+another board
+> instead.
+> 
+> If you do have such a board and want its fan control to be supported by the 
+Linux kernel,
+> I would suggest to get in touch with Intel and request such support. Maybe 
+they reconsider
+> their position if enough people request it.
+Good news, Intel released new open source AMT drivers: 
+http://software.intel.com/en-us/articles/download-the-latest-intel-amt-open-
+source-drivers/
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
