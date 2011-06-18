@@ -1,61 +1,62 @@
-From: "everythingsfree@lineone.net" <everythingsfree@lineone.net>
-Date: Sat, 18 Jun 2011 03:58:51 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 18 Jun 2011 07:34:13 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-D525 core temps N/A?
-Message-Id: <14798491.418561308369531115.JavaMail.defaultUser@defaultHost>
+Message-Id: <20110618093413.2989f098@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <12337942.277431308248481343.JavaMail.defaultUser@defaultHost>
 In-Reply-To: <12337942.277431308248481343.JavaMail.defaultUser@defaultHost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SmVhbiwKCkkndmUgaW5zdGFsbGVkIGFuZCBzZXQtdXAgbXNyLXRvb2xzIGFmdGVyIGEgcXVpY2sg
-bG9vayBvbi1saW5lIApvbiBob3cgdG8gZG8gc28gKCdzdWRvIGFwdC1nZXQgaW5zdGFsbCBtc3It
-dG9vbHMnIGZvbGxvd2VkIGJ5ICdzdWRvIAptb2Rwcm9iZSBtc3InLCBsZXQgbWUga25vdyBpZiB0
-aGF0J3MgbWlzc2luZyBzb21ldGhpbmcpIGFuZCBJIGdldCB0aGUgCmZvbGxvd2luZyBmb3IgeW91
-ciBjb21tYW5kczoKCiQgc3VkbyByZG1zciAtcCAwIC14IDB4MTljCjg2MDAwMDAKJCBzdWRvIApy
-ZG1zciAtcCAxIC14IDB4MTljCjg2MzAwMDAKJCBzdWRvIHJkbXNyIC1wIDIgLXggMHgxOWMKODYz
-MDAwMAokIHN1ZG8gCnJkbXNyIC1wIDMgLXggMHgxOWMKODYwMDAwMAoKSG9wZSB0aGF0IGhlbHBz
-LgoKQ2hlZXJzLApEYXZlCgoKPi0tLS0KT3JpZ2luYWwgTWVzc2FnZS0tLS0KPkZyb206IGtoYWxp
-QGxpbnV4LWZyLm9yZwo+RGF0ZTogMTcvMDYvMjAxMSAyMDoyOSAKCj5UbzogPGV2ZXJ5dGhpbmdz
-ZnJlZUBsaW5lb25lLm5ldD4KPkNjOiA8Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20+LCAKPGxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc+Cj5TdWJqOiBSZTogW2xtLXNlbnNvcnNdIEdpZ2FieXRl
-IEdBLUQ1MjUgCmNvcmUgdGVtcHMgTi9BPwo+Cj5IaSBEYXZlLAo+Cj5PbiBGcmksIDE3IEp1biAy
-MDExIDE4OjMwOjUzICswMTAwIAooQlNUKSwgZXZlcnl0aGluZ3NmcmVlQGxpbmVvbmUubmV0IHdy
-b3RlOgo+PiBHdWVudGVyICYgSmVhbiwgdGhhbmtzIGZvciAKdGhlIGNvbnRpbnVlZCBoZWxwLgo+
-PiAKPj4gSSBnb3Qgc2xpZ2h0bHkgYm9nZ2VkIAo+PiBkb3duIHllc3RlcmRheSAKYXR0ZW1wdGlu
-ZyB0byB1cGdyYWRlIG15IGluc3RhbGwgLSBJIHRyaWVkICdhcHQtZ2V0IAo+PiB1cGRhdGUnIHdo
-aWNoIApkb3dubG9hZGVkIGEgZmV3IHRoaW5ncyBidXQgZGlkbid0IGZpeCB0aGUgcHJvYmxlbSBz
-byBJIAo+PiB0aGVuIHRyaWVkIAonYXB0LWdldCB1cGdyYWRlJyAoSSdtIG5vdCBzdXJlIG9uIHRo
-ZSBkaWZmZXJlbmNlIGJldHdlZW4gCj4+IHRoZSAKdHdvLi4uKSB3aGljaCBkb3dubG9hZGVkIGV2
-ZW4gbW9yZSBhbmQgdGhlbiBnb3QgaW50byB0cm91YmxlLCAKPj4gCmVuZGluZyB3aXRoIGEgc2Vn
-bWVudGF0aW9uIGZhdWx0ISAgSSByZWJvb3RlZCBhbmQgY29udGludWVkIGJ1dCBnb3QgCj4+IApt
-b3JlIGlzc3VlcyBhbmQgaGFkIHRvIHN0b3AgYXMgaXQgd2FzIGdldHRpbmcgbGF0ZS4KPj4gCj4+
-IEkndmUgc2luY2UgCnJlc3VtZWQgCj4+IGFuZCBtYW5hZ2VkIHRvIGdldCB3aGVyZSBJIGFtIG5v
-dyB3aXRoIHdoYXQgSSBob3BlIGlzIGEgCmZ1bGx5IHVwZ3JhZGVkIAo+PiBpbnN0YWxsIGJ1dCBJ
-IHN0aWxsIGdldCB0aGUgc2FtZSBjb21waWxlIGVycm9ycy4KPj4gCgo+PiBTbywgSSd2ZSBncmFi
-YmVkIAo+PiBKZWFuJ3MgZmlsZSBhbmQgZm9sbG93ZWQgR3VlbnRlcidzIGluc3RydWN0aW9ucyAK
-dG8gYnVpbGQgYW5kIGluc3RhbGwgCj4+IHRob3NlLCBhbGwgd2VudCB3ZWxsLiAgT24gcnVubmlu
-ZyAnc2Vuc29ycycgSSAKc3RpbGwgZ2V0ICdOL0EnIGZvciB0aGUgCj4+IGNvcmUgdGVtcHMgYnV0
-IGF0IGxlYXN0IEkgb25seSBnZXQgdHdvOgo+PiAKCj4+IGNvcmV0ZW1wLWlzYS0wMDAwCj4+IEFk
-YXB0ZXI6IElTQSAKPj4gYWRhcHRlcgo+PiBDb3JlIDA6ICAgICAgICAgICAKTi9BICAoaGlnaCA9
-ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+PiBDb3JlIDE6ICAgICAgICAgICBOL0EgICho
-aWdoIAo9ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+Cj5BY3R1YWxseSB0aGlzIHJlbWlu
-ZHMgbWUgb2Ygc2ltaWxhciAKaXNzdWVzIHRoYXQgd2VyZSByZXBvcnRlZCBiZWZvcmUgYW5kCj5u
-ZXZlciBzb2x2ZWQ6Cj5odHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNl
-bnNvcnMvMjAxMC1KYW51YXJ5LzAyNzcxNi5odG1sCj5odHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvMjAxMC1TZXB0ZW1iZXIvMDI5NTAxLmh0bWwKPmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy8yMDEwLU5vdmVtYmVy
-LzAzMDUyMS5odG1sCj4KPlRoZSBlcnJvcnMgbG9vayBzbGlnaHRseSBkaWZmZXJlbnQgYmVjYXVz
-ZSBvZiBvbGRlciB2ZXJzaW9ucyBvZgo+bG0tCnNlbnNvcnMsIGJ1dCB0aGUgcHJvYmxlbSBpcyB0
-aGUgc2FtZTogdGhlIE1TUl9JQTMyX1RIRVJNX1NUQVRVUwoKPnJlZ2lzdGVyIGZhaWxzIHRvIHJl
-dHVybiBhIHZhbGlkIHZhbHVlLgo+Cj5JdCB3b3VsZCBiZSBpbnRlcmVzdGluZyB0byAKY2hlY2sg
-ZnJvbSB1c2VyLXNwYWNlIGFuZCBzZWUgd2hhdCB0aGUgcmF3Cj5NU1IgcmVhZCByZXR1cm5zLiBZ
-b3UnbGwgCm5lZWQgdGhlIG1zciBrZXJuZWwgZHJpdmVyLCBhcyB3ZWxsIGFzIHRoZQo+bXNyLXRv
-b2xzIHBhY2thZ2UuCj4KPiMgCnJkbXNyIC1wIDAgLXggMHgxOWMKPiMgcmRtc3IgLXAgMSAteCAw
-eDE5Ywo+IyByZG1zciAtcCAyIC14IDB4MTljCj4jIApyZG1zciAtcCAzIC14IDB4MTljCj4KPi0t
-IAo+SmVhbiBEZWx2YXJlCj4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
-Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
-b3JzCg==
+Hi Dave,
+
+On Sat, 18 Jun 2011 04:58:51 +0100 (BST), everythingsfree@lineone.net wrote:
+> I've installed and set-up msr-tools after a quick look on-line=20
+> on how to do so ('sudo apt-get install msr-tools' followed by 'sudo=20
+> modprobe msr', let me know if that's missing something) and I get the=20
+> following for your commands:
+>=20
+> $ sudo rdmsr -p 0 -x 0x19c
+> 8600000
+> $ sudo rdmsr -p 1 -x 0x19c
+> 8630000
+> $ sudo rdmsr -p 2 -x 0x19c
+> 8630000
+> $ sudo rdmsr -p 3 -x 0x19c
+> 8600000
+>=20
+> Hope that helps.
+
+The valid reading bit (31) is indeed never set, which is why the driver
+returns an error (and in turn "sensors" returns N/A.)
+
+The readings themselves don't look good anyway. 0x60 and 0x63 would
+translate to offset values of 96 and 99, respectively. With a critical
+limit at 100=B0C, that would lead to readings of 4=B0C and 1=B0C,
+respectively, which is obviously incorrect.
+
+I am wondering if maybe the valid reading bit gets cleared when the
+measured temperature is too low, because it is known that the
+reliability and accuracy of the digital thermal sensor get very poor
+when too far below the critical limit. Durgaross, Fenghua, do you know
+if this is the case? The CPU in question is an Atom D525 (family 6,
+model 28, stepping 10).
+
+Dave, please try putting as much load as possible on your CPU (e.g. by
+running "md5sum /dev/zero" 4 times in parallel), and then run the rdmsr
+commands again, every 20 seconds or so, for 5 minutes. It will be
+interesting to see if the readings decrease (meaning higher
+temperatures over time) and if the valid reading bit will get set at
+some point.
+
+When done, don't forget to kill the md5sum commands ;)
+
+--=20
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
