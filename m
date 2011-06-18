@@ -1,66 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 17 Jun 2011 19:29:52 +0000
+From: "everythingsfree@lineone.net" <everythingsfree@lineone.net>
+Date: Sat, 18 Jun 2011 03:58:51 +0000
 Subject: Re: [lm-sensors] Gigabyte GA-D525 core temps N/A?
-Message-Id: <20110617212952.5c5b14a8@endymion.delvare>
+Message-Id: <14798491.418561308369531115.JavaMail.defaultUser@defaultHost>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <12337942.277431308248481343.JavaMail.defaultUser@defaultHost>
 In-Reply-To: <12337942.277431308248481343.JavaMail.defaultUser@defaultHost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hi Dave,
-
-On Fri, 17 Jun 2011 18:30:53 +0100 (BST), everythingsfree@lineone.net wrote:
-> Guenter & Jean, thanks for the continued help.
->=20
-> I got slightly bogged=20
-> down yesterday attempting to upgrade my install - I tried 'apt-get=20
-> update' which downloaded a few things but didn't fix the problem so I=20
-> then tried 'apt-get upgrade' (I'm not sure on the difference between=20
-> the two...) which downloaded even more and then got into trouble,=20
-> ending with a segmentation fault!  I rebooted and continued but got=20
-> more issues and had to stop as it was getting late.
->=20
-> I've since resumed=20
-> and managed to get where I am now with what I hope is a fully upgraded=20
-> install but I still get the same compile errors.
->=20
-> So, I've grabbed=20
-> Jean's file and followed Guenter's instructions to build and install=20
-> those, all went well.  On running 'sensors' I still get 'N/A' for the=20
-> core temps but at least I only get two:
->=20
-> coretemp-isa-0000
-> Adapter: ISA=20
-> adapter
-> Core 0:           N/A  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
-> Core 1:           N/A  (high =3D +80.0=B0C, crit =3D +100.0=B0C)
-
-Actually this reminds me of similar issues that were reported before and
-never solved:
-http://lists.lm-sensors.org/pipermail/lm-sensors/2010-January/027716.html
-http://lists.lm-sensors.org/pipermail/lm-sensors/2010-September/029501.html
-http://lists.lm-sensors.org/pipermail/lm-sensors/2010-November/030521.html
-
-The errors look slightly different because of older versions of
-lm-sensors, but the problem is the same: the MSR_IA32_THERM_STATUS
-register fails to return a valid value.
-
-It would be interesting to check from user-space and see what the raw
-MSR read returns. You'll need the msr kernel driver, as well as the
-msr-tools package.
-
-# rdmsr -p 0 -x 0x19c
-# rdmsr -p 1 -x 0x19c
-# rdmsr -p 2 -x 0x19c
-# rdmsr -p 3 -x 0x19c
-
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SmVhbiwKCkkndmUgaW5zdGFsbGVkIGFuZCBzZXQtdXAgbXNyLXRvb2xzIGFmdGVyIGEgcXVpY2sg
+bG9vayBvbi1saW5lIApvbiBob3cgdG8gZG8gc28gKCdzdWRvIGFwdC1nZXQgaW5zdGFsbCBtc3It
+dG9vbHMnIGZvbGxvd2VkIGJ5ICdzdWRvIAptb2Rwcm9iZSBtc3InLCBsZXQgbWUga25vdyBpZiB0
+aGF0J3MgbWlzc2luZyBzb21ldGhpbmcpIGFuZCBJIGdldCB0aGUgCmZvbGxvd2luZyBmb3IgeW91
+ciBjb21tYW5kczoKCiQgc3VkbyByZG1zciAtcCAwIC14IDB4MTljCjg2MDAwMDAKJCBzdWRvIApy
+ZG1zciAtcCAxIC14IDB4MTljCjg2MzAwMDAKJCBzdWRvIHJkbXNyIC1wIDIgLXggMHgxOWMKODYz
+MDAwMAokIHN1ZG8gCnJkbXNyIC1wIDMgLXggMHgxOWMKODYwMDAwMAoKSG9wZSB0aGF0IGhlbHBz
+LgoKQ2hlZXJzLApEYXZlCgoKPi0tLS0KT3JpZ2luYWwgTWVzc2FnZS0tLS0KPkZyb206IGtoYWxp
+QGxpbnV4LWZyLm9yZwo+RGF0ZTogMTcvMDYvMjAxMSAyMDoyOSAKCj5UbzogPGV2ZXJ5dGhpbmdz
+ZnJlZUBsaW5lb25lLm5ldD4KPkNjOiA8Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20+LCAKPGxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc+Cj5TdWJqOiBSZTogW2xtLXNlbnNvcnNdIEdpZ2FieXRl
+IEdBLUQ1MjUgCmNvcmUgdGVtcHMgTi9BPwo+Cj5IaSBEYXZlLAo+Cj5PbiBGcmksIDE3IEp1biAy
+MDExIDE4OjMwOjUzICswMTAwIAooQlNUKSwgZXZlcnl0aGluZ3NmcmVlQGxpbmVvbmUubmV0IHdy
+b3RlOgo+PiBHdWVudGVyICYgSmVhbiwgdGhhbmtzIGZvciAKdGhlIGNvbnRpbnVlZCBoZWxwLgo+
+PiAKPj4gSSBnb3Qgc2xpZ2h0bHkgYm9nZ2VkIAo+PiBkb3duIHllc3RlcmRheSAKYXR0ZW1wdGlu
+ZyB0byB1cGdyYWRlIG15IGluc3RhbGwgLSBJIHRyaWVkICdhcHQtZ2V0IAo+PiB1cGRhdGUnIHdo
+aWNoIApkb3dubG9hZGVkIGEgZmV3IHRoaW5ncyBidXQgZGlkbid0IGZpeCB0aGUgcHJvYmxlbSBz
+byBJIAo+PiB0aGVuIHRyaWVkIAonYXB0LWdldCB1cGdyYWRlJyAoSSdtIG5vdCBzdXJlIG9uIHRo
+ZSBkaWZmZXJlbmNlIGJldHdlZW4gCj4+IHRoZSAKdHdvLi4uKSB3aGljaCBkb3dubG9hZGVkIGV2
+ZW4gbW9yZSBhbmQgdGhlbiBnb3QgaW50byB0cm91YmxlLCAKPj4gCmVuZGluZyB3aXRoIGEgc2Vn
+bWVudGF0aW9uIGZhdWx0ISAgSSByZWJvb3RlZCBhbmQgY29udGludWVkIGJ1dCBnb3QgCj4+IApt
+b3JlIGlzc3VlcyBhbmQgaGFkIHRvIHN0b3AgYXMgaXQgd2FzIGdldHRpbmcgbGF0ZS4KPj4gCj4+
+IEkndmUgc2luY2UgCnJlc3VtZWQgCj4+IGFuZCBtYW5hZ2VkIHRvIGdldCB3aGVyZSBJIGFtIG5v
+dyB3aXRoIHdoYXQgSSBob3BlIGlzIGEgCmZ1bGx5IHVwZ3JhZGVkIAo+PiBpbnN0YWxsIGJ1dCBJ
+IHN0aWxsIGdldCB0aGUgc2FtZSBjb21waWxlIGVycm9ycy4KPj4gCgo+PiBTbywgSSd2ZSBncmFi
+YmVkIAo+PiBKZWFuJ3MgZmlsZSBhbmQgZm9sbG93ZWQgR3VlbnRlcidzIGluc3RydWN0aW9ucyAK
+dG8gYnVpbGQgYW5kIGluc3RhbGwgCj4+IHRob3NlLCBhbGwgd2VudCB3ZWxsLiAgT24gcnVubmlu
+ZyAnc2Vuc29ycycgSSAKc3RpbGwgZ2V0ICdOL0EnIGZvciB0aGUgCj4+IGNvcmUgdGVtcHMgYnV0
+IGF0IGxlYXN0IEkgb25seSBnZXQgdHdvOgo+PiAKCj4+IGNvcmV0ZW1wLWlzYS0wMDAwCj4+IEFk
+YXB0ZXI6IElTQSAKPj4gYWRhcHRlcgo+PiBDb3JlIDA6ICAgICAgICAgICAKTi9BICAoaGlnaCA9
+ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+PiBDb3JlIDE6ICAgICAgICAgICBOL0EgICho
+aWdoIAo9ICs4MC4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQo+Cj5BY3R1YWxseSB0aGlzIHJlbWlu
+ZHMgbWUgb2Ygc2ltaWxhciAKaXNzdWVzIHRoYXQgd2VyZSByZXBvcnRlZCBiZWZvcmUgYW5kCj5u
+ZXZlciBzb2x2ZWQ6Cj5odHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xtLXNl
+bnNvcnMvMjAxMC1KYW51YXJ5LzAyNzcxNi5odG1sCj5odHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
+cmcvcGlwZXJtYWlsL2xtLXNlbnNvcnMvMjAxMC1TZXB0ZW1iZXIvMDI5NTAxLmh0bWwKPmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9waXBlcm1haWwvbG0tc2Vuc29ycy8yMDEwLU5vdmVtYmVy
+LzAzMDUyMS5odG1sCj4KPlRoZSBlcnJvcnMgbG9vayBzbGlnaHRseSBkaWZmZXJlbnQgYmVjYXVz
+ZSBvZiBvbGRlciB2ZXJzaW9ucyBvZgo+bG0tCnNlbnNvcnMsIGJ1dCB0aGUgcHJvYmxlbSBpcyB0
+aGUgc2FtZTogdGhlIE1TUl9JQTMyX1RIRVJNX1NUQVRVUwoKPnJlZ2lzdGVyIGZhaWxzIHRvIHJl
+dHVybiBhIHZhbGlkIHZhbHVlLgo+Cj5JdCB3b3VsZCBiZSBpbnRlcmVzdGluZyB0byAKY2hlY2sg
+ZnJvbSB1c2VyLXNwYWNlIGFuZCBzZWUgd2hhdCB0aGUgcmF3Cj5NU1IgcmVhZCByZXR1cm5zLiBZ
+b3UnbGwgCm5lZWQgdGhlIG1zciBrZXJuZWwgZHJpdmVyLCBhcyB3ZWxsIGFzIHRoZQo+bXNyLXRv
+b2xzIHBhY2thZ2UuCj4KPiMgCnJkbXNyIC1wIDAgLXggMHgxOWMKPiMgcmRtc3IgLXAgMSAteCAw
+eDE5Ywo+IyByZG1zciAtcCAyIC14IDB4MTljCj4jIApyZG1zciAtcCAzIC14IDB4MTljCj4KPi0t
+IAo+SmVhbiBEZWx2YXJlCj4KCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3JzCg==
