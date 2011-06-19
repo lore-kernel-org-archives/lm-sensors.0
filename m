@@ -1,39 +1,66 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 01 Jun 2011 18:03:32 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (coretemp) Fix TjMax detection
-Message-Id: <20110601180332.GA3695@ericsson.com>
+From: Vincent Pelletier <plr.vincent@gmail.com>
+Date: Sun, 19 Jun 2011 21:14:39 +0000
+Subject: [lm-sensors] IT8721F on Asus M5A88-V EVO
+Message-Id: <201106192314.40074.plr.vincent@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1306943446-6107-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1306943446-6107-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 01, 2011 at 12:57:15PM -0400, Jean Delvare wrote:
-> On Wed, 1 Jun 2011 08:50:46 -0700, Guenter Roeck wrote:
-> > Commit a321cedb12904114e2ba5041a3673ca24deb09c9 excludes CPU models 0xe, 0xf,
-> > 0x16, and 0x1a from TjMax temperature adjustment, even though several of those
-> > CPUs are known to have TiMax other than 100 degrees C, and even though the code
-> > in adjust_tjmax() explicitly handles those CPUs and points to a Web document
-> > listing several of the affected CPU IDs.
-> > 
-> > Reinstate original TjMax adjustment if TjMax can not be determined using the
-> > IA32_TEMPERATURE_TARGET register.
-> 
-> Tested on my 3 machines, looks alright.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-> > Note: This patch is a candidate for -stable [ .35 to .39]
-> 
-> Yes please.
-> 
-Applied, thanks. I'll create a separate patch for -stable once the patch is accepted
-into 3.0-rc, to avoid conflicts and unnecessary work for the -stable maintainers.
+Hi.
 
-Thanks,
-Guenter
+I bought a motherboard, which has an IT8721F on it, and as asked on the wiki I 
+report about it :) .
+
+$ sensors
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +29.4°C  (high = +70.0°C)
+                       (crit = +70.0°C, hyst = +65.0°C)
+
+it8721-isa-0290
+Adapter: ISA adapter
+in0:          +2.92 V  (min =  +1.82 V, max =  +0.17 V)  ALARM
+in1:          +2.89 V  (min =  +2.34 V, max =  +2.06 V)  ALARM
+in2:          +1.14 V  (min =  +2.10 V, max =  +2.68 V)  ALARM
++3.3V:        +3.29 V  (min =  +2.38 V, max =  +2.90 V)  ALARM
+in4:          +1.70 V  (min =  +2.82 V, max =  +1.31 V)  ALARM
+in5:          +2.63 V  (min =  +2.10 V, max =  +1.40 V)  ALARM
+in6:          +1.01 V  (min =  +1.99 V, max =  +1.25 V)  ALARM
+3VSB:         +4.27 V  (min =  +1.30 V, max =  +2.76 V)  ALARM
+Vbat:         +3.34 V  
+fan1:        2657 RPM  (min =   14 RPM)
+fan2:        1344 RPM  (min =   24 RPM)
+fan3:        1658 RPM  (min =   21 RPM)
+temp1:        +38.0°C  (low  =  -6.0°C, high = +82.0°C)  sensor = thermistor
+temp2:        +36.0°C  (low  = +126.0°C, high = +117.0°C)  sensor = thermistor
+temp3:       -128.0°C  (low  = +17.0°C, high = -15.0°C)  sensor = disabled
+
+Voltage:
+- obviously lacks scaling/offseting (indeed, it's not configured)
+- alarm levels are funny (max < min for most)
+- 3VSB is not 3V (scaling again ?)
+Fan speed:
+- seems correct, although I cannot easily check
+- alarm level lacks scaling (non-configuration again ?)
+- cannot be seen here, but pwm control works only for fan2 (chassis fan), both
+  in automatic and manual modes. Other fans (cpu & "power" fan, actually used
+  for chassis front fan) are at full speed constantly. Setting values and
+  reading them back returns what was set.
+Temperature:
+- Unsure about correctness at the moment: temp1 38° idle, 59° full load with
+  fan at constant full speed seems a bit too narrow (min to high, max too low,
+  not consistent with k10temp)...
+  Then again, I'm not used to that CPU yet (Phenom II 1100T), and I cannot
+  check actual temperature.
+  No idea for temp2 (motherboard): 36° idle, 38° on load (then again, it does
+  little as I don't use its integrated gpu).
+- Low/high values are funny (non-configuration obviously, but I'm curious
+  where those values come from...)
+
+-- 
+Vincent Pelletier
 
 _______________________________________________
 lm-sensors mailing list
