@@ -1,909 +1,453 @@
-From: Lucas Stach <dev@lynxeye.de>
-Date: Thu, 30 Jun 2011 23:44:23 +0000
-Subject: [lm-sensors] [RFC 1/2] add new hwmon core interface
-Message-Id: <1309477463.18912.27.camel@tellur>
+From: Alexander Stein <alexander.stein@systec-electronic.com>
+Date: Tue, 21 Jun 2011 09:52:33 +0000
+Subject: [lm-sensors] [PATCH] hwmon: LM95245 driver
+Message-Id: <1308649953-2774-1-git-send-email-alexander.stein@systec-electronic.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Alexander Stein <alexander.stein@systec-electronic.com>
 
-From 94262a505a888fdb04cb1f37ffb33e240a58484f Mon Sep 17 00:00:00 2001
-From: Lucas Stach <dev@lynxeye.de>
-Date: Fri, 1 Jul 2011 00:55:30 +0200
-Subject: [PATCH 1/2] hwmon: add hwmon-core interface
+An hwmon driver for the National Semiconductor LM95245 dual temperature
+sensors chip.
 
-This adds an interface to easily access attributes from hwmon drivers and
-a way to generically build sysfs entries for supported attributes.
+Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
 ---
- drivers/hwmon/hwmon-core.c |  656 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/hwmon-core.h |  211 ++++++++++++++
- 2 files changed, 867 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/hwmon-core.c
- create mode 100644 include/linux/hwmon-core.h
+ drivers/hwmon/Kconfig   |    9 +
+ drivers/hwmon/Makefile  |    1 +
+ drivers/hwmon/lm95245.c |  388 +++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 398 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/lm95245.c
 
-diff --git a/drivers/hwmon/hwmon-core.c b/drivers/hwmon/hwmon-core.c
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 16db83c..4c2400b 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -702,6 +702,15 @@ config SENSORS_LM95241
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm95241.
+ 
++config SENSORS_LM95245
++	tristate "National Semiconductor LM95245 sensor chip"
++	depends on I2C
++	help
++	  If you say yes here you get support for LM95245 sensor chip.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called lm95245.
++
+ config SENSORS_MAX1111
+ 	tristate "Maxim MAX1111 Multichannel, Serial 8-bit ADC chip"
+ 	depends on SPI_MASTER
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 28061cf..5598712 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -80,6 +80,7 @@ obj-$(CONFIG_SENSORS_LM90)	+= lm90.o
+ obj-$(CONFIG_SENSORS_LM92)	+= lm92.o
+ obj-$(CONFIG_SENSORS_LM93)	+= lm93.o
+ obj-$(CONFIG_SENSORS_LM95241)	+= lm95241.o
++obj-$(CONFIG_SENSORS_LM95245)	+= lm95245.o
+ obj-$(CONFIG_SENSORS_LTC4151)	+= ltc4151.o
+ obj-$(CONFIG_SENSORS_LTC4215)	+= ltc4215.o
+ obj-$(CONFIG_SENSORS_LTC4245)	+= ltc4245.o
+diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
 new file mode 100644
-index 0000000..eb39a45
+index 0000000..21a6215
 --- /dev/null
-+++ b/drivers/hwmon/hwmon-core.c
-@@ -0,0 +1,656 @@
++++ b/drivers/hwmon/lm95245.c
+@@ -0,0 +1,388 @@
 +/*
-+ * hwmon-core.c
-+ * Copyright (C) 2011 Lucas Stach
++ * Copyright (C) 2011 Alexander Stein <alexander.stein@systec-electronic.com>
 + *
-+ * hwmon-core interface implementation
++ * The LM95245 is a sensor chip made by National Semiconductors.
++ * It reports up to two temperatures (its own plus an external one).
++ * Complete datasheet can be obtained from National's website at:
++ *   http://www.national.com/ds.cgi/LM/LM95245.pdf
 + *
-+ * Provides functions to create/destroy a sysfs interface out of a
-+ * hwmon_device_instance.
++ * This driver is based on lm95241.c
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
 +#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
++#include <linux/init.h>
 +#include <linux/slab.h>
-+#include <linux/list.h>
-+#include <linux/hwmon-core.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
 +#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/sysfs.h>
 +
-+#define HWMON_NAME_SIZE 32
++#define DEVNAME "lm95245"
 +
-+struct hwmon_device_attribute {
-+	struct sensor_device_attribute sensor_dev;
-+	struct hwmon_device_instance *hw_dev_inst;
-+	char name[HWMON_NAME_SIZE];
-+	struct list_head node;
++static const unsigned short normal_i2c[] = {
++	0x18, 0x19, 0x4c, 0x4d, I2C_CLIENT_END };
++
++/* LM95245 registers */
++/* general registers */
++#define LM95245_REG_RW_CONFIG1		0x03
++#define LM95245_REG_RW_CONVERS_RATE	0x04
++#define LM95245_REG_W_ONE_SHOT		0x0F
++
++/* diode configuration */
++#define LM95245_REG_RW_CONFIG2		0xBF
++#define LM95245_REG_RW_REMOTE_OFFH	0x11
++#define LM95245_REG_RW_REMOTE_OFFL	0x12
++
++/* status registers */
++#define LM95245_REG_R_STATUS1		0x02
++#define LM95245_REG_R_STATUS2		0x33
++
++/* limit registers */
++#define LM95245_REG_RW_REMOTE_OS_LIMIT		0x07
++#define LM95245_REG_RW_LOCAL_OS_TCRIT_LIMIT	0x20
++#define LM95245_REG_RW_REMOTE_TCRIT_LIMIT	0x19
++#define LM95245_REG_RW_COMMON_HYSTERESIS	0x21
++
++/* temperature signed */
++#define LM95245_REG_R_LOCAL_TEMPH_S	0x00
++#define LM95245_REG_R_LOCAL_TEMPL_S	0x30
++#define LM95245_REG_R_REMOTE_TEMPH_S	0x01
++#define LM95245_REG_R_REMOTE_TEMPL_S	0x10
++/* temperature unsigned */
++#define LM95245_REG_R_REMOTE_TEMPH_U	0x31
++#define LM95245_REG_R_REMOTE_TEMPL_U	0x32
++
++/* id registers */
++#define LM95245_REG_R_MAN_ID		0xFE
++#define LM95245_REG_R_CHIP_ID		0xFF
++
++/* LM95245 specific bitfields */
++#define CFG_STOP		0x40
++#define CFG_REMOTE_TCRIT_MASK	0x10
++#define CFG_REMOTE_OS_MASK	0x08
++#define CFG_LOCAL_TCRIT_MASK	0x04
++#define CFG_LOCAL_OS_MASK	0x02
++
++#define CFG2_OS_A0		0x40
++#define CFG2_DIODE_FAULT_OS	0x20
++#define CFG2_DIODE_FAULT_TCRIT	0x10
++#define CFG2_REMOTE_TT		0x08
++#define CFG2_REMOTE_FILTER_DIS	0x00
++#define CFG2_REMOTE_FILTER_EN	0x06
++
++/* conversation rate in ms */
++#define RATE_CR0063 0x00
++#define RATE_CR0364 0x01
++#define RATE_CR1000 0x02
++#define RATE_CR2500 0x03
++
++#define MANUFACTURER_ID 0x01
++#define DEFAULT_REVISION 0xB3
++
++static const u8 lm95245_reg_address[] = {
++	LM95245_REG_R_LOCAL_TEMPH_S,
++	LM95245_REG_R_LOCAL_TEMPL_S,
++	LM95245_REG_R_REMOTE_TEMPH_S,
++	LM95245_REG_R_REMOTE_TEMPL_S,
++	LM95245_REG_R_REMOTE_TEMPH_U,
++	LM95245_REG_R_REMOTE_TEMPL_U
 +};
 +
-+#define to_hwmon_device_attr(_sensor_attr) \
-+	container_of(_sensor_attr, struct hwmon_device_attribute, sensor_dev)
++/* Client data (each client gets its own) */
++struct lm95245_data {
++	struct device *hwmon_dev;
++	struct mutex update_lock;
++	unsigned long last_updated, interval;	/* in jiffies */
++	char valid;		/* zero until following fields are valid */
++	/* registers values */
++	u8 temp[ARRAY_SIZE(lm95245_reg_address)];
++	u8 config1, config2, rate;
++};
 +
-+#define HWMON_GET_TEXT_ACCESSOR(_name, _enum) \
-+	static ssize_t _name(struct device *dev, \
-+		struct device_attribute *devattr, char *buf) \
-+	{ \
-+		struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
-+		struct hwmon_device_attribute *hw_attr = to_hwmon_device_attr(attr); \
-+		struct hwmon_device_instance *hw_dev = hw_attr->hw_dev_inst; \
-+		return hw_dev->get_text_attr(hw_dev->inst_data, \
-+			_enum, attr->index, buf); \
-+	}
-+
-+#define HWMON_GET_NUM_ACCESSOR(_name, _enum) \
-+	static ssize_t _name(struct device *dev, \
-+		struct device_attribute *devattr, char *buf) \
-+	{ \
-+		struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
-+		struct hwmon_device_attribute *hw_attr = to_hwmon_device_attr(attr); \
-+		struct hwmon_device_instance *hw_dev = hw_attr->hw_dev_inst; \
-+		int value, ret; \
-+		ret = hw_dev->get_numeric_attr(hw_dev->inst_data, \
-+				_enum, attr->index, &value); \
-+		if(ret) \
-+			return ret; \
-+		ret = snprintf(buf, PAGE_SIZE, "%u\n", value); \
-+		return ret; \
-+	}
-+
-+#define HWMON_SET_NUM_ACCESSOR(_name, _enum) \
-+	static ssize_t _name(struct device *dev, \
-+		struct device_attribute *devattr, const char *buf, size_t count) \
-+	{ \
-+		struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr); \
-+		struct hwmon_device_attribute *hw_attr = to_hwmon_device_attr(attr); \
-+		struct hwmon_device_instance *hw_dev = hw_attr->hw_dev_inst; \
-+		long value; \
-+		if(strict_strtol(buf, 10, &value)) \
-+			return -EINVAL; \
-+		hw_dev->set_numeric_attr(hw_dev->inst_data, \
-+			_enum, attr->index, value); \
-+		return count; \
-+	}
-+
-+/* accessor functions to route sysfs to hwmon core api */
-+
-+HWMON_GET_TEXT_ACCESSOR(show_name, hwmon_attr_name)
-+HWMON_GET_NUM_ACCESSOR(show_update_interval, hwmon_attr_update_interval)
-+
-+HWMON_GET_NUM_ACCESSOR(show_in_min, hwmon_attr_volt_min)
-+HWMON_SET_NUM_ACCESSOR(set_in_min, hwmon_attr_volt_min)
-+HWMON_GET_NUM_ACCESSOR(show_in_lcrit, hwmon_attr_volt_lcrit)
-+HWMON_SET_NUM_ACCESSOR(set_in_lcrit, hwmon_attr_volt_lcrit)
-+HWMON_GET_NUM_ACCESSOR(show_in_max, hwmon_attr_volt_max)
-+HWMON_SET_NUM_ACCESSOR(set_in_max, hwmon_attr_volt_max)
-+HWMON_GET_NUM_ACCESSOR(show_in_crit, hwmon_attr_volt_crit)
-+HWMON_SET_NUM_ACCESSOR(set_in_crit, hwmon_attr_volt_crit)
-+HWMON_GET_NUM_ACCESSOR(show_in_vid, hwmon_attr_volt_vid)
-+HWMON_GET_TEXT_ACCESSOR(show_in_label, hwmon_attr_volt_label)
-+HWMON_GET_NUM_ACCESSOR(show_in_input, hwmon_attr_volt_input)
-+HWMON_GET_NUM_ACCESSOR(show_in_vrm, hwmon_attr_volt_vrm)
-+
-+HWMON_GET_NUM_ACCESSOR(show_fan_min, hwmon_attr_fan_min)
-+HWMON_SET_NUM_ACCESSOR(set_fan_min, hwmon_attr_fan_min)
-+HWMON_GET_NUM_ACCESSOR(show_fan_max, hwmon_attr_fan_max)
-+HWMON_SET_NUM_ACCESSOR(set_fan_max, hwmon_attr_fan_max)
-+HWMON_GET_NUM_ACCESSOR(show_fan_div, hwmon_attr_fan_div)
-+HWMON_SET_NUM_ACCESSOR(set_fan_div, hwmon_attr_fan_div)
-+HWMON_GET_NUM_ACCESSOR(show_fan_pulses, hwmon_attr_fan_pulses)
-+HWMON_SET_NUM_ACCESSOR(set_fan_pulses, hwmon_attr_fan_pulses)
-+HWMON_GET_NUM_ACCESSOR(show_fan_target, hwmon_attr_fan_target)
-+HWMON_SET_NUM_ACCESSOR(set_fan_target, hwmon_attr_fan_target)
-+HWMON_GET_TEXT_ACCESSOR(show_fan_label, hwmon_attr_fan_label)
-+HWMON_GET_NUM_ACCESSOR(show_fan_input, hwmon_attr_fan_input)
-+
-+HWMON_GET_NUM_ACCESSOR(show_pwm, hwmon_attr_pwm)
-+HWMON_SET_NUM_ACCESSOR(set_pwm, hwmon_attr_pwm)
-+HWMON_GET_NUM_ACCESSOR(show_pwm_enable, hwmon_attr_pwm_enable)
-+HWMON_SET_NUM_ACCESSOR(set_pwm_enable, hwmon_attr_pwm_enable)
-+HWMON_GET_NUM_ACCESSOR(show_pwm_mode, hwmon_attr_pwm_mode)
-+HWMON_SET_NUM_ACCESSOR(set_pwm_mode, hwmon_attr_pwm_mode)
-+HWMON_GET_NUM_ACCESSOR(show_pwm_freq, hwmon_attr_pwm_freq)
-+HWMON_SET_NUM_ACCESSOR(set_pwm_freq, hwmon_attr_pwm_freq)
-+HWMON_GET_NUM_ACCESSOR(show_pwm_auto_ct, hwmon_attr_pwm_auto_channels_temp)
-+HWMON_SET_NUM_ACCESSOR(set_pwm_auto_ct, hwmon_attr_pwm_auto_channels_temp)
-+
-+HWMON_GET_NUM_ACCESSOR(show_temp_input, hwmon_attr_temp_input)
-+HWMON_GET_NUM_ACCESSOR(show_temp_type, hwmon_attr_temp_type)
-+HWMON_SET_NUM_ACCESSOR(set_temp_type, hwmon_attr_temp_type)
-+HWMON_GET_NUM_ACCESSOR(show_temp_max, hwmon_attr_temp_max)
-+HWMON_SET_NUM_ACCESSOR(set_temp_max, hwmon_attr_temp_max)
-+HWMON_GET_NUM_ACCESSOR(show_temp_min, hwmon_attr_temp_min)
-+HWMON_SET_NUM_ACCESSOR(set_temp_min, hwmon_attr_temp_min)
-+HWMON_GET_NUM_ACCESSOR(show_temp_max_hyst, hwmon_attr_temp_max_hyst)
-+HWMON_SET_NUM_ACCESSOR(set_temp_max_hyst, hwmon_attr_temp_max_hyst)
-+HWMON_GET_NUM_ACCESSOR(show_temp_crit, hwmon_attr_temp_crit)
-+HWMON_SET_NUM_ACCESSOR(set_temp_crit, hwmon_attr_temp_crit)
-+HWMON_GET_NUM_ACCESSOR(show_temp_crit_hyst, hwmon_attr_temp_crit_hyst)
-+HWMON_SET_NUM_ACCESSOR(set_temp_crit_hyst, hwmon_attr_temp_crit_hyst)
-+HWMON_GET_NUM_ACCESSOR(show_temp_emergency, hwmon_attr_temp_emergency)
-+HWMON_SET_NUM_ACCESSOR(set_temp_emergency, hwmon_attr_temp_emergency)
-+HWMON_GET_NUM_ACCESSOR(show_temp_emergency_hyst, hwmon_attr_temp_emergency_hyst)
-+HWMON_SET_NUM_ACCESSOR(set_temp_emergency_hyst, hwmon_attr_temp_emergency_hyst)
-+HWMON_GET_NUM_ACCESSOR(show_temp_lcrit, hwmon_attr_temp_lcrit)
-+HWMON_SET_NUM_ACCESSOR(set_temp_lcrit, hwmon_attr_temp_lcrit)
-+HWMON_GET_NUM_ACCESSOR(show_temp_offset, hwmon_attr_temp_offset)
-+HWMON_SET_NUM_ACCESSOR(set_temp_offset, hwmon_attr_temp_offset)
-+HWMON_GET_TEXT_ACCESSOR(show_temp_label, hwmon_attr_temp_label)
-+HWMON_GET_NUM_ACCESSOR(show_temp_lowest, hwmon_attr_temp_lowest)
-+HWMON_GET_NUM_ACCESSOR(show_temp_highest, hwmon_attr_temp_highest)
-+HWMON_SET_NUM_ACCESSOR(set_temp_reset_hist, hwmon_attr_temp_reset_history)
-+HWMON_SET_NUM_ACCESSOR(set_temp_reset_hist_glob,
-+		hwmon_attr_temp_reset_history_glob)
-+
-+HWMON_GET_NUM_ACCESSOR(show_curr_max, hwmon_attr_curr_max)
-+HWMON_SET_NUM_ACCESSOR(set_curr_max, hwmon_attr_curr_max)
-+HWMON_GET_NUM_ACCESSOR(show_curr_min, hwmon_attr_curr_min)
-+HWMON_SET_NUM_ACCESSOR(set_curr_min, hwmon_attr_curr_min)
-+HWMON_GET_NUM_ACCESSOR(show_curr_lcrit, hwmon_attr_curr_lcrit)
-+HWMON_SET_NUM_ACCESSOR(set_curr_lcrit, hwmon_attr_curr_lcrit)
-+HWMON_GET_NUM_ACCESSOR(show_curr_crit, hwmon_attr_curr_crit)
-+HWMON_SET_NUM_ACCESSOR(set_curr_crit, hwmon_attr_curr_crit)
-+HWMON_GET_NUM_ACCESSOR(show_curr_input, hwmon_attr_curr_input)
-+
-+HWMON_GET_NUM_ACCESSOR(show_pow_average, hwmon_attr_pow_average)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_int, hwmon_attr_pow_average_interval)
-+HWMON_SET_NUM_ACCESSOR(set_pow_average_int, hwmon_attr_pow_average_interval)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_int_max,
-+		hwmon_attr_pow_average_interval_max)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_int_min,
-+		hwmon_attr_pow_average_interval_min)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_highest,
-+		hwmon_attr_pow_average_highest)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_lowest,
-+		hwmon_attr_pow_average_lowest)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_max, hwmon_attr_pow_average_max)
-+HWMON_SET_NUM_ACCESSOR(set_pow_average_max, hwmon_attr_pow_average_max)
-+HWMON_GET_NUM_ACCESSOR(show_pow_average_min, hwmon_attr_pow_average_min)
-+HWMON_SET_NUM_ACCESSOR(set_pow_average_min, hwmon_attr_pow_average_min)
-+HWMON_GET_NUM_ACCESSOR(show_pow_input, hwmon_attr_pow_input)
-+HWMON_GET_NUM_ACCESSOR(show_pow_input_highest, hwmon_attr_pow_input_highest)
-+HWMON_GET_NUM_ACCESSOR(show_pow_input_lowest, hwmon_attr_pow_input_lowest)
-+HWMON_SET_NUM_ACCESSOR(set_pow_reset_history, hwmon_attr_pow_reset_history)
-+HWMON_GET_NUM_ACCESSOR(show_pow_accuracy, hwmon_attr_pow_accuracy)
-+HWMON_GET_NUM_ACCESSOR(show_pow_cap, hwmon_attr_pow_cap)
-+HWMON_SET_NUM_ACCESSOR(set_pow_cap, hwmon_attr_pow_cap)
-+HWMON_GET_NUM_ACCESSOR(show_pow_cap_hyst, hwmon_attr_pow_cap_hyst)
-+HWMON_SET_NUM_ACCESSOR(set_pow_cap_hyst, hwmon_attr_pow_cap_hyst)
-+HWMON_GET_NUM_ACCESSOR(show_pow_cap_max, hwmon_attr_pow_cap_max)
-+HWMON_GET_NUM_ACCESSOR(show_pow_cap_min, hwmon_attr_pow_cap_min)
-+HWMON_GET_NUM_ACCESSOR(show_pow_max, hwmon_attr_pow_max)
-+HWMON_SET_NUM_ACCESSOR(set_pow_max, hwmon_attr_pow_max)
-+HWMON_GET_NUM_ACCESSOR(show_pow_crit, hwmon_attr_pow_crit)
-+HWMON_SET_NUM_ACCESSOR(set_pow_crit, hwmon_attr_pow_crit)
-+
-+HWMON_GET_NUM_ACCESSOR(show_energy_input, hwmon_attr_ener_input)
-+
-+HWMON_GET_NUM_ACCESSOR(show_humidity_input, hwmon_attr_humi_input)
-+
-+/* functions to build/destroy sysfs entries from given hwmon caps */
-+
-+static int new_sysfs_entry(const char *name, mode_t mode,
-+		ssize_t (*show)(struct device *, struct device_attribute *, char *),
-+		ssize_t (*store)(struct device *, struct device_attribute *,
-+				const char *, size_t),
-+		int index, struct list_head *list, struct device *dev)
++/* Conversions */
++static int TempFromRegUnsigned(u8 val_h, u8 val_l)
 +{
-+	struct hwmon_device_attribute *hw_dev_attr;
-+	int ret = 0;
++	return val_h * 1000 + val_l * 1000 / 256;
++}
 +
-+	hw_dev_attr = kzalloc(sizeof(struct hwmon_device_attribute), GFP_KERNEL);
-+	if(!hw_dev_attr)
-+		return -ENOMEM;
++static int TempFromRegSigned(u8 val_h, u8 val_l)
++{
++	if (val_h & 0x80)
++		return val_h - 0x100;
++	return TempFromRegUnsigned(val_h, val_l);
++}
 +
-+	strlcpy(hw_dev_attr->name, name, 32);
++static struct lm95245_data *lm95245_update_device(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm95245_data *data = i2c_get_clientdata(client);
 +
-+	hw_dev_attr->sensor_dev.dev_attr.attr.name = hw_dev_attr->name;
-+	hw_dev_attr->sensor_dev.dev_attr.attr.mode = mode;
-+	hw_dev_attr->sensor_dev.dev_attr.show = show;
-+	hw_dev_attr->sensor_dev.dev_attr.store = store;
-+	hw_dev_attr->sensor_dev.index = index;
-+	hw_dev_attr->hw_dev_inst = dev_get_drvdata(dev);
-+	sysfs_attr_init(&hw_dev_attr->sensor_dev.dev_attr.attr);
++	mutex_lock(&data->update_lock);
 +
-+	ret = device_create_file(dev->parent, &hw_dev_attr->sensor_dev.dev_attr);
-+	if(ret) {
-+		kfree(hw_dev_attr);
-+		return ret;
++	if (time_after(jiffies, data->last_updated + data->interval) ||
++	    !data->valid) {
++		int i;
++
++		dev_dbg(&client->dev, "Updating lm95245 data.\n");
++		for (i = 0; i < ARRAY_SIZE(lm95245_reg_address); i++)
++			data->temp[i]
++			  = i2c_smbus_read_byte_data(client,
++						     lm95245_reg_address[i]);
++		data->last_updated = jiffies;
++		data->valid = 1;
 +	}
 +
-+	list_add(&hw_dev_attr->node, list);
++	mutex_unlock(&data->update_lock);
 +
++	return data;
++}
++
++/* Sysfs stuff */
++static ssize_t show_input(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	struct lm95245_data *data = lm95245_update_device(dev);
++	int temp;
++	int index = to_sensor_dev_attr(attr)->index;
++
++	/*
++	 * Index 0 (Local temp) is always signed
++	 * Index 2 (Remote temp) has both signed and unsigned data
++	 * use signed calculation for remote if signed bit is set
++	 */
++	if (index = 0 || data->temp[index] & 0x80)
++		temp = TempFromRegSigned(data->temp[index],
++			    data->temp[index + 1]);
++	else
++		temp = TempFromRegUnsigned(data->temp[index + 2],
++			    data->temp[index + 3]);
++
++	return snprintf(buf, PAGE_SIZE - 1, "%d\n", temp);
++}
++
++static ssize_t show_type(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm95245_data *data = i2c_get_clientdata(client);
++
++	return snprintf(buf, PAGE_SIZE - 1,
++		data->config2 & CFG2_REMOTE_TT ? "1\n" : "2\n");
++}
++
++static ssize_t set_type(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm95245_data *data = i2c_get_clientdata(client);
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
++	if (val != 1 && val != 2)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++
++	if (val = 1)
++		data->config2 |= CFG2_REMOTE_TT;
++	else
++		data->config2 &= ~CFG2_REMOTE_TT;
++
++	data->valid = 0;
++
++	i2c_smbus_write_byte_data(client, LM95245_REG_RW_CONFIG2,
++				  data->config2);
++
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static ssize_t show_interval(struct device *dev, struct device_attribute *attr,
++			     char *buf)
++{
++	struct lm95245_data *data = lm95245_update_device(dev);
++
++	return snprintf(buf, PAGE_SIZE - 1, "%lu\n", 1000 * data->interval
++			/ HZ);
++}
++
++static ssize_t set_interval(struct device *dev, struct device_attribute *attr,
++			    const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm95245_data *data = i2c_get_clientdata(client);
++	unsigned long val;
++
++	if (strict_strtoul(buf, 10, &val) < 0)
++		return -EINVAL;
++
++	data->interval = val * HZ / 1000;
++
++	return count;
++}
++
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_input, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_input, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp2_type, S_IWUSR | S_IRUGO, show_type,
++		set_type, 0);
++static DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO, show_interval,
++		set_interval);
++
++static struct attribute *lm95245_attributes[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_type.dev_attr.attr,
++	&dev_attr_update_interval.attr,
++	NULL
++};
++
++static const struct attribute_group lm95245_group = {
++	.attrs = lm95245_attributes,
++};
++
++/* Return 0 if detection is successful, -ENODEV otherwise */
++static int lm95245_detect(struct i2c_client *new_client,
++			  struct i2c_board_info *info)
++{
++	struct i2c_adapter *adapter = new_client->adapter;
++	int address = new_client->addr;
++	const char *name;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	if ((i2c_smbus_read_byte_data(new_client, LM95245_REG_R_MAN_ID)
++	     = MANUFACTURER_ID)
++	    && (i2c_smbus_read_byte_data(new_client, LM95245_REG_R_CHIP_ID)
++		>= DEFAULT_REVISION)) {
++		name = DEVNAME;
++	} else {
++		dev_dbg(&adapter->dev, "LM95245 detection failed at 0x%02x\n",
++			address);
++		return -ENODEV;
++	}
++
++	/* Fill the i2c board info */
++	strlcpy(info->type, name, I2C_NAME_SIZE);
 +	return 0;
 +}
 +
-+int hwmon_create_sysfs(struct device *dev)
++static void lm95245_init_client(struct i2c_client *client)
 +{
-+	struct hwmon_device_instance *hw_dev = dev_get_drvdata(dev);
-+	struct hwmon_device_caps *caps = &hw_dev->caps;
-+	char attr_name[HWMON_NAME_SIZE];
-+	int i;
++	struct lm95245_data *data = i2c_get_clientdata(client);
 +
-+	INIT_LIST_HEAD(&hw_dev->sysfs_node);
++	data->interval = HZ;	/* 1 sec default */
++	data->valid = 0;
++	data->config1 = 0;
++	data->config2 = CFG2_DIODE_FAULT_TCRIT | CFG2_REMOTE_TT | CFG2_REMOTE_FILTER_EN;
++	data->rate = RATE_CR0063;
 +
-+	new_sysfs_entry("name", S_IRUGO, &show_name, NULL, 0,
-+			&hw_dev->sysfs_node, dev);
-+	new_sysfs_entry("update_interval", S_IRUGO, &show_update_interval, NULL, 0,
-+			&hw_dev->sysfs_node, dev);
++	i2c_smbus_write_byte_data(client, LM95245_REG_RW_CONFIG1, data->config1);
++	i2c_smbus_write_byte_data(client, LM95245_REG_RW_CONFIG2, data->config2);
++	i2c_smbus_write_byte_data(client, LM95245_REG_RW_CONVERS_RATE, data->rate);
++}
 +
-+	/* voltage sysfs entries */
-+	for(i = 1; i <= caps->num_voltage; i++) {
-+		if(caps->volt_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "in%u_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_in_min,
-+					&set_in_min, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->volt_lcrit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "in%u_lcrit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_in_lcrit,
-+					&set_in_lcrit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->volt_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "in%u_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_in_max,
-+					&set_in_max, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->volt_crit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "in%u_crit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_in_crit,
-+					&set_in_crit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->volt_vid) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "cpu%u_vid", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_in_vid,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->volt_label) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "in%u_label", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_in_label,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		snprintf(attr_name, HWMON_NAME_SIZE, "in%u_input", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO, &show_in_input,
-+				NULL, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+	}
-+	if(caps->num_voltage && caps->volt_vrm) {
-+		if(new_sysfs_entry("in_vrm", S_IRUGO, &show_in_vrm,
-+				NULL, 0, &hw_dev->sysfs_node, dev))
-+			goto fail;
++static int lm95245_probe(struct i2c_client *new_client,
++			 const struct i2c_device_id *id)
++{
++	struct lm95245_data *data;
++	int err;
++
++	data = kzalloc(sizeof(struct lm95245_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit;
 +	}
 +
-+	/* fan sysfs entries */
-+	for(i = 1; i <= caps->num_fan; i++) {
-+		if(caps->fan_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_fan_min,
-+					&set_fan_min, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->fan_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_fan_max,
-+					&set_fan_max, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->fan_div) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_div", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_fan_div,
-+					&set_fan_div, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->fan_pulses) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_pulses", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_fan_pulses,
-+					&set_fan_pulses, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->fan_target) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_target", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_fan_target,
-+					&set_fan_target, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->fan_label) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_label", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_fan_label,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		snprintf(attr_name, HWMON_NAME_SIZE, "fan%u_input", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO, &show_fan_input,
-+				NULL, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+	}
++	i2c_set_clientdata(new_client, data);
++	mutex_init(&data->update_lock);
 +
-+	/* pwm sysfs entries */
-+	for(i = 1; i <= caps->num_pwm; i++) {
-+		snprintf(attr_name, HWMON_NAME_SIZE, "pwm%u", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pwm,
-+				&set_pwm, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+		snprintf(attr_name, HWMON_NAME_SIZE, "pwm%u_enable", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pwm_enable,
-+				&set_pwm_enable, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+		snprintf(attr_name, HWMON_NAME_SIZE, "pwm%u_mode", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pwm_mode,
-+				&set_pwm_mode, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+		if(caps->pwm_freq) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "pwm%u_freq", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pwm_freq,
-+					&set_pwm_freq, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pwm_auto_channels_temp) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "pwm%u_auto_channels_temp", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pwm_auto_ct,
-+					&set_pwm_auto_ct, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+	}
++	/* Initialize the LM95245 chip */
++	lm95245_init_client(new_client);
 +
-+	/* temp sysfs entries */
-+	for(i = 1; i <= caps->num_temp; i++) {
-+		snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_input", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO, &show_temp_input,
-+				NULL, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+		if(caps->temp_type) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_type", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_type,
-+					&set_temp_type, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_max,
-+					&set_temp_max, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_min,
-+					&set_temp_min, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_max_hyst) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_max_hyst", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_max_hyst,
-+					&set_temp_max_hyst, i, &hw_dev->sysfs_node, dev))
-+					goto fail;
-+		}
-+		if(caps->temp_crit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_crit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_crit,
-+					&set_temp_crit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_crit_hyst) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_crit_hyst", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO,
-+					&show_temp_crit_hyst, &set_temp_crit_hyst, i,
-+					&hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_emergency) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_emergency", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO,
-+					&show_temp_emergency, &set_temp_emergency, i,
-+					&hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_emergency_hyst) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_emergency_hyst", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO,
-+					&show_temp_emergency_hyst, &set_temp_emergency_hyst, i,
-+					&hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_lcrit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_lcrit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_lcrit,
-+					&set_temp_lcrit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_offset) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_offset", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_temp_offset,
-+					&set_temp_offset, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_label) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_label", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_temp_label,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_lowest) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_lowest", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_temp_lowest,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_highest) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_highest", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_temp_highest,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->temp_reset_history) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "temp%u_reset_history", i);
-+			if(new_sysfs_entry(attr_name, S_IWUGO, NULL,
-+					&set_temp_reset_hist, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+	}
-+	if(caps->num_temp && caps->temp_reset_history) {
-+		if(new_sysfs_entry("temp_reset_history", S_IWUGO, NULL,
-+				&set_temp_reset_hist_glob, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+	}
++	/* Register sysfs hooks */
++	err = sysfs_create_group(&new_client->dev.kobj, &lm95245_group);
++	if (err)
++		goto exit_free;
 +
-+	/* current sysfs entries */
-+	for(i = 1; i <= caps->num_current; i++) {
-+		if(caps->curr_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "curr%u_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_curr_max,
-+					&set_curr_max, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->curr_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "curr%u_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_curr_min,
-+					&set_curr_min, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->curr_lcrit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "curr%u_lcrit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_curr_lcrit,
-+					&set_curr_lcrit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->curr_crit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "curr%u_crit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_curr_crit,
-+					&set_curr_crit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		snprintf(attr_name, HWMON_NAME_SIZE, "curr%u_input", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO, &show_curr_input,
-+				NULL, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+	}
-+
-+	/* power sysfs entries */
-+	for(i = 1; i <= caps->num_power; i++) {
-+		snprintf(attr_name, HWMON_NAME_SIZE, "power%u_input", i);
-+		if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_input,
-+				NULL, i, &hw_dev->sysfs_node, dev))
-+			goto fail;
-+		if(caps->pow_average) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_average", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_average,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_interval) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_average_interval", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO,
-+					&show_pow_average_int, &set_pow_average_int, i,
-+					&hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_interval_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE,
-+					"power%u_average_interval_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_average_int_max,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_interval_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE,
-+					"power%u_average_interval_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_average_int_min,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_highest) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_average_highest", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_average_highest,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_lowest) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_average_lowest", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_average_lowest,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_average_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO,
-+					&show_pow_average_max, &set_pow_average_max, i,
-+					&hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_average_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_average_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO,
-+					&show_pow_average_min, &set_pow_average_min, i,
-+					&hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_input_highest) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_input_highest", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_input_highest,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_input_lowest) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_input_lowest", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_input_lowest,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_reset_history) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_reset_history", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, NULL,
-+					&set_pow_reset_history, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_accuracy) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_accuracy", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_accuracy,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_cap) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_cap", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pow_cap,
-+					&set_pow_cap, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_cap_hyst) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_cap_hyst", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pow_cap_hyst,
-+					&set_pow_cap_hyst, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_cap_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_cap_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_cap_max,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_cap_min) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_cap_min", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_pow_cap_min,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_max) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_max", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pow_max,
-+					&set_pow_max, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+		if(caps->pow_crit) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "power%u_crit", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO|S_IWUGO, &show_pow_crit,
-+					&set_pow_crit, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+
-+		/* energy sysfs entries */
-+		for(i = 1; i <= caps->num_energy; i++) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "energy%u_input", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_energy_input,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
-+
-+		/* humidity sysfs entries */
-+		for(i = 1; i <= caps->num_humidity; i++) {
-+			snprintf(attr_name, HWMON_NAME_SIZE, "humidity%u_input", i);
-+			if(new_sysfs_entry(attr_name, S_IRUGO, &show_humidity_input,
-+					NULL, i, &hw_dev->sysfs_node, dev))
-+				goto fail;
-+		}
++	data->hwmon_dev = hwmon_device_register(&new_client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove_files;
 +	}
 +
 +	return 0;
 +
-+fail:
-+	hwmon_destroy_sysfs(dev);
-+	return -EAGAIN;
++exit_remove_files:
++	sysfs_remove_group(&new_client->dev.kobj, &lm95245_group);
++exit_free:
++	kfree(data);
++exit:
++	return err;
 +}
 +
-+void hwmon_destroy_sysfs(struct device *dev)
++static int lm95245_remove(struct i2c_client *client)
 +{
-+	struct hwmon_device_instance *hw_dev = dev_get_drvdata(dev);
-+	struct hwmon_device_attribute *hw_dev_attr, *tmp;
++	struct lm95245_data *data = i2c_get_clientdata(client);
 +
-+	list_for_each_entry_safe(hw_dev_attr, tmp, &hw_dev->sysfs_node, node) {
-+		device_remove_file(dev, &hw_dev_attr->sensor_dev.dev_attr);
-+		list_del(&hw_dev_attr->node);
-+		kfree(hw_dev_attr);
-+	}
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &lm95245_group);
++
++	kfree(data);
++	return 0;
 +}
 +
-+EXPORT_SYMBOL_GPL(hwmon_create_sysfs);
-+EXPORT_SYMBOL_GPL(hwmon_destroy_sysfs);
++/* Driver data (common to all clients) */
++static const struct i2c_device_id lm95245_id[] = {
++	{ DEVNAME, 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, lm95245_id);
 +
-+MODULE_AUTHOR("Lucas Stach <dev@lynxeye.de>");
-+MODULE_DESCRIPTION("hardware monitoring core api support");
++static struct i2c_driver lm95245_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= DEVNAME,
++	},
++	.probe		= lm95245_probe,
++	.remove		= lm95245_remove,
++	.id_table	= lm95245_id,
++	.detect		= lm95245_detect,
++	.address_list	= normal_i2c,
++};
++
++static int __init sensors_lm95245_init(void)
++{
++	return i2c_add_driver(&lm95245_driver);
++}
++
++static void __exit sensors_lm95245_exit(void)
++{
++	i2c_del_driver(&lm95245_driver);
++}
++
++MODULE_AUTHOR("Alexander Stein <alexander.stein@systec-electronic.com>");
++MODULE_DESCRIPTION("LM95245 sensor driver");
 +MODULE_LICENSE("GPL");
-diff --git a/include/linux/hwmon-core.h b/include/linux/hwmon-core.h
-new file mode 100644
-index 0000000..270ad67
---- /dev/null
-+++ b/include/linux/hwmon-core.h
-@@ -0,0 +1,211 @@
-+/**
-+ * hwmon-core.h
-+ * Copyright (C) 2011 Lucas Stach
-+ *
-+ * hwmon-core interface definitions
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
 +
-+#ifndef HWMON_CORE_H_
-+#define HWMON_CORE_H_
-+
-+struct hwmon_device;
-+
-+int hwmon_create_sysfs(struct device *dev);
-+
-+void hwmon_destroy_sysfs(struct device *dev);
-+
-+enum hwmon_numeric_attr {
-+	hwmon_attr_volt_min,
-+	hwmon_attr_volt_lcrit,
-+	hwmon_attr_volt_max,
-+	hwmon_attr_volt_crit,
-+	hwmon_attr_volt_input,
-+	hwmon_attr_volt_vid,
-+	hwmon_attr_volt_vrm,
-+
-+	hwmon_attr_fan_min,
-+	hwmon_attr_fan_max,
-+	hwmon_attr_fan_input,
-+	hwmon_attr_fan_div,
-+	hwmon_attr_fan_pulses,
-+	hwmon_attr_fan_target,
-+
-+	hwmon_attr_pwm,
-+	hwmon_attr_pwm_enable,
-+	hwmon_attr_pwm_mode,
-+	hwmon_attr_pwm_freq,
-+	hwmon_attr_pwm_auto_channels_temp,
-+	hwmon_attr_pwm_auto_point_pwm,
-+	hwmon_attr_pwm_auto_point_temp,
-+	hwmon_attr_pwm_auto_point_temp_hyst,
-+
-+	hwmon_attr_temp_type,
-+	hwmon_attr_temp_max,
-+	hwmon_attr_temp_max_hyst,
-+	hwmon_attr_temp_min,
-+	hwmon_attr_temp_input,
-+	hwmon_attr_temp_crit,
-+	hwmon_attr_temp_crit_hyst,
-+	hwmon_attr_temp_emergency,
-+	hwmon_attr_temp_emergency_hyst,
-+	hwmon_attr_temp_lcrit,
-+	hwmon_attr_temp_offset,
-+	hwmon_attr_temp_lowest,
-+	hwmon_attr_temp_highest,
-+	hwmon_attr_temp_reset_history,
-+	hwmon_attr_temp_reset_history_glob,
-+	hwmon_attr_temp_auto_point_pwm,
-+	hwmon_attr_temp_auto_point_temp,
-+	hwmon_attr_temp_auto_point_hyst,
-+
-+	hwmon_attr_curr_max,
-+	hwmon_attr_curr_min,
-+	hwmon_attr_curr_lcrit,
-+	hwmon_attr_curr_crit,
-+	hwmon_attr_curr_input,
-+
-+	hwmon_attr_pow_average,
-+	hwmon_attr_pow_average_interval,
-+	hwmon_attr_pow_average_interval_max,
-+	hwmon_attr_pow_average_interval_min,
-+	hwmon_attr_pow_average_highest,
-+	hwmon_attr_pow_average_lowest,
-+	hwmon_attr_pow_average_max,
-+	hwmon_attr_pow_average_min,
-+	hwmon_attr_pow_input,
-+	hwmon_attr_pow_input_highest,
-+	hwmon_attr_pow_input_lowest,
-+	hwmon_attr_pow_reset_history,
-+	hwmon_attr_pow_accuracy,
-+	hwmon_attr_pow_cap,
-+	hwmon_attr_pow_cap_hyst,
-+	hwmon_attr_pow_cap_min,
-+	hwmon_attr_pow_cap_max,
-+	hwmon_attr_pow_max,
-+	hwmon_attr_pow_crit,
-+
-+	hwmon_attr_ener_input,
-+
-+	hwmon_attr_humi_input,
-+
-+	hwmon_attr_intr_alarm,
-+	hwmon_attr_intr_beep,
-+
-+	hwmon_attr_beep,
-+
-+	hwmon_attr_update_interval
-+};
-+
-+enum hwmon_text_attr {
-+	hwmon_attr_name,
-+	hwmon_attr_volt_label,
-+	hwmon_attr_fan_label,
-+	hwmon_attr_temp_label,
-+};
-+
-+struct hwmon_device_caps {
-+	/* number of inputs */
-+	unsigned int num_voltage:4;
-+	unsigned int num_fan:4;
-+	unsigned int num_pwm:4;
-+	unsigned int num_temp:4;
-+	unsigned int num_current:4;
-+	unsigned int num_power:4;
-+	unsigned int num_energy:4;
-+	unsigned int num_humidity:4;
-+	unsigned int num_intrusion:4;
-+
-+	unsigned int num_trip_points:4;
-+
-+	/* voltage caps */
-+	unsigned int volt_min:1;
-+	unsigned int volt_lcrit:1;
-+	unsigned int volt_max:1;
-+	unsigned int volt_crit:1;
-+	unsigned int volt_label:1;
-+	unsigned int volt_vid:1;
-+	unsigned int volt_vrm:1;
-+
-+	/* fan caps */
-+	unsigned int fan_min:1;
-+	unsigned int fan_max:1;
-+	unsigned int fan_div:1;
-+	unsigned int fan_pulses:1;
-+	unsigned int fan_target:1;
-+	unsigned int fan_label:1;
-+
-+	/* pwm caps */
-+	unsigned int pwm_freq:1;
-+	unsigned int pwm_auto_channels_temp:1;
-+	unsigned int pwm_auto_point_pwm:1;
-+	unsigned int pwm_auto_point_temp:1;
-+	unsigned int pwm_auto_point_temp_hyst:1;
-+
-+	/* temp caps */
-+	unsigned int temp_type:1;
-+	unsigned int temp_min:1;
-+	unsigned int temp_max:1;
-+	unsigned int temp_max_hyst:1;
-+	unsigned int temp_crit:1;
-+	unsigned int temp_crit_hyst:1;
-+	unsigned int temp_emergency:1;
-+	unsigned int temp_emergency_hyst:1;
-+	unsigned int temp_lcrit:1;
-+	unsigned int temp_offset:1;
-+	unsigned int temp_label:1;
-+	unsigned int temp_lowest:1;
-+	unsigned int temp_highest:1;
-+	unsigned int temp_reset_history:1;
-+	unsigned int temp_auto_point_pwm:1;
-+	unsigned int temp_auto_point_temp:1;
-+	unsigned int temp_auto_point_temp_hyst:1;
-+
-+	/* current caps */
-+	unsigned int curr_max:1;
-+	unsigned int curr_min:1;
-+	unsigned int curr_lcrit:1;
-+	unsigned int curr_crit:1;
-+
-+	/* power caps */
-+	unsigned int pow_average:1;
-+	unsigned int pow_average_interval:1;
-+	unsigned int pow_average_interval_min:1;
-+	unsigned int pow_average_interval_max:1;
-+	unsigned int pow_average_min:1;
-+	unsigned int pow_average_max:1;
-+	unsigned int pow_average_lowest:1;
-+	unsigned int pow_average_highest:1;
-+	unsigned int pow_input_lowest:1;
-+	unsigned int pow_input_highest:1;
-+	unsigned int pow_reset_history:1;
-+	unsigned int pow_accuracy:1;
-+	unsigned int pow_cap:1;
-+	unsigned int pow_cap_hyst:1;
-+	unsigned int pow_cap_min:1;
-+	unsigned int pow_cap_max:1;
-+	unsigned int pow_max:1;
-+	unsigned int pow_crit:1;
-+
-+	/* alarm caps */
-+	unsigned int alarm_channel:1;
-+	unsigned int alarm_limit:1;
-+};
-+
-+
-+struct hwmon_device_instance {
-+	struct hwmon_device_caps caps;
-+	int (*get_numeric_attr) (void * inst_data, enum hwmon_numeric_attr attr,
-+			unsigned int index, int *value);
-+	int (*get_text_attr) (void * inst_data, enum hwmon_text_attr attr,
-+			unsigned int index, char *buf);
-+	int (*set_numeric_attr) (void * inst_data, enum hwmon_numeric_attr attr,
-+			unsigned int index, int value);
-+	struct list_head sysfs_node;
-+	void *inst_data;
-+};
-+
-+#endif /* HWMON_CORE_H_ */
++module_init(sensors_lm95245_init);
++module_exit(sensors_lm95245_exit);
 -- 
-1.7.5.4
-
+1.7.3.4
 
 
 _______________________________________________
