@@ -1,8 +1,10 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Jun 2011 08:20:50 +0000
+Date: Tue, 21 Jun 2011 09:32:27 +0000
 Subject: Re: [lm-sensors] sensors doesn't show my fans,
-Message-Id: <20110621102050.59dbd8dc@endymion.delvare>
+Message-Id: <20110621113227.1bc8a378@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20110621102050.59dbd8dc@endymion.delvare>
+In-Reply-To: <20110621102050.59dbd8dc@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -10,63 +12,29 @@ To: lm-sensors@vger.kernel.org
 
 Hi Mark,
 
-On Fri, 17 Jun 2011 20:51:21 +0300, Mark Bloch wrote:
-> I have a dv6t-6000 (i7-2630QM ) , sensors-detect finds my hardware.
-> I can see the temperature of the CPU.
-> 
-> The thing is I can't see my fan(/s?) ( in windows there is a hp software for
-> controlling the fans, and I have an option in the bios for the fans, so I
-> know I have them ) .
-> 
-> Can you help me find a solution, I've attached everything I could think of.
+Please always keep discussions on the mailing list. Others may be
+interested and/or have ideas.
 
-This is very common on laptops, that native hardware monitoring drivers
-can't be used. Thermal management is usually handled by ACPI.
-Unfortunately I am not aware of any HP-specific driver exposing fan
-speeds to user-space.
+On Tue, 21 Jun 2011 12:15:18 +0300, Mark Bloch wrote:
+> I'll try to email HP, I don't think they'll help much.
 
-Your best option is probably to ask HP support for a Linux driver and
-see what they have to say.
+You're probably right, but sometimes we have good surprises, and the
+sole fact of asking may help them realize that there is a need. This
+may pay over time, if not now.
 
-> 
-> I haven't installed any distro just yet, so I've used SystemRescueCd v*
-> 2.2.0.
-> 
-> *My motherboard is listed as :
-> 
-> 
-> Mainboard Manufacturer: Hewlett-Packard
-> Mainboard Name:1657
-> Mainboard Version:10.22
-> Mainboard Serial Number:PBWQE05HT0C0QV
-> Asset Tag:Base Board Asset Tag
-> Location in chassis:Base Board Chassis Location
-> Info :  http://pastebin.com/1xFa5Ccp*
-> *dmesg :http://pastebin.com/fAY69Ac3
-> lsmod : http://pastebin.com/h5y17Atd
-> lspci -nn : http://pastebin.com/GxWtyBSt
-> sensors : http://pastebin.com/3kpxEN3F
-> sensors-detect : http://pastebin.com/4PhaGfV9
+> I think the Super-I/O chip is :
+> http://www.plxtech.com/products/expresslane/pex8518
 
-FYI, the max6650 detection and one of the sbs detections are false
-positives (fixed in sensors-detect meanwhile) caused by a misbehaving
-radeon I2C bus (you may want to report to the radeon driver maintainer.)
+This would be surprising, as in general Super-I/O chips have nothing to
+do with PCI. But maybe that chip is simply following the LPC
+specification (which almost all Super-I/O chips follow) and is thus
+seen by sensors-detect as a Super-I/O chips even if it is not actually
+a Super-I/O chip.
 
-The other sbs detection may be correct, I'm not sure. Feel tree to try
-loading the sbs driver and see if it works (note that it doesn't
-integrate with the hwmon subsystem though so you won't see anything in
-the output of "sensors".)
-
-There is an unknown Super-I/O chip detected, it may or may not have
-sensors. It's impossible to know without first finding out the vendor
-and model of the Super-I/O chip and then obtaining a datasheet from the
-vendor.
-
-So in the end there's not much we can do for you, I'm afraid.
+Anyway, if it's really a PEX8518 then this is of no interest to us.
 
 -- 
 Jean Delvare
-http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
