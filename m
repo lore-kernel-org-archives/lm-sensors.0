@@ -1,12 +1,26 @@
 From: tux99-lmsens@uridium.org
-Date: Fri, 10 Jun 2011 00:31:14 +0000
+Date: Tue, 21 Jun 2011 12:34:04 +0000
 Subject: [lm-sensors] sensors.conf for Sapphire Pure Fusion Mini E350
-Message-Id: <Pine.LNX.4.44.1106100224380.17715-100000@outpost-priv>
+Message-Id: <Pine.LNX.4.44.1106211432380.25478-100000@outpost-priv>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <Pine.LNX.4.44.1106100224380.17715-100000@outpost-priv>
+In-Reply-To: <Pine.LNX.4.44.1106100224380.17715-100000@outpost-priv>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+Hi,
+I posted the mobo config below some time ago, can someone please add it 
+on the wiki at http://www.lm-sensors.org/wiki/Configurations/Sapphire ?
+
+Thanks!
+
+---------- Forwarded message ----------
+Subject: sensors.conf for Sapphire Pure Fusion Mini E350 motherboard
+Date: Fri, 10 Jun 2011 02:31:14 +0200 (CEST)
+To: lm-sensors@lm-sensors.org
 
 
 Hi,
@@ -49,6 +63,7 @@ chip "k10temp-*"
   label temp1 "CPU Temp"
 
 #-----------------------------------------------
+
 
 
 _______________________________________________
