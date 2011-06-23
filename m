@@ -1,38 +1,90 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 23 Jun 2011 14:26:41 +0000
+Date: Thu, 23 Jun 2011 14:47:55 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: LM95245 driver
-Message-Id: <20110623142641.GD28311@ericsson.com>
+Message-Id: <20110623144755.GE28311@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1308649953-2774-1-git-send-email-alexander.stein@systec-electronic.com>
+ <1308770149.8271.600.camel@groeck-laptop>
  <201106231114.52841.alexander.stein@systec-electronic.com>
- <20110623113316.6ab5a84e@endymion.delvare>
- <201106231250.38266.alexander.stein@systec-electronic.com>
-In-Reply-To: <201106231250.38266.alexander.stein@systec-electronic.com>
+In-Reply-To: <201106231114.52841.alexander.stein@systec-electronic.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Alexander Stein <alexander.stein@systec-electronic.com>
 Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Jun 23, 2011 at 06:50:37AM -0400, Alexander Stein wrote:
-> On Thursday 23 June 2011 11:33:16 Jean Delvare wrote:
-> > On Thu, 23 Jun 2011 11:14:52 +0200, Alexander Stein wrote:
-> > > Well, I noticed that. But I went the way lm95241 does. I'm also unsure
-> > > which interval to choose, if user specify a unsupported interval. Choose
-> > > the next small or the next greater one? Maybe you can give me a hint
-> > > here.
+On Thu, Jun 23, 2011 at 05:14:52AM -0400, Alexander Stein wrote:
+> On Wednesday 22 June 2011 21:15:49 Guenter Roeck wrote:
+> > On Tue, 2011-06-21 at 05:52 -0400, Alexander Stein wrote:
+> > > An hwmon driver for the National Semiconductor LM95245 dual temperature
+> > > sensors chip.
+> > > 
+> > > Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
 > > 
-> > BTW, is the LM95245 so incompatible that support couldn't be added to
-> > the lm95241 driver? If both devices are compatible to a reasonable
-> > degree, a single driver would be preferred.
+> > Overall pretty well written, only I am a bit at loss why you try to deal
+> > with the unsigned temperature registers. That adds a bit of complexity
+> > to the driver. Given that the signed temperature value range is up to
+> > 127 degrees C, and that the chip is only rated up to 125 degrees C, the
+> > added complexity doesn't seem to be worth it.
+> > 
+> > Can you elaborate ?
 > 
-> Well, the register mapping is completly different. Also some configuration 
-> bits are merged and moved into other registers than in lm95241. I doubt there 
-> is much more compatibility than i2c transfers and temperature format (despite 
-> unsigned/unsigned).
-> 
-Same conclusion here. Odd but true.
+> Well, AFAIK the 125 degrees C limit is for the chip itself. I didn't found 
+> anything about a remote diode limit. Also the remote TCRIT and OS limit range 
+> up to 255 degrees C.
 
+Specified accuracy range for the external diode is up to 125 degrees C.
+
+Jean, do you have an opinion here ? I just don't think the added complexity
+is worth the theoretical gain in functionality.
+
+> Another point is the optional offset register (not implemented, see below). I 
+> could not found much about it, but I guess this is immediately added to the 
+> remote temperature register.
+> 
+You could set it to some value and see what happens.
+
+> > Other comments:
+> > 
+> > For the interval attribute, idea would be to write the value into the
+> > conversion rate register. Your code does not match the interval with the
+> > rate programmed into the chip (which is the idea), nor does it update
+> > the rate if the interval is changed.
+> 
+> Well, I noticed that. But I went the way lm95241 does. I'm also unsure which 
+> interval to choose, if user specify a unsupported interval. Choose the next 
+> small or the next greater one? Maybe you can give me a hint here.
+> 
+Two bad or wrong implementations don't make it a good one. If the value can be
+configured into the lm95241, the code should do it.
+
+The lm90 driver tries to find the closest match, which would be one way to go
+and is what I usually do. Another possibility would be to select the next larger
+valid interval.
+
+> > Chip address 0x29 is missing.
+> 
+> Nice catch.
+> 
+> > It would be nice if the driver would support limit, hysteresis, alarm,
+> > and fault attributes.
+> 
+> Let's see if I find time for that.
+> Thanks for the review though.
+> 
+Um ... that wasn't a review. Just browsing through the code ;).
+
+Another thing I noticed: You are re-configuring the chip during initialization.
+This is even though the chip may already have been configured through ROMMON and/or BIOS,
+and specifically overrides the external sensor type. That is not a good idea; even
+though it may make sense in your application, it may screw up chip configuration
+for other users of the chip.
+
+If your BIOS/Firmware does not configure the chip, and you really have to do it
+in the driver, one option would be to provide configuration data through optional
+platform data.
+
+Thanks,
 Guenter
 
 _______________________________________________
