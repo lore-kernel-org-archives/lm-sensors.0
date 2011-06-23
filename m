@@ -1,32 +1,20 @@
-From: Jay Alexander Fleming <tito.nehru.naser@gmail.com>
-Date: Tue, 21 Jun 2011 09:44:25 +0000
+From: Valentijn Scholten <valentijnscholten@hotmail.com>
+Date: Thu, 23 Jun 2011 21:30:22 +0000
 Subject: Re: [lm-sensors]
-Message-Id: <loom.20110621T113355-124@post.gmane.org>
+Message-Id: <loom.20110623T233007-2@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <87ekb9s3tn.wl%info@wore.ma.cx>
 In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
+Valentijn Scholten <valentijnscholten <at> hotmail.com> writes:
 
-In addition to this post, here is report from HW monitor in BIOS (v. 1.60 for
-this mobo), right after restart my computer:
+Intel forum link: http://software.intel.com/en-us/forums/showthread.php?t=
+=82888
 
-Voltage---------
- Vcore     1.432
- +3.30V    3.344
- +5.00V    5.088
- +12.00V  12.408
-
-Temp------------
- CPU   43
- MB    38
-
-
-
- 
 
 
 _______________________________________________
