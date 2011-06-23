@@ -1,91 +1,64 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 23 Jun 2011 14:47:55 +0000
+From: Alexander Stein <alexander.stein@systec-electronic.com>
+Date: Thu, 23 Jun 2011 15:14:19 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: LM95245 driver
-Message-Id: <20110623144755.GE28311@ericsson.com>
+Message-Id: <201106231714.19713.alexander.stein@systec-electronic.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1308649953-2774-1-git-send-email-alexander.stein@systec-electronic.com>
- <1308770149.8271.600.camel@groeck-laptop>
- <201106231114.52841.alexander.stein@systec-electronic.com>
-In-Reply-To: <201106231114.52841.alexander.stein@systec-electronic.com>
+References: <1308649953-2774-1-git-send-email-alexander.stein@systec-electronic.com> <201106231114.52841.alexander.stein@systec-electronic.com> <20110623144755.GE28311@ericsson.com>
+In-Reply-To: <20110623144755.GE28311@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Stein <alexander.stein@systec-electronic.com>
+To: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Jun 23, 2011 at 05:14:52AM -0400, Alexander Stein wrote:
-> On Wednesday 22 June 2011 21:15:49 Guenter Roeck wrote:
-> > On Tue, 2011-06-21 at 05:52 -0400, Alexander Stein wrote:
-> > > An hwmon driver for the National Semiconductor LM95245 dual temperature
-> > > sensors chip.
+On Thursday 23 June 2011 16:47:55 Guenter Roeck wrote:
+> > Another point is the optional offset register (not implemented, see
+> > below). I could not found much about it, but I guess this is immediately
+> > added to the remote temperature register.
+> 
+> You could set it to some value and see what happens.
+
+I might look into that, when I implement the offset feature.
+
+> > > Other comments:
 > > > 
-> > > Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
+> > > For the interval attribute, idea would be to write the value into the
+> > > conversion rate register. Your code does not match the interval with
+> > > the rate programmed into the chip (which is the idea), nor does it
+> > > update the rate if the interval is changed.
 > > 
-> > Overall pretty well written, only I am a bit at loss why you try to deal
-> > with the unsigned temperature registers. That adds a bit of complexity
-> > to the driver. Given that the signed temperature value range is up to
-> > 127 degrees C, and that the chip is only rated up to 125 degrees C, the
-> > added complexity doesn't seem to be worth it.
-> > 
-> > Can you elaborate ?
+> > Well, I noticed that. But I went the way lm95241 does. I'm also unsure
+> > which interval to choose, if user specify a unsupported interval. Choose
+> > the next small or the next greater one? Maybe you can give me a hint
+> > here.
 > 
-> Well, AFAIK the 125 degrees C limit is for the chip itself. I didn't found 
-> anything about a remote diode limit. Also the remote TCRIT and OS limit range 
-> up to 255 degrees C.
-
-Specified accuracy range for the external diode is up to 125 degrees C.
-
-Jean, do you have an opinion here ? I just don't think the added complexity
-is worth the theoretical gain in functionality.
-
-> Another point is the optional offset register (not implemented, see below). I 
-> could not found much about it, but I guess this is immediately added to the 
-> remote temperature register.
+> Two bad or wrong implementations don't make it a good one. If the value can
+> be configured into the lm95241, the code should do it.
 > 
-You could set it to some value and see what happens.
+> The lm90 driver tries to find the closest match, which would be one way to
+> go and is what I usually do. Another possibility would be to select the
+> next larger valid interval.
 
-> > Other comments:
-> > 
-> > For the interval attribute, idea would be to write the value into the
-> > conversion rate register. Your code does not match the interval with the
-> > rate programmed into the chip (which is the idea), nor does it update
-> > the rate if the interval is changed.
-> 
-> Well, I noticed that. But I went the way lm95241 does. I'm also unsure which 
-> interval to choose, if user specify a unsupported interval. Choose the next 
-> small or the next greater one? Maybe you can give me a hint here.
-> 
-Two bad or wrong implementations don't make it a good one. If the value can be
-configured into the lm95241, the code should do it.
+I think the closest match might be the best. As there is fixed set of 
+possibilities, what do think about printing the possiblities upon read and 
+marking the used one by an asterisk?
 
-The lm90 driver tries to find the closest match, which would be one way to go
-and is what I usually do. Another possibility would be to select the next larger
-valid interval.
+> Another thing I noticed: You are re-configuring the chip during
+> initialization. This is even though the chip may already have been
+> configured through ROMMON and/or BIOS, and specifically overrides the
+> external sensor type. That is not a good idea; even though it may make
+> sense in your application, it may screw up chip configuration for other
+> users of the chip.
+>
+> If your BIOS/Firmware does not configure the chip, and you really have to
+> do it in the driver, one option would be to provide configuration data
+> through optional platform data.
 
-> > Chip address 0x29 is missing.
-> 
-> Nice catch.
-> 
-> > It would be nice if the driver would support limit, hysteresis, alarm,
-> > and fault attributes.
-> 
-> Let's see if I find time for that.
-> Thanks for the review though.
-> 
-Um ... that wasn't a review. Just browsing through the code ;).
+Ehm, where do I add platform data on x86? It gets detected by device probing. 
+For boards like arm, sure no problem there.
 
-Another thing I noticed: You are re-configuring the chip during initialization.
-This is even though the chip may already have been configured through ROMMON and/or BIOS,
-and specifically overrides the external sensor type. That is not a good idea; even
-though it may make sense in your application, it may screw up chip configuration
-for other users of the chip.
-
-If your BIOS/Firmware does not configure the chip, and you really have to do it
-in the driver, one option would be to provide configuration data through optional
-platform data.
-
-Thanks,
-Guenter
+Reagrds,
+Alexander
 
 _______________________________________________
 lm-sensors mailing list
