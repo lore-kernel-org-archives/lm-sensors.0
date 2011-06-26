@@ -1,33 +1,37 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Mon, 27 Jun 2011 16:52:44 +0000
-Subject: Re: [lm-sensors] coretemp: Support for Intel Atom E6XX
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654109E84A62C0@bgsmsx502.gar.corp.intel.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sun, 26 Jun 2011 20:26:48 +0000
+Subject: Re: [lm-sensors] [v3] Add support for the Philips SA56004
+Message-Id: <20110626202648.GA9118@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201106271220.51953.alexander.stein@systec-electronic.com>
-	<20110627164108.777c2e28@endymion.delvare>
- <1309191054.8271.636.camel@groeck-laptop>
-In-Reply-To: <1309191054.8271.636.camel@groeck-laptop>
+References: <1307356845-10095-1-git-send-email-sdevrien@cisco.com>
+In-Reply-To: <1307356845-10095-1-git-send-email-sdevrien@cisco.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "guenter.roeck@ericsson.com" <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
-Cc: "Yu, Fenghua" <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>
+To: sdevrien@cisco.com
+Cc: khali@linux-fr.org, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Hi Guenter,
+On Mon, Jun 06, 2011 at 10:40:45AM -0000, sdevrien@cisco.com wrote:
+> From: Stijn Devriendt <sdevrien@cisco.com>
+> 
+> Add support for the Philips SA56004, an LM86
+> compatible temperature sensor.
+> 
+> Changes since v2:
+> - Changed BUG_ON to WARN_ON
+> Changes since v1:
+> - Updated documentation
+> - Trace replaced by BUG_ON
+> - style updates
+> 
+> Signed-off-by: Stijn Devriendt <sdevrien@cisco.com>
+> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> 
+I don't see a reason for holding this patch up further. Applied to -next.
+If you disagree, please speak up now or be silent forever.
 
-> I thought about replacing the manual TjMax detection code with code
-> using the model string to take care of problems like this - essentially
-> by providing a table with entries { model string, Tjmax } for each CPU
-> with Tjmax other than 100 degrees C. This way we could get rid of some
-> of the odd code we have today. Would that make sense ?
-
-I completely agree with you here.
-This way, a lot of code in get_tjmax will be reduced, by just
-a search through some array.
- 
 Thanks,
-Durga
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
