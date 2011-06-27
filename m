@@ -1,23 +1,67 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 30 Jun 2011 12:20:28 +0000
-Subject: Re: [lm-sensors] sensor details for W83627HG-AW
-Message-Id: <20110630142028.1631c63a@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 27 Jun 2011 20:38:37 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm95241) Fix chip detection code
+Message-Id: <1309207117-9892-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <838315.8004.qm@web95806.mail.in.yahoo.com>
-In-Reply-To: <838315.8004.qm@web95806.mail.in.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 24 Jun 2011 16:49:13 +0530 (IST), krunal patel wrote:
-> after insmod hwmon-vid.ko and via-cputemp.ko output of sensors binary is
+The LM95241 driver accepts every chip ID equal to or larger than 0xA4 as its
+own, and other chips such as LM95245 use chip IDs in the accepted ID range.
+This results in false chip detection.
 
-Can you please report the messages in the kernel log when you load both
-drivers?
+Fix problem by accepting only the known LM95241 chip ID. Also remove the debug
+message displayed if chip detection failed since it just adds noise and no real
+value.
 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+Kept name variable to prepare for possible later addition of LM95231 support
+(after I get samples).
+
+ drivers/hwmon/lm95241.c |   17 ++++++-----------
+ 1 files changed, 6 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
+index 1a6dfb6..f2cfecf 100644
+--- a/drivers/hwmon/lm95241.c
++++ b/drivers/hwmon/lm95241.c
+@@ -330,24 +330,19 @@ static int lm95241_detect(struct i2c_client *new_client,
+ 			  struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = new_client->adapter;
+-	int address = new_client->addr;
+ 	const char *name;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+-	if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
+-	     = MANUFACTURER_ID)
+-	    && (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
+-		>= DEFAULT_REVISION)) {
+-		name = DEVNAME;
+-	} else {
+-		dev_dbg(&adapter->dev, "LM95241 detection failed at 0x%02x\n",
+-			address);
++	if (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
++	    != MANUFACTURER_ID
++	    || i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
++	    != DEFAULT_REVISION)
+ 		return -ENODEV;
+-	}
+ 
+-	/* Fill the i2c board info */
++	name = DEVNAME;
++
+ 	strlcpy(info->type, name, I2C_NAME_SIZE);
+ 	return 0;
+ }
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
