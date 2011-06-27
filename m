@@ -1,59 +1,37 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 27 Jun 2011 16:10:54 +0000
+Date: Mon, 27 Jun 2011 16:50:05 +0000
 Subject: Re: [lm-sensors] coretemp: Support for Intel Atom E6XX CPU
-Message-Id: <1309191054.8271.636.camel@groeck-laptop>
+Message-Id: <1309193405.8271.645.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201106271220.51953.alexander.stein@systec-electronic.com>
 	 <20110627164108.777c2e28@endymion.delvare>
-In-Reply-To: <20110627164108.777c2e28@endymion.delvare>
+	 <1309191054.8271.636.camel@groeck-laptop>
+	 <D6D887BA8C9DFF48B5233887EF04654109E84A62C0@bgsmsx502.gar.corp.intel.com>
+In-Reply-To: <D6D887BA8C9DFF48B5233887EF04654109E84A62C0@bgsmsx502.gar.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Alexander Stein <alexander.stein@systec-electronic.com>, Fenghua Yu <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: Jean Delvare <khali@linux-fr.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Alexander Stein <alexander.stein@systec-electronic.com>
 
-On Mon, 2011-06-27 at 10:41 -0400, Jean Delvare wrote:
-> Hi Alexander,
+On Mon, 2011-06-27 at 12:40 -0400, R, Durgadoss wrote:
+> Hi Guenter,
 > 
-> On Mon, 27 Jun 2011 12:20:51 +0200, Alexander Stein wrote:
-> > I have a patch (for v2.6.39) which adds support for Intel Atom E6XX 
-> > (TunnelCreek) to coretemp. It's merely only adding x86_model 0x26.
+> > I thought about replacing the manual TjMax detection code with code
+> > using the model string to take care of problems like this - essentially
+> > by providing a table with entries { model string, Tjmax } for each CPU
+> > with Tjmax other than 100 degrees C. This way we could get rid of some
+> > of the odd code we have today. Would that make sense ?
 > 
-> You have a patch, great for you. What do you expect if you don't share
-> it with us?
-> 
-> I'm not quite sure what your patch would be doing anyway. Since kernel
-> 2.6.35, supported CPU models are detected using the DTS feature flag
-> rather than the family and model numbers, so your Atom E6XX should be
-> detected just fine.
-> 
-Maybe it is for Tjmax detection ?
+> I completely agree with you here.
+> This way, a lot of code in get_tjmax will be reduced, by just
+> a search through some array.
+>  
+Unfortunately, looking at Alexander's /proc/cpuinfo output, it looks
+like the E6xx chips have no mention of E6xx in the CPU ID string, which
+unfortunately kills the idea. 
 
-> Note that there was a bug in kernels 2.6.35 to 2.6.39 with regards to
-> TjMax guessing, which was fixed by Gunter Roeck with:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;hO5f71a7abe329bdad81ee6a8e4545054a7cc30a
-> You'll have to update to kernel version 2.6.39.2 to get this fix.
-> 
-> Do you happen to know what CPUs model number 0x26 covers? Do you know
-> if this model supports MSR_IA32_TEMPERATURE_TARGET or not? The original
-> Atom (model 0x1c) did not.
-> 
-> > But there are models (e.g. E660 and E660T) with different TjMax, namely 90 
-> > degrees C and 110 degrees C. But these different model can't be detected by 
-> > reading from hardware.
-> 
-> I would appreciate a patch to Documentation/hwmon/coretemp adding the
-> known TjMax for these new Atom models.
-> 
-> BTW, is it really impossible to identify these models with a different
-> TjMax? Don't the strings "E660" and "E660T" appear in the respective
-> "model name" entries in /proc/cpuinfo?
-
-I thought about replacing the manual TjMax detection code with code
-using the model string to take care of problems like this - essentially
-by providing a table with entries { model string, Tjmax } for each CPU
-with Tjmax other than 100 degrees C. This way we could get rid of some
-of the odd code we have today. Would that make sense ?
+Do you know if there is _any_ means to distinguish E6xx from E6xxT ?
 
 Thanks,
 Guenter
