@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 24 Jun 2011 20:16:32 +0000
+Date: Mon, 27 Jun 2011 20:44:47 +0000
 Subject: Re: [lm-sensors] [3.0 regression?] coretemp driver output has
-Message-Id: <1308946592.8271.630.camel@groeck-laptop>
+Message-Id: <1309207487.8271.653.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1679233363.543867.1308943464300.JavaMail.mail@webmail20>
 In-Reply-To: <1679233363.543867.1308943464300.JavaMail.mail@webmail20>
@@ -9,6 +9,13 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+Hi Durga,
+
+can you have a look at this ? I am a bit puzzled how it can happen.
+
+Thanks,
+Guenter
 
 On Fri, 2011-06-24 at 15:24 -0400, Artem S. Tashkinov wrote:
 > Hello,
@@ -25,16 +32,6 @@ On Fri, 2011-06-24 at 15:24 -0400, Artem S. Tashkinov wrote:
 > Whereas on kernel 2.6.39.x I had four separate cores reported without the
 > nonsensical "Physicial id 0" item.
 > 
-Physical ID 0 is the CPU package temperature and displayed since pkgtemp
-and coretemp have been merged into a single driver.
-
-Only question is why Core 1 and Core 2 are not displayed, as the CPU is
-not supposed to be hyperthreading and those should be physical cores.
-Please provide complete output of /proc/cpuinfo.
-
-Thanks,
-Guenter
-
 > I have an Intel Core i5 2500 CPU.
 > 
 > processor       : 0
