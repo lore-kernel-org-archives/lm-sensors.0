@@ -1,40 +1,63 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 28 Jun 2011 18:19:48 +0000
-Subject: Re: [lm-sensors] [PATCH v3] Add support for the Philips SA56004
-Message-Id: <1309285188.12139.1.camel@groeck-laptop>
+Date: Thu, 30 Jun 2011 17:29:51 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (adm1275) Free allocated memory if
+Message-Id: <1309454993-8641-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1307356845-10095-1-git-send-email-sdevrien@cisco.com>
-	 <BANLkTi=gAqpDNBjCXzvNEhSuzm=3Mg9rVg@mail.gmail.com>
-	 <6E4D2678AC543844917CA081C9D6B33F04CF4FFC@XMB-AMS-103.cisco.com>
-	 <BANLkTim=9ygJScqy12PQXNPBStSgPbpedQ@mail.gmail.com>
-In-Reply-To: <BANLkTim=9ygJScqy12PQXNPBStSgPbpedQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Fubo Chen <fubo.chen@gmail.com>
-Cc: "Stijn Devriendt (sdevrien)" <sdevrien@cisco.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Tue, 2011-06-28 at 13:50 -0400, Fubo Chen wrote:
-> On Mon, Jun 27, 2011 at 9:04 AM, Stijn Devriendt (sdevrien)
-> <sdevrien@cisco.com> wrote:
-> >> On Mon, Jun 6, 2011 at 12:40 PM,  <sdevrien@cisco.com> wrote:
-> >> > +       } else
-> >> > +       if (man_id = 0xA1) { /*  NXP Semiconductor/Philips */
-> >>
-> >> No kernel coder writes like this. Has this ever been run through
-> >> checkpatch ?
-> > It has. Unfortunately this is just the coding style in the whole
-> > driver. I believe it's better to have a consistent file rather
-> > than 3 different styles.
-> 
-> Makes sense to me. By the way, it's not forbidden to clean up unusual
-> coding style from other developers.
-> 
-Yes, but as separate patch. Please feel free to submit such a patch.
+Probe function did not free allocated memory if it failed. Fix it.
 
-Thanks,
-Guenter
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/adm1275.c |   16 +++++++++++++---
+ 1 files changed, 13 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/hwmon/adm1275.c b/drivers/hwmon/adm1275.c
+index c2ee204..b9b7caf 100644
+--- a/drivers/hwmon/adm1275.c
++++ b/drivers/hwmon/adm1275.c
+@@ -32,6 +32,7 @@ static int adm1275_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	int config;
++	int ret;
+ 	struct pmbus_driver_info *info;
+ 
+ 	if (!i2c_check_functionality(client->adapter,
+@@ -43,8 +44,10 @@ static int adm1275_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 
+ 	config = i2c_smbus_read_byte_data(client, ADM1275_PMON_CONFIG);
+-	if (config < 0)
+-		return config;
++	if (config < 0) {
++		ret = config;
++		goto err_mem;
++	}
+ 
+ 	info->pages = 1;
+ 	info->direct[PSC_VOLTAGE_IN] = true;
+@@ -76,7 +79,14 @@ static int adm1275_probe(struct i2c_client *client,
+ 	else
+ 		info->func[0] |= PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT;
+ 
+-	return pmbus_do_probe(client, id, info);
++	ret = pmbus_do_probe(client, id, info);
++	if (ret)
++		goto err_mem;
++	return 0;
++
++err_mem:
++	kfree(info);
++	return ret;
+ }
+ 
+ static int adm1275_remove(struct i2c_client *client)
+-- 
+1.7.3.1
 
 
 _______________________________________________
