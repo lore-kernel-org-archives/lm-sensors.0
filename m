@@ -1,65 +1,43 @@
-From: Vincent Pelletier <plr.vincent@gmail.com>
-Date: Tue, 21 Jun 2011 19:38:46 +0000
-Subject: Re: [lm-sensors] IT8721F on Asus M5A88-V EVO
-Message-Id: <201106212138.47083.plr.vincent@gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 30 Jun 2011 17:29:50 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (pmbus) Drop check for PMBus
+Message-Id: <1309454993-8641-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201106192314.40074.plr.vincent@gmail.com>
-In-Reply-To: <201106192314.40074.plr.vincent@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le mardi 21 juin 2011 09:16:31, Jean Delvare a =E9crit :
-> Your copy-and-paste method added a lot of trailing white space, making
-> your post needlessly large and quoting difficult. Please clean up your
-> post before sending next time.
+Some PMBus devices do not support the PMBus revision register, so don't check
+if it exists.
 
-Sure. Sorry for not noticing.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus_core.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-> This is indeed the driver you want to use on every recent Asus desktop
-> board.
+diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
+index 354770e..bd613e7 100644
+--- a/drivers/hwmon/pmbus_core.c
++++ b/drivers/hwmon/pmbus_core.c
+@@ -1430,12 +1430,8 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+-	/*
+-	 * Bail out if status register or PMBus revision register
+-	 * does not exist.
+-	 */
+-	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0
+-	    || i2c_smbus_read_byte_data(client, PMBUS_REVISION) < 0) {
++	/* Bail out if PMBus status register does not exist. */
++	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0) {
+ 		dev_err(&client->dev,
+ 			"Status or revision register not found\n");
+ 		ret = -ENODEV;
+-- 
+1.7.3.1
 
-it87 driver has the advantage of exposing pwm controls in sysfs.
-
-> It no longer matters, but the first 5 voltage labels are wrong. Not
-> sure where you got them from. in2 is obviously Vcore and in3 matches
-> +3.3V.
-
-I noticed this too. Maybe this comes from a config I was trying to write fo=
-r=20
-this chip - I thought I moved it away & reconfigured sensors before posting.
-
-> Looks wrong indeed, as it is set to 75=B0C, not 95=B0C. Is there a CPU
-> temperature shutdown level that you can set as well? If so, to what
-> value did you set it?
-
-Actually, the "NorthBridge overheat protection" option is a simple=20
-neable/disable switch on a different screen than sensors output & fan=20
-settings.
-I could not find any way to configure any temperature limit on CPU.
-
-> What surprises me the most is that the it87 driver reported completely
-> different limits, which means that these are software limits... The
-> BIOS never wrote them to the chip (unless you screwed them up yourself
-> with a libsensors configuration file?)
-
-I don't think so: I could not find any settings for it8721 in either=20
-/etc/sensors3.conf nor /etc/sensors.d/* . All I configured on this chip wer=
-e=20
-names & fan speed limit, and fan limits were not applied anymore in dumps I=
-=20
-pasted.
-
-> I wonder how such software
-> limits can be enforced. Maybe this only works on Windows with Asus
-> proprietary software loaded. Or maybe the BIOS is polling the device
-> periodically at run-time. Ugly in both cases.
-
-No idea. So far, this motherboard didn't see windows.
-
---=20
-Vincent Pelletier
 
 _______________________________________________
 lm-sensors mailing list
