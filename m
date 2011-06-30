@@ -1,83 +1,38 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 12 Jun 2011 00:52:52 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (max1668) Add support for
-Message-Id: <20110612005252.GA28008@ericsson.com>
+Date: Thu, 30 Jun 2011 17:29:53 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: (pmbus) Auto-detect temp2 and temp3
+Message-Id: <1309454993-8641-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110611112818.670e5db8@endymion.delvare>
-In-Reply-To: <20110611112818.670e5db8@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-[ ... ]
-> > > > +	data->alarms |= ((u8) (val & 0x70)) << 8;
-> > > 
-> > > The (u8) type cast doesn't seem needed. Same a few lines below for
-> > > MAX1668_REG_STAT2.
-> > > 
-> > Actually, turns out that
-> > 	data->alarms = val << 8;
-> > followed by
-> > 	data->alarms |= val;
-> > for MAX1668_REG_STAT2 is good enough.
-> 
-> I think that the original idea was to preserve as much of data->alarms
-> as possible in case one of the two reads failed. But given that the rest
-> of the driver code doesn't leverage from that, you can indeed simplify
-> it.
-> 
-Yes, that is what I figured. I also don't really believe in error path code optimization.
+Additional temperature attribute support is easy to detect, so do it.
 
-Anyway, in case you are interested, here are some chip register dumps for you:
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-MAX1668:
+diff --git a/drivers/hwmon/pmbus.c b/drivers/hwmon/pmbus.c
+index b0ea00b..931d940 100644
+--- a/drivers/hwmon/pmbus.c
++++ b/drivers/hwmon/pmbus.c
+@@ -65,6 +65,10 @@ static void pmbus_find_sensor_groups(struct i2c_client *client,
+ 					      PMBUS_STATUS_TEMPERATURE))
+ 			info->func[0] |= PMBUS_HAVE_STATUS_TEMP;
+ 	}
++	if (pmbus_check_word_register(client, 0, PMBUS_READ_TEMPERATURE_2))
++		info->func[0] |= PMBUS_HAVE_TEMP2;
++	if (pmbus_check_word_register(client, 0, PMBUS_READ_TEMPERATURE_3))
++		info->func[0] |= PMBUS_HAVE_TEMP3;
+ 
+ 	/* Sensors detected on all pages */
+ 	for (page = 0; page < info->pages; page++) {
+-- 
+1.7.3.1
 
-No size specified (using byte-data access)
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 1c 1c 1c 00 00 80 00 00 7f c9 7f c9 7f c9 7f c9    ???..?..????????
-10: 7f c9 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-20: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-30: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-40: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-50: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-60: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-70: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-80: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-90: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-a0: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-b0: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-c0: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-d0: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-e0: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05 05    ????????????????
-f0: 05 05 05 05 05 05 05 05 05 05 05 05 05 05 4d 05    ??????????????M?
-
-MAX1805:
-
-No size specified (using byte-data access)
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f    0123456789abcdef
-00: 1a 1b 1b 1b 1b 80 00 00 7f c9 7f c9 7f c9 7f c9    ??????..????????
-10: 7f c9 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-20: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-30: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-40: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-50: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-60: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-70: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-80: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-90: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-a0: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-b0: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-c0: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-d0: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-e0: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03 03    ????????????????
-f0: 03 03 03 03 03 03 03 03 03 03 03 03 03 03 4d 03    ??????????????M?
-
-Interesting is that the chip ID is returned in all unused registers,
-even if I read an existing register first.
-
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
