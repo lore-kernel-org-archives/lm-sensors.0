@@ -1,79 +1,56 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:33 +0000
-Subject: [lm-sensors] [PATCH 04/15] hwmon: (pmbus) Add Intersil power
-Message-Id: <1310608484-20678-5-git-send-email-guenter.roeck@ericsson.com>
+From: Jesper Juhl <jj@chaosbits.net>
+Date: Sat, 02 Jul 2011 20:04:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Don't leak info in adm1275_probe
+Message-Id: <alpine.LNX.2.00.1107022202520.16316@swampdragon.chaosbits.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310485300-2168-5-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1310485300-2168-5-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
 
-Add Intersil power management chips to the list of devices supported by the
-generic PMBus driver, and add device IDs to enable explicit instantiation.
+In drivers/hwmon/adm1275.c:adm1275_probe() we'll leak the memory
+allocated to 'info' if the call to i2c_smbus_read_byte_data() returns
+less than zero.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+This patch fixes the leak by simply calling kfree(info) when needed.
+I also considered just moving the 'info' memory allocation below the
+call to i2c_smbus_read_byte_data(), but I was not sure if it mattered
+to get the -ENOMEM first in that case or if it would be bad to first
+have a successful i2c_smbus_read_byte_data() call and then fail the
+mem alloc, so I stuck with the safe option.
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
 ---
- Documentation/hwmon/pmbus   |   10 ++++++++++
- drivers/hwmon/pmbus/Kconfig |    3 ++-
- drivers/hwmon/pmbus/pmbus.c |    6 ++++++
- 3 files changed, 18 insertions(+), 1 deletions(-)
+ drivers/hwmon/adm1275.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index c36c1c1..3d9ca9b 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -8,6 +8,16 @@ Supported chips:
-     Addresses scanned: -
-     Datasheet:
-  http://archive.ericsson.net/service/internet/picov/get?DocNo(701-EN/LZT146395
-+  * Intersil ZL2004, ZL2006, ZL2008, ZL2106, ZL6100, ZL6105
-+    Prefixes: 'zl2004', 'zl2006', 'zl2008', 'zl2106', 'zl6100', zl6105'
-+    Addresses scanned: -
-+    Datasheets:
-+	http://www.intersil.com/data/fn/fn6846.pdf
-+	http://www.intersil.com/data/fn/fn6850.pdf
-+	http://www.intersil.com/data/fn/fn6859.pdf
-+	http://www.intersil.com/data/fn/fn6852.pdf
-+	http://www.intersil.com/data/fn/fn6876.pdf
-+	http://www.intersil.com/data/fn/fn6906.pdf
-   * Linear Technology LTC2978
-     Octal PMBus Power Supply Monitor and Controller
-     Prefix: 'ltc2978'
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index c69ffb5..f3cf83d 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -20,7 +20,8 @@ config SENSORS_PMBUS
- 	help
- 	  If you say yes here you get hardware monitoring support for generic
- 	  PMBus devices, including but not limited to ADP4000, BMR450, BMR451,
--	  BMR453, BMR454, LTC2978, NCP4200, and NCP4208.
-+	  BMR453, BMR454, LTC2978, NCP4200, NCP4208, ZL2004, ZL2006, ZL2008,
-+	  ZL2106, ZL6100, and ZL6105.
+  Compile tested only.
+
+diff --git a/drivers/hwmon/adm1275.c b/drivers/hwmon/adm1275.c
+index c2ee204..2ebf255 100644
+--- a/drivers/hwmon/adm1275.c
++++ b/drivers/hwmon/adm1275.c
+@@ -43,8 +43,10 @@ static int adm1275_probe(struct i2c_client *client,
+ 		return -ENOMEM;
  
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
-diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
-index 73de9f1..56bb3b7 100644
---- a/drivers/hwmon/pmbus/pmbus.c
-+++ b/drivers/hwmon/pmbus/pmbus.c
-@@ -209,6 +209,12 @@ static const struct i2c_device_id pmbus_id[] = {
- 	{"ncp4200", 1},
- 	{"ncp4208", 1},
- 	{"pmbus", 0},
-+	{"zl2004", 1},
-+	{"zl2006", 1},
-+	{"zl2008", 1},
-+	{"zl2106", 1},
-+	{"zl6100", 1},
-+	{"zl6105", 1},
- 	{}
- };
+ 	config = i2c_smbus_read_byte_data(client, ADM1275_PMON_CONFIG);
+-	if (config < 0)
++	if (config < 0) {
++		kfree(info);
+ 		return config;
++	}
  
+ 	info->pages = 1;
+ 	info->direct[PSC_VOLTAGE_IN] = true;
 -- 
-1.7.3.1
+1.7.6
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
 
 
 _______________________________________________
