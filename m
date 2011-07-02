@@ -1,38 +1,44 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 28 Jul 2011 06:35:38 +0000
-Subject: Re: [lm-sensors] [PATCH 09/15] hwmon: Add new attributes to sysfs
-Message-Id: <20110728063538.GA22163@ericsson.com>
+Date: Sat, 02 Jul 2011 21:52:32 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.0
+Message-Id: <1309643552-17775-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
+References: <20110606170230.2bda2a14@endymion.delvare>
+In-Reply-To: <20110606170230.2bda2a14@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Wed, Jul 13, 2011 at 06:54:38PM -0700, Guenter Roeck wrote:
-> Add the following attributes to the sysfs ABI.
-> 
-> in[0-*]_average
-> in[0-*]_lowest
-> in[0-*]_highest
-> in[0-*]_reset_history
-> in_reset_history
-> 
-> curr[1-*]_average
-> curr[1-*]_lowest
-> curr[1-*]_highest
-> curr[1-*]_reset_history
-> curr_reset_history
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Hi Linus,
 
-Jean,
+Please pull hwmon subsystem fixes for Linux 3.0 from:
 
-any comments on this patch ?
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
 Thanks,
-Guenter
+Guenter Roeck
+
+------
+
+The following changes since commit daf54f1f363a61c618662ef66d4bf09d2b090941:
+
+  drm/radeon/kms: Fix chremap setup on RV770 CE (2011-07-01 07:29:46 +1000)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Guenter Roeck (4):
+      hwmon: (pmbus) Drop check for PMBus revision register in probe function
+      hwmon: (adm1275) Free allocated memory if probe function fails
+      hwmon: (pmbus) Improve fan detection
+      hwmon: (pmbus) Auto-detect temp2 and temp3 registers/attributes
+
+ drivers/hwmon/adm1275.c    |   16 +++++++++++++---
+ drivers/hwmon/pmbus.c      |   10 ++++++++--
+ drivers/hwmon/pmbus_core.c |   11 +++--------
+ 3 files changed, 24 insertions(+), 13 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
