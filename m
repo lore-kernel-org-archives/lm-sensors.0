@@ -1,31 +1,34 @@
-From: Tejun Heo <tj@kernel.org>
-Date: Sat, 23 Jul 2011 10:17:14 +0000
-Subject: Re: [lm-sensors] [PATCH 8/8] rtc: class idr converted to ida and
-Message-Id: <20110723101714.GM21089@mtj.dyndns.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 03 Jul 2011 11:59:17 +0000
+Subject: Re: [lm-sensors] [PATCH] Don't point the user to the ipmisensors
+Message-Id: <20110703135917.35a3bfad@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
- <1311352886-4047-9-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1311352886-4047-9-git-send-email-jic23@cam.ac.uk>
+References: <20110608151843.357fa29c@endymion.delvare>
+In-Reply-To: <20110608151843.357fa29c@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie
+To: lm-sensors@vger.kernel.org
 
-On Fri, Jul 22, 2011 at 05:41:17PM +0100, Jonathan Cameron wrote:
-> This is the one use of an ida that doesn't retry on receiving -EAGAIN.
-> I'm assuming do so will cause no harm and may help on a rare occasion.
+On Wed, 8 Jun 2011 16:29:06 +0200, Aurelien Jarno wrote:
+> On Wed, Jun 08, 2011 at 03:18:43PM +0200, Jean Delvare wrote:
+> > The development of the ipmisensors driver stalled 5 years ago, the
+> > driver isn't usable, so stop pointing the users to it, it only confuses
+> > them. See https://bugzilla.novell.com/show_bug.cgi?idU8756 for
+> > example.
 > 
-> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+> I think I never tried this driver, but I trust you on this analysis.
+> 
+> > ---
+> > I have this patch in openSUSE for 1.5 year, any objection to me
+> > getting it upstream for everyone's benefit?
+> 
+> Given the above, I think it's a good idea.
 
-And all conversions seem correct to me.  Please feel free to add
-
-Reviewed-by: Tejun Heo <tj@kernel.org>
-
-Thank you.
+Applied.
 
 -- 
-tejun
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
