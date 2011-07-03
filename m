@@ -1,44 +1,47 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 02 Jul 2011 21:52:32 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 03 Jul 2011 12:02:13 +0000
 Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.0
-Message-Id: <1309643552-17775-1-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <20110703140213.71def431@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110606170230.2bda2a14@endymion.delvare>
 In-Reply-To: <20110606170230.2bda2a14@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
 
 Hi Linus,
 
 Please pull hwmon subsystem fixes for Linux 3.0 from:
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+ Documentation/hwmon/f71882fg |    4 +++
+ Documentation/hwmon/k10temp  |    8 ++++-
+ drivers/hwmon/Kconfig        |    2 +-
+ drivers/hwmon/emc6w201.c     |   58 +++++++++++++++++++++++++++++++----------
+ drivers/hwmon/f71882fg.c     |   19 +++++++++++--
+ drivers/hwmon/hwmon-vid.c    |    2 +-
+ drivers/hwmon/sch5627.c      |    2 +-
+ 7 files changed, 73 insertions(+), 22 deletions(-)
+
+---------------
+
+Clemens Ladisch (1):
+      hwmon: (k10temp) Update documentation for Fam12h
+
+Hans de Goede (2):
+      hwmon: Use <> rather than () around my e-mail address
+      hwmon: (f71882fg) Add support for the F71869A
+
+Jean Delvare (2):
+      hwmon: (emc6w201) Properly handle all errors
+      hwmon-vid: Fix typo in VIA CPU name
 
 Thanks,
-Guenter Roeck
-
-------
-
-The following changes since commit daf54f1f363a61c618662ef66d4bf09d2b090941:
-
-  drm/radeon/kms: Fix chremap setup on RV770 CE (2011-07-01 07:29:46 +1000)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
-
-Guenter Roeck (4):
-      hwmon: (pmbus) Drop check for PMBus revision register in probe function
-      hwmon: (adm1275) Free allocated memory if probe function fails
-      hwmon: (pmbus) Improve fan detection
-      hwmon: (pmbus) Auto-detect temp2 and temp3 registers/attributes
-
- drivers/hwmon/adm1275.c    |   16 +++++++++++++---
- drivers/hwmon/pmbus.c      |   10 ++++++++--
- drivers/hwmon/pmbus_core.c |   11 +++--------
- 3 files changed, 24 insertions(+), 13 deletions(-)
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
