@@ -1,34 +1,44 @@
-From: "Mark O. Stitson" <mark@stitson.com>
-Date: Sun, 03 Jul 2011 11:13:51 +0000
-Subject: [lm-sensors] Any plans to support  Fintek F71869A
-Message-Id: <00eb01cc3972$4a2a4180$de7ec480$@com>
+From: "Ian Dobson" <i.dobson@planet-ian.com>
+Date: Sun, 03 Jul 2011 11:22:42 +0000
+Subject: Re: [lm-sensors] Any plans to support  Fintek F71869A
+Message-Id: <FBB3389913D0499F94A8035A97F280A9@portable2>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1868229551367420977=="
+Content-Type: multipart/mixed; boundary="===============5853226108330180470=="
 List-Id: <lm-sensors.vger.kernel.org>
+References: <00eb01cc3972$4a2a4180$de7ec480$@com>
+In-Reply-To: <00eb01cc3972$4a2a4180$de7ec480$@com>
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
+Dies ist eine mehrteilige Nachricht im MIME-Format.
 
---===============1868229551367420977==
+--===============5853226108330180470==
 Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_00EC_01CC397A.ABEEA980"
-Content-Language: en-gb
+	boundary="----=_NextPart_000_003C_01CC3984.49AEA3B0"
 
-This is a multi-part message in MIME format.
+Dies ist eine mehrteilige Nachricht im MIME-Format.
 
-------=_NextPart_000_00EC_01CC397A.ABEEA980
+------=_NextPart_000_003C_01CC3984.49AEA3B0
 Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+
+From: Mark O. Stitson=20
+Sent: Sunday, July 03, 2011 1:13 PM
+To: lm-sensors@lm-sensors.org=20
+Subject: [lm-sensors] Any plans to support Fintek F71869A
+
 
 Hi there,
 
- 
+=20
 
-I have a Jetway NF99FL-525 Atom ITX motherboard which uses an unsupported
-Fintek chipset.
+I have a Jetway NF99FL-525 Atom ITX motherboard which uses an =
+unsupported Fintek chipset.
 
- 
+=20
 
 Output from sensors-detect 3.3.0:
 
@@ -38,30 +48,47 @@ Driver `to-be-written':
 
     Chip `Fintek F71869A Super IO Sensors' (confidence: 9)
 
- 
+=20
 
 Can you fix it? I can help to test drivers.
 
- 
+=20
 
 Mark
 
- 
+=20
 
 
-------=_NextPart_000_00EC_01CC397A.ABEEA980
+
+-------------------------------------------------------------------------=
+-------
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+Theres already a patch on it's way upstream
+http://www.spinics.net/lists/lm-sensors/msg32588.html
+
+Regards
+Ian Dobson
+
+------=_NextPart_000_003C_01CC3984.49AEA3B0
 Content-Type: text/html;
-	charset="US-ASCII"
+	charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
-xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
-xmlns=3D"http://www.w3.org/TR/REC-html40"><head><meta =
-http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii"><meta name=3DGenerator content=3D"Microsoft Word 12 =
-(filtered medium)"><style><!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML xmlns:v =3D "urn:schemas-microsoft-com:vml" xmlns:o =3D=20
+"urn:schemas-microsoft-com:office:office" xmlns:w =3D=20
+"urn:schemas-microsoft-com:office:word" xmlns:m =3D=20
+"http://schemas.microsoft.com/office/2004/12/omml"><HEAD>
+<META content=3Dtext/html;charset=3Diso-8859-1 =
+http-equiv=3DContent-Type>
+<META name=3DGENERATOR content=3D"MSHTML 9.00.8112.16430">
+<STYLE><!--
 /* Font Definitions */
 @font-face
 	{font-family:"Cambria Math";
@@ -94,31 +121,71 @@ span.EmailStyle17
 	margin:72.0pt 72.0pt 72.0pt 72.0pt;}
 div.WordSection1
 	{page:WordSection1;}
---></style><!--[if gte mso 9]><xml>
-<o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
-<o:shapelayout v:ext=3D"edit">
-<o:idmap v:ext=3D"edit" data=3D"1" />
-</o:shapelayout></xml><![endif]--></head><body lang=3DEN-GB link=3Dblue =
-vlink=3Dpurple><div class=3DWordSection1><p class=3DMsoNormal>Hi =
-there,<o:p></o:p></p><p class=3DMsoNormal><o:p>&nbsp;</o:p></p><p =
-class=3DMsoNormal>I have a Jetway NF99FL-525 Atom ITX motherboard which =
-uses an unsupported Fintek chipset.<o:p></o:p></p><p =
-class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>Output from =
-sensors-detect 3.3.0:<o:p></o:p></p><p class=3DMsoNormal>Driver =
-`to-be-written':<o:p></o:p></p><p class=3DMsoNormal>&nbsp; * ISA bus, =
-address 0x290<o:p></o:p></p><p class=3DMsoNormal>&nbsp;&nbsp;&nbsp; Chip =
-`Fintek F71869A Super IO Sensors' (confidence: 9)<o:p></o:p></p><p =
-class=3DMsoNormal><o:p>&nbsp;</o:p></p><p class=3DMsoNormal>Can you fix =
-it? I can help to test drivers.<o:p></o:p></p><p =
-class=3DMsoNormal><o:p>&nbsp;</o:p></p><p =
-class=3DMsoNormal>Mark<o:p></o:p></p><p =
-class=3DMsoNormal><o:p>&nbsp;</o:p></p></div></body></html>
-------=_NextPart_000_00EC_01CC397A.ABEEA980--
+--></STYLE>
+</HEAD>
+<BODY style=3D"PADDING-LEFT: 10px; PADDING-RIGHT: 10px; PADDING-TOP: =
+15px"=20
+id=3DMailContainerBody lang=3DEN-GB leftMargin=3D0 topMargin=3D0 =
+vLink=3Dpurple link=3Dblue=20
+CanvasTabStop=3D"true" name=3D"Compose message area">
+<DIV><FONT face=3DCalibri>Hi,</FONT></DIV>
+<DIV style=3D"FONT: 10pt Tahoma">
+<DIV><BR></DIV>
+<DIV style=3D"BACKGROUND: #f5f5f5">
+<DIV style=3D"font-color: black"><B>From:</B> <A =
+title=3Dmark@stitson.com=20
+href=3D"mailto:mark@stitson.com">Mark O. Stitson</A> </DIV>
+<DIV><B>Sent:</B> Sunday, July 03, 2011 1:13 PM</DIV>
+<DIV><B>To:</B> <A title=3Dlm-sensors@lm-sensors.org=20
+href=3D"mailto:lm-sensors@lm-sensors.org">lm-sensors@lm-sensors.org</A> =
+</DIV>
+<DIV><B>Subject:</B> [lm-sensors] Any plans to support Fintek=20
+F71869A</DIV></DIV></DIV>
+<DIV><BR></DIV>
+<DIV class=3DWordSection1>
+<P class=3DMsoNormal>Hi there,<o:p></o:p></P>
+<P class=3DMsoNormal><o:p>&nbsp;</o:p></P>
+<P class=3DMsoNormal>I have a Jetway NF99FL-525 Atom ITX motherboard =
+which uses an=20
+unsupported Fintek chipset.<o:p></o:p></P>
+<P class=3DMsoNormal><o:p>&nbsp;</o:p></P>
+<P class=3DMsoNormal>Output from sensors-detect 3.3.0:<o:p></o:p></P>
+<P class=3DMsoNormal>Driver `to-be-written':<o:p></o:p></P>
+<P class=3DMsoNormal>&nbsp; * ISA bus, address 0x290<o:p></o:p></P>
+<P class=3DMsoNormal>&nbsp;&nbsp;&nbsp; Chip `Fintek F71869A Super IO =
+Sensors'=20
+(confidence: 9)<o:p></o:p></P>
+<P class=3DMsoNormal><o:p>&nbsp;</o:p></P>
+<P class=3DMsoNormal>Can you fix it? I can help to test =
+drivers.<o:p></o:p></P>
+<P class=3DMsoNormal><o:p>&nbsp;</o:p></P>
+<P class=3DMsoNormal>Mark<o:p></o:p></P>
+<P class=3DMsoNormal><o:p>&nbsp;</o:p></P></DIV>
+<P>
+<HR>
+
+<P></P>
+<DIV>_______________________________________________<BR>lm-sensors =
+mailing=20
+list<BR>lm-sensors@lm-sensors.org<BR><A=20
+href=3D"http://lists.lm-sensors.org/mailman/listinfo/lm-sensors">http://l=
+ists.lm-sensors.org/mailman/listinfo/lm-sensors</A></DIV>
+<DIV>&nbsp;</DIV>
+<DIV><FONT face=3DCalibri>Theres already a patch on it's way =
+upstream</FONT></DIV>
+<DIV><FONT face=3DCalibri><A=20
+href=3D"http://www.spinics.net/lists/lm-sensors/msg32588.html">http://www=
+.spinics.net/lists/lm-sensors/msg32588.html</A></FONT></DIV>
+<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DCalibri>Regards</FONT></DIV>
+<DIV><FONT face=3DCalibri>Ian Dobson</FONT></DIV>
+<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_003C_01CC3984.49AEA3B0--
 
 
 
---===============1868229551367420977==
+--===============5853226108330180470==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -128,5 +195,5 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1868229551367420977==--
+--===============5853226108330180470==--
 
