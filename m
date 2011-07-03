@@ -1,44 +1,54 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 25 Jul 2011 19:03:21 +0000
-Subject: Re: [lm-sensors] [PATCH 01/34] System Firmware Interface
-Message-Id: <20110725210321.1e2f252e@endymion.delvare>
+Date: Sun, 03 Jul 2011 07:46:05 +0000
+Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (pmbus) Drop check for PMBus
+Message-Id: <20110703094605.1b09d296@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310994528-26276-1-git-send-email-prarit@redhat.com>
-	<1310994528-26276-2-git-send-email-prarit@redhat.com>
-In-Reply-To: <1310994528-26276-2-git-send-email-prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <1309454993-8641-2-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1309454993-8641-2-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Prarit Bhargava <prarit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, device-drivers-devel-ZG0+EudsQA8dtHy/vicBwGD2FQJk+8+b@public.gmane.org, abelay-3s7WtUTddSA@public.gmane.org, eric.piel-VkQ1JFuSMpfAbQlEx87xDw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, johnpol-9fLWQ3dKdXwox3rIn2DAYQ@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, dz-8fiUuRrzOP0dnm+yROfE0A@public.gmane.org, openipmi-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, evel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rpurdie-Fm38FmjxZ/leoWH0uzbU5w@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lm-sensors@vger.kernel.org
 
-On Mon, 18 Jul 2011 09:08:15 -0400, Prarit Bhargava wrote:
-> This patch introduces a general System Firmware interface to the kernel, called
-> sysfw.
+Hi Guenter,
+
+Sorry for the (too) late review.
+
+On Thu, 30 Jun 2011 10:29:50 -0700, Guenter Roeck wrote:
+> Some PMBus devices do not support the PMBus revision register, so don't check
+> if it exists.
+
+This was the only use of PMBUS_REVISION. Should its definition be kept
+in pmbus.h?
+
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  drivers/hwmon/pmbus_core.c |    8 ++------
+>  1 files changed, 2 insertions(+), 6 deletions(-)
 > 
-> Inlcluded in this interface is the ability to search a standard set of fields,
-> sysfw_lookup().  The fields are currently based upon the x86 and ia64 SMBIOS
-> fields but exapandable to fields that other arches may introduce.  Also
-> included is  the ability to search and match against those fields, and run
-> a callback function against the matches, sysfw_callback().
-> 
-> Modify module code to use sysfw instead of old DMI interface.
+> diff --git a/drivers/hwmon/pmbus_core.c b/drivers/hwmon/pmbus_core.c
+> index 354770e..bd613e7 100644
+> --- a/drivers/hwmon/pmbus_core.c
+> +++ b/drivers/hwmon/pmbus_core.c
+> @@ -1430,12 +1430,8 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+>  	i2c_set_clientdata(client, data);
+>  	mutex_init(&data->update_lock);
+>  
+> -	/*
+> -	 * Bail out if status register or PMBus revision register
+> -	 * does not exist.
+> -	 */
+> -	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0
+> -	    || i2c_smbus_read_byte_data(client, PMBUS_REVISION) < 0) {
+> +	/* Bail out if PMBus status register does not exist. */
+> +	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0) {
+>  		dev_err(&client->dev,
+>  			"Status or revision register not found\n");
 
-This is a HUGE patch set. You'd need to have a good reason for such a
-big and intrusive change, yet I see no such reason explained. I
-understand that we _can_ abstract system information interfaces, but
-just because we can doesn't mean we have to. I would at least wait for
-a second DMI-like interface to be widely implemented and support before
-any attempt to abstract, otherwise your design is bound to be missing
-the target. And even then, you'd still need to convince me that there
-is a need for a unified interface to access both backends at once. I
-would guess that you know what backend is present on a system when you
-try to identify it.
+This error message should be updated accordingly.
 
-At this point, I see the work needed to review your patches, the risk
-of regressions due to the large size of the patch set, but I don't see
-any immediate benefit. Thus I am not going to look into it at all,
-sorry.
+>  		ret = -ENODEV;
+
 
 -- 
 Jean Delvare
