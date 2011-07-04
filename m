@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 03 Jul 2011 11:56:15 +0000
+From: "Mark O. Stitson" <mark@stitson.com>
+Date: Mon, 04 Jul 2011 07:54:22 +0000
 Subject: Re: [lm-sensors] Any plans to support  Fintek F71869A
-Message-Id: <20110703135615.12123ece@endymion.delvare>
+Message-Id: <013901cc3a1f$969499a0$c3bdcce0$@com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <00eb01cc3972$4a2a4180$de7ec480$@com>
 In-Reply-To: <00eb01cc3972$4a2a4180$de7ec480$@com>
@@ -10,13 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Ok, I recompiled my kernel with the new module code and used the new
+sensors_detect, and it works fine.
+
+I guess it's not worth releasing a new lm-sensors until the kernel has the
+new code as well, maybe just worth updating the wiki.
+
+Many thanks for the help.
+
+Mark
+
+-----Original Message-----
+From: Jean Delvare [mailto:khali@linux-fr.org] 
+Sent: 03 July 2011 12:56
+To: Ian Dobson; Mark O. Stitson
+Cc: lm-sensors@lm-sensors.org
+Subject: Re: [lm-sensors] Any plans to support Fintek F71869A
+
 On Sun, 3 Jul 2011 13:22:42 +0200, Ian Dobson wrote:
 > From: Mark O. Stitson 
 > Sent: Sunday, July 03, 2011 1:13 PM
 > To: lm-sensors@lm-sensors.org 
 > Subject: [lm-sensors] Any plans to support Fintek F71869A
 > 
-> I have a Jetway NF99FL-525 Atom ITX motherboard which uses an unsupported Fintek chipset.
+> I have a Jetway NF99FL-525 Atom ITX motherboard which uses an unsupported
+Fintek chipset.
 > 
 > Output from sensors-detect 3.3.0:
 > 
@@ -50,6 +68,7 @@ running a 3.0-rc kernel, I've updated the standalone driver at:
 
 -- 
 Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
