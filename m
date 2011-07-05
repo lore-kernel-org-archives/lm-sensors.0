@@ -1,106 +1,162 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 05 Jul 2011 19:51:59 +0000
-Subject: Re: [lm-sensors] Using Asus P5Q-E sensors/pwm
-Message-Id: <20110705195159.GA21510@nb-core2.darkstar.lan>
+From: DB <Freddog_de@yahoo.co.uk>
+Date: Tue, 05 Jul 2011 19:45:48 +0000
+Subject: Re: [lm-sensors] Where are all the sensors?
+Message-Id: <4E1369EC.8000807@yahoo.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110628194643.GM21173@epicure.lazyet.homelinux.net>
-In-Reply-To: <20110628194643.GM21173@epicure.lazyet.homelinux.net>
+References: <4E0B52A6.1070402@yahoo.co.uk>
+In-Reply-To: <4E0B52A6.1070402@yahoo.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jun 30, 2011 at 01:47:15PM +0200, Jean Delvare wrote:
-> On Thu, 30 Jun 2011 13:34:48 +0200, Luca Tettamanti wrote:
-> > On Thu, Jun 30, 2011 at 12:19 PM, Etienne Buira
-> > > Yeah, I know about q-fan, but it doesn't gives enough air in some
-> > > situations, even in turbo mode
-> 
-> Is it OK if you disable smart fan control altogether? If even the
-> fastest smart fan setting doesn't work for you, then maybe your cooling
-> solution is simply not adequate.
-> 
-> > > (...)
-> > > If none, do you know if an acpi compatible solution is on cooking time?
-> > > Or would it be possible/not too hard to implement? (I might volunteer to
-> > > write some code, if I'm directed in some way to relevant docs)
-> > 
-> > The interface does not seem complicated, but I feel I'm still missing
-> > something... e.g on my old P5B-E Q-FAN setting were applied only after
-> > a reboot, on a newer M4A79XTD nothing happens, while my M5A78L seems
-> > to work correctly...
-> 
-> Would you mind sharing your code? I would love to give it a try and
-> report how it goes on my P5QL Pro.
+Hi Jeff,
 
-Sorry for the delay... busy week :)
-Patch is attached. It adds a new file (sitm) to the debugfs interface.
-Select the id of the Q-FAN profile control (in your case 0x04080011):
+Thanks for your suggestions!  Here are the results - as far as I can=20
+see...... (To save on the amount to transmit, I've clipped the text=20
+parts of Sensors-detect)
 
-echo 0x04070011 > /sys/kernel/debug/asus_atk0110/id
 
-and reprogram it:
+$ sensors -v
+sensors version 3.3.0 with libsensors version 3.3.0
 
-echo 0x0000000100000001 > /sys/kernel/debug/asus_atk0110/sitm
 
-The 64 bit value is actually two 32 bit params packaged together, the
-first is the value to program (0 = optimal, 1 = silent, 2 performance), the second one... is a mistery, on your board is not used
-though.
-The return value of the method is also different from what I was
-expecting, so the code path with the debug statement won't be triggered.
+# sensors-detect
+Stopping lm_sensors:                                       [  OK  ]
+# sensors-detect revision 5946 (2011-03-23 11:54:44 +0100)
+# System: MSI MS-7623
+# Board: MSI 880GM-E41 (MS-7623)
 
-diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-index dcb78a7..067f507 100644
---- a/drivers/hwmon/asus_atk0110.c
-+++ b/drivers/hwmon/asus_atk0110.c
-@@ -784,6 +784,43 @@ static const struct file_operations atk_debugfs_ggrp_fops = {
- 	.llseek		= no_llseek,
- };
- 
-+static int atk_debugfs_sitm_set(void *p, u64 val)
-+{
-+	struct atk_data *data = p;
-+	union acpi_object *ret;
-+	struct atk_acpi_input_buf sitm;
-+	struct atk_acpi_ret_buffer *buf;
-+	int err = 0;
-+
-+	if (!data->write_handle)
-+		return -ENODEV;
-+
-+	if (!data->debugfs.id)
-+		return -EINVAL;
-+
-+	sitm.id = data->debugfs.id;
-+	sitm.param1 = (val & 0xffffffff00000000) >> 32;
-+	sitm.param2 = (val & 0xffffffff);
-+
-+	ret = atk_sitm(data, &sitm);
-+	if (IS_ERR(ret))
-+		return PTR_ERR(ret);
-+
-+	buf = (struct atk_acpi_ret_buffer *)ret->buffer.pointer;
-+	if (buf->flags) {
-+		if (sitm.id & ATK_CLASS_MASK = ATK_CLASS_FAN_CTL &&
-+				buf->flags & 0x2)
-+			dev_dbg(&data->acpi_dev->dev,
-+					"%#llu updated\n", sitm.id);
-+	} else {
-+		err = -EIO;
-+	}
-+
-+	ACPI_FREE(ret);
-+
-+	return err;
-+}
-+
- static void atk_debugfs_init(struct atk_data *data)
- {
- 	struct dentry *d;
+Do you want to scan for them? This is totally safe. (YES/no): Y
+Silicon Integrated Systems SIS5595...                       No
+VIA VT82C686 Integrated Sensors...                          No
+VIA VT8231 Integrated Sensors...                            No
+AMD K8 thermal sensors...                                   No
+AMD Family 10h thermal sensors...                           Success!
+     (driver `k10temp')
+AMD Family 11h thermal sensors...                           No
+AMD Family 12h and 14h thermal sensors...                   No
+Intel digital thermal sensor...                             No
+Intel AMB FB-DIMM thermal sensor...                         No
+VIA C7 thermal sensor...                                    No
+VIA Nano thermal sensor...                                  No
 
--- 
-"It is more complicated than you think"
-                -- The Eighth Networking Truth from RFC 1925
+Some Super I/O chips contain embedded sensors. We have to write to
+standard I/O ports to probe them. This is usually safe.
+Do you want to scan for Super I/O sensors? (YES/no): Y
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      No
+Probing for Super-I/O at 0x4e/0x4f
+Trying family `National Semiconductor'...                   No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+Found `Fintek F71889FG/F81801U Super IO Sensors'            Success!
+     (address 0x600, driver `f71882fg')
+
+his is normally safe. Do you want to scan for IPMI
+interfaces? (YES/no): Y
+Probing for `IPMI BMC KCS' at 0xca0...                      No
+Probing for `IPMI BMC SMIC' at 0xca8...                     No
+
+Do you want to scan the ISA I/O ports? (yes/NO): y
+Probing for `National Semiconductor LM78' at 0x290...       No
+Probing for `National Semiconductor LM79' at 0x290...       No
+Probing for `Winbond W83781D' at 0x290...                   No
+Probing for `Winbond W83782D' at 0x290...                   No
+
+Do you want to probe the I2C/SMBus adapters now? (YES/no): Y
+Using driver `i2c-piix4' for device 0000:00:14.0: ATI Technologies Inc=20
+SB600/SB700/SB800 SMBus
+Module i2c-dev loaded successfully.
+
+Next adapter: Radeon i2c bit bus VGA (i2c-0)
+Do you want to scan it? (YES/no/selectively): Y
+Client found at address 0x4a
+Probing for `National Semiconductor LM75'...                No
+Probing for `National Semiconductor LM75A'...               No
+Probing for `Dallas Semiconductor DS75'...                  No
+Probing for `National Semiconductor LM77'...                No
+Probing for `Analog Devices ADT7410'...                     No
+Probing for `Analog Devices ADT7411'...                     No
+Probing for `Dallas Semiconductor DS1621/DS1631'...         No
+Probing for `National Semiconductor LM73'...                No
+Probing for `National Semiconductor LM92'...                No
+Probing for `National Semiconductor LM76'...                No
+Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+Client found at address 0x4b
+Probing for `National Semiconductor LM75'...                No
+Probing for `National Semiconductor LM75A'...               No
+Probing for `Dallas Semiconductor DS75'...                  No
+Probing for `National Semiconductor LM77'...                No
+Probing for `Analog Devices ADT7410'...                     No
+Probing for `Analog Devices ADT7411'...                     No
+Probing for `Dallas Semiconductor DS1621/DS1631'...         No
+Probing for `Maxim MAX6650/MAX6651'...                      No
+Probing for `National Semiconductor LM92'...                No
+Probing for `National Semiconductor LM76'...                No
+Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
+Probing for `Analog Devices ADT7481'...                     No
+Client found at address 0x50
+Probing for `Analog Devices ADM1033'...                     No
+Probing for `Analog Devices ADM1034'...                     No
+Probing for `SPD EEPROM'...                                 No
+Probing for `EDID EEPROM'...                                Yes
+     (confidence 8, not a hardware monitoring chip)
+
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
+
+Driver `k10temp' (autoloaded):
+   * Chip `AMD Family 10h thermal sensors' (confidence: 9)
+
+Driver `f71882fg':
+   * ISA bus, address 0x600
+     Chip `Fintek F71889FG/F81801U Super IO Sensors' (confidence: 9)
+
+
+
+# sensors
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +25.0=B0C  (high =3D +70.0=B0C)
+
+
+# Generated by sensors-detect on Tue Jun 28 15:35:14 2011
+# This file is sourced by /etc/init.d/lm_sensors and defines the modules to
+# be loaded/unloaded.
+#
+# The format of this file is a shell script that simply defines variables:
+# HWMON_MODULES for hardware monitoring driver modules, and optionally
+# BUS_MODULES for any required bus driver module (for example for I2C or=20
+SPI).
+
+HWMON_MODULES=3D"f71882fg"
+
+# For compatibility reasons, modules are also listed individually as=20
+variables
+#    MODULE_0, MODULE_1, MODULE_2, etc.
+# You should use BUS_MODULES and HWMON_MODULES instead if possible.
+
+MODULE_0=F71882fg
+
+This is what I found in dmesg:
+
+[   21.121981] f71882fg: Found f71889fg chip at 0x600, revision 21
+[   21.122030] ACPI: resource f71882fg [io  0x0600-0x0607] conflicts=20
+with ACPI region HMOR [mem 0x00000605-0x00000606 pref disabled]
+[   21.122037] ACPI: If an ACPI driver is available for this device, you=20
+should use it instead of the native driver
+
+
+Hope you can make some sense of it!!!
+
+Dave
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
