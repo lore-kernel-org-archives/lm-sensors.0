@@ -1,31 +1,67 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 03 Jul 2011 11:59:17 +0000
-Subject: Re: [lm-sensors] [PATCH] Don't point the user to the ipmisensors
-Message-Id: <20110703135917.35a3bfad@endymion.delvare>
+Date: Tue, 05 Jul 2011 09:38:38 +0000
+Subject: Re: [lm-sensors] [PATCHv2 1/1] Hwmon: Add core_pkg Threshold
+Message-Id: <20110705113838.4ac5d4ec@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110608151843.357fa29c@endymion.delvare>
-In-Reply-To: <20110608151843.357fa29c@endymion.delvare>
+References: <1307791723-28272-1-git-send-email-durgadoss.r@intel.com>
+In-Reply-To: <1307791723-28272-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 8 Jun 2011 16:29:06 +0200, Aurelien Jarno wrote:
-> On Wed, Jun 08, 2011 at 03:18:43PM +0200, Jean Delvare wrote:
-> > The development of the ipmisensors driver stalled 5 years ago, the
-> > driver isn't usable, so stop pointing the users to it, it only confuses
-> > them. See https://bugzilla.novell.com/show_bug.cgi?idU8756 for
-> > example.
+On Mon, 13 Jun 2011 10:14:04 -0700, Guenter Roeck wrote:
+> Hi Durga,
 > 
-> I think I never tried this driver, but I trust you on this analysis.
+> On Sat, Jun 11, 2011 at 07:28:43AM -0400, Durgadoss R wrote:
+> > This patch adds the core and pkg support to coretemp.
+> > These thresholds can be configured via the sysfs interfaces tempX_max
+> > and tempX_max_hyst. An interrupt is generated when CPU temperature reaches
+> > or crosses above tempX_max OR drops below tempX_max_hyst.
+> > 
+> > This patch is based on the documentation in IA Manual vol 3A, that can be
+> > downloaded from here:
+> > http://download.intel.com/design/processor/manuals/253668.pdf
+> > 
+> > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
 > 
-> > ---
-> > I have this patch in openSUSE for 1.5 year, any objection to me
-> > getting it upstream for everyone's benefit?
+> [ ... ]
 > 
-> Given the above, I think it's a good idea.
+> > +			size_t count) = { NULL, NULL, NULL, NULL, NULL,
+> > +					store_ttarget, store_tmin };
+> > +	static const char *names[TOTAL_ATTRS] = {
+> >  					"temp%d_label", "temp%d_crit_alarm",
+> > -					"temp%d_max", "temp%d_input",
+> > -					"temp%d_crit" };
+> > +					"temp%d_imput", "temp%d_crit",
+> 
+> s/imput/input/
+> 
+> Seems like we need another round of detailed testing ...
+> 
+> > +					"temp%d_max_alarm", "temp%d_max",
+> > +					"temp%d_max_hyst" };
+> >  
+> > -	for (i = 0; i < MAX_ATTRS; i++) {
+> > +	for (i = 0; i < tdata->attr_size; i++) {
+> >  		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+> >  			attr_no);
+> >  		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
+> >  		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
+> >  		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
+> > +		if (rw_ptr[i])
+> > +			tdata->sd_attrs[i].dev_attr.attr.mode |= S_IWUSR;
+> >  		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
+> > -		tdata->sd_attrs[i].dev_attr.store = NULL;
+> > +		tdata->sd_attrs[i].dev_attr.store = rw_ptr[i];
+> 
+> Since you check for rw_ptr above anyway, you might as well move this assignment
+> into the if branch above. The NULL assignment is not necessary anyway, since the
+> entire structure is pre-initialized from kzalloc().
 
-Applied.
+Durgadoss, any progress on this? I also have coretemp patches pending,
+I was originally waiting for yours to go in first, to avoid conflicts,
+but I don't want to wait too long either...
 
 -- 
 Jean Delvare
