@@ -1,162 +1,31 @@
-From: DB <Freddog_de@yahoo.co.uk>
-Date: Tue, 05 Jul 2011 19:45:48 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 05 Jul 2011 20:37:41 +0000
 Subject: Re: [lm-sensors] Where are all the sensors?
-Message-Id: <4E1369EC.8000807@yahoo.co.uk>
+Message-Id: <CAKPcRGrz4fJ_+JgNKoPrfpmE=RXMsh5QHuaUrnjaAc62+jUH1w@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4E0B52A6.1070402@yahoo.co.uk>
 In-Reply-To: <4E0B52A6.1070402@yahoo.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jeff,
+On Tue, Jul 5, 2011 at 9:45 PM, DB <Freddog_de@yahoo.co.uk> wrote:
+> [   21.121981] f71882fg: Found f71889fg chip at 0x600, revision 21
+> [   21.122030] ACPI: resource f71882fg [io  0x0600-0x0607] conflicts with
+> ACPI region HMOR [mem 0x00000605-0x00000606 pref disabled]
+> [   21.122037] ACPI: If an ACPI driver is available for this device, you
+> should use it instead of the native driver
 
-Thanks for your suggestions!  Here are the results - as far as I can=20
-see...... (To save on the amount to transmit, I've clipped the text=20
-parts of Sensors-detect)
+This means that the BIOS is claiming the hwmon chip for itself;
+starting from 2.6.31 Linux started enforcing this claim, see
+http://lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31.
 
+Asus exposes the hardware monitoring data trough an ACPI interface. If
+you send me a copy of /sys/firmware/acpi/tables/DSDT I'll see if
+there's something usable.
 
-$ sensors -v
-sensors version 3.3.0 with libsensors version 3.3.0
-
-
-# sensors-detect
-Stopping lm_sensors:                                       [  OK  ]
-# sensors-detect revision 5946 (2011-03-23 11:54:44 +0100)
-# System: MSI MS-7623
-# Board: MSI 880GM-E41 (MS-7623)
-
-Do you want to scan for them? This is totally safe. (YES/no): Y
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD Family 10h thermal sensors...                           Success!
-     (driver `k10temp')
-AMD Family 11h thermal sensors...                           No
-AMD Family 12h and 14h thermal sensors...                   No
-Intel digital thermal sensor...                             No
-Intel AMB FB-DIMM thermal sensor...                         No
-VIA C7 thermal sensor...                                    No
-VIA Nano thermal sensor...                                  No
-
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no): Y
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      No
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor'...                   No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-Found `Fintek F71889FG/F81801U Super IO Sensors'            Success!
-     (address 0x600, driver `f71882fg')
-
-his is normally safe. Do you want to scan for IPMI
-interfaces? (YES/no): Y
-Probing for `IPMI BMC KCS' at 0xca0...                      No
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
-
-Do you want to scan the ISA I/O ports? (yes/NO): y
-Probing for `National Semiconductor LM78' at 0x290...       No
-Probing for `National Semiconductor LM79' at 0x290...       No
-Probing for `Winbond W83781D' at 0x290...                   No
-Probing for `Winbond W83782D' at 0x290...                   No
-
-Do you want to probe the I2C/SMBus adapters now? (YES/no): Y
-Using driver `i2c-piix4' for device 0000:00:14.0: ATI Technologies Inc=20
-SB600/SB700/SB800 SMBus
-Module i2c-dev loaded successfully.
-
-Next adapter: Radeon i2c bit bus VGA (i2c-0)
-Do you want to scan it? (YES/no/selectively): Y
-Client found at address 0x4a
-Probing for `National Semiconductor LM75'...                No
-Probing for `National Semiconductor LM75A'...               No
-Probing for `Dallas Semiconductor DS75'...                  No
-Probing for `National Semiconductor LM77'...                No
-Probing for `Analog Devices ADT7410'...                     No
-Probing for `Analog Devices ADT7411'...                     No
-Probing for `Dallas Semiconductor DS1621/DS1631'...         No
-Probing for `National Semiconductor LM73'...                No
-Probing for `National Semiconductor LM92'...                No
-Probing for `National Semiconductor LM76'...                No
-Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-Client found at address 0x4b
-Probing for `National Semiconductor LM75'...                No
-Probing for `National Semiconductor LM75A'...               No
-Probing for `Dallas Semiconductor DS75'...                  No
-Probing for `National Semiconductor LM77'...                No
-Probing for `Analog Devices ADT7410'...                     No
-Probing for `Analog Devices ADT7411'...                     No
-Probing for `Dallas Semiconductor DS1621/DS1631'...         No
-Probing for `Maxim MAX6650/MAX6651'...                      No
-Probing for `National Semiconductor LM92'...                No
-Probing for `National Semiconductor LM76'...                No
-Probing for `Maxim MAX6633/MAX6634/MAX6635'...              No
-Probing for `Analog Devices ADT7481'...                     No
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                Yes
-     (confidence 8, not a hardware monitoring chip)
-
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
-
-Driver `k10temp' (autoloaded):
-   * Chip `AMD Family 10h thermal sensors' (confidence: 9)
-
-Driver `f71882fg':
-   * ISA bus, address 0x600
-     Chip `Fintek F71889FG/F81801U Super IO Sensors' (confidence: 9)
-
-
-
-# sensors
-k10temp-pci-00c3
-Adapter: PCI adapter
-temp1:        +25.0=B0C  (high =3D +70.0=B0C)
-
-
-# Generated by sensors-detect on Tue Jun 28 15:35:14 2011
-# This file is sourced by /etc/init.d/lm_sensors and defines the modules to
-# be loaded/unloaded.
-#
-# The format of this file is a shell script that simply defines variables:
-# HWMON_MODULES for hardware monitoring driver modules, and optionally
-# BUS_MODULES for any required bus driver module (for example for I2C or=20
-SPI).
-
-HWMON_MODULES=3D"f71882fg"
-
-# For compatibility reasons, modules are also listed individually as=20
-variables
-#    MODULE_0, MODULE_1, MODULE_2, etc.
-# You should use BUS_MODULES and HWMON_MODULES instead if possible.
-
-MODULE_0=F71882fg
-
-This is what I found in dmesg:
-
-[   21.121981] f71882fg: Found f71889fg chip at 0x600, revision 21
-[   21.122030] ACPI: resource f71882fg [io  0x0600-0x0607] conflicts=20
-with ACPI region HMOR [mem 0x00000605-0x00000606 pref disabled]
-[   21.122037] ACPI: If an ACPI driver is available for this device, you=20
-should use it instead of the native driver
-
-
-Hope you can make some sense of it!!!
-
-Dave
-
-
-
+Luca
 
 _______________________________________________
 lm-sensors mailing list
