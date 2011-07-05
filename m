@@ -1,35 +1,36 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 07 Jul 2011 18:06:51 +0000
-Subject: Re: [lm-sensors] [PATCHv3 1/1] Hwmon: Add core_pkg Threshold
-Message-Id: <1310062011.2387.11.camel@groeck-laptop>
+Date: Tue, 05 Jul 2011 14:36:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm95241) Fix negative temperature
+Message-Id: <1309876592-24015-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1309885334-16106-1-git-send-email-durgadoss.r@intel.com>
-In-Reply-To: <1309885334-16106-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2011-07-07 at 07:08 -0400, R, Durgadoss wrote:
-> Hi Guenter/Jean,
-> 
-> > > I don't think we want to deal with this interrupt in coretemp at all.
-> > > This is all therm_throt's job.
-> > >
-> > Agreed.
-> 
-> From the earlier mails, what I clearly get is that we don't want 'coretemp'
-> to deal with the Threshold Violation Interrupts.
-> In this case, I would submit the next version of the patch doing:
-> 1) Update the max_alarm by reading 0x19C and checking the status bits
-> 2) Since I see different opinions on max and max_hyst comparisons,
->    Should I do a check inside the store methods ?
-> 
-No agreement -> do nothing, ie no check.
+Negative temperatures were returned in degrees C instead of milli-Degrees C.
+Fix by multiplying with 1000.
 
-Thanks,
-Guenter
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/lm95241.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
+index f2cfecf..d1bbdf8 100644
+--- a/drivers/hwmon/lm95241.c
++++ b/drivers/hwmon/lm95241.c
+@@ -101,7 +101,7 @@ struct lm95241_data {
+ static int TempFromReg(u8 val_h, u8 val_l)
+ {
+ 	if (val_h & 0x80)
+-		return val_h - 0x100;
++		return (val_h - 0x100) * 1000;
+ 	return val_h * 1000 + val_l * 1000 / 256;
+ }
+ 
+-- 
+1.7.3.1
 
 
 _______________________________________________
