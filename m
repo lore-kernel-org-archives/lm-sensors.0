@@ -1,7 +1,7 @@
 From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Wed, 06 Jul 2011 08:45:56 +0000
+Date: Wed, 06 Jul 2011 08:48:43 +0000
 Subject: Re: [lm-sensors] Where are all the sensors?
-Message-Id: <CAKPcRGpX5vdTN=sEcCG=XDDUUhpUHvE3Zw=bSDv-v+vjVzTANA@mail.gmail.com>
+Message-Id: <CAKPcRGoiJdJ7JcBDRjhzmfLsu-Xhk3RaPpHHJtUMExzDuXmSSQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4E0B52A6.1070402@yahoo.co.uk>
 In-Reply-To: <4E0B52A6.1070402@yahoo.co.uk>
@@ -10,14 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Jul 5, 2011 at 10:54 PM, DB <Freddog_de@yahoo.co.uk> wrote:
-> I tried cat /sys/firmware/acpi/tables/DSDT & got a lot of characters all
-> over the page, nothing really readable....
+On Wed, Jul 6, 2011 at 2:34 AM, Jeff Rickman <jrickman@myamigos.us> wrote:
+> Luca, would that modified F71882FG driver (from ~June last year) be
+> useful/helpful here? In my case it was a F71862FG chip where ACPI claimed
+> the ports but DSDT suggested something to you. I guess it really depends on
+> the DSDT code. BTW, I still use that modified driver on that Jetway NC92-330
+> board and it still works fine even with Fedora Core 15.
 
-Yes, it's a binary file ;)
-Create a copy, e.g:
-cp /sys/firmware/acpi/tables/DSDT /tmp/DSDT
-and attach the file.
+It was an ugly hack :) I modified the driver to access the hwmon chip
+using the methods exposed by the firmware instead of letting the
+driver touch the chip directly. Unfortunately the hack is very board
+specific...
 
 Luca
 
