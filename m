@@ -1,64 +1,190 @@
 From: Jeff Rickman <jrickman@myamigos.us>
-Date: Wed, 06 Jul 2011 00:14:30 +0000
+Date: Wed, 06 Jul 2011 00:34:11 +0000
 Subject: Re: [lm-sensors] Where are all the sensors?
-Message-Id: <4E13A8E6.2080502@myamigos.us>
+Message-Id: <4E13AD83.10203@myamigos.us>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4E0B52A6.1070402@yahoo.co.uk>
 In-Reply-To: <4E0B52A6.1070402@yahoo.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On 7/5/2011 3:54 PM, DB wrote:
-> On 07/05/2011 10:37 PM, Luca Tettamanti wrote:
->> On Tue, Jul 5, 2011 at 9:45 PM, DB<Freddog_de@yahoo.co.uk> wrote:
->>> [ 21.121981] f71882fg: Found f71889fg chip at 0x600, revision 21
->>> [ 21.122030] ACPI: resource f71882fg [io 0x0600-0x0607] conflicts with
->>> ACPI region HMOR [mem 0x00000605-0x00000606 pref disabled]
->>> [ 21.122037] ACPI: If an ACPI driver is available for this device, you
->>> should use it instead of the native driver
->>
->> This means that the BIOS is claiming the hwmon chip for itself;
->> starting from 2.6.31 Linux started enforcing this claim, see
->> http://lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31.
->>
->>
->> Asus exposes the hardware monitoring data trough an ACPI interface. If
->> you send me a copy of /sys/firmware/acpi/tables/DSDT I'll see if
->> there's something usable.
->>
->> Luca
->>
->
-> Hi Luca,
->
-> I tried cat /sys/firmware/acpi/tables/DSDT & got a lot of characters all
-> over the page, nothing really readable.... ls -l gives
-> ls -l /sys/firmware/acpi/tables/DSDT
-> -r--------. 1 root root 0 Jul 5 22:42 /sys/firmware/acpi/tables/DSDT
->
-> Here's the last page of the file:
->
+Hi,
 
-[..snip..]
-
+On 7/5/2011 2:45 PM, DB wrote:
+> Hi Jeff,
 >
-> Is there some other way I ought to have looked at the file???
+> Thanks for your suggestions! Here are the results - as far as I can
+> see...... (To save on the amount to transmit, I've clipped the text
+> parts of Sensors-detect)
 >
-> Thanks for your help!!!
+>
+> $ sensors -v
+> sensors version 3.3.0 with libsensors version 3.3.0
+>
+>
+> # sensors-detect
+> Stopping lm_sensors: [ OK ]
+> # sensors-detect revision 5946 (2011-03-23 11:54:44 +0100)
+> # System: MSI MS-7623
+> # Board: MSI 880GM-E41 (MS-7623)
+>
+> Do you want to scan for them? This is totally safe. (YES/no): Y
+> Silicon Integrated Systems SIS5595... No
+> VIA VT82C686 Integrated Sensors... No
+> VIA VT8231 Integrated Sensors... No
+> AMD K8 thermal sensors... No
+> AMD Family 10h thermal sensors... Success!
+> (driver `k10temp')
+> AMD Family 11h thermal sensors... No
+> AMD Family 12h and 14h thermal sensors... No
+> Intel digital thermal sensor... No
+> Intel AMB FB-DIMM thermal sensor... No
+> VIA C7 thermal sensor... No
+> VIA Nano thermal sensor... No
+>
+> Some Super I/O chips contain embedded sensors. We have to write to
+> standard I/O ports to probe them. This is usually safe.
+> Do you want to scan for Super I/O sensors? (YES/no): Y
+> Probing for Super-I/O at 0x2e/0x2f
+> Trying family `National Semiconductor'... No
+> Trying family `SMSC'... No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'... No
+> Trying family `ITE'... No
+> Probing for Super-I/O at 0x4e/0x4f
+> Trying family `National Semiconductor'... No
+> Trying family `SMSC'... No
+> Trying family `VIA/Winbond/Nuvoton/Fintek'... Yes
+> Found `Fintek F71889FG/F81801U Super IO Sensors' Success!
+> (address 0x600, driver `f71882fg')
+>
+> his is normally safe. Do you want to scan for IPMI
+> interfaces? (YES/no): Y
+> Probing for `IPMI BMC KCS' at 0xca0... No
+> Probing for `IPMI BMC SMIC' at 0xca8... No
+>
+> Do you want to scan the ISA I/O ports? (yes/NO): y
+> Probing for `National Semiconductor LM78' at 0x290... No
+> Probing for `National Semiconductor LM79' at 0x290... No
+> Probing for `Winbond W83781D' at 0x290... No
+> Probing for `Winbond W83782D' at 0x290... No
+>
+> Do you want to probe the I2C/SMBus adapters now? (YES/no): Y
+> Using driver `i2c-piix4' for device 0000:00:14.0: ATI Technologies Inc
+> SB600/SB700/SB800 SMBus
+> Module i2c-dev loaded successfully.
+>
+> Next adapter: Radeon i2c bit bus VGA (i2c-0)
+> Do you want to scan it? (YES/no/selectively): Y
+> Client found at address 0x4a
+> Probing for `National Semiconductor LM75'... No
+> Probing for `National Semiconductor LM75A'... No
+> Probing for `Dallas Semiconductor DS75'... No
+> Probing for `National Semiconductor LM77'... No
+> Probing for `Analog Devices ADT7410'... No
+> Probing for `Analog Devices ADT7411'... No
+> Probing for `Dallas Semiconductor DS1621/DS1631'... No
+> Probing for `National Semiconductor LM73'... No
+> Probing for `National Semiconductor LM92'... No
+> Probing for `National Semiconductor LM76'... No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'... No
+> Client found at address 0x4b
+> Probing for `National Semiconductor LM75'... No
+> Probing for `National Semiconductor LM75A'... No
+> Probing for `Dallas Semiconductor DS75'... No
+> Probing for `National Semiconductor LM77'... No
+> Probing for `Analog Devices ADT7410'... No
+> Probing for `Analog Devices ADT7411'... No
+> Probing for `Dallas Semiconductor DS1621/DS1631'... No
+> Probing for `Maxim MAX6650/MAX6651'... No
+> Probing for `National Semiconductor LM92'... No
+> Probing for `National Semiconductor LM76'... No
+> Probing for `Maxim MAX6633/MAX6634/MAX6635'... No
+> Probing for `Analog Devices ADT7481'... No
+> Client found at address 0x50
+> Probing for `Analog Devices ADM1033'... No
+> Probing for `Analog Devices ADM1034'... No
+> Probing for `SPD EEPROM'... No
+> Probing for `EDID EEPROM'... Yes
+> (confidence 8, not a hardware monitoring chip)
+>
+> Now follows a summary of the probes I have just done.
+> Just press ENTER to continue:
+>
+> Driver `k10temp' (autoloaded):
+> * Chip `AMD Family 10h thermal sensors' (confidence: 9)
+>
+> Driver `f71882fg':
+> * ISA bus, address 0x600
+> Chip `Fintek F71889FG/F81801U Super IO Sensors' (confidence: 9)
+>
+>
+>
+> # sensors
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> temp1: +25.0=B0C (high =3D +70.0=B0C)
+>
+>
+> # Generated by sensors-detect on Tue Jun 28 15:35:14 2011
+> # This file is sourced by /etc/init.d/lm_sensors and defines the modules =
+to
+> # be loaded/unloaded.
+> #
+> # The format of this file is a shell script that simply defines variables:
+> # HWMON_MODULES for hardware monitoring driver modules, and optionally
+> # BUS_MODULES for any required bus driver module (for example for I2C or
+> SPI).
+>
+> HWMON_MODULES=3D"f71882fg"
+>
+> # For compatibility reasons, modules are also listed individually as
+> variables
+> # MODULE_0, MODULE_1, MODULE_2, etc.
+> # You should use BUS_MODULES and HWMON_MODULES instead if possible.
+>
+> MODULE_0=F71882fg
+>
+> This is what I found in dmesg:
+>
+> [ 21.121981] f71882fg: Found f71889fg chip at 0x600, revision 21
+> [ 21.122030] ACPI: resource f71882fg [io 0x0600-0x0607] conflicts with
+> ACPI region HMOR [mem 0x00000605-0x00000606 pref disabled]
+> [ 21.122037] ACPI: If an ACPI driver is available for this device, you
+> should use it instead of the native driver
+>
+>
+> Hope you can make some sense of it!!!
 >
 > Dave
 >
 
-DSDT is "binary" so "cat" will not work. When I need a copy of DSDT I do 
-the following:
+ACPI is claiming the ports that LM_Sensors wants to use to access the=20
+Fintek F71882FG chip. It happens. At least the k10temp driver loaded so=20
+you can monitor CPU temperatures so that says LM_Sensors is installed=20
+correctly.
 
-cp /proc/acpi/dsdt /home/jeff
+I saw Luca's email asking for a DSDT file and saw your reply. Sometimes=20
+the DSDT file has helpful info and sometimes not; it's up to the BIOS=20
+vendor and/or board manufacturer. I am still trying to learn how to=20
+understand DSDT files.
 
-The "ls -al /home/jeff" shows me a file called DSDT in that directory.
+Luca, would that modified F71882FG driver (from ~June last year) be=20
+useful/helpful here? In my case it was a F71862FG chip where ACPI=20
+claimed the ports but DSDT suggested something to you. I guess it really=20
+depends on the DSDT code. BTW, I still use that modified driver on that=20
+Jetway NC92-330 board and it still works fine even with Fedora Core 15.
 
-Then I can attach that DSDT file to an email or whatever....
+Using the "acpi_enforce_resources=3Dlax" parameter in "grub.conf" can be=20
+useful to expose the Fintek chip for LM_Sensors, but it is also risky.=20
+Some boards "behave badly" (lock up, act strange, etc.) when the sensor=20
+chip (Fintek in this case) is being poked (to setup for reading values)=20
+and then accessed by multiple applications; both the sensor chip and the=20
+access bus were not designed for access by multiple applications.
+
+Hanging out on this list has been and remains educational for me...
+
 
 _______________________________________________
 lm-sensors mailing list
