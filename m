@@ -1,62 +1,37 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 10 Jul 2011 15:57:10 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add code to detect LM95245
-Message-Id: <20110710155710.GA12703@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 07 Jul 2011 11:22:42 +0000
+Subject: Re: [lm-sensors] [PATCH v3] Add support for the Philips SA56004
+Message-Id: <20110707132242.0aaff4ea@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110406072137.GB23562@ericsson.com>
-In-Reply-To: <20110406072137.GB23562@ericsson.com>
+References: <1307356845-10095-1-git-send-email-sdevrien@cisco.com>
+	<BANLkTi=gAqpDNBjCXzvNEhSuzm=3Mg9rVg@mail.gmail.com>
+In-Reply-To: <BANLkTi=gAqpDNBjCXzvNEhSuzm=3Mg9rVg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Fubo Chen <fubo.chen@gmail.com>
+Cc: sdevrien@cisco.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com
 
-On Sun, Jul 10, 2011 at 11:46:40AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Fri, 8 Jul 2011 09:25:45 -0700, Guenter Roeck wrote:
-> > Index: prog/detect/sensors-detect
-> > =================================> > --- prog/detect/sensors-detect	(revision 5983)
-> > +++ prog/detect/sensors-detect	(working copy)
-> > @@ -1008,6 +1008,11 @@
-> >  		i2c_addrs => [0x2b, 0x19, 0x2a],
-> >  		i2c_detect => sub { lm95231_detect(@_, 1); },
-> >  	}, {
-> > +		name => "National Semiconductor LM95245",
-> > +		driver => "lm95245",
-> > +		i2c_addrs => [0x2b, 0x19, 0x2a],
-> 
-> The datasheet I have lists the following 5 addresses instead: 0x18,
-> 0x19, 0x29, 0x4C and 0x4D, and the lm95245 driver agrees.
-> 
-> > +		i2c_detect => sub { lm95231_detect(@_, 2); },
-> > +	}, {
-> >  		name => "National Semiconductor LM63",
-> >  		driver => "lm63",
-> >  		i2c_addrs => [0x4c],
-> > @@ -4540,7 +4545,7 @@
-> >  	return 5;
-> >  }
-> >  
-> > -# Chip to detect: 0 = LM95231, 1 = LM95241
-> > +# Chip to detect: 0 = LM95231, 1 = LM95241, 2 = LM95245
-> >  # Registers used:
-> >  #   0x02: Status (3 unused bits)
-> >  #   0x03: Configuration (3 unused bits)
-> > @@ -4557,6 +4562,7 @@
-> >  	return if $mid != 0x01;				# National Semiconductor
-> >  	return if $chip = 0 && $cid != 0xa1;		# LM95231
-> >  	return if $chip = 1 && $cid != 0xa4;		# LM95241
-> > +	return if $chip = 2 && $cid != 0xb3;		# LM95245
-> >  
-> >  	return if i2c_smbus_read_byte_data($file, 0x02) & 0x70;
-> >  	return if i2c_smbus_read_byte_data($file, 0x03) & 0x89;
-> 
-> These checks for unused bits were OK for the LM95231/LM95241 but not
-> for the LM95245.
-> 
-Sigh. Must have been late.
+On Sun, 26 Jun 2011 21:54:37 +0200, Fubo Chen wrote:
+> On Mon, Jun 6, 2011 at 12:40 PM,  <sdevrien@cisco.com> wrote:
+> > + =A0 =A0 =A0 } else
+> > + =A0 =A0 =A0 if (man_id =3D 0xA1) { /* =A0NXP Semiconductor/Philips */
+>=20
+> No kernel coder writes like this. Has this ever been run through checkpat=
+ch ?
 
-Guenter
+Actually, I wrote that code, and I am a kernel coder. You may not like
+it, but at the time it seemed the best way to keep the function
+readable. This particular style allows for better placement of
+comments, which are many in this function.
+
+As long as checkpatch doesn't complain about it, I will not consider
+changing it, and will reject any attempt to do so (simply by comparing
+the readability before and after the patch and inevitably coming up to
+the conclusion that the change isn't worth it.)
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
