@@ -1,33 +1,53 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Tue, 12 Jul 2011 08:22:17 +0000
-Subject: Re: [lm-sensors] [PATCH v3] MAX1111: Fix Race condition
-Message-Id: <20110712082217.GA16141@sirena.org.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 07 Jul 2011 11:28:17 +0000
+Subject: Re: [lm-sensors] [v3] Add support for the Philips SA56004
+Message-Id: <20110707132817.65629f1b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310421038-14823-1-git-send-email-morpheus.ibis@gmail.com>
-	<20110712093606.5db834cb@endymion.delvare>
-	<1628512.b7CSRB10BJ@bloomfield>
-In-Reply-To: <1628512.b7CSRB10BJ@bloomfield>
+References: <1307356845-10095-1-git-send-email-sdevrien@cisco.com>
+	<20110626202648.GA9118@ericsson.com>
+In-Reply-To: <20110626202648.GA9118@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: sdevrien@cisco.com, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Tue, Jul 12, 2011 at 10:04:55AM +0200, Pavel Herrmann wrote:
-> On Tuesday 12 of July 2011 09:36:06 Jean Delvare wrote:
+Hi Guenter,
 
-> > Honestly, I have no idea what "causing one thread having pointers to
-> > memory on or above other threads stack" means (nor why this would be
-> > bad.)
+On Sun, 26 Jun 2011 13:26:48 -0700, Guenter Roeck wrote:
+> On Mon, Jun 06, 2011 at 10:40:45AM -0000, sdevrien@cisco.com wrote:
+> > From: Stijn Devriendt <sdevrien@cisco.com>
+> > 
+> > Add support for the Philips SA56004, an LM86
+> > compatible temperature sensor.
+> > 
+> > Changes since v2:
+> > - Changed BUG_ON to WARN_ON
+> > Changes since v1:
+> > - Updated documentation
+> > - Trace replaced by BUG_ON
+> > - style updates
+> > 
+> > Signed-off-by: Stijn Devriendt <sdevrien@cisco.com>
+> > Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> > 
+> I don't see a reason for holding this patch up further. Applied to -next.
+> If you disagree, please speak up now or be silent forever.
 
-> the long-winded story is that thread A writes a pointer onto its stack into 
-> the drvdata as part of spi_sync call, then thread B comes in and puts a 
-> pointer onto its stack into the drvdata, at the end of spi_sync thread A uses 
-> this pointer (assuming it is unchanged), which is pointing either onto valid 
-> stack of thread B or somewhere above it (if thread B already returned)
+Sorry for the long silence, I was frightened by the long discussion
+back then - it's only today that I went through it to find most of it
+was actually noise.
 
-That's just a use after free bug, the fact that the variables are on the
-stacks of other threads isn't the issue, the issue is that the two
-threads that are sharing state arne't properly synchronized.
+I don't have major objections to the patch, only a few things which I
+think could be improved. So it's OK that your picked the patch as is,
+I'll submit incremental patches for comments and review.
+
+Stijn, please accept my apologies for being way less reactive than I
+should have been, being the lm90 driver maintainer. And big thanks to
+Guenter for backing me up.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
