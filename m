@@ -1,61 +1,73 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:34 +0000
-Subject: [lm-sensors] [PATCH 05/15] hwmon: (pmbus) Increase attribute name
-Message-Id: <1310608484-20678-6-git-send-email-guenter.roeck@ericsson.com>
+Date: Thu, 07 Jul 2011 21:46:22 +0000
+Subject: [lm-sensors] [PATCH v2] sensors-detect: Add support for NXP/Philips
+Message-Id: <20110707214622.GA25251@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310485300-2168-6-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1310485300-2168-6-git-send-email-guenter.roeck@ericsson.com>
+References: <1283976237-6067-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1283976237-6067-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Some hwmon sysfs attributes have a length of 20 bytes (plus terminating 0).
-I2C_NAME_SIZE is defined as 20 and thus can not be used to define the length
-of hwmon sysfs attributes. Replace it with PMBUS_NAME_SIZE, set to 24.
+v2: Stronger detection code. Confidence reduced from 8 to 6.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/pmbus/pmbus_core.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+--
 
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index cef763c..8ff7ebf 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -74,8 +74,10 @@
- #define PB_STATUS_INPUT_BASE	(PB_STATUS_FAN34_BASE + PMBUS_PAGES)
- #define PB_STATUS_TEMP_BASE	(PB_STATUS_INPUT_BASE + 1)
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5982)
++++ prog/detect/sensors-detect	(working copy)
+@@ -1055,6 +1055,11 @@
+ 		i2c_addrs => [0x4c..0x4d],
+ 		i2c_detect => sub { lm90_detect(@_, 13); },
+ 	}, {
++		name => "NXP/Philips SA56004",
++		driver => "lm90",
++		i2c_addrs => [0x48..0x4f],
++		i2c_detect => sub { lm90_detect(@_, 14); },
++	}, {
+ 		name => "Analog Devices ADT7481",
+ 		driver => "to-be-written",
+ 		i2c_addrs => [0x4c, 0x4b],
+@@ -4352,11 +4357,11 @@
+ #		  6 = MAX6646/MAX6647/MAX6648/MAX6649/MAX6692,
+ #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
+ #		  11 = W83L771AWG/ASG, 12 = MAX6690,
+-#		  13 = ADT7461A/NCT1008
++#		  13 = ADT7461A/NCT1008, 14 = SA56004
+ # Registers used:
+ #   0x03: Configuration
+ #   0x04: Conversion rate
+-#   0xbf: Configuration 2 (National Semiconductor and Winbond only)
++#   0xbf: Configuration 2 (National Semiconductor, Winbond, and Philips only)
+ #   0xfe: Manufacturer ID
+ #   0xff: Chip ID / die revision
+ sub lm90_detect
+@@ -4457,6 +4462,13 @@
+ 		return if $mid != 0x41;		# Analog Devices
+ 		return 8 if $cid = 0x57;	# ADT7461A, NCT1008
+ 	}
++	if ($chip = 14) {
++		return if ($conf & 0x2a) != 0;
++		return if ($conf2 & 0xfe) != 0;
++		return if $rate > 0x09;
++		return if $mid != 0xa1;		# NXP Semiconductor/Philips
++		return 6 if $cid = 0x00;	# SA56004
++	}
+ 	return;
+ }
  
-+#define PMBUS_NAME_SIZE		24
-+
- struct pmbus_sensor {
--	char name[I2C_NAME_SIZE];	/* sysfs sensor name */
-+	char name[PMBUS_NAME_SIZE];	/* sysfs sensor name */
- 	struct sensor_device_attribute attribute;
- 	u8 page;		/* page number */
- 	u8 reg;			/* register */
-@@ -86,14 +88,14 @@ struct pmbus_sensor {
- };
+Index: CHANGES
+=================================--- CHANGES	(revision 5982)
++++ CHANGES	(working copy)
+@@ -16,6 +16,7 @@
+                   Add detection of MAX6642
+                   Add detection of ITE IT8772E
+                   Don't advertise the ipmisensors driver
++                  Add detection of SA56004
  
- struct pmbus_boolean {
--	char name[I2C_NAME_SIZE];	/* sysfs boolean name */
-+	char name[PMBUS_NAME_SIZE];	/* sysfs boolean name */
- 	struct sensor_device_attribute attribute;
- };
- 
- struct pmbus_label {
--	char name[I2C_NAME_SIZE];	/* sysfs label name */
-+	char name[PMBUS_NAME_SIZE];	/* sysfs label name */
- 	struct sensor_device_attribute attribute;
--	char label[I2C_NAME_SIZE];	/* label */
-+	char label[PMBUS_NAME_SIZE];	/* label */
- };
- 
- struct pmbus_data {
--- 
-1.7.3.1
-
+ 3.3.0 (2011-03-28)
+   Makefile: Check for bison and flex
 
 _______________________________________________
 lm-sensors mailing list
