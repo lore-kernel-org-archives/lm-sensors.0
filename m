@@ -1,77 +1,39 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:32 +0000
-Subject: [lm-sensors] [PATCH 03/15] hwmon: (pmbus) Add ADP4000,
-Message-Id: <1310608484-20678-4-git-send-email-guenter.roeck@ericsson.com>
+Date: Thu, 07 Jul 2011 14:11:02 +0000
+Subject: [lm-sensors] [PATCH v2 1/3] hwmon: (lm95241) Fix chip detection code
+Message-Id: <1310047864-22691-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310485300-2168-4-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1310485300-2168-4-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add ADP4000, NCP4200 and NCP4208 to the list of devices supported by the generic
-PMBus driver, and add device IDs to enable explicit instantiation.
+The LM95241 driver accepts every chip ID equal to or larger than 0xA4 as its
+own, and other chips such as LM95245 use chip IDs in the accepted ID range.
+This results in false chip detection.
+
+Fix problem by accepting only the known LM95241 chip ID.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- Documentation/hwmon/pmbus   |    7 +++++++
- drivers/hwmon/pmbus/Kconfig |    4 ++--
- drivers/hwmon/pmbus/pmbus.c |    3 +++
- 3 files changed, 12 insertions(+), 2 deletions(-)
+Candidate for -stable.
 
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index 5e462fc..c36c1c1 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -13,6 +13,13 @@ Supported chips:
-     Prefix: 'ltc2978'
-     Addresses scanned: -
-     Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
-+  * ON Semiconductor ADP4000, NCP4200, NCP4208
-+    Prefixes: 'adp4000', 'ncp4200', 'ncp4208'
-+    Addresses scanned: -
-+    Datasheets:
-+	http://www.onsemi.com/pub_link/Collateral/ADP4000-D.PDF
-+	http://www.onsemi.com/pub_link/Collateral/NCP4200-D.PDF
-+	http://www.onsemi.com/pub_link/Collateral/JUNE%202009-%20REV.%200.PDF
-   * Generic PMBus devices
-     Prefix: 'pmbus'
-     Addresses scanned: -
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index c87c07f..c69ffb5 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -19,8 +19,8 @@ config SENSORS_PMBUS
- 	default y
- 	help
- 	  If you say yes here you get hardware monitoring support for generic
--	  PMBus devices, including but not limited to BMR450, BMR451, BMR453,
--	  BMR454, and LTC2978.
-+	  PMBus devices, including but not limited to ADP4000, BMR450, BMR451,
-+	  BMR453, BMR454, LTC2978, NCP4200, and NCP4208.
- 
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
-diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
-index 4d8e31b..73de9f1 100644
---- a/drivers/hwmon/pmbus/pmbus.c
-+++ b/drivers/hwmon/pmbus/pmbus.c
-@@ -200,11 +200,14 @@ static int pmbus_remove(struct i2c_client *client)
-  * Use driver_data to set the number of pages supported by the chip.
-  */
- static const struct i2c_device_id pmbus_id[] = {
-+	{"adp4000", 1},
- 	{"bmr450", 1},
- 	{"bmr451", 1},
- 	{"bmr453", 1},
- 	{"bmr454", 1},
- 	{"ltc2978", 8},
-+	{"ncp4200", 1},
-+	{"ncp4208", 1},
- 	{"pmbus", 0},
- 	{}
- };
+ drivers/hwmon/lm95241.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
+index 1a6dfb6..01c638e 100644
+--- a/drivers/hwmon/lm95241.c
++++ b/drivers/hwmon/lm95241.c
+@@ -339,7 +339,7 @@ static int lm95241_detect(struct i2c_client *new_client,
+ 	if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
+ 	     = MANUFACTURER_ID)
+ 	    && (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
+-		>= DEFAULT_REVISION)) {
++		= DEFAULT_REVISION)) {
+ 		name = DEVNAME;
+ 	} else {
+ 		dev_dbg(&adapter->dev, "LM95241 detection failed at 0x%02x\n",
 -- 
 1.7.3.1
 
