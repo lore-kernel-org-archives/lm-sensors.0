@@ -1,99 +1,58 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Fri, 22 Jul 2011 16:41:23 +0000
-Subject: [lm-sensors] [PATCH 5/8] drm/vmwgfx: use ida_simple_get for id
-Message-Id: <1311352886-4047-15-git-send-email-jic23@cam.ac.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 08 Jul 2011 16:25:45 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add code to detect LM95245
+Message-Id: <20110708162545.GA30598@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
+References: <20110406072137.GB23562@ericsson.com>
+In-Reply-To: <20110406072137.GB23562@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, tj@kernel.org, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@vger.kernel.org
 
-Some messing with error codes to return 0 on out id's and match
-current situation.  Is this necessary? Looks a touch 'interesting'.
-
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
----
- drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c |   34 ++++++-------------------
- 1 files changed, 8 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c b/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
-index ac6e0d1..d51577b 100644
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
-+++ b/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
-@@ -37,7 +37,6 @@
- #include <linux/kernel.h>
- 
- struct vmwgfx_gmrid_man {
--	spinlock_t lock;
- 	struct ida gmr_ida;
- 	uint32_t max_gmr_ids;
- };
-@@ -49,34 +48,20 @@ static int vmw_gmrid_man_get_node(struct ttm_mem_type_manager *man,
- {
- 	struct vmwgfx_gmrid_man *gman  		(struct vmwgfx_gmrid_man *)man->priv;
--	int ret;
- 	int id;
- 
- 	mem->mm_node = NULL;
- 
--	do {
--		if (unlikely(ida_pre_get(&gman->gmr_ida, GFP_KERNEL) = 0))
--			return -ENOMEM;
--
--		spin_lock(&gman->lock);
--		ret = ida_get_new(&gman->gmr_ida, &id);
--
--		if (unlikely(ret = 0 && id >= gman->max_gmr_ids)) {
--			ida_remove(&gman->gmr_ida, id);
--			spin_unlock(&gman->lock);
-+	id = ida_simple_get(&gman->gmr_ida, 0, gman->max_gmr_ids, GFP_KERNEL);
-+	if (id < 0) {
-+		if (id = -ENOSPC)
- 			return 0;
--		}
--
--		spin_unlock(&gman->lock);
--
--	} while (ret = -EAGAIN);
--
--	if (likely(ret = 0)) {
--		mem->mm_node = gman;
--		mem->start = id;
-+		return id;
- 	}
-+	mem->mm_node = gman;
-+	mem->start = id;
- 
--	return ret;
-+	return 0;
+Index: prog/detect/sensors-detect
+=================================--- prog/detect/sensors-detect	(revision 5983)
++++ prog/detect/sensors-detect	(working copy)
+@@ -1008,6 +1008,11 @@
+ 		i2c_addrs => [0x2b, 0x19, 0x2a],
+ 		i2c_detect => sub { lm95231_detect(@_, 1); },
+ 	}, {
++		name => "National Semiconductor LM95245",
++		driver => "lm95245",
++		i2c_addrs => [0x2b, 0x19, 0x2a],
++		i2c_detect => sub { lm95231_detect(@_, 2); },
++	}, {
+ 		name => "National Semiconductor LM63",
+ 		driver => "lm63",
+ 		i2c_addrs => [0x4c],
+@@ -4540,7 +4545,7 @@
+ 	return 5;
  }
  
- static void vmw_gmrid_man_put_node(struct ttm_mem_type_manager *man,
-@@ -86,9 +71,7 @@ static void vmw_gmrid_man_put_node(struct ttm_mem_type_manager *man,
- 		(struct vmwgfx_gmrid_man *)man->priv;
+-# Chip to detect: 0 = LM95231, 1 = LM95241
++# Chip to detect: 0 = LM95231, 1 = LM95241, 2 = LM95245
+ # Registers used:
+ #   0x02: Status (3 unused bits)
+ #   0x03: Configuration (3 unused bits)
+@@ -4557,6 +4562,7 @@
+ 	return if $mid != 0x01;				# National Semiconductor
+ 	return if $chip = 0 && $cid != 0xa1;		# LM95231
+ 	return if $chip = 1 && $cid != 0xa4;		# LM95241
++	return if $chip = 2 && $cid != 0xb3;		# LM95245
  
- 	if (mem->mm_node) {
--		spin_lock(&gman->lock);
--		ida_remove(&gman->gmr_ida, mem->start);
--		spin_unlock(&gman->lock);
-+		ida_simple_remove(&gman->gmr_ida, mem->start);
- 		mem->mm_node = NULL;
- 	}
- }
-@@ -102,7 +85,6 @@ static int vmw_gmrid_man_init(struct ttm_mem_type_manager *man,
- 	if (unlikely(gman = NULL))
- 		return -ENOMEM;
+ 	return if i2c_smbus_read_byte_data($file, 0x02) & 0x70;
+ 	return if i2c_smbus_read_byte_data($file, 0x03) & 0x89;
+Index: CHANGES
+=================================--- CHANGES	(revision 5983)
++++ CHANGES	(working copy)
+@@ -17,6 +17,7 @@
+                   Add detection of ITE IT8772E
+                   Don't advertise the ipmisensors driver
+                   Add detection of SA56004
++                  Add detection of LM95245
  
--	spin_lock_init(&gman->lock);
- 	ida_init(&gman->gmr_ida);
- 	gman->max_gmr_ids = p_size;
- 	man->priv = (void *) gman;
--- 
-1.7.3.4
-
+ 3.3.0 (2011-03-28)
+   Makefile: Check for bison and flex
 
 _______________________________________________
 lm-sensors mailing list
