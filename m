@@ -1,90 +1,70 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Fri, 22 Jul 2011 16:41:13 +0000
-Subject: [lm-sensors] [PATCH 4/8] [SCSI] use ida_simple_get and ida_simple
-Message-Id: <1311352886-4047-5-git-send-email-jic23@cam.ac.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 09 Jul 2011 21:21:45 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: (lm95241) Fix negative temperature
+Message-Id: <1310246505-8308-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, tj@kernel.org, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@vger.kernel.org
 
-Some mangling of errors was necessary to maintain current interface.
+Negative temperatures were returned in degrees C instead of milli-Degrees C.
+Also, negative temperatures were reported for remote temperature sensors even
+if the chip was configured for positive-only results.
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+Fix by detecting temperature modes, and by treating negative temperatures
+similar to positive temperatures, with appropriate sign extension.
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/scsi/sd.c |   32 ++++++++++----------------------
- 1 files changed, 10 insertions(+), 22 deletions(-)
+v4: Improve readability and convert table index to bit mask
 
-diff --git a/drivers/scsi/sd.c b/drivers/scsi/sd.c
-index 953773c..c228b3b 100644
---- a/drivers/scsi/sd.c
-+++ b/drivers/scsi/sd.c
-@@ -111,7 +111,6 @@ static void scsi_disk_release(struct device *cdev);
- static void sd_print_sense_hdr(struct scsi_disk *, struct scsi_sense_hdr *);
- static void sd_print_result(struct scsi_disk *, int);
+ drivers/hwmon/lm95241.c |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
+index 01c638e..d3b464b 100644
+--- a/drivers/hwmon/lm95241.c
++++ b/drivers/hwmon/lm95241.c
+@@ -98,11 +98,16 @@ struct lm95241_data {
+ };
  
--static DEFINE_SPINLOCK(sd_index_lock);
- static DEFINE_IDA(sd_index_ida);
+ /* Conversions */
+-static int TempFromReg(u8 val_h, u8 val_l)
++static int temp_from_reg_signed(u8 val_h, u8 val_l)
+ {
+-	if (val_h & 0x80)
+-		return val_h - 0x100;
+-	return val_h * 1000 + val_l * 1000 / 256;
++	s16 val_hl = (val_h << 8) | val_l;
++	return val_hl * 1000 / 256;
++}
++
++static int temp_from_reg_unsigned(u8 val_h, u8 val_l)
++{
++	u16 val_hl = (val_h << 8) | val_l;
++	return val_hl * 1000 / 256;
+ }
  
- /* This semaphore is used to mediate the 0->1 reference get in the
-@@ -2580,22 +2579,15 @@ static int sd_probe(struct device *dev)
- 	if (!gd)
- 		goto out_free;
+ static struct lm95241_data *lm95241_update_device(struct device *dev)
+@@ -135,10 +140,13 @@ static ssize_t show_input(struct device *dev, struct device_attribute *attr,
+ 			  char *buf)
+ {
+ 	struct lm95241_data *data = lm95241_update_device(dev);
++	int index = to_sensor_dev_attr(attr)->index;
  
--	do {
--		if (!ida_pre_get(&sd_index_ida, GFP_KERNEL))
--			goto out_put;
--
--		spin_lock(&sd_index_lock);
--		error = ida_get_new(&sd_index_ida, &index);
--		spin_unlock(&sd_index_lock);
--	} while (error = -EAGAIN);
--
--	if (error)
-+	index = ida_simple_get(&sd_index_ida, 0, SD_MAX_DISKS, GFP_KERNEL);
-+	if (index < 0) {
-+		error = index;
-+		if (error = -ENOSPC) {
-+			sdev_printk(KERN_WARNING, sdp,
-+				    "SCSI disk (sd) name space exhausted.\n");
-+			error = -ENODEV;
-+		}
- 		goto out_put;
--
--	if (index >= SD_MAX_DISKS) {
--		error = -ENODEV;
--		sdev_printk(KERN_WARNING, sdp, "SCSI disk (sd) name space exhausted.\n");
--		goto out_free_index;
- 	}
+ 	return snprintf(buf, PAGE_SIZE - 1, "%d\n",
+-		TempFromReg(data->temp[to_sensor_dev_attr(attr)->index],
+-			    data->temp[to_sensor_dev_attr(attr)->index + 1]));
++			index = 0 || (data->config & (1 << (index / 2))) ?
++		temp_from_reg_signed(data->temp[index], data->temp[index + 1]) :
++		temp_from_reg_unsigned(data->temp[index],
++				       data->temp[index + 1]));
+ }
  
- 	error = sd_format_disk_name("sd", index, gd->disk_name, DISK_NAME_LEN);
-@@ -2633,9 +2625,7 @@ static int sd_probe(struct device *dev)
- 	return 0;
- 
-  out_free_index:
--	spin_lock(&sd_index_lock);
--	ida_remove(&sd_index_ida, index);
--	spin_unlock(&sd_index_lock);
-+	ida_simple_remove(&sd_index_ida, index);
-  out_put:
- 	put_disk(gd);
-  out_free:
-@@ -2691,9 +2681,7 @@ static void scsi_disk_release(struct device *dev)
- 	struct scsi_disk *sdkp = to_scsi_disk(dev);
- 	struct gendisk *disk = sdkp->disk;
- 	
--	spin_lock(&sd_index_lock);
--	ida_remove(&sd_index_ida, sdkp->index);
--	spin_unlock(&sd_index_lock);
-+	ida_simple_remove(&sd_index_ida, sdkp->index);
- 
- 	disk->private_data = NULL;
- 	put_disk(disk);
+ static ssize_t show_type(struct device *dev, struct device_attribute *attr,
 -- 
-1.7.3.4
+1.7.3.1
 
 
 _______________________________________________
