@@ -1,78 +1,76 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Fri, 22 Jul 2011 16:41:24 +0000
-Subject: [lm-sensors] [PATCH 6/8] [SCSI] osduld: use ida_simple_get to
-Message-Id: <1311352886-4047-16-git-send-email-jic23@cam.ac.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 10 Jul 2011 15:12:41 +0000
+Subject: Re: [lm-sensors] [PATCH v4] hwmon: (lm95241) Fix negative
+Message-Id: <20110710171241.323f6d7f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, tj@kernel.org, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@vger.kernel.org
 
-This does involve additional use of the spin lock in idr.c.
-Is this an issue?
+On Sat, 9 Jul 2011 14:21:45 -0700, Guenter Roeck wrote:
+> Negative temperatures were returned in degrees C instead of milli-Degrees C.
+> Also, negative temperatures were reported for remote temperature sensors even
+> if the chip was configured for positive-only results.
+> 
+> Fix by detecting temperature modes, and by treating negative temperatures
+> similar to positive temperatures, with appropriate sign extension.
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+> v4: Improve readability and convert table index to bit mask
 
-Also, some error mangling was needed to keep the interface
-the same.  Does this matter or can we return -ENOSPC instead
-of -EBUSY?
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
----
- drivers/scsi/osd/osd_uld.c |   22 ++++++++--------------
- 1 files changed, 8 insertions(+), 14 deletions(-)
+> 
+>  drivers/hwmon/lm95241.c |   20 ++++++++++++++------
+>  1 files changed, 14 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
+> index 01c638e..d3b464b 100644
+> --- a/drivers/hwmon/lm95241.c
+> +++ b/drivers/hwmon/lm95241.c
+> @@ -98,11 +98,16 @@ struct lm95241_data {
+>  };
+>  
+>  /* Conversions */
+> -static int TempFromReg(u8 val_h, u8 val_l)
+> +static int temp_from_reg_signed(u8 val_h, u8 val_l)
+>  {
+> -	if (val_h & 0x80)
+> -		return val_h - 0x100;
+> -	return val_h * 1000 + val_l * 1000 / 256;
+> +	s16 val_hl = (val_h << 8) | val_l;
+> +	return val_hl * 1000 / 256;
+> +}
+> +
+> +static int temp_from_reg_unsigned(u8 val_h, u8 val_l)
+> +{
+> +	u16 val_hl = (val_h << 8) | val_l;
+> +	return val_hl * 1000 / 256;
+>  }
+>  
+>  static struct lm95241_data *lm95241_update_device(struct device *dev)
+> @@ -135,10 +140,13 @@ static ssize_t show_input(struct device *dev, struct device_attribute *attr,
+>  			  char *buf)
+>  {
+>  	struct lm95241_data *data = lm95241_update_device(dev);
+> +	int index = to_sensor_dev_attr(attr)->index;
+>  
+>  	return snprintf(buf, PAGE_SIZE - 1, "%d\n",
+> -		TempFromReg(data->temp[to_sensor_dev_attr(attr)->index],
+> -			    data->temp[to_sensor_dev_attr(attr)->index + 1]));
+> +			index = 0 || (data->config & (1 << (index / 2))) ?
+> +		temp_from_reg_signed(data->temp[index], data->temp[index + 1]) :
+> +		temp_from_reg_unsigned(data->temp[index],
+> +				       data->temp[index + 1]));
+>  }
+>  
+>  static ssize_t show_type(struct device *dev, struct device_attribute *attr,
 
-diff --git a/drivers/scsi/osd/osd_uld.c b/drivers/scsi/osd/osd_uld.c
-index b31a8e3..fa849bd 100644
---- a/drivers/scsi/osd/osd_uld.c
-+++ b/drivers/scsi/osd/osd_uld.c
-@@ -387,7 +387,7 @@ static void __remove(struct device *dev)
- 
- 	if (oud->disk)
- 		put_disk(oud->disk);
--	ida_remove(&osd_minor_ida, oud->minor);
-+	ida_simple_remove(&osd_minor_ida, oud->minor);
- 
- 	kfree(oud);
- }
-@@ -403,18 +403,12 @@ static int osd_probe(struct device *dev)
- 	if (scsi_device->type != TYPE_OSD)
- 		return -ENODEV;
- 
--	do {
--		if (!ida_pre_get(&osd_minor_ida, GFP_KERNEL))
--			return -ENODEV;
--
--		error = ida_get_new(&osd_minor_ida, &minor);
--	} while (error = -EAGAIN);
--
--	if (error)
--		return error;
--	if (minor >= SCSI_OSD_MAX_MINOR) {
--		error = -EBUSY;
--		goto err_retract_minor;
-+	minor = ida_simple_get(&osd_minor_ida, 0,
-+			       SCSI_OSD_MAX_MINOR, GFP_KERNEL);
-+	if (minor < 0) {
-+		if (minor = -ENOSPC)
-+			return -EBUSY;
-+		return minor;
- 	}
- 
- 	error = -ENOMEM;
-@@ -491,7 +485,7 @@ err_free_osd:
- 	dev_set_drvdata(dev, NULL);
- 	kfree(oud);
- err_retract_minor:
--	ida_remove(&osd_minor_ida, minor);
-+	ida_simple_remove(&osd_minor_ida, minor);
- 	return error;
- }
- 
+
 -- 
-1.7.3.4
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
