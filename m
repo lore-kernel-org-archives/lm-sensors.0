@@ -1,52 +1,103 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 07 Jul 2011 14:50:59 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/3] hwmon: (lm95241) Fix chip detection
-Message-Id: <20110707165059.6784cea6@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 12 Jul 2011 15:41:33 +0000
+Subject: [lm-sensors] [PATCH 08/15] hwmon: (pmbus) Strengthen check for
+Message-Id: <1310485300-2168-9-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310047864-22691-2-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1310047864-22691-2-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 7 Jul 2011 07:11:02 -0700, Guenter Roeck wrote:
-> The LM95241 driver accepts every chip ID equal to or larger than 0xA4 as its
-> own, and other chips such as LM95245 use chip IDs in the accepted ID range.
-> This results in false chip detection.
-> 
-> Fix problem by accepting only the known LM95241 chip ID.
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+With virtual register page support, it is now possible that the status register
+on virtual pages does not exist or is itself virtual. To take this into account
+when creating alarm attributes, generate those attributes only if the status
+register on the respective page is known to exist.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus/pmbus_core.c |   44 +++++++++++++++++++------------------
+ 1 files changed, 23 insertions(+), 21 deletions(-)
 
-> ---
-> Candidate for -stable.
-
-Definitely.
-
-> 
->  drivers/hwmon/lm95241.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
-> index 1a6dfb6..01c638e 100644
-> --- a/drivers/hwmon/lm95241.c
-> +++ b/drivers/hwmon/lm95241.c
-> @@ -339,7 +339,7 @@ static int lm95241_detect(struct i2c_client *new_client,
->  	if ((i2c_smbus_read_byte_data(new_client, LM95241_REG_R_MAN_ID)
->  	     = MANUFACTURER_ID)
->  	    && (i2c_smbus_read_byte_data(new_client, LM95241_REG_R_CHIP_ID)
-> -		>= DEFAULT_REVISION)) {
-> +		= DEFAULT_REVISION)) {
->  		name = DEVNAME;
->  	} else {
->  		dev_dbg(&adapter->dev, "LM95241 detection failed at 0x%02x\n",
-
-
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 85d6136..de32bcc 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -250,6 +250,24 @@ int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg)
+ }
+ EXPORT_SYMBOL_GPL(pmbus_read_byte_data);
+ 
++/*
++ * _pmbus_read_byte_data() is similar to pmbus_read_byte_data(), but checks if
++ * a device specific mapping funcion exists and calls it if necessary.
++ */
++static int _pmbus_read_byte_data(struct i2c_client *client, int page, int reg)
++{
++	struct pmbus_data *data = i2c_get_clientdata(client);
++	const struct pmbus_driver_info *info = data->info;
++	int status;
++
++	if (info->read_byte_data) {
++		status = info->read_byte_data(client, page, reg);
++		if (status != -ENODATA)
++			return status;
++	}
++	return pmbus_read_byte_data(client, page, reg);
++}
++
+ static void pmbus_clear_fault_page(struct i2c_client *client, int page)
+ {
+ 	pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
+@@ -283,7 +301,7 @@ bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg)
+ 	int rv;
+ 	struct pmbus_data *data = i2c_get_clientdata(client);
+ 
+-	rv = pmbus_read_byte_data(client, page, reg);
++	rv = _pmbus_read_byte_data(client, page, reg);
+ 	if (rv >= 0 && !(data->flags & PMBUS_SKIP_STATUS_CHECK))
+ 		rv = pmbus_check_status_cml(client, page);
+ 	pmbus_clear_fault_page(client, page);
+@@ -312,24 +330,6 @@ const struct pmbus_driver_info *pmbus_get_driver_info(struct i2c_client *client)
+ }
+ EXPORT_SYMBOL_GPL(pmbus_get_driver_info);
+ 
+-/*
+- * _pmbus_read_byte_data() is similar to pmbus_read_byte_data(), but checks if
+- * a device specific mapping funcion exists and calls it if necessary.
+- */
+-static int _pmbus_read_byte_data(struct i2c_client *client, int page, int reg)
+-{
+-	struct pmbus_data *data = i2c_get_clientdata(client);
+-	const struct pmbus_driver_info *info = data->info;
+-	int status;
+-
+-	if (info->read_byte_data) {
+-		status = info->read_byte_data(client, page, reg);
+-		if (status != -ENODATA)
+-			return status;
+-	}
+-	return pmbus_read_byte_data(client, page, reg);
+-}
+-
+ static struct pmbus_data *pmbus_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -1033,9 +1033,11 @@ static void pmbus_add_sensor_attrs_one(struct i2c_client *client,
+ 						   index, page, cbase, attr);
+ 		/*
+ 		 * Add generic alarm attribute only if there are no individual
+-		 * alarm attributes, and if there is a global alarm bit.
++		 * alarm attributes, if there is a global alarm bit, and if
++		 * the generic status register for this page is accessible.
+ 		 */
+-		if (!have_alarm && attr->gbit)
++		if (!have_alarm && attr->gbit &&
++		    pmbus_check_byte_register(client, page, PMBUS_STATUS_BYTE))
+ 			pmbus_add_boolean_reg(data, name, "alarm", index,
+ 					      PB_STATUS_BASE + page,
+ 					      attr->gbit);
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
