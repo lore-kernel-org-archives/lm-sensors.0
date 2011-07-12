@@ -1,87 +1,30 @@
-From: Pavel Herrmann <morpheus.ibis@gmail.com>
-Date: Mon, 11 Jul 2011 21:50:38 +0000
-Subject: [lm-sensors] [PATCH v3] MAX1111: Fix Race condition causing NULL
-Message-Id: <1310421038-14823-1-git-send-email-morpheus.ibis@gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 12 Jul 2011 07:36:06 +0000
+Subject: Re: [lm-sensors] [PATCH v3] MAX1111: Fix Race condition causing
+Message-Id: <20110712093606.5db834cb@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1310421038-14823-1-git-send-email-morpheus.ibis@gmail.com>
+In-Reply-To: <1310421038-14823-1-git-send-email-morpheus.ibis@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-spi_sync call uses its spi_message parameter to keep completion information,
-using a drvdata structure is not thread-safe, potentially causing one thread
-having pointers to memory on or above other threads stack. use mutex to
-prevent multiple access
+On Mon, 11 Jul 2011 23:50:38 +0200, Pavel Herrmann wrote:
+> spi_sync call uses its spi_message parameter to keep completion information,
+> using a drvdata structure is not thread-safe, potentially causing one thread
+> having pointers to memory on or above other threads stack. use mutex to
+> prevent multiple access
 
-Signed-off-by: Pavel Herrmann <morpheus.ibis@gmail.com>
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Marek Vasut <marek.vasut@gmail.com>
-Acked-by: Cyril Hrubis <metan@ucw.cz>
-Tested-by: Stanislav Brabec <utx@penguin.cz>
----
- drivers/hwmon/max1111.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+Honestly, I have no idea what "causing one thread having pointers to
+memory on or above other threads stack" means (nor why this would be
+bad.)
 
-diff --git a/drivers/hwmon/max1111.c b/drivers/hwmon/max1111.c
-index 12a54aa..5c9e54c 100644
---- a/drivers/hwmon/max1111.c
-+++ b/drivers/hwmon/max1111.c
-@@ -40,6 +40,8 @@ struct max1111_data {
- 	struct spi_transfer	xfer[2];
- 	uint8_t *tx_buf;
- 	uint8_t *rx_buf;
-+	struct mutex		drvdata_lock;
-+	/* protect msg, xfer and buffers from multiple access */
- };
- 
- static int max1111_read(struct device *dev, int channel)
-@@ -48,6 +50,9 @@ static int max1111_read(struct device *dev, int channel)
- 	uint8_t v1, v2;
- 	int err;
- 
-+	/* writing to drvdata struct is not thread safe, wait on mutex */
-+	mutex_lock(&data->drvdata_lock);
-+
- 	data->tx_buf[0] = (channel << MAX1111_CTRL_SEL_SH) |
- 		MAX1111_CTRL_PD0 | MAX1111_CTRL_PD1 |
- 		MAX1111_CTRL_SGL | MAX1111_CTRL_UNI | MAX1111_CTRL_STR;
-@@ -55,12 +60,15 @@ static int max1111_read(struct device *dev, int channel)
- 	err = spi_sync(data->spi, &data->msg);
- 	if (err < 0) {
- 		dev_err(dev, "spi_sync failed with %d\n", err);
-+		mutex_unlock(&data->drvdata_lock);
- 		return err;
- 	}
- 
- 	v1 = data->rx_buf[0];
- 	v2 = data->rx_buf[1];
- 
-+	mutex_unlock(&data->drvdata_lock);
-+
- 	if ((v1 & 0xc0) || (v2 & 0x3f))
- 		return -EINVAL;
- 
-@@ -176,6 +184,8 @@ static int __devinit max1111_probe(struct spi_device *spi)
- 	if (err)
- 		goto err_free_data;
- 
-+	mutex_init(&data->drvdata_lock);
-+
- 	data->spi = spi;
- 	spi_set_drvdata(spi, data);
- 
-@@ -213,6 +223,7 @@ static int __devexit max1111_remove(struct spi_device *spi)
- 
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&spi->dev.kobj, &max1111_attr_group);
-+	mutex_destroy(data->drvdata_lock);
- 	kfree(data->rx_buf);
- 	kfree(data->tx_buf);
- 	kfree(data);
+Patch applied nevertheless, as it fixes an actual bug which should be
+fixed ASAP. Thanks for your contribution.
+
 -- 
-1.7.5.rc3
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
