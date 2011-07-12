@@ -1,135 +1,332 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 18 Jul 2011 11:02:35 +0000
-Subject: Re: [lm-sensors] add ASRock motherboard to sensors3.conf
-Message-Id: <20110718130235.12e91466@endymion.delvare>
+From: Durgadoss R <durgadoss.r@intel.com>
+Date: Tue, 12 Jul 2011 05:45:18 +0000
+Subject: [lm-sensors] [PATCHv4 1/1] Hwmon: Add core/pkg Threshold Support to
+Message-Id: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CACfFi_TLviaXNuFqHLD3E9bJKux+OaHJMM6Prx80fcaPd-FWJg@mail.gmail.com>
-In-Reply-To: <CACfFi_TLviaXNuFqHLD3E9bJKux+OaHJMM6Prx80fcaPd-FWJg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Please keep the list in Cc.
+This patch adds the core and pkg support to coretemp.
+These thresholds can be configured via the sysfs interfaces tempX_max
+and tempX_max_hyst. An interrupt is generated when CPU temperature reaches
+or crosses above tempX_max OR drops below tempX_max_hyst.
 
-On Sun, 17 Jul 2011 15:45:15 +0300, vagelis xxx wrote:
-> 2011/7/16 Jean Delvare <khali@linux-fr.org>
->=20
-> > On Wed, 13 Jul 2011 00:42:06 +0300, vagelis xxx wrote:> *:~$ sensors*
-> > > w83627ehf-isa-0290
-> > > Adapter: ISA adapter
-> > > VCore:                     +1.13 V  (min =3D  +0.00 V, max =3D  +1.74=
- V)
-> > > VCore2:                    +1.14 V  (min =3D  +0.56 V, max =3D  +0.19=
- V)  ALARM
-> >
-> > You failed to set the limits, hence the ALARM. Recent CPUs tend to have
-> > a single Vcore, BTW, So I doubt this is actually Vcore2.
->=20
-> For this maybe you have right! Just i add to the results VCore2, to see i=
-t.
-> Maybe is good to ignore VCore2.
+This patch is based on the documentation in IA Manual vol 3A, that can be
+downloaded from here:
+http://download.intel.com/design/processor/manuals/253668.pdf
 
-Maybe not ignoring. It might actually be monitoring something, just not
-the CPU Vcore.
+Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+---
+v1
+* Initial code to add core/pkg threshold support
+v2
+* Rearranged the attrs in rd/wr arrays in create_core_attrs function
+* Added code to conditionally create the ttarget/tmin/max_alarm interfaces
+* Changed the MAX_ATTRS definition
+* Added attr_size variable to temp_data structure
+v3
+* Fixed some spelling mistakes
+* Optimized if-else in create_core_attrs function
+v4
+* Report max_alarm based on STATUS bit instead of LOG bit
+* Corrected bound checking in store_ttarget/tmin functions
+ Documentation/hwmon/coretemp |    7 ++
+ drivers/hwmon/coretemp.c     |  177 +++++++++++++++++++++++++++++++-----------
+ 2 files changed, 139 insertions(+), 45 deletions(-)
 
-> > > AVCC:                      +3.36 V  (min =3D  +3.14 V, max =3D  +3.47=
- V)
-> > > 3VCC:                      +3.38 V  (min =3D  +3.14 V, max =3D  +3.47=
- V)
-> > > Vram:                      +1.71 V  (min =3D  +1.89 V, max =3D  +1.71=
- V)  ALARM
-> >
-> > This is pretty low for DDR2 memory.
->=20
-> +1.71V is the only hardware where maybe have this value.
-> I have 2 Kingston KVR800D2N5 and from Kingston say must have +1.8V (+/-
-> .1V) see more info from *pdf*
-> http://www.valueram.com/datasheets/KVR800D2N5_1G.pdf
-> Maybe i should change the "compute Vram" but I do not know the exact resu=
-lt
-> if this is wrong.
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index f85e913..fa8776a 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -35,6 +35,13 @@ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+ All Sysfs entries are named with their core_id (represented here by 'X').
+ tempX_input	 - Core temperature (in millidegrees Celsius).
+ tempX_max	 - All cooling devices should be turned on (on Core2).
++		   Initialized with IA32_THERM_INTERRUPT. When the CPU
++		   temperature reaches this temperature, an interrupt is
++		   generated and tempX_max_alarm is set.
++tempX_max_hyst   - If the CPU temperature falls below than temperature,
++		   an interrupt is generated and tempX_max_alarm is reset.
++tempX_max_alarm  - Set if the temperature reaches or exceeds tempX_max.
++		   Reset if the temperature drops to or below tempX_max_hyst.
+ tempX_crit	 - Maximum junction temperature (in millidegrees Celsius).
+ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
+ 		   Correct CPU operation is no longer guaranteed.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index de3d246..53ed50d 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -44,7 +44,9 @@
+ #define BASE_SYSFS_ATTR_NO	2	/* Sysfs Base attr no for coretemp */
+ #define NUM_REAL_CORES		16	/* Number of Real cores per cpu */
+ #define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
+-#define MAX_ATTRS		5	/* Maximum no of per-core attrs */
++#define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
++#define MAX_THRESH_ATTRS	3	/* Maximum no of Threshold attrs */
++#define TOTAL_ATTRS		(MAX_CORE_ATTRS + MAX_THRESH_ATTRS)
+ #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
+ 
+ #ifdef CONFIG_SMP
+@@ -67,6 +69,9 @@
+  *		This value is passed as "id" field to rdmsr/wrmsr functions.
+  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
+  *		from where the temperature values should be read.
++ * @intrpt_reg: One of IA32_THERM_INTERRUPT or IA32_PACKAGE_THERM_INTERRUPT,
++ *		from where the thresholds are read.
++ * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
+  * @is_pkg_data: If this is 1, the temp_data holds pkgtemp data.
+  *		Otherwise, temp_data holds coretemp data.
+  * @valid: If this is 1, the current temperature is valid.
+@@ -74,15 +79,18 @@
+ struct temp_data {
+ 	int temp;
+ 	int ttarget;
++	int tmin;
+ 	int tjmax;
+ 	unsigned long last_updated;
+ 	unsigned int cpu;
+ 	u32 cpu_core_id;
+ 	u32 status_reg;
++	u32 intrpt_reg;
++	int attr_size;
+ 	bool is_pkg_data;
+ 	bool valid;
+-	struct sensor_device_attribute sd_attrs[MAX_ATTRS];
+-	char attr_name[MAX_ATTRS][CORETEMP_NAME_LENGTH];
++	struct sensor_device_attribute sd_attrs[TOTAL_ATTRS];
++	char attr_name[TOTAL_ATTRS][CORETEMP_NAME_LENGTH];
+ 	struct mutex update_lock;
+ };
+ 
+@@ -137,6 +145,19 @@ static ssize_t show_crit_alarm(struct device *dev,
+ 	return sprintf(buf, "%d\n", (eax >> 5) & 1);
+ }
+ 
++static ssize_t show_max_alarm(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	u32 eax, edx;
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct temp_data *tdata = pdata->core_data[attr->index];
++
++	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
++
++	return sprintf(buf, "%d\n", !!(eax & THERM_STATUS_THRESHOLD1));
++}
++
+ static ssize_t show_tjmax(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+@@ -155,6 +176,83 @@ static ssize_t show_ttarget(struct device *dev,
+ 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->ttarget);
+ }
+ 
++static ssize_t store_ttarget(struct device *dev,
++				struct device_attribute *devattr,
++				const char *buf, size_t count)
++{
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct temp_data *tdata = pdata->core_data[attr->index];
++	u32 eax, edx;
++	unsigned long val;
++	int diff;
++
++	if (strict_strtoul(buf, 10, &val))
++		return -EINVAL;
++
++	/*
++	 * THERM_MASK_THRESHOLD1 is 7 bits wide. Values are entered in terms
++	 * of milli degree celsius. Hence don't accept val > (127 * 1000)
++	 */
++	if (val > tdata->tjmax || val > 127000)
++		return -EINVAL;
++
++	diff = (tdata->tjmax - val) / 1000;
++
++	mutex_lock(&tdata->update_lock);
++	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
++	eax = (eax & ~THERM_MASK_THRESHOLD1) |
++				(diff << THERM_SHIFT_THRESHOLD1);
++	wrmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, eax, edx);
++	tdata->ttarget = val;
++	mutex_unlock(&tdata->update_lock);
++
++	return count;
++}
++
++static ssize_t show_tmin(struct device *dev,
++			struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->tmin);
++}
++
++static ssize_t store_tmin(struct device *dev,
++				struct device_attribute *devattr,
++				const char *buf, size_t count)
++{
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct temp_data *tdata = pdata->core_data[attr->index];
++	u32 eax, edx;
++	unsigned long val;
++	int diff;
++
++	if (strict_strtoul(buf, 10, &val))
++		return -EINVAL;
++
++	/*
++	 * THERM_MASK_THRESHOLD0 is 7 bits wide. Values are entered in terms
++	 * of milli degree celsius. Hence don't accept val > (127 * 1000)
++	 */
++	if (val > tdata->tjmax || val > 127000)
++		return -EINVAL;
++
++	diff = (tdata->tjmax - val) / 1000;
++
++	mutex_lock(&tdata->update_lock);
++	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
++	eax = (eax & ~THERM_MASK_THRESHOLD0) |
++				(diff << THERM_SHIFT_THRESHOLD0);
++	wrmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, eax, edx);
++	tdata->tmin = val;
++	mutex_unlock(&tdata->update_lock);
++
++	return count;
++}
++
+ static ssize_t show_temp(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+@@ -361,23 +459,31 @@ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
+ 				int attr_no)
+ {
+ 	int err, i;
+-	static ssize_t (*rd_ptr[MAX_ATTRS]) (struct device *dev,
++	static ssize_t (*rd_ptr[TOTAL_ATTRS]) (struct device *dev,
+ 			struct device_attribute *devattr, char *buf) = {
+-			show_label, show_crit_alarm, show_ttarget,
+-			show_temp, show_tjmax };
+-	static const char *names[MAX_ATTRS] = {
++			show_label, show_crit_alarm, show_temp, show_tjmax,
++			show_max_alarm, show_ttarget, show_tmin };
++	static ssize_t (*rw_ptr[TOTAL_ATTRS]) (struct device *dev,
++			struct device_attribute *devattr, const char *buf,
++			size_t count) = { NULL, NULL, NULL, NULL, NULL,
++					store_ttarget, store_tmin };
++	static const char *names[TOTAL_ATTRS] = {
+ 					"temp%d_label", "temp%d_crit_alarm",
+-					"temp%d_max", "temp%d_input",
+-					"temp%d_crit" };
++					"temp%d_input", "temp%d_crit",
++					"temp%d_max_alarm", "temp%d_max",
++					"temp%d_max_hyst" };
+ 
+-	for (i = 0; i < MAX_ATTRS; i++) {
++	for (i = 0; i < tdata->attr_size; i++) {
+ 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+ 			attr_no);
+ 		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
+ 		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
+ 		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
++		if (rw_ptr[i]) {
++			tdata->sd_attrs[i].dev_attr.attr.mode |= S_IWUSR;
++			tdata->sd_attrs[i].dev_attr.store = rw_ptr[i];
++		}
+ 		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
+-		tdata->sd_attrs[i].dev_attr.store = NULL;
+ 		tdata->sd_attrs[i].index = attr_no;
+ 		err = device_create_file(dev, &tdata->sd_attrs[i].dev_attr);
+ 		if (err)
+@@ -391,38 +497,6 @@ exit_free:
+ 	return err;
+ }
+ 
+-static void update_ttarget(__u8 cpu_model, struct temp_data *tdata,
+-				struct device *dev)
+-{
+-	int err;
+-	u32 eax, edx;
+-
+-	/*
+-	 * Initialize ttarget value. Eventually this will be
+-	 * initialized with the value from MSR_IA32_THERM_INTERRUPT
+-	 * register. If IA32_TEMPERATURE_TARGET is supported, this
+-	 * value will be over written below.
+-	 * To Do: Patch to initialize ttarget from MSR_IA32_THERM_INTERRUPT
+-	 */
+-	tdata->ttarget = tdata->tjmax - 20000;
+-
+-	/*
+-	 * Read the still undocumented IA32_TEMPERATURE_TARGET. It exists
+-	 * on older CPUs but not in this register,
+-	 * Atoms don't have it either.
+-	 */
+-	if (cpu_model > 0xe && cpu_model != 0x1c) {
+-		err = rdmsr_safe_on_cpu(tdata->cpu,
+-				MSR_IA32_TEMPERATURE_TARGET, &eax, &edx);
+-		if (err) {
+-			dev_warn(dev,
+-			"Unable to read IA32_TEMPERATURE_TARGET MSR\n");
+-		} else {
+-			tdata->ttarget = tdata->tjmax -
+-					((eax >> 8) & 0xff) * 1000;
+-		}
+-	}
+-}
+ 
+ static int __devinit chk_ucode_version(struct platform_device *pdev)
+ {
+@@ -481,9 +555,12 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
+ 
+ 	tdata->status_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_STATUS :
+ 							MSR_IA32_THERM_STATUS;
++	tdata->intrpt_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_INTERRUPT :
++						MSR_IA32_THERM_INTERRUPT;
+ 	tdata->is_pkg_data = pkg_flag;
+ 	tdata->cpu = cpu;
+ 	tdata->cpu_core_id = TO_CORE_ID(cpu);
++	tdata->attr_size = MAX_CORE_ATTRS;
+ 	mutex_init(&tdata->update_lock);
+ 	return tdata;
+ }
+@@ -533,7 +610,17 @@ static int create_core_data(struct platform_data *pdata,
+ 	else
+ 		tdata->tjmax = get_tjmax(c, cpu, &pdev->dev);
+ 
+-	update_ttarget(c->x86_model, tdata, &pdev->dev);
++	/*
++	 * Test if we can access the intrpt register. If so, increase the
++	 * 'size' enough to have ttarget/tmin/max_alarm interfaces.
++	 * Initialize ttarget with bits 16:22 of MSR_IA32_THERM_INTERRUPT
++	 */
++	err = rdmsr_safe_on_cpu(cpu, tdata->intrpt_reg, &eax, &edx);
++	if (!err) {
++		tdata->attr_size += MAX_THRESH_ATTRS;
++		tdata->ttarget = tdata->tjmax - ((eax >> 16) & 0x7f) * 1000;
++	}
++
+ 	pdata->core_data[attr_no] = tdata;
+ 
+ 	/* Create sysfs interfaces */
+@@ -570,7 +657,7 @@ static void coretemp_remove_core(struct platform_data *pdata,
+ 	struct temp_data *tdata = pdata->core_data[indx];
+ 
+ 	/* Remove the sysfs attributes */
+-	for (i = 0; i < MAX_ATTRS; i++)
++	for (i = 0; i < tdata->attr_size; i++)
+ 		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
+ 
+ 	kfree(pdata->core_data[indx]);
+-- 
+1.6.1
 
-No, compute statements shouldn't be needed for Vram, as it is below the
-ADC limit (2.04 V.) My point was that maybe Vram isn't in4 but another
-input. For example, the unscaled values of in5 and in6 are closer to
-the nominal +1.8V than in4. in6 (+1.87) in particular would be a good
-bet, as overvolting is a more frequent operation than undervolting, and
-one would normally not scale +5V or +12V to a value so close to the ADC
-max.
-
-> > > +12V:                     +12.33 V  (min =3D +10.79 V, max =3D +13.18=
- V)
-> > > +5V:                       +4.99 V  (min =3D  +4.76 V, max =3D  +5.25=
- V)
-> > > VSB3V:                     +3.36 V  (min =3D  +3.14 V, max =3D  +3.47=
- V)
-> > > VBAT:                      +3.31 V  (min =3D  +3.14 V, max =3D  +3.47=
- V)
-> > > +3.3V:                     +3.34 V  (min =3D  +3.14 V, max =3D  +3.47=
- V)
-> >
-> > This would be surprising. +3.3V is already monitored twice internally
-> > (see AVCC and 3VCC above). It would make very little sense to monitor
-> > it again externally.
->=20
-> Yes,  you have right. Just i add to the results, to see it. Maybe is good=
- to
-> ignore it.
-
-Again maybe you don't have to ignore it. It may be monitoring something
-else. And if you don't know what it is, it is fine to leave it enabled
-without labels. One of the purposes of monitoring is to detect unusual
-conditions, and that can be achieved even if you don't know which input
-corresponds to what voltage.
-
-> > More generally, how did you figure out the mappings and scaling factors?
->=20
-> I found the exact parameters, measuring the computer time operating with a
-> voltmeter
->=20
-> This about +12V /  +5V / AVCC
-
-The voltmeter won't tell you the mappings, only the scaling factors.
-But you have to find out the mappings first. Secondly, what is the
-accuracy of your voltmeter? Low-end models do often no better than 5%,
-which makes them useless for this kind of exercise.
-
-I am curious how you measured +3.3V, BTW. While +12V and +5V are easy
-to measure on a molex connector, I wouldn't know where to measure +3.3V.
-
-The usual way is to start from what the BIOS is displaying. Did you
-check that? Without that, or detailed documentation from the vendor, it
-is pretty hard to come up with a correct voltage sensor configuration.
-
-> > > Case Fan:                 1339 RPM  (min =3D 5273 RPM, div =3D 8)  AL=
-ARM
-> > > CPU Fan:                  2410 RPM  (min =3D 1288 RPM, div =3D 8)
-> >
-> > You should set proper fan min values.
->=20
-> This would be somewhat difficult, because the case fan and cpu fan is not
-> all the same.
-
-I don't quite get you here. Sure, other users may use other fans, but
-you should at least set proper limits for your personal case: this
-can't be worse than the broken default values.
-
-> > > Chipset ATI=99 SB600 Temp: +37.0=B0C  (high =3D +50.0=B0C, hyst =3D +=
-45.0=B0C)
-> >
-> > I would avoid non-ASCII characters in labels.
->=20
-> Ok, this in not problem.Maybe is good these names
->=20
-> Chipset ATI=99 SB600 Temp =3D> Southbridge Chipset Temp
-> Chipset AMD 480X Temp =3D> Northbridge Chipset Temp
-
-I like short labels and would go for "SBr Temp" and "NBr Temp", but up
-to you.
-
---=20
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
