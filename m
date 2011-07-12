@@ -1,213 +1,109 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Fri, 22 Jul 2011 16:41:25 +0000
-Subject: [lm-sensors] [PATCH 7/8] w1: ds2760 and ds2780,
-Message-Id: <1311352886-4047-17-git-send-email-jic23@cam.ac.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 12 Jul 2011 15:41:38 +0000
+Subject: [lm-sensors] [PATCH 13/15] hwmon: (max8688) Add support for peak
+Message-Id: <1310485300-2168-14-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, tj@kernel.org, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@vger.kernel.org
 
-Straight forward.  As an aside, the ida_init calls are not needed as far
-as I can see needed. (DEFINE_IDA does the same already).
+Add support for voltage, current, and temperature peak (historic maximum)
+attributes.
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/w1/slaves/w1_ds2760.c |   48 +++++-----------------------------------
- drivers/w1/slaves/w1_ds2780.c |   48 +++++-----------------------------------
- 2 files changed, 12 insertions(+), 84 deletions(-)
+ drivers/hwmon/pmbus/max8688.c |   61 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/w1/slaves/w1_ds2760.c b/drivers/w1/slaves/w1_ds2760.c
-index 483d451..5754c9a 100644
---- a/drivers/w1/slaves/w1_ds2760.c
-+++ b/drivers/w1/slaves/w1_ds2760.c
-@@ -114,43 +114,7 @@ static struct bin_attribute w1_ds2760_bin_attr = {
- 	.read = w1_ds2760_read_bin,
+diff --git a/drivers/hwmon/pmbus/max8688.c b/drivers/hwmon/pmbus/max8688.c
+index ddc8a64..c3e72f1 100644
+--- a/drivers/hwmon/pmbus/max8688.c
++++ b/drivers/hwmon/pmbus/max8688.c
+@@ -25,6 +25,9 @@
+ #include <linux/i2c.h>
+ #include "pmbus.h"
+ 
++#define MAX8688_MFR_VOUT_PEAK		0xd4
++#define MAX8688_MFR_IOUT_PEAK		0xd5
++#define MAX8688_MFR_TEMPERATURE_PEAK	0xd6
+ #define MAX8688_MFG_STATUS		0xd8
+ 
+ #define MAX8688_STATUS_OC_FAULT		(1 << 4)
+@@ -37,6 +40,62 @@
+ #define MAX8688_STATUS_OT_FAULT		(1 << 13)
+ #define MAX8688_STATUS_OT_WARNING	(1 << 14)
+ 
++static int max8688_read_word_data(struct i2c_client *client, int page, int reg)
++{
++	int ret;
++
++	if (page)
++		return -EINVAL;
++
++	switch (reg) {
++	case PMBUS_VIRT_READ_VOUT_MAX:
++		ret = pmbus_read_word_data(client, 0, MAX8688_MFR_VOUT_PEAK);
++		break;
++	case PMBUS_VIRT_READ_IOUT_MAX:
++		ret = pmbus_read_word_data(client, 0, MAX8688_MFR_IOUT_PEAK);
++		break;
++	case PMBUS_VIRT_READ_TEMP_MAX:
++		ret = pmbus_read_word_data(client, 0,
++					   MAX8688_MFR_TEMPERATURE_PEAK);
++		break;
++	case PMBUS_VIRT_RESET_VOUT_HISTORY:
++	case PMBUS_VIRT_RESET_IOUT_HISTORY:
++	case PMBUS_VIRT_RESET_TEMP_HISTORY:
++		ret = 0;
++		break;
++	default:
++		ret = -ENODATA;
++		break;
++	}
++	return ret;
++}
++
++static int max8688_write_word_data(struct i2c_client *client, int page, int reg,
++				   u16 word)
++{
++	int ret;
++
++	switch (reg) {
++	case PMBUS_VIRT_RESET_VOUT_HISTORY:
++		ret = pmbus_write_word_data(client, 0, MAX8688_MFR_VOUT_PEAK,
++					    0);
++		break;
++	case PMBUS_VIRT_RESET_IOUT_HISTORY:
++		ret = pmbus_write_word_data(client, 0, MAX8688_MFR_IOUT_PEAK,
++					    0);
++		break;
++	case PMBUS_VIRT_RESET_TEMP_HISTORY:
++		ret = pmbus_write_word_data(client, 0,
++					    MAX8688_MFR_TEMPERATURE_PEAK,
++					    0xffff);
++		break;
++	default:
++		ret = -ENODATA;
++		break;
++	}
++	return ret;
++}
++
+ static int max8688_read_byte_data(struct i2c_client *client, int page, int reg)
+ {
+ 	int ret = 0;
+@@ -111,6 +170,8 @@ static struct pmbus_driver_info max8688_info = {
+ 		| PMBUS_HAVE_STATUS_VOUT | PMBUS_HAVE_STATUS_IOUT
+ 		| PMBUS_HAVE_STATUS_TEMP,
+ 	.read_byte_data = max8688_read_byte_data,
++	.read_word_data = max8688_read_word_data,
++	.write_word_data = max8688_write_word_data,
  };
  
--static DEFINE_IDR(bat_idr);
--static DEFINE_MUTEX(bat_idr_lock);
--
--static int new_bat_id(void)
--{
--	int ret;
--
--	while (1) {
--		int id;
--
--		ret = idr_pre_get(&bat_idr, GFP_KERNEL);
--		if (ret = 0)
--			return -ENOMEM;
--
--		mutex_lock(&bat_idr_lock);
--		ret = idr_get_new(&bat_idr, NULL, &id);
--		mutex_unlock(&bat_idr_lock);
--
--		if (ret = 0) {
--			ret = id & MAX_ID_MASK;
--			break;
--		} else if (ret = -EAGAIN) {
--			continue;
--		} else {
--			break;
--		}
--	}
--
--	return ret;
--}
--
--static void release_bat_id(int id)
--{
--	mutex_lock(&bat_idr_lock);
--	idr_remove(&bat_idr, id);
--	mutex_unlock(&bat_idr_lock);
--}
-+static DEFINE_IDA(bat_ida);
- 
- static int w1_ds2760_add_slave(struct w1_slave *sl)
- {
-@@ -158,7 +122,7 @@ static int w1_ds2760_add_slave(struct w1_slave *sl)
- 	int id;
- 	struct platform_device *pdev;
- 
--	id = new_bat_id();
-+	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
- 	if (id < 0) {
- 		ret = id;
- 		goto noid;
-@@ -187,7 +151,7 @@ bin_attr_failed:
- pdev_add_failed:
- 	platform_device_unregister(pdev);
- pdev_alloc_failed:
--	release_bat_id(id);
-+	ida_simple_remove(&bat_ida, id);
- noid:
- success:
- 	return ret;
-@@ -199,7 +163,7 @@ static void w1_ds2760_remove_slave(struct w1_slave *sl)
- 	int id = pdev->id;
- 
- 	platform_device_unregister(pdev);
--	release_bat_id(id);
-+	ida_simple_remove(&bat_ida, id);
- 	sysfs_remove_bin_file(&sl->dev.kobj, &w1_ds2760_bin_attr);
- }
- 
-@@ -217,14 +181,14 @@ static int __init w1_ds2760_init(void)
- {
- 	printk(KERN_INFO "1-Wire driver for the DS2760 battery monitor "
- 	       " chip  - (c) 2004-2005, Szabolcs Gyurko\n");
--	idr_init(&bat_idr);
-+	ida_init(&bat_ida);
- 	return w1_register_family(&w1_ds2760_family);
- }
- 
- static void __exit w1_ds2760_exit(void)
- {
- 	w1_unregister_family(&w1_ds2760_family);
--	idr_destroy(&bat_idr);
-+	ida_destroy(&bat_ida);
- }
- 
- EXPORT_SYMBOL(w1_ds2760_read);
-diff --git a/drivers/w1/slaves/w1_ds2780.c b/drivers/w1/slaves/w1_ds2780.c
-index 274c8f3..a134b38 100644
---- a/drivers/w1/slaves/w1_ds2780.c
-+++ b/drivers/w1/slaves/w1_ds2780.c
-@@ -99,43 +99,7 @@ static struct bin_attribute w1_ds2780_bin_attr = {
- 	.read = w1_ds2780_read_bin,
- };
- 
--static DEFINE_IDR(bat_idr);
--static DEFINE_MUTEX(bat_idr_lock);
--
--static int new_bat_id(void)
--{
--	int ret;
--
--	while (1) {
--		int id;
--
--		ret = idr_pre_get(&bat_idr, GFP_KERNEL);
--		if (ret = 0)
--			return -ENOMEM;
--
--		mutex_lock(&bat_idr_lock);
--		ret = idr_get_new(&bat_idr, NULL, &id);
--		mutex_unlock(&bat_idr_lock);
--
--		if (ret = 0) {
--			ret = id & MAX_ID_MASK;
--			break;
--		} else if (ret = -EAGAIN) {
--			continue;
--		} else {
--			break;
--		}
--	}
--
--	return ret;
--}
--
--static void release_bat_id(int id)
--{
--	mutex_lock(&bat_idr_lock);
--	idr_remove(&bat_idr, id);
--	mutex_unlock(&bat_idr_lock);
--}
-+static DEFINE_IDA(bat_ida);
- 
- static int w1_ds2780_add_slave(struct w1_slave *sl)
- {
-@@ -143,7 +107,7 @@ static int w1_ds2780_add_slave(struct w1_slave *sl)
- 	int id;
- 	struct platform_device *pdev;
- 
--	id = new_bat_id();
-+	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
- 	if (id < 0) {
- 		ret = id;
- 		goto noid;
-@@ -172,7 +136,7 @@ bin_attr_failed:
- pdev_add_failed:
- 	platform_device_unregister(pdev);
- pdev_alloc_failed:
--	release_bat_id(id);
-+	ida_simple_remove(&bat_ida, id);
- noid:
- 	return ret;
- }
-@@ -183,7 +147,7 @@ static void w1_ds2780_remove_slave(struct w1_slave *sl)
- 	int id = pdev->id;
- 
- 	platform_device_unregister(pdev);
--	release_bat_id(id);
-+	ida_simple_remove(&bat_ida, id);
- 	sysfs_remove_bin_file(&sl->dev.kobj, &w1_ds2780_bin_attr);
- }
- 
-@@ -199,14 +163,14 @@ static struct w1_family w1_ds2780_family = {
- 
- static int __init w1_ds2780_init(void)
- {
--	idr_init(&bat_idr);
-+	ida_init(&bat_ida);
- 	return w1_register_family(&w1_ds2780_family);
- }
- 
- static void __exit w1_ds2780_exit(void)
- {
- 	w1_unregister_family(&w1_ds2780_family);
--	idr_destroy(&bat_idr);
-+	ida_destroy(&bat_ida);
- }
- 
- module_init(w1_ds2780_init);
+ static int max8688_probe(struct i2c_client *client,
 -- 
-1.7.3.4
+1.7.3.1
 
 
 _______________________________________________
