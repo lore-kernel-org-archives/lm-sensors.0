@@ -1,104 +1,33 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 09 Jul 2011 17:37:44 +0000
-Subject: [lm-sensors] [PATCH RFC] hwmon: Add several attributes to sysfs ABI
-Message-Id: <1310233064-3792-1-git-send-email-guenter.roeck@ericsson.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Tue, 12 Jul 2011 08:22:17 +0000
+Subject: Re: [lm-sensors] [PATCH v3] MAX1111: Fix Race condition
+Message-Id: <20110712082217.GA16141@sirena.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1310421038-14823-1-git-send-email-morpheus.ibis@gmail.com>
+	<20110712093606.5db834cb@endymion.delvare>
+	<1628512.b7CSRB10BJ@bloomfield>
+In-Reply-To: <1628512.b7CSRB10BJ@bloomfield>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Add the following attributes to the sysfs ABI.
+On Tue, Jul 12, 2011 at 10:04:55AM +0200, Pavel Herrmann wrote:
+> On Tuesday 12 of July 2011 09:36:06 Jean Delvare wrote:
 
-in[0-*]_average
-in[0-*]_lowest
-in[0-*]_highest
-in[0-*]_reset_history
-in_reset_history
+> > Honestly, I have no idea what "causing one thread having pointers to
+> > memory on or above other threads stack" means (nor why this would be
+> > bad.)
 
-curr[1-*]_average
-curr[1-*]_lowest
-curr[1-*]_highest
-curr[1-*]_reset_history
-curr_reset_history
+> the long-winded story is that thread A writes a pointer onto its stack into 
+> the drvdata as part of spi_sync call, then thread B comes in and puts a 
+> pointer onto its stack into the drvdata, at the end of spi_sync thread A uses 
+> this pointer (assuming it is unchanged), which is pointing either onto valid 
+> stack of thread B or somewhere above it (if thread B already returned)
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
-This is a followup to my previous mail. Turns out historic attributes already
-exist for temperatures, so there is nothing to do for those. I named the new
-attributes to follow the historic temperature attribute names, since those seem
-to be a bit more consistent than the power attribute names.
-
- Documentation/hwmon/sysfs-interface |   46 +++++++++++++++++++++++++++++++++++
- 1 files changed, 46 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-index 8f63c24..a4aa8f6 100644
---- a/Documentation/hwmon/sysfs-interface
-+++ b/Documentation/hwmon/sysfs-interface
-@@ -139,6 +139,29 @@ in[0-*]_input	Voltage input value.
- 		thumb: drivers should report the voltage values at the
- 		"pins" of the chip.
- 
-+in[0-*]_average
-+		Average voltage
-+		Unit: millivolt
-+		RO
-+
-+in[0-*]_lowest
-+		Historical minimum voltage
-+		Unit: millivolt
-+		RO
-+
-+in[0-*]_highest
-+		Historical maximum voltage
-+		Unit: millivolt
-+		RO
-+
-+in[0-*]_reset_history
-+		Reset inX_lowest and inX_highest
-+		WO
-+
-+in_reset_history
-+		Reset inX_lowest and inX_highest for all sensors
-+		WO
-+
- in[0-*]_label	Suggested voltage channel label.
- 		Text string
- 		Should only be created if the driver has hints about what
-@@ -407,6 +430,29 @@ curr[1-*]_input	Current input value
- 		Unit: milliampere
- 		RO
- 
-+curr[1-*]_average
-+		Average current use
-+		Unit: milliampere
-+		RO
-+
-+curr[1-*]_lowest
-+		Historical minimum current
-+		Unit: milliampere
-+		RO
-+
-+curr[1-*]_highest
-+		Historical maximum current
-+		Unit: milliampere
-+		RO
-+
-+curr[1-*]_reset_history
-+		Reset currX_lowest and currX_highest
-+		WO
-+
-+curr_reset_history
-+		Reset currX_lowest and currX_highest for all sensors
-+		WO
-+
- Also see the Alarms section for status flags associated with currents.
- 
- *********
--- 
-1.7.3.1
-
+That's just a use after free bug, the fact that the variables are on the
+stacks of other threads isn't the issue, the issue is that the two
+threads that are sharing state arne't properly synchronized.
 
 _______________________________________________
 lm-sensors mailing list
