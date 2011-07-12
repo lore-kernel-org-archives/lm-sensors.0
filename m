@@ -1,261 +1,106 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 23 Jul 2011 16:07:35 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm78) Avoid forward declarations
-Message-Id: <20110723180735.2743321a@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 12 Jul 2011 15:41:36 +0000
+Subject: [lm-sensors] [PATCH 11/15] hwmon: (adm1275) Add support for peak
+Message-Id: <1310485300-2168-12-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Move code around to avoid several forward declarations. Also group
-ISA-related functions together, to make future changes easier.
+Add support for voltage and current peak (historic maximum) attributes.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Dean Nelson <dnelson@redhat.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/lm78.c |  205 +++++++++++++++++++++++---------------------------
- 1 file changed, 98 insertions(+), 107 deletions(-)
+ drivers/hwmon/pmbus/adm1275.c |   60 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 60 insertions(+), 0 deletions(-)
 
---- linux-3.0-rc7.orig/drivers/hwmon/lm78.c	2011-07-22 22:49:24.000000000 +0200
-+++ linux-3.0-rc7/drivers/hwmon/lm78.c	2011-07-22 22:55:39.000000000 +0200
-@@ -143,50 +143,12 @@ struct lm78_data {
- };
+diff --git a/drivers/hwmon/pmbus/adm1275.c b/drivers/hwmon/pmbus/adm1275.c
+index 1a91d51..7ca18be 100644
+--- a/drivers/hwmon/pmbus/adm1275.c
++++ b/drivers/hwmon/pmbus/adm1275.c
+@@ -23,11 +23,68 @@
+ #include <linux/i2c.h>
+ #include "pmbus.h"
  
++#define ADM1275_PEAK_IOUT		0xd0
++#define ADM1275_PEAK_VIN		0xd1
++#define ADM1275_PEAK_VOUT		0xd2
+ #define ADM1275_PMON_CONFIG		0xd4
  
--static int lm78_i2c_detect(struct i2c_client *client,
--			   struct i2c_board_info *info);
--static int lm78_i2c_probe(struct i2c_client *client,
--			  const struct i2c_device_id *id);
--static int lm78_i2c_remove(struct i2c_client *client);
--
--static int __devinit lm78_isa_probe(struct platform_device *pdev);
--static int __devexit lm78_isa_remove(struct platform_device *pdev);
--
- static int lm78_read_value(struct lm78_data *data, u8 reg);
- static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value);
- static struct lm78_data *lm78_update_device(struct device *dev);
- static void lm78_init_device(struct lm78_data *data);
+ #define ADM1275_VIN_VOUT_SELECT		(1 << 6)
+ #define ADM1275_VRANGE			(1 << 5)
  
- 
--static const struct i2c_device_id lm78_i2c_id[] = {
--	{ "lm78", lm78 },
--	{ "lm79", lm79 },
--	{ }
--};
--MODULE_DEVICE_TABLE(i2c, lm78_i2c_id);
--
--static struct i2c_driver lm78_driver = {
--	.class		= I2C_CLASS_HWMON,
--	.driver = {
--		.name	= "lm78",
--	},
--	.probe		= lm78_i2c_probe,
--	.remove		= lm78_i2c_remove,
--	.id_table	= lm78_i2c_id,
--	.detect		= lm78_i2c_detect,
--	.address_list	= normal_i2c,
--};
--
--static struct platform_driver lm78_isa_driver = {
--	.driver = {
--		.owner	= THIS_MODULE,
--		.name	= "lm78",
--	},
--	.probe		= lm78_isa_probe,
--	.remove		= __devexit_p(lm78_isa_remove),
--};
--
--
- /* 7 Voltages */
- static ssize_t show_in(struct device *dev, struct device_attribute *da,
- 		       char *buf)
-@@ -663,76 +625,24 @@ static int lm78_i2c_remove(struct i2c_cl
- 	return 0;
- }
- 
--static int __devinit lm78_isa_probe(struct platform_device *pdev)
--{
--	int err;
--	struct lm78_data *data;
--	struct resource *res;
--
--	/* Reserve the ISA region */
--	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start + LM78_ADDR_REG_OFFSET, 2, "lm78")) {
--		err = -EBUSY;
--		goto exit;
--	}
--
--	if (!(data = kzalloc(sizeof(struct lm78_data), GFP_KERNEL))) {
--		err = -ENOMEM;
--		goto exit_release_region;
--	}
--	mutex_init(&data->lock);
--	data->isa_addr = res->start;
--	platform_set_drvdata(pdev, data);
--
--	if (lm78_read_value(data, LM78_REG_CHIPID) & 0x80) {
--		data->type = lm79;
--		data->name = "lm79";
--	} else {
--		data->type = lm78;
--		data->name = "lm78";
--	}
--
--	/* Initialize the LM78 chip */
--	lm78_init_device(data);
--
--	/* Register sysfs hooks */
--	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
--	 || (err = device_create_file(&pdev->dev, &dev_attr_name)))
--		goto exit_remove_files;
--
--	data->hwmon_dev = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		err = PTR_ERR(data->hwmon_dev);
--		goto exit_remove_files;
--	}
--
--	return 0;
--
-- exit_remove_files:
--	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
--	device_remove_file(&pdev->dev, &dev_attr_name);
--	kfree(data);
-- exit_release_region:
--	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
-- exit:
--	return err;
--}
--
--static int __devexit lm78_isa_remove(struct platform_device *pdev)
--{
--	struct lm78_data *data = platform_get_drvdata(pdev);
--	struct resource *res;
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
--	device_remove_file(&pdev->dev, &dev_attr_name);
--	kfree(data);
--
--	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
-+static const struct i2c_device_id lm78_i2c_id[] = {
-+	{ "lm78", lm78 },
-+	{ "lm79", lm79 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, lm78_i2c_id);
- 
--	return 0;
--}
-+static struct i2c_driver lm78_driver = {
-+	.class		= I2C_CLASS_HWMON,
-+	.driver = {
-+		.name	= "lm78",
-+	},
-+	.probe		= lm78_i2c_probe,
-+	.remove		= lm78_i2c_remove,
-+	.id_table	= lm78_i2c_id,
-+	.detect		= lm78_i2c_detect,
-+	.address_list	= normal_i2c,
-+};
- 
- /* The SMBus locks itself, but ISA access must be locked explicitly! 
-    We don't want to lock the whole ISA bus, so we lock each client
-@@ -849,6 +759,87 @@ static struct lm78_data *lm78_update_dev
- 	return data;
- }
- 
-+static int __devinit lm78_isa_probe(struct platform_device *pdev)
++static int adm1275_read_word_data(struct i2c_client *client, int page, int reg)
 +{
-+	int err;
-+	struct lm78_data *data;
-+	struct resource *res;
++	int ret;
 +
-+	/* Reserve the ISA region */
-+	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-+	if (!request_region(res->start + LM78_ADDR_REG_OFFSET, 2, "lm78")) {
-+		err = -EBUSY;
-+		goto exit;
++	if (page)
++		return -EINVAL;
++
++	switch (reg) {
++	case PMBUS_VIRT_READ_IOUT_MAX:
++		ret = pmbus_read_word_data(client, 0, ADM1275_PEAK_IOUT);
++		break;
++	case PMBUS_VIRT_READ_VOUT_MAX:
++		ret = pmbus_read_word_data(client, 0, ADM1275_PEAK_VOUT);
++		break;
++	case PMBUS_VIRT_READ_VIN_MAX:
++		ret = pmbus_read_word_data(client, 0, ADM1275_PEAK_VIN);
++		break;
++	case PMBUS_VIRT_RESET_IOUT_HISTORY:
++	case PMBUS_VIRT_RESET_VOUT_HISTORY:
++	case PMBUS_VIRT_RESET_VIN_HISTORY:
++		ret = 0;
++		break;
++	default:
++		ret = -ENODATA;
++		break;
 +	}
-+
-+	data = kzalloc(sizeof(struct lm78_data), GFP_KERNEL);
-+	if (!data) {
-+		err = -ENOMEM;
-+		goto exit_release_region;
-+	}
-+	mutex_init(&data->lock);
-+	data->isa_addr = res->start;
-+	platform_set_drvdata(pdev, data);
-+
-+	if (lm78_read_value(data, LM78_REG_CHIPID) & 0x80) {
-+		data->type = lm79;
-+		data->name = "lm79";
-+	} else {
-+		data->type = lm78;
-+		data->name = "lm78";
-+	}
-+
-+	/* Initialize the LM78 chip */
-+	lm78_init_device(data);
-+
-+	/* Register sysfs hooks */
-+	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
-+	 || (err = device_create_file(&pdev->dev, &dev_attr_name)))
-+		goto exit_remove_files;
-+
-+	data->hwmon_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		goto exit_remove_files;
-+	}
-+
-+	return 0;
-+
-+ exit_remove_files:
-+	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
-+	device_remove_file(&pdev->dev, &dev_attr_name);
-+	kfree(data);
-+ exit_release_region:
-+	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
-+ exit:
-+	return err;
++	return ret;
 +}
 +
-+static int __devexit lm78_isa_remove(struct platform_device *pdev)
++static int adm1275_write_word_data(struct i2c_client *client, int page, int reg,
++				   u16 word)
 +{
-+	struct lm78_data *data = platform_get_drvdata(pdev);
-+	struct resource *res;
++	int ret;
 +
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
-+	device_remove_file(&pdev->dev, &dev_attr_name);
-+	kfree(data);
++	if (page)
++		return -EINVAL;
 +
-+	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-+	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
-+
-+	return 0;
++	switch (reg) {
++	case PMBUS_VIRT_RESET_IOUT_HISTORY:
++		ret = pmbus_write_word_data(client, 0, ADM1275_PEAK_IOUT, 0);
++		break;
++	case PMBUS_VIRT_RESET_VOUT_HISTORY:
++		ret = pmbus_write_word_data(client, 0, ADM1275_PEAK_VOUT, 0);
++		break;
++	case PMBUS_VIRT_RESET_VIN_HISTORY:
++		ret = pmbus_write_word_data(client, 0, ADM1275_PEAK_VIN, 0);
++		break;
++	default:
++		ret = -ENODATA;
++		break;
++	}
++	return ret;
 +}
 +
-+static struct platform_driver lm78_isa_driver = {
-+	.driver = {
-+		.owner	= THIS_MODULE,
-+		.name	= "lm78",
-+	},
-+	.probe		= lm78_isa_probe,
-+	.remove		= __devexit_p(lm78_isa_remove),
-+};
-+
- /* return 1 if a supported chip is found, 0 otherwise */
- static int __init lm78_isa_found(unsigned short address)
+ static int adm1275_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
  {
-
-
+@@ -58,6 +115,9 @@ static int adm1275_probe(struct i2c_client *client,
+ 	info->R[PSC_CURRENT_OUT] = -1;
+ 	info->func[0] = PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT;
+ 
++	info->read_word_data = adm1275_read_word_data;
++	info->write_word_data = adm1275_write_word_data;
++
+ 	if (config & ADM1275_VRANGE) {
+ 		info->m[PSC_VOLTAGE_IN] = 19045;
+ 		info->b[PSC_VOLTAGE_IN] = 0;
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
