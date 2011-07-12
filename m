@@ -1,76 +1,137 @@
-From: "John Smith" <Kidfromaussie@gmx.com>
-Date: Mon, 25 Jul 2011 11:46:09 +0000
-Subject: Re: [lm-sensors] Config for Gigabyte GA-G31M-ES2L
-Message-Id: <20110725114610.118160@gmx.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 12 Jul 2011 15:41:31 +0000
+Subject: [lm-sensors] [PATCH 06/15] hwmon: (pmbus) Support reading and
+Message-Id: <1310485300-2168-7-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110725080443.315720@gmx.com>
-In-Reply-To: <20110725080443.315720@gmx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Some PMBus devices use non-standard registers for some of the sensors and/or
+limits. To support such devices, add code to support reading and writing of word
+size registers in device specific code.
 
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus/pmbus.h      |    4 +++
+ drivers/hwmon/pmbus/pmbus_core.c |   50 ++++++++++++++++++++++++++++++++++----
+ 2 files changed, 49 insertions(+), 5 deletions(-)
 
-Well, it seems , that under load in7 slightly drops from 12.46 to 12.36 to 12.30
-,tested by running double glxgears which puts strain on cpu and graphics
-and simultaneusly scaninng DVD disc which puts dvd device spinning.
-(PSU is non-branded 450W which should have large drops of voltages,and makes it easier for this testings)
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index cc5b6a2..d631cae 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -286,6 +286,9 @@ struct pmbus_driver_info {
+ 	 * necessary.
+ 	 */
+ 	int (*read_byte_data)(struct i2c_client *client, int page, int reg);
++	int (*read_word_data)(struct i2c_client *client, int page, int reg);
++	int (*write_word_data)(struct i2c_client *client, int page, int reg,
++			       u16 word);
+ 	/*
+ 	 * The identify function determines supported PMBus functionality.
+ 	 * This function is only necessary if a chip driver supports multiple
+@@ -299,6 +302,7 @@ struct pmbus_driver_info {
+ 
+ int pmbus_set_page(struct i2c_client *client, u8 page);
+ int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg);
++int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word);
+ int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg);
+ void pmbus_clear_faults(struct i2c_client *client);
+ bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg);
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 8ff7ebf..abdc3a3 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -175,8 +175,7 @@ static int pmbus_write_byte(struct i2c_client *client, u8 page, u8 value)
+ 	return i2c_smbus_write_byte(client, value);
+ }
+ 
+-static int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg,
+-				 u16 word)
++int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word)
+ {
+ 	int rv;
+ 
+@@ -186,6 +185,28 @@ static int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg,
+ 
+ 	return i2c_smbus_write_word_data(client, reg, word);
+ }
++EXPORT_SYMBOL_GPL(pmbus_write_word_data);
++
++/*
++ * _pmbus_write_word_data() is similar to pmbus_write_word_data(), but checks if
++ * a device specific mapping funcion exists and calls it if necessary.
++ */
++static int _pmbus_write_word_data(struct i2c_client *client, int page, int reg,
++				  u16 word)
++{
++	struct pmbus_data *data = i2c_get_clientdata(client);
++	const struct pmbus_driver_info *info = data->info;
++	int status;
++
++	if (info->write_word_data) {
++		status = info->write_word_data(client, page, reg, word);
++		if (status != -ENODATA)
++			return status;
++	}
++	if (reg >= PMBUS_VIRT_BASE)
++		return -EINVAL;
++	return pmbus_write_word_data(client, page, reg, word);
++}
+ 
+ int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg)
+ {
+@@ -199,6 +220,24 @@ int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg)
+ }
+ EXPORT_SYMBOL_GPL(pmbus_read_word_data);
+ 
++/*
++ * _pmbus_read_word_data() is similar to pmbus_read_word_data(), but checks if
++ * a device specific mapping funcion exists and calls it if necessary.
++ */
++static int _pmbus_read_word_data(struct i2c_client *client, int page, int reg)
++{
++	struct pmbus_data *data = i2c_get_clientdata(client);
++	const struct pmbus_driver_info *info = data->info;
++	int status;
++
++	if (info->read_word_data) {
++		status = info->read_word_data(client, page, reg);
++		if (status != -ENODATA)
++			return status;
++	}
++	return pmbus_read_word_data(client, page, reg);
++}
++
+ int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg)
+ {
+ 	int rv;
+@@ -350,8 +389,9 @@ static struct pmbus_data *pmbus_update_device(struct device *dev)
+ 
+ 			if (!data->valid || sensor->update)
+ 				sensor->data
+-				    = pmbus_read_word_data(client, sensor->page,
+-							   sensor->reg);
++				    = _pmbus_read_word_data(client,
++							    sensor->page,
++							    sensor->reg);
+ 		}
+ 		pmbus_clear_faults(client);
+ 		data->last_updated = jiffies;
+@@ -722,7 +762,7 @@ static ssize_t pmbus_set_sensor(struct device *dev,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	regval = pmbus_data2reg(data, sensor->class, val);
+-	ret = pmbus_write_word_data(client, sensor->page, sensor->reg, regval);
++	ret = _pmbus_write_word_data(client, sensor->page, sensor->reg, regval);
+ 	if (ret < 0)
+ 		rv = ret;
+ 	else
+-- 
+1.7.3.1
 
-That would suggest in7 is +12V and in4 is something else 
-and i may have a clue what it is :)
-
-There is an option on this motherboard , connected to overcolcking
-called "FSB overvoltage controll".
-It is placed in bios submenu "MB Intelligent Tweaker ,and by
-means of elimination other two options "CPU voltage ctrl" and "DDR2 overvoltage ctrl"
-is only one to remain. It is not shown in BIOS ,and i have not looked at EasyTune utilities.
-So presumption is in4=FSB voltage.
-
-as it reads in manual for this option:
----------
-FSB overvoltage control
-Allows you to set the Front Side Bus voltage
--- Normal    Supplies  the FSB voltage as required (default)
--- +0.1V ~ +0.3V Increases FSB voltage by 0.1V to 0.3V at 0.1V increment
----------
-
-> 
-> On the other hand,after more looking into it , inputs in4 and in7 might be different
-> in4 might be representing +12V using unusual scaling and
-> in7 might be +5VSB 
-> 
-> 
-> > 
-> > chip "it8718-*"
-> > 
-> > ### Voltages
-> > 
-> >    label  in0  "Vcore"
-> >    label  in1  "DDR18V"    # "DDR18V" in BIOS
-> >    label  in2  "+3.3V"
-> >    label  in3  "+5V"     # Not in BIOS
-> >    label  in4  "in4"     # Not in BIOS Misterious ?? 0.34v idle; 0.62v under load
-> >    ignore in5         # raw reads: +4.08 V
-> >    ignore in6         # raw reads: +4.08 V
-> >    label  in7  "+12V"
-> > # i think in8 should be ignored too ,verbatim from G33-DS3R
-> >    label  in8  "Vbat"    # Not in BIOS,raw reads +3.14 V as in7 ?? 
-> --
-> 
-
-In course of this testing i've discovered that my northbridge is quite hot
-with or without graphics running .
-On touch northbridge is hot , southbridge is milde ,and CPU is rather cold.
-The same as noticed here in these threads
- http://forums.anandtech.com/archive/index.php/t-276020.html
- http://ubuntuforums.org/archive/index.php/t-1101041.html
-Unfortunately motherboard does not seems to have sensor for northbridge :(
-Will it be helpfull for northbridge if hsf on cpu is made to be running faster? 
-
-And earlier ticket about this series of mobo's was here
-http://www.lm-sensors.org/ticket/2345
-g31m-s2l ,g31m-s2c , g31m-es2l , g31m-es2c
 
 _______________________________________________
 lm-sensors mailing list
