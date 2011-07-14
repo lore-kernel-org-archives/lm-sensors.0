@@ -1,47 +1,58 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 13:46:18 +0000
-Subject: Re: [lm-sensors] RFC: Moving pmbus drivers into hwmon subdirectory
-Message-Id: <20110714134618.GA6273@ericsson.com>
+Date: Thu, 14 Jul 2011 21:28:21 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adm1275) Fix coefficients per
+Message-Id: <1310678901-30378-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110712021230.GA22766@ericsson.com>
-In-Reply-To: <20110712021230.GA22766@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jul 14, 2011 at 07:52:24AM -0400, Jean Delvare wrote:
-> On Tue, 12 Jul 2011 08:38:49 +0200, Jean Delvare wrote:
-> > On Mon, 11 Jul 2011 19:12:30 -0700, Guenter Roeck wrote:
-> > > Hi all,
-> > > 
-> > > since the number of PMBus slave/client drivers keeps getting larger,
-> > > I have been wondering if I should move them into a separate subdirectory,
-> > > most likely drivers/hwmon/pmbus/.
-> > > 
-> > > Any thoughts/comments about that ?
-> > 
-> > Seems to be a good idea, yes.
-> 
-> Thinking some more about this... Does PMBus fit entirely in hwmon, or
-> does it cover additional functions? If it does cover additional
-> functions, then maybe drivers/pmbus would be a better place.
-> 
-Hi Jean,
+Coefficients to convert chip register values to voltage/current have been
+slightly changed in revision B of the chip datasheet. Update driver coefficients
+to match the coefficients in the datasheet.
 
-The functionality implemented today is pure hwmon functionality and thus
-belongs entirely into hwmon.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/adm1275.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-It may at some point be of interest to add regulator functionality.
-If so, the way to do it would be to move generic (ie chip read/write code)
-functionality to mfd and implement regulator and hwmon frontends.
-I would be very hesitant to do that, though. First, I have not seen an actual
-use case for it, and second it is extremely dangerous to change voltages,
-and very easy to literally blow up a chip or even an entire board
-if a chip is programmed with values it does not like (I have blown up
-several of my test boards ;).
+diff --git a/drivers/hwmon/adm1275.c b/drivers/hwmon/adm1275.c
+index b9b7caf..8bc1bd6 100644
+--- a/drivers/hwmon/adm1275.c
++++ b/drivers/hwmon/adm1275.c
+@@ -53,23 +53,23 @@ static int adm1275_probe(struct i2c_client *client,
+ 	info->direct[PSC_VOLTAGE_IN] = true;
+ 	info->direct[PSC_VOLTAGE_OUT] = true;
+ 	info->direct[PSC_CURRENT_OUT] = true;
+-	info->m[PSC_CURRENT_OUT] = 800;
++	info->m[PSC_CURRENT_OUT] = 807;
+ 	info->b[PSC_CURRENT_OUT] = 20475;
+ 	info->R[PSC_CURRENT_OUT] = -1;
+ 	info->func[0] = PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT;
+ 
+ 	if (config & ADM1275_VRANGE) {
+-		info->m[PSC_VOLTAGE_IN] = 19045;
++		info->m[PSC_VOLTAGE_IN] = 19199;
+ 		info->b[PSC_VOLTAGE_IN] = 0;
+ 		info->R[PSC_VOLTAGE_IN] = -2;
+-		info->m[PSC_VOLTAGE_OUT] = 19045;
++		info->m[PSC_VOLTAGE_OUT] = 19199;
+ 		info->b[PSC_VOLTAGE_OUT] = 0;
+ 		info->R[PSC_VOLTAGE_OUT] = -2;
+ 	} else {
+-		info->m[PSC_VOLTAGE_IN] = 6666;
++		info->m[PSC_VOLTAGE_IN] = 6720;
+ 		info->b[PSC_VOLTAGE_IN] = 0;
+ 		info->R[PSC_VOLTAGE_IN] = -1;
+-		info->m[PSC_VOLTAGE_OUT] = 6666;
++		info->m[PSC_VOLTAGE_OUT] = 6720;
+ 		info->b[PSC_VOLTAGE_OUT] = 0;
+ 		info->R[PSC_VOLTAGE_OUT] = -1;
+ 	}
+-- 
+1.7.3.1
 
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
