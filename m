@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 12 Jul 2011 15:41:33 +0000
+Date: Thu, 14 Jul 2011 01:54:37 +0000
 Subject: [lm-sensors] [PATCH 08/15] hwmon: (pmbus) Strengthen check for
-Message-Id: <1310485300-2168-9-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1310608484-20678-9-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1310485300-2168-9-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1310485300-2168-9-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,10 +21,10 @@ Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
  1 files changed, 23 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index 85d6136..de32bcc 100644
+index 3daae16..019085f 100644
 --- a/drivers/hwmon/pmbus/pmbus_core.c
 +++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -250,6 +250,24 @@ int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg)
+@@ -254,6 +254,24 @@ int pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg)
  }
  EXPORT_SYMBOL_GPL(pmbus_read_byte_data);
  
@@ -47,16 +49,16 @@ index 85d6136..de32bcc 100644
  static void pmbus_clear_fault_page(struct i2c_client *client, int page)
  {
  	pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
-@@ -283,7 +301,7 @@ bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg)
+@@ -287,7 +305,7 @@ bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg)
  	int rv;
  	struct pmbus_data *data = i2c_get_clientdata(client);
  
 -	rv = pmbus_read_byte_data(client, page, reg);
 +	rv = _pmbus_read_byte_data(client, page, reg);
  	if (rv >= 0 && !(data->flags & PMBUS_SKIP_STATUS_CHECK))
- 		rv = pmbus_check_status_cml(client, page);
- 	pmbus_clear_fault_page(client, page);
-@@ -312,24 +330,6 @@ const struct pmbus_driver_info *pmbus_get_driver_info(struct i2c_client *client)
+ 		rv = pmbus_check_status_cml(client);
+ 	pmbus_clear_fault_page(client, -1);
+@@ -316,24 +334,6 @@ const struct pmbus_driver_info *pmbus_get_driver_info(struct i2c_client *client)
  }
  EXPORT_SYMBOL_GPL(pmbus_get_driver_info);
  
@@ -81,7 +83,7 @@ index 85d6136..de32bcc 100644
  static struct pmbus_data *pmbus_update_device(struct device *dev)
  {
  	struct i2c_client *client = to_i2c_client(dev);
-@@ -1033,9 +1033,11 @@ static void pmbus_add_sensor_attrs_one(struct i2c_client *client,
+@@ -1037,9 +1037,11 @@ static void pmbus_add_sensor_attrs_one(struct i2c_client *client,
  						   index, page, cbase, attr);
  		/*
  		 * Add generic alarm attribute only if there are no individual
