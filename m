@@ -1,29 +1,50 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 11 Jul 2011 18:44:21 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Fix label group removal
-Message-Id: <1310409861.25412.35.camel@groeck-laptop>
+From: Kelly Goedert <kelly.goedert@gmail.com>
+Date: Thu, 14 Jul 2011 11:26:33 +0000
+Subject: [lm-sensors] DH55HC board temperature
+Message-Id: <CALgae9bzbyr3vH=x_bPK-aEnz=tMu-euE-V1=+qWUYic4ug=xA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5859170465829507399=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110711193528.25fed27f@endymion.delvare>
-In-Reply-To: <20110711193528.25fed27f@endymion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2011-07-11 at 13:35 -0400, Jean Delvare wrote:
-> A copy-and-paste error caused it87_attributes_vid to be referenced
-> where it87_attributes_label should be. Thankfully the group is only
-> used for attribute removal, not attribute creation, so the effects of
-> this bug are limited, but let's fix it still.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: stable@kernel.org
+--===============5859170465829507399==
+Content-Type: multipart/alternative; boundary=20cf3054a6994dec4f04a805cf53
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+--20cf3054a6994dec4f04a805cf53
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hi,
+
+I just started using lm-sensors to monitor my servers and it works great.
+But I have a DH55HC intel board that I cant get lm-sensors to work with. Is
+it possible to monitor temperature and fan speed on this board?
+
+Thanks
+
+Kelly
+
+--20cf3054a6994dec4f04a805cf53
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<div><br></div><div>I just started using lm-sensors to monitor my server=
+s and it works great. But I have a=A0DH55HC intel board that I cant get lm-=
+sensors to work with. Is it possible to monitor temperature and fan speed o=
+n this board?</div>
+
+<div><br></div><div>Thanks</div><div><br></div><div>Kelly</div>
+
+--20cf3054a6994dec4f04a805cf53--
 
 
+--===============5859170465829507399==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5859170465829507399==--
