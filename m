@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 12 Jul 2011 15:41:34 +0000
+Date: Thu, 14 Jul 2011 01:54:38 +0000
 Subject: [lm-sensors] [PATCH 09/15] hwmon: Add new attributes to sysfs ABI
-Message-Id: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1310608484-20678-10-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
