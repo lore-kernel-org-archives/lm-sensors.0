@@ -1,50 +1,33 @@
-From: Kelly Goedert <kelly.goedert@gmail.com>
-Date: Thu, 14 Jul 2011 11:26:33 +0000
-Subject: [lm-sensors] DH55HC board temperature
-Message-Id: <CALgae9bzbyr3vH=x_bPK-aEnz=tMu-euE-V1=+qWUYic4ug=xA@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5859170465829507399=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 14 Jul 2011 16:33:24 +0000
+Subject: Re: [lm-sensors] DH55HC board temperature
+Message-Id: <20110714163324.GB7109@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CALgae9bzbyr3vH=x_bPK-aEnz=tMu-euE-V1=+qWUYic4ug=xA@mail.gmail.com>
+In-Reply-To: <CALgae9bzbyr3vH=x_bPK-aEnz=tMu-euE-V1=+qWUYic4ug=xA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============5859170465829507399==
-Content-Type: multipart/alternative; boundary=20cf3054a6994dec4f04a805cf53
+On Thu, Jul 14, 2011 at 07:26:33AM -0400, Kelly Goedert wrote:
+> Hi,
+> 
+> I just started using lm-sensors to monitor my servers and it works great. But I
+> have a DH55HC intel board that I cant get lm-sensors to work with. Is it
+> possible to monitor temperature and fan speed on this board?
+> 
+What is your kernel version, and what is the output from sensors-detect ?
 
---20cf3054a6994dec4f04a805cf53
-Content-Type: text/plain; charset=ISO-8859-1
+The board might use NCT6775F, and your kernel version might be too old for it.
+The chip is now supported by the w83627ehf driver. You can get a standalone version
+from http://roeck-us.net/linux/drivers/. That will not help you for fan speeds,
+though - the technical documentation indicates that the board uses the PCH
+for fan control, and there is currently no Linux driver available for that.
 
-Hi,
-
-I just started using lm-sensors to monitor my servers and it works great.
-But I have a DH55HC intel board that I cant get lm-sensors to work with. Is
-it possible to monitor temperature and fan speed on this board?
-
-Thanks
-
-Kelly
-
---20cf3054a6994dec4f04a805cf53
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi,<div><br></div><div>I just started using lm-sensors to monitor my server=
-s and it works great. But I have a=A0DH55HC intel board that I cant get lm-=
-sensors to work with. Is it possible to monitor temperature and fan speed o=
-n this board?</div>
-
-<div><br></div><div>Thanks</div><div><br></div><div>Kelly</div>
-
---20cf3054a6994dec4f04a805cf53--
-
-
---===============5859170465829507399==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5859170465829507399==--
