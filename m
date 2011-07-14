@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 12 Jul 2011 15:41:35 +0000
+Date: Thu, 14 Jul 2011 01:54:39 +0000
 Subject: [lm-sensors] [PATCH 10/15] hwmon: (pmbus) Add support for peak
-Message-Id: <1310485300-2168-11-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1310608484-20678-11-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1310485300-2168-11-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1310485300-2168-11-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,7 +25,7 @@ Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
  2 files changed, 163 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
-index d631cae..a7ad06c 100644
+index ceb71f7..9973d26 100644
 --- a/drivers/hwmon/pmbus/pmbus.h
 +++ b/drivers/hwmon/pmbus/pmbus.h
 @@ -126,6 +126,42 @@
@@ -70,7 +72,7 @@ index d631cae..a7ad06c 100644
   */
  #define PB_CAPABILITY_SMBALERT		(1<<4)
 diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index de32bcc..c4fb68c2 100644
+index 019085f..f9c20ad 100644
 --- a/drivers/hwmon/pmbus/pmbus_core.c
 +++ b/drivers/hwmon/pmbus/pmbus_core.c
 @@ -33,14 +33,18 @@
@@ -107,7 +109,7 @@ index de32bcc..c4fb68c2 100644
  	enum pmbus_sensor_classes class;	/* sensor class */
  	bool update;		/* runtime sensor update needed */
  	int data;		/* Sensor data.
-@@ -235,6 +239,8 @@ static int _pmbus_read_word_data(struct i2c_client *client, int page, int reg)
+@@ -237,6 +241,8 @@ static int _pmbus_read_word_data(struct i2c_client *client, int page, int reg)
  		if (status != -ENODATA)
  			return status;
  	}
@@ -116,16 +118,16 @@ index de32bcc..c4fb68c2 100644
  	return pmbus_read_word_data(client, page, reg);
  }
  
-@@ -314,7 +320,7 @@ bool pmbus_check_word_register(struct i2c_client *client, int page, int reg)
+@@ -318,7 +324,7 @@ bool pmbus_check_word_register(struct i2c_client *client, int page, int reg)
  	int rv;
  	struct pmbus_data *data = i2c_get_clientdata(client);
  
 -	rv = pmbus_read_word_data(client, page, reg);
 +	rv = _pmbus_read_word_data(client, page, reg);
  	if (rv >= 0 && !(data->flags & PMBUS_SKIP_STATUS_CHECK))
- 		rv = pmbus_check_status_cml(client, page);
- 	pmbus_clear_fault_page(client, page);
-@@ -947,7 +953,8 @@ static void pmbus_find_max_attr(struct i2c_client *client,
+ 		rv = pmbus_check_status_cml(client);
+ 	pmbus_clear_fault_page(client, -1);
+@@ -951,7 +957,8 @@ static void pmbus_find_max_attr(struct i2c_client *client,
   * and its associated alarm attribute.
   */
  struct pmbus_limit_attr {
@@ -135,7 +137,7 @@ index de32bcc..c4fb68c2 100644
  	const char *attr;	/* Attribute name */
  	const char *alarm;	/* Alarm attribute name */
  	u32 sbit;		/* Alarm attribute status bit */
-@@ -992,9 +999,10 @@ static bool pmbus_add_limit_attrs(struct i2c_client *client,
+@@ -996,9 +1003,10 @@ static bool pmbus_add_limit_attrs(struct i2c_client *client,
  		if (pmbus_check_word_register(client, page, l->reg)) {
  			cindex = data->num_sensors;
  			pmbus_add_sensor(data, name, l->attr, index, page,
@@ -148,7 +150,7 @@ index de32bcc..c4fb68c2 100644
  				if (attr->compare) {
  					pmbus_add_boolean_cmp(data, name,
  						l->alarm, index,
-@@ -1090,6 +1098,21 @@ static const struct pmbus_limit_attr vin_limit_attrs[] = {
+@@ -1094,6 +1102,21 @@ static const struct pmbus_limit_attr vin_limit_attrs[] = {
  		.attr = "crit",
  		.alarm = "crit_alarm",
  		.sbit = PB_VOLTAGE_OV_FAULT,
@@ -170,7 +172,7 @@ index de32bcc..c4fb68c2 100644
  	},
  };
  
-@@ -1114,6 +1137,21 @@ static const struct pmbus_limit_attr vout_limit_attrs[] = {
+@@ -1118,6 +1141,21 @@ static const struct pmbus_limit_attr vout_limit_attrs[] = {
  		.attr = "crit",
  		.alarm = "crit_alarm",
  		.sbit = PB_VOLTAGE_OV_FAULT,
@@ -192,7 +194,7 @@ index de32bcc..c4fb68c2 100644
  	}
  };
  
-@@ -1160,6 +1198,21 @@ static const struct pmbus_limit_attr iin_limit_attrs[] = {
+@@ -1164,6 +1202,21 @@ static const struct pmbus_limit_attr iin_limit_attrs[] = {
  		.attr = "crit",
  		.alarm = "crit_alarm",
  		.sbit = PB_IIN_OC_FAULT,
@@ -214,7 +216,7 @@ index de32bcc..c4fb68c2 100644
  	}
  };
  
-@@ -1179,6 +1232,21 @@ static const struct pmbus_limit_attr iout_limit_attrs[] = {
+@@ -1183,6 +1236,21 @@ static const struct pmbus_limit_attr iout_limit_attrs[] = {
  		.attr = "crit",
  		.alarm = "crit_alarm",
  		.sbit = PB_IOUT_OC_FAULT,
@@ -236,7 +238,7 @@ index de32bcc..c4fb68c2 100644
  	}
  };
  
-@@ -1214,6 +1282,17 @@ static const struct pmbus_limit_attr pin_limit_attrs[] = {
+@@ -1218,6 +1286,17 @@ static const struct pmbus_limit_attr pin_limit_attrs[] = {
  		.attr = "max",
  		.alarm = "alarm",
  		.sbit = PB_PIN_OP_WARNING,
@@ -254,7 +256,7 @@ index de32bcc..c4fb68c2 100644
  	}
  };
  
-@@ -1282,6 +1361,39 @@ static const struct pmbus_limit_attr temp_limit_attrs[] = {
+@@ -1286,6 +1365,39 @@ static const struct pmbus_limit_attr temp_limit_attrs[] = {
  		.attr = "crit",
  		.alarm = "crit_alarm",
  		.sbit = PB_TEMP_OT_FAULT,
@@ -294,7 +296,7 @@ index de32bcc..c4fb68c2 100644
  	}
  };
  
-@@ -1308,8 +1420,8 @@ static const struct pmbus_sensor_attr temp_attributes[] = {
+@@ -1312,8 +1424,8 @@ static const struct pmbus_sensor_attr temp_attributes[] = {
  		.sfunc = PMBUS_HAVE_STATUS_TEMP,
  		.sbase = PB_STATUS_TEMP_BASE,
  		.gbit = PB_STATUS_TEMPERATURE,
@@ -305,7 +307,7 @@ index de32bcc..c4fb68c2 100644
  	}, {
  		.reg = PMBUS_READ_TEMPERATURE_3,
  		.class = PSC_TEMPERATURE,
-@@ -1320,8 +1432,8 @@ static const struct pmbus_sensor_attr temp_attributes[] = {
+@@ -1324,8 +1436,8 @@ static const struct pmbus_sensor_attr temp_attributes[] = {
  		.sfunc = PMBUS_HAVE_STATUS_TEMP,
  		.sbase = PB_STATUS_TEMP_BASE,
  		.gbit = PB_STATUS_TEMPERATURE,
