@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 10 Jul 2011 16:30:36 +0000
+Date: Fri, 15 Jul 2011 15:59:19 +0000
 Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.0
-Message-Id: <1310315436-28204-1-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1310745559-18529-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110606170230.2bda2a14@endymion.delvare>
 In-Reply-To: <20110606170230.2bda2a14@endymion.delvare>
@@ -22,21 +22,20 @@ Guenter Roeck
 
 ------
 
-The following changes since commit fe0d42203cb5616eeff68b14576a0f7e2dd56625:
+The following changes since commit 620917de59eeb934b9f8cf35cc2d95c1ac8ed0fc:
 
-  Linux 3.0-rc6 (2011-07-04 15:56:24 -0700)
+  Linux 3.0-rc7 (2011-07-11 16:51:52 -0700)
 
 are available in the git repository at:
   git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
-Guenter Roeck (3):
-      hwmon: (lm95241) Fix chip detection code
-      hwmon: (lm95241) Fix negative temperature results
-      hwmon: (pmbus) Improve auto-detection of temperature status register
+Guenter Roeck (2):
+      hwmon: (pmbus) Use long variables for register to data conversions
+      hwmon: (adm1275) Fix coefficients per datasheet revision B
 
- drivers/hwmon/lm95241.c |   22 +++++++++++++++-------
- drivers/hwmon/pmbus.c   |   11 ++++++-----
- 2 files changed, 21 insertions(+), 12 deletions(-)
+ drivers/hwmon/adm1275.c    |   10 +++++-----
+ drivers/hwmon/pmbus_core.c |   20 ++++++++++----------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
