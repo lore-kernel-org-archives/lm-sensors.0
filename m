@@ -1,52 +1,72 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 12 Jul 2011 15:41:32 +0000
-Subject: [lm-sensors] [PATCH 07/15] hwmon: (pmbus) Remove page count
-Message-Id: <1310485300-2168-8-git-send-email-guenter.roeck@ericsson.com>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Tue, 19 Jul 2011 20:00:30 +0000
+Subject: [lm-sensors] [PATCH 0/5] Support for the TS-5500 board
+Message-Id: <1311105635-22432-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, lm-sensors@lm-sensors.org, platform-driver-x86@vger.kernel.org
 
-Some PMBus chips have non-standard sensor registers. An easy way to
-support such sensors is to introduce virtual pages and map the non-standard
-registers into standard registers on an extra page.
+This set of patches brings the support for the Technologic Systems TS-5500
+Single Board Computer.
 
-For this to work, the code verifying if the configured number of pages exists
-has to be removed. Since a wrong number of pages can only be configured in a
-front-end driver, this should not have a practical impact since the resulting
-errors should be found during development and testing.
+The first patch adds the base for the support of the board in
+/arch/x86/platform/ts5500 and a documentation file in
+Documentation/ABI/testing/sysfs-platform-ts5500.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/pmbus/pmbus_core.c |   12 ------------
- 1 files changed, 0 insertions(+), 12 deletions(-)
+The second patch adds support for GPIO.
 
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index abdc3a3..85d6136 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -1541,18 +1541,6 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 		ret = -EINVAL;
- 		goto out_data;
- 	}
--	/*
--	 * Bail out if more than one page was configured, but we can not
--	 * select the highest page. This is an indication that the wrong
--	 * chip type was selected. Better bail out now than keep
--	 * returning errors later on.
--	 */
--	if (info->pages > 1 && pmbus_set_page(client, info->pages - 1) < 0) {
--		dev_err(&client->dev, "Failed to select page %d\n",
--			info->pages - 1);
--		ret = -EINVAL;
--		goto out_data;
--	}
- 
- 	ret = pmbus_identify_common(client, data);
- 	if (ret < 0) {
+The third patch adds support for the on-board LED.
+
+The fourth patch brings support for the Analogic/Digital converter.
+
+The fifth patch moves the already existing support for the Flash MTD into the
+/arch/x86/platform/ts5500 directory.
+
+Jerome Oufella (1):
+  gpio: add support for TS-5500 GPIO
+
+Jonas Fonseca (2):
+  leds: add support for TS-5500 LED
+  adc: add support for TS-5500 ADC
+
+Vivien Didelot (2):
+  x86: base support for TS-5500 Single Board Computer
+  mtd: move support for TS-5500 MTD
+
+ Documentation/ABI/testing/sysfs-platform-ts5500 |   46 +++
+ MAINTAINERS                                     |   13 +
+ arch/x86/Kconfig                                |    2 +
+ arch/x86/platform/Makefile                      |    1 +
+ arch/x86/platform/ts5500/Kconfig                |   47 +++
+ arch/x86/platform/ts5500/Makefile               |    5 +
+ arch/x86/platform/ts5500/ts5500.c               |  440 +++++++++++++++++++++++
+ arch/x86/platform/ts5500/ts5500_adc.c           |  326 +++++++++++++++++
+ arch/x86/platform/ts5500/ts5500_adc.h           |   62 ++++
+ arch/x86/platform/ts5500/ts5500_flash.c         |  118 ++++++
+ arch/x86/platform/ts5500/ts5500_gpio.c          |  421 ++++++++++++++++++++++
+ arch/x86/platform/ts5500/ts5500_gpio.h          |   60 +++
+ arch/x86/platform/ts5500/ts5500_leds.c          |  133 +++++++
+ drivers/mtd/maps/Kconfig                        |   18 -
+ drivers/mtd/maps/Makefile                       |    1 -
+ drivers/mtd/maps/ts5500_flash.c                 |  121 -------
+ 16 files changed, 1674 insertions(+), 140 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-ts5500
+ create mode 100644 arch/x86/platform/ts5500/Kconfig
+ create mode 100644 arch/x86/platform/ts5500/Makefile
+ create mode 100644 arch/x86/platform/ts5500/ts5500.c
+ create mode 100644 arch/x86/platform/ts5500/ts5500_adc.c
+ create mode 100644 arch/x86/platform/ts5500/ts5500_adc.h
+ create mode 100644 arch/x86/platform/ts5500/ts5500_flash.c
+ create mode 100644 arch/x86/platform/ts5500/ts5500_gpio.c
+ create mode 100644 arch/x86/platform/ts5500/ts5500_gpio.h
+ create mode 100644 arch/x86/platform/ts5500/ts5500_leds.c
+ delete mode 100644 drivers/mtd/maps/ts5500_flash.c
+
 -- 
-1.7.3.1
+1.7.6
 
 
 _______________________________________________
