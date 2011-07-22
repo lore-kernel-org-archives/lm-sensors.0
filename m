@@ -1,7 +1,7 @@
 From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Fri, 22 Jul 2011 16:41:14 +0000
+Date: Fri, 22 Jul 2011 16:41:23 +0000
 Subject: [lm-sensors] [PATCH 5/8] drm/vmwgfx: use ida_simple_get for id
-Message-Id: <1311352886-4047-6-git-send-email-jic23@cam.ac.uk>
+Message-Id: <1311352886-4047-15-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
 In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
