@@ -1,48 +1,128 @@
-From: Jesper Juhl <jj@chaosbits.net>
-Date: Sat, 02 Jul 2011 21:18:21 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Don't leak info in adm1275_probe
-Message-Id: <alpine.LNX.2.00.1107022317450.16316@swampdragon.chaosbits.net>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Fri, 22 Jul 2011 16:41:21 +0000
+Subject: [lm-sensors] [PATCH 3/8] hwmon: ibmaem: convert idr to ida and use
+Message-Id: <1311352886-4047-13-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.LNX.2.00.1107022202520.16316@swampdragon.chaosbits.net> <20110702211451.GA11378@ericsson.com>
-In-Reply-To: <20110702211451.GA11378@ericsson.com>
+References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
+To: linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, tj@kernel.org, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie, Jonathan Cameron <jic23@cam.ac.uk>
 
-On Sat, 2 Jul 2011, Guenter Roeck wrote:
+A straightforward looking use of idr for a device id.
 
-> On Sat, Jul 02, 2011 at 04:04:29PM -0400, Jesper Juhl wrote:
-> > In drivers/hwmon/adm1275.c:adm1275_probe() we'll leak the memory
-> > allocated to 'info' if the call to i2c_smbus_read_byte_data() returns
-> > less than zero.
-> > 
-> > This patch fixes the leak by simply calling kfree(info) when needed.
-> > I also considered just moving the 'info' memory allocation below the
-> > call to i2c_smbus_read_byte_data(), but I was not sure if it mattered
-> > to get the -ENOMEM first in that case or if it would be bad to first
-> > have a successful i2c_smbus_read_byte_data() call and then fail the
-> > mem alloc, so I stuck with the safe option.
-> > 
-> > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> 
-> Hi Jesper,
-> 
-> the fix for this problem is already enqueued as 
-> "hwmon: (adm1275) Free allocated memory if probe function fails".
-> 
-> There is also a second error condition, which occurs if pmbus_do_probe() 
-> returns an error.
-> 
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+---
+Note I have even build tested this one so will definitely
+want an Ack from someone who has.
 
-Ok, cool, then that's taken care of. I'll just drop the patch from my 
-personal queue. Thanks.
+ drivers/hwmon/ibmaem.c |   47 ++++++++---------------------------------------
+ 1 files changed, 8 insertions(+), 39 deletions(-)
 
+diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
+index 1a409c5..058e0ae 100644
+--- a/drivers/hwmon/ibmaem.c
++++ b/drivers/hwmon/ibmaem.c
+@@ -88,8 +88,7 @@
+ #define AEM_MIN_POWER_INTERVAL	200
+ #define UJ_PER_MJ		1000L
+ 
+-static DEFINE_IDR(aem_idr);
+-static DEFINE_SPINLOCK(aem_idr_lock);
++static DEFINE_IDA(aem_ida);
+ 
+ static struct platform_driver aem_driver = {
+ 	.driver = {
+@@ -356,38 +355,6 @@ static void aem_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
+ 	complete(&data->read_complete);
+ }
+ 
+-/* ID functions */
+-
+-/* Obtain an id */
+-static int aem_idr_get(int *id)
+-{
+-	int i, err;
+-
+-again:
+-	if (unlikely(!idr_pre_get(&aem_idr, GFP_KERNEL)))
+-		return -ENOMEM;
+-
+-	spin_lock(&aem_idr_lock);
+-	err = idr_get_new(&aem_idr, NULL, &i);
+-	spin_unlock(&aem_idr_lock);
+-
+-	if (unlikely(err = -EAGAIN))
+-		goto again;
+-	else if (unlikely(err))
+-		return err;
+-
+-	*id = i & MAX_ID_MASK;
+-	return 0;
+-}
+-
+-/* Release an object ID */
+-static void aem_idr_put(int id)
+-{
+-	spin_lock(&aem_idr_lock);
+-	idr_remove(&aem_idr, id);
+-	spin_unlock(&aem_idr_lock);
+-}
+-
+ /* Sensor support functions */
+ 
+ /* Read a sensor value */
+@@ -525,7 +492,7 @@ static void aem_delete(struct aem_data *data)
+ 	ipmi_destroy_user(data->ipmi.user);
+ 	platform_set_drvdata(data->pdev, NULL);
+ 	platform_device_unregister(data->pdev);
+-	aem_idr_put(data->id);
++	ida_simple_remove(&aem_ida, data->id);
+ 	kfree(data);
+ }
+ 
+@@ -582,7 +549,8 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 		data->power_period[i] = AEM_DEFAULT_POWER_INTERVAL;
+ 
+ 	/* Create sub-device for this fw instance */
+-	if (aem_idr_get(&data->id))
++	data->id = ida_simple_get(&aem_ida, 0, 0, GFP_KERNEL);
++	if (data->id < 0)
+ 		goto id_err;
+ 
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+@@ -633,7 +601,7 @@ ipmi_err:
+ 	platform_set_drvdata(data->pdev, NULL);
+ 	platform_device_unregister(data->pdev);
+ dev_err:
+-	aem_idr_put(data->id);
++	ida_simple_remove(&aem_ida, data->id);
+ id_err:
+ 	kfree(data);
+ 
+@@ -715,7 +683,8 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 		data->power_period[i] = AEM_DEFAULT_POWER_INTERVAL;
+ 
+ 	/* Create sub-device for this fw instance */
+-	if (aem_idr_get(&data->id))
++	data->id = ida_simple_get(&aem_ida, 0, 0, GFP_KERNEL);
++	if (data->id < 0)
+ 		goto id_err;
+ 
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+@@ -766,7 +735,7 @@ ipmi_err:
+ 	platform_set_drvdata(data->pdev, NULL);
+ 	platform_device_unregister(data->pdev);
+ dev_err:
+-	aem_idr_put(data->id);
++	ida_simple_remove(&aem_ida, data->id);
+ id_err:
+ 	kfree(data);
+ 
 -- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.7.3.4
 
 
 _______________________________________________
