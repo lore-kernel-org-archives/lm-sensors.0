@@ -1,138 +1,101 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:35 +0000
-Subject: [lm-sensors] [PATCH 06/15] hwmon: (pmbus) Support reading and
-Message-Id: <1310608484-20678-7-git-send-email-guenter.roeck@ericsson.com>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Fri, 22 Jul 2011 16:41:26 +0000
+Subject: [lm-sensors] [PATCH 8/8] rtc: class idr converted to ida and
+Message-Id: <1311352886-4047-18-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1310485300-2168-7-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1310485300-2168-7-git-send-email-guenter.roeck@ericsson.com>
+References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, osd-dev@open-osd.org, linux-scsi@vger.kernel.org, dri-devel@lists.freedesktop.org, jkosina@suse.cz, naota@elisp.net, rusty@rustcorp.com.au, paulmck@linux.vnet.ibm.com, namhyung@gmail.com, randy.dunlap@oracle.com, tj@kernel.org, cabarnes@indesign-llc.com, akpm@linux-foundation.org, airlied@redhat.com, thellstrom@vmware.com, johnpol@2ka.mipt.ru, JBottomley@parallels.com, bhalevy@panasas.com, bharrosh@panasas.com, a.zummo@towertech.it, guenter.roeck@ericsson.com, khali@linux-fr.org, airlied@linux.ie, Jonathan Cameron <jic23@cam.ac.uk>
 
-Some PMBus devices use non-standard registers for some of the sensors and/or
-limits. To support such devices, add code to support reading and writing of word
-size registers in device specific code.
+This is the one use of an ida that doesn't retry on receiving -EAGAIN.
+I'm assuming do so will cause no harm and may help on a rare occasion.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 ---
- drivers/hwmon/pmbus/pmbus.h      |    4 +++
- drivers/hwmon/pmbus/pmbus_core.c |   50 ++++++++++++++++++++++++++++++++++----
- 2 files changed, 49 insertions(+), 5 deletions(-)
+ drivers/rtc/class.c |   32 +++++++++-----------------------
+ 1 files changed, 9 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
-index cc5b6a2..d631cae 100644
---- a/drivers/hwmon/pmbus/pmbus.h
-+++ b/drivers/hwmon/pmbus/pmbus.h
-@@ -286,6 +286,9 @@ struct pmbus_driver_info {
- 	 * necessary.
- 	 */
- 	int (*read_byte_data)(struct i2c_client *client, int page, int reg);
-+	int (*read_word_data)(struct i2c_client *client, int page, int reg);
-+	int (*write_word_data)(struct i2c_client *client, int page, int reg,
-+			       u16 word);
- 	/*
- 	 * The identify function determines supported PMBus functionality.
- 	 * This function is only necessary if a chip driver supports multiple
-@@ -299,6 +302,7 @@ struct pmbus_driver_info {
+diff --git a/drivers/rtc/class.c b/drivers/rtc/class.c
+index 4194e59..68ae46f 100644
+--- a/drivers/rtc/class.c
++++ b/drivers/rtc/class.c
+@@ -21,16 +21,13 @@
+ #include "rtc-core.h"
  
- int pmbus_set_page(struct i2c_client *client, u8 page);
- int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg);
-+int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word);
- int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg);
- void pmbus_clear_faults(struct i2c_client *client);
- bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg);
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index 8ff7ebf..abdc3a3 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -175,8 +175,7 @@ static int pmbus_write_byte(struct i2c_client *client, u8 page, u8 value)
- 	return i2c_smbus_write_byte(client, value);
+ 
+-static DEFINE_IDR(rtc_idr);
+-static DEFINE_MUTEX(idr_lock);
++static DEFINE_IDA(rtc_ida);
+ struct class *rtc_class;
+ 
+ static void rtc_device_release(struct device *dev)
+ {
+ 	struct rtc_device *rtc = to_rtc_device(dev);
+-	mutex_lock(&idr_lock);
+-	idr_remove(&rtc_idr, rtc->id);
+-	mutex_unlock(&idr_lock);
++	ida_simple_remove(&rtc_ida, rtc->id);
+ 	kfree(rtc);
  }
  
--static int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg,
--				 u16 word)
-+int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word)
+@@ -115,25 +112,16 @@ struct rtc_device *rtc_device_register(const char *name, struct device *dev,
+ 	struct rtc_wkalrm alrm;
+ 	int id, err;
+ 
+-	if (idr_pre_get(&rtc_idr, GFP_KERNEL) = 0) {
+-		err = -ENOMEM;
++	id = ida_simple_get(&rtc_ida, 0, 0, GFP_KERNEL);
++	if (id < 0) {
++		err = id;
+ 		goto exit;
+ 	}
+ 
+-
+-	mutex_lock(&idr_lock);
+-	err = idr_get_new(&rtc_idr, NULL, &id);
+-	mutex_unlock(&idr_lock);
+-
+-	if (err < 0)
+-		goto exit;
+-
+-	id = id & MAX_ID_MASK;
+-
+ 	rtc = kzalloc(sizeof(struct rtc_device), GFP_KERNEL);
+ 	if (rtc = NULL) {
+ 		err = -ENOMEM;
+-		goto exit_idr;
++		goto exit_ida;
+ 	}
+ 
+ 	rtc->id = id;
+@@ -191,10 +179,8 @@ struct rtc_device *rtc_device_register(const char *name, struct device *dev,
+ exit_kfree:
+ 	kfree(rtc);
+ 
+-exit_idr:
+-	mutex_lock(&idr_lock);
+-	idr_remove(&rtc_idr, id);
+-	mutex_unlock(&idr_lock);
++exit_ida:
++	ida_simple_remove(&rtc_ida, id);
+ 
+ exit:
+ 	dev_err(dev, "rtc core: unable to register %s, err = %d\n",
+@@ -245,7 +231,7 @@ static void __exit rtc_exit(void)
  {
- 	int rv;
- 
-@@ -186,6 +185,28 @@ static int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg,
- 
- 	return i2c_smbus_write_word_data(client, reg, word);
+ 	rtc_dev_exit();
+ 	class_destroy(rtc_class);
+-	idr_destroy(&rtc_idr);
++	ida_destroy(&rtc_ida);
  }
-+EXPORT_SYMBOL_GPL(pmbus_write_word_data);
-+
-+/*
-+ * _pmbus_write_word_data() is similar to pmbus_write_word_data(), but checks if
-+ * a device specific mapping funcion exists and calls it if necessary.
-+ */
-+static int _pmbus_write_word_data(struct i2c_client *client, int page, int reg,
-+				  u16 word)
-+{
-+	struct pmbus_data *data = i2c_get_clientdata(client);
-+	const struct pmbus_driver_info *info = data->info;
-+	int status;
-+
-+	if (info->write_word_data) {
-+		status = info->write_word_data(client, page, reg, word);
-+		if (status != -ENODATA)
-+			return status;
-+	}
-+	if (reg >= PMBUS_VIRT_BASE)
-+		return -EINVAL;
-+	return pmbus_write_word_data(client, page, reg, word);
-+}
  
- int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg)
- {
-@@ -199,6 +220,24 @@ int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg)
- }
- EXPORT_SYMBOL_GPL(pmbus_read_word_data);
- 
-+/*
-+ * _pmbus_read_word_data() is similar to pmbus_read_word_data(), but checks if
-+ * a device specific mapping funcion exists and calls it if necessary.
-+ */
-+static int _pmbus_read_word_data(struct i2c_client *client, int page, int reg)
-+{
-+	struct pmbus_data *data = i2c_get_clientdata(client);
-+	const struct pmbus_driver_info *info = data->info;
-+	int status;
-+
-+	if (info->read_word_data) {
-+		status = info->read_word_data(client, page, reg);
-+		if (status != -ENODATA)
-+			return status;
-+	}
-+	return pmbus_read_word_data(client, page, reg);
-+}
-+
- int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg)
- {
- 	int rv;
-@@ -350,8 +389,9 @@ static struct pmbus_data *pmbus_update_device(struct device *dev)
- 
- 			if (!data->valid || sensor->update)
- 				sensor->data
--				    = pmbus_read_word_data(client, sensor->page,
--							   sensor->reg);
-+				    = _pmbus_read_word_data(client,
-+							    sensor->page,
-+							    sensor->reg);
- 		}
- 		pmbus_clear_faults(client);
- 		data->last_updated = jiffies;
-@@ -722,7 +762,7 @@ static ssize_t pmbus_set_sensor(struct device *dev,
- 
- 	mutex_lock(&data->update_lock);
- 	regval = pmbus_data2reg(data, sensor->class, val);
--	ret = pmbus_write_word_data(client, sensor->page, sensor->reg, regval);
-+	ret = _pmbus_write_word_data(client, sensor->page, sensor->reg, regval);
- 	if (ret < 0)
- 		rv = ret;
- 	else
+ subsys_initcall(rtc_init);
 -- 
-1.7.3.1
+1.7.3.4
 
 
 _______________________________________________
