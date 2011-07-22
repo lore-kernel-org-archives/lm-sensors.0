@@ -1,42 +1,90 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 06 Jul 2011 07:30:48 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110) fix memory leak
-Message-Id: <20110706093048.67cd62f7@endymion.delvare>
+From: Boaz Harrosh <bharrosh@panasas.com>
+Date: Fri, 22 Jul 2011 21:47:06 +0000
+Subject: Re: [lm-sensors] [osd-dev] [PATCH 6/8] [SCSI] osduld: use
+Message-Id: <4E29EFDA.1080407@panasas.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110705195646.GA21684@nb-core2.darkstar.lan>
-In-Reply-To: <20110705195646.GA21684@nb-core2.darkstar.lan>
+References: <1311352886-4047-1-git-send-email-jic23@cam.ac.uk> <1311352886-4047-7-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1311352886-4047-7-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: linux-kernel@vger.kernel.org, randy.dunlap@oracle.com, airlied@linux.ie, dri-devel@lists.freedesktop.org, guenter.roeck@ericsson.com, johnpol@2ka.mipt.ru, thellstrom@vmware.com, linux-scsi@vger.kernel.org, JBottomley@parallels.com, lm-sensors@lm-sensors.org, airlied@redhat.com, paulmck@linux.vnet.ibm.com, naota@elisp.net, rtc-linux@googlegroups.com, namhyung@gmail.com, rusty@rustcorp.com.au, khali@linux-fr.org, osd-dev@open-osd.org, akpm@linux-foundation.org, a.zummo@towertech.it, jkosina@suse.cz, cabarnes@indesign-llc.com, tj@kernel.org, bhalevy@panasas.com
 
-On Tue, 5 Jul 2011 21:56:46 +0200, Luca Tettamanti wrote:
-> The object returned by atk_gitm is dynamically allocated and must be
-> freed.
+On 07/22/2011 09:41 AM, Jonathan Cameron wrote:
+> This does involve additional use of the spin lock in idr.c.
+> Is this an issue?
 > 
-> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+
+Actually it looks like a bug fix. I had a TODO: to add one.
+
+> Also, some error mangling was needed to keep the interface
+> the same.  Does this matter or can we return -ENOSPC instead
+> of -EBUSY?
 > 
+
+Na. -ENOSPC is just fine. All the osd Application just check for
+"any error" not a specific one.
+
+> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+
+Ack-by: Boaz Harrosh <bharrosh@panasas.com>
+
 > ---
->  drivers/hwmon/asus_atk0110.c |    1 +
->  1 file changed, 1 insertion(+)
+>  drivers/scsi/osd/osd_uld.c |   22 ++++++++--------------
+>  1 files changed, 8 insertions(+), 14 deletions(-)
 > 
-> diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-> index dcb78a7..00e9851 100644
-> --- a/drivers/hwmon/asus_atk0110.c
-> +++ b/drivers/hwmon/asus_atk0110.c
-> @@ -674,6 +674,7 @@ static int atk_debugfs_gitm_get(void *p, u64 *val)
->  	else
->  		err = -EIO;
+> diff --git a/drivers/scsi/osd/osd_uld.c b/drivers/scsi/osd/osd_uld.c
+> index b31a8e3..fa849bd 100644
+> --- a/drivers/scsi/osd/osd_uld.c
+> +++ b/drivers/scsi/osd/osd_uld.c
+> @@ -387,7 +387,7 @@ static void __remove(struct device *dev)
 >  
-> +	ACPI_FREE(ret);
->  	return err;
+>  	if (oud->disk)
+>  		put_disk(oud->disk);
+> -	ida_remove(&osd_minor_ida, oud->minor);
+> +	ida_simple_remove(&osd_minor_ida, oud->minor);
+>  
+>  	kfree(oud);
+>  }
+> @@ -403,18 +403,12 @@ static int osd_probe(struct device *dev)
+>  	if (scsi_device->type != TYPE_OSD)
+>  		return -ENODEV;
+>  
+> -	do {
+> -		if (!ida_pre_get(&osd_minor_ida, GFP_KERNEL))
+> -			return -ENODEV;
+> -
+> -		error = ida_get_new(&osd_minor_ida, &minor);
+> -	} while (error = -EAGAIN);
+> -
+> -	if (error)
+> -		return error;
+> -	if (minor >= SCSI_OSD_MAX_MINOR) {
+> -		error = -EBUSY;
+> -		goto err_retract_minor;
+> +	minor = ida_simple_get(&osd_minor_ida, 0,
+> +			       SCSI_OSD_MAX_MINOR, GFP_KERNEL);
+> +	if (minor < 0) {
+> +		if (minor = -ENOSPC)
+> +			return -EBUSY;
+
+Just drop the translation is fine as well
+
+> +		return minor;
+>  	}
+>  
+>  	error = -ENOMEM;
+> @@ -491,7 +485,7 @@ err_free_osd:
+>  	dev_set_drvdata(dev, NULL);
+>  	kfree(oud);
+>  err_retract_minor:
+> -	ida_remove(&osd_minor_ida, minor);
+> +	ida_simple_remove(&osd_minor_ida, minor);
+>  	return error;
 >  }
 >  
 
-Good catch. Applied, thanks!
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
