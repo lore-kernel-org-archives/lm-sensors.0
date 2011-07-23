@@ -1,276 +1,261 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Tue, 19 Jul 2011 20:00:33 +0000
-Subject: [lm-sensors] [PATCH 3/5] leds: add support for TS-5500 LED
-Message-Id: <1311105635-22432-4-git-send-email-vivien.didelot@savoirfairelinux.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 23 Jul 2011 16:07:35 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm78) Avoid forward declarations
+Message-Id: <20110723180735.2743321a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1311105635-22432-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1311105635-22432-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>, lm-sensors@lm-sensors.org, platform-driver-x86@vger.kernel.org, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+To: lm-sensors@vger.kernel.org
 
-From: Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
+Move code around to avoid several forward declarations. Also group
+ISA-related functions together, to make future changes easier.
 
-Add support for the TS-5500 on-board LED
-
-Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Dean Nelson <dnelson@redhat.com>
 ---
- MAINTAINERS                            |    1 +
- arch/x86/platform/ts5500/Kconfig       |    7 ++
- arch/x86/platform/ts5500/Makefile      |    3 +-
- arch/x86/platform/ts5500/ts5500.c      |   41 ++++++++++
- arch/x86/platform/ts5500/ts5500_leds.c |  133 ++++++++++++++++++++++++++++++++
- 5 files changed, 184 insertions(+), 1 deletions(-)
- create mode 100644 arch/x86/platform/ts5500/ts5500_leds.c
+ drivers/hwmon/lm78.c |  205 +++++++++++++++++++++++---------------------------
+ 1 file changed, 98 insertions(+), 107 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c6cf870..034a25f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6142,6 +6142,7 @@ F:  arch/x86/platform/ts5500/Makefile
- F:  arch/x86/platform/ts5500/ts5500.c
- F:  arch/x86/platform/ts5500/ts5500_gpio.c
- F:  arch/x86/platform/ts5500/ts5500_gpio.h
-+F:  arch/x86/platform/ts5500/ts5500_leds.c
- 
- TEGRA SUPPORT
- M:	Colin Cross <ccross@android.com>
-diff --git a/arch/x86/platform/ts5500/Kconfig b/arch/x86/platform/ts5500/Kconfig
-index bb4ef81..e7fbf34 100644
---- a/arch/x86/platform/ts5500/Kconfig
-+++ b/arch/x86/platform/ts5500/Kconfig
-@@ -12,3 +12,10 @@ config TS5500_GPIO
- 	default y
- 	help
- 	  This enables support for the DIO headers for GPIO usage.
-+
-+config TS5500_LEDS
-+	bool "TS-5500 LED Support"
-+	depends on TS5500 && LEDS_CLASS
-+	default y
-+	help
-+	  This option enables support for the on-chip LED.
-diff --git a/arch/x86/platform/ts5500/Makefile b/arch/x86/platform/ts5500/Makefile
-index 9eb93fe..4d23812 100644
---- a/arch/x86/platform/ts5500/Makefile
-+++ b/arch/x86/platform/ts5500/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_TS5500)			+= ts5500.o
--obj-$(CONFIG_TS5500_GPIO)		+= ts5500_gpio.o
-\ No newline at end of file
-+obj-$(CONFIG_TS5500_GPIO)		+= ts5500_gpio.o
-+obj-$(CONFIG_TS5500_LEDS)		+= ts5500_leds.o
-\ No newline at end of file
-diff --git a/arch/x86/platform/ts5500/ts5500.c b/arch/x86/platform/ts5500/ts5500.c
-index 1ed0097..a455178 100644
---- a/arch/x86/platform/ts5500/ts5500.c
-+++ b/arch/x86/platform/ts5500/ts5500.c
-@@ -24,6 +24,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <asm/processor.h>
-+#include <linux/leds.h>
- #include <linux/gpio.h>
- #include "ts5500_gpio.h"
- 
-@@ -143,6 +144,43 @@ error:
- 
- #define TS5500_IS_JP_SET(sbc, jmp) (!!(sbc->jumpers & TS5500_JP##jmp))
- 
-+#ifdef CONFIG_TS5500_LEDS
-+static struct led_info ts5500_led_info = {
-+	.name = "ts5500_leds",
-+	.default_trigger = "ts5500_leds",
-+	.flags = TS5500_LED_FLAG
-+};
-+
-+static struct led_platform_data ts5500_led_platform_data = {
-+	.num_leds = 1,
-+	.leds = &ts5500_led_info
-+};
-+
-+static struct resource ts5500_led_resources[] = {
-+	{
-+		.name = "ts5500_leds",
-+		.start = TS5500_LED_JMPRS_REG,
-+		.end = TS5500_LED_JMPRS_REG,
-+		.flags = IORESOURCE_IO
-+	}
-+};
-+
-+static void ts5500_led_release(struct device *dev)
-+{
-+	/* noop */
-+}
-+
-+static struct platform_device ts5500_led_device = {
-+	.name = "ts5500_leds",
-+	.resource = ts5500_led_resources,
-+	.num_resources = ARRAY_SIZE(ts5500_led_resources),
-+	.id = -1,
-+	.dev = {
-+		.platform_data = &ts5500_led_platform_data,
-+		.release = ts5500_led_release
-+	}
-+};
-+#endif
- 
- #ifdef CONFIG_TS5500_GPIO
- /* Callback for releasing resources */
-@@ -160,6 +198,9 @@ static struct platform_device ts5500_gpio_device = {
+--- linux-3.0-rc7.orig/drivers/hwmon/lm78.c	2011-07-22 22:49:24.000000000 +0200
++++ linux-3.0-rc7/drivers/hwmon/lm78.c	2011-07-22 22:55:39.000000000 +0200
+@@ -143,50 +143,12 @@ struct lm78_data {
  };
- #endif
- static struct platform_device *ts5500_devices[] __initdata = {
-+#ifdef CONFIG_TS5500_LEDS
-+	&ts5500_led_device,
-+#endif
- #ifdef CONFIG_TS5500_GPIO
- 	&ts5500_gpio_device,
- #endif
-diff --git a/arch/x86/platform/ts5500/ts5500_leds.c b/arch/x86/platform/ts5500/ts5500_leds.c
-new file mode 100644
-index 0000000..b6be116
---- /dev/null
-+++ b/arch/x86/platform/ts5500/ts5500_leds.c
-@@ -0,0 +1,133 @@
-+/*
-+ * Technologic Systems TS-5500 boards - LED driver
-+ *
-+ * Copyright (c) 2010 Savoir-faire Linux Inc.
-+ *	Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
-+ *
-+ * Portions Copyright (c) 2008 Compulab, Ltd.
-+ *	Mike Rapoport <mike@compulab.co.il>
-+ *
-+ * Portions Copyright (c) 2006-2008 Marvell International Ltd.
-+ *	Eric Miao <eric.miao@marvell.com>
-+ *
-+ * Based on drivers/leds/leds-da903x.c from linux-2.6.32.8.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/workqueue.h>
-+#include <linux/io.h>
-+#include <linux/leds.h>
-+
-+/**
-+ * struct ts5500_led - LED structure
-+ * @cdev:		LED class device structure.
-+ * @work:		Work structure.
-+ * @new_brightness:	LED brightness.
-+ * @ioaddr:		LED I/O address.
-+ */
-+struct ts5500_led {
-+	struct led_classdev	cdev;
-+	struct work_struct	work;
-+	enum led_brightness	new_brightness;
-+	int			ioaddr;
-+	int			bit;
+ 
+ 
+-static int lm78_i2c_detect(struct i2c_client *client,
+-			   struct i2c_board_info *info);
+-static int lm78_i2c_probe(struct i2c_client *client,
+-			  const struct i2c_device_id *id);
+-static int lm78_i2c_remove(struct i2c_client *client);
+-
+-static int __devinit lm78_isa_probe(struct platform_device *pdev);
+-static int __devexit lm78_isa_remove(struct platform_device *pdev);
+-
+ static int lm78_read_value(struct lm78_data *data, u8 reg);
+ static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value);
+ static struct lm78_data *lm78_update_device(struct device *dev);
+ static void lm78_init_device(struct lm78_data *data);
+ 
+ 
+-static const struct i2c_device_id lm78_i2c_id[] = {
+-	{ "lm78", lm78 },
+-	{ "lm79", lm79 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, lm78_i2c_id);
+-
+-static struct i2c_driver lm78_driver = {
+-	.class		= I2C_CLASS_HWMON,
+-	.driver = {
+-		.name	= "lm78",
+-	},
+-	.probe		= lm78_i2c_probe,
+-	.remove		= lm78_i2c_remove,
+-	.id_table	= lm78_i2c_id,
+-	.detect		= lm78_i2c_detect,
+-	.address_list	= normal_i2c,
+-};
+-
+-static struct platform_driver lm78_isa_driver = {
+-	.driver = {
+-		.owner	= THIS_MODULE,
+-		.name	= "lm78",
+-	},
+-	.probe		= lm78_isa_probe,
+-	.remove		= __devexit_p(lm78_isa_remove),
+-};
+-
+-
+ /* 7 Voltages */
+ static ssize_t show_in(struct device *dev, struct device_attribute *da,
+ 		       char *buf)
+@@ -663,76 +625,24 @@ static int lm78_i2c_remove(struct i2c_cl
+ 	return 0;
+ }
+ 
+-static int __devinit lm78_isa_probe(struct platform_device *pdev)
+-{
+-	int err;
+-	struct lm78_data *data;
+-	struct resource *res;
+-
+-	/* Reserve the ISA region */
+-	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start + LM78_ADDR_REG_OFFSET, 2, "lm78")) {
+-		err = -EBUSY;
+-		goto exit;
+-	}
+-
+-	if (!(data = kzalloc(sizeof(struct lm78_data), GFP_KERNEL))) {
+-		err = -ENOMEM;
+-		goto exit_release_region;
+-	}
+-	mutex_init(&data->lock);
+-	data->isa_addr = res->start;
+-	platform_set_drvdata(pdev, data);
+-
+-	if (lm78_read_value(data, LM78_REG_CHIPID) & 0x80) {
+-		data->type = lm79;
+-		data->name = "lm79";
+-	} else {
+-		data->type = lm78;
+-		data->name = "lm78";
+-	}
+-
+-	/* Initialize the LM78 chip */
+-	lm78_init_device(data);
+-
+-	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
+-	 || (err = device_create_file(&pdev->dev, &dev_attr_name)))
+-		goto exit_remove_files;
+-
+-	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove_files;
+-	}
+-
+-	return 0;
+-
+- exit_remove_files:
+-	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
+-	device_remove_file(&pdev->dev, &dev_attr_name);
+-	kfree(data);
+- exit_release_region:
+-	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
+- exit:
+-	return err;
+-}
+-
+-static int __devexit lm78_isa_remove(struct platform_device *pdev)
+-{
+-	struct lm78_data *data = platform_get_drvdata(pdev);
+-	struct resource *res;
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
+-	device_remove_file(&pdev->dev, &dev_attr_name);
+-	kfree(data);
+-
+-	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
++static const struct i2c_device_id lm78_i2c_id[] = {
++	{ "lm78", lm78 },
++	{ "lm79", lm79 },
++	{ }
 +};
-+
-+static void ts5500_led_work(struct work_struct *work)
++MODULE_DEVICE_TABLE(i2c, lm78_i2c_id);
+ 
+-	return 0;
+-}
++static struct i2c_driver lm78_driver = {
++	.class		= I2C_CLASS_HWMON,
++	.driver = {
++		.name	= "lm78",
++	},
++	.probe		= lm78_i2c_probe,
++	.remove		= lm78_i2c_remove,
++	.id_table	= lm78_i2c_id,
++	.detect		= lm78_i2c_detect,
++	.address_list	= normal_i2c,
++};
+ 
+ /* The SMBus locks itself, but ISA access must be locked explicitly! 
+    We don't want to lock the whole ISA bus, so we lock each client
+@@ -849,6 +759,87 @@ static struct lm78_data *lm78_update_dev
+ 	return data;
+ }
+ 
++static int __devinit lm78_isa_probe(struct platform_device *pdev)
 +{
-+	struct ts5500_led *led = container_of(work, struct ts5500_led, work);
-+	u8 val = led->new_brightness ? led->bit : 0;
-+
-+	outb(val, led->ioaddr);
-+}
-+
-+static void ts5500_led_set(struct led_classdev *led_cdev,
-+			   enum led_brightness value)
-+{
-+	struct ts5500_led *led = container_of(led_cdev, struct ts5500_led,
-+					      cdev);
-+
-+	led->new_brightness = value;
-+	schedule_work(&led->work);
-+}
-+
-+static int __devinit ts5500_led_probe(struct platform_device *pdev)
-+{
-+	struct led_platform_data *pdata = pdev->dev.platform_data;
-+	struct ts5500_led *led;
++	int err;
++	struct lm78_data *data;
 +	struct resource *res;
-+	int ret;
 +
-+	if (pdata = NULL || !pdata->num_leds) {
-+		dev_err(&pdev->dev, "No platform data available\n");
-+		return -ENODEV;
-+	}
-+
++	/* Reserve the ISA region */
 +	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-+	if (!res) {
-+		dev_err(&pdev->dev, "Failed to get I/O resource\n");
-+		return -EBUSY;
++	if (!request_region(res->start + LM78_ADDR_REG_OFFSET, 2, "lm78")) {
++		err = -EBUSY;
++		goto exit;
 +	}
 +
-+	led = kzalloc(sizeof(struct ts5500_led), GFP_KERNEL);
-+	if (led = NULL) {
-+		dev_err(&pdev->dev, "Failed to alloc memory for LED device\n");
-+		return -ENOMEM;
++	data = kzalloc(sizeof(struct lm78_data), GFP_KERNEL);
++	if (!data) {
++		err = -ENOMEM;
++		goto exit_release_region;
++	}
++	mutex_init(&data->lock);
++	data->isa_addr = res->start;
++	platform_set_drvdata(pdev, data);
++
++	if (lm78_read_value(data, LM78_REG_CHIPID) & 0x80) {
++		data->type = lm79;
++		data->name = "lm79";
++	} else {
++		data->type = lm78;
++		data->name = "lm78";
 +	}
 +
-+	led->cdev.name = pdata->leds[0].name;
-+	led->cdev.default_trigger = pdata->leds[0].default_trigger;
-+	led->cdev.brightness_set = ts5500_led_set;
-+	led->cdev.brightness = LED_OFF;
++	/* Initialize the LM78 chip */
++	lm78_init_device(data);
 +
-+	led->ioaddr = res->start;
-+	led->bit = pdata->leds[0].flags;
-+	led->new_brightness = LED_OFF;
++	/* Register sysfs hooks */
++	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
++	 || (err = device_create_file(&pdev->dev, &dev_attr_name)))
++		goto exit_remove_files;
 +
-+	INIT_WORK(&led->work, ts5500_led_work);
-+
-+	ret = led_classdev_register(pdev->dev.parent, &led->cdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to register LED\n");
-+		goto err;
++	data->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove_files;
 +	}
 +
-+	platform_set_drvdata(pdev, led);
 +	return 0;
 +
-+err:
-+	kfree(led);
-+	return ret;
++ exit_remove_files:
++	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++	kfree(data);
++ exit_release_region:
++	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
++ exit:
++	return err;
 +}
 +
-+static struct platform_driver ts5500_led_driver = {
-+	.driver = {
-+		.name = "ts5500_leds",
-+		.owner = THIS_MODULE
-+	},
-+	.probe = ts5500_led_probe
-+};
-+
-+static const struct platform_device_id ts5500_devices[] = {
-+	{ "ts5500_leds", 0 },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(platform, ts5500_devices);
-+
-+static int __init ts5500_led_init(void)
++static int __devexit lm78_isa_remove(struct platform_device *pdev)
 +{
-+	return platform_driver_register(&ts5500_led_driver);
-+}
-+module_init(ts5500_led_init);
++	struct lm78_data *data = platform_get_drvdata(pdev);
++	struct resource *res;
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>");
-+MODULE_DESCRIPTION("LED driver for Technologic Systems TS-5500");
--- 
-1.7.6
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&pdev->dev.kobj, &lm78_group);
++	device_remove_file(&pdev->dev, &dev_attr_name);
++	kfree(data);
++
++	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
++	release_region(res->start + LM78_ADDR_REG_OFFSET, 2);
++
++	return 0;
++}
++
++static struct platform_driver lm78_isa_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= "lm78",
++	},
++	.probe		= lm78_isa_probe,
++	.remove		= __devexit_p(lm78_isa_remove),
++};
++
+ /* return 1 if a supported chip is found, 0 otherwise */
+ static int __init lm78_isa_found(unsigned short address)
+ {
 
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
