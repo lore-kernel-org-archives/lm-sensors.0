@@ -1,156 +1,118 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:36 +0000
-Subject: [lm-sensors] [PATCH v2 07/15] hwmon: (pmbus) Add support for
-Message-Id: <1310608484-20678-8-git-send-email-guenter.roeck@ericsson.com>
+From: "Bill Dalton" <bdalton@orbitalnetwork.com>
+Date: Mon, 25 Jul 2011 16:29:07 +0000
+Subject: [lm-sensors] Is there a resulution for problem 38 (Problems on 2.6
+Message-Id: <!&!AAAAAAAAAAAYAAAAAAAAAHwhGfMrJr1AqD/4s5uz4SPCgAAAEAAAAOd03juDvJdDvsdRk3pPOq0BAAAAAA==@orbitalnetwork.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2320472931557467709=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Some PMBus chips have non-standard sensor registers. An easy way to
-support such sensors is to introduce virtual pages and map the non-standard
-registers into standard registers on an extra page.
+This is a multi-part message in MIME format.
 
-For this to work, the code verifying if the configured number of pages exists
-has to be removed. Since a wrong number of pages can only be configured in a
-front-end driver, this should not have a practical impact since the resulting
-errors should be found during development and testing.
+--===============2320472931557467709==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0114_01CC4AAD.5024D310"
 
-Also, functions to read the chip status while checking if a command register
-exists must be modified to no longer set the page register before reading the
-status, since the physical page associated with the checked register may not
-exist. This does not make a functional difference since the page was already set
-when the attempt to read the register was made.
+This is a multi-part message in MIME format.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
-v2: Improved status register handling
+------=_NextPart_000_0114_01CC4AAD.5024D310
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
- drivers/hwmon/pmbus/pmbus.h      |    2 +-
- drivers/hwmon/pmbus/pmbus_core.c |   46 +++++++++++++++----------------------
- 2 files changed, 20 insertions(+), 28 deletions(-)
+We are using:
 
-diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
-index d631cae..ceb71f7 100644
---- a/drivers/hwmon/pmbus/pmbus.h
-+++ b/drivers/hwmon/pmbus/pmbus.h
-@@ -303,7 +303,7 @@ struct pmbus_driver_info {
- int pmbus_set_page(struct i2c_client *client, u8 page);
- int pmbus_read_word_data(struct i2c_client *client, u8 page, u8 reg);
- int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word);
--int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg);
-+int pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg);
- void pmbus_clear_faults(struct i2c_client *client);
- bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg);
- bool pmbus_check_word_register(struct i2c_client *client, int page, int reg);
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index abdc3a3..3daae16 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -164,13 +164,15 @@ int pmbus_set_page(struct i2c_client *client, u8 page)
- }
- EXPORT_SYMBOL_GPL(pmbus_set_page);
- 
--static int pmbus_write_byte(struct i2c_client *client, u8 page, u8 value)
-+static int pmbus_write_byte(struct i2c_client *client, int page, u8 value)
- {
- 	int rv;
- 
--	rv = pmbus_set_page(client, page);
--	if (rv < 0)
--		return rv;
-+	if (page >= 0) {
-+		rv = pmbus_set_page(client, page);
-+		if (rv < 0)
-+			return rv;
-+	}
- 
- 	return i2c_smbus_write_byte(client, value);
- }
-@@ -238,13 +240,15 @@ static int _pmbus_read_word_data(struct i2c_client *client, int page, int reg)
- 	return pmbus_read_word_data(client, page, reg);
- }
- 
--int pmbus_read_byte_data(struct i2c_client *client, u8 page, u8 reg)
-+int pmbus_read_byte_data(struct i2c_client *client, int page, u8 reg)
- {
- 	int rv;
- 
--	rv = pmbus_set_page(client, page);
--	if (rv < 0)
--		return rv;
-+	if (page >= 0) {
-+		rv = pmbus_set_page(client, page);
-+		if (rv < 0)
-+			return rv;
-+	}
- 
- 	return i2c_smbus_read_byte_data(client, reg);
- }
-@@ -265,13 +269,13 @@ void pmbus_clear_faults(struct i2c_client *client)
- }
- EXPORT_SYMBOL_GPL(pmbus_clear_faults);
- 
--static int pmbus_check_status_cml(struct i2c_client *client, int page)
-+static int pmbus_check_status_cml(struct i2c_client *client)
- {
- 	int status, status2;
- 
--	status = pmbus_read_byte_data(client, page, PMBUS_STATUS_BYTE);
-+	status = pmbus_read_byte_data(client, -1, PMBUS_STATUS_BYTE);
- 	if (status < 0 || (status & PB_STATUS_CML)) {
--		status2 = pmbus_read_byte_data(client, page, PMBUS_STATUS_CML);
-+		status2 = pmbus_read_byte_data(client, -1, PMBUS_STATUS_CML);
- 		if (status2 < 0 || (status2 & PB_CML_FAULT_INVALID_COMMAND))
- 			return -EINVAL;
- 	}
-@@ -285,8 +289,8 @@ bool pmbus_check_byte_register(struct i2c_client *client, int page, int reg)
- 
- 	rv = pmbus_read_byte_data(client, page, reg);
- 	if (rv >= 0 && !(data->flags & PMBUS_SKIP_STATUS_CHECK))
--		rv = pmbus_check_status_cml(client, page);
--	pmbus_clear_fault_page(client, page);
-+		rv = pmbus_check_status_cml(client);
-+	pmbus_clear_fault_page(client, -1);
- 	return rv >= 0;
- }
- EXPORT_SYMBOL_GPL(pmbus_check_byte_register);
-@@ -298,8 +302,8 @@ bool pmbus_check_word_register(struct i2c_client *client, int page, int reg)
- 
- 	rv = pmbus_read_word_data(client, page, reg);
- 	if (rv >= 0 && !(data->flags & PMBUS_SKIP_STATUS_CHECK))
--		rv = pmbus_check_status_cml(client, page);
--	pmbus_clear_fault_page(client, page);
-+		rv = pmbus_check_status_cml(client);
-+	pmbus_clear_fault_page(client, -1);
- 	return rv >= 0;
- }
- EXPORT_SYMBOL_GPL(pmbus_check_word_register);
-@@ -1541,18 +1545,6 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 		ret = -EINVAL;
- 		goto out_data;
- 	}
--	/*
--	 * Bail out if more than one page was configured, but we can not
--	 * select the highest page. This is an indication that the wrong
--	 * chip type was selected. Better bail out now than keep
--	 * returning errors later on.
--	 */
--	if (info->pages > 1 && pmbus_set_page(client, info->pages - 1) < 0) {
--		dev_err(&client->dev, "Failed to select page %d\n",
--			info->pages - 1);
--		ret = -EINVAL;
--		goto out_data;
--	}
- 
- 	ret = pmbus_identify_common(client, data);
- 	if (ret < 0) {
--- 
-1.7.3.1
+Linux oneUp 2.6.33.1 #3 SMP Wed Mar 31 02:23:22 PDT 2010 i686 GNU/Linux
+sensors version 3.0.2 with libsensors version 3.0.2
 
+w83627hf: Found W83627HF chip at 0x290
+ACPI: I/O resource w83627hf [0x295-0x296] conflicts with ACPI region IP__
+[0x295-0x296]
+ACPI: This conflict may cause random problems and system instability
+ACPI: If an ACPI driver is available for this device, you should use it
+instead of the native driver
+
+I have seached high and low but don't find a resolution to this problem.
+
+Does anyone know where I can obtain the ACPI driver? Is there another
+solution?
+
+As is to be expected we intermittantly get totally invalid values.
+
+Thank you,
+Bill
+
+ <mailto:bdalton@orbitalnetwork.com> bdalton@orbitalnetwork.com
+Orbital Network Engineering 
+20863 Stevens Creek Blvd. 
+Cupertino CA 95014 
+
+408.861.0100 x29 
+408.861.0200 
+
+ 
+
+------=_NextPart_000_0114_01CC4AAD.5024D310
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META content=3D"text/html; charset=3Dus-ascii" =
+http-equiv=3DContent-Type>
+<META name=3DGENERATOR content=3D"MSHTML 8.00.6001.19088"></HEAD>
+<BODY>
+<DIV>
+<P><FONT size=3D2 face=3D"Courier New">We are using:<BR><BR>Linux oneUp =
+2.6.33.1 #3=20
+SMP Wed Mar 31 02:23:22 PDT 2010 i686 GNU/Linux<BR>sensors version 3.0.2 =
+with=20
+libsensors version 3.0.2<BR><BR>w83627hf: Found W83627HF chip at =
+0x290<BR>ACPI:=20
+I/O resource w83627hf [0x295-0x296] conflicts with ACPI region IP__=20
+[0x295-0x296]<BR>ACPI: This conflict may cause random problems and =
+system=20
+instability<BR>ACPI: If an ACPI driver is available for this device, you =
+should=20
+use it instead of the native driver<BR><BR>I have seached high and low =
+but don't=20
+find a resolution to this problem.<BR><BR>Does anyone know where I can =
+obtain=20
+the ACPI driver? Is there another solution?<BR><BR>As&nbsp;<SPAN=20
+class=3D348435915-25072011>is to </SPAN>be expected we intermittantly =
+get totally=20
+invalid values.<BR><BR>Thank you,<BR>Bill<BR><BR></FONT><A=20
+href=3D"mailto:bdalton@orbitalnetwork.com"><SPAN lang=3Den-us><U><FONT =
+color=3D#0000ff=20
+size=3D2 face=3DArial>bdalton@orbitalnetwork.com</FONT></U></SPAN><SPAN=20
+lang=3Den-us></SPAN></A><SPAN lang=3Den-us></SPAN><SPAN =
+lang=3Den-us></SPAN><SPAN=20
+lang=3Den-us></SPAN><SPAN lang=3Den-us><BR><FONT size=3D2 =
+face=3DArial>Orbital Network=20
+Engineering</FONT></SPAN> <BR><SPAN lang=3Den-us><FONT size=3D2 =
+face=3DArial>20863=20
+Stevens Creek Blvd.</FONT></SPAN> <BR><SPAN lang=3Den-us><FONT size=3D2=20
+face=3DArial>Cupertino CA 95014</FONT></SPAN> </P></DIV>
+<P><SPAN lang=3Den-us><FONT size=3D2 face=3DArial>408.861.0100 =
+x29</FONT></SPAN>=20
+<BR><SPAN lang=3Den-us><FONT size=3D2 =
+face=3DArial>408.861.0200</FONT></SPAN> </P>
+<DIV>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_0114_01CC4AAD.5024D310--
+
+
+
+--===============2320472931557467709==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2320472931557467709==--
+
