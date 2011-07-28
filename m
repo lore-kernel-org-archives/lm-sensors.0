@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:39 +0000
-Subject: [lm-sensors] [PATCH 10/15] hwmon: (pmbus) Add support for peak
-Message-Id: <1310608484-20678-11-git-send-email-guenter.roeck@ericsson.com>
+From: Robert Coulson <robert.coulson@ericsson.com>
+Date: Thu, 28 Jul 2011 23:19:42 +0000
+Subject: Re: [lm-sensors] [PATCH 10/15] hwmon: (pmbus) Add support for peak
+Message-Id: <C379E95F3359F140B21F5259C55CC83133923F4436@EUSAACMS0714.eamcs.ericsson.se>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1310485300-2168-11-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1310485300-2168-11-git-send-email-guenter.roeck@ericsson.com>
@@ -10,13 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Most PMBus devices provide manufacturer specific commands to read low and/or
-high peak values for some or all of its sensors.
 
-To support providing those values as lowest/highest attributes to the user,
-introduce virtual PMBus commands. Those commands reside outside the normal
-command set and have to be implemented in device specific code, which map the
-virtual commands to device specific commands.
+Hi Guenter,
+
+I'm curious to know why the PMBUS_MAX_INPUT_SENSORS does not include the temp sensors; do you know?
+
+Thanks,
+
+*** Rob.
+
+Reviewed-by: Robert Coulson <robert.coulson@ericsson.com>
+
+
+-----Original Message-----
+From: Guenter Roeck 
+Sent: Wednesday, July 13, 2011 6:55 PM
+To: Jean Delvare
+Cc: lm-sensors@lm-sensors.org; Guenter Roeck
+Subject: [PATCH 10/15] hwmon: (pmbus) Add support for peak attributes
+
+Most PMBus devices provide manufacturer specific commands to read low and/or high peak values for some or all of its sensors.
+
+To support providing those values as lowest/highest attributes to the user, introduce virtual PMBus commands. Those commands reside outside the normal command set and have to be implemented in device specific code, which map the virtual commands to device specific commands.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
@@ -24,8 +39,7 @@ Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
  drivers/hwmon/pmbus/pmbus_core.c |  142 ++++++++++++++++++++++++++++++++++----
  2 files changed, 163 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
-index ceb71f7..9973d26 100644
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h index ceb71f7..9973d26 100644
 --- a/drivers/hwmon/pmbus/pmbus.h
 +++ b/drivers/hwmon/pmbus/pmbus.h
 @@ -126,6 +126,42 @@
@@ -33,14 +47,16 @@ index ceb71f7..9973d26 100644
  
  /*
 + * Virtual registers.
-+ * Useful to support attributes which are not supported by standard PMBus
++ * Useful to support attributes which are not supported by standard 
++PMBus
 + * registers but exist as manufacturer specific registers on individual chips.
 + * Must be mapped to real registers in device specific code.
 + *
 + * Semantics:
 + * Virtual registers are all word size.
 + * READ registers are read-only; writes are either ignored or return an error.
-+ * RESET registers are read/write. Reading returns zero (used for detection),
++ * RESET registers are read/write. Reading returns zero (used for 
++detection),
 + * writing any value causes the associated history to be reset.
 + */
 +#define PMBUS_VIRT_BASE			0x100
@@ -115,8 +131,7 @@ index 019085f..f9c20ad 100644
  	}
 +	if (reg >= PMBUS_VIRT_BASE)
 +		return -EINVAL;
- 	return pmbus_read_word_data(client, page, reg);
- }
+ 	return pmbus_read_word_data(client, page, reg);  }
  
 @@ -318,7 +324,7 @@ bool pmbus_check_word_register(struct i2c_client *client, int page, int reg)
  	int rv;
@@ -318,7 +333,7 @@ index 019085f..f9c20ad 100644
  	}
  };
  
--- 
+--
 1.7.3.1
 
 
