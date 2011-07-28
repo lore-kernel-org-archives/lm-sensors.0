@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 14 Jul 2011 01:54:38 +0000
-Subject: [lm-sensors] [PATCH 09/15] hwmon: Add new attributes to sysfs ABI
-Message-Id: <1310608484-20678-10-git-send-email-guenter.roeck@ericsson.com>
+Date: Thu, 28 Jul 2011 06:35:38 +0000
+Subject: Re: [lm-sensors] [PATCH 09/15] hwmon: Add new attributes to sysfs
+Message-Id: <20110728063538.GA22163@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1310485300-2168-10-git-send-email-guenter.roeck@ericsson.com>
@@ -10,92 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add the following attributes to the sysfs ABI.
+On Wed, Jul 13, 2011 at 06:54:38PM -0700, Guenter Roeck wrote:
+> Add the following attributes to the sysfs ABI.
+> 
+> in[0-*]_average
+> in[0-*]_lowest
+> in[0-*]_highest
+> in[0-*]_reset_history
+> in_reset_history
+> 
+> curr[1-*]_average
+> curr[1-*]_lowest
+> curr[1-*]_highest
+> curr[1-*]_reset_history
+> curr_reset_history
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 
-in[0-*]_average
-in[0-*]_lowest
-in[0-*]_highest
-in[0-*]_reset_history
-in_reset_history
+Jean,
 
-curr[1-*]_average
-curr[1-*]_lowest
-curr[1-*]_highest
-curr[1-*]_reset_history
-curr_reset_history
+any comments on this patch ?
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/sysfs-interface |   46 +++++++++++++++++++++++++++++++++++
- 1 files changed, 46 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
-index 8f63c24..a4aa8f6 100644
---- a/Documentation/hwmon/sysfs-interface
-+++ b/Documentation/hwmon/sysfs-interface
-@@ -139,6 +139,29 @@ in[0-*]_input	Voltage input value.
- 		thumb: drivers should report the voltage values at the
- 		"pins" of the chip.
- 
-+in[0-*]_average
-+		Average voltage
-+		Unit: millivolt
-+		RO
-+
-+in[0-*]_lowest
-+		Historical minimum voltage
-+		Unit: millivolt
-+		RO
-+
-+in[0-*]_highest
-+		Historical maximum voltage
-+		Unit: millivolt
-+		RO
-+
-+in[0-*]_reset_history
-+		Reset inX_lowest and inX_highest
-+		WO
-+
-+in_reset_history
-+		Reset inX_lowest and inX_highest for all sensors
-+		WO
-+
- in[0-*]_label	Suggested voltage channel label.
- 		Text string
- 		Should only be created if the driver has hints about what
-@@ -407,6 +430,29 @@ curr[1-*]_input	Current input value
- 		Unit: milliampere
- 		RO
- 
-+curr[1-*]_average
-+		Average current use
-+		Unit: milliampere
-+		RO
-+
-+curr[1-*]_lowest
-+		Historical minimum current
-+		Unit: milliampere
-+		RO
-+
-+curr[1-*]_highest
-+		Historical maximum current
-+		Unit: milliampere
-+		RO
-+
-+curr[1-*]_reset_history
-+		Reset currX_lowest and currX_highest
-+		WO
-+
-+curr_reset_history
-+		Reset currX_lowest and currX_highest for all sensors
-+		WO
-+
- Also see the Alarms section for status flags associated with currents.
- 
- *********
--- 
-1.7.3.1
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
