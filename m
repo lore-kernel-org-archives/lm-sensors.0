@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 28 Jul 2011 06:01:58 +0000
+Date: Thu, 28 Jul 2011 06:27:14 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Simplify handling of
-Message-Id: <20110728060158.GD21792@ericsson.com>
+Message-Id: <20110728062714.GA22026@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110724203520.07a3f202@endymion.delvare>
 In-Reply-To: <20110724203520.07a3f202@endymion.delvare>
@@ -20,22 +20,9 @@ On Sun, Jul 24, 2011 at 02:35:20PM -0400, Jean Delvare wrote:
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 > Cc: Stijn Devriendt <sdevrien@cisco.com>
 > Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> Notes:
-> * This patch fixes a bug as a side effect: chip type max6657 lacked
->   the definition of reg_local_ext. I can submit a separate patch for
->   this, or it can be fixed in the patch which broke it (as it isn't in
->   Linus' tree yet) and I'll adjust this one accordingly, or this patch
->   can be merged in the patch which broke it altogether. All options
->   are fine with me. Guenter?
-> * Another approach would be to keep MAX6657_REG_R_LOCAL_TEMPL, but set
->   it automatically in lm90_probe(). Opinions?
-> 
-I prefer your fix; it makes the code simpler.
 
-Regarding the max6657 problem - I'll fix that in the original patch and apply this one
-on top of my queue.
- 
+Applied (with the max6657 fix applied to the original patch breaking it).
+
 Thanks,
 Guenter
 
