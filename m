@@ -1,134 +1,131 @@
-From: Dean Nelson <dnelson@redhat.com>
-Date: Tue, 26 Jul 2011 14:36:53 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (KConfig) avoid building drivers for
-Message-Id: <20110726143653.3481.46690.email-sent-by-dnelson@localhost6.localdomain6>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 29 Jul 2011 04:37:33 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.1
+Message-Id: <1311914253-1439-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-A modprobe of hwmon drivers that read/write ISA addresses on a powerpc results
-in a kernel Oops. These read/writes are being done via the inb()/in_8() and
-outb()/out_8() macros.
+Hi Linus,
 
-This patch prevents these drivers from being built for powerpc.
+Please pull hwmon subsystem updates for Linux 3.1 from:
 
-Signed-off-by: Dean Nelson <dnelson@redhat.com>
----
- drivers/hwmon/Kconfig |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 0598cd2..5bb4101 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -315,6 +315,7 @@ config SENSORS_I5K_AMB
- 
- config SENSORS_F71805F
- 	tristate "Fintek F71805F/FG, F71806F/FG and F71872F/FG"
-+	depends on !PPC
- 	help
- 	  If you say yes here you get support for hardware monitoring
- 	  features of the Fintek F71805F/FG, F71806F/FG and F71872F/FG
-@@ -325,6 +326,7 @@ config SENSORS_F71805F
- 
- config SENSORS_F71882FG
- 	tristate "Fintek F71882FG and compatibles"
-+	depends on !PPC
- 	help
- 	  If you say yes here you get support for hardware monitoring
- 	  features of many Fintek Super-I/O (LPC) chips. The currently
-@@ -448,6 +450,7 @@ config SENSORS_IBMPEX
- 
- config SENSORS_IT87
- 	tristate "ITE IT87xx and compatibles"
-+	depends on !PPC
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for ITE IT8705F, IT8712F,
-@@ -769,6 +772,7 @@ config SENSORS_MAX6650
- 
- config SENSORS_PC87360
- 	tristate "National Semiconductor PC87360 family"
-+	depends on !PPC
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get access to the hardware monitoring
-@@ -782,6 +786,7 @@ config SENSORS_PC87360
- 
- config SENSORS_PC87427
- 	tristate "National Semiconductor PC87427"
-+	depends on !PPC
- 	help
- 	  If you say yes here you get access to the hardware monitoring
- 	  functions of the National Semiconductor PC87427 Super-I/O chip.
-@@ -958,7 +963,7 @@ config SENSORS_SMM665
- 
- config SENSORS_DME1737
- 	tristate "SMSC DME1737, SCH311x and compatibles"
--	depends on I2C && EXPERIMENTAL
-+	depends on I2C && EXPERIMENTAL && !PPC
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for the hardware monitoring
-@@ -1000,6 +1005,7 @@ config SENSORS_EMC6W201
- 
- config SENSORS_SMSC47M1
- 	tristate "SMSC LPC47M10x and compatibles"
-+	depends on !PPC
- 	help
- 	  If you say yes here you get support for the integrated fan
- 	  monitoring and control capabilities of the SMSC LPC47B27x,
-@@ -1033,7 +1039,7 @@ config SENSORS_SMSC47M192
- 
- config SENSORS_SMSC47B397
- 	tristate "SMSC LPC47B397-NC"
--	depends on EXPERIMENTAL
-+	depends on EXPERIMENTAL && !PPC
- 	help
- 	  If you say yes here you get support for the SMSC LPC47B397-NC
- 	  sensor chip.
-@@ -1047,6 +1053,7 @@ config SENSORS_SCH56XX_COMMON
- 
- config SENSORS_SCH5627
- 	tristate "SMSC SCH5627"
-+	depends on !PPC
- 	select SENSORS_SCH56XX_COMMON
- 	help
- 	  If you say yes here you get support for the hardware monitoring
-@@ -1057,6 +1064,7 @@ config SENSORS_SCH5627
- 
- config SENSORS_SCH5636
- 	tristate "SMSC SCH5636"
-+	depends on !PPC
- 	select SENSORS_SCH56XX_COMMON
- 	help
- 	  SMSC SCH5636 Super I/O chips include an embedded microcontroller for
-@@ -1180,6 +1188,7 @@ config SENSORS_VIA686A
- 
- config SENSORS_VT1211
- 	tristate "VIA VT1211"
-+	depends on !PPC
- 	select HWMON_VID
- 	help
- 	  If you say yes here then you get support for hardware monitoring
-@@ -1292,6 +1301,7 @@ config SENSORS_W83L786NG
- 
- config SENSORS_W83627HF
- 	tristate "Winbond W83627HF, W83627THF, W83637HF, W83687THF, W83697HF"
-+	depends on !PPC
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for the Winbond W836X7 series
-@@ -1303,6 +1313,7 @@ config SENSORS_W83627HF
- 
- config SENSORS_W83627EHF
- 	tristate "Winbond W83627EHF/EHG/DHG, W83667HG, NCT6775F, NCT6776F"
-+	depends on !PPC
- 	select HWMON_VID
- 	help
- 	  If you say yes here you get support for the hardware
+Significant changes:
+Moved PMBus drivers into their own subdirectory.
+Added support for MAX1668, NTC thermistors, SA56004, LM95245,
+LM95231, ADP4000, NCP4200, NCP4208, LM25066, LM5064, and LM5066.
+
+Thanks,
+Guenter Roeck
+
+------
+
+The following changes since commit 95b6886526bb510b8370b625a49bc0ab3b8ff10f:
+
+  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/jmorris/security-testing-2.6 (2011-07-27 19:26:38 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Alexander Stein (1):
+      hwmon: LM95245 driver
+
+David George (1):
+      hwmon: Driver for MAX1668
+
+Donggeun Kim (1):
+      hwmon: Driver for NTC Thermistors
+
+Durgadoss R (1):
+      hwmon: (coretemp) Add core/pkg threshold support to Coretemp
+
+Guenter Roeck (16):
+      hwmon: (max1668) Add support for tempX_fault attributes
+      hwmon: (lm95241) Add support for LM95231
+      hwmon: (pmbus) Move PMBus drivers to drivers/hwmon/pmbus
+      hwmon: (pmbus) Add support for VID output voltage mode
+      hwmon: (pmbus) Add ADP4000, NCP4200 and NCP4208 to list of supported devices
+      hwmon: (pmbus) Increase attribute name size
+      hwmon: (pmbus) Support reading and writing of word registers in device specific code
+      hwmon: (pmbus) Add support for virtual pages
+      hwmon: (pmbus) Strengthen check for status register existence
+      hwmon: Add new attributes to sysfs ABI
+      hwmon: (pmbus) Add support for peak attributes
+      hwmon: (adm1275) Add support for peak attributes
+      hwmon: (max16064) Add support for peak attributes
+      hwmon: (max8688) Add support for peak attributes
+      hwmon: (max34440) Add support for peak attributes
+      hwmon: (pmbus) Add client driver for LM25066, LM5064, and LM5066
+
+Jean Delvare (3):
+      hwmon: (lm90) Simplify handling of extended local temp register
+      hwmon: (lm90) Make SA56004 detection more robust
+      hwmon: (lm90) Refactor reading of config2 register
+
+Stijn Devriendt (1):
+      hwmon: (lm90) Add support for Philips SA56004
+
+ Documentation/hwmon/adm1275                  |    8 +-
+ Documentation/hwmon/coretemp                 |    7 +
+ Documentation/hwmon/lm25066                  |   90 +++++
+ Documentation/hwmon/lm90                     |    9 +-
+ Documentation/hwmon/lm95245                  |   33 ++
+ Documentation/hwmon/max16064                 |    4 +
+ Documentation/hwmon/max1668                  |   60 +++
+ Documentation/hwmon/max34440                 |    6 +
+ Documentation/hwmon/max8688                  |    6 +
+ Documentation/hwmon/ntc_thermistor           |   93 +++++
+ Documentation/hwmon/pmbus                    |    7 +
+ Documentation/hwmon/sysfs-interface          |   46 +++
+ MAINTAINERS                                  |   18 +
+ drivers/hwmon/Kconfig                        |  127 ++-----
+ drivers/hwmon/Makefile                       |   13 +-
+ drivers/hwmon/coretemp.c                     |  177 +++++++---
+ drivers/hwmon/lm90.c                         |   65 ++-
+ drivers/hwmon/lm95241.c                      |   31 +-
+ drivers/hwmon/lm95245.c                      |  543 ++++++++++++++++++++++++++
+ drivers/hwmon/max1668.c                      |  502 ++++++++++++++++++++++++
+ drivers/hwmon/ntc_thermistor.c               |  453 +++++++++++++++++++++
+ drivers/hwmon/pmbus/Kconfig                  |  100 +++++
+ drivers/hwmon/pmbus/Makefile                 |   13 +
+ drivers/hwmon/{ => pmbus}/adm1275.c          |   66 +++-
+ drivers/hwmon/pmbus/lm25066.c                |  340 ++++++++++++++++
+ drivers/hwmon/{ => pmbus}/max16064.c         |   57 +++-
+ drivers/hwmon/{ => pmbus}/max34440.c         |   81 ++++-
+ drivers/hwmon/{ => pmbus}/max8688.c          |   69 +++-
+ drivers/hwmon/{ => pmbus}/pmbus.c            |   37 ++-
+ drivers/hwmon/{ => pmbus}/pmbus.h            |   48 +++-
+ drivers/hwmon/{ => pmbus}/pmbus_core.c       |  351 +++++++++++++----
+ drivers/hwmon/{ => pmbus}/ucd9000.c          |    0
+ drivers/hwmon/{ => pmbus}/ucd9200.c          |    0
+ include/linux/platform_data/ntc_thermistor.h |   53 +++
+ 34 files changed, 3229 insertions(+), 284 deletions(-)
+ create mode 100644 Documentation/hwmon/lm25066
+ create mode 100644 Documentation/hwmon/lm95245
+ create mode 100644 Documentation/hwmon/max1668
+ create mode 100644 Documentation/hwmon/ntc_thermistor
+ create mode 100644 drivers/hwmon/lm95245.c
+ create mode 100644 drivers/hwmon/max1668.c
+ create mode 100644 drivers/hwmon/ntc_thermistor.c
+ create mode 100644 drivers/hwmon/pmbus/Kconfig
+ create mode 100644 drivers/hwmon/pmbus/Makefile
+ rename drivers/hwmon/{ => pmbus}/adm1275.c (67%)
+ create mode 100644 drivers/hwmon/pmbus/lm25066.c
+ rename drivers/hwmon/{ => pmbus}/max16064.c (66%)
+ rename drivers/hwmon/{ => pmbus}/max34440.c (76%)
+ rename drivers/hwmon/{ => pmbus}/max8688.c (72%)
+ rename drivers/hwmon/{ => pmbus}/pmbus.c (89%)
+ rename drivers/hwmon/{ => pmbus}/pmbus.h (79%)
+ rename drivers/hwmon/{ => pmbus}/pmbus_core.c (84%)
+ rename drivers/hwmon/{ => pmbus}/ucd9000.c (100%)
+ rename drivers/hwmon/{ => pmbus}/ucd9200.c (100%)
+ create mode 100644 include/linux/platform_data/ntc_thermistor.h
 
 _______________________________________________
 lm-sensors mailing list
