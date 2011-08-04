@@ -1,72 +1,57 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 04 Aug 2011 18:11:12 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (pmbus) Virtualize pmbus_write_byte
-Message-Id: <1312481473-28601-2-git-send-email-guenter.roeck@ericsson.com>
+Date: Thu, 04 Aug 2011 18:11:13 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (pmbus/lm25066) Ignore byte writes
+Message-Id: <1312481473-28601-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-With virtual pages and to be able to handle more chips, it is necessary to
-virtualise pmbus_write_byte().
+pmbus_clear_faults() attempts to clear faults on non-existing real pages.
+As a result, the command error bit in the status register is set, and faults
+are not really cleared.
+
+All byte writes to non-zero pages are requests to clear the status register
+on that page. Since non-zero pages are virtual and do not exist on the chip,
+there is nothing to do, and such requests have to be ignored. This fixes
+above problem.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- drivers/hwmon/pmbus/pmbus.h      |    1 +
- drivers/hwmon/pmbus/pmbus_core.c |   20 +++++++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletions(-)
+ drivers/hwmon/pmbus/lm25066.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
-index 0808d98..a6ae20f 100644
---- a/drivers/hwmon/pmbus/pmbus.h
-+++ b/drivers/hwmon/pmbus/pmbus.h
-@@ -325,6 +325,7 @@ struct pmbus_driver_info {
- 	int (*read_word_data)(struct i2c_client *client, int page, int reg);
- 	int (*write_word_data)(struct i2c_client *client, int page, int reg,
- 			       u16 word);
-+	int (*write_byte)(struct i2c_client *client, int page, u8 value);
- 	/*
- 	 * The identify function determines supported PMBus functionality.
- 	 * This function is only necessary if a chip driver supports multiple
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index 5c1b6cf..a561c3a 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -182,6 +182,24 @@ int pmbus_write_byte(struct i2c_client *client, int page, u8 value)
+diff --git a/drivers/hwmon/pmbus/lm25066.c b/drivers/hwmon/pmbus/lm25066.c
+index d4bc114..ac254fb 100644
+--- a/drivers/hwmon/pmbus/lm25066.c
++++ b/drivers/hwmon/pmbus/lm25066.c
+@@ -161,6 +161,17 @@ static int lm25066_write_word_data(struct i2c_client *client, int page, int reg,
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(pmbus_write_byte);
  
-+/*
-+ * _pmbus_write_byte() is similar to pmbus_write_byte(), but checks if
-+ * a device specific mapping funcion exists and calls it if necessary.
-+ */
-+static int _pmbus_write_byte(struct i2c_client *client, int page, u8 value)
++static int lm25066_write_byte(struct i2c_client *client, int page, u8 value)
 +{
-+	struct pmbus_data *data = i2c_get_clientdata(client);
-+	const struct pmbus_driver_info *info = data->info;
-+	int status;
++	if (page > 1)
++		return -EINVAL;
 +
-+	if (info->write_byte) {
-+		status = info->write_byte(client, page, value);
-+		if (status != -ENODATA)
-+			return status;
-+	}
-+	return pmbus_write_byte(client, page, value);
++	if (page = 0)
++		return pmbus_write_byte(client, 0, value);
++
++	return 0;
 +}
 +
- int pmbus_write_word_data(struct i2c_client *client, u8 page, u8 reg, u16 word)
+ static int lm25066_probe(struct i2c_client *client,
+ 			  const struct i2c_device_id *id)
  {
- 	int rv;
-@@ -281,7 +299,7 @@ static int _pmbus_read_byte_data(struct i2c_client *client, int page, int reg)
+@@ -204,6 +215,7 @@ static int lm25066_probe(struct i2c_client *client,
  
- static void pmbus_clear_fault_page(struct i2c_client *client, int page)
- {
--	pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
-+	_pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
- }
+ 	info->read_word_data = lm25066_read_word_data;
+ 	info->write_word_data = lm25066_write_word_data;
++	info->write_byte = lm25066_write_byte;
  
- void pmbus_clear_faults(struct i2c_client *client)
+ 	switch (id->driver_data) {
+ 	case lm25066:
 -- 
 1.7.3.1
 
