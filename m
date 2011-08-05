@@ -1,46 +1,54 @@
-From: Dmitry Artamonow <mad_soft@inbox.ru>
-Date: Fri, 12 Aug 2011 20:38:25 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: add caseopen detection to
-Message-Id: <20110812203824.GB32369@rainbow>
+From: Steve Glendinning <steve.glendinning@smsc.com>
+Date: Fri, 05 Aug 2011 13:44:28 +0000
+Subject: [lm-sensors] [PATCH] [RFC] lm85: fix PWM control on SMSC EMC2300 &
+Message-Id: <1312551868-3309-1-git-send-email-steve.glendinning@smsc.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1313009786-29885-1-git-send-email-mad_soft@inbox.ru>
- <1313084814.2214.100.camel@groeck-laptop>
-In-Reply-To: <1313084814.2214.100.camel@groeck-laptop>
+References: <1308325488-26386-1-git-send-email-steve.glendinning@smsc.com>
+In-Reply-To: <1308325488-26386-1-git-send-email-steve.glendinning@smsc.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Ian Dobson <i.dobson@planet-ian.com>, Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On 10:46 Thu 11 Aug     , Guenter Roeck wrote:
-> Hi Dmitry,
-> 
-> please consider the changes suggested below.
+This patch works around a quirk of the hardware's implementation to
+allow raw PWM fan drive values to be set.  Without it the device
+never leaves auto control mode so the PWM output request is ignored.
 
-[...]
+I'm not sure if this is the right place for the workaround, comments?
 
-> > +static struct sensor_device_attribute sda_caseopen[] = {
-> > +	SENSOR_ATTR(intrusion0_alarm, S_IWUSR | S_IRUGO, show_caseopen,
-> > +			clear_caseopen, 0),
-> > +	SENSOR_ATTR(intrusion1_alarm, S_IWUSR | S_IRUGO, show_caseopen,
-> > +			clear_caseopen, 1),
-> 
-> 	SENSOR_ATTR_2(intrusion0_alarm, S_IWUSR | S_IRUGO,
-> 			show_caseopen, clear_caseopen, 0x80, 0x10),
-> 	SENSOR_ATTR_2(intrusion1_alarm, S_IWUSR | S_IRUGO,
-> 			show_caseopen, clear_caseopen, 0x40, 0x40),
-> 
+Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
+---
+ drivers/hwmon/lm85.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-Oh, yeah! That's much neater with SENSOR_ATTR_2 - thanks for suggestion!
-I've seen it while looking to other hwmon drivers, but missed the difference
-from plain SENSOR_ATTR...
-
-I've incorporated your suggested changes into v3 of the patch - it will follow
-this mail.
-
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index da72dc1..f4e124b 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -1146,8 +1146,21 @@ static const struct attribute_group lm85_group_in567 = {
+ 
+ static void lm85_init_client(struct i2c_client *client)
+ {
++	struct lm85_data *data = i2c_get_clientdata(client);
+ 	int value;
+ 
++	/* For emc2300 & emc6d103s when auto temp min is the default value,
++	 * pwm can never be controlled manually, so change this */
++	if (data->type = emc6d103s) {
++		int nr;
++
++		for (nr = 0; nr < 3; nr++) {
++			data->zone[nr].limit = TEMP_TO_REG(-127000);
++			lm85_write_value(client, LM85_REG_AFAN_LIMIT(nr),
++				data->zone[nr].limit);
++		}
++	}
++
+ 	/* Start monitoring if needed */
+ 	value = lm85_read_value(client, LM85_REG_CONFIG);
+ 	if (!(value & 0x01)) {
 -- 
-Best regards,
-Dmitry "MAD" Artamonow
+1.7.4.1
 
 
 _______________________________________________
