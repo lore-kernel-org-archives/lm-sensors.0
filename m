@@ -1,51 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 27 Aug 2011 19:58:27 +0000
-Subject: Re: [lm-sensors] Odd warning in lm90.c (and other drivers)
-Message-Id: <20110827195827.GA22090@ericsson.com>
+From: Matthew Garrett <mjg@redhat.com>
+Date: Tue, 09 Aug 2011 16:14:42 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: Fix applesmc temperature handling
+Message-Id: <1312906483-3046-2-git-send-email-mjg@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1314377205.2796.90.camel@groeck-laptop>
-In-Reply-To: <1314377205.2796.90.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 27, 2011 at 11:02:25AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Fri, 26 Aug 2011 11:28:10 -0700, Guenter Roeck wrote:
-> > I also tried the same configuration with gcc 4.5.2. lm90 and smsc47b397
-> > warnings are still reported, others are gone.
-> 
-> Yes, I see them too using your configuration file with:
-> 
-> $ gcc -v
-> Using built-in specs.
-> COLLECT_GCC=gcc
-> COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/4.5/lto-wrapper
-> Target: x86_64-suse-linux
-> Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,java,ada --enable-checking=release --with-gxx-include-dir=/usr/include/c++/4.5 --enable-ssp --disable-libssp --disable-plugin --with-bugurl=http://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --disable-libgcj --disable-libmudflap --with-slibdir=/lib64 --with-system-zlib --enable-__cxa_atexit --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-version-specific-runtime-libs --program-suffix=-4.5 --enable-linux-futex --without-system-libunwind --enable-gold --with-plugin-ld=/usr/bin/gold --with-arch-32=i586 --with-tune=generic --build=x86_64-suse-linux
-> Thread model: posix
-> gcc version 4.5.0 20100604 [gcc-4_5-branch revision 160292] (SUSE Linux) 
-> 
-> I did not see the ones in adm1031 and pmbus though.
-> 
-> > Specifically the code in smsc47b397.c leads me to believe that this is
-> > just a compiler glitch, but I still would like to understand why it is
-> > only seen with some configurations ...
-> 
-> Apparently this is a combination of CONFIG_CC_OPTIMIZE_FOR_SIZE and at
-> least one other option. The warnings disappear if I turn off
-> CONFIG_CC_OPTIMIZE_FOR_SIZE on your configuration file, but they don't
-> show up if I turn it on on my own configuration.
-> 
+The temperature registers in the applesmc hardware are signed. It's likely
+that a negative value is invalid, so trigger on that and return an error
+rather than an erroneous value.
 
-Hi Jean,
+Signed-off-by: Matthew Garrett <mjg@redhat.com>
+---
+ drivers/hwmon/applesmc.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Good catch. Guess I'll disable that flag in my automatic builds.
-
-Thanks!
-Guenter
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 62e2493..4540bb1 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -781,6 +781,10 @@ static ssize_t applesmc_show_temperature(struct device *dev,
+ 		return ret;
+ 
+ 	if (entry->len = 2) {
++		if (buffer[0] >= 0x80) {
++			/* The two byte format is signed - ignore negative */
++			return -EINVAL;
++		}
+ 		temp = buffer[0] * 1000;
+ 		temp += (buffer[1] >> 6) * 250;
+ 	} else {
+-- 
+1.7.6
 
 
 _______________________________________________
