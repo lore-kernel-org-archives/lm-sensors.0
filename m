@@ -1,94 +1,160 @@
-From: Felipe Balbi <balbi@ti.com>
-Date: Mon, 22 Aug 2011 09:24:31 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 6/6 V2] hwmon: OMAP4: On die
-Message-Id: <20110822092431.GB26191@legolas.emea.dhcp.ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1881897692371286228=="
+From: Dmitry Artamonow <mad_soft@inbox.ru>
+Date: Wed, 10 Aug 2011 20:56:26 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: add caseopen detection to w83627ehf
+Message-Id: <1313009786-29885-1-git-send-email-mad_soft@inbox.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
- <1313664735-8917-7-git-send-email-j-keerthy@ti.com>
- <20110818113702.GU14514@legolas.emea.dhcp.ti.com>
- <CAJ6a13ZKnKbZHsnLxjHWCr3TbVq0QbpBU3g1qq3KCDJybzR+Fg@mail.gmail.com>
-In-Reply-To: <CAJ6a13ZKnKbZHsnLxjHWCr3TbVq0QbpBU3g1qq3KCDJybzR+Fg@mail.gmail.com>
-To: "J, KEERTHY" <j-keerthy@ti.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
-
-
---===============1881897692371286228==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="zx4FCpZtqtKETZ7O"
-Content-Disposition: inline
-
-
---zx4FCpZtqtKETZ7O
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Mon, Aug 22, 2011 at 09:59:46AM +0530, J, KEERTHY wrote:
-> >> +static const struct dev_pm_ops omap_temp_sensor_dev_pm_ops =3D {
-> >> + =A0 =A0 .suspend =3D omap_temp_sensor_suspend,
-> >> + =A0 =A0 .resume =3D omap_temp_sensor_resume,
-> >> + =A0 =A0 .runtime_suspend =3D omap_temp_sensor_runtime_suspend,
-> >> + =A0 =A0 .runtime_resume =3D omap_temp_sensor_runtime_resume,
-> >> +};
-> >
-> > this is not enough... you need to populate the other fields. You might
-> > want to use something like:
-> >
-> > static const struct dev_pm_ops omap_temp_sensor_dev_pm_ops =3D {
-> > =A0 =A0 =A0 =A0SET_SYSTEM_SLEEP_PM_OPS(omap_temp_sensor_suspend,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_temp_sensor_resume)
-> > =A0 =A0 =A0 =A0SET_RUNTIME_PM_OPS(omap_temp_sensor_runtime_suspend,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_temp_sensor_runtime_resume, omap_te=
-mp_sensor_idle)
-> > };
->=20
-> omap_temp_sensor_idle is undefined for temperature sensor as of now. So i=
- will
-> populate these fields once the idle function is defined.
-
-make a nop idle function. Those other fields _must_ be populated. Use
-something like:
-
-static int omap_temp_sensor_idle(struct device *dev)
-{
-	/* nothing to do here */
-	return 0;
-}
-
---=20
-balbi
-
---zx4FCpZtqtKETZ7O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOUiBPAAoJEAv8Txj19kN1xnMH/2yIErv7x2bIDUj2l/In1R9j
-77MpVegAJDBYJBjPzOAH/XdksFefXhRJqvNCpzb+TSmBUpQx6dlm4R8Y+6HVncd8
-2OeO40J+YOdnXyRI1bjiiqRifLqjUy+IPScMPRnszVASGoaqbPyk6RTDmJ7M5YXI
-EPageVApp5SSElHNggEs3Kn2PsNdYh1SgHbEfV+RzcghMq0PLQHkT54MyrqopZoY
-WF73ae+zNTQLJrEjG6agrOI8aofuyw1L9k2Bd4zgrghJ1YojDvdCw4/v4tA0K6bD
-jVvYTqukwGmT3S81Nwh9VfAcj2cp0fHvI/ciuWDvEA2LjU7b1xhrxczY4BBB1Y8=
-=VnNK
------END PGP SIGNATURE-----
-
---zx4FCpZtqtKETZ7O--
-
-
---===============1881897692371286228==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@lm-sensors.org
+Cc: Ian Dobson <i.dobson@planet-ian.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, linux-kernel@vger.kernel.org
+
+Export caseopen alarm status into userspace for Winbond W83627*
+and Nuvoton NCT677[56] chips and implement alarm clear knob.
+Second caseopen alarm on NCT6776 is also supported.
+
+Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
+---
+ drivers/hwmon/w83627ehf.c |   80 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 80 insertions(+), 0 deletions(-)
+
+Changes from v1:
+* support for Nuvoton NCT677[56] is added (including second caseopen on NCT6776)
+* now data->caseopen contains raw register value, extraction of needed bits
+  is done in show_caseopen()
+* store_caseopen_clear() is renamed to clear_caseopen()
+
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index f2b377c..6964b15 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -197,6 +197,9 @@ static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
+ #define W83627EHF_REG_ALARM2		0x45A
+ #define W83627EHF_REG_ALARM3		0x45B
+ 
++#define W83627EHF_REG_CASEOPEN_DET	0x42 /* SMI STATUS #2 */
++#define W83627EHF_REG_CASEOPEN_CLR	0x46 /* SMI MASK #3 */
++
+ /* SmartFan registers */
+ #define W83627EHF_REG_FAN_STEPUP_TIME 0x0f
+ #define W83627EHF_REG_FAN_STEPDOWN_TIME 0x0e
+@@ -468,6 +471,7 @@ struct w83627ehf_data {
+ 	s16 temp_max[9];
+ 	s16 temp_max_hyst[9];
+ 	u32 alarms;
++	u8 caseopen;
+ 
+ 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
+ 	u8 pwm_enable[4]; /* 1->manual
+@@ -873,6 +877,9 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 			       (w83627ehf_read_value(data,
+ 					W83627EHF_REG_ALARM3) << 16);
+ 
++		data->caseopen = w83627ehf_read_value(data,
++						W83627EHF_REG_CASEOPEN_DET);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -1654,6 +1661,66 @@ show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+ 
++
++/* Case open detection */
++
++static ssize_t
++show_caseopen(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = w83627ehf_update_device(dev);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	switch (nr) {
++	case 0:
++		return sprintf(buf, "%d\n", (data->caseopen >> 4) & 0x1);
++	case 1:
++		return sprintf(buf, "%d\n", (data->caseopen >> 6) & 0x1);
++	default:
++		return -ENXIO;
++	}
++}
++
++static ssize_t
++clear_caseopen(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct w83627ehf_data *data = dev_get_drvdata(dev);
++	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	int nr = sensor_attr->index;
++	unsigned long val;
++	unsigned int reg, mask = 0;
++
++	if (strict_strtoul(buf, 10, &val) || val != 0)
++		return -EINVAL;
++
++	switch (nr) {
++	case 0:
++		mask = 0x80;
++		break;
++	case 1:
++		mask = 0x40;
++		break;
++	default:
++		return -ENXIO;
++	}
++
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(data, W83627EHF_REG_CASEOPEN_CLR);
++	w83627ehf_write_value(data, W83627EHF_REG_CASEOPEN_CLR, reg | mask);
++	w83627ehf_write_value(data, W83627EHF_REG_CASEOPEN_CLR, reg & ~mask);
++	data->valid = 0;	/* Force cache refresh */
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static struct sensor_device_attribute sda_caseopen[] = {
++	SENSOR_ATTR(intrusion0_alarm, S_IWUSR | S_IRUGO, show_caseopen,
++			clear_caseopen, 0),
++	SENSOR_ATTR(intrusion1_alarm, S_IWUSR | S_IRUGO, show_caseopen,
++			clear_caseopen, 1),
++};
++
+ /*
+  * Driver and device management
+  */
+@@ -1710,6 +1777,9 @@ static void w83627ehf_device_remove_files(struct device *dev)
+ 		device_remove_file(dev, &sda_temp_type[i].dev_attr);
+ 	}
+ 
++	device_remove_file(dev, &sda_caseopen[0].dev_attr);
++	device_remove_file(dev, &sda_caseopen[1].dev_attr);
++
+ 	device_remove_file(dev, &dev_attr_name);
+ 	device_remove_file(dev, &dev_attr_cpu0_vid);
+ }
+@@ -2261,6 +2331,16 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 			goto exit_remove;
+ 	}
+ 
++	err = device_create_file(dev, &sda_caseopen[0].dev_attr);
++	if (err)
++		goto exit_remove;
++
++	if (sio_data->kind = nct6776) {
++		err = device_create_file(dev, &sda_caseopen[1].dev_attr);
++		if (err)
++			goto exit_remove;
++	}
++
+ 	err = device_create_file(dev, &dev_attr_name);
+ 	if (err)
+ 		goto exit_remove;
+-- 
+1.7.4.rc3
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1881897692371286228==--
