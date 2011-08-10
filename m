@@ -1,119 +1,102 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 09 Jul 2011 19:42:12 +0000
-Subject: [lm-sensors] [PATCH RFC] Add new sysfs attributes to libsensors and
-Message-Id: <20110709194212.GA7068@ericsson.com>
+From: Keerthy <j-keerthy@ti.com>
+Date: Wed, 10 Aug 2011 12:37:21 +0000
+Subject: [lm-sensors] [RFC PATCH 5/6] OMAP4460: Temperature sensor data
+Message-Id: <1312979122-5896-6-git-send-email-j-keerthy@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
+In-Reply-To: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, j-keerthy@ti.com
 
-Add proposed new sysfs attributes to libsensors and to the sensors command.
+The register set and the
+bit fields might vary across OMAP versions. Hence
+creating a structure comprising of all the registers
+and bit fields to make the driver uniform for all the
+versions with different register sets. The data file
+contains the structure populated with register offsets
+and bit fields corresponding to OMAP4460 on die sensor.
 
-Only voltage and current attributes are really new; the temperature attributes
-are already defined in the ABI but were not supported.
-
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 ---
+ arch/arm/mach-omap2/temp_sensor4460_data.c |   63 ++++++++++++++++++++++++++++
+ 1 files changed, 63 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/temp_sensor4460_data.c
 
-Index: lib/sensors.h
-=================================--- lib/sensors.h	(revision 5982)
-+++ lib/sensors.h	(working copy)
-@@ -157,6 +157,9 @@
- 	SENSORS_SUBFEATURE_IN_MAX,
- 	SENSORS_SUBFEATURE_IN_LCRIT,
- 	SENSORS_SUBFEATURE_IN_CRIT,
-+	SENSORS_SUBFEATURE_IN_AVERAGE,
-+	SENSORS_SUBFEATURE_IN_LOWEST,
-+	SENSORS_SUBFEATURE_IN_HIGHEST,
- 	SENSORS_SUBFEATURE_IN_ALARM = (SENSORS_FEATURE_IN << 8) | 0x80,
- 	SENSORS_SUBFEATURE_IN_MIN_ALARM,
- 	SENSORS_SUBFEATURE_IN_MAX_ALARM,
-@@ -181,6 +184,9 @@
- 	SENSORS_SUBFEATURE_TEMP_LCRIT,
- 	SENSORS_SUBFEATURE_TEMP_EMERGENCY,
- 	SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST,
-+	SENSORS_SUBFEATURE_TEMP_AVERAGE,
-+	SENSORS_SUBFEATURE_TEMP_LOWEST,
-+	SENSORS_SUBFEATURE_TEMP_HIGHEST,
- 	SENSORS_SUBFEATURE_TEMP_ALARM = (SENSORS_FEATURE_TEMP << 8) | 0x80,
- 	SENSORS_SUBFEATURE_TEMP_MAX_ALARM,
- 	SENSORS_SUBFEATURE_TEMP_MIN_ALARM,
-@@ -215,6 +221,9 @@
- 	SENSORS_SUBFEATURE_CURR_MAX,
- 	SENSORS_SUBFEATURE_CURR_LCRIT,
- 	SENSORS_SUBFEATURE_CURR_CRIT,
-+	SENSORS_SUBFEATURE_CURR_AVERAGE,
-+	SENSORS_SUBFEATURE_CURR_LOWEST,
-+	SENSORS_SUBFEATURE_CURR_HIGHEST,
- 	SENSORS_SUBFEATURE_CURR_ALARM = (SENSORS_FEATURE_CURR << 8) | 0x80,
- 	SENSORS_SUBFEATURE_CURR_MIN_ALARM,
- 	SENSORS_SUBFEATURE_CURR_MAX_ALARM,
-Index: lib/sysfs.c
-=================================--- lib/sysfs.c	(revision 5982)
-+++ lib/sysfs.c	(working copy)
-@@ -233,6 +233,9 @@
- 	{ "lcrit", SENSORS_SUBFEATURE_TEMP_LCRIT },
- 	{ "emergency", SENSORS_SUBFEATURE_TEMP_EMERGENCY },
- 	{ "emergency_hyst", SENSORS_SUBFEATURE_TEMP_EMERGENCY_HYST },
-+	{ "average", SENSORS_SUBFEATURE_TEMP_AVERAGE },
-+	{ "lowest", SENSORS_SUBFEATURE_TEMP_LOWEST },
-+	{ "highest", SENSORS_SUBFEATURE_TEMP_HIGHEST },
- 	{ "alarm", SENSORS_SUBFEATURE_TEMP_ALARM },
- 	{ "min_alarm", SENSORS_SUBFEATURE_TEMP_MIN_ALARM },
- 	{ "max_alarm", SENSORS_SUBFEATURE_TEMP_MAX_ALARM },
-@@ -252,6 +255,9 @@
- 	{ "max", SENSORS_SUBFEATURE_IN_MAX },
- 	{ "lcrit", SENSORS_SUBFEATURE_IN_LCRIT },
- 	{ "crit", SENSORS_SUBFEATURE_IN_CRIT },
-+	{ "average", SENSORS_SUBFEATURE_IN_AVERAGE },
-+	{ "lowest", SENSORS_SUBFEATURE_IN_LOWEST },
-+	{ "highest", SENSORS_SUBFEATURE_IN_HIGHEST },
- 	{ "alarm", SENSORS_SUBFEATURE_IN_ALARM },
- 	{ "min_alarm", SENSORS_SUBFEATURE_IN_MIN_ALARM },
- 	{ "max_alarm", SENSORS_SUBFEATURE_IN_MAX_ALARM },
-@@ -302,6 +308,9 @@
- 	{ "max", SENSORS_SUBFEATURE_CURR_MAX },
- 	{ "lcrit", SENSORS_SUBFEATURE_CURR_LCRIT },
- 	{ "crit", SENSORS_SUBFEATURE_CURR_CRIT },
-+	{ "average", SENSORS_SUBFEATURE_CURR_AVERAGE },
-+	{ "lowest", SENSORS_SUBFEATURE_CURR_LOWEST },
-+	{ "highest", SENSORS_SUBFEATURE_CURR_HIGHEST },
- 	{ "alarm", SENSORS_SUBFEATURE_CURR_ALARM },
- 	{ "min_alarm", SENSORS_SUBFEATURE_CURR_MIN_ALARM },
- 	{ "max_alarm", SENSORS_SUBFEATURE_CURR_MAX_ALARM },
-Index: prog/sensors/chips.c
-=================================--- prog/sensors/chips.c	(revision 5982)
-+++ prog/sensors/chips.c	(working copy)
-@@ -280,6 +280,9 @@
- 	{ SENSORS_SUBFEATURE_TEMP_CRIT, temp_crit_sensors, 0, "crit" },
- 	{ SENSORS_SUBFEATURE_TEMP_EMERGENCY, temp_emergency_sensors, 0,
- 	    "emerg" },
-+	{ SENSORS_SUBFEATURE_TEMP_AVERAGE, NULL, 0, "avg" },
-+	{ SENSORS_SUBFEATURE_TEMP_LOWEST, NULL, 0, "lowest" },
-+	{ SENSORS_SUBFEATURE_TEMP_HIGHEST, NULL, 0, "highest" },
- 	{ -1, NULL, 0, NULL }
- };
- 
-@@ -365,6 +368,9 @@
- 	{ SENSORS_SUBFEATURE_IN_MIN, NULL, 0, "min" },
- 	{ SENSORS_SUBFEATURE_IN_MAX, NULL, 0, "max" },
- 	{ SENSORS_SUBFEATURE_IN_CRIT, NULL, 0, "crit max" },
-+	{ SENSORS_SUBFEATURE_IN_AVERAGE, NULL, 0, "avg" },
-+	{ SENSORS_SUBFEATURE_IN_LOWEST, NULL, 0, "lowest" },
-+	{ SENSORS_SUBFEATURE_IN_HIGHEST, NULL, 0, "highest" },
- 	{ -1, NULL, 0, NULL }
- };
- 
-@@ -653,6 +659,9 @@
- 	{ SENSORS_SUBFEATURE_CURR_MIN, NULL, 0, "min" },
- 	{ SENSORS_SUBFEATURE_CURR_MAX, NULL, 0, "max" },
- 	{ SENSORS_SUBFEATURE_CURR_CRIT, NULL, 0, "crit max" },
-+	{ SENSORS_SUBFEATURE_CURR_AVERAGE, NULL, 0, "avg" },
-+	{ SENSORS_SUBFEATURE_CURR_LOWEST, NULL, 0, "lowest" },
-+	{ SENSORS_SUBFEATURE_CURR_HIGHEST, NULL, 0, "highest" },
- 	{ -1, NULL, 0, NULL }
- };
- 
+diff --git a/arch/arm/mach-omap2/temp_sensor4460_data.c b/arch/arm/mach-omap2/temp_sensor4460_data.c
+new file mode 100644
+index 0000000..294963d
+--- /dev/null
++++ b/arch/arm/mach-omap2/temp_sensor4460_data.c
+@@ -0,0 +1,63 @@
++/*
++ * OMAP4460 on die Temperature sensor data file
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ * Author: J Keerthy <j-keerthy@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/slab.h>
++#include "control.h"
++#include <plat/temperature_sensor.h>
++
++/*
++ * OMAP4460 has one instance of thermal sensor for MPU
++ * need to describe the individual bit fields
++ */
++struct omap_temp_sensor_registers omap_mpu_temp_sensor_registers = {
++	.temp_sensor_ctrl		= OMAP4460_TEMP_SENSOR_CTRL_OFFSET,
++	.bgap_tempsoff_mask		= OMAP4460_BGAP_TEMPSOFF_MASK,
++	.bgap_soc_mask			= OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK,
++	.bgap_eocz_mask			= OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK,
++	.bgap_dtemp_mask		= OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK,
++
++	.bgap_mask_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
++	.mask_hot_mask			= OMAP4460_MASK_HOT_MASK,
++	.mask_cold_mask			= OMAP4460_MASK_COLD_MASK,
++
++	.bgap_mode_ctrl			= OMAP4460_BGAP_CTRL_OFFSET,
++	.mode_ctrl_mask			= OMAP4460_SINGLE_MODE_MASK,
++
++	.bgap_counter			= OMAP4460_BGAP_COUNTER_OFFSET,
++	.counter_mask			= OMAP4460_COUNTER_MASK,
++
++	.bgap_threshold			= OMAP4460_BGAP_THRESHOLD_OFFSET,
++	.threshold_thot_mask		= OMAP4460_T_HOT_MASK,
++	.threshold_tcold_mask		= OMAP4460_T_COLD_MASK,
++
++	.thsut_threshold		= OMAP4460_BGAP_TSHUT_OFFSET,
++	.tshut_hot_mask			= OMAP4460_TSHUT_HOT_MASK,
++	.tshut_cold_mask		= OMAP4460_TSHUT_COLD_MASK,
++
++	.bgap_status			= OMAP4460_BGAP_STATUS_OFFSET,
++	.status_clean_stop_mask		= OMAP4460_CLEAN_STOP_MASK,
++	.status_bgap_alert_mask		= OMAP4460_BGAP_ALERT_MASK,
++	.status_hot_mask		= OMAP4460_HOT_FLAG_MASK,
++	.status_cold_mask		= OMAP4460_COLD_FLAG_MASK,
++
++	.bgap_efuse			= OMAP4460_FUSE_OPP_BGAP,
++};
+-- 
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
