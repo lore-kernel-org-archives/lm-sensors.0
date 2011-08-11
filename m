@@ -1,7 +1,7 @@
 From: Matthew Garrett <mjg59@srcf.ucam.org>
-Date: Thu, 11 Aug 2011 19:33:26 +0000
+Date: Thu, 11 Aug 2011 20:19:27 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: Convert applesmc driver to pnp
-Message-Id: <20110811193326.GA30658@srcf.ucam.org>
+Message-Id: <20110811201927.GA31539@srcf.ucam.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1312906483-3046-1-git-send-email-mjg@redhat.com>
 In-Reply-To: <1312906483-3046-1-git-send-email-mjg@redhat.com>
@@ -11,18 +11,22 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 On Thu, Aug 11, 2011 at 09:29:49PM +0200, Henrik Rydberg wrote:
-> Hi Matthew,
-> 
-> > The applesmc driver is current a platform device with DMI matching. All
-> > machines with the appropriate hardware actually expose it via an acpipnp
-> > device, so it makes sense to use that rather than hardcoding model names
-> > and addresses.
-> 
-> Sounds good, but has the approach been tested on a representative set
-> of machines?
 
-I've tested it on a Macbook Pro 1,1 and a Macbook Air 3,1 so there's a 
-fairly wide range.
+> The patch seems to do too many things - switching from static
+> variables to a dev struct, adding dev parameters to all functions,
+> changing to dynamic initialization, changing from platform to pnp
+> device. Two patches with no functional changes to start with, then
+> another two to turn on pnp seems reasonable.
+
+I've looked into this and I don't think it's especially practical to do 
+it this way. As an example, applesmc_backlight_set calls 
+applesmc_write_key, but it's a workqueue. The work struct is just a 
+static structure, so it's not possible to obtain the device from there. 
+It could just call the static platform device, but that just results in 
+an intermediate stage that's worse than the previous one, which kind of 
+defeats the object. If you'd like it broken up then the reasonable way 
+would seem to be to do everything but the pnp transition in one patch 
+and change to pnp in another.
 
 -- 
 Matthew Garrett | mjg59@srcf.ucam.org
