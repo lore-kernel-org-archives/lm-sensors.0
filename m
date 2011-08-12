@@ -1,8 +1,10 @@
 From: Mail Delivery System <Mailer-Daemon@versatilesolution.in>
-Date: Wed, 10 Aug 2011 09:56:57 +0000
-Subject: [lm-sensors] Warning: message 1Qqfqr-00056a-Vo delayed 24 hours
-Message-Id: <E1Qr5Um-0003lk-W2@mail.versatilesolution.in>
+Date: Fri, 12 Aug 2011 04:51:23 +0000
+Subject: [lm-sensors] Warning: message 1Qqfqr-00056a-Vo delayed 48 hours
+Message-Id: <E1QrjWl-0006t8-Eu@mail.versatilesolution.in>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <E1Qr5Um-0003lk-W2@mail.versatilesolution.in>
+In-Reply-To: <E1Qr5Um-0003lk-W2@mail.versatilesolution.in>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -10,7 +12,7 @@ To: lm-sensors@vger.kernel.org
 
 This message was created automatically by mail delivery software.
 A message that you sent has not yet been delivered to one or more of its
-recipients after more than 24 hours on the queue on mail.versatilesolution.in.
+recipients after more than 48 hours on the queue on mail.versatilesolution.in.
 
 The message identifier is:     1Qqfqr-00056a-Vo
 The subject of the message is: Returned mail: Data format error
