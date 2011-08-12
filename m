@@ -1,69 +1,148 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 05 Aug 2011 16:34:18 +0000
-Subject: Re: [lm-sensors] [PATCH] [RFC] lm85: fix PWM control on SMSC
-Message-Id: <1312562058.9971.109.camel@groeck-laptop>
+From: Dmitry Artamonow <mad_soft@inbox.ru>
+Date: Fri, 12 Aug 2011 20:41:11 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: add caseopen detection to w83627ehf
+Message-Id: <1313181671-5164-1-git-send-email-mad_soft@inbox.ru>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1308325488-26386-1-git-send-email-steve.glendinning@smsc.com>
-In-Reply-To: <1308325488-26386-1-git-send-email-steve.glendinning@smsc.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Ian Dobson <i.dobson@planet-ian.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, linux-kernel@vger.kernel.org
 
-On Fri, 2011-08-05 at 09:44 -0400, Steve Glendinning wrote:
-> This patch works around a quirk of the hardware's implementation to
-> allow raw PWM fan drive values to be set.  Without it the device
-> never leaves auto control mode so the PWM output request is ignored.
-> 
-> I'm not sure if this is the right place for the workaround, comments?
-> 
-Problem is that your changes are unconditional, meaning any BIOS side
-automatic fan control settings would be overwritten and might cause
-unpredictable and undesired results.
+Export caseopen alarm status into userspace for Winbond W83627*
+and Nuvoton NCT677[56] chips and implement alarm clear knob.
+Second caseopen alarm on NCT6776 is also supported.
 
-It would probably make more sense to have this kind of code in
-set_pwm_enable(), and only execute it if manual pwm control is selected.
-Similar, if automatic pwm control is selected, it might be necessary to
-reset the limit to the default to actually enable auto-pwm.
+Thanks to Guenter Roeck for information about Nuvoton chips
+and suggestion to use SENSOR_ATTR_2.
 
-Either case, I think we will have to wait for feedback from Jean, since
-he knows the driver much better than me.
+Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
+---
+ drivers/hwmon/w83627ehf.c |   62 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 62 insertions(+), 0 deletions(-)
 
-Thanks,
-Guenter
+Changes v2 -> v3:
+* SENSOR_ATTR_2 is used instead of SENSOR_ATTR. As result code became
+  more slim and neat.
+* Type of reg variable in caseopen_clear() function changed from
+  unsigned int to u16 to match return value of w83627ehf_read_value()
 
-> Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
-> ---
->  drivers/hwmon/lm85.c |   13 +++++++++++++
->  1 files changed, 13 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-> index da72dc1..f4e124b 100644
-> --- a/drivers/hwmon/lm85.c
-> +++ b/drivers/hwmon/lm85.c
-> @@ -1146,8 +1146,21 @@ static const struct attribute_group lm85_group_in567 = {
->  
->  static void lm85_init_client(struct i2c_client *client)
->  {
-> +	struct lm85_data *data = i2c_get_clientdata(client);
->  	int value;
->  
-> +	/* For emc2300 & emc6d103s when auto temp min is the default value,
-> +	 * pwm can never be controlled manually, so change this */
-> +	if (data->type = emc6d103s) {
-> +		int nr;
-> +
-> +		for (nr = 0; nr < 3; nr++) {
-> +			data->zone[nr].limit = TEMP_TO_REG(-127000);
-> +			lm85_write_value(client, LM85_REG_AFAN_LIMIT(nr),
-> +				data->zone[nr].limit);
-> +		}
-> +	}
-> +
->  	/* Start monitoring if needed */
->  	value = lm85_read_value(client, LM85_REG_CONFIG);
->  	if (!(value & 0x01)) {
+Changes v1 -> v2:
+* support for Nuvoton NCT677[56] is added (including second caseopen on NCT6776)
+* now data->caseopen contains raw register value, extraction of needed bits
+  is done in show_caseopen()
+  * store_caseopen_clear() is renamed to clear_caseopen()
 
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index f2b377c..eca61b3 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -197,6 +197,9 @@ static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
+ #define W83627EHF_REG_ALARM2		0x45A
+ #define W83627EHF_REG_ALARM3		0x45B
+ 
++#define W83627EHF_REG_CASEOPEN_DET	0x42 /* SMI STATUS #2 */
++#define W83627EHF_REG_CASEOPEN_CLR	0x46 /* SMI MASK #3 */
++
+ /* SmartFan registers */
+ #define W83627EHF_REG_FAN_STEPUP_TIME 0x0f
+ #define W83627EHF_REG_FAN_STEPDOWN_TIME 0x0e
+@@ -468,6 +471,7 @@ struct w83627ehf_data {
+ 	s16 temp_max[9];
+ 	s16 temp_max_hyst[9];
+ 	u32 alarms;
++	u8 caseopen;
+ 
+ 	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
+ 	u8 pwm_enable[4]; /* 1->manual
+@@ -873,6 +877,9 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
+ 			       (w83627ehf_read_value(data,
+ 					W83627EHF_REG_ALARM3) << 16);
+ 
++		data->caseopen = w83627ehf_read_value(data,
++						W83627EHF_REG_CASEOPEN_DET);
++
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+@@ -1654,6 +1661,48 @@ show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+ 
++
++/* Case open detection */
++
++static ssize_t
++show_caseopen(struct device *dev, struct device_attribute *attr, char *buf)
++{
++	struct w83627ehf_data *data = w83627ehf_update_device(dev);
++
++	return sprintf(buf, "%d\n",
++		!!(data->caseopen & to_sensor_dev_attr_2(attr)->index));
++}
++
++static ssize_t
++clear_caseopen(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
++{
++	struct w83627ehf_data *data = dev_get_drvdata(dev);
++	unsigned long val;
++	u16 reg, mask;
++
++	if (strict_strtoul(buf, 10, &val) || val != 0)
++		return -EINVAL;
++
++	mask = to_sensor_dev_attr_2(attr)->nr;
++
++	mutex_lock(&data->update_lock);
++	reg = w83627ehf_read_value(data, W83627EHF_REG_CASEOPEN_CLR);
++	w83627ehf_write_value(data, W83627EHF_REG_CASEOPEN_CLR, reg | mask);
++	w83627ehf_write_value(data, W83627EHF_REG_CASEOPEN_CLR, reg & ~mask);
++	data->valid = 0;	/* Force cache refresh */
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static struct sensor_device_attribute_2 sda_caseopen[] = {
++	SENSOR_ATTR_2(intrusion0_alarm, S_IWUSR | S_IRUGO, show_caseopen,
++			clear_caseopen, 0x80, 0x10),
++	SENSOR_ATTR_2(intrusion1_alarm, S_IWUSR | S_IRUGO, show_caseopen,
++			clear_caseopen, 0x40, 0x40),
++};
++
+ /*
+  * Driver and device management
+  */
+@@ -1710,6 +1759,9 @@ static void w83627ehf_device_remove_files(struct device *dev)
+ 		device_remove_file(dev, &sda_temp_type[i].dev_attr);
+ 	}
+ 
++	device_remove_file(dev, &sda_caseopen[0].dev_attr);
++	device_remove_file(dev, &sda_caseopen[1].dev_attr);
++
+ 	device_remove_file(dev, &dev_attr_name);
+ 	device_remove_file(dev, &dev_attr_cpu0_vid);
+ }
+@@ -2261,6 +2313,16 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 			goto exit_remove;
+ 	}
+ 
++	err = device_create_file(dev, &sda_caseopen[0].dev_attr);
++	if (err)
++		goto exit_remove;
++
++	if (sio_data->kind = nct6776) {
++		err = device_create_file(dev, &sda_caseopen[1].dev_attr);
++		if (err)
++			goto exit_remove;
++	}
++
+ 	err = device_create_file(dev, &dev_attr_name);
+ 	if (err)
+ 		goto exit_remove;
+-- 
+1.7.4.rc3
 
 
 _______________________________________________
