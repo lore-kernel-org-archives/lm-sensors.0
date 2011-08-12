@@ -1,64 +1,51 @@
-From: Dean Nelson <dnelson@redhat.com>
-Date: Tue, 16 Aug 2011 14:36:50 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (KConfig) avoid building drivers
-Message-Id: <4E4A8082.3000202@redhat.com>
+From: =?ISO-8859-1?Q?Jo=E3o_M=2E_S=2E_Silva?= <joao.m.santos.silva@gmail.com>
+Date: Fri, 12 Aug 2011 11:06:07 +0000
+Subject: [lm-sensors] lm_sensors: sensors output
+Message-Id: <CAAv-bCz-NKoaLr3=L8_AkEg2fQyuadHrh=kQax89_bu3H-mUxg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110725195206.4097.45688.email-sent-by-dnelson@localhost6.localdomain6>
-In-Reply-To: <20110725195206.4097.45688.email-sent-by-dnelson@localhost6.localdomain6>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
+Hi,
 
-On 08/16/2011 09:27 AM, Jean Delvare wrote:
-> Hi Dean,
->
-> On Tue, 26 Jul 2011 09:35:35 -0500, Dean Nelson wrote:
->> On 07/26/2011 04:25 AM, Jean Delvare wrote:
->>>> @@ -933,7 +938,7 @@ config SENSORS_S3C_RAW
->>>>
->>>>    config SENSORS_SIS5595
->>>>    	tristate "Silicon Integrated Systems Corp. SiS5595"
->>>> -	depends on PCI
->>>> +	depends on PCI&&   !PPC
->>>>    	help
->>>>    	  If you say yes here you get support for the integrated sensors in
->>>>    	  SiS5595 South Bridges.
->>>
->>> This one is a PCI driver, it doesn't do random I/O, so it should be
->>> left as is. You did not experience a crash on PowerPC by loading this
->>> driver, did you?
->>
->> Okay. Thanks. And no, I didn't experience an Oops.
->>
->> When sm_sis5595_init() gets called at module load time, it calls
->> pci_register_driver() to register sis5595_pci_probe(), which never
->> gets called.
->>
->> Had sis5595_pci_probe() been called, it could have called
->> platform_driver_register() to register sis5595_probe(), which is
->> where we could potentially read/write the ISA address.
->
-> This is really a PCI I/O address and not an ISA address, by
-> construction. Any system with this PCI device would presumably properly
-> support said I/O operations.
+When I type "sensors", I get:
 
-Thanks for the clarification.
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:        +51.0=B0C  (crit =3D +105.0=B0C)
 
+and nothing else. I can't seem to get the chipset info.
 
->> I'd added the "&&  !PPC" to this driver because it was in the list
->> of drivers you mentioned that I hadn't, when I first introduced this
->> issue. Sorry for misunderstanding. It's been removed from v2 of this
->> patch.
->
-> Oops, this is my fault then, sorry for the confusion. For my excuse,
-> this was before my pretty needed vacation ;)
+"sensors-detect" detected:
 
-My lack of understanding certainly played its part in all of this. :)
-(Aren't vacations wonderful.)
+(...)
+Now follows a summary of the probes I have just done.
+Just press ENTER to continue:
 
+Driver `it87':
+  * ISA bus, address 0x290
+    Chip `ITE IT8705F Super IO Sensors' (confidence: 9)
+
+Do you want to generate /etc/conf.d/lm_sensors? (YES/no):
+You should now start the lm_sensors service to load the required
+kernel modules.
+
+Unloading i2c-dev... OK
+Unloading cpuid... OK
+(...)
+
+Why doesn't "sensors" print it87-related info?
+
+I don't know if it is related, but sometimes the temperature gets very
+high (I notice it with my fingers) and I have to reboot; then the fan
+runs at full speed for about 2 min to cool the CPU.
+
+Any help?
+
+--=20
+Jo=E3o M. S. Silva
 
 _______________________________________________
 lm-sensors mailing list
