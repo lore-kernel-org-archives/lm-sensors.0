@@ -1,186 +1,46 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 11 Aug 2011 17:46:54 +0000
+From: Dmitry Artamonow <mad_soft@inbox.ru>
+Date: Fri, 12 Aug 2011 20:38:25 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon: add caseopen detection to
-Message-Id: <1313084814.2214.100.camel@groeck-laptop>
+Message-Id: <20110812203824.GB32369@rainbow>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1313009786-29885-1-git-send-email-mad_soft@inbox.ru>
-In-Reply-To: <1313009786-29885-1-git-send-email-mad_soft@inbox.ru>
+ <1313084814.2214.100.camel@groeck-laptop>
+In-Reply-To: <1313084814.2214.100.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dmitry Artamonow <mad_soft@inbox.ru>
+To: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Ian Dobson <i.dobson@planet-ian.com>, Jean Delvare <khali@linux-fr.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, 2011-08-10 at 16:56 -0400, Dmitry Artamonow wrote:
-> Export caseopen alarm status into userspace for Winbond W83627*
-> and Nuvoton NCT677[56] chips and implement alarm clear knob.
-> Second caseopen alarm on NCT6776 is also supported.
+On 10:46 Thu 11 Aug     , Guenter Roeck wrote:
+> Hi Dmitry,
 > 
-> Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
+> please consider the changes suggested below.
 
-Hi Dmitry,
+[...]
 
-please consider the changes suggested below.
-
-Thanks,
-Guenter
-
-> ---
->  drivers/hwmon/w83627ehf.c |   80 +++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 80 insertions(+), 0 deletions(-)
+> > +static struct sensor_device_attribute sda_caseopen[] = {
+> > +	SENSOR_ATTR(intrusion0_alarm, S_IWUSR | S_IRUGO, show_caseopen,
+> > +			clear_caseopen, 0),
+> > +	SENSOR_ATTR(intrusion1_alarm, S_IWUSR | S_IRUGO, show_caseopen,
+> > +			clear_caseopen, 1),
 > 
-> Changes from v1:
-> * support for Nuvoton NCT677[56] is added (including second caseopen on NCT6776)
-> * now data->caseopen contains raw register value, extraction of needed bits
->   is done in show_caseopen()
-> * store_caseopen_clear() is renamed to clear_caseopen()
+> 	SENSOR_ATTR_2(intrusion0_alarm, S_IWUSR | S_IRUGO,
+> 			show_caseopen, clear_caseopen, 0x80, 0x10),
+> 	SENSOR_ATTR_2(intrusion1_alarm, S_IWUSR | S_IRUGO,
+> 			show_caseopen, clear_caseopen, 0x40, 0x40),
 > 
-> diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-> index f2b377c..6964b15 100644
-> --- a/drivers/hwmon/w83627ehf.c
-> +++ b/drivers/hwmon/w83627ehf.c
-> @@ -197,6 +197,9 @@ static const u16 W83627EHF_REG_TEMP_CONFIG[] = { 0, 0x152, 0x252, 0 };
->  #define W83627EHF_REG_ALARM2		0x45A
->  #define W83627EHF_REG_ALARM3		0x45B
->  
-> +#define W83627EHF_REG_CASEOPEN_DET	0x42 /* SMI STATUS #2 */
-> +#define W83627EHF_REG_CASEOPEN_CLR	0x46 /* SMI MASK #3 */
-> +
->  /* SmartFan registers */
->  #define W83627EHF_REG_FAN_STEPUP_TIME 0x0f
->  #define W83627EHF_REG_FAN_STEPDOWN_TIME 0x0e
-> @@ -468,6 +471,7 @@ struct w83627ehf_data {
->  	s16 temp_max[9];
->  	s16 temp_max_hyst[9];
->  	u32 alarms;
-> +	u8 caseopen;
->  
->  	u8 pwm_mode[4]; /* 0->DC variable voltage, 1->PWM variable duty cycle */
->  	u8 pwm_enable[4]; /* 1->manual
-> @@ -873,6 +877,9 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
->  			       (w83627ehf_read_value(data,
->  					W83627EHF_REG_ALARM3) << 16);
->  
-> +		data->caseopen = w83627ehf_read_value(data,
-> +						W83627EHF_REG_CASEOPEN_DET);
-> +
->  		data->last_updated = jiffies;
->  		data->valid = 1;
->  	}
-> @@ -1654,6 +1661,66 @@ show_vid(struct device *dev, struct device_attribute *attr, char *buf)
->  }
->  static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
->  
-> +
-> +/* Case open detection */
-> +
-> +static ssize_t
-> +show_caseopen(struct device *dev, struct device_attribute *attr, char *buf)
-> +{
-> +	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	int nr = sensor_attr->index;
-> +	switch (nr) {
-> +	case 0:
-> +		return sprintf(buf, "%d\n", (data->caseopen >> 4) & 0x1);
-> +	case 1:
-> +		return sprintf(buf, "%d\n", (data->caseopen >> 6) & 0x1);
-> +	default:
-> +		return -ENXIO;
-> +	}
 
-	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-	
-	return sprintf(buf, "%d", 
-		!!(data->caseopen & to_sensor_dev_attr_2(attr)->index));
+Oh, yeah! That's much neater with SENSOR_ATTR_2 - thanks for suggestion!
+I've seen it while looking to other hwmon drivers, but missed the difference
+from plain SENSOR_ATTR...
 
-> +}
-> +
-> +static ssize_t
-> +clear_caseopen(struct device *dev, struct device_attribute *attr,
-> +			const char *buf, size_t count)
-> +{
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
-> +	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> +	int nr = sensor_attr->index;
-> +	unsigned long val;
-> +	unsigned int reg, mask = 0;
+I've incorporated your suggested changes into v3 of the patch - it will follow
+this mail.
 
-Initializing mask is unnecessary, and sensor_attr / nr variables are not
-really necessary - see below.
-
-> +
-> +	if (strict_strtoul(buf, 10, &val) || val != 0)
-> +		return -EINVAL;
-> +
-> +	switch (nr) {
-> +	case 0:
-> +		mask = 0x80;
-> +		break;
-> +	case 1:
-> +		mask = 0x40;
-> +		break;
-> +	default:
-> +		return -ENXIO;
-> +	}
-> +
-	
-	mask = to_sensor_dev_attr_2(attr)->nr;
-
-> +	mutex_lock(&data->update_lock);
-> +	reg = w83627ehf_read_value(data, W83627EHF_REG_CASEOPEN_CLR);
-> +	w83627ehf_write_value(data, W83627EHF_REG_CASEOPEN_CLR, reg | mask);
-> +	w83627ehf_write_value(data, W83627EHF_REG_CASEOPEN_CLR, reg & ~mask);
-> +	data->valid = 0;	/* Force cache refresh */
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return count;
-> +}
-> +
-> +static struct sensor_device_attribute sda_caseopen[] = {
-> +	SENSOR_ATTR(intrusion0_alarm, S_IWUSR | S_IRUGO, show_caseopen,
-> +			clear_caseopen, 0),
-> +	SENSOR_ATTR(intrusion1_alarm, S_IWUSR | S_IRUGO, show_caseopen,
-> +			clear_caseopen, 1),
-
-	SENSOR_ATTR_2(intrusion0_alarm, S_IWUSR | S_IRUGO,
-			show_caseopen, clear_caseopen, 0x80, 0x10),
-	SENSOR_ATTR_2(intrusion1_alarm, S_IWUSR | S_IRUGO,
-			show_caseopen, clear_caseopen, 0x40, 0x40),
-
-> +};
-> +
->  /*
->   * Driver and device management
->   */
-> @@ -1710,6 +1777,9 @@ static void w83627ehf_device_remove_files(struct device *dev)
->  		device_remove_file(dev, &sda_temp_type[i].dev_attr);
->  	}
->  
-> +	device_remove_file(dev, &sda_caseopen[0].dev_attr);
-> +	device_remove_file(dev, &sda_caseopen[1].dev_attr);
-> +
->  	device_remove_file(dev, &dev_attr_name);
->  	device_remove_file(dev, &dev_attr_cpu0_vid);
->  }
-> @@ -2261,6 +2331,16 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
->  			goto exit_remove;
->  	}
->  
-> +	err = device_create_file(dev, &sda_caseopen[0].dev_attr);
-> +	if (err)
-> +		goto exit_remove;
-> +
-> +	if (sio_data->kind = nct6776) {
-> +		err = device_create_file(dev, &sda_caseopen[1].dev_attr);
-> +		if (err)
-> +			goto exit_remove;
-> +	}
-> +
->  	err = device_create_file(dev, &dev_attr_name);
->  	if (err)
->  		goto exit_remove;
-
+-- 
+Best regards,
+Dmitry "MAD" Artamonow
 
 
 _______________________________________________
