@@ -1,60 +1,44 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 04 Aug 2011 18:11:13 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (pmbus/lm25066) Ignore byte writes
-Message-Id: <1312481473-28601-3-git-send-email-guenter.roeck@ericsson.com>
+Date: Sat, 13 Aug 2011 18:20:23 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.1-rc2
+Message-Id: <1313259623-7816-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-pmbus_clear_faults() attempts to clear faults on non-existing real pages.
-As a result, the command error bit in the status register is set, and faults
-are not really cleared.
+Hi Linus,
 
-All byte writes to non-zero pages are requests to clear the status register
-on that page. Since non-zero pages are virtual and do not exist on the chip,
-there is nothing to do, and such requests have to be ignored. This fixes
-above problem.
+Please pull hwmon subsystem fixes for Linux 3.1-rc2 from:
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/pmbus/lm25066.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
 
-diff --git a/drivers/hwmon/pmbus/lm25066.c b/drivers/hwmon/pmbus/lm25066.c
-index d4bc114..ac254fb 100644
---- a/drivers/hwmon/pmbus/lm25066.c
-+++ b/drivers/hwmon/pmbus/lm25066.c
-@@ -161,6 +161,17 @@ static int lm25066_write_word_data(struct i2c_client *client, int page, int reg,
- 	return ret;
- }
- 
-+static int lm25066_write_byte(struct i2c_client *client, int page, u8 value)
-+{
-+	if (page > 1)
-+		return -EINVAL;
-+
-+	if (page = 0)
-+		return pmbus_write_byte(client, 0, value);
-+
-+	return 0;
-+}
-+
- static int lm25066_probe(struct i2c_client *client,
- 			  const struct i2c_device_id *id)
- {
-@@ -204,6 +215,7 @@ static int lm25066_probe(struct i2c_client *client,
- 
- 	info->read_word_data = lm25066_read_word_data;
- 	info->write_word_data = lm25066_write_word_data;
-+	info->write_byte = lm25066_write_byte;
- 
- 	switch (id->driver_data) {
- 	case lm25066:
--- 
-1.7.3.1
+Thanks,
+Guenter Roeck
 
+------
+
+The following changes since commit 322a8b034003c0d46d39af85bf24fee27b902f48:
+
+  Linux 3.1-rc1 (2011-08-07 18:23:30 -0700)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/staging.git hwmon-for-linus
+
+Guenter Roeck (2):
+      hwmon: (pmbus) Virtualize pmbus_write_byte
+      hwmon: (pmbus/lm25066) Ignore byte writes to non-zero pages
+
+Julia Lawall (1):
+      hwmon: (ibmaem) add missing kfree
+
+ drivers/hwmon/ibmaem.c           |   15 ++++++++++-----
+ drivers/hwmon/pmbus/lm25066.c    |   12 ++++++++++++
+ drivers/hwmon/pmbus/pmbus.h      |    1 +
+ drivers/hwmon/pmbus/pmbus_core.c |   20 +++++++++++++++++++-
+ 4 files changed, 42 insertions(+), 6 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
