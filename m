@@ -1,103 +1,77 @@
-From: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Date: Wed, 24 Aug 2011 19:51:18 +0000
-Subject: Re: [lm-sensors] f75375s detected but no temp output
-Message-Id: <CAHYPw2E0nPrmnGU5WzjbxUMo3hC5DJwAC59Sf0fMqneuBpzbAg@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 18 Aug 2011 17:49:31 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (i5k_amb) Replace BUG with WARN
+Message-Id: <1313689771-31221-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
-In-Reply-To: <AANLkTimosNm7_k9scygyWZuWZPunJ=wteQ+UgFB2-Gn8@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-2011/3/2 Jean Delvare <khali@linux-fr.org>:
-> On Tue, 1 Mar 2011 19:46:29 +0100, Pali Rohár wrote:
->> 2011/3/1 Jean Delvare <khali@linux-fr.org>:
->> > On Tue, 1 Mar 2011 19:19:02 +0100, Pali Rohár wrote:
->> >> I commented code ..if ( port = 2 ).. there is only
->> >>
->> >> pI2cAdapter->class = I2C_CLASS_HWMON
->> >>
->> >> so it is called for every port. But sensors still not working :( Any
->> >> other hints?
->> >
->> > Please provide the output of the following command:
->> >
->> > $ grep . /sys/class/hwmon/hwmon*/{,device/}name
->>
->> grep: /sys/class/hwmon/hwmon*/name: No such file or directory
->> /sys/class/hwmon/hwmon0/device/name:k8temp
->> /sys/class/hwmon/hwmon1/device/name:it8712
->>
->> >
->> > Please also try the following (as root) and see it it helps (assuming
->> > i2c-4 always corresponds to the I2C bus where sensors-detect finds the
->> > F75375S/SP chip):
->> >
->> > # echo f75375 0x2e > /sys/bus/i2c/devices/i2c-4/new_device
->>
->> Wow. After running this command sensors start reporting values :)
->>
->> $ sensors
->> ...
->> f75375-i2c-4-2e
->> Adapter: NVIDIA i2c adapter
->> in0:         +1.67 V  (min =  +0.00 V, max =  +2.04 V)
->> in1:         +1.01 V  (min =  +0.00 V, max =  +2.04 V)
->> in2:         +1.00 V  (min =  +0.00 V, max =  +2.04 V)
->> in3:         +1.03 V  (min =  +0.00 V, max =  +2.04 V)
->> fan1:       4702 RPM  (min =    0 RPM)
->> fan2:          0 RPM  (min =    0 RPM)
->> temp1:       +51.0°C  (high = +60.0°C, hyst = +55.0°C)
->> temp2:       +41.0°C  (high = +60.0°C, hyst = +55.0°C)
->> ...
->>
->> Thanks a lot! This solved my problem.
->>
->> One question. Is problem in proprietary nvidia driver or in f75375s
->> driver (or else)?
->
-> Assuming that you did not mess up somewhere on the way and your attempt
-> to patch the nvidia driver went the way you described, I would suspect
-> that the nvidia driver now has an alternative way to instantiate I2C
-> adapters (maybe hardware-driven vs. software bit-banged, I've see it a
-> lot in video and TV drivers.)
->
-> In this case, someone would have to find the new code and patch it in
-> the same easy was as was done for the original i2c code. This won't be
-> me though, sorry. I don't want to touch binary driver code for legal
-> reasons. You could give it a try, it's probably easy.
->
->>  I think that your "hack" is not normal solution...
->
-> You are right. But on the other hand, nvidia's binary driver itself is
-> a hack, not a normal solution, so...
->
-> --
-> Jean Delvare
-> http://khali.linux-fr.org/wishlist.html
->
+Executing BUG as a result of an internal driver error seems to be a bit harsh.
+Replace it with WARN and return -ENODEV if the condition is seen.
 
-Hello,
+This also resolves the following compile warning seen with some random
+configurations.
 
-sorry for long delay. Now I found solution how to fix this probem.
-nvidia binary kernel module does not register i2c address with f75375
-chip. So in source code of nvidia kernel modul is needed to define:
+drivers/hwmon/i5k_amb.c: In function 'i5k_channel_pci_id':
+drivers/hwmon/i5k_amb.c:492: warning: control reaches end of non-void function
 
-static struct i2c_board_info f75375_board_info {
-	I2C_BOARD_INFO("f75375", 0x2e),
-};
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/i5k_amb.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-and whre is nvidia i2c initialized is needed to call:
-
-i2c_new_device(i2c_get_adapter(4), &f75375_board_info);
-
-but it needs to patch kernel module and these changes maybe break
-other cards (without this sensor chip). So again not good solution.
-
+diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
+index c4c40be..24e37e2 100644
+--- a/drivers/hwmon/i5k_amb.c
++++ b/drivers/hwmon/i5k_amb.c
+@@ -478,8 +478,7 @@ out:
+ 	return res;
+ }
+ 
+-static unsigned long i5k_channel_pci_id(struct i5k_amb_data *data,
+-					unsigned long channel)
++static long i5k_channel_pci_id(struct i5k_amb_data *data, unsigned long channel)
+ {
+ 	switch (data->chipset_id) {
+ 	case PCI_DEVICE_ID_INTEL_5000_ERR:
+@@ -487,7 +486,8 @@ static unsigned long i5k_channel_pci_id(struct i5k_amb_data *data,
+ 	case PCI_DEVICE_ID_INTEL_5400_ERR:
+ 		return PCI_DEVICE_ID_INTEL_5400_FBD0 + channel;
+ 	default:
+-		BUG();
++		WARN(1, "Unexpected chipset ID 0x%lx\n", data->chipset_id);
++		return -ENODEV;
+ 	}
+ }
+ 
+@@ -528,14 +528,18 @@ static int __devinit i5k_amb_probe(struct platform_device *pdev)
+ 		goto err;
+ 
+ 	/* Copy the DIMM presence map for the first two channels */
+-	res = i5k_channel_probe(&data->amb_present[0],
+-				i5k_channel_pci_id(data, 0));
++	res = i5k_channel_pci_id(data, 0);
++	if (res < 0)
++		goto err;
++	res = i5k_channel_probe(&data->amb_present[0], res);
+ 	if (res)
+ 		goto err;
+ 
+ 	/* Copy the DIMM presence map for the optional second two channels */
+-	i5k_channel_probe(&data->amb_present[2],
+-			  i5k_channel_pci_id(data, 1));
++	res = i5k_channel_pci_id(data, 1);
++	if (res < 0)
++		goto err;
++	i5k_channel_probe(&data->amb_present[2], res);
+ 
+ 	/* Set up resource regions */
+ 	reso = request_mem_region(data->amb_base, data->amb_len, DRVNAME);
 -- 
-Pali Rohár
-pali.rohar@gmail.com
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
