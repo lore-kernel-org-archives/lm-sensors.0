@@ -1,7 +1,7 @@
 From: "J, KEERTHY" <j-keerthy@ti.com>
-Date: Fri, 19 Aug 2011 09:16:52 +0000
+Date: Fri, 19 Aug 2011 12:55:53 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 6/6 V2] hwmon: OMAP4: On die
-Message-Id: <CAJ6a13bjsKPJZEU=ZzfRToGcpxzJM79cXvamQ5vsm-u=jSHATQ@mail.gmail.com>
+Message-Id: <CAJ6a13YLdEUxWEQ2nAmvqE33RLBow_zNw04y_PknFtMr98fM9Q@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1313664735-8917-1-git-send-email-j-keerthy@ti.com>
 	<1313664735-8917-7-git-send-email-j-keerthy@ti.com>
@@ -41,6 +41,11 @@ ocks at all,
 form data.
 >
 > Ok. I will clean this.
+
+Even the show function might read an inconsistent value without
+a mutex lock if the registers were written using set function was
+preempted. There is a necessity for mutex locking even in show function.
+
 >
 >> - driver is quite noisy. There should definitely not be any log messages
 >> =A0if a set parameter is wrong. Show functions already return an error v=
@@ -65,10 +70,6 @@ essages.
 ")
 >
 > Ok. I will correct this.
-
-When the temperature is out of range can i return -EDOM?
-Any suggestions?
-
 >
 >> - excessive ( )
 >
