@@ -1,30 +1,95 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 16 Aug 2011 14:28:02 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (lm90) Simplify handling of
-Message-Id: <20110816162802.48b3f8d0@endymion.delvare>
+Date: Sat, 20 Aug 2011 12:56:35 +0000
+Subject: [lm-sensors] [PATCH v2 1/3] hwmon: (ibmaem) Fix error paths
+Message-Id: <20110820145635.1ba4c58f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110724203520.07a3f202@endymion.delvare>
-In-Reply-To: <20110724203520.07a3f202@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 27 Jul 2011 23:27:14 -0700, Guenter Roeck wrote:
-> On Sun, Jul 24, 2011 at 02:35:20PM -0400, Jean Delvare wrote:
-> > The optional extended local temperature register can never have
-> > address 0, as this address is already used by another register. Thus
-> > we can get rid of flag LM90_HAVE_LOCAL_EXT and simply rely on
-> > reg_local_ext being non-zero to determine if a given chip has this
-> > extension or not. This makes the code more simple.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Stijn Devriendt <sdevrien@cisco.com>
-> > Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> 
-> Applied (with the max6657 fix applied to the original patch breaking it).
+From: Jean Delvare <khali@linux-fr.org>
+Subject: hwmon: (ibmaem) Fix error paths
 
-Perfect, thank you!
+I am under the impression that error paths in functions
+aem_init_aem1_inst() and aem_init_aem2_inst() are incorrect. In
+several cases, the function returns 0 on error, which I suspect is
+not intended. Fix this by properly tracking error codes.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+No change since v1.
+
+ drivers/hwmon/ibmaem.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+--- linux-3.1-rc2.orig/drivers/hwmon/ibmaem.c	2011-08-18 18:57:17.000000000 +0200
++++ linux-3.1-rc2/drivers/hwmon/ibmaem.c	2011-08-18 19:16:12.000000000 +0200
+@@ -602,24 +602,26 @@ static int aem_init_aem1_inst(struct aem
+ 	platform_set_drvdata(data->pdev, data);
+ 
+ 	/* Set up IPMI interface */
+-	if (aem_init_ipmi_data(&data->ipmi, probe->interface,
+-			       probe->bmc_device))
++	res = aem_init_ipmi_data(&data->ipmi, probe->interface,
++				 probe->bmc_device);
++	if (res)
+ 		goto ipmi_err;
+ 
+ 	/* Register with hwmon */
+ 	data->hwmon_dev = hwmon_device_register(&data->pdev->dev);
+-
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		dev_err(&data->pdev->dev, "Unable to register hwmon "
+ 			"device for IPMI interface %d\n",
+ 			probe->interface);
++		res = PTR_ERR(data->hwmon_dev);
+ 		goto hwmon_reg_err;
+ 	}
+ 
+ 	data->update = update_aem1_sensors;
+ 
+ 	/* Find sensors */
+-	if (aem1_find_sensors(data))
++	res = aem1_find_sensors(data);
++	if (res)
+ 		goto sensor_err;
+ 
+ 	/* Add to our list of AEM devices */
+@@ -735,24 +737,26 @@ static int aem_init_aem2_inst(struct aem
+ 	platform_set_drvdata(data->pdev, data);
+ 
+ 	/* Set up IPMI interface */
+-	if (aem_init_ipmi_data(&data->ipmi, probe->interface,
+-			       probe->bmc_device))
++	res = aem_init_ipmi_data(&data->ipmi, probe->interface,
++				 probe->bmc_device);
++	if (res)
+ 		goto ipmi_err;
+ 
+ 	/* Register with hwmon */
+ 	data->hwmon_dev = hwmon_device_register(&data->pdev->dev);
+-
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		dev_err(&data->pdev->dev, "Unable to register hwmon "
+ 			"device for IPMI interface %d\n",
+ 			probe->interface);
++		res = PTR_ERR(data->hwmon_dev);
+ 		goto hwmon_reg_err;
+ 	}
+ 
+ 	data->update = update_aem2_sensors;
+ 
+ 	/* Find sensors */
+-	if (aem2_find_sensors(data))
++	res = aem2_find_sensors(data);
++	if (res)
+ 		goto sensor_err;
+ 
+ 	/* Add to our list of AEM devices */
+
 
 -- 
 Jean Delvare
