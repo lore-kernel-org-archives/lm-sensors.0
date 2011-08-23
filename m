@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 23 Aug 2011 04:01:07 +0000
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 23 Aug 2011 16:55:56 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (i5k_amb) Replace BUG with WARN
-Message-Id: <20110823040107.GA26417@ericsson.com>
+Message-Id: <20110823165556.GX20579@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1313689771-31221-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1313689771-31221-1-git-send-email-guenter.roeck@ericsson.com>
@@ -10,37 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Aug 19, 2011 at 07:05:50PM -0400, Guenter Roeck wrote:
-> Hi Jean,
+On Mon, Aug 22, 2011 at 09:01:07PM -0700, Guenter Roeck wrote:
+> On Fri, Aug 19, 2011 at 07:05:50PM -0400, Guenter Roeck wrote:
+> > Hi Jean,
+> > 
+> > On Fri, Aug 19, 2011 at 05:16:24PM -0400, Jean Delvare wrote:
+> > > Hi Guenter,
+> > > 
+> > > On Thu, 18 Aug 2011 10:49:31 -0700, Guenter Roeck wrote:
+> > > > Executing BUG as a result of an internal driver error seems to be a bit harsh.
+> > > 
+> > > Well, that's pretty much what BUG was designed for: internal errors
+> > > that aren't supposed to happen.
+> > > 
+> > Problem with BUG is that it can be undefined for some configurations,
+> > in which case it doesn't do anything. 
+> > 
+> > Also, while it may make sense to bring down the system if there is a severe bug 
+> > which makes it impossible to continue, that seems to be a bit excessive
+> > for a hwmon driver.
+> > 
+> > > > Replace it with WARN and return -ENODEV if the condition is seen.
+> > > 
+> > > I'm not sure what is the benefit of WARN over pr_warn() in this case.
+> > > 
+> > WARN generates a traceback, pr_warn doesn't. I think the scope is a bit different
+> > - one warns about a programming error, the other warns about a system consition.
+> > 
+> Hi all,
 > 
-> On Fri, Aug 19, 2011 at 05:16:24PM -0400, Jean Delvare wrote:
-> > Hi Guenter,
-> > 
-> > On Thu, 18 Aug 2011 10:49:31 -0700, Guenter Roeck wrote:
-> > > Executing BUG as a result of an internal driver error seems to be a bit harsh.
-> > 
-> > Well, that's pretty much what BUG was designed for: internal errors
-> > that aren't supposed to happen.
-> > 
-> Problem with BUG is that it can be undefined for some configurations,
-> in which case it doesn't do anything. 
-> 
-> Also, while it may make sense to bring down the system if there is a severe bug 
-> which makes it impossible to continue, that seems to be a bit excessive
-> for a hwmon driver.
-> 
-> > > Replace it with WARN and return -ENODEV if the condition is seen.
-> > 
-> > I'm not sure what is the benefit of WARN over pr_warn() in this case.
-> > 
-> WARN generates a traceback, pr_warn doesn't. I think the scope is a bit different
-> - one warns about a programming error, the other warns about a system consition.
-> 
-Hi all,
+> As I don't see a consensus for my proposed patch, I'll drop it.
 
-As I don't see a consensus for my proposed patch, I'll drop it.
+Sorry, I'm just slow at testing things sometimes. :(
 
-Guenter
+In general I like the idea of replacing BUG with WARN when possible,
+particularly with hardware detection.  Your patch seems to load ok on all the
+systems I can still claw together, so,
+
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+
+--D
+> 
+> Guenter
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
 
 _______________________________________________
 lm-sensors mailing list
