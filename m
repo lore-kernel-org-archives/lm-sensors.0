@@ -1,7 +1,7 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Date: Tue, 23 Aug 2011 06:54:49 +0000
+From: Kevin Hilman <khilman@ti.com>
+Date: Tue, 23 Aug 2011 17:15:08 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 6/6] hwmon: OMAP4: On die temperature
-Message-Id: <CAJ6a13ZbstOQ6n76i7+tUEmAvVDpeOOweQUN5irr_AUbcn9S0A@mail.gmail.com>
+Message-Id: <87ei0chwwz.fsf@ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
 	<1312979122-5896-7-git-send-email-j-keerthy@ti.com>
@@ -13,21 +13,20 @@ References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
 	<CAJ6a13b7qu3K4YJPTYych_NQxLuuUxZOQg6PPC_=XA+qiwn2RA@mail.gmail.com>
 	<20110811185408.GB15970@legolas.emea.dhcp.ti.com>
 	<20110811185558.GC15970@legolas.emea.dhcp.ti.com>
-	<4E444B8F.9060908@ti.com>
-	<4E449D65.9000004@ti.com>
-	<874o19gfrr.fsf@ti.com>
-	<4E532A28.60103@ti.com>
-In-Reply-To: <4E532A28.60103@ti.com>
+	<4E444B8F.9060908@ti.com> <4E449D65.9000004@ti.com>
+	<874o19gfrr.fsf@ti.com> <4E532A28.60103@ti.com>
+In-Reply-To: <4E532A28.60103@ti.com> (Rajendra Nayak's message of "Tue, 23 Aug
+	2011 09:48:48 +0530")
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Roger Quadros <rogerq@ti.com>, balbi@ti.com, "J, KEERTHY" <j-keerthy@ti.com>, Tony Lindgren <tony@atomide.com>, lm-sensors@lm-sensors.org, vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, Russell King <linux@arm.linux.org.uk>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, khali@linux-fr.org, guenter.roeck@ericsson.com
 
-On Tue, Aug 23, 2011 at 9:48 AM, Rajendra Nayak <rnayak@ti.com> wrote:
+Rajendra Nayak <rnayak@ti.com> writes:
+
 > On 8/23/2011 5:28 AM, Kevin Hilman wrote:
->>
->> Rajendra Nayak<rnayak@ti.com> =A0writes:
+>> Rajendra Nayak<rnayak@ti.com>  writes:
 >>
 >> [...]
 >>
@@ -38,9 +37,15 @@ On Tue, Aug 23, 2011 at 9:48 AM, Rajendra Nayak <rnayak@ti.com> wrote:
 >> Except $SUBJECT patch hard-codes the clock rate for all platforms in the
 >> driver.
 >
-> The device has a requirement to operate in a 1Mhz to 2Mhz range. So the
-> driver is using a clk_round_rate() to get the closest rate supported and
-> sets it using a clk_set_rate().
+> The device has a requirement to operate in a 1Mhz to 2Mhz range. 
+
+You mean the device on OMAP4 has this requirement.   
+
+Will this requirement exist on every platform that uses any version of
+this IP (or future similar IPs)?  I suspect not.
+
+> So the driver is using a clk_round_rate() to get the closest rate
+> supported and sets it using a clk_set_rate().
 >
 >>
 >> If the clock rate is to be platform-specific, it should be done in
@@ -50,22 +55,15 @@ On Tue, Aug 23, 2011 at 9:48 AM, Rajendra Nayak <rnayak@ti.com> wrote:
 > wasn't quite sure this needs to be done in clock framework as was
 > suggested.
 
-The range can be (ex: 1MHz to 2Mhz) can be sent via pdata
-as max and min frequencies and the driver can round the rate
-to get the appropriate rate inside the specified range? Is this approach
-Fine?
+No, it should't be in clock framework.  But since the frequency range is
+platform-specific, it should be initialized in platform-specific code.
+Having min/max parameters passed by platform data as suggested by
+J. Keerthy is fine.
 
->
->>
->> Kevin
->
->
+Probably even better is to have the driver have a default min/max rang
+which can be overridden by platform_data only if needed.
 
-
-
---=20
-Regards and Thanks,
-Keerthy
+Kevin
 
 _______________________________________________
 lm-sensors mailing list
