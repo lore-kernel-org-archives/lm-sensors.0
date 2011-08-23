@@ -1,104 +1,80 @@
-From: Scott Czepiel <sczepiel@gmail.com>
-Date: Mon, 22 Aug 2011 06:46:29 +0000
-Subject: [lm-sensors] No sensors found on Asus P8H67-I Deluxe
-Message-Id: <CA+bcNfKGMybSYnsh2WNeOgFpoY2Y9=99cgQVZGz7cce7OQQyWg@mail.gmail.com>
+From: Arthur Liberman <arthur_liberman@hotmail.com>
+Date: Tue, 23 Aug 2011 21:22:27 +0000
+Subject: [lm-sensors] Making a server implentation for remote monitoring.
+Message-Id: <SNT104-W358B935A3C14D0AE022C4B8A2E0@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1586317252886119093=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a newer mini-ITX LGA 1155 motherboard with an i3-2100 cpu
-attached, running CentOS 6 (kernel is based on 2.6.32).  I upgraded
-lm_sensors to the latest and greatest:
+--===============1586317252886119093==
+Content-Type: multipart/alternative;
+	boundary="_b37d3a37-c588-478a-a1a8-d9d586144c86_"
 
-# sensors -v
-sensors version 3.3.1 with libsensors version 3.3.1
+--_b37d3a37-c588-478a-a1a8-d9d586144c86_
+Content-Type: text/plain; charset="windows-1255"
+Content-Transfer-Encoding: 8bit
 
-Abbreviated output of sensors-detect:
------
-# sensors-detect revision 5984 (2011-07-10 21:22:53 +0200)
-# System: System manufacturer System Product Name
-# Board: ASUSTeK Computer INC. P8H67-I DELUXE
-...
-Driver `w83627ehf':
-  * ISA bus, address 0x290
-    Chip `Nuvoton NCT6776F Super IO Sensors' (confidence: 9)
 
-Driver `coretemp':
-  * Chip `Intel digital thermal sensor' (confidence: 9)
+Hi everyone,
 
-Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
-Starting lm_sensors: loading module coretemp w83627ehf No sensors found!
-Make sure you loaded all the kernel drivers you need.
-Try sensors-detect to find out which these are.
-                                                           [FAILED]
-Unloading i2c-dev... OK
------
+I hope I'm posting in the right place.
 
-Neither of the two suggested drivers will load:
+I'm the developer of a Windows based application Core Temp, and recently I've released a new version with an accompanying Android app.
+The application allows users to connect to their machines remotely and see the status of their systems, it lets you get a readings on:
+CPU name
+Frequency
+VID
+TjMax - if applicable
+RAM utilization
+Core temperature and utilization
+Here's the link to the app: 
+https://market.android.com/details?id=com.alcpu.android.CoreTempMonitorLite
 
-# modprobe coretemp
-FATAL: Error inserting coretemp
-(/lib/modules/2.6.32-71.29.1.el6.x86_64/kernel/drivers/hwmon/coretemp.ko):
-No such device
+Since I'm a Windows only guy, I'm looking for someone who may be interested in making a server for Linux based machines. 
+This brings much interest from people who do any kind of distributed computing and has to keep an eye on multiple machines, very often these are Linux boxes.
+The app is currently working with a very simple TCP socket implementation, so I don't think that it should take a lot of effort to implement.
 
-# modprobe w83627ehf
-FATAL: Error inserting w83627ehf
-(/lib/modules/2.6.32-71.29.1.el6.x86_64/weak-updates/w83627ehf/w83627ehf.ko):
-Device or resource busy
+If there is demand I'm also planning on making a similar app for iOS devices as well.
 
-# tail /var/log/messages
-kernel: coretemp: Unknown CPU model 0x2a
-kernel: w83627ehf: Found NCT6776F chip at 0x290
-kernel: ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI
-region HWRE [0x290-0x299]
-kernel: ACPI: If an ACPI driver is available for this device, you
-should use it instead of the native driver
+Kind regards,
+Arthur Liberman
+ALCPU
+http://www.alcpu.com/CoreTemp
+ 		 	   		  
+--_b37d3a37-c588-478a-a1a8-d9d586144c86_
+Content-Type: text/html; charset="windows-1255"
+Content-Transfer-Encoding: 8bit
 
-The version of coretemp for this kernel predates the Sandy Bridge
-procs so I tried compiling a recent revision (from the 3.0 kernel),
-but quickly left my comfort zone:  there were \ too many source
-changes, not just to coretemp.c but to other included header files,
-and I couldn't get the module with the newer coretemp.c to build on my
-older kernel source tree.  I could try compiling and running a more
-recent kernel, but this would defeat the purpose of using CentOS (and
-yes I realize I shouldn't always expect stable software to work with
-brand new hardware).  Is there anything else I can try besides waiting
-for CentOS to backport a more recent coretemp?
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px;
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt;
+font-family:Tahoma
+}
+--></style>
+</head>
+<body class='hmmessage'><div dir='ltr'>
+Hi everyone,<br><br>I hope I'm posting in the right place.<br><br>I'm the developer of a Windows based application <a href="http://www.alcpu.com/CoreTemp">Core Temp</a>, and recently I've released a new version with an accompanying Android app.<br>The application allows users to connect to their machines remotely and see the status of their systems, it lets you get a readings on:<br>CPU name<br>Frequency<br>VID<br>TjMax - if applicable<br>RAM utilization<br>Core temperature and utilization<br>Here's the link to the app: <br>https://market.android.com/details?id=com.alcpu.android.CoreTempMonitorLite<br><br>Since I'm a Windows only guy, I'm looking for someone who may be interested in making a server for Linux based machines. <br>This brings much interest from people who do any kind of distributed computing and has to keep an eye on multiple machines, very often these are Linux boxes.<br>The app is currently working with a very simple TCP socket implementation, so I don't think that it should take a lot of effort to implement.<br><br>If there is demand I'm also planning on making a similar app for iOS devices as well.<br><br>Kind regards,<br>Arthur Liberman<br>ALCPU<br><a href="http://www.alcpu.com/CoreTemp" target="_blank">http://www.alcpu.com/CoreTemp</a><br> 		 	   		  </div></body>
+</html>
+--_b37d3a37-c588-478a-a1a8-d9d586144c86_--
 
-Fortunately (or so I thought), I could skip coretemp and rely on the
-Nuvoton chip to work.  But I see it conflicts with ACPI and my kernel
-is just new enough that it will not allow the
-"acpi_enforce_resources=lax" hack.  This led me to try:
 
-# modprobe asus_atk0110
-
-which apparently works:
-
-# lsmod|grep asus
-asus_atk0110           14470  0
-hwmon                   2464  1 asus_atk0110
-
-but has little effect since sensors won't pick it up:
-
-# sensors -s
-No sensors found!
-Make sure you loaded all the kernel drivers you need.
-Try sensors-detect to find out which these are.
-
-And there's nothing happening here where acpi drivers are supposed to
-do their thang:
-
-# ls -al /sys/class/hwmon/
-total 0
-drwxr-xr-x.  2 root root 0 Aug 21 21:22 .
-drwxr-xr-x. 41 root root 0 Aug 21 23:02 ..
-
-I'm out of ideas for what to try next, any suggestions would be
-greatly appreciated!
+--===============1586317252886119093==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1586317252886119093==--
