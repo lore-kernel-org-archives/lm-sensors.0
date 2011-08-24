@@ -1,49 +1,75 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 19 Aug 2011 15:37:04 +0000
-Subject: Re: [lm-sensors] Support for the Fintek F71889ED (found f.e. on the
-Message-Id: <20110819173704.11833b3f@endymion.delvare>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Wed, 24 Aug 2011 13:28:24 +0000
+Subject: [lm-sensors] [PATCH 5/6] hwmon/mc13783-adc: convert to mc13xxx API
+Message-Id: <1314192505-23499-5-git-send-email-u.kleine-koenig@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <616631172.20100723004130@eikelenboom.it>
-In-Reply-To: <616631172.20100723004130@eikelenboom.it>
+References: <20110824132740.GA28197@pengutronix.de>
+ <1314192505-23499-1-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1314192505-23499-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Samuel Ortiz <sameo@linux.intel.com>, Jean Delvare <khali@linux-fr.org>
+Cc: linux-kernel@vger.kernel.org, kernel@pengutronix.de, lm-sensors@lm-sensors.org
 
-Hi Mathieu,
+The mc13783_... functions are going to be removed, so switch to the
+more generic API.
 
-Please don't top-post.
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+ drivers/hwmon/mc13783-adc.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-On Tue, 9 Aug 2011 22:29:58 -0400, Mathieu Jobin wrote:
-> Here is what I get running kernel 3.0 rc6
-> 
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue: 
-> 
-> Driver `to-be-written':
->   * ISA bus, address 0x600
->     Chip `Fintek F71889E Super IO Sensors' (confidence: 9)
+diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
+index d5226c9..ef65ab5 100644
+--- a/drivers/hwmon/mc13783-adc.c
++++ b/drivers/hwmon/mc13783-adc.c
+@@ -31,7 +31,7 @@
+ #define MC13783_ADC_NAME	"mc13783-adc"
+=20
+ struct mc13783_adc_priv {
+-	struct mc13783 *mc13783;
++	struct mc13xxx *mc13xxx;
+ 	struct device *hwmon_dev;
+ };
+=20
+@@ -51,8 +51,8 @@ static int mc13783_adc_read(struct device *dev,
+ 	unsigned int sample[4];
+ 	int ret;
+=20
+-	ret =3D mc13783_adc_do_conversion(priv->mc13783,
+-			MC13783_ADC_MODE_MULT_CHAN,
++	ret =3D mc13xxx_adc_do_conversion(priv->mc13xxx,
++			MC13XXX_ADC_MODE_MULT_CHAN,
+ 			channel, sample);
+ 	if (ret)
+ 		return ret;
+@@ -147,9 +147,9 @@ static const struct attribute_group mc13783_group_ts =
+=3D {
+ static int mc13783_adc_use_touchscreen(struct platform_device *pdev)
+ {
+ 	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
+-	unsigned flags =3D mc13783_get_flags(priv->mc13783);
++	unsigned flags =3D mc13xxx_get_flags(priv->mc13xxx);
+=20
+-	return flags & MC13783_USE_TOUCHSCREEN;
++	return flags & MC13XXX_USE_TOUCHSCREEN;
+ }
+=20
+ static int __init mc13783_adc_probe(struct platform_device *pdev)
+@@ -161,7 +161,7 @@ static int __init mc13783_adc_probe(struct platform_dev=
+ice *pdev)
+ 	if (!priv)
+ 		return -ENOMEM;
+=20
+-	priv->mc13783 =3D dev_get_drvdata(pdev->dev.parent);
++	priv->mc13xxx =3D dev_get_drvdata(pdev->dev.parent);
+=20
+ 	platform_set_drvdata(pdev, priv);
+=20
+--=20
+1.7.5.4
 
-Was this with the latest version of sensors-detect, as Hans instructed?
-I doubt it. Please try again with:
-http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-
-Note though, that this doesn't prevent you from loading the f71882fg
-driver manually to see if it works.
-
-> Driver `k10temp' (autoloaded):
->   * Chip `AMD Family 10h thermal sensors' (confidence: 9)
-> 
-> Note: there is no driver for Fintek F71889E Super IO Sensors yet.
-> Check http://www.lm-sensors.org/wiki/Devices for updates.
-> 
-> No modules to load, skipping modules configuration.
-> 
-> Unloading i2c-dev... OK
-> Unloading cpuid... OK
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
