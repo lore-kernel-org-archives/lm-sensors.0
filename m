@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 26 Aug 2011 16:53:35 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 26 Aug 2011 17:16:25 +0000
 Subject: Re: [lm-sensors] Odd warning in lm90.c (and other drivers)
-Message-Id: <20110826185335.0000be79@endymion.delvare>
+Message-Id: <20110826171625.GA5900@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1314377205.2796.90.camel@groeck-laptop>
 In-Reply-To: <1314377205.2796.90.camel@groeck-laptop>
@@ -10,35 +10,35 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 26 Aug 2011 09:46:45 -0700, Guenter Roeck wrote:
-> Hi all,
+On Fri, Aug 26, 2011 at 12:53:35PM -0400, Jean Delvare wrote:
+> On Fri, 26 Aug 2011 09:46:45 -0700, Guenter Roeck wrote:
+> > Hi all,
+> > 
+> > I sometimes get the following warnings when trying to compile lm90.c:
+> > 
+> > drivers/hwmon/lm90.c: In function ‘lm90_detect’:
+> > drivers/hwmon/lm90.c:1114: warning: ‘chip_id’ may be used uninitialized
+> > in this function
+> > drivers/hwmon/lm90.c:1114: warning: ‘reg_config1’ may be used
+> > uninitialized in this function
+> > drivers/hwmon/lm90.c:1114: warning: ‘reg_convrate’ may be used
+> > uninitialized in this function
+> > drivers/hwmon/lm90.c:1187: warning: ‘reg_emerg2’ may be used
+> > uninitialized in this function
+> > drivers/hwmon/lm90.c:1187: warning: ‘reg_status2’ may be used
+> > uninitialized in this function
+> > 
+> > This is seen with 3.0-rc3, with the attached configuration file (which
 > 
-> I sometimes get the following warnings when trying to compile lm90.c:
+> 3.0-rc3 or 3.1-rc3?
 > 
-> drivers/hwmon/lm90.c: In function ‘lm90_detect’:
-> drivers/hwmon/lm90.c:1114: warning: ‘chip_id’ may be used uninitialized
-> in this function
-> drivers/hwmon/lm90.c:1114: warning: ‘reg_config1’ may be used
-> uninitialized in this function
-> drivers/hwmon/lm90.c:1114: warning: ‘reg_convrate’ may be used
-> uninitialized in this function
-> drivers/hwmon/lm90.c:1187: warning: ‘reg_emerg2’ may be used
-> uninitialized in this function
-> drivers/hwmon/lm90.c:1187: warning: ‘reg_status2’ may be used
-> uninitialized in this function
-> 
-> This is seen with 3.0-rc3, with the attached configuration file (which
+3.1-rc3. Looks like I didn't get enough coffe today. Anyway, the kernel version
+does not really matter, at least not too much; I have also seen it with 3.0.3.
 
-3.0-rc3 or 3.1-rc3?
+Build system runs Ubuntu Lucid, which is there gcc-4.4.3 comes from.
 
-> was generated with "make randconfig"). gcc version is 4.4.3.
-> 
-> Any idea, anyone, what might cause the warning ?
-
-No immediate idea but I can try to reproduce it...
-
--- 
-Jean Delvare
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
