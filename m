@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 26 Aug 2011 17:16:25 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 26 Aug 2011 17:22:57 +0000
 Subject: Re: [lm-sensors] Odd warning in lm90.c (and other drivers)
-Message-Id: <20110826171625.GA5900@ericsson.com>
+Message-Id: <20110826192257.37c1ed40@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1314377205.2796.90.camel@groeck-laptop>
 In-Reply-To: <1314377205.2796.90.camel@groeck-laptop>
@@ -10,7 +10,9 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Aug 26, 2011 at 12:53:35PM -0400, Jean Delvare wrote:
+Hi Guenter,
+
+On Fri, 26 Aug 2011 18:53:35 +0200, Jean Delvare wrote:
 > On Fri, 26 Aug 2011 09:46:45 -0700, Guenter Roeck wrote:
 > > Hi all,
 > > 
@@ -27,18 +29,35 @@ On Fri, Aug 26, 2011 at 12:53:35PM -0400, Jean Delvare wrote:
 > > uninitialized in this function
 > > drivers/hwmon/lm90.c:1187: warning: ‘reg_status2’ may be used
 > > uninitialized in this function
-> > 
+
+Can you try enabling _all_ hwmon drivers to see if any other report
+similar warnings with your config?
+
 > > This is seen with 3.0-rc3, with the attached configuration file (which
 > 
 > 3.0-rc3 or 3.1-rc3?
+
+The latter, I should have checked the attached configuration file
+before asking.
+
+> > was generated with "make randconfig"). gcc version is 4.4.3.
+> > 
+> > Any idea, anyone, what might cause the warning ?
 > 
-3.1-rc3. Looks like I didn't get enough coffe today. Anyway, the kernel version
-does not really matter, at least not too much; I have also seen it with 3.0.3.
+> No immediate idea but I can try to reproduce it...
 
-Build system runs Ubuntu Lucid, which is there gcc-4.4.3 comes from.
+First thing I see is:
 
-Thanks,
-Guenter
+# make oldconfig
+scripts/kconfig/conf --oldconfig Kconfig
+warning: (IA32_EMULATION) selects COMPAT_BINFMT_ELF which has unmet direct dependencies (COMPAT && BINFMT_ELF)
+warning: (IA32_EMULATION) selects COMPAT_BINFMT_ELF which has unmet direct dependencies (COMPAT && BINFMT_ELF)
+
+This might explain something... Probably worth fixing before looking
+into any build warning or error.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
