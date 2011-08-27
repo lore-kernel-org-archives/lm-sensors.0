@@ -1,169 +1,188 @@
-From: Donggeun Kim <dg77.kim@samsung.com>
-Date: Wed, 31 Aug 2011 08:56:58 +0000
-Subject: [lm-sensors] [PATCH v4] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <1314781018-29720-1-git-send-email-dg77.kim@samsung.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 27 Aug 2011 18:54:11 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (pmbus) Add support for Intersil
+Message-Id: <1314471251-10472-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
-Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Add support for Intersil / Zilker Labs ZL2004, ZL2006, ZL2008, ZL2105, ZL2106,
+ZL6100, and ZL6105.
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
-Changes for v4
-  - added comment for unit of threshold and trigger_levels
-  - cleaned up code
-Changes for v3
-  - cleaned up redundant code
-  - added mutex
-  - changed error codes
-Changes for v2
-  - added six attributes for alarms
-  - changed error code of EAGAIN
-  - changed initialize function to return error code
+ Documentation/hwmon/zl6100   |  117 +++++++++++++++++++
+ drivers/hwmon/pmbus/Kconfig  |   11 ++
+ drivers/hwmon/pmbus/Makefile |    1 +
+ drivers/hwmon/pmbus/zl6100.c |  257 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 386 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/zl6100
+ create mode 100644 drivers/hwmon/pmbus/zl6100.c
 
- Documentation/hwmon/exynos4_tmu           |   81 +++++
- drivers/hwmon/Kconfig                     |   10 +
- drivers/hwmon/Makefile                    |    1 +
- drivers/hwmon/exynos4_tmu.c               |  533 +++++++++++++++++++++++++++++
- include/linux/platform_data/exynos4_tmu.h |   83 +++++
- 5 files changed, 708 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hwmon/exynos4_tmu
- create mode 100644 drivers/hwmon/exynos4_tmu.c
- create mode 100644 include/linux/platform_data/exynos4_tmu.h
-
-diff --git a/Documentation/hwmon/exynos4_tmu b/Documentation/hwmon/exynos4_tmu
+diff --git a/Documentation/hwmon/zl6100 b/Documentation/hwmon/zl6100
 new file mode 100644
-index 0000000..7fe12c1
+index 0000000..391ab0d
 --- /dev/null
-+++ b/Documentation/hwmon/exynos4_tmu
-@@ -0,0 +1,81 @@
-+Kernel driver exynos4_tmu
-+========+
-+Supported chips:
-+* ARM SAMSUNG EXYNOS4 series of SoC
-+  Prefix: 'exynos4-tmu'
-+  Datasheet: Not publicly available
++++ b/Documentation/hwmon/zl6100
+@@ -0,0 +1,117 @@
++Kernel driver zl6100
++==========
 +
-+Authors: Donggeun Kim <dg77.kim@samsung.com>
++Supported chips:
++  * Intersil / Zilker Labs ZL2004
++    Prefix: 'zl2004'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6847.pdf
++  * Intersil / Zilker Labs ZL2006
++    Prefix: 'zl2006'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6850.pdf
++  * Intersil / Zilker Labs ZL2008
++    Prefix: 'zl2008'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6859.pdf
++  * Intersil / Zilker Labs ZL2105
++    Prefix: 'zl2105'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6851.pdf
++  * Intersil / Zilker Labs ZL2106
++    Prefix: 'zl2106'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6852.pdf
++  * Intersil / Zilker Labs ZL6100
++    Prefix: 'zl6100'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6876.pdf
++  * Intersil / Zilker Labs ZL6105
++    Prefix: 'zl6105'
++    Addresses scanned: -
++    Datasheet: http://www.intersil.com/data/fn/fn6906.pdf
++
++Author: Guenter Roeck <guenter.roeck@ericsson.com>
++
 +
 +Description
 +-----------
 +
-+This driver allows to read temperature inside SAMSUNG EXYNOS4 series of SoC.
++This driver supports hardware montoring for Intersil / Zilker Labs ZL6100 and
++compatible digital DC-DC controllers.
 +
-+The chip only exposes the measured 8-bit temperature code value
-+through a register.
-+Temperature can be taken from the temperature code.
-+There are three equations converting from temperature to temperature code.
++The driver is a client driver to the core PMBus driver. Please see
++Documentation/hwmon/pmbus and Documentation.hwmon/pmbus-core for details
++on PMBus client drivers.
 +
-+The three equations are:
-+  1. Two point trimming
-+ 	Tc = (T - 25) * (TI2 - TI1) / (85 - 25) + TI1
 +
-+  2. One point trimming
-+ 	Tc = T + TI1 - 25
++Usage Notes
++-----------
 +
-+  3. No trimming
-+ 	Tc = T + 50
++This driver does not auto-detect devices. You will have to instantiate the
++devices explicitly. Please see Documentation/i2c/instantiating-devices for
++details.
 +
-+  Tc: Temperature code, T: Temperature,
-+  TI1: Trimming info for 25 degree Celsius (stored at TRIMINFO register)
-+       Temperature code measured at 25 degree Celsius which is unchanged
-+  TI2: Trimming info for 85 degree Celsius (stored at TRIMINFO register)
-+       Temperature code measured at 85 degree Celsius which is unchanged
 +
-+TMU(Thermal Management Unit) in EXYNOS4 generates interrupt
-+when temperature exceeds pre-defined levels.
-+The maximum number of configurable threshold is four.
-+The threshold levels are defined as follows:
-+  Level_0: current temperature > trigger_level_0 + threshold
-+  Level_1: current temperature > trigger_level_1 + threshold
-+  Level_2: current temperature > trigger_level_2 + threshold
-+  Level_3: current temperature > trigger_level_3 + threshold
++Platform data support
++---------------------
 +
-+  The threshold and each trigger_level are set
-+  through the corresponding registers.
++The driver supports standard PMBus driver platform data.
 +
-+When an interrupt occurs, this driver notify user space of
-+one of four threshold levels for the interrupt
-+through kobject_uevent_env and sysfs_notify functions.
-+Although an interrupt condition for level_0 can be set,
-+it is not notified to user space through sysfs_notify function.
 +
-+Sysfs Interface
-+---------------
-+name		name of the temperature sensor
-+		RO
++Module parameters
++-----------------
 +
-+temp1_input	temperature
-+		RO
++delay
++-----
 +
-+temp1_max	temperature for level_1 interrupt
-+		RO
++Some Intersil/Zilker Labs DC-DC controllers require a minimum interval between
++I2C bus accesses. According to Intersil, the minimum interval is 2 ms, though
++1 ms appears to be sufficient and has not caused any problems in testing.
++The problem is known to affect ZL6100, ZL2105, and ZL2008. It is known not to
++affect ZL2004 and ZL6105. The driver automatically sets the interval to 1 ms
++except for ZL2004 and ZL6105. To enable manual override, the driver provides a
++writeable module parameter, 'delay', which can be used to set the interval to
++a value between 0 and 65,535 microseconds.
 +
-+temp1_crit	temperature for level_2 interrupt
-+		RO
 +
-+temp1_emergency	temperature for level_3 interrupt
-+		RO
++Sysfs entries
++-------------
 +
-+temp1_max_alarm	alarm for level_1 interrupt
-+		RO
++The following attributes are supported. Limits are read-write; all other
++attributes are read-only.
 +
-+temp1_crit_alarm
-+		alarm for level_2 interrupt
-+		RO
++in1_label		"vin"
++in1_input		Measured input voltage.
++in1_min			Minimum input voltage.
++in1_max			Maximum input voltage.
++in1_lcrit		Critical minumum input voltage.
++in1_crit		Critical maximum input voltage.
++in1_min_alarm		Input voltage low alarm.
++in1_max_alarm		Input voltage high alarm.
++in1_lcrit_alarm		Input voltage critical low alarm.
++in1_crit_alarm		Input voltage critical high alarm.
 +
-+temp1_emergency_alarm
-+		alarm for level_3 interrupt
-+		RO
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 0b62c3c..c6fb761 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -303,6 +303,16 @@ config SENSORS_DS1621
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ds1621.
++in2_label		"vout1"
++in2_input		Measured output voltage.
++in2_lcrit		Critical minumum output Voltage.
++in2_crit		Critical maximum output voltage.
++in2_lcrit_alarm		Critical output voltage critical low alarm.
++in2_crit_alarm		Critical output voltage critical high alarm.
++
++curr1_label		"iout1"
++curr1_input		Measured output current.
++curr1_lcrit		Critical minimum output current.
++curr1_crit		Critical maximum output current.
++curr1_lcrit_alarm	Output current critical low alarm.
++curr1_crit_alarm	Output current critical high alarm.
++
++temp[12]_input		Measured temperature.
++temp[12]_min		Minimum temperature.
++temp[12]_max		Maximum temperature.
++temp[12]_lcrit		Critical low temperature.
++temp[12]_crit		Critical high temperature.
++temp[12]_min_alarm	Chip temperature low alarm.
++temp[12]_max_alarm	Chip temperature high alarm.
++temp[12]_lcrit_alarm	Chip temperature critical low alarm.
++temp[12]_crit_alarm	Chip temperature critical high alarm.
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
+index 3757558..efaf340 100644
+--- a/drivers/hwmon/pmbus/Kconfig
++++ b/drivers/hwmon/pmbus/Kconfig
+@@ -98,4 +98,15 @@ config SENSORS_UCD9200
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called ucd9200.
  
-+config SENSORS_EXYNOS4_TMU
-+	tristate "Temperature sensor on Samsung EXYNOS4"
-+	depends on EXYNOS4_DEV_TMU
++config SENSORS_ZL6100
++	tristate "Intersil ZL6100 and compatibles"
++	default n
 +	help
-+	  If you say yes here you get support for TMU (Thermal Managment
-+	  Unit) on SAMSUNG EXYNOS4 series of SoC.
++	  If you say yes here you get hardware monitoring support for Intersil
++	  ZL2004, ZL2006, ZL2008, ZL2105, ZL2106, ZL6100, and ZL6105 Digital
++	  DC/DC Controllers.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called exynos4-tmu.
++	  This driver can also be built as a module. If so, the module will
++	  be called zl6100.
 +
- config SENSORS_I5K_AMB
- 	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
- 	depends on PCI && EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 3c9ccef..dbd8963 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -47,6 +47,7 @@ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
- obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
- obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
- obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
-+obj-$(CONFIG_SENSORS_EXYNOS4_TMU)	+= exynos4_tmu.o
- obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
- obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
- obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
-diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+ endif # PMBUS
+diff --git a/drivers/hwmon/pmbus/Makefile b/drivers/hwmon/pmbus/Makefile
+index 623eedb..b9e4fb4 100644
+--- a/drivers/hwmon/pmbus/Makefile
++++ b/drivers/hwmon/pmbus/Makefile
+@@ -11,3 +11,4 @@ obj-$(CONFIG_SENSORS_MAX34440)	+= max34440.o
+ obj-$(CONFIG_SENSORS_MAX8688)	+= max8688.o
+ obj-$(CONFIG_SENSORS_UCD9000)	+= ucd9000.o
+ obj-$(CONFIG_SENSORS_UCD9200)	+= ucd9200.o
++obj-$(CONFIG_SENSORS_ZL6100)	+= zl6100.o
+diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c
 new file mode 100644
-index 0000000..9d1002a
+index 0000000..285a16c
 --- /dev/null
-+++ b/drivers/hwmon/exynos4_tmu.c
-@@ -0,0 +1,533 @@
++++ b/drivers/hwmon/pmbus/zl6100.c
+@@ -0,0 +1,257 @@
 +/*
-+ * exynos4_tmu.c - Samsung EXYNOS4 TMU (Thermal Management Unit)
++ * Hardware monitoring driver for ZL6100 and compatibles
 + *
-+ *  Copyright (C) 2011 Samsung Electronics
-+ *  Donggeun Kim <dg77.kim@samsung.com>
++ * Copyright (c) 2011 Ericsson AB.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -172,617 +191,253 @@ index 0000000..9d1002a
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 + * GNU General Public License for more details.
 + *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/err.h>
 +#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
 +#include <linux/slab.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/clk.h>
-+#include <linux/workqueue.h>
-+#include <linux/sysfs.h>
-+#include <linux/kobject.h>
-+#include <linux/io.h>
-+#include <linux/mutex.h>
++#include <linux/i2c.h>
++#include <linux/ktime.h>
++#include <linux/delay.h>
++#include "pmbus.h"
 +
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
++enum chips { zl2004, zl2006, zl2008, zl2105, zl2106, zl6100, zl6105 };
 +
-+#include <linux/platform_data/exynos4_tmu.h>
-+
-+#define EXYNOS4_TMU_REG_TRIMINFO	0x0
-+#define EXYNOS4_TMU_REG_CONTROL		0x20
-+#define EXYNOS4_TMU_REG_STATUS		0x28
-+#define EXYNOS4_TMU_REG_CURRENT_TEMP	0x40
-+#define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL2	0x58
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL3	0x5C
-+#define EXYNOS4_TMU_REG_PAST_TEMP0	0x60
-+#define EXYNOS4_TMU_REG_PAST_TEMP1	0x64
-+#define EXYNOS4_TMU_REG_PAST_TEMP2	0x68
-+#define EXYNOS4_TMU_REG_PAST_TEMP3	0x6C
-+#define EXYNOS4_TMU_REG_INTEN		0x70
-+#define EXYNOS4_TMU_REG_INTSTAT		0x74
-+#define EXYNOS4_TMU_REG_INTCLEAR	0x78
-+
-+#define EXYNOS4_TMU_GAIN_SHIFT		8
-+#define EXYNOS4_TMU_REF_VOLTAGE_SHIFT	24
-+
-+#define EXYNOS4_TMU_TRIM_TEMP_MASK	0xff
-+#define EXYNOS4_TMU_CORE_ON	3
-+#define EXYNOS4_TMU_CORE_OFF	2
-+#define EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET	50
-+#define EXYNOS4_TMU_TRIG_LEVEL0_MASK	0x1
-+#define EXYNOS4_TMU_TRIG_LEVEL1_MASK	0x10
-+#define EXYNOS4_TMU_TRIG_LEVEL2_MASK	0x100
-+#define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
-+#define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
-+
-+struct exynos4_tmu_data {
-+	struct exynos4_tmu_platform_data *pdata;
-+	struct device *hwmon_dev;
-+	struct resource *mem;
-+	void __iomem *base;
-+	int irq;
-+	struct work_struct irq_work;
-+	struct mutex lock;
-+	struct clk *clk;
-+	unsigned int interrupt_stat;
-+	u8 temp_error1, temp_error2;
++struct zl6100_data {
++	int id;
++	ktime_t access;		/* chip access time */
++	struct pmbus_driver_info info;
 +};
 +
-+/*
-+ * TMU treats temperature as a mapped temperature code.
-+ * The temperature is converted differently depending on the calibration type.
-+ */
-+static u8 translate_temp_to_code(struct exynos4_tmu_data *data, u8 temp)
-+{
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int temp_code;
++#define to_zl6100_data(x)  container_of(x, struct zl6100_data, info)
 +
-+	switch (pdata->cal_type) {
-+	case TYPE_TWO_POINT_TRIMMING:
-+		temp_code = (temp - 25) *
-+		    (data->temp_error2 - data->temp_error1) /
-+		    (85 - 25) + data->temp_error1;
-+		break;
-+	case TYPE_ONE_POINT_TRIMMING:
-+		temp_code = temp + data->temp_error1 - 25;
-+		break;
-+	default:
-+		temp_code = temp + EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
-+		break;
++#define ZL6100_DEVICE_ID		0xe4
++
++#define ZL6100_WAIT_TIME		1000	/* uS	*/
++
++static ushort delay = ZL6100_WAIT_TIME;
++module_param(delay, ushort, 0644);
++MODULE_PARM_DESC(delay, "Delay between chip accesses in uS");
++
++/* Some chips need a delay between accesses */
++static inline void zl6100_wait(const struct zl6100_data *data)
++{
++	if (delay) {
++		s64 delta = ktime_us_delta(ktime_get(), data->access);
++		if (delta < delay)
++			udelay(delay - delta);
 +	}
-+
-+	return temp_code;
 +}
 +
-+/*
-+ * Calculate a temperature value from a temperature code.
-+ * The unit of the temperature is degree Celsius.
-+ */
-+static u8 translate_code_to_temp(struct exynos4_tmu_data *data, u8 temp_code)
++static int zl6100_read_word_data(struct i2c_client *client, int page, int reg)
 +{
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int temp;
-+
-+	switch (pdata->cal_type) {
-+	case TYPE_TWO_POINT_TRIMMING:
-+		temp = (temp_code - data->temp_error1) * (85 - 25) /
-+		    (data->temp_error2 - data->temp_error1) + 25;
-+		break;
-+	case TYPE_ONE_POINT_TRIMMING:
-+		temp = temp_code - data->temp_error1 + 25;
-+		break;
-+	default:
-+		temp = temp_code - EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
-+		break;
-+	}
-+
-+	return temp;
-+}
-+
-+static int exynos4_tmu_initialize(struct platform_device *pdev)
-+{
-+	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int status, trim_info;
-+	u8 threshold_code;
-+
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
-+
-+	status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
-+	if (!status) {
-+		clk_disable(data->clk);
-+		mutex_unlock(&data->lock);
-+		return -EBUSY;
-+	}
-+
-+	/* Save trimming info in order to perform calibration */
-+	trim_info = readl(data->base + EXYNOS4_TMU_REG_TRIMINFO);
-+	data->temp_error1 = trim_info & EXYNOS4_TMU_TRIM_TEMP_MASK;
-+	data->temp_error2 = ((trim_info >> 8) & EXYNOS4_TMU_TRIM_TEMP_MASK);
-+
-+	/* Write temperature code for threshold */
-+	threshold_code = translate_temp_to_code(data, pdata->threshold);
-+	writeb(threshold_code,
-+		data->base + EXYNOS4_TMU_REG_THRESHOLD_TEMP);
-+
-+	writeb(pdata->trigger_levels[0],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL0);
-+	writeb(pdata->trigger_levels[1],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL1);
-+	writeb(pdata->trigger_levels[2],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL2);
-+	writeb(pdata->trigger_levels[3],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL3);
-+
-+	writel(EXYNOS4_TMU_INTCLEAR_VAL,
-+		data->base + EXYNOS4_TMU_REG_INTCLEAR);
-+
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
-+
-+	return 0;
-+}
-+
-+static void exynos4_tmu_control(struct platform_device *pdev, bool on)
-+{
-+	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int con, interrupt_en;
-+
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
-+
-+	interrupt_en = pdata->trigger_level3_en << 12 |
-+		pdata->trigger_level2_en << 8 |
-+		pdata->trigger_level1_en << 4 |
-+		pdata->trigger_level0_en;
-+
-+	con = pdata->reference_voltage << EXYNOS4_TMU_REF_VOLTAGE_SHIFT |
-+		pdata->gain << EXYNOS4_TMU_GAIN_SHIFT;
-+	if (on)
-+		con |= EXYNOS4_TMU_CORE_ON;
-+	else {
-+		con |= EXYNOS4_TMU_CORE_OFF;
-+		interrupt_en = 0; /* Disable all interrupts */
-+	}
-+	writel(interrupt_en, data->base + EXYNOS4_TMU_REG_INTEN);
-+	writel(con, data->base + EXYNOS4_TMU_REG_CONTROL);
-+
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
-+}
-+
-+static int exynos4_tmu_read(struct exynos4_tmu_data *data)
-+{
-+	u8 temp_code, temp;
-+
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
-+
-+	temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
-+	if (!temp_code) {
-+		clk_disable(data->clk);
-+		mutex_unlock(&data->lock);
-+		return -ENODATA;
-+	}
-+	temp = translate_code_to_temp(data, temp_code);
-+
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
-+
-+	return temp;
-+}
-+
-+static void exynos4_tmu_work(struct work_struct *work)
-+{
-+	struct exynos4_tmu_data *data = container_of(work,
-+			struct exynos4_tmu_data, irq_work);
-+	char *envp[2];
-+
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
-+
-+	data->interrupt_stat = readl(data->base + EXYNOS4_TMU_REG_INTSTAT);
-+
-+	writel(EXYNOS4_TMU_INTCLEAR_VAL, data->base + EXYNOS4_TMU_REG_INTCLEAR);
-+
-+	if (data->interrupt_stat & EXYNOS4_TMU_TRIG_LEVEL3_MASK) {
-+		envp[0] = "TRIG_LEVEL=3";
-+		sysfs_notify(&data->hwmon_dev->kobj, NULL,
-+			"temp1_emergency_alarm");
-+	} else if (data->interrupt_stat & EXYNOS4_TMU_TRIG_LEVEL2_MASK) {
-+		envp[0] = "TRIG_LEVEL=2";
-+		sysfs_notify(&data->hwmon_dev->kobj, NULL,
-+			"temp1_crit_alarm");
-+	} else if (data->interrupt_stat & EXYNOS4_TMU_TRIG_LEVEL1_MASK) {
-+		envp[0] = "TRIG_LEVEL=1";
-+		sysfs_notify(&data->hwmon_dev->kobj, NULL, "temp1_max_alarm");
-+	} else
-+		envp[0] = "TRIG_LEVEL=0";
-+	envp[1] = NULL;
-+
-+	kobject_uevent_env(&data->hwmon_dev->kobj, KOBJ_CHANGE, envp);
-+
-+	enable_irq(data->irq);
-+
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
-+}
-+
-+static irqreturn_t exynos4_tmu_irq(int irq, void *id)
-+{
-+	struct exynos4_tmu_data *data = id;
-+
-+	disable_irq_nosync(irq);
-+	schedule_work(&data->irq_work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static ssize_t exynos4_tmu_show_name(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "exynos4-tmu\n");
-+}
-+
-+static ssize_t exynos4_tmu_show_temp(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	struct zl6100_data *data = to_zl6100_data(info);
 +	int ret;
 +
-+	ret = exynos4_tmu_read(data);
-+	if (ret < 0)
-+		return ret;
++	if (page || reg >= PMBUS_VIRT_BASE)
++		return -ENXIO;
 +
-+	/* convert from degree Celsius to millidegree Celsius */
-+	return sprintf(buf, "%d\n", ret * 1000);
-+}
-+
-+static ssize_t exynos4_tmu_show_alarm(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	int temp;
-+	unsigned int trigger_level;
-+
-+	temp = exynos4_tmu_read(data);
-+	if (temp < 0)
-+		return temp;
-+
-+	trigger_level = pdata->threshold + pdata->trigger_levels[attr->index];
-+
-+	return sprintf(buf, "%d\n", temp > trigger_level ? 1 : 0);
-+}
-+
-+static ssize_t exynos4_tmu_show_level(struct device *dev,
-+		struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int temp = pdata->threshold +
-+			pdata->trigger_levels[attr->index];
-+
-+	return sprintf(buf, "%d\n", temp * 1000);
-+}
-+
-+static DEVICE_ATTR(name, S_IRUGO, exynos4_tmu_show_name, NULL);
-+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, exynos4_tmu_show_temp, NULL, 0);
-+
-+static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
-+		exynos4_tmu_show_alarm, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
-+		exynos4_tmu_show_alarm, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp1_emergency_alarm, S_IRUGO,
-+		exynos4_tmu_show_alarm, NULL, 3);
-+
-+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, exynos4_tmu_show_level, NULL, 1);
-+static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, exynos4_tmu_show_level, NULL, 2);
-+static SENSOR_DEVICE_ATTR(temp1_emergency, S_IRUGO,
-+		exynos4_tmu_show_level, NULL, 3);
-+
-+static struct attribute *exynos4_tmu_attributes[] = {
-+	&dev_attr_name.attr,
-+	&sensor_dev_attr_temp1_input.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_emergency_alarm.dev_attr.attr,
-+	&sensor_dev_attr_temp1_max.dev_attr.attr,
-+	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-+	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group exynos4_tmu_attr_group = {
-+	.attrs = exynos4_tmu_attributes,
-+};
-+
-+static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
-+{
-+	struct exynos4_tmu_data *data;
-+	struct exynos4_tmu_platform_data *pdata = pdev->dev.platform_data;
-+	int ret;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "No platform init data supplied.\n");
-+		return -ENODEV;
-+	}
-+
-+	data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
-+	if (!data) {
-+		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
-+		return -ENOMEM;
-+	}
-+
-+	data->irq = platform_get_irq(pdev, 0);
-+	if (data->irq < 0) {
-+		ret = data->irq;
-+		dev_err(&pdev->dev, "Failed to get platform irq\n");
-+		goto err_free;
-+	}
-+
-+	INIT_WORK(&data->irq_work, exynos4_tmu_work);
-+
-+	data->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!data->mem) {
-+		ret = -ENOENT;
-+		dev_err(&pdev->dev, "Failed to get platform resource\n");
-+		goto err_free;
-+	}
-+
-+	data->mem = request_mem_region(data->mem->start,
-+			resource_size(data->mem), pdev->name);
-+	if (!data->mem) {
-+		ret = -ENODEV;
-+		dev_err(&pdev->dev, "Failed to request memory region\n");
-+		goto err_free;
-+	}
-+
-+	data->base = ioremap(data->mem->start, resource_size(data->mem));
-+	if (!data->base) {
-+		ret = -ENODEV;
-+		dev_err(&pdev->dev, "Failed to ioremap memory\n");
-+		goto err_mem_region;
-+	}
-+
-+	ret = request_irq(data->irq, exynos4_tmu_irq,
-+		IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+		"exynos4-tmu", data);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
-+		goto err_io_remap;
-+	}
-+
-+	data->clk = clk_get(NULL, "tmu_apbif");
-+	if (IS_ERR(data->clk)) {
-+		ret = PTR_ERR(data->clk);
-+		dev_err(&pdev->dev, "Failed to get clock\n");
-+		goto err_irq;
-+	}
-+
-+	data->pdata = pdata;
-+	platform_set_drvdata(pdev, data);
-+	mutex_init(&data->lock);
-+
-+	ret = exynos4_tmu_initialize(pdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to initialize TMU\n");
-+		goto err_clk;
-+	}
-+
-+	ret = sysfs_create_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to create sysfs group\n");
-+		goto err_clk;
-+	}
-+
-+	data->hwmon_dev = hwmon_device_register(&pdev->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		ret = PTR_ERR(data->hwmon_dev);
-+		dev_err(&pdev->dev, "Failed to register hwmon device\n");
-+		goto err_create_group;
-+	}
-+
-+	exynos4_tmu_control(pdev, true);
-+
-+	return 0;
-+
-+err_create_group:
-+	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
-+err_clk:
-+	platform_set_drvdata(pdev, NULL);
-+	clk_put(data->clk);
-+err_irq:
-+	free_irq(data->irq, data);
-+err_io_remap:
-+	iounmap(data->base);
-+err_mem_region:
-+	release_mem_region(data->mem->start, resource_size(data->mem));
-+err_free:
-+	kfree(data);
++	zl6100_wait(data);
++	ret = pmbus_read_word_data(client, page, reg);
++	data->access = ktime_get();
 +
 +	return ret;
 +}
 +
-+static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
++static int zl6100_read_byte_data(struct i2c_client *client, int page, int reg)
 +{
-+	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	struct zl6100_data *data = to_zl6100_data(info);
++	int ret;
 +
-+	exynos4_tmu_control(pdev, false);
++	if (page)
++		return -ENXIO;
 +
-+	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
++	zl6100_wait(data);
++	ret = pmbus_read_byte_data(client, page, reg);
++	data->access = ktime_get();
 +
-+	clk_put(data->clk);
++	return ret;
++}
 +
-+	free_irq(data->irq, data);
++static int zl6100_write_word_data(struct i2c_client *client, int page, int reg,
++				  u16 word)
++{
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	struct zl6100_data *data = to_zl6100_data(info);
++	int ret;
 +
-+	iounmap(data->base);
-+	release_mem_region(data->mem->start, resource_size(data->mem));
++	if (page || reg >= PMBUS_VIRT_BASE)
++		return -ENXIO;
 +
-+	platform_set_drvdata(pdev, NULL);
++	zl6100_wait(data);
++	ret = pmbus_write_word_data(client, page, reg, word);
++	data->access = ktime_get();
 +
++	return ret;
++}
++
++static int zl6100_write_byte(struct i2c_client *client, int page, u8 value)
++{
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	struct zl6100_data *data = to_zl6100_data(info);
++	int ret;
++
++	if (page)
++		return -ENXIO;
++
++	zl6100_wait(data);
++	ret = pmbus_write_byte(client, page, value);
++	data->access = ktime_get();
++
++	return ret;
++}
++
++static const struct i2c_device_id zl6100_id[] = {
++	{"zl2004", zl2004},
++	{"zl2006", zl2006},
++	{"zl2008", zl2008},
++	{"zl2105", zl2105},
++	{"zl2106", zl2106},
++	{"zl6100", zl6100},
++	{"zl6105", zl6105},
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, zl6100_id);
++
++static int zl6100_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	int i, ret;
++	struct zl6100_data *data;
++	struct pmbus_driver_info *info;
++	u8 device_id[I2C_SMBUS_BLOCK_MAX + 1];
++	const struct i2c_device_id *mid;
++
++	if (!i2c_check_functionality(client->adapter,
++				     I2C_FUNC_SMBUS_READ_BYTE_DATA
++				     | I2C_FUNC_SMBUS_READ_BLOCK_DATA))
++		return -ENODEV;
++
++	ret = i2c_smbus_read_block_data(client, ZL6100_DEVICE_ID,
++					device_id);
++	if (ret < 0) {
++		dev_err(&client->dev, "Failed to read device ID\n");
++		return ret;
++	}
++	device_id[ret] = '\0';
++	dev_info(&client->dev, "Device ID %s\n", device_id);
++
++	mid = NULL;
++	for (i = 0; i < ARRAY_SIZE(zl6100_id); i++) {
++		mid = &zl6100_id[i];
++		if (!strncasecmp(mid->name, device_id, strlen(mid->name)))
++			break;
++	}
++	if (!mid || !strlen(mid->name)) {
++		dev_err(&client->dev, "Unsupported device\n");
++		return -ENODEV;
++	}
++	if (id->driver_data != mid->driver_data)
++		dev_notice(&client->dev,
++			   "Device mismatch: Configured %s, detected %s\n",
++			   id->name, mid->name);
++
++	data = kzalloc(sizeof(struct zl6100_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->id = mid->driver_data;
++
++	/*
++	 * ZL2008, ZL2105, and ZL6100 are known to require a wait time
++	 * between I2C accesses. ZL2004 and ZL6105 are known to be safe.
++	 *
++	 * Only clear the wait time for chips known to be safe. The wait time
++	 * can be cleared later for additional chips if tests show that it
++	 * is not needed (in other words, better be safe than sorry).
++	 */
++	if (data->id = zl2004 || data->id = zl6105)
++		delay = 0;
++
++	/*
++	 * Since there was a direct I2C device access above, wait before
++	 * accessing the chip again.
++	 * Set the timestamp, wait, then set it again. This should provide
++	 * enough buffer time to be safe.
++	 */
++	data->access = ktime_get();
++	zl6100_wait(data);
++	data->access = ktime_get();
++
++	info = &data->info;
++
++	info->pages = 1;
++	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
++	  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++	  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
++	  | PMBUS_HAVE_TEMP | PMBUS_HAVE_TEMP2 | PMBUS_HAVE_STATUS_TEMP;
++
++	info->read_word_data = zl6100_read_word_data;
++	info->read_byte_data = zl6100_read_byte_data;
++	info->write_word_data = zl6100_write_word_data;
++	info->write_byte = zl6100_write_byte;
++
++	ret = pmbus_do_probe(client, mid, info);
++	if (ret)
++		goto err_mem;
++	return 0;
++
++err_mem:
 +	kfree(data);
-+
-+	return 0;
++	return ret;
 +}
 +
-+#ifdef CONFIG_PM
-+static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
++static int zl6100_remove(struct i2c_client *client)
 +{
-+	exynos4_tmu_control(pdev, false);
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	const struct zl6100_data *data = to_zl6100_data(info);
 +
++	pmbus_do_remove(client);
++	kfree(data);
 +	return 0;
 +}
 +
-+static int exynos4_tmu_resume(struct platform_device *pdev)
-+{
-+	exynos4_tmu_initialize(pdev);
-+	exynos4_tmu_control(pdev, true);
-+
-+	return 0;
-+}
-+#else
-+#define exynos4_tmu_suspend NULL
-+#define exynos4_tmu_resume NULL
-+#endif
-+
-+static struct platform_driver exynos4_tmu_driver = {
++static struct i2c_driver zl6100_driver = {
 +	.driver = {
-+		.name   = "exynos4-tmu",
-+		.owner  = THIS_MODULE,
-+	},
-+	.probe = exynos4_tmu_probe,
-+	.remove	= __devexit_p(exynos4_tmu_remove),
-+	.suspend = exynos4_tmu_suspend,
-+	.resume = exynos4_tmu_resume,
++		   .name = "zl6100",
++		   },
++	.probe = zl6100_probe,
++	.remove = zl6100_remove,
++	.id_table = zl6100_id,
 +};
 +
-+static int __init exynos4_tmu_driver_init(void)
++static int __init zl6100_init(void)
 +{
-+	return platform_driver_register(&exynos4_tmu_driver);
++	return i2c_add_driver(&zl6100_driver);
 +}
-+module_init(exynos4_tmu_driver_init);
 +
-+static void __exit exynos4_tmu_driver_exit(void)
++static void __exit zl6100_exit(void)
 +{
-+	platform_driver_unregister(&exynos4_tmu_driver);
++	i2c_del_driver(&zl6100_driver);
 +}
-+module_exit(exynos4_tmu_driver_exit);
 +
-+MODULE_DESCRIPTION("EXYNOS4 TMU Driver");
-+MODULE_AUTHOR("Donggeun Kim <dg77.kim@samsung.com>");
++MODULE_AUTHOR("Guenter Roeck");
++MODULE_DESCRIPTION("PMBus driver for ZL6100 and compatibles");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:exynos4-tmu");
-diff --git a/include/linux/platform_data/exynos4_tmu.h b/include/linux/platform_data/exynos4_tmu.h
-new file mode 100644
-index 0000000..2534057
---- /dev/null
-+++ b/include/linux/platform_data/exynos4_tmu.h
-@@ -0,0 +1,83 @@
-+/*
-+ * exynos4_tmu.h - Samsung EXYNOS4 TMU (Thermal Management Unit)
-+ *
-+ *  Copyright (C) 2011 Samsung Electronics
-+ *  Donggeun Kim <dg77.kim@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef _LINUX_EXYNOS4_TMU_H
-+#define _LINUX_EXYNOS4_TMU_H
-+
-+enum calibration_type {
-+	TYPE_ONE_POINT_TRIMMING,
-+	TYPE_TWO_POINT_TRIMMING,
-+	TYPE_NONE,
-+};
-+
-+/**
-+ * struct exynos4_tmu_platform_data
-+ * @threshold: basic temperature for generating interrupt
-+ *	       [unit: degree Celsius]
-+ * @trigger_levels: array for each interrupt levels
-+ *	[unit: degree Celsius]
-+ *	0: temperature for trigger_level0 interrupt
-+ *	   condition for trigger_level0 interrupt:
-+ *		current temperature > threshold + trigger_levels[0]
-+ *	1: temperature for trigger_level1 interrupt
-+ *	   condition for trigger_level1 interrupt:
-+ *		current temperature > threshold + trigger_levels[1]
-+ *	2: temperature for trigger_level2 interrupt
-+ *	   condition for trigger_level2 interrupt:
-+ *		current temperature > threshold + trigger_levels[2]
-+ *	3: temperature for trigger_level3 interrupt
-+ *	   condition for trigger_level3 interrupt:
-+ *		current temperature > threshold + trigger_levels[3]
-+ * @trigger_level0_en:
-+ *	1 = enable trigger_level0 interrupt,
-+ *	0 = disable trigger_level0 interrupt
-+ * @trigger_level1_en:
-+ *	1 = enable trigger_level1 interrupt,
-+ *	0 = disable trigger_level1 interrupt
-+ * @trigger_level2_en:
-+ *	1 = enable trigger_level2 interrupt,
-+ *	0 = disable trigger_level2 interrupt
-+ * @trigger_level3_en:
-+ *	1 = enable trigger_level3 interrupt,
-+ *	0 = disable trigger_level3 interrupt
-+ * @gain: gain of amplifier in the positive-TC generator block
-+ *	0 <= gain <= 15
-+ * @reference_voltage: reference voltage of amplifier
-+ *	in the positive-TC generator block
-+ *	0 <= reference_voltage <= 31
-+ * @cal_type: calibration type for temperature
-+ *
-+ * This structure is required for configuration of exynos4_tmu driver.
-+ */
-+struct exynos4_tmu_platform_data {
-+	u8 threshold;
-+	u8 trigger_levels[4];
-+	bool trigger_level0_en;
-+	bool trigger_level1_en;
-+	bool trigger_level2_en;
-+	bool trigger_level3_en;
-+
-+	u8 gain;
-+	u8 reference_voltage;
-+
-+	enum calibration_type cal_type;
-+};
-+#endif /* _LINUX_EXYNOS4_TMU_H */
++module_init(zl6100_init);
++module_exit(zl6100_exit);
 -- 
-1.7.4.1
+1.7.3.1
 
 
 _______________________________________________
