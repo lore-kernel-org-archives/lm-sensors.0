@@ -1,298 +1,786 @@
-From: Daniel Willerud <daniel.willerud@stericsson.com>
-Date: Tue, 30 Aug 2011 08:17:06 +0000
-Subject: Re: [lm-sensors] Notifier in hwmon
-Message-Id: <4E5C9C82.1020103@stericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------040707000606030708020905"
+From: Donggeun Kim <dg77.kim@samsung.com>
+Date: Mon, 29 Aug 2011 10:33:03 +0000
+Subject: [lm-sensors] [PATCH v3] hwmon: Add driver for EXYNOS4 TMU
+Message-Id: <1314613983-3331-1-git-send-email-dg77.kim@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4E5B46A6.7010509@stericsson.com>
-In-Reply-To: <4E5B46A6.7010509@stericsson.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---------------040707000606030708020905
-Content-Type: text/plain; charset="utf-8"; format="flowed"
-Content-Transfer-Encoding: 8bit
+This patch allows to read temperature
+from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
 
-Hi Günter,
-
-Thanks for your answer.
-Well, we start with the layout. When a thermal event occur, the ab8500 
-hwmon driver will alarm via sysfs, a user space app will handle the 
-alarm and either modify max/min levels or issue a shutdown of the system.
-The shutdown will propagate to the sysctrl driver, and the sysctrl 
-driver will power off the system via register access to the analog 
-baseband. At this stage the sysctrl driver is not aware of the thermal 
-alarm, so it will perform a regular power off, instead of a thermal 
-power off.
-This is were the notification is needed. In sysctrl probe it will 
-register for the hwmon notification. Now the sysctrl driver gets 
-notified for every thermal alarm in the ab8500 hwmon driver (and if the 
-alarm is cleared by changing min/max levels). So, if there is a pending 
-thermal alarm when power off gets called the correct bit pattern for 
-thermal power off will be written to the analog baseband register.
-
-I'll attach other patch, affecting sysctrl, as well for reference.
-
-Thanks for the other comments. However, they are off topic for the 
-notifier discussion.
-
-Regards,
-/Daniel Willerud
-
-On 08/29/2011 06:02 PM, Guenter Roeck wrote:
-> On Mon, 2011-08-29 at 03:58 -0400, Daniel Willerud wrote:
->> Hi,
->>
->> I need our hwmon driver to notify the sysctrl driver if there is a
->> thermal warning when powering off the system.
->>
->> Please advice whether it is a good idea to add the notifier to the core
->> hwmon driver. I've attached the hwmon patch and our driver using the
->> notification.
->>
-> No idea either. Your code is a bit difficult to review since it is not
-> in patch form. Might be better to send it as series of rfc patches
-> instead.
->
-> Couple of comments:
->
-> There is no explanation in your code describing what the notifier is
-> supposed to be used for. Your calls to the notifier always pass a
-> boolean and NULL. The call actually registering the notifier function(s)
-> is not included, so it is a bit difficult to determine what the notified
-> code is expected to do. It gets a 1 as parameter - so what ? If the code
-> is supposed to be for some generic use, as the unused pointer indicates,
-> it should probably include some more useful parameters.
->
-> Defining a power off delay in a hwmon driver seems like a bad idea. That
-> kind of functionality does not belong into a hwmon driver.
->
-> The hwmon sysfs ABI defines an attribute named update_interval, which
-> you might want to use instead of temp_monitor_delay (which doesn't
-> really match its name).
->
-> Consider the following code sequence.
->
->      bool alarm;
->      ...
->      if (data->min[i] != 0) {
-> 	alarm = val<  data->min[i];
-> 	updated_min_alarm = alarm != data->min_alarm[i];
-> 	data->min_alarm[i] = alarm;
->      }
->
-> Instead of re-creating sysfs names again and again to generate sysfs
-> notifications, you might consider using the existing name string in the
-> attributes instead.
->
-> I don't think your code compiles ;). If it does, gpadc_monitor() won't
-> do what you expect it to do. Actually, it won't do what you expect it to
-> do anyway, since you don't reset the updated_xxx flags after each loop
-> iteration.
->
-> Guenter
->
->
-
---------------040707000606030708020905
-Content-Type: text/x-patch; name="0002-ux500-Thermal-power-off.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="0002-ux500-Thermal-power-off.patch"
-
-From 0b7dba4bb6d2bfc996758438a3118a931f7546f4 Mon Sep 17 00:00:00 2001
-From: Daniel Willerud <daniel.willerud@stericsson.com>
-Date: Thu, 25 Aug 2011 17:39:18 +0200
-Subject: [PATCH 2/2] ux500: Thermal power off
-
-To determine whether the system had a thermal power off or a regular software
-power off upon the next boot, the system must utilize the thermal power off
-bit, ThDB8500SWoff, in AB8500 register STw4500Ctrl1.
-
-ST-Ericsson ID: 354533
-ST-Ericsson Linux next: N/A
-ST-Ericsson FOSS-OUT ID: Trivial
-
-Change-Id: I07440dcdc39a86cb72aa95d86411a1f020b05cae
-Signed-off-by: Daniel Willerud <daniel.willerud@stericsson.com>
+Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
+Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/arm/mach-ux500/board-mop500.c |    1 +
- drivers/hwmon/ab8500.c             |    2 +
- drivers/hwmon/abx500.c             |    1 +
- drivers/hwmon/dbx500.c             |    1 +
- drivers/mfd/ab8500-sysctrl.c       |   50 +++++++++++++++++++++++++++++++++---
- include/linux/mfd/ab8500.h         |    6 ++++
- 6 files changed, 57 insertions(+), 4 deletions(-)
+Changes for v3
+  - cleaned up redundant code
+  - added mutex
+  - changed error codes
+Changes for v2
+  - added six attributes for alarms
+  - changed error code of EAGAIN
+  - changed initialize function to return error code
 
-diff --git a/arch/arm/mach-ux500/board-mop500.c b/arch/arm/mach-ux500/board-mop500.c
-index 1c8a18b..b654abd 100644
---- a/arch/arm/mach-ux500/board-mop500.c
-+++ b/arch/arm/mach-ux500/board-mop500.c
-@@ -944,6 +944,7 @@ static struct ab8500_audio_platform_data ab8500_audio_plat_data = {
- static struct ab8500_platform_data ab8500_platdata = {
- 	.irq_base = MOP500_AB8500_IRQ_BASE,
- 	.pm_power_off = true,
-+	.thermal_time_out = 20, /* seconds */
- 	.regulator_reg_init	= ab8500_regulator_reg_init,
- 	.num_regulator_reg_init	= ARRAY_SIZE(ab8500_regulator_reg_init),
- 	.regulator		= ab8500_regulators,
-diff --git a/drivers/hwmon/ab8500.c b/drivers/hwmon/ab8500.c
-index 83583c4..fb01cbc 100644
---- a/drivers/hwmon/ab8500.c
-+++ b/drivers/hwmon/ab8500.c
-@@ -117,6 +117,8 @@ static int ab8500_temp_irq_handler(int irq, struct abx500_temp *data)
- 	mutex_lock(&data->lock);
- 	data->crit_alarm[4] = 1;
- 	mutex_unlock(&data->lock);
+ Documentation/hwmon/exynos4_tmu           |   81 +++++
+ drivers/hwmon/Kconfig                     |   10 +
+ drivers/hwmon/Makefile                    |    1 +
+ drivers/hwmon/exynos4_tmu.c               |  530 +++++++++++++++++++++++++++++
+ include/linux/platform_data/exynos4_tmu.h |   81 +++++
+ 5 files changed, 703 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/exynos4_tmu
+ create mode 100644 drivers/hwmon/exynos4_tmu.c
+ create mode 100644 include/linux/platform_data/exynos4_tmu.h
+
+diff --git a/Documentation/hwmon/exynos4_tmu b/Documentation/hwmon/exynos4_tmu
+new file mode 100644
+index 0000000..7fe12c1
+--- /dev/null
++++ b/Documentation/hwmon/exynos4_tmu
+@@ -0,0 +1,81 @@
++Kernel driver exynos4_tmu
++========+
++Supported chips:
++* ARM SAMSUNG EXYNOS4 series of SoC
++  Prefix: 'exynos4-tmu'
++  Datasheet: Not publicly available
 +
-+	hwmon_notify(data->crit_alarm[4], NULL);
- 	sysfs_notify(&data->pdev->dev.kobj, NULL, "temp5_crit_alarm");
- 	dev_info(&data->pdev->dev, "AB8500 thermal warning,"
- 		" power off in %lu s\n", data->power_off_delay);
-diff --git a/drivers/hwmon/abx500.c b/drivers/hwmon/abx500.c
-index 6666dc2..68da2d0 100644
---- a/drivers/hwmon/abx500.c
-+++ b/drivers/hwmon/abx500.c
-@@ -163,6 +163,7 @@ static void gpadc_monitor(struct work_struct *work)
- 					ret);
- 				break;
- 			}
-+			hwmon_notify(data->max_alarm[i], NULL);
- 			sysfs_notify(&data->pdev->dev.kobj, NULL, alarm_node);
- 		}
- 		if (updated_max_hyst_alarm) {
-diff --git a/drivers/hwmon/dbx500.c b/drivers/hwmon/dbx500.c
-index a26e08b..cd44e78 100644
---- a/drivers/hwmon/dbx500.c
-+++ b/drivers/hwmon/dbx500.c
-@@ -323,6 +323,7 @@ static irqreturn_t prcmu_hotmon_high_irq_handler(int irq, void *irq_data)
- 	data->max_alarm[0] = 1;
- 	mutex_unlock(&data->lock);
++Authors: Donggeun Kim <dg77.kim@samsung.com>
++
++Description
++-----------
++
++This driver allows to read temperature inside SAMSUNG EXYNOS4 series of SoC.
++
++The chip only exposes the measured 8-bit temperature code value
++through a register.
++Temperature can be taken from the temperature code.
++There are three equations converting from temperature to temperature code.
++
++The three equations are:
++  1. Two point trimming
++ 	Tc = (T - 25) * (TI2 - TI1) / (85 - 25) + TI1
++
++  2. One point trimming
++ 	Tc = T + TI1 - 25
++
++  3. No trimming
++ 	Tc = T + 50
++
++  Tc: Temperature code, T: Temperature,
++  TI1: Trimming info for 25 degree Celsius (stored at TRIMINFO register)
++       Temperature code measured at 25 degree Celsius which is unchanged
++  TI2: Trimming info for 85 degree Celsius (stored at TRIMINFO register)
++       Temperature code measured at 85 degree Celsius which is unchanged
++
++TMU(Thermal Management Unit) in EXYNOS4 generates interrupt
++when temperature exceeds pre-defined levels.
++The maximum number of configurable threshold is four.
++The threshold levels are defined as follows:
++  Level_0: current temperature > trigger_level_0 + threshold
++  Level_1: current temperature > trigger_level_1 + threshold
++  Level_2: current temperature > trigger_level_2 + threshold
++  Level_3: current temperature > trigger_level_3 + threshold
++
++  The threshold and each trigger_level are set
++  through the corresponding registers.
++
++When an interrupt occurs, this driver notify user space of
++one of four threshold levels for the interrupt
++through kobject_uevent_env and sysfs_notify functions.
++Although an interrupt condition for level_0 can be set,
++it is not notified to user space through sysfs_notify function.
++
++Sysfs Interface
++---------------
++name		name of the temperature sensor
++		RO
++
++temp1_input	temperature
++		RO
++
++temp1_max	temperature for level_1 interrupt
++		RO
++
++temp1_crit	temperature for level_2 interrupt
++		RO
++
++temp1_emergency	temperature for level_3 interrupt
++		RO
++
++temp1_max_alarm	alarm for level_1 interrupt
++		RO
++
++temp1_crit_alarm
++		alarm for level_2 interrupt
++		RO
++
++temp1_emergency_alarm
++		alarm for level_3 interrupt
++		RO
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 0b62c3c..c6fb761 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -303,6 +303,16 @@ config SENSORS_DS1621
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ds1621.
  
-+	hwmon_notify(data->max_alarm[0], NULL);
- 	sysfs_notify(&pdev->dev.kobj, NULL, "temp1_max_alarm");
- 	dev_dbg(&pdev->dev, "DBX500 thermal warning, power off in %lu s\n",
- 		 (data->power_off_delay) / 1000);
-diff --git a/drivers/mfd/ab8500-sysctrl.c b/drivers/mfd/ab8500-sysctrl.c
-index d24c41f..b22c6bf 100644
---- a/drivers/mfd/ab8500-sysctrl.c
-+++ b/drivers/mfd/ab8500-sysctrl.c
-@@ -13,11 +13,15 @@
- #include <linux/mfd/ab8500.h>
- #include <linux/mfd/abx500.h>
- #include <linux/mfd/ab8500/sysctrl.h>
-+#include <linux/time.h>
++config SENSORS_EXYNOS4_TMU
++	tristate "Temperature sensor on Samsung EXYNOS4"
++	depends on EXYNOS4_DEV_TMU
++	help
++	  If you say yes here you get support for TMU (Thermal Managment
++	  Unit) on SAMSUNG EXYNOS4 series of SoC.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called exynos4-tmu.
++
+ config SENSORS_I5K_AMB
+ 	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
+ 	depends on PCI && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 3c9ccef..dbd8963 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -47,6 +47,7 @@ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
+ obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
+ obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
+ obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
++obj-$(CONFIG_SENSORS_EXYNOS4_TMU)	+= exynos4_tmu.o
+ obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
+ obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
+ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
+diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+new file mode 100644
+index 0000000..487bd13
+--- /dev/null
++++ b/drivers/hwmon/exynos4_tmu.c
+@@ -0,0 +1,530 @@
++/*
++ * exynos4_tmu.c - Samsung EXYNOS4 TMU (Thermal Management Unit)
++ *
++ *  Copyright (C) 2011 Samsung Electronics
++ *  Donggeun Kim <dg77.kim@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/clk.h>
++#include <linux/workqueue.h>
++#include <linux/sysfs.h>
++#include <linux/kobject.h>
++#include <linux/io.h>
++#include <linux/mutex.h>
++
 +#include <linux/hwmon.h>
- 
- static struct device *sysctrl_dev;
- 
- void ab8500_power_off(void)
- {
-+	struct ab8500_platform_data *plat;
-+	struct timespec ts;
- 	sigset_t old;
- 	sigset_t all;
- 	static char *pss[] = {"ab8500_ac", "ab8500_usb"};
-@@ -65,14 +69,51 @@ void ab8500_power_off(void)
- shutdown:
- 	sigfillset(&all);
- 
-+	plat = dev_get_platdata(sysctrl_dev->parent);
-+		getnstimeofday(&ts);
- 	if (!sigprocmask(SIG_BLOCK, &all, &old)) {
--		(void)ab8500_sysctrl_set(AB8500_STW4500CTRL1,
--					 AB8500_STW4500CTRL1_SWOFF |
--					 AB8500_STW4500CTRL1_SWRESET4500N);
--		(void)sigprocmask(SIG_SETMASK, &old, NULL);
-+		if (ts.tv_sec == 0 ||
-+			(ts.tv_sec - plat->thermal_set_time_sec >
-+				plat->thermal_time_out))
-+			plat->thermal_power_off_pending = false;
-+		if (!plat->thermal_power_off_pending) {
-+			(void)ab8500_sysctrl_set(AB8500_STW4500CTRL1,
-+				AB8500_STW4500CTRL1_SWOFF |
-+				AB8500_STW4500CTRL1_SWRESET4500N);
-+			(void)sigprocmask(SIG_SETMASK, &old, NULL);
-+		} else {
-+			(void)ab8500_sysctrl_set(AB8500_STW4500CTRL1,
-+				AB8500_STW4500CTRL1_THDB8500SWOFF |
-+				AB8500_STW4500CTRL1_SWRESET4500N);
-+			(void)sigprocmask(SIG_SETMASK, &old, NULL);
-+		}
- 	}
- }
- 
-+static int ab8500_notifier_call(struct notifier_block *this,
-+				unsigned long val, void *data)
-+{
-+	struct ab8500_platform_data *plat;
-+	static struct timespec ts;
-+	if (sysctrl_dev == NULL)
-+		return -EAGAIN;
++#include <linux/hwmon-sysfs.h>
 +
-+	plat = dev_get_platdata(sysctrl_dev->parent);
-+	if (val) {
-+		getnstimeofday(&ts);
-+		plat->thermal_set_time_sec = ts.tv_sec;
-+		plat->thermal_power_off_pending = true;
-+	} else {
-+		plat->thermal_set_time_sec = 0;
-+		plat->thermal_power_off_pending = false;
++#include <linux/platform_data/exynos4_tmu.h>
++
++#define EXYNOS4_TMU_REG_TRIMINFO	0x0
++#define EXYNOS4_TMU_REG_CONTROL		0x20
++#define EXYNOS4_TMU_REG_STATUS		0x28
++#define EXYNOS4_TMU_REG_CURRENT_TEMP	0x40
++#define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
++#define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
++#define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
++#define EXYNOS4_TMU_REG_TRIG_LEVEL2	0x58
++#define EXYNOS4_TMU_REG_TRIG_LEVEL3	0x5C
++#define EXYNOS4_TMU_REG_PAST_TEMP0	0x60
++#define EXYNOS4_TMU_REG_PAST_TEMP1	0x64
++#define EXYNOS4_TMU_REG_PAST_TEMP2	0x68
++#define EXYNOS4_TMU_REG_PAST_TEMP3	0x6C
++#define EXYNOS4_TMU_REG_INTEN		0x70
++#define EXYNOS4_TMU_REG_INTSTAT		0x74
++#define EXYNOS4_TMU_REG_INTCLEAR	0x78
++
++#define EXYNOS4_TMU_GAIN_SHIFT		8
++#define EXYNOS4_TMU_REF_VOLTAGE_SHIFT	24
++
++#define EXYNOS4_TMU_TRIM_TEMP_MASK	0xff
++#define EXYNOS4_TMU_CORE_ON	3
++#define EXYNOS4_TMU_CORE_OFF	2
++#define EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET	50
++#define EXYNOS4_TMU_TRIG_LEVEL0_MASK	0x1
++#define EXYNOS4_TMU_TRIG_LEVEL1_MASK	0x10
++#define EXYNOS4_TMU_TRIG_LEVEL2_MASK	0x100
++#define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
++#define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
++
++struct exynos4_tmu_data {
++	struct exynos4_tmu_platform_data *pdata;
++	struct device *hwmon_dev;
++	struct resource *mem;
++	void __iomem *base;
++	int irq;
++	struct work_struct irq_work;
++	struct mutex lock;
++	struct clk *clk;
++	unsigned int interrupt_stat;
++	u8 temp_error1, temp_error2;
++};
++
++/*
++ * TMU treats temperature as a mapped temperature code.
++ * The temperature is converted differently depending on the calibration type.
++ */
++static u8 translate_temp_to_code(struct exynos4_tmu_data *data, u8 temp)
++{
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int temp_code;
++
++	switch (pdata->cal_type) {
++	case TYPE_TWO_POINT_TRIMMING:
++		temp_code = (temp - 25) *
++		    (data->temp_error2 - data->temp_error1) /
++		    (85 - 25) + data->temp_error1;
++		break;
++	case TYPE_ONE_POINT_TRIMMING:
++		temp_code = temp + data->temp_error1 - 25;
++		break;
++	default:
++		temp_code = temp + EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
++		break;
 +	}
++
++	return temp_code;
++}
++
++/*
++ * Calculate a temperature value from a temperature code.
++ * The unit of the temperature is degree Celsius.
++ */
++static u8 translate_code_to_temp(struct exynos4_tmu_data *data, u8 temp_code)
++{
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int temp;
++
++	switch (pdata->cal_type) {
++	case TYPE_TWO_POINT_TRIMMING:
++		temp = (temp_code - data->temp_error1) * (85 - 25) /
++		    (data->temp_error2 - data->temp_error1) + 25;
++		break;
++	case TYPE_ONE_POINT_TRIMMING:
++		temp = temp_code - data->temp_error1 + 25;
++		break;
++	default:
++		temp = temp_code - EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
++		break;
++	}
++
++	return temp;
++}
++
++static int exynos4_tmu_initialize(struct platform_device *pdev)
++{
++	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int status, trim_info;
++	u8 threshold_code;
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
++	if (!status) {
++		clk_disable(data->clk);
++		mutex_unlock(&data->lock);
++		return -EBUSY;
++	}
++
++	/* Save trimming info in order to perform calibration */
++	trim_info = readl(data->base + EXYNOS4_TMU_REG_TRIMINFO);
++	data->temp_error1 = trim_info & EXYNOS4_TMU_TRIM_TEMP_MASK;
++	data->temp_error2 = ((trim_info >> 8) & EXYNOS4_TMU_TRIM_TEMP_MASK);
++
++	/* Write temperature code for threshold */
++	threshold_code = translate_temp_to_code(data, pdata->threshold);
++	writeb(threshold_code,
++		data->base + EXYNOS4_TMU_REG_THRESHOLD_TEMP);
++
++	writeb(pdata->trigger_levels[0],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL0);
++	writeb(pdata->trigger_levels[1],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL1);
++	writeb(pdata->trigger_levels[2],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL2);
++	writeb(pdata->trigger_levels[3],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL3);
++
++	writel(EXYNOS4_TMU_INTCLEAR_VAL,
++		data->base + EXYNOS4_TMU_REG_INTCLEAR);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++
 +	return 0;
 +}
 +
-+static struct notifier_block ab8500_notifier = {
-+	.notifier_call = ab8500_notifier_call,
++static void exynos4_tmu_control(struct platform_device *pdev, bool on)
++{
++	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int con, interrupt_en;
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	interrupt_en = pdata->trigger_level3_en << 12 |
++		pdata->trigger_level2_en << 8 |
++		pdata->trigger_level1_en << 4 |
++		pdata->trigger_level0_en;
++
++	con = pdata->reference_voltage << EXYNOS4_TMU_REF_VOLTAGE_SHIFT |
++		pdata->gain << EXYNOS4_TMU_GAIN_SHIFT;
++	if (on)
++		con |= EXYNOS4_TMU_CORE_ON;
++	else {
++		con |= EXYNOS4_TMU_CORE_OFF;
++		interrupt_en = 0; /* Disable all interrupts */
++	}
++	writel(interrupt_en, data->base + EXYNOS4_TMU_REG_INTEN);
++	writel(con, data->base + EXYNOS4_TMU_REG_CONTROL);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++}
++
++static int exynos4_tmu_read(struct exynos4_tmu_data *data)
++{
++	u8 temp_code, temp;
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
++	if (!temp_code) {
++		clk_disable(data->clk);
++		mutex_unlock(&data->lock);
++		return -ENODATA;
++	}
++	temp = translate_code_to_temp(data, temp_code);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++
++	return temp;
++}
++
++static void exynos4_tmu_work(struct work_struct *work)
++{
++	struct exynos4_tmu_data *data = container_of(work,
++			struct exynos4_tmu_data, irq_work);
++	char *envp[2];
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	data->interrupt_stat = readl(data->base + EXYNOS4_TMU_REG_INTSTAT);
++
++	writel(EXYNOS4_TMU_INTCLEAR_VAL, data->base + EXYNOS4_TMU_REG_INTCLEAR);
++
++	if (data->interrupt_stat & EXYNOS4_TMU_TRIG_LEVEL3_MASK) {
++		envp[0] = "TRIG_LEVEL=3";
++		sysfs_notify(&data->hwmon_dev->kobj, NULL,
++			"temp1_emergency_alarm");
++	} else if (data->interrupt_stat & EXYNOS4_TMU_TRIG_LEVEL2_MASK) {
++		envp[0] = "TRIG_LEVEL=2";
++		sysfs_notify(&data->hwmon_dev->kobj, NULL,
++			"temp1_crit_alarm");
++	} else if (data->interrupt_stat & EXYNOS4_TMU_TRIG_LEVEL1_MASK) {
++		envp[0] = "TRIG_LEVEL=1";
++		sysfs_notify(&data->hwmon_dev->kobj, NULL, "temp1_max_alarm");
++	} else
++		envp[0] = "TRIG_LEVEL=0";
++	envp[1] = NULL;
++
++	kobject_uevent_env(&data->hwmon_dev->kobj, KOBJ_CHANGE, envp);
++
++	enable_irq(data->irq);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++}
++
++static irqreturn_t exynos4_tmu_irq(int irq, void *id)
++{
++	struct exynos4_tmu_data *data = id;
++
++	disable_irq_nosync(irq);
++	schedule_work(&data->irq_work);
++
++	return IRQ_HANDLED;
++}
++
++static ssize_t exynos4_tmu_show_name(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "exynos4-tmu\n");
++}
++
++static ssize_t exynos4_tmu_show_temp(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
++	int ret;
++
++	ret = exynos4_tmu_read(data);
++	if (ret < 0)
++		return ret;
++	/* convert from degree Celsius to millidegree Celsius */
++	return sprintf(buf, "%d\n", ret * 1000);
++}
++
++static ssize_t exynos4_tmu_show_alarm(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	int temp, trigger_level;
++
++	temp = exynos4_tmu_read(data);
++	if (temp < 0)
++		return temp;
++
++	trigger_level = pdata->threshold + pdata->trigger_levels[attr->index];
++	return sprintf(buf, "%d\n", temp > trigger_level ? 1 : 0);
++}
++
++static ssize_t exynos4_tmu_show_level(struct device *dev,
++		struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int temp = pdata->threshold +
++			pdata->trigger_levels[attr->index];
++
++	return sprintf(buf, "%d\n", temp * 1000);
++}
++
++static DEVICE_ATTR(name, S_IRUGO, exynos4_tmu_show_name, NULL);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, exynos4_tmu_show_temp, NULL, 0);
++
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
++		exynos4_tmu_show_alarm, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
++		exynos4_tmu_show_alarm, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp1_emergency_alarm, S_IRUGO,
++		exynos4_tmu_show_alarm, NULL, 3);
++
++static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, exynos4_tmu_show_level, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, exynos4_tmu_show_level, NULL, 2);
++static SENSOR_DEVICE_ATTR(temp1_emergency, S_IRUGO,
++		exynos4_tmu_show_level, NULL, 3);
++
++static struct attribute *exynos4_tmu_attributes[] = {
++	&dev_attr_name.attr,
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_emergency_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
++	NULL,
 +};
 +
- static inline bool valid_bank(u8 bank)
- {
- 	return ((bank == AB8500_SYS_CTRL1_BLOCK) ||
-@@ -117,6 +158,7 @@ static int __devinit ab8500_sysctrl_probe(struct platform_device *pdev)
- 	plat = dev_get_platdata(pdev->dev.parent);
- 	if (plat->pm_power_off)
- 		pm_power_off = ab8500_power_off;
-+	hwmon_notifier_register(&ab8500_notifier);
- 	return 0;
- }
- 
-diff --git a/include/linux/mfd/ab8500.h b/include/linux/mfd/ab8500.h
-index 6384046..efcc60e 100644
---- a/include/linux/mfd/ab8500.h
-+++ b/include/linux/mfd/ab8500.h
-@@ -180,6 +180,9 @@ struct ab8500_gpio_platform_data;
- /**
-  * struct ab8500_platform_data - AB8500 platform data
-  * @pm_power_off: Should machine pm power off hook be registered or not
-+ * @thermal_power_off_pending: Set if there was a thermal alarm
-+ * @thermal_set_time_sec: Time of the thermal alarm
-+ * @thermal_time_out: Time out before the thermal alarm should be ignored
-  * @irq_base: start of AB8500 IRQs, AB8500_NR_IRQS will be used
-  * @init: board-specific initialization after detection of ab8500
-  * @num_regulator_reg_init: number of regulator init registers
-@@ -194,6 +197,9 @@ struct ab8500_gpio_platform_data;
- struct ab8500_platform_data {
- 	int irq_base;
- 	bool pm_power_off;
-+	bool thermal_power_off_pending;
-+	long thermal_set_time_sec;
-+	long thermal_time_out;
- 	void (*init) (struct ab8500 *);
- 	int num_regulator_reg_init;
- 	struct ab8500_regulator_reg_init *regulator_reg_init;
++static const struct attribute_group exynos4_tmu_attr_group = {
++	.attrs = exynos4_tmu_attributes,
++};
++
++static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
++{
++	struct exynos4_tmu_data *data;
++	struct exynos4_tmu_platform_data *pdata = pdev->dev.platform_data;
++	int ret;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "No platform init data supplied.\n");
++		return -ENODEV;
++	}
++
++	data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
++	if (!data) {
++		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
++		return -ENOMEM;
++	}
++
++	data->irq = platform_get_irq(pdev, 0);
++	if (data->irq < 0) {
++		ret = data->irq;
++		dev_err(&pdev->dev, "Failed to get platform irq\n");
++		goto err_free;
++	}
++
++	INIT_WORK(&data->irq_work, exynos4_tmu_work);
++
++	data->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!data->mem) {
++		ret = -ENOENT;
++		dev_err(&pdev->dev, "Failed to get platform resource\n");
++		goto err_free;
++	}
++
++	data->mem = request_mem_region(data->mem->start,
++			resource_size(data->mem), pdev->name);
++	if (!data->mem) {
++		ret = -ENODEV;
++		dev_err(&pdev->dev, "Failed to request memory region\n");
++		goto err_free;
++	}
++
++	data->base = ioremap(data->mem->start, resource_size(data->mem));
++	if (!data->base) {
++		ret = -ENODEV;
++		dev_err(&pdev->dev, "Failed to ioremap memory\n");
++		goto err_mem_region;
++	}
++
++	ret = request_irq(data->irq, exynos4_tmu_irq,
++		IRQF_DISABLED | IRQF_TRIGGER_RISING,
++		"exynos4-tmu", data);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
++		goto err_io_remap;
++	}
++
++	data->clk = clk_get(NULL, "tmu_apbif");
++	if (IS_ERR(data->clk)) {
++		ret = PTR_ERR(data->clk);
++		dev_err(&pdev->dev, "Failed to get clock\n");
++		goto err_irq;
++	}
++
++	data->pdata = pdata;
++	platform_set_drvdata(pdev, data);
++	mutex_init(&data->lock);
++
++	ret = exynos4_tmu_initialize(pdev);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to initialize TMU\n");
++		goto err_clk;
++	}
++
++	ret = sysfs_create_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to create sysfs group\n");
++		goto err_clk;
++	}
++
++	data->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		ret = PTR_ERR(data->hwmon_dev);
++		dev_err(&pdev->dev, "Failed to register hwmon device\n");
++		goto err_create_group;
++	}
++
++	exynos4_tmu_control(pdev, true);
++
++	return 0;
++
++err_create_group:
++	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
++err_clk:
++	platform_set_drvdata(pdev, NULL);
++	clk_put(data->clk);
++err_irq:
++	free_irq(data->irq, data);
++err_io_remap:
++	iounmap(data->base);
++err_mem_region:
++	release_mem_region(data->mem->start, resource_size(data->mem));
++err_free:
++	kfree(data);
++
++	return ret;
++}
++
++static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
++{
++	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++
++	exynos4_tmu_control(pdev, false);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
++
++	clk_put(data->clk);
++
++	free_irq(data->irq, data);
++
++	iounmap(data->base);
++	release_mem_region(data->mem->start, resource_size(data->mem));
++
++	platform_set_drvdata(pdev, NULL);
++
++	kfree(data);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	exynos4_tmu_control(pdev, false);
++
++	return 0;
++}
++
++static int exynos4_tmu_resume(struct platform_device *pdev)
++{
++	exynos4_tmu_initialize(pdev);
++	exynos4_tmu_control(pdev, true);
++
++	return 0;
++}
++#else
++#define exynos4_tmu_suspend NULL
++#define exynos4_tmu_resume NULL
++#endif
++
++static struct platform_driver exynos4_tmu_driver = {
++	.driver = {
++		.name   = "exynos4-tmu",
++		.owner  = THIS_MODULE,
++	},
++	.probe = exynos4_tmu_probe,
++	.remove	= __devexit_p(exynos4_tmu_remove),
++	.suspend = exynos4_tmu_suspend,
++	.resume = exynos4_tmu_resume,
++};
++
++static int __init exynos4_tmu_driver_init(void)
++{
++	return platform_driver_register(&exynos4_tmu_driver);
++}
++module_init(exynos4_tmu_driver_init);
++
++static void __exit exynos4_tmu_driver_exit(void)
++{
++	platform_driver_unregister(&exynos4_tmu_driver);
++}
++module_exit(exynos4_tmu_driver_exit);
++
++MODULE_DESCRIPTION("EXYNOS4 TMU Driver");
++MODULE_AUTHOR("Donggeun Kim <dg77.kim@samsung.com>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:exynos4-tmu");
+diff --git a/include/linux/platform_data/exynos4_tmu.h b/include/linux/platform_data/exynos4_tmu.h
+new file mode 100644
+index 0000000..d80d1f1
+--- /dev/null
++++ b/include/linux/platform_data/exynos4_tmu.h
+@@ -0,0 +1,81 @@
++/*
++ * exynos4_tmu.h - Samsung EXYNOS4 TMU (Thermal Management Unit)
++ *
++ *  Copyright (C) 2011 Samsung Electronics
++ *  Donggeun Kim <dg77.kim@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef _LINUX_EXYNOS4_TMU_H
++#define _LINUX_EXYNOS4_TMU_H
++
++enum calibration_type {
++	TYPE_ONE_POINT_TRIMMING,
++	TYPE_TWO_POINT_TRIMMING,
++	TYPE_NONE,
++};
++
++/**
++ * struct exynos4_tmu_platform_data
++ * @threshold: basic temperature for generating interrupt
++ * @trigger_levels: array for each interrupt levels
++ *	0 : temperature for trigger_level0 interrupt
++ *	    condition for trigger_level0 interrupt:
++ *		current temperature > threshold + trigger_levels[0]
++ *	1 : temperature for trigger_level1 interrupt
++ *	    condition for trigger_level1 interrupt:
++ *		current temperature > threshold + trigger_levels[1]
++ *	2 : temperature for trigger_level2 interrupt
++ *	    condition for trigger_level2 interrupt:
++ *		current temperature > threshold + trigger_levels[2]
++ *	3 : temperature for trigger_level3 interrupt
++ *	    condition for trigger_level3 interrupt:
++ *		current temperature > threshold + trigger_levels[3]
++ * @trigger_level0_en:
++ *	1 = enable trigger_level0 interrupt,
++ *	0 = disable trigger_level0 interrupt
++ * @trigger_level1_en:
++ *	1 = enable trigger_level1 interrupt,
++ *	0 = disable trigger_level1 interrupt
++ * @trigger_level2_en:
++ *	1 = enable trigger_level2 interrupt,
++ *	0 = disable trigger_level2 interrupt
++ * @trigger_level3_en:
++ *	1 = enable trigger_level3 interrupt,
++ *	0 = disable trigger_level3 interrupt
++ * @gain: gain of amplifier in the positive-TC generator block
++ *	0 <= gain <= 15
++ * @reference_voltage: reference voltage of amplifier
++ *	in the positive-TC generator block
++ *	0 <= reference_voltage <= 31
++ * @cal_type: calibration type for temperature
++ *
++ * This structure is required for configuration of exynos4_tmu driver.
++ */
++struct exynos4_tmu_platform_data {
++	u8 threshold;
++	u8 trigger_levels[4];
++	bool trigger_level0_en;
++	bool trigger_level1_en;
++	bool trigger_level2_en;
++	bool trigger_level3_en;
++
++	u8 gain;
++	u8 reference_voltage;
++
++	enum calibration_type cal_type;
++};
++#endif /* _LINUX_EXYNOS4_TMU_H */
 -- 
 1.7.4.1
 
-
---------------040707000606030708020905
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------040707000606030708020905--
