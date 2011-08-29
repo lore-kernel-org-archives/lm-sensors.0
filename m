@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 29 Aug 2011 14:11:02 +0000
+Date: Mon, 29 Aug 2011 15:17:45 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <20110829141102.GA22151@ericsson.com>
+Message-Id: <1314631065.2796.156.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1314613983-3331-1-git-send-email-dg77.kim@samsung.com>
 In-Reply-To: <1314613983-3331-1-git-send-email-dg77.kim@samsung.com>
@@ -10,71 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Aug 29, 2011 at 08:22:07AM -0400, R, Durgadoss wrote:
+On Mon, 2011-08-29 at 08:22 -0400, R, Durgadoss wrote:
 > Hi,
 > 
 > Some minor comments.
 > Removing the clean code, to reduce traffic.
+[ ... ]
+> > +
+> > +static int exynos4_tmu_read(struct exynos4_tmu_data *data)
 > 
-> > +Sysfs Interface
-> > +---------------
-> > +name		name of the temperature sensor
-> > +		RO
-> > +
-> > +temp1_input	temperature
-> > +		RO
-> > +
-> > +temp1_max	temperature for level_1 interrupt
-> > +		RO
-> > +
-> > +temp1_crit	temperature for level_2 interrupt
-> > +		RO
-> > +
-> > +temp1_emergency	temperature for level_3 interrupt
-> > +		RO
-> > +
-> > +temp1_max_alarm	alarm for level_1 interrupt
-> > +		RO
-> > +
-> > +temp1_crit_alarm
-> > +		alarm for level_2 interrupt
-> > +		RO
-> > +
-> > +temp1_emergency_alarm
-> > +		alarm for level_3 interrupt
-> > +		RO
+> The return type can better be 'u8', since translate_code_to_temp(...)
+> returns a 'u8'.
 > 
-> All these are standard ABI for Thermal related Hwmon drivers.
-> So, Do we really need to have them explained here again ?
+> > +static irqreturn_t exynos4_tmu_irq(int irq, void *id)
+> > +{
+> > +	struct exynos4_tmu_data *data = id;
 > 
-> Guenter/Jean, I would like to see your inputs here.
-> 
-For my part, I think listing the attributes is useful to show the user
-which attributes are supported without having to look into the code.
-In this case, listing the attributes is even more useful because it shows
-that the limits are RO.
+> I am not sure whether we _must_ cast 'id', as (struct exynos4_tmu_data *)..
+>  
+Typecast is not necessary for void pointers.
 
-> > +static int exynos4_tmu_initialize(struct platform_device *pdev)
+[ ... ]
+
+> 
+> > +static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
 > > +{
 > > +	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
-> > +	struct exynos4_tmu_platform_data *pdata = data->pdata;
-> > +	unsigned int status, trim_info;
+> > +
+> > +	exynos4_tmu_control(pdev, false);
+> > +
+> > +	hwmon_device_unregister(data->hwmon_dev);
+> > +	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
 > 
-> Can the status be a 'u8' since we are populating it with readb(...) ?
-> I am blindly assuming readb returns a byte. Please correct me if I am wrong.
+> Shouldn't we send a KOBJ_REMOVE event here ?
 > 
-One general comment regarding variable types. On many platforms, u8 is more
-expensive than int or unsigned int because the compiler needs to mask pretty much
-every operation. That is probably not an issue for Intel CPUs, but for most others.
-For that reason, I usually leave it to the implementors to decide what variable
-types to use.
+sysfs_remove_group should take care of that, though I did not test it
+and may be wrong.
 
-That is a bit different for stored data, but even there it does not provide value 
-to embed an u8 in integers because the compiler will end up aligning the structure
-anyway. 
-
-Thanks,
 Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
