@@ -1,118 +1,92 @@
-From: "Ask Me" <sblood@gmail.com>
-Date: Wed, 10 Aug 2011 18:34:24 +0000
-Subject: [lm-sensors] Unsuported ITE chipset 0x8771
-Message-Id: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2229811988638341840=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 29 Aug 2011 11:38:35 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm90) Fix warnings
+Message-Id: <20110829133835.3b8fb7f2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Det hdr dr ett flerdelat meddelande i MIME-format.
+With some configuration option combinations, we get the following
+warnings:
 
---===============2229811988638341840==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000F_01CC579C.E4B873F0"
+drivers/hwmon/lm90.c: In function 'lm90_detect':
+drivers/hwmon/lm90.c:1114: warning: 'chip_id' may be used uninitialized
+in this function
+drivers/hwmon/lm90.c:1114: warning: 'reg_config1' may be used
+uninitialized in this function
+drivers/hwmon/lm90.c:1114: warning: 'reg_convrate' may be used
+uninitialized in this function
+drivers/hwmon/lm90.c:1187: warning: 'reg_emerg2' may be used
+uninitialized in this function
+drivers/hwmon/lm90.c:1187: warning: 'reg_status2' may be used
+uninitialized in this function
 
-Det hdr dr ett flerdelat meddelande i MIME-format.
+We can solve these easily by reading the register values first and
+checking for errors later. These errors should be very rare, even in
+the case of failed detection, so this change has no impact on
+performance. And this makes checkpatch.pl happier.
 
-------=_NextPart_000_000F_01CC579C.E4B873F0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Reported-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/lm90.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-Hi
-
-I have bought a Asus E35M1-I DELUXE motherboard and it uses the k10temp =
-module for checking the CPU temperature. And it works correctly.
-But the fan and voltage monitoring is not supported at this time by =
-lm-sensors.
-
-Do anyone have any idea on how to get this supported or if any current =
-module will work with some editing?
-If I understand the all mighty google =3D) then it's a ITE chipset that =
-is used for reporting fan speed.
-
-The latest lm-sensors give me following information
-Trying family `ITE'...                                      Yes
-Found unknown chip with ID 0x8771
-    (logical device 4 has address 0x290, could be sensors)
-Probing for Super-I/O at 0x4e/0x4f
-
-
-I'm building a quiet htpc and whould like to be able to controll and =
-monitor the fan speed.
-Is there anything I can do to help to get this chipset supported? I'm =
-not a C programmer but I can do some test on my machine.
-
-//Martin
-------=_NextPart_000_000F_01CC579C.E4B873F0
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META content=3Dtext/html;charset=3Diso-8859-1 =
-http-equiv=3DContent-Type>
-<META name=3DGENERATOR content=3D"MSHTML 8.00.7601.17622"></HEAD>
-<BODY style=3D"PADDING-LEFT: 10px; PADDING-RIGHT: 10px; PADDING-TOP: =
-15px"=20
-id=3DMailContainerBody leftMargin=3D0 topMargin=3D0 =
-CanvasTabStop=3D"true"=20
-name=3D"Compose message area">
-<DIV><FONT face=3DCalibri>Hi</FONT></DIV>
-<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCalibri>I have bought a Asus E35M1-I DELUXE =
-motherboard and it=20
-uses the k10temp module for checking the CPU temperature. And it works=20
-correctly.</FONT></DIV>
-<DIV><FONT face=3DCalibri>But the fan&nbsp;and voltage =
-monitoring&nbsp;is not=20
-supported at this time by lm-sensors.</FONT></DIV>
-<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCalibri>Do anyone have any idea on how to get this =
-supported or=20
-if any current module will work with some editing?</FONT></DIV>
-<DIV><FONT face=3DCalibri>If I understand the all mighty google =3D) =
-then it's a ITE=20
-chipset that is used for reporting fan speed.</FONT></DIV>
-<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCalibri>The latest lm-sensors give me following=20
-information</FONT></DIV>
-<DIV><FONT face=3DCalibri>Trying family=20
-`ITE'...&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp=
-;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;=
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&=
-nbsp;&nbsp;=20
-Yes<BR>Found unknown chip with ID 0x8771<BR>&nbsp;&nbsp;&nbsp; (logical =
-device 4=20
-has address 0x290, could be sensors)<BR>Probing for Super-I/O at=20
-0x4e/0x4f</FONT></DIV>
-<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCalibri>I'm building a quiet htpc and whould like to =
-be able to=20
-controll and monitor the fan speed.</FONT></DIV>
-<DIV><FONT face=3DCalibri>Is there anything I can do to help to get this =
-chipset=20
-supported? I'm not a C programmer but I can do some test on my=20
-machine.</FONT></DIV>
-<DIV><FONT face=3DCalibri></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DCalibri>//Martin</FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_000F_01CC579C.E4B873F0--
+--- linux-3.1-rc3.orig/drivers/hwmon/lm90.c	2011-08-29 11:13:19.000000000 +0200
++++ linux-3.1-rc3/drivers/hwmon/lm90.c	2011-08-29 11:28:42.000000000 +0200
+@@ -1117,14 +1117,12 @@ static int lm90_detect(struct i2c_client
+ 		return -ENODEV;
+ 
+ 	/* detection and identification */
+-	if ((man_id = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_MAN_ID)) < 0
+-	 || (chip_id = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CHIP_ID)) < 0
+-	 || (reg_config1 = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CONFIG1)) < 0
+-	 || (reg_convrate = i2c_smbus_read_byte_data(new_client,
+-						LM90_REG_R_CONVRATE)) < 0)
++	man_id = i2c_smbus_read_byte_data(new_client, LM90_REG_R_MAN_ID);
++	chip_id = i2c_smbus_read_byte_data(new_client, LM90_REG_R_CHIP_ID);
++	reg_config1 = i2c_smbus_read_byte_data(new_client, LM90_REG_R_CONFIG1);
++	reg_convrate = i2c_smbus_read_byte_data(new_client,
++						LM90_REG_R_CONVRATE);
++	if (man_id < 0 || chip_id < 0 || reg_config1 < 0 || reg_convrate < 0)
+ 		return -ENODEV;
+ 
+ 	if (man_id = 0x01 || man_id = 0x5C || man_id = 0x41) {
+@@ -1192,13 +1190,16 @@ static int lm90_detect(struct i2c_client
+ 		 * exists, both readings will reflect the same value. Otherwise,
+ 		 * the readings will be different.
+ 		 */
+-		if ((reg_emerg = i2c_smbus_read_byte_data(new_client,
+-						MAX6659_REG_R_REMOTE_EMERG)) < 0
+-		 || i2c_smbus_read_byte_data(new_client, LM90_REG_R_MAN_ID) < 0
+-		 || (reg_emerg2 = i2c_smbus_read_byte_data(new_client,
+-						MAX6659_REG_R_REMOTE_EMERG)) < 0
+-		 || (reg_status2 = i2c_smbus_read_byte_data(new_client,
+-						MAX6696_REG_R_STATUS2)) < 0)
++		reg_emerg = i2c_smbus_read_byte_data(new_client,
++						  MAX6659_REG_R_REMOTE_EMERG);
++		man_id = i2c_smbus_read_byte_data(new_client,
++						  LM90_REG_R_MAN_ID);
++		reg_emerg2 = i2c_smbus_read_byte_data(new_client,
++						  MAX6659_REG_R_REMOTE_EMERG);
++		reg_status2 = i2c_smbus_read_byte_data(new_client,
++						       MAX6696_REG_R_STATUS2);
++		if (reg_emerg < 0 || man_id < 0 || reg_emerg2 < 0
++		 || reg_status2 < 0)
+ 			return -ENODEV;
+ 
+ 		/*
 
 
-
---===============2229811988638341840==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2229811988638341840==--
-
