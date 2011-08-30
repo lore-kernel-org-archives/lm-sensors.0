@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 30 Aug 2011 07:14:12 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 30 Aug 2011 14:26:44 +0000
 Subject: Re: [lm-sensors] [PATCH RFC] hwmon: (max16065) Add chip access
-Message-Id: <20110830091412.7b8f964d@endymion.delvare>
+Message-Id: <20110830142644.GA24125@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1314683876-16557-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1314683876-16557-1-git-send-email-guenter.roeck@ericsson.com>
@@ -10,47 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 29 Aug 2011 22:57:56 -0700, Guenter Roeck wrote:
-> The chips supported by the max16065 driver should not be accessed using direct
-> i2ctools commands. Add warning to driver documentation to alert users.
+On Tue, Aug 30, 2011 at 03:14:12AM -0400, Jean Delvare wrote:
+> On Mon, 29 Aug 2011 22:57:56 -0700, Guenter Roeck wrote:
+> > The chips supported by the max16065 driver should not be accessed using direct
+> > i2ctools commands. Add warning to driver documentation to alert users.
+> > 
+> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> > ---
+> > RFC: Do we want this kind of warning in driver documentation ?
 > 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> RFC: Do we want this kind of warning in driver documentation ?
+> Sure, this can't hurt. Maybe we could add a section in i2c-tools'
+> documentation as well, listing the dangerous chips, starting with this
+> one? i2cdetect already has a note about the AT24RF08 for historical
+> reasons, I wouldn't mind documenting the "dangerous" chips more
+> prominently. Hopefully the list will stay short.
+> 
+Hopefully yes. Many of the PMBus chips are potentially affected, though.
+They typically have a means to protect settings from overwrite, but if that
+is not enabled, one can be in hot water. Worst I have seen so far was
+to execute i2cdump on an eval board and it lost its configuration :(.
 
-Sure, this can't hurt. Maybe we could add a section in i2c-tools'
-documentation as well, listing the dangerous chips, starting with this
-one? i2cdetect already has a note about the AT24RF08 for historical
-reasons, I wouldn't mind documenting the "dangerous" chips more
-prominently. Hopefully the list will stay short.
+[ ... ]
 
 > 
->  Documentation/hwmon/max16065 |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
+> Acked-by: Jean Delvare <khali@linux-fr.org>
 > 
-> diff --git a/Documentation/hwmon/max16065 b/Documentation/hwmon/max16065
-> index 44b4f61..c11f64a 100644
-> --- a/Documentation/hwmon/max16065
-> +++ b/Documentation/hwmon/max16065
-> @@ -62,6 +62,13 @@ can be safely used to identify the chip. You will have to instantiate
->  the devices explicitly. Please see Documentation/i2c/instantiating-devices for
->  details.
->  
-> +WARNING: Do not access chip registers using the i2cdump command, and do not use
-> +any of the i2ctools commands on a command register (0xa5 to 0xac). The chips
-> +supported by this driver interpret any access to a command register (including
-> +read commands) as request to execute the command in question. This may result in
-> +power loss, board resets, and/or Flash corruption. Worst case, your board may
-> +turn into a brick.
-> +
->  
->  Sysfs entries
->  -------------
+Thanks for the review!
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
--- 
-Jean Delvare
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
