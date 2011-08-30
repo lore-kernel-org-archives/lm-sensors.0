@@ -1,62 +1,67 @@
-From: Donggeun Kim <dg77.kim@samsung.com>
-Date: Fri, 26 Aug 2011 02:20:05 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <4E5702D5.6080200@samsung.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 30 Aug 2011 20:05:17 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm73) Make detection less problematic
+Message-Id: <20110830220517.381f6b4e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1314260034-10358-1-git-send-email-dg77.kim@samsung.com>
-In-Reply-To: <1314260034-10358-1-git-send-email-dg77.kim@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 2011년 08월 26일 01:26, Guenter Roeck wrote:
-> On Thu, 2011-08-25 at 04:13 -0400, Donggeun Kim wrote:
->> +static void exynos4_tmu_initialize(struct platform_device *pdev)
->> +{
->> +       struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
->> +       struct exynos4_tmu_platform_data *pdata = data->pdata;
->> +       unsigned int status, trim_info, interrupt_en;
->> +       u8 threshold_code;
->> +
->> +       clk_enable(data->clk);
->> +
->> +       status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
->> +       if (!status) {
->> +               printk(KERN_INFO "TMU is busy\n");
-> 
-> Please use dev_info(&pdev->dev, ...);
-> 
->> +               clk_disable(data->clk);
->> +               return;
-> 
-> Are you sure it is a good idea to ignore this error ? Limits won't be
-> set, threshold won't be set, trigger levels won't be set. In other
-> words, the chip is left in a completely uninitialized and thus
-> unpredictable state.
-> 
-> It might be better to abort driver initialization if this happens.
-> 
-I should have handled this as a error. I will fix it.
+Word reads can cause trouble with some I2C devices, so do as much
+detection as we can using only byte reads, and only use a word read in
+the end to confirm the positive match. Also properly handle read
+errors.
 
->> +static int exynos4_tmu_read(struct exynos4_tmu_data *data, u8 *temp)
->> +{
->> +       u8 temp_code;
->> +
->> +       clk_enable(data->clk);
->> +
->> +       temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
->> +       if (!temp_code) {
->> +               dev_err(data->hwmon_dev, "Failed to read temperature code\n");
-> 
-> dev_err and EAGAIN ? Is this really necessary ? EAGAIN will result in a
-> retry; if the condition is permanent you'll fill the log pretty quickly.
-> 
-Okay, it would be better to change the error code.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Robert Casanova <robertcasanova@nanometrics.ca>
+---
+ drivers/hwmon/lm73.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-Thanks for your review.
+--- linux-3.1-rc4.orig/drivers/hwmon/lm73.c	2011-07-22 04:17:23.000000000 +0200
++++ linux-3.1-rc4/drivers/hwmon/lm73.c	2011-08-30 21:13:46.000000000 +0200
+@@ -150,17 +150,31 @@ static int lm73_detect(struct i2c_client
+ 			struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = new_client->adapter;
+-	u16 id;
+-	u8 ctrl;
++	int id, ctrl, conf;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+ 					I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+ 
++	/*
++	 * Do as much detection as possible with byte reads first, as word
++	 * reads can confuse other devices.
++	 */
++	ctrl = i2c_smbus_read_byte_data(new_client, LM73_REG_CTRL);
++	if (ctrl < 0 || (ctrl & 0x10))
++		return -ENODEV;
++
++	conf = i2c_smbus_read_byte_data(new_client, LM73_REG_CONF);
++	if (conf < 0 || (conf & 0x0c))
++		return -ENODEV;
++
++	id = i2c_smbus_read_byte_data(new_client, LM73_REG_ID);
++	if (id < 0 || id != (LM73_ID & 0xff))
++		return -ENODEV;
++
+ 	/* Check device ID */
+ 	id = i2c_smbus_read_word_data(new_client, LM73_REG_ID);
+-	ctrl = i2c_smbus_read_byte_data(new_client, LM73_REG_CTRL);
+-	if ((id != LM73_ID) || (ctrl & 0x10))
++	if (id < 0 || id != LM73_ID)
+ 		return -ENODEV;
+ 
+ 	strlcpy(info->type, "lm73", I2C_NAME_SIZE);
 
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
