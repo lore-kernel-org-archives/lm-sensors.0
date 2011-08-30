@@ -1,54 +1,68 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 29 Aug 2011 15:17:45 +0000
+From: Donggeun Kim <dg77.kim@samsung.com>
+Date: Tue, 30 Aug 2011 10:46:51 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <1314631065.2796.156.camel@groeck-laptop>
+Message-Id: <4E5CBF9B.9070606@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1314613983-3331-1-git-send-email-dg77.kim@samsung.com>
 In-Reply-To: <1314613983-3331-1-git-send-email-dg77.kim@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2011-08-29 at 08:22 -0400, R, Durgadoss wrote:
+On 2011년 08월 29일 21:22, R, Durgadoss wrote:
 > Hi,
 > 
 > Some minor comments.
 > Removing the clean code, to reduce traffic.
-[ ... ]
-> > +
-> > +static int exynos4_tmu_read(struct exynos4_tmu_data *data)
+[snip]
+>> +static int exynos4_tmu_read(struct exynos4_tmu_data *data)
 > 
 > The return type can better be 'u8', since translate_code_to_temp(...)
 > returns a 'u8'.
 > 
-> > +static irqreturn_t exynos4_tmu_irq(int irq, void *id)
-> > +{
-> > +	struct exynos4_tmu_data *data = id;
+The read function returns error code (-ENODATA) for abnormal case.
+So, the return type should be 'int'.
+>> +static irqreturn_t exynos4_tmu_irq(int irq, void *id)
+>> +{
+>> +	struct exynos4_tmu_data *data = id;
 > 
 > I am not sure whether we _must_ cast 'id', as (struct exynos4_tmu_data *)..
 >  
-Typecast is not necessary for void pointers.
-
-[ ... ]
-
+In exynos4_tmu_irq function, 'irq_work' field in 'exynos4_tmu_data' is
+accessed. Thus, it should be casted.
+[snip]
+>> +static ssize_t exynos4_tmu_show_alarm(struct device *dev,
+>> +		struct device_attribute *devattr, char *buf)
+>> +{
+>> +	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+>> +	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
+>> +	struct exynos4_tmu_platform_data *pdata = data->pdata;
+>> +	int temp, trigger_level;
 > 
-> > +static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
-> > +{
-> > +	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
-> > +
-> > +	exynos4_tmu_control(pdev, false);
-> > +
-> > +	hwmon_device_unregister(data->hwmon_dev);
-> > +	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
+> trigger_level is an 'int' here and in the function below,
+> it is an unsigned int, but defined as an 'u8' in .h file.
+> Please keep the data type consistent across the code.
 > 
-> Shouldn't we send a KOBJ_REMOVE event here ?
+Okay, it would be better to change type from 'int' to 'unsigned int' or
+'u8'.
+[snip]
+>> +/**
+>> + * struct exynos4_tmu_platform_data
+>> + * @threshold: basic temperature for generating interrupt
+>> + * @trigger_levels: array for each interrupt levels
 > 
-sysfs_remove_group should take care of that, though I did not test it
-and may be wrong.
+> Please specify the Unit. Since we convert between millidegree Celsius
+> Celsius, it is better to have a comment here, for thresholds and
+> trigger_levels. Something like the following would do:
+> @threshold: basic temperature(in Celsius) for generating interrupt.
+> 
+I will specify the unit for the both fields.
+> Thanks,
+> Durga
+> 
 
-Guenter
-
+Thanks for your comment.
 
 
 _______________________________________________
