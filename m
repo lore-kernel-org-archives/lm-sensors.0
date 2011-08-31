@@ -1,71 +1,135 @@
-From: Axel Lin <axel.lin@gmail.com>
-Date: Wed, 31 Aug 2011 04:58:19 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (pmbus) Fix the logic of checking if
-Message-Id: <1314766699.3960.1.camel@phoenix>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 31 Aug 2011 10:05:13 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon: (pmbus) Fix the logic of
+Message-Id: <20110831120513.31bb62ee@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1314766699.3960.1.camel@phoenix>
+In-Reply-To: <1314766699.3960.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-If no id is matched, the mid pointer is not NULL in current implementation.
+Hi Alex,
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
-v2:
-It seems we don't need to check strlen(mid->name) here.
-If there is a match, strlen(mid->name) is always not 0.
-If ther is no match, comparing variable i with ARRAY_SIZE(ucd9000_id)
-or ARRAY_SIZE(ucd9200_id) is enough. 
+On Wed, 31 Aug 2011 12:58:19 +0800, Axel Lin wrote:
+> If no id is matched, the mid pointer is not NULL in current implementation.
 
- drivers/hwmon/pmbus/ucd9000.c |    3 +--
- drivers/hwmon/pmbus/ucd9200.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+The NULL check is presumably there to catch the (impossible) case
+ARRAY_SIZE(ucd9000_id) = 0 (array of ids is empty), not the case "no
+id is matched". The initialization of mid to NULL is for the same
+reason. Both should be unnecessary but may have been motivated by a
+compiler warning (although I would think gcc is smart enough to not
+emit these when it can check that the array isn't empty.) Guenter
+should be able to tell more.
 
-diff --git a/drivers/hwmon/pmbus/ucd9000.c b/drivers/hwmon/pmbus/ucd9000.c
-index 285bb15..a2d4a72 100644
---- a/drivers/hwmon/pmbus/ucd9000.c
-+++ b/drivers/hwmon/pmbus/ucd9000.c
-@@ -141,13 +141,12 @@ static int ucd9000_probe(struct i2c_client *client,
+The check for "no id is matched" is !strlen(mid->name), which works as
+intended as far as I can see. Did you actually hit a bug with the
+current code? I bet not.
+
+Now I would agree that the current code is somewhat misleading because
+mixing null-terminated arrays with ARRAY_SIZE() is unusual (and
+inefficient - the last iteration always fails.) Also, strlen() is
+relatively slow and would rather be avoided when only testing if a
+string is empty or not: it's faster to test for mid->name[0].
+
+So if anything I would propose the following changes (for performance
+and readability, NOT bug fix), untested:
+
+--- linux-3.1-rc4.orig/drivers/hwmon/pmbus/ucd9000.c	2011-08-30 13:41:32.000000000 +0200
++++ linux-3.1-rc4/drivers/hwmon/pmbus/ucd9000.c	2011-08-31 11:53:28.000000000 +0200
+@@ -141,13 +141,11 @@ static int ucd9000_probe(struct i2c_clie
  	block_buffer[ret] = '\0';
  	dev_info(&client->dev, "Device ID %s\n", block_buffer);
  
 -	mid = NULL;
- 	for (i = 0; i < ARRAY_SIZE(ucd9000_id); i++) {
- 		mid = &ucd9000_id[i];
+-	for (i = 0; i < ARRAY_SIZE(ucd9000_id); i++) {
+-		mid = &ucd9000_id[i];
++	for (mid = ucd9000_id; mid->name[0]; mid++) {
  		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
  			break;
  	}
 -	if (!mid || !strlen(mid->name)) {
-+	if (i = ARRAY_SIZE(ucd9000_id)) {
++	if (!mid->name[0]) {
  		dev_err(&client->dev, "Unsupported device\n");
  		return -ENODEV;
  	}
-diff --git a/drivers/hwmon/pmbus/ucd9200.c b/drivers/hwmon/pmbus/ucd9200.c
-index 786f6cd..a72e55e 100644
---- a/drivers/hwmon/pmbus/ucd9200.c
-+++ b/drivers/hwmon/pmbus/ucd9200.c
-@@ -68,13 +68,12 @@ static int ucd9200_probe(struct i2c_client *client,
+--- linux-3.1-rc4.orig/drivers/hwmon/pmbus/ucd9200.c	2011-08-30 13:41:32.000000000 +0200
++++ linux-3.1-rc4/drivers/hwmon/pmbus/ucd9200.c	2011-08-31 11:53:20.000000000 +0200
+@@ -68,13 +68,11 @@ static int ucd9200_probe(struct i2c_clie
  	block_buffer[ret] = '\0';
  	dev_info(&client->dev, "Device ID %s\n", block_buffer);
  
 -	mid = NULL;
- 	for (i = 0; i < ARRAY_SIZE(ucd9200_id); i++) {
- 		mid = &ucd9200_id[i];
+-	for (i = 0; i < ARRAY_SIZE(ucd9200_id); i++) {
+-		mid = &ucd9200_id[i];
++	for (mid = ucd9200_id; mid->name[0]; mid++) {
  		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
  			break;
  	}
 -	if (!mid || !strlen(mid->name)) {
-+	if (i = ARRAY_SIZE(ucd9200_id)) {
++	if (!mid->name[0]) {
  		dev_err(&client->dev, "Unsupported device\n");
  		return -ENODEV;
  	}
+
+
+> 
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> ---
+> v2:
+> It seems we don't need to check strlen(mid->name) here.
+> If there is a match, strlen(mid->name) is always not 0.
+> If ther is no match, comparing variable i with ARRAY_SIZE(ucd9000_id)
+> or ARRAY_SIZE(ucd9200_id) is enough. 
+> 
+>  drivers/hwmon/pmbus/ucd9000.c |    3 +--
+>  drivers/hwmon/pmbus/ucd9200.c |    3 +--
+>  2 files changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/hwmon/pmbus/ucd9000.c b/drivers/hwmon/pmbus/ucd9000.c
+> index 285bb15..a2d4a72 100644
+> --- a/drivers/hwmon/pmbus/ucd9000.c
+> +++ b/drivers/hwmon/pmbus/ucd9000.c
+> @@ -141,13 +141,12 @@ static int ucd9000_probe(struct i2c_client *client,
+>  	block_buffer[ret] = '\0';
+>  	dev_info(&client->dev, "Device ID %s\n", block_buffer);
+>  
+> -	mid = NULL;
+>  	for (i = 0; i < ARRAY_SIZE(ucd9000_id); i++) {
+>  		mid = &ucd9000_id[i];
+>  		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
+>  			break;
+>  	}
+> -	if (!mid || !strlen(mid->name)) {
+> +	if (i = ARRAY_SIZE(ucd9000_id)) {
+>  		dev_err(&client->dev, "Unsupported device\n");
+>  		return -ENODEV;
+>  	}
+> diff --git a/drivers/hwmon/pmbus/ucd9200.c b/drivers/hwmon/pmbus/ucd9200.c
+> index 786f6cd..a72e55e 100644
+> --- a/drivers/hwmon/pmbus/ucd9200.c
+> +++ b/drivers/hwmon/pmbus/ucd9200.c
+> @@ -68,13 +68,12 @@ static int ucd9200_probe(struct i2c_client *client,
+>  	block_buffer[ret] = '\0';
+>  	dev_info(&client->dev, "Device ID %s\n", block_buffer);
+>  
+> -	mid = NULL;
+>  	for (i = 0; i < ARRAY_SIZE(ucd9200_id); i++) {
+>  		mid = &ucd9200_id[i];
+>  		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
+>  			break;
+>  	}
+> -	if (!mid || !strlen(mid->name)) {
+> +	if (i = ARRAY_SIZE(ucd9200_id)) {
+>  		dev_err(&client->dev, "Unsupported device\n");
+>  		return -ENODEV;
+>  	}
+
+
 -- 
-1.7.4.1
-
-
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
