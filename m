@@ -1,106 +1,64 @@
-From: Keerthy <j-keerthy@ti.com>
-Date: Wed, 10 Aug 2011 12:37:18 +0000
-Subject: [lm-sensors] [RFC PATCH 2/6] OMAP4: Adding the temperature sensor
-Message-Id: <1312979122-5896-3-git-send-email-j-keerthy@ti.com>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Wed, 31 Aug 2011 03:44:32 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (pmbus) Fix the logic of checking if no
+Message-Id: <1314762272.3189.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
-In-Reply-To: <1312979122-5896-1-git-send-email-j-keerthy@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: vishwanath.bs@ti.com, linux-omap@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, j-keerthy@ti.com
+To: linux-kernel@vger.kernel.org
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
 
-OMAP4460 specific temperature sensor register bit fields are added.
+If no id is matched, the mid pointer is not NULL in current implementation.
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
 ---
- .../include/mach/ctrl_module_core_44xx.h           |   70 ++++++++++++++++----
- 1 files changed, 57 insertions(+), 13 deletions(-)
+ drivers/hwmon/pmbus/ucd9000.c |    3 +--
+ drivers/hwmon/pmbus/ucd9200.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-index 2f7ac70..725c1e1 100644
---- a/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-+++ b/arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
-@@ -256,19 +256,63 @@
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_SHIFT	0
- #define OMAP4_LDOSRAMCORE_ACTMODE_VSET_OUT_MASK		(0x1f << 0)
+diff --git a/drivers/hwmon/pmbus/ucd9000.c b/drivers/hwmon/pmbus/ucd9000.c
+index 285bb15..4aa8701 100644
+--- a/drivers/hwmon/pmbus/ucd9000.c
++++ b/drivers/hwmon/pmbus/ucd9000.c
+@@ -141,13 +141,12 @@ static int ucd9000_probe(struct i2c_client *client,
+ 	block_buffer[ret] = '\0';
+ 	dev_info(&client->dev, "Device ID %s\n", block_buffer);
  
--/* TEMP_SENSOR */
--#define OMAP4_BGAP_TEMPSOFF_SHIFT			12
--#define OMAP4_BGAP_TEMPSOFF_MASK			(1 << 12)
--#define OMAP4_BGAP_TSHUT_SHIFT				11
--#define OMAP4_BGAP_TSHUT_MASK				(1 << 11)
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
--#define OMAP4_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_SHIFT		9
--#define OMAP4_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
--#define OMAP4_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
--#define OMAP4_BGAP_TEMP_SENSOR_DTEMP_MASK		(0xff << 0)
-+/* TEMP_SENSOR OMAP4430 */
-+#define OMAP4430_BGAP_TEMPSOFF_SHIFT			12
-+#define OMAP4430_BGAP_TEMPSOFF_MASK			(1 << 12)
-+#define OMAP4430_BGAP_TSHUT_SHIFT				11
-+#define OMAP4430_BGAP_TSHUT_MASK				(1 << 11)
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_SHIFT		10
-+#define OMAP4430_BGAP_TEMP_SENSOR_CONTCONV_MASK		(1 << 10)
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_SHIFT		9
-+#define OMAP4430_BGAP_TEMP_SENSOR_SOC_MASK			(1 << 9)
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_SHIFT		8
-+#define OMAP4430_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 8)
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4430_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* TEMP_SENSOR OMAP4460 */
-+#define OMAP4460_BGAP_TEMPSOFF_SHIFT			13
-+#define OMAP4460_BGAP_TEMPSOFF_MASK			(1 << 13)
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_SHIFT		11
-+#define OMAP4460_BGAP_TEMP_SENSOR_SOC_MASK		(1 << 11)
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_SHIFT		10
-+#define OMAP4460_BGAP_TEMP_SENSOR_EOCZ_MASK		(1 << 10)
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_SHIFT		0
-+#define OMAP4460_BGAP_TEMP_SENSOR_DTEMP_MASK		(0x3ff << 0)
-+
-+/* BANDGAP_CTRL */
-+#define OMAP4460_SINGLE_MODE_SHIFT			31
-+#define OMAP4460_SINGLE_MODE_MASK			(1 << 31)
-+#define OMAP4460_MASK_HOT_SHIFT				1
-+#define OMAP4460_MASK_HOT_MASK				(1 << 1)
-+#define OMAP4460_MASK_COLD_SHIFT			0
-+#define OMAP4460_MASK_COLD_MASK				(1 << 0)
-+
-+/* BANDGAP_COUNTER */
-+#define OMAP4460_COUNTER_SHIFT				0
-+#define OMAP4460_COUNTER_MASK				(0xffffff << 0)
-+
-+/* BANDGAP_THRESHOLD */
-+#define OMAP4460_T_HOT_SHIFT				16
-+#define OMAP4460_T_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_T_COLD_SHIFT				0
-+#define OMAP4460_T_COLD_MASK				(0x3ff << 0)
-+
-+/* TSHUT_THRESHOLD */
-+#define OMAP4460_TSHUT_HOT_SHIFT			16
-+#define OMAP4460_TSHUT_HOT_MASK				(0x3ff << 16)
-+#define OMAP4460_TSHUT_COLD_SHIFT			0
-+#define OMAP4460_TSHUT_COLD_MASK			(0x3ff << 0)
-+
-+/* BANDGAP_STATUS */
-+#define OMAP4460_CLEAN_STOP_SHIFT			3
-+#define OMAP4460_CLEAN_STOP_MASK			(1 << 3)
-+#define OMAP4460_BGAP_ALERT_SHIFT			2
-+#define OMAP4460_BGAP_ALERT_MASK			(1 << 2)
-+#define OMAP4460_HOT_FLAG_SHIFT				1
-+#define OMAP4460_HOT_FLAG_MASK				(1 << 1)
-+#define OMAP4460_COLD_FLAG_SHIFT			0
-+#define OMAP4460_COLD_FLAG_MASK				(1 << 0)
+-	mid = NULL;
+ 	for (i = 0; i < ARRAY_SIZE(ucd9000_id); i++) {
+ 		mid = &ucd9000_id[i];
+ 		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
+ 			break;
+ 	}
+-	if (!mid || !strlen(mid->name)) {
++	if ((i = ARRAY_SIZE(ucd9000_id)) || !strlen(mid->name)) {
+ 		dev_err(&client->dev, "Unsupported device\n");
+ 		return -ENODEV;
+ 	}
+diff --git a/drivers/hwmon/pmbus/ucd9200.c b/drivers/hwmon/pmbus/ucd9200.c
+index 786f6cd..826cc8f 100644
+--- a/drivers/hwmon/pmbus/ucd9200.c
++++ b/drivers/hwmon/pmbus/ucd9200.c
+@@ -68,13 +68,12 @@ static int ucd9200_probe(struct i2c_client *client,
+ 	block_buffer[ret] = '\0';
+ 	dev_info(&client->dev, "Device ID %s\n", block_buffer);
  
- /* DPLL_NWELL_TRIM_0 */
- #define OMAP4_DPLL_ABE_NWELL_TRIM_MUX_CTRL_SHIFT	29
+-	mid = NULL;
+ 	for (i = 0; i < ARRAY_SIZE(ucd9200_id); i++) {
+ 		mid = &ucd9200_id[i];
+ 		if (!strncasecmp(mid->name, block_buffer, strlen(mid->name)))
+ 			break;
+ 	}
+-	if (!mid || !strlen(mid->name)) {
++	if ((i = ARRAY_SIZE(ucd9200_id)) || !strlen(mid->name)) {
+ 		dev_err(&client->dev, "Unsupported device\n");
+ 		return -ENODEV;
+ 	}
 -- 
-1.7.0.4
+1.7.4.1
+
+
 
 
 _______________________________________________
