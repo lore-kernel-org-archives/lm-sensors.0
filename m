@@ -1,128 +1,159 @@
-From: Scott Czepiel <sczepiel@gmail.com>
-Date: Sun, 04 Sep 2011 23:25:49 +0000
-Subject: Re: [lm-sensors] No sensors found on Asus P8H67-I Deluxe
-Message-Id: <CA+bcNfKEJo9qK9-3p3m6e3yxj=2rZ58NJpcQtQqKDyfX0geEOg@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 03 Sep 2011 02:27:48 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (pmbus) Replace EINVAL return codes
+Message-Id: <1315016870-10579-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Update:  issue resolved.
+EINVAL was over-used in the code. Replace it with more appropriate errors.
 
-Thanks to the fine folks at the ElRepo project who backported coretemp
-for use with CentOS 6, I am now able to successfully read the temp
-sensor on my i3-2100.  Here is the request for enhancement:
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus/lm25066.c    |    8 ++++----
+ drivers/hwmon/pmbus/max8688.c    |    4 ++--
+ drivers/hwmon/pmbus/pmbus_core.c |   10 +++++-----
+ drivers/hwmon/pmbus/ucd9000.c    |    4 ++--
+ 4 files changed, 13 insertions(+), 13 deletions(-)
 
-http://elrepo.org/bugs/view.php?id=181
+diff --git a/drivers/hwmon/pmbus/lm25066.c b/drivers/hwmon/pmbus/lm25066.c
+index 2107f41..a72bb9f 100644
+--- a/drivers/hwmon/pmbus/lm25066.c
++++ b/drivers/hwmon/pmbus/lm25066.c
+@@ -57,7 +57,7 @@ static int lm25066_read_word_data(struct i2c_client *client, int page, int reg)
+ 	int ret;
+ 
+ 	if (page > 1)
+-		return -EINVAL;
++		return -ENXIO;
+ 
+ 	/* Map READ_VAUX into READ_VOUT register on page 1 */
+ 	if (page = 1) {
+@@ -85,7 +85,7 @@ static int lm25066_read_word_data(struct i2c_client *client, int page, int reg)
+ 			break;
+ 		default:
+ 			/* No other valid registers on page 1 */
+-			ret = -EINVAL;
++			ret = -ENXIO;
+ 			break;
+ 		}
+ 		goto done;
+@@ -138,7 +138,7 @@ static int lm25066_write_word_data(struct i2c_client *client, int page, int reg,
+ 	int ret;
+ 
+ 	if (page > 1)
+-		return -EINVAL;
++		return -ENXIO;
+ 
+ 	switch (reg) {
+ 	case PMBUS_IIN_OC_WARN_LIMIT:
+@@ -164,7 +164,7 @@ static int lm25066_write_word_data(struct i2c_client *client, int page, int reg,
+ static int lm25066_write_byte(struct i2c_client *client, int page, u8 value)
+ {
+ 	if (page > 1)
+-		return -EINVAL;
++		return -ENXIO;
+ 
+ 	if (page = 0)
+ 		return pmbus_write_byte(client, 0, value);
+diff --git a/drivers/hwmon/pmbus/max8688.c b/drivers/hwmon/pmbus/max8688.c
+index e148e2c..7113f11 100644
+--- a/drivers/hwmon/pmbus/max8688.c
++++ b/drivers/hwmon/pmbus/max8688.c
+@@ -45,7 +45,7 @@ static int max8688_read_word_data(struct i2c_client *client, int page, int reg)
+ 	int ret;
+ 
+ 	if (page)
+-		return -EINVAL;
++		return -ENXIO;
+ 
+ 	switch (reg) {
+ 	case PMBUS_VIRT_READ_VOUT_MAX:
+@@ -102,7 +102,7 @@ static int max8688_read_byte_data(struct i2c_client *client, int page, int reg)
+ 	int mfg_status;
+ 
+ 	if (page)
+-		return -EINVAL;
++		return -ENXIO;
+ 
+ 	switch (reg) {
+ 	case PMBUS_STATUS_VOUT:
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index b1320cf..cefbd85 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -160,7 +160,7 @@ int pmbus_set_page(struct i2c_client *client, u8 page)
+ 		rv = i2c_smbus_write_byte_data(client, PMBUS_PAGE, page);
+ 		newpage = i2c_smbus_read_byte_data(client, PMBUS_PAGE);
+ 		if (newpage != page)
+-			rv = -EINVAL;
++			rv = -EIO;
+ 		else
+ 			data->currpage = page;
+ 	}
+@@ -229,7 +229,7 @@ static int _pmbus_write_word_data(struct i2c_client *client, int page, int reg,
+ 			return status;
+ 	}
+ 	if (reg >= PMBUS_VIRT_BASE)
+-		return -EINVAL;
++		return -ENXIO;
+ 	return pmbus_write_word_data(client, page, reg, word);
+ }
+ 
+@@ -261,7 +261,7 @@ static int _pmbus_read_word_data(struct i2c_client *client, int page, int reg)
+ 			return status;
+ 	}
+ 	if (reg >= PMBUS_VIRT_BASE)
+-		return -EINVAL;
++		return -ENXIO;
+ 	return pmbus_read_word_data(client, page, reg);
+ }
+ 
+@@ -320,7 +320,7 @@ static int pmbus_check_status_cml(struct i2c_client *client)
+ 	if (status < 0 || (status & PB_STATUS_CML)) {
+ 		status2 = pmbus_read_byte_data(client, -1, PMBUS_STATUS_CML);
+ 		if (status2 < 0 || (status2 & PB_CML_FAULT_INVALID_COMMAND))
+-			return -EINVAL;
++			return -EIO;
+ 	}
+ 	return 0;
+ }
+@@ -1675,7 +1675,7 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 	if (info->pages <= 0 || info->pages > PMBUS_PAGES) {
+ 		dev_err(&client->dev, "Bad number of PMBus pages: %d\n",
+ 			info->pages);
+-		ret = -EINVAL;
++		ret = -ENODEV;
+ 		goto out_data;
+ 	}
+ 
+diff --git a/drivers/hwmon/pmbus/ucd9000.c b/drivers/hwmon/pmbus/ucd9000.c
+index 640a9c9..1536db6 100644
+--- a/drivers/hwmon/pmbus/ucd9000.c
++++ b/drivers/hwmon/pmbus/ucd9000.c
+@@ -75,7 +75,7 @@ static int ucd9000_read_byte_data(struct i2c_client *client, int page, int reg)
+ 	switch (reg) {
+ 	case PMBUS_FAN_CONFIG_12:
+ 		if (page)
+-			return -EINVAL;
++			return -ENXIO;
+ 
+ 		ret = ucd9000_get_fan_config(client, 0);
+ 		if (ret < 0)
+@@ -89,7 +89,7 @@ static int ucd9000_read_byte_data(struct i2c_client *client, int page, int reg)
+ 		break;
+ 	case PMBUS_FAN_CONFIG_34:
+ 		if (page)
+-			return -EINVAL;
++			return -ENXIO;
+ 
+ 		ret = ucd9000_get_fan_config(client, 2);
+ 		if (ret < 0)
+-- 
+1.7.3.1
 
-Also more detail on this thread at the CentOS forums:
-https://www.centos.org/modules/newbb/viewtopic.php?topic_id3061&forumU
-
-I also installed the backported w83627ehf driver from ElRepo which
-worked with the Nuvoton chip on my Asus board after adding
-"acpi_enforce_resources=3Dlax" to the kernel boot options in grub.conf.
-I can now read the board's sensors on voltages, fan speeds, and temp
-readings.
-
-Long live ElRepo!
-
-czep
-
-
-On Sun, Aug 21, 2011 at 11:46 PM, Scott Czepiel <sczepiel@gmail.com> wrote:
-> This is a newer mini-ITX LGA 1155 motherboard with an i3-2100 cpu
-> attached, running CentOS 6 (kernel is based on 2.6.32). =A0I upgraded
-> lm_sensors to the latest and greatest:
->
-> # sensors -v
-> sensors version 3.3.1 with libsensors version 3.3.1
->
-> Abbreviated output of sensors-detect:
-> -----
-> # sensors-detect revision 5984 (2011-07-10 21:22:53 +0200)
-> # System: System manufacturer System Product Name
-> # Board: ASUSTeK Computer INC. P8H67-I DELUXE
-> ...
-> Driver `w83627ehf':
-> =A0* ISA bus, address 0x290
-> =A0 =A0Chip `Nuvoton NCT6776F Super IO Sensors' (confidence: 9)
->
-> Driver `coretemp':
-> =A0* Chip `Intel digital thermal sensor' (confidence: 9)
->
-> Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
-> Starting lm_sensors: loading module coretemp w83627ehf No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 [FAILED]
-> Unloading i2c-dev... OK
-> -----
->
-> Neither of the two suggested drivers will load:
->
-> # modprobe coretemp
-> FATAL: Error inserting coretemp
-> (/lib/modules/2.6.32-71.29.1.el6.x86_64/kernel/drivers/hwmon/coretemp.ko):
-> No such device
->
-> # modprobe w83627ehf
-> FATAL: Error inserting w83627ehf
-> (/lib/modules/2.6.32-71.29.1.el6.x86_64/weak-updates/w83627ehf/w83627ehf.=
-ko):
-> Device or resource busy
->
-> # tail /var/log/messages
-> kernel: coretemp: Unknown CPU model 0x2a
-> kernel: w83627ehf: Found NCT6776F chip at 0x290
-> kernel: ACPI: I/O resource w83627ehf [0x295-0x296] conflicts with ACPI
-> region HWRE [0x290-0x299]
-> kernel: ACPI: If an ACPI driver is available for this device, you
-> should use it instead of the native driver
->
-> The version of coretemp for this kernel predates the Sandy Bridge
-> procs so I tried compiling a recent revision (from the 3.0 kernel),
-> but quickly left my comfort zone: =A0there were \ too many source
-> changes, not just to coretemp.c but to other included header files,
-> and I couldn't get the module with the newer coretemp.c to build on my
-> older kernel source tree. =A0I could try compiling and running a more
-> recent kernel, but this would defeat the purpose of using CentOS (and
-> yes I realize I shouldn't always expect stable software to work with
-> brand new hardware). =A0Is there anything else I can try besides waiting
-> for CentOS to backport a more recent coretemp?
->
-> Fortunately (or so I thought), I could skip coretemp and rely on the
-> Nuvoton chip to work. =A0But I see it conflicts with ACPI and my kernel
-> is just new enough that it will not allow the
-> "acpi_enforce_resources=3Dlax" hack. =A0This led me to try:
->
-> # modprobe asus_atk0110
->
-> which apparently works:
->
-> # lsmod|grep asus
-> asus_atk0110 =A0 =A0 =A0 =A0 =A0 14470 =A00
-> hwmon =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 2464 =A01 asus_atk0110
->
-> but has little effect since sensors won't pick it up:
->
-> # sensors -s
-> No sensors found!
-> Make sure you loaded all the kernel drivers you need.
-> Try sensors-detect to find out which these are.
->
-> And there's nothing happening here where acpi drivers are supposed to
-> do their thang:
->
-> # ls -al /sys/class/hwmon/
-> total 0
-> drwxr-xr-x. =A02 root root 0 Aug 21 21:22 .
-> drwxr-xr-x. 41 root root 0 Aug 21 23:02 ..
->
-> I'm out of ideas for what to try next, any suggestions would be
-> greatly appreciated!
->
 
 _______________________________________________
 lm-sensors mailing list
