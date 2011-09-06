@@ -1,27 +1,44 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 18 Sep 2011 19:53:57 +0000
-Subject: Re: [lm-sensors] Nuvoton NCT6681D/NCT7802 Support?
-Message-Id: <20110918195357.GA31728@ericsson.com>
+Date: Tue, 06 Sep 2011 16:13:28 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.1
+Message-Id: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAFqD5d+OcNEF0KoPn9qUNomYvmH14EuoRtVv-59xG5hcYrGduw@mail.gmail.com>
-In-Reply-To: <CAFqD5d+OcNEF0KoPn9qUNomYvmH14EuoRtVv-59xG5hcYrGduw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Sat, Sep 17, 2011 at 09:10:11PM -0400, Jeffrey Chenkus wrote:
-> 
-> Is there any plan to add support for the Nuvoton NCT6681D and NCT7802 chips? I
-> need to find a way to read those sensors in the next few months, if lm-sensors
-> is not going to have support then I need to come up with a different plan. If
-> anyone were working on either I could try testing them on my hardware.
-> 
-Not right now, at least not afaik. NCT7802Y (assuming that is what you mean)
-is all new and will need a completely new driver. I don't have a datasheet for
-NCT6681D, so I have no idea if support can be added to one of the existing drivers.
+Hi Linus,
 
-Guenter
+Please pull hwmon subsystem fixes for Linux 3.1 from:
+
+    git://github.com/groeck/linux.git hwmon-for-linus
+
+Thanks,
+Guenter Roeck
+
+------
+
+The following changes since commit ddf28352b80c86754a6424e3a61e8bdf9213b3c7:
+
+  Linux 3.1-rc5 (2011-09-04 15:45:10 -0700)
+
+are available in the git repository at:
+  git://github.com/groeck/linux.git hwmon-for-linus
+
+Guenter Roeck (2):
+      hwmon: (max16065) Fix current calculation
+      hwmon: (max16065) Add chip access warning to documentation
+
+Jean Delvare (1):
+      hwmon: (ucd9000/ucd9200) Optimize array walk
+
+ Documentation/hwmon/max16065  |    7 +++++++
+ drivers/hwmon/max16065.c      |    2 +-
+ drivers/hwmon/pmbus/ucd9000.c |    6 ++----
+ drivers/hwmon/pmbus/ucd9200.c |    6 ++----
+ 4 files changed, 12 insertions(+), 9 deletions(-)
 
 _______________________________________________
 lm-sensors mailing list
