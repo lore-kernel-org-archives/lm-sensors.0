@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 08 Sep 2011 20:35:36 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 08 Sep 2011 20:59:33 +0000
 Subject: Re: [lm-sensors] Fintek F71862FG Super IO Sensors only shows
-Message-Id: <20110908223536.30676e48@endymion.delvare>
+Message-Id: <1315515573.2455.158.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAPtvKsNGD2fY1Fo7BSLRqVVU+92Rh0YyfMbdD2FBFpu=bHhCng@mail.gmail.com>
 In-Reply-To: <CAPtvKsNGD2fY1Fo7BSLRqVVU+92Rh0YyfMbdD2FBFpu=bHhCng@mail.gmail.com>
@@ -10,7 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 08 Sep 2011 22:32:22 +0200, Hans de Goede wrote:
+On Thu, 2011-09-08 at 16:32 -0400, Hans de Goede wrote:
+> Hi,
+> 
+> First of all please those drop the list from the To / CC
+> list, if you start a discussion on the list it is sort
+> of list reader friendly to also finish it there.
+> 
+> On 09/08/2011 09:07 PM, Daniel Schenkenberger wrote:
+> > dmesg says:
+> >
+> > [  216.007958] f71882fg: Found f71862fg chip at 0x290, revision 18
+> > [  216.008806] ACPI: resource f71882fg [io  0x0290-0x0297] conflicts with ACPI r    egion IP__ [io 0x295-0x296]
+> > [  216.012580] f71882fg f71882fg.656: Invalid (reserved) pwm settings: 0x01
+> >
+> > i added "acpi_enforce_resources=lax" to my grub. if i boot without this the module won't load.
+> 
+> That is not necessarily a good idea, see:
+> http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
+> 
+> To quote myself from that page: "a really bad idea and can cause all sort of issues
+> (including things like changing CPU / RAM voltage or clock speed)."
+> 
+> So be warned!
+> 
 > Now back to the problem, which is:
 > [  216.012580] f71882fg f71882fg.656: Invalid (reserved) pwm settings: 0x01
 > 
@@ -43,13 +66,13 @@ On Thu, 08 Sep 2011 22:32:22 +0200, Hans de Goede wrote:
 > some thinking wrt modifying the code a bit though.
 > 
 > 1 is a really bad idea IMHO, so I'll think a bit about doing 2.
+> 
+Or 2a): Don't create sysfs entries for a fan if its mode value is
+invalid (reserved).
 
-And of course option 0, to start with, is to check for a BIOS update
-for the board in question, and report to the vendor if no BIOS fix is
-available yet.
+Guenter
 
--- 
-Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
