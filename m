@@ -1,39 +1,87 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 28 Sep 2011 13:04:15 +0000
-Subject: Re: [lm-sensors] fan change between 3.1.0-rc6 and commit b172e38
-Message-Id: <20110928150415.0256b513@endymion.delvare>
+From: Henri C Kjellberg <hck@utexas.edu>
+Date: Thu, 08 Sep 2011 19:29:34 +0000
+Subject: [lm-sensors] I2C Combined Transactions in Linux
+Message-Id: <CAHxUU74ecDvocFpXvhQPdJUndh+FfqU-AfEu0bw2d3+Eim2-MA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4285789493267072110=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <m339flbipr.fsf@jhcloos.com>
-In-Reply-To: <m339flbipr.fsf@jhcloos.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 27 Sep 2011 19:37:07 -0400, James Cloos wrote:
-> >>>>> "GR" = Guenter Roeck <guenter.roeck@ericsson.com> writes:
-> 
-> GR> I don't recall a relevant change, nor did I find one in the commit log.
-> 
-> OK.  Perhaps it was a change in another subsystem....
-> 
-> GR> Did pwmconfig ever work for you ?
-> 
-> I never tried it before.  I'll have to reboot to the previous kernel and check.
+--===============4285789493267072110==
+Content-Type: multipart/alternative; boundary=0015174bf258a1bc3304ac7314db
 
-Please do, if nothing else just to confirm that this really makes the
-fans spin down again.
+--0015174bf258a1bc3304ac7314db
+Content-Type: text/plain; charset=ISO-8859-1
 
-As we did not touch the driver, it could be an issue with ACPI or the
-thermal subsystem, or things like cpuidle or cpufreq. As the number of
-commits is relatively small and you seem to know how to build a kernel
-from the git repository, your best chance is probably to bisect the
-problem and then contact the author of the faulty commit directly.
+Greetings Friends,
 
--- 
-Jean Delvare
+I am looking for a way to perform combined transactions over I2C in Linux.
+The structure of the message I need to send is as follows. The slave
+responds in the brackets.
+
+START
+Slave Address, Write
+[ACK]
+Data
+[ACK]
+Data
+[ACK]
+...
+FEND
+START
+Slave Address, Write
+[Data]
+ACK
+[Data]
+ACK
+...
+[FEND]
+ACK
+STOP
+
+Here, FEND is a special end of message byte defined in a manner similar to
+the SLIP encapsulation. It does not appear that I can use the
+i2c_smbus_block_process_call because it requires the first data byte to be
+the message length. Is there any way to send these sorts of combined
+transaction in Linux without using the smbus interface?
+
+Best,
+Henri Kjellberg
+UT-Austin
+Satellite Design Laboratory
+
+--0015174bf258a1bc3304ac7314db
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Greetings Friends,<div><br></div><div>I am looking for a way to perform com=
+bined transactions over I2C in Linux. The structure of the message I need t=
+o send is as follows. The slave responds in the brackets.</div><div><br>
+
+</div><div>START</div><div>Slave Address, Write</div><div>[ACK]</div><div>D=
+ata</div><div>[ACK]</div><div>Data</div><div>[ACK]</div><div>...</div><div>=
+FEND=A0</div><div>START</div>
+<div>Slave Address, Write</div><div>[Data]</div><div>ACK</div><div>[Data]</=
+div><div>ACK</div><div>...</div><div>[FEND]</div><div>ACK</div><div>STOP</d=
+iv><div><br></div><div>Here, FEND is a special end of message byte defined =
+in a manner similar to the SLIP encapsulation. It does not appear that I ca=
+n use the i2c_smbus_block_process_call because it requires the first data b=
+yte to be the message length. Is there any way to send these sorts of combi=
+ned transaction in Linux without using the smbus interface?</div>
+<div><br></div><div>Best,</div><div>Henri Kjellberg</div><div>UT-Austin=A0<=
+/div><div>Satellite Design Laboratory</div><div><br></div>
+
+--0015174bf258a1bc3304ac7314db--
+
+
+--===============4285789493267072110==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4285789493267072110==--
