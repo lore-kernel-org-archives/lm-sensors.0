@@ -1,67 +1,27 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 23 Sep 2011 17:45:41 +0000
-Subject: Re: [lm-sensors] [PATCH] coretemp: remove struct platform_data *
-Message-Id: <1316799941.3888.43.camel@groeck-laptop>
+From: "Michal Zatloukal" <myxal.mxl@gmail.com>
+Date: Sat, 10 Sep 2011 16:35:06 +0000
+Subject: [lm-sensors] Can't read DIMM SPD info (DDR2)
+Message-Id: <op.v1lposq116tawo@esprimo>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4E7C7E280200007800057880@nat28.tlf.novell.com>
-In-Reply-To: <4E7C7E280200007800057880@nat28.tlf.novell.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2011-09-23 at 06:40 -0400, Jan Beulich wrote:
-> The only caller of the function obtained the pointer solely for the
-> purpose of passing it to this function, while it can be easily
-> determined from the struct platform_device * parameter also passed.
-> 
-> Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> 
-> ---
->  drivers/hwmon/coretemp.c |    9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
-> 
-> --- 3.1-rc7-coretemp.orig/drivers/hwmon/coretemp.c
-> +++ 3.1-rc7-coretemp/drivers/hwmon/coretemp.c
-> @@ -548,11 +548,11 @@ static struct temp_data *init_temp_data(
->  	return tdata;
->  }
->  
-> -static int create_core_data(struct platform_data *pdata,
-> -				struct platform_device *pdev,
-> +static int create_core_data(struct platform_device *pdev,
->  				unsigned int cpu, int pkg_flag)
->  {
->  	struct temp_data *tdata;
-> +	struct platform_data *pdata = platform_get_drvdata(pdev);
->  	struct cpuinfo_x86 *c = &cpu_data(cpu);
->  	u32 eax, edx;
->  	int err, attr_no;
-> @@ -625,16 +625,13 @@ exit_free:
->  
->  static void coretemp_add_core(unsigned int cpu, int pkg_flag)
->  {
-> -	struct platform_data *pdata;
->  	struct platform_device *pdev = coretemp_get_pdev(cpu);
->  	int err;
->  
->  	if (!pdev)
->  		return;
->  
-> -	pdata = platform_get_drvdata(pdev);
-> -
-> -	err = create_core_data(pdata, pdev, cpu, pkg_flag);
-> +	err = create_core_data(pdev, cpu, pkg_flag);
->  	if (err)
->  		dev_err(&pdev->dev, "Adding Core %u failed\n", cpu);
->  }
+Hi,
+I'm unable to get decode-dimms to display SPD info from my memory modules.  
+Can someone please advise on finding the problem? The eeprom module is  
+loaded. This is on both my main system (Kubuntu 10.10) and "latest"  
+(Kubuntu 11.10 daily) - linux 3.0, lm-sensors 3.3.0-4 and i2x-tools  
+3.0.3-5). The HW is a Fujitsu Esprimo Mobile U9200 laptop (intel GM965).  
+FWIW, the memtest that ships with 'buntu 11.10 (4.20 I think) reads the  
+SPD info successfully.
 
-Applied.
+Cheers and TIA,
+MZ
 
-Thanks,
-Guenter
-
-
+-- 
+Using Opera's revolutionary email client: http://www.opera.com/mail/
 
 _______________________________________________
 lm-sensors mailing list
