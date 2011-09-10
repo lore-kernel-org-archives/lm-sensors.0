@@ -1,35 +1,88 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 07 Sep 2011 16:06:38 +0000
-Subject: Re: [lm-sensors] [PATCH v7] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <1315411598.2455.106.camel@groeck-laptop>
+Date: Sat, 10 Sep 2011 20:27:54 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (pmbus) Fix low limit temperature alarms
+Message-Id: <1315686474-29139-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
-In-Reply-To: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2011-09-07 at 05:49 -0400, Donggeun Kim wrote:
-> This patch allows to read temperature
-> from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
-> 
-> Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
-> Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> Changes for v7
->   - removed sysfs_notify function call
->   - changed kobject_uevent_env to kobject_uevent
->   - cleaned up documentation
+Temperature alarms are detected by checking the alarm bit and comparing
+temperature limits against the current temperature. For low limits, this
+comparison needs to be reversed (temp < limit instead of temp > limit).
+This was not taken into account, resulting in wrong alarms if a temperature
+fell below a low limit.
 
-Thanks, applied. 
+Fix by adding a low limit flag in the limit data structure. When creating the
+sensor entry, the order of registers to compare is now reversed for low limits.
 
-FYI, I requested access to the chip datasheet - if I get it, I'll see if
-there is a way to get interrupts for 1->0 transitions.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+Candidate for -stable.
 
-Guenter
+ drivers/hwmon/pmbus/pmbus_core.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 1798f52..410aa12 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -978,6 +978,8 @@ static void pmbus_find_max_attr(struct i2c_client *client,
+ struct pmbus_limit_attr {
+ 	u16 reg;		/* Limit register */
+ 	bool update;		/* True if register needs updates */
++	bool low;		/* True if low limit; for limits with compare
++				   functions only */
+ 	const char *attr;	/* Attribute name */
+ 	const char *alarm;	/* Alarm attribute name */
+ 	u32 sbit;		/* Alarm attribute status bit */
+@@ -1029,7 +1031,8 @@ static bool pmbus_add_limit_attrs(struct i2c_client *client,
+ 				if (attr->compare) {
+ 					pmbus_add_boolean_cmp(data, name,
+ 						l->alarm, index,
+-						cbase, cindex,
++						l->low ? cindex : cbase,
++						l->low ? cbase : cindex,
+ 						attr->sbase + page, l->sbit);
+ 				} else {
+ 					pmbus_add_boolean_reg(data, name,
+@@ -1366,16 +1369,19 @@ static const struct pmbus_sensor_attr power_attributes[] = {
+ static const struct pmbus_limit_attr temp_limit_attrs[] = {
+ 	{
+ 		.reg = PMBUS_UT_WARN_LIMIT,
++		.low = true,
+ 		.attr = "min",
+ 		.alarm = "min_alarm",
+ 		.sbit = PB_TEMP_UT_WARNING,
+ 	}, {
+ 		.reg = PMBUS_UT_FAULT_LIMIT,
++		.low = true,
+ 		.attr = "lcrit",
+ 		.alarm = "lcrit_alarm",
+ 		.sbit = PB_TEMP_UT_FAULT,
+ 	}, {
+ 		.reg = PMBUS_OT_WARN_LIMIT,
++		.low = true,
+ 		.attr = "max",
+ 		.alarm = "max_alarm",
+ 		.sbit = PB_TEMP_OT_WARNING,
+@@ -1399,11 +1405,13 @@ static const struct pmbus_limit_attr temp_limit_attrs[] = {
+ static const struct pmbus_limit_attr temp_limit_attrs23[] = {
+ 	{
+ 		.reg = PMBUS_UT_WARN_LIMIT,
++		.low = true,
+ 		.attr = "min",
+ 		.alarm = "min_alarm",
+ 		.sbit = PB_TEMP_UT_WARNING,
+ 	}, {
+ 		.reg = PMBUS_UT_FAULT_LIMIT,
++		.low = true,
+ 		.attr = "lcrit",
+ 		.alarm = "lcrit_alarm",
+ 		.sbit = PB_TEMP_UT_FAULT,
+-- 
+1.7.3.1
 
 
 _______________________________________________
