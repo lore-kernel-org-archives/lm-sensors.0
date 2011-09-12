@@ -1,443 +1,339 @@
-From: "J, KEERTHY" <j-keerthy@ti.com>
-Date: Fri, 23 Sep 2011 02:12:53 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: OMAP4460+: On die temperature
-Message-Id: <CAJ6a13a_YbEUtrYFztYw-piaEQOmsky=-ZTeuv48oCSuuBdgDQ@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Mon, 12 Sep 2011 09:57:00 +0000
+Subject: [lm-sensors] [PATCH 5/5] hwmon/sch5636: Add support for the
+Message-Id: <1315821420-16205-6-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1316713013-14751-1-git-send-email-j-keerthy@ti.com>
-	<1316713841.3888.6.camel@groeck-laptop>
-In-Reply-To: <1316713841.3888.6.camel@groeck-laptop>
+References: <1315821420-16205-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1315821420-16205-1-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: guenter.roeck@ericsson.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-watchdog@vger.kernel.org
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Wim Van Sebroeck <wim@iguana.be>, LM Sensors <lm-sensors@lm-sensors.org>, Thilo Cestonaro <thilo.cestonaro@ts.fujitsu.com>, Hans de Goede <hdegoede@redhat.com>
 
-Hi Guenter,
+Add support for the watchdog integrated into the (Fujitsu Theseus version of)
+the sch5636 superio hwmon part. Using the new watchdog timer core.
 
-Thanks for your quick review comments.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/hwmon/sch5636.c |  233 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 231 insertions(+), 2 deletions(-)
 
-On Thu, Sep 22, 2011 at 11:20 PM, Guenter Roeck
-<guenter.roeck@ericsson.com> wrote:
-> On Thu, 2011-09-22 at 13:36 -0400, Keerthy wrote:
->> On chip temperature sensor driver. The driver monitors the temperature of
->> on die subsystems. It sends notifications to the user space if
->> the temperature crosses user defined thresholds via kobject_uevent inter=
-face.
->> The user is allowed to configure the temperature thresholds vis sysfs no=
-des
->> exposed using hwmon interface.
->>
->> The patch depends on the the following series:
->> http://comments.gmane.org/gmane.linux.ports.arm.omap/64436
->> and
->> http://permalink.gmane.org/gmane.linux.ports.arm.omap/64446
->>
->> Signed-off-by: Keerthy <j-keerthy@ti.com>
->> Cc: Jean Delvare <khali@linux-fr.org>
->> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
->> Cc: lm-sensors@lm-sensors.org
->> ---
->> =A0Documentation/hwmon/omap_temp_sensor =A0 =A0 | =A0 25 +++
->> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 11=
- ++
->> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01=
- +
->> =A0drivers/hwmon/omap4460plus_temp_sensor.c | =A0244 +++++++++++++++++++=
-+++++++++++
->> =A04 files changed, 281 insertions(+), 0 deletions(-)
->> =A0create mode 100644 Documentation/hwmon/omap_temp_sensor
->> =A0create mode 100644 drivers/hwmon/omap4460plus_temp_sensor.c
->>
->> Index: linux-omap-2.6/Documentation/hwmon/omap_temp_sensor
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D>> --- /dev/null 1970-01-01 00:00:00.000000000 +=
-0000
->> +++ linux-omap-2.6/Documentation/hwmon/omap_temp_sensor =A0 =A0 =A0 2011=
--09-22 18:57:23.180918857 +0530
->> @@ -0,0 +1,25 @@
->> +Kernel driver omap_temp_sensor
->> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> +
->> +Supported chips:
->> + =A0* Texas Instruments OMAP4460
->> + =A0 =A0Prefix: 'omap_temp_sensor'
->> +
->> +Author:
->> + =A0 =A0 =A0 =A0J Keerthy <j-keerthy@ti.com>
->> +
->> +Description
->> +-----------
->> +
->> +The Texas Instruments OMAP4 family of chips have a bandgap temperature =
-sensor.
->> +The temperature sensor feature is used to convert the temperature of th=
-e device
->> +into a decimal value coded on 10 bits. An internal ADC is used for conv=
-ersion.
->> +The recommended operating temperatures must be in the range -40 degree =
-Celsius
->> +to 123 degree celsius for standard conversion.
->> +The thresholds are programmable and upon crossing the thresholds an int=
-errupt
->> +is generated. The OMAP temperature sensor has a programmable update rat=
-e in
->> +milli seconds.
->> +(Currently the driver programs a default of 2000 milliseconds).
->> +
->> +The driver provides the common sysfs-interface for temperatures (see
->> +Documentation/hwmon/sysfs-interface under Temperatures).
->> Index: linux-omap-2.6/drivers/hwmon/Kconfig
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D>> --- linux-omap-2.6.orig/drivers/hwmon/Kconfig=
- 2011-09-22 17:48:38.032575702 +0530
->> +++ linux-omap-2.6/drivers/hwmon/Kconfig =A0 =A0 =A02011-09-22 19:02:28.=
-744575604 +0530
->> @@ -323,6 +323,17 @@
->> =A0 =A0 =A0 =A0 This driver can also be built as a module. =A0If so, the=
- module
->> =A0 =A0 =A0 =A0 will be called f71805f.
->>
->> +config SENSORS_OMAP_BANDGAP_TEMP_SENSOR
->> + =A0 =A0 bool "OMAP on-die temperature sensor hwmon driver"
->> + =A0 =A0 depends on HWMON && ARCH_OMAP && OMAP4460PLUS_SCM
->> + =A0 =A0 help
->> + =A0 =A0 =A0 If you say yes here you get support for hardware
->> + =A0 =A0 =A0 monitoring features of the OMAP on die temperature
->> + =A0 =A0 =A0 sensor.
->> +
->> + =A0 =A0 =A0 Continuous conversion programmable delay
->> + =A0 =A0 =A0 mode is used for temperature conversion.
->> +
->> =A0config SENSORS_F71882FG
->> =A0 =A0 =A0 tristate "Fintek F71882FG and compatibles"
->> =A0 =A0 =A0 help
->> Index: linux-omap-2.6/drivers/hwmon/Makefile
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D>> --- linux-omap-2.6.orig/drivers/hwmon/Makefil=
-e =A0 =A0 =A0 =A02011-09-22 17:48:38.020575728 +0530
->> +++ linux-omap-2.6/drivers/hwmon/Makefile =A0 =A0 2011-09-22 18:57:23.19=
-2574712 +0530
->> @@ -93,6 +93,7 @@
->> =A0obj-$(CONFIG_SENSORS_MAX6642) =A0 =A0 =A0 =A0+=3D max6642.o
->> =A0obj-$(CONFIG_SENSORS_MAX6650) =A0 =A0 =A0 =A0+=3D max6650.o
->> =A0obj-$(CONFIG_SENSORS_MC13783_ADC)+=3D mc13783-adc.o
->> +obj-$(CONFIG_SENSORS_OMAP_BANDGAP_TEMP_SENSOR) =A0+=3D omap4460plus_tem=
-p_sensor.o
->> =A0obj-$(CONFIG_SENSORS_NTC_THERMISTOR) +=3D ntc_thermistor.o
->> =A0obj-$(CONFIG_SENSORS_PC87360) =A0 =A0 =A0 =A0+=3D pc87360.o
->> =A0obj-$(CONFIG_SENSORS_PC87427) =A0 =A0 =A0 =A0+=3D pc87427.o
->> Index: linux-omap-2.6/drivers/hwmon/omap4460plus_temp_sensor.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D>> --- /dev/null 1970-01-01 00:00:00.000000000 +=
-0000
->> +++ linux-omap-2.6/drivers/hwmon/omap4460plus_temp_sensor.c =A0 2011-09-=
-22 19:02:11.096575567 +0530
->> @@ -0,0 +1,242 @@
->> +/*
->> + *
->> + * OMAP4460 Plus bandgap on die sensor hwmon driver.
->> + *
->> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.co=
-m/
->> + * J Keerthy <j-keerthy@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License
->> + * version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the GNU
->> + * General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->> + * 02110-1301 USA
->> + *
->> + */
->> +#include <linux/init.h>
->> +#include <linux/module.h>
->> +#include <linux/kernel.h>
->> +#include <linux/i2c/twl.h>
->> +#include <linux/device.h>
->> +#include <linux/platform_device.h>
->> +#include <linux/i2c/twl4030-madc.h>
->> +#include <linux/hwmon.h>
->> +#include <linux/hwmon-sysfs.h>
->> +#include <linux/stddef.h>
->> +#include <linux/sysfs.h>
->> +#include <linux/err.h>
->> +#include <linux/types.h>
->> +#include <plat/scm.h>
->> +
->> +static ssize_t show_name(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attribute *at=
-tr, char *buf)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> +
->> + =A0 =A0 return sprintf(buf, tsh->name);
->> +}
->> +
->> +static ssize_t show_temp_max(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attri=
-bute *devattr, char *buf)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id;
->> + =A0 =A0 int temp;
->> +
->> + =A0 =A0 temp =3D omap4460plus_scm_show_temp_max(tsh->scm_ptr, id);
->> +
->> + =A0 =A0 return sprintf(buf, "%d\n", temp);
->> +}
->> +
->> +static ssize_t set_temp_max(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct device_attribut=
-e *devattr,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 const char *buf, size_=
-t count)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id, ret;
->> + =A0 =A0 long val;
->> +
->> + =A0 =A0 if (strict_strtol(buf, 10, &val))
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> + =A0 =A0 ret =3D omap4460plus_scm_set_temp_max(tsh->scm_ptr, id, val);
->> + =A0 =A0 if (ret < 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> +
->> + =A0 =A0 return count;
->> +}
->> +
->> +static ssize_t show_temp_max_hyst(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct dev=
-ice_attribute *devattr, char *buf)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id;
->> + =A0 =A0 int temp;
->> +
->> + =A0 =A0 temp =3D omap4460plus_scm_show_temp_max_hyst(tsh->scm_ptr, id);
->> +
->> + =A0 =A0 return sprintf(buf, "%d\n", temp);
->> +}
->> +
->> +static ssize_t set_temp_max_hyst(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct devi=
-ce_attribute *devattr,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0const char =
-*buf, size_t count)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id, ret;
->> + =A0 =A0 long val;
->> +
->> + =A0 =A0 if (strict_strtol(buf, 10, &val))
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->
-> Value range [-MAXLONG, MAXLONG] is ok for set functions ? Or does the
-> called functions check the range ?
+diff --git a/drivers/hwmon/sch5636.c b/drivers/hwmon/sch5636.c
+index 244407a..8cf3630 100644
+--- a/drivers/hwmon/sch5636.c
++++ b/drivers/hwmon/sch5636.c
+@@ -28,14 +28,23 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
++#include <linux/watchdog.h>
++#include <linux/kref.h>
+ #include "sch56xx-common.h"
+ 
++/* Insmod parameters */
++static int nowayout = WATCHDOG_NOWAYOUT;
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started (default="
++	__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++
+ #define DRVNAME "sch5636"
+ #define DEVNAME "theseus" /* We only support one model for now */
+ 
+ #define SCH5636_REG_FUJITSU_ID		0x780
+ #define SCH5636_REG_FUJITSU_REV		0x783
+ 
++/* hwmon registers */
+ #define SCH5636_NO_INS			5
+ #define SCH5636_NO_TEMPS		16
+ #define SCH5636_NO_FANS			8
+@@ -63,11 +72,18 @@ static const u16 SCH5636_REG_FAN_VAL[SCH5636_NO_FANS] = {
+ #define SCH5636_FAN_NOT_PRESENT		0x08
+ #define SCH5636_FAN_DEACTIVATED		0x80
+ 
++/* Watchdog registers */
++#define SCH5636_REG_WDOG_PRESET		0x58B
++#define SCH5636_REG_WDOG_CONTROL	0x58C
++#define SCH5636_WDOG_TIME_BASE_SEC	0x01
++#define SCH5636_REG_WDOG_OUTPUT_ENABLE	0x58E
++#define SCH5636_WDOG_OUTPUT_ENABLE	0x02
+ 
+ struct sch5636_data {
+ 	unsigned short addr;
+-	struct device *hwmon_dev;
+ 
++	/* hwmon related variables */
++	struct device *hwmon_dev;
+ 	struct mutex update_lock;
+ 	char valid;			/* !=0 if following fields are valid */
+ 	unsigned long last_updated;	/* In jiffies */
+@@ -76,8 +92,25 @@ struct sch5636_data {
+ 	u8 temp_ctrl[SCH5636_NO_TEMPS];
+ 	u16 fan_val[SCH5636_NO_FANS];
+ 	u8 fan_ctrl[SCH5636_NO_FANS];
++
++	/* watchdog related variables */
++	struct watchdog_device wddev;
++	struct watchdog_info wdinfo;
++	struct kref kref;
++	bool watchdog_registered;
++	u8 watchdog_preset;
++	u8 watchdog_control;
++	u8 watchdog_output_enable;
+ };
+ 
++/* Release our data struct when the platform device has been released *and*
++   all references to our watchdog device are released */
++static void sch5636_release_resources(struct kref *r)
++{
++	struct sch5636_data *data = container_of(r, struct sch5636_data, kref);
++	kfree(data);
++}
++
+ static struct sch5636_data *sch5636_update_device(struct device *dev)
+ {
+ 	struct sch5636_data *data = dev_get_drvdata(dev);
+@@ -379,11 +412,154 @@ static struct sensor_device_attribute sch5636_fan_attr[] = {
+ 	SENSOR_ATTR(fan8_alarm, 0444, show_fan_alarm, NULL, 7),
+ };
+ 
++/*
++ * Watchdog routines
++ */
++
++static int watchdog_set_timeout(struct watchdog_device *wddev,
++				unsigned int timeout)
++{
++	struct sch5636_data *data = watchdog_get_drvdata(wddev);
++	int err, resolution;
++	u8 control;
++
++	/* 1 second or 60 second resolution? */
++	if (timeout <= 255)
++		resolution = 1;
++	else
++		resolution = 60;
++
++	if (resolution = 1)
++		control = data->watchdog_control | SCH5636_WDOG_TIME_BASE_SEC;
++	else
++		control = data->watchdog_control & ~SCH5636_WDOG_TIME_BASE_SEC;
++
++	if (data->watchdog_control != control) {
++		err = sch56xx_write_virtual_reg(data->addr,
++						SCH5636_REG_WDOG_CONTROL,
++						control);
++		if (err)
++			return err;
++
++		data->watchdog_control = control;
++	}
++
++	/* Remember new timeout value, but do not write as that (re)starts
++	   the watchdog countdown */
++	data->watchdog_preset = DIV_ROUND_UP(timeout, resolution);
++	wddev->timeout = data->watchdog_preset * resolution;
++
++	return 0;
++}
++
++static int watchdog_start(struct watchdog_device *wddev)
++{
++	struct sch5636_data *data = watchdog_get_drvdata(wddev);
++	int err;
++	u8 val;
++
++	/*
++	 * The sch5636's watchdog cannot really be started / stopped
++	 * it is always running, but we can avoid the timer expiring
++	 * from causing a system reset by clearing the output enable bit.
++	 *
++	 * The sch5636's watchdog will set the watchdog event bit, bit 0
++	 * of the second interrupt source register (at base-address + 9),
++	 * when the timer expires.
++	 *
++	 * This will only cause a system reset if the 0-1 flank happens when
++	 * output enable is true. Setting output enable after the flank will
++	 * not cause a reset, nor will the timer expiring a second time.
++	 * This means we must clear the watchdog event bit in case it is set.
++	 *
++	 * The timer may still be running (after a recent watchdog_stop) and
++	 * mere milliseconds away from expiring, so the timer must be reset
++	 * first!
++	 */
++
++	/* 1. Reset the watchdog countdown counter */
++	err = sch56xx_write_virtual_reg(data->addr, SCH5636_REG_WDOG_PRESET,
++					data->watchdog_preset);
++	if (err)
++		return err;
++
++	/* 2. Enable output (if not already enabled) */
++	val = data->watchdog_output_enable | SCH5636_WDOG_OUTPUT_ENABLE;
++	err = sch56xx_write_virtual_reg(data->addr,
++					SCH5636_REG_WDOG_OUTPUT_ENABLE, val);
++	if (err)
++		return err;
++	data->watchdog_output_enable = val;
++
++	/* 3. Clear the watchdog event bit if set */
++	val = inb(data->addr + 9);
++	if (val & 0x01)
++		outb(0x01, data->addr + 9);
++
++	return 0;
++}
++
++static int watchdog_trigger(struct watchdog_device *wddev)
++{
++	struct sch5636_data *data = watchdog_get_drvdata(wddev);
++
++	/* Reset the watchdog countdown counter */
++	return sch56xx_write_virtual_reg(data->addr, SCH5636_REG_WDOG_PRESET,
++					 data->watchdog_preset);
++}
++
++static int watchdog_stop(struct watchdog_device *wddev)
++{
++	struct sch5636_data *data = watchdog_get_drvdata(wddev);
++	int err;
++	u8 val;
++
++	val = data->watchdog_output_enable & ~SCH5636_WDOG_OUTPUT_ENABLE;
++	err = sch56xx_write_virtual_reg(data->addr,
++					SCH5636_REG_WDOG_OUTPUT_ENABLE, val);
++	if (err)
++		return err;
++	data->watchdog_output_enable = val;
++
++	return 0;
++}
++
++static void watchdog_ref(struct watchdog_device *wddev)
++{
++	struct sch5636_data *data = watchdog_get_drvdata(wddev);
++
++	kref_get(&data->kref);
++}
++
++static void watchdog_unref(struct watchdog_device *wddev)
++{
++	struct sch5636_data *data = watchdog_get_drvdata(wddev);
++
++	kref_put(&data->kref, sch5636_release_resources);
++}
++
++static const struct watchdog_ops watchdog_ops = {
++	.owner		= THIS_MODULE,
++	.start		= watchdog_start,
++	.stop		= watchdog_stop,
++	.ref		= watchdog_ref,
++	.unref		= watchdog_unref,
++	.ping		= watchdog_trigger,
++	.set_timeout	= watchdog_set_timeout,
++};
++
++/*
++ * Remove, probe, register and unregister device functions
++ */
++
+ static int sch5636_remove(struct platform_device *pdev)
+ {
+ 	struct sch5636_data *data = platform_get_drvdata(pdev);
+ 	int i;
+ 
++	if (data->watchdog_registered)
++		watchdog_unregister_device(&data->wddev);
++
+ 	if (data->hwmon_dev)
+ 		hwmon_device_unregister(data->hwmon_dev);
+ 
+@@ -399,7 +575,7 @@ static int sch5636_remove(struct platform_device *pdev)
+ 				   &sch5636_fan_attr[i].dev_attr);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
++	kref_put(&data->kref, sch5636_release_resources);
+ 
+ 	return 0;
+ }
+@@ -416,6 +592,7 @@ static int __devinit sch5636_probe(struct platform_device *pdev)
+ 
+ 	data->addr = platform_get_resource(pdev, IORESOURCE_IO, 0)->start;
+ 	mutex_init(&data->update_lock);
++	kref_init(&data->kref);
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	for (i = 0; i < 3; i++) {
+@@ -450,6 +627,8 @@ static int __devinit sch5636_probe(struct platform_device *pdev)
+ 	pr_info("Found %s chip at %#hx, revison: %d.%02d\n", DEVNAME,
+ 		data->addr, revision[0], revision[1]);
+ 
++	/********* hwmon initialization *********/
++
+ 	/* Read all temp + fan ctrl registers to determine which are active */
+ 	for (i = 0; i < SCH5636_NO_TEMPS; i++) {
+ 		val = sch56xx_read_virtual_reg(data->addr,
+@@ -505,6 +684,56 @@ static int __devinit sch5636_probe(struct platform_device *pdev)
+ 		goto error;
+ 	}
+ 
++	/********* watchdog initialization *********/
++
++	data->wdinfo.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT;
++	strlcpy(data->wdinfo.identity, "Fujitsu watchdog",
++		sizeof(data->wdinfo.identity));
++	data->wdinfo.firmware_version = revision[0];
++	data->wddev.info = &data->wdinfo;
++	data->wddev.ops = &watchdog_ops;
++	data->wddev.min_timeout = 1;
++	data->wddev.max_timeout = 255 * 60;
++	if (nowayout)
++		data->wddev.status |= WDOG_NO_WAY_OUT;
++	else
++		data->wdinfo.options |= WDIOF_MAGICCLOSE;
++
++	/* Since the watchdog uses a downcounter there is no register to read
++	   the BIOS set timeout from (if any was set at all) -> choose a preset
++	   which will give us a 1 minute timeout */
++	val = sch56xx_read_virtual_reg(data->addr, SCH5636_REG_WDOG_CONTROL);
++	if (val < 0) {
++		err = val;
++		goto error;
++	}
++	data->watchdog_control = val;
++	if (data->watchdog_control & SCH5636_WDOG_TIME_BASE_SEC)
++		data->watchdog_preset = 60; /* seconds */
++	else
++		data->watchdog_preset = 1; /* minute */
++	data->wddev.timeout = 60;
++
++	/* Check if the watchdog was already enabled by the BIOS */
++	val = sch56xx_read_virtual_reg(data->addr,
++				       SCH5636_REG_WDOG_OUTPUT_ENABLE);
++	if (val < 0) {
++		err = val;
++		goto error;
++	}
++	data->watchdog_output_enable = val;
++	if (data->watchdog_output_enable & SCH5636_WDOG_OUTPUT_ENABLE)
++		data->wddev.status |= WDOG_ACTIVE;
++
++	/*
++	 * Note we don't abort on failure to register the watchdog, as we
++	 * still want to stick around for the hwmon stuff.
++	 */
++	watchdog_set_drvdata(&data->wddev, data);
++	err = watchdog_register_device(&data->wddev);
++	if (!err)
++		data->watchdog_registered = true;
++
+ 	return 0;
+ 
+ error:
+-- 
+1.7.6.2
 
-It is checked in the called function. I will enforce a more stringent check
-in the called function.
-
->
->> + =A0 =A0 ret =3D omap4460plus_scm_set_temp_max_hyst(tsh->scm_ptr, id, v=
-al);
->> + =A0 =A0 if (ret < 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> +
->> + =A0 =A0 return count;
->> +}
->> +
->> +static ssize_t show_update_interval(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct=
- device_attribute *devattr, char *buf)
->> +{
->> + =A0 =A0 int time =3D 0;
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id;
->> +
->> + =A0 =A0 time =3D omap4460plus_scm_show_update_interval(tsh->scm_ptr, i=
-d);
->> +
->> + =A0 =A0 return sprintf(buf, "%d\n", time);
->> +}
->> +
->> +static ssize_t set_update_interval(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct =
-device_attribute *devattr,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0const c=
-har *buf, size_t count)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id;
->> + =A0 =A0 long val;
->> +
->> + =A0 =A0 if (strict_strtol(buf, 10, &val))
->> + =A0 =A0 =A0 =A0 =A0 =A0 count =3D -EINVAL;
->> +
-> This is really odd. You are going to return an error, yet set the update
-> interval to whatever happens to be in val even if it was not set (unless
-> that value is < 0).
->
-> You should directly return -EINVAL here. Also, since you don't accept
-> negative values, you might as well use strict_strtoul() instead.
-
-Ok. I will return -EINVAL.
-
->
->> +
->> + =A0 =A0 if (val < 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->
-> The value range [0, MAXLONG] is ok ?
-
-I will define an thresholds for this.
-
->
->> + =A0 =A0 omap4460plus_scm_set_update_interval(tsh->scm_ptr, val, id);
->> + =A0 =A0 return count;
->> +}
->> +
->> +static int read_temp(struct device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0struct device_attribute *devattr, c=
-har *buf)
->> +{
->> + =A0 =A0 struct temp_sensor_hwmon *tsh =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 struct platform_device, dev);
->> + =A0 =A0 int id =3D pdev->id;
->> + =A0 =A0 int temp;
->> +
->> + =A0 =A0 temp =3D omap4460plus_scm_read_temp(tsh->scm_ptr, id);
->> +
->> + =A0 =A0 return sprintf(buf, "%d\n", temp);
->> +}
->> +
->> +static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
->> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, read_temp, NULL, 0);
->> +static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_max,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 set_temp_max, 0);
->> +static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, show_temp_=
-max_hyst,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 set_temp_max_hyst, 0);
->> +static SENSOR_DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 show_update_interval, set_=
-update_interval, 0);
->> +
->> +static struct attribute *temp_sensor_attributes[] =3D {
->> + =A0 =A0 &dev_attr_name.attr,
->> +
->> + =A0 =A0 &sensor_dev_attr_temp1_input.dev_attr.attr,
->> + =A0 =A0 &sensor_dev_attr_temp1_max.dev_attr.attr,
->> + =A0 =A0 &sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
->> + =A0 =A0 &sensor_dev_attr_update_interval.dev_attr.attr,
->> + =A0 =A0 NULL
->> +};
->> +
->> +static const struct attribute_group temp_sensor_group =3D {
->> + =A0 =A0 .attrs =3D temp_sensor_attributes,
->> +};
->> +
->> +static int __devinit omap4460plus_temp_sensor_probe(struct platform_dev=
-ice
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *pdev)
->> +{
->> + =A0 =A0 int ret;
->> + =A0 =A0 struct device *hwmon;
->> +
->> + =A0 =A0 ret =3D sysfs_create_group(&pdev->dev.kobj, &temp_sensor_group=
-);
->> + =A0 =A0 if (ret)
->> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_sysfs;
->> + =A0 =A0 hwmon =3D hwmon_device_register(&pdev->dev);
->> + =A0 =A0 if (IS_ERR(hwmon)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "hwmon_device_register fai=
-led.\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D PTR_ERR(hwmon);
->> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_reg;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return 0;
->> +
->> +err_reg:
->> + =A0 =A0 sysfs_remove_group(&pdev->dev.kobj, &temp_sensor_group);
->> +err_sysfs:
->> +
->> + =A0 =A0 return ret;
->> +}
->> +
->> +static int __devexit omap4460plus_temp_sensor_remove(struct platform_de=
-vice
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*pdev)
->> +{
->> + =A0 =A0 hwmon_device_unregister(&pdev->dev);
->> + =A0 =A0 sysfs_remove_group(&pdev->dev.kobj, &temp_sensor_group);
->> +
->> + =A0 =A0 return 0;
->> +}
->> +
->> +static struct platform_driver omap4460plus_temp_sensor_driver =3D {
->> + =A0 =A0 .probe =3D omap4460plus_temp_sensor_probe,
->> + =A0 =A0 .remove =3D omap4460plus_temp_sensor_remove,
->> + =A0 =A0 .driver =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =3D "temp_sensor_hwmon",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0},
->> +};
->> +
->> +int __init omap4460plus_temp_sensor_init(void)
->> +{
->> + =A0 =A0 return platform_driver_register(&omap4460plus_temp_sensor_driv=
-er);
->> +}
->> +
->> +module_init(omap4460plus_temp_sensor_init);
->> +
->> +static void __exit omap4460plus_temp_sensor_exit(void)
->> +{
->> + =A0 =A0 platform_driver_unregister(&omap4460plus_temp_sensor_driver);
->> +}
->> +
->> +module_exit(omap4460plus_temp_sensor_exit);
->> +
->> +MODULE_DESCRIPTION("OMAP446X temperature sensor Hwmon Driver");
->> +MODULE_LICENSE("GPL");
->> +MODULE_ALIAS("platform:" DRIVER_NAME);
->> +MODULE_AUTHOR("J Keerthy <j-keerthy@ti.com>");
->
->
->
-
-
-
---=20
-Regards and Thanks,
-Keerthy
 
 _______________________________________________
 lm-sensors mailing list
