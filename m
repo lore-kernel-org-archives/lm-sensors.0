@@ -1,87 +1,108 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 11 Sep 2011 14:36:40 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Fix low limit temperature
-Message-Id: <20110911143640.GA8723@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 12 Sep 2011 16:18:00 +0000
+Subject: Re: [lm-sensors] [PATCHv4 1/1] Hwmon: Add core/pkg Threshold
+Message-Id: <20110912181800.01e9f3de@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1315686474-29139-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1315686474-29139-1-git-send-email-guenter.roeck@ericsson.com>
+References: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
+In-Reply-To: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+Hi Guenter, Durgadoss,
 
-On Sun, Sep 11, 2011 at 03:34:19AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sat, 10 Sep 2011 13:27:54 -0700, Guenter Roeck wrote:
-> > Temperature alarms are detected by checking the alarm bit and comparing
-> > temperature limits against the current temperature. For low limits, this
-> > comparison needs to be reversed (temp < limit instead of temp > limit).
-> > This was not taken into account, resulting in wrong alarms if a temperature
-> > fell below a low limit.
-> > 
-> > Fix by adding a low limit flag in the limit data structure. When creating the
-> > sensor entry, the order of registers to compare is now reversed for low limits.
-> > 
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> > Candidate for -stable.
-> > 
-> >  drivers/hwmon/pmbus/pmbus_core.c |   10 +++++++++-
-> >  1 files changed, 9 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-> > index 1798f52..410aa12 100644
-> > --- a/drivers/hwmon/pmbus/pmbus_core.c
-> > +++ b/drivers/hwmon/pmbus/pmbus_core.c
-> > @@ -978,6 +978,8 @@ static void pmbus_find_max_attr(struct i2c_client *client,
-> >  struct pmbus_limit_attr {
-> >  	u16 reg;		/* Limit register */
-> >  	bool update;		/* True if register needs updates */
-> > +	bool low;		/* True if low limit; for limits with compare
-> > +				   functions only */
-> >  	const char *attr;	/* Attribute name */
-> >  	const char *alarm;	/* Alarm attribute name */
-> >  	u32 sbit;		/* Alarm attribute status bit */
-> > @@ -1029,7 +1031,8 @@ static bool pmbus_add_limit_attrs(struct i2c_client *client,
-> >  				if (attr->compare) {
-> >  					pmbus_add_boolean_cmp(data, name,
-> >  						l->alarm, index,
-> > -						cbase, cindex,
-> > +						l->low ? cindex : cbase,
-> > +						l->low ? cbase : cindex,
-> >  						attr->sbase + page, l->sbit);
-> >  				} else {
-> >  					pmbus_add_boolean_reg(data, name,
-> > @@ -1366,16 +1369,19 @@ static const struct pmbus_sensor_attr power_attributes[] = {
-> >  static const struct pmbus_limit_attr temp_limit_attrs[] = {
-> >  	{
-> >  		.reg = PMBUS_UT_WARN_LIMIT,
-> > +		.low = true,
-> >  		.attr = "min",
-> >  		.alarm = "min_alarm",
-> >  		.sbit = PB_TEMP_UT_WARNING,
-> >  	}, {
-> >  		.reg = PMBUS_UT_FAULT_LIMIT,
-> > +		.low = true,
-> >  		.attr = "lcrit",
-> >  		.alarm = "lcrit_alarm",
-> >  		.sbit = PB_TEMP_UT_FAULT,
-> >  	}, {
-> >  		.reg = PMBUS_OT_WARN_LIMIT,
-> > +		.low = true,
-> >  		.attr = "max",
-> >  		.alarm = "max_alarm",
-> >  		.sbit = PB_TEMP_OT_WARNING,
-> 
-> This one doesn't look like a "low lmit", does it?
-> 
-Not really. I'll resend.
+Sorry for the very late comment.
 
-Thanks,
-Guenter
+On Wed, 13 Jul 2011 13:48:11 -0700, Guenter Roeck wrote:
+> On Tue, 2011-07-12 at 07:07 -0400, Durgadoss R wrote:=20
+> > This patch adds the core and pkg support to coretemp.
+> > These thresholds can be configured via the sysfs interfaces tempX_max
+> > and tempX_max_hyst. An interrupt is generated when CPU temperature reac=
+hes
+> > or crosses above tempX_max OR drops below tempX_max_hyst.
+> >=20
+> > This patch is based on the documentation in IA Manual vol 3A, that can =
+be
+> > downloaded from here:
+> > http://download.intel.com/design/processor/manuals/253668.pdf
+> >=20
+> > Signed-off-by: Durgadoss R <durgadoss.r@intel.com>
+>=20
+> Looks like it is working now, so I applied the patch to -next.
+
+Working, really? That's not how it looks like from here.
+
+On my Xeon E5520, the output looked like this before the patch:
+
+coretemp-isa-0000
+Core 0:       +61.0=B0C  (high =3D +87.0=B0C, crit =3D +97.0=B0C)
+Core 1:       +56.0=B0C  (high =3D +87.0=B0C, crit =3D +97.0=B0C)
+Core 2:       +57.0=B0C  (high =3D +87.0=B0C, crit =3D +97.0=B0C)
+Core 3:       +56.0=B0C  (high =3D +87.0=B0C, crit =3D +97.0=B0C)
+
+And now it looks like this :
+
+coretemp-isa-0000
+Core 0:       +61.0=B0C  (high =3D +97.0=B0C, hyst =3D  +0.0=B0C)
+                       (crit =3D +97.0=B0C)
+Core 1:       +57.0=B0C  (high =3D +97.0=B0C, hyst =3D  +0.0=B0C)
+                       (crit =3D +97.0=B0C)
+Core 2:       +60.0=B0C  (high =3D +97.0=B0C, hyst =3D  +0.0=B0C)
+                       (crit =3D +97.0=B0C)
+Core 3:       +56.0=B0C  (high =3D +97.0=B0C, hyst =3D  +0.0=B0C)
+                       (crit =3D +97.0=B0C)
+
+High =3D crit doesn't make much sense, and neither does hyst =3D 0.
+
+Looking at the code, it seems that the hyst value (tmin) is simply
+never read from the CPU. I wrote a fix, I'll send it shortly. After
+properly initializing tmin, I get the following:
+
+coretemp-isa-0000
+Core 0:       +61.0=B0C  (high =3D +97.0=B0C, hyst =3D +97.0=B0C)
+                       (crit =3D +97.0=B0C)
+Core 1:       +57.0=B0C  (high =3D +97.0=B0C, hyst =3D +97.0=B0C)
+                       (crit =3D +97.0=B0C)
+Core 2:       +59.0=B0C  (high =3D +97.0=B0C, hyst =3D +97.0=B0C)
+                       (crit =3D +97.0=B0C)
+Core 3:       +56.0=B0C  (high =3D +97.0=B0C, hyst =3D +97.0=B0C)
+                       (crit =3D +97.0=B0C)
+
+I am still suspicious... Does this mean that the thermal interrupt
+mechanism is disabled by default?
+
+What happened to the old high limit value (87=B0C)? I don't know what
+meaning it had physically but at least the value was reasonable.
+
+How comes that the driver doesn't use THERM_INT_THRESHOLD0_ENABLE and
+THERM_INT_THRESHOLD1_ENABLE? If the thresholds can be disabled, then
+the driver should certainly handle these cases.
+
+On my Core Duo T2600n the output looks like:
+
+coretemp-isa-0000
+Core 0:      +54.0=B0C  (high =3D +47.0=B0C, hyst =3D +64.0=B0C)  ALARM
+                      (crit =3D +100.0=B0C)
+Core 1:      +55.0=B0C  (high =3D +47.0=B0C, hyst =3D +64.0=B0C)  ALARM
+                      (crit =3D +100.0=B0C)
+
+High at 47=B0C by default seems unreasonable, and hyst > high even more
+so. But at least the ALARM flags are consistent with these limits.
+
+Lastly, on Core2 Duo E6400, I get this :
+
+coretemp-isa-0000
+Core 0:       +71.0=B0C  (high =3D +100.0=B0C, hyst =3D +100.0=B0C)
+                       (crit =3D +100.0=B0C)
+Core 1:       +69.0=B0C  (high =3D +100.0=B0C, hyst =3D +100.0=B0C)
+                       (crit =3D +100.0=B0C)
+
+So problem is the same as on my Xeon E5520: it looks like the
+thresholds are disabled?
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
