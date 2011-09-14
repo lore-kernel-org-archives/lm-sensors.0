@@ -1,68 +1,47 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Mon, 19 Sep 2011 07:18:30 +0000
-Subject: Re: [lm-sensors] [PATCH RFC] hwmon: Add notification and uevent
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654109E8D6D652@bgsmsx502.gar.corp.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 14 Sep 2011 08:43:07 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Initialize tmin
+Message-Id: <20110914104307.637e5391@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1316373912-10041-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1316373912-10041-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+ttarget is initialized when the driver is loaded, but tmin is not.
+As a result, tempX_max_hyst attributes read 0. Fix this.
 
-> -----Original Message-----
-> From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
-> Sent: Monday, September 19, 2011 12:55 AM
-> To: Jean Delvare
-> Cc: R, Durgadoss; Lucas Stach; Hans de Goede; lm-sensors@lm-sensors.org; linux-
-> doc@vger.kernel.org; Guenter Roeck
-> Subject: [PATCH RFC] hwmon: Add notification and uevent support to sysfs ABI
-> 
-> Some hwmon drivers start adding support for alarm attribute notifications and
-> generate uevents. Standardize the ABI to be used for this purpose.
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> ---
-> An attempt to standardize notification and uevent support for hwmon drivers.
-> 
->  Documentation/hwmon/sysfs-interface |   30 ++++++++++++++++++++++++++++++
->  1 files changed, 30 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-
-> interface
-> index e65e7e8..735d33f 100644
-> --- a/Documentation/hwmon/sysfs-interface
-> +++ b/Documentation/hwmon/sysfs-interface
-> @@ -97,6 +97,16 @@ update_interval	The interval at which the chip will update
-> readings.
->  		Some devices have a variable update rate or interval.
->  		This attribute can be used to change it to the desired value.
-> 
-> +notification	This attribute exists if the driver supports notifications on
-> +		alarm and trigger attributes. Valid attribute values are:
-> +		0: The driver does not support notifications or uevents.
-> +		1: The driver supports notifications.
-> +		2: The driver generates a uevent if an alarm or trigger status
-> +		   changes.
-> +		3: The driver suports notifications and generates a uevent if
+Also use THERM_*_THRESHOLD* constants in these initializations instead
+of hard-coding the constants.
 
-s/suports/supports
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+---
+ drivers/hwmon/coretemp.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-> +In addition to notifications, drivers may also support uevents. If so, a
-> uevent
-> +shall be triggered whenever an alarm or trigger attribute changes its state.
-> +The uevent shall be triggered on the driver's hwmon device kobject
-> +(TBD: on the platform device kobject ?).
+--- linux-3.1-rc4.orig/drivers/hwmon/coretemp.c	2011-08-23 21:34:44.000000000 +0200
++++ linux-3.1-rc4/drivers/hwmon/coretemp.c	2011-09-14 09:32:11.000000000 +0200
+@@ -601,7 +601,12 @@ static int create_core_data(struct platf
+ 	err = rdmsr_safe_on_cpu(cpu, tdata->intrpt_reg, &eax, &edx);
+ 	if (!err) {
+ 		tdata->attr_size += MAX_THRESH_ATTRS;
+-		tdata->ttarget = tdata->tjmax - ((eax >> 16) & 0x7f) * 1000;
++		tdata->tmin = tdata->tjmax -
++			      ((eax & THERM_MASK_THRESHOLD0) >>
++			       THERM_SHIFT_THRESHOLD0) * 1000;
++		tdata->ttarget = tdata->tjmax -
++				 ((eax & THERM_MASK_THRESHOLD1) >>
++				  THERM_SHIFT_THRESHOLD1) * 1000;
+ 	}
+ 
+ 	pdata->core_data[attr_no] = tdata;
 
-I would prefer the uevent to be on the hwmon device kobject.
-This way the user space can look for uevents from hwmon 'subsystem'.
-Then it can retrieve the exact device location from DEVPATH
-attribute.
 
-Thanks,
-Durga
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
