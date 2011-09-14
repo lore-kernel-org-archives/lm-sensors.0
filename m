@@ -1,50 +1,58 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 13 Sep 2011 13:15:31 +0000
-Subject: [lm-sensors] temporary hwmon tree location
-Message-Id: <20110913131531.GA26559@ericsson.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Wed, 14 Sep 2011 00:10:24 +0000
+Subject: Re: [lm-sensors] temporary hwmon tree location
+Message-Id: <20110914101024.538d03c3521226b4206f21c2@canb.auug.org.au>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============9138272837367518744=="
+Content-Type: multipart/mixed; boundary="===============3410092703143624377=="
 List-Id: <lm-sensors.vger.kernel.org>
-To: sfr@canb.auug.org.au
+References: <20110913131531.GA26559@ericsson.com>
+In-Reply-To: <20110913131531.GA26559@ericsson.com>
+To: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
---===============9138272837367518744==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jRHKVT23PllUwdXP"
+--===============3410092703143624377==
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR"
+
+--Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR
+Content-Type: text/plain; charset=US-ASCII
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---jRHKVT23PllUwdXP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Guenter,
 
-Stephen,
+On Tue, 13 Sep 2011 06:15:31 -0700 Guenter Roeck <guenter.roeck@ericsson.co=
+m> wrote:
+>
+> my hwmon tree for -next is temporarily located at
+> 	git://github.com/groeck/linux.git hwmon-next
 
-my hwmon tree for -next is temporarily located at
-	git://github.com/groeck/linux.git hwmon-next
+OK, I will switch from today, thanks.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Thanks,
-Guenter
-
---jRHKVT23PllUwdXP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+--Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR
+Content-Type: application/pgp-signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOb1dzAAoJEANmWzN1g3l3tt0IAId8zkxE10R3rmDyTfMePOX5
-onuIzPS3r4zIAO5VYq8ZSnNtvT4zxLffNTrWenL6gQLiFrjdysCW1vpLioo8+J2C
-XI8yKqfnunVYs+Cn2fKfLGH9nwqUCiInc2lyYGQeWPp1LpcYVRY4xZnZNw+jhID5
-GaSv+PXRWk4AzXrDng1k7lRSVtrfWlmbIAOseMO0TY5S3YwpX85DVVPeY+/Mx+wq
-7WvK5FCdpWlYf/mTG7NA9jw/YPojE85sfHxClzKSDP7D+4hvtuUmIN3pRKgssHA1
-nj1EZxm/uaNqEI1A8RSuN/jM2sCUoegs+lo5X3UhWNik3B3Xvj4DOU8jCt9UBfk=
-=cb8r
+iQEcBAEBAgAGBQJOb/DwAAoJEDMEi1NhKgbs2V4H/i5+VhIDqHVExqL+FHWM7F0A
+Y4/h3KAn//p2lFKbjoG7Aopo8L/UWI0Njh23+4WLjvYuRZVyOlCjWwutkyBHEGPu
+eWWlJsJ4p9g7ParTQEKOZLqVBtMwAwSCOE3uZbR5VbQYj60hS7qOR3DXCg7ImzbE
+0a5sgfiWCB4CBQ7ZMC54N4LO+KtI0qVx6Z8YIQsf8yip29v4aizVEOE0y/dt1ahz
+8HwmY+Vb6u+UBNlpFP7ejIu5qSxakSLmk8lyw6FBJwU2Jlb/kt943Lv0IwT2KBow
+ukFS13RTsYnUrOesZgQ60rrJldnCWBbqASFrqOIwn8+m6IGphV24oauGem+Jx8s=
+=78tP
 -----END PGP SIGNATURE-----
 
---jRHKVT23PllUwdXP--
+--Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR--
 
 
---===============9138272837367518744==
+--===============3410092703143624377==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -54,4 +62,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9138272837367518744==--
+--===============3410092703143624377==--
