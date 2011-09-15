@@ -1,12 +1,15 @@
 From: Lucas Stach <dev@lynxeye.de>
-Date: Thu, 15 Sep 2011 20:45:55 +0000
-Subject: [lm-sensors] [RFC 2/2] add new hwmon-core interface v2
-Message-Id: <1316119556.25490.15.camel@tellur>
+Date: Thu, 15 Sep 2011 22:31:51 +0000
+Subject: [lm-sensors] [RFC 2/2] add new hwmon-core interface v3
+Message-Id: <1316125911.25490.21.camel@tellur>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1316119556.25490.15.camel@tellur>
+In-Reply-To: <1316119556.25490.15.camel@tellur>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
 
 This is a dummy driver to showcase the new hwmon-core interface.
 *NOT INTENDED FOR INCLUSION INTO ANYTHING*
@@ -15,8 +18,8 @@ Signed-off-by: Lucas Stach <dev@lynxeye.de>
 ---
  drivers/hwmon/Kconfig       |    5 +
  drivers/hwmon/Makefile      |    1 +
- drivers/hwmon/hwmon-dummy.c |  179 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 185 insertions(+), 0 deletions(-)
+ drivers/hwmon/hwmon-dummy.c |  181 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 187 insertions(+), 0 deletions(-)
  create mode 100644 drivers/hwmon/hwmon-dummy.c
 
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
@@ -49,10 +52,10 @@ index 3d5b395..31205bc 100644
  obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
 diff --git a/drivers/hwmon/hwmon-dummy.c b/drivers/hwmon/hwmon-dummy.c
 new file mode 100644
-index 0000000..2452adf
+index 0000000..2f81ff9
 --- /dev/null
 +++ b/drivers/hwmon/hwmon-dummy.c
-@@ -0,0 +1,179 @@
+@@ -0,0 +1,181 @@
 +/*
 + * hwmon-dummy.c
 + * Copyright (C) 2011 Lucas Stach
@@ -89,32 +92,32 @@ index 0000000..2452adf
 +static struct device *hwmon_dev;
 +struct hwmon_device_instance *core_dev;
 +
-+static int get_text(void * inst_data, enum hwmon_attr attr,
++static int get_text(void *inst_data, enum hwmon_attr attr,
 +		unsigned int index, char *buf)
 +{
 +	int ret = 0;
 +
-+	switch(attr) {
-+		case hwmon_attr_generic_name:
-+			ret = snprintf(buf, PAGE_SIZE, "hwmon_dummy\n");
-+			break;
-+		case hwmon_attr_in_label:
-+			ret = snprintf(buf, PAGE_SIZE, "volt_label\n");
-+			break;
-+		case hwmon_attr_fan_label:
-+			ret = snprintf(buf, PAGE_SIZE, "fan_label\n");
-+			break;
-+		default:
-+			break;
++	switch (attr) {
++	case hwmon_attr_generic_name:
++		ret = snprintf(buf, PAGE_SIZE, "hwmon_dummy\n");
++		break;
++	case hwmon_attr_in_label:
++		ret = snprintf(buf, PAGE_SIZE, "volt_label\n");
++		break;
++	case hwmon_attr_fan_label:
++		ret = snprintf(buf, PAGE_SIZE, "fan_label\n");
++		break;
++	default:
++		break;
 +	}
 +
 +	return ret;
 +}
 +
-+static int get_num(void * inst_data, enum hwmon_attr attr,
++static int get_num(void *inst_data, enum hwmon_attr attr,
 +		unsigned int index, int *value)
 +{
-+	switch(attr) {
++	switch (attr) {
 +	case hwmon_attr_generic_update_interval:
 +		*value = 1000;
 +		break;
@@ -164,14 +167,14 @@ index 0000000..2452adf
 +	return 0;
 +}
 +
-+static int set_num(void * inst_data, enum hwmon_attr attr,
++static int set_num(void *inst_data, enum hwmon_attr attr,
 +		unsigned int index, int value)
 +{
 +	return 0;
 +}
 +static int dummy_init(void)
 +{
-+	if(driver_register(&dummy_driver))
++	if (driver_register(&dummy_driver))
 +		return 1;
 +
 +	platform_device_register(&dummy_device);
@@ -189,14 +192,16 @@ index 0000000..2452adf
 +	core_dev->caps = kzalloc(sizeof(struct hwmon_device_caps), GFP_KERNEL);
 +
 +	core_dev->caps->num_channels[hwmon_feature_in] = 2;
-+	core_dev->caps->subfeature_caps[hwmon_feature_in] +			HWMON_CAP(in_min)  | HWMON_CAP(in_lcrit) | HWMON_CAP(in_max) |
-+			HWMON_CAP(in_crit) | HWMON_CAP(in_vid) | HWMON_CAP(in_vrm) |
++	core_dev->caps->subfeature_caps[hwmon_feature_in] +			HWMON_CAP(in_min) | HWMON_CAP(in_lcrit) |
++			HWMON_CAP(in_max) | HWMON_CAP(in_crit) |
++			HWMON_CAP(in_vid) | HWMON_CAP(in_vrm) |
 +			HWMON_CAP(in_label);
 +
 +
 +	core_dev->caps->num_channels[hwmon_feature_fan] = 2;
-+	core_dev->caps->subfeature_caps[hwmon_feature_fan] +			HWMON_CAP(fan_min) | HWMON_CAP(fan_div) | HWMON_CAP(fan_label) |
-+			HWMON_CAP(fan_max) | HWMON_CAP(fan_pulses) | HWMON_CAP(fan_target);
++	core_dev->caps->subfeature_caps[hwmon_feature_fan] +			HWMON_CAP(fan_min) | HWMON_CAP(fan_div) |
++			HWMON_CAP(fan_label) | HWMON_CAP(fan_max) |
++			HWMON_CAP(fan_pulses) | HWMON_CAP(fan_target);
 +
 +
 +	/* link hwmon_device_instance to hwmon_dev */
