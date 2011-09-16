@@ -1,7 +1,7 @@
-From: Lucas Stach <dev@lynxeye.de>
-Date: Fri, 16 Sep 2011 13:05:39 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 16 Sep 2011 13:51:34 +0000
 Subject: Re: [lm-sensors] [RFC 1/2] add new hwmon-core interface v3
-Message-Id: <1316178339.2018.15.camel@tellur>
+Message-Id: <20110916135134.GA10044@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1316119550.25490.14.camel@tellur>
 In-Reply-To: <1316119550.25490.14.camel@tellur>
@@ -10,9 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Hans,
+Hi Hans,
 
-Am Freitag, den 16.09.2011, 10:37 +0200 schrieb Hans de Goede:
+On Fri, Sep 16, 2011 at 04:37:34AM -0400, Hans de Goede wrote:
 > Hi,
 > 
 > On 09/16/2011 12:31 AM, Lucas Stach wrote:
@@ -37,11 +37,6 @@ Am Freitag, den 16.09.2011, 10:37 +0200 schrieb Hans de Goede:
 > (and thus the same sysfs attributes) that is simply not true. On for example
 > the f71882fg (and other models supported by that driver), only one of the
 > 3 - 9 voltage inputs has an alarm capability, and thus alarm and max attributes.
-
-Handling different caps on every channel will make the interface a bit
-more complicated, as I don't want to waste too much space for the caps,
-but it should be doable with reasonable effort.
-
 > 
 > Another concern is that it always assumes 1 dimensional indexing, but if you
 > look at automatic fan control related sysfs attributes (which your code currently
@@ -51,23 +46,12 @@ but it should be doable with reasonable effort.
 > (and per threshold a corresponding pwm duty cycle). One could simply see this
 > as 1 dimensional with a lot of attributes, but it would be much better (and easier
 > from the driver pov) to implement this 2 dimensional.
-
-Really it's the other way around. It doesn't support trip point handling
-as I haven't implemented 2 dimensional indexing. :)
-
-Originally I wanted to do this in a second iteration of the interface,
-but if you say I'm generally moving in the right direction I will
-happily incorporate support for 2d entries in a v4 of this patch.
 > 
 > For a good idea of how complicated a hwmon driver can grow when it comes to
 > having a wild mix of sysfs attributes, where the type of attributes can
 > vary from one channel to the next take a look at the f71882fg driver, if your
 > code can handle converting that to the new hwmon-core interface (and preferably
 > clean up the driver while doing so), then it has the needed flexibility.
-
-Ok, will take a look at this. Hopefully I'm not too depressed afterwards
-to work on. ;)
-
 > 
 > An other issue you need to tackle is non continuous indexes. Some drivers have
 > the ability to handle large amounts of channels, for example the sch5636 has
@@ -78,13 +62,14 @@ to work on. ;)
 > Note that when you've per sensor rather then per channel caps, you can essentially
 > handle this for free, since an unused index can simply be a channel without any
 > caps.
+> 
 
-Do we really have to reflect the hole in sensor numbering? Isn't it
-enough to only expose the supported number of channels in the interface
-and do the remapping index->channel within the driver? This would be
-simple with the current interface, as you can reflect this mapping in
-the inst_data, which is passed around. Is there any application or
-use-case relying on the numbering hole being existent?
+Excellent summary. Exactly my concerns as well. Another example for high complexity
+is pmbus drivers, thoigh that is probably a bit extreme.
+
+To get this patchset approved, I think we'll have to have a couple of the drivers
+converted to the new interface, to see if it works and is flexible enough
+to be useful, and if it really reduces complexity on the driver level.
 
 > And one last nitpick wrt the current implementation:
 > > +static ssize_t get_num(struct device *dev,
@@ -103,22 +88,13 @@ use-case relying on the numbering hole being existent?
 > value is a signed int, so that should be %d, and we really want that as
 > things like negative temperatures are possible.
 > 
-Ok, this is a no brainer for v4.
+Not just temperatures. Oddly enough, some DC-DC converters report negative
+currents under low load.
 
-Thanks for your feedback,
-Lucas
+Another nitpick: The set function does not check for errors.
 
-> Regards,
-> 
-> Hans
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
