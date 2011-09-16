@@ -1,34 +1,66 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 16 Sep 2011 22:12:24 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (coretemp) Let the user force
-Message-Id: <1316211144.4630.17.camel@groeck-laptop>
+Date: Fri, 16 Sep 2011 16:07:52 +0000
+Subject: Re: [lm-sensors] coretemp breaks lockdep. (MAX_LOCKDEP_ENTRIES too
+Message-Id: <20110916160752.GA10978@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110916212402.41fc972c@endymion.delvare>
-In-Reply-To: <20110916212402.41fc972c@endymion.delvare>
+References: <20110915193018.GA10256@redhat.com>
+In-Reply-To: <20110915193018.GA10256@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Dave Jones <davej@redhat.com>, Linux Kernel <linux-kernel@vger.kernel.org>, Rudolf Marek <r.marek@assembler.cz>
+Cc: lm-sensors@lm-sensors.org, "R, Durgadoss" <durgadoss.r@intel.com>
 
-On Fri, 2011-09-16 at 15:24 -0400, Jean Delvare wrote:
-> On old CPUs (and even some recent Atom CPUs) TjMax can't be read from
-> the CPU registers, so it is guessed by the driver using a complex
-> heuristic which isn't reliable. So let users who know their CPU's
-> TjMax pass it as a module parameter.
+On Thu, Sep 15, 2011 at 03:30:18PM -0400, Dave Jones wrote:
+> just had a user report this against rc6..
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: "R, Durgadoss" <durgadoss.r@intel.com>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: Alexander Stein <alexander.stein@systec-electronic.com>
-> ---
+> # while true; do rmmod coretemp; modprobe coretemp; done
+> 
+> 
+> [15811.924167] BUG: MAX_LOCKDEP_ENTRIES too low!
+> [15811.924171] turning off the locking correctness validator.
+> [15811.924175] Pid: 10598, comm: modprobe Not tainted 3.1.0-rc6+ #5
+> [15811.924178] Call Trace:
+> [15811.924187]  [<ffffffff81081205>] ? up+0x39/0x3e
+> [15811.924193]  [<ffffffff8108e556>] add_lock_to_list.constprop.22+0x45/0xa7
+> [15811.924198]  [<ffffffff81090c05>] __lock_acquire+0xb7f/0xd0c
+> [15811.924204]  [<ffffffff81091594>] ? mark_held_locks+0x6d/0x95
+> [15811.924210]  [<ffffffff814e27d5>] ? __slab_alloc+0x41c/0x43d
+> [15811.924216]  [<ffffffff812701d0>] ? kobject_add_internal+0x9b/0x18c
+> [15811.924221]  [<ffffffff81091295>] lock_acquire+0xf3/0x13e
+> [15811.924225]  [<ffffffff812701d0>] ? kobject_add_internal+0x9b/0x18c
+> [15811.924230]  [<ffffffff812701d0>] ? kobject_add_internal+0x9b/0x18c
+> [15811.924236]  [<ffffffff814e96a3>] _raw_spin_lock+0x40/0x73
+> [15811.924241]  [<ffffffff812701d0>] ? kobject_add_internal+0x9b/0x18c
+> [15811.924245]  [<ffffffff8127012e>] ? kobject_get+0x18/0x1f
+> [15811.924250]  [<ffffffff812701d0>] kobject_add_internal+0x9b/0x18c
+> [15811.924255]  [<ffffffff812705fa>] kobject_add+0x91/0xa2
+> [15811.924260]  [<ffffffff814c5afd>] ? klist_init+0x33/0x46
+> [15811.924265]  [<ffffffff81337bc3>] device_add+0xd5/0x576
+> [15811.924271]  [<ffffffff81336ac3>] ? dev_set_name+0x41/0x43
+> [15811.924277]  [<ffffffff8133b8f1>] platform_device_add+0x111/0x15b
+> [15811.924283]  [<ffffffffa0606cbd>] get_core_online+0x9b/0x143 [coretemp]
+> [15811.924290]  [<ffffffffa0050000>] ? 0xffffffffa004ffff
+> [15811.924296]  [<ffffffffa005004b>] coretemp_init+0x4b/0x1000 [coretemp]
+> [15811.924302]  [<ffffffffa0050000>] ? 0xffffffffa004ffff
+> [15811.924308]  [<ffffffff81002099>] do_one_initcall+0x7f/0x13a
+> [15811.924313]  [<ffffffffa0050000>] ? 0xffffffffa004ffff
+> [15811.924319]  [<ffffffff8109cacf>] sys_init_module+0x114/0x267
+> [15811.924324]  [<ffffffff814f0202>] system_call_fastpath+0x16/0x1b
+> 
+> 
+I have tried to reproduce the problem with lockdeb debugging enabled,
+but I was unable to see it. Guess I must be missing something. 
 
-Applied.
+Couple of questions:
+
+What CPU and/or system was this seen with ? Output of /proc/cpuinfo might help.
+Can you send the configuration file used to build the kernel ?
+How long does one have to run the loop ?
+What is the output of "sensors" with coretemp loaded ?
 
 Thanks,
 Guenter
-
-
 
 _______________________________________________
 lm-sensors mailing list
