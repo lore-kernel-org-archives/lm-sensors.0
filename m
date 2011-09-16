@@ -1,29 +1,47 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 10 Sep 2011 17:58:04 +0000
-Subject: Re: [lm-sensors] Can't read DIMM SPD info (DDR2)
-Message-Id: <20110910195804.51cb1391@endymion.delvare>
+Date: Fri, 16 Sep 2011 16:21:51 +0000
+Subject: Re: [lm-sensors] coretemp: Support for Intel Atom E6XX CPU
+Message-Id: <20110916182151.463d6003@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <op.v1lposq116tawo@esprimo>
-In-Reply-To: <op.v1lposq116tawo@esprimo>
+References: <201106271220.51953.alexander.stein@systec-electronic.com>
+	<201108031458.01805.alexander.stein@systec-electronic.com>
+	<D6D887BA8C9DFF48B5233887EF04654109E88956B7@bgsmsx502.gar.corp.intel.com>
+	<201108031640.31196.alexander.stein@systec-electronic.com>
+In-Reply-To: <201108031640.31196.alexander.stein@systec-electronic.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Alexander Stein <alexander.stein@systec-electronic.com>
+Cc: guenter.roeck@ericsson.com, "R, Durgadoss" <durgadoss.r@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Sat, 10 Sep 2011 18:35:06 +0200, Michal Zatloukal wrote:
-> Hi,
-> I'm unable to get decode-dimms to display SPD info from my memory modules.  
-> Can someone please advise on finding the problem? The eeprom module is  
-> loaded. This is on both my main system (Kubuntu 10.10) and "latest"  
-> (Kubuntu 11.10 daily) - linux 3.0, lm-sensors 3.3.0-4 and i2x-tools  
-> 3.0.3-5). The HW is a Fujitsu Esprimo Mobile U9200 laptop (intel GM965).  
-> FWIW, the memtest that ships with 'buntu 11.10 (4.20 I think) reads the  
-> SPD info successfully.
+Hi Alexander,
 
-Wrong mailing list, this has nothing to do with hardware monitoring.
-Try linux-i2c:
-http://vger.kernel.org/vger-lists.html#linux-i2c
-(This is an open list, no need to subscribe.)
+On Wed, 3 Aug 2011 16:40:30 +0200, Alexander Stein wrote:
+> On Wednesday 03 August 2011 15:26:53 R, Durgadoss wrote:
+> > Yes I checked with some Atom Guys here.
+> > Apparently there is no way to know it from the OS Level.
+> > 
+> > > On Monday 27 June 2011 18:54:44 R, Durgadoss wrote:
+> > > > > Unfortunately, looking at Alexander's /proc/cpuinfo output, it looks
+> > > > > like the E6xx chips have no mention of E6xx in the CPU ID string,
+> > > > > which unfortunately kills the idea.
+> > > > > 
+> > > > > Do you know if there is _any_ means to distinguish E6xx from E6xxT ?
+> > > > 
+> > > > Sorry I do not know. But I can ask some folks here and get back
+> > > > to you guys. Should not take more time, once I identify the right
+> > > > person to ask :-)
+> 
+> So, is there a possibility to add a module parameter to force a either 
+> specific tjmax or the T model for E6xx?
+
+A parameter to force the T model for E6xx would be very very specific,
+while the problem at hand is much broader: the heuristics in
+adjust_tjmax() are best effort but largely insufficient in many (most?)
+cases. So, as we have been enable to provide a relative temperature
+scale interface in the past 2 years, a module parameter letting the
+user set TjMax as needed seems the best approach to me. I'll submit a
+patch doing this in a moment.
 
 -- 
 Jean Delvare
