@@ -1,51 +1,29 @@
-From: Jeffrey Chenkus <jchenkus@gmail.com>
-Date: Sun, 18 Sep 2011 01:10:11 +0000
-Subject: [lm-sensors] Nuvoton NCT6681D/NCT7802 Support?
-Message-Id: <CAFqD5d+OcNEF0KoPn9qUNomYvmH14EuoRtVv-59xG5hcYrGduw@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0542542231663401441=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sun, 18 Sep 2011 19:53:57 +0000
+Subject: Re: [lm-sensors] Nuvoton NCT6681D/NCT7802 Support?
+Message-Id: <20110918195357.GA31728@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAFqD5d+OcNEF0KoPn9qUNomYvmH14EuoRtVv-59xG5hcYrGduw@mail.gmail.com>
+In-Reply-To: <CAFqD5d+OcNEF0KoPn9qUNomYvmH14EuoRtVv-59xG5hcYrGduw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============0542542231663401441==
-Content-Type: multipart/alternative; boundary=0050450155fb5d140e04ad2ce3bb
+On Sat, Sep 17, 2011 at 09:10:11PM -0400, Jeffrey Chenkus wrote:
+> 
+> Is there any plan to add support for the Nuvoton NCT6681D and NCT7802 chips? I
+> need to find a way to read those sensors in the next few months, if lm-sensors
+> is not going to have support then I need to come up with a different plan. If
+> anyone were working on either I could try testing them on my hardware.
+> 
+Not right now, at least not afaik. NCT7802Y (assuming that is what you mean)
+is all new and will need a completely new driver. I don't have a datasheet for
+NCT6681D, so I have no idea if support can be added to one of the existing drivers.
 
---0050450155fb5d140e04ad2ce3bb
-Content-Type: text/plain; charset=ISO-8859-1
-
-Is there any plan to add support for the Nuvoton NCT6681D and NCT7802 chips?
-I need to find a way to read those sensors in the next few months, if
-lm-sensors is not going to have support then I need to come up with a
-different plan. If anyone were working on either I could try testing them on
-my hardware.
-
-Thanks
-
--- 
-Jeffrey Chenkus
-
---0050450155fb5d140e04ad2ce3bb
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<br>Is there any plan to add support for the Nuvoton NCT6681D and NCT7802 c=
-hips? I need to find a way to read those sensors in the next few months, if=
- lm-sensors is not going to have support then I need to come up with a diff=
-erent plan. If anyone were working on either I could try testing them on my=
- hardware.<br>
-<br>Thanks<br clear=3D"all"><br>-- <br>Jeffrey Chenkus<br>
-
---0050450155fb5d140e04ad2ce3bb--
-
-
---===============0542542231663401441==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0542542231663401441==--
