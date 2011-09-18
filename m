@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 18 Sep 2011 19:59:33 +0000
+Date: Sun, 18 Sep 2011 20:04:14 +0000
 Subject: Re: [lm-sensors] [PATCHv4 1/1] Hwmon: Add core/pkg Threshold
-Message-Id: <20110918215933.385bcb29@endymion.delvare>
+Message-Id: <20110918220414.5c153b36@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
 In-Reply-To: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
@@ -10,52 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 17 Sep 2011 03:12:12 -0700, Guenter Roeck wrote:
-> Hi Durgadoss,
-> 
-> On Sat, Sep 17, 2011 at 01:40:25AM -0400, R, Durgadoss wrote:
-> > If we look at the file therm_throt.c, inside arch/x86/kernel/
-> > cpu/mcheck/ I think we will get some idea.
+On Sun, 18 Sep 2011 09:46:32 -0700, Guenter Roeck wrote:
+> On Sun, Sep 18, 2011 at 09:30:22AM -0400, Jean Delvare wrote:
+> > Hi Guenter,
 > > 
-> > There is some code which registers for thermal related interrupts
+> > On Sat, 17 Sep 2011 09:31:38 -0700, Guenter Roeck wrote:
+> > > The lm90 driver with its LM90_HAVE_BROKEN_ALERT flag has the same problem.
+> > > Sure, one can simply disable alerts forever after the first alert is triggered,
+> > > as the driver does right now, but that is really just as helpful as having
+> > > no alerts at all.
 > > 
-> > asmlinkage void smp_thermal_interrupt(struct pt_regs *regs)
-> > {
-> >         exit_idle();
-> >         irq_enter();
-> >         inc_irq_stat(irq_thermal_count);
-> >         smp_thermal_vector();
-> >         irq_exit();
-> >         /* Ack only at the end to avoid potential reentry */
-> >         ack_APIC_irq();
-> > }
-> > 
-> > When our threshold interrupt occurs, the control comes here.
-> > (We should enable the interrupt for this..)
-> > And as of now, there is no code inside therm_throt that can
-> > handle our threshold interrupts. For the past two days, I had
-> > been working on a patch, to add this functionality, to therm_throt.
-> > 
-> > But the patch has to go to linux-x86_64 mailing list. I will copy
-> > Jean & Guenter, while submitting this patch.
-> > 
-> Maybe I misunderstand something, but I don't think that will work.
-> We can not have one module set parameters for interrupts to be handled
-> by another. If the thermal throttling module is going to use
-> the interrupts, the thresholds should be set there, not in the
-> hwmon driver.
+> > This isn't what the lm90 driver is doing. Look at the end of
+> > lm90_update_device(), alarms are re-enabled if needed. I agree that it
+> > isn't bullet proof, as it only works if user-space is reading at least
+> > one value repeatedly, but it's way better than what you described.
+>
+> Ah, I missed that. Not much better, though. It means that applications
+> would have to start polling after the first alarm is seen on a device,
+> and keep doing so until the last alarm is gone.
 
-Actually it can be done using notification chains (coretemp registers a
-callback function when loaded.) As I recall the mechanism is already in
-place but unused at the moment. But that doesn't mean we want to do
-this. I see no reason to make things more complex that they need to be,
-if therm_throt registers the interrupt then it should deal with them by
-itself. After all, we are discussing a brand new interface to deal with
-this case, so it doesn't have to be in hwmon, it can be anywhere else.
+Correct. Following your idea, this could be replaced by a kernel
+thread / tasklet / whatever that would only run when needed.
 
-But anyway, this discussion is pointless if we're talking about SMIs,
-which is my impression so far (at least on my Thinkpad laptop - I need
-to experiment further on the other machines.)
+I wonder if someday hardware vendors will start doing their work
+properly so that we don't have to bloat our driver code? Probably not :(
 
 -- 
 Jean Delvare
