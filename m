@@ -1,52 +1,67 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 18 Sep 2011 16:46:32 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 18 Sep 2011 17:24:29 +0000
 Subject: Re: [lm-sensors] [PATCHv4 1/1] Hwmon: Add core/pkg Threshold
-Message-Id: <20110918164632.GA29553@ericsson.com>
+Message-Id: <20110918192429.106506a9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
 In-Reply-To: <1310468836-5517-1-git-send-email-durgadoss.r@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sun, Sep 18, 2011 at 09:30:22AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sat, 17 Sep 2011 09:31:38 -0700, Guenter Roeck wrote:
-> > The lm90 driver with its LM90_HAVE_BROKEN_ALERT flag has the same problem.
-> > Sure, one can simply disable alerts forever after the first alert is triggered,
-> > as the driver does right now, but that is really just as helpful as having
-> > no alerts at all.
-> 
-> This isn't what the lm90 driver is doing. Look at the end of
-> lm90_update_device(), alarms are re-enabled if needed. I agree that it
-> isn't bullet proof, as it only works if user-space is reading at least
-> one value repeatedly, but it's way better than what you described.
-> 
-Ah, I missed that. Not much better, though. It means that applications
-would have to start polling after the first alarm is seen on a device,
-and keep doing so until the last alarm is gone.
+On Sat, 17 Sep 2011 11:09:43 -0700, Guenter Roeck wrote:
+> Hi Durga,
+>=20
+> On Sat, Sep 17, 2011 at 01:40:41PM -0400, R, Durgadoss wrote:
+> > Hi Guenter,
+> >=20
+> [ ... ]
+>=20
+> > > > For me, it looks like, we need not know whether the threshold is up=
+per or
+> > > lower.
+> > > > Anyway, for every threshold, we will get two interrupts (for either
+> > > direction)
+> > > > So, the user space can assume either a lower threshold and look for=
+ 0 in the
+> > > > Corresponding alarm interface Or a higher threshold and look for 1 =
+in the
+> > > > alarm interface. Will this not work ?
+> > > >
+> > > For a lower threshold, "alarm" implies "temperature is at or below th=
+reshold",
+> > > In other words, "alarm" can mean that a value is above or below a giv=
+en
+> > > threshold -
+> > > it has a semantics that depends on its context.
+> > >=20
+> > > This context is not known in the case of a generic threshold. This is=
+ why I
+> > > suggested
+> > > to use a more neutral term, such as "triggered", which would imply "a=
+t or above
+> > > threshold" (or possibly just "threshold triggered" if the direction i=
+s not
+> > > known)
+> > > without attaching a semantics to it.
+> > >=20
+> >=20
+> > Ok. I agree. We can use tempX_thresholdY_triggered.
+> >=20
+> I'd like to hear Jean's opinion first.
 
-> > My current solution is to revert to in-kernel polling while alarms are active.
-> > This way I can re-enable alerts after the alarms are no longer active,
-> > and the additional overhead is quite low since the polling thread only runs
-> > while there are active alarms.
-> > 
-> > If we declare that applications can only depend on 0->1 transitions, I would
-> > still need in-kernel polling to be able to re-enable alerts. As a result, we
-> > would end up with double polling - by the kernel _and_ by the application.
-> > That would really be undesirable.
-> 
-> I agree. I suggested user-space polling because I didn't know there was
-> a need for in-kernel polling. If you think that this will be the case
-> for most drivers, then I have no objection to specifying that drivers
-> should notify both directions or neither, i.e. no user-space polling.
-> 
-Ok.
+I'm fine with your proposal, yes.
 
-Thanks,
-Guenter
+> Also, if we introduce new attributes, we should probably reinstate the ol=
+d "max".
+
+Definitely. And preferably the 2.6.39 variant rather than the 3.0
+variant, i.e. no magical -20=B0C offset, unless someone can explain where
+it comes from.
+
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
