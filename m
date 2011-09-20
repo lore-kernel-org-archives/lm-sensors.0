@@ -1,141 +1,268 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Date: Thu, 29 Sep 2011 18:59:29 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon/mc13xxx-adc: add support for the
-Message-Id: <20110929185929.GH6949@pengutronix.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 20 Sep 2011 16:35:02 +0000
+Subject: [lm-sensors] [PATCH v3 1/2] hwmon: (coretemp) Don't use threshold
+Message-Id: <1316536503-26883-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+With commit c814a4c7c4aad795835583344353963a0a673eb0, the meaning of tempX_max
+was changed. It no longer returns the value of the undocumented register
+MSR_IA32_TEMPERATURE_TARGET, but instead returns the value of CPU threshold
+register T1. tempX_max_hyst was added to reflect the value of temperature
+threshold register T0.
 
-On Thu, Sep 29, 2011 at 09:38:23AM -0700, Guenter Roeck wrote:
-> On Tue, 2011-09-27 at 17:16 -0400, Uwe Kleine-K=F6nig wrote:
-> > [...]
-> > diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
-> > index ef65ab5..0d796f7 100644
-> > --- a/drivers/hwmon/mc13783-adc.c
-> > +++ b/drivers/hwmon/mc13783-adc.c
-> > @@ -1,5 +1,5 @@
-> >  /*
-> > - * Driver for the Freescale Semiconductor MC13783 adc.
-> > + * Driver for the adc on Freescale Semiconductor MC13783 and MC13892 P=
-MICs.
-> >   *
-> >   * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserv=
-ed.
-> >   * Copyright (C) 2009 Sascha Hauer, Pengutronix
-> > @@ -18,7 +18,7 @@
-> >   * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-> >   */
-> >=20
-> > -#include <linux/mfd/mc13783.h>
-> > +#include <linux/mfd/mc13xxx.h>
-> >  #include <linux/platform_device.h>
-> >  #include <linux/hwmon-sysfs.h>
-> >  #include <linux/kernel.h>
-> > @@ -28,7 +28,11 @@
-> >  #include <linux/init.h>
-> >  #include <linux/err.h>
-> >=20
-> > -#define MC13783_ADC_NAME       "mc13783-adc"
-> > +#define DRIVER_NAME    "mc13783-adc"
-> > +
-> > +/* platform device id driver data */
-> > +#define MC13783_ADC_16CHANS    1
-> > +#define MC13783_ADC_BPDIV2     2
-> >=20
-> I am all for using functional bitmaps if it serves a purpose. However,
-> that is not the case here, and there is no indication that or if there
-> will ever be a chip supporting more than one of the features in the bit
-> map. With a bitmap like this, we get all the pain and none of the
-> benefits of having a bitmap.
-What exactly do you consider a pain here? I really like it that way and
-want to keep it.
-=20
-> So please use an enum instead to distinguish chips, similar to other
-> hwmon drivers. Something like
->=20
-> 	enum chips { mc13783, mc13892 };
->=20
-In my eyes this would be a step back. I've seen quite some places where
-an if() used to decide based on a name (mostly cpu_is_mxyz()) and adding
-support for a new cpu has to touch all these if()s.
+As it turns out, T0 and T1 are used on some systems, presumably by the BIOS.
+Also, T0 and T1 don't have a well defined meaning. The thresholds may be used
+as upper or lower limits, and it is not guaranteed that T0 <= T1. Thus, the new
+attribute mapping does not reflect the actual usage of the threshold registers.
+Also, register contents are changed during runtime by an entity other than the
+hwmon driver, meaning the values cached by the driver do not reflect actual
+register contents.
 
-> >  struct mc13783_adc_priv {
-> >         struct mc13xxx *mc13xxx;
->=20
-> It might actually make sense to store the chip id in mc13783_adc_priv to
-> simplify access to it.
->=20
-> > @@ -38,7 +42,13 @@ struct mc13783_adc_priv {
-> >  static ssize_t mc13783_adc_show_name(struct device *dev, struct device=
-_attribute
-> >                               *devattr, char *buf)
-> >  {
-> > -       return sprintf(buf, "mc13783_adc\n");
-> > +       struct platform_device *pdev =3D to_platform_device(dev);
-> > +       ssize_t ret =3D sprintf(buf, "%s\n", pdev->name);
-> > +
-> > +       if (ret > 7 && buf[7] =3D '-')
-> > +               buf[7] =3D '_';
-> > +
-> This is clumsy, and would get really ugly if there is ever a chip
-> supported by this driver which doesn't have the '-' at the same
-> position.
-Right. But this can still be done when that new chip comes down the
-road. And today this is IMHO good enough...
-=20
-> You could store the name with '_' in platform_device_id, or have a const
-> char *name in mc13783_adc_priv and point it to the correct/expected
-> string. No need to do a runtime string correction.
-... and doesn't spend memory to save several nearly identical strings.
-=20
-> > [...]
-> > +static const struct platform_device_id mc13783_adc_idtable[] =3D {
-> > +       {
-> > +               .name =3D "mc13783-adc",
-> > +               .driver_data =3D MC13783_ADC_16CHANS,
-> > +       }, {
-> > +               .name =3D "mc13892-adc",
-> > +               .driver_data =3D MC13783_ADC_BPDIV2,
-> > +       }, {
-> > +               /* sentinel */
-> > +       }
-> > +};
-> > +MODULE_DEVICE_TABLE(platform, mc13783_adc_idtable);
-> > +
-> >  static struct platform_driver mc13783_adc_driver =3D {
-> > -       .remove         =3D __devexit_p(mc13783_adc_remove),
-> > +       .remove         =3D __devexit_p(mc13783_adc_remove),
-> >         .driver         =3D {
-> >                 .owner  =3D THIS_MODULE,
-> > -               .name   =3D MC13783_ADC_NAME,
-> > +               .name   =3D DRIVER_NAME,
-> >         },
-> > +       .id_table       =3D mc13783_adc_idtable,
-> >  };
-> >=20
-> >  static int __init mc13783_adc_init(void)
-> > @@ -243,4 +299,3 @@ module_exit(mc13783_adc_exit);
-> >  MODULE_DESCRIPTION("MC13783 ADC driver");
-> >  MODULE_AUTHOR("Luotao Fu <l.fu@pengutronix.de>");
-> >  MODULE_LICENSE("GPL");
-> > -MODULE_ALIAS("platform:" MC13783_ADC_NAME);
->=20
-> Just for clarification - is the alias no longer needed because the name
-> matches the one in mc13783_adc_driver ?
-It is superseeded by the MODULE_DEVICE_TABLE above.
+Revert most of c814a4c7c4aad795835583344353963a0a673eb0 to address the problem.
+Support for T0 and T1 will be added back in with a separate commit, using new
+attribute names.
 
-Best regards
-Uwe
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/coretemp |    7 --
+ drivers/hwmon/coretemp.c     |  134 ++++-------------------------------------
+ 2 files changed, 13 insertions(+), 128 deletions(-)
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index 49c0d42..84d46c0 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -35,13 +35,6 @@ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+ All Sysfs entries are named with their core_id (represented here by 'X').
+ tempX_input	 - Core temperature (in millidegrees Celsius).
+ tempX_max	 - All cooling devices should be turned on (on Core2).
+-		   Initialized with IA32_THERM_INTERRUPT. When the CPU
+-		   temperature reaches this temperature, an interrupt is
+-		   generated and tempX_max_alarm is set.
+-tempX_max_hyst   - If the CPU temperature falls below than temperature,
+-		   an interrupt is generated and tempX_max_alarm is reset.
+-tempX_max_alarm  - Set if the temperature reaches or exceeds tempX_max.
+-		   Reset if the temperature drops to or below tempX_max_hyst.
+ tempX_crit	 - Maximum junction temperature (in millidegrees Celsius).
+ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
+ 		   Correct CPU operation is no longer guaranteed.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 5a41e9d..7b1035e 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -54,8 +54,7 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+ #define NUM_REAL_CORES		16	/* Number of Real cores per cpu */
+ #define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
+ #define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
+-#define MAX_THRESH_ATTRS	3	/* Maximum no of Threshold attrs */
+-#define TOTAL_ATTRS		(MAX_CORE_ATTRS + MAX_THRESH_ATTRS)
++#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
+ #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
+ 
+ #ifdef CONFIG_SMP
+@@ -78,8 +77,6 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+  *		This value is passed as "id" field to rdmsr/wrmsr functions.
+  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
+  *		from where the temperature values should be read.
+- * @intrpt_reg: One of IA32_THERM_INTERRUPT or IA32_PACKAGE_THERM_INTERRUPT,
+- *		from where the thresholds are read.
+  * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
+  * @is_pkg_data: If this is 1, the temp_data holds pkgtemp data.
+  *		Otherwise, temp_data holds coretemp data.
+@@ -88,13 +85,11 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+ struct temp_data {
+ 	int temp;
+ 	int ttarget;
+-	int tmin;
+ 	int tjmax;
+ 	unsigned long last_updated;
+ 	unsigned int cpu;
+ 	u32 cpu_core_id;
+ 	u32 status_reg;
+-	u32 intrpt_reg;
+ 	int attr_size;
+ 	bool is_pkg_data;
+ 	bool valid;
+@@ -152,19 +147,6 @@ static ssize_t show_crit_alarm(struct device *dev,
+ 	return sprintf(buf, "%d\n", (eax >> 5) & 1);
+ }
+ 
+-static ssize_t show_max_alarm(struct device *dev,
+-				struct device_attribute *devattr, char *buf)
+-{
+-	u32 eax, edx;
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct platform_data *pdata = dev_get_drvdata(dev);
+-	struct temp_data *tdata = pdata->core_data[attr->index];
+-
+-	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
+-
+-	return sprintf(buf, "%d\n", !!(eax & THERM_STATUS_THRESHOLD1));
+-}
+-
+ static ssize_t show_tjmax(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+@@ -183,83 +165,6 @@ static ssize_t show_ttarget(struct device *dev,
+ 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->ttarget);
+ }
+ 
+-static ssize_t store_ttarget(struct device *dev,
+-				struct device_attribute *devattr,
+-				const char *buf, size_t count)
+-{
+-	struct platform_data *pdata = dev_get_drvdata(dev);
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct temp_data *tdata = pdata->core_data[attr->index];
+-	u32 eax, edx;
+-	unsigned long val;
+-	int diff;
+-
+-	if (strict_strtoul(buf, 10, &val))
+-		return -EINVAL;
+-
+-	/*
+-	 * THERM_MASK_THRESHOLD1 is 7 bits wide. Values are entered in terms
+-	 * of milli degree celsius. Hence don't accept val > (127 * 1000)
+-	 */
+-	if (val > tdata->tjmax || val > 127000)
+-		return -EINVAL;
+-
+-	diff = (tdata->tjmax - val) / 1000;
+-
+-	mutex_lock(&tdata->update_lock);
+-	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
+-	eax = (eax & ~THERM_MASK_THRESHOLD1) |
+-				(diff << THERM_SHIFT_THRESHOLD1);
+-	wrmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, eax, edx);
+-	tdata->ttarget = val;
+-	mutex_unlock(&tdata->update_lock);
+-
+-	return count;
+-}
+-
+-static ssize_t show_tmin(struct device *dev,
+-			struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct platform_data *pdata = dev_get_drvdata(dev);
+-
+-	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->tmin);
+-}
+-
+-static ssize_t store_tmin(struct device *dev,
+-				struct device_attribute *devattr,
+-				const char *buf, size_t count)
+-{
+-	struct platform_data *pdata = dev_get_drvdata(dev);
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct temp_data *tdata = pdata->core_data[attr->index];
+-	u32 eax, edx;
+-	unsigned long val;
+-	int diff;
+-
+-	if (strict_strtoul(buf, 10, &val))
+-		return -EINVAL;
+-
+-	/*
+-	 * THERM_MASK_THRESHOLD0 is 7 bits wide. Values are entered in terms
+-	 * of milli degree celsius. Hence don't accept val > (127 * 1000)
+-	 */
+-	if (val > tdata->tjmax || val > 127000)
+-		return -EINVAL;
+-
+-	diff = (tdata->tjmax - val) / 1000;
+-
+-	mutex_lock(&tdata->update_lock);
+-	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
+-	eax = (eax & ~THERM_MASK_THRESHOLD0) |
+-				(diff << THERM_SHIFT_THRESHOLD0);
+-	wrmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, eax, edx);
+-	tdata->tmin = val;
+-	mutex_unlock(&tdata->update_lock);
+-
+-	return count;
+-}
+-
+ static ssize_t show_temp(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+@@ -445,16 +350,11 @@ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
+ 	static ssize_t (*rd_ptr[TOTAL_ATTRS]) (struct device *dev,
+ 			struct device_attribute *devattr, char *buf) = {
+ 			show_label, show_crit_alarm, show_temp, show_tjmax,
+-			show_max_alarm, show_ttarget, show_tmin };
+-	static ssize_t (*rw_ptr[TOTAL_ATTRS]) (struct device *dev,
+-			struct device_attribute *devattr, const char *buf,
+-			size_t count) = { NULL, NULL, NULL, NULL, NULL,
+-					store_ttarget, store_tmin };
++			show_ttarget };
+ 	static const char *names[TOTAL_ATTRS] = {
+ 					"temp%d_label", "temp%d_crit_alarm",
+ 					"temp%d_input", "temp%d_crit",
+-					"temp%d_max_alarm", "temp%d_max",
+-					"temp%d_max_hyst" };
++					"temp%d_max" };
+ 
+ 	for (i = 0; i < tdata->attr_size; i++) {
+ 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+@@ -462,10 +362,6 @@ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
+ 		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
+ 		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
+ 		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
+-		if (rw_ptr[i]) {
+-			tdata->sd_attrs[i].dev_attr.attr.mode |= S_IWUSR;
+-			tdata->sd_attrs[i].dev_attr.store = rw_ptr[i];
+-		}
+ 		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
+ 		tdata->sd_attrs[i].index = attr_no;
+ 		err = device_create_file(dev, &tdata->sd_attrs[i].dev_attr);
+@@ -538,8 +434,6 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
+ 
+ 	tdata->status_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_STATUS :
+ 							MSR_IA32_THERM_STATUS;
+-	tdata->intrpt_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_INTERRUPT :
+-						MSR_IA32_THERM_INTERRUPT;
+ 	tdata->is_pkg_data = pkg_flag;
+ 	tdata->cpu = cpu;
+ 	tdata->cpu_core_id = TO_CORE_ID(cpu);
+@@ -591,19 +485,17 @@ static int create_core_data(struct platform_data *pdata,
+ 	tdata->tjmax = get_tjmax(c, cpu, &pdev->dev);
+ 
+ 	/*
+-	 * Test if we can access the intrpt register. If so, increase the
+-	 * 'size' enough to have ttarget/tmin/max_alarm interfaces.
+-	 * Initialize ttarget with bits 16:22 of MSR_IA32_THERM_INTERRUPT
++	 * Read the still undocumented IA32_TEMPERATURE_TARGET. It exists
++	 * on older CPUs but not in this register. Atoms don't have it either.
+ 	 */
+-	err = rdmsr_safe_on_cpu(cpu, tdata->intrpt_reg, &eax, &edx);
+-	if (!err) {
+-		tdata->attr_size += MAX_THRESH_ATTRS;
+-		tdata->tmin = tdata->tjmax -
+-			      ((eax & THERM_MASK_THRESHOLD0) >>
+-			       THERM_SHIFT_THRESHOLD0) * 1000;
+-		tdata->ttarget = tdata->tjmax -
+-				 ((eax & THERM_MASK_THRESHOLD1) >>
+-				  THERM_SHIFT_THRESHOLD1) * 1000;
++	if (c->x86_model > 0xe && c->x86_model != 0x1c) {
++		err = rdmsr_safe_on_cpu(cpu, MSR_IA32_TEMPERATURE_TARGET,
++					&eax, &edx);
++		if (!err) {
++			tdata->ttarget
++			  = tdata->tjmax - (((eax >> 8) & 0xff) * 1000);
++			tdata->attr_size++;
++		}
+ 	}
+ 
+ 	pdata->core_data[attr_no] = tdata;
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
