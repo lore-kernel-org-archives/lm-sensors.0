@@ -1,65 +1,315 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Wed, 14 Sep 2011 00:10:24 +0000
-Subject: Re: [lm-sensors] temporary hwmon tree location
-Message-Id: <20110914101024.538d03c3521226b4206f21c2@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3410092703143624377=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 20 Sep 2011 16:35:03 +0000
+Subject: [lm-sensors] [PATCH v3 2/2] hwmon: (coretemp) Add support for
+Message-Id: <1316536503-26883-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110913131531.GA26559@ericsson.com>
-In-Reply-To: <20110913131531.GA26559@ericsson.com>
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
---===============3410092703143624377==
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR"
-
---Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Guenter,
-
-On Tue, 13 Sep 2011 06:15:31 -0700 Guenter Roeck <guenter.roeck@ericsson.co=
-m> wrote:
->
-> my hwmon tree for -next is temporarily located at
-> 	git://github.com/groeck/linux.git hwmon-next
-
-OK, I will switch from today, thanks.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQEcBAEBAgAGBQJOb/DwAAoJEDMEi1NhKgbs2V4H/i5+VhIDqHVExqL+FHWM7F0A
-Y4/h3KAn//p2lFKbjoG7Aopo8L/UWI0Njh23+4WLjvYuRZVyOlCjWwutkyBHEGPu
-eWWlJsJ4p9g7ParTQEKOZLqVBtMwAwSCOE3uZbR5VbQYj60hS7qOR3DXCg7ImzbE
-0a5sgfiWCB4CBQ7ZMC54N4LO+KtI0qVx6Z8YIQsf8yip29v4aizVEOE0y/dt1ahz
-8HwmY+Vb6u+UBNlpFP7ejIu5qSxakSLmk8lyw6FBJwU2Jlb/kt943Lv0IwT2KBow
-ukFS13RTsYnUrOesZgQ60rrJldnCWBbqASFrqOIwn8+m6IGphV24oauGem+Jx8s=
-=78tP
------END PGP SIGNATURE-----
-
---Signature=_Wed__14_Sep_2011_10_10_24_+1000_BU7R6d+HEdVlTkMR--
-
-
---===============3410092703143624377==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Add support for T0 and T1 temperature thresholds using the new sysfs ABI
+attributes tempX_thresholdY and tempX_thresholdY_triggered.
+
+This patch is based on commit c814a4c7c4aad795835583344353963a0a673eb0, which
+was reverted. For details on the threshold registers, see IA Manual vol 3A,
+which can be downloaded from here:
+        http://download.intel.com/design/processor/manuals/253668.pdf
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ Documentation/hwmon/coretemp |    8 ++
+ drivers/hwmon/coretemp.c     |  160 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 158 insertions(+), 10 deletions(-)
+
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index 84d46c0..3c8dd70 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -35,6 +35,14 @@ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+ All Sysfs entries are named with their core_id (represented here by 'X').
+ tempX_input	 - Core temperature (in millidegrees Celsius).
+ tempX_max	 - All cooling devices should be turned on (on Core2).
++tempX_threshold1 - Reflects value of CPU thermal threshold T0.
++tempX_threshold1_triggered
++	         - Reflects status of CPU thermal status register bit 6
++		   (THERM_STATUS_THRESHOLD0).
++tempX_threshold2 - Reflects value of CPU thermal threshold T1.
++tempX_threshold2_triggered
++	         - Reflects status of CPU thermal status register bit 8
++		   (THERM_STATUS_THRESHOLD1).
+ tempX_crit	 - Maximum junction temperature (in millidegrees Celsius).
+ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
+ 		   Correct CPU operation is no longer guaranteed.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 7b1035e..5377041 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -52,9 +52,10 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+ 
+ #define BASE_SYSFS_ATTR_NO	2	/* Sysfs Base attr no for coretemp */
+ #define NUM_REAL_CORES		16	/* Number of Real cores per cpu */
+-#define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
+-#define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
+-#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
++#define CORETEMP_NAME_LENGTH	33	/* String Length of attrs */
++#define MAX_CORE_ATTRS		5	/* Maximum no of basic attrs */
++#define MAX_THRESH_ATTRS	4	/* Maximum no of threshold attrs */
++#define TOTAL_ATTRS		(MAX_CORE_ATTRS + MAX_THRESH_ATTRS)
+ #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
+ 
+ #ifdef CONFIG_SMP
+@@ -77,6 +78,8 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+  *		This value is passed as "id" field to rdmsr/wrmsr functions.
+  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
+  *		from where the temperature values should be read.
++ * @intrpt_reg: One of IA32_THERM_INTERRUPT or IA32_PACKAGE_THERM_INTERRUPT,
++ *		from where the thresholds are read.
+  * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
+  * @is_pkg_data: If this is 1, the temp_data holds pkgtemp data.
+  *		Otherwise, temp_data holds coretemp data.
+@@ -90,6 +93,7 @@ struct temp_data {
+ 	unsigned int cpu;
+ 	u32 cpu_core_id;
+ 	u32 status_reg;
++	u32 intrpt_reg;
+ 	int attr_size;
+ 	bool is_pkg_data;
+ 	bool valid;
+@@ -147,6 +151,32 @@ static ssize_t show_crit_alarm(struct device *dev,
+ 	return sprintf(buf, "%d\n", (eax >> 5) & 1);
+ }
+ 
++static ssize_t show_tx_triggered(struct device *dev,
++				 struct device_attribute *devattr, char *buf,
++				 u32 mask)
++{
++	u32 eax, edx;
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct temp_data *tdata = pdata->core_data[attr->index];
++
++	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
++
++	return sprintf(buf, "%d\n", !!(eax & mask));
++}
++
++static ssize_t show_t0_triggered(struct device *dev,
++				 struct device_attribute *devattr, char *buf)
++{
++	return show_tx_triggered(dev, devattr, buf, THERM_STATUS_THRESHOLD0);
++}
++
++static ssize_t show_t1_triggered(struct device *dev,
++				 struct device_attribute *devattr, char *buf)
++{
++	return show_tx_triggered(dev, devattr, buf, THERM_STATUS_THRESHOLD1);
++}
++
+ static ssize_t show_tjmax(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+@@ -165,6 +195,84 @@ static ssize_t show_ttarget(struct device *dev,
+ 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->ttarget);
+ }
+ 
++static ssize_t show_tx(struct device *dev,
++		       struct device_attribute *devattr, char *buf,
++		       u32 mask, int shift)
++{
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct temp_data *tdata = pdata->core_data[attr->index];
++	u32 eax, edx;
++	int t;
++
++	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
++	t = tdata->tjmax - ((eax & mask) >> shift) * 1000;
++	return sprintf(buf, "%d\n", t);
++}
++
++static ssize_t store_tx(struct device *dev,
++			struct device_attribute *devattr,
++			const char *buf, size_t count,
++			u32 mask, int shift)
++{
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct temp_data *tdata = pdata->core_data[attr->index];
++	u32 eax, edx;
++	unsigned long val;
++	int diff;
++
++	if (strict_strtoul(buf, 10, &val))
++		return -EINVAL;
++
++	/*
++	 * Thermal threshold mask is 7 bits wide. Values are entered in terms
++	 * of milli degree celsius. Hence don't accept val > (127 * 1000)
++	 */
++	if (val > tdata->tjmax || val > 127000)
++		return -EINVAL;
++
++	diff = (tdata->tjmax - val) / 1000;
++
++	mutex_lock(&tdata->update_lock);
++	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
++	eax = (eax & ~mask) | (diff << shift);
++	wrmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, eax, edx);
++	mutex_unlock(&tdata->update_lock);
++
++	return count;
++}
++
++static ssize_t show_t0(struct device *dev,
++		       struct device_attribute *devattr, char *buf)
++{
++	return show_tx(dev, devattr, buf, THERM_MASK_THRESHOLD0,
++		       THERM_SHIFT_THRESHOLD0);
++}
++
++static ssize_t store_t0(struct device *dev,
++			struct device_attribute *devattr,
++			const char *buf, size_t count)
++{
++	return store_tx(dev, devattr, buf, count, THERM_MASK_THRESHOLD0,
++			THERM_SHIFT_THRESHOLD0);
++}
++
++static ssize_t show_t1(struct device *dev,
++		       struct device_attribute *devattr, char *buf)
++{
++	return show_tx(dev, devattr, buf, THERM_MASK_THRESHOLD1,
++		       THERM_SHIFT_THRESHOLD1);
++}
++
++static ssize_t store_t1(struct device *dev,
++			struct device_attribute *devattr,
++			const char *buf, size_t count)
++{
++	return store_tx(dev, devattr, buf, count, THERM_MASK_THRESHOLD1,
++			THERM_SHIFT_THRESHOLD1);
++}
++
+ static ssize_t show_temp(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+@@ -344,24 +452,39 @@ static int create_name_attr(struct platform_data *pdata, struct device *dev)
+ }
+ 
+ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
+-				int attr_no)
++				int attr_no, bool have_ttarget)
+ {
+ 	int err, i;
+ 	static ssize_t (*rd_ptr[TOTAL_ATTRS]) (struct device *dev,
+ 			struct device_attribute *devattr, char *buf) = {
+ 			show_label, show_crit_alarm, show_temp, show_tjmax,
+-			show_ttarget };
++			show_ttarget, show_t0, show_t0_triggered,
++			show_t1, show_t1_triggered };
++	static ssize_t (*rw_ptr[TOTAL_ATTRS]) (struct device *dev,
++			struct device_attribute *devattr, const char *buf,
++			size_t count) = { NULL, NULL, NULL, NULL, NULL,
++					store_t0, NULL, store_t1, NULL };
+ 	static const char *names[TOTAL_ATTRS] = {
+ 					"temp%d_label", "temp%d_crit_alarm",
+ 					"temp%d_input", "temp%d_crit",
+-					"temp%d_max" };
++					"temp%d_max",
++					"temp%d_threshold1",
++					"temp%d_threshold1_triggered",
++					"temp%d_threshold2",
++					"temp%d_threshold2_triggered" };
+ 
+ 	for (i = 0; i < tdata->attr_size; i++) {
++		if (rd_ptr[i] = show_ttarget && !have_ttarget)
++			continue;
+ 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+ 			attr_no);
+ 		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
+ 		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
+ 		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
++		if (rw_ptr[i]) {
++			tdata->sd_attrs[i].dev_attr.attr.mode |= S_IWUSR;
++			tdata->sd_attrs[i].dev_attr.store = rw_ptr[i];
++		}
+ 		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
+ 		tdata->sd_attrs[i].index = attr_no;
+ 		err = device_create_file(dev, &tdata->sd_attrs[i].dev_attr);
+@@ -371,8 +494,11 @@ static int create_core_attrs(struct temp_data *tdata, struct device *dev,
+ 	return 0;
+ 
+ exit_free:
+-	while (--i >= 0)
++	while (--i >= 0) {
++		if (!tdata->sd_attrs[i].dev_attr.attr.name)
++			continue;
+ 		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
++	}
+ 	return err;
+ }
+ 
+@@ -434,6 +560,8 @@ static struct temp_data *init_temp_data(unsigned int cpu, int pkg_flag)
+ 
+ 	tdata->status_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_STATUS :
+ 							MSR_IA32_THERM_STATUS;
++	tdata->intrpt_reg = pkg_flag ? MSR_IA32_PACKAGE_THERM_INTERRUPT :
++						MSR_IA32_THERM_INTERRUPT;
+ 	tdata->is_pkg_data = pkg_flag;
+ 	tdata->cpu = cpu;
+ 	tdata->cpu_core_id = TO_CORE_ID(cpu);
+@@ -450,6 +578,7 @@ static int create_core_data(struct platform_data *pdata,
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	u32 eax, edx;
+ 	int err, attr_no;
++	bool have_ttarget = false;
+ 
+ 	/*
+ 	 * Find attr number for sysfs:
+@@ -494,14 +623,22 @@ static int create_core_data(struct platform_data *pdata,
+ 		if (!err) {
+ 			tdata->ttarget
+ 			  = tdata->tjmax - (((eax >> 8) & 0xff) * 1000);
+-			tdata->attr_size++;
++			have_ttarget = true;
+ 		}
+ 	}
+ 
++	/*
++	 * Test if we can access the intrpt register. If so, increase
++	 * 'size' enough to support t0 and t1 attributes.
++	 */
++	err = rdmsr_safe_on_cpu(cpu, tdata->intrpt_reg, &eax, &edx);
++	if (!err)
++		tdata->attr_size += MAX_THRESH_ATTRS;
++
+ 	pdata->core_data[attr_no] = tdata;
+ 
+ 	/* Create sysfs interfaces */
+-	err = create_core_attrs(tdata, &pdev->dev, attr_no);
++	err = create_core_attrs(tdata, &pdev->dev, attr_no, have_ttarget);
+ 	if (err)
+ 		goto exit_free;
+ 
+@@ -534,8 +671,11 @@ static void coretemp_remove_core(struct platform_data *pdata,
+ 	struct temp_data *tdata = pdata->core_data[indx];
+ 
+ 	/* Remove the sysfs attributes */
+-	for (i = 0; i < tdata->attr_size; i++)
++	for (i = 0; i < tdata->attr_size; i++) {
++		if (!tdata->sd_attrs[i].dev_attr.attr.name)
++			continue;
+ 		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
++	}
+ 
+ 	kfree(pdata->core_data[indx]);
+ 	pdata->core_data[indx] = NULL;
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3410092703143624377==--
