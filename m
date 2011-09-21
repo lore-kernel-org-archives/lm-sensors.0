@@ -1,70 +1,45 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Fri, 09 Sep 2011 12:12:50 +0000
-Subject: Re: [lm-sensors] Fintek F71862FG Super IO Sensors only shows
-Message-Id: <4E6A02C2.9050109@redhat.com>
+From: Yong Zhang <yong.zhang0@gmail.com>
+Date: Wed, 21 Sep 2011 09:28:57 +0000
+Subject: [lm-sensors] [PATCH 56/57] hwmon: irq: Remove IRQF_DISABLED
+Message-Id: <1316597339-29861-57-git-send-email-yong.zhang0@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAPtvKsNGD2fY1Fo7BSLRqVVU+92Rh0YyfMbdD2FBFpu=bHhCng@mail.gmail.com>
-In-Reply-To: <CAPtvKsNGD2fY1Fo7BSLRqVVU+92Rh0YyfMbdD2FBFpu=bHhCng@mail.gmail.com>
+References: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
+In-Reply-To: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tglx@linutronix.de, yong.zhang0@gmail.com, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-Hi,
+Since commit [c58543c8: genirq: Run irq handlers with interrupts disabled],
+We run all interrupt handlers with interrupts disabled
+and we even check and yell when an interrupt handler
+returns with interrupts enabled (see commit [b738a50a:
+genirq: Warn when handler enables interrupts]).
 
-On 09/09/2011 01:46 PM, Daniel Schenkenberger wrote:
-> thank u so much. now it seems to work.
-> f71862fg-isa-0290
-> Adapter: ISA adapter
-> in0:         +1.66 V
-> in1:         +1.07 V
-> in2:         +0.94 V
-> in3:         +1.08 V
-> in4:         +0.94 V
-> in5:         +1.12 V
-> in6:         +1.56 V
-> in7:         +1.66 V
-> in8:         +1.64 V
-> fan1:       1355 RPM
-> temp1:       +46.0°C  (high = +75.0°C, hyst = +71.0°C)
->                        (crit = +100.0°C, hyst = +96.0°C)  sensor = transistor
-> temp2:         FAULT  (high = +75.0°C, hyst = +71.0°C)
->                        (crit = +100.0°C, hyst = +96.0°C)  sensor = transistor
-> temp3:         FAULT  (high = +75.0°C, hyst = +73.0°C)
->                        (crit = +85.0°C, hyst = +83.0°C)  sensor = transistor
-> but what doest in0-in8 means? i want to read my vcore.
+So now this flag is a NOOP and can be removed.
 
-That is more or less unknown to us, it depends on how your motherboard
-manufacturer has hooked things up. We do know what in0, 1 and 8 are, as those
-are hooked up inside the chip, add the following to your /etc/sensors3.conf
-or /etc/sensors.conf (depending on which one you have, if you have both edit
-sensors3.conf):
+Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
+---
+ drivers/hwmon/exynos4_tmu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-chip "f71862fg-*"
+diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+index 0170c90..faa0884 100644
+--- a/drivers/hwmon/exynos4_tmu.c
++++ b/drivers/hwmon/exynos4_tmu.c
+@@ -394,7 +394,7 @@ static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	ret = request_irq(data->irq, exynos4_tmu_irq,
+-		IRQF_DISABLED | IRQF_TRIGGER_RISING,
++		IRQF_TRIGGER_RISING,
+ 		"exynos4-tmu", data);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
+-- 
+1.7.4.1
 
-     label in0 "+3.3V"
-     label in7 "3VSB"
-     label in8 "Vbat"
-
-     compute in0  @*2, @/2
-     compute in7  @*2, @/2
-     compute in8  @*2, @/2
-
-Typically in1 would be your Vcore, but that is far from certain. If your BIOS
-has Voltage readings too, you could write them down and compare them.
-
-If a certain reading in your BIOS and under sensors are the same chances
-are good they are a match
-
-Note that any readings above 2v are usually scaled and without an sensors.conf entry
-you will get the raw value output from the sensors command (and other libsensors
-using apps), so in these cases the BIOS readings and sensors output won't match,
-the actual factor is not necessarily a whole number like 2 or 3, but could be
-almost any value :(
-
-Regards,
-
-Hans
 
 _______________________________________________
 lm-sensors mailing list
