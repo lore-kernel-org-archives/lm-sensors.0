@@ -1,44 +1,57 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 26 Sep 2011 14:59:31 +0000
-Subject: Re: [lm-sensors] CONFIG_THERMAL_HWMON configuration option removal
-Message-Id: <1317049171.3888.49.camel@groeck-laptop>
+From: Josu Lazkano <josu.lazkano@gmail.com>
+Date: Fri, 23 Sep 2011 11:28:48 +0000
+Subject: [lm-sensors] Zotac ION ITX-G Synergy Edition
+Message-Id: <CAL9G6WVbiEnRtAoA0Wzf7TLn0hXj3AQMtQrzSbC7keLFN795ow@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110926033740.GA5637@ericsson.com>
-	 <20110926103255.02db677c@endymion.delvare>
-In-Reply-To: <20110926103255.02db677c@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rene Herman <rene.herman@gmail.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Mon, 2011-09-26 at 04:32 -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sun, 25 Sep 2011 20:37:40 -0700, Guenter Roeck wrote:
-> > I just noticed the folllowing in feature-removal-schedule.txt:
-> > 
-> > What:   CONFIG_THERMAL_HWMON
-> > When:   January 2009
-> > Why:    This option was introduced just to allow older lm-sensors userspace
-> >         to keep working over the upgrade to 2.6.26. At the scheduled time of
-> >         removal fixed lm-sensors (2.x or 3.x) should be readily available.
-> > Who:    Rene Herman <rene.herman@gmail.com>
-> > 
-> > I don't know what the lm-sensors changes are, and if they have been implemented.
-> > Is it time to remove the configuration option ?
-> 
-> Not sure where you looked, but it's already gone. See commit
-> ab92402af04c151c26541eb28e1c26286a429db5.
-> 
-Ah yes, now I remember. No idea what I looked at. Should teach me to
-clean up my branches.
+Hello all, this is my first post on the list. I am searching for some
+help to check my board sensors. I have a ZOTAC ION ITX-G Synergy
+Edition board with Debian Squeeze (2.6.32), it has MCP79 and it is
+supported by lm-sensors.
 
-Sorry for the noise.
+I have some problems with my board voltage and I want to check all
+sensors available. When I execute "sensors" this is the output:
 
-Guenter
+# sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +27.0=B0C  (crit =3D +90.0=B0C)
 
+coretemp-isa-0001
+Adapter: ISA adapter
+Core 1:      +29.0=B0C  (crit =3D +90.0=B0C)
 
+This is just CPU temperature. Is it possible to get more info about my boar=
+d?
+
+I read some forums and I found this interesting things:
+
+# modprobe i2c-dev
+# modprobe i2c-nforce2
+# echo "10de 0aa2" > /sys/bus/pci/drivers/nForce2_smbus/new_id
+# i2cdetect -l
+i2c-0	smbus     	SMBus nForce2 adapter at 4d00   	SMBus adapter
+i2c-1	i2c       	cx23885[0]                      	I2C adapter
+i2c-2	i2c       	cx23885[0]                      	I2C adapter
+i2c-3	i2c       	cx23885[0]                      	I2C adapter
+i2c-4	i2c       	NVIDIA i2c adapter 0 at 3:00.0  	I2C adapter
+i2c-5	i2c       	NVIDIA i2c adapter 2 at 3:00.0  	I2C adapter
+i2c-6	i2c       	NVIDIA i2c adapter 3 at 3:00.0  	I2C adapter
+
+I don't know what I am doing with the echo command, but it looks like
+it found some i2c devices.
+
+I will appreciate any help on this, I read lots of webs but I don't
+understand kernel/module compiling.
+
+Thanks and best regards.
+
+--=20
+Josu Lazkano
 
 _______________________________________________
 lm-sensors mailing list
