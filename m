@@ -1,55 +1,60 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 28 Sep 2011 15:16:55 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Avoid leaving around
-Message-Id: <20110928151655.GA3754@ericsson.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Date: Fri, 23 Sep 2011 10:40:08 +0000
+Subject: [lm-sensors] [PATCH] coretemp: remove struct platform_data *
+Message-Id: <4E7C7E280200007800057880@nat28.tlf.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1316903589-28009-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1316903589-28009-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 28, 2011 at 08:27:52AM -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> Once again sorry for the late review. At this rate I'm going to add
-> this to my signature :(
-> 
-> On Sat, 24 Sep 2011 15:33:09 -0700, Guenter Roeck wrote:
-> > Storing the struct temp_data pointer allocated from create_core_data()
-> > when returning an error has the potential of leaving around a pointer
-> > to freed memory. Reset it to NULL for error returns.
-> > 
-> > Reported-by: Jan Beulich <jbeulich@suse.com>
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> > I want to send the pending patches to Linus, and include a fix for the problem
-> > reported by Jan. So here it is.
-> > 
-> >  drivers/hwmon/coretemp.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> > index 44b2391..5100b01 100644
-> > --- a/drivers/hwmon/coretemp.c
-> > +++ b/drivers/hwmon/coretemp.c
-> > @@ -508,6 +508,7 @@ static int create_core_data(struct platform_device *pdev,
-> >  
-> >  	return 0;
-> >  exit_free:
-> > +	pdata->core_data[attr_no] = NULL;
-> >  	kfree(tdata);
-> >  	return err;
-> >  }
-> 
-> Yes, obviously correct and the right thing to do.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-Better late than never ... thanks, applied.
+The only caller of the function obtained the pointer solely for the
+purpose of passing it to this function, while it can be easily
+determined from the struct platform_device * parameter also passed.
 
-Guenter
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+
+---
+ drivers/hwmon/coretemp.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+--- 3.1-rc7-coretemp.orig/drivers/hwmon/coretemp.c
++++ 3.1-rc7-coretemp/drivers/hwmon/coretemp.c
+@@ -548,11 +548,11 @@ static struct temp_data *init_temp_data(
+ 	return tdata;
+ }
+ 
+-static int create_core_data(struct platform_data *pdata,
+-				struct platform_device *pdev,
++static int create_core_data(struct platform_device *pdev,
+ 				unsigned int cpu, int pkg_flag)
+ {
+ 	struct temp_data *tdata;
++	struct platform_data *pdata = platform_get_drvdata(pdev);
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	u32 eax, edx;
+ 	int err, attr_no;
+@@ -625,16 +625,13 @@ exit_free:
+ 
+ static void coretemp_add_core(unsigned int cpu, int pkg_flag)
+ {
+-	struct platform_data *pdata;
+ 	struct platform_device *pdev = coretemp_get_pdev(cpu);
+ 	int err;
+ 
+ 	if (!pdev)
+ 		return;
+ 
+-	pdata = platform_get_drvdata(pdev);
+-
+-	err = create_core_data(pdata, pdev, cpu, pkg_flag);
++	err = create_core_data(pdev, cpu, pkg_flag);
+ 	if (err)
+ 		dev_err(&pdev->dev, "Adding Core %u failed\n", cpu);
+ }
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
