@@ -1,59 +1,43 @@
-From: Josu Lazkano <josu.lazkano@gmail.com>
-Date: Fri, 23 Sep 2011 11:28:48 +0000
-Subject: [lm-sensors] Zotac ION ITX-G Synergy Edition
-Message-Id: <CAL9G6WVbiEnRtAoA0Wzf7TLn0hXj3AQMtQrzSbC7keLFN795ow@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 23 Sep 2011 15:53:33 +0000
+Subject: Re: [lm-sensors] Zotac ION ITX-G Synergy Edition
+Message-Id: <1316793213.3888.21.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAL9G6WVbiEnRtAoA0Wzf7TLn0hXj3AQMtQrzSbC7keLFN795ow@mail.gmail.com>
+In-Reply-To: <CAL9G6WVbiEnRtAoA0Wzf7TLn0hXj3AQMtQrzSbC7keLFN795ow@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-Hello all, this is my first post on the list. I am searching for some
-help to check my board sensors. I have a ZOTAC ION ITX-G Synergy
-Edition board with Debian Squeeze (2.6.32), it has MCP79 and it is
-supported by lm-sensors.
-
-I have some problems with my board voltage and I want to check all
-sensors available. When I execute "sensors" this is the output:
-
-# sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +27.0=B0C  (crit =3D +90.0=B0C)
-
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +29.0=B0C  (crit =3D +90.0=B0C)
-
-This is just CPU temperature. Is it possible to get more info about my boar=
-d?
-
-I read some forums and I found this interesting things:
-
-# modprobe i2c-dev
-# modprobe i2c-nforce2
-# echo "10de 0aa2" > /sys/bus/pci/drivers/nForce2_smbus/new_id
-# i2cdetect -l
-i2c-0	smbus     	SMBus nForce2 adapter at 4d00   	SMBus adapter
-i2c-1	i2c       	cx23885[0]                      	I2C adapter
-i2c-2	i2c       	cx23885[0]                      	I2C adapter
-i2c-3	i2c       	cx23885[0]                      	I2C adapter
-i2c-4	i2c       	NVIDIA i2c adapter 0 at 3:00.0  	I2C adapter
-i2c-5	i2c       	NVIDIA i2c adapter 2 at 3:00.0  	I2C adapter
-i2c-6	i2c       	NVIDIA i2c adapter 3 at 3:00.0  	I2C adapter
-
-I don't know what I am doing with the echo command, but it looks like
-it found some i2c devices.
-
-I will appreciate any help on this, I read lots of webs but I don't
-understand kernel/module compiling.
-
-Thanks and best regards.
-
---=20
-Josu Lazkano
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAyMDExLTA5LTIzIGF0IDA3OjI4IC0wNDAwLCBKb3N1IExhemthbm8gd3JvdGU6Cj4g
+SGVsbG8gYWxsLCB0aGlzIGlzIG15IGZpcnN0IHBvc3Qgb24gdGhlIGxpc3QuIEkgYW0gc2VhcmNo
+aW5nIGZvciBzb21lCj4gaGVscCB0byBjaGVjayBteSBib2FyZCBzZW5zb3JzLiBJIGhhdmUgYSBa
+T1RBQyBJT04gSVRYLUcgU3luZXJneQo+IEVkaXRpb24gYm9hcmQgd2l0aCBEZWJpYW4gU3F1ZWV6
+ZSAoMi42LjMyKSwgaXQgaGFzIE1DUDc5IGFuZCBpdCBpcwo+IHN1cHBvcnRlZCBieSBsbS1zZW5z
+b3JzLgo+IAo+IEkgaGF2ZSBzb21lIHByb2JsZW1zIHdpdGggbXkgYm9hcmQgdm9sdGFnZSBhbmQg
+SSB3YW50IHRvIGNoZWNrIGFsbAo+IHNlbnNvcnMgYXZhaWxhYmxlLiBXaGVuIEkgZXhlY3V0ZSAi
+c2Vuc29ycyIgdGhpcyBpcyB0aGUgb3V0cHV0Ogo+IAo+ICMgc2Vuc29ycwo+IGNvcmV0ZW1wLWlz
+YS0wMDAwCj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPiBDb3JlIDA6ICAgICAgKzI3LjDCsEMgIChj
+cml0ID0gKzkwLjDCsEMpCj4gCj4gY29yZXRlbXAtaXNhLTAwMDEKPiBBZGFwdGVyOiBJU0EgYWRh
+cHRlcgo+IENvcmUgMTogICAgICArMjkuMMKwQyAgKGNyaXQgPSArOTAuMMKwQykKPiAKPiBUaGlz
+IGlzIGp1c3QgQ1BVIHRlbXBlcmF0dXJlLiBJcyBpdCBwb3NzaWJsZSB0byBnZXQgbW9yZSBpbmZv
+IGFib3V0IG15IGJvYXJkPwo+IAo+IEkgcmVhZCBzb21lIGZvcnVtcyBhbmQgSSBmb3VuZCB0aGlz
+IGludGVyZXN0aW5nIHRoaW5nczoKPiAKPiAjIG1vZHByb2JlIGkyYy1kZXYKPiAjIG1vZHByb2Jl
+IGkyYy1uZm9yY2UyCj4gIyBlY2hvICIxMGRlIDBhYTIiID4gL3N5cy9idXMvcGNpL2RyaXZlcnMv
+bkZvcmNlMl9zbWJ1cy9uZXdfaWQKPiAjIGkyY2RldGVjdCAtbAo+IGkyYy0wCXNtYnVzICAgICAJ
+U01CdXMgbkZvcmNlMiBhZGFwdGVyIGF0IDRkMDAgICAJU01CdXMgYWRhcHRlcgo+IGkyYy0xCWky
+YyAgICAgICAJY3gyMzg4NVswXSAgICAgICAgICAgICAgICAgICAgICAJSTJDIGFkYXB0ZXIKPiBp
+MmMtMglpMmMgICAgICAgCWN4MjM4ODVbMF0gICAgICAgICAgICAgICAgICAgICAgCUkyQyBhZGFw
+dGVyCj4gaTJjLTMJaTJjICAgICAgIAljeDIzODg1WzBdICAgICAgICAgICAgICAgICAgICAgIAlJ
+MkMgYWRhcHRlcgo+IGkyYy00CWkyYyAgICAgICAJTlZJRElBIGkyYyBhZGFwdGVyIDAgYXQgMzow
+MC4wICAJSTJDIGFkYXB0ZXIKPiBpMmMtNQlpMmMgICAgICAgCU5WSURJQSBpMmMgYWRhcHRlciAy
+IGF0IDM6MDAuMCAgCUkyQyBhZGFwdGVyCj4gaTJjLTYJaTJjICAgICAgIAlOVklESUEgaTJjIGFk
+YXB0ZXIgMyBhdCAzOjAwLjAgIAlJMkMgYWRhcHRlcgo+IAo+IEkgZG9uJ3Qga25vdyB3aGF0IEkg
+YW0gZG9pbmcgd2l0aCB0aGUgZWNobyBjb21tYW5kLCBidXQgaXQgbG9va3MgbGlrZQo+IGl0IGZv
+dW5kIHNvbWUgaTJjIGRldmljZXMuCj4gCj4gSSB3aWxsIGFwcHJlY2lhdGUgYW55IGhlbHAgb24g
+dGhpcywgSSByZWFkIGxvdHMgb2Ygd2VicyBidXQgSSBkb24ndAo+IHVuZGVyc3RhbmQga2VybmVs
+L21vZHVsZSBjb21waWxpbmcuCj4gCkRpZCB5b3UgdHJ5IHRvIHJ1biBzZW5zb3JzLWRldGVjdCA/
+CgpHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo=
