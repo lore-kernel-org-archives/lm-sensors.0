@@ -1,50 +1,46 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 21 Sep 2011 19:07:45 +0000
-Subject: Re: [lm-sensors] [PATCH 56/57] hwmon: irq: Remove IRQF_DISABLED
-Message-Id: <20110921190745.GA30759@ericsson.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Date: Fri, 23 Sep 2011 10:36:53 +0000
+Subject: [lm-sensors] [PATCH] coretemp: constify static data
+Message-Id: <4E7C7D650200007800057868@nat28.tlf.novell.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
- <1316597339-29861-57-git-send-email-yong.zhang0@gmail.com>
-In-Reply-To: <1316597339-29861-57-git-send-email-yong.zhang0@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yong Zhang <yong.zhang0@gmail.com>
-Cc: "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Wed, Sep 21, 2011 at 05:28:57AM -0400, Yong Zhang wrote:
-> Since commit [c58543c8: genirq: Run irq handlers with interrupts disabled],
-> We run all interrupt handlers with interrupts disabled
-> and we even check and yell when an interrupt handler
-> returns with interrupts enabled (see commit [b738a50a:
-> genirq: Warn when handler enables interrupts]).
-> 
-> So now this flag is a NOOP and can be removed.
-> 
-> Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-> ---
->  drivers/hwmon/exynos4_tmu.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
-> index 0170c90..faa0884 100644
-> --- a/drivers/hwmon/exynos4_tmu.c
-> +++ b/drivers/hwmon/exynos4_tmu.c
-> @@ -394,7 +394,7 @@ static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
->  	}
->  
->  	ret = request_irq(data->irq, exynos4_tmu_irq,
-> -		IRQF_DISABLED | IRQF_TRIGGER_RISING,
-> +		IRQF_TRIGGER_RISING,
->  		"exynos4-tmu", data);
->  	if (ret) {
->  		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
-> -- 
+These arrays won't ever be written to, so protect them from
+unintentional modification.
 
-Applied.
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
 
-Thanks,
-Guenter
+---
+ drivers/hwmon/coretemp.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+--- 3.1-rc7-coretemp.orig/drivers/hwmon/coretemp.c
++++ 3.1-rc7-coretemp/drivers/hwmon/coretemp.c
+@@ -442,15 +442,15 @@ static int create_core_attrs(struct temp
+ 				int attr_no)
+ {
+ 	int err, i;
+-	static ssize_t (*rd_ptr[TOTAL_ATTRS]) (struct device *dev,
++	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
+ 			struct device_attribute *devattr, char *buf) = {
+ 			show_label, show_crit_alarm, show_temp, show_tjmax,
+ 			show_max_alarm, show_ttarget, show_tmin };
+-	static ssize_t (*rw_ptr[TOTAL_ATTRS]) (struct device *dev,
++	static ssize_t (*const rw_ptr[TOTAL_ATTRS]) (struct device *dev,
+ 			struct device_attribute *devattr, const char *buf,
+ 			size_t count) = { NULL, NULL, NULL, NULL, NULL,
+ 					store_ttarget, store_tmin };
+-	static const char *names[TOTAL_ATTRS] = {
++	static const char *const names[TOTAL_ATTRS] = {
+ 					"temp%d_label", "temp%d_crit_alarm",
+ 					"temp%d_input", "temp%d_crit",
+ 					"temp%d_max_alarm", "temp%d_max",
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
