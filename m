@@ -1,50 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 16 Sep 2011 16:21:51 +0000
-Subject: Re: [lm-sensors] coretemp: Support for Intel Atom E6XX CPU
-Message-Id: <20110916182151.463d6003@endymion.delvare>
+From: James Cloos <cloos@jhcloos.com>
+Date: Sat, 24 Sep 2011 23:53:12 +0000
+Subject: [lm-sensors] fan change between 3.1.0-rc6 and commit b172e38
+Message-Id: <m339flbipr.fsf@jhcloos.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201106271220.51953.alexander.stein@systec-electronic.com>
-	<201108031458.01805.alexander.stein@systec-electronic.com>
-	<D6D887BA8C9DFF48B5233887EF04654109E88956B7@bgsmsx502.gar.corp.intel.com>
-	<201108031640.31196.alexander.stein@systec-electronic.com>
-In-Reply-To: <201108031640.31196.alexander.stein@systec-electronic.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Stein <alexander.stein@systec-electronic.com>
-Cc: guenter.roeck@ericsson.com, "R, Durgadoss" <durgadoss.r@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Hi Alexander,
+Did something change in the f71889ed support between rc6 and today?
 
-On Wed, 3 Aug 2011 16:40:30 +0200, Alexander Stein wrote:
-> On Wednesday 03 August 2011 15:26:53 R, Durgadoss wrote:
-> > Yes I checked with some Atom Guys here.
-> > Apparently there is no way to know it from the OS Level.
-> > 
-> > > On Monday 27 June 2011 18:54:44 R, Durgadoss wrote:
-> > > > > Unfortunately, looking at Alexander's /proc/cpuinfo output, it looks
-> > > > > like the E6xx chips have no mention of E6xx in the CPU ID string,
-> > > > > which unfortunately kills the idea.
-> > > > > 
-> > > > > Do you know if there is _any_ means to distinguish E6xx from E6xxT ?
-> > > > 
-> > > > Sorry I do not know. But I can ask some folks here and get back
-> > > > to you guys. Should not take more time, once I identify the right
-> > > > person to ask :-)
-> 
-> So, is there a possibility to add a module parameter to force a either 
-> specific tjmax or the T model for E6xx?
+Up until rc6 my am3+phenom board ran its fan at about 800 Hz most of the
+time, with occasional bursts to 1200 Hz or so when under heavy load.
 
-A parameter to force the T model for E6xx would be very very specific,
-while the problem at hand is much broader: the heuristics in
-adjust_tjmax() are best effort but largely insufficient in many (most?)
-cases. So, as we have been enable to provide a relative temperature
-scale interface in the past 2 years, a module parameter letting the
-user set TjMax as needed seems the best approach to me. I'll submit a
-patch doing this in a moment.
+With b172e38 it runs at around 2048 Hz.  *Loudly*.
 
+(The only fan monitored is connected via the board's cpufan socket, and
+is a 12cm 3-wire fan attached to a 12x12x6 (or so) cm heat sink.)
+
+The cpu is running about 16 Kelvins colder than the in-case ambient,
+instead of around 2 Kelvins colder.
+
+But the noise is worse than a window fan.
+
+The only change was the reboot into the newer kernel.
+
+I haven't run into the particular presentation before, but it seems
+worrysome.  Should I worry?
+
+pwmconfig is not able to stop the fan, if that is relevant.
+
+-JimC
 -- 
-Jean Delvare
+James Cloos <cloos@jhcloos.com>         OpenPGP: 1024D/ED7DAEA6
 
 _______________________________________________
 lm-sensors mailing list
