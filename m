@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 24 Sep 2011 15:51:21 +0000
+From: Audio Phile <da_audiophile@yahoo.com>
+Date: Sat, 24 Sep 2011 16:07:36 +0000
 Subject: Re: [lm-sensors] adjusting /etc/sensors.conf for a dual processor
-Message-Id: <20110924175121.24ecac65@endymion.delvare>
+Message-Id: <1316880456.51717.YahooMailNeo@web36607.mail.mud.yahoo.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1316867250.1306.YahooMailNeo@web36606.mail.mud.yahoo.com>
 In-Reply-To: <1316867250.1306.YahooMailNeo@web36606.mail.mud.yahoo.com>
@@ -10,111 +10,532 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi,
 
-Please don't top-post.
 
-On Sat, 24 Sep 2011 08:19:34 -0700 (PDT), Audio Phile wrote:
-> Thank you for the suggestion, Guenter.=A0 Unfortunately, I think I lack t=
-he imagination to turn this output into something useful.=A0 For example, c=
-onsider below, the Cores are still numbers 0, 1, 9, 10 for the=20
-> "coretemp-isa-0000" sensor and the same for the "coretemp-isa-0004" senso=
-r.=A0 How can I renumber them so that:
-
-Which 'output" are you talking about? Guenter gave you lines to put in
-a configuration file.
-
-> coretemp-isa-0000
-> Core 0 --> Core 0
-> Core1 --> Core 1
+> Create file /etc/sensors.d/cores.conf and put the
+> following statements in it:
 >=20
-> Core 9 --> Core 2
+> chip "coretemp-isa-0000"
 >=20
-> Core 10 --> Core 3
+> =A0 =A0 label temp2 "Core 0"
+> =A0 =A0 label temp3 "Core 1"
+> =A0 =A0 label temp11 "Core 2"
+> =A0 =A0 label temp12 "Core 3"
 >=20
-> coretemp-isa-0004
-> Core 0 --> Core 4
+> chip "coretemp-isa-0004"
 >=20
-> Core1 --> Core 5
->=20
-> Core 9 --> Core 6
->=20
-> Core 10 --> Core 7
->=20
-> Does my question make sense?=A0 Thanks again!
+> =A0 =A0 label temp2 "Core 4"
+> =A0 =A0 label temp3 "Core 5"
+> =A0 =A0 label temp11 "Core 6"
+> =A0 =A0 label temp12 "Core 7"
 
-The original core numbering is very odd to start with. Not the fact
-that core numbers are reused, this is as expected. What's odd is the
-jump from 1 to 9. I seem to remember a similar case being reported a
-few weeks or months ago. Can you attach the contents of /proc/cpuinfo?
+Jean - this is perfect and does exactly what I wanted.=A0 Thank you for tak=
+ing the time to provide the solution for me :)
 
-> $ sensors -u coretemp-isa-0000
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:
-> =A0 temp2_input: 61.000
-> =A0 temp2_max: 85.000
-> =A0 temp2_crit: 95.000
-> =A0 temp2_crit_alarm: 0.000
-> Core 1:
-> =A0 temp3_input: 61.000
-> =A0 temp3_max: 85.000
-> =A0 temp3_crit: 95.000
-> =A0 temp3_crit_alarm: 0.000
-> Core 9:
-> =A0 temp11_input: 62.000
-> =A0 temp11_max: 85.000
-> =A0 temp11_crit: 95.000
-> Core 10:
-> =A0 temp12_input: 63.000
-> =A0 temp12_max: 85.000
-> =A0 temp12_crit: 95.000
->=20
-> $ sensors -u coretemp-isa-0004
-> coretemp-isa-0004
-> Adapter: ISA adapter
-> Core 0:
-> =A0 temp2_input: 53.000
-> =A0 temp2_max: 85.000
-> =A0 temp2_crit: 95.000
-> =A0 temp2_crit_alarm: 0.000
-> Core 1:
-> =A0 temp3_input: 54.000
-> =A0 temp3_max: 85.000
-> =A0 temp3_crit: 95.000
-> =A0 temp3_crit_alarm: 0.000
-> Core 9:
-> =A0 temp11_input: 59.000
-> =A0 temp11_max: 85.000
-> =A0 temp11_crit: 95.000
-> Core 10:
-> =A0 temp12_input: 59.000
-> =A0 temp12_max: 85.000
-> =A0 temp12_crit: 95.000
+> The original core numbering is very odd to start with. Not the fact
+> that core numbers are reused, this is as expected. What's odd is the
+> jump from 1 to 9. I seem to remember a similar case being reported a
+> few weeks or months ago. Can you attach the contents of /proc/cpuinfo?
 
-As Guenter's advice was apparently not clear enough for you, I'll try
-to be more expliti. Create file /etc/sensors.d/cores.conf and put the
-following statements in it:
+Glad to but I don't see anything unusual here... perhaps a bug with lm-sens=
+ors?
 
-chip "coretemp-isa-0000"
+processor=A0=A0=A0 : 0
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 0
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 0
+initial apicid=A0=A0=A0 : 0
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.57
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
 
-    label temp2 "Core 0"
-    label temp3 "Core 1"
-    label temp11 "Core 2"
-    label temp12 "Core 3"
+processor=A0=A0=A0 : 1
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 1
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 2
+initial apicid=A0=A0=A0 : 2
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.21
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
 
-chip "coretemp-isa-0004"
+processor=A0=A0=A0 : 2
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 9
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 18
+initial apicid=A0=A0=A0 : 18
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.20
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
 
-    label temp2 "Core 4"
-    label temp3 "Core 5"
-    label temp11 "Core 6"
-    label temp12 "Core 7"
+processor=A0=A0=A0 : 3
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 10
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 20
+initial apicid=A0=A0=A0 : 20
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.20
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
 
-This should lead to the "sensors" output you expect (which makes little
-sense to me but really that's up to you.)
+processor=A0=A0=A0 : 4
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 0
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 32
+initial apicid=A0=A0=A0 : 32
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.24
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
 
---=20
-Jean Delvare
+processor=A0=A0=A0 : 5
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 1
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 34
+initial apicid=A0=A0=A0 : 34
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.24
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 6
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 9
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 50
+initial apicid=A0=A0=A0 : 50
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.25
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 7
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 10
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 52
+initial apicid=A0=A0=A0 : 52
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.24
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 8
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 0
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 1
+initial apicid=A0=A0=A0 : 1
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.23
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 9
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 1
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 3
+initial apicid=A0=A0=A0 : 3
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.25
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 10
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 9
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 19
+initial apicid=A0=A0=A0 : 19
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.25
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 11
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 0
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 10
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 21
+initial apicid=A0=A0=A0 : 21
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.26
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 12
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 0
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 33
+initial apicid=A0=A0=A0 : 33
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.24
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 13
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 1
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 35
+initial apicid=A0=A0=A0 : 35
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.24
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 14
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 9
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 51
+initial apicid=A0=A0=A0 : 51
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.24
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
+processor=A0=A0=A0 : 15
+vendor_id=A0=A0=A0 : GenuineIntel
+cpu family=A0=A0=A0 : 6
+model=A0=A0=A0 =A0=A0=A0 : 44
+model name=A0=A0=A0 : Intel(R) Xeon(R) CPU=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 E5=
+620=A0 @ 2.40GHz
+stepping=A0=A0=A0 : 2
+cpu MHz=A0=A0=A0 =A0=A0=A0 : 2395.000
+cache size=A0=A0=A0 : 12288 KB
+physical id=A0=A0=A0 : 1
+siblings=A0=A0=A0 : 8
+core id=A0=A0=A0 =A0=A0=A0 : 10
+cpu cores=A0=A0=A0 : 4
+apicid=A0=A0=A0 =A0=A0=A0 : 53
+initial apicid=A0=A0=A0 : 53
+fpu=A0=A0=A0 =A0=A0=A0 : yes
+fpu_exception=A0=A0=A0 : yes
+cpuid level=A0=A0=A0 : 11
+wp=A0=A0=A0 =A0=A0=A0 : yes
+flags=A0=A0=A0 =A0=A0=A0 : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr=
+ pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe sys=
+call nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl =
+xtopology nonstop_tsc aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx sm=
+x est tm2 ssse3 cx16 xtpr pdcm dca sse4_1 sse4_2 popcnt aes lahf_lm ida ara=
+t epb dts tpr_shadow vnmi flexpriority ept vpid
+bogomips=A0=A0=A0 : 4789.23
+clflush size=A0=A0=A0 : 64
+cache_alignment=A0=A0=A0 : 64
+address sizes=A0=A0=A0 : 40 bits physical, 48 bits virtual
+power management:
+
 
 _______________________________________________
 lm-sensors mailing list
