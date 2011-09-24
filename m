@@ -1,72 +1,59 @@
-From: Phil Pokorny <ppokorny@penguincomputing.com>
-Date: Sat, 24 Sep 2011 05:17:00 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 24 Sep 2011 16:12:27 +0000
 Subject: Re: [lm-sensors] AMD Phenom II Family 16h
-Message-Id: <CAAek22Fbz6AfhjQM9ymcBNLZYr0_CxUxEiyvtSBoyXk-UQ0qEw@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3048653780075999579=="
+Message-Id: <20110924181227.4ebbf059@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201109232108.25627.pablow.1422@gmail.com>
 In-Reply-To: <201109232108.25627.pablow.1422@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---===============3048653780075999579==
-Content-Type: multipart/alternative; boundary=90e6ba21226b1f450904ada909ad
-
---90e6ba21226b1f450904ada909ad
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Sep 23, 2011 at 8:50 PM, Guenter Roeck
-<guenter.roeck@ericsson.com>wrote:
-
+On Fri, 23 Sep 2011 20:50:22 -0700, Guenter Roeck wrote:
+> On Fri, Sep 23, 2011 at 08:06:19PM -0400, Pablo Fabian Wagner Boian wrote:
+> > Hi everyone.
+> > I've got a question regarding AMD Phenom II Family 16h. I'm using the k=
+10temp=20
+> > which appear to be the lastest (the stand alone one, downloaded from lm-
+> > sensors.org), and it gives me a temp not matching the real (about -10=
+=BAC diff=20
+> > between them). And, should it provides me a temp reading for all cores?=
+ (6 in=20
+> > my case), because I got only one.
 >
-> > it gives me a temp not matching the real (about -10=BAC diff
-> > between them)
->
+> I can not comment on the accuracy, but the k10temp module reads the tempe=
+rature
+> from the northbridge, and there is only one no matter how many cores your=
+ chip has.
 
-How are you measuring the "real" temperature?  Do you have a thermocouple
-inserted between the CPU and heatsink?
+The K8 only had a single north bridge PCI device, but it could report
+several temperatures per CPU. This is no longer true with the family
+10h and later.
 
-Some time ago, AMD changed the temperature scale to a synthetic "Tcontrol"
-scale where the reading 70degC is the maximum operating temperature for the
-chip.  This simplifies things because  you don't have to know the
-particulars of each chip, you can just manage the "temperature" to keep it
-below 70 "degC".
+As far as accuracy goes, the issue is explained at length in
+Documentation/hwmon/k10temp.
 
-Phil P.
+> I guess the chip only reports the package temperature, not the per-core t=
+emperature.
 
---90e6ba21226b1f450904ada909ad
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+I think you're right. Which is not bad per se... better one good
+temperature value than two good and two bogus as k8temp often does.
 
-<div class=3D"gmail_quote">On Fri, Sep 23, 2011 at 8:50 PM, Guenter Roeck <=
-span dir=3D"ltr">&lt;<a href=3D"mailto:guenter.roeck@ericsson.com">guenter.=
-roeck@ericsson.com</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quot=
-e" style=3D"margin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204,=
- 204); padding-left: 1ex;">
-<br>
-&gt; it gives me a temp not matching the real (about -10=BAC diff<br>
-&gt; between them)<br></blockquote><div><br>How are you measuring the &quot=
-;real&quot; temperature?=A0 Do you have a thermocouple inserted between the=
- CPU and heatsink?<br><br>Some time ago, AMD changed the temperature scale =
-to a synthetic &quot;Tcontrol&quot; scale where the reading 70degC is the m=
-aximum operating temperature for the chip.=A0 This simplifies things becaus=
-e=A0 you don&#39;t have to know the particulars of each chip, you can just =
-manage the &quot;temperature&quot; to keep it below 70 &quot;degC&quot;.<br=
->
-<br>Phil P. <br></div></div>
+> Having said that ... the driver officially only supports up to family 15h=
+ as far
+> as I can see. Did you patch it, or does it just work ?
 
---90e6ba21226b1f450904ada909ad--
+The driver supports PCI devices (north bridge) not CPU families. Just
+as family 12h and 14h north bridges have the same PCI device ID, I can
+only guess that family 15h and 16h north bridges have the same PCI
+device ID. If this is confirmed, we can update the driver documentation
+accordingly. Andre, Clemens, any comment on this?
 
-
---===============3048653780075999579==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3048653780075999579==--
