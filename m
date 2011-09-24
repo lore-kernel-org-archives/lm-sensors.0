@@ -1,65 +1,41 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 02 Sep 2011 13:54:40 +0000
-Subject: Re: [lm-sensors] [PATCH v5] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <20110902135440.GA30543@ericsson.com>
+Date: Sat, 24 Sep 2011 22:33:09 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Avoid leaving around
+Message-Id: <1316903589-28009-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1314955144-18168-1-git-send-email-dg77.kim@samsung.com>
-In-Reply-To: <1314955144-18168-1-git-send-email-dg77.kim@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Sep 02, 2011 at 05:19:04AM -0400, Donggeun Kim wrote:
-> This patch allows to read temperature
-> from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
-> 
-> Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
-> Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Storing the struct temp_data pointer allocated from create_core_data()
+when returning an error has the potential of leaving around a pointer
+to freed memory. Reset it to NULL for error returns.
 
-[ ... ]
+Reported-by: Jan Beulich <jbeulich@suse.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+I want to send the pending patches to Linus, and include a fix for the problem
+reported by Jan. So here it is.
 
-> +
-> +struct exynos4_tmu_data {
-> +       struct exynos4_tmu_platform_data *pdata;
-> +       struct device *hwmon_dev;
-> +       struct resource *mem;
-> +       void __iomem *base;
-> +       int irq;
-> +       struct work_struct irq_work;
-> +       struct mutex lock;
-> +       struct clk *clk;
-> +       unsigned int interrupt_stat;
+ drivers/hwmon/coretemp.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-	I just noticed that this variable is only set and used in one function,
-	so you can keep it as local variable there.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 44b2391..5100b01 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -508,6 +508,7 @@ static int create_core_data(struct platform_device *pdev,
+ 
+ 	return 0;
+ exit_free:
++	pdata->core_data[attr_no] = NULL;
+ 	kfree(tdata);
+ 	return err;
+ }
+-- 
+1.7.3.1
 
-> +       u8 temp_error1, temp_error2;
-> +};
-
-[ ... ]
-
-> +
-> +static int exynos4_tmu_read(struct exynos4_tmu_data *data)
-> +{
-> +       u8 temp_code, temp;
-> +
-> +       mutex_lock(&data->lock);
-> +       clk_enable(data->clk);
-> +
-> +       temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
-> +       temp = code_to_temp(data, temp_code);
-
-temp is now an u8, so assigning a negative error to it won't do much good.
-
-> +
-> +       clk_disable(data->clk);
-> +       mutex_unlock(&data->lock);
-> +
-> +       return temp;
-> +}
-> +
 
 _______________________________________________
 lm-sensors mailing list
