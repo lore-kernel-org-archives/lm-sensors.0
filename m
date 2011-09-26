@@ -1,46 +1,98 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 07 Sep 2011 13:50:52 +0000
-Subject: Re: [lm-sensors] [GIT PULL] hwmon fixes for 3.1
-Message-Id: <20110907135052.GA26868@ericsson.com>
+Date: Mon, 26 Sep 2011 15:11:38 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.1
+Message-Id: <1317049898.3888.53.camel@groeck-laptop>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7331141428862123786=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
- <CA+55aFwy-YPNHnJp6C6BRA-QfEtMoVHuxN9Uxg=p=0PwaWyXaQ@mail.gmail.com>
- <20110907014725.GC22609@ericsson.com>
- <20110907092816.4634b657@endymion.delvare>
-In-Reply-To: <20110907092816.4634b657@endymion.delvare>
-MIME-Version: 1.0
+In-Reply-To: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+--===============7331141428862123786==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="=-XHL6YmKMEo7cPPG8p5xy"
+
+--=-XHL6YmKMEo7cPPG8p5xy
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi Linus,
+
+Please pull hwmon subsystem fixes for Linux 3.1 from:
+
+    git://github.com/groeck/linux.git hwmon-for-linus
+
+Thanks,
+Guenter Roeck
+
+------
+
+The following changes since commit
+d93dc5c4478c1fd5de85a3e8aece9aad7bbae044:
+
+  Linux 3.1-rc7 (2011-09-21 16:58:15 -0700)
+
+are available in the git repository at:
+  git://github.com/groeck/linux.git hwmon-for-linus
+
+Chris Peterson (1):
+      hwmon: (w83791d) rename prototype parameter from 'register' to
+'reg'
+
+Guenter Roeck (1):
+      hwmon: (coretemp) Don't use threshold registers for tempX_max
+
+Jan Beulich (3):
+      hwmon: (coretemp) don't use kernel assigned CPU number as platform
+device ID
+      hwmon: (coretemp) constify static data
+      hwmon: (coretemp) remove struct platform_data * parameter from
+create_core_data()
+
+Jean Delvare (2):
+      hwmon: (coretemp) Drop duplicate function get_pkg_tjmax
+      hwmon: (coretemp) Let the user force TjMax
+
+Roland Stigge (1):
+      hwmon: (ds620) Fix handling of negative temperatures
+
+ Documentation/hwmon/coretemp |   14 +--
+ drivers/hwmon/coretemp.c     |  193
++++++++++---------------------------------
+ drivers/hwmon/ds620.c        |    2 +-
+ drivers/hwmon/w83791d.c      |    4 +-
+ 4 files changed, 47 insertions(+), 166 deletions(-)
+
+
+--=-XHL6YmKMEo7cPPG8p5xy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAABAgAGBQJOgJYnAAoJEANmWzN1g3l3fPQH/R3i6Fe+h9KQFvmwOvSMean7
+q9TW4GEYh9dafxY1+voUR1sr9U1Jq4h3rgL34CZqTU/UOyUBHyFhGUfywPmjVROj
+/0hFPnDRZOmGlAh4boX0OOnlmlbyni3pcx7rJCi0aNMuXs7hRfV2gOXtdrCfkOKW
+UHZuMF3k3lcTdYXk1vWDCVRsTUvR2DXJzxwHDNNquVL/StHrcq325+ktQNT9H6Zm
+FLtGdcWJKsNkg6oiFaw6ETNKclTSa0H6T9BbvjyjRgSOmp6ghKc++1hFi0GPbZsi
+c1zoYLENCTFmO5fJXHa/4YmTJ6Ujq5Ts4fOwB5Ldp6WgOVkoJkwm3NdWuAdg7eU=
+=726f
+-----END PGP SIGNATURE-----
+
+--=-XHL6YmKMEo7cPPG8p5xy--
+
+
+--===============7331141428862123786==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
-
-On Wed, Sep 07, 2011 at 03:28:16AM -0400, Jean Delvare wrote:
-[ ... ]
-> 
-> When you created this account on kernel.org, you used a PGP key to
-> identify yourself, didn't you? If you sign your message with that key,
-> then a few people (basically the kernel.org maintainers) will be able
-> to confirm that you are the same person who had a trusted kernel.org
-> account. I don't know if Linus has the list though.
-> 
-> What surprises me a little is that I don't have your public key in my
-> keyring, and I can't seem to be able to find it on public servers
-> either. You really should push your key to public key servers,
-> otherwise a signed message from you has no value in general.
-> 
-Yeah, one may notice that I am not a security guy and don't pay sufficient
-attention to such matters.
-
-> Obviously it's a little late now though. The whole idea of trust and
-> signatures is to keep the level of trust after odd events such as the
-> kernel.org break-in. For this, keys must have been exchanged, tested
-> and trusted long before said event happens.
-> 
-Agreed.
-
-Guenter
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7331141428862123786==--
