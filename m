@@ -1,73 +1,77 @@
-From: David Jander <david.jander@protonic.nl>
-Date: Tue, 27 Sep 2011 06:44:41 +0000
+From: Wolfram Sang <w.sang@pengutronix.de>
+Date: Tue, 27 Sep 2011 08:12:32 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon/mc13xxx-adc: add support for the
-Message-Id: <20110927084441.47dea579@archvile>
+Message-Id: <20110927081231.GB1959@pengutronix.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5005249648939643105=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1317049670-8049-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1317049670-8049-1-git-send-email-u.kleine-koenig@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Mon, 26 Sep 2011 18:08:39 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
 
-> On Mon, 26 Sep 2011 17:54:47 +0200, Uwe Kleine-K=C3=B6nig wrote:
-> > Hello Guenter,
-> >=20
-> > > renaming the file makes it technically impossible to review the chang=
-es.
-> > oh, I forgot to add -M to format-patch. I can resend when we agree on
-> > renaming or not. But note that even then there are many hunks as I did
-> > s/mc13783/mc13xxx/ in the driver.
->=20
-> Please don't do that, it's pointless. Naming drivers and functions
-> after the first supported device is a very common practice.
->=20
-> > > Please refrain from it, and use the mechanism used for other hwmon
-> > > drivers - add support for the new chip to the old driver, and referen=
-ce
-> > > the supported chips in Kconfig and the driver documentation.
-> > Ah, I missed to rename Documentation/hwmon/mc13783-adc. Will update that
-> > on v2.
-> >=20
-> > > Besides, the new name implies that all future MC13XXX chips would be
-> > > supported by this driver, which seems to be a bit difficult to predic=
-t.
-> > hmm, but today mc13xxx is the best name we have. And I prefer a driver
-> > named mc13xxx over mc13783 because when looking for a driver for the
-> > mc13892 and seeing only mc13783-adc I'd assume it doesn't support
-> > mc13892. OTOH if there is a mc13xxx-adc driver I'd look in more detail
->=20
-> That's simply a wrong assumption from you.
->=20
-> > if my chip is supported.
->=20
-> With name mc13xxx-adc you'd have to check the details just the same, as
-> you have no guarantee that the xxx's match the chip you have.
+--===============5005249648939643105==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
+Content-Disposition: inline
 
-Yes, but from the filename you'd already have a hint. If you only know mc13=
-892
-and don't know that the mc13783 is an almost compatible part, you'd never f=
-ind
-the former was already supported.
-OTOH, I know that many other drivers tend to have names reflecting the first
-supported model of a family, so that is usual practice.
-Personally I prefer the way of minimum impact, so I'd suggest the latter
-solution to keep the name of the file and functions. For the MFD driver it =
-is
-a different story, since that driver contains code that is generic (mc13xxx)
-and code that is specific to one or the other model (mc13892 or mc13783), so
-the mc13xxx naming makes sense there to point out the differences.
 
-Best regards,
+--vGgW1X5XWziG23Ko
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+> Yes, but from the filename you'd already have a hint. If you only know mc=
+13892
+> and don't know that the mc13783 is an almost compatible part, you'd never=
+ find
+> the former was already supported.
+
+When looking for suitable drivers, 'grep' is a way better friend than
+'find' :)
+
+> OTOH, I know that many other drivers tend to have names reflecting the fi=
+rst
+> supported model of a family, so that is usual practice.
+
+Yes, otherwise drivers/rtc/rtc-ds1307 would be rtc-xxxxxx.c these days.
+Also, using those 'x' tends to create conflicts like 30cb35b
+("leds-pca9532.c: change driver name to be unique"). Spoiled history for
+git blame is another drawback.
+
+Regards,
+
+   Wolfram
 
 --=20
-David Jander
-Protonic Holland.
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--vGgW1X5XWziG23Ko
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAk6BhW8ACgkQD27XaX1/VRvATQCgtDp/y9e93YnLxq4WRO2i7yAy
+Q+kAnRozepBJ/R2qSWUOFYd4fZuq1qzR
+=aqj/
+-----END PGP SIGNATURE-----
+
+--vGgW1X5XWziG23Ko--
+
+
+--===============5005249648939643105==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5005249648939643105==--
