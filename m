@@ -1,492 +1,196 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 23 Sep 2011 03:31:30 +0000
-Subject: [lm-sensors] [PATCH 2/4] hwmon: (pmbus/ltc2978) Explicit driver for
-Message-Id: <1316748692-8326-3-git-send-email-guenter.roeck@ericsson.com>
+From: Simon Wilson <simon@simonandkate.net>
+Date: Fri, 30 Sep 2011 03:14:18 +0000
+Subject: [lm-sensors] it8721-isa-0290 - report
+Message-Id: <20110930131418.Horde.F4EcatJO7vlOhTQKZAfERNA@mail.simonandkate.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2349589076708979428=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Provide explicit driver for LTC2978 to enable support for minimum and peak
-attributes. Remove ltc2978 chip id from generic pmbus driver.
+This message is in MIME format.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
- Documentation/hwmon/ltc2978   |   78 +++++++++++
- Documentation/hwmon/pmbus     |    5 -
- drivers/hwmon/pmbus/Kconfig   |   12 ++-
- drivers/hwmon/pmbus/Makefile  |    1 +
- drivers/hwmon/pmbus/ltc2978.c |  300 +++++++++++++++++++++++++++++++++++++++++
- drivers/hwmon/pmbus/pmbus.c   |    1 -
- 6 files changed, 390 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/hwmon/ltc2978
- create mode 100644 drivers/hwmon/pmbus/ltc2978.c
+--===============2349589076708979428==
+Content-Type: multipart/alternative; boundary="=_vOXSX9JO7vlOhTQKYeRkRNA"
 
-diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
-new file mode 100644
-index 0000000..f4cba8c
---- /dev/null
-+++ b/Documentation/hwmon/ltc2978
-@@ -0,0 +1,78 @@
-+Kernel driver ltc2978
-+==========+
-+Supported chips:
-+  * Linear Technology LTC2978
-+    Prefix: 'ltc2978'
-+    Addresses scanned: -
-+    Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
-+
-+Author: Guenter Roeck <guenter.roeck@ericsson.com>
-+
-+
-+Description
-+-----------
-+
-+The LTC2978 is an octal power supply monitor, supervisor, sequencer and
-+margin controller.
-+
-+
-+Usage Notes
-+-----------
-+
-+This driver does not probe for PMBus devices. You will have to instantiate
-+devices explicitly.
-+
-+Example: the following commands will load the driver for an LTC2978 at address
-+0x60 on I2C bus #1:
-+
-+# modprobe ltc2978
-+# echo ltc2978 0x60 > /sys/bus/i2c/devices/i2c-1/new_device
-+
-+
-+Sysfs attributes
-+----------------
-+
-+in1_label		"vin"
-+in1_input		Measured input voltage.
-+in1_min			Minimum input Voltage.
-+in1_max			Maximum input voltage.
-+in1_lcrit		Critical minimum input Voltage.
-+in1_crit		Critical maximum input voltage.
-+in1_min_alarm		Input voltage low alarm.
-+in1_max_alarm		Input voltage high alarm.
-+in1_lcrit_alarm		Input voltage critical low alarm.
-+in1_crit_alarm		Input voltage critical high alarm.
-+in1_lowest		Lowest input voltage.
-+in1_highest		Highest input voltage.
-+in1_reset_history	Reset history. Writing into this attribute will reset
-+			history for all attributes.
-+
-+in[2-9]_label		"vout[1-8]".
-+in[2-9]_input		Measured output voltage.
-+in[2-9]_min		Minimum output Voltage.
-+in[2-9]_max		Maximum output voltage.
-+in[2-9]_lcrit		Critical minimum output Voltage.
-+in[2-9]_crit		Critical maximum output voltage.
-+in[2-9]_min_alarm	Output voltage low alarm.
-+in[2-9]_max_alarm	Output voltage high alarm.
-+in[2-9]_lcrit_alarm	Output voltage critical low alarm.
-+in[2-9]_crit_alarm	Output voltage critical high alarm.
-+in[2-9]_lowest		Lowest output voltage.
-+in[2-9]_highest		Lowest output voltage.
-+in[2-9]_reset_history	Reset history. Writing into this attribute will reset
-+			history for all attributes.
-+
-+temp1_input		Measured temperature.
-+temp1_min		Mimimum temperature.
-+temp1_max		Maximum temperature.
-+temp1_lcrit		Critical low temperature.
-+temp1_crit		Critical high temperature.
-+temp1_min_alarm		Chip temperature low alarm.
-+temp1_max_alarm		Chip temperature high alarm.
-+temp1_lcrit_alarm	Chip temperature critical low alarm.
-+temp1_crit_alarm	Chip temperature critical high alarm.
-+temp1_lowest		Lowest measured temperature.
-+temp1_highest		Highest measured temperature.
-+temp1_reset_history	Reset history. Writing into this attribute will reset
-+			history for all attributes.
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index c36c1c1..ce02f5d 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -8,11 +8,6 @@ Supported chips:
-     Addresses scanned: -
-     Datasheet:
-  http://archive.ericsson.net/service/internet/picov/get?DocNo(701-EN/LZT146395
--  * Linear Technology LTC2978
--    Octal PMBus Power Supply Monitor and Controller
--    Prefix: 'ltc2978'
--    Addresses scanned: -
--    Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
-   * ON Semiconductor ADP4000, NCP4200, NCP4208
-     Prefixes: 'adp4000', 'ncp4200', 'ncp4208'
-     Addresses scanned: -
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index efaf340..c4dcdca 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -20,7 +20,7 @@ config SENSORS_PMBUS
- 	help
- 	  If you say yes here you get hardware monitoring support for generic
- 	  PMBus devices, including but not limited to ADP4000, BMR450, BMR451,
--	  BMR453, BMR454, LTC2978, NCP4200, and NCP4208.
-+	  BMR453, BMR454, NCP4200, and NCP4208.
- 
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
-@@ -46,6 +46,16 @@ config SENSORS_LM25066
- 	  This driver can also be built as a module. If so, the module will
- 	  be called lm25066.
- 
-+config SENSORS_LTC2978
-+	tristate "Linear Technologies LTC2978"
-+	default n
-+	help
-+	  If you say yes here you get hardware monitoring support for Linear
-+	  Technology LTC2978.
-+
-+	  This driver can also be built as a module. If so, the module will
-+	  be called ltc2978.
-+
- config SENSORS_MAX16064
- 	tristate "Maxim MAX16064"
- 	default n
-diff --git a/drivers/hwmon/pmbus/Makefile b/drivers/hwmon/pmbus/Makefile
-index b9e4fb4..789376c 100644
---- a/drivers/hwmon/pmbus/Makefile
-+++ b/drivers/hwmon/pmbus/Makefile
-@@ -6,6 +6,7 @@ obj-$(CONFIG_PMBUS)		+= pmbus_core.o
- obj-$(CONFIG_SENSORS_PMBUS)	+= pmbus.o
- obj-$(CONFIG_SENSORS_ADM1275)	+= adm1275.o
- obj-$(CONFIG_SENSORS_LM25066)	+= lm25066.o
-+obj-$(CONFIG_SENSORS_LTC2978)	+= ltc2978.o
- obj-$(CONFIG_SENSORS_MAX16064)	+= max16064.o
- obj-$(CONFIG_SENSORS_MAX34440)	+= max34440.o
- obj-$(CONFIG_SENSORS_MAX8688)	+= max8688.o
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-new file mode 100644
-index 0000000..0c8e2a6
---- /dev/null
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -0,0 +1,300 @@
-+/*
-+ * Hardware monitoring driver for LTC2978
-+ *
-+ * Copyright (c) 2011 Ericsson AB.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include "pmbus.h"
-+
-+enum chips { ltc2978 };
-+
-+#define LTC2978_MFR_VOUT_PEAK		0xdd
-+#define LTC2978_MFR_VIN_PEAK		0xde
-+#define LTC2978_MFR_TEMPERATURE_PEAK	0xdf
-+#define LTC2978_MFR_SPECIAL_ID		0xe7
-+
-+#define LTC2978_MFR_VOUT_MIN		0xfb
-+#define LTC2978_MFR_VIN_MIN		0xfc
-+#define LTC2978_MFR_TEMPERATURE_MIN	0xfd
-+
-+#define LTC2978_ID_REV1			0x0121
-+#define LTC2978_ID_REV2			0x0122
-+
-+/*
-+ * LTC2978 clears peak data whenever the CLEAR_FAULTS command is executed, which
-+ * happens pretty much each time chip data is updated. Raw peak data therefore
-+ * does not provide much value. To be able to provide useful peak data, keep an
-+ * internal cache of measured peak data, which is only cleared if an explicit
-+ * "clear peak" command is executed for the sensor in question.
-+ */
-+struct ltc2978_data {
-+	enum chips id;
-+	int vin_min, vin_max;
-+	int temp_min, temp_max;
-+	int vout_min[8], vout_max[8];
-+	struct pmbus_driver_info info;
-+};
-+
-+#define to_ltc2978_data(x)  container_of(x, struct ltc2978_data, info)
-+
-+static inline int lin11_to_val(int data)
-+{
-+	s16 e = (data >> 11) & 0x1f;
-+	s32 m = data & 0x7ff;
-+
-+	/* sign-extend mantissa and exponent */
-+	if (e > 0x0f)
-+		e |= 0xffe0;
-+	if (m > 0x3ff)
-+		m |= 0xfffff800;
-+	/*
-+	 * mantissa is 10 bit + sign, exponent is up to 15 bit.
-+	 * Add 6 bit to exponent for maximum accuracy (10 + 15 + 6 = 31).
-+	 */
-+	e += 6;
-+	return (e < 0 ? m >> -e : m << e);
-+}
-+
-+static int ltc2978_read_word_data(struct i2c_client *client, int page, int reg)
-+{
-+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-+	struct ltc2978_data *data = to_ltc2978_data(info);
-+	int ret;
-+
-+	switch (reg) {
-+	case PMBUS_VIRT_READ_VIN_MAX:
-+		ret = pmbus_read_word_data(client, page, LTC2978_MFR_VIN_PEAK);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret) > lin11_to_val(data->vin_max))
-+				data->vin_max = ret;
-+			ret = data->vin_max;
-+		}
-+		break;
-+	case PMBUS_VIRT_READ_VOUT_MAX:
-+		ret = pmbus_read_word_data(client, page, LTC2978_MFR_VOUT_PEAK);
-+		if (ret >= 0) {
-+			/*
-+			 * VOUT is 16 bit unsigned with fixed exponent,
-+			 * so we can compare it directly
-+			 */
-+			if (ret > data->vout_max[page])
-+				data->vout_max[page] = ret;
-+			ret = data->vout_max[page];
-+		}
-+		break;
-+	case PMBUS_VIRT_READ_TEMP_MAX:
-+		ret = pmbus_read_word_data(client, page,
-+					   LTC2978_MFR_TEMPERATURE_PEAK);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret) > lin11_to_val(data->temp_max))
-+				data->temp_max = ret;
-+			ret = data->temp_max;
-+		}
-+		break;
-+	case PMBUS_VIRT_READ_VIN_MIN:
-+		ret = pmbus_read_word_data(client, page, LTC2978_MFR_VIN_MIN);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret) < lin11_to_val(data->vin_min))
-+				data->vin_min = ret;
-+			ret = data->vin_min;
-+		}
-+		break;
-+	case PMBUS_VIRT_READ_VOUT_MIN:
-+		ret = pmbus_read_word_data(client, page, LTC2978_MFR_VOUT_MIN);
-+		if (ret >= 0) {
-+			/*
-+			 * VOUT_MIN is known to not be supported on some lots
-+			 * of LTC2978 revision 1, and will return the maximum
-+			 * possible voltage if read. If VOUT_MAX is valid and
-+			 * lower than the reading of VOUT_MIN, use it instead.
-+			 */
-+			if (data->vout_max[page] && ret > data->vout_max[page])
-+				ret = data->vout_max[page];
-+			if (ret < data->vout_min[page])
-+				data->vout_min[page] = ret;
-+			ret = data->vout_min[page];
-+		}
-+		break;
-+	case PMBUS_VIRT_READ_TEMP_MIN:
-+		ret = pmbus_read_word_data(client, page,
-+					   LTC2978_MFR_TEMPERATURE_MIN);
-+		if (ret >= 0) {
-+			if (lin11_to_val(ret)
-+			    < lin11_to_val(data->temp_min))
-+				data->temp_min = ret;
-+			ret = data->temp_min;
-+		}
-+		break;
-+	case PMBUS_VIRT_RESET_VOUT_HISTORY:
-+	case PMBUS_VIRT_RESET_VIN_HISTORY:
-+	case PMBUS_VIRT_RESET_TEMP_HISTORY:
-+		ret = 0;
-+		break;
-+	default:
-+		ret = -ENODATA;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+static int ltc2978_write_word_data(struct i2c_client *client, int page,
-+				    int reg, u16 word)
-+{
-+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-+	struct ltc2978_data *data = to_ltc2978_data(info);
-+	int ret;
-+
-+	switch (reg) {
-+	case PMBUS_VIRT_RESET_VOUT_HISTORY:
-+		data->vout_min[page] = 0xffff;
-+		data->vout_max[page] = 0;
-+		ret = pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
-+		break;
-+	case PMBUS_VIRT_RESET_VIN_HISTORY:
-+		data->vin_min = 0x7bff;
-+		data->vin_max = 0;
-+		ret = pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
-+		break;
-+	case PMBUS_VIRT_RESET_TEMP_HISTORY:
-+		data->temp_min = 0x7bff;
-+		data->temp_max = 0x7fff;
-+		ret = pmbus_write_byte(client, page, PMBUS_CLEAR_FAULTS);
-+		break;
-+	default:
-+		ret = -ENODATA;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+static const struct i2c_device_id ltc2978_id[] = {
-+	{"ltc2978", ltc2978},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, ltc2978_id);
-+
-+static int ltc2978_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	int chip_id, ret, i;
-+	struct ltc2978_data *data;
-+	struct pmbus_driver_info *info;
-+
-+	if (!i2c_check_functionality(client->adapter,
-+				     I2C_FUNC_SMBUS_READ_WORD_DATA))
-+		return -ENODEV;
-+
-+	data = kzalloc(sizeof(struct ltc2978_data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	chip_id = i2c_smbus_read_word_data(client, LTC2978_MFR_SPECIAL_ID);
-+	if (chip_id < 0) {
-+		ret = chip_id;
-+		goto err_mem;
-+	}
-+
-+	if (chip_id = LTC2978_ID_REV1 || chip_id = LTC2978_ID_REV2) {
-+		data->id = ltc2978;
-+	} else {
-+		dev_err(&client->dev, "Unsupported chip ID 0x%x\n", chip_id);
-+		ret = -ENODEV;
-+		goto err_mem;
-+	}
-+	if (data->id != id->driver_data)
-+		dev_warn(&client->dev,
-+			 "Device mismatch: Configured %s, detected %s\n",
-+			 id->name,
-+			 ltc2978_id[data->id].name);
-+
-+	info = &data->info;
-+	info->read_word_data = ltc2978_read_word_data;
-+	info->write_word_data = ltc2978_write_word_data;
-+
-+	data->vout_min[0] = 0xffff;
-+	data->vin_min = 0x7bff;
-+	data->temp_min = 0x7bff;
-+	data->temp_max = 0x7fff;
-+
-+	switch (id->driver_data) {
-+	case ltc2978:
-+		info->pages = 8;
-+		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
-+		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
-+		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
-+		for (i = 1; i < 8; i++) {
-+			info->func[i] = PMBUS_HAVE_VOUT
-+			  | PMBUS_HAVE_STATUS_VOUT;
-+			data->vout_min[i] = 0xffff;
-+		}
-+		break;
-+	default:
-+		ret = -ENODEV;
-+		goto err_mem;
-+	}
-+
-+	ret = pmbus_do_probe(client, id, info);
-+	if (ret)
-+		goto err_mem;
-+	return 0;
-+
-+err_mem:
-+	kfree(data);
-+	return ret;
-+}
-+
-+static int ltc2978_remove(struct i2c_client *client)
-+{
-+	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
-+	const struct ltc2978_data *data = to_ltc2978_data(info);
-+
-+	pmbus_do_remove(client);
-+	kfree(data);
-+	return 0;
-+}
-+
-+/* This is the driver that will be inserted */
-+static struct i2c_driver ltc2978_driver = {
-+	.driver = {
-+		   .name = "ltc2978",
-+		   },
-+	.probe = ltc2978_probe,
-+	.remove = ltc2978_remove,
-+	.id_table = ltc2978_id,
-+};
-+
-+static int __init ltc2978_init(void)
-+{
-+	return i2c_add_driver(&ltc2978_driver);
-+}
-+
-+static void __exit ltc2978_exit(void)
-+{
-+	i2c_del_driver(&ltc2978_driver);
-+}
-+
-+MODULE_AUTHOR("Guenter Roeck");
-+MODULE_DESCRIPTION("PMBus driver for LTC2978");
-+MODULE_LICENSE("GPL");
-+module_init(ltc2978_init);
-+module_exit(ltc2978_exit);
-diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
-index 1dfba44..ef5cc1e 100644
---- a/drivers/hwmon/pmbus/pmbus.c
-+++ b/drivers/hwmon/pmbus/pmbus.c
-@@ -204,7 +204,6 @@ static const struct i2c_device_id pmbus_id[] = {
- 	{"bmr451", 1},
- 	{"bmr453", 1},
- 	{"bmr454", 1},
--	{"ltc2978", 8},
- 	{"ncp4200", 1},
- 	{"ncp4208", 1},
- 	{"pmbus", 0},
--- 
-1.7.3.1
+This message is in MIME format.
 
+--=_vOXSX9JO7vlOhTQKYeRkRNA
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed; DelSp=Yes
+Content-Description: Plaintext Message
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+   IT8721F, IT8758E 	yes 	it87 	LPC 	2.6.37 or =A0standalone driver[1]
+	(2010-10-12) We have a datasheet for the IT8721F. Different from previous
+IT87xxF chips (12 mV ADC instead of 16 mV, amongst other.) Two requests
+(=A0Jae Sammy[2], =A0Virgil Gheorghiu[3].) The IT8758E was reported to have=
+ the
+same device ID, so hopefully they are fully compatible. Support added by
+Jean Delvare, please test the standalone driver and report.
+
+   Devices page notes above -
+
+   Motherboard is an Asus M5A99X Evo. Running CentOS 6.
+
+   Installed lm_sensors from CentOS, had to grab the latest sensors-detect
+script, and then installed the stand-alone driver for it87 noted above.
+
+   Works fine.
+
+   Output is:
+
+   it8721-isa-0290
+   Adapter: ISA adapter
+   in0:=A0=A0=A0=A0=A0=A0=A0=A0 +2.81 V=A0 (min =3D=A0 +2.94 V, max =3D=A0 =
++2.20 V)=A0=A0 ALARM
+   in1:=A0=A0=A0=A0=A0=A0=A0=A0 +2.78 V=A0 (min =3D=A0 +3.01 V, max =3D=A0 =
++2.08 V)=A0=A0 ALARM
+   in2:=A0=A0=A0=A0=A0=A0=A0=A0 +1.42 V=A0 (min =3D=A0 +1.48 V, max =3D=A0 =
++1.48 V)=A0=A0 ALARM
+   +3.3V:=A0=A0=A0=A0=A0=A0 +3.36 V=A0 (min =3D=A0 +4.56 V, max =3D=A0 +2.1=
+1 V)=A0=A0 ALARM
+   in4:=A0=A0=A0=A0=A0=A0=A0=A0 +0.56 V=A0 (min =3D=A0 +0.00 V, max =3D=A0 =
++2.24 V)
+   in5:=A0=A0=A0=A0=A0=A0=A0=A0 +2.51 V=A0 (min =3D=A0 +2.62 V, max =3D=A0 =
++2.24 V)=A0=A0 ALARM
+   in6:=A0=A0=A0=A0=A0=A0=A0=A0 +0.74 V=A0 (min =3D=A0 +2.27 V, max =3D=A0 =
++2.92 V)=A0=A0 ALARM
+   3VSB:=A0=A0=A0=A0=A0=A0=A0 +5.26 V=A0 (min =3D=A0 +4.18 V, max =3D=A0 +6=
+.10 V)
+   Vbat:=A0=A0=A0=A0=A0=A0=A0 +3.36 V
+   fan1:=A0=A0=A0=A0=A0=A0 2205 RPM=A0 (min =3D=A0=A0 10 RPM)
+   fan2:=A0=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0 13 RPM)=A0 ALAR=
+M
+   fan3:=A0=A0=A0=A0=A0=A0=A0=A0=A0 0 RPM=A0 (min =3D=A0=A0 10 RPM)=A0 ALAR=
+M
+   temp1:=A0=A0=A0=A0=A0=A0 +42.0=C3=82=C2=B0C=A0 (low=A0 =3D -34.0=C3=82=
+=C2=B0C, high =3D -73.0=C3=82=C2=B0C)=A0 sensor
+=3D thermistor
+   temp2:=A0=A0=A0=A0=A0=A0 +30.0=C3=82=C2=B0C=A0 (low=A0 =3D +79.0=C3=82=
+=C2=B0C, high =3D -22.0=C3=82=C2=B0C)=A0 ALARM=A0
+sensor =3D thermistor
+   temp3:=A0=A0=A0=A0=A0 -128.0=C3=82=C2=B0C=A0 (low=A0 =3D +127.0=C3=82=C2=
+=B0C, high =3D -41.0=C3=82=C2=B0C)=A0 sensor
+=3D disabled
+
+   Would appreciate any help anyone can give in configuring sensors.conf
+though - a lot of the readings are a bit skewed.
+
+   Simon.
+   ___________
+   Simon Wilson
+   M: 0400 12 11 16
+
+
+Links:
+------
+[1] http://khali.linux-fr.org/devel/misc/it87/
+[2]  
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-September/029393.html
+[3]  
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-September/029448.html
+
+--=_vOXSX9JO7vlOhTQKYeRkRNA
+Content-Type: text/html; charset=ISO-8859-1
+Content-Description: HTML Message
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+<title></title>
+</head>
+<body style=3D"font-family:Arial;font-size:14px">
+<div class=3D"impComposeSignature">
+<table class=3D"wiki">
+<tbody>
+<tr>
+<td>IT8721F, IT8758E</td>
+<td>yes</td>
+<td>it87</td>
+<td>LPC</td>
+<td>2.6.37 or <a class=3D"ext-link" href=3D"http://khali.linux-fr.org/devel=
+/misc/it87/"><span class=3D"icon">&nbsp;</span>standalone driver</a></td>
+<td>(2010-10-12) We have a datasheet for the IT8721F. Different from previo=
+us IT87xxF chips (12 mV ADC instead of 16 mV, amongst other.) Two requests =
+(<a class=3D"ext-link" href=3D"http://lists.lm-sensors.org/pipermail/lm-sen=
+sors/2010-September/029393.html"><span class=3D"icon">&nbsp;</span>Jae Samm=
+y</a>, <a class=3D"ext-link" href=3D"http://lists.lm-sensors.org/pipermail/=
+lm-sensors/2010-September/029448.html"><span class=3D"icon">&nbsp;</span>Vi=
+rgil Gheorghiu</a>.) The IT8758E was reported to have the same device ID, s=
+o hopefully they are fully compatible. Support added by Jean Delvare, pleas=
+e test the standalone driver and report.</td>
+</tr>
+</tbody>
+</table>
+<br>
+Devices page notes above -<br>
+<br>
+Motherboard is an Asus M5A99X Evo. Running CentOS 6.<br>
+<br>
+Installed lm_sensors from CentOS, had to grab the latest sensors-detect scr=
+ipt, and then installed the stand-alone driver for it87 noted above.<br>
+<br>
+Works fine.<br>
+<br>
+Output is:<br>
+<br>
+it8721-isa-0290<br>
+Adapter: ISA adapter<br>
+in0:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +2.81 V&nbsp; (min =3D=
+&nbsp; +2.94 V, max =3D&nbsp; +2.20 V)&nbsp;&nbsp; ALARM<br>
+in1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +2.78 V&nbsp; (min =3D=
+&nbsp; +3.01 V, max =3D&nbsp; +2.08 V)&nbsp;&nbsp; ALARM<br>
+in2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.42 V&nbsp; (min =3D=
+&nbsp; +1.48 V, max =3D&nbsp; +1.48 V)&nbsp;&nbsp; ALARM<br>
++3.3V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.36 V&nbsp; (min =3D&nbsp; +4.=
+56 V, max =3D&nbsp; +2.11 V)&nbsp;&nbsp; ALARM<br>
+in4:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.56 V&nbsp; (min =3D=
+&nbsp; +0.00 V, max =3D&nbsp; +2.24 V)<br>
+in5:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +2.51 V&nbsp; (min =3D=
+&nbsp; +2.62 V, max =3D&nbsp; +2.24 V)&nbsp;&nbsp; ALARM<br>
+in6:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +0.74 V&nbsp; (min =3D=
+&nbsp; +2.27 V, max =3D&nbsp; +2.92 V)&nbsp;&nbsp; ALARM<br>
+3VSB:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +5.26 V&nbsp; (min =3D&nbsp=
+; +4.18 V, max =3D&nbsp; +6.10 V)<br>
+Vbat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.36 V<br>
+fan1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2205 RPM&nbsp; (min =3D&nbsp;&nbs=
+p; 10 RPM)<br>
+fan2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM&nbsp; (mi=
+n =3D&nbsp;&nbsp; 13 RPM)&nbsp; ALARM<br>
+fan3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0 RPM&nbsp; (mi=
+n =3D&nbsp;&nbsp; 10 RPM)&nbsp; ALARM<br>
+temp1:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +42.0=C2=B0C&nbsp; (low&nbsp; =
+=3D -34.0=C2=B0C, high =3D -73.0=C2=B0C)&nbsp; sensor =3D thermistor<br>
+temp2:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +30.0=C2=B0C&nbsp; (low&nbsp; =
+=3D +79.0=C2=B0C, high =3D -22.0=C2=B0C)&nbsp; ALARM&nbsp; sensor =3D therm=
+istor<br>
+temp3:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -128.0=C2=B0C&nbsp; (low&nbsp; =3D +12=
+7.0=C2=B0C, high =3D -41.0=C2=B0C)&nbsp; sensor =3D disabled<br>
+<br>
+Would appreciate any help anyone can give in configuring sensors.conf thoug=
+h - a lot of the readings are a bit skewed.<br>
+<br>
+Simon.<br>
+___________<br>
+Simon Wilson<br>
+M: 0400 12 11 16</div>
+</body>
+</html>
+--=_vOXSX9JO7vlOhTQKYeRkRNA--
+
+
+
+--===============2349589076708979428==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2349589076708979428==--
+
