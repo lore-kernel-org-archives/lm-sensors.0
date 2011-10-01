@@ -1,137 +1,55 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 20 Oct 2011 09:33:04 +0000
-Subject: [lm-sensors] [PATCH 3/6] IIO:CORE: put defs needed by inkern and
-Message-Id: <1319103187-27791-4-git-send-email-jic23@cam.ac.uk>
+From: "Maryvonne JUDIT" <maryvonne.judit@sfr.fr>
+Date: Sat, 01 Oct 2011 13:38:22 +0000
+Subject: Re: [lm-sensors]
+Message-Id: <3C9632193A5B4BFEB07A5091D4EC3343@Gregory>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2895342522139330628=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
-MIME-Version: 1.0
+References: <87ekb9s3tn.wl%info@wore.ma.cx>
+In-Reply-To: <87ekb9s3tn.wl%info@wore.ma.cx>
+To: lm-sensors@vger.kernel.org
+
+This is a multi-part message in MIME format.
+
+--===============2895342522139330628==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0002_01CC8050.26C1B5F0"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0002_01CC8050.26C1B5F0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+merci de bien me d=E9sinscrire
+------=_NextPart_000_0002_01CC8050.26C1B5F0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META content=3D"text/html; charset=3Diso-8859-1" =
+http-equiv=3DContent-Type>
+<META name=3DGENERATOR content=3D"MSHTML 8.00.6001.19120">
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT size=3D2 face=3DArial>merci de bien me=20
+d=E9sinscrire</FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0002_01CC8050.26C1B5F0--
+
+
+--===============2895342522139330628==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
-Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, thomas.petazzoni@free-electrons.com, maxime.ripard@free-electrons.com, Jonathan Cameron <jic23@cam.ac.uk>
-
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
----
- include/linux/iio/chan_spec.h |   46 +++++++++++++++++++++++++++++++++++++++++
- include/linux/iio/iio.h       |   33 +----------------------------
- 2 files changed, 47 insertions(+), 32 deletions(-)
-
-diff --git a/include/linux/iio/chan_spec.h b/include/linux/iio/chan_spec.h
-new file mode 100644
-index 0000000..933480b
---- /dev/null
-+++ b/include/linux/iio/chan_spec.h
-@@ -0,0 +1,46 @@
-+/*
-+ * The industrial I/O channel descriptions
-+ *
-+ * Copyright (c) 2008-2011 Jonathan Cameron
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _IIO_CHAN_SPEC_H_
-+#define _IIO_CHAN_SPEC_H_
-+
-+enum iio_data_type {
-+	IIO_RAW,
-+	IIO_PROCESSED,
-+};
-+
-+enum iio_direction {
-+	IIO_IN,
-+	IIO_OUT,
-+};
-+
-+enum iio_chan_type {
-+	IIO_VOLTAGE,
-+	IIO_CURRENT,
-+	IIO_POWER,
-+	IIO_CAPACITANCE,
-+	IIO_ACCEL,
-+	IIO_ANGL_VEL,
-+	IIO_MAGN,
-+	IIO_LIGHT,
-+	IIO_INTENSITY,
-+	IIO_PROXIMITY,
-+	IIO_TEMP,
-+	IIO_INCLI,
-+	IIO_ROT,
-+	IIO_ANGL,
-+	IIO_TIMESTAMP,
-+};
-+
-+#define IIO_VAL_INT 1
-+#define IIO_VAL_INT_PLUS_MICRO 2
-+#define IIO_VAL_INT_PLUS_NANO 3
-+
-+#endif
-diff --git a/include/linux/iio/iio.h b/include/linux/iio/iio.h
-index beedc5c..8b98e92 100644
---- a/include/linux/iio/iio.h
-+++ b/include/linux/iio/iio.h
-@@ -9,6 +9,7 @@
-  */
- #include <linux/klist.h>
- #include <linux/device.h>
-+#include <linux/iio/chan_spec.h>
- 
- #ifndef _IIO_H_
- #define _IIO_H_
-@@ -16,29 +17,6 @@
- /* Minimum alignment of priv within iio_dev */
- #define IIO_ALIGN L1_CACHE_BYTES
- 
--enum iio_data_type {
--	IIO_RAW,
--	IIO_PROCESSED,
--};
--
--enum iio_chan_type {
--	IIO_VOLTAGE,
--	IIO_CURRENT,
--	IIO_POWER,
--	IIO_CAPACITANCE,
--	IIO_ACCEL,
--	IIO_ANGL_VEL,
--	IIO_MAGN,
--	IIO_LIGHT,
--	IIO_INTENSITY,
--	IIO_PROXIMITY,
--	IIO_TEMP,
--	IIO_INCLI,
--	IIO_ROT,
--	IIO_ANGL,
--	IIO_TIMESTAMP,
--};
--
- enum iio_modifier {
- 	IIO_NO_MOD,
- 	IIO_MOD_X,
-@@ -73,15 +51,6 @@ enum iio_chan_info_enum {
- 	IIO_CHAN_INFO_QUADRATURE_CORRECTION_RAW_SEPARATE,
- };
- 
--enum iio_direction {
--	IIO_IN,
--	IIO_OUT,
--};
--
--#define IIO_VAL_INT 1
--#define IIO_VAL_INT_PLUS_MICRO 2
--#define IIO_VAL_INT_PLUS_NANO 3
--
- /**
-  * struct iio_chan_spec - specification of a single channel
-  * @type:		What type of measurement is the channel making.
--- 
-1.7.7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2895342522139330628==--
