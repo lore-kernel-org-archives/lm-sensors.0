@@ -1,81 +1,86 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 20 Oct 2011 09:33:07 +0000
-Subject: [lm-sensors] [PATCH 6/6] stargate2: example of map configuration
-Message-Id: <1319103187-27791-7-git-send-email-jic23@cam.ac.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 03 Oct 2011 19:53:30 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.1
+Message-Id: <20111003195330.GB30684@ericsson.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============9090180966162558398=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
-MIME-Version: 1.0
+References: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+--===============9090180966162558398==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Pd0ReVV5GZGQvF3a"
+Content-Disposition: inline
+
+--Pd0ReVV5GZGQvF3a
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon subsystem fixes for Linux 3.1 from:
+
+    git://github.com/groeck/linux.git hwmon-for-linus
+
+Thanks,
+Guenter
+
+------
+[this time with cc:]
+
+The following changes since commit a102a9ece5489e1718cd7543aa079082450ac3a2:
+
+  Linux 3.1-rc8 (2011-09-27 15:48:34 -0700)
+
+are available in the git repository at:
+  git://github.com/groeck/linux.git hwmon-for-linus
+
+Guenter Roeck (1):
+      hwmon: (coretemp) Avoid leaving around dangling pointer
+
+Jean Delvare (1):
+      hwmon: (coretemp) Fixup platform device ID change
+
+ drivers/hwmon/coretemp.c |   28 +++++++++++++---------------
+ 1 files changed, 13 insertions(+), 15 deletions(-)
+
+--Pd0ReVV5GZGQvF3a
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOihK6AAoJEMsfJm/On5mBPqwP/35jSg47fgOhHHztHC0FJWhP
+vEDlkRzqIlWCNB1wUw7DoXQmJlCdyAaV7+z6Tt2XqRlpu+/29AQ+RKG/jinYBNUQ
+0ax5swrjZpgyDj4JpyYCZAZNSIAmH3n7UQrobn76zgUiBeuM5VFrM6hI+V+obVIH
+8RGmh8aX+YyaYaXNgfZHl1S6vDpEZyoGjDHI3Lrj19Qw+Q9eLxBJX68/qFssuNHX
+HEVFQLAkVlYBP8XHFLm7193bjzOamRgJOEIZnWH+RLd1a5fcSNakXZmgyzJ4BcgN
+Y/+LlONJ6gG/PagYzC3Id5hlZndVCslAzuJ+AuleFFOtdVOQR2ZLSpsNtmOrNd2Q
+Y089Lj5dqUWnEWpbsNmE01xdeZ0tMwM7a1G8GNgBWC2477fx6Yt6OCLQy7k7B4Ze
+3dxaEDUWgmBGxVLsqWmG8ZWJtId/U/VZAaOoXrTe7OTa96bhx6jL3lkNd6e8FZBx
+j9Jtu2RSFcrQbSyy6CsTYsriPBHheU/bQYH1MPDbK3mVDPhBIauEpXB4dPZERUUP
+y+UymOaghzD7APSxya0FVUINQ23shvw+UW7+9pLKEn1vjVBfj1o3y3rYTYuq3VgL
+zrfsp0NClMq3jsluCoszWOJXntxdiak0NKnB9c53yU7VS+WMZYwG9yiC2A2aTD+q
+sg0nlhaj/6glHKLVQbQZ
+=yiCw
+-----END PGP SIGNATURE-----
+
+--Pd0ReVV5GZGQvF3a--
+
+
+--===============9090180966162558398==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
-Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, thomas.petazzoni@free-electrons.com, maxime.ripard@free-electrons.com, Jonathan Cameron <jic23@cam.ac.uk>
-
-Do not commit.
----
- arch/arm/mach-pxa/stargate2.c |   23 +++++++++++++++++++++++
- 1 files changed, 23 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-pxa/stargate2.c b/arch/arm/mach-pxa/stargate2.c
-index 3f8d0af..48dcbb7 100644
---- a/arch/arm/mach-pxa/stargate2.c
-+++ b/arch/arm/mach-pxa/stargate2.c
-@@ -54,6 +54,8 @@
- #include <linux/mfd/da903x.h>
- #include <linux/sht15.h>
- 
-+#include <linux/iio/inkern.h>
-+
- #include "devices.h"
- #include "generic.h"
- 
-@@ -406,6 +408,24 @@ static struct i2c_pxa_platform_data i2c_pdata = {
- 	.fast_mode = 1,
- };
- 
-+static struct platform_device iio_hwmon_test = {
-+	.name = "iio_hwmon",
-+};
-+
-+static struct iio_map adc_map[] = {
-+	{
-+		.adc_dev_name = "0-0035",
-+		.adc_channel_label = "AIN1",
-+		.consumer_dev = &iio_hwmon_test.dev,
-+		.consumer_channel = "testchan1",
-+	}, {
-+		.adc_dev_name = "0-0035",
-+		.adc_channel_label = "AIN2",
-+		.consumer_dev = &iio_hwmon_test.dev,
-+		.consumer_channel = "testchan2",
-+	},
-+};
-+
- static void __init imote2_stargate2_init(void)
- {
- 
-@@ -423,6 +443,8 @@ static void __init imote2_stargate2_init(void)
- 
- 	pxa27x_set_i2c_power_info(&i2c_pwr_pdata);
- 	pxa_set_i2c_info(&i2c_pdata);
-+
-+	iio_map_array_register(adc_map, ARRAY_SIZE(adc_map));
- }
- 
- #ifdef CONFIG_MACH_INTELMOTE2
-@@ -971,6 +993,7 @@ static struct platform_device *stargate2_devices[] = {
- 	&stargate2_sram,
- 	&smc91x_device,
- 	&sht15,
-+	&iio_hwmon_test,
- };
- 
- static void __init stargate2_init(void)
--- 
-1.7.7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============9090180966162558398==--
+
