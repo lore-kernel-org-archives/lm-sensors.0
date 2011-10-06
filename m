@@ -1,43 +1,38 @@
 From: Himanshu Chauhan <hschauhan@nulltrace.org>
-Date: Thu, 06 Oct 2011 16:37:40 +0000
+Date: Thu, 06 Oct 2011 16:55:00 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon class driver registration with a
-Message-Id: <20111006162540.GA5402@ubuntu.ubuntu-domain>
+Message-Id: <20111006164300.GB5402@ubuntu.ubuntu-domain>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1317834791-2803-1-git-send-email-hschauhan@nulltrace.org>
  <1317839407.3983.46.camel@groeck-laptop>
  <20111006040656.GA2125@ubuntu.ubuntu-domain>
  <20111006051955.GA22835@ericsson.com>
  <20111006094302.71ea4dfd@endymion.delvare>
- <20111006151232.GA3267@ubuntu.ubuntu-domain>
- <20111006164600.071213e1@lxorguk.ukuu.org.uk>
-In-Reply-To: <20111006164600.071213e1@lxorguk.ukuu.org.uk>
+ <1317914126.3983.55.camel@groeck-laptop>
+In-Reply-To: <1317914126.3983.55.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Oct 06, 2011 at 04:46:00PM +0100, Alan Cox wrote:
+On Thu, Oct 06, 2011 at 08:15:26AM -0700, Guenter Roeck wrote:
 
+> Having said that, I realize there are instances where the _minor_ device
+> number is passed to the class registration function (eg for misc
+> devices). In that case, though, misc_register() checks if the asked for
+> minor device already exists, and retains the option to generate a
+> dynamic minor device. This is different here, where the proposal is to
+> pass both major and minor device number to the registration function.
 > 
-> I guess I don't see why a device that is more than just a monitoring
-> interface can't allocate a misc device or similar if it needs one.
->
+> Maybe there are instances where both major and minor device number are
+> passed; as I mentioned before, I did not spend that much time on it. But
+> you are right - that isn't the point anyway.
+> 
 
-Hi Alan,
-
-For a device, for example, /sys/class/hwmon/hwmon0/dev, mdev will create
-hwmon0 named device in /dev. User space apps will access the device
-with the same name, i.e. /dev/hwmon0. If a driver registers with hwmon
-class and with miscellaneous as well, two entries with same name will
-be created under /sys; causing conflict. hwmon will create hwmon%d, you
-don't have control over that. So the driver has to make sure that it
-gives the same device a different name. Why? Doesn't make sense.
-If you want to have hwmon device and still want to have char interface,
-isn't doing it all at one place more sensible?
-
-May be this interface is not a necessity but it does provides a flexible
-way of achieving what I am talking about.
+If misc and other classes can create nodes based on device numbers that
+are passed to them, why is it a problem for hwmon? Why does hwmon creates
+devices with MKDEV(0,0)? I am still not getting the point.
 
 -Himanshu
 
