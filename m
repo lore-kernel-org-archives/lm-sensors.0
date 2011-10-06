@@ -1,40 +1,39 @@
-From: Himanshu Chauhan <hschauhan@nulltrace.org>
-Date: Thu, 06 Oct 2011 16:55:00 +0000
+From: Greg KH <greg@kroah.com>
+Date: Thu, 06 Oct 2011 18:25:00 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon class driver registration with a
-Message-Id: <20111006164300.GB5402@ubuntu.ubuntu-domain>
+Message-Id: <20111006182500.GA18607@kroah.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1317834791-2803-1-git-send-email-hschauhan@nulltrace.org>
- <1317839407.3983.46.camel@groeck-laptop>
- <20111006040656.GA2125@ubuntu.ubuntu-domain>
- <20111006051955.GA22835@ericsson.com>
- <20111006094302.71ea4dfd@endymion.delvare>
- <1317914126.3983.55.camel@groeck-laptop>
-In-Reply-To: <1317914126.3983.55.camel@groeck-laptop>
+ <20111005193359.GB26664@kroah.com>
+ <20111006041011.GB2125@ubuntu.ubuntu-domain>
+In-Reply-To: <20111006041011.GB2125@ubuntu.ubuntu-domain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Himanshu Chauhan <hschauhan@nulltrace.org>
+Cc: linux-kernel@vger.kernel.org, kernelnewbies@kernelnewbies.org, lm-sensors@lm-sensors.org
 
-On Thu, Oct 06, 2011 at 08:15:26AM -0700, Guenter Roeck wrote:
-
-> Having said that, I realize there are instances where the _minor_ device
-> number is passed to the class registration function (eg for misc
-> devices). In that case, though, misc_register() checks if the asked for
-> minor device already exists, and retains the option to generate a
-> dynamic minor device. This is different here, where the proposal is to
-> pass both major and minor device number to the registration function.
+On Thu, Oct 06, 2011 at 09:40:11AM +0530, Himanshu Chauhan wrote:
+> Hi Greg,
 > 
-> Maybe there are instances where both major and minor device number are
-> passed; as I mentioned before, I did not spend that much time on it. But
-> you are right - that isn't the point anyway.
-> 
+> > 
+> > How do you later remove a device created with this new interface?  As it
+> > is, I think the existing calls will fail, right?
+> > 
+> If I have not missed out anything from hwmon_device_unregister(), it shouldn't
+> fail. Why did you point that out?
 
-If misc and other classes can create nodes based on device numbers that
-are passed to them, why is it a problem for hwmon? Why does hwmon creates
-devices with MKDEV(0,0)? I am still not getting the point.
+If you create a device with a call to device_create() with a dev_t set,
+it is usually cleaned up with a call to device_destroy(), but you are
+right, a simple call to device_unregister() will still work properly.
 
--Himanshu
+So nevermind, sorry for the noise.
+
+What you do need to determine is if this is a device node you really
+want to be creating in this manner, as it is a new user/kernel API,
+right?
+
+greg k-h
 
 _______________________________________________
 lm-sensors mailing list
