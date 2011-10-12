@@ -1,7 +1,7 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Wed, 12 Oct 2011 09:51:59 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 12 Oct 2011 15:19:54 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon:lm75 add ADT75 support - requires
-Message-Id: <4E95633F.9040104@cam.ac.uk>
+Message-Id: <1318432794.2454.18.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1318412218-4237-1-git-send-email-michael.hennerich@analog.com>
 In-Reply-To: <1318412218-4237-1-git-send-email-michael.hennerich@analog.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 10/12/11 10:36, michael.hennerich@analog.com wrote:
+On Wed, 2011-10-12 at 05:36 -0400, michael.hennerich@analog.com wrote:
 > From: Michael Hennerich <michael.hennerich@analog.com>
 > 
 > The Analog Devices ADT75 has an additional register at 0x04
@@ -21,11 +21,8 @@ On 10/12/11 10:36, michael.hennerich@analog.com wrote:
 > mirrored around register 0x04. This fact is used to detect the ADT75.
 > 
 > This patch is based on an reworked proposal from Jonathan Cameron <jic23@cam.ac.uk>
-Definitely looks like it will fail on all the other parts supported, so should be fine.
 > 
 > Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-
 > ---
 >  Documentation/hwmon/lm75 |    5 +++++
 >  drivers/hwmon/Kconfig    |    1 +
@@ -118,6 +115,18 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > +		 || i2c_smbus_read_byte_data(new_client, 11) = os
 > +		 || i2c_smbus_read_byte_data(new_client, 15) = os)
 > +			is_adt75 = 1;
+
+This seems to be quite weak. It assumes the chip is ADT75 if any of
+registers {7, 11, 15} matches register 3. We already know that on a
+regular LM75, register 11 will match register 3, because the address
+cycling code checks for it. So it seems to me that the code here will
+always conclude that the chip is an ADT75.
+
+Am I missing something ? Did anyone check this code on a LM75 ?
+
+Thanks,
+Guenter
+
 > +	}
 > +
 > +	if (!is_lm75a && !is_adt75) { /* Traditional style LM75 detection */
@@ -136,6 +145,7 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 >  
 >  	return 0;
 >  }
+
 
 
 _______________________________________________
