@@ -1,36 +1,54 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 20 Oct 2011 07:08:27 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: (w83627ehf) Uninline is_word_sized
-Message-Id: <20111020090827.581b4ec7@endymion.delvare>
+Date: Thu, 13 Oct 2011 14:33:16 +0000
+Subject: Re: [lm-sensors] [PATCH v2 1/2] hwmon: Add unspecified temperature
+Message-Id: <20111013163316.5bbfb87c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Helper function is_word_sized has grown too much to be kept inline. It
-was OK when there were only 6 word-sized registers but support for new
-devices have made the list much longer. The function is also called
-from more places than before.
+On Tue, 27 Sep 2011 15:33:50 -0700, Guenter Roeck wrote:
+> Some recent temperature sensor chips provide thresholds which are not associated
+> with lower or upper limits. The use of those thresholds is application specific.
+> 
+> Provide sysfs ABI attributes to support such thresholds.
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  Documentation/hwmon/sysfs-interface |   16 ++++++++++++++++
+>  1 files changed, 16 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+> index a4aa8f6..42eeec0 100644
+> --- a/Documentation/hwmon/sysfs-interface
+> +++ b/Documentation/hwmon/sysfs-interface
+> @@ -394,6 +394,22 @@ temp_reset_history
+>  		Reset temp_lowest and temp_highest for all sensors
+>  		WO
+>  
+> +temp[1-*]_threshold[1-*]
+> +		Unspecified threshold. Use if the chip provides temperature
+> +		thresholds which are not associated with lower or upper limits.
+> +		RW
+> +		Unit: millidegree Celsius
+> +
+> +temp[1-*]_threshold[1-*]_triggered
+> +		Channel trigger information.
+> +		0: Temperature did not cross threshold.
+> +		1: Temperature crossed threshold in either direction.
+> +		RW
+> +		Contrary to regular alarm flags which clear themselves
+> +		automatically when read, this one sticks until cleared by
+> +		the user. This is done by writing 0 to the file. Writing
+> +		other values is unsupported.
+> +
+>  Some chips measure temperature using external thermistors and an ADC, and
+>  report the temperature measurement as a voltage. Converting this voltage
+>  back to a temperature (or the other way around for limits) requires
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>
----
- drivers/hwmon/w83627ehf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-3.1-rc9.orig/drivers/hwmon/w83627ehf.c	2011-10-17 22:18:45.000000000 +0200
-+++ linux-3.1-rc9/drivers/hwmon/w83627ehf.c	2011-10-17 22:25:22.000000000 +0200
-@@ -316,7 +316,7 @@ static const char *const nct6776_temp_la
- 
- #define NUM_REG_TEMP	ARRAY_SIZE(NCT6775_REG_TEMP)
- 
--static inline int is_word_sized(u16 reg)
-+static int is_word_sized(u16 reg)
- {
- 	return ((((reg & 0xff00) = 0x100
- 	      || (reg & 0xff00) = 0x200)
-
+Looks good, assuming that we actually want to implement this in hwmon
+drivers and not somewhere else in the kernel. See my reply to patch 2/2.
 
 -- 
 Jean Delvare
