@@ -1,64 +1,73 @@
-From: Greg KH <greg@kroah.com>
-Date: Fri, 07 Oct 2011 15:46:27 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon class driver registration with a
-Message-Id: <20111007154627.GA941@kroah.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 13 Oct 2011 19:49:08 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83627ehf) Properly report thermal
+Message-Id: <20111013214908.2afa26d6@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1317834791-2803-1-git-send-email-hschauhan@nulltrace.org>
- <20111005193359.GB26664@kroah.com>
- <20111006041011.GB2125@ubuntu.ubuntu-domain>
- <20111006182500.GA18607@kroah.com>
- <20111006190752.GA28455@ericsson.com>
- <20111007064240.GA2944@ubuntu.ubuntu-domain>
- <20111007065237.GA27805@kroah.com>
- <20111007095621.GB2944@ubuntu.ubuntu-domain>
-In-Reply-To: <20111007095621.GB2944@ubuntu.ubuntu-domain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Himanshu Chauhan <hschauhan@nulltrace.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernelnewbies@kernelnewbies.org" <kernelnewbies@kernelnewbies.org>
+To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 07, 2011 at 03:26:21PM +0530, Himanshu Chauhan wrote:
-> On Thu, Oct 06, 2011 at 11:52:37PM -0700, Greg KH wrote:
-> > On Fri, Oct 07, 2011 at 12:12:40PM +0530, Himanshu Chauhan wrote:
-> > > On Thu, Oct 06, 2011 at 12:07:52PM -0700, Guenter Roeck wrote:
-> > > > And why, and what for.
-> > > 
-> > > The initial idea of posting to kernelnewbies was to get a hint on how
-> > > the patch would be taken as. I wanted to know if developers will like
-> > > the idea behind it or not. I guess, Guenter is not convinced with
-> > > any of my reasoning. I am willing to clean it up further only if
-> > > I get a positive hint. But it doesn't seem to be going anywhere.
-> > > 
-> > > Thanks Guenter, Alan, and Greg for taking your time and reviewing it.
-> > > 
-> > > Greg: To answer your last question, if this was taken positively, I
-> > > was thinking of having functionality similar to misc device registration.
-> > 
-> > But why?  What is that device node going to be used for?  Who would be
-> > using it in userspace and where would it be tied into in the kernel?
-> > 
-> The device node, as I said earlier, can be used for doing IOCTLS.
+The w83627ehf driver is improperly reporting thermal diode sensors as
+type 2, instead of 3. This caused "sensors" and possibly other
+monitoring tools to report these sensors as "transistor" instead of
+"thermal diode".
 
-It can?  Which ones?  New ones you want to propose?  If so, why use an
-ioctl?
+Furthermore, diode subtype selection (CPU vs. external) is only
+supported by the original W83627EHF/EHG. All later models only support
+CPU diode type, and some (NCT6776F) don't even have the register in
+question so we should avoid reading from it.
 
-> In user space, applications that manage and monitor system environment
-> will need to use this interface for querying the sensor's location,
-> for example. In side the kernel, the driver that is driving the
-> particular hardware sensor can register a char interface for all this
-> and then register with hwmon with the same major/minor for usual sysfs
-> export of data.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: stable@kernel.org
+---
+ drivers/hwmon/w83627ehf.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-So you are creating a new user/kernel api here, right?  If so, you need
-to document it in Documentation/API and we need to be able to approve
-that BEFORE we could ever accept the creation of new device nodes like
-this, that at the moment, do not do anything.
+--- linux-3.1-rc9.orig/drivers/hwmon/w83627ehf.c	2011-10-13 18:21:43.000000000 +0200
++++ linux-3.1-rc9/drivers/hwmon/w83627ehf.c	2011-10-13 21:40:13.000000000 +0200
+@@ -1718,7 +1718,8 @@ static void w83627ehf_device_remove_file
+ }
+ 
+ /* Get the monitoring functions started */
+-static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data)
++static inline void __devinit w83627ehf_init_device(struct w83627ehf_data *data,
++						   enum kinds kind)
+ {
+ 	int i;
+ 	u8 tmp, diode;
+@@ -1749,10 +1750,16 @@ static inline void __devinit w83627ehf_i
+ 		w83627ehf_write_value(data, W83627EHF_REG_VBAT, tmp | 0x01);
+ 
+ 	/* Get thermal sensor types */
+-	diode = w83627ehf_read_value(data, W83627EHF_REG_DIODE);
++	switch (kind) {
++	case w83627ehf:
++		diode = w83627ehf_read_value(data, W83627EHF_REG_DIODE);
++		break;
++	default:
++		diode = 0x70;
++	}
+ 	for (i = 0; i < 3; i++) {
+ 		if ((tmp & (0x02 << i)))
+-			data->temp_type[i] = (diode & (0x10 << i)) ? 1 : 2;
++			data->temp_type[i] = (diode & (0x10 << i)) ? 1 : 3;
+ 		else
+ 			data->temp_type[i] = 4; /* thermistor */
+ 	}
+@@ -2084,7 +2091,7 @@ static int __devinit w83627ehf_probe(str
+ 	}
+ 
+ 	/* Initialize the chip */
+-	w83627ehf_init_device(data);
++	w83627ehf_init_device(data, sio_data->kind);
+ 
+ 	data->vrm = vid_which_vrm();
+ 	superio_enter(sio_data->sioreg);
 
-In other words, you need to prove you need a new ioctl interface before
-you can get a patch accepted that implements this.
 
-greg k-h
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
