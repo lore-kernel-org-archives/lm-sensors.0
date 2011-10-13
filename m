@@ -1,119 +1,177 @@
-From: Kristen Eisenberg <kristen.eisenberg@yahoo.com>
-Date: Mon, 10 Oct 2011 22:29:24 +0000
-Subject: [lm-sensors]  hwmon API update
-Message-Id: <1318285764.13355.YahooMailNeo@web122301.mail.ne1.yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1477796465237406111=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 13 Oct 2011 14:43:14 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (w83627ehf) Move fan pins check to
+Message-Id: <20111013164314.15a0d872@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D57CC24.1040306@free.fr>
-In-Reply-To: <4D57CC24.1040306@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1477796465237406111==
-Content-Type: multipart/alternative; boundary="518238472-510183156-1318285764=:13355"
+Move the check of fan pin usage to a separate function. This improves
+readability, and will make it easier to integrate chip-specific
+conditions.
 
---518238472-510183156-1318285764=:13355
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627ehf.c |  120 +++++++++++++++++++++++++--------------------
+ 1 file changed, 67 insertions(+), 53 deletions(-)
 
-Am Montag, den 28.02.2011, 10:42 -0800 schrieb Guenter Roeck:=0A> On Mon, F=
-eb 28, 2011 at 12:50:45PM -0500, Lucas Stach wrote:=0A> > Hello all,=0A> > =
-=0A> > let me revive this discussion a bit. After reading some things about=
- the=0A> > matter I think the way to go is to use Intels thermal framework.=
- It=0A> > should be easy to add the needed temp_get and fan_set functions t=
-o the=0A> > affected hwmon drivers. =0A> > =0A> > But then one problem stil=
-l persists: when the hwmon driver probes a=0A> > device it automatically cr=
-eates the sysfs entries. This is unintended=0A> > behaviour from nouveau's =
-point of view. The sensor value is not the real=0A> > temperature value; it=
- has to be scaled with some factor and an offset=0A> > hard-coded in the vi=
-deo bios tables. This scaling could only be done on=0A> > nouveau's side, s=
-o the hwmon driver is exposing an interface with wrong=0A> > values to the =
-userspace.=0A> > =0A> > We need a way to use the hwmon i2c driver without e=
-xposing this=0A> > interface. Do you have any preferred way how we could ac=
-hieve this?=0A> > =0A> The whole point of the hwmon subsystem is to expose =
-hardware monitoring=0A> attributes to userspace. A hwmon driver without sys=
-fs attributes does not=0A> make sense.=0A=0A=0AKristen Eisenberg=0ABillige =
-Fl=FCge=0AMarketing GmbH=0AEmanuelstr. 3,=0A10317 Berlin=0ADeutschland=0ATe=
-lefon: +49 (33)=0A5310967=0AEmail:=0Autebachmeier at=0Agmail.com=0ASite:=0A=
-http://flug.airego.de
-- Billige Fl=FCge vergleichen
---518238472-510183156-1318285764=:13355
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+--- linux-2.6.39-rc0.orig/drivers/hwmon/w83627ehf.c	2011-03-18 16:25:29.000000000 +0100
++++ linux-2.6.39-rc0/drivers/hwmon/w83627ehf.c	2011-03-18 16:39:40.000000000 +0100
+@@ -1784,13 +1784,78 @@ static void w82627ehf_swap_tempreg(struc
+ 	data->reg_temp_config[r2] = tmp;
+ }
+ 
++static void __devinit
++w83627ehf_check_fan_inputs(const struct w83627ehf_sio_data *sio_data,
++			   struct w83627ehf_data *data)
++{
++	int fan3pin, fan4pin, fan4min, fan5pin, regval;
++
++	superio_enter(sio_data->sioreg);
++
++	/* fan4 and fan5 share some pins with the GPIO and serial flash */
++	if (sio_data->kind = nct6775) {
++		/* On NCT6775, fan4 shares pins with the fdc interface */
++		fan3pin = 1;
++		fan4pin = !(superio_inb(sio_data->sioreg, 0x2A) & 0x80);
++		fan4min = 0;
++		fan5pin = 0;
++	} else if (sio_data->kind = nct6776) {
++		fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
++		fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
++		fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
++		fan4min = fan4pin;
++	} else if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
++		fan3pin = 1;
++		fan4pin = superio_inb(sio_data->sioreg, 0x27) & 0x40;
++		fan5pin = superio_inb(sio_data->sioreg, 0x27) & 0x20;
++		fan4min = fan4pin;
++	} else {
++		fan3pin = 1;
++		fan4pin = !(superio_inb(sio_data->sioreg, 0x29) & 0x06);
++		fan5pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x02);
++		fan4min = fan4pin;
++	}
++
++	superio_exit(sio_data->sioreg);
++
++	data->has_fan = data->has_fan_min = 0x03; /* fan1 and fan2 */
++	data->has_fan |= (fan3pin << 2);
++	data->has_fan_min |= (fan3pin << 2);
++
++	if (sio_data->kind = nct6775 || sio_data->kind = nct6776) {
++		/*
++		 * NCT6775F and NCT6776F don't have the W83627EHF_REG_FANDIV1
++		 * register
++		 */
++		data->has_fan |= (fan4pin << 3) | (fan5pin << 4);
++		data->has_fan_min |= (fan4min << 3) | (fan5pin << 4);
++	} else {
++		/*
++		 * It looks like fan4 and fan5 pins can be alternatively used
++		 * as fan on/off switches, but fan5 control is write only :/
++		 * We assume that if the serial interface is disabled, designers
++		 * connected fan5 as input unless they are emitting log 1, which
++		 * is not the default.
++		 */
++		regval = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
++		if ((regval & (1 << 2)) && fan4pin) {
++			data->has_fan |= (1 << 3);
++			data->has_fan_min |= (1 << 3);
++		}
++		if (!(regval & (1 << 1)) && fan5pin) {
++			data->has_fan |= (1 << 4);
++			data->has_fan_min |= (1 << 4);
++		}
++	}
++}
++
+ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct w83627ehf_sio_data *sio_data = dev->platform_data;
+ 	struct w83627ehf_data *data;
+ 	struct resource *res;
+-	u8 fan3pin, fan4pin, fan4min, fan5pin, en_vrm10;
++	u8 en_vrm10;
+ 	int i, err = 0;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+@@ -2075,30 +2140,6 @@ static int __devinit w83627ehf_probe(str
+ 		}
+ 	}
+ 
+-	/* fan4 and fan5 share some pins with the GPIO and serial flash */
+-	if (sio_data->kind = nct6775) {
+-		/* On NCT6775, fan4 shares pins with the fdc interface */
+-		fan3pin = 1;
+-		fan4pin = !(superio_inb(sio_data->sioreg, 0x2A) & 0x80);
+-		fan4min = 0;
+-		fan5pin = 0;
+-	} else if (sio_data->kind = nct6776) {
+-		fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
+-		fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
+-		fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
+-		fan4min = fan4pin;
+-	} else if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+-		fan3pin = 1;
+-		fan4pin = superio_inb(sio_data->sioreg, 0x27) & 0x40;
+-		fan5pin = superio_inb(sio_data->sioreg, 0x27) & 0x20;
+-		fan4min = fan4pin;
+-	} else {
+-		fan3pin = 1;
+-		fan4pin = !(superio_inb(sio_data->sioreg, 0x29) & 0x06);
+-		fan5pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x02);
+-		fan4min = fan4pin;
+-	}
+-
+ 	if (fan_debounce &&
+ 	    (sio_data->kind = nct6775 || sio_data->kind = nct6776)) {
+ 		u8 tmp;
+@@ -2116,34 +2157,7 @@ static int __devinit w83627ehf_probe(str
+ 
+ 	superio_exit(sio_data->sioreg);
+ 
+-	/* It looks like fan4 and fan5 pins can be alternatively used
+-	   as fan on/off switches, but fan5 control is write only :/
+-	   We assume that if the serial interface is disabled, designers
+-	   connected fan5 as input unless they are emitting log 1, which
+-	   is not the default. */
+-
+-	data->has_fan = data->has_fan_min = 0x03; /* fan1 and fan2 */
+-
+-	data->has_fan |= (fan3pin << 2);
+-	data->has_fan_min |= (fan3pin << 2);
+-
+-	/*
+-	 * NCT6775F and NCT6776F don't have the W83627EHF_REG_FANDIV1 register
+-	 */
+-	if (sio_data->kind = nct6775 || sio_data->kind = nct6776) {
+-		data->has_fan |= (fan4pin << 3) | (fan5pin << 4);
+-		data->has_fan_min |= (fan4min << 3) | (fan5pin << 4);
+-	} else {
+-		i = w83627ehf_read_value(data, W83627EHF_REG_FANDIV1);
+-		if ((i & (1 << 2)) && fan4pin) {
+-			data->has_fan |= (1 << 3);
+-			data->has_fan_min |= (1 << 3);
+-		}
+-		if (!(i & (1 << 1)) && fan5pin) {
+-			data->has_fan |= (1 << 4);
+-			data->has_fan_min |= (1 << 4);
+-		}
+-	}
++	w83627ehf_check_fan_inputs(sio_data, data);
+ 
+ 	/* Read fan clock dividers immediately */
+ 	w83627ehf_update_fan_div_common(dev, data);
 
-<html><body><div style=3D"color:#000; background-color:#fff; font-family:ti=
-mes new roman, new york, times, serif;font-size:12pt"><div>Am Montag, den 2=
-8.02.2011, 10:42 -0800 schrieb Guenter Roeck:<br>&gt; On Mon, Feb 28, 2011 =
-at 12:50:45PM -0500, Lucas Stach wrote:<br>&gt; &gt; Hello all,<br>&gt; &gt=
-;  <br>&gt; &gt; let me revive this discussion a bit. After reading some th=
-ings about the<br>&gt; &gt; matter I think the way to go is to use Intels t=
-hermal framework. It<br>&gt; &gt; should be easy to add the needed temp_get=
- and fan_set functions to the<br>&gt; &gt; affected hwmon drivers. <br>&gt;=
- &gt; <br>&gt; &gt; But then one problem still persists: when the hwmon dri=
-ver probes a<br>&gt; &gt; device it automatically creates the sysfs entries=
-. This is unintended<br>&gt; &gt; behaviour from nouveau's point of view. T=
-he sensor value is not the real<br>&gt; &gt; temperature value; it has to b=
-e scaled with some factor and an offset<br>&gt; &gt; hard-coded in the
- video bios tables. This scaling could only be done on<br>&gt; &gt; nouveau=
-'s side, so the hwmon driver is exposing an interface with wrong<br>&gt; &g=
-t; values to the userspace.<br>&gt; &gt; <br>&gt; &gt; We need a way to use=
- the hwmon i2c driver without exposing this<br>&gt; &gt; interface. Do you =
-have any preferred way how we could achieve this?<br>&gt; &gt; <br>&gt; The=
- whole point of the hwmon subsystem is to expose hardware monitoring<br>&gt=
-; attributes to userspace. A hwmon driver without sysfs attributes does not=
-<br>&gt; make sense.</div><div><br></div><div>
 
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">K=
-risten Eisenberg</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">B=
-illige Fl=FCge</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">M=
-arketing GmbH</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">E=
-manuelstr. 3,</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">1=
-0317 Berlin</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">D=
-eutschland</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">T=
-elefon: +49 (33)</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">5=
-310967</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">E=
-mail:</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">u=
-tebachmeier at</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">g=
-mail.com</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">S=
-ite:</span></div>
-
-<div class=3D"MsoNormal"><span lang=3D"DE" style=3D"mso-ansi-language:DE">h=
-ttp://flug.airego.de
-- Billige Fl=FCge vergleichen</span></div></div></div></body></html>
---518238472-510183156-1318285764=:13355--
-
-
---===============1477796465237406111==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1477796465237406111==--
