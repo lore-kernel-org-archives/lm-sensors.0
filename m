@@ -1,81 +1,83 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 21 Oct 2011 17:24:38 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.1
-Message-Id: <20111021172438.GA10764@ericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5116270355461359114=="
+From: <michael.hennerich@analog.com>
+Date: Thu, 13 Oct 2011 08:43:31 +0000
+Subject: [lm-sensors] [PATCH V2] hwmon:lm75 add support for the Analog
+Message-Id: <1318495411-20399-1-git-send-email-michael.hennerich@analog.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1315325608-17922-1-git-send-email-guenter.roeck@ericsson.com>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============5116270355461359114==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Content-Disposition: inline
-
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon subsystem fixes for Linux 3.1 from:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter Roeck
-
-------
-
-The following changes since commit 899e3ee404961a90b828ad527573aaaac39f0ab1:
-
-  Linux 3.1-rc10 (2011-10-17 21:06:23 -0700)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Jean Delvare (1):
-      hwmon: (w83627ehf) Fix negative 8-bit temperature values
-
- drivers/hwmon/w83627ehf.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOoarWAAoJEMsfJm/On5mBQR8P/1GAlo2YJx7596NKXjoOPODT
-I0FKtXMk4RRrmln8JUyjBSwEXTx6S/9392D1YoRKHgqU7+MBk0ny04XHMId5p3N1
-SfcfBn/QkNM5gIh04aQ1/ST0O0Aa79cPWCakw0xuMgGIfpFi+BtpBcS8VpINlPP1
-GnvVV6sjJTHHYzE8ZJVXoB3HOVBV8M2P86FjNTETKLESg1o3oFslAfXLt1KYrmTg
-huzeiEAslptIUMszC9Hp+cXv4tKTzqDMyMpEyaDvvAVsKxc2ddrrzJAZxTRrZD5U
-kC7gS17Ek+lQ668UNsSruxeG1FhISXXepzPXLSRzYWnxLyUe7c0fQV1mVAgWjTI6
-GjJln9bmR/USv3QiMU6K5/HzIjh15G+1APGyK/QGLS1U52Uk7BInnsFzW076pOzv
-4tgQzB5O3HnXM7U79oxKZf6UrD0oyh19ZS7THXhMGLJ3o7Z1Ao88UEjrNfQ3im3l
-I4JdbqbI0RZX+WkoH6sYz7v4R/gnb2j9YWNheS6Rxm8HYiUK7Obv+W34ik+8bSrn
-Jhm1MbUdj7bW4t17DKsIe+MuhxN7Wl6T1OC8UQzRpXjIBqmNHBRgtYxT3274KOzn
-sYKDcC30jt0Eb8Iinq0b9B85egD1DFrbykGN1CKk8eMT481xGFeRCywUH5wMr/Lw
-j+swQYwsGH9L/IFdARJ7
-=XtXO
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
-
-
---===============5116270355461359114==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+From: Michael Hennerich <michael.hennerich@analog.com>
+
+Changes since V1:
+
+Remove depreciated ADT75 device detection support.
+The ADT75, like some other LM75 derivatives needs to be instantiated
+using methods 1,2 or 4.
+For more information see Documentation/i2c/instantiating-devices.
+
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+---
+ Documentation/hwmon/lm75 |    5 +++++
+ drivers/hwmon/Kconfig    |    1 +
+ drivers/hwmon/lm75.c     |    2 ++
+ 3 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/hwmon/lm75 b/Documentation/hwmon/lm75
+index a179040..8d40d0f 100644
+--- a/Documentation/hwmon/lm75
++++ b/Documentation/hwmon/lm75
+@@ -32,6 +32,11 @@ Supported chips:
+     Addresses scanned: I2C 0x48 - 0x4f
+     Datasheet: Publicly available at the Microchip website
+                http://www.microchip.com/
++  * Analog Devices ADT75
++    Prefix: 'adt75'
++    Addresses scanned: I2C 0x48 - 0x4f
++    Datasheet: Publicly available at the Analog Devices website
++               http://www.analog.com/adt75
+
+ Author: Frodo Looijaard <frodol@dds.nl>
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 0b62c3c..497fd14 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -531,6 +531,7 @@ config SENSORS_LM75
+ 	  If you say yes here you get support for one common type of
+ 	  temperature sensor chip, with models including:
+
++		- Analog Devices ADT75
+ 		- Dallas Semiconductor DS75 and DS1775
+ 		- Maxim MAX6625 and MAX6626
+ 		- Microchip MCP980x
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index ef902d5..669481b 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -35,6 +35,7 @@
+  */
+
+ enum lm75_type {		/* keep sorted in alphabetical order */
++	adt75,
+ 	ds1775,
+ 	ds75,
+ 	lm75,
+@@ -213,6 +214,7 @@ static int lm75_remove(struct i2c_client *client)
+ }
+
+ static const struct i2c_device_id lm75_ids[] = {
++	{ "adt75", adt75, },
+ 	{ "ds1775", ds1775, },
+ 	{ "ds75", ds75, },
+ 	{ "lm75", lm75, },
+--
+1.7.0.4
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5116270355461359114==--
