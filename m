@@ -1,514 +1,248 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 20 Oct 2011 09:33:05 +0000
-Subject: [lm-sensors] [PATCH 4/6] IIO:CORE add in kernel interface mapping
-Message-Id: <1319103187-27791-5-git-send-email-jic23@cam.ac.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 13 Oct 2011 14:31:31 +0000
+Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: (coretemp) Add support for
+Message-Id: <20111013163131.2ab65ab2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
+References: <1317162831-30628-3-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1317162831-30628-3-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
-Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, thomas.petazzoni@free-electrons.com, maxime.ripard@free-electrons.com, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@vger.kernel.org
 
-Two elements here:
-* Map as defined in include/linux/iio/inkern.h
-* Matching code to actually get the iio_dev and channel
-that we want from the global list of IIO devices.
+Hi Guenter,
 
-Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
----
- drivers/Makefile           |    2 +-
- drivers/iio/Makefile       |    1 +
- drivers/iio/iio.c          |  279 +++++++++++++++++++++++++++++++++++++++++++-
- drivers/iio/inkern.c       |   21 ++++
- include/linux/iio/iio.h    |    7 +-
- include/linux/iio/inkern.h |   87 ++++++++++++++
- 6 files changed, 390 insertions(+), 7 deletions(-)
+Sorry for the late reply...
 
-diff --git a/drivers/Makefile b/drivers/Makefile
-index df39628..2b389c5 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -130,5 +130,5 @@ obj-$(CONFIG_VIRT_DRIVERS)	+= virt/
- 
- obj-$(CONFIG_HYPERV)		+= hv/
- 
--obj-$(CONFIG_IIO)		+= iio/
-+obj-y		+= iio/
- 
-diff --git a/drivers/iio/Makefile b/drivers/iio/Makefile
-index db3c426..cfb588a 100644
---- a/drivers/iio/Makefile
-+++ b/drivers/iio/Makefile
-@@ -1,6 +1,7 @@
- #
- # Makefile for the Industrial I/O subsystem
- #
-+obj-y = inkern.o
- 
- obj-$(CONFIG_IIO) += iio.o
- industrialio-y := core.o
-diff --git a/drivers/iio/iio.c b/drivers/iio/iio.c
-index 9e6acc1..e094c40 100644
---- a/drivers/iio/iio.c
-+++ b/drivers/iio/iio.c
-@@ -12,8 +12,10 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/idr.h>
-+#include <linux/err.h>
- #include <linux/iio/iio.h>
- #include <linux/iio/sysfs.h>
-+#include <linux/iio/inkern.h>
- 
- static DEFINE_IDA(iio_ida);
- 
-@@ -68,6 +70,278 @@ static const char * const iio_chan_info_postfix[] = {
- 	= "quadrature_correction_raw",
- };
- 
-+static void iio_dev_release(struct device *device);
-+static struct device_type iio_dev_type = {
-+	.name = "iio_device",
-+	.release = iio_dev_release,
-+};
-+
-+static int iio_match_dev(struct device *dev, void *data)
-+{
-+	struct iio_dev *indio_dev;
-+	struct device *dev2 = data;
-+
-+	if (dev->type != &iio_dev_type)
-+		return 0;
-+
-+	indio_dev = container_of(dev, struct iio_dev, dev);
-+	if (indio_dev->info->get_hardware_id)
-+		return indio_dev->info->get_hardware_id(indio_dev) = dev2;
-+	else
-+		return indio_dev->dev.parent = dev2;
-+}
-+
-+static int iio_match_dev_name(struct device *dev, void *data)
-+{
-+	struct iio_dev *indio_dev;
-+	const char *name = data;
-+
-+	if (dev->type != &iio_dev_type)
-+		return 0;
-+
-+	indio_dev = container_of(dev, struct iio_dev, dev);
-+	if (indio_dev->info->get_hardware_id)
-+		return !strcmp(dev_name(indio_dev->info
-+					->get_hardware_id(indio_dev)),
-+			       name);
-+	else if (indio_dev->dev.parent)
-+		return !strcmp(dev_name(indio_dev->dev.parent), name);
-+	return 0;
-+}
-+
-+struct iio_channel *iio_channel_get(const struct device *dev,
-+				    const char *name,
-+				    const char *channel_name)
-+{
-+	struct iio_map *c_i = NULL, *c = NULL;
-+	struct iio_dev *indio_dev = NULL;
-+	const struct iio_chan_spec *chan = NULL;
-+	struct device *dev_i;
-+	int i;
-+	struct iio_channel *channel;
-+
-+	if (dev = NULL && name = NULL && channel_name = NULL)
-+		return ERR_PTR(-ENODEV);
-+	/* first find matching entry the channel map */
-+	list_for_each_entry(c_i, &iio_map_list, l) {
-+		if ((dev && dev != c_i->consumer_dev) ||
-+		    (name && strcmp(name, c_i->consumer_dev_name) != 0) ||
-+		    (channel_name &&
-+		     strcmp(channel_name, c_i->consumer_channel) != 0))
-+			continue;
-+		c = c_i;
-+		break;
-+	}
-+	if (c = NULL)
-+		return ERR_PTR(-ENODEV);
-+
-+	/* now find the iio device if it has been registered */
-+	if (c->adc_dev)
-+		dev_i = bus_find_device(&iio_bus_type, NULL, c->adc_dev,
-+					&iio_match_dev);
-+	else if (c->adc_dev_name)
-+		dev_i = bus_find_device(&iio_bus_type, NULL,
-+					(void *)c->adc_dev_name,
-+					&iio_match_dev_name);
-+	else
-+		return ERR_PTR(-EINVAL);
-+	if (IS_ERR(dev_i))
-+		return (void *)dev_i;
-+	if (dev_i = NULL)
-+		return ERR_PTR(-ENODEV);
-+	indio_dev = container_of(dev_i, struct iio_dev, dev);
-+
-+	/* finally verify the channel exists */
-+	if (c->adc_channel_label)
-+		for (i = 0; i < indio_dev->num_channels; i++)
-+			if (indio_dev->channels[i].datasheet_name &&
-+			    strcmp(c->adc_channel_label,
-+				       indio_dev->channels[i].datasheet_name)
-+			    = 0) {
-+				chan = &indio_dev->channels[i];
-+				break;
-+			}
-+	channel = kmalloc(sizeof(*channel), GFP_KERNEL);
-+	if (channel = NULL)
-+		return ERR_PTR(-ENOMEM);
-+	channel->indio_dev = indio_dev;
-+	if (chan = NULL)
-+		channel->channel = &indio_dev->channels[c->channel_number];
-+	else
-+		channel->channel = chan;
-+	return channel;
-+}
-+EXPORT_SYMBOL_GPL(iio_channel_get);
-+
-+static const struct iio_chan_spec
-+*iio_chan_spec_from_name(const struct iio_dev *indio_dev,
-+			 const char *name)
-+{
-+	int i;
-+	const struct iio_chan_spec *chan = NULL;
-+	for (i = 0; i < indio_dev->num_channels; i++)
-+		if (indio_dev->channels[i].datasheet_name &&
-+		    strcmp(name, indio_dev->channels[i].datasheet_name) = 0) {
-+			chan = &indio_dev->channels[i];
-+			break;
-+		}
-+	return chan;
-+}
-+
-+struct iio_channel **iio_channel_get_all(const struct device *dev,
-+					const char *name)
-+{
-+	struct iio_channel **chans;
-+	struct iio_map *c = NULL;
-+	struct iio_dev *indio_dev;
-+	int nummaps = 0;
-+	int mapind = 0;
-+	int i, ret;
-+	struct device *dev_i;
-+
-+	if (dev = NULL && name = NULL) {
-+		ret = -EINVAL;
-+		goto error_ret;
-+	}
-+
-+	/* first count the matching maps */
-+	list_for_each_entry(c, &iio_map_list, l)
-+		if ((dev && dev != c->consumer_dev) ||
-+		    (name && strcmp(name, c->consumer_dev_name) != 0))
-+			continue;
-+		else
-+			nummaps++;
-+
-+	if (nummaps = 0) {
-+		ret = -ENODEV;
-+		goto error_ret;
-+	}
-+
-+	chans = kzalloc(sizeof(*chans)*(nummaps + 1), GFP_KERNEL);
-+	if (chans = NULL) {
-+		ret = -ENOMEM;
-+		goto error_ret;
-+	}
-+	for (i = 0; i < nummaps; i++) {
-+		chans[i] = kzalloc(sizeof(*chans[0]), GFP_KERNEL);
-+		if (chans[i] = NULL) {
-+			ret = -ENOMEM;
-+			goto error_free_chans;
-+		}
-+	}
-+
-+	/* for each map fill in the chans element */
-+	list_for_each_entry(c, &iio_map_list, l) {
-+		dev_i = NULL;
-+		if (dev && dev != c->consumer_dev)
-+			continue;
-+		if (name && strcmp(name, c->consumer_dev_name) != 0)
-+			continue;
-+		while (1) {
-+			if (c->adc_dev) {
-+				dev_i = bus_find_device(&iio_bus_type,
-+							dev_i,
-+							c->adc_dev,
-+							&iio_match_dev);
-+			} else if (c->adc_dev_name) {
-+				dev_i = bus_find_device(&iio_bus_type,
-+							dev_i,
-+							(void *)c->adc_dev_name,
-+							&iio_match_dev_name);
-+			} else {
-+				ret = -EINVAL;
-+				goto error_free_chans;
-+			}
-+			if (IS_ERR(dev_i)) {
-+				ret = PTR_ERR(dev_i);
-+				goto error_free_chans;
-+			}
-+			if (dev_i = NULL)
-+				break;
-+
-+			indio_dev = container_of(dev_i, struct iio_dev, dev);
-+			chans[mapind]->indio_dev = indio_dev;
-+			chans[mapind]->channel +			iio_chan_spec_from_name(indio_dev,
-+						c->adc_channel_label);
-+			if (chans[mapind]->channel = NULL) {
-+				ret = -EINVAL;
-+				put_device(&indio_dev->dev);
-+				goto error_free_chans;
-+			}
-+			mapind++;
-+		}
-+	}
-+	return chans;
-+
-+error_free_chans:
-+	for (i = 0; i < nummaps; i++)
-+		if (chans[i]) {
-+			put_device(&chans[i]->indio_dev->dev);
-+			kfree(chans[i]);
-+		}
-+error_ret:
-+
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL_GPL(iio_channel_get_all);
-+
-+void iio_channel_release(struct iio_channel *channel)
-+{
-+	put_device(&channel->indio_dev->dev);
-+	kfree(channel);
-+}
-+EXPORT_SYMBOL_GPL(iio_channel_release);
-+
-+void iio_channel_release_all(struct iio_channel **channels)
-+{
-+	int i = 0;
-+	struct iio_channel *chan = channels[i];
-+
-+	while (chan) {
-+		put_device(&chan->indio_dev->dev);
-+		kfree(chan);
-+		i++;
-+		chan = channels[i];
-+	}
-+	kfree(channels);
-+}
-+EXPORT_SYMBOL_GPL(iio_channel_release_all);
-+
-+int iio_read_channel_raw(struct iio_channel *chan, int *val)
-+{
-+	int val2;
-+	return chan->indio_dev->info->read_raw(chan->indio_dev, chan->channel,
-+					       val, &val2, 0);
-+}
-+EXPORT_SYMBOL_GPL(iio_read_channel_raw);
-+
-+int iio_read_channel_scale(struct iio_channel *chan, int *val, int *val2)
-+{
-+	/* Does this channel have shared scale? */
-+	if (chan->channel->info_mask & (1 << IIO_CHAN_INFO_SCALE_SHARED))
-+		return chan->indio_dev
-+			->info->read_raw(chan->indio_dev,
-+					 chan->channel,
-+					 val, val2,
-+					 (1 << IIO_CHAN_INFO_SCALE_SHARED));
-+	else if (chan->channel->info_mask & (1 << IIO_CHAN_INFO_SCALE_SEPARATE))
-+		return chan->indio_dev
-+			->info->read_raw(chan->indio_dev,
-+					 chan->channel,
-+					 val, val2,
-+					 (1 << IIO_CHAN_INFO_SCALE_SEPARATE));
-+	else
-+		return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(iio_read_channel_scale);
-+
-+enum iio_chan_type iio_get_channel_type(struct iio_channel *channel)
-+{
-+	return channel->channel->type;
-+}
-+EXPORT_SYMBOL_GPL(iio_get_channel_type);
-+
- static void iio_device_free_read_attr(struct iio_dev *indio_dev,
- 						 struct iio_dev_attr *p)
- {
-@@ -93,11 +367,6 @@ static void iio_dev_release(struct device *device)
- 	iio_device_unregister_sysfs(indio_dev);
- }
- 
--static struct device_type iio_dev_type = {
--	.name = "iio_device",
--	.release = iio_dev_release,
--};
--
- struct iio_dev *iio_device_allocate(int sizeof_priv)
- {
- 	struct iio_dev *dev;
-diff --git a/drivers/iio/inkern.c b/drivers/iio/inkern.c
-new file mode 100644
-index 0000000..e2ba5d6
---- /dev/null
-+++ b/drivers/iio/inkern.c
-@@ -0,0 +1,21 @@
-+/* The industrial I/O core in kernel channel mapping
-+ *
-+ * Copyright (c) 2011 Jonathan Cameron
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+#include <linux/iio/inkern.h>
-+#include <linux/err.h>
-+
-+LIST_HEAD(iio_map_list);
-+EXPORT_SYMBOL_GPL(iio_map_list);
-+void iio_map_array_register(struct iio_map *map, int nummaps)
-+{
-+	int i;
-+	for (i = 0; i < nummaps; i++)
-+		list_add(&map[i].l, &iio_map_list);
-+}
-+EXPORT_SYMBOL(iio_map_array_register);
-+
-diff --git a/include/linux/iio/iio.h b/include/linux/iio/iio.h
-index 8b98e92..472ade9 100644
---- a/include/linux/iio/iio.h
-+++ b/include/linux/iio/iio.h
-@@ -122,7 +122,10 @@ struct iio_dev;
-  * @write_raw_get_fmt:	callback function to query the expected
-  *			format/precision. If not set by the driver, write_raw
-  *			returns IIO_VAL_INT_PLUS_MICRO.
-- **/
-+ * @get_hardware_id:	obtain device relating to hardware. Typically based on
-+ *			the parent device (actual hardware).  Note that if
-+ *			not specified then iio_dev.dev->parent is used.
-+ */
- struct iio_info {
- 	struct module			*driver_module;
- 	const struct attribute_group	*attrs;
-@@ -142,6 +145,7 @@ struct iio_info {
- 	int (*write_raw_get_fmt)(struct iio_dev *indio_dev,
- 			 struct iio_chan_spec const *chan,
- 			 long mask);
-+	struct device *(*get_hardware_id)(struct iio_dev *indio_dev);
- };
- 
- /**
-@@ -176,6 +180,7 @@ struct iio_dev {
- #define IIO_MAX_GROUPS 1
- 	const struct attribute_group	*groups[IIO_MAX_GROUPS + 1];
- 	int				groupcounter;
-+	struct list_head		dev_list_entry;
- };
- 
- /**
-diff --git a/include/linux/iio/inkern.h b/include/linux/iio/inkern.h
-new file mode 100644
-index 0000000..6eef0a2
---- /dev/null
-+++ b/include/linux/iio/inkern.h
-@@ -0,0 +1,87 @@
-+#include <linux/device.h>
-+#include <linux/list.h>
-+#include <linux/iio/chan_spec.h>
-+
-+#ifndef _IIO_INKERN_H_
-+#define _IIO_INKERN_H_
-+
-+struct iio_dev;
-+struct iio_chan_spec;
-+
-+struct iio_channel {
-+	struct iio_dev *indio_dev;
-+	const struct iio_chan_spec *channel;
-+};
-+
-+extern struct list_head iio_map_list;
-+
-+struct iio_map {
-+	/* iio device side */
-+	struct device *adc_dev;
-+	const char *adc_dev_name;
-+	const char *adc_channel_label;
-+	int channel_number; /*naughty starting point */
-+
-+	/* consumer side */
-+	struct device *consumer_dev;
-+	const char *consumer_dev_name;
-+	const char *consumer_channel;
-+
-+	/* management - probably neater ways of doing this */
-+	struct list_head l;
-+};
-+
-+void iio_map_array_register(struct iio_map *map, int nummaps);
-+/**
-+ * iio_channel_get() - get an opaque reference to a specified device.
-+ */
-+struct iio_channel *iio_channel_get(const struct device *dev,
-+				    const char *name,
-+				    const char *consumer_channel);
-+void iio_channel_release(struct iio_channel *chan);
-+
-+/**
-+ * iio_channel_get_all() - get all channels associated with a client
-+ *
-+ * returns a null terminated array of pointers to iio_channel structures.
-+ */
-+struct iio_channel **iio_channel_get_all(const struct device *dev,
-+					const char *name);
-+
-+void iio_channel_release_all(struct iio_channel **chan);
-+
-+/**
-+ * iio_read_channel_raw() - read from a given channel
-+ * @channel:	the channel being queried.
-+ * @val:	value read back.
-+ *
-+ * Note raw reads from iio channels are in adc counts and hence
-+ * scale will need to be applied if standard units required.
-+ *
-+ * Maybe want to pass the type as a sanity check.
-+ */
-+int iio_read_channel_raw(struct iio_channel *chan,
-+			 int *val);
-+
-+/**
-+ * iio_get_channel_type() - get the type of a channel
-+ * @channel:	the channel being queried.
-+ *
-+ * returns the enum iio_chan_type of the channel
-+ */
-+enum iio_chan_type iio_get_channel_type(struct iio_channel *channel);
-+
-+/**
-+ * iio_read_channel_scale() - read the scale value for a channel
-+ * @channel:	the channel being queried.
-+ * @val:	first part of value read back.
-+ * @val2:	second part of value read back.
-+ *
-+ * Note returns a description of what is in val and val2, such
-+ * as IIO_VAL_INT_PLUS_MICRO telling us we have a value of val
-+ * + val2/1e6
-+ */
-+int iio_read_channel_scale(struct iio_channel *chan, int *val,
-+			   int *val2);
-+
-+#endif
+On Tue, 27 Sep 2011 15:33:51 -0700, Guenter Roeck wrote:
+> Add support for T0 and T1 temperature thresholds using the new sysfs ABI
+> attributes tempX_thresholdY and tempX_thresholdY_triggered.
+> 
+> This patch is based on commit c814a4c7c4aad795835583344353963a0a673eb0, which
+> was reverted. For details on the threshold registers, see IA Manual vol 3A,
+> which can be downloaded from here:
+>         http://download.intel.com/design/processor/manuals/253668.pdf
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  Documentation/hwmon/coretemp |   12 +++
+>  drivers/hwmon/coretemp.c     |  153 ++++++++++++++++++++++++++++++++++++++----
+>  2 files changed, 151 insertions(+), 14 deletions(-)
+
+This works as designed, tested on both a Xeon E5520 and my Thinkpad
+laptop with a Core T2600. On the Thinkpad, I can see the values change
+in real time under load. The "triggered" files always read 0,
+presumably because the BIOS resets the bits to 0 when changing the
+threshold values.
+
+Still, I am a little worried that:
+* We are adding a new interface but have no idea who is supposed to use
+  it (when the BIOS is not, that is) nor how. If user-space is supposed
+  to set the threshold values, how does it decide what happens when
+  they are crossed? Interrupts handlers would have to live in kernel
+  space. Do we want to add support for these thresholds to libsensors?
+  If so, how exactly, and how would applications (starting with
+  "sensors") expose them?
+* The coretemp implementation itself is strange, as we don't even know
+  what kind of interrupt is generated on threshold crossing. My
+  experiments with my laptop suggests these are SMI, but that may not
+  always be the case, I just don't know. If they are SMI then it's up
+  to the BIOS to decide, in which case we have no idea what the actions
+  will be. If they are not SMI, then what are they?
+
+Without answer to these questions, it doesn't seem reasonable to push
+this upstream. And I am still unsure why this would be handled by hwmon
+drivers rather than CPU power / thermal management code. Don't get me
+wrong, I am not trying to push back the code. Simply I would like to
+know where we are going before we accept it.
+
+Meanwhile, I have some minor comments below if you are interested. It
+might not be worth spending time on this until the above points are
+answered though.
+
+> diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+> index 84d46c0..d9f09fc 100644
+> --- a/Documentation/hwmon/coretemp
+> +++ b/Documentation/hwmon/coretemp
+> @@ -35,6 +35,18 @@ the Out-Of-Spec bit. Following table summarizes the exported sysfs files:
+>  All Sysfs entries are named with their core_id (represented here by 'X').
+>  tempX_input	 - Core temperature (in millidegrees Celsius).
+>  tempX_max	 - All cooling devices should be turned on (on Core2).
+> +tempX_threshold1 - Reflects value of CPU thermal threshold T0.
+> +tempX_threshold1_triggered
+> +		 - A value of 1 indicates that T0 was crossed from either
+> +		   direction. Reflects value of CPU thermal status register
+> +		   bit 7 (THERM_LOG_THRESHOLD0).
+> +		   Value is reset by writing 0 into the file.
+> +tempX_threshold2 - Reflects value of CPU thermal threshold T1.
+> +tempX_threshold2_triggered
+> +		 - A value of 1 indicates that T1 was crossed from either
+> +		   direction. Reflects value of CPU thermal status register
+> +		   bit 9 (THERM_LOG_THRESHOLD1).
+> +		   Value is reset by writing 0 into the file.
+
+FWIW, the Intel datasheet numbers the thresholds #1 and #2. I have no
+idea why Durgadoss decided to go with 0 and 1.
+
+>  tempX_crit	 - Maximum junction temperature (in millidegrees Celsius).
+>  tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
+>  		   Correct CPU operation is no longer guaranteed.
+> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+> index 44b2391..b0cb454 100644
+> --- a/drivers/hwmon/coretemp.c
+> +++ b/drivers/hwmon/coretemp.c
+> @@ -52,9 +52,10 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+>  
+>  #define BASE_SYSFS_ATTR_NO	2	/* Sysfs Base attr no for coretemp */
+>  #define NUM_REAL_CORES		16	/* Number of Real cores per cpu */
+> -#define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
+> -#define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
+> -#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
+> +#define CORETEMP_NAME_LENGTH	33	/* String Length of attrs */
+
+Curious where the 33 comes from... My own computations suggest 28
+should be enough.
+
+> +#define MAX_CORE_ATTRS		5	/* Maximum no of basic attrs */
+> +#define MAX_THRESH_ATTRS	4	/* Maximum no of threshold attrs */
+> +#define TOTAL_ATTRS		(MAX_CORE_ATTRS + MAX_THRESH_ATTRS)
+>  #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
+>  
+>  #ifdef CONFIG_SMP
+> @@ -77,6 +78,8 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+
+> (...)
+> @@ -150,7 +154,7 @@ static ssize_t show_crit_alarm(struct device *dev,
+>  static ssize_t show_tjmax(struct device *dev,
+>  			struct device_attribute *devattr, char *buf)
+>  {
+> -	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+>  	struct platform_data *pdata = dev_get_drvdata(dev);
+>  
+>  	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->tjmax);
+> @@ -159,12 +163,98 @@ static ssize_t show_tjmax(struct device *dev,
+>  static ssize_t show_ttarget(struct device *dev,
+>  				struct device_attribute *devattr, char *buf)
+>  {
+> -	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+> +	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+>  	struct platform_data *pdata = dev_get_drvdata(dev);
+>  
+>  	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->ttarget);
+>  }
+>  
+> +static const u32 thresh_log_mask[2] = {
+> +		THERM_LOG_THRESHOLD0, THERM_LOG_THRESHOLD1 };
+> +
+> +static ssize_t show_thresh_triggered(struct device *dev,
+> +				     struct device_attribute *devattr,
+> +				     char *buf)
+> +{
+> +	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+> +	struct platform_data *pdata = dev_get_drvdata(dev);
+> +	struct temp_data *tdata = pdata->core_data[attr->index];
+> +	u32 eax, edx;
+> +
+> +	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
+> +
+> +	return sprintf(buf, "%d\n", !!(eax & thresh_log_mask[attr->nr]));
+> +}
+> +
+> +static ssize_t store_thresh_triggered(struct device *dev,
+> +				      struct device_attribute *devattr,
+> +				      const char *buf, size_t count)
+> +{
+> +	struct platform_data *pdata = dev_get_drvdata(dev);
+> +	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+
+Nitpicking: for consistency with the other callback functions, I'd put
+this line first (same for the two following functions.)
+
+> +	struct temp_data *tdata = pdata->core_data[attr->index];
+> +	u32 mask = thresh_log_mask[attr->nr];
+> +	u32 eax, edx;
+> +	unsigned long val;
+> +
+> +	if (strict_strtoul(buf, 10, &val) || val != 0)
+> +		return -EINVAL;
+> +
+> +	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
+> +	if (eax & mask)
+
+I wouldn't bother with this test. If the user (root) asks for a write,
+just write. The user isn't supposed to write 0 to this file randomly,
+so odds are that the test will always succeed. As a matter of fact, you
+don't do any equality test when writing the threshold value itself.
+
+> +		wrmsr_on_cpu(tdata->cpu, tdata->status_reg, eax & ~mask, edx);
+> +	return count;
+> +}
+> +
+> +static const u32 thresh_mask[2] = {
+> +		THERM_MASK_THRESHOLD0, THERM_MASK_THRESHOLD1 };
+> +static const u32 thresh_shift[2] = {
+> +		THERM_SHIFT_THRESHOLD0, THERM_SHIFT_THRESHOLD1 };
+
+u32 for a shift value seems odd, unsigned int would be more natural, or
+u8 if you really want to save space (but I don't think it makes much
+sense here.)
+
+> +static ssize_t show_thresh(struct device *dev,
+> +			   struct device_attribute *devattr, char *buf)
+> +{
+> +	struct platform_data *pdata = dev_get_drvdata(dev);
+> +	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+> +	struct temp_data *tdata = pdata->core_data[attr->index];
+> +	u32 eax, edx;
+> +	int thresh;
+> +	u32 mask = thresh_mask[attr->nr];
+> +	u32 shift = thresh_shift[attr->nr];
+
+Nitpicking: ordering here (and below) is different from what you chose
+for store_thresh_triggered. Code is easier to read when order is
+consistent.
+
+> +
+> +	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
+> +	thresh = tdata->tjmax - ((eax & mask) >> shift) * 1000;
+> +	return sprintf(buf, "%d\n", thresh);
+> +}
+> +
+> +static ssize_t store_thresh(struct device *dev,
+> +			    struct device_attribute *devattr,
+> +			    const char *buf, size_t count)
+> +{
+> +	struct platform_data *pdata = dev_get_drvdata(dev);
+> +	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+> +	struct temp_data *tdata = pdata->core_data[attr->index];
+> +	u32 eax, edx;
+> +	long val, diff;
+> +	u32 mask = thresh_mask[attr->nr];
+> +	u32 shift = thresh_shift[attr->nr];
+> +
+> +	if (strict_strtol(buf, 10, &val))
+> +		return -EINVAL;
+> +
+> +	diff = (tdata->tjmax - val) / 1000;
+> +	if (diff < 0 || diff > 127)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&tdata->update_lock);
+> +	rdmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, &eax, &edx);
+> +	eax = (eax & ~mask) | (diff << shift);
+> +	wrmsr_on_cpu(tdata->cpu, tdata->intrpt_reg, eax, edx);
+> +	mutex_unlock(&tdata->update_lock);
+
+Why do you need the mutex here, and not in store_thresh_triggered()?
+
+> +
+> +	return count;
+> +}
+> (...)
+
 -- 
-1.7.7
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
