@@ -1,7 +1,7 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 13 Oct 2011 08:46:47 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 13 Oct 2011 08:47:29 +0000
 Subject: Re: [lm-sensors] [PATCH V2] hwmon:lm75 add support for the Analog
-Message-Id: <4E96A577.8070801@cam.ac.uk>
+Message-Id: <20111013104729.5f7bc628@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1318495411-20399-1-git-send-email-michael.hennerich@analog.com>
 In-Reply-To: <1318495411-20399-1-git-send-email-michael.hennerich@analog.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 10/13/11 09:43, michael.hennerich@analog.com wrote:
+On Thu, 13 Oct 2011 10:43:31 +0200, michael.hennerich@analog.com wrote:
 > From: Michael Hennerich <michael.hennerich@analog.com>
 > 
 > Changes since V1:
@@ -21,8 +21,12 @@ On 10/13/11 09:43, michael.hennerich@analog.com wrote:
 > For more information see Documentation/i2c/instantiating-devices.
 > 
 > Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
-(For what it is worth on a now obvious trivial patch!)
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+I'll let Guenter pick the patch as he has a working development tree
+while at the moment I do not.
+
 > ---
 >  Documentation/hwmon/lm75 |    5 +++++
 >  drivers/hwmon/Kconfig    |    1 +
@@ -82,6 +86,9 @@ Acked-by: Jonathan Cameron <jic23@cam.ac.uk>
 > 
 > 
 
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
