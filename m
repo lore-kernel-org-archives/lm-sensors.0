@@ -1,28 +1,45 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Fri, 14 Oct 2011 04:49:26 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: (coretemp) Add support for
-Message-Id: <D6D887BA8C9DFF48B5233887EF04654109ED2A019A@bgsmsx502.gar.corp.intel.com>
+From: Linus Walleij <linus.walleij@stericsson.com>
+Date: Tue, 18 Oct 2011 09:09:48 +0000
+Subject: [lm-sensors] [PATCH 0/3] ST-Ericsson ABx500 hwmon driver
+Message-Id: <1318928988-15780-1-git-send-email-linus.walleij@stericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1317162831-30628-3-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1317162831-30628-3-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+From: Linus Walleij <linus.walleij@linaro.org>
 
-[snip..]
+This is an initial submission of the ST-Ericsson ABx500 HWMON
+driver core, used by the included AB8500 driver but also the
+upcoming AB5500 driver.
 
-> 
-> FWIW, the Intel datasheet numbers the thresholds #1 and #2. I have no
-> idea why Durgadoss decided to go with 0 and 1.
+I will make necessary adjustments to the patch set, however
+the principal authors are set as patch authors for this.
 
-I wanted to make it consistent with attr->nr where we use 0 for T1 and 1 for T2.
-This way, the driver will have just 0-1 notions, although the spec uses 1-2.
+Daniel Willerud (2):
+  hwmon: add notifiers to hwmon
+  hwmon/abx500: add hwmon notifications
 
-Thanks,
-Durga
+Martin Persson (1):
+  hwmon: add driver for ABx500 chips
+
+ drivers/hwmon/Kconfig     |   13 +
+ drivers/hwmon/Makefile    |    1 +
+ drivers/hwmon/ab8500.c    |  179 ++++++++++++
+ drivers/hwmon/abx500.c    |  693 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hwmon/abx500.h    |   90 ++++++
+ drivers/hwmon/hwmon.c     |   21 ++-
+ drivers/mfd/ab8500-core.c |    4 +-
+ include/linux/hwmon.h     |    5 +
+ 8 files changed, 1003 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/hwmon/ab8500.c
+ create mode 100644 drivers/hwmon/abx500.c
+ create mode 100644 drivers/hwmon/abx500.h
+
+-- 
+1.7.3.2
+
 
 _______________________________________________
 lm-sensors mailing list
