@@ -1,70 +1,137 @@
-From: Krys Allen <allen.krys@gmail.com>
-Date: Sun, 23 Oct 2011 21:02:48 +0000
-Subject: [lm-sensors] New fintek f718xx driver now available, please test
-Message-Id: <CAN0S9cUDs03R9fW=VaFpXOVUvB3pfTN1WYx7_2rGVe9egZmxdg@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6330055422728905924=="
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Wed, 19 Oct 2011 14:47:05 +0000
+Subject: [lm-sensors] [PATCH 3/6] IIO:CORE: put defs needed by inkern and
+Message-Id: <1319035628-32580-4-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D77DAB5.6080601@redhat.com>
-In-Reply-To: <4D77DAB5.6080601@redhat.com>
-To: lm-sensors@vger.kernel.org
-
---===============6330055422728905924==
-Content-Type: multipart/alternative; boundary=bcaec51dd5cfecc76d04affda0e5
-
---bcaec51dd5cfecc76d04affda0e5
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-I get a few errors when trying to make on ubuntu 10.04, any ideas?
-
-
-root@mediaserver:/home/krys# make
-make -C /lib/modules/2.6.32-33-generic/build M=3D/home/krys modules
-make[1]: Entering directory `/usr/src/linux-headers-2.6.32-33-generic'
-  CC [M]  /home/krys/f71882fg.o
-/home/krys/f71882fg.c: In function =E2superio_enter=E2:
-/home/krys/f71882fg.c:997: error: implicit declaration of function
-=E2request_muxed_region=E2
-/home/krys/f71882fg.c: In function =E2f71882fg_find=E2:
-/home/krys/f71882fg.c:2425: error: implicit declaration of function
-=E2pr_warn=E2
-make[2]: *** [/home/krys/f71882fg.o] Error 1
-make[1]: *** [_module_/home/krys] Error 2
-make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-33-generic'
-make: *** [all] Error 2
-
---bcaec51dd5cfecc76d04affda0e5
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div>I get a few errors when trying to make on ubuntu 10.04, any ideas?</di=
-v><div><br></div><div><br></div><div>root@mediaserver:/home/krys# make</div=
-><div>make -C /lib/modules/2.6.32-33-generic/build M=3D/home/krys modules</=
-div>
-<div>make[1]: Entering directory `/usr/src/linux-headers-2.6.32-33-generic&=
-#39;</div><div>=A0 CC [M] =A0/home/krys/f71882fg.o</div><div>/home/krys/f71=
-882fg.c: In function =E2superio_enter=E2:</div><div>/home/krys/f71882fg.c:9=
-97: error: implicit declaration of function =E2request_muxed_region=E2</div=
->
-<div>/home/krys/f71882fg.c: In function =E2f71882fg_find=E2:</div><div>/hom=
-e/krys/f71882fg.c:2425: error: implicit declaration of function =E2pr_warn=
-=E2</div><div>make[2]: *** [/home/krys/f71882fg.o] Error 1</div><div>make[1=
-]: *** [_module_/home/krys] Error 2</div>
-<div>make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-33-generic&#=
-39;</div><div>make: *** [all] Error 2</div>
-
---bcaec51dd5cfecc76d04affda0e5--
-
-
---===============6330055422728905924==
-Content-Type: text/plain; charset="us-ascii"
+References: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
+Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, Jonathan Cameron <jic23@cam.ac.uk>
+
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+---
+ include/linux/iio/chan_spec.h |   46 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/iio/iio.h       |   33 +----------------------------
+ 2 files changed, 47 insertions(+), 32 deletions(-)
+
+diff --git a/include/linux/iio/chan_spec.h b/include/linux/iio/chan_spec.h
+new file mode 100644
+index 0000000..933480b
+--- /dev/null
++++ b/include/linux/iio/chan_spec.h
+@@ -0,0 +1,46 @@
++/*
++ * The industrial I/O channel descriptions
++ *
++ * Copyright (c) 2008-2011 Jonathan Cameron
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _IIO_CHAN_SPEC_H_
++#define _IIO_CHAN_SPEC_H_
++
++enum iio_data_type {
++	IIO_RAW,
++	IIO_PROCESSED,
++};
++
++enum iio_direction {
++	IIO_IN,
++	IIO_OUT,
++};
++
++enum iio_chan_type {
++	IIO_VOLTAGE,
++	IIO_CURRENT,
++	IIO_POWER,
++	IIO_CAPACITANCE,
++	IIO_ACCEL,
++	IIO_ANGL_VEL,
++	IIO_MAGN,
++	IIO_LIGHT,
++	IIO_INTENSITY,
++	IIO_PROXIMITY,
++	IIO_TEMP,
++	IIO_INCLI,
++	IIO_ROT,
++	IIO_ANGL,
++	IIO_TIMESTAMP,
++};
++
++#define IIO_VAL_INT 1
++#define IIO_VAL_INT_PLUS_MICRO 2
++#define IIO_VAL_INT_PLUS_NANO 3
++
++#endif
+diff --git a/include/linux/iio/iio.h b/include/linux/iio/iio.h
+index beedc5c..8b98e92 100644
+--- a/include/linux/iio/iio.h
++++ b/include/linux/iio/iio.h
+@@ -9,6 +9,7 @@
+  */
+ #include <linux/klist.h>
+ #include <linux/device.h>
++#include <linux/iio/chan_spec.h>
+ 
+ #ifndef _IIO_H_
+ #define _IIO_H_
+@@ -16,29 +17,6 @@
+ /* Minimum alignment of priv within iio_dev */
+ #define IIO_ALIGN L1_CACHE_BYTES
+ 
+-enum iio_data_type {
+-	IIO_RAW,
+-	IIO_PROCESSED,
+-};
+-
+-enum iio_chan_type {
+-	IIO_VOLTAGE,
+-	IIO_CURRENT,
+-	IIO_POWER,
+-	IIO_CAPACITANCE,
+-	IIO_ACCEL,
+-	IIO_ANGL_VEL,
+-	IIO_MAGN,
+-	IIO_LIGHT,
+-	IIO_INTENSITY,
+-	IIO_PROXIMITY,
+-	IIO_TEMP,
+-	IIO_INCLI,
+-	IIO_ROT,
+-	IIO_ANGL,
+-	IIO_TIMESTAMP,
+-};
+-
+ enum iio_modifier {
+ 	IIO_NO_MOD,
+ 	IIO_MOD_X,
+@@ -73,15 +51,6 @@ enum iio_chan_info_enum {
+ 	IIO_CHAN_INFO_QUADRATURE_CORRECTION_RAW_SEPARATE,
+ };
+ 
+-enum iio_direction {
+-	IIO_IN,
+-	IIO_OUT,
+-};
+-
+-#define IIO_VAL_INT 1
+-#define IIO_VAL_INT_PLUS_MICRO 2
+-#define IIO_VAL_INT_PLUS_NANO 3
+-
+ /**
+  * struct iio_chan_spec - specification of a single channel
+  * @type:		What type of measurement is the channel making.
+-- 
+1.7.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6330055422728905924==--
