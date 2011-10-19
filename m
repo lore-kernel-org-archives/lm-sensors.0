@@ -1,147 +1,106 @@
-From: Miguel Figueiredo <elmig@debianpt.org>
-Date: Sun, 23 Oct 2011 11:54:59 +0000
-Subject: [lm-sensors] sensors and fan control not working on w83627dhg
-Message-Id: <201110231254.59490.elmig@debianpt.org>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Wed, 19 Oct 2011 14:47:02 +0000
+Subject: [lm-sensors] [RFC V2 PATCH 0/6] IIO in kernel interfaces
+Message-Id: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
+Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, Jonathan Cameron <jic23@cam.ac.uk>
 
-SGkgYWxsLAoKc2Vuc29ycyBhbmQgZmFuIGNvbnRyb2xsaW5nIGlzIG5vdCB3b3JraW5nIHByb3Bl
-cmx5IG9uIGEgVHlhbiBTNjYzMSAKbW90aGVyYm9hcmQsIHdoaWNoIHRoZWlyIHN1cHBvcnQgZG9u
-J3QgaGVscC4KVGhlIGZhbnMgYXJlIGFsd2F5cyBtYWtpbmcgYSB2ZXJ5ICpsb3VkKiBub2lzZS4K
-VGhlIHN5c3RlbSBoYXMgNSBmYW5zIHBsdXMgZmFuKHMpIG9uIHRoZSBwb3dlciBzdXBwbHkuCgpC
-ZWxsb3cgaSBhbSBhdHRhY2hpbmcgaW5mbyBvbiB0aGUgc3lzdGVtIGFuZCBhIHBob3RvIG9mIHRo
-ZSBzZW5zb3JzIGNoaXAuCgpJZiBhbnlvbmUgaGF2ZSBhbnkgdGlwIG9uIGhvdyB0byBwcm9jZWVk
-IHRvIG1ha2Ugc2Vuc29ycyB3b3JrIChhbmQgcmVkdWNlIHRoZSAKZmFuIG5vaXNlKSB3aWxsIGJl
-IHZlcnkgYXBwcmVjaWF0ZWQuCgpQbGVhc2UgQ0MgbWUgYXMgaSdtIG5vdCBzdWJzY3JpYmVkLgoK
-SW5mbyBvbiBzeXN0ZW06Cj09PT09PT09PT0KCkltYWdlIG9mIHc4MzYyN2RoZyBvbiBtb3RoZXJi
-b2FyZDogaHR0cDovL2ltZ3VyLmNvbS9LTVUxRwoKTW90aGVyYm9hcmQ6IFR5YW4gUzY2MzEKCkxt
-X3NlbnNvcnMgYW5kIGtlcm5lbCB2ZXJzaW9uOiBsbS1zZW5zb3JzIDMuMy4xLTEgKGRlYmlhbiks
-IGtlcm5lbDozLjEuMC1yYzEwIAooZ2l0IHVwc3RyZWFtKQoKT3V0cHV0IG9mIHNlbnNvcnM6Cnc4
-Mzc5My1pMmMtMC0yZgpBZGFwdGVyOiBTTUJ1cyBJODAxIGFkYXB0ZXIgYXQgMDQwMApWY29yZUE6
-ICAgICAgICsxLjEzIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsyLjA1IFYpClZjb3JlQjog
-ICAgICAgKzAuMjEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuMDUgVikKaW4yOiAgICAg
-ICAgICArMS4xNCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMi4wNSBWKQppbjM6ICAgICAg
-ICAgICsxLjc5IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICs0LjA4IFYpCmluNDogICAgICAg
-ICAgKzEuNDcgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzQuMDggVikKaW41OiAgICAgICAg
-ICArMy4zOSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKQppbjY6ICAgICAgICAg
-ICswLjk4IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsyLjA0IFYpCis1VjogICAgICAgICAg
-KzUuMjEgViAgKG1pbiA9ICArNC41MiBWLCBtYXggPSAgKzUuNTAgVikKNVZTQjogICAgICAgICAr
-NS4wMCBWICAobWluID0gICs0LjUyIFYsIG1heCA9ICArNS41MCBWKQpWYmF0OiAgICAgICAgICsw
-LjAwIFYgIChtaW4gPSAgKzIuNzAgViwgbWF4ID0gICszLjMwIFYpCmZhbjE6ICAgICAgICA4NDkw
-IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4yOiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAw
-IFJQTSkKZmFuMzogICAgICAgIDkwNjAgUlBNICAobWluID0gICAgMCBSUE0pCmZhbjQ6ICAgICAg
-ICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW41OiAgICAgICAgOTAwMCBSUE0gIChtaW4g
-PSAgICAwIFJQTSkKZmFuNjogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCmZhbjc6
-ICAgICAgICA4OTQwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW44OiAgICAgICAgICAgMCBSUE0g
-IChtaW4gPSAgICAwIFJQTSkKZmFuOTogICAgICAgIDg5NDAgUlBNICAobWluID0gICAgMCBSUE0p
-CmZhbjEwOiAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQpmYW4xMTogICAgICAgICAg
-MCBSUE0gIChtaW4gPSAgICAwIFJQTSkKZmFuMTI6ICAgICAgICAgIDAgUlBNICAobWluID0gICAg
-MCBSUE0pCnRlbXAxOiAgICAgICAgKzQzLjDCsEMgIChoaWdoID0gKzEwMC4wwrBDLCBoeXN0ID0g
-Kzk1LjDCsEMpICBzZW5zb3IgPSBJbnRlbCBQRUNJCnRlbXAyOiAgICAgICAtMTI4LjDCsEMgICho
-aWdoID0gKzEwMC4wwrBDLCBoeXN0ID0gKzk1LjDCsEMpICBzZW5zb3IgPSB0aGVybWFsIApkaW9k
-ZQp0ZW1wNTogICAgICAgICsyNy4wwrBDICAoaGlnaCA9ICsxMDAuMMKwQywgaHlzdCA9ICs5NS4w
-wrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgp0ZW1wNjogICAgICAgICsyNS4wwrBDICAoaGlnaCA9
-ICsxMDAuMMKwQywgaHlzdCA9ICs5NS4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3RvcgppbnRydXNp
-b24wOiAgQUxBUk0KYmVlcF9lbmFibGU6IGRpc2FibGVkCgp3ODM2MjdkaGctaXNhLTBhMTAKQWRh
-cHRlcjogSVNBIGFkYXB0ZXIKVmNvcmU6ICAgICAgICArMC4wMCBWICAobWluID0gICswLjAwIFYs
-IG1heCA9ICArMS43NCBWKQppbjE6ICAgICAgICAgICswLjAwIFYgIChtaW4gPSAgKzAuMDAgViwg
-bWF4ID0gICswLjI2IFYpCkFWQ0M6ICAgICAgICAgKzMuMzMgViAgKG1pbiA9ICArMi45OCBWLCBt
-YXggPSAgKzMuNjMgVikKKzMuM1Y6ICAgICAgICArMy4zMyBWICAobWluID0gICsyLjk4IFYsIG1h
-eCA9ICArMy42MyBWKQppbjQ6ICAgICAgICAgICswLjAwIFYgIChtaW4gPSAgKzAuMjYgViwgbWF4
-ID0gICsxLjAyIFYpICBBTEFSTQppbjU6ICAgICAgICAgICswLjAwIFYgIChtaW4gPSAgKzEuNTQg
-ViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQppbjY6ICAgICAgICAgICswLjAwIFYgIChtaW4gPSAg
-KzAuMDAgViwgbWF4ID0gICsxLjAyIFYpCjNWU0I6ICAgICAgICAgKzMuMzMgViAgKG1pbiA9ICAr
-Mi45OCBWLCBtYXggPSAgKzMuNjMgVikKVmJhdDogICAgICAgICArMy4yMiBWICAobWluID0gICsy
-LjcwIFYsIG1heCA9ICArMy4zMCBWKQpmYW4xOiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAxMDU0
-NiBSUE0sIGRpdiA9IDEyOCkgIEFMQVJNCmZhbjI6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9IDEw
-NTQ2IFJQTSwgZGl2ID0gMTI4KSAgQUxBUk0KZmFuMzogICAgICAgICAgIDAgUlBNICAobWluID0g
-MTA1NDYgUlBNLCBkaXYgPSAxMjgpICBBTEFSTQpmYW41OiAgICAgICAgICAgMCBSUE0gIChtaW4g
-PSAxMDU0NiBSUE0sIGRpdiA9IDEyOCkgIEFMQVJNCnRlbXAxOiAgICAgICArMTI3LjDCsEMgICho
-aWdoID0gKzIwLjDCsEMsIGh5c3QgPSArMjAuMMKwQykgIEFMQVJNICBzZW5zb3IgPSAKdGhlcm1p
-c3QKb3IKdGVtcDI6ICAgICAgICArNDAuNcKwQyAgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9ICs3
-NS4wwrBDKSAgc2Vuc29yID0gZGlvZGUKdGVtcDM6ICAgICAgICsxMjcuMMKwQyAgKGhpZ2ggPSAr
-ODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgQUxBUk0gIHNlbnNvciA9IAp0aGVybWlzdApvcgpj
-cHUwX3ZpZDogICAgKzAuMDAwIFYKCk91dHB1dCBvZiBkbWVzZzoKJCBkbWVzZ3xncmVwIDgzNjI3
-ClsgICAgOC4zNDU0MTddIHc4MzYyN2VoZjogRm9yY2libHkgZW5hYmxpbmcgU3VwZXItSS9PLiBT
-ZW5zb3IgaXMgcHJvYmFibHkgCnVudXNhYmxlLgpbICAgIDguMzQ1NDI3XSB3ODM2MjdlaGY6IEZv
-dW5kIFc4MzYyN0RIRyBjaGlwIGF0IDB4YTEwCgpPdXRwdXQgb2YgbHNwY2kgLW5uOgokIGxzcGNp
-IC1ubgowMDowMC4wIEhvc3QgYnJpZGdlIFswNjAwXTogSW50ZWwgQ29ycG9yYXRpb24gNTEwMCBD
-aGlwc2V0IE1lbW9yeSBDb250cm9sbGVyIApIdWIgWzgwODY6NjVjMF0gKHJldiA5MCkgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKMDA6MDIuMCBQQ0kgYnJpZGdlIFswNjA0XTog
-SW50ZWwgQ29ycG9yYXRpb24gNTEwMCBDaGlwc2V0IFBDSSBFeHByZXNzIHg0IFBvcnQgCjIgWzgw
-ODY6NjVlMl0gKHJldiA5MCkKMDA6MDMuMCBQQ0kgYnJpZGdlIFswNjA0XTogSW50ZWwgQ29ycG9y
-YXRpb24gNTEwMCBDaGlwc2V0IFBDSSBFeHByZXNzIHg0IFBvcnQgCjMgWzgwODY6NjVlM10gKHJl
-diA5MCkKMDA6MDQuMCBQQ0kgYnJpZGdlIFswNjA0XTogSW50ZWwgQ29ycG9yYXRpb24gNTEwMCBD
-aGlwc2V0IFBDSSBFeHByZXNzIHg4IFBvcnQgCjQtNSBbODA4Njo2NWY4XSAocmV2IDkwKQowMDow
-NS4wIFBDSSBicmlkZ2UgWzA2MDRdOiBJbnRlbCBDb3Jwb3JhdGlvbiA1MTAwIENoaXBzZXQgUENJ
-IEV4cHJlc3MgeDQgUG9ydCAKNSBbODA4Njo2NWU1XSAocmV2IDkwKQowMDowNi4wIFBDSSBicmlk
-Z2UgWzA2MDRdOiBJbnRlbCBDb3Jwb3JhdGlvbiA1MTAwIENoaXBzZXQgUENJIEV4cHJlc3MgeDgg
-UG9ydCAKNi03IFs4MDg2OjY1ZjldIChyZXYgOTApCjAwOjA3LjAgUENJIGJyaWRnZSBbMDYwNF06
-IEludGVsIENvcnBvcmF0aW9uIDUxMDAgQ2hpcHNldCBQQ0kgRXhwcmVzcyB4NCBQb3J0IAo3IFs4
-MDg2OjY1ZTddIChyZXYgOTApCjAwOjA4LjAgU3lzdGVtIHBlcmlwaGVyYWwgWzA4ODBdOiBJbnRl
-bCBDb3Jwb3JhdGlvbiA1MTAwIENoaXBzZXQgRE1BIEVuZ2luZSAKWzgwODY6NjVmZl0gKHJldiA5
-MCkKMDA6MTAuMCBIb3N0IGJyaWRnZSBbMDYwMF06IEludGVsIENvcnBvcmF0aW9uIDUxMDAgQ2hp
-cHNldCBGU0IgUmVnaXN0ZXJzIApbODA4Njo2NWYwXSAocmV2IDkwKQowMDoxMC4xIEhvc3QgYnJp
-ZGdlIFswNjAwXTogSW50ZWwgQ29ycG9yYXRpb24gNTEwMCBDaGlwc2V0IEZTQiBSZWdpc3RlcnMg
-Cls4MDg2OjY1ZjBdIChyZXYgOTApCjAwOjEwLjIgSG9zdCBicmlkZ2UgWzA2MDBdOiBJbnRlbCBD
-b3Jwb3JhdGlvbiA1MTAwIENoaXBzZXQgRlNCIFJlZ2lzdGVycyAKWzgwODY6NjVmMF0gKHJldiA5
-MCkKMDA6MTEuMCBIb3N0IGJyaWRnZSBbMDYwMF06IEludGVsIENvcnBvcmF0aW9uIDUxMDAgQ2hp
-cHNldCBSZXNlcnZlZCBSZWdpc3RlcnMgCls4MDg2OjY1ZjFdIChyZXYgOTApCjAwOjEzLjAgSG9z
-dCBicmlkZ2UgWzA2MDBdOiBJbnRlbCBDb3Jwb3JhdGlvbiA1MTAwIENoaXBzZXQgUmVzZXJ2ZWQg
-UmVnaXN0ZXJzIApbODA4Njo2NWYzXSAocmV2IDkwKQowMDoxNS4wIEhvc3QgYnJpZGdlIFswNjAw
-XTogSW50ZWwgQ29ycG9yYXRpb24gNTEwMCBDaGlwc2V0IEREUiBDaGFubmVsIDAgClJlZ2lzdGVy
-cyBbODA4Njo2NWY1XSAocmV2IDkwKQowMDoxNi4wIEhvc3QgYnJpZGdlIFswNjAwXTogSW50ZWwg
-Q29ycG9yYXRpb24gNTEwMCBDaGlwc2V0IEREUiBDaGFubmVsIDEgClJlZ2lzdGVycyBbODA4Njo2
-NWY2XSAocmV2IDkwKQowMDoxYS4wIFVTQiBDb250cm9sbGVyIFswYzAzXTogSW50ZWwgQ29ycG9y
-YXRpb24gODI4MDFJIChJQ0g5IEZhbWlseSkgVVNCIFVIQ0kgCkNvbnRyb2xsZXIgIzQgWzgwODY6
-MjkzN10gKHJldiAwMikKMDA6MWEuMSBVU0IgQ29udHJvbGxlciBbMGMwM106IEludGVsIENvcnBv
-cmF0aW9uIDgyODAxSSAoSUNIOSBGYW1pbHkpIFVTQiBVSENJIApDb250cm9sbGVyICM1IFs4MDg2
-OjI5MzhdIChyZXYgMDIpCjAwOjFhLjcgVVNCIENvbnRyb2xsZXIgWzBjMDNdOiBJbnRlbCBDb3Jw
-b3JhdGlvbiA4MjgwMUkgKElDSDkgRmFtaWx5KSBVU0IyIApFSENJIENvbnRyb2xsZXIgIzIgWzgw
-ODY6MjkzY10gKHJldiAwMikKMDA6MWMuMCBQQ0kgYnJpZGdlIFswNjA0XTogSW50ZWwgQ29ycG9y
-YXRpb24gODI4MDFJIChJQ0g5IEZhbWlseSkgUENJIEV4cHJlc3MgClBvcnQgMSBbODA4NjoyOTQw
-XSAocmV2IDAyKQowMDoxYy40IFBDSSBicmlkZ2UgWzA2MDRdOiBJbnRlbCBDb3Jwb3JhdGlvbiA4
-MjgwMUkgKElDSDkgRmFtaWx5KSBQQ0kgRXhwcmVzcyAKUG9ydCA1IFs4MDg2OjI5NDhdIChyZXYg
-MDIpCjAwOjFjLjUgUENJIGJyaWRnZSBbMDYwNF06IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAo
-SUNIOSBGYW1pbHkpIFBDSSBFeHByZXNzIApQb3J0IDYgWzgwODY6Mjk0YV0gKHJldiAwMikKMDA6
-MWQuMCBVU0IgQ29udHJvbGxlciBbMGMwM106IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAoSUNI
-OSBGYW1pbHkpIFVTQiBVSENJIApDb250cm9sbGVyICMxIFs4MDg2OjI5MzRdIChyZXYgMDIpCjAw
-OjFkLjEgVVNCIENvbnRyb2xsZXIgWzBjMDNdOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUkgKElD
-SDkgRmFtaWx5KSBVU0IgVUhDSSAKQ29udHJvbGxlciAjMiBbODA4NjoyOTM1XSAocmV2IDAyKQow
-MDoxZC4yIFVTQiBDb250cm9sbGVyIFswYzAzXTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFJIChJ
-Q0g5IEZhbWlseSkgVVNCIFVIQ0kgCkNvbnRyb2xsZXIgIzMgWzgwODY6MjkzNl0gKHJldiAwMikK
-MDA6MWQuMyBVU0IgQ29udHJvbGxlciBbMGMwM106IEludGVsIENvcnBvcmF0aW9uIDgyODAxSSAo
-SUNIOSBGYW1pbHkpIFVTQiBVSENJIApDb250cm9sbGVyICM2IFs4MDg2OjI5MzldIChyZXYgMDIp
-CjAwOjFkLjcgVVNCIENvbnRyb2xsZXIgWzBjMDNdOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUkg
-KElDSDkgRmFtaWx5KSBVU0IyIApFSENJIENvbnRyb2xsZXIgIzEgWzgwODY6MjkzYV0gKHJldiAw
-MikKMDA6MWUuMCBQQ0kgYnJpZGdlIFswNjA0XTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDEgUENJ
-IEJyaWRnZSBbODA4NjoyNDRlXSAocmV2IAo5MikKMDA6MWYuMCBJU0EgYnJpZGdlIFswNjAxXTog
-SW50ZWwgQ29ycG9yYXRpb24gODI4MDFJUiAoSUNIOVIpIExQQyBJbnRlcmZhY2UgCkNvbnRyb2xs
-ZXIgWzgwODY6MjkxNl0gKHJldiAwMikKMDA6MWYuMiBTQVRBIGNvbnRyb2xsZXIgWzAxMDZdOiBJ
-bnRlbCBDb3Jwb3JhdGlvbiA4MjgwMUlSL0lPL0lIIChJQ0g5Ui9ETy9ESCkgCjYgcG9ydCBTQVRB
-IEFIQ0kgQ29udHJvbGxlciBbODA4NjoyOTIyXSAocmV2IDAyKQowMDoxZi4zIFNNQnVzIFswYzA1
-XTogSW50ZWwgQ29ycG9yYXRpb24gODI4MDFJIChJQ0g5IEZhbWlseSkgU01CdXMgQ29udHJvbGxl
-ciAKWzgwODY6MjkzMF0gKHJldiAwMikKMDI6MDAuMCBFdGhlcm5ldCBjb250cm9sbGVyIFswMjAw
-XTogSW50ZWwgQ29ycG9yYXRpb24gODI1NzRMIEdpZ2FiaXQgTmV0d29yayAKQ29ubmVjdGlvbiBb
-ODA4NjoxMGQzXQowMzowMC4wIEV0aGVybmV0IGNvbnRyb2xsZXIgWzAyMDBdOiBJbnRlbCBDb3Jw
-b3JhdGlvbiA4MjU3NEwgR2lnYWJpdCBOZXR3b3JrIApDb25uZWN0aW9uIFs4MDg2OjEwZDNdCjA2
-OjAwLjAgVkdBIGNvbXBhdGlibGUgY29udHJvbGxlciBbMDMwMF06IEFUSSBUZWNobm9sb2dpZXMg
-SW5jIFJWNzEwIFtSYWRlb24gCkhEIDQzNTBdIFsxMDAyOjk1NGZdCjA2OjAwLjEgQXVkaW8gZGV2
-aWNlIFswNDAzXTogQVRJIFRlY2hub2xvZ2llcyBJbmMgUlY3MTAvNzMwIFsxMDAyOmFhMzhdCjA5
-OjAwLjAgRXRoZXJuZXQgY29udHJvbGxlciBbMDIwMF06IEludGVsIENvcnBvcmF0aW9uIDgyNTcx
-RUIgR2lnYWJpdCBFdGhlcm5ldCAKQ29udHJvbGxlciBbODA4NjoxMDVlXSAocmV2IDA2KQowOTow
-MC4xIEV0aGVybmV0IGNvbnRyb2xsZXIgWzAyMDBdOiBJbnRlbCBDb3Jwb3JhdGlvbiA4MjU3MUVC
-IEdpZ2FiaXQgRXRoZXJuZXQgCkNvbnRyb2xsZXIgWzgwODY6MTA1ZV0gKHJldiAwNikKMGE6MDAu
-MCBFdGhlcm5ldCBjb250cm9sbGVyIFswMjAwXTogSW50ZWwgQ29ycG9yYXRpb24gODI1NzFFQiBH
-aWdhYml0IEV0aGVybmV0IApDb250cm9sbGVyIFs4MDg2OjEwNWVdIChyZXYgMDYpCjBhOjAwLjEg
-RXRoZXJuZXQgY29udHJvbGxlciBbMDIwMF06IEludGVsIENvcnBvcmF0aW9uIDgyNTcxRUIgR2ln
-YWJpdCBFdGhlcm5ldCAKQ29udHJvbGxlciBbODA4NjoxMDVlXSAocmV2IDA2KQoKaTJjZGV0ZWN0
-IC1sIG91dHB1dDoKbm9uZQoKCi0tIApNZWxob3JlcyBjdW1wcmltZW50b3MvQmVzdCBSZWdhcmRz
-LAoKTWlndWVsIEZpZ3VlaXJlZG8KaHR0cDovL3d3dy5EZWJpYW5QVC5vcmcKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
-aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
-L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Dear All,
+
+Since V1:
+Uses the bus's list of devices instead of having a local one.
+     (thanks to Lars-Peter).
+
+Added are interfaces for getting all channels mapped to a particular
+device.
+
+Hwmon driver is now vaguely complete - hence cc'd hwmon. If people
+are happy I'd expect this to ultimately end up in drivers/hmwon.
+Right now it is acting as a test driver for these interfaces.
+
+Thanks and all comments welcome. I've added hwmon to the cc list 
+this time round.
+
+V1 message:
+There are obviously some rough corners in here that will need cleaning up.
+For now I've just put this out there to see if anyone radically disagrees
+on the direction.  It sits on top the recent rfc to move first bit of IIO
+out of staging with a few buglets fixed.  Best bet if anyone wants to
+test is to pull from:
+
+https://github.com/jic23/linux-iio/tree/outofstaging
+
+which now also includes these patches.
+
+Intereresting patches are 3 and 4.  5 gives a trivial example of
+a driver using this (hwmon driver that only takes first matching channel
+and sticks it out as in1_input - breaks all sorts elements of the hwmon
+interface spec.)
+
+For now I've gone with Mark Brown's suggestion of a datasheet_name for
+finding the channels on the device.  Patch 2 hacks this name into the
+max1363 driver.  I'll probably put a version matching on channel number and
+type in at a later date.
+
+Here we just have a pull interface.  Push is considerably harder to do
+and needs quite a lot more of the IIO infrastructure to be in place
+(triggers / buffers etc). Events obviously require IIO event handling
+to be there. Hence all of that will have to wait until those elements
+have in of themselves been posted for review.
+
+It is pretty clear to me that hwmon interface for starters needs the
+ability to say - 'give me all mappings that correspond to me'.
+
+This is what I intend to add next followed by some utility functions
+to make it easy to match the hwmon interface.
+
+At that point I'll propose the hwmon driver goes into drivers/hwmon
+(subject to the underlying iio stuff merging).
+
+Fun fun fun.  Thanks to Linus an Mark for their input on this.
+Hope this is roughly what you guys were looking for.
+
+Also on my list to do is to check this very thoroughly for any
+possible race conditions around the removal of the underlying
+device.
+
+Jonathan
+
+Jonathan Cameron (6):
+  IIO: core: add datasheet_name to chan_spec
+  IIO:ADC:max1363 add datasheet_name entries.
+  IIO:CORE: put defs needed by inkern and userspace interfaces into
+    chan_spec.h
+  IIO:CORE add in kernel interface mapping and getting IIO channels.
+  IIO:hwmon interface client driver.
+  stargate2: example of map configuration for iio to hwmon example.
+
+ arch/arm/mach-pxa/stargate2.c  |   23 ++++
+ drivers/Makefile               |    2 +-
+ drivers/iio/Kconfig            |    8 +
+ drivers/iio/Makefile           |    2 +
+ drivers/iio/adc/max1363_core.c |    4 +-
+ drivers/iio/iio.c              |  279 +++++++++++++++++++++++++++++++++++++++-
+ drivers/iio/iio_hwmon.c        |  214 ++++++++++++++++++++++++++++++
+ drivers/iio/inkern.c           |   21 +++
+ include/linux/iio/chan_spec.h  |   46 +++++++
+ include/linux/iio/iio.h        |   41 +-----
+ include/linux/iio/inkern.h     |   87 +++++++++++++
+ 11 files changed, 687 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/iio/iio_hwmon.c
+ create mode 100644 drivers/iio/inkern.c
+ create mode 100644 include/linux/iio/chan_spec.h
+ create mode 100644 include/linux/iio/inkern.h
+
+-- 
+1.7.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
