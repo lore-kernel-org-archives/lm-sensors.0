@@ -1,32 +1,48 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 11 Oct 2011 16:08:08 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Use i2c_smbus_{read,
-Message-Id: <1318349288.3983.165.camel@groeck-laptop>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Wed, 19 Oct 2011 14:47:04 +0000
+Subject: [lm-sensors] [PATCH 2/6] IIO:ADC:max1363 add datasheet_name entries.
+Message-Id: <1319035628-32580-3-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4E946521.4050104@cam.ac.uk>
-In-Reply-To: <4E946521.4050104@cam.ac.uk>
+References: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
+Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, Jonathan Cameron <jic23@cam.ac.uk>
 
-On Tue, 2011-10-11 at 11:35 -0400, Jean Delvare wrote:
-> Make use of the new i2c_smbus_{read,write}_word_swapped functions.
-> This makes the driver code more compact and readable. It also ensures
-> proper error handling.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Jonathan Cameron <jic23@cam.ac.uk>
-> Cc: Dirk Eibach <eibach@gdsys.de>
-> Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-> Cc: Guillaume Ligneul <guillaume.ligneul@gmail.com>
-> ---
-> See http://marc.info/?l=linux-i2c&m1823766914651&w=2
-> 
-Nice cleanup.
+Kind of obvious for this device but useful
+for testing purposes.
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+---
+ drivers/iio/adc/max1363_core.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/iio/adc/max1363_core.c b/drivers/iio/adc/max1363_core.c
+index ee06d48..e035df9 100644
+--- a/drivers/iio/adc/max1363_core.c
++++ b/drivers/iio/adc/max1363_core.c
+@@ -251,7 +251,8 @@ static const enum max1363_modes max1363_mode_list[] = {
+ 		.indexed = 1,						\
+ 		.channel = num,						\
+ 		.address = addr,					\
+-		.info_mask = MAX1363_INFO_MASK				\
++		.info_mask = MAX1363_INFO_MASK,				\
++		.datasheet_name = "AIN"#num				\
+ 	}								\
+ 
+ /* bipolar channel */
+@@ -264,6 +265,7 @@ static const enum max1363_modes max1363_mode_list[] = {
+ 		.channel2 = num2,					\
+ 		.address = addr,					\
+ 		.info_mask = MAX1363_INFO_MASK,				\
++		.datasheet_name = "AIN"#num"-AIN"#num2			\
+ 	}
+ #define MAX1363_INFO_MASK (1 << IIO_CHAN_INFO_SCALE_SHARED)
+ 
+-- 
+1.7.7
 
 
 _______________________________________________
