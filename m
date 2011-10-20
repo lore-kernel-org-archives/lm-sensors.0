@@ -1,15 +1,15 @@
 From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Wed, 19 Oct 2011 14:47:08 +0000
+Date: Thu, 20 Oct 2011 09:33:07 +0000
 Subject: [lm-sensors] [PATCH 6/6] stargate2: example of map configuration
-Message-Id: <1319035628-32580-7-git-send-email-jic23@cam.ac.uk>
+Message-Id: <1319103187-27791-7-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
-In-Reply-To: <1319035628-32580-1-git-send-email-jic23@cam.ac.uk>
+References: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
+In-Reply-To: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
-Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, Jonathan Cameron <jic23@cam.ac.uk>
+Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, thomas.petazzoni@free-electrons.com, maxime.ripard@free-electrons.com, Jonathan Cameron <jic23@cam.ac.uk>
 
 Do not commit.
 ---
