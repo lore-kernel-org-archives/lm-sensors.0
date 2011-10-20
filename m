@@ -1,27 +1,29 @@
-From: Shen Tian <biozinc@gmail.com>
-Date: Sun, 23 Oct 2011 21:23:26 +0000
-Subject: [lm-sensors] Fan speed on DH67CF
-Message-Id: <CA+kMMas7kuXqTg74tCkbC=s1MU=4bA5PJJKXcJVwkyZzsFvczQ@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 20 Oct 2011 14:28:15 +0000
+Subject: Re: [lm-sensors] [PATCH 2/3] hwmon: (w83627ehf) Uninline
+Message-Id: <1319120895.3720.271.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi
+On Thu, 2011-10-20 at 03:08 -0400, Jean Delvare wrote:
+> Helper function is_word_sized has grown too much to be kept inline. It
+> was OK when there were only 6 word-sized registers but support for new
+> devices have made the list much longer. The function is also called
+> from more places than before.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
 
-I'm struggling to get the right fan speed on an Intel DH67CF board.
-I've set lm-sensor us using this configuration sheet:
-http://lm-sensors.org/wiki/Configurations/Intel/DH67BL (not the exact
-right model, I know), and am getting a reading of 24RPM from fan2. Any
-thing I could try?
+Applied to -next.
 
-Core i3 2100T
-Ubuntu 11.10 amd64
-lm-sensor 3.3.0
+Thanks,
+Guenter
 
-Thanks!
-Shen
+
 
 _______________________________________________
 lm-sensors mailing list
