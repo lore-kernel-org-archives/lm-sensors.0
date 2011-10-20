@@ -1,98 +1,109 @@
-From: Linus Walleij <linus.walleij@stericsson.com>
-Date: Tue, 18 Oct 2011 09:10:35 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: add notifiers to hwmon
-Message-Id: <1318929035-15847-1-git-send-email-linus.walleij@stericsson.com>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Date: Thu, 20 Oct 2011 09:33:01 +0000
+Subject: [lm-sensors] [RFC V3 PATCH 0/6] IIO in kernel interfaces
+Message-Id: <1319103187-27791-1-git-send-email-jic23@cam.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org
+Cc: linus.ml.walleij@gmail.com, zdevai@gmail.com, linux@arm.linux.org.uk, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, lm-sensors@lm-sensors.org, guenter.roeck@ericsson.com, khali@linux-fr.org, thomas.petazzoni@free-electrons.com, maxime.ripard@free-electrons.com, Jonathan Cameron <jic23@cam.ac.uk>
 
-From: Daniel Willerud <daniel.willerud@stericsson.com>
+Since V2:
 
-We already have support for sysfs notifications when temperatures
-measured by the ABx500 sensors exceed certain thresholds.
-However we have in-kernel code that need to be notified when
-such changes occur as well. So this patch adds a simple
-notification mechanism to broadcast HWMON events in the kernel.
+Fixes as per Guenter's comments on the iio_hwmon driver.
+Only one that differred slightly from Guenters suggestion
+is the value calculation where I reordered things to reduce
+the chance of overflow as well as casting to longs.
+Thanks Guenter!
 
-Reviewed-by: Jonas Aaberg <jonas.aberg@stericsson.com>
-Signed-off-by: Daniel Willerud <daniel.willerud@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
- drivers/hwmon/hwmon.c |   21 ++++++++++++++++++++-
- include/linux/hwmon.h |    5 +++++
- 2 files changed, 25 insertions(+), 1 deletions(-)
+Since V1:
+Uses the bus's list of devices instead of having a local one.
+     (thanks to Lars-Peter).
 
-diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
-index a61e781..b3c62f8 100644
---- a/drivers/hwmon/hwmon.c
-+++ b/drivers/hwmon/hwmon.c
-@@ -21,6 +21,7 @@
- #include <linux/gfp.h>
- #include <linux/spinlock.h>
- #include <linux/pci.h>
-+#include <linux/notifier.h>
- 
- #define HWMON_ID_PREFIX "hwmon"
- #define HWMON_ID_FORMAT HWMON_ID_PREFIX "%d"
-@@ -29,7 +30,7 @@ static struct class *hwmon_class;
- 
- static DEFINE_IDR(hwmon_idr);
- static DEFINE_SPINLOCK(idr_lock);
--
-+static BLOCKING_NOTIFIER_HEAD(hwmon_notifier_list);
- /**
-  * hwmon_device_register - register w/ hwmon
-  * @dev: the device to register
-@@ -89,6 +90,24 @@ void hwmon_device_unregister(struct device *dev)
- 			"hwmon_device_unregister() failed: bad class ID!\n");
- }
- 
-+int hwmon_notifier_register(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_register(&hwmon_notifier_list, nb);
-+}
-+EXPORT_SYMBOL(hwmon_notifier_register);
-+
-+int hwmon_notifier_unregister(struct notifier_block *nb)
-+{
-+	return blocking_notifier_chain_unregister(&hwmon_notifier_list, nb);
-+}
-+EXPORT_SYMBOL(hwmon_notifier_unregister);
-+
-+void hwmon_notify(unsigned long val, void *v)
-+{
-+	blocking_notifier_call_chain(&hwmon_notifier_list, val, v);
-+}
-+EXPORT_SYMBOL(hwmon_notify);
-+
- static void __init hwmon_pci_quirks(void)
- {
- #if defined CONFIG_X86 && defined CONFIG_PCI
-diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
-index 6b6ee70..8e891b5 100644
---- a/include/linux/hwmon.h
-+++ b/include/linux/hwmon.h
-@@ -15,11 +15,16 @@
- #define _HWMON_H_
- 
- #include <linux/device.h>
-+#include <linux/notifier.h>
- 
- struct device *hwmon_device_register(struct device *dev);
- 
- void hwmon_device_unregister(struct device *dev);
- 
-+int hwmon_notifier_register(struct notifier_block *nb);
-+int hwmon_notifier_unregister(struct notifier_block *nb);
-+void hwmon_notify(unsigned long val, void *v);
-+
- /* Scale user input to sensible values */
- static inline int SENSORS_LIMIT(long value, long low, long high)
- {
+Added are interfaces for getting all channels mapped to a particular
+device.
+
+Hwmon driver is now vaguely complete - hence cc'd hwmon. If people
+are happy I'd expect this to ultimately end up in drivers/hmwon.
+Right now it is acting as a test driver for these interfaces.
+
+Thanks and all comments welcome. I've added hwmon to the cc list 
+this time round.
+
+V1 message:
+There are obviously some rough corners in here that will need cleaning up.
+For now I've just put this out there to see if anyone radically disagrees
+on the direction.  It sits on top the recent rfc to move first bit of IIO
+out of staging with a few buglets fixed.  Best bet if anyone wants to
+test is to pull from:
+
+https://github.com/jic23/linux-iio/tree/outofstaging
+
+which now also includes these patches.
+
+Intereresting patches are 3 and 4.  5 gives a trivial example of
+a driver using this (hwmon driver that only takes first matching channel
+and sticks it out as in1_input - breaks all sorts elements of the hwmon
+interface spec.)
+
+For now I've gone with Mark Brown's suggestion of a datasheet_name for
+finding the channels on the device.  Patch 2 hacks this name into the
+max1363 driver.  I'll probably put a version matching on channel number and
+type in at a later date.
+
+Here we just have a pull interface.  Push is considerably harder to do
+and needs quite a lot more of the IIO infrastructure to be in place
+(triggers / buffers etc). Events obviously require IIO event handling
+to be there. Hence all of that will have to wait until those elements
+have in of themselves been posted for review.
+
+It is pretty clear to me that hwmon interface for starters needs the
+ability to say - 'give me all mappings that correspond to me'.
+
+This is what I intend to add next followed by some utility functions
+to make it easy to match the hwmon interface.
+
+At that point I'll propose the hwmon driver goes into drivers/hwmon
+(subject to the underlying iio stuff merging).
+
+Fun fun fun.  Thanks to Linus an Mark for their input on this.
+Hope this is roughly what you guys were looking for.
+
+Also on my list to do is to check this very thoroughly for any
+possible race conditions around the removal of the underlying
+device.
+
+Jonathan
+
+Jonathan Cameron (6):
+  IIO: core: add datasheet_name to chan_spec
+  IIO:ADC:max1363 add datasheet_name entries.
+  IIO:CORE: put defs needed by inkern and userspace interfaces into
+    chan_spec.h
+  IIO:CORE add in kernel interface mapping and getting IIO channels.
+  IIO:hwmon interface client driver.
+  stargate2: example of map configuration for iio to hwmon example.
+
+ arch/arm/mach-pxa/stargate2.c  |   23 ++++
+ drivers/Makefile               |    2 +-
+ drivers/iio/Kconfig            |    8 +
+ drivers/iio/Makefile           |    2 +
+ drivers/iio/adc/max1363_core.c |    4 +-
+ drivers/iio/iio.c              |  279 +++++++++++++++++++++++++++++++++++++++-
+ drivers/iio/iio_hwmon.c        |  227 ++++++++++++++++++++++++++++++++
+ drivers/iio/inkern.c           |   21 +++
+ include/linux/iio/chan_spec.h  |   46 +++++++
+ include/linux/iio/iio.h        |   41 +-----
+ include/linux/iio/inkern.h     |   87 +++++++++++++
+ 11 files changed, 700 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/iio/iio_hwmon.c
+ create mode 100644 drivers/iio/inkern.c
+ create mode 100644 include/linux/iio/chan_spec.h
+ create mode 100644 include/linux/iio/inkern.h
+
 -- 
-1.7.3.2
+1.7.7
 
 
 _______________________________________________
