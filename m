@@ -1,45 +1,27 @@
-From: Linus Walleij <linus.walleij@stericsson.com>
-Date: Tue, 18 Oct 2011 09:09:48 +0000
-Subject: [lm-sensors] [PATCH 0/3] ST-Ericsson ABx500 hwmon driver
-Message-Id: <1318928988-15780-1-git-send-email-linus.walleij@stericsson.com>
+From: Shen Tian <biozinc@gmail.com>
+Date: Sun, 23 Oct 2011 21:23:26 +0000
+Subject: [lm-sensors] Fan speed on DH67CF
+Message-Id: <CA+kMMas7kuXqTg74tCkbC=s1MU=4bA5PJJKXcJVwkyZzsFvczQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Linus Walleij <linus.walleij@linaro.org>
+Hi
 
-This is an initial submission of the ST-Ericsson ABx500 HWMON
-driver core, used by the included AB8500 driver but also the
-upcoming AB5500 driver.
+I'm struggling to get the right fan speed on an Intel DH67CF board.
+I've set lm-sensor us using this configuration sheet:
+http://lm-sensors.org/wiki/Configurations/Intel/DH67BL (not the exact
+right model, I know), and am getting a reading of 24RPM from fan2. Any
+thing I could try?
 
-I will make necessary adjustments to the patch set, however
-the principal authors are set as patch authors for this.
+Core i3 2100T
+Ubuntu 11.10 amd64
+lm-sensor 3.3.0
 
-Daniel Willerud (2):
-  hwmon: add notifiers to hwmon
-  hwmon/abx500: add hwmon notifications
-
-Martin Persson (1):
-  hwmon: add driver for ABx500 chips
-
- drivers/hwmon/Kconfig     |   13 +
- drivers/hwmon/Makefile    |    1 +
- drivers/hwmon/ab8500.c    |  179 ++++++++++++
- drivers/hwmon/abx500.c    |  693 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/hwmon/abx500.h    |   90 ++++++
- drivers/hwmon/hwmon.c     |   21 ++-
- drivers/mfd/ab8500-core.c |    4 +-
- include/linux/hwmon.h     |    5 +
- 8 files changed, 1003 insertions(+), 3 deletions(-)
- create mode 100644 drivers/hwmon/ab8500.c
- create mode 100644 drivers/hwmon/abx500.c
- create mode 100644 drivers/hwmon/abx500.h
-
--- 
-1.7.3.2
-
+Thanks!
+Shen
 
 _______________________________________________
 lm-sensors mailing list
