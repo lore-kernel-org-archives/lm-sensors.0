@@ -1,69 +1,63 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 11 Oct 2011 00:31:38 +0000
-Subject: Re: [lm-sensors] Resend: hwmon staging tree moved back to kernel.org
-Message-Id: <20111011113138.1085ad25e761ada34f02621e@canb.auug.org.au>
+From: Krys Allen <allen.krys@gmail.com>
+Date: Sun, 23 Oct 2011 21:02:48 +0000
+Subject: [lm-sensors] New fintek f718xx driver now available, please test
+Message-Id: <CAN0S9cUDs03R9fW=VaFpXOVUvB3pfTN1WYx7_2rGVe9egZmxdg@mail.gmail.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0942528125414616038=="
+Content-Type: multipart/mixed; boundary="===============6330055422728905924=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1318262521.3983.93.camel@groeck-laptop>
-	<1318262886.3983.97.camel@groeck-laptop>
-In-Reply-To: <1318262886.3983.97.camel@groeck-laptop>
-To: guenter.roeck@ericsson.com
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+References: <4D77DAB5.6080601@redhat.com>
+In-Reply-To: <4D77DAB5.6080601@redhat.com>
+To: lm-sensors@vger.kernel.org
 
---===============0942528125414616038==
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__11_Oct_2011_11_31_38_+1100_sDZdGRa0cqtd2Tkt"
+--===============6330055422728905924==
+Content-Type: multipart/alternative; boundary=bcaec51dd5cfecc76d04affda0e5
 
---Signature=_Tue__11_Oct_2011_11_31_38_+1100_sDZdGRa0cqtd2Tkt
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+--bcaec51dd5cfecc76d04affda0e5
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: quoted-printable
 
-Hi Guenter,
+I get a few errors when trying to make on ubuntu 10.04, any ideas?
 
-On Mon, 10 Oct 2011 09:08:06 -0700 Guenter Roeck <guenter.roeck@ericsson.co=
-m> wrote:
+
+root@mediaserver:/home/krys# make
+make -C /lib/modules/2.6.32-33-generic/build M=3D/home/krys modules
+make[1]: Entering directory `/usr/src/linux-headers-2.6.32-33-generic'
+  CC [M]  /home/krys/f71882fg.o
+/home/krys/f71882fg.c: In function =E2superio_enter=E2:
+/home/krys/f71882fg.c:997: error: implicit declaration of function
+=E2request_muxed_region=E2
+/home/krys/f71882fg.c: In function =E2f71882fg_find=E2:
+/home/krys/f71882fg.c:2425: error: implicit declaration of function
+=E2pr_warn=E2
+make[2]: *** [/home/krys/f71882fg.o] Error 1
+make[1]: *** [_module_/home/krys] Error 2
+make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-33-generic'
+make: *** [all] Error 2
+
+--bcaec51dd5cfecc76d04affda0e5
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div>I get a few errors when trying to make on ubuntu 10.04, any ideas?</di=
+v><div><br></div><div><br></div><div>root@mediaserver:/home/krys# make</div=
+><div>make -C /lib/modules/2.6.32-33-generic/build M=3D/home/krys modules</=
+div>
+<div>make[1]: Entering directory `/usr/src/linux-headers-2.6.32-33-generic&=
+#39;</div><div>=A0 CC [M] =A0/home/krys/f71882fg.o</div><div>/home/krys/f71=
+882fg.c: In function =E2superio_enter=E2:</div><div>/home/krys/f71882fg.c:9=
+97: error: implicit declaration of function =E2request_muxed_region=E2</div=
 >
-> my hwmon staging tree is back from its github location (git://github.com/=
-groeck/linux.git) to kernel.org:
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hw=
-mon-next
+<div>/home/krys/f71882fg.c: In function =E2f71882fg_find=E2:</div><div>/hom=
+e/krys/f71882fg.c:2425: error: implicit declaration of function =E2pr_warn=
+=E2</div><div>make[2]: *** [/home/krys/f71882fg.o] Error 1</div><div>make[1=
+]: *** [_module_/home/krys] Error 2</div>
+<div>make[1]: Leaving directory `/usr/src/linux-headers-2.6.32-33-generic&#=
+39;</div><div>make: *** [all] Error 2</div>
 
-OK, I will switch to this form today.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Tue__11_Oct_2011_11_31_38_+1100_sDZdGRa0cqtd2Tkt
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJOk45qAAoJEECxmPOUX5FE9+UP/148PkI7hGZiXMvdXuaBbEBB
-yS662klNJubAu9+XCDun6JHfeUTjKBQMFZOBe2TKjur20utwuz/q0/bNYSFOLJj4
-Pz4YoUoTp4A3E9V8KpIRLA78XpLdWEDPuVph/1Kmu6rTJre8N708SkxKxKxuLN8C
-fICGSA2SetNRzF1sZI5048q+OLFB/56njiAhc3bb0VwsacLiAOW/mqL0aL8RkKU9
-GGPCEFPel/FwlmdZDjvRSmg4zteQMr1HRWeW/ZEfWFVCM/h9kPZbeg28pFQkQ64T
-o7DmgS7284invBM2lqv5Bt96O2Ze9PCEjD4sLYnFviN3Uo75pfclkhWUYOVL94ZS
-SWuZp7idYGeRdxNKzUwErUnJCq8TdQ7gdmvQILbwSTZ9GlgGFG+iyDtkWkWney5U
-RufixDXfPhQ40e4PhMkOTqL1EJQWShlZWyZwtygQk+9lD0hi/HrAHNekVZhHhdfZ
-ezfiTwHEKU03isq6lnQQhyN9lDPD2ouyvzfoYF/A9/ZOY8nHMyxvX6F2qIa4DSxR
-QWu7ESwKv9YIAasqqWCjd9SB5M32ikzFkYPK2B81Hr0QGHS4NCRiMAHqrlPd/e/m
-vbeGg/HUZvXL0aRgz7tXqY/DafpesfHEEohuQDsRr+fc/pBlUNG7ey6KhF0yKzfw
-9VkHMtYBZ+skLSJ4DWA+
-=HdBH
------END PGP SIGNATURE-----
-
---Signature=_Tue__11_Oct_2011_11_31_38_+1100_sDZdGRa0cqtd2Tkt--
+--bcaec51dd5cfecc76d04affda0e5--
 
 
---===============0942528125414616038==
+--===============6330055422728905924==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -73,4 +67,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0942528125414616038==--
+--===============6330055422728905924==--
