@@ -1,37 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 13 Oct 2011 15:56:48 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (w83627ehf) Skip reading unused
-Message-Id: <20111013175648.0fc10f3a@endymion.delvare>
+Date: Mon, 31 Oct 2011 14:19:23 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (w83627ehf) Properly report PECI
+Message-Id: <20111031151923.7dd990b9@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20111013164053.3ce93e37@endymion.delvare>
-In-Reply-To: <20111013164053.3ce93e37@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 13 Oct 2011 08:44:28 -0700, Guenter Roeck wrote:
-> On Thu, 2011-10-13 at 11:17 -0400, Jean Delvare wrote:
-> > On Thu, 13 Oct 2011 08:08:22 -0700, Guenter Roeck wrote:
-> > > On Thu, 2011-10-13 at 10:40 -0400, Jean Delvare wrote:
-> > > > When in6 is missing, don't read the corresponding registers, it's a
-> > > > waste of time. The logic is similar to what we do for fans and
-> > > > temperatures.
-> > > > 
-> > > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > > 
-> > > Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > 
-> > Thanks.
-> > 
-> > > Do you want me to apply this series of patches ?
-> > 
-> > Yes please!
-> > 
-> Both applied to -next. If you prefer to have it in 3.1, please let me
-> know.
+When temperature sources are PECI or AMD-SI agents, it makes no sense
+to report their type as diode or thermistor. Instead we must report
+their digital nature.
 
-next is fine, thank you.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: stable@kernel.org
+---
+ drivers/hwmon/w83627ehf.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+--- linux-3.2-rc0.orig/drivers/hwmon/w83627ehf.c	2011-10-31 14:21:09.000000000 +0100
++++ linux-3.2-rc0/drivers/hwmon/w83627ehf.c	2011-10-31 14:24:39.000000000 +0100
+@@ -1812,7 +1812,14 @@ static inline void __devinit w83627ehf_i
+ 		diode = 0x70;
+ 	}
+ 	for (i = 0; i < 3; i++) {
+-		if ((tmp & (0x02 << i)))
++		const char *label = data->temp_label[data->temp_src[i]];
++
++		/* Digital source overrides analog type */
++		if (strncmp(label, "PECI", 4) = 0)
++			data->temp_type[i] = 6;
++		else if (strncmp(label, "AMD", 3) = 0)
++			data->temp_type[i] = 5;
++		else if ((tmp & (0x02 << i)))
+ 			data->temp_type[i] = (diode & (0x10 << i)) ? 1 : 3;
+ 		else
+ 			data->temp_type[i] = 4; /* thermistor */
+
 
 -- 
 Jean Delvare
