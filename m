@@ -1,8 +1,10 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 31 Oct 2011 13:16:42 +0000
+Date: Mon, 31 Oct 2011 13:18:14 +0000
 Subject: [lm-sensors] max1111 doesn't implement the standard sysfs interface
-Message-Id: <20111031141642.0ed2ccc1@endymion.delvare>
+Message-Id: <20111031141814.79b5aa69@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20111031141642.0ed2ccc1@endymion.delvare>
+In-Reply-To: <20111031141642.0ed2ccc1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
