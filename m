@@ -1,96 +1,81 @@
-From: "Soeren D. Schulze" <soeren.d.schulze@gmx.de>
-Date: Mon, 31 Oct 2011 07:46:43 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 31 Oct 2011 15:50:32 +0000
 Subject: Re: [lm-sensors] Something wrong with support for NCT6776F in
-Message-Id: <4EAE5263.3040309@gmx.de>
+Message-Id: <1320076232.18747.12.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4EA9CECA.4050007@gmx.de>
 In-Reply-To: <4EA9CECA.4050007@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 31.10.2011 05:57, Guenter Roeck wrote:
->> I have an ASRock H67M-ITX motherboard.
->>
->> The w83626ehf driver detects:
->>
->> [ 3904.608693] w83627ehf: Found NCT6776F chip at 0x290
->>
->> "sensors" shows me:
->>
->> coretemp-isa-0000
->> Adapter: ISA adapter
->> Physical id 0:  +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
->> Core 0:         +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
->> Core 1:         +45.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
->> Core 2:         +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
->> Core 3:         +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
->>
->> nct6776-isa-0290
->> Adapter: ISA adapter
->> Vcore:         +0.96 V  (min =3D  +0.00 V, max =3D  +1.74 V)
->> in1:           +0.18 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> AVCC:          +3.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> +3.3V:         +3.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> in4:           +0.54 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> in5:           +1.69 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> 3VSB:          +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> Vbat:          +3.31 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->> fan1:            0 RPM  (min =3D    0 RPM)  ALARM
->> fan2:         2180 RPM  (min =3D    0 RPM)  ALARM
->> SYSTIN:        +42.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALAR=
-M  sensor
->> =3D thermistor
->> CPUTIN:       +127.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  ALAR=
-M  sensor
->> =3D thermistor
->> AUXTIN:        -24.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sens=
-or =3D
->> thermistor
->> PECI Agent 0:  +46.5=B0C
->> cpu0_vid:     +2.050 V
->> intrusion0:   ALARM
->> intrusion1:   ALARM
->>
->>
->> Here, CPUTIN and AUXTIN (whatever it is) are obviously wrong.  CPUTIN
->> *decreases* towards 17=B0C when the CPU gets hot (non-linearly, though).
->>
-> Odd. No idea what is going on, though. The registers are quite straightfo=
-rward,
-> and the same for NCT6775F and NCT6776F. And it works on my system with NC=
-T6775F.
-
-Is there the option that auto-detection was wrong and I have a=20
-completely different chip?
-
->> This was the first problem.  The second problem occurs when I try to
->> control fan2 manually.  The "pwm2" file in sysfs is 255 for anything
->> above 2000 RPM, but as you can see above, the fan can do more (I've been
->> at 2600 RPM -- maybe it can do even more), but pwm2 stays at 255.
->>
-> Looking through the datasheet, I did not find anything obvious. It might
-> be possible that the PWM output frequency (register 2 bank 0) somehow aff=
-ects
-> the fan speed as well. What causes the fan speed to go higher in your sys=
-tem ?
-
-High temperature in Temperature Cruise mode.
-
-My firmware setup interface actually provides me with both the options=20
-"Target fan speed" and "Target temperature", but I have the impression=20
-that while the driver reports that I'm in Temperature Cruise mode, the=20
-fan speed does not vary that much, but it rather tries to keep the fan=20
-speed constant unless temperature is completely out of range.
-
-The fan speeds up only when I'm above 60=B0C, and even that with a certain =
-
-delay, so under full load, I get above 70=B0C when my fans are=20
-firmware-controlled...  That's basically the reason why I want software=20
-control.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAyMDExLTEwLTMxIGF0IDAzOjQ2IC0wNDAwLCBTb2VyZW4gRC4gU2NodWx6ZSB3cm90
+ZToKPiBPbiAzMS4xMC4yMDExIDA1OjU3LCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+ID4+IEkgaGF2
+ZSBhbiBBU1JvY2sgSDY3TS1JVFggbW90aGVyYm9hcmQuCj4gPj4KPiA+PiBUaGUgdzgzNjI2ZWhm
+IGRyaXZlciBkZXRlY3RzOgo+ID4+Cj4gPj4gWyAzOTA0LjYwODY5M10gdzgzNjI3ZWhmOiBGb3Vu
+ZCBOQ1Q2Nzc2RiBjaGlwIGF0IDB4MjkwCj4gPj4KPiA+PiAic2Vuc29ycyIgc2hvd3MgbWU6Cj4g
+Pj4KPiA+PiBjb3JldGVtcC1pc2EtMDAwMAo+ID4+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gPj4g
+UGh5c2ljYWwgaWQgMDogICs0Ni4wwrBDICAoaGlnaCA9ICs4MC4wwrBDLCBjcml0ID0gKzk4LjDC
+sEMpCj4gPj4gQ29yZSAwOiAgICAgICAgICs0Ni4wwrBDICAoaGlnaCA9ICs4MC4wwrBDLCBjcml0
+ID0gKzk4LjDCsEMpCj4gPj4gQ29yZSAxOiAgICAgICAgICs0NS4wwrBDICAoaGlnaCA9ICs4MC4w
+wrBDLCBjcml0ID0gKzk4LjDCsEMpCj4gPj4gQ29yZSAyOiAgICAgICAgICs0Ni4wwrBDICAoaGln
+aCA9ICs4MC4wwrBDLCBjcml0ID0gKzk4LjDCsEMpCj4gPj4gQ29yZSAzOiAgICAgICAgICs0Ni4w
+wrBDICAoaGlnaCA9ICs4MC4wwrBDLCBjcml0ID0gKzk4LjDCsEMpCj4gPj4KPiA+PiBuY3Q2Nzc2
+LWlzYS0wMjkwCj4gPj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPiA+PiBWY29yZTogICAgICAgICAr
+MC45NiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS43NCBWKQo+ID4+IGluMTogICAgICAg
+ICAgICswLjE4IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQo+ID4+
+IEFWQ0M6ICAgICAgICAgICszLjM5IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYp
+ICBBTEFSTQo+ID4+ICszLjNWOiAgICAgICAgICszLjM5IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4
+ID0gICswLjAwIFYpICBBTEFSTQo+ID4+IGluNDogICAgICAgICAgICswLjU0IFYgIChtaW4gPSAg
+KzAuMDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQo+ID4+IGluNTogICAgICAgICAgICsxLjY5
+IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQo+ID4+IDNWU0I6ICAg
+ICAgICAgICszLjQxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQo+
+ID4+IFZiYXQ6ICAgICAgICAgICszLjMxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAw
+IFYpICBBTEFSTQo+ID4+IGZhbjE6ICAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkg
+IEFMQVJNCj4gPj4gZmFuMjogICAgICAgICAyMTgwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKSAgQUxB
+Uk0KPiA+PiBTWVNUSU46ICAgICAgICArNDIuMMKwQyAgKGhpZ2ggPSAgKzAuMMKwQywgaHlzdCA9
+ICArMC4wwrBDKSAgQUxBUk0gIHNlbnNvcgo+ID4+ID0gdGhlcm1pc3Rvcgo+ID4+IENQVVRJTjog
+ICAgICAgKzEyNy41wrBDICAoaGlnaCA9ICs4MC4wwrBDLCBoeXN0ID0gKzc1LjDCsEMpICBBTEFS
+TSAgc2Vuc29yCj4gPj4gPSB0aGVybWlzdG9yCj4gPj4gQVVYVElOOiAgICAgICAgLTI0LjDCsEMg
+IChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9Cj4gPj4gdGhlcm1p
+c3Rvcgo+ID4+IFBFQ0kgQWdlbnQgMDogICs0Ni41wrBDCj4gPj4gY3B1MF92aWQ6ICAgICArMi4w
+NTAgVgo+ID4+IGludHJ1c2lvbjA6ICAgQUxBUk0KPiA+PiBpbnRydXNpb24xOiAgIEFMQVJNCj4g
+Pj4KPiA+Pgo+ID4+IEhlcmUsIENQVVRJTiBhbmQgQVVYVElOICh3aGF0ZXZlciBpdCBpcykgYXJl
+IG9idmlvdXNseSB3cm9uZy4gIENQVVRJTgo+ID4+ICpkZWNyZWFzZXMqIHRvd2FyZHMgMTfCsEMg
+d2hlbiB0aGUgQ1BVIGdldHMgaG90IChub24tbGluZWFybHksIHRob3VnaCkuCj4gPj4KPiA+IE9k
+ZC4gTm8gaWRlYSB3aGF0IGlzIGdvaW5nIG9uLCB0aG91Z2guIFRoZSByZWdpc3RlcnMgYXJlIHF1
+aXRlIHN0cmFpZ2h0Zm9yd2FyZCwKPiA+IGFuZCB0aGUgc2FtZSBmb3IgTkNUNjc3NUYgYW5kIE5D
+VDY3NzZGLiBBbmQgaXQgd29ya3Mgb24gbXkgc3lzdGVtIHdpdGggTkNUNjc3NUYuCj4gCj4gSXMg
+dGhlcmUgdGhlIG9wdGlvbiB0aGF0IGF1dG8tZGV0ZWN0aW9uIHdhcyB3cm9uZyBhbmQgSSBoYXZl
+IGEgCj4gY29tcGxldGVseSBkaWZmZXJlbnQgY2hpcD8KPiAKVGhlb3JldGljYWxseSBwb3NzaWJs
+ZSwgYnV0IHVubGlrZWx5LiBNb3JlIGxpa2VseSBzb21ldGhpbmcgaXMgbWlzc2luZywKb3IgdGhl
+IGNoaXAgaXMgbWlzY29uZmlndXJlZCBmcm9tIHRoZSBCSU9TLgoKPiA+PiBUaGlzIHdhcyB0aGUg
+Zmlyc3QgcHJvYmxlbS4gIFRoZSBzZWNvbmQgcHJvYmxlbSBvY2N1cnMgd2hlbiBJIHRyeSB0bwo+
+ID4+IGNvbnRyb2wgZmFuMiBtYW51YWxseS4gIFRoZSAicHdtMiIgZmlsZSBpbiBzeXNmcyBpcyAy
+NTUgZm9yIGFueXRoaW5nCj4gPj4gYWJvdmUgMjAwMCBSUE0sIGJ1dCBhcyB5b3UgY2FuIHNlZSBh
+Ym92ZSwgdGhlIGZhbiBjYW4gZG8gbW9yZSAoSSd2ZSBiZWVuCj4gPj4gYXQgMjYwMCBSUE0gLS0g
+bWF5YmUgaXQgY2FuIGRvIGV2ZW4gbW9yZSksIGJ1dCBwd20yIHN0YXlzIGF0IDI1NS4KPiA+Pgo+
+ID4gTG9va2luZyB0aHJvdWdoIHRoZSBkYXRhc2hlZXQsIEkgZGlkIG5vdCBmaW5kIGFueXRoaW5n
+IG9idmlvdXMuIEl0IG1pZ2h0Cj4gPiBiZSBwb3NzaWJsZSB0aGF0IHRoZSBQV00gb3V0cHV0IGZy
+ZXF1ZW5jeSAocmVnaXN0ZXIgMiBiYW5rIDApIHNvbWVob3cgYWZmZWN0cwo+ID4gdGhlIGZhbiBz
+cGVlZCBhcyB3ZWxsLiBXaGF0IGNhdXNlcyB0aGUgZmFuIHNwZWVkIHRvIGdvIGhpZ2hlciBpbiB5
+b3VyIHN5c3RlbSA/Cj4gCj4gSGlnaCB0ZW1wZXJhdHVyZSBpbiBUZW1wZXJhdHVyZSBDcnVpc2Ug
+bW9kZS4KPiAKPiBNeSBmaXJtd2FyZSBzZXR1cCBpbnRlcmZhY2UgYWN0dWFsbHkgcHJvdmlkZXMg
+bWUgd2l0aCBib3RoIHRoZSBvcHRpb25zIAo+ICJUYXJnZXQgZmFuIHNwZWVkIiBhbmQgIlRhcmdl
+dCB0ZW1wZXJhdHVyZSIsIGJ1dCBJIGhhdmUgdGhlIGltcHJlc3Npb24gCj4gdGhhdCB3aGlsZSB0
+aGUgZHJpdmVyIHJlcG9ydHMgdGhhdCBJJ20gaW4gVGVtcGVyYXR1cmUgQ3J1aXNlIG1vZGUsIHRo
+ZSAKPiBmYW4gc3BlZWQgZG9lcyBub3QgdmFyeSB0aGF0IG11Y2gsIGJ1dCBpdCByYXRoZXIgdHJp
+ZXMgdG8ga2VlcCB0aGUgZmFuIAo+IHNwZWVkIGNvbnN0YW50IHVubGVzcyB0ZW1wZXJhdHVyZSBp
+cyBjb21wbGV0ZWx5IG91dCBvZiByYW5nZS4KPiAKPiBUaGUgZmFuIHNwZWVkcyB1cCBvbmx5IHdo
+ZW4gSSdtIGFib3ZlIDYwwrBDLCBhbmQgZXZlbiB0aGF0IHdpdGggYSBjZXJ0YWluIAo+IGRlbGF5
+LCBzbyB1bmRlciBmdWxsIGxvYWQsIEkgZ2V0IGFib3ZlIDcwwrBDIHdoZW4gbXkgZmFucyBhcmUg
+Cj4gZmlybXdhcmUtY29udHJvbGxlZC4uLiAgVGhhdCdzIGJhc2ljYWxseSB0aGUgcmVhc29uIHdo
+eSBJIHdhbnQgc29mdHdhcmUgCj4gY29udHJvbC4KCk1pZ2h0IGJlIHRoZSB3YXkgaXQgaXMgY29u
+ZmlndXJlZC4gQmVzdCBvcHRpb24sIGlmIHlvdSBjYW4gZG8gdGhhdCwKd291bGQgcHJvYmFibHkg
+YmUgdG8gZ2V0IHRoZSBkYXRhc2hlZXQgZnJvbSBOdXZvdG9uIChhc2sgbmljZWx5IGFuZApleHBs
+YWluIHdoeSB5b3UgbmVlZCBpdCkgYW5kIGNoZWNrIHRoZSB2YXJpb3VzIHJlZ2lzdGVycyBhbmQg
+d2hhdCB0aGV5CmFyZSBkb2luZy4KCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
