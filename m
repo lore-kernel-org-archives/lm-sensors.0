@@ -1,51 +1,101 @@
-From: "Soeren D. Schulze" <soeren.d.schulze@gmx.de>
-Date: Thu, 27 Oct 2011 21:36:10 +0000
-Subject: [lm-sensors] Something wrong with support for NCT6776F in w83627ehf
-Message-Id: <4EA9CECA.4050007@gmx.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 31 Oct 2011 04:57:36 +0000
+Subject: Re: [lm-sensors] Something wrong with support for NCT6776F in
+Message-Id: <20111031045736.GA15033@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4EA9CECA.4050007@gmx.de>
+In-Reply-To: <4EA9CECA.4050007@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SSBoYXZlIGFuIEFTUm9jayBINjdNLUlUWCBtb3RoZXJib2FyZC4KClRoZSB3ODM2MjZlaGYgZHJp
-dmVyIGRldGVjdHM6CgpbIDM5MDQuNjA4NjkzXSB3ODM2MjdlaGY6IEZvdW5kIE5DVDY3NzZGIGNo
-aXAgYXQgMHgyOTAKCiJzZW5zb3JzIiBzaG93cyBtZToKCmNvcmV0ZW1wLWlzYS0wMDAwCkFkYXB0
-ZXI6IElTQSBhZGFwdGVyClBoeXNpY2FsIGlkIDA6ICArNDYuMMKwQyAgKGhpZ2ggPSArODAuMMKw
-QywgY3JpdCA9ICs5OC4wwrBDKQpDb3JlIDA6ICAgICAgICAgKzQ2LjDCsEMgIChoaWdoID0gKzgw
-LjDCsEMsIGNyaXQgPSArOTguMMKwQykKQ29yZSAxOiAgICAgICAgICs0NS4wwrBDICAoaGlnaCA9
-ICs4MC4wwrBDLCBjcml0ID0gKzk4LjDCsEMpCkNvcmUgMjogICAgICAgICArNDYuMMKwQyAgKGhp
-Z2ggPSArODAuMMKwQywgY3JpdCA9ICs5OC4wwrBDKQpDb3JlIDM6ICAgICAgICAgKzQ2LjDCsEMg
-IChoaWdoID0gKzgwLjDCsEMsIGNyaXQgPSArOTguMMKwQykKCm5jdDY3NzYtaXNhLTAyOTAKQWRh
-cHRlcjogSVNBIGFkYXB0ZXIKVmNvcmU6ICAgICAgICAgKzAuOTYgViAgKG1pbiA9ICArMC4wMCBW
-LCBtYXggPSAgKzEuNzQgVikKaW4xOiAgICAgICAgICAgKzAuMTggViAgKG1pbiA9ICArMC4wMCBW
-LCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCkFWQ0M6ICAgICAgICAgICszLjM5IFYgIChtaW4gPSAg
-KzAuMDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQorMy4zVjogICAgICAgICArMy4zOSBWICAo
-bWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0KaW40OiAgICAgICAgICAgKzAu
-NTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCmluNTogICAgICAg
-ICAgICsxLjY5IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQozVlNC
-OiAgICAgICAgICArMy40MSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxB
-Uk0KVmJhdDogICAgICAgICAgKzMuMzEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAg
-VikgIEFMQVJNCmZhbjE6ICAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJN
-CmZhbjI6ICAgICAgICAgMjE4MCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNClNZU1RJTjog
-ICAgICAgICs0Mi4wwrBDICAoaGlnaCA9ICArMC4wwrBDLCBoeXN0ID0gICswLjDCsEMpICBBTEFS
-TSAgc2Vuc29yIAo9IHRoZXJtaXN0b3IKQ1BVVElOOiAgICAgICArMTI3LjXCsEMgIChoaWdoID0g
-KzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIEFMQVJNICBzZW5zb3IgCj0gdGhlcm1pc3RvcgpB
-VVhUSU46ICAgICAgICAtMjQuMMKwQyAgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBD
-KSAgc2Vuc29yID0gCnRoZXJtaXN0b3IKUEVDSSBBZ2VudCAwOiAgKzQ2LjXCsEMKY3B1MF92aWQ6
-ICAgICArMi4wNTAgVgppbnRydXNpb24wOiAgIEFMQVJNCmludHJ1c2lvbjE6ICAgQUxBUk0KCgpI
-ZXJlLCBDUFVUSU4gYW5kIEFVWFRJTiAod2hhdGV2ZXIgaXQgaXMpIGFyZSBvYnZpb3VzbHkgd3Jv
-bmcuICBDUFVUSU4gCipkZWNyZWFzZXMqIHRvd2FyZHMgMTfCsEMgd2hlbiB0aGUgQ1BVIGdldHMg
-aG90IChub24tbGluZWFybHksIHRob3VnaCkuCgpUaGlzIHdhcyB0aGUgZmlyc3QgcHJvYmxlbS4g
-IFRoZSBzZWNvbmQgcHJvYmxlbSBvY2N1cnMgd2hlbiBJIHRyeSB0byAKY29udHJvbCBmYW4yIG1h
-bnVhbGx5LiAgVGhlICJwd20yIiBmaWxlIGluIHN5c2ZzIGlzIDI1NSBmb3IgYW55dGhpbmcgCmFi
-b3ZlIDIwMDAgUlBNLCBidXQgYXMgeW91IGNhbiBzZWUgYWJvdmUsIHRoZSBmYW4gY2FuIGRvIG1v
-cmUgKEkndmUgYmVlbiAKYXQgMjYwMCBSUE0gLS0gbWF5YmUgaXQgY2FuIGRvIGV2ZW4gbW9yZSks
-IGJ1dCBwd20yIHN0YXlzIGF0IDI1NS4KCgpJJ20gdXNpbmcgdGhlIERlYmlhbiBMaW51eCBrZXJu
-ZWwgMy4wLjAtMywgYnV0IHRoZSBzYW1lIHByb2JsZW0gb2NjdXJzIAp3aGVuIEkgcHVsbCB0aGUg
-bGF0ZXN0IHc4MzYyNmVoZi5jIGZpbGUgZnJvbSBnaXQuCgoKSG9wZSB0aGlzIHdhcyBhIHRpbnkg
-Yml0IGhlbHBmdWwuICBJZiBJIGNhbiBoZWxwIHlvdSBmaW5kaW5nIHRoZSBzb3VyY2UgCm9mIHRo
-aXMgcHJvYmxlbSwgcGxlYXNlIHRlbGwgbWUuCgpTw7ZyZW4KCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
-bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
-bGlzdGluZm8vbG0tc2Vuc29ycw=
+Hi Soeren,
+
+sorry for the late reply. Busy ...
+
+On Thu, Oct 27, 2011 at 05:36:10PM -0400, Soeren D. Schulze wrote:
+> I have an ASRock H67M-ITX motherboard.
+>=20
+> The w83626ehf driver detects:
+>=20
+> [ 3904.608693] w83627ehf: Found NCT6776F chip at 0x290
+>=20
+> "sensors" shows me:
+>=20
+> coretemp-isa-0000
+> Adapter: ISA adapter
+> Physical id 0:  +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+> Core 0:         +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+> Core 1:         +45.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+> Core 2:         +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+> Core 3:         +46.0=B0C  (high =3D +80.0=B0C, crit =3D +98.0=B0C)
+>=20
+> nct6776-isa-0290
+> Adapter: ISA adapter
+> Vcore:         +0.96 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+> in1:           +0.18 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> AVCC:          +3.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> +3.3V:         +3.39 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> in4:           +0.54 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> in5:           +1.69 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> 3VSB:          +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> Vbat:          +3.31 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+> fan1:            0 RPM  (min =3D    0 RPM)  ALARM
+> fan2:         2180 RPM  (min =3D    0 RPM)  ALARM
+> SYSTIN:        +42.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM=
+  sensor=20
+> =3D thermistor
+> CPUTIN:       +127.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  ALARM=
+  sensor=20
+> =3D thermistor
+> AUXTIN:        -24.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  senso=
+r =3D=20
+> thermistor
+> PECI Agent 0:  +46.5=B0C
+> cpu0_vid:     +2.050 V
+> intrusion0:   ALARM
+> intrusion1:   ALARM
+>=20
+>=20
+> Here, CPUTIN and AUXTIN (whatever it is) are obviously wrong.  CPUTIN=20
+> *decreases* towards 17=B0C when the CPU gets hot (non-linearly, though).
+>=20
+Odd. No idea what is going on, though. The registers are quite straightforw=
+ard,
+and the same for NCT6775F and NCT6776F. And it works on my system with NCT6=
+775F.
+
+> This was the first problem.  The second problem occurs when I try to=20
+> control fan2 manually.  The "pwm2" file in sysfs is 255 for anything=20
+> above 2000 RPM, but as you can see above, the fan can do more (I've been =
+
+> at 2600 RPM -- maybe it can do even more), but pwm2 stays at 255.
+>=20
+Looking through the datasheet, I did not find anything obvious. It might
+be possible that the PWM output frequency (register 2 bank 0) somehow affec=
+ts
+the fan speed as well. What causes the fan speed to go higher in your syste=
+m ?
+
+Guenter
+
+>=20
+> I'm using the Debian Linux kernel 3.0.0-3, but the same problem occurs=20
+> when I pull the latest w83626ehf.c file from git.
+>=20
+>=20
+> Hope this was a tiny bit helpful.  If I can help you finding the source=20
+> of this problem, please tell me.
+>=20
+> S=F6ren
+>=20
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
