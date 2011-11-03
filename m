@@ -1,53 +1,74 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 03 Nov 2011 17:04:30 +0000
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Thu, 03 Nov 2011 17:46:35 +0000
 Subject: Re: [lm-sensors] Hardware running hot and without the fan
-Message-Id: <1320339870.2309.79.camel@groeck-laptop>
+Message-Id: <20111103174635.GA12229@polaris.bitmath.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4EB1108F.6070009@gmail.com>
-	 <20111103020301.GA22333@ericsson.com>	<4EB250FD.3070000@gmail.com>
-	 <20111103134902.GA26121@ericsson.com>	<4EB2A46B.8080600@gmail.com>
-	 <1320332801.2309.60.camel@groeck-laptop>	<4EB2B0FD.309@gmail.com>
-	 <1320334322.2309.68.camel@groeck-laptop>
-	 <20111103174321.37274532@endymion.delvare>
-	 <1320339328.2309.78.camel@groeck-laptop>
-In-Reply-To: <1320339328.2309.78.camel@groeck-laptop>
+ <20111103020301.GA22333@ericsson.com>
+ <4EB250FD.3070000@gmail.com>
+ <20111103134902.GA26121@ericsson.com>
+ <4EB2A46B.8080600@gmail.com>
+ <1320332801.2309.60.camel@groeck-laptop>
+ <4EB2B0FD.309@gmail.com>
+In-Reply-To: <4EB2B0FD.309@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Henrik Rydberg <rydberg@euromail.se>, Lars =?ISO-8859-1?Q?Nood=E9n?= <lars.nooden@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Lars =?iso-8859-1?Q?Nood=E9n?= <lars.nooden@gmail.com>
+Cc: guenter.roeck@ericsson.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-T24gVGh1LCAyMDExLTExLTAzIGF0IDEyOjU1IC0wNDAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
-IE9uIFRodSwgMjAxMS0xMS0wMyBhdCAxMjo0MyAtMDQwMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+
-ID4gT24gVGh1LCAzIE5vdiAyMDExIDA4OjMyOjAyIC0wNzAwLCBHdWVudGVyIFJvZWNrIHdyb3Rl
-Ogo+ID4gPiBPbiBUaHUsIDIwMTEtMTEtMDMgYXQgMTE6MTkgLTA0MDAsIExhcnMgTm9vZMOpbiB3
-cm90ZToKPiA+ID4gPiBJIGNhbiBzZXQgdGhlIGZhbiBzcGVlZCBtYW51YWxseS4gIGUuZy46Cj4g
-PiA+ID4gCj4gPiA+ID4gIGVjaG8gMzUwMCA+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24wL2Rldmlj
-ZS9mYW4xX291dHB1dAo+ID4gPiA+IAo+ID4gPiA+IFRoYXQgaGVscHMgc29tZS4KPiA+ID4gPiAK
-PiA+ID4gSWYgeW91IGNhbiBkbyB0aGF0LCB5b3Ugc2hvdWxkIGJlIGFibGUgdG8gc2V0IHVwIGZh
-bmNvbnRyb2wgdG8KPiA+ID4gYXV0b21hdGljYWxseSBjb250cm9sIGZhbiBzcGVlZCBiYXNlZCBv
-biBzeXN0ZW0gdGVtcGVyYXR1cmVzLgo+ID4gCj4gPiBUaGlzIHdvbid0IHdvcmssIGFzIGZhbmNv
-bnRyb2wgd2FudHMgcHdtWCBhdHRyaWJ1dGVzIHdoaWNoIHRoZSBhcHBsZXNtYwo+ID4gZHJpdmVy
-IGRvZXNuJ3QgaW1wbGVtZW50Lgo+ID4gCj4gWWVzLCB5b3UgYXJlIHJpZ2h0IC0gaXQgd29uJ3Qg
-d29yayB3aXRob3V0IHBhdGNoaW5nIGl0IHRvIHVzZQo+IGZhblhfb3V0cHV0IGFuZCB0byBhY2Nl
-cHQgbGFyZ2VyIHZhbHVlcyBmb3IgdGhlIGxpbWl0cy4KPiAKPiBXb25kZXIgaG93IHRoaXMgd29y
-a3MgZm9yIG90aGVyIEFwcGxlIHN5c3RlbXMuIE1heWJlIHRoZXJlIGlzIGFuCj4gQXBwbGUtc3Bl
-Y2lmaWMgc2NyaXB0IG91dCB0aGVyZSB0byBjb250cm9sIGZhbiBzcGVlZC4KPiAKPiA+ID4gVGhl
-cmUgaXMgYW5vdGhlciBzeXNmcyBhdHRyaWJ1dGUgLSBmYW5YX21hbnVhbC4gSSBkb24ndCBmaW5k
-IGRyaXZlcgo+ID4gPiBkb2N1bWVudGF0aW9uLCBzbyBJIGhhdmUgbm8gaWRlYSB3aGF0IGl0IGlz
-IGRvaW5nLiBUaGUgbmFtZSBpbmRpY2F0ZXMKPiA+ID4gdGhhdCBpdCBtaWdodCBzZXQgbWFudWFs
-IHZzLiBhdXRvbWF0aWMgZmFuIGNvbnRyb2wuIFdoYXQgaXMgaXQgc2V0IHRvIGluCj4gPiA+IHlv
-dXIgc3lzdGVtID8gRnJvbSB0aGUgY29kZSwgbG9va3MgbGlrZSBpdCBzaG91bGQgYmUgMCBvciAx
-LiBUcnkgdG8KPiA+ID4gdG9nZ2xlIGl0IGFuZCBzZWUgd2hhdCBoYXBwZW5zIC0gYWZ0ZXIgYWxs
-LCBpdCBjYW4gbm90IGdldCB3b3JzZSA7KS4KPiA+IAo+ID4gTWlnaHQgYmUgd29ydGggbG9va2lu
-ZyBhdCBmaWxlcyBmYW5YX21pbiwgX21heCBhbmQgX3NhZmUgdG9vLiBUb28gYmFkCj4gPiB0aGVy
-ZSBkb2Vzbid0IHNlZW0gdG8gYmUgYW55IGRvY3VtZW50YXRpb24gYXZhaWxhYmxlIGZvciBhbGwg
-dGhlc2UKPiA+IG5vbi1zdGFuZGFyZCBhdHRyaWJ1dGVzIDooCj4gPiAKPiBIZXJlIGlzIHNvbWUg
-aW5mbyBmcm9tIHRoZSB3ZWIgYWJvdXQgdGhlIHByb2JsZW0uIFNlZQo+IGh0dHA6Ly91YnVudHVm
-b3J1bXMub3JnL2FyY2hpdmUvaW5kZXgucGhwL3QtOTgxMjgwLmh0bWwuCj4gClRoZSBhYm92ZSBs
-aW5rIHBvaW50cyB0bwoKaHR0cHM6Ly93aWtpLnVidW50dS5jb20vTWFjQm9va1Byby9TYW50YVJv
-c2FGYW5Db250cm9sCgp3aGljaCBwcm92aWRlcyBhIHNjcmlwdCB0byBjb250cm9sIGZhbiBzcGVl
-ZCBvbiBNQUMgc3lzdGVtcy4KCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
-bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
-by9sbS1zZW5zb3Jz
+On Thu, Nov 03, 2011 at 05:19:25PM +0200, Lars Nood=E9n wrote:
+> On 11/03/2011 05:06 PM, Guenter Roeck wrote:
+> > On Thu, 2011-11-03 at 10:25 -0400, Lars Nood=E9n wrote:
+> [snip]
+> >> The one machine reports one fan and the other two fans.  I haven't fou=
+nd
+> >> a way to set the fan speed manually.  The output from sensors
+> >> is
+> >>  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593/comments/=
+44
+> >> and here
+> >>  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593/comments/=
+47
+> >=20
+> > Do the fans actually turn, or is the output bogus ?
+>=20
+> The output is bogus, the fans are not turning.  On #47 there above, I
+> think the temperatures might be inaccurate, too.  Since they'll go up
+> and down as much as 8 degrees in a few seconds.
+>=20
+> > You should be able to set the fan speed by writing into the fanX_input
+> > and/or fanX_output sysfs attributes. You find those
+> > in /sys/class/hwmon/hwmon0/device (assuming there is only one hwmon
+> > device).
+>=20
+> I can set the fan speed manually.  e.g.:
+>=20
+>  echo 3500 > /sys/class/hwmon/hwmon0/device/fan1_output
+>=20
+> That helps some.
+
+I am confused.
+
+From what I gather, the fans work, and it should be possible to run
+the macfanctld daemon (not fancontrol) to tune the fans.
+
+If there really is a problem with the applesmc, following
+http://ubuntuforums.org/showthread.php?t=3D924096 is a good idea.
+
+However, the root problem is most likely the GPU consuming too much
+power. Depending on the exact laptop model, there may or may not be a
+viable workaround. If you model is very new, there is most likely and
+active thread about it on the ubuntu forums.
+
+After checking around on the forums, if you find that this is still a
+fan or temperature sensor problem, and not a GPU problem, then please
+restate the problem as exactly as you can.
+
+Thanks.
+Henrik
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
