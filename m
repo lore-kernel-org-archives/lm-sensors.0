@@ -1,50 +1,39 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 03 Nov 2011 15:32:02 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 03 Nov 2011 16:38:41 +0000
 Subject: Re: [lm-sensors] Hardware running hot and without the fan
-Message-Id: <1320334322.2309.68.camel@groeck-laptop>
+Message-Id: <20111103173841.367d4081@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4EB1108F.6070009@gmail.com>
-	 <20111103020301.GA22333@ericsson.com> <4EB250FD.3070000@gmail.com>
-	 <20111103134902.GA26121@ericsson.com>  <4EB2A46B.8080600@gmail.com>
-	 <1320332801.2309.60.camel@groeck-laptop>  <4EB2B0FD.309@gmail.com>
-In-Reply-To: <4EB2B0FD.309@gmail.com>
+	<20111103020301.GA22333@ericsson.com>
+	<4EB250FD.3070000@gmail.com>
+	<20111103134902.GA26121@ericsson.com>
+	<4EB2A46B.8080600@gmail.com>
+	<1320332801.2309.60.camel@groeck-laptop>
+In-Reply-To: <1320332801.2309.60.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars =?ISO-8859-1?Q?Nood=E9n?= <lars.nooden@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Henrik Rydberg <rydberg@euromail.se>
+To: guenter.roeck@ericsson.com
+Cc: Lars =?ISO-8859-1?B?Tm9vZOlu?= <lars.nooden@gmail.com>, Henrik Rydberg <rydberg@euromail.se>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-T24gVGh1LCAyMDExLTExLTAzIGF0IDExOjE5IC0wNDAwLCBMYXJzIE5vb2TDqW4gd3JvdGU6Cj4g
-T24gMTEvMDMvMjAxMSAwNTowNiBQTSwgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IE9uIFRodSwg
-MjAxMS0xMS0wMyBhdCAxMDoyNSAtMDQwMCwgTGFycyBOb29kw6luIHdyb3RlOgo+IFtzbmlwXQo+
-ID4+IFRoZSBvbmUgbWFjaGluZSByZXBvcnRzIG9uZSBmYW4gYW5kIHRoZSBvdGhlciB0d28gZmFu
-cy4gIEkgaGF2ZW4ndCBmb3VuZAo+ID4+IGEgd2F5IHRvIHNldCB0aGUgZmFuIHNwZWVkIG1hbnVh
-bGx5LiAgVGhlIG91dHB1dCBmcm9tIHNlbnNvcnMKPiA+PiBpcwo+ID4+ICBodHRwczovL2J1Z3Mu
-bGF1bmNocGFkLm5ldC91YnVudHUvK3NvdXJjZS9saW51eC8rYnVnLzg4MTU5My9jb21tZW50cy80
-NAo+ID4+IGFuZCBoZXJlCj4gPj4gIGh0dHBzOi8vYnVncy5sYXVuY2hwYWQubmV0L3VidW50dS8r
-c291cmNlL2xpbnV4LytidWcvODgxNTkzL2NvbW1lbnRzLzQ3Cj4gPiAKPiA+IERvIHRoZSBmYW5z
-IGFjdHVhbGx5IHR1cm4sIG9yIGlzIHRoZSBvdXRwdXQgYm9ndXMgPwo+IAo+IFRoZSBvdXRwdXQg
-aXMgYm9ndXMsIHRoZSBmYW5zIGFyZSBub3QgdHVybmluZy4gIE9uICM0NyB0aGVyZSBhYm92ZSwg
-SQo+IHRoaW5rIHRoZSB0ZW1wZXJhdHVyZXMgbWlnaHQgYmUgaW5hY2N1cmF0ZSwgdG9vLiAgU2lu
-Y2UgdGhleSdsbCBnbyB1cAo+IGFuZCBkb3duIGFzIG11Y2ggYXMgOCBkZWdyZWVzIGluIGEgZmV3
-IHNlY29uZHMuCj4gCk1heWJlIDIwMDAgcmVhbGx5IHJlZmxlY3RzIDAuIE5vdCBzdXJlIGFib3V0
-IHRoZSB0ZW1wZXJhdHVyZXMgLSBJIHRoaW5rCmVzcGVjaWFsbHkgdGhlIENQVSB0ZW1wZXJhdHVy
-ZSBjYW4gY2hhbmdlIHByZXR0eSBmYXN0LiBPciBtYXliZSB0aGUKc2Vuc29ycyBhcmUganVzdCBu
-b3QgdmVyeSBhY2N1cmF0ZS4KCj4gPiBZb3Ugc2hvdWxkIGJlIGFibGUgdG8gc2V0IHRoZSBmYW4g
-c3BlZWQgYnkgd3JpdGluZyBpbnRvIHRoZSBmYW5YX2lucHV0Cj4gPiBhbmQvb3IgZmFuWF9vdXRw
-dXQgc3lzZnMgYXR0cmlidXRlcy4gWW91IGZpbmQgdGhvc2UKPiA+IGluIC9zeXMvY2xhc3MvaHdt
-b24vaHdtb24wL2RldmljZSAoYXNzdW1pbmcgdGhlcmUgaXMgb25seSBvbmUgaHdtb24KPiA+IGRl
-dmljZSkuCj4gCj4gSSBjYW4gc2V0IHRoZSBmYW4gc3BlZWQgbWFudWFsbHkuICBlLmcuOgo+IAo+
-ICBlY2hvIDM1MDAgPiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMC9kZXZpY2UvZmFuMV9vdXRwdXQK
-PiAKPiBUaGF0IGhlbHBzIHNvbWUuCj4gCklmIHlvdSBjYW4gZG8gdGhhdCwgeW91IHNob3VsZCBi
-ZSBhYmxlIHRvIHNldCB1cCBmYW5jb250cm9sIHRvCmF1dG9tYXRpY2FsbHkgY29udHJvbCBmYW4g
-c3BlZWQgYmFzZWQgb24gc3lzdGVtIHRlbXBlcmF0dXJlcy4KClRoZXJlIGlzIGFub3RoZXIgc3lz
-ZnMgYXR0cmlidXRlIC0gZmFuWF9tYW51YWwuIEkgZG9uJ3QgZmluZCBkcml2ZXIKZG9jdW1lbnRh
-dGlvbiwgc28gSSBoYXZlIG5vIGlkZWEgd2hhdCBpdCBpcyBkb2luZy4gVGhlIG5hbWUgaW5kaWNh
-dGVzCnRoYXQgaXQgbWlnaHQgc2V0IG1hbnVhbCB2cy4gYXV0b21hdGljIGZhbiBjb250cm9sLiBX
-aGF0IGlzIGl0IHNldCB0byBpbgp5b3VyIHN5c3RlbSA/IEZyb20gdGhlIGNvZGUsIGxvb2tzIGxp
-a2UgaXQgc2hvdWxkIGJlIDAgb3IgMS4gVHJ5IHRvCnRvZ2dsZSBpdCBhbmQgc2VlIHdoYXQgaGFw
-cGVucyAtIGFmdGVyIGFsbCwgaXQgY2FuIG5vdCBnZXQgd29yc2UgOykuCgpHdWVudGVyCgoKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMg
-bWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNl
-bnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Thu, 3 Nov 2011 08:06:41 -0700, Guenter Roeck wrote:
+> You should be able to set the fan speed by writing into the fanX_input
+> and/or fanX_output sysfs attributes. You find those
+> in /sys/class/hwmon/hwmon0/device (assuming there is only one hwmon
+> device).
+
+Note that fanX_input is always a read-only file, so writing to it isn't
+going to do anything.
+
+fanX_output is not a standard attribute for hwmon devices, it shouldn't
+be there in the first place... The applesmc driver doesn't see to
+follow the standard interface, so it's probably best to not assume too
+much.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
