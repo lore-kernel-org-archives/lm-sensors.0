@@ -1,78 +1,68 @@
-From: =?ISO-8859-1?Q?Lars_Nood=E9n?= <lars.nooden@gmail.com>
-Date: Thu, 03 Nov 2011 14:25:47 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 03 Nov 2011 15:06:41 +0000
 Subject: Re: [lm-sensors] Hardware running hot and without the fan
-Message-Id: <4EB2A46B.8080600@gmail.com>
+Message-Id: <1320332801.2309.60.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4EB1108F.6070009@gmail.com> <20111103020301.GA22333@ericsson.com> <4EB250FD.3070000@gmail.com> <20111103134902.GA26121@ericsson.com>
-In-Reply-To: <20111103134902.GA26121@ericsson.com>
+References: <4EB1108F.6070009@gmail.com>
+	 <20111103020301.GA22333@ericsson.com> <4EB250FD.3070000@gmail.com>
+	 <20111103134902.GA26121@ericsson.com>  <4EB2A46B.8080600@gmail.com>
+In-Reply-To: <4EB2A46B.8080600@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <guenter.roeck@ericsson.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Lars =?ISO-8859-1?Q?Nood=E9n?= <lars.nooden@gmail.com>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Henrik Rydberg <rydberg@euromail.se>
 
-On 11/03/2011 03:49 PM, Guenter Roeck wrote:
-> On Thu, Nov 03, 2011 at 04:29:49AM -0400, Lars Nood=E9n wrote:
->> On 11/03/2011 04:03 AM, Guenter Roeck wrote:
->>> From LKML:
->>>
->>> On Wed, Nov 02, 2011 at 05:42:39AM -0400, Lars Nood=E9n wrote:
->>>> There seem to be two problems here, one is that the hardware is=20
->>>> getting WAY too hot, another is that the fan is not turning on when
->>>> the hardware gets too hot.
->>>>
->>>> $ uname -a Linux xubuntu 3.1.0-999-generic #201110270406 SMP Thu=20
->>>> Oct 27 08:07:41 UTC 2011 x86_64 x86_64 x86_64 GNU/Linux
->>>>
->>>> I've reported the problem to Ubuntu=20
->>>> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593 and the
->>>> suggestion there was to report it upstream.
->>>>
->>>> On the notebook computer, parts become very hot to the touch while=20
->>>> running Ubuntu, but the fan does not run even after it gets hot.=20
->>>> When I boot back to OS X, the fan kicks in and runs until the=20
->>>> computer returns to being cool to the touch.  Similar for the=20
->>>> desktop, though I must follow the temperature with=20
->>>> /usr/bin/sensors.
->>>>
->>>> The notebook is a MacBookPro8,2 and the desktop is a Macmini3,1
->>>>
->>>> What metrics do I need to collect to help fix the problem?  I've=20
->>>> already reported the problem to Ubuntu[2] and the recommendation=20
->>>> was to try reporting upstream.
->>>>
->>>> Please CC me in the replies. /Lars
->>>>
->>>> [1] http://kernel.ubuntu.com/~kernel-ppa/mainline/daily/current/
->>>>
->>>> [2] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593
->>>
->>> I see applesmc: : read arg fail in the dmesg log. No idea what that=20
->>> means. Maybe the driver maintainer or someone else on the lm-sensors
->>>  mailing list can help.
->>>
->>> Not sure I understand your comment about having to follow the output
->>>  of the sensors command. Can you clarify ?
->>
->> That's to track the temperature manually.
->>
->>> Also, do you get any output from the sensors command on the notebook?
->>> Thanks, Guenter
->>
->> Yes.  It claims to have 24 temperature sensors.
->>
-> Does it report any fans ? If it does, can you try setting the fan speed ?
-
-The one machine reports one fan and the other two fans.  I haven't found
-a way to set the fan speed manually.  The output from sensors
-is
- https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593/comments/44
-and here
- https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593/comments/47
-
-/Lars
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVGh1LCAyMDExLTExLTAzIGF0IDEwOjI1IC0wNDAwLCBMYXJzIE5vb2TDqW4gd3JvdGU6Cj4g
+T24gMTEvMDMvMjAxMSAwMzo0OSBQTSwgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IE9uIFRodSwg
+Tm92IDAzLCAyMDExIGF0IDA0OjI5OjQ5QU0gLTA0MDAsIExhcnMgTm9vZMOpbiB3cm90ZToKPiA+
+PiBPbiAxMS8wMy8yMDExIDA0OjAzIEFNLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+ID4+PiBGcm9t
+IExLTUw6Cj4gPj4+Cj4gPj4+IE9uIFdlZCwgTm92IDAyLCAyMDExIGF0IDA1OjQyOjM5QU0gLTA0
+MDAsIExhcnMgTm9vZMOpbiB3cm90ZToKPiA+Pj4+IFRoZXJlIHNlZW0gdG8gYmUgdHdvIHByb2Js
+ZW1zIGhlcmUsIG9uZSBpcyB0aGF0IHRoZSBoYXJkd2FyZSBpcyAKPiA+Pj4+IGdldHRpbmcgV0FZ
+IHRvbyBob3QsIGFub3RoZXIgaXMgdGhhdCB0aGUgZmFuIGlzIG5vdCB0dXJuaW5nIG9uIHdoZW4K
+PiA+Pj4+IHRoZSBoYXJkd2FyZSBnZXRzIHRvbyBob3QuCj4gPj4+Pgo+ID4+Pj4gJCB1bmFtZSAt
+YSBMaW51eCB4dWJ1bnR1IDMuMS4wLTk5OS1nZW5lcmljICMyMDExMTAyNzA0MDYgU01QIFRodSAK
+PiA+Pj4+IE9jdCAyNyAwODowNzo0MSBVVEMgMjAxMSB4ODZfNjQgeDg2XzY0IHg4Nl82NCBHTlUv
+TGludXgKPiA+Pj4+Cj4gPj4+PiBJJ3ZlIHJlcG9ydGVkIHRoZSBwcm9ibGVtIHRvIFVidW50dSAK
+PiA+Pj4+IGh0dHBzOi8vYnVncy5sYXVuY2hwYWQubmV0L3VidW50dS8rc291cmNlL2xpbnV4Lyti
+dWcvODgxNTkzIGFuZCB0aGUKPiA+Pj4+IHN1Z2dlc3Rpb24gdGhlcmUgd2FzIHRvIHJlcG9ydCBp
+dCB1cHN0cmVhbS4KPiA+Pj4+Cj4gPj4+PiBPbiB0aGUgbm90ZWJvb2sgY29tcHV0ZXIsIHBhcnRz
+IGJlY29tZSB2ZXJ5IGhvdCB0byB0aGUgdG91Y2ggd2hpbGUgCj4gPj4+PiBydW5uaW5nIFVidW50
+dSwgYnV0IHRoZSBmYW4gZG9lcyBub3QgcnVuIGV2ZW4gYWZ0ZXIgaXQgZ2V0cyBob3QuIAo+ID4+
+Pj4gV2hlbiBJIGJvb3QgYmFjayB0byBPUyBYLCB0aGUgZmFuIGtpY2tzIGluIGFuZCBydW5zIHVu
+dGlsIHRoZSAKPiA+Pj4+IGNvbXB1dGVyIHJldHVybnMgdG8gYmVpbmcgY29vbCB0byB0aGUgdG91
+Y2guICBTaW1pbGFyIGZvciB0aGUgCj4gPj4+PiBkZXNrdG9wLCB0aG91Z2ggSSBtdXN0IGZvbGxv
+dyB0aGUgdGVtcGVyYXR1cmUgd2l0aCAKPiA+Pj4+IC91c3IvYmluL3NlbnNvcnMuCj4gPj4+Pgo+
+ID4+Pj4gVGhlIG5vdGVib29rIGlzIGEgTWFjQm9va1BybzgsMiBhbmQgdGhlIGRlc2t0b3AgaXMg
+YSBNYWNtaW5pMywxCj4gPj4+Pgo+ID4+Pj4gV2hhdCBtZXRyaWNzIGRvIEkgbmVlZCB0byBjb2xs
+ZWN0IHRvIGhlbHAgZml4IHRoZSBwcm9ibGVtPyAgSSd2ZSAKPiA+Pj4+IGFscmVhZHkgcmVwb3J0
+ZWQgdGhlIHByb2JsZW0gdG8gVWJ1bnR1WzJdIGFuZCB0aGUgcmVjb21tZW5kYXRpb24gCj4gPj4+
+PiB3YXMgdG8gdHJ5IHJlcG9ydGluZyB1cHN0cmVhbS4KPiA+Pj4+Cj4gPj4+PiBQbGVhc2UgQ0Mg
+bWUgaW4gdGhlIHJlcGxpZXMuIC9MYXJzCj4gPj4+Pgo+ID4+Pj4gWzFdIGh0dHA6Ly9rZXJuZWwu
+dWJ1bnR1LmNvbS9+a2VybmVsLXBwYS9tYWlubGluZS9kYWlseS9jdXJyZW50Lwo+ID4+Pj4KPiA+
+Pj4+IFsyXSBodHRwczovL2J1Z3MubGF1bmNocGFkLm5ldC91YnVudHUvK3NvdXJjZS9saW51eC8r
+YnVnLzg4MTU5Mwo+ID4+Pgo+ID4+PiBJIHNlZSBhcHBsZXNtYzogOiByZWFkIGFyZyBmYWlsIGlu
+IHRoZSBkbWVzZyBsb2cuIE5vIGlkZWEgd2hhdCB0aGF0IAo+ID4+PiBtZWFucy4gTWF5YmUgdGhl
+IGRyaXZlciBtYWludGFpbmVyIG9yIHNvbWVvbmUgZWxzZSBvbiB0aGUgbG0tc2Vuc29ycwo+ID4+
+PiAgbWFpbGluZyBsaXN0IGNhbiBoZWxwLgo+ID4+Pgo+ID4+PiBOb3Qgc3VyZSBJIHVuZGVyc3Rh
+bmQgeW91ciBjb21tZW50IGFib3V0IGhhdmluZyB0byBmb2xsb3cgdGhlIG91dHB1dAo+ID4+PiAg
+b2YgdGhlIHNlbnNvcnMgY29tbWFuZC4gQ2FuIHlvdSBjbGFyaWZ5ID8KPiA+Pgo+ID4+IFRoYXQn
+cyB0byB0cmFjayB0aGUgdGVtcGVyYXR1cmUgbWFudWFsbHkuCj4gPj4KPiA+Pj4gQWxzbywgZG8g
+eW91IGdldCBhbnkgb3V0cHV0IGZyb20gdGhlIHNlbnNvcnMgY29tbWFuZCBvbiB0aGUgbm90ZWJv
+b2s/Cj4gPj4+IFRoYW5rcywgR3VlbnRlcgo+ID4+Cj4gPj4gWWVzLiAgSXQgY2xhaW1zIHRvIGhh
+dmUgMjQgdGVtcGVyYXR1cmUgc2Vuc29ycy4KPiA+Pgo+ID4gRG9lcyBpdCByZXBvcnQgYW55IGZh
+bnMgPyBJZiBpdCBkb2VzLCBjYW4geW91IHRyeSBzZXR0aW5nIHRoZSBmYW4gc3BlZWQgPwo+IAo+
+IFRoZSBvbmUgbWFjaGluZSByZXBvcnRzIG9uZSBmYW4gYW5kIHRoZSBvdGhlciB0d28gZmFucy4g
+IEkgaGF2ZW4ndCBmb3VuZAo+IGEgd2F5IHRvIHNldCB0aGUgZmFuIHNwZWVkIG1hbnVhbGx5LiAg
+VGhlIG91dHB1dCBmcm9tIHNlbnNvcnMKPiBpcwo+ICBodHRwczovL2J1Z3MubGF1bmNocGFkLm5l
+dC91YnVudHUvK3NvdXJjZS9saW51eC8rYnVnLzg4MTU5My9jb21tZW50cy80NAo+IGFuZCBoZXJl
+Cj4gIGh0dHBzOi8vYnVncy5sYXVuY2hwYWQubmV0L3VidW50dS8rc291cmNlL2xpbnV4LytidWcv
+ODgxNTkzL2NvbW1lbnRzLzQ3Cj4gCgpEbyB0aGUgZmFucyBhY3R1YWxseSB0dXJuLCBvciBpcyB0
+aGUgb3V0cHV0IGJvZ3VzID8KCllvdSBzaG91bGQgYmUgYWJsZSB0byBzZXQgdGhlIGZhbiBzcGVl
+ZCBieSB3cml0aW5nIGludG8gdGhlIGZhblhfaW5wdXQKYW5kL29yIGZhblhfb3V0cHV0IHN5c2Zz
+IGF0dHJpYnV0ZXMuIFlvdSBmaW5kIHRob3NlCmluIC9zeXMvY2xhc3MvaHdtb24vaHdtb24wL2Rl
+dmljZSAoYXNzdW1pbmcgdGhlcmUgaXMgb25seSBvbmUgaHdtb24KZGV2aWNlKS4KClRoYW5rcywK
+R3VlbnRlcgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
+Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
