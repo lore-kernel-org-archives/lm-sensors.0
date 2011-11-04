@@ -1,81 +1,81 @@
-From: =?ISO-8859-1?Q?Lars_Nood=E9n?= <lars.nooden@gmail.com>
-Date: Fri, 04 Nov 2011 10:27:33 +0000
+From: lars nooden <lars.nooden@gmail.com>
+Date: Fri, 04 Nov 2011 10:46:44 +0000
 Subject: Re: [lm-sensors] Hardware running hot and without the fan
-Message-Id: <4EB3BE15.3070009@gmail.com>
+Message-Id: <CACq_q0eru4AOgV9Km5PqXPUDUVWphxFeZPFkwR5cJzPbkz7PCQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4EB1108F.6070009@gmail.com> <20111103020301.GA22333@ericsson.com> <4EB250FD.3070000@gmail.com> <20111103134902.GA26121@ericsson.com> <4EB2A46B.8080600@gmail.com> <1320332801.2309.60.camel@groeck-laptop> <4EB2B0FD.309@gmail.com> <20111103174635.GA12229@polaris.bitmath.org>
-In-Reply-To: <20111103174635.GA12229@polaris.bitmath.org>
+References: <4EB1108F.6070009@gmail.com>
+	<20111103020301.GA22333@ericsson.com>
+	<4EB250FD.3070000@gmail.com>
+	<20111103134902.GA26121@ericsson.com>
+	<4EB2A46B.8080600@gmail.com>
+	<1320332801.2309.60.camel@groeck-laptop>
+	<4EB2B0FD.309@gmail.com>
+	<1320334322.2309.68.camel@groeck-laptop>
+	<20111103174321.37274532@endymion.delvare>
+	<1320339328.2309.78.camel@groeck-laptop>
+In-Reply-To: <1320339328.2309.78.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: Henrik Rydberg <rydberg@euromail.se>
-Cc: guenter.roeck@ericsson.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: guenter.roeck@ericsson.com
+Cc: Jean Delvare <khali@linux-fr.org>, Henrik Rydberg <rydberg@euromail.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On 11/3/11 7:46 PM, Henrik Rydberg wrote:
-> On Thu, Nov 03, 2011 at 05:19:25PM +0200, Lars Nood=E9n wrote:
->> On 11/03/2011 05:06 PM, Guenter Roeck wrote:
->>> On Thu, 2011-11-03 at 10:25 -0400, Lars Nood=E9n wrote:
->> [snip]
->>>> The one machine reports one fan and the other two fans.  I haven't fou=
-nd
->>>> a way to set the fan speed manually.  The output from sensors
->>>> is
->>>>  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593/comments/=
-44
->>>> and here
->>>>  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593/comments/=
-47
->>>
->>> Do the fans actually turn, or is the output bogus ?
+On 11/3/11, Guenter Roeck <guenter.roeck@ericsson.com> wrote:
+> On Thu, 2011-11-03 at 12:43 -0400, Jean Delvare wrote:
+>> On Thu, 3 Nov 2011 08:32:02 -0700, Guenter Roeck wrote:
+>> > On Thu, 2011-11-03 at 11:19 -0400, Lars Nood=E9n wrote:
+>> > > I can set the fan speed manually.  e.g.:
+>> > >
+>> > >  echo 3500 > /sys/class/hwmon/hwmon0/device/fan1_output
+>> > >
+>> > > That helps some.
+>> > >
+>> > If you can do that, you should be able to set up fancontrol to
+>> > automatically control fan speed based on system temperatures.
 >>
->> The output is bogus, the fans are not turning.  On #47 there above, I
->> think the temperatures might be inaccurate, too.  Since they'll go up
->> and down as much as 8 degrees in a few seconds.
+>> This won't work, as fancontrol wants pwmX attributes which the applesmc
+>> driver doesn't implement.
 >>
->>> You should be able to set the fan speed by writing into the fanX_input
->>> and/or fanX_output sysfs attributes. You find those
->>> in /sys/class/hwmon/hwmon0/device (assuming there is only one hwmon
->>> device).
+> Yes, you are right - it won't work without patching it to use
+> fanX_output and to accept larger values for the limits.
+>
+> Wonder how this works for other Apple systems. Maybe there is an
+> Apple-specific script out there to control fan speed.
+>
+>> > There is another sysfs attribute - fanX_manual. I don't find driver
+>> > documentation, so I have no idea what it is doing. The name indicates
+>> > that it might set manual vs. automatic fan control. What is it set to =
+in
+>> > your system ? From the code, looks like it should be 0 or 1. Try to
+>> > toggle it and see what happens - after all, it can not get worse ;).
 >>
->> I can set the fan speed manually.  e.g.:
+>> Might be worth looking at files fanX_min, _max and _safe too. Too bad
+>> there doesn't seem to be any documentation available for all these
+>> non-standard attributes :(
 >>
->>  echo 3500 > /sys/class/hwmon/hwmon0/device/fan1_output
->>
->> That helps some.
->=20
-> I am confused.
->=20
-> From what I gather, the fans work, and it should be possible to run
-> the macfanctld daemon (not fancontrol) to tune the fans.
+> Here is some info from the web about the problem. See
+> http://ubuntuforums.org/archive/index.php/t-981280.html.
+>
+> So, for those that have reported high temperatures due to low fan
+> speeds: check the value of
+>
+> cat /sys/devices/platform/applesmc.768/fan1_manual
 
-On the note book, one fan works with manual control only.  If there is a
-second fan, it cannot be turned on manually.  On the mini, there are no
-fan devices listed in /sys/class/hwmon/hwmon0/device/
-
-> If there really is a problem with the applesmc, following
-> http://ubuntuforums.org/showthread.php?t=3D924096 is a good idea.
->=20
-> However, the root problem is most likely the GPU consuming too much
-> power. Depending on the exact laptop model, there may or may not be a
-> viable workaround. If you model is very new, there is most likely and
-> active thread about it on the ubuntu forums.
-
-Not that I've been able to find and an attempt at starting a new thread
-has no response.
-
-> After checking around on the forums, if you find that this is still a
-> fan or temperature sensor problem, and not a GPU problem, then please
-> restate the problem as exactly as you can.
-
-I think there are two problems.  One is the GPU or some other part
-running hot.  The other is the sensors/fans issue: the fans don't turn
-on even when the system is hot.  Both problems are evident on two
-different models of hardware, the notebook is a MacBookPro8,2 and the
-desktop is a Macmini3,1.
-
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593
+It is zero already:
+  $ cat /sys/devices/platform/applesmc.768/fan1_manual
+  0
 
 /Lars
+
+> With no software control of the fans, which is the case with the
+> macbooks (fancontrol and pwmconfig does not work), the fan speed seems
+> to be controlled automatically by the SMC without issues - but only if
+> fan1_manual is zero.
+>
+> Guenter
+>
+>
+>
 
 _______________________________________________
 lm-sensors mailing list
