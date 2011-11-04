@@ -1,96 +1,73 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 29 Nov 2011 03:20:36 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.2
-Message-Id: <20111129032036.GA14086@ericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6516129020554169749=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 04 Nov 2011 12:57:05 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.2
+Message-Id: <20111104135705.4254d734@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============6516129020554169749==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
-Content-Disposition: inline
-
---RnlQjJ0d97Da+TV1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>, Guenter Roeck <guenter.roeck@ericsson.com>
 
 Hi Linus,
 
 Please pull hwmon subsystem updates for Linux 3.2 from:
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
-No functional changes; cleanup only.
+This includes support for a new device (Winbond/Nuvoton W83627UHG) and
+random other improvements and cleanups.
+
+ Documentation/hwmon/w83627ehf |   28 +++---
+ drivers/hwmon/Kconfig         |   20 +++-
+ drivers/hwmon/ad7414.c        |    7 +-
+ drivers/hwmon/ad7418.c        |   27 ++----
+ drivers/hwmon/ads1015.c       |   21 +----
+ drivers/hwmon/ads7828.c       |   12 +--
+ drivers/hwmon/asb100.c        |   10 +-
+ drivers/hwmon/ds1621.c        |   24 +----
+ drivers/hwmon/ds620.c         |   42 ++------
+ drivers/hwmon/gl518sm.c       |    4 +-
+ drivers/hwmon/gl520sm.c       |    4 +-
+ drivers/hwmon/ibmaem.c        |   60 +++++++-----
+ drivers/hwmon/jc42.c          |   52 ++++------
+ drivers/hwmon/lm73.c          |   30 +++++--
+ drivers/hwmon/lm75.c          |    9 +-
+ drivers/hwmon/lm77.c          |    4 +-
+ drivers/hwmon/lm90.c          |  146 ++++++++++++++---------------
+ drivers/hwmon/lm92.c          |   26 +++---
+ drivers/hwmon/max16065.c      |    4 +-
+ drivers/hwmon/sht21.c         |   26 +-----
+ drivers/hwmon/smm665.c        |   15 +--
+ drivers/hwmon/smsc47b397.c    |   13 ++-
+ drivers/hwmon/tmp102.c        |   44 ++++-----
+ drivers/hwmon/w83627ehf.c     |  210 +++++++++++++++++++++++++++++++---------
+ drivers/hwmon/w83781d.c       |   10 +-
+ 25 files changed, 439 insertions(+), 409 deletions(-)
+
+---------------
+
+Dean Nelson (1):
+      hwmon: Avoid building drivers for powerpc that read/write ISA addresses
+
+Jean Delvare (11):
+      hwmon: (lm73) Make detection less problematic
+      hwmon: (ibmaem) Fix error paths
+      hwmon: (ibmaem) Make instance initializations independent
+      hwmon: (ibmaem) Avoid repeated memory allocations
+      hwmon: (lm90) Fix warnings
+      hwmon: (lm90) Make code more readable
+      hwmon: (smsc47b397) Fix checkpatch errors
+      hwmon: Use i2c_smbus_{read,write}_word_swapped
+      hwmon: (w83627ehf) Properly report PECI and AMD-SI sensor types
+      hwmon: (w83627ehf) Clean up probe function
+      hwmon: (w83627ehf) Add support for the W83627UHG
 
 Thanks,
-Guenter
-
-------
-
-The following changes since commit caca6a03d365883564885f2c1da3e88dcf65d139:
-
-  Linux 3.2-rc3 (2011-11-23 20:20:28 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Axel Lin (1):
-      hwmon: convert drivers/hwmon/* to use module_platform_driver()
-
-Lars-Peter Clausen (1):
-      hwmon: Remove redundant spi driver bus initialization
-
- drivers/hwmon/ad7314.c             |    1 -
- drivers/hwmon/ads7871.c            |    1 -
- drivers/hwmon/exynos4_tmu.c        |   12 +-----------
- drivers/hwmon/gpio-fan.c           |   13 +------------
- drivers/hwmon/jz4740-hwmon.c       |   12 +-----------
- drivers/hwmon/ntc_thermistor.c     |   14 +-------------
- drivers/hwmon/s3c-hwmon.c          |   13 +------------
- drivers/hwmon/sch5627.c            |   13 +------------
- drivers/hwmon/sch5636.c            |   13 +------------
- drivers/hwmon/twl4030-madc-hwmon.c |   14 +-------------
- drivers/hwmon/ultra45_env.c        |   13 +------------
- drivers/hwmon/wm831x-hwmon.c       |   12 +-----------
- drivers/hwmon/wm8350-hwmon.c       |   12 +-----------
- 13 files changed, 11 insertions(+), 132 deletions(-)
-
---RnlQjJ0d97Da+TV1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJO1E+EAAoJEMsfJm/On5mBS+QP/3ygM38PihQartSA9/6KRh6h
-hbkO+2xQcARHJjq6yg6PbgeIi+Q8NhvLnb/XkyzvmhfigPdsxXYUZMCORVTRhYXo
-dySxp3SAL+a+2mZ7LJ+GImB4i6dxu9K0x/+pQAycghb3MXNuW4rNkLewx+ptRbR8
-9cl515/zKwt8CrtXp9z7LFDW6PGTdrkJwmkbvxx2mMr488D+ThkUwgMW9jB3QtP2
-DGtE65f1G73/YeRgE+mI6UkCjCOXgyZ8x9mO8+X+L4YnSG7l8Ij73WSzMWhS4Zqw
-oe1j9NsT+SflPIetp6htPCe6nl5+ckIVjluQl9zxBqVkG7RbBl9ZbZOaabk2/Hk+
-GHCMikEu28Uo65DrLH4tHh5wh/2lukj6ZjTc2gNCtd/z6wwfE0KQg/kwzihOgg3d
-mqn4Ot4Qn8Vqv4YttqQbiHOhK33eQ6NWJaTXzlKs8QMaGC+uldP/szfW/zFd/4Pu
-zCktKrDvKeAemJcjcE2u3Vysc912zHqPjAtQg5bP9VnpV+1Cola7JzYk1XJN8JQa
-yFtgxiPI3i3b8f9/+nxH17Gizrt7nO/vWh71D+QzVA9Qez230DWC9GNJ8bAlqLZx
-K0st4g9lWil38Fa+ngcdiqSmYOccubAgrNjteWs0T0e86LlTNUffYOa3PAmkV+ly
-xJh9C6OpzhS0v4/XxbdJ
-=IGIQ
------END PGP SIGNATURE-----
-
---RnlQjJ0d97Da+TV1--
-
-
---===============6516129020554169749==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6516129020554169749==--
