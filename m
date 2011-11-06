@@ -1,30 +1,51 @@
-From: "Soeren D. Schulze" <soeren.d.schulze@gmx.de>
-Date: Sun, 06 Nov 2011 18:03:55 +0000
-Subject: [lm-sensors] Intel 2500K stock fan control
-Message-Id: <4EB6CC0B.8050909@gmx.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 06 Nov 2011 18:45:58 +0000
+Subject: Re: [lm-sensors] Intel 2500K stock fan control
+Message-Id: <20111106194558.53493594@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4EB6CC0B.8050909@gmx.de>
+In-Reply-To: <4EB6CC0B.8050909@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SXQncyBtZSB3aXRoIG15IE5DVDY3NzYgYWdhaW4uCgpJdCBkb2Vzbid0IHNlZW0gdG8gYmUgdGhl
-IGRyaXZlciB0aGF0IGlzIGNhdXNpbmcgcHJvYmxlbXMuCgpXaGVuIEkgZm9yY2UgdGhlIFBXTSB0
-byBmdWxsIGR1dHkgY3ljbGUgYXQgbG93IENQVSB0ZW1wZXJhdHVyZSwgSSBnZXQKYWJvdXQgMjIw
-MCBSUE0uICBJIGdldCB0aGUgc2FtZSB0aGluZyB3aGVuIEkgZGlzY29ubmVjdCB0aGUgUFdNIHBp
-bgpjb21wbGV0ZWx5IChzbyBhcHBhcmVudGx5IHRoZSBkcml2ZXIgc2V0cyB0aGUgUFdNIGR1dHkg
-Y3ljbGUgY29ycmVjdGx5KS4KVm9sdGFnZSBvbiB0aGUgc3VwcGx5IHBpbiBvZiB0aGUgZmFuIGlz
-IDEyIFYuCgpXaGVuIHB1dCBsb2FkIG9uIHRoZSBzeXN0ZW0gYW5kIENQVSB0ZW1wZXJhdHVyZSBy
-aXNlcywgdGhvdWdoLCB0aGUgZmFuClJQTSByaXNlIHVwIHRvIDI4MDAuICBUaGUgcXVlc3Rpb24g
-aXM6ICBXaGF0IGlzIHRoZSByZWFzb24gZm9yIHRoaXMgUlBNCnJpc2U/ICBJdCBjYW4ndCBiZSB0
-aGUgUFdNIHNpZ25hbCwgYXMgdGhlIFBXTSBwaW4gaXMgZGlzY29ubmVjdGVkLiAgSXQKY2FuJ3Qg
-YmUgdGhlIHZvbHRhZ2UsIGJlY2F1c2UgdGhlIHZvbHRhZ2Ugc3RheXMgYXQgMTIgViAoSSBtZWFz
-dXJlZCBpdCkuCgpUaGUgb25seSBleHBsYW5hdGlvbiB0aGF0IGNvbWVzIHRvIG15IG1pbmQgaXMg
-dGhhdCB0aGUgZmFuIGRvZXMgbm90CmFjdHVhbGx5IGdvIHRvIGZ1bGwgc3BlZWQgZXZlbiBhdCBm
-dWxsIFBXTSBkdXR5IGN5Y2xlIHVudGlsIGl0IHNlbnNlcwpoaWdoIHRlbXBlcmF0dXJlIGl0c2Vs
-Zi4gIFRoaXMgaW1wbGllcyB0aGF0IHRoZSBmYW4gaGFzIHNvbWUgaW50ZWdyYXRlZAp0ZW1wZXJh
-dHVyZSBzZW5zb3IuCgpJcyB0aGlzIHBvc3NpYmxlPyAgQW5kIGlmIHNvLCB3aHkgd291bGQgdGhl
-eSBkbyBzdWNoIGEgdGhpbmc/CgoKU29ycnkgaWYgdGhpcyB3YXMgYSBiaXQgb2ZmLXRvcGljLgoK
-U8O2cmVuCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
-bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Sun, 06 Nov 2011 19:03:55 +0100, Soeren D. Schulze wrote:
+> It's me with my NCT6776 again.
+> 
+> It doesn't seem to be the driver that is causing problems.
+> 
+> When I force the PWM to full duty cycle at low CPU temperature, I get
+> about 2200 RPM.  I get the same thing when I disconnect the PWM pin
+> completely (so apparently the driver sets the PWM duty cycle correctly).
+> Voltage on the supply pin of the fan is 12 V.
+> 
+> When put load on the system and CPU temperature rises, though, the fan
+> RPM rise up to 2800.  The question is:  What is the reason for this RPM
+> rise?  It can't be the PWM signal, as the PWM pin is disconnected.  It
+> can't be the voltage, because the voltage stays at 12 V (I measured it).
+> 
+> The only explanation that comes to my mind is that the fan does not
+> actually go to full speed even at full PWM duty cycle until it senses
+> high temperature itself.  This implies that the fan has some integrated
+> temperature sensor.
+> 
+> Is this possible?  And if so, why would they do such a thing?
+
+Yes, this is possible, I've seen this before.
+
+Reason is that it allows for totally software and hardware agnostic fan
+speed control. CPU safety is guaranteed by the fan itself and there is
+no way to screw it (short of removing or under-powering the fan itself.)
+
+Obviously the major drawback is that it takes control away from the
+user, so I would stay away from such hardware if I can. But for lambda
+users it makes some sense.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
