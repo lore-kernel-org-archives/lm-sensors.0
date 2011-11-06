@@ -1,39 +1,30 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 06 Nov 2011 09:30:24 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Fix for non-SMP builds
-Message-Id: <20111106103024.31cd2892@endymion.delvare>
+From: "Soeren D. Schulze" <soeren.d.schulze@gmx.de>
+Date: Sun, 06 Nov 2011 18:03:55 +0000
+Subject: [lm-sensors] Intel 2500K stock fan control
+Message-Id: <4EB6CC0B.8050909@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20111105185411.0fb888e3@endymion.delvare>
-In-Reply-To: <20111105185411.0fb888e3@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, 5 Nov 2011 14:58:12 -0700, Guenter Roeck wrote:
-> On Sat, Nov 05, 2011 at 01:54:11PM -0400, Jean Delvare wrote:
-> > The definition of TO_ATTR_NO in the non-SMP case is wrong. As the SMP
-> > definition resolves to the correct value, just use this for both
-> > cases.
-> > 
-> > Without this fix the temperature attributes are named temp0_* instead
-> > of temp2_*, so libsensors won't pick them. Broken since kernel 3.0.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Tested-by: Phil Sutter <phil@nwl.cc>
-> 
-> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-
-Thanks.
-
-> Jean, I assume you take that one ?
-
-Yes I will.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SXQncyBtZSB3aXRoIG15IE5DVDY3NzYgYWdhaW4uCgpJdCBkb2Vzbid0IHNlZW0gdG8gYmUgdGhl
+IGRyaXZlciB0aGF0IGlzIGNhdXNpbmcgcHJvYmxlbXMuCgpXaGVuIEkgZm9yY2UgdGhlIFBXTSB0
+byBmdWxsIGR1dHkgY3ljbGUgYXQgbG93IENQVSB0ZW1wZXJhdHVyZSwgSSBnZXQKYWJvdXQgMjIw
+MCBSUE0uICBJIGdldCB0aGUgc2FtZSB0aGluZyB3aGVuIEkgZGlzY29ubmVjdCB0aGUgUFdNIHBp
+bgpjb21wbGV0ZWx5IChzbyBhcHBhcmVudGx5IHRoZSBkcml2ZXIgc2V0cyB0aGUgUFdNIGR1dHkg
+Y3ljbGUgY29ycmVjdGx5KS4KVm9sdGFnZSBvbiB0aGUgc3VwcGx5IHBpbiBvZiB0aGUgZmFuIGlz
+IDEyIFYuCgpXaGVuIHB1dCBsb2FkIG9uIHRoZSBzeXN0ZW0gYW5kIENQVSB0ZW1wZXJhdHVyZSBy
+aXNlcywgdGhvdWdoLCB0aGUgZmFuClJQTSByaXNlIHVwIHRvIDI4MDAuICBUaGUgcXVlc3Rpb24g
+aXM6ICBXaGF0IGlzIHRoZSByZWFzb24gZm9yIHRoaXMgUlBNCnJpc2U/ICBJdCBjYW4ndCBiZSB0
+aGUgUFdNIHNpZ25hbCwgYXMgdGhlIFBXTSBwaW4gaXMgZGlzY29ubmVjdGVkLiAgSXQKY2FuJ3Qg
+YmUgdGhlIHZvbHRhZ2UsIGJlY2F1c2UgdGhlIHZvbHRhZ2Ugc3RheXMgYXQgMTIgViAoSSBtZWFz
+dXJlZCBpdCkuCgpUaGUgb25seSBleHBsYW5hdGlvbiB0aGF0IGNvbWVzIHRvIG15IG1pbmQgaXMg
+dGhhdCB0aGUgZmFuIGRvZXMgbm90CmFjdHVhbGx5IGdvIHRvIGZ1bGwgc3BlZWQgZXZlbiBhdCBm
+dWxsIFBXTSBkdXR5IGN5Y2xlIHVudGlsIGl0IHNlbnNlcwpoaWdoIHRlbXBlcmF0dXJlIGl0c2Vs
+Zi4gIFRoaXMgaW1wbGllcyB0aGF0IHRoZSBmYW4gaGFzIHNvbWUgaW50ZWdyYXRlZAp0ZW1wZXJh
+dHVyZSBzZW5zb3IuCgpJcyB0aGlzIHBvc3NpYmxlPyAgQW5kIGlmIHNvLCB3aHkgd291bGQgdGhl
+eSBkbyBzdWNoIGEgdGhpbmc/CgoKU29ycnkgaWYgdGhpcyB3YXMgYSBiaXQgb2ZmLXRvcGljLgoK
+U8O2cmVuCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
