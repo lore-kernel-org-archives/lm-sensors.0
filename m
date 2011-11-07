@@ -1,81 +1,65 @@
-From: lars nooden <lars.nooden@gmail.com>
-Date: Fri, 04 Nov 2011 10:46:44 +0000
+From: =?ISO-8859-1?Q?Lars_Nood=E9n?= <lars.nooden@gmail.com>
+Date: Mon, 07 Nov 2011 12:13:08 +0000
 Subject: Re: [lm-sensors] Hardware running hot and without the fan
-Message-Id: <CACq_q0eru4AOgV9Km5PqXPUDUVWphxFeZPFkwR5cJzPbkz7PCQ@mail.gmail.com>
+Message-Id: <4EB7CB54.7020207@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4EB1108F.6070009@gmail.com>
-	<20111103020301.GA22333@ericsson.com>
-	<4EB250FD.3070000@gmail.com>
-	<20111103134902.GA26121@ericsson.com>
-	<4EB2A46B.8080600@gmail.com>
-	<1320332801.2309.60.camel@groeck-laptop>
-	<4EB2B0FD.309@gmail.com>
-	<1320334322.2309.68.camel@groeck-laptop>
-	<20111103174321.37274532@endymion.delvare>
-	<1320339328.2309.78.camel@groeck-laptop>
-In-Reply-To: <1320339328.2309.78.camel@groeck-laptop>
+References: <4EB1108F.6070009@gmail.com> <20111103020301.GA22333@ericsson.com> <4EB250FD.3070000@gmail.com> <20111103134902.GA26121@ericsson.com> <4EB2A46B.8080600@gmail.com> <1320332801.2309.60.camel@groeck-laptop> <4EB2B0FD.309@gmail.com> <20111103174635.GA12229@polaris.bitmath.org>
+In-Reply-To: <20111103174635.GA12229@polaris.bitmath.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-To: guenter.roeck@ericsson.com
-Cc: Jean Delvare <khali@linux-fr.org>, Henrik Rydberg <rydberg@euromail.se>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: guenter.roeck@ericsson.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On 11/3/11, Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-> On Thu, 2011-11-03 at 12:43 -0400, Jean Delvare wrote:
->> On Thu, 3 Nov 2011 08:32:02 -0700, Guenter Roeck wrote:
->> > On Thu, 2011-11-03 at 11:19 -0400, Lars Nood=E9n wrote:
->> > > I can set the fan speed manually.  e.g.:
->> > >
->> > >  echo 3500 > /sys/class/hwmon/hwmon0/device/fan1_output
->> > >
->> > > That helps some.
->> > >
->> > If you can do that, you should be able to set up fancontrol to
->> > automatically control fan speed based on system temperatures.
->>
->> This won't work, as fancontrol wants pwmX attributes which the applesmc
->> driver doesn't implement.
->>
-> Yes, you are right - it won't work without patching it to use
-> fanX_output and to accept larger values for the limits.
+On 11/3/11 7:46 PM, Henrik Rydberg wrote:
+[snip]
+> I am confused.
+>=20
+> From what I gather, the fans work, and it should be possible to run
+> the macfanctld daemon (not fancontrol) to tune the fans.
 >
-> Wonder how this works for other Apple systems. Maybe there is an
-> Apple-specific script out there to control fan speed.
->
->> > There is another sysfs attribute - fanX_manual. I don't find driver
->> > documentation, so I have no idea what it is doing. The name indicates
->> > that it might set manual vs. automatic fan control. What is it set to =
-in
->> > your system ? From the code, looks like it should be 0 or 1. Try to
->> > toggle it and see what happens - after all, it can not get worse ;).
->>
->> Might be worth looking at files fanX_min, _max and _safe too. Too bad
->> there doesn't seem to be any documentation available for all these
->> non-standard attributes :(
->>
-> Here is some info from the web about the problem. See
-> http://ubuntuforums.org/archive/index.php/t-981280.html.
->
-> So, for those that have reported high temperatures due to low fan
-> speeds: check the value of
->
-> cat /sys/devices/platform/applesmc.768/fan1_manual
+> If there really is a problem with the applesmc, following
+> http://ubuntuforums.org/showthread.php?t=924096 is a good idea.
+>=20
+> However, the root problem is most likely the GPU consuming too much
+> power. Depending on the exact laptop model, there may or may not be a
+> viable workaround. If you model is very new, there is most likely and
+> active thread about it on the ubuntu forums.
 
-It is zero already:
-  $ cat /sys/devices/platform/applesmc.768/fan1_manual
-  0
+Not that I could find, at least not useful ones.
+Starting a new thread gained no results.
+
+> After checking around on the forums, if you find that this is still a
+> fan or temperature sensor problem, and not a GPU problem, then please
+> restate the problem as exactly as you can.
+
+Can it be both a fan / sensor / GPU problem?
+To restate the symptoms:
+
+- the hardware runs hot in Linux, the same hardware runs cool in OS X
+- the fan(s) do not run automatically when the machines get hot
+- the fan(s) can be controlled manually
+- the temperatures from /usr/bin/sensors on the notebook seem
+  suspiciously low
+
+The kernels are
+
+- 3.1.0-999-generic #201111070407 SMP Mon Nov 7
+  09:08:05 UTC 2011 x86_64 x86_64 x86_64 GNU/Linux
+
+- 3.1.0-2-generic #3-Ubuntu SMP Fri Oct 28
+  20:28:07 UTC 2011 i686 i686 i386 GNU/Linux
+
+Output from apport can be found in Launchpad:
+
+ https://bugs.launchpad.net/ubuntu/+source/linux/+bug/881593
+
+The notebook is a MacBookPro8,2 and the desktop is a Macmini3,1
+
+How should I split the problem up and where should I pursue their
+resolution?
 
 /Lars
-
-> With no software control of the fans, which is the case with the
-> macbooks (fancontrol and pwmconfig does not work), the fan speed seems
-> to be controlled automatically by the SMC without issues - but only if
-> fan1_manual is zero.
->
-> Guenter
->
->
->
 
 _______________________________________________
 lm-sensors mailing list
