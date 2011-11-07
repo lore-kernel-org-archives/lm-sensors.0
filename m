@@ -1,161 +1,129 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 22 Nov 2011 20:39:58 +0000
-Subject: [lm-sensors] [PATCH v2 1/3] hwmon: (lm63) Add support for unsigned
-Message-Id: <1321994400-29295-2-git-send-email-guenter.roeck@ericsson.com>
+From: Jonathan Cameron <jic23@kernel.org>
+Date: Mon, 07 Nov 2011 15:44:36 +0000
+Subject: [lm-sensors] [PATCH 0/5 V4] IIO in kernel interfaces (pull)
+Message-Id: <1320680681-5635-1-git-send-email-jic23@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: guenter.roeck@ericsson.com, khali@linux-fr.org, dmitry.torokhov@gmail.com, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, linus.walleij@linaro.org, lars@metafoo.de, maxime.ripard@free-electrons.com, lm-sensors@lm-sensors.org, thomas.petazzoni@free-electrons.com, zdevai@gmail.com, Jonathan Cameron <jic23@kernel.org>
 
-LM96163 supports unsigned upper limits for the external temperature sensor.
-Add support for it.
+Dear All,
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
----
-v2: Improved rounding for TEMP11U_TO_REG()
+Changes since V3 are all in processing of raw values to give sensible
+hwmon outputs in response to Guenter's comments.
 
- drivers/hwmon/lm63.c |   57 +++++++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 49 insertions(+), 8 deletions(-)
+Also rebased on the new version of the IIO core.
 
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-index de6cf7f..b2ffea9 100644
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -92,6 +92,8 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
- #define LM63_REG_MAN_ID			0xFE
- #define LM63_REG_CHIP_ID		0xFF
- 
-+#define LM96163_REG_REMOTE_TEMP_U_MSB	0x31
-+#define LM96163_REG_REMOTE_TEMP_U_LSB	0x32
- #define LM96163_REG_CONFIG_ENHANCED	0x45
- 
- /*
-@@ -120,6 +122,9 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
- 				 (val) >= 127875 ? 0x7FE0 : \
- 				 (val) < 0 ? ((val) - 62) / 125 * 32 : \
- 				 ((val) + 62) / 125 * 32)
-+#define TEMP11U_TO_REG(val)	((val) <= 0 ? 0 : \
-+				 (val) >= 255875 ? 0xFFE0 : \
-+				 ((val) + 62) / 125 * 32)
- #define HYST_TO_REG(val)	((val) <= 0 ? 0 : \
- 				 (val) >= 127000 ? 127 : \
- 				 ((val) + 500) / 1000)
-@@ -188,11 +193,20 @@ struct lm63_data {
- 			   1: remote low limit
- 			   2: remote high limit
- 			   3: remote offset */
-+	u16 temp11u;	/* remote input (unsigned) */
- 	u8 temp2_crit_hyst;
- 	u8 alarms;
- 	bool pwm_highres;
-+	bool remote_unsigned; /* true if unsigned remote upper limits */
- };
- 
-+static inline int temp8_from_reg(struct lm63_data *data, int nr)
-+{
-+	if (data->remote_unsigned)
-+		return TEMP8_FROM_REG((u8)data->temp8[nr]);
-+	return TEMP8_FROM_REG(data->temp8[nr]);
-+}
-+
- /*
-  * Sysfs callback functions and files
-  */
-@@ -295,7 +309,7 @@ static ssize_t show_remote_temp8(struct device *dev,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct lm63_data *data = lm63_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP8_FROM_REG(data->temp8[attr->index])
-+	return sprintf(buf, "%d\n", temp8_from_reg(data, attr->index)
- 		       + data->temp2_offset);
- }
- 
-@@ -324,8 +338,25 @@ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct lm63_data *data = lm63_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP11_FROM_REG(data->temp11[attr->index])
--		       + data->temp2_offset);
-+	int nr = attr->index;
-+	int temp;
-+
-+	if (!nr) {
-+		/*
-+		 * Use unsigned temperature unless its value is zero.
-+		 * If it is zero, use signed temperature.
-+		 */
-+		if (data->temp11u)
-+			temp = TEMP11_FROM_REG(data->temp11u);
-+		else
-+			temp = TEMP11_FROM_REG(data->temp11[nr]);
-+	} else {
-+		if (data->remote_unsigned && nr = 2)
-+			temp = TEMP11_FROM_REG((u16)data->temp11[nr]);
-+		else
-+			temp = TEMP11_FROM_REG(data->temp11[nr]);
-+	}
-+	return sprintf(buf, "%d\n", temp + data->temp2_offset);
- }
- 
- static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
-@@ -352,7 +383,11 @@ static ssize_t set_temp11(struct device *dev, struct device_attribute *devattr,
- 		return err;
- 
- 	mutex_lock(&data->update_lock);
--	data->temp11[nr] = TEMP11_TO_REG(val - data->temp2_offset);
-+	if (data->remote_unsigned && nr = 2)
-+		data->temp11[nr] = TEMP11U_TO_REG(val - data->temp2_offset);
-+	else
-+		data->temp11[nr] = TEMP11_TO_REG(val - data->temp2_offset);
-+
- 	i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2],
- 				  data->temp11[nr] >> 8);
- 	i2c_smbus_write_byte_data(client, reg[(nr - 1) * 2 + 1],
-@@ -369,7 +404,7 @@ static ssize_t show_temp2_crit_hyst(struct device *dev,
- 				    struct device_attribute *dummy, char *buf)
- {
- 	struct lm63_data *data = lm63_update_device(dev);
--	return sprintf(buf, "%d\n", TEMP8_FROM_REG(data->temp8[2])
-+	return sprintf(buf, "%d\n", temp8_from_reg(data, 2)
- 		       + data->temp2_offset
- 		       - TEMP8_FROM_REG(data->temp2_crit_hyst));
- }
-@@ -393,7 +428,7 @@ static ssize_t set_temp2_crit_hyst(struct device *dev,
- 		return err;
- 
- 	mutex_lock(&data->update_lock);
--	hyst = TEMP8_FROM_REG(data->temp8[2]) + data->temp2_offset - val;
-+	hyst = temp8_from_reg(data, 2) + data->temp2_offset - val;
- 	i2c_smbus_write_byte_data(client, LM63_REG_REMOTE_TCRIT_HYST,
- 				  HYST_TO_REG(hyst));
- 	mutex_unlock(&data->update_lock);
-@@ -632,8 +667,7 @@ static void lm63_init_client(struct i2c_client *client)
- 		    && !(data->config_fan & 0x08) && data->pwm1_freq = 8)
- 			data->pwm_highres = true;
- 		if (config_enhanced & 0x08)
--			dev_warn(&client->dev,
--				 "Unsigned format for High and Crit setpoints enabled but not supported by driver");
-+			data->remote_unsigned = true;
- 	}
- 
- 	/* Show some debug info about the LM63 configuration */
-@@ -709,6 +743,13 @@ static struct lm63_data *lm63_update_device(struct device *dev)
- 				  LM63_REG_REMOTE_OFFSET_MSB) << 8)
- 				| i2c_smbus_read_byte_data(client,
- 				  LM63_REG_REMOTE_OFFSET_LSB);
-+
-+		if (data->kind = lm96163)
-+			data->temp11u = (i2c_smbus_read_byte_data(client,
-+					LM96163_REG_REMOTE_TEMP_U_MSB) << 8)
-+				      | i2c_smbus_read_byte_data(client,
-+					LM96163_REG_REMOTE_TEMP_U_LSB);
-+
- 		data->temp8[2] = i2c_smbus_read_byte_data(client,
- 				 LM63_REG_REMOTE_TCRIT);
- 		data->temp2_crit_hyst = i2c_smbus_read_byte_data(client,
+Note this is just the association infrastructure and the pull interfaces.
+Thus we can handle drivers polling for values.  Doing push interfaces
+(interrupt triggered more or less) requires a lot more of the IIO
+intrastructure to be in place and so will have to wait a little while.
+This is available for the staging tree but will will require the second
+large part of IIO to move out of staging (triggered and buffered capture)
+plus needs a little more work and a lot more testing.  As the cover letter
+for the push interface epxlains there are some complexities of the
+interaction of push and pull interfaces on the same physical device.  These
+are independent of the external interfaces so shouldn't block this support
+merging.
+
+The final patch is not intended for merging, but rather acts as an
+example of the board configuration needed.
+
+
+Since V2:
+
+Fixes as per Guenter's comments on the iio_hwmon driver.
+Only one that differred slightly from Guenters suggestion
+is the value calculation where I reordered things to reduce
+the chance of overflow as well as casting to longs.
+Thanks Guenter!
+
+Since V1:
+Uses the bus's list of devices instead of having a local one.
+     (thanks to Lars-Peter).
+
+Added are interfaces for getting all channels mapped to a particular
+device.
+
+Hwmon driver is now vaguely complete - hence cc'd hwmon. If people
+are happy I'd expect this to ultimately end up in drivers/hmwon.
+Right now it is acting as a test driver for these interfaces.
+
+Thanks and all comments welcome. I've added hwmon to the cc list 
+this time round.
+
+V1 message:
+
+There are obviously some rough corners in here that will need cleaning up.
+For now I've just put this out there to see if anyone radically disagrees
+on the direction.  It sits on top the recent rfc to move first bit of IIO
+out of staging with a few buglets fixed.  Best bet if anyone wants to
+test is to pull from:
+
+https://github.com/jic23/linux-iio/tree/outofstaging
+
+which now also includes these patches.
+
+Intereresting patches are 3 and 4.  5 gives a trivial example of
+a driver using this (hwmon driver that only takes first matching channel
+and sticks it out as in1_input - breaks all sorts elements of the hwmon
+interface spec.)
+
+For now I've gone with Mark Brown's suggestion of a datasheet_name for
+finding the channels on the device.  Patch 2 hacks this name into the
+max1363 driver.  I'll probably put a version matching on channel number and
+type in at a later date.
+
+Here we just have a pull interface.  Push is considerably harder to do
+and needs quite a lot more of the IIO infrastructure to be in place
+(triggers / buffers etc). Events obviously require IIO event handling
+to be there. Hence all of that will have to wait until those elements
+have in of themselves been posted for review.
+
+It is pretty clear to me that hwmon interface for starters needs the
+ability to say - 'give me all mappings that correspond to me'.
+
+This is what I intend to add next followed by some utility functions
+to make it easy to match the hwmon interface.
+
+At that point I'll propose the hwmon driver goes into drivers/hwmon
+(subject to the underlying iio stuff merging).
+
+Fun fun fun.  Thanks to Linus an Mark for their input on this.
+Hope this is roughly what you guys were looking for.
+
+Also on my list to do is to check this very thoroughly for any
+possible race conditions around the removal of the underlying
+device.
+
+Jonathan
+
+Jonathan Cameron (5):
+  IIO: core: add datasheet_name to chan_spec
+  IIO:ADC:max1363 add datasheet_name entries.
+  IIO:CORE add in kernel interface mapping and getting IIO channels.
+  IIO:hwmon interface client driver.
+  stargate2: example of map configuration for iio to hwmon example.
+
+ arch/arm/mach-pxa/stargate2.c  |   23 ++++
+ drivers/Makefile               |    2 +-
+ drivers/iio/Kconfig            |    8 ++
+ drivers/iio/Makefile           |    2 +
+ drivers/iio/adc/max1363_core.c |    2 +
+ drivers/iio/iio.c              |  264 +++++++++++++++++++++++++++++++++++++++-
+ drivers/iio/iio_hwmon.c        |  227 ++++++++++++++++++++++++++++++++++
+ drivers/iio/inkern.c           |   20 +++
+ include/linux/iio/iio.h        |    7 +-
+ include/linux/iio/inkern.h     |   95 ++++++++++++++
+ 10 files changed, 643 insertions(+), 7 deletions(-)
+ create mode 100644 drivers/iio/iio_hwmon.c
+ create mode 100644 drivers/iio/inkern.c
+ create mode 100644 include/linux/iio/inkern.h
+
 -- 
-1.7.3.1
+1.7.7.2
 
 
 _______________________________________________
