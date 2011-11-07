@@ -1,212 +1,80 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 22 Nov 2011 20:40:00 +0000
-Subject: [lm-sensors] [PATCH 3/3] hwmon: (lm63) Add support for
-Message-Id: <1321994400-29295-4-git-send-email-guenter.roeck@ericsson.com>
+From: Jonathan Cameron <jic23@kernel.org>
+Date: Mon, 07 Nov 2011 15:44:41 +0000
+Subject: [lm-sensors] [PATCH 5/5] stargate2: example of map configuration
+Message-Id: <1320680681-5635-6-git-send-email-jic23@kernel.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1320680681-5635-1-git-send-email-jic23@kernel.org>
+In-Reply-To: <1320680681-5635-1-git-send-email-jic23@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: guenter.roeck@ericsson.com, khali@linux-fr.org, dmitry.torokhov@gmail.com, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, linus.walleij@linaro.org, lars@metafoo.de, maxime.ripard@free-electrons.com, lm-sensors@lm-sensors.org, thomas.petazzoni@free-electrons.com, zdevai@gmail.com, Jonathan Cameron <jic23@cam.ac.uk>
 
-Conversion rate on LM63 and compatibles is configurable, so let's support it.
+From: Jonathan Cameron <jic23@cam.ac.uk>
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Do not commit.
 ---
- Documentation/hwmon/lm63 |    6 +-
- drivers/hwmon/lm63.c     |   95 +++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 97 insertions(+), 4 deletions(-)
+ arch/arm/mach-pxa/stargate2.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/hwmon/lm63 b/Documentation/hwmon/lm63
-index 337f7f4..1d77874 100644
---- a/Documentation/hwmon/lm63
-+++ b/Documentation/hwmon/lm63
-@@ -61,9 +61,9 @@ PWM modes: manual and automatic. Automatic mode is not fully implemented yet
- (you cannot define your custom PWM/temperature curve), and mode change isn't
- supported either.
+diff --git a/arch/arm/mach-pxa/stargate2.c b/arch/arm/mach-pxa/stargate2.c
+index 4c9a48b..25a69c7 100644
+--- a/arch/arm/mach-pxa/stargate2.c
++++ b/arch/arm/mach-pxa/stargate2.c
+@@ -54,6 +54,8 @@
+ #include <linux/mfd/da903x.h>
+ #include <linux/sht15.h>
  
--The lm63 driver will not update its values more frequently than every
--second; reading them more often will do no harm, but will return 'old'
--values.
-+The lm63 driver will not update its values more frequently than configured with
-+the update_interval attribute; reading them more often will do no harm, but will
-+return 'old' values.
++#include <linux/iio/inkern.h>
++
+ #include "devices.h"
+ #include "generic.h"
  
- The LM64 is effectively an LM63 with GPIO lines. The driver does not
- support these GPIO lines at present.
-diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
-index f28b4d0..2b7a4be 100644
---- a/drivers/hwmon/lm63.c
-+++ b/drivers/hwmon/lm63.c
-@@ -61,6 +61,7 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
-  */
- 
- #define LM63_REG_CONFIG1		0x03
-+#define LM63_REG_CONVRATE		0x04
- #define LM63_REG_CONFIG2		0xBF
- #define LM63_REG_CONFIG_FAN		0x4A
- 
-@@ -96,6 +97,11 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
- #define LM96163_REG_REMOTE_TEMP_U_LSB	0x32
- #define LM96163_REG_CONFIG_ENHANCED	0x45
- 
-+#define LM63_MAX_CONVRATE		9
-+
-+#define LM63_MAX_CONVRATE_HZ		32
-+#define LM96163_MAX_CONVRATE_HZ		26
-+
- /*
-  * Conversions and various macros
-  * For tachometer counts, the LM63 uses 16-bit values.
-@@ -132,6 +138,10 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
- 				 (val) >= 127000 ? 127 : \
- 				 ((val) + 500) / 1000)
- 
-+#define UPDATE_INTERVAL(max, rate) \
-+	DIV_ROUND_CLOSEST(10000000, \
-+			  ((max) * 10000) >> (LM63_MAX_CONVRATE - (rate)))
-+
- /*
-  * Functions declaration
-  */
-@@ -183,6 +193,9 @@ struct lm63_data {
- 	int kind;
- 	int temp2_offset;
- 
-+	int update_interval;	/* in milliseconds */
-+	int max_convrate_hz;
-+
- 	/* registers values */
- 	u8 config, config_fan;
- 	u16 fan[2];	/* 0: input
-@@ -463,6 +476,59 @@ static ssize_t set_temp2_crit_hyst(struct device *dev,
- 	return count;
- }
- 
-+/*
-+ * Set conversion rate.
-+ * client->update_lock must be held when calling this function (unless we are
-+ * in detection or initialization steps).
-+ */
-+static void lm63_set_convrate(struct i2c_client *client, struct lm63_data *data,
-+			      unsigned int interval)
-+{
-+	int i;
-+	unsigned int update_interval;
-+
-+	/* Shift calculations to avoid rounding errors */
-+	interval <<= 6;
-+
-+	/* find the nearest update rate */
-+	update_interval = (1 << (LM63_MAX_CONVRATE + 6)) * 1000
-+	  / data->max_convrate_hz;
-+	for (i = 0; i < LM63_MAX_CONVRATE; i++, update_interval >>= 1)
-+		if (interval >= update_interval * 3 / 4)
-+			break;
-+
-+	i2c_smbus_write_byte_data(client, LM63_REG_CONVRATE, i);
-+	data->update_interval = UPDATE_INTERVAL(data->max_convrate_hz, i);
-+}
-+
-+static ssize_t show_update_interval(struct device *dev,
-+				    struct device_attribute *attr, char *buf)
-+{
-+	struct lm63_data *data = dev_get_drvdata(dev);
-+
-+	return sprintf(buf, "%u\n", data->update_interval);
-+}
-+
-+static ssize_t set_update_interval(struct device *dev,
-+				   struct device_attribute *attr,
-+				   const char *buf, size_t count)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm63_data *data = i2c_get_clientdata(client);
-+	unsigned long val;
-+	int err;
-+
-+	err = kstrtoul(buf, 10, &val);
-+	if (err)
-+		return err;
-+
-+	mutex_lock(&data->update_lock);
-+	lm63_set_convrate(client, data, val);
-+	mutex_unlock(&data->update_lock);
-+
-+	return count;
-+}
-+
- static ssize_t show_alarms(struct device *dev, struct device_attribute *dummy,
- 			   char *buf)
- {
-@@ -513,6 +579,9 @@ static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, show_alarm, NULL, 6);
- /* Raw alarm file for compatibility */
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
-+static DEVICE_ATTR(update_interval, S_IRUGO | S_IWUSR, show_update_interval,
-+		   set_update_interval);
-+
- static struct attribute *lm63_attributes[] = {
- 	&dev_attr_pwm1.attr,
- 	&dev_attr_pwm1_enable.attr,
-@@ -531,6 +600,7 @@ static struct attribute *lm63_attributes[] = {
- 	&sensor_dev_attr_temp2_max_alarm.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
- 	&dev_attr_alarms.attr,
-+	&dev_attr_update_interval.attr,
- 	NULL
+@@ -406,6 +408,24 @@ static struct i2c_pxa_platform_data i2c_pdata = {
+ 	.fast_mode = 1,
  };
  
-@@ -683,6 +753,7 @@ exit:
- static void lm63_init_client(struct i2c_client *client)
- {
- 	struct lm63_data *data = i2c_get_clientdata(client);
-+	u8 convrate;
- 
- 	data->config = i2c_smbus_read_byte_data(client, LM63_REG_CONFIG1);
- 	data->config_fan = i2c_smbus_read_byte_data(client,
-@@ -701,6 +772,24 @@ static void lm63_init_client(struct i2c_client *client)
- 	if (data->pwm1_freq = 0)
- 		data->pwm1_freq = 1;
- 
-+	switch (data->kind) {
-+	case lm63:
-+	case lm64:
-+		data->max_convrate_hz = LM63_MAX_CONVRATE_HZ;
-+		break;
-+	case lm96163:
-+		data->max_convrate_hz = LM96163_MAX_CONVRATE_HZ;
-+		break;
-+	default:
-+		BUG();
-+		break;
-+	}
-+	convrate = i2c_smbus_read_byte_data(client, LM63_REG_CONVRATE);
-+	if (convrate > LM63_MAX_CONVRATE)
-+		convrate = LM63_MAX_CONVRATE;
-+	data->update_interval = UPDATE_INTERVAL(data->max_convrate_hz,
-+						convrate);
++static struct platform_device iio_hwmon_test = {
++	.name = "iio_hwmon",
++};
 +
- 	/*
- 	 * For LM96163, check if high resolution PWM is enabled.
- 	 * Also, check if unsigned temperature format is enabled
-@@ -745,10 +834,14 @@ static struct lm63_data *lm63_update_device(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm63_data *data = i2c_get_clientdata(client);
-+	unsigned long next_update;
- 
- 	mutex_lock(&data->update_lock);
- 
--	if (time_after(jiffies, data->last_updated + HZ) || !data->valid) {
-+	next_update = data->last_updated
-+	  + msecs_to_jiffies(data->update_interval) + 1;
++static struct iio_map adc_map[] = {
++	{
++		.adc_dev_name = "0-0035",
++		.adc_channel_label = "AIN1",
++		.consumer_dev = &iio_hwmon_test.dev,
++		.consumer_channel = "testchan1",
++	}, {
++		.adc_dev_name = "0-0035",
++		.adc_channel_label = "AIN2",
++		.consumer_dev = &iio_hwmon_test.dev,
++		.consumer_channel = "testchan2",
++	},
++};
 +
-+	if (time_after(jiffies, next_update) || !data->valid) {
- 		if (data->config & 0x04) { /* tachometer enabled  */
- 			/* order matters for fan1_input */
- 			data->fan[0] = i2c_smbus_read_byte_data(client,
+ static void __init imote2_stargate2_init(void)
+ {
+ 
+@@ -423,6 +443,8 @@ static void __init imote2_stargate2_init(void)
+ 
+ 	pxa27x_set_i2c_power_info(&i2c_pwr_pdata);
+ 	pxa_set_i2c_info(&i2c_pdata);
++
++	iio_map_array_register(adc_map, ARRAY_SIZE(adc_map));
+ }
+ 
+ #ifdef CONFIG_MACH_INTELMOTE2
+@@ -971,6 +993,7 @@ static struct platform_device *stargate2_devices[] = {
+ 	&stargate2_sram,
+ 	&smc91x_device,
+ 	&sht15,
++	&iio_hwmon_test,
+ };
+ 
+ static void __init stargate2_init(void)
 -- 
-1.7.3.1
+1.7.7.2
 
 
 _______________________________________________
