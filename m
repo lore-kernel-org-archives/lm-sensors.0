@@ -1,41 +1,38 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 Nov 2011 20:51:49 +0000
-Subject: Re: [lm-sensors] [PATCH 0/3] hwmon: More LM63 enhancements
-Message-Id: <20111123205149.GA26543@ericsson.com>
+From: =?UTF-8?B?0JDQvdGC0L7QvSDQmtC+0YfQutC+0LI=?= <anton.kochkov@gmail.com>
+Date: Wed, 09 Nov 2011 18:34:36 +0000
+Subject: Re: [lm-sensors] IT8502 support
+Message-Id: <CA+8M6wn4LoLXq9RR6Uo8hH+8QPCUdLX3BaKtHvGXQ9FP1DeXww@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1321994400-29295-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1321994400-29295-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Nov 23, 2011 at 03:34:29PM -0500, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Tue, 22 Nov 2011 12:39:57 -0800, Guenter Roeck wrote:
-> > Add support for unsigned temperatures on LM96163
-> > Add support for writing remote T_CRIT limit
-> > Add support for writing conversion rate register
-> > 
-> > Question:
-> >   Calculations are currently along the line of "/ 125 * 32", causing loss of accuracy.
-> >   Ok to change to "* 32 / 125" ?
-> 
-> I think this is on purpose. Multiplying last guarantees that we don't
-> try to set bits which do not exist to 1. As long as proper rounding is
-> done before dividing, I don't quite see how we could be losing
-> accuracy. Do you have an actual example?
-> 
-You are right. I didn't realize that "/ 125" reduces accuracy to 1/8 degree C, which is exactly
-what the chips support, and that "* 32" simply shifts the value left by 5 bit to match the 11-bit
-registers.
-
-Sorry for the noise.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+TWFpbiBpc3N1ZSAtIHRoYXQgdGhpcyBpcyBub3Qgc2ltcGxlIFN1cGVyIEkvTyBidXQgcHJvZ3Jh
+bW1hYmxlCkVtYmVkZGVkIENvbnRyb2xsZXIsIHNvIGl0IGRlcGVuZHMgZnJvbSB0aGUgT0RNL3Zl
+bmRvciBmaXJtd2FyZS4gSWYKT0RNIC0gQ29tcGFsIGl0IGhhdmUgY29tbWFuZHMgc3BlY2lmaWNh
+dGlvbnMgaW4gc3VjaCBkYXRhc2hlZXRzOgp5b3UgY2FuIGZpbmQgdGhlbSBpbgpodHRwOi8vc2Vy
+dmljZTEubWFyYXNzdC5jb20vQ29tcGFsL0pITDkwXzkxL1NlcnZpY2UlMjUyME1hbnVhbC9KSEw5
+MCUyNTIwc2VydmljZSUyNTIwbWFudWFsLUZpbmFsLTA3MjUucGRmCiwgZm9yIGV4YW1wbGUuIElm
+IE9ETSAtIG5vdCBDb21wYWwsIGkgZG9uZSBrbm93LiBUaG91Z2ggSSBoYXZlIHJldmVyc2UKZW5n
+aW5lZXJlZCBJVEUgSVQ4NTAyIGZpcm13YXJlLgoKCkJlc3QgcmVnYXJkcywKQW50b24gS29jaGtv
+di4KCgoKCk9uIFdlZCwgTm92IDksIDIwMTEgYXQgMjI6MTQsIEd1ZW50ZXIgUm9lY2sgPGd1ZW50
+ZXIucm9lY2tAZXJpY3Nzb24uY29tPiB3cm90ZToKPiBPbiBXZWQsIDIwMTEtMTEtMDkgYXQgMDQ6
+MTUgLTA1MDAsIFJpY2hhcmQgSmFja3NvbiB3cm90ZToKPj4gSSBub3RlIHRoZXJlIGlzIGFscmVh
+ZHkgb25lIHJlcXVlc3QgZm9yIHN1cHBvcnQgZm9yIHRoZSBJVDg1eHggc2Vuc29yIC8KPj4gZmFu
+IGNvbnRyb2wuIEkgd291bGQgbGlrZSB0byBhZGQgbXkgbmFtZSB0byB0aGUgcmVxdWVzdCBsaXN0
+IGFuZCBhbHNvCj4+IG9mZmVyIGEgJDEwMCBkb25hdGlvbiBpZiB5b3UgY2FuIGdldCBpdCB0byB3
+b3JrLiBJIGhhdmUgYSBIUCBNaW5pCj4+IDExMC0zNzQ0IHRoYXQgY29udGFpbnMgdGhpcyBzZW5z
+b3IuIEkgYW0gcnVubmluZyBBcmNoIExpbnV4IGk2ODYgd2l0aAo+PiBsbV9zZW5zb3JzIHZlcnNp
+b24gwqAzLjMuMS4gQWxzbyBoYXBweSB0byB0ZXN0IC8gcHJvdmlkZSBleHRyYSBpbmZvLgo+PiBX
+b3VsZCB1bmRlcnN0YW5kIGlmIHRoZXJlIHdhcyBubyBpbnRlcmVzdCBpbiB0aGlzLgo+Pgo+PiBS
+aWNoYXJkIEphY2tzb24KPgo+IEkgYWRkZWQgeW91ciByZXF1ZXN0IHRvIHRoZSBsbS1zZW5zb3Jz
+IHdlYiBwYWdlLiBQcm9ibGVtIGlzIHRoYXQgc29tZW9uZQo+IHdobyBoYXMgc29tZSB0aW1lIHRv
+IHdyaXRlIGEgZHJpdmVyIHdpbGwgbmVlZCB0byBnZXQgYSBkYXRhc2hlZXQgYW5kIGEKPiBzeXN0
+ZW0gdXNpbmcgdGhhdCBjaGlwLgo+Cj4gR3VlbnRlcgo+Cj4KPgo+IF9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+PiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo+CgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
+QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xtLXNlbnNvcnM
