@@ -1,72 +1,59 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 Nov 2011 17:38:06 +0000
-Subject: Re: [lm-sensors] [PATCH v3 2/2] hwmon: (lm63) Add support for
-Message-Id: <20111123173806.GB25152@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 10 Nov 2011 13:31:44 +0000
+Subject: Re: [lm-sensors] lm_sensors and static kernel
+Message-Id: <20111110143144.0b063dd5@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1321894365-24285-3-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1321894365-24285-3-git-send-email-guenter.roeck@ericsson.com>
+References: <4E970050.10209@akron.net.pl>
+In-Reply-To: <4E970050.10209@akron.net.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Nov 23, 2011 at 12:31:29PM -0500, Jean Delvare wrote:
-> On Mon, 21 Nov 2011 12:37:48 -0800, Guenter Roeck wrote:
-> > Hi Jean,
-> > 
-> > On Mon, 2011-11-21 at 15:29 -0500, Jean Delvare wrote:
-> > > On Mon, 21 Nov 2011 08:52:45 -0800, Guenter Roeck wrote:
-> > > > LM96163 is an enhanced version of LM63 with improved PWM resolution. Add chip
-> > > > detection code as well as support for improved PWM resolution if the chip is
-> > > > configured to use it.
-> > > > 
-> > > > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > > > ---
-> > > >  Documentation/hwmon/lm63 |    8 ++++++++
-> > > >  drivers/hwmon/Kconfig    |    4 ++--
-> > > >  drivers/hwmon/lm63.c     |   41 ++++++++++++++++++++++++++++++++++++-----
-> > > >  3 files changed, 46 insertions(+), 7 deletions(-)
-> > > > (...)
-> > > > @@ -605,6 +619,23 @@ static void lm63_init_client(struct i2c_client *client)
-> > > >  	if (data->pwm1_freq = 0)
-> > > >  		data->pwm1_freq = 1;
-> > > >  
-> > > > +	/*
-> > > > +	 * For LM96163, check if high resolution PWM is enabled.
-> > > > +	 * Also, check if unsigned temperature format is enabled
-> > > > +	 * and display a warning message if it is.
-> > > > +	 */
-> > > > +	if (data->kind = lm96163) {
-> > > > +		u8 config_enhanced
-> > > > +		  = i2c_smbus_read_byte_data(client,
-> > > > +					     LM96163_REG_CONFIG_ENHANCED);
-> > > > +		if ((config_enhanced & 0x10)
-> > > > +		    && !(data->config_fan & 0x08) && data->pwm1_freq = 8)
-> > > > +			data->pwm_highres = true;
-> > > > +		if (config_enhanced & 0x08)
-> > > > +			dev_warn(&client->dev,
-> > > > +				 "Unsigned format for High and Crit setpoints enabled but not supported by driver");
-> > > 
-> > > Line too long and missing trailing newline. I fixed both, and queued
-> > > the patch for kernel 3.3, thank you. Care to update wiki/Devices?
-> > > 
-> > I thought long lines are now accepted and recommended for strings, to
-> > avoid breaking a string into multiple lines.
-> 
-> You appear to be right, I had missed that policy change, sorry. I've
-> reverted the line split.
-> 
-> > No idea where the missing
-> > newline comes from - checkpatch didn't report anything, and the patch
-> > seems to be ok when I look at it.
-> 
-> I didn't mean a patch formatting error. I meant missing "\n" at the end
-> of the log message itself. It would certainly make sense for checkpatch
-> to warn about these, but so far it does not.
-> 
-Ah, you are right. Thanks for the clarification.
+Hi,
 
-Guenter
+Sorry for the late reply.
+
+On Thu, 13 Oct 2011 10:14:24 -0500, brylu wrote:
+> I don't know if it's just me but, I don't have problem with lm_sensors
+> with kernel components compiled as modules everything works fine, but
+> when those components are compiled in statically and no module support
+> is enabled in the kernel I can't get it to work, sensors-detect detect
+> the correct drivers and stuff but sensors returns no modules found.
+> 
+> Did anyone succeeded in having it work with a static kernel, no modules
+> at all all compiled in?
+
+I just tried building my i2c bus and hwmon drivers into the kernel
+(still has modules enabled for the rest of the drivers) and it worked
+fine for me. In general it should work, however you should keep in mind
+that the most frequent use of lm-sensors is with modular drivers so the
+built-in case doesn't get much testing, isn't supported by
+sensors-detect, and may not be supported by your distribution either.
+
+One problem that can happen is that your distribution initialization
+script for the lm-sensors service wants at least one module to load,
+otherwise it decides that configuration wasn't done and it will bail
+out. This would prevent limits from being set at boot time, but
+"sensors" would still print the right thing (which doesn't seem to be
+the case for you?)
+
+A second problem would be that you included in your kernel hwmon
+drivers which you don't need. Probing for hwmon devices on the SMBus
+can be tricky, and we have seen misdetections happen. A midetection
+could cause the wrong driver to bind to your device, depending on the
+driver probing order. A probe sequence for device A could also confuse
+device B, even though we make our best to avoid this.
+
+If you want us to help, you'll have to provide more technical details.
+Which kernel version are you running?
+Which hardware monitoring devices do you have?
+Which drivers did you build into the kernel exactly?
+If you can share your .config file, this will help.
+Do you see anything under /sys/class/hwmon?
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
