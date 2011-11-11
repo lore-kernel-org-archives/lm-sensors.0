@@ -1,41 +1,33 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 10 Nov 2011 17:04:24 +0000
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Fri, 11 Nov 2011 15:42:04 +0000
 Subject: Re: [lm-sensors] [PATCH 3/5] IIO:CORE add in kernel interface
-Message-Id: <4EBC0418.2040005@cam.ac.uk>
+Message-Id: <CACRpkdbKPL6=t-YGSNZdb2aGXERvk6zPkb40ytOMbYXLQ7H2Vg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1320680681-5635-1-git-send-email-jic23@kernel.org> <1320680681-5635-4-git-send-email-jic23@kernel.org> <20111110132506.GF3832@opensource.wolfsonmicro.com>
-In-Reply-To: <20111110132506.GF3832@opensource.wolfsonmicro.com>
+References: <1320680681-5635-1-git-send-email-jic23@kernel.org>
+	<1320680681-5635-4-git-send-email-jic23@kernel.org>
+In-Reply-To: <1320680681-5635-4-git-send-email-jic23@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, khali@linux-fr.org, dmitry.torokhov@gmail.com, gregkh@suse.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, linus.walleij@linaro.org, lars@metafoo.de, maxime.ripard@free-electrons.com, lm-sensors@lm-sensors.org, thomas.petazzoni@free-electrons.com, zdevai@gmail.com
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, khali@linux-fr.org, dmitry.torokhov@gmail.com, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, lars@metafoo.de, maxime.ripard@free-electrons.com, lm-sensors@lm-sensors.org, thomas.petazzoni@free-electrons.com, zdevai@gmail.com, Jonathan Cameron <jic23@cam.ac.uk>
 
-On 11/10/2011 01:25 PM, Mark Brown wrote:
-> On Mon, Nov 07, 2011 at 03:44:39PM +0000, Jonathan Cameron wrote:
->> From: Jonathan Cameron <jic23@cam.ac.uk>
->>
->> Two elements here:
->> * Map as defined in include/linux/iio/inkern.h
->> * Matching code to actually get the iio_dev and channel
->> that we want from the global list of IIO devices.
-> 
-> I've not read it thoroughly but this certainly this looks sensible from
-> an external interface point of view, I'd expect that issues can be
-> worked through incrementally.
-> 
-> Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Thanks.
-> 
->> +extern struct list_head iio_map_list;
-> 
-> It's surprising that this is part of the external interface of IIO
-> rather than something hidden within the implementation.
-You are quite correct. I was being lazy and had that one element that
-didn't fit in any headers.  I'lll add a trivial inkern-core.h to handle
-that one bit.
+On Mon, Nov 7, 2011 at 4:44 PM, Jonathan Cameron <jic23@kernel.org> wrote:
 
+> From: Jonathan Cameron <jic23@cam.ac.uk>
+>
+> Two elements here:
+> * Map as defined in include/linux/iio/inkern.h
+> * Matching code to actually get the iio_dev and channel
+> that we want from the global list of IIO devices.
+>
+> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
 
+Overall this is what we want:
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+
+Thanks,
+Linus Walleij
 
 _______________________________________________
 lm-sensors mailing list
