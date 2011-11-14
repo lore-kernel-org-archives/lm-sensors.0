@@ -1,121 +1,61 @@
-From: "Gustavo De Nardin (spuk)" <gustavodn@gmail.com>
-Date: Mon, 14 Nov 2011 21:14:16 +0000
+From: Gustavo De Nardin <gustavodn@gmail.com>
+Date: Mon, 14 Nov 2011 21:24:44 +0000
 Subject: Re: [lm-sensors] [PATCH] Drivers: hwmon: it87: Add support for ITE
-Message-Id: <20111114211416.GA11771@zim>
+Message-Id: <CAGjm4uH7WEknWMTnFY0N8A2K736uM81o_1D=50S_XsYFf-bTjA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1320381858.22997.YahooMailNeo@web161601.mail.bf1.yahoo.com>
 In-Reply-To: <1320381858.22997.YahooMailNeo@web161601.mail.bf1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> On Fri, 2011-11-04 at 00:44 -0400, Frank T. Lofaro Jr. wrote:
-> > This patch allows the ITE 8728 chip to be detected and used.
-> > The chip appears to be compatible with the 8721.
-> >=20
->=20
-> Can anyone confirm that those chips are actually compatible ?
-
-Unlike forcing the other chips' ids, with force_id=3D0x8721 PWM control see=
-ms
-to work reasonably, with pwm1_enable=3D1, pwm1=3D0 yields around 1132 RPM o=
-n the
-CPU fan, and pwm1=3D255 yields around 3260 RPM.  Should pwm1=3D0 actually s=
-top
-the fan?  I get what (empirically) seem to be consistent logarithmic
-increase in RPM when increasing pwm1 value, anyway.
-
-But the sensors values read with 'it87 force_id=3D0x8721' don't seem ok, I =
-get
-this (first 'it87 force_id=3D0x8721', then 'asus_atk0110 new_if=3D1', which
-seems to provide good readings):
-
-it8721-isa-0290
-Adapter: ISA adapter
-in0:          +0.95 V  (min =3D  +2.78 V, max =3D  +1.14 V)  ALARM
-in1:          +1.50 V  (min =3D  +0.00 V, max =3D  +3.01 V)
-in2:          +1.88 V  (min =3D  +2.66 V, max =3D  +2.27 V)  ALARM
-in3:          +2.05 V  (min =3D  +2.68 V, max =3D  +0.67 V)  ALARM
-in4:          +2.03 V  (min =3D  +3.04 V, max =3D  +1.42 V)  ALARM
-in5:          +3.05 V  (min =3D  +3.04 V, max =3D  +3.01 V)  ALARM
-in6:          +2.05 V  (min =3D  +2.77 V, max =3D  +1.87 V)  ALARM
-3VSB:         +6.07 V  (min =3D  +1.10 V, max =3D  +4.56 V)  ALARM
-Vbat:         +3.34 V
-fan1:        3292 RPM  (min =3D   10 RPM)
-fan2:           0 RPM  (min =3D   10 RPM)  ALARM
-fan3:           0 RPM  (min =3D   13 RPM)  ALARM
-temp1:        +33.0=B0C  (low  =3D -65.0=B0C, high =3D -10.0=B0C)  sensor =
-=3D thermistor
-temp2:        +40.0=B0C  (low  =3D -19.0=B0C, high =3D +127.0=B0C)  sensor =
-=3D
-thermistor
-temp3:       -128.0=B0C  (low  =3D +119.0=B0C, high =3D  -2.0=B0C)  sensor =
-=3D disabled
-intrusion0:  OK
-
-atk0110-acpi-0
-Adapter: ACPI interface
-Vcore Voltage:      +0.95 V  (min =3D  +0.80 V, max =3D  +1.60 V)
-+3.3V Voltage:      +3.34 V  (min =3D  +2.97 V, max =3D  +3.63 V)
-+5V Voltage:        +5.13 V  (min =3D  +4.50 V, max =3D  +5.50 V)
-+12V Voltage:      +12.11 V  (min =3D +10.20 V, max =3D +13.80 V)
-CPU Fan Speed:     3276 RPM  (min =3D  600 RPM)
-Chassis Fan Speed:    0 RPM  (min =3D  600 RPM)
-CPU Temperature:    +33.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0C)
-MB Temperature:     +40.0=B0C  (high =3D +45.0=B0C, crit =3D +75.0=B0C)
-
-
-This is on an Asus M5A78L-M/USB3 mainboard.
-
-t'
-
-
->=20
-> Thanks,
-> Guenter
->=20
-> Signed-off-by: Frank T. Lofaro Jr. <ftlofaro at yahoo.com>
-> > ---
-> >  drivers/hwmon/it87.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> >=20
-> > diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-> > index d912649..0b21d18 100644
-> > --- a/drivers/hwmon/it87.c
-> > +++ b/drivers/hwmon/it87.c
-> > @@ -17,6 +17,7 @@
-> >   *            IT8720F  Super I/O chip w/LPC interface
-> >   *            IT8721F  Super I/O chip w/LPC interface
-> >   *            IT8726F  Super I/O chip w/LPC interface
-> > + *            IT8728F  Super I/O chip w/LPC interface
-> >   *            IT8758E  Super I/O chip w/LPC interface
-> >   *            Sis950   A clone of the IT8705F
-> >   *
-> > @@ -135,6 +136,7 @@ static inline void superio_exit(void)
-> >  #define IT8720F_DEVID 0x8720
-> >  #define IT8721F_DEVID 0x8721
-> >  #define IT8726F_DEVID 0x8726
-> > +#define IT8728F_DEVID 0x8728
-> >  #define IT87_ACT_REG  0x30
-> >  #define IT87_BASE_REG 0x60
-> > =20
-> > @@ -1603,6 +1605,7 @@ static int __init it87_find(unsigned short
-> > *address,
-> >                 sio_data->type =3D it8720;
-> >                 break;
-> >         case IT8721F_DEVID:
-> > +       case IT8728F_DEVID:
-> >                 sio_data->type =3D it8721;
-> >                 break;
-> >         case 0xffff:    /* No device at all */
-> > --=20
-> > 1.7.7.2
-
---=20
-::question =3D (bool) _2b||!_2b;
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMTQgTm92ZW1iZXIgMjAxMSAxOToxNCwgR3VzdGF2byBEZSBOYXJkaW4gKHNwdWspIDxndXN0
+YXZvZG5AZ21haWwuY29tPiB3cm90ZToKPj4gT24gRnJpLCAyMDExLTExLTA0IGF0IDAwOjQ0IC0w
+NDAwLCBGcmFuayBULiBMb2Zhcm8gSnIuIHdyb3RlOgo+PiA+IFRoaXMgcGF0Y2ggYWxsb3dzIHRo
+ZSBJVEUgODcyOCBjaGlwIHRvIGJlIGRldGVjdGVkIGFuZCB1c2VkLgo+PiA+IFRoZSBjaGlwIGFw
+cGVhcnMgdG8gYmUgY29tcGF0aWJsZSB3aXRoIHRoZSA4NzIxLgo+Pgo+PiBDYW4gYW55b25lIGNv
+bmZpcm0gdGhhdCB0aG9zZSBjaGlwcyBhcmUgYWN0dWFsbHkgY29tcGF0aWJsZSA/Cj4KPiBVbmxp
+a2UgZm9yY2luZyB0aGUgb3RoZXIgY2hpcHMnIGlkcywgd2l0aCBmb3JjZV9pZD0weDg3MjEgUFdN
+IGNvbnRyb2wgc2VlbXMKPiB0byB3b3JrIHJlYXNvbmFibHksIHdpdGggcHdtMV9lbmFibGU9MSwg
+cHdtMT0wIHlpZWxkcyBhcm91bmQgMTEzMiBSUE0gb24gdGhlCj4gQ1BVIGZhbiwgYW5kIHB3bTE9
+MjU1IHlpZWxkcyBhcm91bmQgMzI2MCBSUE0uIMKgU2hvdWxkIHB3bTE9MCBhY3R1YWxseSBzdG9w
+Cj4gdGhlIGZhbj8gwqBJIGdldCB3aGF0IChlbXBpcmljYWxseSkgc2VlbSB0byBiZSBjb25zaXN0
+ZW50IGxvZ2FyaXRobWljCj4gaW5jcmVhc2UgaW4gUlBNIHdoZW4gaW5jcmVhc2luZyBwd20xIHZh
+bHVlLCBhbnl3YXkuCj4KPiBCdXQgdGhlIHNlbnNvcnMgdmFsdWVzIHJlYWQgd2l0aCAnaXQ4NyBm
+b3JjZV9pZD0weDg3MjEnIGRvbid0IHNlZW0gb2ssIEkgZ2V0Cj4gdGhpcyAoZmlyc3QgJ2l0ODcg
+Zm9yY2VfaWQ9MHg4NzIxJywgdGhlbiAnYXN1c19hdGswMTEwIG5ld19pZj0xJywgd2hpY2gKPiBz
+ZWVtcyB0byBwcm92aWRlIGdvb2QgcmVhZGluZ3MpOgotLTg8LS1zbmlwLS04PC0tCj4KPiBUaGlz
+IGlzIG9uIGFuIEFzdXMgTTVBNzhMLU0vVVNCMyBtYWluYm9hcmQuCgpTb3JyeSwgZm9yZ290IHRv
+IGFkZCBzb2Z0d2FyZSB2ZXJzaW9uczogQXJjaCBMaW51eCB3aXRoIGxtX3NlbnNvcnMKMy4zLjEt
+MiBhbmQga2VybmVsIDMuMS4wLTQtQVJDSC4KCnQnCgo+Pgo+PiBUaGFua3MsCj4+IEd1ZW50ZXIK
+Pj4KPj4gU2lnbmVkLW9mZi1ieTogRnJhbmsgVC4gTG9mYXJvIEpyLiA8ZnRsb2Zhcm8gYXQgeWFo
+b28uY29tPgo+PiA+IC0tLQo+PiA+IMKgZHJpdmVycy9od21vbi9pdDg3LmMgfCDCoCDCoDMgKysr
+Cj4+ID4gwqAxIGZpbGVzIGNoYW5nZWQsIDMgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkK
+Pj4gPgo+PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2l0ODcuYyBiL2RyaXZlcnMvaHdt
+b24vaXQ4Ny5jCj4+ID4gaW5kZXggZDkxMjY0OS4uMGIyMWQxOCAxMDA2NDQKPj4gPiAtLS0gYS9k
+cml2ZXJzL2h3bW9uL2l0ODcuYwo+PiA+ICsrKyBiL2RyaXZlcnMvaHdtb24vaXQ4Ny5jCj4+ID4g
+QEAgLTE3LDYgKzE3LDcgQEAKPj4gPiDCoCAqIMKgIMKgIMKgIMKgIMKgIMKgSVQ4NzIwRiDCoFN1
+cGVyIEkvTyBjaGlwIHcvTFBDIGludGVyZmFjZQo+PiA+IMKgICogwqAgwqAgwqAgwqAgwqAgwqBJ
+VDg3MjFGIMKgU3VwZXIgSS9PIGNoaXAgdy9MUEMgaW50ZXJmYWNlCj4+ID4gwqAgKiDCoCDCoCDC
+oCDCoCDCoCDCoElUODcyNkYgwqBTdXBlciBJL08gY2hpcCB3L0xQQyBpbnRlcmZhY2UKPj4gPiAr
+ICogwqAgwqAgwqAgwqAgwqAgwqBJVDg3MjhGIMKgU3VwZXIgSS9PIGNoaXAgdy9MUEMgaW50ZXJm
+YWNlCj4+ID4gwqAgKiDCoCDCoCDCoCDCoCDCoCDCoElUODc1OEUgwqBTdXBlciBJL08gY2hpcCB3
+L0xQQyBpbnRlcmZhY2UKPj4gPiDCoCAqIMKgIMKgIMKgIMKgIMKgIMKgU2lzOTUwIMKgIEEgY2xv
+bmUgb2YgdGhlIElUODcwNUYKPj4gPiDCoCAqCj4+ID4gQEAgLTEzNSw2ICsxMzYsNyBAQCBzdGF0
+aWMgaW5saW5lIHZvaWQgc3VwZXJpb19leGl0KHZvaWQpCj4+ID4gwqAjZGVmaW5lIElUODcyMEZf
+REVWSUQgMHg4NzIwCj4+ID4gwqAjZGVmaW5lIElUODcyMUZfREVWSUQgMHg4NzIxCj4+ID4gwqAj
+ZGVmaW5lIElUODcyNkZfREVWSUQgMHg4NzI2Cj4+ID4gKyNkZWZpbmUgSVQ4NzI4Rl9ERVZJRCAw
+eDg3MjgKPj4gPiDCoCNkZWZpbmUgSVQ4N19BQ1RfUkVHIMKgMHgzMAo+PiA+IMKgI2RlZmluZSBJ
+VDg3X0JBU0VfUkVHIDB4NjAKPj4gPgo+PiA+IEBAIC0xNjAzLDYgKzE2MDUsNyBAQCBzdGF0aWMg
+aW50IF9faW5pdCBpdDg3X2ZpbmQodW5zaWduZWQgc2hvcnQKPj4gPiAqYWRkcmVzcywKPj4gPiDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzaW9fZGF0YS0+dHlwZSA9IGl0ODcyMDsKPj4gPiDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBicmVhazsKPj4gPiDCoCDCoCDCoCDCoCBjYXNlIElUODcyMUZf
+REVWSUQ6Cj4+ID4gKyDCoCDCoCDCoCBjYXNlIElUODcyOEZfREVWSUQ6Cj4+ID4gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgc2lvX2RhdGEtPnR5cGUgPSBpdDg3MjE7Cj4+ID4gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgYnJlYWs7Cj4+ID4gwqAgwqAgwqAgwqAgY2FzZSAweGZmZmY6IMKgIMKgLyog
+Tm8gZGV2aWNlIGF0IGFsbCAqLwo+PiA+IC0tCj4+ID4gMS43LjcuMgo+Cj4gLS0KPiA6OnF1ZXN0
+aW9uID0gKGJvb2wpIF8yYnx8IV8yYjsKPgoKCgotLSAKKG5pbCkKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
+YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
