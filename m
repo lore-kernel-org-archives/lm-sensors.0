@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 14 Nov 2011 08:01:33 +0000
+From: Tang Yuantian-B29983 <B29983@freescale.com>
+Date: Mon, 14 Nov 2011 08:48:38 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Fix two issues
-Message-Id: <20111114090133.0c063dd2@endymion.delvare>
+Message-Id: <3C06C26914DACA4BB3A368F78CA0B3A712A846@039-SN1MPN1-004.039d.mgd.msft.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
 In-Reply-To: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
@@ -10,109 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Tang,
-
-On Mon, 14 Nov 2011 13:41:06 +0800, Yuantian.Tang@freescale.com wrote:
-> From: Tang Yuantian <B29983@freescale.com>
-> 
-> 1. Not all platforms support i2c_smbus_read_block_data function.
-> Use i2c_smbus_read_i2c_block_data instead.
-
-You can't do that. These are two different transfer formats, they are
-not interchangeable. If the device wants the SMBus block format, then
-you have to use this in the driver. If the bus driver doesn't support
-that, it has to be fixed. In general it is only a matter of adding
-support for I2C_M_RECV_LEN to the bus driver. You can check in
-i2c-core:i2c_smbus_xfer_emulated() for a reference implementation.
-
-> 2. Not all zlxx chips's id start with zlxx. zl6100's id starts
-> with 0x10. Take this situation into account.
-
-No, this is incorrect. 0x10 is the first byte returned because SMBus
-block reads receive the block length as the first byte. 0x10 = 16,
-which is the length of the ID for these chips, this is no coincidence.
-This is a bug introduced by your above change of SMBus block read for
-I2C block read.
-
-So, nack.
-
-> Signed-off-by: Tang Yuantian <Yuantian.Tang@freescale.com>
-> ---
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-> branch: master
-> test platform: P1022DS
-> 
->  drivers/hwmon/pmbus/zl6100.c |   21 ++++++++++++++-------
->  1 files changed, 14 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c
-> index 2bc9800..8e2fd52 100644
-> --- a/drivers/hwmon/pmbus/zl6100.c
-> +++ b/drivers/hwmon/pmbus/zl6100.c
-> @@ -26,6 +26,7 @@
->  #include <linux/i2c.h>
->  #include <linux/ktime.h>
->  #include <linux/delay.h>
-> +#include <linux/ctype.h>
->  #include "pmbus.h"
->  
->  enum chips { zl2004, zl2006, zl2008, zl2105, zl2106, zl6100, zl6105 };
-> @@ -42,6 +43,8 @@ struct zl6100_data {
->  
->  #define ZL6100_WAIT_TIME		1000	/* uS	*/
->  
-> +#define ZL6100_ID_LEN			16		/* device id length */
-> +
->  static ushort delay = ZL6100_WAIT_TIME;
->  module_param(delay, ushort, 0644);
->  MODULE_PARM_DESC(delay, "Delay between chip accesses in uS");
-> @@ -136,19 +139,20 @@ MODULE_DEVICE_TABLE(i2c, zl6100_id);
->  static int zl6100_probe(struct i2c_client *client,
->  			const struct i2c_device_id *id)
->  {
-> -	int ret;
-> +	int i, ret;
->  	struct zl6100_data *data;
->  	struct pmbus_driver_info *info;
-> -	u8 device_id[I2C_SMBUS_BLOCK_MAX + 1];
-> +	u8 device_id[ZL6100_ID_LEN + 1];
->  	const struct i2c_device_id *mid;
->  
->  	if (!i2c_check_functionality(client->adapter,
-> -				     I2C_FUNC_SMBUS_READ_BYTE_DATA
-> -				     | I2C_FUNC_SMBUS_READ_BLOCK_DATA))
-> +				     I2C_FUNC_SMBUS_BYTE_DATA |
-> +				     I2C_FUNC_SMBUS_WORD_DATA |
-> +				     I2C_FUNC_SMBUS_READ_I2C_BLOCK))
->  		return -ENODEV;
->  
-> -	ret = i2c_smbus_read_block_data(client, ZL6100_DEVICE_ID,
-> -					device_id);
-> +	ret = i2c_smbus_read_i2c_block_data(client, ZL6100_DEVICE_ID,
-> +					ZL6100_ID_LEN, device_id);
->  	if (ret < 0) {
->  		dev_err(&client->dev, "Failed to read device ID\n");
->  		return ret;
-> @@ -156,9 +160,12 @@ static int zl6100_probe(struct i2c_client *client,
->  	device_id[ret] = '\0';
->  	dev_info(&client->dev, "Device ID %s\n", device_id);
->  
-> +	for (i = 0; i < ret; i++)
-> +		device_id[i] = tolower(device_id[i]);
-> +
->  	mid = NULL;
->  	for (mid = zl6100_id; mid->name[0]; mid++) {
-> -		if (!strncasecmp(mid->name, device_id, strlen(mid->name)))
-> +		if (strstr(device_id, mid->name))
->  			break;
->  	}
->  	if (!mid->name[0]) {
-
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogSmVhbiBEZWx2YXJlIFtt
+YWlsdG86a2hhbGlAbGludXgtZnIub3JnXQ0KPiBTZW50OiAyMDExxOoxMdTCMTTI1SAxNjowMg0K
+PiBUbzogVGFuZyBZdWFudGlhbi1CMjk5ODMNCj4gQ2M6IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5v
+cmc7IFRhbmcgWXVhbnRpYW4tQjI5OTgzOyBIdWFuZyBDaGFuZ21pbmctDQo+IFI2NjA5MzsgVGFi
+aSBUaW11ci1CMDQ4MjUNCj4gU3ViamVjdDogUmU6IFtsbS1zZW5zb3JzXSBbUEFUQ0hdIGh3bW9u
+OiAocG1idXMpIEZpeCB0d28gaXNzdWVzDQo+IA0KPiBIaSBUYW5nLA0KPiANCj4gT24gTW9uLCAx
+NCBOb3YgMjAxMSAxMzo0MTowNiArMDgwMCwgWXVhbnRpYW4uVGFuZ0BmcmVlc2NhbGUuY29tIHdy
+b3RlOg0KPiA+IEZyb206IFRhbmcgWXVhbnRpYW4gPEIyOTk4M0BmcmVlc2NhbGUuY29tPg0KPiA+
+DQo+ID4gMS4gTm90IGFsbCBwbGF0Zm9ybXMgc3VwcG9ydCBpMmNfc21idXNfcmVhZF9ibG9ja19k
+YXRhIGZ1bmN0aW9uLg0KPiA+IFVzZSBpMmNfc21idXNfcmVhZF9pMmNfYmxvY2tfZGF0YSBpbnN0
+ZWFkLg0KPiANCj4gWW91IGNhbid0IGRvIHRoYXQuIFRoZXNlIGFyZSB0d28gZGlmZmVyZW50IHRy
+YW5zZmVyIGZvcm1hdHMsIHRoZXkgYXJlIG5vdA0KPiBpbnRlcmNoYW5nZWFibGUuIElmIHRoZSBk
+ZXZpY2Ugd2FudHMgdGhlIFNNQnVzIGJsb2NrIGZvcm1hdCwgdGhlbiB5b3UNCj4gaGF2ZSB0byB1
+c2UgdGhpcyBpbiB0aGUgZHJpdmVyLiBJZiB0aGUgYnVzIGRyaXZlciBkb2Vzbid0IHN1cHBvcnQg
+dGhhdCwNCj4gaXQgaGFzIHRvIGJlIGZpeGVkLiBJbiBnZW5lcmFsIGl0IGlzIG9ubHkgYSBtYXR0
+ZXIgb2YgYWRkaW5nIHN1cHBvcnQgZm9yDQo+IEkyQ19NX1JFQ1ZfTEVOIHRvIHRoZSBidXMgZHJp
+dmVyLiBZb3UgY2FuIGNoZWNrIGluDQo+IGkyYy1jb3JlOmkyY19zbWJ1c194ZmVyX2VtdWxhdGVk
+KCkgZm9yIGEgcmVmZXJlbmNlIGltcGxlbWVudGF0aW9uLg0KPiANCltZdWFudGlhbjpdIGFsbW9z
+dCBhbGwgcGxhdGZvcm0ncyBpMmMgZHJpdmVyIGRvbid0IHN1cHBvcnQgaTJjX3NtYnVzX3JlYWRf
+YmxvY2tfZGF0YS4NCldoeSBjYW4ndCB3ZSBqdXN0IHVzZSBpMmNfc21idXNfcmVhZF9pMmNfYmxv
+Y2tfZGF0YSBpbnN0ZWFkLg0KQmVzaWRlLCBhY2NvcmRpbmcgbXkgdGVzdCwgaTJjX3NtYnVzX3Jl
+YWRfYmxvY2tfZGF0YSBjYW4ndCByZXR1cm4gY29ycmVjdCB2YWx1ZSwNCkJ1dCBpMmNfc21idXNf
+cmVhZF9pMmNfYmxvY2tfZGF0YS4NCkkgdGhpbmsgaTJjX3NtYnVzX3JlYWRfaTJjX2Jsb2NrX2Rh
+dGEgaXMgb25seSByaWdodCBjaG9pY2UuDQoNCj4gPiAyLiBOb3QgYWxsIHpseHggY2hpcHMncyBp
+ZCBzdGFydCB3aXRoIHpseHguIHpsNjEwMCdzIGlkIHN0YXJ0cyB3aXRoDQo+ID4gMHgxMC4gVGFr
+ZSB0aGlzIHNpdHVhdGlvbiBpbnRvIGFjY291bnQuDQo+IA0KPiBObywgdGhpcyBpcyBpbmNvcnJl
+Y3QuIDB4MTAgaXMgdGhlIGZpcnN0IGJ5dGUgcmV0dXJuZWQgYmVjYXVzZSBTTUJ1cw0KPiBibG9j
+ayByZWFkcyByZWNlaXZlIHRoZSBibG9jayBsZW5ndGggYXMgdGhlIGZpcnN0IGJ5dGUuIDB4MTAg
+PT0gMTYsIHdoaWNoDQo+IGlzIHRoZSBsZW5ndGggb2YgdGhlIElEIGZvciB0aGVzZSBjaGlwcywg
+dGhpcyBpcyBubyBjb2luY2lkZW5jZS4NCj4gVGhpcyBpcyBhIGJ1ZyBpbnRyb2R1Y2VkIGJ5IHlv
+dXIgYWJvdmUgY2hhbmdlIG9mIFNNQnVzIGJsb2NrIHJlYWQgZm9yIEkyQw0KPiBibG9jayByZWFk
+Lg0KPiANCj4gU28sIG5hY2suDQo+IA0KW1l1YW50aWFuOl0gSSBtaXN1bmRlcnN0YW5kIHRoZSAw
+eDEwLiBCdXQgdGhlIGV4aXN0aW5nIHpsNjEwMCBkcml2ZXIgZGlkbid0IGNvbnNpZGVyIGl0IHRv
+by4NCkFuZCBzdGlsbCBuZWVkIHRvIGJlIGZpeGVkLg0KDQo+ID4gU2lnbmVkLW9mZi1ieTogVGFu
+ZyBZdWFudGlhbiA8WXVhbnRpYW4uVGFuZ0BmcmVlc2NhbGUuY29tPg0KPiA+IC0tLQ0KPiA+IGdp
+dDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90b3J2YWxkcy9saW51
+eC5naXQNCj4gPiBicmFuY2g6IG1hc3Rlcg0KPiA+IHRlc3QgcGxhdGZvcm06IFAxMDIyRFMNCj4g
+Pg0KPiA+ICBkcml2ZXJzL2h3bW9uL3BtYnVzL3psNjEwMC5jIHwgICAyMSArKysrKysrKysrKysr
+Ky0tLS0tLS0NCj4gPiAgMSBmaWxlcyBjaGFuZ2VkLCAxNCBpbnNlcnRpb25zKCspLCA3IGRlbGV0
+aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vcG1idXMvemw2MTAw
+LmMNCj4gPiBiL2RyaXZlcnMvaHdtb24vcG1idXMvemw2MTAwLmMgaW5kZXggMmJjOTgwMC4uOGUy
+ZmQ1MiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2h3bW9uL3BtYnVzL3psNjEwMC5jDQo+ID4g
+KysrIGIvZHJpdmVycy9od21vbi9wbWJ1cy96bDYxMDAuYw0KPiA+IEBAIC0yNiw2ICsyNiw3IEBA
+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9pMmMuaD4NCj4gPiAgI2luY2x1ZGUgPGxpbnV4L2t0aW1l
+Lmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9kZWxheS5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgv
+Y3R5cGUuaD4NCj4gDQo+IA0KPiAtLQ0KPiBKZWFuIERlbHZhcmUNCg0KX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
+bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
