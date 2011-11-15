@@ -1,99 +1,108 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Date: Tue, 15 Nov 2011 20:34:39 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 15 Nov 2011 21:24:13 +0000
 Subject: Re: [lm-sensors] [PATCH v7] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <1321389279.20271.241.camel@x61.thuisdomein>
+Message-Id: <1321392253.2309.379.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
-In-Reply-To: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
+	 <1321389279.20271.241.camel@x61.thuisdomein>
+In-Reply-To: <1321389279.20271.241.camel@x61.thuisdomein>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Donggeun Kim <dg77.kim@samsung.com>
-Cc: lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, Guenter Roeck <guenter.roeck@ericsson.com>, linux-kernel@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>
+Cc: Donggeun Kim <dg77.kim@samsung.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-(This is an attempt to do a bit of review after the fact. See, this
-appears to be to the patch that ended up as commit
-9d97e5c81e15afaef65d00f077f863c94f750839 in the mainline tree. Since
-that tree is at v3.2-rc2 now this might be in time for v3.2. If my
-comments have merit, that is.)
+On Tue, 2011-11-15 at 15:34 -0500, Paul Bolle wrote:
+> (This is an attempt to do a bit of review after the fact. See, this
+> appears to be to the patch that ended up as commit
+> 9d97e5c81e15afaef65d00f077f863c94f750839 in the mainline tree. Since
+> that tree is at v3.2-rc2 now this might be in time for v3.2. If my
+> comments have merit, that is.)
+> 
+> On Wed, 2011-09-07 at 18:49 +0900, Donggeun Kim wrote:
+> > This patch allows to read temperature
+> > from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
+> [...]
+> > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> > index 0b62c3c..c6fb761 100644
+> > --- a/drivers/hwmon/Kconfig
+> > +++ b/drivers/hwmon/Kconfig
+> > @@ -303,6 +303,16 @@ config SENSORS_DS1621
+> >  	  This driver can also be built as a module.  If so, the module
+> >  	  will be called ds1621.
+> >  
+> > +config SENSORS_EXYNOS4_TMU
+> > +	tristate "Temperature sensor on Samsung EXYNOS4"
+> > +	depends on EXYNOS4_DEV_TMU
+> 
+> It doesn't look like that Kconfig symbol is part of the tree just yet.
+> That means people will not be able to build this driver from the
+> mainline tree. Why is this dependency needed? In a (rather quick) scan
+> of the code of this driver I couldn't spot anything not yet available in
+> the tree.
+> 
+I have to defer to the driver author for that. Maybe the dependency was
+renamed at some point, or removed altogether.
 
-On Wed, 2011-09-07 at 18:49 +0900, Donggeun Kim wrote:
-> This patch allows to read temperature
-> from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
-[...]
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 0b62c3c..c6fb761 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -303,6 +303,16 @@ config SENSORS_DS1621
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called ds1621.
->  
-> +config SENSORS_EXYNOS4_TMU
-> +	tristate "Temperature sensor on Samsung EXYNOS4"
-> +	depends on EXYNOS4_DEV_TMU
+> > +	help
+> > +	  If you say yes here you get support for TMU (Thermal Managment
+> > +	  Unit) on SAMSUNG EXYNOS4 series of SoC.
+> > +
+> > +	  This driver can also be built as a module. If so, the module
+> > +	  will be called exynos4-tmu.
+> > +
+> >  config SENSORS_I5K_AMB
+> >  	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
+> >  	depends on PCI && EXPERIMENTAL
+> [...]
+> > diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+> > new file mode 100644
+> > index 0000000..0170c90
+> > --- /dev/null
+> > +++ b/drivers/hwmon/exynos4_tmu.c
+> [...]
+> > +#ifdef CONFIG_PM
+> > +static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
+> > +{
+> > +	exynos4_tmu_control(pdev, false);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int exynos4_tmu_resume(struct platform_device *pdev)
+> > +{
+> > +	exynos4_tmu_initialize(pdev);
+> > +	exynos4_tmu_control(pdev, true);
+> > +
+> > +	return 0;
+> > +}
+> > +#else
+> > +#define exynos4_tmu_suspend NULL
+> > +#define exynos4_tmu_resume NULL
+> > +#endif
+> > +
+> > +static struct platform_driver exynos4_tmu_driver = {
+> > +	.driver = {
+> > +		.name   = "exynos4-tmu",
+> > +		.owner  = THIS_MODULE,
+> > +	},
+> > +	.probe = exynos4_tmu_probe,
+> > +	.remove	= __devexit_p(exynos4_tmu_remove),
+> > +	.suspend = exynos4_tmu_suspend,
+> > +	.resume = exynos4_tmu_resume,
+> > +};
+> 
+> A common idiom seems to be (I'm speaking from memory here) to
+> wrap .suspend and .resume inside an "#ifdef CONFIG_PM" / "#endif" pair.
+> That would allow to drop both "#define exynos4_tmu_suspend NULL" and
+> "#define exynos4_tmu_resume NULL" above. Would that work here too?
+> 
+Seems to be a matter of opinion. I personally don't care one way or the
+other, but I was told some time ago that the above method would be
+preferred over using a second #ifdef.
 
-It doesn't look like that Kconfig symbol is part of the tree just yet.
-That means people will not be able to build this driver from the
-mainline tree. Why is this dependency needed? In a (rather quick) scan
-of the code of this driver I couldn't spot anything not yet available in
-the tree.
+Guenter
 
-> +	help
-> +	  If you say yes here you get support for TMU (Thermal Managment
-> +	  Unit) on SAMSUNG EXYNOS4 series of SoC.
-> +
-> +	  This driver can also be built as a module. If so, the module
-> +	  will be called exynos4-tmu.
-> +
->  config SENSORS_I5K_AMB
->  	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
->  	depends on PCI && EXPERIMENTAL
-[...]
-> diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
-> new file mode 100644
-> index 0000000..0170c90
-> --- /dev/null
-> +++ b/drivers/hwmon/exynos4_tmu.c
-[...]
-> +#ifdef CONFIG_PM
-> +static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
-> +{
-> +	exynos4_tmu_control(pdev, false);
-> +
-> +	return 0;
-> +}
-> +
-> +static int exynos4_tmu_resume(struct platform_device *pdev)
-> +{
-> +	exynos4_tmu_initialize(pdev);
-> +	exynos4_tmu_control(pdev, true);
-> +
-> +	return 0;
-> +}
-> +#else
-> +#define exynos4_tmu_suspend NULL
-> +#define exynos4_tmu_resume NULL
-> +#endif
-> +
-> +static struct platform_driver exynos4_tmu_driver = {
-> +	.driver = {
-> +		.name   = "exynos4-tmu",
-> +		.owner  = THIS_MODULE,
-> +	},
-> +	.probe = exynos4_tmu_probe,
-> +	.remove	= __devexit_p(exynos4_tmu_remove),
-> +	.suspend = exynos4_tmu_suspend,
-> +	.resume = exynos4_tmu_resume,
-> +};
-
-A common idiom seems to be (I'm speaking from memory here) to
-wrap .suspend and .resume inside an "#ifdef CONFIG_PM" / "#endif" pair.
-That would allow to drop both "#define exynos4_tmu_suspend NULL" and
-"#define exynos4_tmu_resume NULL" above. Would that work here too?
-
-
-Paul Bolle
 
 
 _______________________________________________
