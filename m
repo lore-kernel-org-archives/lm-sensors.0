@@ -1,81 +1,100 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Date: Thu, 17 Nov 2011 20:40:45 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 0/2] HWMON: add in-kernel interfaces to
-Message-Id: <4EC5714D.7000008@cam.ac.uk>
+From: Paul Bolle <pebolle@tiscali.nl>
+Date: Tue, 15 Nov 2011 20:34:39 +0000
+Subject: Re: [lm-sensors] [PATCH v7] hwmon: Add driver for EXYNOS4 TMU
+Message-Id: <1321389279.20271.241.camel@x61.thuisdomein>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1320389433-1671-1-git-send-email-myungjoo.ham@samsung.com> <1321044403.2757.23.camel@bwh-desktop> <CAJ0PZbQsTYZvoVMgZ_L5uPUxCTbzH72zzUqUkvXNnmqiDOGY=g@mail.gmail.com> <4EC1444E.5080108@cam.ac.uk> <CAJ0PZbR=8PPKNNREOBXL1U8To+jjp9=gkQz_NKUVKU8DhyWPJQ@mail.gmail.com>
-In-Reply-To: <CAJ0PZbR=8PPKNNREOBXL1U8To+jjp9=gkQz_NKUVKU8DhyWPJQ@mail.gmail.com>
+References: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
+In-Reply-To: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: MyungJoo Ham <myungjoo.ham@gmail.com>
-Cc: Ben Hutchings <bhutchings@solarflare.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, dg77.kim@samsung.com, kyungmin.park@samsung.com
+To: Donggeun Kim <dg77.kim@samsung.com>
+Cc: lm-sensors@lm-sensors.org, linux-doc@vger.kernel.org, kyungmin.park@samsung.com, myungjoo.ham@samsung.com, Guenter Roeck <guenter.roeck@ericsson.com>, linux-kernel@vger.kernel.org
 
-On 11/17/2011 08:22 AM, MyungJoo Ham wrote:
-> On Tue, Nov 15, 2011 at 1:39 AM, Jonathan Cameron <jic23@cam.ac.uk> wrote:
->> On 11/14/2011 01:31 AM, MyungJoo Ham wrote:
->>> On Sat, Nov 12, 2011 at 5:46 AM, Ben Hutchings
->>> <bhutchings@solarflare.com> wrote:
->>>> On Fri, 2011-11-04 at 15:50 +0900, MyungJoo Ham wrote:
->>>>> We have been reading hwmon values (TMU, the SoC-core temperature sensor,
->>>>> and NTC, the ambient or battery surface temperature sensor) for
->>>>> Charger-Manager. However, because hwmon does not have in-kernel interface,
->>>>> we have been using undesired method, including "../../../fs/*.h".
->>>>>
->>>>> This patch is to provide in-kernel interface for hwmon:
->>>>> hwmon_get_value and hwmon_set_value. In order to use these two functions,
->>>>> the hwmon driver should provide its sysfs attributes to hwmon framework
->>>>> as well. If the hwmon driver does not provide (by providing NULL), the users
->>>>> of the hwmon won't be able to use hwmon_get/set_value();
->>>>> The sysfs attribute (struct attribuyte_group *) is provided with
->>>>> hwmon_device_register; adding the second parameter to hwmon_device_register().
->>>>> The 2/2 patch shows the changes in device drivers due to this.
->>>> [...]
->>>>
->>>> This is an improvement, but I don't think it is quite enough.  As I
->>>> understand the hwmon sysfs interface, all sensor values should be
->>>> integers.  So the in-kernel interface should also work with integers,
->>>> not strings.
->>>>
->>>> As a first implementation you could perhaps parse the strings back to
->>>> integers.  However in the longer term the driver API should be changed
->>>> so that hwmon drivers fully describe their sensors to the core and the
->>>> core takes care of exposing them through sysfs and the in-kernel API.
->>>
->>> I agree.
->>>
->>> I'll let it the in-kernel interfaces provide integer value although it will
->>> simply parse strings as you've addressed until we have some other
->>> interfaces for sysfs entries in hwmon device drivers.
->>>
->>>
->> To throw another option into the mix, you could make it an IIO driver
->> and sit hwmon on top of that (there is already a simple driver for
->> doing this) - IIO has in kernel interfaces of the type
->> you want.  Not everything is there yet though.
->>
->> Jonathan
-> 
-> Yes, we may alter the HWMON drivers to be IIO drivers as well.
-> 
-> However, to me, at least for the HWMON devices I've been looking, IIO
-> seems to be an overkill and more complex than needed for the target
-> devices.
-It should (at least in theory) be very simple for anything like a simple
-hwmon device on which one wants to do polled reads.
+(This is an attempt to do a bit of review after the fact. See, this
+appears to be to the patch that ended up as commit
+9d97e5c81e15afaef65d00f077f863c94f750839 in the mainline tree. Since
+that tree is at v3.2-rc2 now this might be in time for v3.2. If my
+comments have merit, that is.)
 
-All you do is allocate an iio_dev, set up the channel descriptions,
-register it with the core.  Then a map is used to match supplied
-channels to their consumers in kernel.
+On Wed, 2011-09-07 at 18:49 +0900, Donggeun Kim wrote:
+> This patch allows to read temperature
+> from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
+[...]
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 0b62c3c..c6fb761 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -303,6 +303,16 @@ config SENSORS_DS1621
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called ds1621.
+>  
+> +config SENSORS_EXYNOS4_TMU
+> +	tristate "Temperature sensor on Samsung EXYNOS4"
+> +	depends on EXYNOS4_DEV_TMU
 
-There is a simple hwmon driver that then takes one of these maps if
-you want conventional hwmon interfaces.  Other interested drivers can
-have their own maps.
+It doesn't look like that Kconfig symbol is part of the tree just yet.
+That means people will not be able to build this driver from the
+mainline tree. Why is this dependency needed? In a (rather quick) scan
+of the code of this driver I couldn't spot anything not yet available in
+the tree.
 
-Anyhow, IIO is complex for some devices, but pretty simple for simple
-things (at least it should be!)
+> +	help
+> +	  If you say yes here you get support for TMU (Thermal Managment
+> +	  Unit) on SAMSUNG EXYNOS4 series of SoC.
+> +
+> +	  This driver can also be built as a module. If so, the module
+> +	  will be called exynos4-tmu.
+> +
+>  config SENSORS_I5K_AMB
+>  	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
+>  	depends on PCI && EXPERIMENTAL
+[...]
+> diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+> new file mode 100644
+> index 0000000..0170c90
+> --- /dev/null
+> +++ b/drivers/hwmon/exynos4_tmu.c
+[...]
+> +#ifdef CONFIG_PM
+> +static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
+> +{
+> +	exynos4_tmu_control(pdev, false);
+> +
+> +	return 0;
+> +}
+> +
+> +static int exynos4_tmu_resume(struct platform_device *pdev)
+> +{
+> +	exynos4_tmu_initialize(pdev);
+> +	exynos4_tmu_control(pdev, true);
+> +
+> +	return 0;
+> +}
+> +#else
+> +#define exynos4_tmu_suspend NULL
+> +#define exynos4_tmu_resume NULL
+> +#endif
+> +
+> +static struct platform_driver exynos4_tmu_driver = {
+> +	.driver = {
+> +		.name   = "exynos4-tmu",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +	.probe = exynos4_tmu_probe,
+> +	.remove	= __devexit_p(exynos4_tmu_remove),
+> +	.suspend = exynos4_tmu_suspend,
+> +	.resume = exynos4_tmu_resume,
+> +};
 
-Jonathan
+A common idiom seems to be (I'm speaking from memory here) to
+wrap .suspend and .resume inside an "#ifdef CONFIG_PM" / "#endif" pair.
+That would allow to drop both "#define exynos4_tmu_suspend NULL" and
+"#define exynos4_tmu_resume NULL" above. Would that work here too?
+
+
+Paul Bolle
+
 
 _______________________________________________
 lm-sensors mailing list
