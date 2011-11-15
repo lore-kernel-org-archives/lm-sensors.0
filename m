@@ -1,7 +1,7 @@
-From: Tang Yuantian-B29983 <B29983@freescale.com>
-Date: Tue, 15 Nov 2011 02:58:03 +0000
+From: Tabi Timur-B04825 <B04825@freescale.com>
+Date: Tue, 15 Nov 2011 03:00:17 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Fix two issues
-Message-Id: <3C06C26914DACA4BB3A368F78CA0B3A712AAA0@039-SN1MPN1-004.039d.mgd.msft.net>
+Message-Id: <4EC1D5C0.6090609@freescale.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
 In-Reply-To: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
@@ -10,31 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Tang Yuantian-B29983 wrote:
+> [Yuantian:] unfortunately no, Even I add I2C_FUNC_SMBUS_READ_BLOCK_DATA support,
+> The return value is not correct.
 
+Yuantian,
 
-> -----Original Message-----
-> From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
-> Hmm ... looking into the code, I2C_FUNC_SMBUS_READ_BLOCK_DATA is missing
-> from I2C_FUNC_SMBUS_EMUL.
-> Now that is interesting.
-> 
-> If you change mpc_functionality() to
-> 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL |
-> I2C_FUNC_SMBUS_READ_BLOCK_DATA; I bet your problem will disappear.
-> 
-> Jean, any idea why I2C_FUNC_SMBUS_EMUL doesn't include
-> I2C_FUNC_SMBUS_READ_BLOCK_DATA ?
-> 
-[Yuantian:] unfortunately no, Even I add I2C_FUNC_SMBUS_READ_BLOCK_DATA support,
-The return value is not correct.
+Are you saying that without your patch, the zl6100 won't work on the 
+P1022DS?
 
-> Thanks,
-> Guenter
-> 
-
-Regards,
-Yuantian
-
+-- 
+Timur Tabi
+Linux kernel developer at Freescale
 
 _______________________________________________
 lm-sensors mailing list
