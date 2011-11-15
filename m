@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 14 Nov 2011 16:28:01 +0000
+From: Tang Yuantian-B29983 <B29983@freescale.com>
+Date: Tue, 15 Nov 2011 02:28:40 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Fix two issues
-Message-Id: <1321288081.2309.291.camel@groeck-laptop>
+Message-Id: <3C06C26914DACA4BB3A368F78CA0B3A712AA61@039-SN1MPN1-004.039d.mgd.msft.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
 In-Reply-To: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
@@ -10,80 +10,46 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gTW9uLCAyMDExLTExLTE0IGF0IDA3OjU5IC0wNTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
-T24gTW9uLCAxNCBOb3YgMjAxMSAwODo0ODozOCArMDAwMCwgVGFuZyBZdWFudGlhbi1CMjk5ODMg
-d3JvdGU6Cj4gPiAKPiA+IAo+ID4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQo+ID4gPiBG
-cm9tOiBKZWFuIERlbHZhcmUgW21haWx0bzpraGFsaUBsaW51eC1mci5vcmddCj4gPiA+IFNlbnQ6
-IDIwMTHlubQxMeaciDE05pelIDE2OjAyCj4gPiA+IFRvOiBUYW5nIFl1YW50aWFuLUIyOTk4Mwo+
-ID4gPiBDYzogbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZzsgVGFuZyBZdWFudGlhbi1CMjk5ODM7
-IEh1YW5nIENoYW5nbWluZy0KPiA+ID4gUjY2MDkzOyBUYWJpIFRpbXVyLUIwNDgyNQo+ID4gPiBT
-dWJqZWN0OiBSZTogW2xtLXNlbnNvcnNdIFtQQVRDSF0gaHdtb246IChwbWJ1cykgRml4IHR3byBp
-c3N1ZXMKPiA+ID4gCj4gPiA+IEhpIFRhbmcsCj4gPiA+IAo+ID4gPiBPbiBNb24sIDE0IE5vdiAy
-MDExIDEzOjQxOjA2ICswODAwLCBZdWFudGlhbi5UYW5nQGZyZWVzY2FsZS5jb20gd3JvdGU6Cj4g
-PiA+ID4gRnJvbTogVGFuZyBZdWFudGlhbiA8QjI5OTgzQGZyZWVzY2FsZS5jb20+Cj4gPiA+ID4K
-PiA+ID4gPiAxLiBOb3QgYWxsIHBsYXRmb3JtcyBzdXBwb3J0IGkyY19zbWJ1c19yZWFkX2Jsb2Nr
-X2RhdGEgZnVuY3Rpb24uCj4gPiA+ID4gVXNlIGkyY19zbWJ1c19yZWFkX2kyY19ibG9ja19kYXRh
-IGluc3RlYWQuCj4gPiA+IAo+ID4gPiBZb3UgY2FuJ3QgZG8gdGhhdC4gVGhlc2UgYXJlIHR3byBk
-aWZmZXJlbnQgdHJhbnNmZXIgZm9ybWF0cywgdGhleSBhcmUgbm90Cj4gPiA+IGludGVyY2hhbmdl
-YWJsZS4gSWYgdGhlIGRldmljZSB3YW50cyB0aGUgU01CdXMgYmxvY2sgZm9ybWF0LCB0aGVuIHlv
-dQo+ID4gPiBoYXZlIHRvIHVzZSB0aGlzIGluIHRoZSBkcml2ZXIuIElmIHRoZSBidXMgZHJpdmVy
-IGRvZXNuJ3Qgc3VwcG9ydCB0aGF0LAo+ID4gPiBpdCBoYXMgdG8gYmUgZml4ZWQuIEluIGdlbmVy
-YWwgaXQgaXMgb25seSBhIG1hdHRlciBvZiBhZGRpbmcgc3VwcG9ydCBmb3IKPiA+ID4gSTJDX01f
-UkVDVl9MRU4gdG8gdGhlIGJ1cyBkcml2ZXIuIFlvdSBjYW4gY2hlY2sgaW4KPiA+ID4gaTJjLWNv
-cmU6aTJjX3NtYnVzX3hmZXJfZW11bGF0ZWQoKSBmb3IgYSByZWZlcmVuY2UgaW1wbGVtZW50YXRp
-b24uCj4gPiA+IAo+ID4gW1l1YW50aWFuOl0gYWxtb3N0IGFsbCBwbGF0Zm9ybSdzIGkyYyBkcml2
-ZXIgZG9uJ3Qgc3VwcG9ydCBpMmNfc21idXNfcmVhZF9ibG9ja19kYXRhLgo+ID4gV2h5IGNhbid0
-IHdlIGp1c3QgdXNlIGkyY19zbWJ1c19yZWFkX2kyY19ibG9ja19kYXRhIGluc3RlYWQuCj4gPiBC
-ZXNpZGUsIGFjY29yZGluZyBteSB0ZXN0LCBpMmNfc21idXNfcmVhZF9ibG9ja19kYXRhIGNhbid0
-IHJldHVybiBjb3JyZWN0IHZhbHVlLAo+ID4gQnV0IGkyY19zbWJ1c19yZWFkX2kyY19ibG9ja19k
-YXRhLgo+ID4gSSB0aGluayBpMmNfc21idXNfcmVhZF9pMmNfYmxvY2tfZGF0YSBpcyBvbmx5IHJp
-Z2h0IGNob2ljZS4KPiAKPiBBZ2Fpbiwgbm8uIFBNQnVzIGdvZXMgb24gdG9wIG9mIFNNQnVzIHdo
-aWNoIGluY2x1ZGVzIFNNQnVzIGJsb2NrIHJlYWRzCj4gKGkyY19zbWJ1c19yZWFkX2Jsb2NrX2Rh
-dGEpIGJ1dCBub3QgSTJDIGJsb2NrIHJlYWRzCj4gKGkyY19zbWJ1c19yZWFkX2kyY19ibG9ja19k
-YXRhKS4gQXMgYSByZXN1bHQsIG1hbnkgaGFyZHdhcmUgU01CdXMKPiBjb250cm9sbGVycyBkbyBu
-b3Qgc3VwcG9ydCBJMkMgYmxvY2sgcmVhZHMsIGFuZCBpdCBjYW4ndCBiZSBhZGRlZCAob25seQo+
-IHRoZSBzZXQgb2YgdHJhbnNmZXJzIHN1cHBvcnRlZCBieSB0aGUgaGFyZHdhcmUgY29udHJvbGxl
-ciBjYW4gYmUKPiBpbXBsZW1lbnRlZCBieSB0aGUgZHJpdmVyKSB3aGljaCBtZWFucyB0aGF0IHlv
-dXIgcHJvcG9zZWQgY2hhbmdlIHdvdWxkCj4gYnJlYWsgc3VwcG9ydCBvbiBleGlzdGluZyBzeXN0
-ZW1zLiBUaGlzIGlzIG5vdCBhY2NlcHRhYmxlLgo+IAo+IE9uIHRoZSBvdGhlciBoYW5kLCBhbiBJ
-MkMgY29udHJvbGxlciB3aGljaCBzdXBwb3J0cyBJMkMgYmxvY2sgcmVhZHMgY2FuCj4gYWxtb3N0
-IGFsd2F5cyBnZXQgU01CdXMgYmxvY2sgcmVhZHMgYWRkZWQsIGl0J3Mgb25seSBhIG1hdHRlciBv
-ZiBhZGRpbmcKPiBhIGZldyBsaW5lcyBvZiBjb2RlIHRvIHRoZSBidXMgZHJpdmVyLgo+IAo+IFdo
-aWNoIGkyYyBidXMgZHJpdmVyIGFyZSB5b3UgdXNpbmc/IEZyb20gd2hpY2gga2VybmVsIHZlcnNp
-b24/Cj4gCj4gPiA+ID4gMi4gTm90IGFsbCB6bHh4IGNoaXBzJ3MgaWQgc3RhcnQgd2l0aCB6bHh4
-LiB6bDYxMDAncyBpZCBzdGFydHMgd2l0aAo+ID4gPiA+IDB4MTAuIFRha2UgdGhpcyBzaXR1YXRp
-b24gaW50byBhY2NvdW50Lgo+ID4gPiAKPiA+ID4gTm8sIHRoaXMgaXMgaW5jb3JyZWN0LiAweDEw
-IGlzIHRoZSBmaXJzdCBieXRlIHJldHVybmVkIGJlY2F1c2UgU01CdXMKPiA+ID4gYmxvY2sgcmVh
-ZHMgcmVjZWl2ZSB0aGUgYmxvY2sgbGVuZ3RoIGFzIHRoZSBmaXJzdCBieXRlLiAweDEwID09IDE2
-LCB3aGljaAo+ID4gPiBpcyB0aGUgbGVuZ3RoIG9mIHRoZSBJRCBmb3IgdGhlc2UgY2hpcHMsIHRo
-aXMgaXMgbm8gY29pbmNpZGVuY2UuCj4gPiA+IFRoaXMgaXMgYSBidWcgaW50cm9kdWNlZCBieSB5
-b3VyIGFib3ZlIGNoYW5nZSBvZiBTTUJ1cyBibG9jayByZWFkIGZvciBJMkMKPiA+ID4gYmxvY2sg
-cmVhZC4KPiA+ID4gCj4gPiA+IFNvLCBuYWNrLgo+ID4gPiAKPiA+IFtZdWFudGlhbjpdIEkgbWlz
-dW5kZXJzdGFuZCB0aGUgMHgxMC4gQnV0IHRoZSBleGlzdGluZyB6bDYxMDAgZHJpdmVyIGRpZG4n
-dCBjb25zaWRlciBpdCB0b28uCj4gPiBBbmQgc3RpbGwgbmVlZCB0byBiZSBmaXhlZC4KPiAKPiBJ
-IGRpZG4ndCB3cml0ZSB0aGUgZHJpdmVyLCBhbmQgZG9uJ3QgaGF2ZSB0aGUgZGV2aWNlLCBidXQg
-SSB0aGluayB0aGUKPiBkcml2ZXIgaXMgT0sgYXMgaXMuIFRoZSBibG9jayBsZW5ndGggKDB4MTAp
-IGlzIGhhbmRsZWQgYnkgdGhlCj4gdW5kZXJseWluZyBidXMgZHJpdmVyLCB0aGUgZGV2aWNlIGRy
-aXZlciBuZXZlciBnZXRzIHRvIHNlZSBpdCwgaWYgeW91Cj4gcHJvcGVybHkgY2FsbCBpMmNfc21i
-dXNfcmVhZF9ibG9ja19kYXRhKCkgYXMgeW91IGFyZSBzdXBwb3NlZCB0by4KPiAKSSBoYXZlIGV2
-YWwgYm9hcmRzIGZvciBhbGwgY2hpcHMgc3VwcG9ydGVkIGJ5IHRoZSBkcml2ZXIgKGxvdHMgb2Yg
-a3Vkb3MKdG8gSW50ZXJzaWwpLCBzbyB0aGUgZHJpdmVyIHdhcyB0ZXN0ZWQgYW5kIGlzIGtub3du
-IHRvIHdvcmsgZm9yIGFsbApjaGlwcyBpdCBjdXJyZW50bHkgc3VwcG9ydHMuIEludGVyc2lsIHRv
-bGQgbWUgdGhhdCB0aGV5IGRvbid0IHVwZGF0ZSB0aGUKZmlybXdhcmUgYWZ0ZXIgdGhleSByZWxl
-YXNlZCBhIGNoaXAsIHNvIHdlIGNhbiBiZSBzdXJlIHRoYXQgdGhlIGZpcm13YXJlCnZlcnNpb24g
-b24gYWxsIGNoaXBzIG9mIHRoZSBzYW1lIHR5cGUgaXMgdGhlIHNhbWUsIGFuZCB3ZSBkb24ndCBo
-YXZlIHRvCmxvb2sgZm9yIHZlcnNpb24gc3BlY2lmaWMgYmVoYXZpb3IuCgpJIGFncmVlIHRoYXQg
-d2Ugc2hvdWxkIG5vdCByZXBsYWNlIHRoZSBTTUJ1cyBibG9jayByZWFkIHdpdGggU01CdXMgSTJD
-CmJsb2NrIHJlYWQuIFRoZSBJMkMgYnVzIGRyaXZlciBzaG91bGQgcmVhbGx5IGltcGxlbWVudCBT
-TUJ1cyBibG9jayByZWFkCmNvbW1hbmQgc3VwcG9ydC4KClRoZXJlIGFyZSBzb21lIEkyQyBidXMg
-ZHJpdmVycyB3aGljaCBjYW4gbm90IHN1cHBvcnQgU01CdXMgYmxvY2sgcmVhZHMKZHVlIHRvIGNo
-aXAgbGltaXRhdGlvbnMsIHN1Y2ggYXMgdGhlIFNpYnl0ZSBkcml2ZXIsIGJ1dCBpZiB0aGUgZHJp
-dmVyCmNhbiBzdXBwb3J0IFNNQnVzIEkyQyBibG9jayByZWFkcyBpdCBzaG91bGQgcG9zc2libGUg
-dG8gc3VwcG9ydCBTTUJ1cwpibG9jayByZWFkcyBhcyB3ZWxsLiBBcyBmYXIgYXMgSSBjYW4gc2Vl
-LCB0aGUgb25seSBkcml2ZXIgc3VwcG9ydGluZwpTTUJVUyBJMkMgYmxvY2sgcmVhZHMgYnV0IG5v
-dCBTTUJVUyBibG9jayByZWFkcyBpcyBzY3gyMDBfYWNiLiBUaGF0CnNlZW1zIHRvIGJlIGFuIG92
-ZXJzaWdodCAob3IgbWF5YmUgbGF6aW5lc3MgOyksIGFuZCBzaG91bGQgYmUgZWFzeSB0bwpmaXgu
-CgpUaGFua3MsCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
-Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
-b3Jz
+Hi Guenter,
+
+Please find my comments in line.
+
+> -----Original Message-----
+> > > > SMBus block reads receive the block length as the first byte. 0x10
+> > > > = 16, which is the length of the ID for these chips, this is no
+> > I didn't write the driver, and don't have the device, but I think the
+> > driver is OK as is. The block length (0x10) is handled by the
+> > underlying bus driver, the device driver never gets to see it, if you
+> > properly call i2c_smbus_read_block_data() as you are supposed to.
+> >
+> I have eval boards for all chips supported by the driver (lots of kudos
+> to Intersil), so the driver was tested and is known to work for all chips
+> it currently supports. Intersil told me that they don't update the
+> firmware after they released a chip, so we can be sure that the firmware
+> version on all chips of the same type is the same, and we don't have to
+> look for version specific behavior.
+> 
+> I agree that we should not replace the SMBus block read with SMBus I2C
+> block read. The I2C bus driver should really implement SMBus block read
+> command support.
+> 
+> There are some I2C bus drivers which can not support SMBus block reads
+> due to chip limitations, such as the Sibyte driver, but if the driver can
+> support SMBus I2C block reads it should possible to support SMBus block
+> reads as well. As far as I can see, the only driver supporting SMBUS I2C
+> block reads but not SMBUS block reads is scx200_acb. That seems to be an
+> oversight (or maybe laziness ;), and should be easy to fix.
+> 
+[Yuantian:] what platform are you testing on?
+What I see is most i2c bus drivers don't support "SMBus block".
+I use newest kernel 3.2.
+
+> Thanks,
+> Guenter
+> 
+> 
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
