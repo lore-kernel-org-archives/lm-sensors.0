@@ -1,7 +1,7 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 15 Nov 2011 09:52:53 +0000
+From: "Gustavo De Nardin (spuk)" <gustavodn@gmail.com>
+Date: Tue, 15 Nov 2011 15:23:53 +0000
 Subject: Re: [lm-sensors] [PATCH] Drivers: hwmon: it87: Add support for ITE
-Message-Id: <CAKPcRGq_qhmUVt+qaHEGo8-4QnUoNTj2gGtp6JxtSni3sFdqAw@mail.gmail.com>
+Message-Id: <20111115152353.GA12423@zim>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1320381858.22997.YahooMailNeo@web161601.mail.bf1.yahoo.com>
 In-Reply-To: <1320381858.22997.YahooMailNeo@web161601.mail.bf1.yahoo.com>
@@ -10,47 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gTW9uLCBOb3YgMTQsIDIwMTEgYXQgMTA6NDUgUE0sIEplYW4gRGVsdmFyZSA8a2hhbGlAbGlu
-dXgtZnIub3JnPiB3cm90ZToKPiBPbiBNb24sIDE0IE5vdiAyMDExIDE5OjE0OjE2IC0wMjAwLCBH
-dXN0YXZvIERlIE5hcmRpbiAoc3B1aykgd3JvdGU6Cj4+ID4gT24gRnJpLCAyMDExLTExLTA0IGF0
-IDAwOjQ0IC0wNDAwLCBGcmFuayBULiBMb2Zhcm8gSnIuIHdyb3RlOgo+PiA+ID4gVGhpcyBwYXRj
-aCBhbGxvd3MgdGhlIElURSA4NzI4IGNoaXAgdG8gYmUgZGV0ZWN0ZWQgYW5kIHVzZWQuCj4+ID4g
-PiBUaGUgY2hpcCBhcHBlYXJzIHRvIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgODcyMS4KPj4gPiA+
-Cj4+ID4KPj4gPiBDYW4gYW55b25lIGNvbmZpcm0gdGhhdCB0aG9zZSBjaGlwcyBhcmUgYWN0dWFs
-bHkgY29tcGF0aWJsZSA/Cj4+Cj4+IFVubGlrZSBmb3JjaW5nIHRoZSBvdGhlciBjaGlwcycgaWRz
-LCB3aXRoIGZvcmNlX2lkPTB4ODcyMSBQV00gY29udHJvbCBzZWVtcwo+PiB0byB3b3JrIHJlYXNv
-bmFibHksIHdpdGggcHdtMV9lbmFibGU9MSwgcHdtMT0wIHlpZWxkcyBhcm91bmQgMTEzMiBSUE0g
-b24gdGhlCj4+IENQVSBmYW4sIGFuZCBwd20xPTI1NSB5aWVsZHMgYXJvdW5kIDMyNjAgUlBNLiDC
-oFNob3VsZCBwd20xPTAgYWN0dWFsbHkgc3RvcAo+PiB0aGUgZmFuPyDCoEkgZ2V0IHdoYXQgKGVt
-cGlyaWNhbGx5KSBzZWVtIHRvIGJlIGNvbnNpc3RlbnQgbG9nYXJpdGhtaWMKPj4gaW5jcmVhc2Ug
-aW4gUlBNIHdoZW4gaW5jcmVhc2luZyBwd20xIHZhbHVlLCBhbnl3YXkuCj4KPiBJZiB0aGlzIGlz
-IGEgNC13aXJlIGZhbiB0aGVuIHlvdXIgcmVzdWx0cyBhcmUgZXhwZWN0ZWQuIHB3bT0wIGFsd2F5
-cwo+IHN0b3BzIDMtd2lyZSBmYW5zIChubyBwb3dlciAtPiBzdG9wcGVkKSBidXQgdHlwaWNhbGx5
-IDQtd2lyZSBmYW5zIGhhdmUKPiBhIG1pbmltdW0gc3BlZWQgKHNwZWVkIGNvbnRyb2wgaXMgc2Vw
-YXJhdGUgZnJvbSBwb3dlci4pCj4KPj4gQnV0IHRoZSBzZW5zb3JzIHZhbHVlcyByZWFkIHdpdGgg
-J2l0ODcgZm9yY2VfaWQ9MHg4NzIxJyBkb24ndCBzZWVtIG9rLCBJIGdldAo+PiB0aGlzIChmaXJz
-dCAnaXQ4NyBmb3JjZV9pZD0weDg3MjEnLCB0aGVuICdhc3VzX2F0azAxMTAgbmV3X2lmPTEnLCB3
-aGljaAo+PiBzZWVtcyB0byBwcm92aWRlIGdvb2QgcmVhZGluZ3MpOgoKUGxlYXNlIHNlbmQgbWUg
-dGhlIG91dHB1dCBvZiAiZG1pZGVjb2RlIC10IDIiIHNvIEkgY2FuIG92ZXJyaWRlIHRoZQpkZWZh
-dWx0IGRldGVjdGlvbiBsb2dpYy4uLiB0aGlzIHdpbGwgYWxsb3cgdGhlIGRyaXZlciAoYXRrMDEx
-MCkgdG8Kd29yayBvdXQgb2YgdGhlIGJveCBvbiB5b3VyIGJvYXJkLgoKPj4gYXRrMDExMC1hY3Bp
-LTAKPj4gQWRhcHRlcjogQUNQSSBpbnRlcmZhY2UKPj4gVmNvcmUgVm9sdGFnZTogwqAgwqAgwqAr
-MC45NSBWIMKgKG1pbiA9IMKgKzAuODAgViwgbWF4ID0gwqArMS42MCBWKQo+PiArMy4zViBWb2x0
-YWdlOiDCoCDCoCDCoCszLjM0IFYgwqAobWluID0gwqArMi45NyBWLCBtYXggPSDCoCszLjYzIFYp
-Cj4+ICs1ViBWb2x0YWdlOiDCoCDCoCDCoCDCoCs1LjEzIFYgwqAobWluID0gwqArNC41MCBWLCBt
-YXggPSDCoCs1LjUwIFYpCj4+ICsxMlYgVm9sdGFnZTogwqAgwqAgwqArMTIuMTEgViDCoChtaW4g
-PSArMTAuMjAgViwgbWF4ID0gKzEzLjgwIFYpCj4+IENQVSBGYW4gU3BlZWQ6IMKgIMKgIDMyNzYg
-UlBNIMKgKG1pbiA9IMKgNjAwIFJQTSkKPj4gQ2hhc3NpcyBGYW4gU3BlZWQ6IMKgIMKgMCBSUE0g
-wqAobWluID0gwqA2MDAgUlBNKQo+PiBDUFUgVGVtcGVyYXR1cmU6IMKgIMKgKzMzLjDCsEMgwqAo
-aGlnaCA9ICs2MC4wwrBDLCBjcml0ID0gKzk1LjDCsEMpCj4+IE1CIFRlbXBlcmF0dXJlOiDCoCDC
-oCArNDAuMMKwQyDCoChoaWdoID0gKzQ1LjDCsEMsIGNyaXQgPSArNzUuMMKwQykKPgo+IFRoaXMg
-aXNuJ3QgbmVjZXNzYXJpbHkgYmFkLiBJdCBpcyBleHBlY3RlZCB0aGF0IHlvdSBuZWVkIHZvbHRh
-Z2UKPiBzY2FsaW5nIGZvciB0aGUgaXQ4NyB3aGljaCB5b3UgZG9uJ3QgbmVlZCBmb3IgdGhlIGF0
-azAxMTAgaW50ZXJmYWNlLgo+IEFGQUlLIGl0IGlzIGFsc28gZXhwZWN0ZWQgdGhhdCB0aGUgbGlt
-aXRzIGFyZW4ndCBzZXQgYXMgdGhlIGF0azAxMTAKPiBpbnRlcmZhY2UgdXNlcyBpdHMgb3duIHNv
-ZnR3YXJlIGxpbWl0cyAoTHVjYSBjYW4geW91IHBsZWFzZSBjb25maXJtPykKClNvcnQgb2YuIE9u
-IG9sZGVyIG1vZGVscyB0aGUgQklPUyBkaWQgcHJvZ3JhbSB0aGUgbGltaXRzLCBteSBiZXN0Cmd1
-ZXNzIGFib3V0IG5ld2VyIGJvYXJkcyBpcyB0aGF0IHRoZSBFQyBkb2VzIHNvbWUga2luZCBvZiBw
-b2xsaW5nLgoKTHVjYQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpo
-dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+* Luca Tettamanti <kronos.it@gmail.com> [2011-11-15 10:52 +0100]:
+> On Mon, Nov 14, 2011 at 10:45 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> > On Mon, 14 Nov 2011 19:14:16 -0200, Gustavo De Nardin (spuk) wrote:
+> >
+> >> But the sensors values read with 'it87 force_id=0x8721' don't seem ok, I get
+> >> this (first 'it87 force_id=0x8721', then 'asus_atk0110 new_if=1', which
+> >> seems to provide good readings):
+> 
+> Please send me the output of "dmidecode -t 2" so I can override the
+> default detection logic... this will allow the driver (atk0110) to
+> work out of the box on your board.
+
+Here it is:
+-------8<----------8<----------
+# dmidecode 2.11
+SMBIOS 2.5 present.
+
+Handle 0x0002, DMI type 2, 15 bytes
+Base Board Information
+        Manufacturer: ASUSTeK Computer INC.
+        Product Name: M5A78L-M/USB3
+        Version: Rev X.0x
+        Serial Number: 110203870000896
+        Asset Tag: To Be Filled By O.E.M.
+        Features:
+                Board is a hosting board
+                Board is replaceable
+        Location In Chassis: To Be Filled By O.E.M.
+        Chassis Handle: 0x0003
+        Type: Motherboard
+        Contained Object Handles: 0
+-------8<----------8<----------
+
+Thanks.
+
+-- 
+::question = (bool) _2b||!_2b;
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
