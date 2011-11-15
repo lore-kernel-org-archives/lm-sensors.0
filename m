@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 15 Nov 2011 06:14:04 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 15 Nov 2011 07:24:08 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Fix two issues
-Message-Id: <20111115061404.GA30412@ericsson.com>
+Message-Id: <20111115082408.3c40f5c7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
 In-Reply-To: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
@@ -10,28 +10,41 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCBOb3YgMTUsIDIwMTEgYXQgMTI6Mzc6MzVBTSAtMDUwMCwgVGFuZyBZdWFudGlhbi1C
-Mjk5ODMgd3JvdGU6Cj4gUHJvYmxlbSBzb2x2ZWQuCj4gVGhpcyBkcml2ZXIgaXMgcGVyZmVjdC4K
-PiBUaGUgaTJjIGJ1cyBkcml2ZXIgbmVlZCB0byBiZSBtb2RpZmllZCB0byBzdXBwb3J0IEkyQ19G
-VU5DX1NNQlVTX1JFQURfQkxPQ0tfREFUQSwKPiBKdXN0IGxpa2UgR3VlbnRlcidzIHBhdGNoLgo+
-IE1heWJlIG90aGVyIGkyYyBidXMgZHJpdmVycyBuZWVkIHRvIGJlIG1vZGlmaWVkIHRvby4KPiAK
-PiBUaGFua3MgeW91IGd1eXMhCj4gCkhpIFl1YW50aWFuLAoKdGhhdCB3YXMgYSBuaWNlIGJsaW5k
-IGZpeCAuLi4KCkknbGwgY3JlYXRlIGEgY2xlYW4gcGF0Y2ggYW5kIHN1Ym1pdCBmb3IgdGhlIGky
-YyBzdWJzeXN0ZW0uCgpHdWVudGVyCgo+IFJlZ2FyZHMsCj4gWXVhbnRpYW4KPiAKPiA+IC0tLS0t
-T3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gPiBGcm9tOiBHdWVudGVyIFJvZWNrIFttYWlsdG86Z3Vl
-bnRlci5yb2Vja0Blcmljc3Nvbi5jb21dCj4gPiBTZW50OiAyMDEx5bm0MTHmnIgxNeaXpSAxMjox
-NQo+ID4gVG86IFRhbmcgWXVhbnRpYW4tQjI5OTgzCj4gPiBDYzogSmVhbiBEZWx2YXJlOyBIdWFu
-ZyBDaGFuZ21pbmctUjY2MDkzOyBUYWJpIFRpbXVyLUIwNDgyNTsgbG0tCj4gPiBzZW5zb3JzQGxt
-LXNlbnNvcnMub3JnCj4gPiBTdWJqZWN0OiBSZTogW2xtLXNlbnNvcnNdIFtQQVRDSF0gaHdtb246
-IChwbWJ1cykgRml4IHR3byBpc3N1ZXMKPiA+ID4gSTJDX0ZVTkNfU01CVVNfUkVBRF9CTE9DS19E
-QVRBIHN1cHBvcnQsIFRoZSByZXR1cm4gdmFsdWUgaXMgbm90IGNvcnJlY3QuCj4gPiA+Cj4gPiBB
-Y3R1YWxseSwgeW91IGFyZSByaWdodC4gVGhlIGkyYy1tcGMgZHJpdmVyIHdvdWxkIGFsc28gaGF2
-ZSB0byBoYW5kbGUgdGhlCj4gPiBJMkNfTV9SRUNWX0xFTiBmbGFnLCB3aGVyZSB0aGUgMXN0IHJl
-Y2VpdmVkIGJ5dGUgaW5kaWNhdGVzIHRoZSByZWNlaXZlCj4gPiBsZW5ndGguIFRoYXQgd291bGQg
-cHJvYmFibHkgcmVxdWlyZSBhIGNoYW5nZSBpbiBtcGNfcmVhZCgpLCB0ZWxsaW5nIGl0Cj4gPiB0
-aGF0IHRoZSBmaXJzdCBieXRlIHRvIGJlIHJlY2VpdmVkIGlzIHRoZSBsZW5ndGguCj4gPiBTb21l
-dGhpbmcgbGlrZSB0aGUgYXR0YWNoZWQuIENvbXBsZXRlbHkgdW50ZXN0ZWQsIG9mIGNvdXJzZSAu
-Li4KPiA+IAo+ID4gR3VlbnRlcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
-Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
-b3Jz
+On Mon, 14 Nov 2011 18:54:22 -0800, Guenter Roeck wrote:
+> On Mon, Nov 14, 2011 at 09:35:44PM -0500, Tang Yuantian-B29983 wrote:
+> > [Yuantian:] I am using newest kernel 3.2. PowerPC arch. 
+> > I2c bus driver file is: drivers/i2c/busses/i2c-mpc.c.
+> > 
+> > I greped the i2c bus driver and found the following platform's i2c don't 
+> > Support i2c_smbus_read_block_data. So Zl6100 driver can't work on these platforms.
+> > 1. drivers/i2c/busses/i2c-mpc.c(powerpc arch, which I am working on).
+> > 2. drivers/i2c/busses/i2c-mv64xxx.c
+> > 3. drivers/i2c/busses/i2c-nomadik.c
+> > 4. drivers/i2c/busses/i2c-octeon.c
+> > 5. drivers/i2c/busses/i2c-pxa.c
+> > 6. drivers/i2c/busses/i2c-s6000.c
+> > Almost all the platforms the kernel support.
+> > But they all support I2C_FUNC_SMBUS_EMUL, which means support i2c_smbus_read_i2c_block_data.
+> 
+> Hmm ... looking into the code, I2C_FUNC_SMBUS_READ_BLOCK_DATA is missing from I2C_FUNC_SMBUS_EMUL.
+> Now that is interesting.
+> 
+> If you change mpc_functionality() to
+> 	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL | I2C_FUNC_SMBUS_READ_BLOCK_DATA;
+> I bet your problem will disappear.
+> 
+> Jean, any idea why I2C_FUNC_SMBUS_EMUL doesn't include I2C_FUNC_SMBUS_READ_BLOCK_DATA ?
+
+Because I2C_FUNC_SMBUS_READ_BLOCK_DATA needs proper handling of
+I2C_M_RECV_LEN, which some drivers have implemented and others have
+not. Bus driver authors are expected to add
+I2C_FUNC_SMBUS_READ_BLOCK_DATA (and I2C_FUNC_SMBUS_BLOCK_PROC_CALL) to
+functionality after implementing I2C_M_RECV_LEN.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
