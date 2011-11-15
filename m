@@ -1,7 +1,7 @@
-From: Tang Yuantian-B29983 <B29983@freescale.com>
-Date: Tue, 15 Nov 2011 02:35:44 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 15 Nov 2011 02:42:13 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (pmbus) Fix two issues
-Message-Id: <3C06C26914DACA4BB3A368F78CA0B3A712AA6F@039-SN1MPN1-004.039d.mgd.msft.net>
+Message-Id: <20111115024213.GA28863@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
 In-Reply-To: <1321249266-17071-1-git-send-email-Yuantian.Tang@freescale.com>
@@ -10,52 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean Delvare,
-
-Please find my comments in line.
-
-> -----Original Message-----
+On Mon, Nov 14, 2011 at 09:28:40PM -0500, Tang Yuantian-B29983 wrote:
+> Hi Guenter,
 > 
-> Again, no. PMBus goes on top of SMBus which includes SMBus block reads
-> (i2c_smbus_read_block_data) but not I2C block reads
-> (i2c_smbus_read_i2c_block_data). As a result, many hardware SMBus
-> controllers do not support I2C block reads, and it can't be added (only
-> the set of transfers supported by the hardware controller can be
-> implemented by the driver) which means that your proposed change would
-> break support on existing systems. This is not acceptable.
+> Please find my comments in line.
 > 
-> On the other hand, an I2C controller which supports I2C block reads can
-> almost always get SMBus block reads added, it's only a matter of adding a
-> few lines of code to the bus driver.
-> 
-> Which i2c bus driver are you using? From which kernel version?
-> 
-[Yuantian:] I am using newest kernel 3.2. PowerPC arch. 
-I2c bus driver file is: drivers/i2c/busses/i2c-mpc.c.
+> > -----Original Message-----
+> > > > > SMBus block reads receive the block length as the first byte. 0x10
+> > > > > = 16, which is the length of the ID for these chips, this is no
+> > > I didn't write the driver, and don't have the device, but I think the
+> > > driver is OK as is. The block length (0x10) is handled by the
+> > > underlying bus driver, the device driver never gets to see it, if you
+> > > properly call i2c_smbus_read_block_data() as you are supposed to.
+> > >
+> > I have eval boards for all chips supported by the driver (lots of kudos
+> > to Intersil), so the driver was tested and is known to work for all chips
+> > it currently supports. Intersil told me that they don't update the
+> > firmware after they released a chip, so we can be sure that the firmware
+> > version on all chips of the same type is the same, and we don't have to
+> > look for version specific behavior.
+> > 
+> > I agree that we should not replace the SMBus block read with SMBus I2C
+> > block read. The I2C bus driver should really implement SMBus block read
+> > command support.
+> > 
+> > There are some I2C bus drivers which can not support SMBus block reads
+> > due to chip limitations, such as the Sibyte driver, but if the driver can
+> > support SMBus I2C block reads it should possible to support SMBus block
+> > reads as well. As far as I can see, the only driver supporting SMBUS I2C
+> > block reads but not SMBUS block reads is scx200_acb. That seems to be an
+> > oversight (or maybe laziness ;), and should be easy to fix.
+> > 
+> [Yuantian:] what platform are you testing on?
+> What I see is most i2c bus drivers don't support "SMBus block".
 
-I greped the i2c bus driver and found the following platform's i2c don't 
-Support i2c_smbus_read_block_data. So Zl6100 driver can't work on these platforms.
-1. drivers/i2c/busses/i2c-mpc.c(powerpc arch, which I am working on).
-2. drivers/i2c/busses/i2c-mv64xxx.c
-3. drivers/i2c/busses/i2c-nomadik.c
-4. drivers/i2c/busses/i2c-octeon.c
-5. drivers/i2c/busses/i2c-pxa.c
-6. drivers/i2c/busses/i2c-s6000.c
-Almost all the platforms the kernel support.
-But they all support I2C_FUNC_SMBUS_EMUL, which means support i2c_smbus_read_i2c_block_data.
-How can you explain this?
+Actually, almost all drivers support it, via SMBus emulation code. And if a driver
+supports SMBus I2C block commands, there is no technical reason why it should not
+support SMBus block commands.
 
-> > > > 2. Not all zlxx chips's id start with zlxx. zl6100's id starts
-> > > > with 0x10. Take this situation into account.
-> bus driver, the device driver never gets to see it, if you properly call
-> i2c_smbus_read_block_data() as you are supposed to.
-> 
-> --
-> Jean Delvare
+To answer your question, PC based systems, PowerPC based systems, Octeon based
+systems, and a Sibyte based system (where block commands don't work).
 
-Regards,
-Yuantian
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
