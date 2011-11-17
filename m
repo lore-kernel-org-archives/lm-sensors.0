@@ -1,45 +1,43 @@
-From: Donggeun Kim <dg77.kim@samsung.com>
-Date: Thu, 17 Nov 2011 05:20:31 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 17 Nov 2011 09:50:17 +0000
 Subject: Re: [lm-sensors] [PATCH v7] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <4EC4999F.8030604@samsung.com>
+Message-Id: <20111117095017.GA22540@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
  <1321389279.20271.241.camel@x61.thuisdomein>
  <1321392253.2309.379.camel@groeck-laptop>
-In-Reply-To: <1321392253.2309.379.camel@groeck-laptop>
+ <4EC4999F.8030604@samsung.com>
+In-Reply-To: <4EC4999F.8030604@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: guenter.roeck@ericsson.com
+To: Donggeun Kim <dg77.kim@samsung.com>
 Cc: Paul Bolle <pebolle@tiscali.nl>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-T24gMjAxMeuFhCAxMeyblCAxNuydvCAwNjoyNCwgR3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiBU
-dWUsIDIwMTEtMTEtMTUgYXQgMTU6MzQgLTA1MDAsIFBhdWwgQm9sbGUgd3JvdGU6Cj4+IChUaGlz
-IGlzIGFuIGF0dGVtcHQgdG8gZG8gYSBiaXQgb2YgcmV2aWV3IGFmdGVyIHRoZSBmYWN0LiBTZWUs
-IHRoaXMKPj4gYXBwZWFycyB0byBiZSB0byB0aGUgcGF0Y2ggdGhhdCBlbmRlZCB1cCBhcyBjb21t
-aXQKPj4gOWQ5N2U1YzgxZTE1YWZhZWY2NWQwMGYwNzdmODYzYzk0Zjc1MDgzOSBpbiB0aGUgbWFp
-bmxpbmUgdHJlZS4gU2luY2UKPj4gdGhhdCB0cmVlIGlzIGF0IHYzLjItcmMyIG5vdyB0aGlzIG1p
-Z2h0IGJlIGluIHRpbWUgZm9yIHYzLjIuIElmIG15Cj4+IGNvbW1lbnRzIGhhdmUgbWVyaXQsIHRo
-YXQgaXMuKQo+Pgo+PiBPbiBXZWQsIDIwMTEtMDktMDcgYXQgMTg6NDkgKzA5MDAsIERvbmdnZXVu
-IEtpbSB3cm90ZToKPj4+IFRoaXMgcGF0Y2ggYWxsb3dzIHRvIHJlYWQgdGVtcGVyYXR1cmUKPj4+
-IGZyb20gVE1VKFRoZXJtYWwgTWFuYWdlbWVudCBVbml0KSBvZiBTQU1TVU5HIEVYWU5PUzQgc2Vy
-aWVzIG9mIFNvQy4KPj4gWy4uLl0KPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL0tjb25m
-aWcgYi9kcml2ZXJzL2h3bW9uL0tjb25maWcKPj4+IGluZGV4IDBiNjJjM2MuLmM2ZmI3NjEgMTAw
-NjQ0Cj4+PiAtLS0gYS9kcml2ZXJzL2h3bW9uL0tjb25maWcKPj4+ICsrKyBiL2RyaXZlcnMvaHdt
-b24vS2NvbmZpZwo+Pj4gQEAgLTMwMyw2ICszMDMsMTYgQEAgY29uZmlnIFNFTlNPUlNfRFMxNjIx
-Cj4+PiAgCSAgVGhpcyBkcml2ZXIgY2FuIGFsc28gYmUgYnVpbHQgYXMgYSBtb2R1bGUuICBJZiBz
-bywgdGhlIG1vZHVsZQo+Pj4gIAkgIHdpbGwgYmUgY2FsbGVkIGRzMTYyMS4KPj4+ICAKPj4+ICtj
-b25maWcgU0VOU09SU19FWFlOT1M0X1RNVQo+Pj4gKwl0cmlzdGF0ZSAiVGVtcGVyYXR1cmUgc2Vu
-c29yIG9uIFNhbXN1bmcgRVhZTk9TNCIKPj4+ICsJZGVwZW5kcyBvbiBFWFlOT1M0X0RFVl9UTVUK
-Pj4KPj4gSXQgZG9lc24ndCBsb29rIGxpa2UgdGhhdCBLY29uZmlnIHN5bWJvbCBpcyBwYXJ0IG9m
-IHRoZSB0cmVlIGp1c3QgeWV0Lgo+PiBUaGF0IG1lYW5zIHBlb3BsZSB3aWxsIG5vdCBiZSBhYmxl
-IHRvIGJ1aWxkIHRoaXMgZHJpdmVyIGZyb20gdGhlCj4+IG1haW5saW5lIHRyZWUuIFdoeSBpcyB0
-aGlzIGRlcGVuZGVuY3kgbmVlZGVkPyBJbiBhIChyYXRoZXIgcXVpY2spIHNjYW4KPj4gb2YgdGhl
-IGNvZGUgb2YgdGhpcyBkcml2ZXIgSSBjb3VsZG4ndCBzcG90IGFueXRoaW5nIG5vdCB5ZXQgYXZh
-aWxhYmxlIGluCj4+IHRoZSB0cmVlLgo+Pgo+IEkgaGF2ZSB0byBkZWZlciB0byB0aGUgZHJpdmVy
-IGF1dGhvciBmb3IgdGhhdC4gTWF5YmUgdGhlIGRlcGVuZGVuY3kgd2FzCj4gcmVuYW1lZCBhdCBz
-b21lIHBvaW50LCBvciByZW1vdmVkIGFsdG9nZXRoZXIuCj4gClRoZSBkZXBlbmRlbmN5IHdpbGwg
-YmUgcmVuYW1lZCB0byAnQVJDSF9FWFlOT1M0Jy4KClRoYW5rcywKRG9uZ2dldW4KCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Thu, Nov 17, 2011 at 12:20:31AM -0500, Donggeun Kim wrote:
+[ ... ]
+> >>>  
+> >>> +config SENSORS_EXYNOS4_TMU
+> >>> +	tristate "Temperature sensor on Samsung EXYNOS4"
+> >>> +	depends on EXYNOS4_DEV_TMU
+> >>
+> >> It doesn't look like that Kconfig symbol is part of the tree just yet.
+> >> That means people will not be able to build this driver from the
+> >> mainline tree. Why is this dependency needed? In a (rather quick) scan
+> >> of the code of this driver I couldn't spot anything not yet available in
+> >> the tree.
+> >>
+> > I have to defer to the driver author for that. Maybe the dependency was
+> > renamed at some point, or removed altogether.
+> > 
+> The dependency will be renamed to 'ARCH_EXYNOS4'.
+> 
+Please submit a patch.
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
