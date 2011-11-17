@@ -1,111 +1,45 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 15 Nov 2011 21:24:13 +0000
+From: Donggeun Kim <dg77.kim@samsung.com>
+Date: Thu, 17 Nov 2011 05:20:31 +0000
 Subject: Re: [lm-sensors] [PATCH v7] hwmon: Add driver for EXYNOS4 TMU
-Message-Id: <1321392253.2309.379.camel@groeck-laptop>
+Message-Id: <4EC4999F.8030604@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1315388948-20346-1-git-send-email-dg77.kim@samsung.com>
-	 <1321389279.20271.241.camel@x61.thuisdomein>
-In-Reply-To: <1321389279.20271.241.camel@x61.thuisdomein>
+ <1321389279.20271.241.camel@x61.thuisdomein>
+ <1321392253.2309.379.camel@groeck-laptop>
+In-Reply-To: <1321392253.2309.379.camel@groeck-laptop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Donggeun Kim <dg77.kim@samsung.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: guenter.roeck@ericsson.com
+Cc: Paul Bolle <pebolle@tiscali.nl>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, "myungjoo.ham@samsung.com" <myungjoo.ham@samsung.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, 2011-11-15 at 15:34 -0500, Paul Bolle wrote:
-> (This is an attempt to do a bit of review after the fact. See, this
-> appears to be to the patch that ended up as commit
-> 9d97e5c81e15afaef65d00f077f863c94f750839 in the mainline tree. Since
-> that tree is at v3.2-rc2 now this might be in time for v3.2. If my
-> comments have merit, that is.)
-> 
-> On Wed, 2011-09-07 at 18:49 +0900, Donggeun Kim wrote:
-> > This patch allows to read temperature
-> > from TMU(Thermal Management Unit) of SAMSUNG EXYNOS4 series of SoC.
-> [...]
-> > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> > index 0b62c3c..c6fb761 100644
-> > --- a/drivers/hwmon/Kconfig
-> > +++ b/drivers/hwmon/Kconfig
-> > @@ -303,6 +303,16 @@ config SENSORS_DS1621
-> >  	  This driver can also be built as a module.  If so, the module
-> >  	  will be called ds1621.
-> >  
-> > +config SENSORS_EXYNOS4_TMU
-> > +	tristate "Temperature sensor on Samsung EXYNOS4"
-> > +	depends on EXYNOS4_DEV_TMU
-> 
-> It doesn't look like that Kconfig symbol is part of the tree just yet.
-> That means people will not be able to build this driver from the
-> mainline tree. Why is this dependency needed? In a (rather quick) scan
-> of the code of this driver I couldn't spot anything not yet available in
-> the tree.
-> 
-I have to defer to the driver author for that. Maybe the dependency was
-renamed at some point, or removed altogether.
-
-> > +	help
-> > +	  If you say yes here you get support for TMU (Thermal Managment
-> > +	  Unit) on SAMSUNG EXYNOS4 series of SoC.
-> > +
-> > +	  This driver can also be built as a module. If so, the module
-> > +	  will be called exynos4-tmu.
-> > +
-> >  config SENSORS_I5K_AMB
-> >  	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
-> >  	depends on PCI && EXPERIMENTAL
-> [...]
-> > diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
-> > new file mode 100644
-> > index 0000000..0170c90
-> > --- /dev/null
-> > +++ b/drivers/hwmon/exynos4_tmu.c
-> [...]
-> > +#ifdef CONFIG_PM
-> > +static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
-> > +{
-> > +	exynos4_tmu_control(pdev, false);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int exynos4_tmu_resume(struct platform_device *pdev)
-> > +{
-> > +	exynos4_tmu_initialize(pdev);
-> > +	exynos4_tmu_control(pdev, true);
-> > +
-> > +	return 0;
-> > +}
-> > +#else
-> > +#define exynos4_tmu_suspend NULL
-> > +#define exynos4_tmu_resume NULL
-> > +#endif
-> > +
-> > +static struct platform_driver exynos4_tmu_driver = {
-> > +	.driver = {
-> > +		.name   = "exynos4-tmu",
-> > +		.owner  = THIS_MODULE,
-> > +	},
-> > +	.probe = exynos4_tmu_probe,
-> > +	.remove	= __devexit_p(exynos4_tmu_remove),
-> > +	.suspend = exynos4_tmu_suspend,
-> > +	.resume = exynos4_tmu_resume,
-> > +};
-> 
-> A common idiom seems to be (I'm speaking from memory here) to
-> wrap .suspend and .resume inside an "#ifdef CONFIG_PM" / "#endif" pair.
-> That would allow to drop both "#define exynos4_tmu_suspend NULL" and
-> "#define exynos4_tmu_resume NULL" above. Would that work here too?
-> 
-Seems to be a matter of opinion. I personally don't care one way or the
-other, but I was told some time ago that the above method would be
-preferred over using a second #ifdef.
-
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMjAxMeuFhCAxMeyblCAxNuydvCAwNjoyNCwgR3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiBU
+dWUsIDIwMTEtMTEtMTUgYXQgMTU6MzQgLTA1MDAsIFBhdWwgQm9sbGUgd3JvdGU6Cj4+IChUaGlz
+IGlzIGFuIGF0dGVtcHQgdG8gZG8gYSBiaXQgb2YgcmV2aWV3IGFmdGVyIHRoZSBmYWN0LiBTZWUs
+IHRoaXMKPj4gYXBwZWFycyB0byBiZSB0byB0aGUgcGF0Y2ggdGhhdCBlbmRlZCB1cCBhcyBjb21t
+aXQKPj4gOWQ5N2U1YzgxZTE1YWZhZWY2NWQwMGYwNzdmODYzYzk0Zjc1MDgzOSBpbiB0aGUgbWFp
+bmxpbmUgdHJlZS4gU2luY2UKPj4gdGhhdCB0cmVlIGlzIGF0IHYzLjItcmMyIG5vdyB0aGlzIG1p
+Z2h0IGJlIGluIHRpbWUgZm9yIHYzLjIuIElmIG15Cj4+IGNvbW1lbnRzIGhhdmUgbWVyaXQsIHRo
+YXQgaXMuKQo+Pgo+PiBPbiBXZWQsIDIwMTEtMDktMDcgYXQgMTg6NDkgKzA5MDAsIERvbmdnZXVu
+IEtpbSB3cm90ZToKPj4+IFRoaXMgcGF0Y2ggYWxsb3dzIHRvIHJlYWQgdGVtcGVyYXR1cmUKPj4+
+IGZyb20gVE1VKFRoZXJtYWwgTWFuYWdlbWVudCBVbml0KSBvZiBTQU1TVU5HIEVYWU5PUzQgc2Vy
+aWVzIG9mIFNvQy4KPj4gWy4uLl0KPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL0tjb25m
+aWcgYi9kcml2ZXJzL2h3bW9uL0tjb25maWcKPj4+IGluZGV4IDBiNjJjM2MuLmM2ZmI3NjEgMTAw
+NjQ0Cj4+PiAtLS0gYS9kcml2ZXJzL2h3bW9uL0tjb25maWcKPj4+ICsrKyBiL2RyaXZlcnMvaHdt
+b24vS2NvbmZpZwo+Pj4gQEAgLTMwMyw2ICszMDMsMTYgQEAgY29uZmlnIFNFTlNPUlNfRFMxNjIx
+Cj4+PiAgCSAgVGhpcyBkcml2ZXIgY2FuIGFsc28gYmUgYnVpbHQgYXMgYSBtb2R1bGUuICBJZiBz
+bywgdGhlIG1vZHVsZQo+Pj4gIAkgIHdpbGwgYmUgY2FsbGVkIGRzMTYyMS4KPj4+ICAKPj4+ICtj
+b25maWcgU0VOU09SU19FWFlOT1M0X1RNVQo+Pj4gKwl0cmlzdGF0ZSAiVGVtcGVyYXR1cmUgc2Vu
+c29yIG9uIFNhbXN1bmcgRVhZTk9TNCIKPj4+ICsJZGVwZW5kcyBvbiBFWFlOT1M0X0RFVl9UTVUK
+Pj4KPj4gSXQgZG9lc24ndCBsb29rIGxpa2UgdGhhdCBLY29uZmlnIHN5bWJvbCBpcyBwYXJ0IG9m
+IHRoZSB0cmVlIGp1c3QgeWV0Lgo+PiBUaGF0IG1lYW5zIHBlb3BsZSB3aWxsIG5vdCBiZSBhYmxl
+IHRvIGJ1aWxkIHRoaXMgZHJpdmVyIGZyb20gdGhlCj4+IG1haW5saW5lIHRyZWUuIFdoeSBpcyB0
+aGlzIGRlcGVuZGVuY3kgbmVlZGVkPyBJbiBhIChyYXRoZXIgcXVpY2spIHNjYW4KPj4gb2YgdGhl
+IGNvZGUgb2YgdGhpcyBkcml2ZXIgSSBjb3VsZG4ndCBzcG90IGFueXRoaW5nIG5vdCB5ZXQgYXZh
+aWxhYmxlIGluCj4+IHRoZSB0cmVlLgo+Pgo+IEkgaGF2ZSB0byBkZWZlciB0byB0aGUgZHJpdmVy
+IGF1dGhvciBmb3IgdGhhdC4gTWF5YmUgdGhlIGRlcGVuZGVuY3kgd2FzCj4gcmVuYW1lZCBhdCBz
+b21lIHBvaW50LCBvciByZW1vdmVkIGFsdG9nZXRoZXIuCj4gClRoZSBkZXBlbmRlbmN5IHdpbGwg
+YmUgcmVuYW1lZCB0byAnQVJDSF9FWFlOT1M0Jy4KClRoYW5rcywKRG9uZ2dldW4KCgoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
+aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
+cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
