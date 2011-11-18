@@ -1,29 +1,36 @@
-From: Lucas Stach <dev@lynxeye.de>
-Date: Fri, 18 Nov 2011 18:47:03 +0000
-Subject: [lm-sensors] wrong output with fam15h_power
-Message-Id: <1321642023.1644.12.camel@tellur>
+From: Phil Pokorny <ppokorny@penguincomputing.com>
+Date: Fri, 18 Nov 2011 19:11:49 +0000
+Subject: Re: [lm-sensors] wrong output with fam15h_power
+Message-Id: <CAAek22GQLy2NCOwC7oKZz3oydyPZZTY+w2HJxBp8zs3heYoK7g@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1321642023.1644.12.camel@tellur>
+In-Reply-To: <1321642023.1644.12.camel@tellur>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGksCgpJJ20gdHJ5aW5nIHRvIHVzZSB0aGUgZmFtMTVoX3Bvd2VyIGRyaXZlciB0byBtZWFzdXJl
-IG15IHByb2Nlc3NvcnMgcG93ZXIKY29uc3VtcHRpb24sIGJ1dCBpdCBnaXZlcyBtZSBjbGVhcmx5
-IHdyb25nIHZhbHVlcy4gV2l0aCBhIGNvbXBsZXRlbHkKaWRsZSBzeXN0ZW0gdGhlIHByb2Nlc3Nv
-ciBjbGFpbXMgdG8gYmUgdXNpbmcgMTI1MjYxNzE4wrVXLCB3aGljaCB3b3VsZAptZWFuIHRoZSBw
-cm9jZXNzb3Igb3BlcmF0ZXMgYXQgaXQncyBURFAgbGltaXQuIFdpdGggYWxsIGNvcmVzIDEwMCUK
-bG9hZGVkIGl0IGNsYWltcyB0byBiZSB1c2luZyAxMzA2NzU3ODHCtVcgd2hpY2ggSSBjYW4ndCBi
-ZWxpZXZlIGFzIHRoaXMKd291bGQgbWVhbiB0aGUgcHJvY2Vzc29yIHZpb2xhdGVzIGl0J3Mgb3du
-IHNwZWMuCgpUaGlzIGlzIGEgZGVza3RvcCBzeXN0ZW0gd2l0aCBhbiBBTUQgRlgtODE1MCBwcm9j
-ZXNzb3Igb24gYSBicmFuZCBuZXcKR2lnYWJ5dGUgR0EtOTcwQS1VRDMgYm9hcmQgd2l0aCB0aGUg
-bGF0ZXN0IChGNCkgQklPUy4KCklzIHRoaXMgYSBrbm93biBidWc/IElmIG5vdCBJIHdvdWxkIGJl
-IGdsYWQgdG8gaGVscCB0cmFjayB0aGlzIGRvd24uIEkKaGFkIGEgcXVpY2sgbG9vayBhdCB0aGUg
-QklPUyBhbmQgS2VybmVsIERldmVsb3BlcuKAmXMgR3VpZGUgKEJLREcpIGZvciBBTUQKRmFtaWx5
-IDE1aCAoIzQyMzAxKSBidXQgY291bGRuJ3QgZGV0ZXJtaW5lIGlmIHRoZSBtYXRoIGRvbmUgaW4g
-dGhlCmZhbTE1aF9wb3dlciBkcml2ZXIgaXMgY29ycmVjdCBvciBpZiB3ZSBuZWVkIHRvIHNldCBz
-b21lIHJlZ2lzdGVycyB0bwpzcGVjaWZpYyB2YWx1ZXMgdG8gbWFrZSB0aGlzIHdvcmsgYXMgaW50
-ZW5kZWQuIEFueSBoaW50cyB3b3VsZCBiZQphcHByZWNpYXRlZC4KClRoYW5rcywKTHVjYXMKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
-IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
-ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Fri, Nov 18, 2011 at 10:47 AM, Lucas Stach <dev@lynxeye.de> wrote:
+> Hi,
+>
+> I'm trying to use the fam15h_power driver to measure my processors power
+> consumption, but it gives me clearly wrong values. With a completely
+> idle system the processor claims to be using 125261718=B5W, which would
+> mean the processor operates at it's TDP limit. With all cores 100%
+> loaded it claims to be using 130675781=B5W which I can't believe as this
+> would mean the processor violates it's own spec.
+
+You have to read the vendor documentation carefully...
+
+TDP numbers are *not* necessarily the maximum power draw.  They are
+the *design* point for a thermal solution.
+
+Further confusion is created by Intel and AMD using similar terms to
+refer to different concepts.
+
+Phil P.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
