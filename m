@@ -1,36 +1,38 @@
-From: Phil Pokorny <ppokorny@penguincomputing.com>
-Date: Fri, 18 Nov 2011 19:11:49 +0000
+From: Lucas Stach <dev@lynxeye.de>
+Date: Fri, 18 Nov 2011 19:46:15 +0000
 Subject: Re: [lm-sensors] wrong output with fam15h_power
-Message-Id: <CAAek22GQLy2NCOwC7oKZz3oydyPZZTY+w2HJxBp8zs3heYoK7g@mail.gmail.com>
+Message-Id: <1321645575.1644.20.camel@tellur>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321642023.1644.12.camel@tellur>
 In-Reply-To: <1321642023.1644.12.camel@tellur>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 18, 2011 at 10:47 AM, Lucas Stach <dev@lynxeye.de> wrote:
-> Hi,
->
-> I'm trying to use the fam15h_power driver to measure my processors power
-> consumption, but it gives me clearly wrong values. With a completely
-> idle system the processor claims to be using 125261718=B5W, which would
-> mean the processor operates at it's TDP limit. With all cores 100%
-> loaded it claims to be using 130675781=B5W which I can't believe as this
-> would mean the processor violates it's own spec.
-
-You have to read the vendor documentation carefully...
-
-TDP numbers are *not* necessarily the maximum power draw.  They are
-the *design* point for a thermal solution.
-
-Further confusion is created by Intel and AMD using similar terms to
-refer to different concepts.
-
-Phil P.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgUGhpbCwKCkFtIEZyZWl0YWcsIGRlbiAxOC4xMS4yMDExLCAxMToxMSAtMDgwMCBzY2hyaWVi
+IFBoaWwgUG9rb3JueToKPiBPbiBGcmksIE5vdiAxOCwgMjAxMSBhdCAxMDo0NyBBTSwgTHVjYXMg
+U3RhY2ggPGRldkBseW54ZXllLmRlPiB3cm90ZToKPiA+IEhpLAo+ID4KPiA+IEknbSB0cnlpbmcg
+dG8gdXNlIHRoZSBmYW0xNWhfcG93ZXIgZHJpdmVyIHRvIG1lYXN1cmUgbXkgcHJvY2Vzc29ycyBw
+b3dlcgo+ID4gY29uc3VtcHRpb24sIGJ1dCBpdCBnaXZlcyBtZSBjbGVhcmx5IHdyb25nIHZhbHVl
+cy4gV2l0aCBhIGNvbXBsZXRlbHkKPiA+IGlkbGUgc3lzdGVtIHRoZSBwcm9jZXNzb3IgY2xhaW1z
+IHRvIGJlIHVzaW5nIDEyNTI2MTcxOMK1Vywgd2hpY2ggd291bGQKPiA+IG1lYW4gdGhlIHByb2Nl
+c3NvciBvcGVyYXRlcyBhdCBpdCdzIFREUCBsaW1pdC4gV2l0aCBhbGwgY29yZXMgMTAwJQo+ID4g
+bG9hZGVkIGl0IGNsYWltcyB0byBiZSB1c2luZyAxMzA2NzU3ODHCtVcgd2hpY2ggSSBjYW4ndCBi
+ZWxpZXZlIGFzIHRoaXMKPiA+IHdvdWxkIG1lYW4gdGhlIHByb2Nlc3NvciB2aW9sYXRlcyBpdCdz
+IG93biBzcGVjLgo+IAo+IFlvdSBoYXZlIHRvIHJlYWQgdGhlIHZlbmRvciBkb2N1bWVudGF0aW9u
+IGNhcmVmdWxseS4uLgo+IAo+IFREUCBudW1iZXJzIGFyZSAqbm90KiBuZWNlc3NhcmlseSB0aGUg
+bWF4aW11bSBwb3dlciBkcmF3LiAgVGhleSBhcmUKPiB0aGUgKmRlc2lnbiogcG9pbnQgZm9yIGEg
+dGhlcm1hbCBzb2x1dGlvbi4KCkkgYXBwcmVjaWF0ZSB5b3VyIGFuc3dlciBidXQgaGlzIGlzICpu
+b3QqIHRoZSBwb2ludCBoZXJlLiBUaGUgcG9pbnQgaXMKdGhlIGZhbTE1aF9wb3dlciBkcml2ZXIg
+aXMgY2xhaW1pbmcgdGhlIHByb2Nlc3NvciBpcyB1c2VpbmcgYSB0b3RhbGx5CnVuYmVsaWV2YWJs
+ZSAxMjVXIHdoaWxlIGlkbGUsIHdoaWxlIHBoeXNpY2FsIG1lYXN1cmVtZW50cyBoYXZlIHNob3du
+CnRoYXQgZmFtMTVoIHByb2Nlc3NvcnMgZG8gbm90IHVzZSBtb3JlIHRoYW4gYSBmZXcgKGJlbG93
+IDEwKSBXYXR0cyBpbgp0aGlzIHN0YXRlLgoKQWxzbyB0aGUgcHJvY2Vzc29yIGl0c2VsZiBjbGFp
+bXMgdG8gaGF2ZSBhbiB1cHBlciBURFAgbGltaXQgb2YgMTI0Ljc3VwooYXMgc2hvd24gYnkgZmFt
+MTVoX3Bvd2VyKSwgc28gbm8gbWVhc3VyZW1lbnQgc2hvdWxkIGV2ZXIgZXhjZWVkIHRoaXMuCj4g
+Cj4gRnVydGhlciBjb25mdXNpb24gaXMgY3JlYXRlZCBieSBJbnRlbCBhbmQgQU1EIHVzaW5nIHNp
+bWlsYXIgdGVybXMgdG8KPiByZWZlciB0byBkaWZmZXJlbnQgY29uY2VwdHMuCj4gCj4gUGhpbCBQ
+Lgo+IAoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
+bS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9s
+aXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
