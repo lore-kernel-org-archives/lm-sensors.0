@@ -1,100 +1,37 @@
-From: MyungJoo Ham <myungjoo.ham@samsung.com>
-Date: Mon, 14 Nov 2011 08:13:21 +0000
-Subject: [lm-sensors] [PATCH v2 2/2] HWMON: support in-kernel HWMON API: NTC,
-Message-Id: <CAJ0PZbS_KFO2d4qKxUfL8imvfKXGcSr+sAwMf-VB1RcDpSsrHA@mail.gmail.com>
+From: Zac Storer <zac.3.14159@gmail.com>
+Date: Fri, 18 Nov 2011 08:23:09 +0000
+Subject: [lm-sensors] [PATCH 35/35] Drivers: hwmon: adm1031: fixed indent
+Message-Id: <1321604589-13325-1-git-send-email-zac.3.14159@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, dg77.kim@samsung.com, kyungmin.park@samsung.com, =?UTF-8?B?7ZWo66qF7KO8?= <myungjoo.ham@gmail.com>, Ben Hutchings <bhutchings@solarflare.com>
+To: khali@linux-fr.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Zac Storer <zac.3.14159@gmail.com>
 
-Supports in-kernel HWMON interfaces for
-1. NTC Thermistor
-2. Exynos4 TMU
-3. S3C-HWMON
-device drivers.
+Fixed indent coding style issue.
 
-Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Zac Storer <zac.3.14159@gmail.com>
 ---
- drivers/hwmon/exynos4_tmu.c    |    2 ++
- drivers/hwmon/ntc_thermistor.c |    2 ++
- drivers/hwmon/s3c-hwmon.c      |   10 ++++++++++
- 3 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/hwmon/adm1031.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
-index faa0884..f9566b9 100644
---- a/drivers/hwmon/exynos4_tmu.c
-+++ b/drivers/hwmon/exynos4_tmu.c
-@@ -431,6 +431,8 @@ static int __devinit exynos4_tmu_probe(struct
-platform_device *pdev)
- 		goto err_create_group;
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index 0bd2ae7..29f8d59 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -971,7 +971,7 @@ static void adm1031_init_client(struct i2c_client *client)
+ 	/* Initialize the ADM1031 chip (enables fan speed reading ) */
+ 	read_val = adm1031_read_value(client, ADM1031_REG_CONF2);
+ 	if ((read_val | mask) != read_val) {
+-	    adm1031_write_value(client, ADM1031_REG_CONF2, read_val | mask);
++		adm1031_write_value(client, ADM1031_REG_CONF2, read_val | mask);
  	}
-
-+	hwmon_register_properties(data->hwmon_dev, &exynos4_tmu_attr_group);
-+
- 	exynos4_tmu_control(pdev, true);
-
- 	return 0;
-diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
-index eab1161..21060ff 100644
---- a/drivers/hwmon/ntc_thermistor.c
-+++ b/drivers/hwmon/ntc_thermistor.c
-@@ -389,6 +389,8 @@ static int __devinit ntc_thermistor_probe(struct
-platform_device *pdev)
- 		goto err_after_sysfs;
- 	}
-
-+	hwmon_register_properties(data->hwmon_dev, &ntc_attr_group);
-+
- 	dev_info(&pdev->dev, "Thermistor %s:%d (type: %s/%lu) successfully probed.\n",
- 			pdev->name, pdev->id, pdev->id_entry->name,
- 			pdev->id_entry->driver_data);
-diff --git a/drivers/hwmon/s3c-hwmon.c b/drivers/hwmon/s3c-hwmon.c
-index b39f52e..e003001 100644
---- a/drivers/hwmon/s3c-hwmon.c
-+++ b/drivers/hwmon/s3c-hwmon.c
-@@ -227,6 +227,8 @@ static int s3c_hwmon_create_attr(struct device *dev,
- {
- 	struct sensor_device_attribute *attr;
- 	int ret;
-+	struct platform_device = to_platform_device(dev);
-+	struct s3c_hwmon *hwmon = platform_get_drvdata(pdev, hwmon);
-
- 	snprintf(attrs->in_name, sizeof(attrs->in_name), "in%d_input", channel);
-
-@@ -242,6 +244,7 @@ static int s3c_hwmon_create_attr(struct device *dev,
- 		dev_err(dev, "failed to create input attribute\n");
- 		return ret;
- 	}
-+	hwmon_register_property(hwmon->hwmon_dev, &attr->dev_attr);
-
- 	/* if this has a name, add a label */
- 	if (cfg->name) {
-@@ -260,6 +263,7 @@ static int s3c_hwmon_create_attr(struct device *dev,
- 			device_remove_file(dev, &attrs->in.dev_attr);
- 			dev_err(dev, "failed to create label attribute\n");
- 		}
-+		hwmon_register_property(hwmon->hwmon_dev, &attr->dev_attr);
- 	}
-
- 	return ret;
-@@ -268,6 +272,12 @@ static int s3c_hwmon_create_attr(struct device *dev,
- static void s3c_hwmon_remove_attr(struct device *dev,
- 				  struct s3c_hwmon_attr *attrs)
- {
-+	/*
-+	 * hwmon_unregister_property is not needed for this as
-+	 * hwmon_device_unregister() is always called in the paths
-+	 * when s3c_hwmon_revoce_attr() is called. And hwmon_device_unregister
-+	 * calls hwmon_unregister_property for all properties.
-+	 */
- 	device_remove_file(dev, &attrs->in.dev_attr);
- 	device_remove_file(dev, &attrs->label.dev_attr);
- }
+ 
+ 	read_val = adm1031_read_value(client, ADM1031_REG_CONF1);
 -- 
-1.7.4.1
+1.7.7.3
+
 
 _______________________________________________
 lm-sensors mailing list
