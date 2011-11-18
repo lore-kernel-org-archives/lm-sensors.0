@@ -1,38 +1,39 @@
-From: =?UTF-8?B?0JDQvdGC0L7QvSDQmtC+0YfQutC+0LI=?= <anton.kochkov@gmail.com>
-Date: Wed, 09 Nov 2011 18:34:36 +0000
-Subject: Re: [lm-sensors] IT8502 support
-Message-Id: <CA+8M6wn4LoLXq9RR6Uo8hH+8QPCUdLX3BaKtHvGXQ9FP1DeXww@mail.gmail.com>
+From: Zac Storer <zac.3.14159@gmail.com>
+Date: Fri, 18 Nov 2011 06:11:09 +0000
+Subject: [lm-sensors] [PATCH 32/32] Drivers: hwmon: adm1031: fixed a brace
+Message-Id: <1321596670-11365-1-git-send-email-zac.3.14159@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Zac Storer <zac.3.14159@gmail.com>
 
-TWFpbiBpc3N1ZSAtIHRoYXQgdGhpcyBpcyBub3Qgc2ltcGxlIFN1cGVyIEkvTyBidXQgcHJvZ3Jh
-bW1hYmxlCkVtYmVkZGVkIENvbnRyb2xsZXIsIHNvIGl0IGRlcGVuZHMgZnJvbSB0aGUgT0RNL3Zl
-bmRvciBmaXJtd2FyZS4gSWYKT0RNIC0gQ29tcGFsIGl0IGhhdmUgY29tbWFuZHMgc3BlY2lmaWNh
-dGlvbnMgaW4gc3VjaCBkYXRhc2hlZXRzOgp5b3UgY2FuIGZpbmQgdGhlbSBpbgpodHRwOi8vc2Vy
-dmljZTEubWFyYXNzdC5jb20vQ29tcGFsL0pITDkwXzkxL1NlcnZpY2UlMjUyME1hbnVhbC9KSEw5
-MCUyNTIwc2VydmljZSUyNTIwbWFudWFsLUZpbmFsLTA3MjUucGRmCiwgZm9yIGV4YW1wbGUuIElm
-IE9ETSAtIG5vdCBDb21wYWwsIGkgZG9uZSBrbm93LiBUaG91Z2ggSSBoYXZlIHJldmVyc2UKZW5n
-aW5lZXJlZCBJVEUgSVQ4NTAyIGZpcm13YXJlLgoKCkJlc3QgcmVnYXJkcywKQW50b24gS29jaGtv
-di4KCgoKCk9uIFdlZCwgTm92IDksIDIwMTEgYXQgMjI6MTQsIEd1ZW50ZXIgUm9lY2sgPGd1ZW50
-ZXIucm9lY2tAZXJpY3Nzb24uY29tPiB3cm90ZToKPiBPbiBXZWQsIDIwMTEtMTEtMDkgYXQgMDQ6
-MTUgLTA1MDAsIFJpY2hhcmQgSmFja3NvbiB3cm90ZToKPj4gSSBub3RlIHRoZXJlIGlzIGFscmVh
-ZHkgb25lIHJlcXVlc3QgZm9yIHN1cHBvcnQgZm9yIHRoZSBJVDg1eHggc2Vuc29yIC8KPj4gZmFu
-IGNvbnRyb2wuIEkgd291bGQgbGlrZSB0byBhZGQgbXkgbmFtZSB0byB0aGUgcmVxdWVzdCBsaXN0
-IGFuZCBhbHNvCj4+IG9mZmVyIGEgJDEwMCBkb25hdGlvbiBpZiB5b3UgY2FuIGdldCBpdCB0byB3
-b3JrLiBJIGhhdmUgYSBIUCBNaW5pCj4+IDExMC0zNzQ0IHRoYXQgY29udGFpbnMgdGhpcyBzZW5z
-b3IuIEkgYW0gcnVubmluZyBBcmNoIExpbnV4IGk2ODYgd2l0aAo+PiBsbV9zZW5zb3JzIHZlcnNp
-b24gwqAzLjMuMS4gQWxzbyBoYXBweSB0byB0ZXN0IC8gcHJvdmlkZSBleHRyYSBpbmZvLgo+PiBX
-b3VsZCB1bmRlcnN0YW5kIGlmIHRoZXJlIHdhcyBubyBpbnRlcmVzdCBpbiB0aGlzLgo+Pgo+PiBS
-aWNoYXJkIEphY2tzb24KPgo+IEkgYWRkZWQgeW91ciByZXF1ZXN0IHRvIHRoZSBsbS1zZW5zb3Jz
-IHdlYiBwYWdlLiBQcm9ibGVtIGlzIHRoYXQgc29tZW9uZQo+IHdobyBoYXMgc29tZSB0aW1lIHRv
-IHdyaXRlIGEgZHJpdmVyIHdpbGwgbmVlZCB0byBnZXQgYSBkYXRhc2hlZXQgYW5kIGEKPiBzeXN0
-ZW0gdXNpbmcgdGhhdCBjaGlwLgo+Cj4gR3VlbnRlcgo+Cj4KPgo+IF9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-PiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
-L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwo+CgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
-QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xtLXNlbnNvcnM
+Fixed a brace coding style issue.
+
+Signed-off-by: Zac Storer <zac.3.14159@gmail.com>
+---
+ drivers/hwmon/adm1031.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index 0683e6b..04e2adc 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -299,7 +299,7 @@ set_fan_auto_channel(struct device *dev, struct device_attribute *attr,
+ 	data->conf1 = FAN_CHAN_TO_REG(reg, data->conf1);
+ 	if ((data->conf1 & ADM1031_CONF1_AUTO_MODE) ^
+ 	    (old_fan_mode & ADM1031_CONF1_AUTO_MODE)) {
+-		if (data->conf1 & ADM1031_CONF1_AUTO_MODE){
++		if (data->conf1 & ADM1031_CONF1_AUTO_MODE) {
+ 			/* Switch to Auto Fan Mode
+ 			 * Save PWM registers
+ 			 * Set PWM registers to 33% Both */
+-- 
+1.7.7.3
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
