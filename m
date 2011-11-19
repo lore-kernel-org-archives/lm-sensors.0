@@ -1,33 +1,76 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Date: Fri, 11 Nov 2011 15:42:04 +0000
-Subject: Re: [lm-sensors] [PATCH 3/5] IIO:CORE add in kernel interface
-Message-Id: <CACRpkdbKPL6=t-YGSNZdb2aGXERvk6zPkb40ytOMbYXLQ7H2Vg@mail.gmail.com>
+From: Paul Norman <penorman@mac.com>
+Date: Sat, 19 Nov 2011 06:32:09 +0000
+Subject: [lm-sensors] Biostar TA880GB+ Motherboard Information
+Message-Id: <000001cca684$f7e5ace0$e7b106a0$@mac.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1320680681-5635-1-git-send-email-jic23@kernel.org>
-	<1320680681-5635-4-git-send-email-jic23@kernel.org>
-In-Reply-To: <1320680681-5635-4-git-send-email-jic23@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, guenter.roeck@ericsson.com, khali@linux-fr.org, dmitry.torokhov@gmail.com, broonie@opensource.wolfsonmicro.com, gregkh@suse.de, alan@lxorguk.ukuu.org.uk, arnd@arndb.de, lars@metafoo.de, maxime.ripard@free-electrons.com, lm-sensors@lm-sensors.org, thomas.petazzoni@free-electrons.com, zdevai@gmail.com, Jonathan Cameron <jic23@cam.ac.uk>
+To: lm-sensors@vger.kernel.org
 
-On Mon, Nov 7, 2011 at 4:44 PM, Jonathan Cameron <jic23@kernel.org> wrote:
+I was going to add this to the wiki, but was unable to figure out how to
+register to add it. Someone on IRC suggested I post to the mailing list.
 
-> From: Jonathan Cameron <jic23@cam.ac.uk>
->
-> Two elements here:
-> * Map as defined in include/linux/iio/inkern.h
-> * Matching code to actually get the iio_dev and channel
-> that we want from the global list of IIO devices.
->
-> Signed-off-by: Jonathan Cameron <jic23@cam.ac.uk>
+My Ubuntu server runs on a Biostar TA880GB+ AM3 motherboard, with a 880G
+northbridge and an Athelon II processor.
 
-Overall this is what we want:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Finding no configuration information for this motherboard, I proceeded to
+write it, using the fairly detailed information in the BIOS to match up
+sensors with what they measure. I overvolted parts in the BIOS to verify
+that I had the configuration right.
 
-Thanks,
-Linus Walleij
+My configuration file is as follows. I am running sensors version 3.3.0 with
+libsensors version 3.3.0
+
+chip "it8721-isa-*"
+
+# Temperatures
+    label temp1 "CPU"
+    label temp2 "Northbridge"
+    label temp3 "Mainboard"
+
+# fans
+# Assuming fans are connected as specified on the motherboard.
+# CPU fan is a 4 pin PWM connector, the others are 3 pin.
+    label fan1 "CPU Fan"
+    label fan2 "System Fan 1"
+    label fan3 "System Fan 2"
+
+# Voltages
+    #Not sure what in0 and in1 are. They're stable, maybe +12V and +5V lines
+in need of scaling?
+    label in2 "Vcore"
+    label in3 "+3.3V"
+    label in4 "NB Voltage"
+    label in5 "DDR Voltage"
+    label in6 "HT Voltage"
+    label in7 "+3.3Vsb"
+
+
+chip "acpitz-virtual-0"
+# This is essentially the same as the CPU temperature.
+    label temp1 "temp1"
+
+chip "k10temp-pci-00c3"
+#    temp1 represents the CPU temperature but is not in any physical unit
+    label temp1 "temp2"
+
+The Northbridge temperature is not listed in the BIOS, but it's the only
+component that runs that hot, is not affected by CPU load, and is affected
+by CPU fan speed (the cooler gets some air to the northbridge)
+
+I'm pretty sure that in0 and in1 are +5V and +12V readings since those are
+shown in the BIOS, but I don't know of a way to tell them apart.
+
+Fancontrol does work with this setup although with my cooling it doesn't
+accomplish much since the loudest and most powerful fans are cooling my
+drives. Biostar makes some other 880G-based motherboards and this
+configuration may apply to them too.
+
+-- 
+Paul Norman
+http://www.paulnorman.ca/blog
+
 
 _______________________________________________
 lm-sensors mailing list
