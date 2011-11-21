@@ -1,55 +1,53 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 21 Nov 2011 16:10:11 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 21 Nov 2011 16:14:10 +0000
 Subject: Re: [lm-sensors] [PATCH v2 2/2] hwmon: (lm63) Add support for
-Message-Id: <20111121171011.0d1040fa@endymion.delvare>
+Message-Id: <1321892050.2730.60.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321830618-15817-1-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1321830618-15817-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-On Mon, 21 Nov 2011 05:48:25 -0800, Guenter Roeck wrote:
-> On Mon, Nov 21, 2011 at 08:07:07AM -0500, Jean Delvare wrote:
-> > On Mon, 21 Nov 2011 10:43:39 +0100, Jean Delvare wrote:
-> > > What about bit 3 (USF) in this enhanced configuration register? When
-> > > set, it would affect the way we encode and decode _max and _crit
-> > > temperature limits, right?
-> >=20
-> > BTW, if you agree but don't have time to work on this, I would be
-> > perfectly fine with a check at probe time that would complain (and
-> > eventually bail out) if the way the chip is configured is not properly
-> > supported by the driver. If anyone needs the feature, it can be added
-> > later.
-> >=20
-> Gives me something to do if I need some distraction ;). It will need
-> some thinking, so I may choose the complain option for now and submit
-> a patch later. Bailing out seems a bit harsh - as are temperatures
-> above 127 C anyway.
-
-Temperatures above 127=B0C are frequent in high-end graphics cards. I
-would never want any of these in my own machines, but gamers do.
-
-I am more surprised by the implementation. I'd have expected a single
-configuration but to change the range of all temperature-related
-registers, not just the high and critical limits. Other chips do this.
-
-> Do you remember why you did not add support for the remote temperature
-> offset registers ?
-
-Probably because nobody ever asked for it. Also, originally we did not
-have a standard sysfs file name for this feature, so it was often left
-out of driver submissions. For some drivers it was added later when
-a standard name was defined, for others it was not. Feel free to add it
-if you want. I don't expect any difficulty.
-
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAyMDExLTExLTIxIGF0IDExOjEwIC0wNTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
+SGkgR3VlbnRlciwKPiAKPiBPbiBNb24sIDIxIE5vdiAyMDExIDA1OjQ4OjI1IC0wODAwLCBHdWVu
+dGVyIFJvZWNrIHdyb3RlOgo+ID4gT24gTW9uLCBOb3YgMjEsIDIwMTEgYXQgMDg6MDc6MDdBTSAt
+MDUwMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+ID4gPiBPbiBNb24sIDIxIE5vdiAyMDExIDEwOjQz
+OjM5ICswMTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4gPiA+ID4gV2hhdCBhYm91dCBiaXQgMyAo
+VVNGKSBpbiB0aGlzIGVuaGFuY2VkIGNvbmZpZ3VyYXRpb24gcmVnaXN0ZXI/IFdoZW4KPiA+ID4g
+PiBzZXQsIGl0IHdvdWxkIGFmZmVjdCB0aGUgd2F5IHdlIGVuY29kZSBhbmQgZGVjb2RlIF9tYXgg
+YW5kIF9jcml0Cj4gPiA+ID4gdGVtcGVyYXR1cmUgbGltaXRzLCByaWdodD8KPiA+ID4gCj4gPiA+
+IEJUVywgaWYgeW91IGFncmVlIGJ1dCBkb24ndCBoYXZlIHRpbWUgdG8gd29yayBvbiB0aGlzLCBJ
+IHdvdWxkIGJlCj4gPiA+IHBlcmZlY3RseSBmaW5lIHdpdGggYSBjaGVjayBhdCBwcm9iZSB0aW1l
+IHRoYXQgd291bGQgY29tcGxhaW4gKGFuZAo+ID4gPiBldmVudHVhbGx5IGJhaWwgb3V0KSBpZiB0
+aGUgd2F5IHRoZSBjaGlwIGlzIGNvbmZpZ3VyZWQgaXMgbm90IHByb3Blcmx5Cj4gPiA+IHN1cHBv
+cnRlZCBieSB0aGUgZHJpdmVyLiBJZiBhbnlvbmUgbmVlZHMgdGhlIGZlYXR1cmUsIGl0IGNhbiBi
+ZSBhZGRlZAo+ID4gPiBsYXRlci4KPiA+ID4gCj4gPiBHaXZlcyBtZSBzb21ldGhpbmcgdG8gZG8g
+aWYgSSBuZWVkIHNvbWUgZGlzdHJhY3Rpb24gOykuIEl0IHdpbGwgbmVlZAo+ID4gc29tZSB0aGlu
+a2luZywgc28gSSBtYXkgY2hvb3NlIHRoZSBjb21wbGFpbiBvcHRpb24gZm9yIG5vdyBhbmQgc3Vi
+bWl0Cj4gPiBhIHBhdGNoIGxhdGVyLiBCYWlsaW5nIG91dCBzZWVtcyBhIGJpdCBoYXJzaCAtIGFz
+IGFyZSB0ZW1wZXJhdHVyZXMKPiA+IGFib3ZlIDEyNyBDIGFueXdheS4KPiAKPiBUZW1wZXJhdHVy
+ZXMgYWJvdmUgMTI3wrBDIGFyZSBmcmVxdWVudCBpbiBoaWdoLWVuZCBncmFwaGljcyBjYXJkcy4g
+SQo+IHdvdWxkIG5ldmVyIHdhbnQgYW55IG9mIHRoZXNlIGluIG15IG93biBtYWNoaW5lcywgYnV0
+IGdhbWVycyBkby4KPiAKT2ssIGd1ZXNzIHRoYXQgbWFrZXMgc2Vuc2UuIFN0aWxsIGEgYml0IGhh
+cnNoLCB0aG91Z2guCgo+IEkgYW0gbW9yZSBzdXJwcmlzZWQgYnkgdGhlIGltcGxlbWVudGF0aW9u
+LiBJJ2QgaGF2ZSBleHBlY3RlZCBhIHNpbmdsZQo+IGNvbmZpZ3VyYXRpb24gYnV0IHRvIGNoYW5n
+ZSB0aGUgcmFuZ2Ugb2YgYWxsIHRlbXBlcmF0dXJlLXJlbGF0ZWQKPiByZWdpc3RlcnMsIG5vdCBq
+dXN0IHRoZSBoaWdoIGFuZCBjcml0aWNhbCBsaW1pdHMuIE90aGVyIGNoaXBzIGRvIHRoaXMuCj4g
+ClRoZXJlIGlzIGEgbmV3IHNldCBvZiByZWdpc3RlcnMgcmVwb3J0aW5nIHVuc2lnbmVkIHZhbHVl
+cyBmb3IgdGhlCmV4dGVybmFsIHRlbXBlcmF0dXJlLiBPZiBjb3Vyc2UsIHRoYXQgbWFrZXMgdGhl
+IGltcGxlbWVudGF0aW9uIGV2ZW4gbW9yZQp0cmlja3kuCgo+ID4gRG8geW91IHJlbWVtYmVyIHdo
+eSB5b3UgZGlkIG5vdCBhZGQgc3VwcG9ydCBmb3IgdGhlIHJlbW90ZSB0ZW1wZXJhdHVyZQo+ID4g
+b2Zmc2V0IHJlZ2lzdGVycyA/Cj4gCj4gUHJvYmFibHkgYmVjYXVzZSBub2JvZHkgZXZlciBhc2tl
+ZCBmb3IgaXQuIEFsc28sIG9yaWdpbmFsbHkgd2UgZGlkIG5vdAo+IGhhdmUgYSBzdGFuZGFyZCBz
+eXNmcyBmaWxlIG5hbWUgZm9yIHRoaXMgZmVhdHVyZSwgc28gaXQgd2FzIG9mdGVuIGxlZnQKPiBv
+dXQgb2YgZHJpdmVyIHN1Ym1pc3Npb25zLiBGb3Igc29tZSBkcml2ZXJzIGl0IHdhcyBhZGRlZCBs
+YXRlciB3aGVuCj4gYSBzdGFuZGFyZCBuYW1lIHdhcyBkZWZpbmVkLCBmb3Igb3RoZXJzIGl0IHdh
+cyBub3QuIEZlZWwgZnJlZSB0byBhZGQgaXQKPiBpZiB5b3Ugd2FudC4gSSBkb24ndCBleHBlY3Qg
+YW55IGRpZmZpY3VsdHkuCj4gCk5vIHByb2JsZW0sIGp1c3Qgd29uZGVyaW5nLiBJIG1heSBhZGQg
+aXQganVzdCB0byBzaW1wbGlmeSB0ZXN0aW5nIHRoZQp1bnNpZ25lZCB0ZW1wZXJhdHVyZSBjb25m
+aWd1cmF0aW9uLgoKVGhhbmtzLApHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
