@@ -1,402 +1,243 @@
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Mon, 21 Nov 2011 10:49:04 +0000
+From: Karsten de Freese <karsten@maxi-dsl.de>
+Date: Mon, 21 Nov 2011 16:09:15 +0000
 Subject: Re: [lm-sensors] looking for help with W83795ADG
-Message-Id: <CAKdnbx41Ze7KsRFTndFxR30d_9ZqW-rQPGOd7uOTjRgU=cwhBw@mail.gmail.com>
+Message-Id: <C5E4719F-2234-4143-BB37-9E10705F366E@maxi-dsl.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
 In-Reply-To: <20101022135607.6996731s0m2gcr48@webmail.mnet-online.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Well... I noticed this too... I have to investigate...
-
-perhaps I wrong masks on rewriting adresses... I don't know very well
-C programming..
-
-I hope Jean Delvare can help us in adjusting mask programming...
-
-Do you get sensors working?
-
-Regards
-
-On Mon, Nov 21, 2011 at 12:03 AM, Karsten de Freese <karsten@maxi-dsl.de> w=
-rote:
-> hello Eddi,
->
-> a less-than-welcome update:
->
-> at least when the three modules i2c-piix4.ko, i2c-piix4-n36l.ko, w83795.ko
-> are loaded, =A0a restart (sudo shutdown -r now) of my N36L fails, the sys=
-tem
-> does not come up until I do a complete power cycle. I'll have to look more
-> closely at this, once I have physical access to the box again.
->
-> regards -
->
-> Karsten
->
-> Am 20.11.2011 14:38, schrieb Karsten de Freese:
->>
->> hello Eddi,
->>
->> Success!
->>
->> Thanks for the detailed steps. This all works as described, at least as
->> far as the 'sensors' output is concerned. With the respective modules, I=
- get
->> all the measurements you're listing! (See attached.)
->>
->> 'i2cdetect -l' will however not produce any output for whatsoever reason.
->>
->> The next thing I'd like to find out is how to load the modules
->> automatically in a clean / kernel-upgrade-proof way..
->>
->> thanks and regards -
->>
->> Karsten
->>
->>
->> Am 18.11.2011 11:09, schrieb Eddi De Pieri:
->>>
->>> I suggest you:
->>>
->>>
->>> mkdir ~/piix4-n36l
->>> cp
->>> [yourlinuxtree]/usr/src/linux-source-2.6.32/drivers/i2c/busses/i2c-piix=
-4.c
->>> ~/piix4-n36l/
->>> cp ~/Downloads/Makefile ~/piix4-n36l/
->>> cd =A0~/piix4-n36l/
->>>
->>> patch -p1< =A0proliant-microserver-n36l.diff
->>> make
->>> you will have your new module inside ~/piix4-n36l/
->>>
->>> rmmod i2c-piix4
->>> insmod ./i2c-piix4.ko
->>> insmod ./i2c-piix4-n36l.ko
->>>
->>> insmod w83795 (you should already build separately)
->>>
->>> sensors
->>>
->>> regards Eddi.
->>>
->>> I hope an answer from Jean... I'd like if this patch may be inserted
->>> in mainstream linux with the necessary adjustment..
->>>
->>> On Thu, Nov 17, 2011 at 11:39 PM, Karsten de Freese<karsten@maxi-dsl.de>
->>> =A0wrote:
->>>>
->>>> hello Eddi,
->>>>
->>>> I'm ready for two questions ;-)
->>>>
->>>> .diff / patch looks simple, and I also found i2c-amd756-s4882.c -
->>>> however:
->>>> - the diff file actually describes the patch to be on top of
->>>> i2c-piix4.c?
->>>> - if I'd compile the patched file, would that give me a standalone
->>>> driver?
->>>>
->>>> thanks for your help -
->>>>
->>>> Karsten
->>>>
->>>> On 17.11.2011 22:25, Karsten de Freese wrote:
->>>>>
->>>>> hi Eddi,
->>>>>
->>>>> thanks very much - I had almost forgotten about the topic, but stumbl=
-ed
->>>>> across it again a few days ago, so that's very interesting.
->>>>> I'm not yet familiar with .diff patches, and may welcome a little hel=
-p.
->>>>> However, let me try to find out on my own first..
->>>>>
->>>>> thanks& =A0regards -
->>>>>
->>>>> Karsten
->>>>>
->>>>> On 16.11.2011 17:18, Eddi De Pieri wrote:
->>>>>>
->>>>>> Finally I get W83795ADG working on my proliant microserver
->>>>>>
->>>>>> The patch is based on i2c-amd756-s4882.c and adapted for sb800
->>>>>> southbus.
->>>>>>
->>>>>> Karsten, please try it too...
->>>>>>
->>>>>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -l
->>>>>> i2c-0 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA0) =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0SMBus
->>>>>> adapter
->>>>>> i2c-1 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA2) =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0SMBus
->>>>>> adapter
->>>>>> i2c-2 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA3) =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0SMBus
->>>>>> adapter
->>>>>> i2c-3 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA4) =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0SMBus
->>>>>> adapter
->>>>>> root@proliant:/usr/src/lm-sensors/eddi#
->>>>>>
->>>>>> yes SDA1 is reserved... so i can't multiplex it
->>>>>>
->>>>>> root@proliant:/usr/src/lm-sensors/eddi# sensors
->>>>>> k10temp-pci-00c3
->>>>>> Adapter: PCI adapter
->>>>>> temp1: =A0 =A0 =A0 +24.5=B0C =A0(high =3D +70.0=B0C, crit =3D +100.0=
-=B0C)
->>>>>>
->>>>>> w83795adg-i2c-1-2f
->>>>>> Adapter: SMBus piix4 adapter (SDA2)
->>>>>> in0: =A0 =A0 =A0 =A0 +1.02 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.0=
-5 V)
->>>>>> in1: =A0 =A0 =A0 =A0 +1.52 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.0=
-5 V)
->>>>>> in2: =A0 =A0 =A0 =A0 +1.10 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.0=
-5 V)
->>>>>> in3: =A0 =A0 =A0 =A0 +0.89 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.0=
-5 V)
->>>>>> in12: =A0 =A0 =A0 =A0+3.35 V =A0(min =3D =A0+0.00 V, max =3D =A0+6.1=
-4 V)
->>>>>> in13: =A0 =A0 =A0 =A0+3.28 V =A0(min =3D =A0+0.00 V, max =3D =A0+6.1=
-4 V)
->>>>>> fan1: =A0 =A0 =A0 =A0703 RPM =A0(min =3D =A0329 RPM)
->>>>>> temp1: =A0 =A0 =A0 +23.0=B0C =A0(high =3D +109.0=B0C, hyst =3D +109.=
-0=B0C)
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D +109.0=B0C, hy=
-st =3D +109.0=B0C) =A0sensor =3D
->>>>>> thermal diode
->>>>>> temp2: =A0 =A0 =A0 +33.2=B0C =A0(high =3D +105.0=B0C, hyst =3D +105.=
-0=B0C)
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D +105.0=B0C, hy=
-st =3D +105.0=B0C) =A0sensor =3D
->>>>>> thermal diode
->>>>>> temp5: =A0 =A0 =A0 +14.0=B0C =A0(high =3D +39.0=B0C, hyst =3D +39.0=
-=B0C)
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D +44.0=B0C, hys=
-t =3D +44.0=B0C) =A0sensor =3D
->>>>>> thermistor
->>>>>> beep_enable:disabled
->>>>>>
->>>>>> jc42-i2c-0-18
->>>>>> Adapter: SMBus piix4 adapter (SDA0)
->>>>>> temp1: =A0 =A0 =A0 +20.5=B0C =A0(low =A0=3D =A0+0.0=B0C, high =3D =
-=A0+0.0=B0C) =A0ALARM
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D =A0+0.0=B0C, h=
-yst =3D =A0+0.0=B0C) =A0ALARM
->>>>>>
->>>>>>
->>>>>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 0
->>>>>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =
-=A0c =A0d =A0e =A0f
->>>>>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 10: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --
->>>>>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 70: -- -- -- -- -- -- -- --
->>>>>>
->>>>>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 1
->>>>>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =
-=A0c =A0d =A0e =A0f
->>>>>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- UU
->>>>>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 60: -- 61 -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 70: -- -- -- -- -- -- -- --
->>>>>>
->>>>>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 2
->>>>>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =
-=A0c =A0d =A0e =A0f
->>>>>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 40: -- -- -- -- -- -- -- -- -- -- -- -- 4c -- -- --
->>>>>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 70: -- -- -- -- -- -- -- --
->>>>>>
->>>>>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 3
->>>>>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =
-=A0c =A0d =A0e =A0f
->>>>>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
->>>>>> 70: -- -- -- -- -- -- -- --
->>>>>>
->>>>>> pay attention that the msleep seems to be really needed...
->>>>>>
->>>>>> Regards, Eddi
->>>>>>
->>>>>> On Tue, Aug 16, 2011 at 9:26 AM, Eddi De Pieri<eddi@depieri.net>
->>>>>> =A0wrote:
->>>>>>>
->>>>>>> Hi Jean...
->>>>>>>
->>>>>>> The bios show fan rpm and temperature. Since my own proliant
->>>>>>> microserver
->>>>>>> lacks of ipmi card, I doubt the bios give me the results using ipmi
->>>>>>> call.
->>>>>>>
->>>>>>> The HP Proliant Microserver chipset (SB820M) have a multiplexed smb=
-us
->>>>>>> like your.
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> http://support.amd.com/it/Embedded_TechDocs/47283_sb820m_ds_pub_2.0=
-0.pdf
->>>>>>>
->>>>>>> Here is technical document from amd...
->>>>>>>
->>>>>>>
->>>>>>> at p52/53 they say:
->>>>>>>
->>>>>>> (1) The SDA1 and SCL1 SMBus interface is dedicated for ASF devices
->>>>>>> only.
->>>>>>> It should not be used to
->>>>>>> connect to any other devices.
->>>>>>> (2) There are only two SMBus controllers. The SCL1/SDA1 pair is
->>>>>>> controlled by SMBus controller 1.
->>>>>>>
->>>>>>>
->>>>>>> SCL0/SDA0, SCL2/SDA2, SCL3/SDA3 and SCL4/SDA4 are multiplexed pins
->>>>>>> that
->>>>>>> are all controlled by
->>>>>>> SMBus controller 0, and only 1 pair of those pins can be active at
->>>>>>> any
->>>>>>> time.
->>>>>>>
->>>>>>> I can't understand how to enable 2, 3 and 4 muxed bus..
->>>>>>>
->>>>>>>
->>>>>>> If you consolidate a solution for i2c-i801.c I hope we can be
->>>>>>> replicated
->>>>>>> for i2c-piix4.c too..
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> Hi Karsten,
->>>>>>>
->>>>>>> On Fri, 22 Oct 2010 16:04:10 +0200, karsten at maxi-dsl.de wrote:
->>>>>>>>
->>>>>>>> hi Jean,
->>>>>>>>>
->>>>>>>>> The w83795 driver uses the same detection mechanism used in
->>>>>>>>> sensors-detect. So if sensors-detect doesn't see your chip, I am
->>>>>>>>> not
->>>>>>>>> surprised that the driver didn't either.
->>>>>>>>> The full output of sensors-detect is needed to diagnose your
->>>>>>>>> problem
->>>>>>>>> further. It could be that your SMBus controller isn't supported, =
-or
->>>>>>>>> maybe you are supposed to access the chip through IPMI.
->>>>>>>>
->>>>>>>> IPMI is probably the key..
->>>>>>>> =A0 From the sensors-detect output:
->>>>>>>> "Warning: the required module ipmisensors is not currently install=
-ed
->>>>>>>> on your system. If it is built into the kernel then it's OK.
->>>>>>>> Otherwise, checkhttp://www.lm-sensors.org/wiki/Devices =A0for
->>>>>>>> driver availability" (full ouput attached)
->>>>>>>>
->>>>>>>> I did see the output before, but didn't really understand the
->>>>>>>> implications (IPMI seems to be an alternative way of accessing the
->>>>>>>> monitoring chips?)
->>>>>>>
->>>>>>> Yes. The strength of IPMI access is that it can be used remotely to=
-o,
->>>>>>> for example from a BMC plugged into your system.
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>> The suggested ipmisensors driver however does not seem to be
->>>>>>>> available,
->>>>>>>> right?
->>>>>>>> (http://lm-sensors.org/wiki/Devices =A0says "(2004-12-12) =A0Port =
-to
->>>>>>>> Linux
->>>>>>>> 2.6 in progress by Yani Ioannou")
->>>>>>>
->>>>>>> That project is essentially dead. At the time being, the best way to
->>>>>>> retrieve IPMI-based sensor values is using "ipmitool sensor". The
->>>>>>> drawback is that this isn't integrated with libsensors, so the
->>>>>>> usually
->>>>>>>
->>>>>>>
->>>>>>> monitoring applications won't work.
->>>>>>>
->>>>>>> If you have a BMC or are otherwise already using IPMI on your
->>>>>>> machine,
->>>>>>> just use ipmitool and you're done.
->>>>>>>
->>>>>>> If not, then it might be worth trying ipmitool once, and then try
->>>>>>>
->>>>>>>
->>>>>>> sensors-detect again. There is a small chance that, once ipmitool
->>>>>>> managed to access the monitoring device, sensors-detect will see it.
->>>>>>> My
->>>>>>> own mainboard which has a W83795ADG chip has a multiplexed SMBus, a=
-nd
->>>>>>> I
->>>>>>> can only see the W83795ADG in sensors-detect when the multiplexer is
->>>>>>>
->>>>>>>
->>>>>>> set properly. Otherwise I would see the memory modules, which _do_
->>>>>>> appear in your sensors-detect output. So maybe your board has a
->>>>>>> multiplexed SMBus too.
->>>>>>>
->>>>>>> If the trick doesn't work, you may want to try the new jc42 driver
->>>>>>>
->>>>>>>
->>>>>>> which can monitor the temperature of some DDR3 memory modules. I
->>>>>>> suspect your memory modules have such sensors. A more recent version
->>>>>>> of
->>>>>>> sensors-detect would confirm that:
->>>>>>> =A0 http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> I also see that sensors-detect suggested to use the k10temp driver,
->>>>>>> which your kernel doesn't have. You can try the standalone flavor of
->>>>>>> the drivers which I maintain at:
->>>>>>> =A0 http://khali.linux-fr.org/devel/misc/k10temp/
->>>>>>>
->>>>>>>
->>>>>>> The accuracy of the CPU internal sensors is limited, but that's sti=
-ll
->>>>>>> better than nothing.
->>>>>>>
->>>>>>> --
->>>>>>> Jean Delvare
->>>>>>> http://khali.linux-fr.org/wishlist.html
->>>>>>>
->>>>>>>
->>>>>
->>>>
->>
->
->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+WWVzLCB0aGUgc2Vuc29ycyBhcmUgd29ya2luZyAtIGluIG9uZSBvZiB0aGUgZWFybGllciBtYWls
+cyBJIGhhZCBhdHRhY2hlZCB0aGUgT3V0cHV0IG9mICdzZW5zb3JzJyB3aWNoIHdhcyB2ZXJ5IHNp
+bWlsYXIgdG8geW91ciByZXN1bHRzIQoKUmVnYXJkcyAtCgpLYXJzdGVuCgpBbSAyMS4xMS4yMDEx
+IHVtIDExOjQ5IHNjaHJpZWIgRWRkaSBEZSBQaWVyaSA8ZWRkaUBkZXBpZXJpLm5ldD46Cgo+IFdl
+bGwuLi4gSSBub3RpY2VkIHRoaXMgdG9vLi4uIEkgaGF2ZSB0byBpbnZlc3RpZ2F0ZS4uLgo+IAo+
+IHBlcmhhcHMgSSB3cm9uZyBtYXNrcyBvbiByZXdyaXRpbmcgYWRyZXNzZXMuLi4gSSBkb24ndCBr
+bm93IHZlcnkgd2VsbAo+IEMgcHJvZ3JhbW1pbmcuLgo+IAo+IEkgaG9wZSBKZWFuIERlbHZhcmUg
+Y2FuIGhlbHAgdXMgaW4gYWRqdXN0aW5nIG1hc2sgcHJvZ3JhbW1pbmcuLi4KPiAKPiBEbyB5b3Ug
+Z2V0IHNlbnNvcnMgd29ya2luZz8KPiAKPiBSZWdhcmRzCj4gCj4gT24gTW9uLCBOb3YgMjEsIDIw
+MTEgYXQgMTI6MDMgQU0sIEthcnN0ZW4gZGUgRnJlZXNlIDxrYXJzdGVuQG1heGktZHNsLmRlPiB3
+cm90ZToKPj4gaGVsbG8gRWRkaSwKPj4gCj4+IGEgbGVzcy10aGFuLXdlbGNvbWUgdXBkYXRlOgo+
+PiAKPj4gYXQgbGVhc3Qgd2hlbiB0aGUgdGhyZWUgbW9kdWxlcyBpMmMtcGlpeDQua28sIGkyYy1w
+aWl4NC1uMzZsLmtvLCB3ODM3OTUua28KPj4gYXJlIGxvYWRlZCwgIGEgcmVzdGFydCAoc3VkbyBz
+aHV0ZG93biAtciBub3cpIG9mIG15IE4zNkwgZmFpbHMsIHRoZSBzeXN0ZW0KPj4gZG9lcyBub3Qg
+Y29tZSB1cCB1bnRpbCBJIGRvIGEgY29tcGxldGUgcG93ZXIgY3ljbGUuIEknbGwgaGF2ZSB0byBs
+b29rIG1vcmUKPj4gY2xvc2VseSBhdCB0aGlzLCBvbmNlIEkgaGF2ZSBwaHlzaWNhbCBhY2Nlc3Mg
+dG8gdGhlIGJveCBhZ2Fpbi4KPj4gCj4+IHJlZ2FyZHMgLQo+PiAKPj4gS2Fyc3Rlbgo+PiAKPj4g
+QW0gMjAuMTEuMjAxMSAxNDozOCwgc2NocmllYiBLYXJzdGVuIGRlIEZyZWVzZToKPj4+IAo+Pj4g
+aGVsbG8gRWRkaSwKPj4+IAo+Pj4gU3VjY2VzcyEKPj4+IAo+Pj4gVGhhbmtzIGZvciB0aGUgZGV0
+YWlsZWQgc3RlcHMuIFRoaXMgYWxsIHdvcmtzIGFzIGRlc2NyaWJlZCwgYXQgbGVhc3QgYXMKPj4+
+IGZhciBhcyB0aGUgJ3NlbnNvcnMnIG91dHB1dCBpcyBjb25jZXJuZWQuIFdpdGggdGhlIHJlc3Bl
+Y3RpdmUgbW9kdWxlcywgSSBnZXQKPj4+IGFsbCB0aGUgbWVhc3VyZW1lbnRzIHlvdSdyZSBsaXN0
+aW5nISAoU2VlIGF0dGFjaGVkLikKPj4+IAo+Pj4gJ2kyY2RldGVjdCAtbCcgd2lsbCBob3dldmVy
+IG5vdCBwcm9kdWNlIGFueSBvdXRwdXQgZm9yIHdoYXRzb2V2ZXIgcmVhc29uLgo+Pj4gCj4+PiBU
+aGUgbmV4dCB0aGluZyBJJ2QgbGlrZSB0byBmaW5kIG91dCBpcyBob3cgdG8gbG9hZCB0aGUgbW9k
+dWxlcwo+Pj4gYXV0b21hdGljYWxseSBpbiBhIGNsZWFuIC8ga2VybmVsLXVwZ3JhZGUtcHJvb2Yg
+d2F5Li4KPj4+IAo+Pj4gdGhhbmtzIGFuZCByZWdhcmRzIC0KPj4+IAo+Pj4gS2Fyc3Rlbgo+Pj4g
+Cj4+PiAKPj4+IEFtIDE4LjExLjIwMTEgMTE6MDksIHNjaHJpZWIgRWRkaSBEZSBQaWVyaToKPj4+
+PiAKPj4+PiBJIHN1Z2dlc3QgeW91Ogo+Pj4+IAo+Pj4+IAo+Pj4+IG1rZGlyIH4vcGlpeDQtbjM2
+bAo+Pj4+IGNwCj4+Pj4gW3lvdXJsaW51eHRyZWVdL3Vzci9zcmMvbGludXgtc291cmNlLTIuNi4z
+Mi9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLXBpaXg0LmMKPj4+PiB+L3BpaXg0LW4zNmwvCj4+Pj4g
+Y3Agfi9Eb3dubG9hZHMvTWFrZWZpbGUgfi9waWl4NC1uMzZsLwo+Pj4+IGNkICB+L3BpaXg0LW4z
+NmwvCj4+Pj4gCj4+Pj4gcGF0Y2ggLXAxPCAgcHJvbGlhbnQtbWljcm9zZXJ2ZXItbjM2bC5kaWZm
+Cj4+Pj4gbWFrZQo+Pj4+IHlvdSB3aWxsIGhhdmUgeW91ciBuZXcgbW9kdWxlIGluc2lkZSB+L3Bp
+aXg0LW4zNmwvCj4+Pj4gCj4+Pj4gcm1tb2QgaTJjLXBpaXg0Cj4+Pj4gaW5zbW9kIC4vaTJjLXBp
+aXg0LmtvCj4+Pj4gaW5zbW9kIC4vaTJjLXBpaXg0LW4zNmwua28KPj4+PiAKPj4+PiBpbnNtb2Qg
+dzgzNzk1ICh5b3Ugc2hvdWxkIGFscmVhZHkgYnVpbGQgc2VwYXJhdGVseSkKPj4+PiAKPj4+PiBz
+ZW5zb3JzCj4+Pj4gCj4+Pj4gcmVnYXJkcyBFZGRpLgo+Pj4+IAo+Pj4+IEkgaG9wZSBhbiBhbnN3
+ZXIgZnJvbSBKZWFuLi4uIEknZCBsaWtlIGlmIHRoaXMgcGF0Y2ggbWF5IGJlIGluc2VydGVkCj4+
+Pj4gaW4gbWFpbnN0cmVhbSBsaW51eCB3aXRoIHRoZSBuZWNlc3NhcnkgYWRqdXN0bWVudC4uCj4+
+Pj4gCj4+Pj4gT24gVGh1LCBOb3YgMTcsIDIwMTEgYXQgMTE6MzkgUE0sIEthcnN0ZW4gZGUgRnJl
+ZXNlPGthcnN0ZW5AbWF4aS1kc2wuZGU+Cj4+Pj4gIHdyb3RlOgo+Pj4+PiAKPj4+Pj4gaGVsbG8g
+RWRkaSwKPj4+Pj4gCj4+Pj4+IEknbSByZWFkeSBmb3IgdHdvIHF1ZXN0aW9ucyA7LSkKPj4+Pj4g
+Cj4+Pj4+IC5kaWZmIC8gcGF0Y2ggbG9va3Mgc2ltcGxlLCBhbmQgSSBhbHNvIGZvdW5kIGkyYy1h
+bWQ3NTYtczQ4ODIuYyAtCj4+Pj4+IGhvd2V2ZXI6Cj4+Pj4+IC0gdGhlIGRpZmYgZmlsZSBhY3R1
+YWxseSBkZXNjcmliZXMgdGhlIHBhdGNoIHRvIGJlIG9uIHRvcCBvZgo+Pj4+PiBpMmMtcGlpeDQu
+Yz8KPj4+Pj4gLSBpZiBJJ2QgY29tcGlsZSB0aGUgcGF0Y2hlZCBmaWxlLCB3b3VsZCB0aGF0IGdp
+dmUgbWUgYSBzdGFuZGFsb25lCj4+Pj4+IGRyaXZlcj8KPj4+Pj4gCj4+Pj4+IHRoYW5rcyBmb3Ig
+eW91ciBoZWxwIC0KPj4+Pj4gCj4+Pj4+IEthcnN0ZW4KPj4+Pj4gCj4+Pj4+IE9uIDE3LjExLjIw
+MTEgMjI6MjUsIEthcnN0ZW4gZGUgRnJlZXNlIHdyb3RlOgo+Pj4+Pj4gCj4+Pj4+PiBoaSBFZGRp
+LAo+Pj4+Pj4gCj4+Pj4+PiB0aGFua3MgdmVyeSBtdWNoIC0gSSBoYWQgYWxtb3N0IGZvcmdvdHRl
+biBhYm91dCB0aGUgdG9waWMsIGJ1dCBzdHVtYmxlZAo+Pj4+Pj4gYWNyb3NzIGl0IGFnYWluIGEg
+ZmV3IGRheXMgYWdvLCBzbyB0aGF0J3MgdmVyeSBpbnRlcmVzdGluZy4KPj4+Pj4+IEknbSBub3Qg
+eWV0IGZhbWlsaWFyIHdpdGggLmRpZmYgcGF0Y2hlcywgYW5kIG1heSB3ZWxjb21lIGEgbGl0dGxl
+IGhlbHAuCj4+Pj4+PiBIb3dldmVyLCBsZXQgbWUgdHJ5IHRvIGZpbmQgb3V0IG9uIG15IG93biBm
+aXJzdC4uCj4+Pj4+PiAKPj4+Pj4+IHRoYW5rcyYgIHJlZ2FyZHMgLQo+Pj4+Pj4gCj4+Pj4+PiBL
+YXJzdGVuCj4+Pj4+PiAKPj4+Pj4+IE9uIDE2LjExLjIwMTEgMTc6MTgsIEVkZGkgRGUgUGllcmkg
+d3JvdGU6Cj4+Pj4+Pj4gCj4+Pj4+Pj4gRmluYWxseSBJIGdldCBXODM3OTVBREcgd29ya2luZyBv
+biBteSBwcm9saWFudCBtaWNyb3NlcnZlcgo+Pj4+Pj4+IAo+Pj4+Pj4+IFRoZSBwYXRjaCBpcyBi
+YXNlZCBvbiBpMmMtYW1kNzU2LXM0ODgyLmMgYW5kIGFkYXB0ZWQgZm9yIHNiODAwCj4+Pj4+Pj4g
+c291dGhidXMuCj4+Pj4+Pj4gCj4+Pj4+Pj4gS2Fyc3RlbiwgcGxlYXNlIHRyeSBpdCB0b28uLi4K
+Pj4+Pj4+PiAKPj4+Pj4+PiByb290QHByb2xpYW50Oi91c3Ivc3JjL2xtLXNlbnNvcnMvZWRkaSMg
+aTJjZGV0ZWN0IC1sCj4+Pj4+Pj4gaTJjLTAgICBzbWJ1cyAgICAgICAgICAgU01CdXMgcGlpeDQg
+YWRhcHRlciAoU0RBMCkgICAgICAgICAgICAgIFNNQnVzCj4+Pj4+Pj4gYWRhcHRlcgo+Pj4+Pj4+
+IGkyYy0xICAgc21idXMgICAgICAgICAgIFNNQnVzIHBpaXg0IGFkYXB0ZXIgKFNEQTIpICAgICAg
+ICAgICAgICBTTUJ1cwo+Pj4+Pj4+IGFkYXB0ZXIKPj4+Pj4+PiBpMmMtMiAgIHNtYnVzICAgICAg
+ICAgICBTTUJ1cyBwaWl4NCBhZGFwdGVyIChTREEzKSAgICAgICAgICAgICAgU01CdXMKPj4+Pj4+
+PiBhZGFwdGVyCj4+Pj4+Pj4gaTJjLTMgICBzbWJ1cyAgICAgICAgICAgU01CdXMgcGlpeDQgYWRh
+cHRlciAoU0RBNCkgICAgICAgICAgICAgIFNNQnVzCj4+Pj4+Pj4gYWRhcHRlcgo+Pj4+Pj4+IHJv
+b3RAcHJvbGlhbnQ6L3Vzci9zcmMvbG0tc2Vuc29ycy9lZGRpIwo+Pj4+Pj4+IAo+Pj4+Pj4+IHll
+cyBTREExIGlzIHJlc2VydmVkLi4uIHNvIGkgY2FuJ3QgbXVsdGlwbGV4IGl0Cj4+Pj4+Pj4gCj4+
+Pj4+Pj4gcm9vdEBwcm9saWFudDovdXNyL3NyYy9sbS1zZW5zb3JzL2VkZGkjIHNlbnNvcnMKPj4+
+Pj4+PiBrMTB0ZW1wLXBjaS0wMGMzCj4+Pj4+Pj4gQWRhcHRlcjogUENJIGFkYXB0ZXIKPj4+Pj4+
+PiB0ZW1wMTogICAgICAgKzI0LjXCsEMgIChoaWdoID0gKzcwLjDCsEMsIGNyaXQgPSArMTAwLjDC
+sEMpCj4+Pj4+Pj4gCj4+Pj4+Pj4gdzgzNzk1YWRnLWkyYy0xLTJmCj4+Pj4+Pj4gQWRhcHRlcjog
+U01CdXMgcGlpeDQgYWRhcHRlciAoU0RBMikKPj4+Pj4+PiBpbjA6ICAgICAgICAgKzEuMDIgViAg
+KG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuMDUgVikKPj4+Pj4+PiBpbjE6ICAgICAgICAgKzEu
+NTIgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuMDUgVikKPj4+Pj4+PiBpbjI6ICAgICAg
+ICAgKzEuMTAgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuMDUgVikKPj4+Pj4+PiBpbjM6
+ICAgICAgICAgKzAuODkgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzIuMDUgVikKPj4+Pj4+
+PiBpbjEyOiAgICAgICAgKzMuMzUgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzYuMTQgVikK
+Pj4+Pj4+PiBpbjEzOiAgICAgICAgKzMuMjggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzYu
+MTQgVikKPj4+Pj4+PiBmYW4xOiAgICAgICAgNzAzIFJQTSAgKG1pbiA9ICAzMjkgUlBNKQo+Pj4+
+Pj4+IHRlbXAxOiAgICAgICArMjMuMMKwQyAgKGhpZ2ggPSArMTA5LjDCsEMsIGh5c3QgPSArMTA5
+LjDCsEMpCj4+Pj4+Pj4gICAgICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzEwOS4wwrBDLCBo
+eXN0ID0gKzEwOS4wwrBDKSAgc2Vuc29yID0KPj4+Pj4+PiB0aGVybWFsIGRpb2RlCj4+Pj4+Pj4g
+dGVtcDI6ICAgICAgICszMy4ywrBDICAoaGlnaCA9ICsxMDUuMMKwQywgaHlzdCA9ICsxMDUuMMKw
+QykKPj4+Pj4+PiAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArMTA1LjDCsEMsIGh5c3Qg
+PSArMTA1LjDCsEMpICBzZW5zb3IgPQo+Pj4+Pj4+IHRoZXJtYWwgZGlvZGUKPj4+Pj4+PiB0ZW1w
+NTogICAgICAgKzE0LjDCsEMgIChoaWdoID0gKzM5LjDCsEMsIGh5c3QgPSArMzkuMMKwQykKPj4+
+Pj4+PiAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArNDQuMMKwQywgaHlzdCA9ICs0NC4w
+wrBDKSAgc2Vuc29yID0KPj4+Pj4+PiB0aGVybWlzdG9yCj4+Pj4+Pj4gYmVlcF9lbmFibGU6ZGlz
+YWJsZWQKPj4+Pj4+PiAKPj4+Pj4+PiBqYzQyLWkyYy0wLTE4Cj4+Pj4+Pj4gQWRhcHRlcjogU01C
+dXMgcGlpeDQgYWRhcHRlciAoU0RBMCkKPj4+Pj4+PiB0ZW1wMTogICAgICAgKzIwLjXCsEMgIChs
+b3cgID0gICswLjDCsEMsIGhpZ2ggPSAgKzAuMMKwQykgIEFMQVJNCj4+Pj4+Pj4gICAgICAgICAg
+ICAgICAgICAgICAgIChjcml0ID0gICswLjDCsEMsIGh5c3QgPSAgKzAuMMKwQykgIEFMQVJNCj4+
+Pj4+Pj4gCj4+Pj4+Pj4gCj4+Pj4+Pj4gcm9vdEBwcm9saWFudDovdXNyL3NyYy9sbS1zZW5zb3Jz
+L2VkZGkjIGkyY2RldGVjdCAteSAwCj4+Pj4+Pj4gICAgICAwICAxICAyICAzICA0ICA1ICA2ICA3
+ICA4ICA5ICBhICBiICBjICBkICBlICBmCj4+Pj4+Pj4gMDA6ICAgICAgICAgIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMTA6IC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIFVVIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMjA6IC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMzA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNDA6IC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNTA6IDUwIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNjA6IC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNzA6
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gCj4+Pj4+Pj4gcm9vdEBwcm9saWFudDov
+dXNyL3NyYy9sbS1zZW5zb3JzL2VkZGkjIGkyY2RldGVjdCAteSAxCj4+Pj4+Pj4gICAgICAwICAx
+ICAyICAzICA0ICA1ICA2ICA3ICA4ICA5ICBhICBiICBjICBkICBlICBmCj4+Pj4+Pj4gMDA6ICAg
+ICAgICAgIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMTA6
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4g
+MjA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIFVVCj4+Pj4+
+Pj4gMzA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+
+Pj4+Pj4gNDA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+Cj4+Pj4+Pj4gNTA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tCj4+Pj4+Pj4gNjA6IC0tIDYxIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tCj4+Pj4+Pj4gNzA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gCj4+Pj4+
+Pj4gcm9vdEBwcm9saWFudDovdXNyL3NyYy9sbS1zZW5zb3JzL2VkZGkjIGkyY2RldGVjdCAteSAy
+Cj4+Pj4+Pj4gICAgICAwICAxICAyICAzICA0ICA1ICA2ICA3ICA4ICA5ICBhICBiICBjICBkICBl
+ICBmCj4+Pj4+Pj4gMDA6ICAgICAgICAgIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tCj4+Pj4+Pj4gMTA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tCj4+Pj4+Pj4gMjA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMzA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNDA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIDRjIC0tIC0tIC0tCj4+Pj4+Pj4gNTA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNjA6IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNzA6IC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tCj4+Pj4+Pj4gCj4+Pj4+Pj4gcm9vdEBwcm9saWFudDovdXNyL3NyYy9sbS1zZW5zb3JzL2Vk
+ZGkjIGkyY2RldGVjdCAteSAzCj4+Pj4+Pj4gICAgICAwICAxICAyICAzICA0ICA1ICA2ICA3ICA4
+ICA5ICBhICBiICBjICBkICBlICBmCj4+Pj4+Pj4gMDA6ICAgICAgICAgIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMTA6IC0tIC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMjA6IC0tIC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gMzA6IC0tIC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNDA6IC0tIC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNTA6IC0tIC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNjA6IC0tIC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gNzA6IC0t
+IC0tIC0tIC0tIC0tIC0tIC0tIC0tCj4+Pj4+Pj4gCj4+Pj4+Pj4gcGF5IGF0dGVudGlvbiB0aGF0
+IHRoZSBtc2xlZXAgc2VlbXMgdG8gYmUgcmVhbGx5IG5lZWRlZC4uLgo+Pj4+Pj4+IAo+Pj4+Pj4+
+IFJlZ2FyZHMsIEVkZGkKPj4+Pj4+PiAKPj4+Pj4+PiBPbiBUdWUsIEF1ZyAxNiwgMjAxMSBhdCA5
+OjI2IEFNLCBFZGRpIERlIFBpZXJpPGVkZGlAZGVwaWVyaS5uZXQ+Cj4+Pj4+Pj4gIHdyb3RlOgo+
+Pj4+Pj4+PiAKPj4+Pj4+Pj4gSGkgSmVhbi4uLgo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gVGhlIGJpb3Mg
+c2hvdyBmYW4gcnBtIGFuZCB0ZW1wZXJhdHVyZS4gU2luY2UgbXkgb3duIHByb2xpYW50Cj4+Pj4+
+Pj4+IG1pY3Jvc2VydmVyCj4+Pj4+Pj4+IGxhY2tzIG9mIGlwbWkgY2FyZCwgSSBkb3VidCB0aGUg
+YmlvcyBnaXZlIG1lIHRoZSByZXN1bHRzIHVzaW5nIGlwbWkKPj4+Pj4+Pj4gY2FsbC4KPj4+Pj4+
+Pj4gCj4+Pj4+Pj4+IFRoZSBIUCBQcm9saWFudCBNaWNyb3NlcnZlciBjaGlwc2V0IChTQjgyME0p
+IGhhdmUgYSBtdWx0aXBsZXhlZCBzbWJ1cwo+Pj4+Pj4+PiBsaWtlIHlvdXIuCj4+Pj4+Pj4+IAo+
+Pj4+Pj4+PiAKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IGh0dHA6Ly9zdXBwb3J0LmFtZC5jb20vaXQvRW1i
+ZWRkZWRfVGVjaERvY3MvNDcyODNfc2I4MjBtX2RzX3B1Yl8yLjAwLnBkZgo+Pj4+Pj4+PiAKPj4+
+Pj4+Pj4gSGVyZSBpcyB0ZWNobmljYWwgZG9jdW1lbnQgZnJvbSBhbWQuLi4KPj4+Pj4+Pj4gCj4+
+Pj4+Pj4+IAo+Pj4+Pj4+PiBhdCBwNTIvNTMgdGhleSBzYXk6Cj4+Pj4+Pj4+IAo+Pj4+Pj4+PiAo
+MSkgVGhlIFNEQTEgYW5kIFNDTDEgU01CdXMgaW50ZXJmYWNlIGlzIGRlZGljYXRlZCBmb3IgQVNG
+IGRldmljZXMKPj4+Pj4+Pj4gb25seS4KPj4+Pj4+Pj4gSXQgc2hvdWxkIG5vdCBiZSB1c2VkIHRv
+Cj4+Pj4+Pj4+IGNvbm5lY3QgdG8gYW55IG90aGVyIGRldmljZXMuCj4+Pj4+Pj4+ICgyKSBUaGVy
+ZSBhcmUgb25seSB0d28gU01CdXMgY29udHJvbGxlcnMuIFRoZSBTQ0wxL1NEQTEgcGFpciBpcwo+
+Pj4+Pj4+PiBjb250cm9sbGVkIGJ5IFNNQnVzIGNvbnRyb2xsZXIgMS4KPj4+Pj4+Pj4gCj4+Pj4+
+Pj4+IAo+Pj4+Pj4+PiBTQ0wwL1NEQTAsIFNDTDIvU0RBMiwgU0NMMy9TREEzIGFuZCBTQ0w0L1NE
+QTQgYXJlIG11bHRpcGxleGVkIHBpbnMKPj4+Pj4+Pj4gdGhhdAo+Pj4+Pj4+PiBhcmUgYWxsIGNv
+bnRyb2xsZWQgYnkKPj4+Pj4+Pj4gU01CdXMgY29udHJvbGxlciAwLCBhbmQgb25seSAxIHBhaXIg
+b2YgdGhvc2UgcGlucyBjYW4gYmUgYWN0aXZlIGF0Cj4+Pj4+Pj4+IGFueQo+Pj4+Pj4+PiB0aW1l
+Lgo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gSSBjYW4ndCB1bmRlcnN0YW5kIGhvdyB0byBlbmFibGUgMiwg
+MyBhbmQgNCBtdXhlZCBidXMuLgo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IElmIHlvdSBj
+b25zb2xpZGF0ZSBhIHNvbHV0aW9uIGZvciBpMmMtaTgwMS5jIEkgaG9wZSB3ZSBjYW4gYmUKPj4+
+Pj4+Pj4gcmVwbGljYXRlZAo+Pj4+Pj4+PiBmb3IgaTJjLXBpaXg0LmMgdG9vLi4KPj4+Pj4+Pj4g
+Cj4+Pj4+Pj4+IAo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IEhpIEthcnN0ZW4sCj4+Pj4+
+Pj4+IAo+Pj4+Pj4+PiBPbiBGcmksIDIyIE9jdCAyMDEwIDE2OjA0OjEwICswMjAwLCBrYXJzdGVu
+IGF0IG1heGktZHNsLmRlIHdyb3RlOgo+Pj4+Pj4+Pj4gCj4+Pj4+Pj4+PiBoaSBKZWFuLAo+Pj4+
+Pj4+Pj4+IAo+Pj4+Pj4+Pj4+IFRoZSB3ODM3OTUgZHJpdmVyIHVzZXMgdGhlIHNhbWUgZGV0ZWN0
+aW9uIG1lY2hhbmlzbSB1c2VkIGluCj4+Pj4+Pj4+Pj4gc2Vuc29ycy1kZXRlY3QuIFNvIGlmIHNl
+bnNvcnMtZGV0ZWN0IGRvZXNuJ3Qgc2VlIHlvdXIgY2hpcCwgSSBhbQo+Pj4+Pj4+Pj4+IG5vdAo+
+Pj4+Pj4+Pj4+IHN1cnByaXNlZCB0aGF0IHRoZSBkcml2ZXIgZGlkbid0IGVpdGhlci4KPj4+Pj4+
+Pj4+PiBUaGUgZnVsbCBvdXRwdXQgb2Ygc2Vuc29ycy1kZXRlY3QgaXMgbmVlZGVkIHRvIGRpYWdu
+b3NlIHlvdXIKPj4+Pj4+Pj4+PiBwcm9ibGVtCj4+Pj4+Pj4+Pj4gZnVydGhlci4gSXQgY291bGQg
+YmUgdGhhdCB5b3VyIFNNQnVzIGNvbnRyb2xsZXIgaXNuJ3Qgc3VwcG9ydGVkLCBvcgo+Pj4+Pj4+
+Pj4+IG1heWJlIHlvdSBhcmUgc3VwcG9zZWQgdG8gYWNjZXNzIHRoZSBjaGlwIHRocm91Z2ggSVBN
+SS4KPj4+Pj4+Pj4+IAo+Pj4+Pj4+Pj4gSVBNSSBpcyBwcm9iYWJseSB0aGUga2V5Li4KPj4+Pj4+
+Pj4+ICAgRnJvbSB0aGUgc2Vuc29ycy1kZXRlY3Qgb3V0cHV0Ogo+Pj4+Pj4+Pj4gIldhcm5pbmc6
+IHRoZSByZXF1aXJlZCBtb2R1bGUgaXBtaXNlbnNvcnMgaXMgbm90IGN1cnJlbnRseSBpbnN0YWxs
+ZWQKPj4+Pj4+Pj4+IG9uIHlvdXIgc3lzdGVtLiBJZiBpdCBpcyBidWlsdCBpbnRvIHRoZSBrZXJu
+ZWwgdGhlbiBpdCdzIE9LLgo+Pj4+Pj4+Pj4gT3RoZXJ3aXNlLCBjaGVja2h0dHA6Ly93d3cubG0t
+c2Vuc29ycy5vcmcvd2lraS9EZXZpY2VzICBmb3IKPj4+Pj4+Pj4+IGRyaXZlciBhdmFpbGFiaWxp
+dHkiIChmdWxsIG91cHV0IGF0dGFjaGVkKQo+Pj4+Pj4+Pj4gCj4+Pj4+Pj4+PiBJIGRpZCBzZWUg
+dGhlIG91dHB1dCBiZWZvcmUsIGJ1dCBkaWRuJ3QgcmVhbGx5IHVuZGVyc3RhbmQgdGhlCj4+Pj4+
+Pj4+PiBpbXBsaWNhdGlvbnMgKElQTUkgc2VlbXMgdG8gYmUgYW4gYWx0ZXJuYXRpdmUgd2F5IG9m
+IGFjY2Vzc2luZyB0aGUKPj4+Pj4+Pj4+IG1vbml0b3JpbmcgY2hpcHM/KQo+Pj4+Pj4+PiAKPj4+
+Pj4+Pj4gWWVzLiBUaGUgc3RyZW5ndGggb2YgSVBNSSBhY2Nlc3MgaXMgdGhhdCBpdCBjYW4gYmUg
+dXNlZCByZW1vdGVseSB0b28sCj4+Pj4+Pj4+IGZvciBleGFtcGxlIGZyb20gYSBCTUMgcGx1Z2dl
+ZCBpbnRvIHlvdXIgc3lzdGVtLgo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IAo+Pj4+Pj4+
+Pj4gVGhlIHN1Z2dlc3RlZCBpcG1pc2Vuc29ycyBkcml2ZXIgaG93ZXZlciBkb2VzIG5vdCBzZWVt
+IHRvIGJlCj4+Pj4+Pj4+PiBhdmFpbGFibGUsCj4+Pj4+Pj4+PiByaWdodD8KPj4+Pj4+Pj4+ICho
+dHRwOi8vbG0tc2Vuc29ycy5vcmcvd2lraS9EZXZpY2VzICBzYXlzICIoMjAwNC0xMi0xMikgIFBv
+cnQgdG8KPj4+Pj4+Pj4+IExpbnV4Cj4+Pj4+Pj4+PiAyLjYgaW4gcHJvZ3Jlc3MgYnkgWWFuaSBJ
+b2Fubm91IikKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IFRoYXQgcHJvamVjdCBpcyBlc3NlbnRpYWxseSBk
+ZWFkLiBBdCB0aGUgdGltZSBiZWluZywgdGhlIGJlc3Qgd2F5IHRvCj4+Pj4+Pj4+IHJldHJpZXZl
+IElQTUktYmFzZWQgc2Vuc29yIHZhbHVlcyBpcyB1c2luZyAiaXBtaXRvb2wgc2Vuc29yIi4gVGhl
+Cj4+Pj4+Pj4+IGRyYXdiYWNrIGlzIHRoYXQgdGhpcyBpc24ndCBpbnRlZ3JhdGVkIHdpdGggbGli
+c2Vuc29ycywgc28gdGhlCj4+Pj4+Pj4+IHVzdWFsbHkKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IAo+Pj4+
+Pj4+PiBtb25pdG9yaW5nIGFwcGxpY2F0aW9ucyB3b24ndCB3b3JrLgo+Pj4+Pj4+PiAKPj4+Pj4+
+Pj4gSWYgeW91IGhhdmUgYSBCTUMgb3IgYXJlIG90aGVyd2lzZSBhbHJlYWR5IHVzaW5nIElQTUkg
+b24geW91cgo+Pj4+Pj4+PiBtYWNoaW5lLAo+Pj4+Pj4+PiBqdXN0IHVzZSBpcG1pdG9vbCBhbmQg
+eW91J3JlIGRvbmUuCj4+Pj4+Pj4+IAo+Pj4+Pj4+PiBJZiBub3QsIHRoZW4gaXQgbWlnaHQgYmUg
+d29ydGggdHJ5aW5nIGlwbWl0b29sIG9uY2UsIGFuZCB0aGVuIHRyeQo+Pj4+Pj4+PiAKPj4+Pj4+
+Pj4gCj4+Pj4+Pj4+IHNlbnNvcnMtZGV0ZWN0IGFnYWluLiBUaGVyZSBpcyBhIHNtYWxsIGNoYW5j
+ZSB0aGF0LCBvbmNlIGlwbWl0b29sCj4+Pj4+Pj4+IG1hbmFnZWQgdG8gYWNjZXNzIHRoZSBtb25p
+dG9yaW5nIGRldmljZSwgc2Vuc29ycy1kZXRlY3Qgd2lsbCBzZWUgaXQuCj4+Pj4+Pj4+IE15Cj4+
+Pj4+Pj4+IG93biBtYWluYm9hcmQgd2hpY2ggaGFzIGEgVzgzNzk1QURHIGNoaXAgaGFzIGEgbXVs
+dGlwbGV4ZWQgU01CdXMsIGFuZAo+Pj4+Pj4+PiBJCj4+Pj4+Pj4+IGNhbiBvbmx5IHNlZSB0aGUg
+VzgzNzk1QURHIGluIHNlbnNvcnMtZGV0ZWN0IHdoZW4gdGhlIG11bHRpcGxleGVyIGlzCj4+Pj4+
+Pj4+IAo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gc2V0IHByb3Blcmx5LiBPdGhlcndpc2UgSSB3b3VsZCBz
+ZWUgdGhlIG1lbW9yeSBtb2R1bGVzLCB3aGljaCBfZG9fCj4+Pj4+Pj4+IGFwcGVhciBpbiB5b3Vy
+IHNlbnNvcnMtZGV0ZWN0IG91dHB1dC4gU28gbWF5YmUgeW91ciBib2FyZCBoYXMgYQo+Pj4+Pj4+
+PiBtdWx0aXBsZXhlZCBTTUJ1cyB0b28uCj4+Pj4+Pj4+IAo+Pj4+Pj4+PiBJZiB0aGUgdHJpY2sg
+ZG9lc24ndCB3b3JrLCB5b3UgbWF5IHdhbnQgdG8gdHJ5IHRoZSBuZXcgamM0MiBkcml2ZXIKPj4+
+Pj4+Pj4gCj4+Pj4+Pj4+IAo+Pj4+Pj4+PiB3aGljaCBjYW4gbW9uaXRvciB0aGUgdGVtcGVyYXR1
+cmUgb2Ygc29tZSBERFIzIG1lbW9yeSBtb2R1bGVzLiBJCj4+Pj4+Pj4+IHN1c3BlY3QgeW91ciBt
+ZW1vcnkgbW9kdWxlcyBoYXZlIHN1Y2ggc2Vuc29ycy4gQSBtb3JlIHJlY2VudCB2ZXJzaW9uCj4+
+Pj4+Pj4+IG9mCj4+Pj4+Pj4+IHNlbnNvcnMtZGV0ZWN0IHdvdWxkIGNvbmZpcm0gdGhhdDoKPj4+
+Pj4+Pj4gICBodHRwOi8vZGwubG0tc2Vuc29ycy5vcmcvbG0tc2Vuc29ycy9maWxlcy9zZW5zb3Jz
+LWRldGVjdAo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gCj4+Pj4+Pj4+IAo+Pj4+Pj4+PiBJIGFsc28gc2Vl
+IHRoYXQgc2Vuc29ycy1kZXRlY3Qgc3VnZ2VzdGVkIHRvIHVzZSB0aGUgazEwdGVtcCBkcml2ZXIs
+Cj4+Pj4+Pj4+IHdoaWNoIHlvdXIga2VybmVsIGRvZXNuJ3QgaGF2ZS4gWW91IGNhbiB0cnkgdGhl
+IHN0YW5kYWxvbmUgZmxhdm9yIG9mCj4+Pj4+Pj4+IHRoZSBkcml2ZXJzIHdoaWNoIEkgbWFpbnRh
+aW4gYXQ6Cj4+Pj4+Pj4+ICAgaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy9kZXZlbC9taXNjL2sx
+MHRlbXAvCj4+Pj4+Pj4+IAo+Pj4+Pj4+PiAKPj4+Pj4+Pj4gVGhlIGFjY3VyYWN5IG9mIHRoZSBD
+UFUgaW50ZXJuYWwgc2Vuc29ycyBpcyBsaW1pdGVkLCBidXQgdGhhdCdzIHN0aWxsCj4+Pj4+Pj4+
+IGJldHRlciB0aGFuIG5vdGhpbmcuCj4+Pj4+Pj4+IAo+Pj4+Pj4+PiAtLQo+Pj4+Pj4+PiBKZWFu
+IERlbHZhcmUKPj4+Pj4+Pj4gaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy93aXNobGlzdC5odG1s
+Cj4+Pj4+Pj4+IAo+Pj4+Pj4+PiAKPj4+Pj4+IAo+Pj4+PiAKPj4+IAo+PiAKPj4gCj4gCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1h
+aWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5z
+b3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
