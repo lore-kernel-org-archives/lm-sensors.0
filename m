@@ -1,43 +1,22 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Nov 2011 17:29:50 +0000
-Subject: Re: [lm-sensors] [PATCH 04/11] hwmon: Remove redundant spi driver
-Message-Id: <20111125172950.GA12324@ericsson.com>
+Date: Tue, 22 Nov 2011 20:39:57 +0000
+Subject: [lm-sensors] [PATCH 0/3] hwmon: More LM63 enhancements
+Message-Id: <1321994400-29295-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1322148561-25138-1-git-send-email-lars@metafoo.de>
- <1322148561-25138-4-git-send-email-lars@metafoo.de>
-In-Reply-To: <1322148561-25138-4-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Nov 24, 2011 at 10:29:14AM -0500, Lars-Peter Clausen wrote:
-> In ancient times it was necessary to manually initialize the bus field of an
-> spi_driver to spi_bus_type. These days this is done in spi_driver_register(),
-> so we can drop the manual assignment.
-> 
-> The patch was generated using the following coccinelle semantic patch:
-> // <smpl>
-> @@
-> identifier _driver;
-> @@
-> struct spi_driver _driver = {
-> 	.driver = {
-> -		.bus = &spi_bus_type,
-> 	},
-> };
-> // </smpl>
-> 
-> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: lm-sensors@lm-sensors.org
+Add support for unsigned temperatures on LM96163
+Add support for writing remote T_CRIT limit
+Add support for writing conversion rate register
 
-Applied.
+Question:
+  Calculations are currently along the line of "/ 125 * 32", causing loss of accuracy.
+  Ok to change to "* 32 / 125" ?
 
-Thanks,
-Guenter
+v2 [unsigned temp patch]: Improved rounding for TEMP11U_TO_REG
 
 _______________________________________________
 lm-sensors mailing list
