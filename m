@@ -1,7 +1,7 @@
-From: Phil Pokorny <ppokorny@penguincomputing.com>
-Date: Sat, 19 Nov 2011 19:58:02 +0000
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Tue, 22 Nov 2011 08:41:53 +0000
 Subject: Re: [lm-sensors] wrong output with fam15h_power
-Message-Id: <CAAek22GcN=XK11WxCB6ht52j48obPagt1fn61fztfFKxZrxQjg@mail.gmail.com>
+Message-Id: <20111122084152.GF14533@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1321642023.1644.12.camel@tellur>
 In-Reply-To: <1321642023.1644.12.camel@tellur>
@@ -10,24 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-
-On Sat, Nov 19, 2011 at 12:50 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> On Fri, 18 Nov 2011 20:26:25 -0800, Phil Pokorny wrote:
->> I know that power draw
->> is increasing, because I see the temperatures rising (via k10temp
->> hacked to read fam15h temps).
->
-> Which hack? The k10temp driver is supposed to already support fam15h
-> CPUs (both in kernel 3.0+ and the standalone driver.)
-
-Sure, but I'm running an older kernel, so I had to backport those updates.
-
-Phil P.
-
-Phil P.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCBOb3YgMTgsIDIwMTEgYXQgMDc6NDc6MDNQTSArMDEwMCwgTHVjYXMgU3RhY2ggd3Jv
+dGU6Cj4gSGksCj4gCj4gSSdtIHRyeWluZyB0byB1c2UgdGhlIGZhbTE1aF9wb3dlciBkcml2ZXIg
+dG8gbWVhc3VyZSBteSBwcm9jZXNzb3JzIHBvd2VyCj4gY29uc3VtcHRpb24sIGJ1dCBpdCBnaXZl
+cyBtZSBjbGVhcmx5IHdyb25nIHZhbHVlcy4gV2l0aCBhIGNvbXBsZXRlbHkKPiBpZGxlIHN5c3Rl
+bSB0aGUgcHJvY2Vzc29yIGNsYWltcyB0byBiZSB1c2luZyAxMjUyNjE3MTjCtVcsIHdoaWNoIHdv
+dWxkCj4gbWVhbiB0aGUgcHJvY2Vzc29yIG9wZXJhdGVzIGF0IGl0J3MgVERQIGxpbWl0LiBXaXRo
+IGFsbCBjb3JlcyAxMDAlCj4gbG9hZGVkIGl0IGNsYWltcyB0byBiZSB1c2luZyAxMzA2NzU3ODHC
+tVcgd2hpY2ggSSBjYW4ndCBiZWxpZXZlIGFzIHRoaXMKPiB3b3VsZCBtZWFuIHRoZSBwcm9jZXNz
+b3IgdmlvbGF0ZXMgaXQncyBvd24gc3BlYy4KPiAKPiBUaGlzIGlzIGEgZGVza3RvcCBzeXN0ZW0g
+d2l0aCBhbiBBTUQgRlgtODE1MCBwcm9jZXNzb3Igb24gYSBicmFuZCBuZXcKPiBHaWdhYnl0ZSBH
+QS05NzBBLVVEMyBib2FyZCB3aXRoIHRoZSBsYXRlc3QgKEY0KSBCSU9TLgo+IAo+IElzIHRoaXMg
+YSBrbm93biBidWc/IElmIG5vdCBJIHdvdWxkIGJlIGdsYWQgdG8gaGVscCB0cmFjayB0aGlzIGRv
+d24uIEkKPiBoYWQgYSBxdWljayBsb29rIGF0IHRoZSBCSU9TIGFuZCBLZXJuZWwgRGV2ZWxvcGVy
+4oCZcyBHdWlkZSAoQktERykgZm9yIEFNRAo+IEZhbWlseSAxNWggKCM0MjMwMSkgYnV0IGNvdWxk
+bid0IGRldGVybWluZSBpZiB0aGUgbWF0aCBkb25lIGluIHRoZQo+IGZhbTE1aF9wb3dlciBkcml2
+ZXIgaXMgY29ycmVjdCBvciBpZiB3ZSBuZWVkIHRvIHNldCBzb21lIHJlZ2lzdGVycyB0bwo+IHNw
+ZWNpZmljIHZhbHVlcyB0byBtYWtlIHRoaXMgd29yayBhcyBpbnRlbmRlZC4gQW55IGhpbnRzIHdv
+dWxkIGJlCj4gYXBwcmVjaWF0ZWQuCgpGWUksIEkgYW0gbG9va2luZyBpbnRvIHRoaXMuIEkndmUg
+cmVjZW50bHkgYWxzbyBzZWVuIHRoYXQgdGhlIHZhbHVlcwpyZXBvcnRlZCBpbiBpZGxlIHN0YXRl
+IHNlZW0gdG8gYmUgYm9ndXMgdmFsdWVzIGFzIHRoZSBwb3dlcgpjb25zdW1wdGlvbiBtZWFzdXJl
+ZCBmb3IgdGhlIGVudGlyZSBzeXN0ZW0gaXMgb2Z0ZW4gbGVzcyB0aGVuIHRoZQp2YWx1ZSByZXBv
+cnRlZCBieSB0aGUgZHJpdmVyIGZvciBDUFUgcG93ZXIgY29uc3VtcHRpb24uCgpIb3BlIHRoYXQg
+SSBjYW4gcHJvdmlkZSBhbiBleHBsYW5hdGlvbiBmb3IgdGhpcyBvZGRpdGllcyBzb29uLgoKClJl
+Z2FyZHMsCkFuZHJlYXMKCi0tIApPcGVyYXRpbmcgfCBBZHZhbmNlZCBNaWNybyBEZXZpY2VzIEdt
+YkgKICBTeXN0ZW0gIHwgRWluc3RlaW5yaW5nIDI0LCA4NTYwOSBEb3JuYWNoL0FzY2hoZWltLCBH
+ZXJtYW55CiBSZXNlYXJjaCB8IEdlc2Now6RmdHNmw7xocmVyOiBBbGJlcnRvIEJvenpvCiAgQ2Vu
+dGVyICB8IFNpdHo6IERvcm5hY2gsIEdlbWVpbmRlIEFzY2hoZWltLCBMYW5ka3JlaXMgTcO8bmNo
+ZW4KICAoT1NSQykgIHwgUmVnaXN0ZXJnZXJpY2h0IE3DvG5jaGVuLCBIUkIgTnIuIDQzNjMyLCBX
+RUVFLVJlZy1OcjogREUgMTI5MTk1NTEKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3Jz
