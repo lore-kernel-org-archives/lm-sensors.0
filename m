@@ -1,43 +1,79 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 18 Nov 2011 09:35:01 +0000
-Subject: Re: [lm-sensors] [PATCH] Drivers: hwmon: adm1031: fixed spacing
-Message-Id: <20111118103501.3c14d106@endymion.delvare>
+From: Trevor Shiwnath <trevor_shiwnath@hotmail.com>
+Date: Tue, 22 Nov 2011 14:03:38 +0000
+Subject: [lm-sensors] Cross Compiling for ARM
+Message-Id: <BLU162-W147C2EEC02769A3F8016868EC80@phx.gbl>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2412258391830753971=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1321605413-13614-1-git-send-email-zac.3.14159@gmail.com>
-In-Reply-To: <1321605413-13614-1-git-send-email-zac.3.14159@gmail.com>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--===============2412258391830753971==
+Content-Type: multipart/alternative;
+	boundary="_8eaccfd7-7eba-4696-a2ff-f046fa709bd3_"
+
+--_8eaccfd7-7eba-4696-a2ff-f046fa709bd3_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+
+Hello=2C
+
+This is my first time sending an email to a mailing list=2C so please bare =
+with me. I have an Embedded ARM-Linux system running kernel version 2.6.27 =
+and I wanted to cross compile lm-sensors version 3.3.1 onto it. I am a litt=
+le familiar with cross compiling and editing makefiles for my device. When =
+I change "CC" in the make file from gcc to arm-linux-gcc=2C it compiles fin=
+e=2C but when I transfer the program files onto my Embedded system and atte=
+mpt to run "sensors"=2C it tells me "sensors: '/lib/libsensors.so.4' is not=
+ an ELF file". What could I possibly change in the makefile to make the lib=
+raries compile properly with the ARM-Linux environment?
+
+Thanks to anyone who reads this.
+ 		 	   		  =
+
+--_8eaccfd7-7eba-4696-a2ff-f046fa709bd3_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style><!--
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Tahoma
+}
+--></style>
+</head>
+<body class=3D'hmmessage'><div dir=3D'ltr'>
+Hello=2C<br><br>This is my first time sending an email to a mailing list=2C=
+ so please bare with me. I have an Embedded ARM-Linux system running kernel=
+ version 2.6.27 and I wanted to cross compile lm-sensors version 3.3.1 onto=
+ it. I am a little familiar with cross compiling and editing makefiles for =
+my device. When I change "CC" in the make file from gcc to arm-linux-gcc=2C=
+ it compiles fine=2C but when I transfer the program files onto my Embedded=
+ system and attempt to run "sensors"=2C it tells me "sensors: '/lib/libsens=
+ors.so.4' is not an ELF file". What could I possibly change in the makefile=
+ to make the libraries compile properly with the ARM-Linux environment?<br>=
+<br>Thanks to anyone who reads this.<br> 		 	   		  </div></body>
+</html>=
+
+--_8eaccfd7-7eba-4696-a2ff-f046fa709bd3_--
+
+
+--===============2412258391830753971==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Zac Storer <zac.3.14159@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
-
-On Fri, 18 Nov 2011 01:36:53 -0700, Zac Storer wrote:
-> Fixed spacing coding style issues.
-> 
-> Signed-off-by: Zac Storer <zac.3.14159@gmail.com>
-> ---
->  drivers/hwmon/adm1031.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
-> index 0683e6b..694392b 100644
-> --- a/drivers/hwmon/adm1031.c
-> +++ b/drivers/hwmon/adm1031.c
-> @@ -1058,7 +1058,7 @@ static struct adm1031_data *adm1031_update_device(struct device *dev)
->  			data->alarm &= 0xc0ff;
->  		}
->  
-> -		for (chan=0; chan<(data->chip_type = adm1030 ? 1 : 2); chan++) {
-> +		for (chan = 0; chan < (data->chip_type = adm1030 ? 1 : 2); chan++) {
->  			data->fan_div[chan] >  			    adm1031_read_value(client, ADM1031_REG_FAN_DIV(chan));
->  			data->fan_min[chan] 
-Err, you apparently did not understand my request. Please send _one_
-patch fixing all the adm1031 coding style issues at once.
-
--- 
-Jean Delvare
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2412258391830753971==--
