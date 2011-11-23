@@ -1,44 +1,87 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Tue, 22 Nov 2011 08:41:53 +0000
-Subject: Re: [lm-sensors] wrong output with fam15h_power
-Message-Id: <20111122084152.GF14533@alberich.amd.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 23 Nov 2011 19:30:54 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: (pmbus/zl6100) Only instantiate
+Message-Id: <1322076654-5652-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1321642023.1644.12.camel@tellur>
-In-Reply-To: <1321642023.1644.12.camel@tellur>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCBOb3YgMTgsIDIwMTEgYXQgMDc6NDc6MDNQTSArMDEwMCwgTHVjYXMgU3RhY2ggd3Jv
-dGU6Cj4gSGksCj4gCj4gSSdtIHRyeWluZyB0byB1c2UgdGhlIGZhbTE1aF9wb3dlciBkcml2ZXIg
-dG8gbWVhc3VyZSBteSBwcm9jZXNzb3JzIHBvd2VyCj4gY29uc3VtcHRpb24sIGJ1dCBpdCBnaXZl
-cyBtZSBjbGVhcmx5IHdyb25nIHZhbHVlcy4gV2l0aCBhIGNvbXBsZXRlbHkKPiBpZGxlIHN5c3Rl
-bSB0aGUgcHJvY2Vzc29yIGNsYWltcyB0byBiZSB1c2luZyAxMjUyNjE3MTjCtVcsIHdoaWNoIHdv
-dWxkCj4gbWVhbiB0aGUgcHJvY2Vzc29yIG9wZXJhdGVzIGF0IGl0J3MgVERQIGxpbWl0LiBXaXRo
-IGFsbCBjb3JlcyAxMDAlCj4gbG9hZGVkIGl0IGNsYWltcyB0byBiZSB1c2luZyAxMzA2NzU3ODHC
-tVcgd2hpY2ggSSBjYW4ndCBiZWxpZXZlIGFzIHRoaXMKPiB3b3VsZCBtZWFuIHRoZSBwcm9jZXNz
-b3IgdmlvbGF0ZXMgaXQncyBvd24gc3BlYy4KPiAKPiBUaGlzIGlzIGEgZGVza3RvcCBzeXN0ZW0g
-d2l0aCBhbiBBTUQgRlgtODE1MCBwcm9jZXNzb3Igb24gYSBicmFuZCBuZXcKPiBHaWdhYnl0ZSBH
-QS05NzBBLVVEMyBib2FyZCB3aXRoIHRoZSBsYXRlc3QgKEY0KSBCSU9TLgo+IAo+IElzIHRoaXMg
-YSBrbm93biBidWc/IElmIG5vdCBJIHdvdWxkIGJlIGdsYWQgdG8gaGVscCB0cmFjayB0aGlzIGRv
-d24uIEkKPiBoYWQgYSBxdWljayBsb29rIGF0IHRoZSBCSU9TIGFuZCBLZXJuZWwgRGV2ZWxvcGVy
-4oCZcyBHdWlkZSAoQktERykgZm9yIEFNRAo+IEZhbWlseSAxNWggKCM0MjMwMSkgYnV0IGNvdWxk
-bid0IGRldGVybWluZSBpZiB0aGUgbWF0aCBkb25lIGluIHRoZQo+IGZhbTE1aF9wb3dlciBkcml2
-ZXIgaXMgY29ycmVjdCBvciBpZiB3ZSBuZWVkIHRvIHNldCBzb21lIHJlZ2lzdGVycyB0bwo+IHNw
-ZWNpZmljIHZhbHVlcyB0byBtYWtlIHRoaXMgd29yayBhcyBpbnRlbmRlZC4gQW55IGhpbnRzIHdv
-dWxkIGJlCj4gYXBwcmVjaWF0ZWQuCgpGWUksIEkgYW0gbG9va2luZyBpbnRvIHRoaXMuIEkndmUg
-cmVjZW50bHkgYWxzbyBzZWVuIHRoYXQgdGhlIHZhbHVlcwpyZXBvcnRlZCBpbiBpZGxlIHN0YXRl
-IHNlZW0gdG8gYmUgYm9ndXMgdmFsdWVzIGFzIHRoZSBwb3dlcgpjb25zdW1wdGlvbiBtZWFzdXJl
-ZCBmb3IgdGhlIGVudGlyZSBzeXN0ZW0gaXMgb2Z0ZW4gbGVzcyB0aGVuIHRoZQp2YWx1ZSByZXBv
-cnRlZCBieSB0aGUgZHJpdmVyIGZvciBDUFUgcG93ZXIgY29uc3VtcHRpb24uCgpIb3BlIHRoYXQg
-SSBjYW4gcHJvdmlkZSBhbiBleHBsYW5hdGlvbiBmb3IgdGhpcyBvZGRpdGllcyBzb29uLgoKClJl
-Z2FyZHMsCkFuZHJlYXMKCi0tIApPcGVyYXRpbmcgfCBBZHZhbmNlZCBNaWNybyBEZXZpY2VzIEdt
-YkgKICBTeXN0ZW0gIHwgRWluc3RlaW5yaW5nIDI0LCA4NTYwOSBEb3JuYWNoL0FzY2hoZWltLCBH
-ZXJtYW55CiBSZXNlYXJjaCB8IEdlc2Now6RmdHNmw7xocmVyOiBBbGJlcnRvIEJvenpvCiAgQ2Vu
-dGVyICB8IFNpdHo6IERvcm5hY2gsIEdlbWVpbmRlIEFzY2hoZWltLCBMYW5ka3JlaXMgTcO8bmNo
-ZW4KICAoT1NSQykgIHwgUmVnaXN0ZXJnZXJpY2h0IE3DvG5jaGVuLCBIUkIgTnIuIDQzNjMyLCBX
-RUVFLVJlZy1OcjogREUgMTI5MTk1NTEKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
-ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
-bS1zZW5zb3Jz
+BMR4xx devices don't have an external temperature sensor,
+and instantiating it does not provide value anyway if it is disabled.
+Only instantiate it if it is enabled.
+
+Also optimize wait time between I2C chip accesses in the probe function, and
+replace unnecessary check for support for I2C_FUNC_SMBUS_READ_BYTE_DATA with
+now required support for I2C_FUNC_SMBUS_READ_WORD_DATA.
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pmbus/zl6100.c |   19 ++++++++++++++-----
+ 1 files changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c
+index 7a72b6e..48c7b4a 100644
+--- a/drivers/hwmon/pmbus/zl6100.c
++++ b/drivers/hwmon/pmbus/zl6100.c
+@@ -38,8 +38,11 @@ struct zl6100_data {
+ 
+ #define to_zl6100_data(x)  container_of(x, struct zl6100_data, info)
+ 
++#define ZL6100_MFR_CONFIG		0xd0
+ #define ZL6100_DEVICE_ID		0xe4
+ 
++#define ZL6100_MFR_XTEMP_ENABLE		(1 << 7)
++
+ #define ZL6100_WAIT_TIME		1000	/* uS	*/
+ 
+ static ushort delay = ZL6100_WAIT_TIME;
+@@ -162,7 +165,7 @@ static int zl6100_probe(struct i2c_client *client,
+ 	const struct i2c_device_id *mid;
+ 
+ 	if (!i2c_check_functionality(client->adapter,
+-				     I2C_FUNC_SMBUS_READ_BYTE_DATA
++				     I2C_FUNC_SMBUS_READ_WORD_DATA
+ 				     | I2C_FUNC_SMBUS_READ_BLOCK_DATA))
+ 		return -ENODEV;
+ 
+@@ -210,12 +213,9 @@ static int zl6100_probe(struct i2c_client *client,
+ 	/*
+ 	 * Since there was a direct I2C device access above, wait before
+ 	 * accessing the chip again.
+-	 * Set the timestamp, wait, then set it again. This should provide
+-	 * enough buffer time to be safe.
+ 	 */
+ 	data->access = ktime_get();
+ 	zl6100_wait(data);
+-	data->access = ktime_get();
+ 
+ 	info = &data->info;
+ 
+@@ -223,7 +223,16 @@ static int zl6100_probe(struct i2c_client *client,
+ 	info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
+ 	  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
+ 	  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
+-	  | PMBUS_HAVE_TEMP | PMBUS_HAVE_TEMP2 | PMBUS_HAVE_STATUS_TEMP;
++	  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
++
++	ret = i2c_smbus_read_word_data(client, ZL6100_MFR_CONFIG);
++	if (ret < 0)
++		goto err_mem;
++	if (ret & ZL6100_MFR_XTEMP_ENABLE)
++		info->func[0] |= PMBUS_HAVE_TEMP2;
++
++	data->access = ktime_get();
++	zl6100_wait(data);
+ 
+ 	info->read_word_data = zl6100_read_word_data;
+ 	info->read_byte_data = zl6100_read_byte_data;
+-- 
+1.7.3.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
