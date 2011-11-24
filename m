@@ -1,36 +1,69 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 29 Nov 2011 22:23:15 +0000
-Subject: Re: [lm-sensors] [f75387] modifying f75375s module
-Message-Id: <20111129232315.282a05fb@endymion.delvare>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Thu, 24 Nov 2011 15:29:14 +0000
+Subject: [lm-sensors] [PATCH 04/11] hwmon: Remove redundant spi driver bus
+Message-Id: <1322148561-25138-4-git-send-email-lars@metafoo.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <EA28F4E582D7F04DA4E25034DF5AA0FD0BB9DFE5@DEEXVS21.wincor-nixdorf.com>
-In-Reply-To: <EA28F4E582D7F04DA4E25034DF5AA0FD0BB9DFE5@DEEXVS21.wincor-nixdorf.com>
+References: <1322148561-25138-1-git-send-email-lars@metafoo.de>
+In-Reply-To: <1322148561-25138-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-On Tue, 29 Nov 2011 21:39:00 +0100, Bj=F6rn Gerhart wrote:
-> Hi Jean,
->=20
-> > Configuration file is case sensitive. You used F75387 with upper-case F
-> > in the configuration file while your chip name is f75387 with a
-> > lower-case f. Fix that and the configuration section will take effect.
->=20
-> Yes, that's it! sensors now works as expected, thanks for the hints  ;-)
+In ancient times it was necessary to manually initialize the bus field of an
+spi_driver to spi_bus_type. These days this is done in spi_driver_register(),
+so we can drop the manual assignment.
 
-You're welcome.
+The patch was generated using the following coccinelle semantic patch:
+// <smpl>
+@@
+identifier _driver;
+@@
+struct spi_driver _driver = {
+	.driver = {
+-		.bus = &spi_bus_type,
+	},
+};
+// </smpl>
 
-> ..now working on the module source code to support also the origin Fintek=
- chip f75375s again.. May I then provide the patch to you for checkup, or w=
-ould the kernel list be the better way to provide it?
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: lm-sensors@lm-sensors.org
+---
+ drivers/hwmon/ad7314.c  |    1 -
+ drivers/hwmon/ads7871.c |    1 -
+ 2 files changed, 0 insertions(+), 2 deletions(-)
 
-The lm-sensors list is better, this is where potential reviewers are.
-The kernel list sees so much traffic that odds are nobody would even
-notice your posting.
+diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
+index 318e38e..5d760f3 100644
+--- a/drivers/hwmon/ad7314.c
++++ b/drivers/hwmon/ad7314.c
+@@ -160,7 +160,6 @@ MODULE_DEVICE_TABLE(spi, ad7314_id);
+ static struct spi_driver ad7314_driver = {
+ 	.driver = {
+ 		.name = "ad7314",
+-		.bus = &spi_bus_type,
+ 		.owner = THIS_MODULE,
+ 	},
+ 	.probe = ad7314_probe,
+diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
+index 5231934..04450f8 100644
+--- a/drivers/hwmon/ads7871.c
++++ b/drivers/hwmon/ads7871.c
+@@ -227,7 +227,6 @@ static int __devexit ads7871_remove(struct spi_device *spi)
+ static struct spi_driver ads7871_driver = {
+ 	.driver = {
+ 		.name = DEVICE_NAME,
+-		.bus = &spi_bus_type,
+ 		.owner = THIS_MODULE,
+ 	},
+ 
+-- 
+1.7.7.1
 
---=20
-Jean Delvare
+
 
 _______________________________________________
 lm-sensors mailing list
