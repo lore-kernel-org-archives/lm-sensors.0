@@ -1,49 +1,32 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 27 Nov 2011 17:32:04 +0000
+Date: Sun, 27 Nov 2011 17:48:49 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: convert drivers/hwmon/* to use
-Message-Id: <20111127173204.GA31171@ericsson.com>
+Message-Id: <20111127174849.GA31315@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1322204787.11718.1.camel@phoenix>
- <20111125165708.GA11317@ericsson.com>
-In-Reply-To: <20111125165708.GA11317@ericsson.com>
+References: <1322205165.11718.2.camel@phoenix>
+In-Reply-To: <1322205165.11718.2.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Axel Lin <axel.lin@gmail.com>
-Cc: Dirk Eibach <eibach@gdsys.de>, David George <david.george@ska.ac.za>, Guillaume Ligneul <guillaume.ligneul@gmail.com>, Riku Voipio <riku.voipio@iki.fi>, "Hans J. Koch" <hjk@hansjkoch.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Steve Glendinning <steve.glendinning@smsc.com>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sonic Zhang <sonic.zhang@analog.com>, Marc Pignat <marc.pignat@hevs.ch>, Paul Thomas <pthomas8589@gmail.com>, Eric Miao <eric.miao@marvell.com>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Fri, Nov 25, 2011 at 11:57:08AM -0500, Guenter Roeck wrote:
-> On Fri, Nov 25, 2011 at 02:06:27AM -0500, Axel Lin wrote:
-> > This patch converts the drivers in drivers/hwmon/* to use the
-> > module_i2c_driver() macro which makes the code smaller and a bit
-> > simpler.
-> > 
-> > Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
-> > Cc: Dirk Eibach <eibach@gdsys.de>
-> > Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-> > Cc: Steve Glendinning <steve.glendinning@smsc.com>
-> > Cc: Riku Voipio <riku.voipio@iki.fi>
-> > Cc: Guillaume Ligneul <guillaume.ligneul@gmail.com>
-> > Cc: David George <david.george@ska.ac.za>
-> > Cc: "Hans J. Koch" <hjk@hansjkoch.de>
-> > Cc: Marc Hulsman <m.hulsman@tudelft.nl>
-> > Cc: Rudolf Marek <r.marek@assembler.cz>
-> > Signed-off-by: Axel Lin <axel.lin@gmail.com>
+On Fri, Nov 25, 2011 at 02:12:45AM -0500, Axel Lin wrote:
+> This patch converts the drivers in drivers/hwmon/* to use the
+> module_spi_driver() macro which makes the code smaller and a bit
+> simpler.
 > 
-> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> 
-> What is the plan for those patches ? Are they expected to all go through the same tree,
-> or through individual trees after the necessary defines are introduced into mainline ?
-> 
-My question was answered in another thread related to the misc subsystem.
-The patch this one depends on will only be available in 3.3-rc1. It would have been
-nice to let us know ahead of time, because I _did_ find out the hard way.
+> Cc: Sonic Zhang <sonic.zhang@analog.com>
+> Cc: Marc Pignat <marc.pignat@hevs.ch>
+> Cc: Paul Thomas <pthomas8589@gmail.com>
+> Cc: Eric Miao <eric.miao@marvell.com>
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-I would suggest to resubmit the i2c and spi patches against a working baseline
-once it is available, to make sure it does not miss some new drivers.
+module_spi_driver() is not (yet) available in mainline, so this patch
+can not be applied right now.
 
-On a side note, this patch does miss the drivers in hwmon/pmbus, but I can take care
-of those myself.
+It would probably make sense to resubmit the patch once the code necessary
+to support it is available, to make sure it does not miss any new drivers.
 
 Guenter
 
