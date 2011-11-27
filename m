@@ -1,37 +1,34 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 25 Nov 2011 16:57:08 +0000
+Date: Sun, 27 Nov 2011 01:37:35 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: convert drivers/hwmon/* to use
-Message-Id: <20111125165708.GA11317@ericsson.com>
+Message-Id: <20111127013735.GA24906@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1322204787.11718.1.camel@phoenix>
-In-Reply-To: <1322204787.11718.1.camel@phoenix>
+References: <1322206260.11718.4.camel@phoenix>
+In-Reply-To: <1322206260.11718.4.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Axel Lin <axel.lin@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Corentin Labbe <corentin.labbe@geomatys.fr>, Dirk Eibach <eibach@gdsys.de>, "Mark M. Hoffman" <mhoffman@lightlink.com>, Steve Glendinning <steve.glendinning@smsc.com>, Riku Voipio <riku.voipio@iki.fi>, Guillaume Ligneul <guillaume.ligneul@gmail.com>, David George <david.george@ska.ac.za>, "Hans J. Koch" <hjk@hansjkoch.de>, Marc Hulsman <m.hulsman@tudelft.nl>, Rudolf Marek <r.marek@assembler.cz>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Donggeun Kim <dg77.kim@samsung.com>, Simon Guinot <sguinot@lacie.com>, Lars-Peter Clausen <lars@metafoo.de>, MyungJoo Ham <myungjoo.ham@samsung.com>, Ben Dooks <ben@simtec.co.uk>, Hans de Goede <hdegoede@redhat.com>, J Keerthy <j-keerthy@ti.com>, "David S. Miller" <davem@davemloft.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On Fri, Nov 25, 2011 at 02:06:27AM -0500, Axel Lin wrote:
+On Fri, Nov 25, 2011 at 02:31:00AM -0500, Axel Lin wrote:
 > This patch converts the drivers in drivers/hwmon/* to use the
-> module_i2c_driver() macro which makes the code smaller and a bit
+> module_platform_driver() macro which makes the code smaller and a bit
 > simpler.
 > 
-> Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
-> Cc: Dirk Eibach <eibach@gdsys.de>
-> Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
-> Cc: Steve Glendinning <steve.glendinning@smsc.com>
-> Cc: Riku Voipio <riku.voipio@iki.fi>
-> Cc: Guillaume Ligneul <guillaume.ligneul@gmail.com>
-> Cc: David George <david.george@ska.ac.za>
-> Cc: "Hans J. Koch" <hjk@hansjkoch.de>
-> Cc: Marc Hulsman <m.hulsman@tudelft.nl>
-> Cc: Rudolf Marek <r.marek@assembler.cz>
+> Cc: Donggeun Kim <dg77.kim@samsung.com>
+> Cc: Simon Guinot <sguinot@lacie.com>
+> Cc: Lars-Peter Clausen <lars@metafoo.de>
+> Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+> Cc: Ben Dooks <ben@simtec.co.uk>
+> Cc: Hans de Goede <hdegoede@redhat.com>
+> Cc: J Keerthy <j-keerthy@ti.com>
+> Cc: David S. Miller <davem@davemloft.net>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 > Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-
-What is the plan for those patches ? Are they expected to all go through the same tree,
-or through individual trees after the necessary defines are introduced into mainline ?
+Applied. I'll let it rest in linux-next for a couple of days and send it to Linus
+if there are no problems.
 
 Guenter
 
