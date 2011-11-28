@@ -1,15 +1,26 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 Nov 2011 19:30:52 +0000
-Subject: [lm-sensors] [PATCH 2/4] hwmon: (pmbus/zl6100) Add support for
-Message-Id: <1322076654-5652-3-git-send-email-guenter.roeck@ericsson.com>
+From: Robert Coulson <robert.coulson@ericsson.com>
+Date: Mon, 28 Nov 2011 21:47:14 +0000
+Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (pmbus/zl6100) Add support for
+Message-Id: <C379E95F3359F140B21F5259C55CC83148CBF06D9C@EUSAACMS0714.eamcs.ericsson.se>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1322076654-5652-3-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1322076654-5652-3-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add explicit support for ZL2005. Functionality is almost the same as with other
-Zilker Labs / Intersil chips, but limit register detection does not work reliably.
+ 
+Reviewed-by: Robert Coulson <robert.coulson@ericsson.com>
+
+-----Original Message-----
+From: Guenter Roeck 
+Sent: Wednesday, November 23, 2011 11:31 AM
+To: Jean Delvare
+Cc: Robert Coulson; lm-sensors@lm-sensors.org; Guenter Roeck
+Subject: [PATCH 2/4] hwmon: (pmbus/zl6100) Add support for ZL2005
+
+Add explicit support for ZL2005. Functionality is almost the same as with other Zilker Labs / Intersil chips, but limit register detection does not work reliably.
 
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
@@ -18,8 +29,7 @@ Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
  drivers/hwmon/pmbus/zl6100.c |   19 +++++++++++++++++--
  3 files changed, 23 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/hwmon/zl6100 b/Documentation/hwmon/zl6100
-index 7617798..d3bca06 100644
+diff --git a/Documentation/hwmon/zl6100 b/Documentation/hwmon/zl6100 index 7617798..d3bca06 100644
 --- a/Documentation/hwmon/zl6100
 +++ b/Documentation/hwmon/zl6100
 @@ -6,6 +6,10 @@ Supported chips:
@@ -33,8 +43,7 @@ index 7617798..d3bca06 100644
    * Intersil / Zilker Labs ZL2006
      Prefix: 'zl2006'
      Addresses scanned: -
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index 4b26f51..d357ab2 100644
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig index 4b26f51..d357ab2 100644
 --- a/drivers/hwmon/pmbus/Kconfig
 +++ b/drivers/hwmon/pmbus/Kconfig
 @@ -113,8 +113,8 @@ config SENSORS_ZL6100
@@ -48,8 +57,7 @@ index 4b26f51..d357ab2 100644
  
  	  This driver can also be built as a module. If so, the module will
  	  be called zl6100.
-diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c
-index 2bc9800..d78bdcf 100644
+diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c index 2bc9800..d78bdcf 100644
 --- a/drivers/hwmon/pmbus/zl6100.c
 +++ b/drivers/hwmon/pmbus/zl6100.c
 @@ -28,7 +28,7 @@
@@ -57,7 +65,8 @@ index 2bc9800..d78bdcf 100644
  #include "pmbus.h"
  
 -enum chips { zl2004, zl2006, zl2008, zl2105, zl2106, zl6100, zl6105 };
-+enum chips { zl2004, zl2005, zl2006, zl2008, zl2105, zl2106, zl6100, zl6105 };
++enum chips { zl2004, zl2005, zl2006, zl2008, zl2105, zl2106, zl6100, 
++zl6105 };
  
  struct zl6100_data {
  	int id;
@@ -100,7 +109,7 @@ index 2bc9800..d78bdcf 100644
  	 *
  	 * Only clear the wait time for chips known to be safe. The wait time
  	 * can be cleared later for additional chips if tests show that it
--- 
+--
 1.7.3.1
 
 
