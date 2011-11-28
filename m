@@ -1,12 +1,24 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 Nov 2011 19:30:51 +0000
-Subject: [lm-sensors] [PATCH 1/4] hwmon: (pmbus/adm1275) Validate device ID
-Message-Id: <1322076654-5652-2-git-send-email-guenter.roeck@ericsson.com>
+From: Robert Coulson <robert.coulson@ericsson.com>
+Date: Mon, 28 Nov 2011 21:26:42 +0000
+Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (pmbus/adm1275) Validate device
+Message-Id: <C379E95F3359F140B21F5259C55CC83148CBF06D61@EUSAACMS0714.eamcs.ericsson.se>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1322076654-5652-2-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1322076654-5652-2-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+Reviewed-by: Robert Coulson <robert.coulson@ericsson.com>
+
+-----Original Message-----
+From: Guenter Roeck 
+Sent: Wednesday, November 23, 2011 11:31 AM
+To: Jean Delvare
+Cc: Robert Coulson; lm-sensors@lm-sensors.org; Guenter Roeck
+Subject: [PATCH 1/4] hwmon: (pmbus/adm1275) Validate device ID
 
 Since manufacturer and device ID are known, read and validate it.
 
@@ -15,8 +27,7 @@ Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
  drivers/hwmon/pmbus/adm1275.c |   53 +++++++++++++++++++++++++++++++++-------
  1 files changed, 43 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/adm1275.c b/drivers/hwmon/pmbus/adm1275.c
-index 980a4d9..6349404 100644
+diff --git a/drivers/hwmon/pmbus/adm1275.c b/drivers/hwmon/pmbus/adm1275.c index 980a4d9..6349404 100644
 --- a/drivers/hwmon/pmbus/adm1275.c
 +++ b/drivers/hwmon/pmbus/adm1275.c
 @@ -170,22 +170,61 @@ static int adm1275_read_byte_data(struct i2c_client *client, int page, int reg)
@@ -114,7 +125,7 @@ index 980a4d9..6349404 100644
  static struct i2c_driver adm1275_driver = {
  	.driver = {
  		   .name = "adm1275",
--- 
+--
 1.7.3.1
 
 
