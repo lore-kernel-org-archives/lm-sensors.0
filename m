@@ -1,69 +1,81 @@
-From: "Gerhart, Bjoern" <bjoern.gerhart@wincor-nixdorf.com>
-Date: Mon, 28 Nov 2011 16:48:12 +0000
-Subject: [lm-sensors] [f75387] modifying f75375s module
-Message-Id: <EA28F4E582D7F04DA4E25034DF5AA0FD0BB9DFE5@DEEXVS21.wincor-nixdorf.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 28 Nov 2011 17:14:19 +0000
+Subject: Re: [lm-sensors] [f75387] modifying f75375s module
+Message-Id: <1322500459.2730.129.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <EA28F4E582D7F04DA4E25034DF5AA0FD0BB9DFE5@DEEXVS21.wincor-nixdorf.com>
+In-Reply-To: <EA28F4E582D7F04DA4E25034DF5AA0FD0BB9DFE5@DEEXVS21.wincor-nixdorf.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Dear list,
-
-at the moment I modify the existing f75375s kernel module for supporting th=
-e current Fintek model f75387 (which is being recognized by sensors-detect =
-but yet unsupported). My configuration is CentOS 5 + kernel 2.6.39 + lm_sen=
-sors 3.3.1.
-
-One of the main differences between the two models is that the 75387 has 11=
--bit temperature read in contrast to 8-bit with the older model. Up to now,=
- I managed the 11-bit part by converting some lines out of the lm63 source =
-code. The temperature reading of the 75387 with the modified kernel module =
-code seems now to be valid, so the module really seems to operate the chip.
-
-However, I defined some labels in /etc/sensors3.conf. These labels do not a=
-ppear in the sensors command. When strace'ing the sensors command I see tha=
-t the /sys/class/hwmon/hwmon0/device/in0_label and all other label files do=
- not exist.
-Additionally, the thresholds defined in sensors3.conf are not written to th=
-e appropriate files in /sys/class/hwmon/hwmon0/device, although the thresho=
-ld files temp1_max and others do exist. I can define them manually by just =
-echo'ing the threshold value into temp1_max. Then the command sensors does =
-show the right threshold.
-The "ignore" statements (e.g. ignore fan1) also do not have any effect.
-
-So this is my question: Which are the prerequisites for the module to creat=
-e the label files and to set the thresholds on module load?
-
-(..or is this in the end a question for the kernel list..?)
-
-Best Regards
-Bj=F6rn Gerhart
-
-WINCOR NIXDORF International GmbH
-Sitz der Gesellschaft: Paderborn
-Registergericht Paderborn HRB 3507
-Gesch=E4ftsf=FChrer: Eckard Heidloff (Vorsitzender), Stefan Auerbach, Dr. J=
-=FCrgen Wunram
-Vorsitzender des Aufsichtsrats: Karl-Heinz Stiller
-Steuernummer: 339/5884/0020 - Ust-ID Nr.: DE812927716 - WEEE-Reg.-Nr. DE444=
-77193
-
-Diese E-Mail enth=E4lt vertrauliche Informationen.
-Wenn Sie nicht der richtige Adressat sind oder diese E-Mail irrt=FCmlich er=
-halten haben,
-informieren Sie bitte sofort den Absender und vernichten Sie diese E-Mail.
-Das unerlaubte Kopieren sowie die unbefugte Weitergabe dieser E-Mail ist ni=
-cht gestattet.
-
-This e-mail may contain confidential information.
-If you are not the intended recipient (or have received this e-mail in erro=
-r)
-please notify the sender immediately and destroy this e-mail.
-Any unauthorised copying, disclosure or distribution of the material in thi=
-s e-mail is strictly forbidden.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAyMDExLTExLTI4IGF0IDExOjQ4IC0wNTAwLCBHZXJoYXJ0LCBCam9lcm4gd3JvdGU6
+Cj4gRGVhciBsaXN0LAo+IAo+IGF0IHRoZSBtb21lbnQgSSBtb2RpZnkgdGhlIGV4aXN0aW5nIGY3
+NTM3NXMga2VybmVsIG1vZHVsZSBmb3Igc3VwcG9ydGluZyB0aGUgY3VycmVudCBGaW50ZWsgbW9k
+ZWwgZjc1Mzg3ICh3aGljaCBpcyBiZWluZyByZWNvZ25pemVkIGJ5IHNlbnNvcnMtZGV0ZWN0IGJ1
+dCB5ZXQgdW5zdXBwb3J0ZWQpLiBNeSBjb25maWd1cmF0aW9uIGlzIENlbnRPUyA1ICsga2VybmVs
+IDIuNi4zOSArIGxtX3NlbnNvcnMgMy4zLjEuCj4gCj4gT25lIG9mIHRoZSBtYWluIGRpZmZlcmVu
+Y2VzIGJldHdlZW4gdGhlIHR3byBtb2RlbHMgaXMgdGhhdCB0aGUgNzUzODcgaGFzIDExLWJpdCB0
+ZW1wZXJhdHVyZSByZWFkIGluIGNvbnRyYXN0IHRvIDgtYml0IHdpdGggdGhlIG9sZGVyIG1vZGVs
+LiBVcCB0byBub3csIEkgbWFuYWdlZCB0aGUgMTEtYml0IHBhcnQgYnkgY29udmVydGluZyBzb21l
+IGxpbmVzIG91dCBvZiB0aGUgbG02MyBzb3VyY2UgY29kZS4gVGhlIHRlbXBlcmF0dXJlIHJlYWRp
+bmcgb2YgdGhlIDc1Mzg3IHdpdGggdGhlIG1vZGlmaWVkIGtlcm5lbCBtb2R1bGUgY29kZSBzZWVt
+cyBub3cgdG8gYmUgdmFsaWQsIHNvIHRoZSBtb2R1bGUgcmVhbGx5IHNlZW1zIHRvIG9wZXJhdGUg
+dGhlIGNoaXAuCj4gCklmIHlvdSBoYXZlIGEgcGF0Y2ggYWRkaW5nIHN1cHBvcnQgZm9yIHRoZSBG
+NzUzODcsIGNhbiB5b3Ugc3VibWl0IGl0IHRvCnRoZSBsaXN0ID8gQWZ0ZXIgYWxsLCB5b3UgYXJl
+IGFza2luZyBmb3Igc3VwcG9ydCwgc28gaXQgd291bGQgb25seSBiZQpmYWlyIHRvIGdpdmUgc29t
+ZXRoaW5nIGJhY2suCgo+IEhvd2V2ZXIsIEkgZGVmaW5lZCBzb21lIGxhYmVscyBpbiAvZXRjL3Nl
+bnNvcnMzLmNvbmYuIFRoZXNlIGxhYmVscyBkbyBub3QgYXBwZWFyIGluIHRoZSBzZW5zb3JzIGNv
+bW1hbmQuIFdoZW4gc3RyYWNlJ2luZyB0aGUgc2Vuc29ycyBjb21tYW5kIEkgc2VlIHRoYXQgdGhl
+IC9zeXMvY2xhc3MvaHdtb24vaHdtb24wL2RldmljZS9pbjBfbGFiZWwgYW5kIGFsbCBvdGhlciBs
+YWJlbCBmaWxlcyBkbyBub3QgZXhpc3QuCj4gQWRkaXRpb25hbGx5LCB0aGUgdGhyZXNob2xkcyBk
+ZWZpbmVkIGluIHNlbnNvcnMzLmNvbmYgYXJlIG5vdCB3cml0dGVuIHRvIHRoZSBhcHByb3ByaWF0
+ZSBmaWxlcyBpbiAvc3lzL2NsYXNzL2h3bW9uL2h3bW9uMC9kZXZpY2UsIGFsdGhvdWdoIHRoZSB0
+aHJlc2hvbGQgZmlsZXMgdGVtcDFfbWF4IGFuZCBvdGhlcnMgZG8gZXhpc3QuIEkgY2FuIGRlZmlu
+ZSB0aGVtIG1hbnVhbGx5IGJ5IGp1c3QgZWNobydpbmcgdGhlIHRocmVzaG9sZCB2YWx1ZSBpbnRv
+IHRlbXAxX21heC4gVGhlbiB0aGUgY29tbWFuZCBzZW5zb3JzIGRvZXMgc2hvdyB0aGUgcmlnaHQg
+dGhyZXNob2xkLgo+IFRoZSAiaWdub3JlIiBzdGF0ZW1lbnRzIChlLmcuIGlnbm9yZSBmYW4xKSBh
+bHNvIGRvIG5vdCBoYXZlIGFueSBlZmZlY3QuCj4gClRoZSByZWxldmFudCBlbnRyaWVzIG9mIHlv
+dXIgY29uZmlndXJhdGlvbiBmaWxlIGFzIHdlbGwgYXMgdGhlIG91dHB1dCBvZgoic2Vuc29ycyIg
+bWlnaHQgaGVscC4KCj4gU28gdGhpcyBpcyBteSBxdWVzdGlvbjogV2hpY2ggYXJlIHRoZSBwcmVy
+ZXF1aXNpdGVzIGZvciB0aGUgbW9kdWxlIHRvIGNyZWF0ZSB0aGUgbGFiZWwgZmlsZXMgYW5kIHRv
+IHNldCB0aGUgdGhyZXNob2xkcyBvbiBtb2R1bGUgbG9hZD8KPiAKTm90IHN1cmUgSSB1bmRlcnN0
+YW5kLiBBcmUgeW91IHNheWluZyB0aGF0ICJzZW5zb3JzIC1zIiBkb2VzIG5vdCB3b3JrID8KQW5k
+IHdoYXQgZG8geW91IG1lYW4gd2l0aCAicHJlcmVxdWlzaXRlcyBmb3IgdGhlIG1vZHVsZSB0byBj
+cmVhdGUgdGhlCmxhYmVsIGZpbGVzIiA/IEFzIGZhciBhcyBJIGNhbiBzZWUsIHRoZSBmNzUzNzVz
+IGRyaXZlciBkb2VzIG5vdCBjcmVhdGUKYW55IGxhYmVsIGZpbGVzLgoKTXkgd2lsZCBndWVzcyBp
+cyB0aGF0IHRoZSBlbnRyeSB5b3UgY3JlYXRlZCBpbiBzZW5zb3JzMy5jb25mIGRvZXNuJ3QKbWF0
+Y2ggdGhlIGRldmljZSBuYW1lLCBhbmQgdGh1cyB0aGUgc2Vuc29ycyBjb21tYW5kIGRvZXMgbm90
+IGhhdmUgYQptZWFucyB0byBjb25uZWN0IHRoZSBjb25maWd1cmF0aW9uIGVudHJ5IHdpdGggdGhl
+IGFjdHVhbCBkZXZpY2UuIFdlCndvdWxkIG5lZWQgdG8gc2VlIHRoZSBjb25maWd1cmF0aW9uIGZp
+bGUgZW50cnkgYW5kIHRoZSBzZW5zb3JzIGNvbW1hbmQKb3V0cHV0IHRvIGJlIGFibGUgdG8gZGV0
+ZXJtaW5lIHdoYXQgaXMgZ29pbmcgb24uCgo+ICguLm9yIGlzIHRoaXMgaW4gdGhlIGVuZCBhIHF1
+ZXN0aW9uIGZvciB0aGUga2VybmVsIGxpc3QuLj8pCj4gCj4gQmVzdCBSZWdhcmRzCj4gQmrDtnJu
+IEdlcmhhcnQKPiAKPiBXSU5DT1IgTklYRE9SRiBJbnRlcm5hdGlvbmFsIEdtYkgKPiBTaXR6IGRl
+ciBHZXNlbGxzY2hhZnQ6IFBhZGVyYm9ybgo+IFJlZ2lzdGVyZ2VyaWNodCBQYWRlcmJvcm4gSFJC
+IDM1MDcKPiBHZXNjaMOkZnRzZsO8aHJlcjogRWNrYXJkIEhlaWRsb2ZmIChWb3JzaXR6ZW5kZXIp
+LCBTdGVmYW4gQXVlcmJhY2gsIERyLiBKw7xyZ2VuIFd1bnJhbQo+IFZvcnNpdHplbmRlciBkZXMg
+QXVmc2ljaHRzcmF0czogS2FybC1IZWlueiBTdGlsbGVyCj4gU3RldWVybnVtbWVyOiAzMzkvNTg4
+NC8wMDIwIC0gVXN0LUlEIE5yLjogREU4MTI5Mjc3MTYgLSBXRUVFLVJlZy4tTnIuIERFNDQ0Nzcx
+OTMKPiAKPiBEaWVzZSBFLU1haWwgZW50aMOkbHQgdmVydHJhdWxpY2hlIEluZm9ybWF0aW9uZW4u
+Cj4gV2VubiBTaWUgbmljaHQgZGVyIHJpY2h0aWdlIEFkcmVzc2F0IHNpbmQgb2RlciBkaWVzZSBF
+LU1haWwgaXJydMO8bWxpY2ggZXJoYWx0ZW4gaGFiZW4sCj4gaW5mb3JtaWVyZW4gU2llIGJpdHRl
+IHNvZm9ydCBkZW4gQWJzZW5kZXIgdW5kIHZlcm5pY2h0ZW4gU2llIGRpZXNlIEUtTWFpbC4KPiBE
+YXMgdW5lcmxhdWJ0ZSBLb3BpZXJlbiBzb3dpZSBkaWUgdW5iZWZ1Z3RlIFdlaXRlcmdhYmUgZGll
+c2VyIEUtTWFpbCBpc3QgbmljaHQgZ2VzdGF0dGV0Lgo+IAo+IFRoaXMgZS1tYWlsIG1heSBjb250
+YWluIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbi4KPiBJZiB5b3UgYXJlIG5vdCB0aGUgaW50ZW5k
+ZWQgcmVjaXBpZW50IChvciBoYXZlIHJlY2VpdmVkIHRoaXMgZS1tYWlsIGluIGVycm9yKQo+IHBs
+ZWFzZSBub3RpZnkgdGhlIHNlbmRlciBpbW1lZGlhdGVseSBhbmQgZGVzdHJveSB0aGlzIGUtbWFp
+bC4KPiBBbnkgdW5hdXRob3Jpc2VkIGNvcHlpbmcsIGRpc2Nsb3N1cmUgb3IgZGlzdHJpYnV0aW9u
+IG9mIHRoZSBtYXRlcmlhbCBpbiB0aGlzIGUtbWFpbCBpcyBzdHJpY3RseSBmb3JiaWRkZW4uCj4g
+CgpZb3UgbWlnaHQgd2FudCB0byByZW1vdmUgc3VjaCBkaXNjbGFpbWVycyBmcm9tIGUtbWFpbHMg
+c2VudCB0byBwdWJsaWMKbGlzdHMsIGF0IGxlYXN0IGlmIHlvdSBkb24ndCB3YW50IHlvdXIgZS1t
+YWlsIHRvIGJlIGlnbm9yZWQgKG9yIGRlbGV0ZWQKYXMgcmVxdWVzdGVkKS4gSWYgdGhhdCBpcyBh
+Z2FpbnN0IGNvbXBhbnkgcG9saWN5LCBhbmQvb3IgaWYgdGhlCmluZm9ybWF0aW9uIGlzIGFkZGVk
+IGF1dG9tYXRpY2FsbHkgYnkgeW91ciBjb21wYW55J3MgZS1tYWlsIHN5c3RlbSwgeW91Cm1pZ2h0
+IHdhbnQgdG8gY29uc2lkZXIgdXNpbmcgYSBHb29nbGUgYWNjb3VudCBvciBzaW1pbGFyIGZvciBw
+dWJsaWMKY29tbXVuaWNhdGlvbi4KCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
