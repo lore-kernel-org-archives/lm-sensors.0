@@ -1,25 +1,25 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 17 Nov 2011 11:24:25 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: fix dependency of EXYNOS4 TMU
-Message-Id: <20111117112425.GA23262@ericsson.com>
+Date: Wed, 30 Nov 2011 19:00:01 +0000
+Subject: [lm-sensors] Timing for new release of i2c-tools
+Message-Id: <1322679601.23607.54.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1321525985-25572-1-git-send-email-dg77.kim@samsung.com>
-In-Reply-To: <1321525985-25572-1-git-send-email-dg77.kim@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Cc: lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On Thu, Nov 17, 2011 at 05:33:05AM -0500, Donggeun Kim wrote:
-> The dependency of EXYNOS4 TMU in Kconfig is renamed to the existing one.
-> 
-> Signed-off-by: Donggeun Kim <dg77.kim@samsung.com>
-> Signed-off-by: MyungJoo Ham <myungjoo.ham@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Hi Jean,
 
-Applied, thanks.
+do you have any plans to release a new version of i2c-tools anytime
+soon ? We need to have the recent extensions to the i2cset command in a
+shipping release, and it would be helpful if we can get it from a
+released version.
 
+Thanks,
 Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
