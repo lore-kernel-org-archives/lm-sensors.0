@@ -1,77 +1,57 @@
-From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Sat, 10 Dec 2011 19:50:26 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: (f75375s) Initialize pwmX_mode
-Message-Id: <6E0DF6DB-7800-43A8-B6DE-370A0DCDE418@extracloud.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 01 Dec 2011 10:00:47 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Fix oops on driver load
+Message-Id: <20111201110047.130190a5@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1323369069-26203-5-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1323369069-26203-5-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-2011/12/8 Guenter Roeck <guenter.roeck@ericsson.com>:
-> pwmX_mode and pwmX_enable are not initialized if no platform data is provided to
-> the driver. Read chip configuration at driver initialization time and initialize
-> attributes to reflect chip configuration.
+On Thu, 1 Dec 2011 01:26:39 +0100, Jean Delvare wrote:
+> On Thu, 01 Dec 2011 07:25:15 +0800 (HKT), undersys wrote:
+> > Hi All,
+> > 
+> > I can no longer load the core temp module, it gives me the following kernel Opps.
+> > (...)
+> > This used to work fine before I updated the kernel to 3.0.x. (...)
 > 
-> Cc: Riku Voipio <riku.voipio@iki.fi>
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Reviewed-by: Bjoern Gerhart <oss@extracloud.de>
-> ---
-> drivers/hwmon/f75375s.c |   28 ++++++++++++++++++++++++++--
-> 1 files changed, 26 insertions(+), 2 deletions(-)
+> Ah, yes, I can reproduce that, and the bug is pretty obvious. I'll send
+> a patch tomorrow.
 > 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index 777a665..9c3f078 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -652,6 +652,31 @@ static void f75375_init(struct i2c_client *client, struct f75375_data *data,
-> 		struct f75375s_platform_data *f75375s_pdata)
-> {
-> 	int nr;
-> +
-> +	if (!f75375s_pdata) {
-> +		u8 conf, mode;
-> +		int nr;
-> +
-> +		conf = f75375_read8(client, F75375_REG_CONFIG1);
-> +		mode = f75375_read8(client, F75375_REG_FAN_TIMER);
-> +		for (nr = 0; nr < 2; nr++) {
-> +			if (!(conf & (1 << FAN_CTRL_LINEAR(nr))))
-> +				data->pwm_mode[nr] = 1;
-> +			switch ((mode >> FAN_CTRL_MODE(nr)) & 3) {
-> +			case 0:		/* speed */
-> +				data->pwm_enable[nr] = 3;
-> +				break;
-> +			case 1:		/* automatic */
-> +				data->pwm_enable[nr] = 2;
-> +				break;
-> +			default:	/* manual */
-> +				data->pwm_enable[nr] = 1;
-> +				break;
-> +			}
-> +		}
-> +		return;
-> +	}
-> +
-> 	set_pwm_enable_direct(client, 0, f75375s_pdata->pwm_enable[0]);
-> 	set_pwm_enable_direct(client, 1, f75375s_pdata->pwm_enable[1]);
-> 	for (nr = 0; nr < 2; nr++) {
-> @@ -703,8 +728,7 @@ static int f75375_probe(struct i2c_client *client,
-> 		goto exit_remove;
-> 	}
-> 
-> -	if (f75375s_pdata != NULL)
-> -		f75375_init(client, data, f75375s_pdata);
-> +	f75375_init(client, data, f75375s_pdata);
-> 
-> 	return 0;
-> 
-> -- 
-> 1.7.3.1
-> 
+> Meanwhile you may be able to work around the problem by installing the
+> microcode_ctl package and ensuring that the microcode is updated before
+> loading the coretemp driver.
 
+If the CPU microcode is too old, the coretemp driver won't work. But
+instead of failing gracefully, it currently oops. Check for NULL
+platform device data to avoid this.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Durgadoss R <Durgadoss.r@intel.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+This is for stable kernel branch 3.0 only. Previous and later versions
+have different code paths and are not affected by this bug.
+
+ drivers/hwmon/coretemp.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- linux-3.0.orig/drivers/hwmon/coretemp.c	2011-12-01 08:39:45.000000000 +0100
++++ linux-3.0/drivers/hwmon/coretemp.c	2011-12-01 08:49:32.000000000 +0100
+@@ -539,6 +539,8 @@ static void coretemp_add_core(unsigned i
+ 		return;
+ 
+ 	pdata = platform_get_drvdata(pdev);
++	if (!pdata)
++		return;
+ 
+ 	err = create_core_data(pdata, pdev, cpu, pkg_flag);
+ 	if (err)
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
