@@ -1,344 +1,590 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 03 Dec 2011 16:27:57 +0000
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Sat, 03 Dec 2011 16:42:16 +0000
 Subject: Re: [lm-sensors] [PATCH] i2c multiplexer driver for Proliant
-Message-Id: <20111203162757.GA24302@ericsson.com>
+Message-Id: <CAKdnbx54R9t-mS9-EvyT-618wVp-YH0YDO++=m5t-JqR6h=GCw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAKdnbx7xeygkOK=BR+3vUrWT3GEt=PZrxgrEMvEB5nkOfAF0bg@mail.gmail.com>
- <20111127225514.GO19115@trinity.fluff.org>
- <CAKdnbx4u6+_WJjjMJ3jnDLSU8eJ0yXX0Mg-dcr=3F4FaOd2R=g@mail.gmail.com>
-In-Reply-To: <CAKdnbx4u6+_WJjjMJ3jnDLSU8eJ0yXX0Mg-dcr=3F4FaOd2R=g@mail.gmail.com>
+ <20111127225514.GO19115@trinity.fluff.org> <CAKdnbx4u6+_WJjjMJ3jnDLSU8eJ0yXX0Mg-dcr=3F4FaOd2R=g@mail.gmail.com>
+ <20111203162757.GA24302@ericsson.com>
+In-Reply-To: <20111203162757.GA24302-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Eddi De Pieri <eddi-soWH+0lSOSbR7s880joybQ@public.gmane.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>
 Cc: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>
 
-T24gU2F0LCBEZWMgMDMsIDIwMTEgYXQgMTA6MzE6MzBBTSAtMDUwMCwgRWRkaSBEZSBQaWVyaSB3
-cm90ZToKPiBUaGlzIHBhdGNoIGFkZCBzdXBwb3J0IHRvIG11bHRpcGxleGVkIHNtYnVzIGZvciBw
-cm9saWFudCBtaWNyb3NlcnZlcgo+IE4zNkwgYW5kIG1heSBiZSBhcHBsaWNhYmxlIHRvIG90aGVy
-IGNvbmZpZ3VyYXRpb24gYmFzZWQgb24gc2I4eHgKPiBzb3V0aGJ1cy4KPiAKCkRpZCB5b3UgcmVh
-ZCBEb2N1bWVudGF0aW9uL1N1Ym1pdHRpbmdQYXRjaGVzID8KClRoZSBwYXRjaCBkb2Vzbid0IGZv
-bGxvdyB0aGUgY2Fub25pY2FsIHBhdGNoIGZvcm1hdCwgSSBjYW4gc2VlIHRoYXQgbGluZXMgYXJl
-IHNwbGl0LAp0aGUgcGF0Y2ggaXNuJ3QgYmFzZWQgb24gdGhlIGxpbnV4IHJvb3QgZGlyZWN0b3J5
-IGJ1dCBvbiBzb21lIG90aGVyIGRpcmVjdG9yeSB3aGljaApJIGd1ZXNzIHlvdSBleHBlY3QgdGhl
-IHJlYWRlciB0byBmaWd1cmUgb3V0LCB0aGUgcGF0Y2ggZGVzY3JpcHRpb24gaW5jbHVkZXMgbG90
-cwpvZiBpbmZvcm1hdGlvbiB3aGljaCBpcyBpcnJlbGV2YW50IGZvciB0aGUgY2hhbmdlbG9nLCBh
-bmQgaXQgaXMgYmFzZWQgb24gMi42LjMyCmluc3RlYWQgb2YgdGhlIGN1cnJlbnQgcmVsZWFzZSBh
-bmQgdGh1cyBwcmV0dHkgbXVjaCBndWFyYW50ZWVkIG5vdCB0byBhcHBseQp0byB0aGUgY3VycmVu
-dCBrZXJuZWwgdmVyc2lvbi4gQWxsIHRoYXQgdy9vIGV2ZW4gbG9va2luZyBpbnRvIHRoZSBjb2Rl
-LgoKVGhlIHBhdGNoIGltcGxlbWVudHMgYW4gSTJDIG11bHRpcGxleGVyIGJ1dCBkb2Vzbid0IHVz
-ZSB0aGUgSTJDIG11bHRpcGxleGVyCmluZnJhc3RydWN0dXJlLiBJIGFtIG5vdCBvbmUgb2YgdGhl
-IEkyQyBtYWludGFpbmVycywgYnV0IHRoYXQgYWxvbmUgd291bGQgY2F1c2UgbWUKdG8gcmVqZWN0
-IHRoaXMgcGF0Y2ggKG9uIHRvcCBvZiBhbGwgdGhlIG90aGVyIHJlYXNvbnMgYWJvdmUpLgoKR3Vl
-bnRlcgoKPiByb290QHByb2xpYW50Oi91c3Ivc3JjL2xtLXNlbnNvcnMvZWRkaSMgaTJjZGV0ZWN0
-IC1sCj4gaTJjLTAgICBzbWJ1cyAgICAgICAgICAgU01CdXMgcGlpeDQgYWRhcHRlciAoU0RBMCkg
-ICAgICAgICAgICAgIFNNQnVzIGFkYXB0ZXIKPiBpMmMtMSAgIHNtYnVzICAgICAgICAgICBTTUJ1
-cyBwaWl4NCBhZGFwdGVyIChTREEyKSAgICAgICAgICAgICAgU01CdXMgYWRhcHRlcgo+IGkyYy0y
-ICAgc21idXMgICAgICAgICAgIFNNQnVzIHBpaXg0IGFkYXB0ZXIgKFNEQTMpICAgICAgICAgICAg
-ICBTTUJ1cyBhZGFwdGVyCj4gaTJjLTMgICBzbWJ1cyAgICAgICAgICAgU01CdXMgcGlpeDQgYWRh
-cHRlciAoU0RBNCkgICAgICAgICAgICAgIFNNQnVzIGFkYXB0ZXIKPiByb290QHByb2xpYW50Oi91
-c3Ivc3JjL2xtLXNlbnNvcnMvZWRkaSMKPiAKPiB5ZXMgU0RBMSBpcyByZXNlcnZlZC4uLiBzbyBp
-IGNhbid0IG11bHRpcGxleCBpdAo+IAo+IHJvb3RAcHJvbGlhbnQ6L3Vzci9zcmMvbG0tc2Vuc29y
-cy9lZGRpIyBzZW5zb3JzCj4gazEwdGVtcC1wY2ktMDBjMwo+IEFkYXB0ZXI6IFBDSSBhZGFwdGVy
-Cj4gdGVtcDE6ICAgICAgICsyNC41wrBDICAoaGlnaCA9ICs3MC4wwrBDLCBjcml0ID0gKzEwMC4w
-wrBDKQo+IAo+IHc4Mzc5NWFkZy1pMmMtMS0yZgo+IEFkYXB0ZXI6IFNNQnVzIHBpaXg0IGFkYXB0
-ZXIgKFNEQTIpCj4gaW4wOiAgICAgICAgICsxLjAyIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICsyLjA1IFYpCj4gaW4xOiAgICAgICAgICsxLjUyIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICsyLjA1IFYpCj4gaW4yOiAgICAgICAgICsxLjEwIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICsyLjA1IFYpCj4gaW4zOiAgICAgICAgICswLjg5IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICsyLjA1IFYpCj4gaW4xMjogICAgICAgICszLjM1IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICs2LjE0IFYpCj4gaW4xMzogICAgICAgICszLjI4IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICs2LjE0IFYpCj4gZmFuMTogICAgICAgIDcwMyBSUE0gIChtaW4gPSAgMzI5IFJQTSkKPiB0ZW1w
-MTogICAgICAgKzIzLjDCsEMgIChoaWdoID0gKzEwOS4wwrBDLCBoeXN0ID0gKzEwOS4wwrBDKQo+
-ICAgICAgICAgICAgICAgICAgICAgICAoY3JpdCA9ICsxMDkuMMKwQywgaHlzdCA9ICsxMDkuMMKw
-QykgIHNlbnNvciA9IHRoZXJtYWwgZGlvZGUKPiB0ZW1wMjogICAgICAgKzMzLjLCsEMgIChoaWdo
-ID0gKzEwNS4wwrBDLCBoeXN0ID0gKzEwNS4wwrBDKQo+ICAgICAgICAgICAgICAgICAgICAgICAo
-Y3JpdCA9ICsxMDUuMMKwQywgaHlzdCA9ICsxMDUuMMKwQykgIHNlbnNvciA9IHRoZXJtYWwgZGlv
-ZGUKPiB0ZW1wNTogICAgICAgKzE0LjDCsEMgIChoaWdoID0gKzM5LjDCsEMsIGh5c3QgPSArMzku
-MMKwQykKPiAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArNDQuMMKwQywgaHlzdCA9ICs0
-NC4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IGJlZXBfZW5hYmxlOmRpc2FibGVkCj4gCj4g
-amM0Mi1pMmMtMC0xOAo+IEFkYXB0ZXI6IFNNQnVzIHBpaXg0IGFkYXB0ZXIgKFNEQTApCj4gdGVt
-cDE6ICAgICAgICsyMC41wrBDICAobG93ICA9ICArMC4wwrBDLCBoaWdoID0gICswLjDCsEMpICBB
-TEFSTQo+ICAgICAgICAgICAgICAgICAgICAgICAoY3JpdCA9ICArMC4wwrBDLCBoeXN0ID0gICsw
-LjDCsEMpICBBTEFSTQo+IAo+IAo+IHJvb3RAcHJvbGlhbnQ6L3Vzci9zcmMvbG0tc2Vuc29ycy9l
-ZGRpIyBpMmNkZXRlY3QgLXkgMAo+ICAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAgNyAgOCAgOSAg
-YSAgYiAgYyAgZCAgZSAgZgo+IDAwOiAgICAgICAgICAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLQo+IDEwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSBVVSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLQo+IDIwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLQo+IDMwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLQo+IDQwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LQo+IDUwOiA1MCAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+
-IDYwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDcw
-OiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IAo+IHJvb3RAcHJvbGlhbnQ6L3Vzci9zcmMvbG0t
-c2Vuc29ycy9lZGRpIyBpMmNkZXRlY3QgLXkgMQo+ICAgICAgMCAgMSAgMiAgMyAgNCAgNSAgNiAg
-NyAgOCAgOSAgYSAgYiAgYyAgZCAgZSAgZgo+IDAwOiAgICAgICAgICAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDEwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLQo+IDIwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSBVVQo+IDMwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLQo+IDQwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLQo+IDUwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLQo+IDYwOiAtLSA2MSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLQo+IDcwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IAo+IHJvb3RAcHJvbGlhbnQ6L3Vz
-ci9zcmMvbG0tc2Vuc29ycy9lZGRpIyBpMmNkZXRlY3QgLXkgMgo+ICAgICAgMCAgMSAgMiAgMyAg
-NCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAgZCAgZSAgZgo+IDAwOiAgICAgICAgICAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDEwOiAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDIwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDMwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDQwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSA0YyAtLSAtLSAtLQo+IDUwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLQo+IDYwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLQo+IDcwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IAo+IHJvb3RAcHJv
-bGlhbnQ6L3Vzci9zcmMvbG0tc2Vuc29ycy9lZGRpIyBpMmNkZXRlY3QgLXkgMwo+ICAgICAgMCAg
-MSAgMiAgMyAgNCAgNSAgNiAgNyAgOCAgOSAgYSAgYiAgYyAgZCAgZSAgZgo+IDAwOiAgICAgICAg
-ICAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDEwOiAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDIwOiAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDMwOiAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDQwOiAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDUwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDYwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLSAt
-LSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IDcwOiAtLSAtLSAtLSAtLSAtLSAtLSAtLSAtLQo+IAo+
-IHBheSBhdHRlbnRpb24gdGhhdCB0aGUgbXNsZWVwIHNlZW1zIHRvIGJlIHJlYWxseSBuZWVkZWQu
-Li4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBFZGRpIERlIFBpZXJpIDxlZGRpQGRlcGllcmkubmV0Pgo+
-IAo+IFJlZ2FyZHMsCj4gCj4gRWRkaQo+IAo+IGZvbGxvd3MgcGF0Y2guLi4uCj4gCj4gZGlmZiAt
-dSAtTiAtciAyLjYuMzIub3JpZy9pMmMtcGlpeDQuYyAyLjYuMzIvaTJjLXBpaXg0LmMKPiAtLS0g
-Mi42LjMyLm9yaWcvaTJjLXBpaXg0LmMgICAgIDIwMTEtMTEtMTYgMTc6MDc6MDMuMDAwMDAwMDAw
-ICswMTAwCj4gKysrIDIuNi4zMi9pMmMtcGlpeDQuYyAgMjAxMS0xMS0xNiAxNToyMToxNy4wMDAw
-MDAwMDAgKzAxMDAKPiBAQCAtOTcsNyArOTcsOCBAQAo+ICBzdGF0aWMgdW5zaWduZWQgc2hvcnQg
-cGlpeDRfc21iYTsKPiAgc3RhdGljIGludCBzcnZyd29ya3NfY3NiNV9kZWxheTsKPiAgc3RhdGlj
-IHN0cnVjdCBwY2lfZHJpdmVyIHBpaXg0X2RyaXZlcjsKPiAtc3RhdGljIHN0cnVjdCBpMmNfYWRh
-cHRlciBwaWl4NF9hZGFwdGVyOwo+ICtzdHJ1Y3QgaTJjX2FkYXB0ZXIgcGlpeDRfYWRhcHRlcjsK
-PiArRVhQT1JUX1NZTUJPTF9HUEwocGlpeDRfYWRhcHRlcik7Cj4gCj4gIHN0YXRpYyBzdHJ1Y3Qg
-ZG1pX3N5c3RlbV9pZCBfX2RldmluaXRkYXRhIHBpaXg0X2RtaV9ibGFja2xpc3RbXSA9IHsKPiAg
-ICAgICAgIHsKPiBAQCAtMjQ2LDEwICsyNDcsMjIgQEAKPiAgICAgICAgICAgICAgICAgICAgICAg
-ICAiMHgleCBhbHJlYWR5IGluIHVzZSFcbiIsIHNtYmFfaWR4KTsKPiAgICAgICAgICAgICAgICAg
-cmV0dXJuIC1FQlVTWTsKPiAgICAgICAgIH0KPiAtICAgICAgIG91dGJfcChzbWJfZW4sIHNtYmFf
-aWR4KTsKPiAtICAgICAgIHNtYmFfZW5fbG8gPSBpbmJfcChzbWJhX2lkeCArIDEpOwo+IC0gICAg
-ICAgb3V0Yl9wKHNtYl9lbiArIDEsIHNtYmFfaWR4KTsKPiAtICAgICAgIHNtYmFfZW5faGkgPSBp
-bmJfcChzbWJhX2lkeCArIDEpOwo+ICsgICAgICAgb3V0Yl9wKHNtYl9lbiwgc21iYV9pZHgpOyAg
-ICAgICAgICAgICAgIC8vc2VsZXppb25vIGlsIHJlZ2lzdHJvIDB4MmMKPiArICAgICAgIHNtYmFf
-ZW5fbG8gPSBpbmJfcChzbWJhX2lkeCArIDEpOyAgICAgICAvL2xlZ2dvIGlsIGRhdG8gTCBkZWwg
-cmVnaXN0cm8gMHgyYwo+ICsgICAgICAgb3V0Yl9wKHNtYl9lbiArIDEsIHNtYmFfaWR4KTsgICAg
-ICAgICAgIC8vc2VsZXppb25vIGlsIHJlZ2lzdHJvIDB4MmMgKyAxCj4gKyAgICAgICBzbWJhX2Vu
-X2hpID0gaW5iX3Aoc21iYV9pZHggKyAxKTsgICAgICAgLy9sZWdnbyBpbCBkYXRvIEggZGVsIHJl
-Z2lzdHJvIDB4MmMKPiArCj4gKyAgICAgICBvdXRiX3Aoc21iX2VuLCBzbWJhX2lkeCk7ICAgICAg
-ICAgICAgICAgLy9zZWxlemlvbm8gaWwgcmVnaXN0cm8gMHgyYwo+ICsgICAgICAgb3V0Yl9wKHNt
-YmFfZW5fbG8gJiAweEY5ICwgc21iYV9pZHggKyAxKTsgLy9zZWxlemlvbm8gbGEgcG9ydGEgMCAw
-MCAwCj4gKyAgICAgICBvdXRiX3Aoc21iX2VuICsgMSwgc21iYV9pZHgpOyAgICAgICAgICAgLy9z
-ZWxlemlvbm8gaWwgcmVnaXN0cm8gMHgyYyArIDEKPiArICAgICAgIG91dGJfcChzbWJhX2VuX2hp
-LCBzbWJhX2lkeCArIDEpOwo+ICsKPiArICAgICAgIG91dGJfcChzbWJfZW4sIHNtYmFfaWR4KTsg
-ICAgICAgICAgICAgICAvL3NlbGV6aW9ubyBpbCByZWdpc3RybyAweDJjCj4gKyAgICAgICBzbWJh
-X2VuX2xvID0gaW5iX3Aoc21iYV9pZHggKyAxKTsgICAgICAgLy9sZWdnbyBpbCBkYXRvIEwgZGVs
-IHJlZ2lzdHJvIDB4MmMKPiArICAgICAgIG91dGJfcChzbWJfZW4gKyAxLCBzbWJhX2lkeCk7ICAg
-ICAgICAgICAvL3NlbGV6aW9ubyBpbCByZWdpc3RybyAweDJjICsgMQo+ICsgICAgICAgc21iYV9l
-bl9oaSA9IGluYl9wKHNtYmFfaWR4ICsgMSk7ICAgICAgIC8vbGVnZ28gaWwgZGF0byBIIGRlbCBy
-ZWdpc3RybyAweDJjCj4gKwo+ICsKPiAgICAgICAgIHJlbGVhc2VfcmVnaW9uKHNtYmFfaWR4LCAy
-KTsKPiAKPiAgICAgICAgIGlmICgoc21iYV9lbl9sbyAmIDEpID09IDApIHsKPiBAQCAtMjU4LDYg
-KzI3MSw4IEBACj4gICAgICAgICAgICAgICAgIHJldHVybiAtRU5PREVWOwo+ICAgICAgICAgfQo+
-IAo+ICsgICAgICAgZGV2X2luZm8oJlBJSVg0X2Rldi0+ZGV2LCJTZWxlY3RlZCBEZWZhdWx0IFNt
-YnVzIFBvcnQgMHgleCIsCj4gKHNtYmFfZW5fbG8gJiAweDYpID4+IDEpOwo+ICsKPiAgICAgICAg
-IHBpaXg0X3NtYmEgPSAoKHNtYmFfZW5faGkgPDwgOCkgfCBzbWJhX2VuX2xvKSAmIDB4ZmZlMDsK
-PiAgICAgICAgIGlmIChhY3BpX2NoZWNrX3JlZ2lvbihwaWl4NF9zbWJhLCBTTUJJT1NJWkUsIHBp
-aXg0X2RyaXZlci5uYW1lKSkKPiAgICAgICAgICAgICAgICAgcmV0dXJuIC1FTk9ERVY7Cj4gQEAg
-LTQ2Niw3ICs0ODEsNyBAQAo+ICAgICAgICAgLmZ1bmN0aW9uYWxpdHkgID0gcGlpeDRfZnVuYywK
-PiAgfTsKPiAKPiAtc3RhdGljIHN0cnVjdCBpMmNfYWRhcHRlciBwaWl4NF9hZGFwdGVyID0gewo+
-ICtzdHJ1Y3QgaTJjX2FkYXB0ZXIgcGlpeDRfYWRhcHRlciA9IHsKPiAgICAgICAgIC5vd25lciAg
-ICAgICAgICA9IFRISVNfTU9EVUxFLAo+ICAgICAgICAgLmNsYXNzICAgICAgICAgID0gSTJDX0NM
-QVNTX0hXTU9OIHwgSTJDX0NMQVNTX1NQRCwKPiAgICAgICAgIC5hbGdvICAgICAgICAgICA9ICZz
-bWJ1c19hbGdvcml0aG0sCj4gZGlmZiAtdSAtTiAtciAyLjYuMzIub3JpZy9pMmMtcGlpeDQtbjM2
-bC5jIDIuNi4zMi9pMmMtcGlpeDQtbjM2bC5jCj4gLS0tIDIuNi4zMi5vcmlnL2kyYy1waWl4NC1u
-MzZsLmMgICAgICAgIDE5NzAtMDEtMDEgMDE6MDA6MDAuMDAwMDAwMDAwICswMTAwCj4gKysrIDIu
-Ni4zMi9pMmMtcGlpeDQtbjM2bC5jICAgICAyMDExLTExLTE2IDE2OjAyOjAxLjAwMDAwMDAwMCAr
-MDEwMAo+IEBAIC0wLDAgKzEsMjQ3IEBACj4gKy8qCj4gKyAqIGkyYy1waWl4NC1uMzZsLmMgLSBp
-MmMtcGlpeDQgZXh0cmFzIGZvciB0aGUgSFAgcHJvbGlhbnQKPiBtaWNyb3NlcnZlciBuMzZsIG1v
-dGhlcmJvYXJkCj4gKyAqCj4gKyAqIENvcHlyaWdodCAoQykgMjAwNCwgMjAwOCBKZWFuIERlbHZh
-cmUgPGtoYWxpQGxpbnV4LWZyLm9yZz4KPiArICogQ29weXJpZ2h0IChDKSAyMDExICBFZGRpIERl
-IFBpZXJpIDxlZGRpQGRlcGllcmkubmV0Pgo+ICsgKgo+ICsgKiBUaGlzIHByb2dyYW0gaXMgZnJl
-ZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQo+ICsgKiBp
-dCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGFzIHB1
-Ymxpc2hlZCBieQo+ICsgKiB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVy
-c2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgo+ICsgKiAoYXQgeW91ciBvcHRpb24pIGFueSBsYXRl
-ciB2ZXJzaW9uLgo+ICsgKgo+ICsgKiBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhl
-IGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKPiArICogYnV0IFdJVEhPVVQgQU5ZIFdBUlJB
-TlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKPiArICogTUVSQ0hBTlRB
-QklMSVRZIG9yIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRoZQo+ICsg
-KiBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgo+ICsgKgo+ICsg
-KiBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJs
-aWMgTGljZW5zZQo+ICsgKiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0
-byB0aGUgRnJlZSBTb2Z0d2FyZQo+ICsgKiBGb3VuZGF0aW9uLCBJbmMuLCA2NzUgTWFzcyBBdmUs
-IENhbWJyaWRnZSwgTUEgMDIxMzksIFVTQS4KPiArICovCj4gKwo+ICsvKgo+ICsgKiBXZSBzZWxl
-Y3QgdGhlIGNoYW5uZWxzIGJ5IHNlbmRpbmcgY29tbWFuZHMgdG8gdGhlIHNiODAwIHNvdXRoYnVz
-Cj4gKyAqIHRoZSBzZWxlY3Rpb24gYml0Cj4gKyAqIGh0dHA6Ly9zdXBwb3J0LmFtZC5jb20vdXMv
-RW1iZWRkZWRfVGVjaERvY3MvNDU0ODIucGRmCj4gKyAqICBTbWJ1czBFbiAtIFJXIMOi4oKs4oCc
-IDE2IGJpdHMgLSBbUE1fUmVnOiAyQ2hdCj4gKyAqICBGaWVsZCBOYW1lIEJpdHMgRGVmYXVsdCBE
-ZXNjcmlwdGlvbgo+ICsgKiAgU21CdXMwRW4gMCAwYiBTZXQgdG8gMSB0byBlbmFibGUgU01CVVMw
-IGZ1bmN0aW9uIGFuZCBkZWNvZGluZy4KPiArICogIFNtQnVzMFNlbCAyOjEgMDBiIFNtQnVzIHBv
-cnQgc2VsZWN0aW9uIHdoZW4gUE1fUmVnIDJGaCBiaXQgMCBpcyBzZXQgdG8gMAo+ICsgKiAgMDA6
-IFBvcnQgMAo+ICsgKiAgMDE6IFBvcnQgMgo+ICsgKiAgMTA6IFBvcnQgMwo+ICsgKiAgMTE6IFBv
-cnQgNAo+ICsgKi8KPiArCj4gKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KPiArI2luY2x1ZGUg
-PGxpbnV4L2tlcm5lbC5oPgo+ICsjaW5jbHVkZSA8bGludXgvc2xhYi5oPgo+ICsjaW5jbHVkZSA8
-bGludXgvaW5pdC5oPgo+ICsjaW5jbHVkZSA8bGludXgvaTJjLmg+Cj4gKyNpbmNsdWRlIDxsaW51
-eC9tdXRleC5oPgo+ICsjaW5jbHVkZSA8YXNtL2lvLmg+Cj4gKwo+ICtleHRlcm4gc3RydWN0IGky
-Y19hZGFwdGVyIHBpaXg0X2FkYXB0ZXI7Cj4gKwo+ICtzdGF0aWMgc3RydWN0IGkyY19hZGFwdGVy
-ICpuMzZsX2FkYXB0ZXI7Cj4gK3N0YXRpYyBzdHJ1Y3QgaTJjX2FsZ29yaXRobSAqbjM2bF9hbGdv
-Owo+ICsKPiArLyogV3JhcHBlciBhY2Nlc3MgZnVuY3Rpb25zIGZvciBtdWx0aXBsZXhlZCBTTUJ1
-cyAqLwo+ICtzdGF0aWMgREVGSU5FX01VVEVYKHBpaXg0X2xvY2spOwo+ICsKPiArLyogV2UgcmVt
-ZW1iZXIgdGhlIGxhc3QgdXNlZCBjaGFubmVscyBjb21iaW5hdGlvbiBzbyBhcyB0byBvbmx5IHN3
-aXRjaAo+ICsgICBjaGFubmVscyB3aGVuIGl0IGlzIHJlYWxseSBuZWVkZWQuIFRoaXMgZ3JlYXRs
-eSByZWR1Y2VzIHRoZSBTTUJ1cwo+ICsgICBvdmVyaGVhZCwgYnV0IGFsc28gYXNzdW1lcyB0aGF0
-IG5vYm9keSB3aWxsIGJlIHdyaXRpbmcgdG8gdGhlIFBDQTk1NTYKPiArICAgaW4gb3VyIGJhY2su
-ICovCj4gK3N0YXRpYyB1OCBsYXN0X2NoYW5uZWxzOwo+ICsKPiArc3RhdGljIGlubGluZSBzMzIg
-cGlpeDRfYWNjZXNzX2NoYW5uZWwoc3RydWN0IGkyY19hZGFwdGVyICogYWRhcCwgdTE2IGFkZHIs
-Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIHNob3J0
-IGZsYWdzLCBjaGFyIHJlYWRfd3JpdGUsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHU4IGNvbW1hbmQsIGludCBzaXplLAo+ICsgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICB1bmlvbiBpMmNfc21idXNfZGF0YSAqIGRhdGEsCj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHU4IGNoYW5uZWxzKQo+ICt7Cj4gKyAgICAg
-ICBpbnQgZXJyb3I7Cj4gKyAgICAgICB1bnNpZ25lZCBzaG9ydCBzbWJhX2lkeCA9IDB4Y2Q2Owo+
-ICsgICAgICAgdTggc21iYV9lbl9sbywgc21iYV9lbl9oaSwgc21iX2VuID0gMHgyYzsKPiArCj4g
-KyAgICAgICBtdXRleF9sb2NrKCZwaWl4NF9sb2NrKTsKPiArCj4gKyAgICAgICBpZiAobGFzdF9j
-aGFubmVscyAhPSBjaGFubmVscykgewo+ICsgICAgICAgICAgICAgICB1bmlvbiBpMmNfc21idXNf
-ZGF0YSBtcGx4ZGF0YTsKPiArICAgICAgICAgICAgICAgbXBseGRhdGEuYnl0ZSA9IGNoYW5uZWxz
-Owo+ICsKPiArICAgICAgICAgICAgICAgLyogRGV0ZXJtaW5lIHRoZSBhZGRyZXNzIG9mIHRoZSBT
-TUJ1cyBhcmVhcyAqLwo+ICsgICAgICAgICAgICAgICBpZiAoIXJlcXVlc3RfcmVnaW9uKHNtYmFf
-aWR4LCAyLCAic21iYV9pZHgiKSkgewo+ICsgICAgICAgICAgICAgICAgICAgICAgIGRldl9lcnIo
-JnBpaXg0X2FkYXB0ZXIuZGV2LCAiU01CdXMgYmFzZSBhZGRyZXNzIGluZGV4IHJlZ2lvbiAiCj4g
-KyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAiMHgleCBhbHJlYWR5IGluIHVzZSFcbiIs
-IHNtYmFfaWR4KTsKPiArICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gLUVCVVNZOwo+ICsg
-ICAgICAgICAgICAgICB9Cj4gKwo+ICsgICAgICAgICAgICAgICBvdXRiX3Aoc21iX2VuLCBzbWJh
-X2lkeCk7ICAgICAgICAgICAgICAgLy9zZWxlemlvbm8gaWwgcmVnaXN0cm8gMHgyYwo+ICsgICAg
-ICAgICAgICAgICBzbWJhX2VuX2xvID0gaW5iX3Aoc21iYV9pZHggKyAxKTsgICAgICAgLy9sZWdn
-byBpbCBkYXRvIEwgZGVsIHJlZ2lzdHJvIDB4MmMKPiArICAgICAgICAgICAgICAgb3V0Yl9wKHNt
-Yl9lbiArIDEsIHNtYmFfaWR4KTsgICAgICAgICAgIC8vc2VsZXppb25vIGlsIHJlZ2lzdHJvIDB4
-MmMgKyAxCj4gKyAgICAgICAgICAgICAgIHNtYmFfZW5faGkgPSBpbmJfcChzbWJhX2lkeCArIDEp
-OyAgICAgICAvL2xlZ2dvIGlsIGRhdG8gSCBkZWwgcmVnaXN0cm8gMHgyYwo+ICsKPiArICAgICAg
-ICAgICAgICAgbXNsZWVwKDUwKTsKPiArICAgICAgICAgICAgICAgb3V0Yl9wKHNtYl9lbiwgc21i
-YV9pZHgpOyAgICAgICAgICAgICAgIC8vc2VsZXppb25vIGlsIHJlZ2lzdHJvIDB4MmMKPiArICAg
-ICAgICAgICAgICAgb3V0Yl9wKChzbWJhX2VuX2xvICYgMHhGOSApKyAoIGNoYW5uZWxzIDw8IDEp
-ICwgc21iYV9pZHggKyAxKTsKPiAvL3NlbGV6aW9ubyBsYSBwb3J0YSAwIDAwIDAKPiArICAgICAg
-ICAgICAgICAgb3V0Yl9wKHNtYl9lbiArIDEsIHNtYmFfaWR4KTsgICAgICAgICAgIC8vc2VsZXpp
-b25vIGlsIHJlZ2lzdHJvIDB4MmMgKyAxCj4gKyAgICAgICAgICAgICAgIG91dGJfcChzbWJhX2Vu
-X2hpLCBzbWJhX2lkeCArIDEpOwo+ICsKPiArICAgICAgICAgICAgICAgbXNsZWVwKDUwKTsKPiAr
-Cj4gKyAgICAgICAgICAgICAgIHJlbGVhc2VfcmVnaW9uKHNtYmFfaWR4LCAyKTsKPiArCj4gKyAg
-ICAgICAgICAgICAgIGRldl9pbmZvKCZwaWl4NF9hZGFwdGVyLmRldiwiU2VsZWN0ZWQgU21idXMg
-UG9ydCAweCV4IiwgKHNtYmFfZW5fbG8KPiAmIDB4NikgPj4gMSk7Cj4gKwo+ICsgICAgICAgICAg
-ICAgICBsYXN0X2NoYW5uZWxzID0gY2hhbm5lbHM7Cj4gKwo+ICsgICAgICAgfQo+ICsKPiArICAg
-ICAgIGVycm9yID0gcGlpeDRfYWRhcHRlci5hbGdvLT5zbWJ1c194ZmVyKGFkYXAsIGFkZHIsIGZs
-YWdzLCByZWFkX3dyaXRlLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBjb21tYW5kLCBzaXplLCBkYXRhKTsKPiArCj4gKwo+ICsgICAgICAgbXV0ZXhfdW5s
-b2NrKCZwaWl4NF9sb2NrKTsKPiArICAgICAgIHJldHVybiBlcnJvcjsKPiArfQo+ICsKPiArc3Rh
-dGljIHMzMiBwaWl4NF9hY2Nlc3NfdmlydDAoc3RydWN0IGkyY19hZGFwdGVyICogYWRhcCwgdTE2
-IGFkZHIsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIHNob3J0IGZs
-YWdzLCBjaGFyIHJlYWRfd3JpdGUsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHU4
-IGNvbW1hbmQsIGludCBzaXplLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bmlv
-biBpMmNfc21idXNfZGF0YSAqIGRhdGEpCj4gK3sKPiArICAgICAgIHJldHVybiBwaWl4NF9hY2Nl
-c3NfY2hhbm5lbChhZGFwLCBhZGRyLCBmbGFncywgcmVhZF93cml0ZSwgY29tbWFuZCwKPiArICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6ZSwgZGF0YSwgMCk7Cj4gK30KPiAr
-Cj4gK3N0YXRpYyBzMzIgcGlpeDRfYWNjZXNzX3ZpcnQxKHN0cnVjdCBpMmNfYWRhcHRlciAqIGFk
-YXAsIHUxNiBhZGRyLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bnNpZ25lZCBz
-aG9ydCBmbGFncywgY2hhciByZWFkX3dyaXRlLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB1OCBjb21tYW5kLCBpbnQgc2l6ZSwKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgdW5pb24gaTJjX3NtYnVzX2RhdGEgKiBkYXRhKQo+ICt7Cj4gKyAgICAgICByZXR1cm4gcGlp
-eDRfYWNjZXNzX2NoYW5uZWwoYWRhcCwgYWRkciwgZmxhZ3MsIHJlYWRfd3JpdGUsIGNvbW1hbmQs
-Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHNpemUsIGRhdGEsIDEpOwo+
-ICt9Cj4gKwo+ICtzdGF0aWMgczMyIHBpaXg0X2FjY2Vzc192aXJ0MihzdHJ1Y3QgaTJjX2FkYXB0
-ZXIgKiBhZGFwLCB1MTYgYWRkciwKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5z
-aWduZWQgc2hvcnQgZmxhZ3MsIGNoYXIgcmVhZF93cml0ZSwKPiArICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgdTggY29tbWFuZCwgaW50IHNpemUsCj4gKyAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHVuaW9uIGkyY19zbWJ1c19kYXRhICogZGF0YSkKPiArewo+ICsgICAgICAgcmV0
-dXJuIHBpaXg0X2FjY2Vzc19jaGFubmVsKGFkYXAsIGFkZHIsIGZsYWdzLCByZWFkX3dyaXRlLCBj
-b21tYW5kLAo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzaXplLCBkYXRh
-LCAyKTsKPiArfQo+ICsKPiArc3RhdGljIHMzMiBwaWl4NF9hY2Nlc3NfdmlydDMoc3RydWN0IGky
-Y19hZGFwdGVyICogYWRhcCwgdTE2IGFkZHIsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHVuc2lnbmVkIHNob3J0IGZsYWdzLCBjaGFyIHJlYWRfd3JpdGUsCj4gKyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHU4IGNvbW1hbmQsIGludCBzaXplLAo+ICsgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICB1bmlvbiBpMmNfc21idXNfZGF0YSAqIGRhdGEpCj4gK3sKPiArICAg
-ICAgIHJldHVybiBwaWl4NF9hY2Nlc3NfY2hhbm5lbChhZGFwLCBhZGRyLCBmbGFncywgcmVhZF93
-cml0ZSwgY29tbWFuZCwKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6
-ZSwgZGF0YSwgMyk7Cj4gK30KPiArCj4gK3N0YXRpYyBpbnQgX19pbml0IHBpaXg0X24zNmxfaW5p
-dCh2b2lkKQo+ICt7Cj4gKyAgICAgICBpbnQgaSwgZXJyb3I7Cj4gKwo+ICsgICAgICAgaWYgKCFw
-aWl4NF9hZGFwdGVyLmRldi5wYXJlbnQpCj4gKyAgICAgICAgICAgICAgIHJldHVybiAtRU5PREVW
-Owo+ICsKPiArICAgICAgIHByaW50ayhLRVJOX0lORk8gIkNvbmZpZ3VyZSB0aGUgQU1EIFNCODAw
-IE11bHRpcGxleGVyXG4iKTsKPiArCj4gKyAgICAgICAvKiBVbnJlZ2lzdGVyIHBoeXNpY2FsIGJ1
-cyAqLwo+ICsgICAgICAgZXJyb3IgPSBpMmNfZGVsX2FkYXB0ZXIoJnBpaXg0X2FkYXB0ZXIpOwo+
-ICsgICAgICAgaWYgKGVycm9yKSB7Cj4gKyAgICAgICAgICAgICAgIGRldl9lcnIoJnBpaXg0X2Fk
-YXB0ZXIuZGV2LCAiUGh5c2ljYWwgYnVzIHJlbW92YWwgZmFpbGVkXG4iKTsKPiArICAgICAgICAg
-ICAgICAgZ290byBFUlJPUjA7Cj4gKyAgICAgICB9Cj4gKwo+ICsgICAgICAgcHJpbnRrKEtFUk5f
-SU5GTyAiRW5hYmxpbmcgU01CdXMgbXVsdGlwbGV4aW5nIGZvciBIcCBQcm9saWFudAo+IE1pY3Jv
-c2VydmVyIE4zNmxcbiIpOwo+ICsgICAgICAgLyogRGVmaW5lIHRoZSA0IHZpcnR1YWwgYWRhcHRl
-cnMgYW5kIGFsZ29yaXRobXMgc3RydWN0dXJlcyAqLwo+ICsgICAgICAgaWYgKCEobjM2bF9hZGFw
-dGVyID0ga3phbGxvYyg1ICogc2l6ZW9mKHN0cnVjdCBpMmNfYWRhcHRlciksCj4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBHRlBfS0VSTkVMKSkpIHsKPiArICAgICAgICAg
-ICAgICAgZXJyb3IgPSAtRU5PTUVNOwo+ICsgICAgICAgICAgICAgICBnb3RvIEVSUk9SMTsKPiAr
-ICAgICAgIH0KPiArICAgICAgIGlmICghKG4zNmxfYWxnbyA9IGt6YWxsb2MoNSAqIHNpemVvZihz
-dHJ1Y3QgaTJjX2FsZ29yaXRobSksCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBHRlBfS0VSTkVMKSkpIHsKPiArICAgICAgICAgICAgICAgZXJyb3IgPSAtRU5PTUVNOwo+ICsg
-ICAgICAgICAgICAgICBnb3RvIEVSUk9SMjsKPiArICAgICAgIH0KPiArCj4gKyAgICAgICAvKiBG
-aWxsIGluIHRoZSBuZXcgc3RydWN0dXJlcyAqLwo+ICsgICAgICAgbjM2bF9hbGdvWzBdID0gKihw
-aWl4NF9hZGFwdGVyLmFsZ28pOwo+ICsgICAgICAgbjM2bF9hbGdvWzBdLnNtYnVzX3hmZXIgPSBw
-aWl4NF9hY2Nlc3NfdmlydDA7Cj4gKyAgICAgICBuMzZsX2FkYXB0ZXJbMF0gPSBwaWl4NF9hZGFw
-dGVyOwo+ICsgICAgICAgc25wcmludGYobjM2bF9hZGFwdGVyWzBdLm5hbWUsIHNpemVvZihuMzZs
-X2FkYXB0ZXJbMF0ubmFtZSksCj4gKyAgICAgICAgICAgICAgICAiU01CdXMgcGlpeDQgYWRhcHRl
-ciAoU0RBMCkiKTsKPiArICAgICAgIG4zNmxfYWRhcHRlclswXS5hbGdvID0gbjM2bF9hbGdvOwo+
-ICsgICAgICAgbjM2bF9hZGFwdGVyWzBdLmRldi5wYXJlbnQgPSBwaWl4NF9hZGFwdGVyLmRldi5w
-YXJlbnQ7Cj4gKyAgICAgICBmb3IgKGkgPSAxOyBpIDwgNDsgaSsrKSB7Cj4gKyAgICAgICAgICAg
-ICAgIG4zNmxfYWxnb1tpXSA9ICoocGlpeDRfYWRhcHRlci5hbGdvKTsKPiArICAgICAgICAgICAg
-ICAgbjM2bF9hZGFwdGVyW2ldID0gcGlpeDRfYWRhcHRlcjsKPiArICAgICAgICAgICAgICAgc25w
-cmludGYobjM2bF9hZGFwdGVyW2ldLm5hbWUsIHNpemVvZihuMzZsX2FkYXB0ZXJbaV0ubmFtZSks
-Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgICJTTUJ1cyBwaWl4NCBhZGFwdGVyIChTREElZCki
-LCBpICsgMSk7Cj4gKyAgICAgICAgICAgICAgIG4zNmxfYWRhcHRlcltpXS5hbGdvID0gbjM2bF9h
-bGdvK2k7Cj4gKyAgICAgICAgICAgICAgIG4zNmxfYWRhcHRlcltpXS5kZXYucGFyZW50ID0gcGlp
-eDRfYWRhcHRlci5kZXYucGFyZW50Owo+ICsgICAgICAgfQo+ICsgICAgICAgbjM2bF9hbGdvWzFd
-LnNtYnVzX3hmZXIgPSBwaWl4NF9hY2Nlc3NfdmlydDE7Cj4gKyAgICAgICBuMzZsX2FsZ29bMl0u
-c21idXNfeGZlciA9IHBpaXg0X2FjY2Vzc192aXJ0MjsKPiArICAgICAgIG4zNmxfYWxnb1szXS5z
-bWJ1c194ZmVyID0gcGlpeDRfYWNjZXNzX3ZpcnQzOwo+ICsKPiArICAgICAgIC8qIFJlZ2lzdGVy
-IHZpcnR1YWwgYWRhcHRlcnMgKi8KPiArICAgICAgIGZvciAoaSA9IDA7IGkgPCA0OyBpKyspIHsK
-PiArICAgICAgICAgICAgICAgZXJyb3IgPSBpMmNfYWRkX2FkYXB0ZXIobjM2bF9hZGFwdGVyK2kp
-Owo+ICsgICAgICAgICAgICAgICBpZiAoZXJyb3IpIHsKPiArICAgICAgICAgICAgICAgICAgICAg
-ICBwcmludGsoS0VSTl9FUlIgImkyYy1waWl4NC1uMzZsOiAiCj4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICJWaXJ0dWFsIGFkYXB0ZXIgJWQgcmVnaXN0cmF0aW9uICIKPiArICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgImZhaWxlZCwgbW9kdWxlIG5vdCBpbnNlcnRlZFxuIiwg
-aSk7Cj4gKyAgICAgICAgICAgICAgICAgICAgICAgZm9yIChpLS07IGkgPj0gMDsgaS0tKQo+ICsg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaTJjX2RlbF9hZGFwdGVyKG4zNmxfYWRhcHRl
-citpKTsKPiArICAgICAgICAgICAgICAgICAgICAgICBnb3RvIEVSUk9SMzsKPiArICAgICAgICAg
-ICAgICAgfQo+ICsgICAgICAgfQo+ICsKPiArICAgICAgIHJldHVybiAwOwo+ICsKPiArRVJST1Iz
-Ogo+ICsgICAgICAga2ZyZWUobjM2bF9hbGdvKTsKPiArICAgICAgIG4zNmxfYWxnbyA9IE5VTEw7
-Cj4gK0VSUk9SMjoKPiArICAgICAgIGtmcmVlKG4zNmxfYWRhcHRlcik7Cj4gKyAgICAgICBuMzZs
-X2FkYXB0ZXIgPSBOVUxMOwo+ICtFUlJPUjE6Cj4gKyAgICAgICAvKiBSZXN0b3JlIHBoeXNpY2Fs
-IGJ1cyAqLwo+ICsgICAgICAgaTJjX2FkZF9hZGFwdGVyKCZwaWl4NF9hZGFwdGVyKTsKPiArRVJS
-T1IwOgo+ICsgICAgICAgcmV0dXJuIGVycm9yOwo+ICt9Cj4gKwo+ICtzdGF0aWMgdm9pZCBfX2V4
-aXQgcGlpeDRfbjM2bF9leGl0KHZvaWQpCj4gK3sKPiArICAgICAgIGlmIChuMzZsX2FkYXB0ZXIp
-IHsKPiArICAgICAgICAgICAgICAgaW50IGk7Cj4gKwo+ICsgICAgICAgICAgICAgICBmb3IgKGkg
-PSAwOyBpIDwgNTsgaSsrKQo+ICsgICAgICAgICAgICAgICAgICAgICAgIGkyY19kZWxfYWRhcHRl
-cihuMzZsX2FkYXB0ZXIraSk7Cj4gKyAgICAgICAgICAgICAgIGtmcmVlKG4zNmxfYWRhcHRlcik7
-Cj4gKyAgICAgICAgICAgICAgIG4zNmxfYWRhcHRlciA9IE5VTEw7Cj4gKyAgICAgICB9Cj4gKyAg
-ICAgICBrZnJlZShuMzZsX2FsZ28pOwo+ICsgICAgICAgbjM2bF9hbGdvID0gTlVMTDsKPiArCj4g
-KyAgICAgICAvKiBSZXN0b3JlIHBoeXNpY2FsIGJ1cyAqLwo+ICsgICAgICAgaWYgKGkyY19hZGRf
-YWRhcHRlcigmcGlpeDRfYWRhcHRlcikpCj4gKyAgICAgICAgICAgICAgIHByaW50ayhLRVJOX0VS
-UiAiaTJjLXBpaXg0LW4zNmw6ICIKPiArICAgICAgICAgICAgICAgICAgICAgICJQaHlzaWNhbCBi
-dXMgcmVzdG9yYXRpb24gZmFpbGVkXG4iKTsKPiArfQo+ICsKPiArTU9EVUxFX0FVVEhPUigiRWRk
-aSBEZSBQaWVyaSA8ZWRkaUBkZXBpZXJpLm5ldCIpOwo+ICtNT0RVTEVfREVTQ1JJUFRJT04oIm4z
-NmwgU01CdXMgbXVsdGlwbGV4aW5nIik7Cj4gK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKPiArCj4g
-K21vZHVsZV9pbml0KHBpaXg0X24zNmxfaW5pdCk7Cj4gK21vZHVsZV9leGl0KHBpaXg0X24zNmxf
-ZXhpdCk7Cj4gCj4gCj4gT24gU3VuLCBOb3YgMjcsIDIwMTEgYXQgMTE6NTUgUE0sIEJlbiBEb29r
-cyA8YmVuLWkyY0BmbHVmZi5vcmc+IHdyb3RlOgo+ID4KPiA+IE9uIEZyaSwgTm92IDI1LCAyMDEx
-IGF0IDExOjA3OjIxUE0gKzAxMDAsIEVkZGkgRGUgUGllcmkgd3JvdGU6Cj4gPj4gVGhpcyBwYXRj
-aCBhZGQgc3VwcG9ydCB0byBtdWx0aXBsZXhlZCBzbWJ1cyBmb3IgcHJvbGlhbnQgbWljcm9zZXJ2
-ZXIKPiA+PiBOMzZMIGFuZCBtYXkgYmUgYXBwbGljYWJsZSB0byBvdGhlciBjb25maWd1cmF0aW9u
-IGJhc2VkIG9uIHNiOHh4Cj4gPj4gc291dGhidXMuCj4gPj4KPiA+PiByb290QHByb2xpYW50Oi91
-c3Ivc3JjL2xtLXNlbnNvcnMvZWRkaSMgaTJjZGV0ZWN0IC1sCj4gPj4gaTJjLTAgICBzbWJ1cyAg
-ICAgICAgICAgU01CdXMgcGlpeDQgYWRhcHRlciAoU0RBMCkgICAgICAgICAgICAgIFNNQnVzIGFk
-YXB0ZXIKPiA+PiBpMmMtMSAgIHNtYnVzICAgICAgICAgICBTTUJ1cyBwaWl4NCBhZGFwdGVyIChT
-REEyKSAgICAgICAgICAgICAgU01CdXMgYWRhcHRlcgo+ID4+IGkyYy0yICAgc21idXMgICAgICAg
-ICAgIFNNQnVzIHBpaXg0IGFkYXB0ZXIgKFNEQTMpICAgICAgICAgICAgICBTTUJ1cyBhZGFwdGVy
-Cj4gPj4gaTJjLTMgICBzbWJ1cyAgICAgICAgICAgU01CdXMgcGlpeDQgYWRhcHRlciAoU0RBNCkg
-ICAgICAgICAgICAgIFNNQnVzIGFkYXB0ZXIKPiA+PiByb290QHByb2xpYW50Oi91c3Ivc3JjL2xt
-LXNlbnNvcnMvZWRkaSMKPiA+Cj4gPiBwYXRjaCBzaG91bGQgZ28gaW5saW5lIHNvIGl0IGNhbiBi
-ZSByZXZpZXdlZCwgdGhhbmtzLgo+ID4KPiA+IC0tCj4gPiBCZW4gRG9va3MsIGJlbkBmbHVmZi5v
-cmcsIGh0dHA6Ly93d3cuZmx1ZmYub3JnL2Jlbi8KPiA+Cj4gPiBMYXJnZSBIYWRyb24gQ29sYWRh
-OiBBIGxhcmdlIFBpbmEgQ29sYWRhIHRoYXQgbWFrZXMgdGhlIHVuaXZlcnNlIGRpc2FwcGVhci4K
-PiA+Cj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-PiBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAo+IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiBo
-dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
-IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
-ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Actually I don't have a development system with latest git. I build my
+patch on my debian with 2.6.32 kernel..
+
+The patch is based on i2c-amd756-s4882.c and adapted to work with sb8xx...
+
+i2c-amd756-s4882.c is still present and don't use i2c-mux infrastructure.
+
+However if you are interested in porting my work to latest git, you
+will be welcome!
+
+Regards Eddi
+
+
+On Sat, Dec 3, 2011 at 5:27 PM, Guenter Roeck
+<guenter.roeck@ericsson.com> wrote:
+> On Sat, Dec 03, 2011 at 10:31:30AM -0500, Eddi De Pieri wrote:
+>> This patch add support to multiplexed smbus for proliant microserver
+>> N36L and may be applicable to other configuration based on sb8xx
+>> southbus.
+>>
+>
+> Did you read Documentation/SubmittingPatches ?
+>
+> The patch doesn't follow the canonical patch format, I can see that lines=
+ are split,
+> the patch isn't based on the linux root directory but on some other direc=
+tory which
+> I guess you expect the reader to figure out, the patch description includ=
+es lots
+> of information which is irrelevant for the changelog, and it is based on =
+2.6.32
+> instead of the current release and thus pretty much guaranteed not to app=
+ly
+> to the current kernel version. All that w/o even looking into the code.
+>
+> The patch implements an I2C multiplexer but doesn't use the I2C multiplex=
+er
+> infrastructure. I am not one of the I2C maintainers, but that alone would=
+ cause me
+> to reject this patch (on top of all the other reasons above).
+>
+> Guenter
+>
+>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -l
+>> i2c-0 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA0) =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0SMBus adapter
+>> i2c-1 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA2) =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0SMBus adapter
+>> i2c-2 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA3) =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0SMBus adapter
+>> i2c-3 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA4) =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0SMBus adapter
+>> root@proliant:/usr/src/lm-sensors/eddi#
+>>
+>> yes SDA1 is reserved... so i can't multiplex it
+>>
+>> root@proliant:/usr/src/lm-sensors/eddi# sensors
+>> k10temp-pci-00c3
+>> Adapter: PCI adapter
+>> temp1: =A0 =A0 =A0 +24.5=B0C =A0(high =3D +70.0=B0C, crit =3D +100.0=B0C)
+>>
+>> w83795adg-i2c-1-2f
+>> Adapter: SMBus piix4 adapter (SDA2)
+>> in0: =A0 =A0 =A0 =A0 +1.02 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.05 V)
+>> in1: =A0 =A0 =A0 =A0 +1.52 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.05 V)
+>> in2: =A0 =A0 =A0 =A0 +1.10 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.05 V)
+>> in3: =A0 =A0 =A0 =A0 +0.89 V =A0(min =3D =A0+0.00 V, max =3D =A0+2.05 V)
+>> in12: =A0 =A0 =A0 =A0+3.35 V =A0(min =3D =A0+0.00 V, max =3D =A0+6.14 V)
+>> in13: =A0 =A0 =A0 =A0+3.28 V =A0(min =3D =A0+0.00 V, max =3D =A0+6.14 V)
+>> fan1: =A0 =A0 =A0 =A0703 RPM =A0(min =3D =A0329 RPM)
+>> temp1: =A0 =A0 =A0 +23.0=B0C =A0(high =3D +109.0=B0C, hyst =3D +109.0=B0=
+C)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D +109.0=B0C, hyst =
+=3D +109.0=B0C) =A0sensor =3D thermal diode
+>> temp2: =A0 =A0 =A0 +33.2=B0C =A0(high =3D +105.0=B0C, hyst =3D +105.0=B0=
+C)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D +105.0=B0C, hyst =
+=3D +105.0=B0C) =A0sensor =3D thermal diode
+>> temp5: =A0 =A0 =A0 +14.0=B0C =A0(high =3D +39.0=B0C, hyst =3D +39.0=B0C)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D +44.0=B0C, hyst =
+=3D +44.0=B0C) =A0sensor =3D thermistor
+>> beep_enable:disabled
+>>
+>> jc42-i2c-0-18
+>> Adapter: SMBus piix4 adapter (SDA0)
+>> temp1: =A0 =A0 =A0 +20.5=B0C =A0(low =A0=3D =A0+0.0=B0C, high =3D =A0+0.=
+0=B0C) =A0ALARM
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (crit =3D =A0+0.0=B0C, hyst =
+=3D =A0+0.0=B0C) =A0ALARM
+>>
+>>
+>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 0
+>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =A0c=
+ =A0d =A0e =A0f
+>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
+>> 10: -- -- -- -- -- -- -- -- UU -- -- -- -- -- -- --
+>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 70: -- -- -- -- -- -- -- --
+>>
+>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 1
+>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =A0c=
+ =A0d =A0e =A0f
+>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
+>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- UU
+>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 60: -- 61 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 70: -- -- -- -- -- -- -- --
+>>
+>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 2
+>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =A0c=
+ =A0d =A0e =A0f
+>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
+>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 40: -- -- -- -- -- -- -- -- -- -- -- -- 4c -- -- --
+>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 70: -- -- -- -- -- -- -- --
+>>
+>> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -y 3
+>> =A0 =A0 =A00 =A01 =A02 =A03 =A04 =A05 =A06 =A07 =A08 =A09 =A0a =A0b =A0c=
+ =A0d =A0e =A0f
+>> 00: =A0 =A0 =A0 =A0 =A0-- -- -- -- -- -- -- -- -- -- -- -- --
+>> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+>> 70: -- -- -- -- -- -- -- --
+>>
+>> pay attention that the msleep seems to be really needed...
+>>
+>> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+>>
+>> Regards,
+>>
+>> Eddi
+>>
+>> follows patch....
+>>
+>> diff -u -N -r 2.6.32.orig/i2c-piix4.c 2.6.32/i2c-piix4.c
+>> --- 2.6.32.orig/i2c-piix4.c =A0 =A0 2011-11-16 17:07:03.000000000 +0100
+>> +++ 2.6.32/i2c-piix4.c =A02011-11-16 15:21:17.000000000 +0100
+>> @@ -97,7 +97,8 @@
+>> =A0static unsigned short piix4_smba;
+>> =A0static int srvrworks_csb5_delay;
+>> =A0static struct pci_driver piix4_driver;
+>> -static struct i2c_adapter piix4_adapter;
+>> +struct i2c_adapter piix4_adapter;
+>> +EXPORT_SYMBOL_GPL(piix4_adapter);
+>>
+>> =A0static struct dmi_system_id __devinitdata piix4_dmi_blacklist[] =3D {
+>> =A0 =A0 =A0 =A0 {
+>> @@ -246,10 +247,22 @@
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "0x%x already in use!\n"=
+, smba_idx);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
+>> =A0 =A0 =A0 =A0 }
+>> - =A0 =A0 =A0 outb_p(smb_en, smba_idx);
+>> - =A0 =A0 =A0 smba_en_lo =3D inb_p(smba_idx + 1);
+>> - =A0 =A0 =A0 outb_p(smb_en + 1, smba_idx);
+>> - =A0 =A0 =A0 smba_en_hi =3D inb_p(smba_idx + 1);
+>> + =A0 =A0 =A0 outb_p(smb_en, smba_idx); =A0 =A0 =A0 =A0 =A0 =A0 =A0 //se=
+leziono il registro 0x2c
+>> + =A0 =A0 =A0 smba_en_lo =3D inb_p(smba_idx + 1); =A0 =A0 =A0 //leggo il=
+ dato L del registro 0x2c
+>> + =A0 =A0 =A0 outb_p(smb_en + 1, smba_idx); =A0 =A0 =A0 =A0 =A0 //selezi=
+ono il registro 0x2c + 1
+>> + =A0 =A0 =A0 smba_en_hi =3D inb_p(smba_idx + 1); =A0 =A0 =A0 //leggo il=
+ dato H del registro 0x2c
+>> +
+>> + =A0 =A0 =A0 outb_p(smb_en, smba_idx); =A0 =A0 =A0 =A0 =A0 =A0 =A0 //se=
+leziono il registro 0x2c
+>> + =A0 =A0 =A0 outb_p(smba_en_lo & 0xF9 , smba_idx + 1); //seleziono la p=
+orta 0 00 0
+>> + =A0 =A0 =A0 outb_p(smb_en + 1, smba_idx); =A0 =A0 =A0 =A0 =A0 //selezi=
+ono il registro 0x2c + 1
+>> + =A0 =A0 =A0 outb_p(smba_en_hi, smba_idx + 1);
+>> +
+>> + =A0 =A0 =A0 outb_p(smb_en, smba_idx); =A0 =A0 =A0 =A0 =A0 =A0 =A0 //se=
+leziono il registro 0x2c
+>> + =A0 =A0 =A0 smba_en_lo =3D inb_p(smba_idx + 1); =A0 =A0 =A0 //leggo il=
+ dato L del registro 0x2c
+>> + =A0 =A0 =A0 outb_p(smb_en + 1, smba_idx); =A0 =A0 =A0 =A0 =A0 //selezi=
+ono il registro 0x2c + 1
+>> + =A0 =A0 =A0 smba_en_hi =3D inb_p(smba_idx + 1); =A0 =A0 =A0 //leggo il=
+ dato H del registro 0x2c
+>> +
+>> +
+>> =A0 =A0 =A0 =A0 release_region(smba_idx, 2);
+>>
+>> =A0 =A0 =A0 =A0 if ((smba_en_lo & 1) =3D=3D 0) {
+>> @@ -258,6 +271,8 @@
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> =A0 =A0 =A0 =A0 }
+>>
+>> + =A0 =A0 =A0 dev_info(&PIIX4_dev->dev,"Selected Default Smbus Port 0x%x=
+",
+>> (smba_en_lo & 0x6) >> 1);
+>> +
+>> =A0 =A0 =A0 =A0 piix4_smba =3D ((smba_en_hi << 8) | smba_en_lo) & 0xffe0;
+>> =A0 =A0 =A0 =A0 if (acpi_check_region(piix4_smba, SMBIOSIZE, piix4_drive=
+r.name))
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> @@ -466,7 +481,7 @@
+>> =A0 =A0 =A0 =A0 .functionality =A0=3D piix4_func,
+>> =A0};
+>>
+>> -static struct i2c_adapter piix4_adapter =3D {
+>> +struct i2c_adapter piix4_adapter =3D {
+>> =A0 =A0 =A0 =A0 .owner =A0 =A0 =A0 =A0 =A0=3D THIS_MODULE,
+>> =A0 =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D I2C_CLASS_HWMON | I2C_CLAS=
+S_SPD,
+>> =A0 =A0 =A0 =A0 .algo =A0 =A0 =A0 =A0 =A0 =3D &smbus_algorithm,
+>> diff -u -N -r 2.6.32.orig/i2c-piix4-n36l.c 2.6.32/i2c-piix4-n36l.c
+>> --- 2.6.32.orig/i2c-piix4-n36l.c =A0 =A0 =A0 =A01970-01-01 01:00:00.0000=
+00000 +0100
+>> +++ 2.6.32/i2c-piix4-n36l.c =A0 =A0 2011-11-16 16:02:01.000000000 +0100
+>> @@ -0,0 +1,247 @@
+>> +/*
+>> + * i2c-piix4-n36l.c - i2c-piix4 extras for the HP proliant
+>> microserver n36l motherboard
+>> + *
+>> + * Copyright (C) 2004, 2008 Jean Delvare <khali@linux-fr.org>
+>> + * Copyright (C) 2011 =A0Eddi De Pieri <eddi@depieri.net>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License as published by
+>> + * the Free Software Foundation; either version 2 of the License, or
+>> + * (at your option) any later version.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the
+>> + * GNU General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * along with this program; if not, write to the Free Software
+>> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>> + */
+>> +
+>> +/*
+>> + * We select the channels by sending commands to the sb800 southbus
+>> + * the selection bit
+>> + * http://support.amd.com/us/Embedded_TechDocs/45482.pdf
+>> + * =A0Smbus0En - RW =E2=80=93 16 bits - [PM_Reg: 2Ch]
+>> + * =A0Field Name Bits Default Description
+>> + * =A0SmBus0En 0 0b Set to 1 to enable SMBUS0 function and decoding.
+>> + * =A0SmBus0Sel 2:1 00b SmBus port selection when PM_Reg 2Fh bit 0 is s=
+et to 0
+>> + * =A000: Port 0
+>> + * =A001: Port 2
+>> + * =A010: Port 3
+>> + * =A011: Port 4
+>> + */
+>> +
+>> +#include <linux/module.h>
+>> +#include <linux/kernel.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/init.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/mutex.h>
+>> +#include <asm/io.h>
+>> +
+>> +extern struct i2c_adapter piix4_adapter;
+>> +
+>> +static struct i2c_adapter *n36l_adapter;
+>> +static struct i2c_algorithm *n36l_algo;
+>> +
+>> +/* Wrapper access functions for multiplexed SMBus */
+>> +static DEFINE_MUTEX(piix4_lock);
+>> +
+>> +/* We remember the last used channels combination so as to only switch
+>> + =A0 channels when it is really needed. This greatly reduces the SMBus
+>> + =A0 overhead, but also assumes that nobody will be writing to the PCA9=
+556
+>> + =A0 in our back. */
+>> +static u8 last_channels;
+>> +
+>> +static inline s32 piix4_access_channel(struct i2c_adapter * adap, u16 a=
+ddr,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 unsigned short flags, char read_write,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 u8 command, int size,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 union i2c_smbus_data * data,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 u8 channels)
+>> +{
+>> + =A0 =A0 =A0 int error;
+>> + =A0 =A0 =A0 unsigned short smba_idx =3D 0xcd6;
+>> + =A0 =A0 =A0 u8 smba_en_lo, smba_en_hi, smb_en =3D 0x2c;
+>> +
+>> + =A0 =A0 =A0 mutex_lock(&piix4_lock);
+>> +
+>> + =A0 =A0 =A0 if (last_channels !=3D channels) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 union i2c_smbus_data mplxdata;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 mplxdata.byte =3D channels;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Determine the address of the SMBus area=
+s */
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!request_region(smba_idx, 2, "smba_idx=
+")) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&piix4_adapter.dev=
+, "SMBus base address index region "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "0x%x alre=
+ady in use!\n", smba_idx);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 outb_p(smb_en, smba_idx); =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 //seleziono il registro 0x2c
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 smba_en_lo =3D inb_p(smba_idx + 1); =A0 =
+=A0 =A0 //leggo il dato L del registro 0x2c
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 outb_p(smb_en + 1, smba_idx); =A0 =A0 =A0 =
+=A0 =A0 //seleziono il registro 0x2c + 1
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 smba_en_hi =3D inb_p(smba_idx + 1); =A0 =
+=A0 =A0 //leggo il dato H del registro 0x2c
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 outb_p(smb_en, smba_idx); =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 //seleziono il registro 0x2c
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 outb_p((smba_en_lo & 0xF9 )+ ( channels <<=
+ 1) , smba_idx + 1);
+>> //seleziono la porta 0 00 0
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 outb_p(smb_en + 1, smba_idx); =A0 =A0 =A0 =
+=A0 =A0 //seleziono il registro 0x2c + 1
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 outb_p(smba_en_hi, smba_idx + 1);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(50);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 release_region(smba_idx, 2);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_info(&piix4_adapter.dev,"Selected Smbu=
+s Port 0x%x", (smba_en_lo
+>> & 0x6) >> 1);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 last_channels =3D channels;
+>> +
+>> + =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 error =3D piix4_adapter.algo->smbus_xfer(adap, addr, flags=
+, read_write,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 command, size, data);
+>> +
+>> +
+>> + =A0 =A0 =A0 mutex_unlock(&piix4_lock);
+>> + =A0 =A0 =A0 return error;
+>> +}
+>> +
+>> +static s32 piix4_access_virt0(struct i2c_adapter * adap, u16 addr,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned sh=
+ort flags, char read_write,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u8 command,=
+ int size,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0union i2c_s=
+mbus_data * data)
+>> +{
+>> + =A0 =A0 =A0 return piix4_access_channel(adap, addr, flags, read_write,=
+ command,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0size, data, 0);
+>> +}
+>> +
+>> +static s32 piix4_access_virt1(struct i2c_adapter * adap, u16 addr,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned sh=
+ort flags, char read_write,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u8 command,=
+ int size,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0union i2c_s=
+mbus_data * data)
+>> +{
+>> + =A0 =A0 =A0 return piix4_access_channel(adap, addr, flags, read_write,=
+ command,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0size, data, 1);
+>> +}
+>> +
+>> +static s32 piix4_access_virt2(struct i2c_adapter * adap, u16 addr,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned sh=
+ort flags, char read_write,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u8 command,=
+ int size,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0union i2c_s=
+mbus_data * data)
+>> +{
+>> + =A0 =A0 =A0 return piix4_access_channel(adap, addr, flags, read_write,=
+ command,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0size, data, 2);
+>> +}
+>> +
+>> +static s32 piix4_access_virt3(struct i2c_adapter * adap, u16 addr,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned sh=
+ort flags, char read_write,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0u8 command,=
+ int size,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0union i2c_s=
+mbus_data * data)
+>> +{
+>> + =A0 =A0 =A0 return piix4_access_channel(adap, addr, flags, read_write,=
+ command,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0size, data, 3);
+>> +}
+>> +
+>> +static int __init piix4_n36l_init(void)
+>> +{
+>> + =A0 =A0 =A0 int i, error;
+>> +
+>> + =A0 =A0 =A0 if (!piix4_adapter.dev.parent)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> +
+>> + =A0 =A0 =A0 printk(KERN_INFO "Configure the AMD SB800 Multiplexer\n");
+>> +
+>> + =A0 =A0 =A0 /* Unregister physical bus */
+>> + =A0 =A0 =A0 error =3D i2c_del_adapter(&piix4_adapter);
+>> + =A0 =A0 =A0 if (error) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&piix4_adapter.dev, "Physical bus =
+removal failed\n");
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto ERROR0;
+>> + =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 printk(KERN_INFO "Enabling SMBus multiplexing for Hp Proli=
+ant
+>> Microserver N36l\n");
+>> + =A0 =A0 =A0 /* Define the 4 virtual adapters and algorithms structures=
+ */
+>> + =A0 =A0 =A0 if (!(n36l_adapter =3D kzalloc(5 * sizeof(struct i2c_adapt=
+er),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 GFP_KERNEL))) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D -ENOMEM;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto ERROR1;
+>> + =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 if (!(n36l_algo =3D kzalloc(5 * sizeof(struct i2c_algorith=
+m),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0GFP=
+_KERNEL))) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D -ENOMEM;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto ERROR2;
+>> + =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 /* Fill in the new structures */
+>> + =A0 =A0 =A0 n36l_algo[0] =3D *(piix4_adapter.algo);
+>> + =A0 =A0 =A0 n36l_algo[0].smbus_xfer =3D piix4_access_virt0;
+>> + =A0 =A0 =A0 n36l_adapter[0] =3D piix4_adapter;
+>> + =A0 =A0 =A0 snprintf(n36l_adapter[0].name, sizeof(n36l_adapter[0].name=
+),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"SMBus piix4 adapter (SDA0)");
+>> + =A0 =A0 =A0 n36l_adapter[0].algo =3D n36l_algo;
+>> + =A0 =A0 =A0 n36l_adapter[0].dev.parent =3D piix4_adapter.dev.parent;
+>> + =A0 =A0 =A0 for (i =3D 1; i < 4; i++) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 n36l_algo[i] =3D *(piix4_adapter.algo);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 n36l_adapter[i] =3D piix4_adapter;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 snprintf(n36l_adapter[i].name, sizeof(n36l=
+_adapter[i].name),
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"SMBus piix4 adapter (S=
+DA%d)", i + 1);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 n36l_adapter[i].algo =3D n36l_algo+i;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 n36l_adapter[i].dev.parent =3D piix4_adapt=
+er.dev.parent;
+>> + =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 n36l_algo[1].smbus_xfer =3D piix4_access_virt1;
+>> + =A0 =A0 =A0 n36l_algo[2].smbus_xfer =3D piix4_access_virt2;
+>> + =A0 =A0 =A0 n36l_algo[3].smbus_xfer =3D piix4_access_virt3;
+>> +
+>> + =A0 =A0 =A0 /* Register virtual adapters */
+>> + =A0 =A0 =A0 for (i =3D 0; i < 4; i++) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 error =3D i2c_add_adapter(n36l_adapter+i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (error) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "i2c-piix4=
+-n36l: "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Virtual ad=
+apter %d registration "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"failed, mo=
+dule not inserted\n", i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i--; i >=3D 0; i--)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_del_ad=
+apter(n36l_adapter+i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto ERROR3;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 =A0 return 0;
+>> +
+>> +ERROR3:
+>> + =A0 =A0 =A0 kfree(n36l_algo);
+>> + =A0 =A0 =A0 n36l_algo =3D NULL;
+>> +ERROR2:
+>> + =A0 =A0 =A0 kfree(n36l_adapter);
+>> + =A0 =A0 =A0 n36l_adapter =3D NULL;
+>> +ERROR1:
+>> + =A0 =A0 =A0 /* Restore physical bus */
+>> + =A0 =A0 =A0 i2c_add_adapter(&piix4_adapter);
+>> +ERROR0:
+>> + =A0 =A0 =A0 return error;
+>> +}
+>> +
+>> +static void __exit piix4_n36l_exit(void)
+>> +{
+>> + =A0 =A0 =A0 if (n36l_adapter) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int i;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (i =3D 0; i < 5; i++)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_del_adapter(n36l_adapt=
+er+i);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(n36l_adapter);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 n36l_adapter =3D NULL;
+>> + =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 kfree(n36l_algo);
+>> + =A0 =A0 =A0 n36l_algo =3D NULL;
+>> +
+>> + =A0 =A0 =A0 /* Restore physical bus */
+>> + =A0 =A0 =A0 if (i2c_add_adapter(&piix4_adapter))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "i2c-piix4-n36l: "
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Physical bus restoration f=
+ailed\n");
+>> +}
+>> +
+>> +MODULE_AUTHOR("Eddi De Pieri <eddi@depieri.net");
+>> +MODULE_DESCRIPTION("n36l SMBus multiplexing");
+>> +MODULE_LICENSE("GPL");
+>> +
+>> +module_init(piix4_n36l_init);
+>> +module_exit(piix4_n36l_exit);
+>>
+>>
+>> On Sun, Nov 27, 2011 at 11:55 PM, Ben Dooks <ben-i2c@fluff.org> wrote:
+>> >
+>> > On Fri, Nov 25, 2011 at 11:07:21PM +0100, Eddi De Pieri wrote:
+>> >> This patch add support to multiplexed smbus for proliant microserver
+>> >> N36L and may be applicable to other configuration based on sb8xx
+>> >> southbus.
+>> >>
+>> >> root@proliant:/usr/src/lm-sensors/eddi# i2cdetect -l
+>> >> i2c-0 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA0) =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0SMBus adapter
+>> >> i2c-1 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA2) =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0SMBus adapter
+>> >> i2c-2 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA3) =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0SMBus adapter
+>> >> i2c-3 =A0 smbus =A0 =A0 =A0 =A0 =A0 SMBus piix4 adapter (SDA4) =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0SMBus adapter
+>> >> root@proliant:/usr/src/lm-sensors/eddi#
+>> >
+>> > patch should go inline so it can be reviewed, thanks.
+>> >
+>> > --
+>> > Ben Dooks, ben@fluff.org, http://www.fluff.org/ben/
+>> >
+>> > Large Hadron Colada: A large Pina Colada that makes the universe disap=
+pear.
+>> >
+>>
+>> _______________________________________________
+>> lm-sensors mailing list
+>> lm-sensors@lm-sensors.org
+>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
