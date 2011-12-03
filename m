@@ -1,178 +1,80 @@
-From: Harald Judt <h.judt@gmx.at>
-Date: Wed, 21 Dec 2011 22:43:47 +0000
-Subject: Re: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c
-Message-Id: <4EF26123.10005@gmx.at>
+From: Charles <c@catcons.co.uk>
+Date: Sat, 03 Dec 2011 13:30:25 +0000
+Subject: [lm-sensors] pwmconfig/fancontrol error (version 3.3.1)
+Message-Id: <4EDA21A1.6060301@catcons.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110410160433.GA22075@localhost>
-In-Reply-To: <20110410160433.GA22075@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am 21.12.2011 21:55, schrieb Ira W. Snyder:
-> On Wed, Dec 21, 2011 at 06:55:31PM +0100, Ian Dobson wrote:
->> Hi,
->> --------------------------------------------------
->> From: "Guenter Roeck"<guenter.roeck@ericsson.com>
->> Sent: Wednesday, December 21, 2011 6:01 PM
->> To: "Harald Judt"<h.judt@gmx.at>
->> Cc:<lm-sensors@lm-sensors.org>
->> Subject: Re: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c
->> onASRock Extreme4
->>
->>> Hi,
->>> On Wed, Dec 21, 2011 at 09:50:31AM -0500, Harald Judt wrote:
->>>> Hi,
->>>>
->>>>> On Tue, 12 Apr 2011 19:02:19 +0200, Ian Dobson wrote:
->>>>>> Hi,
->>>>>>
->>>>>> --------------------------------------------------
->>>>>> From: "Mike Campin"<lm_sensors at ootsa.homelinux.net>
->>>>>> Sent: Sunday, April 10, 2011 6:04 PM
->>>>>> To:<lm-sensors at lm-sensors.org>
->>>>>> Subject: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c
->>>>>> onASRock
->>>>>> Extreme4
->>>>>>
->>>>>>> Hi,
->>>>>>>
->>>>>>> Only 2 of the 5 fans are showing up on my ASRock P67 Extreme4
->>>>>>> motherboard.
->>>>>>> It due to the NCT6776 global configuration register 0x1c and 0x24
->>>>>>> values.
->>>>>>> The fans work if I modify these registers prior to loading the
->>>>>>> w83627ehf
->>>>>>> driver.
->>>>>>>
->>>>>>> My question is where are these registers initialized? Should I ask
->>>>>>> ASRock
->>>>>>> to fix the BIOS?
->>>>>>>
->>>>>>>   isadump -y -k 0x87,0x87 0x2e 0x2f
->>>>>>>
->>>>>>>           0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
->>>>>>>      00: ff ff 00 ff ff ff ff 02 ff ff ff ff ff ff ff ff
->>>>>>>      10: ff ff ff ff ff ff ff ff ff ff f8 0e 00 00 ff ff
->>>>>>>      20: c3 33 ff 00 5c 00 00 98 00 ff 20 00 80 00 00 01
->>>>>>>      30: 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->>>>>>>
->>>>>>>   isaset -y -f 0x2e 0x87
->>>>>>>   isaset -y -f 0x2e 0x87
->>>>>>>   isaset -y 0x2e 0x2f 0x1c 0x3
->>>>>>>   isaset -y 0x2e 0x2f 0x24 0x1c
->>>>>>>
->>>>>>> Thanks, Mike
->>>>>>>
->>>>>>> --
->>>>>>> Mike Campin
->>>>>>> lm_sensors at ootsa.homelinux.net
->>>>>>>
->>>>>>> _______________________________________________
->>>>>>> lm-sensors mailing list
->>>>>>> lm-sensors at lm-sensors.org
->>>>>>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>>>>>
->>>>>> ASRock designed the board, so they should setup the hardware
->>>>>> monitoring chip
->>>>>> correctly. Allowing users to change the chip configuration is a really
->>>>>> bad
->>>>>> idea, as many of the pins can have different functionality/electrical
->>>>>> spcifications depending on the config. Setting up a pin incorrectly
->>>>>> could
->>>>>> blow the chip (Configuring a pin so that it's a source that's
->>>>>> connected to
->>>>>> an unprotected/limited sink for example).
->>>>>>
->>>>>> So ASRock should fix the BIOS.
->>>>>
->>>>> Seconded. But before flaming Asrock, two things worth checking:
->>>>> * Availability of a BIOS update fixing the issue.
->>>>> * Options in the BIOS to enable/disable the monitoring of specific
->>>>>    fans. I can imagine that the BIOS skips the configuration steps for
->>>>>    fans for which monitoring was disabled (although that would probably
->>>>>    mean more code than just doing it unconditionally...)
->>>>>
->>>>> --
->>>>> Jean Delvare
->>>>
->>>> I own an Asrock P67 Extreme4 too and have the same problem. It can be
->>>> solved by following Mike Campin's instructions, which I successfully
->>>> incorporated into /etc/init.d/lm_sensors. There is no BIOS available
->>>> that fixes this issue, but I noticed that SpeedFan for Windows
->>>> (www.almico.com/speedfan.php) seems to do something similar, otherwise
->>>> it would show only 2 fans too. So maybe we could get that into
->>>> lm_sensors, even if the BIOS is at fault here?
->>>>
->>> See above ... worst case this can result in defective hardware if
->>> misconfigured.
->>>
->>> We could possibly introduce some kind of module parameter, but I don't
->>> feel
->>> too comfortable with that - wrong values may still blow up the hardware.
->>> Any opinions, anyone ?
->>>
->>> Guenter
->>>
->>> _______________________________________________
->>> lm-sensors mailing list
->>> lm-sensors@lm-sensors.org
->>> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->>
->> I wouldn't recommend a module parameter, leave the driver as it is.
->> If there is a hack (using isaset) just use that. It's too easy for a user to
->> set a module parameter hoping that it'll fix some random problem, and if the
->> module kills the hardware, then the module is too blame.
+Hello :-)
 
-I understand and agree with that.
+A lmsensors3.conf generated by pwmconfig resulted in fancontrol message
+"Error: file hwmon0/device/fan4_input+hwmon0/device/fan1_input doesn't
+exist".
 
->> Asrock should fix the BIOS, that's the correct option.
+The motherboard was an ASUS P8H67-V fitted with an S-Flex SFF21E case
+exhaust fan (3 wire) connected to CHA_FAN2 and a stock Intel Core i3
+processor cooler fan (4 wire) connected to CHA_FAN.
 
-Unfortunately, the correct option is not always the most likely to happen.
+pwmconfig detected that the Nuvoton NCT6776F controlled both CHA_FAN and
+CHA_FAN2 via pwm1 (pwm2 controls CPU_FAN; pwm3 seems not to be used).
+The sensors3.conf generated by pwmconfig included this line:
 
-> I wonder if you could set these register values only on this specific
-> motherboard by checking the DMI table to determine the motherboard
-> vendor and model number.
+FCFANS= hwmon0/device/pwm1=hwmon0/device/fan4_input+hwmon0/device/fan1_input
 
-This is what I currently do using dmidecode in /etc/init.d/lm_sensors, 
-because I too fear to forget about this and accidently wreck a new 
-mainboard I'm going to buy in the future:
+The space after FCFANS= is irregular but did not seem to cause any
+problems for fancontrol.
 
-# We need to do some initialization before loading the module,
-# otherwise only 2 of the 5 fans will be shown
-init_module_w83627ehf() {
-     modprobe -q -r w83627ehf
-     # make sure to do this only for the right mainboard
-     if /usr/sbin/dmidecode | grep -i 'Base Board Information' -A2 -B1 | 
-grep -q 'P67 Extreme4' \
-         && /usr/sbin/dmidecode | grep -i 'BIOS Information' -A3 | grep 
--q 'Version: L1.61' && \
-         ! lsmod | grep w83627ehf; then
-         isaset -y -f 0x2e 0x87 2>/dev/null
-         isaset -y -f 0x2e 0x87 2>/dev/null
-         isaset -y 0x2e 0x2f 0x1c 0x3 2>/dev/null
-         isaset -y 0x2e 0x2f 0x24 0x1c 2>/dev/null
-     fi
-}
+Both hwmon0/device/fan4_input and hwmon0/device/fan1_input do exist:
 
-Actually, checking the BIOS version might make no difference, but since 
-I can change it very easily and know when I have to do so, I decided to 
-include it.
+root@CW8:~# ls -l /sys/devices/platform/w83627ehf.656/fan[14]_input
+-r--r--r-- 1 root root 4096 2011-12-03 18:44
+/sys/devices/platform/w83627ehf.656/fan1_input
+-r--r--r-- 1 root root 4096 2011-12-03 18:26
+/sys/devices/platform/w83627ehf.656/fan4_inpu
 
-I have asked the author of Speedfan how he did it, maybe he will 
-respond. His approach seems to work and be safe. Somehow I don't think 
-it will be very different from this solution though.
+Further information: the processor cooler fan was connected to CHA_FAN2
+instead of CPU_FAN because pwmconfig could not slow it below 1,100 RPM
+when it was on CPU_FAN.  Here's the pwmconfig output with the processor
+cooler fan connected to CPU_FAN:
 
-> At least then you can work around a broken BIOS until the vendor
-> provides a fix.
->
-> Ira
+    PWM 255 FAN 2284
+    PWM 240 FAN 2112
+    PWM 225 FAN 2002
+    PWM 210 FAN 1939
+    PWM 195 FAN 1872
+    PWM 180 FAN 1795
+    PWM 165 FAN 1730
+    PWM 150 FAN 1674
+    PWM 135 FAN 1603
+    PWM 120 FAN 1523
+    PWM 105 FAN 1456
+    PWM 90 FAN 1390
+    PWM 75 FAN 1317
+    PWM 60 FAN 1231
+    PWM 45 FAN 1161
+    PWM 30 FAN 1105
+    PWM 28 FAN 1110
+    PWM 26 FAN 1103
+    PWM 24 FAN 1102
+    PWM 22 FAN 1104
+    PWM 20 FAN 1103
+    PWM 18 FAN 1104
+    PWM 16 FAN 1102
+    PWM 14 FAN 1108
+    PWM 12 FAN 1110
+    PWM 10 FAN 1111
+    PWM 8 FAN 1110
+    PWM 6 FAN 1110
+    PWM 4 FAN 1111
+    PWM 2 FAN 1112
+    PWM 0 FAN 1112
 
-Harald
+Best
 
--- 
-`Experience is the best teacher.'
+Charles
 
 _______________________________________________
 lm-sensors mailing list
