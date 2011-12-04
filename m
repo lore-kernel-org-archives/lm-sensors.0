@@ -1,8 +1,10 @@
 From: Charles <c@catcons.co.uk>
-Date: Sat, 03 Dec 2011 13:56:10 +0000
+Date: Sun, 04 Dec 2011 07:15:41 +0000
 Subject: [lm-sensors] Kernel module asus_atk0110
-Message-Id: <4EDA27AA.7030203@catcons.co.uk>
+Message-Id: <4EDB1B4D.5050807@catcons.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4EDA27AA.7030203@catcons.co.uk>
+In-Reply-To: <4EDA27AA.7030203@catcons.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
