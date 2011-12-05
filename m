@@ -1,7 +1,7 @@
-From: Charles <c@catcons.co.uk>
-Date: Sun, 04 Dec 2011 07:15:41 +0000
-Subject: [lm-sensors] Kernel module asus_atk0110
-Message-Id: <4EDB1B4D.5050807@catcons.co.uk>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Mon, 05 Dec 2011 13:03:40 +0000
+Subject: Re: [lm-sensors] Kernel module asus_atk0110
+Message-Id: <CAKPcRGqE36jCq8un7cekWA4RgESqYiv=4jX5Fkea1_4bLeQQxQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4EDA27AA.7030203@catcons.co.uk>
 In-Reply-To: <4EDA27AA.7030203@catcons.co.uk>
@@ -10,43 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello :-)
-
-According to http://hansdegoede.livejournal.com/7932.html and
-http://pavelshub.com/blog/2010/12/fatal-error-inserting-w83627ehf/, the
-proper module to use on ASUS motherboards equipped with the Nuvoton
-NCT6776F is asus_atk0110, not w83627ehf, but there is an open lm_sensors
-ticket (http://www.lm-sensors.org/ticket/2374) about sensors-detect not
-supporting is asus_atk0110.
-
-Running Slackware64 13.1 with a 2.6.38.7 kernel on an ASUS P8H67-V
-motherboard with an NCT6776F and asus_atk0110 modeprobed, sensors-detect
-3.3.1 was not successful.  Digging deeper, looking for directories under
-/sys/bus/acpi/drivers/ATK0110 found nothing:
-
-root@CW8:~# ls -l /sys/bus/acpi/drivers/ATK0110
-total 0
---w------- 1 root root 4.0K 2011-12-02 18:49 bind
---w------- 1 root root 4.0K 2011-12-02 18:49 uevent
---w------- 1 root root 4.0K 2011-12-02 18:49 unbind
-
-Others have been able to use asus_atk0110 with lm_sensors (examples:
-http://pastebin.com/8gREkwXZ,
-http://comments.gmane.org/gmane.comp.gnome.apps.gkrellm/1556,
-http://forums.opensuse.org/english/get-technical-help-here/pre-release-beta/423075-does-your-pwmconfig-find-modules-run.html;
-there are many more).
-
-The issue was worked around by using kernel option
-acpi_enforce_resources=lax but I understand this will not work with
-later kernels.
-
-What to do for best?
-
-Best
-
-Charles
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCgpPbiBTdW4sIERlYyA0LCAyMDExIGF0IDg6MDMgQU0sIENoYXJsZXMgPGNAY2F0Y29ucy5j
+by51az4gd3JvdGU6Cj4gSGVsbG8gOi0pCj4KPiBBY2NvcmRpbmcgdG8gaHR0cDovL2hhbnNkZWdv
+ZWRlLmxpdmVqb3VybmFsLmNvbS83OTMyLmh0bWwgYW5kCj4gaHR0cDovL3BhdmVsc2h1Yi5jb20v
+YmxvZy8yMDEwLzEyL2ZhdGFsLWVycm9yLWluc2VydGluZy13ODM2MjdlaGYvLCB0aGUKPiBwcm9w
+ZXIgbW9kdWxlIHRvIHVzZSBvbiBBU1VTIG1vdGhlcmJvYXJkcyBlcXVpcHBlZCB3aXRoIHRoZSBO
+dXZvdG9uCj4gTkNUNjc3NkYgaXMgYXN1c19hdGswMTEwLCBub3QgdzgzNjI3ZWhmLCBidXQgdGhl
+cmUgaXMgYW4gb3BlbiBsbV9zZW5zb3JzCj4gdGlja2V0IChodHRwOi8vd3d3LmxtLXNlbnNvcnMu
+b3JnL3RpY2tldC8yMzc0KSBhYm91dCBzZW5zb3JzLWRldGVjdCBub3QKPiBzdXBwb3J0aW5nIGlz
+IGFzdXNfYXRrMDExMC4KCkl0J3Mgbm90IGVhc3kgdG8gZG8sIHByb3BlciBkZXRlY3Rpb24gd291
+bGQgcmVxdWlyZSB0aGUgZnVsbCBBQ1BJCnN0YWNrIGluIHVzZXJzcGFjZS4KCj4gUnVubmluZyBT
+bGFja3dhcmU2NCAxMy4xIHdpdGggYSAyLjYuMzguNyBrZXJuZWwgb24gYW4gQVNVUyBQOEg2Ny1W
+Cj4gbW90aGVyYm9hcmQgd2l0aCBhbiBOQ1Q2Nzc2RiBhbmQgYXN1c19hdGswMTEwIG1vZGVwcm9i
+ZWQsIHNlbnNvcnMtZGV0ZWN0Cj4gMy4zLjEgd2FzIG5vdCBzdWNjZXNzZnVsLiDCoERpZ2dpbmcg
+ZGVlcGVyLCBsb29raW5nIGZvciBkaXJlY3RvcmllcyB1bmRlcgo+IC9zeXMvYnVzL2FjcGkvZHJp
+dmVycy9BVEswMTEwIGZvdW5kIG5vdGhpbmc6Cj4KPiByb290QENXODp+IyBscyAtbCAvc3lzL2J1
+cy9hY3BpL2RyaXZlcnMvQVRLMDExMAo+IHRvdGFsIDAKPiAtLXctLS0tLS0tIDEgcm9vdCByb290
+IDQuMEsgMjAxMS0xMi0wMiAxODo0OSBiaW5kCj4gLS13LS0tLS0tLSAxIHJvb3Qgcm9vdCA0LjBL
+IDIwMTEtMTItMDIgMTg6NDkgdWV2ZW50Cj4gLS13LS0tLS0tLSAxIHJvb3Qgcm9vdCA0LjBLIDIw
+MTEtMTItMDIgMTg6NDkgdW5iaW5kCgpZb3Ugc2hvdWxkbid0IG5lZWQgdG8gbG9hZCB0aGUgZHJp
+dmVyIG1hbnVhbGx5OyBpZiBpdCdzIG5vdAphdXRvLWxvYWRlZCB0aGVuIHlvdXIgYm9hcmQgaXMg
+bm90IHJlY29nbml6ZWQgYnkgdGhlIGRyaXZlci4KQVNVUyBoYXMgY2hhbmdlZCB0aGUgQVRLMDEx
+MCBpbnRlcmZhY2UgZnJvbSB0aW1lIHRvIHRpbWUsIHNvIGhvcGVmdWxseQphIGZldyB0d2Vha3Mg
+aXMgYWxsIHRoYXQncyBuZWVkZWQuClBsZWFzZSBzZW5kIG1lIGEgY29weSBvZiB0aGlzIGZpbGU6
+Ci9zeXMvZmlybXdhcmUvYWNwaS90YWJsZXMvRFNEVAoKTHVjYQoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
+c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
+bi9saXN0aW5mby9sbS1zZW5zb3Jz
