@@ -1,7 +1,7 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Mon, 05 Dec 2011 13:03:40 +0000
+From: Charles <c@catcons.co.uk>
+Date: Mon, 05 Dec 2011 14:26:30 +0000
 Subject: Re: [lm-sensors] Kernel module asus_atk0110
-Message-Id: <CAKPcRGqE36jCq8un7cekWA4RgESqYiv=4jX5Fkea1_4bLeQQxQ@mail.gmail.com>
+Message-Id: <4EDCD1C6.40307@catcons.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4EDA27AA.7030203@catcons.co.uk>
 In-Reply-To: <4EDA27AA.7030203@catcons.co.uk>
@@ -10,30 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGksCgpPbiBTdW4sIERlYyA0LCAyMDExIGF0IDg6MDMgQU0sIENoYXJsZXMgPGNAY2F0Y29ucy5j
-by51az4gd3JvdGU6Cj4gSGVsbG8gOi0pCj4KPiBBY2NvcmRpbmcgdG8gaHR0cDovL2hhbnNkZWdv
-ZWRlLmxpdmVqb3VybmFsLmNvbS83OTMyLmh0bWwgYW5kCj4gaHR0cDovL3BhdmVsc2h1Yi5jb20v
-YmxvZy8yMDEwLzEyL2ZhdGFsLWVycm9yLWluc2VydGluZy13ODM2MjdlaGYvLCB0aGUKPiBwcm9w
-ZXIgbW9kdWxlIHRvIHVzZSBvbiBBU1VTIG1vdGhlcmJvYXJkcyBlcXVpcHBlZCB3aXRoIHRoZSBO
-dXZvdG9uCj4gTkNUNjc3NkYgaXMgYXN1c19hdGswMTEwLCBub3QgdzgzNjI3ZWhmLCBidXQgdGhl
-cmUgaXMgYW4gb3BlbiBsbV9zZW5zb3JzCj4gdGlja2V0IChodHRwOi8vd3d3LmxtLXNlbnNvcnMu
-b3JnL3RpY2tldC8yMzc0KSBhYm91dCBzZW5zb3JzLWRldGVjdCBub3QKPiBzdXBwb3J0aW5nIGlz
-IGFzdXNfYXRrMDExMC4KCkl0J3Mgbm90IGVhc3kgdG8gZG8sIHByb3BlciBkZXRlY3Rpb24gd291
-bGQgcmVxdWlyZSB0aGUgZnVsbCBBQ1BJCnN0YWNrIGluIHVzZXJzcGFjZS4KCj4gUnVubmluZyBT
-bGFja3dhcmU2NCAxMy4xIHdpdGggYSAyLjYuMzguNyBrZXJuZWwgb24gYW4gQVNVUyBQOEg2Ny1W
-Cj4gbW90aGVyYm9hcmQgd2l0aCBhbiBOQ1Q2Nzc2RiBhbmQgYXN1c19hdGswMTEwIG1vZGVwcm9i
-ZWQsIHNlbnNvcnMtZGV0ZWN0Cj4gMy4zLjEgd2FzIG5vdCBzdWNjZXNzZnVsLiDCoERpZ2dpbmcg
-ZGVlcGVyLCBsb29raW5nIGZvciBkaXJlY3RvcmllcyB1bmRlcgo+IC9zeXMvYnVzL2FjcGkvZHJp
-dmVycy9BVEswMTEwIGZvdW5kIG5vdGhpbmc6Cj4KPiByb290QENXODp+IyBscyAtbCAvc3lzL2J1
-cy9hY3BpL2RyaXZlcnMvQVRLMDExMAo+IHRvdGFsIDAKPiAtLXctLS0tLS0tIDEgcm9vdCByb290
-IDQuMEsgMjAxMS0xMi0wMiAxODo0OSBiaW5kCj4gLS13LS0tLS0tLSAxIHJvb3Qgcm9vdCA0LjBL
-IDIwMTEtMTItMDIgMTg6NDkgdWV2ZW50Cj4gLS13LS0tLS0tLSAxIHJvb3Qgcm9vdCA0LjBLIDIw
-MTEtMTItMDIgMTg6NDkgdW5iaW5kCgpZb3Ugc2hvdWxkbid0IG5lZWQgdG8gbG9hZCB0aGUgZHJp
-dmVyIG1hbnVhbGx5OyBpZiBpdCdzIG5vdAphdXRvLWxvYWRlZCB0aGVuIHlvdXIgYm9hcmQgaXMg
-bm90IHJlY29nbml6ZWQgYnkgdGhlIGRyaXZlci4KQVNVUyBoYXMgY2hhbmdlZCB0aGUgQVRLMDEx
-MCBpbnRlcmZhY2UgZnJvbSB0aW1lIHRvIHRpbWUsIHNvIGhvcGVmdWxseQphIGZldyB0d2Vha3Mg
-aXMgYWxsIHRoYXQncyBuZWVkZWQuClBsZWFzZSBzZW5kIG1lIGEgY29weSBvZiB0aGlzIGZpbGU6
-Ci9zeXMvZmlybXdhcmUvYWNwaS90YWJsZXMvRFNEVAoKTHVjYQoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
-c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
-bi9saXN0aW5mby9sbS1zZW5zb3Jz
+On 05/12/11 18:33, Luca Tettamanti wrote:
+> Hi,
+> 
+[snip]
+> 
+> It's not easy to do, proper detection would require the full ACPI
+> stack in userspace.
+> 
+[snip]
+> You shouldn't need to load the driver manually; if it's not
+> auto-loaded then your board is not recognized by the driver.
+> ASUS has changed the ATK0110 interface from time to time, so hopefully
+> a few tweaks is all that's needed.
+> Please send me a copy of this file:
+> /sys/firmware/acpi/tables/DSDT
+> 
+> Luca
+
+Thanks Luca :)
+
+Slackware loads (auto-loads?) modules via the /etc/rc.d/modules symlink.
+ One problem may be that I am using a symlink target manually edited
+from the 2.6.33.4 version instead of the 2.6.38.7 version.
+
+ACPI modules in the original 2.6.33.4 version, commented out ready for
+uncommenting by the sysadmin include (I have omitted "obviously"
+irrelevant ones): button, fan, processor and thermal.  I disabled
+acpi-cpufreq in favour of cpufreq_ondemand.  Would you like me to try
+any changes?
+
+I temporarily commented out w83627ehf and added asus_atk0110 then
+removed kernel option acpi_enforce_resources=lax, rebooted and created a
+file by catting /sys/firmware/acpi/tables/DSDT which I am sending you
+off list.
+
+Best
+
+Charles
+
+
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
