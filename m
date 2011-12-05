@@ -1,45 +1,50 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 12 Dec 2011 16:40:37 +0000
-Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: (f75375s) Use standard sysfs
-Message-Id: <20111212164037.GA10447@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 05 Dec 2011 16:15:37 +0000
+Subject: Re: [lm-sensors] 3 wire fan on 4 pin header (was
+Message-Id: <20111205171537.5286e6ae@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1323369069-26203-3-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1323369069-26203-3-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Dec 10, 2011 at 02:50:17PM -0500, Bj=F6rn Gerhart wrote:
-> 2011/12/8 Guenter Roeck <guenter.roeck@ericsson.com>:
-> > The driver uses non-standard sysfs attribute names for maximum and targ=
-et fan
-> > speeds, even though standard attibute names for the same values do exis=
-t.
-> > Replace non-standard attribute names with standard attribute names.
-> >=20
-> > Cc: Riku Voipio <riku.voipio@iki.fi>
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> Reviewed-by: Bjoern Gerhart <oss@extracloud.de>
+On Mon, 05 Dec 2011 17:34:15 +0530, Charles wrote:
+> On 04/12/11 16:30, lm-sensors-request@lm-sensors.org wrote:
+> > Date: Sun, 4 Dec 2011 11:03:45 +0100
+> > From: Jean Delvare <khali@linux-fr.org>
+> > 
+> > Hi Charles,
+> [snip]
+> > On 4-pin headers, the PWM signal is separated from the power. So you
+> > can't control a 3-wire fan plugged in a 4-pin header (the PWM signal is
+> > on the unconnected pin [1].)
+> > 
+> > -- Jean Delvare
+> 
+> Hello Jean :)
+> 
+> I already replied to this but just realised I am controlling a 3-wire
+> S-Flex SFF21E fan
+> (http://www.scythe-usa.com/product/acc/002/sflex_detail.html) on a
+> 4-wire port on an ASUS P8H76-V motherboard (works on both CHA_FAN and
+> CHA_FAN2).
+> 
+> If the 4-pin fan header is regarded as a 3-pin header with an extra pin
+> then the unconnected pin is the extra pin.
+> 
+> Perhaps ASUS have used an unconventional pinout ... ?
 
-Hi Bjoern,
+This would be very unlikely, these pin mappings are highly standard,
+and any vendor deviating from this standard would expose themselves to
+the customer's wrath ;) The manual clearly documents the 4th (extra)
+pin as CPU FAN PWM, as expected.
 
-thanks a lot for the review of this and the other patches. I applied the se=
-ries
-to my -next tree.
+I can imagine that Asus came up with a way to detect whether the fan
+connector has 3 or 4 wires, and to route the PWM signal appropriately.
+I see no mention of this in the manual though.
 
-I should add that this patch is special, since it changes sysfs attribute n=
-ames.
-I chose the direct method of changing the attribute names over providing bo=
-th
-the old and new names for a couple of releases, for a couple of reasons.
-First, the "old" names are non-standard and thus not really useful for gene=
-ric
-applications, and second I did not find a reference that any of the non-sta=
-ndard
-attributes is actually used. We'll find out if this will cause trouble.
-
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
