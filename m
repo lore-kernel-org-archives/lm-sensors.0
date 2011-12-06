@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 05 Dec 2011 16:04:25 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 06 Dec 2011 15:21:25 +0000
 Subject: Re: [lm-sensors] Kernel module asus_atk0110
-Message-Id: <20111205170425.3bffac3b@endymion.delvare>
+Message-Id: <CAKPcRGpKwbj_HwEFOc6Ts1YR9nU2R5zGNBgaTKbjsp0+D+M7aw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4EDA27AA.7030203@catcons.co.uk>
 In-Reply-To: <4EDA27AA.7030203@catcons.co.uk>
@@ -10,39 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 5 Dec 2011 16:28:19 +0100, Luca Tettamanti wrote:
-> On Mon, Dec 5, 2011 at 3:43 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> > On Mon, 05 Dec 2011 19:44:30 +0530, Charles wrote:
-> >> I temporarily commented out w83627ehf and added asus_atk0110 then
-> >> removed kernel option acpi_enforce_resources=lax, rebooted and created a
-> >> file by catting /sys/firmware/acpi/tables/DSDT which I am sending you
-> >> off list.
-> >
-> > The question is, does "sensors" output anything with only the
-> > asus_atk0110 driver loaded? If not, hopefully Luca will be able to
-> > figure out why from the DSDT.
-> 
-> ATK0110 is not present in the DSDT. The IO range is reserved and used
-> to check a single temperature against high and hysteresis thresholds
-> (see method _L16) and notify WMI (yeah...). The method also reads a
-> bit at 0x41 (AUIS) which is not used in the linux driver; the value is
-> discarded, it might be a read-to-clear alarm bit; Jean do you know
-> what that might be?
+On Mon, Dec 5, 2011 at 5:04 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> On Mon, 5 Dec 2011 16:28:19 +0100, Luca Tettamanti wrote:
+[cut]
+>> Anyway, the board does not expose a monitoring framework :-(
+>
+> But it exposes a register map (HWRE)... Might this be used to access
+> the hardware monitoring chip without interfering with ACPI?
 
-Register 0x41 is named Interrupt Status Register 1 in the datasheet,
-bit 5 is named SOURCE2_SMI:
-	A one indicates the high limit of SMIOVT SOURCE2 temperature has been exceeded.
-	(CPUTIN is default temperature)
+Not directly: other boards had read/write methods with byte
+granularity that could be exploited to jury rig a native driver to
+access the hardware via ACPI. In this case there are no such methods,
+the only option that I see would be injecting new methods into the
+DSDT and use those; it can be done but it's a bit... distasteful ;-)
+And fragile.
+I wonder that ASUS does under Windows...
 
-> Anyway, the board does not expose a monitoring framework :-(
-
-But it exposes a register map (HWRE)... Might this be used to access
-the hardware monitoring chip without interfering with ACPI? I'm not
-saying that would be particularly nice, but I don't think we have any
-other option, do we?
-
--- 
-Jean Delvare
+Luca
 
 _______________________________________________
 lm-sensors mailing list
