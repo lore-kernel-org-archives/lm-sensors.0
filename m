@@ -1,72 +1,66 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 06 Dec 2011 08:39:06 +0000
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Wed, 07 Dec 2011 14:57:29 +0000
 Subject: Re: [lm-sensors] [PATCH] i2c multiplexer driver for Proliant
-Message-Id: <20111206093906.21dccf8d@endymion.delvare>
+Message-Id: <CAKdnbx48We9=i9QrY9LG1HV-opHqTjBR1w2xu_kpyAkOahvvdA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAKdnbx7xeygkOK=BR+3vUrWT3GEt=PZrxgrEMvEB5nkOfAF0bg@mail.gmail.com>
-	<20111127225514.GO19115@trinity.fluff.org>
-	<CAKdnbx4u6+_WJjjMJ3jnDLSU8eJ0yXX0Mg-dcr=3F4FaOd2R=g@mail.gmail.com>
-	<20111203162757.GA24302@ericsson.com>
-	<CAKdnbx54R9t-mS9-EvyT-618wVp-YH0YDO++=m5t-JqR6h=GCw@mail.gmail.com>
-	<20111203180819.2ddbcb3a@endymion.delvare>
-	<CAKdnbx5V=qfa5dshRudHx+M3o8Eb6qJXCVG+ZBaBwCeKaoQYNA@mail.gmail.com>
-In-Reply-To: <CAKdnbx5V=qfa5dshRudHx+M3o8Eb6qJXCVG+ZBaBwCeKaoQYNA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <20111127225514.GO19115@trinity.fluff.org> <CAKdnbx4u6+_WJjjMJ3jnDLSU8eJ0yXX0Mg-dcr=3F4FaOd2R=g@mail.gmail.com>
+ <20111203162757.GA24302@ericsson.com> <CAKdnbx54R9t-mS9-EvyT-618wVp-YH0YDO++=m5t-JqR6h=GCw@mail.gmail.com>
+ <20111203180819.2ddbcb3a@endymion.delvare> <CAKdnbx5V=qfa5dshRudHx+M3o8Eb6qJXCVG+ZBaBwCeKaoQYNA@mail.gmail.com>
+ <20111206093906.21dccf8d@endymion.delvare>
+In-Reply-To: <20111206093906.21dccf8d-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Eddi De Pieri <eddi-soWH+0lSOSbR7s880joybQ@public.gmane.org>
-Cc: Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>, Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+Cc: Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>, Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 
-Hi Eddi,
+On Tue, Dec 6, 2011 at 9:39 AM, Jean Delvare <khali@linux-fr.org> wrote:
 
-Please don't top-post, and only include as much context as necessary in
-your replies.
+> The SMBus multiplexing as it exists on the SB800 is very
+> different from what was implemented for the Tyan S4882 and S4985 boards.
 
-On Mon, 5 Dec 2011 23:57:10 +0100, Eddi De Pieri wrote:
-> I tried in rewriting the driver... but I can't understand the right way...
-> 
-> since sb800 is a southbus, the mux driver must be defined as
-> i2c_device, platform_device, or pci_device?
+Well...
+- the Tyan use PCA9556 to select the multiplexed bus...
 
-Your question doesn't make sense. A driver can't be defined as a
-device. But anyway I think I understand where your confusion comes
-from. The SMBus multiplexing as it exists on the SB800 is very
-different from what was implemented for the Tyan S4882 and S4985 boards.
+- SB800 (and SB700) seems to select lines writing the port number
+using a particolar protocol.
 
-In fact, now that I have a SB800 datasheet, I better understand what
-you were doing and how it should be implemented. I don't even think you
-need the multiplexer framework for the SB800. My understanding is that
-it has 4 almost independent SMBus ports. The only thing that is shared
-between them is the register set. Contrary to the S4882 and S4985 board
-multiplexing, it is totally board-independent. So support should go to the
-i2c-piix4 driver directly.
+> In fact, now that I have a SB800 datasheet, I better understand what
+> you were doing and how it should be implemented.
 
-BTW please avoid comments in Italian in your code. Not everyone reads
-Italian. Use English.
+> I don't even think you
+> need the multiplexer framework for the SB800.
 
-> I tried using i2c_device structure, but I can't make sb800 to match
-> the id_Table..
-> I tried usign pci_device structure, but the driver overwrite the pci
-> space so kernel hangs...
+Are you sure?
 
-You don't need a multiplexer device at all. Please just have i2c-piix4
-driver register 4 i2c_adapter devices for the SB800. This would be a
-3-step process:
+SB7/8xx has two i2c bus smbus(0) should be accessible to the user
+smbus(1) should be reserved to the chipset
 
-1* Turn piix4_adapter to an array, so that it can hold up to 4
-   i2c_adapter structures.
-2* Add a mutex to prevent concurrent access to the register set. It
-   should be initialized in piix4_setup_sb800(), taken at the very
-   beginning of piix4_access() and released at the very end of this
-   function.
-3* Add support for ports 1, 2 and 3 of the SB800.
+> it has 4 almost independent SMBus ports.
 
-This would ideally be 3 incremental patches to make testing and review
-easy. I can help with parts 1 and 2 if you want, as this can be tested
-without a SB800. But it should be fairly easy overall.
+smbus(0) may be connected to different physical port.... but each port
+may be routed by the OEM to different function... so these port aren't
+really independent.
 
--- 
-Jean Delvare
+how to probe this? perhaps by reading DMI?
+
+> 1* Turn piix4_adapter to an array, so that it can hold up to 4
+> =A0 i2c_adapter structures.
+> 2* Add a mutex to prevent concurrent access to the register set. It
+> =A0 should be initialized in piix4_setup_sb800(), taken at the very
+> =A0 beginning of piix4_access() and released at the very end of this
+> =A0 function.
+> 3* Add support for ports 1, 2 and 3 of the SB800.
+
+I tried to apply your suggestion... but... I don't really have the
+knowledges to do what you wrote...
+
+I need your help :(
+
+Regards
+
+Eddi
 
 _______________________________________________
 lm-sensors mailing list
