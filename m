@@ -1,40 +1,43 @@
-From: Charles <c@catcons.co.uk>
-Date: Tue, 06 Dec 2011 03:57:57 +0000
-Subject: Re: [lm-sensors] 3 wire fan on 4 pin header (was
-Message-Id: <4EDD8FF5.5000704@catcons.co.uk>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Thu, 08 Dec 2011 14:08:24 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: jz4740: Staticise
+Message-Id: <4EE0C4D8.4050106@metafoo.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20111205171537.5286e6ae@endymion.delvare>
-In-Reply-To: <20111205171537.5286e6ae@endymion.delvare>
+References: <1323351217.3398.0.camel@phoenix>
+In-Reply-To: <1323351217.3398.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-On 06/12/11 00:35, Phil Pokorny wrote:
-
-> Some motherboards have BIOS settings to switch between PWM control and
-> voltage/3-wire control.  (I saw this in an ASUS BIOS for the CPU fan
-> header).  But your essential point is correct, that a header
-> configured to use PWM to control fan speed will not work with a 3-pin
-> fan.
-
-> On more than one ASUS motherboard, I have encountered 4-pin headers
-> that *do not drive* the PWM pin and instead do voltage control of the
-> fan speed.  This is most common on the chassis fan headers.  They are
-> 4-pin headers, but they don't have an active PWM signal and you can't
-> enable it in the BIOS.  I asked ASUS about it and they said it wasn't
-> possible to generate PWM signals on those headers.
+On 12/08/2011 02:33 PM, Axel Lin wrote:
+> It is not used outside this driver so no need to make the symbol global.
 > 
-> When you plug a 4-pin, PWM controlled fan into such a header, the PWM
-> signal is floating and so the PWM fan will run at "full speed", but
-> the variable voltage will result in the fan speed changing under the
-> control of the motherboard.
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-Thanks for the explanation Phil
+Acked-by: Lars-Peter Clausen <lars@metafoo.de>
 
-The ASUS P8H67-V behaves that way with CPU_FAN working as a "proper" 4
-pin header and CHA_FAN1 and CHA_FAN2 behaving as 4 pin headers with a
-floating PWM signal.
+Thanks
+
+> ---
+>  drivers/hwmon/jz4740-hwmon.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
+> index 3d7e590..5253d23 100644
+> --- a/drivers/hwmon/jz4740-hwmon.c
+> +++ b/drivers/hwmon/jz4740-hwmon.c
+> @@ -203,7 +203,7 @@ static int __devexit jz4740_hwmon_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> -struct platform_driver jz4740_hwmon_driver = {
+> +static struct platform_driver jz4740_hwmon_driver = {
+>  	.probe	= jz4740_hwmon_probe,
+>  	.remove = __devexit_p(jz4740_hwmon_remove),
+>  	.driver = {
+
 
 
 _______________________________________________
