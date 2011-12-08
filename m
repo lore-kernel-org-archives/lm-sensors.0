@@ -1,22 +1,21 @@
-From: Charles <c@catcons.co.uk>
-Date: Mon, 05 Dec 2011 17:35:52 +0000
-Subject: Re: [lm-sensors] 3 wire fan on 4 pin header
-Message-Id: <4EDCFE28.50005@catcons.co.uk>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 08 Dec 2011 18:38:05 +0000
+Subject: [lm-sensors] [PATCH 0/4 resend] hwmon: (f753375s) Series of cleanup
+Message-Id: <1323369489-26681-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 05/12/11 21:45, Jean Delvare wrote:
+Fix checkpatch errors and warnings, rename attributes to use standardized names,
+fix rpm mode value range, and initialize pwm_mode and pwm_enable if there is not
+platform data.
 
-> I can imagine that Asus came up with a way to detect whether the fan
-> connector has 3 or 4 wires, and to route the PWM signal appropriately.
-> I see no mention of this in the manual though.
+If we agree on this set of patches, the pending patches to add support for
+F75383 should probably be applied on top of it.
 
-Perhaps the same was done by Gigabyte on the GA-MA770-DS3 Rev 1.0 where
-the same 3-wire S-Flex SFF21E was connected to the 4-pin SYS_FAN1 and
-was controlled by fancontrol.
+[resent with maintainer added, and proper subject]
 
 _______________________________________________
 lm-sensors mailing list
