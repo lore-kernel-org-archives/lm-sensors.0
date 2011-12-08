@@ -1,38 +1,64 @@
-From: Charles <c@catcons.co.uk>
-Date: Fri, 02 Dec 2011 09:51:46 +0000
-Subject: Re: [lm-sensors] How to get patches and build with them?
-Message-Id: <4ED89CE2.6070103@catcons.co.uk>
+From: Steve Sakoman <sakoman@gmail.com>
+Date: Thu, 08 Dec 2011 23:13:59 +0000
+Subject: [lm-sensors] [PATCH RFC] mfd: twl4030-madc: Enable ADC channels 3-6
+Message-Id: <CAGDS+n=QJNjCyfQ2zvPweC=aBDWt=n+y1ccgTAafqJCYt991yg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4ED7B66A.6030009@catcons.co.uk>
-In-Reply-To: <4ED7B66A.6030009@catcons.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>
 
-On 02/12/11 12:51, Jean Delvare wrote:
->> After installing to /usr/local the following symlink was required to
->> > allow GKrellM to start:
->> > 
->> > ln -s /usr/local/lib/libsensors.so.4 /usr/lib64/libsensors.so.4
-> This can probably be avoided by passing LIBDIR=/usr/local/lib64 to
-> make, and adding /usr/local/lib64 to /etc/ld.so.conf if it's not
-> already there. Alternatively, just adding /usr/local/lib
-> to /etc/ld.so.conf should work too.
+Currently the driver does not explicitly set the TWL4030_USB_SEL_MADC_MCPC
+bit to enable madc input channels 3 through 6.  This results in readings near
+zero for these channels since the inputs are grounded if this bit is not set.
 
-Thanks for the advice, Jean :)
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
 
-The advantage of the symlink technique is that it replaces the
-lm_sensors libsensors.so.4 as installed by Slackware so, if the 3.3.1
-installation is every replaced by a Slackware package, the available
-libsensors.so.4 will automatically be changed.
+diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
+index 834f824..56a8e9b 100644
+--- a/drivers/mfd/twl4030-madc.c
++++ b/drivers/mfd/twl4030-madc.c
+@@ -725,6 +725,23 @@ static int __devinit twl4030_madc_probe(struct
+platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_current_generator;
 
-BTW I forgot to mention that the dos2unix step was unnecessary because
-patch strips the DOS-isms.
++	/* Enable ADCIN3 through 6 */
++	ret = twl_i2c_read_u8(TWL4030_MODULE_USB,
++			      &regval, TWL4030_USB_CARKIT_ANA_CTRL);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to read reg CARKIT_ANA_CTRL 0x%X\n",
++			TWL4030_USB_CARKIT_ANA_CTRL);
++		goto err_i2c;
++	}
++	regval |= TWL4030_USB_SEL_MADC_MCPC;
++	ret = twl_i2c_write_u8(TWL4030_MODULE_USB,
++			       regval, TWL4030_USB_CARKIT_ANA_CTRL);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to write reg CARKIT_ANA_CTRL 0x%X\n",
++			TWL4030_USB_CARKIT_ANA_CTRL);
++		goto err_i2c;
++	}
++
+ 	ret = twl_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
+ 			      &regval, TWL4030_BCI_BCICTL1);
+ 	if (ret) {
+diff --git a/include/linux/i2c/twl4030-madc.h b/include/linux/i2c/twl4030-madc.h
+index 530e11b..f017495 100644
+--- a/include/linux/i2c/twl4030-madc.h
++++ b/include/linux/i2c/twl4030-madc.h
+@@ -120,6 +120,9 @@ enum sample_type {
+ #define CURR_PSR_R1		44
+ #define CURR_PSR_R2		88
 
-Best
-
-Charles
++#define TWL4030_USB_CARKIT_ANA_CTRL	0xBB
++#define TWL4030_USB_SEL_MADC_MCPC	(1<<3)
++
+ #define TWL4030_BCI_BCICTL1	0x23
+ #define TWL4030_BCI_CGAIN	0x020
+ #define TWL4030_BCI_MESBAT	(1 << 1)
 
 _______________________________________________
 lm-sensors mailing list
