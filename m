@@ -1,185 +1,40 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 15 Dec 2011 20:41:08 +0000
-Subject: Re: [lm-sensors] [PATCH 2/15] module_param: avoid bool abuse,
-Message-Id: <20111215204108.GB10672@ericsson.com>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Thu, 08 Dec 2011 13:04:12 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: jz4740: fix signedness bug
+Message-Id: <1323349452.2823.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <877h1ytu4d.fsf@rustcorp.com.au>
-In-Reply-To: <877h1ytu4d.fsf-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Steve Glendinning <steve.glendinning-sdUf+H5yV5I@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Anton Altaparmakov <anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>
+To: linux-kernel@vger.kernel.org
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-On Wed, Dec 14, 2011 at 10:02:26PM -0500, Rusty Russell wrote:
-> For historical reasons, we allow module_param(bool) to take an int (or
-> an unsigned int).  That's going away.
-> 
-> A few drivers really want an int: they set it to -1 and a parameter
-> will set it to 0 or 1.  This sucks: reading them from sysfs will give
-> 'Y' for both -1 and 1, but if we change it to an int, then the users
-> might be broken (if they did "param" instead of "param=1").
-> 
-> Use a new 'bint' parser for them.
-> 
-> (ntfs has a different problem: it needs an int for debug_msgs because
-> it's also exposed via sysctl.)
-> 
-> Cc: Steve Glendinning <steve.glendinning@smsc.com>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-> Cc: Christoph Raisch <raisch@de.ibm.com>
-> Cc: Roland Dreier <roland@kernel.org>
-> Cc: Sean Hefty <sean.hefty@intel.com>
-> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-> Cc: linux390@de.ibm.com
-> Cc: Anton Altaparmakov <anton@tuxera.com>
-> Cc: Jaroslav Kysela <perex@perex.cz>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: lm-sensors@lm-sensors.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: linux-ntfs-dev@lists.sourceforge.net
-> Cc: alsa-devel@alsa-project.org
-> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-> ---
->  drivers/hwmon/emc2103.c                |    2 +-
+wait_for_completion_interruptible_timeout() may return negative value.
+In this case, checking if (t > 0)  will return true if t is unsigned.
 
-For the hwmon driver:
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+---
+ drivers/hwmon/jz4740-hwmon.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-
->  drivers/infiniband/hw/ehca/ehca_main.c |    2 +-
->  drivers/s390/cio/cmf.c                 |    2 +-
->  fs/ntfs/super.c                        |    2 +-
->  include/linux/moduleparam.h            |    6 ++++++
->  kernel/params.c                        |   24 ++++++++++++++++++++++++
->  sound/pci/intel8x0.c                   |    4 ++--
->  7 files changed, 36 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
-> --- a/drivers/hwmon/emc2103.c
-> +++ b/drivers/hwmon/emc2103.c
-> @@ -55,7 +55,7 @@ static const u8 REG_TEMP_MAX[4] = { 0x34
->   * it.  Default is to leave the device in the state it's already in (-1).
->   * This parameter allows APD mode to be optionally forced on or off */
->  static int apd = -1;
-> -module_param(apd, bool, 0);
-> +module_param(apd, bint, 0);
->  MODULE_PARM_DESC(init, "Set to zero to disable anti-parallel diode mode");
->  
->  struct temperature {
-> diff --git a/drivers/infiniband/hw/ehca/ehca_main.c b/drivers/infiniband/hw/ehca/ehca_main.c
-> --- a/drivers/infiniband/hw/ehca/ehca_main.c
-> +++ b/drivers/infiniband/hw/ehca/ehca_main.c
-> @@ -82,7 +82,7 @@ module_param_named(port_act_time, ehca_p
->  module_param_named(poll_all_eqs,  ehca_poll_all_eqs,  bool, S_IRUGO);
->  module_param_named(static_rate,   ehca_static_rate,   int,  S_IRUGO);
->  module_param_named(scaling_code,  ehca_scaling_code,  bool, S_IRUGO);
-> -module_param_named(lock_hcalls,   ehca_lock_hcalls,   bool, S_IRUGO);
-> +module_param_named(lock_hcalls,   ehca_lock_hcalls,   bint, S_IRUGO);
->  module_param_named(number_of_cqs, ehca_max_cq,        int,  S_IRUGO);
->  module_param_named(number_of_qps, ehca_max_qp,        int,  S_IRUGO);
->  
-> diff --git a/drivers/s390/cio/cmf.c b/drivers/s390/cio/cmf.c
-> --- a/drivers/s390/cio/cmf.c
-> +++ b/drivers/s390/cio/cmf.c
-> @@ -98,7 +98,7 @@ enum cmb_format {
->   * enum cmb_format.
->   */
->  static int format = CMF_AUTODETECT;
-> -module_param(format, bool, 0444);
-> +module_param(format, bint, 0444);
->  
->  /**
->   * struct cmb_operations - functions to use depending on cmb_format
-> diff --git a/fs/ntfs/super.c b/fs/ntfs/super.c
-> --- a/fs/ntfs/super.c
-> +++ b/fs/ntfs/super.c
-> @@ -3198,7 +3198,7 @@ MODULE_DESCRIPTION("NTFS 1.2/3.x driver 
->  MODULE_VERSION(NTFS_VERSION);
->  MODULE_LICENSE("GPL");
->  #ifdef DEBUG
-> -module_param(debug_msgs, bool, 0);
-> +module_param(debug_msgs, bint, 0);
->  MODULE_PARM_DESC(debug_msgs, "Enable debug messages.");
->  #endif
->  
-> diff --git a/include/linux/moduleparam.h b/include/linux/moduleparam.h
-> --- a/include/linux/moduleparam.h
-> +++ b/include/linux/moduleparam.h
-> @@ -367,6 +367,12 @@ extern int param_set_invbool(const char 
->  extern int param_get_invbool(char *buffer, const struct kernel_param *kp);
->  #define param_check_invbool(name, p) __param_check(name, p, bool)
->  
-> +/* An int, which can only be set like a bool (though it shows as an int). */
-> +extern struct kernel_param_ops param_ops_bint;
-> +extern int param_set_bint(const char *val, const struct kernel_param *kp);
-> +#define param_get_bint param_get_int
-> +#define param_check_bint param_check_int
-> +
->  /**
->   * module_param_array - a parameter which is an array of some type
->   * @name: the name of the array variable
-> diff --git a/kernel/params.c b/kernel/params.c
-> --- a/kernel/params.c
-> +++ b/kernel/params.c
-> @@ -369,6 +369,30 @@ struct kernel_param_ops param_ops_invboo
->  };
->  EXPORT_SYMBOL(param_ops_invbool);
->  
-> +int param_set_bint(const char *val, const struct kernel_param *kp)
-> +{
-> +	struct kernel_param boolkp;
-> +	bool v;
-> +	int ret;
-> +
-> +	/* Match bool exactly, by re-using it. */
-> +	boolkp = *kp;
-> +	boolkp.arg = &v;
-> +	boolkp.flags |= KPARAM_ISBOOL;
-> +
-> +	ret = param_set_bool(val, &boolkp);
-> +	if (ret = 0)
-> +		*(int *)kp->arg = v;
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(param_set_bint);
-> +
-> +struct kernel_param_ops param_ops_bint = {
-> +	.set = param_set_bint,
-> +	.get = param_get_int,
-> +};
-> +EXPORT_SYMBOL(param_ops_bint);
-> +
->  /* We break the rule and mangle the string. */
->  static int param_array(const char *name,
->  		       const char *val,
-> diff --git a/sound/pci/intel8x0.c b/sound/pci/intel8x0.c
-> --- a/sound/pci/intel8x0.c
-> +++ b/sound/pci/intel8x0.c
-> @@ -95,13 +95,13 @@ module_param(ac97_quirk, charp, 0444);
->  MODULE_PARM_DESC(ac97_quirk, "AC'97 workaround for strange hardware.");
->  module_param(buggy_semaphore, bool, 0444);
->  MODULE_PARM_DESC(buggy_semaphore, "Enable workaround for hardwares with problematic codec semaphores.");
-> -module_param(buggy_irq, bool, 0444);
-> +module_param(buggy_irq, bint, 0444);
->  MODULE_PARM_DESC(buggy_irq, "Enable workaround for buggy interrupts on some motherboards.");
->  module_param(xbox, bool, 0444);
->  MODULE_PARM_DESC(xbox, "Set to 1 for Xbox, if you have problems with the AC'97 codec detection.");
->  module_param(spdif_aclink, int, 0444);
->  MODULE_PARM_DESC(spdif_aclink, "S/PDIF over AC-link.");
-> -module_param(inside_vm, bool, 0444);
-> +module_param(inside_vm, bint, 0444);
->  MODULE_PARM_DESC(inside_vm, "KVM/Parallels optimization.");
->  
->  /* just for backward compatibility */
-
+diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
+index 7a48b1e..3d7e590 100644
+--- a/drivers/hwmon/jz4740-hwmon.c
++++ b/drivers/hwmon/jz4740-hwmon.c
+@@ -59,7 +59,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
+ {
+ 	struct jz4740_hwmon *hwmon = dev_get_drvdata(dev);
+ 	struct completion *completion = &hwmon->read_completion;
+-	unsigned long t;
++	long t;
+ 	unsigned long val;
+ 	int ret;
+ 
 -- 
-Guenter Roeck
-Distinguished Engineer
-PDU IP Systems
+1.7.5.4
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
