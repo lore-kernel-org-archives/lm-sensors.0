@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 08 Dec 2011 18:31:08 +0000
+Date: Thu, 08 Dec 2011 18:38:08 +0000
 Subject: [lm-sensors] [PATCH 3/4] hwmon: (f75375s) Fix value range for PWM
-Message-Id: <1323369069-26203-4-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1323369489-26681-4-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1323369069-26203-4-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1323369069-26203-4-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,6 +14,7 @@ Accepted value range for PWM modes was 0..4, even though only 0..3 is
 subsequently used. Limit permitted value range to 0..3 to avoid unpredictable
 behavior.
 
+Cc: Riku Voipio <riku.voipio@iki.fi>
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
  drivers/hwmon/f75375s.c |    2 +-
