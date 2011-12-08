@@ -1,8 +1,10 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 08 Dec 2011 18:31:09 +0000
+Date: Thu, 08 Dec 2011 18:38:09 +0000
 Subject: [lm-sensors] [PATCH 4/4] hwmon: (f75375s) Initialize pwmX_mode and
-Message-Id: <1323369069-26203-5-git-send-email-guenter.roeck@ericsson.com>
+Message-Id: <1323369489-26681-5-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1323369069-26203-5-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1323369069-26203-5-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -12,6 +14,7 @@ pwmX_mode and pwmX_enable are not initialized if no platform data is provided to
 the driver. Read chip configuration at driver initialization time and initialize
 attributes to reflect chip configuration.
 
+Cc: Riku Voipio <riku.voipio@iki.fi>
 Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
  drivers/hwmon/f75375s.c |   28 ++++++++++++++++++++++++++--
