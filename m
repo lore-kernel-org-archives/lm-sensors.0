@@ -1,7 +1,7 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Date: Thu, 08 Dec 2011 14:08:39 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 08 Dec 2011 14:20:52 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: jz4740: fix signedness bug
-Message-Id: <4EE0C4E7.4050608@metafoo.de>
+Message-Id: <20111208142052.GA8163@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1323349452.2823.1.camel@phoenix>
 In-Reply-To: <1323349452.2823.1.camel@phoenix>
@@ -9,35 +9,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Axel Lin <axel.lin@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-On 12/08/2011 02:04 PM, Axel Lin wrote:
+On Thu, Dec 08, 2011 at 08:04:12AM -0500, Axel Lin wrote:
 > wait_for_completion_interruptible_timeout() may return negative value.
 > In this case, checking if (t > 0)  will return true if t is unsigned.
 > 
 > Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
 
-Thanks
+Applied.
 
-> ---
->  drivers/hwmon/jz4740-hwmon.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
-> index 7a48b1e..3d7e590 100644
-> --- a/drivers/hwmon/jz4740-hwmon.c
-> +++ b/drivers/hwmon/jz4740-hwmon.c
-> @@ -59,7 +59,7 @@ static ssize_t jz4740_hwmon_read_adcin(struct device *dev,
->  {
->  	struct jz4740_hwmon *hwmon = dev_get_drvdata(dev);
->  	struct completion *completion = &hwmon->read_completion;
-> -	unsigned long t;
-> +	long t;
->  	unsigned long val;
->  	int ret;
->  
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
