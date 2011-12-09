@@ -1,7 +1,7 @@
 From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Fri, 09 Dec 2011 20:12:50 +0000
+Date: Fri, 09 Dec 2011 21:02:41 +0000
 Subject: Re: [lm-sensors] [PATCH] f75375s: added Fintek f75387 support
-Message-Id: <E3219EEB-223B-44CF-9CBE-ED212FE71BE4@extracloud.de>
+Message-Id: <05A1B20A-3C1D-4FD6-AAD6-E1A917A5CFC8@extracloud.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CABRa2TKyTHBSZiWMxZZqC2Y=ZZNTQQt_3BXTrt6JzQzj0OsfNw@mail.gmail.com>
 In-Reply-To: <CABRa2TKyTHBSZiWMxZZqC2Y=ZZNTQQt_3BXTrt6JzQzj0OsfNw@mail.gmail.com>
@@ -12,41 +12,310 @@ To: lm-sensors@vger.kernel.org
 
 Hi Guenter,
 
-2011/12/8 Guenter Roeck <guenter.roeck@ericsson.com>:
-> Hi Bjoern,
-> 
-> On Thu, Dec 08, 2011 at 05:04:54PM -0500, Bjoern Gerhart wrote:
->> Hi Guenter,
->> 
->> so for solving the other issues you mentioned, I'd first apply your
->> set of 4 patches on the original f75375s. Then I'd implement my f75387
->> related modifications within your latest review proposals, test the
->> resulting binary module on my f75387 hardware and then create a fifth
->> patch.
->> 
->> Would that order lead to a valid set of patches?
->> 
-> Yes, that would be the best way to proceed, only it is 5 patches by now.
-> Did I copy you on the last one ?
-> 
-Yes - today I noticed that I already had received your latest (fifth) f75375s related patch.
+thanks a lot for your deep review and fix proposals. As a result of it, appended to this mail there's an updated patch intended to be applied ontop of your patches given yesterday. Hope that it will not get corrupted this time..   :-/
 
-> If you use git, it should be straightforward to merge your patch on top of mine.
-> I would have done that, only I had trouble applying yours because it was somehow
-> corrupted.
-> 
-I'm not quite familiar with using git yet, so up to now using the classical diff / patch commands for creating and applying patches. It seems that the googlemail web interface inserts line feeds after about 70 characters, which leads to the corrupted patch. I try another mail client for the next patch to send...
+The compilation against kernel 2.6.39 with all patches applied does work without warnings, and my f75387 still works (but as before without connected fans...).
 
-> Of course, it would also help tremendously if you would fine the time to review
-> my patches :).
+>> Obviously, Harald Dunkel requested the f75387 implementation in 2007.
+>> Do you think it would be a good idea to contact him asking for a fan
+>> test on his board..?
+>> 
+> Definitely. Worst case he does not reply or no longer has the hardware.
 > 
-Yeah, I reviewed each of the f75375s related patches. Beside the functionality stuff and improved error handling I noticed some guideline related improvements also. But in fact I could not detect nonconformities or code fussiness, so there's no idea for improvements on my side.
-
-> Thanks,
-> Guenter
+Okay sounds good, so I'll contact him about this in a separate mail..  ;-)
 
 --
 Bjoern Gerhart
+
+
+
+diff -uNr linux-2.6.39-5patched/drivers/hwmon/f75375s.c linux-2.6.39/drivers/hwmon/f75375s.c
+--- linux-2.6.39-5patched/drivers/hwmon/f75375s.c	2011-12-09 15:41:01.000000000 +0100
++++ linux-2.6.39/drivers/hwmon/f75375s.c	2011-12-09 21:41:10.000000000 +0100
+@@ -1,6 +1,6 @@
+/*
+- * f75375s.c - driver for the Fintek F75375/SP and F75373
+- *             hardware monitoring features
++ * f75375s.c - driver for the Fintek F75375/SP, F75373 and
++ *             F75387SG/RG hardware monitoring features
+ * Copyright (C) 2006-2007  Riku Voipio
+ *
+ * Datasheets available at:
+@@ -10,6 +10,9 @@
+ *
+ * f75373:
+ * http://www.fintek.com.tw/files/productfiles/F75373_V025P.pdf
++ *
++ * f75387:
++ * http://www.fintek.com.tw/files/productfiles/F75387_V027P.pdf
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+@@ -40,7 +43,7 @@
+/* Addresses to scan */
+static const unsigned short normal_i2c[] = { 0x2d, 0x2e, I2C_CLIENT_END };
+
+-enum chips { f75373, f75375 };
++enum chips { f75373, f75375, f75387 };
+
+/* Fintek F75375 registers  */
+#define F75375_REG_CONFIG0		0x0
+@@ -59,6 +62,7 @@
+#define F75375_REG_VOLT_LOW(nr)		(0x21 + (nr) * 2)
+
+#define F75375_REG_TEMP(nr)		(0x14 + (nr))
++#define F75387_REG_TEMP11_LSB(nr)	(0x1a + (nr))
+#define F75375_REG_TEMP_HIGH(nr)	(0x28 + (nr) * 2)
+#define F75375_REG_TEMP_HYST(nr)	(0x29 + (nr) * 2)
+
+@@ -78,8 +82,11 @@
+#define F75375_REG_PWM1_DROP_DUTY	0x6B
+#define F75375_REG_PWM2_DROP_DUTY	0x6C
+
+-#define FAN_CTRL_LINEAR(nr)		(4 + nr)
++#define F75375_FAN_CTRL_LINEAR(nr)	(4 + nr)
++#define F75387_FAN_CTRL_LINEAR(nr)	(1 + ((nr) * 4))
+#define FAN_CTRL_MODE(nr)		(4 + ((nr) * 2))
++#define F75387_FAN_DUTY_MODE(nr)	(2 + ((nr) * 4))
++#define F75387_FAN_MANU_MODE(nr)	((nr) * 4)
+
+/*
+ * Data structures and manipulation thereof
+@@ -108,7 +115,12 @@
+	u8 pwm[2];
+	u8 pwm_mode[2];
+	u8 pwm_enable[2];
+-	s8 temp[2];
++	/*
++	 * f75387: For remote temperature reading, it uses signed 11-bit
++	 * values with LSB = 0.125 degree Celsius, left-justified in 16-bit
++	 * registers. For original 8-bit temp readings, the LSB just is 0.
++	 */
++	s16 temp11[2];
+	s8 temp_high[2];
+	s8 temp_max_hyst[2];
+};
+@@ -122,6 +134,7 @@
+static const struct i2c_device_id f75375_id[] = {
+	{ "f75373", f75373 },
+	{ "f75375", f75375 },
++	{ "f75387", f75387 },
+	{ }
+};
+MODULE_DEVICE_TABLE(i2c, f75375_id);
+@@ -205,8 +218,13 @@
+	if (time_after(jiffies, data->last_updated + 2 * HZ)
+		|| !data->valid) {
+		for (nr = 0; nr < 2; nr++) {
+-			data->temp[nr] -				f75375_read8(client, F75375_REG_TEMP(nr));
++			/* assign MSB, therefore shift it by 8 bits */
++			data->temp11[nr] +				f75375_read8(client, F75375_REG_TEMP(nr)) << 8;
++			if (data->kind = f75387)
++				/* merge F75387's temperature LSB (11-bit) */
++				data->temp11[nr] |+					f75375_read8(client, F75387_REG_TEMP11_LSB(nr));
+			data->fan[nr] 				f75375_read16(client, F75375_REG_FAN(nr));
+		}
+@@ -313,24 +331,50 @@
+		return -EINVAL;
+
+	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
+-	fanmode &= ~(3 << FAN_CTRL_MODE(nr));
+-
+-	switch (val) {
+-	case 0: /* Full speed */
+-		fanmode  |= (3 << FAN_CTRL_MODE(nr));
+-		data->pwm[nr] = 255;
+-		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-				data->pwm[nr]);
+-		break;
+-	case 1: /* PWM */
+-		fanmode  |= (3 << FAN_CTRL_MODE(nr));
+-		break;
+-	case 2: /* AUTOMATIC*/
+-		fanmode  |= (2 << FAN_CTRL_MODE(nr));
+-		break;
+-	case 3: /* fan speed */
+-		break;
++	if (data->kind = f75387) {
++		/* clear each fanX_mode bit before setting them properly */
++		fanmode &= ~(1 << F75387_FAN_DUTY_MODE(nr));
++		fanmode &= ~(1 << F75387_FAN_MANU_MODE(nr));
++		switch (val) {
++		case 0: /* full speed */
++			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
++			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
++			data->pwm[nr] = 255;
++			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++					data->pwm[nr]);
++			break;
++		case 1: /* PWM */
++			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
++			fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
++			break;
++		case 2: /* AUTOMATIC*/
++			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
++			break;
++		case 3: /* fan speed */
++			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
++			break;
++		}
++	} else {
++		/* clear each fanX_mode bit before setting them properly */
++		fanmode &= ~(3 << FAN_CTRL_MODE(nr));
++		switch (val) {
++		case 0: /* full speed */
++			fanmode  |= (3 << FAN_CTRL_MODE(nr));
++			data->pwm[nr] = 255;
++			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++					data->pwm[nr]);
++			break;
++		case 1: /* PWM */
++			fanmode  |= (3 << FAN_CTRL_MODE(nr));
++			break;
++		case 2: /* AUTOMATIC*/
++			fanmode  |= (2 << FAN_CTRL_MODE(nr));
++			break;
++		case 3: /* fan speed */
++			break;
++		}
+	}
++
+	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+	data->pwm_enable[nr] = val;
+	return 0;
+@@ -364,6 +408,8 @@
+	unsigned long val;
+	int err;
+	u8 conf;
++	char reg;
++	char ctrl;
+
+	err = kstrtoul(buf, 10, &val);
+	if (err < 0)
+@@ -376,14 +422,23 @@
+	if (data->kind = f75373 && val = 0)
+		return -EINVAL;
+
++	/* take care for different registers */
++	if (data->kind = f75387) {
++		reg = F75375_REG_FAN_TIMER;
++		ctrl = F75387_FAN_CTRL_LINEAR(nr);
++	} else {
++		reg = F75375_REG_CONFIG1;
++		ctrl = F75375_FAN_CTRL_LINEAR(nr);
++	}
++
+	mutex_lock(&data->update_lock);
+-	conf = f75375_read8(client, F75375_REG_CONFIG1);
+-	conf &= ~(1 << FAN_CTRL_LINEAR(nr));
++	conf = f75375_read8(client, reg);
++	conf &= ~(1 << ctrl);
+
+	if (val = 0)
+-		conf |= (1 << FAN_CTRL_LINEAR(nr)) ;
++		conf |= (1 << ctrl);
+
+-	f75375_write8(client, F75375_REG_CONFIG1, conf);
++	f75375_write8(client, reg, conf);
+	data->pwm_mode[nr] = val;
+	mutex_unlock(&data->update_lock);
+	return count;
+@@ -475,13 +530,14 @@
+}
+#define TEMP_FROM_REG(val) ((val) * 1000)
+#define TEMP_TO_REG(val) ((val) / 1000)
++#define TEMP11_FROM_REG(reg)	((reg) / 32 * 125)
+
+-static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
++static ssize_t show_temp11(struct device *dev, struct device_attribute *attr,
+		char *buf)
+{
+	int nr = to_sensor_dev_attr(attr)->index;
+	struct f75375_data *data = f75375_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
++	return sprintf(buf, "%d\n", TEMP11_FROM_REG(data->temp11[nr]));
+}
+
+static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
+@@ -577,12 +633,12 @@
+	show_in_max, set_in_max, 3);
+static SENSOR_DEVICE_ATTR(in3_min, S_IRUGO|S_IWUSR,
+	show_in_min, set_in_min, 3);
+-static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp11, NULL, 0);
+static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IRUGO|S_IWUSR,
+	show_temp_max_hyst, set_temp_max_hyst, 0);
+static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO|S_IWUSR,
+	show_temp_max, set_temp_max, 0);
+-static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
++static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp11, NULL, 1);
+static SENSOR_DEVICE_ATTR(temp2_max_hyst, S_IRUGO|S_IWUSR,
+	show_temp_max_hyst, set_temp_max_hyst, 1);
+static SENSOR_DEVICE_ATTR(temp2_max, S_IRUGO|S_IWUSR,
+@@ -660,11 +716,17 @@
+	if (!f75375s_pdata) {
+		u8 conf, mode;
+		int nr;
++		char fan_ctrl_linear;
+
+		conf = f75375_read8(client, F75375_REG_CONFIG1);
+		mode = f75375_read8(client, F75375_REG_FAN_TIMER);
+		for (nr = 0; nr < 2; nr++) {
+-			if (!(conf & (1 << FAN_CTRL_LINEAR(nr))))
++			if (data->kind = f75387)
++				fan_ctrl_linear = F75387_FAN_CTRL_LINEAR(nr);
++			else
++				fan_ctrl_linear = F75375_FAN_CTRL_LINEAR(nr);
++
++			if (!(conf & (1 << fan_ctrl_linear)))
+				data->pwm_mode[nr] = 1;
+			switch ((mode >> FAN_CTRL_MODE(nr)) & 3) {
+			case 0:		/* speed */
+@@ -763,10 +825,15 @@
+
+	vendid = f75375_read16(client, F75375_REG_VENDOR);
+	chipid = f75375_read16(client, F75375_CHIP_ID);
+-	if (chipid = 0x0306 && vendid = 0x1934)
++	if (vendid != 0x1934)
++		return -ENODEV;
++
++	if (chipid = 0x0306)
+		name = "f75375";
+-	else if (chipid = 0x0204 && vendid = 0x1934)
++	else if (chipid = 0x0204)
+		name = "f75373";
++	else if (chipid = 0x0410)
++		name = "f75387";
+	else
+		return -ENODEV;
+
+@@ -789,7 +856,7 @@
+
+MODULE_AUTHOR("Riku Voipio");
+MODULE_LICENSE("GPL");
+-MODULE_DESCRIPTION("F75373/F75375 hardware monitoring driver");
++MODULE_DESCRIPTION("F75373/F75375/F75387 hardware monitoring driver");
+
+module_init(sensors_f75375_init);
+module_exit(sensors_f75375_exit);
+diff -uNr linux-2.6.39-5patched/drivers/hwmon/Kconfig linux-2.6.39/drivers/hwmon/Kconfig
+--- linux-2.6.39-5patched/drivers/hwmon/Kconfig	2011-12-09 15:41:09.000000000 +0100
++++ linux-2.6.39/drivers/hwmon/Kconfig	2011-12-09 16:44:14.000000000 +0100
+@@ -335,11 +335,11 @@
+	  will be called f71882fg.
+
+config SENSORS_F75375S
+-	tristate "Fintek F75375S/SP and F75373"
++	tristate "Fintek F75375S/SP, F75373 and F75387"
+	depends on I2C
+	help
+	  If you say yes here you get support for hardware monitoring
+-	  features of the Fintek F75375S/SP and F75373
++	  features of the Fintek F75375S/SP, F75373 and F75387
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called f75375s.
+
 
 
 _______________________________________________
