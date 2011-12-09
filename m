@@ -1,113 +1,108 @@
-From: Charles <c@catcons.co.uk>
-Date: Sun, 18 Dec 2011 11:08:18 +0000
-Subject: Re: [lm-sensors] ASUS P8H67-V temperatures and voltages
-Message-Id: <4EEDC6D2.8020200@catcons.co.uk>
+From: Steve Sakoman <sakoman@gmail.com>
+Date: Fri, 09 Dec 2011 14:12:12 +0000
+Subject: [lm-sensors] [PATCH] omap: beagle: Don't register madc twice
+Message-Id: <CAGDS+n=zapd+aEAGnK5sUn=Vdna8Fjvsd7K9jJZQuvSZ8BsFBA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5F95FFA0E7734A8C8482C93BDC03F4C1@portable2>
-In-Reply-To: <5F95FFA0E7734A8C8482C93BDC03F4C1@portable2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>
 
-On 18/12/11 15:23, Ian Dobson wrote:
-> 
-> --------------------------------------------------
-> From: "Charles" <c@catcons.co.uk>
-> Sent: Sunday, December 18, 2011 8:50 AM
-> To: <lm-sensors@lm-sensors.org>
-> Subject: [lm-sensors] ASUS P8H67-V temperatures and voltages
-> forsensors3.conf
-> 
->> Hello :)
->>
->> In case anybody is interested in creating a sensors3.conf for this
->> motherboard, here are some temperatures and voltages from an essentially
->> idle system displayed by:
->> * BIOS
->> * ASUS AI monitoring software running on WXP
->> * GkrellM running on Linux
->>
->> BIOS and AI temperatures
->>
->>  CPU:        38-40 degrees
->>  Motherboard: 34.0 degrees
->>
->> GKrellM temperatures
->>
->>  Cores (all *.0)
->>    Core 0: 37.0 to 39.0
->>    Core 1: 39.0 to 48.0 (with a max jump of 9.0!)
->>  Others (all *.[05] except SYSTIN *.0)
->>    SYSTIN:       34.0 to 35.0
->>    CPUTIN:       83.5 to 92.5
->>    AUXTIN:       77.5 to 78.5
->>    PECI Agent 0: 39.5 to 41.0
->>
->> BIOS and AI voltages
->>
->>  Vcore:  0.944
->>  +12 V: 12.096
->>  +5V:    5.000
->>  +3.3V:  3.344
->>
->> GKrellM voltages
->>
->>  in0: 0.71 to 0.83
->>  in1: 1.01
->>  in2: 3.34
->>  in3: 3.34
->>  in4: 1.00
->>  in5: 2.04
->>  in7: 3.38 to 3.39
->>  in8: 3.34
->>  Note: in6 not displayed by GKrellM.
->>
->> Best
->>
->> Charles
->>
->> _______________________________________________
->> lm-sensors mailing list
->> lm-sensors@lm-sensors.org
->> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> Hi,
-> 
-> What does sensors from the terminal prompt show?
-> 
-> Regards
-> Ian Dobson
+Specifying TWL_COMMON_PDATA_MADC is adequate, don't also add
+platform device
 
-Thanks Ian :)
+Otherwise:
 
-It shows (with degree signs removed):
+------------[ cut here ]------------
+WARNING: at fs/sysfs/dir.c:481 sysfs_add_one+0x6c/0x8c()
+sysfs: cannot create duplicate filename
+'/bus/platform/devices/twl4030_madc_hwmon'
+Modules linked in:
+[<c0012b48>] (unwind_backtrace+0x0/0x11c) from [<c0038450>]
+(warn_slowpath_common+0x4c/0x64)
+[<c0038450>] (warn_slowpath_common+0x4c/0x64) from [<c00384e8>]
+(warn_slowpath_fmt+0x2c/0x3c)
+[<c00384e8>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01043d4>]
+(sysfs_add_one+0x6c/0x8c)
+[<c01043d4>] (sysfs_add_one+0x6c/0x8c) from [<c0104b50>]
+(sysfs_do_create_link+0xec/0x1cc)
+[<c0104b50>] (sysfs_do_create_link+0xec/0x1cc) from [<c025577c>]
+(bus_add_device+0xd4/0x158)
+[<c025577c>] (bus_add_device+0xd4/0x158) from [<c0253e08>]
+(device_add+0x378/0x560)
+[<c0253e08>] (device_add+0x378/0x560) from [<c0257a40>]
+(platform_device_add+0x140/0x1a4)
+[<c0257a40>] (platform_device_add+0x140/0x1a4) from [<c0265624>]
+(add_numbered_child+0x144/0x1a4)
+[<c0265624>] (add_numbered_child+0x144/0x1a4) from [<c02657cc>]
+(add_children+0xc4/0x808)
+[<c02657cc>] (add_children+0xc4/0x808) from [<c040df88>] (twl_probe+0x390/0x418)
+[<c040df88>] (twl_probe+0x390/0x418) from [<c02dbb9c>]
+(i2c_device_probe+0xa0/0xd4)
+[<c02dbb9c>] (i2c_device_probe+0xa0/0xd4) from [<c02561dc>]
+(driver_probe_device+0x144/0x29c)
+[<c02561dc>] (driver_probe_device+0x144/0x29c) from [<c0254f9c>]
+(bus_for_each_drv+0x4c/0x84)
+[<c0254f9c>] (bus_for_each_drv+0x4c/0x84) from [<c0255f80>]
+(device_attach+0x74/0xa0)
+[<c0255f80>] (device_attach+0x74/0xa0) from [<c0255824>]
+(bus_probe_device+0x24/0x40)
+[<c0255824>] (bus_probe_device+0x24/0x40) from [<c0253e5c>]
+(device_add+0x3cc/0x560)
+[<c0253e5c>] (device_add+0x3cc/0x560) from [<c02dc5a8>]
+(i2c_new_device+0x10c/0x1b0)
+[<c02dc5a8>] (i2c_new_device+0x10c/0x1b0) from [<c02dca04>]
+(i2c_register_adapter+0x160/0x218)
+[<c02dca04>] (i2c_register_adapter+0x160/0x218) from [<c02dcbe4>]
+(i2c_add_numbered_adapter+0x9c/0xb8)
+[<c02dcbe4>] (i2c_add_numbered_adapter+0x9c/0xb8) from [<c04106fc>]
+(omap_i2c_probe+0x2b8/0x384)
+[<c04106fc>] (omap_i2c_probe+0x2b8/0x384) from [<c025741c>]
+(platform_drv_probe+0x14/0x18)
+[<c025741c>] (platform_drv_probe+0x14/0x18) from [<c02561dc>]
+(driver_probe_device+0x144/0x29c)
+[<c02561dc>] (driver_probe_device+0x144/0x29c) from [<c0256394>]
+(__driver_attach+0x60/0x84)
+[<c0256394>] (__driver_attach+0x60/0x84) from [<c025525c>]
+(bus_for_each_dev+0x4c/0x78)
+[<c025525c>] (bus_for_each_dev+0x4c/0x78) from [<c02559c4>]
+(bus_add_driver+0xc0/0x240)
+[<c02559c4>] (bus_add_driver+0xc0/0x240) from [<c02568c0>]
+(driver_register+0xa0/0x120)
+[<c02568c0>] (driver_register+0xa0/0x120) from [<c000863c>]
+(do_one_initcall+0x90/0x160)
+[<c000863c>] (do_one_initcall+0x90/0x160) from [<c05f47b4>]
+(kernel_init+0x78/0x11c)
+[<c05f47b4>] (kernel_init+0x78/0x11c) from [<c000e918>]
+(kernel_thread_exit+0x0/0x8)
+---[ end trace 1b75b31a2719ed1c ]---
+dummy 1-004a: can't add twl4030_madc_hwmon dev
 
-nct6776-isa-0290
-Adapter: ISA adapter
-in0:           +0.78 V  (min =  +0.00 V, max =  +1.74 V)
-in1:           +1.01 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in2:           +3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in3:           +3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in4:           +1.00 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in5:           +2.04 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in7:           +3.39 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-in8:           +3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
-[snip fan speeds]
-SYSTIN:        +31.0C  (high =  +0.0C, hyst =  +0.0C)  ALARM  sensor thermistor
-CPUTIN:        +92.5C  (high = +81.0C, hyst = +76.0C)  ALARM  sensor thermistor
-AUXTIN:        +78.5C  (high = +80.0C, hyst = +75.0C)  sensor = thermistor
-PECI Agent 0:  +35.0C
-cpu0_vid:     +2.050 V
-intrusion0:   OK
-intrusion1:   ALARM
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
 
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +32.0C  (high = +82.0C, crit = +102.0C)
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+b/arch/arm/mach-omap2/board-omap3beagle.c
+index d47470e..91c1a7c 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -634,15 +634,9 @@ static struct platform_device keys_gpio = {
+ 	},
+ };
 
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:       +37.0C  (high = +82.0C, crit = +102.0C)
+-static struct platform_device madc_hwmon = {
+-	.name	= "twl4030_madc_hwmon",
+-	.id	= -1,
+-};
+-
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&keys_gpio,
+-	&madc_hwmon,
+ };
+
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
 
 _______________________________________________
 lm-sensors mailing list
