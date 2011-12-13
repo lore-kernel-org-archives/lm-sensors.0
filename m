@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 12 Dec 2011 21:42:08 +0000
+Date: Tue, 13 Dec 2011 05:58:33 +0000
 Subject: Re: [lm-sensors] unsupported intel smbus controller?
-Message-Id: <1323726128.2415.72.camel@groeck-laptop>
+Message-Id: <20111213055832.GB18715@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <19012-1323723512-333625@sneakemail.com>
 In-Reply-To: <19012-1323723512-333625@sneakemail.com>
@@ -10,36 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2011-12-12 at 15:58 -0500, yu8ehurwa2@snkmail.com wrote:
-> Running sensors-detect gives:
+On Mon, Dec 12, 2011 at 06:40:01PM -0500, yu8ehurwa2@snkmail.com wrote:
+[ ... ]
 > 
->  .
->  .
-> Do you want to probe the I2C/SMBus adapters now? (YES/no):
-> Found unknown SMBus adapter 8086:1c22 at 0000:00:1f.3.
-> Sorry, no supported PCI bus adapters found.
+> However, I have a TC74 on the SMBus (in addition to some intel gigE
+> controllers).  The TC74 doesn't seem to be detected.
 > 
+> Is there a utility that lists devices on the smbus?
 > 
-> from lspci ...
-> 00:1f.3 SMBus: Intel Corporation Cougar Point SMBus Controller (rev 05)
-> 
-> from lspci -n ...
-> 00:1f.3 0c05: 8086:1c22 (rev 05)
-> 
-> 
-> I'm running:
-> lm_sensors-3.1.1-10.el6.i686
-> 
-> 
-> How do I set about trying to add support for this controller?
-> 
-Both the current version of sensors-detect and the i2c-i801 kernel
-module support it. Try "sudo modprobe i2c-i801". If that does not help,
-you may have to upgrade to a more recent kernel.
+sensors-detect or i2cdetect.
+
+TC74 can not be auto-detected as far as I can see from the datasheet,
+and there is no driver for it.
 
 Guenter
-
-
 
 _______________________________________________
 lm-sensors mailing list
