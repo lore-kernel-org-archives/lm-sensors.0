@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 11 Dec 2011 12:49:50 +0000
+From: undersys <undersys@basstech.net>
+Date: Wed, 14 Dec 2011 23:32:38 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Fix oops on driver load
-Message-Id: <20111211134950.005e7f91@endymion.delvare>
+Message-Id: <f1dfc989-fa3c-4348-abe9-e2dc67b7f66f@basstech.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20111201110047.130190a5@endymion.delvare>
 In-Reply-To: <20111201110047.130190a5@endymion.delvare>
@@ -9,6 +9,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
+
+
+
+----- Original Message -----
+From: "Jean Delvare" <khali@linux-fr.org>
+To: undersys@basstech.net
+Cc: lm-sensors@lm-sensors.org, "Durgadoss R" <Durgadoss.r@intel.com>, "guenter roeck" <guenter.roeck@ericsson.com>
+Sent: Sunday, 11 December, 2011 8:49:50 PM
+Subject: Re: [PATCH] hwmon: (coretemp) Fix oops on driver load
 
 On Tue, 06 Dec 2011 19:50:04 +0800 (HKT), undersys wrote:
 > I would like to see the contents of /proc/cpuinfo.
@@ -57,6 +66,14 @@ regression here, thus there is nothing for me to fix.
 
 -- 
 Jean Delvare
+
+Hi Jean,
+
+No worries. Thanks for your time spent ! For now I will go back to getting the data from the IPMI card.
+It would be nice if this Xeon was oneday supported but hey :)
+
+Thanks
+
 
 _______________________________________________
 lm-sensors mailing list
