@@ -1,7 +1,7 @@
-From: Takashi Iwai <tiwai@suse.de>
-Date: Thu, 15 Dec 2011 12:31:28 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 15 Dec 2011 20:41:08 +0000
 Subject: Re: [lm-sensors] [PATCH 2/15] module_param: avoid bool abuse,
-Message-Id: <s5hk45ym2xr.wl%tiwai@suse.de>
+Message-Id: <20111215204108.GB10672@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <877h1ytu4d.fsf@rustcorp.com.au>
 In-Reply-To: <877h1ytu4d.fsf-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
@@ -9,11 +9,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Steve Glendinning <steve.glendinning-sdUf+H5yV5I@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Guenter Roeck <guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, Anton Altaparmakov <anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Steve Glendinning <steve.glendinning-sdUf+H5yV5I@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <linux390-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Anton Altaparmakov <anton-yrGDUoBaLx3QT0dZR+AlfA@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <linux-ntfs-dev-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org" <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>
 
-At Thu, 15 Dec 2011 13:32:26 +1030,
-Rusty Russell wrote:
-> 
+On Wed, Dec 14, 2011 at 10:02:26PM -0500, Rusty Russell wrote:
 > For historical reasons, we allow module_param(bool) to take an int (or
 > an unsigned int).  That's going away.
 > 
@@ -39,20 +37,6 @@ Rusty Russell wrote:
 > Cc: Anton Altaparmakov <anton@tuxera.com>
 > Cc: Jaroslav Kysela <perex@perex.cz>
 > Cc: Takashi Iwai <tiwai@suse.de>
-
-For the sound part,
-
-  Acked-by: Takashi Iwai <tiwai@suse.de>
-
-It's a nice feature.  I know many drivers can be replaced with bint
-gracefully now (e.g. i915 driver).
-
-
-thanks,
-
-Takashi
-
-
 > Cc: lm-sensors@lm-sensors.org
 > Cc: linux-rdma@vger.kernel.org
 > Cc: linux-s390@vger.kernel.org
@@ -61,6 +45,11 @@ Takashi
 > Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
 > ---
 >  drivers/hwmon/emc2103.c                |    2 +-
+
+For the hwmon driver:
+
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+
 >  drivers/infiniband/hw/ehca/ehca_main.c |    2 +-
 >  drivers/s390/cio/cmf.c                 |    2 +-
 >  fs/ntfs/super.c                        |    2 +-
@@ -186,7 +175,11 @@ Takashi
 >  MODULE_PARM_DESC(inside_vm, "KVM/Parallels optimization.");
 >  
 >  /* just for backward compatibility */
-> 
+
+-- 
+Guenter Roeck
+Distinguished Engineer
+PDU IP Systems
 
 _______________________________________________
 lm-sensors mailing list
