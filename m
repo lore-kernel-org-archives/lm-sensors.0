@@ -1,25 +1,80 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 08 Dec 2011 14:21:09 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: jz4740: Staticise
-Message-Id: <20111208142109.GB8163@ericsson.com>
+From: "Ian Dobson" <i.dobson@planet-ian.com>
+Date: Sun, 18 Dec 2011 09:53:33 +0000
+Subject: Re: [lm-sensors] ASUS P8H67-V temperatures and voltages
+Message-Id: <5F95FFA0E7734A8C8482C93BDC03F4C1@portable2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1323351217.3398.0.camel@phoenix>
-In-Reply-To: <1323351217.3398.0.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Axel Lin <axel.lin@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 08, 2011 at 08:33:37AM -0500, Axel Lin wrote:
-> It is not used outside this driver so no need to make the symbol global.
-> 
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-Applied.
+--------------------------------------------------
+From: "Charles" <c@catcons.co.uk>
+Sent: Sunday, December 18, 2011 8:50 AM
+To: <lm-sensors@lm-sensors.org>
+Subject: [lm-sensors] ASUS P8H67-V temperatures and voltages 
+forsensors3.conf
 
-Thanks,
-Guenter
+> Hello :)
+>
+> In case anybody is interested in creating a sensors3.conf for this
+> motherboard, here are some temperatures and voltages from an essentially
+> idle system displayed by:
+> * BIOS
+> * ASUS AI monitoring software running on WXP
+> * GkrellM running on Linux
+>
+> BIOS and AI temperatures
+>
+>  CPU:        38-40 degrees
+>  Motherboard: 34.0 degrees
+>
+> GKrellM temperatures
+>
+>  Cores (all *.0)
+>    Core 0: 37.0 to 39.0
+>    Core 1: 39.0 to 48.0 (with a max jump of 9.0!)
+>  Others (all *.[05] except SYSTIN *.0)
+>    SYSTIN:       34.0 to 35.0
+>    CPUTIN:       83.5 to 92.5
+>    AUXTIN:       77.5 to 78.5
+>    PECI Agent 0: 39.5 to 41.0
+>
+> BIOS and AI voltages
+>
+>  Vcore:  0.944
+>  +12 V: 12.096
+>  +5V:    5.000
+>  +3.3V:  3.344
+>
+> GKrellM voltages
+>
+>  in0: 0.71 to 0.83
+>  in1: 1.01
+>  in2: 3.34
+>  in3: 3.34
+>  in4: 1.00
+>  in5: 2.04
+>  in7: 3.38 to 3.39
+>  in8: 3.34
+>  Note: in6 not displayed by GKrellM.
+>
+> Best
+>
+> Charles
+>
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Hi,
+
+What does sensors from the terminal prompt show?
+
+Regards
+Ian Dobson 
+
 
 _______________________________________________
 lm-sensors mailing list
