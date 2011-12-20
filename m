@@ -1,27 +1,27 @@
-From: Kyle Manna <kyle.manna@fuel7.com>
-Date: Fri, 09 Dec 2011 06:38:01 +0000
-Subject: Re: [lm-sensors] [PATCH RFC] mfd: twl4030-madc: Enable ADC channels
-Message-Id: <4EE1ACC9.5000404@fuel7.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 20 Dec 2011 10:04:43 +0000
+Subject: [lm-sensors] Experimental git clone of lm-sensors repository on
+Message-Id: <20111220100443.GA7961@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAGDS+n=QJNjCyfQ2zvPweC=aBDWt=n+y1ccgTAafqJCYt991yg@mail.gmail.com>
-In-Reply-To: <CAGDS+n=QJNjCyfQ2zvPweC=aBDWt=n+y1ccgTAafqJCYt991yg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org, Keerthy <j-keerthy@ti.com>
+To: lm-sensors@vger.kernel.org
 
-On 12/08/2011 05:13 PM, Steve Sakoman wrote:
-> Currently the driver does not explicitly set the TWL4030_USB_SEL_MADC_MCPC
-> bit to enable madc input channels 3 through 6.  This results in readings near
-> zero for these channels since the inputs are grounded if this bit is not set.
+Hi all,
 
-I've run into this same problem and have fixed it the same way, looks 
-good to me.
+In case anyone is interested, I created an experimental git clone of the lm-sensors
+repository at git://github.com/groeck/lm-sensors.git.
 
-Reviewed-by: Kyle Manna <kyle@kylemanna.com>
+It should be an exact match of the svn repository, except there is an additional
+"staging" branch. It includes experimental code which is not yet available in the
+svn repository.
 
-- Kyle
+I'll try to keep it up to date, though there may be a lag once in a while. Also, it may
+end up being re-created and/or rebased a couple of times if/when I find the identities
+of additional committers in the svn repository.
+
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
