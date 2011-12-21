@@ -1,32 +1,142 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 06 Dec 2011 15:21:25 +0000
-Subject: Re: [lm-sensors] Kernel module asus_atk0110
-Message-Id: <CAKPcRGpKwbj_HwEFOc6Ts1YR9nU2R5zGNBgaTKbjsp0+D+M7aw@mail.gmail.com>
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Date: Wed, 21 Dec 2011 12:11:57 +0000
+Subject: [lm-sensors] [RFC PATCH 2/3] thermal: exynos4: Register the tmu
+Message-Id: <1324468798-20423-3-git-send-email-amit.kachhap@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4EDA27AA.7030203@catcons.co.uk>
-In-Reply-To: <4EDA27AA.7030203@catcons.co.uk>
+References: <1324468798-20423-1-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <1324468798-20423-1-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
+Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 
-On Mon, Dec 5, 2011 at 5:04 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> On Mon, 5 Dec 2011 16:28:19 +0100, Luca Tettamanti wrote:
-[cut]
->> Anyway, the board does not expose a monitoring framework :-(
->
-> But it exposes a register map (HWRE)... Might this be used to access
-> the hardware monitoring chip without interfering with ACPI?
+Export and register information from the hwmon tmu sensor to the samsung
+exynos kernel thermal framework where different cooling devices and thermal
+zone are binded. The exported information is based according to the data
+structure thermal_sensor_conf present in exynos_thermal.h. HWMON sysfs
+functions are currently left although all of them are present in generic
+linux thermal layer.
+Also the platform data structure is modified to pass frequency cooling
+in percentages for each thermal level.
 
-Not directly: other boards had read/write methods with byte
-granularity that could be exploited to jury rig a native driver to
-access the hardware via ACPI. In this case there are no such methods,
-the only option that I see would be injecting new methods into the
-DSDT and use those; it can be done but it's a bit... distasteful ;-)
-And fragile.
-I wonder that ASUS does under Windows...
+Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+---
+ drivers/hwmon/exynos4_tmu.c               |   34 ++++++++++++++++++++++++++--
+ include/linux/platform_data/exynos4_tmu.h |    7 ++++++
+ 2 files changed, 38 insertions(+), 3 deletions(-)
 
-Luca
+diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+index f2359a0..6912a7f 100644
+--- a/drivers/hwmon/exynos4_tmu.c
++++ b/drivers/hwmon/exynos4_tmu.c
+@@ -37,6 +37,9 @@
+ #include <linux/hwmon-sysfs.h>
+ 
+ #include <linux/platform_data/exynos4_tmu.h>
++#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
++#include <linux/exynos_thermal.h>
++#endif
+ 
+ #define EXYNOS4_TMU_REG_TRIMINFO	0x0
+ #define EXYNOS4_TMU_REG_CONTROL		0x20
+@@ -248,10 +251,13 @@ static void exynos4_tmu_work(struct work_struct *work)
+ 
+ 	kobject_uevent(&data->hwmon_dev->kobj, KOBJ_CHANGE);
+ 
+-	enable_irq(data->irq);
+ 
+ 	clk_disable(data->clk);
+ 	mutex_unlock(&data->lock);
++#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
++	exynos4_report_trigger();
++#endif
++	enable_irq(data->irq);
+ }
+ 
+ static irqreturn_t exynos4_tmu_irq(int irq, void *id)
+@@ -345,6 +351,14 @@ static const struct attribute_group exynos4_tmu_attr_group = {
+ 	.attrs = exynos4_tmu_attributes,
+ };
+ 
++#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
++static struct thermal_sensor_conf exynos4_sensor_conf = {
++	.name			= "exynos4-therm",
++	.read_temperature	= (int (*)(void *))exynos4_tmu_read,
++};
++#endif
++/*CONFIG_SAMSUNG_THERMAL_INTERFACE*/
++
+ static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
+ {
+ 	struct exynos4_tmu_data *data;
+@@ -432,9 +446,20 @@ static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	exynos4_tmu_control(pdev, true);
+-
++#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
++	(&exynos4_sensor_conf)->private_data = data;
++	(&exynos4_sensor_conf)->sensor_data = pdata;
++	ret = exynos4_register_thermal(&exynos4_sensor_conf);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to register thermal interface\n");
++		goto err_hwmon_device;
++	}
++#endif
+ 	return 0;
+-
++#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
++err_hwmon_device:
++	hwmon_device_unregister(data->hwmon_dev);
++#endif
+ err_create_group:
+ 	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
+ err_clk:
+@@ -458,6 +483,9 @@ static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
+ 
+ 	exynos4_tmu_control(pdev, false);
+ 
++#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
++	exynos4_unregister_thermal();
++#endif
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
+ 
+diff --git a/include/linux/platform_data/exynos4_tmu.h b/include/linux/platform_data/exynos4_tmu.h
+index 39e038c..642c508 100644
+--- a/include/linux/platform_data/exynos4_tmu.h
++++ b/include/linux/platform_data/exynos4_tmu.h
+@@ -21,6 +21,7 @@
+ 
+ #ifndef _LINUX_EXYNOS4_TMU_H
+ #define _LINUX_EXYNOS4_TMU_H
++#include <linux/cpu_cooling.h>
+ 
+ enum calibration_type {
+ 	TYPE_ONE_POINT_TRIMMING,
+@@ -64,6 +65,9 @@ enum calibration_type {
+  *	in the positive-TC generator block
+  *	0 <= reference_voltage <= 31
+  * @cal_type: calibration type for temperature
++ * @freq_pctg_table: Table representing frequency reduction percentage.
++ * @freq_tab_count: Count of the above table as frequency reduction may
++ *	applicable to only some of the trigger levels.
+  *
+  * This structure is required for configuration of exynos4_tmu driver.
+  */
+@@ -79,5 +83,8 @@ struct exynos4_tmu_platform_data {
+ 	u8 reference_voltage;
+ 
+ 	enum calibration_type cal_type;
++
++	struct freq_pctg_table freq_tab[4];
++	unsigned int freq_tab_count;
+ };
+ #endif /* _LINUX_EXYNOS4_TMU_H */
+-- 
+1.7.1
+
 
 _______________________________________________
 lm-sensors mailing list
