@@ -1,45 +1,41 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 09 Jan 2012 01:48:36 +0000
-Subject: Re: [lm-sensors] [PATCH 17/17 v3] hwmon: (i5k_amb) fix checkpatch
-Message-Id: <20120109014836.GA25268@ericsson.com>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Mon, 02 Jan 2012 11:03:20 +0000
+Subject: [lm-sensors] [PATCH 1/4] drivers/hwmon/ltc4261: set data->valid to
+Message-Id: <1325502203-10525-1-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326047660-20539-17-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1326047660-20539-17-git-send-email-fransmeulenbroeks@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 08, 2012 at 01:34:20PM -0500, Frans Meulenbroeks wrote:
-> fixed:
-> WARNING: simple_strtoul is obsolete, use kstrtoul instead
-> #162: FILE: i5k_amb.c:162:
-> +	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-> 
-> WARNING: simple_strtoul is obsolete, use kstrtoul instead
-> #178: FILE: i5k_amb.c:178:
-> +	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-> 
-> WARNING: simple_strtoul is obsolete, use kstrtoul instead
-> #194: FILE: i5k_amb.c:194:
-> +	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-> 
-> total: 0 errors, 3 warnings, 609 lines checked
-> 
-> i5k_amb.c has style problems, please review.
-> 
-> If any of these errors are false positives, please report
-> them to the maintainer, see CHECKPATCH in MAINTAINERS.
-> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-> ---
+if there is an error it is better to set data->valid to 0
+so the next call to ltc4261_update_device will always be
+executed
 
-Hi Frans,
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+patch is against the hwmon staging tree
+git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git
+as retrieved on jan 2, 2012
 
-I applied the entire series. I'll have to wait until the commit window closes
-before I can push it to my kernel.org repository. For now, the up-to-date
-repository is available at git://github.com/groeck/linux.git (branch hwmon or hwmon-next).
+ drivers/hwmon/ltc4261.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Guenter
+diff --git a/drivers/hwmon/ltc4261.c b/drivers/hwmon/ltc4261.c
+index 4b50601..ce52355 100644
+--- a/drivers/hwmon/ltc4261.c
++++ b/drivers/hwmon/ltc4261.c
+@@ -85,6 +85,7 @@ static struct ltc4261_data *ltc4261_update_device(struct device *dev)
+ 					"Failed to read ADC value: error %d\n",
+ 					val);
+ 				ret = ERR_PTR(val);
++				data->valid = 0;
+ 				goto abort;
+ 			}
+ 			data->regs[i] = val;
+-- 
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
