@@ -1,126 +1,192 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 21:20:10 +0000
-Subject: Re: [lm-sensors] [PATCH] x86/platform: (TS-5500) revised ADC driver
-Message-Id: <1327440010.2649.204.camel@groeck-laptop>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Mon, 02 Jan 2012 11:03:23 +0000
+Subject: [lm-sensors] [PATCH 4/4] drivers/hwmon/lm80: fix line exceeds
+Message-Id: <1325502203-10525-4-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326930731-21215-5-git-send-email-vivien.didelot@savoirfairelinux.com>
-	 <1327103002-5834-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-	 <20120121044631.GA4143@ericsson.com>	<20120122203619.22fabe79@lenov0n>
-	 <20120123043645.GA14660@ericsson.com>	<20120123155408.7d52e4da@v0nbox>
-	 <20120123173551.309af2eb@v0nbox>	<20120124004138.GA20363@ericsson.com>
-	 <20120124151616.5723934b@v0nbox>
-In-Reply-To: <20120124151616.5723934b@v0nbox>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Cc: "khali@linux-fr.org" <khali@linux-fr.org>, "x86@kernel.org" <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCAyMDEyLTAxLTI0IGF0IDE1OjE2IC0wNTAwLCBWaXZpZW4gRGlkZWxvdCB3cm90ZToK
-PiBMZSBNb24sIDIzIEphbiAyMDEyIDE2OjQxOjM4IC0wODAwLAo+IEd1ZW50ZXIgUm9lY2sgPGd1
-ZW50ZXIucm9lY2tAZXJpY3Nzb24uY29tPiBhIMOpY3JpdCA6Cj4gCj4gPiBPbiBNb24sIEphbiAy
-MywgMjAxMiBhdCAwNTozNTo1MVBNIC0wNTAwLCBWaXZpZW4gRGlkZWxvdCB3cm90ZToKPiA+ID4g
-T24gTW9uLCAyMyBKYW4gMjAxMiAxNTo1NDowOCAtMDUwMCwKPiA+ID4gVml2aWVuIERpZGVsb3Qg
-PHZpdmllbi5kaWRlbG90QHNhdm9pcmZhaXJlbGludXguY29tPiB3cm90ZToKPiA+ID4gCj4gPiA+
-ID4gT24gU3VuLCAyMiBKYW4gMjAxMiAyMDozNjo0NiAtMDgwMCwKPiA+ID4gPiBHdWVudGVyIFJv
-ZWNrIDxndWVudGVyLnJvZWNrQGVyaWNzc29uLmNvbT4gd3JvdGU6IAo+ID4gPiA+ID4gPiA+IFJl
-Z2FyZGluZyB0aGUgbG9jYXRpb24sIEknZCByZWFsbHkgbGlrZSB0byBrbm93IGZyb20gdGhlCj4g
-PiA+ID4gPiA+ID4gcG93ZXJzLXRoYXQtYmUgaWYgYXJjaC94ODYvcGxhdGZvcm0vdHM1NTAwLwo+
-ID4gPiA+ID4gPiA+IG9yCj4gPiA+ID4gPiA+ID4gCWRyaXZlcnMvcGxhdGZvcm0veDg2Cj4gPiA+
-ID4gPiA+ID4gb3IKPiA+ID4gPiA+ID4gPiAJZHJpdmVycy9od21vbgo+ID4gPiA+ID4gPiA+IAo+
-ID4gPiA+ID4gPiA+IHdvdWxkIGJlIHRoZSBhcHByb3ByaWF0ZSBsb2NhdGlvbiBmb3IgYSBkcml2
-ZXIgbGlrZSB0aGlzLiBBcwo+ID4gPiA+ID4gPiA+IG1lbnRpb25lZCBiZWZvcmUsIG15IHN0cm9u
-ZyBwcmVmZXJlbmNlIGlzIGRyaXZlcnMvaHdtb24sCj4gPiA+ID4gPiA+ID4gYnV0IEkgd291bGQg
-bGlrZSB0byBoZWFyIGZyb20gb3RoZXJzLgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gV2Ugc2hv
-dWxkIGVpdGhlciBzcGxpdCBldmVyeSBkcml2ZXIgaW50byBjb3JyZXNwb25kaW5nCj4gPiA+ID4g
-PiA+IHN1YmRpcmVjdG9yaWVzLCBvciBwdXQgZXZlcnl0aGluZyBpbiBhIGNvbW1vbiBwbGF0Zm9y
-bQo+ID4gPiA+ID4gPiBkaXJlY3RvcnkuIE15IGZpcnN0IFJGQyBwYXRjaGVzIHNldCBoYXMgZXZl
-cnkgZHJpdmVyCj4gPiA+ID4gPiA+IHNlcGFyYXRlZC4gQXMgdGhleSBhcmUgcmVhbGx5IHNwZWNp
-ZmljIHRvIHRoZSBwbGF0Zm9ybSwKPiA+ID4gPiA+ID4gcGVvcGxlIHNlZW0gdG8gYWdyZWUgd2l0
-aCBncm91cGluZyB0aGVtLCBtYWlubHkgYmVjYXVzZSB0aGV5Cj4gPiA+ID4gPiA+IHdvbid0IGJl
-IHNoYXJlZC4gSSBjaGFuZ2VkIHRoYXQgaW4gdGhlIGZvbGxvd2luZyBwYXRjaGVzCj4gPiA+ID4g
-PiA+IHNldHMsIGFuZCBYODYgbWFpbnRhaW5lcnMgc2VlbWVkIHRvIGJlIG9rIHdpdGggdGhhdC4K
-PiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IEknbSBvayB3aXRoIGJvdGggc29sdXRpb25zLCBidXQg
-d2Ugc2hvdWxkIGFsbCBhZ3JlZSBvbiBvbmUuCj4gPiA+ID4gPiA+IE1heWJlIHdlIHNob3VsZCBo
-YXZlIG90aGVyIG1haW50YWluZXJzIHZpZXcgb24gdGhpcz8KPiA+ID4gPiA+ID4gCj4gPiA+ID4g
-PiBUaGF0IGlzIHdoYXQgSSBoYWQgYXNrZWQgZm9yLiBJIHRob3VnaHQgdGhlIHdob2xlIHBvaW50
-IG9mCj4gPiA+ID4gPiBwZXItbW9kdWxlIGRpcmVjdG9yaWVzIHdhcyB0byBoYXZlIGFsbCBkcml2
-ZXJzIHRoZXJlLiBJZiB0aGF0Cj4gPiA+ID4gPiBpcyBubyBsb25nZXIgdHJ1ZSwgZmluZSB3aXRo
-IG1lOyB3aG8gYW0gSSB0byBhcmd1ZSBhYm91dAo+ID4gPiA+ID4gc29tZXRoaW5nIGxpa2UgdGhh
-dC4gSSdkIGp1c3QgbGlrZSB0byBrbm93Lgo+ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gQWxzbywg
-SSBhbSBub3Qgc3VyZSBpZiB0aGUgY3VycmVudCBhcHByb2FjaCBpcyBhcHByb3ByaWF0ZQo+ID4g
-PiA+ID4gPiA+IHRvIHN0YXJ0IHdpdGguIExvb2tpbmcgYXQgdGhlIGRhdGFzaGVldCBhcyB3ZWxs
-IGFzIGludG8KPiA+ID4gPiA+ID4gPiBleGlzdGluZyBrZXJuZWwgY29kZSwgaXQgYXBwZWFycyBx
-dWl0ZSBsaWtlbHkgdGhhdCBzb21lCj4gPiA+ID4gPiA+ID4ga2luZCBvZiBtb3JlIG9yIGxlc3Mg
-Z2VuZXJpYyBNQVgxOTcgZHJpdmVyIGV4aXN0cwo+ID4gPiA+ID4gPiA+IHNvbWV3aGVyZS4gVGhl
-IGV4aXN0ZW5jZSBvZiBpc19tYXgxOTdfaW5zdGFsbGVkKCkgLSB3aXRob3V0Cj4gPiA+ID4gPiA+
-ID4gYW55IGNhbGxpbmcgY29kZSAtIGlzIGEgc3Ryb25nIGluZGljYXRpb24gdGhhdCB0aGlzIGlz
-IHRoZQo+ID4gPiA+ID4gPiA+IGNhc2UsIGFzIHdlbGwgYXMgdGhlICJzdGF0aWMiIHBsYXRmb3Jt
-IGRhdGEgaW4geW91cgo+ID4gPiA+ID4gPiA+IG9yaWdpbmFsIHBhdGNoLiBJdCBtaWdodCBiZSBt
-b3JlIGFwcHJvcHJpYXRlIHRvIHRha2UgdGhpcwo+ID4gPiA+ID4gPiA+IG1vcmUgb3IgbGVzcyBn
-ZW5lcmljIGRyaXZlciwgbW92ZSBpdCB0byBkcml2ZXJzL2h3bW9uLCBhbmQKPiA+ID4gPiA+ID4g
-PiBwcm92aWRlIC0gZm9yIGV4YW1wbGUgdGhyb3VnaCBwbGF0Zm9ybSBkYXRhIC0gYSBtZWFucyB0
-bwo+ID4gPiA+ID4gPiA+IHJlYWQgZnJvbSBhbmQgd3JpdGUgdG8gdGhlIGNoaXAgb24gYSBwZXIt
-cGxhdGZvcm0gYmFzaXMsIGllCj4gPiA+ID4gPiA+ID4gd2l0aCBwZXItcGxhdGZvcm0gYWNjZXNz
-IGZ1bmN0aW9ucy4KPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFlvdSdyZSByaWdodCwgaXQgc2hv
-dWxkIGJlIHBvc3NpYmxlIHRvIGNyZWF0ZSBhIGdlbmVyaWMgbWF4MTk3Cj4gPiA+ID4gPiA+IGRy
-aXZlciBhbmQgcHJvdmlkZSByZWFkL3dyaXRlIGZ1bmN0aW9ucyB0aHJvdWdoIHBsYXRmb3JtCj4g
-PiA+ID4gPiA+IGRhdGEuIEJ1dCB3ZSBkb24ndCBoYXZlIGEgbWF4MTk3IHJpZ2h0IG5vdy4uLiBT
-byBpdCBjYW4gc3RheQo+ID4gPiA+ID4gPiBhcyBhIGNvbXBhY3QgVFMtNTUwMCBBREMgZHJpdmVy
-IGZvciB0aGUgbW9tZW50LCBhbmQgbWF5YmUgd2UKPiA+ID4gPiA+ID4gd2lsbCBzcGxpdCBsYXRl
-ci4gV2hhdCBkbyB5b3UgdGhpbms/Cj4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gSSBhbSBsb3N0LiBJ
-ZiB5b3UgZG9uJ3QgaGF2ZSBhIFRTLTU1MDAgd2l0aCBtYXgxOTcsIGhvdyBkbyB5b3UKPiA+ID4g
-PiA+IHRlc3QgdGhlIGRyaXZlciA/Cj4gPiA+ID4gCj4gPiA+ID4gU29ycnksIEkgd2Fzbid0IGNs
-ZWFyLiBJIG1lYW50IHRoZSBvbmx5IG1heDE5NyBJIGhhdmUgaXMgdGhlIG9uZQo+ID4gPiA+IGJl
-aGluZCB0aGUgVFMtNTUwMCBDUExELCBJIGRvbid0IGhhdmUgYW55IG90aGVycyB0byB0ZXN0Cj4g
-PiA+ID4gaW5kZXBlbmRlbnRseS4KPiA+ID4gPiAKPiA+ID4gPiA+IEkgaGFkIGFub3RoZXIgbG9v
-ayBpbnRvIHRoZSBNQVgxOTcgYW5kIFRTLTU1MDAgZGF0YSBzaGVldHMuIEluCj4gPiA+ID4gPiBt
-eSBvcGluaW9uLCBhIGdlbmVyaWMgTUFYMTk3IGRyaXZlciBpbiBkcml2ZXJzL2h3bW9uIGNvbWJp
-bmVkCj4gPiA+ID4gPiB3aXRoIGEgcGxhdGZvcm0gZHJpdmVyIGluIHRoZSBjdXJyZW50IGxvY2F0
-aW9uIHdvdWxkIGJlIHRoZSB3YXkKPiA+ID4gPiA+IHRvIGdvLiBUaGF0IGRyaXZlciB3b3VsZCB0
-aGVuIGFsc28gd29yayBmb3IgdGhlIG90aGVyIFRTLTV4MDAKPiA+ID4gPiA+IHN5c3RlbXMuIEFs
-bCB5b3UgbmVlZCBpcyBhIHNpbmdsZSBjaGlwIGFjY2VzcyBmdW5jdGlvbiBpbiB0aGUKPiA+ID4g
-PiA+IHBsYXRmb3JtIGNvZGUsIHNpbmNlIHRoZSBjaGlwIGlzIGFsd2F5cyBhY2Nlc3NlZCB3aXRo
-IGEgd3JpdGUKPiA+ID4gPiA+IGZvbGxvd2VkIGJ5IGEgcmVhZC4KPiA+ID4gPiAKPiA+ID4gPiBJ
-IHRvb2sgYSBkZWVwZXIgbG9vayBhdCB0aGUgZGF0YXNoZWV0cywgYW5kIHlvdSdyZSByaWdodCwg
-YSBNQVgxOTcKPiA+ID4gPiBkcml2ZXIgc2VlbXMgdG8gYmUgYSBnb29kIGNob2ljZS4gSG93ZXZl
-ciwgdGhlcmUgYXJlIGEgbnVtYmVyIG9mCj4gPiA+ID4gZGlmZmVyZW5jZXMgYmV0d2VlbiBhIGRp
-cmVjdCB1c2FnZSBvZiBhIE1BWDE5NyBhbmQgdGhlIFRTLTU1MDAKPiA+ID4gPiBtYXBwZWQgTUFY
-MTk3Lgo+ID4gPiA+IAo+ID4gPiA+IFRvIHN0YXJ0IGEgY29udmVyc2lvbiBvZiBhIGNoYW5uZWwg
-Zm9yIGEgZ2l2ZW4gcmFuZ2UgYW5kCj4gPiA+ID4gcG9sYXJpdHksIGl0IGNvbnNpc3RzIG9uIGJv
-dGggc2lkZXMgb2YgYSB1OCBvdXRiKCkgY2FsbCBvbiBwaW5zCj4gPiA+ID4gNy0xNCAoaS5lLiBi
-aXRzIEQ3LUQwKS4gVG8gYmUgbm90aWZpZWQgd2hlbiB0aGUgcmVzdWx0IGlzIHJlYWR5LAo+ID4g
-PiA+IHdlIGNhbiBlaXRoZXIgc2V0IGFuIElSUSBvbiBJTlQgcGluIChmYWxsaW5nIGVkZ2UpLCBv
-ciBwb2xsIGl0Lgo+ID4gPiA+IFRoZW4gb24gdGhlIE1BWDE5NywgeW91IHJlYWQgdGhlIHBpbnMg
-Ny0xNCwgc2V0IHBpbiBIQkVOIHRvIDEsIGFuZAo+ID4gPiA+IHJlYWQgdGhlIHNhbWUgcGlucyBh
-Z2FpbiB0byBnZXQgdGhlIDQgcmVtYWluaW5nIGJpdHMuIE9uIHRoZQo+ID4gPiA+IFRTLTU1MDAs
-IG9ubHkgcG9sbGluZyBpcyBhdmFpbGFibGUsIGFuZCB0aGUgMTIgYml0cyBhcmUgbWFwcGVkIG9u
-Cj4gPiA+ID4gMiByZWdpc3RlcnMuCj4gPiA+ID4gCj4gPiA+ID4gSSBwcm9wb3NlIHRvIHdyaXRl
-IGEgbWF4MTk3IGRyaXZlciB3aXRoIGRlZmF1bHQgcmVhZCBhbmQgd3JpdGUKPiA+ID4gPiBmdW5j
-dGlvbnMuIEEgcGxhdGZvcm1fZGF0YSB3aWxsIGJlIHVzZWQgdG8gc3BlY2lmeSB0aGUgYmFzZQo+
-ID4gPiA+IGFkZHJlc3MgKHBpbnMgNy0xNCksIGFuZCBldmVudHVhbGx5IGEgY3VzdG9tIHJlYWQg
-ZnVuY3Rpb24KPiA+ID4gPiBwb2ludGVyLCB3aGljaCB3aWxsIGJlIHVzZWQgaW5zdGVhZCBvZiB0
-aGUgZGVmYXVsdCBvbmUgaWYgaXQgaXMKPiA+ID4gPiBkaWZmZXJlbnQgb2YgTlVMTC4KPiA+ID4g
-PiAKPiA+ID4gPiBXaGF0IGRvIHlvdSB0aGluaz8KPiA+ID4gPiAKPiA+ID4gPiBJIHdpbGwgd3Jp
-dGUgYSBtYXgxOTcgZHJpdmVyIHdpdGggZGVmYXVsdCByZWFkIGFuZCB3cml0ZQo+ID4gPiA+IGZ1
-bmN0aW9ucy4gQSBwbGF0Zm9ybV9kYXRhIHdpbGwgYmUgdXNlZCB0byBzcGVjaWZ5IHRoZSBiYXNl
-Cj4gPiA+ID4gYWRkcmVzcyAocGlucyA3LTE0KSwgYW5kIGV2ZW50dWFsbHkgYSBjdXN0b20gcmVh
-ZCBmdW5jdGlvbgo+ID4gPiA+IHBvaW50ZXIsIHdoaWNoIHdpbGwgYmUgdXNlZCBpbnN0ZWFkIG9m
-IHRoZSBkZWZhdWx0LCBpZiBpdCBpcyBub3QKPiA+ID4gPiBOVUxMLgo+ID4gPiA+IAo+ID4gPiA+
-IFdoYXQgZG8geW91IHRoaW5rPyAKPiA+ID4gCj4gPiBTb3VuZHMgbGlrZSBhIHBsYW4gdG8gbWUu
-Cj4gPiAKPiA+ID4gU29ycnkgZm9yIHRoZSBkdXBsaWNhdGUgOikKPiA+ID4gCj4gPiA+IEJUVywg
-SSd2ZSBhZGRlZCBKZWFuIERlbHZhcmUgYW5kIHRoZSBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdCBp
-biBDYywKPiA+ID4gaW4gY2FzZSB0aGV5IGhhdmUgYW4gb3BpbmlvbiBvbiB0aGlzLgo+ID4gPiAK
-PiA+IAo+ID4gVGhhbmtzLAo+ID4gR3VlbnRlcgo+IAo+IEhpIEd1ZW50ZXIsCj4gCj4gVGhlcmUn
-cyBhbm90aGVyIGRpc2FkdmFudGFnZSB3aXRoIHRoZSBnZW5lcmljIGRyaXZlci4KPiBVc3VhbGx5
-LCB0aGUgTUFYMTk3IGlzIG1lbW9yeSBtYXBwZWQsIGJ1dCBvbiB0aGUgVFMtNTUwMCwgdGhlIENQ
-TEQgaXMKPiBwb3J0IG1hcHBlZCwgc28gZXZlbiB0aGUgd3JpdGUgZnVuY3Rpb24gd291bGQgYmUg
-ZGlmZmVyZW50Lgo+IEl0IHNvdW5kcyBsaWtlIHRoZSBhbW91bnQgb2YgcmV1c2FibGUgbGluZXMg
-b2YgY29kZSBpcyBub3QgdGhhdAo+IHNpZ25pZmljYW50Lgo+IAo+IERvIHlvdSB0aGluayBpdCBp
-cyBzdGlsbCB3b3J0aHdoaWxlPwoKUG9pbnRzIHRvIGEgcGxhdGZvcm0gc3BlY2lmaWMgYWNjZXNz
-IGZ1bmN0aW9uLCBhcyBJIGhhZCBzdWdnZXN0ZWQKZWFybGllci4gVGhlIGFjY2VzcyBmdW5jdGlv
-biBpcyBqdXN0IGEgc21hbGwgcGFydCBvZiB0aGUgZHJpdmVyOyB0aGUKZW50aXJlIGh3bW9uL3N5
-c2ZzIGNvZGUgaXMgZ2VuZXJpYy4gWWVzLCBJIHRoaW5rIGl0IGlzIHdvcnRod2hpbGUuCgpHdWVu
-dGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
-LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
-c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+as reported by cleanfile
+
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+patch is against the hwmon staging tree
+git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git
+as retrieved on jan 2, 2012
+
+ drivers/hwmon/lm80.c |   65 ++++++++++++++++++++++++++++++--------------------
+ 1 files changed, 39 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
+index 5283b27..496bb30 100644
+--- a/drivers/hwmon/lm80.c
++++ b/drivers/hwmon/lm80.c
+@@ -32,8 +32,8 @@
+ #include <linux/mutex.h>
+ 
+ /* Addresses to scan */
+-static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+-						0x2e, 0x2f, I2C_CLIENT_END };
++static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c,
++					0x2d, 0x2e, 0x2f, I2C_CLIENT_END };
+ 
+ /* Many LM80 constants specified below */
+ 
+@@ -93,12 +93,12 @@ static inline long TEMP_FROM_REG(u16 temp)
+ 	return res / 10;
+ }
+ 
+-#define TEMP_LIMIT_FROM_REG(val)	(((val)>0x80?(val)-0x100:(val))*1000)
++#define TEMP_LIMIT_FROM_REG(val) (((val)>0x80?(val)-0x100:(val))*1000)
+ 
+-#define TEMP_LIMIT_TO_REG(val)		SENSORS_LIMIT((val)<0?\
+-					((val)-500)/1000:((val)+500)/1000,0,255)
++#define TEMP_LIMIT_TO_REG(val)	SENSORS_LIMIT((val)<0?\
++				((val)-500)/1000:((val)+500)/1000,0,255)
+ 
+-#define DIV_FROM_REG(val)		(1 << (val))
++#define DIV_FROM_REG(val)	(1 << (val))
+ 
+ /*
+  * Client data (each client gets its own)
+@@ -164,7 +164,8 @@ static struct i2c_driver lm80_driver = {
+  */
+ 
+ #define show_in(suffix, value) \
+-static ssize_t show_in_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
++static ssize_t show_in_##suffix(struct device *dev, \
++	struct device_attribute *attr, char *buf) \
+ { \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct lm80_data *data = lm80_update_device(dev); \
+@@ -177,8 +178,8 @@ show_in(max, in_max)
+ show_in(input, in)
+ 
+ #define set_in(suffix, value, reg) \
+-static ssize_t set_in_##suffix(struct device *dev, struct device_attribute *attr, const char *buf, \
+-	size_t count) \
++static ssize_t set_in_##suffix(struct device *dev, \
++	struct device_attribute *attr, const char *buf, size_t count) \
+ { \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+@@ -195,7 +196,8 @@ set_in(min, in_min, LM80_REG_IN_MIN)
+ set_in(max, in_max, LM80_REG_IN_MAX)
+ 
+ #define show_fan(suffix, value) \
+-static ssize_t show_fan_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
++static ssize_t show_fan_##suffix(struct device *dev, \
++	struct device_attribute *attr, char *buf) \
+ { \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct lm80_data *data = lm80_update_device(dev); \
+@@ -262,7 +264,7 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
+ 		return -EINVAL;
+ 	}
+ 
+-	reg = (lm80_read_value(client, LM80_REG_FANDIV) & ~(3 << (2 * (nr + 1))))
++	reg = (lm80_read_value(client, LM80_REG_FANDIV) & ~(3 << (2 * (nr+1))))
+ 	    | (data->fan_div[nr] << (2 * (nr + 1)));
+ 	lm80_write_value(client, LM80_REG_FANDIV, reg);
+ 
+@@ -274,7 +276,8 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
+ 	return count;
+ }
+ 
+-static ssize_t show_temp_input1(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_temp_input1(struct device *dev,
++	struct device_attribute *attr, char *buf)
+ {
+ 	struct lm80_data *data = lm80_update_device(dev);
+ 	if (IS_ERR(data))
+@@ -283,7 +286,8 @@ static ssize_t show_temp_input1(struct device *dev, struct device_attribute *att
+ }
+ 
+ #define show_temp(suffix, value) \
+-static ssize_t show_temp_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
++static ssize_t show_temp_##suffix(struct device *dev, \
++	struct device_attribute *attr, char *buf) \
+ { \
+ 	struct lm80_data *data = lm80_update_device(dev); \
+ 	if (IS_ERR(data)) \
+@@ -296,8 +300,8 @@ show_temp(os_max, temp_os_max);
+ show_temp(os_hyst, temp_os_hyst);
+ 
+ #define set_temp(suffix, value, reg) \
+-static ssize_t set_temp_##suffix(struct device *dev, struct device_attribute *attr, const char *buf, \
+-	size_t count) \
++static ssize_t set_temp_##suffix(struct device *dev, \
++	struct device_attribute *attr, const char *buf, size_t count) \
+ { \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct lm80_data *data = i2c_get_clientdata(client); \
+@@ -570,7 +574,7 @@ static void lm80_init_client(struct i2c_client *client)
+ 		status = lm80_read_value(client, reg); \
+ 		if (unlikely(status < 0)) { \
+ 			dev_dbg(dev, \
+-				"LM80: Failed to read value: reg %d, error %d\n", \
++				"LM80: read failure: reg %d, error %d\n", \
+ 				reg, status); \
+ 			ret = ERR_PTR(status); \
+ 			data->valid = 0; \
+@@ -578,7 +582,7 @@ static void lm80_init_client(struct i2c_client *client)
+ 		} \
+ 		else \
+ 			var = status; \
+-	} 
++	}
+ 
+ static struct lm80_data *lm80_update_device(struct device *dev)
+ {
+@@ -599,23 +603,32 @@ static struct lm80_data *lm80_update_device(struct device *dev)
+ 	if (time_after(jiffies, data->last_updated + 2 * HZ) || !data->valid) {
+ 		dev_dbg(&client->dev, "Starting lm80 update\n");
+ 		for (i = 0; i <= 6; i++) {
+-			safe_lm80_read_value(data->in[i], client, LM80_REG_IN(i));
+-			safe_lm80_read_value(data->in_min[i], client, LM80_REG_IN_MIN(i));
+-			safe_lm80_read_value(data->in_max[i], client, LM80_REG_IN_MAX(i));
++			safe_lm80_read_value(data->in[i], client,
++				LM80_REG_IN(i));
++			safe_lm80_read_value(data->in_min[i], client,
++				LM80_REG_IN_MIN(i));
++			safe_lm80_read_value(data->in_max[i], client,
++				LM80_REG_IN_MAX(i));
+ 		}
+ 		safe_lm80_read_value(data->fan[0], client, LM80_REG_FAN1);
+-		safe_lm80_read_value(data->fan_min[0], client, LM80_REG_FAN_MIN(1));
++		safe_lm80_read_value(data->fan_min[0], client,
++			LM80_REG_FAN_MIN(1));
+ 		safe_lm80_read_value(data->fan[1], client, LM80_REG_FAN2);
+-		safe_lm80_read_value(data->fan_min[1], client, LM80_REG_FAN_MIN(2));
++		safe_lm80_read_value(data->fan_min[1], client,
++			LM80_REG_FAN_MIN(2));
+ 
+ 		safe_lm80_read_value(tmp1, client, LM80_REG_TEMP);
+ 		safe_lm80_read_value(tmp2, client, LM80_REG_RES);
+ 		data->temp = (tmp1 << 8) | (tmp2 ^ 0xf0);
+ 
+-		safe_lm80_read_value(data->temp_os_max, client, LM80_REG_TEMP_OS_MAX);
+-		safe_lm80_read_value(data->temp_os_hyst, client, LM80_REG_TEMP_OS_HYST);
+-		safe_lm80_read_value(data->temp_hot_max, client, LM80_REG_TEMP_HOT_MAX);
+-		safe_lm80_read_value(data->temp_hot_hyst, client, LM80_REG_TEMP_HOT_HYST);
++		safe_lm80_read_value(data->temp_os_max, client,
++			LM80_REG_TEMP_OS_MAX);
++		safe_lm80_read_value(data->temp_os_hyst, client,
++			LM80_REG_TEMP_OS_HYST);
++		safe_lm80_read_value(data->temp_hot_max, client,
++			LM80_REG_TEMP_HOT_MAX);
++		safe_lm80_read_value(data->temp_hot_hyst, client,
++			LM80_REG_TEMP_HOT_HYST);
+ 
+ 		safe_lm80_read_value(i, client, LM80_REG_FANDIV);
+ 		data->fan_div[0] = (i >> 2) & 0x03;
+-- 
+1.7.0.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
