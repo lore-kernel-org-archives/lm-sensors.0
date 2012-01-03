@@ -1,256 +1,106 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 03 Jan 2012 17:05:22 +0000
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Tue, 03 Jan 2012 22:01:24 +0000
 Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/lm80.c: fixed checkpatch
-Message-Id: <1325610322.3996.32.camel@groeck-laptop>
+Message-Id: <CACW_hTZWronustjBEF9tCrKLzy+gPj1tyNu8XPHSpj1CNbuqrg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5887847409708544179=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1325602931-10126-1-git-send-email-fransmeulenbroeks@gmail.com>
 In-Reply-To: <1325602931-10126-1-git-send-email-fransmeulenbroeks@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Frans,
+--===============5887847409708544179==
+Content-Type: multipart/alternative; boundary=f46d042fd88a1508f204b5a6d779
 
-On Tue, 2012-01-03 at 10:02 -0500, Frans Meulenbroeks wrote:
-> fixed all but one checkpatch warnings
-> the one not fixed is a line too long at line 271.
-> Found it too hard to decide where to break the line and as
-> the line was only slightly longer than 80 decided to leave
-> it as is.
-> 
-> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+--f46d042fd88a1508f204b5a6d779
+Content-Type: text/plain; charset=ISO-8859-1
 
-Thanks a lot for the effort; we would need more people like you cleaning
-up code ... Bunch of comments below. Except for the kstrtol() problem
-all just nitpicks.
+Hi Guenter
 
-> ---
->  drivers/hwmon/lm80.c |   73 ++++++++++++++++++++++++++++++--------------------
->  1 files changed, 44 insertions(+), 29 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
-> index 18a0e6c..0e87634 100644
-> --- a/drivers/hwmon/lm80.c
-> +++ b/drivers/hwmon/lm80.c
-> @@ -66,7 +66,7 @@ static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
->     these macros are called: arguments may be evaluated more than once.
->     Fixing this is just not worth it. */
-> 
-> -#define IN_TO_REG(val)         (SENSORS_LIMIT(((val)+5)/10,0,255))
-> +#define IN_TO_REG(val)         (SENSORS_LIMIT(((val)+5)/10, 0, 255))
->  #define IN_FROM_REG(val)       ((val)*10)
+Thanks for the feedback.
+I'll give it another stab tomorrow or so.
 
-Please also add spaces around '+' and '*'.
-> 
->  static inline unsigned char FAN_TO_REG(unsigned rpm, unsigned div)
-> @@ -77,8 +77,8 @@ static inline unsigned char FAN_TO_REG(unsigned rpm, unsigned div)
->         return SENSORS_LIMIT((1350000 + rpm*div / 2) / (rpm*div), 1, 254);
->  }
-> 
-> -#define FAN_FROM_REG(val,div)  ((val)=0?-1:\
-> -                               (val)=255?0:1350000/((div)*(val)))
-> +#define FAN_FROM_REG(val, div) ((val) = 0 ? -1 : \
-> +                               (val) = 255 ? 0 : 1350000/((div)*(val)))
-> 
-Same here. I don't know why checkpatch doesn't complain about it, but it
-should per CodingStyle, chapter 3.1. checkpatch seems to confuse the
-multiplier statement with an unary operator (pointer).
+On kstrtol:
 
->  static inline long TEMP_FROM_REG(u16 temp)
->  {
-> @@ -93,10 +93,11 @@ static inline long TEMP_FROM_REG(u16 temp)
->         return res / 10;
->  }
-> 
-> -#define TEMP_LIMIT_FROM_REG(val)       (((val)>0x80?(val)-0x100:(val))*1000)
-> +#define TEMP_LIMIT_FROM_REG(val)       \
-> +       (((val) > 0x80 ? (val)-0x100 : (val))*1000)
-> 
-Still some spaces missing (around '-' and '*'), though better than
-before. For consistency with the other macros, maybe put everything up
-to the '?' into the first line.
+2012/1/3 Guenter Roeck <guenter.roeck@ericsson.com>
 
-> -#define TEMP_LIMIT_TO_REG(val)         SENSORS_LIMIT((val)<0?\
-> -                                       ((val)-500)/1000:((val)+500)/1000,0,255)
-> +#define TEMP_LIMIT_TO_REG(val)         SENSORS_LIMIT((val) < 0 ? \
-> +       ((val)-500)/1000 : ((val)+500)/1000, 0, 255)
-> 
-Same here.
+>
+>
+> >  { \
+> >         int nr = to_sensor_dev_attr(attr)->index; \
+> >         struct i2c_client *client = to_i2c_client(dev); \
+> >         struct lm80_data *data = i2c_get_clientdata(client); \
+> > -       long val = simple_strtol(buf, NULL, 10); \
+> > - \
+> > +       long val = kstrtol(buf, NULL, 10); \
+> > +\
+>
+> Does this compile w/o error or warning ?
+> Parameters change from simple_strtol() to kstrtol(), so this won't work,
+> and I would think it should result at least in a compile warning.
+>
 
->  #define DIV_FROM_REG(val)              (1 << (val))
-> 
-> @@ -164,7 +165,8 @@ static struct i2c_driver lm80_driver = {
->   */
-> 
->  #define show_in(suffix, value) \
-> -static ssize_t show_in_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
-> +static ssize_t show_in_##suffix(struct device *dev, \
-> +       struct device_attribute *attr, char *buf) \
->  { \
->         int nr = to_sensor_dev_attr(attr)->index; \
->         struct lm80_data *data = lm80_update_device(dev); \
-> @@ -175,14 +177,15 @@ show_in(max, in_max)
->  show_in(input, in)
-> 
->  #define set_in(suffix, value, reg) \
-> -static ssize_t set_in_##suffix(struct device *dev, struct device_attribute *attr, const char *buf, \
-> +static ssize_t set_in_##suffix(struct device *dev, \
-> +       struct device_attribute *attr, const char *buf, \
->         size_t count) \
+Hm. Don't recall seeing a warning, guess I overlooked it.
 
-You can merge the above two lines into one.
+Anyway, the mistake I made was that just before I fixed the lm75 file, but
+there the call was to strict_strtoul. Coming here I overlooked things and
+mixed up strict_strtol and simple_strtol.
+Apologies for the inconvenience.
 
->  { \
->         int nr = to_sensor_dev_attr(attr)->index; \
->         struct i2c_client *client = to_i2c_client(dev); \
->         struct lm80_data *data = i2c_get_clientdata(client); \
-> -       long val = simple_strtol(buf, NULL, 10); \
-> - \
-> +       long val = kstrtol(buf, NULL, 10); \
-> +\
+I'll change (but probably will make it a separate patch then).
 
-Does this compile w/o error or warning ? 
-Parameters change from simple_strtol() to kstrtol(), so this won't work,
-and I would think it should result at least in a compile warning.
+Best regards, Frans
 
->         mutex_lock(&data->update_lock);\
->         data->value[nr] = IN_TO_REG(val); \
->         lm80_write_value(client, reg(nr), data->value[nr]); \
-> @@ -193,7 +196,8 @@ set_in(min, in_min, LM80_REG_IN_MIN)
->  set_in(max, in_max, LM80_REG_IN_MAX)
-> 
->  #define show_fan(suffix, value) \
-> -static ssize_t show_fan_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
-> +static ssize_t show_fan_##suffix(struct device *dev, \
-> +       struct device_attribute *attr, char *buf) \
->  { \
->         int nr = to_sensor_dev_attr(attr)->index; \
->         struct lm80_data *data = lm80_update_device(dev); \
-> @@ -217,7 +221,7 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
->         int nr = to_sensor_dev_attr(attr)->index;
->         struct i2c_client *client = to_i2c_client(dev);
->         struct lm80_data *data = i2c_get_clientdata(client);
-> -       long val = simple_strtoul(buf, NULL, 10);
-> +       long val = kstrtoul(buf, NULL, 10);
-> 
-Same as above.
+--f46d042fd88a1508f204b5a6d779
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
->         mutex_lock(&data->update_lock);
->         data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
-> @@ -236,7 +240,7 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
->         int nr = to_sensor_dev_attr(attr)->index;
->         struct i2c_client *client = to_i2c_client(dev);
->         struct lm80_data *data = i2c_get_clientdata(client);
-> -       unsigned long min, val = simple_strtoul(buf, NULL, 10);
-> +       unsigned long min, val = kstrtoul(buf, NULL, 10);
-
-Again ...
-
->         u8 reg;
-> 
->         /* Save fan_min */
-> @@ -245,10 +249,18 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
->                            DIV_FROM_REG(data->fan_div[nr]));
-> 
->         switch (val) {
-> -       case 1: data->fan_div[nr] = 0; break;
-> -       case 2: data->fan_div[nr] = 1; break;
-> -       case 4: data->fan_div[nr] = 2; break;
-> -       case 8: data->fan_div[nr] = 3; break;
-> +       case 1:
-> +               data->fan_div[nr] = 0;
-> +               break;
-> +       case 2:
-> +               data->fan_div[nr] = 1;
-> +               break;
-> +       case 4:
-> +               data->fan_div[nr] = 2;
-> +               break;
-> +       case 8:
-> +               data->fan_div[nr] = 3;
-> +               break;
->         default:
->                 dev_err(&client->dev, "fan_div value %ld not "
->                         "supported. Choose one of 1, 2, 4 or 8!\n", val);
-> @@ -268,14 +280,16 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
->         return count;
->  }
-> 
-> -static ssize_t show_temp_input1(struct device *dev, struct device_attribute *attr, char *buf)
-> +static ssize_t show_temp_input1(struct device *dev, \
-> +       struct device_attribute *attr, char *buf)
-
-That is a function, not a macro, so the \ at the end of the first line
-is not necessary.
-
->  {
->         struct lm80_data *data = lm80_update_device(dev);
->         return sprintf(buf, "%ld\n", TEMP_FROM_REG(data->temp));
->  }
-> 
->  #define show_temp(suffix, value) \
-> -static ssize_t show_temp_##suffix(struct device *dev, struct device_attribute *attr, char *buf) \
-> +static ssize_t show_temp_##suffix(struct device *dev, \
-> +       struct device_attribute *attr, char *buf) \
->  { \
->         struct lm80_data *data = lm80_update_device(dev); \
->         return sprintf(buf, "%d\n", TEMP_LIMIT_FROM_REG(data->value)); \
-> @@ -286,13 +300,13 @@ show_temp(os_max, temp_os_max);
->  show_temp(os_hyst, temp_os_hyst);
-> 
->  #define set_temp(suffix, value, reg) \
-> -static ssize_t set_temp_##suffix(struct device *dev, struct device_attribute *attr, const char *buf, \
-> -       size_t count) \
-> +static ssize_t set_temp_##suffix(struct device *dev, \
-> +       struct device_attribute *attr, const char *buf, size_t count) \
->  { \
->         struct i2c_client *client = to_i2c_client(dev); \
->         struct lm80_data *data = i2c_get_clientdata(client); \
-> -       long val = simple_strtoul(buf, NULL, 10); \
-> - \
-> +       long val = kstrtoul(buf, NULL, 10); \
-> +\
-
-Again.
-
->         mutex_lock(&data->update_lock); \
->         data->value = TEMP_LIMIT_TO_REG(val); \
->         lm80_write_value(client, reg, data->value); \
-> @@ -366,13 +380,13 @@ static SENSOR_DEVICE_ATTR(fan2_div, S_IWUSR | S_IRUGO,
->                 show_fan_div, set_fan_div, 1);
->  static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp_input1, NULL);
->  static DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO, show_temp_hot_max,
-> -    set_temp_hot_max);
-> +       set_temp_hot_max);
->  static DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO, show_temp_hot_hyst,
-> -    set_temp_hot_hyst);
-> +       set_temp_hot_hyst);
->  static DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO, show_temp_os_max,
-> -    set_temp_os_max);
-> +       set_temp_os_max);
->  static DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO, show_temp_os_hyst,
-> -    set_temp_os_hyst);
-> +       set_temp_os_hyst);
->  static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
->  static SENSOR_DEVICE_ATTR(in0_alarm, S_IRUGO, show_alarm, NULL, 0);
->  static SENSOR_DEVICE_ATTR(in1_alarm, S_IRUGO, show_alarm, NULL, 1);
-> @@ -459,7 +473,7 @@ static int lm80_detect(struct i2c_client *client, struct i2c_board_info *info)
->                 if ((i2c_smbus_read_byte_data(client, i + 0x40) != cur)
->                  || (i2c_smbus_read_byte_data(client, i + 0x80) != cur)
->                  || (i2c_smbus_read_byte_data(client, i + 0xc0) != cur))
-> -                   return -ENODEV;
-> +                       return -ENODEV;
-
-Since you are at it, the () around the comparisons are unnecessary.
-Please remove.
-
-Thanks,
-Guenter
+Hi Guenter <br>
+<br>
+Thanks for the feedback. <br>
+I&#39;ll give it another stab tomorrow or so.<br><br>On kstrtol:<br><br><di=
+v class=3D"gmail_quote">2012/1/3 Guenter Roeck <span dir=3D"ltr">&lt;<a hre=
+f=3D"mailto:guenter.roeck@ericsson.com" target=3D"_blank">guenter.roeck@eri=
+csson.com</a>&gt;</span><br>
 
 
+<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
+x #ccc solid;padding-left:1ex"><br>
+<div><br>
+&gt; =A0{ \<br>
+&gt; =A0 =A0 =A0 =A0 int nr =3D to_sensor_dev_attr(attr)-&gt;index; \<br>
+&gt; =A0 =A0 =A0 =A0 struct i2c_client *client =3D to_i2c_client(dev); \<br=
+>
+&gt; =A0 =A0 =A0 =A0 struct lm80_data *data =3D i2c_get_clientdata(client);=
+ \<br>
+&gt; - =A0 =A0 =A0 long val =3D simple_strtol(buf, NULL, 10); \<br>
+&gt; - \<br>
+&gt; + =A0 =A0 =A0 long val =3D kstrtol(buf, NULL, 10); \<br>
+&gt; +\<br>
+<br>
+</div>Does this compile w/o error or warning ?<br>
+Parameters change from simple_strtol() to kstrtol(), so this won&#39;t work=
+,<br>
+and I would think it should result at least in a compile warning.<br></bloc=
+kquote></div><br>Hm. Don&#39;t recall seeing a warning, guess I overlooked =
+it.<br><br>Anyway, the mistake I made was that just before I fixed the lm75=
+ file, but there the call was to strict_strtoul. Coming here I overlooked t=
+hings and mixed up strict_strtol and simple_strtol.<br>
+Apologies for the inconvenience.<br><br>I&#39;ll change (but probably will =
+make it a separate patch then).<br><br>Best regards, Frans<br><br>
+<br><br>
+
+--f46d042fd88a1508f204b5a6d779--
+
+
+--===============5887847409708544179==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5887847409708544179==--
