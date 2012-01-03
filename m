@@ -1,64 +1,78 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 31 Jan 2012 23:31:17 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 3/3] hwmon: (hwmon-vid) Determine vrm during initialization, and add vrm
-Message-Id: <1328052677.2261.85.camel@groeck-laptop>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Tue, 03 Jan 2012 11:02:40 +0000
+Subject: [lm-sensors] [PATCH 1/2] drivers/hwmon/lm75.c: added error handling
+Message-Id: <1325588561-31073-1-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327495414-6256-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1327495414-6256-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+added error handling so if lm75_update_device fails
+an error is returned when reading the value through sysfs
+This is closely modeled after the way this is handled in ltc4261
 
-On Tue, 2012-01-31 at 16:38 -0500, Jean Delvare wrote:
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+ drivers/hwmon/lm75.c |   23 ++++++++++++++++-------
+ 1 files changed, 16 insertions(+), 7 deletions(-)
 
-[ ... ]
-
-> >  /*
-> >   * vrm is the VRM/VRD document version multiplied by 10.
-> >   * val is the 4-bit or more VID code.
-> >   * Returned value is in mV to avoid floating point in the kernel.
-> >   * Some VID have some bits in uV scale, this is rounded to mV.
-> > + *
-> > + * Note: vrm is passed for legacy reasons to avoid API changes,
-> > + * but no longer used.
-> 
-> I don't see the point of preserving the API. We usually don't do that.
-> The API was wrong, you're fixing it, let's adjust all drivers
-> accordingly and be done with it.
-> 
-I started looking into this.
-
-Problem is that some callers pass a fixed vrm value to vid_from_reg().
-See lm87.c or lm93.c. Can we safely ignore this, or do we have to retain
-the parameter and use it if provided (ie if it is != 0) ?
-
-On the plus side, if we retain the parameter and use it to override the
-configured/calculated value, we can retain the API, and I can submit a
-series of patches to remove vrm usage from the various drivers, instead
-of a single large patch which does it all in one go. So this would have
-some benefits.
-
-[ ... ]
-
-> > +}
-> >  EXPORT_SYMBOL(vid_which_vrm);
-
-> There should be no user left for this function if you don't attempt to
-> preserve the API.
-> 
-Actually, turns out there is at least one user - the value is used in
-w83627ehf.c to configure the chip. Not sure how to do that if the driver
-can not retrieve the vrm value.
-
-Then there is vid_to_reg(), which is currently an inline function. Guess
-I'll have to move that to hwmon-vid.c and export it.
-
-Thanks,
-Guenter
-
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index 1888dd0..903f229 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -93,6 +93,10 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm75_data *data = lm75_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
+ 	return sprintf(buf, "%d\n",
+ 		       LM75_TEMP_FROM_REG(data->temp[attr->index]));
+ }
+@@ -402,6 +406,7 @@ static struct lm75_data *lm75_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm75_data *data = i2c_get_clientdata(client);
++	struct lm75_data *ret = data;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -414,19 +419,23 @@ static struct lm75_data *lm75_update_device(struct device *dev)
+ 			int status;
+ 
+ 			status = lm75_read_value(client, LM75_REG_TEMP[i]);
+-			if (status < 0)
+-				dev_dbg(&client->dev, "reg %d, err %d\n",
+-						LM75_REG_TEMP[i], status);
+-			else
+-				data->temp[i] = status;
++			if (unlikely(status < 0)) {
++				dev_dbg(dev,
++					"LM75: Failed to read value: reg %d, error %d\n",
++					LM75_REG_TEMP[i], status);
++				ret = ERR_PTR(status);
++				data->valid = 0;
++				goto abort;
++			}
++			data->temp[i] = status;
+ 		}
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+ 	}
+ 
++abort:
+ 	mutex_unlock(&data->update_lock);
+-
+-	return data;
++	return ret;
+ }
+ 
+ /*-----------------------------------------------------------------------*/
+-- 
+1.7.0.4
 
 
 _______________________________________________
