@@ -1,23 +1,47 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 27 Jan 2012 03:18:54 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (lm63) Let the user adjust the lookup table
-Message-Id: <20120127031854.GC27607@ericsson.com>
+From: Lucas Stach <dev@lynxeye.de>
+Date: Tue, 03 Jan 2012 11:55:44 +0000
+Subject: Re: [lm-sensors] add new hwmon-core interface v4
+Message-Id: <1325591744.1660.1.camel@antimon>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120126215604.29be0047@endymion.delvare>
-In-Reply-To: <20120126215604.29be0047@endymion.delvare>
+References: <1323378601-6930-1-git-send-email-dev@lynxeye.de>
+In-Reply-To: <1323378601-6930-1-git-send-email-dev@lynxeye.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jan 26, 2012 at 03:56:04PM -0500, Jean Delvare wrote:
-> Make the automatic fan speed control lookup table writable. This lets
-> the user tweak the fan speed / temperature response curve.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
+Ping.
 
-Acked-and-tested-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Did this got lost in the mailing list churn?
+
+Thanks,
+Lucas
+
+Am Donnerstag, den 08.12.2011, 22:09 +0100 schrieb Lucas Stach:
+> After a long break here comes v4 of the hwmon-core patchset. It
+> incorporates many of the suggested changes, in particular the
+> core is more flexible (different features for every sensor and holes
+> in numbering allowed) and adds support for 2 dimensional indexed
+> attributes like trip points and thresholds.
+> 
+> This time the dummy driver was removed from the patchset and a
+> real hwmon driver (adt7475) was converted to the new interface. The
+> converted driver was tested on a adt7473, but with a very limited
+> featureset.
+> 
+> I'm looking forward to your comments and reviews. I would also
+> appreciate some testing for the adt7475 driver.
+> 
+> Thanks,
+> Lucas
+> 
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> 
+
 
 
 _______________________________________________
