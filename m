@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 04 Jan 2012 18:03:38 +0000
+Date: Wed, 04 Jan 2012 22:07:14 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: add new hwmon-core interface
-Message-Id: <1325700218.26706.51.camel@groeck-laptop>
+Message-Id: <1325714834.2649.29.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1323378601-6930-2-git-send-email-dev@lynxeye.de>
 In-Reply-To: <1323378601-6930-2-git-send-email-dev@lynxeye.de>
@@ -9,8 +9,6 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
-Hi Lucas,
 
 On Thu, 2011-12-08 at 16:10 -0500, Lucas Stach wrote:
 > This adds a new hwmon-core interface to centralize sysfs handling
@@ -27,56 +25,54 @@ On Thu, 2011-12-08 at 16:10 -0500, Lucas Stach wrote:
 > - support 2d attributes for trip point and treshold handling
 > 
 > Signed-off-by: Lucas Stach <dev@lynxeye.de>
+> ---
+[ ... ]
 
-Couple of high level comments:
+> +
+> +       hw_dev_attr->sensor_dev.dev_attr.attr.mode = mode;
+> +       if (mode && S_IRUGO) {
+> +               if (type = value)
+> +                       hw_dev_attr->sensor_dev.dev_attr.show = &get_num;
+> +               else
+> +                       hw_dev_attr->sensor_dev.dev_attr.show = &get_text;
+> +       }
+> +       if (mode && S_IWUGO)
 
-inX numbering starts with 0, not 1. You'll have to take that into
-account.
+This and "mode && SIRUGO" look wrong and don't make much sense. Guess
+you mean & ?
 
-You can not determine based on the attribute type or name that or if a
-write function exists or not. This really depends on the driver. So
-there has to be a means to set file permissions per driver and per
-attribute. Returning -EINVAL in the set function in that case is not an
-option; the write capability has to be reflected in file permissions.
-Note that some attributes may have dynamic permissions using is_visible
-from struct attribute_group.
+[ ... ]
 
-You'll have to describe the API somewhere, including expected return
-codes from access functions. You should not use -EINVAL if an attempt is
-made to access an unsupported attribute type; maybe -EOPNOTSUPP.
+> +
+> +struct hwmon_device_instance {
+> +       struct hwmon_device_caps caps;
+> +       int (*get_numeric_attr) (struct device *hw_device,
+> +                       enum hwmon_feature feature, u32 subfeature, u8 index,
+> +                       u8 nr, int *value);
+> +       int (*set_numeric_attr) (struct device *hw_device,
+> +                       enum hwmon_feature feature, u32 subfeature, u8 index,
+> +                       u8 nr, int value);
+> +       int (*get_text_attr) (struct device *hw_device,
+> +                       enum hwmon_feature feature, u32 subfeature, u8 index,
+> +                       char *buf);
+> +       struct list_head sysfs_node;
 
-It is not a good idea to mandate that all access functions always exist.
-If there is no text read function, or if there is no set function, a
-driver should not have to provide a dummy one. Otherwise, most drivers
-would have to provide dummy text read functions just to return
--E<Something>, and many drivers would have to provide dummy set
-functions for the same reason. It should be up to the core code to
-determine if access functions exist or not, and set permissions
-accordingly.
+Looks like sysfs_node is used internally by the core code, and not by
+the driver. If so, it should not be exported.
 
-I don't fully understand the need for an use of enum entry_count. Please
-elaborate.
+Regarding inst_data, I think it would be better to keep the current
+approach with a local data structure, and reference hwinst from it. So
+you would have
 
-Number of memory allocations in the adt7475 driver initialization is a
-bit excessive. Looks like the overall amount of code is now less, but
-initialization code is way more complex than it used to be. This makes
-driver development more complex, not less complex.
+	data->hw_inst = hw_inst;
+	i2c_set_clientdata(client, data);
+and
+	data = i2c_get_clientdata(client);
+	hw_inst = data->hw_inst;
 
-In your sample driver, you have created race conditions by calling
-hwmon_device_register() early. The call to hwmon_device_register() must
-be the last call in the probe function, after everything else is done.
-Not sure if that is a new requirement, but it is definitely not correct.
-Besides, you have introduced some errors there - if the subsequent
-sysfs_create_file() fails, you bail out, but you don't call
-hwmon_device_unregister() (or hwmon_destroy_sysfs, for that matter).
-Besides, it doesn't make sense to try to delete the file you just failed
-to create. And during unregistration, you actually free all mmeory prior
-to calling hwmon_device_unregister(). That will cause some nice
-crashes ;). That will require some cleanup work.
-
-Coding style:
-- Some unnecessary ().
-- Watch for Chapter 7 violations.
+To avoid the many mallocs in the probe function, maybe it would be
+possible to pass the various parameters to hwmon_create_sysfs() and have
+it return a pointer to hw_inst. Just an idea.
 
 Thanks,
 Guenter
