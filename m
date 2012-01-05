@@ -1,179 +1,120 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Date: Wed, 04 Jan 2012 10:26:07 +0000
+From: Donggeun Kim <dg77.kim@samsung.com>
+Date: Thu, 05 Jan 2012 05:57:35 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 2/3] thermal: exynos4: Register the tmu
-Message-Id: <CAK44p20XeLVkJyox2SsDqyy=RYgEQNpyGGypwTMPXpueQT1T3g@mail.gmail.com>
+Message-Id: <4F053BCF.7030600@samsung.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1324468798-20423-1-git-send-email-amit.kachhap@linaro.org>
-	<1324468798-20423-3-git-send-email-amit.kachhap@linaro.org>
-	<1325629553.26706.11.camel@groeck-laptop>
-In-Reply-To: <1325629553.26706.11.camel@groeck-laptop>
+ <1324468798-20423-3-git-send-email-amit.kachhap@linaro.org>
+ <1325629553.26706.11.camel@groeck-laptop>
+ <CAK44p20XeLVkJyox2SsDqyy=RYgEQNpyGGypwTMPXpueQT1T3g@mail.gmail.com>
+In-Reply-To: <CAK44p20XeLVkJyox2SsDqyy=RYgEQNpyGGypwTMPXpueQT1T3g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: guenter.roeck@ericsson.com, Donggeun Kim <dg77.kim@samsung.com>
-Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Amit Kachhap <amit.kachhap@linaro.org>
+Cc: guenter.roeck@ericsson.com, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "lenb@kernel.org" <lenb@kernel.org>
 
-Hi Guenter,
-
-The main idea of this work is to leave the current userspace based
-notification scheme and add the kernel based cooling scheme on top of
-it. Anyway, It is a good idea to move the file hwmon/exynos4_tmu.c as
-this creates 2 hwmon entries.
-Adding CC: Donggeun Kim to know his opinion.
-
-Thanks,
-Amit Daniel
-
-On 4 January 2012 03:55, Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-> On Wed, 2011-12-21 at 06:59 -0500, Amit Daniel Kachhap wrote:
->> Export and register information from the hwmon tmu sensor to the samsung
->> exynos kernel thermal framework where different cooling devices and ther=
-mal
->> zone are binded. The exported information is based according to the data
->> structure thermal_sensor_conf present in exynos_thermal.h. HWMON sysfs
->> functions are currently left although all of them are present in generic
->> linux thermal layer.
->> Also the platform data structure is modified to pass frequency cooling
->> in percentages for each thermal level.
->>
-> Hi Amit,
->
-> wouldn't it make more sense to merge the code as necessary from
-> hwmon/exynos4_tmu.c into the new thermal/exynos_thermal.c, and drop
-> hwmon/exynos4_tmu.c entirely ?
->
-> With that, you should get the hwmon entries for free, and we would not
-> have to maintain two drivers with overlapping functionality.
->
-> Thanks,
-> Guenter
->
->> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
->> ---
->> =A0drivers/hwmon/exynos4_tmu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 34 ++++=
-++++++++++++++++++++++--
->> =A0include/linux/platform_data/exynos4_tmu.h | =A0 =A07 ++++++
->> =A02 files changed, 38 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
->> index f2359a0..6912a7f 100644
->> --- a/drivers/hwmon/exynos4_tmu.c
->> +++ b/drivers/hwmon/exynos4_tmu.c
->> @@ -37,6 +37,9 @@
->> =A0#include <linux/hwmon-sysfs.h>
->>
->> =A0#include <linux/platform_data/exynos4_tmu.h>
->> +#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
->> +#include <linux/exynos_thermal.h>
->> +#endif
->>
->> =A0#define EXYNOS4_TMU_REG_TRIMINFO =A0 =A0 0x0
->> =A0#define EXYNOS4_TMU_REG_CONTROL =A0 =A0 =A0 =A0 =A0 =A0 =A00x20
->> @@ -248,10 +251,13 @@ static void exynos4_tmu_work(struct work_struct *w=
-ork)
->>
->> =A0 =A0 =A0 kobject_uevent(&data->hwmon_dev->kobj, KOBJ_CHANGE);
->>
->> - =A0 =A0 enable_irq(data->irq);
->>
->> =A0 =A0 =A0 clk_disable(data->clk);
->> =A0 =A0 =A0 mutex_unlock(&data->lock);
->> +#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
->> + =A0 =A0 exynos4_report_trigger();
->> +#endif
->> + =A0 =A0 enable_irq(data->irq);
->> =A0}
->>
->> =A0static irqreturn_t exynos4_tmu_irq(int irq, void *id)
->> @@ -345,6 +351,14 @@ static const struct attribute_group exynos4_tmu_att=
-r_group =3D {
->> =A0 =A0 =A0 .attrs =3D exynos4_tmu_attributes,
->> =A0};
->>
->> +#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
->> +static struct thermal_sensor_conf exynos4_sensor_conf =3D {
->> + =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D "exynos4-therm",
->> + =A0 =A0 .read_temperature =A0 =A0 =A0 =3D (int (*)(void *))exynos4_tmu=
-_read,
->> +};
->> +#endif
->> +/*CONFIG_SAMSUNG_THERMAL_INTERFACE*/
->> +
->> =A0static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
->> =A0{
->> =A0 =A0 =A0 struct exynos4_tmu_data *data;
->> @@ -432,9 +446,20 @@ static int __devinit exynos4_tmu_probe(struct platf=
-orm_device *pdev)
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 exynos4_tmu_control(pdev, true);
->> -
->> +#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
->> + =A0 =A0 (&exynos4_sensor_conf)->private_data =3D data;
->> + =A0 =A0 (&exynos4_sensor_conf)->sensor_data =3D pdata;
->> + =A0 =A0 ret =3D exynos4_register_thermal(&exynos4_sensor_conf);
->> + =A0 =A0 if (ret) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "Failed to register therma=
-l interface\n");
->> + =A0 =A0 =A0 =A0 =A0 =A0 goto err_hwmon_device;
->> + =A0 =A0 }
->> +#endif
->> =A0 =A0 =A0 return 0;
->> -
->> +#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
->> +err_hwmon_device:
->> + =A0 =A0 hwmon_device_unregister(data->hwmon_dev);
->> +#endif
->> =A0err_create_group:
->> =A0 =A0 =A0 sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
->> =A0err_clk:
->> @@ -458,6 +483,9 @@ static int __devexit exynos4_tmu_remove(struct platf=
-orm_device *pdev)
->>
->> =A0 =A0 =A0 exynos4_tmu_control(pdev, false);
->>
->> +#ifdef CONFIG_SAMSUNG_THERMAL_INTERFACE
->> + =A0 =A0 exynos4_unregister_thermal();
->> +#endif
->> =A0 =A0 =A0 hwmon_device_unregister(data->hwmon_dev);
->> =A0 =A0 =A0 sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
->>
->> diff --git a/include/linux/platform_data/exynos4_tmu.h b/include/linux/p=
-latform_data/exynos4_tmu.h
->> index 39e038c..642c508 100644
->> --- a/include/linux/platform_data/exynos4_tmu.h
->> +++ b/include/linux/platform_data/exynos4_tmu.h
->> @@ -21,6 +21,7 @@
->>
->> =A0#ifndef _LINUX_EXYNOS4_TMU_H
->> =A0#define _LINUX_EXYNOS4_TMU_H
->> +#include <linux/cpu_cooling.h>
->>
->> =A0enum calibration_type {
->> =A0 =A0 =A0 TYPE_ONE_POINT_TRIMMING,
->> @@ -64,6 +65,9 @@ enum calibration_type {
->> =A0 * =A0 in the positive-TC generator block
->> =A0 * =A0 0 <=3D reference_voltage <=3D 31
->> =A0 * @cal_type: calibration type for temperature
->> + * @freq_pctg_table: Table representing frequency reduction percentage.
->> + * @freq_tab_count: Count of the above table as frequency reduction may
->> + * =A0 applicable to only some of the trigger levels.
->> =A0 *
->> =A0 * This structure is required for configuration of exynos4_tmu driver.
->> =A0 */
->> @@ -79,5 +83,8 @@ struct exynos4_tmu_platform_data {
->> =A0 =A0 =A0 u8 reference_voltage;
->>
->> =A0 =A0 =A0 enum calibration_type cal_type;
->> +
->> + =A0 =A0 struct freq_pctg_table freq_tab[4];
->> + =A0 =A0 unsigned int freq_tab_count;
->> =A0};
->> =A0#endif /* _LINUX_EXYNOS4_TMU_H */
->
->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+QWN0dWFsbHksIHRoZSBUTVUgZHJpdmVyIGlzIGNsb3NlbHkgcmVsYXRlZCB0byB0aGVybWFsIGxh
+eWVyLgpJIHRoaW5rIGl0J3Mgb2theSB0byBtb3ZlIGl0IHRvIHRoZSB0aGVybWFsLgoKVGhhbmtz
+LgotRG9uZ2dldW4KCk9uIDIwMTLrhYQgMDHsm5QgMDTsnbwgMTk6MTQsIEFtaXQgS2FjaGhhcCB3
+cm90ZToKPiBIaSBHdWVudGVyLAo+IAo+IFRoZSBtYWluIGlkZWEgb2YgdGhpcyB3b3JrIGlzIHRv
+IGxlYXZlIHRoZSBjdXJyZW50IHVzZXJzcGFjZSBiYXNlZAo+IG5vdGlmaWNhdGlvbiBzY2hlbWUg
+YW5kIGFkZCB0aGUga2VybmVsIGJhc2VkIGNvb2xpbmcgc2NoZW1lIG9uIHRvcCBvZgo+IGl0LiBB
+bnl3YXksIEl0IGlzIGEgZ29vZCBpZGVhIHRvIG1vdmUgdGhlIGZpbGUgaHdtb24vZXh5bm9zNF90
+bXUuYyBhcwo+IHRoaXMgY3JlYXRlcyAyIGh3bW9uIGVudHJpZXMuCj4gQWRkaW5nIENDOiBEb25n
+Z2V1biBLaW0gdG8ga25vdyBoaXMgb3Bpbmlvbi4KPiAKPiBUaGFua3MsCj4gQW1pdCBEYW5pZWwK
+PiAKPiBPbiA0IEphbnVhcnkgMjAxMiAwMzo1NSwgR3VlbnRlciBSb2VjayA8Z3VlbnRlci5yb2Vj
+a0Blcmljc3Nvbi5jb20+IHdyb3RlOgo+PiBPbiBXZWQsIDIwMTEtMTItMjEgYXQgMDY6NTkgLTA1
+MDAsIEFtaXQgRGFuaWVsIEthY2hoYXAgd3JvdGU6Cj4+PiBFeHBvcnQgYW5kIHJlZ2lzdGVyIGlu
+Zm9ybWF0aW9uIGZyb20gdGhlIGh3bW9uIHRtdSBzZW5zb3IgdG8gdGhlIHNhbXN1bmcKPj4+IGV4
+eW5vcyBrZXJuZWwgdGhlcm1hbCBmcmFtZXdvcmsgd2hlcmUgZGlmZmVyZW50IGNvb2xpbmcgZGV2
+aWNlcyBhbmQgdGhlcm1hbAo+Pj4gem9uZSBhcmUgYmluZGVkLiBUaGUgZXhwb3J0ZWQgaW5mb3Jt
+YXRpb24gaXMgYmFzZWQgYWNjb3JkaW5nIHRvIHRoZSBkYXRhCj4+PiBzdHJ1Y3R1cmUgdGhlcm1h
+bF9zZW5zb3JfY29uZiBwcmVzZW50IGluIGV4eW5vc190aGVybWFsLmguIEhXTU9OIHN5c2ZzCj4+
+PiBmdW5jdGlvbnMgYXJlIGN1cnJlbnRseSBsZWZ0IGFsdGhvdWdoIGFsbCBvZiB0aGVtIGFyZSBw
+cmVzZW50IGluIGdlbmVyaWMKPj4+IGxpbnV4IHRoZXJtYWwgbGF5ZXIuCj4+PiBBbHNvIHRoZSBw
+bGF0Zm9ybSBkYXRhIHN0cnVjdHVyZSBpcyBtb2RpZmllZCB0byBwYXNzIGZyZXF1ZW5jeSBjb29s
+aW5nCj4+PiBpbiBwZXJjZW50YWdlcyBmb3IgZWFjaCB0aGVybWFsIGxldmVsLgo+Pj4KPj4gSGkg
+QW1pdCwKPj4KPj4gd291bGRuJ3QgaXQgbWFrZSBtb3JlIHNlbnNlIHRvIG1lcmdlIHRoZSBjb2Rl
+IGFzIG5lY2Vzc2FyeSBmcm9tCj4+IGh3bW9uL2V4eW5vczRfdG11LmMgaW50byB0aGUgbmV3IHRo
+ZXJtYWwvZXh5bm9zX3RoZXJtYWwuYywgYW5kIGRyb3AKPj4gaHdtb24vZXh5bm9zNF90bXUuYyBl
+bnRpcmVseSA/Cj4+Cj4+IFdpdGggdGhhdCwgeW91IHNob3VsZCBnZXQgdGhlIGh3bW9uIGVudHJp
+ZXMgZm9yIGZyZWUsIGFuZCB3ZSB3b3VsZCBub3QKPj4gaGF2ZSB0byBtYWludGFpbiB0d28gZHJp
+dmVycyB3aXRoIG92ZXJsYXBwaW5nIGZ1bmN0aW9uYWxpdHkuCj4+Cj4+IFRoYW5rcywKPj4gR3Vl
+bnRlcgo+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogQW1pdCBEYW5pZWwgS2FjaGhhcCA8YW1pdC5rYWNo
+aGFwQGxpbmFyby5vcmc+Cj4+PiAtLS0KPj4+ICBkcml2ZXJzL2h3bW9uL2V4eW5vczRfdG11LmMg
+ICAgICAgICAgICAgICB8ICAgMzQgKysrKysrKysrKysrKysrKysrKysrKysrKystLQo+Pj4gIGlu
+Y2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9leHlub3M0X3RtdS5oIHwgICAgNyArKysrKysKPj4+
+ICAyIGZpbGVzIGNoYW5nZWQsIDM4IGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCj4+Pgo+
+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZXh5bm9zNF90bXUuYyBiL2RyaXZlcnMvaHdt
+b24vZXh5bm9zNF90bXUuYwo+Pj4gaW5kZXggZjIzNTlhMC4uNjkxMmE3ZiAxMDA2NDQKPj4+IC0t
+LSBhL2RyaXZlcnMvaHdtb24vZXh5bm9zNF90bXUuYwo+Pj4gKysrIGIvZHJpdmVycy9od21vbi9l
+eHlub3M0X3RtdS5jCj4+PiBAQCAtMzcsNiArMzcsOSBAQAo+Pj4gICNpbmNsdWRlIDxsaW51eC9o
+d21vbi1zeXNmcy5oPgo+Pj4KPj4+ICAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGF0YS9leHlu
+b3M0X3RtdS5oPgo+Pj4gKyNpZmRlZiBDT05GSUdfU0FNU1VOR19USEVSTUFMX0lOVEVSRkFDRQo+
+Pj4gKyNpbmNsdWRlIDxsaW51eC9leHlub3NfdGhlcm1hbC5oPgo+Pj4gKyNlbmRpZgo+Pj4KPj4+
+ICAjZGVmaW5lIEVYWU5PUzRfVE1VX1JFR19UUklNSU5GTyAgICAgMHgwCj4+PiAgI2RlZmluZSBF
+WFlOT1M0X1RNVV9SRUdfQ09OVFJPTCAgICAgICAgICAgICAgMHgyMAo+Pj4gQEAgLTI0OCwxMCAr
+MjUxLDEzIEBAIHN0YXRpYyB2b2lkIGV4eW5vczRfdG11X3dvcmsoc3RydWN0IHdvcmtfc3RydWN0
+ICp3b3JrKQo+Pj4KPj4+ICAgICAgIGtvYmplY3RfdWV2ZW50KCZkYXRhLT5od21vbl9kZXYtPmtv
+YmosIEtPQkpfQ0hBTkdFKTsKPj4+Cj4+PiAtICAgICBlbmFibGVfaXJxKGRhdGEtPmlycSk7Cj4+
+Pgo+Pj4gICAgICAgY2xrX2Rpc2FibGUoZGF0YS0+Y2xrKTsKPj4+ICAgICAgIG11dGV4X3VubG9j
+aygmZGF0YS0+bG9jayk7Cj4+PiArI2lmZGVmIENPTkZJR19TQU1TVU5HX1RIRVJNQUxfSU5URVJG
+QUNFCj4+PiArICAgICBleHlub3M0X3JlcG9ydF90cmlnZ2VyKCk7Cj4+PiArI2VuZGlmCj4+PiAr
+ICAgICBlbmFibGVfaXJxKGRhdGEtPmlycSk7Cj4+PiAgfQo+Pj4KPj4+ICBzdGF0aWMgaXJxcmV0
+dXJuX3QgZXh5bm9zNF90bXVfaXJxKGludCBpcnEsIHZvaWQgKmlkKQo+Pj4gQEAgLTM0NSw2ICsz
+NTEsMTQgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBhdHRyaWJ1dGVfZ3JvdXAgZXh5bm9zNF90bXVf
+YXR0cl9ncm91cCA9IHsKPj4+ICAgICAgIC5hdHRycyA9IGV4eW5vczRfdG11X2F0dHJpYnV0ZXMs
+Cj4+PiAgfTsKPj4+Cj4+PiArI2lmZGVmIENPTkZJR19TQU1TVU5HX1RIRVJNQUxfSU5URVJGQUNF
+Cj4+PiArc3RhdGljIHN0cnVjdCB0aGVybWFsX3NlbnNvcl9jb25mIGV4eW5vczRfc2Vuc29yX2Nv
+bmYgPSB7Cj4+PiArICAgICAubmFtZSAgICAgICAgICAgICAgICAgICA9ICJleHlub3M0LXRoZXJt
+IiwKPj4+ICsgICAgIC5yZWFkX3RlbXBlcmF0dXJlICAgICAgID0gKGludCAoKikodm9pZCAqKSll
+eHlub3M0X3RtdV9yZWFkLAo+Pj4gK307Cj4+PiArI2VuZGlmCj4+PiArLypDT05GSUdfU0FNU1VO
+R19USEVSTUFMX0lOVEVSRkFDRSovCj4+PiArCj4+PiAgc3RhdGljIGludCBfX2RldmluaXQgZXh5
+bm9zNF90bXVfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPj4+ICB7Cj4+PiAg
+ICAgICBzdHJ1Y3QgZXh5bm9zNF90bXVfZGF0YSAqZGF0YTsKPj4+IEBAIC00MzIsOSArNDQ2LDIw
+IEBAIHN0YXRpYyBpbnQgX19kZXZpbml0IGV4eW5vczRfdG11X3Byb2JlKHN0cnVjdCBwbGF0Zm9y
+bV9kZXZpY2UgKnBkZXYpCj4+PiAgICAgICB9Cj4+Pgo+Pj4gICAgICAgZXh5bm9zNF90bXVfY29u
+dHJvbChwZGV2LCB0cnVlKTsKPj4+IC0KPj4+ICsjaWZkZWYgQ09ORklHX1NBTVNVTkdfVEhFUk1B
+TF9JTlRFUkZBQ0UKPj4+ICsgICAgICgmZXh5bm9zNF9zZW5zb3JfY29uZiktPnByaXZhdGVfZGF0
+YSA9IGRhdGE7Cj4+PiArICAgICAoJmV4eW5vczRfc2Vuc29yX2NvbmYpLT5zZW5zb3JfZGF0YSA9
+IHBkYXRhOwo+Pj4gKyAgICAgcmV0ID0gZXh5bm9zNF9yZWdpc3Rlcl90aGVybWFsKCZleHlub3M0
+X3NlbnNvcl9jb25mKTsKPj4+ICsgICAgIGlmIChyZXQpIHsKPj4+ICsgICAgICAgICAgICAgZGV2
+X2VycigmcGRldi0+ZGV2LCAiRmFpbGVkIHRvIHJlZ2lzdGVyIHRoZXJtYWwgaW50ZXJmYWNlXG4i
+KTsKPj4+ICsgICAgICAgICAgICAgZ290byBlcnJfaHdtb25fZGV2aWNlOwo+Pj4gKyAgICAgfQo+
+Pj4gKyNlbmRpZgo+Pj4gICAgICAgcmV0dXJuIDA7Cj4+PiAtCj4+PiArI2lmZGVmIENPTkZJR19T
+QU1TVU5HX1RIRVJNQUxfSU5URVJGQUNFCj4+PiArZXJyX2h3bW9uX2RldmljZToKPj4+ICsgICAg
+IGh3bW9uX2RldmljZV91bnJlZ2lzdGVyKGRhdGEtPmh3bW9uX2Rldik7Cj4+PiArI2VuZGlmCj4+
+PiAgZXJyX2NyZWF0ZV9ncm91cDoKPj4+ICAgICAgIHN5c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+
+ZGV2LmtvYmosICZleHlub3M0X3RtdV9hdHRyX2dyb3VwKTsKPj4+ICBlcnJfY2xrOgo+Pj4gQEAg
+LTQ1OCw2ICs0ODMsOSBAQCBzdGF0aWMgaW50IF9fZGV2ZXhpdCBleHlub3M0X3RtdV9yZW1vdmUo
+c3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPj4+Cj4+PiAgICAgICBleHlub3M0X3RtdV9j
+b250cm9sKHBkZXYsIGZhbHNlKTsKPj4+Cj4+PiArI2lmZGVmIENPTkZJR19TQU1TVU5HX1RIRVJN
+QUxfSU5URVJGQUNFCj4+PiArICAgICBleHlub3M0X3VucmVnaXN0ZXJfdGhlcm1hbCgpOwo+Pj4g
+KyNlbmRpZgo+Pj4gICAgICAgaHdtb25fZGV2aWNlX3VucmVnaXN0ZXIoZGF0YS0+aHdtb25fZGV2
+KTsKPj4+ICAgICAgIHN5c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZleHlub3M0
+X3RtdV9hdHRyX2dyb3VwKTsKPj4+Cj4+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9wbGF0
+Zm9ybV9kYXRhL2V4eW5vczRfdG11LmggYi9pbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvZXh5
+bm9zNF90bXUuaAo+Pj4gaW5kZXggMzllMDM4Yy4uNjQyYzUwOCAxMDA2NDQKPj4+IC0tLSBhL2lu
+Y2x1ZGUvbGludXgvcGxhdGZvcm1fZGF0YS9leHlub3M0X3RtdS5oCj4+PiArKysgYi9pbmNsdWRl
+L2xpbnV4L3BsYXRmb3JtX2RhdGEvZXh5bm9zNF90bXUuaAo+Pj4gQEAgLTIxLDYgKzIxLDcgQEAK
+Pj4+Cj4+PiAgI2lmbmRlZiBfTElOVVhfRVhZTk9TNF9UTVVfSAo+Pj4gICNkZWZpbmUgX0xJTlVY
+X0VYWU5PUzRfVE1VX0gKPj4+ICsjaW5jbHVkZSA8bGludXgvY3B1X2Nvb2xpbmcuaD4KPj4+Cj4+
+PiAgZW51bSBjYWxpYnJhdGlvbl90eXBlIHsKPj4+ICAgICAgIFRZUEVfT05FX1BPSU5UX1RSSU1N
+SU5HLAo+Pj4gQEAgLTY0LDYgKzY1LDkgQEAgZW51bSBjYWxpYnJhdGlvbl90eXBlIHsKPj4+ICAg
+KiAgIGluIHRoZSBwb3NpdGl2ZS1UQyBnZW5lcmF0b3IgYmxvY2sKPj4+ICAgKiAgIDAgPD0gcmVm
+ZXJlbmNlX3ZvbHRhZ2UgPD0gMzEKPj4+ICAgKiBAY2FsX3R5cGU6IGNhbGlicmF0aW9uIHR5cGUg
+Zm9yIHRlbXBlcmF0dXJlCj4+PiArICogQGZyZXFfcGN0Z190YWJsZTogVGFibGUgcmVwcmVzZW50
+aW5nIGZyZXF1ZW5jeSByZWR1Y3Rpb24gcGVyY2VudGFnZS4KPj4+ICsgKiBAZnJlcV90YWJfY291
+bnQ6IENvdW50IG9mIHRoZSBhYm92ZSB0YWJsZSBhcyBmcmVxdWVuY3kgcmVkdWN0aW9uIG1heQo+
+Pj4gKyAqICAgYXBwbGljYWJsZSB0byBvbmx5IHNvbWUgb2YgdGhlIHRyaWdnZXIgbGV2ZWxzLgo+
+Pj4gICAqCj4+PiAgICogVGhpcyBzdHJ1Y3R1cmUgaXMgcmVxdWlyZWQgZm9yIGNvbmZpZ3VyYXRp
+b24gb2YgZXh5bm9zNF90bXUgZHJpdmVyLgo+Pj4gICAqLwo+Pj4gQEAgLTc5LDUgKzgzLDggQEAg
+c3RydWN0IGV4eW5vczRfdG11X3BsYXRmb3JtX2RhdGEgewo+Pj4gICAgICAgdTggcmVmZXJlbmNl
+X3ZvbHRhZ2U7Cj4+Pgo+Pj4gICAgICAgZW51bSBjYWxpYnJhdGlvbl90eXBlIGNhbF90eXBlOwo+
+Pj4gKwo+Pj4gKyAgICAgc3RydWN0IGZyZXFfcGN0Z190YWJsZSBmcmVxX3RhYls0XTsKPj4+ICsg
+ICAgIHVuc2lnbmVkIGludCBmcmVxX3RhYl9jb3VudDsKPj4+ICB9Owo+Pj4gICNlbmRpZiAvKiBf
+TElOVVhfRVhZTk9TNF9UTVVfSCAqLwo+Pgo+Pgo+IAoKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
+b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xtLXNlbnNvcnM
