@@ -1,65 +1,48 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 23 Jan 2012 17:35:21 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] fam15h_power: Increase output resolution
-Message-Id: <1327340121.2649.159.camel@groeck-laptop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 05 Jan 2012 14:39:01 +0000
+Subject: Re: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c
+Message-Id: <20120105153901.0be2d165@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120120180437.GI24508@alberich.amd.com>
-In-Reply-To: <20120120180437.GI24508@alberich.amd.com>
+References: <20110410160433.GA22075@localhost>
+In-Reply-To: <20110410160433.GA22075@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2012-01-20 at 13:04 -0500, Andreas Herrmann wrote:
-> From: Andre Przywara <andre.przywara@amd.com>
+On Wed, 21 Dec 2011 23:43:47 +0100, Harald Judt wrote:
+> Am 21.12.2011 21:55, schrieb Ira W. Snyder:
+> > I wonder if you could set these register values only on this specific
+> > motherboard by checking the DMI table to determine the motherboard
+> > vendor and model number.
 > 
-> On high CPU load the accumulating values in the running_avg_cap
-> register are very low (below 10), so averaging them too early leads
-> to unnecessary poor output resolution. Since we pretend to output
-> micro-Watt we better keep all the bits we have as long as possible.
+> This is what I currently do using dmidecode in /etc/init.d/lm_sensors, 
+> because I too fear to forget about this and accidently wreck a new 
+> mainboard I'm going to buy in the future:
 > 
-> Signed-off-by: Andre Przywara <andre.przywara@amd.com>
-> Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> # We need to do some initialization before loading the module,
+> # otherwise only 2 of the 5 fans will be shown
+> init_module_w83627ehf() {
+>      modprobe -q -r w83627ehf
+>      # make sure to do this only for the right mainboard
+>      if /usr/sbin/dmidecode | grep -i 'Base Board Information' -A2 -B1 | 
+> grep -q 'P67 Extreme4' \
+>          && /usr/sbin/dmidecode | grep -i 'BIOS Information' -A3 | grep 
+> -q 'Version: L1.61' && \
 
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+dmidecode -s is your friend ;) Namely -s baseboard-product-name and -s
+bios-version.
 
-> ---
->  drivers/hwmon/fam15h_power.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
-> index 930370d..b7494af 100644
-> --- a/drivers/hwmon/fam15h_power.c
-> +++ b/drivers/hwmon/fam15h_power.c
-> @@ -61,14 +61,14 @@ static ssize_t show_power(struct device *dev,
->  				  REG_TDP_RUNNING_AVERAGE, &val);
->  	running_avg_capture = (val >> 4) & 0x3fffff;
->  	running_avg_capture = sign_extend32(running_avg_capture, 21);
-> -	running_avg_range = val & 0xf;
-> +	running_avg_range = (val & 0xf) + 1;
->  
->  	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
->  				  REG_TDP_LIMIT3, &val);
->  
->  	tdp_limit = val >> 16;
-> -	curr_pwr_watts = tdp_limit + data->base_tdp -
-> -		(s32)(running_avg_capture >> (running_avg_range + 1));
-> +	curr_pwr_watts = (tdp_limit + data->base_tdp) << running_avg_range;
-> +	curr_pwr_watts -= running_avg_capture;
->  	curr_pwr_watts *= data->tdp_to_watts;
->  
->  	/*
-> @@ -78,7 +78,7 @@ static ssize_t show_power(struct device *dev,
->  	 * scaling factor 1/(2^16).  For conversion we use
->  	 * (10^6)/(2^16) = 15625/(2^10)
->  	 */
-> -	curr_pwr_watts = (curr_pwr_watts * 15625) >> 10;
-> +	curr_pwr_watts = (curr_pwr_watts * 15625) >> (10 + running_avg_range);
->  	return sprintf(buf, "%u\n", (unsigned int) curr_pwr_watts);
->  }
->  static DEVICE_ATTR(power1_input, S_IRUGO, show_power, NULL);
+>          ! lsmod | grep w83627ehf; then
+>          isaset -y -f 0x2e 0x87 2>/dev/null
+>          isaset -y -f 0x2e 0x87 2>/dev/null
+>          isaset -y 0x2e 0x2f 0x1c 0x3 2>/dev/null
+>          isaset -y 0x2e 0x2f 0x24 0x1c 2>/dev/null
+>      fi
+> }
 
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
