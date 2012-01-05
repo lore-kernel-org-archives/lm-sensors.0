@@ -1,141 +1,235 @@
-From: Andrew Smith <Andrew@GNAServicesInc.com>
-Date: Sat, 28 Jan 2012 00:02:33 +0000
-Subject: Re: [lm-sensors] sensors-detect bug ?
-Message-Id: <4F233B19.7070107@GNAServicesInc.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6957503621749993421=="
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Thu, 05 Jan 2012 21:23:56 +0000
+Subject: [lm-sensors] [PATCH] drivers/hwmon: fix trailing whitespace
+Message-Id: <1325798636-11819-1-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F22E64F.8060204@GNAServicesInc.com>
-In-Reply-To: <4F22E64F.8060204@GNAServicesInc.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+ drivers/hwmon/adm1025.c   |    2 +-
+ drivers/hwmon/ds1621.c    |    6 +++---
+ drivers/hwmon/g760a.c     |    2 +-
+ drivers/hwmon/hwmon-vid.c |    2 +-
+ drivers/hwmon/lm78.c      |   10 +++++-----
+ drivers/hwmon/lm83.c      |    2 +-
+ drivers/hwmon/max1619.c   |    2 +-
+ drivers/hwmon/sis5595.c   |    4 ++--
+ drivers/hwmon/smsc47m1.c  |    2 +-
+ drivers/hwmon/w83627hf.c  |    2 +-
+ drivers/hwmon/w83l785ts.c |    2 +-
+ 11 files changed, 18 insertions(+), 18 deletions(-)
 
---===============6957503621749993421==
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms090003020604040009050909"
+diff --git a/drivers/hwmon/adm1025.c b/drivers/hwmon/adm1025.c
+index 60befc0..80c2b4e 100644
+--- a/drivers/hwmon/adm1025.c
++++ b/drivers/hwmon/adm1025.c
+@@ -12,7 +12,7 @@
+  * resolution of about 0.5% of the nominal value). Temperature values are
+  * reported with a 1 deg resolution and a 3 deg accuracy. Complete
+  * datasheet can be obtained from Analog's website at:
+- *   http://www.onsemi.com/PowerSolutions/product.do?id=ADM1025=20
++ *   http://www.onsemi.com/PowerSolutions/product.do?id=ADM1025
+  *
+  * This driver also supports the ADM1025A, which differs from the ADM1025
+  * only in that it has "open-drain VID inputs while the ADM1025 has
+diff --git a/drivers/hwmon/ds1621.c b/drivers/hwmon/ds1621.c
+index ef1ac996..89fe791 100644
+--- a/drivers/hwmon/ds1621.c
++++ b/drivers/hwmon/ds1621.c
+@@ -3,7 +3,7 @@
+              monitoring
+     Christian W. Zuckschwerdt  <zany@triq.net>  2000-11-23
+     based on lm75.c by Frodo Looijaard <frodol@dds.nl>
+-    Ported to Linux 2.6 by Aurelien Jarno <aurelien@aurel32.net> with=20
++    Ported to Linux 2.6 by Aurelien Jarno <aurelien@aurel32.net> with
+     the help of Jean Delvare <khali@linux-fr.org>
+=20
+     This program is free software; you can redistribute it and/or modify
+@@ -212,8 +212,8 @@ static int ds1621_detect(struct i2c_client *client,
+ 	int conf, temp;
+ 	int i;
+=20
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA=20
+-				     | I2C_FUNC_SMBUS_WORD_DATA=20
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA
++				     | I2C_FUNC_SMBUS_WORD_DATA
+ 				     | I2C_FUNC_SMBUS_WRITE_BYTE))
+ 		return -ENODEV;
+=20
+diff --git a/drivers/hwmon/g760a.c b/drivers/hwmon/g760a.c
+index 1d6a6fa..905e194 100644
+--- a/drivers/hwmon/g760a.c
++++ b/drivers/hwmon/g760a.c
+@@ -5,7 +5,7 @@
+     Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
+=20
+     Complete datasheet is available at GMT's website:
+-      http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf=20
++      http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf
+=20
+     This program is free software; you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+index 4fcb867..a918426 100644
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -40,7 +40,7 @@
+  * available at http://developer.intel.com/.
+  *
+  * AMD Athlon 64 and AMD Opteron Processors, AMD Publication 26094,
+- * http://support.amd.com/us/Processor_TechDocs/26094.PDF=20
++ * http://support.amd.com/us/Processor_TechDocs/26094.PDF
+  * Table 74. VID Code Voltages
+  * This corresponds to an arbitrary VRM code of 24 in the functions below.
+  * These CPU models (K8 revision <=3D E) have 5 VID pins. See also:
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+index 6df0b46..7fc3449 100644
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -1,7 +1,7 @@
+ /*
+     lm78.c - Part of lm_sensors, Linux kernel modules for hardware
+              monitoring
+-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>=20
++    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
+     Copyright (c) 2007, 2011  Jean Delvare <khali@linux-fr.org>
+=20
+     This program is free software; you can redistribute it and/or modify
+@@ -74,7 +74,7 @@ enum chips { lm78, lm79 };
+ #define LM78_REG_I2C_ADDR 0x48
+=20
+=20
+-/* Conversions. Rounding and limit checking is only done on the TO_REG=20
++/* Conversions. Rounding and limit checking is only done on the TO_REG
+    variants. */
+=20
+ /* IN: mV, (0V to 4.08V)
+@@ -669,7 +669,7 @@ static struct i2c_driver lm78_driver =3D {
+ 	.address_list	=3D normal_i2c,
+ };
+=20
+-/* The SMBus locks itself, but ISA access must be locked explicitly!=20
++/* The SMBus locks itself, but ISA access must be locked explicitly!
+    We don't want to lock the whole ISA bus, so we lock each client
+    separately.
+    We ignore the LM78 BUSY flag at this moment - it could lead to deadlock=
+s,
+@@ -691,11 +691,11 @@ static int lm78_read_value(struct lm78_data *data, u8=
+ reg)
+ 		return i2c_smbus_read_byte_data(client, reg);
+ }
+=20
+-/* The SMBus locks itself, but ISA access muse be locked explicitly!=20
++/* The SMBus locks itself, but ISA access muse be locked explicitly!
+    We don't want to lock the whole ISA bus, so we lock each client
+    separately.
+    We ignore the LM78 BUSY flag at this moment - it could lead to deadlock=
+s,
+-   would slow down the LM78 access and should not be necessary.=20
++   would slow down the LM78 access and should not be necessary.
+    There are some ugly typecasts here, but the good new is - they should
+    nowhere else be necessary! */
+ static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value)
+diff --git a/drivers/hwmon/lm83.c b/drivers/hwmon/lm83.c
+index 8290476..565550a 100644
+--- a/drivers/hwmon/lm83.c
++++ b/drivers/hwmon/lm83.c
+@@ -124,7 +124,7 @@ static struct lm83_data *lm83_update_device(struct devi=
+ce *dev);
+ /*
+  * Driver data (common to all clients)
+  */
+-=20
++
+ static const struct i2c_device_id lm83_id[] =3D {
+ 	{ "lm83", lm83 },
+ 	{ "lm82", lm82 },
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+index 022ded0..e0586cc 100644
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -125,7 +125,7 @@ struct max1619_data {
+ 	u8 temp_input2, temp_low2, temp_high2; /* remote */
+ 	u8 temp_crit2;
+ 	u8 temp_hyst2;
+-	u8 alarms;=20
++	u8 alarms;
+ };
+=20
+ /*
+diff --git a/drivers/hwmon/sis5595.c b/drivers/hwmon/sis5595.c
+index 3324245..6254eb2 100644
+--- a/drivers/hwmon/sis5595.c
++++ b/drivers/hwmon/sis5595.c
+@@ -26,7 +26,7 @@
+ /*
+    SiS southbridge has a LM78-like chip integrated on the same IC.
+    This driver is a customized copy of lm78.c
+-  =20
++
+    Supports following revisions:
+ 	Version		PCI ID		PCI Revision
+ 	1		1039/0008	AF or less
+@@ -521,7 +521,7 @@ static struct attribute *sis5595_attributes_temp1[] =3D=
+ {
+ static const struct attribute_group sis5595_group_temp1 =3D {
+ 	.attrs =3D sis5595_attributes_temp1,
+ };
+-=20
++
+ /* This is called when the module is loaded */
+ static int __devinit sis5595_probe(struct platform_device *pdev)
+ {
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index f44a89a..c3326f9 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -508,7 +508,7 @@ static void smsc47m1_restore(const struct smsc47m1_sio_=
+data *sio_data)
+=20
+ /*
+  * This function can be used to:
+- *  - test for resource conflicts with ACPI
++ *  - test for resource conflicts with ACP
+  *  - request the resources
+  *  - release the resources
+  * We only allocate the I/O ports we really need, to minimize the risk of
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 2192662..2f528a0 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -1605,7 +1605,7 @@ static void __devinit w83627hf_init_device(struct pla=
+tform_device *pdev)
+=20
+ 	/* Read VRM & OVT Config only once */
+ 	if (type =3D w83627thf || type =3D w83637hf || type =3D w83687thf) {
+-		data->vrm_ovt =3D=20
++		data->vrm_ovt  			w83627hf_read_value(data, W83627THF_REG_VRM_OVT_CFG);
+ 	}
+=20
+diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
+index 20781de..edfc1ec 100644
+--- a/drivers/hwmon/w83l785ts.c
++++ b/drivers/hwmon/w83l785ts.c
+@@ -86,7 +86,7 @@ static struct w83l785ts_data *w83l785ts_update_device(str=
+uct device *dev);
+ /*
+  * Driver data (common to all clients)
+  */
+-=20
++
+ static const struct i2c_device_id w83l785ts_id[] =3D {
+ 	{ "w83l785ts", 0 },
+ 	{ }
+--=20
+1.7.8.1
 
-This is a cryptographically signed message in MIME format.
-
---------------ms090003020604040009050909
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
-
-Thank you.  All fixed. This was my first time encountering something
-like that and I was clearly going in the wrong direction trying to fix
-it. Pointing me in the right direction really saved me a time.  So
-thank you!
-
-Andy
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQIcBAEBAgAGBQJPIzsZAAoJEGf+DvovjtYGhLgP/A9yWMRHy97iOtq8nN4A26Lf
-pLq2S3HSKY8mRkfNCpeg3QT0Hg5Vk9pRxMDl4tZ9lsTJ9HREaPXn+DzWUz2DfSpO
-evAvTbOSUNkPOLIYjXf91ckVYPj+cpwYu33dI+bcZ0uPUDuo6/4HVTT+GnFbGUyQ
-FEqL4IQhONzquT+SeiJvEhcn27PyeyhrgPIM7bwS0poS9VwOqw9hIJF8qjw9gXFu
-59UGKtd8MDBTVfldaoKLk6FC05kV2WKeYQmKmh/T+0mAVX1I7CSY06j9VAYmx2z9
-r3dacpDWMDY0A8KMwYSJ1A4i7IdM6jC8KiEKt2dBNNWB/OgJQ2AqGMvGVPQQfHjp
-SJ45wY3TFPVfa+CHvYSpKHQ6IxHYGYtjUu9cQUfKAesDG55Ifq0fhoTdIEFP9ohK
-6bwdDIc/uIttCiICYtz5uwZqWlBJ5YJZmyVrdtWfU5CY0B9UDnkic+30Yzelibf2
-Iy6HChSTYzso2cnaPuHEwt5hE0ACd6yOAM7EzndMTeTXmoskjHXj2ksSbK2bMqVz
-q54Ro9GZrHP2fBL862b2EJ5tQ5KDWInYqSYIne90mfICkbxo3agMUO217AwSwayi
-cFO4UOllOs+PDVP34IaFqYqavxoT1xzofyjNEDDCfa3s3Wqc/qBlELPDuWff+h4T
-4CtXl/dtkTUx8tGLmmMw
-=3D0qAP
------END PGP SIGNATURE-----
-
-
---------------ms090003020604040009050909
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKEjCC
-BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
-BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
-bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
-NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
-VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
-dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
-LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
-NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
-lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
-vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
-hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
-9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
-A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
-BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
-cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
-ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
-54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
-g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
-WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
-Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
-XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIFgDCCBGigAwIBAgIQUVX68kYv248J
-0u62JN9CvDANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
-FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
-MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
-Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0xMTAyMTAwMDAwMDBa
-Fw0xMjAyMTAyMzU5NTlaMCoxKDAmBgkqhkiG9w0BCQEWGWFuZHJld0BnbmFzZXJ2aWNlc2lu
-Yy5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDElVlYcSSyKqkAo6Tw2Z2y
-yKmsak/RPwTfPW3xROiTs9sxs8p6NsutIcqEjezJWK3BuglcUUx28vQm5eaqGiXSOvCrjWz+
-Qq+oINqYRcMn7ziU1NKNxrH60ZGHLFzclfRNUhzkIfjwnmIJyUorwhsZhWfP+bxO13iPc4MO
-3+bko1GJ1fzF3eLZsMHbl2joRwrbSs7IbCPLJ/XqBV4efmugFd3jK6lU8rQFaKxAKb+bK26q
-bI3NIGWo//d9c7gNaqG9Xa+mWWgz9d2EY8MyMm/J5zNNAspE7ppZLT75zxrZMJLjMxnWqLo/
-3v6DQjsVTupG6NclSd4nnJNM9cLGeu0dAgMBAAGjggIbMIICFzAfBgNVHSMEGDAWgBSJgmd9
-xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4EFgQUnEKDEnBFULXrM4/Hz22n+DoolKAwDgYDVR0P
-AQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwIAYDVR0lBBkwFwYIKwYBBQUHAwQGCysGAQQBsjEB
-AwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBGBgNVHSAEPzA9MDsGDCsGAQQBsjEBAgEBATArMCkG
-CCsGAQUFBwIBFh1odHRwczovL3NlY3VyZS5jb21vZG8ubmV0L0NQUzCBpQYDVR0fBIGdMIGa
-MEygSqBIhkZodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9VVE4tVVNFUkZpcnN0LUNsaWVudEF1
-dGhlbnRpY2F0aW9uYW5kRW1haWwuY3JsMEqgSKBGhkRodHRwOi8vY3JsLmNvbW9kby5uZXQv
-VVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDBsBggrBgEF
-BQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0dHA6Ly9jcnQuY29tb2RvY2EuY29tL1VUTkFBQUNs
-aWVudENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMCQGA1Ud
-EQQdMBuBGWFuZHJld0BnbmFzZXJ2aWNlc2luYy5jb20wDQYJKoZIhvcNAQEFBQADggEBAIgy
-Ezr16rXgcQpUP5YEsnm0DM+mZIMnB4viL9ScZ6RsffZYrdqA1Nnyt/q2bgPu/vBIQxjykc+G
-g62YrM0N0Lp1gccNTFhIo/cFd7+A/90zNqe1iq7R+U1UO4vlii6pf39IoM1Lhk8kpoCJcK3T
-OCVYF8viWZfmPm6FIPbz+kI5qBE7739/ub7RheEn5kXS1Tz29s2typf/2CtsBMigCQ1Jr15M
-LCEY0juMsAt5YEyKYpJ1LkLhtu+7hCg/sVd8I49Htf7LkZlcVRZhrNR3s79z9yRbRm7uPgEC
-I9RzEb/S8zVtw8abTj5r8ZW7aIJ9fDIDhQ7iihWSJxHMLDU9VUIxggRdMIIEWQIBATCBwzCB
-rjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEe
-MBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVz
-ZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0
-aW9uIGFuZCBFbWFpbAIQUVX68kYv248J0u62JN9CvDAJBgUrDgMCGgUAoIICbjAYBgkqhkiG
-9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMjAxMjgwMDAyMzNaMCMGCSqG
-SIb3DQEJBDEWBBQ1MMzOdXaRkNKwdTRePwo5ENe+KzBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCG
-SAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
-Kw4DAgcwDQYIKoZIhvcNAwICASgwgdQGCSsGAQQBgjcQBDGBxjCBwzCBrjELMAkGA1UEBhMC
-VVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl
-IFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20x
-NjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFp
-bAIQUVX68kYv248J0u62JN9CvDCB1gYLKoZIhvcNAQkQAgsxgcaggcMwga4xCzAJBgNVBAYT
-AlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRo
-ZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29t
-MTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1h
-aWwCEFFV+vJGL9uPCdLutiTfQrwwDQYJKoZIhvcNAQEBBQAEggEAN1iBWmQ/pLZxzCubeqr3
-1b3W44V5AziuYK+7xMPLZk7LJ6EXMkpjC+d0K0lMcFum1RpTpkq+2k1HbFRmjGO+77cSmWeq
-qQpEGw3uQzGB9Wsy7Y73DqECJFc64j5xs+SbiqohqLE2etOXOU/UeuwXTtqH5veLhqoznIdb
-622eG3E9qScd57DzxYojbmLKNFUJMHcMuc0p4tXqTh2rulL1GXpHKD4Wod4AkoiYkg9ml33p
-lFP52T3qBj18qr39EkkB+8HDpqqiokzOvCm470UMjxQlX2+Lqn5GArCZhk12VBpnfev/Yadn
-wuXtaITK2bqOCFmuwwlUhAcD3kAQW5D9HgAAAAAAAA==
---------------ms090003020604040009050909--
-
-
---===============6957503621749993421==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6957503621749993421==--
