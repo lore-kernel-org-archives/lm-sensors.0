@@ -1,36 +1,52 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 08 Jan 2012 18:55:07 +0000
-Subject: Re: [lm-sensors] [PATCH 16/17 v2] hwmon: (wm831x-hwmon) fix
-Message-Id: <20120108185507.GA23747@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 05 Jan 2012 13:44:37 +0000
+Subject: Re: [lm-sensors] [PATCH v2] hwmon/mc13xxx-adc: add support for the
+Message-Id: <20120105144437.2dcad38d@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326047660-20539-16-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1326047660-20539-16-git-send-email-fransmeulenbroeks@gmail.com>
+References: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 08, 2012 at 01:34:19PM -0500, Frans Meulenbroeks wrote:
-> fixed:
-> WARNING: static const char * array should probably be static const char * const
-> #43: FILE: wm831x-hwmon.c:43:
-> +static const char *input_names[] = {
-> 
-> not fixed (will probably provide separate fix later)
-> ERROR: Macros with multiple statements should be enclosed in a do - while loop
-> #98: FILE: wm831x-hwmon.c:98:
-> +#define WM831X_NAMED_VOLTAGE(id, name) \
-> +	WM831X_VOLTAGE(id, name); \
-> +	static SENSOR_DEVICE_ATTR(in##id##_label, S_IRUGO, show_label,	\
-> +				  NULL, name)
-> 
-This is really a false positive, or at least one that can not be fixed by enclosing it
-in a while loop, since the macro does not define a sequence of operations.
+Uwe,
 
-While I don't like the style much, not sure how to fix a problem like this except by
-unwinding the macro - and that might end up being a bit clumsy.
+On Tue, 27 Sep 2011 23:16:09 +0200, Uwe Kleine-K=F6nig wrote:
+> Based on a patch by David Jander that mostly did s/mc13783/mc13xxx/
+>=20
+> Cc: David Jander <david.jander@protonic.nl>
+> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> ---
+> changes since (implicit) v1:
+>  - update documentation
+>  - undo driver renaming
+>  - fix show_name callback (not 100% sure it is correct to give a differen=
+t name
+>    on mc13892. I think name contains the prefix documented in
+>    Documentation/hwmon/mc13783-adc?!)
+>  - implement some differences between mc13783 and mc13892 that I noticed =
+when
+>    updating the docs
+>    - different scaling for bp channel
+>    - no general purpose channels 8-15 on mc13892
+>  - take over authorship as the patch got much more complicated now compar=
+ed to
+>    David's original.
+>=20
+>  Documentation/hwmon/mc13783-adc |   48 ++++++++++++----
+>  drivers/hwmon/Kconfig           |    6 +-
+>  drivers/hwmon/mc13783-adc.c     |  113 +++++++++++++++++++++++++++++----=
+------
+>  3 files changed, 123 insertions(+), 44 deletions(-)
 
-Guenter
+What's the current state of this patch? Do you have a more recent
+version that you would like to share? I would like to get this upstream
+now so that your work doesn't get lost.
+
+Thanks,
+--=20
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
