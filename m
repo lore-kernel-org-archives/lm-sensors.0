@@ -1,25 +1,19 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 04 Jan 2012 22:25:09 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/lm57.h: fix checkpatch
-Message-Id: <1325715909.2649.31.camel@groeck-laptop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 06 Jan 2012 10:06:33 +0000
+Subject: [lm-sensors] Plan for lm-sensors 3.3.2
+Message-Id: <20120106110633.3e97c4e7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1325715399-22053-1-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1325715399-22053-1-git-send-email-fransmeulenbroeks@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2012-01-04 at 17:16 -0500, Frans Meulenbroeks wrote:
-> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+I am planing a release of lm-sensors 3.3.2 by January 21st. The
+changelog is relatively short but it will be 6 months since the
+previous release so I still believe this is the right time.
 
-Guess you meant lm75.h, not lm57.h ;).
-
-Thanks, applied.
-
-Guenter
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
