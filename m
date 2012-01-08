@@ -1,51 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Jan 2012 19:39:22 +0000
-Subject: [lm-sensors] [PATCH 10/13] hwmon: (it87) Constify fixed string arrays
-Message-Id: <1327088365-11149-11-git-send-email-linux@roeck-us.net>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 16:23:24 +0000
+Subject: [lm-sensors] [PATCH 01/17] drivers/hwmon/ad7414.c: fix checkpath
+Message-Id: <1326039820-11147-1-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Make checkpatch happy by constifying fixed string arrays.
-
-Cc: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/it87.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/ad7414.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 93a197b..0b204e4 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1341,12 +1341,12 @@ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
- static ssize_t show_label(struct device *dev, struct device_attribute *attr,
- 		char *buf)
- {
--	static const char *labels[] = {
-+	static const char * const labels[] = {
- 		"+5V",
- 		"5VSB",
- 		"Vbat",
- 	};
--	static const char *labels_it8721[] = {
-+	static const char * const labels_it8721[] = {
- 		"+3.3V",
- 		"3VSB",
- 		"Vbat",
-@@ -1815,7 +1815,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
- 	int err = 0, i;
- 	int enable_pwm_interface;
- 	int fan_beep_need_rw;
--	static const char *names[] = {
-+	static const char * const names[] = {
- 		"it87",
- 		"it8712",
- 		"it8716",
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+index df29a7f..7c4939a 100644
+--- a/drivers/hwmon/ad7414.c
++++ b/drivers/hwmon/ad7414.c
+@@ -130,7 +130,11 @@ static ssize_t set_max_min(struct device *dev,
+ 	struct ad7414_data *data = i2c_get_clientdata(client);
+ 	int index = to_sensor_dev_attr(attr)->index;
+ 	u8 reg = AD7414_REG_LIMIT[index];
+-	long temp = simple_strtol(buf, NULL, 10);
++	long temp;
++	int ret = kstrtol(buf, 10, &temp);
++
++	if (ret < 0)
++		return ret;
+ 
+ 	temp = SENSORS_LIMIT(temp, -40000, 85000);
+ 	temp = (temp + (temp < 0 ? -500 : 500)) / 1000;
 -- 
-1.7.5.4
+1.7.8.2
 
 
 _______________________________________________
