@@ -1,37 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:42 +0000
-Subject: [lm-sensors] [PATCH 48/82] hwmon: (max16065) Fix multi-line comments
-Message-Id: <1327017376-20466-49-git-send-email-linux@roeck-us.net>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 18:34:10 +0000
+Subject: [lm-sensors] [PATCH 07/17 v2] hwmon: (f71882fg) fix checkpatch
+Message-Id: <1326047660-20539-7-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/max16065.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+fixed:
+WARNING: static const char * array should probably be static const char * const
+#115: FILE: f71882fg.c:115:
++static const char *f71882fg_names[] = {
 
-diff --git a/drivers/hwmon/max16065.c b/drivers/hwmon/max16065.c
-index f8e323a..cb6c1f7 100644
---- a/drivers/hwmon/max16065.c
-+++ b/drivers/hwmon/max16065.c
-@@ -47,8 +47,10 @@ enum chips { max16065, max16066, max16067, max16068, max16070, max16071 };
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+ drivers/hwmon/f71882fg.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 59dd881..8b0489d 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -112,7 +112,7 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ enum chips { f71808e, f71808a, f71858fg, f71862fg, f71869, f71869a, f71882fg,
+ 	     f71889fg, f71889ed, f71889a, f8000, f81865f };
  
- #define MAX16065_SW_ENABLE	0x73
- 
--#define MAX16065_WARNING_OV	(1 << 3) /* Set if secondary threshold is OV
--					    warning */
-+#define MAX16065_WARNING_OV	(1 << 3) /*
-+					  * Set if secondary threshold is OV
-+					  * warning
-+					  */
- 
- #define MAX16065_CURR_ENABLE	(1 << 0)
- 
+-static const char *f71882fg_names[] = {
++static const char *const f71882fg_names[] = {
+ 	"f71808e",
+ 	"f71808a",
+ 	"f71858fg",
 -- 
-1.7.5.4
+1.7.8.2
 
 
 _______________________________________________
