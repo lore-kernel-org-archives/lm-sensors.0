@@ -1,37 +1,43 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 20 Jan 2012 17:06:19 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (f71805f) Fix clamping of temperature limits
-Message-Id: <20120120170619.GA1035@ericsson.com>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 18:34:04 +0000
+Subject: [lm-sensors] [PATCH 01/17 v2] hwmon: (ad7414) fix checkpath issues
+Message-Id: <1326047660-20539-1-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120120160923.5f690806@endymion.delvare>
-In-Reply-To: <20120120160923.5f690806@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jan 20, 2012 at 11:41:57AM -0500, Jean Delvare wrote:
-> On Fri, 20 Jan 2012 07:22:29 -0800, Guenter Roeck wrote:
-> > On Fri, Jan 20, 2012 at 10:09:23AM -0500, Jean Delvare wrote:
-> > > Properly clamp temperature limits set by the user. Without this fix,
-> > > attempts to write temperature limits above the maximum supported by
-> > > the chip (255 degrees Celsius) would arbitrarily and unexpectedly
-> > > result in the limit being set to 0 degree Celsius.
-> > > 
-> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > > Cc: stable@vger.kernel.org
-> > 
-> > Good catch. Applied.
-> 
-> Note that this patch conflicts with one of yours. For smooth
-> integration in stable trees it would be best to apply mine first and
-> yours on top. If you can't be bothered, you can also drop all f71805f
-> patches and I'll handle them, just let me know.
-> 
-No problem; thanks for the note. Fixed it already, by moving your patch
-to the head of my patch list.
+fixed:
+WARNING: simple_strtol is obsolete, use kstrtol instead
+#133: FILE: ad7414.c:133:
++	long temp = simple_strtol(buf, NULL, 10);
 
-Guenter
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+ drivers/hwmon/ad7414.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+index df29a7f..7c4939a 100644
+--- a/drivers/hwmon/ad7414.c
++++ b/drivers/hwmon/ad7414.c
+@@ -130,7 +130,11 @@ static ssize_t set_max_min(struct device *dev,
+ 	struct ad7414_data *data = i2c_get_clientdata(client);
+ 	int index = to_sensor_dev_attr(attr)->index;
+ 	u8 reg = AD7414_REG_LIMIT[index];
+-	long temp = simple_strtol(buf, NULL, 10);
++	long temp;
++	int ret = kstrtol(buf, 10, &temp);
++
++	if (ret < 0)
++		return ret;
+ 
+ 	temp = SENSORS_LIMIT(temp, -40000, 85000);
+ 	temp = (temp + (temp < 0 ? -500 : 500)) / 1000;
+-- 
+1.7.8.2
+
 
 _______________________________________________
 lm-sensors mailing list
