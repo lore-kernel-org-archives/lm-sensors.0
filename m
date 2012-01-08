@@ -1,50 +1,46 @@
 From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 16:23:38 +0000
-Subject: [lm-sensors] [PATCH 15/17] drivers/hwmon/adm1029.c: fix checkpatch
-Message-Id: <1326039820-11147-15-git-send-email-fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 18:34:13 +0000
+Subject: [lm-sensors] [PATCH 10/17 v2] hwmon: (adt7470) fix checkpatch issues
+Message-Id: <1326047660-20539-10-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+fixed:
+ERROR: that open brace { should be on the previous line
+#1135: FILE: adt7470.c:1135:
++static struct attribute *adt7470_attr[] +{
+
+ERROR: do not use assignment in if condition
+#1279: FILE: adt7470.c:1279:
++	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
+
 Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/adm1029.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/hwmon/adt7470.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
-index 0b8a3b1..47cbd09 100644
---- a/drivers/hwmon/adm1029.c
-+++ b/drivers/hwmon/adm1029.c
-@@ -78,7 +78,7 @@ static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index c6d1ce0..cad7f1a 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -1131,8 +1131,7 @@ static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IWUSR | S_IRUGO,
+ static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IWUSR | S_IRUGO,
+ 		    show_pwm_auto_temp, set_pwm_auto_temp, 3);
  
- #define TEMP_FROM_REG(val)	((val) * 1000)
- 
--#define DIV_FROM_REG(val)	( 1 << (((val) >> 6) - 1))
-+#define DIV_FROM_REG(val)	(1 << (((val) >> 6) - 1))
- 
- /* Registers to be checked by adm1029_update_device() */
- static const u8 ADM1029_REG_TEMP[] = {
-@@ -200,8 +200,11 @@ static ssize_t set_fan_div(struct device *dev,
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct adm1029_data *data = i2c_get_clientdata(client);
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
--	long val = simple_strtol(buf, NULL, 10);
- 	u8 reg;
-+	long val;
-+	int ret = kstrtol(buf, 10, &val);
-+	if (ret < 0)
-+		return ret;
- 
- 	mutex_lock(&data->update_lock);
- 
-@@ -355,7 +357,8 @@ static int adm1029_probe(struct i2c_client *client,
- 	}
+-static struct attribute *adt7470_attr[] -{
++static struct attribute *adt7470_attr[] = {
+ 	&dev_attr_alarm_mask.attr,
+ 	&dev_attr_num_temp_sensors.attr,
+ 	&dev_attr_auto_update_interval.attr,
+@@ -1276,7 +1275,8 @@ static int adt7470_probe(struct i2c_client *client,
  
  	/* Register sysfs hooks */
--	if ((err = sysfs_create_group(&client->dev.kobj, &adm1029_group)))
-+	err = sysfs_create_group(&client->dev.kobj, &adm1029_group);
+ 	data->attrs.attrs = adt7470_attr;
+-	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
++	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
 +	if (err)
  		goto exit_free;
  
