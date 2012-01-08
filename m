@@ -1,7 +1,7 @@
 From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:09 +0000
-Subject: [lm-sensors] [PATCH 06/17 v2] hwmon: (asus_atk0110) fix checkpatch
-Message-Id: <1326047660-20539-6-git-send-email-fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 18:34:12 +0000
+Subject: [lm-sensors] [PATCH 09/17 v2] hwmon: (adt7411) fix checkpatch issues
+Message-Id: <1326047660-20539-9-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,29 +9,33 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 fixed:
+WARNING: please, no space before tabs
+#11: FILE: adt7411.c:11:
++ * ^I  use power-down mode for suspend?, interrupt handling?$
+
+not fixed as all other macros around it are the same structure and this one is only 2 chars longer:
 WARNING: line over 80 characters
-#1321: FILE: asus_atk0110.c:1321:
-+	if (data->rtmp_handle && data->rvlt_handle && data->rfan_handle && !new_if)
+#229: FILE: adt7411.c:229:
++static ADT7411_BIT_ATTR(fast_sampling, ADT7411_REG_CFG3, ADT7411_CFG3_ADC_CLK_225);
 
 Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/asus_atk0110.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/hwmon/adt7411.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-index 00e9851..4000fee 100644
---- a/drivers/hwmon/asus_atk0110.c
-+++ b/drivers/hwmon/asus_atk0110.c
-@@ -1318,7 +1318,8 @@ static int atk_probe_if(struct atk_data *data)
- 	 */
- 	if (new_if)
- 		dev_info(dev, "Overriding interface detection\n");
--	if (data->rtmp_handle && data->rvlt_handle && data->rfan_handle && !new_if)
-+	if (data->rtmp_handle &&
-+			data->rvlt_handle && data->rfan_handle && !new_if)
- 		data->old_interface = true;
- 	else if (data->enumerate_handle && data->read_handle &&
- 			data->write_handle)
+diff --git a/drivers/hwmon/adt7411.c b/drivers/hwmon/adt7411.c
+index 5cc3e37..dae6d8c 100644
+--- a/drivers/hwmon/adt7411.c
++++ b/drivers/hwmon/adt7411.c
+@@ -8,7 +8,7 @@
+  *  published by the Free Software Foundation.
+  *
+  *  TODO: SPI, support for external temperature sensor
+- * 	  use power-down mode for suspend?, interrupt handling?
++ *	  use power-down mode for suspend?, interrupt handling?
+  */
+ 
+ #include <linux/kernel.h>
 -- 
 1.7.8.2
 
