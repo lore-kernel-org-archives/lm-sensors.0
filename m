@@ -1,36 +1,31 @@
 From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:05 +0000
-Subject: [lm-sensors] [PATCH 02/17 v2] hwmon: (ibmaem) fix checkpatch issues
-Message-Id: <1326047660-20539-2-git-send-email-fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 16:23:27 +0000
+Subject: [lm-sensors] [PATCH 04/17] drivers/hwmon/smm665.c: fix checkpatch
+Message-Id: <1326039820-11147-4-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-WARNING: please, no space before tabs
-#1048: FILE: ibmaem.c:1048:
-+{"power3_average", ^I  aem2_show_pcap_value,^IPOWER_AUX},$
-
 Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/ibmaem.c |    2 +-
+ drivers/hwmon/smm665.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
-index 6a967d7..24b1524 100644
---- a/drivers/hwmon/ibmaem.c
-+++ b/drivers/hwmon/ibmaem.c
-@@ -1045,7 +1045,7 @@ static struct aem_ro_sensor_template aem2_ro_sensors[] = {
- {"power6_average",	  aem2_show_pcap_value,	POWER_CAP_MIN_WARNING},
- {"power7_average",	  aem2_show_pcap_value,	POWER_CAP_MIN},
+diff --git a/drivers/hwmon/smm665.c b/drivers/hwmon/smm665.c
+index 4116381..1b4301f 100644
+--- a/drivers/hwmon/smm665.c
++++ b/drivers/hwmon/smm665.c
+@@ -376,7 +376,7 @@ static ssize_t smm665_show_input(struct device *dev,
+ }
  
--{"power3_average", 	  aem2_show_pcap_value,	POWER_AUX},
-+{"power3_average",	  aem2_show_pcap_value,	POWER_AUX},
- {"power_cap",		  aem2_show_pcap_value,	POWER_CAP},
- {NULL,                    NULL,                 0},
- };
+ #define SMM665_SHOW(what) \
+-  static ssize_t smm665_show_##what(struct device *dev, \
++static ssize_t smm665_show_##what(struct device *dev, \
+ 				    struct device_attribute *da, char *buf) \
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da); \
 -- 
 1.7.8.2
 
