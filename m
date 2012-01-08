@@ -1,34 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 31 Jan 2012 07:25:13 +0000
-Subject: Re: [lm-sensors] sensors3.conf settings for IT8728F / GA-H67MA-UD2H
-Message-Id: <20120131082513.47536187@endymion.delvare>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 16:23:40 +0000
+Subject: [lm-sensors] [PATCH 17/17] drivers/hwmon/i5k_amb.c: fix checkpatch
+Message-Id: <1326039820-11147-17-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327262683.1391.69.camel@localhost.localdomain>
-In-Reply-To: <1327262683.1391.69.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 22 Jan 2012 21:04:43 +0100, Ivan Bulatovic wrote:
-> These are the settings for IT8728F on GA-H67MA-UD2H (and possibly other
-> P65/H61/H67 Gigabyte boards)
-> 
-> Testing was done on Arch Linux, 3.3-rc1 custom kernel and lm_sensors
-> 3.3.1
-> 
-> If anyone have suggestions to make this better, or if there are any
-> users that can confirm if other models from Gigabyte coresponds to these
-> settings, that would be great.
-> 
-> Jean, could you please add this to other GA boards on the wiki, after
-> eventual changes and/or confirmations from other users?
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+ drivers/hwmon/i5k_amb.c |   15 ++++++++++++---
+ 1 files changed, 12 insertions(+), 3 deletions(-)
 
-Added, thanks:
-http://www.lm-sensors.org/wiki/Configurations/Gigabyte/H67MA-UD2H
-
+diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
+index d22f241..c516bdc 100644
+--- a/drivers/hwmon/i5k_amb.c
++++ b/drivers/hwmon/i5k_amb.c
+@@ -159,7 +159,10 @@ static ssize_t store_amb_min(struct device *dev,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i5k_amb_data *data = dev_get_drvdata(dev);
+-	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
++	unsigned long temp;
++	int ret = kstrtoul(buf, 10, &temp) / 500;
++	if (ret < 0)
++		return ret;
+ 
+ 	if (temp > 255)
+ 		temp = 255;
+@@ -175,7 +178,10 @@ static ssize_t store_amb_mid(struct device *dev,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i5k_amb_data *data = dev_get_drvdata(dev);
+-	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
++	unsigned long temp;
++	int ret = kstrtoul(buf, 10, &temp) / 500;
++	if (ret < 0)
++		return ret;
+ 
+ 	if (temp > 255)
+ 		temp = 255;
+@@ -191,7 +197,10 @@ static ssize_t store_amb_max(struct device *dev,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i5k_amb_data *data = dev_get_drvdata(dev);
+-	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
++	unsigned long temp;
++	int ret = kstrtoul(buf, 10, &temp) / 500;
++	if (ret < 0)
++		return ret;
+ 
+ 	if (temp > 255)
+ 		temp = 255;
 -- 
-Jean Delvare
+1.7.8.2
+
 
 _______________________________________________
 lm-sensors mailing list
