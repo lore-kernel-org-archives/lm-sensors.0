@@ -1,55 +1,36 @@
 From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 16:23:37 +0000
-Subject: [lm-sensors] [PATCH 14/17] drivers/hwmon/ad7418.c: fix checkpatch
-Message-Id: <1326039820-11147-14-git-send-email-fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 18:34:07 +0000
+Subject: [lm-sensors] [PATCH 04/17 v2] hwmon: (smm665) fix checkpatch issues
+Message-Id: <1326047660-20539-4-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+fixed:
+WARNING: please, no spaces at the start of a line
+#379: FILE: smm665.c:379:
++  static ssize_t smm665_show_##what(struct device *dev, \$
+
 Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/ad7418.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/hwmon/smm665.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/ad7418.c b/drivers/hwmon/ad7418.c
-index 8cb718c..0ebd8ed 100644
---- a/drivers/hwmon/ad7418.c
-+++ b/drivers/hwmon/ad7418.c
-@@ -167,7 +167,11 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *devattr,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct ad7418_data *data = i2c_get_clientdata(client);
--	long temp = simple_strtol(buf, NULL, 10);
-+	long temp;
-+	int ret = kstrtol(buf, 10, &temp);
-+
-+	if (ret < 0)
-+		return ret;
+diff --git a/drivers/hwmon/smm665.c b/drivers/hwmon/smm665.c
+index 4116381..1b4301f 100644
+--- a/drivers/hwmon/smm665.c
++++ b/drivers/hwmon/smm665.c
+@@ -376,7 +376,7 @@ static ssize_t smm665_show_input(struct device *dev,
+ }
  
- 	mutex_lock(&data->lock);
- 	data->temp[attr->index] = LM75_TEMP_TO_REG(temp);
-@@ -228,7 +231,8 @@ static int ad7418_probe(struct i2c_client *client,
- 		goto exit;
- 	}
- 
--	if (!(data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL))) {
-+	data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL);
-+	if (!data) {
- 		err = -ENOMEM;
- 		goto exit;
- 	}
-@@ -261,7 +265,8 @@ static int ad7418_probe(struct i2c_client *client,
- 	ad7418_init_client(client);
- 
- 	/* Register sysfs hooks */
--	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
-+	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
-+	if (err)
- 		goto exit_free;
- 
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ #define SMM665_SHOW(what) \
+-  static ssize_t smm665_show_##what(struct device *dev, \
++static ssize_t smm665_show_##what(struct device *dev, \
+ 				    struct device_attribute *da, char *buf) \
+ { \
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da); \
 -- 
 1.7.8.2
 
