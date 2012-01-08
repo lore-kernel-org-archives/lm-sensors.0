@@ -1,31 +1,33 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:56:01 +0000
-Subject: [lm-sensors] [PATCH 67/82] hwmon: (tmp401) Fix multi-line comments
-Message-Id: <1327017376-20466-68-git-send-email-linux@roeck-us.net>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 16:23:30 +0000
+Subject: [lm-sensors] [PATCH 07/17] drivers/hwmon/f71882fg.c: fix checkpatch
+Message-Id: <1326039820-11147-7-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/tmp401.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/hwmon/f71882fg.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/tmp401.c b/drivers/hwmon/tmp401.c
-index 8b9a774..c92d751 100644
---- a/drivers/hwmon/tmp401.c
-+++ b/drivers/hwmon/tmp401.c
-@@ -1,4 +1,5 @@
--/* tmp401.c
-+/*
-+ * tmp401.c
-  *
-  * Copyright (C) 2007,2008 Hans de Goede <hdegoede@redhat.com>
-  * Preliminary tmp411 support by:
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 59dd881..8b0489d 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -112,7 +112,7 @@ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ enum chips { f71808e, f71808a, f71858fg, f71862fg, f71869, f71869a, f71882fg,
+ 	     f71889fg, f71889ed, f71889a, f8000, f81865f };
+ 
+-static const char *f71882fg_names[] = {
++static const char *const f71882fg_names[] = {
+ 	"f71808e",
+ 	"f71808a",
+ 	"f71858fg",
 -- 
-1.7.5.4
+1.7.8.2
 
 
 _______________________________________________
