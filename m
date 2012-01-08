@@ -1,81 +1,34 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:01 +0000
-Subject: [lm-sensors] [PATCH 22/79] hwmon: (ads7871) Fix multi-line comments
-Message-Id: <1327373398-997-23-git-send-email-guenter.roeck@ericsson.com>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Sun, 08 Jan 2012 16:23:29 +0000
+Subject: [lm-sensors] [PATCH 06/17] drivers/hwmon/asus_atk0110.c: fix
+Message-Id: <1326039820-11147-6-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-
-Cc: Paul Thomas <pthomas8589@gmail.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
 ---
- drivers/hwmon/ads7871.c |   26 +++++++++++++++++---------
- 1 files changed, 17 insertions(+), 9 deletions(-)
+ drivers/hwmon/asus_atk0110.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
-index 11a5f5f..e65c6e4 100644
---- a/drivers/hwmon/ads7871.c
-+++ b/drivers/hwmon/ads7871.c
-@@ -34,9 +34,11 @@
- #define REG_SER_CONTROL 24 /*Serial Interface Control Register*/
- #define REG_ID		31 /*ID Register*/
- 
--/*From figure 17 in the datasheet
--* These bits get ORed with the address to form
--* the instruction byte */
-+/*
-+ * From figure 17 in the datasheet
-+ * These bits get ORed with the address to form
-+ * the instruction byte
-+ */
- /*Instruction Bit masks*/
- #define INST_MODE_bm	(1<<7)
- #define INST_READ_bm	(1<<6)
-@@ -105,8 +107,10 @@ static ssize_t show_voltage(struct device *dev,
- 	uint8_t channel, mux_cnv;
- 
- 	channel = attr->index;
--	/*TODO: add support for conversions
--	 *other than single ended with a gain of 1*/
-+	/*
-+	 * TODO: add support for conversions
-+	 * other than single ended with a gain of 1
-+	 */
- 	/*MUX_M3_bm forces single ended*/
- 	/*This is also where the gain of the PGA would be set*/
- 	ads7871_write_reg8(spi, REG_GAIN_MUX,
-@@ -114,8 +118,10 @@ static ssize_t show_voltage(struct device *dev,
- 
- 	ret = ads7871_read_reg8(spi, REG_GAIN_MUX);
- 	mux_cnv = ((ret & MUX_CNV_bm)>>MUX_CNV_bv);
--	/*on 400MHz arm9 platform the conversion
--	 *is already done when we do this test*/
-+	/*
-+	 * on 400MHz arm9 platform the conversion
-+	 * is already done when we do this test
-+	 */
- 	while ((i < 2) && mux_cnv) {
- 		i++;
- 		ret = ads7871_read_reg8(spi, REG_GAIN_MUX);
-@@ -179,8 +185,10 @@ static int __devinit ads7871_probe(struct spi_device *spi)
- 	ret = ads7871_read_reg8(spi, REG_OSC_CONTROL);
- 
- 	dev_dbg(&spi->dev, "REG_OSC_CONTROL write:%x, read:%x\n", val, ret);
--	/*because there is no other error checking on an SPI bus
--	we need to make sure we really have a chip*/
-+	/*
-+	 * because there is no other error checking on an SPI bus
-+	 * we need to make sure we really have a chip
-+	 */
- 	if (val != ret) {
- 		err = -ENODEV;
- 		goto exit;
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index 00e9851..4000fee 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -1318,7 +1318,8 @@ static int atk_probe_if(struct atk_data *data)
+ 	 */
+ 	if (new_if)
+ 		dev_info(dev, "Overriding interface detection\n");
+-	if (data->rtmp_handle && data->rvlt_handle && data->rfan_handle && !new_if)
++	if (data->rtmp_handle &&
++			data->rvlt_handle && data->rfan_handle && !new_if)
+ 		data->old_interface = true;
+ 	else if (data->enumerate_handle && data->read_handle &&
+ 			data->write_handle)
 -- 
-1.7.3.1
+1.7.8.2
 
 
 _______________________________________________
