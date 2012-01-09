@@ -1,43 +1,53 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:11 +0000
-Subject: [lm-sensors] [PATCH 08/17 v2] hwmon: (lm70) fix checkpatch issues
-Message-Id: <1326047660-20539-8-git-send-email-fransmeulenbroeks@gmail.com>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Mon, 09 Jan 2012 16:34:28 +0000
+Subject: Re: [lm-sensors] [PATCH 10/17] drivers/hwmon/adt7470.c:
+Message-Id: <20120109163428.GP19857@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-ERROR: spaces required around that '=' (ctx:VxV)
-#60: FILE: lm70.c:60:
-+	s16 raw=0;
- 	       ^
+On Sun, Jan 08, 2012 at 05:23:33PM +0100, Frans Meulenbroeks wrote:
+> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+> ---
+>  drivers/hwmon/adt7470.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+> index c6d1ce0..cad7f1a 100644
+> --- a/drivers/hwmon/adt7470.c
+> +++ b/drivers/hwmon/adt7470.c
+> @@ -1131,8 +1131,7 @@ static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IWUSR | S_IRUGO,
+>  static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IWUSR | S_IRUGO,
+>  		    show_pwm_auto_temp, set_pwm_auto_temp, 3);
+> 
+> -static struct attribute *adt7470_attr[] > -{
+> +static struct attribute *adt7470_attr[] = {
+>  	&dev_attr_alarm_mask.attr,
+>  	&dev_attr_num_temp_sensors.attr,
+>  	&dev_attr_auto_update_interval.attr,
+> @@ -1276,7 +1275,8 @@ static int adt7470_probe(struct i2c_client *client,
+> 
+>  	/* Register sysfs hooks */
+>  	data->attrs.attrs = adt7470_attr;
+> -	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
+> +	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
+> +	if (err)
+>  		goto exit_free;
+> 
+>  	data->hwmon_dev = hwmon_device_register(&client->dev);
 
-ERROR: do not use assignment in if condition
-#168: FILE: lm70.c:168:
-+	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))
-
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
----
- drivers/hwmon/lm70.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
-index c274ea2..0994cb0 100644
---- a/drivers/hwmon/lm70.c
-+++ b/drivers/hwmon/lm70.c
-@@ -57,7 +57,7 @@ static ssize_t lm70_sense_temp(struct device *dev,
- 	struct spi_device *spi = to_spi_device(dev);
- 	int status, val = 0;
- 	u8 rxbuf[2];
--	s16 raw=0;
-+	s16 raw = 0;
- 	struct lm70 *p_lm70 = spi_get_drvdata(spi);
- 
- 	if (mutex_lock_interruptible(&p_lm70->lock))
--- 
-1.7.8.2
+Acked-by: Darrick J. Wong <djwong@us.ibm.com>
+> -- 
+> 1.7.8.2
+> 
+> 
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+> 
 
 
 _______________________________________________
