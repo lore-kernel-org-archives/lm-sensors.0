@@ -1,95 +1,69 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 23 Jan 2012 18:07:23 +0000
-Subject: Re: [lm-sensors] [PATCH 41/82] hwmon: (lm90) Fix multi-line comments
-Message-Id: <1327342043.2649.162.camel@groeck-laptop>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 09 Jan 2012 17:27:53 +0000
+Subject: [lm-sensors] [PATCH] sensors: Display both instantaneous and
+Message-Id: <1326130073-4791-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327017376-20466-42-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1327017376-20466-42-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2012-01-23 at 12:36 -0500, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Thu, 19 Jan 2012 15:55:35 -0800, Guenter Roeck wrote:
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  drivers/hwmon/lm90.c |   64 +++++++++++++++++++++++++++++--------------------
-> >  1 files changed, 38 insertions(+), 26 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> > index d2dd5f9..dc11937 100644
-> > --- a/drivers/hwmon/lm90.c
-> > +++ b/drivers/hwmon/lm90.c
-> > @@ -307,23 +307,27 @@ struct lm90_data {
-> >  	u8 reg_local_ext;	/* local extension register offset */
-> >  
-> >  	/* registers values */
-> > -	s8 temp8[8];	/* 0: local low limit
-> > -			   1: local high limit
-> > -			   2: local critical limit
-> > -			   3: remote critical limit
-> > -			   4: local emergency limit (max6659 and max6695/96)
-> > -			   5: remote emergency limit (max6659 and max6695/96)
-> > -			   6: remote 2 critical limit (max6695/96 only)
-> > -			   7: remote 2 emergency limit (max6695/96 only) */
-> > -	s16 temp11[8];	/* 0: remote input
-> > -			   1: remote low limit
-> > -			   2: remote high limit
-> > -			   3: remote offset (except max6646, max6657/58/59,
-> > -					     and max6695/96)
-> > -			   4: local input
-> > -			   5: remote 2 input (max6695/96 only)
-> > -			   6: remote 2 low limit (max6695/96 only)
-> > -			   7: remote 2 high limit (ma6695/96 only) */
-> > +	s8 temp8[8];	/*
-> > +			 * 0: local low limit
-> > +			 * 1: local high limit
-> 
-> I tend to find it less readable this way, because of the shift between
-> the declaration and the explanation. I'm wondering if checkpatch would
-> complain if we cheat a bit in this case and do:
-> 
-> 	s8 temp8[8];	/* 0: local low limit
-> 			 * 1: local high limit
-> 
-> etc. Would you consider it acceptable?
-> 
-ok with me, and checkpatch doesn't complain.
+Some sensor chips report both instantaneous and average power.
+Add support to display both.
 
-> > +			 * 2: local critical limit
-> > +			 * 3: remote critical limit
-> > +			 * 4: local emergency limit (max6659 and max6695/96)
-> > +			 * 5: remote emergency limit (max6659 and max6695/96)
-> > +			 * 6: remote 2 critical limit (max6695/96 only)
-> > +			 * 7: remote 2 emergency limit (max6695/96 only)
-> > +			 */
-> > +	s16 temp11[8];	/*
-> > +			 * 0: remote input
-> > +			 * 1: remote low limit
-> > +			 * 2: remote high limit
-> > +			 * 3: remote offset (except max6646, max6657/58/59,
-> > +			 * and max6695/96)
-> 
-> Original was better aligned.
-> 
-fixed.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ prog/sensors/chips.c |   19 +++++++++++++------
+ 1 files changed, 13 insertions(+), 6 deletions(-)
 
-> > +			 * 4: local input
-> > +			 * 5: remote 2 input (max6695/96 only)
-> > +			 * 6: remote 2 low limit (max6695/96 only)
-> > +			 * 7: remote 2 high limit (ma6695/96 only)
-> 
-> There's an "x" missing here, was already the case originally but let's
-> fix it.
-> 
-fixed. I'll send an updated patch in a minute.
-
-Guenter
-
+diff --git a/prog/sensors/chips.c b/prog/sensors/chips.c
+index b70b859..1390b3f 100644
+--- a/prog/sensors/chips.c
++++ b/prog/sensors/chips.c
+@@ -505,6 +505,11 @@ static const struct sensor_subfeature_list power_common_sensors[] = {
+ static const struct sensor_subfeature_list power_inst_sensors[] = {
+ 	{ SENSORS_SUBFEATURE_POWER_INPUT_LOWEST, NULL, 0, "lowest" },
+ 	{ SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST, NULL, 0, "highest" },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE, NULL, 0, "avg" },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST, NULL, 0, "avg lowest" },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST, NULL, 0, "avg highest" },
++	{ SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL, NULL, 0,
++		"interval" },
+ 	{ -1, NULL, 0, NULL }
+ };
+ 
+@@ -516,11 +521,9 @@ static const struct sensor_subfeature_list power_avg_sensors[] = {
+ 	{ -1, NULL, 0, NULL }
+ };
+ 
+-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+ #define NUM_POWER_ALARMS	4
+ #define NUM_POWER_SENSORS	(ARRAY_SIZE(power_common_sensors) \
+-				 + MAX(ARRAY_SIZE(power_inst_sensors), \
+-				       ARRAY_SIZE(power_avg_sensors)) \
++				 + ARRAY_SIZE(power_inst_sensors) \
+ 				 - NUM_POWER_ALARMS - 2)
+ 
+ static void print_chip_power(const sensors_chip_name *name,
+@@ -546,9 +549,13 @@ static void print_chip_power(const sensors_chip_name *name,
+ 
+ 	sensor_count = alarm_count = 0;
+ 
+-	/* Power sensors come in 2 flavors: instantaneous and averaged.
+-	   To keep things simple, we assume that each sensor only implements
+-	   one flavor. */
++	/*
++	 * Power sensors come in 2 flavors: instantaneous and averaged.
++	 * Most devices only support one flavor, so we try to display the
++	 * average power if the instantaneous power attribute does not exist.
++	 * If both instantaneous power and average power are supported,
++	 * average power is displayed as limit.
++	 */
+ 	sf = sensors_get_subfeature(name, feature,
+ 				    SENSORS_SUBFEATURE_POWER_INPUT);
+ 	get_sensor_limit_data(name, feature,
+-- 
+1.7.5.4
 
 
 _______________________________________________
