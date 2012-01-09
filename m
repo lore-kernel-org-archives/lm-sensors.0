@@ -1,83 +1,45 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:20 +0000
-Subject: [lm-sensors] [PATCH 17/17 v3] hwmon: (i5k_amb) fix checkpatch issues
-Message-Id: <1326047660-20539-17-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 09 Jan 2012 01:48:36 +0000
+Subject: Re: [lm-sensors] [PATCH 17/17 v3] hwmon: (i5k_amb) fix checkpatch
+Message-Id: <20120109014836.GA25268@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1326047660-20539-17-git-send-email-fransmeulenbroeks@gmail.com>
+In-Reply-To: <1326047660-20539-17-git-send-email-fransmeulenbroeks@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-WARNING: simple_strtoul is obsolete, use kstrtoul instead
-#162: FILE: i5k_amb.c:162:
-+	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
+On Sun, Jan 08, 2012 at 01:34:20PM -0500, Frans Meulenbroeks wrote:
+> fixed:
+> WARNING: simple_strtoul is obsolete, use kstrtoul instead
+> #162: FILE: i5k_amb.c:162:
+> +	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
+> 
+> WARNING: simple_strtoul is obsolete, use kstrtoul instead
+> #178: FILE: i5k_amb.c:178:
+> +	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
+> 
+> WARNING: simple_strtoul is obsolete, use kstrtoul instead
+> #194: FILE: i5k_amb.c:194:
+> +	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
+> 
+> total: 0 errors, 3 warnings, 609 lines checked
+> 
+> i5k_amb.c has style problems, please review.
+> 
+> If any of these errors are false positives, please report
+> them to the maintainer, see CHECKPATCH in MAINTAINERS.
+> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+> ---
 
-WARNING: simple_strtoul is obsolete, use kstrtoul instead
-#178: FILE: i5k_amb.c:178:
-+	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
+Hi Frans,
 
-WARNING: simple_strtoul is obsolete, use kstrtoul instead
-#194: FILE: i5k_amb.c:194:
-+	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
+I applied the entire series. I'll have to wait until the commit window closes
+before I can push it to my kernel.org repository. For now, the up-to-date
+repository is available at git://github.com/groeck/linux.git (branch hwmon or hwmon-next).
 
-total: 0 errors, 3 warnings, 609 lines checked
-
-i5k_amb.c has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
----
- drivers/hwmon/i5k_amb.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
-index d22f241..c516bdc 100644
---- a/drivers/hwmon/i5k_amb.c
-+++ b/drivers/hwmon/i5k_amb.c
-@@ -159,7 +159,11 @@ static ssize_t store_amb_min(struct device *dev,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i5k_amb_data *data = dev_get_drvdata(dev);
--	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-+	unsigned long temp;
-+	int ret = kstrtoul(buf, 10, &temp);
-+	if (ret < 0)
-+		return ret;
- 
-+	temp = temp / 500;
- 	if (temp > 255)
- 		temp = 255;
-@@ -175,7 +178,11 @@ static ssize_t store_amb_mid(struct device *dev,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i5k_amb_data *data = dev_get_drvdata(dev);
--	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-+	unsigned long temp;
-+	int ret = kstrtoul(buf, 10, &temp);
-+	if (ret < 0)
-+		return ret;
- 
-+	temp = temp / 500;
- 	if (temp > 255)
- 		temp = 255;
-@@ -191,7 +197,11 @@ static ssize_t store_amb_max(struct device *dev,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
- 	struct i5k_amb_data *data = dev_get_drvdata(dev);
--	unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-+	unsigned long temp;
-+	int ret = kstrtoul(buf, 10, &temp);
-+	if (ret < 0)
-+		return ret;
- 
-+	temp = temp / 500;
- 	if (temp > 255)
- 		temp = 255;
--- 
-1.7.8.2
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
