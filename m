@@ -1,106 +1,121 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Tue, 03 Jan 2012 22:01:24 +0000
-Subject: Re: [lm-sensors] [PATCH] drivers/hwmon/lm80.c: fixed checkpatch
-Message-Id: <CACW_hTZWronustjBEF9tCrKLzy+gPj1tyNu8XPHSpj1CNbuqrg@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5887847409708544179=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 10 Jan 2012 03:42:02 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: (lm63) Add support for writing the
+Message-Id: <1326166923-11187-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1325602931-10126-1-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1325602931-10126-1-git-send-email-fransmeulenbroeks@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============5887847409708544179==
-Content-Type: multipart/alternative; boundary=f46d042fd88a1508f204b5a6d779
+From: Guenter Roeck <guenter.roeck@ericsson.com>
 
---f46d042fd88a1508f204b5a6d779
-Content-Type: text/plain; charset=ISO-8859-1
+On LM64, the external critical temperature limit is always writable. On LM96163,
+it is writable if the chip is configured for it. Add conditional support for
+writing the register dependent on chip type and configuration.
 
-Hi Guenter
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm63.c |   57 +++++++++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 52 insertions(+), 5 deletions(-)
 
-Thanks for the feedback.
-I'll give it another stab tomorrow or so.
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index 24a96f8..6370e28 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -117,6 +117,9 @@ static const unsigned short normal_i2c[] = { 0x18, 0x4c, 0x4e, I2C_CLIENT_END };
+ 				 (val) >= 127000 ? 127 : \
+ 				 (val) < 0 ? ((val) - 500) / 1000 : \
+ 				 ((val) + 500) / 1000)
++#define TEMP8U_TO_REG(val)	((val) <= 0 ? 0 : \
++				 (val) >= 255000 ? 255 : \
++				 ((val) + 500) / 1000)
+ #define TEMP11_FROM_REG(reg)	((reg) / 32 * 125)
+ #define TEMP11_TO_REG(val)	((val) <= -128000 ? 0x8000 : \
+ 				 (val) >= 127875 ? 0x7FE0 : \
+@@ -333,6 +336,31 @@ static ssize_t set_local_temp8(struct device *dev,
+ 	return count;
+ }
+ 
++static ssize_t set_remote_temp8(struct device *dev,
++				struct device_attribute *devattr,
++				const char *buf, size_t count)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm63_data *data = i2c_get_clientdata(client);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
++
++	mutex_lock(&data->update_lock);
++	if (data->remote_unsigned)
++		data->temp8[2] = TEMP8U_TO_REG(val - data->temp2_offset);
++	else
++		data->temp8[2] = TEMP8_TO_REG(val - data->temp2_offset);
++
++	i2c_smbus_write_byte_data(client, LM63_REG_REMOTE_TCRIT,
++				  data->temp8[2]);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
+ static ssize_t show_temp11(struct device *dev, struct device_attribute *devattr,
+ 			   char *buf)
+ {
+@@ -470,12 +498,8 @@ static SENSOR_DEVICE_ATTR(temp2_max, S_IWUSR | S_IRUGO, show_temp11,
+ 	set_temp11, 2);
+ static SENSOR_DEVICE_ATTR(temp2_offset, S_IWUSR | S_IRUGO, show_temp11,
+ 	set_temp11, 3);
+-/*
+- * On LM63, temp2_crit can be set only once, which should be job
+- * of the bootloader.
+- */
+ static SENSOR_DEVICE_ATTR(temp2_crit, S_IRUGO, show_remote_temp8,
+-	NULL, 2);
++	set_remote_temp8, 2);
+ static DEVICE_ATTR(temp2_crit_hyst, S_IWUSR | S_IRUGO, show_temp2_crit_hyst,
+ 	set_temp2_crit_hyst);
+ 
+@@ -510,7 +534,30 @@ static struct attribute *lm63_attributes[] = {
+ 	NULL
+ };
+ 
++/*
++ * On LM63, temp2_crit can be set only once, which should be job
++ * of the bootloader.
++ * On LM64, temp2_crit can always be set.
++ * On LM96163, temp2_crit can be set if bit 1 of the configuration
++ * register is true.
++ */
++static mode_t lm63_attribute_mode(struct kobject *kobj,
++				  struct attribute *attr, int index)
++{
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct i2c_client *client = to_i2c_client(dev);
++	struct lm63_data *data = i2c_get_clientdata(client);
++
++	if (attr = &sensor_dev_attr_temp2_crit.dev_attr.attr
++	    && (data->kind = lm64 || (data->kind = lm96163
++				       && (data->config & 0x02))))
++		return attr->mode | S_IWUSR;
++
++	return attr->mode;
++}
++
+ static const struct attribute_group lm63_group = {
++	.is_visible = lm63_attribute_mode,
+ 	.attrs = lm63_attributes,
+ };
+ 
+-- 
+1.7.5.4
 
-On kstrtol:
-
-2012/1/3 Guenter Roeck <guenter.roeck@ericsson.com>
-
->
->
-> >  { \
-> >         int nr = to_sensor_dev_attr(attr)->index; \
-> >         struct i2c_client *client = to_i2c_client(dev); \
-> >         struct lm80_data *data = i2c_get_clientdata(client); \
-> > -       long val = simple_strtol(buf, NULL, 10); \
-> > - \
-> > +       long val = kstrtol(buf, NULL, 10); \
-> > +\
->
-> Does this compile w/o error or warning ?
-> Parameters change from simple_strtol() to kstrtol(), so this won't work,
-> and I would think it should result at least in a compile warning.
->
-
-Hm. Don't recall seeing a warning, guess I overlooked it.
-
-Anyway, the mistake I made was that just before I fixed the lm75 file, but
-there the call was to strict_strtoul. Coming here I overlooked things and
-mixed up strict_strtol and simple_strtol.
-Apologies for the inconvenience.
-
-I'll change (but probably will make it a separate patch then).
-
-Best regards, Frans
-
---f46d042fd88a1508f204b5a6d779
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi Guenter <br>
-<br>
-Thanks for the feedback. <br>
-I&#39;ll give it another stab tomorrow or so.<br><br>On kstrtol:<br><br><di=
-v class=3D"gmail_quote">2012/1/3 Guenter Roeck <span dir=3D"ltr">&lt;<a hre=
-f=3D"mailto:guenter.roeck@ericsson.com" target=3D"_blank">guenter.roeck@eri=
-csson.com</a>&gt;</span><br>
-
-
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex"><br>
-<div><br>
-&gt; =A0{ \<br>
-&gt; =A0 =A0 =A0 =A0 int nr =3D to_sensor_dev_attr(attr)-&gt;index; \<br>
-&gt; =A0 =A0 =A0 =A0 struct i2c_client *client =3D to_i2c_client(dev); \<br=
->
-&gt; =A0 =A0 =A0 =A0 struct lm80_data *data =3D i2c_get_clientdata(client);=
- \<br>
-&gt; - =A0 =A0 =A0 long val =3D simple_strtol(buf, NULL, 10); \<br>
-&gt; - \<br>
-&gt; + =A0 =A0 =A0 long val =3D kstrtol(buf, NULL, 10); \<br>
-&gt; +\<br>
-<br>
-</div>Does this compile w/o error or warning ?<br>
-Parameters change from simple_strtol() to kstrtol(), so this won&#39;t work=
-,<br>
-and I would think it should result at least in a compile warning.<br></bloc=
-kquote></div><br>Hm. Don&#39;t recall seeing a warning, guess I overlooked =
-it.<br><br>Anyway, the mistake I made was that just before I fixed the lm75=
- file, but there the call was to strict_strtoul. Coming here I overlooked t=
-hings and mixed up strict_strtol and simple_strtol.<br>
-Apologies for the inconvenience.<br><br>I&#39;ll change (but probably will =
-make it a separate patch then).<br><br>Best regards, Frans<br><br>
-<br><br>
-
---f46d042fd88a1508f204b5a6d779--
-
-
---===============5887847409708544179==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5887847409708544179==--
