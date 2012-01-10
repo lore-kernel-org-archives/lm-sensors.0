@@ -1,44 +1,78 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 12 Jan 2012 20:52:14 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm90) Add range check to set_update_interval
-Message-Id: <20120112215214.16ea1e83@endymion.delvare>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Date: Tue, 10 Jan 2012 14:49:35 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm80) fixed checkpatch errors
+Message-Id: <1326206976-7846-1-git-send-email-fransmeulenbroeks@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326333305-11082-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1326333305-11082-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 11 Jan 2012 17:55:05 -0800, Guenter Roeck wrote:
-> When writing the update_interval attribute, the parameter value was not range
-> checked, which could cause an integer overflow and result in an arbitrary
-> update interval. Fix by limiting the value range to <0, 100000>.
-> 
-> Reported-by: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/lm90.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> index bdfd675..d2dd5f9 100644
-> --- a/drivers/hwmon/lm90.c
-> +++ b/drivers/hwmon/lm90.c
-> @@ -917,7 +917,7 @@ static ssize_t set_update_interval(struct device *dev,
->  		return err;
->  
->  	mutex_lock(&data->update_lock);
-> -	lm90_set_convrate(client, data, val);
-> +	lm90_set_convrate(client, data, SENSORS_LIMIT(val, 0, 100000));
->  	mutex_unlock(&data->update_lock);
->  
->  	return count;
+fixed:
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
 
-Applied, thanks.
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+ drivers/hwmon/lm80.c |   20 ++++++++++++++++----
+ 1 files changed, 16 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
+index 616f470..18e5ea4 100644
+--- a/drivers/hwmon/lm80.c
++++ b/drivers/hwmon/lm80.c
+@@ -185,7 +185,10 @@ static ssize_t set_in_##suffix(struct device *dev, \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct lm80_data *data = i2c_get_clientdata(client); \
+-	long val = simple_strtol(buf, NULL, 10); \
++	long val; \
++	int err = kstrtol(buf, 10, &val); \
++	if (err < 0) \
++		return err; \
+ \
+ 	mutex_lock(&data->update_lock);\
+ 	data->value[nr] = IN_TO_REG(val); \
+@@ -226,7 +229,10 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm80_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtoul(buf, NULL, 10);
++	long val;
++	int err = kstrtol(buf, 10, &val);
++	if (err < 0)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+@@ -245,8 +251,11 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm80_data *data = i2c_get_clientdata(client);
+-	unsigned long min, val = simple_strtoul(buf, NULL, 10);
++	unsigned long min, val;
+ 	u8 reg;
++	int err = kstrtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
+ 
+ 	/* Save fan_min */
+ 	mutex_lock(&data->update_lock);
+@@ -314,7 +323,10 @@ static ssize_t set_temp_##suffix(struct device *dev, \
+ { \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct lm80_data *data = i2c_get_clientdata(client); \
+-	long val = simple_strtoul(buf, NULL, 10); \
++	long val; \
++	int err = kstrtol(buf, 10, &val); \
++	if (err < 0) \
++		return err; \
+ \
+ 	mutex_lock(&data->update_lock); \
+ 	data->value = TEMP_LIMIT_TO_REG(val); \
 -- 
-Jean Delvare
+1.7.0.4
+
 
 _______________________________________________
 lm-sensors mailing list
