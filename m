@@ -1,58 +1,42 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 24 Jan 2012 08:14:15 +0000
-Subject: Re: [lm-sensors] [PATCH 78/79] hwmon: (it87) Constify fixed string arrays
-Message-Id: <20120124091415.6da95dd3@endymion.delvare>
+Date: Thu, 12 Jan 2012 08:01:49 +0000
+Subject: Re: [lm-sensors] [PATCH] Drivers: hwmon: adm1031: fixed spacing coding style issues
+Message-Id: <20120112090149.1acbff01@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327373398-997-79-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1327373398-997-79-git-send-email-guenter.roeck@ericsson.com>
+References: <1321605413-13614-1-git-send-email-zac.3.14159@gmail.com>
+	<20111118103501.3c14d106@endymion.delvare>
+In-Reply-To: <20111118103501.3c14d106@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Zac Storer <zac.3.14159@gmail.com>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Mon, 23 Jan 2012 18:49:57 -0800, Guenter Roeck wrote:
-> From: Guenter Roeck <linux@roeck-us.net>
-> 
-> Make checkpatch happy by constifying fixed string arrays.
-> 
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/it87.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-> index 93a197b..0b204e4 100644
-> --- a/drivers/hwmon/it87.c
-> +++ b/drivers/hwmon/it87.c
-> @@ -1341,12 +1341,12 @@ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
->  static ssize_t show_label(struct device *dev, struct device_attribute *attr,
->  		char *buf)
->  {
-> -	static const char *labels[] = {
-> +	static const char * const labels[] = {
->  		"+5V",
->  		"5VSB",
->  		"Vbat",
->  	};
-> -	static const char *labels_it8721[] = {
-> +	static const char * const labels_it8721[] = {
->  		"+3.3V",
->  		"3VSB",
->  		"Vbat",
-> @@ -1815,7 +1815,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
->  	int err = 0, i;
->  	int enable_pwm_interface;
->  	int fan_beep_need_rw;
-> -	static const char *names[] = {
-> +	static const char * const names[] = {
->  		"it87",
->  		"it8712",
->  		"it8716",
+On Fri, 18 Nov 2011 10:35:01 +0100, Jean Delvare wrote:
+> On Fri, 18 Nov 2011 01:36:53 -0700, Zac Storer wrote:
+> > Fixed spacing coding style issues.
+> > 
+> > Signed-off-by: Zac Storer <zac.3.14159@gmail.com>
+> > ---
+> >  drivers/hwmon/adm1031.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+> > index 0683e6b..694392b 100644
+> > --- a/drivers/hwmon/adm1031.c
+> > +++ b/drivers/hwmon/adm1031.c
+> > @@ -1058,7 +1058,7 @@ static struct adm1031_data *adm1031_update_device(struct device *dev)
+> >  			data->alarm &= 0xc0ff;
+> >  		}
+> >  
+> > -		for (chan=0; chan<(data->chip_type = adm1030 ? 1 : 2); chan++) {
+> > +		for (chan = 0; chan < (data->chip_type = adm1030 ? 1 : 2); chan++) {
+> >  			data->fan_div[chan] > >  			    adm1031_read_value(client, ADM1031_REG_FAN_DIV(chan));
+> >  			data->fan_min[chan] > 
+> Err, you apparently did not understand my request. Please send _one_
+> patch fixing all the adm1031 coding style issues at once.
 
-Looks good.
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Zac, do you have an updated patch for me?
 
 -- 
 Jean Delvare
