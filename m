@@ -1,48 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 13 Jan 2012 15:21:46 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 13 Jan 2012 16:04:07 +0000
 Subject: Re: [lm-sensors] [PATCH] libsensors: Add support for extra fan attributes
-Message-Id: <20120113162146.45a04af7@endymion.delvare>
+Message-Id: <1326470647.2649.115.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120113155100.1e081f29@endymion.delvare>
 In-Reply-To: <20120113155100.1e081f29@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 13 Jan 2012 07:13:36 -0800, Guenter Roeck wrote:
-> On Fri, Jan 13, 2012 at 09:51:00AM -0500, Jean Delvare wrote:
-> > Add support for fan[1-*]_max, fan[1-*]_min_alarm and fan[1-*]_max_alarm
-> > attributes. These are defined in the standard sysfs interface for quite
-> > some time, and at least three drivers (max6650, lm63 and applesmc)
-> > implement them so we should support them.
-> > ---
-> >  doc/libsensors-API.txt |    3 +++
-> >  lib/sensors.h          |    3 +++
-> >  lib/sysfs.c            |    3 +++
-> >  prog/sensors/chips.c   |   38 +++++++++++++++++++++++++-------------
-> >  4 files changed, 34 insertions(+), 13 deletions(-)
-> >=20
-> Looks good.
->=20
-> Maybe I should try to re-do that using the table based generic code. Wond=
-er why I didn't earlier.
-
-To be honest, I considered it first, and then saw that it was broken,
-so we should fix it first. But lacking the time and energy to do that
-today, I took the short path to where I needed to go.
-
-The problem I see in the generic code is with power limits, "interval"
-is considered a limit and will thus be printed with unit "W" instead of
-"s". Likewise fan[1-*]_div would show up with unit RPM which is no
-good. Apparently we need a way to force unit (or lack thereof) on a
-per-limit basis. Maybe we can leverage the work done for temperatures
-(=B0C vs. =B0F), but I'm not sure.
-
---=20
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAyMDEyLTAxLTEzIGF0IDEwOjIxIC0wNTAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
+T24gRnJpLCAxMyBKYW4gMjAxMiAwNzoxMzozNiAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
+PiA+IE9uIEZyaSwgSmFuIDEzLCAyMDEyIGF0IDA5OjUxOjAwQU0gLTA1MDAsIEplYW4gRGVsdmFy
+ZSB3cm90ZToKPiA+ID4gQWRkIHN1cHBvcnQgZm9yIGZhblsxLSpdX21heCwgZmFuWzEtKl1fbWlu
+X2FsYXJtIGFuZCBmYW5bMS0qXV9tYXhfYWxhcm0KPiA+ID4gYXR0cmlidXRlcy4gVGhlc2UgYXJl
+IGRlZmluZWQgaW4gdGhlIHN0YW5kYXJkIHN5c2ZzIGludGVyZmFjZSBmb3IgcXVpdGUKPiA+ID4g
+c29tZSB0aW1lLCBhbmQgYXQgbGVhc3QgdGhyZWUgZHJpdmVycyAobWF4NjY1MCwgbG02MyBhbmQg
+YXBwbGVzbWMpCj4gPiA+IGltcGxlbWVudCB0aGVtIHNvIHdlIHNob3VsZCBzdXBwb3J0IHRoZW0u
+Cj4gPiA+IC0tLQo+ID4gPiAgZG9jL2xpYnNlbnNvcnMtQVBJLnR4dCB8ICAgIDMgKysrCj4gPiA+
+ICBsaWIvc2Vuc29ycy5oICAgICAgICAgIHwgICAgMyArKysKPiA+ID4gIGxpYi9zeXNmcy5jICAg
+ICAgICAgICAgfCAgICAzICsrKwo+ID4gPiAgcHJvZy9zZW5zb3JzL2NoaXBzLmMgICB8ICAgMzgg
+KysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0KPiA+ID4gIDQgZmlsZXMgY2hh
+bmdlZCwgMzQgaW5zZXJ0aW9ucygrKSwgMTMgZGVsZXRpb25zKC0pCj4gPiA+IAo+ID4gTG9va3Mg
+Z29vZC4KPiA+IAo+ID4gTWF5YmUgSSBzaG91bGQgdHJ5IHRvIHJlLWRvIHRoYXQgdXNpbmcgdGhl
+IHRhYmxlIGJhc2VkIGdlbmVyaWMgY29kZS4gV29uZGVyIHdoeSBJIGRpZG4ndCBlYXJsaWVyLgo+
+IAo+IFRvIGJlIGhvbmVzdCwgSSBjb25zaWRlcmVkIGl0IGZpcnN0LCBhbmQgdGhlbiBzYXcgdGhh
+dCBpdCB3YXMgYnJva2VuLAo+IHNvIHdlIHNob3VsZCBmaXggaXQgZmlyc3QuIEJ1dCBsYWNraW5n
+IHRoZSB0aW1lIGFuZCBlbmVyZ3kgdG8gZG8gdGhhdAo+IHRvZGF5LCBJIHRvb2sgdGhlIHNob3J0
+IHBhdGggdG8gd2hlcmUgSSBuZWVkZWQgdG8gZ28uCj4gCj4gVGhlIHByb2JsZW0gSSBzZWUgaW4g
+dGhlIGdlbmVyaWMgY29kZSBpcyB3aXRoIHBvd2VyIGxpbWl0cywgImludGVydmFsIgo+IGlzIGNv
+bnNpZGVyZWQgYSBsaW1pdCBhbmQgd2lsbCB0aHVzIGJlIHByaW50ZWQgd2l0aCB1bml0ICJXIiBp
+bnN0ZWFkIG9mCj4gInMiLiBMaWtld2lzZSBmYW5bMS0qXV9kaXYgd291bGQgc2hvdyB1cCB3aXRo
+IHVuaXQgUlBNIHdoaWNoIGlzIG5vCj4gZ29vZC4gQXBwYXJlbnRseSB3ZSBuZWVkIGEgd2F5IHRv
+IGZvcmNlIHVuaXQgKG9yIGxhY2sgdGhlcmVvZikgb24gYQo+IHBlci1saW1pdCBiYXNpcy4gTWF5
+YmUgd2UgY2FuIGxldmVyYWdlIHRoZSB3b3JrIGRvbmUgZm9yIHRlbXBlcmF0dXJlcwo+ICjCsEMg
+dnMuIMKwRiksIGJ1dCBJJ20gbm90IHN1cmUuCj4gCk9vcHMgOykuIEknbGwgdGhpbmsgYWJvdXQg
+dGhhdC4gTm8gaWRlYSByaWdodCBub3cgaG93IHRvIGZpeCBpdC4KCkd1ZW50ZXIKCgoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
+aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
+cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
