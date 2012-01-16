@@ -1,285 +1,426 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Tue, 10 Jan 2012 14:33:25 +0000
-Subject: Re: [lm-sensors] [PATCH 17/17] drivers/hwmon/i5k_amb.c: fix
-Message-Id: <CACW_hTb2gmV0yVJu2kQ_L+kcORCvmH6KFso5tc9OB9ELhU6h1w@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5204249249976620316=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 16 Jan 2012 08:49:14 +0000
+Subject: [lm-sensors] [PATCH 12/39] hwmon: (f71805f) Fix checkpatch issues
+Message-Id: <1326703781-14272-13-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326039820-11147-17-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1326039820-11147-17-git-send-email-fransmeulenbroeks@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============5204249249976620316==
-Content-Type: multipart/alternative; boundary=20cf30780d1ad6336a04b62d6597
+Fixed:
+ERROR: code indent should use tabs where possible
+ERROR: do not use assignment in if condition
+ERROR: "foo* bar" should be "foo *bar"
+ERROR: need consistent spacing around '|' (ctx:VxW)
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
+WARNING: static const char * array should probably be static const char * const
 
---20cf30780d1ad6336a04b62d6597
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/f71805f.c |  163 ++++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 118 insertions(+), 45 deletions(-)
 
-2012/1/8 Guenter Roeck <guenter.roeck@ericsson.com>
+diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
+index 92f9497..859b203 100644
+--- a/drivers/hwmon/f71805f.c
++++ b/drivers/hwmon/f71805f.c
+@@ -202,7 +202,7 @@ struct f71805f_sio_data {
+ 
+ static inline long in_from_reg(u8 reg)
+ {
+-	return (reg * 8);
++	return reg * 8;
+ }
+ 
+ /* The 2 least significant bits are not used */
+@@ -212,13 +212,13 @@ static inline u8 in_to_reg(long val)
+ 		return 0;
+ 	if (val >= 2016)
+ 		return 0xfc;
+-	return (((val + 16) / 32) << 2);
++	return ((val + 16) / 32) << 2;
+ }
+ 
+ /* in0 is downscaled by a factor 2 internally */
+ static inline long in0_from_reg(u8 reg)
+ {
+-	return (reg * 16);
++	return reg * 16;
+ }
+ 
+ static inline u8 in0_to_reg(long val)
+@@ -227,7 +227,7 @@ static inline u8 in0_to_reg(long val)
+ 		return 0;
+ 	if (val >= 4032)
+ 		return 0xfc;
+-	return (((val + 32) / 64) << 2);
++	return ((val + 32) / 64) << 2;
+ }
+ 
+ /* The 4 most significant bits are not used */
+@@ -236,7 +236,7 @@ static inline long fan_from_reg(u16 reg)
+ 	reg &= 0xfff;
+ 	if (!reg || reg = 0xfff)
+ 		return 0;
+-	return (1500000 / reg);
++	return 1500000 / reg;
+ }
+ 
+ static inline u16 fan_to_reg(long rpm)
+@@ -246,7 +246,7 @@ static inline u16 fan_to_reg(long rpm)
+ 	   so that no alarm will ever trigger. */
+ 	if (rpm < 367)
+ 		return 0xfff;
+-	return (1500000 / rpm);
++	return 1500000 / rpm;
+ }
+ 
+ static inline unsigned long pwm_freq_from_reg(u8 reg)
+@@ -278,7 +278,7 @@ static inline int pwm_mode_from_reg(u8 reg)
+ 
+ static inline long temp_from_reg(u8 reg)
+ {
+-	return (reg * 1000);
++	return reg * 1000;
+ }
+ 
+ static inline u8 temp_to_reg(long val)
+@@ -287,7 +287,7 @@ static inline u8 temp_to_reg(long val)
+ 		val = 0;
+ 	else if (val > 1000 * 0xff)
+ 		val = 0xff;
+-	return ((val + 500) / 1000);
++	return (val + 500) / 1000;
+ }
+ 
+ /*
+@@ -455,7 +455,12 @@ static ssize_t set_in0_max(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_high[nr] = in0_to_reg(val);
+@@ -471,7 +476,12 @@ static ssize_t set_in0_min(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_low[nr] = in0_to_reg(val);
+@@ -517,7 +527,12 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_high[nr] = in_to_reg(val);
+@@ -533,7 +548,12 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_low[nr] = in_to_reg(val);
+@@ -579,7 +599,12 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_low[nr] = fan_to_reg(val);
+@@ -595,7 +620,12 @@ static ssize_t set_fan_target(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_target[nr] = fan_to_reg(val);
+@@ -664,7 +694,12 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *devattr,
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	if (val > 255)
+ 		return -EINVAL;
+@@ -685,8 +720,13 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	u8 reg;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	if (val < 1 || val > 3)
+ 		return -EINVAL;
+@@ -730,7 +770,12 @@ static ssize_t set_pwm_freq(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm_freq[nr] = pwm_freq_to_reg(val);
+@@ -742,7 +787,7 @@ static ssize_t set_pwm_freq(struct device *dev, struct device_attribute
+ 
+ static ssize_t show_pwm_auto_point_temp(struct device *dev,
+ 					struct device_attribute *devattr,
+-					char* buf)
++					char *buf)
+ {
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+@@ -755,13 +800,18 @@ static ssize_t show_pwm_auto_point_temp(struct device *dev,
+ 
+ static ssize_t set_pwm_auto_point_temp(struct device *dev,
+ 				       struct device_attribute *devattr,
+-				       const char* buf, size_t count)
++				       const char *buf, size_t count)
+ {
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	int pwmnr = attr->nr;
+ 	int apnr = attr->index;
+-	unsigned long val = simple_strtol(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->auto_points[pwmnr].temp[apnr] = temp_to_reg(val);
+@@ -774,7 +824,7 @@ static ssize_t set_pwm_auto_point_temp(struct device *dev,
+ 
+ static ssize_t show_pwm_auto_point_fan(struct device *dev,
+ 				       struct device_attribute *devattr,
+-				       char* buf)
++				       char *buf)
+ {
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+@@ -787,18 +837,23 @@ static ssize_t show_pwm_auto_point_fan(struct device *dev,
+ 
+ static ssize_t set_pwm_auto_point_fan(struct device *dev,
+ 				      struct device_attribute *devattr,
+-				      const char* buf, size_t count)
++				      const char *buf, size_t count)
+ {
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	int pwmnr = attr->nr;
+ 	int apnr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->auto_points[pwmnr].fan[apnr] = fan_to_reg(val);
+ 	f71805f_write16(data, F71805F_REG_PWM_AUTO_POINT_FAN(pwmnr, apnr),
+-		        data->auto_points[pwmnr].fan[apnr]);
++			data->auto_points[pwmnr].fan[apnr]);
+ 	mutex_unlock(&data->update_lock);
+ 
+ 	return count;
+@@ -851,7 +906,12 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_high[nr] = temp_to_reg(val);
+@@ -867,7 +927,12 @@ static ssize_t set_temp_hyst(struct device *dev, struct device_attribute
+ 	struct f71805f_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	int nr = attr->index;
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_hyst[nr] = temp_to_reg(val);
+@@ -920,9 +985,9 @@ static ssize_t show_name(struct device *dev, struct device_attribute
+ }
+ 
+ static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_in0, NULL, 0);
+-static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO| S_IWUSR,
++static SENSOR_DEVICE_ATTR(in0_max, S_IRUGO | S_IWUSR,
+ 			  show_in0_max, set_in0_max, 0);
+-static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO| S_IWUSR,
++static SENSOR_DEVICE_ATTR(in0_min, S_IRUGO | S_IWUSR,
+ 			  show_in0_min, set_in0_min, 0);
+ static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_in, NULL, 1);
+ static SENSOR_DEVICE_ATTR(in1_max, S_IRUGO | S_IWUSR,
+@@ -1304,12 +1369,13 @@ static int __devinit f71805f_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	int i, err;
+ 
+-	static const char *names[] = {
++	static const char * const names[] = {
+ 		"f71805f",
+ 		"f71872f",
+ 	};
+ 
+-	if (!(data = kzalloc(sizeof(struct f71805f_data), GFP_KERNEL))) {
++	data = kzalloc(sizeof(struct f71805f_data), GFP_KERNEL);
++	if (!data) {
+ 		err = -ENOMEM;
+ 		pr_err("Out of memory\n");
+ 		goto exit;
+@@ -1347,40 +1413,47 @@ static int __devinit f71805f_probe(struct platform_device *pdev)
+ 	f71805f_init_device(data);
+ 
+ 	/* Register sysfs interface files */
+-	if ((err = sysfs_create_group(&pdev->dev.kobj, &f71805f_group)))
++	err = sysfs_create_group(&pdev->dev.kobj, &f71805f_group);
++	if (err)
+ 		goto exit_release_region;
+ 	if (data->has_in & (1 << 4)) { /* in4 */
+-		if ((err = sysfs_create_group(&pdev->dev.kobj,
+-					      &f71805f_group_optin[0])))
++		err = sysfs_create_group(&pdev->dev.kobj,
++					 &f71805f_group_optin[0]);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->has_in & (1 << 8)) { /* in8 */
+-		if ((err = sysfs_create_group(&pdev->dev.kobj,
+-					      &f71805f_group_optin[1])))
++		err = sysfs_create_group(&pdev->dev.kobj,
++					 &f71805f_group_optin[1]);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->has_in & (1 << 9)) { /* in9 (F71872F/FG only) */
+-		if ((err = sysfs_create_group(&pdev->dev.kobj,
+-					      &f71805f_group_optin[2])))
++		err = sysfs_create_group(&pdev->dev.kobj,
++					 &f71805f_group_optin[2]);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 	if (data->has_in & (1 << 10)) { /* in9 (F71872F/FG only) */
+-		if ((err = sysfs_create_group(&pdev->dev.kobj,
+-					      &f71805f_group_optin[3])))
++		err = sysfs_create_group(&pdev->dev.kobj,
++					 &f71805f_group_optin[3]);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 	for (i = 0; i < 3; i++) {
+ 		/* If control mode is PWM, create pwm_freq file */
+ 		if (!(data->fan_ctrl[i] & FAN_CTRL_DC_MODE)) {
+-			if ((err = sysfs_create_file(&pdev->dev.kobj,
+-					f71805f_attributes_pwm_freq[i])))
++			err = sysfs_create_file(&pdev->dev.kobj,
++						f71805f_attributes_pwm_freq[i]);
++			if (err)
+ 				goto exit_remove_files;
+ 		}
+ 		/* If PWM is in manual mode, add write permission */
+ 		if (data->fan_ctrl[i] & FAN_CTRL_MODE_MANUAL) {
+-			if ((err = sysfs_chmod_file(&pdev->dev.kobj,
+-						    f71805f_attr_pwm[i],
+-						    S_IRUGO | S_IWUSR))) {
++			err = sysfs_chmod_file(&pdev->dev.kobj,
++					       f71805f_attr_pwm[i],
++					       S_IRUGO | S_IWUSR);
++			if (err) {
+ 				dev_err(&pdev->dev, "chmod +w pwm%d failed\n",
+ 					i + 1);
+ 				goto exit_remove_files;
+@@ -1495,7 +1568,7 @@ static int __init f71805f_find(int sioaddr, unsigned short *address,
+ 	int err = -ENODEV;
+ 	u16 devid;
+ 
+-	static const char *names[] = {
++	static const char * const names[] = {
+ 		"F71805F/FG",
+ 		"F71872F/FG or F71806F/FG",
+ 	};
+-- 
+1.7.5.4
 
-> Hi Frans,
->
-> On Sun, Jan 08, 2012 at 12:48:17PM -0500, Frans Meulenbroeks wrote:
-> >
-> >
-> > 2012/1/8 Guenter Roeck <guenter.roeck@ericsson.com>
-> >
-> >     Hi Frans,
-> >
-> >     On Sun, Jan 08, 2012 at 11:23:40AM -0500, Frans Meulenbroeks wrote:
-> >     > Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-> >     > ---
-> >     >  drivers/hwmon/i5k_amb.c |   15 ++++++++++++---
-> >     >  1 files changed, 12 insertions(+), 3 deletions(-)
-> >     >
-> >     > diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_amb.c
-> >     > index d22f241..c516bdc 100644
-> >     > --- a/drivers/hwmon/i5k_amb.c
-> >     > +++ b/drivers/hwmon/i5k_amb.c
-> >     > @@ -159,7 +159,10 @@ static ssize_t store_amb_min(struct device
-> *dev,
-> >     >  {
-> >     >       struct sensor_device_attribute *attr =
-> to_sensor_dev_attr(devattr);
-> >     >       struct i5k_amb_data *data = dev_get_drvdata(dev);
-> >     > -     unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-> >     > +     unsigned long temp;
-> >     > +     int ret = kstrtoul(buf, 10, &temp) / 500;
-> >
-> >     This divides the error code by 500, not temp.
-> >
-> >     > +     if (ret < 0)
-> >     > +             return ret;
-> >     >
-> >     >       if (temp > 255)
-> >     >               temp = 255;
-> >     > @@ -175,7 +178,10 @@ static ssize_t store_amb_mid(struct device
-> *dev,
-> >     >  {
-> >     >       struct sensor_device_attribute *attr =
-> to_sensor_dev_attr(devattr);
-> >     >       struct i5k_amb_data *data = dev_get_drvdata(dev);
-> >     > -     unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-> >     > +     unsigned long temp;
-> >     > +     int ret = kstrtoul(buf, 10, &temp) / 500;
-> >
-> >     Same here.
-> >
-> >     > +     if (ret < 0)
-> >     > +             return ret;
-> >     >
-> >     >       if (temp > 255)
-> >     >               temp = 255;
-> >     > @@ -191,7 +197,10 @@ static ssize_t store_amb_max(struct device
-> *dev,
-> >     >  {
-> >     >       struct sensor_device_attribute *attr =
-> to_sensor_dev_attr(devattr);
-> >     >       struct i5k_amb_data *data = dev_get_drvdata(dev);
-> >     > -     unsigned long temp = simple_strtoul(buf, NULL, 10) / 500;
-> >     > +     unsigned long temp;
-> >     > +     int ret = kstrtoul(buf, 10, &temp) / 500;
-> >
-> >     and here.
-> >
-> >     Guenter
-> >
-> >
-> > Yes of course!
-> > That is one of the risks of these edits. At some point too much autopilot
-> > creeps in.
-> > I'll send an update. There are not otehr places that hae this issue.
-> >
-> > BTW, there is one other thing with this code that might be questionalble
-> and
-> > that is the fact that temp is an unsigned long.
-> > Is it not possible with this sensor to have a temp < 0 (I'm assuming
-> temp is
-> > degrees C or maybe F).
->
-> Usually that is reflected by the variable type and the conversion function.
-> With unsigned long and kstrtoul(), negative values are not accepted,
-> so that is commonly used if the sensor only supports non-negative
-> temperatures.
-> Which is exactly what happens here.
->
-> Am I missing something ?
->
-> > This might also be an issue on other places. (actually I seem to recall
-> having
-> > seen a place where the var was signed and the conversion function was
-> unsigned
-> > (or the other way around))
-> >
-> Usually both should match. If you notice a mismatch, please let us know.
->
->
-> One other related thing, not really a mismatch but could also be changed:
-
-static ssize_t set_fan_min(struct device *dev, struct device_attribute
-*attr,
-    const char *buf, size_t count)
-{
-    int nr = to_sensor_dev_attr(attr)->index;
-    struct i2c_client *client = to_i2c_client(dev);
-    struct lm80_data *data = i2c_get_clientdata(client);
-    long val = simple_strtoul(buf, NULL, 10);
-
-val is a long, but fan_min is quite likely not going to be negative ;-)
-This might happen in other places too, but don't really have a simple way
-to find these.
-
-Best regards, Frans.
-
---20cf30780d1ad6336a04b62d6597
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<br><br><div class=3D"gmail_quote">2012/1/8 Guenter Roeck <span dir=3D"ltr"=
->&lt;<a href=3D"mailto:guenter.roeck@ericsson.com" target=3D"_blank">guente=
-r.roeck@ericsson.com</a>&gt;</span><br><blockquote class=3D"gmail_quote" st=
-yle=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
-
-Hi Frans,<br>
-<div><div><br>
-On Sun, Jan 08, 2012 at 12:48:17PM -0500, Frans Meulenbroeks wrote:<br>
-&gt;<br>
-&gt;<br>
-&gt; 2012/1/8 Guenter Roeck &lt;<a href=3D"mailto:guenter.roeck@ericsson.co=
-m" target=3D"_blank">guenter.roeck@ericsson.com</a>&gt;<br>
-&gt;<br>
-&gt; =A0 =A0 Hi Frans,<br>
-&gt;<br>
-&gt; =A0 =A0 On Sun, Jan 08, 2012 at 11:23:40AM -0500, Frans Meulenbroeks w=
-rote:<br>
-&gt; =A0 =A0 &gt; Signed-off-by: Frans Meulenbroeks &lt;<a href=3D"mailto:f=
-ransmeulenbroeks@gmail.com" target=3D"_blank">fransmeulenbroeks@gmail.com</=
-a>&gt;<br>
-&gt; =A0 =A0 &gt; ---<br>
-&gt; =A0 =A0 &gt; =A0drivers/hwmon/i5k_amb.c | =A0 15 ++++++++++++---<br>
-&gt; =A0 =A0 &gt; =A01 files changed, 12 insertions(+), 3 deletions(-)<br>
-&gt; =A0 =A0 &gt;<br>
-&gt; =A0 =A0 &gt; diff --git a/drivers/hwmon/i5k_amb.c b/drivers/hwmon/i5k_=
-amb.c<br>
-&gt; =A0 =A0 &gt; index d22f241..c516bdc 100644<br>
-&gt; =A0 =A0 &gt; --- a/drivers/hwmon/i5k_amb.c<br>
-&gt; =A0 =A0 &gt; +++ b/drivers/hwmon/i5k_amb.c<br>
-&gt; =A0 =A0 &gt; @@ -159,7 +159,10 @@ static ssize_t store_amb_min(struct =
-device *dev,<br>
-&gt; =A0 =A0 &gt; =A0{<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 struct sensor_device_attribute *attr =3D to_s=
-ensor_dev_attr(devattr);<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 struct i5k_amb_data *data =3D dev_get_drvdata=
-(dev);<br>
-&gt; =A0 =A0 &gt; - =A0 =A0 unsigned long temp =3D simple_strtoul(buf, NULL=
-, 10) / 500;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 unsigned long temp;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 int ret =3D kstrtoul(buf, 10, &amp;temp) / 500;=
-<br>
-&gt;<br>
-&gt; =A0 =A0 This divides the error code by 500, not temp.<br>
-&gt;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 if (ret &lt; 0)<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 =A0 =A0 =A0 =A0 return ret;<br>
-&gt; =A0 =A0 &gt;<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 if (temp &gt; 255)<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 temp =3D 255;<br>
-&gt; =A0 =A0 &gt; @@ -175,7 +178,10 @@ static ssize_t store_amb_mid(struct =
-device *dev,<br>
-&gt; =A0 =A0 &gt; =A0{<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 struct sensor_device_attribute *attr =3D to_s=
-ensor_dev_attr(devattr);<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 struct i5k_amb_data *data =3D dev_get_drvdata=
-(dev);<br>
-&gt; =A0 =A0 &gt; - =A0 =A0 unsigned long temp =3D simple_strtoul(buf, NULL=
-, 10) / 500;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 unsigned long temp;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 int ret =3D kstrtoul(buf, 10, &amp;temp) / 500;=
-<br>
-&gt;<br>
-&gt; =A0 =A0 Same here.<br>
-&gt;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 if (ret &lt; 0)<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 =A0 =A0 =A0 =A0 return ret;<br>
-&gt; =A0 =A0 &gt;<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 if (temp &gt; 255)<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 temp =3D 255;<br>
-&gt; =A0 =A0 &gt; @@ -191,7 +197,10 @@ static ssize_t store_amb_max(struct =
-device *dev,<br>
-&gt; =A0 =A0 &gt; =A0{<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 struct sensor_device_attribute *attr =3D to_s=
-ensor_dev_attr(devattr);<br>
-&gt; =A0 =A0 &gt; =A0 =A0 =A0 struct i5k_amb_data *data =3D dev_get_drvdata=
-(dev);<br>
-&gt; =A0 =A0 &gt; - =A0 =A0 unsigned long temp =3D simple_strtoul(buf, NULL=
-, 10) / 500;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 unsigned long temp;<br>
-&gt; =A0 =A0 &gt; + =A0 =A0 int ret =3D kstrtoul(buf, 10, &amp;temp) / 500;=
-<br>
-&gt;<br>
-&gt; =A0 =A0 and here.<br>
-&gt;<br>
-&gt; =A0 =A0 Guenter<br>
-&gt;<br>
-&gt;<br>
-&gt; Yes of course!<br>
-&gt; That is one of the risks of these edits. At some point too much autopi=
-lot<br>
-&gt; creeps in.<br>
-&gt; I&#39;ll send an update. There are not otehr places that hae this issu=
-e.<br>
-&gt;<br>
-&gt; BTW, there is one other thing with this code that might be questionalb=
-le and<br>
-&gt; that is the fact that temp is an unsigned long.<br>
-&gt; Is it not possible with this sensor to have a temp &lt; 0 (I&#39;m ass=
-uming temp is<br>
-&gt; degrees C or maybe F).<br>
-<br>
-</div></div>Usually that is reflected by the variable type and the conversi=
-on function.<br>
-With unsigned long and kstrtoul(), negative values are not accepted,<br>
-so that is commonly used if the sensor only supports non-negative temperatu=
-res.<br>
-Which is exactly what happens here.<br>
-<br>
-Am I missing something ?<br>
-<div><br>
-&gt; This might also be an issue on other places. (actually I seem to recal=
-l having<br>
-&gt; seen a place where the var was signed and the conversion function was =
-unsigned<br>
-&gt; (or the other way around))<br>
-&gt;<br>
-</div>Usually both should match. If you notice a mismatch, please let us kn=
-ow.<br>
-<br>
-<br></blockquote><div>One other related thing, not really a mismatch but co=
-uld also be changed:<br><br>static ssize_t set_fan_min(struct device *dev, =
-struct device_attribute *attr,<br>=A0=A0=A0 const char *buf, size_t count)<=
-br>
-
-{<br>=A0=A0=A0 int nr =3D to_sensor_dev_attr(attr)-&gt;index;<br>=A0=A0=A0 =
-struct i2c_client *client =3D to_i2c_client(dev);<br>=A0=A0=A0 struct lm80_=
-data *data =3D i2c_get_clientdata(client);<br>=A0=A0=A0 long val =3D simple=
-_strtoul(buf, NULL, 10);<br>
-
-<br>val is a long, but fan_min is quite likely not going to be negative ;-)=
-<br>This might happen in other places too, but don&#39;t really have a simp=
-le way to find these.<br><br>Best regards, Frans.<br>=A0<br></div></div>
-<br>
-
---20cf30780d1ad6336a04b62d6597--
-
-
---===============5204249249976620316==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5204249249976620316==--
