@@ -1,216 +1,236 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:33 +0000
-Subject: [lm-sensors] [PATCH 39/82] hwmon: (lm85) Fix multi-line comments
-Message-Id: <1327017376-20466-40-git-send-email-linux@roeck-us.net>
+Date: Mon, 16 Jan 2012 08:49:33 +0000
+Subject: [lm-sensors] [PATCH 31/39] hwmon: (via686a) Fix checkpatch issues
+Message-Id: <1326703781-14272-32-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Fixed:
+ERROR: do not use assignment in if condition
+ERROR: open brace '{' following function declarations go on the next line
+ERROR: space prohibited before that close parenthesis ')'
+ERROR: space required after that ',' (ctx:VxV)
+ERROR: spaces required around that '=' (ctx:VxV)
+ERROR: spaces required around that ':' (ctx:VxV)
+ERROR: spaces required around that '?' (ctx:VxV)
+ERROR: that open brace { should be on the previous line
+WARNING: line over 80 characters
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
+
+Not fixed (false positive):
+ERROR: Macros with multiple statements should be enclosed in a do - while loop
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm85.c |  104 +++++++++++++++++++++++++++++---------------------
- 1 files changed, 60 insertions(+), 44 deletions(-)
+ drivers/hwmon/via686a.c |   78 ++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 57 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
-index 240b7f9..16ad92c 100644
---- a/drivers/hwmon/lm85.c
-+++ b/drivers/hwmon/lm85.c
-@@ -1,28 +1,28 @@
- /*
--    lm85.c - Part of lm_sensors, Linux kernel modules for hardware
--	monitoring
--    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
--    Copyright (c) 2002, 2003  Philip Pokorny <ppokorny@penguincomputing.com>
--    Copyright (c) 2003        Margit Schubert-While <margitsw@t-online.de>
--    Copyright (c) 2004        Justin Thiessen <jthiessen@penguincomputing.com>
--    Copyright (C) 2007--2009  Jean Delvare <khali@linux-fr.org>
--
--    Chip details at	      <http://www.national.com/ds/LM/LM85.pdf>
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--*/
-+ * lm85.c - Part of lm_sensors, Linux kernel modules for hardware
-+ *	    monitoring
-+ * Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
-+ * Copyright (c) 2002, 2003  Philip Pokorny <ppokorny@penguincomputing.com>
-+ * Copyright (c) 2003        Margit Schubert-While <margitsw@t-online.de>
-+ * Copyright (c) 2004        Justin Thiessen <jthiessen@penguincomputing.com>
-+ * Copyright (C) 2007--2009  Jean Delvare <khali@linux-fr.org>
-+ *
-+ * Chip details at	      <http://www.national.com/ds/LM/LM85.pdf>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
- 
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -125,9 +125,10 @@ enum chips {
- #define	EMC6D102_REG_EXTEND_ADC4	0x88
- 
- 
--/* Conversions. Rounding and limit checking is only done on the TO_REG
--   variants. Note that you should be a bit careful with which arguments
--   these macros are called: arguments may be evaluated more than once.
-+/*
-+ * Conversions. Rounding and limit checking is only done on the TO_REG
-+ * variants. Note that you should be a bit careful with which arguments
-+ * these macros are called: arguments may be evaluated more than once.
-  */
- 
- /* IN are scaled according to built-in resistors */
-@@ -166,7 +167,8 @@ static inline u16 FAN_TO_REG(unsigned long val)
- #define PWM_FROM_REG(val)		(val)
- 
- 
--/* ZONEs have the following parameters:
-+/*
-+ * ZONEs have the following parameters:
-  *    Limit (low) temp,           1. degC
-  *    Hysteresis (below limit),   1. degC (0-15)
-  *    Range of speed control,     .1 degC (2-80)
-@@ -228,7 +230,8 @@ static int FREQ_FROM_REG(const int *map, u8 reg)
- 	return map[reg & 0x07];
+diff --git a/drivers/hwmon/via686a.c b/drivers/hwmon/via686a.c
+index 25e9166..c759b1c 100644
+--- a/drivers/hwmon/via686a.c
++++ b/drivers/hwmon/via686a.c
+@@ -166,7 +166,8 @@ static inline u8 FAN_TO_REG(long rpm, int div)
+ 	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 255);
  }
  
--/* Since we can't use strings, I'm abusing these numbers
-+/*
-+ * Since we can't use strings, I'm abusing these numbers
-  *   to stand in for the following meanings:
-  *      1 -- PWM responds to Zone 1
-  *      2 -- PWM responds to Zone 2
-@@ -258,7 +261,8 @@ static int ZONE_TO_REG(int zone)
- #define HYST_TO_REG(val)	SENSORS_LIMIT(((val) + 500) / 1000, 0, 15)
- #define HYST_FROM_REG(val)	((val) * 1000)
+-#define FAN_FROM_REG(val,div) ((val)=0?0:(val)=255?0:1350000/((val)*(div)))
++#define FAN_FROM_REG(val, div) ((val) = 0 ? 0 : (val) = 255 ? 0 : 1350000 / \
++				((val) * (div)))
  
--/* Chip sampling rates
-+/*
-+ * Chip sampling rates
-  *
-  * Some sensors are not updated more frequently than once per second
-  *    so it doesn't make sense to read them more often than that.
-@@ -274,7 +278,8 @@ static int ZONE_TO_REG(int zone)
- #define LM85_DATA_INTERVAL  (HZ + HZ / 2)
- #define LM85_CONFIG_INTERVAL  (1 * 60 * HZ)
+ /******** TEMP CONVERSIONS (Bob Dougherty) *********/
+ /* linear fits from HWMon.cpp (Copyright 1998-2000 Jonathan Teh Soon Yew)
+@@ -200,8 +201,8 @@ static inline u8 FAN_TO_REG(long rpm, int div)
+  but the function is very linear in the useful range (0-80 deg C), so
+  we'll just use linear interpolation for 10-bit readings.)  So, tempLUT
+  is the temp at via register values 0-255: */
+-static const s16 tempLUT[] -{ -709, -688, -667, -646, -627, -607, -589, -570, -553, -536, -519,
++static const s16 tempLUT[] = {
++	-709, -688, -667, -646, -627, -607, -589, -570, -553, -536, -519,
+ 	-503, -487, -471, -456, -442, -428, -414, -400, -387, -375,
+ 	-362, -350, -339, -327, -316, -305, -295, -285, -275, -265,
+ 	-255, -246, -237, -229, -220, -212, -204, -196, -188, -180,
+@@ -246,8 +247,8 @@ static const s16 tempLUT[]   viaRegVal = -1.160370e-10*val^6 +3.193693e-08*val^5 - 1.464447e-06*val^4
+  - 2.525453e-04*val^3 + 1.424593e-02*val^2 + 2.148941e+00*val +7.275808e+01)
+  Note that n1: */
+-static const u8 viaLUT[] -{ 12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 18, 19, 20, 20, 21, 22, 23,
++static const u8 viaLUT[] = {
++	12, 12, 13, 14, 14, 15, 16, 16, 17, 18, 18, 19, 20, 20, 21, 22, 23,
+ 	23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 35, 36, 37, 39, 40,
+ 	41, 43, 45, 46, 48, 49, 51, 53, 55, 57, 59, 60, 62, 64, 66,
+ 	69, 71, 73, 75, 77, 79, 82, 84, 86, 88, 91, 93, 95, 98, 100,
+@@ -290,7 +291,7 @@ static inline long TEMP_FROM_REG10(u16 val)
+ }
  
--/* LM85 can automatically adjust fan speeds based on temperature
-+/*
-+ * LM85 can automatically adjust fan speeds based on temperature
-  * This structure encapsulates an entire Zone config.  There are
-  * three zones (one for each temperature input) on the lm85
-  */
-@@ -283,7 +288,8 @@ struct lm85_zone {
- 	u8 hyst;	/* Low limit hysteresis. (0-15) */
- 	u8 range;	/* Temp range, encoded */
- 	s8 critical;	/* "All fans ON" temp limit */
--	u8 max_desired; /* Actual "max" temperature specified.  Preserved
-+	u8 max_desired; /*
-+			 * Actual "max" temperature specified.  Preserved
- 			 * to prevent "drift" as other autofan control
- 			 * values change.
- 			 */
-@@ -295,8 +301,10 @@ struct lm85_autofan {
- 	u8 min_off;	/* Min PWM or OFF below "limit", flag */
- };
+ #define DIV_FROM_REG(val) (1 << (val))
+-#define DIV_TO_REG(val) ((val)=8?3:(val)=4?2:(val)=1?0:1)
++#define DIV_TO_REG(val) ((val) = 8 ? 3 : (val) = 4 ? 2 : (val) = 1 ? 0 : 1)
  
--/* For each registered chip, we need to keep some data in memory.
--   The structure is dynamically allocated. */
-+/*
-+ * For each registered chip, we need to keep some data in memory.
-+ * The structure is dynamically allocated.
-+ */
- struct lm85_data {
- 	struct device *hwmon_dev;
- 	const int *freq_map;
-@@ -570,8 +578,10 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute
- 		config = 7;
- 		break;
- 	case 2:
--		/* Here we have to choose arbitrarily one of the 5 possible
--		   configurations; I go for the safest */
-+		/*
-+		 * Here we have to choose arbitrarily one of the 5 possible
-+		 * configurations; I go for the safest
-+		 */
- 		config = 6;
- 		break;
- 	default:
-@@ -618,9 +628,11 @@ static ssize_t set_pwm_freq(struct device *dev,
- 		return err;
+ /* For each registered chip, we need to keep some data in memory.
+    The structure is dynamically allocated. */
+@@ -365,7 +366,12 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *da,
+ 	struct via686a_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
  
  	mutex_lock(&data->update_lock);
--	/* The ADT7468 has a special high-frequency PWM output mode,
-+	/*
-+	 * The ADT7468 has a special high-frequency PWM output mode,
- 	 * where all PWM outputs are driven by a 22.5 kHz clock.
--	 * This might confuse the user, but there's not much we can do. */
-+	 * This might confuse the user, but there's not much we can do.
-+	 */
- 	if (data->type = adt7468 && val >= 11300) {	/* High freq. mode */
- 		data->cfg5 &= ~ADT7468_HFPWM;
- 		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
-@@ -1420,8 +1432,10 @@ static int lm85_probe(struct i2c_client *client,
- 			goto err_remove_files;
+ 	data->in_min[nr] = IN_TO_REG(val, nr);
+@@ -379,7 +385,12 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *da,
+ 	struct via686a_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_max[nr] = IN_TO_REG(val, nr);
+@@ -429,7 +440,12 @@ static ssize_t set_temp_over(struct device *dev, struct device_attribute *da,
+ 	struct via686a_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_over[nr] = TEMP_TO_REG(val);
+@@ -443,7 +459,12 @@ static ssize_t set_temp_hyst(struct device *dev, struct device_attribute *da,
+ 	struct via686a_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_hyst[nr] = TEMP_TO_REG(val);
+@@ -471,7 +492,7 @@ static ssize_t show_fan(struct device *dev, struct device_attribute *da,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+ 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
+-				DIV_FROM_REG(data->fan_div[nr])) );
++				DIV_FROM_REG(data->fan_div[nr])));
+ }
+ static ssize_t show_fan_min(struct device *dev, struct device_attribute *da,
+ 		char *buf) {
+@@ -479,21 +500,27 @@ static ssize_t show_fan_min(struct device *dev, struct device_attribute *da,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+ 	return sprintf(buf, "%d\n",
+-		FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr])) );
++		FAN_FROM_REG(data->fan_min[nr],
++			     DIV_FROM_REG(data->fan_div[nr])));
+ }
+ static ssize_t show_fan_div(struct device *dev, struct device_attribute *da,
+ 		char *buf) {
+ 	struct via686a_data *data = via686a_update_device(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]) );
++	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[nr]));
+ }
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *da,
+ 		const char *buf, size_t count) {
+ 	struct via686a_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	int val = simple_strtol(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+@@ -506,8 +533,13 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *da,
+ 	struct via686a_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	int nr = attr->index;
+-	int val = simple_strtol(buf, NULL, 10);
+ 	int old;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	old = via686a_read_value(data, VIA686A_REG_FANDIV);
+@@ -530,10 +562,13 @@ show_fan_offset(1);
+ show_fan_offset(2);
+ 
+ /* Alarms */
+-static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf) {
++static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
++			   char *buf)
++{
+ 	struct via686a_data *data = via686a_update_device(dev);
+ 	return sprintf(buf, "%u\n", data->alarms);
+ }
++
+ static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
+ 
+ static ssize_t show_alarm(struct device *dev, struct device_attribute *attr,
+@@ -641,7 +676,8 @@ static int __devinit via686a_probe(struct platform_device *pdev)
+ 		return -ENODEV;
  	}
  
--	/* The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
--	   as a sixth digital VID input rather than an analog input. */
-+	/*
-+	 * The ADT7463/68 have an optional VRM 10 mode where pin 21 is used
-+	 * as a sixth digital VID input rather than an analog input.
-+	 */
- 	if (data->type = adt7463 || data->type = adt7468) {
- 		u8 vid = lm85_read_value(client, LM85_REG_VID);
- 		if (vid & 0x80)
-@@ -1527,7 +1541,8 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 		/* Things that change quickly */
- 		dev_dbg(&client->dev, "Reading sensor values\n");
+-	if (!(data = kzalloc(sizeof(struct via686a_data), GFP_KERNEL))) {
++	data = kzalloc(sizeof(struct via686a_data), GFP_KERNEL);
++	if (!data) {
+ 		err = -ENOMEM;
+ 		goto exit_release;
+ 	}
+@@ -655,7 +691,8 @@ static int __devinit via686a_probe(struct platform_device *pdev)
+ 	via686a_init_device(data);
  
--		/* Have to read extended bits first to "freeze" the
-+		/*
-+		 * Have to read extended bits first to "freeze" the
- 		 * more significant bits that are read later.
- 		 * There are 2 additional resolution bits per channel and we
- 		 * have room for 4, so we shift them to the left.
-@@ -1587,9 +1602,10 @@ static struct lm85_data *lm85_update_device(struct device *dev)
- 						EMC6D100_REG_ALARM3) << 16;
- 		} else if (data->type = emc6d102 || data->type = emc6d103 ||
- 			   data->type = emc6d103s) {
--			/* Have to read LSB bits after the MSB ones because
--			   the reading of the MSB bits has frozen the
--			   LSBs (backward from the ADM1027).
-+			/*
-+			 * Have to read LSB bits after the MSB ones because
-+			 * the reading of the MSB bits has frozen the
-+			 * LSBs (backward from the ADM1027).
- 			 */
- 			int ext1 = lm85_read_value(client,
- 						   EMC6D102_REG_EXTEND_ADC1);
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&pdev->dev.kobj, &via686a_group)))
++	err = sysfs_create_group(&pdev->dev.kobj, &via686a_group);
++	if (err)
+ 		goto exit_free;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+@@ -777,11 +814,10 @@ static struct via686a_data *via686a_update_device(struct device *dev)
+ 	return data;
+ }
+ 
+-static const struct pci_device_id via686a_pci_ids[] = {
++static DEFINE_PCI_DEVICE_TABLE(via686a_pci_ids) = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_82C686_4) },
+-	{ 0, }
++	{ }
+ };
+-
+ MODULE_DEVICE_TABLE(pci, via686a_pci_ids);
+ 
+ static int __devinit via686a_device_add(unsigned short address)
 -- 
 1.7.5.4
 
