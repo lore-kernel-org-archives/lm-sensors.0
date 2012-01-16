@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 16 Jan 2012 08:49:21 +0000
-Subject: [lm-sensors] [PATCH 19/39] hwmon: (lm87) Fix checkpatch issues
-Message-Id: <1326703781-14272-20-git-send-email-linux@roeck-us.net>
+Date: Mon, 16 Jan 2012 08:49:30 +0000
+Subject: [lm-sensors] [PATCH 28/39] hwmon: (smsc47m192) Fix checkpatch issues
+Message-Id: <1326703781-14272-29-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,94 +9,90 @@ Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
 Fixed:
+ERROR: code indent should use tabs where possible
 ERROR: do not use assignment in if condition
-ERROR: space required after that close brace '}'
-ERROR: space required after that ',' (ctx:VxV)
 ERROR: spaces required around that '<' (ctx:VxV)
-ERROR: trailing statements should be on next line
-WARNING: line over 80 characters
+ERROR: spaces required around that '=' (ctx:VxV)
+ERROR: spaces required around that '=' (ctx:VxV)
+ERROR: spaces required around that '>' (ctx:VxV)
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+WARNING: please, no space before tabs
 WARNING: simple_strtol is obsolete, use kstrtol instead
 WARNING: simple_strtoul is obsolete, use kstrtoul instead
 
-Not fixed everywhere (code complexity):
-ERROR: do not use assignment in if condition
+Not fixed (false positive):
+ERROR: Macros with multiple statements should be enclosed in a do - while loop
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm87.c |  237 ++++++++++++++++++++++++++++++++++---------------
- 1 files changed, 164 insertions(+), 73 deletions(-)
+ drivers/hwmon/smsc47m192.c |   74 ++++++++++++++++++++++++++++++++------------
+ 1 files changed, 54 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
-index f1e6e75..ebf4efd 100644
---- a/drivers/hwmon/lm87.c
-+++ b/drivers/hwmon/lm87.c
-@@ -119,20 +119,21 @@ static u8 LM87_REG_TEMP_LOW[3] = { 0x3A, 0x38, 0x2C };
-  * The LM87 uses signed 8-bit values for temperatures.
-  */
+diff --git a/drivers/hwmon/smsc47m192.c b/drivers/hwmon/smsc47m192.c
+index 40b2667..95761bd 100644
+--- a/drivers/hwmon/smsc47m192.c
++++ b/drivers/hwmon/smsc47m192.c
+@@ -1,6 +1,6 @@
+ /*
+     smsc47m192.c - Support for hardware monitoring block of
+-                   SMSC LPC47M192 and compatible Super I/O chips
++		SMSC LPC47M192 and compatible Super I/O chips
  
--#define IN_FROM_REG(reg,scale)	(((reg) * (scale) + 96) / 192)
--#define IN_TO_REG(val,scale)	((val) <= 0 ? 0 : \
-+#define IN_FROM_REG(reg, scale)	(((reg) * (scale) + 96) / 192)
-+#define IN_TO_REG(val, scale)	((val) <= 0 ? 0 : \
- 				 (val) * 192 >= (scale) * 255 ? 255 : \
--				 ((val) * 192 + (scale)/2) / (scale))
-+				 ((val) * 192 + (scale) / 2) / (scale))
+     Copyright (C) 2006  Hartmut Rick <linux@rick.claranet.de>
  
- #define TEMP_FROM_REG(reg)	((reg) * 1000)
- #define TEMP_TO_REG(val)	((val) <= -127500 ? -128 : \
- 				 (val) >= 126500 ? 127 : \
--				 (((val) < 0 ? (val)-500 : (val)+500) / 1000))
-+				 (((val) < 0 ? (val) - 500 : \
-+				   (val) + 500) / 1000))
+@@ -37,16 +37,16 @@
+ static const unsigned short normal_i2c[] = { 0x2c, 0x2d, I2C_CLIENT_END };
  
--#define FAN_FROM_REG(reg,div)	((reg) = 255 || (reg) = 0 ? 0 : \
--				 (1350000 + (reg)*(div) / 2) / ((reg)*(div)))
--#define FAN_TO_REG(val,div)	((val)*(div) * 255 <= 1350000 ? 255 : \
--				 (1350000 + (val)*(div) / 2) / ((val)*(div)))
-+#define FAN_FROM_REG(reg, div)	((reg) = 255 || (reg) = 0 ? 0 : \
-+				 (1350000 + (reg)*(div) / 2) / ((reg) * (div)))
-+#define FAN_TO_REG(val, div)	((val) * (div) * 255 <= 1350000 ? 255 : \
-+				 (1350000 + (val)*(div) / 2) / ((val) * (div)))
- 
- #define FAN_DIV_FROM_REG(reg)	(1 << (reg))
- 
-@@ -232,19 +233,23 @@ static inline int lm87_write_value(struct i2c_client *client, u8 reg, u8 value)
- }
- 
- #define show_in(offset) \
--static ssize_t show_in##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_in##offset##_input(struct device *dev, \
-+				       struct device_attribute *attr, \
-+				       char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in[offset], \
- 		       data->in_scale[offset])); \
- } \
--static ssize_t show_in##offset##_min(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_in##offset##_min(struct device *dev, \
-+				     struct device_attribute *attr, char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_min[offset], \
- 		       data->in_scale[offset])); \
- } \
--static ssize_t show_in##offset##_max(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_in##offset##_max(struct device *dev, \
-+				     struct device_attribute *attr, char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
- 	return sprintf(buf, "%u\n", IN_FROM_REG(data->in_max[offset], \
-@@ -261,44 +266,58 @@ show_in(5);
- show_in(6);
- show_in(7);
- 
--static void set_in_min(struct device *dev, const char *buf, int nr)
-+static ssize_t set_in_min(struct device *dev, const char *buf, int nr,
-+			  size_t count)
- {
+ /* SMSC47M192 registers */
+-#define SMSC47M192_REG_IN(nr)		((nr)<6 ? (0x20 + (nr)) : \
++#define SMSC47M192_REG_IN(nr)		((nr) < 6 ? (0x20 + (nr)) : \
+ 					(0x50 + (nr) - 6))
+-#define SMSC47M192_REG_IN_MAX(nr)	((nr)<6 ? (0x2b + (nr) * 2) : \
++#define SMSC47M192_REG_IN_MAX(nr)	((nr) < 6 ? (0x2b + (nr) * 2) : \
+ 					(0x54 + (((nr) - 6) * 2)))
+-#define SMSC47M192_REG_IN_MIN(nr)	((nr)<6 ? (0x2c + (nr) * 2) : \
++#define SMSC47M192_REG_IN_MIN(nr)	((nr) < 6 ? (0x2c + (nr) * 2) : \
+ 					(0x55 + (((nr) - 6) * 2)))
+ static u8 SMSC47M192_REG_TEMP[3] =	{ 0x27, 0x26, 0x52 };
+ static u8 SMSC47M192_REG_TEMP_MAX[3] =	{ 0x39, 0x37, 0x58 };
+ static u8 SMSC47M192_REG_TEMP_MIN[3] =	{ 0x3A, 0x38, 0x59 };
+-#define SMSC47M192_REG_TEMP_OFFSET(nr)	((nr)=2 ? 0x1e : 0x1f)
++#define SMSC47M192_REG_TEMP_OFFSET(nr)	((nr) = 2 ? 0x1e : 0x1f)
+ #define SMSC47M192_REG_ALARM1		0x41
+ #define SMSC47M192_REG_ALARM2		0x42
+ #define SMSC47M192_REG_VID		0x47
+@@ -170,7 +170,12 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
+ 	int nr = sensor_attr->index;
  	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
+ 	struct smsc47m192_data *data = i2c_get_clientdata(client);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_min[nr] = IN_TO_REG(val, nr);
+@@ -187,7 +192,12 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
+ 	int nr = sensor_attr->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct smsc47m192_data *data = i2c_get_clientdata(client);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_max[nr] = IN_TO_REG(val, nr);
+@@ -249,7 +259,12 @@ static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+ 	int nr = sensor_attr->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct smsc47m192_data *data = i2c_get_clientdata(client);
 -	long val = simple_strtol(buf, NULL, 10);
 +	long val;
 +	int err;
@@ -106,342 +102,57 @@ index f1e6e75..ebf4efd 100644
 +		return err;
  
  	mutex_lock(&data->update_lock);
- 	data->in_min[nr] = IN_TO_REG(val, data->in_scale[nr]);
--	lm87_write_value(client, nr<6 ? LM87_REG_IN_MIN(nr) :
--			 LM87_REG_AIN_MIN(nr-6), data->in_min[nr]);
-+	lm87_write_value(client, nr < 6 ? LM87_REG_IN_MIN(nr) :
-+			 LM87_REG_AIN_MIN(nr - 6), data->in_min[nr]);
+ 	data->temp_min[nr] = TEMP_TO_REG(val);
+@@ -266,7 +281,12 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 	int nr = sensor_attr->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct smsc47m192_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_max[nr] = TEMP_TO_REG(val);
+@@ -293,22 +313,27 @@ static ssize_t set_temp_offset(struct device *dev, struct device_attribute
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct smsc47m192_data *data = i2c_get_clientdata(client);
+ 	u8 sfr = i2c_smbus_read_byte_data(client, SMSC47M192_REG_SFR);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_offset[nr] = TEMP_TO_REG(val);
+-	if (nr>1)
++	if (nr > 1)
+ 		i2c_smbus_write_byte_data(client,
+ 			SMSC47M192_REG_TEMP_OFFSET(nr), data->temp_offset[nr]);
+ 	else if (data->temp_offset[nr] != 0) {
+ 		/* offset[0] and offset[1] share the same register,
+ 			SFR bit 4 activates offset[0] */
+ 		i2c_smbus_write_byte_data(client, SMSC47M192_REG_SFR,
+-					(sfr & 0xef) | (nr=0 ? 0x10 : 0));
++					(sfr & 0xef) | (nr = 0 ? 0x10 : 0));
+ 		data->temp_offset[1-nr] = 0;
+ 		i2c_smbus_write_byte_data(client,
+ 			SMSC47M192_REG_TEMP_OFFSET(nr), data->temp_offset[nr]);
+-	} else if ((sfr & 0x10) = (nr=0 ? 0x10 : 0))
++	} else if ((sfr & 0x10) = (nr = 0 ? 0x10 : 0))
+ 		i2c_smbus_write_byte_data(client,
+ 					SMSC47M192_REG_TEMP_OFFSET(nr), 0);
  	mutex_unlock(&data->update_lock);
-+	return count;
- }
- 
--static void set_in_max(struct device *dev, const char *buf, int nr)
-+static ssize_t set_in_max(struct device *dev, const char *buf, int nr,
-+			  size_t count)
+@@ -349,7 +374,14 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int err;
-+
-+	err = kstrtol(buf, 10, &val);
-+	if (err)
-+		return err;
- 
- 	mutex_lock(&data->update_lock);
- 	data->in_max[nr] = IN_TO_REG(val, data->in_scale[nr]);
--	lm87_write_value(client, nr<6 ? LM87_REG_IN_MAX(nr) :
--			 LM87_REG_AIN_MAX(nr-6), data->in_max[nr]);
-+	lm87_write_value(client, nr < 6 ? LM87_REG_IN_MAX(nr) :
-+			 LM87_REG_AIN_MAX(nr - 6), data->in_max[nr]);
- 	mutex_unlock(&data->update_lock);
-+	return count;
- }
- 
- #define set_in(offset) \
--static ssize_t set_in##offset##_min(struct device *dev, struct device_attribute *attr, \
-+static ssize_t set_in##offset##_min(struct device *dev, \
-+				    struct device_attribute *attr, \
- 		const char *buf, size_t count) \
- { \
--	set_in_min(dev, buf, offset); \
--	return count; \
-+	return set_in_min(dev, buf, offset, count); \
- } \
--static ssize_t set_in##offset##_max(struct device *dev, struct device_attribute *attr, \
-+static ssize_t set_in##offset##_max(struct device *dev, \
-+				    struct device_attribute *attr, \
- 		const char *buf, size_t count) \
- { \
--	set_in_max(dev, buf, offset); \
--	return count; \
-+	return set_in_max(dev, buf, offset, count); \
- } \
- static DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR, \
- 		show_in##offset##_min, set_in##offset##_min); \
-@@ -314,63 +333,85 @@ set_in(6);
- set_in(7);
- 
- #define show_temp(offset) \
--static ssize_t show_temp##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_temp##offset##_input(struct device *dev, \
-+					 struct device_attribute *attr, \
-+					 char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[offset-1])); \
-+	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[offset - 1])); \
- } \
--static ssize_t show_temp##offset##_low(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_temp##offset##_low(struct device *dev, \
-+				       struct device_attribute *attr, \
-+				       char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_low[offset-1])); \
-+	return sprintf(buf, "%d\n", \
-+		       TEMP_FROM_REG(data->temp_low[offset - 1])); \
- } \
--static ssize_t show_temp##offset##_high(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_temp##offset##_high(struct device *dev, \
-+					struct device_attribute *attr, \
-+					char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
--	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[offset-1])); \
--}\
-+	return sprintf(buf, "%d\n", \
-+		       TEMP_FROM_REG(data->temp_high[offset - 1])); \
-+} \
- static DEVICE_ATTR(temp##offset##_input, S_IRUGO, \
- 		show_temp##offset##_input, NULL);
- show_temp(1);
- show_temp(2);
- show_temp(3);
- 
--static void set_temp_low(struct device *dev, const char *buf, int nr)
-+static ssize_t set_temp_low(struct device *dev, const char *buf, int nr,
-+			    size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int err;
-+
-+	err = kstrtol(buf, 10, &val);
-+	if (err)
-+		return err;
- 
- 	mutex_lock(&data->update_lock);
- 	data->temp_low[nr] = TEMP_TO_REG(val);
- 	lm87_write_value(client, LM87_REG_TEMP_LOW[nr], data->temp_low[nr]);
- 	mutex_unlock(&data->update_lock);
-+	return count;
- }
- 
--static void set_temp_high(struct device *dev, const char *buf, int nr)
-+static ssize_t set_temp_high(struct device *dev, const char *buf, int nr,
-+			     size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int err;
-+
-+	err = kstrtol(buf, 10, &val);
-+	if (err)
-+		return err;
- 
- 	mutex_lock(&data->update_lock);
- 	data->temp_high[nr] = TEMP_TO_REG(val);
- 	lm87_write_value(client, LM87_REG_TEMP_HIGH[nr], data->temp_high[nr]);
- 	mutex_unlock(&data->update_lock);
-+	return count;
- }
- 
- #define set_temp(offset) \
--static ssize_t set_temp##offset##_low(struct device *dev, struct device_attribute *attr, \
-+static ssize_t set_temp##offset##_low(struct device *dev, \
-+				      struct device_attribute *attr, \
- 		const char *buf, size_t count) \
- { \
--	set_temp_low(dev, buf, offset-1); \
--	return count; \
-+	return set_temp_low(dev, buf, offset - 1, count); \
- } \
--static ssize_t set_temp##offset##_high(struct device *dev, struct device_attribute *attr, \
-+static ssize_t set_temp##offset##_high(struct device *dev, \
-+				       struct device_attribute *attr, \
- 		const char *buf, size_t count) \
- { \
--	set_temp_high(dev, buf, offset-1); \
--	return count; \
-+	return set_temp_high(dev, buf, offset - 1, count); \
- } \
- static DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR, \
- 		show_temp##offset##_high, set_temp##offset##_high); \
-@@ -380,13 +421,15 @@ set_temp(1);
- set_temp(2);
- set_temp(3);
- 
--static ssize_t show_temp_crit_int(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp_crit_int(struct device *dev,
-+				  struct device_attribute *attr, char *buf)
- {
- 	struct lm87_data *data = lm87_update_device(dev);
- 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit_int));
- }
- 
--static ssize_t show_temp_crit_ext(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp_crit_ext(struct device *dev,
-+				  struct device_attribute *attr, char *buf)
- {
- 	struct lm87_data *data = lm87_update_device(dev);
- 	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_crit_ext));
-@@ -397,39 +440,53 @@ static DEVICE_ATTR(temp2_crit, S_IRUGO, show_temp_crit_ext, NULL);
- static DEVICE_ATTR(temp3_crit, S_IRUGO, show_temp_crit_ext, NULL);
- 
- #define show_fan(offset) \
--static ssize_t show_fan##offset##_input(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_input(struct device *dev, \
-+					struct device_attribute *attr, \
-+					char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
--	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[offset-1], \
--		       FAN_DIV_FROM_REG(data->fan_div[offset-1]))); \
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[offset - 1], \
-+		       FAN_DIV_FROM_REG(data->fan_div[offset - 1]))); \
- } \
--static ssize_t show_fan##offset##_min(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_min(struct device *dev, \
-+				      struct device_attribute *attr, \
-+				      char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
--	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[offset-1], \
--		       FAN_DIV_FROM_REG(data->fan_div[offset-1]))); \
-+	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[offset - 1], \
-+		       FAN_DIV_FROM_REG(data->fan_div[offset - 1]))); \
- } \
--static ssize_t show_fan##offset##_div(struct device *dev, struct device_attribute *attr, char *buf) \
-+static ssize_t show_fan##offset##_div(struct device *dev, \
-+				      struct device_attribute *attr, \
-+				      char *buf) \
- { \
- 	struct lm87_data *data = lm87_update_device(dev); \
--	return sprintf(buf, "%d\n", FAN_DIV_FROM_REG(data->fan_div[offset-1])); \
-+	return sprintf(buf, "%d\n", \
-+		       FAN_DIV_FROM_REG(data->fan_div[offset - 1])); \
- } \
- static DEVICE_ATTR(fan##offset##_input, S_IRUGO, \
- 		show_fan##offset##_input, NULL);
- show_fan(1);
- show_fan(2);
- 
--static void set_fan_min(struct device *dev, const char *buf, int nr)
-+static ssize_t set_fan_min(struct device *dev, const char *buf, int nr,
-+			   size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int err;
-+
-+	err = kstrtol(buf, 10, &val);
-+	if (err)
-+		return err;
- 
- 	mutex_lock(&data->update_lock);
- 	data->fan_min[nr] = FAN_TO_REG(val,
- 			    FAN_DIV_FROM_REG(data->fan_div[nr]));
- 	lm87_write_value(client, LM87_REG_FAN_MIN(nr), data->fan_min[nr]);
- 	mutex_unlock(&data->update_lock);
-+	return count;
- }
- 
- /* Note: we save and restore the fan minimum here, because its value is
-@@ -441,19 +498,32 @@ static ssize_t set_fan_div(struct device *dev, const char *buf,
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int err;
- 	unsigned long min;
- 	u8 reg;
- 
-+	err = kstrtol(buf, 10, &val);
-+	if (err)
-+		return err;
-+
- 	mutex_lock(&data->update_lock);
- 	min = FAN_FROM_REG(data->fan_min[nr],
- 			   FAN_DIV_FROM_REG(data->fan_div[nr]));
- 
- 	switch (val) {
--	case 1: data->fan_div[nr] = 0; break;
--	case 2: data->fan_div[nr] = 1; break;
--	case 4: data->fan_div[nr] = 2; break;
--	case 8: data->fan_div[nr] = 3; break;
-+	case 1:
-+		data->fan_div[nr] = 0;
-+		break;
-+	case 2:
-+		data->fan_div[nr] = 1;
-+		break;
-+	case 4:
-+		data->fan_div[nr] = 2;
-+		break;
-+	case 8:
-+		data->fan_div[nr] = 3;
-+		break;
- 	default:
- 		mutex_unlock(&data->update_lock);
- 		return -EINVAL;
-@@ -479,16 +549,19 @@ static ssize_t set_fan_div(struct device *dev, const char *buf,
- }
- 
- #define set_fan(offset) \
--static ssize_t set_fan##offset##_min(struct device *dev, struct device_attribute *attr, const char *buf, \
-+static ssize_t set_fan##offset##_min(struct device *dev, \
-+				     struct device_attribute *attr, \
-+				     const char *buf, \
- 		size_t count) \
- { \
--	set_fan_min(dev, buf, offset-1); \
--	return count; \
-+	return set_fan_min(dev, buf, offset - 1, count); \
- } \
--static ssize_t set_fan##offset##_div(struct device *dev, struct device_attribute *attr, const char *buf, \
-+static ssize_t set_fan##offset##_div(struct device *dev, \
-+				     struct device_attribute *attr, \
-+				     const char *buf, \
- 		size_t count) \
- { \
--	return set_fan_div(dev, buf, count, offset-1); \
-+	return set_fan_div(dev, buf, count, offset - 1); \
- } \
- static DEVICE_ATTR(fan##offset##_min, S_IRUGO | S_IWUSR, \
- 		show_fan##offset##_min, set_fan##offset##_min); \
-@@ -497,43 +570,60 @@ static DEVICE_ATTR(fan##offset##_div, S_IRUGO | S_IWUSR, \
- set_fan(1);
- set_fan(2);
- 
--static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
-+			   char *buf)
- {
- 	struct lm87_data *data = lm87_update_device(dev);
- 	return sprintf(buf, "%d\n", data->alarms);
- }
- static DEVICE_ATTR(alarms, S_IRUGO, show_alarms, NULL);
- 
--static ssize_t show_vid(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_vid(struct device *dev, struct device_attribute *attr,
-+			char *buf)
- {
- 	struct lm87_data *data = lm87_update_device(dev);
- 	return sprintf(buf, "%d\n", vid_from_reg(data->vid, data->vrm));
- }
- static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
- 
--static ssize_t show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_vrm(struct device *dev, struct device_attribute *attr,
-+			char *buf)
- {
- 	struct lm87_data *data = dev_get_drvdata(dev);
- 	return sprintf(buf, "%d\n", data->vrm);
- }
--static ssize_t set_vrm(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
-+		       const char *buf, size_t count)
- {
- 	struct lm87_data *data = dev_get_drvdata(dev);
+ 	struct smsc47m192_data *data = dev_get_drvdata(dev);
 -	data->vrm = simple_strtoul(buf, NULL, 10);
 +	unsigned long val;
 +	int err;
@@ -449,44 +160,56 @@ index f1e6e75..ebf4efd 100644
 +	err = kstrtoul(buf, 10, &val);
 +	if (err)
 +		return err;
++
 +	data->vrm = SENSORS_LIMIT(val, 0, 255);
  	return count;
  }
  static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
- 
--static ssize_t show_aout(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_aout(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
- {
- 	struct lm87_data *data = lm87_update_device(dev);
- 	return sprintf(buf, "%d\n", AOUT_FROM_REG(data->aout));
- }
--static ssize_t set_aout(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_aout(struct device *dev, struct device_attribute *attr,
-+			const char *buf, size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm87_data *data = i2c_get_clientdata(client);
--	long val = simple_strtol(buf, NULL, 10);
-+	long val;
-+	int err;
-+
-+	err = kstrtol(buf, 10, &val);
-+	if (err)
-+		return err;
- 
- 	mutex_lock(&data->update_lock);
- 	data->aout = AOUT_TO_REG(val);
-@@ -721,7 +811,8 @@ static int lm87_probe(struct i2c_client *new_client,
- 	data->in_scale[7] = 1875;
+@@ -458,13 +490,13 @@ static void smsc47m192_init_client(struct i2c_client *client)
+ 						(sfr & 0xfd) | 0x02);
+ 	if (!(config & 0x01)) {
+ 		/* initialize alarm limits */
+-		for (i=0; i<8; i++) {
++		for (i = 0; i < 8; i++) {
+ 			i2c_smbus_write_byte_data(client,
+ 				SMSC47M192_REG_IN_MIN(i), 0);
+ 			i2c_smbus_write_byte_data(client,
+ 				SMSC47M192_REG_IN_MAX(i), 0xff);
+ 		}
+-		for (i=0; i<3; i++) {
++		for (i = 0; i < 3; i++) {
+ 			i2c_smbus_write_byte_data(client,
+ 				SMSC47M192_REG_TEMP_MIN[i], 0x80);
+ 			i2c_smbus_write_byte_data(client,
+@@ -532,14 +564,16 @@ static int smsc47m192_probe(struct i2c_client *client,
+ 	smsc47m192_init_client(client);
  
  	/* Register sysfs hooks */
--	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm87_group)))
-+	err = sysfs_create_group(&new_client->dev.kobj, &lm87_group);
+-	if ((err = sysfs_create_group(&client->dev.kobj, &smsc47m192_group)))
++	err = sysfs_create_group(&client->dev.kobj, &smsc47m192_group);
 +	if (err)
  		goto exit_free;
  
- 	if (data->channel & CHAN_NO_FAN(0)) {
+ 	/* Pin 110 is either in4 (+12V) or VID4 */
+ 	config = i2c_smbus_read_byte_data(client, SMSC47M192_REG_CONFIG);
+ 	if (!(config & 0x20)) {
+-		if ((err = sysfs_create_group(&client->dev.kobj,
+-					      &smsc47m192_group_in4)))
++		err = sysfs_create_group(&client->dev.kobj,
++					 &smsc47m192_group_in4);
++		if (err)
+ 			goto exit_remove_files;
+ 	}
+ 
+@@ -624,7 +658,7 @@ static struct smsc47m192_data *smsc47m192_update_device(struct device *dev)
+ 		data->alarms = i2c_smbus_read_byte_data(client,
+ 						SMSC47M192_REG_ALARM1) |
+ 			       (i2c_smbus_read_byte_data(client,
+-		       				SMSC47M192_REG_ALARM2) << 8);
++						SMSC47M192_REG_ALARM2) << 8);
+ 
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
 -- 
 1.7.5.4
 
