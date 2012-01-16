@@ -1,82 +1,128 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:31 +0000
-Subject: [lm-sensors] [PATCH 37/82] hwmon: (lm80) Fix multi-line comments
-Message-Id: <1327017376-20466-38-git-send-email-linux@roeck-us.net>
+Date: Mon, 16 Jan 2012 08:49:15 +0000
+Subject: [lm-sensors] [PATCH 13/39] hwmon: (fschmd) Fix checkpatch issues
+Message-Id: <1326703781-14272-14-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Fixed:
+ERROR: that open brace { should be on the previous line
+ERROR: trailing statements should be on next line
+WARNING: line over 80 characters
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm80.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ drivers/hwmon/fschmd.c |   57 +++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 42 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/hwmon/lm80.c b/drivers/hwmon/lm80.c
-index dc6df4e..46a4bab 100644
---- a/drivers/hwmon/lm80.c
-+++ b/drivers/hwmon/lm80.c
-@@ -1,8 +1,8 @@
- /*
-  * lm80.c - From lm_sensors, Linux kernel modules for hardware
-- * monitoring
-+ *	    monitoring
-  * Copyright (C) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
-- * and Philip Edelbrock <phil@netroedge.com>
-+ *			     and Philip Edelbrock <phil@netroedge.com>
-  *
-  * Ported to Linux 2.6 by Tiago Sousa <mirage@kaotik.org>
-  *
-@@ -61,10 +61,12 @@ static const unsigned short normal_i2c[] = { 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d,
- #define LM80_REG_RES			0x06
+diff --git a/drivers/hwmon/fschmd.c b/drivers/hwmon/fschmd.c
+index aa6d8b6..06cbf77 100644
+--- a/drivers/hwmon/fschmd.c
++++ b/drivers/hwmon/fschmd.c
+@@ -76,12 +76,12 @@ enum chips { fscpos, fscher, fscscy, fschrc, fschmd, fschds, fscsyl };
+ #define FSCHMD_CONTROL_ALERT_LED	0x01
  
+ /* watchdog */
+-static const u8 FSCHMD_REG_WDOG_CONTROL[7] -	{ 0x21, 0x21, 0x21, 0x21, 0x21, 0x28, 0x28 };
+-static const u8 FSCHMD_REG_WDOG_STATE[7] -	{ 0x23, 0x23, 0x23, 0x23, 0x23, 0x29, 0x29 };
+-static const u8 FSCHMD_REG_WDOG_PRESET[7] -	{ 0x28, 0x28, 0x28, 0x28, 0x28, 0x2a, 0x2a };
++static const u8 FSCHMD_REG_WDOG_CONTROL[7] = {
++	0x21, 0x21, 0x21, 0x21, 0x21, 0x28, 0x28 };
++static const u8 FSCHMD_REG_WDOG_STATE[7] = {
++	0x23, 0x23, 0x23, 0x23, 0x23, 0x29, 0x29 };
++static const u8 FSCHMD_REG_WDOG_PRESET[7] = {
++	0x28, 0x28, 0x28, 0x28, 0x28, 0x2a, 0x2a };
  
--/* Conversions. Rounding and limit checking is only done on the TO_REG
--   variants. Note that you should be a bit careful with which arguments
--   these macros are called: arguments may be evaluated more than once.
--   Fixing this is just not worth it. */
-+/*
-+ * Conversions. Rounding and limit checking is only done on the TO_REG
-+ * variants. Note that you should be a bit careful with which arguments
-+ * these macros are called: arguments may be evaluated more than once.
-+ * Fixing this is just not worth it.
-+ */
+ #define FSCHMD_WDOG_CONTROL_TRIGGER	0x10
+ #define FSCHMD_WDOG_CONTROL_STARTED	0x10 /* the same as trigger */
+@@ -359,9 +359,14 @@ static ssize_t store_temp_max(struct device *dev, struct device_attribute
+ {
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct fschmd_data *data = dev_get_drvdata(dev);
+-	long v = simple_strtol(buf, NULL, 10) / 1000;
++	long v;
++	int err;
  
- #define IN_TO_REG(val)		(SENSORS_LIMIT(((val) + 5) / 10, 0, 255))
- #define IN_FROM_REG(val)	((val) * 10)
-@@ -242,10 +244,12 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
+-	v = SENSORS_LIMIT(v, -128, 127) + 128;
++	err = kstrtol(buf, 10, &v);
++	if (err)
++		return err;
++
++	v = SENSORS_LIMIT(v / 1000, -128, 127) + 128;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	i2c_smbus_write_byte_data(to_i2c_client(dev),
+@@ -427,12 +432,23 @@ static ssize_t store_fan_div(struct device *dev, struct device_attribute
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct fschmd_data *data = dev_get_drvdata(dev);
+ 	/* supported values: 2, 4, 8 */
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
++	unsigned long v;
++	int err;
++
++	err = kstrtoul(buf, 10, &v);
++	if (err)
++		return err;
+ 
+ 	switch (v) {
+-	case 2: v = 1; break;
+-	case 4: v = 2; break;
+-	case 8: v = 3; break;
++	case 2:
++		v = 1;
++		break;
++	case 4:
++		v = 2;
++		break;
++	case 8:
++		v = 3;
++		break;
+ 	default:
+ 		dev_err(dev, "fan_div value %lu not supported. "
+ 			"Choose one of 2, 4 or 8!\n", v);
+@@ -502,7 +518,12 @@ static ssize_t store_pwm_auto_point1_pwm(struct device *dev,
+ {
+ 	int index = to_sensor_dev_attr(devattr)->index;
+ 	struct fschmd_data *data = dev_get_drvdata(dev);
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
++	unsigned long v;
++	int err;
++
++	err = kstrtoul(buf, 10, &v);
++	if (err)
++		return err;
+ 
+ 	/* reg: 0 = allow turning off (except on the syl), 1-255 = 50-100% */
+ 	if (v || data->kind = fscsyl) {
+@@ -540,7 +561,12 @@ static ssize_t store_alert_led(struct device *dev,
+ {
+ 	u8 reg;
+ 	struct fschmd_data *data = dev_get_drvdata(dev);
+-	unsigned long v = simple_strtoul(buf, NULL, 10);
++	unsigned long v;
++	int err;
++
++	err = kstrtoul(buf, 10, &v);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -847,7 +873,8 @@ static ssize_t watchdog_write(struct file *filp, const char __user *buf,
  	return count;
  }
  
--/* Note: we save and restore the fan minimum here, because its value is
--   determined in part by the fan divisor.  This follows the principle of
--   least surprise; the user doesn't expect the fan minimum to change just
--   because the divisor changed. */
-+/*
-+ * Note: we save and restore the fan minimum here, because its value is
-+ * determined in part by the fan divisor.  This follows the principle of
-+ * least surprise; the user doesn't expect the fan minimum to change just
-+ * because the divisor changed.
-+ */
- static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
- 	const char *buf, size_t count)
+-static long watchdog_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
++static long watchdog_ioctl(struct file *filp, unsigned int cmd,
++			   unsigned long arg)
  {
-@@ -574,9 +578,11 @@ static int lm80_write_value(struct i2c_client *client, u8 reg, u8 value)
- /* Called when we have found a new LM80. */
- static void lm80_init_client(struct i2c_client *client)
- {
--	/* Reset all except Watchdog values and last conversion values
--	   This sets fan-divs to 2, among others. This makes most other
--	   initializations unnecessary */
-+	/*
-+	 * Reset all except Watchdog values and last conversion values
-+	 * This sets fan-divs to 2, among others. This makes most other
-+	 * initializations unnecessary
-+	 */
- 	lm80_write_value(client, LM80_REG_CONFIG, 0x80);
- 	/* Set 11-bit temperature resolution */
- 	lm80_write_value(client, LM80_REG_RES, 0x08);
+ 	struct watchdog_info ident = {
+ 		.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT |
 -- 
 1.7.5.4
 
