@@ -1,28 +1,316 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 05 Jan 2012 17:44:45 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/2] lm80.c: add error handling
-Message-Id: <20120105174445.GB9257@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 16 Jan 2012 08:49:35 +0000
+Subject: [lm-sensors] [PATCH 33/39] hwmon: (vt8231) Fix checkpatch issues
+Message-Id: <1326703781-14272-34-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1325770914-23620-1-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1325770914-23620-1-git-send-email-fransmeulenbroeks@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jan 05, 2012 at 08:41:53AM -0500, Frans Meulenbroeks wrote:
-> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-> ---
-> 
-> Tested with actual system
-> 
->  drivers/hwmon/lm80.c |  132 ++++++++++++++++++++++++++++++++++++++------------
->  1 files changed, 101 insertions(+), 31 deletions(-)
-> 
-Looks ok to me. I'll add it for a release candidate after the commit window for 3.3
-closes.
+Fixed:
+ERROR: code indent should use tabs where possible
+ERROR: do not use assignment in if condition
+ERROR: trailing statements should be on next line
+WARNING: braces {} are not necessary for any arm of this statement
+WARNING: line over 80 characters
+WARNING: please, no space before tabs
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
 
-Guenter
+Not fixed (false positive):
+ERROR: Macros with multiple statements should be enclosed in a do - while loop
+
+Cc: Roger Lucas <vt8231@hiddenengine.co.uk>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/vt8231.c |  129 +++++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 95 insertions(+), 34 deletions(-)
+
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index db3b2e8..eb74f37 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -56,12 +56,12 @@ static struct platform_device *pdev;
+    which sets the selected inputs marked with '*' below if multiple options are
+    possible:
+ 
+-	            Voltage Mode	  Temperature Mode
+-	Sensor	      Linux Id	      Linux Id        VIA Id
+-	--------      --------	      --------        ------
++		    Voltage Mode	  Temperature Mode
++	Sensor	      Linux Id	      Linux Id	      VIA Id
++	--------      --------	      --------	      ------
+ 	CPU Diode	N/A		temp1		0
+ 	UIC1		in0		temp2 *		1
+-	UIC2		in1 *		temp3   	2
++	UIC2		in1 *		temp3		2
+ 	UIC3		in2 *		temp4		3
+ 	UIC4		in3 *		temp5		4
+ 	UIC5		in4 *		temp6		5
+@@ -222,7 +222,12 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_min[nr] = SENSORS_LIMIT(((val * 958) / 10000) + 3, 0, 255);
+@@ -237,7 +242,12 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_max[nr] = SENSORS_LIMIT(((val * 958) / 10000) + 3, 0, 255);
+@@ -278,7 +288,12 @@ static ssize_t set_in5_min(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+ {
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_min[5] = SENSORS_LIMIT(((val * 958 * 34) / (10000 * 54)) + 3,
+@@ -292,7 +307,12 @@ static ssize_t set_in5_max(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+ {
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_max[5] = SENSORS_LIMIT(((val * 958 * 34) / (10000 * 54)) + 3,
+@@ -346,7 +366,12 @@ static ssize_t set_temp0_max(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+ {
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_max[0] = SENSORS_LIMIT((val + 500) / 1000, 0, 255);
+@@ -358,7 +383,12 @@ static ssize_t set_temp0_min(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+ {
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_min[0] = SENSORS_LIMIT((val + 500) / 1000, 0, 255);
+@@ -400,7 +430,12 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_max[nr] = SENSORS_LIMIT(TEMP_MAXMIN_TO_REG(val), 0, 255);
+@@ -414,7 +449,12 @@ static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_min[nr] = SENSORS_LIMIT(TEMP_MAXMIN_TO_REG(val), 0, 255);
+@@ -436,7 +476,8 @@ static SENSOR_DEVICE_ATTR(temp##offset##_max_hyst, S_IRUGO | S_IWUSR,	\
+ 
+ static DEVICE_ATTR(temp1_input, S_IRUGO, show_temp0, NULL);
+ static DEVICE_ATTR(temp1_max, S_IRUGO | S_IWUSR, show_temp0_max, set_temp0_max);
+-static DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp0_min, set_temp0_min);
++static DEVICE_ATTR(temp1_max_hyst, S_IRUGO | S_IWUSR, show_temp0_min,
++		   set_temp0_min);
+ 
+ define_temperature_sysfs(2);
+ define_temperature_sysfs(3);
+@@ -480,7 +521,12 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+-	int val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+@@ -494,21 +540,34 @@ static ssize_t set_fan_div(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct vt8231_data *data = dev_get_drvdata(dev);
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
+ 	int nr = sensor_attr->index;
+ 	int old = vt8231_read_value(data, VT8231_REG_FANDIV);
+ 	long min = FAN_FROM_REG(data->fan_min[nr],
+ 				 DIV_FROM_REG(data->fan_div[nr]));
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	switch (val) {
+-	case 1: data->fan_div[nr] = 0; break;
+-	case 2: data->fan_div[nr] = 1; break;
+-	case 4: data->fan_div[nr] = 2; break;
+-	case 8: data->fan_div[nr] = 3; break;
++	case 1:
++		data->fan_div[nr] = 0;
++		break;
++	case 2:
++		data->fan_div[nr] = 1;
++		break;
++	case 4:
++		data->fan_div[nr] = 2;
++		break;
++	case 8:
++		data->fan_div[nr] = 3;
++		break;
+ 	default:
+ 		dev_err(dev, "fan_div value %ld not supported. "
+-		        "Choose one of 1, 2, 4 or 8!\n", val);
++			"Choose one of 1, 2, 4 or 8!\n", val);
+ 		mutex_unlock(&data->update_lock);
+ 		return -EINVAL;
+ 	}
+@@ -699,7 +758,7 @@ static struct platform_driver vt8231_driver = {
+ 	.remove	= __devexit_p(vt8231_remove),
+ };
+ 
+-static const struct pci_device_id vt8231_pci_ids[] = {
++static DEFINE_PCI_DEVICE_TABLE(vt8231_pci_ids) = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_VIA, PCI_DEVICE_ID_VIA_8231_4) },
+ 	{ 0, }
+ };
+@@ -707,7 +766,7 @@ static const struct pci_device_id vt8231_pci_ids[] = {
+ MODULE_DEVICE_TABLE(pci, vt8231_pci_ids);
+ 
+ static int __devinit vt8231_pci_probe(struct pci_dev *dev,
+-			 	      const struct pci_device_id *id);
++				      const struct pci_device_id *id);
+ 
+ static struct pci_driver vt8231_pci_driver = {
+ 	.name		= "vt8231",
+@@ -730,7 +789,8 @@ static int vt8231_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!(data = kzalloc(sizeof(struct vt8231_data), GFP_KERNEL))) {
++	data = kzalloc(sizeof(struct vt8231_data), GFP_KERNEL);
++	if (!data) {
+ 		err = -ENOMEM;
+ 		goto exit_release;
+ 	}
+@@ -743,7 +803,8 @@ static int vt8231_probe(struct platform_device *pdev)
+ 	vt8231_init_device(data);
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&pdev->dev.kobj, &vt8231_group)))
++	err = sysfs_create_group(&pdev->dev.kobj, &vt8231_group);
++	if (err)
+ 		goto exit_free;
+ 
+ 	/* Must update device information to find out the config field */
+@@ -751,16 +812,18 @@ static int vt8231_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vt8231_group_temps); i++) {
+ 		if (ISTEMP(i, data->uch_config)) {
+-			if ((err = sysfs_create_group(&pdev->dev.kobj,
+-					&vt8231_group_temps[i])))
++			err = sysfs_create_group(&pdev->dev.kobj,
++						 &vt8231_group_temps[i]);
++			if (err)
+ 				goto exit_remove_files;
+ 		}
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vt8231_group_volts); i++) {
+ 		if (ISVOLT(i, data->uch_config)) {
+-			if ((err = sysfs_create_group(&pdev->dev.kobj,
+-					&vt8231_group_volts[i])))
++			err = sysfs_create_group(&pdev->dev.kobj,
++						 &vt8231_group_volts[i]);
++			if (err)
+ 				goto exit_remove_files;
+ 		}
+ 	}
+@@ -866,17 +929,15 @@ static struct vt8231_data *vt8231_update_device(struct device *dev)
+ 			(vt8231_read_value(data, VT8231_REG_ALARM2) << 8);
+ 
+ 		/* Set alarm flags correctly */
+-		if (!data->fan[0] && data->fan_min[0]) {
++		if (!data->fan[0] && data->fan_min[0])
+ 			data->alarms |= 0x40;
+-		} else if (data->fan[0] && !data->fan_min[0]) {
++		else if (data->fan[0] && !data->fan_min[0])
+ 			data->alarms &= ~0x40;
+-		}
+ 
+-		if (!data->fan[1] && data->fan_min[1]) {
++		if (!data->fan[1] && data->fan_min[1])
+ 			data->alarms |= 0x80;
+-		} else if (data->fan[1] && !data->fan_min[1]) {
++		else if (data->fan[1] && !data->fan_min[1])
+ 			data->alarms &= ~0x80;
+-		}
+ 
+ 		data->last_updated = jiffies;
+ 		data->valid = 1;
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
