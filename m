@@ -1,223 +1,315 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:22 +0000
-Subject: [lm-sensors] =?utf-8?q?=5BPATCH_43/79=5D_hwmon=3A_=28gl520sm=29_F?= =?utf-8?q?ix_checkpatch_issues?=
-Message-Id: <1327373398-997-44-git-send-email-guenter.roeck@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 16 Jan 2012 08:49:37 +0000
+Subject: [lm-sensors] [PATCH 35/39] hwmon: (w83791d) Fix checkpatch issues
+Message-Id: <1326703781-14272-36-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-RnJvbTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgoKRml4ZWQ6CkVSUk9SOiBj
-b2RlIGluZGVudCBzaG91bGQgdXNlIHRhYnMgd2hlcmUgcG9zc2libGUKRVJST1I6IGRvIG5vdCB1
-c2UgYXNzaWdubWVudCBpbiBpZiBjb25kaXRpb24KRVJST1I6IHNwYWNlIHJlcXVpcmVkIGFmdGVy
-IHRoYXQgJywnIChjdHg6VnhWKQpFUlJPUjogc3BhY2VzIHJlcXVpcmVkIGFyb3VuZCB0aGF0ICc8
-PScgKGN0eDpWeFYpCkVSUk9SOiBzcGFjZXMgcmVxdWlyZWQgYXJvdW5kIHRoYXQgJzwnIChjdHg6
-VnhWKQpFUlJPUjogc3BhY2VzIHJlcXVpcmVkIGFyb3VuZCB0aGF0ICc9PScgKGN0eDpWeFYpCkVS
-Uk9SOiBzcGFjZXMgcmVxdWlyZWQgYXJvdW5kIHRoYXQgJzonIChjdHg6VnhWKQpFUlJPUjogc3Bh
-Y2VzIHJlcXVpcmVkIGFyb3VuZCB0aGF0ICc/JyAoY3R4OlZ4VikKRVJST1I6IHRyYWlsaW5nIHN0
-YXRlbWVudHMgc2hvdWxkIGJlIG9uIG5leHQgbGluZQpXQVJOSU5HOiBsaW5lIG92ZXIgODAgY2hh
-cmFjdGVycwpXQVJOSU5HOiBzaW1wbGVfc3RydG9sIGlzIG9ic29sZXRlLCB1c2Uga3N0cnRvbCBp
-bnN0ZWFkCldBUk5JTkc6IHNpbXBsZV9zdHJ0b3VsIGlzIG9ic29sZXRlLCB1c2Uga3N0cnRvdWwg
-aW5zdGVhZAoKTW9kaWZ5IG11bHRpLWxpbmUgY29tbWVudHMgdG8gZm9sbG93IERvY3VtZW50YXRp
-b24vQ29kaW5nU3R5bGUuCgpOb3QgYWx3YXlzIGZpeGVkIChjb21wbGV4aXR5KToKRVJST1I6IGRv
-IG5vdCB1c2UgYXNzaWdubWVudCBpbiBpZiBjb25kaXRpb24KClNpZ25lZC1vZmYtYnk6IEd1ZW50
-ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KLS0tCiBkcml2ZXJzL2h3bW9uL2dsNTIwc20u
-YyB8ICAxNzggKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0K
-IDEgZmlsZXMgY2hhbmdlZCwgMTI1IGluc2VydGlvbnMoKyksIDUzIGRlbGV0aW9ucygtKQoKZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZ2w1MjBzbS5jIGIvZHJpdmVycy9od21vbi9nbDUyMHNt
-LmMKaW5kZXggZTZkY2Y2Ni4uMDFhNDk0OSAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9nbDUy
-MHNtLmMKKysrIGIvZHJpdmVycy9od21vbi9nbDUyMHNtLmMKQEAgLTEsMjUgKzEsMjUgQEAKIC8q
-Ci0gICAgZ2w1MjBzbS5jIC0gUGFydCBvZiBsbV9zZW5zb3JzLCBMaW51eCBrZXJuZWwgbW9kdWxl
-cyBmb3IgaGFyZHdhcmUKLSAgICAgICAgICAgICAgICBtb25pdG9yaW5nCi0gICAgQ29weXJpZ2h0
-IChjKSAxOTk4LCAxOTk5ICBGcm9kbyBMb29pamFhcmQgPGZyb2RvbEBkZHMubmw+LAotICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgS3nDtnN0aSBNw6Rsa2tpIDxrbWFsa2tpQGNjLmh1dC5m
-aT4KLSAgICBDb3B5cmlnaHQgKGMpIDIwMDUgICAgICAgIE1hYXJ0ZW4gRGVwcmV6IDxtYWFydGVu
-ZGVwcmV6QHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4KLQotICAgIFRoaXMgcHJvZ3JhbSBpcyBmcmVl
-IHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5Ci0gICAgaXQg
-dW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJs
-aXNoZWQgYnkKLSAgICB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lv
-biAyIG9mIHRoZSBMaWNlbnNlLCBvcgotICAgIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZl
-cnNpb24uCi0KLSAgICBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhh
-dCBpdCB3aWxsIGJlIHVzZWZ1bCwKLSAgICBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhv
-dXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgotICAgIE1FUkNIQU5UQUJJTElUWSBvciBG
-SVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUKLSAgICBHTlUgR2VuZXJh
-bCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgotCi0gICAgWW91IHNob3VsZCBoYXZl
-IHJlY2VpdmVkIGEgY29weSBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKLSAgICBh
-bG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2Fy
-ZQotICAgIEZvdW5kYXRpb24sIEluYy4sIDY3NSBNYXNzIEF2ZSwgQ2FtYnJpZGdlLCBNQSAwMjEz
-OSwgVVNBLgotCi0qLworICogZ2w1MjBzbS5jIC0gUGFydCBvZiBsbV9zZW5zb3JzLCBMaW51eCBr
-ZXJuZWwgbW9kdWxlcyBmb3IgaGFyZHdhcmUKKyAqCSAgICAgICBtb25pdG9yaW5nCisgKiBDb3B5
-cmlnaHQgKGMpIDE5OTgsIDE5OTkgIEZyb2RvIExvb2lqYWFyZCA8ZnJvZG9sQGRkcy5ubD4sCisg
-KgkJCSAgICAgS3nDtnN0aSBNw6Rsa2tpIDxrbWFsa2tpQGNjLmh1dC5maT4KKyAqIENvcHlyaWdo
-dCAoYykgMjAwNQlNYWFydGVuIERlcHJleiA8bWFhcnRlbmRlcHJlekB1c2Vycy5zb3VyY2Vmb3Jn
-ZS5uZXQ+CisgKgorICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVk
-aXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKKyAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
-R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5CisgKiB0aGUgRnJlZSBT
-b2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgor
-ICogKGF0IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KKyAqCisgKiBUaGlzIHByb2dy
-YW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKKyAq
-IGJ1dCBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJh
-bnR5IG9mCisgKiBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBV
-UlBPU0UuICBTZWUgdGhlCisgKiBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBk
-ZXRhaWxzLgorICoKKyAqIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdO
-VSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYg
-bm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQorICogRm91bmRhdGlvbiwgSW5jLiwgNjc1
-IE1hc3MgQXZlLCBDYW1icmlkZ2UsIE1BIDAyMTM5LCBVU0EuCisgKgorICovCiAKICNpbmNsdWRl
-IDxsaW51eC9tb2R1bGUuaD4KICNpbmNsdWRlIDxsaW51eC9pbml0Lmg+CkBAIC00MSwxMCArNDEs
-MTEgQEAgTU9EVUxFX1BBUk1fREVTQyhleHRyYV9zZW5zb3JfdHlwZSwgIlR5cGUgb2YgZXh0cmEg
-c2Vuc29yICgwPWF1dG9kZXRlY3QsIDE9dGVtcGUKIC8qIEFkZHJlc3NlcyB0byBzY2FuICovCiBz
-dGF0aWMgY29uc3QgdW5zaWduZWQgc2hvcnQgbm9ybWFsX2kyY1tdID0geyAweDJjLCAweDJkLCBJ
-MkNfQ0xJRU5UX0VORCB9OwogCi0vKiBNYW55IEdMNTIwIGNvbnN0YW50cyBzcGVjaWZpZWQgYmVs
-b3cKLU9uZSBvZiB0aGUgaW5wdXRzIGNhbiBiZSBjb25maWd1cmVkIGFzIGVpdGhlciB0ZW1wIG9y
-IHZvbHRhZ2UuCi1UaGF0J3Mgd2h5IF9URU1QMiBhbmQgX0lONCBhY2Nlc3MgdGhlIHNhbWUgcmVn
-aXN0ZXIKLSovCisvKgorICogTWFueSBHTDUyMCBjb25zdGFudHMgc3BlY2lmaWVkIGJlbG93Cisg
-KiBPbmUgb2YgdGhlIGlucHV0cyBjYW4gYmUgY29uZmlndXJlZCBhcyBlaXRoZXIgdGVtcCBvciB2
-b2x0YWdlLgorICogVGhhdCdzIHdoeSBfVEVNUDIgYW5kIF9JTjQgYWNjZXNzIHRoZSBzYW1lIHJl
-Z2lzdGVyCisgKi8KIAogLyogVGhlIEdMNTIwIHJlZ2lzdGVycyAqLwogI2RlZmluZSBHTDUyMF9S
-RUdfQ0hJUF9JRAkJMHgwMApAQCAtMTQyLDExICsxNDMsMTEgQEAgc3RhdGljIHNzaXplX3QgZ2V0
-X2NwdV92aWQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0
-ciwKIH0KIHN0YXRpYyBERVZJQ0VfQVRUUihjcHUwX3ZpZCwgU19JUlVHTywgZ2V0X2NwdV92aWQs
-IE5VTEwpOwogCi0jZGVmaW5lIFZERF9GUk9NX1JFRyh2YWwpICgoKHZhbCkqOTUrMikvNCkKLSNk
-ZWZpbmUgVkREX1RPX1JFRyh2YWwpIChTRU5TT1JTX0xJTUlUKCgoKHZhbCkqNCs0NykvOTUpLDAs
-MjU1KSkKKyNkZWZpbmUgVkREX0ZST01fUkVHKHZhbCkgKCgodmFsKSAqIDk1ICsgMikgLyA0KQor
-I2RlZmluZSBWRERfVE9fUkVHKHZhbCkgU0VOU09SU19MSU1JVCgoKCh2YWwpICogNCArIDQ3KSAv
-IDk1KSwgMCwgMjU1KQogCi0jZGVmaW5lIElOX0ZST01fUkVHKHZhbCkgKCh2YWwpKjE5KQotI2Rl
-ZmluZSBJTl9UT19SRUcodmFsKSAoU0VOU09SU19MSU1JVCgoKCh2YWwpKzkpLzE5KSwwLDI1NSkp
-CisjZGVmaW5lIElOX0ZST01fUkVHKHZhbCkgKCh2YWwpICogMTkpCisjZGVmaW5lIElOX1RPX1JF
-Ryh2YWwpIFNFTlNPUlNfTElNSVQoKCgodmFsKSArIDkpIC8gMTkpLCAwLCAyNTUpCiAKIHN0YXRp
-YyBzc2l6ZV90IGdldF9pbl9pbnB1dChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2Vf
-YXR0cmlidXRlICphdHRyLAogCQkJICAgIGNoYXIgKmJ1ZikKQEAgLTE5Myw4ICsxOTQsMTMgQEAg
-c3RhdGljIHNzaXplX3Qgc2V0X2luX21pbihzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZp
-Y2VfYXR0cmlidXRlICphdHRyLAogCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNf
-Y2xpZW50KGRldik7CiAJc3RydWN0IGdsNTIwX2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRh
-dGEoY2xpZW50KTsKIAlpbnQgbiA9IHRvX3NlbnNvcl9kZXZfYXR0cihhdHRyKS0+aW5kZXg7Ci0J
-bG9uZyB2ID0gc2ltcGxlX3N0cnRvbChidWYsIE5VTEwsIDEwKTsKIAl1OCByOworCWxvbmcgdjsK
-KwlpbnQgZXJyOworCisJZXJyID0ga3N0cnRvbChidWYsIDEwLCAmdik7CisJaWYgKGVycikKKwkJ
-cmV0dXJuIGVycjsKIAogCW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKIApAQCAtMjIy
-LDggKzIyOCwxMyBAQCBzdGF0aWMgc3NpemVfdCBzZXRfaW5fbWF4KHN0cnVjdCBkZXZpY2UgKmRl
-diwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJc3RydWN0IGkyY19jbGllbnQgKmNs
-aWVudCA9IHRvX2kyY19jbGllbnQoZGV2KTsKIAlzdHJ1Y3QgZ2w1MjBfZGF0YSAqZGF0YSA9IGky
-Y19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwogCWludCBuID0gdG9fc2Vuc29yX2Rldl9hdHRyKGF0
-dHIpLT5pbmRleDsKLQlsb25nIHYgPSBzaW1wbGVfc3RydG9sKGJ1ZiwgTlVMTCwgMTApOwogCXU4
-IHI7CisJbG9uZyB2OworCWludCBlcnI7CisKKwllcnIgPSBrc3RydG9sKGJ1ZiwgMTAsICZ2KTsK
-KwlpZiAoZXJyKQorCQlyZXR1cm4gZXJyOwogCiAJaWYgKG4gPT0gMCkKIAkJciA9IFZERF9UT19S
-RUcodik7CkBAIC0yNzIsOCArMjgzLDEwIEBAIHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIoaW40
-X21heCwgU19JUlVHTyB8IFNfSVdVU1IsCiAJCWdldF9pbl9tYXgsIHNldF9pbl9tYXgsIDQpOwog
-CiAjZGVmaW5lIERJVl9GUk9NX1JFRyh2YWwpICgxIDw8ICh2YWwpKQotI2RlZmluZSBGQU5fRlJP
-TV9SRUcodmFsLGRpdikgKCh2YWwpPT0wID8gMCA6ICg0ODAwMDAvKCh2YWwpIDw8IChkaXYpKSkp
-Ci0jZGVmaW5lIEZBTl9UT19SRUcodmFsLGRpdikgKCh2YWwpPD0wPzA6U0VOU09SU19MSU1JVCgo
-NDgwMDAwICsgKCh2YWwpIDw8ICgoZGl2KS0xKSkpIC8gKCh2YWwpIDw8IChkaXYpKSwgMSwgMjU1
-KSkKKyNkZWZpbmUgRkFOX0ZST01fUkVHKHZhbCwgZGl2KSAoKHZhbCkgPT0gMCA/IDAgOiAoNDgw
-MDAwIC8gKCh2YWwpIDw8IChkaXYpKSkpCisjZGVmaW5lIEZBTl9UT19SRUcodmFsLCBkaXYpICgo
-dmFsKSA8PSAwID8gMCA6IFwKKwlTRU5TT1JTX0xJTUlUKCg0ODAwMDAgKyAoKHZhbCkgPDwgKChk
-aXYpLTEpKSkgLyAoKHZhbCkgPDwgKGRpdikpLCAxLCBcCisJCSAgICAgIDI1NSkpCiAKIHN0YXRp
-YyBzc2l6ZV90IGdldF9mYW5faW5wdXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNl
-X2F0dHJpYnV0ZSAqYXR0ciwKIAkJCSAgICAgY2hhciAqYnVmKQpAQCAtMzE3LDggKzMzMCwxMyBA
-QCBzdGF0aWMgc3NpemVfdCBzZXRfZmFuX21pbihzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBk
-ZXZpY2VfYXR0cmlidXRlICphdHRyLAogCXN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB0b19p
-MmNfY2xpZW50KGRldik7CiAJc3RydWN0IGdsNTIwX2RhdGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVu
-dGRhdGEoY2xpZW50KTsKIAlpbnQgbiA9IHRvX3NlbnNvcl9kZXZfYXR0cihhdHRyKS0+aW5kZXg7
-Ci0JdW5zaWduZWQgbG9uZyB2ID0gc2ltcGxlX3N0cnRvdWwoYnVmLCBOVUxMLCAxMCk7CiAJdTgg
-cjsKKwl1bnNpZ25lZCBsb25nIHY7CisJaW50IGVycjsKKworCWVyciA9IGtzdHJ0b3VsKGJ1Ziwg
-MTAsICZ2KTsKKwlpZiAoZXJyKQorCQlyZXR1cm4gZXJyOwogCiAJbXV0ZXhfbG9jaygmZGF0YS0+
-dXBkYXRlX2xvY2spOwogCXIgPSBGQU5fVE9fUkVHKHYsIGRhdGEtPmZhbl9kaXZbbl0pOwpAQCAt
-MzUxLDE2ICszNjksMzAgQEAgc3RhdGljIHNzaXplX3Qgc2V0X2Zhbl9kaXYoc3RydWN0IGRldmlj
-ZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKIAlzdHJ1Y3QgaTJjX2NsaWVu
-dCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYpOwogCXN0cnVjdCBnbDUyMF9kYXRhICpkYXRh
-ID0gaTJjX2dldF9jbGllbnRkYXRhKGNsaWVudCk7CiAJaW50IG4gPSB0b19zZW5zb3JfZGV2X2F0
-dHIoYXR0ciktPmluZGV4OwotCXVuc2lnbmVkIGxvbmcgdiA9IHNpbXBsZV9zdHJ0b3VsKGJ1Ziwg
-TlVMTCwgMTApOwogCXU4IHI7CisJdW5zaWduZWQgbG9uZyB2OworCWludCBlcnI7CisKKwllcnIg
-PSBrc3RydG91bChidWYsIDEwLCAmdik7CisJaWYgKGVycikKKwkJcmV0dXJuIGVycjsKIAogCXN3
-aXRjaCAodikgewotCWNhc2UgMTogciA9IDA7IGJyZWFrOwotCWNhc2UgMjogciA9IDE7IGJyZWFr
-OwotCWNhc2UgNDogciA9IDI7IGJyZWFrOwotCWNhc2UgODogciA9IDM7IGJyZWFrOworCWNhc2Ug
-MToKKwkJciA9IDA7CisJCWJyZWFrOworCWNhc2UgMjoKKwkJciA9IDE7CisJCWJyZWFrOworCWNh
-c2UgNDoKKwkJciA9IDI7CisJCWJyZWFrOworCWNhc2UgODoKKwkJciA9IDM7CisJCWJyZWFrOwog
-CWRlZmF1bHQ6Ci0JCWRldl9lcnIoJmNsaWVudC0+ZGV2LCAiZmFuX2RpdiB2YWx1ZSAlbGQgbm90
-IHN1cHBvcnRlZC4gQ2hvb3NlIG9uZSBvZiAxLCAyLCA0IG9yIDghXG4iLCB2KTsKKwkJZGV2X2Vy
-cigmY2xpZW50LT5kZXYsCisJImZhbl9kaXYgdmFsdWUgJWxkIG5vdCBzdXBwb3J0ZWQuIENob29z
-ZSBvbmUgb2YgMSwgMiwgNCBvciA4IVxuIiwgdik7CiAJCXJldHVybiAtRUlOVkFMOwogCX0KIApA
-QCAtMzg1LDcgKzQxNywxNSBAQCBzdGF0aWMgc3NpemVfdCBzZXRfZmFuX29mZihzdHJ1Y3QgZGV2
-aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAogewogCXN0cnVjdCBpMmNf
-Y2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CiAJc3RydWN0IGdsNTIwX2RhdGEg
-KmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKLQl1OCByID0gc2ltcGxlX3N0cnRv
-dWwoYnVmLCBOVUxMLCAxMCk/MTowOworCXU4IHI7CisJdW5zaWduZWQgbG9uZyB2OworCWludCBl
-cnI7CisKKwllcnIgPSBrc3RydG91bChidWYsIDEwLCAmdik7CisJaWYgKGVycikKKwkJcmV0dXJu
-IGVycjsKKworCXIgPSAodiA/IDEgOiAwKTsKIAogCW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9s
-b2NrKTsKIAlkYXRhLT5mYW5fb2ZmID0gcjsKQEAgLTQxMCw3ICs0NTAsOCBAQCBzdGF0aWMgREVW
-SUNFX0FUVFIoZmFuMV9vZmYsIFNfSVJVR08gfCBTX0lXVVNSLAogCQlnZXRfZmFuX29mZiwgc2V0
-X2Zhbl9vZmYpOwogCiAjZGVmaW5lIFRFTVBfRlJPTV9SRUcodmFsKSAoKCh2YWwpIC0gMTMwKSAq
-IDEwMDApCi0jZGVmaW5lIFRFTVBfVE9fUkVHKHZhbCkgKFNFTlNPUlNfTElNSVQoKCgoKHZhbCk8
-MD8odmFsKS01MDA6KHZhbCkrNTAwKSAvIDEwMDApKzEzMCksMCwyNTUpKQorI2RlZmluZSBURU1Q
-X1RPX1JFRyh2YWwpIFNFTlNPUlNfTElNSVQoKCgoKHZhbCkgPCAwID8gXAorCQkJKHZhbCkgLSA1
-MDAgOiAodmFsKSArIDUwMCkgLyAxMDAwKSArIDEzMCksIDAsIDI1NSkKIAogc3RhdGljIHNzaXpl
-X3QgZ2V0X3RlbXBfaW5wdXQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJp
-YnV0ZSAqYXR0ciwKIAkJCSAgICAgIGNoYXIgKmJ1ZikKQEAgLTQzMCw4ICs0NzEsOCBAQCBzdGF0
-aWMgc3NpemVfdCBnZXRfdGVtcF9tYXgoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNl
-X2F0dHJpYnV0ZSAqYXR0ciwKIAlyZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwgVEVNUF9GUk9N
-X1JFRyhkYXRhLT50ZW1wX21heFtuXSkpOwogfQogCi1zdGF0aWMgc3NpemVfdCBnZXRfdGVtcF9t
-YXhfaHlzdChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlCi0JCQkJ
-ICphdHRyLCBjaGFyICpidWYpCitzdGF0aWMgc3NpemVfdCBnZXRfdGVtcF9tYXhfaHlzdChzdHJ1
-Y3QgZGV2aWNlICpkZXYsCisJCQkJIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLCBjaGFy
-ICpidWYpCiB7CiAJaW50IG4gPSB0b19zZW5zb3JfZGV2X2F0dHIoYXR0ciktPmluZGV4OwogCXN0
-cnVjdCBnbDUyMF9kYXRhICpkYXRhID0gZ2w1MjBfdXBkYXRlX2RldmljZShkZXYpOwpAQCAtNDQ1
-LDcgKzQ4NiwxMiBAQCBzdGF0aWMgc3NpemVfdCBzZXRfdGVtcF9tYXgoc3RydWN0IGRldmljZSAq
-ZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciwKIAlzdHJ1Y3QgaTJjX2NsaWVudCAq
-Y2xpZW50ID0gdG9faTJjX2NsaWVudChkZXYpOwogCXN0cnVjdCBnbDUyMF9kYXRhICpkYXRhID0g
-aTJjX2dldF9jbGllbnRkYXRhKGNsaWVudCk7CiAJaW50IG4gPSB0b19zZW5zb3JfZGV2X2F0dHIo
-YXR0ciktPmluZGV4OwotCWxvbmcgdiA9IHNpbXBsZV9zdHJ0b2woYnVmLCBOVUxMLCAxMCk7CisJ
-bG9uZyB2OworCWludCBlcnI7CisKKwllcnIgPSBrc3RydG9sKGJ1ZiwgMTAsICZ2KTsKKwlpZiAo
-ZXJyKQorCQlyZXR1cm4gZXJyOwogCiAJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwog
-CWRhdGEtPnRlbXBfbWF4W25dID0gVEVNUF9UT19SRUcodik7CkBAIC00NjAsNyArNTA2LDEyIEBA
-IHN0YXRpYyBzc2l6ZV90IHNldF90ZW1wX21heF9oeXN0KHN0cnVjdCBkZXZpY2UgKmRldiwgc3Ry
-dWN0IGRldmljZV9hdHRyaWJ1dGUKIAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJj
-X2NsaWVudChkZXYpOwogCXN0cnVjdCBnbDUyMF9kYXRhICpkYXRhID0gaTJjX2dldF9jbGllbnRk
-YXRhKGNsaWVudCk7CiAJaW50IG4gPSB0b19zZW5zb3JfZGV2X2F0dHIoYXR0ciktPmluZGV4Owot
-CWxvbmcgdiA9IHNpbXBsZV9zdHJ0b2woYnVmLCBOVUxMLCAxMCk7CisJbG9uZyB2OworCWludCBl
-cnI7CisKKwllcnIgPSBrc3RydG9sKGJ1ZiwgMTAsICZ2KTsKKwlpZiAoZXJyKQorCQlyZXR1cm4g
-ZXJyOwogCiAJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwogCWRhdGEtPnRlbXBfbWF4
-X2h5c3Rbbl0gPSBURU1QX1RPX1JFRyh2KTsKQEAgLTUwNyw3ICs1NTgsMTUgQEAgc3RhdGljIHNz
-aXplX3Qgc2V0X2JlZXBfZW5hYmxlKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9h
-dHRyaWJ1dGUKIHsKIAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50ID0gdG9faTJjX2NsaWVudChk
-ZXYpOwogCXN0cnVjdCBnbDUyMF9kYXRhICpkYXRhID0gaTJjX2dldF9jbGllbnRkYXRhKGNsaWVu
-dCk7Ci0JdTggciA9IHNpbXBsZV9zdHJ0b3VsKGJ1ZiwgTlVMTCwgMTApPzA6MTsKKwl1OCByOwor
-CXVuc2lnbmVkIGxvbmcgdjsKKwlpbnQgZXJyOworCisJZXJyID0ga3N0cnRvdWwoYnVmLCAxMCwg
-JnYpOworCWlmIChlcnIpCisJCXJldHVybiBlcnI7CisKKwlyID0gKHYgPyAwIDogMSk7CiAKIAlt
-dXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CiAJZGF0YS0+YmVlcF9lbmFibGUgPSAhcjsK
-QEAgLTUyMyw3ICs1ODIsMTIgQEAgc3RhdGljIHNzaXplX3Qgc2V0X2JlZXBfbWFzayhzdHJ1Y3Qg
-ZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLAogewogCXN0cnVjdCBp
-MmNfY2xpZW50ICpjbGllbnQgPSB0b19pMmNfY2xpZW50KGRldik7CiAJc3RydWN0IGdsNTIwX2Rh
-dGEgKmRhdGEgPSBpMmNfZ2V0X2NsaWVudGRhdGEoY2xpZW50KTsKLQl1OCByID0gc2ltcGxlX3N0
-cnRvdWwoYnVmLCBOVUxMLCAxMCk7CisJdW5zaWduZWQgbG9uZyByOworCWludCBlcnI7CisKKwll
-cnIgPSBrc3RydG91bChidWYsIDEwLCAmcik7CisJaWYgKGVycikKKwkJcmV0dXJuIGVycjsKIAog
-CW11dGV4X2xvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKIAlyICY9IGRhdGEtPmFsYXJtX21hc2s7
-CkBAIC01NzUsNyArNjM5LDExIEBAIHN0YXRpYyBzc2l6ZV90IHNldF9iZWVwKHN0cnVjdCBkZXZp
-Y2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJaW50IGJpdG5yID0gdG9f
-c2Vuc29yX2Rldl9hdHRyKGF0dHIpLT5pbmRleDsKIAl1bnNpZ25lZCBsb25nIGJpdDsKIAotCWJp
-dCA9IHNpbXBsZV9zdHJ0b3VsKGJ1ZiwgTlVMTCwgMTApOworCWludCBlcnI7CisKKwllcnIgPSBr
-c3RydG91bChidWYsIDEwLCAmYml0KTsKKwlpZiAoZXJyKQorCQlyZXR1cm4gZXJyOwogCWlmIChi
-aXQgJiB+MSkKIAkJcmV0dXJuIC1FSU5WQUw7CiAKQEAgLTcxNyw3ICs3ODUsOCBAQCBzdGF0aWMg
-aW50IGdsNTIwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsCiAJZ2w1MjBfaW5pdF9j
-bGllbnQoY2xpZW50KTsKIAogCS8qIFJlZ2lzdGVyIHN5c2ZzIGhvb2tzICovCi0JaWYgKChlcnIg
-PSBzeXNmc19jcmVhdGVfZ3JvdXAoJmNsaWVudC0+ZGV2LmtvYmosICZnbDUyMF9ncm91cCkpKQor
-CWVyciA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmY2xpZW50LT5kZXYua29iaiwgJmdsNTIwX2dyb3Vw
-KTsKKwlpZiAoZXJyKQogCQlnb3RvIGV4aXRfZnJlZTsKIAogCWlmIChkYXRhLT50d29fdGVtcHMp
-IHsKQEAgLTgxNiw4ICs4ODUsMTAgQEAgc3RhdGljIGludCBnbDUyMF9yZW1vdmUoc3RydWN0IGky
-Y19jbGllbnQgKmNsaWVudCkKIH0KIAogCi0vKiBSZWdpc3RlcnMgMHgwNyB0byAweDBjIGFyZSB3
-b3JkLXNpemVkLCBvdGhlcnMgYXJlIGJ5dGUtc2l6ZWQKLSAgIEdMNTIwIHVzZXMgYSBoaWdoLWJ5
-dGUgZmlyc3QgY29udmVudGlvbiAqLworLyoKKyAqIFJlZ2lzdGVycyAweDA3IHRvIDB4MGMgYXJl
-IHdvcmQtc2l6ZWQsIG90aGVycyBhcmUgYnl0ZS1zaXplZAorICogR0w1MjAgdXNlcyBhIGhpZ2gt
-Ynl0ZSBmaXJzdCBjb252ZW50aW9uCisgKi8KIHN0YXRpYyBpbnQgZ2w1MjBfcmVhZF92YWx1ZShz
-dHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LCB1OCByZWcpCiB7CiAJaWYgKChyZWcgPj0gMHgwNykg
-JiYgKHJlZyA8PSAweDBjKSkKQEAgLTg0OSw3ICs5MjAsOCBAQCBzdGF0aWMgc3RydWN0IGdsNTIw
-X2RhdGEgKmdsNTIwX3VwZGF0ZV9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2KQogCiAJCWRhdGEt
-PmFsYXJtcyA9IGdsNTIwX3JlYWRfdmFsdWUoY2xpZW50LCBHTDUyMF9SRUdfQUxBUk1TKTsKIAkJ
-ZGF0YS0+YmVlcF9tYXNrID0gZ2w1MjBfcmVhZF92YWx1ZShjbGllbnQsIEdMNTIwX1JFR19CRUVQ
-X01BU0spOwotCQlkYXRhLT52aWQgPSBnbDUyMF9yZWFkX3ZhbHVlKGNsaWVudCwgR0w1MjBfUkVH
-X1ZJRF9JTlBVVCkgJiAweDFmOworCQlkYXRhLT52aWQgPSBnbDUyMF9yZWFkX3ZhbHVlKGNsaWVu
-dCwKKwkJCQkJICAgICBHTDUyMF9SRUdfVklEX0lOUFVUKSAmIDB4MWY7CiAKIAkJZm9yIChpID0g
-MDsgaSA8IDQ7IGkrKykgewogCQkJZGF0YS0+aW5faW5wdXRbaV0gPSBnbDUyMF9yZWFkX3ZhbHVl
-KGNsaWVudCwKLS0gCjEuNy4zLjEKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
-bnNvcnM
+Fixed:
+ERROR: code indent should use tabs where possible
+ERROR: do not use assignment in if condition
+ERROR: space prohibited after that open parenthesis '('
+ERROR: space required after that ',' (ctx:VxV)
+WARNING: braces {} are not necessary for single statement blocks
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
+
+Not fixed (false positive):
+ERROR: Macros with complex values should be enclosed in parenthesis
+
+Cc: Marc Hulsman <m.hulsman@tudelft.nl>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/w83791d.c |  115 ++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 79 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/hwmon/w83791d.c b/drivers/hwmon/w83791d.c
+index 6e5d0ae..865f5e5 100644
+--- a/drivers/hwmon/w83791d.c
++++ b/drivers/hwmon/w83791d.c
+@@ -1,6 +1,6 @@
+ /*
+     w83791d.c - Part of lm_sensors, Linux kernel modules for hardware
+-                monitoring
++		monitoring
+ 
+     Copyright (C) 2006-2007 Charles Spirakis <bezaur@gmail.com>
+ 
+@@ -226,7 +226,7 @@ static u8 fan_to_reg(long rpm, int div)
+ 	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
+ }
+ 
+-#define FAN_FROM_REG(val,div)	((val) = 0   ? -1 : \
++#define FAN_FROM_REG(val, div)	((val) = 0 ? -1 : \
+ 				((val) = 255 ? 0 : \
+ 					1350000 / ((val) * (div))))
+ 
+@@ -366,7 +366,7 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
+ 						to_sensor_dev_attr(attr); \
+ 	struct w83791d_data *data = w83791d_update_device(dev); \
+ 	int nr = sensor_attr->index; \
+-	return sprintf(buf,"%d\n", IN_FROM_REG(data->reg[nr])); \
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->reg[nr])); \
+ }
+ 
+ show_in_reg(in);
+@@ -382,9 +382,11 @@ static ssize_t store_in_##reg(struct device *dev, \
+ 						to_sensor_dev_attr(attr); \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct w83791d_data *data = i2c_get_clientdata(client); \
+-	unsigned long val = simple_strtoul(buf, NULL, 10); \
+ 	int nr = sensor_attr->index; \
+-	 \
++	unsigned long val; \
++	int err = kstrtoul(buf, 10, &val); \
++	if (err) \
++		return err; \
+ 	mutex_lock(&data->update_lock); \
+ 	data->in_##reg[nr] = IN_TO_REG(val); \
+ 	w83791d_write(client, W83791D_REG_IN_##REG[nr], data->in_##reg[nr]); \
+@@ -455,7 +457,14 @@ static ssize_t store_beep(struct device *dev, struct device_attribute *attr,
+ 	struct w83791d_data *data = i2c_get_clientdata(client);
+ 	int bitnr = sensor_attr->index;
+ 	int bytenr = bitnr / 8;
+-	long val = simple_strtol(buf, NULL, 10) ? 1 : 0;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
++
++	val = val ? 1 : 0;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -521,7 +530,7 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
+ 						to_sensor_dev_attr(attr); \
+ 	struct w83791d_data *data = w83791d_update_device(dev); \
+ 	int nr = sensor_attr->index; \
+-	return sprintf(buf,"%d\n", \
++	return sprintf(buf, "%d\n", \
+ 		FAN_FROM_REG(data->reg[nr], DIV_FROM_REG(data->fan_div[nr]))); \
+ }
+ 
+@@ -534,8 +543,13 @@ static ssize_t store_fan_min(struct device *dev, struct device_attribute *attr,
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83791d_data *data = i2c_get_clientdata(client);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	int nr = sensor_attr->index;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = fan_to_reg(val, DIV_FROM_REG(data->fan_div[nr]));
+@@ -572,12 +586,18 @@ static ssize_t store_fan_div(struct device *dev, struct device_attribute *attr,
+ 	int indx = 0;
+ 	u8 keep_mask = 0;
+ 	u8 new_shift = 0;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	/* Save fan_min */
+ 	min = FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr]));
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->fan_div[nr] = div_to_reg(nr, simple_strtoul(buf, NULL, 10));
++	data->fan_div[nr] = div_to_reg(nr, val);
+ 
+ 	switch (nr) {
+ 	case 0:
+@@ -918,8 +938,13 @@ static ssize_t store_temp1(struct device *dev, struct device_attribute *devattr,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83791d_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 	int nr = attr->index;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp1[nr] = TEMP1_TO_REG(val);
+@@ -946,10 +971,15 @@ static ssize_t store_temp23(struct device *dev,
+ 	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83791d_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
+ 	int nr = attr->nr;
+ 	int index = attr->index;
+ 
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
++
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_add[nr][index] = TEMP23_TO_REG(val);
+ 	w83791d_write(client, W83791D_REG_TEMP_ADD[nr][index * 2],
+@@ -1035,8 +1065,13 @@ static ssize_t store_beep_mask(struct device *dev,
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83791d_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
+ 	int i;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -1063,7 +1098,12 @@ static ssize_t store_beep_enable(struct device *dev,
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83791d_data *data = i2c_get_clientdata(client);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+@@ -1113,36 +1153,42 @@ static ssize_t store_vrm_reg(struct device *dev,
+ 				const char *buf, size_t count)
+ {
+ 	struct w83791d_data *data = dev_get_drvdata(dev);
++	unsigned long val;
++	int err;
+ 
+ 	/* No lock needed as vrm is internal to the driver
+ 	   (not read from a chip register) and so is not
+ 	   updated in w83791d_update_device() */
+-	data->vrm = simple_strtoul(buf, NULL, 10);
+ 
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
++
++	data->vrm = SENSORS_LIMIT(val, 0, 255);
+ 	return count;
+ }
+ 
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
+ 
+ #define IN_UNIT_ATTRS(X) \
+-	&sda_in_input[X].dev_attr.attr, \
+-	&sda_in_min[X].dev_attr.attr,   \
+-	&sda_in_max[X].dev_attr.attr,   \
+-	&sda_in_beep[X].dev_attr.attr,  \
++	&sda_in_input[X].dev_attr.attr,	\
++	&sda_in_min[X].dev_attr.attr,	\
++	&sda_in_max[X].dev_attr.attr,	\
++	&sda_in_beep[X].dev_attr.attr,	\
+ 	&sda_in_alarm[X].dev_attr.attr
+ 
+ #define FAN_UNIT_ATTRS(X) \
+-	&sda_fan_input[X].dev_attr.attr,        \
+-	&sda_fan_min[X].dev_attr.attr,          \
+-	&sda_fan_div[X].dev_attr.attr,          \
+-	&sda_fan_beep[X].dev_attr.attr,         \
++	&sda_fan_input[X].dev_attr.attr,	\
++	&sda_fan_min[X].dev_attr.attr,		\
++	&sda_fan_div[X].dev_attr.attr,		\
++	&sda_fan_beep[X].dev_attr.attr,		\
+ 	&sda_fan_alarm[X].dev_attr.attr
+ 
+ #define TEMP_UNIT_ATTRS(X) \
+-	&sda_temp_input[X].dev_attr.attr,       \
+-	&sda_temp_max[X].dev_attr.attr,         \
+-	&sda_temp_max_hyst[X].dev_attr.attr,    \
+-	&sda_temp_beep[X].dev_attr.attr,        \
++	&sda_temp_input[X].dev_attr.attr,	\
++	&sda_temp_max[X].dev_attr.attr,		\
++	&sda_temp_max_hyst[X].dev_attr.attr,	\
++	&sda_temp_beep[X].dev_attr.attr,	\
+ 	&sda_temp_alarm[X].dev_attr.attr
+ 
+ static struct attribute *w83791d_attributes[] = {
+@@ -1228,9 +1274,8 @@ static int w83791d_detect_subclients(struct i2c_client *client)
+ 	}
+ 
+ 	val = w83791d_read(client, W83791D_REG_I2C_SUBADDR);
+-	if (!(val & 0x08)) {
++	if (!(val & 0x08))
+ 		data->lm75[0] = i2c_new_dummy(adapter, 0x48 + (val & 0x7));
+-	}
+ 	if (!(val & 0x80)) {
+ 		if ((data->lm75[0] != NULL) &&
+ 				((val & 0x7) = ((val >> 4) & 0x7))) {
+@@ -1265,9 +1310,8 @@ static int w83791d_detect(struct i2c_client *client,
+ 	int val1, val2;
+ 	unsigned short address = client->addr;
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+-	}
+ 
+ 	if (w83791d_read(client, W83791D_REG_CONFIG) & 0x80)
+ 		return -ENODEV;
+@@ -1277,7 +1321,7 @@ static int w83791d_detect(struct i2c_client *client,
+ 	/* Check for Winbond ID if in bank 0 */
+ 	if (!(val1 & 0x07)) {
+ 		if ((!(val1 & 0x80) && val2 != 0xa3) ||
+-		    ( (val1 & 0x80) && val2 != 0x5c)) {
++		    ((val1 & 0x80) && val2 != 0x5c)) {
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -1334,12 +1378,12 @@ static int w83791d_probe(struct i2c_client *client,
+ 
+ 	/* If the fan_div is changed, make sure there is a rational
+ 	   fan_min in place */
+-	for (i = 0; i < NUMBER_OF_FANIN; i++) {
++	for (i = 0; i < NUMBER_OF_FANIN; i++)
+ 		data->fan_min[i] = w83791d_read(client, W83791D_REG_FAN_MIN[i]);
+-	}
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&client->dev.kobj, &w83791d_group)))
++	err = sysfs_create_group(&client->dev.kobj, &w83791d_group);
++	if (err)
+ 		goto error3;
+ 
+ 	/* Check if pins of fan/pwm 4-5 are in use as GPIO */
+@@ -1604,9 +1648,8 @@ static void w83791d_print_debug(struct w83791d_data *data, struct device *dev)
+ 	/* temperature math is signed, but only print out the
+ 	   bits that matter */
+ 	dev_dbg(dev, "%d set of Temperatures: ==>\n", NUMBER_OF_TEMPIN);
+-	for (i = 0; i < 3; i++) {
++	for (i = 0; i < 3; i++)
+ 		dev_dbg(dev, "temp1[%d] is: 0x%02x\n", i, (u8) data->temp1[i]);
+-	}
+ 	for (i = 0; i < 2; i++) {
+ 		for (j = 0; j < 3; j++) {
+ 			dev_dbg(dev, "temp_add[%d][%d] is: 0x%04x\n", i, j,
+-- 
+1.7.5.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
