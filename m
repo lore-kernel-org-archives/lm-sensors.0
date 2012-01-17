@@ -1,60 +1,65 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 04 Jan 2012 20:42:19 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] drivers/hwmon/lm80.c: fixed checkpatch
-Message-Id: <1325709739.2649.19.camel@groeck-laptop>
+From: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Date: Tue, 17 Jan 2012 13:37:48 +0000
+Subject: [lm-sensors] [PATCH 00/07] DA9052 patch series
+Message-Id: <1326806748.3542.338.camel@dhruva>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1325707133-21063-2-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1325707133-21063-2-git-send-email-fransmeulenbroeks@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Dajun <dajun.chen@diasemi.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, lm-sensors@lm-sensors.org, sameo@linux.intel.com
 
-Hi Frans,
+The following patch series adds support for the features of Dialog Semiconductor
+DA9052/53 PMICs.
 
-On Wed, 2012-01-04 at 14:58 -0500, Frans Meulenbroeks wrote:
-> Fixed all checkpatch messages except
-> simple_strto* -> kstr*
-> This will be addressed in a separate patch
-> 
-> Also left one line-too-long message as it was only a
-> little bit too long and would become less readable
-> 
-> compile-tested: no warnings or errors
-> 
-> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-> 
-> ---
-> 
-> Guenter I did not remove the () in
->                  if ((i2c_smbus_read_byte_data(client, i + 0x40) != cur)
->                   || (i2c_smbus_read_byte_data(client, i + 0x80) != cur)
->                   || (i2c_smbus_read_byte_data(client, i + 0xc0) != cur))
-> Don't recall if the coding style says something about it, but I know
-> lots of people are not too proficient when it comes to order of
-> evaluation, so I prefer to keep them especially since they do not
-> hurt readability.
-> 
-It tends to be frowned upon in kernel code reviews.
+The DA9052/53 PMICs support many functionalities like GPIOs, regulators,
+power-supply, touchscreen, rtc, backlight, etc. So these patches are applicable
+to different sub-systems of the kernel separately.
 
-I would not accept it in new code, but it is ok here since checkpatch
-doesn't complain about it and you did not modify existing code.
-checkpatch sometimes does complain, for example if you write "return
-(x)", but not always.
+This patch series adds support for RTC, HWMON, Watchdog, Touch screen interface,
+Backlight, LEDs and On-Key.
 
-As for people not knowing if || or != has higher precedence, I can't
-help them. Better learn coding ;). There are cases where it makes sense
-to keep () - sometimes even the compiler complains - but not here.
-Downside with too many ( ) is that it doesn't really prevent errors - I
-have seen people using lots of ( ) and still getting it wrong. In that
-case the situation is even worse, since the code looks as if the (wrong)
-precedence was introduced on purpose, and thus tends to get overlooked
-by reviewers.
+All of these patches depend on the MFD module for DA9052/53. There is no
+other interdependence of patches.
 
-Anyway, applied.
+Ashish Jangam (7):
+	[RTC]: RTC module of DA9052/53 PMICs with time and alarm support.
+	[HWMON]: Support for ADC of DA9052/53 PMICs.
+	[Watchdog]: Watchdog support for DA9052/53 PMICs.
+	[Touchscreen]: Driver for touch screen interface of DA9052/53 PMICs.
+	[Backlight]: Backlight module for DA9052/53 PMICs.
+	[LEDS]: Support for DA9052/53 LEDs.
+	[On-Key]: Support for DA9052/53 on-key.
 
-Thanks,
-Guenter
+ drivers/hwmon/Kconfig                  |   10 +
+ drivers/hwmon/Makefile                 |    1 +
+ drivers/hwmon/da9052-hwmon.c           |  347 ++++++++++++++++++++++++++++++
+ drivers/input/misc/Kconfig             |   10 +
+ drivers/input/misc/Makefile            |    1 +
+ drivers/input/misc/da9052_onkey.c      |  180 ++++++++++++++++
+ drivers/input/touchscreen/Kconfig      |    7 +
+ drivers/input/touchscreen/Makefile     |    1 +
+ drivers/input/touchscreen/da9052_tsi.c |  364 ++++++++++++++++++++++++++++++++
+ drivers/leds/Kconfig                   |    8 +
+ drivers/leds/Makefile                  |    1 +
+ drivers/leds/leds-da9052.c             |  219 +++++++++++++++++++
+ drivers/rtc/Kconfig                    |    7 +
+ drivers/rtc/Makefile                   |    1 +
+ drivers/rtc/rtc-da9052.c               |  308 +++++++++++++++++++++++++++
+ drivers/video/backlight/Kconfig        |    6 +
+ drivers/video/backlight/Makefile       |    1 +
+ drivers/video/backlight/da9052_bl.c    |  196 +++++++++++++++++
+ drivers/watchdog/Kconfig               |    6 +
+ drivers/watchdog/Makefile              |    1 +
+ drivers/watchdog/da9052_wdt.c          |  343 ++++++++++++++++++++++++++++++
+ 21 files changed, 2018 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/da9052-hwmon.c
+ create mode 100644 drivers/input/misc/da9052_onkey.c
+ create mode 100644 drivers/input/touchscreen/da9052_tsi.c
+ create mode 100644 drivers/leds/leds-da9052.c
+ create mode 100644 drivers/rtc/rtc-da9052.c
+ create mode 100644 drivers/video/backlight/da9052_bl.c
+ create mode 100644 drivers/watchdog/da9052_wdt.c
 
 
 
