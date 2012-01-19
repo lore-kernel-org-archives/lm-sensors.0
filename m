@@ -1,73 +1,67 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:10 +0000
-Subject: [lm-sensors] [PATCH 16/82] hwmon: (asus_atk0110) Fix multi-line comments
-Message-Id: <1327017376-20466-17-git-send-email-linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:59 +0000
+Subject: [lm-sensors] [PATCH 65/82] hwmon: (thmc50) Fix multi-line comments
+Message-Id: <1327017376-20466-66-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Cc: Luca Tettamanti <kronos.it@gmail.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/asus_atk0110.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+ drivers/hwmon/thmc50.c |   40 ++++++++++++++++++++--------------------
+ 1 files changed, 20 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-index 4000fee..351d1f4 100644
---- a/drivers/hwmon/asus_atk0110.c
-+++ b/drivers/hwmon/asus_atk0110.c
-@@ -38,7 +38,8 @@ static const struct dmi_system_id __initconst atk_force_new_if[] = {
- 	{ }
- };
+diff --git a/drivers/hwmon/thmc50.c b/drivers/hwmon/thmc50.c
+index a195914..3923c5a 100644
+--- a/drivers/hwmon/thmc50.c
++++ b/drivers/hwmon/thmc50.c
+@@ -1,24 +1,24 @@
+ /*
+-    thmc50.c - Part of lm_sensors, Linux kernel modules for hardware
+-	monitoring
+-    Copyright (C) 2007 Krzysztof Helt <krzysztof.h1@wp.pl>
+-    Based on 2.4 driver by Frodo Looijaard <frodol@dds.nl> and
+-    Philip Edelbrock <phil@netroedge.com>
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
++ * thmc50.c - Part of lm_sensors, Linux kernel modules for hardware
++ *	      monitoring
++ * Copyright (C) 2007 Krzysztof Helt <krzysztof.h1@wp.pl>
++ * Based on 2.4 driver by Frodo Looijaard <frodol@dds.nl> and
++ * Philip Edelbrock <phil@netroedge.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
  
--/* Minimum time between readings, enforced in order to avoid
-+/*
-+ * Minimum time between readings, enforced in order to avoid
-  * hogging the CPU.
-  */
- #define CACHE_TIME		HZ
-@@ -161,7 +162,8 @@ struct atk_sensor_data {
- 	char const *acpi_name;
- };
- 
--/* Return buffer format:
-+/*
-+ * Return buffer format:
-  * [0-3] "value" is valid flag
-  * [4-7] value
-  * [8- ] unknown stuff on newer mobos
-@@ -310,7 +312,8 @@ static union acpi_object *atk_get_pack_member(struct atk_data *data,
- }
- 
- 
--/* New package format is:
-+/*
-+ * New package format is:
-  * - flag (int)
-  *	class - used for de-muxing the request to the correct GITn
-  *	type (volt, temp, fan)
-@@ -613,7 +616,8 @@ static int atk_read_value_new(struct atk_sensor_data *sensor, u64 *value)
- 
- 	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
- 	if (buf->flags = 0) {
--		/* The reading is not valid, possible causes:
-+		/*
-+		 * The reading is not valid, possible causes:
- 		 * - sensor failure
- 		 * - enumeration was FUBAR (and we didn't notice)
- 		 */
-@@ -1311,7 +1315,8 @@ static int atk_probe_if(struct atk_data *data)
- 		dev_dbg(dev, "method " METHOD_WRITE " not found: %s\n",
- 				 acpi_format_exception(status));
- 
--	/* Check for hwmon methods: first check "old" style methods; note that
-+	/*
-+	 * Check for hwmon methods: first check "old" style methods; note that
- 	 * both may be present: in this case we stick to the old interface;
- 	 * analysis of multiple DSDTs indicates that when both interfaces
- 	 * are present the new one (GGRP/GITM) is not functional.
+ #include <linux/module.h>
+ #include <linux/init.h>
 -- 
 1.7.5.4
 
