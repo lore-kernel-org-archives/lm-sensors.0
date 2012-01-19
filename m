@@ -1,163 +1,163 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:46 +0000
-Subject: [lm-sensors] [PATCH 52/82] hwmon: (pc87427) Fix multi-line comments
-Message-Id: <1327017376-20466-53-git-send-email-linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:54 +0000
+Subject: [lm-sensors] =?utf-8?q?=5BPATCH_60/82=5D_hwmon=3A_=28sis5595=29_F?= =?utf-8?q?ix_multi-line_comments
+Message-Id: <1327017376-20466-61-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Cc: Jean Delvare <khali@linux-fr.org>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/pc87427.c |   72 +++++++++++++++++++++++++++++-----------------
- 1 files changed, 45 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
-index cb35461..37059a3 100644
---- a/drivers/hwmon/pc87427.c
-+++ b/drivers/hwmon/pc87427.c
-@@ -46,9 +46,11 @@ static struct platform_device *pdev;
- 
- #define DRVNAME "pc87427"
- 
--/* The lock mutex protects both the I/O accesses (needed because the
--   device is using banked registers) and the register cache (needed to keep
--   the data in the registers and the cache in sync at any time). */
-+/*
-+ * The lock mutex protects both the I/O accesses (needed because the
-+ * device is using banked registers) and the register cache (needed to keep
-+ * the data in the registers and the cache in sync at any time).
-+ */
- struct pc87427_data {
- 	struct device *hwmon_dev;
- 	struct mutex lock;
-@@ -173,10 +175,12 @@ static inline void pc87427_write8_bank(struct pc87427_data *data, u8 ldi,
- #define FAN_STATUS_LOSPD		(1 << 1)
- #define FAN_STATUS_MONEN		(1 << 0)
- 
--/* Dedicated function to read all registers related to a given fan input.
--   This saves us quite a few locks and bank selections.
--   Must be called with data->lock held.
--   nr is from 0 to 7 */
-+/*
-+ * Dedicated function to read all registers related to a given fan input.
-+ * This saves us quite a few locks and bank selections.
-+ * Must be called with data->lock held.
-+ * nr is from 0 to 7
-+ */
- static void pc87427_readall_fan(struct pc87427_data *data, u8 nr)
- {
- 	int iobase = data->address[LD_FAN];
-@@ -189,8 +193,10 @@ static void pc87427_readall_fan(struct pc87427_data *data, u8 nr)
- 	outb(data->fan_status[nr], iobase + PC87427_REG_FAN_STATUS);
- }
- 
--/* The 2 LSB of fan speed registers are used for something different.
--   The actual 2 LSB of the measurements are not available. */
-+/*
-+ * The 2 LSB of fan speed registers are used for something different.
-+ * The actual 2 LSB of the measurements are not available.
-+ */
- static inline unsigned long fan_from_reg(u16 reg)
- {
- 	reg &= 0xfffc;
-@@ -224,10 +230,12 @@ static inline u16 fan_to_reg(unsigned long val)
- #define PWM_MODE_OFF			(2 << 4)
- #define PWM_MODE_ON			(7 << 4)
- 
--/* Dedicated function to read all registers related to a given PWM output.
--   This saves us quite a few locks and bank selections.
--   Must be called with data->lock held.
--   nr is from 0 to 3 */
-+/*
-+ * Dedicated function to read all registers related to a given PWM output.
-+ * This saves us quite a few locks and bank selections.
-+ * Must be called with data->lock held.
-+ * nr is from 0 to 3
-+ */
- static void pc87427_readall_pwm(struct pc87427_data *data, u8 nr)
- {
- 	int iobase = data->address[LD_FAN];
-@@ -286,10 +294,12 @@ static inline u8 pwm_enable_to_reg(unsigned long val, u8 pwmval)
- #define TEMP_TYPE_REMOTE_DIODE		(2 << 5)
- #define TEMP_TYPE_LOCAL_DIODE		(3 << 5)
- 
--/* Dedicated function to read all registers related to a given temperature
--   input. This saves us quite a few locks and bank selections.
--   Must be called with data->lock held.
--   nr is from 0 to 5 */
-+/*
-+ * Dedicated function to read all registers related to a given temperature
-+ * input. This saves us quite a few locks and bank selections.
-+ * Must be called with data->lock held.
-+ * nr is from 0 to 5
-+ */
- static void pc87427_readall_temp(struct pc87427_data *data, u8 nr)
- {
- 	int iobase = data->address[LD_TEMP];
-@@ -318,8 +328,10 @@ static inline unsigned int temp_type_from_reg(u8 reg)
- 	}
- }
- 
--/* We assume 8-bit thermal sensors; 9-bit thermal sensors are possible
--   too, but I have no idea how to figure out when they are used. */
-+/*
-+ * We assume 8-bit thermal sensors; 9-bit thermal sensors are possible
-+ * too, but I have no idea how to figure out when they are used.
-+ */
- static inline long temp_from_reg(s16 reg)
- {
- 	return reg * 1000 / 256;
-@@ -423,9 +435,11 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute
- 
- 	mutex_lock(&data->lock);
- 	outb(BANK_FM(nr), iobase + PC87427_REG_BANK);
--	/* The low speed limit registers are read-only while monitoring
--	   is enabled, so we have to disable monitoring, then change the
--	   limit, and finally enable monitoring again. */
-+	/*
-+	 * The low speed limit registers are read-only while monitoring
-+	 * is enabled, so we have to disable monitoring, then change the
-+	 * limit, and finally enable monitoring again.
-+	 */
- 	outb(0, iobase + PC87427_REG_FAN_STATUS);
- 	data->fan_min[nr] = fan_to_reg(val);
- 	outw(data->fan_min[nr], iobase + PC87427_REG_FAN_MIN);
-@@ -542,8 +556,10 @@ static const struct attribute_group pc87427_group_fan[8] = {
- 	{ .attrs = pc87427_attributes_fan[7] },
- };
- 
--/* Must be called with data->lock held and pc87427_readall_pwm() freshly
--   called */
-+/*
-+ * Must be called with data->lock held and pc87427_readall_pwm() freshly
-+ * called
-+ */
- static void update_pwm_enable(struct pc87427_data *data, int nr, u8 mode)
- {
- 	int iobase = data->address[LD_FAN];
-@@ -1023,9 +1039,11 @@ static void __devinit pc87427_init_device(struct device *dev)
- 		if (reg & PWM_ENABLE_CTLEN)
- 			data->pwm_enabled |= (1 << i);
- 
--		/* We don't expose an interface to reconfigure the automatic
--		   fan control mode, so only allow to return to this mode if
--		   it was originally set. */
-+		/*
-+		 * We don't expose an interface to reconfigure the automatic
-+		 * fan control mode, so only allow to return to this mode if
-+		 * it was originally set.
-+		 */
- 		if ((reg & PWM_ENABLE_MODE_MASK) = PWM_MODE_AUTO) {
- 			dev_dbg(dev, "PWM%d is in automatic control mode\n",
- 				i + 1);
--- 
-1.7.5.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgotLS0KIGRy
+aXZlcnMvaHdtb24vc2lzNTU5NS5jIHwgIDE2NSArKysrKysrKysrKysrKysrKysrKysrKysrKy0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQogMSBmaWxlcyBjaGFuZ2VkLCA5MiBpbnNlcnRpb25zKCspLCA3
+MyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL3NpczU1OTUuYyBiL2Ry
+aXZlcnMvaHdtb24vc2lzNTU5NS5jCmluZGV4IGZhMGUwNGUuLjcwZmI4MzIgMTAwNjQ0Ci0tLSBh
+L2RyaXZlcnMvaHdtb24vc2lzNTU5NS5jCisrKyBiL2RyaXZlcnMvaHdtb24vc2lzNTU5NS5jCkBA
+IC0xLDU0ICsxLDU0IEBACiAvKgotICAgIHNpczU1OTUuYyAtIFBhcnQgb2YgbG1fc2Vuc29ycywg
+TGludXgga2VybmVsIG1vZHVsZXMKLQkJZm9yIGhhcmR3YXJlIG1vbml0b3JpbmcKLQotICAgIENv
+cHlyaWdodCAoQykgMTk5OCAtIDIwMDEgRnJvZG8gTG9vaWphYXJkIDxmcm9kb2xAZGRzLm5sPiwK
+LQkJCUt5w7ZzdGkgTcOkbGtraSA8a21hbGtraUBjYy5odXQuZmk+LCBhbmQKLQkJCU1hcmsgRC4g
+U3R1ZGViYWtlciA8bWRzeHl6MTIzQHlhaG9vLmNvbT4KLSAgICBQb3J0ZWQgdG8gTGludXggMi42
+IGJ5IEF1cmVsaWVuIEphcm5vIDxhdXJlbGllbkBhdXJlbDMyLm5ldD4gd2l0aAotICAgIHRoZSBo
+ZWxwIG9mIEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPgotCi0gICAgVGhpcyBwcm9n
+cmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2Rp
+ZnkKLSAgICBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNl
+bnNlIGFzIHB1Ymxpc2hlZCBieQotICAgIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVp
+dGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCi0gICAgKGF0IHlvdXIgb3B0aW9uKSBh
+bnkgbGF0ZXIgdmVyc2lvbi4KLQotICAgIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0
+aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLAotICAgIGJ1dCBXSVRIT1VUIEFOWSBXQVJS
+QU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCi0gICAgTUVSQ0hBTlRB
+QklMSVRZIG9yIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQT1NFLiAgU2VlIHRoZQotICAg
+IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCi0KLSAgICBZb3Ug
+c2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGlj
+ZW5zZQotICAgIGFsb25nIHdpdGggdGhpcyBwcm9ncmFtOyBpZiBub3QsIHdyaXRlIHRvIHRoZSBG
+cmVlIFNvZnR3YXJlCi0gICAgRm91bmRhdGlvbiwgSW5jLiwgNjc1IE1hc3MgQXZlLCBDYW1icmlk
+Z2UsIE1BIDAyMTM5LCBVU0EuCi0qLworICogc2lzNTU5NS5jIC0gUGFydCBvZiBsbV9zZW5zb3Jz
+LCBMaW51eCBrZXJuZWwgbW9kdWxlcworICoJICAgICAgIGZvciBoYXJkd2FyZSBtb25pdG9yaW5n
+CisgKgorICogQ29weXJpZ2h0IChDKSAxOTk4IC0gMjAwMSBGcm9kbyBMb29pamFhcmQgPGZyb2Rv
+bEBkZHMubmw+LAorICoJCQkgICAgIEt5w7ZzdGkgTcOkbGtraSA8a21hbGtraUBjYy5odXQuZmk+
+LCBhbmQKKyAqCQkJICAgICBNYXJrIEQuIFN0dWRlYmFrZXIgPG1kc3h5ejEyM0B5YWhvby5jb20+
+CisgKiBQb3J0ZWQgdG8gTGludXggMi42IGJ5IEF1cmVsaWVuIEphcm5vIDxhdXJlbGllbkBhdXJl
+bDMyLm5ldD4gd2l0aAorICogdGhlIGhlbHAgb2YgSmVhbiBEZWx2YXJlIDxraGFsaUBsaW51eC1m
+ci5vcmc+CisgKgorICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVk
+aXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKKyAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUg
+R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5CisgKiB0aGUgRnJlZSBT
+b2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgor
+ICogKGF0IHlvdXIgb3B0aW9uKSBhbnkgbGF0ZXIgdmVyc2lvbi4KKyAqCisgKiBUaGlzIHByb2dy
+YW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKKyAq
+IGJ1dCBXSVRIT1VUIEFOWSBXQVJSQU5UWTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJh
+bnR5IG9mCisgKiBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBV
+UlBPU0UuICBTZWUgdGhlCisgKiBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBk
+ZXRhaWxzLgorICoKKyAqIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdO
+VSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisgKiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYg
+bm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQorICogRm91bmRhdGlvbiwgSW5jLiwgNjc1
+IE1hc3MgQXZlLCBDYW1icmlkZ2UsIE1BIDAyMTM5LCBVU0EuCisgKi8KIAogLyoKLSAgIFNpUyBz
+b3V0aGJyaWRnZSBoYXMgYSBMTTc4LWxpa2UgY2hpcCBpbnRlZ3JhdGVkIG9uIHRoZSBzYW1lIElD
+LgotICAgVGhpcyBkcml2ZXIgaXMgYSBjdXN0b21pemVkIGNvcHkgb2YgbG03OC5jCi0KLSAgIFN1
+cHBvcnRzIGZvbGxvd2luZyByZXZpc2lvbnM6Ci0JVmVyc2lvbgkJUENJIElECQlQQ0kgUmV2aXNp
+b24KLQkxCQkxMDM5LzAwMDgJQUYgb3IgbGVzcwotCTIJCTEwMzkvMDAwOAlCMCBvciBncmVhdGVy
+Ci0KLSAgIE5vdGU6IHRoZXNlIGNoaXBzIGNvbnRhaW4gYSAwMDA4IGRldmljZSB3aGljaCBpcyBp
+bmNvbXBhdGlibGUgd2l0aCB0aGUKLQkgNTU5NS4gV2UgcmVjb2duaXplIHRoZXNlIGJ5IHRoZSBw
+cmVzZW5jZSBvZiB0aGUgbGlzdGVkCi0JICJibGFja2xpc3QiIFBDSSBJRCBhbmQgcmVmdXNlIHRv
+IGxvYWQuCi0KLSAgIE5PVCBTVVBQT1JURUQJUENJIElECQlCTEFDS0xJU1QgUENJIElECi0JIDU0
+MAkJMDAwOAkJMDU0MAotCSA1NTAJCTAwMDgJCTA1NTAKLQk1NTEzCQkwMDA4CQk1NTExCi0JNTU4
+MQkJMDAwOAkJNTU5NwotCTU1ODIJCTAwMDgJCTU1OTcKLQk1NTk3CQkwMDA4CQk1NTk3Ci0JNTU5
+OAkJMDAwOAkJNTU5Ny81NTk4Ci0JIDYzMAkJMDAwOAkJMDYzMAotCSA2NDUJCTAwMDgJCTA2NDUK
+LQkgNzMwCQkwMDA4CQkwNzMwCi0JIDczNQkJMDAwOAkJMDczNQotKi8KKyAqIFNpUyBzb3V0aGJy
+aWRnZSBoYXMgYSBMTTc4LWxpa2UgY2hpcCBpbnRlZ3JhdGVkIG9uIHRoZSBzYW1lIElDLgorICog
+VGhpcyBkcml2ZXIgaXMgYSBjdXN0b21pemVkIGNvcHkgb2YgbG03OC5jCisgKgorICogU3VwcG9y
+dHMgZm9sbG93aW5nIHJldmlzaW9uczoKKyAqCVZlcnNpb24JCVBDSSBJRAkJUENJIFJldmlzaW9u
+CisgKgkxCQkxMDM5LzAwMDgJQUYgb3IgbGVzcworICoJMgkJMTAzOS8wMDA4CUIwIG9yIGdyZWF0
+ZXIKKyAqCisgKiBOb3RlOiB0aGVzZSBjaGlwcyBjb250YWluIGEgMDAwOCBkZXZpY2Ugd2hpY2gg
+aXMgaW5jb21wYXRpYmxlIHdpdGggdGhlCisgKgk1NTk1LiBXZSByZWNvZ25pemUgdGhlc2UgYnkg
+dGhlIHByZXNlbmNlIG9mIHRoZSBsaXN0ZWQKKyAqCSJibGFja2xpc3QiIFBDSSBJRCBhbmQgcmVm
+dXNlIHRvIGxvYWQuCisgKgorICogTk9UIFNVUFBPUlRFRAlQQ0kgSUQJCUJMQUNLTElTVCBQQ0kg
+SUQKKyAqCTU0MAkJMDAwOAkJMDU0MAorICoJNTUwCQkwMDA4CQkwNTUwCisgKgk1NTEzCQkwMDA4
+CQk1NTExCisgKgk1NTgxCQkwMDA4CQk1NTk3CisgKgk1NTgyCQkwMDA4CQk1NTk3CisgKgk1NTk3
+CQkwMDA4CQk1NTk3CisgKgk1NTk4CQkwMDA4CQk1NTk3LzU1OTgKKyAqCTYzMAkJMDAwOAkJMDYz
+MAorICoJNjQ1CQkwMDA4CQkwNjQ1CisgKgk3MzAJCTAwMDgJCTA3MzAKKyAqCTczNQkJMDAwOAkJ
+MDczNQorICovCiAKICNkZWZpbmUgcHJfZm10KGZtdCkgS0JVSUxEX01PRE5BTUUgIjogIiBmbXQK
+IApAQCAtNjgsOCArNjgsMTAgQEAKICNpbmNsdWRlIDxsaW51eC9pby5oPgogCiAKLS8qIElmIGZv
+cmNlX2FkZHIgaXMgc2V0IHRvIGFueXRoaW5nIGRpZmZlcmVudCBmcm9tIDAsIHdlIGZvcmNpYmx5
+IGVuYWJsZQotICAgdGhlIGRldmljZSBhdCB0aGUgZ2l2ZW4gYWRkcmVzcy4gKi8KKy8qCisgKiBJ
+ZiBmb3JjZV9hZGRyIGlzIHNldCB0byBhbnl0aGluZyBkaWZmZXJlbnQgZnJvbSAwLCB3ZSBmb3Jj
+aWJseSBlbmFibGUKKyAqIHRoZSBkZXZpY2UgYXQgdGhlIGdpdmVuIGFkZHJlc3MuCisgKi8KIHN0
+YXRpYyB1MTYgZm9yY2VfYWRkcjsKIG1vZHVsZV9wYXJhbShmb3JjZV9hZGRyLCB1c2hvcnQsIDAp
+OwogTU9EVUxFX1BBUk1fREVTQyhmb3JjZV9hZGRyLApAQCAtOTgsMTEgKzEwMCwxMyBAQCBzdGF0
+aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldjsKICNkZWZpbmUgU0lTNTU5NV9SRUdfRkFO
+X01JTihucikgKDB4M2IgKyAobnIpKQogI2RlZmluZSBTSVM1NTk1X1JFR19GQU4obnIpICgweDI4
+ICsgKG5yKSkKIAotLyogT24gdGhlIGZpcnN0IHZlcnNpb24gb2YgdGhlIGNoaXAsIHRoZSB0ZW1w
+IHJlZ2lzdGVycyBhcmUgc2VwYXJhdGUuCi0gICBPbiB0aGUgc2Vjb25kIHZlcnNpb24sCi0gICBU
+RU1QIHBpbiBpcyBzaGFyZWQgd2l0aCBJTjQsIGNvbmZpZ3VyZWQgaW4gUENJIHJlZ2lzdGVyIDB4
+N0EuCi0gICBUaGUgcmVnaXN0ZXJzIGFyZSB0aGUgc2FtZSBhcyB3ZWxsLgotICAgT1ZFUiBhbmQg
+SFlTVCBhcmUgcmVhbGx5IE1BWCBhbmQgTUlOLiAqLworLyoKKyAqIE9uIHRoZSBmaXJzdCB2ZXJz
+aW9uIG9mIHRoZSBjaGlwLCB0aGUgdGVtcCByZWdpc3RlcnMgYXJlIHNlcGFyYXRlLgorICogT24g
+dGhlIHNlY29uZCB2ZXJzaW9uLAorICogVEVNUCBwaW4gaXMgc2hhcmVkIHdpdGggSU40LCBjb25m
+aWd1cmVkIGluIFBDSSByZWdpc3RlciAweDdBLgorICogVGhlIHJlZ2lzdGVycyBhcmUgdGhlIHNh
+bWUgYXMgd2VsbC4KKyAqIE9WRVIgYW5kIEhZU1QgYXJlIHJlYWxseSBNQVggYW5kIE1JTi4KKyAq
+LwogCiAjZGVmaW5lIFJFVjJNSU4JMHhiMAogI2RlZmluZSBTSVM1NTk1X1JFR19URU1QCSgoZGF0
+YS0+cmV2aXNpb24pID49IFJFVjJNSU4pID8gXApAQCAtMTE3LDExICsxMjEsMTUgQEAgc3RhdGlj
+IHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXY7CiAjZGVmaW5lIFNJUzU1OTVfUkVHX0FMQVJN
+MiAweDQyCiAjZGVmaW5lIFNJUzU1OTVfUkVHX0ZBTkRJViAweDQ3CiAKLS8qIENvbnZlcnNpb25z
+LiBMaW1pdCBjaGVja2luZyBpcyBvbmx5IGRvbmUgb24gdGhlIFRPX1JFRwotICAgdmFyaWFudHMu
+ICovCisvKgorICogQ29udmVyc2lvbnMuIExpbWl0IGNoZWNraW5nIGlzIG9ubHkgZG9uZSBvbiB0
+aGUgVE9fUkVHCisgKiB2YXJpYW50cy4KKyAqLwogCi0vKiBJTjogbVYsICgwViB0byA0LjA4VikK
+LSAgIFJFRzogMTZtVi9iaXQgKi8KKy8qCisgKiBJTjogbVYsICgwViB0byA0LjA4VikKKyAqIFJF
+RzogMTZtVi9iaXQKKyAqLwogc3RhdGljIGlubGluZSB1OCBJTl9UT19SRUcodW5zaWduZWQgbG9u
+ZyB2YWwpCiB7CiAJdW5zaWduZWQgbG9uZyBudmFsID0gU0VOU09SU19MSU1JVCh2YWwsIDAsIDQw
+ODApOwpAQCAtMTQxLDggKzE0OSwxMCBAQCBzdGF0aWMgaW5saW5lIGludCBGQU5fRlJPTV9SRUco
+dTggdmFsLCBpbnQgZGl2KQogCXJldHVybiB2YWwgPT0gMCA/IC0xIDogdmFsID09IDI1NSA/IDAg
+OiAxMzUwMDAwIC8gKHZhbCAqIGRpdik7CiB9CiAKLS8qIFRFTVA6IG1DICgtNTQuMTJDIHRvICsx
+NTcuNTNDKQotICAgUkVHOiAwLjgzQy9iaXQgKyA1Mi4xMiwgdHdvJ3MgY29tcGxlbWVudCAgKi8K
+Ky8qCisgKiBURU1QOiBtQyAoLTU0LjEyQyB0byArMTU3LjUzQykKKyAqIFJFRzogMC44M0MvYml0
+ICsgNTIuMTIsIHR3bydzIGNvbXBsZW1lbnQKKyAqLwogc3RhdGljIGlubGluZSBpbnQgVEVNUF9G
+Uk9NX1JFRyhzOCB2YWwpCiB7CiAJcmV0dXJuIHZhbCAqIDgzMCArIDUyMTIwOwpAQCAtMTUzLDE2
+ICsxNjMsMjAgQEAgc3RhdGljIGlubGluZSBzOCBURU1QX1RPX1JFRyhpbnQgdmFsKQogCXJldHVy
+biBudmFsIDwgMCA/IChudmFsIC0gNTIxMiAtIDQxNSkgLyA4MzAgOiAobnZhbCAtIDUyMTIgKyA0
+MTUpIC8gODMwOwogfQogCi0vKiBGQU4gRElWOiAxLCAyLCA0LCBvciA4IChkZWZhdWx0cyB0byAy
+KQotICAgUkVHOiAwLCAxLCAyLCBvciAzIChyZXNwZWN0aXZlbHkpIChkZWZhdWx0cyB0byAxKSAq
+LworLyoKKyAqIEZBTiBESVY6IDEsIDIsIDQsIG9yIDggKGRlZmF1bHRzIHRvIDIpCisgKiBSRUc6
+IDAsIDEsIDIsIG9yIDMgKHJlc3BlY3RpdmVseSkgKGRlZmF1bHRzIHRvIDEpCisgKi8KIHN0YXRp
+YyBpbmxpbmUgdTggRElWX1RPX1JFRyhpbnQgdmFsKQogewogCXJldHVybiB2YWwgPT0gOCA/IDMg
+OiB2YWwgPT0gNCA/IDIgOiB2YWwgPT0gMSA/IDAgOiAxOwogfQogI2RlZmluZSBESVZfRlJPTV9S
+RUcodmFsKSAoMSA8PCAodmFsKSkKIAotLyogRm9yIGVhY2ggcmVnaXN0ZXJlZCBjaGlwLCB3ZSBu
+ZWVkIHRvIGtlZXAgc29tZSBkYXRhIGluIG1lbW9yeS4KLSAgIFRoZSBzdHJ1Y3R1cmUgaXMgZHlu
+YW1pY2FsbHkgYWxsb2NhdGVkLiAqLworLyoKKyAqIEZvciBlYWNoIHJlZ2lzdGVyZWQgY2hpcCwg
+d2UgbmVlZCB0byBrZWVwIHNvbWUgZGF0YSBpbiBtZW1vcnkuCisgKiBUaGUgc3RydWN0dXJlIGlz
+IGR5bmFtaWNhbGx5IGFsbG9jYXRlZC4KKyAqLwogc3RydWN0IHNpczU1OTVfZGF0YSB7CiAJdW5z
+aWduZWQgc2hvcnQgYWRkcjsKIAljb25zdCBjaGFyICpuYW1lOwpAQCAtNDAyLDEwICs0MTYsMTIg
+QEAgc3RhdGljIHNzaXplX3Qgc2hvd19mYW5fZGl2KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0
+IGRldmljZV9hdHRyaWJ1dGUgKmRhLAogCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLCBESVZf
+RlJPTV9SRUcoZGF0YS0+ZmFuX2Rpdltucl0pKTsKIH0KIAotLyogTm90ZTogd2Ugc2F2ZSBhbmQg
+cmVzdG9yZSB0aGUgZmFuIG1pbmltdW0gaGVyZSwgYmVjYXVzZSBpdHMgdmFsdWUgaXMKLSAgIGRl
+dGVybWluZWQgaW4gcGFydCBieSB0aGUgZmFuIGRpdmlzb3IuICBUaGlzIGZvbGxvd3MgdGhlIHBy
+aW5jaXBsZSBvZgotICAgbGVhc3Qgc3VycHJpc2U7IHRoZSB1c2VyIGRvZXNuJ3QgZXhwZWN0IHRo
+ZSBmYW4gbWluaW11bSB0byBjaGFuZ2UganVzdAotICAgYmVjYXVzZSB0aGUgZGl2aXNvciBjaGFu
+Z2VkLiAqLworLyoKKyAqIE5vdGU6IHdlIHNhdmUgYW5kIHJlc3RvcmUgdGhlIGZhbiBtaW5pbXVt
+IGhlcmUsIGJlY2F1c2UgaXRzIHZhbHVlIGlzCisgKiBkZXRlcm1pbmVkIGluIHBhcnQgYnkgdGhl
+IGZhbiBkaXZpc29yLiAgVGhpcyBmb2xsb3dzIHRoZSBwcmluY2lwbGUgb2YKKyAqIGxlYXN0IHN1
+cnByaXNlOyB0aGUgdXNlciBkb2Vzbid0IGV4cGVjdCB0aGUgZmFuIG1pbmltdW0gdG8gY2hhbmdl
+IGp1c3QKKyAqIGJlY2F1c2UgdGhlIGRpdmlzb3IgY2hhbmdlZC4KKyAqLwogc3RhdGljIHNzaXpl
+X3Qgc2V0X2Zhbl9kaXYoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0
+ZSAqZGEsCiAJCQkgICBjb25zdCBjaGFyICpidWYsIHNpemVfdCBjb3VudCkKIHsKQEAgLTc2MSw5
+ICs3NzcsMTEgQEAgc3RhdGljIGludCBibGFja2xpc3RbXSBfX2RldmluaXRkYXRhID0gewogCVBD
+SV9ERVZJQ0VfSURfU0lfNjQ1LAogCVBDSV9ERVZJQ0VfSURfU0lfNzMwLAogCVBDSV9ERVZJQ0Vf
+SURfU0lfNzM1LAotCVBDSV9ERVZJQ0VfSURfU0lfNTUxMSwgLyogNTUxMyBjaGlwIGhhcyB0aGUg
+MDAwOCBkZXZpY2UgYnV0Ci0JCQkJICB0aGF0IElEIHNob3dzIHVwIGluIG90aGVyIGNoaXBzIHNv
+IHdlCi0JCQkJICB1c2UgdGhlIDU1MTEgSUQgZm9yIHJlY29nbml0aW9uICovCisJUENJX0RFVklD
+RV9JRF9TSV81NTExLCAvKgorCQkJCSogNTUxMyBjaGlwIGhhcyB0aGUgMDAwOCBkZXZpY2UgYnV0
+CisJCQkJKiB0aGF0IElEIHNob3dzIHVwIGluIG90aGVyIGNoaXBzIHNvIHdlCisJCQkJKiB1c2Ug
+dGhlIDU1MTEgSUQgZm9yIHJlY29nbml0aW9uCisJCQkJKi8KIAlQQ0lfREVWSUNFX0lEX1NJXzU1
+OTcsCiAJUENJX0RFVklDRV9JRF9TSV81NTk4LAogCTAgfTsKQEAgLTg4MCw3ICs4OTgsOCBAQCBz
+dGF0aWMgaW50IF9fZGV2aW5pdCBzaXM1NTk1X3BjaV9wcm9iZShzdHJ1Y3QgcGNpX2RldiAqZGV2
+LAogCWlmIChzaXM1NTk1X2RldmljZV9hZGQoYWRkcmVzcykpCiAJCWdvdG8gZXhpdF91bnJlZ2lz
+dGVyOwogCi0JLyogQWx3YXlzIHJldHVybiBmYWlsdXJlIGhlcmUuICBUaGlzIGlzIHRvIGFsbG93
+IG90aGVyIGRyaXZlcnMgdG8gYmluZAorCS8qCisJICogQWx3YXlzIHJldHVybiBmYWlsdXJlIGhl
+cmUuICBUaGlzIGlzIHRvIGFsbG93IG90aGVyIGRyaXZlcnMgdG8gYmluZAogCSAqIHRvIHRoaXMg
+cGNpIGRldmljZS4gIFdlIGRvbid0IHJlYWxseSB3YW50IHRvIGhhdmUgY29udHJvbCBvdmVyIHRo
+ZQogCSAqIHBjaSBkZXZpY2UsIHdlIG9ubHkgd2FudGVkIHRvIHJlYWQgYXMgZmV3IHJlZ2lzdGVy
+IHZhbHVlcyBmcm9tIGl0LgogCSAqLwotLSAKMS43LjUuNAoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycw=
