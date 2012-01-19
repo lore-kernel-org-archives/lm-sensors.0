@@ -1,43 +1,64 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 16:23:33 +0000
-Subject: [lm-sensors] [PATCH 10/17] drivers/hwmon/adt7470.c: fix checkpatch
-Message-Id: <1326039820-11147-10-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:26 +0000
+Subject: [lm-sensors] [PATCH 32/82] hwmon: (lm63) Fix multi-line comments
+Message-Id: <1327017376-20466-33-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/adt7470.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/lm63.c |   32 ++++++++++++++++++++------------
+ 1 files changed, 20 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index c6d1ce0..cad7f1a 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -1131,8 +1131,7 @@ static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IWUSR | S_IRUGO,
- static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IWUSR | S_IRUGO,
- 		    show_pwm_auto_temp, set_pwm_auto_temp, 3);
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index 5e6457a..6030a7e 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -207,19 +207,27 @@ struct lm63_data {
  
--static struct attribute *adt7470_attr[] -{
-+static struct attribute *adt7470_attr[] = {
- 	&dev_attr_alarm_mask.attr,
- 	&dev_attr_num_temp_sensors.attr,
- 	&dev_attr_auto_update_interval.attr,
-@@ -1276,7 +1275,8 @@ static int adt7470_probe(struct i2c_client *client,
- 
- 	/* Register sysfs hooks */
- 	data->attrs.attrs = adt7470_attr;
--	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
-+	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
-+	if (err)
- 		goto exit_free;
- 
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	/* registers values */
+ 	u8 config, config_fan;
+-	u16 fan[2];	/* 0: input
+-			   1: low limit */
++	u16 fan[2];	/*
++			 * 0: input
++			 * 1: low limit
++			 */
+ 	u8 pwm1_freq;
+-	u8 pwm1[13];	/* 0: current output
+-			   1-12: lookup table */
+-	s8 temp8[15];	/* 0: local input
+-			   1: local high limit
+-			   2: remote critical limit
+-			   3-14: lookup table */
+-	s16 temp11[4];	/* 0: remote input
+-			   1: remote low limit
+-			   2: remote high limit
+-			   3: remote offset */
++	u8 pwm1[13];	/*
++			 * 0: current output
++			 * 1-12: lookup table
++			 */
++	s8 temp8[15];	/*
++			 * 0: local input
++			 * 1: local high limit
++			 * 2: remote critical limit
++			 * 3-14: lookup table
++			 */
++	s16 temp11[4];	/*
++			 * 0: remote input
++			 * 1: remote low limit
++			 * 2: remote high limit
++			 * 3: remote offset
++			 */
+ 	u16 temp11u;	/* remote input (unsigned) */
+ 	u8 temp2_crit_hyst;
+ 	u8 lut_temp_hyst;
 -- 
-1.7.8.2
+1.7.5.4
 
 
 _______________________________________________
