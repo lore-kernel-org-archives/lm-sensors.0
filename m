@@ -1,54 +1,51 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:02 +0000
-Subject: [lm-sensors] [PATCH 23/79] hwmon: (amc6821) Fix multi-line comments
-Message-Id: <1327373398-997-24-git-send-email-guenter.roeck@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:58 +0000
+Subject: [lm-sensors] [PATCH 64/82] hwmon: (smsc47m192) Fix multi-line comments
+Message-Id: <1327017376-20466-65-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-
-Cc: T. Mertelj <tomaz.mertelj@guest.arnes.si>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/amc6821.c |   57 ++++++++++++++++++++++++----------------------
- 1 files changed, 30 insertions(+), 27 deletions(-)
+ drivers/hwmon/smsc47m192.c |   60 ++++++++++++++++++++++++-------------------
+ 1 files changed, 33 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/hwmon/amc6821.c b/drivers/hwmon/amc6821.c
-index 5298855..f600fa1 100644
---- a/drivers/hwmon/amc6821.c
-+++ b/drivers/hwmon/amc6821.c
+diff --git a/drivers/hwmon/smsc47m192.c b/drivers/hwmon/smsc47m192.c
+index 95761bd..d92fc3a 100644
+--- a/drivers/hwmon/smsc47m192.c
++++ b/drivers/hwmon/smsc47m192.c
 @@ -1,25 +1,25 @@
  /*
--	amc6821.c - Part of lm_sensors, Linux kernel modules for hardware
--	monitoring
--	Copyright (C) 2009 T. Mertelj <tomaz.mertelj@guest.arnes.si>
+-    smsc47m192.c - Support for hardware monitoring block of
+-		SMSC LPC47M192 and compatible Super I/O chips
 -
--	Based on max6650.c:
--	Copyright (C) 2007 Hans J. Koch <hjk@hansjkoch.de>
+-    Copyright (C) 2006  Hartmut Rick <linux@rick.claranet.de>
 -
--	This program is free software; you can redistribute it and/or modify
--	it under the terms of the GNU General Public License as published by
--	the Free Software Foundation; either version 2 of the License, or
--	(at your option) any later version.
+-    Derived from lm78.c and other chip drivers.
 -
--	This program is distributed in the hope that it will be useful,
--	but WITHOUT ANY WARRANTY; without even the implied warranty of
--	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--	GNU General Public License for more details.
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
 -
--	You should have received a copy of the GNU General Public License
--	along with this program; if not, write to the Free Software
--	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 -*/
-+ * amc6821.c - Part of lm_sensors, Linux kernel modules for hardware
-+ *	       monitoring
-+ * Copyright (C) 2009 T. Mertelj <tomaz.mertelj@guest.arnes.si>
++ * smsc47m192.c - Support for hardware monitoring block of
++ *		  SMSC LPC47M192 and compatible Super I/O chips
 + *
-+ * Based on max6650.c:
-+ * Copyright (C) 2007 Hans J. Koch <hjk@hansjkoch.de>
++ * Copyright (C) 2006  Hartmut Rick <linux@rick.claranet.de>
++ *
++ * Derived from lm78.c and other chip drivers.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -65,46 +62,49 @@ index 5298855..f600fa1 100644
 + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
  
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -80,8 +80,10 @@ static inline u8 IN_TO_REG(unsigned long val, int n)
+ 	return SENSORS_LIMIT(SCALE(val, 192, nom_mv[n]), 0, 255);
+ }
  
- #include <linux/kernel.h>	/* Needed for KERN_INFO */
-@@ -188,7 +188,7 @@ static struct i2c_driver amc6821_driver = {
- 
- /*
-  * Client data (each client gets its own)
--  */
+-/* TEMP: 0.001 degC units (-128C to +127C)
+-   REG: 1C/bit, two's complement */
++/*
++ * TEMP: 0.001 degC units (-128C to +127C)
++ * REG: 1C/bit, two's complement
 + */
- 
- struct amc6821_data {
- 	struct device *hwmon_dev;
-@@ -836,8 +836,10 @@ static int amc6821_detect(
- 		return -ENODEV;
- 	}
- 
--	/* Bit 7 of the address register is ignored, so we can check the
--	   ID registers again */
-+	/*
-+	 * Bit 7 of the address register is ignored, so we can check the
-+	 * ID registers again
-+	 */
- 	dev_id = i2c_smbus_read_byte_data(client, 0x80 | AMC6821_REG_DEV_ID);
- 	comp_id = i2c_smbus_read_byte_data(client, 0x80 | AMC6821_REG_COMP_ID);
- 	if (dev_id != 0x21 || comp_id != 0x49) {
-@@ -1080,9 +1082,10 @@ static struct amc6821_data *amc6821_update_device(struct device *dev)
- 			data->pwm1_auto_channels_temp = 3;
- 			data->pwm1_enable = 3;
- 			break;
--		case 1: /*semi-open loop: software sets rpm, chip controls pwm1,
--			  *currently not implemented
--			  */
-+		case 1: /*
-+			 * semi-open loop: software sets rpm, chip controls
-+			 * pwm1, currently not implemented
-+			 */
- 			data->pwm1_auto_channels_temp = 0;
- 			data->pwm1_enable = 0;
- 			break;
+ static inline s8 TEMP_TO_REG(int val)
+ {
+ 	return SENSORS_LIMIT(SCALE(val, 1, 1000), -128000, 127000);
+@@ -326,8 +328,10 @@ static ssize_t set_temp_offset(struct device *dev, struct device_attribute
+ 		i2c_smbus_write_byte_data(client,
+ 			SMSC47M192_REG_TEMP_OFFSET(nr), data->temp_offset[nr]);
+ 	else if (data->temp_offset[nr] != 0) {
+-		/* offset[0] and offset[1] share the same register,
+-			SFR bit 4 activates offset[0] */
++		/*
++		 * offset[0] and offset[1] share the same register,
++		 * SFR bit 4 activates offset[0]
++		 */
+ 		i2c_smbus_write_byte_data(client, SMSC47M192_REG_SFR,
+ 					(sfr & 0xef) | (nr = 0 ? 0x10 : 0));
+ 		data->temp_offset[1-nr] = 0;
+@@ -640,8 +644,10 @@ static struct smsc47m192_data *smsc47m192_update_device(struct device *dev)
+ 		for (i = 1; i < 3; i++)
+ 			data->temp_offset[i] = i2c_smbus_read_byte_data(client,
+ 						SMSC47M192_REG_TEMP_OFFSET(i));
+-		/* first offset is temp_offset[0] if SFR bit 4 is set,
+-					temp_offset[1] otherwise */
++		/*
++		 * first offset is temp_offset[0] if SFR bit 4 is set,
++		 * temp_offset[1] otherwise
++		 */
+ 		if (sfr & 0x10) {
+ 			data->temp_offset[0] = data->temp_offset[1];
+ 			data->temp_offset[1] = 0;
 -- 
-1.7.3.1
+1.7.5.4
 
 
 _______________________________________________
