@@ -1,38 +1,41 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:06 +0000
-Subject: [lm-sensors] [PATCH 03/17 v2] hwmon: (sht15) fix checkpatch issues
-Message-Id: <1326047660-20539-3-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:51 +0000
+Subject: [lm-sensors] [PATCH 57/82] hwmon: (sch56xx-common) Fix multi-line comments
+Message-Id: <1327017376-20466-58-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-WARNING: line over 80 characters
-#809: FILE: sht15.c:809:
-+		/* If still not occurred or another handler has been scheduled */
-
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/sht15.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/hwmon/sch56xx-common.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
-index fe4104c..baa5fdc 100644
---- a/drivers/hwmon/sht15.c
-+++ b/drivers/hwmon/sht15.c
-@@ -806,7 +806,7 @@ static void sht15_bh_read_data(struct work_struct *work_s)
- 		 */
- 		atomic_set(&data->interrupt_handled, 0);
- 		enable_irq(gpio_to_irq(data->pdata->gpio_data));
--		/* If still not occurred or another handler has been scheduled */
-+		/* If still not occurred or another handler was scheduled */
- 		if (gpio_get_value(data->pdata->gpio_data)
- 		    || atomic_read(&data->interrupt_handled))
- 			return;
+diff --git a/drivers/hwmon/sch56xx-common.c b/drivers/hwmon/sch56xx-common.c
+index fac32ee..9aac461 100644
+--- a/drivers/hwmon/sch56xx-common.c
++++ b/drivers/hwmon/sch56xx-common.c
+@@ -1,4 +1,5 @@
+-/***************************************************************************
++/*
++ ***************************************************************************
+  *   Copyright (C) 2010-2011 Hans de Goede <hdegoede@redhat.com>           *
+  *                                                                         *
+  *   This program is free software; you can redistribute it and/or modify  *
+@@ -15,7 +16,8 @@
+  *   along with this program; if not, write to the                         *
+  *   Free Software Foundation, Inc.,                                       *
+  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+- ***************************************************************************/
++ ***************************************************************************
++ */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
 -- 
-1.7.8.2
+1.7.5.4
 
 
 _______________________________________________
