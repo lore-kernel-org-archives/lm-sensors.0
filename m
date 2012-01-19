@@ -1,252 +1,62 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Jan 2012 19:39:16 +0000
-Subject: [lm-sensors] [PATCH 04/13] hwmon: (w83781d) Fix: do not use assignment in if condition
-Message-Id: <1327088365-11149-5-git-send-email-linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:28 +0000
+Subject: [lm-sensors] [PATCH 34/82] hwmon: (lm75) Fix multi-line comments
+Message-Id: <1327017376-20466-35-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fix checkpatch issue:
-ERROR: do not use assignment in if condition
-
-Replace repeated calls to device_create_file() with calls to sysfs_create_group.
-
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/w83781d.c |  140 ++++++++++++++++++++++++-----------------------
- 1 files changed, 72 insertions(+), 68 deletions(-)
+ drivers/hwmon/lm75.c |   19 ++++++++++++-------
+ 1 files changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
-index cbed525..b03d54a 100644
---- a/drivers/hwmon/w83781d.c
-+++ b/drivers/hwmon/w83781d.c
-@@ -975,23 +975,58 @@ static const struct attribute_group w83781d_group = {
- 	.attrs = w83781d_attributes,
+diff --git a/drivers/hwmon/lm75.c b/drivers/hwmon/lm75.c
+index b3311b1..8510e0c 100644
+--- a/drivers/hwmon/lm75.c
++++ b/drivers/hwmon/lm75.c
+@@ -73,10 +73,12 @@ struct lm75_data {
+ 	u8			orig_conf;
+ 	char			valid;		/* !=0 if registers are valid */
+ 	unsigned long		last_updated;	/* In jiffies */
+-	u16			temp[3];	/* Register values,
+-						   0 = input
+-						   1 = max
+-						   2 = hyst */
++	u16			temp[3];	/*
++						 * Register values,
++						 * 0 = input
++						 * 1 = max
++						 * 2 = hyst
++						 */
  };
  
--static struct attribute *w83781d_attributes_opt[] = {
-+static struct attribute *w83781d_attributes_in1[] = {
- 	IN_UNIT_ATTRS(1),
-+	NULL
-+};
-+static const struct attribute_group w83781d_group_in1 = {
-+	.attrs = w83781d_attributes_in1,
-+};
-+
-+static struct attribute *w83781d_attributes_in78[] = {
- 	IN_UNIT_ATTRS(7),
- 	IN_UNIT_ATTRS(8),
-+	NULL
-+};
-+static const struct attribute_group w83781d_group_in78 = {
-+	.attrs = w83781d_attributes_in78,
-+};
-+
-+static struct attribute *w83781d_attributes_temp3[] = {
- 	TEMP_UNIT_ATTRS(3),
-+	NULL
-+};
-+static const struct attribute_group w83781d_group_temp3 = {
-+	.attrs = w83781d_attributes_temp3,
-+};
-+
-+static struct attribute *w83781d_attributes_pwm12[] = {
- 	&sensor_dev_attr_pwm1.dev_attr.attr,
- 	&sensor_dev_attr_pwm2.dev_attr.attr,
-+	&dev_attr_pwm2_enable.attr,
-+	NULL
-+};
-+static const struct attribute_group w83781d_group_pwm12 = {
-+	.attrs = w83781d_attributes_pwm12,
-+};
-+
-+static struct attribute *w83781d_attributes_pwm34[] = {
- 	&sensor_dev_attr_pwm3.dev_attr.attr,
- 	&sensor_dev_attr_pwm4.dev_attr.attr,
--	&dev_attr_pwm2_enable.attr,
-+	NULL
-+};
-+static const struct attribute_group w83781d_group_pwm34 = {
-+	.attrs = w83781d_attributes_pwm34,
-+};
-+
-+static struct attribute *w83781d_attributes_other[] = {
- 	&sensor_dev_attr_temp1_type.dev_attr.attr,
- 	&sensor_dev_attr_temp2_type.dev_attr.attr,
- 	&sensor_dev_attr_temp3_type.dev_attr.attr,
- 	NULL
- };
--static const struct attribute_group w83781d_group_opt = {
--	.attrs = w83781d_attributes_opt,
-+static const struct attribute_group w83781d_group_other = {
-+	.attrs = w83781d_attributes_other,
- };
+ static int lm75_read_value(struct i2c_client *client, u8 reg);
+@@ -163,7 +165,8 @@ lm75_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
  
- /* No clean up is done on error, it's up to the caller */
-@@ -1005,52 +1040,18 @@ w83781d_create_files(struct device *dev, int kind, int is_isa)
- 		return err;
+-	/* Set to LM75 resolution (9 bits, 1/2 degree C) and range.
++	/*
++	 * Set to LM75 resolution (9 bits, 1/2 degree C) and range.
+ 	 * Then tweak to be more precise when appropriate.
+ 	 */
+ 	set_mask = 0;
+@@ -285,8 +288,10 @@ static int lm75_detect(struct i2c_client *new_client,
  
- 	if (kind != w83783s) {
--		if ((err = device_create_file(dev,
--				&sensor_dev_attr_in1_input.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in1_min.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in1_max.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in1_alarm.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in1_beep.dev_attr)))
-+		err = sysfs_create_group(&dev->kobj, &w83781d_group_in1);
-+		if (err)
- 			return err;
- 	}
- 	if (kind != as99127f && kind != w83781d && kind != w83783s) {
--		if ((err = device_create_file(dev,
--				&sensor_dev_attr_in7_input.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in7_min.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in7_max.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in7_alarm.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in7_beep.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in8_input.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in8_min.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in8_max.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in8_alarm.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_in8_beep.dev_attr)))
-+		err = sysfs_create_group(&dev->kobj, &w83781d_group_in78);
-+		if (err)
- 			return err;
- 	}
- 	if (kind != w83783s) {
--		if ((err = device_create_file(dev,
--				&sensor_dev_attr_temp3_input.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_temp3_max.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_temp3_max_hyst.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_temp3_alarm.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_temp3_beep.dev_attr)))
-+		err = sysfs_create_group(&dev->kobj, &w83781d_group_temp3);
-+		if (err)
- 			return err;
- 
- 		if (kind != w83781d) {
-@@ -1063,30 +1064,28 @@ w83781d_create_files(struct device *dev, int kind, int is_isa)
- 	}
- 
- 	if (kind != w83781d && kind != as99127f) {
--		if ((err = device_create_file(dev,
--				&sensor_dev_attr_pwm1.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_pwm2.dev_attr))
--		    || (err = device_create_file(dev, &dev_attr_pwm2_enable)))
-+		err = sysfs_create_group(&dev->kobj, &w83781d_group_pwm12);
-+		if (err)
- 			return err;
- 	}
- 	if (kind = w83782d && !is_isa) {
--		if ((err = device_create_file(dev,
--				&sensor_dev_attr_pwm3.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_pwm4.dev_attr)))
-+		err = sysfs_create_group(&dev->kobj, &w83781d_group_pwm34);
-+		if (err)
- 			return err;
- 	}
- 
- 	if (kind != as99127f && kind != w83781d) {
--		if ((err = device_create_file(dev,
--				&sensor_dev_attr_temp1_type.dev_attr))
--		    || (err = device_create_file(dev,
--				&sensor_dev_attr_temp2_type.dev_attr)))
-+		err = device_create_file(dev,
-+					 &sensor_dev_attr_temp1_type.dev_attr);
-+		if (err)
-+			return err;
-+		err = device_create_file(dev,
-+					 &sensor_dev_attr_temp2_type.dev_attr);
-+		if (err)
- 			return err;
- 		if (kind != w83783s) {
- 			err = device_create_file(dev,
--				&sensor_dev_attr_temp3_type.dev_attr);
-+					&sensor_dev_attr_temp3_type.dev_attr);
- 			if (err)
- 				return err;
- 		}
-@@ -1196,6 +1195,17 @@ w83781d_detect(struct i2c_client *client, struct i2c_board_info *info)
- 	return -ENODEV;
- }
- 
-+static void w83781d_remove_files(struct device *dev)
-+{
-+	sysfs_remove_group(&dev->kobj, &w83781d_group);
-+	sysfs_remove_group(&dev->kobj, &w83781d_group_in1);
-+	sysfs_remove_group(&dev->kobj, &w83781d_group_in78);
-+	sysfs_remove_group(&dev->kobj, &w83781d_group_temp3);
-+	sysfs_remove_group(&dev->kobj, &w83781d_group_pwm12);
-+	sysfs_remove_group(&dev->kobj, &w83781d_group_pwm34);
-+	sysfs_remove_group(&dev->kobj, &w83781d_group_other);
-+}
-+
- static int
- w83781d_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
-@@ -1238,9 +1248,7 @@ w83781d_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	return 0;
- 
- ERROR4:
--	sysfs_remove_group(&dev->kobj, &w83781d_group);
--	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
--
-+	w83781d_remove_files(dev);
- 	if (data->lm75[0])
- 		i2c_unregister_device(data->lm75[0]);
- 	if (data->lm75[1])
-@@ -1258,9 +1266,7 @@ w83781d_remove(struct i2c_client *client)
- 	struct device *dev = &client->dev;
- 
- 	hwmon_device_unregister(data->hwmon_dev);
--
--	sysfs_remove_group(&dev->kobj, &w83781d_group);
--	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
-+	w83781d_remove_files(dev);
- 
- 	if (data->lm75[0])
- 		i2c_unregister_device(data->lm75[0]);
-@@ -1821,8 +1827,7 @@ w83781d_isa_probe(struct platform_device *pdev)
- 	return 0;
- 
-  exit_remove_files:
--	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
--	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
-+	w83781d_remove_files(&pdev->dev);
- 	device_remove_file(&pdev->dev, &dev_attr_name);
- 	kfree(data);
-  exit_release_region:
-@@ -1837,8 +1842,7 @@ w83781d_isa_remove(struct platform_device *pdev)
- 	struct w83781d_data *data = platform_get_drvdata(pdev);
- 
- 	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
--	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
-+	w83781d_remove_files(&pdev->dev);
- 	device_remove_file(&pdev->dev, &dev_attr_name);
- 	release_region(data->isa_addr + W83781D_ADDR_REG_OFFSET, 2);
- 	kfree(data);
+ 	/* First check for LM75A */
+ 	if (i2c_smbus_read_byte_data(new_client, 7) = LM75A_ID) {
+-		/* LM75A returns 0xff on unused registers so
+-		   just to be sure we check for that too. */
++		/*
++		 * LM75A returns 0xff on unused registers so
++		 * just to be sure we check for that too.
++		 */
+ 		if (i2c_smbus_read_byte_data(new_client, 4) != 0xff
+ 		 || i2c_smbus_read_byte_data(new_client, 5) != 0xff
+ 		 || i2c_smbus_read_byte_data(new_client, 6) != 0xff)
 -- 
 1.7.5.4
 
