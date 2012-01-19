@@ -1,33 +1,37 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 16:23:39 +0000
-Subject: [lm-sensors] [PATCH 16/17] drivers/hwmon/wm831x-hwmon.c: fix
-Message-Id: <1326039820-11147-16-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:25 +0000
+Subject: [lm-sensors] [PATCH 31/82] hwmon: (jc42) Fix multi-line comments
+Message-Id: <1327017376-20466-32-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/wm831x-hwmon.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/hwmon/jc42.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/hwmon/wm831x-hwmon.c b/drivers/hwmon/wm831x-hwmon.c
-index 9b598ed..23b44de 100644
---- a/drivers/hwmon/wm831x-hwmon.c
-+++ b/drivers/hwmon/wm831x-hwmon.c
-@@ -40,7 +40,7 @@ static ssize_t show_name(struct device *dev,
- 	return sprintf(buf, "wm831x\n");
- }
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 28c09ee..fc8ea29 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -324,8 +324,10 @@ set(temp_min, JC42_REG_TEMP_LOWER);
+ set(temp_max, JC42_REG_TEMP_UPPER);
+ set(temp_crit, JC42_REG_TEMP_CRITICAL);
  
--static const char *input_names[] = {
-+static const char * const input_names[] = {
- 	[WM831X_AUX_SYSVDD]    = "SYSVDD",
- 	[WM831X_AUX_USB]       = "USB",
- 	[WM831X_AUX_BKUP_BATT] = "Backup battery",
+-/* JC42.4 compliant chips only support four hysteresis values.
+- * Pick best choice and go from there. */
++/*
++ * JC42.4 compliant chips only support four hysteresis values.
++ * Pick best choice and go from there.
++ */
+ static ssize_t set_temp_crit_hyst(struct device *dev,
+ 				  struct device_attribute *attr,
+ 				  const char *buf, size_t count)
 -- 
-1.7.8.2
+1.7.5.4
 
 
 _______________________________________________
