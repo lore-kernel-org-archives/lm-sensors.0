@@ -1,470 +1,152 @@
-From: Steve Allison <lm-sensors.org@stalks.nooblet.org>
-Date: Sun, 22 Jan 2012 19:49:14 +0000
-Subject: [lm-sensors] Abit AW9D -- CPU temp value from abituguru3
-Message-Id: <4F1C683A.2050501@stalks.nooblet.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------050200060109050200060100"
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:29 +0000
+Subject: [lm-sensors] [PATCH 35/82] hwmon: (lm77) Fix multi-line comments
+Message-Id: <1327017376-20466-36-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------050200060109050200060100
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm77.c |   92 +++++++++++++++++++++++++++-----------------------
+ 1 files changed, 50 insertions(+), 42 deletions(-)
 
-This may be a newbie question, for which I apologise.
+diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
+index 08f7ffe..d3d7a78 100644
+--- a/drivers/hwmon/lm77.c
++++ b/drivers/hwmon/lm77.c
+@@ -1,29 +1,29 @@
+ /*
+-    lm77.c - Part of lm_sensors, Linux kernel modules for hardware
+-		monitoring
+-
+-    Copyright (c) 2004  Andras BALI <drewie@freemail.hu>
+-
+-    Heavily based on lm75.c by Frodo Looijaard <frodol@dds.nl>.  The LM77
+-    is a temperature sensor and thermal window comparator with 0.5 deg
+-    resolution made by National Semiconductor.  Complete datasheet can be
+-    obtained at their site:
+-       http://www.national.com/pf/LM/LM77.html
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
++ * lm77.c - Part of lm_sensors, Linux kernel modules for hardware
++ *	    monitoring
++ *
++ * Copyright (c) 2004  Andras BALI <drewie@freemail.hu>
++ *
++ * Heavily based on lm75.c by Frodo Looijaard <frodol@dds.nl>.  The LM77
++ * is a temperature sensor and thermal window comparator with 0.5 deg
++ * resolution made by National Semiconductor.  Complete datasheet can be
++ * obtained at their site:
++ *	http://www.national.com/pf/LM/LM77.html
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
+ 
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -95,8 +95,10 @@ static struct i2c_driver lm77_driver = {
+ #define LM77_TEMP_MIN (-55000)
+ #define LM77_TEMP_MAX 125000
+ 
+-/* In the temperature registers, the low 3 bits are not part of the
+-   temperature values; they are the status bits. */
++/*
++ * In the temperature registers, the low 3 bits are not part of the
++ * temperature values; they are the status bits.
++ */
+ static inline s16 LM77_TEMP_TO_REG(int temp)
+ {
+ 	int ntemp = SENSORS_LIMIT(temp, LM77_TEMP_MIN, LM77_TEMP_MAX);
+@@ -167,8 +169,10 @@ static ssize_t set_##value(struct device *dev, struct device_attribute *attr, \
+ set(temp_min, LM77_REG_TEMP_MIN);
+ set(temp_max, LM77_REG_TEMP_MAX);
+ 
+-/* hysteresis is stored as a relative value on the chip, so it has to be
+-   converted first */
++/*
++ * hysteresis is stored as a relative value on the chip, so it has to be
++ * converted first
++ */
+ static ssize_t set_temp_crit_hyst(struct device *dev,
+ 				  struct device_attribute *attr,
+ 				  const char *buf, size_t count)
+@@ -273,17 +277,19 @@ static int lm77_detect(struct i2c_client *new_client,
+ 				     I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+ 
+-	/* Here comes the remaining detection.  Since the LM77 has no
+-	   register dedicated to identification, we have to rely on the
+-	   following tricks:
+-
+-	   1. the high 4 bits represent the sign and thus they should
+-	      always be the same
+-	   2. the high 3 bits are unused in the configuration register
+-	   3. addresses 0x06 and 0x07 return the last read value
+-	   4. registers cycling over 8-address boundaries
+-
+-	   Word-sized registers are high-byte first. */
++	/*
++	 * Here comes the remaining detection.  Since the LM77 has no
++	 * register dedicated to identification, we have to rely on the
++	 * following tricks:
++	 *
++	 * 1. the high 4 bits represent the sign and thus they should
++	 *    always be the same
++	 * 2. the high 3 bits are unused in the configuration register
++	 * 3. addresses 0x06 and 0x07 return the last read value
++	 * 4. registers cycling over 8-address boundaries
++	 *
++	 * Word-sized registers are high-byte first.
++	 */
+ 
+ 	/* addresses cycling */
+ 	cur = i2c_smbus_read_word_data(new_client, 0);
+@@ -381,8 +387,10 @@ static int lm77_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-/* All registers are word-sized, except for the configuration register.
+-   The LM77 uses the high-byte first convention. */
++/*
++ * All registers are word-sized, except for the configuration register.
++ * The LM77 uses the high-byte first convention.
++ */
+ static u16 lm77_read_value(struct i2c_client *client, u8 reg)
+ {
+ 	if (reg = LM77_REG_CONF)
+-- 
+1.7.5.4
 
-Running Linux Debian wheezy 3.1.0-1-amd64.
-
-Motherboard is an old Abit AW9D (not a MAX edition, as is the more=20
-popular version of this board)
-
-Not detected by default, but I can: "modprobe abituguru3 force" and I=20
-get the following message:
-
-abituguru3: no Abit uGuru3 found, data =3D 0x00, cmd =3D 0xFF
-abituguru3: Assuming Abit uGuru3 is present because of "force" parameter
-abituguru3: this motherboard was not detected using DMI. Please send the=20
-output of "dmidecode" to the abituguru3 maintainer (see MAINTAINERS)
-abituguru3: found Abit uGuru3, motherboard ID: 0016
-
-I get what looks like correct values, and have used this module for 2=20
-years from Debian Lenny -> Squeeze -> Wheezy.
-
-In an effort to reduce CPU temperatures during load, I have swapped the=20
-CPU from a Core 2 Quad Q6600, to a Pentium Celeron E3200. The=20
-temperatures reported by coretemp have dropped over 20C, however the=20
-temperature reported for "CPU" by abituguru3 have remained the same.
-
-With the Q6600, individual core temperatures reported by coretemp were=20
-~5C higher than abituguru3. Now coretemp is displaying temperatures=20
-nearly 20C lower than abituguru3.
-
-Is this normal?
-Where does the temperature come from?
-Is it something I can make more accurate in /etc/sensors.conf?
-Should I just ignore abituguru3 for CPU temperature and rely on the=20
-coretemp values?
-
-Any advice appreciated.
-
-PS. Attached is a dmidecode output. If the attachment fails, you can=20
-view the text at http://www.nooblet.org/other/empire_dmidecode_20120122.t=
-xt
-
-sensors output:
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:       +29.0=B0C  (high =3D +76.0=B0C, crit =3D +100.0=B0C)
-Core 1:       +27.0=B0C  (high =3D +76.0=B0C, crit =3D +100.0=B0C)
-
-abituguru3-isa-00e0
-Adapter: ISA adapter
-CPU Core:           +1.12 V  (min =3D  +0.00 V, max =3D  +2.55 V)
-DDR2:               +1.80 V  (min =3D  +0.00 V, max =3D  +5.10 V)
-DDR2 VTT:           +0.90 V  (min =3D  +0.00 V, max =3D  +2.55 V)
-CPU VTT 1.2V:       +1.11 V  (min =3D  +0.00 V, max =3D  +2.55 V)
-MCH & PCIE 1.5V:    +1.51 V  (min =3D  +0.00 V, max =3D  +2.55 V)
-MCH 2.5V:           +2.52 V  (min =3D  +0.00 V, max =3D  +5.10 V)
-ICH 1.05V:          +1.04 V  (min =3D  +0.00 V, max =3D  +2.55 V)
-ATX +12V (24-Pin): +12.06 V  (min =3D  +0.00 V, max =3D +15.30 V)
-ATX +12V (4-pin):  +12.06 V  (min =3D  +0.00 V, max =3D +15.30 V)
-ATX +5V:            +5.01 V  (min =3D  +0.00 V, max =3D  +7.65 V)
-+3.3V:              +3.34 V  (min =3D  +0.00 V, max =3D  +5.10 V)
-5VSB:               +5.01 V  (min =3D  +0.00 V, max =3D  +7.65 V)
-CPU Fan:           2640 RPM  (min =3D  300 RPM)
-NB Fan:               0 RPM  (min =3D  300 RPM)
-SYS Fan:              0 RPM  (min =3D  300 RPM)
-AUX1 Fan:             0 RPM  (min =3D  300 RPM)
-AUX2 Fan:             0 RPM  (min =3D  300 RPM)
-AUX3 Fan:             0 RPM  (min =3D  300 RPM)
-OTES1 Fan:            0 RPM  (min =3D  300 RPM)
-CPU:                +47.0=B0C  (high =3D  +0.0=B0C, crit =3D +255.0=B0C)
-System:             +30.0=B0C  (high =3D  +0.0=B0C, crit =3D +255.0=B0C)
-PWM1:               +35.0=B0C  (high =3D  +0.0=B0C, crit =3D +255.0=B0C)
-PWM2:               +33.0=B0C  (high =3D  +0.0=B0C, crit =3D +255.0=B0C)
-PWM3:               +35.0=B0C  (high =3D  +0.0=B0C, crit =3D +255.0=B0C)
-PWM4:               +33.0=B0C  (high =3D  +0.0=B0C, crit =3D +255.0=B0C)
-
---------------050200060109050200060100
-Content-Type: text/plain;
- name="dmidecode.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="dmidecode.txt"
-
-# dmidecode 2.11
-SMBIOS 2.2 present.
-34 structures occupying 931 bytes.
-Table at 0x000F0000.
-
-Handle 0x0000, DMI type 0, 19 bytes
-BIOS Information
-	Vendor: Phoenix Technologies, LTD
-	Version: 6.00 PG
-	Release Date: 01/15/2008
-	Address: 0xE0000
-	Runtime Size: 128 kB
-	ROM Size: 512 kB
-	Characteristics:
-		ISA is supported
-		PCI is supported
-		PNP is supported
-		APM is supported
-		BIOS is upgradeable
-		BIOS shadowing is allowed
-		Boot from CD is supported
-		Selectable boot is supported
-		BIOS ROM is socketed
-		EDD is supported
-		5.25"/360 kB floppy services are supported (int 13h)
-		5.25"/1.2 MB floppy services are supported (int 13h)
-		3.5"/720 kB floppy services are supported (int 13h)
-		3.5"/2.88 MB floppy services are supported (int 13h)
-		Print screen service is supported (int 5h)
-		8042 keyboard services are supported (int 9h)
-		Serial services are supported (int 14h)
-		Printer services are supported (int 17h)
-		CGA/mono video services are supported (int 10h)
-		ACPI is supported
-		USB legacy is supported
-		LS-120 boot is supported
-		ATAPI Zip drive boot is supported
-
-Handle 0x0001, DMI type 1, 25 bytes
-System Information
-	Manufacturer:      
-	Product Name:  
-	Version:  
-	Serial Number:  
-	UUID: 00000000-0000-0000-0000-00508D978E73
-	Wake-up Type: Power Switch
-
-Handle 0x0002, DMI type 2, 8 bytes
-Base Board Information
-	Manufacturer: http://www.abit.com.tw/
-	Product Name: AW9D .        (Intel i975-ICH7)
-	Version: 1.0  
-	Serial Number:  
-
-Handle 0x0003, DMI type 3, 13 bytes
-Chassis Information
-	Manufacturer:  
-	Type: Desktop
-	Lock: Not Present
-	Version: Not Specified
-	Serial Number: Not Specified
-	Asset Tag: Not Specified
-	Boot-up State: Unknown
-	Power Supply State: Unknown
-	Thermal State: Unknown
-	Security Status: Unknown
-
-Handle 0x0004, DMI type 4, 32 bytes
-Processor Information
-	Socket Designation: Socket 775
-	Type: Central Processor
-	Family: Other
-	Manufacturer: Intel
-	ID: 7A 06 01 00 FF FB EB BF
-	Version: <BAD INDEX>
-	Voltage: 0.0 V
-	External Clock: 204 MHz
-	Max Speed: 4000 MHz
-	Current Speed: 2448 MHz
-	Status: Populated, Enabled
-	Upgrade: ZIF Socket
-	L1 Cache Handle: 0x000A
-	L2 Cache Handle: 0x000B
-	L3 Cache Handle: No L3 Cache
-
-Handle 0x0518, DMI type 0, 5 bytes
-BIOS Information
-
-Handle 0x0006, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: A0
-	Bank Connections: 0 1
-	Current Speed: Unknown
-	Type: Other
-	Installed Size: 2048 MB (Double-bank Connection)
-	Enabled Size: 2048 MB (Double-bank Connection)
-	Error Status: OK
-
-Handle 0x0007, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: A1
-	Bank Connections: 2 3
-	Current Speed: Unknown
-	Type: Other
-	Installed Size: 2048 MB (Double-bank Connection)
-	Enabled Size: 2048 MB (Double-bank Connection)
-	Error Status: OK
-
-Handle 0x0008, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: A2
-	Bank Connections: 4 5
-	Current Speed: Unknown
-	Type: Other
-	Installed Size: 2048 MB (Double-bank Connection)
-	Enabled Size: 2048 MB (Double-bank Connection)
-	Error Status: OK
-
-Handle 0x0009, DMI type 6, 12 bytes
-Memory Module Information
-	Socket Designation: A3
-	Bank Connections: 6 7
-	Current Speed: Unknown
-	Type: Other
-	Installed Size: 2048 MB (Double-bank Connection)
-	Enabled Size: 2048 MB (Double-bank Connection)
-	Error Status: OK
-
-Handle 0x000A, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: Internal Cache
-	Configuration: Enabled, Not Socketed, Level 1
-	Operational Mode: Write Back
-	Location: Internal
-	Installed Size: 32 kB
-	Maximum Size: 32 kB
-	Supported SRAM Types:
-		Synchronous
-	Installed SRAM Type: Synchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x000B, DMI type 7, 19 bytes
-Cache Information
-	Socket Designation: External Cache
-	Configuration: Enabled, Not Socketed, Level 2
-	Operational Mode: Write Back
-	Location: External
-	Installed Size: 1024 kB
-	Maximum Size: 1024 kB
-	Supported SRAM Types:
-		Synchronous
-	Installed SRAM Type: Synchronous
-	Speed: Unknown
-	Error Correction Type: Unknown
-	System Type: Unknown
-	Associativity: Unknown
-
-Handle 0x000C, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: PRIMARY IDE
-	Internal Connector Type: On Board IDE
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x000D, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: SECONDARY IDE
-	Internal Connector Type: On Board IDE
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: Other
-
-Handle 0x000E, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: FDD
-	Internal Connector Type: On Board Floppy
-	External Reference Designator: Not Specified
-	External Connector Type: None
-	Port Type: 8251 FIFO Compatible
-
-Handle 0x000F, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Keyboard
-	Internal Connector Type: PS/2
-	External Reference Designator:  
-	External Connector Type: PS/2
-	Port Type: Keyboard Port
-
-Handle 0x0010, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: PS/2 Mouse
-	Internal Connector Type: PS/2
-	External Reference Designator:  
-	External Connector Type: PS/2
-	Port Type: Mouse Port
-
-Handle 0x0011, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Not Specified
-	Internal Connector Type: None
-	External Reference Designator: USB0
-	External Connector Type: Other
-	Port Type: USB
-
-Handle 0x0012, DMI type 8, 9 bytes
-Port Connector Information
-	Internal Reference Designator: Not Specified
-	Internal Connector Type: None
-	External Reference Designator: USB1
-	External Connector Type: Other
-	Port Type: USB
-
-Handle 0x0013, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI1
-	Type: 32-bit PCI
-	Current Usage: Available
-	Length: Long
-	ID: 1
-	Characteristics:
-		5.0 V is provided
-		PME signal is supported
-
-Handle 0x0014, DMI type 9, 13 bytes
-System Slot Information
-	Designation: PCI2
-	Type: 32-bit PCI
-	Current Usage: Available
-	Length: Long
-	ID: 2
-	Characteristics:
-		5.0 V is provided
-		PME signal is supported
-
-Handle 0x0015, DMI type 13, 22 bytes
-BIOS Language Information
-	Language Description Format: Long
-	Installable Languages: 3
-		n|US|iso8859-1
-		n|US|iso8859-1
-		r|CA|iso8859-1
-	Currently Installed Language: n|US|iso8859-1
-
-Handle 0x0016, DMI type 16, 15 bytes
-Physical Memory Array
-	Location: System Board Or Motherboard
-	Use: System Memory
-	Error Correction Type: None
-	Maximum Capacity: 4 GB
-	Error Information Handle: Not Provided
-	Number Of Devices: 4
-
-Handle 0x0017, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x0016
-	Error Information Handle: Not Provided
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: A0
-	Bank Locator: Bank0/1
-	Type: DDR
-	Type Detail: Synchronous
-
-Handle 0x0018, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x0016
-	Error Information Handle: Not Provided
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: A1
-	Bank Locator: Bank2/3
-	Type: DDR
-	Type Detail: Synchronous
-
-Handle 0x0019, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x0016
-	Error Information Handle: Not Provided
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: A2
-	Bank Locator: Bank4/5
-	Type: DDR
-	Type Detail: Synchronous
-
-Handle 0x001A, DMI type 17, 21 bytes
-Memory Device
-	Array Handle: 0x0016
-	Error Information Handle: Not Provided
-	Total Width: 64 bits
-	Data Width: 64 bits
-	Size: 2048 MB
-	Form Factor: DIMM
-	Set: None
-	Locator: A3
-	Bank Locator: Bank6/7
-	Type: DDR
-	Type Detail: Synchronous
-
-Handle 0x001B, DMI type 19, 15 bytes
-Memory Array Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x001FFFFFFFF
-	Range Size: 8 GB
-	Physical Array Handle: 0x0016
-	Partition Width: 1
-
-Handle 0x001C, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00000000000
-	Ending Address: 0x0007FFFFFFF
-	Range Size: 2 GB
-	Physical Device Handle: 0x0017
-	Memory Array Mapped Address Handle: 0x001B
-	Partition Row Position: 1
-
-Handle 0x001D, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00080000000
-	Ending Address: 0x000FFFFFFFF
-	Range Size: 2 GB
-	Physical Device Handle: 0x0018
-	Memory Array Mapped Address Handle: 0x001B
-	Partition Row Position: 1
-
-Handle 0x001E, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00100000000
-	Ending Address: 0x0017FFFFFFF
-	Range Size: 2 GB
-	Physical Device Handle: 0x0019
-	Memory Array Mapped Address Handle: 0x001B
-	Partition Row Position: 1
-
-Handle 0x001F, DMI type 20, 19 bytes
-Memory Device Mapped Address
-	Starting Address: 0x00180000000
-	Ending Address: 0x001FFFFFFFF
-	Range Size: 2 GB
-	Physical Device Handle: 0x001A
-	Memory Array Mapped Address Handle: 0x001B
-	Partition Row Position: 1
-
-Handle 0x0020, DMI type 32, 11 bytes
-System Boot Information
-	Status: No errors detected
-
-Handle 0x0021, DMI type 127, 4 bytes
-End Of Table
-
-
---------------050200060109050200060100
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---------------050200060109050200060100--
