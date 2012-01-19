@@ -1,62 +1,106 @@
-From: Andreas Herrmann <andreas.herrmann3@amd.com>
-Date: Fri, 20 Jan 2012 17:18:01 +0000
-Subject: Re: [lm-sensors] wrong output with fam15h_power
-Message-Id: <20120120171801.GE24508@alberich.amd.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:16 +0000
+Subject: [lm-sensors] [PATCH 22/82] hwmon: (f71805f) Fix multi-line comments
+Message-Id: <1327017376-20466-23-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1321642023.1644.12.camel@tellur>
-In-Reply-To: <1321642023.1644.12.camel@tellur>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCBOb3YgMjIsIDIwMTEgYXQgMDk6NDE6NTJBTSArMDEwMCwgQW5kcmVhcyBIZXJybWFu
-biB3cm90ZToKPiBPbiBGcmksIE5vdiAxOCwgMjAxMSBhdCAwNzo0NzowM1BNICswMTAwLCBMdWNh
-cyBTdGFjaCB3cm90ZToKPiA+IEhpLAo+ID4gCj4gPiBJJ20gdHJ5aW5nIHRvIHVzZSB0aGUgZmFt
-MTVoX3Bvd2VyIGRyaXZlciB0byBtZWFzdXJlIG15IHByb2Nlc3NvcnMgcG93ZXIKPiA+IGNvbnN1
-bXB0aW9uLCBidXQgaXQgZ2l2ZXMgbWUgY2xlYXJseSB3cm9uZyB2YWx1ZXMuIFdpdGggYSBjb21w
-bGV0ZWx5Cj4gPiBpZGxlIHN5c3RlbSB0aGUgcHJvY2Vzc29yIGNsYWltcyB0byBiZSB1c2luZyAx
-MjUyNjE3MTjCtVcsIHdoaWNoIHdvdWxkCj4gPiBtZWFuIHRoZSBwcm9jZXNzb3Igb3BlcmF0ZXMg
-YXQgaXQncyBURFAgbGltaXQuIFdpdGggYWxsIGNvcmVzIDEwMCUKPiA+IGxvYWRlZCBpdCBjbGFp
-bXMgdG8gYmUgdXNpbmcgMTMwNjc1NzgxwrVXIHdoaWNoIEkgY2FuJ3QgYmVsaWV2ZSBhcyB0aGlz
-Cj4gPiB3b3VsZCBtZWFuIHRoZSBwcm9jZXNzb3IgdmlvbGF0ZXMgaXQncyBvd24gc3BlYy4KPiA+
-IAo+ID4gVGhpcyBpcyBhIGRlc2t0b3Agc3lzdGVtIHdpdGggYW4gQU1EIEZYLTgxNTAgcHJvY2Vz
-c29yIG9uIGEgYnJhbmQgbmV3Cj4gPiBHaWdhYnl0ZSBHQS05NzBBLVVEMyBib2FyZCB3aXRoIHRo
-ZSBsYXRlc3QgKEY0KSBCSU9TLgo+ID4gCj4gPiBJcyB0aGlzIGEga25vd24gYnVnPyBJZiBub3Qg
-SSB3b3VsZCBiZSBnbGFkIHRvIGhlbHAgdHJhY2sgdGhpcyBkb3duLiBJCj4gPiBoYWQgYSBxdWlj
-ayBsb29rIGF0IHRoZSBCSU9TIGFuZCBLZXJuZWwgRGV2ZWxvcGVy4oCZcyBHdWlkZSAoQktERykg
-Zm9yIEFNRAo+ID4gRmFtaWx5IDE1aCAoIzQyMzAxKSBidXQgY291bGRuJ3QgZGV0ZXJtaW5lIGlm
-IHRoZSBtYXRoIGRvbmUgaW4gdGhlCj4gPiBmYW0xNWhfcG93ZXIgZHJpdmVyIGlzIGNvcnJlY3Qg
-b3IgaWYgd2UgbmVlZCB0byBzZXQgc29tZSByZWdpc3RlcnMgdG8KPiA+IHNwZWNpZmljIHZhbHVl
-cyB0byBtYWtlIHRoaXMgd29yayBhcyBpbnRlbmRlZC4gQW55IGhpbnRzIHdvdWxkIGJlCj4gPiBh
-cHByZWNpYXRlZC4KPiAKPiBGWUksIEkgYW0gbG9va2luZyBpbnRvIHRoaXMuIEkndmUgcmVjZW50
-bHkgYWxzbyBzZWVuIHRoYXQgdGhlIHZhbHVlcwo+IHJlcG9ydGVkIGluIGlkbGUgc3RhdGUgc2Vl
-bSB0byBiZSBib2d1cyB2YWx1ZXMgYXMgdGhlIHBvd2VyCj4gY29uc3VtcHRpb24gbWVhc3VyZWQg
-Zm9yIHRoZSBlbnRpcmUgc3lzdGVtIGlzIG9mdGVuIGxlc3MgdGhlbiB0aGUKPiB2YWx1ZSByZXBv
-cnRlZCBieSB0aGUgZHJpdmVyIGZvciBDUFUgcG93ZXIgY29uc3VtcHRpb24uCj4gCj4gSG9wZSB0
-aGF0IEkgY2FuIHByb3ZpZGUgYW4gZXhwbGFuYXRpb24gZm9yIHRoaXMgb2RkaXRpZXMgc29vbi4K
-ClNvcnJ5IGZvciB0aGUgbGF0ZSB1cGRhdGUuCgpJdCdzIHBvc3NpYmxlIHRvIGdldCByZWFzb25h
-YmxlIGlkbGUgdmFsdWVzIGJ5IGFkYXB0aW5nIHRoZSBwb3dlcgphdmVyYWdpbmcgcGVyaW9kLgoK
-KElmIGludGVyZXN0ZWQgaW4gZGV0YWlscywgc2VlIGRlc2NyaXB0aW9uIG9mIEQxOEY1eEUwIFBy
-b2Nlc3NvciBURFAKUnVubmluZyBBdmVyYWdlIGluICJCS0RHIGZvciBBTUQgRmFtaWx5IDE1aCBN
-b2RlbHMgMDBoLTBGaApQcm9jZXNzb3JzIi4pCgooQXQgeW91ciBvd24gcmlzaykgeW91IGNhbiB0
-cnkgdGhlIGZvbGxvd2luZzoKCihZb3UgaGF2ZSB0byBiZSByb290IHRvIGRvIHRoaXMpCgogICMg
-c2Vuc29ycwogIGZhbTE1aF9wb3dlci1wY2ktMDBjNAogIEFkYXB0ZXI6IFBDSSBhZGFwdGVyCiAg
-cG93ZXIxOiAgICAgIDk1LjQxIFcKCiAgIyBzZXRwY2kgLXMgMTguNSAweGUwLmwgICAgCiAgMDBm
-ZmZmZmUKICAjIHNldHBjaSAtcyAxOC41IDB4ZTAubD05CiAgIyBzZXRwY2kgLXMgMTguNSAweGUw
-LmwKICAwMDU1MmY2OQogICMgc2Vuc29ycwogIGZhbTE1aF9wb3dlci1wY2ktMDBjNAogIEFkYXB0
-ZXI6IFBDSSBhZGFwdGVyCiAgcG93ZXIxOiAgICAgIDIxLjg5IFcKCk5vdGUgdGhhdCB0aGlzIG1p
-Z2h0IGhhdmUgaW1wbGljYXRpb25zIGZvciBvdGhlciB1c2VycyBvZiB0aGlzIHBvd2VyCmluZm9y
-bWF0aW9uLCBsaWtlIEFkdmFuY2VkIFBsYXRmb3JtIE1hbmFnZW1lbnQgTGluayAoQVBNTCkuCgpV
-bnRpbCB0aGlzIGlzIGNsYXJpZmllZCBJIHdvbid0IGNvbWUgdXAgd2l0aCBhIGRyaXZlciBxdWly
-ay4KCk5vdGUgdGhhdCBJJ2xsIHNvb24gc2VuZCB0d28gdXBkYXRlcyBmb3IgdGhlIGRyaXZlci4g
-QnV0IHRoZXkgYXJlIG5vdApyZWxhdGVkIHRvIHRoZSB1bnJlYXNvbmFibGUgaWRsZSB2YWx1ZXMu
-CgoKUmVnYXJkcywKCkFuZHJlYXMKCi0tIApPcGVyYXRpbmcgfCBBZHZhbmNlZCBNaWNybyBEZXZp
-Y2VzIEdtYkgKICBTeXN0ZW0gIHwgRWluc3RlaW5yaW5nIDI0LCA4NTYwOSBEb3JuYWNoL0FzY2ho
-ZWltLCBHZXJtYW55CiBSZXNlYXJjaCB8IEdlc2Now6RmdHNmw7xocmVyOiBBbGJlcnRvIEJvenpv
-CiAgQ2VudGVyICB8IFNpdHo6IERvcm5hY2gsIEdlbWVpbmRlIEFzY2hoZWltLCBMYW5ka3JlaXMg
-TcO8bmNoZW4KICAoT1NSQykgIHwgUmVnaXN0ZXJnZXJpY2h0IE3DvG5jaGVuLCBIUkIgTnIuIDQz
-NjMyLCBXRUVFLVJlZy1OcjogREUgMTI5MTk1NTEKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
-c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
-aW5mby9sbS1zZW5zb3Jz
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/f71805f.c |   40 ++++++++++++++++++++++++++--------------
+ 1 files changed, 26 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/hwmon/f71805f.c b/drivers/hwmon/f71805f.c
+index 859b203..974e919 100644
+--- a/drivers/hwmon/f71805f.c
++++ b/drivers/hwmon/f71805f.c
+@@ -241,9 +241,11 @@ static inline long fan_from_reg(u16 reg)
+ 
+ static inline u16 fan_to_reg(long rpm)
+ {
+-	/* If the low limit is set below what the chip can measure,
+-	   store the largest possible 12-bit value in the registers,
+-	   so that no alarm will ever trigger. */
++	/*
++	 * If the low limit is set below what the chip can measure,
++	 * store the largest possible 12-bit value in the registers,
++	 * so that no alarm will ever trigger.
++	 */
+ 	if (rpm < 367)
+ 		return 0xfff;
+ 	return 1500000 / rpm;
+@@ -308,9 +310,11 @@ static void f71805f_write8(struct f71805f_data *data, u8 reg, u8 val)
+ 	outb(val, data->addr + DATA_REG_OFFSET);
+ }
+ 
+-/* It is important to read the MSB first, because doing so latches the
+-   value of the LSB, so we are sure both bytes belong to the same value.
+-   Must be called with data->update_lock held, except during initialization */
++/*
++ * It is important to read the MSB first, because doing so latches the
++ * value of the LSB, so we are sure both bytes belong to the same value.
++ * Must be called with data->update_lock held, except during initialization
++ */
+ static u16 f71805f_read16(struct f71805f_data *data, u8 reg)
+ {
+ 	u16 val;
+@@ -1075,8 +1079,10 @@ static SENSOR_DEVICE_ATTR(temp3_max_hyst, S_IRUGO | S_IWUSR,
+ 		    show_temp_hyst, set_temp_hyst, 2);
+ static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2);
+ 
+-/* pwm (value) files are created read-only, write permission is
+-   then added or removed dynamically as needed */
++/*
++ * pwm (value) files are created read-only, write permission is
++ * then added or removed dynamically as needed
++ */
+ static SENSOR_DEVICE_ATTR(pwm1, S_IRUGO, show_pwm, set_pwm, 0);
+ static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGO | S_IWUSR,
+ 			  show_pwm_enable, set_pwm_enable, 0);
+@@ -1311,8 +1317,10 @@ static const struct attribute_group f71805f_group_optin[4] = {
+ 	{ .attrs = f71805f_attributes_optin[3] },
+ };
+ 
+-/* We don't include pwm_freq files in the arrays above, because they must be
+-   created conditionally (only if pwm_mode is 1 = PWM) */
++/*
++ * We don't include pwm_freq files in the arrays above, because they must be
++ * created conditionally (only if pwm_mode is 1 = PWM)
++ */
+ static struct attribute *f71805f_attributes_pwm_freq[] = {
+ 	&sensor_dev_attr_pwm1_freq.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2_freq.dev_attr.attr,
+@@ -1347,13 +1355,17 @@ static void __devinit f71805f_init_device(struct f71805f_data *data)
+ 		f71805f_write8(data, F71805F_REG_START, (reg | 0x01) & ~0x40);
+ 	}
+ 
+-	/* Fan monitoring can be disabled. If it is, we won't be polling
+-	   the register values, and won't create the related sysfs files. */
++	/*
++	 * Fan monitoring can be disabled. If it is, we won't be polling
++	 * the register values, and won't create the related sysfs files.
++	 */
+ 	for (i = 0; i < 3; i++) {
+ 		data->fan_ctrl[i] = f71805f_read8(data,
+ 						  F71805F_REG_FAN_CTRL(i));
+-		/* Clear latch full bit, else "speed mode" fan speed control
+-		   doesn't work */
++		/*
++		 * Clear latch full bit, else "speed mode" fan speed control
++		 * doesn't work
++		 */
+ 		if (data->fan_ctrl[i] & FAN_CTRL_LATCH_FULL) {
+ 			data->fan_ctrl[i] &= ~FAN_CTRL_LATCH_FULL;
+ 			f71805f_write8(data, F71805F_REG_FAN_CTRL(i),
+-- 
+1.7.5.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
