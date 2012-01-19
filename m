@@ -1,92 +1,74 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 30 Jan 2012 21:29:35 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.3-rc2
-Message-Id: <20120130212935.GA4792@ericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6144395546761814243=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:21 +0000
+Subject: [lm-sensors] =?utf-8?q?=5BPATCH_27/82=5D_hwmon=3A_=28gl520sm=29_F?= =?utf-8?q?ix_multi-line_comments
+Message-Id: <1327017376-20466-28-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============6144395546761814243==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="k+w/mQv8wyuph6w0"
-Content-Disposition: inline
-
---k+w/mQv8wyuph6w0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon subsystem fixes on top of Linux 3.3-rc1 from:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-
-------
-
-The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
-
-  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Guenter Roeck (2):
-      MAINTAINERS: Drop maintainer for MAX1668 hwmon driver
-      hwmon: (w83627ehf) Disable setting DC mode for pwm2, pwm3 on NCT6776F
-
-Jean Delvare (1):
-      hwmon: (f71805f) Fix clamping of temperature limits
-
-Mark Brown (1):
-      MAINTAINERS: Add hwmon entries for Wolfson
-
-Vivien Didelot (1):
-      hwmon: (sht15) fix bad error code
-
- MAINTAINERS               |    8 +-------
- drivers/hwmon/f71805f.c   |   10 +++++-----
- drivers/hwmon/sht15.c     |    3 ++-
- drivers/hwmon/w83627ehf.c |    6 ++++++
- 4 files changed, 14 insertions(+), 13 deletions(-)
-
---k+w/mQv8wyuph6w0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPJwu/AAoJEMsfJm/On5mB/NwP/RsVmAmNU5l/1/lQm6pww9nP
-8W3/mh70y7ce8xy/WksG1uHNFG3yOawVq46CZzdvWeF4uDfHzaF1P8WBi46CbMWv
-O/fMKW8Qx7Pw78Nr+HALvVU0RaKWTlT7tldLfqs9n9TFp4yz82y/YtrjsEmoDCah
-6aPt3WkcVwnY3pU4I7PTdlwibgBkRWtHT4isKAR1yrNM7PXrI5Xvz/F1asLHGSVp
-uTGxrnuOKtMt3yZNntXtoe8mtAoIduz1XhE+W3mJHojcVHMbHxjziPG1s3EOnQvs
-IQR5GKFhDZm7gEyc3GKgUWPmzwyZdfJyz2hKM43YgadBT4P/hU8/ibGYpG4Lbwpv
-6wS/aU8DQZ7AHfzlbBXADTPn6P/CeTOsmTgytEC1capc5Onng/D2dx04qkokAguV
-7E5GY8znInr7mQYV+bk4olNBm3ZLr9P/z9953RYiBPDEr8jON96dYNlNMiX707s0
-jA/Qj7jzVzePuT+eh1YzsN1G6XpcZXfUJyep1H9EhY7jeRVrL9c15t336u2hjMGv
-3rXPDo/UxHrOPkCq2+0Y2Ia1rn6jQatAlfSA5IgqZYYqbOhFk0rtCnHTcxB27PSl
-d+aLLLlAqQfEoCbMgdfHPrkLgT8JW1+6pSZxQL5fLX3ALMV2ZXRQn8QYh2iV+ETH
-VoIVhoCExGaBEEmJ5QDF
-=zM34
------END PGP SIGNATURE-----
-
---k+w/mQv8wyuph6w0--
-
-
---===============6144395546761814243==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6144395546761814243==--
+U2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgotLS0KIGRy
+aXZlcnMvaHdtb24vZ2w1MjBzbS5jIHwgICA1NyArKysrKysrKysrKysrKysrKysrKysrKystLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDMwIGluc2VydGlvbnMoKyksIDI3
+IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZ2w1MjBzbS5jIGIvZHJp
+dmVycy9od21vbi9nbDUyMHNtLmMKaW5kZXggMTkwOTA5Ny4uYmRlMWRkOCAxMDA2NDQKLS0tIGEv
+ZHJpdmVycy9od21vbi9nbDUyMHNtLmMKKysrIGIvZHJpdmVycy9od21vbi9nbDUyMHNtLmMKQEAg
+LTEsMjUgKzEsMjUgQEAKIC8qCi0gICAgZ2w1MjBzbS5jIC0gUGFydCBvZiBsbV9zZW5zb3JzLCBM
+aW51eCBrZXJuZWwgbW9kdWxlcyBmb3IgaGFyZHdhcmUKLQkJbW9uaXRvcmluZwotICAgIENvcHly
+aWdodCAoYykgMTk5OCwgMTk5OSAgRnJvZG8gTG9vaWphYXJkIDxmcm9kb2xAZGRzLm5sPiwKLQkJ
+CSAgICAgIEt5w7ZzdGkgTcOkbGtraSA8a21hbGtraUBjYy5odXQuZmk+Ci0gICAgQ29weXJpZ2h0
+IChjKSAyMDA1CU1hYXJ0ZW4gRGVwcmV6IDxtYWFydGVuZGVwcmV6QHVzZXJzLnNvdXJjZWZvcmdl
+Lm5ldD4KLQotICAgIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlz
+dHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5Ci0gICAgaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBH
+TlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkKLSAgICB0aGUgRnJlZSBT
+b2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgot
+ICAgIChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uCi0KLSAgICBUaGlzIHByb2dy
+YW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKLSAg
+ICBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJy
+YW50eSBvZgotICAgIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIg
+UFVSUE9TRS4gIFNlZSB0aGUKLSAgICBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9y
+ZSBkZXRhaWxzLgotCi0gICAgWW91IHNob3VsZCBoYXZlIHJlY2VpdmVkIGEgY29weSBvZiB0aGUg
+R05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKLSAgICBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsg
+aWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQotICAgIEZvdW5kYXRpb24sIEluYy4s
+IDY3NSBNYXNzIEF2ZSwgQ2FtYnJpZGdlLCBNQSAwMjEzOSwgVVNBLgotCi0qLworICogZ2w1MjBz
+bS5jIC0gUGFydCBvZiBsbV9zZW5zb3JzLCBMaW51eCBrZXJuZWwgbW9kdWxlcyBmb3IgaGFyZHdh
+cmUKKyAqCSAgICAgICBtb25pdG9yaW5nCisgKiBDb3B5cmlnaHQgKGMpIDE5OTgsIDE5OTkgIEZy
+b2RvIExvb2lqYWFyZCA8ZnJvZG9sQGRkcy5ubD4sCisgKgkJCSAgICAgS3nDtnN0aSBNw6Rsa2tp
+IDxrbWFsa2tpQGNjLmh1dC5maT4KKyAqIENvcHlyaWdodCAoYykgMjAwNQlNYWFydGVuIERlcHJl
+eiA8bWFhcnRlbmRlcHJlekB1c2Vycy5zb3VyY2Vmb3JnZS5uZXQ+CisgKgorICogVGhpcyBwcm9n
+cmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2Rp
+ZnkKKyAqIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vu
+c2UgYXMgcHVibGlzaGVkIGJ5CisgKiB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyBlaXRo
+ZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgorICogKGF0IHlvdXIgb3B0aW9uKSBhbnkg
+bGF0ZXIgdmVyc2lvbi4KKyAqCisgKiBUaGlzIHByb2dyYW0gaXMgZGlzdHJpYnV0ZWQgaW4gdGhl
+IGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKKyAqIGJ1dCBXSVRIT1VUIEFOWSBXQVJSQU5U
+WTsgd2l0aG91dCBldmVuIHRoZSBpbXBsaWVkIHdhcnJhbnR5IG9mCisgKiBNRVJDSEFOVEFCSUxJ
+VFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuICBTZWUgdGhlCisgKiBHTlUg
+R2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBkZXRhaWxzLgorICoKKyAqIFlvdSBzaG91
+bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
+CisgKiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBT
+b2Z0d2FyZQorICogRm91bmRhdGlvbiwgSW5jLiwgNjc1IE1hc3MgQXZlLCBDYW1icmlkZ2UsIE1B
+IDAyMTM5LCBVU0EuCisgKgorICovCiAKICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KICNpbmNs
+dWRlIDxsaW51eC9pbml0Lmg+CkBAIC00MSwxMCArNDEsMTEgQEAgTU9EVUxFX1BBUk1fREVTQyhl
+eHRyYV9zZW5zb3JfdHlwZSwgIlR5cGUgb2YgZXh0cmEgc2Vuc29yICgwPWF1dG9kZXRlY3QsIDE9
+dGVtcGUKIC8qIEFkZHJlc3NlcyB0byBzY2FuICovCiBzdGF0aWMgY29uc3QgdW5zaWduZWQgc2hv
+cnQgbm9ybWFsX2kyY1tdID0geyAweDJjLCAweDJkLCBJMkNfQ0xJRU5UX0VORCB9OwogCi0vKiBN
+YW55IEdMNTIwIGNvbnN0YW50cyBzcGVjaWZpZWQgYmVsb3cKLU9uZSBvZiB0aGUgaW5wdXRzIGNh
+biBiZSBjb25maWd1cmVkIGFzIGVpdGhlciB0ZW1wIG9yIHZvbHRhZ2UuCi1UaGF0J3Mgd2h5IF9U
+RU1QMiBhbmQgX0lONCBhY2Nlc3MgdGhlIHNhbWUgcmVnaXN0ZXIKLSovCisvKgorICogTWFueSBH
+TDUyMCBjb25zdGFudHMgc3BlY2lmaWVkIGJlbG93CisgKiBPbmUgb2YgdGhlIGlucHV0cyBjYW4g
+YmUgY29uZmlndXJlZCBhcyBlaXRoZXIgdGVtcCBvciB2b2x0YWdlLgorICogVGhhdCdzIHdoeSBf
+VEVNUDIgYW5kIF9JTjQgYWNjZXNzIHRoZSBzYW1lIHJlZ2lzdGVyCisgKi8KIAogLyogVGhlIEdM
+NTIwIHJlZ2lzdGVycyAqLwogI2RlZmluZSBHTDUyMF9SRUdfQ0hJUF9JRAkJMHgwMApAQCAtODg0
+LDggKzg4NSwxMCBAQCBzdGF0aWMgaW50IGdsNTIwX3JlbW92ZShzdHJ1Y3QgaTJjX2NsaWVudCAq
+Y2xpZW50KQogfQogCiAKLS8qIFJlZ2lzdGVycyAweDA3IHRvIDB4MGMgYXJlIHdvcmQtc2l6ZWQs
+IG90aGVycyBhcmUgYnl0ZS1zaXplZAotICAgR0w1MjAgdXNlcyBhIGhpZ2gtYnl0ZSBmaXJzdCBj
+b252ZW50aW9uICovCisvKgorICogUmVnaXN0ZXJzIDB4MDcgdG8gMHgwYyBhcmUgd29yZC1zaXpl
+ZCwgb3RoZXJzIGFyZSBieXRlLXNpemVkCisgKiBHTDUyMCB1c2VzIGEgaGlnaC1ieXRlIGZpcnN0
+IGNvbnZlbnRpb24KKyAqLwogc3RhdGljIGludCBnbDUyMF9yZWFkX3ZhbHVlKHN0cnVjdCBpMmNf
+Y2xpZW50ICpjbGllbnQsIHU4IHJlZykKIHsKIAlpZiAoKHJlZyA+PSAweDA3KSAmJiAocmVnIDw9
+IDB4MGMpKQotLSAKMS43LjUuNAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
+cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
+c29ycw=
