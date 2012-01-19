@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:11 +0000
-Subject: [lm-sensors] [PATCH 17/82] hwmon: (atxp1) Fix multi-line comments
-Message-Id: <1327017376-20466-18-git-send-email-linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:48 +0000
+Subject: [lm-sensors] [PATCH 54/82] hwmon: (s3c-hwmon) Fix multi-line comments
+Message-Id: <1327017376-20466-55-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,109 +10,103 @@ To: lm-sensors@vger.kernel.org
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/atxp1.c |   63 ++++++++++++++++++++++++++----------------------
- 1 files changed, 34 insertions(+), 29 deletions(-)
+ drivers/hwmon/s3c-hwmon.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/hwmon/atxp1.c b/drivers/hwmon/atxp1.c
-index d4a589b..a9d5d0f 100644
---- a/drivers/hwmon/atxp1.c
-+++ b/drivers/hwmon/atxp1.c
-@@ -1,22 +1,22 @@
- /*
--    atxp1.c - kernel module for setting CPU VID and general purpose
--		I/Os using the Attansic ATXP1 chip.
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--
+diff --git a/drivers/hwmon/s3c-hwmon.c b/drivers/hwmon/s3c-hwmon.c
+index f6c26d1..55bd49b 100644
+--- a/drivers/hwmon/s3c-hwmon.c
++++ b/drivers/hwmon/s3c-hwmon.c
+@@ -1,4 +1,5 @@
+-/* linux/drivers/hwmon/s3c-hwmon.c
++/*
++ * linux/drivers/hwmon/s3c-hwmon.c
+  *
+  * Copyright (C) 2005, 2008, 2009 Simtec Electronics
+  *	http://armlinux.simtec.co.uk/
+@@ -18,7 +19,7 @@
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -*/
-+ * atxp1.c - kernel module for setting CPU VID and general purpose
-+ *	     I/Os using the Attansic ATXP1 chip.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
 + */
  
- #include <linux/kernel.h>
- #include <linux/init.h>
-@@ -184,9 +184,10 @@ static ssize_t atxp1_storevcore(struct device *dev,
- 	return count;
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -43,13 +44,13 @@ struct s3c_hwmon_attr {
+ 	char				label_name[12];
+ };
+ 
+-/**
++/*
+  * struct s3c_hwmon - ADC hwmon client information
+  * @lock: Access lock to serialise the conversions.
+  * @client: The client we registered with the S3C ADC core.
+  * @hwmon_dev: The hwmon device we created.
+  * @attr: The holders for the channel attributes.
+-*/
++ */
+ struct s3c_hwmon {
+ 	struct mutex		lock;
+ 	struct s3c_adc_client	*client;
+@@ -58,7 +59,7 @@ struct s3c_hwmon {
+ 	struct s3c_hwmon_attr	attrs[8];
+ };
+ 
+-/**
++/*
+  * s3c_hwmon_read_ch - read a value from a given adc channel.
+  * @dev: The device.
+  * @hwmon: Our state.
+@@ -86,7 +87,7 @@ static int s3c_hwmon_read_ch(struct device *dev,
  }
  
--/* CPU core reference voltage
--    unit: millivolt
--*/
+ #ifdef CONFIG_SENSORS_S3C_RAW
+-/**
 +/*
-+ * CPU core reference voltage
-+ * unit: millivolt
-+ */
- static DEVICE_ATTR(cpu0_vid, S_IRUGO | S_IWUSR, atxp1_showvcore,
- 		   atxp1_storevcore);
+  * s3c_hwmon_show_raw - show a conversion from the raw channel number.
+  * @dev: The device that the attribute belongs to.
+  * @attr: The attribute being read.
+@@ -153,7 +154,7 @@ static inline void s3c_hwmon_remove_raw(struct device *dev) { }
  
-@@ -233,9 +234,10 @@ static ssize_t atxp1_storegpio1(struct device *dev,
- 	return count;
+ #endif /* CONFIG_SENSORS_S3C_RAW */
+ 
+-/**
++/*
+  * s3c_hwmon_ch_show - show value of a given channel
+  * @dev: The device that the attribute belongs to.
+  * @attr: The attribute being read.
+@@ -185,7 +186,7 @@ static ssize_t s3c_hwmon_ch_show(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", ret);
  }
  
--/* GPIO1 data register
--    unit: Four bit as hex (e.g. 0x0f)
--*/
+-/**
 +/*
-+ * GPIO1 data register
-+ * unit: Four bit as hex (e.g. 0x0f)
-+ */
- static DEVICE_ATTR(gpio1, S_IRUGO | S_IWUSR, atxp1_showgpio1, atxp1_storegpio1);
- 
- /* sys file functions for GPIO2 */
-@@ -277,9 +279,10 @@ static ssize_t atxp1_storegpio2(struct device *dev,
- 	return count;
+  * s3c_hwmon_label_show - show label name of the given channel.
+  * @dev: The device that the attribute belongs to.
+  * @attr: The attribute being read.
+@@ -206,7 +207,7 @@ static ssize_t s3c_hwmon_label_show(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", cfg->name);
  }
  
--/* GPIO2 data register
--    unit: Eight bit as hex (e.g. 0xff)
--*/
+-/**
 +/*
-+ * GPIO2 data register
-+ * unit: Eight bit as hex (e.g. 0xff)
+  * s3c_hwmon_create_attr - create hwmon attribute for given channel.
+  * @dev: The device to create the attribute on.
+  * @cfg: The channel configuration passed from the platform data.
+@@ -272,10 +273,10 @@ static void s3c_hwmon_remove_attr(struct device *dev,
+ 	device_remove_file(dev, &attrs->label.dev_attr);
+ }
+ 
+-/**
++/*
+  * s3c_hwmon_probe - device probe entry.
+  * @dev: The device being probed.
+-*/
 + */
- static DEVICE_ATTR(gpio2, S_IRUGO | S_IWUSR, atxp1_showgpio2, atxp1_storegpio2);
- 
- static struct attribute *atxp1_attributes[] = {
-@@ -312,8 +315,10 @@ static int atxp1_detect(struct i2c_client *new_client,
- 	     (i2c_smbus_read_byte_data(new_client, 0xff) = 0)))
- 		return -ENODEV;
- 
--	/* No vendor ID, now checking if registers 0x10,0x11 (non-existent)
--	 * showing the same as register 0x00 */
-+	/*
-+	 * No vendor ID, now checking if registers 0x10,0x11 (non-existent)
-+	 * showing the same as register 0x00
-+	 */
- 	temp = i2c_smbus_read_byte_data(new_client, 0x00);
- 
- 	if (!((i2c_smbus_read_byte_data(new_client, 0x10) = temp) &&
+ static int __devinit s3c_hwmon_probe(struct platform_device *dev)
+ {
+ 	struct s3c_hwmon_pdata *pdata = dev->dev.platform_data;
 -- 
 1.7.5.4
 
