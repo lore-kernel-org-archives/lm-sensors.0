@@ -1,130 +1,210 @@
-From: "Hans J. Koch" <hjk@hansjkoch.de>
-Date: Fri, 20 Jan 2012 00:45:20 +0000
-Subject: Re: [lm-sensors] [PATCH 50/82] hwmon: (max6650) Fix multi-line comments
-Message-Id: <20120120004520.GA21173@local>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:55:05 +0000
+Subject: [lm-sensors] [PATCH 11/82] hwmon: (adt7475) Fix multi-line comments
+Message-Id: <1327017376-20466-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327017376-20466-51-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1327017376-20466-51-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jan 19, 2012 at 03:55:44PM -0800, Guenter Roeck wrote:
-> Cc: Hans J Koch <hjk@hansjkoch.de>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/adt7475.c |   90 ++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 58 insertions(+), 32 deletions(-)
 
-Thanks for having an eye on these little things...
+diff --git a/drivers/hwmon/adt7475.c b/drivers/hwmon/adt7475.c
+index 71e9ac4..a3b4692 100644
+--- a/drivers/hwmon/adt7475.c
++++ b/drivers/hwmon/adt7475.c
+@@ -32,9 +32,10 @@
+ #define THERM		5
+ #define HYSTERSIS	6
+ 
+-/* These are unique identifiers for the sysfs functions - unlike the
+-   numbers above, these are not also indexes into an array
+-*/
++/*
++ * These are unique identifiers for the sysfs functions - unlike the
++ * numbers above, these are not also indexes into an array
++ */
+ 
+ #define ALARM		9
+ #define FAULT		10
+@@ -288,8 +289,10 @@ static void adt7475_write_word(struct i2c_client *client, int reg, u16 val)
+ 	i2c_smbus_write_byte_data(client, reg, val & 0xFF);
+ }
+ 
+-/* Find the nearest value in a table - used for pwm frequency and
+-   auto temp range */
++/*
++ * Find the nearest value in a table - used for pwm frequency and
++ * auto temp range
++ */
+ static int find_nearest(long val, const int *array, int size)
+ {
+ 	int i;
+@@ -385,16 +388,20 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+ 			out = (out >> 4) & 0xF;
+ 		else
+ 			out = (out & 0xF);
+-		/* Show the value as an absolute number tied to
+-		 * THERM */
++		/*
++		 * Show the value as an absolute number tied to
++		 * THERM
++		 */
+ 		out = reg2temp(data, data->temp[THERM][sattr->index]) -
+ 			out * 1000;
+ 		mutex_unlock(&data->lock);
+ 		break;
+ 
+ 	case OFFSET:
+-		/* Offset is always 2's complement, regardless of the
+-		 * setting in CONFIG5 */
++		/*
++		 * Offset is always 2's complement, regardless of the
++		 * setting in CONFIG5
++		 */
+ 		mutex_lock(&data->lock);
+ 		out = (s8)data->temp[sattr->nr][sattr->index];
+ 		if (data->config5 & CONFIG5_TEMPOFFSET)
+@@ -452,8 +459,10 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
+ 		break;
+ 
+ 	case HYSTERSIS:
+-		/* The value will be given as an absolute value, turn it
+-		   into an offset based on THERM */
++		/*
++		 * The value will be given as an absolute value, turn it
++		 * into an offset based on THERM
++		 */
+ 
+ 		/* Read fresh THERM and HYSTERSIS values from the chip */
+ 		data->temp[THERM][sattr->index] @@ -478,8 +487,10 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
+ 	default:
+ 		data->temp[sattr->nr][sattr->index] = temp2reg(data, val);
+ 
+-		/* We maintain an extra 2 digits of precision for simplicity
+-		 * - shift those back off before writing the value */
++		/*
++		 * We maintain an extra 2 digits of precision for simplicity
++		 * - shift those back off before writing the value
++		 */
+ 		out = (u8) (data->temp[sattr->nr][sattr->index] >> 2);
+ 	}
+ 
+@@ -514,8 +525,10 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
+ 	return count;
+ }
+ 
+-/* Table of autorange values - the user will write the value in millidegrees,
+-   and we'll convert it */
++/*
++ * Table of autorange values - the user will write the value in millidegrees,
++ * and we'll convert it
++ */
+ static const int autorange_table[] = {
+ 	2000, 2500, 3330, 4000, 5000, 6670, 8000,
+ 	10000, 13330, 16000, 20000, 26670, 32000, 40000,
+@@ -558,8 +571,10 @@ static ssize_t set_point2(struct device *dev, struct device_attribute *attr,
+ 	data->range[sattr->index]  		adt7475_read(TEMP_TRANGE_REG(sattr->index));
+ 
+-	/* The user will write an absolute value, so subtract the start point
+-	   to figure the range */
++	/*
++	 * The user will write an absolute value, so subtract the start point
++	 * to figure the range
++	 */
+ 	temp = reg2temp(data, data->temp[AUTOMIN][sattr->index]);
+ 	val = SENSORS_LIMIT(val, temp + autorange_table[0],
+ 		temp + autorange_table[ARRAY_SIZE(autorange_table) - 1]);
+@@ -664,8 +679,10 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 		data->pwm[CONTROL][sattr->index]  			adt7475_read(PWM_CONFIG_REG(sattr->index));
+ 
+-		/* If we are not in manual mode, then we shouldn't allow
+-		 * the user to set the pwm speed */
++		/*
++		 * If we are not in manual mode, then we shouldn't allow
++		 * the user to set the pwm speed
++		 */
+ 		if (((data->pwm[CONTROL][sattr->index] >> 5) & 7) != 7) {
+ 			mutex_unlock(&data->lock);
+ 			return count;
+@@ -1280,9 +1297,11 @@ static int adt7475_probe(struct i2c_client *client,
+ 	if ((data->config4 & CONFIG4_PINFUNC) = 0x0)
+ 		data->has_fan4 = 1;
+ 
+-	/* THERM configuration is more complex on the ADT7476 and ADT7490,
+-	   because 2 different pins (TACH4 and +2.5 Vin) can be used for
+-	   this function */
++	/*
++	 * THERM configuration is more complex on the ADT7476 and ADT7490,
++	 * because 2 different pins (TACH4 and +2.5 Vin) can be used for
++	 * this function
++	 */
+ 	if (id->driver_data = adt7490) {
+ 		if ((data->config4 & CONFIG4_PINFUNC) = 0x1 &&
+ 		    !(config3 & CONFIG3_THERM))
+@@ -1294,8 +1313,10 @@ static int adt7475_probe(struct i2c_client *client,
+ 			data->has_voltage |= (1 << 0);		/* in0 */
+ 	}
+ 
+-	/* On the ADT7476, the +12V input pin may instead be used as VID5,
+-	   and VID pins may alternatively be used as GPIO */
++	/*
++	 * On the ADT7476, the +12V input pin may instead be used as VID5,
++	 * and VID pins may alternatively be used as GPIO
++	 */
+ 	if (id->driver_data = adt7476) {
+ 		u8 vid = adt7475_read(REG_VID);
+ 		if (!(vid & VID_VIDSEL))
+@@ -1314,8 +1335,10 @@ static int adt7475_probe(struct i2c_client *client,
+ 	}
+ 	data->bypass_attn &= data->has_voltage;
+ 
+-	/* Call adt7475_read_pwm for all pwm's as this will reprogram any
+-	   pwm's which are disabled to manual mode with 0% duty cycle */
++	/*
++	 * Call adt7475_read_pwm for all pwm's as this will reprogram any
++	 * pwm's which are disabled to manual mode with 0% duty cycle
++	 */
+ 	for (i = 0; i < ADT7475_PWM_COUNT; i++)
+ 		adt7475_read_pwm(client, i);
+ 
+@@ -1431,8 +1454,10 @@ static void adt7475_read_pwm(struct i2c_client *client, int index)
+ 
+ 	data->pwm[CONTROL][index] = adt7475_read(PWM_CONFIG_REG(index));
+ 
+-	/* Figure out the internal value for pwmctrl and pwmchan
+-	   based on the current settings */
++	/*
++	 * Figure out the internal value for pwmctrl and pwmchan
++	 * based on the current settings
++	 */
+ 	v = (data->pwm[CONTROL][index] >> 5) & 7;
+ 
+ 	if (v = 3)
+@@ -1440,10 +1465,11 @@ static void adt7475_read_pwm(struct i2c_client *client, int index)
+ 	else if (v = 7)
+ 		data->pwmctl[index] = 1;
+ 	else if (v = 4) {
+-		/* The fan is disabled - we don't want to
+-		   support that, so change to manual mode and
+-		   set the duty cycle to 0 instead
+-		*/
++		/*
++		 * The fan is disabled - we don't want to
++		 * support that, so change to manual mode and
++		 * set the duty cycle to 0 instead
++		 */
+ 		data->pwm[INPUT][index] = 0;
+ 		data->pwm[CONTROL][index] &= ~0xE0;
+ 		data->pwm[CONTROL][index] |= (7 << 5);
+-- 
+1.7.5.4
 
-Acked-by: Hans J. Koch <hjk@hansjkoch.de>
-
-
-> ---
->  drivers/hwmon/max6650.c |   51 +++++++++++++++++++++++++---------------------
->  1 files changed, 28 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
-> index 159ce02..0998094 100644
-> --- a/drivers/hwmon/max6650.c
-> +++ b/drivers/hwmon/max6650.c
-> @@ -159,13 +159,13 @@ static ssize_t get_fan(struct device *dev, struct device_attribute *devattr,
->  	int rpm;
->  
->  	/*
-> -	* Calculation details:
-> -	*
-> -	* Each tachometer counts over an interval given by the "count"
-> -	* register (0.25, 0.5, 1 or 2 seconds). This module assumes
-> -	* that the fans produce two pulses per revolution (this seems
-> -	* to be the most common).
-> -	*/
-> +	 * Calculation details:
-> +	 *
-> +	 * Each tachometer counts over an interval given by the "count"
-> +	 * register (0.25, 0.5, 1 or 2 seconds). This module assumes
-> +	 * that the fans produce two pulses per revolution (this seems
-> +	 * to be the most common).
-> +	 */
->  
->  	rpm = ((data->tach[attr->index] * 120) / DIV_FROM_REG(data->count));
->  	return sprintf(buf, "%d\n", rpm);
-> @@ -219,12 +219,12 @@ static ssize_t get_target(struct device *dev, struct device_attribute *devattr,
->  	int kscale, ktach, rpm;
->  
->  	/*
-> -	* Use the datasheet equation:
-> -	*
-> -	*    FanSpeed = KSCALE x fCLK / [256 x (KTACH + 1)]
-> -	*
-> -	* then multiply by 60 to give rpm.
-> -	*/
-> +	 * Use the datasheet equation:
-> +	 *
-> +	 *    FanSpeed = KSCALE x fCLK / [256 x (KTACH + 1)]
-> +	 *
-> +	 * then multiply by 60 to give rpm.
-> +	 */
->  
->  	kscale = DIV_FROM_REG(data->config);
->  	ktach = data->speed;
-> @@ -248,11 +248,11 @@ static ssize_t set_target(struct device *dev, struct device_attribute *devattr,
->  	rpm = SENSORS_LIMIT(rpm, FAN_RPM_MIN, FAN_RPM_MAX);
->  
->  	/*
-> -	* Divide the required speed by 60 to get from rpm to rps, then
-> -	* use the datasheet equation:
-> -	*
-> -	*     KTACH = [(fCLK x KSCALE) / (256 x FanSpeed)] - 1
-> -	*/
-> +	 * Divide the required speed by 60 to get from rpm to rps, then
-> +	 * use the datasheet equation:
-> +	 *
-> +	 *     KTACH = [(fCLK x KSCALE) / (256 x FanSpeed)] - 1
-> +	 */
->  
->  	mutex_lock(&data->update_lock);
->  
-> @@ -286,8 +286,10 @@ static ssize_t get_pwm(struct device *dev, struct device_attribute *devattr,
->  	int pwm;
->  	struct max6650_data *data = max6650_update_device(dev);
->  
-> -	/* Useful range for dac is 0-180 for 12V fans and 0-76 for 5V fans.
-> -	   Lower DAC values mean higher speeds. */
-> +	/*
-> +	 * Useful range for dac is 0-180 for 12V fans and 0-76 for 5V fans.
-> +	 * Lower DAC values mean higher speeds.
-> +	 */
->  	if (data->config & MAX6650_CFG_V12)
->  		pwm = 255 - (255 * (int)data->dac)/180;
->  	else
-> @@ -657,7 +659,8 @@ static int max6650_init_client(struct i2c_client *client)
->  	dev_info(&client->dev, "Prescaler is set to %d.\n",
->  		 1 << (config & MAX6650_CFG_PRESCALER_MASK));
->  
-> -	/* If mode is set to "full off", we change it to "open loop" and
-> +	/*
-> +	 * If mode is set to "full off", we change it to "open loop" and
->  	 * set DAC to 255, which has the same effect. We do this because
->  	 * there's no "full off" mode defined in hwmon specifcations.
->  	 */
-> @@ -711,9 +714,11 @@ static struct max6650_data *max6650_update_device(struct device *dev)
->  							MAX6650_REG_COUNT);
->  		data->dac = i2c_smbus_read_byte_data(client, MAX6650_REG_DAC);
->  
-> -		/* Alarms are cleared on read in case the condition that
-> +		/*
-> +		 * Alarms are cleared on read in case the condition that
->  		 * caused the alarm is removed. Keep the value latched here
-> -		 * for providing the register through different alarm files. */
-> +		 * for providing the register through different alarm files.
-> +		 */
->  		data->alarm |= i2c_smbus_read_byte_data(client,
->  							MAX6650_REG_ALARM);
->  
-> -- 
-> 1.7.5.4
-> 
-> 
 
 _______________________________________________
 lm-sensors mailing list
