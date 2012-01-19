@@ -1,41 +1,65 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 16 Jan 2012 08:49:02 +0000
-Subject: [lm-sensors] [PATCH 00/39] hwmon: Fix checkpatch issues
-Message-Id: <1326703781-14272-1-git-send-email-linux@roeck-us.net>
+Date: Thu, 19 Jan 2012 23:56:14 +0000
+Subject: [lm-sensors] [PATCH 80/82] hwmon: (w83l785ts) Fix multi-line comments
+Message-Id: <1327017376-20466-81-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This patch series is the result of playing with coccinelle. It is based on a
-series of coccinelle script runs written to fix the following checkpatch issues.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/w83l785ts.c |   18 ++++++++++++------
+ 1 files changed, 12 insertions(+), 6 deletions(-)
 
-WARNING: simple_strtol is obsolete, use kstrtol instead
-WARNING: simple_strtoul is obsolete, use kstrtoul instead
-ERROR: do not use assignment in if condition
+diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
+index edfc1ec..05f12b9 100644
+--- a/drivers/hwmon/w83l785ts.c
++++ b/drivers/hwmon/w83l785ts.c
+@@ -116,8 +116,10 @@ struct w83l785ts_data {
+ 	unsigned long last_updated; /* in jiffies */
+ 
+ 	/* registers values */
+-	s8 temp[2]; /* 0: input
+-		       1: critical limit */
++	s8 temp[2]; /*
++		     * 0: input
++		     * 1: critical limit
++		     */
+ };
+ 
+ /*
+@@ -250,8 +252,10 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
+ 	struct device *dev;
+ 	const char *prefix;
+ 
+-	/* We might be called during detection, at which point the client
+-	   isn't yet fully initialized, so we can't use dev_dbg on it */
++	/*
++	 * We might be called during detection, at which point the client
++	 * isn't yet fully initialized, so we can't use dev_dbg on it
++	 */
+ 	if (i2c_get_clientdata(client)) {
+ 		dev = &client->dev;
+ 		prefix = "";
+@@ -260,9 +264,11 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
+ 		prefix = "w83l785ts: ";
+ 	}
+ 
+-	/* Frequent read errors have been reported on Asus boards, so we
++	/*
++	 * Frequent read errors have been reported on Asus boards, so we
+ 	 * retry on read errors. If it still fails (unlikely), return the
+-	 * default value requested by the caller. */
++	 * default value requested by the caller.
++	 */
+ 	for (i = 1; i <= MAX_RETRIES; i++) {
+ 		value = i2c_smbus_read_byte_data(client, reg);
+ 		if (value >= 0) {
+-- 
+1.7.5.4
 
-The files in drivers/hwmon were processed with coccinelle to fix above issues. 
-Subsequently, all files touched by coccinelle were edited manually to fix any
-remaining checkpatch warnings and errors.
-
-The changelog for each patch describes which checkpatch issues were fixed,
-and lists any remaining checkpatch issues as well as (in most cases) the reasons
-why those were not fixed.
-
-The series applies to the tip of Linus's tree. Some of the changes overlap with
-the pending checkpatch cleanup fixes, but "git am -3" on top of those should
-work.
-
-Since the patch series is quite large, I am sure I got something wrong, even
-though I reviewed the changes several times. So the plan is to put the series
-into my hwmon-next branch immediately after -rc1 is released, and only submit
-patches upstream after I get a Reviewed-by: or Acked-by: feedback. Any leftover
-patches will end up in 3.4. Some of the patches may also end up in Jean's tree
-if that is more convenient.
-
-Note that two of the patches generate false checkpatch errors/warnings in
-comments.
 
 _______________________________________________
 lm-sensors mailing list
