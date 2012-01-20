@@ -1,24 +1,54 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 02 Jan 2012 16:53:33 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] drivers/hwmon/lm80: fix line exceeds
-Message-Id: <20120102165333.GD17788@ericsson.com>
+Date: Fri, 20 Jan 2012 15:11:16 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (hwmon) Fix multi-line comments
+Message-Id: <1327072276-22299-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1325502203-10525-4-git-send-email-fransmeulenbroeks@gmail.com>
-In-Reply-To: <1325502203-10525-4-git-send-email-fransmeulenbroeks@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 02, 2012 at 06:03:23AM -0500, Frans Meulenbroeks wrote:
-> as reported by cleanfile
-> 
-> Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
 
-checkpatch -f reports 23 errors and 18 warnings on lm80,c, and it reports
-8 errors on your patch alone (missing spaces).
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Do not replace "/**" since it is for documentation.
 
-Guenter
+ drivers/hwmon/hwmon.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/hwmon/hwmon.c b/drivers/hwmon/hwmon.c
+index b58a0ff..c3c471c 100644
+--- a/drivers/hwmon/hwmon.c
++++ b/drivers/hwmon/hwmon.c
+@@ -1,14 +1,14 @@
+ /*
+-    hwmon.c - part of lm_sensors, Linux kernel modules for hardware monitoring
+-
+-    This file defines the sysfs class "hwmon", for use by sensors drivers.
+-
+-    Copyright (C) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; version 2 of the License.
+-*/
++ * hwmon.c - part of lm_sensors, Linux kernel modules for hardware monitoring
++ *
++ * This file defines the sysfs class "hwmon", for use by sensors drivers.
++ *
++ * Copyright (C) 2005 Mark M. Hoffman <mhoffman@lightlink.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
