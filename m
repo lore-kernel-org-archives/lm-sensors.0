@@ -1,47 +1,254 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:20 +0000
-Subject: [lm-sensors] [PATCH 41/79] hwmon: (dme1737) Fix vrm value range
-Message-Id: <1327373398-997-42-git-send-email-guenter.roeck@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 20 Jan 2012 19:39:16 +0000
+Subject: [lm-sensors] [PATCH 04/13] hwmon: (w83781d) Fix: do not use assignment in if condition
+Message-Id: <1327088365-11149-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-When updating vrm, the value range was not limited. This could result in more or
-less random vrm values if the value provided by the user was larger than 255.
-Fix by limiting the range to 0..255 using the SENSORS_LIMIT macro.
+Fix checkpatch issue:
+ERROR: do not use assignment in if condition
 
-Cc: Juerg Haefliger <juergh@gmail.com>
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Replace repeated calls to device_create_file() with calls to sysfs_create_group.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/dme1737.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/w83781d.c |  140 ++++++++++++++++++++++++-----------------------
+ 1 files changed, 72 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-index e7c6a19..81b6fbd 100644
---- a/drivers/hwmon/dme1737.c
-+++ b/drivers/hwmon/dme1737.c
-@@ -1480,14 +1480,14 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
- 		       const char *buf, size_t count)
- {
- 	struct dme1737_data *data = dev_get_drvdata(dev);
--	long val;
-+	unsigned long val;
- 	int err;
+diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+index cbed525..b03d54a 100644
+--- a/drivers/hwmon/w83781d.c
++++ b/drivers/hwmon/w83781d.c
+@@ -975,23 +975,58 @@ static const struct attribute_group w83781d_group = {
+ 	.attrs = w83781d_attributes,
+ };
  
--	err = kstrtol(buf, 10, &val);
-+	err = kstrtoul(buf, 10, &val);
- 	if (err)
+-static struct attribute *w83781d_attributes_opt[] = {
++static struct attribute *w83781d_attributes_in1[] = {
+ 	IN_UNIT_ATTRS(1),
++	NULL
++};
++static const struct attribute_group w83781d_group_in1 = {
++	.attrs = w83781d_attributes_in1,
++};
++
++static struct attribute *w83781d_attributes_in78[] = {
+ 	IN_UNIT_ATTRS(7),
+ 	IN_UNIT_ATTRS(8),
++	NULL
++};
++static const struct attribute_group w83781d_group_in78 = {
++	.attrs = w83781d_attributes_in78,
++};
++
++static struct attribute *w83781d_attributes_temp3[] = {
+ 	TEMP_UNIT_ATTRS(3),
++	NULL
++};
++static const struct attribute_group w83781d_group_temp3 = {
++	.attrs = w83781d_attributes_temp3,
++};
++
++static struct attribute *w83781d_attributes_pwm12[] = {
+ 	&sensor_dev_attr_pwm1.dev_attr.attr,
+ 	&sensor_dev_attr_pwm2.dev_attr.attr,
++	&dev_attr_pwm2_enable.attr,
++	NULL
++};
++static const struct attribute_group w83781d_group_pwm12 = {
++	.attrs = w83781d_attributes_pwm12,
++};
++
++static struct attribute *w83781d_attributes_pwm34[] = {
+ 	&sensor_dev_attr_pwm3.dev_attr.attr,
+ 	&sensor_dev_attr_pwm4.dev_attr.attr,
+-	&dev_attr_pwm2_enable.attr,
++	NULL
++};
++static const struct attribute_group w83781d_group_pwm34 = {
++	.attrs = w83781d_attributes_pwm34,
++};
++
++static struct attribute *w83781d_attributes_other[] = {
+ 	&sensor_dev_attr_temp1_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	NULL
+ };
+-static const struct attribute_group w83781d_group_opt = {
+-	.attrs = w83781d_attributes_opt,
++static const struct attribute_group w83781d_group_other = {
++	.attrs = w83781d_attributes_other,
+ };
+ 
+ /* No clean up is done on error, it's up to the caller */
+@@ -1005,52 +1040,18 @@ w83781d_create_files(struct device *dev, int kind, int is_isa)
  		return err;
  
--	data->vrm = val;
-+	data->vrm = SENSORS_LIMIT(val, 0, 255);
- 	return count;
+ 	if (kind != w83783s) {
+-		if ((err = device_create_file(dev,
+-				&sensor_dev_attr_in1_input.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in1_min.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in1_max.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in1_alarm.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in1_beep.dev_attr)))
++		err = sysfs_create_group(&dev->kobj, &w83781d_group_in1);
++		if (err)
+ 			return err;
+ 	}
+ 	if (kind != as99127f && kind != w83781d && kind != w83783s) {
+-		if ((err = device_create_file(dev,
+-				&sensor_dev_attr_in7_input.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in7_min.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in7_max.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in7_alarm.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in7_beep.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in8_input.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in8_min.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in8_max.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in8_alarm.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_in8_beep.dev_attr)))
++		err = sysfs_create_group(&dev->kobj, &w83781d_group_in78);
++		if (err)
+ 			return err;
+ 	}
+ 	if (kind != w83783s) {
+-		if ((err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_input.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_max.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_max_hyst.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_alarm.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_beep.dev_attr)))
++		err = sysfs_create_group(&dev->kobj, &w83781d_group_temp3);
++		if (err)
+ 			return err;
+ 
+ 		if (kind != w83781d) {
+@@ -1063,30 +1064,28 @@ w83781d_create_files(struct device *dev, int kind, int is_isa)
+ 	}
+ 
+ 	if (kind != w83781d && kind != as99127f) {
+-		if ((err = device_create_file(dev,
+-				&sensor_dev_attr_pwm1.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_pwm2.dev_attr))
+-		    || (err = device_create_file(dev, &dev_attr_pwm2_enable)))
++		err = sysfs_create_group(&dev->kobj, &w83781d_group_pwm12);
++		if (err)
+ 			return err;
+ 	}
+ 	if (kind = w83782d && !is_isa) {
+-		if ((err = device_create_file(dev,
+-				&sensor_dev_attr_pwm3.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_pwm4.dev_attr)))
++		err = sysfs_create_group(&dev->kobj, &w83781d_group_pwm34);
++		if (err)
+ 			return err;
+ 	}
+ 
+ 	if (kind != as99127f && kind != w83781d) {
+-		if ((err = device_create_file(dev,
+-				&sensor_dev_attr_temp1_type.dev_attr))
+-		    || (err = device_create_file(dev,
+-				&sensor_dev_attr_temp2_type.dev_attr)))
++		err = device_create_file(dev,
++					 &sensor_dev_attr_temp1_type.dev_attr);
++		if (err)
++			return err;
++		err = device_create_file(dev,
++					 &sensor_dev_attr_temp2_type.dev_attr);
++		if (err)
+ 			return err;
+ 		if (kind != w83783s) {
+ 			err = device_create_file(dev,
+-				&sensor_dev_attr_temp3_type.dev_attr);
++					&sensor_dev_attr_temp3_type.dev_attr);
+ 			if (err)
+ 				return err;
+ 		}
+@@ -1196,6 +1195,17 @@ w83781d_detect(struct i2c_client *client, struct i2c_board_info *info)
+ 	return -ENODEV;
  }
  
++static void w83781d_remove_files(struct device *dev)
++{
++	sysfs_remove_group(&dev->kobj, &w83781d_group);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_in1);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_in78);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_temp3);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_pwm12);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_pwm34);
++	sysfs_remove_group(&dev->kobj, &w83781d_group_other);
++}
++
+ static int
+ w83781d_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+@@ -1238,9 +1248,7 @@ w83781d_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	return 0;
+ 
+ ERROR4:
+-	sysfs_remove_group(&dev->kobj, &w83781d_group);
+-	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
+-
++	w83781d_remove_files(dev);
+ 	if (data->lm75[0])
+ 		i2c_unregister_device(data->lm75[0]);
+ 	if (data->lm75[1])
+@@ -1258,9 +1266,7 @@ w83781d_remove(struct i2c_client *client)
+ 	struct device *dev = &client->dev;
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-
+-	sysfs_remove_group(&dev->kobj, &w83781d_group);
+-	sysfs_remove_group(&dev->kobj, &w83781d_group_opt);
++	w83781d_remove_files(dev);
+ 
+ 	if (data->lm75[0])
+ 		i2c_unregister_device(data->lm75[0]);
+@@ -1821,8 +1827,7 @@ w83781d_isa_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+  exit_remove_files:
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
++	w83781d_remove_files(&pdev->dev);
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+ 	kfree(data);
+  exit_release_region:
+@@ -1837,8 +1842,7 @@ w83781d_isa_remove(struct platform_device *pdev)
+ 	struct w83781d_data *data = platform_get_drvdata(pdev);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group);
+-	sysfs_remove_group(&pdev->dev.kobj, &w83781d_group_opt);
++	w83781d_remove_files(&pdev->dev);
+ 	device_remove_file(&pdev->dev, &dev_attr_name);
+ 	release_region(data->isa_addr + W83781D_ADDR_REG_OFFSET, 2);
+ 	kfree(data);
 -- 
-1.7.3.1
+1.7.5.4
 
 
 _______________________________________________
