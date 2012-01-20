@@ -1,44 +1,46 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Fri, 27 Jan 2012 14:23:22 +0000
-Subject: Re: [lm-sensors] coretemp ABI breakage during pkgtemp/coretemp merger
-Message-Id: <4D68720C2E767A4AA6A8796D42C8EB5902FD36@BGSMSX101.gar.corp.intel.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 20 Jan 2012 15:09:23 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (f71805f) Fix clamping of temperature limits
+Message-Id: <20120120160923.5f690806@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F229DD1.9040103@freebox.fr>
-In-Reply-To: <4F229DD1.9040103@freebox.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+Properly clamp temperature limits set by the user. Without this fix,
+attempts to write temperature limits above the maximum supported by
+the chip (255 degrees Celsius) would arbitrarily and unexpectedly
+result in the limit being set to 0 degree Celsius.
 
-> -----Original Message-----
-> From: Florian Fainelli [mailto:ffainelli@freebox.fr]
-> Sent: Friday, January 27, 2012 6:27 PM
-> To: R, Durgadoss; Yu, Fenghua
-> Cc: lm-sensors@lm-sensors.org; Guenter Roeck; Maxime Bizon
-> Subject: Re: coretemp ABI breakage during pkgtemp/coretemp merger
-> 
-> Hello again,
-> 
-> On 01/27/12 13:51, Florian Fainelli wrote:
-> > Hello,
-> >
-> > Commit 199e0de7f5df31a4fc485d4aaaf8a07718252ace: hwmon: (coretemp) Merge
-> > pkgtemp with coretemp introduced a breakage on our system (Intel CE4100
-> > Atom core HT).
-> >
-> > pkg_flag = 0 for our particular system, because we don't have
-> > X86_FEATURE_PTS set (I have no idea why hardware does not report it,
-> > whether this is genuine or not).
-> 
-> I forgot to explain the real breakage here, this renamed temp1_* to
-> temp2_* attributes, thus breaking userland expecting temp1_* attributes.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: stable@vger.kernel.org
+---
+ drivers/hwmon/f71805f.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-The Documentation for coretemp explains this change.
+--- linux-3.3-rc1.orig/drivers/hwmon/f71805f.c	2012-01-20 14:37:27.449912137 +0100
++++ linux-3.3-rc1/drivers/hwmon/f71805f.c	2012-01-20 14:58:33.600930905 +0100
+@@ -283,10 +283,10 @@ static inline long temp_from_reg(u8 reg)
+ 
+ static inline u8 temp_to_reg(long val)
+ {
+-	if (val < 0)
+-		val = 0;
+-	else if (val > 1000 * 0xff)
+-		val = 0xff;
++	if (val <= 0)
++		return 0;
++	if (val >= 1000 * 0xff)
++		return 0xff;
+ 	return (val + 500) / 1000;
+ }
+ 
 
-Thanks,
-Durga
+
+-- 
+Jean Delvare
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
