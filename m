@@ -1,30 +1,54 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 08 Jan 2012 18:58:54 +0000
-Subject: Re: [lm-sensors] next 17 checkpatch patches
-Message-Id: <20120108185854.GB23747@ericsson.com>
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Fri, 20 Jan 2012 18:00:07 +0000
+Subject: [lm-sensors] [PATCH 1/2] fam15h_power: Correct sign extension of running_avg_capture
+Message-Id: <20120120180007.GH24508@alberich.amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CACW_hTZ1cYLXJS3cpsQ8fDTrr40PqPc654892a7FRR7VNng9GA@mail.gmail.com>
-In-Reply-To: <CACW_hTZ1cYLXJS3cpsQ8fDTrr40PqPc654892a7FRR7VNng9GA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Frans,
+fam15h_power: Correct sign extension of running_avg_capture
 
-On Sun, Jan 08, 2012 at 01:15:22PM -0500, Frans Meulenbroeks wrote:
-> 
-[ ... ]
-> 
-> Will fix, thanks for the quick reply.
-> It'll take an hour or so, I need to revert all paches and regenerate the
-> checkpatch output (I already nuked that one)
+Wrong bit was used for sign extension which caused wrong end results.
+Thanks to Andre for spotting this bug.
 
-If you use git, "git rebase -i <baseline>" is your friend here. It gives you the list of patches
-to apply in your editor. Tag every patch with "r", and you'll get the opportunity to edit
-each commit message. Tag a patch with "e", and you can amend before continuing the rebase.
+Reported-by: Andre Przywara <andre.przywara@amd.com>
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
 
-Guenter
+Hi Jean,
+
+Here are two patches for the fam15h power driver.
+
+Please apply.
+
+
+Thanks,
+Andreas
+
+
+ drivers/hwmon/fam15h_power.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 523f8fb..930370d 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -60,7 +60,7 @@ static ssize_t show_power(struct device *dev,
+ 	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
+ 				  REG_TDP_RUNNING_AVERAGE, &val);
+ 	running_avg_capture = (val >> 4) & 0x3fffff;
+-	running_avg_capture = sign_extend32(running_avg_capture, 22);
++	running_avg_capture = sign_extend32(running_avg_capture, 21);
+ 	running_avg_range = val & 0xf;
+ 
+ 	pci_bus_read_config_dword(f4->bus, PCI_DEVFN(PCI_SLOT(f4->devfn), 5),
+-- 
+1.7.8.rc3
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
