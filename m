@@ -1,74 +1,78 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:42 +0000
-Subject: [lm-sensors] [PATCH 63/79] hwmon: (adm1029) Fix multi-line comments
-Message-Id: <1327373398-997-64-git-send-email-guenter.roeck@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 20 Jan 2012 19:39:18 +0000
+Subject: [lm-sensors] [PATCH 06/13] hwmon: (lm70) Register hwmon device after creating attribute files, and r
+Message-Id: <1327088365-11149-7-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
+Register hwmon device as last operation in the probe function to ensure that all
+attribute files exist when accessed from user applications. Otherwise, there
+is a short time frame where the device is registered as hwmon device but
+sysfs attributes do not yet exist. This could result in applications erroneously
+not detecting attributes.
 
-Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/adm1029.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/hwmon/lm70.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
-index c6531a8..80cc465 100644
---- a/drivers/hwmon/adm1029.c
-+++ b/drivers/hwmon/adm1029.c
-@@ -240,9 +240,9 @@ static ssize_t set_fan_div(struct device *dev,
- }
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index 9c12ef3..61c2ffb 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -156,13 +156,6 @@ static int __devinit lm70_probe(struct spi_device *spi)
+ 	mutex_init(&p_lm70->lock);
+ 	p_lm70->chip = chip;
  
- /*
--Access rights on sysfs, S_IRUGO stand for Is Readable by User, Group and Others
--			S_IWUSR stand for Is Writable by User
--*/
-+ * Access rights on sysfs. S_IRUGO: Is Readable by User, Group and Others
-+ *			   S_IWUSR: Is Writable by User.
-+ */
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 1);
- static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 2);
-@@ -303,7 +303,8 @@ static int adm1029_detect(struct i2c_client *client,
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
+-	/* sysfs hook */
+-	p_lm70->hwmon_dev = hwmon_device_register(&spi->dev);
+-	if (IS_ERR(p_lm70->hwmon_dev)) {
+-		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
+-		status = PTR_ERR(p_lm70->hwmon_dev);
+-		goto out_dev_reg_failed;
+-	}
+ 	spi_set_drvdata(spi, p_lm70);
  
--	/* ADM1029 doesn't have CHIP ID, check just MAN ID
-+	/*
-+	 * ADM1029 doesn't have CHIP ID, check just MAN ID
- 	 * For better detection we check also ADM1029_TEMP_DEVICES_INSTALLED,
- 	 * ADM1029_REG_NB_FAN_SUPPORT and compare it with possible values
- 	 * documented
-@@ -321,8 +322,10 @@ static int adm1029_detect(struct i2c_client *client,
- 		return -ENODEV;
+ 	if ((status = device_create_file(&spi->dev, &dev_attr_temp1_input))
+@@ -171,12 +164,20 @@ static int __devinit lm70_probe(struct spi_device *spi)
+ 		goto out_dev_create_file_failed;
+ 	}
  
- 	if ((chip_id & 0xF0) != 0x00) {
--		/* There are no "official" CHIP ID, so actually
--		 * we use Major/Minor revision for that */
-+		/*
-+		 * There are no "official" CHIP ID, so actually
-+		 * we use Major/Minor revision for that
-+		 */
- 		pr_info("adm1029: Unknown major revision %x, "
- 			"please let us know\n", chip_id);
- 		return -ENODEV;
-@@ -407,8 +410,8 @@ static int adm1029_remove(struct i2c_client *client)
- }
++	/* sysfs hook */
++	p_lm70->hwmon_dev = hwmon_device_register(&spi->dev);
++	if (IS_ERR(p_lm70->hwmon_dev)) {
++		dev_dbg(&spi->dev, "hwmon_device_register failed.\n");
++		status = PTR_ERR(p_lm70->hwmon_dev);
++		goto out_dev_reg_failed;
++	}
++
+ 	return 0;
  
- /*
--function that update the status of the chips (temperature for example)
--*/
-+ * function that update the status of the chips (temperature for example)
-+ */
- static struct adm1029_data *adm1029_update_device(struct device *dev)
++out_dev_reg_failed:
++	device_remove_file(&spi->dev, &dev_attr_name);
+ out_dev_create_file_failed:
+ 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+-	hwmon_device_unregister(p_lm70->hwmon_dev);
+-out_dev_reg_failed:
+ 	spi_set_drvdata(spi, NULL);
+ 	kfree(p_lm70);
+ 	return status;
+@@ -186,9 +187,9 @@ static int __devexit lm70_remove(struct spi_device *spi)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct lm70 *p_lm70 = spi_get_drvdata(spi);
+ 
++	hwmon_device_unregister(p_lm70->hwmon_dev);
+ 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+ 	device_remove_file(&spi->dev, &dev_attr_name);
+-	hwmon_device_unregister(p_lm70->hwmon_dev);
+ 	spi_set_drvdata(spi, NULL);
+ 	kfree(p_lm70);
+ 
 -- 
-1.7.3.1
+1.7.5.4
 
 
 _______________________________________________
