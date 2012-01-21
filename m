@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 21 Jan 2012 17:03:05 +0000
+From: Mark Brown <broonie@sirena.org.uk>
+Date: Sat, 21 Jan 2012 17:47:00 +0000
 Subject: Re: [lm-sensors] [PATCH 82/82] hwmon: (wm831x-hwmon) Fix multi-line comments
-Message-Id: <20120121170305.GA6722@ericsson.com>
+Message-Id: <20120121174700.GC20505@sirena.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
@@ -10,28 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 21, 2012 at 08:31:48AM -0500, Mark Brown wrote:
-> On Thu, Jan 19, 2012 at 03:56:16PM -0800, Guenter Roeck wrote:
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> 
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> 
-> I suspect you might not get a lot of the acks you're waiting for as you
-> didn't CC folks...
-> 
-I tried to add Cc: whenever there was a maintainer listed, but with that many patches
-I may have overlooked some. As for this one, you are the author, but you have not
-listed yourself as maintainer. Maybe you overlooked it, but how am I to know ?
+On Sat, Jan 21, 2012 at 09:03:05AM -0800, Guenter Roeck wrote:
 
-I could have added authors and/or previous committers to the Cc: list, but then I
-had to make the experience that some people don't like to be copied on patches and get
-mad if they are.
+I've reflowed your text into 80 columns.
 
-There is always a trade-off to make. I don't like to upset people if I can avoid it
-(and believe me, I do upset people all the time ;). If I don't get Acks, the patches
-will just have to wait for 3.4.
+> On Sat, Jan 21, 2012 at 08:31:48AM -0500, Mark Brown wrote:
 
-Guenter
+> > I suspect you might not get a lot of the acks you're waiting for as you
+> > didn't CC folks...
+
+> I tried to add Cc: whenever there was a maintainer listed, but with
+> that many patches I may have overlooked some. As for this one, you are
+> the author, but you have not listed yourself as maintainer. Maybe you
+> overlooked it, but how am I to know ?
+
+TBH given that I wrote the driver, work for the relevant silicon vendor
+and am generally pretty active it seems odd that you would see the lack
+of a MAINTAINERS entry as a lack of interest.  The people who get
+annoyed about getting CCed on stuff are those doing obviously generic
+janatorial work rather than those who have spent time on the particular
+bit of code - if you rely on MAINTAINERS you're going to miss a lot of
+people.
 
 _______________________________________________
 lm-sensors mailing list
