@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 21 Jan 2012 18:11:07 +0000
+From: Mark Brown <broonie@sirena.org.uk>
+Date: Sat, 21 Jan 2012 18:26:07 +0000
 Subject: Re: [lm-sensors] [PATCH 82/82] hwmon: (wm831x-hwmon) Fix multi-line comments
-Message-Id: <20120121181107.GA7026@ericsson.com>
+Message-Id: <20120121182607.GE20505@sirena.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
@@ -10,40 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 21, 2012 at 12:47:00PM -0500, Mark Brown wrote:
-> On Sat, Jan 21, 2012 at 09:03:05AM -0800, Guenter Roeck wrote:
-> 
-> I've reflowed your text into 80 columns.
-> 
-> > On Sat, Jan 21, 2012 at 08:31:48AM -0500, Mark Brown wrote:
-> 
-> > > I suspect you might not get a lot of the acks you're waiting for as you
-> > > didn't CC folks...
-> 
-> > I tried to add Cc: whenever there was a maintainer listed, but with
-> > that many patches I may have overlooked some. As for this one, you are
-> > the author, but you have not listed yourself as maintainer. Maybe you
-> > overlooked it, but how am I to know ?
-> 
-> TBH given that I wrote the driver, work for the relevant silicon vendor
-> and am generally pretty active it seems odd that you would see the lack
-> of a MAINTAINERS entry as a lack of interest.  The people who get
-> annoyed about getting CCed on stuff are those doing obviously generic
-> janatorial work rather than those who have spent time on the particular
-> bit of code - if you rely on MAINTAINERS you're going to miss a lot of
-> people.
+On Sat, Jan 21, 2012 at 10:11:07AM -0800, Guenter Roeck wrote:
 
-Mark,
+> I don't see it as lack of interest. Sorry if you got that impression.
+> But I don't keep a per-driver list of active people either, and I would
+> need one for purposes like this one. It appears, given your input, that
+> having such a list on top of MAINTAINERS would be good to have, so
+> I'll start to create one now. This should ensure you (and hopefully others)
+> won't be missed in the future.
 
-I don't see it as lack of interest. Sorry if you got that impression.
-But I don't keep a per-driver list of active people either, and I would
-need one for purposes like this one. It appears, given your input, that
-having such a list on top of MAINTAINERS would be good to have, so
-I'll start to create one now. This should ensure you (and hopefully others)
-won't be missed in the future.
-
-Thanks,
-Guenter
+I'd just send patches to MAINTAINERS if you find it useful to have
+something, few people will object if you do that.  It rarely gets
+updated for individual drivers because normally it's not needed.
 
 _______________________________________________
 lm-sensors mailing list
