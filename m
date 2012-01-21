@@ -1,25 +1,35 @@
-From: Stefan Roese <sr@denx.de>
-Date: Tue, 24 Jan 2012 07:08:24 +0000
-Subject: Re: [lm-sensors] [PATCH 20/79] hwmon: (ad7414) Fix multi-line comments
-Message-Id: <201201240808.24868.sr@denx.de>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Sat, 21 Jan 2012 18:29:27 +0000
+Subject: [lm-sensors] [PATCH] MAINTAINERS: Add hwmon entries for Wolfson
+Message-Id: <1327170567-3728-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327373398-997-21-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1327373398-997-21-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tuesday 24 January 2012 03:48:59 Guenter Roeck wrote:
-> From: Guenter Roeck <linux@roeck-us.net>
-> 
-> Cc: Stefan Roese <sr@denx.de>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+The actual driver code seems to have been lost in the shuffle.
 
-Acked-by: Stefan Roese <sr@denx.de>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ MAINTAINERS |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Thanks,
-Stefan
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 56818fe..6f148e4 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7384,6 +7384,7 @@ S:	Supported
+ F:	Documentation/hwmon/wm83??
+ F:	arch/arm/mach-s3c64xx/mach-crag6410*
+ F:	drivers/leds/leds-wm83*.c
++F:	drivers/hwmon/wm83??-hwmon.c
+ F:	drivers/input/misc/wm831x-on.c
+ F:	drivers/input/touchscreen/wm831x-ts.c
+ F:	drivers/input/touchscreen/wm97*.c
+-- 
+1.7.7.3
+
 
 _______________________________________________
 lm-sensors mailing list
