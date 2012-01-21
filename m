@@ -1,38 +1,22 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:56:16 +0000
-Subject: [lm-sensors] [PATCH 82/82] hwmon: (wm831x-hwmon) Fix multi-line comments
-Message-Id: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
+From: Mark Brown <broonie@sirena.org.uk>
+Date: Sat, 21 Jan 2012 13:31:48 +0000
+Subject: Re: [lm-sensors] [PATCH 82/82] hwmon: (wm831x-hwmon) Fix multi-line comments
+Message-Id: <20120121133148.GA20505@sirena.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1327017376-20466-83-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/wm831x-hwmon.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+On Thu, Jan 19, 2012 at 03:56:16PM -0800, Guenter Roeck wrote:
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-diff --git a/drivers/hwmon/wm831x-hwmon.c b/drivers/hwmon/wm831x-hwmon.c
-index 23b44de..07cb25a 100644
---- a/drivers/hwmon/wm831x-hwmon.c
-+++ b/drivers/hwmon/wm831x-hwmon.c
-@@ -117,8 +117,10 @@ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_chip_temp, NULL,
- 			  WM831X_AUX_CHIP_TEMP);
- static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
- 			  WM831X_AUX_CHIP_TEMP);
--/* Report as a voltage since conversion depends on external components
-- * and that's what the ABI wants. */
-+/*
-+ * Report as a voltage since conversion depends on external components
-+ * and that's what the ABI wants.
-+ */
- static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_voltage, NULL,
- 			  WM831X_AUX_BATT_TEMP);
- static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_label, NULL,
--- 
-1.7.5.4
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
+I suspect you might not get a lot of the acks you're waiting for as you
+didn't CC folks...
 
 _______________________________________________
 lm-sensors mailing list
