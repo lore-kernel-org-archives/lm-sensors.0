@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 23 Jan 2012 07:55:03 +0000
+From: "Mike Gorchak" <lestat@i.com.ua>
+Date: Mon, 23 Jan 2012 07:59:43 +0000
 Subject: Re: [lm-sensors] Support for SMBus based GMT G781 and G7811 temperature sensors.
-Message-Id: <20120123085503.7e4ea1b0@endymion.delvare>
+Message-Id: <67FF5F74DE294890BC7E27A1432FB0AC@mlv.local>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <EC359208AB4F4249B8EA5A0018A7B178@ISLA>
 In-Reply-To: <EC359208AB4F4249B8EA5A0018A7B178@ISLA>
@@ -10,29 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 23 Jan 2012 08:02:20 +0200, Mike Gorchak wrote:
-> Hello, Guenter!
-> 
->  GR> never mind; no idea if G7811 ever really existed. I found version 1.3
->  GR> of the datasheet which describes both G781 and G781-1. Can you test the
->  GR> driver and sensors-detect if I send you a pointer to the code ?
-> 
-> It seems that this patch is ok, except for one thing.
-> 
-> Let me explain what I did. I added support for ACPI SMBus connected to 
-> Embedded Controller to the lm-sensors (for a netbook without proper ACPI 
-> support). There are two G781 sensors connected to this bus, one to the 
-> address 0x4C and one to the 0x4D. Both sensors have 0x01 as device id. But 
-> patch assumes that only G781-1 can be connected to the 0x4D address.
+Hello, Jean!
 
-If they followed a naming logic similar to National Semiconductor, G781
-will have address 0x4C and G781-1 will have address 0x4D. They are
-basically the exact same chip except for the address, so the driver
-doesn't even need to know, other than the fact that both addresses 0x4C
-and 0x4D are possible.
+ GR>>> never mind; no idea if G7811 ever really existed. I found version 1.3
+ GR>>> of the datasheet which describes both G781 and G781-1. Can you test
+ GR>>> the driver and sensors-detect if I send you a pointer to the code ?
+ ??>> It seems that this patch is ok, except for one thing.
+ ??>> Let me explain what I did. I added support for ACPI SMBus connected to
+ ??>> Embedded Controller to the lm-sensors (for a netbook without proper
+ ??>> ACPI support). There are two G781 sensors connected to this bus, one
+ ??>> to the address 0x4C and one to the 0x4D. Both sensors have 0x01 as
+ ??>> device id. But patch assumes that only G781-1 can be connected to the
+ ??>> 0x4D address.
+ JD> If they followed a naming logic similar to National Semiconductor, G781
+ JD> will have address 0x4C and G781-1 will have address 0x4D. They are
+ JD> basically the exact same chip except for the address, so the driver
+ JD> doesn't even need to know, other than the fact that both addresses 0x4C
+ JD> and 0x4D are possible.
 
--- 
-Jean Delvare
+Now driver checks only for 0x03 device id at address 0x4D, which is not 
+correct. 0x01 device id can be present at 0x4D address too. That's all I'd 
+like to say :)
+
+With best regards, Mike Gorchak.  E-mail: lestat@i.com.ua 
+
 
 _______________________________________________
 lm-sensors mailing list
