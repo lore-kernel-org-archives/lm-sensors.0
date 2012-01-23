@@ -1,54 +1,122 @@
-From: Harald Judt <h.judt@gmx.at>
-Date: Fri, 06 Jan 2012 11:36:15 +0000
-Subject: Re: [lm-sensors] NCT6776 global registers 0x1c=0 and 0x24=0x5c
-Message-Id: <4F06DCAF.8010105@gmx.at>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 23 Jan 2012 18:08:56 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (lm90) Fix multi-line comments
+Message-Id: <1327342136-12625-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110410160433.GA22075@localhost>
-In-Reply-To: <20110410160433.GA22075@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Am 05.01.2012 15:45, schrieb Jean Delvare:
-> On Thu, 5 Jan 2012 15:39:01 +0100, Jean Delvare wrote:
->> On Wed, 21 Dec 2011 23:43:47 +0100, Harald Judt wrote:
->>> Am 21.12.2011 21:55, schrieb Ira W. Snyder:
->>>> I wonder if you could set these register values only on this specific
->>>> motherboard by checking the DMI table to determine the motherboard
->>>> vendor and model number.
->>>
->>> This is what I currently do using dmidecode in /etc/init.d/lm_sensors,
->>> because I too fear to forget about this and accidently wreck a new
->>> mainboard I'm going to buy in the future:
->>>
->>> # We need to do some initialization before loading the module,
->>> # otherwise only 2 of the 5 fans will be shown
->>> init_module_w83627ehf() {
->>>       modprobe -q -r w83627ehf
->>>       # make sure to do this only for the right mainboard
->>>       if /usr/sbin/dmidecode | grep -i 'Base Board Information' -A2 -B1 |
->>> grep -q 'P67 Extreme4' \
->>>           &&  /usr/sbin/dmidecode | grep -i 'BIOS Information' -A3 | grep
->>> -q 'Version: L1.61'&&  \
->>
->> dmidecode -s is your friend ;) Namely -s baseboard-product-name and -s
->> bios-version.
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: improved alignment, s/ma6696/max6696/
 
-To be honest, I didn't care enough to optimize a one-time call at 
-startup, even if it looks terribly ugly.
+ drivers/hwmon/lm90.c |   58 +++++++++++++++++++++++++++++--------------------
+ 1 files changed, 34 insertions(+), 24 deletions(-)
 
-> Oh, and I almost forgot: the same info is typically available
-> from /sys/class/dmi/id/* for even cheaper.
-
-Thanks, that's really helpful! It helps me to get rid of the dmidecode 
-dependence and I've learned something new ;-)
-
-Regards,
-Harald
-
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 248f2b4..22efae3 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -308,22 +308,24 @@ struct lm90_data {
+ 
+ 	/* registers values */
+ 	s8 temp8[8];	/* 0: local low limit
+-			   1: local high limit
+-			   2: local critical limit
+-			   3: remote critical limit
+-			   4: local emergency limit (max6659 and max6695/96)
+-			   5: remote emergency limit (max6659 and max6695/96)
+-			   6: remote 2 critical limit (max6695/96 only)
+-			   7: remote 2 emergency limit (max6695/96 only) */
++			 * 1: local high limit
++			 * 2: local critical limit
++			 * 3: remote critical limit
++			 * 4: local emergency limit (max6659 and max6695/96)
++			 * 5: remote emergency limit (max6659 and max6695/96)
++			 * 6: remote 2 critical limit (max6695/96 only)
++			 * 7: remote 2 emergency limit (max6695/96 only)
++			 */
+ 	s16 temp11[8];	/* 0: remote input
+-			   1: remote low limit
+-			   2: remote high limit
+-			   3: remote offset (except max6646, max6657/58/59,
+-					     and max6695/96)
+-			   4: local input
+-			   5: remote 2 input (max6695/96 only)
+-			   6: remote 2 low limit (max6695/96 only)
+-			   7: remote 2 high limit (ma6695/96 only) */
++			 * 1: remote low limit
++			 * 2: remote high limit
++			 * 3: remote offset (except max6646, max6657/58/59,
++			 *		     and max6695/96)
++			 * 4: local input
++			 * 5: remote 2 input (max6695/96 only)
++			 * 6: remote 2 low limit (max6695/96 only)
++			 * 7: remote 2 high limit (max6695/96 only)
++			 */
+ 	u8 temp_hyst;
+ 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
+ };
+@@ -533,8 +535,10 @@ static struct lm90_data *lm90_update_device(struct device *dev)
+ 				data->alarms |= alarms << 8;
+ 		}
+ 
+-		/* Re-enable ALERT# output if it was originally enabled and
+-		 * relevant alarms are all clear */
++		/*
++		 * Re-enable ALERT# output if it was originally enabled and
++		 * relevant alarms are all clear
++		 */
+ 		if ((data->config_orig & 0x80) = 0
+ 		 && (data->alarms & data->alert_alarms) = 0) {
+ 			u8 config;
+@@ -1162,8 +1166,10 @@ static int lm90_detect(struct i2c_client *client,
+ 		 && (config1 & 0x3F) = 0x00
+ 		 && convrate <= 0x0A) {
+ 			name = "adm1032";
+-			/* The ADM1032 supports PEC, but only if combined
+-			   transactions are not used. */
++			/*
++			 * The ADM1032 supports PEC, but only if combined
++			 * transactions are not used.
++			 */
+ 			if (i2c_check_functionality(adapter,
+ 						    I2C_FUNC_SMBUS_BYTE))
+ 				info->flags |= I2C_CLIENT_PEC;
+@@ -1382,8 +1388,10 @@ static int lm90_probe(struct i2c_client *client,
+ 			client->flags &= ~I2C_CLIENT_PEC;
+ 	}
+ 
+-	/* Different devices have different alarm bits triggering the
+-	 * ALERT# output */
++	/*
++	 * Different devices have different alarm bits triggering the
++	 * ALERT# output
++	 */
+ 	data->alert_alarms = lm90_params[data->kind].alert_alarms;
+ 
+ 	/* Set chip capabilities */
+@@ -1488,9 +1496,11 @@ static void lm90_alert(struct i2c_client *client, unsigned int flag)
+ 			dev_warn(&client->dev,
+ 				 "temp%d out of range, please check!\n", 3);
+ 
+-		/* Disable ALERT# output, because these chips don't implement
+-		  SMBus alert correctly; they should only hold the alert line
+-		  low briefly. */
++		/*
++		 * Disable ALERT# output, because these chips don't implement
++		 * SMBus alert correctly; they should only hold the alert line
++		 * low briefly.
++		 */
+ 		if ((data->flags & LM90_HAVE_BROKEN_ALERT)
+ 		 && (alarms & data->alert_alarms)) {
+ 			dev_dbg(&client->dev, "Disabling ALERT#\n");
 -- 
-`Experience is the best teacher.'
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
