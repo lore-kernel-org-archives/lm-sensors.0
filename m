@@ -1,80 +1,124 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 09 Jan 2012 17:31:28 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] sensors-detect: Add detection of ITE
-Message-Id: <20120109183128.16d988d9@endymion.delvare>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Mon, 23 Jan 2012 22:35:51 +0000
+Subject: Re: [lm-sensors] [PATCH] x86/platform: (TS-5500) revised ADC driver
+Message-Id: <20120123173551.309af2eb@v0nbox>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326068484-1898-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1326068484-1898-2-git-send-email-linux@roeck-us.net>
+References: <1326930731-21215-5-git-send-email-vivien.didelot@savoirfairelinux.com>
+	<1327103002-5834-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+	<20120121044631.GA4143@ericsson.com>
+	<20120122203619.22fabe79@lenov0n>
+	<20120123043645.GA14660@ericsson.com>
+	<20120123155408.7d52e4da@v0nbox>
+In-Reply-To: <20120123155408.7d52e4da@v0nbox>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Guenter Roeck <guenter.roeck@ericsson.com>, "x86@kernel.org" <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
 
-On Mon, 9 Jan 2012 09:02:56 -0800, Guenter Roeck wrote:
-> On Mon, 2012-01-09 at 11:50 -0500, Jean Delvare wrote:
-> > On Sun,  8 Jan 2012 16:21:22 -0800, Guenter Roeck wrote:
-> > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > > ---
-> > >  CHANGES                    |    1 +
-> > >  prog/detect/sensors-detect |    6 ++++++
-> > >  2 files changed, 7 insertions(+), 0 deletions(-)
+On Mon, 23 Jan 2012 15:54:08 -0500,
+Vivien Didelot <vivien.didelot@savoirfairelinux.com> wrote:
+
+> On Sun, 22 Jan 2012 20:36:46 -0800,
+> Guenter Roeck <guenter.roeck@ericsson.com> wrote: 
+> > > > Regarding the location, I'd really like to know from the
+> > > > powers-that-be if arch/x86/platform/ts5500/
+> > > > or
+> > > > 	drivers/platform/x86
+> > > > or
+> > > > 	drivers/hwmon
+> > > > 
+> > > > would be the appropriate location for a driver like this. As
+> > > > mentioned before, my strong preference is drivers/hwmon, but I
+> > > > would like to hear from others.
 > > > 
-> > > diff --git a/CHANGES b/CHANGES
-> > > index 3ae863c..ce04e54 100644
-> > > --- a/CHANGES
-> > > +++ b/CHANGES
-> > > @@ -10,6 +10,7 @@ SVN HEAD
-> > >                    Fix loading of the cpuid module
-> > >                    Make LM73 detection less problematic
-> > >                    Add detection of National Semiconductor LM96163
-> > > +                  Add detection of ITE IT8510E
-> > >  
-> > >  3.3.1 (2011-07-21)
-> > >    isadump: Add support for word (16-bit) and long (32-bit) reads
-> > > diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> > > index 31a4619..1beb66b 100755
-> > > --- a/prog/detect/sensors-detect
-> > > +++ b/prog/detect/sensors-detect
-> > > @@ -2076,6 +2076,12 @@ use constant FEAT_SMBUS	=> (1 << 7);
-> > >  
-> > >  @superio_ids_ite = (
-> > >  	{
-> > > +		name => "ITE IT8510E Super IO Sensors",
-> > > +		driver => "to-be-written",
-> > > +		devid => 0x8510,
-> > > +		logdev => 0x04,
+> > > We should either split every driver into corresponding
+> > > subdirectories, or put everything in a common platform directory.
+> > > My first RFC patches set has every driver separated. As they are
+> > > really specific to the platform, people seem to agree with
+> > > grouping them, mainly because they won't be shared. I changed
+> > > that in the following patches sets, and X86 maintainers seemed to
+> > > be ok with that.
+> > > 
+> > > I'm ok with both solutions, but we should all agree on one.
+> > > Maybe we should have other maintainers view on this?
+> > > 
+> > That is what I had asked for. I thought the whole point of
+> > per-module directories was to have all drivers there. If that is no
+> > longer true, fine with me; who am I to argue about something like
+> > that. I'd just like to know.
 > > 
-> > Are you sure about the logical device? LD 4 is "System Wake-Up"
-> > according to superiotool, this doesn't seem to be related to hardware
-> > monitoring. I think I understand that for the IT8510E, monitoring is
-> > done through an EC, this doesn't seem to be tied to a specific logical
-> > device? I admit I'm a bit confused by these new chips still.
-> > 
-> No, I am not sure. May be completely wrong, and is untested. I copied
-> that value from one of the other ITE entries; they all use the same
-> value for logdev. I don't even know what logdev is used for ;).
+> > > > Also, I am not sure if the current approach is appropriate to
+> > > > start with. Looking at the datasheet as well as into existing
+> > > > kernel code, it appears quite likely that some kind of more or
+> > > > less generic MAX197 driver exists somewhere. The existence of
+> > > > is_max197_installed() - without any calling code - is a strong
+> > > > indication that this is the case, as well as the "static"
+> > > > platform data in your original patch. It might be more
+> > > > appropriate to take this more or less generic driver, move it to
+> > > > drivers/hwmon, and provide - for example through platform data -
+> > > > a means to read from and write to the chip on a per-platform
+> > > > basis, ie with per-platform access functions.
+> > > 
+> > > You're right, it should be possible to create a generic max197
+> > > driver and provide read/write functions through platform data. But
+> > > we don't have a max197 right now... So it can stay as a compact
+> > > TS-5500 ADC driver for the moment, and maybe we will split later.
+> > > What do you think?
+> > > 
+> > I am lost. If you don't have a TS-5500 with max197, how do you test
+> > the driver ?
+> 
+> Sorry, I wasn't clear. I meant the only max197 I have is the one
+> behind the TS-5500 CPLD, I don't have any others to test
+> independently.
+> 
+> > I had another look into the MAX197 and TS-5500 data sheets. In my
+> > opinion, a generic MAX197 driver in drivers/hwmon combined with a
+> > platform driver in the current location would be the way to go. That
+> > driver would then also work for the other TS-5x00 systems. All you
+> > need is a single chip access function in the platform code, since
+> > the chip is always accessed with a write followed by a read.
+> 
+> I took a deeper look at the datasheets, and you're right, a MAX197
+> driver seems to be a good choice. However, there are a number of
+> differences between a direct usage of a MAX197 and the TS-5500 mapped
+> MAX197.
+> 
+> To start a conversion of a channel for a given range and polarity, it
+> consists on both sides of a u8 outb() call on pins 7-14 (i.e. bits
+> D7-D0). To be notified when the result is ready, we can either set an
+> IRQ on INT pin (falling edge), or poll it.
+> Then on the MAX197, you read the pins 7-14, set pin HBEN to 1, and
+> read the same pins again to get the 4 remaining bits. On the TS-5500,
+> only polling is available, and the 12 bits are mapped on 2 registers.
+> 
+> I propose to write a max197 driver with default read and write
+> functions. A platform_data will be used to specify the base address
+> (pins 7-14), and eventually a custom read function pointer, which will
+> be used instead of the default one if it is different of NULL.
+> 
+> What do you think?
+> 
+> I will write a max197 driver with default read and write functions. A
+> platform_data will be used to specify the base address (pins 7-14),
+> and eventually a custom read function pointer, which will be used
+> instead of the default, if it is not NULL.
+> 
+> What do you think? 
 
-Logical devices refer to the different parts of Super-I/O chips, for
-example parallel port, serial ports, hardware monitoring, RTC, watchdog
-etc. Basically, every function which needs a separate I/O port range
-corresponds to a logical device. Each logical device has a separate
-configuration space, which can be selected using a global configuration
-register.
+Sorry for the duplicate :)
 
-> We should probably try to get some test coverage berfore committing the
-> code.
+BTW, I've added Jean Delvare and the lm-sensors mailing list in Cc, in
+case they have an opinion on this.
 
-Yes, please. Reading the datasheet should probably be a good idea as
-well, even though it is no fun reading. These chips are so different
-from what we support at the moment that we won't go anywhere without a
-good amount of reading.
+Thanks,
 
-Note that the current superio detection code wants a logical device
-number. If we start seeing devices which don't need/have one, we'll
-have to revisit the code to make it optional.
 
 -- 
-Jean Delvare
+Vivien Didelot
+Savoir-faire Linux Inc.
+Tel: (514) 276-5468 #149
 
 _______________________________________________
 lm-sensors mailing list
