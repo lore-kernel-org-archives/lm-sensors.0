@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 23 Jan 2012 16:35:22 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of G781
-Message-Id: <1327336522-10923-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 23 Jan 2012 16:58:02 +0000
+Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of G781
+Message-Id: <20120123175802.4cc9d34b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
@@ -10,72 +10,75 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Cc: Mike Gorchak <lestat@i.com.ua>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2:
-- Drop reference to G781-1; we don't usually mention chip variants
-- Accept device ID 0x01 on address 0x4c as well as 0x4d
-- Do not accept device ID 0x03, as its existence is not confirmed
+On Mon, 23 Jan 2012 08:35:22 -0800, Guenter Roeck wrote:
+> Cc: Mike Gorchak <lestat@i.com.ua>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2:
+> - Drop reference to G781-1; we don't usually mention chip variants
+> - Accept device ID 0x01 on address 0x4c as well as 0x4d
+> - Do not accept device ID 0x03, as its existence is not confirmed
+> 
+>  CHANGES                    |    1 +
+>  prog/detect/sensors-detect |   14 +++++++++++++-
+>  2 files changed, 14 insertions(+), 1 deletions(-)
+> 
+> diff --git a/CHANGES b/CHANGES
+> index c776e84..c41f489 100644
+> --- a/CHANGES
+> +++ b/CHANGES
+> @@ -15,6 +15,7 @@ SVN HEAD
+>                    Fix loading of the cpuid module
+>                    Make LM73 detection less problematic
+>                    Add detection of National Semiconductor LM96163
+> +                  Add detection of GMT G781
+>  
+>  3.3.1 (2011-07-21)
+>    isadump: Add support for word (16-bit) and long (32-bit) reads
+> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+> index 31a4619..60192b4 100755
+> --- a/prog/detect/sensors-detect
+> +++ b/prog/detect/sensors-detect
+> @@ -818,6 +818,11 @@ use vars qw(@i2c_adapter_names);
+>  		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
+>  		i2c_detect => sub { adm1021_detect(@_, 1); },
+>  	}, {
+> +		name => "Global Mixed-mode Technology G781",
+> +		driver => "lm90",
+> +		i2c_addrs => [0x4c, 0x4d],
+> +		i2c_detect => sub { lm90_detect(@_, 15); },
+> +	}, {
+>  		name => "Maxim MAX1617",
+>  		driver => "adm1021",
+>  		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
+> @@ -4364,7 +4369,8 @@ sub max6680_95_detect
+>  #		  6 = MAX6646/MAX6647/MAX6648/MAX6649/MAX6692,
+>  #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
+>  #		  11 = W83L771AWG/ASG, 12 = MAX6690,
+> -#		  13 = ADT7461A/NCT1008, 14 = SA56004
+> +#		  13 = ADT7461A/NCT1008, 14 = SA56004,
+> +#		  15 = G781
+>  # Registers used:
+>  #   0x03: Configuration
+>  #   0x04: Conversion rate
+> @@ -4476,6 +4482,12 @@ sub lm90_detect
+>  		return if $mid != 0xa1;		# NXP Semiconductor/Philips
+>  		return 6 if $cid = 0x00;	# SA56004
+>  	}
+> +	if ($chip = 15) {
+> +		return if ($conf & 0x3f) != 0;
+> +		return if $rate > 0x08;
+> +		return if $mid != 0x47;		# GMT
+> +		return 8 if $cid = 0x01;	# G781
+> +	}
+>  	return;
+>  }
+>  
 
- CHANGES                    |    1 +
- prog/detect/sensors-detect |   14 +++++++++++++-
- 2 files changed, 14 insertions(+), 1 deletions(-)
+Looks very good now, please commit.
 
-diff --git a/CHANGES b/CHANGES
-index c776e84..c41f489 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -15,6 +15,7 @@ SVN HEAD
-                   Fix loading of the cpuid module
-                   Make LM73 detection less problematic
-                   Add detection of National Semiconductor LM96163
-+                  Add detection of GMT G781
- 
- 3.3.1 (2011-07-21)
-   isadump: Add support for word (16-bit) and long (32-bit) reads
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 31a4619..60192b4 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -818,6 +818,11 @@ use vars qw(@i2c_adapter_names);
- 		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
- 		i2c_detect => sub { adm1021_detect(@_, 1); },
- 	}, {
-+		name => "Global Mixed-mode Technology G781",
-+		driver => "lm90",
-+		i2c_addrs => [0x4c, 0x4d],
-+		i2c_detect => sub { lm90_detect(@_, 15); },
-+	}, {
- 		name => "Maxim MAX1617",
- 		driver => "adm1021",
- 		i2c_addrs => [0x18..0x1a, 0x29..0x2b, 0x4c..0x4e],
-@@ -4364,7 +4369,8 @@ sub max6680_95_detect
- #		  6 = MAX6646/MAX6647/MAX6648/MAX6649/MAX6692,
- #		  8 = W83L771W/G, 9 = TMP401, 10 = TMP411,
- #		  11 = W83L771AWG/ASG, 12 = MAX6690,
--#		  13 = ADT7461A/NCT1008, 14 = SA56004
-+#		  13 = ADT7461A/NCT1008, 14 = SA56004,
-+#		  15 = G781
- # Registers used:
- #   0x03: Configuration
- #   0x04: Conversion rate
-@@ -4476,6 +4482,12 @@ sub lm90_detect
- 		return if $mid != 0xa1;		# NXP Semiconductor/Philips
- 		return 6 if $cid = 0x00;	# SA56004
- 	}
-+	if ($chip = 15) {
-+		return if ($conf & 0x3f) != 0;
-+		return if $rate > 0x08;
-+		return if $mid != 0x47;		# GMT
-+		return 8 if $cid = 0x01;	# G781
-+	}
- 	return;
- }
- 
 -- 
-1.7.5.4
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
