@@ -1,117 +1,71 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:48 +0000
-Subject: [lm-sensors] [PATCH 54/82] hwmon: (s3c-hwmon) Fix multi-line comments
-Message-Id: <1327017376-20466-55-git-send-email-linux@roeck-us.net>
+From: "Mike Gorchak" <mike@malva.ua>
+Date: Mon, 23 Jan 2012 19:35:47 +0000
+Subject: [lm-sensors] HA:  [PATCH v2] hwmon: (lm90) Add support for G781
+Message-Id: <CB6906448B464FAFBE0D38CC2A8E14B0@ISLA>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/s3c-hwmon.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/hwmon/s3c-hwmon.c b/drivers/hwmon/s3c-hwmon.c
-index f6c26d1..55bd49b 100644
---- a/drivers/hwmon/s3c-hwmon.c
-+++ b/drivers/hwmon/s3c-hwmon.c
-@@ -1,4 +1,5 @@
--/* linux/drivers/hwmon/s3c-hwmon.c
-+/*
-+ * linux/drivers/hwmon/s3c-hwmon.c
-  *
-  * Copyright (C) 2005, 2008, 2009 Simtec Electronics
-  *	http://armlinux.simtec.co.uk/
-@@ -18,7 +19,7 @@
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--*/
-+ */
- 
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -43,13 +44,13 @@ struct s3c_hwmon_attr {
- 	char				label_name[12];
- };
- 
--/**
-+/*
-  * struct s3c_hwmon - ADC hwmon client information
-  * @lock: Access lock to serialise the conversions.
-  * @client: The client we registered with the S3C ADC core.
-  * @hwmon_dev: The hwmon device we created.
-  * @attr: The holders for the channel attributes.
--*/
-+ */
- struct s3c_hwmon {
- 	struct mutex		lock;
- 	struct s3c_adc_client	*client;
-@@ -58,7 +59,7 @@ struct s3c_hwmon {
- 	struct s3c_hwmon_attr	attrs[8];
- };
- 
--/**
-+/*
-  * s3c_hwmon_read_ch - read a value from a given adc channel.
-  * @dev: The device.
-  * @hwmon: Our state.
-@@ -86,7 +87,7 @@ static int s3c_hwmon_read_ch(struct device *dev,
- }
- 
- #ifdef CONFIG_SENSORS_S3C_RAW
--/**
-+/*
-  * s3c_hwmon_show_raw - show a conversion from the raw channel number.
-  * @dev: The device that the attribute belongs to.
-  * @attr: The attribute being read.
-@@ -153,7 +154,7 @@ static inline void s3c_hwmon_remove_raw(struct device *dev) { }
- 
- #endif /* CONFIG_SENSORS_S3C_RAW */
- 
--/**
-+/*
-  * s3c_hwmon_ch_show - show value of a given channel
-  * @dev: The device that the attribute belongs to.
-  * @attr: The attribute being read.
-@@ -185,7 +186,7 @@ static ssize_t s3c_hwmon_ch_show(struct device *dev,
- 	return snprintf(buf, PAGE_SIZE, "%d\n", ret);
- }
- 
--/**
-+/*
-  * s3c_hwmon_label_show - show label name of the given channel.
-  * @dev: The device that the attribute belongs to.
-  * @attr: The attribute being read.
-@@ -206,7 +207,7 @@ static ssize_t s3c_hwmon_label_show(struct device *dev,
- 	return snprintf(buf, PAGE_SIZE, "%s\n", cfg->name);
- }
- 
--/**
-+/*
-  * s3c_hwmon_create_attr - create hwmon attribute for given channel.
-  * @dev: The device to create the attribute on.
-  * @cfg: The channel configuration passed from the platform data.
-@@ -272,10 +273,10 @@ static void s3c_hwmon_remove_attr(struct device *dev,
- 	device_remove_file(dev, &attrs->label.dev_attr);
- }
- 
--/**
-+/*
-  * s3c_hwmon_probe - device probe entry.
-  * @dev: The device being probed.
--*/
-+ */
- static int __devinit s3c_hwmon_probe(struct platform_device *dev)
- {
- 	struct s3c_hwmon_pdata *pdata = dev->dev.platform_data;
--- 
-1.7.5.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgQWxsLAoKT2ssIEkgd2lsbCB0cnkgbmV3IHBhdGNoIHRvbW9ycm93LgoKVGhhbmtzISAKCi0t
+LS0tyPH17uTt7uUg8e7u4fnl7ejlLS0tLS0KzvI6IGxtLXNlbnNvcnMtYm91bmNlc0BsbS1zZW5z
+b3JzLm9yZwpbbWFpbHRvOmxtLXNlbnNvcnMtYm91bmNlc0BsbS1zZW5zb3JzLm9yZ10gzvIg6Ozl
+7eggSmVhbiBEZWx2YXJlCs7y7/Dg4uvl7e46IDIzIPGz9+3/IDIwMTIg8C4gMTk6MzAKyu7s8zog
+Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20Kyu7v6P86IE1pa2UgR29yY2hhazsgR3VlbnRlciBS
+b2VjazsgbG0tc2Vuc29ycwrS5ezgOiBSZTogW2xtLXNlbnNvcnNdIFtQQVRDSCB2Ml0gaHdtb246
+IChsbTkwKSBBZGQgc3VwcG9ydCBmb3IgRzc4MQoKT24gTW9uLCAyMyBKYW4gMjAxMiAwOToyNDox
+MyAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiBNb24sIDIwMTItMDEtMjMgYXQgMTI6
+MDggLTA1MDAsIEplYW4gRGVsdmFyZSB3cm90ZToKPiA+IEhpIEd1ZW50ZXIsCj4gPiAKPiA+IE9u
+IE1vbiwgMjMgSmFuIDIwMTIgMDg6MjY6MjkgLTA4MDAsIEd1ZW50ZXIgUm9lY2sgd3JvdGU6Cj4g
+PiA+IEdNVCBHNzgxIGlzIGEgQURNMTAzMi1jb21wYXRpYmxlIHRlbXBlcmF0dXJlIHNlbnNvciBj
+aGlwLgo+ID4gPiBBZGQgc3VwcG9ydCB0byB0aGUgTE05MCBkcml2ZXIuCj4gPiA+IAo+ID4gPiBD
+YzogTWlrZSBHb3JjaGFrIDxsZXN0YXRAaS5jb20udWE+Cj4gPiA+IFNpZ25lZC1vZmYtYnk6IEd1
+ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4KPiA+ID4gLS0tCj4gPiA+IHYyOgo+ID4g
+PiAtIERyb3AgZGV2aWNlIElEIDB4MDMsIHNpbmNlIGl0cyBleGlzdGVuY2UgaXMgbm90IGNvbmZp
+cm1lZC4KPiA+ID4gICBJbnN0ZWFkLCBhY2NlcHQgZGV2aWNlIElEIDB4MDEgb24gYm90aCAweDRj
+IGFuZCAweDRkLgo+ID4gPiAtIERyb3AgcmVmZXJyaW5nIHRvIEc3ODEtMTsgd2UgZG9uJ3QgZG8g
+dGhhdCBmb3Igb3RoZXIgY2hpcHMgZWl0aGVyLAo+ID4gPiAgIGFuZCBpdCBpcyBub3QgY2xlYXIg
+aWYgaXQgaXMgZXZlbiBwb3NzaWJsZSB0byBkaXN0aW5ndWlzaCBHNzgxIGZyb20KRzc4MS0xLgo+
+ID4gPiAtIEFkZCBHNzgxIGluZm9ybWF0aW9uIHRvIEtjb25maWcsIGxtOTAgZG9jdW1lbnRhdGlv
+bgo+ID4gPiAtIE1lbnRpb24gRzc4MSBzdXBwb3J0IGluIGxtOTAuYyBmaWxlIGNvbW1lbnRzCj4g
+PiA+IC0gTW9kaWZ5IGZvcm1hdHRpbmcgdG8gYmV0dGVyIG1hdGNoIGZpbGUgZm9ybWF0dGluZwo+
+ID4gPiAKPiA+ID4gIERvY3VtZW50YXRpb24vaHdtb24vbG05MCB8ICAgIDUgKysrKysKPiA+ID4g
+IGRyaXZlcnMvaHdtb24vS2NvbmZpZyAgICB8ICAgIDMgKystCj4gPiA+ICBkcml2ZXJzL2h3bW9u
+L2xtOTAuYyAgICAgfCAgIDE5ICsrKysrKysrKysrKysrKysrKy0KPiA+ID4gIDMgZmlsZXMgY2hh
+bmdlZCwgMjUgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKPiA+ID4gCj4gPiA+IGRpZmYg
+LS1naXQgYS9Eb2N1bWVudGF0aW9uL2h3bW9uL2xtOTAgYi9Eb2N1bWVudGF0aW9uL2h3bW9uL2xt
+OTAgCj4gPiA+IGluZGV4IDljZDE0Y2ZlLi5kOGYxZTY2IDEwMDY0NAo+ID4gPiAtLS0gYS9Eb2N1
+bWVudGF0aW9uL2h3bW9uL2xtOTAKPiA+ID4gKysrIGIvRG9jdW1lbnRhdGlvbi9od21vbi9sbTkw
+Cj4gPiA+IEBAIC0xMTgsNiArMTE4LDExIEBAIFN1cHBvcnRlZCBjaGlwczoKPiA+ID4gICAgICBB
+ZGRyZXNzZXMgc2Nhbm5lZDogSTJDIDB4NDggdGhyb3VnaCAweDRGCj4gPiA+ICAgICAgRGF0YXNo
+ZWV0OiBQdWJsaWNseSBhdmFpbGFibGUgYXQgTlhQIHdlYnNpdGUKPiA+ID4gICAgICAgICAgICAg
+ICAgIAo+ID4gPiBodHRwOi8vaWNzLm54cC5jb20vcHJvZHVjdHMvaW50ZXJmYWNlL2RhdGFzaGVl
+dC9zYTU2MDA0eC5wZGYKPiA+ID4gKyAgKiBHTVQgRzc4MQo+ID4gPiArICAgIFByZWZpeDogJ2c3
+ODEnCj4gPiA+ICsgICAgQWRkcmVzc2VzIHNjYW5uZWQ6IEkyQyAweDRjLCAweDRkCj4gPiA+ICsg
+ICAgRGF0YXNoZWV0OiBQdWJsaWNseSBhdmFpbGFibGUsIGZvciBleGFtcGxlIGZyb20KPiA+ID4g
+KyAgICAJCWh0dHA6Ly93d3cuZGF0YXNoZWV0YXJjaGl2ZS5jb20vRzc4MS1kYXRhc2hlZXQuaHRt
+bAo+ID4gCj4gPiBOb3Qgc3VyZSBpZiB3ZSByZWFsbHkgd2FudCB0byBkb2N1bWVudCB0aGUgYXZh
+aWxhYmlsaXR5IGZyb20gYSAzcmQgCj4gPiBwYXJ0eSBzaXRlLiBUaGVyZSBtYXkgYmUgbGVnYWwg
+Y29uY2VybnMuIElmIHRoZSBkYXRhc2hlZXQgaXNuJ3QgCj4gPiBwdWJsaWNseSBhdmFpbGFibGUg
+Zm9yIGRvd25sb2FkIGZyb20gdGhlIHZlbmRvciwgaXQgbWlnaHQgaGF2ZSBiZWVuIAo+ID4gb2J0
+YWluZWQgdW5kZXIgTkRBIGluIHRoZSBmaXJzdCBwbGFjZS4KPiA+IAo+ID4gSXQgcHJvYmFibHkg
+ZG9lc24ndCBhZGQgbXVjaCB2YWx1ZSBhbnl3YXkuLi4gSSBndWVzcyBpdCB3YXMgZm91bmQgYnkg
+Cj4gPiBnb29nbGluZywgdGhlIHJlYWRlciBjYW4gZG8gdGhlIHNhbWUuCj4gPiAKPiBJIGFncmVl
+OyBsZXRzIGRyb3AgaXQuIFdhc24ndCBzdXJlIGFib3V0IHRoYXQgbXlzZWxmLiBXYW50IG1lIHRv
+IAo+IHJlc3VibWl0ID8KCk5vIG5lZWQgdG8gcmVzdWJtaXQuCgo+ID4gQWxsIHRoZSByZXN0IGxv
+b2tzIGdvb2QsIHNvOgo+ID4gCj4gPiBBY2tlZC1ieTogSmVhbiBEZWx2YXJlIDxraGFsaUBsaW51
+eC1mci5vcmc+Cj4gPiAKPiA+IExldCBtZSBrbm93IGlmIHlvdSB3YW50IG1lIHRvIHBpY2sgdGhp
+cyBpbiBteSB0cmVlIGFzIHRoZSBtYWludGFpbmVyIAo+ID4gb2YgdGhlIGxtOTAgZHJpdmVyLgo+
+ID4gCj4gWW91ciBjYWxsOyBJIGFsc28gaGF2ZSB0aGUgbXVsdGktbGluZSBjb21tZW50IHBhdGNo
+IHBlbmRpbmcgZm9yIGl0LiBJIAo+IHdvdWxkIHN1Z2dlc3QgZWl0aGVyIHlvdSB0YWtlIGJvdGgg
+cGF0Y2hlcywgb3IgSSBkby4gSSBhbSBmaW5lIGVpdGhlciAKPiB3YXkuCgpJJ2xsIHRha2UgdGhl
+bSBib3RoLiBFYXNpZXIgdGhhdCB3YXksIGlmIG1vcmUgbG05MCBwYXRjaGVzIGNvbWUgSSdsbCBi
+ZSB0aGUKb25lIHRvIHJldmlldyB0aGVtIGFueXdheS4KCk1pa2UsIHBsZWFzZSB0ZXN0IHRoaXMg
+bmV3IHBhdGNoIGFuZCBjb25maXJtIGl0IHdvcmtzIE9LIGZvciB5b3UuCgpUaGFua3MsCi0tCkpl
+YW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
+YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
+c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
