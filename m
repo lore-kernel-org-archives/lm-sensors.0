@@ -1,38 +1,37 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:07 +0000
-Subject: [lm-sensors] [PATCH 04/17 v2] hwmon: (smm665) fix checkpatch issues
-Message-Id: <1326047660-20539-4-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:09 +0000
+Subject: [lm-sensors] [PATCH 30/79] hwmon: (max1111) Fix multi-line comments
+Message-Id: <1327373398-997-31-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-WARNING: please, no spaces at the start of a line
-#379: FILE: smm665.c:379:
-+  static ssize_t smm665_show_##what(struct device *dev, \$
+From: Guenter Roeck <linux@roeck-us.net>
 
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Cc: Eric Miao <eric.miao@marvell.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/smm665.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/hwmon/max1111.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/smm665.c b/drivers/hwmon/smm665.c
-index 4116381..1b4301f 100644
---- a/drivers/hwmon/smm665.c
-+++ b/drivers/hwmon/smm665.c
-@@ -376,7 +376,7 @@ static ssize_t smm665_show_input(struct device *dev,
- }
+diff --git a/drivers/hwmon/max1111.c b/drivers/hwmon/max1111.c
+index e5206ae..362a40e 100644
+--- a/drivers/hwmon/max1111.c
++++ b/drivers/hwmon/max1111.c
+@@ -106,7 +106,8 @@ static ssize_t show_adc(struct device *dev,
+ 	if (ret < 0)
+ 		return ret;
  
- #define SMM665_SHOW(what) \
--  static ssize_t smm665_show_##what(struct device *dev, \
-+static ssize_t smm665_show_##what(struct device *dev, \
- 				    struct device_attribute *da, char *buf) \
- { \
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da); \
+-	/* assume the reference voltage to be 2.048V, with an 8-bit sample,
++	/*
++	 * assume the reference voltage to be 2.048V, with an 8-bit sample,
+ 	 * the LSB weight is 8mV
+ 	 */
+ 	return sprintf(buf, "%d\n", ret * 8);
 -- 
-1.7.8.2
+1.7.3.1
 
 
 _______________________________________________
