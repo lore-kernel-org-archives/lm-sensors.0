@@ -1,80 +1,61 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:45 +0000
-Subject: [lm-sensors] [PATCH 66/79] hwmon: (asus_atk0110) Fix multi-line comments
-Message-Id: <1327373398-997-67-git-send-email-guenter.roeck@ericsson.com>
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 24 Jan 2012 08:41:06 +0000
+Subject: Re: [lm-sensors] [PATCH 66/79] hwmon: (asus_atk0110) Fix multi-line comments
+Message-Id: <CAKPcRGr=pDD4iSKpgEQeJM4AS-jMS7p2KvDgjz2TOKVG=_VBdg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1327373398-997-67-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1327373398-997-67-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-
-Cc: Luca Tettamanti <kronos.it@gmail.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/asus_atk0110.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
-index 4000fee..351d1f4 100644
---- a/drivers/hwmon/asus_atk0110.c
-+++ b/drivers/hwmon/asus_atk0110.c
-@@ -38,7 +38,8 @@ static const struct dmi_system_id __initconst atk_force_new_if[] = {
- 	{ }
- };
- 
--/* Minimum time between readings, enforced in order to avoid
-+/*
-+ * Minimum time between readings, enforced in order to avoid
-  * hogging the CPU.
-  */
- #define CACHE_TIME		HZ
-@@ -161,7 +162,8 @@ struct atk_sensor_data {
- 	char const *acpi_name;
- };
- 
--/* Return buffer format:
-+/*
-+ * Return buffer format:
-  * [0-3] "value" is valid flag
-  * [4-7] value
-  * [8- ] unknown stuff on newer mobos
-@@ -310,7 +312,8 @@ static union acpi_object *atk_get_pack_member(struct atk_data *data,
- }
- 
- 
--/* New package format is:
-+/*
-+ * New package format is:
-  * - flag (int)
-  *	class - used for de-muxing the request to the correct GITn
-  *	type (volt, temp, fan)
-@@ -613,7 +616,8 @@ static int atk_read_value_new(struct atk_sensor_data *sensor, u64 *value)
- 
- 	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
- 	if (buf->flags = 0) {
--		/* The reading is not valid, possible causes:
-+		/*
-+		 * The reading is not valid, possible causes:
- 		 * - sensor failure
- 		 * - enumeration was FUBAR (and we didn't notice)
- 		 */
-@@ -1311,7 +1315,8 @@ static int atk_probe_if(struct atk_data *data)
- 		dev_dbg(dev, "method " METHOD_WRITE " not found: %s\n",
- 				 acpi_format_exception(status));
- 
--	/* Check for hwmon methods: first check "old" style methods; note that
-+	/*
-+	 * Check for hwmon methods: first check "old" style methods; note that
- 	 * both may be present: in this case we stick to the old interface;
- 	 * analysis of multiple DSDTs indicates that when both interfaces
- 	 * are present the new one (GGRP/GITM) is not functional.
--- 
-1.7.3.1
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCBKYW4gMjQsIDIwMTIgYXQgMzo0OSBBTSwgR3VlbnRlciBSb2Vjawo8Z3VlbnRlci5y
+b2Vja0Blcmljc3Nvbi5jb20+IHdyb3RlOgo+IEZyb206IEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJv
+ZWNrLXVzLm5ldD4KPgo+IENjOiBMdWNhIFRldHRhbWFudGkgPGtyb25vcy5pdEBnbWFpbC5jb20+
+Cj4gU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgoKQWNr
+ZWQtYnk6IEx1Y2EgVGV0dGFtYW50aSA8a3Jvbm9zLml0QGdtYWlsLmNvbT4KCj4gLS0tCj4gwqBk
+cml2ZXJzL2h3bW9uL2FzdXNfYXRrMDExMC5jIHwgwqAgMTUgKysrKysrKysrKy0tLS0tCj4gwqAx
+IGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCj4KPiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAuYyBiL2RyaXZlcnMvaHdtb24vYXN1
+c19hdGswMTEwLmMKPiBpbmRleCA0MDAwZmVlLi4zNTFkMWY0IDEwMDY0NAo+IC0tLSBhL2RyaXZl
+cnMvaHdtb24vYXN1c19hdGswMTEwLmMKPiArKysgYi9kcml2ZXJzL2h3bW9uL2FzdXNfYXRrMDEx
+MC5jCj4gQEAgLTM4LDcgKzM4LDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lk
+IF9faW5pdGNvbnN0IGF0a19mb3JjZV9uZXdfaWZbXSA9IHsKPiDCoCDCoCDCoCDCoHsgfQo+IMKg
+fTsKPgo+IC0vKiBNaW5pbXVtIHRpbWUgYmV0d2VlbiByZWFkaW5ncywgZW5mb3JjZWQgaW4gb3Jk
+ZXIgdG8gYXZvaWQKPiArLyoKPiArICogTWluaW11bSB0aW1lIGJldHdlZW4gcmVhZGluZ3MsIGVu
+Zm9yY2VkIGluIG9yZGVyIHRvIGF2b2lkCj4gwqAqIGhvZ2dpbmcgdGhlIENQVS4KPiDCoCovCj4g
+wqAjZGVmaW5lIENBQ0hFX1RJTUUgwqAgwqAgwqAgwqAgwqAgwqAgSFoKPiBAQCAtMTYxLDcgKzE2
+Miw4IEBAIHN0cnVjdCBhdGtfc2Vuc29yX2RhdGEgewo+IMKgIMKgIMKgIMKgY2hhciBjb25zdCAq
+YWNwaV9uYW1lOwo+IMKgfTsKPgo+IC0vKiBSZXR1cm4gYnVmZmVyIGZvcm1hdDoKPiArLyoKPiAr
+ICogUmV0dXJuIGJ1ZmZlciBmb3JtYXQ6Cj4gwqAqIFswLTNdICJ2YWx1ZSIgaXMgdmFsaWQgZmxh
+Zwo+IMKgKiBbNC03XSB2YWx1ZQo+IMKgKiBbOC0gXSB1bmtub3duIHN0dWZmIG9uIG5ld2VyIG1v
+Ym9zCj4gQEAgLTMxMCw3ICszMTIsOCBAQCBzdGF0aWMgdW5pb24gYWNwaV9vYmplY3QgKmF0a19n
+ZXRfcGFja19tZW1iZXIoc3RydWN0IGF0a19kYXRhICpkYXRhLAo+IMKgfQo+Cj4KPiAtLyogTmV3
+IHBhY2thZ2UgZm9ybWF0IGlzOgo+ICsvKgo+ICsgKiBOZXcgcGFja2FnZSBmb3JtYXQgaXM6Cj4g
+wqAqIC0gZmxhZyAoaW50KQo+IMKgKiDCoCDCoCBjbGFzcyAtIHVzZWQgZm9yIGRlLW11eGluZyB0
+aGUgcmVxdWVzdCB0byB0aGUgY29ycmVjdCBHSVRuCj4gwqAqIMKgIMKgIHR5cGUgKHZvbHQsIHRl
+bXAsIGZhbikKPiBAQCAtNjEzLDcgKzYxNiw4IEBAIHN0YXRpYyBpbnQgYXRrX3JlYWRfdmFsdWVf
+bmV3KHN0cnVjdCBhdGtfc2Vuc29yX2RhdGEgKnNlbnNvciwgdTY0ICp2YWx1ZSkKPgo+IMKgIMKg
+IMKgIMKgYnVmID0gKHN0cnVjdCBhdGtfYWNwaV9yZXRfYnVmZmVyICopb2JqLT5idWZmZXIucG9p
+bnRlcjsKPiDCoCDCoCDCoCDCoGlmIChidWYtPmZsYWdzID09IDApIHsKPiAtIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIC8qIFRoZSByZWFkaW5nIGlzIG5vdCB2YWxpZCwgcG9zc2libGUgY2F1c2VzOgo+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyoKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKiBU
+aGUgcmVhZGluZyBpcyBub3QgdmFsaWQsIHBvc3NpYmxlIGNhdXNlczoKPiDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCAqIC0gc2Vuc29yIGZhaWx1cmUKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAq
+IC0gZW51bWVyYXRpb24gd2FzIEZVQkFSIChhbmQgd2UgZGlkbid0IG5vdGljZSkKPiDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCAqLwo+IEBAIC0xMzExLDcgKzEzMTUsOCBAQCBzdGF0aWMgaW50IGF0
+a19wcm9iZV9pZihzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqBkZXZfZGJnKGRldiwgIm1ldGhvZCAiIE1FVEhPRF9XUklURSAiIG5vdCBmb3VuZDogJXNcbiIs
+Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYWNwaV9m
+b3JtYXRfZXhjZXB0aW9uKHN0YXR1cykpOwo+Cj4gLSDCoCDCoCDCoCAvKiBDaGVjayBmb3IgaHdt
+b24gbWV0aG9kczogZmlyc3QgY2hlY2sgIm9sZCIgc3R5bGUgbWV0aG9kczsgbm90ZSB0aGF0Cj4g
+KyDCoCDCoCDCoCAvKgo+ICsgwqAgwqAgwqAgwqAqIENoZWNrIGZvciBod21vbiBtZXRob2RzOiBm
+aXJzdCBjaGVjayAib2xkIiBzdHlsZSBtZXRob2RzOyBub3RlIHRoYXQKPiDCoCDCoCDCoCDCoCAq
+IGJvdGggbWF5IGJlIHByZXNlbnQ6IGluIHRoaXMgY2FzZSB3ZSBzdGljayB0byB0aGUgb2xkIGlu
+dGVyZmFjZTsKPiDCoCDCoCDCoCDCoCAqIGFuYWx5c2lzIG9mIG11bHRpcGxlIERTRFRzIGluZGlj
+YXRlcyB0aGF0IHdoZW4gYm90aCBpbnRlcmZhY2VzCj4gwqAgwqAgwqAgwqAgKiBhcmUgcHJlc2Vu
+dCB0aGUgbmV3IG9uZSAoR0dSUC9HSVRNKSBpcyBub3QgZnVuY3Rpb25hbC4KPiAtLQo+IDEuNy4z
+LjEKPgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0t
+c2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlz
+dHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
