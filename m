@@ -1,172 +1,63 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 16 Jan 2012 08:49:18 +0000
-Subject: [lm-sensors] [PATCH 16/39] hwmon: (lm77) Fix checkpatch issues
-Message-Id: <1326703781-14272-17-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:53 +0000
+Subject: [lm-sensors] [PATCH 74/79] hwmon: (w83l785ts) Fix multi-line comments
+Message-Id: <1327373398-997-75-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fixed:
-ERROR: code indent should use tabs where possible
-ERROR: do not use assignment in if condition
-ERROR: trailing whitespace
-WARNING: line over 80 characters
-WARNING: please, no space before tabs
-WARNING: simple_strtol is obsolete, use kstrtol instead
-WARNING: simple_strtoul is obsolete, use kstrtoul instead
+From: Guenter Roeck <linux@roeck-us.net>
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm77.c |   69 +++++++++++++++++++++++++++++++++----------------
- 1 files changed, 46 insertions(+), 23 deletions(-)
+ drivers/hwmon/w83l785ts.c |   15 +++++++++------
+ 1 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/hwmon/lm77.c b/drivers/hwmon/lm77.c
-index 8dfc678..08f7ffe 100644
---- a/drivers/hwmon/lm77.c
-+++ b/drivers/hwmon/lm77.c
-@@ -1,6 +1,6 @@
+diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
+index bc07144..5f14e38 100644
+--- a/drivers/hwmon/w83l785ts.c
++++ b/drivers/hwmon/w83l785ts.c
+@@ -116,8 +116,7 @@ struct w83l785ts_data {
+ 	unsigned long last_updated; /* in jiffies */
+ 
+ 	/* registers values */
+-	s8 temp[2]; /* 0: input
+-		       1: critical limit */
++	s8 temp[2]; /* 0: input, 1: critical limit */
+ };
+ 
  /*
-     lm77.c - Part of lm_sensors, Linux kernel modules for hardware
--             monitoring
-+		monitoring
+@@ -250,8 +249,10 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
+ 	struct device *dev;
+ 	const char *prefix;
  
-     Copyright (c) 2004  Andras BALI <drewie@freemail.hu>
+-	/* We might be called during detection, at which point the client
+-	   isn't yet fully initialized, so we can't use dev_dbg on it */
++	/*
++	 * We might be called during detection, at which point the client
++	 * isn't yet fully initialized, so we can't use dev_dbg on it
++	 */
+ 	if (i2c_get_clientdata(client)) {
+ 		dev = &client->dev;
+ 		prefix = "";
+@@ -260,9 +261,11 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
+ 		prefix = "w83l785ts: ";
+ 	}
  
-@@ -49,7 +49,7 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
- 
- /* Each client has this additional data */
- struct lm77_data {
--	struct device 		*hwmon_dev;
-+	struct device		*hwmon_dev;
- 	struct mutex		update_lock;
- 	char			valid;
- 	unsigned long		last_updated;	/* In jiffies */
-@@ -112,7 +112,9 @@ static inline int LM77_TEMP_FROM_REG(s16 reg)
- 
- /* read routines for temperature limits */
- #define show(value)	\
--static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf)	\
-+static ssize_t show_##value(struct device *dev,			\
-+			    struct device_attribute *attr,	\
-+			    char *buf)				\
- {								\
- 	struct lm77_data *data = lm77_update_device(dev);	\
- 	return sprintf(buf, "%d\n", data->value);		\
-@@ -124,17 +126,20 @@ show(temp_min);
- show(temp_max);
- 
- /* read routines for hysteresis values */
--static ssize_t show_temp_crit_hyst(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp_crit_hyst(struct device *dev,
-+				   struct device_attribute *attr, char *buf)
- {
- 	struct lm77_data *data = lm77_update_device(dev);
- 	return sprintf(buf, "%d\n", data->temp_crit - data->temp_hyst);
- }
--static ssize_t show_temp_min_hyst(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp_min_hyst(struct device *dev,
-+				  struct device_attribute *attr, char *buf)
- {
- 	struct lm77_data *data = lm77_update_device(dev);
- 	return sprintf(buf, "%d\n", data->temp_min + data->temp_hyst);
- }
--static ssize_t show_temp_max_hyst(struct device *dev, struct device_attribute *attr, char *buf)
-+static ssize_t show_temp_max_hyst(struct device *dev,
-+				  struct device_attribute *attr, char *buf)
- {
- 	struct lm77_data *data = lm77_update_device(dev);
- 	return sprintf(buf, "%d\n", data->temp_max - data->temp_hyst);
-@@ -142,17 +147,21 @@ static ssize_t show_temp_max_hyst(struct device *dev, struct device_attribute *a
- 
- /* write routines */
- #define set(value, reg)	\
--static ssize_t set_##value(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)	\
--{										\
--	struct i2c_client *client = to_i2c_client(dev);				\
--	struct lm77_data *data = i2c_get_clientdata(client);			\
--	long val = simple_strtol(buf, NULL, 10);				\
--										\
--	mutex_lock(&data->update_lock);						\
--	data->value = val;				\
--	lm77_write_value(client, reg, LM77_TEMP_TO_REG(data->value));		\
--	mutex_unlock(&data->update_lock);					\
--	return count;								\
-+static ssize_t set_##value(struct device *dev, struct device_attribute *attr, \
-+			   const char *buf, size_t count)		\
-+{									\
-+	struct i2c_client *client = to_i2c_client(dev);			\
-+	struct lm77_data *data = i2c_get_clientdata(client);		\
-+	long val;							\
-+	int err = kstrtol(buf, 10, &val);				\
-+	if (err)							\
-+		return err;						\
-+									\
-+	mutex_lock(&data->update_lock);					\
-+	data->value = val;						\
-+	lm77_write_value(client, reg, LM77_TEMP_TO_REG(data->value));	\
-+	mutex_unlock(&data->update_lock);				\
-+	return count;							\
- }
- 
- set(temp_min, LM77_REG_TEMP_MIN);
-@@ -160,11 +169,18 @@ set(temp_max, LM77_REG_TEMP_MAX);
- 
- /* hysteresis is stored as a relative value on the chip, so it has to be
-    converted first */
--static ssize_t set_temp_crit_hyst(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_temp_crit_hyst(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm77_data *data = i2c_get_clientdata(client);
--	unsigned long val = simple_strtoul(buf, NULL, 10);
-+	unsigned long val;
-+	int err;
-+
-+	err = kstrtoul(buf, 10, &val);
-+	if (err)
-+		return err;
- 
- 	mutex_lock(&data->update_lock);
- 	data->temp_hyst = data->temp_crit - val;
-@@ -175,13 +191,19 @@ static ssize_t set_temp_crit_hyst(struct device *dev, struct device_attribute *a
- }
- 
- /* preserve hysteresis when setting T_crit */
--static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-+static ssize_t set_temp_crit(struct device *dev, struct device_attribute *attr,
-+			     const char *buf, size_t count)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct lm77_data *data = i2c_get_clientdata(client);
--	long val = simple_strtoul(buf, NULL, 10);
- 	int oldcrithyst;
--	
-+	unsigned long val;
-+	int err;
-+
-+	err = kstrtoul(buf, 10, &val);
-+	if (err)
-+		return err;
-+
- 	mutex_lock(&data->update_lock);
- 	oldcrithyst = data->temp_crit - data->temp_hyst;
- 	data->temp_crit = val;
-@@ -330,7 +352,8 @@ static int lm77_probe(struct i2c_client *new_client,
- 	lm77_init_client(new_client);
- 
- 	/* Register sysfs hooks */
--	if ((err = sysfs_create_group(&new_client->dev.kobj, &lm77_group)))
-+	err = sysfs_create_group(&new_client->dev.kobj, &lm77_group);
-+	if (err)
- 		goto exit_free;
- 
- 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+-	/* Frequent read errors have been reported on Asus boards, so we
++	/*
++	 * Frequent read errors have been reported on Asus boards, so we
+ 	 * retry on read errors. If it still fails (unlikely), return the
+-	 * default value requested by the caller. */
++	 * default value requested by the caller.
++	 */
+ 	for (i = 1; i <= MAX_RETRIES; i++) {
+ 		value = i2c_smbus_read_byte_data(client, reg);
+ 		if (value >= 0) {
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
