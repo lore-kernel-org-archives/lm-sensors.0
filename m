@@ -1,44 +1,78 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 23 Jan 2012 09:11:07 +0000
-Subject: Re: [lm-sensors] Support for SMBus based GMT G781 and G7811 temperature sensors.
-Message-Id: <20120123101107.4ba687eb@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:45 +0000
+Subject: [lm-sensors] [PATCH 66/79] hwmon: (asus_atk0110) Fix multi-line comments
+Message-Id: <1327373398-997-67-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <EC359208AB4F4249B8EA5A0018A7B178@ISLA>
-In-Reply-To: <EC359208AB4F4249B8EA5A0018A7B178@ISLA>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 23 Jan 2012 09:59:43 +0200, Mike Gorchak wrote:
-> Hello, Jean!
-> 
->  GR>>> never mind; no idea if G7811 ever really existed. I found version 1.3
->  GR>>> of the datasheet which describes both G781 and G781-1. Can you test
->  GR>>> the driver and sensors-detect if I send you a pointer to the code ?
->  ??>> It seems that this patch is ok, except for one thing.
->  ??>> Let me explain what I did. I added support for ACPI SMBus connected to
->  ??>> Embedded Controller to the lm-sensors (for a netbook without proper
->  ??>> ACPI support). There are two G781 sensors connected to this bus, one
->  ??>> to the address 0x4C and one to the 0x4D. Both sensors have 0x01 as
->  ??>> device id. But patch assumes that only G781-1 can be connected to the
->  ??>> 0x4D address.
->  JD> If they followed a naming logic similar to National Semiconductor, G781
->  JD> will have address 0x4C and G781-1 will have address 0x4D. They are
->  JD> basically the exact same chip except for the address, so the driver
->  JD> doesn't even need to know, other than the fact that both addresses 0x4C
->  JD> and 0x4D are possible.
-> 
-> Now driver checks only for 0x03 device id at address 0x4D, which is not 
-> correct. 0x01 device id can be present at 0x4D address too. That's all I'd 
-> like to say :)
+From: Guenter Roeck <linux@roeck-us.net>
 
-Yes, yes, I agree and I'm sure Guenter does as well. Just give me a
-moment to review his two patches, and then wait for him to wake up, get
-dressed, have coffee or whatever, and resubmit ;)
+Cc: Luca Tettamanti <kronos.it@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/asus_atk0110.c |   15 ++++++++++-----
+ 1 files changed, 10 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/hwmon/asus_atk0110.c b/drivers/hwmon/asus_atk0110.c
+index 4000fee..351d1f4 100644
+--- a/drivers/hwmon/asus_atk0110.c
++++ b/drivers/hwmon/asus_atk0110.c
+@@ -38,7 +38,8 @@ static const struct dmi_system_id __initconst atk_force_new_if[] = {
+ 	{ }
+ };
+ 
+-/* Minimum time between readings, enforced in order to avoid
++/*
++ * Minimum time between readings, enforced in order to avoid
+  * hogging the CPU.
+  */
+ #define CACHE_TIME		HZ
+@@ -161,7 +162,8 @@ struct atk_sensor_data {
+ 	char const *acpi_name;
+ };
+ 
+-/* Return buffer format:
++/*
++ * Return buffer format:
+  * [0-3] "value" is valid flag
+  * [4-7] value
+  * [8- ] unknown stuff on newer mobos
+@@ -310,7 +312,8 @@ static union acpi_object *atk_get_pack_member(struct atk_data *data,
+ }
+ 
+ 
+-/* New package format is:
++/*
++ * New package format is:
+  * - flag (int)
+  *	class - used for de-muxing the request to the correct GITn
+  *	type (volt, temp, fan)
+@@ -613,7 +616,8 @@ static int atk_read_value_new(struct atk_sensor_data *sensor, u64 *value)
+ 
+ 	buf = (struct atk_acpi_ret_buffer *)obj->buffer.pointer;
+ 	if (buf->flags = 0) {
+-		/* The reading is not valid, possible causes:
++		/*
++		 * The reading is not valid, possible causes:
+ 		 * - sensor failure
+ 		 * - enumeration was FUBAR (and we didn't notice)
+ 		 */
+@@ -1311,7 +1315,8 @@ static int atk_probe_if(struct atk_data *data)
+ 		dev_dbg(dev, "method " METHOD_WRITE " not found: %s\n",
+ 				 acpi_format_exception(status));
+ 
+-	/* Check for hwmon methods: first check "old" style methods; note that
++	/*
++	 * Check for hwmon methods: first check "old" style methods; note that
+ 	 * both may be present: in this case we stick to the old interface;
+ 	 * analysis of multiple DSDTs indicates that when both interfaces
+ 	 * are present the new one (GGRP/GITM) is not functional.
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
