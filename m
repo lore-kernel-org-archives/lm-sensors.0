@@ -1,213 +1,289 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:56:08 +0000
-Subject: [lm-sensors] [PATCH 74/82] hwmon: (w83627hf) Fix multi-line comments
-Message-Id: <1327017376-20466-75-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:39 +0000
+Subject: [lm-sensors] [PATCH 60/79] hwmon: (w83l786ng) Fix checkpatch issues
+Message-Id: <1327373398-997-61-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Guenter Roeck <linux@roeck-us.net>
+
+Fixed:
+ERROR: code indent should use tabs where possible
+ERROR: do not use assignment in if condition
+ERROR: space required after that ',' (ctx:VxV)
+WARNING: braces {} are not necessary for single statement blocks
+WARNING: please, no space before tabs
+WARNING: please, no spaces at the start of a line
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
+WARNING: space prohibited between function name and open parenthesis '('
+
+Not fixed (false positive):
+ERROR: Macros with complex values should be enclosed in parenthesis
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/w83627hf.c |  132 ++++++++++++++++++++++++++--------------------
- 1 files changed, 74 insertions(+), 58 deletions(-)
+ drivers/hwmon/w83l786ng.c |  103 ++++++++++++++++++++++++++++++--------------
+ 1 files changed, 70 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
-index 3162309..aaa2ad7 100644
---- a/drivers/hwmon/w83627hf.c
-+++ b/drivers/hwmon/w83627hf.c
-@@ -1,43 +1,43 @@
- /*
--    w83627hf.c - Part of lm_sensors, Linux kernel modules for hardware
--                monitoring
--    Copyright (c) 1998 - 2003  Frodo Looijaard <frodol@dds.nl>,
--    Philip Edelbrock <phil@netroedge.com>,
--    and Mark Studebaker <mdsxyz123@yahoo.com>
--    Ported to 2.6 by Bernhard C. Schrenk <clemy@clemy.org>
--    Copyright (c) 2007  Jean Delvare <khali@linux-fr.org>
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--*/
-+ * w83627hf.c - Part of lm_sensors, Linux kernel modules for hardware
-+ *		monitoring
-+ * Copyright (c) 1998 - 2003  Frodo Looijaard <frodol@dds.nl>,
-+ *			      Philip Edelbrock <phil@netroedge.com>,
-+ *			      and Mark Studebaker <mdsxyz123@yahoo.com>
-+ * Ported to 2.6 by Bernhard C. Schrenk <clemy@clemy.org>
-+ * Copyright (c) 2007  Jean Delvare <khali@linux-fr.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
+diff --git a/drivers/hwmon/w83l786ng.c b/drivers/hwmon/w83l786ng.c
+index deac4b6..a6310b8 100644
+--- a/drivers/hwmon/w83l786ng.c
++++ b/drivers/hwmon/w83l786ng.c
+@@ -52,7 +52,7 @@ MODULE_PARM_DESC(reset, "Set to 1 to reset chip, not recommended");
  
- /*
--    Supports following chips:
--
--    Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
--    w83627hf	9	3	2	3	0x20	0x5ca3	no	yes(LPC)
--    w83627thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
--    w83637hf	7	3	3	3	0x80	0x5ca3	no	yes(LPC)
--    w83687thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
--    w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
--
--    For other winbond chips, and for i2c support in the above chips,
--    use w83781d.c.
--
--    Note: automatic ("cruise") fan control for 697, 637 & 627thf not
--    supported yet.
--*/
-+ * Supports following chips:
-+ *
-+ * Chip	#vin	#fanin	#pwm	#temp	wchipid	vendid	i2c	ISA
-+ * w83627hf	9	3	2	3	0x20	0x5ca3	no	yes(LPC)
-+ * w83627thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
-+ * w83637hf	7	3	3	3	0x80	0x5ca3	no	yes(LPC)
-+ * w83687thf	7	3	3	3	0x90	0x5ca3	no	yes(LPC)
-+ * w83697hf	8	2	2	2	0x60	0x5ca3	no	yes(LPC)
-+ *
-+ * For other winbond chips, and for i2c support in the above chips,
-+ * use w83781d.c.
-+ *
-+ * Note: automatic ("cruise") fan control for 697, 637 & 627thf not
-+ * supported yet.
-+ */
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-@@ -248,10 +248,12 @@ static const u8 BIT_SCFG1[] = { 0x02, 0x04, 0x08 };
- static const u8 BIT_SCFG2[] = { 0x10, 0x20, 0x40 };
- #define W83781D_DEFAULT_BETA 3435
- 
--/* Conversions. Limit checking is only done on the TO_REG
--   variants. Note that you should be a bit careful with which arguments
--   these macros are called: arguments may be evaluated more than once.
--   Fixing this is just not worth it. */
-+/*
-+ * Conversions. Limit checking is only done on the TO_REG
-+ * variants. Note that you should be a bit careful with which arguments
-+ * these macros are called: arguments may be evaluated more than once.
-+ * Fixing this is just not worth it.
-+ */
- #define IN_TO_REG(val)  (SENSORS_LIMIT((((val) + 8)/16),0,255))
- #define IN_FROM_REG(val) ((val) * 16)
- 
-@@ -267,8 +269,10 @@ static inline u8 FAN_TO_REG(long rpm, int div)
- #define TEMP_MIN (-128000)
- #define TEMP_MAX ( 127000)
- 
--/* TEMP: 0.001C/bit (-128C to +127C)
--   REG: 1C/bit, two's complement */
-+/*
-+ * TEMP: 0.001C/bit (-128C to +127C)
-+ * REG: 1C/bit, two's complement
-+ */
- static u8 TEMP_TO_REG(long temp)
- {
-         int ntemp = SENSORS_LIMIT(temp, TEMP_MIN, TEMP_MAX);
-@@ -294,8 +298,10 @@ static inline unsigned long pwm_freq_from_reg_627hf(u8 reg)
- static inline u8 pwm_freq_to_reg_627hf(unsigned long val)
- {
- 	u8 i;
--	/* Only 5 dividers (1 2 4 8 16)
--	   Search for the nearest available frequency */
-+	/*
-+	 * Only 5 dividers (1 2 4 8 16)
-+	 * Search for the nearest available frequency
-+	 */
- 	for (i = 0; i < 4; i++) {
- 		if (val > (((W83627HF_BASE_PWM_FREQ >> i) +
- 			    (W83627HF_BASE_PWM_FREQ >> (i+1))) / 2))
-@@ -345,8 +351,10 @@ static inline u8 DIV_TO_REG(long val)
- 	return (u8)i;
+ #define W83L786NG_REG_CONFIG		0x40
+ #define W83L786NG_REG_ALARM1		0x41
+-#define W83L786NG_REG_ALARM2 		0x42
++#define W83L786NG_REG_ALARM2		0x42
+ #define W83L786NG_REG_GPIO_EN		0x47
+ #define W83L786NG_REG_MAN_ID2		0x4C
+ #define W83L786NG_REG_MAN_ID1		0x4D
+@@ -89,19 +89,21 @@ FAN_TO_REG(long rpm, int div)
+ 	return SENSORS_LIMIT((1350000 + rpm * div / 2) / (rpm * div), 1, 254);
  }
  
--/* For each registered chip, we need to keep some data in memory.
--   The structure is dynamically allocated. */
-+/*
-+ * For each registered chip, we need to keep some data in memory.
-+ * The structure is dynamically allocated.
-+ */
- struct w83627hf_data {
- 	unsigned short addr;
- 	const char *name;
-@@ -371,12 +379,16 @@ struct w83627hf_data {
- 	u32 alarms;		/* Register encoding, combined */
- 	u32 beep_mask;		/* Register encoding, combined */
- 	u8 pwm[3];		/* Register value */
--	u8 pwm_enable[3];	/* 1 = manual
--				   2 = thermal cruise (also called SmartFan I)
--				   3 = fan speed cruise */
-+	u8 pwm_enable[3];	/*
-+				 * 1 = manual
-+				 * 2 = thermal cruise (also called SmartFan I)
-+				 * 3 = fan speed cruise
-+				 */
- 	u8 pwm_freq[3];		/* Register value */
--	u16 sens[3];		/* 1 = pentium diode; 2 = 3904 diode;
--				   4 = thermistor */
-+	u16 sens[3];		/*
-+				 * 1 = pentium diode; 2 = 3904 diode;
-+				 * 4 = thermistor
-+				 */
- 	u8 vrm;
- 	u8 vrm_ovt;		/* Register value, 627THF/637HF/687THF only */
+-#define FAN_FROM_REG(val,div)	((val) = 0   ? -1 : \
++#define FAN_FROM_REG(val, div)	((val) = 0   ? -1 : \
+ 				((val) = 255 ? 0 : \
+ 				1350000 / ((val) * (div))))
+ 
+ /* for temp */
+-#define TEMP_TO_REG(val)	(SENSORS_LIMIT(((val) < 0 ? (val)+0x100*1000 \
+-				    : (val)) / 1000, 0, 0xff))
+-#define TEMP_FROM_REG(val)	(((val) & 0x80 ? (val)-0x100 : (val)) * 1000)
++#define TEMP_TO_REG(val)	(SENSORS_LIMIT(((val) < 0 ? \
++						(val) + 0x100 * 1000 \
++						: (val)) / 1000, 0, 0xff))
++#define TEMP_FROM_REG(val)	(((val) & 0x80 ? \
++				  (val) - 0x100 : (val)) * 1000)
+ 
+ /* The analog voltage inputs have 8mV LSB. Since the sysfs output is
+    in mV as would be measured on the chip input pin, need to just
+    multiply/divide by 8 to translate from/to register values. */
+-#define IN_TO_REG(val)          (SENSORS_LIMIT((((val) + 4) / 8), 0, 255))
++#define IN_TO_REG(val)		(SENSORS_LIMIT((((val) + 4) / 8), 0, 255))
+ #define IN_FROM_REG(val)	((val) * 8)
+ 
+ #define DIV_FROM_REG(val)	(1 << (val))
+@@ -186,11 +188,11 @@ w83l786ng_write_value(struct i2c_client *client, u8 reg, u8 value)
+ #define show_in_reg(reg) \
+ static ssize_t \
+ show_##reg(struct device *dev, struct device_attribute *attr, \
+-           char *buf) \
++	   char *buf) \
+ { \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct w83l786ng_data *data = w83l786ng_update_device(dev); \
+-	return sprintf(buf,"%d\n", IN_FROM_REG(data->reg[nr])); \
++	return sprintf(buf, "%d\n", IN_FROM_REG(data->reg[nr])); \
+ }
+ 
+ show_in_reg(in)
+@@ -199,13 +201,16 @@ show_in_reg(in_max)
+ 
+ #define store_in_reg(REG, reg) \
+ static ssize_t \
+-store_in_##reg (struct device *dev, struct device_attribute *attr, \
+-		const char *buf, size_t count) \
++store_in_##reg(struct device *dev, struct device_attribute *attr, \
++	       const char *buf, size_t count) \
+ { \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client); \
+-	unsigned long val = simple_strtoul(buf, NULL, 10); \
++	unsigned long val; \
++	int err = kstrtoul(buf, 10, &val); \
++	if (err) \
++		return err; \
+ 	mutex_lock(&data->update_lock); \
+ 	data->in_##reg[nr] = IN_TO_REG(val); \
+ 	w83l786ng_write_value(client, W83L786NG_REG_IN_##REG(nr), \
+@@ -241,8 +246,8 @@ static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
+ { \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+ 	struct w83l786ng_data *data = w83l786ng_update_device(dev); \
+-        return sprintf(buf,"%d\n", \
+-                FAN_FROM_REG(data->fan[nr], DIV_FROM_REG(data->fan_div[nr]))); \
++	return sprintf(buf, "%d\n", \
++		FAN_FROM_REG(data->fan[nr], DIV_FROM_REG(data->fan_div[nr]))); \
+ }
+ 
+ show_fan_reg(fan);
+@@ -255,9 +260,13 @@ store_fan_min(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client);
+-	u32 val;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+-	val = simple_strtoul(buf, NULL, 10);
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+ 	w83l786ng_write_value(client, W83L786NG_REG_FAN_MIN(nr),
+@@ -294,11 +303,18 @@ store_fan_div(struct device *dev, struct device_attribute *attr,
+ 	u8 keep_mask = 0;
+ 	u8 new_shift = 0;
+ 
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
++
+ 	/* Save fan_min */
+ 	mutex_lock(&data->update_lock);
+ 	min = FAN_FROM_REG(data->fan_min[nr], DIV_FROM_REG(data->fan_div[nr]));
+ 
+-	data->fan_div[nr] = DIV_TO_REG(simple_strtoul(buf, NULL, 10));
++	data->fan_div[nr] = DIV_TO_REG(val);
+ 
+ 	switch (nr) {
+ 	case 0:
+@@ -371,16 +387,20 @@ store_temp(struct device *dev, struct device_attribute *attr,
+ 	int index = sensor_attr->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client);
+-	s32 val;
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+-	val = simple_strtol(buf, NULL, 10);
+ 	mutex_lock(&data->update_lock);
+ 	data->temp[nr][index] = TEMP_TO_REG(val);
+ 	w83l786ng_write_value(client, W83L786NG_REG_TEMP[nr][index],
+ 			      data->temp[nr][index]);
+ 	mutex_unlock(&data->update_lock);
+ 
+-        return count;
++	return count;
+ }
+ 
+ static struct sensor_device_attribute_2 sda_temp_input[] = {
+@@ -403,8 +423,8 @@ static struct sensor_device_attribute_2 sda_temp_max_hyst[] = {
  };
-@@ -915,10 +927,12 @@ show_fan_div(struct device *dev, struct device_attribute *devattr, char *buf)
- 	return sprintf(buf, "%ld\n",
- 		       (long) DIV_FROM_REG(data->fan_div[nr]));
- }
--/* Note: we save and restore the fan minimum here, because its value is
--   determined in part by the fan divisor.  This follows the principle of
--   least surprise; the user doesn't expect the fan minimum to change just
--   because the divisor changed. */
-+/*
-+ * Note: we save and restore the fan minimum here, because its value is
-+ * determined in part by the fan divisor.  This follows the principle of
-+ * least surprise; the user doesn't expect the fan minimum to change just
-+ * because the divisor changed.
-+ */
- static ssize_t
- store_fan_div(struct device *dev, struct device_attribute *devattr,
- 	      const char *buf, size_t count)
-@@ -1580,8 +1594,10 @@ static int __devinit w83627thf_read_gpio5(struct platform_device *pdev)
- 		goto exit;
- 	}
  
--	/* Make sure the pins are configured for input
--	   There must be at least five (VRM 9), and possibly 6 (VRM 10) */
-+	/*
-+	 * Make sure the pins are configured for input
-+	 * There must be at least five (VRM 9), and possibly 6 (VRM 10)
-+	 */
- 	sel = superio_inb(sio_data, W83627THF_GPIO5_IOSR) & 0x3f;
- 	if ((sel & 0x1f) != 0x1f) {
- 		dev_dbg(&pdev->dev, "GPIO5 not configured for VID "
+ #define show_pwm_reg(reg) \
+-static ssize_t show_##reg (struct device *dev, struct device_attribute *attr, \
+-			   char *buf) \
++static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
++			  char *buf) \
+ { \
+ 	struct w83l786ng_data *data = w83l786ng_update_device(dev); \
+ 	int nr = to_sensor_dev_attr(attr)->index; \
+@@ -422,8 +442,13 @@ store_pwm_mode(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client);
+-	u32 val = simple_strtoul(buf, NULL, 10);
+ 	u8 reg;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	if (val > 1)
+ 		return -EINVAL;
+@@ -445,7 +470,13 @@ store_pwm(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client);
+-	u32 val = SENSORS_LIMIT(simple_strtoul(buf, NULL, 10), 0, 255);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
++	val = SENSORS_LIMIT(val, 0, 255);
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm[nr] = val;
+@@ -461,11 +492,15 @@ store_pwm_enable(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client);
+-	u32 val = simple_strtoul(buf, NULL, 10);
+-
+ 	u8 reg;
++	unsigned long val;
++	int err;
+ 
+-	if (!val || (val > 2))  /* only modes 1 and 2 are supported */
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
++
++	if (!val || val > 2)  /* only modes 1 and 2 are supported */
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+@@ -513,10 +548,13 @@ store_tolerance(struct device *dev, struct device_attribute *attr,
+ 	int nr = to_sensor_dev_attr(attr)->index;
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct w83l786ng_data *data = i2c_get_clientdata(client);
+-	u32 val;
+ 	u8 tol_tmp, tol_mask;
++	unsigned long val;
++	int err;
+ 
+-	val = simple_strtoul(buf, NULL, 10);
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	tol_mask = w83l786ng_read_value(client,
+@@ -524,9 +562,8 @@ store_tolerance(struct device *dev, struct device_attribute *attr,
+ 	tol_tmp = SENSORS_LIMIT(val, 0, 15);
+ 	tol_tmp &= 0x0f;
+ 	data->tolerance[nr] = tol_tmp;
+-	if (nr = 1) {
++	if (nr = 1)
+ 		tol_tmp <<= 4;
+-	}
+ 
+ 	w83l786ng_write_value(client, W83L786NG_REG_TOLERANCE,
+ 			      tol_mask | tol_tmp);
+@@ -591,9 +628,8 @@ w83l786ng_detect(struct i2c_client *client, struct i2c_board_info *info)
+ 	u16 man_id;
+ 	u8 chip_id;
+ 
+-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+-	}
+ 
+ 	/* Detection */
+ 	if ((w83l786ng_read_value(client, W83L786NG_REG_CONFIG) & 0x80)) {
+@@ -652,7 +688,8 @@ w83l786ng_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	data->fan_div[1] = (reg_tmp >> 4) & 0x07;
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&client->dev.kobj, &w83l786ng_group)))
++	err = sysfs_create_group(&client->dev.kobj, &w83l786ng_group);
++	if (err)
+ 		goto exit_remove;
+ 
+ 	data->hwmon_dev = hwmon_device_register(dev);
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
