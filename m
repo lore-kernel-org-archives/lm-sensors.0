@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:53 +0000
-Subject: [lm-sensors] [PATCH 74/79] hwmon: (w83l785ts) Fix multi-line comments
-Message-Id: <1327373398-997-75-git-send-email-guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:28 +0000
+Subject: [lm-sensors] [PATCH 49/79] hwmon: (max1619): Fix checkpatch issues
+Message-Id: <1327373398-997-50-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,52 +10,82 @@ To: lm-sensors@vger.kernel.org
 
 From: Guenter Roeck <linux@roeck-us.net>
 
+Fixed:
+ERROR: do not use assignment in if condition
+ERROR: trailing whitespace
+WARNING: line over 80 characters
+WARNING: please, no spaces at the start of a line
+WARNING: simple_strtol is obsolete, use kstrtol instead
+
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/w83l785ts.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/hwmon/max1619.c |   21 ++++++++++++++-------
+ 1 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/w83l785ts.c b/drivers/hwmon/w83l785ts.c
-index bc07144..5f14e38 100644
---- a/drivers/hwmon/w83l785ts.c
-+++ b/drivers/hwmon/w83l785ts.c
-@@ -116,8 +116,7 @@ struct w83l785ts_data {
- 	unsigned long last_updated; /* in jiffies */
- 
- 	/* registers values */
--	s8 temp[2]; /* 0: input
--		       1: critical limit */
-+	s8 temp[2]; /* 0: input, 1: critical limit */
+diff --git a/drivers/hwmon/max1619.c b/drivers/hwmon/max1619.c
+index 135822e..ecac04a 100644
+--- a/drivers/hwmon/max1619.c
++++ b/drivers/hwmon/max1619.c
+@@ -125,7 +125,7 @@ struct max1619_data {
+ 	u8 temp_input2, temp_low2, temp_high2; /* remote */
+ 	u8 temp_crit2;
+ 	u8 temp_hyst2;
+-	u8 alarms; 
++	u8 alarms;
  };
  
  /*
-@@ -250,8 +249,10 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
- 	struct device *dev;
- 	const char *prefix;
+@@ -133,7 +133,8 @@ struct max1619_data {
+  */
  
--	/* We might be called during detection, at which point the client
--	   isn't yet fully initialized, so we can't use dev_dbg on it */
-+	/*
-+	 * We might be called during detection, at which point the client
-+	 * isn't yet fully initialized, so we can't use dev_dbg on it
-+	 */
- 	if (i2c_get_clientdata(client)) {
- 		dev = &client->dev;
- 		prefix = "";
-@@ -260,9 +261,11 @@ static u8 w83l785ts_read_value(struct i2c_client *client, u8 reg, u8 defval)
- 		prefix = "w83l785ts: ";
- 	}
+ #define show_temp(value) \
+-static ssize_t show_##value(struct device *dev, struct device_attribute *attr, char *buf) \
++static ssize_t show_##value(struct device *dev, struct device_attribute *attr, \
++			    char *buf) \
+ { \
+ 	struct max1619_data *data = max1619_update_device(dev); \
+ 	return sprintf(buf, "%d\n", temp_from_reg(data->value)); \
+@@ -146,13 +147,17 @@ show_temp(temp_crit2);
+ show_temp(temp_hyst2);
  
--	/* Frequent read errors have been reported on Asus boards, so we
-+	/*
-+	 * Frequent read errors have been reported on Asus boards, so we
- 	 * retry on read errors. If it still fails (unlikely), return the
--	 * default value requested by the caller. */
-+	 * default value requested by the caller.
-+	 */
- 	for (i = 1; i <= MAX_RETRIES; i++) {
- 		value = i2c_smbus_read_byte_data(client, reg);
- 		if (value >= 0) {
+ #define set_temp2(value, reg) \
+-static ssize_t set_##value(struct device *dev, struct device_attribute *attr, const char *buf, \
++static ssize_t set_##value(struct device *dev, struct device_attribute *attr, \
++			   const char *buf, \
+ 	size_t count) \
+ { \
+ 	struct i2c_client *client = to_i2c_client(dev); \
+ 	struct max1619_data *data = i2c_get_clientdata(client); \
+-	long val = simple_strtol(buf, NULL, 10); \
+- \
++	long val; \
++	int err = kstrtol(buf, 10, &val); \
++	if (err) \
++		return err; \
++\
+ 	mutex_lock(&data->update_lock); \
+ 	data->value = temp_to_reg(val); \
+ 	i2c_smbus_write_byte_data(client, reg, data->value); \
+@@ -165,7 +170,8 @@ set_temp2(temp_high2, MAX1619_REG_W_REMOTE_HIGH);
+ set_temp2(temp_crit2, MAX1619_REG_W_REMOTE_CRIT);
+ set_temp2(temp_hyst2, MAX1619_REG_W_TCRIT_HYST);
+ 
+-static ssize_t show_alarms(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
++			   char *buf)
+ {
+ 	struct max1619_data *data = max1619_update_device(dev);
+ 	return sprintf(buf, "%d\n", data->alarms);
+@@ -275,7 +281,8 @@ static int max1619_probe(struct i2c_client *new_client,
+ 	max1619_init_client(new_client);
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&new_client->dev.kobj, &max1619_group)))
++	err = sysfs_create_group(&new_client->dev.kobj, &max1619_group);
++	if (err)
+ 		goto exit_free;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
 -- 
 1.7.3.1
 
