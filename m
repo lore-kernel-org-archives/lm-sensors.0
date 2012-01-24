@@ -1,104 +1,299 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:36 +0000
-Subject: [lm-sensors] [PATCH 42/82] hwmon: (lm92) Fix multi-line comments
-Message-Id: <1327017376-20466-43-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:35 +0000
+Subject: [lm-sensors] [PATCH 56/79] hwmon: (vt1211) Fix: do not use assignment in if condition
+Message-Id: <1327373398-997-57-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Guenter Roeck <linux@roeck-us.net>
+
+Fix checkpatch issue:
+ERROR: do not use assignment in if condition
+
+Replace repeated calls to device_create_file() with calls to sysfs_create_group.
+
+Cc: Juerg Haefliger <juergh@gmail.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm92.c |   46 ++++++++++++++++++++++++++++------------------
- 1 files changed, 28 insertions(+), 18 deletions(-)
+ drivers/hwmon/vt1211.c |  227 ++++++++++++++++++++----------------------------
+ 1 files changed, 94 insertions(+), 133 deletions(-)
 
-diff --git a/drivers/hwmon/lm92.c b/drivers/hwmon/lm92.c
-index 95cda41..cf3894b 100644
---- a/drivers/hwmon/lm92.c
-+++ b/drivers/hwmon/lm92.c
-@@ -49,8 +49,10 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
+diff --git a/drivers/hwmon/vt1211.c b/drivers/hwmon/vt1211.c
+index ecdd0db..e7a7a5c 100644
+--- a/drivers/hwmon/vt1211.c
++++ b/drivers/hwmon/vt1211.c
+@@ -909,112 +909,99 @@ static ssize_t show_alarms(struct device *dev,
+  * Device attribute structs
+  * --------------------------------------------------------------------- */
  
--/* The LM92 and MAX6635 have 2 two-state pins for address selection,
--   resulting in 4 possible addresses. */
-+/*
-+ * The LM92 and MAX6635 have 2 two-state pins for address selection,
-+ * resulting in 4 possible addresses.
-+ */
- static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
- 						I2C_CLIENT_END };
+-#define SENSOR_ATTR_IN_INPUT(ix) \
+-	SENSOR_ATTR_2(in##ix##_input, S_IRUGO, \
+-		show_in, NULL, SHOW_IN_INPUT, ix)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_in_input[] = {
+-	SENSOR_ATTR_IN_INPUT(0),
+-	SENSOR_ATTR_IN_INPUT(1),
+-	SENSOR_ATTR_IN_INPUT(2),
+-	SENSOR_ATTR_IN_INPUT(3),
+-	SENSOR_ATTR_IN_INPUT(4),
+-	SENSOR_ATTR_IN_INPUT(5),
+-};
+-
+-#define SENSOR_ATTR_IN_MIN(ix) \
++#define SENSOR_ATTR_IN(ix) \
++{	SENSOR_ATTR_2(in##ix##_input, S_IRUGO, \
++		show_in, NULL, SHOW_IN_INPUT, ix), \
+ 	SENSOR_ATTR_2(in##ix##_min, S_IRUGO | S_IWUSR, \
+-		show_in, set_in, SHOW_SET_IN_MIN, ix)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_in_min[] = {
+-	SENSOR_ATTR_IN_MIN(0),
+-	SENSOR_ATTR_IN_MIN(1),
+-	SENSOR_ATTR_IN_MIN(2),
+-	SENSOR_ATTR_IN_MIN(3),
+-	SENSOR_ATTR_IN_MIN(4),
+-	SENSOR_ATTR_IN_MIN(5),
+-};
+-
+-#define SENSOR_ATTR_IN_MAX(ix) \
++		show_in, set_in, SHOW_SET_IN_MIN, ix), \
+ 	SENSOR_ATTR_2(in##ix##_max, S_IRUGO | S_IWUSR, \
+-		show_in, set_in, SHOW_SET_IN_MAX, ix)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_in_max[] = {
+-	SENSOR_ATTR_IN_MAX(0),
+-	SENSOR_ATTR_IN_MAX(1),
+-	SENSOR_ATTR_IN_MAX(2),
+-	SENSOR_ATTR_IN_MAX(3),
+-	SENSOR_ATTR_IN_MAX(4),
+-	SENSOR_ATTR_IN_MAX(5),
++		show_in, set_in, SHOW_SET_IN_MAX, ix), \
++	SENSOR_ATTR_2(in##ix##_alarm, S_IRUGO, \
++		show_in, NULL, SHOW_IN_ALARM, ix) \
++}
++
++static struct sensor_device_attribute_2 vt1211_sysfs_in[][4] = {
++	SENSOR_ATTR_IN(0),
++	SENSOR_ATTR_IN(1),
++	SENSOR_ATTR_IN(2),
++	SENSOR_ATTR_IN(3),
++	SENSOR_ATTR_IN(4),
++	SENSOR_ATTR_IN(5)
+ };
  
-@@ -63,11 +65,13 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
- #define LM92_REG_TEMP_HIGH		0x05 /* 16-bit, RW */
- #define LM92_REG_MAN_ID			0x07 /* 16-bit, RO, LM92 only */
+-#define SENSOR_ATTR_IN_ALARM(ix) \
+-	SENSOR_ATTR_2(in##ix##_alarm, S_IRUGO, \
+-		show_in, NULL, SHOW_IN_ALARM, ix)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_in_alarm[] = {
+-	SENSOR_ATTR_IN_ALARM(0),
+-	SENSOR_ATTR_IN_ALARM(1),
+-	SENSOR_ATTR_IN_ALARM(2),
+-	SENSOR_ATTR_IN_ALARM(3),
+-	SENSOR_ATTR_IN_ALARM(4),
+-	SENSOR_ATTR_IN_ALARM(5),
++#define IN_UNIT_ATTRS(X)			\
++{	&vt1211_sysfs_in[X][0].dev_attr.attr,	\
++	&vt1211_sysfs_in[X][1].dev_attr.attr,	\
++	&vt1211_sysfs_in[X][2].dev_attr.attr,	\
++	&vt1211_sysfs_in[X][3].dev_attr.attr,	\
++	NULL					\
++}
++
++static struct attribute *vt1211_in_attr[][5] = {
++	IN_UNIT_ATTRS(0),
++	IN_UNIT_ATTRS(1),
++	IN_UNIT_ATTRS(2),
++	IN_UNIT_ATTRS(3),
++	IN_UNIT_ATTRS(4),
++	IN_UNIT_ATTRS(5)
+ };
  
--/* The LM92 uses signed 13-bit values with LSB = 0.0625 degree Celsius,
--   left-justified in 16-bit registers. No rounding is done, with such
--   a resolution it's just not worth it. Note that the MAX6635 doesn't
--   make use of the 4 lower bits for limits (i.e. effective resolution
--   for limits is 1 degree Celsius). */
-+/*
-+ * The LM92 uses signed 13-bit values with LSB = 0.0625 degree Celsius,
-+ * left-justified in 16-bit registers. No rounding is done, with such
-+ * a resolution it's just not worth it. Note that the MAX6635 doesn't
-+ * make use of the 4 lower bits for limits (i.e. effective resolution
-+ * for limits is 1 degree Celsius).
-+ */
- static inline int TEMP_FROM_REG(s16 reg)
- {
- 	return reg / 8 * 625 / 10;
-@@ -261,19 +265,23 @@ static void lm92_init_client(struct i2c_client *client)
- 					  config & 0xFE);
- }
+-#define SENSOR_ATTR_TEMP_INPUT(ix) \
+-	SENSOR_ATTR_2(temp##ix##_input, S_IRUGO, \
+-		show_temp, NULL, SHOW_TEMP_INPUT, ix-1)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_temp_input[] = {
+-	SENSOR_ATTR_TEMP_INPUT(1),
+-	SENSOR_ATTR_TEMP_INPUT(2),
+-	SENSOR_ATTR_TEMP_INPUT(3),
+-	SENSOR_ATTR_TEMP_INPUT(4),
+-	SENSOR_ATTR_TEMP_INPUT(5),
+-	SENSOR_ATTR_TEMP_INPUT(6),
+-	SENSOR_ATTR_TEMP_INPUT(7),
++static const struct attribute_group vt1211_in_attr_group[] = {
++	{ .attrs = vt1211_in_attr[0] },
++	{ .attrs = vt1211_in_attr[1] },
++	{ .attrs = vt1211_in_attr[2] },
++	{ .attrs = vt1211_in_attr[3] },
++	{ .attrs = vt1211_in_attr[4] },
++	{ .attrs = vt1211_in_attr[5] }
+ };
  
--/* The MAX6635 has no identification register, so we have to use tricks
--   to identify it reliably. This is somewhat slow.
--   Note that we do NOT rely on the 2 MSB of the configuration register
--   always reading 0, as suggested by the datasheet, because it was once
--   reported not to be true. */
-+/*
-+ * The MAX6635 has no identification register, so we have to use tricks
-+ * to identify it reliably. This is somewhat slow.
-+ * Note that we do NOT rely on the 2 MSB of the configuration register
-+ * always reading 0, as suggested by the datasheet, because it was once
-+ * reported not to be true.
-+ */
- static int max6635_check(struct i2c_client *client)
- {
- 	u16 temp_low, temp_high, temp_hyst, temp_crit;
- 	u8 conf;
+-#define SENSOR_ATTR_TEMP_MAX(ix) \
++#define SENSOR_ATTR_TEMP(ix) \
++{	SENSOR_ATTR_2(temp##ix##_input, S_IRUGO, \
++		show_temp, NULL, SHOW_TEMP_INPUT, ix-1), \
+ 	SENSOR_ATTR_2(temp##ix##_max, S_IRUGO | S_IWUSR, \
+-		show_temp, set_temp, SHOW_SET_TEMP_MAX, ix-1)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_temp_max[] = {
+-	SENSOR_ATTR_TEMP_MAX(1),
+-	SENSOR_ATTR_TEMP_MAX(2),
+-	SENSOR_ATTR_TEMP_MAX(3),
+-	SENSOR_ATTR_TEMP_MAX(4),
+-	SENSOR_ATTR_TEMP_MAX(5),
+-	SENSOR_ATTR_TEMP_MAX(6),
+-	SENSOR_ATTR_TEMP_MAX(7),
++		show_temp, set_temp, SHOW_SET_TEMP_MAX, ix-1), \
++	SENSOR_ATTR_2(temp##ix##_max_hyst, S_IRUGO | S_IWUSR, \
++		show_temp, set_temp, SHOW_SET_TEMP_MAX_HYST, ix-1), \
++	SENSOR_ATTR_2(temp##ix##_alarm, S_IRUGO, \
++		show_temp, NULL, SHOW_TEMP_ALARM, ix-1) \
++}
++
++static struct sensor_device_attribute_2 vt1211_sysfs_temp[][4] = {
++	SENSOR_ATTR_TEMP(1),
++	SENSOR_ATTR_TEMP(2),
++	SENSOR_ATTR_TEMP(3),
++	SENSOR_ATTR_TEMP(4),
++	SENSOR_ATTR_TEMP(5),
++	SENSOR_ATTR_TEMP(6),
++	SENSOR_ATTR_TEMP(7),
+ };
+ 
+-#define SENSOR_ATTR_TEMP_MAX_HYST(ix) \
+-	SENSOR_ATTR_2(temp##ix##_max_hyst, S_IRUGO | S_IWUSR, \
+-		show_temp, set_temp, SHOW_SET_TEMP_MAX_HYST, ix-1)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_temp_max_hyst[] = {
+-	SENSOR_ATTR_TEMP_MAX_HYST(1),
+-	SENSOR_ATTR_TEMP_MAX_HYST(2),
+-	SENSOR_ATTR_TEMP_MAX_HYST(3),
+-	SENSOR_ATTR_TEMP_MAX_HYST(4),
+-	SENSOR_ATTR_TEMP_MAX_HYST(5),
+-	SENSOR_ATTR_TEMP_MAX_HYST(6),
+-	SENSOR_ATTR_TEMP_MAX_HYST(7),
++#define TEMP_UNIT_ATTRS(X)			\
++{	&vt1211_sysfs_temp[X][0].dev_attr.attr,	\
++	&vt1211_sysfs_temp[X][1].dev_attr.attr,	\
++	&vt1211_sysfs_temp[X][2].dev_attr.attr,	\
++	&vt1211_sysfs_temp[X][3].dev_attr.attr,	\
++	NULL					\
++}
++
++static struct attribute *vt1211_temp_attr[][5] = {
++	TEMP_UNIT_ATTRS(0),
++	TEMP_UNIT_ATTRS(1),
++	TEMP_UNIT_ATTRS(2),
++	TEMP_UNIT_ATTRS(3),
++	TEMP_UNIT_ATTRS(4),
++	TEMP_UNIT_ATTRS(5),
++	TEMP_UNIT_ATTRS(6)
+ };
+ 
+-#define SENSOR_ATTR_TEMP_ALARM(ix) \
+-	SENSOR_ATTR_2(temp##ix##_alarm, S_IRUGO, \
+-		show_temp, NULL, SHOW_TEMP_ALARM, ix-1)
+-
+-static struct sensor_device_attribute_2 vt1211_sysfs_temp_alarm[] = {
+-	SENSOR_ATTR_TEMP_ALARM(1),
+-	SENSOR_ATTR_TEMP_ALARM(2),
+-	SENSOR_ATTR_TEMP_ALARM(3),
+-	SENSOR_ATTR_TEMP_ALARM(4),
+-	SENSOR_ATTR_TEMP_ALARM(5),
+-	SENSOR_ATTR_TEMP_ALARM(6),
+-	SENSOR_ATTR_TEMP_ALARM(7),
++static const struct attribute_group vt1211_temp_attr_group[] = {
++	{ .attrs = vt1211_temp_attr[0] },
++	{ .attrs = vt1211_temp_attr[1] },
++	{ .attrs = vt1211_temp_attr[2] },
++	{ .attrs = vt1211_temp_attr[3] },
++	{ .attrs = vt1211_temp_attr[4] },
++	{ .attrs = vt1211_temp_attr[5] },
++	{ .attrs = vt1211_temp_attr[6] }
+ };
+ 
+ #define SENSOR_ATTR_FAN(ix) \
+@@ -1140,26 +1127,12 @@ static void vt1211_remove_sysfs(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
  	int i;
  
--	/* No manufacturer ID register, so a read from this address will
--	   always return the last read value. */
-+	/*
-+	 * No manufacturer ID register, so a read from this address will
-+	 * always return the last read value.
-+	 */
- 	temp_low = i2c_smbus_read_word_data(client, LM92_REG_TEMP_LOW);
- 	if (i2c_smbus_read_word_data(client, LM92_REG_MAN_ID) != temp_low)
- 		return 0;
-@@ -289,10 +297,12 @@ static int max6635_check(struct i2c_client *client)
- 	if ((temp_hyst & 0x7f00) || (temp_crit & 0x7f00))
- 		return 0;
+-	for (i = 0; i < ARRAY_SIZE(vt1211_sysfs_in_input); i++) {
+-		device_remove_file(dev,
+-			&vt1211_sysfs_in_input[i].dev_attr);
+-		device_remove_file(dev,
+-			&vt1211_sysfs_in_min[i].dev_attr);
+-		device_remove_file(dev,
+-			&vt1211_sysfs_in_max[i].dev_attr);
+-		device_remove_file(dev,
+-			&vt1211_sysfs_in_alarm[i].dev_attr);
+-	}
+-	for (i = 0; i < ARRAY_SIZE(vt1211_sysfs_temp_input); i++) {
+-		device_remove_file(dev,
+-			&vt1211_sysfs_temp_input[i].dev_attr);
+-		device_remove_file(dev,
+-			&vt1211_sysfs_temp_max[i].dev_attr);
+-		device_remove_file(dev,
+-			&vt1211_sysfs_temp_max_hyst[i].dev_attr);
+-		device_remove_file(dev,
+-			&vt1211_sysfs_temp_alarm[i].dev_attr);
+-	}
++	for (i = 0; i < ARRAY_SIZE(vt1211_in_attr_group); i++)
++		sysfs_remove_group(&dev->kobj, &vt1211_in_attr_group[i]);
++
++	for (i = 0; i < ARRAY_SIZE(vt1211_temp_attr_group); i++)
++		sysfs_remove_group(&dev->kobj, &vt1211_temp_attr_group[i]);
++
+ 	for (i = 0; i < ARRAY_SIZE(vt1211_sysfs_fan_pwm); i++) {
+ 		device_remove_file(dev,
+ 			&vt1211_sysfs_fan_pwm[i].dev_attr);
+@@ -1199,32 +1172,20 @@ static int __devinit vt1211_probe(struct platform_device *pdev)
+ 	vt1211_init_device(data);
  
--	/* Registers addresses were found to cycle over 16-byte boundaries.
--	   We don't test all registers with all offsets so as to save some
--	   reads and time, but this should still be sufficient to dismiss
--	   non-MAX6635 chips. */
-+	/*
-+	 * Registers addresses were found to cycle over 16-byte boundaries.
-+	 * We don't test all registers with all offsets so as to save some
-+	 * reads and time, but this should still be sufficient to dismiss
-+	 * non-MAX6635 chips.
-+	 */
- 	conf = i2c_smbus_read_byte_data(client, LM92_REG_CONFIG);
- 	for (i = 16; i < 96; i *= 2) {
- 		if (temp_hyst != i2c_smbus_read_word_data(client,
+ 	/* Create sysfs interface files */
+-	for (i = 0; i < ARRAY_SIZE(vt1211_sysfs_in_input); i++) {
++	for (i = 0; i < ARRAY_SIZE(vt1211_in_attr_group); i++) {
+ 		if (ISVOLT(i, data->uch_config)) {
+-			if ((err = device_create_file(dev,
+-				&vt1211_sysfs_in_input[i].dev_attr)) ||
+-			    (err = device_create_file(dev,
+-				&vt1211_sysfs_in_min[i].dev_attr)) ||
+-			    (err = device_create_file(dev,
+-				&vt1211_sysfs_in_max[i].dev_attr)) ||
+-			    (err = device_create_file(dev,
+-				&vt1211_sysfs_in_alarm[i].dev_attr))) {
++			err = sysfs_create_group(&dev->kobj,
++						 &vt1211_in_attr_group[i]);
++			if (err)
+ 				goto EXIT_DEV_REMOVE;
+-			}
+ 		}
+ 	}
+-	for (i = 0; i < ARRAY_SIZE(vt1211_sysfs_temp_input); i++) {
++	for (i = 0; i < ARRAY_SIZE(vt1211_temp_attr_group); i++) {
+ 		if (ISTEMP(i, data->uch_config)) {
+-			if ((err = device_create_file(dev,
+-				&vt1211_sysfs_temp_input[i].dev_attr)) ||
+-			    (err = device_create_file(dev,
+-				&vt1211_sysfs_temp_max[i].dev_attr)) ||
+-			    (err = device_create_file(dev,
+-				&vt1211_sysfs_temp_max_hyst[i].dev_attr)) ||
+-			    (err = device_create_file(dev,
+-				&vt1211_sysfs_temp_alarm[i].dev_attr))) {
++			err = sysfs_create_group(&dev->kobj,
++						 &vt1211_temp_attr_group[i]);
++			if (err)
+ 				goto EXIT_DEV_REMOVE;
+-			}
+ 		}
+ 	}
+ 	for (i = 0; i < ARRAY_SIZE(vt1211_sysfs_fan_pwm); i++) {
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
