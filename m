@@ -1,148 +1,126 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Tue, 24 Jan 2012 20:16:16 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 21:20:10 +0000
 Subject: Re: [lm-sensors] [PATCH] x86/platform: (TS-5500) revised ADC driver
-Message-Id: <20120124151616.5723934b@v0nbox>
+Message-Id: <1327440010.2649.204.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1326930731-21215-5-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<1327103002-5834-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<20120121044631.GA4143@ericsson.com>
-	<20120122203619.22fabe79@lenov0n>
-	<20120123043645.GA14660@ericsson.com>
-	<20120123155408.7d52e4da@v0nbox>
-	<20120123173551.309af2eb@v0nbox>
-	<20120124004138.GA20363@ericsson.com>
-In-Reply-To: <20120124004138.GA20363@ericsson.com>
+	 <1327103002-5834-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+	 <20120121044631.GA4143@ericsson.com>	<20120122203619.22fabe79@lenov0n>
+	 <20120123043645.GA14660@ericsson.com>	<20120123155408.7d52e4da@v0nbox>
+	 <20120123173551.309af2eb@v0nbox>	<20120124004138.GA20363@ericsson.com>
+	 <20120124151616.5723934b@v0nbox>
+In-Reply-To: <20120124151616.5723934b@v0nbox>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Guenter Roeck <guenter.roeck@ericsson.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 Cc: "khali@linux-fr.org" <khali@linux-fr.org>, "x86@kernel.org" <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-Le Mon, 23 Jan 2012 16:41:38 -0800,
-Guenter Roeck <guenter.roeck@ericsson.com> a =E9crit :
-
-> On Mon, Jan 23, 2012 at 05:35:51PM -0500, Vivien Didelot wrote:
-> > On Mon, 23 Jan 2012 15:54:08 -0500,
-> > Vivien Didelot <vivien.didelot@savoirfairelinux.com> wrote:
-> >=20
-> > > On Sun, 22 Jan 2012 20:36:46 -0800,
-> > > Guenter Roeck <guenter.roeck@ericsson.com> wrote:=20
-> > > > > > Regarding the location, I'd really like to know from the
-> > > > > > powers-that-be if arch/x86/platform/ts5500/
-> > > > > > or
-> > > > > > 	drivers/platform/x86
-> > > > > > or
-> > > > > > 	drivers/hwmon
-> > > > > >=20
-> > > > > > would be the appropriate location for a driver like this. As
-> > > > > > mentioned before, my strong preference is drivers/hwmon,
-> > > > > > but I would like to hear from others.
-> > > > >=20
-> > > > > We should either split every driver into corresponding
-> > > > > subdirectories, or put everything in a common platform
-> > > > > directory. My first RFC patches set has every driver
-> > > > > separated. As they are really specific to the platform,
-> > > > > people seem to agree with grouping them, mainly because they
-> > > > > won't be shared. I changed that in the following patches
-> > > > > sets, and X86 maintainers seemed to be ok with that.
-> > > > >=20
-> > > > > I'm ok with both solutions, but we should all agree on one.
-> > > > > Maybe we should have other maintainers view on this?
-> > > > >=20
-> > > > That is what I had asked for. I thought the whole point of
-> > > > per-module directories was to have all drivers there. If that
-> > > > is no longer true, fine with me; who am I to argue about
-> > > > something like that. I'd just like to know.
-> > > >=20
-> > > > > > Also, I am not sure if the current approach is appropriate
-> > > > > > to start with. Looking at the datasheet as well as into
-> > > > > > existing kernel code, it appears quite likely that some
-> > > > > > kind of more or less generic MAX197 driver exists
-> > > > > > somewhere. The existence of is_max197_installed() - without
-> > > > > > any calling code - is a strong indication that this is the
-> > > > > > case, as well as the "static" platform data in your
-> > > > > > original patch. It might be more appropriate to take this
-> > > > > > more or less generic driver, move it to drivers/hwmon, and
-> > > > > > provide - for example through platform data - a means to
-> > > > > > read from and write to the chip on a per-platform basis, ie
-> > > > > > with per-platform access functions.
-> > > > >=20
-> > > > > You're right, it should be possible to create a generic max197
-> > > > > driver and provide read/write functions through platform
-> > > > > data. But we don't have a max197 right now... So it can stay
-> > > > > as a compact TS-5500 ADC driver for the moment, and maybe we
-> > > > > will split later. What do you think?
-> > > > >=20
-> > > > I am lost. If you don't have a TS-5500 with max197, how do you
-> > > > test the driver ?
-> > >=20
-> > > Sorry, I wasn't clear. I meant the only max197 I have is the one
-> > > behind the TS-5500 CPLD, I don't have any others to test
-> > > independently.
-> > >=20
-> > > > I had another look into the MAX197 and TS-5500 data sheets. In
-> > > > my opinion, a generic MAX197 driver in drivers/hwmon combined
-> > > > with a platform driver in the current location would be the way
-> > > > to go. That driver would then also work for the other TS-5x00
-> > > > systems. All you need is a single chip access function in the
-> > > > platform code, since the chip is always accessed with a write
-> > > > followed by a read.
-> > >=20
-> > > I took a deeper look at the datasheets, and you're right, a MAX197
-> > > driver seems to be a good choice. However, there are a number of
-> > > differences between a direct usage of a MAX197 and the TS-5500
-> > > mapped MAX197.
-> > >=20
-> > > To start a conversion of a channel for a given range and
-> > > polarity, it consists on both sides of a u8 outb() call on pins
-> > > 7-14 (i.e. bits D7-D0). To be notified when the result is ready,
-> > > we can either set an IRQ on INT pin (falling edge), or poll it.
-> > > Then on the MAX197, you read the pins 7-14, set pin HBEN to 1, and
-> > > read the same pins again to get the 4 remaining bits. On the
-> > > TS-5500, only polling is available, and the 12 bits are mapped on
-> > > 2 registers.
-> > >=20
-> > > I propose to write a max197 driver with default read and write
-> > > functions. A platform_data will be used to specify the base
-> > > address (pins 7-14), and eventually a custom read function
-> > > pointer, which will be used instead of the default one if it is
-> > > different of NULL.
-> > >=20
-> > > What do you think?
-> > >=20
-> > > I will write a max197 driver with default read and write
-> > > functions. A platform_data will be used to specify the base
-> > > address (pins 7-14), and eventually a custom read function
-> > > pointer, which will be used instead of the default, if it is not
-> > > NULL.
-> > >=20
-> > > What do you think?=20
-> >=20
-> Sounds like a plan to me.
->=20
-> > Sorry for the duplicate :)
-> >=20
-> > BTW, I've added Jean Delvare and the lm-sensors mailing list in Cc,
-> > in case they have an opinion on this.
-> >=20
->=20
-> Thanks,
-> Guenter
-
-Hi Guenter,
-
-There's another disadvantage with the generic driver.
-Usually, the MAX197 is memory mapped, but on the TS-5500, the CPLD is
-port mapped, so even the write function would be different.
-It sounds like the amount of reusable lines of code is not that
-significant.
-
-Do you think it is still worthwhile?
-
-Thanks,
-Vivien
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCAyMDEyLTAxLTI0IGF0IDE1OjE2IC0wNTAwLCBWaXZpZW4gRGlkZWxvdCB3cm90ZToK
+PiBMZSBNb24sIDIzIEphbiAyMDEyIDE2OjQxOjM4IC0wODAwLAo+IEd1ZW50ZXIgUm9lY2sgPGd1
+ZW50ZXIucm9lY2tAZXJpY3Nzb24uY29tPiBhIMOpY3JpdCA6Cj4gCj4gPiBPbiBNb24sIEphbiAy
+MywgMjAxMiBhdCAwNTozNTo1MVBNIC0wNTAwLCBWaXZpZW4gRGlkZWxvdCB3cm90ZToKPiA+ID4g
+T24gTW9uLCAyMyBKYW4gMjAxMiAxNTo1NDowOCAtMDUwMCwKPiA+ID4gVml2aWVuIERpZGVsb3Qg
+PHZpdmllbi5kaWRlbG90QHNhdm9pcmZhaXJlbGludXguY29tPiB3cm90ZToKPiA+ID4gCj4gPiA+
+ID4gT24gU3VuLCAyMiBKYW4gMjAxMiAyMDozNjo0NiAtMDgwMCwKPiA+ID4gPiBHdWVudGVyIFJv
+ZWNrIDxndWVudGVyLnJvZWNrQGVyaWNzc29uLmNvbT4gd3JvdGU6IAo+ID4gPiA+ID4gPiA+IFJl
+Z2FyZGluZyB0aGUgbG9jYXRpb24sIEknZCByZWFsbHkgbGlrZSB0byBrbm93IGZyb20gdGhlCj4g
+PiA+ID4gPiA+ID4gcG93ZXJzLXRoYXQtYmUgaWYgYXJjaC94ODYvcGxhdGZvcm0vdHM1NTAwLwo+
+ID4gPiA+ID4gPiA+IG9yCj4gPiA+ID4gPiA+ID4gCWRyaXZlcnMvcGxhdGZvcm0veDg2Cj4gPiA+
+ID4gPiA+ID4gb3IKPiA+ID4gPiA+ID4gPiAJZHJpdmVycy9od21vbgo+ID4gPiA+ID4gPiA+IAo+
+ID4gPiA+ID4gPiA+IHdvdWxkIGJlIHRoZSBhcHByb3ByaWF0ZSBsb2NhdGlvbiBmb3IgYSBkcml2
+ZXIgbGlrZSB0aGlzLiBBcwo+ID4gPiA+ID4gPiA+IG1lbnRpb25lZCBiZWZvcmUsIG15IHN0cm9u
+ZyBwcmVmZXJlbmNlIGlzIGRyaXZlcnMvaHdtb24sCj4gPiA+ID4gPiA+ID4gYnV0IEkgd291bGQg
+bGlrZSB0byBoZWFyIGZyb20gb3RoZXJzLgo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gV2Ugc2hv
+dWxkIGVpdGhlciBzcGxpdCBldmVyeSBkcml2ZXIgaW50byBjb3JyZXNwb25kaW5nCj4gPiA+ID4g
+PiA+IHN1YmRpcmVjdG9yaWVzLCBvciBwdXQgZXZlcnl0aGluZyBpbiBhIGNvbW1vbiBwbGF0Zm9y
+bQo+ID4gPiA+ID4gPiBkaXJlY3RvcnkuIE15IGZpcnN0IFJGQyBwYXRjaGVzIHNldCBoYXMgZXZl
+cnkgZHJpdmVyCj4gPiA+ID4gPiA+IHNlcGFyYXRlZC4gQXMgdGhleSBhcmUgcmVhbGx5IHNwZWNp
+ZmljIHRvIHRoZSBwbGF0Zm9ybSwKPiA+ID4gPiA+ID4gcGVvcGxlIHNlZW0gdG8gYWdyZWUgd2l0
+aCBncm91cGluZyB0aGVtLCBtYWlubHkgYmVjYXVzZSB0aGV5Cj4gPiA+ID4gPiA+IHdvbid0IGJl
+IHNoYXJlZC4gSSBjaGFuZ2VkIHRoYXQgaW4gdGhlIGZvbGxvd2luZyBwYXRjaGVzCj4gPiA+ID4g
+PiA+IHNldHMsIGFuZCBYODYgbWFpbnRhaW5lcnMgc2VlbWVkIHRvIGJlIG9rIHdpdGggdGhhdC4K
+PiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IEknbSBvayB3aXRoIGJvdGggc29sdXRpb25zLCBidXQg
+d2Ugc2hvdWxkIGFsbCBhZ3JlZSBvbiBvbmUuCj4gPiA+ID4gPiA+IE1heWJlIHdlIHNob3VsZCBo
+YXZlIG90aGVyIG1haW50YWluZXJzIHZpZXcgb24gdGhpcz8KPiA+ID4gPiA+ID4gCj4gPiA+ID4g
+PiBUaGF0IGlzIHdoYXQgSSBoYWQgYXNrZWQgZm9yLiBJIHRob3VnaHQgdGhlIHdob2xlIHBvaW50
+IG9mCj4gPiA+ID4gPiBwZXItbW9kdWxlIGRpcmVjdG9yaWVzIHdhcyB0byBoYXZlIGFsbCBkcml2
+ZXJzIHRoZXJlLiBJZiB0aGF0Cj4gPiA+ID4gPiBpcyBubyBsb25nZXIgdHJ1ZSwgZmluZSB3aXRo
+IG1lOyB3aG8gYW0gSSB0byBhcmd1ZSBhYm91dAo+ID4gPiA+ID4gc29tZXRoaW5nIGxpa2UgdGhh
+dC4gSSdkIGp1c3QgbGlrZSB0byBrbm93Lgo+ID4gPiA+ID4gCj4gPiA+ID4gPiA+ID4gQWxzbywg
+SSBhbSBub3Qgc3VyZSBpZiB0aGUgY3VycmVudCBhcHByb2FjaCBpcyBhcHByb3ByaWF0ZQo+ID4g
+PiA+ID4gPiA+IHRvIHN0YXJ0IHdpdGguIExvb2tpbmcgYXQgdGhlIGRhdGFzaGVldCBhcyB3ZWxs
+IGFzIGludG8KPiA+ID4gPiA+ID4gPiBleGlzdGluZyBrZXJuZWwgY29kZSwgaXQgYXBwZWFycyBx
+dWl0ZSBsaWtlbHkgdGhhdCBzb21lCj4gPiA+ID4gPiA+ID4ga2luZCBvZiBtb3JlIG9yIGxlc3Mg
+Z2VuZXJpYyBNQVgxOTcgZHJpdmVyIGV4aXN0cwo+ID4gPiA+ID4gPiA+IHNvbWV3aGVyZS4gVGhl
+IGV4aXN0ZW5jZSBvZiBpc19tYXgxOTdfaW5zdGFsbGVkKCkgLSB3aXRob3V0Cj4gPiA+ID4gPiA+
+ID4gYW55IGNhbGxpbmcgY29kZSAtIGlzIGEgc3Ryb25nIGluZGljYXRpb24gdGhhdCB0aGlzIGlz
+IHRoZQo+ID4gPiA+ID4gPiA+IGNhc2UsIGFzIHdlbGwgYXMgdGhlICJzdGF0aWMiIHBsYXRmb3Jt
+IGRhdGEgaW4geW91cgo+ID4gPiA+ID4gPiA+IG9yaWdpbmFsIHBhdGNoLiBJdCBtaWdodCBiZSBt
+b3JlIGFwcHJvcHJpYXRlIHRvIHRha2UgdGhpcwo+ID4gPiA+ID4gPiA+IG1vcmUgb3IgbGVzcyBn
+ZW5lcmljIGRyaXZlciwgbW92ZSBpdCB0byBkcml2ZXJzL2h3bW9uLCBhbmQKPiA+ID4gPiA+ID4g
+PiBwcm92aWRlIC0gZm9yIGV4YW1wbGUgdGhyb3VnaCBwbGF0Zm9ybSBkYXRhIC0gYSBtZWFucyB0
+bwo+ID4gPiA+ID4gPiA+IHJlYWQgZnJvbSBhbmQgd3JpdGUgdG8gdGhlIGNoaXAgb24gYSBwZXIt
+cGxhdGZvcm0gYmFzaXMsIGllCj4gPiA+ID4gPiA+ID4gd2l0aCBwZXItcGxhdGZvcm0gYWNjZXNz
+IGZ1bmN0aW9ucy4KPiA+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFlvdSdyZSByaWdodCwgaXQgc2hv
+dWxkIGJlIHBvc3NpYmxlIHRvIGNyZWF0ZSBhIGdlbmVyaWMgbWF4MTk3Cj4gPiA+ID4gPiA+IGRy
+aXZlciBhbmQgcHJvdmlkZSByZWFkL3dyaXRlIGZ1bmN0aW9ucyB0aHJvdWdoIHBsYXRmb3JtCj4g
+PiA+ID4gPiA+IGRhdGEuIEJ1dCB3ZSBkb24ndCBoYXZlIGEgbWF4MTk3IHJpZ2h0IG5vdy4uLiBT
+byBpdCBjYW4gc3RheQo+ID4gPiA+ID4gPiBhcyBhIGNvbXBhY3QgVFMtNTUwMCBBREMgZHJpdmVy
+IGZvciB0aGUgbW9tZW50LCBhbmQgbWF5YmUgd2UKPiA+ID4gPiA+ID4gd2lsbCBzcGxpdCBsYXRl
+ci4gV2hhdCBkbyB5b3UgdGhpbms/Cj4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gSSBhbSBsb3N0LiBJ
+ZiB5b3UgZG9uJ3QgaGF2ZSBhIFRTLTU1MDAgd2l0aCBtYXgxOTcsIGhvdyBkbyB5b3UKPiA+ID4g
+PiA+IHRlc3QgdGhlIGRyaXZlciA/Cj4gPiA+ID4gCj4gPiA+ID4gU29ycnksIEkgd2Fzbid0IGNs
+ZWFyLiBJIG1lYW50IHRoZSBvbmx5IG1heDE5NyBJIGhhdmUgaXMgdGhlIG9uZQo+ID4gPiA+IGJl
+aGluZCB0aGUgVFMtNTUwMCBDUExELCBJIGRvbid0IGhhdmUgYW55IG90aGVycyB0byB0ZXN0Cj4g
+PiA+ID4gaW5kZXBlbmRlbnRseS4KPiA+ID4gPiAKPiA+ID4gPiA+IEkgaGFkIGFub3RoZXIgbG9v
+ayBpbnRvIHRoZSBNQVgxOTcgYW5kIFRTLTU1MDAgZGF0YSBzaGVldHMuIEluCj4gPiA+ID4gPiBt
+eSBvcGluaW9uLCBhIGdlbmVyaWMgTUFYMTk3IGRyaXZlciBpbiBkcml2ZXJzL2h3bW9uIGNvbWJp
+bmVkCj4gPiA+ID4gPiB3aXRoIGEgcGxhdGZvcm0gZHJpdmVyIGluIHRoZSBjdXJyZW50IGxvY2F0
+aW9uIHdvdWxkIGJlIHRoZSB3YXkKPiA+ID4gPiA+IHRvIGdvLiBUaGF0IGRyaXZlciB3b3VsZCB0
+aGVuIGFsc28gd29yayBmb3IgdGhlIG90aGVyIFRTLTV4MDAKPiA+ID4gPiA+IHN5c3RlbXMuIEFs
+bCB5b3UgbmVlZCBpcyBhIHNpbmdsZSBjaGlwIGFjY2VzcyBmdW5jdGlvbiBpbiB0aGUKPiA+ID4g
+PiA+IHBsYXRmb3JtIGNvZGUsIHNpbmNlIHRoZSBjaGlwIGlzIGFsd2F5cyBhY2Nlc3NlZCB3aXRo
+IGEgd3JpdGUKPiA+ID4gPiA+IGZvbGxvd2VkIGJ5IGEgcmVhZC4KPiA+ID4gPiAKPiA+ID4gPiBJ
+IHRvb2sgYSBkZWVwZXIgbG9vayBhdCB0aGUgZGF0YXNoZWV0cywgYW5kIHlvdSdyZSByaWdodCwg
+YSBNQVgxOTcKPiA+ID4gPiBkcml2ZXIgc2VlbXMgdG8gYmUgYSBnb29kIGNob2ljZS4gSG93ZXZl
+ciwgdGhlcmUgYXJlIGEgbnVtYmVyIG9mCj4gPiA+ID4gZGlmZmVyZW5jZXMgYmV0d2VlbiBhIGRp
+cmVjdCB1c2FnZSBvZiBhIE1BWDE5NyBhbmQgdGhlIFRTLTU1MDAKPiA+ID4gPiBtYXBwZWQgTUFY
+MTk3Lgo+ID4gPiA+IAo+ID4gPiA+IFRvIHN0YXJ0IGEgY29udmVyc2lvbiBvZiBhIGNoYW5uZWwg
+Zm9yIGEgZ2l2ZW4gcmFuZ2UgYW5kCj4gPiA+ID4gcG9sYXJpdHksIGl0IGNvbnNpc3RzIG9uIGJv
+dGggc2lkZXMgb2YgYSB1OCBvdXRiKCkgY2FsbCBvbiBwaW5zCj4gPiA+ID4gNy0xNCAoaS5lLiBi
+aXRzIEQ3LUQwKS4gVG8gYmUgbm90aWZpZWQgd2hlbiB0aGUgcmVzdWx0IGlzIHJlYWR5LAo+ID4g
+PiA+IHdlIGNhbiBlaXRoZXIgc2V0IGFuIElSUSBvbiBJTlQgcGluIChmYWxsaW5nIGVkZ2UpLCBv
+ciBwb2xsIGl0Lgo+ID4gPiA+IFRoZW4gb24gdGhlIE1BWDE5NywgeW91IHJlYWQgdGhlIHBpbnMg
+Ny0xNCwgc2V0IHBpbiBIQkVOIHRvIDEsIGFuZAo+ID4gPiA+IHJlYWQgdGhlIHNhbWUgcGlucyBh
+Z2FpbiB0byBnZXQgdGhlIDQgcmVtYWluaW5nIGJpdHMuIE9uIHRoZQo+ID4gPiA+IFRTLTU1MDAs
+IG9ubHkgcG9sbGluZyBpcyBhdmFpbGFibGUsIGFuZCB0aGUgMTIgYml0cyBhcmUgbWFwcGVkIG9u
+Cj4gPiA+ID4gMiByZWdpc3RlcnMuCj4gPiA+ID4gCj4gPiA+ID4gSSBwcm9wb3NlIHRvIHdyaXRl
+IGEgbWF4MTk3IGRyaXZlciB3aXRoIGRlZmF1bHQgcmVhZCBhbmQgd3JpdGUKPiA+ID4gPiBmdW5j
+dGlvbnMuIEEgcGxhdGZvcm1fZGF0YSB3aWxsIGJlIHVzZWQgdG8gc3BlY2lmeSB0aGUgYmFzZQo+
+ID4gPiA+IGFkZHJlc3MgKHBpbnMgNy0xNCksIGFuZCBldmVudHVhbGx5IGEgY3VzdG9tIHJlYWQg
+ZnVuY3Rpb24KPiA+ID4gPiBwb2ludGVyLCB3aGljaCB3aWxsIGJlIHVzZWQgaW5zdGVhZCBvZiB0
+aGUgZGVmYXVsdCBvbmUgaWYgaXQgaXMKPiA+ID4gPiBkaWZmZXJlbnQgb2YgTlVMTC4KPiA+ID4g
+PiAKPiA+ID4gPiBXaGF0IGRvIHlvdSB0aGluaz8KPiA+ID4gPiAKPiA+ID4gPiBJIHdpbGwgd3Jp
+dGUgYSBtYXgxOTcgZHJpdmVyIHdpdGggZGVmYXVsdCByZWFkIGFuZCB3cml0ZQo+ID4gPiA+IGZ1
+bmN0aW9ucy4gQSBwbGF0Zm9ybV9kYXRhIHdpbGwgYmUgdXNlZCB0byBzcGVjaWZ5IHRoZSBiYXNl
+Cj4gPiA+ID4gYWRkcmVzcyAocGlucyA3LTE0KSwgYW5kIGV2ZW50dWFsbHkgYSBjdXN0b20gcmVh
+ZCBmdW5jdGlvbgo+ID4gPiA+IHBvaW50ZXIsIHdoaWNoIHdpbGwgYmUgdXNlZCBpbnN0ZWFkIG9m
+IHRoZSBkZWZhdWx0LCBpZiBpdCBpcyBub3QKPiA+ID4gPiBOVUxMLgo+ID4gPiA+IAo+ID4gPiA+
+IFdoYXQgZG8geW91IHRoaW5rPyAKPiA+ID4gCj4gPiBTb3VuZHMgbGlrZSBhIHBsYW4gdG8gbWUu
+Cj4gPiAKPiA+ID4gU29ycnkgZm9yIHRoZSBkdXBsaWNhdGUgOikKPiA+ID4gCj4gPiA+IEJUVywg
+SSd2ZSBhZGRlZCBKZWFuIERlbHZhcmUgYW5kIHRoZSBsbS1zZW5zb3JzIG1haWxpbmcgbGlzdCBp
+biBDYywKPiA+ID4gaW4gY2FzZSB0aGV5IGhhdmUgYW4gb3BpbmlvbiBvbiB0aGlzLgo+ID4gPiAK
+PiA+IAo+ID4gVGhhbmtzLAo+ID4gR3VlbnRlcgo+IAo+IEhpIEd1ZW50ZXIsCj4gCj4gVGhlcmUn
+cyBhbm90aGVyIGRpc2FkdmFudGFnZSB3aXRoIHRoZSBnZW5lcmljIGRyaXZlci4KPiBVc3VhbGx5
+LCB0aGUgTUFYMTk3IGlzIG1lbW9yeSBtYXBwZWQsIGJ1dCBvbiB0aGUgVFMtNTUwMCwgdGhlIENQ
+TEQgaXMKPiBwb3J0IG1hcHBlZCwgc28gZXZlbiB0aGUgd3JpdGUgZnVuY3Rpb24gd291bGQgYmUg
+ZGlmZmVyZW50Lgo+IEl0IHNvdW5kcyBsaWtlIHRoZSBhbW91bnQgb2YgcmV1c2FibGUgbGluZXMg
+b2YgY29kZSBpcyBub3QgdGhhdAo+IHNpZ25pZmljYW50Lgo+IAo+IERvIHlvdSB0aGluayBpdCBp
+cyBzdGlsbCB3b3J0aHdoaWxlPwoKUG9pbnRzIHRvIGEgcGxhdGZvcm0gc3BlY2lmaWMgYWNjZXNz
+IGZ1bmN0aW9uLCBhcyBJIGhhZCBzdWdnZXN0ZWQKZWFybGllci4gVGhlIGFjY2VzcyBmdW5jdGlv
+biBpcyBqdXN0IGEgc21hbGwgcGFydCBvZiB0aGUgZHJpdmVyOyB0aGUKZW50aXJlIGh3bW9uL3N5
+c2ZzIGNvZGUgaXMgZ2VuZXJpYy4gWWVzLCBJIHRoaW5rIGl0IGlzIHdvcnRod2hpbGUuCgpHdWVu
+dGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
+LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
+c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
