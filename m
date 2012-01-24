@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 14:47:41 +0000
+Date: Tue, 24 Jan 2012 15:11:27 +0000
 Subject: Re: [lm-sensors] [PATCH 79/79] hwmon: (it87) Fix vrm value range
-Message-Id: <20120124144741.GA23333@ericsson.com>
+Message-Id: <20120124151127.GA23472@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327373398-997-80-git-send-email-guenter.roeck@ericsson.com>
 In-Reply-To: <1327373398-997-80-git-send-email-guenter.roeck@ericsson.com>
@@ -40,23 +40,14 @@ On Tue, Jan 24, 2012 at 03:50:12AM -0500, Jean Delvare wrote:
 > 
 > To be honest, I don't know what to do with this.
 > 
-Same as will all the others, really ;).
-
 > You're replacing a silent failure with another. I'd rather return an
 > error if the value doesn't fit. as clamping to 255 will lead to a
 > failure in vid_from_reg() later anyway.
 > 
-I don't mind returning an error instead of using SENSORS_LIMIT(), but doesn't
-that defeat the idea behind SENSORS_LIMIT() ?
-
 > On the other hand, we don't validate the VRM value here anyway, it
 > could be in the 0-255 range and still lead to a failure in
 > vid_from_reg().
 > 
-... and vid_from_reg() may return 0 even if the value is valid (or at least
-it does not have an explicit error return code). So I don't really know
-how to validate it. We would have to add a vrm validation call.
-
 > We could improve this of course, but is it worth it? As documented in
 > Documentation/hwmon/sysfs-interface, changing the vrm value manually
 > should no longer be needed. libsensors does even ignore this attribute
@@ -65,6 +56,10 @@ how to validate it. We would have to add a vrm validation call.
 > for all Intel CPUs after Conroe (2007, yeah!) for which we set the VRM
 > to 82 i.e. Pentium II/III. And nobody complained yet as far as I know!
 > 
+If it is like me, I always thought it was a chip problem that it displays
+a voltage of 0. There is no warning, so my take is that people simply don't
+realize that the CPU model is not recognized.
+
 > So I'm really not sure if it is worth spending time on. It might make
 > more sense to turn all these vrm attributes read-only (and ultimately
 > kill them altogether.) If we really want to let the user force the vrm
@@ -72,7 +67,8 @@ how to validate it. We would have to add a vrm validation call.
 > as a module parameter to hwmon-vid. It is certainly less flexible, but
 > at least we don't have to repeat it in every hwmon driver.
 > 
-Your call - let me know.
+After looking into it a bit more, I think we should move the vrm attributes
+to hwmon-vid (and fix hwmon-vid).
 
 Guenter
 
