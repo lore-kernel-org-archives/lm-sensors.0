@@ -1,38 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:27 +0000
-Subject: [lm-sensors] [PATCH 33/82] hwmon: (lm73) Fix multi-line comments
-Message-Id: <1327017376-20466-34-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:30 +0000
+Subject: [lm-sensors] [PATCH 51/79] hwmon: (pc87360) Fix vrm value range
+Message-Id: <1327373398-997-52-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Cc: Guillaume Ligneul <guillaume.ligneul@gmail.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/lm73.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+When updating vrm, the value range was not limited. This could result in more or
+less random vrm values if the value provided by the user was larger than 255.
+Fix by limiting the range to 0..255 using the SENSORS_LIMIT macro.
 
-diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
-index 9c8093c..343740f 100644
---- a/drivers/hwmon/lm73.c
-+++ b/drivers/hwmon/lm73.c
-@@ -66,8 +66,10 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- {
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct i2c_client *client = to_i2c_client(dev);
--	/* use integer division instead of equivalent right shift to
--	   guarantee arithmetic shift and preserve the sign */
-+	/*
-+	 * use integer division instead of equivalent right shift to
-+	 * guarantee arithmetic shift and preserve the sign
-+	 */
- 	int temp = ((s16) (i2c_smbus_read_word_swapped(client,
- 		    attr->index))*250) / 32;
- 	return sprintf(buf, "%d\n", temp);
+Cc: Jim Cromie <jim.cromie@gmail.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/pc87360.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/pc87360.c b/drivers/hwmon/pc87360.c
+index 000499e..7f95761 100644
+--- a/drivers/hwmon/pc87360.c
++++ b/drivers/hwmon/pc87360.c
+@@ -614,7 +614,7 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+ 	if (err)
+ 		return err;
+ 
+-	data->vrm = val;
++	data->vrm = SENSORS_LIMIT(val, 0, 255);
+ 	return count;
+ }
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
