@@ -1,39 +1,37 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 31 Jan 2012 21:45:58 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 2/3] hwmon: (hwmon-vid) Fix checkpatch issues
-Message-Id: <1328046358.2261.57.camel@groeck-laptop>
+Date: Tue, 24 Jan 2012 02:48:59 +0000
+Subject: [lm-sensors] [PATCH 20/79] hwmon: (ad7414) Fix multi-line comments
+Message-Id: <1327373398-997-21-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327495414-6256-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1327495414-6256-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-01-31 at 16:15 -0500, Jean Delvare wrote:
-> On Wed, 25 Jan 2012 04:43:33 -0800, Guenter Roeck wrote:
-> > Fixed:
-> > ERROR: code indent should use tabs where possible
-> > ERROR: space required before the open parenthesis '('
-> > WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-> > 
-> > Not fixed (url):
-> > WARNING: line over 80 characters
-> > (...)
-> 
-> Looks alright, but for some reason this patch won't apply here.
+From: Guenter Roeck <linux@roeck-us.net>
 
-Probably because it is based on the top of my -next branch, and I have a
-couple of other cleanup patches pending for it.
+Cc: Stefan Roese <sr@denx.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ad7414.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-> Nevertheless:
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-Thanks, applied.
-
-Guenter
-
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+index 3646500..06d2d60 100644
+--- a/drivers/hwmon/ad7414.c
++++ b/drivers/hwmon/ad7414.c
+@@ -50,7 +50,8 @@ struct ad7414_data {
+ /* REG: (0.25C/bit, two's complement) << 6 */
+ static inline int ad7414_temp_from_reg(s16 reg)
+ {
+-	/* use integer division instead of equivalent right shift to
++	/*
++	 * use integer division instead of equivalent right shift to
+ 	 * guarantee arithmetic shift and preserve the sign
+ 	 */
+ 	return ((int)reg / 64) * 250;
+-- 
+1.7.3.1
 
 
 _______________________________________________
