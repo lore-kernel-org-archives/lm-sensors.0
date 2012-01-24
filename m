@@ -1,50 +1,86 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:15 +0000
-Subject: [lm-sensors] [PATCH 12/17 v2] hwmon: (g760a) fix checkpatch issues
-Message-Id: <1326047660-20539-12-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:05 +0000
+Subject: [lm-sensors] [PATCH 26/79] hwmon: (g760a) Fix multi-line comments
+Message-Id: <1327373398-997-27-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-ERROR: code indent should use tabs where possible
-#3: FILE: g760a.c:3:
-+            fan speed PWM controller chip$
+From: Guenter Roeck <linux@roeck-us.net>
 
-ERROR: trailing whitespace
-#8: FILE: g760a.c:8:
-+      http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf $
-
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Cc: Herbert Valerio Riedel <hvr@gnu.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/g760a.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/g760a.c |   33 +++++++++++++++++----------------
+ 1 files changed, 17 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/hwmon/g760a.c b/drivers/hwmon/g760a.c
-index 1d6a6fa..d1ccba5 100644
+index 052e304..ebcd269 100644
 --- a/drivers/hwmon/g760a.c
 +++ b/drivers/hwmon/g760a.c
-@@ -1,11 +1,11 @@
+@@ -1,17 +1,17 @@
  /*
-     g760a - Driver for the Global Mixed-mode Technology Inc. G760A
--            fan speed PWM controller chip
-+	    fan speed PWM controller chip
+-    g760a - Driver for the Global Mixed-mode Technology Inc. G760A
+-	    fan speed PWM controller chip
+-
+-    Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
+-
+-    Complete datasheet is available at GMT's website:
+-      http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-*/
++ * g760a - Driver for the Global Mixed-mode Technology Inc. G760A
++ *	   fan speed PWM controller chip
++ *
++ * Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
++ *
++ * Complete datasheet is available at GMT's website:
++ * http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
  
-     Copyright (C) 2007  Herbert Valerio Riedel <hvr@gnu.org>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -59,7 +59,8 @@ struct g760a_data {
+ 	u8 act_cnt; /*   formula: cnt = (CLK * 30)/(rpm * P) */
+ 	u8 fan_sta; /* bit 0: set when actual fan speed more than 20%
+ 		     *   outside requested fan speed
+-		     * bit 1: set when fan speed below 1920 rpm */
++		     * bit 1: set when fan speed below 1920 rpm
++		     */
+ };
  
-     Complete datasheet is available at GMT's website:
--      http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf 
-+      http://www.gmt.com.tw/product/datasheet/EDS-760A.pdf
+ #define G760A_DEFAULT_CLK 32768
+@@ -99,7 +100,7 @@ static int g760a_write_value(struct i2c_client *client, enum g760a_regs reg,
+ 	return i2c_smbus_write_byte_data(client, reg, value);
+ }
  
-     This program is free software; you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
+-/****************************************************************************
++/*
+  * sysfs attributes
+  */
+ 
+@@ -192,7 +193,7 @@ static const struct attribute_group g760a_group = {
+ 	.attrs = g760a_attributes,
+ };
+ 
+-/****************************************************************************
++/*
+  * new-style driver model code
+  */
+ 
 -- 
-1.7.8.2
+1.7.3.1
 
 
 _______________________________________________
