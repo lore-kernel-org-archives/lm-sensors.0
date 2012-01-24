@@ -1,27 +1,41 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 19 Jan 2012 16:25:34 +0000
-Subject: Re: [lm-sensors] [PATCH 04/39] hwmon: (adm1025) Fix checkpatch issues
-Message-Id: <20120119172534.4f264ec9@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:44 +0000
+Subject: [lm-sensors] [PATCH 65/79] hwmon: (applesmc) Fix multi-line comments
+Message-Id: <1327373398-997-66-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326703781-14272-5-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1326703781-14272-5-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 19 Jan 2012 08:11:28 -0800, Guenter Roeck wrote:
-> On Thu, 2012-01-19 at 09:55 -0500, Jean Delvare wrote:
-> > Acked-by: Jean Delvare <khali@linux-fr.org>
->
-> I'll separate this commit into two and add your Acked-by to both,
-> assuming this is ok with you.
+From: Guenter Roeck <linux@roeck-us.net>
 
-Yes it is.
+Cc: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/applesmc.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-Thanks,
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index b989553..1b13085 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -1189,8 +1189,10 @@ static int applesmc_dmi_match(const struct dmi_system_id *id)
+ 	return 1;
+ }
+ 
+-/* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
+- * So we need to put "Apple MacBook Pro" before "Apple MacBook". */
++/*
++ * Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
++ * So we need to put "Apple MacBook Pro" before "Apple MacBook".
++ */
+ static __initdata struct dmi_system_id applesmc_whitelist[] = {
+ 	{ applesmc_dmi_match, "Apple MacBook Air", {
+ 	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
