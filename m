@@ -1,49 +1,38 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Tue, 24 Jan 2012 09:35:31 +0000
-Subject: Re: [lm-sensors] [PATCH 65/79] hwmon: (applesmc) Fix multi-line comments
-Message-Id: <20120124093531.GA4373@polaris.bitmath.org>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:11 +0000
+Subject: [lm-sensors] [PATCH 32/79] hwmon: (wm8350-hwmon) Constify fixed string array
+Message-Id: <1327373398-997-33-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327373398-997-66-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1327373398-997-66-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Jan 23, 2012 at 06:49:44PM -0800, Guenter Roeck wrote:
-> From: Guenter Roeck <linux@roeck-us.net>
-> 
-> Cc: Henrik Rydberg <rydberg@euromail.se>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/applesmc.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-> index b989553..1b13085 100644
-> --- a/drivers/hwmon/applesmc.c
-> +++ b/drivers/hwmon/applesmc.c
-> @@ -1189,8 +1189,10 @@ static int applesmc_dmi_match(const struct dmi_system_id *id)
->  	return 1;
->  }
->  
-> -/* Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-> - * So we need to put "Apple MacBook Pro" before "Apple MacBook". */
-> +/*
-> + * Note that DMI_MATCH(...,"MacBook") will match "MacBookPro1,1".
-> + * So we need to put "Apple MacBook Pro" before "Apple MacBook".
-> + */
->  static __initdata struct dmi_system_id applesmc_whitelist[] = {
->  	{ applesmc_dmi_match, "Apple MacBook Air", {
->  	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
-> -- 
-> 1.7.3.1
-> 
+From: Guenter Roeck <linux@roeck-us.net>
 
-Acked-by: Henrik Rydberg <rydberg@euromail.se>
+Constify fixed string array and make checkpatch happy.
 
-Thanks,
-Henrik
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/wm8350-hwmon.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/wm8350-hwmon.c b/drivers/hwmon/wm8350-hwmon.c
+index 3ff67ed..b955756 100644
+--- a/drivers/hwmon/wm8350-hwmon.c
++++ b/drivers/hwmon/wm8350-hwmon.c
+@@ -34,7 +34,7 @@ static ssize_t show_name(struct device *dev,
+ 	return sprintf(buf, "wm8350\n");
+ }
+ 
+-static const char *input_names[] = {
++static const char * const input_names[] = {
+ 	[WM8350_AUXADC_USB]  = "USB",
+ 	[WM8350_AUXADC_LINE] = "Line",
+ 	[WM8350_AUXADC_BATT] = "Battery",
+-- 
+1.7.3.1
 
 
 _______________________________________________
