@@ -1,62 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 16 Jan 2012 22:00:51 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.3
-Message-Id: <20120116230051.5a246e6b@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:48:51 +0000
+Subject: [lm-sensors] [PATCH 12/79] hwmon: (smsc47m192) Fix vrm value range
+Message-Id: <1327373398-997-13-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi Linus,
+When updating vrm, the value range was not limited. This could result in more or
+less random vrm values if the value provided by the user was larger than 255.
+Fix by limiting the range to 0..255 using the SENSORS_LIMIT macro.
 
-Please pull hwmon subsystem updates for Linux 3.3 from:
+Cc: Hartmut Rick <linux@rick.claranet.de>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/smsc47m192.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
-
-We have support for the ITE IT8728F, and an improved lm63 driver.
-
- Documentation/hwmon/it87            |   13 +-
- Documentation/hwmon/lm63            |   21 +-
- Documentation/hwmon/sysfs-interface |    2 +-
- drivers/hwmon/Kconfig               |    8 +-
- drivers/hwmon/adm1031.c             |  153 ++++++---
- drivers/hwmon/coretemp.c            |   26 +-
- drivers/hwmon/it87.c                |   61 +++-
- drivers/hwmon/lm63.c                |  592 +++++++++++++++++++++++++++++++----
- drivers/hwmon/lm90.c                |    2 +-
- drivers/hwmon/max1111.c             |   15 +-
- 10 files changed, 735 insertions(+), 158 deletions(-)
-
----------------
-
-Eric Miao (1):
-      hwmon: (max1111) Change sysfs interface to in[0-3]_input in millivolts
-
-Guenter Roeck (10):
-      hwmon: (lm63) Fix checkpatch errors
-      hwmon: (lm63) Add support for external temperature offset register
-      hwmon: (lm63) Add support for LM96163
-      hwmon: (lm63) Add support for unsigned upper temperature limits
-      hwmon: (lm63) Add support for writing the external critical temperature
-      hwmon: (lm63) Add support for update_interval sysfs attribute
-      hwmon: (lm63) Add sensor type attribute for external sensor on LM96163
-      hwmon: (lm90) Add range check to set_update_interval
-      hwmon: (adm1031) Fix coding style issues
-      hwmon: (sysfs-interface) Update tempX_type attribute to be more generic
-
-Jean Delvare (6):
-      hwmon: (lm63) LM64 has a dedicated pin for tachometer
-      hwmon: (lm63) Fix incorrect comment about I2C address
-      hwmon: (lm63) Expose automatic fan speed control lookup table
-      hwmon: (lm63) Support extended lookup table of LM96163
-      hwmon: (coretemp) Add missing section annotations
-      hwmon: (it87) Add IT8728F support
-
-Thanks,
+diff --git a/drivers/hwmon/smsc47m192.c b/drivers/hwmon/smsc47m192.c
+index 4705a8b..1e53028 100644
+--- a/drivers/hwmon/smsc47m192.c
++++ b/drivers/hwmon/smsc47m192.c
+@@ -385,7 +385,7 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+ 	if (err)
+ 		return err;
+ 
+-	data->vrm = val;
++	data->vrm = SENSORS_LIMIT(val, 0, 255);
+ 	return count;
+ }
+ static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
 -- 
-Jean Delvare
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
