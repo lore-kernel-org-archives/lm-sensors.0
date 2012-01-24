@@ -1,52 +1,100 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Sun, 08 Jan 2012 18:34:13 +0000
-Subject: [lm-sensors] [PATCH 10/17 v2] hwmon: (adt7470) fix checkpatch issues
-Message-Id: <1326047660-20539-10-git-send-email-fransmeulenbroeks@gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:46 +0000
+Subject: [lm-sensors] [PATCH 67/79] hwmon: (emc2103) Fix multi-line comments
+Message-Id: <1327373398-997-68-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-fixed:
-ERROR: that open brace { should be on the previous line
-#1135: FILE: adt7470.c:1135:
-+static struct attribute *adt7470_attr[] +{
+From: Guenter Roeck <linux@roeck-us.net>
 
-ERROR: do not use assignment in if condition
-#1279: FILE: adt7470.c:1279:
-+	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
-
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Cc: Steve Glendinning <steve.glendinning@smsc.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/adt7470.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/hwmon/emc2103.c |   50 +++++++++++++++++++++++++---------------------
+ 1 files changed, 27 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index c6d1ce0..cad7f1a 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -1131,8 +1131,7 @@ static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IWUSR | S_IRUGO,
- static SENSOR_DEVICE_ATTR(pwm4_auto_channels_temp, S_IWUSR | S_IRUGO,
- 		    show_pwm_auto_temp, set_pwm_auto_temp, 3);
+diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
+index 0f51382..9691f66 100644
+--- a/drivers/hwmon/emc2103.c
++++ b/drivers/hwmon/emc2103.c
+@@ -1,21 +1,21 @@
+ /*
+-    emc2103.c - Support for SMSC EMC2103
+-    Copyright (c) 2010 SMSC
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
++ * emc2103.c - Support for SMSC EMC2103
++ * Copyright (c) 2010 SMSC
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
  
--static struct attribute *adt7470_attr[] -{
-+static struct attribute *adt7470_attr[] = {
- 	&dev_attr_alarm_mask.attr,
- 	&dev_attr_num_temp_sensors.attr,
- 	&dev_attr_auto_update_interval.attr,
-@@ -1276,7 +1275,8 @@ static int adt7470_probe(struct i2c_client *client,
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -48,12 +48,14 @@ static const u8 REG_TEMP_MAX[4] = { 0x34, 0x30, 0x31, 0x32 };
+ /* equation 4 from datasheet: rpm = (3932160 * multipler) / count */
+ #define FAN_RPM_FACTOR		3932160
  
- 	/* Register sysfs hooks */
- 	data->attrs.attrs = adt7470_attr;
--	if ((err = sysfs_create_group(&client->dev.kobj, &data->attrs)))
-+	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
-+	if (err)
- 		goto exit_free;
+-/* 2103-2 and 2103-4's 3rd temperature sensor can be connected to two diodes
++/*
++ * 2103-2 and 2103-4's 3rd temperature sensor can be connected to two diodes
+  * in anti-parallel mode, and in this configuration both can be read
+  * independently (so we have 4 temperature inputs).  The device can't
+  * detect if it's connected in this mode, so we have to manually enable
+  * it.  Default is to leave the device in the state it's already in (-1).
+- * This parameter allows APD mode to be optionally forced on or off */
++ * This parameter allows APD mode to be optionally forced on or off
++ */
+ static int apd = -1;
+ module_param(apd, bint, 0);
+ MODULE_PARM_DESC(init, "Set to zero to disable anti-parallel diode mode");
+@@ -302,10 +304,12 @@ show_fan_div(struct device *dev, struct device_attribute *da, char *buf)
+ 	return sprintf(buf, "%d\n", fan_div);
+ }
  
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
+-/* Note: we also update the fan target here, because its value is
+-   determined in part by the fan clock divider.  This follows the principle
+-   of least surprise; the user doesn't expect the fan target to change just
+-   because the divider changed. */
++/*
++ * Note: we also update the fan target here, because its value is
++ * determined in part by the fan clock divider.  This follows the principle
++ * of least surprise; the user doesn't expect the fan target to change just
++ * because the divider changed.
++ */
+ static ssize_t set_fan_div(struct device *dev, struct device_attribute *da,
+ 			   const char *buf, size_t count)
+ {
 -- 
-1.7.8.2
+1.7.3.1
 
 
 _______________________________________________
