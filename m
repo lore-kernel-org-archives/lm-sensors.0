@@ -1,71 +1,77 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 24 Jan 2012 02:49:07 +0000
-Subject: [lm-sensors] [PATCH 28/79] hwmon: (ltc4215) Fix multi-line comments
-Message-Id: <1327373398-997-29-git-send-email-guenter.roeck@ericsson.com>
+From: "Ira W. Snyder" <iws@ovro.caltech.edu>
+Date: Tue, 24 Jan 2012 16:15:59 +0000
+Subject: Re: [lm-sensors] [PATCH 28/79] hwmon: (ltc4215) Fix multi-line comments
+Message-Id: <20120124161559.GA2794@ovro.caltech.edu>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1327373398-997-29-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1327373398-997-29-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Guenter Roeck <linux@roeck-us.net>
+On Mon, Jan 23, 2012 at 06:49:07PM -0800, Guenter Roeck wrote:
+> From: Guenter Roeck <linux@roeck-us.net>
+> 
+> Cc: Ira W. Snyder <iws@ovro.caltech.edu>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-Cc: Ira W. Snyder <iws@ovro.caltech.edu>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/ltc4215.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+Acked-by: Ira W. Snyder <iws@ovro.caltech.edu>
 
-diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
-index 0789b63..429c5b2 100644
---- a/drivers/hwmon/ltc4215.c
-+++ b/drivers/hwmon/ltc4215.c
-@@ -91,8 +91,10 @@ static int ltc4215_get_voltage(struct device *dev, u8 reg)
- 		voltage = regval * 605 / 10;
- 		break;
- 	case LTC4215_ADIN:
--		/* The ADIN input is divided by 12.5, and has 4.82 mV
--		 * per increment, so we have the additional multiply */
-+		/*
-+		 * The ADIN input is divided by 12.5, and has 4.82 mV
-+		 * per increment, so we have the additional multiply
-+		 */
- 		voltage = regval * 482 * 125 / 1000;
- 		break;
- 	default:
-@@ -109,7 +111,8 @@ static unsigned int ltc4215_get_current(struct device *dev)
- {
- 	struct ltc4215_data *data = ltc4215_update_device(dev);
- 
--	/* The strange looking conversions that follow are fixed-point
-+	/*
-+	 * The strange looking conversions that follow are fixed-point
- 	 * math, since we cannot do floating point in the kernel.
- 	 *
- 	 * Step 1: convert sense register to microVolts
-@@ -176,7 +179,8 @@ static ssize_t ltc4215_show_alarm(struct device *dev,
- 	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
- }
- 
--/* These macros are used below in constructing device attribute objects
-+/*
-+ * These macros are used below in constructing device attribute objects
-  * for use with sysfs_create_group() to make a sysfs device file
-  * for each register.
-  */
-@@ -215,7 +219,8 @@ LTC4215_ALARM(in1_min_alarm,	(1 << 1),	LTC4215_STATUS);
- LTC4215_VOLTAGE(in2_input,			LTC4215_SOURCE);
- LTC4215_ALARM(in2_min_alarm,	(1 << 3),	LTC4215_STATUS);
- 
--/* Finally, construct an array of pointers to members of the above objects,
-+/*
-+ * Finally, construct an array of pointers to members of the above objects,
-  * as required for sysfs_create_group()
-  */
- static struct attribute *ltc4215_attributes[] = {
--- 
-1.7.3.1
-
+> ---
+>  drivers/hwmon/ltc4215.c |   15 ++++++++++-----
+>  1 files changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
+> index 0789b63..429c5b2 100644
+> --- a/drivers/hwmon/ltc4215.c
+> +++ b/drivers/hwmon/ltc4215.c
+> @@ -91,8 +91,10 @@ static int ltc4215_get_voltage(struct device *dev, u8 reg)
+>  		voltage = regval * 605 / 10;
+>  		break;
+>  	case LTC4215_ADIN:
+> -		/* The ADIN input is divided by 12.5, and has 4.82 mV
+> -		 * per increment, so we have the additional multiply */
+> +		/*
+> +		 * The ADIN input is divided by 12.5, and has 4.82 mV
+> +		 * per increment, so we have the additional multiply
+> +		 */
+>  		voltage = regval * 482 * 125 / 1000;
+>  		break;
+>  	default:
+> @@ -109,7 +111,8 @@ static unsigned int ltc4215_get_current(struct device *dev)
+>  {
+>  	struct ltc4215_data *data = ltc4215_update_device(dev);
+>  
+> -	/* The strange looking conversions that follow are fixed-point
+> +	/*
+> +	 * The strange looking conversions that follow are fixed-point
+>  	 * math, since we cannot do floating point in the kernel.
+>  	 *
+>  	 * Step 1: convert sense register to microVolts
+> @@ -176,7 +179,8 @@ static ssize_t ltc4215_show_alarm(struct device *dev,
+>  	return snprintf(buf, PAGE_SIZE, "%u\n", (reg & mask) ? 1 : 0);
+>  }
+>  
+> -/* These macros are used below in constructing device attribute objects
+> +/*
+> + * These macros are used below in constructing device attribute objects
+>   * for use with sysfs_create_group() to make a sysfs device file
+>   * for each register.
+>   */
+> @@ -215,7 +219,8 @@ LTC4215_ALARM(in1_min_alarm,	(1 << 1),	LTC4215_STATUS);
+>  LTC4215_VOLTAGE(in2_input,			LTC4215_SOURCE);
+>  LTC4215_ALARM(in2_min_alarm,	(1 << 3),	LTC4215_STATUS);
+>  
+> -/* Finally, construct an array of pointers to members of the above objects,
+> +/*
+> + * Finally, construct an array of pointers to members of the above objects,
+>   * as required for sysfs_create_group()
+>   */
+>  static struct attribute *ltc4215_attributes[] = {
+> -- 
+> 1.7.3.1
+> 
 
 _______________________________________________
 lm-sensors mailing list
