@@ -1,433 +1,436 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Date: Mon, 02 Jan 2012 11:00:35 +0000
-Subject: Re: [lm-sensors] i2c errors while updating sensors
-Message-Id: <CACW_hTZvG6Mj6n+J0uwuhH+0pu7ssOx7nyWboO=83+J9zg3hRw@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2976303837650948413=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:25 +0000
+Subject: [lm-sensors] [PATCH 46/79] hwmon: (lm78) Fix checkpatch issues
+Message-Id: <1327373398-997-47-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CACW_hTZsv2LQmjDYWoU715cmodvdyx2Nkem18GuN+WPvFRRbUw@mail.gmail.com>
-In-Reply-To: <CACW_hTZsv2LQmjDYWoU715cmodvdyx2Nkem18GuN+WPvFRRbUw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2976303837650948413==
-Content-Type: multipart/alternative; boundary=20cf30780d1af465b804b5897d5f
+From: Guenter Roeck <linux@roeck-us.net>
 
---20cf30780d1af465b804b5897d5f
-Content-Type: text/plain; charset=ISO-8859-1
+Fixed:
+ERROR: code indent should use tabs where possible
+ERROR: do not use assignment in if condition
+ERROR: space prohibited before that close parenthesis ')'
+ERROR: space required after that ',' (ctx:VxV)
+ERROR: spaces required around that '<' (ctx:VxV)
+ERROR: spaces required around that '=' (ctx:VxV)
+ERROR: trailing statements should be on next line
+ERROR: trailing whitespace
+WARNING: simple_strtol is obsolete, use kstrtol instead
+WARNING: simple_strtoul is obsolete, use kstrtoul instead
 
-Guenter,
+Modify multi-line comments to follow Documentation/CodingStyle.
 
-Thanks for your reply!
-I didn't get to implementing this before the Xmas holiday, but have picked
-it up today.
-(btw. All the best for 2012 for all readers).
+Not fixed (false positive):
+ERROR: Macros with multiple statements should be enclosed in a do - while loop
 
-See below for some remarks.
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm78.c |  215 +++++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 141 insertions(+), 74 deletions(-)
 
-2011/12/23 Guenter Roeck <guenter.roeck@ericsson.com>
+diff --git a/drivers/hwmon/lm78.c b/drivers/hwmon/lm78.c
+index 6df0b46..6a69d1e 100644
+--- a/drivers/hwmon/lm78.c
++++ b/drivers/hwmon/lm78.c
+@@ -1,23 +1,23 @@
+ /*
+-    lm78.c - Part of lm_sensors, Linux kernel modules for hardware
+-             monitoring
+-    Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl> 
+-    Copyright (c) 2007, 2011  Jean Delvare <khali@linux-fr.org>
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+-*/
++ * lm78.c - Part of lm_sensors, Linux kernel modules for hardware
++ *	    monitoring
++ * Copyright (c) 1998, 1999  Frodo Looijaard <frodol@dds.nl>
++ * Copyright (c) 2007, 2011  Jean Delvare <khali@linux-fr.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+@@ -74,11 +74,15 @@ enum chips { lm78, lm79 };
+ #define LM78_REG_I2C_ADDR 0x48
+ 
+ 
+-/* Conversions. Rounding and limit checking is only done on the TO_REG 
+-   variants. */
++/*
++ * Conversions. Rounding and limit checking is only done on the TO_REG
++ * variants.
++ */
+ 
+-/* IN: mV, (0V to 4.08V)
+-   REG: 16mV/bit */
++/*
++ * IN: mV, (0V to 4.08V)
++ * REG: 16mV/bit
++ */
+ static inline u8 IN_TO_REG(unsigned long val)
+ {
+ 	unsigned long nval = SENSORS_LIMIT(val, 0, 4080);
+@@ -95,15 +99,17 @@ static inline u8 FAN_TO_REG(long rpm, int div)
+ 
+ static inline int FAN_FROM_REG(u8 val, int div)
+ {
+-	return val=0 ? -1 : val=255 ? 0 : 1350000/(val*div);
++	return val = 0 ? -1 : val = 255 ? 0 : 1350000 / (val * div);
+ }
+ 
+-/* TEMP: mC (-128C to +127C)
+-   REG: 1C/bit, two's complement */
++/*
++ * TEMP: mC (-128C to +127C)
++ * REG: 1C/bit, two's complement
++ */
+ static inline s8 TEMP_TO_REG(int val)
+ {
+ 	int nval = SENSORS_LIMIT(val, -128000, 127000) ;
+-	return nval<0 ? (nval-500)/1000 : (nval+500)/1000;
++	return nval < 0 ? (nval - 500) / 1000 : (nval + 500) / 1000;
+ }
+ 
+ static inline int TEMP_FROM_REG(s8 val)
+@@ -177,8 +183,13 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *da,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm78_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	int nr = attr->index;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_min[nr] = IN_TO_REG(val);
+@@ -192,8 +203,13 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *da,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm78_data *data = dev_get_drvdata(dev);
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	int nr = attr->index;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->in_max[nr] = IN_TO_REG(val);
+@@ -201,7 +217,7 @@ static ssize_t set_in_max(struct device *dev, struct device_attribute *da,
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-	
++
+ #define show_in_offset(offset)					\
+ static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO,		\
+ 		show_in, NULL, offset);				\
+@@ -237,7 +253,12 @@ static ssize_t set_temp_over(struct device *dev, struct device_attribute *da,
+ 			     const char *buf, size_t count)
+ {
+ 	struct lm78_data *data = dev_get_drvdata(dev);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_over = TEMP_TO_REG(val);
+@@ -257,7 +278,12 @@ static ssize_t set_temp_hyst(struct device *dev, struct device_attribute *da,
+ 			     const char *buf, size_t count)
+ {
+ 	struct lm78_data *data = dev_get_drvdata(dev);
+-	long val = simple_strtol(buf, NULL, 10);
++	long val;
++	int err;
++
++	err = kstrtol(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->temp_hyst = TEMP_TO_REG(val);
+@@ -280,7 +306,7 @@ static ssize_t show_fan(struct device *dev, struct device_attribute *da,
+ 	struct lm78_data *data = lm78_update_device(dev);
+ 	int nr = attr->index;
+ 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[nr],
+-		DIV_FROM_REG(data->fan_div[nr])) );
++		DIV_FROM_REG(data->fan_div[nr])));
+ }
+ 
+ static ssize_t show_fan_min(struct device *dev, struct device_attribute *da,
+@@ -289,8 +315,8 @@ static ssize_t show_fan_min(struct device *dev, struct device_attribute *da,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm78_data *data = lm78_update_device(dev);
+ 	int nr = attr->index;
+-	return sprintf(buf,"%d\n", FAN_FROM_REG(data->fan_min[nr],
+-		DIV_FROM_REG(data->fan_div[nr])) );
++	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan_min[nr],
++		DIV_FROM_REG(data->fan_div[nr])));
+ }
+ 
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *da,
+@@ -299,7 +325,12 @@ static ssize_t set_fan_min(struct device *dev, struct device_attribute *da,
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm78_data *data = dev_get_drvdata(dev);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->fan_min[nr] = FAN_TO_REG(val, DIV_FROM_REG(data->fan_div[nr]));
+@@ -316,29 +347,44 @@ static ssize_t show_fan_div(struct device *dev, struct device_attribute *da,
+ 	return sprintf(buf, "%d\n", DIV_FROM_REG(data->fan_div[attr->index]));
+ }
+ 
+-/* Note: we save and restore the fan minimum here, because its value is
+-   determined in part by the fan divisor.  This follows the principle of
+-   least surprise; the user doesn't expect the fan minimum to change just
+-   because the divisor changed. */
++/*
++ * Note: we save and restore the fan minimum here, because its value is
++ * determined in part by the fan divisor.  This follows the principle of
++ * least surprise; the user doesn't expect the fan minimum to change just
++ * because the divisor changed.
++ */
+ static ssize_t set_fan_div(struct device *dev, struct device_attribute *da,
+ 			   const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct lm78_data *data = dev_get_drvdata(dev);
+ 	int nr = attr->index;
+-	unsigned long val = simple_strtoul(buf, NULL, 10);
+ 	unsigned long min;
+ 	u8 reg;
++	unsigned long val;
++	int err;
++
++	err = kstrtoul(buf, 10, &val);
++	if (err)
++		return err;
+ 
+ 	mutex_lock(&data->update_lock);
+ 	min = FAN_FROM_REG(data->fan_min[nr],
+ 			   DIV_FROM_REG(data->fan_div[nr]));
+ 
+ 	switch (val) {
+-	case 1: data->fan_div[nr] = 0; break;
+-	case 2: data->fan_div[nr] = 1; break;
+-	case 4: data->fan_div[nr] = 2; break;
+-	case 8: data->fan_div[nr] = 3; break;
++	case 1:
++		data->fan_div[nr] = 0;
++		break;
++	case 2:
++		data->fan_div[nr] = 1;
++		break;
++	case 4:
++		data->fan_div[nr] = 2;
++		break;
++	case 8:
++		data->fan_div[nr] = 3;
++		break;
+ 	default:
+ 		dev_err(dev, "fan_div value %ld not "
+ 			"supported. Choose one of 1, 2, 4 or 8!\n", val);
+@@ -484,8 +530,10 @@ static struct platform_device *pdev;
+ 
+ static unsigned short isa_address = 0x290;
+ 
+-/* I2C devices get this name attribute automatically, but for ISA devices
+-   we must create it by ourselves. */
++/*
++ * I2C devices get this name attribute automatically, but for ISA devices
++ * we must create it by ourselves.
++ */
+ static ssize_t show_name(struct device *dev, struct device_attribute
+ 			 *devattr, char *buf)
+ {
+@@ -515,8 +563,10 @@ static int lm78_alias_detect(struct i2c_client *client, u8 chipid)
+ 	if ((lm78_read_value(isa, LM78_REG_CHIPID) & 0xfe) != (chipid & 0xfe))
+ 		return 0;	/* Chip type doesn't match */
+ 
+-	/* We compare all the limit registers, the config register and the
+-	 * interrupt mask registers */
++	/*
++	 * We compare all the limit registers, the config register and the
++	 * interrupt mask registers
++	 */
+ 	for (i = 0x2b; i <= 0x3d; i++) {
+ 		if (lm78_read_value(isa, i) ! 		    i2c_smbus_read_byte_data(client, i))
+@@ -558,9 +608,11 @@ static int lm78_i2c_detect(struct i2c_client *client,
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+-	/* We block updates of the ISA device to minimize the risk of
+-	   concurrent access to the same LM78 chip through different
+-	   interfaces. */
++	/*
++	 * We block updates of the ISA device to minimize the risk of
++	 * concurrent access to the same LM78 chip through different
++	 * interfaces.
++	 */
+ 	if (isa)
+ 		mutex_lock(&isa->update_lock);
+ 
+@@ -669,11 +721,13 @@ static struct i2c_driver lm78_driver = {
+ 	.address_list	= normal_i2c,
+ };
+ 
+-/* The SMBus locks itself, but ISA access must be locked explicitly! 
+-   We don't want to lock the whole ISA bus, so we lock each client
+-   separately.
+-   We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
+-   would slow down the LM78 access and should not be necessary.  */
++/*
++ * The SMBus locks itself, but ISA access must be locked explicitly!
++ * We don't want to lock the whole ISA bus, so we lock each client
++ * separately.
++ * We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
++ * would slow down the LM78 access and should not be necessary.
++ */
+ static int lm78_read_value(struct lm78_data *data, u8 reg)
+ {
+ 	struct i2c_client *client = data->client;
+@@ -691,13 +745,15 @@ static int lm78_read_value(struct lm78_data *data, u8 reg)
+ 		return i2c_smbus_read_byte_data(client, reg);
+ }
+ 
+-/* The SMBus locks itself, but ISA access muse be locked explicitly! 
+-   We don't want to lock the whole ISA bus, so we lock each client
+-   separately.
+-   We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
+-   would slow down the LM78 access and should not be necessary. 
+-   There are some ugly typecasts here, but the good new is - they should
+-   nowhere else be necessary! */
++/*
++ * The SMBus locks itself, but ISA access muse be locked explicitly!
++ * We don't want to lock the whole ISA bus, so we lock each client
++ * separately.
++ * We ignore the LM78 BUSY flag at this moment - it could lead to deadlocks,
++ * would slow down the LM78 access and should not be necessary.
++ * There are some ugly typecasts here, but the good new is - they should
++ * nowhere else be necessary!
++ */
+ static int lm78_write_value(struct lm78_data *data, u8 reg, u8 value)
+ {
+ 	struct i2c_client *client = data->client;
+@@ -823,8 +879,11 @@ static int __devinit lm78_isa_probe(struct platform_device *pdev)
+ 	lm78_init_device(data);
+ 
+ 	/* Register sysfs hooks */
+-	if ((err = sysfs_create_group(&pdev->dev.kobj, &lm78_group))
+-	 || (err = device_create_file(&pdev->dev, &dev_attr_name)))
++	err = sysfs_create_group(&pdev->dev.kobj, &lm78_group);
++	if (err)
++		goto exit_remove_files;
++	err = device_create_file(&pdev->dev, &dev_attr_name);
++	if (err)
+ 		goto exit_remove_files;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+@@ -876,9 +935,11 @@ static int __init lm78_isa_found(unsigned short address)
+ 	int val, save, found = 0;
+ 	int port;
+ 
+-	/* Some boards declare base+0 to base+7 as a PNP device, some base+4
++	/*
++	 * Some boards declare base+0 to base+7 as a PNP device, some base+4
+ 	 * to base+7 and some base+5 to base+6. So we better request each port
+-	 * individually for the probing phase. */
++	 * individually for the probing phase.
++	 */
+ 	for (port = address; port < address + LM78_EXTENT; port++) {
+ 		if (!request_region(port, 1, "lm78")) {
+ 			pr_debug("Failed to request port 0x%x\n", port);
+@@ -887,8 +948,10 @@ static int __init lm78_isa_found(unsigned short address)
+ 	}
+ 
+ #define REALLY_SLOW_IO
+-	/* We need the timeouts for at least some LM78-like
+-	   chips. But only if we read 'undefined' registers. */
++	/*
++	 * We need the timeouts for at least some LM78-like
++	 * chips. But only if we read 'undefined' registers.
++	 */
+ 	val = inb_p(address + 1);
+ 	if (inb_p(address + 2) != val
+ 	 || inb_p(address + 3) != val
+@@ -896,8 +959,10 @@ static int __init lm78_isa_found(unsigned short address)
+ 		goto release;
+ #undef REALLY_SLOW_IO
+ 
+-	/* We should be able to change the 7 LSB of the address port. The
+-	   MSB (busy flag) should be clear initially, set after the write. */
++	/*
++	 * We should be able to change the 7 LSB of the address port. The
++	 * MSB (busy flag) should be clear initially, set after the write.
++	 */
+ 	save = inb_p(address + LM78_ADDR_REG_OFFSET);
+ 	if (save & 0x80)
+ 		goto release;
+@@ -1036,8 +1101,10 @@ static int __init sm_lm78_init(void)
+ {
+ 	int res;
+ 
+-	/* We register the ISA device first, so that we can skip the
+-	 * registration of an I2C interface to the same device. */
++	/*
++	 * We register the ISA device first, so that we can skip the
++	 * registration of an I2C interface to the same device.
++	 */
+ 	res = lm78_isa_register();
+ 	if (res)
+ 		goto exit;
+-- 
+1.7.3.1
 
-> Hi Frans,
->
-> On Fri, Dec 23, 2011 at 09:44:35AM -0500, Frans Meulenbroeks wrote:
-> > I was peeking at lm75/lm80 i2c error message handing.
-> >
-> > The problem I am facing is that I am using lm75 for temperature
-> monitoring and
-> > lm80 for temperature and fan tacho monitoring.
-> > This is an embedded (powerpc) system using a 2.6.38 kernel, and
-> accessing the
-> > sensors through the sysfs interface.
-> >
-> > The customer wants to be able to detect if someone accidently
-> disconnects the
-> > fan (or the monitoring chip dies).
-> > I know i2c is not hot pluggable, but would have expected to be able to
-> detect
-> > this error condition
-> >
-> > However, from peeking at the sources, it seems I am not.
-> >
-> >
-> > lm75.c says (function lm75_update_device)
-> >         for (i = 0; i < ARRAY_SIZE(data->temp); i++) {
-> >             int status;
-> >
-> >             status = lm75_read_value(client, LM75_REG_TEMP[i]);
-> >             if (status < 0)
-> >                 dev_dbg(&client->dev, "reg %d, err %d\n",
-> >                         LM75_REG_TEMP[i], status);
-> >             else
-> >                 data->temp[i] = status;
-> >         }
-> >         data->last_updated = jiffies;
-> >         data->valid = 1;
-> > So there is an error message if dbg is on, but a user will still get the
-> old
-> > data as temp[i] is not updated.
-> >
-> > Wouldn't it be nice to e.g. add a (bool) attribute data-valid or or so
-> and drop
-> > that to 0 on a read fail (or maybe 3 subsequent read fails)?
->
-> data->valid typically already exists.
->
-> > Or is there a better way do detect such a problem in user space (e.g. by
-> > putting an "error" value in the var)
-> >
-> > I've also peeked at lm80.c
-> > Here the situation seems to be a little bit worse.
-> > E.g. I see:
-> >
-> > static int lm80_read_value(struct i2c_client *client, u8 reg)
-> > {
-> >     return i2c_smbus_read_byte_data(client, reg);
-> > }
-> >
-> > ...
-> >
-> >         data->temp =
-> >             (lm80_read_value(client, LM80_REG_TEMP) << 8) |
-> >             (lm80_read_value(client, LM80_REG_RES) & 0xf0);
-> >
-> > but i2c_smbus_read_byte_data may return a negative value upon error.
-> > To me it seems this is not going to return a sensible value in case the
-> read
-> > fails (and also not e.g. something like -1)
-> >
-> > Is this desired? Should this be fixed? Or is there a better way to do so?
->
-> No, yes, and yes.
->
-
-Ok, I'll bite and give it a stab.
-
->
-> Note that returning -1 is not a good idea; one should pass on the error
-> code.
->
-> > If needed, I can have a stab at the code to fix it, but in that case I
-> would
-> > appreciate some guidance in the direction of the preferred solution (so
-> my work
-> > is not rejected because it was felt a faulty solution).
-> >
-> There are multiple options. The easiest would be to set data->valid to 0
-> and return
-> the error from the _update_device() function. So you would have
->
->        if (status < 0) {
->                data->valid = 0;
->                return status;
->        }
->
-> in the update_device() function, and
->
->        struct lm75_data *data = lm75_update_device(dev);
->
->        if (IS_ERR(data))
->                return PTR_ERR(data);
->
->        ...
->
-> in the _get() function.
->
-> Downside is that each read will return an error, even if the read failed
-> on an attribute
-> which is not currently read. ltc4261.c is an example for this kind of
-> handling.
->
-
-Thanks. I've implemented this in the same way as ltc4261.c did.
-I will supply a patch in a short while.
-Not too sure what kernel git I should use to base this patch on.
-I will be using git://
-git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git as that is
-listed as the hwmon staging tree. Hope that is ok.
-
-I also noticed that ltc4261 is not setting data->valid to 0 in case of an
-error. This seems a good addition so I'll add a patch for that.
-
->
-> Another approach would be to store the actual error in the temp[] array,
-> and make it an int
-> instead of u16/u8.
->
->        int temp[3];
->
->        ...
->
->        data->temp[i] = lm75_read_value(client, LM75_REG_TEMP[i]);
->
->        ...
->
->        int temp = LM75_TEMP_FROM_REG(data->temp[attr->index]);
->
->        if (temp < 0)
->                return temp;
->        return sprintf(buf, "%d\n", LM75_TEMP_FROM_REG(temp));
->
-> More effort and more code, but more accurately reports errors. With this
-> approach,
-> you would have to make sure that u8/u16 <-> int conversions don't
-> introduce errors;
-> the arithmetic in some drivers depends on the type of the storage variable.
-> Example for this kind of solution is max16065.c.
->
-> Which approach to use really depends on the chip and on the amount of
-> effort one wants
-> to make. I typically select the first approach for simple chips, and use
-> the second
-> approach if there is a possibility that the chip returns an error on one
-> read but not
-> on others. The latter is mostly a concern for microcontroller based i2c
-> devices.
->
-> For lm75, the first method should be ok. For lm80, you could use both,
-> depending how much
-> time you want to spend on it. If there is a chance that one read returns
-> an error while
-> other reads don't, the second approach would be much better.
->
-
-As lm80 is not a micro based i2c dev, I would suspect that a fail apply to
-all register reads.
-And if a register read fails, even if it is not the register you are
-interested in at that moment, it is probably interesting to know as there
-is definitely a problem with the device/device communication
-
-
->
-> If you want to start playing with the lm80 driver, it would be nice if you
-> could also
-> fix the checkpatch errors and warnings. That should be a separate patch,
-> though.
->
-
-Will peek into that too. Will be after the lm80 error patch (as I already
-made that one it is more efficient to do the checkfile later)
-
-
->
-> Thanks,
-> Guenter
->
-> Best regards, Frans
-
---20cf30780d1af465b804b5897d5f
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Guenter,<br><br>Thanks for your reply!<br>I didn&#39;t get to implementing =
-this before the Xmas holiday, but have picked it up today.<br>(btw. All the=
- best for 2012 for all readers).<br><br>See below for some remarks.<br><br>
-<div class=3D"gmail_quote">2011/12/23 Guenter Roeck <span dir=3D"ltr">&lt;<=
-a href=3D"mailto:guenter.roeck@ericsson.com">guenter.roeck@ericsson.com</a>=
-&gt;</span><br><blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex=
-;border-left:1px #ccc solid;padding-left:1ex">
-Hi Frans,<br>
-<div><div class=3D"h5"><br>
-On Fri, Dec 23, 2011 at 09:44:35AM -0500, Frans Meulenbroeks wrote:<br>
-&gt; I was peeking at lm75/lm80 i2c error message handing.<br>
-&gt;<br>
-&gt; The problem I am facing is that I am using lm75 for temperature monito=
-ring and<br>
-&gt; lm80 for temperature and fan tacho monitoring.<br>
-&gt; This is an embedded (powerpc) system using a 2.6.38 kernel, and access=
-ing the<br>
-&gt; sensors through the sysfs interface.<br>
-&gt;<br>
-&gt; The customer wants to be able to detect if someone accidently disconne=
-cts the<br>
-&gt; fan (or the monitoring chip dies).<br>
-&gt; I know i2c is not hot pluggable, but would have expected to be able to=
- detect<br>
-&gt; this error condition<br>
-&gt;<br>
-&gt; However, from peeking at the sources, it seems I am not.<br>
-&gt;<br>
-&gt;<br>
-&gt; lm75.c says (function lm75_update_device)<br>
-&gt; =A0 =A0 =A0 =A0 for (i =3D 0; i &lt; ARRAY_SIZE(data-&gt;temp); i++) {=
-<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 int status;<br>
-&gt;<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 status =3D lm75_read_value(client, LM75_REG_TE=
-MP[i]);<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 if (status &lt; 0)<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_dbg(&amp;client-&gt;dev, &quot;reg=
- %d, err %d\n&quot;,<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 LM75_REG_TEMP[i], stat=
-us);<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 else<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 data-&gt;temp[i] =3D status;<br>
-&gt; =A0 =A0 =A0 =A0 }<br>
-&gt; =A0 =A0 =A0 =A0 data-&gt;last_updated =3D jiffies;<br>
-&gt; =A0 =A0 =A0 =A0 data-&gt;valid =3D 1;<br>
-&gt; So there is an error message if dbg is on, but a user will still get t=
-he old<br>
-&gt; data as temp[i] is not updated.<br>
-&gt;<br>
-&gt; Wouldn&#39;t it be nice to e.g. add a (bool) attribute data-valid or o=
-r so and drop<br>
-&gt; that to 0 on a read fail (or maybe 3 subsequent read fails)?<br>
-<br>
-</div></div>data-&gt;valid typically already exists.<br>
-<div class=3D"im"><br>
-&gt; Or is there a better way do detect such a problem in user space (e.g. =
-by<br>
-&gt; putting an &quot;error&quot; value in the var)<br>
-&gt;<br>
-&gt; I&#39;ve also peeked at lm80.c<br>
-&gt; Here the situation seems to be a little bit worse.<br>
-&gt; E.g. I see:<br>
-&gt;<br>
-&gt; static int lm80_read_value(struct i2c_client *client, u8 reg)<br>
-&gt; {<br>
-&gt; =A0 =A0 return i2c_smbus_read_byte_data(client, reg);<br>
-&gt; }<br>
-&gt;<br>
-&gt; ...<br>
-&gt;<br>
-&gt; =A0 =A0 =A0 =A0 data-&gt;temp =3D<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 (lm80_read_value(client, LM80_REG_TEMP) &lt;&l=
-t; 8) |<br>
-&gt; =A0 =A0 =A0 =A0 =A0 =A0 (lm80_read_value(client, LM80_REG_RES) &amp; 0=
-xf0);<br>
-&gt;<br>
-&gt; but i2c_smbus_read_byte_data may return a negative value upon error.<b=
-r>
-&gt; To me it seems this is not going to return a sensible value in case th=
-e read<br>
-&gt; fails (and also not e.g. something like -1)<br>
-&gt;<br>
-&gt; Is this desired? Should this be fixed? Or is there a better way to do =
-so?<br>
-<br>
-</div>No, yes, and yes.<br></blockquote><div><br>Ok, I&#39;ll bite and give=
- it a stab. <br></div><blockquote class=3D"gmail_quote" style=3D"margin:0pt=
- 0pt 0pt 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">
-<br>
-Note that returning -1 is not a good idea; one should pass on the error cod=
-e.<br>
-<div class=3D"im"><br>
-&gt; If needed, I can have a stab at the code to fix it, but in that case I=
- would<br>
-&gt; appreciate some guidance in the direction of the preferred solution (s=
-o my work<br>
-&gt; is not rejected because it was felt a faulty solution).<br>
-&gt;<br>
-</div>There are multiple options. The easiest would be to set data-&gt;vali=
-d to 0 and return<br>
-the error from the _update_device() function. So you would have<br>
-<br>
- =A0 =A0 =A0 =A0if (status &lt; 0) {<br>
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0data-&gt;valid =3D 0;<br>
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return status;<br>
- =A0 =A0 =A0 =A0}<br>
-<br>
-in the update_device() function, and<br>
-<br>
- =A0 =A0 =A0 =A0struct lm75_data *data =3D lm75_update_device(dev);<br>
-<br>
- =A0 =A0 =A0 =A0if (IS_ERR(data))<br>
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return PTR_ERR(data);<br>
-<br>
- =A0 =A0 =A0 =A0...<br>
-<br>
-in the _get() function.<br>
-<br>
-Downside is that each read will return an error, even if the read failed on=
- an attribute<br>
-which is not currently read. ltc4261.c is an example for this kind of handl=
-ing.<br></blockquote><div><br>Thanks. I&#39;ve implemented this in the same=
- way as ltc4261.c did.<br>I will supply a patch in a short while.<br>Not to=
-o sure what kernel git I should use to base this patch on.<br>
-I will be using git://<a href=3D"http://git.kernel.org/pub/scm/linux/kernel=
-/git/groeck/linux-staging.git">git.kernel.org/pub/scm/linux/kernel/git/groe=
-ck/linux-staging.git</a> as that is listed as the hwmon staging tree. Hope =
-that is ok.<br>
-<br>I also noticed that ltc4261 is not setting data-&gt;valid to 0 in case =
-of an error. This seems a good addition so I&#39;ll add a patch for that.<b=
-r> </div><blockquote class=3D"gmail_quote" style=3D"margin:0pt 0pt 0pt 0.8e=
-x;border-left:1px solid rgb(204,204,204);padding-left:1ex">
-
-<br>
-Another approach would be to store the actual error in the temp[] array, an=
-d make it an int<br>
-instead of u16/u8.<br>
-<br>
- =A0 =A0 =A0 =A0int temp[3];<br>
-<br>
- =A0 =A0 =A0 =A0...<br>
-<br>
- =A0 =A0 =A0 =A0data-&gt;temp[i] =3D lm75_read_value(client, LM75_REG_TEMP[=
-i]);<br>
-<br>
- =A0 =A0 =A0 =A0...<br>
-<br>
- =A0 =A0 =A0 =A0int temp =3D LM75_TEMP_FROM_REG(data-&gt;temp[attr-&gt;inde=
-x]);<br>
-<br>
- =A0 =A0 =A0 =A0if (temp &lt; 0)<br>
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return temp;<br>
- =A0 =A0 =A0 =A0return sprintf(buf, &quot;%d\n&quot;, LM75_TEMP_FROM_REG(te=
-mp));<br>
-<br>
-More effort and more code, but more accurately reports errors. With this ap=
-proach,<br>
-you would have to make sure that u8/u16 &lt;-&gt; int conversions don&#39;t=
- introduce errors;<br>
-the arithmetic in some drivers depends on the type of the storage variable.=
-<br>
-Example for this kind of solution is max16065.c.<br>
-<br>
-Which approach to use really depends on the chip and on the amount of effor=
-t one wants<br>
-to make. I typically select the first approach for simple chips, and use th=
-e second<br>
-approach if there is a possibility that the chip returns an error on one re=
-ad but not<br>
-on others. The latter is mostly a concern for microcontroller based i2c dev=
-ices.<br>
-<br>
-For lm75, the first method should be ok. For lm80, you could use both, depe=
-nding how much<br>
-time you want to spend on it. If there is a chance that one read returns an=
- error while<br>
-other reads don&#39;t, the second approach would be much better.<br></block=
-quote><div><br>As lm80 is not a micro based i2c dev, I would suspect that a=
- fail apply to all register reads.<br>And if a register read fails, even if=
- it is not the register you are interested in at that moment, it is probabl=
-y interesting to know as there is definitely a problem with the device/devi=
-ce communication<br>
-=A0<br></div><blockquote class=3D"gmail_quote" style=3D"margin:0pt 0pt 0pt =
-0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">
-<br>
-If you want to start playing with the lm80 driver, it would be nice if you =
-could also<br>
-fix the checkpatch errors and warnings. That should be a separate patch, th=
-ough.<br></blockquote><div><br>Will peek into that too. Will be after the l=
-m80 error patch (as I already made that one it is more efficient to do the =
-checkfile later)<br>
-=A0<br></div><blockquote class=3D"gmail_quote" style=3D"margin:0pt 0pt 0pt =
-0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">
-<br>
-Thanks,<br>
-Guenter<br>
-<br>
-</blockquote></div>Best regards, Frans<br>
-
---20cf30780d1af465b804b5897d5f--
-
-
---===============2976303837650948413==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2976303837650948413==--
