@@ -1,38 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:55:02 +0000
-Subject: [lm-sensors] [PATCH 08/82] hwmon: (adm9240) Fix multi-line comments
-Message-Id: <1327017376-20466-9-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:41 +0000
+Subject: [lm-sensors] [PATCH 62/79] hwmon: (w83627hf) Fix vrm value range
+Message-Id: <1327373398-997-63-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/adm9240.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+When updating vrm, the value range was not limited. This could result in more or
+less random vrm values if the value provided by the user was larger than 255.
+Fix by limiting the range to 0..255 using the SENSORS_LIMIT macro.
 
-diff --git a/drivers/hwmon/adm9240.c b/drivers/hwmon/adm9240.c
-index 2de4511..303cdb7 100644
---- a/drivers/hwmon/adm9240.c
-+++ b/drivers/hwmon/adm9240.c
-@@ -756,9 +756,11 @@ static struct adm9240_data *adm9240_update_device(struct device *dev)
- 					i2c_smbus_read_byte_data(client,
- 					ADM9240_REG_INT(1)) << 8;
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/w83627hf.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+index 5ce54a2..3a1c831 100644
+--- a/drivers/hwmon/w83627hf.c
++++ b/drivers/hwmon/w83627hf.c
+@@ -750,7 +750,7 @@ store_vrm_reg(struct device *dev, struct device_attribute *attr, const char *buf
+ 	err = kstrtoul(buf, 10, &val);
+ 	if (err)
+ 		return err;
+-	data->vrm = val;
++	data->vrm = SENSORS_LIMIT(val, 0, 255);
  
--		/* read temperature: assume temperature changes less than
-+		/*
-+		 * read temperature: assume temperature changes less than
- 		 * 0.5'C per two measurement cycles thus ignore possible
--		 * but unlikely aliasing error on lsb reading. --Grant */
-+		 * but unlikely aliasing error on lsb reading. --Grant
-+		 */
- 		data->temp = ((i2c_smbus_read_byte_data(client,
- 					ADM9240_REG_TEMP) << 8) |
- 					i2c_smbus_read_byte_data(client,
+ 	return count;
+ }
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
