@@ -1,61 +1,56 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 24 Jan 2012 08:41:06 +0000
-Subject: Re: [lm-sensors] [PATCH 66/79] hwmon: (asus_atk0110) Fix multi-line comments
-Message-Id: <CAKPcRGr=pDD4iSKpgEQeJM4AS-jMS7p2KvDgjz2TOKVG=_VBdg@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:49:57 +0000
+Subject: [lm-sensors] [PATCH 78/79] hwmon: (it87) Constify fixed string arrays
+Message-Id: <1327373398-997-79-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327373398-997-67-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1327373398-997-67-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCBKYW4gMjQsIDIwMTIgYXQgMzo0OSBBTSwgR3VlbnRlciBSb2Vjawo8Z3VlbnRlci5y
-b2Vja0Blcmljc3Nvbi5jb20+IHdyb3RlOgo+IEZyb206IEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJv
-ZWNrLXVzLm5ldD4KPgo+IENjOiBMdWNhIFRldHRhbWFudGkgPGtyb25vcy5pdEBnbWFpbC5jb20+
-Cj4gU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0PgoKQWNr
-ZWQtYnk6IEx1Y2EgVGV0dGFtYW50aSA8a3Jvbm9zLml0QGdtYWlsLmNvbT4KCj4gLS0tCj4gwqBk
-cml2ZXJzL2h3bW9uL2FzdXNfYXRrMDExMC5jIHwgwqAgMTUgKysrKysrKysrKy0tLS0tCj4gwqAx
-IGZpbGVzIGNoYW5nZWQsIDEwIGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCj4KPiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAuYyBiL2RyaXZlcnMvaHdtb24vYXN1
-c19hdGswMTEwLmMKPiBpbmRleCA0MDAwZmVlLi4zNTFkMWY0IDEwMDY0NAo+IC0tLSBhL2RyaXZl
-cnMvaHdtb24vYXN1c19hdGswMTEwLmMKPiArKysgYi9kcml2ZXJzL2h3bW9uL2FzdXNfYXRrMDEx
-MC5jCj4gQEAgLTM4LDcgKzM4LDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lk
-IF9faW5pdGNvbnN0IGF0a19mb3JjZV9uZXdfaWZbXSA9IHsKPiDCoCDCoCDCoCDCoHsgfQo+IMKg
-fTsKPgo+IC0vKiBNaW5pbXVtIHRpbWUgYmV0d2VlbiByZWFkaW5ncywgZW5mb3JjZWQgaW4gb3Jk
-ZXIgdG8gYXZvaWQKPiArLyoKPiArICogTWluaW11bSB0aW1lIGJldHdlZW4gcmVhZGluZ3MsIGVu
-Zm9yY2VkIGluIG9yZGVyIHRvIGF2b2lkCj4gwqAqIGhvZ2dpbmcgdGhlIENQVS4KPiDCoCovCj4g
-wqAjZGVmaW5lIENBQ0hFX1RJTUUgwqAgwqAgwqAgwqAgwqAgwqAgSFoKPiBAQCAtMTYxLDcgKzE2
-Miw4IEBAIHN0cnVjdCBhdGtfc2Vuc29yX2RhdGEgewo+IMKgIMKgIMKgIMKgY2hhciBjb25zdCAq
-YWNwaV9uYW1lOwo+IMKgfTsKPgo+IC0vKiBSZXR1cm4gYnVmZmVyIGZvcm1hdDoKPiArLyoKPiAr
-ICogUmV0dXJuIGJ1ZmZlciBmb3JtYXQ6Cj4gwqAqIFswLTNdICJ2YWx1ZSIgaXMgdmFsaWQgZmxh
-Zwo+IMKgKiBbNC03XSB2YWx1ZQo+IMKgKiBbOC0gXSB1bmtub3duIHN0dWZmIG9uIG5ld2VyIG1v
-Ym9zCj4gQEAgLTMxMCw3ICszMTIsOCBAQCBzdGF0aWMgdW5pb24gYWNwaV9vYmplY3QgKmF0a19n
-ZXRfcGFja19tZW1iZXIoc3RydWN0IGF0a19kYXRhICpkYXRhLAo+IMKgfQo+Cj4KPiAtLyogTmV3
-IHBhY2thZ2UgZm9ybWF0IGlzOgo+ICsvKgo+ICsgKiBOZXcgcGFja2FnZSBmb3JtYXQgaXM6Cj4g
-wqAqIC0gZmxhZyAoaW50KQo+IMKgKiDCoCDCoCBjbGFzcyAtIHVzZWQgZm9yIGRlLW11eGluZyB0
-aGUgcmVxdWVzdCB0byB0aGUgY29ycmVjdCBHSVRuCj4gwqAqIMKgIMKgIHR5cGUgKHZvbHQsIHRl
-bXAsIGZhbikKPiBAQCAtNjEzLDcgKzYxNiw4IEBAIHN0YXRpYyBpbnQgYXRrX3JlYWRfdmFsdWVf
-bmV3KHN0cnVjdCBhdGtfc2Vuc29yX2RhdGEgKnNlbnNvciwgdTY0ICp2YWx1ZSkKPgo+IMKgIMKg
-IMKgIMKgYnVmID0gKHN0cnVjdCBhdGtfYWNwaV9yZXRfYnVmZmVyICopb2JqLT5idWZmZXIucG9p
-bnRlcjsKPiDCoCDCoCDCoCDCoGlmIChidWYtPmZsYWdzID09IDApIHsKPiAtIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIC8qIFRoZSByZWFkaW5nIGlzIG5vdCB2YWxpZCwgcG9zc2libGUgY2F1c2VzOgo+
-ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyoKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKiBU
-aGUgcmVhZGluZyBpcyBub3QgdmFsaWQsIHBvc3NpYmxlIGNhdXNlczoKPiDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCAqIC0gc2Vuc29yIGZhaWx1cmUKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAq
-IC0gZW51bWVyYXRpb24gd2FzIEZVQkFSIChhbmQgd2UgZGlkbid0IG5vdGljZSkKPiDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCAqLwo+IEBAIC0xMzExLDcgKzEzMTUsOCBAQCBzdGF0aWMgaW50IGF0
-a19wcm9iZV9pZihzdHJ1Y3QgYXRrX2RhdGEgKmRhdGEpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqBkZXZfZGJnKGRldiwgIm1ldGhvZCAiIE1FVEhPRF9XUklURSAiIG5vdCBmb3VuZDogJXNcbiIs
-Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYWNwaV9m
-b3JtYXRfZXhjZXB0aW9uKHN0YXR1cykpOwo+Cj4gLSDCoCDCoCDCoCAvKiBDaGVjayBmb3IgaHdt
-b24gbWV0aG9kczogZmlyc3QgY2hlY2sgIm9sZCIgc3R5bGUgbWV0aG9kczsgbm90ZSB0aGF0Cj4g
-KyDCoCDCoCDCoCAvKgo+ICsgwqAgwqAgwqAgwqAqIENoZWNrIGZvciBod21vbiBtZXRob2RzOiBm
-aXJzdCBjaGVjayAib2xkIiBzdHlsZSBtZXRob2RzOyBub3RlIHRoYXQKPiDCoCDCoCDCoCDCoCAq
-IGJvdGggbWF5IGJlIHByZXNlbnQ6IGluIHRoaXMgY2FzZSB3ZSBzdGljayB0byB0aGUgb2xkIGlu
-dGVyZmFjZTsKPiDCoCDCoCDCoCDCoCAqIGFuYWx5c2lzIG9mIG11bHRpcGxlIERTRFRzIGluZGlj
-YXRlcyB0aGF0IHdoZW4gYm90aCBpbnRlcmZhY2VzCj4gwqAgwqAgwqAgwqAgKiBhcmUgcHJlc2Vu
-dCB0aGUgbmV3IG9uZSAoR0dSUC9HSVRNKSBpcyBub3QgZnVuY3Rpb25hbC4KPiAtLQo+IDEuNy4z
-LjEKPgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0t
-c2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlz
-dHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+From: Guenter Roeck <linux@roeck-us.net>
+
+Make checkpatch happy by constifying fixed string arrays.
+
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 93a197b..0b204e4 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -1341,12 +1341,12 @@ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+ static ssize_t show_label(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+-	static const char *labels[] = {
++	static const char * const labels[] = {
+ 		"+5V",
+ 		"5VSB",
+ 		"Vbat",
+ 	};
+-	static const char *labels_it8721[] = {
++	static const char * const labels_it8721[] = {
+ 		"+3.3V",
+ 		"3VSB",
+ 		"Vbat",
+@@ -1815,7 +1815,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	int err = 0, i;
+ 	int enable_pwm_interface;
+ 	int fan_beep_need_rw;
+-	static const char *names[] = {
++	static const char * const names[] = {
+ 		"it87",
+ 		"it8712",
+ 		"it8716",
+-- 
+1.7.3.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
