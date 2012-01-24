@@ -1,13 +1,16 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 19 Jan 2012 23:54:56 +0000
-Subject: [lm-sensors] [PATCH 02/82] hwmon: (abituguru3) Fix multi-line comments
-Message-Id: <1327017376-20466-3-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 24 Jan 2012 02:48:58 +0000
+Subject: [lm-sensors] [PATCH 19/79] hwmon: (abituguru3) Fix multi-line comments
+Message-Id: <1327373398-997-20-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+From: Guenter Roeck <linux@roeck-us.net>
+
+Cc: Hans de Goede <hdegoede@redhat.com>
 Cc: Alistair John Strachan <alistair@devzero.co.uk>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
@@ -379,7 +382,7 @@ index 93ab1a5..a5bc428 100644
  	 */
  	if (err > 0) {
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
