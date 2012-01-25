@@ -1,35 +1,152 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 08 Jan 2012 21:44:39 +0000
-Subject: Re: [lm-sensors] Plan for lm-sensors 3.3.2
-Message-Id: <20120108214439.GA24533@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 25 Jan 2012 12:43:34 +0000
+Subject: [lm-sensors] [RFC PATCH 3/3] hwmon: (hwmon-vid) Determine vrm during initialization, and add vrm mod
+Message-Id: <1327495414-6256-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120106110633.3e97c4e7@endymion.delvare>
-In-Reply-To: <20120106110633.3e97c4e7@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 08, 2012 at 02:44:10PM -0500, Jean Delvare wrote:
-> On Fri, 6 Jan 2012 08:27:27 -0800, Guenter Roeck wrote:
-> > On Fri, 2012-01-06 at 05:06 -0500, Jean Delvare wrote:
-> > > I am planing a release of lm-sensors 3.3.2 by January 21st. The
-> > > changelog is relatively short but it will be 6 months since the
-> > > previous release so I still believe this is the right time.
-> > > 
-> > Hi Jean,
-> > 
-> > Any chance to review the patch I sent out a long time ago, adding
-> > support for new attributes ?
-> 
-> This one?
-> 
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2011-November/034144.html
-> 
-Yes.
+The vrm value is system-wide and only needs to be calculated once. Do it when
+the module is loaded. Provide a module parameter to enable overwriting the
+default value in case it is wrong or can not be calculated.
 
-Thanks,
-Guenter
+Use the internal value when calculating the VID voltage; ignore the VRM
+parameter passed in vid_from_reg(). This will enable us to make the vrm
+attribute in individual drivers read-only or to drop it entirely.
+
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/hwmon-vid.c |   56 +++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 46 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+index 40b50b4..26dd0d7 100644
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -73,13 +73,20 @@
+  * http://www.intel.com/design/processor/applnots/313214.htm
+  */
+ 
++static ushort vrm;
++module_param(vrm, ushort, S_IRUGO);
++MODULE_PARM_DESC(vrm, "VRM/VRD version, multiplied by 10");
++
+ /*
+  * vrm is the VRM/VRD document version multiplied by 10.
+  * val is the 4-bit or more VID code.
+  * Returned value is in mV to avoid floating point in the kernel.
+  * Some VID have some bits in uV scale, this is rounded to mV.
++ *
++ * Note: vrm is passed for legacy reasons to avoid API changes,
++ * but no longer used.
+  */
+-int vid_from_reg(int val, u8 vrm)
++int vid_from_reg(int val, u8 _vrm)
+ {
+ 	int vid;
+ 
+@@ -151,9 +158,6 @@ int vid_from_reg(int val, u8 vrm)
+ 		val &= 0x7f;
+ 		return val > 0x77 ? 0 : (1500000 - (val * 12500) + 500) / 1000;
+ 	default:		/* report 0 for unknown */
+-		if (vrm)
+-			pr_warn("Requested unsupported VRM version (%u)\n",
+-				(unsigned int)vrm);
+ 		return 0;
+ 	}
+ }
+@@ -234,7 +238,7 @@ static struct vrm_model vrm_models[] = {
+  * + quirk for Eden ULV 500 MHz).
+  * Note: something similar might be needed for model A, I'm not sure.
+  */
+-static u8 get_via_model_d_vrm(void)
++static u8 __init get_via_model_d_vrm(void)
+ {
+ 	unsigned int vid, brand, dummy;
+ 	static const char *brands[4] = {
+@@ -259,7 +263,7 @@ static u8 get_via_model_d_vrm(void)
+ 	}
+ }
+ 
+-static u8 find_vrm(u8 family, u8 model, u8 stepping, u8 vendor)
++static u8 __init find_vrm(u8 family, u8 model, u8 stepping, u8 vendor)
+ {
+ 	int i;
+ 
+@@ -275,11 +279,24 @@ static u8 find_vrm(u8 family, u8 model, u8 stepping, u8 vendor)
+ 	return 0;
+ }
+ 
+-u8 vid_which_vrm(void)
++static int __init vid_init(void)
+ {
+ 	struct cpuinfo_x86 *c = &cpu_data(0);
+ 	u8 vrm_ret;
+ 
++	if (vrm) {
++		/*
++		 * Validate vrm by calling vid_from_reg() with a known valid
++		 * vid. If it returns a non-zero voltage, we know that vrm is
++		 * valid. If the configured vrm is invalid, try to get it
++		 * from CPU version data.
++		 */
++		if (vid_from_reg(2, vrm))
++			return 0;
++		pr_warn("Requested unsupported VRM version (%u)\n", vrm);
++		vrm = 0;
++	}
++
+ 	if (c->x86 < 6)		/* Any CPU with family lower than 6 */
+ 		return 0;	/* doesn't have VID and/or CPUID */
+ 
+@@ -288,19 +305,38 @@ u8 vid_which_vrm(void)
+ 		vrm_ret = get_via_model_d_vrm();
+ 	if (vrm_ret = 0)
+ 		pr_info("Unknown VRM version of your x86 CPU\n");
+-	return vrm_ret;
++
++	vrm = vrm_ret;
++
++	return 0;
+ }
+ 
+ /* and now for something completely different for the non-x86 world */
+ #else
+-u8 vid_which_vrm(void)
++
++static int __init vid_init(void)
+ {
+-	pr_info("Unknown VRM version of your CPU\n");
+ 	return 0;
+ }
++
+ #endif
++
++static void __exit vid_exit(void)
++{
++}
++
++u8 vid_which_vrm(void)
++{
++	if (!vrm)
++		pr_info("Unknown VRM version of your CPU\n");
++
++	return vrm;
++}
+ EXPORT_SYMBOL(vid_which_vrm);
+ 
++module_init(vid_init);
++module_exit(vid_exit);
++
+ MODULE_AUTHOR("Rudolf Marek <r.marek@assembler.cz>");
+ 
+ MODULE_DESCRIPTION("hwmon-vid driver");
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
