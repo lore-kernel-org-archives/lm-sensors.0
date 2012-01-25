@@ -1,51 +1,46 @@
-From: CC <ccomren@gmail.com>
-Date: Wed, 25 Jan 2012 18:12:50 +0000
-Subject: [lm-sensors] Unsupported sensors in AsRock Z68 Pro3-M?
-Message-Id: <CAH4eiUjSqFJR056_9Jqn=AMhvjktrArsXCBfNBypVSDTck3gQQ@mail.gmail.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 25 Jan 2012 21:13:07 +0000
+Subject: Re: [lm-sensors] Unsupported sensors in AsRock Z68 Pro3-M?
+Message-Id: <1327525987.2649.211.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAH4eiUjSqFJR056_9Jqn=AMhvjktrArsXCBfNBypVSDTck3gQQ@mail.gmail.com>
+In-Reply-To: <CAH4eiUjSqFJR056_9Jqn=AMhvjktrArsXCBfNBypVSDTck3gQQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I'm using Arch Linux with kernel 3.2.1.
-
- sensors-detect (all YES) came up with coretemp and w83627ehf.
-However, the mainboard (in the UEFI BIOS and, judging by screenshots,
-in Windows, and by the manual) can monitor a third fan, 12V, 7V and
-5V.
-
-I get spurious voltage readings from sensors, however:
-
-nct6776-isa-0290
-Adapter: ISA adapter
-Vcore:         +0.75 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-in1:           +1.87 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-AVCC:          +3.38 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-+3.3V:         +3.36 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-in4:           +0.06 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-3VSB:          +3.47 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-Vbat:          +3.30 V  (min =3D  +2.70 V, max =3D  +3.30 V)  ALARM
-fan1:            0 RPM  (min =3D    0 RPM)  ALARM
-fan2:         1419 RPM  (min =3D    0 RPM)  ALARM
-SYSTIN:        +36.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM
-sensor =3D thermistor
-CPUTIN:        +34.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D thermistor
-AUXTIN:        +36.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
-=3D thermistor
-PECI Agent 0:  +36.0=B0C
-cpu0_vid:     +2.050 V
-intrusion0:   ALARM
-intrusion1:   ALARM
-
-Is the mainboard not yet supported, or do I have to configure
-something differently?
-
---CC
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCAyMDEyLTAxLTI1IGF0IDEzOjEyIC0wNTAwLCBDQyB3cm90ZToKPiBJJ20gdXNpbmcg
+QXJjaCBMaW51eCB3aXRoIGtlcm5lbCAzLjIuMS4KPiAKPiAgc2Vuc29ycy1kZXRlY3QgKGFsbCBZ
+RVMpIGNhbWUgdXAgd2l0aCBjb3JldGVtcCBhbmQgdzgzNjI3ZWhmLgo+IEhvd2V2ZXIsIHRoZSBt
+YWluYm9hcmQgKGluIHRoZSBVRUZJIEJJT1MgYW5kLCBqdWRnaW5nIGJ5IHNjcmVlbnNob3RzLAo+
+IGluIFdpbmRvd3MsIGFuZCBieSB0aGUgbWFudWFsKSBjYW4gbW9uaXRvciBhIHRoaXJkIGZhbiwg
+MTJWLCA3ViBhbmQKPiA1Vi4KPiAKPiBJIGdldCBzcHVyaW91cyB2b2x0YWdlIHJlYWRpbmdzIGZy
+b20gc2Vuc29ycywgaG93ZXZlcjoKPiAKPiBuY3Q2Nzc2LWlzYS0wMjkwCj4gQWRhcHRlcjogSVNB
+IGFkYXB0ZXIKPiBWY29yZTogICAgICAgICArMC43NSBWICAobWluID0gICswLjAwIFYsIG1heCA9
+ICArMS43NCBWKQo+IGluMTogICAgICAgICAgICsxLjg3IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4
+ID0gICswLjAwIFYpICBBTEFSTQo+IEFWQ0M6ICAgICAgICAgICszLjM4IFYgIChtaW4gPSAgKzIu
+OTggViwgbWF4ID0gICszLjYzIFYpCj4gKzMuM1Y6ICAgICAgICAgKzMuMzYgViAgKG1pbiA9ICAr
+Mi45OCBWLCBtYXggPSAgKzMuNjMgVikKPiBpbjQ6ICAgICAgICAgICArMC4wNiBWICAobWluID0g
+ICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0KPiBpbjU6ICAgICAgICAgICArMS42OCBW
+ICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0KPiAzVlNCOiAgICAgICAg
+ICArMy40NyBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQo+IFZiYXQ6ICAgICAg
+ICAgICszLjMwIFYgIChtaW4gPSAgKzIuNzAgViwgbWF4ID0gICszLjMwIFYpICBBTEFSTQo+IGZh
+bjE6ICAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCj4gZmFuMjogICAg
+ICAgICAxNDE5IFJQTSAgKG1pbiA9ICAgIDAgUlBNKSAgQUxBUk0KPiBTWVNUSU46ICAgICAgICAr
+MzYuMMKwQyAgKGhpZ2ggPSAgKzAuMMKwQywgaHlzdCA9ICArMC4wwrBDKSAgQUxBUk0KPiBzZW5z
+b3IgPSB0aGVybWlzdG9yCj4gQ1BVVElOOiAgICAgICAgKzM0LjDCsEMgIChoaWdoID0gKzgwLjDC
+sEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9IHRoZXJtaXN0b3IKPiBBVVhUSU46ICAgICAg
+ICArMzYuMMKwQyAgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vuc29yID0g
+dGhlcm1pc3Rvcgo+IFBFQ0kgQWdlbnQgMDogICszNi4wwrBDCj4gY3B1MF92aWQ6ICAgICArMi4w
+NTAgVgo+IGludHJ1c2lvbjA6ICAgQUxBUk0KPiBpbnRydXNpb24xOiAgIEFMQVJNCj4gCj4gSXMg
+dGhlIG1haW5ib2FyZCBub3QgeWV0IHN1cHBvcnRlZCwgb3IgZG8gSSBoYXZlIHRvIGNvbmZpZ3Vy
+ZQo+IHNvbWV0aGluZyBkaWZmZXJlbnRseT8KCllvdSdsbCBoYXZlIHRvIGFkanVzdCB2b2x0YWdl
+cyBpbiAvZXRjL3NlbnNvcnMzLmNvbmYuCgpMb29raW5nIGludG8gdGhlIGRhdGFzaGVldCwgdGhl
+IGNoaXAgaGFzIGEgc2Vjb25kIHNldCBvZiBmYW4gaW5wdXQKc2VsZWN0IHJlZ2lzdGVycy4gUGxl
+YXNlIHRyeSB0aGUgY29kZSBpbiB0aGUgInRlc3RpbmciIGJyYW5jaCBpbiB0aGUKdzgzNjI3ZWhm
+IHJlcG9zaXRvcnkgdG8gc2VlIGlmIHRoYXQgZml4ZXMgdGhlIHByb2JsZW0gd2l0aCB0aGUgZmFu
+cy4KClRoYW5rcywKR3VlbnRlcgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
+cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
+bnNvcnM
