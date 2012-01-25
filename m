@@ -1,77 +1,96 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 31 Jan 2012 16:29:43 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (w83627ehf) Fix number of fans for NCT6776F
-Message-Id: <1328027383.2261.43.camel@groeck-laptop>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 25 Jan 2012 12:43:33 +0000
+Subject: [lm-sensors] [RFC PATCH 2/3] hwmon: (hwmon-vid) Fix checkpatch issues
+Message-Id: <1327495414-6256-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327792513-10308-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1327792513-10308-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-01-31 at 10:58 -0500, Jean Delvare wrote:
-> On Sat, 28 Jan 2012 15:15:13 -0800, Guenter Roeck wrote:
-> > NCT6776F can select fan input pins for fans 3 to 5 with a secondary set of
-> > chip register bits. Check that second set of bits in addition to the first set
-> > to detect if fans 3..5 are monitored.
-> > 
-> > Reported-by: C. Comren <ccomren@gmail.com>
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> > v2: GPIO pins 90..92 have higher priority than pin 3..5, so check for those first.
-> >     Added some blank lines to improve readability
-> > 
-> > CC, can you test this version ? It is in the "testing" branch of the github
-> > repository.
-> > 
-> >  drivers/hwmon/w83627ehf.c |   23 ++++++++++++++++++++---
-> >  1 files changed, 20 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-> > index 8d9620f..598d5e9 100644
-> > --- a/drivers/hwmon/w83627ehf.c
-> > +++ b/drivers/hwmon/w83627ehf.c
-> > @@ -1931,9 +1931,26 @@ w83627ehf_check_fan_inputs(const struct w83627ehf_sio_data *sio_data,
-> >  		fan4min = 0;
-> >  		fan5pin = 0;
-> >  	} else if (sio_data->kind = nct6776) {
-> > -		fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
-> > -		fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
-> > -		fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
-> > +		bool gpok = superio_inb(sio_data->sioreg, 0x27) & 0x80;
-> > +
-> > +		superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
-> > +		regval = superio_inb(sio_data->sioreg, SIO_REG_ENABLE);
-> > +
-> > +		if (regval & 0x80)
-> > +			fan3pin = gpok;
-> > +		else
-> > +			fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
-> > +
-> > +		if (regval & 0x40)
-> > +			fan4pin = gpok;
-> > +		else
-> > +			fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
-> > +
-> > +		if (regval & 0x20)
-> > +			fan5pin = gpok;
-> > +		else
-> > +			fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
-> > +
-> >  		fan4min = fan4pin;
-> >  	} else if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
-> >  		fan3pin = 1;
-> 
-> Looks OK.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-Thanks. I've applied it to my tree. Hopefully we can get some test
-coverage before I send it off to Linus.
+Fixed:
+ERROR: code indent should use tabs where possible
+ERROR: space required before the open parenthesis '('
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
 
-Guenter
+Not fixed (url):
+WARNING: line over 80 characters
 
+Not fixed (false positive):
+ERROR: Macros with complex values should be enclosed in parenthesis
+
+Cc: Rudolf Marek <r.marek@assembler.cz>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/hwmon-vid.c |   18 ++++++++----------
+ 1 files changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/hwmon/hwmon-vid.c b/drivers/hwmon/hwmon-vid.c
+index 5ec5e37..40b50b4 100644
+--- a/drivers/hwmon/hwmon-vid.c
++++ b/drivers/hwmon/hwmon-vid.c
+@@ -83,18 +83,18 @@ int vid_from_reg(int val, u8 vrm)
+ {
+ 	int vid;
+ 
+-	switch(vrm) {
++	switch (vrm) {
+ 
+-	case 100:               /* VRD 10.0 */
++	case 100:		/* VRD 10.0 */
+ 		/* compute in uV, round to mV */
+ 		val &= 0x3f;
+-		if((val & 0x1f) = 0x1f)
++		if ((val & 0x1f) = 0x1f)
+ 			return 0;
+-		if((val & 0x1f) <= 0x09 || val = 0x0a)
++		if ((val & 0x1f) <= 0x09 || val = 0x0a)
+ 			vid = 1087500 - (val & 0x1f) * 25000;
+ 		else
+ 			vid = 1862500 - (val & 0x1f) * 25000;
+-		if(val & 0x20)
++		if (val & 0x20)
+ 			vid -= 12500;
+ 		return (vid + 500) / 1000;
+ 
+@@ -119,7 +119,7 @@ int vid_from_reg(int val, u8 vrm)
+ 	case 90:		/* VRM 9.0 */
+ 		val &= 0x1f;
+ 		return val = 0x1f ? 0 :
+-		                       1850 - val * 25;
++				     1850 - val * 25;
+ 
+ 	case 85:		/* VRM 8.5 */
+ 		val &= 0x1f;
+@@ -134,7 +134,7 @@ int vid_from_reg(int val, u8 vrm)
+ 		val &= 0x1f;
+ 		return val = 0x1f ? 0 :
+ 		       val & 0x10  ? 5100 - (val) * 100 :
+-		                     2050 - (val) * 50;
++				     2050 - (val) * 50;
+ 	case 17:		/* Intel IMVP-II */
+ 		val &= 0x1f;
+ 		return val & 0x10 ? 975 - (val & 0xF) * 25 :
+@@ -157,7 +157,7 @@ int vid_from_reg(int val, u8 vrm)
+ 		return 0;
+ 	}
+ }
+-
++EXPORT_SYMBOL(vid_from_reg);
+ 
+ /*
+  * After this point is the code to automatically determine which
+@@ -299,8 +299,6 @@ u8 vid_which_vrm(void)
+ 	return 0;
+ }
+ #endif
+-
+-EXPORT_SYMBOL(vid_from_reg);
+ EXPORT_SYMBOL(vid_which_vrm);
+ 
+ MODULE_AUTHOR("Rudolf Marek <r.marek@assembler.cz>");
+-- 
+1.7.5.4
 
 
 _______________________________________________
