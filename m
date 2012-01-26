@@ -1,48 +1,54 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 13 Jan 2012 12:40:25 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (lm63) LM64 has a dedicated pin for tachometer
-Message-Id: <20120113134025.48fb9400@endymion.delvare>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Thu, 26 Jan 2012 11:08:41 +0000
+Subject: [lm-sensors] [PATCH] applesmc: Silence uninitialized warnings
+Message-Id: <1327576121-2073-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120113101321.366a6f35@endymion.delvare>
-In-Reply-To: <20120113101321.366a6f35@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-On Fri, 13 Jan 2012 03:55:04 -0800, Guenter Roeck wrote:
-> On Fri, Jan 13, 2012 at 04:13:21AM -0500, Jean Delvare wrote:
-> > On the LM64, the tachometer function has a dedicated pin and fan speed
-> > monitoring is always enabled.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> 
-> > ---
-> >  Documentation/hwmon/lm63 |    4 +++-
-> >  drivers/hwmon/lm63.c     |    3 ++-
-> >  2 files changed, 5 insertions(+), 2 deletions(-)
-> > 
-> > --- linux-3.3-rc0.orig/Documentation/hwmon/lm63	2012-01-13 09:09:25.000000000 +0100
-> > +++ linux-3.3-rc0/Documentation/hwmon/lm63	2012-01-13 09:54:38.000000000 +0100
-> > @@ -54,7 +54,9 @@ value for measuring the speed of the fan
-> >  Note that the pin used for fan monitoring is shared with an alert out
-> >  function. Depending on how the board designer wanted to use the chip, fan
-> >  speed monitoring will or will not be possible. The proper chip configuration
-> > -is left to the BIOS, and the driver will blindly trust it.
-> > +is left to the BIOS, and the driver will blindly trust it. Only the original
-> > +LM63 suffers from this limitation, the LM64 and LM96163 have separate pins
-> > +for fan monitoring and alert out.
-> >  
-> Maybe add a note here indicating that fan control is always enabled on LM64 only ?
+Some error paths do not set a result, leading to the (false)
+assumption that the value may be used uninitialized. Set results for
+those paths as well.
 
-You mean fan monitoring here, not fan control.
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-> Otherwise people may wonder why fans don't (always) show up on LM96163. 
-
-Will clarify, thanks for the suggestion.
-
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index b989553..11f79bb 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -344,8 +344,10 @@ static int applesmc_get_lower_bound(unsigned int *lo, const char *key)
+ 	while (begin != end) {
+ 		int middle = begin + (end - begin) / 2;
+ 		entry = applesmc_get_entry_by_index(middle);
+-		if (IS_ERR(entry))
++		if (IS_ERR(entry)) {
++			*lo = 0;
+ 			return PTR_ERR(entry);
++		}
+ 		if (strcmp(entry->key, key) < 0)
+ 			begin = middle + 1;
+ 		else
+@@ -364,8 +366,10 @@ static int applesmc_get_upper_bound(unsigned int *hi, const char *key)
+ 	while (begin != end) {
+ 		int middle = begin + (end - begin) / 2;
+ 		entry = applesmc_get_entry_by_index(middle);
+-		if (IS_ERR(entry))
++		if (IS_ERR(entry)) {
++			*hi = smcreg.key_count;
+ 			return PTR_ERR(entry);
++		}
+ 		if (strcmp(key, entry->key) < 0)
+ 			end = middle;
+ 		else
 -- 
-Jean Delvare
+1.7.8.4
+
 
 _______________________________________________
 lm-sensors mailing list
