@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 Jan 2012 21:28:18 +0000
+Date: Fri, 27 Jan 2012 21:35:29 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120127222818.425ca0e5@endymion.delvare>
+Message-Id: <20120127223529.35fe6561@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
@@ -10,18 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCAyNyBKYW4gMjAxMiAyMDo0ODo1OCArMDEwMCwgVXdlIEtsZWluZS1Lw7ZuaWcgd3Jv
-dGU6Cj4gPiBJdCBtaWdodCBiZSBhIGdvb2QgaWRlYSB0byBleHBsYWluIHdoYXQgQlAgaXMuLi4g
-TWUsIEkgaGF2ZSBubyBpZGVhLgo+IEl0J3MgaW4gdGhlIHRhYmxlIGJlbG93IGFuZCBtZWFucyB0
-aGUgIkFwcGxpY2F0aW9uIFN1cHBseSIgY2hhbm5lbC4gTm8KPiBpZGVhIHdoYXQgdGhlIEZyZWVz
-Y2FsZSBndXlzIHRob3VnaHQgaXQgc2hvdWxkIHN0YW5kIGZvci4KCk1heWJlICJib2FyZCBwb3dl
-ciI/Cgo+ID4gKC4uLikKPiA+IDE2Q0hBTlMgdnMuIDE2Y2hhbi4gV291bGQgYmUgZ29vZCB0byBk
-ZWNpZGUgZm9yIGEgc3BlbGxpbmcgYW5kIHN0aWNrIHRvCj4gPiBpdC4KPiBJIGd1ZXNzIHlvdSBv
-bmx5IG1lYW4gdGhlICdzJyBhbmQgbm90IGNhcGl0YWxpc2F0aW9uPwoKWWVzLgoKPiA+IFsuLi5d
-Cj4gPiBXaWxsIHlvdSByZXNlbmQgYW4gdXBkYXRlZCBwYXRjaCwgb3Igc2hvdWxkIEkgdXBkYXRl
-IGl0IG15c2VsZiB3aXRoIHRoZQo+ID4gY2hhbmdlcyBhYm92ZT8KPiBJIHdpbGwgc2VuZCB5b3Ug
-YW4gdXBkYXRlIGxhdGVyIHRvZGF5IHdpdGggeW91ciBjb21tZW50cyBhZGRyZXNzZWQuCgpHcmVh
-dCwgdGhhbmtzLgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
-bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
-by9sbS1zZW5zb3Jz
+On Fri, 27 Jan 2012 13:22:08 -0800, Guenter Roeck wrote:
+> I have been asked about adding support for ADC channels 0, 1, 3, 4, as
+> well as the non-GP usage of channels 5 to 7.
+
+I'm interested in temperature sensors too, i.e. channels 5 and 7 if I'm
+not mistaken.
+
+> Does anyone happen to know/recall why those are not supported in the
+> current driver ?
+
+No idea, maybe just starting simple, or lack of interest.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
