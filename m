@@ -1,277 +1,247 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 Jan 2012 16:53:29 +0000
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Fri, 27 Jan 2012 19:48:58 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120127175329.5246c8f4@endymion.delvare>
+Message-Id: <20120127194858.GB6305@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgVXdlLAoKT24gVHVlLCAyNyBTZXAgMjAxMSAyMzoxNjowOSArMDIwMCwgVXdlIEtsZWluZS1L
-w7ZuaWcgd3JvdGU6Cj4gQmFzZWQgb24gYSBwYXRjaCBieSBEYXZpZCBKYW5kZXIgdGhhdCBtb3N0
-bHkgZGlkIHMvbWMxMzc4My9tYzEzeHh4Lwo+IAo+IENjOiBEYXZpZCBKYW5kZXIgPGRhdmlkLmph
-bmRlckBwcm90b25pYy5ubD4KPiBTaWduZWQtb2ZmLWJ5OiBVd2UgS2xlaW5lLUvDtm5pZyA8dS5r
-bGVpbmUta29lbmlnQHBlbmd1dHJvbml4LmRlPgo+IC0tLQo+IGNoYW5nZXMgc2luY2UgKGltcGxp
-Y2l0KSB2MToKPiAgLSB1cGRhdGUgZG9jdW1lbnRhdGlvbgo+ICAtIHVuZG8gZHJpdmVyIHJlbmFt
-aW5nCj4gIC0gZml4IHNob3dfbmFtZSBjYWxsYmFjayAobm90IDEwMCUgc3VyZSBpdCBpcyBjb3Jy
-ZWN0IHRvIGdpdmUgYSBkaWZmZXJlbnQgbmFtZQo+ICAgIG9uIG1jMTM4OTIuIEkgdGhpbmsgbmFt
-ZSBjb250YWlucyB0aGUgcHJlZml4IGRvY3VtZW50ZWQgaW4KPiAgICBEb2N1bWVudGF0aW9uL2h3
-bW9uL21jMTM3ODMtYWRjPyEpCj4gIC0gaW1wbGVtZW50IHNvbWUgZGlmZmVyZW5jZXMgYmV0d2Vl
-biBtYzEzNzgzIGFuZCBtYzEzODkyIHRoYXQgSSBub3RpY2VkIHdoZW4KPiAgICB1cGRhdGluZyB0
-aGUgZG9jcwo+ICAgIC0gZGlmZmVyZW50IHNjYWxpbmcgZm9yIGJwIGNoYW5uZWwKPiAgICAtIG5v
-IGdlbmVyYWwgcHVycG9zZSBjaGFubmVscyA4LTE1IG9uIG1jMTM4OTIKPiAgLSB0YWtlIG92ZXIg
-YXV0aG9yc2hpcCBhcyB0aGUgcGF0Y2ggZ290IG11Y2ggbW9yZSBjb21wbGljYXRlZCBub3cgY29t
-cGFyZWQgdG8KPiAgICBEYXZpZCdzIG9yaWdpbmFsLgo+IAo+ICBEb2N1bWVudGF0aW9uL2h3bW9u
-L21jMTM3ODMtYWRjIHwgICA0OCArKysrKysrKysrKystLS0tCj4gIGRyaXZlcnMvaHdtb24vS2Nv
-bmZpZyAgICAgICAgICAgfCAgICA2ICstCj4gIGRyaXZlcnMvaHdtb24vbWMxMzc4My1hZGMuYyAg
-ICAgfCAgMTEzICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0tLQo+ICAzIGZp
-bGVzIGNoYW5nZWQsIDEyMyBpbnNlcnRpb25zKCspLCA0NCBkZWxldGlvbnMoLSkKCkFzIG1lcmdp
-bmcgdGhpcyBnb3Qgc3R1Y2sgYWZ0ZXIgR3VlbnRlcidzIGxhc3QgcmV2aWV3ICh0aGFua3MgR3Vl
-bnRlciwKQlRXKSBJIGFtIHBpY2tpbmcgdXAgZnJvbSB0aGVyZSBhbmQgaG9wZWZ1bGx5IHdlIGNh
-biBnZXQgdGhpcyB1cHN0cmVhbS4KSGVyZSBJIGdvIHdpdGggbXkgcmV2aWV3LCBtb3N0bHkgbWlu
-b3IgdGhpbmdzOgoKPiAKPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9od21vbi9tYzEzNzgz
-LWFkYyBiL0RvY3VtZW50YXRpb24vaHdtb24vbWMxMzc4My1hZGMKPiBpbmRleCAwNDQ1MzFhLi44
-YjcxN2Y1IDEwMDY0NAo+IC0tLSBhL0RvY3VtZW50YXRpb24vaHdtb24vbWMxMzc4My1hZGMKPiAr
-KysgYi9Eb2N1bWVudGF0aW9uL2h3bW9uL21jMTM3ODMtYWRjCj4gQEAgLTUsNiArNSw5IEBAIFN1
-cHBvcnRlZCBjaGlwczoKPiAgICAqIEZyZWVzY2FsZSBBdGxhcyBNQzEzNzgzCj4gICAgICBQcmVm
-aXg6ICdtYzEzNzgzX2FkYycKPiAgICAgIERhdGFzaGVldDogaHR0cDovL3d3dy5mcmVlc2NhbGUu
-Y29tL2ZpbGVzL3JmX2lmL2RvYy9kYXRhX3NoZWV0L01DMTM3ODMucGRmP2ZzcmNoPTEKPiArICAq
-IEZyZWVzY2FsZSBBdGxhcyBNQzEzODkyCj4gKyAgICBQcmVmaXg6ICdtYzEzODkyX2FkYycKPiAr
-ICAgIERhdGFzaGVldDogaHR0cDovL2NhY2hlLmZyZWVzY2FsZS5jb20vZmlsZXMvYW5hbG9nL2Rv
-Yy9kYXRhX3NoZWV0L01DMTM4OTIucGRmP2ZzcmNoPTEmc3I9MQo+ICAKPiAgQXV0aG9yczoKPiAg
-ICAgIFNhc2NoYSBIYXVlciA8cy5oYXVlckBwZW5ndXRyb25peC5kZT4KPiBAQCAtMTMsMjAgKzE2
-LDIxIEBAIEF1dGhvcnM6Cj4gIERlc2NyaXB0aW9uCj4gIC0tLS0tLS0tLS0tCj4gIAo+IC1UaGUg
-RnJlZXNjYWxlIE1DMTM3ODMgaXMgYSBQb3dlciBNYW5hZ2VtZW50IGFuZCBBdWRpbyBDaXJjdWl0
-LiBBbW9uZwo+IC1vdGhlciB0aGluZ3MgaXQgY29udGFpbnMgYSAxMC1iaXQgQS9EIGNvbnZlcnRl
-ci4gVGhlIGNvbnZlcnRlciBoYXMgMTYKPiAtY2hhbm5lbHMgd2hpY2ggY2FuIGJlIHVzZWQgaW4g
-ZGlmZmVyZW50IG1vZGVzLgo+IC1UaGUgQS9EIGNvbnZlcnRlciBoYXMgYSByZXNvbHV0aW9uIG9m
-IDIuMjVtVi4gQ2hhbm5lbHMgMC00IGhhdmUKPiAtYSBkZWRpY2F0ZWQgbWVhbmluZyB3aXRoIGNo
-aXAgaW50ZXJuYWwgc2NhbGluZyBhcHBsaWVkLiBDaGFubmVscyA1LTcKPiAtY2FuIGJlIHVzZWQg
-YXMgZ2VuZXJhbCBwdXJwb3NlIGlucHV0cyBvciBhbHRlcm5hdGl2ZWx5IGluIGEgZGVkaWNhdGVk
-Cj4gLW1vZGUuIENoYW5uZWxzIDEyLTE1IGFyZSBvY2N1cGllZCBieSB0aGUgdG91Y2hzY3JlZW4g
-aWYgaXQncyBhY3RpdmUuCj4gK1RoZSBGcmVlc2NhbGUgTUMxMzc4MyBhbmQgTUMxMzg5MiBhcmUg
-UG93ZXIgTWFuYWdlbWVudCBhbmQgQXVkaW8gQ2lyY3VpdHMuCj4gK0Ftb25nIG90aGVyIHRoaW5n
-cyB0aGV5IGNvbnRhaW4gYSAxMC1iaXQgQS9EIGNvbnZlcnRlci4gVGhlIGNvbnZlcnRlciBoYXMg
-MTYKPiArKE1DMTM3ODMpIHJlc3AuIDEyIChNQzEzODkyKSBjaGFubmVscyB3aGljaCBjYW4gYmUg
-dXNlZCBpbiBkaWZmZXJlbnQgbW9kZXMuIFRoZQo+ICtBL0QgY29udmVydGVyIGhhcyBhIHJlc29s
-dXRpb24gb2YgMi4yNW1WLgo+ICAKPiAtQ3VycmVudGx5IHRoZSBkcml2ZXIgb25seSBzdXBwb3J0
-cyBjaGFubmVscyAyIGFuZCA1LTE1IHdpdGggbm8gYWx0ZXJuYXRpdmUKPiAtbW9kZXMgZm9yIGNo
-YW5uZWxzIDUtNy4KPiArU29tZSBjaGFubmVscyBjYW4gYmUgdXNlZCBhcyBHZW5lcmFsIFB1cnBv
-c2UgaW5wdXRzIG9yIGluIGEgZGVkaWNhdGVkIG1vZGUgd2l0aAo+ICthIGNoaXAgaW50ZXJuYWwg
-c2NhbGluZyBhcHBsaWVkIC4KPiAgCj4gLVNlZSB0aGlzIHRhYmxlIGZvciB0aGUgbWVhbmluZyBv
-ZiB0aGUgZGlmZmVyZW50IGNoYW5uZWxzIGFuZCB0aGVpciBjaGlwCj4gLWludGVybmFsIHNjYWxp
-bmc6Cj4gK0N1cnJlbnRseSB0aGUgZHJpdmVyIG9ubHkgc3VwcG9ydHMgQlAsIHRoZSBHZW5lcmFs
-IFB1cnBvc2UgaW5wdXRzIGFuZAo+ICt0b3VjaHNjcmVlbi4KCkl0IG1pZ2h0IGJlIGEgZ29vZCBp
-ZGVhIHRvIGV4cGxhaW4gd2hhdCBCUCBpcy4uLiBNZSwgSSBoYXZlIG5vIGlkZWEuCgo+ICAKPiAr
-U2VlIHRoZSBmb2xsb3dpbmcgdGFibGVzIGZvciB0aGUgbWVhbmluZyBvZiB0aGUgZGlmZmVyZW50
-IGNoYW5uZWxzIGFuZCB0aGVpcgo+ICtjaGlwIGludGVybmFsIHNjYWxpbmc6Cj4gKwo+ICtNQzEz
-NzgzOgo+ICBDaGFubmVsCVNpZ25hbAkJCQkJCUlucHV0IFJhbmdlCVNjYWxpbmcKPiAgLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQo+ICAwCUJhdHRlcnkgVm9sdGFnZSAoQkFUVCkJCQkJMi41MCAtIDQu
-NjVWCS0yLjQwVgo+IEBAIC0zNCw3ICszOCw3IEBAIENoYW5uZWwJU2lnbmFsCQkJCQkJSW5wdXQg
-UmFuZ2UJU2NhbGluZwo+ICAyCUFwcGxpY2F0aW9uIFN1cHBseSAoQlApCQkJCTIuNTAgLSA0LjY1
-VgktMi40MFYKPiAgMwlDaGFyZ2VyIFZvbHRhZ2UgKENIUkdSQVcpCQkJMCAtIDEwViAvCS81Cj4g
-IAkJCQkJCQkwIC0gMjBWCQkvMTAKPiAtNAlDaGFyZ2VyIEN1cnJlbnQgKENIUkdJU05TUC1DSFJH
-SVNOU04pCQktMC4yNVYgLSAwLjI1Vgl4NAo+ICs0CUNoYXJnZXIgQ3VycmVudCAoQ0hSR0lTTlNQ
-LUNIUkdJU05TTikJCS0wLjI1IC0gMC4yNVYJeDQKPiAgNQlHZW5lcmFsIFB1cnBvc2UgQURJTjUg
-LyBCYXR0ZXJ5IFBhY2sgVGhlcm1pc3RvcgkwIC0gMi4zMFYJTm8KPiAgNglHZW5lcmFsIFB1cnBv
-c2UgQURJTjYgLyBCYWNrdXAgVm9sdGFnZSAoTElDRUxMKQkwIC0gMi4zMFYgLwlObyAvCj4gIAkJ
-CQkJCQkxLjUwIC0gMy41MFYJLTEuMjBWCj4gQEAgLTQ4LDMgKzUyLDIzIEBAIENoYW5uZWwJU2ln
-bmFsCQkJCQkJSW5wdXQgUmFuZ2UJU2NhbGluZwo+ICAxMwlHZW5lcmFsIFB1cnBvc2UgVFNYMiAv
-IFRvdWNoc2NyZWVuIFgtcGxhdGUgMgkwIC0gMi4zMFYJTm8KPiAgMTQJR2VuZXJhbCBQdXJwb3Nl
-IFRTWTEgLyBUb3VjaHNjcmVlbiBZLXBsYXRlIDEJMCAtIDIuMzBWCU5vCj4gIDE1CUdlbmVyYWwg
-UHVycG9zZSBUU1kyIC8gVG91Y2hzY3JlZW4gWS1wbGF0ZSAyCTAgLSAyLjMwVglObwo+ICsKPiAr
-TUMxMzg5MjoKPiArQ2hhbm5lbAlTaWduYWwJCQkJCQlJbnB1dCBSYW5nZQlTY2FsaW5nCj4gKy0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0KPiArMAlCYXR0ZXJ5IFZvbHRhZ2UgKEJBVFQpCQkJCTAgLSA0
-LjhWCS8yCj4gKzEJQmF0dGVyeSBDdXJyZW50IChCQVRUIC0gQkFUVElTTlNDQykJCS02MCAtIDYw
-IG1WCXgyMAo+ICsyCUFwcGxpY2F0aW9uIFN1cHBseSAoQlBTTlMpCQkJMCAtIDQuOFYJLzIKPiAr
-MwlDaGFyZ2VyIFZvbHRhZ2UgKENIUkdSQVcpCQkJMCAtIDEyViAvCS81Cj4gKwkJCQkJCQkwIC0g
-MjBWCQkvMTAKPiArNAlDaGFyZ2VyIEN1cnJlbnQgKENIUkdJU05TLUJQU05TKSAvCQktMC4zIC0g
-MC4zViAvCXg0IC8KPiArCVRvdWNoc2NyZWVuIFgtcGxhdGUgMQkJCQkwIC0gMi40VglObwo+ICs1
-CUdlbmVyYWwgUHVycG9zZSBBRElONSAvCUJhdHRlcnkgUGFjayBUaGVybWlzdG9yCTAgLSAyLjRW
-CU5vCj4gKzYJR2VuZXJhbCBQdXJwb3NlIEFESU42IC8gQmFja3VwIFZvbHRhZ2UgKExJQ0VMTCkJ
-MCAtIDIuNFYgLwlObwo+ICsJQmFja3VwIFZvbHRhZ2UgKExJQ0VMTCkgICAgICAgICAgICAgICAg
-ICAgICAgICAJMCAtIDMuNlYJeDIvMwo+ICs3CUdlbmVyYWwgUHVycG9zZSBBRElONyAvIFVJRCAv
-IERpZSBUZW1wZXJhdHVyZQkwIC0gMi40ViAvCU5vIC8KPiArCQkJCQkJCTAgLSA0LjhWCS8yCj4g
-KzEyCVRvdWNoc2NyZWVuIFgtcGxhdGUgMQkJCQkwIC0gMi40VglObwo+ICsxMwlUb3VjaHNjcmVl
-biBYLXBsYXRlIDIJCQkJMCAtIDIuNFYJTm8KPiArMTQJVG91Y2hzY3JlZW4gWS1wbGF0ZSAxCQkJ
-CTAgLSAyLjRWCU5vCj4gKzE1CVRvdWNoc2NyZWVuIFktcGxhdGUgMgkJCQkwIC0gMi40VglObwo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL0tjb25maWcgYi9kcml2ZXJzL2h3bW9uL0tjb25m
-aWcKPiBpbmRleCAwYjYyYzNjLi5lM2UzYmMwIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaHdtb24v
-S2NvbmZpZwo+ICsrKyBiL2RyaXZlcnMvaHdtb24vS2NvbmZpZwo+IEBAIC0xMzIyLDEwICsxMzIy
-LDEwIEBAIGNvbmZpZyBTRU5TT1JTX0FQUExFU01DCj4gIAkgIHRoZSBhd2Vzb21lIHBvd2VyIG9m
-IGFwcGxlc21jLgo+ICAKPiAgY29uZmlnIFNFTlNPUlNfTUMxMzc4M19BREMKPiAtICAgICAgICB0
-cmlzdGF0ZSAiRnJlZXNjYWxlIE1DMTM3ODMgQURDIgo+IC0gICAgICAgIGRlcGVuZHMgb24gTUZE
-X01DMTM3ODMKCkJUVywgaXNuJ3QgQ09ORklHX01GRF9NQzEzNzgzIHN1cHBvc2VkIHRvIGdvIGF3
-YXkgbm93PyBJdCBzZWVtcyB0byBiZQphbiBhbGlhcyBmb3IgTUZEX01DMTNYWFggdG9kYXkuIDQg
-ZHJpdmVycyBhcmUgc3RpbGwgdXNpbmcgaXQuLi4KCj4gKyAgICAgICAgdHJpc3RhdGUgIkZyZWVz
-Y2FsZSBNQzEzNzgzL01DMTM4OTIgQURDIgo+ICsgICAgICAgIGRlcGVuZHMgb24gTUZEX01DMTNY
-WFgKPiAgICAgICAgICBoZWxwCj4gLSAgICAgICAgICBTdXBwb3J0IGZvciB0aGUgQS9EIGNvbnZl
-cnRlciBvbiBNQzEzNzgzIFBNSUMuCj4gKyAgICAgICAgICBTdXBwb3J0IGZvciB0aGUgQS9EIGNv
-bnZlcnRlciBvbiBNQzEzNzgzIGFuZCBNQzEzODkyIFBNSUMuCj4gIAo+ICBpZiBBQ1BJCj4gIAo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL21jMTM3ODMtYWRjLmMgYi9kcml2ZXJzL2h3bW9u
-L21jMTM3ODMtYWRjLmMKPiBpbmRleCBlZjY1YWI1Li4wZDc5NmY3IDEwMDY0NAo+IC0tLSBhL2Ry
-aXZlcnMvaHdtb24vbWMxMzc4My1hZGMuYwo+ICsrKyBiL2RyaXZlcnMvaHdtb24vbWMxMzc4My1h
-ZGMuYwo+IEBAIC0xLDUgKzEsNSBAQAo+ICAvKgo+IC0gKiBEcml2ZXIgZm9yIHRoZSBGcmVlc2Nh
-bGUgU2VtaWNvbmR1Y3RvciBNQzEzNzgzIGFkYy4KPiArICogRHJpdmVyIGZvciB0aGUgYWRjIG9u
-IEZyZWVzY2FsZSBTZW1pY29uZHVjdG9yIE1DMTM3ODMgYW5kIE1DMTM4OTIgUE1JQ3MuCgpXb3Vs
-ZCBiZSBiZXR0ZXIgc3BlbGxlZCBBREMsIG1ldGhpbmtzLgoKPiAgICoKPiAgICogQ29weXJpZ2h0
-IDIwMDQtMjAwNyBGcmVlc2NhbGUgU2VtaWNvbmR1Y3RvciwgSW5jLiBBbGwgUmlnaHRzIFJlc2Vy
-dmVkLgo+ICAgKiBDb3B5cmlnaHQgKEMpIDIwMDkgU2FzY2hhIEhhdWVyLCBQZW5ndXRyb25peAo+
-IEBAIC0xOCw3ICsxOCw3IEBACj4gICAqIEZyYW5rbGluIFN0LCBGaWZ0aCBGbG9vciwgQm9zdG9u
-LCBNQSAwMjExMC0xMzAxIFVTQQo+ICAgKi8KPiAgCj4gLSNpbmNsdWRlIDxsaW51eC9tZmQvbWMx
-Mzc4My5oPgo+ICsjaW5jbHVkZSA8bGludXgvbWZkL21jMTN4eHguaD4KPiAgI2luY2x1ZGUgPGxp
-bnV4L3BsYXRmb3JtX2RldmljZS5oPgo+ICAjaW5jbHVkZSA8bGludXgvaHdtb24tc3lzZnMuaD4K
-PiAgI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPgo+IEBAIC0yOCw3ICsyOCwxMSBAQAo+ICAjaW5j
-bHVkZSA8bGludXgvaW5pdC5oPgo+ICAjaW5jbHVkZSA8bGludXgvZXJyLmg+Cj4gIAo+IC0jZGVm
-aW5lIE1DMTM3ODNfQURDX05BTUUJIm1jMTM3ODMtYWRjIgo+ICsjZGVmaW5lIERSSVZFUl9OQU1F
-CSJtYzEzNzgzLWFkYyIKPiArCj4gKy8qIHBsYXRmb3JtIGRldmljZSBpZCBkcml2ZXIgZGF0YSAq
-Lwo+ICsjZGVmaW5lIE1DMTM3ODNfQURDXzE2Q0hBTlMJMQo+ICsjZGVmaW5lIE1DMTM3ODNfQURD
-X0JQRElWMgkyCj4gIAo+ICBzdHJ1Y3QgbWMxMzc4M19hZGNfcHJpdiB7Cj4gIAlzdHJ1Y3QgbWMx
-M3h4eCAqbWMxM3h4eDsKPiBAQCAtMzgsNyArNDIsMTMgQEAgc3RydWN0IG1jMTM3ODNfYWRjX3By
-aXYgewo+ICBzdGF0aWMgc3NpemVfdCBtYzEzNzgzX2FkY19zaG93X25hbWUoc3RydWN0IGRldmlj
-ZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZQo+ICAJCQkgICAgICAqZGV2YXR0ciwgY2hh
-ciAqYnVmKQo+ICB7Cj4gLQlyZXR1cm4gc3ByaW50ZihidWYsICJtYzEzNzgzX2FkY1xuIik7Cj4g
-KwlzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2ID0gdG9fcGxhdGZvcm1fZGV2aWNlKGRldik7
-Cj4gKwlzc2l6ZV90IHJldCA9IHNwcmludGYoYnVmLCAiJXNcbiIsIHBkZXYtPm5hbWUpOwo+ICsK
-PiArCWlmIChyZXQgPiA3ICYmIGJ1Zls3XSA9PSAnLScpCj4gKwkJYnVmWzddID0gJ18nOwo+ICsK
-PiArCXJldHVybiByZXQ7Cj4gIH0KCkkgc2hhcmUgR3VlbnRlcidzIGNvbmNlcm5zIGFib3V0IHRo
-aXMgY29kZS4gVGhpcyBpcyBzaW1wbHkgdG9vIGZyYWdpbGUuClN0b3JpbmcgdGhlIHJpZ2h0IHN0
-cmluZywgb3IgYSBwb2ludGVyIHRoZXJldG8sIGluIHN0cnVjdAptYzEzNzgzX2FkY19wcml2IHdv
-dWxkIGJlIGJldHRlci4gWW91ciBhcmd1bWVudCBhYm91dCB0aGUgd2FzdGVkIG1lbW9yeQpzaXpl
-IGRvZXNuJ3QgcmVhbGx5IGhvbGQsIHdlJ3JlIHRhbGtpbmcgYWJvdXQgMzAgYnl0ZXMgaGVyZSwg
-dG9wcy4KCk9yIGlmIHlvdSByZWFsbHkgd2FudCB0byBkeW5hbWljYWxseSB0dXJuICItIiBpbnRv
-ICJfIiB0aGVuIHlvdSBzaG91bGQKZG8gdGhhdCBpbiBhIHJvYnVzdCB3YXksIGZvciBleGFtcGxl
-OgoKCWNoYXIgKmRhc2g7CgoJZGFzaCA9IHN0cmNocihidWYsICctJyk7CglpZiAoZGFzaCkKCQkq
-ZGFzaCA9ICdfJzsKClRoYXQgd2F5IHlvdSBubyBsb25nZXIgZGVwZW5kIG9uIHRoZSBsZW5ndGgg
-b2YgdGhlIHN0cmluZyBub3IgdGhlCnBvc2l0aW9uIG9mIHRoZSBkYXNoLgoKQXMgYSBzaWRlIG5v
-dGUsIEknbSBub3QgcXVpdGUgc3VyZSB3aHkgdGhlIF9hZGMgc3VmZml4IHdhcyBwcmVzZXJ2ZWQg
-aW4KdGhlIG5hbWUgYXR0cmlidXRlIGluIHRoZSBmaXJzdCBwbGFjZS4gR2l2ZW4gdGhhdCB0aGlz
-IGlzIGEgaHdtb24KZGV2aWNlIGF0dHJpYnV0ZSwgaXQgc2VlbXMgcmVkdW5kYW50LgoKQXMgYW5v
-dGhlciBzaWRlIG5vdGUsIGlmIHlvdSByZWFsbHkgY2FyZSBhYm91dCBtZW1vcnkgY29uc3VtcHRp
-b24sIHRoZW4KeW91IGNvdWxkIGNhbGwgc3lzZnNfcmVtb3ZlX2dyb3VwKCkgdW5jb25kaXRpb25h
-bGx5IGV2ZXJ5d2hlcmUsIGFzIGl0J3MKT0sgdG8gcmVtb3ZlIGZpbGVzIHdoaWNoIGRvIG5vdCBl
-eGlzdC4gVGhpcyB3b3VsZCBsZXQgeW91IG1hcmsKbWMxMzc4M19hZGNfdXNlX3RvdWNoc2NyZWVu
-KCkgYXMgX19pbml0LiBJdCBtYXkgYWxzbyBtYWtlIHNlbnNlIHRvIG1vdmUKZmlsZSByZW1vdmFs
-IHRvIGEgc2VwYXJhdGUgZnVuY3Rpb24gdG8gYXZvaWQgY29kZSByZWR1bmRhbmN5IGJldHdlZW4K
-bWMxMzc4M19hZGNfcHJvYmUoKSBhbmQgbWMxMzc4M19hZGNfcmVtb3ZlKCkgKG9yIGV2ZW4gYWRq
-dXN0Cm1jMTM3ODNfYWRjX3JlbW92ZSgpIHNvIHRoYXQgaXQgY2FuIGJlIGNhbGxlZCBzdHJhaWdo
-dCBmcm9tCm1jMTM3ODNfYWRjX3Byb2JlKCkncyBlcnJvciBwYXRoLgoKPiAgCj4gIHN0YXRpYyBp
-bnQgbWMxMzc4M19hZGNfcmVhZChzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gQEAgLTY4LDE2ICs3OCwy
-MSBAQCBzdGF0aWMgc3NpemVfdCBtYzEzNzgzX2FkY19yZWFkX2JwKHN0cnVjdCBkZXZpY2UgKmRl
-diwKPiAgCQlzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2YXR0ciwgY2hhciAqYnVmKQo+ICB7
-Cj4gIAl1bnNpZ25lZCB2YWw7Cj4gKwlzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2ID0gdG9f
-cGxhdGZvcm1fZGV2aWNlKGRldik7Cj4gKwlrZXJuZWxfdWxvbmdfdCBkcml2ZXJfZGF0YSA9IHBs
-YXRmb3JtX2dldF9kZXZpY2VfaWQocGRldiktPmRyaXZlcl9kYXRhOwo+ICAJaW50IHJldCA9IG1j
-MTM3ODNfYWRjX3JlYWQoZGV2LCBkZXZhdHRyLCAmdmFsKTsKPiAgCj4gIAlpZiAocmV0KQo+ICAJ
-CXJldHVybiByZXQ7Cj4gIAo+IC0JLyoKPiAtCSAqIEJQIChjaGFubmVsIDIpIHJlcG9ydHMgd2l0
-aCBvZmZzZXQgMi40ViB0byB0aGUgYWN0dWFsIHZhbHVlIHRvIGZpdAo+IC0JICogdGhlIGlucHV0
-IHJhbmdlIG9mIHRoZSBBREMuICB1bml0ID0gMi4yNW1WID0gOS80IG1WLgo+IC0JICovCj4gLQl2
-YWwgPSBESVZfUk9VTkRfQ0xPU0VTVCh2YWwgKiA5LCA0KSArIDI0MDA7Cj4gKwlpZiAoZHJpdmVy
-X2RhdGEgJiBNQzEzNzgzX0FEQ19CUERJVjIpCj4gKwkJdmFsID0gRElWX1JPVU5EX0NMT1NFU1Qo
-dmFsICogOSwgMik7Cj4gKwllbHNlCj4gKwkJLyoKPiArCQkgKiBCUCAoY2hhbm5lbCAyKSByZXBv
-cnRzIHdpdGggb2Zmc2V0IDIuNFYgdG8gdGhlIGFjdHVhbCB2YWx1ZQo+ICsJCSAqIHRvIGZpdCB0
-aGUgaW5wdXQgcmFuZ2Ugb2YgdGhlIEFEQy4gIHVuaXQgPSAyLjI1bVYgPSA5LzQgbVYuCj4gKwkJ
-ICovCj4gKwkJdmFsID0gRElWX1JPVU5EX0NMT1NFU1QodmFsICogOSwgNCkgKyAyNDAwOwo+ICAK
-PiAgCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiV1XG4iLCB2YWwpOwo+ICB9Cj4gQEAgLTExNCwxMiAr
-MTI5LDIxIEBAIHN0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIoaW4xM19pbnB1dCwgU19JUlVHTywg
-bWMxMzc4M19hZGNfcmVhZF9ncCwgTlVMTCwgMTMpOwo+ICBzdGF0aWMgU0VOU09SX0RFVklDRV9B
-VFRSKGluMTRfaW5wdXQsIFNfSVJVR08sIG1jMTM3ODNfYWRjX3JlYWRfZ3AsIE5VTEwsIDE0KTsK
-PiAgc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUihpbjE1X2lucHV0LCBTX0lSVUdPLCBtYzEzNzgz
-X2FkY19yZWFkX2dwLCBOVUxMLCAxNSk7Cj4gIAo+IC1zdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAq
-bWMxMzc4M19hdHRyW10gPSB7Cj4gK3N0YXRpYyBzdHJ1Y3QgYXR0cmlidXRlICptYzEzNzgzX2F0
-dHJfYmFzZVtdID0gewo+ICAJJmRldl9hdHRyX25hbWUuYXR0ciwKPiAgCSZzZW5zb3JfZGV2X2F0
-dHJfaW4yX2lucHV0LmRldl9hdHRyLmF0dHIsCj4gIAkmc2Vuc29yX2Rldl9hdHRyX2luNV9pbnB1
-dC5kZXZfYXR0ci5hdHRyLAo+ICAJJnNlbnNvcl9kZXZfYXR0cl9pbjZfaW5wdXQuZGV2X2F0dHIu
-YXR0ciwKPiAgCSZzZW5zb3JfZGV2X2F0dHJfaW43X2lucHV0LmRldl9hdHRyLmF0dHIsCj4gKwlO
-VUxMCj4gK307Cj4gKwo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IGF0dHJpYnV0ZV9ncm91cCBtYzEz
-NzgzX2dyb3VwX2Jhc2UgPSB7Cj4gKwkuYXR0cnMgPSBtYzEzNzgzX2F0dHJfYmFzZSwKPiArfTsK
-PiArCj4gKy8qIHRoZXNlIGFyZSBvbmx5IHVzZWQgaWYgTUMxMzc4M19BRENfMTZDSEFOUyBpcyBw
-cm92aWRlZCBpbiBkcml2ZXIgZGF0YSAqLwo+ICtzdGF0aWMgc3RydWN0IGF0dHJpYnV0ZSAqbWMx
-Mzc4M19hdHRyXzE2Y2hhbltdID0gewoKMTZDSEFOUyB2cy4gMTZjaGFuLiBXb3VsZCBiZSBnb29k
-IHRvIGRlY2lkZSBmb3IgYSBzcGVsbGluZyBhbmQgc3RpY2sgdG8KaXQuCgo+ICAJJnNlbnNvcl9k
-ZXZfYXR0cl9pbjhfaW5wdXQuZGV2X2F0dHIuYXR0ciwKPiAgCSZzZW5zb3JfZGV2X2F0dHJfaW45
-X2lucHV0LmRldl9hdHRyLmF0dHIsCj4gIAkmc2Vuc29yX2Rldl9hdHRyX2luMTBfaW5wdXQuZGV2
-X2F0dHIuYXR0ciwKPiBAQCAtMTI3LDggKzE1MSw4IEBAIHN0YXRpYyBzdHJ1Y3QgYXR0cmlidXRl
-ICptYzEzNzgzX2F0dHJbXSA9IHsKPiAgCU5VTEwKPiAgfTsKPiAgCj4gLXN0YXRpYyBjb25zdCBz
-dHJ1Y3QgYXR0cmlidXRlX2dyb3VwIG1jMTM3ODNfZ3JvdXAgPSB7Cj4gLQkuYXR0cnMgPSBtYzEz
-NzgzX2F0dHIsCj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgYXR0cmlidXRlX2dyb3VwIG1jMTM3ODNf
-Z3JvdXBfMTZjaGFuID0gewo+ICsJLmF0dHJzID0gbWMxMzc4M19hdHRyXzE2Y2hhbiwKPiAgfTsK
-PiAgCj4gIC8qIGxhc3QgZm91ciBjaGFubmVscyBtYXkgYmUgb2NjdXBpZWQgYnkgdGhlIHRvdWNo
-c2NyZWVuICovCj4gQEAgLTE1Niw2ICsxODAsNyBAQCBzdGF0aWMgaW50IF9faW5pdCBtYzEzNzgz
-X2FkY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICB7Cj4gIAlzdHJ1Y3Qg
-bWMxMzc4M19hZGNfcHJpdiAqcHJpdjsKPiAgCWludCByZXQ7Cj4gKwlrZXJuZWxfdWxvbmdfdCBk
-cml2ZXJfZGF0YSA9IHBsYXRmb3JtX2dldF9kZXZpY2VfaWQocGRldiktPmRyaXZlcl9kYXRhOwo+
-ICAKPiAgCXByaXYgPSBremFsbG9jKHNpemVvZigqcHJpdiksIEdGUF9LRVJORUwpOwo+ICAJaWYg
-KCFwcml2KQo+IEBAIC0xNjYsMTQgKzE5MSwyMiBAQCBzdGF0aWMgaW50IF9faW5pdCBtYzEzNzgz
-X2FkY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAJcGxhdGZvcm1fc2V0
-X2RydmRhdGEocGRldiwgcHJpdik7Cj4gIAo+ICAJLyogUmVnaXN0ZXIgc3lzZnMgaG9va3MgKi8K
-PiAtCXJldCA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dy
-b3VwKTsKPiArCXJldCA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEz
-NzgzX2dyb3VwX2Jhc2UpOwo+ICAJaWYgKHJldCkKPiAtCQlnb3RvIG91dF9lcnJfY3JlYXRlMTsK
-PiArCQlnb3RvIG91dF9lcnJfY3JlYXRlX2Jhc2U7Cj4gIAo+IC0JaWYgKCFtYzEzNzgzX2FkY191
-c2VfdG91Y2hzY3JlZW4ocGRldikpIHsKPiAtCQlyZXQgPSBzeXNmc19jcmVhdGVfZ3JvdXAoJnBk
-ZXYtPmRldi5rb2JqLCAmbWMxMzc4M19ncm91cF90cyk7Cj4gKwlpZiAoZHJpdmVyX2RhdGEgJiBN
-QzEzNzgzX0FEQ18xNkNIQU5TKSB7Cj4gKwkJcmV0ID0gc3lzZnNfY3JlYXRlX2dyb3VwKCZwZGV2
-LT5kZXYua29iaiwKPiArCQkJCSZtYzEzNzgzX2dyb3VwXzE2Y2hhbik7Cj4gIAkJaWYgKHJldCkK
-PiAtCQkJZ290byBvdXRfZXJyX2NyZWF0ZTI7Cj4gKwkJCWdvdG8gb3V0X2Vycl9jcmVhdGVfMTZj
-aGFuOwo+ICsKPiArCQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3VjaHNjcmVlbihwZGV2KSkgewo+
-ICsJCQlyZXQgPSBzeXNmc19jcmVhdGVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLAo+ICsJCQkJCSZt
-YzEzNzgzX2dyb3VwX3RzKTsKPiArCQkJaWYgKHJldCkKPiArCQkJCWdvdG8gb3V0X2Vycl9jcmVh
-dGVfdHM7Cj4gKwkJfQo+ICAJfQo+ICAKPiAgCXByaXYtPmh3bW9uX2RldiA9IGh3bW9uX2Rldmlj
-ZV9yZWdpc3RlcigmcGRldi0+ZGV2KTsKPiBAQCAtMTg0LDE3ICsyMTcsMjEgQEAgc3RhdGljIGlu
-dCBfX2luaXQgbWMxMzc4M19hZGNfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikK
-PiAgCQlnb3RvIG91dF9lcnJfcmVnaXN0ZXI7Cj4gIAl9Cj4gIAo+IC0KPiAgCXJldHVybiAwOwo+
-ICAKPiAgb3V0X2Vycl9yZWdpc3RlcjoKPiAgCj4gLQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3Vj
-aHNjcmVlbihwZGV2KSkKPiAtCQlzeXNmc19yZW1vdmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCAm
-bWMxMzc4M19ncm91cF90cyk7Cj4gLW91dF9lcnJfY3JlYXRlMjoKPiArCWlmIChkcml2ZXJfZGF0
-YSAmIE1DMTM3ODNfQURDXzE2Q0hBTlMpIHsKPiArCQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3Vj
-aHNjcmVlbihwZGV2KSkKPiArCQkJc3lzZnNfcmVtb3ZlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwg
-Jm1jMTM3ODNfZ3JvdXBfdHMpOwo+ICtvdXRfZXJyX2NyZWF0ZV90czoKPiArCj4gKwkJc3lzZnNf
-cmVtb3ZlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwgJm1jMTM3ODNfZ3JvdXBfMTZjaGFuKTsKPiAr
-CX0KPiArb3V0X2Vycl9jcmVhdGVfMTZjaGFuOgo+ICAKPiAtCXN5c2ZzX3JlbW92ZV9ncm91cCgm
-cGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dyb3VwKTsKPiAtb3V0X2Vycl9jcmVhdGUxOgo+ICsJ
-c3lzZnNfcmVtb3ZlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwgJm1jMTM3ODNfZ3JvdXBfYmFzZSk7
-Cj4gK291dF9lcnJfY3JlYXRlX2Jhc2U6Cj4gIAo+ICAJcGxhdGZvcm1fc2V0X2RydmRhdGEocGRl
-diwgTlVMTCk7Cj4gIAlrZnJlZShwcml2KTsKPiBAQCAtMjA1LDEzICsyNDIsMTggQEAgb3V0X2Vy
-cl9jcmVhdGUxOgo+ICBzdGF0aWMgaW50IF9fZGV2ZXhpdCBtYzEzNzgzX2FkY19yZW1vdmUoc3Ry
-dWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgewo+ICAJc3RydWN0IG1jMTM3ODNfYWRjX3By
-aXYgKnByaXYgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKPiArCWtlcm5lbF91bG9uZ190
-IGRyaXZlcl9kYXRhID0gcGxhdGZvcm1fZ2V0X2RldmljZV9pZChwZGV2KS0+ZHJpdmVyX2RhdGE7
-Cj4gIAo+ICAJaHdtb25fZGV2aWNlX3VucmVnaXN0ZXIocHJpdi0+aHdtb25fZGV2KTsKPiAgCj4g
-LQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3VjaHNjcmVlbihwZGV2KSkKPiAtCQlzeXNmc19yZW1v
-dmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCAmbWMxMzc4M19ncm91cF90cyk7Cj4gKwlpZiAoZHJp
-dmVyX2RhdGEgJiBNQzEzNzgzX0FEQ18xNkNIQU5TKSB7Cj4gKwkJaWYgKCFtYzEzNzgzX2FkY191
-c2VfdG91Y2hzY3JlZW4ocGRldikpCj4gKwkJCXN5c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+ZGV2
-LmtvYmosICZtYzEzNzgzX2dyb3VwX3RzKTsKPiAgCj4gLQlzeXNmc19yZW1vdmVfZ3JvdXAoJnBk
-ZXYtPmRldi5rb2JqLCAmbWMxMzc4M19ncm91cCk7Cj4gKwkJc3lzZnNfcmVtb3ZlX2dyb3VwKCZw
-ZGV2LT5kZXYua29iaiwgJm1jMTM3ODNfZ3JvdXBfMTZjaGFuKTsKPiArCX0KPiArCj4gKwlzeXNm
-c19yZW1vdmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCAmbWMxMzc4M19ncm91cF9iYXNlKTsKPiAg
-Cj4gIAlwbGF0Zm9ybV9zZXRfZHJ2ZGF0YShwZGV2LCBOVUxMKTsKPiAgCWtmcmVlKHByaXYpOwo+
-IEBAIC0yMTksMTIgKzI2MSwyNiBAQCBzdGF0aWMgaW50IF9fZGV2ZXhpdCBtYzEzNzgzX2FkY19y
-ZW1vdmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgCXJldHVybiAwOwo+ICB9Cj4g
-IAo+ICtzdGF0aWMgY29uc3Qgc3RydWN0IHBsYXRmb3JtX2RldmljZV9pZCBtYzEzNzgzX2FkY19p
-ZHRhYmxlW10gPSB7Cj4gKwl7Cj4gKwkJLm5hbWUgPSAibWMxMzc4My1hZGMiLAo+ICsJCS5kcml2
-ZXJfZGF0YSA9IE1DMTM3ODNfQURDXzE2Q0hBTlMsCj4gKwl9LCB7Cj4gKwkJLm5hbWUgPSAibWMx
-Mzg5Mi1hZGMiLAo+ICsJCS5kcml2ZXJfZGF0YSA9IE1DMTM3ODNfQURDX0JQRElWMiwKPiArCX0s
-IHsKPiArCQkvKiBzZW50aW5lbCAqLwo+ICsJfQo+ICt9Owo+ICtNT0RVTEVfREVWSUNFX1RBQkxF
-KHBsYXRmb3JtLCBtYzEzNzgzX2FkY19pZHRhYmxlKTsKPiArCj4gIHN0YXRpYyBzdHJ1Y3QgcGxh
-dGZvcm1fZHJpdmVyIG1jMTM3ODNfYWRjX2RyaXZlciA9IHsKPiAtCS5yZW1vdmUgCT0gX19kZXZl
-eGl0X3AobWMxMzc4M19hZGNfcmVtb3ZlKSwKPiArCS5yZW1vdmUJCT0gX19kZXZleGl0X3AobWMx
-Mzc4M19hZGNfcmVtb3ZlKSwKPiAgCS5kcml2ZXIJCT0gewo+ICAJCS5vd25lcgk9IFRISVNfTU9E
-VUxFLAo+IC0JCS5uYW1lCT0gTUMxMzc4M19BRENfTkFNRSwKPiArCQkubmFtZQk9IERSSVZFUl9O
-QU1FLAo+ICAJfSwKPiArCS5pZF90YWJsZQk9IG1jMTM3ODNfYWRjX2lkdGFibGUsCj4gIH07Cj4g
-IAo+ICBzdGF0aWMgaW50IF9faW5pdCBtYzEzNzgzX2FkY19pbml0KHZvaWQpCj4gQEAgLTI0Myw0
-ICsyOTksMyBAQCBtb2R1bGVfZXhpdChtYzEzNzgzX2FkY19leGl0KTsKPiAgTU9EVUxFX0RFU0NS
-SVBUSU9OKCJNQzEzNzgzIEFEQyBkcml2ZXIiKTsKPiAgTU9EVUxFX0FVVEhPUigiTHVvdGFvIEZ1
-IDxsLmZ1QHBlbmd1dHJvbml4LmRlPiIpOwo+ICBNT0RVTEVfTElDRU5TRSgiR1BMIik7Cj4gLU1P
-RFVMRV9BTElBUygicGxhdGZvcm06IiBNQzEzNzgzX0FEQ19OQU1FKTsKCldpbGwgeW91IHJlc2Vu
-ZCBhbiB1cGRhdGVkIHBhdGNoLCBvciBzaG91bGQgSSB1cGRhdGUgaXQgbXlzZWxmIHdpdGggdGhl
-CmNoYW5nZXMgYWJvdmU/CgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
-b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xtLXNlbnNvcnM
+Hello Jean,
+
+first of all thanks for your thoughts.
+
+On Fri, Jan 27, 2012 at 05:53:29PM +0100, Jean Delvare wrote:
+> > diff --git a/Documentation/hwmon/mc13783-adc b/Documentation/hwmon/mc13=
+783-adc
+> > index 044531a..8b717f5 100644
+> > --- a/Documentation/hwmon/mc13783-adc
+> > +++ b/Documentation/hwmon/mc13783-adc
+> > @@ -5,6 +5,9 @@ Supported chips:
+> >    * Freescale Atlas MC13783
+> >      Prefix: 'mc13783_adc'
+> >      Datasheet: http://www.freescale.com/files/rf_if/doc/data_sheet/MC1=
+3783.pdf?fsrch=3D1
+> > +  * Freescale Atlas MC13892
+> > +    Prefix: 'mc13892_adc'
+> > +    Datasheet: http://cache.freescale.com/files/analog/doc/data_sheet/=
+MC13892.pdf?fsrch=3D1&sr=3D1
+> > =20
+> >  Authors:
+> >      Sascha Hauer <s.hauer@pengutronix.de>
+> > @@ -13,20 +16,21 @@ Authors:
+> >  Description
+> >  -----------
+> > =20
+> > -The Freescale MC13783 is a Power Management and Audio Circuit. Among
+> > -other things it contains a 10-bit A/D converter. The converter has 16
+> > -channels which can be used in different modes.
+> > -The A/D converter has a resolution of 2.25mV. Channels 0-4 have
+> > -a dedicated meaning with chip internal scaling applied. Channels 5-7
+> > -can be used as general purpose inputs or alternatively in a dedicated
+> > -mode. Channels 12-15 are occupied by the touchscreen if it's active.
+> > +The Freescale MC13783 and MC13892 are Power Management and Audio Circu=
+its.
+> > +Among other things they contain a 10-bit A/D converter. The converter =
+has 16
+> > +(MC13783) resp. 12 (MC13892) channels which can be used in different m=
+odes. The
+> > +A/D converter has a resolution of 2.25mV.
+> > =20
+> > -Currently the driver only supports channels 2 and 5-15 with no alterna=
+tive
+> > -modes for channels 5-7.
+> > +Some channels can be used as General Purpose inputs or in a dedicated =
+mode with
+> > +a chip internal scaling applied .
+> > =20
+> > -See this table for the meaning of the different channels and their chip
+> > -internal scaling:
+> > +Currently the driver only supports BP, the General Purpose inputs and
+> > +touchscreen.
+>=20
+> It might be a good idea to explain what BP is... Me, I have no idea.
+It's in the table below and means the "Application Supply" channel. No
+idea what the Freescale guys thought it should stand for.
+
+> > +See the following tables for the meaning of the different channels and=
+ their
+> > +chip internal scaling:
+> > +
+> > +MC13783:
+> >  Channel	Signal						Input Range	Scaling
+> >  ----------------------------------------------------------------------=
+---------
+> >  0	Battery Voltage (BATT)				2.50 - 4.65V	-2.40V
+> > @@ -34,7 +38,7 @@ Channel	Signal						Input Range	Scaling
+> >  2	Application Supply (BP)				2.50 - 4.65V	-2.40V
+> >  3	Charger Voltage (CHRGRAW)			0 - 10V /	/5
+> >  							0 - 20V		/10
+> > -4	Charger Current (CHRGISNSP-CHRGISNSN)		-0.25V - 0.25V	x4
+> > +4	Charger Current (CHRGISNSP-CHRGISNSN)		-0.25 - 0.25V	x4
+> >  5	General Purpose ADIN5 / Battery Pack Thermistor	0 - 2.30V	No
+> >  6	General Purpose ADIN6 / Backup Voltage (LICELL)	0 - 2.30V /	No /
+> >  							1.50 - 3.50V	-1.20V
+> > @@ -48,3 +52,23 @@ Channel	Signal						Input Range	Scaling
+> >  13	General Purpose TSX2 / Touchscreen X-plate 2	0 - 2.30V	No
+> >  14	General Purpose TSY1 / Touchscreen Y-plate 1	0 - 2.30V	No
+> >  15	General Purpose TSY2 / Touchscreen Y-plate 2	0 - 2.30V	No
+> > +
+> > +MC13892:
+> > +Channel	Signal						Input Range	Scaling
+> > +----------------------------------------------------------------------=
+---------
+> > +0	Battery Voltage (BATT)				0 - 4.8V	/2
+> > +1	Battery Current (BATT - BATTISNSCC)		-60 - 60 mV	x20
+> > +2	Application Supply (BPSNS)			0 - 4.8V	/2
+> > +3	Charger Voltage (CHRGRAW)			0 - 12V /	/5
+> > +							0 - 20V		/10
+> > +4	Charger Current (CHRGISNS-BPSNS) /		-0.3 - 0.3V /	x4 /
+> > +	Touchscreen X-plate 1				0 - 2.4V	No
+> > +5	General Purpose ADIN5 /	Battery Pack Thermistor	0 - 2.4V	No
+> > +6	General Purpose ADIN6 / Backup Voltage (LICELL)	0 - 2.4V /	No
+> > +	Backup Voltage (LICELL)                        	0 - 3.6V	x2/3
+> > +7	General Purpose ADIN7 / UID / Die Temperature	0 - 2.4V /	No /
+> > +							0 - 4.8V	/2
+> > +12	Touchscreen X-plate 1				0 - 2.4V	No
+> > +13	Touchscreen X-plate 2				0 - 2.4V	No
+> > +14	Touchscreen Y-plate 1				0 - 2.4V	No
+> > +15	Touchscreen Y-plate 2				0 - 2.4V	No
+> > diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> > index 0b62c3c..e3e3bc0 100644
+> > --- a/drivers/hwmon/Kconfig
+> > +++ b/drivers/hwmon/Kconfig
+> > @@ -1322,10 +1322,10 @@ config SENSORS_APPLESMC
+> >  	  the awesome power of applesmc.
+> > =20
+> >  config SENSORS_MC13783_ADC
+> > -        tristate "Freescale MC13783 ADC"
+> > -        depends on MFD_MC13783
+>=20
+> BTW, isn't CONFIG_MFD_MC13783 supposed to go away now? It seems to be
+> an alias for MFD_MC13XXX today. 4 drivers are still using it...
+>=20
+> > +        tristate "Freescale MC13783/MC13892 ADC"
+> > +        depends on MFD_MC13XXX
+Yeah, that's why I drop MFD_MC13783 in favour of MFD_MC13XXX :-)
+
+> >          help
+> > -          Support for the A/D converter on MC13783 PMIC.
+> > +          Support for the A/D converter on MC13783 and MC13892 PMIC.
+> > =20
+> >  if ACPI
+> > =20
+> > diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
+> > index ef65ab5..0d796f7 100644
+> > --- a/drivers/hwmon/mc13783-adc.c
+> > +++ b/drivers/hwmon/mc13783-adc.c
+> > @@ -1,5 +1,5 @@
+> >  /*
+> > - * Driver for the Freescale Semiconductor MC13783 adc.
+> > + * Driver for the adc on Freescale Semiconductor MC13783 and MC13892 P=
+MICs.
+>=20
+> Would be better spelled ADC, methinks.
+OK.
+
+> >   *
+> >   * Copyright 2004-2007 Freescale Semiconductor, Inc. All Rights Reserv=
+ed.
+> >   * Copyright (C) 2009 Sascha Hauer, Pengutronix
+> > @@ -18,7 +18,7 @@
+> >   * Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+> >   */
+> > =20
+> > -#include <linux/mfd/mc13783.h>
+> > +#include <linux/mfd/mc13xxx.h>
+> >  #include <linux/platform_device.h>
+> >  #include <linux/hwmon-sysfs.h>
+> >  #include <linux/kernel.h>
+> > @@ -28,7 +28,11 @@
+> >  #include <linux/init.h>
+> >  #include <linux/err.h>
+> > =20
+> > -#define MC13783_ADC_NAME	"mc13783-adc"
+> > +#define DRIVER_NAME	"mc13783-adc"
+> > +
+> > +/* platform device id driver data */
+> > +#define MC13783_ADC_16CHANS	1
+> > +#define MC13783_ADC_BPDIV2	2
+> > =20
+> >  struct mc13783_adc_priv {
+> >  	struct mc13xxx *mc13xxx;
+> > @@ -38,7 +42,13 @@ struct mc13783_adc_priv {
+> >  static ssize_t mc13783_adc_show_name(struct device *dev, struct device=
+_attribute
+> >  			      *devattr, char *buf)
+> >  {
+> > -	return sprintf(buf, "mc13783_adc\n");
+> > +	struct platform_device *pdev =3D to_platform_device(dev);
+> > +	ssize_t ret =3D sprintf(buf, "%s\n", pdev->name);
+> > +
+> > +	if (ret > 7 && buf[7] =3D=3D '-')
+> > +		buf[7] =3D '_';
+> > +
+> > +	return ret;
+> >  }
+>=20
+> I share Guenter's concerns about this code. This is simply too fragile.
+> Storing the right string, or a pointer thereto, in struct
+> mc13783_adc_priv would be better. Your argument about the wasted memory
+> size doesn't really hold, we're talking about 30 bytes here, tops.
+OK.
+
+> Or if you really want to dynamically turn "-" into "_" then you should
+> do that in a robust way, for example:
+>=20
+> 	char *dash;
+>=20
+> 	dash =3D strchr(buf, '-');
+> 	if (dash)
+> 		*dash =3D '_';
+>=20
+> That way you no longer depend on the length of the string nor the
+> position of the dash.
+>=20
+> As a side note, I'm not quite sure why the _adc suffix was preserved in
+> the name attribute in the first place. Given that this is a hwmon
+> device attribute, it seems redundant.
+I'll drop it.
+=20
+> As another side note, if you really care about memory consumption, then
+> you could call sysfs_remove_group() unconditionally everywhere, as it's
+> OK to remove files which do not exist. This would let you mark
+> mc13783_adc_use_touchscreen() as __init. It may also make sense to move
+> file removal to a separate function to avoid code redundancy between
+> mc13783_adc_probe() and mc13783_adc_remove() (or even adjust
+> mc13783_adc_remove() so that it can be called straight from
+> mc13783_adc_probe()'s error path.
+>=20
+> [...]
+> > +/* these are only used if MC13783_ADC_16CHANS is provided in driver da=
+ta */
+> > +static struct attribute *mc13783_attr_16chan[] =3D {
+>=20
+> 16CHANS vs. 16chan. Would be good to decide for a spelling and stick to
+> it.
+I guess you only mean the 's' and not capitalisation?
+
+> [...]
+> Will you resend an updated patch, or should I update it myself with the
+> changes above?
+I will send you an update later today with your comments addressed.
+
+Thanks
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
