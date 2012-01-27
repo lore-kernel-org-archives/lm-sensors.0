@@ -1,9 +1,9 @@
 From: Andrew Smith <Andrew@GNAServicesInc.com>
-Date: Fri, 27 Jan 2012 18:23:52 +0000
+Date: Fri, 27 Jan 2012 18:38:35 +0000
 Subject: Re: [lm-sensors] sensors-detect bug ?
-Message-Id: <4F22EBB8.6010907@GNAServicesInc.com>
+Message-Id: <4F22EF2B.1020409@GNAServicesInc.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0633533067869244375=="
+Content-Type: multipart/mixed; boundary="===============8935335515888015759=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4F22E64F.8060204@GNAServicesInc.com>
 In-Reply-To: <4F22E64F.8060204@GNAServicesInc.com>
@@ -11,103 +11,52 @@ To: lm-sensors@vger.kernel.org
 
 This is a cryptographically signed message in MIME format.
 
---===============0633533067869244375==
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms090602060504030709000705"
+--===============8935335515888015759==
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms010902090109030709010303"
 
 This is a cryptographically signed message in MIME format.
 
---------------ms090602060504030709000705
+--------------ms010902090109030709010303
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-Here are the results http://khali.linux-fr.org/devel/misc/sensors-detect
+OK I take it back, maybe this is not a bug in sensors-detect. I was
+running sensors-detect because I thought the module was not being loaded
+/ not found,  but I just found the real reason for the lack of sensor
+info by running DMESG
+
+ACPI: resource it87 [io  0x0295-0x0296] conflicts with ACPI region SIOE
+[io 0x290-0x2af]
+
+That may be why I was getting the errors with sensors-detect?  If so,
+sorry for wasting your time.
 
 
-Use of uninitialized value in string eq at ./sensors-detect line 2622,
-<STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040, <STDIN> line 5.
-
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value $name in pattern match (m//) at
-=2E/sensors-detect line 3040.
-Use of uninitialized value in concatenation (.) or string at
-=2E/sensors-detect line 3575.
+Andy
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-iQIcBAEBAgAGBQJPIuu4AAoJEGf+DvovjtYG+1MQAIGGyNu96AnKQC2Lv+PMpC4c
-OmiaFr7qE1VJYtq5W3HDiq7W13YABW2c372IfBJh0J4IbjHGmprNzeAk4Te84LG+
-QEaXq7b8CCqC1VJd09ejJDyEUbzyhZ+BBktTMvrDU4zhjg3b+jPi96Qv0TN0vQXy
-Ov4kGZK7Zqx6/40zNowJ5ydDDi9u6xRF6SUGL+UO2UFu5XJ7Ekgv92BOdgEMxIy2
-d7FQGZhIw+/pdl3pn07xJarmafvbmdgf7iIB1S3DoN8QGSzAFzm09zqcZr4kz863
-JEYqEGL+QABxJw4gBBfyoqtUe9PwTK56R2h7NqOy0ym2ibVaWAr5G3qcgPF76En7
-I9+N9cHuGGhGIQZluR+pwu55OZdLLo/lExqY5LtWBhfN6nTP3pGYIanzRDmsGEvL
-2OXgAsQRoZgMEkHfT3XNPMmq+pX/I1vyFbrOce2yQzDFJlW4gDBEts8Yg6+0KJud
-HYGm/YZJnmugepg6f/f68Ca/AK6s09SpT3lJMyKSA/A3pG3RcR7c5wzP51UziurF
-ogl+BdKwkO66XKAXqlnKvnHHQeT7L3HyfoWhNf5dKjviebA18KiHbDfXALsZGwub
-rMq1twOxqtLj2lMhWYyiPc7/4yIUAJjaHY6HsVBwHNc9kO47d636N41z+jBxZmeg
-WHAC6nmBXcf8RFzEgBn9
-=3Dy/yW
+iQIcBAEBAgAGBQJPIu8rAAoJEGf+DvovjtYGWjIP/RoVIqmjRM+cgdS0ryLbS1+V
+hTseDAtZC+RwCmHGtwqXcmVyssCJC/EDNvF0h4o5nEJtscwJbPtF1SnjOOOVnaS4
+hFJSHHGlltA+WveXAQ+xhxQK7q7tXV5WQez8yE8SQ/x9adgT6ZEinxioJDqJ4qe3
+cPp/GanAro+YD9yI3L5qbnimoVQjyv05aX6Za6lwQ/hiVD4ySIr/TqY2bdbXyy4f
+jMVUpikV/Xm0YQmj5mH1fAfjUaX76NL4B6Rr9Gp44MEmvcSXWruJPfU1I0PVQ8vi
+wNb78sJ0/MQbGvvxdmZ9G90Hq8OdfiaVl3mclvcePblCYqpjpqk7oioVxXt99oHc
+bAyhPIEklBnYGDmUcUgaLnWmnRiWdPOK1vOjfgH4uBGKyt8k2JOvnuHUOnCUYDEN
+s+9U7OoVOtlyzlywcUKXQYtdLMsk5BWqtiSWsRt3rpZpHfbfRtlGTV6E6qk4YCy4
+FhozW4xc87S/1b1PbPM4kmrvcpSnZMacB7CQdggD2ZDTnPDP47dt6h6iB5aO5KKw
+819592o4vK5xBgCqH4q7tndPQdGPOx4gGhh1icgWR4PPpm4Im68oOrwwnI8KvgB6
+h4bgiS2xERRtt1+0SaIFfpbavR14V5CR6rXre8GL/KCRBMbIZGbgeMc/wuWF9oqI
+tH1WvcwGkU7N0Ynlbwrc
+=3DV+kI
 -----END PGP SIGNATURE-----
 
 
---------------ms090602060504030709000705
+--------------ms010902090109030709010303
 Content-Type: application/pkcs7-signature; name="smime.p7s"
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; filename="smime.p7s"
@@ -166,8 +115,8 @@ rjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEe
 MBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVz
 ZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0
 aW9uIGFuZCBFbWFpbAIQUVX68kYv248J0u62JN9CvDAJBgUrDgMCGgUAoIICbjAYBgkqhkiG
-9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMjAxMjcxODIzNTJaMCMGCSqG
-SIb3DQEJBDEWBBRvQFhrcInbdMsf9xorWNxlk0xRqDBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCG
+9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMjAxMjcxODM4MzVaMCMGCSqG
+SIb3DQEJBDEWBBSi9d4DUgLDgYVYL8TIV5ypL87RcTBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCG
 SAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
 Kw4DAgcwDQYIKoZIhvcNAwICASgwgdQGCSsGAQQBgjcQBDGBxjCBwzCBrjELMAkGA1UEBhMC
 VVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl
@@ -177,16 +126,16 @@ bAIQUVX68kYv248J0u62JN9CvDCB1gYLKoZIhvcNAQkQAgsxgcaggcMwga4xCzAJBgNVBAYT
 AlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRo
 ZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29t
 MTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1h
-aWwCEFFV+vJGL9uPCdLutiTfQrwwDQYJKoZIhvcNAQEBBQAEggEAvNYbTYGbRnP69Gb63Cbq
-IVQ9i01J3pjYK2KzGuF/8kWHd4qjjlfAqQniqvQiYZbZrYM+7ZSxx7BYIuilMeviPwEhhC2f
-Knc7W4cyavgs6/ilnutweriHfklRRjGsC/VAG4WHpsVvfMkOMJ0eUR11RLstzBPTDP379TFL
-NAzrtLzAgtvGaFL3jWP/7pN/w1reFptnqqEU0LCwVi0bTGnFEY13WlmBZJ6es/GZf6VoBBbn
-G2UQCEw+fyJGi4rzbELTdj7/W1eMbeApcwtJVm0j8DThl34l5g1UbEwT6mohZB8lb3E+XpV/
-/rNxo3UD3OB6rPDgpaTUV7ALl8vEwBKR/wAAAAAAAA==
---------------ms090602060504030709000705--
+aWwCEFFV+vJGL9uPCdLutiTfQrwwDQYJKoZIhvcNAQEBBQAEggEAC4ai96xWiOe3MUpQKvkQ
+oK+sWa3r3Wu9BOlod1g/P9NYTVFVMF2bdMua8fX5v6IJvfOZc1y0dZIIpDiUOVXmUnkse1KQ
+0iPJWeyTDT+wmD26DqGkDAk5nexoUzyGooWVwUZ6r+T+N+feAxe/YxflS++jJ5cynWW37tqK
+N1pXfYYgDZLyHRSUT0wEu/UV6iPOD1UCysWBo8YnadqpKTd01LOrFEj6Nkr+NVzWLQl3ZU62
+DajHA4aiiavG0vKo6sHy/Aq2OAmD/fsZMU7FCrkIVtt4KAjf/kEdZ2Dhs42Xdgv8rKO2ttP6
+ml+0AjrH5uAjOIzqw2H1fOu00OnICKLvhQAAAAAAAA==
+--------------ms010902090109030709010303--
 
 
---===============0633533067869244375==
+--===============8935335515888015759==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -196,4 +145,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0633533067869244375==--
+--===============8935335515888015759==--
