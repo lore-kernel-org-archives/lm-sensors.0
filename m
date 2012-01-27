@@ -1,48 +1,62 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 25 Jan 2012 10:15:52 +0000
-Subject: Re: [lm-sensors] [PATCH 05/79] hwmon: (lm87) Fix vrm value range
-Message-Id: <20120125101552.GB12670@ericsson.com>
+Date: Fri, 27 Jan 2012 14:54:37 +0000
+Subject: [lm-sensors] [reply+i-2970830-11e203ec4162e4680a3e2c999f2bba9b513a1927-1030448@reply.github.com:
+Message-Id: <20120127145437.GB29746@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327373398-997-6-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1327373398-997-6-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jan 25, 2012 at 04:34:27AM -0500, Jean Delvare wrote:
-> On Mon, 23 Jan 2012 18:48:44 -0800, Guenter Roeck wrote:
-> > When updating vrm, the value range was not limited. This could result in more or
-> > less random vrm values if the value provided by the user was larger than 255.
-> > Fix by limiting the range to 0..255 using the SENSORS_LIMIT macro.
-> > 
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > ---
-> >  drivers/hwmon/lm87.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/lm87.c b/drivers/hwmon/lm87.c
-> > index 8e66f99..2aa5e1a 100644
-> > --- a/drivers/hwmon/lm87.c
-> > +++ b/drivers/hwmon/lm87.c
-> > @@ -604,7 +604,7 @@ static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
-> >  	err = kstrtoul(buf, 10, &val);
-> >  	if (err)
-> >  		return err;
-> > -	data->vrm = val;
-> > +	data->vrm = SENSORS_LIMIT(val, 0, 255);
-> >  	return count;
-> >  }
-> >  static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
-> 
-> Same concerns here as in it87, of course. I suggest you withdraw these
-> patches for the time being.
-> 
-Agreed, makes sense. I'll move those to my "staging" branch for now.
+Forwarding to lm-sensors to keep the group in the loop.
 
-I have a RFC set of patches in the works for hwmon-vid, trying to start addressing
-the vrm issue. We can go from there once we decided how to handle it.
+----- Forwarded message from ccom <reply+i-2970830-11e203ec4162e4680a3e2c99=
+9f2bba9b513a1927-1030448@reply.github.com> -----
+
+Date: Fri, 27 Jan 2012 09:29:45 -0500
+From: ccom <reply+i-2970830-11e203ec4162e4680a3e2c999f2bba9b513a1927-103044=
+8@reply.github.com>
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [w83627ehf] Not all fans are shown (#3)
+
+Note that I adapted /etc/sensors3.conf. The output is:
+
+nct6776-isa-0290
+Adapter: ISA adapter
+VCore:         +0.76 V  (min =3D  +0.00 V, max =3D  +1.74 V)
++12V:         +12.36 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+AVCC:          +3.38 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
++3.3V:         +3.36 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+in4:           +0.02 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
++5V:           +5.04 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+3VSB:          +3.46 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+VBat:          +3.30 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+fan1:            0 RPM  (min =3D    0 RPM)  ALARM
+fan2:          570 RPM  (min =3D    0 RPM)  ALARM
+fan3:            0 RPM  (min =3D    0 RPM)  ALARM
+fan4:         1867 RPM  (min =3D    0 RPM)  ALARM
+fan5:            0 RPM  (min =3D    0 RPM)  ALARM
+SYSTIN:        +35.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM  =
+sensor =3D thermistor
+CPUTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D thermistor
+AUXTIN:        +35.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D thermistor
+PECI Agent 0:  +36.0=B0C =20
+cpu0_vid:     +2.050 V
+intrusion0:   ALARM
+intrusion1:   ALARM
+
+There's one more thing missing, though. I cannot find a way to set the fan =
+speed in the sys-dir.
+
+---=20
+
+You might also want to set min-max values to get rid of the warnings. Fan s=
+peeds are set through pwm[1-3].
+Did you try to set those ? Chances are that one controls fan2 and another f=
+an4; there does not
+have to be a direct mapping.
 
 Thanks,
 Guenter
