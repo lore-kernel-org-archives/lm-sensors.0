@@ -1,148 +1,47 @@
-From: Andrew Smith <Andrew@GNAServicesInc.com>
-Date: Fri, 27 Jan 2012 18:38:35 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 27 Jan 2012 19:38:19 +0000
 Subject: Re: [lm-sensors] sensors-detect bug ?
-Message-Id: <4F22EF2B.1020409@GNAServicesInc.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8935335515888015759=="
+Message-Id: <20120127203819.1bc1520a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4F22E64F.8060204@GNAServicesInc.com>
 In-Reply-To: <4F22E64F.8060204@GNAServicesInc.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+Hi Andrew,
 
---===============8935335515888015759==
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms010902090109030709010303"
+On Fri, 27 Jan 2012 13:38:35 -0500, Andrew Smith wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> OK I take it back, maybe this is not a bug in sensors-detect. I was
+> running sensors-detect because I thought the module was not being loaded
+> / not found,  but I just found the real reason for the lack of sensor
+> info by running DMESG
+> 
+> ACPI: resource it87 [io  0x0295-0x0296] conflicts with ACPI region SIOE
+> [io 0x290-0x2af]
 
-This is a cryptographically signed message in MIME format.
+This is of course the real problem, see:
+http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
 
---------------ms010902090109030709010303
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+> That may be why I was getting the errors with sensors-detect?  If so,
+> sorry for wasting your time.
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+No, the problem in sensors-detect is unrelated to the above. It seems
+that on your system some of the i2c adapters have no name attribute.
+Which kernel are you running? I'd like to see the output of the
+following commands:
 
-OK I take it back, maybe this is not a bug in sensors-detect. I was
-running sensors-detect because I thought the module was not being loaded
-/ not found,  but I just found the real reason for the lack of sensor
-info by running DMESG
+$ ls -l /sys/bus/i2c/devices/i2c-*/
+$ grep . /sys/bus/i2c/devices/i2c-*/name
 
-ACPI: resource it87 [io  0x0295-0x0296] conflicts with ACPI region SIOE
-[io 0x290-0x2af]
-
-That may be why I was getting the errors with sensors-detect?  If so,
-sorry for wasting your time.
-
-
-Andy
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQIcBAEBAgAGBQJPIu8rAAoJEGf+DvovjtYGWjIP/RoVIqmjRM+cgdS0ryLbS1+V
-hTseDAtZC+RwCmHGtwqXcmVyssCJC/EDNvF0h4o5nEJtscwJbPtF1SnjOOOVnaS4
-hFJSHHGlltA+WveXAQ+xhxQK7q7tXV5WQez8yE8SQ/x9adgT6ZEinxioJDqJ4qe3
-cPp/GanAro+YD9yI3L5qbnimoVQjyv05aX6Za6lwQ/hiVD4ySIr/TqY2bdbXyy4f
-jMVUpikV/Xm0YQmj5mH1fAfjUaX76NL4B6Rr9Gp44MEmvcSXWruJPfU1I0PVQ8vi
-wNb78sJ0/MQbGvvxdmZ9G90Hq8OdfiaVl3mclvcePblCYqpjpqk7oioVxXt99oHc
-bAyhPIEklBnYGDmUcUgaLnWmnRiWdPOK1vOjfgH4uBGKyt8k2JOvnuHUOnCUYDEN
-s+9U7OoVOtlyzlywcUKXQYtdLMsk5BWqtiSWsRt3rpZpHfbfRtlGTV6E6qk4YCy4
-FhozW4xc87S/1b1PbPM4kmrvcpSnZMacB7CQdggD2ZDTnPDP47dt6h6iB5aO5KKw
-819592o4vK5xBgCqH4q7tndPQdGPOx4gGhh1icgWR4PPpm4Im68oOrwwnI8KvgB6
-h4bgiS2xERRtt1+0SaIFfpbavR14V5CR6rXre8GL/KCRBMbIZGbgeMc/wuWF9oqI
-tH1WvcwGkU7N0Ynlbwrc
-=3DV+kI
------END PGP SIGNATURE-----
-
-
---------------ms010902090109030709010303
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKEjCC
-BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
-BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
-bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
-NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
-VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
-dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
-LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
-NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
-lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
-vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
-hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
-9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
-A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
-BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
-cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
-ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
-54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
-g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
-WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
-Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
-XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIFgDCCBGigAwIBAgIQUVX68kYv248J
-0u62JN9CvDANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
-FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
-MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
-Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0xMTAyMTAwMDAwMDBa
-Fw0xMjAyMTAyMzU5NTlaMCoxKDAmBgkqhkiG9w0BCQEWGWFuZHJld0BnbmFzZXJ2aWNlc2lu
-Yy5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDElVlYcSSyKqkAo6Tw2Z2y
-yKmsak/RPwTfPW3xROiTs9sxs8p6NsutIcqEjezJWK3BuglcUUx28vQm5eaqGiXSOvCrjWz+
-Qq+oINqYRcMn7ziU1NKNxrH60ZGHLFzclfRNUhzkIfjwnmIJyUorwhsZhWfP+bxO13iPc4MO
-3+bko1GJ1fzF3eLZsMHbl2joRwrbSs7IbCPLJ/XqBV4efmugFd3jK6lU8rQFaKxAKb+bK26q
-bI3NIGWo//d9c7gNaqG9Xa+mWWgz9d2EY8MyMm/J5zNNAspE7ppZLT75zxrZMJLjMxnWqLo/
-3v6DQjsVTupG6NclSd4nnJNM9cLGeu0dAgMBAAGjggIbMIICFzAfBgNVHSMEGDAWgBSJgmd9
-xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4EFgQUnEKDEnBFULXrM4/Hz22n+DoolKAwDgYDVR0P
-AQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwIAYDVR0lBBkwFwYIKwYBBQUHAwQGCysGAQQBsjEB
-AwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBGBgNVHSAEPzA9MDsGDCsGAQQBsjEBAgEBATArMCkG
-CCsGAQUFBwIBFh1odHRwczovL3NlY3VyZS5jb21vZG8ubmV0L0NQUzCBpQYDVR0fBIGdMIGa
-MEygSqBIhkZodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9VVE4tVVNFUkZpcnN0LUNsaWVudEF1
-dGhlbnRpY2F0aW9uYW5kRW1haWwuY3JsMEqgSKBGhkRodHRwOi8vY3JsLmNvbW9kby5uZXQv
-VVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDBsBggrBgEF
-BQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0dHA6Ly9jcnQuY29tb2RvY2EuY29tL1VUTkFBQUNs
-aWVudENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMCQGA1Ud
-EQQdMBuBGWFuZHJld0BnbmFzZXJ2aWNlc2luYy5jb20wDQYJKoZIhvcNAQEFBQADggEBAIgy
-Ezr16rXgcQpUP5YEsnm0DM+mZIMnB4viL9ScZ6RsffZYrdqA1Nnyt/q2bgPu/vBIQxjykc+G
-g62YrM0N0Lp1gccNTFhIo/cFd7+A/90zNqe1iq7R+U1UO4vlii6pf39IoM1Lhk8kpoCJcK3T
-OCVYF8viWZfmPm6FIPbz+kI5qBE7739/ub7RheEn5kXS1Tz29s2typf/2CtsBMigCQ1Jr15M
-LCEY0juMsAt5YEyKYpJ1LkLhtu+7hCg/sVd8I49Htf7LkZlcVRZhrNR3s79z9yRbRm7uPgEC
-I9RzEb/S8zVtw8abTj5r8ZW7aIJ9fDIDhQ7iihWSJxHMLDU9VUIxggRdMIIEWQIBATCBwzCB
-rjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEe
-MBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVz
-ZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0
-aW9uIGFuZCBFbWFpbAIQUVX68kYv248J0u62JN9CvDAJBgUrDgMCGgUAoIICbjAYBgkqhkiG
-9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMjAxMjcxODM4MzVaMCMGCSqG
-SIb3DQEJBDEWBBSi9d4DUgLDgYVYL8TIV5ypL87RcTBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCG
-SAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
-Kw4DAgcwDQYIKoZIhvcNAwICASgwgdQGCSsGAQQBgjcQBDGBxjCBwzCBrjELMAkGA1UEBhMC
-VVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl
-IFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20x
-NjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFp
-bAIQUVX68kYv248J0u62JN9CvDCB1gYLKoZIhvcNAQkQAgsxgcaggcMwga4xCzAJBgNVBAYT
-AlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRo
-ZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29t
-MTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1h
-aWwCEFFV+vJGL9uPCdLutiTfQrwwDQYJKoZIhvcNAQEBBQAEggEAC4ai96xWiOe3MUpQKvkQ
-oK+sWa3r3Wu9BOlod1g/P9NYTVFVMF2bdMua8fX5v6IJvfOZc1y0dZIIpDiUOVXmUnkse1KQ
-0iPJWeyTDT+wmD26DqGkDAk5nexoUzyGooWVwUZ6r+T+N+feAxe/YxflS++jJ5cynWW37tqK
-N1pXfYYgDZLyHRSUT0wEu/UV6iPOD1UCysWBo8YnadqpKTd01LOrFEj6Nkr+NVzWLQl3ZU62
-DajHA4aiiavG0vKo6sHy/Aq2OAmD/fsZMU7FCrkIVtt4KAjf/kEdZ2Dhs42Xdgv8rKO2ttP6
-ml+0AjrH5uAjOIzqw2H1fOu00OnICKLvhQAAAAAAAA==
---------------ms010902090109030709010303--
-
-
---===============8935335515888015759==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8935335515888015759==--
