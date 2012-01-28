@@ -1,78 +1,48 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 22 Jan 2012 20:04:23 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83795) Unconditionally support manual fan speed control
-Message-Id: <20120122200423.GA12623@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 28 Jan 2012 01:57:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83627ehf) Disable setting DC mode for pwm2, pwm3 on NCT6776F
+Message-Id: <1327715876-3605-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120122183613.4ba050f6@endymion.delvare>
-In-Reply-To: <20120122183613.4ba050f6@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jan 22, 2012 at 02:10:31PM -0500, Jean Delvare wrote:
-> On Sun, 22 Jan 2012 09:52:10 -0800, Guenter Roeck wrote:
-> > Hi Jean,
-> > 
-> > On Sun, Jan 22, 2012 at 12:36:13PM -0500, Jean Delvare wrote:
-> > > Manual fan speed control uses a standard interface and has received
-> > > sufficient testing and review by now, it can be enabled
-> > > unconditionally. This includes attributes pwm[1-8], pwm[1-8]_enable,
-> > > pwm[1-8]_mode and pwm[1-8]_freq.
-> > > 
-> > > We only let the user switch from automatic mode to manual mode, but
-> > > not the other way around, as automatic control settings may not have
-> > > been set properly by the BIOS.
-> > > 
-> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > > ---
-> > >  drivers/hwmon/Kconfig  |    9 +++++----
-> > >  drivers/hwmon/w83795.c |   26 ++++++++++++++++++--------
-> > >  2 files changed, 23 insertions(+), 12 deletions(-)
-> > > (...)
-> > > @@ -2006,15 +2014,17 @@ static int w83795_handle_files(struct de
-> > >  		}
-> > >  	}
-> > >  
-> > > -#ifdef CONFIG_SENSORS_W83795_FANCTRL
-> > >  	for (i = 0; i < data->has_pwm; i++) {
-> > > +#ifdef CONFIG_SENSORS_W83795_FANCTRL
-> > >  		for (j = 0; j < ARRAY_SIZE(w83795_pwm[0]); j++) {
-> > > +#else
-> > > +		for (j = 0; j < 4; j++) {
-> > > +#endif
-> > 
-> > In situations like this I came to prefer something like
-> > 
-> > #ifdef CONFIG_SENSORS_W83795_FANCTRL
-> > #define NUM_PWM_ATTRIBUTES	ARRAY_SIZE(w83795_pwm[0])
-> > #else
-> > #define NUM_PWM_ATTRIBUTES	4
-> > #endif
-> > ...
-> > 		for (j = 0; j < NUM_PWM_ATTRIBUTES; j++)
-> > 
-> > to avoid the ifdef in the code, especially in situations like this where opening
-> > and closing brackets no longer match due to the ifdef.
-> 
-> Agreed, I'll update the patch that way and resend.
-> 
-> > Other than that,
-> > 
-> > Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > 
-> > I guess this should be independent of the multiline comment patch I sent out earlier.
-> > Would be good, though, if both are in the same tree. Do you want me to take both patches,
-> > or do you want to take them ? Let me know.
-> 
-> They are independent indeed, but I agree with your reasoning still. As
-> I maintain the w83795 driver I propose that I pick both patches in my
-> tree.
-> 
-Ok, I'll drop it from mine.
+NCT6776F only supports pwm mode for pwm2 and pwm3. Return error if an attempt
+is made to set those pwm channels to DC mode.
 
-Thanks,
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/w83627ehf.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index c0ef1a3..4f58202 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -1318,6 +1318,7 @@ store_pwm_mode(struct device *dev, struct device_attribute *attr,
+ 			const char *buf, size_t count)
+ {
+ 	struct w83627ehf_data *data = dev_get_drvdata(dev);
++	struct w83627ehf_sio_data *sio_data = dev->platform_data;
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+ 	unsigned long val;
+@@ -1330,6 +1331,11 @@ store_pwm_mode(struct device *dev, struct device_attribute *attr,
+ 
+ 	if (val > 1)
+ 		return -EINVAL;
++
++	/* On NCT67766F, DC mode is only supported for pwm1 */
++	if (sio_data->kind = nct6776 && nr && val != 1)
++		return -EINVAL;
++
+ 	mutex_lock(&data->update_lock);
+ 	reg = w83627ehf_read_value(data, W83627EHF_REG_PWM_ENABLE[nr]);
+ 	data->pwm_mode[nr] = val;
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
