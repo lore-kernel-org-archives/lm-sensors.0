@@ -1,82 +1,66 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 09 Jan 2012 17:16:52 +0000
-Subject: Re: [lm-sensors] [PATCH v2] Add support for new attributes to
-Message-Id: <20120109181652.5bbe92d3@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 28 Jan 2012 23:15:13 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (w83627ehf) Fix number of fans for NCT6776F
+Message-Id: <1327792513-10308-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20111106224622.GA28914@ericsson.com>
-In-Reply-To: <20111106224622.GA28914@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 9 Jan 2012 08:40:31 -0800, Guenter Roeck wrote:
-> On Mon, 2012-01-09 at 11:23 -0500, Jean Delvare wrote:
-> > Well that was a long speech for a short conclusion: as far as I can
-> > see, all we have to do is duplicate power_avg_sensors[] at the end of
-> > power_inst_sensors[] and adjust the labels to avoid ambiguous
-> > duplicates. As far as I can see you don't even need to touch the code
-> > itself, except for stripping out the comment which claims that power
-> > sensor flavors are assumed to be mutually exclusive.
-> 
-> Makes sense. Something like the following ?
-> 
-> static const struct sensor_subfeature_list power_avg_sensors[] = {
->         { SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST, NULL, 0,
-> "avg_lowest" },
->         { SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST, NULL, 0,
-> "avg_highest" },
->         { SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL, NULL, 0,
->                 "interval" },
->         { -1, NULL, 0, NULL }
-> };
-> 
-> static const struct sensor_subfeature_list power_inst_sensors[] = {
->         { SENSORS_SUBFEATURE_POWER_AVERAGE, power_avg_sensors, 0,
-> "avg" },
->         { SENSORS_SUBFEATURE_POWER_INPUT_LOWEST, NULL, 0, "lowest" },
->         { SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST, NULL, 0, "highest" },
->         { -1, NULL, 0, NULL }
-> };
-> 
-> Any good idea how to name the labels ?
+NCT6776F can select fan input pins for fans 3 to 5 with a secondary set of
+chip register bits. Check that second set of bits in addition to the first set
+to detect if fans 3..5 are monitored.
 
-Well, currently we simply use "lowest" and "highest" when a given
-sensor only supports one flavor. I think we want to keep things that
-way, as this avoids long/confusing labels in the most common cases. I
-expect the multi-flavor sensors case with both sets of limits to be
-rare.
+Reported-by: C. Comren <ccomren@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: GPIO pins 90..92 have higher priority than pin 3..5, so check for those first.
+    Added some blank lines to improve readability
 
-Of course the drawback is that we can't reuse power_avg_sensors. But
-I'd say this is a fairly minor cost. So what I had in mind was more
-along the lines of:
+CC, can you test this version ? It is in the "testing" branch of the github
+repository.
 
-static const struct sensor_subfeature_list power_inst_sensors[] = {
-	{ SENSORS_SUBFEATURE_POWER_INPUT_LOWEST, NULL, 0, "lowest" },
-	{ SENSORS_SUBFEATURE_POWER_INPUT_HIGHEST, NULL, 0, "highest" },
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE, power_avg_sensors, 0, "avg" },
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST, NULL, 0, "avg lowest" },
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST, NULL, 0, "avg highest" },
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL, NULL, 0,
-		"interval" },
-	{ -1, NULL, 0, NULL }
-};
+ drivers/hwmon/w83627ehf.c |   23 ++++++++++++++++++++---
+ 1 files changed, 20 insertions(+), 3 deletions(-)
 
-static const struct sensor_subfeature_list power_avg_sensors[] = {
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE_LOWEST, NULL, 0, "lowest" },
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE_HIGHEST, NULL, 0, "highest" },
-	{ SENSORS_SUBFEATURE_POWER_AVERAGE_INTERVAL, NULL, 0,
-		"interval" },
-	{ -1, NULL, 0, NULL }
-};
-
-I.e. power_avg_sensors is unchanged.
-
-Note that I avoided underscores in labels on purpose and for
-consistency, as we don't have any currently.
-
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 8d9620f..598d5e9 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -1931,9 +1931,26 @@ w83627ehf_check_fan_inputs(const struct w83627ehf_sio_data *sio_data,
+ 		fan4min = 0;
+ 		fan5pin = 0;
+ 	} else if (sio_data->kind = nct6776) {
+-		fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
+-		fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
+-		fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
++		bool gpok = superio_inb(sio_data->sioreg, 0x27) & 0x80;
++
++		superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
++		regval = superio_inb(sio_data->sioreg, SIO_REG_ENABLE);
++
++		if (regval & 0x80)
++			fan3pin = gpok;
++		else
++			fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
++
++		if (regval & 0x40)
++			fan4pin = gpok;
++		else
++			fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
++
++		if (regval & 0x20)
++			fan5pin = gpok;
++		else
++			fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
++
+ 		fan4min = fan4pin;
+ 	} else if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+ 		fan3pin = 1;
 -- 
-Jean Delvare
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
