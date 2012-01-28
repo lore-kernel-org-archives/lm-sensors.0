@@ -1,53 +1,45 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 28 Jan 2012 18:42:19 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 28 Jan 2012 20:47:54 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120128184219.GA4443@ericsson.com>
+Message-Id: <20120128214754.1f145449@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1317158169-25372-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jan 28, 2012 at 01:15:36PM -0500, Jean Delvare wrote:
-> On Sat, 28 Jan 2012 09:34:34 -0800, Guenter Roeck wrote:
-> > Maybe the perceived problem is that gain and offset are different and a=
-ll over the place
-> > for the various ADCs, so one either needs a whole bunch of functions, o=
-r a large
-> > case statement, or a table with <gain, offset> per adc. I'd choose the =
-latter,
-> > to simplify runtime code. Also, the description of adc->temperature con=
-version
-> > is really quite confusing.
->=20
-> The die temperature seems to be a simple linear extrapolation, this
-> should actually be fairly easy to implement.
->=20
-> The battery temperature is a typical thermistor computation. It is best
-> done in user-space by a libsensors configuration statement (i.e. the
-> driver exports a value in mV instead of m=B0C and sensors.conf takes care
-> of the conversion.)
->=20
-> So I don't see anything particularly frightening here. Do you?
->=20
-Not really; I didn't expect the implementation to be difficult, just unders=
-tanding
-the documentation.
-
-For the battery temperature, I would prefer to report a temperature if the =
-chip
-is configured for it (assuming that can be detected).
-
-At least so far we can not convert voltages to temperatures via sensors.con=
-f,
-or can we ?
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU2F0LCAyOCBKYW4gMjAxMiAxMDo0MjoxOSAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
+PiBPbiBTYXQsIEphbiAyOCwgMjAxMiBhdCAwMToxNTozNlBNIC0wNTAwLCBKZWFuIERlbHZhcmUg
+d3JvdGU6Cj4gPiBUaGUgZGllIHRlbXBlcmF0dXJlIHNlZW1zIHRvIGJlIGEgc2ltcGxlIGxpbmVh
+ciBleHRyYXBvbGF0aW9uLCB0aGlzCj4gPiBzaG91bGQgYWN0dWFsbHkgYmUgZmFpcmx5IGVhc3kg
+dG8gaW1wbGVtZW50Lgo+ID4gCj4gPiBUaGUgYmF0dGVyeSB0ZW1wZXJhdHVyZSBpcyBhIHR5cGlj
+YWwgdGhlcm1pc3RvciBjb21wdXRhdGlvbi4gSXQgaXMgYmVzdAo+ID4gZG9uZSBpbiB1c2VyLXNw
+YWNlIGJ5IGEgbGlic2Vuc29ycyBjb25maWd1cmF0aW9uIHN0YXRlbWVudCAoaS5lLiB0aGUKPiA+
+IGRyaXZlciBleHBvcnRzIGEgdmFsdWUgaW4gbVYgaW5zdGVhZCBvZiBtwrBDIGFuZCBzZW5zb3Jz
+LmNvbmYgdGFrZXMgY2FyZQo+ID4gb2YgdGhlIGNvbnZlcnNpb24uKQo+ID4gCj4gPiBTbyBJIGRv
+bid0IHNlZSBhbnl0aGluZyBwYXJ0aWN1bGFybHkgZnJpZ2h0ZW5pbmcgaGVyZS4gRG8geW91Pwo+
+Cj4gTm90IHJlYWxseTsgSSBkaWRuJ3QgZXhwZWN0IHRoZSBpbXBsZW1lbnRhdGlvbiB0byBiZSBk
+aWZmaWN1bHQsIGp1c3QgdW5kZXJzdGFuZGluZwo+IHRoZSBkb2N1bWVudGF0aW9uLgo+IAo+IEZv
+ciB0aGUgYmF0dGVyeSB0ZW1wZXJhdHVyZSwgSSB3b3VsZCBwcmVmZXIgdG8gcmVwb3J0IGEgdGVt
+cGVyYXR1cmUgaWYgdGhlIGNoaXAKPiBpcyBjb25maWd1cmVkIGZvciBpdCAoYXNzdW1pbmcgdGhh
+dCBjYW4gYmUgZGV0ZWN0ZWQpLgoKQWdyZWVkLgoKPiBBdCBsZWFzdCBzbyBmYXIgd2UgY2FuIG5v
+dCBjb252ZXJ0IHZvbHRhZ2VzIHRvIHRlbXBlcmF0dXJlcyB2aWEgc2Vuc29ycy5jb25mLAo+IG9y
+IGNhbiB3ZSA/CgpXZSBjYW4ndCBjaGFuZ2UgdGhlIGNoYW5uZWwgdHlwZSwgbm8uIFRoZXJlIGlz
+IGEgbG9uZyBzdGFuZGluZyB0aWNrZXQKb3BlbmVkIGZvciB0aGlzOgogIGh0dHA6Ly93d3cubG0t
+c2Vuc29ycy5vcmcvdGlja2V0LzIyNTgKYnV0IEknbSBzdGlsbCBub3Qgc3VyZSB3aGF0IHRvIGRv
+IHdpdGggaXQuCgpXaGF0IGNhbiBiZSBkb25lIGlzIHRoYXQgZHJpdmVycyBleHBvcnQgdGVtcGVy
+YXR1cmVzIGluIG1WIGJ1dCB0aGV5CmRvbid0IHNheSBzbywgYW5kIHdlIGRvIHRoZSBjb252ZXJz
+aW9uIGluIHNlbnNvcnMuY29uZi4gVGhpcyBpcwplc3NlbnRpYWxseSBhbiB1bmRvY3VtZW50ZWQg
+dmlvbGF0aW9uIG9mIG91ciBzeXNmcyBpbnRlcmZhY2UgYnV0CnNldmVyYWwgZHJpdmVycyBhcmUg
+ZG9pbmcgaXQgYWxyZWFkeTogdnQxMjExLCB2dDgyMzEsIHBjODczNjAuIFNlZQpldGMvc2Vuc29y
+cy5jb25mLmVnIGZvciBleGFtcGxlcyBvZiBjb252ZXJzaW9uIGZvcm11bGEuCgpJJ20gbm9yIHBh
+cnRpY3VsYXJseSBoYXBweSB3aXRoIHRoZSBzaXR1YXRpb24sIGJ1dCBJIGhhdmUgbm8gaW1tZWRp
+YXRlCnNvbHV0aW9uIHRvIHByb3Bvc2UgYW5kIHRoZSBwcm9ibGVtIGlzIHJhcmUgZW5vdWdoIHRo
+YXQgaXQgZG9lc24ndApwcmV2ZW50IG1lIGZyb20gc2xlZXBpbmcgc28gZmFyLiBJZiB5b3Ugb3Ig
+YW55b25lIGVsc2Ugd2FudCB0byBwcm9wb3NlCnNvbWV0aGluZyBvciBldmVuIGltcGxlbWVudCBp
+dCwgZmVlbCBmcmVlLgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
