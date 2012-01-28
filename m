@@ -1,60 +1,141 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 27 Jan 2012 21:48:52 +0000
+From: Andrew Smith <Andrew@GNAServicesInc.com>
+Date: Sat, 28 Jan 2012 00:02:33 +0000
 Subject: Re: [lm-sensors] sensors-detect bug ?
-Message-Id: <20120127224852.794a9172@endymion.delvare>
+Message-Id: <4F233B19.7070107@GNAServicesInc.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============6957503621749993421=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4F22E64F.8060204@GNAServicesInc.com>
 In-Reply-To: <4F22E64F.8060204@GNAServicesInc.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 27 Jan 2012 15:26:17 -0500, Andrew Smith wrote:
-> 3.2.2
-> 
-> ls -l /sys/bus/i2c/devices/i2c-*/
-> /sys/bus/i2c/devices/i2c-0/:
-> ls: cannot access /sys/bus/i2c/devices/i2c-0/LNXSYSTM:00: No such file
-> or directory
-> ls: cannot access /sys/bus/i2c/devices/i2c-0/cpu: No such file or directory
-> ls: cannot access /sys/bus/i2c/devices/i2c-0/breakpoint: No such file or
-> directory
-> total 0
-> drwxr-xr-x 18 root root 0 2012-01-27 12:18
-> d?????????  ? ?    ?    ?                ? breakpoint
-> d?????????  ? ?    ?    ?                ? cpu
-> drwxr-xr-x  4 root root 0 2012-01-27 12:18 i2c-1
-> drwxr-xr-x  4 root root 0 2012-01-27 12:18 i2c-2
-> drwxr-xr-x  4 root root 0 2012-01-27 12:18 i2c-3
-> drwxr-xr-x  4 root root 0 2012-01-27 12:18 i2c-4
-> drwxr-xr-x  3 root root 0 2012-01-27 12:18 ibs
-> d?????????  ? ?    ?    ?                ? LNXSYSTM:00
-> drwxr-xr-x 18 root root 0 2012-01-27 12:18 pci0000:00
-> drwxr-xr-x 10 root root 0 2012-01-27 12:18 platform
-> drwxr-xr-x 18 root root 0 2012-01-27 12:18 pnp0
-> drwxr-xr-x  3 root root 0 2012-01-27 15:06 rapidio
-> drwxr-xr-x  3 root root 0 2012-01-27 12:18 software
-> drwxr-xr-x  8 root root 0 2012-01-27 12:20 system
-> drwxr-xr-x 19 root root 0 2012-01-27 12:18 virtual
+This is a cryptographically signed message in MIME format.
 
-Looks like sysfs / driver tree corruption. i2c-0/ contains entries
-which normally live in /sys/devices, and some don't even have file
-attributes.
+--===============6957503621749993421==
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms090003020604040009050909"
 
-Please check if older kernels have the same problem and check that you
-use reliable memory.
+This is a cryptographically signed message in MIME format.
 
-If you can reproduce the problem, please check the kernel logs for
-any relevant message. A kernel with some debugging options enabled
-might be good too.
+--------------ms090003020604040009050909
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Anyone, that's not a sensors-detect issue.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
--- 
-Jean Delvare
+Thank you.  All fixed. This was my first time encountering something
+like that and I was clearly going in the wrong direction trying to fix
+it. Pointing me in the right direction really saved me a time.  So
+thank you!
+
+Andy
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBAgAGBQJPIzsZAAoJEGf+DvovjtYGhLgP/A9yWMRHy97iOtq8nN4A26Lf
+pLq2S3HSKY8mRkfNCpeg3QT0Hg5Vk9pRxMDl4tZ9lsTJ9HREaPXn+DzWUz2DfSpO
+evAvTbOSUNkPOLIYjXf91ckVYPj+cpwYu33dI+bcZ0uPUDuo6/4HVTT+GnFbGUyQ
+FEqL4IQhONzquT+SeiJvEhcn27PyeyhrgPIM7bwS0poS9VwOqw9hIJF8qjw9gXFu
+59UGKtd8MDBTVfldaoKLk6FC05kV2WKeYQmKmh/T+0mAVX1I7CSY06j9VAYmx2z9
+r3dacpDWMDY0A8KMwYSJ1A4i7IdM6jC8KiEKt2dBNNWB/OgJQ2AqGMvGVPQQfHjp
+SJ45wY3TFPVfa+CHvYSpKHQ6IxHYGYtjUu9cQUfKAesDG55Ifq0fhoTdIEFP9ohK
+6bwdDIc/uIttCiICYtz5uwZqWlBJ5YJZmyVrdtWfU5CY0B9UDnkic+30Yzelibf2
+Iy6HChSTYzso2cnaPuHEwt5hE0ACd6yOAM7EzndMTeTXmoskjHXj2ksSbK2bMqVz
+q54Ro9GZrHP2fBL862b2EJ5tQ5KDWInYqSYIne90mfICkbxo3agMUO217AwSwayi
+cFO4UOllOs+PDVP34IaFqYqavxoT1xzofyjNEDDCfa3s3Wqc/qBlELPDuWff+h4T
+4CtXl/dtkTUx8tGLmmMw
+=3D0qAP
+-----END PGP SIGNATURE-----
+
+
+--------------ms090003020604040009050909
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIKEjCC
+BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
+BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
+bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
+NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
+dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
+LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
+NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
+lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
+vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
+hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
+9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
+A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
+BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
+cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
+ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
+54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
+g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
+WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
+Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
+XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIFgDCCBGigAwIBAgIQUVX68kYv248J
+0u62JN9CvDANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
+FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
+MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
+Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0xMTAyMTAwMDAwMDBa
+Fw0xMjAyMTAyMzU5NTlaMCoxKDAmBgkqhkiG9w0BCQEWGWFuZHJld0BnbmFzZXJ2aWNlc2lu
+Yy5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDElVlYcSSyKqkAo6Tw2Z2y
+yKmsak/RPwTfPW3xROiTs9sxs8p6NsutIcqEjezJWK3BuglcUUx28vQm5eaqGiXSOvCrjWz+
+Qq+oINqYRcMn7ziU1NKNxrH60ZGHLFzclfRNUhzkIfjwnmIJyUorwhsZhWfP+bxO13iPc4MO
+3+bko1GJ1fzF3eLZsMHbl2joRwrbSs7IbCPLJ/XqBV4efmugFd3jK6lU8rQFaKxAKb+bK26q
+bI3NIGWo//d9c7gNaqG9Xa+mWWgz9d2EY8MyMm/J5zNNAspE7ppZLT75zxrZMJLjMxnWqLo/
+3v6DQjsVTupG6NclSd4nnJNM9cLGeu0dAgMBAAGjggIbMIICFzAfBgNVHSMEGDAWgBSJgmd9
+xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4EFgQUnEKDEnBFULXrM4/Hz22n+DoolKAwDgYDVR0P
+AQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwIAYDVR0lBBkwFwYIKwYBBQUHAwQGCysGAQQBsjEB
+AwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBGBgNVHSAEPzA9MDsGDCsGAQQBsjEBAgEBATArMCkG
+CCsGAQUFBwIBFh1odHRwczovL3NlY3VyZS5jb21vZG8ubmV0L0NQUzCBpQYDVR0fBIGdMIGa
+MEygSqBIhkZodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9VVE4tVVNFUkZpcnN0LUNsaWVudEF1
+dGhlbnRpY2F0aW9uYW5kRW1haWwuY3JsMEqgSKBGhkRodHRwOi8vY3JsLmNvbW9kby5uZXQv
+VVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDBsBggrBgEF
+BQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0dHA6Ly9jcnQuY29tb2RvY2EuY29tL1VUTkFBQUNs
+aWVudENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2RvY2EuY29tMCQGA1Ud
+EQQdMBuBGWFuZHJld0BnbmFzZXJ2aWNlc2luYy5jb20wDQYJKoZIhvcNAQEFBQADggEBAIgy
+Ezr16rXgcQpUP5YEsnm0DM+mZIMnB4viL9ScZ6RsffZYrdqA1Nnyt/q2bgPu/vBIQxjykc+G
+g62YrM0N0Lp1gccNTFhIo/cFd7+A/90zNqe1iq7R+U1UO4vlii6pf39IoM1Lhk8kpoCJcK3T
+OCVYF8viWZfmPm6FIPbz+kI5qBE7739/ub7RheEn5kXS1Tz29s2typf/2CtsBMigCQ1Jr15M
+LCEY0juMsAt5YEyKYpJ1LkLhtu+7hCg/sVd8I49Htf7LkZlcVRZhrNR3s79z9yRbRm7uPgEC
+I9RzEb/S8zVtw8abTj5r8ZW7aIJ9fDIDhQ7iihWSJxHMLDU9VUIxggRdMIIEWQIBATCBwzCB
+rjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEe
+MBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVz
+ZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0
+aW9uIGFuZCBFbWFpbAIQUVX68kYv248J0u62JN9CvDAJBgUrDgMCGgUAoIICbjAYBgkqhkiG
+9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMjAxMjgwMDAyMzNaMCMGCSqG
+SIb3DQEJBDEWBBQ1MMzOdXaRkNKwdTRePwo5ENe+KzBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCG
+SAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYF
+Kw4DAgcwDQYIKoZIhvcNAwICASgwgdQGCSsGAQQBgjcQBDGBxjCBwzCBrjELMAkGA1UEBhMC
+VVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhl
+IFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20x
+NjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFp
+bAIQUVX68kYv248J0u62JN9CvDCB1gYLKoZIhvcNAQkQAgsxgcaggcMwga4xCzAJBgNVBAYT
+AlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRo
+ZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29t
+MTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1h
+aWwCEFFV+vJGL9uPCdLutiTfQrwwDQYJKoZIhvcNAQEBBQAEggEAN1iBWmQ/pLZxzCubeqr3
+1b3W44V5AziuYK+7xMPLZk7LJ6EXMkpjC+d0K0lMcFum1RpTpkq+2k1HbFRmjGO+77cSmWeq
+qQpEGw3uQzGB9Wsy7Y73DqECJFc64j5xs+SbiqohqLE2etOXOU/UeuwXTtqH5veLhqoznIdb
+622eG3E9qScd57DzxYojbmLKNFUJMHcMuc0p4tXqTh2rulL1GXpHKD4Wod4AkoiYkg9ml33p
+lFP52T3qBj18qr39EkkB+8HDpqqiokzOvCm470UMjxQlX2+Lqn5GArCZhk12VBpnfev/Yadn
+wuXtaITK2bqOCFmuwwlUhAcD3kAQW5D9HgAAAAAAAA==
+--------------ms090003020604040009050909--
+
+
+--===============6957503621749993421==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============6957503621749993421==--
