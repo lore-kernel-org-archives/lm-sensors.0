@@ -1,61 +1,94 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 30 Jan 2012 08:45:02 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 30 Jan 2012 13:20:44 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120130094502.1d94481a@endymion.delvare>
+Message-Id: <20120130132044.GD13788@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327784107-18923-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1327784107-18923-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgVXdlLAoKT24gU2F0LCAyOCBKYW4gMjAxMiAyMTo1NTowNyArMDEwMCwgVXdlIEtsZWluZS1L
-w7ZuaWcgd3JvdGU6Cj4gQmFzZWQgb24gYSBwYXRjaCBieSBEYXZpZCBKYW5kZXIgdGhhdCBtb3N0
-bHkgZGlkIHMvbWMxMzc4My9tYzEzeHh4Lwo+IAo+IENjOiBEYXZpZCBKYW5kZXIgPGRhdmlkLmph
-bmRlckBwcm90b25pYy5ubD4KPiBTaWduZWQtb2ZmLWJ5OiBVd2UgS2xlaW5lLUvDtm5pZyA8dS5r
-bGVpbmUta29lbmlnQHBlbmd1dHJvbml4LmRlPgo+IC0tLQo+IEhlbGxvLAo+IAo+IEkgZGlkbid0
-IG1hbmFnZSB0byBzZW5kIHRoaXMgImxhdGVyIHRvZGF5IiBhcyBwcm9taXNlZCB5ZXN0ZXJkYXku
-IFNvIGl0Cj4gY29tZXMgb25seSB0b2RheS4KCk5vIHByb2JsZW0gOikKCj4gY2hhbmdlcyBzaW5j
-ZSB2MjoKPiAgLSBtYWtlIGNvZGUgZ2VuZXJhdGluZyBuYW1lIGF0dHJpYnV0ZSBtb3JlIHJvYnVz
-dCBhbmQgc3RyaXAgWy1fXWFkYwo+ICAtIGNvbnNpc3Rlbmx5IHVzZSBNQzEzNzgzX0FEQ18xNkNI
-QU5TIC8gbWMxMzc4M19hdHRyXzE2Y2hhbnMKClRoYW5rcyBmb3IgdGhlIHVwZGF0ZS4gSSBoYXZl
-IGEgZmV3IG1vcmUgY29tbWVudHMsIGJ1dCB0aGVzZSBhcmUgb25seQptaW5vciB0aGluZ3MuCgo+
-ICBEb2N1bWVudGF0aW9uL2h3bW9uL21jMTM3ODMtYWRjIHwgICA0OCArKysrKysrKysrKystLS0t
-Cj4gIGRyaXZlcnMvaHdtb24vS2NvbmZpZyAgICAgICAgICAgfCAgICA2ICstCj4gIGRyaXZlcnMv
-aHdtb24vbWMxMzc4My1hZGMuYyAgICAgfCAgMTE2ICsrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrLS0tLS0tLS0tLQo+ICAzIGZpbGVzIGNoYW5nZWQsIDEyNiBpbnNlcnRpb25zKCspLCA0NCBk
-ZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9od21vbi9tYzEzNzgz
-LWFkYyBiL0RvY3VtZW50YXRpb24vaHdtb24vbWMxMzc4My1hZGMKPiBpbmRleCAwNDQ1MzFhLi44
-NmY2ZGE1IDEwMDY0NAo+IC0tLSBhL0RvY3VtZW50YXRpb24vaHdtb24vbWMxMzc4My1hZGMKPiAr
-KysgYi9Eb2N1bWVudGF0aW9uL2h3bW9uL21jMTM3ODMtYWRjCj4gQEAgLTUsNiArNSw5IEBAIFN1
-cHBvcnRlZCBjaGlwczoKPiAgICAqIEZyZWVzY2FsZSBBdGxhcyBNQzEzNzgzCj4gICAgICBQcmVm
-aXg6ICdtYzEzNzgzX2FkYycKPiAgICAgIERhdGFzaGVldDogaHR0cDovL3d3dy5mcmVlc2NhbGUu
-Y29tL2ZpbGVzL3JmX2lmL2RvYy9kYXRhX3NoZWV0L01DMTM3ODMucGRmP2ZzcmNoPTEKPiArICAq
-IEZyZWVzY2FsZSBBdGxhcyBNQzEzODkyCj4gKyAgICBQcmVmaXg6ICdtYzEzODkyX2FkYycKPiAr
-ICAgIERhdGFzaGVldDogaHR0cDovL2NhY2hlLmZyZWVzY2FsZS5jb20vZmlsZXMvYW5hbG9nL2Rv
-Yy9kYXRhX3NoZWV0L01DMTM4OTIucGRmP2ZzcmNoPTEmc3I9MQoKVGhlIF9hZGMgaXMgZ29uZSBm
-cm9tIHRoZSBwcmVmaXhlcyB3aXRoIHRoaXMgdmVyc2lvbiwgc28gdGhlCmRvY3VtZW50YXRpb24g
-c2hvdWxkIGJlIHVwZGF0ZWQgdG8gcmVmbGVjdCB0aGF0LgoKPiAgc3RhdGljIHNzaXplX3QgbWMx
-Mzc4M19hZGNfc2hvd19uYW1lKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRy
-aWJ1dGUKPiAgCQkJICAgICAgKmRldmF0dHIsIGNoYXIgKmJ1ZikKPiAgewo+IC0JcmV0dXJuIHNw
-cmludGYoYnVmLCAibWMxMzc4M19hZGNcbiIpOwo+ICsJc3RydWN0IHBsYXRmb3JtX2RldmljZSAq
-cGRldiA9IHRvX3BsYXRmb3JtX2RldmljZShkZXYpOwo+ICsJc3RydWN0IG1jMTM3ODNfYWRjX3By
-aXYgKnByaXYgPSBwbGF0Zm9ybV9nZXRfZHJ2ZGF0YShwZGV2KTsKCldoZW4geW91IGRvbid0IG5l
-ZWQgcGRldiBpdHNlbGYsIHRoZSBhYm92ZSBjYW4gYmUgYWJicmV2aWF0ZWQgYXM6CgoJc3RydWN0
-IG1jMTM3ODNfYWRjX3ByaXYgKnByaXYgPSBkZXZfZ2V0X2RydmRhdGEoZGV2KTsKClNhbWUgaW4g
-ZnVuY3Rpb24gbWMxMzc4M19hZGNfcmVhZCgpLiBUaGlzIGNhbiBiZSBjbGVhbmVkIHVwIGxhdGVy
-LCBnY2MKaXMgYXBwYXJlbnRseSBzbWFydCBlbm91Z2ggdG8gb3B0aW1pemUgaXQgYW55d2F5LgoK
-QWxsIHRoZSByZXN0IGxvb2tzIGdvb2QsIHNvIGFzc3VtaW5nIHRoZSBwcmVmaXhlcyBnZXQgZml4
-ZWQgaW4gdGhlIGRvY3VtZW50YXRpb24sCgpBY2tlZC1ieTogSmVhbiBEZWx2YXJlIDxraGFsaUBs
-aW51eC1mci5vcmc+CgpHdWVudGVyLCBob3cgZG8gd2UgcHJvY2VlZD8gSSBzZWUgeW91IGhhdmUg
-YSBzbWFsbCBjbGVhbnVwIHBhdGNoIHRvIHRoZQptYzEzNzgzLWFkYyBkcml2ZXIgaW4geW91ciB0
-cmVlLCB0aGUgc2FtZSBjbGVhbnVwIGlzIGluY2x1ZGVkIGluIFV3ZSdzCnBhdGNoIHNvIHRoZXkg
-d2lsbCBjb25mbGljdC4gTGV0IG1lIGtub3cgaWYgeW91IHdhbnQgdG8gdGFrZSBVd2UncwpwYXRj
-aCBhbmQgaGFuZGxlIHRoZSBjb25mbGljdCwgb3IgcHJlZmVyIHRvIGRyb3AgdGhlIGNsZWFudXAg
-cGF0Y2ggZnJvbQp5b3UgdHJlZSBhbmQgbGV0IG1lIGhhbmRsZSB0aGF0IGRyaXZlciBmb3IgdGhp
-cyBjeWNsZS4gRWl0aGVyIHdheSBpcwpmaW5lIHdpdGggbWUsIGFzIGxvbmcgYXMgaXQgYWN0dWFs
-bHkgaGFwcGVucy4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+On Mon, Jan 30, 2012 at 03:45:02AM -0500, Jean Delvare wrote:
+> Hi Uwe,
+>=20
+> On Sat, 28 Jan 2012 21:55:07 +0100, Uwe Kleine-K=F6nig wrote:
+> > Based on a patch by David Jander that mostly did s/mc13783/mc13xxx/
+> >=20
+> > Cc: David Jander <david.jander@protonic.nl>
+> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> > ---
+> > Hello,
+> >=20
+> > I didn't manage to send this "later today" as promised yesterday. So it
+> > comes only today.
+>=20
+> No problem :)
+>=20
+> > changes since v2:
+> >  - make code generating name attribute more robust and strip [-_]adc
+> >  - consistenly use MC13783_ADC_16CHANS / mc13783_attr_16chans
+>=20
+> Thanks for the update. I have a few more comments, but these are only
+> minor things.
+>=20
+> >  Documentation/hwmon/mc13783-adc |   48 ++++++++++++----
+> >  drivers/hwmon/Kconfig           |    6 +-
+> >  drivers/hwmon/mc13783-adc.c     |  116 +++++++++++++++++++++++++++++--=
+--------
+> >  3 files changed, 126 insertions(+), 44 deletions(-)
+> >=20
+> > diff --git a/Documentation/hwmon/mc13783-adc b/Documentation/hwmon/mc13=
+783-adc
+> > index 044531a..86f6da5 100644
+> > --- a/Documentation/hwmon/mc13783-adc
+> > +++ b/Documentation/hwmon/mc13783-adc
+> > @@ -5,6 +5,9 @@ Supported chips:
+> >    * Freescale Atlas MC13783
+> >      Prefix: 'mc13783_adc'
+> >      Datasheet: http://www.freescale.com/files/rf_if/doc/data_sheet/MC1=
+3783.pdf?fsrch=3D1
+> > +  * Freescale Atlas MC13892
+> > +    Prefix: 'mc13892_adc'
+> > +    Datasheet: http://cache.freescale.com/files/analog/doc/data_sheet/=
+MC13892.pdf?fsrch=3D1&sr=3D1
+>=20
+> The _adc is gone from the prefixes with this version, so the
+> documentation should be updated to reflect that.
+>=20
+> >  static ssize_t mc13783_adc_show_name(struct device *dev, struct device=
+_attribute
+> >  			      *devattr, char *buf)
+> >  {
+> > -	return sprintf(buf, "mc13783_adc\n");
+> > +	struct platform_device *pdev =3D to_platform_device(dev);
+> > +	struct mc13783_adc_priv *priv =3D platform_get_drvdata(pdev);
+>=20
+> When you don't need pdev itself, the above can be abbreviated as:
+>=20
+> 	struct mc13783_adc_priv *priv =3D dev_get_drvdata(dev);
+>=20
+> Same in function mc13783_adc_read(). This can be cleaned up later, gcc
+> is apparently smart enough to optimize it anyway.
+>=20
+> All the rest looks good, so assuming the prefixes get fixed in the docume=
+ntation,
+>=20
+> Acked-by: Jean Delvare <khali@linux-fr.org>
+>=20
+> Guenter, how do we proceed? I see you have a small cleanup patch to the
+> mc13783-adc driver in your tree, the same cleanup is included in Uwe's
+> patch so they will conflict. Let me know if you want to take Uwe's
+> patch and handle the conflict, or prefer to drop the cleanup patch from
+> you tree and let me handle that driver for this cycle. Either way is
+> fine with me, as long as it actually happens.
+>=20
+I'll drop the cleanup patch. Isn't much anyway.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
