@@ -1,82 +1,34 @@
-From: Ivan Bulatovic <combuster@archlinux.us>
-Date: Sun, 22 Jan 2012 20:04:43 +0000
-Subject: [lm-sensors] sensors3.conf settings for IT8728F / GA-H67MA-UD2H
-Message-Id: <1327262683.1391.69.camel@localhost.localdomain>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 31 Jan 2012 07:25:13 +0000
+Subject: Re: [lm-sensors] sensors3.conf settings for IT8728F / GA-H67MA-UD2H
+Message-Id: <20120131082513.47536187@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1327262683.1391.69.camel@localhost.localdomain>
+In-Reply-To: <1327262683.1391.69.camel@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-These are the settings for IT8728F on GA-H67MA-UD2H (and possibly other
-P65/H61/H67 Gigabyte boards)
+On Sun, 22 Jan 2012 21:04:43 +0100, Ivan Bulatovic wrote:
+> These are the settings for IT8728F on GA-H67MA-UD2H (and possibly other
+> P65/H61/H67 Gigabyte boards)
+> 
+> Testing was done on Arch Linux, 3.3-rc1 custom kernel and lm_sensors
+> 3.3.1
+> 
+> If anyone have suggestions to make this better, or if there are any
+> users that can confirm if other models from Gigabyte coresponds to these
+> settings, that would be great.
+> 
+> Jean, could you please add this to other GA boards on the wiki, after
+> eventual changes and/or confirmations from other users?
 
-Testing was done on Arch Linux, 3.3-rc1 custom kernel and lm_sensors
-3.3.1
+Added, thanks:
+http://www.lm-sensors.org/wiki/Configurations/Gigabyte/H67MA-UD2H
 
-If anyone have suggestions to make this better, or if there are any
-users that can confirm if other models from Gigabyte coresponds to these
-settings, that would be great.
-
-Jean, could you please add this to other GA boards on the wiki, after
-eventual changes and/or confirmations from other users?
-
-Thank you,
-Ivan Bulatovic
-
-chip "it8728-*"
-
-    label in0 "Vtt"
-    set in0_min 1.02    # I'm liberal with these, 2-3% tops
-    set in0_max 1.08    # after that, cpu gets very unstable
-
-    ignore in1
-#   label in1 "+3.3V"
-#   set in1_min 3.14    # Some boards including GA-H67MA-UD2H
-#   set in1_max 3.47    # don't have 3.3V voltage reading
-
-    label in2 "+12V"
-    set in2_min 11.40   # according to ATX 12V PSU design guide
-    set in2_max 12.60   #
-
-    ignore in3          # reports 3VSB
-
-    ignore in4          # really don't know what's this one for
-
-    label in5 "Vcore"
-    set in5_min 0.65
-    set in5_max 1.50    # heavy o/c
-
-    label in6 "Vdram"
-    set in6_min 1.45    # adjust these, 1.35 for LVDDR3
-    set in6_max 1.55    # 1.5V is recommended, 1.65 tops
-     
-    label in7 "3VSB"
-    set in7_min 3.14
-    set in7_max 3.47
-
-    label in8 "Vbat"
-
-    label fan1 "CPU fan"
-    set fan1_min 700
-
-    label fan2 "System fan"
-    set fan2_min 0
-
-    label temp1 "PCH temp"
-    set temp1_min 10
-    set temp1_max 60    # seen those rising to 55C
-
-    label temp2 "CPU temp"
-    set temp2_min 10
-    set temp2_max 85
-
-    ignore temp3
-
-    compute in1 1.649*@,@/1.649 # multipliers provided by 
-    compute in2 4.090*@,@/4.090 # Martin Malik author of hwinfo
-
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
