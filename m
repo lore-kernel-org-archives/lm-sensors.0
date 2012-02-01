@@ -1,70 +1,30 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 22 Feb 2012 16:56:49 +0000
-Subject: [lm-sensors] [PATCH 7/7] hwmon: (ltc4261) Convert to use devm_kzalloc
-Message-Id: <1329929809-6085-7-git-send-email-linux@roeck-us.net>
+Date: Wed, 01 Feb 2012 19:10:48 +0000
+Subject: [lm-sensors] [PATCH 0/24] hwmon: Remove vrm sysfs attribute
+Message-Id: <1328123472-27816-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Marginally less code and eliminate the possibility of memory leaks.
+The vrm value is system-wide and only needs to be calculated once. Do it when
+the module is loaded. Provide a module parameter to enable overwriting the
+default value in case it is wrong or can not be calculated.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/ltc4261.c |   15 ++++-----------
- 1 files changed, 4 insertions(+), 11 deletions(-)
+The first patch modifies hwmon-vid and its API to support and use a locally
+generated value for vrm or a module parameter specifying it. The vrm API
+parameter is made optional and ignored if provided. This ensures that the patch
+can be applied without affecting drivers which are calling the API functions.
 
-diff --git a/drivers/hwmon/ltc4261.c b/drivers/hwmon/ltc4261.c
-index ab1bfbf..069b7d3 100644
---- a/drivers/hwmon/ltc4261.c
-+++ b/drivers/hwmon/ltc4261.c
-@@ -235,11 +235,9 @@ static int ltc4261_probe(struct i2c_client *client,
- 		return -ENODEV;
- 	}
- 
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
--	if (!data) {
--		ret = -ENOMEM;
--		goto out_kzalloc;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
- 
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-@@ -250,7 +248,7 @@ static int ltc4261_probe(struct i2c_client *client,
- 	/* Register sysfs hooks */
- 	ret = sysfs_create_group(&client->dev.kobj, &ltc4261_group);
- 	if (ret)
--		goto out_sysfs_create_group;
-+		return ret;
- 
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -262,9 +260,6 @@ static int ltc4261_probe(struct i2c_client *client,
- 
- out_hwmon_device_register:
- 	sysfs_remove_group(&client->dev.kobj, &ltc4261_group);
--out_sysfs_create_group:
--	kfree(data);
--out_kzalloc:
- 	return ret;
- }
- 
-@@ -275,8 +270,6 @@ static int ltc4261_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &ltc4261_group);
- 
--	kfree(data);
--
- 	return 0;
- }
- 
--- 
-1.7.5.4
+Subsequent patches update the various hwmon drivers to remove vrm attribute
+support. At the same time, the cpuX_vid attribute is made optional and only
+supported if vrm is known.
 
+The last patch finalizes the series by removing the optional vrm parameter from
+the hwmon-vid API functions.
+
+This patch series applies to the top of my hwmon-next tree.
 
 _______________________________________________
 lm-sensors mailing list
