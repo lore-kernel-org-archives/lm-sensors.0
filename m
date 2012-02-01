@@ -1,160 +1,113 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Wed, 01 Feb 2012 21:05:44 +0000
-Subject: [lm-sensors] [PATCH v5 5/5] x86/platform: (TS-5500) add ADC support
-Message-Id: <1328130344-18836-6-git-send-email-vivien.didelot@savoirfairelinux.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 01 Feb 2012 19:11:07 +0000
+Subject: [lm-sensors] [PATCH 19/24] hwmon: (w83781d) Drop vrm attribute, and make cpu0_vid conditional
+Message-Id: <1328123472-27816-20-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org
-Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
+To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+vrm is now maintained in hwmon-vid, no need to keep a local copy.
+Only create the cpu0_vid attribute if vrm is valid.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- arch/x86/platform/ts5500/Kconfig      |    7 ++
- arch/x86/platform/ts5500/Makefile     |    1 +
- arch/x86/platform/ts5500/ts5500_adc.c |  104 +++++++++++++++++++++++++++++++++
- 3 files changed, 112 insertions(+), 0 deletions(-)
- create mode 100644 arch/x86/platform/ts5500/ts5500_adc.c
+ drivers/hwmon/w83781d.c |   39 ++++++++-------------------------------
+ 1 files changed, 8 insertions(+), 31 deletions(-)
 
-diff --git a/arch/x86/platform/ts5500/Kconfig b/arch/x86/platform/ts5500/Kconfig
-index 76f777f..d6f5a8a 100644
---- a/arch/x86/platform/ts5500/Kconfig
-+++ b/arch/x86/platform/ts5500/Kconfig
-@@ -20,3 +20,10 @@ config TS5500_LED
- 	default y
- 	help
- 	  This option enables support for the on-chip LED.
-+
-+config TS5500_ADC
-+	tristate "TS-5500 ADC"
-+	depends on TS5500 && SENSORS_MAX197
-+	default y
-+	help
-+      Support for the A/D converter on Technologic Systems TS-5500 SBCs.
-diff --git a/arch/x86/platform/ts5500/Makefile b/arch/x86/platform/ts5500/Makefile
-index 88eccc9..dcf46d8 100644
---- a/arch/x86/platform/ts5500/Makefile
-+++ b/arch/x86/platform/ts5500/Makefile
-@@ -1,3 +1,4 @@
- obj-$(CONFIG_TS5500)			+= ts5500.o
- obj-$(CONFIG_TS5500_GPIO)		+= ts5500_gpio.o
- obj-$(CONFIG_TS5500_LED)		+= ts5500_led.o
-+obj-$(CONFIG_TS5500_ADC)		+= ts5500_adc.o
-diff --git a/arch/x86/platform/ts5500/ts5500_adc.c b/arch/x86/platform/ts5500/ts5500_adc.c
-new file mode 100644
-index 0000000..c55a283
---- /dev/null
-+++ b/arch/x86/platform/ts5500/ts5500_adc.c
-@@ -0,0 +1,104 @@
-+/*
-+ * Technologic Systems TS-5500 boards - Mapped MAX197 ADC driver
-+ *
-+ * Copyright (c) 2010-2012 Savoir-faire Linux Inc.
-+ *          Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
-+ *          Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-+ *
-+ * The TS-5500 uses a CPLD to abstract the interface to the MAX197.
-+ * This driver should work unchanged with the MAX199 chip.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/sysfs.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/max197.h>
-+
-+#define TS5500_ADC_CTRL_REG		0x195	/* Conversion state register */
-+#define TS5500_ADC_INIT_LSB_REG		0x196	/* Init conv. / LSB register */
-+#define TS5500_ADC_MSB_REG		0x197	/* MSB register */
-+#define TS5500_ADC_READ_DELAY		12	/* usec */
-+#define TS5500_ADC_READ_BUSY_MASK	0x01
-+
-+static int ts5500_adc_start(u8 ctrl)
-+{
-+	/* Ensure the 3 MSB are set to 0 */
-+	outb(ctrl & 0x1F, TS5500_ADC_INIT_LSB_REG);
-+
-+	return 0;
-+}
-+
-+static int ts5500_adc_read(u16 *raw)
-+{
-+	u8 lsb, msb;
-+
-+	udelay(TS5500_ADC_READ_DELAY);
-+	lsb = inb(TS5500_ADC_CTRL_REG);
-+
-+	if (lsb & TS5500_ADC_READ_BUSY_MASK)
-+		return -EBUSY;
-+
-+	lsb = inb(TS5500_ADC_INIT_LSB_REG);
-+	msb = inb(TS5500_ADC_MSB_REG);
-+	*raw = (msb << 8) | lsb;
-+
-+	return 0;
-+}
-+
-+static struct max197_platform_data ts5500_adc_platform_data = {
-+	.start = ts5500_adc_start,
-+	.read = ts5500_adc_read
-+};
-+
-+static void ts5500_adc_release(struct device *dev)
-+{
-+	/* noop */
-+}
-+
-+static struct platform_device ts5500_adc_device = {
-+	.name = "max197",
-+	.id = -1,
-+	.dev = {
-+		.platform_data = &ts5500_adc_platform_data,
-+		.release = ts5500_adc_release
+diff --git a/drivers/hwmon/w83781d.c b/drivers/hwmon/w83781d.c
+index b03d54a..7df88ee 100644
+--- a/drivers/hwmon/w83781d.c
++++ b/drivers/hwmon/w83781d.c
+@@ -245,7 +245,6 @@ struct w83781d_data {
+ 				 * 1 = pentium diode; 2 = 3904 diode;
+ 				 * 4 = thermistor
+ 				 */
+-	u8 vrm;
+ };
+ 
+ static struct w83781d_data *w83781d_data_if_isa(void);
+@@ -420,37 +419,12 @@ static ssize_t
+ show_vid_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct w83781d_data *data = w83781d_update_device(dev);
+-	return sprintf(buf, "%ld\n", (long) vid_from_reg(data->vid, data->vrm));
++	return sprintf(buf, "%ld\n", (long) vid_from_reg(data->vid));
+ }
+ 
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+ 
+ static ssize_t
+-show_vrm_reg(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct w83781d_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%ld\n", (long) data->vrm);
+-}
+-
+-static ssize_t
+-store_vrm_reg(struct device *dev, struct device_attribute *attr,
+-	      const char *buf, size_t count)
+-{
+-	struct w83781d_data *data = dev_get_drvdata(dev);
+-	unsigned long val;
+-	int err;
+-
+-	err = kstrtoul(buf, 10, &val);
+-	if (err)
+-		return err;
+-	data->vrm = SENSORS_LIMIT(val, 0, 255);
+-
+-	return count;
+-}
+-
+-static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
+-
+-static ssize_t
+ show_alarms_reg(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct w83781d_data *data = w83781d_update_device(dev);
+@@ -964,8 +938,6 @@ static struct attribute *w83781d_attributes[] = {
+ 	FAN_UNIT_ATTRS(3),
+ 	TEMP_UNIT_ATTRS(1),
+ 	TEMP_UNIT_ATTRS(2),
+-	&dev_attr_cpu0_vid.attr,
+-	&dev_attr_vrm.attr,
+ 	&dev_attr_alarms.attr,
+ 	&dev_attr_beep_mask.attr,
+ 	&sensor_dev_attr_beep_enable.dev_attr.attr,
+@@ -1039,6 +1011,12 @@ w83781d_create_files(struct device *dev, int kind, int is_isa)
+ 	if (err)
+ 		return err;
+ 
++	if (vid_which_vrm() > 0) {
++		err = device_create_file(dev, &dev_attr_cpu0_vid);
++		if (err)
++			return err;
 +	}
-+};
 +
-+static int __init ts5500_adc_init(void)
-+{
-+	return platform_device_register(&ts5500_adc_device);
-+}
-+module_init(ts5500_adc_init);
-+
-+static void __exit ts5500_adc_exit(void)
-+{
-+	platform_device_unregister(&ts5500_adc_device);
-+}
-+module_exit(ts5500_adc_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("TS-5500 mapped MAX197 ADC device driver");
+ 	if (kind != w83783s) {
+ 		err = sysfs_create_group(&dev->kobj, &w83781d_group_in1);
+ 		if (err)
+@@ -1197,6 +1175,7 @@ w83781d_detect(struct i2c_client *client, struct i2c_board_info *info)
+ 
+ static void w83781d_remove_files(struct device *dev)
+ {
++	device_remove_file(dev, &dev_attr_cpu0_vid);
+ 	sysfs_remove_group(&dev->kobj, &w83781d_group);
+ 	sysfs_remove_group(&dev->kobj, &w83781d_group_in1);
+ 	sysfs_remove_group(&dev->kobj, &w83781d_group_in78);
+@@ -1409,8 +1388,6 @@ w83781d_init_device(struct device *dev)
+ 		w83781d_write_value(data, W83781D_REG_BEEP_CONFIG, i | 0x80);
+ 	}
+ 
+-	data->vrm = vid_which_vrm();
+-
+ 	if ((type != w83781d) && (type != as99127f)) {
+ 		tmp = w83781d_read_value(data, W83781D_REG_SCFG1);
+ 		for (i = 1; i <= 3; i++) {
 -- 
-1.7.6.5
+1.7.5.4
 
 
 _______________________________________________
