@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Feb 2012 19:11:03 +0000
-Subject: [lm-sensors] [PATCH 15/24] hwmon: (via-cputemp) Drop vrm attribute, and make cpu0_vid conditional
-Message-Id: <1328123472-27816-16-git-send-email-linux@roeck-us.net>
+Date: Wed, 01 Feb 2012 19:10:59 +0000
+Subject: [lm-sensors] [PATCH 11/24] hwmon: (lm85) Drop vrm attribute, and make cpu0_vid conditional
+Message-Id: <1328123472-27816-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,74 +12,115 @@ vrm is now maintained in hwmon-vid, no need to keep a local copy.
 Only create the cpu0_vid attribute if vrm is valid.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Harald Welte <laforge@gnumonks.org>
 ---
- drivers/hwmon/via-cputemp.c |   17 ++++++-----------
- 1 files changed, 6 insertions(+), 11 deletions(-)
+ drivers/hwmon/lm85.c |   43 ++++++++++---------------------------------
+ 1 files changed, 10 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/hwmon/via-cputemp.c b/drivers/hwmon/via-cputemp.c
-index 8eac67d..19d8f71 100644
---- a/drivers/hwmon/via-cputemp.c
-+++ b/drivers/hwmon/via-cputemp.c
-@@ -49,7 +49,6 @@ enum { SHOW_TEMP, SHOW_LABEL, SHOW_NAME };
- struct via_cputemp_data {
- 	struct device *hwmon_dev;
- 	const char *name;
--	u8 vrm;
- 	u32 id;
- 	u32 msr_temp;
- 	u32 msr_vid;
-@@ -98,7 +97,7 @@ static ssize_t show_cpu_vid(struct device *dev,
- 	if (err)
- 		return -EAGAIN;
+diff --git a/drivers/hwmon/lm85.c b/drivers/hwmon/lm85.c
+index 864c7d9..6fb0889 100644
+--- a/drivers/hwmon/lm85.c
++++ b/drivers/hwmon/lm85.c
+@@ -330,7 +330,6 @@ struct lm85_data {
+ 	u8 temp_ext[3];		/* Decoded values */
+ 	u8 in_ext[8];		/* Decoded values */
+ 	u8 vid;			/* Register value */
+-	u8 vrm;			/* VRM version */
+ 	u32 alarms;		/* Register encoding, combined */
+ 	u8 cfg5;		/* Config Register 5 on ADT7468 */
+ 	struct lm85_autofan autofan[3];
+@@ -424,7 +423,7 @@ show_fan_offset(2);
+ show_fan_offset(3);
+ show_fan_offset(4);
  
--	return sprintf(buf, "%d\n", vid_from_reg(~edx & 0x7f, data->vrm));
-+	return sprintf(buf, "%d\n", vid_from_reg(~edx & 0x7f));
- }
+-/* vid, vrm, alarms */
++/* vid, alarms */
  
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL,
-@@ -143,7 +142,8 @@ static int __devinit via_cputemp_probe(struct platform_device *pdev)
- 	case 0xD:
- 		/* C7 D */
- 		data->msr_temp = 0x1169;
--		data->msr_vid = 0x198;
-+		if (vid_which_vrm() > 0)
-+			data->msr_vid = 0x198;
- 		break;
- 	case 0xF:
- 		/* Nano */
-@@ -168,10 +168,7 @@ static int __devinit via_cputemp_probe(struct platform_device *pdev)
- 	if (err)
- 		goto exit_free;
+ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -434,10 +433,10 @@ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
  
--	if (data->msr_vid)
--		data->vrm = vid_which_vrm();
+ 	if (data->has_vid5) {
+ 		/* 6-pin VID (VRM 10) */
+-		vid = vid_from_reg(data->vid & 0x3f, data->vrm);
++		vid = vid_from_reg(data->vid & 0x3f);
+ 	} else {
+ 		/* 5-pin VID (VRM 9) */
+-		vid = vid_from_reg(data->vid & 0x1f, data->vrm);
++		vid = vid_from_reg(data->vid & 0x1f);
+ 	}
+ 
+ 	return sprintf(buf, "%d\n", vid);
+@@ -445,30 +444,6 @@ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
+ 
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
+ 
+-static ssize_t show_vrm_reg(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct lm85_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%ld\n", (long) data->vrm);
+-}
 -
--	if (data->vrm) {
-+	if (data->msr_vid) {
- 		err = device_create_file(&pdev->dev, &dev_attr_cpu0_vid);
- 		if (err)
- 			goto exit_remove;
-@@ -188,8 +185,7 @@ static int __devinit via_cputemp_probe(struct platform_device *pdev)
- 	return 0;
+-static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct lm85_data *data = dev_get_drvdata(dev);
+-	unsigned long val;
+-	int err;
+-
+-	err = kstrtoul(buf, 10, &val);
+-	if (err)
+-		return err;
+-
+-	data->vrm = val;
+-	return count;
+-}
+-
+-static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
+-
+ static ssize_t show_alarms_reg(struct device *dev, struct device_attribute
+ 		*attr, char *buf)
+ {
+@@ -1174,8 +1149,6 @@ static struct attribute *lm85_attributes[] = {
+ 	&sensor_dev_attr_temp2_auto_temp_crit.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_auto_temp_crit.dev_attr.attr,
  
- exit_remove:
--	if (data->vrm)
--		device_remove_file(&pdev->dev, &dev_attr_cpu0_vid);
-+	device_remove_file(&pdev->dev, &dev_attr_cpu0_vid);
- 	sysfs_remove_group(&pdev->dev.kobj, &via_cputemp_group);
- exit_free:
- 	platform_set_drvdata(pdev, NULL);
-@@ -203,8 +199,7 @@ static int __devexit via_cputemp_remove(struct platform_device *pdev)
- 	struct via_cputemp_data *data = platform_get_drvdata(pdev);
+-	&dev_attr_vrm.attr,
+-	&dev_attr_cpu0_vid.attr,
+ 	&dev_attr_alarms.attr,
+ 	NULL
+ };
+@@ -1370,6 +1343,7 @@ static int lm85_detect(struct i2c_client *client, struct i2c_board_info *info)
  
- 	hwmon_device_unregister(data->hwmon_dev);
--	if (data->vrm)
--		device_remove_file(&pdev->dev, &dev_attr_cpu0_vid);
-+	device_remove_file(&pdev->dev, &dev_attr_cpu0_vid);
- 	sysfs_remove_group(&pdev->dev.kobj, &via_cputemp_group);
- 	platform_set_drvdata(pdev, NULL);
- 	kfree(data);
+ static void lm85_remove_files(struct i2c_client *client, struct lm85_data *data)
+ {
++	device_remove_file(&client->dev, &dev_attr_cpu0_vid);
+ 	sysfs_remove_group(&client->dev.kobj, &lm85_group);
+ 	if (data->type != emc6d103s) {
+ 		sysfs_remove_group(&client->dev.kobj, &lm85_group_minctl);
+@@ -1410,9 +1384,6 @@ static int lm85_probe(struct i2c_client *client,
+ 		data->freq_map = lm85_freq_map;
+ 	}
+ 
+-	/* Set the VRM version */
+-	data->vrm = vid_which_vrm();
+-
+ 	/* Initialize the LM85 chip */
+ 	lm85_init_client(client);
+ 
+@@ -1421,6 +1392,12 @@ static int lm85_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_kfree;
+ 
++	if (vid_which_vrm() > 0) {
++		err = device_create_file(&client->dev, &dev_attr_cpu0_vid);
++		if (err)
++			goto err_remove_files;
++	}
++
+ 	/* minctl and temp_off exist on all chips except emc6d103s */
+ 	if (data->type != emc6d103s) {
+ 		err = sysfs_create_group(&client->dev.kobj, &lm85_group_minctl);
 -- 
 1.7.5.4
 
