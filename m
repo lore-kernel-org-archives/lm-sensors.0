@@ -1,237 +1,120 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Wed, 01 Feb 2012 21:05:42 +0000
-Subject: [lm-sensors] [PATCH v5 3/5] x86/platform: (TS-5500) add LED support
-Message-Id: <1328130344-18836-4-git-send-email-vivien.didelot@savoirfairelinux.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 01 Feb 2012 19:10:50 +0000
+Subject: [lm-sensors] [PATCH 02/24] hwmon: (adm1025) Drop vrm attribute, and make cpu0_vid conditional
+Message-Id: <1328123472-27816-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org
-Cc: Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+To: lm-sensors@vger.kernel.org
 
-From: Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
+vrm is now maintained in hwmon-vid, no need to keep a local copy.
+Only create the cpu0_vid attribute if vrm is valid.
 
-Signed-off-by: Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
-Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 ---
- arch/x86/platform/ts5500/Kconfig      |    7 ++
- arch/x86/platform/ts5500/Makefile     |    1 +
- arch/x86/platform/ts5500/ts5500_led.c |  179 +++++++++++++++++++++++++++++++++
- 3 files changed, 187 insertions(+), 0 deletions(-)
- create mode 100644 arch/x86/platform/ts5500/ts5500_led.c
+ drivers/hwmon/adm1025.c |   38 +++++++++-----------------------------
+ 1 files changed, 9 insertions(+), 29 deletions(-)
 
-diff --git a/arch/x86/platform/ts5500/Kconfig b/arch/x86/platform/ts5500/Kconfig
-index 62095c9..76f777f 100644
---- a/arch/x86/platform/ts5500/Kconfig
-+++ b/arch/x86/platform/ts5500/Kconfig
-@@ -13,3 +13,10 @@ config TS5500_GPIO
- 	default y
- 	help
- 	  This enables support for the DIO headers for GPIO usage.
-+
-+config TS5500_LED
-+	tristate "TS-5500 LED Support"
-+	depends on TS5500 && LEDS_CLASS
-+	default y
-+	help
-+	  This option enables support for the on-chip LED.
-diff --git a/arch/x86/platform/ts5500/Makefile b/arch/x86/platform/ts5500/Makefile
-index 71c1398..88eccc9 100644
---- a/arch/x86/platform/ts5500/Makefile
-+++ b/arch/x86/platform/ts5500/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_TS5500)			+= ts5500.o
- obj-$(CONFIG_TS5500_GPIO)		+= ts5500_gpio.o
-+obj-$(CONFIG_TS5500_LED)		+= ts5500_led.o
-diff --git a/arch/x86/platform/ts5500/ts5500_led.c b/arch/x86/platform/ts5500/ts5500_led.c
-new file mode 100644
-index 0000000..f4562fb
---- /dev/null
-+++ b/arch/x86/platform/ts5500/ts5500_led.c
-@@ -0,0 +1,179 @@
-+/*
-+ * Technologic Systems TS-5500 boards - LED driver
-+ *
-+ * Copyright (c) 2010-2012 Savoir-faire Linux Inc.
-+ *	Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
-+ *
-+ * Portions Copyright (c) 2008 Compulab, Ltd.
-+ *	Mike Rapoport <mike@compulab.co.il>
-+ *
-+ * Portions Copyright (c) 2006-2008 Marvell International Ltd.
-+ *	Eric Miao <eric.miao@marvell.com>
-+ *
-+ * Based on drivers/leds/leds-da903x.c from linux-2.6.32.8.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/io.h>
-+#include <linux/leds.h>
-+#include "ts5500.h"
-+
-+/**
-+ * struct ts5500_led - LED structure
-+ * @cdev:		LED class device structure.
-+ * @ioaddr:		LED I/O address.
-+ */
-+struct ts5500_led {
-+	struct led_classdev	cdev;
-+	int			ioaddr;
-+	int			bit;
-+};
-+
-+static void ts5500_led_set(struct led_classdev *led_cdev,
-+			   enum led_brightness value)
-+{
-+	struct ts5500_led *led = container_of(led_cdev, struct ts5500_led,
-+					      cdev);
-+	outb(!!value, led->ioaddr);
-+}
-+
-+static struct led_info ts5500_led_info = {
-+	.name = "ts5500_led",
-+	.default_trigger = "ts5500_led",
-+	.flags = TS5500_LED_MASK
-+};
-+
-+static struct led_platform_data ts5500_led_platform_data = {
-+	.num_leds = 1,
-+	.leds = &ts5500_led_info
-+};
-+
-+static struct resource ts5500_led_resources[] = {
-+	{
-+		.name = "ts5500_led",
-+		.start = TS5500_LED_JMPRS_REG,
-+		.end = TS5500_LED_JMPRS_REG,
-+		.flags = IORESOURCE_IO
-+	}
-+};
-+
-+static void ts5500_led_release(struct device *dev)
-+{
-+	/* noop */
-+}
-+
-+static struct platform_device ts5500_led_device = {
-+	.name = "ts5500_led",
-+	.resource = ts5500_led_resources,
-+	.num_resources = ARRAY_SIZE(ts5500_led_resources),
-+	.id = -1,
-+	.dev = {
-+		.platform_data = &ts5500_led_platform_data,
-+		.release = ts5500_led_release
-+	}
-+};
-+
-+static int __devinit ts5500_led_probe(struct platform_device *pdev)
-+{
-+	struct led_platform_data *pdata = pdev->dev.platform_data;
-+	struct ts5500_led *led;
-+	struct resource *res;
-+	int ret;
-+
-+	if (pdata = NULL || !pdata->num_leds) {
-+		dev_err(&pdev->dev, "No platform data available\n");
-+		return -ENODEV;
+diff --git a/drivers/hwmon/adm1025.c b/drivers/hwmon/adm1025.c
+index b8557f9..a9b2c26 100644
+--- a/drivers/hwmon/adm1025.c
++++ b/drivers/hwmon/adm1025.c
+@@ -155,7 +155,6 @@ struct adm1025_data {
+ 	s8 temp_max[2];		/* register value */
+ 	u16 alarms;		/* register values, combined */
+ 	u8 vid;			/* register values, combined */
+-	u8 vrm;
+ };
+ 
+ /*
+@@ -350,32 +349,10 @@ static ssize_t
+ show_vid(struct device *dev, struct device_attribute *attr, char *buf)
+ {
+ 	struct adm1025_data *data = adm1025_update_device(dev);
+-	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
++	return sprintf(buf, "%u\n", vid_from_reg(data->vid));
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid, NULL);
+ 
+-static ssize_t
+-show_vrm(struct device *dev, struct device_attribute *attr, char *buf)
+-{
+-	struct adm1025_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%u\n", data->vrm);
+-}
+-static ssize_t set_vrm(struct device *dev, struct device_attribute *attr,
+-		       const char *buf, size_t count)
+-{
+-	struct adm1025_data *data = dev_get_drvdata(dev);
+-	unsigned long val;
+-	int err;
+-
+-	err = kstrtoul(buf, 10, &val);
+-	if (err)
+-		return err;
+-
+-	data->vrm = val;
+-	return count;
+-}
+-static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm, set_vrm);
+-
+ /*
+  * Real code
+  */
+@@ -411,8 +388,6 @@ static struct attribute *adm1025_attributes[] = {
+ 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_fault.dev_attr.attr,
+ 	&dev_attr_alarms.attr,
+-	&dev_attr_cpu0_vid.attr,
+-	&dev_attr_vrm.attr,
+ 	NULL
+ };
+ 
+@@ -494,6 +469,12 @@ static int adm1025_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto exit_free;
+ 
++	if (vid_which_vrm() > 0) {
++		err = device_create_file(&client->dev, &dev_attr_cpu0_vid);
++		if (err)
++			goto exit_remove;
 +	}
 +
-+	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-+	if (!res) {
-+		dev_err(&pdev->dev, "Failed to get I/O resource\n");
-+		return -EBUSY;
-+	}
-+
-+	led = kzalloc(sizeof(struct ts5500_led), GFP_KERNEL);
-+	if (led = NULL) {
-+		dev_err(&pdev->dev, "Failed to alloc memory for LED device\n");
-+		return -ENOMEM;
-+	}
-+
-+	led->cdev.name = pdata->leds[0].name;
-+	led->cdev.default_trigger = pdata->leds[0].default_trigger;
-+	led->cdev.brightness_set = ts5500_led_set;
-+	led->cdev.brightness = LED_OFF;
-+
-+	led->ioaddr = res->start;
-+	led->bit = pdata->leds[0].flags;
-+
-+	ret = led_classdev_register(pdev->dev.parent, &led->cdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to register LED\n");
-+		goto err;
-+	}
-+
-+	platform_set_drvdata(pdev, led);
-+	return 0;
-+
-+err:
-+	kfree(led);
-+	return ret;
-+}
-+
-+static int __devexit ts5500_led_remove(struct platform_device *pdev)
-+{
-+	struct ts5500_led *led = platform_get_drvdata(pdev);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	led_classdev_unregister(&led->cdev);
-+	kfree(led);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver ts5500_led_driver = {
-+	.driver = {
-+		.name = "ts5500_led",
-+		.owner = THIS_MODULE
-+	},
-+	.probe = ts5500_led_probe,
-+	.remove = __devexit_p(ts5500_led_remove)
-+};
-+
-+static int __init ts5500_led_init(void)
-+{
-+	int ret;
-+
-+	ret = platform_driver_register(&ts5500_led_driver);
-+	if (ret)
-+		goto error_out;
-+
-+	ret = platform_device_register(&ts5500_led_device);
-+	if (ret)
-+		goto error_device_register;
-+
-+	return 0;
-+
-+error_device_register:
-+	platform_driver_unregister(&ts5500_led_driver);
-+error_out:
-+	return ret;
-+}
-+module_init(ts5500_led_init);
-+
-+static void __exit ts5500_led_exit(void)
-+{
-+	platform_driver_unregister(&ts5500_led_driver);
-+	platform_device_unregister(&ts5500_led_device);
-+}
-+module_exit(ts5500_led_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("LED driver for Technologic Systems TS-5500");
+ 	/* Pin 11 is either in4 (+12V) or VID4 */
+ 	config = i2c_smbus_read_byte_data(client, ADM1025_REG_CONFIG);
+ 	if (!(config & 0x20)) {
+@@ -511,6 +492,7 @@ static int adm1025_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ exit_remove:
++	device_remove_file(&client->dev, &dev_attr_cpu0_vid);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1025_group);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1025_group_in4);
+ exit_free:
+@@ -522,11 +504,8 @@ exit:
+ static void adm1025_init_client(struct i2c_client *client)
+ {
+ 	u8 reg;
+-	struct adm1025_data *data = i2c_get_clientdata(client);
+ 	int i;
+ 
+-	data->vrm = vid_which_vrm();
+-
+ 	/*
+ 	 * Set high limits
+ 	 * Usually we avoid setting limits on driver init, but it happens
+@@ -566,6 +545,7 @@ static int adm1025_remove(struct i2c_client *client)
+ 	struct adm1025_data *data = i2c_get_clientdata(client);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
++	device_remove_file(&client->dev, &dev_attr_cpu0_vid);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1025_group);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1025_group_in4);
+ 
 -- 
-1.7.6.5
+1.7.5.4
 
 
 _______________________________________________
