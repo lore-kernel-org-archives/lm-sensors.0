@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 01 Feb 2012 07:12:49 +0000
+Date: Wed, 01 Feb 2012 08:01:38 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 3/3] hwmon: (hwmon-vid) Determine vrm during initialization, and add vrm
-Message-Id: <20120201081249.70f414f1@endymion.delvare>
+Message-Id: <20120201090138.6a731f93@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327495414-6256-4-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1327495414-6256-4-git-send-email-linux@roeck-us.net>
@@ -10,57 +10,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-On Tue, 31 Jan 2012 14:03:02 -0800, Guenter Roeck wrote:
+On Tue, 31 Jan 2012 15:31:17 -0800, Guenter Roeck wrote:
 > On Tue, 2012-01-31 at 16:38 -0500, Jean Delvare wrote:
-> > On Wed, 25 Jan 2012 04:43:34 -0800, Guenter Roeck wrote:
-> > > +MODULE_PARM_DESC(vrm, "VRM/VRD version, multiplied by 10");
-> > 
-> > This is no longer always true, as explained in doc/vid in the
-> > lm-sensors source tree. This document should probably be updated and
-> > moved to the kernel tree.
->
-> Makes sense. Documentation/hwmon/hwmon-vid ?
+> > I don't see the point of preserving the API. We usually don't do that.
+> > The API was wrong, you're fixing it, let's adjust all drivers
+> > accordingly and be done with it.
+> 
+> I started looking into this.
+> 
+> Problem is that some callers pass a fixed vrm value to vid_from_reg().
+> See lm87.c or lm93.c. Can we safely ignore this, or do we have to retain
+> the parameter and use it if provided (ie if it is != 0) ?
 
-Yes.
+I don't see that in lm87.c, I presume you meant lm78.c. For lm78 this
+is clearly a bug, the driver was written before multiple VRM versions
+existed, and was never adapter to support other VRM versions. So you
+can ignore it.
 
-> > > (...)
-> > > @@ -288,19 +305,38 @@ u8 vid_which_vrm(void)
-> > >  		vrm_ret = get_via_model_d_vrm();
-> > >  	if (vrm_ret = 0)
-> > >  		pr_info("Unknown VRM version of your x86 CPU\n");
-> > > -	return vrm_ret;
-> > > +
-> > > +	vrm = vrm_ret;
-> > 
-> > Isn't this overriding the module parameter passed by the user?
->
-> Yes. That was on purpose, since the resulting vrm can then be accessed
-> by userland through the respective sysfs entry. I thought that was a
-> good idea. Maybe not ?
+For lm93 the hard-coded value is because the chip support relative
+Vcore voltage limits (which adjust themselves as the VID code changes)
+and that can only work if the chip itself knows how to interpret the
+codes. As the LM93 only knows of VRM 10.x, This strongly suggested that
+the chip will never be used in combinations with other CPUs, thus the
+hard-coded VRM. I don't think it was so smart though, as the LM93 could
+still be used with other CPUs, simply the dynamic Vcore limit feature
+can't be used. Also note that the driver now supports the LM94 which
+_does_ support VRD 10 and VRD 11, so the hard-coded value is really
+incorrect.
 
-Forget about this. Being unable to apply the patch, I couldn't read the
-function in its entirety. I was commenting on a code flow which cannot
-actually happen.
+In general, if a driver wants to only support a specific VRM value, it
+should now call vid_witch_vrm() and fail loading or limit its features
+if the value isn't what it wanted.
 
-> > > (...)
-> > > +static void __exit vid_exit(void)
-> > > +{
+> On the plus side, if we retain the parameter and use it to override the
+> configured/calculated value, we can retain the API, and I can submit a
+> series of patches to remove vrm usage from the various drivers, instead
+> of a single large patch which does it all in one go. So this would have
+> some benefits.
+
+I think we'll end up removing the extra parameter. But if you want to
+keep it for the time being because you feel more comfortable that way
+or you believe it offers a smoother update path, that's your call.
+
 > > > +}
-> > 
-> > Do you really have to create that stub?
+> > >  EXPORT_SYMBOL(vid_which_vrm);
+> >
+> > There should be no user left for this function if you don't attempt to
+> > preserve the API.
 >
-> I think so. The driver refuses to unload if it does not exist.
+> Actually, turns out there is at least one user - the value is used in
+> w83627ehf.c to configure the chip. Not sure how to do that if the driver
+> can not retrieve the vrm value.
 
-OK, good to know.
+Good point, vid_which_vrm must stay.
 
-> (...)
-> To retain the ability to compile the code, I'll have to provide a single
-> patch for all affected files. Is that ok ?
+> Then there is vid_to_reg(), which is currently an inline function. Guess
+> I'll have to move that to hwmon-vid.c and export it.
 
-If you have to do that, it's OK. We've seen much much larger patches
-before.
+Correct.
 
 -- 
 Jean Delvare
