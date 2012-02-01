@@ -1,32 +1,34 @@
-From: Greg KH <greg@kroah.com>
-Date: Wed, 08 Feb 2012 16:37:28 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83627ehf) Fix number of fans for NCT6776F
-Message-Id: <20120208163728.GB3401@kroah.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 01 Feb 2012 07:00:38 +0000
+Subject: Re: [lm-sensors] [RFC PATCH 2/3] hwmon: (hwmon-vid) Fix checkpatch issues
+Message-Id: <20120201080038.3821d7d2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327672138-5224-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1327672138-5224-1-git-send-email-linux@roeck-us.net>
+References: <1327495414-6256-3-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1327495414-6256-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="macroman"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 07, 2012 at 03:52:24PM -0800, Guenter Roeck wrote:
-> NCT6776F can select fan input pins for fans 3 to 5 with a secondary set of
-> chip register bits. Check that second set of bits in addition to the first set
-> to detect if fans 3..5 are monitored.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> Cc: stable@vger.kernel.org # 3.0+
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> Backport to 3.0
-> Upstream commit: 585c0fd8216e0c9f98e2434092af7ec0f999522d
-
-Applied, thanks.
-
-greg k-h
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCAzMSBKYW4gMjAxMiAxMzo0NTo1OCAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
+PiBPbiBUdWUsIDIwMTItMDEtMzEgYXQgMTY6MTUgLTA1MDAsIEplYW4gRGVsdmFyZSB3cm90ZToK
+PiA+IE9uIFdlZCwgMjUgSmFuIDIwMTIgMDQ6NDM6MzMgLTA4MDAsIEd1ZW50ZXIgUm9lY2sgd3Jv
+dGU6Cj4gPiA+IEZpeGVkOgo+ID4gPiBFUlJPUjogY29kZSBpbmRlbnQgc2hvdWxkIHVzZSB0YWJz
+IHdoZXJlIHBvc3NpYmxlCj4gPiA+IEVSUk9SOiBzcGFjZSByZXF1aXJlZCBiZWZvcmUgdGhlIG9w
+ZW4gcGFyZW50aGVzaXMgJygnCj4gPiA+IFdBUk5JTkc6IEVYUE9SVF9TWU1CT0woZm9vKTsgc2hv
+dWxkIGltbWVkaWF0ZWx5IGZvbGxvdyBpdHMgZnVuY3Rpb24vdmFyaWFibGUKPiA+ID4gCj4gPiA+
+IE5vdCBmaXhlZCAodXJsKToKPiA+ID4gV0FSTklORzogbGluZSBvdmVyIDgwIGNoYXJhY3RlcnMK
+PiA+ID4gKC4uLikKPiA+IAo+ID4gTG9va3MgYWxyaWdodCwgYnV0IGZvciBzb21lIHJlYXNvbiB0
+aGlzIHBhdGNoIHdvbid0IGFwcGx5IGhlcmUuCj4gCj4gUHJvYmFibHkgYmVjYXVzZSBpdCBpcyBi
+YXNlZCBvbiB0aGUgdG9wIG9mIG15IC1uZXh0IGJyYW5jaCwgYW5kIEkgaGF2ZSBhCj4gY291cGxl
+IG9mIG90aGVyIGNsZWFudXAgcGF0Y2hlcyBwZW5kaW5nIGZvciBpdC4KClRoZSBvbmx5IG9uZSBJ
+IHdhcyBhd2FyZSBvZiB3YXMKaHR0cDovL2dpdC5rZXJuZWwub3JnLz9wPWxpbnV4L2tlcm5lbC9n
+aXQvZ3JvZWNrL2xpbnV4LXN0YWdpbmcuZ2l0O2E9Y29tbWl0O2giZWM4MDhiNzU3MTE5OWU0YTM5
+MGY1OWFkNWQ4ZTkwN2ZiMzg4OGMKYW5kIEkgZGlkIGhhdmUgaXQgYXBwbGllZCB0byBteSB0cmVl
+LgoKVHVybnMgb3V0IEkgd2FzIG1pc3NpbmcuLi4KaHR0cDovL2dpdC5rZXJuZWwub3JnLz9wPWxp
+bnV4L2tlcm5lbC9naXQvZ3JvZWNrL2xpbnV4LXN0YWdpbmcuZ2l0O2E9Y29tbWl0O2iMNjZlNzRi
+NWE5NThmYzVhOTZkNTc5OTJiYmQ4NjFmMjU4NGU1MGMKQW5kIG5vdyBldmVyeXRoaW5nIGFwcGxp
+ZXMgZmluZS4gU29ycnkgZm9yIHRoZSBub2lzZS4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
+ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
+b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw==
