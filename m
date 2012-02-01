@@ -1,547 +1,603 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 06 Feb 2012 17:52:41 +0000
-Subject: Re: [lm-sensors] [PATCH 02/07] HWMON: DA9052/53 hwmon driver v1
-Message-Id: <1328550761.2261.243.camel@groeck-laptop>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Wed, 01 Feb 2012 21:05:41 +0000
+Subject: [lm-sensors] [PATCH v5 2/5] x86/platform: (TS-5500) add GPIO support
+Message-Id: <1328130344-18836-3-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1328531989.30549.72.camel@dhruva>
-In-Reply-To: <1328531989.30549.72.camel@dhruva>
+References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Cc: "randy.dunlap@oracle.com" <randy.dunlap@oracle.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "dchen@diasemi.com" <dchen@diasemi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: x86@kernel.org
+Cc: Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 
-On Mon, 2012-02-06 at 07:39 -0500, Ashish Jangam wrote:
-> The DA9052 PMIC provides an Analogue to Digital Converter with 10 bits
-> resolution and 10 channels.
-> 
-> This patch montiors the DA9052 PMIC's ADC channels mostly for battery
-> parameters like battery temperature, junction temperature, battery
-> current etc.
-> 
-> This patch is functionally tested on Samsung SMDKV6410.
-> 
-Hi Ashish,
+From: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
 
-Looks pretty good. Couple of comments below.
+Signed-off-by: Jerome Oufella <jerome.oufella@savoirfairelinux.com>
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ arch/x86/platform/ts5500/Kconfig       |    7 +
+ arch/x86/platform/ts5500/Makefile      |    1 +
+ arch/x86/platform/ts5500/ts5500_gpio.c |  478 ++++++++++++++++++++++++++++++++
+ arch/x86/platform/ts5500/ts5500_gpio.h |   60 ++++
+ 4 files changed, 546 insertions(+), 0 deletions(-)
+ create mode 100644 arch/x86/platform/ts5500/ts5500_gpio.c
+ create mode 100644 arch/x86/platform/ts5500/ts5500_gpio.h
 
-> Signed-off-by: David Dajun Chen <dchen@diasemi.com>
-> Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
-> ---
->  Documentation/hwmon/da9052   |   59 +++++++
->  drivers/hwmon/Kconfig        |   10 ++
->  drivers/hwmon/Makefile       |    1 +
->  drivers/hwmon/da9052-hwmon.c |  343 ++++++++++++++++++++++++++++++++++++++++++
-
-Can you consider adding yourself or David as maintainer ? Not a must,
-but no one else would really be able to support the driver.
-
->  4 files changed, 413 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/hwmon/da9052
->  create mode 100644 drivers/hwmon/da9052-hwmon.c
-> diff --git a/Documentation/hwmon/da9052 b/Documentation/hwmon/da9052
-> new file mode 100644
-> index 0000000..3035bae
-> --- /dev/null
-> +++ b/Documentation/hwmon/da9052
-> @@ -0,0 +1,59 @@
-> +Supported chips:
-> +  * Dialog Semiconductors DA9052-BC and DA9053-AA/Bx PMICs
-> +    Prefix: 'da9052'
-> +    Datasheet: Kindly visit www.dialog-semiconductor.com and request for the
-> +               official datasheet.
-> +
-Maybe, but that doesn't seem to be straightforward. The web site has no
-search field, and I am not sure who to contact in the contact list. And
-since there does not seem to be support in the US, I am not sure if one
-is expected to contact someone in Europe or Taiwan or some other place. 
-
-Maybe you can let me know how exactly to get the datasheets - I like to
-keep those around for chips we are supporting.
-
-Just saying ... for now I gave up trying, meaning some my feedback is
-guesswork and may be wrong.
-
-> +Authors: David Dajun Chen <dchen@diasemi.com>
-> +
-> +Description
-> +-----------
-> +
-> +The DA9052/53 provides an Analogue to Digital Converter (ADC) with 10 bits
-> +resolution and track and hold circuitry combined with an analogue input
-> +multiplexer. The analogue input multiplexer will allow conversion of up to 10
-> +different inputs. The track and hold circuit ensures stable input voltages at
-> +the input of the ADC during the conversion.
-> +
-> +The ADC is used to measure the following inputs:
-> +Channel 0: VDDOUT - measurement of the system voltage
-> +Channel 1: ICH - internal battery charger current measurement
-> +Channel 2: TBAT - output from the battery NTC
-> +Channel 3: VBAT - measurement of the battery voltage
-> +Channel 4: ADC_IN4 - high impedance input (0 - 2.5V)
-> +Channel 5: ADC_IN5 - high impedance input (0 - 2.5V)
-> +Channel 6: ADC_IN6 - high impedance input (0 - 2.5V)
-> +Channel 7: XY - TSI interface to measure the X and Y voltage of the touch
-> +screen resistive potentiometers
-> +Channel 8: Internal Tjunc. - sense (internal temp. sensor)
-> +Channel 9: VBBAT - measurement of the backup battery voltage
-> +
-> +By using sysfs attributes we can measure the system voltage VDDOUT, the battery
-> +charging current ICH, battery temperature TBAT, battery junction temperature
-> +TJUNC, battery voltage VBAT and the back up battery voltage VBBAT.
-> +
-> +Voltage Monitoring
-> +------------------
-> +
-> +Voltages are sampled by a 10 bit ADC.
-
-ERROR: trailing whitespace
-#121: FILE: Documentation/hwmon/da9052:38:
-+Voltages are sampled by a 10 bit ADC. $
-
-> +
-> +The battery voltage is calculated as:
-> +       Milli volt = ((ADC value * 1000) / 512) + 2500
-> +
-> +The voltages on ADC channels 4, 5 and 6 are calculated as:
-> +       Milli volt = (ADC value * 2500) / 1023
-> +
-> +Temperature Monitoring
-> +----------------------
-> +
-> +Temperatures are sampled by a 10 bit ADC.  Junction and battery temperatures
-> +are monitored by the ADC channels.
-> +
-> +The junction temperature is calculated:
-> +       Degrees celsius = 1.708 * (TJUNC_RES - T_OFFSET) - 108.8
-> +The junction temperature attribute is supported by the driver.
-> +
-> +The battery temperature is calculated:
-> +       Degree Celcius = 1 / (t1 + 1/298)- 273
-> +where t1 = (1/B)* ln(( ADCval * 2.5)/(R25*ITBAT*255))
-> +Default values of R25, B, ITBAT are 10e3, 3380 and 50e-6 respectively.
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 24d584a..a35d914 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -313,6 +313,16 @@ config SENSORS_DS1621
->           This driver can also be built as a module.  If so, the module
->           will be called ds1621.
-> 
-> +config SENSORS_DA9052_ADC
-> +       tristate "Dialog DA9052/DA9053 HWMON"
-
-"HWMON" is a bit redundant here. Should probably be "ADC".
-
-> +       depends on PMIC_DA9052
-> +       help
-> +         Say y here to support the ADC found on Dialog Semiconductor
-> +         DA9052-BC and DA9053-AA/Bx PMICs.
-> +
-> +         This driver can also be built as module. If so, the module
-> +         will be called da9052-hwmon.
-> +
->  config SENSORS_EXYNOS4_TMU
->         tristate "Temperature sensor on Samsung EXYNOS4"
->         depends on ARCH_EXYNOS4
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index 8251ce8..5fe96e5 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -42,6 +42,7 @@ obj-$(CONFIG_SENSORS_APPLESMC)        += applesmc.o
->  obj-$(CONFIG_SENSORS_ASC7621)  += asc7621.o
->  obj-$(CONFIG_SENSORS_ATXP1)    += atxp1.o
->  obj-$(CONFIG_SENSORS_CORETEMP) += coretemp.o
-> +obj-$(CONFIG_SENSORS_DA9052_ADC)+= da9052-hwmon.o
->  obj-$(CONFIG_SENSORS_DME1737)  += dme1737.o
->  obj-$(CONFIG_SENSORS_DS620)    += ds620.o
->  obj-$(CONFIG_SENSORS_DS1621)   += ds1621.o
-> diff --git a/drivers/hwmon/da9052-hwmon.c b/drivers/hwmon/da9052-hwmon.c
-> new file mode 100644
-> index 0000000..d83f988
-> --- /dev/null
-> +++ b/drivers/hwmon/da9052-hwmon.c
-> @@ -0,0 +1,343 @@
-> +/*
-> + * HWMON Driver for Dialog DA9052
-> + *
-> + * Copyright(c) 2012 Dialog Semiconductor Ltd.
-> + *
-> + * Author: David Dajun Chen <dchen@diasemi.com>
-> + *
-> + *  This program is free software; you can redistribute  it and/or modify it
-> + *  under  the terms of  the GNU General  Public License as published by the
-> + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> + *  option) any later version.
-> + *
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/platform_device.h>
-> +
-> +#include <linux/mfd/da9052/da9052.h>
-> +#include <linux/mfd/da9052/reg.h>
-> +
-> +struct da9052_hwmon {
-> +       struct da9052   *da9052;
-> +       struct device   *class_device;
-> +       struct mutex    hwmon_lock;
-> +};
-> +
-> +static const char * const input_names[] = {
-> +       [DA9052_ADC_VDDOUT]     =       "VDDOUT",
-> +       [DA9052_ADC_ICH]        =       "CHARGING CURRENT",
-> +       [DA9052_ADC_TBAT]       =       "BATTERY TEMP",
-> +       [DA9052_ADC_VBAT]       =       "BATTERY VOLTAGE",
-> +       [DA9052_ADC_IN4]        =       "ADC IN4",
-> +       [DA9052_ADC_IN5]        =       "ADC IN5",
-> +       [DA9052_ADC_IN6]        =       "ADC IN6",
-> +       [DA9052_ADC_TJUNC]      =       "BATTERY JUNCTION TEMP",
-> +       [DA9052_ADC_VBBAT]      =       "BACK-UP BATTERY VOLTAGE",
-> +};
-> +
-> +static inline int volt_reg_to_mV(int value)
-> +{
-> +       return ((value * 1000) / 512) + 2500;
-> +}
-> +
-> +static inline int input_volt_to_mV(int value)
-> +{
-> +       return (value * 2500) / 1023;
-> +}
-> +
-> +static int da9052_enable_vddout_channel(struct da9052 *da9052)
-> +{
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(da9052, DA9052_ADC_CONT_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret |= DA9052_ADCCONT_AUTOVDDEN;
-> +
-> +       return da9052_reg_write(da9052, DA9052_ADC_CONT_REG, ret);
-> +}
-> +
-> +static int da9052_disable_vddout_channel(struct da9052 *da9052)
-> +{
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(da9052, DA9052_ADC_CONT_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret &= ~DA9052_ADCCONT_AUTOVDDEN;
-> +
-> +       return da9052_reg_write(da9052, DA9052_ADC_CONT_REG, ret);
-> +}
-> +
-> +static ssize_t da9052_read_vddout(struct device *dev,
-> +                                 struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret, vdd;
-> +
-> +       mutex_lock(&hwmon->hwmon_lock);
-> +
-> +       ret = da9052_enable_vddout_channel(hwmon->da9052);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-> +       vdd = da9052_reg_read(hwmon->da9052, DA9052_VDD_RES_REG);
-> +       if (vdd < 0) {
-> +               ret = vdd;
-> +               goto hwmon_err_release;
-> +       }
-> +
-> +       ret = da9052_disable_vddout_channel(hwmon->da9052);
-> +       if (ret < 0)
-> +               goto hwmon_err;
-> +
-> +       mutex_unlock(&hwmon->hwmon_lock);
-> +       vdd = volt_reg_to_mV(vdd);
-> +       return sprintf(buf, "%d\n", vdd);
-> +
-	return sprintf(buf, "%d\n", volt_reg_to_mV(vdd));
-
-would be a bit simpler. Same for similar code below.
-
-> +hwmon_err_release:
-> +       da9052_disable_vddout_channel(hwmon->da9052);
-> +hwmon_err:
-> +       mutex_unlock(&hwmon->hwmon_lock);
-> +       return ret;
-> +}
-> +
-> +static ssize_t da9052_read_ich(struct device *dev,
-> +                              struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_reg_read(hwmon->da9052, DA9052_ICHG_AV_REG);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       /* Equivalent to 3.9mA/bit in register ICHG_AV */
-> +       return sprintf(buf, "%d\n", DIV_ROUND_CLOSEST(ret * 39, 10));
-> +}
-> +
-> +static ssize_t da9052_read_tbat(struct device *dev,
-> +                               struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +
-> +       return sprintf(buf, "%d\n", da9052_adc_read_temp(hwmon->da9052));
-> +}
-> +
-> +static ssize_t da9052_read_vbat(struct device *dev,
-> +                               struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, DA9052_ADC_VBAT);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ret = volt_reg_to_mV(ret);
-> +       return sprintf(buf, "%d\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_misc_channel(struct device *dev,
-> +                                       struct device_attribute *devattr,
-> +                                       char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int channel = to_sensor_dev_attr(devattr)->index;
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, channel);
-> +       if (ret < 0)
-> +               return ret;
-> +       if (ret)
-> +               ret = input_volt_to_mV(ret);
-
-That is just an unnecessary optimization. input_volt_to_mV() returns 0
-if 0 is passed to it.
-
-> +
-> +       return sprintf(buf, "%d\n", ret);
-> +}
-> +
-> +static ssize_t da9052_read_tjunc(struct device *dev,
-> +                                struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int tjunc, toffset, result;
-> +
-> +       tjunc = da9052_reg_read(hwmon->da9052, DA9052_TJUNC_RES_REG);
-> +       if (tjunc < 0)
-> +               return tjunc;
-> +
-> +       toffset = da9052_reg_read(hwmon->da9052, DA9052_T_OFFSET_REG);
-> +       if (toffset < 0)
-> +               return toffset;
-> +
-> +       if ((tjunc - toffset) = 0)
-
-Unnecessary ( ) 
-
-> +               result = 0;
-> +       else
-> +               /* Degrees celsius = 1.708 * (TJUNC_RES - T_OFFSET) - 108.8 */
-> +               result = 1708 * (tjunc - toffset) - 108800;
-> +
-
-Hmm.
-	tjunc = 1, toffset = 2:
-		return 1708 * (-1) - 108800 = -108800 - 1708 = -110508
-	tjunc = 2, toffset = 2:
-		return 0
-	tjunc = 3, toffset = 2:
-		return 1780 * 1 - 108800 = -108800 + 1708 = -107092
-
-I am not saying this is wrong, not having access to the data sheet, but
-it is a bit odd. Why is the 0-difference case handled differently, and
-why does it return 0 and not, say, -108800 ? 
-
-If tjunc - toffset < 0 is invalid (no idea if it is, of course), it
-might make sense to detect that condition.
-
-> +       return sprintf(buf, "%d\n", result);
-> +}
-> +
-> +static ssize_t da9052_read_vbbat(struct device *dev,
-> +                                struct device_attribute *devattr, char *buf)
-> +{
-> +       struct da9052_hwmon *hwmon = dev_get_drvdata(dev);
-> +       int ret;
-> +
-> +       ret = da9052_adc_manual_read(hwmon->da9052, DA9052_ADC_VBBAT);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       return sprintf(buf, "%d\n", ret);
-
-No conversion needed here ?
-
-> +}
-> +
-> +static ssize_t da9052_hwmon_show_name(struct device *dev,
-> +                                     struct device_attribute *devattr,
-> +                                     char *buf)
-> +{
-> +       return sprintf(buf, "da9052-hwmon\n");
-> +}
-> +
-> +static ssize_t show_label(struct device *dev,
-> +                         struct device_attribute *devattr, char *buf)
-> +{
-> +       return sprintf(buf, "%s\n",
-> +                      input_names[to_sensor_dev_attr(devattr)->index]);
-> +}
-> +
-> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, da9052_read_vddout, NULL,
-> +                         DA9052_ADC_VDDOUT);
-> +static SENSOR_DEVICE_ATTR(in0_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_VDDOUT);
-> +static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, da9052_read_vbat, NULL,
-> +                         DA9052_ADC_VBAT);
-> +static SENSOR_DEVICE_ATTR(in3_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_VBAT);
-> +static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, da9052_read_misc_channel, NULL,
-> +                         DA9052_ADC_IN4);
-> +static SENSOR_DEVICE_ATTR(in4_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_IN4);
-> +static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, da9052_read_misc_channel, NULL,
-> +                         DA9052_ADC_IN5);
-> +static SENSOR_DEVICE_ATTR(in5_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_IN5);
-> +static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, da9052_read_misc_channel, NULL,
-> +                         DA9052_ADC_IN6);
-> +static SENSOR_DEVICE_ATTR(in6_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_IN6);
-> +static SENSOR_DEVICE_ATTR(in9_input, S_IRUGO, da9052_read_vbbat, NULL,
-> +                         DA9052_ADC_VBBAT);
-> +static SENSOR_DEVICE_ATTR(in9_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_VBBAT);
-> +
-> +static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, da9052_read_ich, NULL,
-> +                         DA9052_ADC_ICH);
-> +static SENSOR_DEVICE_ATTR(curr1_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_ICH);
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, da9052_read_tbat, NULL,
-> +                         DA9052_ADC_TBAT);
-> +static SENSOR_DEVICE_ATTR(temp1_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_TBAT);
-> +static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, da9052_read_tjunc, NULL,
-> +                         DA9052_ADC_TJUNC);
-> +static SENSOR_DEVICE_ATTR(temp2_label, S_IRUGO, show_label, NULL,
-> +                         DA9052_ADC_TJUNC);
-> +
-
-Since voltages and current follow the sensor index, it might make sense
-to do the same with temperatures, ie use temp2 and temp8.
-
-> +static DEVICE_ATTR(name, S_IRUGO, da9052_hwmon_show_name, NULL);
-> +
-> +static struct attribute *da9052_attr[] = {
-> +       &dev_attr_name.attr,
-> +       &sensor_dev_attr_in0_input.dev_attr.attr,
-> +       &sensor_dev_attr_in0_label.dev_attr.attr,
-> +       &sensor_dev_attr_in3_input.dev_attr.attr,
-> +       &sensor_dev_attr_in3_label.dev_attr.attr,
-> +       &sensor_dev_attr_in4_input.dev_attr.attr,
-> +       &sensor_dev_attr_in4_label.dev_attr.attr,
-> +       &sensor_dev_attr_in5_input.dev_attr.attr,
-> +       &sensor_dev_attr_in5_label.dev_attr.attr,
-> +       &sensor_dev_attr_in6_input.dev_attr.attr,
-> +       &sensor_dev_attr_in6_label.dev_attr.attr,
-> +       &sensor_dev_attr_in9_input.dev_attr.attr,
-> +       &sensor_dev_attr_in9_label.dev_attr.attr,
-> +       &sensor_dev_attr_curr1_input.dev_attr.attr,
-> +       &sensor_dev_attr_curr1_label.dev_attr.attr,
-> +       &sensor_dev_attr_temp1_input.dev_attr.attr,
-> +       &sensor_dev_attr_temp1_label.dev_attr.attr,
-> +       &sensor_dev_attr_temp2_input.dev_attr.attr,
-> +       &sensor_dev_attr_temp2_label.dev_attr.attr,
-> +       NULL
-> +};
-> +
-> +static const struct attribute_group da9052_attr_group = {.attrs = da9052_attr};
-> +
-> +static int __init da9052_hwmon_probe(struct platform_device *pdev)
-> +{
-> +       struct da9052_hwmon *hwmon;
-> +       int ret;
-> +
-> +       hwmon = devm_kzalloc(&pdev->dev, sizeof(struct da9052_hwmon),
-> +                            GFP_KERNEL);
-> +       if (!hwmon)
-> +               return -ENOMEM;
-> +
-> +       mutex_init(&hwmon->hwmon_lock);
-> +       hwmon->da9052 = dev_get_drvdata(pdev->dev.parent);
-> +
-> +       platform_set_drvdata(pdev, hwmon);
-> +
-> +       ret = sysfs_create_group(&pdev->dev.kobj, &da9052_attr_group);
-> +       if (ret)
-> +               goto err_mem;
-> +
-> +       hwmon->class_device = hwmon_device_register(&pdev->dev);
-> +       if (IS_ERR(hwmon->class_device)) {
-> +               ret = PTR_ERR(hwmon->class_device);
-> +               goto err_sysfs;
-> +       }
-> +
-> +       return 0;
-> +
-> +err_sysfs:
-> +       sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> +err_mem:
-> +       devm_kfree(&pdev->dev, hwmon);
-> +       return ret;
-> +}
-> +
-> +static int __devexit da9052_hwmon_remove(struct platform_device *pdev)
-> +{
-> +       struct da9052_hwmon *hwmon = platform_get_drvdata(pdev);
-> +
-> +       hwmon_device_unregister(hwmon->class_device);
-> +       sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> +       devm_kfree(&pdev->dev, hwmon);
-> +
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver da9052_hwmon_driver = {
-> +       .probe = da9052_hwmon_probe,
-> +       .remove = __devexit_p(da9052_hwmon_remove),
-> +       .driver = {
-> +               .name = "da9052-hwmon",
-> +               .owner = THIS_MODULE,
-> +       },
-> +};
-> +
-> +module_platform_driver(da9052_hwmon_driver);
-> +
-> +MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
-> +MODULE_DESCRIPTION("DA9052 HWMON driver");
-> +MODULE_LICENSE("GPL");
-> +MODULE_ALIAS("platform:da9052-hwmon");
-> 
-> 
-
+diff --git a/arch/x86/platform/ts5500/Kconfig b/arch/x86/platform/ts5500/Kconfig
+index 929b617..62095c9 100644
+--- a/arch/x86/platform/ts5500/Kconfig
++++ b/arch/x86/platform/ts5500/Kconfig
+@@ -6,3 +6,10 @@ config TS5500
+ 	  Add support for the Technologic Systems TS-5500 platform.
+ 
+ 	  If you have a TS-5500, say Y here.
++
++config TS5500_GPIO
++	tristate "TS-5500 GPIO support"
++	depends on TS5500 && GENERIC_GPIO
++	default y
++	help
++	  This enables support for the DIO headers for GPIO usage.
+diff --git a/arch/x86/platform/ts5500/Makefile b/arch/x86/platform/ts5500/Makefile
+index 0a689a7..71c1398 100644
+--- a/arch/x86/platform/ts5500/Makefile
++++ b/arch/x86/platform/ts5500/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_TS5500)			+= ts5500.o
++obj-$(CONFIG_TS5500_GPIO)		+= ts5500_gpio.o
+diff --git a/arch/x86/platform/ts5500/ts5500_gpio.c b/arch/x86/platform/ts5500/ts5500_gpio.c
+new file mode 100644
+index 0000000..241ac80
+--- /dev/null
++++ b/arch/x86/platform/ts5500/ts5500_gpio.c
+@@ -0,0 +1,478 @@
++/*
++ * GPIO (DIO) driver for Technologic Systems TS-5500
++ *
++ * Copyright (c) 2010-2012 Savoir-faire Linux Inc.
++ *	Jerome Oufella <jerome.oufella@savoirfairelinux.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * TS-5500 board has 38 GPIOs referred to as DIOs in the product's literature.
++ */
++
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/gpio.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include "ts5500_gpio.h"
++
++static void port_bit_set(u8 addr, int bit)
++{
++	u8 var;
++	var = inb(addr);
++	var |= (1 << bit);
++	outb(var, addr);
++}
++
++static void port_bit_clear(u8 addr, int bit)
++{
++	u8 var;
++	var = inb(addr);
++	var &= ~(1 << bit);
++	outb(var, addr);
++}
++
++/* "DIO" line to IO port mapping table for line's value */
++static const unsigned long line_to_port_map[] = {
++	0x7B, 0x7B, 0x7B, 0x7B, 0x7B, 0x7B, 0x7B, 0x7B,		/* DIO1_0~7  */
++	0x7C, 0x7C, 0x7C, 0x7C, 0x7C, 0x7C,			/* DIO1_8~13 */
++	0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E, 0x7E,		/* DIO2_0~7  */
++	0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,			/* DIO2_8~13 */
++	0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72, 0x72,		/* LCD_0~7   */
++	0x73, 0x73, 0x73			   /* LCD_EN, LCD_RS, LCD_WR */
++};
++
++/* "DIO" line to IO port's bit map for line's value */
++static const int line_to_bit_map[] = {
++	0, 1, 2, 3, 4, 5, 6, 7,		/* DIO1_0~7  */
++	0, 1, 2, 3, 4, 5,		/* DIO1_8~13 */
++	0, 1, 2, 3, 4, 5, 6, 7,		/* DIO2_0~7  */
++	0, 1, 2, 3, 4, 5,		/* DIO2_8~13 */
++	0, 1, 2, 3, 4, 5, 6, 7,		/* LCD_0~7   */
++	0, 7, 6				/* LCD_EN, LCD_RS, LCD_WR */
++};
++
++/* "DIO" line's direction control mapping table */
++static const unsigned long line_to_dir_map[] = {
++	0x7A, 0x7A, 0x7A, 0x7A, 0x7A, 0x7A, 0x7A, 0x7A,		/* DIO1_0~7  */
++	0x7A, 0x7A, 0x7A, 0x7A, 0, 0,				/* DIO1_8~13 */
++	0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D,		/* DIO2_0~7  */
++	0x7D, 0x7D, 0x7D, 0x7D, 0, 0,				/* DIO2_8~13 */
++	0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D, 0x7D,		/* LCD_0~7   */
++	0, 0, 0					   /* LCD_EN, LCD_RS, LCD_WR */
++};
++
++/* "DIO" line's direction control bit-mapping table */
++static const int line_to_dir_bit_map[] = {
++	0, 0, 0, 0,  1,  1, 1, 1,	/* DIO1_0~7  */
++	5, 5, 5, 5, -1, -1,		/* DIO1_8~13 */
++	0, 0, 0, 0,  1,  1, 1, 1,	/* DIO2_0~7  */
++	5, 5, 5, 5, -1, -1,		/* DIO2_8~13 */
++	2, 2, 2, 2,  3,  3, 3, 3,	/* LCD_0~7   */
++	-1, -1, -1			/* LCD_EN, LCD_RS, LCD_WR */
++};
++
++/* This array is used to track requests for our GPIO lines */
++static int requested_gpios[TS5500_LCD_WR + 1];
++
++static int dio1_irq = 1;
++module_param(dio1_irq, int, 0644);
++MODULE_PARM_DESC(dio1_irq,
++		 "Enable usage of IRQ7 for any DIO1 line (default 1).");
++
++static int dio2_irq = 0;
++module_param(dio2_irq, int, 0644);
++MODULE_PARM_DESC(dio2_irq,
++		 "Enable usage of IRQ6 for any DIO2 line (default 0).");
++
++static int lcd_irq = 0;
++module_param(lcd_irq, int, 0644);
++MODULE_PARM_DESC(lcd_irq, "Enable usage of IRQ1 for any LCD line (default 0).");
++
++static int use_lcdio = 0;
++module_param(use_lcdio, int, 0644);
++MODULE_PARM_DESC(use_lcdio, "Enable usage of the LCD header for DIO operation"
++		 " (default 0).");
++
++/**
++ * struct ts5500_drvdata - Driver data
++ * @master:		Device.
++ * @gpio_chip:		GPIO chip.
++ * @gpio_lock:		Read/Write Mutex.
++ */
++struct ts5500_drvdata {
++	struct device *master;
++	struct gpio_chip gpio_chip;
++	struct mutex gpio_lock;
++};
++
++static int ts5500_gpio_request(struct gpio_chip *chip, unsigned offset)
++{
++	struct ts5500_drvdata *drvdata;
++
++	drvdata = container_of(chip, struct ts5500_drvdata, gpio_chip);
++
++	mutex_lock(&drvdata->gpio_lock);
++	if (requested_gpios[offset]) {
++		mutex_unlock(&drvdata->gpio_lock);
++		return -EBUSY;
++	}
++	requested_gpios[offset] = 1;
++	mutex_unlock(&drvdata->gpio_lock);
++
++	return 0;
++}
++
++static void ts5500_gpio_free(struct gpio_chip *chip, unsigned offset)
++{
++	struct ts5500_drvdata *drvdata;
++
++	drvdata = container_of(chip, struct ts5500_drvdata, gpio_chip);
++
++	mutex_lock(&drvdata->gpio_lock);
++	requested_gpios[offset] = 0;
++	mutex_unlock(&drvdata->gpio_lock);
++}
++
++static int ts5500_gpio_get(struct gpio_chip *chip, unsigned offset)
++{
++	unsigned long ioaddr;
++	u8 byte;
++	int bitno;
++	struct ts5500_drvdata *drvdata;
++
++	drvdata = container_of(chip, struct ts5500_drvdata, gpio_chip);
++
++	/* Some lines are output-only and cannot be read */
++	if (offset = TS5500_LCD_EN || offset > chip->ngpio)
++		return -ENXIO;
++
++	ioaddr = line_to_port_map[offset];
++	bitno = line_to_bit_map[offset];
++	byte = inb(ioaddr);
++
++	return (byte >> bitno) & 0x1;
++}
++
++static void ts5500_gpio_set(struct gpio_chip *chip, unsigned offset, int val)
++{
++	int bitno;
++	unsigned long ioaddr;
++	struct ts5500_drvdata *drvdata;
++
++	drvdata = container_of(chip, struct ts5500_drvdata, gpio_chip);
++
++	/* Some lines just can't be set */
++	switch (offset) {
++	case TS5500_DIO1_12:
++	case TS5500_DIO1_13:
++	case TS5500_DIO2_13:
++	case TS5500_LCD_RS:
++	case TS5500_LCD_WR:
++		return;
++	default:
++		if (offset > chip->ngpio)
++			return;
++		break;
++	}
++
++	/* Get io port and bit for 'offset' */
++	ioaddr = line_to_port_map[offset];
++	bitno = line_to_bit_map[offset];
++
++	mutex_lock(&drvdata->gpio_lock);
++	if (val = 0)
++		port_bit_clear(ioaddr, bitno);
++	else
++		port_bit_set(ioaddr, bitno);
++	mutex_unlock(&drvdata->gpio_lock);
++}
++
++static int ts5500_gpio_to_irq(struct gpio_chip *chip, unsigned offset)
++{
++	/* Only a few lines are IRQ-Capable */
++	switch (offset) {
++	case TS5500_DIO1_13:
++		return TS5500_DIO1_13_IRQ;
++	case TS5500_DIO2_13:
++		return TS5500_DIO2_13_IRQ;
++	case TS5500_LCD_RS:
++		return TS5500_LCD_RS_IRQ;
++	default:
++		break;
++	}
++
++	/*
++	 * Handle the case where the user bridged the IRQ line with another
++	 * DIO line from the same header.
++	 */
++	if (dio1_irq && offset >= TS5500_DIO1_0 && offset < TS5500_DIO1_13)
++		return TS5500_DIO1_13_IRQ;
++
++	if (dio2_irq && offset >= TS5500_DIO2_0 && offset < TS5500_DIO2_13)
++		return TS5500_DIO2_13_IRQ;
++
++	if (lcd_irq && offset >= TS5500_LCD_0 && offset <= TS5500_LCD_WR)
++		return TS5500_LCD_RS_IRQ;
++
++	return -ENXIO;
++}
++
++static int ts5500_gpio_direction_input(struct gpio_chip *chip, unsigned offset)
++{
++	unsigned long dir_reg;
++	int dir_bit;
++	struct ts5500_drvdata *drvdata;
++
++	drvdata = container_of(chip, struct ts5500_drvdata, gpio_chip);
++
++	/* Some lines cannot be set as inputs */
++	switch (offset) {
++	case TS5500_LCD_EN:
++		return -ENXIO;
++	default:
++		if (offset > chip->ngpio)
++			return -ENXIO;
++		break;
++	}
++
++	dir_reg = line_to_dir_map[offset];
++	dir_bit = line_to_dir_bit_map[offset];
++
++	mutex_lock(&drvdata->gpio_lock);
++	port_bit_clear(dir_reg, dir_bit);
++	mutex_unlock(&drvdata->gpio_lock);
++
++	return 0;
++}
++
++static int ts5500_gpio_direction_output(struct gpio_chip *chip, unsigned offset,
++					int val)
++{
++	unsigned long dir_reg, ioaddr;
++	int dir_bit, bitno;
++	struct ts5500_drvdata *drvdata;
++
++	drvdata = container_of(chip, struct ts5500_drvdata, gpio_chip);
++
++	/* Some lines cannot be set as outputs */
++	switch (offset) {
++	case TS5500_DIO1_12:
++	case TS5500_DIO1_13:
++	case TS5500_DIO2_13:
++	case TS5500_LCD_RS:
++	case TS5500_LCD_WR:
++		return -ENXIO;
++	default:
++		if (offset > chip->ngpio)
++			return -ENXIO;
++		break;
++	}
++
++	/* Get direction and value registers infos */
++	dir_reg = line_to_dir_map[offset];
++	dir_bit = line_to_dir_bit_map[offset];
++	ioaddr = line_to_port_map[offset];
++	bitno = line_to_bit_map[offset];
++
++	mutex_lock(&drvdata->gpio_lock);
++	if (val = 0)
++		port_bit_clear(ioaddr, bitno); /* Set initial line value */
++	else
++		port_bit_set(ioaddr, bitno);
++	port_bit_set(dir_reg, dir_bit); /* Set output direction for line */
++
++	/*
++	 * Confirm initial line output value
++	 * (might have been changed by input)
++	 */
++	if (val = 0)
++		port_bit_clear(ioaddr, bitno);
++	else
++		port_bit_set(ioaddr, bitno);
++	mutex_unlock(&drvdata->gpio_lock);
++
++	return 0;
++}
++
++static int __devinit ts5500_gpio_probe(struct platform_device *pdev)
++{
++	struct ts5500_drvdata *drvdata;
++	struct gpio_chip *chip;
++	int ret;
++
++	if (pdev = NULL) {
++		dev_err(&pdev->dev, "Platform device not available!\n");
++		return -ENODEV;
++	}
++
++	/* Request DIO1 */
++	if (!request_region(0x7A, 3, "ts5500-gpio-DIO1")) {
++		dev_err(&pdev->dev, "Cannot request I/O port 0x7A-7C\n");
++		goto err_req_dio1;
++	}
++
++	/* Request DIO2 */
++	if (!request_region(0x7D, 3, "ts5500-gpio-DIO2")) {
++		dev_err(&pdev->dev, "Cannot request I/O port 0x7D-7F\n");
++		goto err_req_dio2;
++	}
++
++	/* Request LCDIO if wanted */
++	if (use_lcdio && !request_region(0x72, 2, "ts5500-gpio-LCD")) {
++		dev_err(&pdev->dev, "Cannot request I/O port 0x72-73\n");
++		goto err_req_lcdio;
++	}
++
++	/* Setup the gpio_chip structure */
++	drvdata = kzalloc(sizeof(struct ts5500_drvdata), GFP_KERNEL);
++	if (drvdata = NULL)
++		goto err_alloc_dev;
++
++	memset(requested_gpios, 0, sizeof(requested_gpios));
++	mutex_init(&drvdata->gpio_lock);
++
++	drvdata->master = pdev->dev.parent;
++	chip = &drvdata->gpio_chip;
++	chip->request = ts5500_gpio_request;
++	chip->free = ts5500_gpio_free;
++	chip->to_irq = ts5500_gpio_to_irq;
++	chip->direction_input = ts5500_gpio_direction_input;
++	chip->direction_output = ts5500_gpio_direction_output;
++	chip->get = ts5500_gpio_get;
++	chip->set = ts5500_gpio_set;
++	chip->can_sleep = 0;
++	chip->base = TS5500_DIO1_0;
++	chip->label = pdev->name;
++	chip->ngpio = (use_lcdio ? TS5500_LCD_WR + 1 : TS5500_DIO2_13 + 1);
++
++	/* Enable IRQ generation */
++	mutex_lock(&drvdata->gpio_lock);
++	port_bit_set(0x7A, 7); /* DIO1_13 on IRQ7 */
++	port_bit_set(0x7D, 7); /* DIO2_13 on IRQ6 */
++	if (use_lcdio) {
++		port_bit_clear(0x7D, 4); /* Enable LCD header usage as DIO */
++		port_bit_set(0x7D, 6);   /* LCD_RS on IRQ1 */
++	}
++	mutex_unlock(&drvdata->gpio_lock);
++
++	/* Register chip */
++	ret = gpiochip_add(&drvdata->gpio_chip);
++	if (ret)
++		goto err_gpiochip_add;
++
++	platform_set_drvdata(pdev, drvdata);
++
++	return 0;
++
++err_gpiochip_add:
++	dev_err(&pdev->dev, "Failed to register the gpio chip.\n");
++	kfree(drvdata);
++
++err_alloc_dev:
++	if (use_lcdio)
++		release_region(0x72, 2);	/* Release LCD's region */
++
++err_req_lcdio:
++	release_region(0x7D, 3);		/* Release DIO2's region */
++
++err_req_dio2:
++	release_region(0x7A, 3);		/* Release DIO1's region */
++
++err_req_dio1:
++	ret = -EBUSY;
++
++	return ret;
++}
++
++/* Callback for releasing resources */
++static void ts5500_gpio_device_release(struct device *dev)
++{
++	/* noop */
++}
++
++static struct platform_device ts5500_gpio_device = {
++	.name = "ts5500_gpio",
++	.id = -1,
++	.dev = {
++		.release = ts5500_gpio_device_release,
++	}
++};
++
++static int __devexit ts5500_gpio_remove(struct platform_device *pdev)
++{
++	struct ts5500_drvdata *drvdata;
++	int ret, i;
++
++	drvdata = platform_get_drvdata(pdev);
++
++	/* Release GPIO lines */
++	for (i = 0; i < ARRAY_SIZE(requested_gpios); i++) {
++		if (requested_gpios[i])
++			gpio_free(i);
++	}
++
++	mutex_lock(&drvdata->gpio_lock);
++	/* Disable IRQs generation */
++	port_bit_clear(0x7A, 7);
++	port_bit_clear(0x7D, 7);
++	if (use_lcdio)
++		port_bit_clear(0x7D, 6);
++
++	/* Release IO regions */
++	release_region(0x7A, 3);
++	release_region(0x7D, 3);
++	if (use_lcdio)
++		release_region(0x72, 2);
++	mutex_unlock(&drvdata->gpio_lock);
++
++	ret = gpiochip_remove(&drvdata->gpio_chip);
++	if (ret)
++		dev_err(&pdev->dev, "Failed to remove the gpio chip\n");
++
++	kfree(drvdata);
++	return ret;
++}
++
++static struct platform_driver ts5500_gpio_driver = {
++	.driver = {
++		.name = "ts5500_gpio",
++		.owner = THIS_MODULE,
++	},
++	.probe = ts5500_gpio_probe,
++	.remove	= __devexit_p(ts5500_gpio_remove)
++};
++
++static int __init ts5500_gpio_init(void)
++{
++	int ret;
++
++	ret = platform_driver_register(&ts5500_gpio_driver);
++	if (ret)
++		goto error_out;
++
++	ret = platform_device_register(&ts5500_gpio_device);
++	if (ret)
++		goto error_device_register;
++
++	return 0;
++
++error_device_register:
++	platform_driver_unregister(&ts5500_gpio_driver);
++error_out:
++	return ret;
++}
++module_init(ts5500_gpio_init);
++
++static void __exit ts5500_gpio_exit(void)
++{
++	platform_driver_unregister(&ts5500_gpio_driver);
++	platform_device_unregister(&ts5500_gpio_device);
++}
++module_exit(ts5500_gpio_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Technologic Systems TS-5500, GPIO/DIO driver");
+diff --git a/arch/x86/platform/ts5500/ts5500_gpio.h b/arch/x86/platform/ts5500/ts5500_gpio.h
+new file mode 100644
+index 0000000..eecd4fc
+--- /dev/null
++++ b/arch/x86/platform/ts5500/ts5500_gpio.h
+@@ -0,0 +1,60 @@
++/*
++ * GPIO (DIO) driver for Technologic Systems TS-5500
++ *
++ * Copyright (c) 2010-2012 Savoir-faire Linux Inc.
++ *	Jerome Oufella <jerome.oufella@savoirfairelinux.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _TS5500_GPIO_H
++#define _TS5500_GPIO_H
++
++#define TS5500_DIO1_0		0
++#define TS5500_DIO1_1		1
++#define TS5500_DIO1_2		2
++#define TS5500_DIO1_3		3
++#define TS5500_DIO1_4		4
++#define TS5500_DIO1_5		5
++#define TS5500_DIO1_6		6
++#define TS5500_DIO1_7		7
++#define TS5500_DIO1_8		8
++#define TS5500_DIO1_9		9
++#define TS5500_DIO1_10		10
++#define TS5500_DIO1_11		11
++#define TS5500_DIO1_12		12
++#define TS5500_DIO1_13		13
++#define TS5500_DIO2_0		14
++#define TS5500_DIO2_1		15
++#define TS5500_DIO2_2		16
++#define TS5500_DIO2_3		17
++#define TS5500_DIO2_4		18
++#define TS5500_DIO2_5		19
++#define TS5500_DIO2_6		20
++#define TS5500_DIO2_7		21
++#define TS5500_DIO2_8		22
++#define TS5500_DIO2_9		23
++#define TS5500_DIO2_10		24
++#define TS5500_DIO2_11		25
++/* #define TS5500_DIO2_12 - Keep commented out as it simply doesn't exist. */
++#define TS5500_DIO2_13		26
++#define TS5500_LCD_0		27
++#define TS5500_LCD_1		28
++#define TS5500_LCD_2		29
++#define TS5500_LCD_3		30
++#define TS5500_LCD_4		31
++#define TS5500_LCD_5		32
++#define TS5500_LCD_6		33
++#define TS5500_LCD_7		34
++#define TS5500_LCD_EN		35
++#define TS5500_LCD_RS		36
++#define TS5500_LCD_WR		37
++
++/* Lines that can trigger IRQs */
++#define TS5500_DIO1_13_IRQ	7
++#define TS5500_DIO2_13_IRQ	6
++#define TS5500_LCD_RS_IRQ	1
++
++#endif /* _TS5500_GPIO_H */
+-- 
+1.7.6.5
 
 
 _______________________________________________
