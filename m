@@ -1,38 +1,161 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Wed, 01 Feb 2012 14:42:31 +0000
-Subject: [lm-sensors] [patch] hwmon: (mc13xxx-adc) make name buffer larger
-Message-Id: <20120201144231.GB5397@elgon.mountain>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Wed, 01 Feb 2012 21:05:44 +0000
+Subject: [lm-sensors] [PATCH v5 5/5] x86/platform: (TS-5500) add ADC support
+Message-Id: <1328130344-18836-6-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: x86@kernel.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>
 
-This is doesn't change how the code works, it's just a thing to make the
-static checkers happy.  We transfer a 12 character string from a 20
-character buffer to a 10 character buffer using snprintf().  The static
-checkers complain that that lops off the last couple characters.
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ arch/x86/platform/ts5500/Kconfig      |    7 ++
+ arch/x86/platform/ts5500/Makefile     |    1 +
+ arch/x86/platform/ts5500/ts5500_adc.c |  104 +++++++++++++++++++++++++++++++++
+ 3 files changed, 112 insertions(+), 0 deletions(-)
+ create mode 100644 arch/x86/platform/ts5500/ts5500_adc.c
 
-The static checkers are right, but it turns out we don't care because
-later on we truncate the name at the '-' character.  Oh well, let's
-change it so they don't complain.
+diff --git a/arch/x86/platform/ts5500/Kconfig b/arch/x86/platform/ts5500/Kconfig
+index 76f777f..d6f5a8a 100644
+--- a/arch/x86/platform/ts5500/Kconfig
++++ b/arch/x86/platform/ts5500/Kconfig
+@@ -20,3 +20,10 @@ config TS5500_LED
+ 	default y
+ 	help
+ 	  This option enables support for the on-chip LED.
++
++config TS5500_ADC
++	tristate "TS-5500 ADC"
++	depends on TS5500 && SENSORS_MAX197
++	default y
++	help
++      Support for the A/D converter on Technologic Systems TS-5500 SBCs.
+diff --git a/arch/x86/platform/ts5500/Makefile b/arch/x86/platform/ts5500/Makefile
+index 88eccc9..dcf46d8 100644
+--- a/arch/x86/platform/ts5500/Makefile
++++ b/arch/x86/platform/ts5500/Makefile
+@@ -1,3 +1,4 @@
+ obj-$(CONFIG_TS5500)			+= ts5500.o
+ obj-$(CONFIG_TS5500_GPIO)		+= ts5500_gpio.o
+ obj-$(CONFIG_TS5500_LED)		+= ts5500_led.o
++obj-$(CONFIG_TS5500_ADC)		+= ts5500_adc.o
+diff --git a/arch/x86/platform/ts5500/ts5500_adc.c b/arch/x86/platform/ts5500/ts5500_adc.c
+new file mode 100644
+index 0000000..c55a283
+--- /dev/null
++++ b/arch/x86/platform/ts5500/ts5500_adc.c
+@@ -0,0 +1,104 @@
++/*
++ * Technologic Systems TS-5500 boards - Mapped MAX197 ADC driver
++ *
++ * Copyright (c) 2010-2012 Savoir-faire Linux Inc.
++ *          Jonas Fonseca <jonas.fonseca@savoirfairelinux.com>
++ *          Vivien Didelot <vivien.didelot@savoirfairelinux.com>
++ *
++ * The TS-5500 uses a CPLD to abstract the interface to the MAX197.
++ * This driver should work unchanged with the MAX199 chip.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/err.h>
++#include <linux/sysfs.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/mutex.h>
++#include <linux/slab.h>
++#include <linux/io.h>
++#include <linux/max197.h>
++
++#define TS5500_ADC_CTRL_REG		0x195	/* Conversion state register */
++#define TS5500_ADC_INIT_LSB_REG		0x196	/* Init conv. / LSB register */
++#define TS5500_ADC_MSB_REG		0x197	/* MSB register */
++#define TS5500_ADC_READ_DELAY		12	/* usec */
++#define TS5500_ADC_READ_BUSY_MASK	0x01
++
++static int ts5500_adc_start(u8 ctrl)
++{
++	/* Ensure the 3 MSB are set to 0 */
++	outb(ctrl & 0x1F, TS5500_ADC_INIT_LSB_REG);
++
++	return 0;
++}
++
++static int ts5500_adc_read(u16 *raw)
++{
++	u8 lsb, msb;
++
++	udelay(TS5500_ADC_READ_DELAY);
++	lsb = inb(TS5500_ADC_CTRL_REG);
++
++	if (lsb & TS5500_ADC_READ_BUSY_MASK)
++		return -EBUSY;
++
++	lsb = inb(TS5500_ADC_INIT_LSB_REG);
++	msb = inb(TS5500_ADC_MSB_REG);
++	*raw = (msb << 8) | lsb;
++
++	return 0;
++}
++
++static struct max197_platform_data ts5500_adc_platform_data = {
++	.start = ts5500_adc_start,
++	.read = ts5500_adc_read
++};
++
++static void ts5500_adc_release(struct device *dev)
++{
++	/* noop */
++}
++
++static struct platform_device ts5500_adc_device = {
++	.name = "max197",
++	.id = -1,
++	.dev = {
++		.platform_data = &ts5500_adc_platform_data,
++		.release = ts5500_adc_release
++	}
++};
++
++static int __init ts5500_adc_init(void)
++{
++	return platform_device_register(&ts5500_adc_device);
++}
++module_init(ts5500_adc_init);
++
++static void __exit ts5500_adc_exit(void)
++{
++	platform_device_unregister(&ts5500_adc_device);
++}
++module_exit(ts5500_adc_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("TS-5500 mapped MAX197 ADC device driver");
+-- 
+1.7.6.5
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
-index e9a7659d..282aaf5 100644
---- a/drivers/hwmon/mc13783-adc.c
-+++ b/drivers/hwmon/mc13783-adc.c
-@@ -37,7 +37,7 @@
- struct mc13783_adc_priv {
- 	struct mc13xxx *mc13xxx;
- 	struct device *hwmon_dev;
--	char name[10];
-+	char name[PLATFORM_NAME_SIZE];
- };
- 
- static ssize_t mc13783_adc_show_name(struct device *dev, struct device_attribute
 
 _______________________________________________
 lm-sensors mailing list
