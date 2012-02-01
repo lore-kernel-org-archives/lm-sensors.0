@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Feb 2012 19:10:57 +0000
-Subject: [lm-sensors] [PATCH 09/24] hwmon: (gl520sm) Drop vrm attribute, and make cpu0_vid conditional
-Message-Id: <1328123472-27816-10-git-send-email-linux@roeck-us.net>
+Date: Wed, 01 Feb 2012 19:10:58 +0000
+Subject: [lm-sensors] [PATCH 10/24] hwmon: (it87) Drop vrm attribute, and make cpu0_vid conditional
+Message-Id: <1328123472-27816-11-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,77 +12,82 @@ vrm is now maintained in hwmon-vid, no need to keep a local copy.
 Only create the cpu0_vid attribute if vrm is valid.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/hwmon/gl520sm.c |   14 +++++++++-----
- 1 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/hwmon/it87.c |   28 +++-------------------------
+ 1 files changed, 3 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/hwmon/gl520sm.c b/drivers/hwmon/gl520sm.c
-index 5ff452b..e45f27e 100644
---- a/drivers/hwmon/gl520sm.c
-+++ b/drivers/hwmon/gl520sm.c
-@@ -113,7 +113,6 @@ struct gl520_data {
- 	unsigned long last_updated;	/* in jiffies */
- 
- 	u8 vid;
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 0b204e4..e8a9ba4 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -259,7 +259,6 @@ struct it87_data {
+ 	u8 sensor;		/* Register value */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+ 	u8 vid;			/* Register encoding, combined */
 -	u8 vrm;
- 	u8 in_input[5];		/* [0] = VVD */
- 	u8 in_min[5];		/* [0] = VDD */
- 	u8 in_max[5];		/* [0] = VDD */
-@@ -139,7 +138,7 @@ static ssize_t get_cpu_vid(struct device *dev, struct device_attribute *attr,
- 			   char *buf)
- {
- 	struct gl520_data *data = gl520_update_device(dev);
--	return sprintf(buf, "%u\n", vid_from_reg(data->vid, data->vrm));
-+	return sprintf(buf, "%u\n", vid_from_reg(data->vid));
- }
- static DEVICE_ATTR(cpu0_vid, S_IRUGO, get_cpu_vid, NULL);
+ 	u32 alarms;		/* Register encoding, combined */
+ 	u8 beeps;		/* Register encoding */
+ 	u8 fan_main_ctrl;	/* Register value */
+@@ -1309,32 +1308,11 @@ static SENSOR_DEVICE_ATTR(temp1_beep, S_IRUGO | S_IWUSR,
+ static SENSOR_DEVICE_ATTR(temp2_beep, S_IRUGO, show_beep, NULL, 2);
+ static SENSOR_DEVICE_ATTR(temp3_beep, S_IRUGO, show_beep, NULL, 2);
  
-@@ -669,8 +668,6 @@ static SENSOR_DEVICE_ATTR(temp2_beep, S_IRUGO | S_IWUSR, get_beep, set_beep, 7);
- static SENSOR_DEVICE_ATTR(in4_beep, S_IRUGO | S_IWUSR, get_beep, set_beep, 7);
- 
- static struct attribute *gl520_attributes[] = {
--	&dev_attr_cpu0_vid.attr,
+-static ssize_t show_vrm_reg(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct it87_data *data = dev_get_drvdata(dev);
+-	return sprintf(buf, "%u\n", data->vrm);
+-}
+-static ssize_t store_vrm_reg(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct it87_data *data = dev_get_drvdata(dev);
+-	unsigned long val;
 -
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_min.dev_attr.attr,
- 	&sensor_dev_attr_in0_max.dev_attr.attr,
-@@ -796,6 +793,12 @@ static int gl520_probe(struct i2c_client *client,
- 	if (err)
- 		goto exit_free;
+-	if (kstrtoul(buf, 10, &val) < 0)
+-		return -EINVAL;
+-
+-	data->vrm = val;
+-
+-	return count;
+-}
+-static DEVICE_ATTR(vrm, S_IRUGO | S_IWUSR, show_vrm_reg, store_vrm_reg);
+-
+ static ssize_t show_vid_reg(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%ld\n", (long) vid_from_reg(data->vid, data->vrm));
++	return sprintf(buf, "%ld\n", (long) vid_from_reg(data->vid));
+ }
+ static DEVICE_ATTR(cpu0_vid, S_IRUGO, show_vid_reg, NULL);
  
-+	if (vid_which_vrm() > 0) {
-+		err = device_create_file(&client->dev, &dev_attr_cpu0_vid);
-+		if (err)
-+			goto exit_remove_files;
-+	}
-+
- 	if (data->two_temps)
- 		err = sysfs_create_group(&client->dev.kobj, &gl520_group_temp2);
- 	else
-@@ -813,6 +816,7 @@ static int gl520_probe(struct i2c_client *client,
- 	return 0;
+@@ -1593,7 +1571,6 @@ static struct attribute *it87_attributes_fan_beep[] = {
+ };
  
- exit_remove_files:
-+	device_remove_file(&client->dev, &dev_attr_cpu0_vid);
- 	sysfs_remove_group(&client->dev.kobj, &gl520_group);
- 	sysfs_remove_group(&client->dev.kobj, &gl520_group_in4);
- 	sysfs_remove_group(&client->dev.kobj, &gl520_group_temp2);
-@@ -832,7 +836,6 @@ static void gl520_init_client(struct i2c_client *client)
- 	conf = oldconf = gl520_read_value(client, GL520_REG_CONF);
+ static struct attribute *it87_attributes_vid[] = {
+-	&dev_attr_vrm.attr,
+ 	&dev_attr_cpu0_vid.attr,
+ 	NULL
+ };
+@@ -1768,6 +1745,8 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->skip_pwm = (1 << 1);
+ 		}
+ 	}
++	if (!sio_data->skip_vid)
++		sio_data->skip_vid = vid_which_vrm() = 0;
  
- 	data->alarm_mask = 0xff;
--	data->vrm = vid_which_vrm();
+ exit:
+ 	superio_exit();
+@@ -1934,7 +1913,6 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	}
  
- 	if (extra_sensor_type = 1)
- 		conf &= ~0x10;
-@@ -866,6 +869,7 @@ static int gl520_remove(struct i2c_client *client)
- 	struct gl520_data *data = i2c_get_clientdata(client);
- 
- 	hwmon_device_unregister(data->hwmon_dev);
-+	device_remove_file(&client->dev, &dev_attr_cpu0_vid);
- 	sysfs_remove_group(&client->dev.kobj, &gl520_group);
- 	sysfs_remove_group(&client->dev.kobj, &gl520_group_in4);
- 	sysfs_remove_group(&client->dev.kobj, &gl520_group_temp2);
+ 	if (!sio_data->skip_vid) {
+-		data->vrm = vid_which_vrm();
+ 		/* VID reading from Super-I/O config space if available */
+ 		data->vid = sio_data->vid_value;
+ 		err = sysfs_create_group(&dev->kobj, &it87_group_vid);
 -- 
 1.7.5.4
 
