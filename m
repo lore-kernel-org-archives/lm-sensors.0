@@ -1,55 +1,87 @@
-From: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Date: Tue, 21 Feb 2012 11:55:48 +0000
-Subject: Re: [lm-sensors] [PATCH] HWMON: DA9052/53 hwmon driver v2
-Message-Id: <1329824628.30549.187.camel@dhruva>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sun, 05 Feb 2012 06:22:06 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon subsystem fixes for 3.3-rc3
+Message-Id: <20120205062206.GA1853@ericsson.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============9187757180954329198=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <C3AE124F08223B42BC95AEB82F0F6CED2B996CD9@KCHJEXMB01.kpit.com>
-In-Reply-To: <C3AE124F08223B42BC95AEB82F0F6CED2B996CD9@KCHJEXMB01.kpit.com>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+--===============9187757180954329198==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UugvWAfsgieZRqgk"
+Content-Disposition: inline
+
+--UugvWAfsgieZRqgk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon subsystem fixes for Linux 3.3-rc3 from:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Signed tag: hwmon-fixes-for-3.3-rc3
+
+Just a single patch this time.
+
+Since this is the first time I tried using a signed tag, I provided both a
+branch and a signed tag to pull from. If the tag works, I'll only provide
+the tag next time. If something is wrong with the tag, please let me know.
+
+Thanks,
+Guenter
+
+------
+
+The following changes since commit 62aa2b537c6f5957afd98e29f96897419ed5ebab:
+
+  Linux 3.3-rc2 (2012-01-31 13:31:54 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Guenter Roeck (1):
+      hwmon: (w83627ehf) Fix number of fans for NCT6776F
+
+ drivers/hwmon/w83627ehf.c |   23 ++++++++++++++++++++---
+ 1 files changed, 20 insertions(+), 3 deletions(-)
+
+--UugvWAfsgieZRqgk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPLiAOAAoJEMsfJm/On5mBMJMP/jYxW9uiSyXWBds8uZxlr1P2
+cadf9hGz2N6paRGNxGDk+Wk+FhlaIbFnrMB6YjTWBttB2oFSaiiU9xM888r3vQPH
+Dge957qmO4zZLfruGw9YpAWSezXtqVoEtoStzw0fMYxH+Q0LMI/DgRi3rG+0Yjrr
+i7zWJu2BVf/FJlxFmkKABUVlwBmcImraGXDLvoc9KDak3U3zoUE7s/ep7pwDC0Dq
+DC0FZ/SPZ9lKPw65M42rM430JrGcfbXwNk6xK76ervYrkJm+6wxuR8WzHleLYlvJ
+IiFWezmFlbuHwqDzkqOgGXVJoIZ5HxHRY9E95BJBcaLRZF39e4F7SHUgrvb2cEps
+hld4sQb6SlHE7/uPJlrTlV5QgYQSWlHxNs1izknMcRIHiaof+d5DyjK2zAOxaCnO
+F2FZi0FlnMlyPugieKxCUSe4BcbvPwBmSl7byYdWhUuYwsJBzkCyKGMYbfFzE+RS
+b2ndrSl6AJRFHAW3Eb/ygmp66m6cjIe3lnh3iNbyKWNc77DuHTp/SoKJNGuPYsrh
+mcPHfGL5krl+7zBbCJpM+bjMB2cuBFuEW8Uy33XDc8yBbzMkilBbq50a4KNVBOeD
+ysCdnw7ilPReUsaEV0645GLPF5Ax6yDkc7ayeU6oj7uDIM2s73zWFMgqfvg8sv11
+XOzsOrKhSvVaUD6GhB69
+=RYmJ
+-----END PGP SIGNATURE-----
+
+--UugvWAfsgieZRqgk--
+
+
+--===============9187757180954329198==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: guenter.roeck@ericsson.com
-Cc: randy.dunlap@oracle.com, linaro-dev@lists.linaro.org, dchen@diasemi.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-On Tue, 2012-02-21 at 16:48 +0530, Ashish Jangam wrote:
-> On Fri, 2012-02-10 at 07:58 -0500, Ashish Jangam wrote:
-> > The DA9052 PMIC provides an Analogue to Digital Converter with 10 bits
-> > resolution and 10 channels.
-> > 
-> > +  * Dialog Semiconductors DA9052-BC and DA9053-AA/Bx PMICs
-> > +    Prefix: 'da9052'
-> > +    Datasheet: Kindly visit www.dialog-semiconductor.com/product_table.php
-> > +              and request for the official datasheet.
-> > +
-> Not really. From practical experience, the datasheet is not available
-> except for Dialog Semiconductor customers - not even for me to review
-> the driver (and that appears to be independent of my employer's
-> relationship with Dialog Semiconductor). I think this should read "not
-> publicly available". It is a bit misleading to suggest that it would be
-> available if that is not the case.
-Agreed.
-> 
-> > +static const char * const input_names[] = {
-> > +       [DA9052_ADC_VDDOUT]     =       "VDDOUT",
-> > +       [DA9052_ADC_ICH]        =       "CHARGING CURRENT",
-> > +       [DA9052_ADC_TBAT]       =       "BATTERY TEMP",
-> > +       [DA9052_ADC_VBAT]       =       "BATTERY VOLTAGE",
-> > +       [DA9052_ADC_IN4]        =       "ADC IN4",
-> > +       [DA9052_ADC_IN5]        =       "ADC IN5",
-> > +       [DA9052_ADC_IN6]        =       "ADC IN6",
-> > +       [DA9052_ADC_TJUNC]      =       "BATTERY JUNCTION TEMP",
-> > +       [DA9052_ADC_VBBAT]      =       "BACK-UP BATTERY VOLTAGE",
-> > +};
-> > +
-> Where are those defines, or, in other words, which repository/branch is
-> your patch based on ? I don't see it in the current mainline kernel.
-The incremental ADC patch to the da9052 mfd core takes care of all such
-issues. However that patch is still under review...hoping to get it thru
-soon.
-
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============9187757180954329198==--
