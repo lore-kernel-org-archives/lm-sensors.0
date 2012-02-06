@@ -1,45 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Mon, 06 Feb 2012 15:37:42 +0000
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Mon, 06 Feb 2012 20:23:07 +0000
 Subject: Re: [lm-sensors] [PATCH v5 2/5] x86/platform: (TS-5500) add GPIO support
-Message-Id: <20120206153742.GE10173@sirena.org.uk>
+Message-Id: <20120206152307.7d1fb316@v0nbox>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
- <1328130344-18836-3-git-send-email-vivien.didelot@savoirfairelinux.com>
- <20120201213025.53d820d2@pyramind.ukuu.org.uk>
- <1328211236.2261.152.camel@groeck-laptop>
-In-Reply-To: <1328211236.2261.152.camel@groeck-laptop>
+	<1328130344-18836-3-git-send-email-vivien.didelot@savoirfairelinux.com>
+	<20120201213025.53d820d2@pyramind.ukuu.org.uk>
+	<1328211236.2261.152.camel@groeck-laptop>
+	<20120206153742.GE10173@sirena.org.uk>
+In-Reply-To: <20120206153742.GE10173@sirena.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>, "x86@kernel.org" <x86@kernel.org>, Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "x86@kernel.org" <x86@kernel.org>, Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Richard Purdie <rpurdie@rpsys.net>
 
-On Thu, Feb 02, 2012 at 11:33:56AM -0800, Guenter Roeck wrote:
-> On Wed, 2012-02-01 at 16:30 -0500, Alan Cox wrote:
+Le Mon, 6 Feb 2012 15:37:42 +0000,
+Mark Brown <broonie@opensource.wolfsonmicro.com> a =E9crit :
 
-> > > My first RFC patches set has every driver separated. As they are
-> > > really specific to the platform, people seem to agree with grouping
-> > > them, mainly because they won't be shared. I changed that in the
-> > > following patches sets, and X86 maintainers seemed to be ok with
-> > > that.
+> On Thu, Feb 02, 2012 at 11:33:56AM -0800, Guenter Roeck wrote:
+> > On Wed, 2012-02-01 at 16:30 -0500, Alan Cox wrote:
+>=20
+> > > > My first RFC patches set has every driver separated. As they are
+> > > > really specific to the platform, people seem to agree with
+> > > > grouping them, mainly because they won't be shared. I changed
+> > > > that in the following patches sets, and X86 maintainers seemed
+> > > > to be ok with that.
+>=20
+> > It looks like things are going back and forth a bit. If I were
+> > Vivien, I would be a bit frustrated by now and be close to giving
+> > up (Vivien, I really commend you for your patience).
+>=20
+> OTOH I just looked back and saw that some of the review comments I
+> just made were also made against the first version of this driver I
+> noticed (v2) but appear to have been ignored, the request tracking
+> stands out.
+>=20
+> > Is there a written guideline or policy people can look and point to
+> > if/when something like this comes up ? Otherwise we may have the
+> > LED/GPIO/xxx maintainers point one way, the X86 maintainers point
+> > the other way, and thus may have reached a complete deadlock.
+>=20
+> I'm not sure I'm seeing much conflict here TBH, looking at the above
+> and the history I have to hand I'd say it's reading like the x86
+> maintainers aren't fussed either way and the people doing kernel wide
+> work on things like this prefer getting stuff integrated into the
+> frameworks.
 
-> It looks like things are going back and forth a bit. If I were Vivien, I
-> would be a bit frustrated by now and be close to giving up (Vivien, I
-> really commend you for your patience).
+Thanks for the comments. I'll then move the GPIO driver back to
+drivers/gpio and fix what Mark pointed out.
 
-OTOH I just looked back and saw that some of the review comments I just
-made were also made against the first version of this driver I noticed
-(v2) but appear to have been ignored, the request tracking stands out.
+I Cc Richard Purdie, to have his maintainer view on the platform LED
+declaration. Is it ok in the ts5500_led.c platform file, or should it
+better be moved into drivers/leds/leds-ts5500.c, or maybe directly
+declared in the main ts5500.c platform code?
 
-> Is there a written guideline or policy people can look and point to
-> if/when something like this comes up ? Otherwise we may have the
-> LED/GPIO/xxx maintainers point one way, the X86 maintainers point the
-> other way, and thus may have reached a complete deadlock.
+Thanks,
+Vivien.
 
-I'm not sure I'm seeing much conflict here TBH, looking at the above and
-the history I have to hand I'd say it's reading like the x86 maintainers
-aren't fussed either way and the people doing kernel wide work on things
-like this prefer getting stuff integrated into the frameworks.
+--=20
+Vivien Didelot
+Savoir-faire Linux Inc.
+Tel: (514) 276-5468 #149
 
 _______________________________________________
 lm-sensors mailing list
