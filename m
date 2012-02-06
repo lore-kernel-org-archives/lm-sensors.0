@@ -1,58 +1,64 @@
-From: Roland Stigge <stigge@antcom.de>
-Date: Tue, 21 Feb 2012 19:30:53 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (max6639) Fix FAN_FROM_REG calculation
-Message-Id: <4F43F0ED.20203@antcom.de>
+From: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Date: Mon, 06 Feb 2012 12:47:55 +0000
+Subject: [lm-sensors] [PATCH 00/07] DA9052 patch series
+Message-Id: <1328531755.30549.67.camel@dhruva>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1329850735-9876-2-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1329850735-9876-2-git-send-email-guenter.roeck@ericsson.com>
+References: <1326806748.3542.338.camel@dhruva>
+In-Reply-To: <1326806748.3542.338.camel@dhruva>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Dajun <dajun.chen@diasemi.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-watchdog@vger.kernel.org, lm-sensors@lm-sensors.org, sameo@linux.intel.com
 
-On 21/02/12 19:58, Guenter Roeck wrote:
-> From: Chris D Schimp <silverchris@gmail.com>
-> 
-> RPM calculation from tachometer value does not depend on PPR.
-> Also, do not report negative RPM values.
-> 
-> Signed-off-by: Chris D Schimp <silverchris@gmail.com>
-> [guenter.roeck@ericsson.com: do not report negative RPM values]
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-
-Acked-by: Roland Stigge <stigge@antcom.de>
-
-> ---
->  drivers/hwmon/max6639.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
-> index e10a092..13e58a1 100644
-> --- a/drivers/hwmon/max6639.c
-> +++ b/drivers/hwmon/max6639.c
-> @@ -72,8 +72,8 @@ static unsigned short normal_i2c[] = { 0x2c, 0x2e, 0x2f, I2C_CLIENT_END };
->  
->  static const int rpm_ranges[] = { 2000, 4000, 8000, 16000 };
->  
-> -#define FAN_FROM_REG(val, div, rpm_range)	((val) = 0 ? -1 : \
-> -	(val) = 255 ? 0 : (rpm_ranges[rpm_range] * 30) / ((div + 1) * (val)))
-> +#define FAN_FROM_REG(val, rpm_range)	((val) = 0 || (val) = 255 ? \
-> +				0 : (rpm_ranges[rpm_range] * 30) / (val))
->  #define TEMP_LIMIT_TO_REG(val)	SENSORS_LIMIT((val) / 1000, 0, 255)
->  
->  /*
-> @@ -333,7 +333,7 @@ static ssize_t show_fan_input(struct device *dev,
->  		return PTR_ERR(data);
->  
->  	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
-> -		       data->ppr, data->rpm_range));
-> +		       data->rpm_range));
->  }
->  
->  static ssize_t show_alarm(struct device *dev,
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+77u/77u/VGhlIGZvbGxvd2luZyBwYXRjaCBzZXJpZXMgYWRkcyBzdXBwb3J0IGZvciB0aGUgdmFy
+aW91cyBmZWF0dXJlcyBvZgpEaWFsb2cgU2VtaWNvbmR1Y3RvciBEQTkwNTIvNTMgUE1JQ3MuCgpU
+aGUgREE5MDUyLzUzIFBNSUNzIHN1cHBvcnQgbWFueSBmdW5jdGlvbmFsaXRpZXMgbGlrZSBHUElP
+cywgcmVndWxhdG9ycywKcG93ZXItc3VwcGx5LCB0b3VjaHNjcmVlbiwgcnRjLCBiYWNrbGlnaHQs
+IGV0Yy4gU28gdGhlc2UgcGF0Y2hlcyBhcmUKYXBwbGljYWJsZSB0byBkaWZmZXJlbnQgc3ViLXN5
+c3RlbXMgb2YgdGhlIGtlcm5lbCBzZXBhcmF0ZWx5LgoKVGhpcyBwYXRjaCBzZXJpZXMgYWRkcyBz
+dXBwb3J0IGZvciBBREMgZnVuY3Rpb25hbGl0eSBpbiBNRkQsIEhXTU9OLApMRURTLCBCYWNrbGln
+aHQsIFdhdGNoZG9nLCBSVEMgYW5kIFRTSS4gU3VwcG9ydCBmb3IgcmVzdCBvZiB0aGUgZGV2aWNl
+cwp3aWxsIGJlIGFkZGVkIGxhdGVyLgoKVGhlIEhXTU9OIHBhdGNoIGRlcGVuZHMgb24gdGhlIHBh
+dGNoIGZvciBBREMgZnVuY3Rpb25hbGl0eSBpbiBNRkQKbW9kdWxlLgoKQXNoaXNoIEphbmdhbSAo
+Nyk6CglbTUZEXTogSW5jcmVtZW50YWwgQURDIHN1cHBvcnQuIEhXTU9OIHBhdGNoIGFsc28gZGVw
+ZW5kcyBvbiB0aGlzCglbSFdNT05dOiBIV01PTiBkcml2ZXIgZm9yIERBOTA1Mi81MyBQTUlDcy4K
+CVtMRURTXTogU3VwcG9ydCBmb3IgREE5MDUyLzUzIExFRFMuCglbQmFja2xpZ2h0XTogU3VwcG9y
+dCBmb3IgREE5MDUyLzUzIHdoaXRlIExFRCAvIGJhY2tsaWdodC4KCVtXYXRjaGRvZ106IFdhdGNo
+ZG9nIGRyaXZlciBmb3IgREE5MDUyLzUzIFBNSUNzLgoJW1JUQ106IFJUQyBkcml2ZXIgZm9yIERB
+OTA1Mi81MyBQTUlDcy4KCVtUU0ldOiBTdXBwb3J0IGZvciBUb3VjaCBzY3JlZW4gaW50ZXJmYWNl
+IGZvciBEQTkwNTIvNTMgUE1JQ3MuCgogRG9jdW1lbnRhdGlvbi9od21vbi9kYTkwNTIgICAgICAg
+ICAgICAgICAgICAgICB8ICAgNTkgKysrKwogRG9jdW1lbnRhdGlvbi93YXRjaGRvZy93YXRjaGRv
+Zy1wYXJhbWV0ZXJzLnR4dCB8ICAgIDUgKwogZHJpdmVycy9od21vbi9LY29uZmlnICAgICAgICAg
+ICAgICAgICAgICAgICAgICB8ICAgMTAgKwogZHJpdmVycy9od21vbi9NYWtlZmlsZSAgICAgICAg
+ICAgICAgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVycy9od21vbi9kYTkwNTItaHdtb24uYyAg
+ICAgICAgICAgICAgICAgICB8ICAzNDMKKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMv
+aW5wdXQvdG91Y2hzY3JlZW4vS2NvbmZpZyAgICAgICAgICAgICAgfCAgICA3ICsKIGRyaXZlcnMv
+aW5wdXQvdG91Y2hzY3JlZW4vTWFrZWZpbGUgICAgICAgICAgICAgfCAgICAxICsKIGRyaXZlcnMv
+aW5wdXQvdG91Y2hzY3JlZW4vZGE5MDUyX3RzaS5jICAgICAgICAgfCAgMzUzCisrKysrKysrKysr
+KysrKysrKysrKysrKwogZHJpdmVycy9sZWRzL0tjb25maWcgICAgICAgICAgICAgICAgICAgICAg
+ICAgICB8ICAgIDggKwogZHJpdmVycy9sZWRzL01ha2VmaWxlICAgICAgICAgICAgICAgICAgICAg
+ICAgICB8ICAgIDEgKwogZHJpdmVycy9sZWRzL2xlZHMtZGE5MDUyLmMgICAgICAgICAgICAgICAg
+ICAgICB8ICAyMTQgKysrKysrKysrKysrKysKIGRyaXZlcnMvbWZkL2RhOTA1Mi1jb3JlLmMgICAg
+ICAgICAgICAgICAgICAgICAgfCAgMTM0ICsrKysrKysrKwogZHJpdmVycy9ydGMvS2NvbmZpZyAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDcgKwogZHJpdmVycy9ydGMvTWFrZWZpbGUg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVycy9ydGMvcnRjLWRhOTA1
+Mi5jICAgICAgICAgICAgICAgICAgICAgICB8ICAyOTMKKysrKysrKysrKysrKysrKysrKysKIGRy
+aXZlcnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcgICAgICAgICAgICAgICAgfCAgICA2ICsKIGRy
+aXZlcnMvdmlkZW8vYmFja2xpZ2h0L01ha2VmaWxlICAgICAgICAgICAgICAgfCAgICAxICsKIGRy
+aXZlcnMvdmlkZW8vYmFja2xpZ2h0L2RhOTA1Ml9ibC5jICAgICAgICAgICAgfCAgMTg3ICsrKysr
+KysrKysrKysKIGRyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZyAgICAgICAgICAgICAgICAgICAgICAg
+fCAgICA2ICsKIGRyaXZlcnMvd2F0Y2hkb2cvTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAg
+fCAgICAxICsKIGRyaXZlcnMvd2F0Y2hkb2cvZGE5MDUyX3dkdC5jICAgICAgICAgICAgICAgICAg
+fCAgMzMzCisrKysrKysrKysrKysrKysrKysrKysKIGluY2x1ZGUvbGludXgvbWZkL2RhOTA1Mi9k
+YTkwNTIuaCAgICAgICAgICAgICAgfCAgIDE3ICsrCiAyMiBmaWxlcyBjaGFuZ2VkLCAxOTg4IGlu
+c2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRh
+dGlvbi9od21vbi9kYTkwNTIKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL2RhOTA1
+Mi1od21vbi5jCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9k
+YTkwNTJfdHNpLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2xlZHMvbGVkcy1kYTkwNTIu
+YwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvcnRjL3J0Yy1kYTkwNTIuYwogY3JlYXRlIG1v
+ZGUgMTAwNjQ0IGRyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L2RhOTA1Ml9ibC5jCiBjcmVhdGUgbW9k
+ZSAxMDA2NDQgZHJpdmVycy93YXRjaGRvZy9kYTkwNTJfd2R0LmMKCgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
+bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
+bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
