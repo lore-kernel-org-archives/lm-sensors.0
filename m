@@ -1,72 +1,68 @@
-From: Roland Stigge <stigge@antcom.de>
-Date: Tue, 21 Feb 2012 19:31:21 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (max6639) Fix PPR register initialization to set both channels
-Message-Id: <4F43F109.3090900@antcom.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 07 Feb 2012 23:52:24 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83627ehf) Fix number of fans for NCT6776F
+Message-Id: <1328658744-32616-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1329850735-9876-3-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1329850735-9876-3-git-send-email-guenter.roeck@ericsson.com>
+References: <1327672138-5224-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1327672138-5224-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 21/02/12 19:58, Guenter Roeck wrote:
-> From: Chris D Schimp <silverchris@gmail.com>
-> 
-> Initialize PPR register for both channels, and set correct PPR register bits.
-> Also remove unnecessary variable initializations.
-> 
-> Signed-off-by: Chris D Schimp <silverchris@gmail.com>
-> [guenter.roeck@ericsson.com: Merged two patches into one]
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+NCT6776F can select fan input pins for fans 3 to 5 with a secondary set of
+chip register bits. Check that second set of bits in addition to the first set
+to detect if fans 3..5 are monitored.
 
-Acked-by: Roland Stigge <stigge@antcom.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: stable@vger.kernel.org # 3.0+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+---
+Backport to 3.0
+Upstream commit: 585c0fd8216e0c9f98e2434092af7ec0f999522d
 
-> ---
->  drivers/hwmon/max6639.c |   16 +++++++++-------
->  1 files changed, 9 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
-> index 13e58a1..a6760ba 100644
-> --- a/drivers/hwmon/max6639.c
-> +++ b/drivers/hwmon/max6639.c
-> @@ -429,9 +429,9 @@ static int max6639_init_client(struct i2c_client *client)
->  	struct max6639_data *data = i2c_get_clientdata(client);
->  	struct max6639_platform_data *max6639_info >  		client->dev.platform_data;
-> -	int i = 0;
-> +	int i;
->  	int rpm_range = 1; /* default: 4000 RPM */
-> -	int err = 0;
-> +	int err;
->  
->  	/* Reset chip to default values, see below for GCONFIG setup */
->  	err = i2c_smbus_write_byte_data(client, MAX6639_REG_GCONFIG,
-> @@ -446,11 +446,6 @@ static int max6639_init_client(struct i2c_client *client)
->  	else
->  		data->ppr = 2;
->  	data->ppr -= 1;
-> -	err = i2c_smbus_write_byte_data(client,
-> -			MAX6639_REG_FAN_PPR(i),
-> -			data->ppr << 5);
-> -	if (err)
-> -		goto exit;
->  
->  	if (max6639_info)
->  		rpm_range = rpm_range_to_reg(max6639_info->rpm_range);
-> @@ -458,6 +453,13 @@ static int max6639_init_client(struct i2c_client *client)
->  
->  	for (i = 0; i < 2; i++) {
->  
-> +		/* Set Fan pulse per revolution */
-> +		err = i2c_smbus_write_byte_data(client,
-> +				MAX6639_REG_FAN_PPR(i),
-> +				data->ppr << 6);
-> +		if (err)
-> +			goto exit;
-> +
->  		/* Fans config PWM, RPM */
->  		err = i2c_smbus_write_byte_data(client,
->  			MAX6639_REG_FAN_CONFIG1(i),
+ drivers/hwmon/w83627ehf.c |   26 +++++++++++++++++++++++---
+ 1 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 6284515..359bb1e 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -2104,9 +2104,29 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 		fan4min = 0;
+ 		fan5pin = 0;
+ 	} else if (sio_data->kind = nct6776) {
+-		fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
+-		fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x01);
+-		fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C) & 0x02);
++		bool gpok = superio_inb(sio_data->sioreg, 0x27) & 0x80;
++		u8 regval;
++
++		superio_select(sio_data->sioreg, W83627EHF_LD_HWM);
++		regval = superio_inb(sio_data->sioreg, SIO_REG_ENABLE);
++
++		if (regval & 0x80)
++			fan3pin = gpok;
++		else
++			fan3pin = !(superio_inb(sio_data->sioreg, 0x24) & 0x40);
++
++		if (regval & 0x40)
++			fan4pin = gpok;
++		else
++			fan4pin = !!(superio_inb(sio_data->sioreg, 0x1C)
++				     & 0x01);
++
++		if (regval & 0x20)
++			fan5pin = gpok;
++		else
++			fan5pin = !!(superio_inb(sio_data->sioreg, 0x1C)
++				     & 0x02);
++
+ 		fan4min = fan4pin;
+ 	} else if (sio_data->kind = w83667hg || sio_data->kind = w83667hg_b) {
+ 		fan3pin = 1;
+-- 
+1.7.5.4
 
 
 _______________________________________________
