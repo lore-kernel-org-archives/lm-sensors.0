@@ -1,69 +1,75 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Mon, 06 Feb 2012 20:23:07 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date: Tue, 07 Feb 2012 11:13:10 +0000
 Subject: Re: [lm-sensors] [PATCH v5 2/5] x86/platform: (TS-5500) add GPIO support
-Message-Id: <20120206152307.7d1fb316@v0nbox>
+Message-Id: <20120207111309.GB3332@opensource.wolfsonmicro.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7324820228699106753=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<1328130344-18836-3-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<20120201213025.53d820d2@pyramind.ukuu.org.uk>
-	<1328211236.2261.152.camel@groeck-laptop>
-	<20120206153742.GE10173@sirena.org.uk>
-In-Reply-To: <20120206153742.GE10173@sirena.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+ <1328130344-18836-3-git-send-email-vivien.didelot@savoirfairelinux.com>
+ <20120201213025.53d820d2@pyramind.ukuu.org.uk>
+ <1328211236.2261.152.camel@groeck-laptop>
+ <20120206153742.GE10173@sirena.org.uk>
+ <20120206152307.7d1fb316@v0nbox>
+In-Reply-To: <20120206152307.7d1fb316@v0nbox>
+To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "x86@kernel.org" <x86@kernel.org>, Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Richard Purdie <rpurdie@rpsys.net>
 
-Le Mon, 6 Feb 2012 15:37:42 +0000,
-Mark Brown <broonie@opensource.wolfsonmicro.com> a =E9crit :
 
-> On Thu, Feb 02, 2012 at 11:33:56AM -0800, Guenter Roeck wrote:
-> > On Wed, 2012-02-01 at 16:30 -0500, Alan Cox wrote:
->=20
-> > > > My first RFC patches set has every driver separated. As they are
-> > > > really specific to the platform, people seem to agree with
-> > > > grouping them, mainly because they won't be shared. I changed
-> > > > that in the following patches sets, and X86 maintainers seemed
-> > > > to be ok with that.
->=20
-> > It looks like things are going back and forth a bit. If I were
-> > Vivien, I would be a bit frustrated by now and be close to giving
-> > up (Vivien, I really commend you for your patience).
->=20
-> OTOH I just looked back and saw that some of the review comments I
-> just made were also made against the first version of this driver I
-> noticed (v2) but appear to have been ignored, the request tracking
-> stands out.
->=20
-> > Is there a written guideline or policy people can look and point to
-> > if/when something like this comes up ? Otherwise we may have the
-> > LED/GPIO/xxx maintainers point one way, the X86 maintainers point
-> > the other way, and thus may have reached a complete deadlock.
->=20
-> I'm not sure I'm seeing much conflict here TBH, looking at the above
-> and the history I have to hand I'd say it's reading like the x86
-> maintainers aren't fussed either way and the people doing kernel wide
-> work on things like this prefer getting stuff integrated into the
-> frameworks.
+--===============7324820228699106753==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ADZbWkCsHQ7r3kzd"
+Content-Disposition: inline
 
-Thanks for the comments. I'll then move the GPIO driver back to
-drivers/gpio and fix what Mark pointed out.
 
-I Cc Richard Purdie, to have his maintainer view on the platform LED
-declaration. Is it ok in the ts5500_led.c platform file, or should it
-better be moved into drivers/leds/leds-ts5500.c, or maybe directly
-declared in the main ts5500.c platform code?
+--ADZbWkCsHQ7r3kzd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks,
-Vivien.
+On Mon, Feb 06, 2012 at 03:23:07PM -0500, Vivien Didelot wrote:
 
---=20
-Vivien Didelot
-Savoir-faire Linux Inc.
-Tel: (514) 276-5468 #149
+> I Cc Richard Purdie, to have his maintainer view on the platform LED
+> declaration. Is it ok in the ts5500_led.c platform file, or should it
+> better be moved into drivers/leds/leds-ts5500.c, or maybe directly
+> declared in the main ts5500.c platform code?
+
+It would normally be done in arch/ code.  I'm not sure if Richard will
+get back to you, he's been inactive lately (working on Yocto stuff
+instead).
+
+--ADZbWkCsHQ7r3kzd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPMQc/AAoJEBus8iNuMP3dBNAP/0qLlD6N4BF5WpDZ0VV2SyAb
+y73xhuKqTldj8zkpjRyjlOo7lIiZWypLfPgyPxFkp9FDSSd+azEp/NtDXB8XPapU
+XsbJgOXjNURQqn9wz6tZbbAqvAi6ur/4dGjYJxkaLqbnKaLyOuWJAAn8SfiBOgrX
+doW88tZusUZMjxJltG3K9pSS9IM5btYr23RGM8nB62P/clVZUQZrYsgtx+rhDrWt
+p9UVCCmw5aTNEpebMe9CRqm5Uyd5enZ2RagKmKbNfyyvB2mONk7BG1BpQrDejivY
+i5qlkoCOzEdNQTvXXtpv+dW41eAqd6r5CddnMY9kloNYaQxmszwl20tuxo4ss13j
+MukQ4LOBbU7iByRiMlzPaYe83lBZzyMIA5hpI0cEYZY82dJMXHk5SIliIYXeAif1
+rQC7cQIwqATDbZ1DIQlRSri2AB59OCPngF/30MKuvSi5EBA1vbtngaplqp3yCE7H
+fJV9EKDTIPbdDTxYoO6yb38tCRrysqdjVjae02MwUdwcF0UlKr53u5O1K1xQ+l3X
+BM800e5MLnUzLrlJPEoedGNENUXI5HHPGseUzUCh7jNoTbEMp3OJwSs0t4fAbdAK
+DXHeqfHuSSyBlprSIMusRe+Edt9GOqJDuADJrsnWdTcI1IhZieGQSm8xHMkim32d
+hoiBJtY9N5yLYfNSLWLQ
+=D7Se
+-----END PGP SIGNATURE-----
+
+--ADZbWkCsHQ7r3kzd--
+
+
+--===============7324820228699106753==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7324820228699106753==--
