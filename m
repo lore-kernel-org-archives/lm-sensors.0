@@ -1,64 +1,42 @@
-From: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Date: Mon, 06 Feb 2012 12:47:55 +0000
-Subject: [lm-sensors] [PATCH 00/07] DA9052 patch series
-Message-Id: <1328531755.30549.67.camel@dhruva>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Wed, 08 Feb 2012 17:56:10 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (f75375s) Fix bit shifting in f75375_write16
+Message-Id: <1328723771-22163-4-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1326806748.3542.338.camel@dhruva>
-In-Reply-To: <1326806748.3542.338.camel@dhruva>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Dajun <dajun.chen@diasemi.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-watchdog@vger.kernel.org, lm-sensors@lm-sensors.org, sameo@linux.intel.com
+To: lm-sensors@vger.kernel.org
 
-77u/77u/VGhlIGZvbGxvd2luZyBwYXRjaCBzZXJpZXMgYWRkcyBzdXBwb3J0IGZvciB0aGUgdmFy
-aW91cyBmZWF0dXJlcyBvZgpEaWFsb2cgU2VtaWNvbmR1Y3RvciBEQTkwNTIvNTMgUE1JQ3MuCgpU
-aGUgREE5MDUyLzUzIFBNSUNzIHN1cHBvcnQgbWFueSBmdW5jdGlvbmFsaXRpZXMgbGlrZSBHUElP
-cywgcmVndWxhdG9ycywKcG93ZXItc3VwcGx5LCB0b3VjaHNjcmVlbiwgcnRjLCBiYWNrbGlnaHQs
-IGV0Yy4gU28gdGhlc2UgcGF0Y2hlcyBhcmUKYXBwbGljYWJsZSB0byBkaWZmZXJlbnQgc3ViLXN5
-c3RlbXMgb2YgdGhlIGtlcm5lbCBzZXBhcmF0ZWx5LgoKVGhpcyBwYXRjaCBzZXJpZXMgYWRkcyBz
-dXBwb3J0IGZvciBBREMgZnVuY3Rpb25hbGl0eSBpbiBNRkQsIEhXTU9OLApMRURTLCBCYWNrbGln
-aHQsIFdhdGNoZG9nLCBSVEMgYW5kIFRTSS4gU3VwcG9ydCBmb3IgcmVzdCBvZiB0aGUgZGV2aWNl
-cwp3aWxsIGJlIGFkZGVkIGxhdGVyLgoKVGhlIEhXTU9OIHBhdGNoIGRlcGVuZHMgb24gdGhlIHBh
-dGNoIGZvciBBREMgZnVuY3Rpb25hbGl0eSBpbiBNRkQKbW9kdWxlLgoKQXNoaXNoIEphbmdhbSAo
-Nyk6CglbTUZEXTogSW5jcmVtZW50YWwgQURDIHN1cHBvcnQuIEhXTU9OIHBhdGNoIGFsc28gZGVw
-ZW5kcyBvbiB0aGlzCglbSFdNT05dOiBIV01PTiBkcml2ZXIgZm9yIERBOTA1Mi81MyBQTUlDcy4K
-CVtMRURTXTogU3VwcG9ydCBmb3IgREE5MDUyLzUzIExFRFMuCglbQmFja2xpZ2h0XTogU3VwcG9y
-dCBmb3IgREE5MDUyLzUzIHdoaXRlIExFRCAvIGJhY2tsaWdodC4KCVtXYXRjaGRvZ106IFdhdGNo
-ZG9nIGRyaXZlciBmb3IgREE5MDUyLzUzIFBNSUNzLgoJW1JUQ106IFJUQyBkcml2ZXIgZm9yIERB
-OTA1Mi81MyBQTUlDcy4KCVtUU0ldOiBTdXBwb3J0IGZvciBUb3VjaCBzY3JlZW4gaW50ZXJmYWNl
-IGZvciBEQTkwNTIvNTMgUE1JQ3MuCgogRG9jdW1lbnRhdGlvbi9od21vbi9kYTkwNTIgICAgICAg
-ICAgICAgICAgICAgICB8ICAgNTkgKysrKwogRG9jdW1lbnRhdGlvbi93YXRjaGRvZy93YXRjaGRv
-Zy1wYXJhbWV0ZXJzLnR4dCB8ICAgIDUgKwogZHJpdmVycy9od21vbi9LY29uZmlnICAgICAgICAg
-ICAgICAgICAgICAgICAgICB8ICAgMTAgKwogZHJpdmVycy9od21vbi9NYWtlZmlsZSAgICAgICAg
-ICAgICAgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVycy9od21vbi9kYTkwNTItaHdtb24uYyAg
-ICAgICAgICAgICAgICAgICB8ICAzNDMKKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMv
-aW5wdXQvdG91Y2hzY3JlZW4vS2NvbmZpZyAgICAgICAgICAgICAgfCAgICA3ICsKIGRyaXZlcnMv
-aW5wdXQvdG91Y2hzY3JlZW4vTWFrZWZpbGUgICAgICAgICAgICAgfCAgICAxICsKIGRyaXZlcnMv
-aW5wdXQvdG91Y2hzY3JlZW4vZGE5MDUyX3RzaS5jICAgICAgICAgfCAgMzUzCisrKysrKysrKysr
-KysrKysrKysrKysrKwogZHJpdmVycy9sZWRzL0tjb25maWcgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAgIDggKwogZHJpdmVycy9sZWRzL01ha2VmaWxlICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAgIDEgKwogZHJpdmVycy9sZWRzL2xlZHMtZGE5MDUyLmMgICAgICAgICAgICAgICAg
-ICAgICB8ICAyMTQgKysrKysrKysrKysrKysKIGRyaXZlcnMvbWZkL2RhOTA1Mi1jb3JlLmMgICAg
-ICAgICAgICAgICAgICAgICAgfCAgMTM0ICsrKysrKysrKwogZHJpdmVycy9ydGMvS2NvbmZpZyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDcgKwogZHJpdmVycy9ydGMvTWFrZWZpbGUg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVycy9ydGMvcnRjLWRhOTA1
-Mi5jICAgICAgICAgICAgICAgICAgICAgICB8ICAyOTMKKysrKysrKysrKysrKysrKysrKysKIGRy
-aXZlcnMvdmlkZW8vYmFja2xpZ2h0L0tjb25maWcgICAgICAgICAgICAgICAgfCAgICA2ICsKIGRy
-aXZlcnMvdmlkZW8vYmFja2xpZ2h0L01ha2VmaWxlICAgICAgICAgICAgICAgfCAgICAxICsKIGRy
-aXZlcnMvdmlkZW8vYmFja2xpZ2h0L2RhOTA1Ml9ibC5jICAgICAgICAgICAgfCAgMTg3ICsrKysr
-KysrKysrKysKIGRyaXZlcnMvd2F0Y2hkb2cvS2NvbmZpZyAgICAgICAgICAgICAgICAgICAgICAg
-fCAgICA2ICsKIGRyaXZlcnMvd2F0Y2hkb2cvTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAg
-fCAgICAxICsKIGRyaXZlcnMvd2F0Y2hkb2cvZGE5MDUyX3dkdC5jICAgICAgICAgICAgICAgICAg
-fCAgMzMzCisrKysrKysrKysrKysrKysrKysrKysKIGluY2x1ZGUvbGludXgvbWZkL2RhOTA1Mi9k
-YTkwNTIuaCAgICAgICAgICAgICAgfCAgIDE3ICsrCiAyMiBmaWxlcyBjaGFuZ2VkLCAxOTg4IGlu
-c2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRh
-dGlvbi9od21vbi9kYTkwNTIKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL2RhOTA1
-Mi1od21vbi5jCiBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9k
-YTkwNTJfdHNpLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2xlZHMvbGVkcy1kYTkwNTIu
-YwogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvcnRjL3J0Yy1kYTkwNTIuYwogY3JlYXRlIG1v
-ZGUgMTAwNjQ0IGRyaXZlcnMvdmlkZW8vYmFja2xpZ2h0L2RhOTA1Ml9ibC5jCiBjcmVhdGUgbW9k
-ZSAxMDA2NDQgZHJpdmVycy93YXRjaGRvZy9kYTkwNTJfd2R0LmMKCgoKX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
-bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+From: Nikolaus Schulz <schulz@macnetix.de>
+
+In order to extract the high byte of the 16-bit word, shift the word to
+the right, not to the left.
+
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+Cc: stable@kernel.org
+---
+ drivers/hwmon/f75375s.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index b3eef44..0aabaaf 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -172,7 +172,7 @@ static inline void f75375_write8(struct i2c_client *client, u8 reg,
+ static inline void f75375_write16(struct i2c_client *client, u8 reg,
+ 		u16 value)
+ {
+-	int err = i2c_smbus_write_byte_data(client, reg, (value << 8));
++	int err = i2c_smbus_write_byte_data(client, reg, (value >> 8));
+ 	if (err)
+ 		return;
+ 	i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
+-- 
+1.7.9
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
