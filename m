@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 08 Feb 2012 14:55:31 +0000
+From: David Kremer <david@david-kremer.fr>
+Date: Wed, 08 Feb 2012 14:59:16 +0000
 Subject: Re: [lm-sensors] lm-sensors and Kernel driver w83627ehf
-Message-Id: <20120208155531.192934ae@endymion.delvare>
+Message-Id: <4F328DC4.7000906@david-kremer.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120208002740.GA18795@ericsson.com>
 In-Reply-To: <20120208002740.GA18795@ericsson.com>
@@ -10,65 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 8 Feb 2012 06:16:41 -0800, Guenter Roeck wrote:
-> On Wed, Feb 08, 2012 at 06:39:46AM -0500, Patrick Marty wrote:
-> > Guenter,
-> > 
-> > I have tested all driver versions with the 3 linux kernels installed
-> > on my system :
-> >    * 3.0.0-15-generic
-> >    * 3.0.0-12-generic
-> >    * 2.6.38-13-generic
-> > 
-> > I have re-compiled and re-installed each driver version for each kernel version.
-> > 
-> > All versions work with kernel 2.6.38-13 ( but you probably already
-> > know that ) and ... all versions fail with kernels 3.0.0.* ( I mean I
-> > got an error message when loading the driver with modprobe )
-> > 
-> > I have also tested all driver versions with linux running from an usb
-> > key with kernel 3.0.0-12-generic.
-> > 
-> > And all versions worked ! No error after loading the driver :)
-> > 
-> > The main differences I could think of with the linux installed on my
-> > hard drive with the linux from usb key were :
-> >    * not the same gcc version :
-> >       * 4.6.1 on usb key
-> >       * 4.4.6 on hard drive
-> >    * not the same graphic card driver
-> >       * nouveau driver on usb key
-> >       * nvidia driver on hard drive
-> > 
-> > So I have also tried all driver versions compiled with gcc 4.6.1 with
-> > linux kernel 3.0.0-15-generic ( I unload the driver with modprobe -r
-> > ... before reloading it and I checked with dmesg & lsmod that the
-> > driver was loaded :) ).
-> > And all versions worked :)
-> > 
-> > So It seems that compiling with gcc 4.4.6 is the source of the problem.
-> > And compiling the driver with gcc 4.6 solved it.
-> > Do you have any idea why ?
-> > 
-> Puzzled. I am copying Jean and the list ... Jean, any idea ? Compiler bug ?
+On 08/02/2012 15:49, Guenter Roeck wrote:
+> Ubuntu 11.10 is not a LTS release. [...] There seems to be
+> some magic in deciding which kernel releases are going to be LTS, my
+> predictions usually turn out to be wrong, and I gave up trying.
+The 3.0 branch is flagged as a LTS version in archlinux. Knowing their 
+way to do thing and to prefer vanilla packages, the 3.0 kernel is a long 
+term support version I guess (at least only candidate for bug fixes and 
+security patches).
 
-Yes, this really looks like a compiler bug.
+For the ubuntu version, you are probably right, and one shouldn't care 
+about ubuntu in particular I guess. But as it concerns the LTS support, 
+it could be nice if hwmon drivers could be stable and not broken at each 
+security and bugfixes update of the kernel. As well, I wonder if you 
+plan to follow this new development guideline.
 
-There's at least one known kernel miscompilation issue with gcc 4.4.4:
-http://gcc.gnu.org/bugzilla/show_bug.cgi?idE312
+Thanks to you.
 
-> > I can send you the .o & .ko files compiled with gcc 4.6 if you need them.
->
-> Would be great if you could do that, with -DDEBUG as suggested by Jean
-> in his other e-mail, to let us find the offending source.
-> 
-> Please keep Jean and the list copied on your replies. We'll need as much support
-> as we can get on this one.
+See you later.
 
-Unfortunately none of my systems has gcc 4.4... I have 4.3, 4.5 and 4.6.
-
--- 
-Jean Delvare
+David
 
 _______________________________________________
 lm-sensors mailing list
