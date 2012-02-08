@@ -1,75 +1,43 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Tue, 07 Feb 2012 11:13:10 +0000
-Subject: Re: [lm-sensors] [PATCH v5 2/5] x86/platform: (TS-5500) add GPIO support
-Message-Id: <20120207111309.GB3332@opensource.wolfsonmicro.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============7324820228699106753=="
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Wed, 08 Feb 2012 17:56:08 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (f75375s) Fix automatic pwm mode setting for F75373 & F75375
+Message-Id: <1328723771-22163-2-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
- <1328130344-18836-3-git-send-email-vivien.didelot@savoirfairelinux.com>
- <20120201213025.53d820d2@pyramind.ukuu.org.uk>
- <1328211236.2261.152.camel@groeck-laptop>
- <20120206153742.GE10173@sirena.org.uk>
- <20120206152307.7d1fb316@v0nbox>
-In-Reply-To: <20120206152307.7d1fb316@v0nbox>
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, "x86@kernel.org" <x86@kernel.org>, Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>, Richard Purdie <rpurdie@rpsys.net>
-
-
---===============7324820228699106753==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ADZbWkCsHQ7r3kzd"
-Content-Disposition: inline
-
-
---ADZbWkCsHQ7r3kzd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Feb 06, 2012 at 03:23:07PM -0500, Vivien Didelot wrote:
-
-> I Cc Richard Purdie, to have his maintainer view on the platform LED
-> declaration. Is it ok in the ts5500_led.c platform file, or should it
-> better be moved into drivers/leds/leds-ts5500.c, or maybe directly
-> declared in the main ts5500.c platform code?
-
-It would normally be done in arch/ code.  I'm not sure if Richard will
-get back to you, he's been inactive lately (working on Yocto stuff
-instead).
-
---ADZbWkCsHQ7r3kzd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPMQc/AAoJEBus8iNuMP3dBNAP/0qLlD6N4BF5WpDZ0VV2SyAb
-y73xhuKqTldj8zkpjRyjlOo7lIiZWypLfPgyPxFkp9FDSSd+azEp/NtDXB8XPapU
-XsbJgOXjNURQqn9wz6tZbbAqvAi6ur/4dGjYJxkaLqbnKaLyOuWJAAn8SfiBOgrX
-doW88tZusUZMjxJltG3K9pSS9IM5btYr23RGM8nB62P/clVZUQZrYsgtx+rhDrWt
-p9UVCCmw5aTNEpebMe9CRqm5Uyd5enZ2RagKmKbNfyyvB2mONk7BG1BpQrDejivY
-i5qlkoCOzEdNQTvXXtpv+dW41eAqd6r5CddnMY9kloNYaQxmszwl20tuxo4ss13j
-MukQ4LOBbU7iByRiMlzPaYe83lBZzyMIA5hpI0cEYZY82dJMXHk5SIliIYXeAif1
-rQC7cQIwqATDbZ1DIQlRSri2AB59OCPngF/30MKuvSi5EBA1vbtngaplqp3yCE7H
-fJV9EKDTIPbdDTxYoO6yb38tCRrysqdjVjae02MwUdwcF0UlKr53u5O1K1xQ+l3X
-BM800e5MLnUzLrlJPEoedGNENUXI5HHPGseUzUCh7jNoTbEMp3OJwSs0t4fAbdAK
-DXHeqfHuSSyBlprSIMusRe+Edt9GOqJDuADJrsnWdTcI1IhZieGQSm8xHMkim32d
-hoiBJtY9N5yLYfNSLWLQ
-=D7Se
------END PGP SIGNATURE-----
-
---ADZbWkCsHQ7r3kzd--
-
-
---===============7324820228699106753==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+From: Nikolaus Schulz <schulz@macnetix.de>
+
+In order to enable temperature mode aka automatic mode for the F75373 and
+F75375 chips, the two FANx_MODE bits in the fan configuration register
+need be set to 01, not 10.
+
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+Cc: stable@kernel.org
+---
+ drivers/hwmon/f75375s.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index eedf574..c81ad45 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -369,7 +369,7 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 			fanmode  |= (3 << FAN_CTRL_MODE(nr));
+ 			break;
+ 		case 2: /* AUTOMATIC*/
+-			fanmode  |= (2 << FAN_CTRL_MODE(nr));
++			fanmode  |= (1 << FAN_CTRL_MODE(nr));
+ 			break;
+ 		case 3: /* fan speed */
+ 			break;
+-- 
+1.7.9
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============7324820228699106753==--
