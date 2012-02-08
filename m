@@ -1,163 +1,141 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 08 Feb 2012 00:27:40 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 08 Feb 2012 13:18:57 +0000
 Subject: Re: [lm-sensors] lm-sensors and Kernel driver w83627ehf
-Message-Id: <20120208002740.GA18795@ericsson.com>
+Message-Id: <20120208141857.00282ed2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20120208002740.GA18795@ericsson.com>
+In-Reply-To: <20120208002740.GA18795@ericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 07, 2012 at 02:08:37AM -0500, Patrick Marty wrote:
-> Dear Guenter,
->=20
-> Here are some detailed informations.
-> Hope it helps :)
->=20
->=20
-Forwarding this to the lm-sensors list so people know what is going on.
-This is seen with the latest version of the w83627ehf driver in my -next br=
-anch,
-and the driver in the master branch of my repository on github.
-
-So far I have no clue what is causing the problem.
-
-Guenter
-
-> >> when I run sensors-detect, I got this ( abbreviated ) output :
-> >>
-> >> Driver `to-be-written':
-> >> =A0 * ISA bus, address 0x290
-> >> =A0 =A0 Chip `Nuvoton NCT6776F Super IO Sensors' (confidence: 9)
-> >>
-> > Probably this is an old version of sensors-detect.
->=20
->=20
-> sensor-detect : revision 5946
-> sensors version : 3.3.0
-> lm-sensors package version : 3.3.0-4
->=20
->=20
-> > Do you see an error
-> > message with dmesg ?
->=20
-> yes here is the error message given by dmesg after running modprobe w8362=
-7ehf:
->=20
-> [  237.889559] BUG: unable to handle kernel paging request at ffffffffa0c=
-7c2e4
-> [  237.889566] IP: [<ffffffff81032919>] __ticket_spin_lock+0x9/0x20
-> [  237.889574] PGD 1c05067 PUD 1c09063 PMD 3f0bd7067 PTE 3eaa56161
-> [  237.889580] Oops: 0003 [#1] SMP
-> [  237.889584] CPU 4
-> [  237.889585] Modules linked in: w83627ehf(-) hwmon_vid parport_pc
-> dm_crypt ppdev bnep rfcomm snd_hda_codec_hdmi joydev wacom nvidia(P)
-> snd_hda_codec_realtek mxm_wmi eeepc_wmi asus_wmi sparse_keymap
-> binfmt_misc btusb bluetooth snd_seq_midi snd_hda_intel snd_hda_codec
-> psmouse snd_hwdep serio_raw snd_pcm snd_rawmidi snd_seq_midi_event
-> snd_seq snd_timer snd_seq_device snd mei(C) wmi soundcore
-> snd_page_alloc coretemp lp parport vesafb usbhid hid firewire_ohci
-> firewire_core crc_itu_t ahci libahci xhci_hcd e1000e video
-> [  237.889624]
-> [  237.889627] Pid: 2383, comm: modprobe Tainted: P     	C
-> 3.0.0-15-generic #26-Ubuntu System manufacturer System Product
-> Name/P8Z68-V PRO GEN3
-> [  237.889633] RIP: 0010:[<ffffffff81032919>]  [<ffffffff81032919>]
-> __ticket_spin_lock+0x9/0x20
-> [  237.889638] RSP: 0018:ffff8803ea889e68  EFLAGS: 00010086
-> [  237.889641] RAX: 0000000000010000 RBX: 0000000000000286 RCX: 00000000c=
-0000100
-> [  237.889644] RDX: 0000000000000000 RSI: 0000000000000286 RDI: ffffffffa=
-0c7c2e4
-> [  237.889646] RBP: ffff8803ea889e68 R08: ffff8803ea888000 R09: 000000000=
-0000000
-> [  237.889649] R10: 0000000000000400 R11: 0000000000000001 R12: ffffffffa=
-0c7c2e4
-> [  237.889651] R13: 0000000000000000 R14: ffffffff8109ffde R15: 000000000=
-000000f
-> [  237.889655] FS:  00007f39a4f00720(0000) GS:ffff88041f500000(0000)
-> knlGS:0000000000000000
-> [  237.889658] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> [  237.889660] CR2: ffffffffa0c7c2e4 CR3: 00000003eaf2e000 CR4: 000000000=
-00406e0
-> [  237.889663] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
-0000000
-> [  237.889666] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 000000000=
-0000400
-> [  237.889669] Process modprobe (pid: 2383, threadinfo
-> ffff8803ea888000, task ffff880402b71720)
-> [  237.889671] Stack:
-> [  237.889673]  ffff8803ea889e78 ffffffff810329b9 ffff8803ea889e98
-> ffffffff815f208e
-> [  237.889678]  ffffffffa0c7bcd4 ffffffffa0c7c2e4 ffff8803ea889ef8
-> ffffffff81057179
-> [  237.889682]  ffff880402b71720 ffffffff81057340 dead000000100100
-> dead000000200200
-> [  237.889687] Call Trace:
-> [  237.889691]  [<ffffffff810329b9>] default_spin_lock_flags+0x9/0x10
-> [  237.889696]  [<ffffffff815f208e>] _raw_spin_lock_irqsave+0x2e/0x40
-> [  237.889703]  [<ffffffffa0c7bcd4>] ? store_tolerance+0x184/0x184 [w8362=
-7ehf]
-> [  237.889708]  [<ffffffffa0c7c2e4>] ? w83627ehf_probe+0x59e/0x22ba [w836=
-27ehf]
-> [  237.889713]  [<ffffffff81057179>] try_to_wake_up+0x39/0x200
-> [  237.889716]  [<ffffffff81057340>] ? try_to_wake_up+0x200/0x200
-> [  237.889721]  [<ffffffff8109ffde>] ? sys_init_module+0x1be/0x230
-> [  237.889724]  [<ffffffff81057375>] wake_up_process+0x15/0x20
-> [  237.889727]  [<ffffffff8109d37f>] module_put+0xaf/0xc0
-> [  237.889731]  [<ffffffff8109ffde>] sys_init_module+0x1be/0x230
-> [  237.889735]  [<ffffffff815fa1c2>] system_call_fastpath+0x16/0x1b
-> [  237.889738] Code: 00 00 48 c7 c1 21 27 03 81 48 c7 c2 1e 27 03 81
-> e9 dd fe ff ff 90 90 90 90 90 90 90 90 90 90 90 90 90 55 b8 00 00 01
-> 00 48 89 e5 <f0> 0f c1 07 0f b7 d0 c1 e8 10 39 c2 74 07 f3 90 0f b7 17
-> eb f5
-> [  237.889773] RIP  [<ffffffff81032919>] __ticket_spin_lock+0x9/0x20
-> [  237.889777]  RSP <ffff8803ea889e68>
-> [  237.889779] CR2: ffffffffa0c7c2e4
-> [  237.889782] ---[ end trace 99e0d80bf6a60138 ]---
->=20
->=20
-> > Also, do you see that the driver is loaded when
-> > running "lsmod" ?
->=20
-> no the driver is not loaded
->=20
-> the first time I load the driver with modprob, I got the error message ab=
-ove
-> if I try to load the driver again, modprob runs endlessly ( the
-> process is marked as sleeping by top command )
->=20
-> My kernel version is kernel 3.0.0-15-generic ( ubuntu 11.10 ).
->=20
->=20
->=20
-> I have run ubuntu 11.10 from a usb key ( kernel version
-> 3.0.0-12-generic, lm-sensors package 3.3.0-4 ).
-> The driver w83627 shipped with it loads without error ( but I still
-> have to load it manually, sensors-detect don't do it for me ).
-> Here is the dmesg output after loading the module with modprobe :
->=20
-> [  740.741755] coretemp coretemp.0: TjMax is 98 C.
-> [  957.438553] w83627ehf: Found NCT6776F chip at 0x290
->=20
-> and the driver is loaded when running lsmod :
->=20
-> ubuntu@ubuntu:~$ lsmod | grep w83
-> w83627ehf          	38413  0
-> hwmon_vid          	12746  1 w83627ehf
->=20
->=20
-> Do you need more details ?
->=20
-> I am going to re-install my system tomorrow or the day after.
-> If you need more information, ask me.
->=20
->=20
-> Thanks
->=20
-> Best regards, Patrick
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwgUGF0cmljaywKCk9uIFR1ZSwgNyBGZWIgMjAxMiAxNjoyNzo0MCAtMDgwMCwg
+R3VlbnRlciBSb2VjayB3cm90ZToKPiBPbiBUdWUsIEZlYiAwNywgMjAxMiBhdCAwMjowODozN0FN
+IC0wNTAwLCBQYXRyaWNrIE1hcnR5IHdyb3RlOgo+ID4gRGVhciBHdWVudGVyLAo+ID4gCj4gPiBI
+ZXJlIGFyZSBzb21lIGRldGFpbGVkIGluZm9ybWF0aW9ucy4KPiA+IEhvcGUgaXQgaGVscHMgOikK
+PiA+IAo+ID4gCj4gRm9yd2FyZGluZyB0aGlzIHRvIHRoZSBsbS1zZW5zb3JzIGxpc3Qgc28gcGVv
+cGxlIGtub3cgd2hhdCBpcyBnb2luZyBvbi4KPiBUaGlzIGlzIHNlZW4gd2l0aCB0aGUgbGF0ZXN0
+IHZlcnNpb24gb2YgdGhlIHc4MzYyN2VoZiBkcml2ZXIgaW4gbXkgLW5leHQgYnJhbmNoLAo+IGFu
+ZCB0aGUgZHJpdmVyIGluIHRoZSBtYXN0ZXIgYnJhbmNoIG9mIG15IHJlcG9zaXRvcnkgb24gZ2l0
+aHViLgo+Cj4gU28gZmFyIEkgaGF2ZSBubyBjbHVlIHdoYXQgaXMgY2F1c2luZyB0aGUgcHJvYmxl
+bS4KPiAKPiBHdWVudGVyCj4gCj4gPiA+PiB3aGVuIEkgcnVuIHNlbnNvcnMtZGV0ZWN0LCBJIGdv
+dCB0aGlzICggYWJicmV2aWF0ZWQgKSBvdXRwdXQgOgo+ID4gPj4KPiA+ID4+IERyaXZlciBgdG8t
+YmUtd3JpdHRlbic6Cj4gPiA+PiDCoCAqIElTQSBidXMsIGFkZHJlc3MgMHgyOTAKPiA+ID4+IMKg
+IMKgIENoaXAgYE51dm90b24gTkNUNjc3NkYgU3VwZXIgSU8gU2Vuc29ycycgKGNvbmZpZGVuY2U6
+IDkpCj4gPiA+Pgo+ID4gPiBQcm9iYWJseSB0aGlzIGlzIGFuIG9sZCB2ZXJzaW9uIG9mIHNlbnNv
+cnMtZGV0ZWN0Lgo+ID4gCj4gPiAKPiA+IHNlbnNvci1kZXRlY3QgOiByZXZpc2lvbiA1OTQ2Cj4g
+PiBzZW5zb3JzIHZlcnNpb24gOiAzLjMuMAo+ID4gbG0tc2Vuc29ycyBwYWNrYWdlIHZlcnNpb24g
+OiAzLjMuMC00CgpUaGUgcHJvcGVyIGRyaXZlciBiaW5kaW5nIHdhcyBvbmx5IGFkZGVkIHRvIHNl
+bnNvcnMtZGV0ZWN0IGluIHZlcnNpb24KMy4zLjE6Cmh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcv
+Y2hhbmdlc2V0LzU5NjgvbG0tc2Vuc29ycy90cnVuay9wcm9nL2RldGVjdAoKWW91IGNhbiB1c2Ug
+dGhlIGxhdGVzdCB2ZXJzaW9uIG9mIHNlbnNvcnMtZGV0ZWN0IHRvIGdlbmVyYXRlIHRoZSBwcm9w
+ZXIKY29uZmlndXJhdGlvbiBmaWxlOgpodHRwOi8vZGwubG0tc2Vuc29ycy5vcmcvbG0tc2Vuc29y
+cy9maWxlcy9zZW5zb3JzLWRldGVjdAoKPiA+ID4gRG8geW91IHNlZSBhbiBlcnJvcgo+ID4gPiBt
+ZXNzYWdlIHdpdGggZG1lc2cgPwo+ID4gCj4gPiB5ZXMgaGVyZSBpcyB0aGUgZXJyb3IgbWVzc2Fn
+ZSBnaXZlbiBieSBkbWVzZyBhZnRlciBydW5uaW5nIG1vZHByb2JlIHc4MzYyN2VoZjoKPiA+IAo+
+ID4gWyAgMjM3Ljg4OTU1OV0gQlVHOiB1bmFibGUgdG8gaGFuZGxlIGtlcm5lbCBwYWdpbmcgcmVx
+dWVzdCBhdCBmZmZmZmZmZmEwYzdjMmU0Cj4gPiBbICAyMzcuODg5NTY2XSBJUDogWzxmZmZmZmZm
+ZjgxMDMyOTE5Pl0gX190aWNrZXRfc3Bpbl9sb2NrKzB4OS8weDIwCj4gPiBbICAyMzcuODg5NTc0
+XSBQR0QgMWMwNTA2NyBQVUQgMWMwOTA2MyBQTUQgM2YwYmQ3MDY3IFBURSAzZWFhNTYxNjEKPiA+
+IFsgIDIzNy44ODk1ODBdIE9vcHM6IDAwMDMgWyMxXSBTTVAKPiA+IFsgIDIzNy44ODk1ODRdIENQ
+VSA0Cj4gPiBbICAyMzcuODg5NTg1XSBNb2R1bGVzIGxpbmtlZCBpbjogdzgzNjI3ZWhmKC0pIGh3
+bW9uX3ZpZCBwYXJwb3J0X3BjCj4gPiBkbV9jcnlwdCBwcGRldiBibmVwIHJmY29tbSBzbmRfaGRh
+X2NvZGVjX2hkbWkgam95ZGV2IHdhY29tIG52aWRpYShQKQo+ID4gc25kX2hkYV9jb2RlY19yZWFs
+dGVrIG14bV93bWkgZWVlcGNfd21pIGFzdXNfd21pIHNwYXJzZV9rZXltYXAKPiA+IGJpbmZtdF9t
+aXNjIGJ0dXNiIGJsdWV0b290aCBzbmRfc2VxX21pZGkgc25kX2hkYV9pbnRlbCBzbmRfaGRhX2Nv
+ZGVjCj4gPiBwc21vdXNlIHNuZF9od2RlcCBzZXJpb19yYXcgc25kX3BjbSBzbmRfcmF3bWlkaSBz
+bmRfc2VxX21pZGlfZXZlbnQKPiA+IHNuZF9zZXEgc25kX3RpbWVyIHNuZF9zZXFfZGV2aWNlIHNu
+ZCBtZWkoQykgd21pIHNvdW5kY29yZQo+ID4gc25kX3BhZ2VfYWxsb2MgY29yZXRlbXAgbHAgcGFy
+cG9ydCB2ZXNhZmIgdXNiaGlkIGhpZCBmaXJld2lyZV9vaGNpCj4gPiBmaXJld2lyZV9jb3JlIGNy
+Y19pdHVfdCBhaGNpIGxpYmFoY2kgeGhjaV9oY2QgZTEwMDBlIHZpZGVvCgpOb3RlIHRoZSBwcm9w
+cmlldGFyeSBudmlkaWEgZHJpdmVyIGFuZCB0aGUgcHJlc2VuY2Ugb2YgYSBzdGFnaW5nIGRyaXZl
+ci4KCj4gPiBbICAyMzcuODg5NjI0XQo+ID4gWyAgMjM3Ljg4OTYyN10gUGlkOiAyMzgzLCBjb21t
+OiBtb2Rwcm9iZSBUYWludGVkOiBQICAgICAJQwo+ID4gMy4wLjAtMTUtZ2VuZXJpYyAjMjYtVWJ1
+bnR1IFN5c3RlbSBtYW51ZmFjdHVyZXIgU3lzdGVtIFByb2R1Y3QKPiA+IE5hbWUvUDhaNjgtViBQ
+Uk8gR0VOMwo+ID4gWyAgMjM3Ljg4OTYzM10gUklQOiAwMDEwOls8ZmZmZmZmZmY4MTAzMjkxOT5d
+ICBbPGZmZmZmZmZmODEwMzI5MTk+XQo+ID4gX190aWNrZXRfc3Bpbl9sb2NrKzB4OS8weDIwCj4g
+PiBbICAyMzcuODg5NjM4XSBSU1A6IDAwMTg6ZmZmZjg4MDNlYTg4OWU2OCAgRUZMQUdTOiAwMDAx
+MDA4Ngo+ID4gWyAgMjM3Ljg4OTY0MV0gUkFYOiAwMDAwMDAwMDAwMDEwMDAwIFJCWDogMDAwMDAw
+MDAwMDAwMDI4NiBSQ1g6IDAwMDAwMDAwYzAwMDAxMDAKPiA+IFsgIDIzNy44ODk2NDRdIFJEWDog
+MDAwMDAwMDAwMDAwMDAwMCBSU0k6IDAwMDAwMDAwMDAwMDAyODYgUkRJOiBmZmZmZmZmZmEwYzdj
+MmU0Cj4gPiBbICAyMzcuODg5NjQ2XSBSQlA6IGZmZmY4ODAzZWE4ODllNjggUjA4OiBmZmZmODgw
+M2VhODg4MDAwIFIwOTogMDAwMDAwMDAwMDAwMDAwMAo+ID4gWyAgMjM3Ljg4OTY0OV0gUjEwOiAw
+MDAwMDAwMDAwMDAwNDAwIFIxMTogMDAwMDAwMDAwMDAwMDAwMSBSMTI6IGZmZmZmZmZmYTBjN2My
+ZTQKPiA+IFsgIDIzNy44ODk2NTFdIFIxMzogMDAwMDAwMDAwMDAwMDAwMCBSMTQ6IGZmZmZmZmZm
+ODEwOWZmZGUgUjE1OiAwMDAwMDAwMDAwMDAwMDBmCj4gPiBbICAyMzcuODg5NjU1XSBGUzogIDAw
+MDA3ZjM5YTRmMDA3MjAoMDAwMCkgR1M6ZmZmZjg4MDQxZjUwMDAwMCgwMDAwKQo+ID4ga25sR1M6
+MDAwMDAwMDAwMDAwMDAwMAo+ID4gWyAgMjM3Ljg4OTY1OF0gQ1M6ICAwMDEwIERTOiAwMDAwIEVT
+OiAwMDAwIENSMDogMDAwMDAwMDA4MDA1MDAzYgo+ID4gWyAgMjM3Ljg4OTY2MF0gQ1IyOiBmZmZm
+ZmZmZmEwYzdjMmU0IENSMzogMDAwMDAwMDNlYWYyZTAwMCBDUjQ6IDAwMDAwMDAwMDAwNDA2ZTAK
+PiA+IFsgIDIzNy44ODk2NjNdIERSMDogMDAwMDAwMDAwMDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAw
+MDAwMDAgRFIyOiAwMDAwMDAwMDAwMDAwMDAwCj4gPiBbICAyMzcuODg5NjY2XSBEUjM6IDAwMDAw
+MDAwMDAwMDAwMDAgRFI2OiAwMDAwMDAwMGZmZmYwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMAo+
+ID4gWyAgMjM3Ljg4OTY2OV0gUHJvY2VzcyBtb2Rwcm9iZSAocGlkOiAyMzgzLCB0aHJlYWRpbmZv
+Cj4gPiBmZmZmODgwM2VhODg4MDAwLCB0YXNrIGZmZmY4ODA0MDJiNzE3MjApCj4gPiBbICAyMzcu
+ODg5NjcxXSBTdGFjazoKPiA+IFsgIDIzNy44ODk2NzNdICBmZmZmODgwM2VhODg5ZTc4IGZmZmZm
+ZmZmODEwMzI5YjkgZmZmZjg4MDNlYTg4OWU5OAo+ID4gZmZmZmZmZmY4MTVmMjA4ZQo+ID4gWyAg
+MjM3Ljg4OTY3OF0gIGZmZmZmZmZmYTBjN2JjZDQgZmZmZmZmZmZhMGM3YzJlNCBmZmZmODgwM2Vh
+ODg5ZWY4Cj4gPiBmZmZmZmZmZjgxMDU3MTc5Cj4gPiBbICAyMzcuODg5NjgyXSAgZmZmZjg4MDQw
+MmI3MTcyMCBmZmZmZmZmZjgxMDU3MzQwIGRlYWQwMDAwMDAxMDAxMDAKPiA+IGRlYWQwMDAwMDAy
+MDAyMDAKPiA+IFsgIDIzNy44ODk2ODddIENhbGwgVHJhY2U6Cj4gPiBbICAyMzcuODg5NjkxXSAg
+WzxmZmZmZmZmZjgxMDMyOWI5Pl0gZGVmYXVsdF9zcGluX2xvY2tfZmxhZ3MrMHg5LzB4MTAKPiA+
+IFsgIDIzNy44ODk2OTZdICBbPGZmZmZmZmZmODE1ZjIwOGU+XSBfcmF3X3NwaW5fbG9ja19pcnFz
+YXZlKzB4MmUvMHg0MAo+ID4gWyAgMjM3Ljg4OTcwM10gIFs8ZmZmZmZmZmZhMGM3YmNkND5dID8g
+c3RvcmVfdG9sZXJhbmNlKzB4MTg0LzB4MTg0IFt3ODM2MjdlaGZdCgpJJ20gbm90IHN1cmUgaG93
+IG11Y2ggd2UgY2FuIHRydXN0IHRoaXMgY2FsbCB0cmFjZS4gRnVuY3Rpb24Kc3RvcmVfdG9sZXJh
+bmNlKCkgaXMgbm90IGNhbGxlZCBieSB3ODM2MjdlaGZfcHJvYmUoKS4gSSB3b3VsZG4ndCBydWxl
+Cm91dCBhIHN0YWNrIGNvcnJ1cHRpb24uIElmIHRoZXJlIGlzIGEgZGVidWcga2VybmVsIGZsYXZv
+ciBhdmFpbGFibGUgZm9yCnlvdXIgc3lzdGVtLCBwbGVhc2UgdHJ5IGl0IGFuZCBzZWUgaWYgeW91
+IGdldCBhIGJldHRlciBjYWxsIHRyYWNlLgoKPiA+IFsgIDIzNy44ODk3MDhdICBbPGZmZmZmZmZm
+YTBjN2MyZTQ+XSA/IHc4MzYyN2VoZl9wcm9iZSsweDU5ZS8weDIyYmEgW3c4MzYyN2VoZl0KCkNh
+biB5b3UgcGxlYXNlIGFzayBnZGIgd2hpY2ggbGluZSBvZiB0aGUgZnVuY3Rpb24gdGhpcyBpcz8g
+WW91J2xsCnByb2JhYmx5IGhhdmUgdG8gaW5zdGFsbCBzb21lIGtlcm5lbCBkZWJ1Z2dpbmcgcGFj
+a2FnZSBmb3IgdGhpcywgZG9uJ3QKa25vdyBob3cgdGhpcyB3b3JrcyBvbiBVYnVudHUuCgokIGdk
+YgooZ2RiKSBmaWxlIGRyaXZlcnMvaHdtb24vdzgzNjI3ZWhmLmtvCihnZGIpIGxpc3QgKih3ODM2
+MjdlaGZfcHJvYmUrMHg1OWUpCgo+ID4gWyAgMjM3Ljg4OTcxM10gIFs8ZmZmZmZmZmY4MTA1NzE3
+OT5dIHRyeV90b193YWtlX3VwKzB4MzkvMHgyMDAKPiA+IFsgIDIzNy44ODk3MTZdICBbPGZmZmZm
+ZmZmODEwNTczNDA+XSA/IHRyeV90b193YWtlX3VwKzB4MjAwLzB4MjAwCj4gPiBbICAyMzcuODg5
+NzIxXSAgWzxmZmZmZmZmZjgxMDlmZmRlPl0gPyBzeXNfaW5pdF9tb2R1bGUrMHgxYmUvMHgyMzAK
+PiA+IFsgIDIzNy44ODk3MjRdICBbPGZmZmZmZmZmODEwNTczNzU+XSB3YWtlX3VwX3Byb2Nlc3Mr
+MHgxNS8weDIwCj4gPiBbICAyMzcuODg5NzI3XSAgWzxmZmZmZmZmZjgxMDlkMzdmPl0gbW9kdWxl
+X3B1dCsweGFmLzB4YzAKPiA+IFsgIDIzNy44ODk3MzFdICBbPGZmZmZmZmZmODEwOWZmZGU+XSBz
+eXNfaW5pdF9tb2R1bGUrMHgxYmUvMHgyMzAKPiA+IFsgIDIzNy44ODk3MzVdICBbPGZmZmZmZmZm
+ODE1ZmExYzI+XSBzeXN0ZW1fY2FsbF9mYXN0cGF0aCsweDE2LzB4MWIKPiA+IFsgIDIzNy44ODk3
+MzhdIENvZGU6IDAwIDAwIDQ4IGM3IGMxIDIxIDI3IDAzIDgxIDQ4IGM3IGMyIDFlIDI3IDAzIDgx
+Cj4gPiBlOSBkZCBmZSBmZiBmZiA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5MCA5
+MCA1NSBiOCAwMCAwMCAwMQo+ID4gMDAgNDggODkgZTUgPGYwPiAwZiBjMSAwNyAwZiBiNyBkMCBj
+MSBlOCAxMCAzOSBjMiA3NCAwNyBmMyA5MCAwZiBiNyAxNwo+ID4gZWIgZjUKPiA+IFsgIDIzNy44
+ODk3NzNdIFJJUCAgWzxmZmZmZmZmZjgxMDMyOTE5Pl0gX190aWNrZXRfc3Bpbl9sb2NrKzB4OS8w
+eDIwCj4gPiBbICAyMzcuODg5Nzc3XSAgUlNQIDxmZmZmODgwM2VhODg5ZTY4Pgo+ID4gWyAgMjM3
+Ljg4OTc3OV0gQ1IyOiBmZmZmZmZmZmEwYzdjMmU0Cj4gPiBbICAyMzcuODg5NzgyXSAtLS1bIGVu
+ZCB0cmFjZSA5OWUwZDgwYmY2YTYwMTM4IF0tLS0KPiA+IAo+ID4gCj4gPiA+IEFsc28sIGRvIHlv
+dSBzZWUgdGhhdCB0aGUgZHJpdmVyIGlzIGxvYWRlZCB3aGVuCj4gPiA+IHJ1bm5pbmcgImxzbW9k
+IiA/Cj4gPiAKPiA+IG5vIHRoZSBkcml2ZXIgaXMgbm90IGxvYWRlZAoKVGhpcyBpcyBleHBlY3Rl
+ZCwgYXMgbG9hZGluZyB0aGUgZHJpdmVyIGNhbGxlZCB0aGUgcHJvYmUoKSBmdW5jdGlvbgp3aGlj
+aCBuZXZlciBmaW5pc2hlZC4gVGhpcyBpcyB3aHkgeW91IHNlZSAoLSkgYWZ0ZXIgdGhlIG1vZHVs
+ZSBuYW1lIGluCnRoZSBtb2R1bGUgbGlzdC4KCj4gPiB0aGUgZmlyc3QgdGltZSBJIGxvYWQgdGhl
+IGRyaXZlciB3aXRoIG1vZHByb2IsIEkgZ290IHRoZSBlcnJvciBtZXNzYWdlIGFib3ZlCj4gPiBp
+ZiBJIHRyeSB0byBsb2FkIHRoZSBkcml2ZXIgYWdhaW4sIG1vZHByb2IgcnVucyBlbmRsZXNzbHkg
+KCB0aGUKPiA+IHByb2Nlc3MgaXMgbWFya2VkIGFzIHNsZWVwaW5nIGJ5IHRvcCBjb21tYW5kICkK
+ClRoaXMgaXMgZXhwZWN0ZWQsIG1vZHVsZSBsb2FkaW5nIGlzIHNlcmlhbGl6ZWQsIGFuZCB0aGUg
+Zmlyc3QgbW9kcHJvYmUKbmV2ZXIgY29tcGxldGVkLgoKPiA+IE15IGtlcm5lbCB2ZXJzaW9uIGlz
+IGtlcm5lbCAzLjAuMC0xNS1nZW5lcmljICggdWJ1bnR1IDExLjEwICkuCgpObyB1cGRhdGUgYXZh
+aWxhYmxlPyBLZXJuZWwgMy4wLjAgaXMgZ2V0dGluZyBvbGQsIHRoZXJlIGhhdmUgYmVlbiAyMApz
+dGFibGUgdXBkYXRlcyBtZWFud2hpbGUhCgo+ID4gSSBoYXZlIHJ1biB1YnVudHUgMTEuMTAgZnJv
+bSBhIHVzYiBrZXkgKCBrZXJuZWwgdmVyc2lvbgo+ID4gMy4wLjAtMTItZ2VuZXJpYywgbG0tc2Vu
+c29ycyBwYWNrYWdlIDMuMy4wLTQgKS4KPiA+IFRoZSBkcml2ZXIgdzgzNjI3IHNoaXBwZWQgd2l0
+aCBpdCBsb2FkcyB3aXRob3V0IGVycm9yICggYnV0IEkgc3RpbGwKPiA+IGhhdmUgdG8gbG9hZCBp
+dCBtYW51YWxseSwgc2Vuc29ycy1kZXRlY3QgZG9uJ3QgZG8gaXQgZm9yIG1lICkuCj4gPiBIZXJl
+IGlzIHRoZSBkbWVzZyBvdXRwdXQgYWZ0ZXIgbG9hZGluZyB0aGUgbW9kdWxlIHdpdGggbW9kcHJv
+YmUgOgo+ID4gCj4gPiBbICA3NDAuNzQxNzU1XSBjb3JldGVtcCBjb3JldGVtcC4wOiBUak1heCBp
+cyA5OCBDLgo+ID4gWyAgOTU3LjQzODU1M10gdzgzNjI3ZWhmOiBGb3VuZCBOQ1Q2Nzc2RiBjaGlw
+IGF0IDB4MjkwCj4gPiAKPiA+IGFuZCB0aGUgZHJpdmVyIGlzIGxvYWRlZCB3aGVuIHJ1bm5pbmcg
+bHNtb2QgOgo+ID4gCj4gPiB1YnVudHVAdWJ1bnR1On4kIGxzbW9kIHwgZ3JlcCB3ODMKPiA+IHc4
+MzYyN2VoZiAgICAgICAgICAJMzg0MTMgIDAKPiA+IGh3bW9uX3ZpZCAgICAgICAgICAJMTI3NDYg
+IDEgdzgzNjI3ZWhmCj4gPiAKPiA+IAo+ID4gRG8geW91IG5lZWQgbW9yZSBkZXRhaWxzID8KPiA+
+IAo+ID4gSSBhbSBnb2luZyB0byByZS1pbnN0YWxsIG15IHN5c3RlbSB0b21vcnJvdyBvciB0aGUg
+ZGF5IGFmdGVyLgo+ID4gSWYgeW91IG5lZWQgbW9yZSBpbmZvcm1hdGlvbiwgYXNrIG1lLgoKLS0g
+CkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpo
+dHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
