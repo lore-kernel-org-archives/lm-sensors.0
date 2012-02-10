@@ -1,52 +1,53 @@
-From: Vivek Bardia <bardia.vivek@gmail.com>
-Date: Fri, 10 Feb 2012 06:32:25 +0000
-Subject: [lm-sensors] dual output buck controller pmbus based
-Message-Id: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8835280694276454413=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 10 Feb 2012 07:23:42 +0000
+Subject: Re: [lm-sensors] dual output buck controller pmbus based
+Message-Id: <20120210072342.GA31852@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
+In-Reply-To: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============8835280694276454413==
-Content-Type: multipart/alternative; boundary=e89a8f3ba843dc0c1804b8961fae
+On Fri, Feb 10, 2012 at 01:20:25AM -0500, Vivek Bardia wrote:
+> Hello,
+> 
+> I want to know whether does the current pmbus driver support dual output buck
+> controller based PMIC?
+> 
+> Basically for this particular PMIC: http://goo.gl/BFwcu
+> 
+This is the TI TPS40422. I have not had a chance to test it, so I have no idea
+if it will work.
 
---e89a8f3ba843dc0c1804b8961fae
-Content-Type: text/plain; charset=ISO-8859-1
+> How do I test the driver for it?
+> 
+If you know the bus and I2C address, instantiate it with 
 
-Hello,
+echo pmbus <address> > /sys/class/i2c-adapter/i2c-<bus>/new_device
 
-I want to know whether does the current pmbus driver support dual output
-buck controller based PMIC?
+You have to execute the command as root.
 
-Basically for this particular PMIC: http://goo.gl/BFwcu
+Example: Instantiate pmbus device on bus 0, address 0x20:
 
-How do I test the driver for it?
+echo pmbus 0x20 > /sys/class/i2c-adapter/i2c-0/new_device
 
-Regards,
-Vivek
+then execute the "sensors" command and see if you get some output, and if it makes sense.
 
---e89a8f3ba843dc0c1804b8961fae
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Looking into the datasheet, the interpretation of the PMBus "page" command is a bit odd.
+You might get four sets of registers. If so, the first set would reflect the first channel,
+the second set the second channel, the third set is invalid, and the fourth set would reflect 
+both channels. But that is just a guess.
 
-Hello,<div><br></div><div>I want to know whether does the current pmbus dri=
-ver support dual output buck controller based PMIC?</div><div><br></div><di=
-v>Basically=A0for this particular PMIC:=A0<a href=3D"http://goo.gl/BFwcu">h=
-ttp://goo.gl/BFwcu</a></div>
-<div><br></div><div>How do I test the driver for it?</div><div><br></div><d=
-iv>Regards,<br>Vivek</div>
+Would be great if you can post the results to the list. If it doesn't work, turns out the
+evaluation module was just $49, so I ordered one. Which means you'll get support one way
+or another.
 
---e89a8f3ba843dc0c1804b8961fae--
+Guenter
 
-
---===============8835280694276454413==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8835280694276454413==--
