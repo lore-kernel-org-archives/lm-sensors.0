@@ -1,67 +1,65 @@
-From: Daniel Glaser <glaser@beeco.de>
-Date: Tue, 07 Feb 2012 18:26:31 +0000
-Subject: [lm-sensors] Report on ITE IT8728
-Message-Id: <4F316CD7.7070709@beeco.de>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 10 Feb 2012 21:55:23 +0000
+Subject: Re: [lm-sensors] Report on ITE IT8728
+Message-Id: <20120210225523.6eface38@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4F316CD7.7070709@beeco.de>
+In-Reply-To: <4F316CD7.7070709@beeco.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-
-for the it8728 chipset you asked to provide feedback, if the command
-shown on your website works. It did, so here is the report.
-The sensors3.conf looks as follows (unmodified from installer):
-
-chip "it87-*" "it8712-*" "it8716-*" "it8718-*" "it8720-*" "it8728-*"
-
-    label in8 "Vbat"
-
-This is, what my console on ubuntu 11.10 gives:
-$ modprobe it87 force_id=3D0x8721
-$ sensors
-
-it8721-isa-0290
-Adapter: ISA adapter
-in0:          +1.03 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in1:          +2.06 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in2:          +2.94 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in3:          +2.88 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in4:          +0.00 V  (min =3D  +0.00 V, max =3D  +3.06 V)  ALARM
-in5:          +0.78 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in6:          +1.51 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-3VSB:         +3.36 V  (min =3D  +0.00 V, max =3D  +6.12 V)
-Vbat:         +3.05 V
-fan1:        1092 RPM  (min =3D    0 RPM)
-fan2:        1049 RPM  (min =3D    0 RPM)
-fan3:           0 RPM  (min =3D    0 RPM)
-fan4:        1967 RPM  (min =3D    0 RPM)
-temp1:        +35.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D
-thermistor
-temp2:        +25.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D
-thermistor
-temp3:        +13.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D
-thermistor
-
-Voltages: seem to be a bit wrong
-Fans: look quite nice (fan3 is not installed)
-Temperatures: temp1 and temp2 also look fine, but temp3 seems also to be
-a bit wrong.
-
-Hope this helps you to improve the support of this chip.
-
-If you need anything else, I've NOT subscribed to the list, so please
-take me on CC.
-
-Thanks a lot for your great work.
-
-- Daniel
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgRGFuaWVsLAoKT24gVHVlLCAwNyBGZWIgMjAxMiAxOToyNjozMSArMDEwMCwgRGFuaWVsIEds
+YXNlciB3cm90ZToKPiBmb3IgdGhlIGl0ODcyOCBjaGlwc2V0IHlvdSBhc2tlZCB0byBwcm92aWRl
+IGZlZWRiYWNrLCBpZiB0aGUgY29tbWFuZAo+IHNob3duIG9uIHlvdXIgd2Vic2l0ZSB3b3Jrcy4g
+SXQgZGlkLCBzbyBoZXJlIGlzIHRoZSByZXBvcnQuCgpUaGFua3MgZm9yIHJlcG9ydGluZy4KCj4g
+VGhlIHNlbnNvcnMzLmNvbmYgbG9va3MgYXMgZm9sbG93cyAodW5tb2RpZmllZCBmcm9tIGluc3Rh
+bGxlcik6Cj4gCj4gY2hpcCAiaXQ4Ny0qIiAiaXQ4NzEyLSoiICJpdDg3MTYtKiIgIml0ODcxOC0q
+IiAiaXQ4NzIwLSoiICJpdDg3MjgtKiIKPiAKPiAgICAgbGFiZWwgaW44ICJWYmF0Igo+IAoKVGhl
+ICJpdDg3MjgtKiIgaXNuJ3QgaW4gb3VyIGNvcHkgb2YgdGhpcyBmaWxlLCBhbmQgc2hvdWxkbid0
+IGJlIG5lZWRlZCwKYXMgdGhlIGl0ODcgZHJpdmVyIGV4cG9ydHMgbGFiZWxzIGFzIG5lZWRlZCBm
+b3IgSVQ4NzIxRiBhbmQgbmV3ZXIgY2hpcHMuCgo+IFRoaXMgaXMsIHdoYXQgbXkgY29uc29sZSBv
+biB1YnVudHUgMTEuMTAgZ2l2ZXM6Cj4gJCBtb2Rwcm9iZSBpdDg3IGZvcmNlX2lkPTB4ODcyMQo+
+ICQgc2Vuc29ycwo+IAo+IGl0ODcyMS1pc2EtMDI5MAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4g
+aW4wOiAgICAgICAgICArMS4wMyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+
+IGluMTogICAgICAgICAgKzIuMDYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikK
+PiBpbjI6ICAgICAgICAgICsyLjk0IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYp
+Cj4gaW4zOiAgICAgICAgICArMi44OCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBW
+KQo+IGluNDogICAgICAgICAgKzAuMDAgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYg
+VikgIEFMQVJNCj4gaW41OiAgICAgICAgICArMC43OCBWICAobWluID0gICswLjAwIFYsIG1heCA9
+ICArMy4wNiBWKQo+IGluNjogICAgICAgICAgKzEuNTEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXgg
+PSAgKzMuMDYgVikKPiAzVlNCOiAgICAgICAgICszLjM2IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4
+ID0gICs2LjEyIFYpCj4gVmJhdDogICAgICAgICArMy4wNSBWCj4gZmFuMTogICAgICAgIDEwOTIg
+UlBNICAobWluID0gICAgMCBSUE0pCj4gZmFuMjogICAgICAgIDEwNDkgUlBNICAobWluID0gICAg
+MCBSUE0pCj4gZmFuMzogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pCj4gZmFuNDog
+ICAgICAgIDE5NjcgUlBNICAobWluID0gICAgMCBSUE0pCj4gdGVtcDE6ICAgICAgICArMzUuMMKw
+QyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSB0aGVybWlz
+dG9yCj4gdGVtcDI6ICAgICAgICArMjUuMMKwQyAgKGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSAr
+MTI3LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCj4gdGVtcDM6ICAgICAgICArMTMuMMKwQyAg
+KGxvdyAgPSArMTI3LjDCsEMsIGhpZ2ggPSArMTI3LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9y
+Cj4gCj4gVm9sdGFnZXM6IHNlZW0gdG8gYmUgYSBiaXQgd3JvbmcKClRoaXMgaXMgZXhwZWN0ZWQs
+IHZvbHRhZ2VzIGFsd2F5cyBuZWVkIHNjYWxpbmcgZm9yIGFsbCBpbnB1dHMgZ3JlYXRlcgp0aGFu
+IHRoZSBBREMgcmFuZ2UgKCszViBpbiB5b3VyIGNhc2UuKSBGaW5kaW5nIHRoZSBsYWJlbHMgYW5k
+IHNjYWxpbmcKZmFjdG9ycyBjYW4gYmUgdHJpY2t5LiBJbiB5b3VyIGNhc2UgSSB3b3VsZCBndWVz
+cyB0aGF0IGluMCBpcyBWY29yZSBhbmQKaW42IGlzIFZkaW1tLiBpbjQgaXMgb2J2aW91c2x5IHVu
+dXNlZCwgYW5kIGluMiBwcm9iYWJseSBhcyB3ZWxsICh0b28KY2xvc2UgdG8gdGhlIEFEQydzIG1h
+eC4pIFRoaXMgbGVhdmVzIGluMSwgaW4zIGFuZCBpbjUgZm9yICs1ViwgKzEyViBhbmQKbWF5YmUg
+VnR0LCBhbHRob3VnaCBpbjMgaXMgYSBsaXR0bGUgaGlnaCBhcyB3ZWxsLiBJZiB5b3Ugd2FudCBt
+ZSB0bwpoZWxwIHlvdSBmaWd1cmluZyBvdXQgdGhlIHNjYWxpbmcgZmFjdG9ycywgcGxlYXNlIGNo
+ZWNrIGFuZCByZXBvcnQgd2hhdAp2b2x0YWdlIHZhbHVlcyB5b3VyIEJJT1MgaXMgcmVwb3J0aW5n
+IChpbmNsdWRpbmcgb3NjaWxsYXRpbmcgdmFsdWVzLAp2ZXJ5IHVzZWZ1bCkuCgo+IEZhbnM6IGxv
+b2sgcXVpdGUgbmljZSAoZmFuMyBpcyBub3QgaW5zdGFsbGVkKQoKSW5kZWVkLgoKPiBUZW1wZXJh
+dHVyZXM6IHRlbXAxIGFuZCB0ZW1wMiBhbHNvIGxvb2sgZmluZSwgYnV0IHRlbXAzIHNlZW1zIGFs
+c28gdG8gYmUKPiBhIGJpdCB3cm9uZy4KCkNvdWxkIHNpbXBseSBiZSBiZWNhdXNlIHRlbXAzIGlz
+IHVudXNlZC4gSSBwcmVzdW1lIHRoYXQgeW91ciBCSU9TIG9ubHkKcmVwb3J0cyAyIHRlbXBlcmF0
+dXJlIHZhbHVlcz8KCj4gSG9wZSB0aGlzIGhlbHBzIHlvdSB0byBpbXByb3ZlIHRoZSBzdXBwb3J0
+IG9mIHRoaXMgY2hpcC4KCldlIHN0aWxsIGRvbid0IGhhdmUgYSBkYXRhc2hlZXQsIHNvIHdlIGFz
+c3VtZSB0aGF0IHRoZSBJVDg3MjhGIGlzCmNvbXBhdGlibGUgd2l0aCB0aGUgSVQ4NzIxRiwgYW5k
+IHNvIGZhciBpdCBzZWVtcyB0byBiZSB0aGUgY2FzZS4KCj4gSWYgeW91IG5lZWQgYW55dGhpbmcg
+ZWxzZSwgSSd2ZSBOT1Qgc3Vic2NyaWJlZCB0byB0aGUgbGlzdCwgc28gcGxlYXNlCj4gdGFrZSBt
+ZSBvbiBDQy4KPiAKPiBUaGFua3MgYSBsb3QgZm9yIHlvdXIgZ3JlYXQgd29yay4KCllvdSdyZSB3
+ZWxjb21lIDopCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
