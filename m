@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 10 Feb 2012 02:13:35 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 10 Feb 2012 07:38:40 +0000
 Subject: Re: [lm-sensors] [RFC] (F75387) How expose automatic fan control in sysfs?
-Message-Id: <20120210021335.GA30935@ericsson.com>
+Message-Id: <20120210083840.5a510c55@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120209222304.GA28989@luigi.zusammrottung.local>
 In-Reply-To: <20120209222304.GA28989@luigi.zusammrottung.local>
@@ -10,95 +10,63 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Feb 09, 2012 at 05:54:52PM -0500, Nikolaus Schulz wrote:
-> On Thu, Feb 09, 2012 at 02:34:54PM -0800, Guenter Roeck wrote:
-> > On Thu, 2012-02-09 at 17:23 -0500, Nikolaus Schulz wrote:
-> > > I am working on adding automatic fan control configuration to the
-> > > f75375s driver.  I have code that is almost complete and working well,
-> > > but I wonder what is the best way to expose this in the sysfs.
-> > > 
-> > > The F75387 fan control chip configuration can be fully switched between
-> > > open loop mode, where it is programmed with raw PWM values, and closed
-> > > loop mode, where one specifies desired RPM fan speeds instead.
-> > > 
-> > > However, both modes use the same configuration input registers.
-> > > 
-> > > The lm-sensors standard sysfs interface defines that RPM target values
-> > > should be exposed using filenames fan*_target, and PWM values via pwm*.
-> > > For automatic, temperature-bounded fan control values, only
-> > > pwm*_auto_point*_pwm files are defined.
-> > > 
-> > > Now I wonder, what is the best way to expose the configuration for the
-> > > F75387 in sysfs?
-> > > 
-> > > Trying to match the standard sysfs interface makes me think I need to
-> > > expose different files in sysfs, depending on the mode.  That is, pwm*
-> > > and pwm*_auto_point*_pwm for open loop mode, and for closed loop mode
-> > > fan*_target and, hmm, I guess ${TYPE}*_auto_point*_fan where I'm not
-> > > sure what to put into $TYPE...  Any suggestions for $TYPE?
-> > 
-> > Maybe Jean has an idea here. There are various drivers with slightly
-> > different (and sometimes undocumented) pwm attributes around. Maybe it
-> > is time to clean up the ABI and define a complete (or at least more
-> > complete) set of attributes.
+On Thu, 9 Feb 2012 18:13:35 -0800, Guenter Roeck wrote:
+> On Thu, Feb 09, 2012 at 05:54:52PM -0500, Nikolaus Schulz wrote:
+> > Unfortunately, the F75387 uses the very same registers for both modes.
+> > The values are only interpreted differently, depending on the open vs
+> > closed loop mode, either as RPM values, or raw PWM.
+>
+> Other chips do the same, or something similar. For example, the NCT6775F
+> uses the same register for the target speed in one mode, and for the target
+> temperature in another.
 > 
-> Yes, it looks like the current sysfs interface standard is lacking.
-> 
-> > > But then, if the user switches between open and closed loop mode, all
-> > > these mode-specific filenames in sysfs need be switched over, since it
-> > > would make no sense to keep the files for the inactive mode around,
-> > > right?  This makes me feel slightly unhappy.  Thoughts?
-> > > 
-> > You should be able to keep all attributes around, even if some may not
-> > be active at a given time. Otherwise, you would not be able to program
-> > auto mode parameters until you enabled auto mode ... which would not be
-> > a good idea.
-> 
-> Unfortunately, the F75387 uses the very same registers for both modes.
-> The values are only interpreted differently, depending on the open vs
-> closed loop mode, either as RPM values, or raw PWM.
-> 
-Other chips do the same, or something similar. For example, the NCT6775F
-uses the same register for the target speed in one mode, and for the target
-temperature in another.
+> In this example, we have to be able to set both. The w83627ehf driver "solves"
+> that problem by implementing pwmX_target, which is specified in the driver
+> documentation as target temperature. Depending on the mode, it can also be
+> interpreted by the chip as target speed. Not the most elegant solution,
+> but at least it works (though maybe we should document it ;).
+> Unless Jean has a better idea, I would suggest to do the same.
 
-In this example, we have to be able to set both. The w83627ehf driver "solves"
-that problem by implementing pwmX_target, which is specified in the driver
-documentation as target temperature. Depending on the mode, it can also be
-interpreted by the chip as target speed. Not the most elegant solution,
-but at least it works (though maybe we should document it ;).
-Unless Jean has a better idea, I would suggest to do the same.
+In this specific case, what you want to do is decouple the register
+cache from the actual hardware registers. In your per-device private
+data structure, have room to store all the settings for all mode. This
+means that a given hardware register can have 2 or more corresponding
+members in the data structure, one for each meaning it can have
+depending on the mode.
 
-Guenter
+You can see an example of this in driver it87:
 
-> > > Of course, one could inhibit the mode switching and just stick with the
-> > > mode that was enabled by the BIOS.  But I don't see why the user should
-> > > not be empowered to switch modes; and I have tested this, and it works
-> > > like a charm.
-> > > 
-> > More a matter of avoiding risk, I would guess. If you let the user
-> > program auto mode, you probably want to have some kind of validation
-> > before the mode is actually enabled, to at least try to avoid board
-> > fatalities.
-> 
-> Not possible for the F75387, for the reason above.
-> 
-> > This is really highly driver specific, and has to be very
-> > well tested.
-> 
-> Agreed
-> 
-> > I have been thinking about doing the same for the w83627ehf driver.
-> > Pretty much the same problem - some attributes are missing in the ABI,
-> > and others only apply to certain modes. So I am definitely interested in
-> > a generic set of attibutes.
-> > 
-> > Guenter
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+struct it87_data {
+	(...)
+	/* The following 3 arrays correspond to the same registers up to
+	 * the IT8720F. The meaning of bits 6-0 depends on the value of bit
+	 * 7, and we want to preserve settings on mode changes, so we have
+	 * to track all values separately.
+	 * Starting with the IT8721F, the manual PWM duty cycles are stored
+	 * in separate registers (8-bit values), so the separate tracking
+	 * is no longer needed, but it is still done to keep the driver
+	 * simple. */
+	u8 pwm_ctrl[3];		/* Register value */
+	u8 pwm_duty[3];		/* Manual PWM value set by user */
+	u8 pwm_temp_map[3];	/* PWM to temp. chan. mapping (bits 1-0) */
+
+When reading the register value from the chip, you write them to the
+right struct member for the given mode, and leave the other untouched.
+When values are changed by the user through sysfs, you store them in
+the data structure. If they relate to the currently selected mode, you
+write them to the chip immediately. If not, you keep them for later.
+
+When the user changes the mode through sysfs, you write that mode
+change to the chip, and then automatically program the new mode using
+the settings from the data structure.
+
+So, to make it clear, it is perfectly possible (and desirable) to
+handle such devices without coming up with a custom and obscure sysfs
+interface. The shared registers can and must be abstracted by the
+driver and the user shouldn't notice.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
