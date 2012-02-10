@@ -1,64 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 12 Feb 2012 23:42:38 +0000
-Subject: Re: [lm-sensors] [PATCH v4] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120213004238.17f7091e@endymion.delvare>
+From: Vivek Bardia <bardia.vivek@gmail.com>
+Date: Fri, 10 Feb 2012 06:32:25 +0000
+Subject: [lm-sensors] dual output buck controller pmbus based
+Message-Id: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8835280694276454413=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgVXdlLAoKT24gU3VuLCAxMiBGZWIgMjAxMiAxMTowNTozNCArMDEwMCwgVXdlIEtsZWluZS1L
-w7ZuaWcgd3JvdGU6Cj4gT24gU2F0LCBGZWIgMTEsIDIwMTIgYXQgMDk6NTQ6MzFQTSArMDEwMCwg
-SmVhbiBEZWx2YXJlIHdyb3RlOgo+ID4gT24gU2F0LCAxMSBGZWIgMjAxMiAyMToxNToxMyArMDEw
-MCwgVXdlIEtsZWluZS1Lw7ZuaWcgd3JvdGU6Cj4gPiBJdCBpcyBPSywgYnV0IEkgd291bGQgYXQg
-bGVhc3QgYWRkIGEgY29tbWVudCBpbiB0aGUgY29kZSB0byBjbGFyaWZ5Lgo+ID4gCj4gPiBUaGF0
-IGJlaW5nIHNhaWQsIHRoZSBmaXggc2VlbXMgdG8gYmUgYXMgc2ltcGxlIGFzIG1vdmluZyAzIGxp
-bmVzIG9mCj4gPiBjb2RlIG91dCBvZiBhIGNvbmRpdGlvbmFsLCBzbyB3aHkgbm90IGp1c3QgZG8g
-dGhhdD8KPgo+IFllYWgsIHRoYXQgYW5kIGEgY29ycmVzcG9uZGluZyBjaGFuZ2UgaW4gdGhlIGVy
-cm9yIGhhbmRsaW5nIGFuZCB0aGUKPiByZW1vdmUgY2FsbGJhY2suCj4gCj4gSSB3aWxsIGZvbGxv
-dyB1cCB3aXRoIGEgcGF0Y2ggdGhhdCBpbnRyb2R1Y2VzIHRoZSBmb2xsb3dpbmcgZGlmZgo+IGNv
-bXBhcmVkIHRvIHY0OgoKTWlub3IgY29tbWVudHMgYmVsb3cuCgo+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL2h3bW9uL21jMTM3ODMtYWRjLmMgYi9kcml2ZXJzL2h3bW9uL21jMTM3ODMtYWRjLmMKPiBp
-bmRleCBlOWE3NjU5ZC4uMTBmMThkZCAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2h3bW9uL21jMTM3
-ODMtYWRjLmMKPiArKysgYi9kcml2ZXJzL2h3bW9uL21jMTM3ODMtYWRjLmMKPiBAQCAtMjAyLDEy
-ICsyMDIsMTMgQEAgc3RhdGljIGludCBfX2luaXQgbWMxMzc4M19hZGNfcHJvYmUoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqcGRldikKPiAgCQlpZiAocmV0KQo+ICAJCQlnb3RvIG91dF9lcnJfY3Jl
-YXRlXzE2Y2hhbnM7Cj4gIAoKVGhpcyBsZWF2ZXMgYW4gZXh0cmEgYmxhbmsgbGluZS4KCj4gLQkJ
-aWYgKCFtYzEzNzgzX2FkY191c2VfdG91Y2hzY3JlZW4ocGRldikpIHsKPiAtCQkJcmV0ID0gc3lz
-ZnNfY3JlYXRlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwKPiAtCQkJCQkmbWMxMzc4M19ncm91cF90
-cyk7Cj4gLQkJCWlmIChyZXQpCj4gLQkJCQlnb3RvIG91dF9lcnJfY3JlYXRlX3RzOwo+IC0JCX0K
-PiArCX0KPiArCj4gKwlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3VjaHNjcmVlbihwZGV2KSkgewo+
-ICsJCXJldCA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosCj4gKwkJCQkmbWMx
-Mzc4M19ncm91cF90cyk7CgpGaXRzIG9uIGEgc2luZ2xlIGxpbmUsIHRoYXQncyBob3cgdGhlIG9y
-aWdpbmFsIGNvZGUgaGFkIGl0IEJUVyBzbyBpdAp3aWxsIG1ha2UgeW91ciBwYXRjaCBzaG9ydGVy
-LgoKPiArCQlpZiAocmV0KQo+ICsJCQlnb3RvIG91dF9lcnJfY3JlYXRlX3RzOwo+ICAJfQo+ICAK
-PiAgCXByaXYtPmh3bW9uX2RldiA9IGh3bW9uX2RldmljZV9yZWdpc3RlcigmcGRldi0+ZGV2KTsK
-PiBAQCAtMjIyLDEzICsyMjMsMTIgQEAgc3RhdGljIGludCBfX2luaXQgbWMxMzc4M19hZGNfcHJv
-YmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKPiAgCj4gIG91dF9lcnJfcmVnaXN0ZXI6
-Cj4gIAo+IC0JaWYgKGlkLT5kcml2ZXJfZGF0YSAmIE1DMTM3ODNfQURDXzE2Q0hBTlMpIHsKPiAt
-CQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3VjaHNjcmVlbihwZGV2KSkKPiAtCQkJc3lzZnNfcmVt
-b3ZlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwgJm1jMTM3ODNfZ3JvdXBfdHMpOwo+ICsJaWYgKCFt
-YzEzNzgzX2FkY191c2VfdG91Y2hzY3JlZW4ocGRldikpCj4gKwkJc3lzZnNfcmVtb3ZlX2dyb3Vw
-KCZwZGV2LT5kZXYua29iaiwgJm1jMTM3ODNfZ3JvdXBfdHMpOwo+ICBvdXRfZXJyX2NyZWF0ZV90
-czoKPiAgCj4gKwlpZiAoaWQtPmRyaXZlcl9kYXRhICYgTUMxMzc4M19BRENfMTZDSEFOUykKPiAg
-CQlzeXNmc19yZW1vdmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCAmbWMxMzc4M19ncm91cF8xNmNo
-YW5zKTsKPiAtCX0KPiAgb3V0X2Vycl9jcmVhdGVfMTZjaGFuczoKPiAgCj4gIAlzeXNmc19yZW1v
-dmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCAmbWMxMzc4M19ncm91cF9iYXNlKTsKPiBAQCAtMjQ3
-LDEyICsyNDcsMTEgQEAgc3RhdGljIGludCBfX2RldmV4aXQgbWMxMzc4M19hZGNfcmVtb3ZlKHN0
-cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gIAo+ICAJaHdtb25fZGV2aWNlX3VucmVnaXN0
-ZXIocHJpdi0+aHdtb25fZGV2KTsKPiAgCj4gLQlpZiAoZHJpdmVyX2RhdGEgJiBNQzEzNzgzX0FE
-Q18xNkNIQU5TKSB7Cj4gLQkJaWYgKCFtYzEzNzgzX2FkY191c2VfdG91Y2hzY3JlZW4ocGRldikp
-Cj4gLQkJCXN5c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dyb3Vw
-X3RzKTsKPiArCWlmICghbWMxMzc4M19hZGNfdXNlX3RvdWNoc2NyZWVuKHBkZXYpKQo+ICsJCXN5
-c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dyb3VwX3RzKTsKPiAg
-Cj4gKwlpZiAoZHJpdmVyX2RhdGEgJiBNQzEzNzgzX0FEQ18xNkNIQU5TKQo+ICAJCXN5c2ZzX3Jl
-bW92ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dyb3VwXzE2Y2hhbnMpOwo+IC0J
-fQo+ICAKPiAgCXN5c2ZzX3JlbW92ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dy
-b3VwX2Jhc2UpOwoKUmVzdCBsb29rcyBnb29kLiBObyBuZWVkIHRvIHJlc2VuZCwgSSdsbCBhZGp1
-c3QgaXQgbXlzZWxmLgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
-c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
-aW5mby9sbS1zZW5zb3Jz
+--===============8835280694276454413==
+Content-Type: multipart/alternative; boundary=e89a8f3ba843dc0c1804b8961fae
+
+--e89a8f3ba843dc0c1804b8961fae
+Content-Type: text/plain; charset=ISO-8859-1
+
+Hello,
+
+I want to know whether does the current pmbus driver support dual output
+buck controller based PMIC?
+
+Basically for this particular PMIC: http://goo.gl/BFwcu
+
+How do I test the driver for it?
+
+Regards,
+Vivek
+
+--e89a8f3ba843dc0c1804b8961fae
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Hello,<div><br></div><div>I want to know whether does the current pmbus dri=
+ver support dual output buck controller based PMIC?</div><div><br></div><di=
+v>Basically=A0for this particular PMIC:=A0<a href=3D"http://goo.gl/BFwcu">h=
+ttp://goo.gl/BFwcu</a></div>
+<div><br></div><div>How do I test the driver for it?</div><div><br></div><d=
+iv>Regards,<br>Vivek</div>
+
+--e89a8f3ba843dc0c1804b8961fae--
+
+
+--===============8835280694276454413==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8835280694276454413==--
