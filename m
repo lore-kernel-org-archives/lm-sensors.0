@@ -1,63 +1,44 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 08 Feb 2012 22:18:18 +0000
-Subject: Re: [lm-sensors] [PATCH V2] hwmon: Add MCP3021 hardware monitoring driver
-Message-Id: <1328739498.2261.357.camel@groeck-laptop>
+From: David Kremer <david.kremer.dk@gmail.com>
+Date: Fri, 10 Feb 2012 09:26:45 +0000
+Subject: [lm-sensors] questions about lm-sensors development
+Message-Id: <4F34E2D5.6080900@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1328445218-17226-1-git-send-email-X.Xie@freescale.com>
-In-Reply-To: <1328445218-17226-1-git-send-email-X.Xie@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2012-02-08 at 17:00 -0500, Jean Delvare wrote:
-> Hi Xie,
-> 
-> On Sun, 5 Feb 2012 20:33:38 +0800, Xie Xiaobo wrote:
-> > Add I2C driver for MCP3021 that is an ADC chip from Microchip.
-> > The MCP3021 is a successive approximation A/D converter (ADC)
-> > with 10-bit resolution.
-> > The driver export the value of Vin to sysfs, the voltage unit is
-> > mV. Through the sysfs interface, lm-sensors tool can also display
-> > Vin voltage.
-> > 
-> > Signed-off-by: Mingkai Hu <Mingkai.hu@freescale.com>
-> > Signed-off-by: Xie Xiaobo <X.Xie@freescale.com>
-> > ---
-> > ---
-> 
-Odd, I didn't get a copy of this patch. Guess I am fighting with the
-corporate e-mail system again :(. Thanks for looking into it.
+Hello,
 
-Additional minor comment below.
+cheers everyone. Thank you for your lm-sensor programs.
 
-[ ... ]
+I asked recently in a thread if you support a LTS version for the kernel 
+3.0, and I had a positive answer. Nevertheless, things are not quite 
+clear for me, and it seems your website is lacking of informations on 
+how to contribute.
 
-> > +
-> > +static int __init mcp3021_init(void)
-> > +{
-> > +	return i2c_add_driver(&mcp3021_driver);
-> > +}
-> > +
-> > +static void __exit mcp3021_exit(void)
-> > +{
-> > +	i2c_del_driver(&mcp3021_driver);
-> > +}
-> > +
-> > +MODULE_AUTHOR("Mingkai Hu <Mingkai.hu@freescale.com>");
-> > +MODULE_DESCRIPTION("Microchip MCP3021 driver");
-> > +MODULE_LICENSE("GPL");
-> > +
-> > +module_init(mcp3021_init);
-> > +module_exit(mcp3021_exit);
-> 
+Guenter uses a git repository, not sure how it interacts with the main 
+kernel tree.
 
-The init/exit functions and module_init/module_exit can now be replaced
-with module_i2c_driver(mcp3021_driver);
+I would be glad to have a clear explanation of where are the 
+repositories for the
+different parts of lm-sensors and the development routines you all follow.
 
-Guenter
+Especially I dont't understand very well why your patch are numbered 
+0/4, 1/4, etc.
 
+Thank you a lot in advance, I hope to be able to test and report things 
+efficiently after you answered me.
 
+Actually I would like to gain experience in linux kernel development, 
+and I would like to watch closely your project in which I have personal 
+interest but that I find also great because it is really useful for 
+everyone. I expect to become a good kernel dev after following this 
+project that I find interesting.
+
+Thank you very much.
+
+David Kremer
 
 _______________________________________________
 lm-sensors mailing list
