@@ -1,58 +1,30 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 24 Feb 2012 14:46:05 +0000
-Subject: Re: [lm-sensors] Chip missing from the drivers list.
-Message-Id: <20120224144605.GA14858@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 10 Feb 2012 09:40:35 +0000
+Subject: Re: [lm-sensors] [PATCH v4] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
+Message-Id: <20120210104035.412c57f2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1330089448.3270.9.camel@torre-enrique>
-In-Reply-To: <1330089448.3270.9.camel@torre-enrique>
+References: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Feb 24, 2012 at 08:58:48AM -0500, Lee Burchett wrote:
-> On 02/24/2012 08:17 AM, Enrique wrote:
-> > Hello,
-> >
-> > my name is Enrique and after looking how to monitor the temperature of
-> > the system in my computer with lm-sensors, it turn up that my chip
-> > "Nuvoton W83677HG-I Super IO Sensors" is not supported yet.
-> >
-> > This mail is to make you know about this, and also that I'm up to help
-> > with the testing.
-> >
-> > Best regards,
-> >
-> > Enrique.
-> >
-> >
-> > _______________________________________________
-> > lm-sensors mailing list
-> > lm-sensors@lm-sensors.org
-> > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
-> Enrique,
-> 
-> I have the same chip in my system. Guenter helped me get it working. 
-> Luckily, this chip is already supported in the latest version. If you 
-> get Guenter's driver for the NCT6776F 
-> (http://roeck-us.net/linux/drivers/) and pull the latest trunk of 
-> lm-sensors from the repository, then you should be good to go. I did 
-> have to add
-> 
-> w83627ehf
-> 
-> to my /etc/modules file. I'm not sure what distro you are using, but 
-> that worked on Ubuntu x64 11.10 with the 3.0.0-16-generic kernel.
-> 
-It might not even be necessary to pull the latest driver. Support for NCT6775F/W83677HG-I
-has been available since 2.6.39 (see http://www.lm-sensors.org/wiki/Devices).
-
-Thanks,
-Guenter
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VXdlLAoKT24gTW9uLCAzMCBKYW4gMjAxMiAxNjo1Nzo1OCArMDEwMCwgVXdlIEtsZWluZS1Lw7Zu
+aWcgd3JvdGU6Cj4gLQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3VjaHNjcmVlbihwZGV2KSkgewo+
+IC0JCXJldCA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dy
+b3VwX3RzKTsKPiArCWlmIChpZC0+ZHJpdmVyX2RhdGEgJiBNQzEzNzgzX0FEQ18xNkNIQU5TKSB7
+Cj4gKwkJcmV0ID0gc3lzZnNfY3JlYXRlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwKPiArCQkJCSZt
+YzEzNzgzX2dyb3VwXzE2Y2hhbnMpOwo+ICAJCWlmIChyZXQpCj4gLQkJCWdvdG8gb3V0X2Vycl9j
+cmVhdGUyOwo+ICsJCQlnb3RvIG91dF9lcnJfY3JlYXRlXzE2Y2hhbnM7Cj4gKwo+ICsJCWlmICgh
+bWMxMzc4M19hZGNfdXNlX3RvdWNoc2NyZWVuKHBkZXYpKSB7Cj4gKwkJCXJldCA9IHN5c2ZzX2Ny
+ZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosCj4gKwkJCQkJJm1jMTM3ODNfZ3JvdXBfdHMpOwo+
+ICsJCQlpZiAocmV0KQo+ICsJCQkJZ290byBvdXRfZXJyX2NyZWF0ZV90czsKPiArCQl9Cj4gIAl9
+CgpIbW0sIHRoaXMgbWVhbnMgdGhhdCB0aGUgdG91Y2hzY3JlZW4gaW5wdXRzIGFyZSBfbmV2ZXJf
+IGV4cG9zZWQgZm9yIHRoZQpNQzEzODkyLCBldmVuIHRob3VnaCB0aGUgZG9jdW1lbnRhdGlvbiBz
+YXlzIHRoZXNlIGlucHV0cyBleGlzdCBvbiB0aGF0CmNoaXAuIElzIHRoaXMgYW4gb3ZlcnNpZ2h0
+LCBvciBpcyB0aGVyZSBhIGdvb2QgcmVhc29uIHRvIG5vdCBleHBvc2UKdGhlc2UgaW5wdXRzIG9u
+IHRoZSBNQzEzODkyPwoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
