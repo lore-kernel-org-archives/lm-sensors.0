@@ -1,30 +1,55 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Feb 2012 09:40:35 +0000
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Fri, 10 Feb 2012 10:47:36 +0000
 Subject: Re: [lm-sensors] [PATCH v4] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120210104035.412c57f2@endymion.delvare>
+Message-Id: <20120210104736.GA14173@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-VXdlLAoKT24gTW9uLCAzMCBKYW4gMjAxMiAxNjo1Nzo1OCArMDEwMCwgVXdlIEtsZWluZS1Lw7Zu
-aWcgd3JvdGU6Cj4gLQlpZiAoIW1jMTM3ODNfYWRjX3VzZV90b3VjaHNjcmVlbihwZGV2KSkgewo+
-IC0JCXJldCA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosICZtYzEzNzgzX2dy
-b3VwX3RzKTsKPiArCWlmIChpZC0+ZHJpdmVyX2RhdGEgJiBNQzEzNzgzX0FEQ18xNkNIQU5TKSB7
-Cj4gKwkJcmV0ID0gc3lzZnNfY3JlYXRlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwKPiArCQkJCSZt
-YzEzNzgzX2dyb3VwXzE2Y2hhbnMpOwo+ICAJCWlmIChyZXQpCj4gLQkJCWdvdG8gb3V0X2Vycl9j
-cmVhdGUyOwo+ICsJCQlnb3RvIG91dF9lcnJfY3JlYXRlXzE2Y2hhbnM7Cj4gKwo+ICsJCWlmICgh
-bWMxMzc4M19hZGNfdXNlX3RvdWNoc2NyZWVuKHBkZXYpKSB7Cj4gKwkJCXJldCA9IHN5c2ZzX2Ny
-ZWF0ZV9ncm91cCgmcGRldi0+ZGV2LmtvYmosCj4gKwkJCQkJJm1jMTM3ODNfZ3JvdXBfdHMpOwo+
-ICsJCQlpZiAocmV0KQo+ICsJCQkJZ290byBvdXRfZXJyX2NyZWF0ZV90czsKPiArCQl9Cj4gIAl9
-CgpIbW0sIHRoaXMgbWVhbnMgdGhhdCB0aGUgdG91Y2hzY3JlZW4gaW5wdXRzIGFyZSBfbmV2ZXJf
-IGV4cG9zZWQgZm9yIHRoZQpNQzEzODkyLCBldmVuIHRob3VnaCB0aGUgZG9jdW1lbnRhdGlvbiBz
-YXlzIHRoZXNlIGlucHV0cyBleGlzdCBvbiB0aGF0CmNoaXAuIElzIHRoaXMgYW4gb3ZlcnNpZ2h0
-LCBvciBpcyB0aGVyZSBhIGdvb2QgcmVhc29uIHRvIG5vdCBleHBvc2UKdGhlc2UgaW5wdXRzIG9u
-IHRoZSBNQzEzODkyPwoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
-c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
-aW5mby9sbS1zZW5zb3Jz
+Hi Jean,
+
+On Fri, Feb 10, 2012 at 10:40:35AM +0100, Jean Delvare wrote:
+> On Mon, 30 Jan 2012 16:57:58 +0100, Uwe Kleine-K=F6nig wrote:
+> > -	if (!mc13783_adc_use_touchscreen(pdev)) {
+> > -		ret =3D sysfs_create_group(&pdev->dev.kobj, &mc13783_group_ts);
+> > +	if (id->driver_data & MC13783_ADC_16CHANS) {
+> > +		ret =3D sysfs_create_group(&pdev->dev.kobj,
+> > +				&mc13783_group_16chans);
+> >  		if (ret)
+> > -			goto out_err_create2;
+> > +			goto out_err_create_16chans;
+> > +
+> > +		if (!mc13783_adc_use_touchscreen(pdev)) {
+> > +			ret =3D sysfs_create_group(&pdev->dev.kobj,
+> > +					&mc13783_group_ts);
+> > +			if (ret)
+> > +				goto out_err_create_ts;
+> > +		}
+> >  	}
+>=20
+> Hmm, this means that the touchscreen inputs are _never_ exposed for the
+> MC13892, even though the documentation says these inputs exist on that
+> chip. Is this an oversight, or is there a good reason to not expose
+> these inputs on the MC13892?
+No, that's correct. The mc13782's touchscreen inputs can be used for
+touch (in that case they are not used in the mc13783-adc driver) or as
+general purpose input (in which case mc13783_group_ts is used). For the
+mc13892 the touch lines are dedicated for touch and there is no general
+purpose functionallity, so on mc13892 mc13783_group_ts is never
+instantiated.
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
