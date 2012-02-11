@@ -1,63 +1,40 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Date: Sat, 11 Feb 2012 20:15:13 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 11 Feb 2012 20:54:31 +0000
 Subject: Re: [lm-sensors] [PATCH v4] hwmon/mc13xxx-adc: add support for the MC13892 PMIC
-Message-Id: <20120211201513.GC14173@pengutronix.de>
+Message-Id: <20120211215431.0ea9ca89@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
 In-Reply-To: <1327939078-4906-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Jean,
-
-On Fri, Feb 10, 2012 at 08:46:20PM +0100, Jean Delvare wrote:
-> On Fri, 10 Feb 2012 11:47:36 +0100, Uwe Kleine-K=F6nig wrote:
-> > On Fri, Feb 10, 2012 at 10:40:35AM +0100, Jean Delvare wrote:
-> > > Hmm, this means that the touchscreen inputs are _never_ exposed for t=
-he
-> > > MC13892, even though the documentation says these inputs exist on that
-> > > chip. Is this an oversight, or is there a good reason to not expose
-> > > these inputs on the MC13892?
-> >
-> > No, that's correct. The mc13782's touchscreen inputs can be used for
-> > touch (in that case they are not used in the mc13783-adc driver) or as
-> > general purpose input (in which case mc13783_group_ts is used). For the
-> > mc13892 the touch lines are dedicated for touch and there is no general
-> > purpose functionallity, so on mc13892 mc13783_group_ts is never
-> > instantiated.
->=20
-> From the MC13892 datasheet:
->=20
-> "TSX1 AND TSX2, TSY1 AND TSY2 (...)
->=20
-> Touch Screen Interfaces X1 and X2, Y1 and Y2. The touch screen X plate
-> is connected to TSX1 and TSX2, while the Y plate is connected to Y1 and
-> Y2. **In inactive mode, these pins can also be used as general purpose
-> ADC inputs.** They are respectively mapped on ADC channels 4, 5, 6, and
-> 7. In interrupt mode, a voltage is applied to the X-plate (TSX2) via a
-> weak current source to VCORE, while the Y-plate is connected to ground
-> (TSY1)."
->=20
-> So this doesn't seem to be fundamentally different from the MC13783, hm?
-Hmm, it seems you're right and either my memory doesn't serve me right
-or I never understood it correctly.
-
-If you ask me it's OK to implement that when the first machine is using
-that. And moreover I don't currently have a machine at hand with an
-mc13892, so I couldn't test these inputs in an eventual v5 patch.
-
-Is it OK for you to take the patch as is, too?
-
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgVXdlLAoKT24gU2F0LCAxMSBGZWIgMjAxMiAyMToxNToxMyArMDEwMCwgVXdlIEtsZWluZS1L
+w7ZuaWcgd3JvdGU6Cj4gT24gRnJpLCBGZWIgMTAsIDIwMTIgYXQgMDg6NDY6MjBQTSArMDEwMCwg
+SmVhbiBEZWx2YXJlIHdyb3RlOgo+ID4gRnJvbSB0aGUgTUMxMzg5MiBkYXRhc2hlZXQ6Cj4gPiAK
+PiA+ICJUU1gxIEFORCBUU1gyLCBUU1kxIEFORCBUU1kyICguLi4pCj4gPiAKPiA+IFRvdWNoIFNj
+cmVlbiBJbnRlcmZhY2VzIFgxIGFuZCBYMiwgWTEgYW5kIFkyLiBUaGUgdG91Y2ggc2NyZWVuIFgg
+cGxhdGUKPiA+IGlzIGNvbm5lY3RlZCB0byBUU1gxIGFuZCBUU1gyLCB3aGlsZSB0aGUgWSBwbGF0
+ZSBpcyBjb25uZWN0ZWQgdG8gWTEgYW5kCj4gPiBZMi4gKipJbiBpbmFjdGl2ZSBtb2RlLCB0aGVz
+ZSBwaW5zIGNhbiBhbHNvIGJlIHVzZWQgYXMgZ2VuZXJhbCBwdXJwb3NlCj4gPiBBREMgaW5wdXRz
+LioqIFRoZXkgYXJlIHJlc3BlY3RpdmVseSBtYXBwZWQgb24gQURDIGNoYW5uZWxzIDQsIDUsIDYs
+IGFuZAo+ID4gNy4gSW4gaW50ZXJydXB0IG1vZGUsIGEgdm9sdGFnZSBpcyBhcHBsaWVkIHRvIHRo
+ZSBYLXBsYXRlIChUU1gyKSB2aWEgYQo+ID4gd2VhayBjdXJyZW50IHNvdXJjZSB0byBWQ09SRSwg
+d2hpbGUgdGhlIFktcGxhdGUgaXMgY29ubmVjdGVkIHRvIGdyb3VuZAo+ID4gKFRTWTEpLiIKPiA+
+IAo+ID4gU28gdGhpcyBkb2Vzbid0IHNlZW0gdG8gYmUgZnVuZGFtZW50YWxseSBkaWZmZXJlbnQg
+ZnJvbSB0aGUgTUMxMzc4MywgaG0/Cj4KPiBIbW0sIGl0IHNlZW1zIHlvdSdyZSByaWdodCBhbmQg
+ZWl0aGVyIG15IG1lbW9yeSBkb2Vzbid0IHNlcnZlIG1lIHJpZ2h0Cj4gb3IgSSBuZXZlciB1bmRl
+cnN0b29kIGl0IGNvcnJlY3RseS4KPiAKPiBJZiB5b3UgYXNrIG1lIGl0J3MgT0sgdG8gaW1wbGVt
+ZW50IHRoYXQgd2hlbiB0aGUgZmlyc3QgbWFjaGluZSBpcyB1c2luZwo+IHRoYXQuCgpJIGFtIHdv
+cmtpbmcgZm9yIHNvbWVvbmUgd2hvIGhhcyBzdWNoIGEgbWFjaGluZS4gVGhhdCB3YXMgdGhlIHJl
+YXNvbgp3aHkgSSBhc2tlZC4KCj4gQW5kIG1vcmVvdmVyIEkgZG9uJ3QgY3VycmVudGx5IGhhdmUg
+YSBtYWNoaW5lIGF0IGhhbmQgd2l0aCBhbgo+IG1jMTM4OTIsIHNvIEkgY291bGRuJ3QgdGVzdCB0
+aGVzZSBpbnB1dHMgaW4gYW4gZXZlbnR1YWwgdjUgcGF0Y2guCj4gCj4gSXMgaXQgT0sgZm9yIHlv
+dSB0byB0YWtlIHRoZSBwYXRjaCBhcyBpcywgdG9vPwoKSXQgaXMgT0ssIGJ1dCBJIHdvdWxkIGF0
+IGxlYXN0IGFkZCBhIGNvbW1lbnQgaW4gdGhlIGNvZGUgdG8gY2xhcmlmeS4KClRoYXQgYmVpbmcg
+c2FpZCwgdGhlIGZpeCBzZWVtcyB0byBiZSBhcyBzaW1wbGUgYXMgbW92aW5nIDMgbGluZXMgb2YK
+Y29kZSBvdXQgb2YgYSBjb25kaXRpb25hbCwgc28gd2h5IG5vdCBqdXN0IGRvIHRoYXQ/CgotLSAK
+SmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0
+dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
