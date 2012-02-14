@@ -1,89 +1,64 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 22 Feb 2012 16:56:46 +0000
-Subject: [lm-sensors] [PATCH 4/7] hwmon: (max16065) Convert to use devm_kzalloc
-Message-Id: <1329929809-6085-4-git-send-email-linux@roeck-us.net>
+From: "Darrick J. Wong" <djwong@us.ibm.com>
+Date: Tue, 14 Feb 2012 17:56:06 +0000
+Subject: Re: [lm-sensors] acpi 4.0 power_meter doesn't get "cap" files automatically
+Message-Id: <20120214175606.GF14821@tux1.beaverton.ibm.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Marginally less code and eliminate the possibility of memory leaks.
+On Tue, Feb 14, 2012 at 11:05:24AM +0000, Zwolak, Cezary wrote:
+> Hello,
+> As You can conclude from subject I am working on "power_meter" device and I
+> have couple question to the author :) I have small problem with "cap" files,
+> that aren't generated automatically in /sys/devices location.  I have to
+> reload power_meter module with parameter force_cap_in set, then missing files
+> are generated.  My ACPI Power Meter has "HW enforced limit" and "Is HW limit
+> configurable" parameters set as supported.
+> 
+> I think those files should be created automatically, but it seems that
+> parameter cap_in_hardware  (checked in " can_cap_in_hardware" method) is set
+> to FALSE.  Could You tell me when this parameter is set as TRUE? In other
+> words, is there anything that I can do to get "cap" files generated
+> automatically?
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/max16065.c |   23 +++++++----------------
- 1 files changed, 7 insertions(+), 16 deletions(-)
+[adding lm-sensors@lm-sensors.org to cc]
 
-diff --git a/drivers/hwmon/max16065.c b/drivers/hwmon/max16065.c
-index 51edae9..822261b 100644
---- a/drivers/hwmon/max16065.c
-+++ b/drivers/hwmon/max16065.c
-@@ -554,7 +554,7 @@ static int max16065_probe(struct i2c_client *client,
- 				     | I2C_FUNC_SMBUS_READ_WORD_DATA))
- 		return -ENODEV;
- 
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
- 	if (unlikely(!data))
- 		return -ENOMEM;
- 
-@@ -567,20 +567,16 @@ static int max16065_probe(struct i2c_client *client,
- 
- 	if (have_secondary) {
- 		val = i2c_smbus_read_byte_data(client, MAX16065_SW_ENABLE);
--		if (unlikely(val < 0)) {
--			ret = val;
--			goto out_free;
--		}
-+		if (unlikely(val < 0))
-+			return val;
- 		secondary_is_max = val & MAX16065_WARNING_OV;
- 	}
- 
- 	/* Read scale registers, convert to range */
- 	for (i = 0; i < DIV_ROUND_UP(data->num_adc, 4); i++) {
- 		val = i2c_smbus_read_byte_data(client, MAX16065_SCALE(i));
--		if (unlikely(val < 0)) {
--			ret = val;
--			goto out_free;
--		}
-+		if (unlikely(val < 0))
-+			return val;
- 		for (j = 0; j < 4 && i * 4 + j < data->num_adc; j++) {
- 			data->range[i * 4 + j]  			  max16065_adc_range[(val >> (j * 2)) & 0x3];
-@@ -595,10 +591,8 @@ static int max16065_probe(struct i2c_client *client,
- 		for (j = 0; j < data->num_adc; j++) {
- 			val = i2c_smbus_read_byte_data(client,
- 						       MAX16065_LIMIT(i, j));
--			if (unlikely(val < 0)) {
--				ret = val;
--				goto out_free;
--			}
-+			if (unlikely(val < 0))
-+				return val;
- 			data->limit[i][j] = LIMIT_TO_MV(val, data->range[j]);
- 		}
- 	}
-@@ -661,8 +655,6 @@ static int max16065_probe(struct i2c_client *client,
- 
- out:
- 	max16065_cleanup(client);
--out_free:
--	kfree(data);
- 	return ret;
- }
- 
-@@ -672,7 +664,6 @@ static int max16065_remove(struct i2c_client *client)
- 
- 	hwmon_device_unregister(data->hwmon_dev);
- 	max16065_cleanup(client);
--	kfree(data);
- 
- 	return 0;
- }
--- 
-1.7.5.4
+Right now, if you want to have cap_in_hardware=1, you have to add a DMI string
+to pm_dmi_table in acpi_power_meter.c.  In theory, _PMC.capabilities & 0x4
+could also determine can_cap_in_hardware(), but as I recall the kernel
+community didn't want to trust that the BIOS to set that bit correctly, and
+that's why one either has to patch the DMI table or load the module with
+force_cap_on=1 -- we were simply being cautious.
+
+On the other hand there were zero publicly available implementations when I
+wrote that driver, so if you want to send in a patch to change the decision to
+be based off _PMC, go ahead.
+
+--D
+
+> 
+> Regards,
+> Cezary Zwolak
+> 
+> ---------------------------------------------------------------------
+> Intel Technology Poland sp. z o.o.
+> z siedziba w Gdansku
+> ul. Slowackiego 173
+> 80-298 Gdansk
+> 
+> Sad Rejonowy Gdansk Polnoc w Gdansku, 
+> VII Wydzial Gospodarczy Krajowego Rejestru Sadowego, 
+> numer KRS 101882
+> 
+> NIP 957-07-52-316
+> Kapital zakladowy 200.000 zl
+> 
+> This e-mail and any attachments may contain confidential material for
+> the sole use of the intended recipient(s). Any review or distribution
+> by others is strictly prohibited. If you are not the intended
+> recipient, please contact the sender and delete all copies.
 
 
 _______________________________________________
