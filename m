@@ -1,83 +1,50 @@
-From: Kenneth Cox <kencox1@gmail.com>
-Date: Tue, 14 Feb 2012 00:46:33 +0000
-Subject: [lm-sensors] help with setup / chip support
-Message-Id: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2552600015843900739=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 15 Feb 2012 07:29:38 +0000
+Subject: Re: [lm-sensors] help with setup / chip support
+Message-Id: <20120215082938.4942d514@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
+In-Reply-To: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2552600015843900739==
-Content-Type: multipart/alternative; boundary=f46d0447f1962ef07b04b8e1ed96
-
---f46d0447f1962ef07b04b8e1ed96
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-I am having trouble getting lm-sensors to work as it should I believe that
-part of the problem is support for a newer chip set. here are the specs:
-
-CPU: AMD A4-3400 APU with Radeon(tm) HD Graphics
-family(18) model(1) stepping(0)
-
-MoBo: ASRock A75M-HVS
-
-I'm using the onboard Radeon graphics.
-
-I ran the sensors-detect script saying yes to everything. The output of
-sensors:
-k10temp-pci-00c3
-Adapter: PCI adapter
-temp1:         +9.8=B0C  (high =3D +70.0=B0C)
-                       (crit =3D +70.0=B0C, hyst =3D +69.0=B0C)
-
-That's much colder than room temp and only gives data for the PCI adapter.
-
-I also tried downloading the latest version of sensors-detect from
-http://www.lm-sensors.org/wiki/Devices and rerunning. It did not change
-anything.
-
-Is there a way to get sensor data for the CPU and accurate data from the
-PCI adapter? Any help would be appreciated.
-
-Thanks,
-Ken
-
---f46d0447f1962ef07b04b8e1ed96
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div style>I am having trouble getting lm-sensors to work as it should I be=
-lieve that part of the problem is support for a newer chip set. here are th=
-e specs:<br><br>CPU: AMD A4-3400 APU with Radeon(tm) HD Graphics<br></div>
-<span style>family(18) model(1) stepping(0)</span><div style><br></div><div=
- style>MoBo:=A0ASRock A75M-HVS</div><div style><br></div><div style>I&#39;m=
- using the onboard Radeon graphics.<br><br>I ran the sensors-detect script =
-saying yes to everything. The output of sensors:<br>
-k10temp-pci-00c3<br>Adapter: PCI adapter<br>temp1:=A0=A0=A0=A0=A0=A0=A0=A0 =
-+9.8=B0C=A0 (high =3D +70.0=B0C)<br>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 (crit =3D +70.0=B0C, hyst =3D +69.0=B0C)<br><br=
->That&#39;s much colder than room temp and only gives data for the PCI adap=
-ter.=A0<br>
-<br>I also tried downloading the latest version of sensors-detect from=A0<a=
- href=3D"http://www.lm-sensors.org/wiki/Devices" target=3D"_blank" style=3D=
-"color:rgb(17,85,204)">http://www.lm-sensors.org/wiki/Devices</a>=A0and rer=
-unning. It did not change anything.<br>
-<br>Is there a way to get sensor data for the CPU and accurate data from th=
-e PCI adapter? Any help would be appreciated.<br><br>Thanks,</div>Ken<br><b=
-r>
-
---f46d0447f1962ef07b04b8e1ed96--
-
-
---===============2552600015843900739==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2552600015843900739==--
+SGkgS2VubmV0aCwKCk9uIE1vbiwgMTMgRmViIDIwMTIgMTY6NDY6MzMgLTA4MDAsIEtlbm5ldGgg
+Q294IHdyb3RlOgo+IEkgYW0gaGF2aW5nIHRyb3VibGUgZ2V0dGluZyBsbS1zZW5zb3JzIHRvIHdv
+cmsgYXMgaXQgc2hvdWxkIEkgYmVsaWV2ZSB0aGF0Cj4gcGFydCBvZiB0aGUgcHJvYmxlbSBpcyBz
+dXBwb3J0IGZvciBhIG5ld2VyIGNoaXAgc2V0LiBoZXJlIGFyZSB0aGUgc3BlY3M6Cj4gCj4gQ1BV
+OiBBTUQgQTQtMzQwMCBBUFUgd2l0aCBSYWRlb24odG0pIEhEIEdyYXBoaWNzCj4gZmFtaWx5KDE4
+KSBtb2RlbCgxKSBzdGVwcGluZygwKQo+IAo+IE1vQm86IEFTUm9jayBBNzVNLUhWUwo+IAo+IEkn
+bSB1c2luZyB0aGUgb25ib2FyZCBSYWRlb24gZ3JhcGhpY3MuCj4gCj4gSSByYW4gdGhlIHNlbnNv
+cnMtZGV0ZWN0IHNjcmlwdCBzYXlpbmcgeWVzIHRvIGV2ZXJ5dGhpbmcuIFRoZSBvdXRwdXQgb2YK
+PiBzZW5zb3JzOgo+IGsxMHRlbXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IHRl
+bXAxOiAgICAgICAgICs5LjjCsEMgIChoaWdoID0gKzcwLjDCsEMpCj4gICAgICAgICAgICAgICAg
+ICAgICAgICAoY3JpdCA9ICs3MC4wwrBDLCBoeXN0ID0gKzY5LjDCsEMpCj4gCj4gVGhhdCdzIG11
+Y2ggY29sZGVyIHRoYW4gcm9vbSB0ZW1wIGFuZCBvbmx5IGdpdmVzIGRhdGEgZm9yIHRoZSBQQ0kg
+YWRhcHRlci4KClRoaXMgaXNuJ3QgdGhlIHRlbXBlcmF0dXJlIG9mICJ0aGUgUENJIGFkYXB0ZXIi
+LCB0aGUgdmFsdWUgaXMgZnJvbSB5b3VyCkNQVS4gVGhpcyBoYXBwZW5zIHRvIGJlIGltcGxlbWVu
+dGVkIGFzIGEgUENJIGRldmljZSBpbiBBTUQgcHJvY2Vzc29ycywKd2hpY2ggaXMgd2h5IHlvdSBz
+ZWUgIlBDSSBhZGFwdGVyIiBpbiB0aGUgb3V0cHV0LCBidXQgdGhpcyBpcyByYXRoZXIKbWlzbGVh
+ZGluZyBJIGFkbWl0LgoKVGhlIHJlcG9ydGVkIHRlbXBlcmF0dXJlIGluZGVlZCBsb29rcyB3cm9u
+ZywgaG93ZXZlciBpdCBpc24ndApuZWNlc3NhcmlseSBzdXJwcmlzaW5nLiBUaGlzIGlzbid0IGFu
+IGFic29sdXRlIHRlbXBlcmF0dXJlLCBidXQgcmF0aGVyCmEgdGVtcGVyYXR1cmUgbWFyZ2luIGZy
+b20gdGhlIENQVSdzIG1heCwgYW5kIGl0IGlzIG9ubHkgYWNjdXJhdGUgd2hlbgp5b3UgZ2V0IGNs
+b3NlIHRvIHRoZSBsaW1pdC4gU28gZnJvbSB0aGUgYWJvdmUsIG9uZSBjYW4gc2F5IHRoYXQgeW91
+cgpDUFUgaXMgcnVubmluZyB2ZXJ5IGNvb2wgYW5zIHNhZmUsIGFuZCB0aGF0J3MgYWJvdXQgaXQu
+CgpUaGF0IGJlaW5nIHNhaWQsIEkgdGhpbmsgdGhpcyBpcyB0aGUgZmlyc3QgcmVwb3J0IEkgc2Vl
+IGZvciB0aGlzIGZhbWlseQpvZiBDUFUuIEFuZHJlYXMsIEFuZHJlLCBkbyB5b3UgdGhpbmsgdGhl
+cmUncyBhbnkgYnVnIHRvIGJlIGZpeGVkIGhlcmU/Cgo+IEkgYWxzbyB0cmllZCBkb3dubG9hZGlu
+ZyB0aGUgbGF0ZXN0IHZlcnNpb24gb2Ygc2Vuc29ycy1kZXRlY3QgZnJvbQo+IGh0dHA6Ly93d3cu
+bG0tc2Vuc29ycy5vcmcvd2lraS9EZXZpY2VzIGFuZCByZXJ1bm5pbmcuIEl0IGRpZCBub3QgY2hh
+bmdlCj4gYW55dGhpbmcuCj4gCj4gSXMgdGhlcmUgYSB3YXkgdG8gZ2V0IHNlbnNvciBkYXRhIGZv
+ciB0aGUgQ1BVIGFuZCBhY2N1cmF0ZSBkYXRhIGZyb20gdGhlCj4gUENJIGFkYXB0ZXI/IEFueSBo
+ZWxwIHdvdWxkIGJlIGFwcHJlY2lhdGVkLgoKV2hhdCBraW5kIG9mIHN5c3RlbSBpcyB0aGlzPyBJ
+ZiB0aGlzIGlzIGEgbGFwdG9wIHlvdSdyZSBwcm9iYWJseSBvdXQgb2YKbHVjay4gSWYgdGhpcyBp
+cyBhIGRlc2t0b3Agc3lzdGVtLCBJIHdvdWxkIGV4cGVjdCBhIGhhcmR3YXJlIG1vbml0b3JpbmcK
+Y2hpcCBvbiB0aGUgU01CdXMgb3IgaW4gdGhlIFN1cGVyLUkvTyBjaGlwLiBNYXliZSBpdCBpcyB0
+b28gcmVjZW50IGFuZAp3ZSBkb24ndCBrbm93IGFib3V0IGl0IHlldC4gUGxlYXNlIHByb3ZpZGUg
+dGhlIGZ1bGwgb3V0cHV0IG9mCnNlbnNvcnMtZGV0ZWN0LgoKLS0gCkplYW4gRGVsdmFyZQoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
+YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
+c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
