@@ -1,40 +1,170 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 17 Feb 2012 07:35:24 +0000
+From: Kenneth Cox <kencox1@gmail.com>
+Date: Sat, 18 Feb 2012 00:36:36 +0000
 Subject: Re: [lm-sensors] help with setup / chip support
-Message-Id: <20120217083524.5afaab30@endymion.delvare>
+Message-Id: <CAP4ecBMUiiJS6squDJYsHWSRGDZC2vZ2=p8HzsNChcUrFJeThg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============2378401272239232469=="
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
 In-Reply-To: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVGh1LCAxNiBGZWIgMjAxMiAyMDoyOTowNCAtMDgwMCwgS2VubmV0aCBDb3ggd3JvdGU6Cj4g
-VGhhbmtzIGZvciB0aGUgcmVzcG9uc2UuIEkgZG93bmxvYWRlZCB0aGUgbmV3IHNlbnNvcnMtZGV0
-ZWN0IHNjcmlwdCBhbmQgcmFuCj4gaXQuIEkgYWxzbyBpbnN0YWxsZWQgUm9lY2sncyBkcml2ZXIu
-IEhlcmUgaXMgdGhlIG91dHB1dCBvZiBzZW5zb3JzLWRldGVjdDoKPiAKPiAjIHNlbnNvcnMtZGV0
-ZWN0IHJldmlzaW9uIDYwMjIgKDIwMTItMDItMTYgMDc6NDQ6MzEgKzAxMDApCj4gIyBCb2FyZDog
-QVNSb2NrIEE3NU0tSFZTCj4gKC4uLikKPiBOb3cgZm9sbG93cyBhIHN1bW1hcnkgb2YgdGhlIHBy
-b2JlcyBJIGhhdmUganVzdCBkb25lLgo+IEp1c3QgcHJlc3MgRU5URVIgdG8gY29udGludWU6Cj4g
-Cj4gRHJpdmVyIGB3ODM2MjdlaGYnOgo+ICAgKiBJU0EgYnVzLCBhZGRyZXNzIDB4MjkwCj4gICAg
-IENoaXAgYE51dm90b24gTkNUNjc3NkYgU3VwZXIgSU8gU2Vuc29ycycgKGNvbmZpZGVuY2U6IDkp
-Cj4gCj4gRHJpdmVyIGBrMTB0ZW1wJyAoYXV0b2xvYWRlZCk6Cj4gICAqIENoaXAgYEFNRCBGYW1p
-bHkgMTJoIGFuZCAxNGggdGhlcm1hbCBzZW5zb3JzJyAoY29uZmlkZW5jZTogOSkKPiAKPiBEbyB5
-b3Ugd2FudCB0byBvdmVyd3JpdGUgL2V0Yy9zeXNjb25maWcvbG1fc2Vuc29ycz8gKFlFUy9ubyk6
-Cj4gQ29weSBwcm9nL2luaXQvbG1fc2Vuc29ycy5pbml0IHRvIC9ldGMvaW5pdC5kL2xtX3NlbnNv
-cnMKPiBmb3IgaW5pdGlhbGl6YXRpb24gYXQgYm9vdCB0aW1lLgo+IFlvdSBzaG91bGQgbm93IHN0
-YXJ0IHRoZSBsbV9zZW5zb3JzIHNlcnZpY2UgdG8gbG9hZCB0aGUgcmVxdWlyZWQKPiBrZXJuZWwg
-bW9kdWxlcy4KPiAKPiBVbmxvYWRpbmcgaTJjLWRldi4uLiBPSwo+IFVubG9hZGluZyBjcHVpZC4u
-LiBPSwo+IAo+IEJ1dCBzZW5zb3JzIGRvZXMgbm90IGdpdmUgYW55IG1vcmUgaW5mbzoKPiAKPiBr
-MTB0ZW1wLXBjaS0wMGMzCj4gQWRhcHRlcjogUENJIGFkYXB0ZXIKPiB0ZW1wMTogICAgICAgICAr
-OS42wrBDICAoaGlnaCA9ICs3MC4wwrBDKQo+ICAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQg
-PSArNzAuMMKwQywgaHlzdCA9ICs2OS4wwrBDKQo+IAo+IAo+IEFtIEkgbWlzc2luZyBzb21ldGhp
-bmc/CgpEaWQgeW91IHJlc3RhcnQgdGhlIGxtX3NlbnNvcnMgc2VydmljZSBhZnRlciB0aGF0PyBz
-ZW5zb3JzLWRldGVjdCBvbmx5CmRldGVjdHMgd2hpY2ggZHJpdmVycyBhcmUgbmVlZGVkLCBpdCBk
-b2Vzbid0IGxvYWQgdGhlbSBmb3IgeW91LgoKSWYgeW91IHN0aWxsIGRvbid0IGdldCBtb3JlIHZh
-bHVlcyBldmVuIGFmdGVyIHRoYXQsIGNoZWNrIHRoZSBrZXJuZWwKbG9nIGZvciBlcnJvciBtZXNz
-YWdlcy4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vu
-c29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0t
-c2Vuc29ycw=
+--===============2378401272239232469==
+Content-Type: multipart/alternative; boundary=e89a8fb1ef180055a004b9324107
+
+--e89a8fb1ef180055a004b9324107
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Feb 16, 2012 at 11:35 PM, Jean Delvare <khali@linux-fr.org> wrote:
+
+> On Thu, 16 Feb 2012 20:29:04 -0800, Kenneth Cox wrote:
+> > Thanks for the response. I downloaded the new sensors-detect script and
+> ran
+> > it. I also installed Roeck's driver. Here is the output of
+> sensors-detect:
+> >
+> > # sensors-detect revision 6022 (2012-02-16 07:44:31 +0100)
+> > # Board: ASRock A75M-HVS
+> > (...)
+> > Now follows a summary of the probes I have just done.
+> > Just press ENTER to continue:
+> >
+> > Driver `w83627ehf':
+> >   * ISA bus, address 0x290
+> >     Chip `Nuvoton NCT6776F Super IO Sensors' (confidence: 9)
+> >
+> > Driver `k10temp' (autoloaded):
+> >   * Chip `AMD Family 12h and 14h thermal sensors' (confidence: 9)
+> >
+> > Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):
+> > Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors
+> > for initialization at boot time.
+> > You should now start the lm_sensors service to load the required
+> > kernel modules.
+> >
+> > Unloading i2c-dev... OK
+> > Unloading cpuid... OK
+> >
+> > But sensors does not give any more info:
+> >
+> > k10temp-pci-00c3
+> > Adapter: PCI adapter
+> > temp1:         +9.6=B0C  (high =3D +70.0=B0C)
+> >                        (crit =3D +70.0=B0C, hyst =3D +69.0=B0C)
+> >
+> >
+> > Am I missing something?
+>
+> Did you restart the lm_sensors service after that? sensors-detect only
+> detects which drivers are needed, it doesn't load them for you.
+>
+
+How do you restart lm_sensors? I just rebooted and assumed that would
+restart it ok.
+
+
+>
+> If you still don't get more values even after that, check the kernel
+> log for error messages.
+
+
+I don't know what I'm looking for in the kernel log. I searched the log for
+"sensors" and came up with nothing. What should I be looking for?
+
+
+>
+> --
+> Jean Delvare
+>
+
+Thanks for all your help on this.
+Ken
+
+--e89a8fb1ef180055a004b9324107
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Feb 16, 2012 at 11:35 PM, Jean Delvare <span dir=3D"ltr">&lt;<a hre=
+f=3D"mailto:khali@linux-fr.org">khali@linux-fr.org</a>&gt;</span> wrote:<br=
+><div class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"marg=
+in:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
+<div class=3D"im">On Thu, 16 Feb 2012 20:29:04 -0800, Kenneth Cox wrote:<br=
+>
+&gt; Thanks for the response. I downloaded the new sensors-detect script an=
+d ran<br>
+&gt; it. I also installed Roeck&#39;s driver. Here is the output of sensors=
+-detect:<br>
+&gt;<br>
+&gt; # sensors-detect revision 6022 (2012-02-16 07:44:31 +0100)<br>
+&gt; # Board: ASRock A75M-HVS<br>
+</div>&gt; (...)<br>
+<div class=3D"im">&gt; Now follows a summary of the probes I have just done=
+.<br>
+&gt; Just press ENTER to continue:<br>
+&gt;<br>
+&gt; Driver `w83627ehf&#39;:<br>
+&gt; =A0 * ISA bus, address 0x290<br>
+&gt; =A0 =A0 Chip `Nuvoton NCT6776F Super IO Sensors&#39; (confidence: 9)<b=
+r>
+&gt;<br>
+&gt; Driver `k10temp&#39; (autoloaded):<br>
+&gt; =A0 * Chip `AMD Family 12h and 14h thermal sensors&#39; (confidence: 9=
+)<br>
+&gt;<br>
+&gt; Do you want to overwrite /etc/sysconfig/lm_sensors? (YES/no):<br>
+&gt; Copy prog/init/lm_sensors.init to /etc/init.d/lm_sensors<br>
+&gt; for initialization at boot time.<br>
+&gt; You should now start the lm_sensors service to load the required<br>
+&gt; kernel modules.<br>
+&gt;<br>
+&gt; Unloading i2c-dev... OK<br>
+&gt; Unloading cpuid... OK<br>
+&gt;<br>
+&gt; But sensors does not give any more info:<br>
+&gt;<br>
+&gt; k10temp-pci-00c3<br>
+&gt; Adapter: PCI adapter<br>
+&gt; temp1: =A0 =A0 =A0 =A0 +9.6=B0C =A0(high =3D +70.0=B0C)<br>
+&gt; =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(crit =3D +70.0=B0C, hy=
+st =3D +69.0=B0C)<br>
+&gt;<br>
+&gt;<br>
+&gt; Am I missing something?<br>
+<br>
+</div>Did you restart the lm_sensors service after that? sensors-detect onl=
+y<br>
+detects which drivers are needed, it doesn&#39;t load them for you.<br></bl=
+ockquote><div><br>How do you restart lm_sensors? I just rebooted and assume=
+d that would restart it ok.<br>=A0</div><blockquote class=3D"gmail_quote" s=
+tyle=3D"margin:0pt 0pt 0pt 0.8ex;border-left:1px solid rgb(204,204,204);pad=
+ding-left:1ex">
+
+<br>
+If you still don&#39;t get more values even after that, check the kernel<br=
+>
+log for error messages.=A0</blockquote><div><br>I don&#39;t know what I&#39=
+;m looking for in the kernel log. I searched the log for &quot;sensors&quot=
+; and came up with nothing. What should I be looking for?<br>=A0<br></div>
+<blockquote class=3D"gmail_quote" style=3D"margin:0pt 0pt 0pt 0.8ex;border-=
+left:1px solid rgb(204,204,204);padding-left:1ex">
+<span class=3D"HOEnZb"><font color=3D"#888888"><br>
+--<br>
+Jean Delvare<br>
+</font></span></blockquote></div><br>Thanks for all your help on this.<br>K=
+en<br>
+
+--e89a8fb1ef180055a004b9324107--
+
+
+--===============2378401272239232469==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============2378401272239232469==--
