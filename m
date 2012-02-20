@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 20 Feb 2012 22:28:58 +0000
+Date: Mon, 20 Feb 2012 22:31:14 +0000
 Subject: Re: [lm-sensors] [Patch] hwmon: (max6639) Set Pulse per revolution loop for both channels
-Message-Id: <1329776938.23014.40.camel@groeck-laptop>
+Message-Id: <1329777074.23014.42.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAO7tRnjoSKUKoL4445e+Gud7Dhe=K9K1MYnGNCYcBs-d4X2O6A@mail.gmail.com>
 In-Reply-To: <CAO7tRnjoSKUKoL4445e+Gud7Dhe=K9K1MYnGNCYcBs-d4X2O6A@mail.gmail.com>
@@ -10,55 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2012-02-20 at 16:58 -0500, Chris wrote:
-> Patch to fix PPR register initialization to set both channels
-> Signed-off-by: Chris D Schimp <silverchris <at> gmail.com>
-> ---
-> diff -uprN -X a/Documentation/dontdiff a/drivers/hwmon/max6639.c
-> b/drivers/hwmon/max6639.c
-> --- a/drivers/hwmon/max6639.c	2012-02-06 12:47:00.000000000 -0500
-> +++ b/drivers/hwmon/max6639.c	2012-02-20 16:36:02.553668023 -0500
-> @@ -438,7 +438,6 @@ static int max6639_init_client(struct i2
->  				  MAX6639_GCONFIG_POR);
->  	if (err)
->  		goto exit;
-> -
-
-Unnecessary whitespace change.
-
->  	/* Fans pulse per revolution is 2 by default */
->  	if (max6639_info && max6639_info->ppr > 0 &&
->  			max6639_info->ppr < 5)
-> @@ -446,11 +445,6 @@ static int max6639_init_client(struct i2
->  	else
->  		data->ppr = 2;
->  	data->ppr -= 1;
-> -	err = i2c_smbus_write_byte_data(client,
-> -			MAX6639_REG_FAN_PPR(i),
-> -			data->ppr << 5);
-> -	if (err)
-> -		goto exit;
+On Mon, 2012-02-20 at 17:14 -0500, Chris wrote:
+> The patches I just submitted fix the main issues with the driver on my
+> system. I didn't fix the variable initialization because it seems to
+> generate a warning when ever I move them closer to were they belong
+> in, it generates a compiler warning of "warning: ISO C90 forbids mixed
+> declarations and code". I am looking into how platform_data works to
+> see how it works to see if I can handle checking it and changing the
+> chip initialization to work with platform data if its provided and to
+> leave it alone if its not. Thanks for the patience with my patch
+> submissions, I am learning a lot from this
 > 
->  	if (max6639_info)
->  		rpm_range = rpm_range_to_reg(max6639_info->rpm_range);
-> @@ -458,6 +452,13 @@ static int max6639_init_client(struct i2
-> 
->  	for (i = 0; i < 2; i++) {
-> 
-> +		/* Set Fan pulse per revolution */
-> +		err = i2c_smbus_write_byte_data(client,
-> +				MAX6639_REG_FAN_PPR(i),
-> +				data->ppr << 6);
 
-Just asking ... is this correct ? Original code is << 5.
+The initializations are not needed.
 
-> +		if (err)
-> +			goto exit;
-> +
->  		/* Fans config PWM, RPM */
->  		err = i2c_smbus_write_byte_data(client,
->  			MAX6639_REG_FAN_CONFIG1(i),
-> 
+	s/int i = 0/int i/
+	s/int err = 0/int err/
+
+should do it.
+
+Guenter
+
 > On Mon, Feb 20, 2012 at 1:58 PM, Roland Stigge <stigge@antcom.de> wrote:
 > > Hi!
 > >
