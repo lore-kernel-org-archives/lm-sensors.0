@@ -1,7 +1,7 @@
 From: Chris <silverchris@gmail.com>
-Date: Mon, 20 Feb 2012 21:59:24 +0000
+Date: Mon, 20 Feb 2012 22:14:17 +0000
 Subject: Re: [lm-sensors] [Patch] hwmon: (max6639) Set Pulse per revolution loop for both channels
-Message-Id: <CAO7tRnhKoRuYg73TbtA=FORstg44Ej0-SGE9=1VS-oWrBETQ2g@mail.gmail.com>
+Message-Id: <CAO7tRnhHV-qYcmEpn2te=J2uPSXV6Q-8fXmiOG0GYdb2=MQYMQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAO7tRnjoSKUKoL4445e+Gud7Dhe=K9K1MYnGNCYcBs-d4X2O6A@mail.gmail.com>
 In-Reply-To: <CAO7tRnjoSKUKoL4445e+Gud7Dhe=K9K1MYnGNCYcBs-d4X2O6A@mail.gmail.com>
@@ -10,35 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Patch to fix FAN_FROM_REG calculations
-Signed-off-by: Chris D Schimp <silverchris <at> gmail.com>
----
-
-diff -uprN -X a/Documentation/dontdiff a/drivers/hwmon/max6639.c
-b/drivers/hwmon/max6639.c
---- a/drivers/hwmon/max6639.c	2012-02-06 12:47:00.000000000 -0500
-+++ b/drivers/hwmon/max6639.c	2012-02-20 16:36:02.553668023 -0500
-@@ -72,8 +72,8 @@ static unsigned short normal_i2c[] = { 0
-
- static const int rpm_ranges[] = { 2000, 4000, 8000, 16000 };
-
--#define FAN_FROM_REG(val, div, rpm_range)	((val) = 0 ? -1 : \
--	(val) = 255 ? 0 : (rpm_ranges[rpm_range] * 30) / ((div + 1) * (val)))
-+#define FAN_FROM_REG(val, rpm_range)	((val) = 0 ? -1 : \
-+	(val) = 255 ? 0 : (rpm_ranges[rpm_range] * 30) / val)
- #define TEMP_LIMIT_TO_REG(val)	SENSORS_LIMIT((val) / 1000, 0, 255)
-
- /*
-@@ -333,7 +333,7 @@ static ssize_t show_fan_input(struct dev
- 		return PTR_ERR(data);
-
- 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
--		       data->ppr, data->rpm_range));
-+		       data->rpm_range));
- }
-
- static ssize_t show_alarm(struct device *dev,
-
+The patches I just submitted fix the main issues with the driver on my
+system. I didn't fix the variable initialization because it seems to
+generate a warning when ever I move them closer to were they belong
+in, it generates a compiler warning of "warning: ISO C90 forbids mixed
+declarations and code". I am looking into how platform_data works to
+see how it works to see if I can handle checking it and changing the
+chip initialization to work with platform data if its provided and to
+leave it alone if its not. Thanks for the patience with my patch
+submissions, I am learning a lot from this
 
 On Mon, Feb 20, 2012 at 1:58 PM, Roland Stigge <stigge@antcom.de> wrote:
 > Hi!
