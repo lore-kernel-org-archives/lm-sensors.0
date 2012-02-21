@@ -1,39 +1,69 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 28 Feb 2012 22:43:26 +0000
-Subject: Re: [lm-sensors] [PATCH v2 2/4] hwmon: (f75375s) Make pwm*_mode writable for the F75387
-Message-Id: <20120228224326.GA6585@ericsson.com>
+Date: Tue, 21 Feb 2012 18:58:55 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (max6639) Fix PPR register initialization to set both channels
+Message-Id: <1329850735-9876-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1330463755-5763-3-git-send-email-mail@microschulz.de>
-In-Reply-To: <1330463755-5763-3-git-send-email-mail@microschulz.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 28, 2012 at 04:15:52PM -0500, Nikolaus Schulz wrote:
-> Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
-> ---
->  drivers/hwmon/f75375s.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index 1c26652..29c0d06 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -794,7 +794,7 @@ static int f75375_probe(struct i2c_client *client,
->  	if (err)
->  		goto exit_free;
->  
-> -	if (data->kind = f75375) {
-> +	if (data->kind != f75373) {
->  		err = sysfs_chmod_file(&client->dev.kobj,
->  			&sensor_dev_attr_pwm1_mode.dev_attr.attr,
->  			S_IRUGO | S_IWUSR);
+From: Chris D Schimp <silverchris@gmail.com>
 
-Applied.
+Initialize PPR register for both channels, and set correct PPR register bits.
+Also remove unnecessary variable initializations.
 
-Thanks,
-Guenter
+Signed-off-by: Chris D Schimp <silverchris@gmail.com>
+[guenter.roeck@ericsson.com: Merged two patches into one]
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/max6639.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
+index 13e58a1..a6760ba 100644
+--- a/drivers/hwmon/max6639.c
++++ b/drivers/hwmon/max6639.c
+@@ -429,9 +429,9 @@ static int max6639_init_client(struct i2c_client *client)
+ 	struct max6639_data *data = i2c_get_clientdata(client);
+ 	struct max6639_platform_data *max6639_info  		client->dev.platform_data;
+-	int i = 0;
++	int i;
+ 	int rpm_range = 1; /* default: 4000 RPM */
+-	int err = 0;
++	int err;
+ 
+ 	/* Reset chip to default values, see below for GCONFIG setup */
+ 	err = i2c_smbus_write_byte_data(client, MAX6639_REG_GCONFIG,
+@@ -446,11 +446,6 @@ static int max6639_init_client(struct i2c_client *client)
+ 	else
+ 		data->ppr = 2;
+ 	data->ppr -= 1;
+-	err = i2c_smbus_write_byte_data(client,
+-			MAX6639_REG_FAN_PPR(i),
+-			data->ppr << 5);
+-	if (err)
+-		goto exit;
+ 
+ 	if (max6639_info)
+ 		rpm_range = rpm_range_to_reg(max6639_info->rpm_range);
+@@ -458,6 +453,13 @@ static int max6639_init_client(struct i2c_client *client)
+ 
+ 	for (i = 0; i < 2; i++) {
+ 
++		/* Set Fan pulse per revolution */
++		err = i2c_smbus_write_byte_data(client,
++				MAX6639_REG_FAN_PPR(i),
++				data->ppr << 6);
++		if (err)
++			goto exit;
++
+ 		/* Fans config PWM, RPM */
+ 		err = i2c_smbus_write_byte_data(client,
+ 			MAX6639_REG_FAN_CONFIG1(i),
+-- 
+1.7.3.1
+
 
 _______________________________________________
 lm-sensors mailing list
