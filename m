@@ -1,7 +1,7 @@
-From: Xie Xiaobo-R63061 <r63061@freescale.com>
-Date: Tue, 21 Feb 2012 09:52:09 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 21 Feb 2012 10:42:37 +0000
 Subject: Re: [lm-sensors] [PATCH V4] hwmon: Add MCP3021 ADC driver
-Message-Id: <69EC9ED88E3CC04094A78F8074A7986D21EBC8@039-SN1MPN1-004.039d.mgd.msft.net>
+Message-Id: <20120221114237.5a6d99e7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1329711239-11856-1-git-send-email-X.Xie@freescale.com>
 In-Reply-To: <1329711239-11856-1-git-send-email-X.Xie@freescale.com>
@@ -10,58 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwNCg0KVGhhbmtzIGZvciB5b3VyIGNvbW1lbnRzLiBTZWUgdGhlIHJlcGx5IGlubGlu
-ZS4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKZWFuIERlbHZhcmUg
-W21haWx0bzpraGFsaUBsaW51eC1mci5vcmddDQo+IFNlbnQ6IDIwMTLE6jLUwjIxyNUgMDozOQ0K
-PiBUbzogWGllIFhpYW9iby1SNjMwNjENCj4gQ2M6IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc7
-IGd1ZW50ZXIucm9lY2tAZXJpY3Nzb24uY29tOyBIdQ0KPiBNaW5na2FpLUIyMTI4NA0KPiBTdWJq
-ZWN0OiBSZTogW1BBVENIIFY0XSBod21vbjogQWRkIE1DUDMwMjEgQURDIGRyaXZlcg0KPiANCj4g
-SGkgWGllLA0KPiANCj4gT24gTW9uLCAyMCBGZWIgMjAxMiAxMjoxMzo1OSArMDgwMCwgWGllIFhp
-YW9ibyB3cm90ZToNCj4gPiBBZGQgSTJDIGRyaXZlciBmb3IgTUNQMzAyMSB0aGF0IGlzIGFuIEFE
-QyBjaGlwIGZyb20gTWljcm9jaGlwLg0KPiA+IFRoZSBNQ1AzMDIxIGlzIGEgc3VjY2Vzc2l2ZSBh
-cHByb3hpbWF0aW9uIEEvRCBjb252ZXJ0ZXIgKEFEQykgd2l0aA0KPiA+IDEwLWJpdCByZXNvbHV0
-aW9uLg0KPiA+IFRoZSBkcml2ZXIgZXhwb3J0IHRoZSB2YWx1ZSBvZiBWaW4gdG8gc3lzZnMsIHRo
-ZSB2b2x0YWdlIHVuaXQgaXMgbVYuDQo+ID4gVGhyb3VnaCB0aGUgc3lzZnMgaW50ZXJmYWNlLCBs
-bS1zZW5zb3JzIHRvb2wgY2FuIGFsc28gZGlzcGxheSBWaW4NCj4gPiB2b2x0YWdlLg0KPiA+DQo+
-ID4gU2lnbmVkLW9mZi1ieTogTWluZ2thaSBIdSA8TWluZ2thaS5odUBmcmVlc2NhbGUuY29tPg0K
-PiA+IFNpZ25lZC1vZmYtYnk6IFhpZSBYaWFvYm8gPFguWGllQGZyZWVzY2FsZS5jb20+DQo+ID4g
-LS0tDQo+IA0KPiBXaGVuIHN1Ym1pdHRpbmcgYSBuZXcgdmVyc2lvbiBvZiBhIHByZXZpb3VzIHBh
-dGNoLCBwbGVhc2UgaW5jbHVkZSBhIGNoYW5nZWxvZw0KPiBoZXJlIHNvIHRoYXQgcmV2aWV3ZXJz
-IGtub3cgd2hhdCBjaGFuZ2VkLiBJJ20gdXNpbmcgcXVpbHQncyB3b25kZXJmdWwgc25hcHNob3QN
-Cj4gZmVhdHVyZSB0byBnZXQgYW4gaWRlYSBidXQgaXQgd291bGQgdGFrZSBtZSBsZXNzIHRpbWUg
-aWYgSSBrbmV3IHdoYXQgdG8gZXhwZWN0Lg0KPiANCg0KWWVzLCBpdCdzIG15IGV4cGVyaWVuY2Ug
-SW5zdWZmaWNpZW5jeSwgYW5kIEknbSBzb3JyeSBmb3IgdGhhdC4gSSBzdWJtaXR0ZWQgcGF0Y2gg
-VjQsIGJlY2F1c2UgSSBtaXNzZWQgb25lIG1lbW9yeSBmcmVlaW5nIGluIHBhdGNoIFYzLg0KDQo+
-IFN0aWxsIGEgZmV3IGlzc3VlcyByZW1haW5pbmcgaW4gdGhpcyB2ZXJzaW9uLCBhbHRob3VnaCBt
-b3N0IHByb2JsZW1zIHdlcmUgcHJvcGVybHkNCj4gZml4ZWQgKHRoYW5rcyEpDQo+IA0KPiA+ICtz
-dGF0aWMgaW5saW5lIHUxNiB2b2x0c19mcm9tX3JlZyh1MTYgdmRkLCB1MTYgdmFsKSB7DQo+ID4g
-KwlpZiAodmFsID09IDApDQo+ID4gKwkJcmV0dXJuIDA7DQo+ID4gKw0KPiA+ICsJdmFsID0gdmFs
-ICogTUNQMzAyMV9PVVRQVVRfU0NBTEUgLSBNQ1AzMDIxX09VVFBVVF9TQ0FMRSAvIDI7DQo+ID4g
-Kw0KPiA+ICsJcmV0dXJuIHZhbCAqIERJVl9ST1VORF9DTE9TRVNUKHZkZCwNCj4gPiArCQkJKDEg
-PDwgTUNQMzAyMV9PVVRQVVRfUkVTKSAqIE1DUDMwMjFfT1VUUFVUX1NDQUxFKTsgfQ0KPiANCj4g
-SSBkaWQgbm90IG5vdGljZSBiZWZvcmUsIGJ1dCBjYW4ndCB0aGlzIG92ZXJmbG93PyBTYXkgdmFs
-ID09IDB4ZmZmMCwgMHhmZmYwICogNCAtIDQgLyAyDQo+ID09IDB4M2ZmYmUsIHRoYXQgZG9lc24n
-dCBmaXQgaW4gdTE2LiBJIHRoaW5rIHlvdSBzaG91bGQgaW50cm9kdWNlIGEgbG9jYWwgaW50IHZh
-cmlhYmxlDQo+IGFuZCByZXR1cm4gaXRzIHZhbHVlIChhcyBhbiBpbnQsIG5vdCB1MTYuKQ0KPiAN
-Cg0KSSB1c2VkIHRoZSB1MTYsIGJlY2F1c2UgdGhlIHZhbCBpcyBmcm9tIG1jcDMwMjFfcmVhZDE2
-KCksIFNvIHRoZSB2YWwgYWx3YXlzIDw9IDB4M2ZmIChJIGFscmVhZHkgZGVmaW5lZCBNQ1AzMDIx
-X1NBUl9NQVNLKS4NCg0KPiA+ICsNCj4gPiArc3RhdGljIHNzaXplX3Qgc2hvd19pbl9pbnB1dChz
-dHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLA0KPiA+ICsJ
-CWNoYXIgKmJ1ZikNCj4gPiArew0KPiA+ICsJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHRv
-X2kyY19jbGllbnQoZGV2KTsNCj4gPiArCXN0cnVjdCBtY3AzMDIxX2RhdGEgKmRhdGEgPSBpMmNf
-Z2V0X2NsaWVudGRhdGEoY2xpZW50KTsNCj4gPiArCWludCByZWcsIGluX2lucHV0Ow0KPiA+ICsN
-Cj4gPiArCXJlZyA9IG1jcDMwMjFfcmVhZDE2KGNsaWVudCk7DQo+ID4gKwlpZiAocmVnID49IDAp
-DQo+ID4gKwkJaW5faW5wdXQgPSB2b2x0c19mcm9tX3JlZyhkYXRhLT52ZGQsIHJlZyk7DQo+ID4g
-KwllbHNlDQo+ID4gKwkJaW5faW5wdXQgPSByZWc7DQo+IA0KPiBObywgdGhpcyB3b3VsZCBiZSBp
-bnRlcnByZXRlZCBieSB1c2Vyc3BhY2UgYXMgYSBuZWdhdGl2ZSB2b2x0YWdlLCBub3QgYW4gZXJy
-b3IuDQo+IFlvdSB3YW50IHRvIHJldHVybiByZWcgZGlyZWN0bHksIG5vdCBwcmludCBpdC4NCj4g
-DQo+ID4gKwlyZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwgaW5faW5wdXQpOyB9DQo+ID4gKw0K
-PiA+ICtzdGF0aWMgREVWSUNFX0FUVFIoaW4wX2lucHV0LCBTX0lSVUdPLCBzaG93X2luX2lucHV0
-LCBOVUxMKTsNCj4gPiArDQo+ID4gK3N0YXRpYyBzdHJ1Y3QgYXR0cmlidXRlICptY3AzMDIxX2F0
-dHJpYnV0ZXNbXSA9IHsNCj4gPiArCSZkZXZfYXR0cl9pbjBfaW5wdXQuYXR0ciwNCj4gPiArCU5V
-TEwNCj4gPiArfTsNCj4gDQo+IFlvdSBoYXJkbHkgbmVlZCBhbiBhcnJheSBmb3Igb25lIGF0dHJp
-YnV0ZSwganVzdCBhY2Nlc3MgdGhlIGF0dHJpYnV0ZSBkaXJlY3RseS4NCj4gDQo+IEFsbCB0aGUg
-cmVzdCBsb29rcyBnb29kLg0KPiAtLQ0KPiBKZWFuIERlbHZhcmUNCg0KX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QK
-bG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFp
-bG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Tue, 21 Feb 2012 09:52:09 +0000, Xie Xiaobo-R63061 wrote:
+> > > +static inline u16 volts_from_reg(u16 vdd, u16 val) {
+> > > +	if (val = 0)
+> > > +		return 0;
+> > > +
+> > > +	val = val * MCP3021_OUTPUT_SCALE - MCP3021_OUTPUT_SCALE / 2;
+> > > +
+> > > +	return val * DIV_ROUND_CLOSEST(vdd,
+> > > +			(1 << MCP3021_OUTPUT_RES) * MCP3021_OUTPUT_SCALE); }
+> > 
+> > I did not notice before, but can't this overflow? Say val = 0xfff0, 0xfff0 * 4 - 4 / 2
+> > = 0x3ffbe, that doesn't fit in u16. I think you should introduce a local int variable
+> > and return its value (as an int, not u16.)
+> > 
+> 
+> I used the u16, because the val is from mcp3021_read16(), So the val always <= 0x3ff (I already defined MCP3021_SAR_MASK).
+
+OK, you can ignore my comment then, sorry for the noise.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
