@@ -1,65 +1,54 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 29 Feb 2012 19:02:24 +0000
-Subject: Re: [lm-sensors] Chip Addition: ITE IT8783F
-Message-Id: <1330542144.23014.241.camel@groeck-laptop>
+Date: Tue, 21 Feb 2012 18:58:54 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (max6639) Fix FAN_FROM_REG calculation
+Message-Id: <1329850735-9876-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <B9D3C48C98930741A166756A50C44A611FF696B3@helx1.corp.vaisala.com>
-In-Reply-To: <B9D3C48C98930741A166756A50C44A611FF696B3@helx1.corp.vaisala.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyMDEyLTAyLTI5IGF0IDEzOjQyIC0wNTAwLCBLZXZpbiBGb2x6IHdyb3RlOgo+IEkg
-aGF2ZSBjb250YWN0ZWQgSVRFIGZvciBhIGRhdGFzaGVldCwgYW5kIHRoZXkgaGF2ZSByZXNwb25k
-ZWQgIndlIHdpbGwgcmVwbHkgeW91IHNvb24hIiB3aWxsIGZvcndhcmQgaWYgcmVjZWl2ZWQuCj4g
-CkhpIEtldmluLAoKcGxlYXNlIGRvbid0IHRvcC1wb3N0LgoKV291bGQgYmUgaW50ZXJlc3Rpbmcg
-aWYgdGhleSBwcm92aWRlIHRoZSBkYXRhc2hlZXQuIEplYW4gZGlkbid0IGhhdmUKbXVjaCBsdWNr
-IGdldHRpbmcgYW55IGRhdGFzaGVldHMgZnJvbSB0aGVtIHJlY2VudGx5LgoKPiBJIGhhdmUgaGFk
-IHN1Y2Nlc3MgdXNpbmcgMi42LjI5LjYga2VybmVsLCB2aWEgIm1vZHByb2JlIGl0ODcgZm9yY2Vf
-aWQ9MHg4NzI2Igo+IFsgMTYxMS44MjcxODRdIGl0ODc6IEZvdW5kIElUODcyNkYgY2hpcCBhdCAw
-eGEzMCwgcmV2aXNpb24gMAo+IFsgMTYxMS44MjcxOTZdIGl0ODc6IGluMyBpcyBWQ0MgKCs1VikK
-PiBbIDE2MTEuODI3MTk3XSBpdDg3OiBpbjcgaXMgVkNDSCAoKzVWIFN0YW5kLUJ5KQo+IAo+IHNl
-bnNvcnMKPiBpdDg3MTYtaXNhLTBhMzAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IFZDb3JlOiAg
-ICAgKzAuODUgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzQuMDggVikgICAKPiBWRERSOiAg
-ICAgICsxLjU3IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICs0LjA4IFYpICAgCj4gKzMuM1Y6
-ICAgICArMi45OSBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+ICs1Vjog
-ICAgICAgKzQuOTcgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzYuODUgVikgICAKPiArMTJW
-OiAgICAgKzExLjU4IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gKzE2LjMyIFYpICAgCj4gaW41
-OiAgICAgICArMi4xNCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArNC4wOCBWKSAgIAo+IGlu
-NjogICAgICAgKzIuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzQuMDggVikgICAKPiA1
-VlNCOiAgICAgICs0Ljk1IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICs2Ljg1IFYpICAgCj4g
-VkJhdDogICAgICArMy4zMSBWCj4gZmFuMTogICAgIDQ3ODcgUlBNICAobWluID0gICAgMCBSUE0p
-ICAgICAgICAgICAgICAgICAgIAo+IGZhbjI6ICAgICA1NzY5IFJQTSAgKG1pbiA9ICAgIDAgUlBN
-KSAgICAgICAgICAgICAgICAgICAKPiB0ZW1wMTogICAgICAgKzMyw4LCsEMgIChsb3cgID0gICAg
-LTHDgsKwQywgaGlnaCA9ICArMTI3w4LCsEMpICAgc2Vuc29yID0gaW52YWxpZCAgIAo+IHRlbXAy
-OiAgICAgICArMzHDgsKwQyAgKGxvdyAgPSAgICAtMcOCwrBDLCBoaWdoID0gICsxMjfDgsKwQykg
-ICBzZW5zb3IgPSBpbnZhbGlkICAgCj4gdGVtcDM6ICAgICAgICsyMsOCwrBDICAobG93ICA9ICAg
-IC0xw4LCsEMsIGhpZ2ggPSAgKzEyN8OCwrBDKSAgIHNlbnNvciA9IGludmFsaWQgICAKPiB2aWQ6
-ICAgICAgKzMuMTAwIFYKPiAKPiB0aGUgdGVtcC9mYW4vdm9sdGFnZSB2YWx1ZXMgbG9vayBhcHBy
-b3ByaWF0ZSBmb3IgbXkgc3lzdGVtLgo+IApMb29rcyBwcmV0dHkgZ29vZC4gVGVtcGVyYXR1cmUg
-c2Vuc29yIHR5cGUgaXMgb2J2aW91c2x5IGEgYml0IG9kZCwgYnV0Cm1vc3QgbGlrZWx5IHRoZSBy
-ZXBvcnRlZCB0eXBlIGlzIGp1c3Qgbm90IHN1cHBvcnRlZCBieSB5b3VyIHZlcnNpb24gb2YKdGhl
-ICJzZW5zb3JzIiBjb21tYW5kLgoKVGhhbmtzLApHdWVudGVyCgo+IFRoYW5rcyBmb3IgdGhlIHN1
-Z2dlc3Rpb24gb2YgImZvcmNlLWlkIiBtb2R1bGUgcGFyYW1ldGVyLCBJIHBpY2tlZCA4NzI2IGFz
-IGl04oCZcyB0aGUgaGlnaGVzdCBtb2RlbCBudW1iZXIgcmVwb3J0ZWQgYnkgIm1vZGluZm8gaXQ4
-NyIgb24gbXkga2VybmVsLgo+IAo+IEtldmluCj4gCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0t
-LS0KPiBGcm9tOiBHdWVudGVyIFJvZWNrIFttYWlsdG86Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5j
-b21dIAo+IFNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDI4LCAyMDEyIDQ6MDIgUE0KPiBUbzogS2V2
-aW4gRm9sego+IENjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gU3ViamVjdDogUmU6IFts
-bS1zZW5zb3JzXSBDaGlwIEFkZGl0aW9uOiBJVEUgSVQ4NzgzRgo+IAo+IE9uIFR1ZSwgMjAxMi0w
-Mi0yOCBhdCAxMzo1MyAtMDUwMCwga2V2aW4gd3JvdGU6Cj4gPiA8anVra2EuaHlubmluZW4gPGF0
-PiB2YWlzYWxhLmNvbT4gd3JpdGVzOgo+ID4gCj4gPiA+IAo+ID4gPiBBbnlvbmUgaW50ZXJlc3Rl
-ZCBpbiBhZGRpbmcgc3VwcG9ydCBmb3IgdGhpcz8gSSdkIGJlIGdsYWQgdG8gYXNzaXN0IG9uCj4g
-PiA+IGZ1cnRoZXIgZXZhbHVhdGlvbiBhbmQgdGVzdGluZy4KPiA+ID4KPiA+IAo+ID4gQkNNIG1v
-dGhlcmJvYXJkcyBoYXZlIHRoaXMgc2Vuc29yIGFuZCB3b3VsZCBiZSBuaWNlIHRvIGhhdmUgc3Vw
-cG9ydC4KPiA+IGh0dHA6Ly93d3cuYmNtY29tLmNvbS9iY21fcHJvZHVjdF9teDU3cW0uaHRtCj4g
-PiAKPiA+IElzIHRoZXJlIGFueSBjb2RlIGF0IGFsbCB0byBjb21waWxlIHRoaXMgZHJpdmVyIG1h
-bnVhbGx5Pwo+IAo+IFlvdSBjYW4gdHJ5IHRvIGZvcmNlLWxvYWQgdGhlIGl0ODcgZHJpdmVyLiBJ
-VEUgZGF0YXNoZWV0cyBhcmUgZGlmZmljdWx0Cj4gaWYgbm90IGltcG9zc2libGUgdG8gZ2V0LCBz
-byBpdCBpcyB1bmxpa2VseSB0aGF0IHdlIHdpbGwgYmUgYWJsZSB0byBhZGQKPiBzdXBwb3J0IGZv
-ciB0aGUgY2hpcC4KPiAKPiBJIGFkZGVkIHlvdXIgcmVxdWVzdCB0byB0aGUgInN1cHBvcnRlZCBk
-ZXZpY2VzIiBsaXN0IG9uIGxtLXNlbnNvcnMub3JnLgo+IAo+IEd1ZW50ZXIKPiAKPiAKCgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
-YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
-c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+From: Chris D Schimp <silverchris@gmail.com>
+
+RPM calculation from tachometer value does not depend on PPR.
+Also, do not report negative RPM values.
+
+Signed-off-by: Chris D Schimp <silverchris@gmail.com>
+[guenter.roeck@ericsson.com: do not report negative RPM values]
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/max6639.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/max6639.c b/drivers/hwmon/max6639.c
+index e10a092..13e58a1 100644
+--- a/drivers/hwmon/max6639.c
++++ b/drivers/hwmon/max6639.c
+@@ -72,8 +72,8 @@ static unsigned short normal_i2c[] = { 0x2c, 0x2e, 0x2f, I2C_CLIENT_END };
+ 
+ static const int rpm_ranges[] = { 2000, 4000, 8000, 16000 };
+ 
+-#define FAN_FROM_REG(val, div, rpm_range)	((val) = 0 ? -1 : \
+-	(val) = 255 ? 0 : (rpm_ranges[rpm_range] * 30) / ((div + 1) * (val)))
++#define FAN_FROM_REG(val, rpm_range)	((val) = 0 || (val) = 255 ? \
++				0 : (rpm_ranges[rpm_range] * 30) / (val))
+ #define TEMP_LIMIT_TO_REG(val)	SENSORS_LIMIT((val) / 1000, 0, 255)
+ 
+ /*
+@@ -333,7 +333,7 @@ static ssize_t show_fan_input(struct device *dev,
+ 		return PTR_ERR(data);
+ 
+ 	return sprintf(buf, "%d\n", FAN_FROM_REG(data->fan[attr->index],
+-		       data->ppr, data->rpm_range));
++		       data->rpm_range));
+ }
+ 
+ static ssize_t show_alarm(struct device *dev,
+-- 
+1.7.3.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
