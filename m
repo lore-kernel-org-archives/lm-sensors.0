@@ -1,30 +1,38 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 28 Feb 2012 16:58:52 +0000
-Subject: Re: [lm-sensors] Do you guys need any logs or data for IT8518?
-Message-Id: <1330448332.23014.207.camel@groeck-laptop>
+Date: Wed, 22 Feb 2012 16:19:31 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ads1015) Fix file leak in probe function
+Message-Id: <1329927571-31574-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <loom.20120228T134854-232@post.gmane.org>
-In-Reply-To: <loom.20120228T134854-232@post.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-02-28 at 07:52 -0500, Eric Appleman wrote:
-> It's the KBC for my Clevo W150HRM.
-> 
-> Probing for Super-I/O at 0x2e/0x2f
-> Trying family `National Semiconductor/ITE'...               Yes
-> Found unknown chip with ID 0x8518
-> 
-Hi Eric,
+An error while creating sysfs attribute files in the driver's probe function
+results in an error abort, but already created files are not removed. This patch
+fixes the problem.
 
-I don't think there is much (if anything) we can do. ITE closely guards
-their datasheets, and it is all but impossible to get one for any of the
-IT85xx series.
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Dirk Eibach <eibach@gdsys.de>
+---
+ drivers/hwmon/ads1015.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Guenter
-
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index eedca3c..1a1f058 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -271,7 +271,7 @@ static int ads1015_probe(struct i2c_client *client,
+ 			continue;
+ 		err = device_create_file(&client->dev, &ads1015_in[k].dev_attr);
+ 		if (err)
+-			goto exit_free;
++			goto exit_remove;
+ 	}
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+-- 
+1.7.3.1
 
 
 _______________________________________________
