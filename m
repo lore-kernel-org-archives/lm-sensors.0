@@ -1,7 +1,7 @@
 From: Nikolaus Schulz <mail@microschulz.de>
-Date: Wed, 08 Feb 2012 17:56:07 +0000
-Subject: [lm-sensors] Some simple bugfixes in the F75375 driver
-Message-Id: <1328723771-22163-1-git-send-email-mail@microschulz.de>
+Date: Wed, 22 Feb 2012 22:18:43 +0000
+Subject: [lm-sensors] (f75375s) More fixes for the F75387
+Message-Id: <1329949129-4265-1-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,15 +10,20 @@ To: lm-sensors@vger.kernel.org
 
 Hi,
 
-I've been working on the F75375 driver in order to add support for automatic
-fan control configuration, and have run into a couple of bugs.
+here is a second batch of fixes for the F75387 chip.  I hope they
+can make it to Linux 3.3.
 
-Some of them have fairly trivial fixes; I am posting the patches now to get
-them out of the door.
+While the support for the F75387 is still quite incomplete, these
+patches hopefully improve the situation, fixing a couple of bugs I've
+found while working on automatic fan control configuration support for
+this driver.
 
-Have a nice day,
+Note that one patch introduces a small change in the sysfs API for the
+F75387; I hope this is tolerable, as support for this chip has not yet
+been part of a stable kernel release.
+
+Thanks,
 Nikolaus
-
 
 _______________________________________________
 lm-sensors mailing list
