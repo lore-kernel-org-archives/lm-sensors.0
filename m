@@ -1,184 +1,278 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 09 Feb 2012 17:17:56 +0000
-Subject: [lm-sensors] [PATCH 1/2] hwmon: (w83627ehf) Add support for temperature offset registers
-Message-Id: <1328807876-26409-1-git-send-email-guenter.roeck@ericsson.com>
+From: Xie Xiaobo <X.Xie@freescale.com>
+Date: Wed, 22 Feb 2012 07:55:32 +0000
+Subject: [lm-sensors] [PATCH V5] hwmon: Add MCP3021 ADC driver
+Message-Id: <1329897332-18383-1-git-send-email-X.Xie@freescale.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Add support for temperature offset registers for CPUTIN, SYSTIN,
-and AUXTIN temperatures.
+Add I2C driver for MCP3021 that is an ADC chip from Microchip.
+The MCP3021 is a successive approximation A/D converter (ADC)
+with 10-bit resolution.
+The driver export the value of Vin to sysfs, the voltage unit is
+mV. Through the sysfs interface, lm-sensors tool can also display
+Vin voltage.
 
-Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Signed-off-by: Mingkai Hu <Mingkai.hu@freescale.com>
+Signed-off-by: Xie Xiaobo <X.Xie@freescale.com>
 ---
- drivers/hwmon/w83627ehf.c |   73 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 73 insertions(+), 0 deletions(-)
+The patch V5 fixed two issues based on Jean's comments.
+ Documentation/hwmon/mcp3021 |   22 ++++++
+ drivers/hwmon/Kconfig       |   10 +++
+ drivers/hwmon/Makefile      |    1 +
+ drivers/hwmon/mcp3021.c     |  176 +++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 209 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/mcp3021
+ create mode 100644 drivers/hwmon/mcp3021.c
 
-diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-index 57a31a0..5273fff 100644
---- a/drivers/hwmon/w83627ehf.c
-+++ b/drivers/hwmon/w83627ehf.c
-@@ -241,6 +241,8 @@ static const u16 W83627EHF_REG_FAN_MAX_OUTPUT_W83667_B[] = { 0x67, 0x69, 0x6b };
- static const u16 W83627EHF_REG_FAN_STEP_OUTPUT_W83667_B[]
- 						= { 0x68, 0x6a, 0x6c };
+diff --git a/Documentation/hwmon/mcp3021 b/Documentation/hwmon/mcp3021
+new file mode 100644
+index 0000000..325fd87
+--- /dev/null
++++ b/Documentation/hwmon/mcp3021
+@@ -0,0 +1,22 @@
++Kernel driver MCP3021
++===========
++
++Supported chips:
++  * Microchip Technology MCP3021
++    Prefix: 'mcp3021'
++    Datasheet: http://ww1.microchip.com/downloads/en/DeviceDoc/21805a.pdf
++
++Author: Mingkai Hu
++
++Description
++-----------
++
++This driver implements support for the Microchip Technology MCP3021 chip.
++
++The Microchip Technology Inc. MCP3021 is a successive approximation A/D
++converter (ADC) with 10-bit resolution.
++This device provides one single-ended input with very low power consumption.
++Communication to the MCP3021 is performed using a 2-wire I2C compatible
++interface. Standard (100 kHz) and Fast (400 kHz) I2C modes are available.
++The default I2C device address is 0x4d (contact the Microchip factory for
++additional address options).
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 24d584a..b58a947 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -812,6 +812,16 @@ config SENSORS_MAX6650
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called max6650.
  
-+static const u16 W83627EHF_REG_TEMP_OFFSET[] = { 0x454, 0x455, 0x456 };
++config SENSORS_MCP3021
++	tristate "Microchip MCP3021"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the MCP3021 chip
++	  that is a A/D converter (ADC) with 10-bit resolution.
 +
- static const u16 NCT6775_REG_TARGET[] = { 0x101, 0x201, 0x301 };
- static const u16 NCT6775_REG_FAN_MODE[] = { 0x102, 0x202, 0x302 };
- static const u16 NCT6775_REG_FAN_STOP_OUTPUT[] = { 0x105, 0x205, 0x305 };
-@@ -466,6 +468,7 @@ struct w83627ehf_data {
- 	u8 has_fan_min;		/* some fans don't have min register */
- 	bool has_fan_div;
- 	u8 temp_type[3];
-+	s8 temp_offset[3];
- 	s16 temp[9];
- 	s16 temp_max[9];
- 	s16 temp_max_hyst[9];
-@@ -497,6 +500,7 @@ struct w83627ehf_data {
- 	u8 vrm;
- 
- 	u16 have_temp;
-+	u16 have_temp_offset;
- 	u8 in6_skip:1;
- 	u8 temp3_val_only:1;
- };
-@@ -894,6 +898,10 @@ static struct w83627ehf_data *w83627ehf_update_device(struct device *dev)
- 				data->temp_max_hyst[i]
- 				  = w83627ehf_read_temp(data,
- 						data->reg_temp_hyst[i]);
-+			if (data->have_temp_offset & (1 << i))
-+				data->temp_offset[i]
-+				  = w83627ehf_read_value(data,
-+						W83627EHF_REG_TEMP_OFFSET[i]);
- 		}
- 
- 		data->alarms = w83627ehf_read_value(data,
-@@ -1227,6 +1235,39 @@ store_temp_reg(reg_temp_over, temp_max);
- store_temp_reg(reg_temp_hyst, temp_max_hyst);
- 
- static ssize_t
-+show_temp_offset(struct device *dev, struct device_attribute *attr, char *buf)
-+{
-+	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
++	  This driver can also be built as a module.  If so, the module
++	  will be called mcp3021.
 +
-+	return sprintf(buf, "%d\n",
-+		       data->temp_offset[sensor_attr->index] * 1000);
-+}
+ config SENSORS_NTC_THERMISTOR
+ 	tristate "NTC thermistor support"
+ 	depends on EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 8251ce8..6d3f11f 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -95,6 +95,7 @@ obj-$(CONFIG_SENSORS_MAX6639)	+= max6639.o
+ obj-$(CONFIG_SENSORS_MAX6642)	+= max6642.o
+ obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+ obj-$(CONFIG_SENSORS_MC13783_ADC)+= mc13783-adc.o
++obj-$(CONFIG_SENSORS_MCP3021)	+= mcp3021.o
+ obj-$(CONFIG_SENSORS_NTC_THERMISTOR)	+= ntc_thermistor.o
+ obj-$(CONFIG_SENSORS_PC87360)	+= pc87360.o
+ obj-$(CONFIG_SENSORS_PC87427)	+= pc87427.o
+diff --git a/drivers/hwmon/mcp3021.c b/drivers/hwmon/mcp3021.c
+new file mode 100644
+index 0000000..c874491
+--- /dev/null
++++ b/drivers/hwmon/mcp3021.c
+@@ -0,0 +1,176 @@
++/*
++ * mcp3021.c - driver for the Microchip MCP3021 chip
++ *
++ * Copyright (C) 2008-2009, 2012 Freescale Semiconductor, Inc.
++ * Author: Mingkai Hu <Mingkai.hu@freescale.com>
++ *
++ * This driver export the value of analog input voltage to sysfs, the
++ * voltage unit is mV. Through the sysfs interface, lm-sensors tool
++ * can also display the input voltage.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
 +
-+static ssize_t
-+store_temp_offset(struct device *dev, struct device_attribute *attr,
-+		  const char *buf, size_t count)
-+{
-+	struct w83627ehf_data *data = dev_get_drvdata(dev);
-+	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-+	int nr = sensor_attr->index;
-+	long val;
-+	int err;
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/hwmon.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
++#include <linux/device.h>
 +
-+	err = kstrtol(buf, 10, &val);
-+	if (err < 0)
-+		return err;
++/* Vdd info */
++#define MCP3021_VDD_MAX		5500
++#define MCP3021_VDD_MIN		2700
++#define MCP3021_VDD_REF		3300
 +
-+	val = SENSORS_LIMIT(DIV_ROUND_CLOSEST(val, 1000), -128, 127);
++/* output format */
++#define MCP3021_SAR_SHIFT	2
++#define MCP3021_SAR_MASK	0x3ff
 +
-+	mutex_lock(&data->update_lock);
-+	data->temp_offset[nr] = val;
-+	w83627ehf_write_value(data, W83627EHF_REG_TEMP_OFFSET[nr], val);
-+	mutex_unlock(&data->update_lock);
-+	return count;
-+}
++#define MCP3021_OUTPUT_RES	10	/* 10-bit resolution */
++#define MCP3021_OUTPUT_SCALE	4
 +
-+static ssize_t
- show_temp_type(struct device *dev, struct device_attribute *attr, char *buf)
- {
- 	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-@@ -1313,6 +1354,15 @@ static struct sensor_device_attribute sda_temp_type[] = {
- 	SENSOR_ATTR(temp3_type, S_IRUGO, show_temp_type, NULL, 2),
- };
- 
-+static struct sensor_device_attribute sda_temp_offset[] = {
-+	SENSOR_ATTR(temp1_offset, S_IRUGO | S_IWUSR, show_temp_offset,
-+		    store_temp_offset, 0),
-+	SENSOR_ATTR(temp2_offset, S_IRUGO | S_IWUSR, show_temp_offset,
-+		    store_temp_offset, 1),
-+	SENSOR_ATTR(temp3_offset, S_IRUGO | S_IWUSR, show_temp_offset,
-+		    store_temp_offset, 2),
++/*
++ * Client data (each client gets its own)
++ */
++struct mcp3021_data {
++	struct device *hwmon_dev;
++	u32 vdd;	/* device power supply */
 +};
 +
- #define show_pwm_reg(reg) \
- static ssize_t show_##reg(struct device *dev, struct device_attribute *attr, \
- 			  char *buf) \
-@@ -1805,6 +1855,7 @@ static void w83627ehf_device_remove_files(struct device *dev)
- 			continue;
- 		device_remove_file(dev, &sda_temp_alarm[i].dev_attr);
- 		device_remove_file(dev, &sda_temp_type[i].dev_attr);
-+		device_remove_file(dev, &sda_temp_offset[i].dev_attr);
- 	}
- 
- 	device_remove_file(dev, &sda_caseopen[0].dev_attr);
-@@ -2126,6 +2177,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 		} else {
- 			data->temp_label = nct6775_temp_label;
- 		}
-+		data->have_temp_offset = data->have_temp & 0x07;
-+		for (i = 0; i < 3; i++) {
-+			if (data->temp_src[i] > 3)
-+				data->have_temp_offset &= ~(1 << i);
++static int mcp3021_read16(struct i2c_client *client)
++{
++	int ret;
++	u16 reg;
++	__be16 buf;
++
++	ret = i2c_master_recv(client, (char *)&buf, 2);
++	if (ret < 0)
++		return ret;
++	if (ret != 2)
++		return -EIO;
++
++	/* The output code of the MCP3021 is transmitted with MSB first. */
++	reg = be16_to_cpu(buf);
++
++	/*
++	 * The ten-bit output code is composed of the lower 4-bit of the
++	 * first byte and the upper 6-bit of the second byte.
++	 */
++	reg = (reg >> MCP3021_SAR_SHIFT) & MCP3021_SAR_MASK;
++
++	return reg;
++}
++
++static inline u16 volts_from_reg(u16 vdd, u16 val)
++{
++	if (val = 0)
++		return 0;
++
++	val = val * MCP3021_OUTPUT_SCALE - MCP3021_OUTPUT_SCALE / 2;
++
++	return val * DIV_ROUND_CLOSEST(vdd,
++			(1 << MCP3021_OUTPUT_RES) * MCP3021_OUTPUT_SCALE);
++}
++
++static ssize_t show_in_input(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct mcp3021_data *data = i2c_get_clientdata(client);
++	int reg, in_input;
++
++	reg = mcp3021_read16(client);
++
++	if (reg < 0) {
++		printk(KERN_ERR "%s encountered error %d\n", __func__, reg);
++		return reg;
++	}
++
++	in_input = volts_from_reg(data->vdd, reg);
++	return sprintf(buf, "%d\n", in_input);
++}
++
++static DEVICE_ATTR(in0_input, S_IRUGO, show_in_input, NULL);
++
++static struct attribute *mcp3021_attribute = &dev_attr_in0_input.attr;
++
++static int mcp3021_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	int err;
++	struct mcp3021_data *data = NULL;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
++		return -ENODEV;
++
++	data = kzalloc(sizeof(struct mcp3021_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++
++	if (client->dev.platform_data) {
++		data->vdd = *(u32 *)client->dev.platform_data;
++		if (data->vdd > MCP3021_VDD_MAX ||
++				data->vdd < MCP3021_VDD_MIN) {
++			err = -EINVAL;
++			goto exit_free;
 +		}
- 	} else if (sio_data->kind = w83667hg_b) {
- 		u8 reg;
- 
-@@ -2168,6 +2224,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 			data->in6_skip = 1;
- 
- 		data->temp_label = w83667hg_b_temp_label;
-+		data->have_temp_offset = data->have_temp & 0x07;
-+		for (i = 0; i < 3; i++) {
-+			if (data->temp_src[i] > 2)
-+				data->have_temp_offset &= ~(1 << i);
-+		}
- 	} else if (sio_data->kind = w83627uhg) {
- 		u8 reg;
- 
-@@ -2204,6 +2265,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 		data->in6_skip = 1;			/* No VIN3 */
- 
- 		data->temp_label = w83667hg_b_temp_label;
-+		data->have_temp_offset = data->have_temp & 0x03;
-+		for (i = 0; i < 2; i++) {
-+			if (data->temp_src[i] > 1)
-+				data->have_temp_offset &= ~(1 << i);
-+		}
- 	} else {
- 		w83627ehf_set_temp_reg_ehf(data, 3);
- 
-@@ -2223,6 +2289,7 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 			else
- 				data->in6_skip = 1;
- 		}
-+		data->have_temp_offset = data->have_temp & 0x07;
- 	}
- 
- 	if (sio_data->kind = nct6775) {
-@@ -2488,6 +2555,12 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
- 			|| (err = device_create_file(dev,
- 				&sda_temp_type[i].dev_attr)))
- 			goto exit_remove;
-+		if (data->have_temp_offset & (1 << i)) {
-+			err = device_create_file(dev,
-+						 &sda_temp_offset[i].dev_attr);
-+			if (err)
-+				goto exit_remove;
-+		}
- 	}
- 
- 	err = device_create_file(dev, &sda_caseopen[0].dev_attr);
++	} else
++		data->vdd = MCP3021_VDD_REF;
++
++	err = sysfs_create_file(&client->dev.kobj, mcp3021_attribute);
++	if (err)
++		goto exit_free;
++
++	data->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		err = PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_file(&client->dev.kobj, mcp3021_attribute);
++exit_free:
++	kfree(data);
++	return err;
++}
++
++static int mcp3021_remove(struct i2c_client *client)
++{
++	struct mcp3021_data *data = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_file(&client->dev.kobj, mcp3021_attribute);
++	kfree(data);
++
++	return 0;
++}
++
++static const struct i2c_device_id mcp3021_id[] = {
++	{ "mcp3021", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, mcp3021_id);
++
++static struct i2c_driver mcp3021_driver = {
++	.driver = {
++		.name = "mcp3021",
++	},
++	.probe = mcp3021_probe,
++	.remove = mcp3021_remove,
++	.id_table = mcp3021_id,
++};
++
++module_i2c_driver(mcp3021_driver);
++
++MODULE_AUTHOR("Mingkai Hu <Mingkai.hu@freescale.com>");
++MODULE_DESCRIPTION("Microchip MCP3021 driver");
++MODULE_LICENSE("GPL");
 -- 
-1.7.3.1
+1.7.5.1
+
 
 
 _______________________________________________
