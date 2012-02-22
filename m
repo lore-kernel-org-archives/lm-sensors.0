@@ -1,46 +1,76 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 08 Feb 2012 16:30:02 +0000
-Subject: Re: [lm-sensors] pwmconfig and fancontrol don't work in ubuntu 10.11 archlinux kernel 3.2
-Message-Id: <1328718602.2261.313.camel@groeck-laptop>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Wed, 22 Feb 2012 22:18:45 +0000
+Subject: [lm-sensors] [PATCH 2/6] hwmon: (f75375s) Fix writes to the pwm* attribute for the F75387
+Message-Id: <1329949129-4265-3-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F27026A.4080904@gmail.com>
-In-Reply-To: <4F27026A.4080904@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-01-31 at 06:59 -0500, David Kremer wrote:
-> > There is a bug in the upstream driver affecting the number of fans
-> > detected for NCT6776F. You can try a possible fix by loading and
-> > installing the driver from
-> > https://github.com/groeck/w83627ehf/archives/testing.
-> >
-> > No idea if that helps, though. The bug has always been there, so I have
-> > no explanation why it might have worked with archlinux 3.0 LTS.
-> >
-> > Guenter
-> Hi, thank you for your answer. I am actually logged into archlinux with 
-> "linux LTS 3.0.17". I suspect that maybe the bug you outlined has been 
-> corrected in this branch. I stay at you disposal if ever you want to 
-> investigate this furthermore.
-> 
-> However, there is some kind of bug with the CPUTIN and the AUXTIN which 
-> I don't understand. Why the CPUTIN from the nct interface is so high 
-> (around 75 Celsius degrees) since the coretemp interface (which I 
-> believe is working) gives me 35 Celsius degree for the CPU temp ?
+For the F75387, the register holding the current PWM duty cycle value is
+r/o; changing it requires writing to the fan expect register instead.
 
-David,
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+---
+ drivers/hwmon/f75375s.c |   27 +++++++++++++++++++++------
+ 1 files changed, 21 insertions(+), 6 deletions(-)
 
-I modified the driver in above repository (the testing branch) to let
-you set the temperature sensor type. Maybe you can load it into your
-system and configure the CPU sensor as "diode(1)". It would be
-interesting to see if that makes a difference in the reported
-temperature.
-
-Thanks,
-Guenter
-
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 5dae122..fc6444d 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -308,8 +308,14 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 		return err;
+ 
+ 	mutex_lock(&data->update_lock);
++	/* TODO: Improve representation in the register cache for the F75387 */
+ 	data->pwm[nr] = SENSORS_LIMIT(val, 0, 255);
+-	f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr), data->pwm[nr]);
++	if (data->kind = f75387)
++		f75375_write16(client, F75375_REG_FAN_EXP(nr),
++				data->pwm[nr]);
++	else
++		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++				data->pwm[nr]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -373,9 +379,14 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 
+ 	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+ 	data->pwm_enable[nr] = val;
+-	if (val = 0)
+-		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-				data->pwm[nr]);
++	if (val = 0) {
++		if (data->kind = f75387)
++			f75375_write16(client, F75375_REG_FAN_EXP(nr),
++					data->pwm[nr]);
++		else
++			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++					data->pwm[nr]);
++	}
+ 	return 0;
+ }
+ 
+@@ -759,8 +770,12 @@ static void f75375_init(struct i2c_client *client, struct f75375_data *data,
+ 	set_pwm_enable_direct(client, 1, f75375s_pdata->pwm_enable[1]);
+ 	for (nr = 0; nr < 2; nr++) {
+ 		data->pwm[nr] = SENSORS_LIMIT(f75375s_pdata->pwm[nr], 0, 255);
+-		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-			data->pwm[nr]);
++		if (data->kind = f75387)
++			f75375_write16(client, F75375_REG_FAN_EXP(nr),
++					data->pwm[nr]);
++		else
++			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++					data->pwm[nr]);
+ 	}
+ 
+ }
+-- 
+1.7.9.1
 
 
 _______________________________________________
