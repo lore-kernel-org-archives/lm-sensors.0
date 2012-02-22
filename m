@@ -1,34 +1,129 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 07 Feb 2012 19:55:42 +0000
-Subject: Re: [lm-sensors] [BUG] kernel 3.0.19 LTS and archlinux
-Message-Id: <20120207205542.031ce63c@endymion.delvare>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Wed, 22 Feb 2012 22:18:48 +0000
+Subject: [lm-sensors] [PATCH 5/6] hwmon: (f75375s) Properly map the F75387 automatic modes to pwm_enable
+Message-Id: <1329949129-4265-6-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F318101.7050407@gmail.com>
-In-Reply-To: <4F318101.7050407@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 07 Feb 2012 20:52:33 +0100, David Kremer wrote:
-> Hello,
-> 
-> I cannot load the w83627ehf kernel driver into linux.
-> 
-> $sudo modprobe  w83627ehf
-> ERROR: could not insert 'w83627ehf': Device or resource busy
-> 
-> fancontrol stopped to work since I upgraded my kernel to the 3.0.19 LTS 
-> version.
-> 
-> Can you help ?
+From: Nikolaus Schulz <schulz@macnetix.de>
 
-The FAQ can help:
+The F75387 supports automatic fan control using either PWM duty cycle or
+RPM speed values.  Make the driver detect the latter mode, and expose the
+different modes in sysfs as per pwm_enable, so that the user can switch
+between them.
 
-http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel3.33.2.23.0.18
+The interpretation of the pwm_enable attribute for the F75387 is adjusted
+to be a superset of those values used for similar Fintek chips which do
+not support automatic duty mode, with 2 mapping to automatic speed mode,
+and moving automatic duty mode to the new value 4.
 
+Toggling the duty mode via pwm_enable is currently denied for the F75387,
+as the chip then simply reinterprets the fan configuration register values
+according to the new mode, switching between RPM and PWM units, which
+makes this a dangerous operation.
+
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+---
+ drivers/hwmon/f75375s.c |   42 ++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 34 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 3b06abf..29b11c6 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -266,6 +266,21 @@ static inline u16 rpm_to_reg(int rpm)
+ 	return 1500000 / rpm;
+ }
+ 
++static bool duty_mode_enabled(u8 pwm_enable)
++{
++	switch (pwm_enable) {
++	case 0: /* Manual, duty mode (full speed) */
++	case 1: /* Manual, duty mode */
++	case 4: /* Auto, duty mode */
++		return true;
++	case 2: /* Auto, speed mode */
++	case 3: /* Manual, speed mode */
++		return false;
++	default:
++		BUG();
++	}
++}
++
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+ {
+@@ -345,11 +360,15 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 	struct f75375_data *data = i2c_get_clientdata(client);
+ 	u8 fanmode;
+ 
+-	if (val < 0 || val > 3)
++	if (val < 0 || val > 4)
+ 		return -EINVAL;
+ 
+ 	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
+ 	if (data->kind = f75387) {
++		/* For now, deny dangerous toggling of duty mode */
++		if (duty_mode_enabled(data->pwm_enable[nr]) !+				duty_mode_enabled(val))
++			return -EOPNOTSUPP;
+ 		/* clear each fanX_mode bit before setting them properly */
+ 		fanmode &= ~(1 << F75387_FAN_DUTY_MODE(nr));
+ 		fanmode &= ~(1 << F75387_FAN_MANU_MODE(nr));
+@@ -363,12 +382,14 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
+ 			fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
+ 			break;
+-		case 2: /* AUTOMATIC*/
+-			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
++		case 2: /* Automatic, speed mode */
+ 			break;
+ 		case 3: /* fan speed */
+ 			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
+ 			break;
++		case 4: /* Automatic, pwm */
++			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
++			break;
+ 		}
+ 	} else {
+ 		/* clear each fanX_mode bit before setting them properly */
+@@ -386,6 +407,8 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 			break;
+ 		case 3: /* fan speed */
+ 			break;
++		case 4: /* Automatic pwm */
++			return -EOPNOTSUPP;
+ 		}
+ 	}
+ 
+@@ -761,14 +784,17 @@ static void f75375_init(struct i2c_client *client, struct f75375_data *data,
+ 
+ 				manu = ((mode >> F75387_FAN_MANU_MODE(nr)) & 1);
+ 				duty = ((mode >> F75387_FAN_DUTY_MODE(nr)) & 1);
+-				if (manu && duty)
+-					/* speed */
++				if (!manu && duty)
++					/* auto, pwm */
++					data->pwm_enable[nr] = 4;
++				else if (manu && !duty)
++					/* manual, speed */
+ 					data->pwm_enable[nr] = 3;
+-				else if (!manu && duty)
+-					/* automatic */
++				else if (!manu && !duty)
++					/* automatic, speed */
+ 					data->pwm_enable[nr] = 2;
+ 				else
+-					/* manual */
++					/* manual, pwm */
+ 					data->pwm_enable[nr] = 1;
+ 			} else {
+ 				if (!(conf & (1 << F75375_FAN_CTRL_LINEAR(nr))))
 -- 
-Jean Delvare
+1.7.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
