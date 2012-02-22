@@ -1,42 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 24 Feb 2012 07:25:13 +0000
-Subject: Re: [lm-sensors] help with setup / chip support
-Message-Id: <20120224082513.2950a509@endymion.delvare>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Wed, 22 Feb 2012 22:18:44 +0000
+Subject: [lm-sensors] [PATCH 1/6] hwmon: (f75375s) Fix register write order when setting fans to full speed
+Message-Id: <1329949129-4265-2-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
-In-Reply-To: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 23 Feb 2012 21:03:37 -0800, Kenneth Cox wrote:
-> So is it just a "wait for further developments" kind of thing? Thanks for
-> all your help on this. You've been excellent.
+From: Nikolaus Schulz <schulz@macnetix.de>
 
-No, I'm not done with you yet :p
+By hwmon sysfs interface convention, setting pwm_enable to zero sets a fan
+to full speed.  In the f75375s driver, this need be done by enabling
+manual fan control, plus duty mode for the F875387 chip, and then setting
+the maximum duty cycle.  Fix a bug where the two necessary register writes
+were swapped, effectively discarding the setting to full-speed.
 
-I think the problem here is that you ended up using the sensors-detect
-script from upstream while Debian/Ubuntu normally makes integration
-changes to that script. So you ran the script but it did not update the
-configuration files as it should have.
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+---
+ drivers/hwmon/f75375s.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-Please check file /etc/modules , see if you can see the following line:
-
-w83627ehf
-
-If it isn't present, add it, and reboot. This is how Debian loads hwmon
-drivers and I presume Ubuntu does the same.
-
-As root, you can also load the w83627ehf driver manually:
-
-# modprobe w83627ehf
-
-and see if the NCT6776F shows in the output of "sensors" then.
-
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index faf66c8..5dae122 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -340,8 +340,6 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
+ 			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
+ 			data->pwm[nr] = 255;
+-			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-					data->pwm[nr]);
+ 			break;
+ 		case 1: /* PWM */
+ 			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
+@@ -361,8 +359,6 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 		case 0: /* full speed */
+ 			fanmode  |= (3 << FAN_CTRL_MODE(nr));
+ 			data->pwm[nr] = 255;
+-			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-					data->pwm[nr]);
+ 			break;
+ 		case 1: /* PWM */
+ 			fanmode  |= (3 << FAN_CTRL_MODE(nr));
+@@ -377,6 +373,9 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 
+ 	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+ 	data->pwm_enable[nr] = val;
++	if (val = 0)
++		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
++				data->pwm[nr]);
+ 	return 0;
+ }
+ 
 -- 
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+1.7.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
