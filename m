@@ -1,101 +1,139 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Feb 2012 19:11:11 +0000
-Subject: [lm-sensors] [PATCH 23/24] hwmon: (lm93) Make cpu0_vid and cpu1_vid conditional
-Message-Id: <1328123472-27816-24-git-send-email-linux@roeck-us.net>
+Date: Wed, 22 Feb 2012 16:56:47 +0000
+Subject: [lm-sensors] [PATCH 5/7] hwmon: (jc42) Convert to use devm_kzalloc
+Message-Id: <1329929809-6085-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Only create the cpu[01]_vid attributes if vrm is valid.
+Marginally less code and eliminate the possibility of memory leaks.
+Also replace new_client variable with client and introduce dev variable to make
+the code a bit easier to read.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 ---
- drivers/hwmon/lm93.c |   35 +++++++++++++++++++++++++++--------
- 1 files changed, 27 insertions(+), 8 deletions(-)
+ drivers/hwmon/jc42.c |   60 ++++++++++++++++++++-----------------------------
+ 1 files changed, 25 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/hwmon/lm93.c b/drivers/hwmon/lm93.c
-index 67e8fe2..50bfb6c 100644
---- a/drivers/hwmon/lm93.c
-+++ b/drivers/hwmon/lm93.c
-@@ -309,11 +309,11 @@ struct lm93_data {
- 
- /*
-  * VID:	mV
-- * REG: 6-bits, right justified, *always* using Intel VRM/VRD 10
-+ * REG: 6-bits, right justified.
-  */
- static int LM93_VID_FROM_REG(u8 reg)
- {
--	return vid_from_reg((reg & 0x3f), 100);
-+	return vid_from_reg(reg & 0x3f);
- }
- 
- /* min, max, and nominal register values, per channel (u8) */
-@@ -2605,8 +2605,6 @@ static struct attribute *lm93_attrs[] = {
- 	&sensor_dev_attr_pwm2_auto_spinup_time.dev_attr.attr,
- 	&dev_attr_pwm_auto_prochot_ramp.attr,
- 	&dev_attr_pwm_auto_vrdhot_ramp.attr,
--	&sensor_dev_attr_cpu0_vid.dev_attr.attr,
--	&sensor_dev_attr_cpu1_vid.dev_attr.attr,
- 	&sensor_dev_attr_prochot1.dev_attr.attr,
- 	&sensor_dev_attr_prochot2.dev_attr.attr,
- 	&sensor_dev_attr_prochot1_avg.dev_attr.attr,
-@@ -2630,6 +2628,16 @@ static struct attribute_group lm93_attr_grp = {
- 	.attrs = lm93_attrs,
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 7c2a52e..e2ff7fd 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -443,20 +443,19 @@ static const struct attribute_group jc42_group = {
  };
  
-+static struct attribute *lm93_vid_attrs[] = {
-+	&sensor_dev_attr_cpu0_vid.dev_attr.attr,
-+	&sensor_dev_attr_cpu1_vid.dev_attr.attr,
-+	NULL
-+};
-+
-+static struct attribute_group lm93_vid_attr_grp = {
-+	.attrs = lm93_vid_attrs,
-+};
-+
- static void lm93_init_client(struct i2c_client *client)
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+-static int jc42_detect(struct i2c_client *new_client,
+-		       struct i2c_board_info *info)
++static int jc42_detect(struct i2c_client *client, struct i2c_board_info *info)
  {
- 	int i;
-@@ -2762,13 +2770,23 @@ static int lm93_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_free;
+-	struct i2c_adapter *adapter = new_client->adapter;
++	struct i2c_adapter *adapter = client->adapter;
+ 	int i, config, cap, manid, devid;
  
-+	if (vid_which_vrm()) {
-+		err = sysfs_create_group(&client->dev.kobj, &lm93_vid_attr_grp);
-+		if (err)
-+			goto err_remove;
-+	}
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+ 				     I2C_FUNC_SMBUS_WORD_DATA))
+ 		return -ENODEV;
+ 
+-	cap = i2c_smbus_read_word_swapped(new_client, JC42_REG_CAP);
+-	config = i2c_smbus_read_word_swapped(new_client, JC42_REG_CONFIG);
+-	manid = i2c_smbus_read_word_swapped(new_client, JC42_REG_MANID);
+-	devid = i2c_smbus_read_word_swapped(new_client, JC42_REG_DEVICEID);
++	cap = i2c_smbus_read_word_swapped(client, JC42_REG_CAP);
++	config = i2c_smbus_read_word_swapped(client, JC42_REG_CONFIG);
++	manid = i2c_smbus_read_word_swapped(client, JC42_REG_MANID);
++	devid = i2c_smbus_read_word_swapped(client, JC42_REG_DEVICEID);
+ 
+ 	if (cap < 0 || config < 0 || manid < 0 || devid < 0)
+ 		return -ENODEV;
+@@ -475,47 +474,42 @@ static int jc42_detect(struct i2c_client *new_client,
+ 	return -ENODEV;
+ }
+ 
+-static int jc42_probe(struct i2c_client *new_client,
+-		      const struct i2c_device_id *id)
++static int jc42_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	struct jc42_data *data;
+ 	int config, cap, err;
++	struct device *dev = &client->dev;
+ 
+-	data = kzalloc(sizeof(struct jc42_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(dev, sizeof(struct jc42_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+-	i2c_set_clientdata(new_client, data);
++	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+-	cap = i2c_smbus_read_word_swapped(new_client, JC42_REG_CAP);
+-	if (cap < 0) {
+-		err = -EINVAL;
+-		goto exit_free;
+-	}
++	cap = i2c_smbus_read_word_swapped(client, JC42_REG_CAP);
++	if (cap < 0)
++		return cap;
 +
- 	/* Register hwmon driver class */
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
--	if (!IS_ERR(data->hwmon_dev))
--		return 0;
-+	if (IS_ERR(data->hwmon_dev)) {
-+		err = PTR_ERR(data->hwmon_dev);
-+		dev_err(&client->dev, "error registering hwmon device.\n");
-+		goto err_remove;
-+	}
-+	return 0;
+ 	data->extended = !!(cap & JC42_CAP_RANGE);
  
--	err = PTR_ERR(data->hwmon_dev);
--	dev_err(&client->dev, "error registering hwmon device.\n");
-+err_remove:
-+	sysfs_remove_group(&client->dev.kobj, &lm93_vid_attr_grp);
- 	sysfs_remove_group(&client->dev.kobj, &lm93_attr_grp);
- err_free:
- 	kfree(data);
-@@ -2781,6 +2799,7 @@ static int lm93_remove(struct i2c_client *client)
- 	struct lm93_data *data = i2c_get_clientdata(client);
+-	config = i2c_smbus_read_word_swapped(new_client, JC42_REG_CONFIG);
+-	if (config < 0) {
+-		err = -EINVAL;
+-		goto exit_free;
+-	}
++	config = i2c_smbus_read_word_swapped(client, JC42_REG_CONFIG);
++	if (config < 0)
++		return config;
++
+ 	data->orig_config = config;
+ 	if (config & JC42_CFG_SHUTDOWN) {
+ 		config &= ~JC42_CFG_SHUTDOWN;
+-		i2c_smbus_write_word_swapped(new_client, JC42_REG_CONFIG,
+-					     config);
++		i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG, config);
+ 	}
+ 	data->config = config;
  
- 	hwmon_device_unregister(data->hwmon_dev);
-+	sysfs_remove_group(&client->dev.kobj, &lm93_vid_attr_grp);
- 	sysfs_remove_group(&client->dev.kobj, &lm93_attr_grp);
+ 	/* Register sysfs hooks */
+-	err = sysfs_create_group(&new_client->dev.kobj, &jc42_group);
++	err = sysfs_create_group(&dev->kobj, &jc42_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
  
- 	kfree(data);
+-	data->hwmon_dev = hwmon_device_register(&new_client->dev);
++	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
+ 		goto exit_remove;
+@@ -524,10 +518,7 @@ static int jc42_probe(struct i2c_client *new_client,
+ 	return 0;
+ 
+ exit_remove:
+-	sysfs_remove_group(&new_client->dev.kobj, &jc42_group);
+-exit_free:
+-	kfree(data);
+-exit:
++	sysfs_remove_group(&dev->kobj, &jc42_group);
+ 	return err;
+ }
+ 
+@@ -539,7 +530,6 @@ static int jc42_remove(struct i2c_client *client)
+ 	if (data->config != data->orig_config)
+ 		i2c_smbus_write_word_swapped(client, JC42_REG_CONFIG,
+ 					     data->orig_config);
+-	kfree(data);
+ 	return 0;
+ }
+ 
 -- 
 1.7.5.4
 
