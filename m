@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 22 Feb 2012 18:51:52 +0000
+From: Xie Xiaobo-R63061 <r63061@freescale.com>
+Date: Thu, 23 Feb 2012 06:48:51 +0000
 Subject: Re: [lm-sensors] [PATCH V5] hwmon: Add MCP3021 ADC driver
-Message-Id: <1329936712.23014.93.camel@groeck-laptop>
+Message-Id: <69EC9ED88E3CC04094A78F8074A7986D2209E3@039-SN1MPN1-004.039d.mgd.msft.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1329897332-18383-1-git-send-email-X.Xie@freescale.com>
 In-Reply-To: <1329897332-18383-1-git-send-email-X.Xie@freescale.com>
@@ -10,45 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2012-02-22 at 13:00 -0500, Jean Delvare wrote:
-> On Wed, 22 Feb 2012 09:46:20 -0800, Guenter Roeck wrote:
-> > On Wed, 2012-02-22 at 02:55 -0500, Xie Xiaobo wrote:
-> > > Add I2C driver for MCP3021 that is an ADC chip from Microchip.
-> > > The MCP3021 is a successive approximation A/D converter (ADC)
-> > > with 10-bit resolution.
-> > > The driver export the value of Vin to sysfs, the voltage unit is
-> > > mV. Through the sysfs interface, lm-sensors tool can also display
-> > > Vin voltage.
-> > > 
-> > > Signed-off-by: Mingkai Hu <Mingkai.hu@freescale.com>
-> > > Signed-off-by: Xie Xiaobo <X.Xie@freescale.com>
-> > 
-> > [ ... ]
-> > 
-> > > +
-> > > +	if (reg < 0) {
-> > > +		printk(KERN_ERR "%s encountered error %d\n", __func__, reg);
-> > 
-> > You should use dev_err() here.
-> 
-> I don't think there's any point in printing an error message in the
-> first place. I/O errors over I2C can happen, and the caller will get an
-> error when it happens. "sensors" will display an error message and
-> other monitoring applications would do too. Logging an error message is
-> redundant IMHO.
-> 
-> If Xie agrees, I'll just remove the message, no need to resent. We've
-> gone through 4 reviews, it's probably enough for such a small driver,
-> it's about time to accept it for the next merge window. Patch applied
-> (with minor changes), thanks.
-> 
-Ok with me. I am not a friend of such error messages.
-
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSmVhbiwNCg0KUmVtb3ZpbmcgdGhlIHByaW50ayBpcyBPSyBmb3IgbWUuIFRoYW5rIHlvdSB2
+ZXJ5IG11Y2guDQoNCkJScw0KWGllIFhpYW9ibw0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
+LS0tDQo+IEZyb206IEplYW4gRGVsdmFyZSBbbWFpbHRvOmtoYWxpQGxpbnV4LWZyLm9yZ10NCj4g
+U2VudDogMjAxMsTqMtTCMjPI1SAyOjAwDQo+IFRvOiBndWVudGVyLnJvZWNrQGVyaWNzc29uLmNv
+bQ0KPiBDYzogWGllIFhpYW9iby1SNjMwNjE7IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmc7IEh1
+IE1pbmdrYWktQjIxMjg0DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggVjVdIGh3bW9uOiBBZGQgTUNQ
+MzAyMSBBREMgZHJpdmVyDQo+IA0KPiBPbiBXZWQsIDIyIEZlYiAyMDEyIDA5OjQ2OjIwIC0wODAw
+LCBHdWVudGVyIFJvZWNrIHdyb3RlOg0KPiA+IE9uIFdlZCwgMjAxMi0wMi0yMiBhdCAwMjo1NSAt
+MDUwMCwgWGllIFhpYW9ibyB3cm90ZToNCj4gPiA+IEFkZCBJMkMgZHJpdmVyIGZvciBNQ1AzMDIx
+IHRoYXQgaXMgYW4gQURDIGNoaXAgZnJvbSBNaWNyb2NoaXAuDQo+ID4gPiBUaGUgTUNQMzAyMSBp
+cyBhIHN1Y2Nlc3NpdmUgYXBwcm94aW1hdGlvbiBBL0QgY29udmVydGVyIChBREMpIHdpdGgNCj4g
+PiA+IDEwLWJpdCByZXNvbHV0aW9uLg0KPiA+ID4gVGhlIGRyaXZlciBleHBvcnQgdGhlIHZhbHVl
+IG9mIFZpbiB0byBzeXNmcywgdGhlIHZvbHRhZ2UgdW5pdCBpcyBtVi4NCj4gPiA+IFRocm91Z2gg
+dGhlIHN5c2ZzIGludGVyZmFjZSwgbG0tc2Vuc29ycyB0b29sIGNhbiBhbHNvIGRpc3BsYXkgVmlu
+DQo+ID4gPiB2b2x0YWdlLg0KPiA+ID4NCj4gPiA+IFNpZ25lZC1vZmYtYnk6IE1pbmdrYWkgSHUg
+PE1pbmdrYWkuaHVAZnJlZXNjYWxlLmNvbT4NCj4gPiA+IFNpZ25lZC1vZmYtYnk6IFhpZSBYaWFv
+Ym8gPFguWGllQGZyZWVzY2FsZS5jb20+DQo+ID4NCj4gPiBbIC4uLiBdDQo+ID4NCj4gPiA+ICsN
+Cj4gPiA+ICsJaWYgKHJlZyA8IDApIHsNCj4gPiA+ICsJCXByaW50ayhLRVJOX0VSUiAiJXMgZW5j
+b3VudGVyZWQgZXJyb3IgJWRcbiIsIF9fZnVuY19fLCByZWcpOw0KPiA+DQo+ID4gWW91IHNob3Vs
+ZCB1c2UgZGV2X2VycigpIGhlcmUuDQo+IA0KPiBJIGRvbid0IHRoaW5rIHRoZXJlJ3MgYW55IHBv
+aW50IGluIHByaW50aW5nIGFuIGVycm9yIG1lc3NhZ2UgaW4gdGhlIGZpcnN0IHBsYWNlLiBJL08N
+Cj4gZXJyb3JzIG92ZXIgSTJDIGNhbiBoYXBwZW4sIGFuZCB0aGUgY2FsbGVyIHdpbGwgZ2V0IGFu
+IGVycm9yIHdoZW4gaXQgaGFwcGVucy4NCj4gInNlbnNvcnMiIHdpbGwgZGlzcGxheSBhbiBlcnJv
+ciBtZXNzYWdlIGFuZCBvdGhlciBtb25pdG9yaW5nIGFwcGxpY2F0aW9ucyB3b3VsZA0KPiBkbyB0
+b28uIExvZ2dpbmcgYW4gZXJyb3IgbWVzc2FnZSBpcyByZWR1bmRhbnQgSU1ITy4NCj4gDQo+IElm
+IFhpZSBhZ3JlZXMsIEknbGwganVzdCByZW1vdmUgdGhlIG1lc3NhZ2UsIG5vIG5lZWQgdG8gcmVz
+ZW50LiBXZSd2ZSBnb25lDQo+IHRocm91Z2ggNCByZXZpZXdzLCBpdCdzIHByb2JhYmx5IGVub3Vn
+aCBmb3Igc3VjaCBhIHNtYWxsIGRyaXZlciwgaXQncyBhYm91dCB0aW1lIHRvDQo+IGFjY2VwdCBp
+dCBmb3IgdGhlIG5leHQgbWVyZ2Ugd2luZG93LiBQYXRjaCBhcHBsaWVkICh3aXRoIG1pbm9yIGNo
+YW5nZXMpLCB0aGFua3MuDQo+IA0KPiAtLQ0KPiBKZWFuIERlbHZhcmUNCg0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxp
+c3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
+bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
