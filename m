@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 23 Feb 2012 01:14:22 +0000
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Thu, 23 Feb 2012 01:46:40 +0000
 Subject: Re: [lm-sensors] [PATCH 1/6] hwmon: (f75375s) Fix register write order when setting fans to full spe
-Message-Id: <20120223011422.GA4930@ericsson.com>
+Message-Id: <20120223014640.GA7948@luigi.zusammrottung.local>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1329949129-4265-2-git-send-email-mail@microschulz.de>
 In-Reply-To: <1329949129-4265-2-git-send-email-mail@microschulz.de>
@@ -10,63 +10,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 22, 2012 at 05:18:44PM -0500, Nikolaus Schulz wrote:
-> From: Nikolaus Schulz <schulz@macnetix.de>
+On Wed, Feb 22, 2012 at 05:14:22PM -0800, Guenter Roeck wrote:
+> On Wed, Feb 22, 2012 at 05:18:44PM -0500, Nikolaus Schulz wrote:
+> > From: Nikolaus Schulz <schulz@macnetix.de>
+> > 
+> > By hwmon sysfs interface convention, setting pwm_enable to zero sets a fan
+> > to full speed.  In the f75375s driver, this need be done by enabling
+> > manual fan control, plus duty mode for the F875387 chip, and then setting
+> > the maximum duty cycle.  Fix a bug where the two necessary register writes
+> > were swapped, effectively discarding the setting to full-speed.
+> > 
+> > Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+> > ---
+> >  drivers/hwmon/f75375s.c |    7 +++----
+> >  1 files changed, 3 insertions(+), 4 deletions(-)
+> > 
+> Nikolaus,
 > 
-> By hwmon sysfs interface convention, setting pwm_enable to zero sets a fan
-> to full speed.  In the f75375s driver, this need be done by enabling
-> manual fan control, plus duty mode for the F875387 chip, and then setting
-> the maximum duty cycle.  Fix a bug where the two necessary register writes
-> were swapped, effectively discarding the setting to full-speed.
-> 
-> Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
-> ---
->  drivers/hwmon/f75375s.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
-> 
-Nikolaus,
+> this patch modifies register write order for the other chips as well.
+> Does that have any impact on the other chips ? Or, in other words,
+> is this patch also necessary for stable ?
 
-this patch modifies register write order for the other chips as well.
-Does that have any impact on the other chips ? Or, in other words,
-is this patch also necessary for stable ?
+I think so, although I have tested it only on the F75387.
 
-Thanks,
-Guenter
+(For stable kernels it needs to be backported.)
 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index faf66c8..5dae122 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -340,8 +340,6 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
->  			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
->  			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
->  			data->pwm[nr] = 255;
-> -			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
-> -					data->pwm[nr]);
->  			break;
->  		case 1: /* PWM */
->  			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
-> @@ -361,8 +359,6 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
->  		case 0: /* full speed */
->  			fanmode  |= (3 << FAN_CTRL_MODE(nr));
->  			data->pwm[nr] = 255;
-> -			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
-> -					data->pwm[nr]);
->  			break;
->  		case 1: /* PWM */
->  			fanmode  |= (3 << FAN_CTRL_MODE(nr));
-> @@ -377,6 +373,9 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
->  
->  	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
->  	data->pwm_enable[nr] = val;
-> +	if (val = 0)
-> +		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
-> +				data->pwm[nr]);
->  	return 0;
->  }
->  
-> -- 
-> 1.7.9.1
+Nikolaus
+
+> > diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+> > index faf66c8..5dae122 100644
+> > --- a/drivers/hwmon/f75375s.c
+> > +++ b/drivers/hwmon/f75375s.c
+> > @@ -340,8 +340,6 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+> >  			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
+> >  			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
+> >  			data->pwm[nr] = 255;
+> > -			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+> > -					data->pwm[nr]);
+> >  			break;
+> >  		case 1: /* PWM */
+> >  			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
+> > @@ -361,8 +359,6 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+> >  		case 0: /* full speed */
+> >  			fanmode  |= (3 << FAN_CTRL_MODE(nr));
+> >  			data->pwm[nr] = 255;
+> > -			f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+> > -					data->pwm[nr]);
+> >  			break;
+> >  		case 1: /* PWM */
+> >  			fanmode  |= (3 << FAN_CTRL_MODE(nr));
+> > @@ -377,6 +373,9 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+> >  
+> >  	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+> >  	data->pwm_enable[nr] = val;
+> > +	if (val = 0)
+> > +		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+> > +				data->pwm[nr]);
+> >  	return 0;
+> >  }
+> >  
+> > -- 
+> > 1.7.9.1
+> > 
 > 
 
 _______________________________________________
