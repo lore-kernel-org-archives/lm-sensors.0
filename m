@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 23 Feb 2012 01:32:34 +0000
+Date: Thu, 23 Feb 2012 02:26:00 +0000
 Subject: Re: [lm-sensors] [PATCH 5/6] hwmon: (f75375s) Properly map the F75387 automatic modes to pwm_enable
-Message-Id: <20120223013234.GD4930@ericsson.com>
+Message-Id: <20120223022600.GA5280@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1329949129-4265-6-git-send-email-mail@microschulz.de>
 In-Reply-To: <1329949129-4265-6-git-send-email-mail@microschulz.de>
@@ -30,38 +30,36 @@ On Wed, Feb 22, 2012 at 05:18:48PM -0500, Nikolaus Schulz wrote:
 > 
 > Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
 > ---
-[ ... ]
+>  drivers/hwmon/f75375s.c |   42 ++++++++++++++++++++++++++++++++++--------
+>  1 files changed, 34 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+> index 3b06abf..29b11c6 100644
+> --- a/drivers/hwmon/f75375s.c
+> +++ b/drivers/hwmon/f75375s.c
+> @@ -266,6 +266,21 @@ static inline u16 rpm_to_reg(int rpm)
+>  	return 1500000 / rpm;
+>  }
+>  
+> +static bool duty_mode_enabled(u8 pwm_enable)
+> +{
+> +	switch (pwm_enable) {
+> +	case 0: /* Manual, duty mode (full speed) */
+> +	case 1: /* Manual, duty mode */
+> +	case 4: /* Auto, duty mode */
+> +		return true;
+> +	case 2: /* Auto, speed mode */
+> +	case 3: /* Manual, speed mode */
+> +		return false;
+> +	default:
+> +		BUG();
+> +	}
+> +}
 
-> @@ -363,12 +382,14 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
->  			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
->  			fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
->  			break;
-> -		case 2: /* AUTOMATIC*/
-> -			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
-> +		case 2: /* Automatic, speed mode */
->  			break;
->  		case 3: /* fan speed */
->  			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
->  			break;
-> +		case 4: /* Automatic, pwm */
-> +			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
+This keeps bugging me ... I think it would make sense to simplify it to
 
-Might be time to get rid of those extra spaces.
+	return pwm_enable != 2 && pwm_enable != 3;
 
-> +			break;
->  		}
->  	} else {
->  		/* clear each fanX_mode bit before setting them properly */
-> @@ -386,6 +407,8 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
->  			break;
->  		case 3: /* fan speed */
->  			break;
-> +		case 4: /* Automatic pwm */
-> +			return -EOPNOTSUPP;
-
-	Should be -EINVAL.
-
-Thanks,
 Guenter
 
 _______________________________________________
