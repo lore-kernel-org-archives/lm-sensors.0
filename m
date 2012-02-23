@@ -1,47 +1,35 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 28 Feb 2012 21:26:22 +0000
-Subject: Re: [lm-sensors] [PATCH v2 1/4] hwmon: (f75375s) Fix writes to the pwm* attribute for the F75387
-Message-Id: <1330464382.23014.232.camel@groeck-laptop>
+From: Lee Burchett <zaknafien13@gmail.com>
+Date: Thu, 23 Feb 2012 03:35:09 +0000
+Subject: [lm-sensors] Nuvoton W83677HG-I/W83676HG-I
+Message-Id: <4F45B3ED.7080701@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1330463755-5763-2-git-send-email-mail@microschulz.de>
-In-Reply-To: <1330463755-5763-2-git-send-email-mail@microschulz.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-02-28 at 16:15 -0500, Nikolaus Schulz wrote:
-> For the F75387, the register holding the current PWM duty cycle value is
-> r/o; changing it requires writing to the fan expect register instead.
-> 
-> Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
-> ---
->  drivers/hwmon/f75375s.c |   17 ++++++++++++-----
->  1 files changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index 5dae122..1c26652 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -178,6 +178,15 @@ static inline void f75375_write16(struct i2c_client *client, u8 reg,
->  	i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
->  }
->  
-> +static void f75375_write_pwm(struct i2c_client *client, int nr, u8 pwm)
-> +{
-> +	struct f75375_data *data = i2c_get_clientdata(client);
+I have an ASRock board that uses a newer Nuvoton W83677HG-I Super I/O 
+chip. I would like to help develop (or get help developing) a set of 
+drivers for this chip. It is similar to previous versions of Nuvoton 
+chips like the W83627 series. I found the sensor drivers from Guenter 
+Roeck (Thank You) that are intended for the W83627 series. I was hoping 
+to build on these, but I don't know enough about how kernel modules work 
+to proceed.
 
-Since you extract data anyway, you don't need to pass pwm but can
-instead take if from data->pwm[nr].
+The manufacturer was helpful in providing documentation for this chip, 
+the W83627UHG, and the W83627DHG-P. Comparing the devices, I noticed 
+that many of the data formats and I/O methods are the same, So I hope 
+that my new chip can be added in fairly easily.
 
-Other than that, looks good.
+I have experience writing in C, but most of programming my practice has 
+been in writing programs to process data stored in files. Device I/O is 
+a new field for me. Any suggestions on how to proceed, and good sources 
+for information on developing a module for this chip would be 
+appreciated. Thank you.
 
-No need to resubmit; I can make that change myself if you agree.
-
-Thanks,
-Guenter
-
-
+-- 
+Lee Burchett
+zaknafien13@gmail.com
 
 _______________________________________________
 lm-sensors mailing list
