@@ -1,7 +1,7 @@
-From: Nikolaus Schulz <mail@microschulz.de>
-Date: Thu, 23 Feb 2012 19:58:20 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 23 Feb 2012 20:00:52 +0000
 Subject: Re: [lm-sensors] [PATCH 5/6] hwmon: (f75375s) Properly map the F75387 automatic modes to pwm_enable
-Message-Id: <20120223195820.GF13767@luigi.zusammrottung.local>
+Message-Id: <1330027252.23014.113.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1329949129-4265-6-git-send-email-mail@microschulz.de>
 In-Reply-To: <1329949129-4265-6-git-send-email-mail@microschulz.de>
@@ -10,66 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Feb 23, 2012 at 11:21:09AM -0800, Guenter Roeck wrote:
-> On Thu, 2012-02-23 at 14:12 -0500, Nikolaus Schulz wrote:
-> > On Wed, Feb 22, 2012 at 05:32:34PM -0800, Guenter Roeck wrote:
-> > > On Wed, Feb 22, 2012 at 05:18:48PM -0500, Nikolaus Schulz wrote:
-> > > > From: Nikolaus Schulz <schulz@macnetix.de>
-[...]
-> > > > @@ -363,12 +382,14 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
-> > > >  			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
-> > > >  			fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
-> > > >  			break;
-> > > > -		case 2: /* AUTOMATIC*/
-> > > > -			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
-> > > > +		case 2: /* Automatic, speed mode */
-> > > >  			break;
-> > > >  		case 3: /* fan speed */
-> > > >  			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
-> > > >  			break;
-> > > > +		case 4: /* Automatic, pwm */
-> > > > +			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
-> > > 
-> > > Might be time to get rid of those extra spaces.
+On Thu, 2012-02-23 at 14:50 -0500, Nikolaus Schulz wrote:
+> On Wed, Feb 22, 2012 at 06:26:00PM -0800, Guenter Roeck wrote:
+> > On Wed, Feb 22, 2012 at 05:18:48PM -0500, Nikolaus Schulz wrote:
+> > > +static bool duty_mode_enabled(u8 pwm_enable)
+> > > +{
+> > > +	switch (pwm_enable) {
+> > > +	case 0: /* Manual, duty mode (full speed) */
+> > > +	case 1: /* Manual, duty mode */
+> > > +	case 4: /* Auto, duty mode */
+> > > +		return true;
+> > > +	case 2: /* Auto, speed mode */
+> > > +	case 3: /* Manual, speed mode */
+> > > +		return false;
+> > > +	default:
+> > > +		BUG();
+> > > +	}
+> > > +}
 > > 
-> > I see no extra spaces.  You mean the extra parentheses?  I can update
-> > the patch to drop them.
+> > This keeps bugging me ... I think it would make sense to simplify it to
 > > 
-> There seem to be two spaces before and after |=.
+> > 	return pwm_enable != 2 && pwm_enable != 3;
+> 
+> Well, I used that verbose switch statement because
+> 
+> a) I feel uncomfortable using these magic numbers instead of a
+>    well-defined enum - by the way, is there a reason for not using an enum for
+>    that? - and
+> 
+I don't think there is a reason other than being lazy.
 
-Ah, got it :)
+> b) a simple logical expression like you suggested may lead to hidden
+>    bugs once the range of valid values changes.
+> 
+Good point. Maybe start using an enum ?
 
-> > > > +			break;
-> > > >  		}
-> > > >  	} else {
-> > > >  		/* clear each fanX_mode bit before setting them properly */
-> > > > @@ -386,6 +407,8 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
-> > > >  			break;
-> > > >  		case 3: /* fan speed */
-> > > >  			break;
-> > > > +		case 4: /* Automatic pwm */
-> > > > +			return -EOPNOTSUPP;
-> > > 
-> > > 	Should be -EINVAL.
-> > 
-> > The value 4 is valid as it encodes an existing mode, it's just that this
-> > code path handles hardware that does not support that mode.  Why should
-> > the code return EINVAL?
-> > 
-> val is invalid for this hardware.
+Guenter
 
-Ok, I consider that a valid argument :)
 
-> Also it returned -EINVAL before you
-> made your changes.
-
-That one less so, since before, the value 4 was never valid for any
-hardware, but it is now for the F75387.
-
-But I'm okay making it return EINVAL.
-
-Thanks for your review,
-Nikolaus
 
 _______________________________________________
 lm-sensors mailing list
