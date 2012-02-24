@@ -1,109 +1,37 @@
-From: Nikolaus Schulz <mail@microschulz.de>
-Date: Fri, 24 Feb 2012 22:45:14 +0000
-Subject: Re: [lm-sensors] [PATCH 4/6] hwmon: (f75375s) Fix hysteresis register access for the F75387
-Message-Id: <20120224224514.GA28928@luigi.zusammrottung.local>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 24 Feb 2012 14:50:00 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (max34440) Fix resetting temperature history
+Message-Id: <1330095000-9846-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1329949129-4265-5-git-send-email-mail@microschulz.de>
-In-Reply-To: <1329949129-4265-5-git-send-email-mail@microschulz.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 22, 2012 at 11:18:47PM +0100, Nikolaus Schulz wrote:
-> The F75387 stores its temperature hysteresis in a different register than
-> the other chips supported by that driver.
-> 
-> Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
-> ---
->  drivers/hwmon/f75375s.c |   36 ++++++++++++++++++++++++++++++------
->  1 files changed, 30 insertions(+), 6 deletions(-)
+Temperature history is reset by writing 0x8000 into the peak temperature
+register, not 0xffff.
 
-Oh, stupid me.  I have to revoke this patch, because it is simply utter
-nonsense.  Sorry for that.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/max34440.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The F75387 does indeed use register 0x62 to store a temperature
-hysteresis delta, but it applies only to the automatic,
-temperature-controlled fan control mode.
+diff --git a/drivers/hwmon/pmbus/max34440.c b/drivers/hwmon/pmbus/max34440.c
+index beaf5a8..9b97a5b 100644
+--- a/drivers/hwmon/pmbus/max34440.c
++++ b/drivers/hwmon/pmbus/max34440.c
+@@ -82,7 +82,7 @@ static int max34440_write_word_data(struct i2c_client *client, int page,
+ 	case PMBUS_VIRT_RESET_TEMP_HISTORY:
+ 		ret = pmbus_write_word_data(client, page,
+ 					    MAX34440_MFR_TEMPERATURE_PEAK,
+-					    0xffff);
++					    0x8000);
+ 		break;
+ 	default:
+ 		ret = -ENODATA;
+-- 
+1.7.5.4
 
-The high limit hysteresis temperatures, though, are still stored in
-registers 0x29 and 0x2B - here the F75387 is no different from the other
-chips supported by this driver.
-
-Nikolaus (grabbing a brown paper bag)
-
-> diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-> index 944937c..3b06abf 100644
-> --- a/drivers/hwmon/f75375s.c
-> +++ b/drivers/hwmon/f75375s.c
-> @@ -65,6 +65,7 @@ enum chips { f75373, f75375, f75387 };
->  #define F75387_REG_TEMP11_LSB(nr)	(0x1a + (nr))
->  #define F75375_REG_TEMP_HIGH(nr)	(0x28 + (nr) * 2)
->  #define F75375_REG_TEMP_HYST(nr)	(0x29 + (nr) * 2)
-> +#define F75387_REG_TEMP_HYST		0x62
->  
->  #define F75375_REG_FAN(nr)		(0x16 + (nr) * 2)
->  #define F75375_REG_FAN_MIN(nr)		(0x2C + (nr) * 2)
-> @@ -183,23 +184,34 @@ static struct f75375_data *f75375_update_device(struct device *dev)
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct f75375_data *data = i2c_get_clientdata(client);
->  	int nr;
-> +	u8 f75387_hyst_reg = 0;
->  
->  	mutex_lock(&data->update_lock);
->  
->  	/* Limit registers cache is refreshed after 60 seconds */
->  	if (time_after(jiffies, data->last_limits + 60 * HZ)
->  		|| !data->valid) {
-> +		if (data->kind = f75387)
-> +			f75387_hyst_reg > +				f75375_read8(client, F75387_REG_TEMP_HYST);
->  		for (nr = 0; nr < 2; nr++) {
->  			data->temp_high[nr] >  				f75375_read8(client, F75375_REG_TEMP_HIGH(nr));
-> -			data->temp_max_hyst[nr] > -				f75375_read8(client, F75375_REG_TEMP_HYST(nr));
->  			data->fan_max[nr] >  				f75375_read16(client, F75375_REG_FAN_FULL(nr));
->  			data->fan_min[nr] >  				f75375_read16(client, F75375_REG_FAN_MIN(nr));
->  			data->fan_target[nr] >  				f75375_read16(client, F75375_REG_FAN_EXP(nr));
-> +			if (data->kind = f75387) {
-> +				data->temp_max_hyst[nr] > +					data->temp_high[nr] -
-> +					(0xf & f75387_hyst_reg);
-> +			} else {
-> +				data->temp_max_hyst[nr] > +					f75375_read8(client,
-> +						F75375_REG_TEMP_HYST(nr));
-> +			}
->  		}
->  		for (nr = 0; nr < 4; nr++) {
->  			data->in_max[nr] > @@ -599,11 +611,23 @@ static ssize_t set_temp_max_hyst(struct device *dev,
->  	if (err < 0)
->  		return err;
->  
-> -	val = SENSORS_LIMIT(TEMP_TO_REG(val), 0, 127);
-> +	val = TEMP_TO_REG(val);
->  	mutex_lock(&data->update_lock);
-> -	data->temp_max_hyst[nr] = val;
-> -	f75375_write8(client, F75375_REG_TEMP_HYST(nr),
-> -		data->temp_max_hyst[nr]);
-> +	if (data->kind = f75387) {
-> +		u8 regval;
-> +		val = SENSORS_LIMIT(val,
-> +				data->temp_high[nr] - 0xf,
-> +				data->temp_high[nr]);
-> +		data->temp_max_hyst[nr] = val;
-> +		regval = f75375_read8(client, F75387_REG_TEMP_HYST);
-> +		regval &= 0xf0;
-> +		regval |= data->temp_high[nr] - val;
-> +		f75375_write8(client, F75387_REG_TEMP_HYST, regval);
-> +	} else {
-> +		val = SENSORS_LIMIT(val, 0, 127);
-> +		data->temp_max_hyst[nr] = val;
-> +		f75375_write8(client, F75375_REG_TEMP_HYST(nr), val);
-> +	}
->  	mutex_unlock(&data->update_lock);
->  	return count;
->  }
-> -- 
-> 1.7.9.1
-> 
-> 
 
 _______________________________________________
 lm-sensors mailing list
