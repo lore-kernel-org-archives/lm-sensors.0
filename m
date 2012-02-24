@@ -1,7 +1,7 @@
-From: Andrey Repin <hell-for-yahoo@umail.ru>
-Date: Fri, 24 Feb 2012 05:27:55 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 24 Feb 2012 07:25:13 +0000
 Subject: Re: [lm-sensors] help with setup / chip support
-Message-Id: <1324895048.20120224092755@mtu-net.ru>
+Message-Id: <20120224082513.2950a509@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
 In-Reply-To: <CAP4ecBN-YdCqfetiJG2-o_SW8kEWcXNFA2eSQRQNvT7LsRHGog@mail.gmail.com>
@@ -10,30 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Greetings, Jean Delvare!
+On Thu, 23 Feb 2012 21:03:37 -0800, Kenneth Cox wrote:
+> So is it just a "wait for further developments" kind of thing? Thanks for
+> all your help on this. You've been excellent.
 
-> Debian and Ubuntu are certainly different. Can't help you with these as I
-> don't know them, sorry.
+No, I'm not done with you yet :p
 
-It is either "service servicename restart" or "invoke-rc.d servicename restart"
-The first is more applicable to Ubuntu with it's upstart daemon.
+I think the problem here is that you ended up using the sensors-detect
+script from upstream while Debian/Ubuntu normally makes integration
+changes to that script. So you ran the script but it did not update the
+configuration files as it should have.
 
-> Also note that most distributions modify sensors-detect slightly to
-> improve the integration. As you're using the upstream version of
-> sensors-detect you may be missing part of this integration.
+Please check file /etc/modules , see if you can see the following line:
 
-> Rebooting should work too, so if you did that, there's certainly
-> another problem.
+w83627ehf
 
-Could be that sensorsd wasn't configured to autostart with system.
+If it isn't present, add it, and reboot. This is how Debian loads hwmon
+drivers and I presume Ubuntu does the same.
 
+As root, you can also load the w83627ehf driver manually:
 
---
-WBR,
-Andrey Repin (hell-for-yahoo@umail.ru) 24.02.2012, <09:24>
+# modprobe w83627ehf
 
-Sorry for my terrible english...
+and see if the NCT6776F shows in the output of "sensors" then.
 
+-- 
+Jean Delvare
+http://khali.linux-fr.org/wishlist.html
 
 _______________________________________________
 lm-sensors mailing list
