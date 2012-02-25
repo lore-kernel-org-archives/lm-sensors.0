@@ -1,46 +1,90 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 10 Feb 2012 08:27:40 +0000
-Subject: Re: [lm-sensors] Clearing intrusion detection -- sensors(3) change or at least in the FAQ
-Message-Id: <20120210092740.156d9bf2@endymion.delvare>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 25 Feb 2012 15:52:02 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.3-rc5
+Message-Id: <20120225155202.GA21187@ericsson.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============9118028522202697079=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+--===============9118028522202697079==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Disposition: inline
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.3-rc5 from tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+
+------
+
+The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
+
+  Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Chris D Schimp (2):
+      hwmon: (max6639) Fix FAN_FROM_REG calculation
+      hwmon: (max6639) Fix PPR register initialization to set both channels
+
+Guenter Roeck (2):
+      hwmon: (ads1015) Fix file leak in probe function
+      hwmon: (max34440) Fix resetting temperature history
+
+Nikolaus Schulz (1):
+      hwmon: (f75375s) Fix register write order when setting fans to full speed
+
+ drivers/hwmon/ads1015.c        |    3 +--
+ drivers/hwmon/f75375s.c        |    7 +++----
+ drivers/hwmon/max6639.c        |   22 ++++++++++++----------
+ drivers/hwmon/pmbus/max34440.c |    2 +-
+ 4 files changed, 17 insertions(+), 17 deletions(-)
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPSQOhAAoJEMsfJm/On5mBIoMQAK2gNQGx1SpzhAyKM9wL9LNo
+BYZhMOfC63GPd/V/KkQd31C+Z5NgE9z/6R9aBN0u8xg2ZSZJY6/ccRNyLjc7yqxc
+OSE4CUzP5iQO36bUl6tX1B2TgfYBwbvVNUsShjsq/hoAzICIyk4UAVgmnRNN4iX5
+JNLjxwhX7jXSJem8bvGVLkGkfIS6g/dYd1vqFvSZ0NlKxuB+5s0JVkB+xagBsl/+
+YOMk4fqn0nIbPTffXs21khzvtZJTIr0LpVy3xb9BIx9Qwjc+KFBfLQEwwT/wniP8
+RmO+5vq6n7pmm7lkbe2Wn9ta4JPSbXF5xe376GXjc6rUEcjllmIZghlKb6KSjZdC
+Pd7CaWxAK5rrDCbrx7PqIvtXNWQ9xA9JyGqdlGTbGW/GW/Fd2W7srj2sUh9Rl1AV
+fbXb7Iea6JgUnTRqAD1fao5FvYZLu//XHimo8xE6V4EyzR56OOc/JP50EaLQnh2s
+AEoe4fWIjsp5zLzE+jQwSuEJgwDikfweV8InX57hnCJi7y3QU3jWCoZfEXumqY64
+HIwQW13q2Rlb65eUlr4GnHrLTh307tyXypWm9cS4XCCOXvuHPhxiobkNLNHo44r5
+XaWv87tu6nx8PE4I1INw9S/uj5PcRdzDS/DUX5GRMxv4fFfV17u3dyEm1zm7E59m
+SE+vhU2BTYyoICggUl1E
+=1ocM
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
+
+
+--===============9118028522202697079==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Hi Jim,
-
-Sorry for the late reply.
-
-On Tue, 17 Jan 2012 11:08:05 -0600, Jim Duchek wrote:
-> Hi all.  I don't subscribe to this list so please CC any responses, thanks.
-> 
-> I recently had to clear my CMOS and this appears to have triggered the
-> intrusion detection on my motherboard.  I do like that it's not
-> automatically cleared like other alarms, but no way to clear it in the
-> BIOS, unfortunately, and I was unable to find anything in the lm_sensors
-> documentation or via google to help either (I certainly may have missed
-> it).  I dug around in the it87 module source and saw writing to the sysfs
-> file would clear it, so problem solved (for me).  There probably ought to
-> be an option in sensors(3) or at least a note in the FAQ about clearing the
-> intrusion alarm, though I'm not familiar enough with the innards of the
-> hwmon setup to do something properly generic myself.
-
-We could indeed add an option to sensors(3), or even write a separate
-binary solely dedicated to reporting intrusions and clearing alarms.
-Opinion anyone?
-
-Meanwhile I have added an entry in the FAQ to mention the current lack
-of tool and the way to clear the intrusion alarm:
-  http://www.lm-sensors.org/wiki/FAQ/Chapter3?version#HowdoIclearthechassisintrusionalarm
-
-I have also created a ticket to track this issue:
-  http://www.lm-sensors.org/ticket/2385
-
--- 
-Jean Delvare
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============9118028522202697079==--
