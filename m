@@ -1,58 +1,78 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 22 Feb 2012 04:15:40 +0000
-Subject: Re: [lm-sensors] dual output buck controller pmbus based
-Message-Id: <20120222041539.GA31696@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 27 Feb 2012 20:59:47 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm90) Restore original configuration if probe function fails
+Message-Id: <1330376387-30456-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
-In-Reply-To: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Feb 10, 2012 at 01:20:25AM -0500, Vivek Bardia wrote:
-> Hello,
->=20
-> I want to know whether does the current pmbus driver support dual output =
-buck
-> controller based PMIC?
->=20
-> Basically for this particular PMIC: http://goo.gl/BFwcu
->=20
-> How do I test the driver for it?
->=20
-Hi,
+The lm90 driver restores the original chip configuration in its exit function.
+However, the chip configuration is not restored if the probe function fails.
+Restore it there as well.
 
-I got the evaluation board for TPS40422. Here is the output from the sensor=
-s command
-after instantiating it as "pmbus".
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm90.c |   21 +++++++++++++--------
+ 1 files changed, 13 insertions(+), 8 deletions(-)
 
-pmbus-i2c-0-1b
-Adapter: i2c-diolan-u2c:002
-vout1:        +1.20 V
-vout2:        +3.30 V
-temp1:        +26.0=B0C  (high =3D +100.0=B0C, crit =3D +125.0=B0C)
-iout1:        +0.31 A  (max =3D +25.00 A, crit max =3D +30.00 A)
-iout2:        +0.31 A  (max =3D +20.00 A, crit max =3D +25.00 A)
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index d2dd5f9..178de29 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -1313,6 +1313,15 @@ static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
+ 	sysfs_remove_group(&dev->kobj, &lm90_group);
+ }
+ 
++static void lm90_restore_conf(struct i2c_client *client, struct lm90_data *data)
++{
++	/* Restore initial configuration */
++	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
++				  data->convrate_orig);
++	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
++				  data->config_orig);
++}
++
+ static void lm90_init_client(struct i2c_client *client)
+ {
+ 	u8 config, convrate;
+@@ -1399,7 +1408,7 @@ static int lm90_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&dev->kobj, &lm90_group);
+ 	if (err)
+-		goto exit_free;
++		goto exit_restore;
+ 	if (client->flags & I2C_CLIENT_PEC) {
+ 		err = device_create_file(dev, &dev_attr_pec);
+ 		if (err)
+@@ -1438,7 +1447,8 @@ static int lm90_probe(struct i2c_client *client,
+ 
+ exit_remove_files:
+ 	lm90_remove_files(client, data);
+-exit_free:
++exit_restore:
++	lm90_restore_conf(client, data);
+ 	kfree(data);
+ exit:
+ 	return err;
+@@ -1450,12 +1460,7 @@ static int lm90_remove(struct i2c_client *client)
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	lm90_remove_files(client, data);
+-
+-	/* Restore initial configuration */
+-	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
+-				  data->convrate_orig);
+-	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+-				  data->config_orig);
++	lm90_restore_conf(client, data);
+ 
+ 	kfree(data);
+ 	return 0;
+-- 
+1.7.5.4
 
-Similar, for TPS40400:
-
-pmbus-i2c-0-1c
-Adapter: i2c-diolan-u2c:002
-vin:         +11.59 V
-vout1:        +1.16 V  (crit min =3D  +1.14 V, crit max =3D  +1.26 V)
-iout1:        +0.50 A  (max =3D +29.00 A, crit max =3D +30.00 A)
-
-Overall pretty good for generic detection. Only problem (or, rather, limita=
-tion)
-with TPS40422 is that the auto-detection code does not support paged temper=
-ature
-registers, and thus only a single temperature is reported.
-
-Did you have a chance to test it yourself ?
-
-Thanks,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
