@@ -1,46 +1,34 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 22 Feb 2012 17:11:35 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (ads1015) Fix file leak in probe function
-Message-Id: <20120222181135.47651bac@endymion.delvare>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Tue, 28 Feb 2012 21:15:52 +0000
+Subject: [lm-sensors] [PATCH v2 2/4] hwmon: (f75375s) Make pwm*_mode writable for the F75387
+Message-Id: <1330463755-5763-3-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1329927571-31574-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1329927571-31574-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 22 Feb 2012 08:19:31 -0800, Guenter Roeck wrote:
-> An error while creating sysfs attribute files in the driver's probe function
-> results in an error abort, but already created files are not removed. This patch
-> fixes the problem.
-> 
-> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: Dirk Eibach <eibach@gdsys.de>
-> ---
->  drivers/hwmon/ads1015.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-> index eedca3c..1a1f058 100644
-> --- a/drivers/hwmon/ads1015.c
-> +++ b/drivers/hwmon/ads1015.c
-> @@ -271,7 +271,7 @@ static int ads1015_probe(struct i2c_client *client,
->  			continue;
->  		err = device_create_file(&client->dev, &ads1015_in[k].dev_attr);
->  		if (err)
-> -			goto exit_free;
-> +			goto exit_remove;
->  	}
->  
->  	data->hwmon_dev = hwmon_device_register(&client->dev);
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+---
+ drivers/hwmon/f75375s.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Good catch.
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 1c26652..29c0d06 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -794,7 +794,7 @@ static int f75375_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto exit_free;
+ 
+-	if (data->kind = f75375) {
++	if (data->kind != f75373) {
+ 		err = sysfs_chmod_file(&client->dev.kobj,
+ 			&sensor_dev_attr_pwm1_mode.dev_attr.attr,
+ 			S_IRUGO | S_IWUSR);
 -- 
-Jean Delvare
+1.7.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
