@@ -1,36 +1,73 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 21 Feb 2012 10:42:37 +0000
-Subject: Re: [lm-sensors] [PATCH V4] hwmon: Add MCP3021 ADC driver
-Message-Id: <20120221114237.5a6d99e7@endymion.delvare>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Tue, 28 Feb 2012 21:15:51 +0000
+Subject: [lm-sensors] [PATCH v2 1/4] hwmon: (f75375s) Fix writes to the pwm* attribute for the F75387
+Message-Id: <1330463755-5763-2-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1329711239-11856-1-git-send-email-X.Xie@freescale.com>
-In-Reply-To: <1329711239-11856-1-git-send-email-X.Xie@freescale.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 21 Feb 2012 09:52:09 +0000, Xie Xiaobo-R63061 wrote:
-> > > +static inline u16 volts_from_reg(u16 vdd, u16 val) {
-> > > +	if (val = 0)
-> > > +		return 0;
-> > > +
-> > > +	val = val * MCP3021_OUTPUT_SCALE - MCP3021_OUTPUT_SCALE / 2;
-> > > +
-> > > +	return val * DIV_ROUND_CLOSEST(vdd,
-> > > +			(1 << MCP3021_OUTPUT_RES) * MCP3021_OUTPUT_SCALE); }
-> > 
-> > I did not notice before, but can't this overflow? Say val = 0xfff0, 0xfff0 * 4 - 4 / 2
-> > = 0x3ffbe, that doesn't fit in u16. I think you should introduce a local int variable
-> > and return its value (as an int, not u16.)
-> > 
-> 
-> I used the u16, because the val is from mcp3021_read16(), So the val always <= 0x3ff (I already defined MCP3021_SAR_MASK).
+For the F75387, the register holding the current PWM duty cycle value is
+r/o; changing it requires writing to the fan expect register instead.
 
-OK, you can ignore my comment then, sorry for the noise.
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+---
+ drivers/hwmon/f75375s.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 5dae122..1c26652 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -178,6 +178,15 @@ static inline void f75375_write16(struct i2c_client *client, u8 reg,
+ 	i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
+ }
+ 
++static void f75375_write_pwm(struct i2c_client *client, int nr, u8 pwm)
++{
++	struct f75375_data *data = i2c_get_clientdata(client);
++	if (data->kind = f75387)
++		f75375_write16(client, F75375_REG_FAN_EXP(nr), pwm);
++	else
++		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr), pwm);
++}
++
+ static struct f75375_data *f75375_update_device(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -309,7 +318,7 @@ static ssize_t set_pwm(struct device *dev, struct device_attribute *attr,
+ 
+ 	mutex_lock(&data->update_lock);
+ 	data->pwm[nr] = SENSORS_LIMIT(val, 0, 255);
+-	f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr), data->pwm[nr]);
++	f75375_write_pwm(client, nr, data->pwm[nr]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+@@ -374,8 +383,7 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 	f75375_write8(client, F75375_REG_FAN_TIMER, fanmode);
+ 	data->pwm_enable[nr] = val;
+ 	if (val = 0)
+-		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-				data->pwm[nr]);
++		f75375_write_pwm(client, nr, data->pwm[nr]);
+ 	return 0;
+ }
+ 
+@@ -759,8 +767,7 @@ static void f75375_init(struct i2c_client *client, struct f75375_data *data,
+ 	set_pwm_enable_direct(client, 1, f75375s_pdata->pwm_enable[1]);
+ 	for (nr = 0; nr < 2; nr++) {
+ 		data->pwm[nr] = SENSORS_LIMIT(f75375s_pdata->pwm[nr], 0, 255);
+-		f75375_write8(client, F75375_REG_FAN_PWM_DUTY(nr),
+-			data->pwm[nr]);
++		f75375_write_pwm(client, nr, data->pwm[nr]);
+ 	}
+ 
+ }
 -- 
-Jean Delvare
+1.7.9.1
+
 
 _______________________________________________
 lm-sensors mailing list
