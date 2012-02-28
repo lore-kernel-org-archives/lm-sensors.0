@@ -1,65 +1,129 @@
 From: Nikolaus Schulz <mail@microschulz.de>
-Date: Sat, 11 Feb 2012 22:03:49 +0000
-Subject: Re: [lm-sensors] [RFC] (F75387) How expose automatic fan control in sysfs?
-Message-Id: <20120211220345.GA31758@luigi.zusammrottung.local>
+Date: Tue, 28 Feb 2012 21:15:53 +0000
+Subject: [lm-sensors] [PATCH v2 3/4] hwmon: (f75375s) Properly map the F75387 automatic modes to pwm_enable
+Message-Id: <1330463755-5763-4-git-send-email-mail@microschulz.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120209222304.GA28989@luigi.zusammrottung.local>
-In-Reply-To: <20120209222304.GA28989@luigi.zusammrottung.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Feb 11, 2012 at 07:28:24PM +0100, Nikolaus Schulz wrote:
-> > > Second, the F75387 draws a distinction between the actual (PWM or DAC)
-> > > output value and the configured target value.  The current definition of
-> > > pwm*, on the other hand, not only encodes the steering method (PWM), but
-> > > also mixes target value and actual value.  Does it make sense to keep
-> > > these values separate in sysfs?
-> > 
-> > How could the actual PWM duty cycle ever differ from the desired one? I
-> > don't get it.
-> 
-> At least in theory it can, since the desired PWM duty cycle is bound to
-> the open loop mode.  If the fan controller runs in closed loop mode,
-> that setting might be ignored.
-> 
-> One can consider this an example of your (smart) suggestion to expose
-> r/w sysfs configuration files for all modes, including inactive ones, so
-> that the user can use the sysfs files to compose a complete
-> configuration for a mode that is currently inactive, and activate the
-> mode when he is done, thereby activating all corresponding settings in
-> one go.
+From: Nikolaus Schulz <schulz@macnetix.de>
 
-Here actually lies another problem when programming the F78387.
+The F75387 supports automatic fan control using either PWM duty cycle or
+RPM speed values.  Make the driver detect the latter mode, and expose the
+different modes in sysfs as per pwm_enable, so that the user can switch
+between them.
 
-This chip exposes the current duty cycle in a register that is always
-r/o.  The fan is steered using a second register, which is used in both
-open loop mode, where it is interpreted as a PWM value, and closed loop
-mode, where it is interpreted as a RPM value.  (In automatic mode, this
-steering register is automatically set, depending on the temperature.)
+The interpretation of the pwm_enable attribute for the F75387 is adjusted
+to be a superset of those values used for similar Fintek chips which do
+not support automatic duty mode, with 2 mapping to automatic speed mode,
+and moving automatic duty mode to the new value 4.
 
-This is similar to the problem with the automatic mode of the F75387 I
-mentioned in my initial post: the configuration register is reused, thus
-a switch between manual open loop mode and manual closed loop mode is a
-dangerous operation.
+Toggling the duty mode via pwm_enable is currently denied for the F75387,
+as the chip then simply reinterprets the fan configuration register values
+according to the new mode, switching between RPM and PWM units, which
+makes this a dangerous operation.
 
-To support such a mode switch safely, there should be a way to set the
-values for the new mode before the switch.
+Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
+---
+ drivers/hwmon/f75375s.c |   42 ++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 34 insertions(+), 8 deletions(-)
 
-For automatic mode, you proposed to always expose separate r/w sysfs
-files for both open and closed loop mode, and handle this in the driver.
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 29c0d06..3fee82dc 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -263,6 +263,21 @@ static inline u16 rpm_to_reg(int rpm)
+ 	return 1500000 / rpm;
+ }
+ 
++static bool duty_mode_enabled(u8 pwm_enable)
++{
++	switch (pwm_enable) {
++	case 0: /* Manual, duty mode (full speed) */
++	case 1: /* Manual, duty mode */
++	case 4: /* Auto, duty mode */
++		return true;
++	case 2: /* Auto, speed mode */
++	case 3: /* Manual, speed mode */
++		return false;
++	default:
++		BUG();
++	}
++}
++
+ static ssize_t set_fan_min(struct device *dev, struct device_attribute *attr,
+ 		const char *buf, size_t count)
+ {
+@@ -336,11 +351,15 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 	struct f75375_data *data = i2c_get_clientdata(client);
+ 	u8 fanmode;
+ 
+-	if (val < 0 || val > 3)
++	if (val < 0 || val > 4)
+ 		return -EINVAL;
+ 
+ 	fanmode = f75375_read8(client, F75375_REG_FAN_TIMER);
+ 	if (data->kind = f75387) {
++		/* For now, deny dangerous toggling of duty mode */
++		if (duty_mode_enabled(data->pwm_enable[nr]) !+				duty_mode_enabled(val))
++			return -EOPNOTSUPP;
+ 		/* clear each fanX_mode bit before setting them properly */
+ 		fanmode &= ~(1 << F75387_FAN_DUTY_MODE(nr));
+ 		fanmode &= ~(1 << F75387_FAN_MANU_MODE(nr));
+@@ -354,12 +373,14 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 			fanmode  |= (1 << F75387_FAN_MANU_MODE(nr));
+ 			fanmode  |= (1 << F75387_FAN_DUTY_MODE(nr));
+ 			break;
+-		case 2: /* AUTOMATIC*/
+-			fanmode  |=  (1 << F75387_FAN_DUTY_MODE(nr));
++		case 2: /* Automatic, speed mode */
+ 			break;
+ 		case 3: /* fan speed */
+ 			fanmode |= (1 << F75387_FAN_MANU_MODE(nr));
+ 			break;
++		case 4: /* Automatic, pwm */
++			fanmode |= (1 << F75387_FAN_DUTY_MODE(nr));
++			break;
+ 		}
+ 	} else {
+ 		/* clear each fanX_mode bit before setting them properly */
+@@ -377,6 +398,8 @@ static int set_pwm_enable_direct(struct i2c_client *client, int nr, int val)
+ 			break;
+ 		case 3: /* fan speed */
+ 			break;
++		case 4: /* Automatic pwm */
++			return -EINVAL;
+ 		}
+ 	}
+ 
+@@ -734,14 +757,17 @@ static void f75375_init(struct i2c_client *client, struct f75375_data *data,
+ 
+ 				manu = ((mode >> F75387_FAN_MANU_MODE(nr)) & 1);
+ 				duty = ((mode >> F75387_FAN_DUTY_MODE(nr)) & 1);
+-				if (manu && duty)
+-					/* speed */
++				if (!manu && duty)
++					/* auto, pwm */
++					data->pwm_enable[nr] = 4;
++				else if (manu && !duty)
++					/* manual, speed */
+ 					data->pwm_enable[nr] = 3;
+-				else if (!manu && duty)
+-					/* automatic */
++				else if (!manu && !duty)
++					/* automatic, speed */
+ 					data->pwm_enable[nr] = 2;
+ 				else
+-					/* manual */
++					/* manual, pwm */
+ 					data->pwm_enable[nr] = 1;
+ 			} else {
+ 				if (!(conf & (1 << F75375_FAN_CTRL_LINEAR(nr))))
+-- 
+1.7.9.1
 
-For manual mode, switching from open to closed loop can be done by
-writing to fan*_target before the switch, and again handle this in the
-driver.  However, the other direction doesn't work, since the pwm* file
-is overloaded, providing measurement *and* configuration.  What can be
-done here?  Introduce a new file pwm*_target?
-
-I have to say I am not particularly excited about this.  Better ideas
-are welcome.
-
-Nikolaus
 
 _______________________________________________
 lm-sensors mailing list
