@@ -1,56 +1,41 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Mon, 20 Feb 2012 19:56:11 +0000
-Subject: Re: [lm-sensors] [PATCH v5 4/5] hwmon: add MAX197 support
-Message-Id: <20120220145611.14b3b115@v0nbox>
+From: sravan vasu <sravan.vasu@gmail.com>
+Date: Wed, 29 Feb 2012 09:23:08 +0000
+Subject: [lm-sensors] (no subject)
+Message-Id: <CAA3gyo75xjQCfvELJvPR7v4fA2SM6m5bPMEM5g+8vvNJbCZwsg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1989730955636229972=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1328130344-18836-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<1328130344-18836-5-git-send-email-vivien.didelot@savoirfairelinux.com>
-	<1328132138.2261.116.camel@groeck-laptop>
-	<20120206151507.73a23eb8@v0nbox>
-	<1328561164.2261.258.camel@groeck-laptop>
-	<20120210110755.4914b332@v0nbox>
-	<20120210161538.GB1060@ericsson.com>
-	<20120210131406.28c3a00b@v0nbox>
-	<20120220182702.GA12259@ericsson.com>
-In-Reply-To: <20120220182702.GA12259@ericsson.com>
-MIME-Version: 1.0
+References: <200703231349.l2NDnj1q025087@whb1.seed.net.tw>
+In-Reply-To: <200703231349.l2NDnj1q025087@whb1.seed.net.tw>
+To: lm-sensors@vger.kernel.org
+
+--===============1989730955636229972==
+Content-Type: multipart/alternative; boundary=0016e6d7e055456bc604ba16e465
+
+--0016e6d7e055456bc604ba16e465
+Content-Type: text/plain; charset=ISO-8859-1
+
+winbond display drives we want
+
+
+w 83667hg-B
+
+--0016e6d7e055456bc604ba16e465
+Content-Type: text/html; charset=ISO-8859-1
+
+winbond display drives we want<br><br><br>w 83667hg-B<br>
+
+--0016e6d7e055456bc604ba16e465--
+
+
+--===============1989730955636229972==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "x86@kernel.org" <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, Jean Delvare <khali@linux-fr.org>
-
-On Mon, 20 Feb 2012 10:27:02 -0800,
-Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-
-> > I check the platform_device_register_simple() returned value
-> > because it is the platform itself, while the others are on-board
-> > devices. I thought that it is not a big deal if their registrations
-> > failed but the platform registration succeeded. Maybe I'm wrong and
-> > I should check everything.
-> >   
-> Hmm .. seems to make sense. Ok with me. Only question is if you would
-> want to have it fail silently or issue a log message (possibly debug)
-> to report the failure.
-
-Ok, I'll go for something like the following:
-
-    if (led_classdev_register(&pdev->dev, &ts5500_led_cdev))
-            dev_warn(ts5500_led_cdev.dev, "failed to register the LED\n");
-    if (ts5500->adc) {
-            ts5500_adc_pdev.dev.parent = &pdev->dev;
-            if (platform_device_register(&ts5500_adc_pdev))
-                    dev_warn(&ts5500_adc_pdev.dev,
-                             "failed to register the A/D converter\n");
-    }
-
-Thanks,
-
--- 
-Vivien Didelot
-Savoir-faire Linux Inc.
-Tel: (514) 276-5468 #149
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1989730955636229972==--
