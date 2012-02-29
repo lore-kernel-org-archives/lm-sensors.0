@@ -1,41 +1,27 @@
-From: sravan vasu <sravan.vasu@gmail.com>
-Date: Wed, 29 Feb 2012 09:23:08 +0000
-Subject: [lm-sensors] (no subject)
-Message-Id: <CAA3gyo75xjQCfvELJvPR7v4fA2SM6m5bPMEM5g+8vvNJbCZwsg@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1989730955636229972=="
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 29 Feb 2012 14:40:43 +0000
+Subject: Re: [lm-sensors] (no subject)
+Message-Id: <20120229144043.GB9419@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <200703231349.l2NDnj1q025087@whb1.seed.net.tw>
 In-Reply-To: <200703231349.l2NDnj1q025087@whb1.seed.net.tw>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1989730955636229972==
-Content-Type: multipart/alternative; boundary=0016e6d7e055456bc604ba16e465
+On Wed, Feb 29, 2012 at 04:23:08AM -0500, sravan vasu wrote:
+> winbond display drives we want
+> 
+> 
+> w 83667hg-B
 
---0016e6d7e055456bc604ba16e465
-Content-Type: text/plain; charset=ISO-8859-1
+Not sure I understand what you are trying to say. W83667HG-B is supported
+by the w83627ehf driver.
 
-winbond display drives we want
-
-
-w 83667hg-B
-
---0016e6d7e055456bc604ba16e465
-Content-Type: text/html; charset=ISO-8859-1
-
-winbond display drives we want<br><br><br>w 83667hg-B<br>
-
---0016e6d7e055456bc604ba16e465--
-
-
---===============1989730955636229972==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1989730955636229972==--
