@@ -1,76 +1,42 @@
-From: Stefan Monnier <monnier@iro.umontreal.ca>
-Date: Fri, 23 Mar 2012 13:50:29 +0000
-Subject: Re: [lm-sensors] Interpreting lm-sensors's output
-Message-Id: <jwvbonnmo0a.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 01 Mar 2012 13:21:28 +0000
+Subject: Re: [lm-sensors] Unsuported ITE chipset 0x8771
+Message-Id: <20120301142128.01348269@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
-In-Reply-To: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
+References: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
+In-Reply-To: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->> >> k10temp-pci-00c3
->> >> Adapter: PCI adapter
->> >> temp1:        +51.5=B0C  (high =3D +70.0=B0C)
->> >>                        (crit =3D +100.0=B0C, hyst =3D +97.0=B0C)
->> [...]
->> >> OT1H the "high=3D70" and "crit=3D100" would seem to give me the answe=
-r, but
->> >> OTOH I don't know whether I can trust them (actually, I hope some of
->> >> the output is "wrong" since the sensor readings go up routinely to 80=
-=B0
->> >> during long compilations).
->> > They are correct and you should trust them.  If you reach 80=B0C then =
-you
->> Just one more question about these numbers: would the same numbers
->> appear under Windows (everything else being "equal")?
-> This is impossible to say, I'm afraid.
-> First, there are various ways to save power in modern systems, via
-> frequency scaling, undervolting when idle, P states, C states, etc.
-
-I'm concerned about the "full load" case, where power management should
-not have any noticeable impact, I think.
-
-> Secondly, the monitoring values returned depend on the tool used to
-> gather, interpret and present them to the user.
-
-Aha!  That's more worrisome.
-
-> You've seen yourself that the k10temp, radeon and it87 drivers report
-> different temperatures, so you have to know which one the other side
-> is using when comparing.
-
-Oh, regarding which sensor is used, IIUC they use "the APU internal
-sensor" which would be either k10temp or radeon's sensor, both of which
-return pretty much the same temperature anyway (at least in lm-sensors).
-
-> Also note that some tools can apply arbitrary offsets to the
-> temperature values they report, to compensate for a number of things
-> (like thermal sensor imperfection or distance between sensor and
-> monitored item.) This is something we can in general not do under
-> Linux as we do not have the information.
-
-Hmm... so they may see incomparable values even though it comes from the
-same sensor as the k10temp?
-
->> PS: I'm trying to argue with the company (Zotac) that my board has therm=
-al
->> problems, but they suck (i.e. they dismiss GNU/Linux users), so I need
->> to be sure that the numbers they give me (which they get under Windows
->> from I don't know which tool) are comparable to the ones I see.
-> This is strange, I was in contact with a Zotac engineer in late 2009 /
-> early 2010 and back then they seemed to care about Linux at least to
-> some extent, in particular when it came to thermal monitoring.
-
-Either things have changed, or it simply depends on which technician you
-happen to talk to.
-
-
-        Stefan
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgVG9tw6BzLAoKT24gU3VuLCAyNiBGZWIgMjAxMiAxNjo1MDozNiArMDEwMCwgVG9tw6BzIERl
+bHRlbGwgQm9uZWxsIHdyb3RlOgo+IEJJT1Mgc2hvd3MgNCB2b2x0YWdlczoKPiAKPiBDUFUgPSAx
+LjM2OCBWCgpUaGlzIG1hdGNoZXMgaW4wIGluIHRoZSBvdXRwdXQgb2YgInNlbnNvcnMiLgoKPiAz
+LjNWID0gMy4zMyBWCgpUaGlzIG1hdGNoZXMgKzMuM1YuCgo+IDVWID0gNS4wMDMgVgo+IDEyViA9
+IDEyLjA3MgoKV2l0aCBvbmx5IG9uZSBzYW1wbGUgZm9yIGVhY2gsIGl0J3MgaGFyZCB0byBmaWd1
+cmUgb3V0IHRoZSBzY2FsaW5nCmZhY3Rvciwgd2hpY2ggaW4gdHVybiBtYWtlcyBpdCBoYXJkIHRv
+IGZpZ3VyZSBvdXQgdGhlIHBpbiBtYXBwaW5nLgoKSSB0cmllZCBnbGVhbmluZyBvdGhlciBzYW1w
+bGUgdmFsdWVzIGZyb20gc2NyZWVuc2hvdHMgb24gdGhlIHdlYi4gKzEyVgpjb3VsZCBiZSBpbjIg
+d2l0aCBhIHNjYWxpbmcgZmFjdG9yIG9mIDUwLzEyLiArNVYgY291bGQgdGhlbiBiZSBpbjUgd2l0
+aAphIHNjYWxpbmcgZmFjdG9yIG9mIDIwNS8xMjAuIFRoaXMgaXMgYWxsIGd1ZXNzd29yayBvZiBj
+b3Vyc2UsIEkgY2FuJ3QKZ3VhcmFudGVlIGl0IGlzIGFjY3VyYXRlLgoKSWYgSSBhbSByaWdodCB0
+aGVuIHlvdXIgY29uZmlndXJhdGlvbiBmaWxlIHdvdWxkIHN0YXJ0IGFzIGZvbGxvd3M6CgpjaGlw
+ICJpdDg3MjEtKiAiaXQ4NzcxLSoiCgojIyMgVm9sdGFnZXMKCiAgICMgaW4xLCBpbjQgYW5kIGlu
+NiBhbGwgcmVhZCArMi4yM1YsIG5vIGlkZWEgd2h5LgoKICAgbGFiZWwgIGluMCAgICJWY29yZSIK
+ICAgaWdub3JlIGluMQogICBsYWJlbCAgaW4yICAgIisxMlYiCiAgIGlnbm9yZSBpbjQKICAgbGFi
+ZWwgIGluNSAgICIrNVYiCiAgIGlnbm9yZSBpbjYKCiAgIGNvbXB1dGUgIGluMiAgQCAqICg1MC8x
+MiksIEAgLyAoNTAvMTIpCiAgIGNvbXB1dGUgIGluNSAgQCAqICgyMDUvMTIwKSwgQCAvICgyMDUv
+MTIwKQoKICAgc2V0IGluMF9taW4gICAwLjcKICAgc2V0IGluMF9tYXggICAxLjUKICAgc2V0IGlu
+Ml9taW4gIDEyICAgKiAwLjk1CiAgIHNldCBpbjJfbWF4ICAxMiAgICogMS4wNQogICBzZXQgaW4z
+X21pbiAgIDMuMyAqIDAuOTUKICAgc2V0IGluM19tYXggICAzLjMgKiAxLjA1CiAgIHNldCBpbjVf
+bWluICAgNSAgICogMC45NQogICBzZXQgaW41X21heCAgIDUgICAqIDEuOTUKICAgc2V0IGluN19t
+aW4gICAzLjMgKiAwLjk1CiAgIHNldCBpbjdfbWF4ICAgMy4zICogMS4wNQoKSSdsbCBsZXQgeW91
+IGNvbXBsZXRlIHdpdGggZmFucyBhbmQgdGVtcGVyYXR1cmUgcGFydHMuCgpOb3RlOiBhcyBJIGRp
+ZCB0aGUgYWJvdmUsIEkgZG9jdW1lbnRlZCBhbGwgdGhlIHN0ZXBzIGF0OgpodHRwOi8vd3d3Lmxt
+LXNlbnNvcnMub3JnL3dpa2kvVm9sdGFnZUxhYmVsc0FuZFNjYWxpbmcKCkkgaG9wZSB0aGUgYXJ0
+aWNsZSBpcyBnb29kIGVub3VnaCBmb3IgcHVibGljIGNvbnN1bXB0aW9uIG5vdy4KCi0tIApKZWFu
+IERlbHZhcmUKaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy93aXNobGlzdC5odG1sCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
+bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
