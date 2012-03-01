@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 01 Mar 2012 11:53:21 +0000
+From: Pierantonio Tabaro <toni.tabaro@gmail.com>
+Date: Thu, 01 Mar 2012 12:01:26 +0000
 Subject: Re: [lm-sensors] help with ads1015
-Message-Id: <20120301115321.GA15972@ericsson.com>
+Message-Id: <loom.20120301T125441-701@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <loom.20120301T115547-727@post.gmane.org>
 In-Reply-To: <loom.20120301T115547-727@post.gmane.org>
@@ -10,36 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Mar 01, 2012 at 06:35:29AM -0500, Pierantonio Tabaro wrote:
-> Hi,
-> i have a arm mx28 board with a couple of ads1015,
-> i have ported the driver from:  
-> "[PATCH v4] hwmon: Add support for Texas Instruments ADS1015"
-> to my kernel 2.6.35.3
-> 
-> when i boot the board and probe the two modules hwmon.ko and ads1015.ko nothing 
-> happens.
-> 
-> with i2cdump i see the chips,i am sure of this because the default values for 
-> some registers are 0x8583, 0x8000 and 0x7fff. 
-> 
-> sample output for one chip:
-> 
-> root@picomaster ~$ i2cdump 0 0x48 w
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c-0, address 0x48, mode word
-> Continue? [Y/n] 
->      0,8  1,9  2,a  3,b  4,c  5,d  6,e  7,f
-> 00: 0000 8385 0080 ff7f 0000 8385 0080 XXXX 
-> 08: 0000 8385 0080 ff7f 0000 8385 0080 XXXX 
-> 
-ads1015 does not have a detect function, so you have to enter:
+Jean Delvare <khali <at> linux-fr.org> writes:
 
-echo ads1015 0x48 > /sys/class/i2c-adapter/i2c-0/new_device
+> 
+> Yes, you are missing something. Please read:
+> Documentation/i2c/instantiating-devices
+> Method 3 is not implemented by the ads1015 driver because the devices
+> it supports have no identification registers, so you'll have to use one
+> of the three other methods.
+> 
 
-modprobe etc. is not necessary.
+I have read the doc before posting ;-), i hope to be using method 1:
 
-Guenter
+static struct at24_platform_data picomaster_i2c_eeprom_info = {
+	.byte_len	= SZ_256K / 8,
+	.page_size	= 64,
+	.flags		= AT24_FLAG_ADDR16,
+//	.setup		= davinci_get_mac_addr,
+//	.context	= (void *)0x7f00,
+};
+
+struct ads1015_platform_data picomaster_i2c_ads1015_info = {
+	.exported_channels = (1 << 2) | (1 << 4)
+};
+
+static struct i2c_board_info __initdata mxs_i2c_device[] = {
+	//{ I2C_BOARD_INFO("sgtl5000-i2c", 0xa), .flags = I2C_M_TEN }
+	{
+		I2C_BOARD_INFO("rtc-ds1307", 0x68),
+		.type	= "ds1339",
+	},
+	{
+		I2C_BOARD_INFO("eeprom-24c256", 0x50),
+		.platform_data = &picomaster_i2c_eeprom_info,
+	},
+	{
+		I2C_BOARD_INFO("adc-ads1015", 0x48),
+		//.platform_data = &picomaster_i2c_ads1015_info,
+	},
+	{
+		I2C_BOARD_INFO("adc-ads1015", 0x49),
+		//.platform_data = &picomaster_i2c_ads1015_info,
+	},
+};
+
+static void __init i2c_device_init(void)
+{
+	printk("%s\n", __func__);
+	i2c_register_board_info(0, mxs_i2c_device, ARRAY_SIZE(mxs_i2c_device));
+}
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
