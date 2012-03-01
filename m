@@ -1,54 +1,89 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 01 Mar 2012 05:28:34 +0000
-Subject: Re: [lm-sensors] dual output buck controller pmbus based
-Message-Id: <20120301052834.GA14856@ericsson.com>
+Date: Thu, 01 Mar 2012 16:14:49 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (lm90) Restore original configuration if probe function fails
+Message-Id: <1330618489.23014.257.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
-In-Reply-To: <CANSBHnO8pQ_QVMpuS8JCoKfSvQ9s1_KDv-HybXD_TpM2jnPUUA@mail.gmail.com>
+References: <1330376387-30456-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1330376387-30456-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Feb 29, 2012 at 11:52:42PM -0500, Vivek Bardia wrote:
-> Hi Guenter,
-> 
-Hi Vivek,
+Hi Jean,
 
-> I still do not have any evaluation hardware.
+On Mon, 2012-02-27 at 15:59 -0500, Guenter Roeck wrote:
+> The lm90 driver restores the original chip configuration in its exit function.
+> However, the chip configuration is not restored if the probe function fails.
+> Restore it there as well.
 > 
-Too bad.
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 
-> By the way, my usage for TPS40400/TPS40422 is just output voltage control. Have
-> no sensors being used in my scenario.
-> 
-> Will you be able to comment on my below steps and its validity:
-> 
-> 1. To get the current output I do a READ_VOUT and then convert it to microvolts
-> format, for e.g. finally i get 942734uV
-> 
-> 2. To set a output voltage to say 902234 based on some requirement, 
-> My nominal voltage being 1.1V
-> hence trim_offset = 902234 - 1100000
-> therefor I do: PMBUS_VOUT_TRIM with a value ffa7
-> 
-> Is the above logic right? my VOUT_SCALE_LOOP is 
-> 600mV/1100mV x (2^9) = 279.27 => 100010111 => b917
-> 
-I can not really comment on that. The procedure is different for each chip, 
-not always easy to understand, and it often takes quite some time to find
-a working configuration. Best is really to use the tools provided by TI
-(the Fusion GUI is quite good), since there tend to be other parameters
-which need to be configured as well. I use the TI tools even for the test
-boards I built myself. The TPS40xxx series is not as difficult as the
-UCD92xx series when it comes to configuration complexity, but I would
-still suggest to use the tools. If you misconfigure the chip, you might
-burn it, so it pays to be careful.
-
-Did you have a look into http://www.ti.com/lit/ug/slvu638/slvu638.pdf ?
+Any comments on this one ? I don't want to submit it upstream without
+your approval / Ack.
 
 Thanks,
 Guenter
+
+> ---
+>  drivers/hwmon/lm90.c |   21 +++++++++++++--------
+>  1 files changed, 13 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+> index d2dd5f9..178de29 100644
+> --- a/drivers/hwmon/lm90.c
+> +++ b/drivers/hwmon/lm90.c
+> @@ -1313,6 +1313,15 @@ static void lm90_remove_files(struct i2c_client *client, struct lm90_data *data)
+>  	sysfs_remove_group(&dev->kobj, &lm90_group);
+>  }
+>  
+> +static void lm90_restore_conf(struct i2c_client *client, struct lm90_data *data)
+> +{
+> +	/* Restore initial configuration */
+> +	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
+> +				  data->convrate_orig);
+> +	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+> +				  data->config_orig);
+> +}
+> +
+>  static void lm90_init_client(struct i2c_client *client)
+>  {
+>  	u8 config, convrate;
+> @@ -1399,7 +1408,7 @@ static int lm90_probe(struct i2c_client *client,
+>  	/* Register sysfs hooks */
+>  	err = sysfs_create_group(&dev->kobj, &lm90_group);
+>  	if (err)
+> -		goto exit_free;
+> +		goto exit_restore;
+>  	if (client->flags & I2C_CLIENT_PEC) {
+>  		err = device_create_file(dev, &dev_attr_pec);
+>  		if (err)
+> @@ -1438,7 +1447,8 @@ static int lm90_probe(struct i2c_client *client,
+>  
+>  exit_remove_files:
+>  	lm90_remove_files(client, data);
+> -exit_free:
+> +exit_restore:
+> +	lm90_restore_conf(client, data);
+>  	kfree(data);
+>  exit:
+>  	return err;
+> @@ -1450,12 +1460,7 @@ static int lm90_remove(struct i2c_client *client)
+>  
+>  	hwmon_device_unregister(data->hwmon_dev);
+>  	lm90_remove_files(client, data);
+> -
+> -	/* Restore initial configuration */
+> -	i2c_smbus_write_byte_data(client, LM90_REG_W_CONVRATE,
+> -				  data->convrate_orig);
+> -	i2c_smbus_write_byte_data(client, LM90_REG_W_CONFIG1,
+> -				  data->config_orig);
+> +	lm90_restore_conf(client, data);
+>  
+>  	kfree(data);
+>  	return 0;
+
+
 
 _______________________________________________
 lm-sensors mailing list
