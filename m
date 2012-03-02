@@ -1,43 +1,78 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 02 Mar 2012 16:02:57 +0000
+From: Stefan Monnier <monnier@iro.umontreal.ca>
+Date: Fri, 02 Mar 2012 20:27:57 +0000
 Subject: Re: [lm-sensors] Interpreting lm-sensors's output
-Message-Id: <20120302170257.27a68773@endymion.delvare>
+Message-Id: <jwvehtag3nm.fsf-monnier+INBOX@gnu.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 In-Reply-To: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGkgU3RlZmFuLAoKT24gRnJpLCAwMiBNYXIgMjAxMiAxMDoxNToyMiAtMDUwMCwgU3RlZmFuIE1v
-bm5pZXIgd3JvdGU6Cj4gSSBqdXN0IGdvdCBhIG5ldyBmYW5sZXNzIG1pbmktSVRYIGJvYXJkIGFu
-ZCBhbSBjb25jZXJuZWQgYWJvdXQKPiBpdHMgdGVtcGVyYXR1cmUuCj4gbG0tc2Vuc29ycyBvbmx5
-IGZpbmRzIHR3byB0ZW1wZXJhdHVyZSBzZW5zb3JzIG9uIHRoaXMgYm9hcmQ6Cj4gCj4gICAgJSBz
-ZW5zb3JzCj4gICAgcmFkZW9uLXBjaS0wMDA4Cj4gICAgQWRhcHRlcjogUENJIGFkYXB0ZXIKPiAg
-ICB0ZW1wMTogICAgICAgICs1MS4wwrBDICAKPiAgICAKPiAgICBrMTB0ZW1wLXBjaS0wMGMzCj4g
-ICAgQWRhcHRlcjogUENJIGFkYXB0ZXIKPiAgICB0ZW1wMTogICAgICAgICs1MS41wrBDICAoaGln
-aCA9ICs3MC4wwrBDKQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgKGNyaXQgPSArMTAwLjDC
-sEMsIGh5c3QgPSArOTcuMMKwQykKPiAgICAKPiAgICAlCj4gCj4gSUlVQyBib3RoIG9mIHRob3Nl
-IGFyZSBzZW5zb3JzIHdpdGhpbiBteSBFMzUwIHByb2Nlc3NvciAodGhlIGZpcnN0IG9uCj4gdGhl
-IEdQVSwgdGhlIHNlY29uZCBvbiB0aGUgQ1BVKS4KPiBOb3cgaGVyZSdzIG15IHF1ZXN0aW9uOiBo
-b3cgY2FuIEkgZmlndXJlIG91dCB3aGF0IHRlbXBlcmF0dXJlIGlzICJzYWZlIgo+IG9yIHdoYXQg
-aXMgInRvbyBoaWdoIj8KPiAKPiBPVDFIIHRoZSAiaGlnaD03MCIgYW5kICJjcml0PTEwMCIgd291
-bGQgc2VlbSB0byBnaXZlIG1lIHRoZSBhbnN3ZXIsIGJ1dAo+IE9UT0ggSSBkb24ndCBrbm93IHdo
-ZXRoZXIgSSBjYW4gdHJ1c3QgdGhlbSAoYWN0dWFsbHksIEkgaG9wZSBzb21lIG9mCj4gdGhlIG91
-dHB1dCBpcyAid3JvbmciIHNpbmNlIHRoZSBzZW5zb3IgcmVhZGluZ3MgZ28gdXAgcm91dGluZWx5
-IHRvIDgwwrAKPiBkdXJpbmcgbG9uZyBjb21waWxhdGlvbnMpLgoKVGhleSBhcmUgY29ycmVjdCBh
-bmQgeW91IHNob3VsZCB0cnVzdCB0aGVtLiBJZiB5b3UgcmVhY2ggODDCsEMgdGhlbiB5b3UKcHJv
-YmFibHkgbmVlZCBiZXR0ZXIgdGhlcm1hbCBkaXNzaXBhdGlvbiBvciBhIGRpZmZlcmVudCBDUFUg
-LyBncmFwaGljcwpwb3dlciBtYW5hZ2VtZW50IHN0cmF0ZWd5LiBGb3IgZXhhbXBsZSB5b3UgY2Fu
-IGJsYWNrbGlzdCB0aGUgaGlnaGVzdApwZXJmb3JtYW5jZSBsZXZlbCBvZiB0aGUgQ1BVIGFuZC9v
-ciBHUFUuIEFkZGluZyBhIGZhbiB3aGljaCBvbmx5IGtpY2tzCmluIGF0IGhpZ2ggdGVtcGVyYXR1
-cmVzIHdvdWxkIGFsc28gbWFrZSBzZW5zZSBpZiB5b3VyIGNhc2UgYW5kIGJvYXJkCnN1cHBvcnQg
-dGhhdC4gSWYgQU1EIENQVXMgaGF2ZSBhbiBlcXVpdmFsZW50IG9mIEludGVsJ3MgInR1cmJvIG1v
-ZGUiCnRoZW4geW91IHNob3VsZCBkaXNhYmxlIHRoYXQuCgpCVFcsIHlvdSBtYXkgaGF2ZSBvdGhl
-ciAodW5zdXBwb3J0ZWQpIHNlbnNvcnMgb24gdGhlIGJvYXJkLi4uIEdpdmUgYQp0cnkgdG8gaHR0
-cDovL2RsLmxtLXNlbnNvcnMub3JnL2xtLXNlbnNvcnMvZmlsZXMvc2Vuc29ycy1kZXRlY3QKYW5k
-IHJlcG9ydCB0aGUgZnVsbCBvdXRwdXQuCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
-dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+>> OT1H the "high=3D70" and "crit=3D100" would seem to give me the answer, =
+but
+>> OTOH I don't know whether I can trust them (actually, I hope some of
+>> the output is "wrong" since the sensor readings go up routinely to 80=B0
+>> during long compilations).
+> They are correct and you should trust them.  If you reach 80=B0C then you
+> probably need better thermal dissipation or a different CPU / graphics
+> power management strategy.
+
+The thing that puzzles me is that this low-power mini-ITX board (fanless
+Brazos E350) is in a full-size ATX chassis (Antec Sonata) which
+previously held an high-power Athlon X2 board (first with the stock
+AMD heatsink+fan, and then later with a monster fanless heatsink), so
+I have a hard time understanding how this low-power board can heat up
+worse than the other one in the exact same context (same chassis,
+power-supply, devices, system fan spinning at the same speed, ...).
+The Athlon X2 barely reached 70=B0C in the hottest part of the summer,
+under full load.
+
+> BTW, you may have other (unsupported) sensors on the board... Give a
+> try to http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
+> and report the full output.
+
+OK, I finally added "acpi_enforce_resources=3Dlax" and loaded the it87
+module, which does give me a bit more data:
+
+   k10temp-pci-00c3
+   Adapter: PCI adapter
+   temp1:        +51.6=B0C  (high =3D +70.0=B0C)
+                          (crit =3D +100.0=B0C, hyst =3D +97.0=B0C)
+  =20
+   radeon-pci-0008
+   Adapter: PCI adapter
+   temp1:        +52.0=B0C
+  =20
+   it8721-isa-0a00
+   Adapter: ISA adapter
+   in0:          +3.06 V  (min =3D  +1.46 V, max =3D  +1.98 V)  ALARM
+   in1:          +1.07 V  (min =3D  +0.00 V, max =3D  +1.52 V)
+   in2:          +2.23 V  (min =3D  +0.00 V, max =3D  +1.52 V)  ALARM
+   in3:          +0.01 V  (min =3D  +0.00 V, max =3D  +1.52 V)
+   in4:          +1.02 V  (min =3D  +1.09 V, max =3D  +0.83 V)  ALARM
+   in5:          +1.52 V  (min =3D  +1.31 V, max =3D  +0.78 V)  ALARM
+   in6:          +1.12 V  (min =3D  +1.69 V, max =3D  +2.69 V)  ALARM
+   3VSB:         +3.26 V  (min =3D  +0.00 V, max =3D  +3.05 V)  ALARM
+   Vbat:         +3.24 V =20
+   fan1:           0 RPM  (min =3D   20 RPM)  ALARM
+   fan2:           0 RPM  (min =3D   20 RPM)  ALARM
+   temp1:        +30.0=B0C  (low  =3D  +0.0=B0C, high =3D +127.0=B0C)  sens=
+or =3D thermal diode
+   temp2:       -128.0=B0C  (low  =3D +13.0=B0C, high =3D -18.0=B0C)  senso=
+r =3D disabled
+   temp3:       -128.0=B0C  (low  =3D -67.0=B0C, high =3D  -3.0=B0C)  senso=
+r =3D disabled
+   intrusion0:  ALARM
+
+So I guess the it87 "temp1" is a "motherboard" sensor.  This one always
+stays much lower than the other two sensors.
+
+
+        Stefan
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
