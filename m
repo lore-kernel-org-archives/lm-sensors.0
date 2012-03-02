@@ -1,42 +1,34 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 07 Mar 2012 13:32:47 +0000
-Subject: Re: [lm-sensors] unable to use pwmcontrol
-Message-Id: <20120307143247.6c92b147@endymion.delvare>
+Date: Fri, 02 Mar 2012 08:06:26 +0000
+Subject: Re: [lm-sensors] Chip Addition: ITE IT8783F
+Message-Id: <20120302090626.638586ef@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F5751F6.8030502@gmail.com>
-In-Reply-To: <4F5751F6.8030502@gmail.com>
+References: <B9D3C48C98930741A166756A50C44A611FF696B3@helx1.corp.vaisala.com>
+In-Reply-To: <B9D3C48C98930741A166756A50C44A611FF696B3@helx1.corp.vaisala.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi David,
-
-On Wed, 07 Mar 2012 13:17:58 +0100, David Kremer wrote:
-> Hello,
-> 
-> since a while, pwmcontrol doesn't work anymore. pwmconfig doesn't work.
-> 
-> It is strange because it worked in the past prior to some upgrade of the 
-> kernel.
-> 
-> Can you give me a way to fix this ?
-
-Not if you don't provide a lot more technical details than you did so
-far. Which kernel version was working, which is failing, what's the
-output of pwmconfig, which hardware monitoring drivers your system
-uses, etc.
-
-A blind shot would be
-http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
-or
-http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel3.33.2.23.0.18
-but maybe not.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+R3VlbnRlciBSb2VjayB3cm90ZToKPiBJIGFkZGVkIHlvdXIgcmVxdWVzdCB0byB0aGUgInN1cHBv
+cnRlZCBkZXZpY2VzIiBsaXN0IG9uIGxtLXNlbnNvcnMub3JnLgoKQW5kIEkgYWRkZWQgZGV0ZWN0
+aW9uIG9mIHRoaXMgY2hpcCAoYW5kIG90aGVyIElUODc4eEYgY2hpcHMpIHRvCnNlbnNvcnMtZGV0
+ZWN0LiBJIGhhZCB0aGUgcGF0Y2ggcGVuZGluZyBmb3Igd2Vla3MsIGl0IHdhcyBhYm91dCB0aW1l
+CnRoYXQgSSBjb21taXR0ZWQgaXQuCgpPbiBXZWQsIDI5IEZlYiAyMDEyIDEzOjQyOjU1IC0wNTAw
+LCBLZXZpbiBGb2x6IHdyb3RlOgo+IFRoYW5rcyBmb3IgdGhlIHN1Z2dlc3Rpb24gb2YgImZvcmNl
+LWlkIiBtb2R1bGUgcGFyYW1ldGVyLCBJIHBpY2tlZCA4NzI2IGFzIGl04oCZcyB0aGUgaGlnaGVz
+dCBtb2RlbCBudW1iZXIgcmVwb3J0ZWQgYnkgIm1vZGluZm8gaXQ4NyIgb24gbXkga2VybmVsLgoK
+Tm90ZSB0aGF0IHRoZSBJVDg3MjZGIGlzIGFuIG9sZCBjaGlwLCBkZXNwaXRlIHRoZSBoaWdoIG51
+bWJlci4gSXQncyBhCm1vZGlmaWVkIElUODcxNkYgY2hpcCB3aXRoIGp1c3Qgb25lIGV4dHJhIGZl
+YXR1cmUgKEFNRCBwb3dlcgpzZXF1ZW5jaW5nLikgVGhlIElUODcyMEYgaXMgdGhlIGxhdGVzdCA1
+ViBjaGlwIHdpdGggNFYgQURDICgxNiBtVi9iaXQuKQpTdGFydGluZyB3aXRoIHRoZSBJVDg3MjFG
+LCBjaGlwcyBhcmUgcG93ZXJlZCB3aXRoIDMuM1YgYW5kIGhhdmUgYSAzVgpBREMgKDEyIG1WL2Jp
+dC4pCgpVbmZvcnR1bmF0ZWx5IHRoZSBJVDg3ODNGIGNhbiBiZSBwb3dlcmVkIHdpdGggZWl0aGVy
+IDMuM1Ygb3IgNVYKYWNjb3JkaW5nIHRvIHRoZSBzY2FyY2UgZG9jdW1lbnRhdGlvbiBJIGhhdmUs
+IHNvIGl0J3MgZGlmZmljdWx0IHRvIHRlbGwKd2hldGhlciBpdCBpcyBtb3JlIGxpa2UgdGhlIElU
+ODcyMEYgb3IgbW9yZSBsaWtlIHRoZSBJVDg3MjFGLiBPciBtYXliZQppdCdzIGxpa2UgbmVpdGhl
+ciBhbmQgd2lsbCBuZWVkIGRlZGljYXRlZCBjb2RlLCBpdCdzIGltcG9zc2libGUgdG8gc2F5Cndp
+dGhvdXQgYSBkYXRhc2hlZXQuCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1z
+ZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2xtLXNlbnNvcnM
