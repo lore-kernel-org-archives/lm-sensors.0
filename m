@@ -1,34 +1,30 @@
-From: Jeff Robins <jeffrobinssae@gmail.com>
-Date: Fri, 02 Mar 2012 18:16:48 +0000
-Subject: [lm-sensors] Current status of "sensors-detect" script
-Message-Id: <CAHC-z7LrZUCgDrsgvzHBdXimhGyV-2=K+QVsvqXh=We8OujSHA@mail.gmail.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 02 Mar 2012 21:02:59 +0000
+Subject: Re: [lm-sensors] Current status of "sensors-detect" script
+Message-Id: <20120302220259.5ae7c0a1@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CAHC-z7LrZUCgDrsgvzHBdXimhGyV-2=K+QVsvqXh=We8OujSHA@mail.gmail.com>
+In-Reply-To: <CAHC-z7LrZUCgDrsgvzHBdXimhGyV-2=K+QVsvqXh=We8OujSHA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
-
-I will be maintaining the lm_sensors package for Mageia Linux.=A0 We
-have a user that has a sensor on an ASUS motherboard,
-P8Z68-V LX, which works with current versions of the "sensors-detect"
-script, but not the script in the 3.3.1 release.
-
-Is the current "sensors-detect" script as safe/stable as the one that
-was in the 3.3.1 release?
-
-Can you do another maintenance release for an updated "sensors-detect"
-script, as you did for the 3.3.1 release?
-
-The user pulled the script from the following link:
-http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-
-Thank you,
-
-Jeff
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgSmVmZiwKCk9uIEZyaSwgMiBNYXIgMjAxMiAxMDoxNjo0OCAtMDgwMCwgSmVmZiBSb2JpbnMg
+d3JvdGU6Cj4gSSB3aWxsIGJlIG1haW50YWluaW5nIHRoZSBsbV9zZW5zb3JzIHBhY2thZ2UgZm9y
+IE1hZ2VpYSBMaW51eC7CoCBXZQo+IGhhdmUgYSB1c2VyIHRoYXQgaGFzIGEgc2Vuc29yIG9uIGFu
+IEFTVVMgbW90aGVyYm9hcmQsCj4gUDhaNjgtViBMWCwgd2hpY2ggd29ya3Mgd2l0aCBjdXJyZW50
+IHZlcnNpb25zIG9mIHRoZSAic2Vuc29ycy1kZXRlY3QiCj4gc2NyaXB0LCBidXQgbm90IHRoZSBz
+Y3JpcHQgaW4gdGhlIDMuMy4xIHJlbGVhc2UuCj4gCj4gSXMgdGhlIGN1cnJlbnQgInNlbnNvcnMt
+ZGV0ZWN0IiBzY3JpcHQgYXMgc2FmZS9zdGFibGUgYXMgdGhlIG9uZSB0aGF0Cj4gd2FzIGluIHRo
+ZSAzLjMuMSByZWxlYXNlPwoKWWVzIGl0IGlzLiBJbiBtb3N0IGNhc2VzIHdlIGFyZSBzaW1wbHkg
+YWRkaW5nIGRldGVjdGlvbiBmb3IgbmV3ZXIKZGV2aWNlcy4gQWN0dWFsIGNvZGUgY2hhbmdlcyBh
+cmUgcmFyZS4KCj4gQ2FuIHlvdSBkbyBhbm90aGVyIG1haW50ZW5hbmNlIHJlbGVhc2UgZm9yIGFu
+IHVwZGF0ZWQgInNlbnNvcnMtZGV0ZWN0Igo+IHNjcmlwdCwgYXMgeW91IGRpZCBmb3IgdGhlIDMu
+My4xIHJlbGVhc2U/CgpZZXMsIHRoaXMgd2FzIHRoZSBwbGFuIGJ1dCBpdCB3YXMgZGVsYXllZCBi
+eSBhIGxhc3QgbWludXRlIGJ1ZyAobm90IGluCnNlbnNvcnMtZGV0ZWN0LikgSSBtdXN0IGxvb2sg
+aW50byBpdCBhZ2FpbiwgYnV0IEkgYW0gYnVzeSB3aXRoIG90aGVyCmlzc3VlcyBhdCB0aGUgbW9t
+ZW50LgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
+b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
+ZW5zb3Jz
