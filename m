@@ -1,78 +1,98 @@
-From: Stefan Monnier <monnier@iro.umontreal.ca>
-Date: Fri, 02 Mar 2012 20:27:57 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 02 Mar 2012 20:59:48 +0000
 Subject: Re: [lm-sensors] Interpreting lm-sensors's output
-Message-Id: <jwvehtag3nm.fsf-monnier+INBOX@gnu.org>
+Message-Id: <20120302215948.3eee17f0@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 In-Reply-To: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->> OT1H the "high=3D70" and "crit=3D100" would seem to give me the answer, =
-but
->> OTOH I don't know whether I can trust them (actually, I hope some of
->> the output is "wrong" since the sensor readings go up routinely to 80=B0
->> during long compilations).
-> They are correct and you should trust them.  If you reach 80=B0C then you
-> probably need better thermal dissipation or a different CPU / graphics
-> power management strategy.
-
-The thing that puzzles me is that this low-power mini-ITX board (fanless
-Brazos E350) is in a full-size ATX chassis (Antec Sonata) which
-previously held an high-power Athlon X2 board (first with the stock
-AMD heatsink+fan, and then later with a monster fanless heatsink), so
-I have a hard time understanding how this low-power board can heat up
-worse than the other one in the exact same context (same chassis,
-power-supply, devices, system fan spinning at the same speed, ...).
-The Athlon X2 barely reached 70=B0C in the hottest part of the summer,
-under full load.
-
-> BTW, you may have other (unsupported) sensors on the board... Give a
-> try to http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-> and report the full output.
-
-OK, I finally added "acpi_enforce_resources=3Dlax" and loaded the it87
-module, which does give me a bit more data:
-
-   k10temp-pci-00c3
-   Adapter: PCI adapter
-   temp1:        +51.6=B0C  (high =3D +70.0=B0C)
-                          (crit =3D +100.0=B0C, hyst =3D +97.0=B0C)
-  =20
-   radeon-pci-0008
-   Adapter: PCI adapter
-   temp1:        +52.0=B0C
-  =20
-   it8721-isa-0a00
-   Adapter: ISA adapter
-   in0:          +3.06 V  (min =3D  +1.46 V, max =3D  +1.98 V)  ALARM
-   in1:          +1.07 V  (min =3D  +0.00 V, max =3D  +1.52 V)
-   in2:          +2.23 V  (min =3D  +0.00 V, max =3D  +1.52 V)  ALARM
-   in3:          +0.01 V  (min =3D  +0.00 V, max =3D  +1.52 V)
-   in4:          +1.02 V  (min =3D  +1.09 V, max =3D  +0.83 V)  ALARM
-   in5:          +1.52 V  (min =3D  +1.31 V, max =3D  +0.78 V)  ALARM
-   in6:          +1.12 V  (min =3D  +1.69 V, max =3D  +2.69 V)  ALARM
-   3VSB:         +3.26 V  (min =3D  +0.00 V, max =3D  +3.05 V)  ALARM
-   Vbat:         +3.24 V =20
-   fan1:           0 RPM  (min =3D   20 RPM)  ALARM
-   fan2:           0 RPM  (min =3D   20 RPM)  ALARM
-   temp1:        +30.0=B0C  (low  =3D  +0.0=B0C, high =3D +127.0=B0C)  sens=
-or =3D thermal diode
-   temp2:       -128.0=B0C  (low  =3D +13.0=B0C, high =3D -18.0=B0C)  senso=
-r =3D disabled
-   temp3:       -128.0=B0C  (low  =3D -67.0=B0C, high =3D  -3.0=B0C)  senso=
-r =3D disabled
-   intrusion0:  ALARM
-
-So I guess the it87 "temp1" is a "motherboard" sensor.  This one always
-stays much lower than the other two sensors.
-
-
-        Stefan
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAwMiBNYXIgMjAxMiAxNToyNzo1NyAtMDUwMCwgU3RlZmFuIE1vbm5pZXIgd3JvdGU6
+Cj4gPj4gT1QxSCB0aGUgImhpZ2g9NzAiIGFuZCAiY3JpdD0xMDAiIHdvdWxkIHNlZW0gdG8gZ2l2
+ZSBtZSB0aGUgYW5zd2VyLCBidXQKPiA+PiBPVE9IIEkgZG9uJ3Qga25vdyB3aGV0aGVyIEkgY2Fu
+IHRydXN0IHRoZW0gKGFjdHVhbGx5LCBJIGhvcGUgc29tZSBvZgo+ID4+IHRoZSBvdXRwdXQgaXMg
+Indyb25nIiBzaW5jZSB0aGUgc2Vuc29yIHJlYWRpbmdzIGdvIHVwIHJvdXRpbmVseSB0byA4MMKw
+Cj4gPj4gZHVyaW5nIGxvbmcgY29tcGlsYXRpb25zKS4KPiA+IFRoZXkgYXJlIGNvcnJlY3QgYW5k
+IHlvdSBzaG91bGQgdHJ1c3QgdGhlbS4gIElmIHlvdSByZWFjaCA4MMKwQyB0aGVuIHlvdQo+ID4g
+cHJvYmFibHkgbmVlZCBiZXR0ZXIgdGhlcm1hbCBkaXNzaXBhdGlvbiBvciBhIGRpZmZlcmVudCBD
+UFUgLyBncmFwaGljcwo+ID4gcG93ZXIgbWFuYWdlbWVudCBzdHJhdGVneS4KPiAKPiBUaGUgdGhp
+bmcgdGhhdCBwdXp6bGVzIG1lIGlzIHRoYXQgdGhpcyBsb3ctcG93ZXIgbWluaS1JVFggYm9hcmQg
+KGZhbmxlc3MKPiBCcmF6b3MgRTM1MCkgaXMgaW4gYSBmdWxsLXNpemUgQVRYIGNoYXNzaXMgKEFu
+dGVjIFNvbmF0YSkgd2hpY2gKPiBwcmV2aW91c2x5IGhlbGQgYW4gaGlnaC1wb3dlciBBdGhsb24g
+WDIgYm9hcmQgKGZpcnN0IHdpdGggdGhlIHN0b2NrCj4gQU1EIGhlYXRzaW5rK2ZhbiwgYW5kIHRo
+ZW4gbGF0ZXIgd2l0aCBhIG1vbnN0ZXIgZmFubGVzcyBoZWF0c2luayksIHNvCj4gSSBoYXZlIGEg
+aGFyZCB0aW1lIHVuZGVyc3RhbmRpbmcgaG93IHRoaXMgbG93LXBvd2VyIGJvYXJkIGNhbiBoZWF0
+IHVwCj4gd29yc2UgdGhhbiB0aGUgb3RoZXIgb25lIGluIHRoZSBleGFjdCBzYW1lIGNvbnRleHQg
+KHNhbWUgY2hhc3NpcywKPiBwb3dlci1zdXBwbHksIGRldmljZXMsIHN5c3RlbSBmYW4gc3Bpbm5p
+bmcgYXQgdGhlIHNhbWUgc3BlZWQsIC4uLikuCj4gVGhlIEF0aGxvbiBYMiBiYXJlbHkgcmVhY2hl
+ZCA3MMKwQyBpbiB0aGUgaG90dGVzdCBwYXJ0IG9mIHRoZSBzdW1tZXIsCj4gdW5kZXIgZnVsbCBs
+b2FkLgoKQ29tcGFyaW5nIGEgc3lzdGVtIHdpdGggYSBDUFUgZmFuIHdpdGggb25lIHdpdGhvdXQg
+ZG9lc24ndCBuZWNlc3NhcmlseQptYWtlIGEgbG90IG9mIHNlbnNlLiBTdXJlLCB0aGUgY2hhc3Np
+cyBhbmQgc3lzdGVtIGZhbiBhcmUgdGhlIHNhbWUsIGJ1dAp3aGVuIHlvdSBoYWQgYSBDUFUgZmFu
+IGl0IHdhcyB0aGUgbWFpbiBmYWN0b3IgZm9yIGRldGVybWluaW5nIHRoZSBDUFUKdGVtcGVyYXR1
+cmUuIE5vdyB0aGUgYWlyZmxvdyBpbiB0aGUgY2hhc3NpcyBoYXMgYmVjb21lIHRoZSBtYWluIGZh
+Y3Rvci4KCkFsc28gbm90ZSB0aGF0IHRoZSB2YWx1ZXMgcmVwb3J0ZWQgYnkgazh0ZW1wIC8gazEw
+dGVtcCBhcmUgZXNzZW50aWFsbHkKcmVsYXRpdmUgdmFsdWVzIGluIHBzZXVkby1kZWdyZWVzIEMs
+IHNvIGNvbXBhcmluZyB0aGVtIGZyb20gb25lIENQVQptb2RlbCB0byBhbm90aGVyIGlzIG5vdCBt
+ZWFuaW5nZnVsIGVpdGhlci4gV2hhdCBpcyBtZWFuaW5nZnVsIGlzIHRoZQpkaWZmZXJlbmNlIGJl
+dHdlZW4gdGhlIGN1cnJlbnQgdGVtcGVyYXR1cmUgYW5kIHRoZSBoaWdoIChvciBjcml0aWNhbCkK
+bGltaXQuIFRoYXQgaXMsIHRoZSB0aGVybWFsIG1hcmdpbi4KCklmIHRoZSBDUFUgaXMgcmVhbGx5
+IGhlYXRpbmcgdG9vIG11Y2ggY29tcGFyZWQgdG8gd2hhdCB5b3Ugd291bGQKZXhwZWN0LCB5b3Ug
+c2hvdWxkIGNoZWNrIHRoYXQgdGhlIGhlYXRzaW5rIGlzIHByb3Blcmx5IG1vdW50ZWQgd2l0aAp0
+aGVybWFsIHBhc3RlIHByb3Blcmx5IGFwcGxpZWQuIElmIHRoZSBDUFUgdGVtcGVyYXR1cmUgaXMg
+dGhhdCBoaWdoLAp0aGUgaGVhdHNpbmsgc2hvdWxkIGJlIHZlcnkgaG90LiBJZiBpdCdzIG5vdCB0
+aGVuIHRoYXQgd291bGQgYmUgdGhlCnByb2JsZW0uIElmIGl0IGlzLCBtYXliZSB5b3UgbmVlZCBh
+IGxhcmdlciBoZWF0c2luay4KCkFsc28gY2hlY2sgdGhhdCB0aGUgYWlyIGZsb3cgdGhyb3VnaCB0
+aGUgY2FzZSBpcyBjb3JyZWN0LCBpLmUuIGVub3VnaApzcGFjZSBvbiBib3RoIHNpZGVzIG9mIHRo
+ZSBmYW4gdG8gbm90IGJsb2NrIHRoZSBhaXIgZmxvdywgYW5kIG5vdGhpbmcKYmxvY2tpbmcgdGhl
+IGZsb3cgaW5zaWRlIHRoZSBjaGFzc2lzIGVpdGhlci4gUGxhY2luZyB0aGUgZmFuIGF0IHRoZQpy
+aWdodCBwbGFjZSBpcyBhbHNvIGltcG9ydGFudCwgaWYgeW91IGhhdmUgdGhlIGNob2ljZS4gWW91
+IHdvdWxkbid0Cm5vdGljZSB0aGVzZSBpc3N1ZXMgYXMgbG9uZyBhcyB0aGUgQ1BVIGl0c2VsZiBo
+YWQgYSBmYW4sIGJ1dCBub3QgaXQKZG9lcyBtYXR0ZXIuCgpBcyBhIGZpbmFsIG5vdGUsIHlvdXIg
+bmV3IHByb2Nlc3NvciBwYWNrYWdlIGludGVncmF0ZXMgYSBHUFUuIFRoaXMKY291bGQgYWxzbyBl
+eHBsYWluIHRoZSBncmVhdGVyIHRlbXBlcmF0dXJlcyB5b3UgZ2V0LCBhcyBtb2Rlcm4gR1BVcyBy
+dW4KZmFzdCBhbmQgY2FuIGhlYXQgYSBsb3QgdG9vLiBBbmQgdGhlIHJhZGVvbiBkcml2ZXIgbm90
+IG5vdCBleGNlbCBvbiB0aGUKcG93ZXIgbWFuYWdlbWVudCBmcm9udCwgYXQgbGVhc3Qgbm90IHdp
+dGggdGhlIGRlZmF1bHQgc2V0dGluZ3MuCgo+ID4gQlRXLCB5b3UgbWF5IGhhdmUgb3RoZXIgKHVu
+c3VwcG9ydGVkKSBzZW5zb3JzIG9uIHRoZSBib2FyZC4uLiBHaXZlIGEKPiA+IHRyeSB0byBodHRw
+Oi8vZGwubG0tc2Vuc29ycy5vcmcvbG0tc2Vuc29ycy9maWxlcy9zZW5zb3JzLWRldGVjdAo+ID4g
+YW5kIHJlcG9ydCB0aGUgZnVsbCBvdXRwdXQuCj4gCj4gT0ssIEkgZmluYWxseSBhZGRlZCAiYWNw
+aV9lbmZvcmNlX3Jlc291cmNlcz1sYXgiIGFuZCBsb2FkZWQgdGhlIGl0ODcKCk5vdCBuZWNlc3Nh
+cmlseSBhIGdvb2QgaWRlYSBpbiB0aGUgbG9uZyBydW4sIGJ1dCBJJ2xsIGFzc3VtZSB5b3Uga25v
+dwp3aGF0IHlvdSdyZSBkb2luZy4KCj4gbW9kdWxlLCB3aGljaCBkb2VzIGdpdmUgbWUgYSBiaXQg
+bW9yZSBkYXRhOgo+IAo+ICAgIGsxMHRlbXAtcGNpLTAwYzMKPiAgICBBZGFwdGVyOiBQQ0kgYWRh
+cHRlcgo+ICAgIHRlbXAxOiAgICAgICAgKzUxLjbCsEMgIChoaWdoID0gKzcwLjDCsEMpCj4gICAg
+ICAgICAgICAgICAgICAgICAgICAgICAoY3JpdCA9ICsxMDAuMMKwQywgaHlzdCA9ICs5Ny4wwrBD
+KQo+ICAgIAo+ICAgIHJhZGVvbi1wY2ktMDAwOAo+ICAgIEFkYXB0ZXI6IFBDSSBhZGFwdGVyCj4g
+ICAgdGVtcDE6ICAgICAgICArNTIuMMKwQwo+ICAgIAo+ICAgIGl0ODcyMS1pc2EtMGEwMAo+ICAg
+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gICAgaW4wOiAgICAgICAgICArMy4wNiBWICAobWluID0g
+ICsxLjQ2IFYsIG1heCA9ICArMS45OCBWKSAgQUxBUk0KPiAgICBpbjE6ICAgICAgICAgICsxLjA3
+IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsxLjUyIFYpCj4gICAgaW4yOiAgICAgICAgICAr
+Mi4yMyBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMS41MiBWKSAgQUxBUk0KPiAgICBpbjM6
+ICAgICAgICAgICswLjAxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsxLjUyIFYpCj4gICAg
+aW40OiAgICAgICAgICArMS4wMiBWICAobWluID0gICsxLjA5IFYsIG1heCA9ICArMC44MyBWKSAg
+QUxBUk0KPiAgICBpbjU6ICAgICAgICAgICsxLjUyIFYgIChtaW4gPSAgKzEuMzEgViwgbWF4ID0g
+ICswLjc4IFYpICBBTEFSTQo+ICAgIGluNjogICAgICAgICAgKzEuMTIgViAgKG1pbiA9ICArMS42
+OSBWLCBtYXggPSAgKzIuNjkgVikgIEFMQVJNCj4gICAgM1ZTQjogICAgICAgICArMy4yNiBWICAo
+bWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNSBWKSAgQUxBUk0KPiAgICBWYmF0OiAgICAgICAg
+ICszLjI0IFYgIAo+ICAgIGZhbjE6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgMjAgUlBNKSAg
+QUxBUk0KPiAgICBmYW4yOiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgIDIwIFJQTSkgIEFMQVJN
+Cj4gICAgdGVtcDE6ICAgICAgICArMzAuMMKwQyAgKGxvdyAgPSAgKzAuMMKwQywgaGlnaCA9ICsx
+MjcuMMKwQykgIHNlbnNvciA9IHRoZXJtYWwgZGlvZGUKPiAgICB0ZW1wMjogICAgICAgLTEyOC4w
+wrBDICAobG93ICA9ICsxMy4wwrBDLCBoaWdoID0gLTE4LjDCsEMpICBzZW5zb3IgPSBkaXNhYmxl
+ZAo+ICAgIHRlbXAzOiAgICAgICAtMTI4LjDCsEMgIChsb3cgID0gLTY3LjDCsEMsIGhpZ2ggPSAg
+LTMuMMKwQykgIHNlbnNvciA9IGRpc2FibGVkCj4gICAgaW50cnVzaW9uMDogIEFMQVJNCj4gCj4g
+U28gSSBndWVzcyB0aGUgaXQ4NyAidGVtcDEiIGlzIGEgIm1vdGhlcmJvYXJkIiBzZW5zb3IuICBU
+aGlzIG9uZSBhbHdheXMKPiBzdGF5cyBtdWNoIGxvd2VyIHRoYW4gdGhlIG90aGVyIHR3byBzZW5z
+b3JzLgoKWWVzLCBJIHdvdWxkIGFzc3VtZSB0aGUgc2FtZSwgYWx0aG91Z2ggaXQncyBzdHJhbmdl
+IHRoYXQgaXQgaXMgYQp0aGVybWFsIGRpb2RlLCB1c3VhbGx5IGEgdGhlcm1pc3RvciBpcyB1c2Vk
+IGZvciBtb3RoZXJib2FyZAp0ZW1wZXJhdHVyZS4gWW91IHNob3VsZCBjaGVjayB3aGF0IHRoZSBC
+SU9TIGhhcyB0byBzYXkgd2l0aCByZWdhcmRzIHRvCnRlbXBlcmF0dXJlcy4gSWYgdGhlIG1vdGhl
+cmJvYXJkIHJlYWxseSBydW5zIGF0IDMwwrBDIHRoZW4gaXQgc2VlbXMKcmVhc29uYWJsZS4KCi0t
+IApKZWFuIERlbHZhcmUKaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy93aXNobGlzdC5odG1sCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
+IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
+ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
