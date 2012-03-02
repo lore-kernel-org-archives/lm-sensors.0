@@ -1,101 +1,48 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 27 Mar 2012 15:11:22 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (adm1031) Fix compiler warning
-Message-Id: <1332861082.21301.84.camel@groeck-laptop>
+From: Nikolaus Schulz <mail@microschulz.de>
+Date: Fri, 02 Mar 2012 18:37:26 +0000
+Subject: Re: [lm-sensors] [PATCH v2 1/4] hwmon: (f75375s) Fix writes to the pwm* attribute for the F75387
+Message-Id: <20120302183726.GA7498@luigi.zusammrottung.local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1332604609-21155-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1332604609-21155-1-git-send-email-linux@roeck-us.net>
+References: <1330463755-5763-2-git-send-email-mail@microschulz.de>
+In-Reply-To: <1330463755-5763-2-git-send-email-mail@microschulz.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-03-27 at 03:19 -0400, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sat, 24 Mar 2012 08:56:49 -0700, Guenter Roeck wrote:
-> > Some configurations produce the following compile warning:
+On Tue, Feb 28, 2012 at 01:26:22PM -0800, Guenter Roeck wrote:
+> On Tue, 2012-02-28 at 16:15 -0500, Nikolaus Schulz wrote:
+> > For the F75387, the register holding the current PWM duty cycle value is
+> > r/o; changing it requires writing to the fan expect register instead.
 > > 
-> > drivers/hwmon/adm1031.c: In function 'set_fan_auto_channel':
-> > drivers/hwmon/adm1031.c:292: warning: 'reg' may be used uninitialized in this function
-> > 
-> > While this is a false positive, it can easily be fixed by overloading the return
-> > value from get_fan_auto_nearest with both register value and error return code
-> > (the register value is never negative). Coincidentially, that also reduces
-> > module size by a few bytes.
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> > Signed-off-by: Nikolaus Schulz <mail@microschulz.de>
 > > ---
-> >  drivers/hwmon/adm1031.c |   21 ++++++++-------------
-> >  1 files changed, 8 insertions(+), 13 deletions(-)
+> >  drivers/hwmon/f75375s.c |   17 ++++++++++++-----
+> >  1 files changed, 12 insertions(+), 5 deletions(-)
 > > 
-> > diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
-> > index ff37363..c58acb4 100644
-> > --- a/drivers/hwmon/adm1031.c
-> > +++ b/drivers/hwmon/adm1031.c
-> > @@ -233,18 +233,15 @@ static const auto_chan_table_t auto_channel_select_table_adm1030 = {
-> >   * nearest match if no exact match where found.
-> >   */
-> >  static int
-> > -get_fan_auto_nearest(struct adm1031_data *data,
-> > -		     int chan, u8 val, u8 reg, u8 *new_reg)
-> > +get_fan_auto_nearest(struct adm1031_data *data, int chan, u8 val, u8 reg)
-> >  {
-> >  	int i;
-> >  	int first_match = -1, exact_match = -1;
-> >  	u8 other_reg_val > >  	    (*data->chan_select_table)[FAN_CHAN_FROM_REG(reg)][chan ? 0 : 1];
-> >  
-> > -	if (val = 0) {
-> > -		*new_reg = 0;
-> > +	if (val = 0)
-> >  		return 0;
-> > -	}
-> >  
-> >  	for (i = 0; i < 8; i++) {
-> >  		if ((val = (*data->chan_select_table)[i][chan]) &&
-> > @@ -264,13 +261,11 @@ get_fan_auto_nearest(struct adm1031_data *data,
-> >  	}
-> >  
-> >  	if (exact_match >= 0)
-> > -		*new_reg = exact_match;
-> > +		return exact_match;
-> >  	else if (first_match >= 0)
-> > -		*new_reg = first_match;
-> > -	else
-> > -		return -EINVAL;
-> > +		return first_match;
-> >  
-> > -	return 0;
-> > +	return -EINVAL;
+> > diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+> > index 5dae122..1c26652 100644
+> > --- a/drivers/hwmon/f75375s.c
+> > +++ b/drivers/hwmon/f75375s.c
+> > @@ -178,6 +178,15 @@ static inline void f75375_write16(struct i2c_client *client, u8 reg,
+> >  	i2c_smbus_write_byte_data(client, reg + 1, (value & 0xFF));
 > >  }
 > >  
-> >  static ssize_t show_fan_auto_channel(struct device *dev,
-> > @@ -301,10 +296,10 @@ set_fan_auto_channel(struct device *dev, struct device_attribute *attr,
-> >  
-> >  	mutex_lock(&data->update_lock);
-> >  
-> > -	ret = get_fan_auto_nearest(data, nr, val, data->conf1, &reg);
-> > -	if (ret) {
-> > +	reg = get_fan_auto_nearest(data, nr, val, data->conf1);
-> > +	if (reg < 0) {
-> >  		mutex_unlock(&data->update_lock);
-> > -		return ret;
-> > +		return reg;
-> >  	}
-> >  	data->conf1 = FAN_CHAN_TO_REG(reg, data->conf1);
-> >  	if ((data->conf1 & ADM1031_CONF1_AUTO_MODE) ^
+> > +static void f75375_write_pwm(struct i2c_client *client, int nr, u8 pwm)
+> > +{
+> > +	struct f75375_data *data = i2c_get_clientdata(client);
 > 
-> Meep meep. reg is u8, it can't hold negative values. You must turn reg
-> into an int, or do:
+> Since you extract data anyway, you don't need to pass pwm but can
+> instead take if from data->pwm[nr].
+> 
+> Other than that, looks good.
+> 
+> No need to resubmit; I can make that change myself if you agree.
 
-Me so dumb sometimes. Sent out another version of the patch.
-
-Wonder why the compiler didn't complain about that one ...
+That's ok, please proceed.
 
 Thanks,
-Guenter
-
-
+Nikolaus
 
 _______________________________________________
 lm-sensors mailing list
