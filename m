@@ -1,272 +1,43 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 25 Mar 2012 05:00:32 +0000
-Subject: [lm-sensors] [PATCH v2 2/3] hwmon: (it87) Create voltage attributes only if voltage is enabled
-Message-Id: <1332651633-23560-3-git-send-email-linux@roeck-us.net>
+From: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Date: Fri, 02 Mar 2012 14:40:36 +0000
+Subject: [lm-sensors] [PATCH 00/03] DA9052 patch series
+Message-Id: <1330698516.21817.29.camel@dhruva>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Dajun <dajun.chen@diasemi.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-watchdog@vger.kernel.org, lm-sensors@lm-sensors.org, sameo@linux.intel.com
 
-On IT8782F and IT8783F, some voltage input pins may be disabled. Don't create
-sysfs attribute files if that is the case.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c |  142 +++++++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 111 insertions(+), 31 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index d633f1a..7dc4e48 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -234,6 +234,7 @@ struct it87_sio_data {
- 	u8 beep_pin;
- 	u8 internal;	/* Internal sensors can be labeled */
- 	/* Features skipped based on config or DMI */
-+	u16 skip_in;
- 	u8 skip_vid;
- 	u8 skip_fan;
- 	u8 skip_pwm;
-@@ -1371,41 +1372,73 @@ static ssize_t show_name(struct device *dev, struct device_attribute
- }
- static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
- 
--static struct attribute *it87_attributes[] = {
-+static struct attribute *it87_attributes_in[9][5] = {
-+{
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
--	&sensor_dev_attr_in1_input.dev_attr.attr,
--	&sensor_dev_attr_in2_input.dev_attr.attr,
--	&sensor_dev_attr_in3_input.dev_attr.attr,
--	&sensor_dev_attr_in4_input.dev_attr.attr,
--	&sensor_dev_attr_in5_input.dev_attr.attr,
--	&sensor_dev_attr_in6_input.dev_attr.attr,
--	&sensor_dev_attr_in7_input.dev_attr.attr,
--	&sensor_dev_attr_in8_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_min.dev_attr.attr,
--	&sensor_dev_attr_in1_min.dev_attr.attr,
--	&sensor_dev_attr_in2_min.dev_attr.attr,
--	&sensor_dev_attr_in3_min.dev_attr.attr,
--	&sensor_dev_attr_in4_min.dev_attr.attr,
--	&sensor_dev_attr_in5_min.dev_attr.attr,
--	&sensor_dev_attr_in6_min.dev_attr.attr,
--	&sensor_dev_attr_in7_min.dev_attr.attr,
- 	&sensor_dev_attr_in0_max.dev_attr.attr,
--	&sensor_dev_attr_in1_max.dev_attr.attr,
--	&sensor_dev_attr_in2_max.dev_attr.attr,
--	&sensor_dev_attr_in3_max.dev_attr.attr,
--	&sensor_dev_attr_in4_max.dev_attr.attr,
--	&sensor_dev_attr_in5_max.dev_attr.attr,
--	&sensor_dev_attr_in6_max.dev_attr.attr,
--	&sensor_dev_attr_in7_max.dev_attr.attr,
- 	&sensor_dev_attr_in0_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
- 	&sensor_dev_attr_in1_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
- 	&sensor_dev_attr_in2_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
- 	&sensor_dev_attr_in3_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_min.dev_attr.attr,
-+	&sensor_dev_attr_in4_max.dev_attr.attr,
- 	&sensor_dev_attr_in4_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_min.dev_attr.attr,
-+	&sensor_dev_attr_in5_max.dev_attr.attr,
- 	&sensor_dev_attr_in5_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_min.dev_attr.attr,
-+	&sensor_dev_attr_in6_max.dev_attr.attr,
- 	&sensor_dev_attr_in6_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_min.dev_attr.attr,
-+	&sensor_dev_attr_in7_max.dev_attr.attr,
- 	&sensor_dev_attr_in7_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in8_input.dev_attr.attr,
-+	NULL
-+} };
- 
-+static const struct attribute_group it87_group_in[9] = {
-+	{ .attrs = it87_attributes_in[0] },
-+	{ .attrs = it87_attributes_in[1] },
-+	{ .attrs = it87_attributes_in[2] },
-+	{ .attrs = it87_attributes_in[3] },
-+	{ .attrs = it87_attributes_in[4] },
-+	{ .attrs = it87_attributes_in[5] },
-+	{ .attrs = it87_attributes_in[6] },
-+	{ .attrs = it87_attributes_in[7] },
-+	{ .attrs = it87_attributes_in[8] },
-+};
-+
-+static struct attribute *it87_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
-@@ -1432,7 +1465,7 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
- };
- 
--static struct attribute *it87_attributes_beep[] = {
-+static struct attribute *it87_attributes_in_beep[] = {
- 	&sensor_dev_attr_in0_beep.dev_attr.attr,
- 	&sensor_dev_attr_in1_beep.dev_attr.attr,
- 	&sensor_dev_attr_in2_beep.dev_attr.attr,
-@@ -1441,7 +1474,10 @@ static struct attribute *it87_attributes_beep[] = {
- 	&sensor_dev_attr_in5_beep.dev_attr.attr,
- 	&sensor_dev_attr_in6_beep.dev_attr.attr,
- 	&sensor_dev_attr_in7_beep.dev_attr.attr,
-+	NULL
-+};
- 
-+static struct attribute *it87_attributes_beep[] = {
- 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
- 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
- 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
-@@ -1725,18 +1761,31 @@ static int __init it87_find(unsigned short *address,
- 
- 		/* VIN5 */
- 		if ((reg27 & (1 << 0)) || uart6)
--			; /* No VIN5 */
-+			sio_data->skip_in |= (1 << 5); /* No VIN5 */
- 
- 		/* VIN6 */
- 		if ((reg27 & (1 << 1)) || uart6)
--			; /* No VIN6 */
-+			sio_data->skip_in |= (1 << 6); /* No VIN6 */
- 
- 		/*
- 		 * VIN7
- 		 * Does not depend on bit 2 of Reg2C, contrary to datasheet.
- 		 */
--		if (reg27 & (1 << 2))
--			; /* No VIN7 (unless internal) */
-+		if (reg27 & (1 << 2)) {
-+			/*
-+			 * The data sheet is a bit uncear regarding the internal
-+			 * voltage divider for VCCH5V. It says
-+			 * "This bit enables and switches VIN7 (pin91) to the
-+			 * internal voltage divider for VCCH5V".
-+			 * This is different to other chips, where the internal
-+			 * voltage divider would connect VIN7 to an internal
-+			 * voltage source. Maybe that is the case here as well,
-+			 * but at least for now follow the data sheet and assume
-+			 * that there is no VIN7 if pin 91 is not configured as
-+			 * VIN7 input.
-+			 */
-+			sio_data->skip_in |= (1 << 7);
-+		}
- 
- 		if (reg2C & (1 << 0))
- 			sio_data->internal |= (1 << 0);
-@@ -1747,6 +1796,7 @@ static int __init it87_find(unsigned short *address,
- 
- 	} else {
- 		int reg;
-+		bool uart6;
- 
- 		superio_select(GPIO);
- 
-@@ -1784,6 +1834,9 @@ static int __init it87_find(unsigned short *address,
- 			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
- 
- 		reg = superio_inb(IT87_SIO_PINX2_REG);
-+
-+		uart6 = sio_data->type = it8782 && (reg & (1 << 2));
-+
- 		/*
- 		 * The IT8720F has no VIN7 pin, so VCCH should always be
- 		 * routed internally to VIN7 with an internal divider.
-@@ -1797,8 +1850,7 @@ static int __init it87_find(unsigned short *address,
- 		 * On IT8782F, VIN7 is multiplexed with one of the UART6 pins.
- 		 * If UART6 is enabled, re-route VIN7 to the internal divider.
- 		 */
--		if ((sio_data->type = it8720 && !(reg & (1 << 1))) ||
--		    (sio_data->type = it8782 && (reg & (1 << 2)))) {
-+		if ((sio_data->type = it8720 && !(reg & (1 << 1))) || uart6) {
- 			reg |= (1 << 1);
- 			superio_outb(IT87_SIO_PINX2_REG, reg);
- 			pr_notice("Routing internal VCCH to in7\n");
-@@ -1809,6 +1861,14 @@ static int __init it87_find(unsigned short *address,
- 		    sio_data->type = it8728)
- 			sio_data->internal |= (1 << 1);
- 
-+		/*
-+		 * On IT8782F, UART6 pins overlap with VIN5, VIN6, and VIN7.
-+		 * While VIN7 can be routed to the internal voltage divider,
-+		 * VIN5 and VIN6 are not available if UART6 is enabled.
-+		 */
-+		if (uart6)
-+			sio_data->skip_in |= (1 << 5) | (1 << 6);
-+
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	}
- 	if (sio_data->beep_pin)
-@@ -1846,6 +1906,12 @@ static void it87_remove_files(struct device *dev)
- 	int i;
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
-+	for (i = 0; i < 9; i++) {
-+		sysfs_remove_group(&dev->kobj, &it87_group_in[i]);
-+		if (it87_attributes_in_beep[i])
-+			sysfs_remove_file(&dev->kobj,
-+					  it87_attributes_in_beep[i]);
-+	}
- 	if (sio_data->beep_pin)
- 		sysfs_remove_group(&dev->kobj, &it87_group_beep);
- 	for (i = 0; i < 5; i++) {
-@@ -1944,9 +2010,23 @@ static int __devinit it87_probe(struct platform_device *pdev)
- 	it87_init_device(pdev);
- 
- 	/* Register sysfs hooks */
-+	for (i = 0; i < 9; i++) {
-+		if (sio_data->skip_in & (1 << i))
-+			continue;
-+		err = sysfs_create_group(&dev->kobj, &it87_group_in[i]);
-+		if (err)
-+			goto ERROR4;
-+		if (sio_data->beep_pin && it87_attributes_in_beep[i]) {
-+			err = sysfs_create_file(&dev->kobj,
-+						it87_attributes_in_beep[i]);
-+			if (err)
-+				goto ERROR4;
-+		}
-+	}
-+
- 	err = sysfs_create_group(&dev->kobj, &it87_group);
- 	if (err)
--		goto ERROR2;
-+		goto ERROR4;
- 
- 	if (sio_data->beep_pin) {
- 		err = sysfs_create_group(&dev->kobj, &it87_group_beep);
--- 
-1.7.5.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+77u/VGhlIGZvbGxvd2luZyBwYXRjaCBzZXJpZXMgYWRkcyBzdXBwb3J0IGZvciB0aGUgQURDIGZ1
+bmN0aW9uYWxpdHkgaW4gTUZEIGNvcmUKbW9kdWxlLCB0aGUgSFdNT04gbW9kdWxlIGFuZCB0aGUg
+T05LRVkgbW9kdWxlIGZvciBEaWFsb2cgU2VtaWNvbmR1Y3RvcgpEQTkwNTIvNTMgUE1JQ3MuCgpU
+aGUgSFdNT04gcGF0Y2ggZGVwZW5kcyBvbiB0aGUgcGF0Y2ggZm9yIEFEQyBmdW5jdGlvbmFsaXR5
+IGluIE1GRCBtb2R1bGUuCgpBc2hpc2ggSmFuZ2FtICgyKToKCVtNRkRdOiBJbmNyZW1lbnRhbCB3
+aXRoIEFEQyBzdXBwb3J0LiBIV01PTiBwYXRjaCBhbHNvIGRlcGVuZHMgb24gdGhpcy4KCVtIV01P
+Tl06IEhXTU9OIGRyaXZlciBmb3IgREE5MDUyLzUzIFBNSUNzLgoJW09OS0VZXTogT05LRVkgZHJp
+dmVyIGZvciBEQTkwNTIvNTMgUE1JQ3MuCgogRG9jdW1lbnRhdGlvbi9od21vbi9kYTkwNTIgICAg
+ICAgIHwgICA2MSArKysrKysrCiBkcml2ZXJzL2h3bW9uL0tjb25maWcgICAgICAgICAgICAgfCAg
+IDEwICsKIGRyaXZlcnMvaHdtb24vTWFrZWZpbGUgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVy
+cy9od21vbi9kYTkwNTItaHdtb24uYyAgICAgIHwgIDM0NCArKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrCiBkcml2ZXJzL2lucHV0L21pc2MvS2NvbmZpZyAgICAgICAgfCAgIDEw
+ICsKIGRyaXZlcnMvaW5wdXQvbWlzYy9NYWtlZmlsZSAgICAgICB8ICAgIDEgKwogZHJpdmVycy9p
+bnB1dC9taXNjL2RhOTA1Ml9vbmtleS5jIHwgIDE3NCArKysrKysrKysrKysrKysrKysrCiBkcml2
+ZXJzL21mZC9kYTkwNTItY29yZS5jICAgICAgICAgfCAgMTM2ICsrKysrKysrKysrKysrKwogaW5j
+bHVkZS9saW51eC9tZmQvZGE5MDUyL2RhOTA1Mi5oIHwgICAyMCArKwogOSBmaWxlcyBjaGFuZ2Vk
+LCA3NTcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKIGNyZWF0ZSBtb2RlIDEwMDY0NCBE
+b2N1bWVudGF0aW9uL2h3bW9uL2RhOTA1MgogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvaHdt
+b24vZGE5MDUyLWh3bW9uLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2lucHV0L21pc2Mv
+ZGE5MDUyX29ua2V5LmMKCgoKCgpUaGlzIG1lc3NhZ2UgY29udGFpbnMgaW5mb3JtYXRpb24gdGhh
+dCBtYXkgYmUgcHJpdmlsZWdlZCBvciBjb25maWRlbnRpYWwgYW5kIGlzIHRoZSBwcm9wZXJ0eSBv
+ZiB0aGUgS1BJVCBDdW1taW5zIEluZm9zeXN0ZW1zIEx0ZC4gSXQgaXMgaW50ZW5kZWQgb25seSBm
+b3IgdGhlIHBlcnNvbiB0byB3aG9tIGl0IGlzIGFkZHJlc3NlZC4gSWYgeW91IGFyZSBub3QgdGhl
+IGludGVuZGVkIHJlY2lwaWVudCwgeW91IGFyZSBub3QgYXV0aG9yaXplZCB0byByZWFkLCBwcmlu
+dCwgcmV0YWluIGNvcHksIGRpc3NlbWluYXRlLCBkaXN0cmlidXRlLCBvciB1c2UgdGhpcyBtZXNz
+YWdlIG9yIGFueSBwYXJ0IHRoZXJlb2YuIElmIHlvdSByZWNlaXZlIHRoaXMgbWVzc2FnZSBpbiBl
+cnJvciwgcGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGFuZCBkZWxldGUgYWxs
+IGNvcGllcyBvZiB0aGlzIG1lc3NhZ2UuIEtQSVQgQ3VtbWlucyBJbmZvc3lzdGVtcyBMdGQuIGRv
+ZXMgbm90IGFjY2VwdCBhbnkgbGlhYmlsaXR5IGZvciB2aXJ1cyBpbmZlY3RlZCBtYWlscy4KCgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
