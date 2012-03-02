@@ -1,32 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 07 Mar 2012 17:36:28 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (jc42) Add support for AT30TS00, TS3000GB2, TSE2002GB2, and MCP98
-Message-Id: <20120307183628.0499efea@endymion.delvare>
+From: Stefan Monnier <monnier@iro.umontreal.ca>
+Date: Fri, 02 Mar 2012 15:15:22 +0000
+Subject: [lm-sensors] Interpreting lm-sensors's output
+Message-Id: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1331140926-16412-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1331140926-16412-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed,  7 Mar 2012 09:22:06 -0800, Guenter Roeck wrote:
-> Also update IDT datasheet locations.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Only use two prefixes for TSE2002xx, TS3000xx.
-> 
->  Documentation/hwmon/jc42 |   20 ++++++++++++++------
->  drivers/hwmon/Kconfig    |    6 +++---
->  drivers/hwmon/jc42.c     |   20 ++++++++++++++++++--
->  3 files changed, 35 insertions(+), 11 deletions(-)
-> (...)
+I just got a new fanless mini-ITX board and am concerned about
+its temperature.
+lm-sensors only finds two temperature sensors on this board:
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+   % sensors
+   radeon-pci-0008
+   Adapter: PCI adapter
+   temp1:        +51.0=B0C =20
+  =20
+   k10temp-pci-00c3
+   Adapter: PCI adapter
+   temp1:        +51.5=B0C  (high =3D +70.0=B0C)
+                          (crit =3D +100.0=B0C, hyst =3D +97.0=B0C)
+  =20
+   %
 
--- 
-Jean Delvare
+IIUC both of those are sensors within my E350 processor (the first on
+the GPU, the second on the CPU).
+Now here's my question: how can I figure out what temperature is "safe"
+or what is "too high"?
+
+OT1H the "high=3D70" and "crit=3D100" would seem to give me the answer, but
+OTOH I don't know whether I can trust them (actually, I hope some of
+the output is "wrong" since the sensor readings go up routinely to 80=B0
+during long compilations).
+
+
+        Stefan
+
 
 _______________________________________________
 lm-sensors mailing list
