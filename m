@@ -1,36 +1,91 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 14 Mar 2012 23:06:41 +0000
-Subject: Re: [lm-sensors] ERROR: could not insert 'w83627ehf': Device or resource busy
-Message-Id: <20120314230641.GA9205@ericsson.com>
+From: Yvonne Hazik <yvonne@searchinspider.com>
+Date: Sat, 03 Mar 2012 21:22:57 +0000
+Subject: [lm-sensors] let's collaborate together
+Message-Id: <20120303212315.B28DC5290A9@searchinspider.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7220356256866626773=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F60A0AA.2050107@gmail.com>
-In-Reply-To: <4F60A0AA.2050107@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Mar 14, 2012 at 04:57:51PM -0400, David Kremer wrote:
-> Thank you Guenter. I read your driver's README and I would like to thank 
-> you for that work.
-> 
-> What I wonder is, if there is actually an automatic mode and a 
-> temperature range that could be defined for the NCT6776F to stay in (so 
-> called "cruiser mode"), why this is not accessible from whithin the BIOS 
-> setting ?
-> 
-David,
 
-that is really a question to ask the board vendor. NCT6776F actually has several
-automatic modes - thermal cruise mode, fan speed cruise mode, and SmartFan IV mode.
-In SmartFan IV mode, one can also enable an additional "weight" mode, in which
-fan speed is controlled by two temperatures. This is configured on my Intel board
-and works quite well. That mode can be configured with the various "weight" attributes
-in the latest version of the nct6775 driver.
+--===============7220356256866626773==
+Content-Type: multipart/alternative;
+	boundary="b1_c938d603e04a786814d4ba85823932b9"
 
-Guenter
+
+--b1_c938d603e04a786814d4ba85823932b9
+Content-Type: text/plain; charset = "UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+My name is Yvonne and I'm the webmaster of SearchinSpider.com
+
+I have vast selection of websites and while doing SEO work with one
+of my partner's website we've found lists.lm-sensors.org
+
+As a SEO expert I'm very interested in telling you how exactly
+your site can be visible &amp; rank higher in all major search engines
+like Google, Bing &amp; Yahoo!
+
+I hope you're interested and please let me know if you'd like
+more information - I will be happy to oblige.
+
+Thanks,
+
+Yvonne Hazik
+yvonne@searchinspider.com
+SearchinSpider.com
+
+http://ca.linkedin.com/in/yvonnehazik
+
+
+
+--b1_c938d603e04a786814d4ba85823932b9
+Content-Type: text/html; charset = "UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<br />
+<br />
+My name is Yvonne and I'm the webmaster of SearchinSpider.com<br />
+<br />
+I have vast selection of websites and while doing SEO work with one<br />
+of my partner's website we've found lists.lm-sensors.org<br />
+<br />
+As a SEO expert I'm very interested in telling you how exactly<br />
+your site can be visible &amp; rank higher in all major search engines<br=
+ />
+like Google, Bing &amp; Yahoo!<br />
+<br />
+I hope you're interested and please let me know if you'd like<br />
+more information - I will be happy to oblige.<br />
+<br />
+Thanks,<br />
+<br />
+Yvonne Hazik<br />
+yvonne@searchinspider.com<br />
+SearchinSpider.com<br />
+<br />
+http://ca.linkedin.com/in/yvonnehazik<br />
+<br />
+
+
+
+--b1_c938d603e04a786814d4ba85823932b9--
+
+
+
+
+--===============7220356256866626773==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7220356256866626773==--
+
+
