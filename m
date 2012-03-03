@@ -1,48 +1,412 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Date: Fri, 30 Mar 2012 09:59:00 +0000
-Subject: Re: [lm-sensors] [PATCH 00/17] mark const init data with __initconst instead of __initdata
-Message-Id: <20120330095859.GT15647@pengutronix.de>
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Date: Sat, 03 Mar 2012 11:18:04 +0000
+Subject: [lm-sensors] [PATCH 1/4] thermal: exynos: Add thermal interface support for linux thermal layer
+Message-Id: <1330772767-16120-2-git-send-email-amit.kachhap@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120329211131.GA31250@pengutronix.de>
-In-Reply-To: <20120329211131.GA31250@pengutronix.de>
+References: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, Anatolij Gustschin <agust@denx.de>, Andreas Koensgen <ajk@comnets.uni-bremen.de>, Andrew Lunn <andrew@lunn.ch>, Andrew Victor <linux@maxim.org.za>, Arnd Bergmann <arnd@arndb.de>, Barry Song <baohua.song@csr.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bryan Huntsman <bryanh@codeaurora.org>, cbe-oss-dev@lists.ozlabs.org, Christoph Lameter <cl@linux-foundation.org>, Daniel Walker <dwalker@fifo99.com>, David Brown <davidb@codeaurora.org>, David Howells <dhowells@redhat.com>, "David S. Miller" <davem@davemloft.net>, David Woodhouse <dwmw2@infradead.org>, davinci-linux-open-source@linux.davincidsp.com, Eric Miao <eric.y.miao@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Grant Likely <gran>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
+Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
 
-On Thu, Mar 29, 2012 at 11:11:31PM +0200, Uwe Kleine-K=F6nig wrote:
-> Hello,
->=20
-> this series fixes a common error to use __initdata to mark const
-> variables. Most of the time this works well enough to go unnoticed
-> (though I wonder why the linker doesn't warn about that).
-> Just try adding something like
->=20
-> 	int something __initdata;
->=20
-> to one of the patched files and compile to see the error.
->=20
-> While touching these annotations I also corrected the position where it
-> was wrong to go between the variable name and the =3D.
->=20
-> Note this series is not compile tested.
-After a question by Shawn Guo I noticed that my command to do the changes
-was to lax and changed things that must not be changed (at least not
-with further care). Affected are lines like:
+This codes uses the generic linux thermal layer and creates a bridge
+between temperature sensors, linux thermal framework and cooling devices
+for samsung exynos platform. This layer recieves or monitor the
+temperature from the sensor and informs the generic thermal layer to take
+the necessary cooling action.
 
-	static const char *at91_dt_board_compat[] __initconst =3D {
+Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+---
+ drivers/thermal/Kconfig          |    8 +
+ drivers/thermal/Makefile         |    1 +
+ drivers/thermal/exynos_thermal.c |  272 ++++++++++++++++++++++++++++++++++++++
+ include/linux/exynos_thermal.h   |   72 ++++++++++
+ 4 files changed, 353 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/thermal/exynos_thermal.c
+ create mode 100644 include/linux/exynos_thermal.h
 
-While at91_dt_board_compat[0] is const, at91_dt_board_compat is not.
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index 298c1cd..4e8df56 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -29,3 +29,11 @@ config CPU_THERMAL
+ 	  This will be useful for platforms using the generic thermal interface
+ 	  and not the ACPI interface.
+ 	  If you want this support, you should say Y or M here.
++
++config SAMSUNG_THERMAL_INTERFACE
++	bool "Samsung Thermal interface support"
++	depends on THERMAL && CPU_THERMAL
++	help
++	  This is a samsung thermal interface which will be used as
++	  a link between sensors and cooling devices with linux thermal
++	  framework.
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index 655cbc4..c67b6b2 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -4,3 +4,4 @@
+ 
+ obj-$(CONFIG_THERMAL)		+= thermal_sys.o
+ obj-$(CONFIG_CPU_THERMAL)	+= cpu_cooling.o
++obj-$(CONFIG_SAMSUNG_THERMAL_INTERFACE)	+= exynos_thermal.o
+diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
+new file mode 100644
+index 0000000..878d45c
+--- /dev/null
++++ b/drivers/thermal/exynos_thermal.c
+@@ -0,0 +1,272 @@
++/* linux/drivers/thermal/exynos_thermal.c
++ *
++ * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++*/
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/thermal.h>
++#include <linux/platform_device.h>
++#include <linux/cpufreq.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/cpu_cooling.h>
++#include <linux/exynos_thermal.h>
++
++#define MAX_COOLING_DEVICE 4
++struct exynos4_thermal_zone {
++	unsigned int idle_interval;
++	unsigned int active_interval;
++	struct thermal_zone_device *therm_dev;
++	struct thermal_cooling_device *cool_dev[MAX_COOLING_DEVICE];
++	unsigned int cool_dev_size;
++	struct platform_device *exynos4_dev;
++	struct thermal_sensor_conf *sensor_conf;
++};
++
++static struct exynos4_thermal_zone *th_zone;
++
++static int exynos4_get_mode(struct thermal_zone_device *thermal,
++			    enum thermal_device_mode *mode)
++{
++	if (th_zone->sensor_conf) {
++		pr_info("Temperature sensor not initialised\n");
++		*mode = THERMAL_DEVICE_DISABLED;
++	} else
++		*mode = THERMAL_DEVICE_ENABLED;
++	return 0;
++}
++
++static int exynos4_set_mode(struct thermal_zone_device *thermal,
++			    enum thermal_device_mode mode)
++{
++	if (!th_zone->therm_dev) {
++		pr_notice("thermal zone not registered\n");
++		return 0;
++	}
++	if (mode = THERMAL_DEVICE_ENABLED)
++		th_zone->therm_dev->polling_delay +				th_zone->active_interval*1000;
++	else
++		th_zone->therm_dev->polling_delay +				th_zone->idle_interval*1000;
++
++	thermal_zone_device_update(th_zone->therm_dev);
++	pr_info("thermal polling set for duration=%d sec\n",
++				th_zone->therm_dev->polling_delay/1000);
++	return 0;
++}
++
++/*This may be called from interrupt based temperature sensor*/
++void exynos4_report_trigger(void)
++{
++	unsigned int monitor_temp;
++
++	if (!th_zone || !th_zone->therm_dev)
++		return;
++
++	monitor_temp = th_zone->sensor_conf->trip_data.trip_val[0];
++
++	thermal_zone_device_update(th_zone->therm_dev);
++
++	mutex_lock(&th_zone->therm_dev->lock);
++	if (th_zone->therm_dev->last_temperature > monitor_temp)
++		th_zone->therm_dev->polling_delay +					th_zone->active_interval*1000;
++	else
++		th_zone->therm_dev->polling_delay +					th_zone->idle_interval*1000;
++
++	kobject_uevent(&th_zone->therm_dev->device.kobj, KOBJ_CHANGE);
++	mutex_unlock(&th_zone->therm_dev->lock);
++}
++
++static int exynos4_get_trip_type(struct thermal_zone_device *thermal, int trip,
++				 enum thermal_trip_type *type)
++{
++	if (trip = 0 || trip = 1)
++		*type = THERMAL_TRIP_STATE_ACTIVE;
++	else if (trip = 2)
++		*type = THERMAL_TRIP_CRITICAL;
++	else
++		return -EINVAL;
++
++	return 0;
++}
++
++static int exynos4_get_trip_temp(struct thermal_zone_device *thermal, int trip,
++				 unsigned long *temp)
++{
++	/*Monitor zone*/
++	if (trip = 0)
++		*temp = th_zone->sensor_conf->trip_data.trip_val[0];
++	/*Warn zone*/
++	else if (trip = 1)
++		*temp = th_zone->sensor_conf->trip_data.trip_val[1];
++	/*Panic zone*/
++	else if (trip = 2)
++		*temp = th_zone->sensor_conf->trip_data.trip_val[2];
++	else
++		return -EINVAL;
++	/*convert the temperature into millicelsius*/
++	*temp = *temp * 1000;
++
++	return 0;
++}
++
++static int exynos4_get_crit_temp(struct thermal_zone_device *thermal,
++				 unsigned long *temp)
++{
++	/*Panic zone*/
++	*temp = th_zone->sensor_conf->trip_data.trip_val[2];
++	/*convert the temperature into millicelsius*/
++	*temp = *temp * 1000;
++	return 0;
++}
++
++static int exynos4_bind(struct thermal_zone_device *thermal,
++			struct thermal_cooling_device *cdev)
++{
++	/* if the cooling device is the one from exynos4 bind it */
++	if (cdev != th_zone->cool_dev[0])
++		return 0;
++
++	if (thermal_zone_bind_cooling_device(thermal, 0, cdev)) {
++		pr_err("error binding cooling dev\n");
++		return -EINVAL;
++	}
++	if (thermal_zone_bind_cooling_device(thermal, 1, cdev)) {
++		pr_err("error binding cooling dev\n");
++		return -EINVAL;
++	}
++
++	return 0;
++
++}
++
++static int exynos4_unbind(struct thermal_zone_device *thermal,
++			  struct thermal_cooling_device *cdev)
++{
++	if (cdev != th_zone->cool_dev[0])
++		return 0;
++
++	if (thermal_zone_unbind_cooling_device(thermal, 0, cdev)) {
++		pr_err("error unbinding cooling dev\n");
++		return -EINVAL;
++	}
++	if (thermal_zone_unbind_cooling_device(thermal, 1, cdev)) {
++		pr_err("error unbinding cooling dev\n");
++		return -EINVAL;
++	}
++	return 0;
++
++}
++
++static int exynos4_get_temp(struct thermal_zone_device *thermal,
++			       unsigned long *temp)
++{
++	void *data;
++
++	if (!th_zone->sensor_conf) {
++		pr_info("Temperature sensor not initialised\n");
++		return -EINVAL;
++	}
++	data = th_zone->sensor_conf->private_data;
++	*temp = th_zone->sensor_conf->read_temperature(data);
++	/*convert the temperature into millicelsius*/
++	*temp = *temp * 1000;
++	return 0;
++}
++
++/* bind callback functions to thermalzone */
++static struct thermal_zone_device_ops exynos4_dev_ops = {
++	.bind = exynos4_bind,
++	.unbind = exynos4_unbind,
++	.get_temp = exynos4_get_temp,
++	.get_mode = exynos4_get_mode,
++	.set_mode = exynos4_set_mode,
++	.get_trip_type = exynos4_get_trip_type,
++	.get_trip_temp = exynos4_get_trip_temp,
++	.get_crit_temp = exynos4_get_crit_temp,
++};
++
++int exynos4_register_thermal(struct thermal_sensor_conf *sensor_conf)
++{
++	int ret, count, tab_size;
++	struct freq_pctg_table *tab_ptr;
++
++	if (!sensor_conf || !sensor_conf->read_temperature) {
++		pr_err("Temperature sensor not initialised\n");
++		return -EINVAL;
++	}
++
++	th_zone = kzalloc(sizeof(struct exynos4_thermal_zone), GFP_KERNEL);
++	if (!th_zone) {
++		ret = -ENOMEM;
++		goto err_unregister;
++	}
++
++	th_zone->sensor_conf = sensor_conf;
++
++	tab_ptr = (struct freq_pctg_table *)sensor_conf->cooling_data.freq_data;
++	tab_size = sensor_conf->cooling_data.freq_pctg_count;
++
++	/*Register the cpufreq cooling device*/
++	th_zone->cool_dev_size = 1;
++	count = 0;
++	th_zone->cool_dev[count] = cpufreq_cooling_register(
++			(struct freq_pctg_table *)&(tab_ptr[count]),
++			tab_size, cpumask_of(0));
++
++	if (IS_ERR(th_zone->cool_dev[count])) {
++		pr_err("Failed to register cpufreq cooling device\n");
++		ret = -EINVAL;
++		th_zone->cool_dev_size = 0;
++		goto err_unregister;
++	}
++
++	th_zone->therm_dev = thermal_zone_device_register(sensor_conf->name,
++				3, NULL, &exynos4_dev_ops, 0, 0, 0, 1000);
++	if (IS_ERR(th_zone->therm_dev)) {
++		pr_err("Failed to register thermal zone device\n");
++		ret = -EINVAL;
++		goto err_unregister;
++	}
++
++	th_zone->active_interval = 1;
++	th_zone->idle_interval = 10;
++
++	exynos4_set_mode(th_zone->therm_dev, THERMAL_DEVICE_DISABLED);
++
++	pr_info("Exynos: Kernel Thermal management registered\n");
++
++	return 0;
++
++err_unregister:
++	exynos4_unregister_thermal();
++	return ret;
++}
++EXPORT_SYMBOL(exynos4_register_thermal);
++
++void exynos4_unregister_thermal(void)
++{
++	unsigned int i;
++
++	for (i = 0; i < th_zone->cool_dev_size; i++) {
++		if (th_zone && th_zone->cool_dev[i])
++			cpufreq_cooling_unregister(th_zone->cool_dev[i]);
++	}
++
++	if (th_zone && th_zone->therm_dev)
++		thermal_zone_device_unregister(th_zone->therm_dev);
++
++	kfree(th_zone);
++
++	pr_info("Exynos: Kernel Thermal management unregistered\n");
++}
++EXPORT_SYMBOL(exynos4_unregister_thermal);
+diff --git a/include/linux/exynos_thermal.h b/include/linux/exynos_thermal.h
+new file mode 100644
+index 0000000..186e409
+--- /dev/null
++++ b/include/linux/exynos_thermal.h
+@@ -0,0 +1,72 @@
++/* linux/include/linux/exynos_thermal.h
++ *
++ * Copyright (c) 2010-2011 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++*/
++
++#ifndef THERMAL_INTERFACE_H
++#define THERMAL_INTERFACE_H
++/* CPU Zone information */
++
++#define SENSOR_NAME_LEN	16
++#define MAX_TRIP_COUNT	8
++
++#define PANIC_ZONE      4
++#define WARN_ZONE       3
++#define MONITOR_ZONE    2
++#define SAFE_ZONE       1
++#define NO_ACTION       0
++
++
++struct	thermal_trip_point_conf {
++	int trip_val[MAX_TRIP_COUNT];
++	int trip_count;
++};
++
++struct	thermal_cooling_conf {
++	struct freq_pctg_table freq_data[MAX_TRIP_COUNT];
++	int freq_pctg_count;
++};
++
++/**
++ * struct exynos4_tmu_platform_data
++ * @name: name of the temperature sensor
++ * @read_temperature: A function pointer to read temperature info
++ * @private_data: Temperature sensor private data
++ * @sensor_data: Sensor specific information like trigger temperature, level
++ */
++struct thermal_sensor_conf {
++	char	name[SENSOR_NAME_LEN];
++	int	(*read_temperature)(void *data);
++	struct	thermal_trip_point_conf trip_data;
++	struct	thermal_cooling_conf cooling_data;
++	void	*private_data;
++};
++
++/**
++ * exynos4_register_thermal: Register to the exynos thermal interface.
++ * @sensor_conf:   Structure containing temperature sensor information
++ *
++ * returns zero on success, else negative errno.
++ */
++int exynos4_register_thermal(struct thermal_sensor_conf *sensor_conf);
++
++/**
++ * exynos4_unregister_thermal: Un-register from the exynos thermal interface.
++ *
++ * return not applicable.
++ */
++void exynos4_unregister_thermal(void);
++
++/**
++ * exynos4_report_trigger: Report any trigger level crossed in the
++ *	temperature sensor. This may be useful to take any cooling action.
++ *
++ * return not applicable.
++ */
++extern void exynos4_report_trigger(void);
++#endif
+-- 
+1.7.1
 
-I will send a fixed series later today.
-
-Best regards
-Uwe
-
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
 _______________________________________________
 lm-sensors mailing list
