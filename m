@@ -1,82 +1,63 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Date: Sat, 03 Mar 2012 11:18:03 +0000
-Subject: [lm-sensors] [PATCH 0/4] thermal: exynos: Add kernel thermal support for exynos platform
-Message-Id: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 03 Mar 2012 09:27:57 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (max34440) Add support for 'lowest' output voltage attribute
+Message-Id: <20120303102757.11a63315@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
-Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Changes since RFC:
-*Moved the Temperature sensor driver from driver/hwmon/ to driver/mfd
- as discussed with Guenter Roeck <guenter.roeck@ericsson.com> and 
- Donggeun Kim <dg77.kim@samsung.com> (https://lkml.org/lkml/2012/1/5/7)
-*Some changes according to the changes in common cpu cooling APIs
+On Tue, 28 Feb 2012 17:18:25 -0800, Guenter Roeck wrote:
+> MAX34440 and compatibles support reporting the lowest measured output voltage.
+> Add support for it.
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/pmbus/max34440.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/hwmon/pmbus/max34440.c b/drivers/hwmon/pmbus/max34440.c
+> index 7d830c1..95ee9e1 100644
+> --- a/drivers/hwmon/pmbus/max34440.c
+> +++ b/drivers/hwmon/pmbus/max34440.c
+> @@ -30,6 +30,7 @@ enum chips { max34440, max34441 };
+>  #define MAX34440_MFR_VOUT_PEAK		0xd4
+>  #define MAX34440_MFR_IOUT_PEAK		0xd5
+>  #define MAX34440_MFR_TEMPERATURE_PEAK	0xd6
+> +#define MAX34440_MFR_VOUT_MIN		0xd7
+>  
+>  #define MAX34440_STATUS_OC_WARN		(1 << 0)
+>  #define MAX34440_STATUS_OC_FAULT	(1 << 1)
+> @@ -41,6 +42,10 @@ static int max34440_read_word_data(struct i2c_client *client, int page, int reg)
+>  	int ret;
+>  
+>  	switch (reg) {
+> +	case PMBUS_VIRT_READ_VOUT_MIN:
+> +		ret = pmbus_read_word_data(client, page,
+> +					   MAX34440_MFR_VOUT_MIN);
+> +		break;
+>  	case PMBUS_VIRT_READ_VOUT_MAX:
+>  		ret = pmbus_read_word_data(client, page,
+>  					   MAX34440_MFR_VOUT_PEAK);
+> @@ -73,6 +78,10 @@ static int max34440_write_word_data(struct i2c_client *client, int page,
+>  	switch (reg) {
+>  	case PMBUS_VIRT_RESET_VOUT_HISTORY:
+>  		ret = pmbus_write_word_data(client, page,
+> +					    MAX34440_MFR_VOUT_MIN, 0x7fff);
+> +		if (ret)
+> +			break;
+> +		ret = pmbus_write_word_data(client, page,
+>  					    MAX34440_MFR_VOUT_PEAK, 0);
+>  		break;
+>  	case PMBUS_VIRT_RESET_IOUT_HISTORY:
 
-All the patchset based on Kernel version 3.3-rc5 and uses the cpufreq
-cooling registration APIs implemented in earlier patchset 
-https://lkml.org/lkml/2012/2/22/123
+Looks good.
 
-The code added in this patchset adds a thermal interface layer for samsung
-exynos platforms. This layer is registered from the temperature sensor driver 
-and recieves/monitor the temperature from the sensor and informs the
-generic thermal layer to take the necessary cooling action. Currently, this
-layer can be used to create only one thermal zone and hence only one
-temperature sensor can register. The future goal is to make this handle
-multiple thermal zones.
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-Some modifications are done in the temperature sensor driver to export the
-information needed for the thermal interface to register with the core linux
-thermal framework and with the cpu frequency based cooling devices.
-
-A simple data/control flow diagrams to illustrate this,
-
-Core Linux thermal <------->  Exynos thermal  <-------- Temperature Sensor
-	  |                             |
-	 \|/                            |
-  Cpufreq cooling device <-----
-
-
-Amit Daniel Kachhap (4):
-  thermal: exynos: Add thermal interface support for linux thermal
-    layer
-  hwmon: exynos4: Move thermal sensor driver to driver/mfd directory
-  thermal: exynos4: Register the tmu sensor with the thermal interface
-    layer
-  ARM: exynos4: Add thermal sensor driver platform device support
-
- Documentation/hwmon/exynos4_tmu           |   81 -----
- Documentation/mfd/exynos4_tmu             |   52 +++
- arch/arm/mach-exynos/Kconfig              |   11 +
- arch/arm/mach-exynos/Makefile             |    1 +
- arch/arm/mach-exynos/clock.c              |    4 +
- arch/arm/mach-exynos/dev-tmu.c            |   64 ++++
- arch/arm/mach-exynos/include/mach/irqs.h  |    2 +
- arch/arm/mach-exynos/include/mach/map.h   |    1 +
- arch/arm/mach-exynos/mach-origen.c        |    1 +
- arch/arm/plat-samsung/include/plat/devs.h |    1 +
- drivers/hwmon/Kconfig                     |   10 -
- drivers/hwmon/Makefile                    |    1 -
- drivers/hwmon/exynos4_tmu.c               |  514 -----------------------------
- drivers/mfd/Kconfig                       |   10 +
- drivers/mfd/Makefile                      |    1 +
- drivers/mfd/exynos4_tmu.c                 |  443 +++++++++++++++++++++++++
- drivers/thermal/Kconfig                   |    8 +
- drivers/thermal/Makefile                  |    1 +
- drivers/thermal/exynos_thermal.c          |  272 +++++++++++++++
- include/linux/exynos_thermal.h            |   72 ++++
- include/linux/platform_data/exynos4_tmu.h |    7 +
- 21 files changed, 951 insertions(+), 606 deletions(-)
- delete mode 100644 Documentation/hwmon/exynos4_tmu
- create mode 100644 Documentation/mfd/exynos4_tmu
- create mode 100644 arch/arm/mach-exynos/dev-tmu.c
- delete mode 100644 drivers/hwmon/exynos4_tmu.c
- create mode 100644 drivers/mfd/exynos4_tmu.c
- create mode 100644 drivers/thermal/exynos_thermal.c
- create mode 100644 include/linux/exynos_thermal.h
-
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
