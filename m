@@ -1,69 +1,131 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 05 Mar 2012 19:20:33 +0000
-Subject: [lm-sensors] [PATCH 1/6] hwmon: (pmbus) Add support for TI TPS40400 and TPS40422
-Message-Id: <1330975238-16811-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 03 Mar 2012 21:27:22 +0000
+Subject: [lm-sensors] [PATCH 2/3] sensord: Fold get_features() into do_features()
+Message-Id: <20120303222722.5f9b2fee@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-TPS40400 and TPS40422 are supported by the generic PMBus driver.
-Add device IDs and data sheet references.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+There is no rationale for having separate functions, both are static
+and called only once. do_features() is calling helper functions to get
+values it doesn't use and passes to get_features() directly. Having a
+single function is more efficient and allows for per-action
+optimizations.
 ---
- Documentation/hwmon/pmbus   |    6 ++++++
- drivers/hwmon/pmbus/Kconfig |    2 +-
- drivers/hwmon/pmbus/pmbus.c |    2 ++
- 3 files changed, 9 insertions(+), 1 deletions(-)
+ prog/sensord/sense.c |   63 +++++++++++++++++++++++---------------------------
+ 1 file changed, 30 insertions(+), 33 deletions(-)
 
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index d28b591..c2b157b 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -22,6 +22,12 @@ Supported chips:
- 	http://www.lineagepower.com/oem/pdf/PDT006A0X.pdf
- 	http://www.lineagepower.com/oem/pdf/PDT012A0X.pdf
- 	http://www.lineagepower.com/oem/pdf/UDT020A0X.pdf
-+  * Texas Instruments TPS40400, TPS40422
-+    Prefixes: 'tps40400', 'tps40422'
-+    Addresses scanned: -
-+    Datasheets:
-+	http://www.ti.com/lit/gpn/tps40400
-+	http://www.ti.com/lit/gpn/tps40422
-   * Generic PMBus devices
-     Prefix: 'pmbus'
-     Addresses scanned: -
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index cfec923..7968c81 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -20,7 +20,7 @@ config SENSORS_PMBUS
- 	help
- 	  If you say yes here you get hardware monitoring support for generic
- 	  PMBus devices, including but not limited to ADP4000, BMR453, BMR454,
--	  NCP4200, and NCP4208.
-+	  NCP4200, NCP4208, TPS40400, and TPS40422.
+--- lm-sensors.orig/prog/sensord/sense.c	2012-03-02 20:56:17.000000000 +0100
++++ lm-sensors/prog/sensord/sense.c	2012-03-03 19:07:43.591734400 +0100
+@@ -82,13 +82,21 @@ static int get_flag(const sensors_chip_n
+ 	return (int) (val + 0.5);
+ }
  
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
-diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
-index 3488740..7d5161d 100644
---- a/drivers/hwmon/pmbus/pmbus.c
-+++ b/drivers/hwmon/pmbus/pmbus.c
-@@ -191,6 +191,8 @@ static const struct i2c_device_id pmbus_id[] = {
- 	{"pdt006", 1},
- 	{"pdt012", 1},
- 	{"pmbus", 0},
-+	{"tps40400", 1},
-+	{"tps40422", 2},
- 	{"udt020", 1},
- 	{}
- };
--- 
-1.7.5.4
+-static int get_features(const sensors_chip_name *chip,
+-			const FeatureDescriptor *feature, int action,
+-			char *label, int alrm, int beep)
++static int do_features(const sensors_chip_name *chip,
++		       const FeatureDescriptor *feature, int action)
+ {
+-	int i, ret;
++	char *label;
++	const char *formatted;
++	int i, alrm, beep, ret;
+ 	double val[MAX_DATA];
+ 
++	/* If only scanning, take a quick exit if alarm is off */
++	alrm = get_flag(chip, feature->alarmNumber);
++	if (alrm = -1)
++		return -1;
++	if (action = DO_SCAN && !alrm)
++		return 0;
++
+ 	for (i = 0; feature->dataNumbers[i] >= 0; i++) {
+ 		ret = sensors_get_value(chip, feature->dataNumbers[i],
+ 					val + i);
+@@ -101,6 +109,7 @@ static int get_features(const sensors_ch
+ 		}
+ 	}
+ 
++	/* For RRD, we don't need anything else */
+ 	if (action = DO_RRD) {
+ 		if (feature->rrd) {
+ 			const char *rrded = feature->rrd(val);
+@@ -110,40 +119,24 @@ static int get_features(const sensors_ch
+ 			 */
+ 			strcat(strcat (rrdBuff, ":"), rrded ? rrded : "U");
+ 		}
+-	} else {
+-		const char *formatted = feature->format(val, alrm, beep);
+-
+-		if (!formatted) {
+-			sensorLog(LOG_ERR, "Error formatting sensor data");
+-			return -1;
+-		}
+ 
+-		if (action = DO_READ) {
+-			sensorLog(LOG_INFO, "  %s: %s", label, formatted);
+-		} else {
+-			sensorLog(LOG_ALERT, "Sensor alarm: Chip %s: %s: %s",
+-				  chipName(chip), label, formatted);
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int do_features(const sensors_chip_name *chip,
+-		       const FeatureDescriptor *feature, int action)
+-{
+-	char *label;
+-	int alrm, beep, ret;
+-
+-	alrm = get_flag(chip, feature->alarmNumber);
+-	if (alrm = -1)
+-		return -1;
+-	else if (action = DO_SCAN && !alrm)
+ 		return 0;
++	}
+ 
++	/* For scanning and logging, we need extra information */
+ 	beep = get_flag(chip, feature->beepNumber);
+ 	if (beep = -1)
+ 		return -1;
+ 
++	formatted = feature->format(val, alrm, beep);
++	if (!formatted) {
++		sensorLog(LOG_ERR, "Error formatting sensor data");
++		return -1;
++	}
++
++	/* FIXME: It would be more efficient to store the label at
++	 * initialization time.
++	 */
+ 	label = sensors_get_label(chip, feature->feature);
+ 	if (!label) {
+ 		sensorLog(LOG_ERR, "Error getting sensor label: %s/%s",
+@@ -151,11 +144,15 @@ static int do_features(const sensors_chi
+ 		return -1;
+ 	}
+ 
+-	ret = get_features(chip, feature, action, label, alrm, beep);
++	if (action = DO_READ)
++		sensorLog(LOG_INFO, "  %s: %s", label, formatted);
++	else
++		sensorLog(LOG_ALERT, "Sensor alarm: Chip %s: %s: %s",
++			  chipName(chip), label, formatted);
+ 
+ 	free(label);
+ 
+-	return ret;
++	return 0;
+ }
+ 
+ static int doKnownChip(const sensors_chip_name *chip,
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
