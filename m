@@ -1,55 +1,77 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 27 Mar 2012 06:52:38 +0000
-Subject: Re: [lm-sensors] Incorrect Temperature Readings
-Message-Id: <20120327085238.64295c11@endymion.delvare>
+Date: Sun, 04 Mar 2012 13:11:21 +0000
+Subject: Re: [lm-sensors] [PATCH] sensors: Fix power interval output
+Message-Id: <20120304141121.03d7eb3e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <SNT120-W272CB289017CB6E4F875EC87440@phx.gbl>
-	<20120325152311.GA6544@ericsson.com>
-	<SNT120-W14AE6F1D312CD041BCB3E787450@phx.gbl>
-In-Reply-To: <SNT120-W14AE6F1D312CD041BCB3E787450@phx.gbl>
+References: <1326472342-3345-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1326472342-3345-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Scott Ondercin <sgo542@hotmail.com>
-Cc: lm-sensors@lm-sensors.org, dri-devel@lists.freedesktop.org, guenter.roeck@ericsson.com
+To: lm-sensors@vger.kernel.org
 
-Hi Scott,
+Hi Guenter,
 
-Please don't top-post.
+Sorry for the very late reply. D'oh, I can't believe it has been 7
+weeks already :(
 
-On Mon, 26 Mar 2012 15:59:56 -0400, Scott Ondercin wrote:
-> -I've been running the computer for over an hour currently and it feels perfectly fine.  Even the hard drive feels only mildly warm.  Nonetheless, I'm getting 96C readings for my PCI Adapter.
+On Fri, 13 Jan 2012 08:32:22 -0800, Guenter Roeck wrote:
+> Power interval is measured in seconds, not Watt.
 > 
-> Is there a way to modify my /etc/sensors.conf file to change the input levels or high/crit temps for the adapter?  I may not be looking properly, but I can't find its chip name.
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> Untested. Maybe a bit kludgy but should work.
 
-This default configuration file only deals with a limited number of
-chips for which a generic configuration is possible. In your case,
-please create a new configuration file under /etc/sensors.d and add
-your statements here, starting with
+I recall testing it with a fake driver and it was working. But I don't
+like it much. It's sad to have defined data structures to abstract
+things as much as possible and then end up with a hack like this one. I
+would prefer a more generic solution if we can come up with one. OTOH
+delaying lm-sensors 3.3.2 further just for this makes little sense. So,
+if you don't hear from me in the next 2 days, please just commit this
+fix and I'll release 3.3.2.
 
-chip "nouveau-pci-0100"
+>  prog/sensors/chips.c |   22 ++++++++++++++++++----
+>  1 files changed, 18 insertions(+), 4 deletions(-)
+> 
+> diff --git a/prog/sensors/chips.c b/prog/sensors/chips.c
+> index 677a617..fde33f6 100644
+> --- a/prog/sensors/chips.c
+> +++ b/prog/sensors/chips.c
+> @@ -574,11 +574,25 @@ static void print_chip_power(const sensors_chip_name *name,
+>  	} else
+>  		printf("     N/A  ");
+>  
+> -	for (i = 0; i < sensor_count; i++)
+> -		scale_value(&sensors[i].value, &sensors[i].unit);
+> -
+> +	for (i = 0; i < sensor_count; i++) {
+> +	    	/*
+> +		 * Unit is W and needs to be scaled for all attributes except
+> +		 * interval, which does not need to be scaled and is reported in
+> +		 * seconds.
+> +		 */
+> +	    	if (strcmp(sensors[i].name, "interval")) {
+> +		    	char *tmpstr;
+> +			
+> +			tmpstr = alloca(4);
 
-statement. You should indeed be able to adjust the thermal thresholds
-of your graphics adapter with the nouveau driver. That being said...
-Either you trust the temperature value and you should be worried and
-not adjust the thresholds, or you don't trust it and it will be
-difficult to decide what values to set the thresholds to.
+I didn't even know about this function. Interesting one. I'm not sure
+how portable it is, but that shouldn't be an issue for lm-sensors.
 
-Anyway, you said that you had to replace the fan a few months ago. Do
-you remember the temperatures you got before that? Usually there is a
-common cooling system for CPU and GPU in laptops, so I suspect that
-your broke cooling for the GPU when changing the fan. It's really easy
-to break, if the heatsink is no longer in straight contact with the
-GPU, cooling become totally inefficient.
+> +			scale_value(&sensors[i].value, &unit);
+> +			snprintf(tmpstr, 4, "%sW", unit);
+> +			sensors[i].unit = tmpstr;
+> +		} else {
+> +			sensors[i].unit = "s";
+> +		}
+> +	}
+>  	print_limits(sensors, sensor_count, alarms, alarm_count,
+> -		     label_size, "%s = %6.2f %sW");
+> +		     label_size, "%s = %6.2f %s");
+>  
+>  	printf("\n");
+>  }
 
-You could temporarily try the binary driver from nvidia to have a
-comparison point. If it returns a value much lower than nouveau is
-reporting, that would be a bug in nouveau. If it returns the same value
-then your hardware is really in danger.
-
-> Also, is there a way to run "module-init-tools" without getting "stop/waiting"?
-
-This is a completely unrelated question and I don't even understand it.
 
 -- 
 Jean Delvare
