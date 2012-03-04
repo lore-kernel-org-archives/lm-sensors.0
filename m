@@ -1,62 +1,81 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date: Thu, 15 Mar 2012 15:38:33 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] watchdog_dev: Add support for having more then 1 watchdog
-Message-Id: <20120315153833.40bd2f16@pyramind.ukuu.org.uk>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 04 Mar 2012 15:59:04 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of ITE IT8510E, IT8511E, IT8513E, and IT8518E
+Message-Id: <1330876744-8447-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1331812757-3491-1-git-send-email-hdegoede@redhat.com>
-	<1331812757-3491-2-git-send-email-hdegoede@redhat.com>
-	<20120315131131.1096f8c8@pyramind.ukuu.org.uk>
-	<4F61FA18.70104@redhat.com>
-In-Reply-To: <4F61FA18.70104@redhat.com>
+References: <20110217195640.GA20934@ericsson.com>
+In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-watchdog@vger.kernel.org, Wim Van Sebroeck <wim@iguana.be>, LM Sensors <lm-sensors@lm-sensors.org>, Thilo Cestonaro <thilo.cestonaro@ts.fujitsu.com>, =?ISO-8859-1?B?UOFkcmFpZw==?= Brady <P@draigBrady.com>
+To: lm-sensors@vger.kernel.org
 
-> +static unsigned long dog_mask; /* Watcodgs that are in use */
-> 
-> Please fix (spelling) the comment after dog_mask.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Trying again, this time more in line with detection of other IT85xx chips.
+IT8510 and IT8512 datasheets suggest that there is no special sequence
+to enable superio acccess, so let's just assume that this applies to all chips
+from the same series.
 
-Oops
+ CHANGES                    |    1 +
+ prog/detect/sensors-detect |   20 ++++++++++++++++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
-> +               err = misc_register(&watchdog_miscdev);
-> +               if (err = 0)
-> +                       old_wdd = watchdog;
-> +               else {
-> +                       pr_err("%s: cannot register miscdev on minor=%d (err=%d
-> +                               watchdog->info->identity, WATCHDOG_MINOR, err);
-> +                       pr_err("%s: probably a legacy watchdog module is presen
-> +                               watchdog->info->identity);
-> +                       watchdog_release_id(watchdog);
-> +                       err = watchdog_assign_id(watchdog, 1);
-> +                       if (err < 0)
-> +                               return err;
-> +               }
-> +       }
-> 
-> You may want to check for err = -EBUSY in the fallback instead of assuming
-> the problem is a legacy watchdog driver
+diff --git a/CHANGES b/CHANGES
+index 10e62f5..8981e69 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -21,6 +21,7 @@ SVN HEAD
+                   Add detection of National Semiconductor LM96080
+                   Add detection of ITE IT8771E
+                   Add detection of ITE IT8781F, IT8782F and IT8783F
++                  Add detection of ITE IT8510E/TE/G, IT8511E/TE/G, IT8513E/F/G, and IT8518E
+ 
+ 3.3.1 (2011-07-21)
+   isadump: Add support for word (16-bit) and long (32-bit) reads
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index bffd5c3..93621ad 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -1595,15 +1595,35 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		logdev => 0x14,
+ 		features => FEAT_IN | FEAT_TEMP,
+ 	}, {
++		name => "ITE IT8510E/TE/G Super IO",
++		driver => "to-be-written",
++		devid => 0x8510,
++		features => FEAT_IN | FEAT_FAN,
++	}, {
++		name => "ITE IT8511E/TE/G Super IO",
++		driver => "to-be-written",
++		devid => 0x8511,
++		features => FEAT_IN | FEAT_FAN,
++	}, {
+ 		name => "ITE IT8512E/F/G Super IO",
+ 		driver => "to-be-written",
+ 		devid => 0x8512,
+ 		features => FEAT_IN | FEAT_FAN,
+ 	}, {
++		name => "ITE IT8513E/F/G Super IO",
++		driver => "to-be-written",
++		devid => 0x8513,
++		features => FEAT_IN | FEAT_FAN,
++	}, {
+ 		name => "ITE IT8516E/F/G Super IO",
+ 		driver => "to-be-written",
+ 		devid => 0x8516,
+ 		features => FEAT_IN | FEAT_FAN,
++	}, {
++		name => "ITE IT8518E Super IO",
++		driver => "to-be-written",
++		devid => 0x8518,
++		features => FEAT_IN | FEAT_FAN,
+ 	}
+ );
+ 
+-- 
+1.7.5.4
 
-Yes that is probably wise
-
-> +       err = watchdog_add_device(watchdog);
-> +       }
-> 
-> You do this even for watchdog0 / for the watchdog we've also registered as
-> misc_dev. I guess this is intentional and you want the watchdog to be
-> available as both misc,130 as well as as MAJOR(dog_devt),0 ?
-
-Yes - so that it appears in the watchdog class in sysfs for example.
-
-> Other then these few remarks it looks fine. If you can resend it
-> with my remarks addressed I'll add a Reviewed-By.
-
-Ok I'll sort those next week.
-
-Thanks
-
-Alan
 
 _______________________________________________
 lm-sensors mailing list
