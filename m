@@ -1,150 +1,315 @@
-From: "Robert Nightingale" <info@4xsamurai.com>
-Date: Sat, 17 Mar 2012 19:49:18 +0000
-Subject: [lm-sensors] Samurai FX Robot  v7.0 - Latest Version
-Message-Id: <4tl9whsaw6io.3aw0b-3vkrow30@elasticemail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6927115909439900752=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 05 Mar 2012 19:20:36 +0000
+Subject: [lm-sensors] [PATCH 4/6] hwmon: (max34440) Add support for MAX34446
+Message-Id: <1330975238-16811-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/max34440   |   29 ++++++++++-
+ drivers/hwmon/pmbus/Kconfig    |    4 +-
+ drivers/hwmon/pmbus/max34440.c |  112 ++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 138 insertions(+), 7 deletions(-)
 
---===============6927115909439900752==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_18EC_DBC11C34.9AE1BBB5"
+diff --git a/Documentation/hwmon/max34440 b/Documentation/hwmon/max34440
+index 36b335c..bbdf9bf 100644
+--- a/Documentation/hwmon/max34440
++++ b/Documentation/hwmon/max34440
+@@ -11,6 +11,11 @@ Supported chips:
+     Prefixes: 'max34441'
+     Addresses scanned: -
+     Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX34441.pdf
++  * Maxim MAX34446
++    PMBus Power-Supply Data Logger
++    Prefixes: 'max34446'
++    Addresses scanned: -
++    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX34446.pdf
+ 
+ Author: Guenter Roeck <guenter.roeck@ericsson.com>
+ 
+@@ -19,8 +24,8 @@ Description
+ -----------
+ 
+ This driver supports hardware montoring for Maxim MAX34440 PMBus 6-Channel
+-Power-Supply Manager and MAX34441 PMBus 5-Channel Power-Supply Manager
+-and Intelligent Fan Controller.
++Power-Supply Manager, MAX34441 PMBus 5-Channel Power-Supply Manager
++and Intelligent Fan Controller, and MAX34446 PMBus Power-Supply Data Logger.
+ 
+ The driver is a client driver to the core PMBus driver. Please see
+ Documentation/hwmon/pmbus for details on PMBus client drivers.
+@@ -33,6 +38,13 @@ This driver does not auto-detect devices. You will have to instantiate the
+ devices explicitly. Please see Documentation/i2c/instantiating-devices for
+ details.
+ 
++For MAX34446, the value of the currX_crit attribute determines if current or
++voltage measurement is enabled for a given channel. Voltage measurement is
++enabled if currX_crit is set to 0; current measurement is enabled if the
++attribute is set to a positive value. Power measurement is only enabled if
++channel 1 (3) is configured for voltage measurement, and channel 2 (4) is
++configured for current measurement.
++
+ 
+ Platform data support
+ ---------------------
+@@ -60,16 +72,27 @@ in[1-6]_lowest		Historical minimum voltage.
+ in[1-6]_highest		Historical maximum voltage.
+ in[1-6]_reset_history	Write any value to reset history.
+ 
++			MAX34446 only supports in[1-4].
++
+ curr[1-6]_label		"iout[1-6]".
+ curr[1-6]_input		Measured current. From READ_IOUT register.
+ curr[1-6]_max		Maximum current. From IOUT_OC_WARN_LIMIT register.
+ curr[1-6]_crit		Critical maximum current. From IOUT_OC_FAULT_LIMIT register.
+ curr[1-6]_max_alarm	Current high alarm. From IOUT_OC_WARNING status.
+ curr[1-6]_crit_alarm	Current critical high alarm. From IOUT_OC_FAULT status.
++curr[1-4]_average	Historical average current (MAX34446 only).
+ curr[1-6]_highest	Historical maximum current.
+ curr[1-6]_reset_history	Write any value to reset history.
+ 
+ 			in6 and curr6 attributes only exist for MAX34440.
++			MAX34446 only supports curr[1-4].
++
++power[1,3]_label	"pout[1,3]"
++power[1,3]_input	Measured power.
++power[1,3]_average	Historical average power.
++power[1,3]_highest	Historical maximum power.
++
++			Power attributes only exist for MAX34446.
+ 
+ temp[1-8]_input		Measured temperatures. From READ_TEMPERATURE_1 register.
+ 			temp1 is the chip's internal temperature. temp2..temp5
+@@ -80,7 +103,9 @@ temp[1-8]_max		Maximum temperature. From OT_WARN_LIMIT register.
+ temp[1-8]_crit		Critical high temperature. From OT_FAULT_LIMIT register.
+ temp[1-8]_max_alarm	Temperature high alarm.
+ temp[1-8]_crit_alarm	Temperature critical high alarm.
++temp[1-8]_average	Historical average temperature (MAX34446 only).
+ temp[1-8]_highest	Historical maximum temperature.
+ temp[1-8]_reset_history	Write any value to reset history.
+ 
+ 			temp7 and temp8 attributes only exist for MAX34440.
++			MAX34446 only supports temp[1-3].
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
+index d1aa2db..1f0d011 100644
+--- a/drivers/hwmon/pmbus/Kconfig
++++ b/drivers/hwmon/pmbus/Kconfig
+@@ -68,11 +68,11 @@ config SENSORS_MAX16064
+ 	  be called max16064.
+ 
+ config SENSORS_MAX34440
+-	tristate "Maxim MAX34440/MAX34441"
++	tristate "Maxim MAX34440 and compatibles"
+ 	default n
+ 	help
+ 	  If you say yes here you get hardware monitoring support for Maxim
+-	  MAX34440 and MAX34441.
++	  MAX34440, MAX34441, and MAX34446.
+ 
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called max34440.
+diff --git a/drivers/hwmon/pmbus/max34440.c b/drivers/hwmon/pmbus/max34440.c
+index 95ee9e1..2ada7b0 100644
+--- a/drivers/hwmon/pmbus/max34440.c
++++ b/drivers/hwmon/pmbus/max34440.c
+@@ -25,21 +25,35 @@
+ #include <linux/i2c.h>
+ #include "pmbus.h"
+ 
+-enum chips { max34440, max34441 };
++enum chips { max34440, max34441, max34446 };
+ 
+ #define MAX34440_MFR_VOUT_PEAK		0xd4
+ #define MAX34440_MFR_IOUT_PEAK		0xd5
+ #define MAX34440_MFR_TEMPERATURE_PEAK	0xd6
+ #define MAX34440_MFR_VOUT_MIN		0xd7
+ 
++#define MAX34446_MFR_POUT_PEAK		0xe0
++#define MAX34446_MFR_POUT_AVG		0xe1
++#define MAX34446_MFR_IOUT_AVG		0xe2
++#define MAX34446_MFR_TEMPERATURE_AVG	0xe3
++
+ #define MAX34440_STATUS_OC_WARN		(1 << 0)
+ #define MAX34440_STATUS_OC_FAULT	(1 << 1)
+ #define MAX34440_STATUS_OT_FAULT	(1 << 5)
+ #define MAX34440_STATUS_OT_WARN		(1 << 6)
+ 
++struct max34440_data {
++	int id;
++	struct pmbus_driver_info info;
++};
++
++#define to_max34440_data(x)  container_of(x, struct max34440_data, info)
++
+ static int max34440_read_word_data(struct i2c_client *client, int page, int reg)
+ {
+ 	int ret;
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	const struct max34440_data *data = to_max34440_data(info);
+ 
+ 	switch (reg) {
+ 	case PMBUS_VIRT_READ_VOUT_MIN:
+@@ -50,14 +64,43 @@ static int max34440_read_word_data(struct i2c_client *client, int page, int reg)
+ 		ret = pmbus_read_word_data(client, page,
+ 					   MAX34440_MFR_VOUT_PEAK);
+ 		break;
++	case PMBUS_VIRT_READ_IOUT_AVG:
++		if (data->id != max34446)
++			return -ENXIO;
++		ret = pmbus_read_word_data(client, page,
++					   MAX34446_MFR_IOUT_AVG);
++		break;
+ 	case PMBUS_VIRT_READ_IOUT_MAX:
+ 		ret = pmbus_read_word_data(client, page,
+ 					   MAX34440_MFR_IOUT_PEAK);
+ 		break;
++	case PMBUS_VIRT_READ_POUT_AVG:
++		if (data->id != max34446)
++			return -ENXIO;
++		ret = pmbus_read_word_data(client, page,
++					   MAX34446_MFR_POUT_AVG);
++		break;
++	case PMBUS_VIRT_READ_POUT_MAX:
++		if (data->id != max34446)
++			return -ENXIO;
++		ret = pmbus_read_word_data(client, page,
++					   MAX34446_MFR_POUT_PEAK);
++		break;
++	case PMBUS_VIRT_READ_TEMP_AVG:
++		if (data->id != max34446)
++			return -ENXIO;
++		ret = pmbus_read_word_data(client, page,
++					   MAX34446_MFR_TEMPERATURE_AVG);
++		break;
+ 	case PMBUS_VIRT_READ_TEMP_MAX:
+ 		ret = pmbus_read_word_data(client, page,
+ 					   MAX34440_MFR_TEMPERATURE_PEAK);
+ 		break;
++	case PMBUS_VIRT_RESET_POUT_HISTORY:
++		if (data->id != max34446)
++			return -ENXIO;
++		ret = 0;
++		break;
+ 	case PMBUS_VIRT_RESET_VOUT_HISTORY:
+ 	case PMBUS_VIRT_RESET_IOUT_HISTORY:
+ 	case PMBUS_VIRT_RESET_TEMP_HISTORY:
+@@ -73,9 +116,19 @@ static int max34440_read_word_data(struct i2c_client *client, int page, int reg)
+ static int max34440_write_word_data(struct i2c_client *client, int page,
+ 				    int reg, u16 word)
+ {
++	const struct pmbus_driver_info *info = pmbus_get_driver_info(client);
++	const struct max34440_data *data = to_max34440_data(info);
+ 	int ret;
+ 
+ 	switch (reg) {
++	case PMBUS_VIRT_RESET_POUT_HISTORY:
++		ret = pmbus_write_word_data(client, page,
++					    MAX34446_MFR_POUT_PEAK, 0);
++		if (ret)
++			break;
++		ret = pmbus_write_word_data(client, page,
++					    MAX34446_MFR_POUT_AVG, 0);
++		break;
+ 	case PMBUS_VIRT_RESET_VOUT_HISTORY:
+ 		ret = pmbus_write_word_data(client, page,
+ 					    MAX34440_MFR_VOUT_MIN, 0x7fff);
+@@ -87,11 +140,18 @@ static int max34440_write_word_data(struct i2c_client *client, int page,
+ 	case PMBUS_VIRT_RESET_IOUT_HISTORY:
+ 		ret = pmbus_write_word_data(client, page,
+ 					    MAX34440_MFR_IOUT_PEAK, 0);
++		if (!ret && data->id = max34446)
++			ret = pmbus_write_word_data(client, page,
++					MAX34446_MFR_IOUT_AVG, 0);
++
+ 		break;
+ 	case PMBUS_VIRT_RESET_TEMP_HISTORY:
+ 		ret = pmbus_write_word_data(client, page,
+ 					    MAX34440_MFR_TEMPERATURE_PEAK,
+ 					    0x8000);
++		if (!ret && data->id = max34446)
++			ret = pmbus_write_word_data(client, page,
++					MAX34446_MFR_TEMPERATURE_AVG, 0);
+ 		break;
+ 	default:
+ 		ret = -ENODATA;
+@@ -225,20 +285,66 @@ static struct pmbus_driver_info max34440_info[] = {
+ 		.read_word_data = max34440_read_word_data,
+ 		.write_word_data = max34440_write_word_data,
+ 	},
++	[max34446] = {
++		.pages = 7,
++		.format[PSC_VOLTAGE_IN] = direct,
++		.format[PSC_VOLTAGE_OUT] = direct,
++		.format[PSC_TEMPERATURE] = direct,
++		.format[PSC_CURRENT_OUT] = direct,
++		.format[PSC_POWER] = direct,
++		.m[PSC_VOLTAGE_IN] = 1,
++		.b[PSC_VOLTAGE_IN] = 0,
++		.R[PSC_VOLTAGE_IN] = 3,
++		.m[PSC_VOLTAGE_OUT] = 1,
++		.b[PSC_VOLTAGE_OUT] = 0,
++		.R[PSC_VOLTAGE_OUT] = 3,
++		.m[PSC_CURRENT_OUT] = 1,
++		.b[PSC_CURRENT_OUT] = 0,
++		.R[PSC_CURRENT_OUT] = 3,
++		.m[PSC_POWER] = 1,
++		.b[PSC_POWER] = 0,
++		.R[PSC_POWER] = 3,
++		.m[PSC_TEMPERATURE] = 1,
++		.b[PSC_TEMPERATURE] = 0,
++		.R[PSC_TEMPERATURE] = 2,
++		.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT | PMBUS_HAVE_POUT,
++		.func[1] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT,
++		.func[2] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT | PMBUS_HAVE_POUT,
++		.func[3] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
++		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT,
++		.func[4] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
++		.func[5] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
++		.func[6] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
++		.read_byte_data = max34440_read_byte_data,
++		.read_word_data = max34440_read_word_data,
++		.write_word_data = max34440_write_word_data,
++	},
+ };
+ 
+ static int max34440_probe(struct i2c_client *client,
+ 			  const struct i2c_device_id *id)
+ {
+-	return pmbus_do_probe(client, id, &max34440_info[id->driver_data]);
++	struct max34440_data *data;
++
++	data = devm_kzalloc(&client->dev, sizeof(struct max34440_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++	data->id = id->driver_data;
++	data->info = max34440_info[id->driver_data];
++
++	return pmbus_do_probe(client, id, &data->info);
+ }
+ 
+ static const struct i2c_device_id max34440_id[] = {
+ 	{"max34440", max34440},
+ 	{"max34441", max34441},
++	{"max34446", max34446},
+ 	{}
+ };
+-
+ MODULE_DEVICE_TABLE(i2c, max34440_id);
+ 
+ /* This is the driver that will be inserted */
+-- 
+1.7.5.4
 
-
-------=_NextPart_000_18EC_DBC11C34.9AE1BBB5
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-
-RGVhciBUcmFkZXIsDQoNCkRpZCB5b3UgZnVsZmlsbCB5b3VyIE5ldyBZZWFyJ3MgUmVzb2x1dGlv
-bnMgdG8gaGF2ZSBhIGhhcHBpZXIgbGlmZSBhbmQgbW9yZSBtb25leT8gTm90IHlldD8gV2VsbCwg
-aXQncyBub3Qgc28gZGlmZmljdWx0IHJlYWxseSB0byBoYXZlIGFsbCB5b3Ugd2FudGVkIGFuZCBk
-cmVhbS4gWW91IGp1c3QgbmVlZCB0byBmaW5kIHRoZSByaWdodCBkaXJlY3Rpb24uDQoNCkFuZCBv
-dXIgRlggU2FtdXJhaSwgYSBzY2FscGluZyB0cmFkaW5nIHByb2dyYW0gdGhhdCBtYWtlcyBmcm9t
-IDIsMDAwJS01LDAwMCUgbW9udGhseSBjYW4gbWFrZSBhbGwgeW91ciBkcmVhbXMgY29tZSB0cnVl
-LiBGb3IgYSBsaW1pdGVkIHBlcmlvZCwgd2UgaGF2ZSByZWR1Y2VkIHRoZSBwcmljZSBvZiBvdXIg
-RUEgYnkgMjcuNSUgYW5kIHNvb24gd2UnbGwNCg0KcmFpc2UgdGhlIHByaWNlIGJhY2sgdXAhDQoN
-CiANCg0KT25seSBvbiBvbmUgcmVhbCBhY2NvdW50IG91ciBGWCBTYW11cmFpIFJvYm90IG1hZGUg
-aW4gYSBmZXcgbW9udGhzICQ4NDAsMDAwIGFuZCBhbGwgb2YgaXQgd2FzIHdpdGhkcmF3biBhbHJl
-YWR5LCBwbGVhc2UgY2hlY2sgdGhlIHdlYnNpdGUgZm9yIHRoZSBwcm9vZnMgb2Ygd2l0aGRyYXdh
-bCBhbmQgYWxzbyB5b3UgY2FuIGxvZ2luIHRvIHRoZSBmb2xsb3dpbmcgYWNjb3VudCBMaXZlLg0K
-DQogDQoNCuKAoiDigJxDbG9zZSBPbmx5IFBvc2l0aXZlIE9yZGVyc+KAnSDigJMgdGhlIFJvYm90
-IHdpbGwgd2FpdCB0aWxsIHRoZSBvcmRlciBpcyBwb3NpdGl2ZSB0byBjbG9zZSBpdC4NCuKAoiDi
-gJxPcHBvc2l0ZSBPcmRlcnPigJ0g4oCTIHlvdSBjYW4gcmV2ZXJzZSBvcmRlcnMuIEFueSBuZWdh
-dGl2ZSBvcmRlciBjYW4gYmUgdHVybmVkIGludG8gcG9zaXRpdmUuDQrigKIg4oCcTG93IFNMIGFu
-ZCBoaWdoIFRQ4oCdIOKAkyBvdGhlciBSb2JvdHMgaGF2ZSB2ZXJ5IGhpZ2ggU0wgYW5kIGxvdyBU
-UCBhbmQgdXNlIE1hcnRpbmdhbGUuDQrigKIg4oCcOCBEZWZhdWx0IFBhcmFtZXRlciBTZXRz4oCd
-IOKAkyAgbm8gbmVlZCB0byBjaGFuZ2Ugc2V0dGluZ3MgbWFudWFsbHksIGFsbCBwYXJhbWV0ZXJz
-IGFyZSBwcmVzZXQuDQrigKIg4oCcT3ZlciAzMDAgc2VydmVyIGZpbGVz4oCdIOKAkyB5b3UgY2Fu
-IHVzZSBpdCB3aXRoIG1vc3Qga25vd24gTVQ0IGJyb2tlcnMuDQoNCkNoZWNrIGFsc28gb3RoZXIg
-UkVBTCBhY2NvdW50cyBvbiBvdXIgd2Vic2l0ZS4NCg0KTG9naW46IDQwOTYNClBhc3N3b3JkOiAk
-MW1pbGxpb24NClNlcnZlcjogMjA3LjIyOC4yNTIuMjg6NDQzDQoNCldlIGhhdmUgYWxyZWFkeSB3
-aXRoZHJhd24gJDg1MCwwMDAgb2YgcHVyZSBjYXNoIGZyb20gdGhpcyBhY2NvdW50ISBPdXIgRUEg
-d29ya3MgYmVzdCB3aXRoIEVDTiBicm9rZXJzIHdoaWNoIHdpbGwgbmV2ZXIgc3RvcCB5b3UgZnJv
-bSBtYWtpbmcgbW9uZXksIHRoZSBtb3JlIHlvdSBtYWtlIHRoZSBtb3JlIHRoZXkgbWFrZSB0b28u
-DQpUaGlzIGlzIHlvdXIgY2hhbmNlIHRvIGZpbmFsbHkgbWFrZSBzb21lIGJpZyBtb25leSBvbiB0
-aGUgRm9yZXggbWFya2V0IQ0KDQpDb21lIGpvaW4gdGhlIGVsaXRlIEZvcmV4IGdyb3VwIHRoYXQn
-cyBzd2VlcGluZyBjYXNoIG9mZiB0aGUgRm9yZXggdGFibGUgYW5kIGVuam95IHlvdXIgbGlmZSBz
-dGFydGluZyBmcm9tIHRoaXMgTmV3IFllYXIgMjAxMiENCg0KV2hhdCBhcmUgeW91IHdhaXRpbmcg
-Zm9yPyBKdXN0IGNoZWNrIG90aGVyIGFjY291bnRzIG9uIHRoZSB3ZWJzaXRlIGFuZCBtYWtlIHlv
-dXIgb3JkZXIgTk9XIGFzIHRoZSBwcmljZSB3aWxsIGdvIHVwIGFueXRpbWUgc29vbi4NCg0KQWxs
-IHRoZSBiZXN0IHdpdGggeW91ciB0cmFkaW5nIGVuZGVhdm9ycy4NCg0KRlggUm9ib3QgVGVhbQ0K
-DQoqKioqKioNCg0KUGxlYXNlIGNsaWNrIFVuc3Vic2NyaWJlIGdldCB5b3Vyc2VsZiBvZmYgdGhp
-cyBsaXN0Lg0KDQo=
-------=_NextPart_000_18EC_DBC11C34.9AE1BBB5
-Content-Type: text/html;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-
-PEhUTUwgeG1sbnM6byA9ICJ1cm46c2NoZW1hcy1taWNyb3NvZnQtY29tOm9mZmljZTpvZmZpY2Ui
-PjxIRUFEPg0KPE1FVEEgY29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXdpbmRvd3MtMTI1MiIg
-aHR0cC1lcXVpdj1Db250ZW50LVR5cGU+DQo8TUVUQSBuYW1lPUdFTkVSQVRPUiBjb250ZW50PSJN
-U0hUTUwgOC4wMC43NjAxLjE3NzQ0Ij48L0hFQUQ+DQo8Qk9EWT4NCjxQPjxGT05UIHNpemU9MiBm
-YWNlPUFyaWFsPkRlYXIgVHJhZGVyLDwvRk9OVD48L1A+PEZPTlQgc2l6ZT0yIGZhY2U9QXJpYWw+
-PFNQQU4gc3R5bGU9IkZPTlQtRkFNSUxZOiAnQXJpYWwnLCdzYW5zLXNlcmlmJzsgRk9OVC1TSVpF
-OiAxNHB0OyBtc28tYmlkaS1mb250LWZhbWlseTogTWFuZ2FsIj4NCjxQIHN0eWxlPSJNQVJHSU46
-IDBpbiAwaW4gMHB0IiBjbGFzcz1TdGFuZGFyZD48U1BBTiBzdHlsZT0iRk9OVC1GQU1JTFk6ICdB
-cmlhbCcsJ3NhbnMtc2VyaWYnOyBGT05ULVNJWkU6IDE0cHQ7IG1zby1iaWRpLWZvbnQtZmFtaWx5
-OiBNYW5nYWwiPjxGT05UIHNpemU9Mj5EaWQgeW91IGZ1bGZpbGwgeW91ciBOZXcgWWVhcidzIFJl
-c29sdXRpb25zIHRvIGhhdmUgYSBoYXBwaWVyIGxpZmUgYW5kIG1vcmUgbW9uZXk/IE5vdCB5ZXQ/
-IFdlbGwsIGl0J3Mgbm90IHNvIGRpZmZpY3VsdCByZWFsbHkgdG8gaGF2ZSBhbGwgeW91IHdhbnRl
-ZCBhbmQgZHJlYW0uIFlvdSBqdXN0IG5lZWQgdG8gZmluZCB0aGUgcmlnaHQgZGlyZWN0aW9uLjxv
-OnA+PC9vOnA+PC9GT05UPjwvU1BBTj48L1A+DQo8UCBzdHlsZT0iTUFSR0lOOiAwaW4gMGluIDBw
-dCIgY2xhc3M9U3RhbmRhcmQ+PFNQQU4gc3R5bGU9IkZPTlQtRkFNSUxZOiAnQXJpYWwnLCdzYW5z
-LXNlcmlmJzsgRk9OVC1TSVpFOiAxNHB0OyBtc28tYmlkaS1mb250LWZhbWlseTogTWFuZ2FsIj48
-Rk9OVCBzaXplPTI+QW5kIG91ciBGWCBTYW11cmFpLCBhIHNjYWxwaW5nIHRyYWRpbmcgcHJvZ3Jh
-bSB0aGF0IG1ha2VzIGZyb20gMiwwMDAlLTUsMDAwJSBtb250aGx5IGNhbiBtYWtlIGFsbCB5b3Vy
-IGRyZWFtcyBjb21lIHRydWUuIEZvciBhIGxpbWl0ZWQgcGVyaW9kLCB3ZSBoYXZlIHJlZHVjZWQg
-dGhlIHByaWNlIG9mIG91ciBFQSBieSAyNy41JSBhbmQgc29vbiB3ZSdsbDwvRk9OVD48L1NQQU4+
-PC9QPg0KPFAgc3R5bGU9Ik1BUkdJTjogMGluIDBpbiAwcHQiIGNsYXNzPVN0YW5kYXJkPjxTUEFO
-IHN0eWxlPSJGT05ULUZBTUlMWTogJ0FyaWFsJywnc2Fucy1zZXJpZic7IEZPTlQtU0laRTogMTRw
-dDsgbXNvLWJpZGktZm9udC1mYW1pbHk6IE1hbmdhbCI+PEZPTlQgc2l6ZT0yPnJhaXNlIHRoZSBw
-cmljZSBiYWNrIHVwITwvRk9OVD48L1NQQU4+PC9QPg0KPFAgc3R5bGU9Ik1BUkdJTjogMGluIDBp
-biAwcHQiIGNsYXNzPVN0YW5kYXJkPjxTUEFOIHN0eWxlPSJGT05ULUZBTUlMWTogJ0FyaWFsJywn
-c2Fucy1zZXJpZic7IEZPTlQtU0laRTogMTRwdDsgbXNvLWJpZGktZm9udC1mYW1pbHk6IE1hbmdh
-bCI+PG86cD48Rk9OVCBzaXplPTI+Jm5ic3A7PC9GT05UPjwvbzpwPjwvU1BBTj48L1A+DQo8UCBz
-dHlsZT0iTUFSR0lOOiAwaW4gMGluIDBwdCIgY2xhc3M9U3RhbmRhcmQ+PFNQQU4gc3R5bGU9IkZP
-TlQtRkFNSUxZOiAnQXJpYWwnLCdzYW5zLXNlcmlmJzsgRk9OVC1TSVpFOiAxNHB0OyBtc28tYmlk
-aS1mb250LWZhbWlseTogTWFuZ2FsIj48Rk9OVCBzaXplPTI+T25seSBvbiBvbmUgcmVhbCBhY2Nv
-dW50IG91ciBGWCBTYW11cmFpIFJvYm90IG1hZGUgaW4gYSBmZXcgbW9udGhzICQ4NDAsMDAwIGFu
-ZCBhbGwgb2YgaXQgd2FzIHdpdGhkcmF3biBhbHJlYWR5LCBwbGVhc2UgY2hlY2sgdGhlIHdlYnNp
-dGUgZm9yIHRoZSBwcm9vZnMgb2Ygd2l0aGRyYXdhbCBhbmQgYWxzbyB5b3UgY2FuIGxvZ2luIHRv
-IHRoZSBmb2xsb3dpbmcgYWNjb3VudCBMaXZlLjwvRk9OVD48L1NQQU4+PC9QPg0KPFAgc3R5bGU9
-Ik1BUkdJTjogMGluIDBpbiAwcHQiIGNsYXNzPVN0YW5kYXJkPjxTUEFOIHN0eWxlPSJGT05ULUZB
-TUlMWTogJ0FyaWFsJywnc2Fucy1zZXJpZic7IEZPTlQtU0laRTogMTRwdDsgbXNvLWJpZGktZm9u
-dC1mYW1pbHk6IE1hbmdhbCI+PG86cD48L286cD48L1NQQU4+Jm5ic3A7PC9QPg0KPFAgc3R5bGU9
-Ik1BUkdJTjogMGluIDBpbiAwcHQiIGNsYXNzPVN0YW5kYXJkPjwvU1BBTj48L0ZPTlQ+PEZPTlQg
-c2l6ZT0yIGZhY2U9QXJpYWw+4oCiJm5ic3A74oCcQ2xvc2UgT25seSBQb3NpdGl2ZSBPcmRlcnPi
-gJ0g4oCTIHRoZSBSb2JvdCB3aWxsIHdhaXQgdGlsbCB0aGUgb3JkZXIgaXMgcG9zaXRpdmUgdG8g
-Y2xvc2UgaXQuPEJSPuKAoiZuYnNwO+KAnE9wcG9zaXRlIE9yZGVyc+KAnSDigJMgeW91IGNhbiBy
-ZXZlcnNlIG9yZGVycy4gQW55IG5lZ2F0aXZlIG9yZGVyIGNhbiBiZSB0dXJuZWQgaW50byBwb3Np
-dGl2ZS48QlI+4oCiJm5ic3A74oCcTG93IFNMIGFuZCBoaWdoIFRQ4oCdIOKAkyBvdGhlciBSb2Jv
-dHMgaGF2ZSB2ZXJ5IGhpZ2ggU0wgYW5kIGxvdyBUUCBhbmQgdXNlIE1hcnRpbmdhbGUuPEJSPuKA
-oiZuYnNwO+KAnDggRGVmYXVsdCBQYXJhbWV0ZXIgU2V0c+KAnSDigJMmbmJzcDsgbm8gbmVlZCB0
-byBjaGFuZ2Ugc2V0dGluZ3MgbWFudWFsbHksIGFsbCBwYXJhbWV0ZXJzIGFyZSBwcmVzZXQuPEJS
-PuKAoiZuYnNwO+KAnE92ZXIgMzAwIHNlcnZlciBmaWxlc+KAnSDigJMgeW91IGNhbiB1c2UgaXQg
-d2l0aCBtb3N0IGtub3duIE1UNCBicm9rZXJzLjwvRk9OVD48L1A+DQo8UD48Rk9OVCBzaXplPTIg
-ZmFjZT1BcmlhbD5DaGVjayBhbHNvIG90aGVyIFJFQUwgYWNjb3VudHMgb24gb3VyIHdlYnNpdGUu
-PC9GT05UPjwvUD4NCjxQPjxGT05UIHNpemU9MiBmYWNlPUFyaWFsPkxvZ2luOiA0MDk2PEJSPlBh
-c3N3b3JkOiAkMW1pbGxpb248QlI+U2VydmVyOiAyMDcuMjI4LjI1Mi4yODo0NDM8L0ZPTlQ+PC9Q
-Pg0KPFA+PEZPTlQgc2l6ZT0yIGZhY2U9QXJpYWw+V2UgaGF2ZSA8U1RST05HPmFscmVhZHkgd2l0
-aGRyYXduICQ4NTAsMDAwPC9TVFJPTkc+IG9mIHB1cmUgY2FzaCBmcm9tIHRoaXMgYWNjb3VudCEg
-T3VyIEVBIHdvcmtzIGJlc3Qgd2l0aCBFQ04gYnJva2VycyB3aGljaCB3aWxsIG5ldmVyIHN0b3Ag
-eW91IGZyb20gbWFraW5nIG1vbmV5LCB0aGUgbW9yZSB5b3UgbWFrZSB0aGUgbW9yZSB0aGV5IG1h
-a2UgdG9vLjxCUj5UaGlzIGlzIHlvdXIgY2hhbmNlIHRvIGZpbmFsbHkgbWFrZSBzb21lIGJpZyBt
-b25leSBvbiB0aGUgRm9yZXggbWFya2V0ITwvRk9OVD48L1A+DQo8UD48Rk9OVCBzaXplPTIgZmFj
-ZT1BcmlhbD5Db21lIGpvaW4gdGhlIGVsaXRlIEZvcmV4IGdyb3VwIHRoYXQncyBzd2VlcGluZyBj
-YXNoIG9mZiB0aGUgRm9yZXggdGFibGUgYW5kIGVuam95IHlvdXIgbGlmZSBzdGFydGluZyBmcm9t
-IHRoaXMgTmV3IFllYXIgMjAxMiE8L0ZPTlQ+PC9QPg0KPFA+PEZPTlQgc2l6ZT0yIGZhY2U9QXJp
-YWw+V2hhdCBhcmUgeW91IHdhaXRpbmcgZm9yPyBKdXN0IGNoZWNrIG90aGVyIGFjY291bnRzIG9u
-IHRoZSB3ZWJzaXRlIGFuZCA8U1RST05HPjxBIGhyZWY9Imh0dHA6Ly9hcGkuZWxhc3RpY2VtYWls
-LmNvbS90cmFja2luZy9jbGljaz9tc2dpZD0zYXcwYi0zdmtyb3czMCZ0YXJnZXQ9aHR0cCUzYSUy
-ZiUyZmJpdC5seSUyZjR4c2FtdXJhaSI+bWFrZSB5b3VyIG9yZGVyIE5PVzwvQT48L1NUUk9ORz4g
-YXMgdGhlIHByaWNlIHdpbGwgZ28gdXAgYW55dGltZSBzb29uLjwvRk9OVD48L1A+DQo8UD48Rk9O
-VCBzaXplPTIgZmFjZT1BcmlhbD5BbGwgdGhlIGJlc3Qgd2l0aCB5b3VyIHRyYWRpbmcgZW5kZWF2
-b3JzLjwvRk9OVD48L1A+DQo8UD48Rk9OVCBzaXplPTIgZmFjZT1BcmlhbD5GWCBSb2JvdCBUZWFt
-PC9GT05UPjwvUD4NCjxQPjxGT05UIHNpemU9MiBmYWNlPUFyaWFsPioqKioqKjwvRk9OVD48L1A+
-DQo8UD5QbGVhc2UgY2xpY2sgPEEgaHJlZj0iaHR0cDovL2FwaS5lbGFzdGljZW1haWwuY29tL3Ry
-YWNraW5nL3Vuc3Vic2NyaWJlP21zZ2lkPTNhdzBiLTN2a3JvdzMwIj5VbnN1YnNjcmliZTwvQT4g
-Z2V0IHlvdXJzZWxmIG9mZiB0aGlzIGxpc3QuPC9QPjxGT05UIHNpemU9MiBmYWNlPSJBcmlhbCwg
-SGVsdmV0aWNhLCBzYW5zLXNlcmlmIj48L0ZPTlQ+PC9CT0RZPjwvSFRNTD48aW1nIHNyYz0iaHR0
-cDovL2FwaS5lbGFzdGljZW1haWwuY29tL3RyYWNraW5nL29wZW4/bXNnaWQ9M2F3MGItM3Zrcm93
-MzAiIHN0eWxlPSJ3aWR0aDoxcHg7aGVpZ2h0OjFweCIgYWx0PSIiIC8+
-------=_NextPart_000_18EC_DBC11C34.9AE1BBB5--
-
-
-
---===============6927115909439900752==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6927115909439900752==--
-
