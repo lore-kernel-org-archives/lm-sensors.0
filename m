@@ -1,42 +1,58 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 03 Mar 2012 18:04:02 +0000
-Subject: Re: [lm-sensors] [linux-pm] [PATCH 2/4] hwmon: exynos4: Move thermal sensor driver to driver/mfd dir
-Message-Id: <20120303180402.GA30062@ericsson.com>
+From: Amit Kachhap <amit.kachhap@linaro.org>
+Date: Mon, 05 Mar 2012 08:56:31 +0000
+Subject: Re: [lm-sensors] [PATCH 2/4] hwmon: exynos4: Move thermal sensor driver to driver/mfd directory
+Message-Id: <CAK44p217-ah2HPot65nctZ7+r+A_EiOXPKq8y33NbBM1scrXgQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
- <1330772767-16120-3-git-send-email-amit.kachhap@linaro.org>
- <20120303164410.GB1495@sirena.org.uk>
-In-Reply-To: <20120303164410.GB1495@sirena.org.uk>
+	<1330772767-16120-3-git-send-email-amit.kachhap@linaro.org>
+	<4F520CCE.1030409@gmail.com>
+In-Reply-To: <4F520CCE.1030409@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, lenb@kernel.org, linaro-dev@lists.linaro.org, lm-sensors@lm-sensors.org, eduardo.valentin@ti.com, durgadoss.r@intel.com, patches@linaro.org
 
-On Sat, Mar 03, 2012 at 11:44:10AM -0500, Mark Brown wrote:
-> On Sat, Mar 03, 2012 at 04:36:05PM +0530, Amit Daniel Kachhap wrote:
-> > This movement is needed because the hwmon entries and corresponding
-> > sysfs interface is a duplicate of utilities already provided by
-> > driver/thermal/thermal_sys.c. The goal is to place it in mfd folder
-> > and add necessary calls to get the temperature information.
-> 
-> > --- a/Documentation/hwmon/exynos4_tmu
-> > +++ /dev/null
-> 
-> Moving this seems to be a failure, the device is exposing a hwmon
-> interface even if you've moved the code to mfd (though it doesn't
-> actually look like a multi-function device at all as far as I can see -
-> usually a MFD would have a bunch of unrelated functionality while this
-> has one function used by two subsystems).
-> 
-> If anything it looks like the ADC driver ought to be moved into IIO with
-> either generic or Exynos specific function drivers layered on top of it
-> in hwmon and thermal making use of the values that are read.
-> 
-I would agree. Or maybe move it all to thermal, since thermal devices register
-the hwmon subsystem.
+On 3 March 2012 17:51, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> On 03/03/2012 12:06 PM, Amit Daniel Kachhap wrote:
+>>
+>> This movement is needed because the hwmon entries and corresponding
+>> sysfs interface is a duplicate of utilities already provided by
+>> driver/thermal/thermal_sys.c. The goal is to place it in mfd folder
+>> and add necessary calls to get the temperature information.
+>>
+>> Signed-off-by: Amit Daniel Kachhap<amit.kachhap@linaro.org>
+>> Signed-off-by: Donggeun Kim<dg77.kim@samsung.com>
+>> ---
+>> =A0Documentation/hwmon/exynos4_tmu | =A0 81 ------
+>> =A0Documentation/mfd/exynos4_tmu =A0 | =A0 81 ++++++
+>> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 | =A0 10 -
+>> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0| =A0 =A01 -
+>> =A0drivers/hwmon/exynos4_tmu.c =A0 =A0 | =A0514
+>> ---------------------------------------
+>> =A0drivers/mfd/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 | =A0 10 +
+>> =A0drivers/mfd/Makefile =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01 +
+>> =A0drivers/mfd/exynos4_tmu.c =A0 =A0 =A0 | =A0514
+>> +++++++++++++++++++++++++++++++++++++++
+>> =A08 files changed, 606 insertions(+), 606 deletions(-)
+>> =A0delete mode 100644 Documentation/hwmon/exynos4_tmu
+>> =A0create mode 100644 Documentation/mfd/exynos4_tmu
+>> =A0delete mode 100644 drivers/hwmon/exynos4_tmu.c
+>> =A0create mode 100644 drivers/mfd/exynos4_tmu.c
+>
+>
+> Please consider adding -M option to git format-patch next time, which
+> would make the patch smaller and would let to see clearly what's moved
+> and what has changed.
 
-Guenter
+Sure , will keep it in mind.
+
+Thanks
+
+>
+> --
+> Thanks,
+> Sylwester
 
 _______________________________________________
 lm-sensors mailing list
