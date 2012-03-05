@@ -1,88 +1,157 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 15 Mar 2012 15:36:24 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.3-rc8/final
-Message-Id: <20120315153624.GA11981@ericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============9209947468033749638=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 05 Mar 2012 19:20:35 +0000
+Subject: [lm-sensors] [PATCH 3/6] hwmon: (pmbus) Add more virtual registers
+Message-Id: <1330975238-16811-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============9209947468033749638==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="BXVAT5kNtrzKuDFl"
-Content-Disposition: inline
-
---BXVAT5kNtrzKuDFl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.3-rc8/final from tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-
-------
-
-The following changes since commit fde7d9049e55ab85a390be7f415d74c9f62dd0f9:
-
-  Linux 3.3-rc7 (2012-03-10 13:49:52 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Guenter Roeck (4):
-      hwmon: (w83627ehf) Fix writing into fan_stop_time for NCT6775F/NCT6776F
-      hwmon: (w83627ehf) Fix memory leak in probe function
-      hwmon: (w83627ehf) Describe undocumented pwm attributes
-      hwmon: (zl6100) Enable interval between chip accesses for all chips
-
-Jean Delvare (1):
-      hwmon: (w83627ehf) Fix temp2 source for W83627UHG
-
- Documentation/hwmon/w83627ehf |    9 +++++++--
- Documentation/hwmon/zl6100    |   14 ++++++--------
- drivers/hwmon/pmbus/zl6100.c  |   12 +++---------
- drivers/hwmon/w83627ehf.c     |   17 ++++++++---------
- 4 files changed, 24 insertions(+), 28 deletions(-)
-
---BXVAT5kNtrzKuDFl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPYgx4AAoJEMsfJm/On5mBF/QP/joJny3gbI5fyB0hBF4eax2x
-nKghdcAlMlAPXWOkQTbi+o4NuceWvRBI9OBhaYuYZdGv0DwBRpxsqbK7gXoRp852
-kYsL48Rp7CXi190zoMyZaaCMatjuM//H/WVEarISpyknMymlD78Voqwaj9OVfhyJ
-4H7DtVGR3qZLsqlUsEsM/eydi5i8CcgTjJczkkYL349DQSGo7PD2R1cAx20mGlt9
-cgf0UaZnfSwUzNQqfVs7wR9rtQLO9EFvTvgdOAQSBIpcDM8v5yL5+wWZmQILa6IQ
-Ob8VfNAbxw4Mm9Z9o3y24nG4CQPF+cbQoLGSlXhhKIfNSkXFE4gm6hVmriweh0Rz
-vZLdjaFqjfoNk8l8bPeDJ49NYxU8DtGxWUetzau7Kbe0NawhCOwqiGEz2QeNvYq8
-31FHHev/Qz2B/k3hUSIIKfa+63afgNkh58huiA08HqnQumDiyXHUeO1vV/EKuUnY
-nOj8qVyxgwaPl9I44KZmRPIJQh5pUppgLoOTKSR1m6rwjiwVBIVvvhpFi5tJ0Moz
-Zr/0DXahyQGgPpK8mRCha4JoMJ/BNzkrZOv39RsEdQsVq9xIGYpxhj6WSlU8PHuT
-HbJpYmiOC5fa60I5EnCnjObOoNMX8yP6UodNSUTYWvyCfyCjNsknFtZAK4Da/bLi
-z8FP7XIullegG62MNBa1
-=1tiT
------END PGP SIGNATURE-----
-
---BXVAT5kNtrzKuDFl--
-
-
---===============9209947468033749638==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Add PMBUS_VIRT_READ_TEMP_AVG, PMBUS_VIRT_READ_TEMP2_AVG,
+PMBUS_VIRT_READ_POUT_AVG, PMBUS_VIRT_READ_POUT_MAX,
+and PMBUS_VIRT_RESET_POUT_HISTORY.
+
+We'll need those for MAX34446.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/pmbus.h      |   55 ++++++++++++++++++++-----------------
+ drivers/hwmon/pmbus/pmbus_core.c |   28 ++++++++++++++++---
+ 2 files changed, 54 insertions(+), 29 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index 0b17d4f..3fe03dc 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -146,31 +146,36 @@
+  * code when reading or writing virtual registers.
+  */
+ #define PMBUS_VIRT_BASE			0x100
+-#define PMBUS_VIRT_READ_TEMP_MIN	(PMBUS_VIRT_BASE + 0)
+-#define PMBUS_VIRT_READ_TEMP_MAX	(PMBUS_VIRT_BASE + 1)
+-#define PMBUS_VIRT_RESET_TEMP_HISTORY	(PMBUS_VIRT_BASE + 2)
+-#define PMBUS_VIRT_READ_VIN_AVG		(PMBUS_VIRT_BASE + 3)
+-#define PMBUS_VIRT_READ_VIN_MIN		(PMBUS_VIRT_BASE + 4)
+-#define PMBUS_VIRT_READ_VIN_MAX		(PMBUS_VIRT_BASE + 5)
+-#define PMBUS_VIRT_RESET_VIN_HISTORY	(PMBUS_VIRT_BASE + 6)
+-#define PMBUS_VIRT_READ_IIN_AVG		(PMBUS_VIRT_BASE + 7)
+-#define PMBUS_VIRT_READ_IIN_MIN		(PMBUS_VIRT_BASE + 8)
+-#define PMBUS_VIRT_READ_IIN_MAX		(PMBUS_VIRT_BASE + 9)
+-#define PMBUS_VIRT_RESET_IIN_HISTORY	(PMBUS_VIRT_BASE + 10)
+-#define PMBUS_VIRT_READ_PIN_AVG		(PMBUS_VIRT_BASE + 11)
+-#define PMBUS_VIRT_READ_PIN_MAX		(PMBUS_VIRT_BASE + 12)
+-#define PMBUS_VIRT_RESET_PIN_HISTORY	(PMBUS_VIRT_BASE + 13)
+-#define PMBUS_VIRT_READ_VOUT_AVG	(PMBUS_VIRT_BASE + 14)
+-#define PMBUS_VIRT_READ_VOUT_MIN	(PMBUS_VIRT_BASE + 15)
+-#define PMBUS_VIRT_READ_VOUT_MAX	(PMBUS_VIRT_BASE + 16)
+-#define PMBUS_VIRT_RESET_VOUT_HISTORY	(PMBUS_VIRT_BASE + 17)
+-#define PMBUS_VIRT_READ_IOUT_AVG	(PMBUS_VIRT_BASE + 18)
+-#define PMBUS_VIRT_READ_IOUT_MIN	(PMBUS_VIRT_BASE + 19)
+-#define PMBUS_VIRT_READ_IOUT_MAX	(PMBUS_VIRT_BASE + 20)
+-#define PMBUS_VIRT_RESET_IOUT_HISTORY	(PMBUS_VIRT_BASE + 21)
+-#define PMBUS_VIRT_READ_TEMP2_MIN	(PMBUS_VIRT_BASE + 22)
+-#define PMBUS_VIRT_READ_TEMP2_MAX	(PMBUS_VIRT_BASE + 23)
+-#define PMBUS_VIRT_RESET_TEMP2_HISTORY	(PMBUS_VIRT_BASE + 24)
++#define PMBUS_VIRT_READ_TEMP_AVG	(PMBUS_VIRT_BASE + 0)
++#define PMBUS_VIRT_READ_TEMP_MIN	(PMBUS_VIRT_BASE + 1)
++#define PMBUS_VIRT_READ_TEMP_MAX	(PMBUS_VIRT_BASE + 2)
++#define PMBUS_VIRT_RESET_TEMP_HISTORY	(PMBUS_VIRT_BASE + 3)
++#define PMBUS_VIRT_READ_VIN_AVG		(PMBUS_VIRT_BASE + 4)
++#define PMBUS_VIRT_READ_VIN_MIN		(PMBUS_VIRT_BASE + 5)
++#define PMBUS_VIRT_READ_VIN_MAX		(PMBUS_VIRT_BASE + 6)
++#define PMBUS_VIRT_RESET_VIN_HISTORY	(PMBUS_VIRT_BASE + 7)
++#define PMBUS_VIRT_READ_IIN_AVG		(PMBUS_VIRT_BASE + 8)
++#define PMBUS_VIRT_READ_IIN_MIN		(PMBUS_VIRT_BASE + 9)
++#define PMBUS_VIRT_READ_IIN_MAX		(PMBUS_VIRT_BASE + 10)
++#define PMBUS_VIRT_RESET_IIN_HISTORY	(PMBUS_VIRT_BASE + 11)
++#define PMBUS_VIRT_READ_PIN_AVG		(PMBUS_VIRT_BASE + 12)
++#define PMBUS_VIRT_READ_PIN_MAX		(PMBUS_VIRT_BASE + 13)
++#define PMBUS_VIRT_RESET_PIN_HISTORY	(PMBUS_VIRT_BASE + 14)
++#define PMBUS_VIRT_READ_POUT_AVG	(PMBUS_VIRT_BASE + 15)
++#define PMBUS_VIRT_READ_POUT_MAX	(PMBUS_VIRT_BASE + 16)
++#define PMBUS_VIRT_RESET_POUT_HISTORY	(PMBUS_VIRT_BASE + 17)
++#define PMBUS_VIRT_READ_VOUT_AVG	(PMBUS_VIRT_BASE + 18)
++#define PMBUS_VIRT_READ_VOUT_MIN	(PMBUS_VIRT_BASE + 19)
++#define PMBUS_VIRT_READ_VOUT_MAX	(PMBUS_VIRT_BASE + 20)
++#define PMBUS_VIRT_RESET_VOUT_HISTORY	(PMBUS_VIRT_BASE + 21)
++#define PMBUS_VIRT_READ_IOUT_AVG	(PMBUS_VIRT_BASE + 22)
++#define PMBUS_VIRT_READ_IOUT_MIN	(PMBUS_VIRT_BASE + 23)
++#define PMBUS_VIRT_READ_IOUT_MAX	(PMBUS_VIRT_BASE + 24)
++#define PMBUS_VIRT_RESET_IOUT_HISTORY	(PMBUS_VIRT_BASE + 25)
++#define PMBUS_VIRT_READ_TEMP2_AVG	(PMBUS_VIRT_BASE + 26)
++#define PMBUS_VIRT_READ_TEMP2_MIN	(PMBUS_VIRT_BASE + 27)
++#define PMBUS_VIRT_READ_TEMP2_MAX	(PMBUS_VIRT_BASE + 28)
++#define PMBUS_VIRT_RESET_TEMP2_HISTORY	(PMBUS_VIRT_BASE + 29)
+ 
+ /*
+  * CAPABILITY
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index aada0c6..be51037 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -40,11 +40,14 @@
+ #define PMBUS_IOUT_SENSORS_PER_PAGE	8	/* input, min, max, crit,
+ 						   lowest, highest, avg,
+ 						   reset */
+-#define PMBUS_POUT_SENSORS_PER_PAGE	4	/* input, cap, max, crit */
++#define PMBUS_POUT_SENSORS_PER_PAGE	7	/* input, cap, max, crit,
++						 * highest, avg, reset
++						 */
+ #define PMBUS_MAX_SENSORS_PER_FAN	1	/* input */
+-#define PMBUS_MAX_SENSORS_PER_TEMP	8	/* input, min, max, lcrit,
+-						   crit, lowest, highest,
+-						   reset */
++#define PMBUS_MAX_SENSORS_PER_TEMP	9	/* input, min, max, lcrit,
++						 * crit, lowest, highest, avg,
++						 * reset
++						 */
+ 
+ #define PMBUS_MAX_INPUT_BOOLEANS	7	/* v: min_alarm, max_alarm,
+ 						   lcrit_alarm, crit_alarm;
+@@ -1334,6 +1337,17 @@ static const struct pmbus_limit_attr pout_limit_attrs[] = {
+ 		.attr = "crit",
+ 		.alarm = "crit_alarm",
+ 		.sbit = PB_POUT_OP_FAULT,
++	}, {
++		.reg = PMBUS_VIRT_READ_POUT_AVG,
++		.update = true,
++		.attr = "average",
++	}, {
++		.reg = PMBUS_VIRT_READ_POUT_MAX,
++		.update = true,
++		.attr = "input_highest",
++	}, {
++		.reg = PMBUS_VIRT_RESET_POUT_HISTORY,
++		.attr = "reset_history",
+ 	}
+ };
+ 
+@@ -1389,6 +1403,9 @@ static const struct pmbus_limit_attr temp_limit_attrs[] = {
+ 		.reg = PMBUS_VIRT_READ_TEMP_MIN,
+ 		.attr = "lowest",
+ 	}, {
++		.reg = PMBUS_VIRT_READ_TEMP_AVG,
++		.attr = "average",
++	}, {
+ 		.reg = PMBUS_VIRT_READ_TEMP_MAX,
+ 		.attr = "highest",
+ 	}, {
+@@ -1424,6 +1441,9 @@ static const struct pmbus_limit_attr temp_limit_attrs2[] = {
+ 		.reg = PMBUS_VIRT_READ_TEMP2_MIN,
+ 		.attr = "lowest",
+ 	}, {
++		.reg = PMBUS_VIRT_READ_TEMP2_AVG,
++		.attr = "average",
++	}, {
+ 		.reg = PMBUS_VIRT_READ_TEMP2_MAX,
+ 		.attr = "highest",
+ 	}, {
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============9209947468033749638==--
