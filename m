@@ -1,132 +1,68 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Date: Mon, 19 Mar 2012 06:29:39 +0000
-Subject: [lm-sensors] [PATCH V2 1/6] thermal: Add a new trip type to use cooling device instance number
-Message-Id: <1332137864-12943-2-git-send-email-amit.kachhap@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 05 Mar 2012 19:20:33 +0000
+Subject: [lm-sensors] [PATCH 1/6] hwmon: (pmbus) Add support for TI TPS40400 and TPS40422
+Message-Id: <1330975238-16811-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
-In-Reply-To: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org
-Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-This patch adds a new trip type THERMAL_TRIP_STATE_INSTANCE. This
-trip behaves same as THERMAL_TRIP_ACTIVE but also passes the cooling
-device instance number. This helps the cooling device registered as
-different instances to perform appropriate cooling action decision in
-the set_cur_state call back function.
+TPS40400 and TPS40422 are supported by the generic PMBus driver.
+Add device IDs and data sheet references.
 
-Also since the trip temperature's are in ascending order so some logic
-is put in place to skip the un-necessary checks.
-
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- Documentation/thermal/sysfs-api.txt |    4 +-
- drivers/thermal/thermal_sys.c       |   45 ++++++++++++++++++++++++++++++++--
- include/linux/thermal.h             |    1 +
- 3 files changed, 45 insertions(+), 5 deletions(-)
+ Documentation/hwmon/pmbus   |    6 ++++++
+ drivers/hwmon/pmbus/Kconfig |    2 +-
+ drivers/hwmon/pmbus/pmbus.c |    2 ++
+ 3 files changed, 9 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/thermal/sysfs-api.txt b/Documentation/thermal/sysfs-api.txt
-index 1733ab9..9a7c69c 100644
---- a/Documentation/thermal/sysfs-api.txt
-+++ b/Documentation/thermal/sysfs-api.txt
-@@ -184,8 +184,8 @@ trip_point_[0-*]_temp
+diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
+index d28b591..c2b157b 100644
+--- a/Documentation/hwmon/pmbus
++++ b/Documentation/hwmon/pmbus
+@@ -22,6 +22,12 @@ Supported chips:
+ 	http://www.lineagepower.com/oem/pdf/PDT006A0X.pdf
+ 	http://www.lineagepower.com/oem/pdf/PDT012A0X.pdf
+ 	http://www.lineagepower.com/oem/pdf/UDT020A0X.pdf
++  * Texas Instruments TPS40400, TPS40422
++    Prefixes: 'tps40400', 'tps40422'
++    Addresses scanned: -
++    Datasheets:
++	http://www.ti.com/lit/gpn/tps40400
++	http://www.ti.com/lit/gpn/tps40422
+   * Generic PMBus devices
+     Prefix: 'pmbus'
+     Addresses scanned: -
+diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
+index cfec923..7968c81 100644
+--- a/drivers/hwmon/pmbus/Kconfig
++++ b/drivers/hwmon/pmbus/Kconfig
+@@ -20,7 +20,7 @@ config SENSORS_PMBUS
+ 	help
+ 	  If you say yes here you get hardware monitoring support for generic
+ 	  PMBus devices, including but not limited to ADP4000, BMR453, BMR454,
+-	  NCP4200, and NCP4208.
++	  NCP4200, NCP4208, TPS40400, and TPS40422.
  
- trip_point_[0-*]_type
- 	Strings which indicate the type of the trip point.
--	E.g. it can be one of critical, hot, passive, active[0-*] for ACPI
--	thermal zone.
-+	E.g. it can be one of critical, hot, passive, active[0-1],
-+	state-instance[0-*] for ACPI thermal zone.
- 	RO, Optional
- 
- cdev[0-*]
-diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-index 220ce7e..9fc2150 100644
---- a/drivers/thermal/thermal_sys.c
-+++ b/drivers/thermal/thermal_sys.c
-@@ -192,6 +192,8 @@ trip_point_type_show(struct device *dev, struct device_attribute *attr,
- 		return sprintf(buf, "passive\n");
- 	case THERMAL_TRIP_ACTIVE:
- 		return sprintf(buf, "active\n");
-+	case THERMAL_TRIP_STATE_INSTANCE:
-+		return sprintf(buf, "state-instance\n");
- 	default:
- 		return sprintf(buf, "unknown\n");
- 	}
-@@ -1034,10 +1036,10 @@ EXPORT_SYMBOL(thermal_cooling_device_unregister);
- 
- void thermal_zone_device_update(struct thermal_zone_device *tz)
- {
--	int count, ret = 0;
--	long temp, trip_temp;
-+	int count, ret = 0, inst_id;
-+	long temp, trip_temp, max_state, last_trip_change = 0;
- 	enum thermal_trip_type trip_type;
--	struct thermal_cooling_device_instance *instance;
-+	struct thermal_cooling_device_instance *instance, *state_instance;
- 	struct thermal_cooling_device *cdev;
- 
- 	mutex_lock(&tz->lock);
-@@ -1086,6 +1088,43 @@ void thermal_zone_device_update(struct thermal_zone_device *tz)
- 					cdev->ops->set_cur_state(cdev, 0);
- 			}
- 			break;
-+		case THERMAL_TRIP_STATE_INSTANCE:
-+			list_for_each_entry(instance, &tz->cooling_devices,
-+					    node) {
-+				if (instance->trip != count)
-+					continue;
-+
-+				if (temp <= last_trip_change)
-+					continue;
-+
-+				inst_id = 0;
-+				/*
-+				*For this instance how many instance of same
-+				*cooling device occured before
-+				*/
-+
-+				list_for_each_entry(state_instance,
-+						&tz->cooling_devices, node) {
-+					if (instance->cdev =
-+							state_instance->cdev)
-+						inst_id++;
-+					if (state_instance->trip = count)
-+						break;
-+				}
-+
-+				cdev = instance->cdev;
-+				cdev->ops->get_max_state(cdev, &max_state);
-+
-+				if ((temp >= trip_temp) &&
-+						(inst_id <= max_state))
-+					cdev->ops->set_cur_state(cdev, inst_id);
-+				else if ((temp < trip_temp) &&
-+						(--inst_id <= max_state))
-+					cdev->ops->set_cur_state(cdev, inst_id);
-+
-+				last_trip_change = trip_temp;
-+			}
-+			break;
- 		case THERMAL_TRIP_PASSIVE:
- 			if (temp >= trip_temp || tz->passive)
- 				thermal_zone_device_passive(tz, temp,
-diff --git a/include/linux/thermal.h b/include/linux/thermal.h
-index 796f1ff..583fbda 100644
---- a/include/linux/thermal.h
-+++ b/include/linux/thermal.h
-@@ -42,6 +42,7 @@ enum thermal_trip_type {
- 	THERMAL_TRIP_PASSIVE,
- 	THERMAL_TRIP_HOT,
- 	THERMAL_TRIP_CRITICAL,
-+	THERMAL_TRIP_STATE_INSTANCE,
+ 	  This driver can also be built as a module. If so, the module will
+ 	  be called pmbus.
+diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
+index 3488740..7d5161d 100644
+--- a/drivers/hwmon/pmbus/pmbus.c
++++ b/drivers/hwmon/pmbus/pmbus.c
+@@ -191,6 +191,8 @@ static const struct i2c_device_id pmbus_id[] = {
+ 	{"pdt006", 1},
+ 	{"pdt012", 1},
+ 	{"pmbus", 0},
++	{"tps40400", 1},
++	{"tps40422", 2},
+ 	{"udt020", 1},
+ 	{}
  };
- 
- struct thermal_zone_device_ops {
 -- 
-1.7.1
+1.7.5.4
 
 
 _______________________________________________
