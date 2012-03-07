@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 07 Mar 2012 17:14:35 +0000
+Date: Wed, 07 Mar 2012 17:18:13 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (jc42) Add support for AT30TS00, TS3000GB2, TSE2002GB2, and MCP9804
-Message-Id: <1331140475.23014.353.camel@groeck-laptop>
+Message-Id: <1331140693.23014.356.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1331137039-16108-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1331137039-16108-1-git-send-email-linux@roeck-us.net>
@@ -43,16 +43,20 @@ On Wed, 2012-03-07 at 11:51 -0500, Jean Delvare wrote:
 > You mean ts3000gb2 not ts300gb2. But do we really want to have 4
 > different prefixes for only 2 device IDs anyway?
 > 
-I replaced it with tse2002 and ts3000.
-
 > I'm not even sure why we defined that many different prefixes in the
 > first place when we treat them all the same, and autodetection doesn't
 > even bother setting the prefix right. All these chips are
 > register-compatible by definition, so I really wouldn't mind dropping
 > all these different prefixes (which I don't think anyone is using
 > today) and going with "jc42" for everyone.
-> 
-Good point. I'll change that with a separate patch.
+
+Thinking about it and looking into NetBSD code - some of the chips have
+fixed sensor resolution, others have configurable resolution. In the
+latter case, the NetBSD driver configures it. Before I drop the
+capability to separate chips based on the prefix, it might make sense to
+first determine if that is something we want or should support.
+
+Thoughts ?
 
 Guenter
 
