@@ -1,50 +1,41 @@
-From: "R, Durgadoss" <durgadoss.r@intel.com>
-Date: Fri, 02 Mar 2012 16:54:36 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 07 Mar 2012 19:08:22 +0000
 Subject: Re: [lm-sensors] [PATCH 02/03] HWMON: HWMON driver for DA9052/53 PMIC v3
-Message-Id: <4D68720C2E767A4AA6A8796D42C8EB59046B13@BGSMSX101.gar.corp.intel.com>
+Message-Id: <1331147302.23014.370.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1330698545.21817.31.camel@dhruva>
-	 <4D68720C2E767A4AA6A8796D42C8EB59046AE9@BGSMSX101.gar.corp.intel.com>
- <1330707053.23014.279.camel@groeck-laptop>
-In-Reply-To: <1330707053.23014.279.camel@groeck-laptop>
+In-Reply-To: <1330698545.21817.31.camel@dhruva>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "guenter.roeck@ericsson.com" <guenter.roeck@ericsson.com>
-Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>, "randy.dunlap@oracle.com" <randy.dunlap@oracle.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "dchen@diasemi.com" <dchen@diasemi.com>
+To: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Cc: "randy.dunlap@oracle.com" <randy.dunlap@oracle.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "dchen@diasemi.com" <dchen@diasemi.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
 
-Hi Guenter,
-
-> -----Original Message-----
-> From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
-> Sent: Friday, March 02, 2012 10:21 PM
-> To: R, Durgadoss
-> Cc: Ashish Jangam; randy.dunlap@oracle.com; linaro-dev@lists.linaro.org;
-> sameo@linux.intel.com; linux-kernel@vger.kernel.org; lm-sensors@lm-sensors.org;
-> dchen@diasemi.com
-> Subject: RE: [lm-sensors] [PATCH 02/03] HWMON: HWMON driver for DA9052/53 PMIC
-> v3
+On Fri, 2012-03-02 at 09:29 -0500, Ashish Jangam wrote:
+> The DA9052 PMIC provides an Analogue to Digital Converter with 10 bits
+> resolution and 10 channels.
 > 
-> Hi Durga,
+> This patch monitors the DA9052 PMIC's ADC channels mostly for battery
+> parameters like battery temperature, junction temperature, battery
+> current etc.
 > 
-> On Fri, 2012-03-02 at 11:44 -0500, R, Durgadoss wrote:
-> > Hi,
-> >
- 
-[snip..]
-
-> > > +     sysfs_remove_group(&pdev->dev.kobj, &da9052_attr_group);
-> > > +err_mem:
-> >
-> > I think you should do a kfree(hwmon) here.
-> >
+> This patch is functionally tested on Samsung SMDKV6410
 > 
-> Not needed because devm_kzalloc() is used above.
+> Signed-off-by: David Dajun Chen <dchen@diasemi.com>
+> Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
 
-Ok. Nice to know. Thank you :-)
+Only comment I would have is that it might make sense to use
+DIV_ROUND_CLOSEST(). That is a minor issue, though, so feel free to add
+
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+
+Question is where this is going. I can not add it to hwmon-next without
+the matching mfd changes. Any idea ?
 
 Thanks,
-Durga
+Guenter
+
+
 
 _______________________________________________
 lm-sensors mailing list
