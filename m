@@ -1,111 +1,160 @@
-From: Tomas Johansson <tomasx@hotmail.com>
-Date: Fri, 23 Mar 2012 15:18:51 +0000
-Subject: Re: [lm-sensors] IT8728 shows wrong CPU temperature
-Message-Id: <SNT106-W16FD9BC56DC3643A107830D3460@phx.gbl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0152923738668817065=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 07 Mar 2012 17:22:06 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (jc42) Add support for AT30TS00, TS3000GB2, TSE2002GB2, and MCP9804
+Message-Id: <1331140926-16412-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <SNT106-W616EA106142C05B93F28D5D3460@phx.gbl>
-In-Reply-To: <SNT106-W616EA106142C05B93F28D5D3460@phx.gbl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============0152923738668817065==
-Content-Type: multipart/alternative;
-	boundary="_133881fa-2854-4332-864e-91db70a93915_"
+Also update IDT datasheet locations.
 
---_133881fa-2854-4332-864e-91db70a93915_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Only use two prefixes for TSE2002xx, TS3000xx.
 
+ Documentation/hwmon/jc42 |   20 ++++++++++++++------
+ drivers/hwmon/Kconfig    |    6 +++---
+ drivers/hwmon/jc42.c     |   20 ++++++++++++++++++--
+ 3 files changed, 35 insertions(+), 11 deletions(-)
 
+diff --git a/Documentation/hwmon/jc42 b/Documentation/hwmon/jc42
+index e713375..52729a7 100644
+--- a/Documentation/hwmon/jc42
++++ b/Documentation/hwmon/jc42
+@@ -7,21 +7,29 @@ Supported chips:
+     Addresses scanned: I2C 0x18 - 0x1f
+     Datasheets:
+ 	http://www.analog.com/static/imported-files/data_sheets/ADT7408.pdf
+-  * IDT TSE2002B3, TS3000B3
+-    Prefix: 'tse2002b3', 'ts3000b3'
++  * Atmel AT30TS00
++    Prefix: 'at30ts00'
+     Addresses scanned: I2C 0x18 - 0x1f
+     Datasheets:
+-	http://www.idt.com/products/getdoc.cfm?docid715691
+-	http://www.idt.com/products/getdoc.cfm?docid715692
++	http://www.atmel.com/Images/doc8585.pdf
++  * IDT TSE2002B3, TSE2002GB2, TS3000B3, TS3000GB2
++    Prefix: 'tse2002', 'ts3000'
++    Addresses scanned: I2C 0x18 - 0x1f
++    Datasheets:
++	http://www.idt.com/sites/default/files/documents/IDT_TSE2002B3C_DST_20100512_120303152056.pdf
++	http://www.idt.com/sites/default/files/documents/IDT_TSE2002GB2A1_DST_20111107_120303145914.pdf
++	http://www.idt.com/sites/default/files/documents/IDT_TS3000B3A_DST_20101129_120303152013.pdf
++	http://www.idt.com/sites/default/files/documents/IDT_TS3000GB2A1_DST_20111104_120303151012.pdf
+   * Maxim MAX6604
+     Prefix: 'max6604'
+     Addresses scanned: I2C 0x18 - 0x1f
+     Datasheets:
+ 	http://datasheets.maxim-ic.com/en/ds/MAX6604.pdf
+-  * Microchip MCP9805, MCP98242, MCP98243, MCP9843
+-    Prefixes: 'mcp9805', 'mcp98242', 'mcp98243', 'mcp9843'
++  * Microchip MCP9804, MCP9805, MCP98242, MCP98243, MCP9843
++    Prefixes: 'mcp9804', 'mcp9805', 'mcp98242', 'mcp98243', 'mcp9843'
+     Addresses scanned: I2C 0x18 - 0x1f
+     Datasheets:
++	http://ww1.microchip.com/downloads/en/DeviceDoc/22203C.pdf
+ 	http://ww1.microchip.com/downloads/en/DeviceDoc/21977b.pdf
+ 	http://ww1.microchip.com/downloads/en/DeviceDoc/21996a.pdf
+ 	http://ww1.microchip.com/downloads/en/DeviceDoc/22153c.pdf
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 91a51af..dad895f 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -497,9 +497,9 @@ config SENSORS_JC42
+ 	  If you say yes here, you get support for JEDEC JC42.4 compliant
+ 	  temperature sensors, which are used on many DDR3 memory modules for
+ 	  mobile devices and servers.  Support will include, but not be limited
+-	  to, ADT7408, CAT34TS02, CAT6095, MAX6604, MCP9805, MCP98242, MCP98243,
+-	  MCP9843, SE97, SE98, STTS424(E), STTS2002, STTS3000, TSE2002B3, and
+-	  TS3000B3.
++	  to, ADT7408, AT30TS00, CAT34TS02, CAT6095, MAX6604, MCP9804, MCP9805,
++	  MCP98242, MCP98243, MCP9843, SE97, SE98, STTS424(E), STTS2002,
++	  STTS3000, TSE2002B3, TSE2002GB2, TS3000B3, and TS3000GB2.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called jc42.
+diff --git a/drivers/hwmon/jc42.c b/drivers/hwmon/jc42.c
+index 08430ec..b927ee5 100644
+--- a/drivers/hwmon/jc42.c
++++ b/drivers/hwmon/jc42.c
+@@ -64,6 +64,7 @@ static const unsigned short normal_i2c[] = {
+ 
+ /* Manufacturer IDs */
+ #define ADT_MANID		0x11d4  /* Analog Devices */
++#define ATMEL_MANID		0x001f  /* Atmel */
+ #define MAX_MANID		0x004d  /* Maxim */
+ #define IDT_MANID		0x00b3  /* IDT */
+ #define MCP_MANID		0x0054  /* Microchip */
+@@ -77,15 +78,25 @@ static const unsigned short normal_i2c[] = {
+ #define ADT7408_DEVID		0x0801
+ #define ADT7408_DEVID_MASK	0xffff
+ 
++/* Atmel */
++#define AT30TS00_DEVID		0x8201
++#define AT30TS00_DEVID_MASK	0xffff
++
+ /* IDT */
+ #define TS3000B3_DEVID		0x2903  /* Also matches TSE2002B3 */
+ #define TS3000B3_DEVID_MASK	0xffff
+ 
++#define TS3000GB2_DEVID		0x2912  /* Also matches TSE2002GB2 */
++#define TS3000GB2_DEVID_MASK	0xffff
++
+ /* Maxim */
+ #define MAX6604_DEVID		0x3e00
+ #define MAX6604_DEVID_MASK	0xffff
+ 
+ /* Microchip */
++#define MCP9804_DEVID		0x0200
++#define MCP9804_DEVID_MASK	0xfffc
++
+ #define MCP98242_DEVID		0x2000
+ #define MCP98242_DEVID_MASK	0xfffc
+ 
+@@ -129,8 +140,11 @@ struct jc42_chips {
+ 
+ static struct jc42_chips jc42_chips[] = {
+ 	{ ADT_MANID, ADT7408_DEVID, ADT7408_DEVID_MASK },
++	{ ATMEL_MANID, AT30TS00_DEVID, AT30TS00_DEVID_MASK },
+ 	{ IDT_MANID, TS3000B3_DEVID, TS3000B3_DEVID_MASK },
++	{ IDT_MANID, TS3000GB2_DEVID, TS3000GB2_DEVID_MASK },
+ 	{ MAX_MANID, MAX6604_DEVID, MAX6604_DEVID_MASK },
++	{ MCP_MANID, MCP9804_DEVID, MCP9804_DEVID_MASK },
+ 	{ MCP_MANID, MCP98242_DEVID, MCP98242_DEVID_MASK },
+ 	{ MCP_MANID, MCP98243_DEVID, MCP98243_DEVID_MASK },
+ 	{ MCP_MANID, MCP9843_DEVID, MCP9843_DEVID_MASK },
+@@ -167,10 +181,12 @@ static struct jc42_data *jc42_update_device(struct device *dev);
+ 
+ static const struct i2c_device_id jc42_id[] = {
+ 	{ "adt7408", 0 },
++	{ "at30ts00", 0 },
+ 	{ "cat94ts02", 0 },
+ 	{ "cat6095", 0 },
+ 	{ "jc42", 0 },
+ 	{ "max6604", 0 },
++	{ "mcp9804", 0 },
+ 	{ "mcp9805", 0 },
+ 	{ "mcp98242", 0 },
+ 	{ "mcp98243", 0 },
+@@ -181,8 +197,8 @@ static const struct i2c_device_id jc42_id[] = {
+ 	{ "stts424", 0 },
+ 	{ "stts2002", 0 },
+ 	{ "stts3000", 0 },
+-	{ "tse2002b3", 0 },
+-	{ "ts3000b3", 0 },
++	{ "tse2002", 0 },
++	{ "ts3000", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, jc42_id);
+-- 
+1.7.5.4
 
-
-> Date: Fri=2C 23 Mar 2012 15:13:16 +0100
-> From: khali@linux-fr.org
-> To: tomasx@hotmail.com
-> CC: lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] IT8728 shows wrong CPU temperature
->=20
-> On Fri=2C 23 Mar 2012 15:06:11 +0100=2C Tomas Johansson wrote:
-> > Now we are talking=2C thanks for the information. :)
-> > I guess=2C my original intention with my letter wasn=B4t giving you mor=
-e work but rather broadcasting that it might be a problem with the IT8728F =
-support=2C i guess with 3.3 out we will soon see more usage of it. And mayb=
-e more people will report=2C or not...
-> >=20
-> > With your experience what would you recommend.
->=20
-> First of all I'd recommend not dropping the mailing list from Cc.
->=20
-> > 1. Asssuming ~26 C is the real idle value
->=20
-> Yes.
->=20
-> > 2. fiddle with the lm sensors config file and add a couple of degrees
->=20
-> No.
->=20
-> > 3. Get a life and stop monitoring my fan speeds and temps
->=20
-> No. Monitoring is useful.
->=20
-> --=20
-> Jean Delvare
-
-Thanks=2C i will follow your advice.
- 		 	   		  =
-
---_133881fa-2854-4332-864e-91db70a93915_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style><!--
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Tahoma
-}
---></style></head>
-<body class=3D'hmmessage'><div dir=3D'ltr'>
-<br><br><div><div id=3D"SkyDrivePlaceholder"></div>&gt=3B Date: Fri=2C 23 M=
-ar 2012 15:13:16 +0100<br>&gt=3B From: khali@linux-fr.org<br>&gt=3B To: tom=
-asx@hotmail.com<br>&gt=3B CC: lm-sensors@lm-sensors.org<br>&gt=3B Subject: =
-Re: [lm-sensors] IT8728 shows wrong CPU temperature<br>&gt=3B <br>&gt=3B On=
- Fri=2C 23 Mar 2012 15:06:11 +0100=2C Tomas Johansson wrote:<br>&gt=3B &gt=
-=3B Now we are talking=2C thanks for the information. :)<br>&gt=3B &gt=3B I=
- guess=2C my original intention with my letter wasn=B4t giving you more wor=
-k but rather broadcasting that it might be a problem with the IT8728F suppo=
-rt=2C i guess with 3.3 out we will soon see more usage of it. And maybe mor=
-e people will report=2C or not...<br>&gt=3B &gt=3B <br>&gt=3B &gt=3B With y=
-our experience what would you recommend.<br>&gt=3B <br>&gt=3B First of all =
-I'd recommend not dropping the mailing list from Cc.<br>&gt=3B <br>&gt=3B &=
-gt=3B 1. Asssuming ~26 C is the real idle value<br>&gt=3B <br>&gt=3B Yes.<b=
-r>&gt=3B <br>&gt=3B &gt=3B 2. fiddle with the lm sensors config file and ad=
-d a couple of degrees<br>&gt=3B <br>&gt=3B No.<br>&gt=3B <br>&gt=3B &gt=3B =
-3. Get a life and stop monitoring my fan speeds and temps<br>&gt=3B <br>&gt=
-=3B No. Monitoring is useful.<br>&gt=3B <br>&gt=3B -- <br>&gt=3B Jean Delva=
-re<br><br>Thanks=2C i will follow your advice.<br></div> 		 	   		  </div><=
-/body>
-</html>=
-
---_133881fa-2854-4332-864e-91db70a93915_--
-
-
---===============0152923738668817065==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0152923738668817065==--
