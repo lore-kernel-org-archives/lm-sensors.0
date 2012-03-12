@@ -1,46 +1,56 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 21 Mar 2012 18:07:23 +0000
-Subject: Re: [lm-sensors] [GIT PULL] hwmon updates for 3.4
-Message-Id: <1332353243.32717.207.camel@groeck-laptop>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 12 Mar 2012 15:43:25 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (w83627ehf) Fix memory leak in probe function
+Message-Id: <1331567005-13734-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120320162358.GA5189@ericsson.com>
-	 <CA+55aFzEQ-undQpx_Q_5+scP5EN9KxJ9m-1O-8O0h+EbZE2mMw@mail.gmail.com>
-In-Reply-To: <CA+55aFzEQ-undQpx_Q_5+scP5EN9KxJ9m-1O-8O0h+EbZE2mMw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-On Wed, 2012-03-21 at 13:40 -0400, Linus Torvalds wrote:
-> On Tue, Mar 20, 2012 at 9:23 AM, Guenter Roeck
-> <guenter.roeck@ericsson.com> wrote:
-> >
-> > Please pull hwmon updates for Linux 3.4 from tag:
-> >
-> >    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-> >
-> > Mostly cleanup. No new drivers this time around, but support for several chips
-> > added to existing drivers: TPS40400, TPS40422, MTD040, MAX34446, ZL9101M,
-> > ZL9117M, and LM96080. Also added watchdog support for SCH56xx, plus additional
-> > sysfs attributes for a couple of drivers.
-> 
-> Btw, please don't put that "git log --oneline" generated data into the
-> tag - there's no real point. It doesn't add anything human-readable to
-> anything, and for any automation you can get the data better directly
-> from git instead.
-> 
-> So the tag-message shouldn't contain anything auto-generated, since
-> any auto-generated data is better just generated later on the fly.
-> Just do the human-readable "this is the high-level overview of that
-> the pull request contains" into the tag message.
-> 
->                        Linus
+The driver probe function leaked memory if creating the cpu0_vid attribute file
+failed. Fix by converting the driver to use devm_kzalloc.
 
-Ok. Sorry for the noise, and thanks for pulling the changes.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/w83627ehf.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-Guenter
-
+diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+index 378142c..60e929c 100644
+--- a/drivers/hwmon/w83627ehf.c
++++ b/drivers/hwmon/w83627ehf.c
+@@ -2021,7 +2021,8 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 		goto exit;
+ 	}
+ 
+-	data = kzalloc(sizeof(struct w83627ehf_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct w83627ehf_data),
++			    GFP_KERNEL);
+ 	if (!data) {
+ 		err = -ENOMEM;
+ 		goto exit_release;
+@@ -2514,9 +2515,8 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+ 
+ exit_remove:
+ 	w83627ehf_device_remove_files(dev);
+-	kfree(data);
+-	platform_set_drvdata(pdev, NULL);
+ exit_release:
++	platform_set_drvdata(pdev, NULL);
+ 	release_region(res->start, IOREGION_LENGTH);
+ exit:
+ 	return err;
+@@ -2530,7 +2530,6 @@ static int __devexit w83627ehf_remove(struct platform_device *pdev)
+ 	w83627ehf_device_remove_files(&pdev->dev);
+ 	release_region(data->addr, IOREGION_LENGTH);
+ 	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+ 
+ 	return 0;
+ }
+-- 
+1.7.5.4
 
 
 _______________________________________________
