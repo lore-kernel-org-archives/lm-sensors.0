@@ -1,71 +1,76 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 05 Mar 2012 19:20:34 +0000
-Subject: [lm-sensors] [PATCH 2/6] hwmon: (pmbus) Add support for Lineage Power MDT040
-Message-Id: <1330975238-16811-2-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 13 Mar 2012 16:10:52 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (zl6100) Enable interval between chip accesses for all chips
+Message-Id: <1331655052-6574-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-MDT040 is supported by the generic PMBus driver. Add device ID and reference to
-datasheet. Also mention Lineage Power device support in Kconfig.
+Intersil reports that all chips supported by the zl6100 driver require
+an interval between chip accesses, even ZL2004 and ZL6105 which were thought
+to be safe.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Reported-by: Vivek Gani <vgani@intersil.com>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
 ---
- Documentation/hwmon/pmbus   |    3 ++-
- drivers/hwmon/pmbus/Kconfig |    3 ++-
- drivers/hwmon/pmbus/pmbus.c |    1 +
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ Documentation/hwmon/zl6100   |   14 ++++++--------
+ drivers/hwmon/pmbus/zl6100.c |   12 +++---------
+ 2 files changed, 9 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/hwmon/pmbus b/Documentation/hwmon/pmbus
-index c2b157b..f90f999 100644
---- a/Documentation/hwmon/pmbus
-+++ b/Documentation/hwmon/pmbus
-@@ -15,13 +15,14 @@ Supported chips:
- 	http://www.onsemi.com/pub_link/Collateral/NCP4200-D.PDF
- 	http://www.onsemi.com/pub_link/Collateral/JUNE%202009-%20REV.%200.PDF
-   * Lineage Power
--    Prefixes: 'pdt003', 'pdt006', 'pdt012', 'udt020'
-+    Prefixes: 'mdt040', 'pdt003', 'pdt006', 'pdt012', 'udt020'
-     Addresses scanned: -
-     Datasheets:
- 	http://www.lineagepower.com/oem/pdf/PDT003A0X.pdf
- 	http://www.lineagepower.com/oem/pdf/PDT006A0X.pdf
- 	http://www.lineagepower.com/oem/pdf/PDT012A0X.pdf
- 	http://www.lineagepower.com/oem/pdf/UDT020A0X.pdf
-+	http://www.lineagepower.com/oem/pdf/MDT040A0X.pdf
-   * Texas Instruments TPS40400, TPS40422
-     Prefixes: 'tps40400', 'tps40422'
-     Addresses scanned: -
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index 7968c81..d1aa2db 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -20,7 +20,8 @@ config SENSORS_PMBUS
- 	help
- 	  If you say yes here you get hardware monitoring support for generic
- 	  PMBus devices, including but not limited to ADP4000, BMR453, BMR454,
--	  NCP4200, NCP4208, TPS40400, and TPS40422.
-+	  MDT040, NCP4200, NCP4208, PDT003, PDT006, PDT012, UDT020, TPS40400,
-+	  and TPS40422.
+diff --git a/Documentation/hwmon/zl6100 b/Documentation/hwmon/zl6100
+index 51f76a1..a4e8d90 100644
+--- a/Documentation/hwmon/zl6100
++++ b/Documentation/hwmon/zl6100
+@@ -88,14 +88,12 @@ Module parameters
+ delay
+ -----
  
- 	  This driver can also be built as a module. If so, the module will
- 	  be called pmbus.
-diff --git a/drivers/hwmon/pmbus/pmbus.c b/drivers/hwmon/pmbus/pmbus.c
-index 7d5161d..7e91700 100644
---- a/drivers/hwmon/pmbus/pmbus.c
-+++ b/drivers/hwmon/pmbus/pmbus.c
-@@ -185,6 +185,7 @@ static const struct i2c_device_id pmbus_id[] = {
- 	{"adp4000", 1},
- 	{"bmr453", 1},
- 	{"bmr454", 1},
-+	{"mdt040", 1},
- 	{"ncp4200", 1},
- 	{"ncp4208", 1},
- 	{"pdt003", 1},
+-Some Intersil/Zilker Labs DC-DC controllers require a minimum interval between
+-I2C bus accesses. According to Intersil, the minimum interval is 2 ms, though
+-1 ms appears to be sufficient and has not caused any problems in testing.
+-The problem is known to affect ZL6100, ZL2105, and ZL2008. It is known not to
+-affect ZL2004 and ZL6105. The driver automatically sets the interval to 1 ms
+-except for ZL2004 and ZL6105. To enable manual override, the driver provides a
+-writeable module parameter, 'delay', which can be used to set the interval to
+-a value between 0 and 65,535 microseconds.
++Intersil/Zilker Labs DC-DC controllers require a minimum interval between I2C
++bus accesses. According to Intersil, the minimum interval is 2 ms, though 1 ms
++appears to be sufficient and has not caused any problems in testing. The problem
++is known to affect all currently supported chips. For manual override, the
++driver provides a writeable module parameter, 'delay', which can be used to set
++the interval to a value between 0 and 65,535 microseconds.
+ 
+ 
+ Sysfs entries
+diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c
+index 880b90c..e3e8420 100644
+--- a/drivers/hwmon/pmbus/zl6100.c
++++ b/drivers/hwmon/pmbus/zl6100.c
+@@ -200,17 +200,11 @@ static int zl6100_probe(struct i2c_client *client,
+ 	data->id = mid->driver_data;
+ 
+ 	/*
+-	 * ZL2005, ZL2008, ZL2105, and ZL6100 are known to require a wait time
+-	 * between I2C accesses. ZL2004 and ZL6105 are known to be safe.
+-	 * Other chips have not yet been tested.
+-	 *
+-	 * Only clear the wait time for chips known to be safe. The wait time
+-	 * can be cleared later for additional chips if tests show that it
+-	 * is not needed (in other words, better be safe than sorry).
++	 * According to information from the chip vendor, all currently
++	 * supported chips are known to require a wait time between I2C
++	 * accesses.
+ 	 */
+ 	data->delay = delay;
+-	if (data->id = zl2004 || data->id = zl6105)
+-		data->delay = 0;
+ 
+ 	/*
+ 	 * Since there was a direct I2C device access above, wait before
 -- 
-1.7.5.4
+1.7.3.1
 
 
 _______________________________________________
