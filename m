@@ -1,41 +1,59 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 02 Mar 2012 21:38:09 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/4] hwmon: (f75375s) Properly map the F75387 automatic modes to pwm_enab
-Message-Id: <1330724289.23014.321.camel@groeck-laptop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 13 Mar 2012 07:42:21 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (w83627ehf) Add support for temperature offset registers
+Message-Id: <20120313084221.7cdfc468@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1330463755-5763-4-git-send-email-mail@microschulz.de>
-In-Reply-To: <1330463755-5763-4-git-send-email-mail@microschulz.de>
+References: <1328807876-26409-1-git-send-email-guenter.roeck@ericsson.com>
+In-Reply-To: <1328807876-26409-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 2012-03-02 at 16:26 -0500, Nikolaus Schulz wrote:
-> On Fri, Mar 02, 2012 at 12:02:44PM -0800, Guenter Roeck wrote:
-> > On Fri, 2012-03-02 at 14:47 -0500, Nikolaus Schulz wrote:
-> > > > That is why I suggested to split the patch into two parts. I don't mind
-> > > > a fix for pwm_mode=3, limiting its scope. My concern is that pwm_mode=4
-> > > > adds functionality which I would prefer to delay until 3.4.
-> > > 
-> > > Well, as I have said, this functionality may already be activated by the
-> > > BIOS.  The driver has to deal with it, right?  It's not so much a matter
-> > > of supporting something, but a matter of not messing it up.
-> > > 
-> > Hmm - good point. I'll accept that. I'll add your reasoning to the patch
-> > description and apply it to 3.3.
-> 
-> Thank you.  And yes, adding an explicit note about that to the commit
-> message is a good idea.  I should have been more clear there.
-> 
-> Sorry for bugging you some more, do you consider
-> 331255d35d6f517020485aee38dbb8b8dfaa1642 "hwmon: (f75375s) Fix writes to
-> the pwm* attribute for the F75387" for v3.3?  I think it should go in.
-> 
-Yes.
+Hi Guenter,
 
-Guenter
+On Thu, 9 Feb 2012 09:17:56 -0800, Guenter Roeck wrote:
+> Add support for temperature offset registers for CPUTIN, SYSTIN,
+> and AUXTIN temperatures.
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> ---
+>  drivers/hwmon/w83627ehf.c |   73 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 73 insertions(+), 0 deletions(-)
 
+I can't test that, overall it looks good, except one thing:
 
+> diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+> index 57a31a0..5273fff 100644
+> --- a/drivers/hwmon/w83627ehf.c
+> +++ b/drivers/hwmon/w83627ehf.c
+> (...)
+> @@ -2204,6 +2265,11 @@ static int __devinit w83627ehf_probe(struct platform_device *pdev)
+>  		data->in6_skip = 1;			/* No VIN3 */
+>  
+>  		data->temp_label = w83667hg_b_temp_label;
+> +		data->have_temp_offset = data->have_temp & 0x03;
+> +		for (i = 0; i < 2; i++) {
+> +			if (data->temp_src[i] > 1)
+> +				data->have_temp_offset &= ~(1 << i);
+> +		}
+
+This is the W83627UHG case, and while it has only two analog
+temperature inputs, it can have up to 3 temperature channels. temp1 is
+hard-coded to SYSTIN, temp2 can be set to PECI and temp3 to CPUTIN, in
+which case temp3 would support temperature offset. So you should loop
+up to i < 3, not 2.
+
+Once this is fixed, you can add:
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+While reviewing this patch, I found that the code which sets the source
+for temp2 is broken (for W83627UHG only), I'll send a fix now.
+
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
