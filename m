@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 14 Mar 2012 15:57:16 +0000
+From: David Kremer <david@david-kremer.fr>
+Date: Wed, 14 Mar 2012 16:19:37 +0000
 Subject: Re: [lm-sensors] ERROR: could not insert 'w83627ehf': Device or resource busy
-Message-Id: <1331740636.32717.33.camel@groeck-laptop>
+Message-Id: <4F60C519.5050408@david-kremer.fr>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4F60A0AA.2050107@gmail.com>
 In-Reply-To: <4F60A0AA.2050107@gmail.com>
@@ -10,95 +10,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2012-03-14 at 11:32 -0400, David Kremer wrote:
-> On 14/03/2012 16:23, Guenter Roeck wrote:
-> > On Wed, 2012-03-14 at 10:23 -0400, David Kremer wrote:
-> >> On 14/03/2012 14:55, Guenter Roeck wrote:
-> >>> Most likely
-> >>>
-> >>> http://www.lm-sensors.org/wiki/FAQ/Chapter3#Mysensorshavestoppedworkinginkernel2.6.31
-> >>>
-> >> Thank you guenter.
-> >>
-> >> However, there is no clear explanation of how to fix this.
-> >>
-> >> Indeed, I load the linux module asus_atk0110 and ran again sensors-detect.
-> >>
-> > Hi David,
-> >
-> > Question is not what happens if you ran sensors-detect again; that is
-> > not the point and has nothing to do with the ability to load the module
-> > or not.
-> >
-> > Question is what you get when running the "sensors" command after
-> > loading the asus_atk0110 module.
-> >
-> >> The script ended up saying that the following modules was needed :
-> >>
-> >> Driver `w83627ehf':
-> >>     * ISA bus, address 0x290
-> >>       Chip `Nuvoton NCT6776F Super IO Sensors' (confidence: 9)
-> >>
-> >> Driver `coretemp':
-> >>     * Chip `Intel digital thermal sensor' (confidence: 9)
-> >>
-> >> However, there is still no way to load w83627ehf as I read your link.
-> >>
-> > Did you get the acpi error message as described ?
-> >
-> > If so, the link does provide the answer:
-> >
-> > "If you want to restore the old behaviour (which might be dangerous)
-> > add: "acpi_enforce_resources=lax" to the kernel cmdline when booting (or
-> > add it in grub.conf to make this permanent)."
-> >
-> > Just remember the "which might be dangerous". You might be better off
-> > with asus_atk0100 if it works for you.
-> >
-> > Guenter
-> >
-> >
-> >
-> I loaded the asus_atk0110 module into the kernel :
-> 
-> $ lsmod |grep atk
-> asus_atk0110           10131  0
-> 
-> However the interface is still using the coretemp linux module, so the 
-> pwm config says me :
-> 
-
-David,
-
-coretemp doesn't have anything to do with w83627ehf or asus_atk0110,
-except that all are hwmon drivers. You are complaining that the
-headlights of your car still work even after you tried to replace the
-tail break lights.
-
-> /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
-> 
-> I guess the only way to have my fancontrol working properly is to 
-> enforce the old way with the kernel command line.
-> 
-> How do you plan to fix the situation in future releases ?
-> 
-First question is if the asus_atk0110 module detects your board. You
-would see that with the "sensors" command, not with pwmconfig (the asus
-driver does not support manual fan control, so pwmconfig will not work).
-
-Second question is if you actually _need_ manual fan control. The
-automatic fan control implemented in NCT6776F is pretty good, and it
-should be enabled by default. Do you have any problems with it ?
-
-If you do have problems with automatic fan control, the only remedy I
-can see would be for someone to implement manual fan control in
-asus_atk0110. Not sure if that is even possible, though.
-
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gMTQvMDMvMjAxMiAxNjo1NywgR3VlbnRlciBSb2VjayB3cm90ZToKPiBGaXJzdCBxdWVzdGlv
+biBpcyBpZiB0aGUgYXN1c19hdGswMTEwIG1vZHVsZSBkZXRlY3RzIHlvdXIgYm9hcmQuIFlvdQo+
+IHdvdWxkIHNlZSB0aGF0IHdpdGggdGhlICJzZW5zb3JzIiBjb21tYW5kLCBub3Qgd2l0aCBwd21j
+b25maWcgKHRoZSBhc3VzCj4gZHJpdmVyIGRvZXMgbm90IHN1cHBvcnQgbWFudWFsIGZhbiBjb250
+cm9sLCBzbyBwd21jb25maWcgd2lsbCBub3Qgd29yaykuCj4KPiBTZWNvbmQgcXVlc3Rpb24gaXMg
+aWYgeW91IGFjdHVhbGx5X25lZWRfICBtYW51YWwgZmFuIGNvbnRyb2wuIFRoZQo+IGF1dG9tYXRp
+YyBmYW4gY29udHJvbCBpbXBsZW1lbnRlZCBpbiBOQ1Q2Nzc2RiBpcyBwcmV0dHkgZ29vZCwgYW5k
+IGl0Cj4gc2hvdWxkIGJlIGVuYWJsZWQgYnkgZGVmYXVsdC4gRG8geW91IGhhdmUgYW55IHByb2Js
+ZW1zIHdpdGggaXQgPwo+Cj4gSWYgeW91IGRvIGhhdmUgcHJvYmxlbXMgd2l0aCBhdXRvbWF0aWMg
+ZmFuIGNvbnRyb2wsIHRoZSBvbmx5IHJlbWVkeSBJCj4gY2FuIHNlZSB3b3VsZCBiZSBmb3Igc29t
+ZW9uZSB0byBpbXBsZW1lbnQgbWFudWFsIGZhbiBjb250cm9sIGluCj4gYXN1c19hdGswMTEwLiBO
+b3Qgc3VyZSBpZiB0aGF0IGlzIGV2ZW4gcG9zc2libGUsIHRob3VnaC4KVGhlIGFzdXNfYXRrMDEx
+MCBtb2R1bGUgaXMgbG9hZGVkLgoKV2UgaGF2ZSBleGFjdGx5IDoKCiAgJCAvdXNyL2Jpbi9zZW5z
+b3JzCiAgY29yZXRlbXAtaXNhLTAwMDAKICBBZGFwdGVyOiBJU0EgYWRhcHRlcgogIFBoeXNpY2Fs
+IGlkIDA6ICArMzYuMMKwQyAgKGhpZ2ggPSArODIuMMKwQywgY3JpdCA9ICsxMDIuMMKwQykKICBD
+b3JlIDA6ICAgICAgICAgKzMzLjDCsEMgIChoaWdoID0gKzgyLjDCsEMsIGNyaXQgPSArMTAyLjDC
+sEMpCiAgQ29yZSAxOiAgICAgICAgICszMi4wwrBDICAoaGlnaCA9ICs4Mi4wwrBDLCBjcml0ID0g
+KzEwMi4wwrBDKQoKICAkCgpJIGRvbid0IGtub3cgaWYgSSAqbmVlZCogbWFudWFsIGZhbiBjb250
+cm9sLCBiZWNhdXNlIEkgYWxzbyBoYXZlIG90aGVyIAppbXBvcnRhbnQgcHJpb3JpdHkgc3VjaCBh
+cyBicmVhdGhpbmcsIGZlZWRpbmcgYW5kIHdvcmtpbmcgOikuCgpIb3dldmVyLCBJIGtub3cgdGhh
+dCBteSBmYW4gaXMgY3VycmVudGx5IHNwaW5uaW5nIGF0IGl0cyBtYXggc3BlZWQgSDI0LCAKYSB0
+aGluZyB0aGF0IEkgZmluZCBhbm5veWluZywgYW5kIEkgdGhpbmsgb3RoZXIgcGVvcGxlIGFsc28g
+bGlrZSB0byBoYXZlIAphIGZpbmUgcHdtIHNjcmlwdCB0dW5pbmcgdGhlaXIgY3B1IGZhbi4gVGhl
+IG5vaXNlIGlzIGEgcHJvYmxlbSwgYW5kIEkgYW0gCmZydXN0cmF0ZWQgdG8gYmUgdW5hYmxlIHRv
+IHVzZSBteSB2ZW50aXJhZCBJIGJvdWdodCBpbiB0aGUgb3JkZXIgdG8gcnVuIAphIHNpbGVudCBj
+b21wdXRlciB3aXRoIGl0cyBmdWxsIHBvdGVudGlhbC4gVGhpcyBpcyB2ZXJ5IG5vaXN5IGFuZCBJ
+IGtub3cgCnRoYXQgSSBjb3VsZCBydW4gdW5kZXIgbXVjaCBiZXR0ZXIgY29uZGl0aW9ucy4KCkkg
+YW0gbm90IHN1cmUgd2hhdCB5b3UgYXJlIHRhbGtpbmcgYWJvdXQgd2hlbiB5b3UgaW52b2tlIHRo
+ZSBhdXRvbWF0aWMgCmZhbiBjb250cm9sIG9mIE5DVDY3NzZGLiBJcyBpdCBhdXRvbWF0aWMgaW4g
+dGhlIGxpbnV4IGtlcm5lbCBvciBpbiB0aGUgCm1vdGhlcmJvYXJkLCB0aGUgYmlvcyBjb2RlLCBv
+ciBzb21ldGhpbmcgZWxzZSA/CgpEYXZpZAoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
