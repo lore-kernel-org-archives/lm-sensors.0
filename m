@@ -1,58 +1,72 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 14 Mar 2012 16:40:41 +0000
+From: David Kremer <david@david-kremer.fr>
+Date: Wed, 14 Mar 2012 18:53:38 +0000
 Subject: Re: [lm-sensors] ERROR: could not insert 'w83627ehf': Device or resource busy
-Message-Id: <1331743241.32717.46.camel@groeck-laptop>
+Message-Id: <4F60E932.4060207@david-kremer.fr>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------000007090206040905060909"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4F60A0AA.2050107@gmail.com>
 In-Reply-To: <4F60A0AA.2050107@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyMDEyLTAzLTE0IGF0IDEyOjE5IC0wNDAwLCBEYXZpZCBLcmVtZXIgd3JvdGU6Cj4g
-T24gMTQvMDMvMjAxMiAxNjo1NywgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IEZpcnN0IHF1ZXN0
-aW9uIGlzIGlmIHRoZSBhc3VzX2F0azAxMTAgbW9kdWxlIGRldGVjdHMgeW91ciBib2FyZC4gWW91
-Cj4gPiB3b3VsZCBzZWUgdGhhdCB3aXRoIHRoZSAic2Vuc29ycyIgY29tbWFuZCwgbm90IHdpdGgg
-cHdtY29uZmlnICh0aGUgYXN1cwo+ID4gZHJpdmVyIGRvZXMgbm90IHN1cHBvcnQgbWFudWFsIGZh
-biBjb250cm9sLCBzbyBwd21jb25maWcgd2lsbCBub3Qgd29yaykuCj4gPgo+ID4gU2Vjb25kIHF1
-ZXN0aW9uIGlzIGlmIHlvdSBhY3R1YWxseV9uZWVkXyAgbWFudWFsIGZhbiBjb250cm9sLiBUaGUK
-PiA+IGF1dG9tYXRpYyBmYW4gY29udHJvbCBpbXBsZW1lbnRlZCBpbiBOQ1Q2Nzc2RiBpcyBwcmV0
-dHkgZ29vZCwgYW5kIGl0Cj4gPiBzaG91bGQgYmUgZW5hYmxlZCBieSBkZWZhdWx0LiBEbyB5b3Ug
-aGF2ZSBhbnkgcHJvYmxlbXMgd2l0aCBpdCA/Cj4gPgo+ID4gSWYgeW91IGRvIGhhdmUgcHJvYmxl
-bXMgd2l0aCBhdXRvbWF0aWMgZmFuIGNvbnRyb2wsIHRoZSBvbmx5IHJlbWVkeSBJCj4gPiBjYW4g
-c2VlIHdvdWxkIGJlIGZvciBzb21lb25lIHRvIGltcGxlbWVudCBtYW51YWwgZmFuIGNvbnRyb2wg
-aW4KPiA+IGFzdXNfYXRrMDExMC4gTm90IHN1cmUgaWYgdGhhdCBpcyBldmVuIHBvc3NpYmxlLCB0
-aG91Z2guCj4gVGhlIGFzdXNfYXRrMDExMCBtb2R1bGUgaXMgbG9hZGVkLgo+IAo+IFdlIGhhdmUg
-ZXhhY3RseSA6Cj4gCj4gICAkIC91c3IvYmluL3NlbnNvcnMKPiAgIGNvcmV0ZW1wLWlzYS0wMDAw
-Cj4gICBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+ICAgUGh5c2ljYWwgaWQgMDogICszNi4wwrBDICAo
-aGlnaCA9ICs4Mi4wwrBDLCBjcml0ID0gKzEwMi4wwrBDKQo+ICAgQ29yZSAwOiAgICAgICAgICsz
-My4wwrBDICAoaGlnaCA9ICs4Mi4wwrBDLCBjcml0ID0gKzEwMi4wwrBDKQo+ICAgQ29yZSAxOiAg
-ICAgICAgICszMi4wwrBDICAoaGlnaCA9ICs4Mi4wwrBDLCBjcml0ID0gKzEwMi4wwrBDKQo+IAo+
-ICAgJAo+IApMb29rcyBsaWtlIHRoZSBhc3VzX2F0azAxMTAgZHJpdmVyIGRvZXMgbm90IGRldGVj
-dCB5b3VyIG1vdGhlcmJvYXJkLiBEaWQKeW91IHRyeSB0aGUgbGF0ZXN0IHVwc3RyZWFtIHZlcnNp
-b24gb2YgdGhhdCBkcml2ZXIgPwoKPiBJIGRvbid0IGtub3cgaWYgSSAqbmVlZCogbWFudWFsIGZh
-biBjb250cm9sLCBiZWNhdXNlIEkgYWxzbyBoYXZlIG90aGVyIAo+IGltcG9ydGFudCBwcmlvcml0
-eSBzdWNoIGFzIGJyZWF0aGluZywgZmVlZGluZyBhbmQgd29ya2luZyA6KS4KPiAKOi0pCgo+IEhv
-d2V2ZXIsIEkga25vdyB0aGF0IG15IGZhbiBpcyBjdXJyZW50bHkgc3Bpbm5pbmcgYXQgaXRzIG1h
-eCBzcGVlZCBIMjQsIAo+IGEgdGhpbmcgdGhhdCBJIGZpbmQgYW5ub3lpbmcsIGFuZCBJIHRoaW5r
-IG90aGVyIHBlb3BsZSBhbHNvIGxpa2UgdG8gaGF2ZSAKPiBhIGZpbmUgcHdtIHNjcmlwdCB0dW5p
-bmcgdGhlaXIgY3B1IGZhbi4gVGhlIG5vaXNlIGlzIGEgcHJvYmxlbSwgYW5kIEkgYW0gCj4gZnJ1
-c3RyYXRlZCB0byBiZSB1bmFibGUgdG8gdXNlIG15IHZlbnRpcmFkIEkgYm91Z2h0IGluIHRoZSBv
-cmRlciB0byBydW4gCj4gYSBzaWxlbnQgY29tcHV0ZXIgd2l0aCBpdHMgZnVsbCBwb3RlbnRpYWwu
-IFRoaXMgaXMgdmVyeSBub2lzeSBhbmQgSSBrbm93IAo+IHRoYXQgSSBjb3VsZCBydW4gdW5kZXIg
-bXVjaCBiZXR0ZXIgY29uZGl0aW9ucy4KPiAKRG9lc24ndCBsb29rIGxpa2UgYXV0b21hdGljIGZh
-biBjb250cm9sIGlzIGVuYWJsZWQgdGhlbi4KCj4gSSBhbSBub3Qgc3VyZSB3aGF0IHlvdSBhcmUg
-dGFsa2luZyBhYm91dCB3aGVuIHlvdSBpbnZva2UgdGhlIGF1dG9tYXRpYyAKPiBmYW4gY29udHJv
-bCBvZiBOQ1Q2Nzc2Ri4gSXMgaXQgYXV0b21hdGljIGluIHRoZSBsaW51eCBrZXJuZWwgb3IgaW4g
-dGhlIAo+IG1vdGhlcmJvYXJkLCB0aGUgYmlvcyBjb2RlLCBvciBzb21ldGhpbmcgZWxzZSA/CgpU
-aGUgTkNUIGNoaXAgc3VwcG9ydHMgaXQsIGFuZCBpdCB3b3JrcyBwcmV0dHkgd2VsbCBvbiBteSBz
-eXN0ZW0gKHdpdGgKTkNUNjc3NUYpLiBJdCBpcyBlbmFibGVkIGlmIHB3bVhfZW5hYmxlIGlzIHNl
-dCB0byA1IGFmdGVyIHlvdQpmb3JjZS1sb2FkZWQgdGhlIHc4MzYyN2VoZiBtb2R1bGUuCgpJIGFt
-IHdvcmtpbmcgb24gYW4gZW5oYW5jZWQgdmVyc2lvbiBvZiB0aGUgbmN0Njc3NS9uY3Q2Nzc2IGRy
-aXZlciB3aGljaAp3aWxsIGxldCB5b3UgY29uZmlndXJlIGF1dG9tYXRpYyBmYW4gY29udHJvbC4g
-SXQgaXMgb24gZ2l0aHViLCBzbyB5b3UKY291bGQgZ2l2ZSBpdCBhIHRyeSBpZiB5b3UgbGlrZSAo
-aHR0cHM6Ly9naXRodWIuY29tL2dyb2Vjay9uY3Q2Nzc1KS4KCkd1ZW50ZXIKCgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+This is a multi-part message in MIME format.
+--------------000007090206040905060909
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+
+> The NCT chip supports it, and it works pretty well on my system (with
+> NCT6775F). It is enabled if pwmX_enable is set to 5 after you
+> force-loaded the w83627ehf module.
+>
+> I am working on an enhanced version of the nct6775/nct6776 driver which
+> will let you configure automatic fan control. It is on github, so you
+> could give it a try if you like (https://github.com/groeck/nct6775).
+>
+> Guenter
+>
+Thank you Guenter.
+
+I slightly modified your makefile to make it suits the
+archlinux installation.
+
+See the attached patch.
+
+Can you tell me if it's correct ?
+<http://www.federationyoga.qc.ca/page-respiration.html>
+<http://www.federationyoga.qc.ca/page-respiration.html>
+
+--------------000007090206040905060909
+Content-Type: text/plain;
+ name="patch-makefile.p0"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="patch-makefile.p0"
+
+ZGlmZiAtLWdpdCBhL01ha2VmaWxlIGIvTWFrZWZpbGUKaW5kZXggZjBmM2JkNS4uODM4MWYy
+NSAxMDA2NDQKLS0tIGEvTWFrZWZpbGUKKysrIGIvTWFrZWZpbGUKQEAgLTEsMTQgKzEsMTQg
+QEAKICMgRm9yIGJ1aWxkaW5nIGZvciB0aGUgY3VycmVudCBydW5uaW5nIHZlcnNpb24gb2Yg
+TGludXgKIFRBUkdFVAkJOj0gJChzaGVsbCB1bmFtZSAtcikKLUhPTUU9JChzaGVsbCBwd2Qp
+CitIT01FICAgICAgICAgICAgOj0gJChzaGVsbCBwd2QpCiAjIE9yIGZvciBhIHNwZWNpZmlj
+IHZlcnNpb24KICNUQVJHRVQJCTo9IDIuNi4zMy41CiBLRVJORUxfTU9EVUxFUwk6PSAvbGli
+L21vZHVsZXMvJChUQVJHRVQpCiAjIEtFUk5FTF9CVUlMRAk6PSAkKEtFUk5FTF9NT0RVTEVT
+KS9idWlsZAotS0VSTkVMX0JVSUxECTo9IC91c3Ivc3JjL2xpbnV4LWhlYWRlcnMtJChUQVJH
+RVQpCitLRVJORUxfQlVJTEQJOj0gL3Vzci9zcmMvbGludXgtJChUQVJHRVQpCiAKICNTWVNU
+RU1fTUFQCTo9ICQoS0VSTkVMX0JVSUxEKS9TeXN0ZW0ubWFwCi1TWVNURU1fTUFQCTo9IC9i
+b290L1N5c3RlbS5tYXAtJChUQVJHRVQpCitTWVNURU1fTUFQCTo9IC9saWIvbW9kdWxlcy8k
+KFRBUkdFVCkvYnVpbGQvTW9kdWxlLnN5bXZlcnMKIAogRFJJVkVSIDo9IG5jdDY3NzUKIApA
+QCAtMzMsNCArMzMsNCBAQCBpbnN0YWxsOiBtb2R1bGVzX2luc3RhbGwKIAogbW9kdWxlc19p
+bnN0YWxsOgogCWNwICQoRFJJVkVSKS5rbyAkKEtFUk5FTF9NT0RVTEVTKS9rZXJuZWwvJChN
+T0RfU1VCRElSKQotCWRlcG1vZCAtYSAtRiAkKFNZU1RFTV9NQVApICQoVEFSR0VUKQorCWRl
+cG1vZCAtYSAtRSAkKFNZU1RFTV9NQVApICQoVEFSR0VUKQo=
+--------------000007090206040905060909
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------000007090206040905060909--
