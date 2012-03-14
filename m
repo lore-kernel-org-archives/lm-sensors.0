@@ -1,51 +1,35 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Date: Mon, 05 Mar 2012 09:23:14 +0000
-Subject: Re: [lm-sensors] [linux-pm] [PATCH 2/4] hwmon: exynos4: Move thermal sensor driver to driver/mfd dir
-Message-Id: <CAK44p20WsM4DHdcYF_NSWS7Ux_O6p2Fx1R9fdms5UAoWE3YXaA@mail.gmail.com>
+From: Christopher Head <headch@gmail.com>
+Date: Wed, 14 Mar 2012 21:36:59 +0000
+Subject: [lm-sensors] Intel DH55HC Sensors
+Message-Id: <20120314143659.0c1cf55d@ritchie.cs.ubc.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1330772767-16120-1-git-send-email-amit.kachhap@linaro.org>
-	<1330772767-16120-3-git-send-email-amit.kachhap@linaro.org>
-	<20120303164410.GB1495@sirena.org.uk>
-	<20120303180402.GA30062@ericsson.com>
-In-Reply-To: <20120303180402.GA30062@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+To: lm-sensors@vger.kernel.org
 
-On 3 March 2012 23:34, Guenter Roeck <guenter.roeck@ericsson.com> wrote:
-> On Sat, Mar 03, 2012 at 11:44:10AM -0500, Mark Brown wrote:
->> On Sat, Mar 03, 2012 at 04:36:05PM +0530, Amit Daniel Kachhap wrote:
->> > This movement is needed because the hwmon entries and corresponding
->> > sysfs interface is a duplicate of utilities already provided by
->> > driver/thermal/thermal_sys.c. The goal is to place it in mfd folder
->> > and add necessary calls to get the temperature information.
->>
->> > --- a/Documentation/hwmon/exynos4_tmu
->> > +++ /dev/null
->>
->> Moving this seems to be a failure, the device is exposing a hwmon
->> interface even if you've moved the code to mfd (though it doesn't
->> actually look like a multi-function device at all as far as I can see -
->> usually a MFD would have a bunch of unrelated functionality while this
->> has one function used by two subsystems).
->>
->> If anything it looks like the ADC driver ought to be moved into IIO with
->> either generic or Exynos specific function drivers layered on top of it
->> in hwmon and thermal making use of the values that are read.
->>
-> I would agree. Or maybe move it all to thermal, since thermal devices register
-> the hwmon subsystem.
+Hi,
+I'm trying to get my DH55HC's sensors working. Detection indicates
+w83627dhg-isa-0a10 as the device. According to the wiki at
+<http://lm-sensors.org/wiki/VoltageLabelsAndScaling>, this chip is
+capable of reading 8 mV/LSb. Here's the problem: the division ratio
+doesn't make sense! In the BIOS, I observed the following values on the
+12 V rail:
 
-Ok I agree with your suggestion of moving into thermal. Since I wanted
-to separate exynos specific generic thermal implementation with the
-H/W driver so that other versions of the sensor driver can easily hook
-into the common part. Anyway this implementation seems possible.
+11.828
+11.844
+11.859
 
-Thanks for the comments
->
-> Guenter
+The difference between these values is 15 or 16 mV. But 12 V / 0.016
+V/LSb = 750 LSb! Since these sensor chips don't read raw values above
+255, how in the world am I getting 16 mV resolution on a 12 V input?
+I'm seeing similar results on my 5 V rail, which returns values just 2
+mV apart in the BIOS, and on my so-called "Memory V_SM" rail (2 mV) and
+"+Vccp" rail (differences as small as 1 mV being displayed).
+
+Any ideas?
+
+Chris
 
 _______________________________________________
 lm-sensors mailing list
