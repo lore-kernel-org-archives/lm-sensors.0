@@ -1,67 +1,108 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 25 Mar 2012 05:00:33 +0000
-Subject: [lm-sensors] [PATCH v2 3/3] hwmon: (it87) Convert to use devm_kzalloc
-Message-Id: <1332651633-23560-4-git-send-email-linux@roeck-us.net>
+From: "Charles Wilson - Wireless RF Systems" <charles.wilson@wirelessrfsystems.com>
+Date: Wed, 14 Mar 2012 19:53:53 +0000
+Subject: [lm-sensors] Controllers and wireless
+Message-Id: <20120314195353.55D747C0A01@t.buyled.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1140759656539565204=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This makes the code a bit simpler and smaller.
+--===============1140759656539565204==
+Content-Type: multipart/alternative; charset="UTF-8"; boundary="b1_4f60f75152b674f60f75152c77"
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/it87.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+--b1_4f60f75152b674f60f75152c77
+Content-Type: text/plain; format=flowed; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 7dc4e48..e663638 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -1966,7 +1966,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
- 		goto ERROR0;
- 	}
- 
--	data = kzalloc(sizeof(struct it87_data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(struct it87_data), GFP_KERNEL);
- 	if (!data) {
- 		err = -ENOMEM;
- 		goto ERROR1;
-@@ -1981,7 +1981,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
- 	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
- 	 || it87_read_value(data, IT87_REG_CHIPID) != 0x90) {
- 		err = -ENODEV;
--		goto ERROR2;
-+		goto ERROR1;
- 	}
- 
- 	platform_set_drvdata(pdev, data);
-@@ -2113,9 +2113,6 @@ static int __devinit it87_probe(struct platform_device *pdev)
- 
- ERROR4:
- 	it87_remove_files(dev);
--ERROR2:
--	platform_set_drvdata(pdev, NULL);
--	kfree(data);
- ERROR1:
- 	release_region(res->start, IT87_EC_EXTENT);
- ERROR0:
-@@ -2130,9 +2127,6 @@ static int __devexit it87_remove(struct platform_device *pdev)
- 	it87_remove_files(&pdev->dev);
- 
- 	release_region(data->addr, IT87_EC_EXTENT);
--	platform_set_drvdata(pdev, NULL);
--	kfree(data);
--
- 	return 0;
- }
- 
--- 
-1.7.5.4
+Hi,
 
+May I please ask which microcontrollers and do you work with?
+
+Thanks,
+
+Charles Wilson
+Wireless RF Systems
+13715 Alton Pkwy.
+Irvine, CA 92618
+Web: http://www.rfdigital.com
+Email: charles.wilson@wirelessrfsystems.com
+
+---------------------------------------------------------------------------=
+----
+
+This email is intended only for the use of the individual or entity to whic=
+h it is addressed and may contain information that is privileged and propri=
+etary. If you are not the intended recipient, any dissemination, distributi=
+on or reproduction of this communication is prohibited. We request that you=
+ notify the recipient by email of any errors or alternatively opt-out at ht=
+tp://www.rfdigital.com/optout.htm to terminate further communication.  We h=
+ave taken reasonable precautions to prevent against transmitting any improp=
+erly addressed messages.  All trademarks and trade names belong to their re=
+spective owners.  We thank you for your cooperation.
+
+
+--b1_4f60f75152b674f60f75152c77
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+</head>
+<body>
+<p>
+Hi,
+</p>
+
+<p>
+May I please ask which microcontrollers do you work with?<br>
+</p>
+
+<p>
+Thanks,
+</p>
+
+<p>
+Charles Wilson<br>
+Wireless RF Systems.<br>
+13715 Alton Pkwy.<br>
+Irvine, CA 92618<br>
+Web: <a href=3D"http://www.rfdigital.com">http://www.rfdigital.com</a><br>
+Email: <a href=3D"mailto:charles.wilson@wirelessrfsystems.com">charles.wils=
+on@wirelessrfsystems.com</a><br>
+</p>
+
+<p>
+---------------------------------------------------------------------------=
+----
+</p>
+
+<p>
+This email is intended only for the use of the individual or entity to whic=
+h it is addressed and may contain information that is privileged and propri=
+etary. If you are not the intended recipient, any dissemination, distributi=
+on or reproduction of this communication is prohibited. We request that you=
+ notify the recipient by email of any errors or alternatively <a href=3D"ht=
+tp://www.rfdigital.com/optout.htm">opt-out</a> to terminate further communi=
+cation.  We have taken reasonable precautions to prevent against transmitti=
+ng any improperly addressed messages.  All trademarks and trade names belon=
+g to their respective owners.  We thank you for your cooperation.
+</p>
+</body>
+
+--b1_4f60f75152b674f60f75152c77--
+
+
+
+--===============1140759656539565204==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1140759656539565204==--
+
