@@ -1,41 +1,67 @@
-From: Stefan Monnier <monnier@iro.umontreal.ca>
-Date: Tue, 20 Mar 2012 03:01:48 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 20 Mar 2012 07:47:07 +0000
 Subject: Re: [lm-sensors] Interpreting lm-sensors's output
-Message-Id: <jwvlimwq8ra.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
+Message-Id: <20120320084707.4a73571a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 In-Reply-To: <jwv1upbxcso.fsf-monnier+gmane.linux.drivers.sensors@gnu.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->> k10temp-pci-00c3
->> Adapter: PCI adapter
->> temp1:        +51.5=B0C  (high =3D +70.0=B0C)
->>                        (crit =3D +100.0=B0C, hyst =3D +97.0=B0C)
-[...]
->> OT1H the "high=3D70" and "crit=3D100" would seem to give me the answer, =
-but
->> OTOH I don't know whether I can trust them (actually, I hope some of
->> the output is "wrong" since the sensor readings go up routinely to 80=B0
->> during long compilations).
-> They are correct and you should trust them.  If you reach 80=B0C then you
-
-Just one more question about these numbers: would the same numbers
-appear under Windows (everything else being "equal")?
-
-
-        Stefan
-
-
-PS: I'm trying to argue with the company (Zotac) that my board has thermal
-problems, but they suck (i.e. they dismiss GNU/Linux users), so I need
-to be sure that the numbers they give me (which they get under Windows
-from I don't know which tool) are comparable to the ones I see.
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgU3RlZmFuLAoKT24gTW9uLCAxOSBNYXIgMjAxMiAyMzowMTo0OCAtMDQwMCwgU3RlZmFuIE1v
+bm5pZXIgd3JvdGU6Cj4gPj4gazEwdGVtcC1wY2ktMDBjMwo+ID4+IEFkYXB0ZXI6IFBDSSBhZGFw
+dGVyCj4gPj4gdGVtcDE6ICAgICAgICArNTEuNcKwQyAgKGhpZ2ggPSArNzAuMMKwQykKPiA+PiAg
+ICAgICAgICAgICAgICAgICAgICAgIChjcml0ID0gKzEwMC4wwrBDLCBoeXN0ID0gKzk3LjDCsEMp
+Cj4gWy4uLl0KPiA+PiBPVDFIIHRoZSAiaGlnaD03MCIgYW5kICJjcml0PTEwMCIgd291bGQgc2Vl
+bSB0byBnaXZlIG1lIHRoZSBhbnN3ZXIsIGJ1dAo+ID4+IE9UT0ggSSBkb24ndCBrbm93IHdoZXRo
+ZXIgSSBjYW4gdHJ1c3QgdGhlbSAoYWN0dWFsbHksIEkgaG9wZSBzb21lIG9mCj4gPj4gdGhlIG91
+dHB1dCBpcyAid3JvbmciIHNpbmNlIHRoZSBzZW5zb3IgcmVhZGluZ3MgZ28gdXAgcm91dGluZWx5
+IHRvIDgwwrAKPiA+PiBkdXJpbmcgbG9uZyBjb21waWxhdGlvbnMpLgo+ID4gVGhleSBhcmUgY29y
+cmVjdCBhbmQgeW91IHNob3VsZCB0cnVzdCB0aGVtLiAgSWYgeW91IHJlYWNoIDgwwrBDIHRoZW4g
+eW91Cj4gCj4gSnVzdCBvbmUgbW9yZSBxdWVzdGlvbiBhYm91dCB0aGVzZSBudW1iZXJzOiB3b3Vs
+ZCB0aGUgc2FtZSBudW1iZXJzCj4gYXBwZWFyIHVuZGVyIFdpbmRvd3MgKGV2ZXJ5dGhpbmcgZWxz
+ZSBiZWluZyAiZXF1YWwiKT8KClRoaXMgaXMgaW1wb3NzaWJsZSB0byBzYXksIEknbSBhZnJhaWQu
+CgpGaXJzdCwgdGhlcmUgYXJlIHZhcmlvdXMgd2F5cyB0byBzYXZlIHBvd2VyIGluIG1vZGVybiBz
+eXN0ZW1zLCB2aWEKZnJlcXVlbmN5IHNjYWxpbmcsIHVuZGVydm9sdGluZyB3aGVuIGlkbGUsIFAg
+c3RhdGVzLCBDIHN0YXRlcywgZXRjLgpXaGlsZSBJIGJlbGlldmUgTGludXggaXMgZG9pbmcgcmVh
+c29uYWJseSB3ZWxsIHRoZXNlIGRheXMgaW4gdGhpcyBhcmVhCmFzIGZhciBhcyBDUFUgaXMgY29u
+Y2VybmVkLCB0aGVyZSBjYW4gYWx3YXlzIGJlIHNwZWNpZmljIGNhc2VzIHdoZXJlIGl0CmRvZXMg
+bm90LgoKU2Vjb25kbHksIHRoZSBtb25pdG9yaW5nIHZhbHVlcyByZXR1cm5lZCBkZXBlbmQgb24g
+dGhlIHRvb2wgdXNlZCB0bwpnYXRoZXIsIGludGVycHJldCBhbmQgcHJlc2VudCB0aGVtIHRvIHRo
+ZSB1c2VyLiBZb3UndmUgc2VlbiB5b3Vyc2VsZgp0aGF0IHRoZSBrMTB0ZW1wLCByYWRlb24gYW5k
+IGl0ODcgZHJpdmVycyByZXBvcnQgZGlmZmVyZW50CnRlbXBlcmF0dXJlcywgc28geW91IGhhdmUg
+dG8ga25vdyB3aGljaCBvbmUgdGhlIG90aGVyIHNpZGUgaXMgdXNpbmcKd2hlbiBjb21wYXJpbmcu
+IEFsc28gbm90ZSB0aGF0IHNvbWUgdG9vbHMgY2FuIGFwcGx5IGFyYml0cmFyeSBvZmZzZXRzCnRv
+IHRoZSB0ZW1wZXJhdHVyZSB2YWx1ZXMgdGhleSByZXBvcnQsIHRvIGNvbXBlbnNhdGUgZm9yIGEg
+bnVtYmVyIG9mCnRoaW5ncyAobGlrZSB0aGVybWFsIHNlbnNvciBpbXBlcmZlY3Rpb24gb3IgZGlz
+dGFuY2UgYmV0d2VlbiBzZW5zb3IgYW5kCm1vbml0b3JlZCBpdGVtLikgVGhpcyBpcyBzb21ldGhp
+bmcgd2UgY2FuIGluIGdlbmVyYWwgbm90IGRvIHVuZGVyIExpbnV4CmFzIHdlIGRvIG5vdCBoYXZl
+IHRoZSBpbmZvcm1hdGlvbi4KClNvLCBpbiB0aGUgZ2VuZXJhbCBjYXNlLCB5ZXMsIGNvbXBhcmlu
+ZyBudW1iZXJzIGJldHdlZW4gTGludXggYW5kCldpbmRvd3MgbWFrZXMgc2Vuc2UsIGJ1dCB5b3Ug
+aGF2ZSB0byBiZSBjYXV0aW91cyBhcyB0aGVyZSBhcmUKZXhjZXB0aW9ucy4gVGhlIG9ubHkgd2F5
+IHRvIG1ha2Ugc3VyZSB3b3VsZCBiZSB0byBhY3R1YWxseSBydW4gV2luZG93cwpvbiB5b3VyIGJv
+YXJkLgoKVGhpbmdzIGFyZSBldmVuIG1vcmUgY29tcGxleCBpbiB5b3VyIGNhc2UgYmVjYXVzZSB0
+aGUgR1BVIGFuZCBDUFUgYXJlCmdyb3VwZWQgaW4gYSBzaW5nbGUgcGFja2FnZSBvbiB5b3VyIHN5
+c3RlbSwgc28gdGhleSBpbmZsdWVuY2UgZWFjaApvdGhlci4gSWYgeW91J3JlIHVzaW5nIHRoZSBv
+cGVuLXNvdXJjZSByYWRlb24gZHJpdmVyLCBJIGludml0ZSB5b3UgdG8KcGxheSB3aXRoIHRoZSBw
+b3dlciBzZXR0aW5nczogCiAgaHR0cDovL3dpa2kueC5vcmcvd2lraS9SYWRlb25GZWF0dXJlI0tN
+U19Qb3dlcl9NYW5hZ2VtZW50X09wdGlvbnMKRm9yIGV4YW1wbGUsIGZvcmNpbmcgdGhlIHByb2Zp
+bGUgdG8gIm1pZCIgZHVyaW5nIENQVS1pbnRlbnNpdmUgdGFza3MKbWF5IGhlbHAuIGR5bnBtIG1l
+dGhvZCBtYXkgYmUgZXZlbiBiZXR0ZXIgYnV0IEkgbmV2ZXIgZGFyZWQgdG8gdHJ5IGl0LgpBbHNv
+IG5vdGUgdGhhdCB0aGUgYmluYXJ5IGRyaXZlciAoZmdscngpIGlzIHByb2JhYmx5IGJldHRlciBp
+biB0ZXJtcyBvZgpwb3dlciBtYW5hZ2VtZW50LCBhbmQgd291bGQgYmUgY2xvc2VyIHRvIHdoYXQg
+V2luZG93cyBoYXMsIHNvIHRoaXMgbWF5CmJlIGFub3RoZXIgdGhpbmcgdG8gdHJ5LgoKPiBQUzog
+SSdtIHRyeWluZyB0byBhcmd1ZSB3aXRoIHRoZSBjb21wYW55IChab3RhYykgdGhhdCBteSBib2Fy
+ZCBoYXMgdGhlcm1hbAo+IHByb2JsZW1zLCBidXQgdGhleSBzdWNrIChpLmUuIHRoZXkgZGlzbWlz
+cyBHTlUvTGludXggdXNlcnMpLCBzbyBJIG5lZWQKPiB0byBiZSBzdXJlIHRoYXQgdGhlIG51bWJl
+cnMgdGhleSBnaXZlIG1lICh3aGljaCB0aGV5IGdldCB1bmRlciBXaW5kb3dzCj4gZnJvbSBJIGRv
+bid0IGtub3cgd2hpY2ggdG9vbCkgYXJlIGNvbXBhcmFibGUgdG8gdGhlIG9uZXMgSSBzZWUuCgpU
+aGlzIGlzIHN0cmFuZ2UsIEkgd2FzIGluIGNvbnRhY3Qgd2l0aCBhIFpvdGFjIGVuZ2luZWVyIGlu
+IGxhdGUgMjAwOSAvCmVhcmx5IDIwMTAgYW5kIGJhY2sgdGhlbiB0aGV5IHNlZW1lZCB0byBjYXJl
+IGFib3V0IExpbnV4IGF0IGxlYXN0IHRvCnNvbWUgZXh0ZW50LCBpbiBwYXJ0aWN1bGFyIHdoZW4g
+aXQgY2FtZSB0byB0aGVybWFsIG1vbml0b3JpbmcuCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
+bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
