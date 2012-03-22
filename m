@@ -1,62 +1,54 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Thu, 22 Mar 2012 11:11:10 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 22 Mar 2012 13:48:52 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <CAKPcRGon1ZeT3hzxbGFG02HdXc3OE+bLFNqK_-7kd-chYJcYiQ@mail.gmail.com>
+Message-Id: <20120322134852.GB19658@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120320231656.GC12339@burratino>
 In-Reply-To: <20120320231656.GC12339@burratino>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGVsbG8gSm9uYXRoYW4sCgpPbiBXZWQsIE1hciAyMSwgMjAxMiBhdCAxMjoxNiBBTSwgSm9uYXRo
-YW4gTmllZGVyIDxqcm5pZWRlckBnbWFpbC5jb20+IHdyb3RlOgo+IEhpIEx1Y2EgZXQgYWwsCj4K
-PiBTZXZlcmFsIHBlb3BsZSBoYXZlIGJlZW4gZmluZGluZyB0aGUgUFMvMiBrZXlib2FyZCBhbmQg
-bW91c2Ugc3VkZGVubHkKPiBzdG9wIHdvcmtpbmcgYSBmZXcgaG91cnMgYWZ0ZXIgbG9hZGluZyB0
-aGUgYXN1c19hdGswMTEwIG1vZHVsZSBvbgo+IG1hY2hpbmVzIHVzaW5nIHRoZSBBc3VzIFA3UDU1
-RCBvciBQN1A1NUQtRSBib2FyZC4gwqBGb3IgZXhhbXBsZToKWy4uLl0KPiBGcm9tIFsyXSBJIHNl
-ZSB0aGF0IHlvdSB0cmFja2VkIGl0IGRvd24gdG8gYSBCSU9TIHByb2JsZW0uCgpOb3QgcmVhbGx5
-LCBJIF9zdXNwZWN0XyB0aGF0IHRoZXJlJ3MgYSBidWcgaW4gdGhlIEJJT1MsIGJ1dCBJIHdhc24n
-dAphYmxlIHRvIGNvbmZpcm0gaXQ7IG1heWJlIGl0J3Mgc29tZXRoaW5nIHRoYXQgdGhlIGRyaXZl
-ciBkb2VzLgpJbiB0aGUgdGhyZWFkIHRoYXQgeW91IGxpbmsgSmF2aWVyIG5ldmVyIHJlcGxpZWQg
-d2l0aCB0aGUgcmVzdWx0cyBvZiB0aGUgdGVzdC4KCj4gU28gSSBhbQo+IGN1cmlvdXM6IHdvdWxk
-IHRoZXJlIGJlIGEgd2F5IHRvIGRldGVjdCBhZmZlY3RlZCBtYWNoaW5lcyBhbmQKPiBhdXRvbWF0
-aWNhbGx5IHdvcmsgYXJvdW5kIHRoaXM/IMKgVG95IHBhdGNoIGp1c3QgdG8gZ2l2ZSB0aGUgaWRl
-YQo+IGZvbGxvd3MuCgpUaGF0IHdvdWxkIGxlYXZlIHRoZSB1c2VyIHdpdGhvdXQgYW55IG1vbml0
-b3Jpbmcgb3B0aW9uczsgdXNpbmcgdGhlCm5hdGl2ZSBkcml2ZXIgaXMgdmVyeSByaXNreSBpbiB0
-aGlzIHNpdHVhdGlvbiwgdGhlIGJvYXJkIGhhcyBhbiBFQwp0aGF0IGdvZXMgb3V0IGFuZCByZWFk
-cyB0aGUgc2Vuc29ycyBvbiBpdHMgb3duLgpGdXJ0aGVybW9yZSB0aGUgYnVnIGRvZXMgbm90IHNl
-ZW0gdG8gYWZmZWN0IGFsbCB0aGUgdXNlcnMgb2YgdGhhdApib2FyZCwgaXQgbWF5IGJlIEJJT1Mg
-YW5kL29yIGJvYXJkIHJldmlzaW9uIGRlcGVuZGVudC4KCkknbSBhZGRpbmcgSmVhbiBhbmQgR3Vl
-bnRlciBpbiBDQzogd2hhdCBkbyB5b3UgdGhpbmsgYWJvdXQgYmxhbGlzdGluZwp0aGUgZHJpdmVy
-IG9uIFA3UDU1RD8KCj4KPiBbMV0gaHR0cDovL2J1Z3MuZGViaWFuLm9yZy82NjI4OTUKPiBbMl0g
-aHR0cDovL3RocmVhZC5nbWFuZS5vcmcvZ21hbmUubGludXguZHJpdmVycy5zZW5zb3JzLzI0MTk0
-L2ZvY3VzPTI2NDI2Cj4KPiBkaWZmIC0tZ2l0IGkvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAu
-YyB3L2RyaXZlcnMvaHdtb24vYXN1c19hdGswMTEwLmMKPiBpbmRleCAwMGU5ODUxN2Y5NGMuLjQ5
-NDA5MGRmODlmMiAxMDA2NDQKPiAtLS0gaS9kcml2ZXJzL2h3bW9uL2FzdXNfYXRrMDExMC5jCj4g
-KysrIHcvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAuYwo+IEBAIC0zOCw2ICszOCwxOSBAQCBz
-dGF0aWMgY29uc3Qgc3RydWN0IGRtaV9zeXN0ZW1faWQgX19pbml0Y29uc3QgYXRrX2ZvcmNlX25l
-d19pZltdID0gewo+IMKgIMKgIMKgIMKgeyB9Cj4gwqB9Owo+Cj4gK3N0YXRpYyBjb25zdCBzdHJ1
-Y3QgZG1pX3N5c3RlbV9pZCBfX2luaXRjb25zdCBhdGswMTEwX2JsYWNrbGlzdFtdID0gewo+ICsg
-wqAgwqAgwqAgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyogaHR0cDovL2J1Z3MuZGViaWFu
-Lm9yZy82NjI4OTUgKi8KPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGVudCA9ICJBc3VzIFA3
-UDU1RCIsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAubWF0Y2hlcyA9IHsKPiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIERNSV9NQVRDSChETUlfQklPU19WRU5ET1IsICJBbWVy
-aWNhbiBNZWdhdHJlbmRzIEluYy4iKSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIERNSV9NQVRDSChETUlfQk9BUkRfVkVORE9SLCAiQVNVU1RlSyBDb21wdXRlciBJTkMuIiks
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBETUlfTUFUQ0goRE1JX0JPQVJE
-X05BTUUsICJQN1A1NUQiKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAg
-fSwKPiArIMKgIMKgIMKgIHsgfQo+ICt9Owo+ICsKPiDCoC8qIE1pbmltdW0gdGltZSBiZXR3ZWVu
-IHJlYWRpbmdzLCBlbmZvcmNlZCBpbiBvcmRlciB0byBhdm9pZAo+IMKgKiBob2dnaW5nIHRoZSBD
-UFUuCj4gwqAqLwo+IEBAIC0xNDM5LDYgKzE0NTIsOSBAQCBzdGF0aWMgaW50IF9faW5pdCBhdGsw
-MTEwX2luaXQodm9pZCkKPiDCoCDCoCDCoCDCoGlmIChkbWlfY2hlY2tfc3lzdGVtKGF0a19mb3Jj
-ZV9uZXdfaWYpKQo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgbmV3X2lmID0gdHJ1ZTsKPgo+ICsg
-wqAgwqAgwqAgaWYgKGRtaV9jaGVja19zeXN0ZW0oYXRrMDExMF9ibGFja2xpc3QpKQo+ICsgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuIC1FTk9ERVY7Cj4gKwo+IMKgIMKgIMKgIMKgcmV0ID0g
-YWNwaV9idXNfcmVnaXN0ZXJfZHJpdmVyKCZhdGtfZHJpdmVyKTsKPiDCoCDCoCDCoCDCoGlmIChy
-ZXQpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBwcl9pbmZvKCJhY3BpX2J1c19yZWdpc3Rlcl9k
-cml2ZXIgZmFpbGVkOiAlZFxuIiwgcmV0KTsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
-c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
-bG0tc2Vuc29ycw=
+On Thu, Mar 22, 2012 at 07:11:10AM -0400, Luca Tettamanti wrote:
+> Hello Jonathan,
+>=20
+> On Wed, Mar 21, 2012 at 12:16 AM, Jonathan Nieder <jrnieder@gmail.com> wr=
+ote:
+> > Hi Luca et al,
+> >
+> > Several people have been finding the PS/2 keyboard and mouse suddenly
+> > stop working a few hours after loading the asus_atk0110 module on
+> > machines using the Asus P7P55D or P7P55D-E board. =A0For example:
+> [...]
+> > From [2] I see that you tracked it down to a BIOS problem.
+>=20
+> Not really, I _suspect_ that there's a bug in the BIOS, but I wasn't
+> able to confirm it; maybe it's something that the driver does.
+> In the thread that you link Javier never replied with the results of the =
+test.
+>=20
+> > So I am
+> > curious: would there be a way to detect affected machines and
+> > automatically work around this? =A0Toy patch just to give the idea
+> > follows.
+>=20
+> That would leave the user without any monitoring options; using the
+> native driver is very risky in this situation, the board has an EC
+> that goes out and reads the sensors on its own.
+> Furthermore the bug does not seem to affect all the users of that
+> board, it may be BIOS and/or board revision dependent.
+>=20
+> I'm adding Jean and Guenter in CC: what do you think about blalisting
+> the driver on P7P55D?
+>=20
+I don't like it much, but in the absence of a fix it seems to be the only a=
+vailable option.
+A stuck keyboard and mouse is worse than having no monitor options.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
