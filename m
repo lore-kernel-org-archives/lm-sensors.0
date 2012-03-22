@@ -1,93 +1,62 @@
-From: Jonathan Nieder <jrnieder@gmail.com>
-Date: Tue, 20 Mar 2012 23:16:57 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Thu, 22 Mar 2012 11:11:10 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <20120320231656.GC12339@burratino>
+Message-Id: <CAKPcRGon1ZeT3hzxbGFG02HdXc3OE+bLFNqK_-7kd-chYJcYiQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20120320231656.GC12339@burratino>
+In-Reply-To: <20120320231656.GC12339@burratino>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Luca et al,
-
-Several people have been finding the PS/2 keyboard and mouse suddenly
-stop working a few hours after loading the asus_atk0110 module on
-machines using the Asus P7P55D or P7P55D-E board.  For example:
-
-GSR wrote[1]:
-
-> Newly installed machine and every few hours the PS/2 keyboard dies
-> leaving a key stuck, but the USB mouse still works. Focusing different
-> windows shows something being typed or a modifier key taking effect
-> (depends, each time is a different key
-[...]
-> Accesing the machine via ssh shows the system still works, allows
-> changing VT with chvt (just to see what they have, no input allowed),
-> killing programs or rebooting, but no obvious way to recover the kbd
-> other than restart.
-[...]
-> ACPI: EC: GPE storm detected, transactions will use polling mode
-> atkbd serio0: Unknown key pressed (translated set 2, code 0x8b on isa0060/serio0).
-> atkbd serio0: Use 'setkeycodes e00b <keycode>' to make it known.
-[...]
-> DMI 2.6 present.
-> DMI: System manufacturer System Product Name/P7P55D, BIOS 1807    07/22/2010
-[...]
-> After searching some more and finding I am not alone with respect to
-> stuck keyboard, I also found that someone suggests (in
-> https://bugzilla.redhat.com/show_bug.cgi?idg6446 ) to invoke
->
-> echo -n reconnect > /sys/devices/platform/i8042/serio0/drvctl
->
-> and so far it seems to recover the keyboard
-
-Some people reporting the problem cc-ed.  Problem seems to exist in
-kernels as old as 2.6.32 and as new as 3.3-rc6.
-
-From [2] I see that you tracked it down to a BIOS problem.  So I am
-curious: would there be a way to detect affected machines and
-automatically work around this?  Toy patch just to give the idea
-follows.
-
-[1] http://bugs.debian.org/662895
-[2] http://thread.gmane.org/gmane.linux.drivers.sensors/24194/focus&426
-
-diff --git i/drivers/hwmon/asus_atk0110.c w/drivers/hwmon/asus_atk0110.c
-index 00e98517f94c..494090df89f2 100644
---- i/drivers/hwmon/asus_atk0110.c
-+++ w/drivers/hwmon/asus_atk0110.c
-@@ -38,6 +38,19 @@ static const struct dmi_system_id __initconst atk_force_new_if[] = {
- 	{ }
- };
- 
-+static const struct dmi_system_id __initconst atk0110_blacklist[] = {
-+	{
-+		/* http://bugs.debian.org/662895 */
-+		.ident = "Asus P7P55D",
-+		.matches = {
-+			DMI_MATCH(DMI_BIOS_VENDOR, "American Megatrends Inc."),
-+			DMI_MATCH(DMI_BOARD_VENDOR, "ASUSTeK Computer INC."),
-+			DMI_MATCH(DMI_BOARD_NAME, "P7P55D")
-+		}
-+	},
-+	{ }
-+};
-+
- /* Minimum time between readings, enforced in order to avoid
-  * hogging the CPU.
-  */
-@@ -1439,6 +1452,9 @@ static int __init atk0110_init(void)
- 	if (dmi_check_system(atk_force_new_if))
- 		new_if = true;
- 
-+	if (dmi_check_system(atk0110_blacklist))
-+		return -ENODEV;
-+
- 	ret = acpi_bus_register_driver(&atk_driver);
- 	if (ret)
- 		pr_info("acpi_bus_register_driver failed: %d\n", ret);
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGVsbG8gSm9uYXRoYW4sCgpPbiBXZWQsIE1hciAyMSwgMjAxMiBhdCAxMjoxNiBBTSwgSm9uYXRo
+YW4gTmllZGVyIDxqcm5pZWRlckBnbWFpbC5jb20+IHdyb3RlOgo+IEhpIEx1Y2EgZXQgYWwsCj4K
+PiBTZXZlcmFsIHBlb3BsZSBoYXZlIGJlZW4gZmluZGluZyB0aGUgUFMvMiBrZXlib2FyZCBhbmQg
+bW91c2Ugc3VkZGVubHkKPiBzdG9wIHdvcmtpbmcgYSBmZXcgaG91cnMgYWZ0ZXIgbG9hZGluZyB0
+aGUgYXN1c19hdGswMTEwIG1vZHVsZSBvbgo+IG1hY2hpbmVzIHVzaW5nIHRoZSBBc3VzIFA3UDU1
+RCBvciBQN1A1NUQtRSBib2FyZC4gwqBGb3IgZXhhbXBsZToKWy4uLl0KPiBGcm9tIFsyXSBJIHNl
+ZSB0aGF0IHlvdSB0cmFja2VkIGl0IGRvd24gdG8gYSBCSU9TIHByb2JsZW0uCgpOb3QgcmVhbGx5
+LCBJIF9zdXNwZWN0XyB0aGF0IHRoZXJlJ3MgYSBidWcgaW4gdGhlIEJJT1MsIGJ1dCBJIHdhc24n
+dAphYmxlIHRvIGNvbmZpcm0gaXQ7IG1heWJlIGl0J3Mgc29tZXRoaW5nIHRoYXQgdGhlIGRyaXZl
+ciBkb2VzLgpJbiB0aGUgdGhyZWFkIHRoYXQgeW91IGxpbmsgSmF2aWVyIG5ldmVyIHJlcGxpZWQg
+d2l0aCB0aGUgcmVzdWx0cyBvZiB0aGUgdGVzdC4KCj4gU28gSSBhbQo+IGN1cmlvdXM6IHdvdWxk
+IHRoZXJlIGJlIGEgd2F5IHRvIGRldGVjdCBhZmZlY3RlZCBtYWNoaW5lcyBhbmQKPiBhdXRvbWF0
+aWNhbGx5IHdvcmsgYXJvdW5kIHRoaXM/IMKgVG95IHBhdGNoIGp1c3QgdG8gZ2l2ZSB0aGUgaWRl
+YQo+IGZvbGxvd3MuCgpUaGF0IHdvdWxkIGxlYXZlIHRoZSB1c2VyIHdpdGhvdXQgYW55IG1vbml0
+b3Jpbmcgb3B0aW9uczsgdXNpbmcgdGhlCm5hdGl2ZSBkcml2ZXIgaXMgdmVyeSByaXNreSBpbiB0
+aGlzIHNpdHVhdGlvbiwgdGhlIGJvYXJkIGhhcyBhbiBFQwp0aGF0IGdvZXMgb3V0IGFuZCByZWFk
+cyB0aGUgc2Vuc29ycyBvbiBpdHMgb3duLgpGdXJ0aGVybW9yZSB0aGUgYnVnIGRvZXMgbm90IHNl
+ZW0gdG8gYWZmZWN0IGFsbCB0aGUgdXNlcnMgb2YgdGhhdApib2FyZCwgaXQgbWF5IGJlIEJJT1Mg
+YW5kL29yIGJvYXJkIHJldmlzaW9uIGRlcGVuZGVudC4KCkknbSBhZGRpbmcgSmVhbiBhbmQgR3Vl
+bnRlciBpbiBDQzogd2hhdCBkbyB5b3UgdGhpbmsgYWJvdXQgYmxhbGlzdGluZwp0aGUgZHJpdmVy
+IG9uIFA3UDU1RD8KCj4KPiBbMV0gaHR0cDovL2J1Z3MuZGViaWFuLm9yZy82NjI4OTUKPiBbMl0g
+aHR0cDovL3RocmVhZC5nbWFuZS5vcmcvZ21hbmUubGludXguZHJpdmVycy5zZW5zb3JzLzI0MTk0
+L2ZvY3VzPTI2NDI2Cj4KPiBkaWZmIC0tZ2l0IGkvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAu
+YyB3L2RyaXZlcnMvaHdtb24vYXN1c19hdGswMTEwLmMKPiBpbmRleCAwMGU5ODUxN2Y5NGMuLjQ5
+NDA5MGRmODlmMiAxMDA2NDQKPiAtLS0gaS9kcml2ZXJzL2h3bW9uL2FzdXNfYXRrMDExMC5jCj4g
+KysrIHcvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAuYwo+IEBAIC0zOCw2ICszOCwxOSBAQCBz
+dGF0aWMgY29uc3Qgc3RydWN0IGRtaV9zeXN0ZW1faWQgX19pbml0Y29uc3QgYXRrX2ZvcmNlX25l
+d19pZltdID0gewo+IMKgIMKgIMKgIMKgeyB9Cj4gwqB9Owo+Cj4gK3N0YXRpYyBjb25zdCBzdHJ1
+Y3QgZG1pX3N5c3RlbV9pZCBfX2luaXRjb25zdCBhdGswMTEwX2JsYWNrbGlzdFtdID0gewo+ICsg
+wqAgwqAgwqAgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyogaHR0cDovL2J1Z3MuZGViaWFu
+Lm9yZy82NjI4OTUgKi8KPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZGVudCA9ICJBc3VzIFA3
+UDU1RCIsCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAubWF0Y2hlcyA9IHsKPiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIERNSV9NQVRDSChETUlfQklPU19WRU5ET1IsICJBbWVy
+aWNhbiBNZWdhdHJlbmRzIEluYy4iKSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIERNSV9NQVRDSChETUlfQk9BUkRfVkVORE9SLCAiQVNVU1RlSyBDb21wdXRlciBJTkMuIiks
+Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBETUlfTUFUQ0goRE1JX0JPQVJE
+X05BTUUsICJQN1A1NUQiKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAg
+fSwKPiArIMKgIMKgIMKgIHsgfQo+ICt9Owo+ICsKPiDCoC8qIE1pbmltdW0gdGltZSBiZXR3ZWVu
+IHJlYWRpbmdzLCBlbmZvcmNlZCBpbiBvcmRlciB0byBhdm9pZAo+IMKgKiBob2dnaW5nIHRoZSBD
+UFUuCj4gwqAqLwo+IEBAIC0xNDM5LDYgKzE0NTIsOSBAQCBzdGF0aWMgaW50IF9faW5pdCBhdGsw
+MTEwX2luaXQodm9pZCkKPiDCoCDCoCDCoCDCoGlmIChkbWlfY2hlY2tfc3lzdGVtKGF0a19mb3Jj
+ZV9uZXdfaWYpKQo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgbmV3X2lmID0gdHJ1ZTsKPgo+ICsg
+wqAgwqAgwqAgaWYgKGRtaV9jaGVja19zeXN0ZW0oYXRrMDExMF9ibGFja2xpc3QpKQo+ICsgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuIC1FTk9ERVY7Cj4gKwo+IMKgIMKgIMKgIMKgcmV0ID0g
+YWNwaV9idXNfcmVnaXN0ZXJfZHJpdmVyKCZhdGtfZHJpdmVyKTsKPiDCoCDCoCDCoCDCoGlmIChy
+ZXQpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBwcl9pbmZvKCJhY3BpX2J1c19yZWdpc3Rlcl9k
+cml2ZXIgZmFpbGVkOiAlZFxuIiwgcmV0KTsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
