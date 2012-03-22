@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 22 Mar 2012 19:42:26 +0000
+From: GSR - FR <famrom@infernal-iceberg.com>
+Date: Thu, 22 Mar 2012 20:39:27 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <20120322204226.2d1296ca@endymion.delvare>
+Message-Id: <20120322203927.GA11574@fortress.battleship>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120320231656.GC12339@burratino>
 In-Reply-To: <20120320231656.GC12339@burratino>
@@ -10,31 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVGh1LCAyMiBNYXIgMjAxMiAxMjoxMToxMCArMDEwMCwgTHVjYSBUZXR0YW1hbnRpIHdyb3Rl
-Ogo+IEhlbGxvIEpvbmF0aGFuLAo+IAo+IE9uIFdlZCwgTWFyIDIxLCAyMDEyIGF0IDEyOjE2IEFN
-LCBKb25hdGhhbiBOaWVkZXIgPGpybmllZGVyQGdtYWlsLmNvbT4gd3JvdGU6Cj4gPiBIaSBMdWNh
-IGV0IGFsLAo+ID4KPiA+IFNldmVyYWwgcGVvcGxlIGhhdmUgYmVlbiBmaW5kaW5nIHRoZSBQUy8y
-IGtleWJvYXJkIGFuZCBtb3VzZSBzdWRkZW5seQo+ID4gc3RvcCB3b3JraW5nIGEgZmV3IGhvdXJz
-IGFmdGVyIGxvYWRpbmcgdGhlIGFzdXNfYXRrMDExMCBtb2R1bGUgb24KPiA+IG1hY2hpbmVzIHVz
-aW5nIHRoZSBBc3VzIFA3UDU1RCBvciBQN1A1NUQtRSBib2FyZC4gwqBGb3IgZXhhbXBsZToKPiBb
-Li4uXQo+ID4gRnJvbSBbMl0gSSBzZWUgdGhhdCB5b3UgdHJhY2tlZCBpdCBkb3duIHRvIGEgQklP
-UyBwcm9ibGVtLgo+IAo+IE5vdCByZWFsbHksIEkgX3N1c3BlY3RfIHRoYXQgdGhlcmUncyBhIGJ1
-ZyBpbiB0aGUgQklPUywgYnV0IEkgd2Fzbid0Cj4gYWJsZSB0byBjb25maXJtIGl0OyBtYXliZSBp
-dCdzIHNvbWV0aGluZyB0aGF0IHRoZSBkcml2ZXIgZG9lcy4KPiBJbiB0aGUgdGhyZWFkIHRoYXQg
-eW91IGxpbmsgSmF2aWVyIG5ldmVyIHJlcGxpZWQgd2l0aCB0aGUgcmVzdWx0cyBvZiB0aGUgdGVz
-dC4KPiAKPiA+IFNvIEkgYW0KPiA+IGN1cmlvdXM6IHdvdWxkIHRoZXJlIGJlIGEgd2F5IHRvIGRl
-dGVjdCBhZmZlY3RlZCBtYWNoaW5lcyBhbmQKPiA+IGF1dG9tYXRpY2FsbHkgd29yayBhcm91bmQg
-dGhpcz8gwqBUb3kgcGF0Y2gganVzdCB0byBnaXZlIHRoZSBpZGVhCj4gPiBmb2xsb3dzLgo+IAo+
-IFRoYXQgd291bGQgbGVhdmUgdGhlIHVzZXIgd2l0aG91dCBhbnkgbW9uaXRvcmluZyBvcHRpb25z
-OyB1c2luZyB0aGUKPiBuYXRpdmUgZHJpdmVyIGlzIHZlcnkgcmlza3kgaW4gdGhpcyBzaXR1YXRp
-b24sIHRoZSBib2FyZCBoYXMgYW4gRUMKPiB0aGF0IGdvZXMgb3V0IGFuZCByZWFkcyB0aGUgc2Vu
-c29ycyBvbiBpdHMgb3duLgo+IEZ1cnRoZXJtb3JlIHRoZSBidWcgZG9lcyBub3Qgc2VlbSB0byBh
-ZmZlY3QgYWxsIHRoZSB1c2VycyBvZiB0aGF0Cj4gYm9hcmQsIGl0IG1heSBiZSBCSU9TIGFuZC9v
-ciBib2FyZCByZXZpc2lvbiBkZXBlbmRlbnQuCj4gCj4gSSdtIGFkZGluZyBKZWFuIGFuZCBHdWVu
-dGVyIGluIENDOiB3aGF0IGRvIHlvdSB0aGluayBhYm91dCBibGFsaXN0aW5nCj4gdGhlIGRyaXZl
-ciBvbiBQN1A1NUQ/CgpJIGhhdmUgbm8gc3Ryb25nIG9waW5pb24uIEV4Y2VwdCB0aGlzOiBpZiB5
-b3UgYmxhY2tsaXN0IGFueSBib2FyZCwKcGxlYXNlIHByb3ZpZGUgYSBtYW51YWwgd2F5IHRvIHNr
-aXAgdGhlIGJsYWNrbGlzdCB0byBmb3JjZSBtb2R1bGUKbG9hZGluZy4KCi0tIApKZWFuIERlbHZh
-cmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNl
-bnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3Rz
-LmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Hi,
+kronos.it@gmail.com (2012-03-22 at 1211.10 +0100):
+> Furthermore the bug does not seem to affect all the users of that
+> board, it may be BIOS and/or board revision dependent.
+
+It could also be that many are using USB based keyboards now so they
+do not notice their PS2 port goes mad after some time. Which means any
+blacklist should depend on the existence of PS2 peripherals. I am
+thinking about getting an adapter so the PS2 would go unused (my USB
+mouse works fine when my PS2 keyboard gets stuck).
+
+Also, is there any problem with the native module reading (and only
+reading) the sensors? I have been using it since I got the advice
+about avoiding the other and so far things seem to work; I would need
+to finish figuring the mappings/scalings.
+
+GSR
+ 
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
