@@ -1,330 +1,67 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 23 Mar 2012 21:17:40 +0000
+From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
+Date: Fri, 23 Mar 2012 23:24:58 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Add support for IT8781F, IT8782F, IT8783E/F
-Message-Id: <20120323221740.2fa9c2a4@endymion.delvare>
+Message-Id: <1149E1C9-FD96-44BF-BB90-A10361356DA4@extracloud.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1331180739-19470-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1331180739-19470-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
+Hi Jean,
 
-On Wed,  7 Mar 2012 20:25:39 -0800, Guenter Roeck wrote:
-> Assume all three are compatible and have the same functionality.
 
-A dangerous assumption, if you ask me. The pin selection part in
-particular is tricky and I wouldn't be surprised if it differs between
-these chips. I don't think anyone asked for IT8781F or IT8782F support
-yet, so we could play it safe and ignore these chips for now?
+Am 23.03.2012 um 22:02 schrieb Jean Delvare:
 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> This patch depends on the other pending changes for the it87 driver in my
-> hwmon-next tree.
+> On Tue, 13 Mar 2012 19:43:15 +0100, Bjoern Gerhart wrote:
+>> 2012/3/8 Guenter Roeck <linux@roeck-us.net>:
+>>> Assume all three are compatible and have the same functionality.
+>>>=20
+>>> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+>> Tested-by: Bjoern Gerhart <oss@extracloud.de>
+>=20
+> Care to share the output of "sensors" with us?
+>=20
+Sure. To be more precise, I tested with an IT8783 chip configured and wired=
+ by the hardware team at the company I'm working for on a proprietary mainb=
+oard. With the sensors.conf created therefore, the sensors output looks lik=
+e this:
 
-Review:
+[root@localhost ~]# LANG=3DC sensors
+it8783-isa-0a10
+Adapter: ISA adapter
+CPU Core:    +1.15 V  (min =3D  +0.70 V, max =3D  +1.70 V)
++1.50V:      +1.50 V  (min =3D  +1.10 V, max =3D  +1.90 V)
++3.30V:      +3.38 V  (min =3D  +2.70 V, max =3D  +4.00 V)
++12.0V:     +12.16 V  (min =3D +10.69 V, max =3D +13.70 V)
+-12.0V:     -11.95 V  (min =3D -13.68 V, max =3D -10.30 V)
++1.10V:      +1.12 V  (min =3D  +0.90 V, max =3D  +1.22 V)
+VBat:        +3.09 V
+Fan1:       1662 RPM  (min =3D  300 RPM)
+PSU:        1245 RPM  (min =3D  500 RPM)
+Board T.:    +30.0 C  (low  =3D  +0.0 C, high =3D +55.0 C)  sensor =3D ther=
+mal diode
+CPU T.:      +47.0 C  (low  =3D  +0.0 C, high =3D +63.0 C)  sensor =3D ther=
+mal diode
 
->  Documentation/hwmon/it87 |   24 +++++++----
->  drivers/hwmon/it87.c     |   93 ++++++++++++++++++++++++++++++++++++++++++----
->  2 files changed, 100 insertions(+), 17 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
-> index 23b7def..b0c1dcd 100644
-> --- a/Documentation/hwmon/it87
-> +++ b/Documentation/hwmon/it87
-> @@ -30,6 +30,10 @@ Supported chips:
->      Prefix: 'it8728'
->      Addresses scanned: from Super I/O config space (8 I/O ports)
->      Datasheet: Not publicly available
-> +  * IT8781F/IT8782F/IT8783E/F
-> +    Prefix: 'it8783'
-> +    Addresses scanned: from Super I/O config space (8 I/O ports)
-> +    Datasheet: Not publicly available
->    * SiS950   [clone of IT8705F]
->      Prefix: 'it87'
->      Addresses scanned: from Super I/O config space (8 I/O ports)
-> @@ -75,7 +79,8 @@ Description
->  -----------
->  
->  This driver implements support for the IT8705F, IT8712F, IT8716F,
-> -IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E and SiS950 chips.
-> +IT8718F, IT8720F, IT8721F, IT8726F, IT8728F, IT8758E, IT8781F, IT8782F,
-> +IT8783E/F, and SiS950 chips.
->  
->  These chips are 'Super I/O chips', supporting floppy disks, infrared ports,
->  joysticks and other miscellaneous stuff. For hardware monitoring, they
-> @@ -99,11 +104,11 @@ The IT8716F, IT8718F, IT8720F, IT8721F/IT8758E and later IT8712F revisions
->  have support for 2 additional fans. The additional fans are supported by the
->  driver.
->  
-> -The IT8716F, IT8718F, IT8720F and IT8721F/IT8758E, and late IT8712F and
-> -IT8705F also have optional 16-bit tachometer counters for fans 1 to 3. This
-> -is better (no more fan clock divider mess) but not compatible with the older
-> -chips and revisions. The 16-bit tachometer mode is enabled by the driver when
-> -one of the above chips is detected.
-> +The IT8716F, IT8718F, IT8720F and IT8721F/IT8758E, IT8781F, IT8782F, IT8783E/F,
-> +and late IT8712F and IT8705F also have optional 16-bit tachometer counters for
-> +fans 1 to 3. This is better (no more fan clock divider mess) but not compatible
-> +with the older chips and revisions. The 16-bit tachometer mode is enabled by the
-> +driver when one of the above chips is detected.
->  
->  The IT8726F is just bit enhanced IT8716F with additional hardware
->  for AMD power sequencing. Therefore the chip will appear as IT8716F
-> @@ -131,9 +136,10 @@ inputs can measure voltages between 0 and 4.08 volts, with a resolution of
->  0.016 volt (except IT8721F/IT8758E and IT8728F: 0.012 volt.) The battery
->  voltage in8 does not have limit registers.
->  
-> -On the IT8721F/IT8758E, some voltage inputs are internal and scaled inside
-> -the chip (in7, in8 and optionally in3). The driver handles this transparently
-> -so user-space doesn't have to care.
-> +On the IT8721F/IT8758E/IT8781F/IT8782F/IT8783E/F, some voltage inputs are
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +40.0 C  (high =3D +86.0 C, crit =3D +100.0 C)
+Core 1:      +43.0 C  (high =3D +86.0 C, crit =3D +100.0 C)
 
-So far we used "/" to separate chip names which have the same device ID
-so they can't be differentiated by the driver. For really different
-chips we use a comma instead.
 
-> +internal and scaled inside the chip (in7 (optional for IT8781/2/3), in8 and
+These are about the same values as the "Hardware Monitor" section at the BI=
+OS setup shows also. So all values look reasonable.
 
-I prefer when device names are spelled completely (except maybe the
-suffix) rather than shortened that way. This allows the users to grep
-quickly for their device name and find all occurrences right away.
 
-> +optionally in3). The driver handles this transparently so user-space doesn't
-> +have to care.
->  
->  The VID lines (IT8712F/IT8716F/IT8718F/IT8720F) encode the core voltage value:
->  the voltage level your processor should work with. This is hardcoded by
-> diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-> index 0b204e4..afaf19b 100644
-> --- a/drivers/hwmon/it87.c
-> +++ b/drivers/hwmon/it87.c
-> @@ -19,6 +19,9 @@
->   *            IT8726F  Super I/O chip w/LPC interface
->   *            IT8728F  Super I/O chip w/LPC interface
->   *            IT8758E  Super I/O chip w/LPC interface
-> + *            IT8781F  Super I/O chip w/LPC interface
-> + *            IT8782F  Super I/O chip w/LPC interface
-> + *            IT8783E/F Super I/O chip w/LPC interface
->   *            Sis950   A clone of the IT8705F
->   *
->   *  Copyright (C) 2001 Chris Gauthron
-> @@ -59,7 +62,7 @@
->  
->  #define DRVNAME "it87"
->  
-> -enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728 };
-> +enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8783 };
->  
->  static unsigned short force_id;
->  module_param(force_id, ushort, 0);
-> @@ -137,13 +140,19 @@ static inline void superio_exit(void)
->  #define IT8721F_DEVID 0x8721
->  #define IT8726F_DEVID 0x8726
->  #define IT8728F_DEVID 0x8728
-> +#define IT8781F_DEVID 0x8781
-> +#define IT8782F_DEVID 0x8782
-> +#define IT8783E_DEVID 0x8783
->  #define IT87_ACT_REG  0x30
->  #define IT87_BASE_REG 0x60
->  
->  /* Logical device 7 registers (IT8712F and later) */
-> +#define IT87_SIO_GPIO1_REG	0x25
->  #define IT87_SIO_GPIO3_REG	0x27
->  #define IT87_SIO_GPIO5_REG	0x29
-> +#define IT87_SIO_PINX1_REG	0x2a	/* Pin selection */
->  #define IT87_SIO_PINX2_REG	0x2c	/* Pin selection */
-> +#define IT87_SIO_SPI_REG	0xef	/* SPI function pin select */
->  #define IT87_SIO_VID_REG	0xfc	/* VID value */
->  #define IT87_SIO_BEEP_PIN_REG	0xf6	/* Beep pin mapping */
->  
-> @@ -313,8 +322,12 @@ static u8 in_to_reg(const struct it87_data *data, int nr, long val)
->  			lsb = 24;
->  		else
->  			lsb = 12;
-> -	} else
-> -		lsb = 16;
-> +	} else {
-> +		if (data->in_scaled & (1 << nr))
-> +			lsb = 32;
-> +		else
-> +			lsb = 16;
-> +	}
->  
->  	val = DIV_ROUND_CLOSEST(val, lsb);
->  	return SENSORS_LIMIT(val, 0, 255);
-> @@ -327,8 +340,12 @@ static int in_from_reg(const struct it87_data *data, int nr, int val)
->  			return val * 24;
->  		else
->  			return val * 12;
-> -	} else
-> -		return val * 16;
-> +	} else {
-> +		if (data->in_scaled & (1 << nr))
-> +			return val * 32;
-> +		else
-> +			return val * 16;
-> +	}
->  }
+In general, for future Tested-bys: does it make sense to append a kind of t=
+est report (like the above one) directly after the Tested-by statement, or =
+should it be located in a separate mail?
 
-I think both functions can then be rewritten more efficiently. I'll do
-some testing and send a patch later.
+Bj=F6rn
 
->  
->  static inline u8 FAN_TO_REG(long rpm, int div)
-> @@ -407,7 +424,8 @@ static inline int has_16bit_fans(const struct it87_data *data)
->  	    || data->type = it8718
->  	    || data->type = it8720
->  	    || data->type = it8721
-> -	    || data->type = it8728;
-> +	    || data->type = it8728
-> +	    || data->type = it8783;
->  }
-
-As the list grows longer, it might make sense to cache the result of
-this function into struct it87_data itself. Right now it's called twice
-in it87_update_device() amongst other. Separate patch, obviously...
-
->  
->  static inline int has_old_autopwm(const struct it87_data *data)
-> @@ -1651,6 +1669,11 @@ static int __init it87_find(unsigned short *address,
->  	case IT8728F_DEVID:
->  		sio_data->type = it8728;
->  		break;
-> +	case IT8781F_DEVID:
-> +	case IT8782F_DEVID:
-> +	case IT8783E_DEVID:
-> +		sio_data->type = it8783;
-
-I'm curious why you decided to go with a single chip type for all 3
-devices. Having separate prefixes would seem to have some value, from
-a supportability perspective is nothing else.
-
-> +		break;
->  	case 0xffff:	/* No device at all */
->  		goto exit;
->  	default:
-> @@ -1686,6 +1709,54 @@ static int __init it87_find(unsigned short *address,
->  		/* The IT8705F has a different LD number for GPIO */
->  		superio_select(5);
->  		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
-> +	} else if (sio_data->type = it8783) {
-> +		int reg25, reg27, reg2A, reg2C, regEF;
-> +
-> +		sio_data->skip_vid = 1;	/* No VID */
-> +
-> +		superio_select(GPIO);
-> +
-> +		reg25 = superio_inb(IT87_SIO_GPIO1_REG);
-> +		reg27 = superio_inb(IT87_SIO_GPIO3_REG);
-> +		reg2A = superio_inb(IT87_SIO_PINX1_REG);
-> +		reg2C = superio_inb(IT87_SIO_PINX2_REG);
-> +		regEF = superio_inb(IT87_SIO_SPI_REG);
-> +
-> +		/* Check if fan3 is there or not */
-> +		if ((reg27 & (1 << 0)) || !(reg2C & (1 << 2)))
-> +			sio_data->skip_fan |= (1 << 2);
-
-I'm a bit skeptical how a single pin can be FAN_TAC3 and SIN6 at the
-same time...
-
-> +		if ((reg25 & (1 << 4))
-> +		    || (!(reg2A & (1 << 1)) && (regEF & (1 << 0))))
-> +			sio_data->skip_pwm |= (1 << 2);
-> +
-> +		/* Check if fan2 is there or not */
-> +		if (reg27 & (1 << 7))
-> +			sio_data->skip_fan |= (1 << 1);
-> +		if (reg27 & (1 << 3))
-> +			sio_data->skip_pwm |= (1 << 1);
-> +
-> +		/* VIN5 */
-> +		if ((reg27 & (1 << 0)) || (reg2C & (1 << 2)))
-> +			; /* No VIN5 */
-
-Obviously we can't leave things that way. I presume we want to add a
-skip_in field to struct it87_sio_data and a has_in field to struct
-it87_data, same we have for fans? I'm fine having this as a separate
-patch, but both should go upstream together.
-
-> +
-> +		/* VIN6 */
-> +		if ((reg27 & (1 << 1)) || (reg2C & (1 << 2)))
-> +			; /* No VIN6 */
-> +
-> +		/*
-> +		 * VIN7
-> +		 * Does not depend on bit 2 of Reg2C, contrary to datasheet.
-
-Datasheet is pretty confusing for this configuration bit. If the pin
-can be used for a 3rd function ("SO") there must be a extra bit to
-check somewhere... Hopefully it won't matter much as I expect vin7 to
-be internal on most systems.
-
-> +		 */
-> +		if (reg27 & (1 << 2))
-> +			; /* No VIN7 */
-
-Unless vin7 is internal, in which case the test above doesn't matter.
-
-> +
-> +		if (reg2C & (1 << 0))
-> +			sio_data->internal |= (1 << 0);
-> +		if (reg2C & (1 << 1))
-> +			sio_data->internal |= (1 << 1);
-> +
-> +		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
-> +
->  	} else {
->  		int reg;
->  
-> @@ -1823,6 +1894,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
->  		"it8720",
->  		"it8721",
->  		"it8728",
-> +		"it8783",
->  	};
->  
->  	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
-> @@ -1867,6 +1939,11 @@ static int __devinit it87_probe(struct platform_device *pdev)
->  			data->in_scaled |= (1 << 7);	/* in7 is VSB */
->  		if (sio_data->internal & (1 << 2))
->  			data->in_scaled |= (1 << 8);	/* in8 is Vbat */
-> +	} else if (sio_data->type = it8783) {
-> +		if (sio_data->internal & (1 << 0))
-> +			data->in_scaled |= (1 << 3);	/* in3 is VCC5V */
-> +		if (sio_data->internal & (1 << 1))
-> +			data->in_scaled |= (1 << 7);	/* in7 is VCCH5V */
-
-The "Features" page says that Vbat is measured internally. If this
-true, then it is necessarily always scaled too. This should let you
-merge both blocks.
-
->  	}
->  
->  	/* Initialize the IT87 chip */
-> @@ -2143,8 +2220,8 @@ static void __devinit it87_init_device(struct platform_device *pdev)
->  			it87_write_value(data, IT87_REG_FAN_16BIT,
->  					 tmp | 0x07);
->  		}
-> -		/* IT8705F only supports three fans. */
-> -		if (data->type != it87) {
-> +		/* IT8705F and IT8783E/F only support three fans. */
-> +		if (data->type != it87 && data->type != it8783) {
->  			if (tmp & (1 << 4))
->  				data->has_fan |= (1 << 3); /* fan4 enabled */
->  			if (tmp & (1 << 5))
-
-The rest looks reasonable, although to be completely sure, a throughout
-reading of the datasheet would be needed, for which I unfortunately do
-not have the time.
-
-Good work!
-
--- 
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
