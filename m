@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 23 Mar 2012 08:14:27 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 23 Mar 2012 08:14:56 +0000
 Subject: Re: [lm-sensors] IT8728 shows wrong CPU temperature
-Message-Id: <20120323091427.20dc846a@endymion.delvare>
+Message-Id: <20120323081456.GA28622@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <SNT106-W616EA106142C05B93F28D5D3460@phx.gbl>
 In-Reply-To: <SNT106-W616EA106142C05B93F28D5D3460@phx.gbl>
@@ -10,59 +10,73 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgVG9tYXMsCgpPbiBGcmksIDIzIE1hciAyMDEyIDA5OjAwOjM1ICswMTAwLCBUb21hcyBKb2hh
-bnNzb24gd3JvdGU6Cj4gSSBoYXZlIGEgR2lnYWJ5dGUgR0EtUDY3QS1VRDUtQjMgd2l0aCBhIElU
-ODcyOEYsIHllc3RlcmRheSBpIHVwZ3JhZGVkIHRvIExpbnV4IDMuMyBhbmQgdGVzdGVkIHRoZSBu
-ZXcgSVQ4NyBtb2R1bGUuCj4gQXMgaSB3aWxsIHNob3cgYmVsb3cgaXQgc2hvd3Mgd3JvbmcgQ1BV
-IHRlbXBlcmF0dXJlLgo+IAo+IEZpcnN0Ogo+IAo+IHRlbXAxIHNob3dzIHN5c3RlbSBvciBtb3Ro
-ZXJib2FyZCBpZiB5b3Ugd2FudC4KPiB0ZW1wMiBzaG93cyA/LCBwcm9iYWJseSB1bnVzZWQKCkxv
-b2tzIHByZXR0eSBnb29kIGZvciBhbiB1bnVzZWQgdGVtcGVyYXR1cmUgc2Vuc29yLgoKPiB0ZW1w
-MyBzaG93cyBDUFUgYnV0IGlzIDctOCBkZWdyZWVzIHdyb25nIGNvbXBhcmVkIHRvIEJJT1MgKEkg
-a25vdyB0aGF0IHRlbXAzIGlzIENQVSBiZWNhdXNlIGl0IGlzIHRoZSBvbmx5IHRlbXAgdmFsdWUg
-dGhhdCBkaWZmZXIgdW5kZXIgbG9hZCkKCk5vdGUgdGhhdCB0aGUgQ1BVIGlzbid0IHRoZSBvbmx5
-IGNvbXBvbmVudCB3aGljaCBnZXRzIGhpZ2hlciB1bmRlcgpsb2FkLiBEZXBlbmRzIG9uIHRoZSBs
-b2FkLCByZWFsbHkuCgo+IEJJT1MgYXQgdGhpcyBtb21lbnQgaW4gdGltZSBzaG93ZWQ6Cj4gU1lT
-IDM0wrBDCj4gQ1BVIDMywrBDCj4gCj4gCj4gY29yZXRlbXAtaXNhLTAwMDAKPiBBZGFwdGVyOiBJ
-U0EgYWRhcHRlcgo+IFBoeXNpY2FsIGlkIDA6ICArMzYuMMKwQyAgKGhpZ2ggPSArODAuMMKwQywg
-Y3JpdCA9ICs5OC4wwrBDKQo+IENvcmUgMDogICAgICAgICArMzYuMMKwQyAgKGhpZ2ggPSArODAu
-MMKwQywgY3JpdCA9ICs5OC4wwrBDKQo+IENvcmUgMTogICAgICAgICArMzUuMMKwQyAgKGhpZ2gg
-PSArODAuMMKwQywgY3JpdCA9ICs5OC4wwrBDKQo+IENvcmUgMjogICAgICAgICArMzMuMMKwQyAg
-KGhpZ2ggPSArODAuMMKwQywgY3JpdCA9ICs5OC4wwrBDKQo+IENvcmUgMzogICAgICAgICArMzUu
-MMKwQyAgKGhpZ2ggPSArODAuMMKwQywgY3JpdCA9ICs5OC4wwrBDKQo+IAo+IGl0ODcyOC1pc2Et
-MDI5MAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gaW4wOiAgICAgICAgICArMS4wOCBWICAobWlu
-ID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+IGluMTogICAgICAgICAgKzIuMDMgViAgKG1p
-biA9ICArMC4wMCBWLCBtYXggPSAgKzMuMDYgVikKPiBpbjI6ICAgICAgICAgICsyLjk2IFYgICht
-aW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCj4gaW4zOiAgICAgICAgICArMi45MyBWICAo
-bWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+IGluNDogICAgICAgICAgKzAuMjQgViAg
-KG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuODQgVikKPiBpbjU6ICAgICAgICAgICsxLjIwIFYg
-IChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICszLjA2IFYpCj4gaW42OiAgICAgICAgICArMS41NSBW
-ICAobWluID0gICswLjAwIFYsIG1heCA9ICArMy4wNiBWKQo+IDNWU0I6ICAgICAgICAgKzMuMzgg
-ViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzYuMTIgVikKPiBWYmF0OiAgICAgICAgICszLjI2
-IFYgIAo+IGZhbjE6ICAgICAgICAxMDU2IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+IGZhbjI6ICAg
-ICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+IGZhbjM6ICAgICAgICAgICAwIFJQTSAg
-KG1pbiA9ICAgIDAgUlBNKQo+IGZhbjQ6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBN
-KQo+IGZhbjU6ICAgICAgICAxMzc0IFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+IHRlbXAxOiAgICAg
-ICAgKzM0LjDCsEMgIChsb3cgID0gKzEyNy4wwrBDLCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29y
-ID0gdGhlcm1pc3Rvcgo+IHRlbXAyOiAgICAgICAgKzMxLjDCsEMgIChsb3cgID0gKzEyNy4wwrBD
-LCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IHRlbXAzOiAgICAgICAg
-KzI1LjDCsEMgIChsb3cgID0gKzEyNy4wwrBDLCBoaWdoID0gKzEyNy4wwrBDKSAgc2Vuc29yID0g
-dGhlcm1pc3Rvcgo+IGludHJ1c2lvbjA6ICBBTEFSTQo+IAo+IAo+IAo+IENvbmNsdXNpb246Cj4g
-Cj4gZmFuMSwgc2hvd3MgY29ycmVjdCB2YWx1ZS4KPiBmYW41LCBzaG93cyBjb3JyZWN0IHZhbHVl
-Lgo+IHRlbXAxIChzeXN0ZW0pLCBzaG93cyBjb3JyZWN0IHZhbHVlLgo+IHRlbXAzIChDUFUpLCBz
-aG93cyB3cm9uZyB2YWx1ZSwgaW4gdGhpcyBjYXNlIDI1wrBDIGluc3RlYWQgb2YgMzLCsEMuCj4g
-Cj4gCj4gSSBoYXZlIHN0dWRpZWQgdGhlIG90aGVyIElUODI3OCByZXBvcnRzIGkgaGF2ZSBmb3Vu
-ZCBhbmQgYXMgZmFyIGFzIGkgY2FuIHRlbGwgdGhhdCB0aGV5IHN1ZmZlciBmcm9tIHRoZSBzYW1l
-IHdyb25nIGNwdSByZWFkaW5ncywgaSBkbyBub3QgdW5kZXJzdGFuZCB3aHkgdGhleSBoYXZlIHJl
-cG9ydGVkIHRoZW0gYXMgY29ycmVjdC4uLgoKTWF5YmUgdGhlIG90aGVyIHVzZXJzIGhhdmUgcmVh
-ZCB0aGUgRkFRIGFuZCB5b3UgaGF2ZSBub3Q/CgpodHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL3dp
-a2kvRkFRL0NoYXB0ZXIzI015QklPU3JlcG9ydHNhbXVjaGhpZ2hlckNQVXRlbXBlcmF0dXJldGhh
-bnlvdXJtb2R1bGVzCgpUaGUgc2Vjb25kIHBhcnQgb2YgdGhpcyBGQVEgZW50cnksIGluIHBhcnRp
-Y3VsYXIsIGlzIHZlcnkgcmVsZXZhbnQuCgpOb3RlIHRoYXQgd2UgZG8gbm90IGhhdmUgYSBkYXRh
-c2hlZXQgZm9yIHRoaXMgY2hpcCBhbnl3YXkgc28gdGhlcmUncwpub3QgbXVjaCB3ZSBjYW4gZG8u
-IEFsc28gbm90ZSB0aGF0IHRlbXBlcmF0dXJlIHZhbHVlcyBhcmUgcmV0dXJuZWQgYnkKdGhlIGRy
-aXZlciB0byB1c2VyLXNwYWNlIGFsbW9zdCB1bnByb2Nlc3NlZCBzbyB0aGVyZSBpcyBsaXR0bGUg
-cm9vbSBmb3IKYSBidWcgaGVyZS4KCi0tIApKZWFuIERlbHZhcmUKaHR0cDovL2toYWxpLmxpbnV4
-LWZyLm9yZy93aXNobGlzdC5odG1sCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
-cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
-bnNvcnM
+On Fri, Mar 23, 2012 at 04:00:35AM -0400, Tomas Johansson wrote:
+> Hi!
+> 
+> I have a Gigabyte GA-P67A-UD5-B3 with a IT8728F, yesterday i upgraded to Linux
+> 3.3 and tested the new IT87 module.
+> As i will show below it shows wrong CPU temperature.
+> 
+> First:
+> 
+> temp1 shows system or motherboard if you want.
+> temp2 shows ?, probably unused
+> temp3 shows CPU but is 7-8 degrees wrong compared to BIOS (I know that temp3 is
+> CPU because it is the only temp value that differ under load)
+> 
+> 
+> BIOS at this moment in time showed:
+> SYS 34 C
+> CPU 32 C
+> 
+> 
+> coretemp-isa-0000
+> Adapter: ISA adapter
+> Physical id 0:  +36.0 C  (high = +80.0 C, crit = +98.0 C)
+> Core 0:         +36.0 C  (high = +80.0 C, crit = +98.0 C)
+> Core 1:         +35.0 C  (high = +80.0 C, crit = +98.0 C)
+> Core 2:         +33.0 C  (high = +80.0 C, crit = +98.0 C)
+> Core 3:         +35.0 C  (high = +80.0 C, crit = +98.0 C)
+> 
+> it8728-isa-0290
+> Adapter: ISA adapter
+> in0:          +1.08 V  (min =  +0.00 V, max =  +3.06 V)
+> in1:          +2.03 V  (min =  +0.00 V, max =  +3.06 V)
+> in2:          +2.96 V  (min =  +0.00 V, max =  +3.06 V)
+> in3:          +2.93 V  (min =  +0.00 V, max =  +3.06 V)
+> in4:          +0.24 V  (min =  +0.00 V, max =  +0.84 V)
+> in5:          +1.20 V  (min =  +0.00 V, max =  +3.06 V)
+> in6:          +1.55 V  (min =  +0.00 V, max =  +3.06 V)
+> 3VSB:         +3.38 V  (min =  +0.00 V, max =  +6.12 V)
+> Vbat:         +3.26 V  
+> fan1:        1056 RPM  (min =    0 RPM)
+> fan2:           0 RPM  (min =    0 RPM)
+> fan3:           0 RPM  (min =    0 RPM)
+> fan4:           0 RPM  (min =    0 RPM)
+> fan5:        1374 RPM  (min =    0 RPM)
+> temp1:        +34.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
+> temp2:        +31.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
+> temp3:        +25.0 C  (low  = +127.0 C, high = +127.0 C)  sensor = thermistor
+> intrusion0:  ALARM
+> 
+> 
+> 
+> Conclusion:
+> 
+> fan1, shows correct value.
+> fan5, shows correct value.
+> temp1 (system), shows correct value.
+> temp3 (CPU), shows wrong value, in this case 25 C instead of 32 C.
+> 
+I am a bit lost here. Why do you assume that temp2 (which would show roughly
+the correct temperature) is unused, and that temp3 is the CPU temperature ?
+Why not temp2=CPU and temp3=??? 
+
+What happens if you run something challenging on the system ?
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
