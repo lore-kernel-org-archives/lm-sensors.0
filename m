@@ -1,50 +1,53 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 19 Mar 2012 10:02:08 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon/sch56xx: Add support for the integrated watchdog (v2)
-Message-Id: <4F670420.4090906@redhat.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 24 Mar 2012 15:45:07 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (f75375s) Fix warning message seen in some configurations
+Message-Id: <1332603907-18251-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1332072308-4404-1-git-send-email-hdegoede@redhat.com> <20120318121703.GB26167@ericsson.com> <20120318215015.GA28033@ericsson.com>
-In-Reply-To: <20120318215015.GA28033@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: Thilo Cestonaro <thilo.cestonaro@ts.fujitsu.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, LM Sensors <lm-sensors@lm-sensors.org>
+To: lm-sensors@vger.kernel.org
 
-Hi,
+In some configurations, BUG() does not result in an endless loop but returns to
+the caller. This results in the following compiler warning:
 
-On 03/18/2012 10:50 PM, Guenter Roeck wrote:
-> On Sun, Mar 18, 2012 at 08:17:03AM -0400, Guenter Roeck wrote:
->> On Sun, Mar 18, 2012 at 08:05:08AM -0400, Hans de Goede wrote:
->>> Add support for the watchdog integrated into the SMSC SCH5627 and
->>> SCH5636 superio-s. Since the watchdog is part of the hwmon logical device
->>> and thus shares ioports with it, the watchdog driver is integrated into the
->>> existing hwmon drivers for these.
->>>
->>> Note that this version of the watchdog support for sch56xx superio-s
->>> implements the watchdog chardev interface itself, rather then relying on
->>> the recently added watchdog core / watchdog_dev. This is done because
->>> currently some needed functionality is missing from watchdog_dev, as soon
->>> as this functionality is added (which is being discussed on the
->>> linux-watchdog mailinglist), I'll convert this driver over to using
->>> watchdog_dev.
->>>
->>> Changes in v2:
->>> -fix checkpatch complaints
->>> -follow multi-line comment style guidelines
->>>
->>> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
->>
->> You are too fast ;-). Unfortunately, we'll need v3, with the slab.h include.
->>
-> Forget v3 - I added the include myself and applied the patch. Not worth missing
-> the commit window due to a missing include.
+drivers/hwmon/f75375s.c: In function 'duty_mode_enabled':
+drivers/hwmon/f75375s.c:280: warning: control reaches end of non-void function
+drivers/hwmon/f75375s.c: In function 'auto_mode_enabled':
+drivers/hwmon/f75375s.c:295: warning: control reaches end of non-void function
 
-Thanks!
+Fix the warning by returning something sensible after BUG().
 
-Regards,
+Cc: Nikolaus Schulz <schulz@macnetix.de>
+Cc: Riku Voipio <riku.voipio@iki.fi>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/f75375s.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Hans
+diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
+index 729499e..ece4159 100644
+--- a/drivers/hwmon/f75375s.c
++++ b/drivers/hwmon/f75375s.c
+@@ -276,6 +276,7 @@ static bool duty_mode_enabled(u8 pwm_enable)
+ 		return false;
+ 	default:
+ 		BUG();
++		return true;
+ 	}
+ }
+ 
+@@ -291,6 +292,7 @@ static bool auto_mode_enabled(u8 pwm_enable)
+ 		return true;
+ 	default:
+ 		BUG();
++		return false;
+ 	}
+ }
+ 
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
