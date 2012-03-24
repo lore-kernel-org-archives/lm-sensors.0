@@ -1,78 +1,88 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Date: Sat, 17 Mar 2012 12:56:02 +0000
-Subject: Re: [lm-sensors] Watchdog timer core enhancements
-Message-Id: <20120317125602.GA15657@pengutronix.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2044447374191746941=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 24 Mar 2012 15:56:49 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (adm1031) Fix compiler warning
+Message-Id: <1332604609-21155-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1331812757-3491-1-git-send-email-hdegoede@redhat.com>
- <20120315211323.GE10698@spo001.leaseweb.com>
-In-Reply-To: <20120315211323.GE10698@spo001.leaseweb.com>
-To: Wim Van Sebroeck <wim@iguana.be>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-watchdog@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>, LM Sensors <lm-sensors@lm-sensors.org>, Thilo Cestonaro <thilo.cestonaro@ts.fujitsu.com>
-
-
---===============2044447374191746941==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Dxnq1zWXvFF0Q93v"
-Content-Disposition: inline
-
-
---Dxnq1zWXvFF0Q93v
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-> If you then add the fact that on the 12th of February an upgrade of my ho=
-me
-> system made sure that I lost a big part of my e-mail :-( and made sure th=
-at
-> I didn't had outgoing and local mail anymore :-( then you understand prob=
-ably
-
-Sorry to hear about that!
-
-> why I have been struggling the last month... FYI: the last week I have be=
-en
-> busy working on my backlog of patches for the watchdog trees, before doing
-> anything else (like responding to e-mails).
-
-One small email what happened and that you are already catching up might be=
- a
-good idea :)
-
-Thanks for the work!
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---Dxnq1zWXvFF0Q93v
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEARECAAYFAk9kieIACgkQD27XaX1/VRuZ/QCeMEBxOnhxlUylt5fW4NuC2tVj
-I3cAoK0upZ69uxGpgqqzHGpaZNVryjsR
-=2X2l
------END PGP SIGNATURE-----
-
---Dxnq1zWXvFF0Q93v--
-
-
---===============2044447374191746941==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Some configurations produce the following compile warning:
+
+drivers/hwmon/adm1031.c: In function 'set_fan_auto_channel':
+drivers/hwmon/adm1031.c:292: warning: 'reg' may be used uninitialized in this function
+
+While this is a false positive, it can easily be fixed by overloading the return
+value from get_fan_auto_nearest with both register value and error return code
+(the register value is never negative). Coincidentially, that also reduces
+module size by a few bytes.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/adm1031.c |   21 ++++++++-------------
+ 1 files changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
+index ff37363..c58acb4 100644
+--- a/drivers/hwmon/adm1031.c
++++ b/drivers/hwmon/adm1031.c
+@@ -233,18 +233,15 @@ static const auto_chan_table_t auto_channel_select_table_adm1030 = {
+  * nearest match if no exact match where found.
+  */
+ static int
+-get_fan_auto_nearest(struct adm1031_data *data,
+-		     int chan, u8 val, u8 reg, u8 *new_reg)
++get_fan_auto_nearest(struct adm1031_data *data, int chan, u8 val, u8 reg)
+ {
+ 	int i;
+ 	int first_match = -1, exact_match = -1;
+ 	u8 other_reg_val  	    (*data->chan_select_table)[FAN_CHAN_FROM_REG(reg)][chan ? 0 : 1];
+ 
+-	if (val = 0) {
+-		*new_reg = 0;
++	if (val = 0)
+ 		return 0;
+-	}
+ 
+ 	for (i = 0; i < 8; i++) {
+ 		if ((val = (*data->chan_select_table)[i][chan]) &&
+@@ -264,13 +261,11 @@ get_fan_auto_nearest(struct adm1031_data *data,
+ 	}
+ 
+ 	if (exact_match >= 0)
+-		*new_reg = exact_match;
++		return exact_match;
+ 	else if (first_match >= 0)
+-		*new_reg = first_match;
+-	else
+-		return -EINVAL;
++		return first_match;
+ 
+-	return 0;
++	return -EINVAL;
+ }
+ 
+ static ssize_t show_fan_auto_channel(struct device *dev,
+@@ -301,10 +296,10 @@ set_fan_auto_channel(struct device *dev, struct device_attribute *attr,
+ 
+ 	mutex_lock(&data->update_lock);
+ 
+-	ret = get_fan_auto_nearest(data, nr, val, data->conf1, &reg);
+-	if (ret) {
++	reg = get_fan_auto_nearest(data, nr, val, data->conf1);
++	if (reg < 0) {
+ 		mutex_unlock(&data->update_lock);
+-		return ret;
++		return reg;
+ 	}
+ 	data->conf1 = FAN_CHAN_TO_REG(reg, data->conf1);
+ 	if ((data->conf1 & ADM1031_CONF1_AUTO_MODE) ^
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2044447374191746941==--
