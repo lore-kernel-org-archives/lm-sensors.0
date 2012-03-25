@@ -1,154 +1,67 @@
-From: Chusslove Illich <caslav.ilic@gmx.net>
-Date: Wed, 21 Mar 2012 10:54:23 +0000
-Subject: [lm-sensors] fancontrol: max of multiple temp sensors for single PWM control
-Message-Id: <201203211154.23477.caslav.ilic@gmx.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1091735508212712250=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 25 Mar 2012 05:00:33 +0000
+Subject: [lm-sensors] [PATCH v2 3/3] hwmon: (it87) Convert to use devm_kzalloc
+Message-Id: <1332651633-23560-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1091735508212712250==
-Content-Type: multipart/signed;
-  boundary="nextPart6171600.HzaNW4UWc6";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+This makes the code a bit simpler and smaller.
 
---nextPart6171600.HzaNW4UWc6
-Content-Type: multipart/mixed;
-  boundary="Boundary-01=_fNbaP+ayhK70rS7"
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |   10 ++--------
+ 1 files changed, 2 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 7dc4e48..e663638 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -1966,7 +1966,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 		goto ERROR0;
+ 	}
+ 
+-	data = kzalloc(sizeof(struct it87_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct it87_data), GFP_KERNEL);
+ 	if (!data) {
+ 		err = -ENOMEM;
+ 		goto ERROR1;
+@@ -1981,7 +1981,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
+ 	 || it87_read_value(data, IT87_REG_CHIPID) != 0x90) {
+ 		err = -ENODEV;
+-		goto ERROR2;
++		goto ERROR1;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, data);
+@@ -2113,9 +2113,6 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 
+ ERROR4:
+ 	it87_remove_files(dev);
+-ERROR2:
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+ ERROR1:
+ 	release_region(res->start, IT87_EC_EXTENT);
+ ERROR0:
+@@ -2130,9 +2127,6 @@ static int __devexit it87_remove(struct platform_device *pdev)
+ 	it87_remove_files(&pdev->dev);
+ 
+ 	release_region(data->addr, IT87_EC_EXTENT);
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.5.4
 
---Boundary-01=_fNbaP+ayhK70rS7
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-A while back, there was this post
-
-http://lists.lm-sensors.org/pipermail/lm-sensors/2010-July/029109.html
-
-which sumed up the issue (for me, the alternating-fan sound pattern is
-annoying). I attach a patch to make this possible, by giving a comma-
-separated list of temperature sensors in FCTEMPS.
-
-I've tested it by forcing the affinity of a high-load process to different
-cores, while monitoring the /sys/class/hwmon/hwmonN/device/pwmM contents to
-make sure it does not change.
-
-(Not subscribed, please CC.)
-
-=2D-=20
-Chusslove Illich (=D0=A7=D0=B0=D1=81=D0=BB=D0=B0=D0=B2 =D0=98=D0=BB=D0=B8=
-=D1=9B)
-
---Boundary-01=_fNbaP+ayhK70rS7
-Content-Type: text/x-patch;
-  charset="utf-8";
-  name="fancontrol-multi-temp-pwm-map-01.diff"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="fancontrol-multi-temp-pwm-map-01.diff"
-
-Index: doc/fancontrol.txt
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=2D-- doc/fancontrol.txt	(revision 6037)
-+++ doc/fancontrol.txt	(working copy)
-@@ -37,6 +37,10 @@
- 	Maps pwm outputs to temperature sensors so fancontrol knows which
- 	temperature sensors should be used for calculation of new values for
- 	the corresponding pwm outputs.
-+	Several temperature sensors may be mapped to single pwm output
-+	as a comma-separated list, in which case the maximum of all readings
-+	is taken as the referent temperature. This is useful for a CPU fan
-+	on a multi-core CPU with separate temperature sensors per core.
-=20
- FCFANS
- 	FCFANS records the association between a pwm and a fan.
-Index: prog/pwm/fancontrol
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=2D-- prog/pwm/fancontrol	(revision 6037)
-+++ prog/pwm/fancontrol	(working copy)
-@@ -224,12 +224,14 @@
- 	let fcvcount=3D0
- 	while (( $fcvcount < ${#AFCTEMP[@]} )) # go through all temp inputs
- 	do
-=2D		tsen=3D${AFCTEMP[$fcvcount]}
-=2D		if [ ! -r $tsen ]
-=2D		then
-=2D			echo "Error: file $tsen doesn't exist" >&2
-=2D			outdated=3D1
-=2D		fi
-+		for tsen in $(echo ${AFCTEMP[$fcvcount]} | tr ',' ' ')
-+		do
-+			if [ ! -r $tsen ]
-+			then
-+				echo "Error: file $tsen doesn't exist" >&2
-+				outdated=3D1
-+			fi
-+		done
- 		let fcvcount=3D$fcvcount+1
- 	done
-=20
-@@ -391,12 +393,20 @@
- 		minpwm=3D${AFCMINPWM[$fcvcount]}
- 		maxpwm=3D${AFCMAXPWM[$fcvcount]}
-=20
-=2D		read tval < ${tsens}
-=2D		if [ $? -ne 0 ]
-=2D		then
-=2D			echo "Error reading temperature from $DIR/$tsens"
-=2D			restorefans 1
-=2D		fi
-+		tval=3D0
-+		for tsen in $(echo ${tsens} | tr ',' ' ')
-+		do
-+			read tval1 < ${tsen}
-+			if [ $? -ne 0 ]
-+			then
-+				echo "Error reading temperature from $DIR/$tsen"
-+				restorefans 1
-+			fi
-+			if [ $tval -lt $tval1 ]
-+			then
-+				tval=3D$tval1
-+			fi
-+		done
-=20
- 		read pwmpval < ${pwmo}
- 		if [ $? -ne 0 ]
-
---Boundary-01=_fNbaP+ayhK70rS7--
-
---nextPart6171600.HzaNW4UWc6
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-
-iEYEABECAAYFAk9ps18ACgkQMSGXgigGr3FXKACghn2o6lBoShAdWWIObrddiTRH
-i/cAoLe6a+QIa7zepmFqBEIkHrqFOuJW
-=9+D/
------END PGP SIGNATURE-----
-
---nextPart6171600.HzaNW4UWc6--
-
-
---===============1091735508212712250==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1091735508212712250==--
