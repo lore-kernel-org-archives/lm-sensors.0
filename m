@@ -1,76 +1,59 @@
-From: Glenn Hollowell <temp1@blepsias.net>
-Date: Mon, 26 Mar 2012 19:20:33 +0000
-Subject: [lm-sensors] Not detecting all fan RPMs
-Message-Id: <1332789633.10230.9.camel@dfghom-gjhollo2.site>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 26 Mar 2012 19:44:54 +0000
+Subject: Re: [lm-sensors] Not detecting all fan RPMs
+Message-Id: <20120326214454.238a04f7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1332789633.10230.9.camel@dfghom-gjhollo2.site>
+In-Reply-To: <1332789633.10230.9.camel@dfghom-gjhollo2.site>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGV5IGFsbC0KCkkgaGF2ZSBhbiBBU1JvY2sgODgwRyBFeHRyZW1lIG1vdGhlcmJvYXJkIHJ1bm5p
-bmcgb3BlblN1c2UgbGludXggMTIuMS4gSQpoYXZlIGJlZW4gaGF2aW5nIGRpZmZpY3VsdHkgc2Vl
-aW5nIGFsbCBvZiBteSBjaGFzc2lzIGFuZCBwb3dlciBmYW4gcnBtcwp1c2luZyBTRU5TT1JTLiBJ
-IGhhdmUganVzdCB1cGdyYWRlZCB0byB2My4zLjIgd2l0aCBubyBsdWNrLgoKVGhlIG1vdGhlciBi
-b2FyZCBoYXMgKDUpIGZhbiBwbHVnaW5zLiBUaHJlZSBvZiB0aGVzZSBhcmUgZm9yIGNoYXNzaXMK
-ZmFucywgYW5kIHRoZSBvdGhlciB0d28gYXJlIGxhYmVsbGVkICJDUFUgZmFuIiBhbmQgIlBXUiBm
-YW4iLiBUaGUgQ1BVCmZhbiBhbmQgb25lIG9mIHRoZSBjaGFzc2lzIGZhbiAoIzEpIG1vYm8gcGx1
-Z2lucyBhcmUgNC1wcm9uZywgdGhlIG90aGVycwphcmUgMy1wcm9uZyBwbHVncy4gVGhlIHBpZ3Rh
-aWxzIGZyb20gdGhlIDIgY2hhc3NpcyBmYW5zIGFyZSAzLXByb25nLCBhcwppcyB0aGUgcG93ZXIg
-c3VwcGx5IHBsdWdpbi4gVGhlIENQVSBmYW4gcGlndGFpbCBpcyBhIDQtcHJvbmcuCgpDdXJyZW50
-bHksIEkndmUgZ290IGNoYXNzaXMgZmFucyBwbHVnZ2VkIGludG8gQ0hBX0ZBTjEgYW5kIENIQV9G
-QU4yLCBhbmQKSSd2ZSBnb3QgdGhlIHBvd2VyIHN1cHBseSBmYW4gcGx1Z2dlZCBpbnRvIFBXUl9G
-QU4xLiBUaGUgQ1BVIGZhbiBpcwpwbHVnZ2VkIGludG8gQ1BVX0ZBTjEuIFRoZXJlIGlzIGFuIGFk
-ZGl0aW9uYWwgQ0hBX0ZBTjMgcGx1ZyBvbiB0aGUKbW90aGVyYm9hcmQuCgpJbiBiaW9zIEkgZ2V0
-IHRoZSBmb2xsb3dpbmcgcmVhZGluZ3MsCgpDUFUgZmFuIDEgPSAzNzUwCkNoYXNpcyBmYW4gMSA9
-IDEyNjggCkNoYXNpcyBmYW4gMiA9IDEyNzggCkNoYXNpcyBmYW4gMyA9IE5BClBvd2VyIGZhbiAx
-ID0gODc4IAoKQWxsIG9mIHRoZSBhYm92ZSBzZWVtIHJlYXNvbmFibGUgYW5kIGZpbmUuCgpCZWxv
-dyBpcyB0aGUgb3V0cHV0IGZyb20gU0VOU09SUywKdXNlcnNAZG90aG9tLXVzZXIxOn4+IHNlbnNv
-cnMKbm91dmVhdS1wY2ktMDQwMApBZGFwdGVyOiBQQ0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICs1
-Ni4wwrBDICAoaGlnaCA9ICsxMDAuMMKwQywgY3JpdCA9ICsxMjAuMMKwQykKazEwdGVtcC1wY2kt
-MDBjMwpBZGFwdGVyOiBQQ0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICArMC4wwrBDICAoaGlnaCA9
-ICs3MC4wwrBDKQpuY3Q2Nzc1LWlzYS0wMjkwCkFkYXB0ZXI6IElTQSBhZGFwdGVyClZjb3JlOiAg
-ICAgICAgKzEuMjEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEuNzQgVikKaW4xOiAgICAg
-ICAgICArMS44NiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0KQVZD
-QzogICAgICAgICArMy4yOCBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQorMy4z
-VjogICAgICAgICszLjI4IFYgIChtaW4gPSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCmluNDog
-ICAgICAgICAgKzAuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJN
-CmluNTogICAgICAgICAgKzEuNjggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikg
-IEFMQVJNCmluNjogICAgICAgICAgKzAuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAu
-MDAgVikgIEFMQVJNCjNWU0I6ICAgICAgICAgKzMuNDcgViAgKG1pbiA9ICArMi45OCBWLCBtYXgg
-PSAgKzMuNjMgVikKVmJhdDogICAgICAgICArMy4zOCBWICAobWluID0gICsyLjcwIFYsIG1heCA9
-ICArMy4zMCBWKSAgQUxBUk0KZmFuMTogICAgICAgIDEyODggUlBNICAobWluID0gICAgMCBSUE0s
-IGRpdiA9IDgpICBBTEFSTQpmYW4yOiAgICAgICAgNDIxOCBSUE0gIChtaW4gPSAgICAwIFJQTSwg
-ZGl2ID0gOCkgIEFMQVJNCmZhbjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBk
-aXYgPSAxMjgpClNZU1RJTjogICAgICAgKzI4LjDCsEMgIChoaWdoID0gICswLjDCsEMsIGh5c3Qg
-PSAgKzAuMMKwQykgIEFMQVJNICBzZW5zb3IgPQp0aGVybWlzdG9yCkNQVVRJTjogICAgICAgKzM2
-LjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9CnRoZXJt
-aXN0b3IKQVVYVElOOiAgICAgICsxMTAuMMKwQyAgKGhpZ2ggPSArMTE0LjDCsEMsIGh5c3QgPSAr
-MTE0LjDCsEMpICBzZW5zb3IgPQp0aGVybWlzdG9yCmNwdTBfdmlkOiAgICArMC40NTAgVgoKVXNp
-bmcgdGhlIGJpb3MgdmFsdWVzIGFzIGEgcmVmZXJlbmNlLCBpdCBhcHBlYXJzIHRoYXQgb25seSBv
-bmUgb2YgdGhlCmNoYXNzaXMgZmFucyBhbmQgdGhlIENQVSBmYW4gaXMgZGlzcGxheWVkIGJ5IFNF
-TlNPUlMuIEFsc28gbW92aW5nIG9uZSBvZgp0aGUgY2hhc3NpcyBmYW4gcGx1Z3MgaW50byB0aGUg
-b3BlbiBDSEFfRkFOMyBwbHVnIGRvZXMgbm90IGNoYW5nZSB0aGUgMApSUE0gdmFsdWUgc2hvd24g
-YnkgU0VOU09SUy4gQW5kLCB3aXRoIGJvdGggY2hhc3NpcyBmYW5zIHVucGx1Z2dlZCwKKENIQV9G
-QU4xLCBDSEFfRkFOMiwgYW5kIENIQV9GQU4zIGFsbCBvcGVuKSBTRU5TT1JTIGNvbnRpbnVlcyB0
-byBzaG93Cn40MjAwIHJwbSBmb3IgZmFuMi4KCkJlbG93IGlzIHRoZSAvZXRjL3N5c2NvbmZpZy9s
-bV9zZW5zb3JzIGZpbGUuCiMgR2VuZXJhdGVkIGJ5IHNlbnNvcnMtZGV0ZWN0IG9uIFN1biBNYXIg
-MjUgMjI6MzA6NTggMjAxMgojIyBQYXRoOiBIYXJkd2FyZS9TZW5zb3JzCiMjIERlc2NyaXB0aW9u
-OiAgICAgICAgIERlZmluZXMgdGhlIG1vZHVsZXMgdG8gdXNlZAojIyBUeXBlOiAgICAgICAgICAg
-ICAgICBzdHJpbmcKIyMgU2VydmljZVJlc3RhcnQ6ICAgICAgbG1fc2Vuc29ycwojIyBEZWZhdWx0
-OiAgICAgICAgICAgICAiIgojCiMgVGhpcyBmaWxlIGlzIHNvdXJjZWQgYnkgL2V0Yy9pbml0LmQv
-bG1fc2Vuc29ycyBhbmQgZGVmaW5lcyBtb2R1bGVzIHRvCiMgYmUgbG9hZGVkL3VubG9hZGVkLgoj
-CiMgVGhlIGZvcm1hdCBvZiB0aGlzIGZpbGUgaXMgYSBzaGVsbCBzY3JpcHQgdGhhdCBzaW1wbHkg
-ZGVmaW5lcwp2YXJpYWJsZXM6CiMgSFdNT05fTU9EVUxFUyBmb3IgaGFyZHdhcmUgbW9uaXRvcmlu
-ZyBkcml2ZXIgbW9kdWxlcywgYW5kIG9wdGlvbmFsbHkKIyBCVVNfTU9EVUxFUyBmb3IgYW55IHJl
-cXVpcmVkIGJ1cyBkcml2ZXIgbW9kdWxlIChmb3IgZXhhbXBsZSBmb3IgSTJDIG9yClNQSSkuCkhX
-TU9OX01PRFVMRVM9Inc4MzYyN2VoZiIKIyBGb3IgY29tcGF0aWJpbGl0eSByZWFzb25zLCBtb2R1
-bGVzIGFyZSBhbHNvIGxpc3RlZCBpbmRpdmlkdWFsbHkgYXMKdmFyaWFibGVzCiMgICAgTU9EVUxF
-XzAsIE1PRFVMRV8xLCBNT0RVTEVfMiwgZXRjLgojIFlvdSBzaG91bGQgdXNlIEJVU19NT0RVTEVT
-IGFuZCBIV01PTl9NT0RVTEVTIGluc3RlYWQgaWYgcG9zc2libGUuCk1PRFVMRV8wPXc4MzYyN2Vo
-ZgoKQW55IHN1Z2dlc3Rpb25zIGhvdyBJIGNhbiBnZXQgdGhlIHBvd2VyIHN1cHBseSBmYW4gYW5k
-IHRoZSBvdGhlciBjaGFzc2lzCmZhbiBycG1zIHRvIHNob3c/IFRoYW5rcyBpbiBhZHZhbmNlIGZv
-ciBjbGFyaXR5IGFuZCBjb2dlbnQgYWR2aWNlLgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+Hi Glenn,
+
+On Mon, 26 Mar 2012 11:20:33 -0800, Glenn Hollowell wrote:
+> I have an ASRock 880G Extreme motherboard running openSuse linux 12.1. I
+> have been having difficulty seeing all of my chassis and power fan rpms
+> using SENSORS. I have just upgraded to v3.3.2 with no luck.
+> 
+> The mother board has (5) fan plugins. Three of these are for chassis
+> fans, and the other two are labelled "CPU fan" and "PWR fan". The CPU
+> fan and one of the chassis fan (#1) mobo plugins are 4-prong, the others
+> are 3-prong plugs. The pigtails from the 2 chassis fans are 3-prong, as
+> is the power supply plugin. The CPU fan pigtail is a 4-prong.
+> 
+> Currently, I've got chassis fans plugged into CHA_FAN1 and CHA_FAN2, and
+> I've got the power supply fan plugged into PWR_FAN1. The CPU fan is
+> plugged into CPU_FAN1. There is an additional CHA_FAN3 plug on the
+> motherboard.
+> 
+> In bios I get the following readings,
+> 
+> CPU fan 1 = 3750
+> Chasis fan 1 = 1268 
+> Chasis fan 2 = 1278 
+> Chasis fan 3 = NA
+> Power fan 1 = 878 
+> 
+> All of the above seem reasonable and fine.
+> 
+> Below is the output from SENSORS,
+> users@dothom-user1:~> sensors
+> (...)
+> nct6775-isa-0290
+
+The NCT6775 supports only 4 fans, so either there is some multiplexing
+in place (which we don't support) or you have a second hardware
+monitoring chip on your system.
+
+Can you please send the full output sensors-detect from lm-sensors
+3.3.2?
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
