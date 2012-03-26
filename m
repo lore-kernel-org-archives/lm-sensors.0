@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 26 Mar 2012 19:44:54 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 26 Mar 2012 20:14:16 +0000
 Subject: Re: [lm-sensors] Not detecting all fan RPMs
-Message-Id: <20120326214454.238a04f7@endymion.delvare>
+Message-Id: <1332792856.21301.73.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1332789633.10230.9.camel@dfghom-gjhollo2.site>
 In-Reply-To: <1332789633.10230.9.camel@dfghom-gjhollo2.site>
@@ -10,50 +10,68 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Glenn,
-
-On Mon, 26 Mar 2012 11:20:33 -0800, Glenn Hollowell wrote:
-> I have an ASRock 880G Extreme motherboard running openSuse linux 12.1. I
-> have been having difficulty seeing all of my chassis and power fan rpms
-> using SENSORS. I have just upgraded to v3.3.2 with no luck.
-> 
-> The mother board has (5) fan plugins. Three of these are for chassis
-> fans, and the other two are labelled "CPU fan" and "PWR fan". The CPU
-> fan and one of the chassis fan (#1) mobo plugins are 4-prong, the others
-> are 3-prong plugs. The pigtails from the 2 chassis fans are 3-prong, as
-> is the power supply plugin. The CPU fan pigtail is a 4-prong.
-> 
-> Currently, I've got chassis fans plugged into CHA_FAN1 and CHA_FAN2, and
-> I've got the power supply fan plugged into PWR_FAN1. The CPU fan is
-> plugged into CPU_FAN1. There is an additional CHA_FAN3 plug on the
-> motherboard.
-> 
-> In bios I get the following readings,
-> 
-> CPU fan 1 = 3750
-> Chasis fan 1 = 1268 
-> Chasis fan 2 = 1278 
-> Chasis fan 3 = NA
-> Power fan 1 = 878 
-> 
-> All of the above seem reasonable and fine.
-> 
-> Below is the output from SENSORS,
-> users@dothom-user1:~> sensors
-> (...)
-> nct6775-isa-0290
-
-The NCT6775 supports only 4 fans, so either there is some multiplexing
-in place (which we don't support) or you have a second hardware
-monitoring chip on your system.
-
-Can you please send the full output sensors-detect from lm-sensors
-3.3.2?
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAyMDEyLTAzLTI2IGF0IDE1OjIwIC0wNDAwLCBHbGVubiBIb2xsb3dlbGwgd3JvdGU6
+Cj4gSGV5IGFsbC0KPiAKPiBJIGhhdmUgYW4gQVNSb2NrIDg4MEcgRXh0cmVtZSBtb3RoZXJib2Fy
+ZCBydW5uaW5nIG9wZW5TdXNlIGxpbnV4IDEyLjEuIEkKPiBoYXZlIGJlZW4gaGF2aW5nIGRpZmZp
+Y3VsdHkgc2VlaW5nIGFsbCBvZiBteSBjaGFzc2lzIGFuZCBwb3dlciBmYW4gcnBtcwo+IHVzaW5n
+IFNFTlNPUlMuIEkgaGF2ZSBqdXN0IHVwZ3JhZGVkIHRvIHYzLjMuMiB3aXRoIG5vIGx1Y2suCj4g
+Cj4gVGhlIG1vdGhlciBib2FyZCBoYXMgKDUpIGZhbiBwbHVnaW5zLiBUaHJlZSBvZiB0aGVzZSBh
+cmUgZm9yIGNoYXNzaXMKPiBmYW5zLCBhbmQgdGhlIG90aGVyIHR3byBhcmUgbGFiZWxsZWQgIkNQ
+VSBmYW4iIGFuZCAiUFdSIGZhbiIuIFRoZSBDUFUKPiBmYW4gYW5kIG9uZSBvZiB0aGUgY2hhc3Np
+cyBmYW4gKCMxKSBtb2JvIHBsdWdpbnMgYXJlIDQtcHJvbmcsIHRoZSBvdGhlcnMKPiBhcmUgMy1w
+cm9uZyBwbHVncy4gVGhlIHBpZ3RhaWxzIGZyb20gdGhlIDIgY2hhc3NpcyBmYW5zIGFyZSAzLXBy
+b25nLCBhcwo+IGlzIHRoZSBwb3dlciBzdXBwbHkgcGx1Z2luLiBUaGUgQ1BVIGZhbiBwaWd0YWls
+IGlzIGEgNC1wcm9uZy4KPiAKPiBDdXJyZW50bHksIEkndmUgZ290IGNoYXNzaXMgZmFucyBwbHVn
+Z2VkIGludG8gQ0hBX0ZBTjEgYW5kIENIQV9GQU4yLCBhbmQKPiBJJ3ZlIGdvdCB0aGUgcG93ZXIg
+c3VwcGx5IGZhbiBwbHVnZ2VkIGludG8gUFdSX0ZBTjEuIFRoZSBDUFUgZmFuIGlzCj4gcGx1Z2dl
+ZCBpbnRvIENQVV9GQU4xLiBUaGVyZSBpcyBhbiBhZGRpdGlvbmFsIENIQV9GQU4zIHBsdWcgb24g
+dGhlCj4gbW90aGVyYm9hcmQuCj4gCj4gSW4gYmlvcyBJIGdldCB0aGUgZm9sbG93aW5nIHJlYWRp
+bmdzLAo+IAo+IENQVSBmYW4gMSA9IDM3NTAKPiBDaGFzaXMgZmFuIDEgPSAxMjY4IAo+IENoYXNp
+cyBmYW4gMiA9IDEyNzggCj4gQ2hhc2lzIGZhbiAzID0gTkEKPiBQb3dlciBmYW4gMSA9IDg3OCAK
+PiAKPiBBbGwgb2YgdGhlIGFib3ZlIHNlZW0gcmVhc29uYWJsZSBhbmQgZmluZS4KPiAKPiBCZWxv
+dyBpcyB0aGUgb3V0cHV0IGZyb20gU0VOU09SUywKPiB1c2Vyc0Bkb3Rob20tdXNlcjE6fj4gc2Vu
+c29ycwo+IG5vdXZlYXUtcGNpLTA0MDAKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IHRlbXAxOiAg
+ICAgICAgKzU2LjDCsEMgIChoaWdoID0gKzEwMC4wwrBDLCBjcml0ID0gKzEyMC4wwrBDKQo+IGsx
+MHRlbXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRhcHRlcgo+IHRlbXAxOiAgICAgICAgICsw
+LjDCsEMgIChoaWdoID0gKzcwLjDCsEMpCj4gbmN0Njc3NS1pc2EtMDI5MAo+IEFkYXB0ZXI6IElT
+QSBhZGFwdGVyCj4gVmNvcmU6ICAgICAgICArMS4yMSBWICAobWluID0gICswLjAwIFYsIG1heCA9
+ICArMS43NCBWKQo+IGluMTogICAgICAgICAgKzEuODYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXgg
+PSAgKzAuMDAgVikgIEFMQVJNCj4gQVZDQzogICAgICAgICArMy4yOCBWICAobWluID0gICsyLjk4
+IFYsIG1heCA9ICArMy42MyBWKQo+ICszLjNWOiAgICAgICAgKzMuMjggViAgKG1pbiA9ICArMi45
+OCBWLCBtYXggPSAgKzMuNjMgVikKPiBpbjQ6ICAgICAgICAgICswLjE0IFYgIChtaW4gPSAgKzAu
+MDAgViwgbWF4ID0gICswLjAwIFYpICBBTEFSTQo+IGluNTogICAgICAgICAgKzEuNjggViAgKG1p
+biA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW42OiAgICAgICAgICArMC4x
+NCBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0KPiAzVlNCOiAgICAg
+ICAgICszLjQ3IFYgIChtaW4gPSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCj4gVmJhdDogICAg
+ICAgICArMy4zOCBWICAobWluID0gICsyLjcwIFYsIG1heCA9ICArMy4zMCBWKSAgQUxBUk0KPiBm
+YW4xOiAgICAgICAgMTI4OCBSUE0gIChtaW4gPSAgICAwIFJQTSwgZGl2ID0gOCkgIEFMQVJNCj4g
+ZmFuMjogICAgICAgIDQyMTggUlBNICAobWluID0gICAgMCBSUE0sIGRpdiA9IDgpICBBTEFSTQo+
+IGZhbjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBkaXYgPSAxMjgpCj4gU1lT
+VElOOiAgICAgICArMjguMMKwQyAgKGhpZ2ggPSAgKzAuMMKwQywgaHlzdCA9ICArMC4wwrBDKSAg
+QUxBUk0gIHNlbnNvciA9Cj4gdGhlcm1pc3Rvcgo+IENQVVRJTjogICAgICAgKzM2LjDCsEMgICho
+aWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9Cj4gdGhlcm1pc3Rvcgo+
+IEFVWFRJTjogICAgICArMTEwLjDCsEMgIChoaWdoID0gKzExNC4wwrBDLCBoeXN0ID0gKzExNC4w
+wrBDKSAgc2Vuc29yID0KPiB0aGVybWlzdG9yCj4gY3B1MF92aWQ6ICAgICswLjQ1MCBWCj4gCj4g
+VXNpbmcgdGhlIGJpb3MgdmFsdWVzIGFzIGEgcmVmZXJlbmNlLCBpdCBhcHBlYXJzIHRoYXQgb25s
+eSBvbmUgb2YgdGhlCj4gY2hhc3NpcyBmYW5zIGFuZCB0aGUgQ1BVIGZhbiBpcyBkaXNwbGF5ZWQg
+YnkgU0VOU09SUy4gQWxzbyBtb3Zpbmcgb25lIG9mCj4gdGhlIGNoYXNzaXMgZmFuIHBsdWdzIGlu
+dG8gdGhlIG9wZW4gQ0hBX0ZBTjMgcGx1ZyBkb2VzIG5vdCBjaGFuZ2UgdGhlIDAKPiBSUE0gdmFs
+dWUgc2hvd24gYnkgU0VOU09SUy4gQW5kLCB3aXRoIGJvdGggY2hhc3NpcyBmYW5zIHVucGx1Z2dl
+ZCwKPiAoQ0hBX0ZBTjEsIENIQV9GQU4yLCBhbmQgQ0hBX0ZBTjMgYWxsIG9wZW4pIFNFTlNPUlMg
+Y29udGludWVzIHRvIHNob3cKPiB+NDIwMCBycG0gZm9yIGZhbjIuCj4gCgpUaGUgTkNUNjc3NUYg
+b25seSBoYXMgZm91ciBmYW4gc2Vuc29ycywgYW5kIHRoZSBsYXN0IG9uZSBpcyBtdWx0aXBsZXhl
+ZAp3aXRoIHRoZSBGREQgaW50ZXJmYWNlICh3aGljaCB3b3VsZCBleHBsYWluIHdoeSB5b3Ugb25s
+eSBzZWUgdGhyZWUKZmFucykuIEVzc2VudGlhbGx5LCB0aGlzIG1lYW5zIHRoYXQgdGhlIGJvYXJk
+IG11c3QgaGF2ZSBhbm90aGVyIG1lYW5zIHRvCm1vbml0b3IgYW5kL29yIGNvbnRyb2wgdGhlIG90
+aGVyIGZhbnMuCgpPbmUgcXVlc3Rpb24gaXMgaWYgdGhlIENIQV9GQU4zIHNwZWVkIGlzIHNob3du
+IGluIHRoZSBCSU9TIGlmIHlvdQpjb25uZWN0IGEgZmFuIHRvIGl0LiBJZiBzbywgSSBzdXNwZWN0
+IHRoYXQgQ0hBX0ZBTjIsIENIQV9GQU4zIGFuZCB0aGUKcG93ZXIgZmFuIGFyZSBjb250cm9sbGVk
+IGJ5IHRoZSBzZWNvbmQgY2hpcCAob3IgbWF5YmUgQ0hBX0ZBTlsxLTNdLApzaW5jZSB0aG9zZSBj
+YW4gb25seSBiZSBjb25maWd1cmVkIGluIHRoZSBCSU9TIGZvciBlaXRoZXIgbWFudWFsIG1vZGUg
+b3IKImZ1bGwgb24iKS4KCkkgZG9uJ3QgZmluZCBhbnkgaW5mb3JtYXRpb24gb24gdGhlIHdlYiBz
+dWdnZXN0aW5nIGhvdyB0aGUgdGhyZWUKIm1pc3NpbmciIGZhbnMgYXJlIGNvbnRyb2xsZWQuIFdp
+dGhvdXQgdGhhdCBpbmZvcm1hdGlvbiwgSSBkb24ndCB0aGluawp0aGVyZSBpcyBhbnl0aGluZyB3
+ZSBjYW4gZG8uCgpHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
+cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
+c29ycw=
