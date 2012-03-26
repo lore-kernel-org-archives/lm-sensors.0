@@ -1,74 +1,76 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 07 Mar 2012 12:20:38 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (zl6100) Maintain delay parameter in driver instance data
-Message-Id: <20120307132038.4b754330@endymion.delvare>
+From: Glenn Hollowell <temp1@blepsias.net>
+Date: Mon, 26 Mar 2012 19:20:33 +0000
+Subject: [lm-sensors] Not detecting all fan RPMs
+Message-Id: <1332789633.10230.9.camel@dfghom-gjhollo2.site>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1331122268-14318-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1331122268-14318-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed,  7 Mar 2012 04:11:08 -0800, Guenter Roeck wrote:
-> A global delay parameter has the side effect of being overwritten with 0 if a
-> single ZL2004 or ZL6105 is instantiated. If other chips supported by the same
-> driver are in the system, this will result in access errors for those chips.
-> 
-> To solve the problem, keep a per-instance copy of the delay parameter, and do
-> not change the original parameter.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/pmbus/zl6100.c |   10 ++++++----
->  1 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/hwmon/pmbus/zl6100.c b/drivers/hwmon/pmbus/zl6100.c
-> index 48c7b4a..880b90c 100644
-> --- a/drivers/hwmon/pmbus/zl6100.c
-> +++ b/drivers/hwmon/pmbus/zl6100.c
-> @@ -33,6 +33,7 @@ enum chips { zl2004, zl2005, zl2006, zl2008, zl2105, zl2106, zl6100, zl6105 };
->  struct zl6100_data {
->  	int id;
->  	ktime_t access;		/* chip access time */
-> +	int delay;		/* Delay between chip accesses in uS */
->  	struct pmbus_driver_info info;
->  };
->  
-> @@ -52,10 +53,10 @@ MODULE_PARM_DESC(delay, "Delay between chip accesses in uS");
->  /* Some chips need a delay between accesses */
->  static inline void zl6100_wait(const struct zl6100_data *data)
->  {
-> -	if (delay) {
-> +	if (data->delay) {
->  		s64 delta = ktime_us_delta(ktime_get(), data->access);
-> -		if (delta < delay)
-> -			udelay(delay - delta);
-> +		if (delta < data->delay)
-> +			udelay(data->delay - delta);
->  	}
->  }
->  
-> @@ -207,8 +208,9 @@ static int zl6100_probe(struct i2c_client *client,
->  	 * can be cleared later for additional chips if tests show that it
->  	 * is not needed (in other words, better be safe than sorry).
->  	 */
-> +	data->delay = delay;
->  	if (data->id = zl2004 || data->id = zl6105)
-> -		delay = 0;
-> +		data->delay = 0;
->  
->  	/*
->  	 * Since there was a direct I2C device access above, wait before
-
-I agree this is a better approach.
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGV5IGFsbC0KCkkgaGF2ZSBhbiBBU1JvY2sgODgwRyBFeHRyZW1lIG1vdGhlcmJvYXJkIHJ1bm5p
+bmcgb3BlblN1c2UgbGludXggMTIuMS4gSQpoYXZlIGJlZW4gaGF2aW5nIGRpZmZpY3VsdHkgc2Vl
+aW5nIGFsbCBvZiBteSBjaGFzc2lzIGFuZCBwb3dlciBmYW4gcnBtcwp1c2luZyBTRU5TT1JTLiBJ
+IGhhdmUganVzdCB1cGdyYWRlZCB0byB2My4zLjIgd2l0aCBubyBsdWNrLgoKVGhlIG1vdGhlciBi
+b2FyZCBoYXMgKDUpIGZhbiBwbHVnaW5zLiBUaHJlZSBvZiB0aGVzZSBhcmUgZm9yIGNoYXNzaXMK
+ZmFucywgYW5kIHRoZSBvdGhlciB0d28gYXJlIGxhYmVsbGVkICJDUFUgZmFuIiBhbmQgIlBXUiBm
+YW4iLiBUaGUgQ1BVCmZhbiBhbmQgb25lIG9mIHRoZSBjaGFzc2lzIGZhbiAoIzEpIG1vYm8gcGx1
+Z2lucyBhcmUgNC1wcm9uZywgdGhlIG90aGVycwphcmUgMy1wcm9uZyBwbHVncy4gVGhlIHBpZ3Rh
+aWxzIGZyb20gdGhlIDIgY2hhc3NpcyBmYW5zIGFyZSAzLXByb25nLCBhcwppcyB0aGUgcG93ZXIg
+c3VwcGx5IHBsdWdpbi4gVGhlIENQVSBmYW4gcGlndGFpbCBpcyBhIDQtcHJvbmcuCgpDdXJyZW50
+bHksIEkndmUgZ290IGNoYXNzaXMgZmFucyBwbHVnZ2VkIGludG8gQ0hBX0ZBTjEgYW5kIENIQV9G
+QU4yLCBhbmQKSSd2ZSBnb3QgdGhlIHBvd2VyIHN1cHBseSBmYW4gcGx1Z2dlZCBpbnRvIFBXUl9G
+QU4xLiBUaGUgQ1BVIGZhbiBpcwpwbHVnZ2VkIGludG8gQ1BVX0ZBTjEuIFRoZXJlIGlzIGFuIGFk
+ZGl0aW9uYWwgQ0hBX0ZBTjMgcGx1ZyBvbiB0aGUKbW90aGVyYm9hcmQuCgpJbiBiaW9zIEkgZ2V0
+IHRoZSBmb2xsb3dpbmcgcmVhZGluZ3MsCgpDUFUgZmFuIDEgPSAzNzUwCkNoYXNpcyBmYW4gMSA9
+IDEyNjggCkNoYXNpcyBmYW4gMiA9IDEyNzggCkNoYXNpcyBmYW4gMyA9IE5BClBvd2VyIGZhbiAx
+ID0gODc4IAoKQWxsIG9mIHRoZSBhYm92ZSBzZWVtIHJlYXNvbmFibGUgYW5kIGZpbmUuCgpCZWxv
+dyBpcyB0aGUgb3V0cHV0IGZyb20gU0VOU09SUywKdXNlcnNAZG90aG9tLXVzZXIxOn4+IHNlbnNv
+cnMKbm91dmVhdS1wY2ktMDQwMApBZGFwdGVyOiBQQ0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICs1
+Ni4wwrBDICAoaGlnaCA9ICsxMDAuMMKwQywgY3JpdCA9ICsxMjAuMMKwQykKazEwdGVtcC1wY2kt
+MDBjMwpBZGFwdGVyOiBQQ0kgYWRhcHRlcgp0ZW1wMTogICAgICAgICArMC4wwrBDICAoaGlnaCA9
+ICs3MC4wwrBDKQpuY3Q2Nzc1LWlzYS0wMjkwCkFkYXB0ZXI6IElTQSBhZGFwdGVyClZjb3JlOiAg
+ICAgICAgKzEuMjEgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEuNzQgVikKaW4xOiAgICAg
+ICAgICArMS44NiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0KQVZD
+QzogICAgICAgICArMy4yOCBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQorMy4z
+VjogICAgICAgICszLjI4IFYgIChtaW4gPSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCmluNDog
+ICAgICAgICAgKzAuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJN
+CmluNTogICAgICAgICAgKzEuNjggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikg
+IEFMQVJNCmluNjogICAgICAgICAgKzAuMTQgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAu
+MDAgVikgIEFMQVJNCjNWU0I6ICAgICAgICAgKzMuNDcgViAgKG1pbiA9ICArMi45OCBWLCBtYXgg
+PSAgKzMuNjMgVikKVmJhdDogICAgICAgICArMy4zOCBWICAobWluID0gICsyLjcwIFYsIG1heCA9
+ICArMy4zMCBWKSAgQUxBUk0KZmFuMTogICAgICAgIDEyODggUlBNICAobWluID0gICAgMCBSUE0s
+IGRpdiA9IDgpICBBTEFSTQpmYW4yOiAgICAgICAgNDIxOCBSUE0gIChtaW4gPSAgICAwIFJQTSwg
+ZGl2ID0gOCkgIEFMQVJNCmZhbjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBk
+aXYgPSAxMjgpClNZU1RJTjogICAgICAgKzI4LjDCsEMgIChoaWdoID0gICswLjDCsEMsIGh5c3Qg
+PSAgKzAuMMKwQykgIEFMQVJNICBzZW5zb3IgPQp0aGVybWlzdG9yCkNQVVRJTjogICAgICAgKzM2
+LjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9CnRoZXJt
+aXN0b3IKQVVYVElOOiAgICAgICsxMTAuMMKwQyAgKGhpZ2ggPSArMTE0LjDCsEMsIGh5c3QgPSAr
+MTE0LjDCsEMpICBzZW5zb3IgPQp0aGVybWlzdG9yCmNwdTBfdmlkOiAgICArMC40NTAgVgoKVXNp
+bmcgdGhlIGJpb3MgdmFsdWVzIGFzIGEgcmVmZXJlbmNlLCBpdCBhcHBlYXJzIHRoYXQgb25seSBv
+bmUgb2YgdGhlCmNoYXNzaXMgZmFucyBhbmQgdGhlIENQVSBmYW4gaXMgZGlzcGxheWVkIGJ5IFNF
+TlNPUlMuIEFsc28gbW92aW5nIG9uZSBvZgp0aGUgY2hhc3NpcyBmYW4gcGx1Z3MgaW50byB0aGUg
+b3BlbiBDSEFfRkFOMyBwbHVnIGRvZXMgbm90IGNoYW5nZSB0aGUgMApSUE0gdmFsdWUgc2hvd24g
+YnkgU0VOU09SUy4gQW5kLCB3aXRoIGJvdGggY2hhc3NpcyBmYW5zIHVucGx1Z2dlZCwKKENIQV9G
+QU4xLCBDSEFfRkFOMiwgYW5kIENIQV9GQU4zIGFsbCBvcGVuKSBTRU5TT1JTIGNvbnRpbnVlcyB0
+byBzaG93Cn40MjAwIHJwbSBmb3IgZmFuMi4KCkJlbG93IGlzIHRoZSAvZXRjL3N5c2NvbmZpZy9s
+bV9zZW5zb3JzIGZpbGUuCiMgR2VuZXJhdGVkIGJ5IHNlbnNvcnMtZGV0ZWN0IG9uIFN1biBNYXIg
+MjUgMjI6MzA6NTggMjAxMgojIyBQYXRoOiBIYXJkd2FyZS9TZW5zb3JzCiMjIERlc2NyaXB0aW9u
+OiAgICAgICAgIERlZmluZXMgdGhlIG1vZHVsZXMgdG8gdXNlZAojIyBUeXBlOiAgICAgICAgICAg
+ICAgICBzdHJpbmcKIyMgU2VydmljZVJlc3RhcnQ6ICAgICAgbG1fc2Vuc29ycwojIyBEZWZhdWx0
+OiAgICAgICAgICAgICAiIgojCiMgVGhpcyBmaWxlIGlzIHNvdXJjZWQgYnkgL2V0Yy9pbml0LmQv
+bG1fc2Vuc29ycyBhbmQgZGVmaW5lcyBtb2R1bGVzIHRvCiMgYmUgbG9hZGVkL3VubG9hZGVkLgoj
+CiMgVGhlIGZvcm1hdCBvZiB0aGlzIGZpbGUgaXMgYSBzaGVsbCBzY3JpcHQgdGhhdCBzaW1wbHkg
+ZGVmaW5lcwp2YXJpYWJsZXM6CiMgSFdNT05fTU9EVUxFUyBmb3IgaGFyZHdhcmUgbW9uaXRvcmlu
+ZyBkcml2ZXIgbW9kdWxlcywgYW5kIG9wdGlvbmFsbHkKIyBCVVNfTU9EVUxFUyBmb3IgYW55IHJl
+cXVpcmVkIGJ1cyBkcml2ZXIgbW9kdWxlIChmb3IgZXhhbXBsZSBmb3IgSTJDIG9yClNQSSkuCkhX
+TU9OX01PRFVMRVM9Inc4MzYyN2VoZiIKIyBGb3IgY29tcGF0aWJpbGl0eSByZWFzb25zLCBtb2R1
+bGVzIGFyZSBhbHNvIGxpc3RlZCBpbmRpdmlkdWFsbHkgYXMKdmFyaWFibGVzCiMgICAgTU9EVUxF
+XzAsIE1PRFVMRV8xLCBNT0RVTEVfMiwgZXRjLgojIFlvdSBzaG91bGQgdXNlIEJVU19NT0RVTEVT
+IGFuZCBIV01PTl9NT0RVTEVTIGluc3RlYWQgaWYgcG9zc2libGUuCk1PRFVMRV8wPXc4MzYyN2Vo
+ZgoKQW55IHN1Z2dlc3Rpb25zIGhvdyBJIGNhbiBnZXQgdGhlIHBvd2VyIHN1cHBseSBmYW4gYW5k
+IHRoZSBvdGhlciBjaGFzc2lzCmZhbiBycG1zIHRvIHNob3c/IFRoYW5rcyBpbiBhZHZhbmNlIGZv
+ciBjbGFyaXR5IGFuZCBjb2dlbnQgYWR2aWNlLgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
