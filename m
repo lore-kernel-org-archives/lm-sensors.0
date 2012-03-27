@@ -1,108 +1,213 @@
-From: "Charles Wilson - Wireless RF Systems" <charles.wilson@wirelessrfsystems.com>
-Date: Wed, 14 Mar 2012 19:53:53 +0000
-Subject: [lm-sensors] Controllers and wireless
-Message-Id: <20120314195353.55D747C0A01@t.buyled.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1140759656539565204=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 27 Mar 2012 16:37:50 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (it87) Make temp3 attribute conditional for IT8782F and IT8783F
+Message-Id: <1332866270-31253-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1140759656539565204==
-Content-Type: multipart/alternative; charset="UTF-8"; boundary="b1_4f60f75152b674f60f75152c77"
-Content-Transfer-Encoding: 7bit
+On IT8782F and IT8783F, temp3 is only supported if UART6 is disabled.
 
---b1_4f60f75152b674f60f75152c77
-Content-Type: text/plain; format=flowed; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |   92 +++++++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 68 insertions(+), 24 deletions(-)
 
-Hi,
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index e663638..b4b6a2c 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -218,6 +218,7 @@ static const u8 IT87_REG_FANX_MIN[]	= { 0x1b, 0x1c, 0x1d, 0x85, 0x87 };
+ 
+ #define IT87_REG_VIN_ENABLE    0x50
+ #define IT87_REG_TEMP_ENABLE   0x51
++#define IT87_REG_TEMP_EXTRA    0x55
+ #define IT87_REG_BEEP_ENABLE   0x5c
+ 
+ #define IT87_REG_CHIPID        0x58
+@@ -238,6 +239,7 @@ struct it87_sio_data {
+ 	u8 skip_vid;
+ 	u8 skip_fan;
+ 	u8 skip_pwm;
++	u8 skip_temp;
+ };
+ 
+ /*
+@@ -262,6 +264,7 @@ struct it87_data {
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[5];		/* Register values, possibly combined */
+ 	u16 fan_min[5];		/* Register values, possibly combined */
++	u8 has_temp;		/* Bitfield, temp sensors enabled */
+ 	s8 temp[3];		/* Register value */
+ 	s8 temp_high[3];	/* Register value */
+ 	s8 temp_low[3];		/* Register value */
+@@ -1438,23 +1441,37 @@ static const struct attribute_group it87_group_in[9] = {
+ 	{ .attrs = it87_attributes_in[8] },
+ };
+ 
+-static struct attribute *it87_attributes[] = {
++static struct attribute *it87_attributes_temp[3][6] = {
++{
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+-	&sensor_dev_attr_temp2_input.dev_attr.attr,
+-	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+-	&sensor_dev_attr_temp2_max.dev_attr.attr,
+-	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+-	&sensor_dev_attr_temp2_min.dev_attr.attr,
+-	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_type.dev_attr.attr,
+-	&sensor_dev_attr_temp2_type.dev_attr.attr,
+-	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
++	NULL
++} , {
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
++	NULL
++} , {
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
++	NULL
++} };
++
++static const struct attribute_group it87_group_temp[3] = {
++	{ .attrs = it87_attributes_temp[0] },
++	{ .attrs = it87_attributes_temp[1] },
++	{ .attrs = it87_attributes_temp[2] },
++};
+ 
++static struct attribute *it87_attributes[] = {
+ 	&dev_attr_alarms.attr,
+ 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
+ 	&dev_attr_name.attr,
+@@ -1477,15 +1494,10 @@ static struct attribute *it87_attributes_in_beep[] = {
+ 	NULL
+ };
+ 
+-static struct attribute *it87_attributes_beep[] = {
++static struct attribute *it87_attributes_temp_beep[] = {
+ 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group it87_group_beep = {
+-	.attrs = it87_attributes_beep,
+ };
+ 
+ static struct attribute *it87_attributes_fan16[5][3+1] = { {
+@@ -1787,6 +1799,14 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->skip_in |= (1 << 7);
+ 		}
+ 
++		/*
++		 * No temp3 if UART6 is enabled and the temp3 source is TEMPIN3.
++		 * We can not read the temp3 source here, so skip_temp is
++		 * preliminary.
++		 */
++		if (uart6)
++			sio_data->skip_temp |= (1 << 2);
++
+ 		if (reg2C & (1 << 0))
+ 			sio_data->internal |= (1 << 0);
+ 		if (reg2C & (1 << 1))
+@@ -1865,9 +1885,15 @@ static int __init it87_find(unsigned short *address,
+ 		 * On IT8782F, UART6 pins overlap with VIN5, VIN6, and VIN7.
+ 		 * While VIN7 can be routed to the internal voltage divider,
+ 		 * VIN5 and VIN6 are not available if UART6 is enabled.
++		 *
++		 * Also, temp3 is not available if UART6 is enabled and TEMPIN3
++		 * is the temperature source. Since we can not read the
++		 * temperature source here, skip_temp is preliminary.
+ 		 */
+-		if (uart6)
++		if (uart6) {
+ 			sio_data->skip_in |= (1 << 5) | (1 << 6);
++			sio_data->skip_temp |= (1 << 2);
++		}
+ 
+ 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	}
+@@ -1912,8 +1938,11 @@ static void it87_remove_files(struct device *dev)
+ 			sysfs_remove_file(&dev->kobj,
+ 					  it87_attributes_in_beep[i]);
+ 	}
+-	if (sio_data->beep_pin)
+-		sysfs_remove_group(&dev->kobj, &it87_group_beep);
++	for (i = 0; i < 3; i++) {
++		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
++		sysfs_remove_file(&dev->kobj,
++				  it87_attributes_temp_beep[i]);
++	}
+ 	for (i = 0; i < 5; i++) {
+ 		if (!(data->has_fan & (1 << i)))
+ 			continue;
+@@ -2006,6 +2035,11 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 			data->in_scaled |= (1 << 7);	/* in7 is VCCH5V */
+ 	}
+ 
++	data->has_temp = 0x07;
++	if (sio_data->skip_temp &&
++	    !(it87_read_value(data, IT87_REG_TEMP_EXTRA) & 0x80))
++		data->has_temp &= ~sio_data->skip_temp;
++
+ 	/* Initialize the IT87 chip */
+ 	it87_init_device(pdev);
+ 
+@@ -2024,16 +2058,24 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	err = sysfs_create_group(&dev->kobj, &it87_group);
+-	if (err)
+-		goto ERROR4;
+-
+-	if (sio_data->beep_pin) {
+-		err = sysfs_create_group(&dev->kobj, &it87_group_beep);
++	for (i = 0; i < 3; i++) {
++		if (!(data->has_temp & (1 << i)))
++			continue;
++		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
+ 		if (err)
+ 			goto ERROR4;
++		if (sio_data->beep_pin) {
++			err = sysfs_create_file(&dev->kobj,
++						it87_attributes_temp_beep[i]);
++			if (err)
++				goto ERROR4;
++		}
+ 	}
+ 
++	err = sysfs_create_group(&dev->kobj, &it87_group);
++	if (err)
++		goto ERROR4;
++
+ 	/* Do not create fan files for disabled fans */
+ 	fan_group = it87_get_fan_group(data);
+ 	fan_beep_need_rw = 1;
+@@ -2379,6 +2421,8 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 			}
+ 		}
+ 		for (i = 0; i < 3; i++) {
++			if (!(data->has_temp & (1 << i)))
++				continue;
+ 			data->temp[i]  				it87_read_value(data, IT87_REG_TEMP(i));
+ 			data->temp_high[i] -- 
+1.7.5.4
 
-May I please ask which microcontrollers and do you work with?
-
-Thanks,
-
-Charles Wilson
-Wireless RF Systems
-13715 Alton Pkwy.
-Irvine, CA 92618
-Web: http://www.rfdigital.com
-Email: charles.wilson@wirelessrfsystems.com
-
----------------------------------------------------------------------------=
-----
-
-This email is intended only for the use of the individual or entity to whic=
-h it is addressed and may contain information that is privileged and propri=
-etary. If you are not the intended recipient, any dissemination, distributi=
-on or reproduction of this communication is prohibited. We request that you=
- notify the recipient by email of any errors or alternatively opt-out at ht=
-tp://www.rfdigital.com/optout.htm to terminate further communication.  We h=
-ave taken reasonable precautions to prevent against transmitting any improp=
-erly addressed messages.  All trademarks and trade names belong to their re=
-spective owners.  We thank you for your cooperation.
-
-
---b1_4f60f75152b674f60f75152c77
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-</head>
-<body>
-<p>
-Hi,
-</p>
-
-<p>
-May I please ask which microcontrollers do you work with?<br>
-</p>
-
-<p>
-Thanks,
-</p>
-
-<p>
-Charles Wilson<br>
-Wireless RF Systems.<br>
-13715 Alton Pkwy.<br>
-Irvine, CA 92618<br>
-Web: <a href=3D"http://www.rfdigital.com">http://www.rfdigital.com</a><br>
-Email: <a href=3D"mailto:charles.wilson@wirelessrfsystems.com">charles.wils=
-on@wirelessrfsystems.com</a><br>
-</p>
-
-<p>
----------------------------------------------------------------------------=
-----
-</p>
-
-<p>
-This email is intended only for the use of the individual or entity to whic=
-h it is addressed and may contain information that is privileged and propri=
-etary. If you are not the intended recipient, any dissemination, distributi=
-on or reproduction of this communication is prohibited. We request that you=
- notify the recipient by email of any errors or alternatively <a href=3D"ht=
-tp://www.rfdigital.com/optout.htm">opt-out</a> to terminate further communi=
-cation.  We have taken reasonable precautions to prevent against transmitti=
-ng any improperly addressed messages.  All trademarks and trade names belon=
-g to their respective owners.  We thank you for your cooperation.
-</p>
-</body>
-
---b1_4f60f75152b674f60f75152c77--
-
-
-
---===============1140759656539565204==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1140759656539565204==--
-
