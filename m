@@ -1,49 +1,72 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 26 Mar 2012 19:05:33 +0000
+From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
+Date: Tue, 27 Mar 2012 19:12:56 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Add support for  IT8781F, IT8782F, IT8783E/F
-Message-Id: <1332788733.21301.58.camel@groeck-laptop>
+Message-Id: <9A52E6F1-F011-461D-BCCE-8EECF8AAB018@extracloud.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <6.2.5.6.2.20120324091434.02773d68@roeck-us.net>
 In-Reply-To: <6.2.5.6.2.20120324091434.02773d68@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gTW9uLCAyMDEyLTAzLTI2IGF0IDEyOjA4IC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
-PiBIaSBHdWVudGVyLAo+IAo+IEFtIDI0LjAzLjIwMTIgdW0gMTk6MDcgc2NocmllYiBHdWVudGVy
-IFJvZWNrOgo+ID4gT24gU2F0LCBNYXIgMjQsIDIwMTIgYXQgMTI6MjM6MTNQTSAtMDQwMCwgR3Vl
-bnRlciBSb2VjayB3cm90ZToKPiA+PiBIaSBCam9lcm4sCj4gPj4gCj4gPj4gQXQgMDE6MTEgQU0g
-My8yNC8yMDEyLCBCasO2cm4gR2VyaGFydCB3cm90ZToKPiA+PiBbIC4uLiBdCj4gPj4gCj4gPj4+
-ICAgIGxhYmVsIHRlbXAzICJDUFUgVC4iCj4gPj4+ICAgIGNvbXB1dGUgdGVtcDMgMTAwK0AsLTEq
-KDEwMC1AKQo+ID4+IAo+ID4+IElzIGl0IHBvc3NpYmxlIHRoYXQgdGhpcyBpcyBkdWUgdG8gYSBi
-YWQgc2Vuc29yIHR5cGUgY29uZmlndXJhdGlvbiA/Cj4gPj4gCj4gPj4gVGhlcm1hbCBkaW9kZXMg
-aGF2ZSBhICJjdXJyZW50IG1vZGUiIGFuZCBhIAo+ID4+ICJ2b2x0YWdlIG1vZGUiLCBhbmQgaWYg
-bWlzY29uZmlndXJlZCAob3IgCj4gPj4gbWlzd2lyZWQpIHRoZSByZXBvcnRlZCB0ZW1wZXJhdHVy
-ZSBkaWZmZXJlbmNlIGlzIAo+ID4+IGp1c3QgYWJvdXQgaW4gdGhhdCByYW5nZS4gRGlmZmVyZW5j
-ZSBpbiB3aXJpbmcsIAo+ID4+IGlmIEkgdW5kZXJzdGFuZCBpdCBjb3JyZWN0bHksIGlzIHRoYXQg
-dGhlICsgcGluIAo+ID4+IGlzIHB1bGxlZCBoaWdoIHdpdGggYSByZXNpc3RvciBpbiB2b2x0YWdl
-IG1vZGUsIAo+ID4+IHdoaWNoIGlzIG5vdCB0aGUgY2FzZSBpbiBjdXJyZW50IG1vZGUuCj4gPj4g
-Cj4gQXMgSSBoYXZlIGxlYXJuZWQgdGhpcyBtb3JuaW5nIGZyb20gb3VyIGhhcmR3YXJlIGRldmVs
-b3BlcnMsIG5laXRoZXIgImN1cnJlbnQiIG5vciAidm9sdGFnZSIgbW9kZSBpcyB1c2VkIHdpdGgg
-dGVtcDMsIGJ1dCBkaWdpdGFsICJQRUNJIiBtb2RlLiBJbiB0aGlzIGNhc2UsIHRlbXAzJ3MgdmFs
-dWUgZGVzY3JpYmVzIHRoZSBfZGlmZmVyZW5jZV8gYmV0d2VlbiB0aGUgYWN0dWFsIHRlbXBlcmF0
-dXJlIGFuZCB0aGUgQ1BVJ3MgbWF4aW11bSB0ZW1wZXJhdHVyZSAod2hlcmUgdGhlIENQVSB3aWxs
-IGJlZ2luIHRvIHRocm90dGxlKS4KPiBTbyBhY3R1YWxseSwgSSB0aGluayB0aGUgc3RhdGljIHNl
-bnNvcnMuY29uZiBpcyB0aGUgd3JvbmcgcGxhY2UgdG8gc3BlY2lmeSB0aGlzIHZhbHVlLCBiZWNh
-dXNlIGRpZmZlcmVudCBDUFUgbW9kZWxzIGhhdmUgZGlmZmVyZW50IG1heGltdW0gdGVtcGVyYXR1
-cmVzLiBUaGVyZWZvcmUsIGRlYWxpbmcgd2l0aCAxMDAgaW4gb3VyIG93biBzZW5zb3JzLmNvbmYg
-KGFzIGltcGxlbWVudGVkIGJ5IG5vdykgaXMganVzdCBhIHZlcnkgcm91Z2ggaW5leGFjdCB2YWx1
-ZS4KPiAKPiBBZmFpaywgb25seSB0ZW1wM0BJVDg3ODMgY2FuIGJlIHVzZWQgaW4gUEVDSSBtb2Rl
-LCBhbmQgaW4gZ2VuZXJhbCBvdGhlciBJVEUgc2Vuc29yIGNoaXAgbW9kZWxzIGNhbiBiZSBkcml2
-ZW4gaW4gUEVDSSBtb2RlIGFsc28uCj4gCj4gU28sIGhvdyBjb3VsZCB0aGUgUEVDSSBtb2RlIGJl
-IGhhbmRsZWQgb24gdGhlIGRyaXZlciBzaWRlPwo+IERldGVjdGluZyBpZiBpdDg3ODMgaXMgaW4g
-UEVDSSBtb2RlOgo+IC0gSW5kZXggcmVnaXN0ZXIgMHgyQywgYml0IDY6IHNldCB0byAxIChFbmFi
-bGUgUEVDSSkKPiAtIHRlbXAzIHZhbHVlIGlzIG5lZ2F0aXZlIHVudGlsIENQVSBpcyBub3QgdGhy
-b3R0bGluZwo+IApQb3NzaWJseSBhbHNvIHJlZ2lzdGVyIDB4NTUgKEFEQyBUZW1wZXJhdHVyZSBF
-eHRyYSBDaGFubmVsIEVuYWJsZQpSZWdpc3RlciksIGJpdCA3LgoKQ2FuIHlvdSBjaGVjayB3aXRo
-IHlvdXIgSFcgZm9sa3MgPwoKVGhhbmtzLApHdWVudGVyCgo+IFdoZXJlIHRvIGdldCBjdXJyZW50
-IENQVSdzIG1heGltdW0gdGVtcGVyYXR1cmUgZnJvbToKPiAtIE1TUiAweDFBMiwgYml0MjMuLi5i
-aXQgMTYKPiAKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
-Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+HI Guenter,
+
+Am 26.03.2012 um 21:05 schrieb Guenter Roeck:
+> On Mon, 2012-03-26 at 12:08 -0400, Bj=F6rn Gerhart wrote:
+>> Hi Guenter,
+>>=20
+>> Am 24.03.2012 um 19:07 schrieb Guenter Roeck:
+>>> On Sat, Mar 24, 2012 at 12:23:13PM -0400, Guenter Roeck wrote:
+>>>> Hi Bjoern,
+>>>>=20
+>>>> At 01:11 AM 3/24/2012, Bj=F6rn Gerhart wrote:
+>>>> [ ... ]
+>>>>=20
+>>>>>   label temp3 "CPU T."
+>>>>>   compute temp3 100+@,-1*(100-@)
+>>>>=20
+>>>> Is it possible that this is due to a bad sensor type configuration ?
+>>>>=20
+>>>> Thermal diodes have a "current mode" and a=20
+>>>> "voltage mode", and if misconfigured (or=20
+>>>> miswired) the reported temperature difference is=20
+>>>> just about in that range. Difference in wiring,=20
+>>>> if I understand it correctly, is that the + pin=20
+>>>> is pulled high with a resistor in voltage mode,=20
+>>>> which is not the case in current mode.
+>>>>=20
+>> As I have learned this morning from our hardware developers, neither "cu=
+rrent" nor "voltage" mode is used with temp3, but digital "PECI" mode. In t=
+his case, temp3's value describes the _difference_ between the actual tempe=
+rature and the CPU's maximum temperature (where the CPU will begin to throt=
+tle).
+>> So actually, I think the static sensors.conf is the wrong place to speci=
+fy this value, because different CPU models have different maximum temperat=
+ures. Therefore, dealing with 100 in our own sensors.conf (as implemented b=
+y now) is just a very rough inexact value.
+>>=20
+>> Afaik, only temp3@IT8783 can be used in PECI mode, and in general other =
+ITE sensor chip models can be driven in PECI mode also.
+>>=20
+>> So, how could the PECI mode be handled on the driver side?
+>> Detecting if it8783 is in PECI mode:
+>> - Index register 0x2C, bit 6: set to 1 (Enable PECI)
+>> - temp3 value is negative until CPU is not throttling
+>>=20
+> Possibly also register 0x55 (ADC Temperature Extra Channel Enable
+> Register), bit 7.
+>=20
+> Can you check with your HW folks ?
+>=20
+Your're right, checked that point with my HW colleagues this morning. They =
+say when bit7 is 1 (as it is in our design), then the chip is in PECI resp.=
+ SST mode for getting digital temperatures @temp3.
+
+Bj=F6rn
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
