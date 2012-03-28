@@ -1,43 +1,82 @@
-From: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Date: Fri, 02 Mar 2012 14:40:36 +0000
-Subject: [lm-sensors] [PATCH 00/03] DA9052 patch series
-Message-Id: <1330698516.21817.29.camel@dhruva>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 28 Mar 2012 16:38:25 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (smsc47b397) Fix compiler warning
+Message-Id: <1332952708-4110-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Dajun <dajun.chen@diasemi.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-watchdog@vger.kernel.org, lm-sensors@lm-sensors.org, sameo@linux.intel.com
+To: lm-sensors@vger.kernel.org
 
-77u/VGhlIGZvbGxvd2luZyBwYXRjaCBzZXJpZXMgYWRkcyBzdXBwb3J0IGZvciB0aGUgQURDIGZ1
-bmN0aW9uYWxpdHkgaW4gTUZEIGNvcmUKbW9kdWxlLCB0aGUgSFdNT04gbW9kdWxlIGFuZCB0aGUg
-T05LRVkgbW9kdWxlIGZvciBEaWFsb2cgU2VtaWNvbmR1Y3RvcgpEQTkwNTIvNTMgUE1JQ3MuCgpU
-aGUgSFdNT04gcGF0Y2ggZGVwZW5kcyBvbiB0aGUgcGF0Y2ggZm9yIEFEQyBmdW5jdGlvbmFsaXR5
-IGluIE1GRCBtb2R1bGUuCgpBc2hpc2ggSmFuZ2FtICgyKToKCVtNRkRdOiBJbmNyZW1lbnRhbCB3
-aXRoIEFEQyBzdXBwb3J0LiBIV01PTiBwYXRjaCBhbHNvIGRlcGVuZHMgb24gdGhpcy4KCVtIV01P
-Tl06IEhXTU9OIGRyaXZlciBmb3IgREE5MDUyLzUzIFBNSUNzLgoJW09OS0VZXTogT05LRVkgZHJp
-dmVyIGZvciBEQTkwNTIvNTMgUE1JQ3MuCgogRG9jdW1lbnRhdGlvbi9od21vbi9kYTkwNTIgICAg
-ICAgIHwgICA2MSArKysrKysrCiBkcml2ZXJzL2h3bW9uL0tjb25maWcgICAgICAgICAgICAgfCAg
-IDEwICsKIGRyaXZlcnMvaHdtb24vTWFrZWZpbGUgICAgICAgICAgICB8ICAgIDEgKwogZHJpdmVy
-cy9od21vbi9kYTkwNTItaHdtb24uYyAgICAgIHwgIDM0NCArKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrCiBkcml2ZXJzL2lucHV0L21pc2MvS2NvbmZpZyAgICAgICAgfCAgIDEw
-ICsKIGRyaXZlcnMvaW5wdXQvbWlzYy9NYWtlZmlsZSAgICAgICB8ICAgIDEgKwogZHJpdmVycy9p
-bnB1dC9taXNjL2RhOTA1Ml9vbmtleS5jIHwgIDE3NCArKysrKysrKysrKysrKysrKysrCiBkcml2
-ZXJzL21mZC9kYTkwNTItY29yZS5jICAgICAgICAgfCAgMTM2ICsrKysrKysrKysrKysrKwogaW5j
-bHVkZS9saW51eC9tZmQvZGE5MDUyL2RhOTA1Mi5oIHwgICAyMCArKwogOSBmaWxlcyBjaGFuZ2Vk
-LCA3NTcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKIGNyZWF0ZSBtb2RlIDEwMDY0NCBE
-b2N1bWVudGF0aW9uL2h3bW9uL2RhOTA1MgogY3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvaHdt
-b24vZGE5MDUyLWh3bW9uLmMKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2lucHV0L21pc2Mv
-ZGE5MDUyX29ua2V5LmMKCgoKCgpUaGlzIG1lc3NhZ2UgY29udGFpbnMgaW5mb3JtYXRpb24gdGhh
-dCBtYXkgYmUgcHJpdmlsZWdlZCBvciBjb25maWRlbnRpYWwgYW5kIGlzIHRoZSBwcm9wZXJ0eSBv
-ZiB0aGUgS1BJVCBDdW1taW5zIEluZm9zeXN0ZW1zIEx0ZC4gSXQgaXMgaW50ZW5kZWQgb25seSBm
-b3IgdGhlIHBlcnNvbiB0byB3aG9tIGl0IGlzIGFkZHJlc3NlZC4gSWYgeW91IGFyZSBub3QgdGhl
-IGludGVuZGVkIHJlY2lwaWVudCwgeW91IGFyZSBub3QgYXV0aG9yaXplZCB0byByZWFkLCBwcmlu
-dCwgcmV0YWluIGNvcHksIGRpc3NlbWluYXRlLCBkaXN0cmlidXRlLCBvciB1c2UgdGhpcyBtZXNz
-YWdlIG9yIGFueSBwYXJ0IHRoZXJlb2YuIElmIHlvdSByZWNlaXZlIHRoaXMgbWVzc2FnZSBpbiBl
-cnJvciwgcGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGFuZCBkZWxldGUgYWxs
-IGNvcGllcyBvZiB0aGlzIG1lc3NhZ2UuIEtQSVQgQ3VtbWlucyBJbmZvc3lzdGVtcyBMdGQuIGRv
-ZXMgbm90IGFjY2VwdCBhbnkgbGlhYmlsaXR5IGZvciB2aXJ1cyBpbmZlY3RlZCBtYWlscy4KCgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
-cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
-c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Some configurations produce the following compiler warning:
+
+drivers/hwmon/smsc47b397.c: In function 'smsc47b397_init':
+drivers/hwmon/smsc47b397.c:385: warning: 'address' may be used uninitialized in this function
+
+While this is a false positive, it can easily be fixed by overloading the return
+value from smsc47b397_find with both address and error return code (the address
+is an unsigned short and thus never negative). This also reduces module size by
+a few bytes (64 bytes for x86_64).
+
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/smsc47b397.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
+index d3b778d..c5f6be4 100644
+--- a/drivers/hwmon/smsc47b397.c
++++ b/drivers/hwmon/smsc47b397.c
+@@ -343,10 +343,11 @@ exit:
+ 	return err;
+ }
+ 
+-static int __init smsc47b397_find(unsigned short *addr)
++static int __init smsc47b397_find(void)
+ {
+ 	u8 id, rev;
+ 	char *name;
++	unsigned short addr;
+ 
+ 	superio_enter();
+ 	id = force_id ? force_id : superio_inb(SUPERIO_REG_DEVID);
+@@ -370,14 +371,14 @@ static int __init smsc47b397_find(unsigned short *addr)
+ 	rev = superio_inb(SUPERIO_REG_DEVREV);
+ 
+ 	superio_select(SUPERIO_REG_LD8);
+-	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
++	addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
+ 		 |  superio_inb(SUPERIO_REG_BASE_LSB);
+ 
+ 	pr_info("found SMSC %s (base address 0x%04x, revision %u)\n",
+-		name, *addr, rev);
++		name, addr, rev);
+ 
+ 	superio_exit();
+-	return 0;
++	return addr;
+ }
+ 
+ static int __init smsc47b397_init(void)
+@@ -385,9 +386,10 @@ static int __init smsc47b397_init(void)
+ 	unsigned short address;
+ 	int ret;
+ 
+-	ret = smsc47b397_find(&address);
+-	if (ret)
++	ret = smsc47b397_find();
++	if (ret < 0)
+ 		return ret;
++	address = ret;
+ 
+ 	ret = platform_driver_register(&smsc47b397_driver);
+ 	if (ret)
+-- 
+1.7.5.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
