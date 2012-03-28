@@ -1,30 +1,83 @@
-From: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Date: Sat, 17 Mar 2012 10:14:53 +0000
-Subject: [lm-sensors] [PATCH 00/02] DA9052 patch series
-Message-Id: <1331978573.7058.68.camel@dhruva>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 28 Mar 2012 16:38:26 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (smsc47m1) Fix compiler warning
+Message-Id: <1332952708-4110-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Dajun <dajun.chen@diasemi.com>, linux-watchdog@vger.kernel.org, lm-sensors@lm-sensors.org, sameo@linux.intel.com
+To: lm-sensors@vger.kernel.org
 
-77u/VGhlIGZvbGxvd2luZyBwYXRjaCBzZXJpZXMgYWRkcyBzdXBwb3J0IGZvciB0aGUgQURDIGZ1
-bmN0aW9uYWxpdHkgaW4KTUZEIGFuZCBIV01PTiBtb2R1bGVzIGZvciBEaWFsb2cgU2VtaWNvbmR1
-Y3RvciBEQTkwNTIvNTMgUE1JQ3MuCgpUaGUgSFdNT04gcGF0Y2ggZGVwZW5kcyBvbiB0aGUgQURD
-IHBhdGNoLgoKQXNoaXNoIEphbmdhbSAoMik6CiAgICAgICAgW01GRF06IEluY3JlbWVudGFsIHBh
-dGNoIGZvciBBREMgc3VwcG9ydCBpbiBEQTkwNTIvNTMgTUZECm1vZHVsZS4KICAgICAgICBbSFdN
-T05dOiBIV01PTiBkcml2ZXIgZm9yIERBOTA1Mi81MyBQTUlDcy4gVGhpcyBwYXRjaCBpcyBBQ0st
-YnkKR3VlbnRlciBSb2VjayBob3dldmVyIHJlcXVpcmVzIGEgbWlub3IgbW9kaWZpY2F0aW9uLgoK
-IERvY3VtZW50YXRpb24vaHdtb24vZGE5MDUyICAgICAgICB8ICAgNjEgKysrKysrKwogZHJpdmVy
-cy9od21vbi9LY29uZmlnICAgICAgICAgICAgIHwgICAxMCArCiBkcml2ZXJzL2h3bW9uL01ha2Vm
-aWxlICAgICAgICAgICAgfCAgICAxICsKIGRyaXZlcnMvaHdtb24vZGE5MDUyLWh3bW9uLmMgICAg
-ICB8ICAzNDQKKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogZHJpdmVycy9t
-ZmQvZGE5MDUyLWNvcmUuYyAgICAgICAgIHwgIDEzNiArKysrKysrKysrKysrKysKIGluY2x1ZGUv
-bGludXgvbWZkL2RhOTA1Mi9kYTkwNTIuaCB8ICAgMjAgKysKIDYgZmlsZXMgY2hhbmdlZCwgNTcy
-IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1l
-bnRhdGlvbi9od21vbi9kYTkwNTIKIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL2Rh
-OTA1Mi1od21vbi5jCiAgICAgICAgCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+Some configurations produce the following compiler warning:
+
+drivers/hwmon/smsc47m1.c: In function 'sm_smsc47m1_init':
+drivers/hwmon/smsc47m1.c:938: warning: 'address' may be used uninitialized in this function
+
+While this is a false positive, it can easily be fixed by overloading the return
+value from smsc47m1_find with both address and error return code (the address
+is an unsigned short and thus never negative). This also reduces module size by
+a few bytes (46 bytes for x86_64).
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/smsc47m1.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/hwmon/smsc47m1.c b/drivers/hwmon/smsc47m1.c
+index c590c14..87b9ab0 100644
+--- a/drivers/hwmon/smsc47m1.c
++++ b/drivers/hwmon/smsc47m1.c
+@@ -491,10 +491,10 @@ static const struct attribute_group smsc47m1_group = {
+ 	.attrs = smsc47m1_attributes,
+ };
+ 
+-static int __init smsc47m1_find(unsigned short *addr,
+-				struct smsc47m1_sio_data *sio_data)
++static int __init smsc47m1_find(struct smsc47m1_sio_data *sio_data)
+ {
+ 	u8 val;
++	unsigned short addr;
+ 
+ 	superio_enter();
+ 	val = force_id ? force_id : superio_inb(SUPERIO_REG_DEVID);
+@@ -546,9 +546,9 @@ static int __init smsc47m1_find(unsigned short *addr,
+ 	}
+ 
+ 	superio_select();
+-	*addr = (superio_inb(SUPERIO_REG_BASE) << 8)
++	addr = (superio_inb(SUPERIO_REG_BASE) << 8)
+ 	      |  superio_inb(SUPERIO_REG_BASE + 1);
+-	if (*addr = 0) {
++	if (addr = 0) {
+ 		pr_info("Device address not set, will not use\n");
+ 		superio_exit();
+ 		return -ENODEV;
+@@ -565,7 +565,7 @@ static int __init smsc47m1_find(unsigned short *addr,
+ 	}
+ 
+ 	superio_exit();
+-	return 0;
++	return addr;
+ }
+ 
+ /* Restore device to its initial state */
+@@ -938,8 +938,9 @@ static int __init sm_smsc47m1_init(void)
+ 	unsigned short address;
+ 	struct smsc47m1_sio_data sio_data;
+ 
+-	if (smsc47m1_find(&address, &sio_data))
+-		return -ENODEV;
++	address = smsc47m1_find(&sio_data);
++	if (address < 0)
++		return address;
+ 
+ 	/* Sets global pdev as a side effect */
+ 	err = smsc47m1_device_add(address, &sio_data);
+-- 
+1.7.5.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
