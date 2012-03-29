@@ -1,75 +1,63 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 27 Mar 2012 18:20:34 +0000
-Subject: Re: [lm-sensors] IT8783
-Message-Id: <1332872434.21301.103.camel@groeck-laptop>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Thu, 29 Mar 2012 21:12:23 +0000
+Subject: [lm-sensors] [PATCH 06/17] hwmon: mark const init data with __initconst instead of __initdata
+Message-Id: <1333055554-31300-6-git-send-email-u.kleine-koenig@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20120329211131.GA31250@pengutronix.de>
+In-Reply-To: <20120329211131.GA31250@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel@pengutronix.de, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-[ copying the lm-sensors mailing list ]
-
-On Tue, 2012-03-27 at 12:47 -0400, Kevin Folz wrote:
-> >> Thanks, will give that driver a try (https://github.com/groeck/it87)
-> 
-> This particular hardware unit does not allow you to modify the second fan controller unfortunately, but the RPM is detected correctly.
-> 
-> etchbase:/sys/devices/platform/it87.2608# dmesg | tail
-> [ 2970.487389] it87: Found IT8783F chip at 0xa30, revision 0
-> etchbase:/sys/devices/platform/it87.2608# cat pwm{1,2}
-> 0
-> 0
-> etchbase:/sys/devices/platform/it87.2608# cat fan*input
-> 1412
-> 6367
-> etchbase:/sys/devices/platform/it87.2608# echo 255 > pwm1
-> etchbase:/sys/devices/platform/it87.2608# echo 255 > pwm2
-> etchbase:/sys/devices/platform/it87.2608# cat pwm{1,2}
-> 254
-> 254
-> etchbase:/sys/devices/platform/it87.2608# cat fan*input
-> 3000
-> 6367
-> etchbase:/sys/devices/platform/it87.2608# cat temp*_input
-> 35000
-> 34000
-> 22000
-> etchbase:/sys/devices/platform/it87.2608# top -b -n1
-> top - 12:27:12 up 58 min,  3 users,  load average: 1.13, 0.32, 0.15
->   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+    TIME COMMAND     
-> 16203 root      20   0   144    4    0 R   97  0.0   0:51.48   0:51 burnP6      
-> 16204 root      20   0   144    4    0 R   99  0.0   0:49.61   0:49 burnP6     
-> etchbase:/sys/devices/platform/it87.2608# cat temp*_input
-> 41000
-> 37000
-> 22000
-> etchbase:/sys/devices/platform/it87.2608# cat fan2_input 
-> 1143 [[I put my finger on the fan to slow it down to almost stall]]
-> 
-Thanks a lot for testing the driver.
-
-> >Most likely because no one submitted a patch to add it. Remember, this
-> >is open source. If something is missing, you can always submit a patch
-> >to add it.
-> 
-> I really wish I could help patch it, but my company won't allow, and I have a newborn at home...
-> 
-Too bad about the company politics ... oops, I mean policy.
-
-Congratulations otherwise ... hope you can catch some sleep once in a
-while ;).
-
-> Thanks for all your help, your latest driver really saved the day!
-> 
-My pleasure.
-
-Thanks,
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+QXMgbG9uZyBhcyB0aGVyZSBpcyBubyBvdGhlciBub24tY29uc3QgdmFyaWFibGUgbWFya2VkIF9f
+aW5pdGRhdGEgaW4gdGhlCnNhbWUgY29tcGlsYXRpb24gdW5pdCBpdCBkb2Vzbid0IGh1cnQuIElm
+IHRoZXJlIHdlcmUgb25lIGhvd2V2ZXIKY29tcGlsYXRpb24gd291bGQgZmFpbCB3aXRoCgoJZXJy
+b3I6ICR2YXJpYWJsZW5hbWUgY2F1c2VzIGEgc2VjdGlvbiB0eXBlIGNvbmZsaWN0CgpiZWNhdXNl
+IGEgc2VjdGlvbiBjb250YWluaW5nIGNvbnN0IHZhcmlhYmxlcyBpcyBtYXJrZWQgcmVhZCBvbmx5
+IGFuZCBzbwpjYW5ub3QgY29udGFpbiBub24tY29uc3QgdmFyaWFibGVzLgoKU2lnbmVkLW9mZi1i
+eTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4KQ2M6
+IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPgpDYzogR3VlbnRlciBSb2VjayA8Z3Vl
+bnRlci5yb2Vja0Blcmljc3Nvbi5jb20+CkNjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCi0t
+LQogZHJpdmVycy9od21vbi93ODM2MjdlaGYuYyB8ICAgMTggKysrKysrKysrLS0tLS0tLS0tCiBk
+cml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMgIHwgICAgMiArLQogMiBmaWxlcyBjaGFuZ2VkLCAxMCBp
+bnNlcnRpb25zKCspLCAxMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9u
+L3c4MzYyN2VoZi5jIGIvZHJpdmVycy9od21vbi93ODM2MjdlaGYuYwppbmRleCBhMjUzNTBjLi41
+NDkyMmVkIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5jCisrKyBiL2RyaXZl
+cnMvaHdtb24vdzgzNjI3ZWhmLmMKQEAgLTI2MTksMTUgKzI2MTksMTUgQEAgc3RhdGljIHN0cnVj
+dCBwbGF0Zm9ybV9kcml2ZXIgdzgzNjI3ZWhmX2RyaXZlciA9IHsKIHN0YXRpYyBpbnQgX19pbml0
+IHc4MzYyN2VoZl9maW5kKGludCBzaW9hZGRyLCB1bnNpZ25lZCBzaG9ydCAqYWRkciwKIAkJCQkg
+c3RydWN0IHc4MzYyN2VoZl9zaW9fZGF0YSAqc2lvX2RhdGEpCiB7Ci0Jc3RhdGljIGNvbnN0IGNo
+YXIgX19pbml0ZGF0YSBzaW9fbmFtZV9XODM2MjdFSEZbXSA9ICJXODM2MjdFSEYiOwotCXN0YXRp
+YyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25hbWVfVzgzNjI3RUhHW10gPSAiVzgzNjI3RUhH
+IjsKLQlzdGF0aWMgY29uc3QgY2hhciBfX2luaXRkYXRhIHNpb19uYW1lX1c4MzYyN0RIR1tdID0g
+Ilc4MzYyN0RIRyI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIgX19pbml0ZGF0YSBzaW9fbmFtZV9XODM2
+MjdESEdfUFtdID0gIlc4MzYyN0RIRy1QIjsKLQlzdGF0aWMgY29uc3QgY2hhciBfX2luaXRkYXRh
+IHNpb19uYW1lX1c4MzYyN1VIR1tdID0gIlc4MzYyN1VIRyI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIg
+X19pbml0ZGF0YSBzaW9fbmFtZV9XODM2NjdIR1tdID0gIlc4MzY2N0hHIjsKLQlzdGF0aWMgY29u
+c3QgY2hhciBfX2luaXRkYXRhIHNpb19uYW1lX1c4MzY2N0hHX0JbXSA9ICJXODM2NjdIRy1CIjsK
+LQlzdGF0aWMgY29uc3QgY2hhciBfX2luaXRkYXRhIHNpb19uYW1lX05DVDY3NzVbXSA9ICJOQ1Q2
+Nzc1RiI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIgX19pbml0ZGF0YSBzaW9fbmFtZV9OQ1Q2Nzc2W10g
+PSAiTkNUNjc3NkYiOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzYyN0VIRltdIF9f
+aW5pdGNvbnN0ID0gIlc4MzYyN0VIRiI7CisJc3RhdGljIGNvbnN0IGNoYXIgc2lvX25hbWVfVzgz
+NjI3RUhHW10gX19pbml0Y29uc3QgPSAiVzgzNjI3RUhHIjsKKwlzdGF0aWMgY29uc3QgY2hhciBz
+aW9fbmFtZV9XODM2MjdESEdbXSBfX2luaXRjb25zdCA9ICJXODM2MjdESEciOworCXN0YXRpYyBj
+b25zdCBjaGFyIHNpb19uYW1lX1c4MzYyN0RIR19QW10gX19pbml0Y29uc3QgPSAiVzgzNjI3REhH
+LVAiOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzYyN1VIR1tdIF9faW5pdGNvbnN0
+ID0gIlc4MzYyN1VIRyI7CisJc3RhdGljIGNvbnN0IGNoYXIgc2lvX25hbWVfVzgzNjY3SEdbXSBf
+X2luaXRjb25zdCA9ICJXODM2NjdIRyI7CisJc3RhdGljIGNvbnN0IGNoYXIgc2lvX25hbWVfVzgz
+NjY3SEdfQltdIF9faW5pdGNvbnN0ID0gIlc4MzY2N0hHLUIiOworCXN0YXRpYyBjb25zdCBjaGFy
+IHNpb19uYW1lX05DVDY3NzVbXSBfX2luaXRjb25zdCA9ICJOQ1Q2Nzc1RiI7CisJc3RhdGljIGNv
+bnN0IGNoYXIgc2lvX25hbWVfTkNUNjc3NltdIF9faW5pdGNvbnN0ID0gIk5DVDY3NzZGIjsKIAog
+CXUxNiB2YWw7CiAJY29uc3QgY2hhciAqc2lvX25hbWU7CmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3
+bW9uL3c4MzYyN2hmLmMgYi9kcml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMKaW5kZXggNWNlNTRhMi4u
+YWFmNjdmZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi93ODM2MjdoZi5jCisrKyBiL2RyaXZl
+cnMvaHdtb24vdzgzNjI3aGYuYwpAQCAtMTIwNiw3ICsxMjA2LDcgQEAgc3RhdGljIGludCBfX2lu
+aXQgdzgzNjI3aGZfZmluZChpbnQgc2lvYWRkciwgdW5zaWduZWQgc2hvcnQgKmFkZHIsCiAJaW50
+IGVyciA9IC1FTk9ERVY7CiAJdTE2IHZhbDsKIAotCXN0YXRpYyBjb25zdCBfX2luaXRkYXRhIGNo
+YXIgKm5hbWVzW10gPSB7CisJc3RhdGljIGNvbnN0IGNoYXIgKm5hbWVzW10gX19pbml0Y29uc3Qg
+PSB7CiAJCSJXODM2MjdIRiIsCiAJCSJXODM2MjdUSEYiLAogCQkiVzgzNjk3SEYiLAotLSAKMS43
+LjkuMQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxt
+LXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xp
+c3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
