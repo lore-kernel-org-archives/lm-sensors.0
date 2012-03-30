@@ -1,91 +1,57 @@
-From: Simon Guinot <simon@sequanux.org>
-Date: Wed, 21 Mar 2012 08:59:29 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (gpio-fan) Fix Kconfig dependencies
-Message-Id: <20120321085928.GB6111@kw.sim.vm.gnt>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1464999186359139386=="
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Fri, 30 Mar 2012 20:04:55 +0000
+Subject: [lm-sensors] [PATCH v2 05/15] hwmon: mark const init data with __initconst instead of __initdata
+Message-Id: <1333137905-13809-5-git-send-email-u.kleine-koenig@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1332299195-23898-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1332299195-23898-1-git-send-email-linux@roeck-us.net>
-To: lm-sensors@vger.kernel.org
-
-
---===============1464999186359139386==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CUfgB8w4ZwR/yMy5"
-Content-Disposition: inline
-
-
---CUfgB8w4ZwR/yMy5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Mar 20, 2012 at 08:06:34PM -0700, Guenter Roeck wrote:
-> gpio-fan depends on GPIOLIB, not on GENERIC_GPIO.
->=20
-> This fixes the following build error, seen if GPIOLIB is not defined:
->=20
-> src/drivers/hwmon/gpio-fan.c: error: implicit declaration of function 'gp=
-io_direction_output': =3D> 372:3
-> src/drivers/hwmon/gpio-fan.c: error: implicit declaration of function 'gp=
-io_free': =3D> 130:2
-> src/drivers/hwmon/gpio-fan.c: error: implicit declaration of function 'gp=
-io_get_value': =3D> 79:2
-> src/drivers/hwmon/gpio-fan.c: error: implicit declaration of function 'gp=
-io_request': =3D> 98:2
-> src/drivers/hwmon/gpio-fan.c: error: implicit declaration of function 'gp=
-io_set_value': =3D> 156:3
-> src/drivers/hwmon/gpio-fan.c: error: implicit declaration of function 'gp=
-io_to_irq': =3D> 114:2
->=20
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 811e6c4..93b442d 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -425,7 +425,7 @@ config SENSORS_GL520SM
-> =20
->  config SENSORS_GPIO_FAN
->  	tristate "GPIO fan"
-> -	depends on GENERIC_GPIO
-> +	depends on GPIOLIB
->  	help
->  	  If you say yes here you get support for fans connected to GPIO lines.
-> =20
-
-Thanks.
-
-Acked-by: Simon Guinot <sguinot@lacie.com>
-
---CUfgB8w4ZwR/yMy5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAk9pmHAACgkQgtp0PDeOcDqo6gCfe1U9R6n5oHMnjBPA+x60/Aen
-faoAnjWHhuTzL4UnG3bZrQF5kqumOeSp
-=Cb76
------END PGP SIGNATURE-----
-
---CUfgB8w4ZwR/yMy5--
-
-
---===============1464999186359139386==
-Content-Type: text/plain; charset="us-ascii"
+References: <20120330200358.GV15647@pengutronix.de>
+In-Reply-To: <20120330200358.GV15647@pengutronix.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: kernel@pengutronix.de, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1464999186359139386==--
+QXMgbG9uZyBhcyB0aGVyZSBpcyBubyBvdGhlciBub24tY29uc3QgdmFyaWFibGUgbWFya2VkIF9f
+aW5pdGRhdGEgaW4gdGhlCnNhbWUgY29tcGlsYXRpb24gdW5pdCBpdCBkb2Vzbid0IGh1cnQuIElm
+IHRoZXJlIHdlcmUgb25lIGhvd2V2ZXIKY29tcGlsYXRpb24gd291bGQgZmFpbCB3aXRoCgoJZXJy
+b3I6ICR2YXJpYWJsZW5hbWUgY2F1c2VzIGEgc2VjdGlvbiB0eXBlIGNvbmZsaWN0CgpiZWNhdXNl
+IGEgc2VjdGlvbiBjb250YWluaW5nIGNvbnN0IHZhcmlhYmxlcyBpcyBtYXJrZWQgcmVhZCBvbmx5
+IGFuZCBzbwpjYW5ub3QgY29udGFpbiBub24tY29uc3QgdmFyaWFibGVzLgoKU2lnbmVkLW9mZi1i
+eTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4KQ2M6
+IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPgpDYzogR3VlbnRlciBSb2VjayA8Z3Vl
+bnRlci5yb2Vja0Blcmljc3Nvbi5jb20+CkNjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCi0t
+LQpjaGFuZ2VzIHNpbmNlIChpbXBsaWNpdCkgdjE6CiAtIGRyb3Agd3JvbmcgY2hhbmdlcyB0byBk
+cml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMKCiBkcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5jIHwgICAx
+OCArKysrKysrKystLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDkg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi93ODM2MjdlaGYuYyBiL2Ry
+aXZlcnMvaHdtb24vdzgzNjI3ZWhmLmMKaW5kZXggYTI1MzUwYy4uNTQ5MjJlZCAxMDA2NDQKLS0t
+IGEvZHJpdmVycy9od21vbi93ODM2MjdlaGYuYworKysgYi9kcml2ZXJzL2h3bW9uL3c4MzYyN2Vo
+Zi5jCkBAIC0yNjE5LDE1ICsyNjE5LDE1IEBAIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVy
+IHc4MzYyN2VoZl9kcml2ZXIgPSB7CiBzdGF0aWMgaW50IF9faW5pdCB3ODM2MjdlaGZfZmluZChp
+bnQgc2lvYWRkciwgdW5zaWduZWQgc2hvcnQgKmFkZHIsCiAJCQkJIHN0cnVjdCB3ODM2MjdlaGZf
+c2lvX2RhdGEgKnNpb19kYXRhKQogewotCXN0YXRpYyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lv
+X25hbWVfVzgzNjI3RUhGW10gPSAiVzgzNjI3RUhGIjsKLQlzdGF0aWMgY29uc3QgY2hhciBfX2lu
+aXRkYXRhIHNpb19uYW1lX1c4MzYyN0VIR1tdID0gIlc4MzYyN0VIRyI7Ci0Jc3RhdGljIGNvbnN0
+IGNoYXIgX19pbml0ZGF0YSBzaW9fbmFtZV9XODM2MjdESEdbXSA9ICJXODM2MjdESEciOwotCXN0
+YXRpYyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25hbWVfVzgzNjI3REhHX1BbXSA9ICJXODM2
+MjdESEctUCI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIgX19pbml0ZGF0YSBzaW9fbmFtZV9XODM2MjdV
+SEdbXSA9ICJXODM2MjdVSEciOwotCXN0YXRpYyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25h
+bWVfVzgzNjY3SEdbXSA9ICJXODM2NjdIRyI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIgX19pbml0ZGF0
+YSBzaW9fbmFtZV9XODM2NjdIR19CW10gPSAiVzgzNjY3SEctQiI7Ci0Jc3RhdGljIGNvbnN0IGNo
+YXIgX19pbml0ZGF0YSBzaW9fbmFtZV9OQ1Q2Nzc1W10gPSAiTkNUNjc3NUYiOwotCXN0YXRpYyBj
+b25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25hbWVfTkNUNjc3NltdID0gIk5DVDY3NzZGIjsKKwlz
+dGF0aWMgY29uc3QgY2hhciBzaW9fbmFtZV9XODM2MjdFSEZbXSBfX2luaXRjb25zdCA9ICJXODM2
+MjdFSEYiOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzYyN0VIR1tdIF9faW5pdGNv
+bnN0ID0gIlc4MzYyN0VIRyI7CisJc3RhdGljIGNvbnN0IGNoYXIgc2lvX25hbWVfVzgzNjI3REhH
+W10gX19pbml0Y29uc3QgPSAiVzgzNjI3REhHIjsKKwlzdGF0aWMgY29uc3QgY2hhciBzaW9fbmFt
+ZV9XODM2MjdESEdfUFtdIF9faW5pdGNvbnN0ID0gIlc4MzYyN0RIRy1QIjsKKwlzdGF0aWMgY29u
+c3QgY2hhciBzaW9fbmFtZV9XODM2MjdVSEdbXSBfX2luaXRjb25zdCA9ICJXODM2MjdVSEciOwor
+CXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzY2N0hHW10gX19pbml0Y29uc3QgPSAiVzgz
+NjY3SEciOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzY2N0hHX0JbXSBfX2luaXRj
+b25zdCA9ICJXODM2NjdIRy1CIjsKKwlzdGF0aWMgY29uc3QgY2hhciBzaW9fbmFtZV9OQ1Q2Nzc1
+W10gX19pbml0Y29uc3QgPSAiTkNUNjc3NUYiOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1l
+X05DVDY3NzZbXSBfX2luaXRjb25zdCA9ICJOQ1Q2Nzc2RiI7CiAKIAl1MTYgdmFsOwogCWNvbnN0
+IGNoYXIgKnNpb19uYW1lOwotLSAKMS43LjkuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
