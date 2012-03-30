@@ -1,101 +1,98 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 05 Mar 2012 17:23:13 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of ST Mircoelectronics STTS2002 and STTS3000
-Message-Id: <1330968193.23014.336.camel@groeck-laptop>
+From: Andre Przywara <andre.przywara@amd.com>
+Date: Fri, 30 Mar 2012 11:57:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: k10temp: Add support for AMD Trinity CPUs
+Message-Id: <1333108649-22338-1-git-send-email-andre.przywara@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110217195640.GA20934@ericsson.com>
-In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2012-03-05 at 12:00 -0500, Jean Delvare wrote:
-> On Mon, 5 Mar 2012 08:32:28 -0800, Guenter Roeck wrote:
-> > On Mon, 2012-03-05 at 08:29 -0500, Jean Delvare wrote:
-> > > Add detection of ST Mircoelectronics STTS2002 and STTS3000.
-> > > 
-> > > ---
-> > >  prog/detect/sensors-detect |   24 +++++++++++++++++++++++-
-> > >  1 file changed, 23 insertions(+), 1 deletion(-)
-> > > 
-> > > --- lm-sensors.orig/prog/detect/sensors-detect	2012-03-02 08:53:12.000000000 +0100
-> > > +++ lm-sensors/prog/detect/sensors-detect	2012-03-05 13:58:35.549784178 +0100
-> > > @@ -1350,6 +1350,16 @@ use vars qw(@i2c_adapter_names);
-> > >  		i2c_addrs => [0x18..0x1f],
-> > >  		i2c_detect => sub { jedec_JC42_4_detect(@_, 10); },
-> > >  	}, {
-> > > +		name => "ST STTS2002",
-> > > +		driver => "jc42",
-> > > +		i2c_addrs => [0x18..0x1f],
-> > > +		i2c_detect => sub { jedec_JC42_4_detect(@_, 11); },
-> > > +	}, {
-> > > +		name => "ST STTS3000",
-> > > +		driver => "jc42",
-> > > +		i2c_addrs => [0x18..0x1f],
-> > > +		i2c_detect => sub { jedec_JC42_4_detect(@_, 12); },
-> > > +	}, {
-> > >  		name => "NXP SE97/SE97B",
-> > >  		driver => "jc42",
-> > >  		i2c_addrs => [0x18..0x1f],
-> > > @@ -5965,7 +5975,7 @@ sub max6655_detect
-> > >  # Chip to detect: 0 = STTS424, 1 = SE97/SE97B, 2 = SE98, 3 = ADT7408,
-> > >  #                 4 = TS3000/TSE2002, 5 = MAX6604, 6 = MCP98242,
-> > >  #                 7 = MCP98243, 8 = MCP9843, 9 = CAT6095 / CAT34TS02,
-> > > -#                 10 = STTS424E
-> > > +#                 10 = STTS424E, 11 = STTS2002, 12 = STTS3000
-> > >  # Registers used:
-> > >  #   0x00: Capabilities
-> > >  #   0x01: Configuration
-> > > @@ -6022,6 +6032,12 @@ sub jedec_JC42_4_detect
-> > >  	} elsif ($chip = 10) {
-> > >  		return unless $manid = 0x10;		# STMicrolectronics
-> > >  		return unless $devid = 0x00;		# STTS424E02
-> > > +	} elsif ($chip = 11) {
-> > > +		return unless $manid = 0x10;		# STMicrolectronics
-> > > +		return unless $devid = 0x03;		# STTS2002
-> > > +	} elsif ($chip = 12) {
-> > > +		return unless $manid = 0x10;		# STMicrolectronics
-> > > +		return unless $devid = 0x02;		# STTS3000
-> > >  	}
-> > >  
-> > >  	# Now, do it all again with words. Note that we get
-> > > @@ -6067,6 +6083,12 @@ sub jedec_JC42_4_detect
-> > >  	} elsif ($chip = 10) {
-> > >  		return unless $manid = 0x4a10;		# STMicrolectronics
-> > >  		return unless ($devid & 0xfeff) = 0x0000; # STTS424E02
-> > > +	} elsif ($chip = 11) {
-> > > +		return unless $manid = 0x4a10;		# STMicrolectronics
-> > > +		return unless ($devid & 0xfeff) = 0x0003; # STTS2002
-> > > +	} elsif ($chip = 12) {
-> > > +		return unless $manid = 0x4a10;		# STMicrolectronics
-> > > +		return unless ($devid & 0xfeff) = 0x0002; # STTS3000
-> > >  	}
-> > 
-> > Hi Jean,
-> > 
-> > you are masking the chip IDs against 0xfeff. That made sense for
-> > STTS424E02, which has two variants. Any special reason for doing it for
-> > STTS2002 and STTS3000 as well ? If so, shouldn't we do the same for the
-> > jc42 driver (or, alternatively, not mask it here either for
-> > consistency) ?
-> 
-> We do mask for the STTS424 in sensors-detect too, while we don't in the
-> jc42 driver. I'm simply doing the same here for the STTS2002 and
-> STTS3000. It surprised me too at first, but then I though it made sense
-> to be slightly more permissive in sensors-detect, so that we can spot
-> and add new IDs as/if they show up.
-> 
-I didn't realize that sensor-detect also uses a mask for STTS424. Oddly
-enough, that one's "official" devid/revision is 0x0101.
+The on-chip northbridge's temperature sensor of the upcoming
+AMD Trinity CPUs works the same as for the previous CPUs.
+Since it has a different PCI-ID, we just add the new one to the list
+supported by k10temp.
+This allows us to use the k10temp driver on those CPUs.
 
-> But I am fine aligning sensors-detect and jc42 to match exactly if you
-> think it's preferable. Your call.
-> 
-Never mind; your reasoning makes sense.
+On that way move the PCI-ID definition for the Llano and Brazos
+northbridges from pci_ids.h into this driver, since it's the only
+user and the header of pci_ids.h tell us to do so.
 
-Thanks,
-Guenter
+Signed-off-by: Andre Przywara <andre.przywara@amd.com>
+---
+ Documentation/hwmon/k10temp |    2 +-
+ drivers/hwmon/Kconfig       |    3 ++-
+ drivers/hwmon/k10temp.c     |    7 ++++++-
+ include/linux/pci_ids.h     |    1 -
+ 4 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/hwmon/k10temp b/Documentation/hwmon/k10temp
+index a10f736..90956b6 100644
+--- a/Documentation/hwmon/k10temp
++++ b/Documentation/hwmon/k10temp
+@@ -11,7 +11,7 @@ Supported chips:
+   Socket S1G2: Athlon (X2), Sempron (X2), Turion X2 (Ultra)
+ * AMD Family 12h processors: "Llano" (E2/A4/A6/A8-Series)
+ * AMD Family 14h processors: "Brazos" (C/E/G/Z-Series)
+-* AMD Family 15h processors: "Bulldozer"
++* AMD Family 15h processors: "Bulldozer" (FX-Series), "Trinity"
+ 
+   Prefix: 'k10temp'
+   Addresses scanned: PCI space
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 5b32d56..7d7b63d 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -253,7 +253,8 @@ config SENSORS_K10TEMP
+ 	  If you say yes here you get support for the temperature
+ 	  sensor(s) inside your CPU. Supported are later revisions of
+ 	  the AMD Family 10h and all revisions of the AMD Family 11h,
+-	  12h (Llano), 14h (Brazos) and 15h (Bulldozer) microarchitectures.
++	  12h (Llano), 14h (Brazos) and 15h (Bulldozer/Trinity)
++	  microarchitectures.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called k10temp.
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index aba29d6..0af326d 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -33,6 +33,10 @@ static bool force;
+ module_param(force, bool, 0444);
+ MODULE_PARM_DESC(force, "force loading on processors with erratum 319");
+ 
++/* PCI-IDs for Northbridge devices not used anywhere else */
++#define PCI_DEVICE_ID_AMD_12H_14H_NB_F3		0x1703
++#define PCI_DEVICE_ID_AMD_15H_M10H_NB_F3	0x1403
++
+ /* CPUID function 0x80000001, ebx */
+ #define CPUID_PKGTYPE_MASK	0xf0000000
+ #define CPUID_PKGTYPE_F		0x00000000
+@@ -208,8 +212,9 @@ static void __devexit k10temp_remove(struct pci_dev *pdev)
+ static DEFINE_PCI_DEVICE_TABLE(k10temp_id_table) = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_10H_NB_MISC) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_11H_NB_MISC) },
+-	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_CNB17H_F3) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_12H_14H_NB_F3) },
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F3) },
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_M10H_NB_F3) },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(pci, k10temp_id_table);
+diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
+index 3329965..e6d3db1 100644
+--- a/include/linux/pci_ids.h
++++ b/include/linux/pci_ids.h
+@@ -523,7 +523,6 @@
+ #define PCI_DEVICE_ID_AMD_15H_NB_F3	0x1603
+ #define PCI_DEVICE_ID_AMD_15H_NB_F4	0x1604
+ #define PCI_DEVICE_ID_AMD_15H_NB_F5	0x1605
+-#define PCI_DEVICE_ID_AMD_CNB17H_F3	0x1703
+ #define PCI_DEVICE_ID_AMD_LANCE		0x2000
+ #define PCI_DEVICE_ID_AMD_LANCE_HOME	0x2001
+ #define PCI_DEVICE_ID_AMD_SCSI		0x2020
+-- 
+1.7.4.4
 
 
 
