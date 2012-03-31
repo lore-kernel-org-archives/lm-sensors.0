@@ -1,57 +1,79 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
-Date: Fri, 30 Mar 2012 20:04:55 +0000
-Subject: [lm-sensors] [PATCH v2 05/15] hwmon: mark const init data with __initconst instead of __initdata
-Message-Id: <1333137905-13809-5-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 31 Mar 2012 03:54:42 +0000
+Subject: Re: [lm-sensors] [PATCH v2 05/15] hwmon: mark const init data with __initconst instead of __initdata
+Message-Id: <20120331035442.GA23851@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120330200358.GV15647@pengutronix.de>
-In-Reply-To: <20120330200358.GV15647@pengutronix.de>
+ <1333137905-13809-5-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1333137905-13809-5-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: kernel@pengutronix.de, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-QXMgbG9uZyBhcyB0aGVyZSBpcyBubyBvdGhlciBub24tY29uc3QgdmFyaWFibGUgbWFya2VkIF9f
-aW5pdGRhdGEgaW4gdGhlCnNhbWUgY29tcGlsYXRpb24gdW5pdCBpdCBkb2Vzbid0IGh1cnQuIElm
-IHRoZXJlIHdlcmUgb25lIGhvd2V2ZXIKY29tcGlsYXRpb24gd291bGQgZmFpbCB3aXRoCgoJZXJy
-b3I6ICR2YXJpYWJsZW5hbWUgY2F1c2VzIGEgc2VjdGlvbiB0eXBlIGNvbmZsaWN0CgpiZWNhdXNl
-IGEgc2VjdGlvbiBjb250YWluaW5nIGNvbnN0IHZhcmlhYmxlcyBpcyBtYXJrZWQgcmVhZCBvbmx5
-IGFuZCBzbwpjYW5ub3QgY29udGFpbiBub24tY29uc3QgdmFyaWFibGVzLgoKU2lnbmVkLW9mZi1i
-eTogVXdlIEtsZWluZS1Lw7ZuaWcgPHUua2xlaW5lLWtvZW5pZ0BwZW5ndXRyb25peC5kZT4KQ2M6
-IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPgpDYzogR3VlbnRlciBSb2VjayA8Z3Vl
-bnRlci5yb2Vja0Blcmljc3Nvbi5jb20+CkNjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCi0t
-LQpjaGFuZ2VzIHNpbmNlIChpbXBsaWNpdCkgdjE6CiAtIGRyb3Agd3JvbmcgY2hhbmdlcyB0byBk
-cml2ZXJzL2h3bW9uL3c4MzYyN2hmLmMKCiBkcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5jIHwgICAx
-OCArKysrKysrKystLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA5IGluc2VydGlvbnMoKyksIDkg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi93ODM2MjdlaGYuYyBiL2Ry
-aXZlcnMvaHdtb24vdzgzNjI3ZWhmLmMKaW5kZXggYTI1MzUwYy4uNTQ5MjJlZCAxMDA2NDQKLS0t
-IGEvZHJpdmVycy9od21vbi93ODM2MjdlaGYuYworKysgYi9kcml2ZXJzL2h3bW9uL3c4MzYyN2Vo
-Zi5jCkBAIC0yNjE5LDE1ICsyNjE5LDE1IEBAIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZHJpdmVy
-IHc4MzYyN2VoZl9kcml2ZXIgPSB7CiBzdGF0aWMgaW50IF9faW5pdCB3ODM2MjdlaGZfZmluZChp
-bnQgc2lvYWRkciwgdW5zaWduZWQgc2hvcnQgKmFkZHIsCiAJCQkJIHN0cnVjdCB3ODM2MjdlaGZf
-c2lvX2RhdGEgKnNpb19kYXRhKQogewotCXN0YXRpYyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lv
-X25hbWVfVzgzNjI3RUhGW10gPSAiVzgzNjI3RUhGIjsKLQlzdGF0aWMgY29uc3QgY2hhciBfX2lu
-aXRkYXRhIHNpb19uYW1lX1c4MzYyN0VIR1tdID0gIlc4MzYyN0VIRyI7Ci0Jc3RhdGljIGNvbnN0
-IGNoYXIgX19pbml0ZGF0YSBzaW9fbmFtZV9XODM2MjdESEdbXSA9ICJXODM2MjdESEciOwotCXN0
-YXRpYyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25hbWVfVzgzNjI3REhHX1BbXSA9ICJXODM2
-MjdESEctUCI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIgX19pbml0ZGF0YSBzaW9fbmFtZV9XODM2MjdV
-SEdbXSA9ICJXODM2MjdVSEciOwotCXN0YXRpYyBjb25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25h
-bWVfVzgzNjY3SEdbXSA9ICJXODM2NjdIRyI7Ci0Jc3RhdGljIGNvbnN0IGNoYXIgX19pbml0ZGF0
-YSBzaW9fbmFtZV9XODM2NjdIR19CW10gPSAiVzgzNjY3SEctQiI7Ci0Jc3RhdGljIGNvbnN0IGNo
-YXIgX19pbml0ZGF0YSBzaW9fbmFtZV9OQ1Q2Nzc1W10gPSAiTkNUNjc3NUYiOwotCXN0YXRpYyBj
-b25zdCBjaGFyIF9faW5pdGRhdGEgc2lvX25hbWVfTkNUNjc3NltdID0gIk5DVDY3NzZGIjsKKwlz
-dGF0aWMgY29uc3QgY2hhciBzaW9fbmFtZV9XODM2MjdFSEZbXSBfX2luaXRjb25zdCA9ICJXODM2
-MjdFSEYiOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzYyN0VIR1tdIF9faW5pdGNv
-bnN0ID0gIlc4MzYyN0VIRyI7CisJc3RhdGljIGNvbnN0IGNoYXIgc2lvX25hbWVfVzgzNjI3REhH
-W10gX19pbml0Y29uc3QgPSAiVzgzNjI3REhHIjsKKwlzdGF0aWMgY29uc3QgY2hhciBzaW9fbmFt
-ZV9XODM2MjdESEdfUFtdIF9faW5pdGNvbnN0ID0gIlc4MzYyN0RIRy1QIjsKKwlzdGF0aWMgY29u
-c3QgY2hhciBzaW9fbmFtZV9XODM2MjdVSEdbXSBfX2luaXRjb25zdCA9ICJXODM2MjdVSEciOwor
-CXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzY2N0hHW10gX19pbml0Y29uc3QgPSAiVzgz
-NjY3SEciOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1lX1c4MzY2N0hHX0JbXSBfX2luaXRj
-b25zdCA9ICJXODM2NjdIRy1CIjsKKwlzdGF0aWMgY29uc3QgY2hhciBzaW9fbmFtZV9OQ1Q2Nzc1
-W10gX19pbml0Y29uc3QgPSAiTkNUNjc3NUYiOworCXN0YXRpYyBjb25zdCBjaGFyIHNpb19uYW1l
-X05DVDY3NzZbXSBfX2luaXRjb25zdCA9ICJOQ1Q2Nzc2RiI7CiAKIAl1MTYgdmFsOwogCWNvbnN0
-IGNoYXIgKnNpb19uYW1lOwotLSAKMS43LjkuNQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+On Fri, Mar 30, 2012 at 04:04:55PM -0400, Uwe Kleine-K=F6nig wrote:
+> As long as there is no other non-const variable marked __initdata in the
+> same compilation unit it doesn't hurt. If there were one however
+> compilation would fail with
+>=20
+> 	error: $variablename causes a section type conflict
+>=20
+> because a section containing const variables is marked read only and so
+> cannot contain non-const variables.
+>=20
+> Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> Cc: Jean Delvare <khali@linux-fr.org>
+> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+> Cc: lm-sensors@lm-sensors.org
+> ---
+> changes since (implicit) v1:
+>  - drop wrong changes to drivers/hwmon/w83627hf.c
+>=20
+>  drivers/hwmon/w83627ehf.c |   18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+>=20
+> diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
+> index a25350c..54922ed 100644
+> --- a/drivers/hwmon/w83627ehf.c
+> +++ b/drivers/hwmon/w83627ehf.c
+> @@ -2619,15 +2619,15 @@ static struct platform_driver w83627ehf_driver =
+=3D {
+>  static int __init w83627ehf_find(int sioaddr, unsigned short *addr,
+>  				 struct w83627ehf_sio_data *sio_data)
+>  {
+> -	static const char __initdata sio_name_W83627EHF[] =3D "W83627EHF";
+> -	static const char __initdata sio_name_W83627EHG[] =3D "W83627EHG";
+> -	static const char __initdata sio_name_W83627DHG[] =3D "W83627DHG";
+> -	static const char __initdata sio_name_W83627DHG_P[] =3D "W83627DHG-P";
+> -	static const char __initdata sio_name_W83627UHG[] =3D "W83627UHG";
+> -	static const char __initdata sio_name_W83667HG[] =3D "W83667HG";
+> -	static const char __initdata sio_name_W83667HG_B[] =3D "W83667HG-B";
+> -	static const char __initdata sio_name_NCT6775[] =3D "NCT6775F";
+> -	static const char __initdata sio_name_NCT6776[] =3D "NCT6776F";
+> +	static const char sio_name_W83627EHF[] __initconst =3D "W83627EHF";
+> +	static const char sio_name_W83627EHG[] __initconst =3D "W83627EHG";
+> +	static const char sio_name_W83627DHG[] __initconst =3D "W83627DHG";
+> +	static const char sio_name_W83627DHG_P[] __initconst =3D "W83627DHG-P";
+> +	static const char sio_name_W83627UHG[] __initconst =3D "W83627UHG";
+> +	static const char sio_name_W83667HG[] __initconst =3D "W83667HG";
+> +	static const char sio_name_W83667HG_B[] __initconst =3D "W83667HG-B";
+> +	static const char sio_name_NCT6775[] __initconst =3D "NCT6775F";
+> +	static const char sio_name_NCT6776[] __initconst =3D "NCT6776F";
+> =20
+Applied.
+
+Just wondering: Why not the following ?
+
+> +	static const char __initconst sio_name_NCT6776[] =3D "NCT6776F";
+
+It does not make a difference in the generated code, and appears to be
+less confusing, at least to me.
+
+Thanks,
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
