@@ -1,59 +1,67 @@
-From: Kyle McMartin <kyle@redhat.com>
-Date: Mon, 02 Apr 2012 18:19:04 +0000
-Subject: [lm-sensors] [PATCH 5/5] acpi_power_meter: clean up code around setup_attrs
-Message-Id: <bb853f6e30c78b3e61173cd224856e52a13d6c00.1333390501.git.kyle@mcmartin.ca>
+From: Alex Atkin <alexatkin@csdprojects.co.uk>
+Date: Sun, 01 Apr 2012 16:42:30 +0000
+Subject: [lm-sensors] Gigabyte H67N-USB3-B3 missing voltage sensors
+Message-Id: <4F788576.9030705@csdprojects.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-From: Kyle McMartin <kyle@mcmartin.ca>
+I have a Gigabyte H67N-USB3-B3 motherboard and am having some problems=20
+getting lm_sensors to work fully on it.
 
-We don't need to duplicate if (res) checks if we're always running
-one or the other.
+I downloaded the driver and the latest sensors-detect from the=20
+lm_sensors website to ensure I had the latest version.
+sensors-detect reports:
 
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
----
- drivers/hwmon/acpi_power_meter.c |   15 +++++++--------
- 1 files changed, 7 insertions(+), 8 deletions(-)
+Trying family `ITE'...                                      Yes
+Found `ITE IT8728F Super IO Sensors'                        Success!
+     (address 0x290, driver `it87')
 
-diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
-index 16ab439..ac0708f 100644
---- a/drivers/hwmon/acpi_power_meter.c
-+++ b/drivers/hwmon/acpi_power_meter.c
-@@ -695,21 +695,20 @@ static int setup_attrs(struct acpi_power_meter_resource *resource)
- 			goto skip_unsafe_cap;
- 		}
- 
--		if (resource->caps.configurable_cap) {
-+		if (resource->caps.configurable_cap)
- 			res = register_attrs(resource, rw_cap_attrs);
--			if (res)
--				goto error;
--		} else {
-+		else
- 			res = register_attrs(resource, ro_cap_attrs);
--			if (res)
--				goto error;
--		}
-+
-+		if (res)
-+			goto error;
-+
- 		res = register_attrs(resource, misc_cap_attrs);
- 		if (res)
- 			goto error;
- 	}
--skip_unsafe_cap:
- 
-+skip_unsafe_cap:
- 	if (resource->caps.flags & POWER_METER_CAN_TRIP) {
- 		res = register_attrs(resource, trip_attrs);
- 		if (res)
--- 
-1.7.7.6
+However it still doesn't load automatically on boot and a manual=20
+"modprobe it87" reveals:
 
+FATAL: Error inserting it87=20
+(/lib/modules/3.1.6-server-69mib/kernel/drivers/hwmon/it87.ko.gz): No=20
+such device
+
+So I found a note somewhere that "modprobe it87 force_id=3D0x8721" forces=20
+it to work, but then I get the following from sensors:
+
+it8721-isa-0290
+Adapter: ISA adapter
+in0:          +1.04 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in1:          +0.14 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in2:          +2.89 V  (min =3D  +0.00 V, max =3D  +3.06 V)
++3.3V:        +3.31 V  (min =3D  +0.00 V, max =3D  +6.12 V)
+in4:          +0.02 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in5:          +1.01 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+in6:          +1.54 V  (min =3D  +0.00 V, max =3D  +3.06 V)
+3VSB:         +3.38 V  (min =3D  +0.00 V, max =3D  +6.12 V)
+Vbat:         +3.17 V
+fan1:        1198 RPM  (min =3D    0 RPM)
+fan2:         896 RPM  (min =3D    0 RPM)
+temp1:        +43.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D=20
+thermistor
+temp2:        +45.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D=20
+thermistor
+temp3:        +31.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
+ =3D=20
+thermistor
+intrusion0:  ALARM
+
+The problem is that I am not getting any output for +12V, +5V or +5VSB,=20
+which are the main reason I want to use the monitoring.
+
+I am also not sure how to identify which of the above is the VCore (I=20
+suspect its in0), although that is less important to me.
+
+Do you have any suggestions/fixes?
+
+Alex.
 
 _______________________________________________
 lm-sensors mailing list
