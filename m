@@ -1,46 +1,80 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 25 Apr 2012 07:29:12 +0000
-Subject: Re: [lm-sensors] Howto set atk0110 critical limits?
-Message-Id: <20120425092912.7e0a580c@endymion.delvare>
+Date: Sun, 01 Apr 2012 12:54:29 +0000
+Subject: Re: [lm-sensors] [PATCH v2 1/3] hwmon: (it87) Add support for IT8782F and IT8783E/F
+Message-Id: <20120401145429.058209f0@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <BLU120-W13B645925A4D07EAB05768D8270@phx.gbl>
-In-Reply-To: <BLU120-W13B645925A4D07EAB05768D8270@phx.gbl>
+References: <1332651633-23560-2-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1332651633-23560-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyNSBBcHIgMjAxMiAwOToyMTo0NiArMDIwMCwgTXIuIFR1eCB3cm90ZToKPiBIb3cg
-Y2FuIEkgc2V0IHNlbnNvciBsaW1pdHMgdG8gYW4gQXN1cyBtNGE4OWd0ZCBwcm8gdXNiMyBib2Fy
-ZCB1c2luZyBEZWJpYW4vU3F1ZWV6ZT8KPiAKPiBUaGUgc2Vuc29ycyBvdXRwdXQgbG9va3MgcmVh
-c29uYWJsZSAoY29tcGFyZWQgdG8gdGhlIEJJT1MgdmFsdWVzKSAuIFdoYXQgSSdtIG1pc3Npbmcg
-aXMgY3JpdGljYWwgbGltaXRzCj4gZm9yIHRoZSBmYW4gc3BlZWRzIGluIGNhc2Ugb2YgIDAgUlBN
-Lgo+IAo+IEkgZm9yY2VkIHRoZSBjaGFzc2lzIGZhbiB0byBzdG9wLCBnb3QgMCBSUE0gYnV0IG5v
-IEFMQVJNIG91dHB1dC4gSSBhc3N1bWUKPiB0aGUgY3JpdCB2YWx1ZSBpcyBtaXNzaW5nLiBVc3Vh
-bGx5IEkgc2V0IHRoaXMgaW4gYSAKPiAvZXRjL3NlbnNvcnMuZC88Y29uZmlnZmlsZT4KPiAKPiBO
-b3cgdGhpcyBmYWlscywgYmVjYXVzZSAKPiBzZW5zb3JzMy5jb25mIGRvZXMgbm90IHNob3cgYW4g
-ZW50cnkgZm9yIGF0azAxMTAtKiBhbmQgSSBjYW4ndCBjcmVhdGUgCj4gb25lIG15c2VsZiB0aGF0
-IGlzIHN1Y2Nlc3NmdWxseSBwYXJzZWQgYnkgc2Vuc29ycyAtcyAtYyAKPiA8Y29uZmlnZmlsZT4K
-PiAoLi4uKQo+IGF0azAxMTAtYWNwaS0wCj4gQWRhcHRlcjogQUNQSSBpbnRlcmZhY2UKPiBWY29y
-ZSBWb2x0YWdlOiAgICAgICsxLjA3IFYgIChtaW4gPSAgKzAuODAgViwgbWF4ID0gICsxLjYwIFYp
-Cj4gKzMuM1YgVm9sdGFnZTogICAgICArMy4yOSBWICAobWluID0gICsyLjk3IFYsIG1heCA9ICAr
-My42MyBWKQo+ICs1ViBWb2x0YWdlOiAgICAgICAgKzQuOTcgViAgKG1pbiA9ICArNC41MCBWLCBt
-YXggPSAgKzUuNTAgVikKPiArMTJWIFZvbHRhZ2U6ICAgICAgKzEyLjA3IFYgIChtaW4gPSArMTAu
-MjAgViwgbWF4ID0gKzEzLjgwIFYpCj4gQ1BVIEZhbiBTcGVlZDogICAgIDE1MzcgUlBNICAobWlu
-ID0gIDYwMCBSUE0pCj4gQ2hhc3NpcyBGYW4gU3BlZWQ6ICAgIDE0NjcgUlBNICAobWluID0gIDYw
-MCBSUE0pCj4gQ2hhc3NpczIgRmFuIFNwZWVkOiAgIDAgUlBNICAobWluID0gIDYwMCBSUE0pCj4g
-UG93ZXIgRmFuIFNwZWVkOiAgICAgIDAgUlBNICAobWluID0gIDYwMCBSUE0pCj4gQ1BVIFRlbXBl
-cmF0dXJlOiAgICArMjQuMMKwQyAgKGhpZ2ggPSArNjAuMMKwQywgY3JpdCA9ICs5NS4wwrBDKSAg
-Cj4gTUIgVGVtcGVyYXR1cmU6ICAgICArMjMuMMKwQyAgKGhpZ2ggPSArNDUuMMKwQywgY3JpdCA9
-ICs3NS4wwrBDKSAgCj4gCj4gCj4gU2hvdWxkIEkgcmVidWlsZCBsaWJzZW5zb3JzIC8gdHJ5IGEg
-bmV3ZXIga2VybmVsIC8gY3JlYXRlIHRoZSBjb25maWcgZmlsZSBpbiBhIGRpZmZlcmVudCB3YXk/
-Cj4gCj4gV2hhdCdzIHRoZSByaWdodCB0aGluZyB0byBkbyBoZXJlPyAJCSAJICAgCQkgIAoKVGhl
-cmUncyBub3RoaW5nIHlvdSBjYW4gZG8sIHRoZSBhdGswMTEwIGRyaXZlciBpcyBhIHJlYWQtb25s
-eSBkcml2ZXIsCml0IGdldHMgaXRzIHZhbHVlcyBmcm9tIHRoZSBBQ1BJIEJJT1MgYnV0IGNhbid0
-IGNoYW5nZSB0aGVtLgoKSWYgeW91IGRvbid0IHdhbnQgdG8gc2VlIHRoZSAwIFJQTSByZWFkaW5n
-cywgeW91IGNhbiBhZGQgaWdub3JlCnN0YXRlbWVudHMgZm9yIHRoZW06CgpjaGlwICJhdGswMTEw
-LWFjcGktMCIKCiAgIGlnbm9yZSBmYW4zCiAgIGlnbm9yZSBmYW40CgooVmVyaWZ5IHRoZSBmYW4g
-aW5wdXQgbnVtYmVycyB3aXRoIHNlbnNvcnMgLXUuKQoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Hi Guenter,
+
+On Sat, 24 Mar 2012 22:00:31 -0700, Guenter Roeck wrote:
+>  		reg = superio_inb(IT87_SIO_GPIO3_REG);
+> -		if (sio_data->type = it8721 || sio_data->type = it8728) {
+> +		if (sio_data->type = it8721 || sio_data->type = it8728 ||
+> +		    sio_data->type = it8782) {
+>  			/*
+> -			 * The IT8721F/IT8758E doesn't have VID pins at all,
+> -			 * not sure about the IT8728F.
+> +			 * IT8721F, IT8758E, and IT8782F don't have VID pins
+
+"IT8721F/IT8758E" is written this way on purpose throughout the whole
+driver and documentation, because they are "the same chip" (same device
+ID.)
+
+> +			 * at all, not sure about the IT8728F.
+>  			 */
+>  			sio_data->skip_vid = 1;
+>  		} else {
+> @@ -1733,8 +1793,12 @@ static int __init it87_find(unsigned short *address,
+>  		 * configured, even though the IT8720F datasheet claims
+>  		 * that the internal routing of VCCH to VIN7 is the default
+>  		 * setting. So we force the internal routing in this case.
+> +		 *
+> +		 * On IT8782F, VIN7 is multiplexed with one of the UART6 pins.
+> +		 * If UART6 is enabled, re-route VIN7 to the internal divider.
+>  		 */
+> -		if (sio_data->type = it8720 && !(reg & (1 << 1))) {
+> +		if ((sio_data->type = it8720 && !(reg & (1 << 1))) ||
+> +		    (sio_data->type = it8782 && (reg & (1 << 2)))) {
+
+I'd like to see this done a little differently. Here you'll output the
+notice message even if VIN7 was already properly routed. That's not
+fair. I'd prefer:
+
+		if ((sio_data->type = it8720 ||
+		    (sio_data->type = it8782 && (reg & (1 << 2))))
+		    && !(reg & (1 << 1))) {
+
+so you only write to the register and print the notice when needed.
+
+>  			reg |= (1 << 1);
+>  			superio_outb(IT87_SIO_PINX2_REG, reg);
+>  			pr_notice("Routing internal VCCH to in7\n");
+> @@ -1823,6 +1887,8 @@ static int __devinit it87_probe(struct platform_device *pdev)
+>  		"it8720",
+>  		"it8721",
+>  		"it8728",
+> +		"it8782",
+> +		"it8783",
+>  	};
+>  
+>  	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+
+Other than these two minor things, patch looks good (the few remarks I
+had happen to be addressed by the later patches in the series.) So you
+can add:
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
