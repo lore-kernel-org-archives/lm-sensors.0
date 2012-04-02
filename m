@@ -1,57 +1,45 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 04 Apr 2012 13:54:26 +0000
-Subject: Re: [lm-sensors] [PATCH] Don't probe EDID addresses on graphics card adapters
-Message-Id: <20120404135426.GB17153@ericsson.com>
+From: Kyle McMartin <kyle@redhat.com>
+Date: Mon, 02 Apr 2012 18:18:59 +0000
+Subject: [lm-sensors] [PATCH 0/5] acpi_power_meter: clean up duplicate code
+Message-Id: <cover.1333390501.git.kyle@mcmartin.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120404113253.533a4c19@endymion.delvare>
-In-Reply-To: <20120404113253.533a4c19@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Apr 04, 2012 at 05:32:53AM -0400, Jean Delvare wrote:
-> Avoid probing EDID addresses (0x50-0x57) on graphics card adapters.
-> We had one report that it caused trouble:
-> http://lists.lm-sensors.org/pipermail/lm-sensors/2012-April/035847.html
-> Even though it's not yet clear what happened, let's play it safe.
-> 
-> This closes ticket #2386.
+From: Kyle McMartin <kyle@mcmartin.ca>
 
-Agreed, and looks good.
+acpi_power_meter currently duplicates a lot of code between the rw and
+ro sensor templates unnecessarily. The attached five part series cleans
+things up to use the same code path for both, deciding which is which by
+the use of the .set field.
 
-Guenter
+Additionally, (imho at least) it makes the struct initializers a bit
+more pretty and uses a macro to reduce the repetition of each member.
 
-> ---
->  prog/detect/sensors-detect |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> --- lm-sensors.orig/prog/detect/sensors-detect	2012-03-29 08:33:21.000000000 +0200
-> +++ lm-sensors/prog/detect/sensors-detect	2012-04-02 18:37:31.948591233 +0200
-> @@ -3660,6 +3660,9 @@ sub scan_i2c_adapter
->  		$input = <STDIN>;
->  		chomp($input);
->  		@not_to_scan = parse_not_to_scan(0x03, 0x77, $input);
-> +	} elsif (($class & 0xff00) = 0x0300) {
-> +		# Skip EDID addresses by default on graphics adapters
-> +		@not_to_scan = parse_not_to_scan(0x03, 0x77, "0x50-0x57");
->  	}
->  
->  	open(local *FILE, "$dev_i2c$adapter_nr") or
-> 
-> 
-> -- 
-> Jean Delvare
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+It's been compile tested across the series for bisectability, but I do
+not currently have access to any device which uses this driver for
+testing.
+
+regards, Kyle McMartin
+
+Kyle McMartin (5):
+  acpi_power_meter: use the same struct {rw,ro}_sensor_template for
+    both
+  acpi_power_meter: use a {RW,RO}_SENSOR_TEMPLATE macro to clean things
+    up
+  acpi_power_meter: remove duplicate code between
+    register_{ro,rw}_attrs
+  acpi_power_meter: drop meter_rw_attrs, use common meter_attrs
+  acpi_power_meter: clean up code around setup_attrs
+
+ drivers/hwmon/acpi_power_meter.c |  165 +++++++++++++++++---------------------
+ 1 files changed, 72 insertions(+), 93 deletions(-)
 
 -- 
-Guenter Roeck
-Distinguished Engineer
-PDU IP Systems
+1.7.7.6
+
 
 _______________________________________________
 lm-sensors mailing list
