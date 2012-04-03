@@ -1,49 +1,99 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Date: Fri, 13 Apr 2012 19:04:42 +0000
-Subject: Re: [lm-sensors] [PATCH v6 3/3] gpio: TS-5500 GPIO support
-Message-Id: <20120413190442.GA8275@sirena.org.uk>
+From: Axel Lin <axel.lin@gmail.com>
+Date: Tue, 03 Apr 2012 01:25:46 +0000
+Subject: [lm-sensors] [PATCH] hwmon: use module_pci_driver
+Message-Id: <1333416346.18133.4.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1334276935-11258-1-git-send-email-vivien.didelot@savoirfairelinux.com>
- <1334276935-11258-4-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1334276935-11258-4-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Cc: x86@kernel.org, Jerome Oufella <jerome.oufella@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
+To: linux-kernel@vger.kernel.org
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>, Clemens Ladisch <clemens@ladisch.de>, Rudolf Marek <r.marek@assembler.cz>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <guenter.roeck@ericsson.com>, lm-sensors@lm-sensors.org
 
-On Thu, Apr 12, 2012 at 08:28:55PM -0400, Vivien Didelot wrote:
+This patch converts the drivers in drivers/hwmon/* to use module_pci_driver()
+macro which makes the code smaller and a bit simpler.
 
-Guess I won't wait for a more thorough off list review :)
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Andreas Herrmann <andreas.herrmann3@amd.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+---
+ drivers/hwmon/fam15h_power.c |   13 +------------
+ drivers/hwmon/k10temp.c      |   13 +------------
+ drivers/hwmon/k8temp.c       |   13 +------------
+ 3 files changed, 3 insertions(+), 36 deletions(-)
 
-> +static void ts5500_gpio_release(struct device *dev)
-> +{
-> +	/* noop */
-> +}
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index b7494af..2f44988 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -215,15 +215,4 @@ static struct pci_driver fam15h_power_driver = {
+ 	.remove = __devexit_p(fam15h_power_remove),
+ };
+ 
+-static int __init fam15h_power_init(void)
+-{
+-	return pci_register_driver(&fam15h_power_driver);
+-}
+-
+-static void __exit fam15h_power_exit(void)
+-{
+-	pci_unregister_driver(&fam15h_power_driver);
+-}
+-
+-module_init(fam15h_power_init)
+-module_exit(fam15h_power_exit)
++module_pci_driver(fam15h_power_driver);
+diff --git a/drivers/hwmon/k10temp.c b/drivers/hwmon/k10temp.c
+index 307bb32..7356b5e 100644
+--- a/drivers/hwmon/k10temp.c
++++ b/drivers/hwmon/k10temp.c
+@@ -225,15 +225,4 @@ static struct pci_driver k10temp_driver = {
+ 	.remove = __devexit_p(k10temp_remove),
+ };
+ 
+-static int __init k10temp_init(void)
+-{
+-	return pci_register_driver(&k10temp_driver);
+-}
+-
+-static void __exit k10temp_exit(void)
+-{
+-	pci_unregister_driver(&k10temp_driver);
+-}
+-
+-module_init(k10temp_init)
+-module_exit(k10temp_exit)
++module_pci_driver(k10temp_driver);
+diff --git a/drivers/hwmon/k8temp.c b/drivers/hwmon/k8temp.c
+index 5751019..35aac82 100644
+--- a/drivers/hwmon/k8temp.c
++++ b/drivers/hwmon/k8temp.c
+@@ -339,19 +339,8 @@ static struct pci_driver k8temp_driver = {
+ 	.remove = __devexit_p(k8temp_remove),
+ };
+ 
+-static int __init k8temp_init(void)
+-{
+-	return pci_register_driver(&k8temp_driver);
+-}
+-
+-static void __exit k8temp_exit(void)
+-{
+-	pci_unregister_driver(&k8temp_driver);
+-}
++module_pci_driver(k8temp_driver);
+ 
+ MODULE_AUTHOR("Rudolf Marek <r.marek@assembler.cz>");
+ MODULE_DESCRIPTION("AMD K8 core temperature monitor");
+ MODULE_LICENSE("GPL");
+-
+-module_init(k8temp_init)
+-module_exit(k8temp_exit)
+-- 
+1.7.5.4
 
-So, this really shouldn't be here...
 
-> +static int __devinit ts5500_gpio_probe(struct platform_device *pdev)
-> +{
-> +	int ret;
-> +	unsigned long flags;
-> +
-> +	if (pdev = NULL)
-> +		return -ENODEV;
 
-Don't bother, the kernel got seriously confused if this happens.
-
-> +	ret = platform_device_register(&ts5500_gpio_pdev);
-> +	if (ret) {
-> +		platform_driver_unregister(&ts5500_gpio_driver);
-> +		return ret;
-> +	}
-
-...probably what your release function should do is free the device
-which should be dynamically allocated here, platform_device_alloc() will
-do the right thing for you.  This isn't usually an issue for static
-platform devices as they are registered from board files which can't be
-unloaded.
 
 _______________________________________________
 lm-sensors mailing list
