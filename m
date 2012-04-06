@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Fri, 06 Apr 2012 08:28:58 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 06 Apr 2012 09:05:22 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016eGpohxaxwPV8=NpvYyRZ9fxjLOkAOY+BfpL7sWYqwC-Q@mail.gmail.com>
+Message-Id: <20120406110522.0c1ba240@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,41 +10,50 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-2012/4/6 Jean Delvare <khali@linux-fr.org>:
-> Sorry for the late reply, I have a lot of work this week.
-
-It is ok, take your time:)
-
-> I presume you do not remember which ones defaulted to "no" and you had
-> to say "yes" explicitly?
-
-Yes, that is what I did.
-
-> It's strange, I do see it in mine with the radeon driver:
-> Maybe there is a verbosity level to set somewhere, my X server is
-> started with -verbose, maybe you have to do the same. Or
-
-I stopped X and gave "exec /usr/bin/X -nolisten tcp "$@" -verbose 20
-2> /tmp/startx.log" command but still there is no dump of EDID.
-
-> Good, so at least we have a reference. Now we need to find out which
-> bytes in your own EDID have been altered.
-> You also have to offset the 3 other vertical timings:
-> $ xrandr --newmode "try" 68.94 1280 1296 1344 1408 800 801 804 816 -HSync -VSync
-
-Now I get what you wanted me to do. I tried the command above but
-resolution looks bad. Icons, fonts etc. looks blur and bigger.
-
-> That's because you have loaded the eeprom driver. Either provide the
-> contents of file /sys/bus/i2c/devices/i2c-2/2-0050/eeprom or unload the
-> eeprom driver and provide the output of the i2cdump command above.
-
-Sorry, my mistake. This is the output: http://pastebin.com/aSUSR7wX
-
-Best regards,
-Numan
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCA2IEFwciAyMDEyIDExOjI4OjU4ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
+b3RlOgo+IDIwMTIvNC82IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPjoKPiA+IEl0
+J3Mgc3RyYW5nZSwgSSBkbyBzZWUgaXQgaW4gbWluZSB3aXRoIHRoZSByYWRlb24gZHJpdmVyOgo+
+ID4gTWF5YmUgdGhlcmUgaXMgYSB2ZXJib3NpdHkgbGV2ZWwgdG8gc2V0IHNvbWV3aGVyZSwgbXkg
+WCBzZXJ2ZXIgaXMKPiA+IHN0YXJ0ZWQgd2l0aCAtdmVyYm9zZSwgbWF5YmUgeW91IGhhdmUgdG8g
+ZG8gdGhlIHNhbWUuIE9yCj4gCj4gSSBzdG9wcGVkIFggYW5kIGdhdmUgImV4ZWMgL3Vzci9iaW4v
+WCAtbm9saXN0ZW4gdGNwICIkQCIgLXZlcmJvc2UgMjAKPiAyPiAvdG1wL3N0YXJ0eC5sb2ciIGNv
+bW1hbmQgYnV0IHN0aWxsIHRoZXJlIGlzIG5vIGR1bXAgb2YgRURJRC4KCk1heWJlIHRoaXMgaXMg
+YmVjYXVzZSB0aGUgRURJRCBpcyBjb3JydXB0ZWQgYW5kIHRodXMgdGhlIGNoZWNrc3VtIGlzCmlu
+Y29ycmVjdC4KCj4gPiBHb29kLCBzbyBhdCBsZWFzdCB3ZSBoYXZlIGEgcmVmZXJlbmNlLiBOb3cg
+d2UgbmVlZCB0byBmaW5kIG91dCB3aGljaAo+ID4gYnl0ZXMgaW4geW91ciBvd24gRURJRCBoYXZl
+IGJlZW4gYWx0ZXJlZC4KPiA+IFlvdSBhbHNvIGhhdmUgdG8gb2Zmc2V0IHRoZSAzIG90aGVyIHZl
+cnRpY2FsIHRpbWluZ3M6Cj4gPiAkIHhyYW5kciAtLW5ld21vZGUgInRyeSIgNjguOTQgMTI4MCAx
+Mjk2IDEzNDQgMTQwOCA4MDAgODAxIDgwNCA4MTYgLUhTeW5jIC1WU3luYwo+IAo+IE5vdyBJIGdl
+dCB3aGF0IHlvdSB3YW50ZWQgbWUgdG8gZG8uIEkgdHJpZWQgdGhlIGNvbW1hbmQgYWJvdmUgYnV0
+Cj4gcmVzb2x1dGlvbiBsb29rcyBiYWQuIEljb25zLCBmb250cyBldGMuIGxvb2tzIGJsdXIgYW5k
+IGJpZ2dlci4KClZlcnkgb2RkLCBnaXZlbiB0aGF0IHRoaXMgaXMgdGhlIGV4YWN0IG1vZGVsaW5l
+IGNvbXB1dGVkIGZyb20gdGhlCm9yaWdpbmFsIEVESUQuCgo+ID4gVGhhdCdzIGJlY2F1c2UgeW91
+IGhhdmUgbG9hZGVkIHRoZSBlZXByb20gZHJpdmVyLiBFaXRoZXIgcHJvdmlkZSB0aGUKPiA+IGNv
+bnRlbnRzIG9mIGZpbGUgL3N5cy9idXMvaTJjL2RldmljZXMvaTJjLTIvMi0wMDUwL2VlcHJvbSBv
+ciB1bmxvYWQgdGhlCj4gPiBlZXByb20gZHJpdmVyIGFuZCBwcm92aWRlIHRoZSBvdXRwdXQgb2Yg
+dGhlIGkyY2R1bXAgY29tbWFuZCBhYm92ZS4KPiAKPiBTb3JyeSwgbXkgbWlzdGFrZS4gVGhpcyBp
+cyB0aGUgb3V0cHV0OiBodHRwOi8vcGFzdGViaW4uY29tL2FTVVNSN3dYCgpOb3RlIHRoZSBYWCBp
+biB0aGUgZHVtcCwgd2hpY2ggbWVhbnMgYW4gZXJyb3Igb2NjdXJyZWQgb24gdGhlIGJ1cy4KUGxl
+YXNlIGNoZWNrIHlvdXIga2VybmVsIGxvZ3MgdG8gc2VlIGlmIHRoZXJlIGlzIGFuIGVycm9yIG1l
+c3NhZ2UKY29ycmVzcG9uZGluZyB0byB0aGlzIGZhaWx1cmUuIElmIHRoZSBJMkMgYnVzIGlzIHVu
+cmVsaWFibGUsIHRoaXMgY291bGQKZXhwbGFpbiBpbiBwYXJ0IHRoZSB0cm91YmxlIHlvdSBoYWQu
+CgpDb21wYXJpbmcgdGhlIG9yaWdpbmFsIEVESUQgd2l0aCB5b3VyIHRhbXBlcmVkIGNvcHkgc2hv
+d3MgNiBieXRlcyB0aGF0CmFyZSBub3cgMHhmZiBpbnN0ZWFkIG9mIHRoZSB2YWx1ZSB0aGV5IHVz
+ZWQgdG8gaG9sZDoKCjB4MmI6IDB4MDEgLT4gMHhmZgoweDJlOiAweDAxIC0+IDB4ZmYKMHgyZjog
+MHgwMSAtPiAweGZmCjB4M2I6IDB4MjAgLT4gMHhmZgoweDNmOiAweDMwIC0+IDB4ZmYKMHg3ODog
+MHgzMyAtPiAweGZmCgpGV0lXLCB0aGlzIGRvZXNuJ3QgY29ycmVzcG9uZCB0byBhIHNwZWNpZmlj
+IHBhdHRlcm4gZm9yIHNlbnNvcnMtZGV0ZWN0LAp3aGljaCBhY2Nlc3NlcyB0aGUgZm9sbG93aW5n
+IG9mZnNldHMgZm9yIHByb2JpbmcgdGhpcyBzcGVjaWZpYyBhZGRyZXNzOgoweDAwLTB4MDcgYW5k
+IDB4M2QtMHgzZi4gU28gSSBzdGlsbCBoYXZlIG5vIGlkZWEgd2hhdCBoYXBwZW5lZCBhbmQgd2h5
+LgoKQXNzdW1pbmcgeW91ciBFRElEIEVFUFJPTSBpcyB3cml0YWJsZSwgdGhlIGZvbGxvd2luZyBj
+b21tYW5kcyAoYXMgcm9vdCkKc2hvdWxkIHJlc3RvcmUgaXRzIG9yaWdpbmFsIHN0YXRlOgoKIyBy
+bW1vZCBlZXByb20KIyBpMmNzZXQgLXkgMiAweDUwIDB4MmIgMHgwMSBiCiMgaTJjc2V0IC15IDIg
+MHg1MCAweDJlIDB4MDEgYgojIGkyY3NldCAteSAyIDB4NTAgMHgyZiAweDAxIGIKIyBpMmNzZXQg
+LXkgMiAweDUwIDB4M2IgMHgyMCBiCiMgaTJjc2V0IC15IDIgMHg1MCAweDNmIDB4MzAgYgojIGky
+Y3NldCAteSAyIDB4NTAgMHg3OCAweDMzIGIKCllvdSBjYW4gY2hlY2sgd2l0aCBpMmNkdW1wIGFm
+dGVyd2FyZC4gSSdkIGV2ZW4gY2hlY2sgYWZ0ZXIgZml4aW5nIHRoZQpmaXJzdCBieXRlLCBhcyB0
+aGVyZSBpcyBubyBwb2ludCBpbiBnb2luZyBvbiBpZiB0aGUgZmlyc3Qgd3JpdGUgZmFpbGVkCgpM
+ZXQncyBob3BlIGl0IGRvZXMgdGhlIHRyaWNrLi4uCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
+bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
