@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Fri, 06 Apr 2012 17:13:07 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 06 Apr 2012 18:54:01 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016d8kRYD73C3UcJ_c2U2fNdNqP7+ok-_boNKWzCfUBN-rw@mail.gmail.com>
+Message-Id: <20120406205401.6a49d7db@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,35 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> What did the i2cdump outputs look like? Did you see the offending
-> offset values change from 0xff to the values you passed on the command
-> line?
-> Did you try i2cdump again after rebooting, to make sure the writes
-> stuck?
-
-Yes, I saw them changed and after rebooted I gave commands again.
-Last i2cdump output: http://pastebin.com/pyC0j5ug
-It seems that some values returned ff again.
-
-> Did you only reboot the machine? Please try cold booting it, even
-> remove the battery and unplug the power cord for 10 minutes if needed.
-> Maybe the BIOS only reads the EDID once at cold boot.
-
-I had just rebooted machine but now I did cold boot by removing
-battery and unpluging power cord.
-
-> BTW, when the problem happened originally, did it happen while
-> sensors-detect was running, or after next reboot, or after next cold
-> boot?
-
-After next cold boot, the problem happaned. When sensors-detect
-finished, I hust read some .pdf files then shut the computer down. The
-next boot was after about 8 hours later.
-
-Best regards,
-Numan
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCA2IEFwciAyMDEyIDIwOjEzOjA3ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
+b3RlOgo+ID4gV2hhdCBkaWQgdGhlIGkyY2R1bXAgb3V0cHV0cyBsb29rIGxpa2U/IERpZCB5b3Ug
+c2VlIHRoZSBvZmZlbmRpbmcKPiA+IG9mZnNldCB2YWx1ZXMgY2hhbmdlIGZyb20gMHhmZiB0byB0
+aGUgdmFsdWVzIHlvdSBwYXNzZWQgb24gdGhlIGNvbW1hbmQKPiA+IGxpbmU/Cj4gPiBEaWQgeW91
+IHRyeSBpMmNkdW1wIGFnYWluIGFmdGVyIHJlYm9vdGluZywgdG8gbWFrZSBzdXJlIHRoZSB3cml0
+ZXMKPiA+IHN0dWNrPwo+IAo+IFllcywgSSBzYXcgdGhlbSBjaGFuZ2VkIGFuZCBhZnRlciByZWJv
+b3RlZCBJIGdhdmUgY29tbWFuZHMgYWdhaW4uCj4gTGFzdCBpMmNkdW1wIG91dHB1dDogaHR0cDov
+L3Bhc3RlYmluLmNvbS9weUMwajV1Zwo+IEl0IHNlZW1zIHRoYXQgc29tZSB2YWx1ZXMgcmV0dXJu
+ZWQgZmYgYWdhaW4uCgpJbmRlZWQsIHR3byBvZiB0aGUgNiB3cml0ZXMgc3R1Y2ssIGJ1dCB0aGUg
+b25lcyBhdCAweDJiIGFuZCAweDJmIGRpZApub3QuIENhbiB5b3UganVzdCB0cnkgdGhlc2UgdHdv
+IGFnYWluIGFuZCBzZWUgaWYgaXQgd29ya3MgYmV0dGVyIHRoaXMKdGltZSAoYWZ0ZXIgYSBjb2xk
+IGJvb3QpPwoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3Jz
