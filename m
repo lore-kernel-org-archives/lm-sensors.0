@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Fri, 06 Apr 2012 11:36:22 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 06 Apr 2012 13:05:06 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016cJVhGgug0prZYSxxDNZ4APVpLwhgR0-7A=7CPbMPjjJg@mail.gmail.com>
+Message-Id: <20120406150506.7b977dbd@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,69 +10,64 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> Note the XX in the dump, which means an error occurred on the bus.
-> Please check your kernel logs to see if there is an error message
-> corresponding to this failure. If the I2C bus is unreliable, this could
-> explain in part the trouble you had.
-
-I read /var/log/dmesg.log and kern.log but I could not see an error or
-warning related to anything or I do not have the capability to see.
-
-> Comparing the original EDID with your tampered copy shows 6 bytes that
-> are now 0xff instead of the value they used to hold:
->
-> 0x2b: 0x01 -> 0xff
-> 0x2e: 0x01 -> 0xff
-> 0x2f: 0x01 -> 0xff
-> 0x3b: 0x20 -> 0xff
-> 0x3f: 0x30 -> 0xff
-> 0x78: 0x33 -> 0xff
->
-> FWIW, this doesn't correspond to a specific pattern for sensors-detect,
-> which accesses the following offsets for probing this specific address:
-> 0x00-0x07 and 0x3d-0x3f. So I still have no idea what happened and why.
-
-Maybe, this is a hardware problem and is a coincidence so that the
-time I use sensors-detect, the screen is "broken".
-
-> Assuming your EDID EEPROM is writable, the following commands (as root)
-> should restore its original state:
->
-> # rmmod eeprom
-> # i2cset -y 2 0x50 0x2b 0x01 b
-> # i2cset -y 2 0x50 0x2e 0x01 b
-> # i2cset -y 2 0x50 0x2f 0x01 b
-> # i2cset -y 2 0x50 0x3b 0x20 b
-> # i2cset -y 2 0x50 0x3f 0x30 b
-> # i2cset -y 2 0x50 0x78 0x33 b
->
-> You can check with i2cdump afterward. I'd even check after fixing the
-> first byte, as there is no point in going on if the first write failed
-
-Those commands worked without any error, I checked with i2cdump after
-first and last command. Rebooted but it is still using 1280x1023.
-
-I tried "radeon.modeset=0" parameter in grub and looked at
-/var/log/Xorg.0.log, it shows that
-
-II) RADEON(0): Panel Size from BIOS: 1280x1023
-[    16.704] (II) RADEON(0): BIOS provided dividers will be used.
-(WW) RADEON(0): LVDS Info:
-XRes: 1280, YRes: 1023, DotClock: 68940
-HBlank: 128, HOverPlus: 16, HSyncWidth: 248
-VBlank: 16, VOverPlus: 1, VSyncWidth: 3
-
-and with radeon enabled
-
-[   14.238369] [drm] Panel Size 1280x1023
-16.560] (II) RADEON(0): Output LVDS using initial mode 1280x1023
-
-If I use xrandr --outpur LVDS --mode "try", /var/log/Xorg.0.log says
-
-[  1644.860] (II) RADEON(0): Allocate new frame buffer 1280x800 stride 1280
-[  1644.860] (II) RADEON(0): VRAM usage limit set to 50547K
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCA2IEFwciAyMDEyIDE0OjM2OjIyICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
+b3RlOgo+ID4gTm90ZSB0aGUgWFggaW4gdGhlIGR1bXAsIHdoaWNoIG1lYW5zIGFuIGVycm9yIG9j
+Y3VycmVkIG9uIHRoZSBidXMuCj4gPiBQbGVhc2UgY2hlY2sgeW91ciBrZXJuZWwgbG9ncyB0byBz
+ZWUgaWYgdGhlcmUgaXMgYW4gZXJyb3IgbWVzc2FnZQo+ID4gY29ycmVzcG9uZGluZyB0byB0aGlz
+IGZhaWx1cmUuIElmIHRoZSBJMkMgYnVzIGlzIHVucmVsaWFibGUsIHRoaXMgY291bGQKPiA+IGV4
+cGxhaW4gaW4gcGFydCB0aGUgdHJvdWJsZSB5b3UgaGFkLgo+IAo+IEkgcmVhZCAvdmFyL2xvZy9k
+bWVzZy5sb2cgYW5kIGtlcm4ubG9nIGJ1dCBJIGNvdWxkIG5vdCBzZWUgYW4gZXJyb3Igb3IKPiB3
+YXJuaW5nIHJlbGF0ZWQgdG8gYW55dGhpbmcgb3IgSSBkbyBub3QgaGF2ZSB0aGUgY2FwYWJpbGl0
+eSB0byBzZWUuCj4gCj4gPiBDb21wYXJpbmcgdGhlIG9yaWdpbmFsIEVESUQgd2l0aCB5b3VyIHRh
+bXBlcmVkIGNvcHkgc2hvd3MgNiBieXRlcyB0aGF0Cj4gPiBhcmUgbm93IDB4ZmYgaW5zdGVhZCBv
+ZiB0aGUgdmFsdWUgdGhleSB1c2VkIHRvIGhvbGQ6Cj4gPgo+ID4gMHgyYjogMHgwMSAtPiAweGZm
+Cj4gPiAweDJlOiAweDAxIC0+IDB4ZmYKPiA+IDB4MmY6IDB4MDEgLT4gMHhmZgo+ID4gMHgzYjog
+MHgyMCAtPiAweGZmCj4gPiAweDNmOiAweDMwIC0+IDB4ZmYKPiA+IDB4Nzg6IDB4MzMgLT4gMHhm
+Zgo+ID4KPiA+IEZXSVcsIHRoaXMgZG9lc24ndCBjb3JyZXNwb25kIHRvIGEgc3BlY2lmaWMgcGF0
+dGVybiBmb3Igc2Vuc29ycy1kZXRlY3QsCj4gPiB3aGljaCBhY2Nlc3NlcyB0aGUgZm9sbG93aW5n
+IG9mZnNldHMgZm9yIHByb2JpbmcgdGhpcyBzcGVjaWZpYyBhZGRyZXNzOgo+ID4gMHgwMC0weDA3
+IGFuZCAweDNkLTB4M2YuIFNvIEkgc3RpbGwgaGF2ZSBubyBpZGVhIHdoYXQgaGFwcGVuZWQgYW5k
+IHdoeS4KPiAKPiBNYXliZSwgdGhpcyBpcyBhIGhhcmR3YXJlIHByb2JsZW0gYW5kIGlzIGEgY29p
+bmNpZGVuY2Ugc28gdGhhdCB0aGUKPiB0aW1lIEkgdXNlIHNlbnNvcnMtZGV0ZWN0LCB0aGUgc2Ny
+ZWVuIGlzICJicm9rZW4iLgoKQ29pbmNpZGVuY2UsIEkgZG9uJ3QgdGhpbmsuIHNlbnNvcnMtZGV0
+ZWN0IGlzIGV4ZXJjaXNpbmcgdGhlIEkyQyBidXNlcwphIGxvdCwgc28gaWYgdGhlcmUgd2FzIGFu
+eSBsYXRlbnQgcHJvYmxlbSB3aXRoIHRoZSBJMkMgYnVzIG9uIHlvdXIKUmFkZW9uIGdyYXBoaWNz
+IGNoaXAsIEknbSBub3Qgc3VycHJpc2VkIGlmIGl0IHdhcyB0cmlnZ2VyZWQgYnkKc2Vuc29ycy1k
+ZXRlY3QuCgo+ID4gQXNzdW1pbmcgeW91ciBFRElEIEVFUFJPTSBpcyB3cml0YWJsZSwgdGhlIGZv
+bGxvd2luZyBjb21tYW5kcyAoYXMgcm9vdCkKPiA+IHNob3VsZCByZXN0b3JlIGl0cyBvcmlnaW5h
+bCBzdGF0ZToKPiA+Cj4gPiAjIHJtbW9kIGVlcHJvbQo+ID4gIyBpMmNzZXQgLXkgMiAweDUwIDB4
+MmIgMHgwMSBiCj4gPiAjIGkyY3NldCAteSAyIDB4NTAgMHgyZSAweDAxIGIKPiA+ICMgaTJjc2V0
+IC15IDIgMHg1MCAweDJmIDB4MDEgYgo+ID4gIyBpMmNzZXQgLXkgMiAweDUwIDB4M2IgMHgyMCBi
+Cj4gPiAjIGkyY3NldCAteSAyIDB4NTAgMHgzZiAweDMwIGIKPiA+ICMgaTJjc2V0IC15IDIgMHg1
+MCAweDc4IDB4MzMgYgo+ID4KPiA+IFlvdSBjYW4gY2hlY2sgd2l0aCBpMmNkdW1wIGFmdGVyd2Fy
+ZC4gSSdkIGV2ZW4gY2hlY2sgYWZ0ZXIgZml4aW5nIHRoZQo+ID4gZmlyc3QgYnl0ZSwgYXMgdGhl
+cmUgaXMgbm8gcG9pbnQgaW4gZ29pbmcgb24gaWYgdGhlIGZpcnN0IHdyaXRlIGZhaWxlZAo+IAo+
+IFRob3NlIGNvbW1hbmRzIHdvcmtlZCB3aXRob3V0IGFueSBlcnJvciwgSSBjaGVja2VkIHdpdGgg
+aTJjZHVtcCBhZnRlcgo+IGZpcnN0IGFuZCBsYXN0IGNvbW1hbmQuIFJlYm9vdGVkIGJ1dCBpdCBp
+cyBzdGlsbCB1c2luZyAxMjgweDEwMjMuCgpXaGF0IGRpZCB0aGUgaTJjZHVtcCBvdXRwdXRzIGxv
+b2sgbGlrZT8gRGlkIHlvdSBzZWUgdGhlIG9mZmVuZGluZwpvZmZzZXQgdmFsdWVzIGNoYW5nZSBm
+cm9tIDB4ZmYgdG8gdGhlIHZhbHVlcyB5b3UgcGFzc2VkIG9uIHRoZSBjb21tYW5kCmxpbmU/CgpE
+aWQgeW91IHRyeSBpMmNkdW1wIGFnYWluIGFmdGVyIHJlYm9vdGluZywgdG8gbWFrZSBzdXJlIHRo
+ZSB3cml0ZXMKc3R1Y2s/Cgo+IEkgdHJpZWQgInJhZGVvbi5tb2Rlc2V0PTAiIHBhcmFtZXRlciBp
+biBncnViIGFuZCBsb29rZWQgYXQKPiAvdmFyL2xvZy9Yb3JnLjAubG9nLCBpdCBzaG93cyB0aGF0
+Cj4gCj4gSUkpIFJBREVPTigwKTogUGFuZWwgU2l6ZSBmcm9tIEJJT1M6IDEyODB4MTAyMwo+IFsg
+ICAgMTYuNzA0XSAoSUkpIFJBREVPTigwKTogQklPUyBwcm92aWRlZCBkaXZpZGVycyB3aWxsIGJl
+IHVzZWQuCj4gKFdXKSBSQURFT04oMCk6IExWRFMgSW5mbzoKPiBYUmVzOiAxMjgwLCBZUmVzOiAx
+MDIzLCBEb3RDbG9jazogNjg5NDAKPiBIQmxhbms6IDEyOCwgSE92ZXJQbHVzOiAxNiwgSFN5bmNX
+aWR0aDogMjQ4Cj4gVkJsYW5rOiAxNiwgVk92ZXJQbHVzOiAxLCBWU3luY1dpZHRoOiAzCj4gCj4g
+YW5kIHdpdGggcmFkZW9uIGVuYWJsZWQKPiAKPiBbICAgMTQuMjM4MzY5XSBbZHJtXSBQYW5lbCBT
+aXplIDEyODB4MTAyMwo+IDE2LjU2MF0gKElJKSBSQURFT04oMCk6IE91dHB1dCBMVkRTIHVzaW5n
+IGluaXRpYWwgbW9kZSAxMjgweDEwMjMKPiAKPiBJZiBJIHVzZSB4cmFuZHIgLS1vdXRwdXIgTFZE
+UyAtLW1vZGUgInRyeSIsIC92YXIvbG9nL1hvcmcuMC5sb2cgc2F5cwo+IAo+IFsgIDE2NDQuODYw
+XSAoSUkpIFJBREVPTigwKTogQWxsb2NhdGUgbmV3IGZyYW1lIGJ1ZmZlciAxMjgweDgwMCBzdHJp
+ZGUgMTI4MAo+IFsgIDE2NDQuODYwXSAoSUkpIFJBREVPTigwKTogVlJBTSB1c2FnZSBsaW1pdCBz
+ZXQgdG8gNTA1NDdLCgpEaWQgeW91IG9ubHkgcmVib290IHRoZSBtYWNoaW5lPyBQbGVhc2UgdHJ5
+IGNvbGQgYm9vdGluZyBpdCwgZXZlbgpyZW1vdmUgdGhlIGJhdHRlcnkgYW5kIHVucGx1ZyB0aGUg
+cG93ZXIgY29yZCBmb3IgMTAgbWludXRlcyBpZiBuZWVkZWQuCk1heWJlIHRoZSBCSU9TIG9ubHkg
+cmVhZHMgdGhlIEVESUQgb25jZSBhdCBjb2xkIGJvb3QuCgpCVFcsIHdoZW4gdGhlIHByb2JsZW0g
+aGFwcGVuZWQgb3JpZ2luYWxseSwgZGlkIGl0IGhhcHBlbiB3aGlsZQpzZW5zb3JzLWRldGVjdCB3
+YXMgcnVubmluZywgb3IgYWZ0ZXIgbmV4dCByZWJvb3QsIG9yIGFmdGVyIG5leHQgY29sZApib290
+PwoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3Jz
