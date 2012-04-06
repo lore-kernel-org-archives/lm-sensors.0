@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 06 Apr 2012 09:05:22 +0000
+From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
+Date: Fri, 06 Apr 2012 11:36:22 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <20120406110522.0c1ba240@endymion.delvare>
+Message-Id: <CAHa016cJVhGgug0prZYSxxDNZ4APVpLwhgR0-7A=7CPbMPjjJg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,50 +10,69 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCA2IEFwciAyMDEyIDExOjI4OjU4ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
-b3RlOgo+IDIwMTIvNC82IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPjoKPiA+IEl0
-J3Mgc3RyYW5nZSwgSSBkbyBzZWUgaXQgaW4gbWluZSB3aXRoIHRoZSByYWRlb24gZHJpdmVyOgo+
-ID4gTWF5YmUgdGhlcmUgaXMgYSB2ZXJib3NpdHkgbGV2ZWwgdG8gc2V0IHNvbWV3aGVyZSwgbXkg
-WCBzZXJ2ZXIgaXMKPiA+IHN0YXJ0ZWQgd2l0aCAtdmVyYm9zZSwgbWF5YmUgeW91IGhhdmUgdG8g
-ZG8gdGhlIHNhbWUuIE9yCj4gCj4gSSBzdG9wcGVkIFggYW5kIGdhdmUgImV4ZWMgL3Vzci9iaW4v
-WCAtbm9saXN0ZW4gdGNwICIkQCIgLXZlcmJvc2UgMjAKPiAyPiAvdG1wL3N0YXJ0eC5sb2ciIGNv
-bW1hbmQgYnV0IHN0aWxsIHRoZXJlIGlzIG5vIGR1bXAgb2YgRURJRC4KCk1heWJlIHRoaXMgaXMg
-YmVjYXVzZSB0aGUgRURJRCBpcyBjb3JydXB0ZWQgYW5kIHRodXMgdGhlIGNoZWNrc3VtIGlzCmlu
-Y29ycmVjdC4KCj4gPiBHb29kLCBzbyBhdCBsZWFzdCB3ZSBoYXZlIGEgcmVmZXJlbmNlLiBOb3cg
-d2UgbmVlZCB0byBmaW5kIG91dCB3aGljaAo+ID4gYnl0ZXMgaW4geW91ciBvd24gRURJRCBoYXZl
-IGJlZW4gYWx0ZXJlZC4KPiA+IFlvdSBhbHNvIGhhdmUgdG8gb2Zmc2V0IHRoZSAzIG90aGVyIHZl
-cnRpY2FsIHRpbWluZ3M6Cj4gPiAkIHhyYW5kciAtLW5ld21vZGUgInRyeSIgNjguOTQgMTI4MCAx
-Mjk2IDEzNDQgMTQwOCA4MDAgODAxIDgwNCA4MTYgLUhTeW5jIC1WU3luYwo+IAo+IE5vdyBJIGdl
-dCB3aGF0IHlvdSB3YW50ZWQgbWUgdG8gZG8uIEkgdHJpZWQgdGhlIGNvbW1hbmQgYWJvdmUgYnV0
-Cj4gcmVzb2x1dGlvbiBsb29rcyBiYWQuIEljb25zLCBmb250cyBldGMuIGxvb2tzIGJsdXIgYW5k
-IGJpZ2dlci4KClZlcnkgb2RkLCBnaXZlbiB0aGF0IHRoaXMgaXMgdGhlIGV4YWN0IG1vZGVsaW5l
-IGNvbXB1dGVkIGZyb20gdGhlCm9yaWdpbmFsIEVESUQuCgo+ID4gVGhhdCdzIGJlY2F1c2UgeW91
-IGhhdmUgbG9hZGVkIHRoZSBlZXByb20gZHJpdmVyLiBFaXRoZXIgcHJvdmlkZSB0aGUKPiA+IGNv
-bnRlbnRzIG9mIGZpbGUgL3N5cy9idXMvaTJjL2RldmljZXMvaTJjLTIvMi0wMDUwL2VlcHJvbSBv
-ciB1bmxvYWQgdGhlCj4gPiBlZXByb20gZHJpdmVyIGFuZCBwcm92aWRlIHRoZSBvdXRwdXQgb2Yg
-dGhlIGkyY2R1bXAgY29tbWFuZCBhYm92ZS4KPiAKPiBTb3JyeSwgbXkgbWlzdGFrZS4gVGhpcyBp
-cyB0aGUgb3V0cHV0OiBodHRwOi8vcGFzdGViaW4uY29tL2FTVVNSN3dYCgpOb3RlIHRoZSBYWCBp
-biB0aGUgZHVtcCwgd2hpY2ggbWVhbnMgYW4gZXJyb3Igb2NjdXJyZWQgb24gdGhlIGJ1cy4KUGxl
-YXNlIGNoZWNrIHlvdXIga2VybmVsIGxvZ3MgdG8gc2VlIGlmIHRoZXJlIGlzIGFuIGVycm9yIG1l
-c3NhZ2UKY29ycmVzcG9uZGluZyB0byB0aGlzIGZhaWx1cmUuIElmIHRoZSBJMkMgYnVzIGlzIHVu
-cmVsaWFibGUsIHRoaXMgY291bGQKZXhwbGFpbiBpbiBwYXJ0IHRoZSB0cm91YmxlIHlvdSBoYWQu
-CgpDb21wYXJpbmcgdGhlIG9yaWdpbmFsIEVESUQgd2l0aCB5b3VyIHRhbXBlcmVkIGNvcHkgc2hv
-d3MgNiBieXRlcyB0aGF0CmFyZSBub3cgMHhmZiBpbnN0ZWFkIG9mIHRoZSB2YWx1ZSB0aGV5IHVz
-ZWQgdG8gaG9sZDoKCjB4MmI6IDB4MDEgLT4gMHhmZgoweDJlOiAweDAxIC0+IDB4ZmYKMHgyZjog
-MHgwMSAtPiAweGZmCjB4M2I6IDB4MjAgLT4gMHhmZgoweDNmOiAweDMwIC0+IDB4ZmYKMHg3ODog
-MHgzMyAtPiAweGZmCgpGV0lXLCB0aGlzIGRvZXNuJ3QgY29ycmVzcG9uZCB0byBhIHNwZWNpZmlj
-IHBhdHRlcm4gZm9yIHNlbnNvcnMtZGV0ZWN0LAp3aGljaCBhY2Nlc3NlcyB0aGUgZm9sbG93aW5n
-IG9mZnNldHMgZm9yIHByb2JpbmcgdGhpcyBzcGVjaWZpYyBhZGRyZXNzOgoweDAwLTB4MDcgYW5k
-IDB4M2QtMHgzZi4gU28gSSBzdGlsbCBoYXZlIG5vIGlkZWEgd2hhdCBoYXBwZW5lZCBhbmQgd2h5
-LgoKQXNzdW1pbmcgeW91ciBFRElEIEVFUFJPTSBpcyB3cml0YWJsZSwgdGhlIGZvbGxvd2luZyBj
-b21tYW5kcyAoYXMgcm9vdCkKc2hvdWxkIHJlc3RvcmUgaXRzIG9yaWdpbmFsIHN0YXRlOgoKIyBy
-bW1vZCBlZXByb20KIyBpMmNzZXQgLXkgMiAweDUwIDB4MmIgMHgwMSBiCiMgaTJjc2V0IC15IDIg
-MHg1MCAweDJlIDB4MDEgYgojIGkyY3NldCAteSAyIDB4NTAgMHgyZiAweDAxIGIKIyBpMmNzZXQg
-LXkgMiAweDUwIDB4M2IgMHgyMCBiCiMgaTJjc2V0IC15IDIgMHg1MCAweDNmIDB4MzAgYgojIGky
-Y3NldCAteSAyIDB4NTAgMHg3OCAweDMzIGIKCllvdSBjYW4gY2hlY2sgd2l0aCBpMmNkdW1wIGFm
-dGVyd2FyZC4gSSdkIGV2ZW4gY2hlY2sgYWZ0ZXIgZml4aW5nIHRoZQpmaXJzdCBieXRlLCBhcyB0
-aGVyZSBpcyBubyBwb2ludCBpbiBnb2luZyBvbiBpZiB0aGUgZmlyc3Qgd3JpdGUgZmFpbGVkCgpM
-ZXQncyBob3BlIGl0IGRvZXMgdGhlIHRyaWNrLi4uCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxp
-bmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3Jz
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+> Note the XX in the dump, which means an error occurred on the bus.
+> Please check your kernel logs to see if there is an error message
+> corresponding to this failure. If the I2C bus is unreliable, this could
+> explain in part the trouble you had.
+
+I read /var/log/dmesg.log and kern.log but I could not see an error or
+warning related to anything or I do not have the capability to see.
+
+> Comparing the original EDID with your tampered copy shows 6 bytes that
+> are now 0xff instead of the value they used to hold:
+>
+> 0x2b: 0x01 -> 0xff
+> 0x2e: 0x01 -> 0xff
+> 0x2f: 0x01 -> 0xff
+> 0x3b: 0x20 -> 0xff
+> 0x3f: 0x30 -> 0xff
+> 0x78: 0x33 -> 0xff
+>
+> FWIW, this doesn't correspond to a specific pattern for sensors-detect,
+> which accesses the following offsets for probing this specific address:
+> 0x00-0x07 and 0x3d-0x3f. So I still have no idea what happened and why.
+
+Maybe, this is a hardware problem and is a coincidence so that the
+time I use sensors-detect, the screen is "broken".
+
+> Assuming your EDID EEPROM is writable, the following commands (as root)
+> should restore its original state:
+>
+> # rmmod eeprom
+> # i2cset -y 2 0x50 0x2b 0x01 b
+> # i2cset -y 2 0x50 0x2e 0x01 b
+> # i2cset -y 2 0x50 0x2f 0x01 b
+> # i2cset -y 2 0x50 0x3b 0x20 b
+> # i2cset -y 2 0x50 0x3f 0x30 b
+> # i2cset -y 2 0x50 0x78 0x33 b
+>
+> You can check with i2cdump afterward. I'd even check after fixing the
+> first byte, as there is no point in going on if the first write failed
+
+Those commands worked without any error, I checked with i2cdump after
+first and last command. Rebooted but it is still using 1280x1023.
+
+I tried "radeon.modeset=0" parameter in grub and looked at
+/var/log/Xorg.0.log, it shows that
+
+II) RADEON(0): Panel Size from BIOS: 1280x1023
+[    16.704] (II) RADEON(0): BIOS provided dividers will be used.
+(WW) RADEON(0): LVDS Info:
+XRes: 1280, YRes: 1023, DotClock: 68940
+HBlank: 128, HOverPlus: 16, HSyncWidth: 248
+VBlank: 16, VOverPlus: 1, VSyncWidth: 3
+
+and with radeon enabled
+
+[   14.238369] [drm] Panel Size 1280x1023
+16.560] (II) RADEON(0): Output LVDS using initial mode 1280x1023
+
+If I use xrandr --outpur LVDS --mode "try", /var/log/Xorg.0.log says
+
+[  1644.860] (II) RADEON(0): Allocate new frame buffer 1280x800 stride 1280
+[  1644.860] (II) RADEON(0): VRAM usage limit set to 50547K
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
