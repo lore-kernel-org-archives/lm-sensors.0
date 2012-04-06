@@ -1,221 +1,474 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Date: Tue, 24 Apr 2012 13:36:07 +0000
-Subject: Re: [lm-sensors] [PATCH V2 0/6] thermal: exynos: Add kernel thermal support for exynos platform
-Message-Id: <CAK44p22u9Qgo9XLrTQL28xOrKAFCACsZ-6Nj9FqVM+=ZCKyWyg@mail.gmail.com>
+From: "Justin Piszcz" <jpiszcz@lucidpixels.com>
+Date: Fri, 06 Apr 2012 20:08:12 +0000
+Subject: [lm-sensors] Supermicro X7SPA-HF: in4 ALARM
+Message-Id: <01fa01cd1430$fed0b990$fc722cb0$@lucidpixels.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============4411141417684173628=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
-	<CAK44p23jiXn6mn-VsdXr3h9J5FfKztXMiqu=XjaF6nqLnRQAmA@mail.gmail.com>
-	<1334019502.2387.211.camel@rui.sh.intel.com>
-	<CAK44p20Bw9QACRqJc_s4Ri8E46OKOD9O_XpC2Gtd6avSy50dJQ@mail.gmail.com>
-	<1334542022.2387.325.camel@rui.sh.intel.com>
-In-Reply-To: <1334542022.2387.325.camel@rui.sh.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: lenb@kernel.org, linux-pm@lists.linux-foundation.org, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, mjg59@srcf.ucam.org, linux-acpi@vger.kernel.org, linaro-dev@lists.linaro.org, lm-sensors@lm-sensors.org, patches@linaro.org, eduardo.valentin@ti.com, durgadoss.r@intel.com
+To: lm-sensors@vger.kernel.org
 
-T24gMTYgQXByaWwgMjAxMiAwNzozNywgWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPiB3
-cm90ZToKPiBPbiDkuIksIDIwMTItMDQtMTEgYXQgMTg6MTcgKzA1MzAsIEFtaXQgS2FjaGhhcCB3
-cm90ZToKPj4gSGkgUnVpLAo+Pgo+PiBUaGFua3MgZm9yIGxvb2tpbmcgaW50byB0aGUgcGF0Y2hl
-cy4KPj4KPj4gT24gMTAgQXByaWwgMjAxMiAwNjoyOCwgWmhhbmcgUnVpIDxydWkuemhhbmdAaW50
-ZWwuY29tPiB3cm90ZToKPj4gPiBIaSwgQW1pdCwKPj4gPgo+PiA+IE9uIOS4iSwgMjAxMi0wNC0w
-NCBhdCAxMDowMiArMDUzMCwgQW1pdCBLYWNoaGFwIHdyb3RlOgo+PiA+PiBIaSBMZW4vUnVpLAo+
-PiA+Pgo+PiA+PiBBbnkgY29tbWVudCBvciBmZWVkYmFjayBmcm9tIHlvdXIgc2lkZSBhYm91dCB0
-aGUgc3RhdHVzIG9mIHRoaXMgcGF0Y2g/Cj4+ID4+IElzIGl0IG1lcmdlLWFibGUgb3IgbWFqb3Ig
-cmUtd29yayBpcyBuZWVkZWQ/IEkgaGF2ZSBmaXhlZCBtb3N0IG9mIHRoZQo+PiA+PiBjb21tZW50
-cyBpbiB0aGlzIHBhdGNoc2V0IGFuZCBjdXJyZW50bHkgd29ya2luZyBvbiBzb21lIG9mIHRoZSBt
-aW5vcgo+PiA+PiBjb21tZW50cyByZWNlaXZlZCBhbmQgd2lsbCBzdWJtaXQgdGhlbSBzaG9ydGx5
-Lgo+PiA+Pgo+PiA+IFNvcnJ5IGZvciB0aGUgbGF0ZSByZXNwb25zZS4KPj4gPgo+PiA+IEZpcnN0
-IG9mIGFsbCwgaXQgbWFrZXMgc2Vuc2UgdG8gbWUgdG8gaW50cm9kdWNlIHRoZSBnZW5lcmljIGNw
-dWZycQo+PiA+IGNvb2xpbmcgaW1wbGVtZW50YXRpb24uCj4+IG9rIHRoYW5rcwo+PiA+IEJ1dCBJ
-IHN0aWxsIGhhdmUgc29tZSBxdWVzdGlvbnMuCj4+ID4gSSB0aGluayB0aGUga2V5IHJlYXNvbiB3
-aHkgVEhFUk1BTF9UUklQX1NUQVRFX0lOU1RBTkNFIGlzIGludHJvZHVjZWQgaXMKPj4gPiB0aGF0
-IHRoZSBNT05JUk9SX1pPTkUgYW5kIFdBUk5fWk9ORSBvbiBleHlub3M0IGNhbiBub3QgZml0IGlu
-dG8gdGhlCj4+ID4gY3VycmVudCBwYXNzaXZlIGhhbmRsaW5nIGluIHRoZSBnZW5lcmljIHRoZXJt
-YWwgbGF5ZXIgd2VsbCwgcmlnaHQ/Cj4+ID4gZS5nLiB0aGVyZSBpcyBubyB0YzEvdGMyIG9uIGV4
-eW5vczQuCj4+ID4KPj4gPiBJZiB5ZXMsIGlzIGl0IHBvc3NpYmxlIHRoYXQgd2UgY2FuIGVuaGFu
-Y2UgdGhlIHBhc3NpdmUgY29vbGluZyB0bwo+PiA+IHN1cHBvcnQgdGhlIGdlbmVyaWMgcHJvY2Vz
-c29yIGNvb2xpbmc/Cj4+ID4gc2F5LCBpbnRyb2R1Y2UgYW5vdGhlciB3YXkgdG8gdGhyb3R0bGUg
-dGhlIHByb2Nlc3NvciBpbgo+PiA+IHRoZXJtYWxfem9uZV9kZXZpY2VfcGFzc2l2ZSB3aGVuIHRj
-MSBhbmQgdGMyIGFyZSBub3QgYXZhaWxhYmxlPwo+Pgo+PiBJIGFncmVlIHRoYXQgdGhpcyBuZXcg
-dHJpcCB0eXBlIGNvZGUgY2FuIGJlIG1vdmVkIGludG8gcGFzc2l2ZSB0cmlwCj4+IHR5cGUgd2hl
-biB0YzEgYW5kIHRjMiBhcmUgMC4gYnV0IHRoaXMgaXMgc3BlY2lhbCB0eXBlIG9mIGNvb2xpbmcK
-Pj4gZGV2aWNlcyBiZWhhdmlvdXIgd2hlcmUgb25seSBpbnN0YW5jZXMgb2YgdGhlIHNhbWUgY29v
-bGluZyBkZXZpY2UgaXMKPj4gYmluZGVkIHRvIGEgdHJpcCBwb2ludC4gVGhlIG9yZGVyIG9mIG1h
-cHBpbmcgaXMgdGhlIG9ubHkKPj4gZGlmZmVyZW50aWF0aW5nIGNyaXRlcmlhIGFuZCB0aGVyZSBh
-cmUgc29tZSBjaGVja3MgdXNlZCB0byBpbXBsZW1lbnQKPj4gdGhpcyBsaWtlCj4+IDEpIFRoZSB0
-cmlwIHBvaW50cyBzaG91bGQgYmUgaW4gYXNjZW5kaW5nIG9yZGVyLihUaGlzIGlzIG1pc3Npbmcg
-aW4gbXkKPj4gb3JpZ2luYWwgcGF0Y2gsIHNvIEkgYWRkZWQgYmVsb3cpCj4+IDIpIFRoZSBzZXRf
-Y3VyX3N0YXRlIGhhcyB0byBiZSBjYWxsZWQgZm9yIHRoZSBleGFjdCB0ZW1wIHJhbmdlIHNvCj4+
-IGdldF9jdXJfc3RhdGUoJnN0YXRlKSBhbmQgc2V0X2N1cl9zdGF0ZShzdGF0ZSArKy9zdGF0ZS0t
-KSBsb2dpYyBpcyBub3QKPj4gcG9zc2libGUuCj4+IDMpIHNldF9jdXJfc3RhdGUgaXMgY2FsbGVk
-IGFzIHNldF9jdXJfc3RhdGUoY2Rldl9pbnN0YW5jZSkuCj4KPiBEbyB5b3UgcmVhbGx5IG5lZWQg
-dHdvIFRIRVJNQUxfVFJJUF9TVEFURV9JTlNUQU5DRSB0cmlwIHBvaW50cz8KU29ycnkgZm9yIGxh
-dGUgcmVwbHkgYXMgSSB3YXMgb2ZmIGZvciB2YWNhdGlvbi4KWWVzIHdlIG5lZWQgMiB0cmlwIHBv
-aW50cyBvZiB0eXBlIFRIRVJNQUxfVFJJUF9TVEFURV9JTlNUQU5DRSBhcyB3ZQpuZWVkIGRpZmZl
-cmVudCBjb29saW5nIGZvciB0aGVzZSAyIHpvbmVzLiBBbnl3YXlzIERvIHlvdSBmZWVsIHRoYXQK
-dGhlc2Ugd2hvbGUvcGFydGlhbCBwYXRjaCBzZXJpZXMoY3B1ZnJlcSBjb29saW5nIGFwaSdzLCBu
-ZXcgdHJpcCAgdHlwZQpldGMpIGlzIGFjay1hYmxlIG9yIHNvbWUgbW9kaWZpY2F0aW9uIGlzIG5l
-ZWRlZD8KPgo+IEknbSBub3Qgc3VyZSBpZiBteSB1bmRlcnN0YW5kaW5nIGlzIHJpZ2h0LCBidXQg
-SU1PLCB3ZSBjYW4gaGF2ZSBvbmUKPiBUSEVSTUFMX1RSSVBfU1RBVEVfSU5TVEFOQ0Ugb25seSwg
-Zm9yIGJvdGggTU9OSVJPUl9aT05FIGFuZCBXQVJOX1pPTkUsCj4gYW5kIHRoZSB0cmlwIHRlbXBl
-cmF0dXJlIGVxdWFscyBNT05JUk9SX1pPTkUuCj4gVGhlIGNwdWZyZXEgY29vbGluZyBkZXZpY2Ug
-d2lsbCB3b3JrIGluIHRoZSBzYW1lIHdheSwgbm8/Cj4KPiB0aGFua3MsCj4gcnVpCj4KPj4gVGhl
-cmUgaXMgYSBjaGFuY2UgdGhhdCBwZW9wbGUgbWlnaHQgY29uZnVzZSB0aGF0IHRoZXNlIGNoZWNr
-cyBhcmUKPj4gYXBwbGljYWJsZSBmb3IgcGFzc2l2ZSB0cmlwIHR5cGVzIGFsc28gd2hpY2ggaXMg
-bm90IHRoZSBjYXNlIGhlcmUuCj4+Cj4+IEBAIC0xMTg3LDYgKzEyMjgsMjEgQEAgc3RydWN0IHRo
-ZXJtYWxfem9uZV9kZXZpY2UKPj4gKnRoZXJtYWxfem9uZV9kZXZpY2VfcmVnaXN0ZXIoY2hhciAq
-dHlwZSwKPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgdHotPm9wcy0+Z2V0X3RyaXBfdHlwZSh0
-eiwgY291bnQsICZ0cmlwX3R5cGUpOwo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAodHJp
-cF90eXBlID09IFRIRVJNQUxfVFJJUF9QQVNTSVZFKQo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCBwYXNzaXZlID0gMTsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAvKgo+
-PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKiBGb3IgVEhFUk1BTF9UUklQX1NUQVRFX0lOU1RB
-TkNFIHRyaXBzLCB0aGVybWFsIHpvbmUgc2hvdWxkCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAqIGJlIGluIGFzY2VuZGluZyBvcmRlci4KPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAqLwo+
-PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmICh0cmlwX3R5cGUgPT0gVEhFUk1BTF9UUklQX1NU
-QVRFX0lOU1RBTkNFKSB7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgdHot
-Pm9wcy0+Z2V0X3RyaXBfdGVtcCh0eiwgY291bnQsICZ0cmlwX3RlbXApOwo+PiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChmaXJzdF90cmlwX3RlbXAgPT0gMCkKPj4gKyDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBmaXJzdF90cmlwX3Rl
-bXAgPSB0cmlwX3RlbXA7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZWxz
-ZSBpZiAoZmlyc3RfdHJpcF90ZW1wIDwgdHJpcF90ZW1wKQo+PiArIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGZpcnN0X3RyaXBfdGVtcCA9IHRyaXBfdGVtcDsK
-Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBlbHNlIGlmIChmaXJzdF90cmlw
-X3RlbXAgPiB0cmlwX3RlbXApIHsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCBwcl93YXJuKCJab25lIHRyaXAgcG9pbnRzIHNob3VsZCBiZSBpbgo+PiBh
-c2NlbmRpbmcgb3JkZXJcbiIpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGdvdG8gdW5yZWdpc3RlcjsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCB9Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+PiDCoCDCoCDCoCDCoCB9
-Cj4+Cj4+IMKgIMKgIMKgIMKgIGlmICghcGFzc2l2ZSkKPj4KPj4gQW55d2F5IHRoZXJlIGlzIG90
-aGVyIGFsdGVybmF0aXZlIHdoZXJlIHRoaXMgbmV3IHRyaXAgdHlwZSBpcyBub3QKPj4gbmVlZGVk
-IGFuZCBJIGNhbiBqdXN0IHVzZSB0aGUgZXhpc3RpbmcgdHJpcCB0eXBlIFRIRVJNQUxfVFJJUF9B
-Q1RJVkUKPj4gYW5kIGNyZWF0ZSAyIHNlcGFyYXRlIGNvb2xpbmcgZGV2aWNlcyBmb3IgTU9OSVRP
-Ul9aT05FIGFuZCBXQVJOX1pPTkUuCj4+IEkgaGFkIHRob3VnaHQgdG8gbWFrZSB0aGlzIGdlbmVy
-aWMgYW5kIGp1c3QgdG8gbWFuYWdlIHdpdGggMSBjb29saW5nCj4+IGRldmljZS4KPj4gV2hhdCBp
-cyB5b3VyIHZpZXc/Cj4+Cj4+IFRoYW5rcywKPj4gQW1pdCBEYW5pZWwKPj4KPj4KPj4gPgo+PiA+
-IHRoYW5rcywKPj4gPiBydWkKPj4gPgo+PiA+PiBSZWdhcmRzLAo+PiA+PiBBbWl0IERhbmllbAo+
-PiA+Pgo+PiA+PiBPbiAxOSBNYXJjaCAyMDEyIDExOjQ3LCBBbWl0IERhbmllbCBLYWNoaGFwIDxh
-bWl0LmthY2hoYXBAbGluYXJvLm9yZz4gd3JvdGU6Cj4+ID4+ID4gQ2hhbmdlcyBzaW5jZSBWMToK
-Pj4gPj4gPiAqTW92ZWQgdGhlIHNlbnNvciBkcml2ZXIgdG8gZHJpdmVyL3RoZXJtYWwgZm9sZGVy
-IGZyb20gZHJpdmVyL2h3bW9uIGZvbGRlcgo+PiA+PiA+IMKgYXMgc3VnZ2VzdGVkIGJ5IE1hcmsg
-QnJvd24gYW5kIEd1ZW50ZXIgUm9lY2sKPj4gPj4gPiAqQWRkZWQgbm90aWZpZXIgc3VwcG9ydCB0
-byBub3RpZnkgdGhlIHJlZ2lzdGVyZWQgZHJpdmVycyBvZiBhbnkgY3B1IGNvb2xpbmcKPj4gPj4g
-PiDCoGFjdGlvbi4gVGhlIGRyaXZlciBjYW4gbW9kaWZ5IHRoZSBkZWZhdWx0IGNvb2xpbmcgYmVo
-YXZpb3VyKGVnIHNldCBkaWZmZXJlbnQKPj4gPj4gPiDCoG1heCBjbGlwIGZyZXF1ZW5jeSkuCj4+
-ID4+ID4gKlRoZSBwZXJjZW50YWdlIGJhc2VkIGZyZXF1ZW5jeSByZXBsYWNlZCB3aXRoIGFic29s
-dXRlIGNsaXBwZWQgZnJlcXVlbmN5Lgo+PiA+PiA+ICpTb21lIG1vcmUgY29uZGl0aW9uYWwgY2hl
-Y2tzIHdoZW4gc2V0dGluZyBtYXggZnJlcXVlbmN5Lgo+PiA+PiA+ICpSZW5hbWVkIHRoZSBuZXcg
-dHJpcCB0eXBlIFRIRVJNQUxfVFJJUF9TVEFURV9BQ1RJVkUgdG8KPj4gPj4gPiDCoFRIRVJNQUxf
-VFJJUF9TVEFURV9JTlNUQU5DRQo+PiA+PiA+ICpNYW55IHJldmlldyBjb21tZW50cyBmcm9tIFIs
-IER1cmdhZG9zcyA8ZHVyZ2Fkb3NzLnJAaW50ZWwuY29tPiBhbmQKPj4gPj4gPiDCoGVkdWFyZG8u
-dmFsZW50aW5AdGkuY29tIGltcGxlbWVudGVkLgo+PiA+PiA+ICpSZW1vdmVkIGNvb2xpbmcgc3Rh
-dHMgdGhyb3VnaCBkZWJ1Z2ZzIHBhdGNoCj4+ID4+ID4gKlRoZSBWMSBiYXNlZCBjYW4gYmUgZm91
-bmQgaGVyZSwKPj4gPj4gPiDCoGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDEyLzIvMjIvMTIzCj4+
-ID4+ID4gwqBodHRwOi8vbGttbC5vcmcvbGttbC8yMDEyLzMvMy8zMgo+PiA+PiA+Cj4+ID4+ID4g
-Q2hhbmdlcyBzaW5jZSBSRkM6Cj4+ID4+ID4gKkNoYW5nZWQgdGhlIGNwdSBjb29saW5nIHJlZ2lz
-dHJhdGlvbi91bnJlZ2lzdHJhdGlvbiBBUEkncyB0byBpbnN0YW5jZSBiYXNlZAo+PiA+PiA+ICpD
-aGFuZ2VkIHRoZSBTVEFURV9BQ1RJVkUgdHJpcCB0eXBlIHRvIHBhc3MgY29ycmVjdCBpbnN0YW5j
-ZSBpZAo+PiA+PiA+ICpBZGRpbmcgc3VwcG9ydCB0byByZXN0b3JlIGJhY2sgdGhlIHBvbGljeS0+
-bWF4X2ZyZXEgYWZ0ZXIgZG9pbmcgZnJlcXVlbmN5Cj4+ID4+ID4gwqBjbGlwcGluZy4KPj4gPj4g
-PiAqTW92ZWQgdGhlIHRyaXAgY29vbGluZyBzdGF0cyBmcm9tIHN5c2ZzIG5vZGUgdG8gZGVidWdm
-cyBub2RlIGFzIHN1Z2dlc3RlZAo+PiA+PiA+IMKgYnkgR3JlZyBLSCBncmVnQGtyb2FoLmNvbQo+
-PiA+PiA+ICpJbmNvcnBvcmF0ZWQgc2V2ZXJhbCByZXZpZXcgY29tbWVudHMgZnJvbSBlZHVhcmRv
-LnZhbGVudGluQHRpLmNvbQo+PiA+PiA+ICpNb3ZlZCB0aGUgVGVtcGVyYXR1cmUgc2Vuc29yIGRy
-aXZlciBmcm9tIGRyaXZlci9od21vbi8gdG8gZHJpdmVyL21mZAo+PiA+PiA+IMKgYXMgZGlzY3Vz
-c2VkIHdpdGggR3VlbnRlciBSb2VjayA8Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20+IGFuZAo+
-PiA+PiA+IMKgRG9uZ2dldW4gS2ltIDxkZzc3LmtpbUBzYW1zdW5nLmNvbT4gKGh0dHBzOi8vbGtt
-bC5vcmcvbGttbC8yMDEyLzEvNS83KQo+PiA+PiA+ICpTb21lIGNoYW5nZXMgYWNjb3JkaW5nIHRv
-IHRoZSBjaGFuZ2VzIGluIGNvbW1vbiBjcHUgY29vbGluZyBBUElzCj4+ID4+ID4gKlRoZSBSRkMg
-YmFzZWQgcGF0Y2hlcyBjYW4gYmUgZm91bmQgaGVyZSwKPj4gPj4gPiDCoGh0dHBzOi8vbGttbC5v
-cmcvbGttbC8yMDExLzEyLzEzLzE4Ngo+PiA+PiA+IMKgaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIw
-MTEvMTIvMjEvMTY5Cj4+ID4+ID4KPj4gPj4gPgo+PiA+PiA+IEJyaWVmIERlc2NyaXB0aW9uOgo+
-PiA+PiA+Cj4+ID4+ID4gMSkgVGhlIGdlbmVyaWMgY29vbGluZyBkZXZpY2VzIGNvZGUgaXMgcGxh
-Y2VkIGluc2lkZSBkcml2ZXIvdGhlcm1hbC8qIGFzCj4+ID4+ID4gcGxhY2luZyBpbnNpZGUgYWNw
-aSBmb2xkZXIgd2lsbCBuZWVkIHVuLW5lY2Vzc2FyeSBlbmFibGluZyBvZiBhY3BpIGNvZGUuIFRo
-aXMKPj4gPj4gPiBjb2RlcyBpcyBhcmNoaXRlY3R1cmUgaW5kZXBlbmRlbnQuCj4+ID4+ID4KPj4g
-Pj4gPiAyKSBUaGlzIHBhdGNoc2V0IGFkZHMgYSBuZXcgdHJpcCB0eXBlIFRIRVJNQUxfVFJJUF9T
-VEFURV9JTlNUQU5DRSB3aGljaCBwYXNzZXMKPj4gPj4gPiBjb29saW5nIGRldmljZSBpbnN0YW5j
-ZSBudW1iZXIgYW5kIG1heSBiZSBoZWxwZnVsIGZvciBjcHVmcmVxIGNvb2xpbmcgZGV2aWNlcwo+
-PiA+PiA+IHRvIHRha2UgdGhlIGNvcnJlY3QgY29vbGluZyBhY3Rpb24uIFRoaXMgdHJpcCB0eXBl
-IGF2b2lkcyB0aGUgdGVtcGVyYXR1cmUKPj4gPj4gPiBjb21wYXJpc2lvbiBjaGVjayBhZ2FpbiBp
-bnNpZGUgdGhlIGNvb2xpbmcgaGFuZGxlci4KPj4gPj4gPgo+PiA+PiA+IDMpIFRoaXMgcGF0Y2hz
-ZXQgYWRkcyBnZW5lcmljIGNwdSBjb29saW5nIGxvdyBsZXZlbCBpbXBsZW1lbnRhdGlvbiB0aHJv
-dWdoCj4+ID4+ID4gZnJlcXVlbmN5IGNsaXBwaW5nIGFuZCBjcHUgaG90cGx1Zy4gSW4gZnV0dXJl
-LCBvdGhlciBjcHUgcmVsYXRlZCBjb29saW5nCj4+ID4+ID4gZGV2aWNlcyBtYXkgYmUgYWRkZWQg
-aGVyZS4gQW4gQUNQSSB2ZXJzaW9uIG9mIHRoaXMgYWxyZWFkeSBleGlzdHMKPj4gPj4gPiAoZHJp
-dmVycy9hY3BpL3Byb2Nlc3Nvcl90aGVybWFsLmMpLiBCdXQgdGhpcyB3aWxsIGJlIHVzZWZ1bCBm
-b3IgcGxhdGZvcm1zCj4+ID4+ID4gbGlrZSBBUk0gdXNpbmcgdGhlIGdlbmVyaWMgdGhlcm1hbCBp
-bnRlcmZhY2UgYWxvbmcgd2l0aCB0aGUgZ2VuZXJpYyBjcHUKPj4gPj4gPiBjb29saW5nIGRldmlj
-ZXMuIFRoZSBjb29saW5nIGRldmljZSByZWdpc3RyYXRpb24gQVBJJ3MgcmV0dXJuIGNvb2xpbmcg
-ZGV2aWNlCj4+ID4+ID4gcG9pbnRlcnMgd2hpY2ggY2FuIGJlIGVhc2lseSBiaW5kZWQgd2l0aCB0
-aGUgdGhlcm1hbCB6b25lIHRyaXAgcG9pbnRzLgo+PiA+PiA+IFRoZSBpbXBvcnRhbnQgQVBJcyBl
-eHBvc2VkIGFyZSwKPj4gPj4gPiDCoCBhKXN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpj
-cHVmcmVxX2Nvb2xpbmdfcmVnaXN0ZXIoCj4+ID4+ID4gwqAgwqAgwqAgwqBzdHJ1Y3QgZnJlcV9j
-bGlwX3RhYmxlICp0YWJfcHRyLCB1bnNpZ25lZCBpbnQgdGFiX3NpemUsCj4+ID4+ID4gwqAgwqAg
-wqAgwqBjb25zdCBzdHJ1Y3QgY3B1bWFzayAqbWFza192YWwpCj4+ID4+ID4gwqAgYil2b2lkIGNw
-dWZyZXFfY29vbGluZ191bnJlZ2lzdGVyKHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpj
-ZGV2KQo+PiA+PiA+Cj4+ID4+ID4gNCkgU2Ftc3VuZyBleHlub3MgcGxhdGZvcm0gdGhlcm1hbCBp
-bXBsZW1lbnRhdGlvbiBpcyBkb25lIHVzaW5nIHRoZSBnZW5lcmljCj4+ID4+ID4gY3B1IGNvb2xp
-bmcgQVBJcyBhbmQgdGhlIG5ldyB0cmlwIHR5cGUuIFRoZSB0ZW1wZXJhdHVyZSBzZW5zb3IgZHJp
-dmVyIHByZXNlbnQKPj4gPj4gPiBpbiB0aGUgaHdtb24gZm9sZGVyKHJlZ2lzdGVyZWQgYXMgaHdt
-b24gZHJpdmVyKSBpcyBtb3ZlZCB0byB0aGVybWFsIGZvbGRlcgo+PiA+PiA+IGFuZCByZWdpc3Rl
-cmVkIGFzIGEgdGhlcm1hbCBkcml2ZXIuCj4+ID4+ID4KPj4gPj4gPiBBbGwgdGhpcyBwYXRjaHNl
-dCBpcyBiYXNlZCBvbiBLZXJuZWwgdmVyc2lvbiAzLjMtcmM3Cj4+ID4+ID4KPj4gPj4gPiBBIHNp
-bXBsZSBkYXRhL2NvbnRyb2wgZmxvdyBkaWFncmFtcyBpcyBzaG93biBiZWxvdywKPj4gPj4gPgo+
-PiA+PiA+IENvcmUgTGludXggdGhlcm1hbCA8LS0tLS0+IMKgRXh5bm9zIHRoZXJtYWwgaW50ZXJm
-YWNlIDwtLS0tLSBUZW1wZXJhdHVyZSBTZW5zb3IKPj4gPj4gPiDCoCDCoCDCoCDCoCDCoHwgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfAo+PiA+PiA+IMKgIMKgIMKg
-IMKgIFx8LyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwKPj4gPj4g
-PiDCoENwdWZyZXEgY29vbGluZyBkZXZpY2UgPC0tLS0tLS0tLS0tLS0tLQo+PiA+PiA+Cj4+ID4+
-ID4KPj4gPj4gPiBBbWl0IERhbmllbCBLYWNoaGFwICg2KToKPj4gPj4gPiDCoHRoZXJtYWw6IEFk
-ZCBhIG5ldyB0cmlwIHR5cGUgdG8gdXNlIGNvb2xpbmcgZGV2aWNlIGluc3RhbmNlIG51bWJlcgo+
-PiA+PiA+IMKgdGhlcm1hbDogQWRkIGdlbmVyaWMgY3B1ZnJlcSBjb29saW5nIGltcGxlbWVudGF0
-aW9uCj4+ID4+ID4gwqB0aGVybWFsOiBBZGQgZ2VuZXJpYyBjcHVob3RwbHVnIGNvb2xpbmcgaW1w
-bGVtZW50YXRpb24KPj4gPj4gPiDCoGh3bW9uOiBleHlub3M0OiBNb3ZlIHRoZXJtYWwgc2Vuc29y
-IGRyaXZlciB0byBkcml2ZXIvdGhlcm1hbAo+PiA+PiA+IMKgIMKgZGlyZWN0b3J5Cj4+ID4+ID4g
-wqB0aGVybWFsOiBleHlub3M0OiBSZWdpc3RlciB0aGUgdG11IHNlbnNvciB3aXRoIHRoZSBrZXJu
-ZWwgdGhlcm1hbAo+PiA+PiA+IMKgIMKgbGF5ZXIKPj4gPj4gPiDCoEFSTTogZXh5bm9zNDogQWRk
-IHRoZXJtYWwgc2Vuc29yIGRyaXZlciBwbGF0Zm9ybSBkZXZpY2Ugc3VwcG9ydAo+PiA+PiA+Cj4+
-ID4+ID4gwqBEb2N1bWVudGF0aW9uL2h3bW9uL2V4eW5vczRfdG11IMKgIMKgIMKgIMKgIMKgIHwg
-wqAgODEgLS0tCj4+ID4+ID4gwqBEb2N1bWVudGF0aW9uL3RoZXJtYWwvY3B1LWNvb2xpbmctYXBp
-LnR4dCB8IMKgIDc2ICsrKwo+PiA+PiA+IMKgRG9jdW1lbnRhdGlvbi90aGVybWFsL2V4eW5vczRf
-dG11IMKgIMKgIMKgIMKgIHwgwqAgNTIgKysKPj4gPj4gPiDCoERvY3VtZW50YXRpb24vdGhlcm1h
-bC9zeXNmcy1hcGkudHh0IMKgIMKgIMKgIHwgwqAgwqA0ICstCj4+ID4+ID4gwqBhcmNoL2FybS9t
-YWNoLWV4eW5vcy9LY29uZmlnIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCAxMSArCj4+ID4+ID4g
-wqBhcmNoL2FybS9tYWNoLWV4eW5vcy9NYWtlZmlsZSDCoCDCoCDCoCDCoCDCoCDCoCB8IMKgIMKg
-MSArCj4+ID4+ID4gwqBhcmNoL2FybS9tYWNoLWV4eW5vcy9jbG9jay5jIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgfCDCoCDCoDQgKwo+PiA+PiA+IMKgYXJjaC9hcm0vbWFjaC1leHlub3MvZGV2LXRtdS5j
-IMKgIMKgIMKgIMKgIMKgIMKgfCDCoCAzOSArKwo+PiA+PiA+IMKgYXJjaC9hcm0vbWFjaC1leHlu
-b3MvaW5jbHVkZS9tYWNoL2lycXMuaCDCoHwgwqAgwqAyICsKPj4gPj4gPiDCoGFyY2gvYXJtL21h
-Y2gtZXh5bm9zL2luY2x1ZGUvbWFjaC9tYXAuaCDCoCB8IMKgIMKgMSArCj4+ID4+ID4gwqBhcmNo
-L2FybS9tYWNoLWV4eW5vcy9tYWNoLW9yaWdlbi5jIMKgIMKgIMKgIMKgfCDCoCDCoDEgKwo+PiA+
-PiA+IMKgYXJjaC9hcm0vcGxhdC1zYW1zdW5nL2luY2x1ZGUvcGxhdC9kZXZzLmggfCDCoCDCoDEg
-Kwo+PiA+PiA+IMKgZHJpdmVycy9od21vbi9LY29uZmlnIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIHwgwqAgMTAgLQo+PiA+PiA+IMKgZHJpdmVycy9od21vbi9NYWtlZmlsZSDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwgwqAgwqAxIC0KPj4gPj4gPiDCoGRyaXZlcnMvaHdtb24v
-ZXh5bm9zNF90bXUuYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB8IMKgNTE0IC0tLS0tLS0tLS0tLS0t
-LS0tLS0KPj4gPj4gPiDCoGRyaXZlcnMvdGhlcm1hbC9LY29uZmlnIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIHwgwqAgMjEgKwo+PiA+PiA+IMKgZHJpdmVycy90aGVybWFsL01ha2VmaWxlIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDIgKwo+PiA+PiA+IMKgZHJpdmVycy90aGVy
-bWFsL2NwdV9jb29saW5nLmMgwqAgwqAgwqAgwqAgwqAgwqAgfCDCoDUyOSArKysrKysrKysrKysr
-KysrKysrCj4+ID4+ID4gwqBkcml2ZXJzL3RoZXJtYWwvZXh5bm9zNF90aGVybWFsLmMgwqAgwqAg
-wqAgwqAgfCDCoDc5MCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+PiA+PiA+IMKgZHJp
-dmVycy90aGVybWFsL3RoZXJtYWxfc3lzLmMgwqAgwqAgwqAgwqAgwqAgwqAgfCDCoCA0NSArKy0K
-Pj4gPj4gPiDCoGluY2x1ZGUvbGludXgvY3B1X2Nvb2xpbmcuaCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCB8IMKgIDc4ICsrKwo+PiA+PiA+IMKgaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kYXRhL2V4eW5v
-czRfdG11LmggfCDCoCDCoDcgKwo+PiA+PiA+IMKgaW5jbHVkZS9saW51eC90aGVybWFsLmggwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfCDCoCDCoDEgKwo+PiA+PiA+IMKgMjMgZmlsZXMgY2hh
-bmdlZCwgMTY2MCBpbnNlcnRpb25zKCspLCA2MTEgZGVsZXRpb25zKC0pCj4+ID4+ID4gwqBkZWxl
-dGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9od21vbi9leHlub3M0X3RtdQo+PiA+PiA+IMKg
-Y3JlYXRlIG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24vdGhlcm1hbC9jcHUtY29vbGluZy1hcGku
-dHh0Cj4+ID4+ID4gwqBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi90aGVybWFsL2V4
-eW5vczRfdG11Cj4+ID4+ID4gwqBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vbWFjaC1leHlu
-b3MvZGV2LXRtdS5jCj4+ID4+ID4gwqBkZWxldGUgbW9kZSAxMDA2NDQgZHJpdmVycy9od21vbi9l
-eHlub3M0X3RtdS5jCj4+ID4+ID4gwqBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy90aGVybWFs
-L2NwdV9jb29saW5nLmMKPj4gPj4gPiDCoGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL3RoZXJt
-YWwvZXh5bm9zNF90aGVybWFsLmMKPj4gPj4gPiDCoGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRl
-L2xpbnV4L2NwdV9jb29saW5nLmgKPj4gPj4gPgo+PiA+Cj4+ID4KPgo+CgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlz
-dApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+This is a multipart message in MIME format.
+
+--===============4411141417684173628==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_01FB_01CD140F.77BF67B0"
+Content-language: en-us
+
+This is a multipart message in MIME format.
+
+------=_NextPart_000_01FB_01CD140F.77BF67B0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Hello,
+
+Was curious why the max voltage does not show up properly for in4 =
+(VDIMM)
+for this X7SPA-HF using lm sensors 3.3.1 or 3.3.2?
+
+On the sensor reading page for IPMI:
+VDIMM	Normal	1.84 Volts
+
+This is with lm_sensors:
+
+--
+
+$ sensors
+w83627dhg-isa-0ca0
+Adapter: ISA adapter
+Vcore:        +1.16 V  (min =3D  +0.72 V, max =3D  +1.39 V)
+Vnbcore:      +1.04 V  (min =3D  +0.94 V, max =3D  +1.16 V)
+AVCC:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
++3.3V:        +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+VDIMM:        +1.84 V  (min =3D  +1.62 V, max =3D  +0.00 V)  ALARM
++5V:          +1.25 V  (min =3D  +1.13 V, max =3D  +1.38 V)
++12V:         +0.75 V  (min =3D  +0.67 V, max =3D  +0.83 V)
+3VSB:         +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+Vbat:         +3.06 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+SYS Temp:     +42.0=B0C  (high =3D +75.0=B0C, hyst =3D +70.0=B0C)  =
+sensor =3D thermistor
+CPU Temp:     +40.5=B0C  (high =3D +90.0=B0C, hyst =3D +87.0=B0C)  =
+sensor =3D diode
+Case Temp:    +24.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  =
+sensor =3D diode
+$ sensors --version
+sensors version 3.3.1 with libsensors version 3.3.1
+
+lm_sensors-3.3.2$ prog/sensors/sensors --version
+sensors version 3.3.2 with libsensors version 3.3.1
+
+w83627dhg-isa-0ca0
+Adapter: ISA adapter
+Vcore:        +1.16 V  (min =3D  +0.72 V, max =3D  +1.39 V)
+Vnbcore:      +1.04 V  (min =3D  +0.94 V, max =3D  +1.16 V)
+AVCC:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
++3.3V:        +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+VDIMM:        +1.84 V  (min =3D  +1.62 V, max =3D  +0.00 V)  ALARM
++5V:          +1.25 V  (min =3D  +1.13 V, max =3D  +1.38 V)
++12V:         +0.75 V  (min =3D  +0.67 V, max =3D  +0.83 V)
+3VSB:         +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+Vbat:         +3.06 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+SYS Temp:     +42.0=B0C  (high =3D +75.0=B0C, hyst =3D +70.0=B0C)  =
+sensor =3D thermistor
+CPU Temp:     +40.5=B0C  (high =3D +90.0=B0C, hyst =3D +87.0=B0C)  =
+sensor =3D CPU diode
+Case Temp:    +24.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  =
+sensor =3D CPU diode
+
+--
+
+I also tried hardcoding in4_{min,max}:
+
+$ cat /etc/sensors3.conf
+
+chip "w83627ehf-*" "w83627dhg-*" "w83667hg-*" "nct6775-*" "nct6776-*"
+
+    label in0 "Vcore"
+    label in1 "Vnbcore"
+    label in2 "AVCC"
+    label in3 "+3.3V"
+    label in4 "VDIMM"
+    label in5 "+5V"
+    label in6 "+12V"
+    label in7 "3VSB"
+    label in8 "Vbat"
+    label temp1 "SYS Temp"
+    label temp2 "CPU Temp"
+    label temp3 "Case Temp"
+
+    set in2_min  3.3 * 0.90
+    set in2_max  3.3 * 1.10
+    set in3_min  3.3 * 0.90
+    set in3_max  3.3 * 1.10
+# =
+http://lists.lm-sensors.org/pipermail/lm-sensors/2010-November/030368.htm=
+l
+    set in4_min  1.62
+    set in4_max  1.98
+    set in7_min  3.3 * 0.90
+    set in7_max  3.3 * 1.10
+    set in8_min  3.0 * 0.90
+    set in8_max  3.0 * 1.10
+
+    ignore fan1
+    ignore fan2
+    ignore fan3
+    ignore fan4
+    ignore fan5
+    ignore cpu0_vid
+    ignore intrusion0
+
+Justin.
+
+------=_NextPart_000_01FB_01CD140F.77BF67B0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Diso-8859-1">
+<META NAME=3D"Generator" CONTENT=3D"MS Exchange Server version =
+14.02.5004.000">
+<TITLE>Supermicro X7SPA-HF: in4 ALARM</TITLE>
+</HEAD>
+<BODY>
+<!-- Converted from text/rtf format -->
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Hello,</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Was curious =
+why</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">the</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">max</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri"> voltage</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri"> does not show up properly</FONT></SPAN><SPAN =
+LANG=3D"en-us"> <FONT FACE=3D"Calibri">for in4 =
+(VDIMM)</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT FACE=3D"Calibri">for =
+this</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">X7SPA-HF</FONT></SPAN><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri"></FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">using lm sensors 3.3.1 or 3.3.2?</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">On the sensor =
+reading page for IPMI:</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">VDIMM&nbsp;&nbsp; Normal&nbsp; 1.84 =
+Volts</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">This is with =
+lm_sensors:</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">--</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">$ =
+sensors</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">w83627dhg-isa-0ca0</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Adapter: ISA =
+adapter</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Vcore:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.16 =
+V&nbsp; (min =3D&nbsp; +0.72 V, max =3D&nbsp; +1.39 V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Vnbcore:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.04 V&nbsp; =
+(min =3D&nbsp; +0.94 V, max =3D&nbsp; +1.16 V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">AVCC:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++3.34 V&nbsp; (min =3D&nbsp; +2.98 V, max =3D&nbsp; +3.63 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">+3.3V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.34 =
+V&nbsp; (min =3D&nbsp; +2.98 V, max =3D&nbsp; +3.63 V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">VDIMM:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.84 =
+V&nbsp; (min =3D&nbsp; +1.62 V, max =3D&nbsp; +0.00 V)&nbsp; =
+ALARM</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">+5V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; +1.25 V&nbsp; (min =3D&nbsp; +1.13 V, max =3D&nbsp; +1.38 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">+12V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++0.75 V&nbsp; (min =3D&nbsp; +0.67 V, max =3D&nbsp; +0.83 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">3VSB:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++3.30 V&nbsp; (min =3D&nbsp; +2.98 V, max =3D&nbsp; +3.63 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Vbat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++3.06 V&nbsp; (min =3D&nbsp; +2.70 V, max =3D&nbsp; +3.30 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">SYS =
+Temp:&nbsp;&nbsp;&nbsp;&nbsp; +42.0=B0C&nbsp; (high =3D +75.0=B0C, hyst =
+=3D +70.0=B0C)&nbsp; sensor =3D thermistor</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">CPU =
+Temp:&nbsp;&nbsp;&nbsp;&nbsp; +40.5=B0C&nbsp; (high =3D +90.0=B0C, hyst =
+=3D +87.0=B0C)&nbsp; sensor =3D diode</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Case =
+Temp:&nbsp;&nbsp;&nbsp; +24.0=B0C&nbsp; (high =3D +80.0=B0C, hyst =3D =
++75.0=B0C)&nbsp; sensor =3D diode</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">$ sensors =
+--version</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">sensors version =
+3.3.1 with libsensors version 3.3.1</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">lm_sensors-3.3.2$ prog/sensors/sensors =
+--version</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">sensors version =
+3.3.2 with libsensors version 3.3.1</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">w83627dhg-isa-0ca0</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Adapter: ISA =
+adapter</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Vcore:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.16 =
+V&nbsp; (min =3D&nbsp; +0.72 V, max =3D&nbsp; +1.39 V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Vnbcore:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.04 V&nbsp; =
+(min =3D&nbsp; +0.94 V, max =3D&nbsp; +1.16 V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">AVCC:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++3.34 V&nbsp; (min =3D&nbsp; +2.98 V, max =3D&nbsp; +3.63 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">+3.3V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +3.34 =
+V&nbsp; (min =3D&nbsp; +2.98 V, max =3D&nbsp; +3.63 V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">VDIMM:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; +1.84 =
+V&nbsp; (min =3D&nbsp; +1.62 V, max =3D&nbsp; +0.00 V)&nbsp; =
+ALARM</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">+5V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbs=
+p; +1.25 V&nbsp; (min =3D&nbsp; +1.13 V, max =3D&nbsp; +1.38 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">+12V:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++0.75 V&nbsp; (min =3D&nbsp; +0.67 V, max =3D&nbsp; +0.83 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">3VSB:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++3.30 V&nbsp; (min =3D&nbsp; +2.98 V, max =3D&nbsp; +3.63 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Vbat:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; =
++3.06 V&nbsp; (min =3D&nbsp; +2.70 V, max =3D&nbsp; +3.30 =
+V)</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">SYS =
+Temp:&nbsp;&nbsp;&nbsp;&nbsp; +42.0=B0C&nbsp; (high =3D +75.0=B0C, hyst =
+=3D +70.0=B0C)&nbsp; sensor =3D thermistor</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">CPU =
+Temp:&nbsp;&nbsp;&nbsp;&nbsp; +40.5=B0C&nbsp; (high =3D +90.0=B0C, hyst =
+=3D +87.0=B0C)&nbsp; sensor =3D CPU diode</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">Case =
+Temp:&nbsp;&nbsp;&nbsp; +24.5=B0C&nbsp; (high =3D +80.0=B0C, hyst =3D =
++75.0=B0C)&nbsp; sensor =3D CPU diode</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">--</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">I also tried =
+hardcoding in4_{min,max}:</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">$</FONT></SPAN><SPAN LANG=3D"en-us"> <FONT =
+FACE=3D"Calibri">cat /etc/sensors3.conf</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri">chip =
+&quot;w83627ehf-*&quot; &quot;w83627dhg-*&quot; &quot;w83667hg-*&quot; =
+&quot;nct6775-*&quot; &quot;nct6776-*&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in0 =
+&quot;Vcore&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in1 =
+&quot;Vnbcore&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in2 =
+&quot;AVCC&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in3 =
+&quot;+3.3V&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in4 =
+&quot;VDIMM&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in5 =
+&quot;+5V&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in6 =
+&quot;+12V&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in7 =
+&quot;3VSB&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label in8 =
+&quot;Vbat&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label temp1 &quot;SYS =
+Temp&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label temp2 &quot;CPU =
+Temp&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; label temp3 &quot;Case =
+Temp&quot;</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in2_min&nbsp; 3.3 * =
+0.90</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in2_max&nbsp; 3.3 * =
+1.10</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in3_min&nbsp; 3.3 * =
+0.90</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in3_max&nbsp; 3.3 * =
+1.10</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT FACE=3D"Calibri"># <A =
+HREF=3D"http://lists.lm-sensors.org/pipermail/lm-sensors/2010-November/03=
+0368.html">http://lists.lm-sensors.org/pipermail/lm-sensors/2010-November=
+/030368.html</A></FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in4_min&nbsp; =
+1.62</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in4_max&nbsp; =
+1.98</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in7_min&nbsp; 3.3 * =
+0.90</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in7_max&nbsp; 3.3 * =
+1.10</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in8_min&nbsp; 3.0 * =
+0.90</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; set in8_max&nbsp; 3.0 * =
+1.10</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore fan1</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore fan2</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore fan3</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore fan4</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore fan5</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore cpu0_vid</FONT></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">&nbsp;&nbsp;&nbsp; ignore intrusion0</FONT></SPAN><SPAN =
+LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"></SPAN></P>
+
+<P DIR=3DLTR><SPAN LANG=3D"en-us"><FONT =
+FACE=3D"Calibri">Justin.</FONT></SPAN><SPAN LANG=3D"en-us"></SPAN></P>
+
+</BODY>
+</HTML>
+------=_NextPart_000_01FB_01CD140F.77BF67B0--
+
+
+
+--===============4411141417684173628==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============4411141417684173628==--
+
