@@ -1,7 +1,7 @@
-From: "Justin Piszcz" <jpiszcz@lucidpixels.com>
-Date: Fri, 06 Apr 2012 20:14:58 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 06 Apr 2012 20:19:21 +0000
 Subject: Re: [lm-sensors] Supermicro X7SPA-HF: in4 ALARM
-Message-Id: <021301cd1431$f1023860$d306a920$@lucidpixels.com>
+Message-Id: <20120406221921.0cba1160@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <01fa01cd1430$fed0b990$fc722cb0$@lucidpixels.com>
 In-Reply-To: <01fa01cd1430$fed0b990$fc722cb0$@lucidpixels.com>
@@ -10,36 +10,65 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Justin Piszcz [mailto:jpiszcz@lucidpixels.com] 
-Sent: Friday, April 06, 2012 4:08 PM
-To: lm-sensors@lm-sensors.org
-Subject: Supermicro X7SPA-HF: in4 ALARM
-
---
-
-Hi,
-
-After a reboot, it shows up, bug or sensor issue?
-
-w83627dhg-isa-0ca0
-Adapter: ISA adapter
-Vcore:        +1.16 V  (min =  +0.72 V, max =  +1.39 V)
-Vnbcore:      +1.04 V  (min =  +0.94 V, max =  +1.16 V)
-AVCC:         +3.34 V  (min =  +2.98 V, max =  +3.63 V)
-+3.3V:        +3.34 V  (min =  +2.98 V, max =  +3.63 V)
-VDIMM:        +1.83 V  (min =  +1.62 V, max =  +1.98 V)
-+5V:          +1.25 V  (min =  +1.13 V, max =  +1.38 V)
-+12V:         +0.75 V  (min =  +0.67 V, max =  +0.83 V)
-3VSB:         +3.30 V  (min =  +2.98 V, max =  +3.63 V)
-Vbat:         +3.06 V  (min =  +2.70 V, max =  +3.30 V)
-SYS Temp:     +42.0C  (high = +75.0C, hyst = +70.0C)  sensor = thermistor
-CPU Temp:     +41.0C  (high = +90.0C, hyst = +87.0C)  sensor = diode
-Case Temp:    +25.0C  (high = +80.0C, hyst = +75.0C)  sensor = diode
-
-Justin.
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCA2IEFwciAyMDEyIDE2OjA4OjEyIC0wNDAwLCBKdXN0aW4gUGlzemN6IHdyb3RlOgo+
+IEhlbGxvLAo+IAo+IFdhcyBjdXJpb3VzIHdoeSB0aGUgbWF4IHZvbHRhZ2UgZG9lcyBub3Qgc2hv
+dyB1cCBwcm9wZXJseSBmb3IgaW40IChWRElNTSkKPiBmb3IgdGhpcyBYN1NQQS1IRiB1c2luZyBs
+bSBzZW5zb3JzIDMuMy4xIG9yIDMuMy4yPwo+IAo+IE9uIHRoZSBzZW5zb3IgcmVhZGluZyBwYWdl
+IGZvciBJUE1JOgo+IFZESU1NCU5vcm1hbAkxLjg0IFZvbHRzCgpZb3Ugc2hvdWxkIG5vdCBtaXgg
+SVBNSSB3aXRoIG5hdGl2ZSBMaW51eCBoYXJkd2FyZSBtb25pdG9yaW5nIGRyaXZlci4KVGhlcmUg
+aXMgbm8gbXV0dWFsIGV4Y2x1c2lvbiBvbiBkZXZpY2UgYWNjZXNzLCBhbmQgaGF2b2MgY2FuIChh
+bmQgd2lsbCkKaGFwcGVuLgoKPiBUaGlzIGlzIHdpdGggbG1fc2Vuc29yczoKPiAKPiAtLQo+IAo+
+ICQgc2Vuc29ycwo+IHc4MzYyN2RoZy1pc2EtMGNhMAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4g
+VmNvcmU6ICAgICAgICArMS4xNiBWICAobWluID0gICswLjcyIFYsIG1heCA9ICArMS4zOSBWKQo+
+IFZuYmNvcmU6ICAgICAgKzEuMDQgViAgKG1pbiA9ICArMC45NCBWLCBtYXggPSAgKzEuMTYgVikK
+PiBBVkNDOiAgICAgICAgICszLjM0IFYgIChtaW4gPSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYp
+Cj4gKzMuM1Y6ICAgICAgICArMy4zNCBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBW
+KQo+IFZESU1NOiAgICAgICAgKzEuODQgViAgKG1pbiA9ICArMS42MiBWLCBtYXggPSAgKzAuMDAg
+VikgIEFMQVJNCj4gKzVWOiAgICAgICAgICArMS4yNSBWICAobWluID0gICsxLjEzIFYsIG1heCA9
+ICArMS4zOCBWKQo+ICsxMlY6ICAgICAgICAgKzAuNzUgViAgKG1pbiA9ICArMC42NyBWLCBtYXgg
+PSAgKzAuODMgVikKPiAzVlNCOiAgICAgICAgICszLjMwIFYgIChtaW4gPSAgKzIuOTggViwgbWF4
+ID0gICszLjYzIFYpCj4gVmJhdDogICAgICAgICArMy4wNiBWICAobWluID0gICsyLjcwIFYsIG1h
+eCA9ICArMy4zMCBWKQo+IFNZUyBUZW1wOiAgICAgKzQyLjDCsEMgIChoaWdoID0gKzc1LjDCsEMs
+IGh5c3QgPSArNzAuMMKwQykgIHNlbnNvciA9IHRoZXJtaXN0b3IKPiBDUFUgVGVtcDogICAgICs0
+MC41wrBDICAoaGlnaCA9ICs5MC4wwrBDLCBoeXN0ID0gKzg3LjDCsEMpICBzZW5zb3IgPSBkaW9k
+ZQo+IENhc2UgVGVtcDogICAgKzI0LjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUu
+MMKwQykgIHNlbnNvciA9IGRpb2RlCj4gJCBzZW5zb3JzIC0tdmVyc2lvbgo+IHNlbnNvcnMgdmVy
+c2lvbiAzLjMuMSB3aXRoIGxpYnNlbnNvcnMgdmVyc2lvbiAzLjMuMQo+IAo+IGxtX3NlbnNvcnMt
+My4zLjIkIHByb2cvc2Vuc29ycy9zZW5zb3JzIC0tdmVyc2lvbgo+IHNlbnNvcnMgdmVyc2lvbiAz
+LjMuMiB3aXRoIGxpYnNlbnNvcnMgdmVyc2lvbiAzLjMuMQo+IAo+IHc4MzYyN2RoZy1pc2EtMGNh
+MAo+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gVmNvcmU6ICAgICAgICArMS4xNiBWICAobWluID0g
+ICswLjcyIFYsIG1heCA9ICArMS4zOSBWKQo+IFZuYmNvcmU6ICAgICAgKzEuMDQgViAgKG1pbiA9
+ICArMC45NCBWLCBtYXggPSAgKzEuMTYgVikKPiBBVkNDOiAgICAgICAgICszLjM0IFYgIChtaW4g
+PSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCj4gKzMuM1Y6ICAgICAgICArMy4zNCBWICAobWlu
+ID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQo+IFZESU1NOiAgICAgICAgKzEuODQgViAgKG1p
+biA9ICArMS42MiBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gKzVWOiAgICAgICAgICArMS4y
+NSBWICAobWluID0gICsxLjEzIFYsIG1heCA9ICArMS4zOCBWKQo+ICsxMlY6ICAgICAgICAgKzAu
+NzUgViAgKG1pbiA9ICArMC42NyBWLCBtYXggPSAgKzAuODMgVikKPiAzVlNCOiAgICAgICAgICsz
+LjMwIFYgIChtaW4gPSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCj4gVmJhdDogICAgICAgICAr
+My4wNiBWICAobWluID0gICsyLjcwIFYsIG1heCA9ICArMy4zMCBWKQo+IFNZUyBUZW1wOiAgICAg
+KzQyLjDCsEMgIChoaWdoID0gKzc1LjDCsEMsIGh5c3QgPSArNzAuMMKwQykgIHNlbnNvciA9IHRo
+ZXJtaXN0b3IKPiBDUFUgVGVtcDogICAgICs0MC41wrBDICAoaGlnaCA9ICs5MC4wwrBDLCBoeXN0
+ID0gKzg3LjDCsEMpICBzZW5zb3IgPSBDUFUgZGlvZGUKPiBDYXNlIFRlbXA6ICAgICsyNC41wrBD
+ICAoaGlnaCA9ICs4MC4wwrBDLCBoeXN0ID0gKzc1LjDCsEMpICBzZW5zb3IgPSBDUFUgZGlvZGUK
+PiAKPiAtLQo+IAo+IEkgYWxzbyB0cmllZCBoYXJkY29kaW5nIGluNF97bWluLG1heH06Cj4gCj4g
+JCBjYXQgL2V0Yy9zZW5zb3JzMy5jb25mCj4gCj4gY2hpcCAidzgzNjI3ZWhmLSoiICJ3ODM2Mjdk
+aGctKiIgInc4MzY2N2hnLSoiICJuY3Q2Nzc1LSoiICJuY3Q2Nzc2LSoiCj4gCj4gICAgIGxhYmVs
+IGluMCAiVmNvcmUiCj4gICAgIGxhYmVsIGluMSAiVm5iY29yZSIKPiAgICAgbGFiZWwgaW4yICJB
+VkNDIgo+ICAgICBsYWJlbCBpbjMgIiszLjNWIgo+ICAgICBsYWJlbCBpbjQgIlZESU1NIgo+ICAg
+ICBsYWJlbCBpbjUgIis1ViIKPiAgICAgbGFiZWwgaW42ICIrMTJWIgo+ICAgICBsYWJlbCBpbjcg
+IjNWU0IiCj4gICAgIGxhYmVsIGluOCAiVmJhdCIKPiAgICAgbGFiZWwgdGVtcDEgIlNZUyBUZW1w
+Igo+ICAgICBsYWJlbCB0ZW1wMiAiQ1BVIFRlbXAiCj4gICAgIGxhYmVsIHRlbXAzICJDYXNlIFRl
+bXAiCj4gCj4gICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjkwCj4gICAgIHNldCBpbjJfbWF4ICAz
+LjMgKiAxLjEwCj4gICAgIHNldCBpbjNfbWluICAzLjMgKiAwLjkwCj4gICAgIHNldCBpbjNfbWF4
+ICAzLjMgKiAxLjEwCj4gIyBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvcGlwZXJtYWlsL2xt
+LXNlbnNvcnMvMjAxMC1Ob3ZlbWJlci8wMzAzNjguaHRtbAo+ICAgICBzZXQgaW40X21pbiAgMS42
+Mgo+ICAgICBzZXQgaW40X21heCAgMS45OAo+ICAgICBzZXQgaW43X21pbiAgMy4zICogMC45MAo+
+ICAgICBzZXQgaW43X21heCAgMy4zICogMS4xMAo+ICAgICBzZXQgaW44X21pbiAgMy4wICogMC45
+MAo+ICAgICBzZXQgaW44X21heCAgMy4wICogMS4xMAo+IAo+ICAgICBpZ25vcmUgZmFuMQo+ICAg
+ICBpZ25vcmUgZmFuMgo+ICAgICBpZ25vcmUgZmFuMwo+ICAgICBpZ25vcmUgZmFuNAo+ICAgICBp
+Z25vcmUgZmFuNQo+ICAgICBpZ25vcmUgY3B1MF92aWQKPiAgICAgaWdub3JlIGludHJ1c2lvbjAK
+CkRpZCB5b3UgcnVuICJzZW5zb3JzIC1zIiBhZnRlciBjaGFuZ2luZyB0aGUgY29uZmlndXJhdGlv
+biBmaWxlPwoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9s
+bS1zZW5zb3Jz
