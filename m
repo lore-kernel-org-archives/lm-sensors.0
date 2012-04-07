@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Sat, 07 Apr 2012 12:21:53 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 07 Apr 2012 15:58:00 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016dWkvK_2B6rFE2-fOz=T+mpzs=ABG-M=wb3YNyKdmBnjQ@mail.gmail.com>
+Message-Id: <20120407175800.527991e2@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,24 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> i2c-2 is precisely the I2C bus where your EDID is and where the problem
-> happened. AFAIK hw_i2c is off by default, so please check why and how
-> it was enabled. Then you may try to turn if off to force software
-> operation of the I2C bus (i2cdetect -l should show that), and then do
-> the i2cset commands again and see if it works. Again my hope level is
-> low but I think it is worth trying.
->
-> --
-> Jean Delvare
-
-modinfo -p radeon shows that:
-hw_i2c:hw i2c engine enable (0 = disable) (int)
-
-So I wrote radeon_hw_i2c=0 to grub command line, then gave the i2cset
-commands, but it did not work. I also tried radeon.modeset=0 to find
-out whether the culprit radeon's itself, this also did not work.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU2F0LCA3IEFwciAyMDEyIDE1OjIxOjUzICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
+b3RlOgo+ID4gaTJjLTIgaXMgcHJlY2lzZWx5IHRoZSBJMkMgYnVzIHdoZXJlIHlvdXIgRURJRCBp
+cyBhbmQgd2hlcmUgdGhlIHByb2JsZW0KPiA+IGhhcHBlbmVkLiBBRkFJSyBod19pMmMgaXMgb2Zm
+IGJ5IGRlZmF1bHQsIHNvIHBsZWFzZSBjaGVjayB3aHkgYW5kIGhvdwo+ID4gaXQgd2FzIGVuYWJs
+ZWQuIFRoZW4geW91IG1heSB0cnkgdG8gdHVybiBpZiBvZmYgdG8gZm9yY2Ugc29mdHdhcmUKPiA+
+IG9wZXJhdGlvbiBvZiB0aGUgSTJDIGJ1cyAoaTJjZGV0ZWN0IC1sIHNob3VsZCBzaG93IHRoYXQp
+LCBhbmQgdGhlbiBkbwo+ID4gdGhlIGkyY3NldCBjb21tYW5kcyBhZ2FpbiBhbmQgc2VlIGlmIGl0
+IHdvcmtzLiBBZ2FpbiBteSBob3BlIGxldmVsIGlzCj4gPiBsb3cgYnV0IEkgdGhpbmsgaXQgaXMg
+d29ydGggdHJ5aW5nLgo+ID4KPiA+IC0tCj4gPiBKZWFuIERlbHZhcmUKPiAKPiBtb2RpbmZvIC1w
+IHJhZGVvbiBzaG93cyB0aGF0Ogo+IGh3X2kyYzpodyBpMmMgZW5naW5lIGVuYWJsZSAoMCA9IGRp
+c2FibGUpIChpbnQpCj4gCj4gU28gSSB3cm90ZSByYWRlb25faHdfaTJjPTAgdG8gZ3J1YiBjb21t
+YW5kIGxpbmUsIHRoZW4gZ2F2ZSB0aGUgaTJjc2V0CgpJIGhvcGUgeW91IGRpZCBub3QgZG8gdGhh
+dCBidXQgcmF0aGVyIHJhZGVvbi5od19pMmM9MC4gRGlkIHlvdSBjaGVjawp3aXRoICJpMmNkZXRl
+Y3QgLWwiIHRoYXQgaHdfaTJjIHdhc24ndCB1c2VkPwoKPiBjb21tYW5kcywgYnV0IGl0IGRpZCBu
+b3Qgd29yay4gSSBhbHNvIHRyaWVkIHJhZGVvbi5tb2Rlc2V0PTAgdG8gZmluZAo+IG91dCB3aGV0
+aGVyIHRoZSBjdWxwcml0IHJhZGVvbidzIGl0c2VsZiwgdGhpcyBhbHNvIGRpZCBub3Qgd29yay4K
+CndpdGggbW9kZXNldD0wIEkgcHJlc3VtZSB5b3UgY2FuJ3Qgc2VlIHRoZSBpMmMgYnVzZXMgYXQg
+YWxsIHNvIHRoaXMKZG9lc24ndCByZWFsbHkgaGVscC4KCk1lYW53aGlsZSBJIGZvdW5kIGEgcG9z
+dCBmcm9tIHNvbWVvbmUgd2hvIGhhZCB0aGUgc2FtZSBwcm9ibGVtOgpodHRwOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL2FyY2hpdmVzL3hvcmcvMjAxMS1KYW51YXJ5LzA1MjIzOS5odG1sCgpUaGlz
+IHdvdWxkIGNvbmZpcm0gdGhhdCBzZW5zb3JzLWRldGVjdCB3YXMgb25seSB0aGUgdHJpZ2dlciBy
+YXRoZXIgdGhhbgp0aGUgcm9vdCBjYXVzZSBvZiB0aGUgY29ycnVwdGlvbi4gSSdsbCB0YWxrIHRv
+IHRoZSByYWRlb24gZHJpdmVyCm1haW50YWluZXIgb24gVHVlc2RheS4KCi0tIApKZWFuIERlbHZh
+cmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNl
+bnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3Rz
+LmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
