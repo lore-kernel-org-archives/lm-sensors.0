@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 Apr 2012 11:17:02 +0000
+From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
+Date: Sat, 07 Apr 2012 12:21:53 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <20120407131702.7ca67d8e@endymion.delvare>
+Message-Id: <CAHa016dWkvK_2B6rFE2-fOz=T+mpzs=ABG-M=wb3YNyKdmBnjQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,36 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gU2F0LCA3IEFwciAyMDEyIDEyOjUxOjE0ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
-b3RlOgo+IDIwMTIvNC83IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPjoKPiA+IE9u
-IFNhdCwgNyBBcHIgMjAxMiAxMToyNDoxNSArMDMwMCwgTnVtYW4gREVNxLBSRMOWxJ5FTiB3cm90
-ZToKPiA+PiBJIGdhdmUgcmVsYXRlZCBjb21tYW5kcyBhbmQgYWZ0ZXIgdGhhdCBtYWRlIGEgY29s
-ZCBib290IGJ1dCByZXNvbHV0aW9uCj4gPj4gZGlkIG5vdCBjaGFuZ2VkLgo+ID4+IE5ldyBpMmNk
-dW1wOiBodHRwOi8vcGFzdGViaW4uY29tL0tFeFVyYXBwCj4gPgo+ID4gSG1tLiBJJ20gYWZyYWlk
-IEkgYW0gc29tZXdoYXQgb3V0IG9mIGlkZWFzLiBJIGp1c3QgY2FuJ3QgZ2V0IHdoeSB5b3UKPiA+
-IHdvdWxkIGJlIGFibGUgdG8gd3JpdGUgYXQgc29tZSBvZmZzZXRzIGFuZCBub3Qgb3RoZXJzIDoo
-IFVuZm9ydHVuYXRlbHkKPiA+IHRoZSBjcml0aWNhbCBvbmUgaGVyZSBpcyAweDNiLgo+ID4KPiA+
-IE9uZSB0cmljayB3ZSBjYW4gdHJ5IGlzIHdyaXRpbmcgd29yZHMgaW5zdGVhZCBvZiBieXRlcywg
-YnV0IGhvbmVzdGx5Cj4gPiB0aGUgaG9wZSBpcyByYXRoZXIgbG93IHRoYXQgaXQgd2lsbCB3b3Jr
-IGFueSBiZXR0ZXI6Cj4gPgo+ID4gIyBpMmNzZXQgLXkgMiAweDUwIDB4M2EgMHgyMDUwIHcKPiA+
-ICMgaTJjc2V0IC15IDIgMHg1MCAweDNlIDB4MzAxMCB3Cj4gCj4gQXMgeW91IHNhaWQsIGl0IGRp
-ZCBub3QgdGFrZSBhbiBlZmZlY3Qgb24gaXQuCj4gSSByZWFsbHkgYXBwcmVjaWF0ZSB5b3VyIGVm
-Zm9ydCwgdGhhbmsgeW91IHZlcnkgbXVjaC4KPiBJIHdpbGwgdHJ5IHRvIHVwZ3JhZGUgQklPUy4g
-SWYgaXQgc29sdmVzIHRoZSBpc3N1ZSwgSSB3aWxsIGZlZWQgYmFjay4KCkhtLCBPSyA6KCBNZWFu
-d2hpbGUgSSBoYWQgb25lIG1vcmUgaWRlYS4gRnJvbSB5b3VyIG9yaWdpbmFsIHBvc3QgaXQgc2Vl
-bXMKdGhhdCB5b3UgaGF2ZSBlbmFibGVkIG9wdGlvbiBod19pMmMgb2YgdGhlIHJhZGVvbiBkcml2
-ZXI6Cgo+IGkyYy0wICAgaTJjICAgICAgICAgICAgIFJhZGVvbiBpMmMgYml0IGJ1cyBEVklfRERD
-ICAgICAgSTJDIGFkYXB0ZXIKPiBpMmMtMSAgIGkyYyAgICAgICAgICAgICBSYWRlb24gaTJjIGJp
-dCBidXMgVkdBX0REQyAgICAgIEkyQyBhZGFwdGVyCj4gaTJjLTIgICBpMmMgICAgICAgICAgICAg
-UmFkZW9uIGkyYyBodyBidXMgTU1fSTJDICAgICAgICBJMkMgYWRhcHRlcgo+IGkyYy0zICAgaTJj
-ICAgICAgICAgICAgIFJhZGVvbiBpMmMgYml0IGJ1cyBNT05JRCAgICAgICAgSTJDIGFkYXB0ZXIK
-CmkyYy0yIGlzIHByZWNpc2VseSB0aGUgSTJDIGJ1cyB3aGVyZSB5b3VyIEVESUQgaXMgYW5kIHdo
-ZXJlIHRoZSBwcm9ibGVtCmhhcHBlbmVkLiBBRkFJSyBod19pMmMgaXMgb2ZmIGJ5IGRlZmF1bHQs
-IHNvIHBsZWFzZSBjaGVjayB3aHkgYW5kIGhvdwppdCB3YXMgZW5hYmxlZC4gVGhlbiB5b3UgbWF5
-IHRyeSB0byB0dXJuIGlmIG9mZiB0byBmb3JjZSBzb2Z0d2FyZQpvcGVyYXRpb24gb2YgdGhlIEky
-QyBidXMgKGkyY2RldGVjdCAtbCBzaG91bGQgc2hvdyB0aGF0KSwgYW5kIHRoZW4gZG8KdGhlIGky
-Y3NldCBjb21tYW5kcyBhZ2FpbiBhbmQgc2VlIGlmIGl0IHdvcmtzLiBBZ2FpbiBteSBob3BlIGxl
-dmVsIGlzCmxvdyBidXQgSSB0aGluayBpdCBpcyB3b3J0aCB0cnlpbmcuCgotLSAKSmVhbiBEZWx2
-YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+> i2c-2 is precisely the I2C bus where your EDID is and where the problem
+> happened. AFAIK hw_i2c is off by default, so please check why and how
+> it was enabled. Then you may try to turn if off to force software
+> operation of the I2C bus (i2cdetect -l should show that), and then do
+> the i2cset commands again and see if it works. Again my hope level is
+> low but I think it is worth trying.
+>
+> --
+> Jean Delvare
+
+modinfo -p radeon shows that:
+hw_i2c:hw i2c engine enable (0 = disable) (int)
+
+So I wrote radeon_hw_i2c=0 to grub command line, then gave the i2cset
+commands, but it did not work. I also tried radeon.modeset=0 to find
+out whether the culprit radeon's itself, this also did not work.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
