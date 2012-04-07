@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 Apr 2012 18:38:05 +0000
+From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
+Date: Sat, 07 Apr 2012 19:05:49 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <20120407203805.1e655a1e@endymion.delvare>
+Message-Id: <CAHa016e3n+=gHt32noDdzkQZM3UA-DWjJoKvn8CdVghXjV0+nw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,18 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gU2F0LCA3IEFwciAyMDEyIDIwOjI1OjQ5ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
-b3RlOgo+ID4gSSBob3BlIHlvdSBkaWQgbm90IGRvIHRoYXQgYnV0IHJhdGhlciByYWRlb24uaHdf
-aTJjPTAuIERpZCB5b3UgY2hlY2sKPiA+IHdpdGggImkyY2RldGVjdCAtbCIgdGhhdCBod19pMmMg
-d2Fzbid0IHVzZWQ/Cj4gCj4gSSBhY3R1YWxseSB3cm90ZSByYWRlb24uaHdfaTJjPTAgYnV0IHdy
-b3RlIHdyb25nbHkgaW4gZS1tYWlsLgo+IEFsdGhvdWdoIEkgdXNlZCByZWRlb24uaHdfaTJjPTAg
-b2FyYW1ldGVyLCBpMmNkZXRlY3QgLWwgc2hvd3MKPiAKPiBpMmMtMglpMmMgICAgICAgCVJhZGVv
-biBpMmMgaHcgYnVzIE1NX0kyQyAgICAgICAgCUkyQyBhZGFwdGVyCj4gCj4gSSByZWFkIHhvcmcu
-MC5sb2cgYW5kIGRtZXNnLmxvZyB0byBjaGVjayB0aGF0IHdoZXRoZXIgcmFkZW9uLmh3X2kyYz0w
-Cj4gd29ya3Mgb3Igbm90LCB0aGVyZSB3YXMgbm90IGFueSBsaWVuIHRoYXQgY29tcGxhaW5pbmcg
-cmFkZW9uLmh3X2kyYz0wCj4gd2FzIG5vdCB3b3JraW5nLiBTbyBJIHByZXN1bWVkIGl0IHdvcmtl
-ZC4KCllvdSBjYW4gY2hlY2sgdGhlIHZhbHVlIG9mIC9zeXMvbW9kdWxlL3JhZGVvbi9wYXJhbWV0
-ZXJzL2h3X2kyYy4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
-bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
-Zm8vbG0tc2Vuc29ycw=
+> You can check the value of /sys/module/radeon/parameters/hw_i2c.
+> Jean Delvare
+
+cat /sys/module/radeon/parameters/hw_i2c
+0
+So it works. Thank you.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
