@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 06 Apr 2012 18:55:43 +0000
+From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
+Date: Sat, 07 Apr 2012 08:24:15 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <20120406205543.6120da4e@endymion.delvare>
+Message-Id: <CAHa016eHMxQu-LQMmVe_xjiuv6v4CymJO0oD=r4Q+M=CNtXxCQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,20 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCA2IEFwciAyMDEyIDIwOjU0OjAxICswMjAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
-T24gRnJpLCA2IEFwciAyMDEyIDIwOjEzOjA3ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
-b3RlOgo+ID4gPiBXaGF0IGRpZCB0aGUgaTJjZHVtcCBvdXRwdXRzIGxvb2sgbGlrZT8gRGlkIHlv
-dSBzZWUgdGhlIG9mZmVuZGluZwo+ID4gPiBvZmZzZXQgdmFsdWVzIGNoYW5nZSBmcm9tIDB4ZmYg
-dG8gdGhlIHZhbHVlcyB5b3UgcGFzc2VkIG9uIHRoZSBjb21tYW5kCj4gPiA+IGxpbmU/Cj4gPiA+
-IERpZCB5b3UgdHJ5IGkyY2R1bXAgYWdhaW4gYWZ0ZXIgcmVib290aW5nLCB0byBtYWtlIHN1cmUg
-dGhlIHdyaXRlcwo+ID4gPiBzdHVjaz8KPiA+IAo+ID4gWWVzLCBJIHNhdyB0aGVtIGNoYW5nZWQg
-YW5kIGFmdGVyIHJlYm9vdGVkIEkgZ2F2ZSBjb21tYW5kcyBhZ2Fpbi4KPiA+IExhc3QgaTJjZHVt
-cCBvdXRwdXQ6IGh0dHA6Ly9wYXN0ZWJpbi5jb20vcHlDMGo1dWcKPiA+IEl0IHNlZW1zIHRoYXQg
-c29tZSB2YWx1ZXMgcmV0dXJuZWQgZmYgYWdhaW4uCj4gCj4gSW5kZWVkLCB0d28gb2YgdGhlIDYg
-d3JpdGVzIHN0dWNrLCBidXQgdGhlIG9uZXMgYXQgMHgyYiBhbmQgMHgyZiBkaWQKPiBub3QuIENh
-biB5b3UganVzdCB0cnkgdGhlc2UgdHdvIGFnYWluIGFuZCBzZWUgaWYgaXQgd29ya3MgYmV0dGVy
-IHRoaXMKPiB0aW1lIChhZnRlciBhIGNvbGQgYm9vdCk/CgpIbSwgSSBtZWFudDogYXQgMHgzYiBh
-bmQgMHgzZi4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
-c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
-bG0tc2Vuc29ycw=
+>> Indeed, two of the 6 writes stuck, but the ones at 0x2b and 0x2f did
+>> not. Can you just try these two again and see if it works better this
+>> time (after a cold boot)?
+>
+> Hm, I meant: at 0x3b and 0x3f.
+
+I gave related commands and after that made a cold boot but resolution
+did not changed.
+New i2cdump: http://pastebin.com/KExUrapp
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
