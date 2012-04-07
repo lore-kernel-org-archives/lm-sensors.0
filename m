@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Sat, 07 Apr 2012 17:25:49 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 07 Apr 2012 18:38:05 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016c1Spe3q=uN-Cf=78+18Nr_+TJ-iHg3thhPTPKOm146+g@mail.gmail.com>
+Message-Id: <20120407203805.1e655a1e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,31 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> I hope you did not do that but rather radeon.hw_i2c=0. Did you check
-> with "i2cdetect -l" that hw_i2c wasn't used?
-
-I actually wrote radeon.hw_i2c=0 but wrote wrongly in e-mail.
-Although I used redeon.hw_i2c=0 oarameter, i2cdetect -l shows
-
-i2c-2	i2c       	Radeon i2c hw bus MM_I2C        	I2C adapter
-
-I read xorg.0.log and dmesg.log to check that whether radeon.hw_i2c=0
-works or not, there was not any lien that complaining radeon.hw_i2c=0
-was not working. So I presumed it worked.
-
-> Meanwhile I found a post from someone who had the same problem:
-> http://lists.freedesktop.org/archives/xorg/2011-January/052239.html
->
-> This would confirm that sensors-detect was only the trigger rather than
-> the root cause of the corruption. I'll talk to the radeon driver
-> maintainer on Tuesday.
->
-> --
-> Jean Delvare
-
-Thank you Jean, I appreciate your help.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU2F0LCA3IEFwciAyMDEyIDIwOjI1OjQ5ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
+b3RlOgo+ID4gSSBob3BlIHlvdSBkaWQgbm90IGRvIHRoYXQgYnV0IHJhdGhlciByYWRlb24uaHdf
+aTJjPTAuIERpZCB5b3UgY2hlY2sKPiA+IHdpdGggImkyY2RldGVjdCAtbCIgdGhhdCBod19pMmMg
+d2Fzbid0IHVzZWQ/Cj4gCj4gSSBhY3R1YWxseSB3cm90ZSByYWRlb24uaHdfaTJjPTAgYnV0IHdy
+b3RlIHdyb25nbHkgaW4gZS1tYWlsLgo+IEFsdGhvdWdoIEkgdXNlZCByZWRlb24uaHdfaTJjPTAg
+b2FyYW1ldGVyLCBpMmNkZXRlY3QgLWwgc2hvd3MKPiAKPiBpMmMtMglpMmMgICAgICAgCVJhZGVv
+biBpMmMgaHcgYnVzIE1NX0kyQyAgICAgICAgCUkyQyBhZGFwdGVyCj4gCj4gSSByZWFkIHhvcmcu
+MC5sb2cgYW5kIGRtZXNnLmxvZyB0byBjaGVjayB0aGF0IHdoZXRoZXIgcmFkZW9uLmh3X2kyYz0w
+Cj4gd29ya3Mgb3Igbm90LCB0aGVyZSB3YXMgbm90IGFueSBsaWVuIHRoYXQgY29tcGxhaW5pbmcg
+cmFkZW9uLmh3X2kyYz0wCj4gd2FzIG5vdCB3b3JraW5nLiBTbyBJIHByZXN1bWVkIGl0IHdvcmtl
+ZC4KCllvdSBjYW4gY2hlY2sgdGhlIHZhbHVlIG9mIC9zeXMvbW9kdWxlL3JhZGVvbi9wYXJhbWV0
+ZXJzL2h3X2kyYy4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
