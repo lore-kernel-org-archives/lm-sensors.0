@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Sat, 07 Apr 2012 08:24:15 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 07 Apr 2012 09:20:13 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016eHMxQu-LQMmVe_xjiuv6v4CymJO0oD=r4Q+M=CNtXxCQ@mail.gmail.com>
+Message-Id: <20120407112013.57e2d243@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,17 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
->> Indeed, two of the 6 writes stuck, but the ones at 0x2b and 0x2f did
->> not. Can you just try these two again and see if it works better this
->> time (after a cold boot)?
->
-> Hm, I meant: at 0x3b and 0x3f.
-
-I gave related commands and after that made a cold boot but resolution
-did not changed.
-New i2cdump: http://pastebin.com/KExUrapp
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU2F0LCA3IEFwciAyMDEyIDExOjI0OjE1ICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
+b3RlOgo+ID4+IEluZGVlZCwgdHdvIG9mIHRoZSA2IHdyaXRlcyBzdHVjaywgYnV0IHRoZSBvbmVz
+IGF0IDB4MmIgYW5kIDB4MmYgZGlkCj4gPj4gbm90LiBDYW4geW91IGp1c3QgdHJ5IHRoZXNlIHR3
+byBhZ2FpbiBhbmQgc2VlIGlmIGl0IHdvcmtzIGJldHRlciB0aGlzCj4gPj4gdGltZSAoYWZ0ZXIg
+YSBjb2xkIGJvb3QpPwo+ID4KPiA+IEhtLCBJIG1lYW50OiBhdCAweDNiIGFuZCAweDNmLgo+IAo+
+IEkgZ2F2ZSByZWxhdGVkIGNvbW1hbmRzIGFuZCBhZnRlciB0aGF0IG1hZGUgYSBjb2xkIGJvb3Qg
+YnV0IHJlc29sdXRpb24KPiBkaWQgbm90IGNoYW5nZWQuCj4gTmV3IGkyY2R1bXA6IGh0dHA6Ly9w
+YXN0ZWJpbi5jb20vS0V4VXJhcHAKCkhtbS4gSSdtIGFmcmFpZCBJIGFtIHNvbWV3aGF0IG91dCBv
+ZiBpZGVhcy4gSSBqdXN0IGNhbid0IGdldCB3aHkgeW91CndvdWxkIGJlIGFibGUgdG8gd3JpdGUg
+YXQgc29tZSBvZmZzZXRzIGFuZCBub3Qgb3RoZXJzIDooIFVuZm9ydHVuYXRlbHkKdGhlIGNyaXRp
+Y2FsIG9uZSBoZXJlIGlzIDB4M2IuCgpPbmUgdHJpY2sgd2UgY2FuIHRyeSBpcyB3cml0aW5nIHdv
+cmRzIGluc3RlYWQgb2YgYnl0ZXMsIGJ1dCBob25lc3RseQp0aGUgaG9wZSBpcyByYXRoZXIgbG93
+IHRoYXQgaXQgd2lsbCB3b3JrIGFueSBiZXR0ZXI6CgojIGkyY3NldCAteSAyIDB4NTAgMHgzYSAw
+eDIwNTAgdwojIGkyY3NldCAteSAyIDB4NTAgMHgzZSAweDMwMTAgdwoKLS0gCkplYW4gRGVsdmFy
+ZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
+c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
+bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
