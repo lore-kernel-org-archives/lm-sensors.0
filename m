@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 Apr 2012 15:58:00 +0000
+From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
+Date: Sat, 07 Apr 2012 17:25:49 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <20120407175800.527991e2@endymion.delvare>
+Message-Id: <CAHa016c1Spe3q=uN-Cf=78+18Nr_+TJ-iHg3thhPTPKOm146+g@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,29 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gU2F0LCA3IEFwciAyMDEyIDE1OjIxOjUzICswMzAwLCBOdW1hbiBERU3EsFJEw5bEnkVOIHdy
-b3RlOgo+ID4gaTJjLTIgaXMgcHJlY2lzZWx5IHRoZSBJMkMgYnVzIHdoZXJlIHlvdXIgRURJRCBp
-cyBhbmQgd2hlcmUgdGhlIHByb2JsZW0KPiA+IGhhcHBlbmVkLiBBRkFJSyBod19pMmMgaXMgb2Zm
-IGJ5IGRlZmF1bHQsIHNvIHBsZWFzZSBjaGVjayB3aHkgYW5kIGhvdwo+ID4gaXQgd2FzIGVuYWJs
-ZWQuIFRoZW4geW91IG1heSB0cnkgdG8gdHVybiBpZiBvZmYgdG8gZm9yY2Ugc29mdHdhcmUKPiA+
-IG9wZXJhdGlvbiBvZiB0aGUgSTJDIGJ1cyAoaTJjZGV0ZWN0IC1sIHNob3VsZCBzaG93IHRoYXQp
-LCBhbmQgdGhlbiBkbwo+ID4gdGhlIGkyY3NldCBjb21tYW5kcyBhZ2FpbiBhbmQgc2VlIGlmIGl0
-IHdvcmtzLiBBZ2FpbiBteSBob3BlIGxldmVsIGlzCj4gPiBsb3cgYnV0IEkgdGhpbmsgaXQgaXMg
-d29ydGggdHJ5aW5nLgo+ID4KPiA+IC0tCj4gPiBKZWFuIERlbHZhcmUKPiAKPiBtb2RpbmZvIC1w
-IHJhZGVvbiBzaG93cyB0aGF0Ogo+IGh3X2kyYzpodyBpMmMgZW5naW5lIGVuYWJsZSAoMCA9IGRp
-c2FibGUpIChpbnQpCj4gCj4gU28gSSB3cm90ZSByYWRlb25faHdfaTJjPTAgdG8gZ3J1YiBjb21t
-YW5kIGxpbmUsIHRoZW4gZ2F2ZSB0aGUgaTJjc2V0CgpJIGhvcGUgeW91IGRpZCBub3QgZG8gdGhh
-dCBidXQgcmF0aGVyIHJhZGVvbi5od19pMmM9MC4gRGlkIHlvdSBjaGVjawp3aXRoICJpMmNkZXRl
-Y3QgLWwiIHRoYXQgaHdfaTJjIHdhc24ndCB1c2VkPwoKPiBjb21tYW5kcywgYnV0IGl0IGRpZCBu
-b3Qgd29yay4gSSBhbHNvIHRyaWVkIHJhZGVvbi5tb2Rlc2V0PTAgdG8gZmluZAo+IG91dCB3aGV0
-aGVyIHRoZSBjdWxwcml0IHJhZGVvbidzIGl0c2VsZiwgdGhpcyBhbHNvIGRpZCBub3Qgd29yay4K
-CndpdGggbW9kZXNldD0wIEkgcHJlc3VtZSB5b3UgY2FuJ3Qgc2VlIHRoZSBpMmMgYnVzZXMgYXQg
-YWxsIHNvIHRoaXMKZG9lc24ndCByZWFsbHkgaGVscC4KCk1lYW53aGlsZSBJIGZvdW5kIGEgcG9z
-dCBmcm9tIHNvbWVvbmUgd2hvIGhhZCB0aGUgc2FtZSBwcm9ibGVtOgpodHRwOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL2FyY2hpdmVzL3hvcmcvMjAxMS1KYW51YXJ5LzA1MjIzOS5odG1sCgpUaGlz
-IHdvdWxkIGNvbmZpcm0gdGhhdCBzZW5zb3JzLWRldGVjdCB3YXMgb25seSB0aGUgdHJpZ2dlciBy
-YXRoZXIgdGhhbgp0aGUgcm9vdCBjYXVzZSBvZiB0aGUgY29ycnVwdGlvbi4gSSdsbCB0YWxrIHRv
-IHRoZSByYWRlb24gZHJpdmVyCm1haW50YWluZXIgb24gVHVlc2RheS4KCi0tIApKZWFuIERlbHZh
-cmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNl
-bnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3Rz
-LmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+> I hope you did not do that but rather radeon.hw_i2c=0. Did you check
+> with "i2cdetect -l" that hw_i2c wasn't used?
+
+I actually wrote radeon.hw_i2c=0 but wrote wrongly in e-mail.
+Although I used redeon.hw_i2c=0 oarameter, i2cdetect -l shows
+
+i2c-2	i2c       	Radeon i2c hw bus MM_I2C        	I2C adapter
+
+I read xorg.0.log and dmesg.log to check that whether radeon.hw_i2c=0
+works or not, there was not any lien that complaining radeon.hw_i2c=0
+was not working. So I presumed it worked.
+
+> Meanwhile I found a post from someone who had the same problem:
+> http://lists.freedesktop.org/archives/xorg/2011-January/052239.html
+>
+> This would confirm that sensors-detect was only the trigger rather than
+> the root cause of the corruption. I'll talk to the radeon driver
+> maintainer on Tuesday.
+>
+> --
+> Jean Delvare
+
+Thank you Jean, I appreciate your help.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
