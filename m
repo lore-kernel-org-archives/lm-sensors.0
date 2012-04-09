@@ -1,54 +1,102 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 05 Apr 2012 14:32:09 +0000
-Subject: Re: [lm-sensors] NEW Nuvoton w83795 hw chip driver
-Message-Id: <20120405143209.GA24078@ericsson.com>
+From: Andre Przywara <andre.przywara@amd.com>
+Date: Mon, 09 Apr 2012 22:16:34 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: fam15h_power: fix bogus values with current BIOSes
+Message-Id: <1334009794-26653-1-git-send-email-andre.przywara@amd.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <29CFBC9A3FDC81418F5FACEEC8970E003069F4@ntshml01.nuvoton.com>
-In-Reply-To: <29CFBC9A3FDC81418F5FACEEC8970E003069F4@ntshml01.nuvoton.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Apr 05, 2012 at 06:17:11AM -0400, Chislett, William wrote:
-> Good Morning,
-> 
-> Apologies in advance as I realise the subject of this email may be slightly
-> outdated and the driver I'm referring to was created some time ago (back in
-> 2009!) but I've reached a dead-end trying to get reliable sensor readings from
-> a new ASUS server (ASUS ESC4000), and was hoping someone might be able to help.
-> 
-> The issue I'm having is that lm-sensors only reads back realistic values for
-> about 10% of the time.  The rest of the time all fanspeeds default to 90,000rpm
-> and all temperatures to -0.2degrees and over 80degrees, which are obviously
-> incorrect.  I've tried using the latest version of lm-sensors and the w83795
-> driver but keep running into this problem.  The w83795 driver provided on the
-> lm-sensorswiki/Devices is the same as that provided for this server via the
-> ASUS website.
-> 
-> I'm using Linux CentOS 5.4 with a 2.6.18-164.el5 kernel (which isn't listed as
-> being supported by this driver unfortunately - probably part of the issue). 
-> I've also seen similar problems, although mostly involving sensor values
-> locking-up, when using this driver and ipmi-tools or similar hardware
-> monitoring utilities.
-> 
-> I was wondering if you knew of any updated versions of this driver, or
-> alternatives I could try at all.  Any sort of advice at all would be massively
-> appreciated!
-> 
-Hi,
+Newer BKDG[1] versions recommend a different initialization value for
+the running average range register in the northbridge. This improves
+the power reading by avoiding counter saturations resulting in bogus
+values for anything below about 80% of TDP power consumption.
+Updated BIOSes will have this new value set up from the beginning,
+but meanwhile we correct this value ourselves.
+This needs to be done on all northbridges, even on those where the
+driver itself does not register at.
 
-the most likely reason for your problem is described here in detail:
+This fixes the driver on all current machines to provide proper
+values for idle load.
 
-http://hansdegoede.livejournal.com/7932.html
+Changes to v1:
+- marking the function as __devinit
+- marking the devices list as const
+- fixing formatting of 4-bit hexadecimal numbers
+- dumping the function's return value as it is not used
 
-While that kernel change was made later, ASUS boards are known to use ACPI to access
-the superio chip... which tends to result in exactly the behavior you are seeing.
+[1]
+http://support.amd.com/us/Processor_TechDocs/42301_15h_Mod_00h-0Fh_BKDG.pdf
+Chapter 3.8: D18F5xE0 Processor TDP Running Average (p. 452)
 
-You can try using the asus_atk0110 driver if it is supported in your kernel, or backport
-it from a later kernel version, or update your kernel to one supporting it.
+Signed-off-by: Andre Przywara <andre.przywara@amd.com>
+---
+ drivers/hwmon/fam15h_power.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-Guenter
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index b7494af..4c2f62c 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -122,6 +122,39 @@ static bool __devinit fam15h_power_is_internal_node0(struct pci_dev *f4)
+ 	return true;
+ }
+ 
++/*
++ * Newer BKDG versions have an updated recommendation on how to properly
++ * initialize the running average range (was: 0xE, now: 0x9). This avoids
++ * counter saturations resulting in bogus power readings.
++ * We correct this value ourselves to cope with older BIOSes.
++ */
++static void __devinit tweak_runavg_range(struct pci_dev *pdev)
++{
++	u32 val;
++	const struct pci_device_id affected_device = {
++		PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) };
++
++	/*
++	 * let this quirk apply only to the current version of the
++	 * northbridge, since future versions may change the behavior
++	 */
++	if (!pci_match_id(&affected_device, pdev))
++		return;
++
++	pci_bus_read_config_dword(pdev->bus,
++		PCI_DEVFN(PCI_SLOT(pdev->devfn), 5),
++		REG_TDP_RUNNING_AVERAGE, &val);
++	if ((val & 0xf) != 0xe)
++		return;
++
++	val &= ~0xf;
++	val |=  0x9;
++	pci_bus_write_config_dword(pdev->bus,
++		PCI_DEVFN(PCI_SLOT(pdev->devfn), 5),
++		REG_TDP_RUNNING_AVERAGE, val);
++	return;
++}
++
+ static void __devinit fam15h_power_init_data(struct pci_dev *f4,
+ 					     struct fam15h_power_data *data)
+ {
+@@ -155,6 +188,13 @@ static int __devinit fam15h_power_probe(struct pci_dev *pdev,
+ 	struct device *dev;
+ 	int err;
+ 
++	/*
++	 * though we ignore every other northbridge, we still have to
++	 * do the tweaking on _each_ node in MCM processors as the counters
++	 * are working hand-in-hand
++	 */
++	tweak_runavg_range(pdev);
++
+ 	if (!fam15h_power_is_internal_node0(pdev)) {
+ 		err = -ENODEV;
+ 		goto exit;
+-- 
+1.7.4.4
+
+
 
 _______________________________________________
 lm-sensors mailing list
