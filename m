@@ -1,67 +1,83 @@
-From: Alex Atkin <alexatkin@csdprojects.co.uk>
-Date: Sun, 01 Apr 2012 16:42:30 +0000
-Subject: [lm-sensors] Gigabyte H67N-USB3-B3 missing voltage sensors
-Message-Id: <4F788576.9030705@csdprojects.co.uk>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 09 Apr 2012 18:20:36 +0000
+Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (smsc47b397) Fix compiler warning
+Message-Id: <20120409202036.164ef2bb@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-I have a Gigabyte H67N-USB3-B3 motherboard and am having some problems=20
-getting lm_sensors to work fully on it.
+On Wed, 28 Mar 2012 09:38:25 -0700, Guenter Roeck wrote:
+> Some configurations produce the following compiler warning:
+> 
+> drivers/hwmon/smsc47b397.c: In function 'smsc47b397_init':
+> drivers/hwmon/smsc47b397.c:385: warning: 'address' may be used uninitialized in this function
+> 
+> While this is a false positive, it can easily be fixed by overloading the return
+> value from smsc47b397_find with both address and error return code (the address
+> is an unsigned short and thus never negative). This also reduces module size by
+> a few bytes (64 bytes for x86_64).
+> 
+> Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/smsc47b397.c |   14 ++++++++------
+>  1 files changed, 8 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
+> index d3b778d..c5f6be4 100644
+> --- a/drivers/hwmon/smsc47b397.c
+> +++ b/drivers/hwmon/smsc47b397.c
+> @@ -343,10 +343,11 @@ exit:
+>  	return err;
+>  }
+>  
+> -static int __init smsc47b397_find(unsigned short *addr)
+> +static int __init smsc47b397_find(void)
+>  {
+>  	u8 id, rev;
+>  	char *name;
+> +	unsigned short addr;
+>  
+>  	superio_enter();
+>  	id = force_id ? force_id : superio_inb(SUPERIO_REG_DEVID);
+> @@ -370,14 +371,14 @@ static int __init smsc47b397_find(unsigned short *addr)
+>  	rev = superio_inb(SUPERIO_REG_DEVREV);
+>  
+>  	superio_select(SUPERIO_REG_LD8);
+> -	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
+> +	addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
+>  		 |  superio_inb(SUPERIO_REG_BASE_LSB);
+>  
+>  	pr_info("found SMSC %s (base address 0x%04x, revision %u)\n",
+> -		name, *addr, rev);
+> +		name, addr, rev);
+>  
+>  	superio_exit();
+> -	return 0;
+> +	return addr;
+>  }
+>  
+>  static int __init smsc47b397_init(void)
+> @@ -385,9 +386,10 @@ static int __init smsc47b397_init(void)
+>  	unsigned short address;
+>  	int ret;
+>  
+> -	ret = smsc47b397_find(&address);
+> -	if (ret)
+> +	ret = smsc47b397_find();
+> +	if (ret < 0)
+>  		return ret;
+> +	address = ret;
+>  
+>  	ret = platform_driver_register(&smsc47b397_driver);
+>  	if (ret)
 
-I downloaded the driver and the latest sensors-detect from the=20
-lm_sensors website to ensure I had the latest version.
-sensors-detect reports:
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-Trying family `ITE'...                                      Yes
-Found `ITE IT8728F Super IO Sensors'                        Success!
-     (address 0x290, driver `it87')
-
-However it still doesn't load automatically on boot and a manual=20
-"modprobe it87" reveals:
-
-FATAL: Error inserting it87=20
-(/lib/modules/3.1.6-server-69mib/kernel/drivers/hwmon/it87.ko.gz): No=20
-such device
-
-So I found a note somewhere that "modprobe it87 force_id=3D0x8721" forces=20
-it to work, but then I get the following from sensors:
-
-it8721-isa-0290
-Adapter: ISA adapter
-in0:          +1.04 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in1:          +0.14 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in2:          +2.89 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-+3.3V:        +3.31 V  (min =3D  +0.00 V, max =3D  +6.12 V)
-in4:          +0.02 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in5:          +1.01 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-in6:          +1.54 V  (min =3D  +0.00 V, max =3D  +3.06 V)
-3VSB:         +3.38 V  (min =3D  +0.00 V, max =3D  +6.12 V)
-Vbat:         +3.17 V
-fan1:        1198 RPM  (min =3D    0 RPM)
-fan2:         896 RPM  (min =3D    0 RPM)
-temp1:        +43.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D=20
-thermistor
-temp2:        +45.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D=20
-thermistor
-temp3:        +31.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  sensor=
- =3D=20
-thermistor
-intrusion0:  ALARM
-
-The problem is that I am not getting any output for +12V, +5V or +5VSB,=20
-which are the main reason I want to use the monitoring.
-
-I am also not sure how to identify which of the above is the VCore (I=20
-suspect its in0), although that is less important to me.
-
-Do you have any suggestions/fixes?
-
-Alex.
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
