@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 10 Apr 2012 15:34:37 +0000
+From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
+Date: Tue, 10 Apr 2012 16:53:22 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <20120410173437.1768b548@endymion.delvare>
+Message-Id: <CAHa016dJrWMtRfrXuM21u9EJ7wn7a1Jr7D4OJdnwGt+jmOwcLA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,29 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCAxMCBBcHIgMjAxMiAxNToxNToyNiArMDIwMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+
-IEhpIE51bWFuLAo+IAo+IE9uIFNhdCwgNyBBcHIgMjAxMiAyMjowNTo0OSArMDMwMCwgTnVtYW4g
-REVNxLBSRMOWxJ5FTiB3cm90ZToKPiA+ID4gWW91IGNhbiBjaGVjayB0aGUgdmFsdWUgb2YgL3N5
-cy9tb2R1bGUvcmFkZW9uL3BhcmFtZXRlcnMvaHdfaTJjLgo+ID4gCj4gPiBjYXQgL3N5cy9tb2R1
-bGUvcmFkZW9uL3BhcmFtZXRlcnMvaHdfaTJjCj4gPiAwCj4gPiBTbyBpdCB3b3Jrcy4gVGhhbmsg
-eW91Lgo+IAo+IE9LLiBCdXQgbm93IHRoaXMgbWFrZXMgbWUgdmVyeSBjdXJpb3VzIGFib3V0IHR3
-byB0aGluZ3MgKHByb2JhYmx5Cj4gcmVsYXRlZCkgOgo+IAo+ICogRG8geW91IHNlZSBhbnkgbWVu
-dGlvbiBvZiAiaTJjIGh3IGJ1cyIgaW4gdGhlIG91dHB1dCBvZgo+ICAgImkyY2RldGVjdCAtbCIg
-aW4gdGhlIGNhc2UgYWJvdmUgKGkuZS4gcmFkZW9uLmh3X2kyYz0wIGhhcyBiZWVuCj4gICBwYXNz
-ZWQgdG8gZ3J1Yik/Cj4gCj4gKiBXaGF0IGlzIHRoZSB2YWx1ZSBvZiAvc3lzL21vZHVsZS9yYWRl
-b24vcGFyYW1ldGVycy9od19pMmMgd2hlbiB5b3UgZG8KPiAgIE5PVCBwYXNzIHJhZGVvbi5od19p
-MmM9MCB0byBncnViPwo+IAo+IElmIHRoZSByYWRlb24gZHJpdmVyIHVzZXMgaGFyZHdhcmUgSTJD
-IGVuZ2luZXMgd2hlbiB0b2xkIG5vdCB0bywgdGhhdAo+IHdvdWxkIGJlIGEgYnVnLgoKU2NyYXRj
-aCB0aGlzLCBJIGRpc2N1c3NlZCB3aXRoIEFsZXggRGV1Y2hlciBhbmQgaGUgZXhwbGFpbmVkIHRo
-YXQgdGhlcmUKaXMgbm8gcG9zc2liaWxpdHkgdG8gYWNjZXNzIHRoZSBNTSBpMmMgYnVzIHdpdGgg
-c29mdHdhcmUgYml0LWJhbmdpbmcsCnRoZSBoYXJkd2FyZSBlbmdpbmUgaXMgdGhlIG9ubHkgd2F5
-IHRvIGdvIGFuZCB0aGlzIGlzIHdoeSB0aGUgaHdfaTJjCm9wdGlvbiBoYXMgbm8gZWZmZWN0IG9u
-IHRoaXMgYnVzLgoKVW5mb3J0dW5hdGVseSBoZSBkaWRuJ3QgaGF2ZSBhbnkgZXhwbGFuYXRpb24g
-Zm9yIHdoYXQgaGFwcGVuZWQuIEFsbCBoZQpjb3VsZCBzdWdnZXN0IHdhcyB0aGF0IG1heWJlIHNv
-bWUgRUVQUk9NIGNlbGxzIHdlbnQgZGVhZCB3aGVuIHRoZQpwcm9ibGVtIGhhcHBlbmVkLCBhbmQg
-dGhhdCdzIHdoeSB3ZSBjYW4ndCB3cml0ZSB0aGUgcHJvcGVyIHZhbHVlcyBiYWNrLgpUaGlzIGlz
-IGluZGVlZCBhIHBvc3NpYmlsaXR5LCB3aGljaCB1bmZvcnR1bmF0ZWx5IG1lYW5zIHRoZXJlJ3Mg
-bm90aGluZwp3ZSBjYW4gZG8gdG8gcmVzdG9yZSB5b3VyIEVESUQuIFNvcnJ5IDooCgotLSAKSmVh
-biBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+> Scratch this, I discussed with Alex Deucher and he explained that there
+> is no possibility to access the MM i2c bus with software bit-banging,
+> the hardware engine is the only way to go and this is why the hw_i2c
+> option has no effect on this bus.
+>
+> Unfortunately he didn't have any explanation for what happened. All he
+> could suggest was that maybe some EEPROM cells went dead when the
+> problem happened, and that's why we can't write the proper values back.
+> This is indeed a possibility, which unfortunately means there's nothing
+> we can do to restore your EDID. Sorry :(
+>
+> --
+> Jean Delvare
+
+Hi Jean,
+
+If that is the case, I will try to get use to use laptop in the
+current condition.
+
+I thank you very much for all of your effort and help.
+
+Yours sincerely,
+Numan
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
