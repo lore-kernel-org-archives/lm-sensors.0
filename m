@@ -1,164 +1,143 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Date: Wed, 04 Apr 2012 04:44:14 +0000
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Tue, 10 Apr 2012 00:58:22 +0000
 Subject: Re: [lm-sensors] [PATCH V2 0/6] thermal: exynos: Add kernel thermal support for exynos platform
-Message-Id: <CAK44p23jiXn6mn-VsdXr3h9J5FfKztXMiqu=XjaF6nqLnRQAmA@mail.gmail.com>
+Message-Id: <1334019502.2387.211.camel@rui.sh.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
-In-Reply-To: <1332137864-12943-1-git-send-email-amit.kachhap@linaro.org>
+	<CAK44p23jiXn6mn-VsdXr3h9J5FfKztXMiqu=XjaF6nqLnRQAmA@mail.gmail.com>
+In-Reply-To: <CAK44p23jiXn6mn-VsdXr3h9J5FfKztXMiqu=XjaF6nqLnRQAmA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lenb@kernel.org, rui.zhang@intel.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Amit Kachhap <amit.kachhap@linaro.org>
 Cc: linux-samsung-soc@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-Hi Len/Rui,
-
-Any comment or feedback from your side about the status of this patch?
-Is it merge-able or major re-work is needed? I have fixed most of the
-comments in this patchset and currently working on some of the minor
-comments received and will submit them shortly.
-
-Regards,
-Amit Daniel
-
-On 19 March 2012 11:47, Amit Daniel Kachhap <amit.kachhap@linaro.org> wrote:
-> Changes since V1:
-> *Moved the sensor driver to driver/thermal folder from driver/hwmon folder
-> =A0as suggested by Mark Brown and Guenter Roeck
-> *Added notifier support to notify the registered drivers of any cpu cooli=
-ng
-> =A0action. The driver can modify the default cooling behaviour(eg set dif=
-ferent
-> =A0max clip frequency).
-> *The percentage based frequency replaced with absolute clipped frequency.
-> *Some more conditional checks when setting max frequency.
-> *Renamed the new trip type THERMAL_TRIP_STATE_ACTIVE to
-> =A0THERMAL_TRIP_STATE_INSTANCE
-> *Many review comments from R, Durgadoss <durgadoss.r@intel.com> and
-> =A0eduardo.valentin@ti.com implemented.
-> *Removed cooling stats through debugfs patch
-> *The V1 based can be found here,
-> =A0https://lkml.org/lkml/2012/2/22/123
-> =A0http://lkml.org/lkml/2012/3/3/32
->
-> Changes since RFC:
-> *Changed the cpu cooling registration/unregistration API's to instance ba=
-sed
-> *Changed the STATE_ACTIVE trip type to pass correct instance id
-> *Adding support to restore back the policy->max_freq after doing frequency
-> =A0clipping.
-> *Moved the trip cooling stats from sysfs node to debugfs node as suggested
-> =A0by Greg KH greg@kroah.com
-> *Incorporated several review comments from eduardo.valentin@ti.com
-> *Moved the Temperature sensor driver from driver/hwmon/ to driver/mfd
-> =A0as discussed with Guenter Roeck <guenter.roeck@ericsson.com> and
-> =A0Donggeun Kim <dg77.kim@samsung.com> (https://lkml.org/lkml/2012/1/5/7)
-> *Some changes according to the changes in common cpu cooling APIs
-> *The RFC based patches can be found here,
-> =A0https://lkml.org/lkml/2011/12/13/186
-> =A0https://lkml.org/lkml/2011/12/21/169
->
->
-> Brief Description:
->
-> 1) The generic cooling devices code is placed inside driver/thermal/* as
-> placing inside acpi folder will need un-necessary enabling of acpi code. =
-This
-> codes is architecture independent.
->
-> 2) This patchset adds a new trip type THERMAL_TRIP_STATE_INSTANCE which p=
-asses
-> cooling device instance number and may be helpful for cpufreq cooling dev=
-ices
-> to take the correct cooling action. This trip type avoids the temperature
-> comparision check again inside the cooling handler.
->
-> 3) This patchset adds generic cpu cooling low level implementation through
-> frequency clipping and cpu hotplug. In future, other cpu related cooling
-> devices may be added here. An ACPI version of this already exists
-> (drivers/acpi/processor_thermal.c). But this will be useful for platforms
-> like ARM using the generic thermal interface along with the generic cpu
-> cooling devices. The cooling device registration API's return cooling dev=
-ice
-> pointers which can be easily binded with the thermal zone trip points.
-> The important APIs exposed are,
-> =A0 a)struct thermal_cooling_device *cpufreq_cooling_register(
-> =A0 =A0 =A0 =A0struct freq_clip_table *tab_ptr, unsigned int tab_size,
-> =A0 =A0 =A0 =A0const struct cpumask *mask_val)
-> =A0 b)void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
->
-> 4) Samsung exynos platform thermal implementation is done using the gener=
-ic
-> cpu cooling APIs and the new trip type. The temperature sensor driver pre=
-sent
-> in the hwmon folder(registered as hwmon driver) is moved to thermal folder
-> and registered as a thermal driver.
->
-> All this patchset is based on Kernel version 3.3-rc7
->
-> A simple data/control flow diagrams is shown below,
->
-> Core Linux thermal <-----> =A0Exynos thermal interface <----- Temperature=
- Sensor
-> =A0 =A0 =A0 =A0 =A0| =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 |
-> =A0 =A0 =A0 =A0 \|/ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0|
-> =A0Cpufreq cooling device <---------------
->
->
-> Amit Daniel Kachhap (6):
-> =A0thermal: Add a new trip type to use cooling device instance number
-> =A0thermal: Add generic cpufreq cooling implementation
-> =A0thermal: Add generic cpuhotplug cooling implementation
-> =A0hwmon: exynos4: Move thermal sensor driver to driver/thermal
-> =A0 =A0directory
-> =A0thermal: exynos4: Register the tmu sensor with the kernel thermal
-> =A0 =A0layer
-> =A0ARM: exynos4: Add thermal sensor driver platform device support
->
-> =A0Documentation/hwmon/exynos4_tmu =A0 =A0 =A0 =A0 =A0 | =A0 81 ---
-> =A0Documentation/thermal/cpu-cooling-api.txt | =A0 76 +++
-> =A0Documentation/thermal/exynos4_tmu =A0 =A0 =A0 =A0 | =A0 52 ++
-> =A0Documentation/thermal/sysfs-api.txt =A0 =A0 =A0 | =A0 =A04 +-
-> =A0arch/arm/mach-exynos/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 11 +
-> =A0arch/arm/mach-exynos/Makefile =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01 +
-> =A0arch/arm/mach-exynos/clock.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A04 +
-> =A0arch/arm/mach-exynos/dev-tmu.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 39 ++
-> =A0arch/arm/mach-exynos/include/mach/irqs.h =A0| =A0 =A02 +
-> =A0arch/arm/mach-exynos/include/mach/map.h =A0 | =A0 =A01 +
-> =A0arch/arm/mach-exynos/mach-origen.c =A0 =A0 =A0 =A0| =A0 =A01 +
-> =A0arch/arm/plat-samsung/include/plat/devs.h | =A0 =A01 +
-> =A0drivers/hwmon/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 10=
- -
-> =A0drivers/hwmon/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
-=A01 -
-> =A0drivers/hwmon/exynos4_tmu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0514 -----=
---------------
-> =A0drivers/thermal/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 21 +
-> =A0drivers/thermal/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02=
- +
-> =A0drivers/thermal/cpu_cooling.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0529 +++++++=
-++++++++++++
-> =A0drivers/thermal/exynos4_thermal.c =A0 =A0 =A0 =A0 | =A0790 +++++++++++=
-++++++++++++++++++
-> =A0drivers/thermal/thermal_sys.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 45 ++-
-> =A0include/linux/cpu_cooling.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 78 +++
-> =A0include/linux/platform_data/exynos4_tmu.h | =A0 =A07 +
-> =A0include/linux/thermal.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A01=
- +
-> =A023 files changed, 1660 insertions(+), 611 deletions(-)
-> =A0delete mode 100644 Documentation/hwmon/exynos4_tmu
-> =A0create mode 100644 Documentation/thermal/cpu-cooling-api.txt
-> =A0create mode 100644 Documentation/thermal/exynos4_tmu
-> =A0create mode 100644 arch/arm/mach-exynos/dev-tmu.c
-> =A0delete mode 100644 drivers/hwmon/exynos4_tmu.c
-> =A0create mode 100644 drivers/thermal/cpu_cooling.c
-> =A0create mode 100644 drivers/thermal/exynos4_thermal.c
-> =A0create mode 100644 include/linux/cpu_cooling.h
->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksIEFtaXQsCgpPbiDkuIksIDIwMTItMDQtMDQgYXQgMTA6MDIgKzA1MzAsIEFtaXQgS2FjaGhh
+cCB3cm90ZToKPiBIaSBMZW4vUnVpLAo+IAo+IEFueSBjb21tZW50IG9yIGZlZWRiYWNrIGZyb20g
+eW91ciBzaWRlIGFib3V0IHRoZSBzdGF0dXMgb2YgdGhpcyBwYXRjaD8KPiBJcyBpdCBtZXJnZS1h
+YmxlIG9yIG1ham9yIHJlLXdvcmsgaXMgbmVlZGVkPyBJIGhhdmUgZml4ZWQgbW9zdCBvZiB0aGUK
+PiBjb21tZW50cyBpbiB0aGlzIHBhdGNoc2V0IGFuZCBjdXJyZW50bHkgd29ya2luZyBvbiBzb21l
+IG9mIHRoZSBtaW5vcgo+IGNvbW1lbnRzIHJlY2VpdmVkIGFuZCB3aWxsIHN1Ym1pdCB0aGVtIHNo
+b3J0bHkuCj4gClNvcnJ5IGZvciB0aGUgbGF0ZSByZXNwb25zZS4KCkZpcnN0IG9mIGFsbCwgaXQg
+bWFrZXMgc2Vuc2UgdG8gbWUgdG8gaW50cm9kdWNlIHRoZSBnZW5lcmljIGNwdWZycQpjb29saW5n
+IGltcGxlbWVudGF0aW9uLgpCdXQgSSBzdGlsbCBoYXZlIHNvbWUgcXVlc3Rpb25zLgpJIHRoaW5r
+IHRoZSBrZXkgcmVhc29uIHdoeSBUSEVSTUFMX1RSSVBfU1RBVEVfSU5TVEFOQ0UgaXMgaW50cm9k
+dWNlZCBpcwp0aGF0IHRoZSBNT05JUk9SX1pPTkUgYW5kIFdBUk5fWk9ORSBvbiBleHlub3M0IGNh
+biBub3QgZml0IGludG8gdGhlCmN1cnJlbnQgcGFzc2l2ZSBoYW5kbGluZyBpbiB0aGUgZ2VuZXJp
+YyB0aGVybWFsIGxheWVyIHdlbGwsIHJpZ2h0PwplLmcuIHRoZXJlIGlzIG5vIHRjMS90YzIgb24g
+ZXh5bm9zNC4KCklmIHllcywgaXMgaXQgcG9zc2libGUgdGhhdCB3ZSBjYW4gZW5oYW5jZSB0aGUg
+cGFzc2l2ZSBjb29saW5nIHRvCnN1cHBvcnQgdGhlIGdlbmVyaWMgcHJvY2Vzc29yIGNvb2xpbmc/
+CnNheSwgaW50cm9kdWNlIGFub3RoZXIgd2F5IHRvIHRocm90dGxlIHRoZSBwcm9jZXNzb3IgaW4K
+dGhlcm1hbF96b25lX2RldmljZV9wYXNzaXZlIHdoZW4gdGMxIGFuZCB0YzIgYXJlIG5vdCBhdmFp
+bGFibGU/Cgp0aGFua3MsCnJ1aQoKPiBSZWdhcmRzLAo+IEFtaXQgRGFuaWVsCj4gCj4gT24gMTkg
+TWFyY2ggMjAxMiAxMTo0NywgQW1pdCBEYW5pZWwgS2FjaGhhcCA8YW1pdC5rYWNoaGFwQGxpbmFy
+by5vcmc+IHdyb3RlOgo+ID4gQ2hhbmdlcyBzaW5jZSBWMToKPiA+ICpNb3ZlZCB0aGUgc2Vuc29y
+IGRyaXZlciB0byBkcml2ZXIvdGhlcm1hbCBmb2xkZXIgZnJvbSBkcml2ZXIvaHdtb24gZm9sZGVy
+Cj4gPiAgYXMgc3VnZ2VzdGVkIGJ5IE1hcmsgQnJvd24gYW5kIEd1ZW50ZXIgUm9lY2sKPiA+ICpB
+ZGRlZCBub3RpZmllciBzdXBwb3J0IHRvIG5vdGlmeSB0aGUgcmVnaXN0ZXJlZCBkcml2ZXJzIG9m
+IGFueSBjcHUgY29vbGluZwo+ID4gIGFjdGlvbi4gVGhlIGRyaXZlciBjYW4gbW9kaWZ5IHRoZSBk
+ZWZhdWx0IGNvb2xpbmcgYmVoYXZpb3VyKGVnIHNldCBkaWZmZXJlbnQKPiA+ICBtYXggY2xpcCBm
+cmVxdWVuY3kpLgo+ID4gKlRoZSBwZXJjZW50YWdlIGJhc2VkIGZyZXF1ZW5jeSByZXBsYWNlZCB3
+aXRoIGFic29sdXRlIGNsaXBwZWQgZnJlcXVlbmN5Lgo+ID4gKlNvbWUgbW9yZSBjb25kaXRpb25h
+bCBjaGVja3Mgd2hlbiBzZXR0aW5nIG1heCBmcmVxdWVuY3kuCj4gPiAqUmVuYW1lZCB0aGUgbmV3
+IHRyaXAgdHlwZSBUSEVSTUFMX1RSSVBfU1RBVEVfQUNUSVZFIHRvCj4gPiAgVEhFUk1BTF9UUklQ
+X1NUQVRFX0lOU1RBTkNFCj4gPiAqTWFueSByZXZpZXcgY29tbWVudHMgZnJvbSBSLCBEdXJnYWRv
+c3MgPGR1cmdhZG9zcy5yQGludGVsLmNvbT4gYW5kCj4gPiAgZWR1YXJkby52YWxlbnRpbkB0aS5j
+b20gaW1wbGVtZW50ZWQuCj4gPiAqUmVtb3ZlZCBjb29saW5nIHN0YXRzIHRocm91Z2ggZGVidWdm
+cyBwYXRjaAo+ID4gKlRoZSBWMSBiYXNlZCBjYW4gYmUgZm91bmQgaGVyZSwKPiA+ICBodHRwczov
+L2xrbWwub3JnL2xrbWwvMjAxMi8yLzIyLzEyMwo+ID4gIGh0dHA6Ly9sa21sLm9yZy9sa21sLzIw
+MTIvMy8zLzMyCj4gPgo+ID4gQ2hhbmdlcyBzaW5jZSBSRkM6Cj4gPiAqQ2hhbmdlZCB0aGUgY3B1
+IGNvb2xpbmcgcmVnaXN0cmF0aW9uL3VucmVnaXN0cmF0aW9uIEFQSSdzIHRvIGluc3RhbmNlIGJh
+c2VkCj4gPiAqQ2hhbmdlZCB0aGUgU1RBVEVfQUNUSVZFIHRyaXAgdHlwZSB0byBwYXNzIGNvcnJl
+Y3QgaW5zdGFuY2UgaWQKPiA+ICpBZGRpbmcgc3VwcG9ydCB0byByZXN0b3JlIGJhY2sgdGhlIHBv
+bGljeS0+bWF4X2ZyZXEgYWZ0ZXIgZG9pbmcgZnJlcXVlbmN5Cj4gPiAgY2xpcHBpbmcuCj4gPiAq
+TW92ZWQgdGhlIHRyaXAgY29vbGluZyBzdGF0cyBmcm9tIHN5c2ZzIG5vZGUgdG8gZGVidWdmcyBu
+b2RlIGFzIHN1Z2dlc3RlZAo+ID4gIGJ5IEdyZWcgS0ggZ3JlZ0Brcm9haC5jb20KPiA+ICpJbmNv
+cnBvcmF0ZWQgc2V2ZXJhbCByZXZpZXcgY29tbWVudHMgZnJvbSBlZHVhcmRvLnZhbGVudGluQHRp
+LmNvbQo+ID4gKk1vdmVkIHRoZSBUZW1wZXJhdHVyZSBzZW5zb3IgZHJpdmVyIGZyb20gZHJpdmVy
+L2h3bW9uLyB0byBkcml2ZXIvbWZkCj4gPiAgYXMgZGlzY3Vzc2VkIHdpdGggR3VlbnRlciBSb2Vj
+ayA8Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20+IGFuZAo+ID4gIERvbmdnZXVuIEtpbSA8ZGc3
+Ny5raW1Ac2Ftc3VuZy5jb20+IChodHRwczovL2xrbWwub3JnL2xrbWwvMjAxMi8xLzUvNykKPiA+
+ICpTb21lIGNoYW5nZXMgYWNjb3JkaW5nIHRvIHRoZSBjaGFuZ2VzIGluIGNvbW1vbiBjcHUgY29v
+bGluZyBBUElzCj4gPiAqVGhlIFJGQyBiYXNlZCBwYXRjaGVzIGNhbiBiZSBmb3VuZCBoZXJlLAo+
+ID4gIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDExLzEyLzEzLzE4Ngo+ID4gIGh0dHBzOi8vbGtt
+bC5vcmcvbGttbC8yMDExLzEyLzIxLzE2OQo+ID4KPiA+Cj4gPiBCcmllZiBEZXNjcmlwdGlvbjoK
+PiA+Cj4gPiAxKSBUaGUgZ2VuZXJpYyBjb29saW5nIGRldmljZXMgY29kZSBpcyBwbGFjZWQgaW5z
+aWRlIGRyaXZlci90aGVybWFsLyogYXMKPiA+IHBsYWNpbmcgaW5zaWRlIGFjcGkgZm9sZGVyIHdp
+bGwgbmVlZCB1bi1uZWNlc3NhcnkgZW5hYmxpbmcgb2YgYWNwaSBjb2RlLiBUaGlzCj4gPiBjb2Rl
+cyBpcyBhcmNoaXRlY3R1cmUgaW5kZXBlbmRlbnQuCj4gPgo+ID4gMikgVGhpcyBwYXRjaHNldCBh
+ZGRzIGEgbmV3IHRyaXAgdHlwZSBUSEVSTUFMX1RSSVBfU1RBVEVfSU5TVEFOQ0Ugd2hpY2ggcGFz
+c2VzCj4gPiBjb29saW5nIGRldmljZSBpbnN0YW5jZSBudW1iZXIgYW5kIG1heSBiZSBoZWxwZnVs
+IGZvciBjcHVmcmVxIGNvb2xpbmcgZGV2aWNlcwo+ID4gdG8gdGFrZSB0aGUgY29ycmVjdCBjb29s
+aW5nIGFjdGlvbi4gVGhpcyB0cmlwIHR5cGUgYXZvaWRzIHRoZSB0ZW1wZXJhdHVyZQo+ID4gY29t
+cGFyaXNpb24gY2hlY2sgYWdhaW4gaW5zaWRlIHRoZSBjb29saW5nIGhhbmRsZXIuCj4gPgo+ID4g
+MykgVGhpcyBwYXRjaHNldCBhZGRzIGdlbmVyaWMgY3B1IGNvb2xpbmcgbG93IGxldmVsIGltcGxl
+bWVudGF0aW9uIHRocm91Z2gKPiA+IGZyZXF1ZW5jeSBjbGlwcGluZyBhbmQgY3B1IGhvdHBsdWcu
+IEluIGZ1dHVyZSwgb3RoZXIgY3B1IHJlbGF0ZWQgY29vbGluZwo+ID4gZGV2aWNlcyBtYXkgYmUg
+YWRkZWQgaGVyZS4gQW4gQUNQSSB2ZXJzaW9uIG9mIHRoaXMgYWxyZWFkeSBleGlzdHMKPiA+IChk
+cml2ZXJzL2FjcGkvcHJvY2Vzc29yX3RoZXJtYWwuYykuIEJ1dCB0aGlzIHdpbGwgYmUgdXNlZnVs
+IGZvciBwbGF0Zm9ybXMKPiA+IGxpa2UgQVJNIHVzaW5nIHRoZSBnZW5lcmljIHRoZXJtYWwgaW50
+ZXJmYWNlIGFsb25nIHdpdGggdGhlIGdlbmVyaWMgY3B1Cj4gPiBjb29saW5nIGRldmljZXMuIFRo
+ZSBjb29saW5nIGRldmljZSByZWdpc3RyYXRpb24gQVBJJ3MgcmV0dXJuIGNvb2xpbmcgZGV2aWNl
+Cj4gPiBwb2ludGVycyB3aGljaCBjYW4gYmUgZWFzaWx5IGJpbmRlZCB3aXRoIHRoZSB0aGVybWFs
+IHpvbmUgdHJpcCBwb2ludHMuCj4gPiBUaGUgaW1wb3J0YW50IEFQSXMgZXhwb3NlZCBhcmUsCj4g
+PiAgIGEpc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNwdWZyZXFfY29vbGluZ19yZWdp
+c3RlcigKPiA+ICAgICAgICBzdHJ1Y3QgZnJlcV9jbGlwX3RhYmxlICp0YWJfcHRyLCB1bnNpZ25l
+ZCBpbnQgdGFiX3NpemUsCj4gPiAgICAgICAgY29uc3Qgc3RydWN0IGNwdW1hc2sgKm1hc2tfdmFs
+KQo+ID4gICBiKXZvaWQgY3B1ZnJlcV9jb29saW5nX3VucmVnaXN0ZXIoc3RydWN0IHRoZXJtYWxf
+Y29vbGluZ19kZXZpY2UgKmNkZXYpCj4gPgo+ID4gNCkgU2Ftc3VuZyBleHlub3MgcGxhdGZvcm0g
+dGhlcm1hbCBpbXBsZW1lbnRhdGlvbiBpcyBkb25lIHVzaW5nIHRoZSBnZW5lcmljCj4gPiBjcHUg
+Y29vbGluZyBBUElzIGFuZCB0aGUgbmV3IHRyaXAgdHlwZS4gVGhlIHRlbXBlcmF0dXJlIHNlbnNv
+ciBkcml2ZXIgcHJlc2VudAo+ID4gaW4gdGhlIGh3bW9uIGZvbGRlcihyZWdpc3RlcmVkIGFzIGh3
+bW9uIGRyaXZlcikgaXMgbW92ZWQgdG8gdGhlcm1hbCBmb2xkZXIKPiA+IGFuZCByZWdpc3RlcmVk
+IGFzIGEgdGhlcm1hbCBkcml2ZXIuCj4gPgo+ID4gQWxsIHRoaXMgcGF0Y2hzZXQgaXMgYmFzZWQg
+b24gS2VybmVsIHZlcnNpb24gMy4zLXJjNwo+ID4KPiA+IEEgc2ltcGxlIGRhdGEvY29udHJvbCBm
+bG93IGRpYWdyYW1zIGlzIHNob3duIGJlbG93LAo+ID4KPiA+IENvcmUgTGludXggdGhlcm1hbCA8
+LS0tLS0+ICBFeHlub3MgdGhlcm1hbCBpbnRlcmZhY2UgPC0tLS0tIFRlbXBlcmF0dXJlIFNlbnNv
+cgo+ID4gICAgICAgICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfAo+ID4gICAgICAg
+ICBcfC8gICAgICAgICAgICAgICAgICAgICAgICAgICAgfAo+ID4gIENwdWZyZXEgY29vbGluZyBk
+ZXZpY2UgPC0tLS0tLS0tLS0tLS0tLQo+ID4KPiA+Cj4gPiBBbWl0IERhbmllbCBLYWNoaGFwICg2
+KToKPiA+ICB0aGVybWFsOiBBZGQgYSBuZXcgdHJpcCB0eXBlIHRvIHVzZSBjb29saW5nIGRldmlj
+ZSBpbnN0YW5jZSBudW1iZXIKPiA+ICB0aGVybWFsOiBBZGQgZ2VuZXJpYyBjcHVmcmVxIGNvb2xp
+bmcgaW1wbGVtZW50YXRpb24KPiA+ICB0aGVybWFsOiBBZGQgZ2VuZXJpYyBjcHVob3RwbHVnIGNv
+b2xpbmcgaW1wbGVtZW50YXRpb24KPiA+ICBod21vbjogZXh5bm9zNDogTW92ZSB0aGVybWFsIHNl
+bnNvciBkcml2ZXIgdG8gZHJpdmVyL3RoZXJtYWwKPiA+ICAgIGRpcmVjdG9yeQo+ID4gIHRoZXJt
+YWw6IGV4eW5vczQ6IFJlZ2lzdGVyIHRoZSB0bXUgc2Vuc29yIHdpdGggdGhlIGtlcm5lbCB0aGVy
+bWFsCj4gPiAgICBsYXllcgo+ID4gIEFSTTogZXh5bm9zNDogQWRkIHRoZXJtYWwgc2Vuc29yIGRy
+aXZlciBwbGF0Zm9ybSBkZXZpY2Ugc3VwcG9ydAo+ID4KPiA+ICBEb2N1bWVudGF0aW9uL2h3bW9u
+L2V4eW5vczRfdG11ICAgICAgICAgICB8ICAgODEgLS0tCj4gPiAgRG9jdW1lbnRhdGlvbi90aGVy
+bWFsL2NwdS1jb29saW5nLWFwaS50eHQgfCAgIDc2ICsrKwo+ID4gIERvY3VtZW50YXRpb24vdGhl
+cm1hbC9leHlub3M0X3RtdSAgICAgICAgIHwgICA1MiArKwo+ID4gIERvY3VtZW50YXRpb24vdGhl
+cm1hbC9zeXNmcy1hcGkudHh0ICAgICAgIHwgICAgNCArLQo+ID4gIGFyY2gvYXJtL21hY2gtZXh5
+bm9zL0tjb25maWcgICAgICAgICAgICAgIHwgICAxMSArCj4gPiAgYXJjaC9hcm0vbWFjaC1leHlu
+b3MvTWFrZWZpbGUgICAgICAgICAgICAgfCAgICAxICsKPiA+ICBhcmNoL2FybS9tYWNoLWV4eW5v
+cy9jbG9jay5jICAgICAgICAgICAgICB8ICAgIDQgKwo+ID4gIGFyY2gvYXJtL21hY2gtZXh5bm9z
+L2Rldi10bXUuYyAgICAgICAgICAgIHwgICAzOSArKwo+ID4gIGFyY2gvYXJtL21hY2gtZXh5bm9z
+L2luY2x1ZGUvbWFjaC9pcnFzLmggIHwgICAgMiArCj4gPiAgYXJjaC9hcm0vbWFjaC1leHlub3Mv
+aW5jbHVkZS9tYWNoL21hcC5oICAgfCAgICAxICsKPiA+ICBhcmNoL2FybS9tYWNoLWV4eW5vcy9t
+YWNoLW9yaWdlbi5jICAgICAgICB8ICAgIDEgKwo+ID4gIGFyY2gvYXJtL3BsYXQtc2Ftc3VuZy9p
+bmNsdWRlL3BsYXQvZGV2cy5oIHwgICAgMSArCj4gPiAgZHJpdmVycy9od21vbi9LY29uZmlnICAg
+ICAgICAgICAgICAgICAgICAgfCAgIDEwIC0KPiA+ICBkcml2ZXJzL2h3bW9uL01ha2VmaWxlICAg
+ICAgICAgICAgICAgICAgICB8ICAgIDEgLQo+ID4gIGRyaXZlcnMvaHdtb24vZXh5bm9zNF90bXUu
+YyAgICAgICAgICAgICAgIHwgIDUxNCAtLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiAgZHJpdmVycy90
+aGVybWFsL0tjb25maWcgICAgICAgICAgICAgICAgICAgfCAgIDIxICsKPiA+ICBkcml2ZXJzL3Ro
+ZXJtYWwvTWFrZWZpbGUgICAgICAgICAgICAgICAgICB8ICAgIDIgKwo+ID4gIGRyaXZlcnMvdGhl
+cm1hbC9jcHVfY29vbGluZy5jICAgICAgICAgICAgIHwgIDUyOSArKysrKysrKysrKysrKysrKysr
+Cj4gPiAgZHJpdmVycy90aGVybWFsL2V4eW5vczRfdGhlcm1hbC5jICAgICAgICAgfCAgNzkwICsr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrCj4gPiAgZHJpdmVycy90aGVybWFsL3RoZXJtYWxf
+c3lzLmMgICAgICAgICAgICAgfCAgIDQ1ICsrLQo+ID4gIGluY2x1ZGUvbGludXgvY3B1X2Nvb2xp
+bmcuaCAgICAgICAgICAgICAgIHwgICA3OCArKysKPiA+ICBpbmNsdWRlL2xpbnV4L3BsYXRmb3Jt
+X2RhdGEvZXh5bm9zNF90bXUuaCB8ICAgIDcgKwo+ID4gIGluY2x1ZGUvbGludXgvdGhlcm1hbC5o
+ICAgICAgICAgICAgICAgICAgIHwgICAgMSArCj4gPiAgMjMgZmlsZXMgY2hhbmdlZCwgMTY2MCBp
+bnNlcnRpb25zKCspLCA2MTEgZGVsZXRpb25zKC0pCj4gPiAgZGVsZXRlIG1vZGUgMTAwNjQ0IERv
+Y3VtZW50YXRpb24vaHdtb24vZXh5bm9zNF90bXUKPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgRG9j
+dW1lbnRhdGlvbi90aGVybWFsL2NwdS1jb29saW5nLWFwaS50eHQKPiA+ICBjcmVhdGUgbW9kZSAx
+MDA2NDQgRG9jdW1lbnRhdGlvbi90aGVybWFsL2V4eW5vczRfdG11Cj4gPiAgY3JlYXRlIG1vZGUg
+MTAwNjQ0IGFyY2gvYXJtL21hY2gtZXh5bm9zL2Rldi10bXUuYwo+ID4gIGRlbGV0ZSBtb2RlIDEw
+MDY0NCBkcml2ZXJzL2h3bW9uL2V4eW5vczRfdG11LmMKPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQg
+ZHJpdmVycy90aGVybWFsL2NwdV9jb29saW5nLmMKPiA+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJp
+dmVycy90aGVybWFsL2V4eW5vczRfdGhlcm1hbC5jCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGlu
+Y2x1ZGUvbGludXgvY3B1X2Nvb2xpbmcuaAo+ID4KCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
