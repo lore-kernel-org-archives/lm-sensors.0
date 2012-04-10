@@ -1,7 +1,7 @@
-From: =?UTF-8?B?TnVtYW4gREVNxLBSRMOWxJ5FTg==?= <numand46@gmail.com>
-Date: Sat, 07 Apr 2012 19:05:49 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 10 Apr 2012 13:15:26 +0000
 Subject: Re: [lm-sensors] sensors-detect changed screen's vertical rate
-Message-Id: <CAHa016e3n+=gHt32noDdzkQZM3UA-DWjJoKvn8CdVghXjV0+nw@mail.gmail.com>
+Message-Id: <20120410151526.7a60321c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
 In-Reply-To: <CAHa016ft3m21YqasTFMnc8oiHKNELQ6dcUk43-XJXTs4AOk5pQ@mail.gmail.com>
@@ -10,14 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> You can check the value of /sys/module/radeon/parameters/hw_i2c.
-> Jean Delvare
-
-cat /sys/module/radeon/parameters/hw_i2c
-0
-So it works. Thank you.
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgTnVtYW4sCgpPbiBTYXQsIDcgQXByIDIwMTIgMjI6MDU6NDkgKzAzMDAsIE51bWFuIERFTcSw
+UkTDlsSeRU4gd3JvdGU6Cj4gPiBZb3UgY2FuIGNoZWNrIHRoZSB2YWx1ZSBvZiAvc3lzL21vZHVs
+ZS9yYWRlb24vcGFyYW1ldGVycy9od19pMmMuCj4gCj4gY2F0IC9zeXMvbW9kdWxlL3JhZGVvbi9w
+YXJhbWV0ZXJzL2h3X2kyYwo+IDAKPiBTbyBpdCB3b3Jrcy4gVGhhbmsgeW91LgoKT0suIEJ1dCBu
+b3cgdGhpcyBtYWtlcyBtZSB2ZXJ5IGN1cmlvdXMgYWJvdXQgdHdvIHRoaW5ncyAocHJvYmFibHkK
+cmVsYXRlZCkgOgoKKiBEbyB5b3Ugc2VlIGFueSBtZW50aW9uIG9mICJpMmMgaHcgYnVzIiBpbiB0
+aGUgb3V0cHV0IG9mCiAgImkyY2RldGVjdCAtbCIgaW4gdGhlIGNhc2UgYWJvdmUgKGkuZS4gcmFk
+ZW9uLmh3X2kyYz0wIGhhcyBiZWVuCiAgcGFzc2VkIHRvIGdydWIpPwoKKiBXaGF0IGlzIHRoZSB2
+YWx1ZSBvZiAvc3lzL21vZHVsZS9yYWRlb24vcGFyYW1ldGVycy9od19pMmMgd2hlbiB5b3UgZG8K
+ICBOT1QgcGFzcyByYWRlb24uaHdfaTJjPTAgdG8gZ3J1Yj8KCklmIHRoZSByYWRlb24gZHJpdmVy
+IHVzZXMgaGFyZHdhcmUgSTJDIGVuZ2luZXMgd2hlbiB0b2xkIG5vdCB0bywgdGhhdAp3b3VsZCBi
+ZSBhIGJ1Zy4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0t
+c2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8v
+bG0tc2Vuc29ycw=
