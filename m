@@ -1,7 +1,7 @@
-From: GSR - FR <famrom@infernal-iceberg.com>
-Date: Thu, 05 Apr 2012 00:31:56 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Wed, 11 Apr 2012 08:59:02 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <20120405003155.GA11041@fortress.battleship>
+Message-Id: <CAKPcRGoxC=4T1HKX4mZwYd-ded0=gNxB95v=LfD27NqB9NW89w@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120320231656.GC12339@burratino>
 In-Reply-To: <20120320231656.GC12339@burratino>
@@ -10,24 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-jrnieder@gmail.com (2012-04-04 at 1923.25 -0500):
-> GSR - FR wrote:
-> > jrnieder@gmail.com (2012-03-22 at 0940.40 -0500):
-> 
-> >> 	cat DSDT.aml >/sys/kernel/debug/acpi/custom_method
-> >
-> > I got some time to try all those things, but that step fails with
-> > "cat: write error: Invalid argument".
-> 
-> Does "dmesg | tail" give a more detailed message?
-
-Nothing.
-
-GSR
- 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U29ycnkgZm9yIHRoZSBsYXRlbmN5LCBJIHdhcyBvbiB2YWNhdGlvbi4uLgoKT24gVGh1LCBBcHIg
+NSwgMjAxMiBhdCAxOjQ4IEFNLCBHU1IgLSBGUiA8ZmFtcm9tQGluZmVybmFsLWljZWJlcmcuY29t
+PiB3cm90ZToKPiBIaSwKPiBqcm5pZWRlckBnbWFpbC5jb20gKDIwMTItMDMtMjIgYXQgMDk0MC40
+MCAtMDUwMCk6Cj4+IMKgIMKgIMKgIGNhdCBEU0RULmFtbCA+L3N5cy9rZXJuZWwvZGVidWcvYWNw
+aS9jdXN0b21fbWV0aG9kCj4KPiBJIGdvdCBzb21lIHRpbWUgdG8gdHJ5IGFsbCB0aG9zZSB0aGlu
+Z3MsIGJ1dCB0aGF0IHN0ZXAgZmFpbHMgd2l0aAo+ICJjYXQ6IHdyaXRlIGVycm9yOiBJbnZhbGlk
+IGFyZ3VtZW50Ii4KCkNhbiB5b3Ugc2VuZCBtZSB0aGUgZHVtcCBvZiB5b3VyIERTRFQgdGFibGU/
+CgpMCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
