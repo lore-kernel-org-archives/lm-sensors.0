@@ -1,63 +1,98 @@
-From: Kyle McMartin <kyle@redhat.com>
-Date: Mon, 02 Apr 2012 18:19:03 +0000
-Subject: [lm-sensors] [PATCH 4/5] acpi_power_meter: drop meter_rw_attrs, use common meter_attrs
-Message-Id: <07d303ae2a55badcf93160caedad63ae88284b7a.1333390501.git.kyle@mcmartin.ca>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 13 Apr 2012 15:25:49 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.4-rc3
+Message-Id: <20120413152549.GA3111@ericsson.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7199733816750351771=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+--===============7199733816750351771==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ibTvN161/egqYuK8"
+Content-Disposition: inline
+
+--ibTvN161/egqYuK8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.4-rc3 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Fix build warnings in four drivers.
+
+Thanks,
+Guenter
+
+------
+
+The following changes since commit 0034102808e0dbbf3a2394b82b1bb40b5778de9e:
+
+  Linux 3.4-rc2 (2012-04-07 18:30:41 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+for you to fetch changes up to d7ee11157f1fce02632e2f3a56b99b2afd9e5f93:
+
+  hwmon: (pmbus_core) Fix compiler warning (2012-04-09 12:17:38 -0700)
+
+----------------------------------------------------------------
+hwmon patches for 3.4-rc3
+
+Fix build warnings in four drivers
+
+----------------------------------------------------------------
+Guenter Roeck (4):
+      hwmon: (smsc47b397) Fix compiler warning
+      hwmon: (acpi_power_meter) Fix compiler warning seen in some configurations
+      hwmon: (smsc47m1) Fix compiler warning
+      hwmon: (pmbus_core) Fix compiler warning
+
+ drivers/hwmon/acpi_power_meter.c |    1 +
+ drivers/hwmon/pmbus/pmbus_core.c |   17 ++++++++---------
+ drivers/hwmon/smsc47b397.c       |   14 ++++++++------
+ drivers/hwmon/smsc47m1.c         |   19 ++++++++++---------
+ 4 files changed, 27 insertions(+), 24 deletions(-)
+
+--ibTvN161/egqYuK8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPiEV9AAoJEMsfJm/On5mBwcYP/2y6yCFtFSU21he4hE5xYFaG
+9sK28PJBSbG0masfq7NW55B3FI6f1+p3iiXuZcy5dr4cuvfQpAKTJjaDVFMXSGn0
+izrTMhGHMEdaDl4eP3oolQyWSMoP56P8mTUK47iD4Hmy/zCGTMsoWVw3E2PN6ydp
+6e3PLkmNnCArwQqK8qDcnB+KqQNpeaeaydmZK8Yv7TQHaayl/5tAvX4mQ9925zm3
+PWWTFVMiVKPtjBZmzkSA/QvCKWDFfMeonTe2IkMRnYRohRX2pTFphLlP/WoMDXiz
+XjqDgeoGDIWt5hNw0frujLAFxCJ3VhaSGz678xIUS5ZgxI7DYPyikAl4dIq7IOs7
+igMIpz7uKaJLijotu36keirusb15ZrMQeOURgTNQ5bNbC+NefRoHCPeA1mtDSySn
+pM85OX383vd2pYiJZCaGAY84+XuddALwaQ9t+Uuies8e7E8vlrjxl6W02R+hUsp/
+hIDTfOkWzS1ple2yfBX4upiwV4qEc5NKMj8aYTy8CMAEboGjHekW5nWZOSUUHknR
+KyepEjHmOUBTKEsU+Ycew4Hp1xto+X0cQwLZecp5YBujylBwx72of8IRxCpLA5zY
+zCWbczzqVdKJ0PsS4vUEW/YQ2ZcPtDLJG8scHQM/YjBGPZQuG8cbdehT5XCJKB+4
+yFwOYHkUD6tgRIeEZfGG
+=ZBg2
+-----END PGP SIGNATURE-----
+
+--ibTvN161/egqYuK8--
+
+
+--===============7199733816750351771==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-From: Kyle McMartin <kyle@mcmartin.ca>
-
-We always register these two together, so move meter_rw_attrs into
-meter_ro_attrs and use the same for both since we no longer have two
-register_attr paths.
-
-Signed-off-by: Kyle McMartin <kyle@redhat.com>
----
- drivers/hwmon/acpi_power_meter.c |   11 ++---------
- 1 files changed, 2 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
-index c9df810..16ab439 100644
---- a/drivers/hwmon/acpi_power_meter.c
-+++ b/drivers/hwmon/acpi_power_meter.c
-@@ -476,16 +476,12 @@ static ssize_t show_name(struct device *dev,
- 	}
- 
- /* Sensor descriptions.  If you add a sensor, update NUM_SENSORS above! */
--static struct sensor_template meter_ro_attrs[] = {
-+static struct sensor_template meter_attrs[] = {
- 	RO_SENSOR_TEMPLATE(POWER_AVERAGE_NAME, show_power, 0),
- 	RO_SENSOR_TEMPLATE("power1_accuracy", show_accuracy, 0),
- 	RO_SENSOR_TEMPLATE("power1_average_interval_min", show_val, 0),
- 	RO_SENSOR_TEMPLATE("power1_average_interval_max", show_val, 1),
- 	RO_SENSOR_TEMPLATE("power1_is_battery", show_val, 5),
--	{},
--};
--
--static struct sensor_template meter_rw_attrs[] = {
- 	RW_SENSOR_TEMPLATE(POWER_AVG_INTERVAL_NAME, show_avg_interval,
- 		set_avg_interval, 0),
- 	{},
-@@ -687,10 +683,7 @@ static int setup_attrs(struct acpi_power_meter_resource *resource)
- 		return res;
- 
- 	if (resource->caps.flags & POWER_METER_CAN_MEASURE) {
--		res = register_attrs(resource, meter_ro_attrs);
--		if (res)
--			goto error;
--		res = register_attrs(resource, meter_rw_attrs);
-+		res = register_attrs(resource, meter_attrs);
- 		if (res)
- 			goto error;
- 	}
--- 
-1.7.7.6
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7199733816750351771==--
