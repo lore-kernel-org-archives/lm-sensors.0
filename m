@@ -1,83 +1,92 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 09 Apr 2012 18:20:36 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (smsc47b397) Fix compiler warning
-Message-Id: <20120409202036.164ef2bb@endymion.delvare>
+From: Charles <c@catcons.co.uk>
+Date: Fri, 13 Apr 2012 15:46:29 +0000
+Subject: [lm-sensors] fancontrol script modifications
+Message-Id: <4F884785.4030603@catcons.co.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 28 Mar 2012 09:38:25 -0700, Guenter Roeck wrote:
-> Some configurations produce the following compiler warning:
-> 
-> drivers/hwmon/smsc47b397.c: In function 'smsc47b397_init':
-> drivers/hwmon/smsc47b397.c:385: warning: 'address' may be used uninitialized in this function
-> 
-> While this is a false positive, it can easily be fixed by overloading the return
-> value from smsc47b397_find with both address and error return code (the address
-> is an unsigned short and thus never negative). This also reduces module size by
-> a few bytes (64 bytes for x86_64).
-> 
-> Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/smsc47b397.c |   14 ++++++++------
->  1 files changed, 8 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
-> index d3b778d..c5f6be4 100644
-> --- a/drivers/hwmon/smsc47b397.c
-> +++ b/drivers/hwmon/smsc47b397.c
-> @@ -343,10 +343,11 @@ exit:
->  	return err;
->  }
->  
-> -static int __init smsc47b397_find(unsigned short *addr)
-> +static int __init smsc47b397_find(void)
->  {
->  	u8 id, rev;
->  	char *name;
-> +	unsigned short addr;
->  
->  	superio_enter();
->  	id = force_id ? force_id : superio_inb(SUPERIO_REG_DEVID);
-> @@ -370,14 +371,14 @@ static int __init smsc47b397_find(unsigned short *addr)
->  	rev = superio_inb(SUPERIO_REG_DEVREV);
->  
->  	superio_select(SUPERIO_REG_LD8);
-> -	*addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
-> +	addr = (superio_inb(SUPERIO_REG_BASE_MSB) << 8)
->  		 |  superio_inb(SUPERIO_REG_BASE_LSB);
->  
->  	pr_info("found SMSC %s (base address 0x%04x, revision %u)\n",
-> -		name, *addr, rev);
-> +		name, addr, rev);
->  
->  	superio_exit();
-> -	return 0;
-> +	return addr;
->  }
->  
->  static int __init smsc47b397_init(void)
-> @@ -385,9 +386,10 @@ static int __init smsc47b397_init(void)
->  	unsigned short address;
->  	int ret;
->  
-> -	ret = smsc47b397_find(&address);
-> -	if (ret)
-> +	ret = smsc47b397_find();
-> +	if (ret < 0)
->  		return ret;
-> +	address = ret;
->  
->  	ret = platform_driver_register(&smsc47b397_driver);
->  	if (ret)
+Hello :-)
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Two new features are shown in the diff, based on the 3.3.2 version.
 
--- 
-Jean Delvare
+One provides for handling a stale PID file.
+
+The other allows the PIDFILE value to be optionally configured.  This is
+useful if the user wants to start fancontrol before the file system
+containing /var/run is mounted (I have it configured as
+/root/var/run/fancontrol.pid)
+
+=== diff begins ==--- fancontrol.org	2012-04-11 21:15:58.611000054 +0530
++++ fancontrol	2012-04-13 15:55:06.790123451 +0530
+@@ -38,8 +38,6 @@
+ #
+ #
+
+-PIDFILE="/var/run/fancontrol.pid"
+-
+ #DEBUG=1
+ MAX%5
+
+@@ -66,6 +64,11 @@
+ 	FCFANS=`egrep '^FCFANS=.*$' $1 | sed -e 's/FCFANS=//g'`
+ 	MINPWM=`egrep '^MINPWM=.*$' $1 | sed -e 's/MINPWM=//g'`
+ 	MAXPWM=`egrep '^MAXPWM=.*$' $1 | sed -e 's/MAXPWM=//g'`
++	PIDFILE=`egrep '^PIDFILE=.*$' $1 | sed -e 's/PIDFILE=//g'`
++    if [[ -z $PIDFILE ]]
++    then
++        PIDFILE='/var/run/fancontrol.pid'
++    fi
+
+ 	# Check whether all mandatory settings are set
+ 	if [[ -z ${INTERVAL} || -z ${FCTEMPS} || -z ${MINTEMP} || -z
+${MAXTEMP} || -z ${MINSTART} || -z ${MINSTOP} ]]
+@@ -205,6 +208,25 @@
+ 	return $outdated
+ }
+
++# Check and write PID file
++function PIDfile {
++    local cmd my_name PID
++    if [[ -f "$PIDFILE" ]]
++    then
++        my_name="${0##*/}"
++        PID=`cat "$PIDFILE"`
++        cmd=`ps --pid "$PID" --format cmd --no-headers`
++        if [ "${cmd##*/}" = "$my_name" ]
++        then
++            echo "$my_name is already running with PID $PID" >&2
++            exit 1
++        else
++            echo "Refreshing stale PID file, $PIDFILE" >&2
++        fi
++    fi
++    echo $$ > "$PIDFILE"
++}
++
+ # Check that all referenced sysfs files exist
+ function CheckFiles {
+ 	local outdated=0
+@@ -301,12 +323,7 @@
+ fi
+ CheckFiles || exit 1
+
+-if [ -f "$PIDFILE" ]
+-then
+-	echo "File $PIDFILE exists, is fancontrol already running?" >&2
+-	exit 1
+-fi
+-echo $$ > "$PIDFILE"
++PIDfile
+
+ # $1 = pwm file name
+ function pwmdisable()
+=== diff ends ==
+Best
+
+Charles
 
 _______________________________________________
 lm-sensors mailing list
