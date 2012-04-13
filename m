@@ -1,170 +1,66 @@
-From: Michael Weingartner <michael.weingartner@tuwien.ac.at>
-Date: Thu, 12 Apr 2012 14:43:58 +0000
-Subject: [lm-sensors] Tempoutput changed
-Message-Id: <20120412164358.11904yfhv5a44ai6@webmail.tuwien.ac.at>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Fri, 13 Apr 2012 00:28:52 +0000
+Subject: [lm-sensors] [PATCH v6 0/3] TS-5500 platform support
+Message-Id: <1334276935-11258-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
-
-Dear Ladies and Gentlemen,
-
-I have a Asus kfn4-dre mainboard. Ubuntu 8.04 was installed. =20
-lm-sensors showed k8temp for all cores between 50-60 degrees celsius. =20
-With load some degrees more, without load approximately 50 degrees.
-
-I have done an upgrade to 10.04. I ran sensors-detect and now i have:
-k8temp-pci-00c3
-Adapter: PCI adapter
-Core0 Temp:  +43.0=B0C
-Core1 Temp:  +41.0=B0C
-
-k8temp-pci-00cb
-Adapter: PCI adapter
-Core0 Temp:  +47.0=B0C
-Core1 Temp:  +49.0=B0C
-
-Version:
-sensors version 3.1.2 with libsensors version 3.1.2
-
-Kernel Verision:
-2.6.35-32-generic-pae
-
-/proc/cpu:
-processor	: 0
-vendor_id	: AuthenticAMD
-cpu family	: 15
-model		: 65
-model name	: Dual-Core AMD Opteron(tm) Processor 2212
-stepping	: 2
-cpu MHz		: 2000.000
-cache size	: 1024 KB
-physical id	: 0
-siblings	: 2
-core id		: 0
-cpu cores	: 2
-apicid		: 0
-initial apicid	: 0
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 1
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov =20
-pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt =20
-rdtscp lm 3dnowext 3dnow extd_apicid pni cx16 lahf_lm cmp_legacy svm =20
-extapic cr8_legacy
-bogomips	: 4020.89
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 40 bits physical, 48 bits virtual
-power management: ts fid vid ttp tm stc
-
-processor	: 1
-vendor_id	: AuthenticAMD
-cpu family	: 15
-model		: 65
-model name	: Dual-Core AMD Opteron(tm) Processor 2212
-stepping	: 2
-cpu MHz		: 2000.000
-cache size	: 1024 KB
-physical id	: 0
-siblings	: 2
-core id		: 1
-cpu cores	: 2
-apicid		: 1
-initial apicid	: 1
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 1
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov =20
-pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt =20
-rdtscp lm 3dnowext 3dnow extd_apicid pni cx16 lahf_lm cmp_legacy svm =20
-extapic cr8_legacy
-bogomips	: 4020.89
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 40 bits physical, 48 bits virtual
-power management: ts fid vid ttp tm stc
-
-processor	: 2
-vendor_id	: AuthenticAMD
-cpu family	: 15
-model		: 65
-model name	: Dual-Core AMD Opteron(tm) Processor 2212
-stepping	: 2
-cpu MHz		: 2000.000
-cache size	: 1024 KB
-physical id	: 1
-siblings	: 2
-core id		: 0
-cpu cores	: 2
-apicid		: 2
-initial apicid	: 2
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 1
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov =20
-pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt =20
-rdtscp lm 3dnowext 3dnow extd_apicid pni cx16 lahf_lm cmp_legacy svm =20
-extapic cr8_legacy
-bogomips	: 4020.89
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 40 bits physical, 48 bits virtual
-power management: ts fid vid ttp tm stc
-
-processor	: 3
-vendor_id	: AuthenticAMD
-cpu family	: 15
-model		: 65
-model name	: Dual-Core AMD Opteron(tm) Processor 2212
-stepping	: 2
-cpu MHz		: 2000.000
-cache size	: 1024 KB
-physical id	: 1
-siblings	: 2
-core id		: 1
-cpu cores	: 2
-apicid		: 3
-initial apicid	: 3
-fdiv_bug	: no
-hlt_bug		: no
-f00f_bug	: no
-coma_bug	: no
-fpu		: yes
-fpu_exception	: yes
-cpuid level	: 1
-wp		: yes
-flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov =20
-pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt =20
-rdtscp lm 3dnowext 3dnow extd_apicid pni cx16 lahf_lm cmp_legacy svm =20
-extapic cr8_legacy
-bogomips	: 4020.89
-clflush size	: 64
-cache_alignment	: 64
-address sizes	: 40 bits physical, 48 bits virtual
-power management: ts fid vid ttp tm stc
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: x86@kernel.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
 
 
+Hi,
+
+This patchset brings support for the Technologic Systems TS-5500 platform.
+The code is rebased on v3.4-rc2.
+
+The first patch adds support to hwmon for the Maxim MAX197 A/D converter,
+which is embedded on the TS-5500 platform, as suggested by Guenter Roeck.
+
+The second patch adds basic support for the platform.
+
+The third patch adds support for the board GPIO interface.
+According to comments from Alan Cox and Mark Brown, the driver has been
+reworked to use libgpio and moved to the GPIO subsystem.
+
+	-Vivien
 
 
-Thanks with kind regards
-mike
+Jerome Oufella (1):
+  gpio: TS-5500 GPIO support
+
+Vivien Didelot (2):
+  hwmon: Maxim MAX197 support
+  x86/platform: TS-5500 basic platform support
+
+ Documentation/ABI/testing/sysfs-platform-ts5500 |   46 +++
+ Documentation/hwmon/max197                      |   59 ++++
+ MAINTAINERS                                     |    7 +
+ arch/x86/Kconfig                                |    8 +
+ arch/x86/include/asm/ts5500.h                   |   62 ++++
+ arch/x86/platform/Makefile                      |    1 +
+ arch/x86/platform/ts5500/Makefile               |    1 +
+ arch/x86/platform/ts5500/ts5500.c               |  400 +++++++++++++++++++++++
+ drivers/gpio/Kconfig                            |    7 +
+ drivers/gpio/Makefile                           |    1 +
+ drivers/gpio/gpio-ts5500.c                      |  347 ++++++++++++++++++++
+ drivers/hwmon/Kconfig                           |    9 +
+ drivers/hwmon/Makefile                          |    1 +
+ drivers/hwmon/max197.c                          |  398 ++++++++++++++++++++++
+ include/linux/max197.h                          |   20 ++
+ 15 files changed, 1367 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-ts5500
+ create mode 100644 Documentation/hwmon/max197
+ create mode 100644 arch/x86/include/asm/ts5500.h
+ create mode 100644 arch/x86/platform/ts5500/Makefile
+ create mode 100644 arch/x86/platform/ts5500/ts5500.c
+ create mode 100644 drivers/gpio/gpio-ts5500.c
+ create mode 100644 drivers/hwmon/max197.c
+ create mode 100644 include/linux/max197.h
+
+-- 
+1.7.9.2
 
 
 _______________________________________________
