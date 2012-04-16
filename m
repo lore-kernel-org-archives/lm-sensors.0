@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 14 Apr 2012 20:07:48 +0000
+Date: Mon, 16 Apr 2012 07:35:21 +0000
 Subject: Re: [lm-sensors] make lm-sensors 3.3.2 ERROR /usr/bin/ld.bfd.real: cannot find -liconv
-Message-Id: <20120414220748.1ff6532b@endymion.delvare>
+Message-Id: <20120416093521.4dd45a3f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAGqf2iKA7akhpz9oP7GOkdJp7xBT67Q8ZHQjh75edcA5ZQFSBA@mail.gmail.com>
 In-Reply-To: <CAGqf2iKA7akhpz9oP7GOkdJp7xBT67Q8ZHQjh75edcA5ZQFSBA@mail.gmail.com>
@@ -12,31 +12,41 @@ To: lm-sensors@vger.kernel.org
 
 Hi Martin,
 
-On Sat, 14 Apr 2012 20:09:22 +0100, Martin Suchanek wrote:
-> When I tried to compile lm-sensors from source code I have got by make
-> commad error:
-> 
-> /usr/bin/ld.bfd.real: cannot find -liconv
-> collect2: ld returned 1 exit status
-> make: *** [prog/sensors/sensors] Error 1
-> 
-> 
-> Could you please help me to solve this problem. (I have compiled it half
-> year ago without problem)
+Please don't top-post, and please leave the list included.
 
-What system are you building on? Are you building for the local host or
-for a different system?
+On Sun, 15 Apr 2012 17:29:23 +0100, Martin Suchanek wrote:
+> Hi ,
+> thanks for helping me out.
+> bulding for local host.
 
-The makefile is supposed to figure out automatically if -liconv must be
-passed or not. In your case it thinks it should be passed but your
-linker disagrees.
+You didn't answer my question: what system (which distribution) are you
+building on?
 
-What does the following command return?
+> libiconv.so.2 (libc6,x86-64) => /usr/lib/libiconv.so.2
+> dpkg -l|grep libicon
+> ii  libiconv-hook-dev
+> 0.0.20021209-10                                        header files of libiconv-hook
+> ii  libiconv-hook1
+> 0.0.20021209-10                                        extension of iconv for libapache-mod-encoding
 
-$ /sbin/ldconfig -p | grep libiconv\\.so
+Hmm, OK, so you do have one libiconv library on the system, but I'm not
+sure if you really need to link against it, as it seems to be
+apache-specific (no idea why though.)
 
-Do you have any package named libiconv installed? If not, does any
-installed package include libiconv.so, and if yes, where is it located?
+Please list all files that match /usr/lib/libiconv.so.*, and for each
+of them, check which package provides it.
+
+Then as a test you can edit prog/sensors/Module.mk, search for the
+following line:
+
+LIBICONV := $(shell if /sbin/ldconfig -p | grep -q libiconv\\.so ; then echo \-liconv; else echo; fi)
+
+Replace with:
+
+LIBICONV := 
+
+and try building again. Obviously this can't be a definitive fix but at
+least it will tell us if you really need libiconv or not.
 
 -- 
 Jean Delvare
