@@ -1,44 +1,191 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 16 Apr 2012 12:43:19 +0000
+From: Quang Minh <quangminh86@gmail.com>
+Date: Mon, 16 Apr 2012 12:56:58 +0000
 Subject: Re: [lm-sensors] Need support IBM x3650
-Message-Id: <20120416144319.574e2b39@endymion.delvare>
+Message-Id: <4F8C171A.3020604@gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="------------080902060705030000030903"
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4F8C109C.3070604@gmail.com>
 In-Reply-To: <4F8C109C.3070604@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 16 Apr 2012 19:29:16 +0700, Quang Minh wrote:
-> Hi all,
-> 
-> I have a server IBM x3650 run CentOS. I want check temperature of server.
-> I tried install lm_sensor, run sensors-detect then got error
->          Sorry, no sensors were detected.
->          Either your sensors are not supported, or they are connected to an
->          I2C or SMBus adapter that is not supported. See doc/FAQ,
->          doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
->          (FAQ #4.24.3) for further information.
->          If you find out what chips are on your board, check
->          http://www.lm-sensors.org/wiki/Devices for driver status.
-> 
-> Can you help me?
+This is a multi-part message in MIME format.
+--------------080902060705030000030903
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
 
-Not if you don't provide additional information:
-* Which kernel are you running?
-* Which version of lm-sensors?
+Thank for reply
 
-Please also provide the full output of sensors-detect.
+here is information of server
+Server running kernel 2.6.18-194.el5PAE
+And i tried install lm-sensors 2.10.8
+And output of sensor-detect in file attachment
 
-That being said, on high end servers monitoring is frequently done by
-IPMI, which lm-sensors doesn't support, so the is a chance that
-lm-sensors just won't work on this machine.
+Thanks again.
+Ngày 4/16/2012 7:43 PM, Jean Delvare viết:
+> On Mon, 16 Apr 2012 19:29:16 +0700, Quang Minh wrote:
+>> Hi all,
+>>
+>> I have a server IBM x3650 run CentOS. I want check temperature of server.
+>> I tried install lm_sensor, run sensors-detect then got error
+>>           Sorry, no sensors were detected.
+>>           Either your sensors are not supported, or they are connected to an
+>>           I2C or SMBus adapter that is not supported. See doc/FAQ,
+>>           doc/lm_sensors-FAQ.html or http://www.lm-sensors.org/wiki/FAQ
+>>           (FAQ #4.24.3) for further information.
+>>           If you find out what chips are on your board, check
+>>           http://www.lm-sensors.org/wiki/Devices for driver status.
+>>
+>> Can you help me?
+> Not if you don't provide additional information:
+> * Which kernel are you running?
+> * Which version of lm-sensors?
+>
+> Please also provide the full output of sensors-detect.
+>
+> That being said, on high end servers monitoring is frequently done by
+> IPMI, which lm-sensors doesn't support, so the is a chance that
+> lm-sensors just won't work on this machine.
+>
 
--- 
-Jean Delvare
+
+--------------080902060705030000030903
+Content-Type: text/plain; charset=windows-1252;
+ name="sensors-detect-output.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="sensors-detect-output.txt"
+
+IyBzZW5zb3JzLWRldGVjdCByZXZpc2lvbiA1MjkxICgyMDA4LTA2LTIzIDIzOjQwOjQ2IC0w
+NzAwKQ0KDQpUaGlzIHByb2dyYW0gd2lsbCBoZWxwIHlvdSBkZXRlcm1pbmUgd2hpY2gga2Vy
+bmVsIG1vZHVsZXMgeW91IG5lZWQNCnRvIGxvYWQgdG8gdXNlIGxtX3NlbnNvcnMgbW9zdCBl
+ZmZlY3RpdmVseS4gSXQgaXMgZ2VuZXJhbGx5IHNhZmUNCmFuZCByZWNvbW1lbmRlZCB0byBh
+Y2NlcHQgdGhlIGRlZmF1bHQgYW5zd2VycyB0byBhbGwgcXVlc3Rpb25zLA0KdW5sZXNzIHlv
+dSBrbm93IHdoYXQgeW91J3JlIGRvaW5nLg0KDQpXZSBjYW4gc3RhcnQgd2l0aCBwcm9iaW5n
+IGZvciAoUENJKSBJMkMgb3IgU01CdXMgYWRhcHRlcnMuDQpEbyB5b3Ugd2FudCB0byBwcm9i
+ZSBub3c/IChZRVMvbm8pOg0KUHJvYmluZyBmb3IgUENJIGJ1cyBhZGFwdGVycy4uLg0KVXNl
+IGRyaXZlciBgaTJjLWk4MDEnIGZvciBkZXZpY2UgMDAwMDowMDoxZi4zOiBJbnRlbCBJQ0gx
+MA0KDQpXZSB3aWxsIG5vdyB0cnkgdG8gbG9hZCBlYWNoIGFkYXB0ZXIgbW9kdWxlIGluIHR1
+cm4uDQpNb2R1bGUgYGkyYy1pODAxJyBhbHJlYWR5IGxvYWRlZC4NCklmIHlvdSBoYXZlIHVu
+ZGV0ZWN0YWJsZSBvciB1bnN1cHBvcnRlZCBJMkMvU01CdXMgYWRhcHRlcnMsIHlvdSBjYW4g
+aGF2ZQ0KdGhlbSBzY2FubmVkIGJ5IG1hbnVhbGx5IGxvYWRpbmcgdGhlIG1vZHVsZXMgYmVm
+b3JlIHJ1bm5pbmcgdGhpcyBzY3JpcHQuDQoNCldlIGFyZSBub3cgZ29pbmcgdG8gZG8gdGhl
+IEkyQy9TTUJ1cyBhZGFwdGVyIHByb2JpbmdzLiBTb21lIGNoaXBzIG1heQ0KYmUgZG91Ymxl
+IGRldGVjdGVkOyB3ZSBjaG9vc2UgdGhlIG9uZSB3aXRoIHRoZSBoaWdoZXN0IGNvbmZpZGVu
+Y2UNCnZhbHVlIGluIHRoYXQgY2FzZS4NCklmIHlvdSBmb3VuZCB0aGF0IHRoZSBhZGFwdGVy
+IGh1bmcgYWZ0ZXIgcHJvYmluZyBhIGNlcnRhaW4gYWRkcmVzcywNCnlvdSBjYW4gc3BlY2lm
+eSB0aGF0IGFkZHJlc3MgdG8gcmVtYWluIHVucHJvYmVkLg0KDQpOZXh0IGFkYXB0ZXI6IFNN
+QnVzIEk4MDEgYWRhcHRlciBhdCAyMDAwIChpMmMtMCkNCkRvIHlvdSB3YW50IHRvIHNjYW4g
+aXQ/IChZRVMvbm8vc2VsZWN0aXZlbHkpOg0KQ2xpZW50IGZvdW5kIGF0IGFkZHJlc3MgMHgy
+ZQ0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE03OCcuLi4gICAgICAg
+ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgt
+SicuLi4gICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1
+Y3RvciBMTTc5Jy4uLiAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFs
+IFNlbWljb25kdWN0b3IgTE04MCcuLi4gICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
+IGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNODUgb3IgTE05NjAwMCcuLi4gICAgIE5vDQpQ
+cm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyNywgQURUNzQ2MCBvciBBRFQ3NDYz
+Jy4uLiBObw0KUHJvYmluZyBmb3IgYFNNU0MgRU1DNkQxMDAsIEVNQzZEMTAxIG9yIEVNQzZE
+MTAyJy4uLiAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDYy
+Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmlj
+ZXMgQURUNzQ2NyBvciBBRFQ3NDY4Jy4uLiAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFu
+YWxvZyBEZXZpY2VzIEFEVDc0NzAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
+bmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRFQ3NDczJy4uLiAgICAgICAgICAgICAgICAgICAg
+IE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURUNzQ3NScuLi4gICAgICAgICAg
+ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFEVDc0NzYnLi4u
+ICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmRpZ2lsb2cgYVNDNzYx
+MScuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5kaWdp
+bG9nIGFTQzc2MjEnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
+b3IgYE5hdGlvbmFsIFNlbWljb25kdWN0b3IgTE04NycuLi4gICAgICAgICAgICAgICAgTm8N
+ClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNOTMnLi4uICAgICAgICAg
+ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM3ODFEJy4uLiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNzgyRCcuLi4g
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4
+Mzc5MkQnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
+V2luYm9uZCBXODM3OTNSL0cnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJv
+YmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxU0QnLi4uICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4MzYyN0hGJy4uLiAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODM2MjdFSEYnLi4uICAg
+ICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFdpbmJvbmQgVzgzNjI3
+REhHJy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBc3Vz
+IEFTOTkxMjdGIChyZXYuMSknLi4uICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5n
+IGZvciBgQXN1cyBBUzk5MTI3RiAocmV2LjIpJy4uLiAgICAgICAgICAgICAgICAgICAgICBO
+bw0KUHJvYmluZyBmb3IgYEFzdXMgQVNCMTAwIEJhY2gnLi4uICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25kIFc4M0w3ODZOUi9ORy9SL0cnLi4u
+ICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgV2luYm9uZCBXODNMNzg1VFMt
+UycuLi4gICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBE
+ZXZpY2VzIEFETTkyNDAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9y
+IGBEYWxsYXMgU2VtaWNvbmR1Y3RvciBEUzE3ODAnLi4uICAgICAgICAgICAgICAgIE5vDQpQ
+cm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTgxJy4uLiAgICAgICAgICAg
+ICAgICBObw0KUHJvYmluZyBmb3IgYEFuYWxvZyBEZXZpY2VzIEFETTEwMjYnLi4uICAgICAg
+ICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDI1
+Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmlj
+ZXMgQURNMTAyOScuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEFu
+YWxvZyBEZXZpY2VzIEFETTEwMzAnLi4uICAgICAgICAgICAgICAgICAgICAgTm8NClByb2Jp
+bmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBBRE0xMDMxJy4uLiAgICAgICAgICAgICAgICAgICAg
+IE5vDQpQcm9iaW5nIGZvciBgQW5hbG9nIERldmljZXMgQURNMTAyMicuLi4gICAgICAgICAg
+ICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYFRleGFzIEluc3RydW1lbnRzIFRITUM1MCcu
+Li4gICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBBbmFsb2cgRGV2aWNlcyBB
+RE0xMDI4Jy4uLiAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBgSVRFIElU
+ODcxMkYnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBm
+b3IgYFNNU0MgRE1FMTczNycuLi4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8N
+ClByb2JpbmcgZm9yIGBTTVNDIFNDSDUwMjdELU5XJy4uLiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIE5vDQpQcm9iaW5nIGZvciBgRmludGVrIEY3NTM3M1MvU0cnLi4uICAgICAgICAg
+ICAgICAgICAgICAgICAgICBObw0KUHJvYmluZyBmb3IgYEZpbnRlayBGNzUzNzVTL1NQJy4u
+LiAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClByb2JpbmcgZm9yIGBGaW50ZWsgRjc1
+Mzg3U0cvUkcnLi4uICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBg
+QW5hbG9nIERldmljZXMgQURNMTAyNCcuLi4gICAgICAgICAgICAgICAgICAgICBObw0KUHJv
+YmluZyBmb3IgYFdpbmJvbmQgVzgzNzkxRCcuLi4gICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgTm8NCg0KU29tZSBjaGlwcyBhcmUgYWxzbyBhY2Nlc3NpYmxlIHRocm91Z2ggdGhlIElT
+QSBJL08gcG9ydHMuIFdlIGhhdmUgdG8NCndyaXRlIHRvIGFyYml0cmFyeSBJL08gcG9ydHMg
+dG8gcHJvYmUgdGhlbS4gVGhpcyBpcyB1c3VhbGx5IHNhZmUgdGhvdWdoLg0KWWVzLCB5b3Ug
+ZG8gaGF2ZSBJU0EgSS9PIHBvcnRzIGV2ZW4gaWYgeW91IGRvIG5vdCBoYXZlIGFueSBJU0Eg
+c2xvdHMhDQpEbyB5b3Ugd2FudCB0byBzY2FuIHRoZSBJU0EgSS9PIHBvcnRzPyAoWUVTL25v
+KToNClByb2JpbmcgZm9yIGBOYXRpb25hbCBTZW1pY29uZHVjdG9yIExNNzgnIGF0IDB4Mjkw
+Li4uICAgICAgIE5vDQpQcm9iaW5nIGZvciBgTmF0aW9uYWwgU2VtaWNvbmR1Y3RvciBMTTc4
+LUonIGF0IDB4MjkwLi4uICAgICBObw0KUHJvYmluZyBmb3IgYE5hdGlvbmFsIFNlbWljb25k
+dWN0b3IgTE03OScgYXQgMHgyOTAuLi4gICAgICAgTm8NClByb2JpbmcgZm9yIGBXaW5ib25k
+IFc4Mzc4MUQnIGF0IDB4MjkwLi4uICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZv
+ciBgV2luYm9uZCBXODM3ODJEJyBhdCAweDI5MC4uLiAgICAgICAgICAgICAgICAgICBObw0K
+DQpTb21lIFN1cGVyIEkvTyBjaGlwcyBtYXkgYWxzbyBjb250YWluIHNlbnNvcnMuIFdlIGhh
+dmUgdG8gd3JpdGUgdG8NCnN0YW5kYXJkIEkvTyBwb3J0cyB0byBwcm9iZSB0aGVtLiBUaGlz
+IGlzIHVzdWFsbHkgc2FmZS4NCkRvIHlvdSB3YW50IHRvIHNjYW4gZm9yIFN1cGVyIEkvTyBz
+ZW5zb3JzPyAoWUVTL25vKToNClByb2JpbmcgZm9yIFN1cGVyLUkvTyBhdCAweDJlLzB4MmYN
+ClRyeWluZyBmYW1pbHkgYE5hdGlvbmFsIFNlbWljb25kdWN0b3InLi4uICAgICAgICAgICAg
+ICAgICAgIE5vDQpUcnlpbmcgZmFtaWx5IGBTTVNDJy4uLiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBObw0KVHJ5aW5nIGZhbWlseSBgVklBL1dpbmJvbmQvRmludGVr
+Jy4uLiAgICAgICAgICAgICAgICAgICAgICAgTm8NClRyeWluZyBmYW1pbHkgYElURScuLi4g
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpQcm9iaW5nIGZvciBT
+dXBlci1JL08gYXQgMHg0ZS8weDRmDQpUcnlpbmcgZmFtaWx5IGBOYXRpb25hbCBTZW1pY29u
+ZHVjdG9yJy4uLiAgICAgICAgICAgICAgICAgICBObw0KVHJ5aW5nIGZhbWlseSBgU01TQycu
+Li4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTm8NClRyeWluZyBmYW1p
+bHkgYFZJQS9XaW5ib25kL0ZpbnRlaycuLi4gICAgICAgICAgICAgICAgICAgICAgIE5vDQpU
+cnlpbmcgZmFtaWx5IGBJVEUnLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBObw0KDQpTb21lIHNvdXRoIGJyaWRnZXMsIENQVXMgb3IgbWVtb3J5IGNvbnRyb2xs
+ZXJzIG1heSBhbHNvIGNvbnRhaW4NCmVtYmVkZGVkIHNlbnNvcnMuIERvIHlvdSB3YW50IHRv
+IHNjYW4gZm9yIHRoZW0/IChZRVMvbm8pOg0KU2lsaWNvbiBJbnRlZ3JhdGVkIFN5c3RlbXMg
+U0lTNTU5NS4uLiAgICAgICAgICAgICAgICAgICAgICAgTm8NClZJQSBWVDgyQzY4NiBJbnRl
+Z3JhdGVkIFNlbnNvcnMuLi4gICAgICAgICAgICAgICAgICAgICAgICAgIE5vDQpWSUEgVlQ4
+MjMxIEludGVncmF0ZWQgU2Vuc29ycy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAgICBO
+bw0KQU1EIEs4IHRoZXJtYWwgc2Vuc29ycy4uLiAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgTm8NCkFNRCBLMTAgdGhlcm1hbCBzZW5zb3JzLi4uICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIE5vDQpJbnRlbCBDb3JlIGZhbWlseSB0aGVybWFsIHNlbnNv
+ci4uLiAgICAgICAgICAgICAgICAgICAgICAgICBObw0KSW50ZWwgQU1CIEZCLURJTU0gdGhl
+cm1hbCBzZW5zb3IuLi4gICAgICAgICAgICAgICAgICAgICAgICAgTm8NCg0KU29ycnksIG5v
+IHNlbnNvcnMgd2VyZSBkZXRlY3RlZC4NCkVpdGhlciB5b3VyIHNlbnNvcnMgYXJlIG5vdCBz
+dXBwb3J0ZWQsIG9yIHRoZXkgYXJlIGNvbm5lY3RlZCB0byBhbg0KSTJDIG9yIFNNQnVzIGFk
+YXB0ZXIgdGhhdCBpcyBub3Qgc3VwcG9ydGVkLiBTZWUgZG9jL0ZBUSwNCmRvYy9sbV9zZW5z
+b3JzLUZBUS5odG1sIG9yIGh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9GQVENCihG
+QVEgIzQuMjQuMykgZm9yIGZ1cnRoZXIgaW5mb3JtYXRpb24uDQpJZiB5b3UgZmluZCBvdXQg
+d2hhdCBjaGlwcyBhcmUgb24geW91ciBib2FyZCwgY2hlY2sNCmh0dHA6Ly93d3cubG0tc2Vu
+c29ycy5vcmcvd2lraS9EZXZpY2VzIGZvciBkcml2ZXIgc3RhdHVzLg0K
+--------------080902060705030000030903
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--------------080902060705030000030903--
