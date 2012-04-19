@@ -1,22 +1,39 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Wed, 11 Apr 2012 08:59:02 +0000
+From: GSR <gsr.bugs@infernal-iceberg.com>
+Date: Thu, 19 Apr 2012 21:40:01 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <CAKPcRGoxC=4T1HKX4mZwYd-ded0=gNxB95v=LfD27NqB9NW89w@mail.gmail.com>
+Message-Id: <20120419214001.GA18307@fortress.battleship>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120320231656.GC12339@burratino>
 In-Reply-To: <20120320231656.GC12339@burratino>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-U29ycnkgZm9yIHRoZSBsYXRlbmN5LCBJIHdhcyBvbiB2YWNhdGlvbi4uLgoKT24gVGh1LCBBcHIg
-NSwgMjAxMiBhdCAxOjQ4IEFNLCBHU1IgLSBGUiA8ZmFtcm9tQGluZmVybmFsLWljZWJlcmcuY29t
-PiB3cm90ZToKPiBIaSwKPiBqcm5pZWRlckBnbWFpbC5jb20gKDIwMTItMDMtMjIgYXQgMDk0MC40
-MCAtMDUwMCk6Cj4+IMKgIMKgIMKgIGNhdCBEU0RULmFtbCA+L3N5cy9rZXJuZWwvZGVidWcvYWNw
-aS9jdXN0b21fbWV0aG9kCj4KPiBJIGdvdCBzb21lIHRpbWUgdG8gdHJ5IGFsbCB0aG9zZSB0aGlu
-Z3MsIGJ1dCB0aGF0IHN0ZXAgZmFpbHMgd2l0aAo+ICJjYXQ6IHdyaXRlIGVycm9yOiBJbnZhbGlk
-IGFyZ3VtZW50Ii4KCkNhbiB5b3Ugc2VuZCBtZSB0aGUgZHVtcCBvZiB5b3VyIERTRFQgdGFibGU/
-CgpMCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hi,
+kronos.it@gmail.com (2012-04-11 at 1059.02 +0200):
+> Sorry for the latency, I was on vacation...
+>=20
+> On Thu, Apr 5, 2012 at 1:48 AM, GSR - FR <famrom@infernal-iceberg.com> wr=
+ote:
+> > Hi,
+> > jrnieder@gmail.com (2012-03-22 at 0940.40 -0500):
+> >> =A0 =A0 =A0 cat DSDT.aml >/sys/kernel/debug/acpi/custom_method
+> >
+> > I got some time to try all those things, but that step fails with
+> > "cat: write error: Invalid argument".
+>=20
+> Can you send me the dump of your DSDT table?
+
+Do you mean acpidump output? That is in Debian bug #662895.
+http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D662895
+http://bugs.debian.org/cgi-bin/bugreport.cgi?msg=3D25;filename=3Dacpi-p7p55=
+d-bios1807-acpi2.txt.gz;att=3D1;bug=3D66289
+
+GSR
+=20
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
