@@ -1,7 +1,7 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Fri, 20 Apr 2012 10:28:41 +0000
+From: GSR <gsr.bugs@infernal-iceberg.com>
+Date: Fri, 20 Apr 2012 22:52:01 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <CAKPcRGoLzw7eBGed=0qx6p=irB5KxYg-ygY0fHqRMvL5nBpvrA@mail.gmail.com>
+Message-Id: <20120420225201.GA19839@fortress.battleship>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120320231656.GC12339@burratino>
 In-Reply-To: <20120320231656.GC12339@burratino>
@@ -10,19 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gVGh1LCBBcHIgMTksIDIwMTIgYXQgMTE6NDAgUE0sIEdTUiA8Z3NyLmJ1Z3NAaW5mZXJuYWwt
-aWNlYmVyZy5jb20+IHdyb3RlOgo+IEhpLAo+IGtyb25vcy5pdEBnbWFpbC5jb20gKDIwMTItMDQt
-MTEgYXQgMTA1OS4wMiArMDIwMCk6Cj4+IFNvcnJ5IGZvciB0aGUgbGF0ZW5jeSwgSSB3YXMgb24g
-dmFjYXRpb24uLi4KPj4KPj4gT24gVGh1LCBBcHIgNSwgMjAxMiBhdCAxOjQ4IEFNLCBHU1IgLSBG
-UiA8ZmFtcm9tQGluZmVybmFsLWljZWJlcmcuY29tPiB3cm90ZToKPj4gPiBIaSwKPj4gPiBqcm5p
-ZWRlckBnbWFpbC5jb20gKDIwMTItMDMtMjIgYXQgMDk0MC40MCAtMDUwMCk6Cj4+ID4+IMKgIMKg
-IMKgIGNhdCBEU0RULmFtbCA+L3N5cy9rZXJuZWwvZGVidWcvYWNwaS9jdXN0b21fbWV0aG9kCj4+
-ID4KPj4gPiBJIGdvdCBzb21lIHRpbWUgdG8gdHJ5IGFsbCB0aG9zZSB0aGluZ3MsIGJ1dCB0aGF0
-IHN0ZXAgZmFpbHMgd2l0aAo+PiA+ICJjYXQ6IHdyaXRlIGVycm9yOiBJbnZhbGlkIGFyZ3VtZW50
-Ii4KPj4KPj4gQ2FuIHlvdSBzZW5kIG1lIHRoZSBkdW1wIG9mIHlvdXIgRFNEVCB0YWJsZT8KPgo+
-IERvIHlvdSBtZWFuIGFjcGlkdW1wIG91dHB1dD8KClllcC4KCj4gVGhhdCBpcyBpbiBEZWJpYW4g
-YnVnICM2NjI4OTUuCgpPaywgZ29vZC4gRGlkIHlvdSBieSBjaGFuZ2UgdXBncmFkZSB0aGUgQklP
-UyBpbiB0aGUgbWVhbndoaWxlPwoKTAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+Hi,
+kronos.it@gmail.com (2012-04-20 at 1228.41 +0200):
+> Ok, good. Did you by change upgrade the BIOS in the meanwhile?
+
+No.
+
+GSR
+ 
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
