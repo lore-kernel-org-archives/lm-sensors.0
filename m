@@ -1,39 +1,28 @@
-From: GSR <gsr.bugs@infernal-iceberg.com>
-Date: Thu, 19 Apr 2012 21:40:01 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Fri, 20 Apr 2012 10:28:41 +0000
 Subject: Re: [lm-sensors] asus_atk0110: i8042: keys get stuck and keyboard stops responding
-Message-Id: <20120419214001.GA18307@fortress.battleship>
+Message-Id: <CAKPcRGoLzw7eBGed=0qx6p=irB5KxYg-ygY0fHqRMvL5nBpvrA@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120320231656.GC12339@burratino>
 In-Reply-To: <20120320231656.GC12339@burratino>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-kronos.it@gmail.com (2012-04-11 at 1059.02 +0200):
-> Sorry for the latency, I was on vacation...
->=20
-> On Thu, Apr 5, 2012 at 1:48 AM, GSR - FR <famrom@infernal-iceberg.com> wr=
-ote:
-> > Hi,
-> > jrnieder@gmail.com (2012-03-22 at 0940.40 -0500):
-> >> =A0 =A0 =A0 cat DSDT.aml >/sys/kernel/debug/acpi/custom_method
-> >
-> > I got some time to try all those things, but that step fails with
-> > "cat: write error: Invalid argument".
->=20
-> Can you send me the dump of your DSDT table?
-
-Do you mean acpidump output? That is in Debian bug #662895.
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=3D662895
-http://bugs.debian.org/cgi-bin/bugreport.cgi?msg=3D25;filename=3Dacpi-p7p55=
-d-bios1807-acpi2.txt.gz;att=3D1;bug=3D66289
-
-GSR
-=20
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVGh1LCBBcHIgMTksIDIwMTIgYXQgMTE6NDAgUE0sIEdTUiA8Z3NyLmJ1Z3NAaW5mZXJuYWwt
+aWNlYmVyZy5jb20+IHdyb3RlOgo+IEhpLAo+IGtyb25vcy5pdEBnbWFpbC5jb20gKDIwMTItMDQt
+MTEgYXQgMTA1OS4wMiArMDIwMCk6Cj4+IFNvcnJ5IGZvciB0aGUgbGF0ZW5jeSwgSSB3YXMgb24g
+dmFjYXRpb24uLi4KPj4KPj4gT24gVGh1LCBBcHIgNSwgMjAxMiBhdCAxOjQ4IEFNLCBHU1IgLSBG
+UiA8ZmFtcm9tQGluZmVybmFsLWljZWJlcmcuY29tPiB3cm90ZToKPj4gPiBIaSwKPj4gPiBqcm5p
+ZWRlckBnbWFpbC5jb20gKDIwMTItMDMtMjIgYXQgMDk0MC40MCAtMDUwMCk6Cj4+ID4+IMKgIMKg
+IMKgIGNhdCBEU0RULmFtbCA+L3N5cy9rZXJuZWwvZGVidWcvYWNwaS9jdXN0b21fbWV0aG9kCj4+
+ID4KPj4gPiBJIGdvdCBzb21lIHRpbWUgdG8gdHJ5IGFsbCB0aG9zZSB0aGluZ3MsIGJ1dCB0aGF0
+IHN0ZXAgZmFpbHMgd2l0aAo+PiA+ICJjYXQ6IHdyaXRlIGVycm9yOiBJbnZhbGlkIGFyZ3VtZW50
+Ii4KPj4KPj4gQ2FuIHlvdSBzZW5kIG1lIHRoZSBkdW1wIG9mIHlvdXIgRFNEVCB0YWJsZT8KPgo+
+IERvIHlvdSBtZWFuIGFjcGlkdW1wIG91dHB1dD8KClllcC4KCj4gVGhhdCBpcyBpbiBEZWJpYW4g
+YnVnICM2NjI4OTUuCgpPaywgZ29vZC4gRGlkIHlvdSBieSBjaGFuZ2UgdXBncmFkZSB0aGUgQklP
+UyBpbiB0aGUgbWVhbndoaWxlPwoKTAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
+b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
+ZW5zb3Jz
