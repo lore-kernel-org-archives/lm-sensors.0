@@ -1,146 +1,131 @@
-From: lmsensors@continuingtime.com
-Date: Sun, 22 Apr 2012 10:19:24 +0000
-Subject: [lm-sensors] Sensors [via-cputemp] is cpu intensive?
-Message-Id: <4F93DB2C.5000405@continuingtime.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 22 Apr 2012 13:42:19 +0000
+Subject: Re: [lm-sensors] Sensors [via-cputemp] is cpu intensive?
+Message-Id: <20120422154219.0204d169@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <4F93DB2C.5000405@continuingtime.com>
+In-Reply-To: <4F93DB2C.5000405@continuingtime.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi All,
-
-Historically, I've been getting my CPU thermal info from=20
-/proc/acpi/thermal_zone/THRM/temperature for the longest time and it's=20
-generally been giving me consistent temperature values.
-
-After a kernel upgrade I acpi stopped creating the above file so I=20
-decided that rather than try to figure out what I did to get it working=20
-many years ago, I'd give lm-sensors a try but I'm getting some really=20
-weird results out of it that I want to confirm with you.
-
-mobo: EPIA SN (mini-itx)
-CPU: via C7 1.8GHz (cooled by half height 80mm fan)
-driver:  via-cputemp
-
-
-So if I just run /usr/bin/sensors, I get a CPU temp of 32 degC.  But,=20
-when I run it from a script per...
-
---------
-
-MAIL_SUBJECT=3D"$(hostname -s | tr '[a-z]' '[A-Z]'): Temperature Warning"
-MAIL_RCPT=3D'xxxx'
-MAIL_BODY=3D$(mktemp)
-MAIL_SEND=3D""
-TFS=3D$IFS
-
-DEBUG=3D''
-
-# Sensor thresholds
-HDD_THRESHOLD=3D48
-CPU_THRESHOLD=3D65
-
-IFS=3D$'\n'
-for i in $(/usr/bin/sensors | grep Core); do
-   cpu=3D$(echo $i | awk -F: '{ print $1 }')
-   temp=3D$(echo $i | awk -F: '{ print $2 }' | sed -e 's/[^0-9\.]//g' -e=20
-'s/\..*//g')
-   if [ $CPU_THRESHOLD -ge $(($temp)) ]; then
-     printf "  %10s: %5s\n" $cpu $temp >> $MAIL_BODY
-   else
-     printf "**%10s: %5s  !!WARNING!!\n" $cpu $temp >> $MAIL_BODY
-     MAIL_SEND=3D1
-   fi
-done
-# debug
-cat $MAIL_BODY
------------------
-
-I get a temp of 36 degC.
-
-So, with nothing else running on this box, running something as simple=20
-as bash, mktemp, grep and sensors sends my CPU temp up 4 degC.  Okay, I=20
-can accept that actually using the CPU can create a temp spike but have=20
-a look at this....
-
-------------------
-#!/bin/bash
-for i in $(seq 1 200); do
-   /usr/bin/sensors | grep Core
-done
-sleep 1
-/usr/bin/sensors | grep Core
-
--------------------
-
-Remember that just running sensors returns a temp of ~32.  When I run=20
-the above script, the first temp is usually ~36 and through the 200 runs=20
-it clocks up to ~43-45.  And the last temp on the list (after the sleep=20
-1) is ~34.
-
-Now, I know that this is low power CPU and it's got a relatively small=20
-heatsink on the EPIA-SN board but I'm having trouble with the fact that=20
-my CPU spikes by nearly 10 degrees just running bash once and=20
-sensors+grep 202 times.
-
-Just how CPU intensive is 'sensors' and why does it give me wildly=20
-different CPU temps than acpi used to?
-
-Note:  Here is the raw output of just a single run of sensors:
-
--------------------
-# sensors
-via_cputemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +32.0=B0C
--------------------
-
-I'm expecting replies like 'you are suffering from Heisenberg's=20
-uncertainty principle'; the act of monitoring your CPU changes the=20
-temp.  Or, 'that's a low power CPU so the moment it's not idle you see=20
-the spike and the fact that a sleep 1 ramps the temperature down clearly=20
-shows that it's dissipating heat from the heatsink relatively quickly..=20
-so your heatsink probably doesn't have enough mass or there's something=20
-wrong with the sensor in your chip'.
-
-But almost 10 degrees just for running sensors+grep in a loop?
-
-Note:  I also created a script that was just 200 instances of 'sensors |=20
-grep Core' and I got the same progression of temperature rise so it's=20
-not like the for loop on the `seq 1 200` is contributing to the spike.
-
-Okay, so assuming that's the temperature profile of my CPU, I decided to=20
-run 20 instances of the following script....
-
-----------------------
-while [ 1 ]; do echo 1234 > /dev/null ; done &
-----------------------
-
-That showed a system load of ~18 and a CPU usage 85%.  After 5 mins, I=20
-ran my script and all of the CPU temps returned were at ~57 and they=20
-held there.
-
-So loading the CPU rose the temp by another 15 degC.  Fair enough.
-
-So then I killed all of the while loops and re-ran my 200 'sensors'=20
-runs.  The first temp was 46, the last temp was 53.  Again, sensors is=20
-having a massive impact on my CPU... in fact, the 200 runs are reliably=20
-causing a 10+ degC spike in the CPU, no matter what the temp.
-
-That seems a bit much... even for a low power CPU [that starts at=20
-'idle'] and that has airflow going over it that's way over spec and when=20
-I only have one sensor module loaded.
-
-I don't care about the CPU cycles, I'm just wondering if the via-cputemp=20
-driver is doing something silly.  Your thoughts?
-
-Cheers,
-Dave.
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgRGF2ZSwKCk9uIFN1biwgMjIgQXByIDIwMTIgMTE6MTk6MjQgKzAxMDAsIGxtc2Vuc29yc0Bj
+b250aW51aW5ndGltZS5jb20gd3JvdGU6Cj4gSGlzdG9yaWNhbGx5LCBJJ3ZlIGJlZW4gZ2V0dGlu
+ZyBteSBDUFUgdGhlcm1hbCBpbmZvIGZyb20gCj4gL3Byb2MvYWNwaS90aGVybWFsX3pvbmUvVEhS
+TS90ZW1wZXJhdHVyZSBmb3IgdGhlIGxvbmdlc3QgdGltZSBhbmQgaXQncyAKPiBnZW5lcmFsbHkg
+YmVlbiBnaXZpbmcgbWUgY29uc2lzdGVudCB0ZW1wZXJhdHVyZSB2YWx1ZXMuCj4gCj4gQWZ0ZXIg
+YSBrZXJuZWwgdXBncmFkZSBJIGFjcGkgc3RvcHBlZCBjcmVhdGluZyB0aGUgYWJvdmUgZmlsZSBz
+byBJIAo+IGRlY2lkZWQgdGhhdCByYXRoZXIgdGhhbiB0cnkgdG8gZmlndXJlIG91dCB3aGF0IEkg
+ZGlkIHRvIGdldCBpdCB3b3JraW5nIAo+IG1hbnkgeWVhcnMgYWdvLCBJJ2QgZ2l2ZSBsbS1zZW5z
+b3JzIGEgdHJ5IGJ1dCBJJ20gZ2V0dGluZyBzb21lIHJlYWxseSAKPiB3ZWlyZCByZXN1bHRzIG91
+dCBvZiBpdCB0aGF0IEkgd2FudCB0byBjb25maXJtIHdpdGggeW91LgoKTW9zdCBvZiAvcHJvYy9h
+Y3BpIGhhcyBiZWVuIGRlcHJlY2F0ZWQgb3ZlciB0aW1lIGluIGZhdm9yIG9mIGVxdWl2YWxlbnQK
+KGJ1dCBvZnRlbiBtb3JlIGdlbmVyaWMpIHN5c2ZzIGF0dHJpYnV0ZXMuIEZvcgpleGFtcGxlIC9w
+cm9jL2FjcGkvdGhlcm1hbF96b25lL1RIUk0vdGVtcGVyYXR1cmUgd291bGQgbm93CmJlIC9zeXMv
+Y2xhc3MvdGhlcm1hbC90aGVybWFsX3pvbmUwL3RlbXAuIElmIHlvdXIga2VybmVsIGhhZApDT05G
+SUdfVEhFUk1BTF9IV01PTiBlbmFibGVkLCB5b3Ugd291bGQgYWxzbyBzZWUgdGhpcyB0aGVybWFs
+IHpvbmUgaW4KdGhlIG91dHB1dCBvZiAic2Vuc29ycyIuCgo+IG1vYm86IEVQSUEgU04gKG1pbmkt
+aXR4KQo+IENQVTogdmlhIEM3IDEuOEdIeiAoY29vbGVkIGJ5IGhhbGYgaGVpZ2h0IDgwbW0gZmFu
+KQo+IGRyaXZlcjogIHZpYS1jcHV0ZW1wCj4gCj4gCj4gU28gaWYgSSBqdXN0IHJ1biAvdXNyL2Jp
+bi9zZW5zb3JzLCBJIGdldCBhIENQVSB0ZW1wIG9mIDMyIGRlZ0MuICBCdXQsIAo+IHdoZW4gSSBy
+dW4gaXQgZnJvbSBhIHNjcmlwdCBwZXIuLi4KPiAKPiAtLS0tLS0tLQo+IAo+IE1BSUxfU1VCSkVD
+VD0iJChob3N0bmFtZSAtcyB8IHRyICdbYS16XScgJ1tBLVpdJyk6IFRlbXBlcmF0dXJlIFdhcm5p
+bmciCj4gTUFJTF9SQ1BUPSd4eHh4Jwo+IE1BSUxfQk9EWT0kKG1rdGVtcCkKPiBNQUlMX1NFTkQ9
+IiIKPiBURlM9JElGUwo+IAo+IERFQlVHPScnCj4gCj4gIyBTZW5zb3IgdGhyZXNob2xkcwo+IEhE
+RF9USFJFU0hPTEQ9NDgKPiBDUFVfVEhSRVNIT0xEPTY1Cj4gCj4gSUZTPSQnXG4nCj4gZm9yIGkg
+aW4gJCgvdXNyL2Jpbi9zZW5zb3JzIHwgZ3JlcCBDb3JlKTsgZG8KPiAgICBjcHU9JChlY2hvICRp
+IHwgYXdrIC1GOiAneyBwcmludCAkMSB9JykKPiAgICB0ZW1wPSQoZWNobyAkaSB8IGF3ayAtRjog
+J3sgcHJpbnQgJDIgfScgfCBzZWQgLWUgJ3MvW14wLTlcLl0vL2cnIC1lIAo+ICdzL1wuLiovL2cn
+KQo+ICAgIGlmIFsgJENQVV9USFJFU0hPTEQgLWdlICQoKCR0ZW1wKSkgXTsgdGhlbgo+ICAgICAg
+cHJpbnRmICIgICUxMHM6ICU1c1xuIiAkY3B1ICR0ZW1wID4+ICRNQUlMX0JPRFkKPiAgICBlbHNl
+Cj4gICAgICBwcmludGYgIioqJTEwczogJTVzICAhIVdBUk5JTkchIVxuIiAkY3B1ICR0ZW1wID4+
+ICRNQUlMX0JPRFkKPiAgICAgIE1BSUxfU0VORD0xCj4gICAgZmkKPiBkb25lCj4gIyBkZWJ1Zwo+
+IGNhdCAkTUFJTF9CT0RZCj4gLS0tLS0tLS0tLS0tLS0tLS0KPiAKPiBJIGdldCBhIHRlbXAgb2Yg
+MzYgZGVnQy4KPiAKPiBTbywgd2l0aCBub3RoaW5nIGVsc2UgcnVubmluZyBvbiB0aGlzIGJveCwg
+cnVubmluZyBzb21ldGhpbmcgYXMgc2ltcGxlIAo+IGFzIGJhc2gsIG1rdGVtcCwgZ3JlcCBhbmQg
+c2Vuc29ycyBzZW5kcyBteSBDUFUgdGVtcCB1cCA0IGRlZ0MuICBPa2F5LCBJIAo+IGNhbiBhY2Nl
+cHQgdGhhdCBhY3R1YWxseSB1c2luZyB0aGUgQ1BVIGNhbiBjcmVhdGUgYSB0ZW1wIHNwaWtlIGJ1
+dCBoYXZlIAo+IGEgbG9vayBhdCB0aGlzLi4uLgo+IAo+IC0tLS0tLS0tLS0tLS0tLS0tLQo+ICMh
+L2Jpbi9iYXNoCj4gZm9yIGkgaW4gJChzZXEgMSAyMDApOyBkbwo+ICAgIC91c3IvYmluL3NlbnNv
+cnMgfCBncmVwIENvcmUKPiBkb25lCj4gc2xlZXAgMQo+IC91c3IvYmluL3NlbnNvcnMgfCBncmVw
+IENvcmUKPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tCj4gCj4gUmVtZW1iZXIgdGhhdCBqdXN0IHJ1
+bm5pbmcgc2Vuc29ycyByZXR1cm5zIGEgdGVtcCBvZiB+MzIuICBXaGVuIEkgcnVuIAo+IHRoZSBh
+Ym92ZSBzY3JpcHQsIHRoZSBmaXJzdCB0ZW1wIGlzIHVzdWFsbHkgfjM2IGFuZCB0aHJvdWdoIHRo
+ZSAyMDAgcnVucyAKPiBpdCBjbG9ja3MgdXAgdG8gfjQzLTQ1LiAgQW5kIHRoZSBsYXN0IHRlbXAg
+b24gdGhlIGxpc3QgKGFmdGVyIHRoZSBzbGVlcCAKPiAxKSBpcyB+MzQuCgpJIHNlZSBzb21ldGhp
+bmcgc2ltaWxhciBoZXJlIHdpdGggYSBjb21wbGV0ZWx5IGRpZmZlcmVudCBDUFUuIFN0YXJ0cyBh
+dAo0NS00N8KwQywgZW5kcyBhdCA0OC01M8KwQy4gTXkgZGVsdGEgaXMgc21hbGxlciB0aGFuIHlv
+dXJzIGJ1dCBteSBjb29saW5nCmlzIHByb2JhYmx5IG11Y2ggbW9yZSBlZmZpY2llbnQuCgo+IE5v
+dywgSSBrbm93IHRoYXQgdGhpcyBpcyBsb3cgcG93ZXIgQ1BVIGFuZCBpdCdzIGdvdCBhIHJlbGF0
+aXZlbHkgc21hbGwgCj4gaGVhdHNpbmsgb24gdGhlIEVQSUEtU04gYm9hcmQgYnV0IEknbSBoYXZp
+bmcgdHJvdWJsZSB3aXRoIHRoZSBmYWN0IHRoYXQgCj4gbXkgQ1BVIHNwaWtlcyBieSBuZWFybHkg
+MTAgZGVncmVlcyBqdXN0IHJ1bm5pbmcgYmFzaCBvbmNlIGFuZCAKPiBzZW5zb3JzK2dyZXAgMjAy
+IHRpbWVzLgo+IAo+IEp1c3QgaG93IENQVSBpbnRlbnNpdmUgaXMgJ3NlbnNvcnMnCgpJdCBpc24n
+dCBwYXJ0aWN1bGFybHkgQ1BVIGludGVuc2l2ZS4gSG93ZXZlciBtb2Rlcm4geDg2IHByb2Nlc3Nv
+cnMgaGF2ZQpzZXZlcmFsIHBvd2VyIGxldmVscyAoa25vd24gYXMgQy1zdGF0ZXMpIGFuZCBzZXZl
+cmFsIG9wZXJhdGluZwp2b2x0YWdlcy9mcmVxdWVuY2llcy5UaGUgZGVlcGVzdCBDLXN0YXRlIGNh
+biBvbmx5IGJlIHVzZWQgd2hlbiB0aGUgQ1BVCmlzIHRydWx5IGlkbGUuIEFzIHNvb24gYXMgYW55
+dGhpbmcgcnVucyBvbiB0aGUgQ1BVLCB5b3UncmUgYmFjayB0byBDMCwKd2hpY2ggY29uc3VtZWQg
+YSBsb3QgbW9yZSBwb3dlciBhbmQgaGFzIHRodXMgYSBtdWNoIGhpZ2hlciB0ZW1wZXJhdHVyZS4K
+Cj4gYW5kIHdoeSBkb2VzIGl0IGdpdmUgbWUgd2lsZGx5IAo+IGRpZmZlcmVudCBDUFUgdGVtcHMg
+dGhhbiBhY3BpIHVzZWQgdG8/CgpJdCBjb3VsZCBiZSB0aGF0IHRoZSBBQ1BJIHRoZXJtYWwgem9u
+ZSByZXBvcnRzIHRlbXBlcmF0dXJlIGZyb20gYQpkaWZmZXJlbnQgc2Vuc29yIGluIHRoZSBmaXJz
+dCBwbGFjZS4gVGhlIHZpYS1jcHV0ZW1wIGRyaXZlciByZWFkcyBhCmRpZ2l0YWwgdGhlcm1hbCBz
+ZW5zb3IgaW5zaWRlIHRoZSBDUFUgZGlyZWN0bHkuIFRoZXNlIGludGVncmF0ZWQKZGlnaXRhbCBz
+ZW5zb3JzIGFyZSB2ZXJ5LCB2ZXJ5IHF1aWNrIHRvIHJlYWN0IHRvIHRlbXBlcmF0dXJlIGluY3Jl
+YXNlcy4KU28geW91ciByZXN1bHRzIGFyZW4ndCBzdXJwcmlzaW5nIG1lLiBNYXliZSB0aGUgQUNQ
+SSB0aGVybWFsIHpvbmUgaXMKYmFja2VkIGJ5IGEgZGlmZmVyZW50IHNlbnNvciwgZWl0aGVyIGFu
+IGFuYWxvZyBzZW5zb3IgaW5zaWRlIHRoZSBDUFUgKEkKZG9uJ3Qga25vdyBpZiB5b3VyIENQVSBz
+dGlsbCBoYXMgb25lKSwgYSB0aGVybWlzdG9yIHVuZGVyIHRoZSBDUFUsIG9yIGEKdGhlcm1hbCBz
+ZW5zb3IgYW55d2hlcmUgb24gdGhlIGJvYXJkLgoKSWYgeW91IHdhbnQgdG8gY29tcGFyZSB0aGUg
+dmFsdWVzLCB5b3Ugc2hvdWxkIGdldCByZWFkaW5ncyBmcm9tIHRoZQpBQ1BJIHRoZXJtYWwgem9u
+ZSwgZWl0aGVyIGZyb20gL3N5cy9jbGFzcy90aGVybWFsL3RoZXJtYWxfem9uZSovdGVtcCBvcgpi
+eSBlbmFibGluZyBDT05GSUdfVEhFUk1BTF9IV01PTiBpbiB5b3VyIGtlcm5lbC4KCj4gCj4gTm90
+ZTogIEhlcmUgaXMgdGhlIHJhdyBvdXRwdXQgb2YganVzdCBhIHNpbmdsZSBydW4gb2Ygc2Vuc29y
+czoKPiAKPiAtLS0tLS0tLS0tLS0tLS0tLS0tCj4gIyBzZW5zb3JzCj4gdmlhX2NwdXRlbXAtaXNh
+LTAwMDAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IENvcmUgMDogICAgICArMzIuMMKwQwo+IC0t
+LS0tLS0tLS0tLS0tLS0tLS0KPiAKPiBJJ20gZXhwZWN0aW5nIHJlcGxpZXMgbGlrZSAneW91IGFy
+ZSBzdWZmZXJpbmcgZnJvbSBIZWlzZW5iZXJnJ3MgCj4gdW5jZXJ0YWludHkgcHJpbmNpcGxlJzsg
+dGhlIGFjdCBvZiBtb25pdG9yaW5nIHlvdXIgQ1BVIGNoYW5nZXMgdGhlIAo+IHRlbXAuCgpUaGlz
+IGlzIGNlcnRhaW5seSB0cnVlIHRvIHNvbWUgZXh0ZW50LgoKPiBPciwgJ3RoYXQncyBhIGxvdyBw
+b3dlciBDUFUgc28gdGhlIG1vbWVudCBpdCdzIG5vdCBpZGxlIHlvdSBzZWUgCj4gdGhlIHNwaWtl
+IGFuZCB0aGUgZmFjdCB0aGF0IGEgc2xlZXAgMSByYW1wcyB0aGUgdGVtcGVyYXR1cmUgZG93biBj
+bGVhcmx5IAo+IHNob3dzIHRoYXQgaXQncyBkaXNzaXBhdGluZyBoZWF0IGZyb20gdGhlIGhlYXRz
+aW5rIHJlbGF0aXZlbHkgcXVpY2tseS4uIAo+IHNvIHlvdXIgaGVhdHNpbmsgcHJvYmFibHkgZG9l
+c24ndCBoYXZlIGVub3VnaCBtYXNzIG9yIHRoZXJlJ3Mgc29tZXRoaW5nIAo+IHdyb25nIHdpdGgg
+dGhlIHNlbnNvciBpbiB5b3VyIGNoaXAnLgoKSSBkb24ndCBzZWUgYW55dGhpbmcgYWN0dWFsbHkg
+d3JvbmcgaW4gdGhlIHZhbHVlcyB5b3UgcmVwb3J0ZWQuCgo+IEJ1dCBhbG1vc3QgMTAgZGVncmVl
+cyBqdXN0IGZvciBydW5uaW5nIHNlbnNvcnMrZ3JlcCBpbiBhIGxvb3A/CgpJdCdzIG5vdCBzZW5z
+b3JzIGFuZCBncmVwLiBJZiB5b3UgcnVuIGFueXRoaW5nIGluIGEgbG9vcCwgdGhpcyBibG9ja3MK
+dGhlIENQVSB0byBDMCBzdGF0ZSwgd2hpY2ggaXMgdGhlIGhvdHRlc3QuCgo+IE5vdGU6ICBJIGFs
+c28gY3JlYXRlZCBhIHNjcmlwdCB0aGF0IHdhcyBqdXN0IDIwMCBpbnN0YW5jZXMgb2YgJ3NlbnNv
+cnMgfCAKPiBncmVwIENvcmUnIGFuZCBJIGdvdCB0aGUgc2FtZSBwcm9ncmVzc2lvbiBvZiB0ZW1w
+ZXJhdHVyZSByaXNlIHNvIGl0J3MgCj4gbm90IGxpa2UgdGhlIGZvciBsb29wIG9uIHRoZSBgc2Vx
+IDEgMjAwYCBpcyBjb250cmlidXRpbmcgdG8gdGhlIHNwaWtlLgo+IAo+IE9rYXksIHNvIGFzc3Vt
+aW5nIHRoYXQncyB0aGUgdGVtcGVyYXR1cmUgcHJvZmlsZSBvZiBteSBDUFUsIEkgZGVjaWRlZCB0
+byAKPiBydW4gMjAgaW5zdGFuY2VzIG9mIHRoZSBmb2xsb3dpbmcgc2NyaXB0Li4uLgo+IAo+IC0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0KPiB3aGlsZSBbIDEgXTsgZG8gZWNobyAxMjM0ID4gL2Rldi9u
+dWxsIDsgZG9uZSAmCj4gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+IAo+IFRoYXQgc2hvd2VkIGEg
+c3lzdGVtIGxvYWQgb2YgfjE4IGFuZCBhIENQVSB1c2FnZSA4NSUuICBBZnRlciA1IG1pbnMsIEkg
+Cj4gcmFuIG15IHNjcmlwdCBhbmQgYWxsIG9mIHRoZSBDUFUgdGVtcHMgcmV0dXJuZWQgd2VyZSBh
+dCB+NTcgYW5kIHRoZXkgCj4gaGVsZCB0aGVyZS4KPiAKPiBTbyBsb2FkaW5nIHRoZSBDUFUgcm9z
+ZSB0aGUgdGVtcCBieSBhbm90aGVyIDE1IGRlZ0MuICBGYWlyIGVub3VnaC4KPiAKPiBTbyB0aGVu
+IEkga2lsbGVkIGFsbCBvZiB0aGUgd2hpbGUgbG9vcHMgYW5kIHJlLXJhbiBteSAyMDAgJ3NlbnNv
+cnMnIAo+IHJ1bnMuICBUaGUgZmlyc3QgdGVtcCB3YXMgNDYsIHRoZSBsYXN0IHRlbXAgd2FzIDUz
+LiAgQWdhaW4sIHNlbnNvcnMgaXMgCj4gaGF2aW5nIGEgbWFzc2l2ZSBpbXBhY3Qgb24gbXkgQ1BV
+Li4uIGluIGZhY3QsIHRoZSAyMDAgcnVucyBhcmUgcmVsaWFibHkgCj4gY2F1c2luZyBhIDEwKyBk
+ZWdDIHNwaWtlIGluIHRoZSBDUFUsIG5vIG1hdHRlciB3aGF0IHRoZSB0ZW1wLgo+IAo+IFRoYXQg
+c2VlbXMgYSBiaXQgbXVjaC4uLiBldmVuIGZvciBhIGxvdyBwb3dlciBDUFUgW3RoYXQgc3RhcnRz
+IGF0IAo+ICdpZGxlJ10gYW5kIHRoYXQgaGFzIGFpcmZsb3cgZ29pbmcgb3ZlciBpdCB0aGF0J3Mg
+d2F5IG92ZXIgc3BlYyBhbmQgd2hlbiAKPiBJIG9ubHkgaGF2ZSBvbmUgc2Vuc29yIG1vZHVsZSBs
+b2FkZWQuCj4gCj4gSSBkb24ndCBjYXJlIGFib3V0IHRoZSBDUFUgY3ljbGVzLCBJJ20ganVzdCB3
+b25kZXJpbmcgaWYgdGhlIHZpYS1jcHV0ZW1wIAo+IGRyaXZlciBpcyBkb2luZyBzb21ldGhpbmcg
+c2lsbHkuICBZb3VyIHRob3VnaHRzPwoKSSB0aGluayB5b3UncmUgbG9va2luZyBhdCB0aGUgbnVt
+YmVycyBpbiB0aGUgd3Jvbmcgd2F5LiBJdCdzIG5vdApzZW5zb3JzIG9yIGdyZXAgb3IgYW55dGhp
+bmcgY2F1c2luZyBhIDEwwrBDIGluY3JlYXNlIGluIHRlbXBlcmF0dXJlLgpJdCdzIHRoZSBDUFUg
+YmVpbmcgbmljZWx5IGRlc2lnbmVkIHdpdGggZWZmaWNpZW50IGxvdy1wb3dlciBDLXN0YXRlcwp3
+aGljaCBtYWtlIGl0IHBvc3NpYmxlIHRvIHNhdmUgMTDCsEMgaW4gaWRsZSBzdGF0ZS4KCi0tIApK
+ZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
