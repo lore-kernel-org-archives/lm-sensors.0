@@ -1,116 +1,76 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 04 Apr 2012 14:16:10 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.4-rc2
-Message-Id: <20120404141609.GA17301@ericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8316653963794943419=="
+Date: Tue, 24 Apr 2012 03:36:58 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (ntc_thermistor) Convert to devm_kzalloc
+Message-Id: <1335238619-25745-3-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============8316653963794943419==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Content-Disposition: inline
-
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.4-rc2 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git =
-hwmon-for-linus
-
-Fix crash in ad7314 driver
-Add support for AMD Trinity CPUs to k10temp driver
-Fix __initdata/__initconst mixup in w83627ehf driver
-Fix runtime warnings in acpi_power_meter and max6639 drivers
-Fix build warnings in adm1031, f75375s, sht15, and gpio-fan drivers
-
-Thanks,
-Guenter
-
-------
-
-The following changes since commit dd775ae2549217d3ae09363e3edb305d0fa19928:
-
-  Linux 3.4-rc1 (2012-03-31 16:24:09 -0700)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hw=
-mon-for-linus
-
-Andre Przywara (1):
-      hwmon: (k10temp) Add support for AMD Trinity CPUs
-
-Graeme Smecher (1):
-      hwmon: (ad7314) Adds missing spi_dev initialization
-
-Guenter Roeck (4):
-      hwmon: (gpio-fan) Fix Kconfig dependencies
-      hwmon: (sht15) Fix Kconfig dependencies
-      hwmon: (f75375s) Fix warning message seen in some configurations
-      hwmon: (adm1031) Fix compiler warning
-
-Kyle McMartin (1):
-      hwmon: (acpi_power_meter) fix lockdep spew due to non-static lock cla=
-ss
-
-Mark Brown (1):
-      hwmon: (max6639) Convert to dev_pm_ops
-
-Uwe Kleine-K=F6nig (1):
-      hwmon: (w83627ehf) mark const init data with __initconst instead of _=
-_initdata
-
- Documentation/hwmon/k10temp      |    2 +-
- drivers/hwmon/Kconfig            |    7 ++++---
- drivers/hwmon/acpi_power_meter.c |    2 ++
- drivers/hwmon/ad7314.c           |    1 +
- drivers/hwmon/adm1031.c          |   20 ++++++++------------
- drivers/hwmon/f75375s.c          |    2 ++
- drivers/hwmon/k10temp.c          |    4 ++++
- drivers/hwmon/max6639.c          |   15 +++++++++++----
- drivers/hwmon/w83627ehf.c        |   18 +++++++++---------
- 9 files changed, 42 insertions(+), 29 deletions(-)
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPfFepAAoJEMsfJm/On5mBfboP/3pKayEFAYljk9hL9UOOFSBx
-UXE7mmopjxtYg9lVZt7qS+XdhiRJeIn9bWYVyY7rwWzkbPDz8CMaBfnAZtZOvXn5
-iQBSTnClqJLqdw6O8hrO80PtBc4YSdb2KJI3pSEIErlt1Yd9foeNgPbtRArwvse7
-XJ5cA3Zbmzw3ayIujnaZp0bnZDyCCSZ8Uq2Gt5AdFym9qEqE7MfiwzR1PvsWhyn/
-hS3ZP2wVaGGm0O1GsYQ/tpQTTcW2ZHpK8f0j3W926sHsyw4p2jn1s5NnhdgbesDL
-+B/lMuSdNmdBc6BKN/JDwk43yTjNnLDf03AQu0qnnEAqwBjuA+gQBOGbgoJro08g
-dS0BLXxsVRYJAF7MFPVNSyIUEM4Ro6wm7g7JSqJsAeQ7Pk3aVba+r67khitQokB3
-NtvBfVT329K9Xq54x49+iAreIJ2zu5Sbxhw6MTLBNvBxmB/Iem/wrPbpSdG1SfjN
-+NgRoinS1Og3/yRihWCKM8oSZ4h8aFH/yYjYBFKnCJ/bEunCmJ/1Y2OW8X+y4uGV
-w7JNJeFGX3Cntb/k09BPEJqHGA0uZfHQSi0UmF8QpoR3lT3mfpwlTNjdpyGBriGl
-S+8Fbut96r9z2aOVmVDkqtQJpreTYw558pkTuWxEHcZzl4WR3aUFqYLS+CgLurEi
-OWSSx5qvZPBcc2IEaIJu
-=RgGQ
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
-
-
---===============8316653963794943419==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+This avoids memory leaks, and makes the code a bit simpler and smaller.
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Donggeun Kim <dg77.kim@samsung.com>
+---
+ drivers/hwmon/ntc_thermistor.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index 6b131252..09a1b26 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -345,7 +345,7 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	data = kzalloc(sizeof(struct ntc_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct ntc_data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+@@ -366,8 +366,7 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "Unknown device type: %lu(%s)\n",
+ 				pdev->id_entry->driver_data,
+ 				pdev->id_entry->name);
+-		ret = -EINVAL;
+-		goto err;
++		return -EINVAL;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, data);
+@@ -375,7 +374,7 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 	ret = sysfs_create_group(&data->dev->kobj, &ntc_attr_group);
+ 	if (ret) {
+ 		dev_err(data->dev, "unable to create sysfs files\n");
+-		goto err;
++		return ret;
+ 	}
+ 
+ 	data->hwmon_dev = hwmon_device_register(data->dev);
+@@ -391,8 +390,6 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 	return 0;
+ err_after_sysfs:
+ 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+-err:
+-	kfree(data);
+ 	return ret;
+ }
+ 
+@@ -404,8 +401,6 @@ static int __devexit ntc_thermistor_remove(struct platform_device *pdev)
+ 	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+ 	platform_set_drvdata(pdev, NULL);
+ 
+-	kfree(data);
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.48.g85da4d
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8316653963794943419==--
