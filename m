@@ -1,95 +1,60 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 20 Apr 2012 15:26:23 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.4-rc4
-Message-Id: <20120420152623.GA8928@ericsson.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6220721008728638711=="
+Date: Tue, 24 Apr 2012 03:36:57 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (ntc_thermistor) Fix checkpatch warning
+Message-Id: <1335238619-25745-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
---===============6220721008728638711==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5mCyUwZo2JvN/JJP"
-Content-Disposition: inline
-
---5mCyUwZo2JvN/JJP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.4-rc4 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-
-------
-
-The following changes since commit e816b57a337ea3b755de72bec38c10c864f23015:
-
-  Linux 3.4-rc3 (2012-04-15 18:28:29 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-for you to fetch changes up to 1196573fe493aeeb826468157313ee84ffbc59f3:
-
-  hwmon: (ads1015) Fix build warning (2012-04-18 11:15:50 -0700)
-
-----------------------------------------------------------------
-hwmon fixes for 3.4-rc4
-
-Two patches: Fix build warning in ads1015 driver, and fix bogus power values
-with current BIOSes in fam15h_power driver.
-
-----------------------------------------------------------------
-Andre Przywara (1):
-      hwmon: fam15h_power: fix bogus values with current BIOSes
-
-Guenter Roeck (1):
-      hwmon: (ads1015) Fix build warning
-
- drivers/hwmon/ads1015.c      |   33 ++++++++++++++++-----------------
- drivers/hwmon/fam15h_power.c |   39 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 55 insertions(+), 17 deletions(-)
-
---5mCyUwZo2JvN/JJP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPkYAfAAoJEMsfJm/On5mB34AQAJaUdopNHrnFbASTaP0xr4sF
-akn0K7LAi8gVhSkOPnPrMLgWk9XeNSn3w1Dct947kfDxpyB0lovYm+UNPHLu/x0v
-CZVQVK5P/Cok4ue/kVWFlSzwyDs1c4nod/ijQObGusoZ1KeMPF55jL438ycWeJAo
-ObCkS49Rtxe929+oxuKKr6VI5uopHmrdW29R9E5XAxWuQvF+NVd6a7TlLcsOgfAE
-of/PtaljW8/dTz7xj6aWrDuW4SVo3b0MfcFkgoQK1jxVxeRSKfkMSaVo2xd9Fe0V
-VDfYtbfI9THmEM0yGIQ93mVNDU9JDlqyIZLaEmwAPKyTjdgWIZ8EcrosdHXGZUGV
-BeK9Ak08JK/EiIdb5OEI55F45CsVspIVC1xmF28dQZ/l0Z0Kc5IEsEklUlUGJxTO
-4+Iw/8TGQ0grsXiswHUJl70NewhxygwpAxWN4uv8OedUYceX69aBq0kmq4myf69e
-UW29b/URvY5iDC7t3QQeqQYImntW8i3frbnEvv99+wl7Hwx5gNDEOMqQy7ZMkq/J
-FOlu7BWafmp/pgmtfj316No0e032LPQ9zlL+6zDprhDPJN8JMyhZk1nbYRANYrF8
-Cvvsqgj1q13oioq1MVrEwvqvjmZf623svwr3CSSPIQcM1VOLOJ2L3gBp53YuQ0sM
-Pcn8qXIURLqC5DXJyAYl
-=mbkI
------END PGP SIGNATURE-----
-
---5mCyUwZo2JvN/JJP--
-
-
---===============6220721008728638711==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Fix checkpatch WARNING: quoted string split across lines
+
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Donggeun Kim <dg77.kim@samsung.com>
+---
+ drivers/hwmon/ntc_thermistor.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index d06e354..6b131252 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -322,14 +322,14 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 
+ 	/* Either one of the two is required. */
+ 	if (!pdata->read_uV && !pdata->read_ohm) {
+-		dev_err(&pdev->dev, "Both read_uV and read_ohm missing."
+-				"Need either one of the two.\n");
++		dev_err(&pdev->dev,
++			"Both read_uV and read_ohm missing. Need either one of the two.\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (pdata->read_uV && pdata->read_ohm) {
+-		dev_warn(&pdev->dev, "Only one of read_uV and read_ohm "
+-				"is needed; ignoring read_uV.\n");
++		dev_warn(&pdev->dev,
++			 "Only one of read_uV and read_ohm is needed; ignoring read_uV.\n");
+ 		pdata->read_uV = NULL;
+ 	}
+ 
+@@ -340,8 +340,8 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 				 NTC_CONNECTED_POSITIVE) ||
+ 				(pdata->connect != NTC_CONNECTED_POSITIVE &&
+ 				 pdata->connect != NTC_CONNECTED_GROUND))) {
+-		dev_err(&pdev->dev, "Required data to use read_uV not "
+-				"supplied.\n");
++		dev_err(&pdev->dev,
++			"Required data to use read_uV not supplied.\n");
+ 		return -EINVAL;
+ 	}
+ 
+-- 
+1.7.9.48.g85da4d
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6220721008728638711==--
