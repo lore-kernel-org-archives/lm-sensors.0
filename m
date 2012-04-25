@@ -1,189 +1,54 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Fri, 13 Apr 2012 20:46:50 +0000
-Subject: Re: [lm-sensors] [PATCH v6 2/3] x86/platform: TS-5500 basic platform support
-Message-Id: <1334350010.9278.15.camel@linux-c7gq.mtl.sfl>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 25 Apr 2012 07:23:09 +0000
+Subject: Re: [lm-sensors] k10temp driver reports 0 degree C
+Message-Id: <20120425092309.414aaab5@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1334276935-11258-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-	 <1334276935-11258-3-git-send-email-vivien.didelot@savoirfairelinux.com>
-	 <alpine.LFD.2.02.1204131155580.2542@ionos>
-In-Reply-To: <alpine.LFD.2.02.1204131155580.2542@ionos>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: x86@kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
+To: lm-sensors@vger.kernel.org
 
-Hi,
-
-Thanks for the comments.
-
-On Fri, 2012-04-13 at 12:37 +0200, Thomas Gleixner wrote:
-> On Thu, 12 Apr 2012, Vivien Didelot wrote:
-> > +/**
-> > + * struct ts5500_sbc - TS-5500 SBC main structure
-> > + * @lock:		Read/Write mutex.
-> 
-> What's the point of this mutex ?
-> 
-> AFAICT, it's only ever used in the init path which is serialized by
-> itself.
-
-You're right, I'll remove it.
-> 
-> > + * @board_id:		Board name.
-> 
->   name in an integer ?
-> 
-> > + * @sram:		Check SRAM option.
-> > + * @rs485:		Check RS-485 option.
-> > + * @adc:		Check Analog/Digital converter option.
-> > + * @ereset:		Check External Reset option.
-> > + * @itr:		Check Industrial Temperature Range option.
-> > + * @jumpers:		States of jumpers 1-7.
-> > + */
-> > +struct ts5500_sbc {
-> > +	struct mutex	lock;
-> > +	int		board_id;
-> > +	bool		sram;
-> > +	bool		rs485;
-> > +	bool		adc;
-> > +	bool		ereset;
-> > +	bool		itr;
-> > +	u8		jumpers;
-> > +};
-> 
-> 
-> > +/**
-> > + * ts5500_bios_signature() - find board signature in BIOS shadow RAM.
-> > + */
-> > +static int __init ts5500_bios_signature(void)
-> > +{
-> > +	void __iomem *bios = ioremap(0xF0000, 0x10000);
-> > +	int i, ret = 0;
-> 
-> ioremaps can fail. 
-> 
-> > +	for (i = 0; i < ARRAY_SIZE(signatures); i++)
-> > +		if (check_signature(bios + signatures[i].offset,
-> +				    signatures[i].string,
-> > +				    strlen(signatures[i].string)))
-> > +			goto found;
-> > +		else
-> > +			pr_notice("Technologic Systems BIOS signature "
-> > +				  "'%s' not found at offset %zd\n",
-> > +				  signatures[i].string, signatures[i].offset);
-> > +	ret = -ENODEV;
-> > +found:
-> > +	iounmap(bios);
-> 
-> Uurg, this is convoluted. What's wrong with doing:
-> 
->   int ret = -ENODEV;
-> 
->   for (....) {
->       if (check_signature()) {
->       	 ret = 0;
-> 	 break;
->       }
->   }
-> 
-> That way the code becomes readable and we really do not need a
-> printout when the kernel is configured for multiple platforms and
-> runs on a !TS board. Also you would print out that nonsense if your
-> signature array has more than one entry for each non matching
-> one. Pretty pointless.
-
-Got it.
-
-> 
-> > +	tmp = inb(TS5500_PRODUCT_CODE_ADDR);
-> > +	if (tmp != TS5500_PRODUCT_CODE) {
-> > +		pr_err("This platform is not a TS-5500 (found ID 0x%x)\n", tmp);
-> > +		ret = -ENODEV;
-> > +		goto cleanup;
-> > +	}
-> > +	sbc->board_id = tmp;
-> 
-> So we store a constant value in a data structure and the sole purpose
-> is to display that constant value in sysfs file. Interesting feature.
-
-I plan to add support for a few variants of this board which differ at
-this register level.
-
-> 
-> > +static struct attribute *ts5500_attributes[] = {
-> > +	&dev_attr_id.attr,
-> > +	&dev_attr_sram.attr,
-> > +	&dev_attr_rs485.attr,
-> > +	&dev_attr_adc.attr,
-> > +	&dev_attr_ereset.attr,
-> > +	&dev_attr_itr.attr,
-> > +	&dev_attr_jp1.attr,
-> > +	&dev_attr_jp2.attr,
-> > +	&dev_attr_jp3.attr,
-> > +	&dev_attr_jp4.attr,
-> > +	&dev_attr_jp5.attr,
-> > +	&dev_attr_jp6.attr,
-> 
-> So you create 12 sysfs entries to export boolean features and a
-> constant value. I don't care much, but this looks like massive
-> overkill.
-
-Ok, I'll go for a simple "settings" sysfs attribute.
-
-> 
-> > +/* A/D Converter platform device */
-> > +
-> > +static int ts5500_adc_convert(u8 ctrl, u16 *raw)
-> > +{
-> > +	u8 lsb, msb;
-> > +
-> > +	/* Start convertion (ensure the 3 MSB are set to 0) */
-> > +	outb(ctrl & 0x1F, TS5500_ADC_CONV_INIT_LSB_ADDR);
-> > +
-> > +	udelay(TS5500_ADC_CONV_DELAY);
-> > +	if (inb(TS5500_ADC_CONV_BUSY_ADDR) & TS5500_ADC_CONV_BUSY)
-> > +		return -EBUSY;
-> 
-> Shouldn't you check the busy bit _BEFORE_ writing into the converter?
-> 
-> Also initiating the conversion and then bailing out if it did not
-> complete in some micro seconds is kinda strange. What's wrong with
-> that hardware? And how does it ever recover?
-
-The manufacturer has CPLD logic driving the actual A/D converter. The
-documentation says they guarantee it must complete within x microseconds
-otherwise you have to re-initiate a conversion.
-
-I'll add a proper comment explaining this.
-
-> 
-> > +static void ts5500_adc_release(struct device *dev)
-> > +{
-> > +	/* noop */
-> 
->   Very helpful comment.
-> 
-> > +}
-> > +
-> > +static struct platform_device ts5500_adc_pdev = {
-> > +	.name = "max197",
-> > +	.id = -1,
-> > +	.dev = {
-> > +		.platform_data = &ts5500_adc_pdata,
-> > +		.release = ts5500_adc_release,
-> 
-> What's the point of this empty release function ? The device is never
-> released.
-
-Ok.
-
-Thanks,
-
-	Vivien
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAyMyBBcHIgMjAxMiAxMzozNTozMyAtMDcwMCwgQ3J1bmNoeSBUb2FzdCB3cm90ZToK
+PiAKPiBJJ3ZlIGluc3RhbGxlZCBhbmQgY29uZmlndXJlZCB0aGUgbGF0ZXN0IGxtX3NlbnNvcnMg
+b24gQ2VudE9TIDYsIGJ1dCBzdGlsbCBkb2VzIG5vdCBzaG93IHRlbXAuCj4gPT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KPiAKPiAjIHNlbnNvcnMKPiBrMTB0ZW1wLXBj
+aS0wMGMzCj4gQWRhcHRlcjogUENJIGFkYXB0ZXIKPiB0ZW1wMTogKzAuMMOCwrBDIChoaWdoID0g
+KzcwLjDDgsKwQykKPiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQo+
+IAo+IEhlcmUgaXMgdGhlIG91dHB1dCB0byBzZW5zb3JzLWRldGVjdAo+IAo+ID09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gCj4gIyBzZW5zb3JzLWRldGVjdAo+IFN0
+b3BwaW5nIGxtX3NlbnNvcnM6IFsgT0sgXQo+ICMgc2Vuc29ycy1kZXRlY3QgcmV2aXNpb24gNjAz
+MSAoMjAxMi0wMy0wNyAxNzoxNDowMSArMDEwMCkKPiAjIFN5c3RlbTogTVNJIE1TLTc1OTkgWzQu
+MF0KPiAjIEJvYXJkOiBNU0kgODcwUy1HNDYgKE1TLTc1OTkpCj4gKC4uLikKPiBOb3cgZm9sbG93
+cyBhIHN1bW1hcnkgb2YgdGhlIHByb2JlcyBJIGhhdmUganVzdCBkb25lLgo+IEp1c3QgcHJlc3Mg
+RU5URVIgdG8gY29udGludWU6Cj4gCj4gRHJpdmVyIGBrMTB0ZW1wJyAoYXV0b2xvYWRlZCk6Cj4g
+KiBDaGlwIGBBTUQgRmFtaWx5IDEwaCB0aGVybWFsIHNlbnNvcnMnIChjb25maWRlbmNlOiA5KQo+
+IAo+IERyaXZlciBgZjcxODgyZmcnOgo+ICogSVNBIGJ1cywgYWRkcmVzcyAweDYwMAo+IENoaXAg
+YEZpbnRlayBGNzE4ODlFRCBTdXBlciBJTyBTZW5zb3JzJyAoY29uZmlkZW5jZTogOSkKPiAKPiBE
+byB5b3Ugd2FudCB0byBvdmVyd3JpdGUgL2V0Yy9zeXNjb25maWcvbG1fc2Vuc29ycz8gKFlFUy9u
+byk6IHllcwo+IFN0YXJ0aW5nIGxtX3NlbnNvcnM6IGxvYWRpbmcgbW9kdWxlIGY3MTg4MmZnIFsg
+T0sgXQo+IAo+ICMgc2Vuc29ycwo+IGsxMHRlbXAtcGNpLTAwYzMKPiBBZGFwdGVyOiBQQ0kgYWRh
+cHRlcgo+IHRlbXAxOiArMC4ww4LCsEMgKGhpZ2ggPSArNzAuMMOCwrBDKQo+ID09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gTUIgTW9kZWw6IE1TSSA4NzBTLUc0Ngo+
+IEFueSBhZGRpdGlvbmFsIGluZm8gY2FuIGJlIHByb3ZpZGVkIGlmIG5lZWRlZC4KPiBUaGFua3Mg
+aW4gYWR2YW5jZS4KCkRpZCB5b3UgY2hlY2sgdGhlIGtlcm5lbCBsb2dzIGZvciBhIHdhcm5pbmcg
+bWVzc2FnZSB3aGVuIHRoZSBrMTB0ZW1wCmRyaXZlciBpcyBsb2FkZWQ/CgpXaGljaCBrZXJuZWwg
+aXMgdGhpcz8gSWYgaXQgaXNuJ3QgdG9vIHJlY2VudCwgeW91IG1heSB3YW50IHRvIHRyeSB0aGUK
+c3RhbmQtYWxvbmUgdmVyc2lvbiBvZiB0aGUgazEwdGVtcCBkcml2ZXI6CiAgaHR0cDovL2toYWxp
+LmxpbnV4LWZyLm9yZy9kZXZlbC9taXNjL2sxMHRlbXAvCgpJbnN0cnVjdGlvbnMgYXJlIGF0Ogog
+IGh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvZGV2ZWwvbWlzYy9JTlNUQUxMCgpXaGljaCBleGFj
+dCBDUFUgaXMgdGhpcz8gTm90ZSB0aGF0IHNvbWUgcmV2aXNpb25zIG9mIHRoZSBBTUQgRmFtaWx5
+IDEwaApDUFUgYXJlIGtub3duIHRvIGhhdmUgYnJva2VuIHNlbnNvcnMuIEZyb20KaHR0cDovL3d3
+dy5sbS1zZW5zb3JzLm9yZy93aWtpL0RldmljZXM6CgoiRW1iZWRkZWQgc2Vuc29ycyBhcmUga25v
+d24gdG8gYmUgdW5yZWxpYWJsZSBvbiB0aGUgRFItQkEsIERSLUIyLApEUi1CMywgUkItQzIgYW5k
+IEhZLUQwIHJldmlzaW9ucyBvZiB0aGUgZmFtaWx5IDEwaCBDUFUsIHdoaWNoIHdpbGwKbmV2ZXIg
+YmUgc3VwcG9ydGVkLiIKClNvIGl0IG1pZ2h0IGFzIHdlbGwgYmUgYSBoYXJkd2FyZSBkZWZlY3Qg
+YW5kIG5vdGhpbmcgdGhlIGsxMHRlbXAgZHJpdmVyCmNhbiBkby4KClRoYXQgYmVpbmcgc2FpZCwg
+eW91IGFyZSBzdXBwb3NlZCB0byBoYXZlIGEgRmludGVrIEY3MTg4OUVEIG1vbml0b3JpbmcKY2hp
+cCwgd2hpY2ggeW91IGNvdWxkIHVzZSBpbnN0ZWFkIGZvciB0ZW1wZXJhdHVyZSBtb25pdG9yaW5n
+LCB1bmxlc3MKQUNQSSBpcyBibG9ja2luZyBpdC4gWW91J2xsIG5lZWQga2VybmVsIDIuNi4zOSBv
+ciBsYXRlciwgb3IgdXNlIGEKc3RhbmQtYWxvbmUgZHJpdmVyOgpodHRwOi8va2hhbGkubGludXgt
+ZnIub3JnL2RldmVsL21pc2MvZjcxODgyZmcvCgotLSAKSmVhbiBEZWx2YXJlCmh0dHA6Ly9raGFs
+aS5saW51eC1mci5vcmcvd2lzaGxpc3QuaHRtbAoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0Bs
+bS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5m
+by9sbS1zZW5zb3Jz
