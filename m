@@ -1,54 +1,55 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 22 Apr 2012 18:20:14 +0000
-Subject: Re: [lm-sensors] Sensors [via-cputemp] is cpu intensive?
-Message-Id: <1335118814.18790.94.camel@groeck-laptop>
+Date: Wed, 25 Apr 2012 20:50:09 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (fam15h_power) Fix pci_device_id array
+Message-Id: <1335387009-16512-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4F93DB2C.5000405@continuingtime.com>
-In-Reply-To: <4F93DB2C.5000405@continuingtime.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gU3VuLCAyMDEyLTA0LTIyIGF0IDEzOjAzIC0wNDAwLCBsbXNlbnNvcnNAY29udGludWluZ3Rp
-bWUuY29tIHdyb3RlOgo+IE9uIDQvMjIvMjAxMiAyOjQyIFBNLCBKZWFuIERlbHZhcmUgd3JvdGU6
-Cj4gPiBIaSBEYXZlLAo+ID4KPiA+IE9uIFN1biwgMjIgQXByIDIwMTIgMTE6MTk6MjQgKzAxMDAs
-IGxtc2Vuc29yc0Bjb250aW51aW5ndGltZS5jb20gd3JvdGU6Cj4gPgo+ID4KPiA+IE1vc3Qgb2Yg
-L3Byb2MvYWNwaSBoYXMgYmVlbiBkZXByZWNhdGVkIG92ZXIgdGltZSBpbiBmYXZvciBvZiBlcXVp
-dmFsZW50Cj4gPiAoYnV0IG9mdGVuIG1vcmUgZ2VuZXJpYykgc3lzZnMgYXR0cmlidXRlcy4gRm9y
-Cj4gPiBleGFtcGxlIC9wcm9jL2FjcGkvdGhlcm1hbF96b25lL1RIUk0vdGVtcGVyYXR1cmUgd291
-bGQgbm93Cj4gPiBiZSAvc3lzL2NsYXNzL3RoZXJtYWwvdGhlcm1hbF96b25lMC90ZW1wLiBJZiB5
-b3VyIGtlcm5lbCBoYWQKPiA+IENPTkZJR19USEVSTUFMX0hXTU9OIGVuYWJsZWQsIHlvdSB3b3Vs
-ZCBhbHNvIHNlZSB0aGlzIHRoZXJtYWwgem9uZSBpbgo+ID4gdGhlIG91dHB1dCBvZiAic2Vuc29y
-cyIuCj4gCj4gSSBkb24ndCBoYXZlIGFueXRoaW5nIG9mIG5vdGUgaW4gL3N5cy9jbGFzcy90aGVy
-bWFsIHNvIEknbGwgbG9vayBhdCB3aGF0IAo+IEkgbWlnaHQgYmUgbWlzc2luZyBmcm9tIHRoZSBu
-ZXdlciBhY3BpIGNvbmZpZ3MuCj4gCj4gPiBJIHRoaW5rIHlvdSdyZSBsb29raW5nIGF0IHRoZSBu
-dW1iZXJzIGluIHRoZSB3cm9uZyB3YXkuIEl0J3Mgbm90IAo+ID4gc2Vuc29ycyBvciBncmVwIG9y
-IGFueXRoaW5nIGNhdXNpbmcgYSAxMMKwQyBpbmNyZWFzZSBpbiB0ZW1wZXJhdHVyZS4gCj4gPiBJ
-dCdzIHRoZSBDUFUgYmVpbmcgbmljZWx5IGRlc2lnbmVkIHdpdGggZWZmaWNpZW50IGxvdy1wb3dl
-ciBDLXN0YXRlcyAKPiA+IHdoaWNoIG1ha2UgaXQgcG9zc2libGUgdG8gc2F2ZSAxMMKwQyBpbiBp
-ZGxlIHN0YXRlLiAKPiAKPiBZZXMgYW5kIG5vLiAgRXZlbiB3aGVuIHRoZSBDUFUgd2FzICdpZGxl
-JyBhbmQgY29vbGluZyBkb3duIGZyb20gdGhlIG1heCAKPiBvZiA1NyB0byA0Ni1pc2gsIEkgd2Fz
-IGFibGUgdG8gcmVsaWFibHkgaW5jcmVhc2UgdGhlIENQVSB0ZW1wcyBieSAzKyAKPiBkZWdDIGJ5
-IHJ1bm5pbmcgc2Vuc29ycyB0d2ljZSBhbmQgYnkgOC0xMCBkZWdDIGJ5IHJ1bm5pbmcgc2Vuc29y
-cyAyMDAgCj4gdGltZXMgd2hpY2gsIGluIGEgbG9vcC4gIEFuZCBydW5uaW5nIGl0IDIwMCB0aW1l
-cyBvbiBhIDEuOEdIeiBjcHUgdGFrZXMgCj4gMyBzZWNvbmRzLiAgTm90aGluZyB0YWtlcyAzIHNl
-Y29uZHMuCj4gCj4gWWVzLCBJIHJlYWxpemUgdGhhdCB0aW1lIGlzIHJlcXVpcmVkIHRvIHNldHVw
-IHRoZSBleGVjdXRpb24gZW52aXJvbm1lbnQgCj4gZm9yIHNlbnNvcnMgYW5kIGl0IHJlbGllcyBv
-biB0aGUga2VybmVsIGFuZCBidXMgd2FpdCB0aW1lcywgZXRjIGV0YyAKPiBldGMuLi4gIEJ1dC4u
-Lgo+IAo+IE5vdGhpbmcgdGFrZXMgMyBzZWNvbmRzLiAgOikKCkZlZWwgZnJlZSB0byBpbXByb3Zl
-IGl0IDspLgoKSSBnZXQ6Cgp3aXRoIEludGVsKFIpIENvcmUoVE0pIGk3LTI2MDAgQ1BVIEAgMy40
-MEdIejoKICByZWFsCTBtMS44MTRzCiAgdXNlcgkwbTAuNDA4cwogIHN5cwkwbTEuMjkycwoKd2l0
-aCBJbnRlbChSKSBDb3JlKFRNKTIgRHVvIENQVSBUOTMwMCBAIDIuNTBHSHo6CiAgcmVhbAkwbTUu
-NjM0cwogIHVzZXIJMG0wLjIwMHMKICBzeXMJMG0yLjM4MHMKCkZvciB0aGUgbGF0dGVyLCBpZiBJ
-IGV4ZWN1dGUgInNlbnNvcnMgY29yZXRlbXAtaXNhLTAwMDAiIGluc3RlYWQgb2YKInNlbnNvcnMi
-IGluIHRoZSBsb29wLCB0aGUgcmVzdWx0cyBhcmU6CiAgcmVhbAkwbTEuMjk1cwogIHVzZXIJMG0w
-LjE2MHMKICBzeXMJMG0wLjYzMnMKClRoZSBkaWZmZXJlbmNlIGlzIHRoYXQgInNlbnNvcnMiIGFs
-c28gcHJvYmVzIGFjcGl0ei12aXJ0dWFsLTAgb24gbXkKbGFwdG9wIChDb3JlIDIgRHVvKS4gQXBw
-YXJlbnRseSB0aGF0IGlzIHRoZSB0aW1lIGFuZCBDUFUgaG9nIGluIG15IGNhc2UuCllvdSBtaWdo
-dCB3YW50IHRvIGNoZWNrIHRoZSBzZW5zb3JzIHByb2JlZCBhbmQgcmVwb3J0ZWQgaW4geW91ciBj
-YXNlLAp0aGVuIGxvb2sgaW50byB0aG9zZSBkcml2ZXJzIGFuZCBtYWtlIHRoZW0gbW9yZSBlZmZp
-Y2llbnQuIEkgYW0gc3VyZSB3ZQp3b3VsZCBhbGwgYXBwcmVjaWF0ZSB0aGF0IC4uLgoKVGhhbmtz
-LApHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+pci_match_id() takes an *array* of IDs which must be properly zero-
+terminated.
+
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+---
+ drivers/hwmon/fam15h_power.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 37a8fc9..e8e18ca 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -128,17 +128,20 @@ static bool __devinit fam15h_power_is_internal_node0(struct pci_dev *f4)
+  * counter saturations resulting in bogus power readings.
+  * We correct this value ourselves to cope with older BIOSes.
+  */
++static DEFINE_PCI_DEVICE_TABLE(affected_device) = {
++	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
++	{ 0 }
++};
++
+ static void __devinit tweak_runavg_range(struct pci_dev *pdev)
+ {
+ 	u32 val;
+-	const struct pci_device_id affected_device = {
+-		PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) };
+ 
+ 	/*
+ 	 * let this quirk apply only to the current version of the
+ 	 * northbridge, since future versions may change the behavior
+ 	 */
+-	if (!pci_match_id(&affected_device, pdev))
++	if (!pci_match_id(affected_device, pdev))
+ 		return;
+ 
+ 	pci_bus_read_config_dword(pdev->bus,
+-- 
+1.7.9.48.g85da4d
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
