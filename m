@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sat, 28 Apr 2012 15:00:05 +0000
+Date: Sat, 28 Apr 2012 15:36:15 +0000
 Subject: Re: [lm-sensors] sensor 3.3.1 and previous do not properly detect/show CPUTIN temperature - maximus
-Message-Id: <20120428150005.GA24091@ericsson.com>
+Message-Id: <20120428153615.GA24205@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAGqf2i+bMvvWyELKn5ApTL+XUQ_s7x-eMCSV4DdNGhpfuHy6nA@mail.gmail.com>
 In-Reply-To: <CAGqf2i+bMvvWyELKn5ApTL+XUQ_s7x-eMCSV4DdNGhpfuHy6nA@mail.gmail.com>
@@ -10,16 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Apr 28, 2012 at 02:43:53AM -0400, P.B. V wrote:
-[ ... ]
+On Sat, Apr 28, 2012 at 06:08:23AM -0400, Martin Suchanek wrote:
 > 
-> Also, I attempted to change the sensor type for CPUTIN using the
-> nct6775 module with no effect. All that changed was -60 went to -62.5
-> when changed to 'thermistor'.
 > 
-From what I have seen, temperature values around -60 on the NCT677X means
-that nothing is connected to the respective pin, so it is not surprising
-that the value does not change much if you change the sensor type.
+> On Sat, Apr 28, 2012 at 5:30 AM, Guenter Roeck <guenter.roeck@ericsson.com>
+> wrote:
+> 
+>     On Fri, Apr 20, 2012 at 11:47:47AM +0100, Martin Suchanek wrote:
+>     > Hi,
+>     >
+>     > Add info:
+>     > I have found software called open hardware monitor. I have been testing
+>     it
+>     > in windows for couple of days and it works properly with Nuvoton NST6776F
+>     > chip. I have been comparing results with AI Suite software coming from
+>     ASUS
+>     > and results are corresponding and measuring is with big precise. So , you
+>     > can have a look to source code and compare with your driver. This
+>     software
+>     > should work on linux as well but I did not try it yet but I will.
+>     >
+>     I finally had time to look into the open hardware monitor code.
+> 
+>     The answer is quite simple - the board get the CPU temperature using PECI,
+>     which the w83627ehf/nct67765 driver reports is as "PECI Agent 0".
+>     Open Hardware Monitor maps that temperature into the CPU temperature
+>     display
+>     and ignores CPUTIN. Which makes sense, since the purpose of PECI is to
+>     report
+>     the CPU temperature.
+> 
+>     So all you need to do is to ignore the value of CPUTIN and use the "PECI
+>     Agent 0"
+>     temperature instead.
+>    
+> 
+> 
+> I am now confused ?
+> I do not know technical details but according to ASUS technical support
+> CPUTIN is temperature of motherboard (not cpu socket , not cpu yourself )
+> what exactly this temperature means ?
+> 
+From looking into the OHM source, motherboard temperature is SYSTIN, not CPUTIN.
+Some but not all boards have AUXTIN connected as well. CPUTIN does not seem
+to be used at all on ASUS boards as far as I can see.
+
+From a board manufacturer perspective, that makes a lot of sense. PECI
+provides the temperature from the CPU on-board sensor, making it more reliable
+(since it reports the the difference to the maximum temperature) and cheaper
+than an external sensor.
+
+To know for sure what is connected to what one would need board schematics.
+I would take statements from tech support with a grain (or two) of salt.
 
 Guenter
 
