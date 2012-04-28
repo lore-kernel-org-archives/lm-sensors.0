@@ -1,118 +1,78 @@
-From: Martin Suchanek <martin.suc@googlemail.com>
-Date: Sat, 28 Apr 2012 10:48:37 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Sat, 28 Apr 2012 14:43:24 +0000
 Subject: Re: [lm-sensors] sensor 3.3.1 and previous do not properly detect/show CPUTIN temperature - maximus
-Message-Id: <CAGqf2iJjfzYN2UbRnicf=_8Nf22x0Y6YSAUeHr4hCm4bUVjSNg@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5837770864100548464=="
+Message-Id: <20120428144324.GA23747@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAGqf2i+bMvvWyELKn5ApTL+XUQ_s7x-eMCSV4DdNGhpfuHy6nA@mail.gmail.com>
 In-Reply-To: <CAGqf2i+bMvvWyELKn5ApTL+XUQ_s7x-eMCSV4DdNGhpfuHy6nA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
---===============5837770864100548464==
-Content-Type: multipart/alternative; boundary=14dae93404199cf69504bebaf6cc
+On Sat, Apr 28, 2012 at 04:55:09AM -0400, Jean Delvare wrote:
+> On Sat, 28 Apr 2012 06:43:53 +0000, P.B. V wrote:
+> > w83627ehf and nct6775 (Apr 27, 2012) driver modules both show a
+> > seemingly incorrect value for PECI. I am running a Maximus IV Extreme
+> > Revision 1.0 motherboard (NCT6776F), with an i5-2550K CPU, on kernel
+> > 3.3.
+> >=20
+> > The coretemp module and my BIOS reports my idle temperatures at around
+> > 33-35C, while PECI in Linux reports in at 23-25. It looks to be 10
+> > degrees off. Under load it scales with coretemp, always staying 10
+> > degrees under the average coretemp values.
+> >=20
+> > Unless I'm not understanding something correctly, PECI should not be
+> > used and doing so may lead to hardware damage.
+> >=20
+> > coretemp:
+> >  Physical id 0:  +36.0 C  (high =3D +80.0 C, crit =3D +101.0 C)
+> >  Core 0:         +36.0 C  (high =3D +80.0 C, crit =3D +101.0 C)
+> >  Core 1:         +32.0 C  (high =3D +80.0 C, crit =3D +101.0 C)
+> >  Core 2:         +34.0 C  (high =3D +80.0 C, crit =3D +101.0 C)
+> >  Core 3:         +30.0 C  (high =3D +80.0 C, crit =3D +101.0 C)
+> >=20
+> > w83627ehf: (nct6775 values are identical)
+> >  PECI Agent 0:  +24.0 C
+>=20
+> PECI values are reported (at the hardware level) relative from an
+> arbitrary maximum. The coretemp driver uses 101=B0C as the maximum, your
+> results suggests that the w83627ehf and nct6775 drivers use 91=B0C (or
+> maybe 90=B0C) instead. This isn't going to cause any hardware damage, and
+> you can even fix the problem in user-space with a compute formula like:
+>=20
+The maximum should be set by the BIOS. On my system (ASUS mainboard) it
+is correctly set to the critical CPU temperature (99 degrees C in my case).
+Guess the Maximum board doesn't do that.
 
---14dae93404199cf69504bebaf6cc
-Content-Type: text/plain; charset=UTF-8
+> chip "nct6776-*"
+>=20
+>    compute tempN @ + 10, @ - 10
+>=20
+> Guenter, is there a way to know what the NCT6776F thinks the maximum
+> temperature is? Maybe we can read it from registers 0x709 or 0x70A? If
+> we could present this value as tempN_crit, this would help understand
+> the difference of absolute temperatures between coretemp and nct6776.
+>=20
 
-On Sat, Apr 28, 2012 at 11:22 AM, Jean Delvare <khali@linux-fr.org> wrote:
+Good idea. I added that to the nct6775 driver (I don't really want to mess
+with the w83627ehf driver - it is getting too complicated).
+Output for NCT6776F on my board (i5-2400) is now:
 
-> On Sat, 28 Apr 2012 11:08:23 +0100, Martin Suchanek wrote:
-> > On Sat, Apr 28, 2012 at 5:30 AM, Guenter Roeck
-> > <guenter.roeck@ericsson.com>wrote:
-> > > The answer is quite simple - the board get the CPU temperature using
-> PECI,
-> > > which the w83627ehf/nct67765 driver reports is as "PECI Agent 0".
-> > > Open Hardware Monitor maps that temperature into the CPU temperature
-> > > display
-> > > and ignores CPUTIN. Which makes sense, since the purpose of PECI is to
-> > > report
-> > > the CPU temperature.
-> > >
-> > > So all you need to do is to ignore the value of CPUTIN and use the
-> "PECI
-> > > Agent 0"
-> > > temperature instead.
-> >
-> > I am now confused ?
-> > I do not know technical details but according to ASUS technical support
-> > CPUTIN is temperature of motherboard (not cpu socket , not cpu yourself )
-> > what exactly this temperature means ?
->
-> Labels are suggestions from the chip maker, unfortunately board vendors
-> are free to not follow these suggestions and wire the inputs
-> differently. Confusion ensues...
->
-> :-)  ok ,so now I am definitely confused. From now I do not know how is it
-on my motherboard in real ?  :-)
+PECI Agent 0:   +39.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+                         (crit =3D +99.0=B0C)
 
-> --
-> Jean Delvare
->
+and for NCT6775F (i7-2600):
 
---14dae93404199cf69504bebaf6cc
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+PECI Agent 0:   +32.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+                         (crit =3D +98.0=B0C)
 
-<br><br><div class=3D"gmail_quote">On Sat, Apr 28, 2012 at 11:22 AM, Jean D=
-elvare <span dir=3D"ltr">&lt;<a href=3D"mailto:khali@linux-fr.org" target=
-=3D"_blank">khali@linux-fr.org</a>&gt;</span> wrote:<br><blockquote class=
-=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padd=
-ing-left:1ex">
-<div class=3D"im">On Sat, 28 Apr 2012 11:08:23 +0100, Martin Suchanek wrote=
-:<br>
-&gt; On Sat, Apr 28, 2012 at 5:30 AM, Guenter Roeck<br>
-&gt; &lt;<a href=3D"mailto:guenter.roeck@ericsson.com">guenter.roeck@ericss=
-on.com</a>&gt;wrote:<br>
-</div><div class=3D"im">&gt; &gt; The answer is quite simple - the board ge=
-t the CPU temperature using PECI,<br>
-&gt; &gt; which the w83627ehf/nct67765 driver reports is as &quot;PECI Agen=
-t 0&quot;.<br>
-&gt; &gt; Open Hardware Monitor maps that temperature into the CPU temperat=
-ure<br>
-&gt; &gt; display<br>
-&gt; &gt; and ignores CPUTIN. Which makes sense, since the purpose of PECI =
-is to<br>
-&gt; &gt; report<br>
-&gt; &gt; the CPU temperature.<br>
-&gt; &gt;<br>
-&gt; &gt; So all you need to do is to ignore the value of CPUTIN and use th=
-e &quot;PECI<br>
-&gt; &gt; Agent 0&quot;<br>
-&gt; &gt; temperature instead.<br>
-&gt;<br>
-&gt; I am now confused ?<br>
-&gt; I do not know technical details but according to ASUS technical suppor=
-t<br>
-&gt; CPUTIN is temperature of motherboard (not cpu socket , not cpu yoursel=
-f )<br>
-&gt; what exactly this temperature means ?<br>
-<br>
-</div>Labels are suggestions from the chip maker, unfortunately board vendo=
-rs<br>
-are free to not follow these suggestions and wire the inputs<br>
-differently. Confusion ensues...<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br></font></span></blockquo=
-te><div>:-)=C2=A0 ok ,so now I am definitely confused. From now I do not kn=
-ow how is it on my motherboard in real ?=C2=A0 :-)<br></div><blockquote cla=
-ss=3D"gmail_quote" style=3D"margin:0pt 0pt 0pt 0.8ex;border-left:1px solid =
-rgb(204,204,204);padding-left:1ex">
-<span class=3D"HOEnZb"><font color=3D"#888888">
---<br>
-Jean Delvare<br>
-</font></span></blockquote></div><br>
+The attribute is writable.
 
---14dae93404199cf69504bebaf6cc--
-
-
---===============5837770864100548464==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5837770864100548464==--
