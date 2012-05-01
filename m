@@ -1,7 +1,7 @@
-From: Ian Pilcher <arequipeno@gmail.com>
-Date: Tue, 01 May 2012 14:07:31 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Tue, 01 May 2012 14:36:22 +0000
 Subject: Re: [lm-sensors] Does ACPI conflict also happen on MS/Windows?
-Message-Id: <jnoqn3$43g$1@dough.gmane.org>
+Message-Id: <CAKPcRGpy9DFVo9mjriWxuLyR1cjh=vLAGAdX6_9jd8GiPrVMBQ@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <BAY171-W203D195E39237603879A63F7280@phx.gbl>
 In-Reply-To: <BAY171-W203D195E39237603879A63F7280@phx.gbl>
@@ -10,36 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 04/30/2012 09:55 AM, Jean Delvare wrote:
-> Most likely they would "work", because they simply do not check the
-> ACPI conflict in the first place. So they run but not reliably, exactly
-> the same as running Linux with acpi_enforce_resources=lax.
-
-On a slightly related note, I've always been a bit bemused by the this
-message:
-
-  If an ACPI driver is available for this device, you should use it
-  instead of the native driver
-
-What is an "ACPI driver"?  (AFAIK, ACPI is built into the BIOS of a
-system and interpreted by the OS; I've never heard of an ACPI driver.)
-
-Is there any hardware for which ACPI actually provides the same level of
-information that "legacy" access does?  Every system I've dealt with
-over the last few years provides a single temperature reading via ACPI
-(generally CPU surface temperature) -- no other temperatures, no fans,
-no voltages.  Am I buying the wrong stuff?
-
-Just wondering ...
-
--- 
-====================================
-Ian Pilcher                                         arequipeno@gmail.com
-"If you're going to shift my paradigm ... at least buy me dinner first."
-====================================
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCBNYXkgMSwgMjAxMiBhdCA0OjA3IFBNLCBJYW4gUGlsY2hlciA8YXJlcXVpcGVub0Bn
+bWFpbC5jb20+IHdyb3RlOgo+IE9uIDA0LzMwLzIwMTIgMDk6NTUgQU0sIEplYW4gRGVsdmFyZSB3
+cm90ZToKPj4gTW9zdCBsaWtlbHkgdGhleSB3b3VsZCAid29yayIsIGJlY2F1c2UgdGhleSBzaW1w
+bHkgZG8gbm90IGNoZWNrIHRoZQo+PiBBQ1BJIGNvbmZsaWN0IGluIHRoZSBmaXJzdCBwbGFjZS4g
+U28gdGhleSBydW4gYnV0IG5vdCByZWxpYWJseSwgZXhhY3RseQo+PiB0aGUgc2FtZSBhcyBydW5u
+aW5nIExpbnV4IHdpdGggYWNwaV9lbmZvcmNlX3Jlc291cmNlcz1sYXguCj4KPiBPbiBhIHNsaWdo
+dGx5IHJlbGF0ZWQgbm90ZSwgSSd2ZSBhbHdheXMgYmVlbiBhIGJpdCBiZW11c2VkIGJ5IHRoZSB0
+aGlzCj4gbWVzc2FnZToKPgo+IMKgSWYgYW4gQUNQSSBkcml2ZXIgaXMgYXZhaWxhYmxlIGZvciB0
+aGlzIGRldmljZSwgeW91IHNob3VsZCB1c2UgaXQKPiDCoGluc3RlYWQgb2YgdGhlIG5hdGl2ZSBk
+cml2ZXIKPgo+IFdoYXQgaXMgYW4gIkFDUEkgZHJpdmVyIj8KCkl0IG1lYW5zIGEgZHJpdmVyIHRo
+YXQgdXNlcyB0aGUgaW50ZXJmYWNlIGV4cG9zZWQgYnkgQUNQSS4KCj4gSXMgdGhlcmUgYW55IGhh
+cmR3YXJlIGZvciB3aGljaCBBQ1BJIGFjdHVhbGx5IHByb3ZpZGVzIHRoZSBzYW1lIGxldmVsIG9m
+Cj4gaW5mb3JtYXRpb24gdGhhdCAibGVnYWN5IiBhY2Nlc3MgZG9lcz8gwqBFdmVyeSBzeXN0ZW0g
+SSd2ZSBkZWFsdCB3aXRoCj4gb3ZlciB0aGUgbGFzdCBmZXcgeWVhcnMgcHJvdmlkZXMgYSBzaW5n
+bGUgdGVtcGVyYXR1cmUgcmVhZGluZyB2aWEgQUNQSQo+IChnZW5lcmFsbHkgQ1BVIHN1cmZhY2Ug
+dGVtcGVyYXR1cmUpIC0tIG5vIG90aGVyIHRlbXBlcmF0dXJlcywgbm8gZmFucywKPiBubyB2b2x0
+YWdlcy4KCkEgc2luZ2xlIFRaIGlzIGNvbW1vbiwgeWVzLiBBc3VzIG1vdGhlcmJvYXJkcyBwcm92
+aWRlIHRoZSBzbyBjYWxsZWQKQVRLMDExMCBpbnRlcmZhY2UgZm9yIHJlYWRpbmcgdGVtcHMsIGZh
+bnMgYW5kIHZvbHRhZ2VzLgoKTAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3Jz
+Lm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5z
+b3Jz
