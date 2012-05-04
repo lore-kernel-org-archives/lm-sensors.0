@@ -1,39 +1,29 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 May 2012 16:39:19 +0000
-Subject: Re: [lm-sensors] Nuvoton NCT6776D - AsRock
-Message-Id: <1337791159.478.19.camel@groeck-laptop>
+From: Wim Van Sebroeck <wim@iguana.be>
+Date: Fri, 04 May 2012 12:34:34 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] watchdog_dev: Add support for having more then 1 watchdog
+Message-Id: <20120504123434.GR3074@spo001.leaseweb.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAKJpqGFq1teBVrgDw3WxCKO-mk6eTZ2jSCOdzOfF6MS-oz4hOQ@mail.gmail.com>
-In-Reply-To: <CAKJpqGFq1teBVrgDw3WxCKO-mk6eTZ2jSCOdzOfF6MS-oz4hOQ@mail.gmail.com>
+References: <1331812757-3491-1-git-send-email-hdegoede@redhat.com> <1331812757-3491-2-git-send-email-hdegoede@redhat.com> <20120315131131.1096f8c8@pyramind.ukuu.org.uk> <4F61FA18.70104@redhat.com> <20120315153833.40bd2f16@pyramind.ukuu.org.uk>
+In-Reply-To: <20120315153833.40bd2f16@pyramind.ukuu.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-watchdog@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, Thilo Cestonaro <thilo.cestonaro@ts.fujitsu.com>, =?iso-8859-1?Q?P=E1draig?= Brady <P@draigBrady.com>
 
-On Wed, 2012-05-23 at 12:25 -0400, clement clem wrote:
-> Hello to all,
+Hi Alan,
+
+> > You do this even for watchdog0 / for the watchdog we've also registered as
+> > misc_dev. I guess this is intentional and you want the watchdog to be
+> > available as both misc,130 as well as as MAJOR(dog_devt),0 ?
 > 
-> Have a new card AsRock B75 Pro 3 M yesterday.
-> 
-> This card uses a new chip Nuvoton NCT6776D.
-> 
-> Can we have full support for Lm-Sensors ?
-> 
-> For now only the temperature of my i3 2100 are displayed.
-> 
-Hi,
+> Yes - so that it appears in the watchdog class in sysfs for example.
 
-that really depends on your kernel version. Try "modprobe w83627ehf".
+What happens if one program opens the miscdevice and another program opens the MAJOR(dog_devt),0 device?
+I presume that the WDOG_DEV_OPEN status bit will prohibit the opening of the second device in that case...
 
-There is an experimental driver at https://github.com/groeck/nct6775
-which you can try as well. It has somewhat improved fan control support.
-
-There is one caveat, though - AsRock uses a GPIO based multiplexer to
-map multiple fans into a single fan speed input of the NCT6776F chip. As
-a result, you won't be able to see (or control) the speed of all fans.
-
-Guenter
-
+Thanks,
+Wim.
 
 
 _______________________________________________
