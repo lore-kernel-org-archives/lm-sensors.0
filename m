@@ -1,7 +1,7 @@
-From: "Felten, Lothar" <l-felten@ti.com>
-Date: Mon, 07 May 2012 16:10:12 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Mon, 07 May 2012 16:51:25 +0000
 Subject: Re: [lm-sensors] [PATCH] INA219 and INA226 support
-Message-Id: <28DAD847AEFDD344B2D3802E7670BEE116AD778B@DNCE04.ent.ti.com>
+Message-Id: <1336409485.22553.31.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <28DAD847AEFDD344B2D3802E7670BEE116AD54B7@DNCE04.ent.ti.com>
 In-Reply-To: <28DAD847AEFDD344B2D3802E7670BEE116AD54B7@DNCE04.ent.ti.com>
@@ -10,496 +10,582 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Mon, 2012-05-07 at 12:10 -0400, Felten, Lothar wrote:
+> > >
+> > > This patch brings support for the Texas Instruments INA219 and INA226
+> > power monitors.
+> > > It's a diff to linux-3.3.4
+> > >
+> > > Files added:
+> > > Documentation/hwmon/ina2xx
+> > > drivers/hwmon/ina2xx.c
+> > >
+> > > Files changed:
+> > > drivers/hwmon/Kconfig
+> > > drivers/hwmon/Makefile
+> > >
+> > Hi Lothar,
 > >
-> > This patch brings support for the Texas Instruments INA219 and INA226
-> power monitors.
-> > It's a diff to linux-3.3.4
+> > Your patch unfortunately got corrupted; all tabs have been replaced with
+> > spaces.
+> > You'll have to find a way to send it unmodified.
+> 
+> I've changes my mailers' settings. I hope it works now.
+
+Hi Lothar,
+
+Unfortunately it is not ok. I retrieved the patch directly from
+gmane.org to ensure it was not corrupted by our mailer, but the tabs are
+still all replaced with spaces. If nothing else works, please send a
+copy as attachment to me directly, and hope the mailer leaves
+attachments alone.
+
+Some more comments below.
+
+> I've also ran checkpatch on the patch.
+> 
+> Other changes:
+>  > I am a bit lost about the logic. You divide the result by 8, then multiply with 4.
+> > That does not reflect an LSB of 4mV; for that, I would expect the multiplication
+> > only.
+> > Please clarify.
+> The register is not right justified, I added a comment.
+> 
+> > sysfs ABI expects uW.
+> changed mW to uW
+> 
+> > DIV_ROUND_CLOSEST would be better here, to reduce the error.
+> I replaced the divisions by the macro
+> 
+> > Please use standard sysfs attribute names. See Documentation/hwmon/sysfs-
+> > interface.
+> fixed, but why do voltages start at index 0 but current and power at index 1?
+> 
+Guess that is history. Note that you don't _have_ to start the voltages
+at 0; you could also use 1/2 instead of 0/1. It is more important to
+keep the numbers aligned, ie use in1/curr1/power1 for the same measured
+set of values (such that in1 * curr1 = power1).
+
+> > Please use devm_kzalloc(). It makes the code a bit simpler, smaller, ensures
+> > that there are no memory leaks, and you can drop the kfree().
+> I've changed that, can you please take a look if I use it correctly?
+> 
+> > Wrong goto target, as you'd have to unregister the hwmon device.
+> > Never mind, though, since you'll have to move this code further up anyway.
 > >
-> > Files added:
-> > Documentation/hwmon/ina2xx
-> > drivers/hwmon/ina2xx.c
-> >
-> > Files changed:
-> > drivers/hwmon/Kconfig
-> > drivers/hwmon/Makefile
-> >
-> Hi Lothar,
->
-> Your patch unfortunately got corrupted; all tabs have been replaced with
-> spaces.
-> You'll have to find a way to send it unmodified.
+> > All the above needs to be done before calling sysfs_create_group(), since
+> > sysfs_create_group() creates the sysfs attribute files and makes the device
+> > accessible.
+> I've rewritten probe(), it now does hwmon create before sysfs create.
+> 
+That wasn't the point. Sorry for being unclear. The sequence needs to be
 
-I've changes my mailers' settings. I hope it works now.
-I've also ran checkpatch on the patch.
+- Initialize local data and chip
+- Create sysfs attributes
+- Register hwmon device
 
-Other changes:
- > I am a bit lost about the logic. You divide the result by 8, then multiply with 4.
-> That does not reflect an LSB of 4mV; for that, I would expect the multiplication
-> only.
-> Please clarify.
-The register is not right justified, I added a comment.
+Please also see Documentation/hwmon/submitting-patches. There is a
+related comment about race conditions in probe functions.
 
-> sysfs ABI expects uW.
-changed mW to uW
+> - Lothar
+> 
+> diff -uprN a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+> --- a/Documentation/hwmon/ina2xx        1970-01-01 01:00:00.000000000 +0100
+> +++ b/Documentation/hwmon/ina2xx        2012-05-07 15:27:56.142307748 +0200
+> @@ -0,0 +1,29 @@
+> +Kernel driver ina2xx
+> +==========
+> +
+> +Supported chips:
+> +  * Texas Instruments INA219
+> +    Prefix: 'ina219'
+> +    Addresses: I2C 0x40 - 0x4f
+> +    Datasheet: Publicly available at the Texas Instruments website
+> +               http://www.ti.com/
+> +
+> +  * Texas Instruments INA226
+> +    Prefix: 'ina226'
+> +    Addresses: I2C 0x40 - 0x4f
+> +    Datasheet: Publicly available at the Texas Instruments website
+> +               http://www.ti.com/
+> +
+> +Author: Lothar Felten <l-felten@ti.com>
+> +
+> +Description
+> +-----------
+> +
+> +The INA219 is a high-side current shunt and power monitor with an I2C
+> +interface. The INA219 monitors both shunt drop and supply voltage, with
+> +programmable conversion times and filtering.
+> +
+> +The INA226 is a current shunt and power monitor with an I2C interface.
+> +The INA226 monitors both a shunt voltage drop and bus supply voltage.
+> +
+> +The shunt value in milliohms can be set via the kernel config.
+> diff -uprN a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+> --- a/drivers/hwmon/ina2xx.c    1970-01-01 01:00:00.000000000 +0100
+> +++ b/drivers/hwmon/ina2xx.c    2012-05-07 17:56:23.090149474 +0200
+> @@ -0,0 +1,356 @@
+> +/*
+> + * Driver for Texas Instruments INA219, INA226 power monitor chips
+> + *
+> + * INA219:
+> + * Zero Drift Bi-Directional Current/Power Monitor with I2C Interface
+> + * Datasheet: http://www.ti.com/product/ina219
+> + *
+> + * INA226:
+> + * Bi-Directional Current/Power Monitor with I2C Interface
+> + * Datasheet: http://www.ti.com/product/ina226
+> + *
+> + * Copyright (C) 2012 Lothar Felten <l-felten@ti.com>
+> + * Thanks to Jan Volkering
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; version 2 of the License.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/err.h>
+> +#include <linux/slab.h>
+> +#include <linux/i2c.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +
+> +/* register definitions */
+> +#define INA2XX_CONFIG                  0x00
+> +#define INA2XX_SHUNT_VOLTAGE           0x01 /* readonly */
+> +#define INA2XX_BUS_VOLTAGE             0x02 /* readonly */
+> +#define INA2XX_POWER                   0x03 /* readonly */
+> +#define INA2XX_CURRENT                 0x04 /* readonly */
+> +#define INA2XX_CALIBRATION             0x05
+> +#define INA2XX_MASK_ENABLE             0x06
+> +#define INA2XX_ALERT_LIMIT             0x07
+> +#define INA2XX_DIE_ID                  0xFF
+> +
 
-> DIV_ROUND_CLOSEST would be better here, to reduce the error.
-I replaced the divisions by the macro
+For the above, you should use INA226_xxx for the registers only
+supported by INA226. This clarifies that the INAXXX registers are for
+all chips while the others are chip specific.
 
-> Please use standard sysfs attribute names. See Documentation/hwmon/sysfs-
-> interface.
-fixed, but why do voltages start at index 0 but current and power at index 1?
+> +#define INA219_REGISTERS               6
+> +#define INA226_REGISTERS               8
+> +
+> +#define INA2XX_MAX_REGISTERS           8
+> +
+> +/* settings - depend on use case */
+> +#define INA219_CONFIG_DEFAULT          0x219F  /* PGA=1 */
+> +#define INA226_CONFIG_DEFAULT          0x4527  /* averages */
+> +
+> +/* worst case is 68.10 ms (~14.6Hz, ina219) */
+> +#define INA2XX_CONVERSION_RATE         15
+> +
+> +/* from kernel configuartion */
+> +#define INA2XX_RSHUNT                  CONFIG_SENSORS_INA2XX_RSHUNT_MOHMS
+> +
+> +enum ina2xx_ids { ina219, ina226 };
+> +
+> +struct ina2xx_data {
+> +       struct device *hwmon_dev;
+> +
+> +       struct mutex update_lock;
+> +       bool valid;
+> +       unsigned long last_updated;
+> +
+> +       int kind;
+> +       int registers;
+> +       u16 regs[INA2XX_MAX_REGISTERS];
+> +};
+> +
+> +int ina2xx_read_word(struct i2c_client *client, int reg)
+> +{
+> +       int val = be16_to_cpu(i2c_smbus_read_word_data(client, reg));
 
-> Please use devm_kzalloc(). It makes the code a bit simpler, smaller, ensures
-> that there are no memory leaks, and you can drop the kfree().
-I've changed that, can you please take a look if I use it correctly?
+Still wrong. It has to be something like
 
-> Wrong goto target, as you'd have to unregister the hwmon device.
-> Never mind, though, since you'll have to move this code further up anyway.
->
-> All the above needs to be done before calling sysfs_create_group(), since
-> sysfs_create_group() creates the sysfs attribute files and makes the device
-> accessible.
-I've rewritten probe(), it now does hwmon create before sysfs create.
+	int val = i2c_smbus_read_word_data(client, reg);
+	if (unlikely(val < 0)) {
+		dev_dbg(...);
+		return val;
+	}
+	return be16_to_cpu(val);
 
-- Lothar
+> +       if (unlikely(val < 0))
+> +               dev_dbg(&client->dev,
+> +                       "Failed to read register: %d\n", reg);
+> +       return val;
+> +}
+> +
+> +void ina2xx_write_word(struct i2c_client *client, int reg, int data)
+> +{
+> +       i2c_smbus_write_word_data(client, reg,
+> +               cpu_to_be16(data));
 
-diff -uprN a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
---- a/Documentation/hwmon/ina2xx        1970-01-01 01:00:00.000000000 +0100
-+++ b/Documentation/hwmon/ina2xx        2012-05-07 15:27:56.142307748 +0200
-@@ -0,0 +1,29 @@
-+Kernel driver ina2xx
-+==========
-+
-+Supported chips:
-+  * Texas Instruments INA219
-+    Prefix: 'ina219'
-+    Addresses: I2C 0x40 - 0x4f
-+    Datasheet: Publicly available at the Texas Instruments website
-+               http://www.ti.com/
-+
-+  * Texas Instruments INA226
-+    Prefix: 'ina226'
-+    Addresses: I2C 0x40 - 0x4f
-+    Datasheet: Publicly available at the Texas Instruments website
-+               http://www.ti.com/
-+
-+Author: Lothar Felten <l-felten@ti.com>
-+
-+Description
-+-----------
-+
-+The INA219 is a high-side current shunt and power monitor with an I2C
-+interface. The INA219 monitors both shunt drop and supply voltage, with
-+programmable conversion times and filtering.
-+
-+The INA226 is a current shunt and power monitor with an I2C interface.
-+The INA226 monitors both a shunt voltage drop and bus supply voltage.
-+
-+The shunt value in milliohms can be set via the kernel config.
-diff -uprN a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
---- a/drivers/hwmon/ina2xx.c    1970-01-01 01:00:00.000000000 +0100
-+++ b/drivers/hwmon/ina2xx.c    2012-05-07 17:56:23.090149474 +0200
-@@ -0,0 +1,356 @@
-+/*
-+ * Driver for Texas Instruments INA219, INA226 power monitor chips
-+ *
-+ * INA219:
-+ * Zero Drift Bi-Directional Current/Power Monitor with I2C Interface
-+ * Datasheet: http://www.ti.com/product/ina219
-+ *
-+ * INA226:
-+ * Bi-Directional Current/Power Monitor with I2C Interface
-+ * Datasheet: http://www.ti.com/product/ina226
-+ *
-+ * Copyright (C) 2012 Lothar Felten <l-felten@ti.com>
-+ * Thanks to Jan Volkering
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <linux/hwmon.h>
-+#include <linux/hwmon-sysfs.h>
-+
-+/* register definitions */
-+#define INA2XX_CONFIG                  0x00
-+#define INA2XX_SHUNT_VOLTAGE           0x01 /* readonly */
-+#define INA2XX_BUS_VOLTAGE             0x02 /* readonly */
-+#define INA2XX_POWER                   0x03 /* readonly */
-+#define INA2XX_CURRENT                 0x04 /* readonly */
-+#define INA2XX_CALIBRATION             0x05
-+#define INA2XX_MASK_ENABLE             0x06
-+#define INA2XX_ALERT_LIMIT             0x07
-+#define INA2XX_DIE_ID                  0xFF
-+
-+#define INA219_REGISTERS               6
-+#define INA226_REGISTERS               8
-+
-+#define INA2XX_MAX_REGISTERS           8
-+
-+/* settings - depend on use case */
-+#define INA219_CONFIG_DEFAULT          0x219F  /* PGA=1 */
-+#define INA226_CONFIG_DEFAULT          0x4527  /* averages */
-+
-+/* worst case is 68.10 ms (~14.6Hz, ina219) */
-+#define INA2XX_CONVERSION_RATE         15
-+
-+/* from kernel configuartion */
-+#define INA2XX_RSHUNT                  CONFIG_SENSORS_INA2XX_RSHUNT_MOHMS
-+
-+enum ina2xx_ids { ina219, ina226 };
-+
-+struct ina2xx_data {
-+       struct device *hwmon_dev;
-+
-+       struct mutex update_lock;
-+       bool valid;
-+       unsigned long last_updated;
-+
-+       int kind;
-+       int registers;
-+       u16 regs[INA2XX_MAX_REGISTERS];
-+};
-+
-+int ina2xx_read_word(struct i2c_client *client, int reg)
-+{
-+       int val = be16_to_cpu(i2c_smbus_read_word_data(client, reg));
-+       if (unlikely(val < 0))
-+               dev_dbg(&client->dev,
-+                       "Failed to read register: %d\n", reg);
-+       return val;
-+}
-+
-+void ina2xx_write_word(struct i2c_client *client, int reg, int data)
-+{
-+       i2c_smbus_write_word_data(client, reg,
-+               cpu_to_be16(data));
-+}
-+
-+static struct ina2xx_data *ina2xx_update_device(struct device *dev)
-+{
-+       struct i2c_client *client = to_i2c_client(dev);
-+       struct ina2xx_data *data = i2c_get_clientdata(client);
-+       struct ina2xx_data *ret = data;
-+
-+       mutex_lock(&data->update_lock);
-+
-+       if (time_after(jiffies, data->last_updated +
-+               HZ / INA2XX_CONVERSION_RATE) || !data->valid) {
-+
-+               int i;
-+
-+               dev_dbg(&client->dev, "Starting ina2xx update\n");
-+
-+               /* Read all registers */
-+               for (i = 0; i < data->registers; i++)
-+                       data->regs[i] = ina2xx_read_word(client, i);
-+               data->last_updated = jiffies;
-+               data->valid = 1;
-+       }
-+       mutex_unlock(&data->update_lock);
-+       return ret;
-+}
-+
-+static int ina219_get_value(struct ina2xx_data *data, u8 reg)
-+{
-+       /*
-+        * calculate exact value for the given register
-+        * we assume default power-on reset settings:
-+        * bus voltage range 32V
-+        * gain = /8
-+        * adc 1 & 2 -> conversion time 532uS
-+        * mode is continuous shunt and bus
-+        * calibration value is INA219_CALIBRATION_VALUE
-+        */
-+       int val;
-+
-+       val = data->regs[reg];
-+
-+       switch (reg) {
-+       case INA2XX_SHUNT_VOLTAGE:
-+               /* LSBuV. Convert to mV. */
-+               val = DIV_ROUND_CLOSEST(val, 100);
-+               break;
-+       case INA2XX_BUS_VOLTAGE:
-+               /* LSB=4mV. Register is not right aligned, convert to mV. */
-+               val = (val >> 3) * 4;
-+               break;
-+       case INA2XX_POWER:
-+               /* LSB mW. Convert to uW */
-+               val = val * 20 * 1000;
-+               break;
-+       case INA2XX_CURRENT:
-+               /* LSB=1mA (selected). Is in mA */
-+               break;
-+       default:
-+               /* programmer goofed */
-+               WARN_ON_ONCE(1);
-+               val = 0;
-+               break;
-+       }
-+
-+       return val;
-+}
-+
-+static int ina226_get_value(struct ina2xx_data *data, u8 reg)
-+{
-+       /*
-+        * calculate exact value for the given register
-+        * we assume default power-on reset settings:
-+        * bus voltage range 32V
-+        * gain = /8
-+        * adc 1 & 2 -> conversion time 532uS
-+        * mode is continuous shunt and bus
-+        * calibration value is INA226_CALIBRATION_VALUE
-+        */
-+       int val;
-+
-+       val = data->regs[reg];
-+
-+       switch (reg) {
-+       case INA2XX_SHUNT_VOLTAGE:
-+               /* LSB=2.5uV. Convert to mV. */
-+               val = DIV_ROUND_CLOSEST(val, 400);
-+               break;
-+       case INA2XX_BUS_VOLTAGE:
-+               /* LSB=1.25mV. Convert to mV. */
-+               val = val + (DIV_ROUND_CLOSEST(val, 4));
-+               break;
-+       case INA2XX_POWER:
-+               /* LSB%mW. Convert to uW */
-+               val = val * 25 * 1000;
-+               break;
-+       case INA2XX_CURRENT:
-+               /* LSB=1mA (selected). Is in mA */
-+               break;
-+       default:
-+               /* programmer goofed */
-+               WARN_ON_ONCE(1);
-+               val = 0;
-+               break;
-+       }
-+
-+       return val;
-+}
-+
-+static ssize_t ina2xx_show_value(struct device *dev,
-+                                 struct device_attribute *da, char *buf)
-+{
-+       struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
-+       struct ina2xx_data *data = ina2xx_update_device(dev);
-+       int value = 0;
-+
-+       if (IS_ERR(data))
-+               return PTR_ERR(data);
-+
-+       switch (data->kind) {
-+       case ina219:
-+               value = ina219_get_value(data, attr->index);
-+               break;
-+       case ina226:
-+               value = ina226_get_value(data, attr->index);
-+               break;
-+       default:
-+               WARN_ON_ONCE(1);
-+               break;
-+       }
-+       return snprintf(buf, PAGE_SIZE, "%d\n", value);
-+}
-+
-+/* bus voltage */
-+static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, \
-+       ina2xx_show_value, NULL, INA2XX_BUS_VOLTAGE);
-+
-+/* shunt voltage */
-+static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, \
-+       ina2xx_show_value, NULL, INA2XX_SHUNT_VOLTAGE);
-+
-+/* calculated current */
-+static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, \
-+       ina2xx_show_value, NULL, INA2XX_CURRENT);
-+
-+/* calculated power */
-+static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, \
-+       ina2xx_show_value, NULL, INA2XX_POWER);
-+
-+/* pointers to created device attributes */
-+static struct attribute *ina2xx_attributes[] = {
-+       &sensor_dev_attr_in0_input.dev_attr.attr,
-+       &sensor_dev_attr_in1_input.dev_attr.attr,
-+       &sensor_dev_attr_curr1_input.dev_attr.attr,
-+       &sensor_dev_attr_power1_input.dev_attr.attr,
-+       NULL,
-+};
-+
-+static const struct attribute_group ina2xx_group = {
-+       .attrs = ina2xx_attributes,
-+};
-+
-+static int ina2xx_probe(struct i2c_client *client,
-+                        const struct i2c_device_id *id)
-+{
-+       struct i2c_adapter *adapter = client->adapter;
-+       struct ina2xx_data *data;
-+       int ret = 0;
-+
-+       if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+               return -ENODEV;
-+
-+       data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-+       if (!data)
-+               return -ENOMEM;
-+
-+       data->hwmon_dev = hwmon_device_register(&client->dev);
-+       if (IS_ERR(data->hwmon_dev)) {
-+               ret = PTR_ERR(data->hwmon_dev);
-+               goto out_err_hwmon;
-+       }
-+
-+       /* set the device type */
-+       data->kind = id->driver_data;
-+       switch (data->kind) {
-+       case ina219:
-+               /* device configuration */
-+               ina2xx_write_word(client, INA2XX_CONFIG, INA219_CONFIG_DEFAULT);
-+
-+               /* set current LSB to 1mA, RSHUNT is in mOhms */
-+               /* (equation 13 in datasheet) */
-+               ina2xx_write_word(client, INA2XX_CALIBRATION,
-+                       (40960 / INA2XX_RSHUNT));
-+               dev_info(&client->dev,
-+                       "%s: power monitor INA219 (Rshunt = %i mOhm)\n",
-+                       dev_name(data->hwmon_dev), INA2XX_RSHUNT);
-+               data->registers = INA219_REGISTERS;
-+               break;
-+       case ina226:
-+               /* device configuration */
-+               ina2xx_write_word(client, INA2XX_CONFIG, INA226_CONFIG_DEFAULT);
-+
-+               /* set current LSB to 1mA, RSHUNT is in mOhms */
-+               /* (equation 1 in datasheet)*/
-+               ina2xx_write_word(client, INA2XX_CALIBRATION,
-+                       (5120 / INA2XX_RSHUNT));
-+               dev_info(&client->dev,
-+                       "%s: power monitor INA226 (Rshunt = %i mOhm)\n",
-+                       dev_name(data->hwmon_dev), INA2XX_RSHUNT);
-+               data->registers = INA226_REGISTERS;
-+               break;
-+       default:
-+               /* unknown device id */
-+               goto out_err_hwmon;
-+       }
-+
-+       i2c_set_clientdata(client, data);
-+       mutex_init(&data->update_lock);
-+
-+       ret = sysfs_create_group(&client->dev.kobj, &ina2xx_group);
-+       if (ret)
-+               goto out_err_sysfs;
-+
-+       return 0;
-+
-+out_err_sysfs:
-+       sysfs_remove_group(&client->dev.kobj, &ina2xx_group);
-+out_err_hwmon:
-+       return ret;
-+}
-+
-+static int ina2xx_remove(struct i2c_client *client)
-+{
-+       struct ina2xx_data *data = i2c_get_clientdata(client);
-+
-+       hwmon_device_unregister(data->hwmon_dev);
-+       sysfs_remove_group(&client->dev.kobj, &ina2xx_group);
-+
-+       kfree(data);
-+
-+       return 0;
-+}
-+
-+static const struct i2c_device_id ina2xx_id[] = {
-+       { "ina219", ina219 },
-+       { "ina226", ina226 },
-+       { }
-+}
-+MODULE_DEVICE_TABLE(i2c, ina2xx_id);
-+
-+static struct i2c_driver ina2xx_driver = {
-+       .driver = {
-+               .name   = "ina2xx",
-+       },
-+       .probe          = ina2xx_probe,
-+       .remove         = ina2xx_remove,
-+       .id_table       = ina2xx_id,
-+};
-+
-+static int __init ina2xx_init(void)
-+{
-+       return i2c_add_driver(&ina2xx_driver);
-+}
-+
-+static void __exit ina2xx_exit(void)
-+{
-+       i2c_del_driver(&ina2xx_driver);
-+}
-+
-+MODULE_AUTHOR("Lothar Felten <l-felten@ti.com>");
-+MODULE_DESCRIPTION("ina2xx driver");
-+MODULE_LICENSE("GPL");
-+
-+module_init(ina2xx_init);
-+module_exit(ina2xx_exit);
-diff -uprN a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
---- a/drivers/hwmon/Kconfig     2012-04-27 19:17:35.000000000 +0200
-+++ b/drivers/hwmon/Kconfig     2012-05-07 14:58:56.950338639 +0200
-@@ -1088,6 +1088,27 @@ config SENSORS_AMC6821
-          This driver can also be build as a module.  If so, the module
-          will be called amc6821.
+Is this longer than 80 columns if it was in one line ?
 
-+config SENSORS_INA2XX
-+       tristate "Texas Instruments INA219, INA226"
-+       depends on I2C
-+       help
-+         If you say yes here you get support for INA219 and INA226 power
-+         monitor chips.
-+
-+         The INA2xx driver is configured for the default configuration of
-+         the part as described in the datasheet.
-+         Default value for Rshunt is 10 mOhms.
-+         This driver can also be built as a module.  If so, the module
-+         will be called ina2xx.
-+
-+config SENSORS_INA2XX_RSHUNT_MOHMS
-+       int "Value for Rshunt in milliohms (1-65536)"
-+       depends on SENSORS_INA2XX
-+       default "10"
-+       help
-+         The resistance of the Rshunt resistor in milliohms.
-+         Default is 10mOhm.
-+
- config SENSORS_THMC50
-        tristate "Texas Instruments THMC50 / Analog Devices ADM1022"
-        depends on I2C
-diff -uprN a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
---- a/drivers/hwmon/Makefile    2012-04-27 19:17:35.000000000 +0200
-+++ b/drivers/hwmon/Makefile    2012-05-07 17:08:52.978200050 +0200
-@@ -62,6 +62,7 @@ obj-$(CONFIG_SENSORS_ULTRA45) += ultra45
- obj-$(CONFIG_SENSORS_I5K_AMB)  += i5k_amb.o
- obj-$(CONFIG_SENSORS_IBMAEM)   += ibmaem.o
- obj-$(CONFIG_SENSORS_IBMPEX)   += ibmpex.o
-+obj-$(CONFIG_SENSORS_INA2XX)   += ina2xx.o
- obj-$(CONFIG_SENSORS_IT87)     += it87.o
- obj-$(CONFIG_SENSORS_JC42)     += jc42.o
- obj-$(CONFIG_SENSORS_JZ4740)   += jz4740-hwmon.o
+> +}
+> +
+> +static struct ina2xx_data *ina2xx_update_device(struct device *dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       struct ina2xx_data *data = i2c_get_clientdata(client);
+> +       struct ina2xx_data *ret = data;
+> +
+> +       mutex_lock(&data->update_lock);
+> +
+> +       if (time_after(jiffies, data->last_updated +
+> +               HZ / INA2XX_CONVERSION_RATE) || !data->valid) {
+> +
+> +               int i;
+> +
+> +               dev_dbg(&client->dev, "Starting ina2xx update\n");
+> +
+> +               /* Read all registers */
+> +               for (i = 0; i < data->registers; i++)
+> +                       data->regs[i] = ina2xx_read_word(client, i);
 
-Texas Instruments Belgium SA, Rond Point Schuman 6- Bo?te 5, 1040 Bruxelles. BCE: 0414.207.123. RPM Bruxelles. IBAN: BE83570121895615. Swift: CITIBEBX. TVA BE 0414.207.123
+You dropped the error check and abort here. Should probably be something
+like
+
+			int rv = ina2xx_read_word(client, i);
+			if (rv < 0) {
+				ret = ERR_PTR(rv);
+				goto abort;
+			}
+			data->regs[i] = rv;
+
+> +               data->last_updated = jiffies;
+> +               data->valid = 1;
+> +       }
+abort:
+> +       mutex_unlock(&data->update_lock);
+> +       return ret;
+> +}
+> +
+> +static int ina219_get_value(struct ina2xx_data *data, u8 reg)
+> +{
+> +       /*
+> +        * calculate exact value for the given register
+> +        * we assume default power-on reset settings:
+> +        * bus voltage range 32V
+> +        * gain = /8
+> +        * adc 1 & 2 -> conversion time 532uS
+> +        * mode is continuous shunt and bus
+> +        * calibration value is INA219_CALIBRATION_VALUE
+> +        */
+> +       int val;
+> +
+> +       val = data->regs[reg];
+
+Just an idea ... you could pass data->regs[reg] as parameter here.
+
+> +
+> +       switch (reg) {
+> +       case INA2XX_SHUNT_VOLTAGE:
+> +               /* LSBuV. Convert to mV. */
+> +               val = DIV_ROUND_CLOSEST(val, 100);
+> +               break;
+> +       case INA2XX_BUS_VOLTAGE:
+> +               /* LSB=4mV. Register is not right aligned, convert to mV. */
+> +               val = (val >> 3) * 4;
+> +               break;
+> +       case INA2XX_POWER:
+> +               /* LSB mW. Convert to uW */
+> +               val = val * 20 * 1000;
+> +               break;
+> +       case INA2XX_CURRENT:
+> +               /* LSB=1mA (selected). Is in mA */
+> +               break;
+> +       default:
+> +               /* programmer goofed */
+> +               WARN_ON_ONCE(1);
+> +               val = 0;
+> +               break;
+> +       }
+> +
+> +       return val;
+> +}
+> +
+> +static int ina226_get_value(struct ina2xx_data *data, u8 reg)
+> +{
+> +       /*
+> +        * calculate exact value for the given register
+> +        * we assume default power-on reset settings:
+> +        * bus voltage range 32V
+> +        * gain = /8
+> +        * adc 1 & 2 -> conversion time 532uS
+> +        * mode is continuous shunt and bus
+> +        * calibration value is INA226_CALIBRATION_VALUE
+> +        */
+> +       int val;
+> +
+> +       val = data->regs[reg];
+> +
+> +       switch (reg) {
+> +       case INA2XX_SHUNT_VOLTAGE:
+> +               /* LSB=2.5uV. Convert to mV. */
+> +               val = DIV_ROUND_CLOSEST(val, 400);
+> +               break;
+> +       case INA2XX_BUS_VOLTAGE:
+> +               /* LSB=1.25mV. Convert to mV. */
+> +               val = val + (DIV_ROUND_CLOSEST(val, 4));
+
+Unnecessary () around DIV_ROUND_CLOSEST
+
+> +               break;
+> +       case INA2XX_POWER:
+> +               /* LSB%mW. Convert to uW */
+> +               val = val * 25 * 1000;
+> +               break;
+> +       case INA2XX_CURRENT:
+> +               /* LSB=1mA (selected). Is in mA */
+> +               break;
+> +       default:
+> +               /* programmer goofed */
+> +               WARN_ON_ONCE(1);
+> +               val = 0;
+> +               break;
+> +       }
+> +
+> +       return val;
+> +}
+> +
+> +static ssize_t ina2xx_show_value(struct device *dev,
+> +                                 struct device_attribute *da, char *buf)
+> +{
+> +       struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+> +       struct ina2xx_data *data = ina2xx_update_device(dev);
+> +       int value = 0;
+> +
+> +       if (IS_ERR(data))
+> +               return PTR_ERR(data);
+> +
+> +       switch (data->kind) {
+> +       case ina219:
+> +               value = ina219_get_value(data, attr->index);
+> +               break;
+> +       case ina226:
+> +               value = ina226_get_value(data, attr->index);
+> +               break;
+> +       default:
+> +               WARN_ON_ONCE(1);
+> +               break;
+> +       }
+> +       return snprintf(buf, PAGE_SIZE, "%d\n", value);
+> +}
+> +
+> +/* bus voltage */
+> +static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, \
+> +       ina2xx_show_value, NULL, INA2XX_BUS_VOLTAGE);
+> +
+> +/* shunt voltage */
+> +static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, \
+> +       ina2xx_show_value, NULL, INA2XX_SHUNT_VOLTAGE);
+> +
+> +/* calculated current */
+> +static SENSOR_DEVICE_ATTR(curr1_input, S_IRUGO, \
+> +       ina2xx_show_value, NULL, INA2XX_CURRENT);
+> +
+> +/* calculated power */
+> +static SENSOR_DEVICE_ATTR(power1_input, S_IRUGO, \
+> +       ina2xx_show_value, NULL, INA2XX_POWER);
+> +
+> +/* pointers to created device attributes */
+> +static struct attribute *ina2xx_attributes[] = {
+> +       &sensor_dev_attr_in0_input.dev_attr.attr,
+> +       &sensor_dev_attr_in1_input.dev_attr.attr,
+> +       &sensor_dev_attr_curr1_input.dev_attr.attr,
+> +       &sensor_dev_attr_power1_input.dev_attr.attr,
+> +       NULL,
+> +};
+> +
+> +static const struct attribute_group ina2xx_group = {
+> +       .attrs = ina2xx_attributes,
+> +};
+> +
+> +static int ina2xx_probe(struct i2c_client *client,
+> +                        const struct i2c_device_id *id)
+> +{
+> +       struct i2c_adapter *adapter = client->adapter;
+> +       struct ina2xx_data *data;
+> +       int ret = 0;
+> +
+> +       if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +               return -ENODEV;
+> +
+> +       data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+> +       if (!data)
+> +               return -ENOMEM;
+> +
+> +       data->hwmon_dev = hwmon_device_register(&client->dev);
+> +       if (IS_ERR(data->hwmon_dev)) {
+> +               ret = PTR_ERR(data->hwmon_dev);
+> +               goto out_err_hwmon;
+
+hwmon_device_register() needs to come last, after sysfs_create_group.
+You only want to register as hwmon device after all sysfs attributes
+have been created.
+Also, note that you forgot to call hwmon_device_unregister if any of the
+subsequent actions fail (doesn't matter since you'll have to move this
+call anyway).
+
+> +       }
+> +
+> +       /* set the device type */
+> +       data->kind = id->driver_data;
+> +       switch (data->kind) {
+> +       case ina219:
+> +               /* device configuration */
+> +               ina2xx_write_word(client, INA2XX_CONFIG, INA219_CONFIG_DEFAULT);
+> +
+> +               /* set current LSB to 1mA, RSHUNT is in mOhms */
+> +               /* (equation 13 in datasheet) */
+> +               ina2xx_write_word(client, INA2XX_CALIBRATION,
+> +                       (40960 / INA2XX_RSHUNT));
+> +               dev_info(&client->dev,
+> +                       "%s: power monitor INA219 (Rshunt = %i mOhm)\n",
+> +                       dev_name(data->hwmon_dev), INA2XX_RSHUNT);
+> +               data->registers = INA219_REGISTERS;
+> +               break;
+> +       case ina226:
+> +               /* device configuration */
+> +               ina2xx_write_word(client, INA2XX_CONFIG, INA226_CONFIG_DEFAULT);
+> +
+> +               /* set current LSB to 1mA, RSHUNT is in mOhms */
+> +               /* (equation 1 in datasheet)*/
+> +               ina2xx_write_word(client, INA2XX_CALIBRATION,
+> +                       (5120 / INA2XX_RSHUNT));
+> +               dev_info(&client->dev,
+> +                       "%s: power monitor INA226 (Rshunt = %i mOhm)\n",
+> +                       dev_name(data->hwmon_dev), INA2XX_RSHUNT);
+> +               data->registers = INA226_REGISTERS;
+> +               break;
+> +       default:
+> +               /* unknown device id */
+
+Still needs
+		ret = -ENODEV;
+to return an error code.
+
+> +               goto out_err_hwmon;
+> +       }
+> +
+> +       i2c_set_clientdata(client, data);
+> +       mutex_init(&data->update_lock);
+> +
+> +       ret = sysfs_create_group(&client->dev.kobj, &ina2xx_group);
+> +       if (ret)
+> +               goto out_err_sysfs;
+> +
+> +       return 0;
+> +
+> +out_err_sysfs:
+> +       sysfs_remove_group(&client->dev.kobj, &ina2xx_group);
+> +out_err_hwmon:
+> +       return ret;
+> +}
+> +
+> +static int ina2xx_remove(struct i2c_client *client)
+> +{
+> +       struct ina2xx_data *data = i2c_get_clientdata(client);
+> +
+> +       hwmon_device_unregister(data->hwmon_dev);
+> +       sysfs_remove_group(&client->dev.kobj, &ina2xx_group);
+> +
+> +       kfree(data);
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct i2c_device_id ina2xx_id[] = {
+> +       { "ina219", ina219 },
+> +       { "ina226", ina226 },
+> +       { }
+> +}
+> +MODULE_DEVICE_TABLE(i2c, ina2xx_id);
+> +
+> +static struct i2c_driver ina2xx_driver = {
+> +       .driver = {
+> +               .name   = "ina2xx",
+> +       },
+> +       .probe          = ina2xx_probe,
+> +       .remove         = ina2xx_remove,
+> +       .id_table       = ina2xx_id,
+> +};
+> +
+> +static int __init ina2xx_init(void)
+> +{
+> +       return i2c_add_driver(&ina2xx_driver);
+> +}
+> +
+> +static void __exit ina2xx_exit(void)
+> +{
+> +       i2c_del_driver(&ina2xx_driver);
+> +}
+> +
+> +MODULE_AUTHOR("Lothar Felten <l-felten@ti.com>");
+> +MODULE_DESCRIPTION("ina2xx driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +module_init(ina2xx_init);
+> +module_exit(ina2xx_exit);
+> diff -uprN a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> --- a/drivers/hwmon/Kconfig     2012-04-27 19:17:35.000000000 +0200
+> +++ b/drivers/hwmon/Kconfig     2012-05-07 14:58:56.950338639 +0200
+> @@ -1088,6 +1088,27 @@ config SENSORS_AMC6821
+>           This driver can also be build as a module.  If so, the module
+>           will be called amc6821.
+> 
+> +config SENSORS_INA2XX
+> +       tristate "Texas Instruments INA219, INA226"
+> +       depends on I2C
+
+Please also add a dependency on EXPERIMENTAL.
+
+> +       help
+> +         If you say yes here you get support for INA219 and INA226 power
+> +         monitor chips.
+> +
+> +         The INA2xx driver is configured for the default configuration of
+> +         the part as described in the datasheet.
+> +         Default value for Rshunt is 10 mOhms.
+> +         This driver can also be built as a module.  If so, the module
+> +         will be called ina2xx.
+> +
+> +config SENSORS_INA2XX_RSHUNT_MOHMS
+> +       int "Value for Rshunt in milliohms (1-65536)"
+> +       depends on SENSORS_INA2XX
+> +       default "10"
+> +       help
+> +         The resistance of the Rshunt resistor in milliohms.
+> +         Default is 10mOhm.
+> +
+
+Again, please use platform data (and/or device tree (of) if you want).
+You can define it with the instantiation code; it is quite
+straightforward. I can send you an example if needed. Defining the shunt
+register value as configuration parameter is not acceptable.
+
+>  config SENSORS_THMC50
+>         tristate "Texas Instruments THMC50 / Analog Devices ADM1022"
+>         depends on I2C
+> diff -uprN a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> --- a/drivers/hwmon/Makefile    2012-04-27 19:17:35.000000000 +0200
+> +++ b/drivers/hwmon/Makefile    2012-05-07 17:08:52.978200050 +0200
+> @@ -62,6 +62,7 @@ obj-$(CONFIG_SENSORS_ULTRA45) += ultra45
+>  obj-$(CONFIG_SENSORS_I5K_AMB)  += i5k_amb.o
+>  obj-$(CONFIG_SENSORS_IBMAEM)   += ibmaem.o
+>  obj-$(CONFIG_SENSORS_IBMPEX)   += ibmpex.o
+> +obj-$(CONFIG_SENSORS_INA2XX)   += ina2xx.o
+>  obj-$(CONFIG_SENSORS_IT87)     += it87.o
+>  obj-$(CONFIG_SENSORS_JC42)     += jc42.o
+>  obj-$(CONFIG_SENSORS_JZ4740)   += jz4740-hwmon.o
+> 
+> Texas Instruments Belgium SA, Rond Point Schuman 6- Bo?te 5, 1040 Bruxelles. BCE: 0414.207.123. RPM Bruxelles. IBAN: BE83570121895615. Swift: CITIBEBX. TVA BE 0414.207.123
+> 
+> 
 
 
 
