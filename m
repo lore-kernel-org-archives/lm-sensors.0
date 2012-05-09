@@ -1,120 +1,102 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 22 May 2012 20:18:59 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.5-rc1
-Message-Id: <20120522201859.GA1068@ericsson.com>
+From: Mark Wagner <mark+lm-sensors@carnildo.com>
+Date: Wed, 09 May 2012 05:09:02 +0000
+Subject: [lm-sensors] Intel DX79SI configuration file
+Message-Id: <20120508220902.3bbf0e12@puma.carnildo.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============3518454047510931503=="
+Content-Type: multipart/mixed; boundary="MP_/FY5ED3rYBf0cs.0JvP6IOL."
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
---===============3518454047510931503==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+--MP_/FY5ED3rYBf0cs.0JvP6IOL.
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I've attached a configuration file for the Intel DX79SI mainboard.
 
-Hi Linus,
+-- 
+Mark Wagner
+--MP_/FY5ED3rYBf0cs.0JvP6IOL.
+Content-Type: application/octet-stream; name=DX79SI
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=DX79SI
 
-Please pull hwmon updates for Linux 3.5-rc1 from signed tag:
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMKIwojCiMJbG1fc2Vuc29ycyBjb25maWd1cmF0aW9uIGZv
+ciBJbnRlbCBEWDc5U0kKIwojCUJhc2VkIG9uIElhbiBQaWxjaGVyJ3MgZmlsZSBmb3IgdGhlIERR
+NjdTVyBib2FyZC4gIFRlbXBlcmF0dXJlIGFuZAojCWZhbiBzZW5zb3IgbGFiZWxzIGhhcyBiZWVu
+IHZlcmlmaWVkOyB2b2x0YWdlIHNlbnNvciBsYWJlbHMgYXJlIGFzc3VtZWQKIwl0byBiZSBjb3Jy
+ZWN0IGJlY2F1c2UgdGhleSBnaXZlIHZvbHRhZ2VzIHdpdGhpbiB0aGUgaW5kaWNhdGVkIHJhbmdl
+cwojCXdoZW4gdGhpcyBmaWxlIGlzIHVzZWQuCiMKIwlOT1RFUzoKIwojCQlJRFUgPSBJbnRlbCBE
+ZXNrdG9wIFV0aWxpdGllcyB2ZXJzaW9uIDMuMS4zLjAzMAojCQkJKFdpbmRvd3MgNyBQcm9mZXNz
+aW9uYWwgU1AxLCA2NC1iaXQpCiMKIwkJVGhlIG1pbmltdW0sIG1heGltdW0sIGFuZCBoeXN0ZXJl
+c2lzIHZhbHVlcyBhcmUgZ2VuZXJhbGx5IHRoZQojCQltb3JlIGNvbnNlcnZhdGl2ZSBvZiB0aGUg
+SURVLSBvciBCSU9TLXByb3ZpZGVkIHZhbHVlcy4KIwojCQkiRlJPTlQiIGFuZCAiUkVBUiIgZmFu
+IGxhYmVscyBjb3JyZXNwb25kIHRvIHRoZSBtb3RoZXJib2FyZAojCQloZWFkZXJzLCBidXQgbm90
+IG5lY2Vzc2FyaWx5IHRoZSBhY3R1YWwgZmFuIGxvY2F0aW9ucy4KIwojCQlNaW5pbXVtIGZhbiBS
+UE1zIHNob3VsZCBiZSBhZGp1c3RlZCB0byByZWZsZWN0IHRoZSBiZWhhdmlvciBvZgojCQl0aGUg
+aW5zdGFsbGVkIGZhbnMuCiMKIwkJIk1lbW9yeSBESU1NIFRlbXBlcmF0dXJlIiBpcyBwcmVzdW1h
+Ymx5IG1lYXN1cmVkIGJ5IGEgZGlvZGUKIwkJc29tZXdoZXJlIGluIHRoZSB2aWNpbml0eSBvZiB0
+aGUgRElNTSBzbG90czsgIlN5c3RlbSBUZW1wZXJhdHVyZQojCQltaWdodCBiZSBhIGJldHRlciBu
+YW1lLgojCiMJCTgwIGRlZ3JlZXMgQ2VsY2l1cyBtaWdodCBiZSBhIGJpdCBoaWdoIGZvciB0aGUg
+Ik1lbW9yeSBESU1NCiMJCVRlbXBlcmF0dXJlIiBsaW1pdC4KIwojCQlUaGUgQklPUyBkaXNwbGF5
+cyBhIHJlYWRpbmcgZm9yICIrMTJWIEFUWCBDUFUiIHdpdGggYSBzY2FsaW5nCiMJCWZhY3RvciBv
+ZiA0IHRoYXQgZG9lc24ndCBhcHBlYXIgdG8gY29ycmVzcG9uZCB0byBhbnkgb2YgdGhlCiMJCXZv
+bHRhZ2Ugc2Vuc29ycy4KIwojIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoKY2hpcCAibmN0Njc3NS0q
+IgoKCWlnbm9yZQljcHUwX3ZpZAoKCSMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoJIwoJIwlWb2x0YWdlcwoJIwoJ
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjCgoJIwoJIyBQcm9jZXNzb3IgVmNjCgkjCglsYWJlbAlpbjAJCSJWQ09S
+RSIKCXNldAlpbjBfbWluCQkwLjIJCSMgZnJvbSBJRFUgKEJJT1MgPSAwLjAwKQoJc2V0CWluMF9t
+YXgJCTEuNgkJIyBmcm9tIElEVSAoQklPUyA9IDEuNzQpCgoJIwoJIyArMTIgVm9sdHMKCSMKCWxh
+YmVsCWluMQkJIisxMlYiCgljb21wdXRlCWluMQkJMTEqQCwgQC8xMQoJc2V0CWluMV9taW4JCTEw
+LjgJCSMgZnJvbSBJRFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoJc2V0CWluMV9tYXgJCTEzLjIJCSMg
+ZnJvbSBJRFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoKCSMKCSMgQVZDQyg/KSAtIE5vdCBzaG93biBp
+biBCSU9TIG9yIElEVQoJIwoJbGFiZWwJaW4yCQkiQVZDQyIKCXNldAlpbjJfbWluCQkzLjEJCSMg
+c2FtZSBhcyArMy4zViAoQklPUyA9IDIuOTgpCglzZXQJaW4yX21heAkJMy41CQkjIHNhbWUgYXMg
+KzMuM1YgKEJJT1MgPSAzLjYzKQoKCSMKCSMgKzMuMyBWb2x0cwoJIwoJbGFiZWwJaW4zCQkiKzMu
+M1YiCglzZXQJaW4zX21pbgkJMy4xCQkjIGZyb20gSURVIChCSU9TID0gMi45OCkKCXNldAlpbjNf
+bWF4CQkzLjUJCSMgZnJvbSBJRFUgKEJJT1MgPSAzLjYzKQoKCSMKCSMgKzUgVm9sdHMKCSMKCWxh
+YmVsCWluNAkJIis1ViIKCWNvbXB1dGUJaW40CQk1KkAsIEAvNQoJc2V0CWluNF9taW4JCTQuNwkJ
+IyBmcm9tIElEVSAoQklPUyBkb2VzIG5vdCBzZXQpCglzZXQJaW40X21heAkJNS4zCQkjIGZyb20g
+SURVIChCSU9TIGRvZXMgbm90IHNldCkKCgkjCgkjIFVua25vd24sIHRyYWNrcyB0aGUgdmFsdWUg
+b2YgaW4wCgkjCglsYWJlbAlpbjUJCSJWQ09SRSIKCXNldAlpbjVfbWluCQkwLjIJCSMgZnJvbSBJ
+RFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoJc2V0CWluNV9tYXgJCTEuNgkJIyBmcm9tIElEVSAoQklP
+UyBkb2VzIG5vdCBzZXQpCgoJIwoJIyBQQ0ggVmNjCgkjCglsYWJlbAlpbjYJCSJQQ0giCglzZXQJ
+aW42X21pbgkJMC42CQkjIGZyb20gSURVIChCSU9TIGRvZXMgbm90IHNldCkKCXNldAlpbjZfbWF4
+CQkxLjYJCSMgZnJvbSBJRFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoKCSMKCSMgKzMuMyBWb2x0IFN0
+YW5kYnkKCSMKCWxhYmVsCWluNwkJIiszLjNWIFNCIgoJc2V0CWluN19taW4JCTMuMAkJIyBmcm9t
+IElEVSAoQklPUyA9IDIuOTgpCglzZXQJaW43X21heAkJMy42CQkjIGZyb20gSURVIChCSU9TID0g
+My42MykKCgkjCgkjIFZCQVQoPykgLSBOb3Qgc2hvd24gaW4gQklPUyBvciBJRFUKCSMKCWxhYmVs
+CWluOAkJIlZCQVQiCgkjc2V0CWluOF9taW4JCTIuNwkJIyBmcm9tIEJJT1MKCSNzZXQJaW44X21h
+eAkJMy4zCQkjIGZyb20gQklPUwoKCSMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoJIwoJIwlGYW5zCgkjCgkjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMKCgkjCgkjIENoYXNzaXMgSW5sZXQgRmFuCgkjCglsYWJlbAlmYW4xCQkiRlJP
+TlQiCglzZXQJZmFuMV9taW4JMjUwCQkjIGZyb20gSURVIChCSU9TIGRvZXMgbm90IHNldCkKCgkj
+CgkjIFByb2Nlc3NvciBGYW4KCSMKCWxhYmVsCWZhbjIJCSJDUFUiCglzZXQJZmFuMl9taW4JMjUw
+CQkjIGZyb20gSURVIChCSU9TIGRvZXMgbm90IHNldCkKCgkjCgkjIENoYXNzaXMgT3V0bGV0IEZh
+bgoJIwoJbGFiZWwJZmFuMwkJIlJFQVIiCglzZXQJZmFuM19taW4JMjUwCQkjIGZyb20gSURVIChC
+SU9TIGRvZXMgbm90IHNldCkKCgkjCgkjIEF1eGlsYXJ5IEZhbgoJIwoJbGFiZWwgCWZhbjQJCSJC
+T1RUT00iCglzZXQJZmFuNF9taW4JMjUwCgoJIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjCgkjCgkjCVRlbXBlcmF0
+dXJlcwoJIwoJIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjCgoJaWdub3JlCXRlbXA4CgoJIwoJIyBVbmtub3duIHNl
+bnNvciAoZGVmYXVsdCBsYWJlbCBTWVNUSU4pCgkjCglsYWJlbAl0ZW1wMQkJIlVua25vd24gMSIK
+CXNldAl0ZW1wMV9tYXgJODAJCSMgc2FtZSBhcyBWUiAoSURVID0gOTApCglzZXQJdGVtcDFfbWF4
+X2h5c3QJNzUJCSMgc2FtZSBhcyBWUgoKCSMKCSMgQ1BVIFRlbXBlcmF0dXJlCgkjCglsYWJlbAl0
+ZW1wMgkJIkNQVSIKCXNldAl0ZW1wMl9tYXgJODAJCSMgZnJvbSBCSU9TIChJRFUgPSA5MCkKCXNl
+dAl0ZW1wMl9tYXhfaHlzdAk3NQkJIyBmcm9tIEJJT1MKCgkjCgkjIFRoZSBvcHRpb25hbCB0aGVy
+bWFsIHByb2JlCgkjCglsYWJlbAl0ZW1wMwkJIkF1eCBzZW5zb3IiCglzZXQJdGVtcDNfbWF4CTgw
+CQkjIGZyb20gQklPUyAoSURVID0gODcpCglzZXQJdGVtcDNfbWF4X2h5c3QJNzUJCSMgZnJvbSBC
+SU9TCgoJIwoJIyBQQ0ggVGVtcGVyYXR1cmUKCSMKCWxhYmVsCXRlbXA2CQkiUENIIgoKCSMKCSMg
+VW5rbm93biBzZW5zb3IgKGRlZmF1bHQgbGFiZWwgUEVDSSBBR0VOVCAwOyBnaXZlcyByYXRoZXIg
+d2FybSByZWFkaW5ncyB1bmRlciBsb2FkKQoJIwoJbGFiZWwJdGVtcDkJCSJVbmtub3duIDIiCglz
+ZXQJdGVtcDlfbWF4CTgwCQkjIEZyb20gQklPUwoJc2V0CXRlbXA5X21heF9oeXN0CTc1CQkjIEZy
+b20gQklPUwoK
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-
-------
-
-The following changes since commit 76e10d158efb6d4516018846f60c2ab5501900bc:
-
-  Linux 3.4 (2012-05-20 15:29:13 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-for you to fetch changes up to 4573acbc461b8089198500cee06ef0cdc5b70e82:
-
-  hwmon: (it87) Make temp3 attribute conditional for IT8782F (2012-05-22 06:48:49 -0700)
-
-----------------------------------------------------------------
-hwmon updates for 3.5-rc1
-
-New driver for INA219 and INA226, added support for IT8782F and IT8783E/F to
-it87 driver, plus cleanups in a couple of drivers.
-
-----------------------------------------------------------------
-Axel Lin (1):
-      hwmon: use module_pci_driver
-
-Felten, Lothar (1):
-      hwmon: INA219 and INA226 support
-
-Guenter Roeck (9):
-      hwmon: (it87) Add support for IT8782F and IT8783E/F
-      hwmon: (ad7314) Remove unused defines, and rename OFFSET to SHIFT
-      hwmon: (ntc_thermistor) Convert to devm_kzalloc
-      hwmon: (ntc_thermistor) Return error code from hwmon_device_register
-      hwmon: (ntc_thermistor) Optimize and fix build warning
-      hwmon: (ntc_thermistor) Fix checkpatch warning
-      hwmon: (it87) Create voltage attributes only if voltage is enabled
-      hwmon: (it87) Convert to use devm_kzalloc and devm_request_region
-      hwmon: (it87) Make temp3 attribute conditional for IT8782F
-
-Kyle McMartin (5):
-      acpi_power_meter: use the same struct {rw,ro}_sensor_template for both
-      acpi_power_meter: use a {RW,RO}_SENSOR_TEMPLATE macro to clean things up
-      acpi_power_meter: remove duplicate code between register_{ro,rw}_attrs
-      acpi_power_meter: drop meter_rw_attrs, use common meter_attrs
-      acpi_power_meter: clean up code around setup_attrs
-
- Documentation/hwmon/ina2xx           |   29 +++
- Documentation/hwmon/it87             |   28 ++-
- drivers/hwmon/Kconfig                |   13 ++
- drivers/hwmon/Makefile               |    1 +
- drivers/hwmon/acpi_power_meter.c     |  166 +++++++---------
- drivers/hwmon/ad7314.c               |   11 +-
- drivers/hwmon/fam15h_power.c         |   13 +-
- drivers/hwmon/ina2xx.c               |  368 ++++++++++++++++++++++++++++++++
- drivers/hwmon/it87.c                 |  384 +++++++++++++++++++++++++---------
- drivers/hwmon/k10temp.c              |   13 +-
- drivers/hwmon/k8temp.c               |   13 +-
- drivers/hwmon/ntc_thermistor.c       |  191 ++++++++---------
- include/linux/platform_data/ina2xx.h |   19 ++
- 13 files changed, 902 insertions(+), 347 deletions(-)
- create mode 100644 Documentation/hwmon/ina2xx
- create mode 100644 drivers/hwmon/ina2xx.c
- create mode 100644 include/linux/platform_data/ina2xx.h
-
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPu/SzAAoJEMsfJm/On5mB26MP/ROaSbB4ijExFD1vGaJ1EumB
-8eTtPvdfqNFOUe/Y4vgrq+f9ITyU+WDAkTsEPYmP22r68t3h1EAzHyM+LkBg5pmF
-+nOW/kG57KmUxy52CEVphe7nRitc5M0PIsZZT91SCux6nKkrjrMdMdxGQgcTlM4E
-yQPcFlXG9/32Fam4uFkmHVrdAgkKyaCO6KsaOitegQroZkYm4GujsIvPy73lfchS
-ysTMck5SJqTnlrVFbfDGv4um3o5/zhav+LAkxDNPRJldBbnvjGwZw0xssKQuDQBQ
-a8ZNDiIevwzoP/eZhXUz2BNbJ9eOqoa6CbVRbNAwS9zsoRqQaLn0V6ecpHedlBnt
-GaKq/0VugKODstQSgK0Hh3KzidjFZsRjvsu6/7AZ1jVYuppKKgOxGIjHQ/5Jm7gf
-QOXqoRiws8plPNsuLGFmhsedXNMcw2Ohfcb5DV0/nltjuw3soBc8tsNSst1ShdvG
-wSZR50SFtUQq9ScT6wby4gX3cctb4eiMZBnH+OE4RYf207CTY6J8Q83A8JF/96qf
-ewLj70WYe6/wYaJtqCP2au4f+AbwZNLry/DsDXeM6pgp/xwoTXJlVL8yNIbtia4P
-D59Ui3f9J1JpyjG9j3ZTz8sv8fkrtrV2e93g1kvhfWPVb62Kk4iXpcRc79TtCxFz
-SLGBop8+bmrydNws2Sn0
-=Gw7Y
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
-
-
---===============3518454047510931503==
+--MP_/FY5ED3rYBf0cs.0JvP6IOL.
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -124,4 +106,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============3518454047510931503==--
+--MP_/FY5ED3rYBf0cs.0JvP6IOL.--
