@@ -1,31 +1,29 @@
-From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Wed, 09 May 2012 16:01:19 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 09 May 2012 17:21:45 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (it87) Make temp3 attribute conditional for IT8782F and IT8783F
-Message-Id: <FB79959D-3976-4D05-9548-E5ADE9EF996F@extracloud.de>
+Message-Id: <1336584105.22553.112.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-Am 09.05.2012 um 04:31 schrieb Guenter Roeck:
-> On IT8782F and IT8783F, temp3 is only supported if UART6 is disabled.
->=20
-The IT8783F allows UART6 and temp3 both to be used at the same time. This i=
-s achieved by wiring UART6 to the original parallel port output. Therefore,=
- when using UART6 and temp3 at the same time, the parallel port can not be =
-used in turn.
-Technically: when JP4/Pin 1 ("MOVE UART6") is set to 0, then UART6 moves to=
- pin 100~106.
-
-Bj=F6rn
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCAyMDEyLTA1LTA5IGF0IDEyOjAxIC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
+PiBIaSBHdWVudGVyLAo+IAo+IEFtIDA5LjA1LjIwMTIgdW0gMDQ6MzEgc2NocmllYiBHdWVudGVy
+IFJvZWNrOgo+ID4gT24gSVQ4NzgyRiBhbmQgSVQ4NzgzRiwgdGVtcDMgaXMgb25seSBzdXBwb3J0
+ZWQgaWYgVUFSVDYgaXMgZGlzYWJsZWQuCj4gPiAKPiBUaGUgSVQ4NzgzRiBhbGxvd3MgVUFSVDYg
+YW5kIHRlbXAzIGJvdGggdG8gYmUgdXNlZCBhdCB0aGUgc2FtZSB0aW1lLiBUaGlzIGlzIGFjaGll
+dmVkIGJ5IHdpcmluZyBVQVJUNiB0byB0aGUgb3JpZ2luYWwgcGFyYWxsZWwgcG9ydCBvdXRwdXQu
+IFRoZXJlZm9yZSwgd2hlbiB1c2luZyBVQVJUNiBhbmQgdGVtcDMgYXQgdGhlIHNhbWUgdGltZSwg
+dGhlIHBhcmFsbGVsIHBvcnQgY2FuIG5vdCBiZSB1c2VkIGluIHR1cm4uCj4gVGVjaG5pY2FsbHk6
+IHdoZW4gSlA0L1BpbiAxICgiTU9WRSBVQVJUNiIpIGlzIHNldCB0byAwLCB0aGVuIFVBUlQ2IG1v
+dmVzIHRvIHBpbiAxMDB+MTA2Lgo+IApIaSBCam9lcm4sCgpUaGFua3MgYSBsb3QgZm9yIHRoZSBp
+bmZvcm1hdGlvbi4gSSB0aGluayB5b3UgbWVudGlvbmVkIHRoYXQgYmVmb3JlLApkaWRuJ3QgeW91
+ID8gSSBjb21wbGV0ZWx5IGZvcmdvdCBhYm91dCB0aGF0LgoKSSdsbCBoYXZlIGFub3RoZXIgbG9v
+ayBpbnRvIHRoZSBkYXRhIHNoZWV0IGFuZCBzZW5kIGFuIHVwZGF0ZWQgcGF0Y2guCkhvcGVmdWxs
+eSB0b25pZ2h0LCBpZiBJIGFtIG5vdCB0b28gdGlyZWQgOykuCgpUaGFua3MsCkd1ZW50ZXIKCgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
