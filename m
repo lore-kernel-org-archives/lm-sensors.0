@@ -1,38 +1,94 @@
-From: =?UTF-8?B?SsOpcsOpbXkgTGFs?= <kapouer@melix.org>
-Date: Fri, 11 May 2012 22:27:07 +0000
-Subject: [lm-sensors] fancontrol and applesmc
-Message-Id: <4FAD923B.9050503@melix.org>
+From: Robert Coulson <robert.coulson@ericsson.com>
+Date: Wed, 09 May 2012 06:15:20 +0000
+Subject: Re: [lm-sensors] [PATCH 3/4] hwmon: (ntc_thermistor) Convert to devm_kzalloc
+Message-Id: <C379E95F3359F140B21F5259C55CC8315219967FB7@EUSAACMS0714.eamcs.ericsson.se>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGksCmkgbWFuYWdlZCB0byBnZXQgZmFuY29udHJvbCB0byBwbGF5IG5pY2Ugd2l0aCBhcHBsZXNt
-YywKdGhlIG9ubHkgbW9kaWZpY2F0aW9uIGkgaGFkIHRvIG1ha2Ugd2FzIHRvIGFsbG93IHVuYm91
-bmRlZApQV00gdmFsdWVzIChpIGJhc2ljYWxseSByZW1vdmVkIHRoZSA8PSAyNTUgY29uZGl0aW9u
-LCB0aGVyZQppcyBzdGlsbCBhIHNtYWxsIGlzc3VlIHdpdGggcHdtZW5hYmxlL2Rpc2FibGUgZnVu
-Y3Rpb25zKS4KClRoYXQga2luZCBvZiBmYW5jb250cm9sIGNvbmZpZyB3b3JrcyBxdWl0ZSB3ZWxs
-IDoKCkRFVlBBVEg9aHdtb24wPWRldmljZXMvcGxhdGZvcm0vYXBwbGVzbWMuNzY4CkRFVk5BTUU9
-aHdtb24wPWFwcGxlc21jCklOVEVSVkFMPTEwCiMgZmFuMSA6IE9wdGljYWwgRGlzayBEcml2ZSwg
-bmVhciBHUFUsIHRlbXAxNSA6IFRHMEQgR1BVIERpZQojIGZhbjIgOiBIYXJkIERpc2sgRHJpdmUs
-IHRlbXA0NSA6IFRwMVAgUG93ZXIgYm9hcmQKIyBmYW4zIDogQ1BVLCB0ZW1wNSA6IFRDMFAgQ1BV
-IFByb3hpbWl0eQpGQ1RFTVBTPWh3bW9uMC9kZXZpY2UvZmFuMV9taW49aHdtb24wL2RldmljZS90
-ZW1wMTVfaW5wdXQgaHdtb24wL2RldmljZS9mYW4yX21pbj1od21vbjAvZGV2aWNlL3RlbXA0NV9p
-bnB1dCBod21vbjAvZGV2aWNlL2ZhbjNfbWluPWh3bW9uMC9kZXZpY2UvdGVtcDVfaW5wdXQKRkNG
-QU5TPWh3bW9uMC9kZXZpY2UvZmFuMV9taW49aHdtb24wL2RldmljZS9mYW4xX291dHB1dCBod21v
-bjAvZGV2aWNlL2ZhbjJfbWluPWh3bW9uMC9kZXZpY2UvZmFuMl9vdXRwdXQgaHdtb24wL2Rldmlj
-ZS9mYW4zX21pbj1od21vbjAvZGV2aWNlL2ZhbjNfb3V0cHV0Ck1JTlBXTT1od21vbjAvZGV2aWNl
-L2ZhbjFfbWluPTEwMCBod21vbjAvZGV2aWNlL2ZhbjJfbWluPTEwMCBod21vbjAvZGV2aWNlL2Zh
-bjNfbWluPTgwMApNQVhQV009aHdtb24wL2RldmljZS9mYW4xX21pbj0yMTAwIGh3bW9uMC9kZXZp
-Y2UvZmFuMl9taW49NTUwMCBod21vbjAvZGV2aWNlL2ZhbjNfbWluPTI1MDAKTUlOVEVNUD1od21v
-bjAvZGV2aWNlL2ZhbjFfbWluPTQwIGh3bW9uMC9kZXZpY2UvZmFuMl9taW49NDAgaHdtb24wL2Rl
-dmljZS9mYW4zX21pbj0zMApNQVhURU1QPWh3bW9uMC9kZXZpY2UvZmFuMV9taW49NjAgaHdtb24w
-L2RldmljZS9mYW4yX21pbj01OSBod21vbjAvZGV2aWNlL2ZhbjNfbWluPTYyCk1JTlNUQVJUPWh3
-bW9uMC9kZXZpY2UvZmFuMV9taW49MTAwIGh3bW9uMC9kZXZpY2UvZmFuMl9taW49MTAwIGh3bW9u
-MC9kZXZpY2UvZmFuM19taW49MTAwCk1JTlNUT1A9aHdtb24wL2RldmljZS9mYW4xX21pbj0xMDAg
-aHdtb24wL2RldmljZS9mYW4yX21pbj0xMDAgaHdtb24wL2RldmljZS9mYW4zX21pbj04MDAKCgpX
-b3VsZCBhIHBhdGNoIHRvIGZhbmNvbnRyb2wgYmUgd2VsY29tZSA/CgpSZWdhcmRzLApKw6lyw6lt
-eS4KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
-ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
-cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+
+Reviewed-by: Robert Coulson <robert.coulson@ericsson.com>
+
+> -----Original Message-----
+> From: Guenter Roeck 
+> Sent: Monday, April 23, 2012 8:37 PM
+> To: lm-sensors
+> Cc: Jean Delvare; Guenter Roeck; Donggeun Kim
+> Subject: [PATCH 3/4] hwmon: (ntc_thermistor) Convert to devm_kzalloc
+> 
+> This avoids memory leaks, and makes the code a bit simpler 
+> and smaller.
+> 
+> Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
+> Cc: Donggeun Kim <dg77.kim@samsung.com>
+> ---
+>  drivers/hwmon/ntc_thermistor.c |   11 +++--------
+>  1 files changed, 3 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/hwmon/ntc_thermistor.c 
+> b/drivers/hwmon/ntc_thermistor.c
+> index 6b131252..09a1b26 100644
+> --- a/drivers/hwmon/ntc_thermistor.c
+> +++ b/drivers/hwmon/ntc_thermistor.c
+> @@ -345,7 +345,7 @@ static int __devinit 
+> ntc_thermistor_probe(struct platform_device *pdev)
+>  		return -EINVAL;
+>  	}
+>  
+> -	data = kzalloc(sizeof(struct ntc_data), GFP_KERNEL);
+> +	data = devm_kzalloc(&pdev->dev, sizeof(struct 
+> ntc_data), GFP_KERNEL);
+>  	if (!data)
+>  		return -ENOMEM;
+>  
+> @@ -366,8 +366,7 @@ static int __devinit 
+> ntc_thermistor_probe(struct platform_device *pdev)
+>  		dev_err(&pdev->dev, "Unknown device type: %lu(%s)\n",
+>  				pdev->id_entry->driver_data,
+>  				pdev->id_entry->name);
+> -		ret = -EINVAL;
+> -		goto err;
+> +		return -EINVAL;
+>  	}
+>  
+>  	platform_set_drvdata(pdev, data);
+> @@ -375,7 +374,7 @@ static int __devinit 
+> ntc_thermistor_probe(struct platform_device *pdev)
+>  	ret = sysfs_create_group(&data->dev->kobj, &ntc_attr_group);
+>  	if (ret) {
+>  		dev_err(data->dev, "unable to create sysfs files\n");
+> -		goto err;
+> +		return ret;
+>  	}
+>  
+>  	data->hwmon_dev = hwmon_device_register(data->dev);
+> @@ -391,8 +390,6 @@ static int __devinit 
+> ntc_thermistor_probe(struct platform_device *pdev)
+>  	return 0;
+>  err_after_sysfs:
+>  	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+> -err:
+> -	kfree(data);
+>  	return ret;
+>  }
+>  
+> @@ -404,8 +401,6 @@ static int __devexit 
+> ntc_thermistor_remove(struct platform_device *pdev)
+>  	sysfs_remove_group(&data->dev->kobj, &ntc_attr_group);
+>  	platform_set_drvdata(pdev, NULL);
+>  
+> -	kfree(data);
+> -
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.7.9.48.g85da4d
+> 
+> 
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
