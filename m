@@ -1,29 +1,36 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 09 May 2012 17:43:57 +0000
+From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
+Date: Thu, 10 May 2012 19:41:04 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (it87) Make temp3 attribute conditional for IT8782F and IT8783F
-Message-Id: <1336585437.22553.118.camel@groeck-laptop>
+Message-Id: <742011AD-D794-4ECD-A3A2-9559B588A39A@extracloud.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyMDEyLTA1LTA5IGF0IDEyOjAxIC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
-PiBIaSBHdWVudGVyLAo+IAo+IEFtIDA5LjA1LjIwMTIgdW0gMDQ6MzEgc2NocmllYiBHdWVudGVy
-IFJvZWNrOgo+ID4gT24gSVQ4NzgyRiBhbmQgSVQ4NzgzRiwgdGVtcDMgaXMgb25seSBzdXBwb3J0
-ZWQgaWYgVUFSVDYgaXMgZGlzYWJsZWQuCj4gPiAKPiBUaGUgSVQ4NzgzRiBhbGxvd3MgVUFSVDYg
-YW5kIHRlbXAzIGJvdGggdG8gYmUgdXNlZCBhdCB0aGUgc2FtZSB0aW1lLiBUaGlzIGlzIGFjaGll
-dmVkIGJ5IHdpcmluZyBVQVJUNiB0byB0aGUgb3JpZ2luYWwgcGFyYWxsZWwgcG9ydCBvdXRwdXQu
-IFRoZXJlZm9yZSwgd2hlbiB1c2luZyBVQVJUNiBhbmQgdGVtcDMgYXQgdGhlIHNhbWUgdGltZSwg
-dGhlIHBhcmFsbGVsIHBvcnQgY2FuIG5vdCBiZSB1c2VkIGluIHR1cm4uCj4gVGVjaG5pY2FsbHk6
-IHdoZW4gSlA0L1BpbiAxICgiTU9WRSBVQVJUNiIpIGlzIHNldCB0byAwLCB0aGVuIFVBUlQ2IG1v
-dmVzIHRvIHBpbiAxMDB+MTA2Lgo+IAoKSGkgQmpvZXJuLAoKTG9va2luZyB0aHJvdWdoIHRoZSBk
-YXRhIHNoZWV0LCBpdCBzZWVtcyB0aGF0IHRoZXJlIGlzIG5vIHdheSB0byByZWFkCnRoZSBzZXR0
-aW5nIG9mIEpQNC9QaW4gMSBpbiBTVy4gVGhpcyBtZWFucyBJIGNhbiBub3QgcmVhbGx5IGRldGVj
-dCBpZgpVQVJUNiBwaW4gNiBvdmVybGFwcyB3aXRoIHRlbXAzIG9yIG5vdC4gSXMgdGhpcyBjb3Jy
-ZWN0ID8gSWYgeWVzLCBJCnRoaW5rIHdlIGhhdmUgdG8gZHJvcCB0aGlzIHBhdGNoLgoKVGhhbmtz
-LApHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0
-cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Hi Guenter,
+
+Am 09.05.2012 um 19:43 schrieb Guenter Roeck:
+> Hi Bjoern,
+>=20
+> Looking through the data sheet, it seems that there is no way to read
+> the setting of JP4/Pin 1 in SW. This means I can not really detect if
+> UART6 pin 6 overlaps with temp3 or not. Is this correct ?
+
+Discussed that with my hw folks. Yes, that's correct: sadly there is no way=
+ to read out this setting.
+
+> If yes, I
+> think we have to drop this patch.
+>=20
+ok, agreed.
+
+Bj=F6rn
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
