@@ -1,36 +1,29 @@
-From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Thu, 10 May 2012 19:41:04 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 10 May 2012 21:15:11 +0000
 Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (it87) Make temp3 attribute conditional for IT8782F and IT8783F
-Message-Id: <742011AD-D794-4ECD-A3A2-9559B588A39A@extracloud.de>
+Message-Id: <1336684511.22553.181.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-Am 09.05.2012 um 19:43 schrieb Guenter Roeck:
-> Hi Bjoern,
->=20
-> Looking through the data sheet, it seems that there is no way to read
-> the setting of JP4/Pin 1 in SW. This means I can not really detect if
-> UART6 pin 6 overlaps with temp3 or not. Is this correct ?
-
-Discussed that with my hw folks. Yes, that's correct: sadly there is no way=
- to read out this setting.
-
-> If yes, I
-> think we have to drop this patch.
->=20
-ok, agreed.
-
-Bj=F6rn
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVGh1LCAyMDEyLTA1LTEwIGF0IDE1OjQxIC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
+PiBIaSBHdWVudGVyLAo+IAo+IEFtIDA5LjA1LjIwMTIgdW0gMTk6NDMgc2NocmllYiBHdWVudGVy
+IFJvZWNrOgo+ID4gSGkgQmpvZXJuLAo+ID4gCj4gPiBMb29raW5nIHRocm91Z2ggdGhlIGRhdGEg
+c2hlZXQsIGl0IHNlZW1zIHRoYXQgdGhlcmUgaXMgbm8gd2F5IHRvIHJlYWQKPiA+IHRoZSBzZXR0
+aW5nIG9mIEpQNC9QaW4gMSBpbiBTVy4gVGhpcyBtZWFucyBJIGNhbiBub3QgcmVhbGx5IGRldGVj
+dCBpZgo+ID4gVUFSVDYgcGluIDYgb3ZlcmxhcHMgd2l0aCB0ZW1wMyBvciBub3QuIElzIHRoaXMg
+Y29ycmVjdCA/Cj4gCj4gRGlzY3Vzc2VkIHRoYXQgd2l0aCBteSBodyBmb2xrcy4gWWVzLCB0aGF0
+J3MgY29ycmVjdDogc2FkbHkgdGhlcmUgaXMgbm8gd2F5IHRvIHJlYWQgb3V0IHRoaXMgc2V0dGlu
+Zy4KPiAKR29vZCBhbmQgYmFkIC4uLiBnb29kIHRoYXQgSSBkaWRuJ3Qgb3Zlcmxvb2sgYW55dGhp
+bmcsIGJhZCB0aGF0IGl0IGlzCnVuZGV0ZWN0YWJsZS4KCj4gPiBJZiB5ZXMsIEkKPiA+IHRoaW5r
+IHdlIGhhdmUgdG8gZHJvcCB0aGlzIHBhdGNoLgo+ID4gCj4gb2ssIGFncmVlZC4KCkkgc2VudCBv
+dXQgcmV2MiB3aGljaCBkcm9wcyB0aGUgdGVtcDMvdWFydDYgb3ZlcmxhcCBkZXRlY3Rpb24gZm9y
+CklUODc4M0Ygb25seS4gSVQ4NzgyRiBkb2Vzbid0IGhhdmUgdGhlIHN0cmFwcGluZyBvcHRpb24g
+dG8gcmUtcm91dGUKdWFydDYuCgpUaGFua3MsCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
+c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
+bi9saXN0aW5mby9sbS1zZW5zb3Jz
