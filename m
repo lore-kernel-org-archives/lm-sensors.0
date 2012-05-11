@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 09 May 2012 17:26:50 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Fri, 11 May 2012 09:45:18 +0000
 Subject: Re: [lm-sensors] Coretemp: Fix threshold attributes patch
-Message-Id: <1336584410.22553.115.camel@groeck-laptop>
+Message-Id: <20120511114518.39725c19@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4D68720C2E767A4AA6A8796D42C8EB591185A1@BGSMSX102.gar.corp.intel.com>
 In-Reply-To: <4D68720C2E767A4AA6A8796D42C8EB591185A1@BGSMSX102.gar.corp.intel.com>
@@ -10,44 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 2012-05-09 at 12:53 -0400, R, Durgadoss wrote:
-> Hi Guenter,
-> 
-> [snip.]
-> 
-> > >
-> > > can discuss/decide and I can work on it to submit it again, with
-> > > changes needed,
-> > >
-> > > if any. Kindly help.
-> > >
-> > Hi Durga,
+On Wed, 9 May 2012 08:15:49 -0700, Guenter Roeck wrote:
+> On Mon, 2012-05-07 at 11:33 -0400, R, Durgadoss wrote:
+> > Some time ago, you had submitted a patch to fix the usage of threshold
+> > attributes
 > > 
-> > problem is that neither Jean nor me are happy with it. I think it is
-> > something that should, by its nature, reside in the thermal subsystem.
+> > in coretemp driver. But we had some discussions and it did not get
+> > merged.
+> > 
+> > I would really like to see that patch in mainline. Is there something
+> > that we
+> > 
+> > can discuss/decide and I can work on it to submit it again, with
+> > changes needed,
 > 
-> I agree with you. If 'configuring the thresholds' were to reside in the Thermal
-> subsystem, then, one driver in hwmon will report CPU temperature and another
-> driver in thermal will configure the thresholds for that temperature. Is this
-> a good approach ?
-> 
-> Or, we can include the threshold configuration in coretemp under #ifdef
-> CONFIG_THERMAL. This way even though the code resides in hwmon,
-> the functionality is enabled only by the Thermal Subsystem.
-> 
-> Or, we can register coretemp with thermal_sys.c, and expose 2 trip points,
-> (for Threshold1 and Threshold2) like other thermal drivers do.
-> 
-Actually, the thermal subsystem registers itself with the hwmon
-subsystem. I don't see a hwmon driver registering itself as thermal
-device. I was thinking more along the mine of
-drivers/platform/x86/intel_mid_thermal.c, though I don't really know if
-that model applies.
+> problem is that neither Jean nor me are happy with it. I think it is
+> something that should, by its nature, reside in the thermal subsystem.
 
-Thanks,
-Guenter
+IIRC my main concern was that nobody was ever able to explain what
+semantics the thresholds were supposed to have, i.e. whether they were
+low or high limits, what was supposed to happen when they were crossed
+and who was responsible for acting upon alarm and clearing these alarms.
 
+As long as these questions are unanswered I don't feel safe applying
+your patch, because I suspect it could conflict with the BIOS, and I
+also don't see any value for the users.
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
