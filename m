@@ -1,37 +1,38 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Thu, 24 May 2012 15:58:02 +0000
-Subject: [lm-sensors] [patch] watchdog: sch56xx-common: set correct bits in register()
-Message-Id: <20120524155802.GB11037@elgon.mountain>
+From: =?UTF-8?B?SsOpcsOpbXkgTGFs?= <kapouer@melix.org>
+Date: Fri, 11 May 2012 22:27:07 +0000
+Subject: [lm-sensors] fancontrol and applesmc
+Message-Id: <4FAD923B.9050503@melix.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-WDOG_NO_WAY_OUT (3) and WDOG_ACTIVE (0) are the bit numbers, not a mask.
-So "data->wddev.status |= WDOG_ACTIVE;" was intended to set bit zero but
-it is a no-op.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/drivers/hwmon/sch56xx-common.c b/drivers/hwmon/sch56xx-common.c
-index 839087c..4380f5d 100644
---- a/drivers/hwmon/sch56xx-common.c
-+++ b/drivers/hwmon/sch56xx-common.c
-@@ -464,9 +464,9 @@ struct sch56xx_watchdog_data *sch56xx_watchdog_register(struct device *parent,
- 	data->wddev.min_timeout = 1;
- 	data->wddev.max_timeout = 255 * 60;
- 	if (nowayout)
--		data->wddev.status |= WDOG_NO_WAY_OUT;
-+		set_bit(WDOG_NO_WAY_OUT, &data->wddev.status);
- 	if (output_enable & SCH56XX_WDOG_OUTPUT_ENABLE)
--		data->wddev.status |= WDOG_ACTIVE;
-+		set_bit(WDOG_ACTIVE, &data->wddev.status);
- 
- 	/* Since the watchdog uses a downcounter there is no register to read
- 	   the BIOS set timeout from (if any was set at all) ->
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCmkgbWFuYWdlZCB0byBnZXQgZmFuY29udHJvbCB0byBwbGF5IG5pY2Ugd2l0aCBhcHBsZXNt
+YywKdGhlIG9ubHkgbW9kaWZpY2F0aW9uIGkgaGFkIHRvIG1ha2Ugd2FzIHRvIGFsbG93IHVuYm91
+bmRlZApQV00gdmFsdWVzIChpIGJhc2ljYWxseSByZW1vdmVkIHRoZSA8PSAyNTUgY29uZGl0aW9u
+LCB0aGVyZQppcyBzdGlsbCBhIHNtYWxsIGlzc3VlIHdpdGggcHdtZW5hYmxlL2Rpc2FibGUgZnVu
+Y3Rpb25zKS4KClRoYXQga2luZCBvZiBmYW5jb250cm9sIGNvbmZpZyB3b3JrcyBxdWl0ZSB3ZWxs
+IDoKCkRFVlBBVEg9aHdtb24wPWRldmljZXMvcGxhdGZvcm0vYXBwbGVzbWMuNzY4CkRFVk5BTUU9
+aHdtb24wPWFwcGxlc21jCklOVEVSVkFMPTEwCiMgZmFuMSA6IE9wdGljYWwgRGlzayBEcml2ZSwg
+bmVhciBHUFUsIHRlbXAxNSA6IFRHMEQgR1BVIERpZQojIGZhbjIgOiBIYXJkIERpc2sgRHJpdmUs
+IHRlbXA0NSA6IFRwMVAgUG93ZXIgYm9hcmQKIyBmYW4zIDogQ1BVLCB0ZW1wNSA6IFRDMFAgQ1BV
+IFByb3hpbWl0eQpGQ1RFTVBTPWh3bW9uMC9kZXZpY2UvZmFuMV9taW49aHdtb24wL2RldmljZS90
+ZW1wMTVfaW5wdXQgaHdtb24wL2RldmljZS9mYW4yX21pbj1od21vbjAvZGV2aWNlL3RlbXA0NV9p
+bnB1dCBod21vbjAvZGV2aWNlL2ZhbjNfbWluPWh3bW9uMC9kZXZpY2UvdGVtcDVfaW5wdXQKRkNG
+QU5TPWh3bW9uMC9kZXZpY2UvZmFuMV9taW49aHdtb24wL2RldmljZS9mYW4xX291dHB1dCBod21v
+bjAvZGV2aWNlL2ZhbjJfbWluPWh3bW9uMC9kZXZpY2UvZmFuMl9vdXRwdXQgaHdtb24wL2Rldmlj
+ZS9mYW4zX21pbj1od21vbjAvZGV2aWNlL2ZhbjNfb3V0cHV0Ck1JTlBXTT1od21vbjAvZGV2aWNl
+L2ZhbjFfbWluPTEwMCBod21vbjAvZGV2aWNlL2ZhbjJfbWluPTEwMCBod21vbjAvZGV2aWNlL2Zh
+bjNfbWluPTgwMApNQVhQV009aHdtb24wL2RldmljZS9mYW4xX21pbj0yMTAwIGh3bW9uMC9kZXZp
+Y2UvZmFuMl9taW49NTUwMCBod21vbjAvZGV2aWNlL2ZhbjNfbWluPTI1MDAKTUlOVEVNUD1od21v
+bjAvZGV2aWNlL2ZhbjFfbWluPTQwIGh3bW9uMC9kZXZpY2UvZmFuMl9taW49NDAgaHdtb24wL2Rl
+dmljZS9mYW4zX21pbj0zMApNQVhURU1QPWh3bW9uMC9kZXZpY2UvZmFuMV9taW49NjAgaHdtb24w
+L2RldmljZS9mYW4yX21pbj01OSBod21vbjAvZGV2aWNlL2ZhbjNfbWluPTYyCk1JTlNUQVJUPWh3
+bW9uMC9kZXZpY2UvZmFuMV9taW49MTAwIGh3bW9uMC9kZXZpY2UvZmFuMl9taW49MTAwIGh3bW9u
+MC9kZXZpY2UvZmFuM19taW49MTAwCk1JTlNUT1A9aHdtb24wL2RldmljZS9mYW4xX21pbj0xMDAg
+aHdtb24wL2RldmljZS9mYW4yX21pbj0xMDAgaHdtb24wL2RldmljZS9mYW4zX21pbj04MDAKCgpX
+b3VsZCBhIHBhdGNoIHRvIGZhbmNvbnRyb2wgYmUgd2VsY29tZSA/CgpSZWdhcmRzLApKw6lyw6lt
+eS4KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1z
+ZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0
+cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
