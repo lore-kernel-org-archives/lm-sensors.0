@@ -1,52 +1,199 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 01 May 2012 16:14:18 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (coretemp) Increase CPU core limit
-Message-Id: <1335888858.2499.1.camel@groeck-laptop>
+Date: Fri, 11 May 2012 21:42:33 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: (it87) Make temp3 attribute conditional for IT8782F
+Message-Id: <1336772553-12823-2-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1335885593-15231-1-git-send-email-guenter.roeck@ericsson.com>
-In-Reply-To: <1335885593-15231-1-git-send-email-guenter.roeck@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 2012-05-01 at 11:58 -0400, Jean Delvare wrote:
-> On Tue, 1 May 2012 08:19:53 -0700, Guenter Roeck wrote:
-> > CPU core ID is used to index the core_data[] array. The core ID is, however, not
-> > sequential; 10-core CPUS can have a core ID as high as 25. Increase the limit to
-> > 32 to be able to deal with current CPUs.
-> > 
-> > Signed-off-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> > Cc: stable@vger.kernel.org # 3.0+
-> > ---
-> >  drivers/hwmon/coretemp.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> > index 54a70fe..b9d5123 100644
-> > --- a/drivers/hwmon/coretemp.c
-> > +++ b/drivers/hwmon/coretemp.c
-> > @@ -52,7 +52,7 @@ module_param_named(tjmax, force_tjmax, int, 0444);
-> >  MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
-> >  
-> >  #define BASE_SYSFS_ATTR_NO	2	/* Sysfs Base attr no for coretemp */
-> > -#define NUM_REAL_CORES		16	/* Number of Real cores per cpu */
-> > +#define NUM_REAL_CORES		32	/* Number of Real cores per cpu */
-> >  #define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
-> >  #define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
-> >  #define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-> Looking forward, it would be great if we could get rid of this
-> arbitrary limit.
-> 
-Agreed. I thought about dynamic allocation and a small hash table to
-access it. If/when I have time ... or someone else, maybe.
+From: Guenter Roeck <linux@roeck-us.net>
 
-Guenter
+On IT8782F, temp3 is only supported if UART6 is disabled.
 
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v4: Review feedback
+v3: Resolve conflicts with previous patches.
+    Only remove temp sysfs attributes if the to-be-removed sensor exists,
+    to be in sync with the other attribute removal code.
+v2: Drop condition for IT8783F. On that chip, UART6 may be routed via JP4 to
+    a different set of pins, so we can not reliably detect if temp3 and RI6
+    overlap or not. 
+ drivers/hwmon/it87.c |   81 +++++++++++++++++++++++++++++++++++++------------
+ 1 files changed, 61 insertions(+), 20 deletions(-)
 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 5f65fef..579a02a 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -218,6 +218,7 @@ static const u8 IT87_REG_FANX_MIN[]	= { 0x1b, 0x1c, 0x1d, 0x85, 0x87 };
+ 
+ #define IT87_REG_VIN_ENABLE    0x50
+ #define IT87_REG_TEMP_ENABLE   0x51
++#define IT87_REG_TEMP_EXTRA    0x55
+ #define IT87_REG_BEEP_ENABLE   0x5c
+ 
+ #define IT87_REG_CHIPID        0x58
+@@ -238,6 +239,7 @@ struct it87_sio_data {
+ 	u8 skip_vid;
+ 	u8 skip_fan;
+ 	u8 skip_pwm;
++	u8 skip_temp;
+ };
+ 
+ /*
+@@ -262,6 +264,7 @@ struct it87_data {
+ 	u8 has_fan;		/* Bitfield, fans enabled */
+ 	u16 fan[5];		/* Register values, possibly combined */
+ 	u16 fan_min[5];		/* Register values, possibly combined */
++	u8 has_temp;		/* Bitfield, temp sensors enabled */
+ 	s8 temp[3];		/* Register value */
+ 	s8 temp_high[3];	/* Register value */
+ 	s8 temp_low[3];		/* Register value */
+@@ -1438,23 +1441,37 @@ static const struct attribute_group it87_group_in[9] = {
+ 	{ .attrs = it87_attributes_in[8] },
+ };
+ 
+-static struct attribute *it87_attributes[] = {
++static struct attribute *it87_attributes_temp[3][6] = {
++{
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+-	&sensor_dev_attr_temp2_input.dev_attr.attr,
+-	&sensor_dev_attr_temp3_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+-	&sensor_dev_attr_temp2_max.dev_attr.attr,
+-	&sensor_dev_attr_temp3_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+-	&sensor_dev_attr_temp2_min.dev_attr.attr,
+-	&sensor_dev_attr_temp3_min.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_type.dev_attr.attr,
+-	&sensor_dev_attr_temp2_type.dev_attr.attr,
+-	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_alarm.dev_attr.attr,
++	NULL
++} , {
++	&sensor_dev_attr_temp2_input.dev_attr.attr,
++	&sensor_dev_attr_temp2_max.dev_attr.attr,
++	&sensor_dev_attr_temp2_min.dev_attr.attr,
++	&sensor_dev_attr_temp2_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_alarm.dev_attr.attr,
++	NULL
++} , {
++	&sensor_dev_attr_temp3_input.dev_attr.attr,
++	&sensor_dev_attr_temp3_max.dev_attr.attr,
++	&sensor_dev_attr_temp3_min.dev_attr.attr,
++	&sensor_dev_attr_temp3_type.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_alarm.dev_attr.attr,
++	NULL
++} };
++
++static const struct attribute_group it87_group_temp[3] = {
++	{ .attrs = it87_attributes_temp[0] },
++	{ .attrs = it87_attributes_temp[1] },
++	{ .attrs = it87_attributes_temp[2] },
++};
+ 
++static struct attribute *it87_attributes[] = {
+ 	&dev_attr_alarms.attr,
+ 	&sensor_dev_attr_intrusion0_alarm.dev_attr.attr,
+ 	&dev_attr_name.attr,
+@@ -1477,15 +1494,10 @@ static struct attribute *it87_attributes_in_beep[] = {
+ 	NULL
+ };
+ 
+-static struct attribute *it87_attributes_beep[] = {
++static struct attribute *it87_attributes_temp_beep[] = {
+ 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+-	NULL
+-};
+-
+-static const struct attribute_group it87_group_beep = {
+-	.attrs = it87_attributes_beep,
+ };
+ 
+ static struct attribute *it87_attributes_fan16[5][3+1] = { {
+@@ -1873,9 +1885,15 @@ static int __init it87_find(unsigned short *address,
+ 		 * On IT8782F, UART6 pins overlap with VIN5, VIN6, and VIN7.
+ 		 * While VIN7 can be routed to the internal voltage divider,
+ 		 * VIN5 and VIN6 are not available if UART6 is enabled.
++		 *
++		 * Also, temp3 is not available if UART6 is enabled and TEMPIN3
++		 * is the temperature source. Since we can not read the
++		 * temperature source here, skip_temp is preliminary.
+ 		 */
+-		if (uart6)
++		if (uart6) {
+ 			sio_data->skip_in |= (1 << 5) | (1 << 6);
++			sio_data->skip_temp |= (1 << 2);
++		}
+ 
+ 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	}
+@@ -1922,8 +1940,14 @@ static void it87_remove_files(struct device *dev)
+ 			sysfs_remove_file(&dev->kobj,
+ 					  it87_attributes_in_beep[i]);
+ 	}
+-	if (sio_data->beep_pin)
+-		sysfs_remove_group(&dev->kobj, &it87_group_beep);
++	for (i = 0; i < 3; i++) {
++		if (!(data->has_temp & (1 << i)))
++			continue;
++		sysfs_remove_group(&dev->kobj, &it87_group_temp[i]);
++		if (sio_data->beep_pin)
++			sysfs_remove_file(&dev->kobj,
++					  it87_attributes_temp_beep[i]);
++	}
+ 	for (i = 0; i < 5; i++) {
+ 		if (!(data->has_fan & (1 << i)))
+ 			continue;
+@@ -2012,6 +2036,13 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 			data->in_scaled |= (1 << 7);	/* in7 is VCCH5V */
+ 	}
+ 
++	data->has_temp = 0x07;
++	if (sio_data->skip_temp & (1 << 2)) {
++		if (sio_data->type = it8782
++		    && !(it87_read_value(data, IT87_REG_TEMP_EXTRA) & 0x80))
++			data->has_temp &= ~(1 << 2);
++	}
++
+ 	/* Initialize the IT87 chip */
+ 	it87_init_device(pdev);
+ 
+@@ -2034,10 +2065,18 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	if (sio_data->beep_pin) {
+-		err = sysfs_create_group(&dev->kobj, &it87_group_beep);
++	for (i = 0; i < 3; i++) {
++		if (!(data->has_temp & (1 << i)))
++			continue;
++		err = sysfs_create_group(&dev->kobj, &it87_group_temp[i]);
+ 		if (err)
+ 			goto ERROR4;
++		if (sio_data->beep_pin) {
++			err = sysfs_create_file(&dev->kobj,
++						it87_attributes_temp_beep[i]);
++			if (err)
++				goto ERROR4;
++		}
+ 	}
+ 
+ 	/* Do not create fan files for disabled fans */
+@@ -2381,6 +2420,8 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 			}
+ 		}
+ 		for (i = 0; i < 3; i++) {
++			if (!(data->has_temp & (1 << i)))
++				continue;
+ 			data->temp[i]  				it87_read_value(data, IT87_REG_TEMP(i));
+ 			data->temp_high[i] -- 
+1.7.9.48.g85da4d
 
 
 _______________________________________________
