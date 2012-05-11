@@ -1,463 +1,284 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Date: Sat, 12 May 2012 09:52:44 +0000
-Subject: [lm-sensors] [PATCH v4 4/5] thermal: exynos: Register the tmu sensor with the kernel thermal layer
-Message-Id: <1336815645-29625-5-git-send-email-amit.kachhap@linaro.org>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Fri, 11 May 2012 15:40:15 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (it87) Create voltage attributes only if voltage is enabled
+Message-Id: <1336750815-2707-1-git-send-email-guenter.roeck@ericsson.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1336815645-29625-1-git-send-email-amit.kachhap@linaro.org>
-In-Reply-To: <1336815645-29625-1-git-send-email-amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+To: lm-sensors@vger.kernel.org
 
-This code added creates a link between temperature sensors, linux thermal
-framework and cooling devices for samsung exynos platform. This layer
-monitors the temperature from the sensor and informs the generic thermal
-layer to take the necessary cooling action.
+From: Guenter Roeck <linux@roeck-us.net>
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+On IT8782F and IT8783F, some voltage input pins may be disabled. Don't create
+sysfs attribute files if that is the case.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 ---
- drivers/thermal/exynos_thermal.c             |  344 +++++++++++++++++++++++++-
- include/linux/platform_data/exynos_thermal.h |    6 +
- 2 files changed, 348 insertions(+), 2 deletions(-)
+v2: Review feedback
 
-diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-index cfe4aeb..48106d8 100644
---- a/drivers/thermal/exynos_thermal.c
-+++ b/drivers/thermal/exynos_thermal.c
-@@ -35,6 +35,9 @@
- #include <linux/mutex.h>
- #include <linux/err.h>
- #include <linux/platform_data/exynos_thermal.h>
-+#include <linux/thermal.h>
-+#include <linux/cpufreq.h>
-+#include <linux/cpu_cooling.h>
- #include <linux/of.h>
+ drivers/hwmon/it87.c |  153 +++++++++++++++++++++++++++++++++++++++----------
+ 1 files changed, 121 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index aebac13..e2e68eb 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -234,6 +234,7 @@ struct it87_sio_data {
+ 	u8 beep_pin;
+ 	u8 internal;	/* Internal sensors can be labeled */
+ 	/* Features skipped based on config or DMI */
++	u16 skip_in;
+ 	u8 skip_vid;
+ 	u8 skip_fan;
+ 	u8 skip_pwm;
+@@ -1371,41 +1372,73 @@ static ssize_t show_name(struct device *dev, struct device_attribute
+ }
+ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
  
- #include <plat/cpu.h>
-@@ -95,6 +98,7 @@
+-static struct attribute *it87_attributes[] = {
++static struct attribute *it87_attributes_in[9][5] = {
++{
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+-	&sensor_dev_attr_in1_input.dev_attr.attr,
+-	&sensor_dev_attr_in2_input.dev_attr.attr,
+-	&sensor_dev_attr_in3_input.dev_attr.attr,
+-	&sensor_dev_attr_in4_input.dev_attr.attr,
+-	&sensor_dev_attr_in5_input.dev_attr.attr,
+-	&sensor_dev_attr_in6_input.dev_attr.attr,
+-	&sensor_dev_attr_in7_input.dev_attr.attr,
+-	&sensor_dev_attr_in8_input.dev_attr.attr,
+ 	&sensor_dev_attr_in0_min.dev_attr.attr,
+-	&sensor_dev_attr_in1_min.dev_attr.attr,
+-	&sensor_dev_attr_in2_min.dev_attr.attr,
+-	&sensor_dev_attr_in3_min.dev_attr.attr,
+-	&sensor_dev_attr_in4_min.dev_attr.attr,
+-	&sensor_dev_attr_in5_min.dev_attr.attr,
+-	&sensor_dev_attr_in6_min.dev_attr.attr,
+-	&sensor_dev_attr_in7_min.dev_attr.attr,
+ 	&sensor_dev_attr_in0_max.dev_attr.attr,
+-	&sensor_dev_attr_in1_max.dev_attr.attr,
+-	&sensor_dev_attr_in2_max.dev_attr.attr,
+-	&sensor_dev_attr_in3_max.dev_attr.attr,
+-	&sensor_dev_attr_in4_max.dev_attr.attr,
+-	&sensor_dev_attr_in5_max.dev_attr.attr,
+-	&sensor_dev_attr_in6_max.dev_attr.attr,
+-	&sensor_dev_attr_in7_max.dev_attr.attr,
+ 	&sensor_dev_attr_in0_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in1_input.dev_attr.attr,
++	&sensor_dev_attr_in1_min.dev_attr.attr,
++	&sensor_dev_attr_in1_max.dev_attr.attr,
+ 	&sensor_dev_attr_in1_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in2_input.dev_attr.attr,
++	&sensor_dev_attr_in2_min.dev_attr.attr,
++	&sensor_dev_attr_in2_max.dev_attr.attr,
+ 	&sensor_dev_attr_in2_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in3_input.dev_attr.attr,
++	&sensor_dev_attr_in3_min.dev_attr.attr,
++	&sensor_dev_attr_in3_max.dev_attr.attr,
+ 	&sensor_dev_attr_in3_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in4_input.dev_attr.attr,
++	&sensor_dev_attr_in4_min.dev_attr.attr,
++	&sensor_dev_attr_in4_max.dev_attr.attr,
+ 	&sensor_dev_attr_in4_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in5_input.dev_attr.attr,
++	&sensor_dev_attr_in5_min.dev_attr.attr,
++	&sensor_dev_attr_in5_max.dev_attr.attr,
+ 	&sensor_dev_attr_in5_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in6_input.dev_attr.attr,
++	&sensor_dev_attr_in6_min.dev_attr.attr,
++	&sensor_dev_attr_in6_max.dev_attr.attr,
+ 	&sensor_dev_attr_in6_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in7_input.dev_attr.attr,
++	&sensor_dev_attr_in7_min.dev_attr.attr,
++	&sensor_dev_attr_in7_max.dev_attr.attr,
+ 	&sensor_dev_attr_in7_alarm.dev_attr.attr,
++	NULL
++}, {
++	&sensor_dev_attr_in8_input.dev_attr.attr,
++	NULL
++} };
  
- #define ACTIVE_INTERVAL 500
- #define IDLE_INTERVAL 10000
-+#define MCELSIUS	1000
- 
- /* CPU Zone information */
- #define PANIC_ZONE      4
-@@ -105,6 +109,8 @@
- #define GET_ZONE(trip) (trip + 2)
- #define GET_TRIP(zone) (zone - 2)
- 
-+#define EXYNOS_ZONE_COUNT	3
++static const struct attribute_group it87_group_in[9] = {
++	{ .attrs = it87_attributes_in[0] },
++	{ .attrs = it87_attributes_in[1] },
++	{ .attrs = it87_attributes_in[2] },
++	{ .attrs = it87_attributes_in[3] },
++	{ .attrs = it87_attributes_in[4] },
++	{ .attrs = it87_attributes_in[5] },
++	{ .attrs = it87_attributes_in[6] },
++	{ .attrs = it87_attributes_in[7] },
++	{ .attrs = it87_attributes_in[8] },
++};
 +
- struct exynos_tmu_data {
- 	struct exynos_tmu_platform_data *pdata;
- 	struct resource *mem;
-@@ -117,6 +123,309 @@ struct exynos_tmu_data {
- 	u8 temp_error1, temp_error2;
++static struct attribute *it87_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_input.dev_attr.attr,
+@@ -1432,7 +1465,7 @@ static const struct attribute_group it87_group = {
+ 	.attrs = it87_attributes,
  };
  
-+struct	thermal_trip_point_conf {
-+	int trip_val[MAX_TRIP_COUNT];
-+	int trip_count;
+-static struct attribute *it87_attributes_beep[] = {
++static struct attribute *it87_attributes_in_beep[] = {
+ 	&sensor_dev_attr_in0_beep.dev_attr.attr,
+ 	&sensor_dev_attr_in1_beep.dev_attr.attr,
+ 	&sensor_dev_attr_in2_beep.dev_attr.attr,
+@@ -1441,7 +1474,10 @@ static struct attribute *it87_attributes_beep[] = {
+ 	&sensor_dev_attr_in5_beep.dev_attr.attr,
+ 	&sensor_dev_attr_in6_beep.dev_attr.attr,
+ 	&sensor_dev_attr_in7_beep.dev_attr.attr,
++	NULL
 +};
-+
-+struct	thermal_cooling_conf {
-+	struct freq_clip_table freq_data[MAX_TRIP_COUNT];
-+	int freq_clip_count;
-+};
-+
-+struct thermal_sensor_conf {
-+	char name[SENSOR_NAME_LEN];
-+	int (*read_temperature)(void *data);
-+	struct thermal_trip_point_conf trip_data;
-+	struct thermal_cooling_conf cooling_data;
-+	void *private_data;
-+};
-+
-+struct exynos_thermal_zone {
-+	enum thermal_device_mode mode;
-+	struct thermal_zone_device *therm_dev;
-+	struct thermal_cooling_device *cool_dev[MAX_COOLING_DEVICE];
-+	unsigned int cool_dev_size;
-+	struct platform_device *exynos4_dev;
-+	struct thermal_sensor_conf *sensor_conf;
-+};
-+
-+static struct exynos_thermal_zone *th_zone;
-+static void exynos_unregister_thermal(void);
-+static int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf);
-+
-+/* Get mode callback functions for thermal zone */
-+static int exynos_get_mode(struct thermal_zone_device *thermal,
-+			enum thermal_device_mode *mode)
-+{
-+	if (th_zone)
-+		*mode = th_zone->mode;
-+	return 0;
-+}
-+
-+/* Set mode callback functions for thermal zone */
-+static int exynos_set_mode(struct thermal_zone_device *thermal,
-+			enum thermal_device_mode mode)
-+{
-+	if (!th_zone->therm_dev) {
-+		pr_notice("thermal zone not registered\n");
-+		return 0;
-+	}
-+
-+	mutex_lock(&th_zone->therm_dev->lock);
-+
-+	if (mode = THERMAL_DEVICE_ENABLED)
-+		th_zone->therm_dev->polling_delay = IDLE_INTERVAL;
-+	else
-+		th_zone->therm_dev->polling_delay = 0;
-+
-+	mutex_unlock(&th_zone->therm_dev->lock);
-+
-+	th_zone->mode = mode;
-+	thermal_zone_device_update(th_zone->therm_dev);
-+	pr_info("thermal polling set for duration=%d msec\n",
-+				th_zone->therm_dev->polling_delay);
-+	return 0;
-+}
-+
-+/*
-+ * This function may be called from interrupt based temperature sensor
-+ * when threshold is changed.
-+ */
-+static void exynos_report_trigger(void)
-+{
-+	unsigned int i;
-+	char data[10];
-+	char *envp[] = { data, NULL };
-+
-+	if (!th_zone || !th_zone->therm_dev)
-+		return;
-+
-+	thermal_zone_device_update(th_zone->therm_dev);
-+
-+	mutex_lock(&th_zone->therm_dev->lock);
-+	/* Find the level for which trip happened */
-+	for (i = 0; i < th_zone->sensor_conf->trip_data.trip_count; i++) {
-+		if (th_zone->therm_dev->last_temperature <
-+			th_zone->sensor_conf->trip_data.trip_val[i] * MCELSIUS)
-+			break;
-+	}
-+
-+	if (th_zone->mode = THERMAL_DEVICE_ENABLED) {
-+		if (i > 0)
-+			th_zone->therm_dev->polling_delay = ACTIVE_INTERVAL;
-+		else
-+			th_zone->therm_dev->polling_delay = IDLE_INTERVAL;
-+	}
-+
-+	snprintf(data, sizeof(data), "%u", i);
-+	kobject_uevent_env(&th_zone->therm_dev->device.kobj, KOBJ_CHANGE, envp);
-+	mutex_unlock(&th_zone->therm_dev->lock);
-+}
-+
-+/* Get trip type callback functions for thermal zone */
-+static int exynos_get_trip_type(struct thermal_zone_device *thermal, int trip,
-+				 enum thermal_trip_type *type)
-+{
-+	switch (GET_ZONE(trip)) {
-+	case MONITOR_ZONE:
-+	case WARN_ZONE:
-+		*type = THERMAL_TRIP_ACTIVE;
-+		break;
-+	case PANIC_ZONE:
-+		*type = THERMAL_TRIP_CRITICAL;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+/* Get trip temperature callback functions for thermal zone */
-+static int exynos_get_trip_temp(struct thermal_zone_device *thermal, int trip,
-+				unsigned long *temp)
-+{
-+	if (trip < GET_TRIP(MONITOR_ZONE) || trip > GET_TRIP(PANIC_ZONE))
-+		return -EINVAL;
-+
-+	*temp = th_zone->sensor_conf->trip_data.trip_val[trip];
-+	/* convert the temperature into millicelsius */
-+	*temp = *temp * MCELSIUS;
-+
-+	return 0;
-+}
-+
-+/* Get critical temperature callback functions for thermal zone */
-+static int exynos_get_crit_temp(struct thermal_zone_device *thermal,
-+				unsigned long *temp)
-+{
-+	int ret;
-+	/* Panic zone */
-+	ret = exynos_get_trip_temp(thermal, GET_TRIP(PANIC_ZONE), temp);
-+	return ret;
-+}
-+
-+/* Bind callback functions for thermal zone */
-+static int exynos_bind(struct thermal_zone_device *thermal,
-+			struct thermal_cooling_device *cdev)
-+{
-+	int ret = 0, i;
-+
-+	/* find the cooling device registered*/
-+	for (i = 0; i < th_zone->cool_dev_size; i++)
-+		if (cdev = th_zone->cool_dev[i])
-+			break;
-+
-+	/*No matching cooling device*/
-+	if (i = th_zone->cool_dev_size)
-+		return 0;
-+
-+	switch (GET_ZONE(i)) {
-+	case MONITOR_ZONE:
-+	case WARN_ZONE:
-+		if (thermal_zone_bind_cooling_device(thermal, i, cdev)) {
-+			pr_err("error binding cooling dev inst 0\n");
-+			ret = -EINVAL;
+ 
++static struct attribute *it87_attributes_beep[] = {
+ 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
+ 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
+@@ -1725,18 +1761,38 @@ static int __init it87_find(unsigned short *address,
+ 
+ 		/* VIN5 */
+ 		if ((reg27 & (1 << 0)) || uart6)
+-			; /* No VIN5 */
++			sio_data->skip_in |= (1 << 5); /* No VIN5 */
+ 
+ 		/* VIN6 */
+ 		if ((reg27 & (1 << 1)) || uart6)
+-			; /* No VIN6 */
++			sio_data->skip_in |= (1 << 6); /* No VIN6 */
+ 
+ 		/*
+ 		 * VIN7
+ 		 * Does not depend on bit 2 of Reg2C, contrary to datasheet.
+ 		 */
+-		if (reg27 & (1 << 2))
+-			; /* No VIN7 (unless internal) */
++		if (reg27 & (1 << 2)) {
++			/*
++			 * The data sheet is a bit unclear regarding the
++			 * internal voltage divider for VCCH5V. It says
++			 * "This bit enables and switches VIN7 (pin 91) to the
++			 * internal voltage divider for VCCH5V".
++			 * This is different to other chips, where the internal
++			 * voltage divider would connect VIN7 to an internal
++			 * voltage source. Maybe that is the case here as well.
++			 *
++			 * Since we don't know for sure, re-route it if that is
++			 * not the case, and ask the user to report if the
++			 * resulting voltage is sane.
++			 */
++			if (!(reg2C & (1 << 1))) {
++				reg2C |= (1 << 1);
++				superio_outb(IT87_SIO_PINX2_REG, reg2C);
++				pr_notice("Routing internal VCCH5V to in7.\n");
++			}
++			pr_notice("in7 routed to internal voltage divider, with external pin disabled.\n");
++			pr_notice("Please report if it displays a reasonable voltage.\n");
 +		}
-+		break;
-+	default:
-+		ret = -EINVAL;
+ 
+ 		if (reg2C & (1 << 0))
+ 			sio_data->internal |= (1 << 0);
+@@ -1747,6 +1803,7 @@ static int __init it87_find(unsigned short *address,
+ 
+ 	} else {
+ 		int reg;
++		bool uart6;
+ 
+ 		superio_select(GPIO);
+ 
+@@ -1784,6 +1841,9 @@ static int __init it87_find(unsigned short *address,
+ 			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
+ 
+ 		reg = superio_inb(IT87_SIO_PINX2_REG);
++
++		uart6 = sio_data->type = it8782 && (reg & (1 << 2));
++
+ 		/*
+ 		 * The IT8720F has no VIN7 pin, so VCCH should always be
+ 		 * routed internally to VIN7 with an internal divider.
+@@ -1795,11 +1855,10 @@ static int __init it87_find(unsigned short *address,
+ 		 * setting. So we force the internal routing in this case.
+ 		 *
+ 		 * On IT8782F, VIN7 is multiplexed with one of the UART6 pins.
+-		 * If UART6 is enabled, re-route VIN7 to the internal divider.
++		 * If UART6 is enabled, re-route VIN7 to the internal divider
++		 * if that is not already the case.
+ 		 */
+-		if ((sio_data->type = it8720 ||
+-		    (sio_data->type = it8782 && (reg & (1 << 2))))
+-		    && !(reg & (1 << 1))) {
++		if ((sio_data->type = it8720 || uart6) && !(reg & (1 << 1))) {
+ 			reg |= (1 << 1);
+ 			superio_outb(IT87_SIO_PINX2_REG, reg);
+ 			pr_notice("Routing internal VCCH to in7\n");
+@@ -1810,6 +1869,14 @@ static int __init it87_find(unsigned short *address,
+ 		    sio_data->type = it8728)
+ 			sio_data->internal |= (1 << 1);
+ 
++		/*
++		 * On IT8782F, UART6 pins overlap with VIN5, VIN6, and VIN7.
++		 * While VIN7 can be routed to the internal voltage divider,
++		 * VIN5 and VIN6 are not available if UART6 is enabled.
++		 */
++		if (uart6)
++			sio_data->skip_in |= (1 << 5) | (1 << 6);
++
+ 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
+ 	}
+ 	if (sio_data->beep_pin)
+@@ -1847,6 +1914,14 @@ static void it87_remove_files(struct device *dev)
+ 	int i;
+ 
+ 	sysfs_remove_group(&dev->kobj, &it87_group);
++	for (i = 0; i < 9; i++) {
++		if (sio_data->skip_in & (1 << i))
++			continue;
++		sysfs_remove_group(&dev->kobj, &it87_group_in[i]);
++		if (it87_attributes_in_beep[i])
++			sysfs_remove_file(&dev->kobj,
++					  it87_attributes_in_beep[i]);
 +	}
-+
-+	return ret;
-+}
-+
-+/* Unbind callback functions for thermal zone */
-+static int exynos_unbind(struct thermal_zone_device *thermal,
-+			struct thermal_cooling_device *cdev)
-+{
-+	int ret = 0, i;
-+
-+	/* find the cooling device registered*/
-+	for (i = 0; i < th_zone->cool_dev_size; i++)
-+		if (cdev = th_zone->cool_dev[i])
-+			break;
-+
-+	/*No matching cooling device*/
-+	if (i = th_zone->cool_dev_size)
-+		return 0;
-+
-+	switch (GET_ZONE(i)) {
-+	case MONITOR_ZONE:
-+	case WARN_ZONE:
-+		if (thermal_zone_unbind_cooling_device(thermal, i, cdev)) {
-+			pr_err("error unbinding cooling dev\n");
-+			ret = -EINVAL;
-+		}
-+		break;
-+	default:
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+/* Get temperature callback functions for thermal zone */
-+static int exynos_get_temp(struct thermal_zone_device *thermal,
-+			unsigned long *temp)
-+{
-+	void *data;
-+
-+	if (!th_zone->sensor_conf) {
-+		pr_info("Temperature sensor not initialised\n");
-+		return -EINVAL;
-+	}
-+	data = th_zone->sensor_conf->private_data;
-+	*temp = th_zone->sensor_conf->read_temperature(data);
-+	/* convert the temperature into millicelsius */
-+	*temp = *temp * MCELSIUS;
-+	return 0;
-+}
-+
-+/* Operation callback functions for thermal zone */
-+static struct thermal_zone_device_ops const exynos_dev_ops = {
-+	.bind = exynos_bind,
-+	.unbind = exynos_unbind,
-+	.get_temp = exynos_get_temp,
-+	.get_mode = exynos_get_mode,
-+	.set_mode = exynos_set_mode,
-+	.get_trip_type = exynos_get_trip_type,
-+	.get_trip_temp = exynos_get_trip_temp,
-+	.get_crit_temp = exynos_get_crit_temp,
-+};
-+
-+/* Register with the in-kernel thermal management */
-+static int exynos_register_thermal(struct thermal_sensor_conf *sensor_conf)
-+{
-+	int ret, count, tab_size;
-+	struct freq_clip_table *tab_ptr, *clip_data;
-+
-+	if (!sensor_conf || !sensor_conf->read_temperature) {
-+		pr_err("Temperature sensor not initialised\n");
-+		return -EINVAL;
-+	}
-+
-+	th_zone = kzalloc(sizeof(struct exynos_thermal_zone), GFP_KERNEL);
-+	if (!th_zone)
-+		return -ENOMEM;
-+
-+	th_zone->sensor_conf = sensor_conf;
-+
-+	tab_ptr = (struct freq_clip_table *)sensor_conf->cooling_data.freq_data;
-+	tab_size = sensor_conf->cooling_data.freq_clip_count;
-+
-+	/* Register the cpufreq cooling device */
-+	for (count = 0; count < tab_size; count++) {
-+		clip_data = (struct freq_clip_table *)&(tab_ptr[count]);
-+		clip_data->mask_val = cpumask_of(0);
-+		th_zone->cool_dev[count] = cpufreq_cooling_register(
-+						clip_data, 1);
-+		if (IS_ERR(th_zone->cool_dev[count])) {
-+			pr_err("Failed to register cpufreq cooling device\n");
-+			ret = -EINVAL;
-+			th_zone->cool_dev_size = count;
-+			goto err_unregister;
+ 	if (sio_data->beep_pin)
+ 		sysfs_remove_group(&dev->kobj, &it87_group_beep);
+ 	for (i = 0; i < 5; i++) {
+@@ -1949,6 +2024,20 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	if (err)
+ 		goto ERROR2;
+ 
++	for (i = 0; i < 9; i++) {
++		if (sio_data->skip_in & (1 << i))
++			continue;
++		err = sysfs_create_group(&dev->kobj, &it87_group_in[i]);
++		if (err)
++			goto ERROR4;
++		if (sio_data->beep_pin && it87_attributes_in_beep[i]) {
++			err = sysfs_create_file(&dev->kobj,
++						it87_attributes_in_beep[i]);
++			if (err)
++				goto ERROR4;
 +		}
 +	}
-+	th_zone->cool_dev_size = count;
 +
-+	th_zone->therm_dev = thermal_zone_device_register(sensor_conf->name,
-+			EXYNOS_ZONE_COUNT, NULL, &exynos_dev_ops, 0, 0, 0,
-+			IDLE_INTERVAL);
-+
-+	if (IS_ERR(th_zone->therm_dev)) {
-+		pr_err("Failed to register thermal zone device\n");
-+		ret = -EINVAL;
-+		goto err_unregister;
-+	}
-+	th_zone->mode = THERMAL_DEVICE_ENABLED;
-+
-+	pr_info("Exynos: Kernel Thermal management registered\n");
-+
-+	return 0;
-+
-+err_unregister:
-+	exynos_unregister_thermal();
-+	return ret;
-+}
-+
-+/* Un-Register with the in-kernel thermal management */
-+static void exynos_unregister_thermal(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < th_zone->cool_dev_size; i++) {
-+		if (th_zone && th_zone->cool_dev[i])
-+			cpufreq_cooling_unregister(th_zone->cool_dev[i]);
-+	}
-+
-+	if (th_zone && th_zone->therm_dev)
-+		thermal_zone_device_unregister(th_zone->therm_dev);
-+
-+	kfree(th_zone);
-+
-+	pr_info("Exynos: Kernel Thermal management unregistered\n");
-+}
-+
- /*
-  * TMU treats temperature as a mapped temperature code.
-  * The temperature is converted differently depending on the calibration type.
-@@ -337,6 +646,7 @@ static void exynos_tmu_work(struct work_struct *work)
- 
- 	clk_disable(data->clk);
- 	mutex_unlock(&data->lock);
-+	exynos_report_trigger();
- 	enable_irq(data->irq);
- }
- 
-@@ -349,12 +659,16 @@ static irqreturn_t exynos_tmu_irq(int irq, void *id)
- 
- 	return IRQ_HANDLED;
- }
--
-+static struct thermal_sensor_conf exynos_sensor_conf = {
-+	.name			= "exynos-therm",
-+	.read_temperature	= (int (*)(void *))exynos_tmu_read,
-+}
-+;
- static int __devinit exynos_tmu_probe(struct platform_device *pdev)
- {
- 	struct exynos_tmu_data *data;
- 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
--	int ret;
-+	int ret, i;
- 
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform init data supplied.\n");
-@@ -432,6 +746,30 @@ static int __devinit exynos_tmu_probe(struct platform_device *pdev)
- 
- 	exynos_tmu_control(pdev, true);
- 
-+	/*Register the sensor with thermal management interface*/
-+	(&exynos_sensor_conf)->private_data = data;
-+	exynos_sensor_conf.trip_data.trip_count = pdata->trigger_level0_en +
-+			pdata->trigger_level1_en + pdata->trigger_level2_en +
-+			pdata->trigger_level3_en;
-+
-+	for (i = 0; i < exynos_sensor_conf.trip_data.trip_count; i++)
-+		exynos_sensor_conf.trip_data.trip_val[i] +			pdata->threshold + pdata->trigger_levels[i];
-+
-+	exynos_sensor_conf.cooling_data.freq_clip_count +						pdata->freq_tab_count;
-+	for (i = 0; i < pdata->freq_tab_count; i++) {
-+		exynos_sensor_conf.cooling_data.freq_data[i].freq_clip_max +					pdata->freq_tab[i].freq_clip_max;
-+		exynos_sensor_conf.cooling_data.freq_data[i].temp_level +					pdata->freq_tab[i].temp_level;
-+	}
-+
-+	ret = exynos_register_thermal(&exynos_sensor_conf);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to register thermal interface\n");
-+		goto err_clk;
-+	}
- 	return 0;
- err_clk:
- 	platform_set_drvdata(pdev, NULL);
-@@ -454,6 +792,8 @@ static int __devexit exynos_tmu_remove(struct platform_device *pdev)
- 
- 	exynos_tmu_control(pdev, false);
- 
-+	exynos_unregister_thermal();
-+
- 	clk_put(data->clk);
- 
- 	free_irq(data->irq, data);
-diff --git a/include/linux/platform_data/exynos_thermal.h b/include/linux/platform_data/exynos_thermal.h
-index c980af6..858eaca 100644
---- a/include/linux/platform_data/exynos_thermal.h
-+++ b/include/linux/platform_data/exynos_thermal.h
-@@ -21,6 +21,7 @@
- 
- #ifndef _LINUX_EXYNOS_THERMAL_H
- #define _LINUX_EXYNOS_THERMAL_H
-+#include <linux/cpu_cooling.h>
- 
- enum calibration_type {
- 	TYPE_ONE_POINT_TRIMMING,
-@@ -72,6 +73,9 @@ enum soc_type {
-  * @type: determines the type of SOC
-  * @efuse_value: platform defined fuse value
-  * @cal_type: calibration type for temperature
-+ * @freq_clip_table: Table representing frequency reduction percentage.
-+ * @freq_tab_count: Count of the above table as frequency reduction may
-+ *	applicable to only some of the trigger levels.
-  *
-  * This structure is required for configuration of exynos_tmu driver.
-  */
-@@ -90,5 +94,7 @@ struct exynos_tmu_platform_data {
- 
- 	enum calibration_type cal_type;
- 	enum soc_type type;
-+	struct freq_clip_table freq_tab[4];
-+	unsigned int freq_tab_count;
- };
- #endif /* _LINUX_EXYNOS_THERMAL_H */
+ 	if (sio_data->beep_pin) {
+ 		err = sysfs_create_group(&dev->kobj, &it87_group_beep);
+ 		if (err)
 -- 
-1.7.1
+1.7.9.48.g85da4d
 
 
 _______________________________________________
