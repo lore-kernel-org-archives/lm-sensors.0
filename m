@@ -1,284 +1,167 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Fri, 11 May 2012 15:40:15 +0000
-Subject: [lm-sensors] [PATCH v2] hwmon: (it87) Create voltage attributes only if voltage is enabled
-Message-Id: <1336750815-2707-1-git-send-email-guenter.roeck@ericsson.com>
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Date: Sat, 12 May 2012 09:52:45 +0000
+Subject: [lm-sensors] [PATCH v4 5/5] ARM: exynos: Add thermal sensor driver platform data support
+Message-Id: <1336815645-29625-6-git-send-email-amit.kachhap@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1336815645-29625-1-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <1336815645-29625-1-git-send-email-amit.kachhap-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, guenter.roeck-IzeFyvvaP7pWk0Htik3J/w@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 
-From: Guenter Roeck <linux@roeck-us.net>
+This patch adds necessary default platform data support needed for TMU driver.
+This dt/non-dt values are tested for origen exynos4210 and smdk exynos5250 platforms.
 
-On IT8782F and IT8783F, some voltage input pins may be disabled. Don't create
-sysfs attribute files if that is the case.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
 ---
-v2: Review feedback
+ drivers/thermal/exynos_thermal.c |  111 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 110 insertions(+), 1 deletions(-)
 
- drivers/hwmon/it87.c |  153 +++++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 121 insertions(+), 32 deletions(-)
-
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index aebac13..e2e68eb 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -234,6 +234,7 @@ struct it87_sio_data {
- 	u8 beep_pin;
- 	u8 internal;	/* Internal sensors can be labeled */
- 	/* Features skipped based on config or DMI */
-+	u16 skip_in;
- 	u8 skip_vid;
- 	u8 skip_fan;
- 	u8 skip_pwm;
-@@ -1371,41 +1372,73 @@ static ssize_t show_name(struct device *dev, struct device_attribute
- }
- static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
- 
--static struct attribute *it87_attributes[] = {
-+static struct attribute *it87_attributes_in[9][5] = {
-+{
- 	&sensor_dev_attr_in0_input.dev_attr.attr,
--	&sensor_dev_attr_in1_input.dev_attr.attr,
--	&sensor_dev_attr_in2_input.dev_attr.attr,
--	&sensor_dev_attr_in3_input.dev_attr.attr,
--	&sensor_dev_attr_in4_input.dev_attr.attr,
--	&sensor_dev_attr_in5_input.dev_attr.attr,
--	&sensor_dev_attr_in6_input.dev_attr.attr,
--	&sensor_dev_attr_in7_input.dev_attr.attr,
--	&sensor_dev_attr_in8_input.dev_attr.attr,
- 	&sensor_dev_attr_in0_min.dev_attr.attr,
--	&sensor_dev_attr_in1_min.dev_attr.attr,
--	&sensor_dev_attr_in2_min.dev_attr.attr,
--	&sensor_dev_attr_in3_min.dev_attr.attr,
--	&sensor_dev_attr_in4_min.dev_attr.attr,
--	&sensor_dev_attr_in5_min.dev_attr.attr,
--	&sensor_dev_attr_in6_min.dev_attr.attr,
--	&sensor_dev_attr_in7_min.dev_attr.attr,
- 	&sensor_dev_attr_in0_max.dev_attr.attr,
--	&sensor_dev_attr_in1_max.dev_attr.attr,
--	&sensor_dev_attr_in2_max.dev_attr.attr,
--	&sensor_dev_attr_in3_max.dev_attr.attr,
--	&sensor_dev_attr_in4_max.dev_attr.attr,
--	&sensor_dev_attr_in5_max.dev_attr.attr,
--	&sensor_dev_attr_in6_max.dev_attr.attr,
--	&sensor_dev_attr_in7_max.dev_attr.attr,
- 	&sensor_dev_attr_in0_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in1_input.dev_attr.attr,
-+	&sensor_dev_attr_in1_min.dev_attr.attr,
-+	&sensor_dev_attr_in1_max.dev_attr.attr,
- 	&sensor_dev_attr_in1_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in2_input.dev_attr.attr,
-+	&sensor_dev_attr_in2_min.dev_attr.attr,
-+	&sensor_dev_attr_in2_max.dev_attr.attr,
- 	&sensor_dev_attr_in2_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in3_input.dev_attr.attr,
-+	&sensor_dev_attr_in3_min.dev_attr.attr,
-+	&sensor_dev_attr_in3_max.dev_attr.attr,
- 	&sensor_dev_attr_in3_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in4_input.dev_attr.attr,
-+	&sensor_dev_attr_in4_min.dev_attr.attr,
-+	&sensor_dev_attr_in4_max.dev_attr.attr,
- 	&sensor_dev_attr_in4_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in5_input.dev_attr.attr,
-+	&sensor_dev_attr_in5_min.dev_attr.attr,
-+	&sensor_dev_attr_in5_max.dev_attr.attr,
- 	&sensor_dev_attr_in5_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in6_input.dev_attr.attr,
-+	&sensor_dev_attr_in6_min.dev_attr.attr,
-+	&sensor_dev_attr_in6_max.dev_attr.attr,
- 	&sensor_dev_attr_in6_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in7_input.dev_attr.attr,
-+	&sensor_dev_attr_in7_min.dev_attr.attr,
-+	&sensor_dev_attr_in7_max.dev_attr.attr,
- 	&sensor_dev_attr_in7_alarm.dev_attr.attr,
-+	NULL
-+}, {
-+	&sensor_dev_attr_in8_input.dev_attr.attr,
-+	NULL
-+} };
- 
-+static const struct attribute_group it87_group_in[9] = {
-+	{ .attrs = it87_attributes_in[0] },
-+	{ .attrs = it87_attributes_in[1] },
-+	{ .attrs = it87_attributes_in[2] },
-+	{ .attrs = it87_attributes_in[3] },
-+	{ .attrs = it87_attributes_in[4] },
-+	{ .attrs = it87_attributes_in[5] },
-+	{ .attrs = it87_attributes_in[6] },
-+	{ .attrs = it87_attributes_in[7] },
-+	{ .attrs = it87_attributes_in[8] },
+diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
+index 48106d8..e4e6759 100644
+--- a/drivers/thermal/exynos_thermal.c
++++ b/drivers/thermal/exynos_thermal.c
+@@ -662,14 +662,121 @@ static irqreturn_t exynos_tmu_irq(int irq, void *id)
+ static struct thermal_sensor_conf exynos_sensor_conf = {
+ 	.name			= "exynos-therm",
+ 	.read_temperature	= (int (*)(void *))exynos_tmu_read,
 +};
 +
-+static struct attribute *it87_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp2_input.dev_attr.attr,
- 	&sensor_dev_attr_temp3_input.dev_attr.attr,
-@@ -1432,7 +1465,7 @@ static const struct attribute_group it87_group = {
- 	.attrs = it87_attributes,
++#if defined(CONFIG_CPU_EXYNOS4210)
++static struct exynos_tmu_platform_data const exynos4_default_tmu_data = {
++	.threshold = 80,
++	.trigger_levels[0] = 5,
++	.trigger_levels[1] = 20,
++	.trigger_levels[2] = 30,
++	.trigger_level0_en = 1,
++	.trigger_level1_en = 1,
++	.trigger_level2_en = 1,
++	.trigger_level3_en = 0,
++	.gain = 15,
++	.reference_voltage = 7,
++	.cal_type = TYPE_ONE_POINT_TRIMMING,
++	.freq_tab[0] = {
++		.freq_clip_max = 800 * 1000,
++		.temp_level = 85,
++	},
++	.freq_tab[1] = {
++		.freq_clip_max = 200 * 1000,
++		.temp_level = 100,
++	},
++	.freq_tab_count = 2,
++	.type = SOC_ARCH_EXYNOS4,
++};
++#define EXYNOS4_TMU_DRV_DATA (&exynos4_default_tmu_data)
++#else
++#define EXYNOS4_TMU_DRV_DATA (NULL)
++#endif
++
++#if defined(CONFIG_SOC_EXYNOS5250)
++static struct exynos_tmu_platform_data const exynos5_default_tmu_data = {
++	.trigger_levels[0] = 85,
++	.trigger_levels[1] = 103,
++	.trigger_levels[2] = 110,
++	.trigger_level0_en = 1,
++	.trigger_level1_en = 1,
++	.trigger_level2_en = 1,
++	.trigger_level3_en = 0,
++	.gain = 8,
++	.reference_voltage = 16,
++	.noise_cancel_mode = 4,
++	.cal_type = TYPE_ONE_POINT_TRIMMING,
++	.efuse_value = 55,
++	.freq_tab[0] = {
++		.freq_clip_max = 800 * 1000,
++		.temp_level = 85,
++	},
++	.freq_tab[1] = {
++		.freq_clip_max = 200 * 1000,
++		.temp_level = 103,
++	},
++	.freq_tab_count = 2,
++	.type = SOC_ARCH_EXYNOS5,
++};
++#define EXYNOS5_TMU_DRV_DATA (&exynos5_default_tmu_data)
++#else
++#define EXYNOS5_TMU_DRV_DATA (NULL)
++#endif
++
++#ifdef CONFIG_OF
++static const struct of_device_id exynos_tmu_match[] = {
++	{
++		.compatible = "samsung,exynos4-tmu",
++		.data = (void *)EXYNOS4_TMU_DRV_DATA,
++	},
++	{
++		.compatible = "samsung,exynos5-tmu",
++		.data = (void *)EXYNOS5_TMU_DRV_DATA,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, exynos_tmu_match);
++#else
++#define  exynos_tmu_match NULL
++#endif
++
++static struct platform_device_id exynos_tmu_driver_ids[] = {
++	{
++		.name		= "exynos4-tmu",
++		.driver_data    = (kernel_ulong_t)EXYNOS4_TMU_DRV_DATA,
++	},
++	{
++		.name		= "exynos5-tmu",
++		.driver_data    = (kernel_ulong_t)EXYNOS5_TMU_DRV_DATA,
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
++
++static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
++			struct platform_device *pdev)
++{
++#ifdef CONFIG_OF
++	if (pdev->dev.of_node) {
++		const struct of_device_id *match;
++		match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
++		if (!match)
++			return NULL;
++		return (struct exynos_tmu_platform_data *) match->data;
++	}
++#endif
++	return (struct exynos_tmu_platform_data *)
++			platform_get_device_id(pdev)->driver_data;
+ }
+-;
+ static int __devinit exynos_tmu_probe(struct platform_device *pdev)
+ {
+ 	struct exynos_tmu_data *data;
+ 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
+ 	int ret, i;
+ 
++	if (!pdata)
++		pdata = exynos_get_driver_data(pdev);
++
+ 	if (!pdata) {
+ 		dev_err(&pdev->dev, "No platform init data supplied.\n");
+ 		return -ENODEV;
+@@ -832,11 +939,13 @@ static struct platform_driver exynos_tmu_driver = {
+ 	.driver = {
+ 		.name   = "exynos-tmu",
+ 		.owner  = THIS_MODULE,
++		.of_match_table = exynos_tmu_match,
+ 	},
+ 	.probe = exynos_tmu_probe,
+ 	.remove	= __devexit_p(exynos_tmu_remove),
+ 	.suspend = exynos_tmu_suspend,
+ 	.resume = exynos_tmu_resume,
++	.id_table = exynos_tmu_driver_ids,
  };
  
--static struct attribute *it87_attributes_beep[] = {
-+static struct attribute *it87_attributes_in_beep[] = {
- 	&sensor_dev_attr_in0_beep.dev_attr.attr,
- 	&sensor_dev_attr_in1_beep.dev_attr.attr,
- 	&sensor_dev_attr_in2_beep.dev_attr.attr,
-@@ -1441,7 +1474,10 @@ static struct attribute *it87_attributes_beep[] = {
- 	&sensor_dev_attr_in5_beep.dev_attr.attr,
- 	&sensor_dev_attr_in6_beep.dev_attr.attr,
- 	&sensor_dev_attr_in7_beep.dev_attr.attr,
-+	NULL
-+};
- 
-+static struct attribute *it87_attributes_beep[] = {
- 	&sensor_dev_attr_temp1_beep.dev_attr.attr,
- 	&sensor_dev_attr_temp2_beep.dev_attr.attr,
- 	&sensor_dev_attr_temp3_beep.dev_attr.attr,
-@@ -1725,18 +1761,38 @@ static int __init it87_find(unsigned short *address,
- 
- 		/* VIN5 */
- 		if ((reg27 & (1 << 0)) || uart6)
--			; /* No VIN5 */
-+			sio_data->skip_in |= (1 << 5); /* No VIN5 */
- 
- 		/* VIN6 */
- 		if ((reg27 & (1 << 1)) || uart6)
--			; /* No VIN6 */
-+			sio_data->skip_in |= (1 << 6); /* No VIN6 */
- 
- 		/*
- 		 * VIN7
- 		 * Does not depend on bit 2 of Reg2C, contrary to datasheet.
- 		 */
--		if (reg27 & (1 << 2))
--			; /* No VIN7 (unless internal) */
-+		if (reg27 & (1 << 2)) {
-+			/*
-+			 * The data sheet is a bit unclear regarding the
-+			 * internal voltage divider for VCCH5V. It says
-+			 * "This bit enables and switches VIN7 (pin 91) to the
-+			 * internal voltage divider for VCCH5V".
-+			 * This is different to other chips, where the internal
-+			 * voltage divider would connect VIN7 to an internal
-+			 * voltage source. Maybe that is the case here as well.
-+			 *
-+			 * Since we don't know for sure, re-route it if that is
-+			 * not the case, and ask the user to report if the
-+			 * resulting voltage is sane.
-+			 */
-+			if (!(reg2C & (1 << 1))) {
-+				reg2C |= (1 << 1);
-+				superio_outb(IT87_SIO_PINX2_REG, reg2C);
-+				pr_notice("Routing internal VCCH5V to in7.\n");
-+			}
-+			pr_notice("in7 routed to internal voltage divider, with external pin disabled.\n");
-+			pr_notice("Please report if it displays a reasonable voltage.\n");
-+		}
- 
- 		if (reg2C & (1 << 0))
- 			sio_data->internal |= (1 << 0);
-@@ -1747,6 +1803,7 @@ static int __init it87_find(unsigned short *address,
- 
- 	} else {
- 		int reg;
-+		bool uart6;
- 
- 		superio_select(GPIO);
- 
-@@ -1784,6 +1841,9 @@ static int __init it87_find(unsigned short *address,
- 			sio_data->vid_value = superio_inb(IT87_SIO_VID_REG);
- 
- 		reg = superio_inb(IT87_SIO_PINX2_REG);
-+
-+		uart6 = sio_data->type = it8782 && (reg & (1 << 2));
-+
- 		/*
- 		 * The IT8720F has no VIN7 pin, so VCCH should always be
- 		 * routed internally to VIN7 with an internal divider.
-@@ -1795,11 +1855,10 @@ static int __init it87_find(unsigned short *address,
- 		 * setting. So we force the internal routing in this case.
- 		 *
- 		 * On IT8782F, VIN7 is multiplexed with one of the UART6 pins.
--		 * If UART6 is enabled, re-route VIN7 to the internal divider.
-+		 * If UART6 is enabled, re-route VIN7 to the internal divider
-+		 * if that is not already the case.
- 		 */
--		if ((sio_data->type = it8720 ||
--		    (sio_data->type = it8782 && (reg & (1 << 2))))
--		    && !(reg & (1 << 1))) {
-+		if ((sio_data->type = it8720 || uart6) && !(reg & (1 << 1))) {
- 			reg |= (1 << 1);
- 			superio_outb(IT87_SIO_PINX2_REG, reg);
- 			pr_notice("Routing internal VCCH to in7\n");
-@@ -1810,6 +1869,14 @@ static int __init it87_find(unsigned short *address,
- 		    sio_data->type = it8728)
- 			sio_data->internal |= (1 << 1);
- 
-+		/*
-+		 * On IT8782F, UART6 pins overlap with VIN5, VIN6, and VIN7.
-+		 * While VIN7 can be routed to the internal voltage divider,
-+		 * VIN5 and VIN6 are not available if UART6 is enabled.
-+		 */
-+		if (uart6)
-+			sio_data->skip_in |= (1 << 5) | (1 << 6);
-+
- 		sio_data->beep_pin = superio_inb(IT87_SIO_BEEP_PIN_REG) & 0x3f;
- 	}
- 	if (sio_data->beep_pin)
-@@ -1847,6 +1914,14 @@ static void it87_remove_files(struct device *dev)
- 	int i;
- 
- 	sysfs_remove_group(&dev->kobj, &it87_group);
-+	for (i = 0; i < 9; i++) {
-+		if (sio_data->skip_in & (1 << i))
-+			continue;
-+		sysfs_remove_group(&dev->kobj, &it87_group_in[i]);
-+		if (it87_attributes_in_beep[i])
-+			sysfs_remove_file(&dev->kobj,
-+					  it87_attributes_in_beep[i]);
-+	}
- 	if (sio_data->beep_pin)
- 		sysfs_remove_group(&dev->kobj, &it87_group_beep);
- 	for (i = 0; i < 5; i++) {
-@@ -1949,6 +2024,20 @@ static int __devinit it87_probe(struct platform_device *pdev)
- 	if (err)
- 		goto ERROR2;
- 
-+	for (i = 0; i < 9; i++) {
-+		if (sio_data->skip_in & (1 << i))
-+			continue;
-+		err = sysfs_create_group(&dev->kobj, &it87_group_in[i]);
-+		if (err)
-+			goto ERROR4;
-+		if (sio_data->beep_pin && it87_attributes_in_beep[i]) {
-+			err = sysfs_create_file(&dev->kobj,
-+						it87_attributes_in_beep[i]);
-+			if (err)
-+				goto ERROR4;
-+		}
-+	}
-+
- 	if (sio_data->beep_pin) {
- 		err = sysfs_create_group(&dev->kobj, &it87_group_beep);
- 		if (err)
+ module_platform_driver(exynos_tmu_driver);
 -- 
-1.7.9.48.g85da4d
+1.7.1
 
 
 _______________________________________________
