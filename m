@@ -1,111 +1,83 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 23 May 2012 15:33:34 +0000
-Subject: Re: [lm-sensors] ASUS Sabertooth Z77 / nct6775.ko report
-Message-Id: <1337787214.478.14.camel@groeck-laptop>
+From: James <bjlockie@lockie.ca>
+Date: Sat, 12 May 2012 21:25:21 +0000
+Subject: [lm-sensors] missing fan RPMS
+Message-Id: <4FAED541.7080201@lockie.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120523123730.6f2d7e36@desktop>
-In-Reply-To: <20120523123730.6f2d7e36@desktop>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyMDEyLTA1LTIzIGF0IDA1OjM3IC0wNDAwLCBEbWl0cml5IFBpbmNodWtvdiB3cm90
-ZToKPiBIaSwKPiAKPiBHb3QgYSBuZXcgQVNVUyBTYWJlcnRvb3RoIFo3NyBtb2JvIHJlY2VudGx5
-IGFuZCBmb3VuZCBvdXQgdGhhdCBsbS1zZW5zb3JzIGRpZG4ndCBzdXBwb3J0Cj4gYW55dGhpbmcg
-YnV0IHRoZSBjb3JlIHRlbXBlcmF0dXJlcyBhbmQgYWxzbyBhIGNvdXBsZSBvbmVzIGZyb20gdGhl
-Cj4gJ2FjcGl0ei12aXJ0dWFsLTAnIGRldmljZS4gVHJ5aW5nIHRoZSB0cnVuayB2ZXJzaW9uIG9m
-IHNlbnNvcnMtZGV0ZWN0IGRpZG4ndCBoZWxwLgo+IAo+IEkgdGhlbiBzZWFyY2hlZCBhbmQgZmlu
-YWxseSBmb3VuZCB0aGUgc2hpbnkgbmV3ICduY3Q2Nzc1JyBkcml2ZXIuIENvbXBpbGVkIGFuZCBs
-b2FkZWQgaXQgc3VjY2Vzc2Z1bGx5IChsaW51eCAzLjQuMCB4ODZfNjQpOgo+IAo+IFsgMTA4Mi4z
-NzczNzBdIG5jdDY3NzU6IEZvdW5kIE5DVDY3NzlEIGNoaXAgYXQgMHgyOTAKPiAKPiBIZXJlJ3Mg
-aG93IG15IHNlbnNvcnMgb3V0cHV0IGxvb2tpbmcgbm93IChsbS1zZW5zb3JzIDMuMy4yIGZyb20g
-RGViaWFuIHdoZWV6eS9zaWQpOgo+IAo+IGFjcGl0ei12aXJ0dWFsLTAKPiBBZGFwdGVyOiBWaXJ0
-dWFsIGRldmljZQo+IHRlbXAxOiAgICAgICAgKzI3LjjCsEMgIChjcml0ID0gKzEwNi4wwrBDKQo+
-IHRlbXAyOiAgICAgICAgKzI5LjjCsEMgIChjcml0ID0gKzEwNi4wwrBDKQo+IAo+IGNvcmV0ZW1w
-LWlzYS0wMDAwCj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPiBQaHlzaWNhbCBpZCAwOiAgKzQ1LjDC
-sEMgIChoaWdoID0gKzg1LjDCsEMsIGNyaXQgPSArMTA1LjDCsEMpCj4gQ29yZSAwOiAgICAgICAg
-ICs0NC4wwrBDICAoaGlnaCA9ICs4NS4wwrBDLCBjcml0ID0gKzEwNS4wwrBDKQo+IENvcmUgMTog
-ICAgICAgICArNDUuMMKwQyAgKGhpZ2ggPSArODUuMMKwQywgY3JpdCA9ICsxMDUuMMKwQykKPiBD
-b3JlIDI6ICAgICAgICAgKzQzLjDCsEMgIChoaWdoID0gKzg1LjDCsEMsIGNyaXQgPSArMTA1LjDC
-sEMpCj4gQ29yZSAzOiAgICAgICAgICs0My4wwrBDICAoaGlnaCA9ICs4NS4wwrBDLCBjcml0ID0g
-KzEwNS4wwrBDKQo+IAo+IG5jdDY3NzktaXNhLTAyOTAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+
-IGluMDogICAgICAgICAgICAgICAgICAgICsxLjAwIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0g
-ICsxLjc0IFYpCj4gaW4xOiAgICAgICAgICAgICAgICAgICAgKzEuMDMgViAgKG1pbiA9ICArMC4w
-MCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW4yOiAgICAgICAgICAgICAgICAgICAgKzMu
-NDIgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW4zOiAgICAg
-ICAgICAgICAgICAgICAgKzMuNDIgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikg
-IEFMQVJNCj4gaW40OiAgICAgICAgICAgICAgICAgICAgKzEuMDIgViAgKG1pbiA9ICArMC4wMCBW
-LCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW41OiAgICAgICAgICAgICAgICAgICAgKzIuMDQg
-ViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW42OiAgICAgICAg
-ICAgICAgICAgICAgKzEuNDkgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFM
-QVJNCj4gaW43OiAgICAgICAgICAgICAgICAgICAgKzMuNDEgViAgKG1pbiA9ICArMC4wMCBWLCBt
-YXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW44OiAgICAgICAgICAgICAgICAgICAgKzMuMzYgViAg
-KG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW45OiAgICAgICAgICAg
-ICAgICAgICAgKzEuMDYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJN
-Cj4gaW4xMDogICAgICAgICAgICAgICAgICAgKzEuNDkgViAgKG1pbiA9ICArMC4wMCBWLCBtYXgg
-PSAgKzAuMDAgVikgIEFMQVJNCj4gaW4xMTogICAgICAgICAgICAgICAgICAgKzEuNDkgViAgKG1p
-biA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gaW4xMjogICAgICAgICAgICAg
-ICAgICAgKzAuMjUgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4g
-aW4xMzogICAgICAgICAgICAgICAgICAgKzAuMTggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAg
-KzAuMDAgVikgIEFMQVJNCj4gaW4xNDogICAgICAgICAgICAgICAgICAgKzEuNDkgViAgKG1pbiA9
-ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4gZmFuMTogICAgICAgICAgICAgICAg
-ICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKQo+IGZhbjI6ICAgICAgICAgICAgICAgICAgMTE0
-MiBSUE0gIChtaW4gPSAgICAwIFJQTSkKPiBmYW4zOiAgICAgICAgICAgICAgICAgIDEwMTEgUlBN
-ICAobWluID0gICAgMCBSUE0pCj4gZmFuNDogICAgICAgICAgICAgICAgICAgOTIyIFJQTSAgKG1p
-biA9ICAgIDAgUlBNKQo+IGZhbjU6ICAgICAgICAgICAgICAgICAgICAgMCBSUE0gIChtaW4gPSAg
-ICAwIFJQTSkKPiBTWVNUSU46ICAgICAgICAgICAgICAgICArMzYuMMKwQyAgKGhpZ2ggPSAgKzAu
-MMKwQywgaHlzdCA9ICArMC4wwrBDKSAgQUxBUk0gIHNlbnNvciA9IHRoZXJtaXN0b3IKPiBDUFVU
-SU46ICAgICAgICAgICAgICAgICAgKzAuNcKwQyAgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9ICs3
-NS4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IEFVWFRJTjA6ICAgICAgICAgICAgICAgICAr
-MC4wwrBDICAgIHNlbnNvciA9IHRoZXJtaXN0b3IKPiBBVVhUSU4xOiAgICAgICAgICAgICAgICAg
-KzAuMMKwQyAgICBzZW5zb3IgPSB0aGVybWlzdG9yCj4gQVVYVElOMjogICAgICAgICAgICAgICAg
-ICswLjDCsEMgICAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IEFVWFRJTjM6ICAgICAgICAgICAgICAg
-ICArMC4wwrBDICAgIHNlbnNvciA9IHRoZXJtaXN0b3IKPiBQQ0hfQ0hJUF9DUFVfTUFYX1RFTVA6
-ICAgKzAuMMKwQwo+IFBDSF9DSElQX1RFTVA6ICAgICAgICAgICArMC4wwrBDCj4gUENIX0NQVV9U
-RU1QOiAgICAgICAgICAgICswLjDCsEMKPiBQQ0hfTUNIX1RFTVA6ICAgICAgICAgICAgKzAuMMKw
-Qwo+IGNwdTBfdmlkOiAgICAgICAgICAgICAgKzAuMDAwIFYKPiBpbnRydXNpb24wOiAgICAgICAg
-ICAgIEFMQVJNCj4gaW50cnVzaW9uMTogICAgICAgICAgICBBTEFSTQo+IAo+IEhlcmUncyBteSB0
-aG91Z2h0czoKPiAKSGkgRG1pdHJpeSwKCnRoYW5rcyBhIGxvdCBmb3IgdGhlIGZlZWRiYWNrLgoK
-PiAtIG9ubHkgNSBmYW5zIGFyZSBzaG93biB3aGVyZWFzIHRoZSBtb2JvIGhhcyA4IGZhbiBjb25u
-ZWN0b3JzICh0d28gb2Ygd2hpY2ggYXJlIDMtcGluLCB0aGUgcmVzdCBhcmUgNC1waW4pOwoKVGhl
-IE5DVDY3NzlEIGhhcyBvbmx5IGZpdmUgZmFuIHNlbnNvcnMsIHNvIHRoYXQgaXMgbm90IHN1cnBy
-aXNpbmcuIE1heWJlCnRoZSBvdGhlciBmYW5zIGFyZSBub3QgbW9uaXRvcmVkLCB0aGVyZSBpcyBh
-IHNlY29uZCBjaGlwIHRvCmNvbnRyb2wvbW9uaXRvciB0aGUgb3RoZXIgZmFucywgb3IgQVNVUyBz
-dGFydGVkIHB1dHRpbmcgYSBtdWx0aXBsZXhlciBhdAp0aGUgZmFuIGlucHV0cy4gSSBob3BlIHRo
-ZXkgZGlkbid0LCBidXQgbWF5YmUgdGhleSBsZWFybmVkIHRoZSB3cm9uZwpsZXNzb24gZnJvbSBB
-c3VzVGVrLgoKPiAtIHRoaXMgYm9hcmQgaGFzIGEgbG90IG9mIHRlbXBlcmF0dXJlIHNlbnNvcnMg
-KHRoZSB3aW5kb3dzIGFzdXMgbW9uaXRvcmluZyB1dGlsaXR5IHNob3dzIGFyb3VuZCA4IG9yIDkg
-b2YgdGhlbSBJIHRoaW5rKSwgYnV0IG9ubHkgdGhlIFNZU1RJTiBzZWVtcyB0byBiZSByZXBvcnRl
-ZCBjb3JyZWN0bHkgYnkgdGhpcyBkcml2ZXIsIHRoZSByZXN0IGFyZSB6ZXJvOwoKTm8gaWRlYSB3
-aGF0IGlzIGhhcHBlbmluZyBoZXJlLiBUaGUgdGVtcGVyYXR1cmUgdmFsdWVzIGFyZSB0YWtlbgpk
-aXJlY3RseSBmcm9tIHRoZSBjaGlwIHJlZ2lzdGVycy4gQVNVUyBtaWdodCBoYXZlIGEgYW5vdGhl
-ciBjaGlwIHRvCm1vbml0b3Igb3RoZXIgdGVtcGVyYXR1cmVzLiBJbnRlcmVzdGluZyB0aGF0IHRo
-ZSBQRUNJIGlucHV0IGlzIG5vdApzaG93bjsgaXQgaXMgdXNlZCBvbiBhbGwgb3RoZXIgQVNVUyBi
-b2FyZHMgSSBoYXZlIHNlZW4uCgo+IC0gY3B1MF92aWQgaGFzIHplcm8gdmFsdWUgYXMgd2VsbDsK
-CkZyYW5rbHksIEkgaGF2ZSBuZXZlciBzZWVuIHVzZWZ1bCBvdXRwdXQgZnJvbSB0aGlzLiBObyBp
-ZGVhIGlmIGl0IGlzCmV2ZW4gY29ubmVjdGVkLgoKPiAtIG1pbi9tYXggdmFsdWVzIGFyZSB6ZXJv
-IGZvciBzb21lIG9mIHRoZSBzZW5zb3JzIGFuZCB0aGUgQUxBUk0gc3RhdHVzIGlzIHJlcG9ydGVk
-IGVycm9uZW91c2x5IHRoZXJlOwoKVGhpcyBpcyBxdWl0ZSBjb21tb247IGxpbWl0cyBhcmUgcmFy
-ZWx5IHByb2dyYW1tZWQgYnkgQklPU2VzIGZvciBzb21lCnJlYXNvbi4gWW91J2xsIGhhdmUgdG8g
-c2V0IHRoZSBsaW1pdHMgeW91cnNlbGYuIFRoZSBhbGFybXMgd2lsbCBnbyBhd2F5CmlmIHRoZSBs
-aW1pdHMgYXJlIHNldC4KCj4gLSBmYW4gY29udHJvbCAqZG9lcyogd29yayB2aWEgdGhlIC9zeXMv
-ZGV2aWNlcy9wbGF0Zm9ybS9uY3Q2Nzc1LjY1Ni9wd20qIGludGVyZmFjZSwgYm90aCBpbiBQV00g
-YW5kIERDIGNvbnRyb2wgbW9kZXM7IEkgY2FuIHJlZHVjZSB0aGVpciBzcGVlZCBhbmQgZnVsbHkg
-c3RvcCB0aGVtLgo+IApTb3VuZHMgZ29vZC4gQ2FuIHlvdSBwcm92aWRlIG91dHB1dCBvZgoiZ3Jl
-cCAuIC9zeXMvZGV2aWNlcy9wbGF0Zm9ybS9uY3Q2Nzc1LjY1Ni9wd20qIiBhbmQgInNlbnNvcnMg
-LXUiID8KCj4gV2hhdCBkbyB5b3UgZ3V5cyB0aGluayBvZiB0aGlzPyBNeSBjdXJyZW50IHNlbnNv
-cnMtZGV0ZWN0IG91dHB1dCBpcyBpbiB0aGUgYXR0YWNobWVudCBhbmQgaXMgYWxzbyBhdmFpbGFi
-bGUgYXQgaHR0cDovL3Bhc3RlYmluLmNvbS9CVXM4ZTBzbi4gSSBhbHNvIHRyaWVkIHRoZSAnbG03
-NScgYW5kICdkczE2MjEnIGRyaXZlcnMgdGhhdCBpdCBzdWdnZXN0ZWQsIGJ1dCB0aGF0IGRpZG4n
-dCBjaGFuZ2UgdGhlIG91dHB1dCBvZiBzZW5zb3JzIGFuZCB0aGVyZSB3ZXJlbid0IGFueSBtZXNz
-YWdlcyBpbiBkbWVzZyB3aGVuIEkgbG9hZGVkIHRoZW0uCj4gCj4gSSB3aWxsIGdsYWRseSBwcmVz
-ZW50IGFueSBhZGRpdGlvbmFsIGluZm8gdGhhdCBtaWdodCBoZWxwIHRvIGRlYnVnIHRoZSBpc3N1
-ZSBvciBpbXByb3ZlIHRoZQo+IGRyaXZlci4KPiAKTm90IG11Y2ggSSBjYW4gZG8gcmlnaHQgbm93
-LiBBIGNvbXBsZXRlIHJlZ2lzdGVyIGR1bXAgd291bGQgaGVscCwgYnV0IEkKZG9uJ3Qga25vdyBo
-b3cgdG8gZG8gdGhhdCBpbiBMaW51eC4gSSdsbCBtYXkgaGF2ZSB0byBzdGFydCBleHRlbmRpbmcK
-c3VwZXJpb3Rvb2wgdG8gc3VwcG9ydCB0aGUgY2hpcCwgYnV0IHRoYXQgd2lsbCB0YWtlIHNvbWUg
-dGltZSwgd2hpY2ggSQpkb24ndCBoYXZlIHJpZ2h0IG5vdyA6KC4KCkd1ZW50ZXIKCgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+
+I bought a new motherboard (ASRock 970 Extreme3) and it doesn't report the fans.
+
+# sensors-detect
+Driver `adt7475':
+  * Bus `nouveau-0000:01:00.0-2'
+    Busdriver `drm', I2C address 0x2e
+    Chip `Analog Devices ADT7473' (confidence: 5)
+
+Driver `w83627ehf':
+  * ISA bus, address 0x290
+    Chip `Nuvoton NCT6776F Super IO Sensors' (confidence: 9)
+
+Driver `fam15h_power':
+  * Chip `AMD Family 15h power sensors' (confidence: 9)
+
+Driver `k10temp':
+  * Chip `AMD Family 15h thermal sensors' (confidence: 9)
+
+
+# sensors            
+nouveau-pci-0100
+Adapter: PCI adapter
+temp1:         +0.0 C  (high = +100.0 C, crit = +110.0 C)
+
+fam15h_power-pci-00c4
+Adapter: PCI adapter
+power1:      101.61 W  (crit =  95.01 W)
+
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +15.8 C  (high = +70.0 C)
+                       (crit = +70.0 C, hyst = +67.0 C)
+
+nct6776-isa-0290
+Adapter: ISA adapter
+Vcore:        +0.86 V  (min =  +0.00 V, max =  +1.74 V)
+in1:          +1.85 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+AVCC:         +3.33 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
++3.3V:        +3.33 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in4:          +1.58 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+in5:          +1.70 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+3VSB:         +3.44 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+Vbat:         +3.34 V  (min =  +0.00 V, max =  +0.00 V)  ALARM
+fan1:           0 RPM  (min =    0 RPM)  ALARM
+fan2:           0 RPM  (min =    0 RPM)  ALARM
+fan3:           0 RPM  (min =    0 RPM)  ALARM
+fan4:           0 RPM  (min =    0 RPM)  ALARM
+fan5:           0 RPM  (min =    0 RPM)  ALARM
+SYSTIN:       +38.0 C  (high =  +0.0 C, hyst =  +0.0 C)  ALARM  sensor = thermistor
+CPUTIN:       +36.0 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor
+AUXTIN:        -2.0 C  (high = +80.0 C, hyst = +75.0 C)  sensor = thermistor
+cpu0_vid:    +0.000 V
+intrusion0:  ALARM
+intrusion1:  ALARM
+
+
+The motherboard manual says it does the following hardware monitoring:
+ CPU Temperature Sensing
+ Chassis Temperature Sensing
+ CPU/Chassis/Power Fan Tachometer
+ CPU/Chassis Quiet Fan
+ CPU/Chassis Fan Multi-Speed Control
+ Voltage Monitoring: +12V, +5V, +3.3V, Vcore
+
+The CPU fan says 3366 RPM in the BIOS.
+Case fan3 1033 RPM.
+sensors also doesn't show +12V or +5V.
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
