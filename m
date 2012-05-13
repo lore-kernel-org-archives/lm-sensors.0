@@ -1,58 +1,140 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 16 May 2012 17:41:35 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Drop uart6 condition for vin5&vin6 for IT8783F
-Message-Id: <1337190095.22553.276.camel@groeck-laptop>
+From: Ben Kamen <bkamen@benjammin.net>
+Date: Sun, 13 May 2012 22:30:37 +0000
+Subject: Re: [lm-sensors] Supermicro X7SPA-HF: in4 ALARM
+Message-Id: <4FB0360D.5070309@benjammin.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
-In-Reply-To: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
+References: <01fa01cd1430$fed0b990$fc722cb0$@lucidpixels.com>
+In-Reply-To: <01fa01cd1430$fed0b990$fc722cb0$@lucidpixels.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAyMDEyLTA1LTE2IGF0IDEzOjA3IC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
-PiBIaSBKZWFuLAo+IAo+IEFtIDE2LjA1LjIwMTIgdW0gMTE6MjMgc2NocmllYiBKZWFuIERlbHZh
-cmU6Cj4gPiBPbiBXZWQsIDE2IE1heSAyMDEyIDA4OjUyOjMxICswMjAwLCBKZWFuIERlbHZhcmUg
-d3JvdGU6Cj4gPj4gT24gVHVlLCAxNSBNYXkgMjAxMiAxMjo1MTowOCAtMDcwMCwgR3VlbnRlciBS
-b2VjayB3cm90ZToKPiA+Pj4gVGhlIGRhdGEgc2hlZXQgc2F5cywgd2l0aCBSZWdpc3RlciAweDI3
-L0JpdCAwOgo+ID4+PiAKPiA+Pj4gRnVuY3Rpb24gU2VsZWN0aW9uIG9mIFBpbiA5MyAoRlNQKQo+
-ID4+PiAwOiBWSU41L0ZBTl9UQUMzL1NJTjYKPiA+Pj4gSWYgYml0IDIgb2YgaW5kZXggMkNoIGlz
-IDEsIEZBTl9UQUMzL1NJTjYgaW5wdXQgaXMgZW5hYmxlZDsgb3RoZXJ3aXNlCj4gPj4+IHNlbGVj
-dCBWSU41IGlucHV0Lgo+ID4+PiAxOiBHUDMwCj4gPj4+IAo+ID4+PiBBc3N1bWluZyB0aGUgYWJv
-dmUgaXMgY29ycmVjdCwgSSB0aGluayBJJ2xsIHJlbmFtZSAidWFydDYiIHRvICJmYW4zIiBhbmQK
-PiA+Pj4gdXNlCj4gPj4+IAo+ID4+PiAJZmFuMyA9IHJlZzJDICYgKDEgPDwgMik7Cj4gPj4+IC4u
-Lgo+ID4+PiAJLyogQ2hlY2sgaWYgZmFuMyBpcyB0aGVyZSBvciBub3QgKi8KPiA+Pj4gCWlmICgo
-cmVnMjcgJiAoMSA8PCAwKSkgfHwgIWZhbjMpCj4gPj4+ICAgICAgICAgICAgICAgIHNpb19kYXRh
-LT5za2lwX2ZhbiB8PSAoMSA8PCAyKTsKPiA+Pj4gLi4uCj4gPj4+IAlpZiAoKHJlZzI3ICYgKDEg
-PDwgMCkpIHx8IGZhbjMpCj4gPj4+IAkJc2lvX2RhdGEtPnNraXBfaW4gfD0gKDEgPDwgNSk7IC8q
-IE5vIFZJTjUgKi8KPiA+Pj4gCj4gPj4+IERvZXMgdGhhdCBtYWtlIHNlbnNlID8KPiA+PiAKPiA+
-PiBUaGF0J3Mgd2hhdCB0aGUgZGF0YXNoZWV0IHNheXMsIGF0IGxlYXN0LiBJIGZpbmQgaXQgd2Vp
-cmQgdGhhdCBlbmFibGluZwo+ID4+IFVBUlQ2IGhhcyBhbiBlZmZlY3Qgb24gVklONSB2cy4gRkFO
-M19UQUMsIGVzcGVjaWFsbHkgd2hlbiBVQVJUNiBwaW5zCj4gPj4gY2FuIGJlIHJlbWFwcGVkIHRv
-IGEgY29tcGxldGVseSBkaWZmZXJlbnQgbG9jYXRpb24sIGJ1dCBtYXliZSB0aGlzIGlzCj4gPj4g
-cmVhbGx5IGhvdyB0aGUgY2hpcCB3b3Jrcy4KPiA+PiAKPiBZZXMsIG91ciBodyBkZXZlbG9wZXJz
-IGZvcm1lcmx5IGFsc28gaGFkIHRvIGNvbnRhY3QgSVRFIGZvciBkaXNjdXNzaW9ucyBhYm91dCBk
-aWZmZXJlbnQgY29udGV4dHMgZm9yIHRoZWlyIGh3IHdpcmluZy9pbXBsZW1lbnRhdGlvbi4KPiAK
-PiA+PiBJIHRoaW5rIEkgd291bGRuJ3QgaW50cm9kdWNlIHZhcmlhYmxlIGZhbjMsIGFzIGl0IGlz
-IGtpbmQgb2YgYQo+ID4+IG1pc25vbWVyLCBhbmQgYSBwcm9wZXIgbmFtZSB3b3VsZCBiZSBvdmVy
-bHkgbG9uZy4gQnV0IHRoaXMgaXMgYW4KPiA+PiBpbXBsZW1lbnRhdGlvbiBkZXRhaWwuCj4gPj4g
-Cj4gPj4gQmrDtnJuLCB3aGF0IGlzIHlvdXIgZGVzaWduIHVzaW5nIHBpbiA5MyBmb3I/Cj4gPiAK
-PiBBcyBkaXNjdXNzZWQgd2l0aCBvdXIgaHcgZGV2ZWxvcGVycywgaW4gb3VyIGRlc2lnbiBwaW4g
-OTMgaXMgdXNlZCBmb3IgRkFOX1RBQzMuIFRoZSByZWFzb24gaXMsIHRoYXQgdWFydDYgZ2V0cyBt
-b3ZlZC4gSWYgdWFydDYgd291bGQgbm90IGdldCBtb3ZlZCwgdGhlbiBwaW4gOTMgd291bGQgYmUg
-U0lONi4gU28gaW4gdHVybiB0aGUgZGVjaXNpb24gYmV0d2VlbiBGQU5fVEFDMyBhbmQgU0lONiBp
-cyBub3QgZGV0ZWN0YWJsZS4KPiBIb3dldmVyLCBtYXliZSB0aGUgcHJvcGVyIGRlc2lnbi1zcGVj
-aWZpYyBzZW5zb3JzLmNvbmYgY291bGQgaWdub3JlIGZhbjMgaWYgcGluIDkzIGlzIHVzZWQgZm9y
-IFNJTjYuCj4gCj4gPiBJJ3ZlIHVwZGF0ZWQgdGhlIGRyaXZlciBhdAo+ID4gaHR0cDovL2toYWxp
-LmxpbnV4LWZyLm9yZy9kZXZlbC9taXNjL2l0ODcvCj4gPiAKPiA+IHdpdGggQmrDtnJuJ3MgcGF0
-Y2ggdXBkYXRlZCBwZXIgdGhlIGRpc2N1c3Npb24gYWJvdmUuIEJqw7ZybiwgY2FuIHlvdQo+ID4g
-cGxlYXNlIGdpdmUgaXQgYSB0cnkgYW5kIGNvbmZpcm0gaXQgd29ya3MgZm9yIHlvdT8KPiA+IAo+
-IFRoYW5rcyBmb3IgdGhlIHVwZGF0ZSEgSSBhZ3JlZSB3aXRoIHRoZSBsb2dpYyBwYXJ0IHlvdSBt
-b2RpZmllZC4KPiBBbmQgeWVzLCBpdCB3b3JrcyBsaWtlIGV4cGVjdGVkICh0ZXN0ZWQgb24gSVQ4
-NzgzRkBrZXJuZWwgMi42LjMyLCBjb25maWd1cmVkIGFzIGRlc2NyaWJlZCBhYm92ZSkgIDstKQo+
-IApFeGNlbGxlbnQuIEkgYWxyZWFkeSBtZXJnZWQgSmVhbidzIGNoYW5nZXMgd2l0aCBteSBwZW5k
-aW5nIHBhdGNoIHNldCwgc28KaG9wZWZ1bGx5IGV2ZXJ5dGhpbmcgaXMgb2sgbm93LgoKVGhhbmtz
-IGEgbG90IGZvciB5b3VyIGhlbHAhCgpHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNv
-cnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlz
-dGluZm8vbG0tc2Vuc29ycw=
+Hey guys, in response to this email below from Jean,
+
+  Can we still use lm_sensors on the winbond IC on the board or should lm_s=
+ensors be disabled entirely?
+
+I'm also using an X7SPA-HF and the thermal management goes wonky after a fe=
+w hours of normal operation.
+
+(temp alarm, fans report erroneous speeds and so forth)
+
+When this started happening, I began to wonder about contention between the=
+ IPMI controller onboard and what linux might be trying to do at the same t=
+ime.
+
+Thanks,
+
+  -Ben
+
+> On Fri, 6 Apr 2012 16:08:12 -0400, Justin Piszcz wrote:
+>> Hello,
+>>
+>> Was curious why the max voltage does not show up properly for in4 (VDIMM)
+>> for this X7SPA-HF using lm sensors 3.3.1 or 3.3.2?
+>>
+>> On the sensor reading page for IPMI:
+>> VDIMM	Normal	1.84 Volts
+>
+> You should not mix IPMI with native Linux hardware monitoring driver.
+> There is no mutual exclusion on device access, and havoc can (and will)
+> happen.
+>
+>> This is with lm_sensors:
+>>
+>> --
+>>
+>> $ sensors
+>> w83627dhg-isa-0ca0
+>> Adapter: ISA adapter
+>> Vcore:        +1.16 V  (min =3D  +0.72 V, max =3D  +1.39 V)
+>> Vnbcore:      +1.04 V  (min =3D  +0.94 V, max =3D  +1.16 V)
+>> AVCC:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> +3.3V:        +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> VDIMM:        +1.84 V  (min =3D  +1.62 V, max =3D  +0.00 V)  ALARM
+>> +5V:          +1.25 V  (min =3D  +1.13 V, max =3D  +1.38 V)
+>> +12V:         +0.75 V  (min =3D  +0.67 V, max =3D  +0.83 V)
+>> 3VSB:         +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> Vbat:         +3.06 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+>> SYS Temp:     +42.0=B0C  (high =3D +75.0=B0C, hyst =3D +70.0=B0C)  senso=
+r =3D thermistor
+>> CPU Temp:     +40.5=B0C  (high =3D +90.0=B0C, hyst =3D +87.0=B0C)  senso=
+r =3D diode
+>> Case Temp:    +24.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  senso=
+r =3D diode
+>> $ sensors --version
+>> sensors version 3.3.1 with libsensors version 3.3.1
+>>
+>> lm_sensors-3.3.2$ prog/sensors/sensors --version
+>> sensors version 3.3.2 with libsensors version 3.3.1
+>>
+>> w83627dhg-isa-0ca0
+>> Adapter: ISA adapter
+>> Vcore:        +1.16 V  (min =3D  +0.72 V, max =3D  +1.39 V)
+>> Vnbcore:      +1.04 V  (min =3D  +0.94 V, max =3D  +1.16 V)
+>> AVCC:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> +3.3V:        +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> VDIMM:        +1.84 V  (min =3D  +1.62 V, max =3D  +0.00 V)  ALARM
+>> +5V:          +1.25 V  (min =3D  +1.13 V, max =3D  +1.38 V)
+>> +12V:         +0.75 V  (min =3D  +0.67 V, max =3D  +0.83 V)
+>> 3VSB:         +3.30 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+>> Vbat:         +3.06 V  (min =3D  +2.70 V, max =3D  +3.30 V)
+>> SYS Temp:     +42.0=B0C  (high =3D +75.0=B0C, hyst =3D +70.0=B0C)  senso=
+r =3D thermistor
+>> CPU Temp:     +40.5=B0C  (high =3D +90.0=B0C, hyst =3D +87.0=B0C)  senso=
+r =3D CPU diode
+>> Case Temp:    +24.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  senso=
+r =3D CPU diode
+>>
+>> --
+>>
+>> I also tried hardcoding in4_{min,max}:
+>>
+>> $ cat /etc/sensors3.conf
+>>
+>> chip "w83627ehf-*" "w83627dhg-*" "w83667hg-*" "nct6775-*" "nct6776-*"
+>>
+>>     label in0 "Vcore"
+>>     label in1 "Vnbcore"
+>>     label in2 "AVCC"
+>>     label in3 "+3.3V"
+>>     label in4 "VDIMM"
+>>     label in5 "+5V"
+>>     label in6 "+12V"
+>>     label in7 "3VSB"
+>>     label in8 "Vbat"
+>>     label temp1 "SYS Temp"
+>>     label temp2 "CPU Temp"
+>>     label temp3 "Case Temp"
+>>
+>>     set in2_min  3.3 * 0.90
+>>     set in2_max  3.3 * 1.10
+>>     set in3_min  3.3 * 0.90
+>>     set in3_max  3.3 * 1.10
+>> # http://lists.lm-sensors.org/pipermail/lm-sensors/2010-November/030368.=
+html
+>>     set in4_min  1.62
+>>     set in4_max  1.98
+>>     set in7_min  3.3 * 0.90
+>>     set in7_max  3.3 * 1.10
+>>     set in8_min  3.0 * 0.90
+>>     set in8_max  3.0 * 1.10
+>>
+>>     ignore fan1
+>>     ignore fan2
+>>     ignore fan3
+>>     ignore fan4
+>>     ignore fan5
+>>     ignore cpu0_vid
+>>     ignore intrusion0
+>
+> Did you run "sensors -s" after changing the configuration file?
+>
+> --
+> Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
