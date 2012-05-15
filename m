@@ -1,56 +1,26 @@
-From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Mon, 14 May 2012 21:21:37 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 15 May 2012 06:22:35 +0000
 Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (it87) Create voltage attributes only if voltage is enabled
-Message-Id: <C559C0E5-C41E-4C3E-B981-A3556465C34E@extracloud.de>
+Message-Id: <20120515082235.143e3e46@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1336530714-26615-2-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1336530714-26615-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-Am 11.05.2012 um 21:15 schrieb Bj=F6rn Gerhart:
-> Hi @ll,
->=20
-> Am 11.05.2012 um 15:38 schrieb Guenter Roeck:
->> On Fri, May 11, 2012 at 05:23:52AM -0400, Jean Delvare wrote:
->> [ ... ]
->>>=20
->>>>> So my personal guess is that this bit switches VIN7 to the internal
->>>>> source just as with the other chips.
->>>>>=20
->>>> Hmmm ... no idea what I should do. Play it safe or assume this is an e=
-rror
->>>> in the data sheet ? I tend towards playing safe, but not too much.
->>>> Guess I am waiting for someone to convince me otherwise...
->>>=20
->>> I would not skip VIN7 until we know more. People will never report
->>> about missing 5VSB monitoring, but they will report if 5VSB looks wrong.
->>>=20
->>> Do we have any tester for the IT8783F yet? What you could do for now is
->>=20
->> Bjoern Gerhart has been testing it quite extensively. I don't recall
->> what they do with VIN7, though.
->>=20
-> Yes, I have an IT8783F hw configuration with voltage in7 connected to 1.1=
-V nominal. I can give it a re-test with the latest patches applied on begin=
-ning of next week against kernel 2.6.32. Then I can also ask if my hw colle=
-agues have an idea about the pin 91 mystery.
->=20
-In our design, the IT8783F's Pin 91 is defined as VIN7, and likewise bit2 o=
-f index 0x2C is 1.
-As I'm not yet used to git: which would be the easiest way to get the it87 =
-with all patches integrated for kernel 2.6.32 for testing purposes? On your=
- github site, I didn't find the appropriate entry for the patches you sent.=
-..
-
-Bj=F6rn
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAxNCBNYXkgMjAxMiAyMzoyMTozNyArMDIwMCwgQmrDtnJuIEdlcmhhcnQgd3JvdGU6
+Cj4gSW4gb3VyIGRlc2lnbiwgdGhlIElUODc4M0YncyBQaW4gOTEgaXMgZGVmaW5lZCBhcyBWSU43
+LCBhbmQgbGlrZXdpc2UgYml0MiBvZiBpbmRleCAweDJDIGlzIDEuCgpXaGF0IGFib3V0IGJpdCAx
+IG9mIHJlZ2lzdGVyIDB4MkMgYW5kIGJpdCAyIG9mIHJlZ2lzdGVyIDB4Mjc/Cgo+IEFzIEknbSBu
+b3QgeWV0IHVzZWQgdG8gZ2l0OiB3aGljaCB3b3VsZCBiZSB0aGUgZWFzaWVzdCB3YXkgdG8gZ2V0
+IHRoZSBpdDg3IHdpdGggYWxsIHBhdGNoZXMgaW50ZWdyYXRlZCBmb3Iga2VybmVsIDIuNi4zMiBm
+b3IgdGVzdGluZyBwdXJwb3Nlcz8gT24geW91ciBnaXRodWIgc2l0ZSwgSSBkaWRuJ3QgZmluZCB0
+aGUgYXBwcm9wcmlhdGUgZW50cnkgZm9yIHRoZSBwYXRjaGVzIHlvdSBzZW50Li4uCgpTdGFuZGFs
+b25lIGRyaXZlciBpcyBhdDoKaHR0cDovL2toYWxpLmxpbnV4LWZyLm9yZy9kZXZlbC9taXNjL2l0
+ODcvCgpJbnN0cnVjdGlvbnMgYXQ6Cmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvZGV2ZWwvbWlz
+Yy9JTlNUQUxMCgotLSAKSmVhbiBEZWx2YXJlCmh0dHA6Ly9raGFsaS5saW51eC1mci5vcmcvd2lz
+aGxpc3QuaHRtbAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
