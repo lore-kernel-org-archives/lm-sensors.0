@@ -1,85 +1,68 @@
-From: ACCART Julien <bigjulius@free.fr>
-Date: Tue, 15 May 2012 19:20:42 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 15 May 2012 19:32:57 +0000
 Subject: Re: [lm-sensors] asus_atk0110 doesn't work on motherboard P8B WS
-Message-Id: <4FB2AC8A.9060505@free.fr>
+Message-Id: <1337110377.22553.258.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4FAAF8EA.3070202@free.fr>
 In-Reply-To: <4FAAF8EA.3070202@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le 14/05/2012 20:57, Jean Delvare a =E9crit :
-> On Mon, 14 May 2012 20:44:08 +0200, ACCART Julien wrote:
->> The BIOS of this motherboard can display CPU and M/B temp, voltage, fan
->> speed.
->> Do you think we can use the asus wmi modules to read these data?
->> How can I help?
-> Did you try just running sensors-detect and loading the proper drivers?
-> Who knows, this may just work. If not, booting with
-> acpi_enforce_resources=3Dlax might be a workaround if you can live with
-> the risk.
->
-
-Yes I did.
-In kernel 3, loading the w83627ehf fails because of conflicts with ACPI.=20
-I tried the acp_enforce_resources=3Dlax but I had freezes. It is useless=20
-to have the module loading ability if system freezes
-
-So, I'm back to 2.6.39 which lets me load w83627ehf module.
-
-I wanted the atk (or wmi) because of two reasons :
-1 - w83627ehf doesn't work with kernel 3 and lax acpi resource freezes=20
-my system as I said
-2 - mesures with atk or wmi are reliable but are messed up with=20
-w83627ehf module
-For example :
-
-$ sensors
-coretemp-isa-0000
-Adapter: ISA adapter
-Core 0:      +33.0 C  (high =3D +82.0 C, crit =3D +102.0 C)
-
-coretemp-isa-0001
-Adapter: ISA adapter
-Core 1:      +29.0 C  (high =3D +82.0 C, crit =3D +102.0 C)
-
-nct6776-isa-0290
-Adapter: ISA adapter
-in0:          +0.90 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-in1:          +1.00 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-in2:          +3.38 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-in3:          +3.38 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-in4:          +1.01 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-in5:          +2.04 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-in7:          +3.41 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-in8:          +3.33 V  (min =3D  +0.00 V, max =3D  +0.00 V)   ALARM
-fan1:         967 RPM  (min =3D    0 RPM)  ALARM
-fan2:        1045 RPM  (min =3D    0 RPM)  ALARM
-fan3:           0 RPM  (min =3D    0 RPM)  ALARM
-fan4:        1086 RPM  (min =3D    0 RPM)  ALARM
-fan5:           0 RPM  (min =3D    0 RPM)  ALARM
-SYSTIN:       +29.0 C  (high =3D  +0.0 C, hyst =3D  +0.0 C)  ALARM  sensor =
-=3D=20
-thermistor
-CPUTIN:       +91.5 C  (high =3D +58.5 C, hyst =3D +53.5 C)  ALARM  sensor =
-=3D=20
-thermistor
-AUXTIN:       +26.0 C  (high =3D +80.0 C, hyst =3D +75.0 C)  sensor =3D the=
-rmistor
-PECI Agent 0: +19.5 C
-cpu0_vid:    +2.050 V
-
-
-Coretemp says 30 C  while w83627ehf says 91.5.
-min and max are not set in both temp, voltage and RPM.
-
---=20
-Julien
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCAyMDEyLTA1LTE1IGF0IDE1OjIwIC0wNDAwLCBBQ0NBUlQgSnVsaWVuIHdyb3RlOgo+
+IExlIDE0LzA1LzIwMTIgMjA6NTcsIEplYW4gRGVsdmFyZSBhIMOpY3JpdCA6Cj4gPiBPbiBNb24s
+IDE0IE1heSAyMDEyIDIwOjQ0OjA4ICswMjAwLCBBQ0NBUlQgSnVsaWVuIHdyb3RlOgo+ID4+IFRo
+ZSBCSU9TIG9mIHRoaXMgbW90aGVyYm9hcmQgY2FuIGRpc3BsYXkgQ1BVIGFuZCBNL0IgdGVtcCwg
+dm9sdGFnZSwgZmFuCj4gPj4gc3BlZWQuCj4gPj4gRG8geW91IHRoaW5rIHdlIGNhbiB1c2UgdGhl
+IGFzdXMgd21pIG1vZHVsZXMgdG8gcmVhZCB0aGVzZSBkYXRhPwo+ID4+IEhvdyBjYW4gSSBoZWxw
+Pwo+ID4gRGlkIHlvdSB0cnkganVzdCBydW5uaW5nIHNlbnNvcnMtZGV0ZWN0IGFuZCBsb2FkaW5n
+IHRoZSBwcm9wZXIgZHJpdmVycz8KPiA+IFdobyBrbm93cywgdGhpcyBtYXkganVzdCB3b3JrLiBJ
+ZiBub3QsIGJvb3Rpbmcgd2l0aAo+ID4gYWNwaV9lbmZvcmNlX3Jlc291cmNlcz1sYXggbWlnaHQg
+YmUgYSB3b3JrYXJvdW5kIGlmIHlvdSBjYW4gbGl2ZSB3aXRoCj4gPiB0aGUgcmlzay4KPiA+Cj4g
+Cj4gWWVzIEkgZGlkLgo+IEluIGtlcm5lbCAzLCBsb2FkaW5nIHRoZSB3ODM2MjdlaGYgZmFpbHMg
+YmVjYXVzZSBvZiBjb25mbGljdHMgd2l0aCBBQ1BJLiAKPiBJIHRyaWVkIHRoZSBhY3BfZW5mb3Jj
+ZV9yZXNvdXJjZXM9bGF4IGJ1dCBJIGhhZCBmcmVlemVzLiBJdCBpcyB1c2VsZXNzIAo+IHRvIGhh
+dmUgdGhlIG1vZHVsZSBsb2FkaW5nIGFiaWxpdHkgaWYgc3lzdGVtIGZyZWV6ZXMKPiAKPiBTbywg
+SSdtIGJhY2sgdG8gMi42LjM5IHdoaWNoIGxldHMgbWUgbG9hZCB3ODM2MjdlaGYgbW9kdWxlLgo+
+IAo+IEkgd2FudGVkIHRoZSBhdGsgKG9yIHdtaSkgYmVjYXVzZSBvZiB0d28gcmVhc29ucyA6Cj4g
+MSAtIHc4MzYyN2VoZiBkb2Vzbid0IHdvcmsgd2l0aCBrZXJuZWwgMyBhbmQgbGF4IGFjcGkgcmVz
+b3VyY2UgZnJlZXplcyAKPiBteSBzeXN0ZW0gYXMgSSBzYWlkCj4gMiAtIG1lc3VyZXMgd2l0aCBh
+dGsgb3Igd21pIGFyZSByZWxpYWJsZSBidXQgYXJlIG1lc3NlZCB1cCB3aXRoIAo+IHc4MzYyN2Vo
+ZiBtb2R1bGUKPiBGb3IgZXhhbXBsZSA6Cj4gCj4gJCBzZW5zb3JzCj4gY29yZXRlbXAtaXNhLTAw
+MDAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IENvcmUgMDogICAgICArMzMuMCBDICAoaGlnaCA9
+ICs4Mi4wIEMsIGNyaXQgPSArMTAyLjAgQykKPiAKPiBjb3JldGVtcC1pc2EtMDAwMQo+IEFkYXB0
+ZXI6IElTQSBhZGFwdGVyCj4gQ29yZSAxOiAgICAgICsyOS4wIEMgIChoaWdoID0gKzgyLjAgQywg
+Y3JpdCA9ICsxMDIuMCBDKQo+IAo+IG5jdDY3NzYtaXNhLTAyOTAKPiBBZGFwdGVyOiBJU0EgYWRh
+cHRlcgo+IGluMDogICAgICAgICAgKzAuOTAgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEu
+NzQgVikKPiBpbjE6ICAgICAgICAgICsxLjAwIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsw
+LjAwIFYpICAgQUxBUk0KPiBpbjI6ICAgICAgICAgICszLjM4IFYgIChtaW4gPSAgKzAuMDAgViwg
+bWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjM6ICAgICAgICAgICszLjM4IFYgIChtaW4gPSAg
+KzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjQ6ICAgICAgICAgICsxLjAxIFYg
+IChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjU6ICAgICAgICAg
+ICsyLjA0IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjc6
+ICAgICAgICAgICszLjQxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxB
+Uk0KPiBpbjg6ICAgICAgICAgICszLjMzIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAw
+IFYpICAgQUxBUk0KPiBmYW4xOiAgICAgICAgIDk2NyBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFM
+QVJNCj4gZmFuMjogICAgICAgIDEwNDUgUlBNICAobWluID0gICAgMCBSUE0pICBBTEFSTQo+IGZh
+bjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKSAgQUxBUk0KPiBmYW40OiAgICAg
+ICAgMTA4NiBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCj4gZmFuNTogICAgICAgICAgIDAg
+UlBNICAobWluID0gICAgMCBSUE0pICBBTEFSTQo+IFNZU1RJTjogICAgICAgKzI5LjAgQyAgKGhp
+Z2ggPSAgKzAuMCBDLCBoeXN0ID0gICswLjAgQykgIEFMQVJNICBzZW5zb3IgPSAKPiB0aGVybWlz
+dG9yCj4gQ1BVVElOOiAgICAgICArOTEuNSBDICAoaGlnaCA9ICs1OC41IEMsIGh5c3QgPSArNTMu
+NSBDKSAgQUxBUk0gIHNlbnNvciA9IAo+IHRoZXJtaXN0b3IKPiBBVVhUSU46ICAgICAgICsyNi4w
+IEMgIChoaWdoID0gKzgwLjAgQywgaHlzdCA9ICs3NS4wIEMpICBzZW5zb3IgPSB0aGVybWlzdG9y
+Cj4gUEVDSSBBZ2VudCAwOiArMTkuNSBDCj4gY3B1MF92aWQ6ICAgICsyLjA1MCBWCj4gCj4gCj4g
+Q29yZXRlbXAgc2F5cyAzMCBDICB3aGlsZSB3ODM2MjdlaGYgc2F5cyA5MS41Lgo+IG1pbiBhbmQg
+bWF4IGFyZSBub3Qgc2V0IGluIGJvdGggdGVtcCwgdm9sdGFnZSBhbmQgUlBNLgo+IApDUFVUSU4g
+aXMgbW9zdCBsaWtlbHkgbm90IGNvbm5lY3RlZCBhdCBhbGwuIFRoZSBDUFUgdGVtcGVyYXR1cmUg
+aXMKcmVwb3J0ZWQgYnkgUEVDSSBBZ2VudCAwLCBidXQgdGhlIGJhc2UgdGVtcGVyYXR1cmUgaXMg
+bm90IGNvbmZpZ3VyZWQKY29ycmVjdGx5IGluIHRoZSBCSU9TIGFuZCB0aHVzIGFib3V0IDEwIGRl
+Z3JlZXMgb2ZmLiBJIGhhdmUgc2VlbiB0aGlzIG9uCm90aGVyIEFzdXMgYm9hcmRzLgoKWW91IGNv
+dWxkIHRyeSB0byBsb2FkIHRoZSBleHBlcmltZW50YWwgZHJpdmVyIGZyb20KaHR0cHM6Ly9naXRo
+dWIuY29tL2dyb2Vjay9uY3Q2Nzc1OyBpdCB3aWxsIGxldCB5b3UgY29uZmlndXJlIHRoZSBsaW1p
+dAp0ZW1wZXJhdHVyZSBmb3IgdGhlIFBFQ0kgaW5wdXQuIFVuZm9ydHVuYXRlbHksIHRoYXQgZHJp
+dmVyIG1heSBhbHNvCmV4cGVyaWVuY2UgdGhlIGZyZWV6ZSBpc3N1ZS4KCkd1ZW50ZXIKCgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
+YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
+c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
