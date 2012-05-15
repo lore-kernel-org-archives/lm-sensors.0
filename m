@@ -1,34 +1,33 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 15 May 2012 18:21:40 +0000
+From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
+Date: Tue, 15 May 2012 18:49:17 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Drop uart6 condition for vin5&vin6 for IT8783F
-Message-Id: <20120515202140.29907ed2@endymion.delvare>
+Message-Id: <271EF141-35A9-48E9-88A2-05EA43073BBC@extracloud.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
 In-Reply-To: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gVHVlLCAxNSBNYXkgMjAxMiAxOToyNTowMyArMDIwMCwgQmrDtnJuIEdlcmhhcnQgd3JvdGU6
-Cj4gRnJvbTogQmpvZXJuIEdlcmhhcnQgPG9zc0BleHRyYWNsb3VkLmRlPgo+IAo+IERyb3AgVUFS
-VDYgY29uZGl0aW9uIGZvciBJVDg3ODNGIHJlbGF0ZWQgdG8gVklONSBhbmQgVklONi4KPiBJbiBj
-YXNlIFVBUlQ2IGlzIHJvdXRlZCB2aWEgSlA0IHRvIGEgZGlmZmVyZW50IHNldCBvZiBwaW5zLAo+
-IFZJTjUgYW5kIFZJTjYgY2FuIGJlIHVzZWQgYXQgdGhlIHNhbWUgdGltZS4KPiAKPiBkaWZmIC1O
-YXVyIGEvZHJpdmVycy9od21vbi9pdDg3LmMgYi9kcml2ZXJzL2h3bW9uL2l0ODcuYwo+IC0tLSBh
-L2RyaXZlcnMvaHdtb24vaXQ4Ny5jCTIwMTItMDUtMTUgMTY6NTM6MDcuMTU2MDYxMDU5ICswMjAw
-Cj4gKysrIGIvZHJpdmVycy9od21vbi9pdDg3LmMJMjAxMi0wNS0xNSAxNzoxOTozMS43MTcwNjE4
-NzUgKzAyMDAKPiBAQCAtMTgwNiwxMSArMTgwNiwxMSBAQAo+ICAJCQlzaW9fZGF0YS0+c2tpcF9w
-d20gfD0gKDEgPDwgMSk7Cj4gIAo+ICAJCS8qIFZJTjUgKi8KPiAtCQlpZiAoKHJlZzI3ICYgKDEg
-PDwgMCkpIHx8IHVhcnQ2KQo+ICsJCWlmIChyZWcyNyAmICgxIDw8IDApKQo+ICAJCQlzaW9fZGF0
-YS0+c2tpcF9pbiB8PSAoMSA8PCA1KTsgLyogTm8gVklONSAqLwo+ICAKPiAgCQkvKiBWSU42ICov
-Cj4gLQkJaWYgKChyZWcyNyAmICgxIDw8IDEpKSB8fCB1YXJ0NikKPiArCQlpZiAocmVnMjcgJiAo
-MSA8PCAxKSkKPiAgCQkJc2lvX2RhdGEtPnNraXBfaW4gfD0gKDEgPDwgNik7IC8qIE5vIFZJTjYg
-Ki8KPiAgCj4gIAkJLyoKPiAKCldoYXQgYWJvdXQgRkFOM19UQUM/IEFzIEkgcmVhZCB0aGUgZGF0
-YXNoZWV0LCBpdCBpcyBhbHNvICJmcmVlZCIgaWYKVUFSVDYgaXMgbW92ZWQgdG8gcGlucyAxMDAt
-MTA2LiBTbyBJIHN1c3BlY3Qgd2UgZG9uJ3Qgd2FudCB0byBjaGVjayBmb3IKdWFydDYgYXQgYWxs
-IGZvciB0aGUgSVQ4NzgzRi4KClRoaXMgYWxsIHdvdWxkIGJldHRlciBiZSBkb25lIGRpcmVjdGx5
-IGluIEd1ZW50ZXIncyBwYXRjaCwgQlRXLCBhcyBpdAppc24ndCB1cHN0cmVhbSB5ZXQuCgotLSAK
-SmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0
-dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Hi Jean,
+
+> What about FAN3_TAC? As I read the datasheet, it is also "freed" if
+> UART6 is moved to pins 100-106. So I suspect we don't want to check for
+> uart6 at all for the IT8783F.
+>=20
+Yes you're right, following the same logic FAN_TAC3 should get freed likewi=
+se.
+
+> This all would better be done directly in Guenter's patch, BTW, as it
+> isn't upstream yet.
+>=20
+agreed from my side   ;-)
+
+Bj=F6rn
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
