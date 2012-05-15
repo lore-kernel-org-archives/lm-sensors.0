@@ -1,68 +1,336 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Tue, 15 May 2012 19:32:57 +0000
-Subject: Re: [lm-sensors] asus_atk0110 doesn't work on motherboard P8B WS
-Message-Id: <1337110377.22553.258.camel@groeck-laptop>
+From: Jenny TC <jenny.tc@intel.com>
+Date: Tue, 15 May 2012 09:00:51 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Generic ADC support for hwmon
+Message-Id: <1337092008-31263-1-git-send-email-jenny.tc@intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FAAF8EA.3070202@free.fr>
-In-Reply-To: <4FAAF8EA.3070202@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: khali@linux-fr.org, guenter.roeck@ericsson.com
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jenny TC <jenny.tc@intel.com>
 
-T24gVHVlLCAyMDEyLTA1LTE1IGF0IDE1OjIwIC0wNDAwLCBBQ0NBUlQgSnVsaWVuIHdyb3RlOgo+
-IExlIDE0LzA1LzIwMTIgMjA6NTcsIEplYW4gRGVsdmFyZSBhIMOpY3JpdCA6Cj4gPiBPbiBNb24s
-IDE0IE1heSAyMDEyIDIwOjQ0OjA4ICswMjAwLCBBQ0NBUlQgSnVsaWVuIHdyb3RlOgo+ID4+IFRo
-ZSBCSU9TIG9mIHRoaXMgbW90aGVyYm9hcmQgY2FuIGRpc3BsYXkgQ1BVIGFuZCBNL0IgdGVtcCwg
-dm9sdGFnZSwgZmFuCj4gPj4gc3BlZWQuCj4gPj4gRG8geW91IHRoaW5rIHdlIGNhbiB1c2UgdGhl
-IGFzdXMgd21pIG1vZHVsZXMgdG8gcmVhZCB0aGVzZSBkYXRhPwo+ID4+IEhvdyBjYW4gSSBoZWxw
-Pwo+ID4gRGlkIHlvdSB0cnkganVzdCBydW5uaW5nIHNlbnNvcnMtZGV0ZWN0IGFuZCBsb2FkaW5n
-IHRoZSBwcm9wZXIgZHJpdmVycz8KPiA+IFdobyBrbm93cywgdGhpcyBtYXkganVzdCB3b3JrLiBJ
-ZiBub3QsIGJvb3Rpbmcgd2l0aAo+ID4gYWNwaV9lbmZvcmNlX3Jlc291cmNlcz1sYXggbWlnaHQg
-YmUgYSB3b3JrYXJvdW5kIGlmIHlvdSBjYW4gbGl2ZSB3aXRoCj4gPiB0aGUgcmlzay4KPiA+Cj4g
-Cj4gWWVzIEkgZGlkLgo+IEluIGtlcm5lbCAzLCBsb2FkaW5nIHRoZSB3ODM2MjdlaGYgZmFpbHMg
-YmVjYXVzZSBvZiBjb25mbGljdHMgd2l0aCBBQ1BJLiAKPiBJIHRyaWVkIHRoZSBhY3BfZW5mb3Jj
-ZV9yZXNvdXJjZXM9bGF4IGJ1dCBJIGhhZCBmcmVlemVzLiBJdCBpcyB1c2VsZXNzIAo+IHRvIGhh
-dmUgdGhlIG1vZHVsZSBsb2FkaW5nIGFiaWxpdHkgaWYgc3lzdGVtIGZyZWV6ZXMKPiAKPiBTbywg
-SSdtIGJhY2sgdG8gMi42LjM5IHdoaWNoIGxldHMgbWUgbG9hZCB3ODM2MjdlaGYgbW9kdWxlLgo+
-IAo+IEkgd2FudGVkIHRoZSBhdGsgKG9yIHdtaSkgYmVjYXVzZSBvZiB0d28gcmVhc29ucyA6Cj4g
-MSAtIHc4MzYyN2VoZiBkb2Vzbid0IHdvcmsgd2l0aCBrZXJuZWwgMyBhbmQgbGF4IGFjcGkgcmVz
-b3VyY2UgZnJlZXplcyAKPiBteSBzeXN0ZW0gYXMgSSBzYWlkCj4gMiAtIG1lc3VyZXMgd2l0aCBh
-dGsgb3Igd21pIGFyZSByZWxpYWJsZSBidXQgYXJlIG1lc3NlZCB1cCB3aXRoIAo+IHc4MzYyN2Vo
-ZiBtb2R1bGUKPiBGb3IgZXhhbXBsZSA6Cj4gCj4gJCBzZW5zb3JzCj4gY29yZXRlbXAtaXNhLTAw
-MDAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IENvcmUgMDogICAgICArMzMuMCBDICAoaGlnaCA9
-ICs4Mi4wIEMsIGNyaXQgPSArMTAyLjAgQykKPiAKPiBjb3JldGVtcC1pc2EtMDAwMQo+IEFkYXB0
-ZXI6IElTQSBhZGFwdGVyCj4gQ29yZSAxOiAgICAgICsyOS4wIEMgIChoaWdoID0gKzgyLjAgQywg
-Y3JpdCA9ICsxMDIuMCBDKQo+IAo+IG5jdDY3NzYtaXNhLTAyOTAKPiBBZGFwdGVyOiBJU0EgYWRh
-cHRlcgo+IGluMDogICAgICAgICAgKzAuOTAgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEu
-NzQgVikKPiBpbjE6ICAgICAgICAgICsxLjAwIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICsw
-LjAwIFYpICAgQUxBUk0KPiBpbjI6ICAgICAgICAgICszLjM4IFYgIChtaW4gPSAgKzAuMDAgViwg
-bWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjM6ICAgICAgICAgICszLjM4IFYgIChtaW4gPSAg
-KzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjQ6ICAgICAgICAgICsxLjAxIFYg
-IChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjU6ICAgICAgICAg
-ICsyLjA0IFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxBUk0KPiBpbjc6
-ICAgICAgICAgICszLjQxIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAwIFYpICAgQUxB
-Uk0KPiBpbjg6ICAgICAgICAgICszLjMzIFYgIChtaW4gPSAgKzAuMDAgViwgbWF4ID0gICswLjAw
-IFYpICAgQUxBUk0KPiBmYW4xOiAgICAgICAgIDk2NyBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFM
-QVJNCj4gZmFuMjogICAgICAgIDEwNDUgUlBNICAobWluID0gICAgMCBSUE0pICBBTEFSTQo+IGZh
-bjM6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKSAgQUxBUk0KPiBmYW40OiAgICAg
-ICAgMTA4NiBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCj4gZmFuNTogICAgICAgICAgIDAg
-UlBNICAobWluID0gICAgMCBSUE0pICBBTEFSTQo+IFNZU1RJTjogICAgICAgKzI5LjAgQyAgKGhp
-Z2ggPSAgKzAuMCBDLCBoeXN0ID0gICswLjAgQykgIEFMQVJNICBzZW5zb3IgPSAKPiB0aGVybWlz
-dG9yCj4gQ1BVVElOOiAgICAgICArOTEuNSBDICAoaGlnaCA9ICs1OC41IEMsIGh5c3QgPSArNTMu
-NSBDKSAgQUxBUk0gIHNlbnNvciA9IAo+IHRoZXJtaXN0b3IKPiBBVVhUSU46ICAgICAgICsyNi4w
-IEMgIChoaWdoID0gKzgwLjAgQywgaHlzdCA9ICs3NS4wIEMpICBzZW5zb3IgPSB0aGVybWlzdG9y
-Cj4gUEVDSSBBZ2VudCAwOiArMTkuNSBDCj4gY3B1MF92aWQ6ICAgICsyLjA1MCBWCj4gCj4gCj4g
-Q29yZXRlbXAgc2F5cyAzMCBDICB3aGlsZSB3ODM2MjdlaGYgc2F5cyA5MS41Lgo+IG1pbiBhbmQg
-bWF4IGFyZSBub3Qgc2V0IGluIGJvdGggdGVtcCwgdm9sdGFnZSBhbmQgUlBNLgo+IApDUFVUSU4g
-aXMgbW9zdCBsaWtlbHkgbm90IGNvbm5lY3RlZCBhdCBhbGwuIFRoZSBDUFUgdGVtcGVyYXR1cmUg
-aXMKcmVwb3J0ZWQgYnkgUEVDSSBBZ2VudCAwLCBidXQgdGhlIGJhc2UgdGVtcGVyYXR1cmUgaXMg
-bm90IGNvbmZpZ3VyZWQKY29ycmVjdGx5IGluIHRoZSBCSU9TIGFuZCB0aHVzIGFib3V0IDEwIGRl
-Z3JlZXMgb2ZmLiBJIGhhdmUgc2VlbiB0aGlzIG9uCm90aGVyIEFzdXMgYm9hcmRzLgoKWW91IGNv
-dWxkIHRyeSB0byBsb2FkIHRoZSBleHBlcmltZW50YWwgZHJpdmVyIGZyb20KaHR0cHM6Ly9naXRo
-dWIuY29tL2dyb2Vjay9uY3Q2Nzc1OyBpdCB3aWxsIGxldCB5b3UgY29uZmlndXJlIHRoZSBsaW1p
-dAp0ZW1wZXJhdHVyZSBmb3IgdGhlIFBFQ0kgaW5wdXQuIFVuZm9ydHVuYXRlbHksIHRoYXQgZHJp
-dmVyIG1heSBhbHNvCmV4cGVyaWVuY2UgdGhlIGZyZWV6ZSBpc3N1ZS4KCkd1ZW50ZXIKCgoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
-YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
-c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Currently drivers are using custom APIs to communicate with ADC driver.
+So it make sense to have generic APIs to commnicate with ADC drivers.
+This patch introduces generic APIs to communicate with ADC drivers.
+
+Signed-off-by: Jenny TC <jenny.tc@intel.com>
+---
+ drivers/hwmon/Kconfig     |    9 ++
+ drivers/hwmon/Makefile    |    1 +
+ drivers/hwmon/hwmon-adc.c |  212 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/hwmon-adc.h |   47 ++++++++++
+ 4 files changed, 269 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hwmon/hwmon-adc.c
+ create mode 100644 include/linux/hwmon-adc.h
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 8deedc1..203ed9d 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -37,6 +37,15 @@ config HWMON_DEBUG_CHIP
+ 	  a problem with I2C support and want to see more of what is going
+ 	  on.
+ 
++config HWMON_ADC
++	bool "Hardware Monitoring Generic ADC support"
++	default n
++	help
++	  Say Y here if you want the generic ADC support for Hardware Monitoring
++	  Subsystem. Select this to enable the generic ADC driver APIs.
++	  This enables a set of APIs to register an ADC device with hwmon
++	  subsystem along with generic APIs to communicate with ADC driver
++
+ comment "Native drivers"
+ 
+ config SENSORS_ABITUGURU
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 6d3f11f..d91450f 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -4,6 +4,7 @@
+ 
+ obj-$(CONFIG_HWMON)		+= hwmon.o
+ obj-$(CONFIG_HWMON_VID)		+= hwmon-vid.o
++obj-$(CONFIG_HWMON_ADC)		+= hwmon-adc.o
+ 
+ # APCI drivers
+ obj-$(CONFIG_SENSORS_ACPI_POWER) += acpi_power_meter.o
+diff --git a/drivers/hwmon/hwmon-adc.c b/drivers/hwmon/hwmon-adc.c
+new file mode 100644
+index 0000000..53c910e
+--- /dev/null
++++ b/drivers/hwmon/hwmon-adc.c
+@@ -0,0 +1,212 @@
++/*
++ *  hwmon-adc.c - Generic adc support for hardware monitoring  subsystem.
++ *
++ *  Copyright (C) 2012 Intel Corp
++ *
++ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ * Author : Jenny TC <jenny.tc@intel.com>
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-adc.h>
++
++LIST_HEAD(adc_lst);
++DEFINE_MUTEX(list_lock);
++
++struct hwmon_adc {
++	struct device *hwdev;
++	struct hwmon_adc_ops *adc_ops;
++	struct list_head list;
++};
++
++/**
++ * hwmon_adc_device_register - register adc device w/ hwmon
++ * @dev: the device to register
++ *
++ * hwmon_adc_device_unregister() must be called when the device is no
++ * longer needed.
++ *
++ * Returns the pointer to the new device.
++ */
++struct device *hwmon_adc_device_register(struct device *dev,
++					 struct hwmon_adc_ops *adc_ops)
++{
++	struct hwmon_adc *adc_node;
++	struct device *hwdev;
++
++	hwdev = hwmon_device_register(dev);
++	if (IS_ERR(hwdev))
++		return hwdev;
++
++	adc_node = kzalloc(sizeof(struct hwmon_adc), GFP_ATOMIC);
++	adc_node->hwdev = hwdev;
++	adc_node->adc_ops = adc_ops;
++	mutex_lock(&list_lock);
++	list_add(&adc_node->list, &adc_lst);
++	mutex_unlock(&list_lock);
++
++	return hwdev;
++}
++EXPORT_SYMBOL(hwmon_adc_device_register);
++
++/**
++ * hwmon_adc_device_unregister - removes the previously registered hwmon class device
++ *
++ * @dev: the class device to destroy
++ */
++void hwmon_adc_device_unregister(struct device *hwdev)
++{
++
++	struct list_head *p, *n;
++	struct hwmon_adc *tmp;
++
++	mutex_lock(&list_lock);
++	list_for_each_safe(p, n, &adc_lst) {
++		tmp = list_entry(p, struct hwmon_adc, list);
++		if (tmp->hwdev = hwdev) {
++			hwmon_device_unregister(hwdev);
++			list_del(&tmp->list);
++			kfree(tmp);
++			break;
++		}
++	}
++	mutex_unlock(&list_lock);
++}
++EXPORT_SYMBOL(hwmon_adc_device_unregister);
++
++static struct hwmon_adc_ops *__get_ops_byname(char *name)
++{
++	struct list_head *l;
++	struct hwmon_adc *tmp;
++	struct hwmon_adc_ops *ops = NULL;
++
++	mutex_lock(&list_lock);
++	list_for_each(l, &adc_lst) {
++		tmp = list_entry(l, struct hwmon_adc, list);
++		if (!strcmp(dev_driver_string(tmp->hwdev->parent), name)) {
++			ops =  tmp->adc_ops;
++			break;
++		}
++	}
++	mutex_unlock(&list_lock);
++	return ops;
++}
++
++/**
++ * hwmon_adc_read_adc_channel - read an ADC channel
++ * @adc_name : adc device name
++ * @channel  : channel to read
++ * @adc_val  : pointer to store adc value
++ *
++ * Returns the return value from read_adc callback function on success
++ * else return -ENODEV
++ */
++int hwmon_adc_read_channel(char *adc_name, int channel, unsigned int *adc_val)
++{
++	struct hwmon_adc_ops *adc_ops;
++
++	adc_ops = __get_ops_byname(adc_name);
++
++	if (adc_ops && adc_ops->read_adc)
++		return adc_ops->read_adc(channel, adc_val);
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL(hwmon_adc_read_channel);
++
++/**
++ * hwmon_adc_read_adc_channel - read multiple ADC channels
++ * @adc_name : adc device name
++ * @channel  : channels to read
++ * @adc_val  : pointer to store adc values
++ * @count    : number of channels to read
++ *
++ * Returns the return value from read_adc_multi callback function on success
++ * else return -ENODEV
++ */
++int hwmon_adc_read_channel_multi(char *adc_name, int *channel,
++		unsigned int *adc_val, int count)
++{
++	struct hwmon_adc_ops *adc_ops;
++
++	adc_ops = __get_ops_byname(adc_name);
++
++	if (adc_ops && adc_ops->read_adc_multi)
++		return adc_ops->read_adc_multi(channel, adc_val, count);
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL(hwmon_adc_read_channel_multi);
++
++/**
++ * hwmon_adc_convert_channel - convert raw ADC value
++ * to voltage/current/temperature etc.
++ *
++ * @adc_name : adc device name
++ * @channel  : channel to convert
++ * @adc_val  : adc value to convert
++ * @cvtd_val : pointer to store converted value
++ *
++ * Returns the return value from convert_adcval callback function on success
++ * else return -ENODEV
++ */
++int hwmon_adc_convert_adcval(char *adc_name, int channel, unsigned int adc_val,
++		      int *cvtd_val)
++{
++	struct hwmon_adc_ops *adc_ops;
++
++	adc_ops = __get_ops_byname(adc_name);
++
++	if (adc_ops && adc_ops->convert_adcval)
++		return adc_ops->convert_adcval(channel, adc_val, cvtd_val);
++
++	return -ENODEV;
++
++}
++EXPORT_SYMBOL(hwmon_adc_convert_adcval);
++
++/**
++ * hwmon_adc_convert_channel - convert raw ADC value
++ * to voltage/current/temperature etc.
++ *
++ * @adc_name : adc device name
++ * @channel  : channels to convert
++ * @adc_val  : adc values to convert
++ * @cvtd_val : pointer to store converted values
++ * @count    : number of channels to convert
++ *
++ * Returns the return value from convert_adcval_multi callback function on
++ * success else return -ENODEV
++ */
++int hwmon_adc_convert_adcval_multi(char *adc_name, int *channel,
++		unsigned int *adc_val, int *cvtd_val, int count)
++{
++
++	struct hwmon_adc_ops *adc_ops;
++
++	adc_ops = __get_ops_byname(adc_name);
++
++	if (adc_ops && adc_ops->convert_adcval_multi)
++		return adc_ops->convert_adcval_multi(channel, adc_val, cvtd_val,
++						     count);
++	return -ENODEV;
++}
++EXPORT_SYMBOL(hwmon_adc_convert_adcval_multi);
+diff --git a/include/linux/hwmon-adc.h b/include/linux/hwmon-adc.h
+new file mode 100644
+index 0000000..c4e9fc0
+--- /dev/null
++++ b/include/linux/hwmon-adc.h
+@@ -0,0 +1,47 @@
++/*
++ *  hwmon-adc.h - Header file for hardware monitoring generic adc support.
++ *
++ *  This file declares helper functions for generic adc support for hardware
++ *  monitoring subsystem.
++ *
++ *  Copyright (C) 2012 Intel Corp
++ *
++ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful, but
++ *  WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License along
++ *  with this program; if not, write to the Free Software Foundation, Inc.,
++ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
++ *
++ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++ * Author : Jenny TC <jenny.tc@intel.com>
++ */
++#ifndef _LINUX_HWMON_ADC_H
++#define _LINUX_HWMON_ADC_H
++struct hwmon_adc_ops {
++	int (*read_adc) (int channel, unsigned int *adc_val);
++	int (*read_adc_multi) (int *channel, unsigned int *adc_val, int count);
++	int (*convert_adcval) (int channel, unsigned int adc_val,
++					int *cvtd_val);
++	int (*convert_adcval_multi) (int *channel, unsigned int *adc_val,
++			int *cvtd_val, int count);
++};
++struct device *hwmon_adc_device_register(struct device *dev,
++		struct hwmon_adc_ops *adc_ops);
++void hwmon_adc_device_unregister(struct device *dev);
++int hwmon_adc_read_channel(char *adc_name, int channel, unsigned int *adc_val);
++int hwmon_adc_read_channel_multi(char *adc_name, int *channel,
++			unsigned int *adc_val, int count);
++int hwmon_adc_convert_adcval(char *adc_name, int channel, unsigned int adc_val,
++			int *cvtd_val);
++int hwmon_adc_convert_adcval_multi(char *adc_name, int *channel,
++			unsigned int *adc_val, int *cvtd_val, int count);
++#endif
+-- 
+1.7.1
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
