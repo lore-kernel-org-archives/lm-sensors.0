@@ -1,33 +1,40 @@
-From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Tue, 15 May 2012 18:49:17 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 15 May 2012 18:51:30 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Drop uart6 condition for vin5&vin6 for IT8783F
-Message-Id: <271EF141-35A9-48E9-88A2-05EA43073BBC@extracloud.de>
+Message-Id: <1337107890.22553.249.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
 In-Reply-To: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-> What about FAN3_TAC? As I read the datasheet, it is also "freed" if
-> UART6 is moved to pins 100-106. So I suspect we don't want to check for
-> uart6 at all for the IT8783F.
->=20
-Yes you're right, following the same logic FAN_TAC3 should get freed likewi=
-se.
-
-> This all would better be done directly in Guenter's patch, BTW, as it
-> isn't upstream yet.
->=20
-agreed from my side   ;-)
-
-Bj=F6rn
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gVHVlLCAyMDEyLTA1LTE1IGF0IDE0OjIxIC0wNDAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4g
+T24gVHVlLCAxNSBNYXkgMjAxMiAxOToyNTowMyArMDIwMCwgQmrDtnJuIEdlcmhhcnQgd3JvdGU6
+Cj4gPiBGcm9tOiBCam9lcm4gR2VyaGFydCA8b3NzQGV4dHJhY2xvdWQuZGU+Cj4gPiAKPiA+IERy
+b3AgVUFSVDYgY29uZGl0aW9uIGZvciBJVDg3ODNGIHJlbGF0ZWQgdG8gVklONSBhbmQgVklONi4K
+PiA+IEluIGNhc2UgVUFSVDYgaXMgcm91dGVkIHZpYSBKUDQgdG8gYSBkaWZmZXJlbnQgc2V0IG9m
+IHBpbnMsCj4gPiBWSU41IGFuZCBWSU42IGNhbiBiZSB1c2VkIGF0IHRoZSBzYW1lIHRpbWUuCj4g
+PiAKPiA+IGRpZmYgLU5hdXIgYS9kcml2ZXJzL2h3bW9uL2l0ODcuYyBiL2RyaXZlcnMvaHdtb24v
+aXQ4Ny5jCj4gPiAtLS0gYS9kcml2ZXJzL2h3bW9uL2l0ODcuYwkyMDEyLTA1LTE1IDE2OjUzOjA3
+LjE1NjA2MTA1OSArMDIwMAo+ID4gKysrIGIvZHJpdmVycy9od21vbi9pdDg3LmMJMjAxMi0wNS0x
+NSAxNzoxOTozMS43MTcwNjE4NzUgKzAyMDAKPiA+IEBAIC0xODA2LDExICsxODA2LDExIEBACj4g
+PiAgCQkJc2lvX2RhdGEtPnNraXBfcHdtIHw9ICgxIDw8IDEpOwo+ID4gIAo+ID4gIAkJLyogVklO
+NSAqLwo+ID4gLQkJaWYgKChyZWcyNyAmICgxIDw8IDApKSB8fCB1YXJ0NikKPiA+ICsJCWlmIChy
+ZWcyNyAmICgxIDw8IDApKQo+ID4gIAkJCXNpb19kYXRhLT5za2lwX2luIHw9ICgxIDw8IDUpOyAv
+KiBObyBWSU41ICovCj4gPiAgCj4gPiAgCQkvKiBWSU42ICovCj4gPiAtCQlpZiAoKHJlZzI3ICYg
+KDEgPDwgMSkpIHx8IHVhcnQ2KQo+ID4gKwkJaWYgKHJlZzI3ICYgKDEgPDwgMSkpCj4gPiAgCQkJ
+c2lvX2RhdGEtPnNraXBfaW4gfD0gKDEgPDwgNik7IC8qIE5vIFZJTjYgKi8KPiA+ICAKPiA+ICAJ
+CS8qCj4gPiAKPiAKPiBXaGF0IGFib3V0IEZBTjNfVEFDPyBBcyBJIHJlYWQgdGhlIGRhdGFzaGVl
+dCwgaXQgaXMgYWxzbyAiZnJlZWQiIGlmCj4gVUFSVDYgaXMgbW92ZWQgdG8gcGlucyAxMDAtMTA2
+LiBTbyBJIHN1c3BlY3Qgd2UgZG9uJ3Qgd2FudCB0byBjaGVjayBmb3IKPiB1YXJ0NiBhdCBhbGwg
+Zm9yIHRoZSBJVDg3ODNGLgo+IAo+IFRoaXMgYWxsIHdvdWxkIGJldHRlciBiZSBkb25lIGRpcmVj
+dGx5IGluIEd1ZW50ZXIncyBwYXRjaCwgQlRXLCBhcyBpdAo+IGlzbid0IHVwc3RyZWFtIHlldC4K
+PiAKTGV0IG1lIGxvb2sgYXQgaXQgYWdhaW4gdG9uaWdodC4gVGhlIGZhbjMgdGVzdCBpcyAifHwg
+IXVhcnQ2Iiwgc28gaXQgaXMKdGhlIG9wcG9zaXRlLiBJIGFtIGdldHRpbmcgbW9yZSBhbmQgbW9y
+ZSBjb25mdXNlZCA6KC4gSSdsbCBoYXZlIHRvCnJlLXJlYWQgdGhlIGRhdGEgc2hlZXQgdG8gc2Vl
+IHdoYXQgaXMgZ29pbmcgb24uCgpHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
