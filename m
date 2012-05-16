@@ -1,77 +1,58 @@
-From: =?iso-8859-1?Q?Bj=F6rn_Gerhart?= <oss@extracloud.de>
-Date: Wed, 16 May 2012 17:07:52 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Wed, 16 May 2012 17:41:35 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Drop uart6 condition for vin5&vin6 for IT8783F
-Message-Id: <E86A87F2-35DF-42E8-9CD9-E736E996B836@extracloud.de>
+Message-Id: <1337190095.22553.276.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
 In-Reply-To: <50AE10ED-22C6-474A-90F2-81685F17B042@extracloud.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-Am 16.05.2012 um 11:23 schrieb Jean Delvare:
-> On Wed, 16 May 2012 08:52:31 +0200, Jean Delvare wrote:
->> On Tue, 15 May 2012 12:51:08 -0700, Guenter Roeck wrote:
->>> The data sheet says, with Register 0x27/Bit 0:
->>>=20
->>> Function Selection of Pin 93 (FSP)
->>> 0: VIN5/FAN_TAC3/SIN6
->>> If bit 2 of index 2Ch is 1, FAN_TAC3/SIN6 input is enabled; otherwise
->>> select VIN5 input.
->>> 1: GP30
->>>=20
->>> Assuming the above is correct, I think I'll rename "uart6" to "fan3" and
->>> use
->>>=20
->>> 	fan3 =3D reg2C & (1 << 2);
->>> ...
->>> 	/* Check if fan3 is there or not */
->>> 	if ((reg27 & (1 << 0)) || !fan3)
->>>                sio_data->skip_fan |=3D (1 << 2);
->>> ...
->>> 	if ((reg27 & (1 << 0)) || fan3)
->>> 		sio_data->skip_in |=3D (1 << 5); /* No VIN5 */
->>>=20
->>> Does that make sense ?
->>=20
->> That's what the datasheet says, at least. I find it weird that enabling
->> UART6 has an effect on VIN5 vs. FAN3_TAC, especially when UART6 pins
->> can be remapped to a completely different location, but maybe this is
->> really how the chip works.
->>=20
-Yes, our hw developers formerly also had to contact ITE for discussions abo=
-ut different contexts for their hw wiring/implementation.
-
->> I think I wouldn't introduce variable fan3, as it is kind of a
->> misnomer, and a proper name would be overly long. But this is an
->> implementation detail.
->>=20
->> Bj=F6rn, what is your design using pin 93 for?
->=20
-As discussed with our hw developers, in our design pin 93 is used for FAN_T=
-AC3. The reason is, that uart6 gets moved. If uart6 would not get moved, th=
-en pin 93 would be SIN6. So in turn the decision between FAN_TAC3 and SIN6 =
-is not detectable.
-However, maybe the proper design-specific sensors.conf could ignore fan3 if=
- pin 93 is used for SIN6.
-
-> I've updated the driver at
-> http://khali.linux-fr.org/devel/misc/it87/
->=20
-> with Bj=F6rn's patch updated per the discussion above. Bj=F6rn, can you
-> please give it a try and confirm it works for you?
->=20
-Thanks for the update! I agree with the logic part you modified.
-And yes, it works like expected (tested on IT8783F@kernel 2.6.32, configure=
-d as described above)  ;-)
-
-Bj=F6rn
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCAyMDEyLTA1LTE2IGF0IDEzOjA3IC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
+PiBIaSBKZWFuLAo+IAo+IEFtIDE2LjA1LjIwMTIgdW0gMTE6MjMgc2NocmllYiBKZWFuIERlbHZh
+cmU6Cj4gPiBPbiBXZWQsIDE2IE1heSAyMDEyIDA4OjUyOjMxICswMjAwLCBKZWFuIERlbHZhcmUg
+d3JvdGU6Cj4gPj4gT24gVHVlLCAxNSBNYXkgMjAxMiAxMjo1MTowOCAtMDcwMCwgR3VlbnRlciBS
+b2VjayB3cm90ZToKPiA+Pj4gVGhlIGRhdGEgc2hlZXQgc2F5cywgd2l0aCBSZWdpc3RlciAweDI3
+L0JpdCAwOgo+ID4+PiAKPiA+Pj4gRnVuY3Rpb24gU2VsZWN0aW9uIG9mIFBpbiA5MyAoRlNQKQo+
+ID4+PiAwOiBWSU41L0ZBTl9UQUMzL1NJTjYKPiA+Pj4gSWYgYml0IDIgb2YgaW5kZXggMkNoIGlz
+IDEsIEZBTl9UQUMzL1NJTjYgaW5wdXQgaXMgZW5hYmxlZDsgb3RoZXJ3aXNlCj4gPj4+IHNlbGVj
+dCBWSU41IGlucHV0Lgo+ID4+PiAxOiBHUDMwCj4gPj4+IAo+ID4+PiBBc3N1bWluZyB0aGUgYWJv
+dmUgaXMgY29ycmVjdCwgSSB0aGluayBJJ2xsIHJlbmFtZSAidWFydDYiIHRvICJmYW4zIiBhbmQK
+PiA+Pj4gdXNlCj4gPj4+IAo+ID4+PiAJZmFuMyA9IHJlZzJDICYgKDEgPDwgMik7Cj4gPj4+IC4u
+Lgo+ID4+PiAJLyogQ2hlY2sgaWYgZmFuMyBpcyB0aGVyZSBvciBub3QgKi8KPiA+Pj4gCWlmICgo
+cmVnMjcgJiAoMSA8PCAwKSkgfHwgIWZhbjMpCj4gPj4+ICAgICAgICAgICAgICAgIHNpb19kYXRh
+LT5za2lwX2ZhbiB8PSAoMSA8PCAyKTsKPiA+Pj4gLi4uCj4gPj4+IAlpZiAoKHJlZzI3ICYgKDEg
+PDwgMCkpIHx8IGZhbjMpCj4gPj4+IAkJc2lvX2RhdGEtPnNraXBfaW4gfD0gKDEgPDwgNSk7IC8q
+IE5vIFZJTjUgKi8KPiA+Pj4gCj4gPj4+IERvZXMgdGhhdCBtYWtlIHNlbnNlID8KPiA+PiAKPiA+
+PiBUaGF0J3Mgd2hhdCB0aGUgZGF0YXNoZWV0IHNheXMsIGF0IGxlYXN0LiBJIGZpbmQgaXQgd2Vp
+cmQgdGhhdCBlbmFibGluZwo+ID4+IFVBUlQ2IGhhcyBhbiBlZmZlY3Qgb24gVklONSB2cy4gRkFO
+M19UQUMsIGVzcGVjaWFsbHkgd2hlbiBVQVJUNiBwaW5zCj4gPj4gY2FuIGJlIHJlbWFwcGVkIHRv
+IGEgY29tcGxldGVseSBkaWZmZXJlbnQgbG9jYXRpb24sIGJ1dCBtYXliZSB0aGlzIGlzCj4gPj4g
+cmVhbGx5IGhvdyB0aGUgY2hpcCB3b3Jrcy4KPiA+PiAKPiBZZXMsIG91ciBodyBkZXZlbG9wZXJz
+IGZvcm1lcmx5IGFsc28gaGFkIHRvIGNvbnRhY3QgSVRFIGZvciBkaXNjdXNzaW9ucyBhYm91dCBk
+aWZmZXJlbnQgY29udGV4dHMgZm9yIHRoZWlyIGh3IHdpcmluZy9pbXBsZW1lbnRhdGlvbi4KPiAK
+PiA+PiBJIHRoaW5rIEkgd291bGRuJ3QgaW50cm9kdWNlIHZhcmlhYmxlIGZhbjMsIGFzIGl0IGlz
+IGtpbmQgb2YgYQo+ID4+IG1pc25vbWVyLCBhbmQgYSBwcm9wZXIgbmFtZSB3b3VsZCBiZSBvdmVy
+bHkgbG9uZy4gQnV0IHRoaXMgaXMgYW4KPiA+PiBpbXBsZW1lbnRhdGlvbiBkZXRhaWwuCj4gPj4g
+Cj4gPj4gQmrDtnJuLCB3aGF0IGlzIHlvdXIgZGVzaWduIHVzaW5nIHBpbiA5MyBmb3I/Cj4gPiAK
+PiBBcyBkaXNjdXNzZWQgd2l0aCBvdXIgaHcgZGV2ZWxvcGVycywgaW4gb3VyIGRlc2lnbiBwaW4g
+OTMgaXMgdXNlZCBmb3IgRkFOX1RBQzMuIFRoZSByZWFzb24gaXMsIHRoYXQgdWFydDYgZ2V0cyBt
+b3ZlZC4gSWYgdWFydDYgd291bGQgbm90IGdldCBtb3ZlZCwgdGhlbiBwaW4gOTMgd291bGQgYmUg
+U0lONi4gU28gaW4gdHVybiB0aGUgZGVjaXNpb24gYmV0d2VlbiBGQU5fVEFDMyBhbmQgU0lONiBp
+cyBub3QgZGV0ZWN0YWJsZS4KPiBIb3dldmVyLCBtYXliZSB0aGUgcHJvcGVyIGRlc2lnbi1zcGVj
+aWZpYyBzZW5zb3JzLmNvbmYgY291bGQgaWdub3JlIGZhbjMgaWYgcGluIDkzIGlzIHVzZWQgZm9y
+IFNJTjYuCj4gCj4gPiBJJ3ZlIHVwZGF0ZWQgdGhlIGRyaXZlciBhdAo+ID4gaHR0cDovL2toYWxp
+LmxpbnV4LWZyLm9yZy9kZXZlbC9taXNjL2l0ODcvCj4gPiAKPiA+IHdpdGggQmrDtnJuJ3MgcGF0
+Y2ggdXBkYXRlZCBwZXIgdGhlIGRpc2N1c3Npb24gYWJvdmUuIEJqw7ZybiwgY2FuIHlvdQo+ID4g
+cGxlYXNlIGdpdmUgaXQgYSB0cnkgYW5kIGNvbmZpcm0gaXQgd29ya3MgZm9yIHlvdT8KPiA+IAo+
+IFRoYW5rcyBmb3IgdGhlIHVwZGF0ZSEgSSBhZ3JlZSB3aXRoIHRoZSBsb2dpYyBwYXJ0IHlvdSBt
+b2RpZmllZC4KPiBBbmQgeWVzLCBpdCB3b3JrcyBsaWtlIGV4cGVjdGVkICh0ZXN0ZWQgb24gSVQ4
+NzgzRkBrZXJuZWwgMi42LjMyLCBjb25maWd1cmVkIGFzIGRlc2NyaWJlZCBhYm92ZSkgIDstKQo+
+IApFeGNlbGxlbnQuIEkgYWxyZWFkeSBtZXJnZWQgSmVhbidzIGNoYW5nZXMgd2l0aCBteSBwZW5k
+aW5nIHBhdGNoIHNldCwgc28KaG9wZWZ1bGx5IGV2ZXJ5dGhpbmcgaXMgb2sgbm93LgoKVGhhbmtz
+IGEgbG90IGZvciB5b3VyIGhlbHAhCgpHdWVudGVyCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNv
+cnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlz
+dGluZm8vbG0tc2Vuc29ycw=
