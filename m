@@ -1,109 +1,94 @@
-From: Mark Wagner <mark+lm-sensors@carnildo.com>
-Date: Wed, 09 May 2012 05:09:02 +0000
-Subject: [lm-sensors] Intel DX79SI configuration file
-Message-Id: <20120508220902.3bbf0e12@puma.carnildo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="MP_/FY5ED3rYBf0cs.0JvP6IOL."
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 19 May 2012 18:48:19 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (pmbus) Add support for non-standard status register
+Message-Id: <1337453300-27643-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---MP_/FY5ED3rYBf0cs.0JvP6IOL.
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Not all PMBus devices support the byte status register at 0x78.
+Add support for non-standard status registers to work around this problem.
 
-I've attached a configuration file for the Intel DX79SI mainboard.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pmbus/pmbus.h      |    1 +
+ drivers/hwmon/pmbus/pmbus_core.c |   13 +++++++++----
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/hwmon/pmbus/pmbus.h b/drivers/hwmon/pmbus/pmbus.h
+index 3fe03dc..8073dc4 100644
+--- a/drivers/hwmon/pmbus/pmbus.h
++++ b/drivers/hwmon/pmbus/pmbus.h
+@@ -332,6 +332,7 @@ struct pmbus_driver_info {
+ 	int R[PSC_NUM_CLASSES];	/* exponent */
+ 
+ 	u32 func[PMBUS_PAGES];	/* Functionality, per page */
++	u8 status_register;	/* Set if not PMBUS_STATUS_BYTE */
+ 	/*
+ 	 * The following functions map manufacturing specific register values
+ 	 * to PMBus standard register values. Specify only if mapping is
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 29b319d..0d8d50c 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -150,6 +150,7 @@ struct pmbus_data {
+ 	 * so we keep them all together.
+ 	 */
+ 	u8 status[PB_NUM_STATUS_REG];
++	u8 status_register;
+ 
+ 	u8 currpage;
+ };
+@@ -318,9 +319,10 @@ EXPORT_SYMBOL_GPL(pmbus_clear_faults);
+ 
+ static int pmbus_check_status_cml(struct i2c_client *client)
+ {
++	struct pmbus_data *data = i2c_get_clientdata(client);
+ 	int status, status2;
+ 
+-	status = _pmbus_read_byte_data(client, -1, PMBUS_STATUS_BYTE);
++	status = _pmbus_read_byte_data(client, -1, data->status_register);
+ 	if (status < 0 || (status & PB_STATUS_CML)) {
+ 		status2 = _pmbus_read_byte_data(client, -1, PMBUS_STATUS_CML);
+ 		if (status2 < 0 || (status2 & PB_CML_FAULT_INVALID_COMMAND))
+@@ -376,7 +378,7 @@ static struct pmbus_data *pmbus_update_device(struct device *dev)
+ 		for (i = 0; i < info->pages; i++)
+ 			data->status[PB_STATUS_BASE + i]
+ 			    = _pmbus_read_byte_data(client, i,
+-						    PMBUS_STATUS_BYTE);
++						    data->status_register);
+ 		for (i = 0; i < info->pages; i++) {
+ 			if (!(info->func[i] & PMBUS_HAVE_STATUS_VOUT))
+ 				continue;
+@@ -1069,7 +1071,8 @@ static void pmbus_add_sensor_attrs_one(struct i2c_client *client,
+ 		 * the generic status register for this page is accessible.
+ 		 */
+ 		if (!have_alarm && attr->gbit &&
+-		    pmbus_check_byte_register(client, page, PMBUS_STATUS_BYTE))
++		    pmbus_check_byte_register(client, page,
++					      data->status_register))
+ 			pmbus_add_boolean_reg(data, name, "alarm", index,
+ 					      PB_STATUS_BASE + page,
+ 					      attr->gbit);
+@@ -1704,8 +1707,10 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
++	data->status_register = info->status_register ? : PMBUS_STATUS_BYTE;
++
+ 	/* Bail out if PMBus status register does not exist. */
+-	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0) {
++	if (i2c_smbus_read_byte_data(client, data->status_register) < 0) {
+ 		dev_err(&client->dev, "PMBus status register not found\n");
+ 		return -ENODEV;
+ 	}
 -- 
-Mark Wagner
---MP_/FY5ED3rYBf0cs.0JvP6IOL.
-Content-Type: application/octet-stream; name=DX79SI
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=DX79SI
+1.7.5.4
 
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMKIwojCiMJbG1fc2Vuc29ycyBjb25maWd1cmF0aW9uIGZv
-ciBJbnRlbCBEWDc5U0kKIwojCUJhc2VkIG9uIElhbiBQaWxjaGVyJ3MgZmlsZSBmb3IgdGhlIERR
-NjdTVyBib2FyZC4gIFRlbXBlcmF0dXJlIGFuZAojCWZhbiBzZW5zb3IgbGFiZWxzIGhhcyBiZWVu
-IHZlcmlmaWVkOyB2b2x0YWdlIHNlbnNvciBsYWJlbHMgYXJlIGFzc3VtZWQKIwl0byBiZSBjb3Jy
-ZWN0IGJlY2F1c2UgdGhleSBnaXZlIHZvbHRhZ2VzIHdpdGhpbiB0aGUgaW5kaWNhdGVkIHJhbmdl
-cwojCXdoZW4gdGhpcyBmaWxlIGlzIHVzZWQuCiMKIwlOT1RFUzoKIwojCQlJRFUgPSBJbnRlbCBE
-ZXNrdG9wIFV0aWxpdGllcyB2ZXJzaW9uIDMuMS4zLjAzMAojCQkJKFdpbmRvd3MgNyBQcm9mZXNz
-aW9uYWwgU1AxLCA2NC1iaXQpCiMKIwkJVGhlIG1pbmltdW0sIG1heGltdW0sIGFuZCBoeXN0ZXJl
-c2lzIHZhbHVlcyBhcmUgZ2VuZXJhbGx5IHRoZQojCQltb3JlIGNvbnNlcnZhdGl2ZSBvZiB0aGUg
-SURVLSBvciBCSU9TLXByb3ZpZGVkIHZhbHVlcy4KIwojCQkiRlJPTlQiIGFuZCAiUkVBUiIgZmFu
-IGxhYmVscyBjb3JyZXNwb25kIHRvIHRoZSBtb3RoZXJib2FyZAojCQloZWFkZXJzLCBidXQgbm90
-IG5lY2Vzc2FyaWx5IHRoZSBhY3R1YWwgZmFuIGxvY2F0aW9ucy4KIwojCQlNaW5pbXVtIGZhbiBS
-UE1zIHNob3VsZCBiZSBhZGp1c3RlZCB0byByZWZsZWN0IHRoZSBiZWhhdmlvciBvZgojCQl0aGUg
-aW5zdGFsbGVkIGZhbnMuCiMKIwkJIk1lbW9yeSBESU1NIFRlbXBlcmF0dXJlIiBpcyBwcmVzdW1h
-Ymx5IG1lYXN1cmVkIGJ5IGEgZGlvZGUKIwkJc29tZXdoZXJlIGluIHRoZSB2aWNpbml0eSBvZiB0
-aGUgRElNTSBzbG90czsgIlN5c3RlbSBUZW1wZXJhdHVyZQojCQltaWdodCBiZSBhIGJldHRlciBu
-YW1lLgojCiMJCTgwIGRlZ3JlZXMgQ2VsY2l1cyBtaWdodCBiZSBhIGJpdCBoaWdoIGZvciB0aGUg
-Ik1lbW9yeSBESU1NCiMJCVRlbXBlcmF0dXJlIiBsaW1pdC4KIwojCQlUaGUgQklPUyBkaXNwbGF5
-cyBhIHJlYWRpbmcgZm9yICIrMTJWIEFUWCBDUFUiIHdpdGggYSBzY2FsaW5nCiMJCWZhY3RvciBv
-ZiA0IHRoYXQgZG9lc24ndCBhcHBlYXIgdG8gY29ycmVzcG9uZCB0byBhbnkgb2YgdGhlCiMJCXZv
-bHRhZ2Ugc2Vuc29ycy4KIwojIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoKY2hpcCAibmN0Njc3NS0q
-IgoKCWlnbm9yZQljcHUwX3ZpZAoKCSMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoJIwoJIwlWb2x0YWdlcwoJIwoJ
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjCgoJIwoJIyBQcm9jZXNzb3IgVmNjCgkjCglsYWJlbAlpbjAJCSJWQ09S
-RSIKCXNldAlpbjBfbWluCQkwLjIJCSMgZnJvbSBJRFUgKEJJT1MgPSAwLjAwKQoJc2V0CWluMF9t
-YXgJCTEuNgkJIyBmcm9tIElEVSAoQklPUyA9IDEuNzQpCgoJIwoJIyArMTIgVm9sdHMKCSMKCWxh
-YmVsCWluMQkJIisxMlYiCgljb21wdXRlCWluMQkJMTEqQCwgQC8xMQoJc2V0CWluMV9taW4JCTEw
-LjgJCSMgZnJvbSBJRFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoJc2V0CWluMV9tYXgJCTEzLjIJCSMg
-ZnJvbSBJRFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoKCSMKCSMgQVZDQyg/KSAtIE5vdCBzaG93biBp
-biBCSU9TIG9yIElEVQoJIwoJbGFiZWwJaW4yCQkiQVZDQyIKCXNldAlpbjJfbWluCQkzLjEJCSMg
-c2FtZSBhcyArMy4zViAoQklPUyA9IDIuOTgpCglzZXQJaW4yX21heAkJMy41CQkjIHNhbWUgYXMg
-KzMuM1YgKEJJT1MgPSAzLjYzKQoKCSMKCSMgKzMuMyBWb2x0cwoJIwoJbGFiZWwJaW4zCQkiKzMu
-M1YiCglzZXQJaW4zX21pbgkJMy4xCQkjIGZyb20gSURVIChCSU9TID0gMi45OCkKCXNldAlpbjNf
-bWF4CQkzLjUJCSMgZnJvbSBJRFUgKEJJT1MgPSAzLjYzKQoKCSMKCSMgKzUgVm9sdHMKCSMKCWxh
-YmVsCWluNAkJIis1ViIKCWNvbXB1dGUJaW40CQk1KkAsIEAvNQoJc2V0CWluNF9taW4JCTQuNwkJ
-IyBmcm9tIElEVSAoQklPUyBkb2VzIG5vdCBzZXQpCglzZXQJaW40X21heAkJNS4zCQkjIGZyb20g
-SURVIChCSU9TIGRvZXMgbm90IHNldCkKCgkjCgkjIFVua25vd24sIHRyYWNrcyB0aGUgdmFsdWUg
-b2YgaW4wCgkjCglsYWJlbAlpbjUJCSJWQ09SRSIKCXNldAlpbjVfbWluCQkwLjIJCSMgZnJvbSBJ
-RFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoJc2V0CWluNV9tYXgJCTEuNgkJIyBmcm9tIElEVSAoQklP
-UyBkb2VzIG5vdCBzZXQpCgoJIwoJIyBQQ0ggVmNjCgkjCglsYWJlbAlpbjYJCSJQQ0giCglzZXQJ
-aW42X21pbgkJMC42CQkjIGZyb20gSURVIChCSU9TIGRvZXMgbm90IHNldCkKCXNldAlpbjZfbWF4
-CQkxLjYJCSMgZnJvbSBJRFUgKEJJT1MgZG9lcyBub3Qgc2V0KQoKCSMKCSMgKzMuMyBWb2x0IFN0
-YW5kYnkKCSMKCWxhYmVsCWluNwkJIiszLjNWIFNCIgoJc2V0CWluN19taW4JCTMuMAkJIyBmcm9t
-IElEVSAoQklPUyA9IDIuOTgpCglzZXQJaW43X21heAkJMy42CQkjIGZyb20gSURVIChCSU9TID0g
-My42MykKCgkjCgkjIFZCQVQoPykgLSBOb3Qgc2hvd24gaW4gQklPUyBvciBJRFUKCSMKCWxhYmVs
-CWluOAkJIlZCQVQiCgkjc2V0CWluOF9taW4JCTIuNwkJIyBmcm9tIEJJT1MKCSNzZXQJaW44X21h
-eAkJMy4zCQkjIGZyb20gQklPUwoKCSMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIwoJIwoJIwlGYW5zCgkjCgkjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMKCgkjCgkjIENoYXNzaXMgSW5sZXQgRmFuCgkjCglsYWJlbAlmYW4xCQkiRlJP
-TlQiCglzZXQJZmFuMV9taW4JMjUwCQkjIGZyb20gSURVIChCSU9TIGRvZXMgbm90IHNldCkKCgkj
-CgkjIFByb2Nlc3NvciBGYW4KCSMKCWxhYmVsCWZhbjIJCSJDUFUiCglzZXQJZmFuMl9taW4JMjUw
-CQkjIGZyb20gSURVIChCSU9TIGRvZXMgbm90IHNldCkKCgkjCgkjIENoYXNzaXMgT3V0bGV0IEZh
-bgoJIwoJbGFiZWwJZmFuMwkJIlJFQVIiCglzZXQJZmFuM19taW4JMjUwCQkjIGZyb20gSURVIChC
-SU9TIGRvZXMgbm90IHNldCkKCgkjCgkjIEF1eGlsYXJ5IEZhbgoJIwoJbGFiZWwgCWZhbjQJCSJC
-T1RUT00iCglzZXQJZmFuNF9taW4JMjUwCgoJIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjCgkjCgkjCVRlbXBlcmF0
-dXJlcwoJIwoJIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjCgoJaWdub3JlCXRlbXA4CgoJIwoJIyBVbmtub3duIHNl
-bnNvciAoZGVmYXVsdCBsYWJlbCBTWVNUSU4pCgkjCglsYWJlbAl0ZW1wMQkJIlVua25vd24gMSIK
-CXNldAl0ZW1wMV9tYXgJODAJCSMgc2FtZSBhcyBWUiAoSURVID0gOTApCglzZXQJdGVtcDFfbWF4
-X2h5c3QJNzUJCSMgc2FtZSBhcyBWUgoKCSMKCSMgQ1BVIFRlbXBlcmF0dXJlCgkjCglsYWJlbAl0
-ZW1wMgkJIkNQVSIKCXNldAl0ZW1wMl9tYXgJODAJCSMgZnJvbSBCSU9TIChJRFUgPSA5MCkKCXNl
-dAl0ZW1wMl9tYXhfaHlzdAk3NQkJIyBmcm9tIEJJT1MKCgkjCgkjIFRoZSBvcHRpb25hbCB0aGVy
-bWFsIHByb2JlCgkjCglsYWJlbAl0ZW1wMwkJIkF1eCBzZW5zb3IiCglzZXQJdGVtcDNfbWF4CTgw
-CQkjIGZyb20gQklPUyAoSURVID0gODcpCglzZXQJdGVtcDNfbWF4X2h5c3QJNzUJCSMgZnJvbSBC
-SU9TCgoJIwoJIyBQQ0ggVGVtcGVyYXR1cmUKCSMKCWxhYmVsCXRlbXA2CQkiUENIIgoKCSMKCSMg
-VW5rbm93biBzZW5zb3IgKGRlZmF1bHQgbGFiZWwgUEVDSSBBR0VOVCAwOyBnaXZlcyByYXRoZXIg
-d2FybSByZWFkaW5ncyB1bmRlciBsb2FkKQoJIwoJbGFiZWwJdGVtcDkJCSJVbmtub3duIDIiCglz
-ZXQJdGVtcDlfbWF4CTgwCQkjIEZyb20gQklPUwoJc2V0CXRlbXA5X21heF9oeXN0CTc1CQkjIEZy
-b20gQklPUwoK
-
---MP_/FY5ED3rYBf0cs.0JvP6IOL.
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---MP_/FY5ED3rYBf0cs.0JvP6IOL.--
