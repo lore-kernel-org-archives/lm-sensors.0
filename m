@@ -1,46 +1,50 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 24 May 2012 20:15:32 +0000
-Subject: Re: [lm-sensors] linux-next: Tree for May 24 (hwmon/sch56xx)
-Message-Id: <4FBE96E4.5070203@redhat.com>
+From: James <bjlockie@lockie.ca>
+Date: Mon, 21 May 2012 13:45:53 +0000
+Subject: [lm-sensors] ASRock 970 Extreme3
+Message-Id: <4FBA4711.3090609@lockie.ca>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120524164915.fc6b1d90b75c50baab856280@canb.auug.org.au> <4FBE7915.2000704@xenotime.net>
-In-Reply-To: <4FBE7915.2000704@xenotime.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-Hi,
+I use the nct6776-isa-0290
+Adapter: ISA adapter
 
-On 05/24/2012 08:08 PM, Randy Dunlap wrote:
-> On 05/23/12 23:49, Stephen Rothwell wrote:
->
->> Hi all,
->>
->> Changes since 20120523:
->
->
->
->
-> when CONFIG_WATCHDOG is not enabled:
->
-> drivers/built-in.o: In function `sch56xx_watchdog_register':
-> (.text+0x50711c): undefined reference to `watchdog_register_device'
-> drivers/built-in.o: In function `sch56xx_watchdog_unregister':
-> (.text+0x507171): undefined reference to `watchdog_unregister_device'
->
-> or when SCH56XX_COMMON=m:
->
-> ERROR: "watchdog_unregister_device" [drivers/hwmon/sch56xx-common.ko] undefined!
-> ERROR: "watchdog_register_device" [drivers/hwmon/sch56xx-common.ko] undefined!
+I have 3 fans:
+1. The CPU fan (about 3300 RPM)
+2. The rear case fan (about 1050 RPM)
+3. The front case fan (about 1350 RPM)
 
-Thanks for catching this, I'll send a patch to linux-watchdog + linux-next
-fixing this.
+Do the fans in Power Supplies typically get monitored?
 
-Regards,
+I have 6 fan connectors:
+1. Chassis fan connector (#12 on the motherboard)
+2. Chassis fan connector (#15 on the motherboard)
+3. Chassis fan connector (#2 on the motherboard)
+1. CPU fan connector (#6 on the motherboard)
+2. CPU fan connector (#5 on the motherboard)
+1. Power fan connector (#10 on the motherboard)
 
-Hans
+Maybe someone can see a pattern.
+
+1. I plugged the rear case fan in #12
+fan1 was 1060 RPM (the rear case fan probably)
+fan2 was 3300 RPM (the CPU  fan probably)
+other fans reported 0 RPMs
+
+2. I plugged the rear case fan in #2
+all fans reported 0 RPM
+other fans reported 0 RPMs
+
+3. I plugged the rear case fan in #12 and the front case fan in #15.
+fan1 was 1053 RPM (the rear case fan probably)
+fan2 was 3316 (the CPU fan probably)
+other fans reported 0 RPMs
+
+4. I plugged the rear case fan in #10 and the front case fan in #12.
+fan1 was 1384 (the front case fan probably)
+other fans reported 0 RPMs
 
 _______________________________________________
 lm-sensors mailing list
