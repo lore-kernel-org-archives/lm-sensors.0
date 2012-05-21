@@ -1,35 +1,59 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 07 May 2012 06:58:00 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] watchdog_dev: Add support for having more then 1 watchdog
-Message-Id: <4FA77278.5030705@redhat.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 21 May 2012 00:59:36 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6779D and NCT6102D/NCT6106D
+Message-Id: <1337561976-5803-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1331812757-3491-1-git-send-email-hdegoede@redhat.com> <1331812757-3491-2-git-send-email-hdegoede@redhat.com> <20120315131131.1096f8c8@pyramind.ukuu.org.uk> <4F61FA18.70104@redhat.com> <20120315153833.40bd2f16@pyramind.ukuu.org.uk> <20120504123434.GR3074@spo001.leaseweb.com>
-In-Reply-To: <20120504123434.GR3074@spo001.leaseweb.com>
+References: <20110217195640.GA20934@ericsson.com>
+In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wim Van Sebroeck <wim@iguana.be>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-watchdog@vger.kernel.org, LM Sensors <lm-sensors@lm-sensors.org>, Thilo Cestonaro <thilo.cestonaro@ts.fujitsu.com>, =?ISO-8859-1?Q?P=E1dra?= =?ISO-8859-1?Q?ig_Brady?= <P@draigBrady.com>
+To: lm-sensors@vger.kernel.org
 
-Hi,
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ CHANGES                    |    1 +
+ prog/detect/sensors-detect |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
 
-On 05/04/2012 02:34 PM, Wim Van Sebroeck wrote:
-> Hi Alan,
->
->>> You do this even for watchdog0 / for the watchdog we've also registered as
->>> misc_dev. I guess this is intentional and you want the watchdog to be
->>> available as both misc,130 as well as as MAJOR(dog_devt),0 ?
->>
->> Yes - so that it appears in the watchdog class in sysfs for example.
->
-> What happens if one program opens the miscdevice and another program opens the MAJOR(dog_devt),0 device?
-> I presume that the WDOG_DEV_OPEN status bit will prohibit the opening of the second device in that case...
+diff --git a/CHANGES b/CHANGES
+index 615ed65..b08d205 100644
+--- a/CHANGES
++++ b/CHANGES
+@@ -6,6 +6,7 @@ SVN HEAD
+   sensors: Fix libiconv linkage need detection in rare corner case
+   sensors-detect: Don't choke on systems without PCI
+                   Avoid probing EDID addresses on graphics cards (#2386)
++		  Add detection of NCT6779D and NCT6102D/NCT6106D
+ 
+ 3.3.2 (2012-03-14)
+   libsensors: Added support for new sysfs attributes
+diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+index 58f7fd0..6bfd1e2 100755
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -2034,6 +2034,18 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		logdev => 0x0b,
+ 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 	}, {
++		name => "Nuvoton NCT6779D Super IO Sensors",
++		driver => "to-be-written",	# nct6775, new driver
++		devid => 0xC562,
++		logdev => 0x0b,
++		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++	}, {
++		name => "Nuvoton NCT6102D/NCT6106D Super IO Sensors",
++		driver => "to-be-written",	# nct6775, new driver
++		devid => 0x1061,
++		logdev => 0x0b,
++		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++	}, {
+ 		name => "Fintek F71805F/FG Super IO Sensors",
+ 		driver => "f71805f",
+ 		devid => 0x0406,
+-- 
+1.7.5.4
 
-Correct.
-
-Regards,
-
-Hans
 
 _______________________________________________
 lm-sensors mailing list
