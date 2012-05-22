@@ -1,7 +1,7 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 21 May 2012 16:44:23 +0000
+From: "Felten, Lothar" <l-felten@ti.com>
+Date: Tue, 22 May 2012 07:13:35 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: INA219 and INA226 support
-Message-Id: <1337618663.22553.357.camel@groeck-laptop>
+Message-Id: <28DAD847AEFDD344B2D3802E7670BEE116ADD631@DNCE04.ent.ti.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <28DAD847AEFDD344B2D3802E7670BEE116AD804E@DNCE04.ent.ti.com>
 In-Reply-To: <28DAD847AEFDD344B2D3802E7670BEE116AD804E@DNCE04.ent.ti.com>
@@ -10,52 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Lothar,
-
-On Tue, 2012-05-08 at 13:43 -0400, Felten, Lothar wrote:
-> Hello,
-> 
-> This patch brings support for the Texas Instruments INA219 and INA226 power monitors.
-> 
-I have a couple of observations.
-
-[ ... ]
-
-> diff -uprN linux-3.3.4/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-> --- linux-3.3.4/drivers/hwmon/ina2xx.c  1970-01-01 01:00:00.000000000 +0100
-> +++ b/drivers/hwmon/ina2xx.c    2012-05-08 19:02:26.305202216 +0200
-
-[ ... ]
-> +
-> +/* settings - depend on use case */
-> +#define INA219_CONFIG_DEFAULT          0x219F  /* PGA=1 */
-> +#define INA226_CONFIG_DEFAULT          0x4527  /* averages */
-> +
-
-With this configuration (PGA=1), the dynamic range for the shunt
-resistor voltage is 40 mV. Since we report the value in mV, it does not
-provide much value to do that. It might be better to use PGA=8 instead,
-for a dynamic range of 320 mV.
-
-Did you have a special reason for selecting PGA=1 ? Otherwise, I think
-we should change it to PGA=8.
-
-[ ... ]
-
-> +
-> +       if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +               return -ENODEV;
-> +
-
-This is actually wrong; we need to check for I2C_FUNC_SMBUS_WORD_DATA
-instead. I fixed that already.
-
-Thanks,
-Guenter
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwNCg0KPiBIaSBMb3RoYXIsDQo+DQo+ID4gSGVsbG8sDQo+ID4NCj4gPiBUaGlz
+IHBhdGNoIGJyaW5ncyBzdXBwb3J0IGZvciB0aGUgVGV4YXMgSW5zdHJ1bWVudHMgSU5BMjE5IGFu
+ZCBJTkEyMjYNCj4gcG93ZXIgbW9uaXRvcnMuDQo+ID4NCj4gSSBoYXZlIGEgY291cGxlIG9mIG9i
+c2VydmF0aW9ucy4NCj4NCj4gWyAuLi4gXQ0KPiA+ICsNCj4gPiArLyogc2V0dGluZ3MgLSBkZXBl
+bmQgb24gdXNlIGNhc2UgKi8NCj4gPiArI2RlZmluZSBJTkEyMTlfQ09ORklHX0RFRkFVTFQgICAg
+ICAgICAgMHgyMTlGICAvKiBQR0E9MSAqLw0KPiA+ICsjZGVmaW5lIElOQTIyNl9DT05GSUdfREVG
+QVVMVCAgICAgICAgICAweDQ1MjcgIC8qIGF2ZXJhZ2VzPTE2ICovDQo+ID4gKw0KPg0KPiBXaXRo
+IHRoaXMgY29uZmlndXJhdGlvbiAoUEdBPTEpLCB0aGUgZHluYW1pYyByYW5nZSBmb3IgdGhlIHNo
+dW50DQo+IHJlc2lzdG9yIHZvbHRhZ2UgaXMgNDAgbVYuIFNpbmNlIHdlIHJlcG9ydCB0aGUgdmFs
+dWUgaW4gbVYsIGl0IGRvZXMgbm90DQo+IHByb3ZpZGUgbXVjaCB2YWx1ZSB0byBkbyB0aGF0LiBJ
+dCBtaWdodCBiZSBiZXR0ZXIgdG8gdXNlIFBHQT04IGluc3RlYWQsDQo+IGZvciBhIGR5bmFtaWMg
+cmFuZ2Ugb2YgMzIwIG1WLg0KPg0KPiBEaWQgeW91IGhhdmUgYSBzcGVjaWFsIHJlYXNvbiBmb3Ig
+c2VsZWN0aW5nIFBHQT0xID8gT3RoZXJ3aXNlLCBJIHRoaW5rDQo+IHdlIHNob3VsZCBjaGFuZ2Ug
+aXQgdG8gUEdBPTguDQoNCk5vIHRoZXJlIHdhcyBubyBzcGVjaWFsIHJlYXNvbiwgdGhlIGRlZmF1
+bHQgc2V0dGluZyBhZnRlciByZXNldCBpcyBQR0E9OCwgdGhpcw0KSXMgcHJvYmFibHkgdGhlIGJl
+c3Qgc2VsZWN0aW9uLiBTbyB0aGF0IHNob3VsZCBiZToNCiNkZWZpbmUgSU5BMjE5X0NPTkZJR19E
+RUZBVUxUICAgICAgICAgIDB4Mzk5RiAgLyogZGVmYXVsdCB2YWx1ZXMgKi8NCg0KSU5BMlhYX1NI
+VU5UX1ZPTFRBR0Ugd2lsbCB0aGVuIGdvIGZyb20gLTMyMG1WIHRvICszMjBtViwgdGhhdCBzaG91
+bGQgYmUgb2suDQoNCj4gWyAuLi4gXQ0KPg0KPiA+ICsNCj4gPiArICAgICAgIGlmICghaTJjX2No
+ZWNrX2Z1bmN0aW9uYWxpdHkoYWRhcHRlciwgSTJDX0ZVTkNfU01CVVNfQllURV9EQVRBKSkNCj4g
+PiArICAgICAgICAgICAgICAgcmV0dXJuIC1FTk9ERVY7DQo+ID4gKw0KPg0KPiBUaGlzIGlzIGFj
+dHVhbGx5IHdyb25nOyB3ZSBuZWVkIHRvIGNoZWNrIGZvciBJMkNfRlVOQ19TTUJVU19XT1JEX0RB
+VEENCj4gaW5zdGVhZC4gSSBmaXhlZCB0aGF0IGFscmVhZHkuDQo+DQo+IFRoYW5rcywNCj4gR3Vl
+bnRlcg0KDQpCZXN0IHJlZ2FyZHMsDQpMb3RoYXINCg0KDQoNCg0KVGV4YXMgSW5zdHJ1bWVudHMg
+QmVsZ2l1bSBTQSwgUm9uZCBQb2ludCBTY2h1bWFuIDbigJMgQm/DrnRlIDUsIDEwNDAgQnJ1eGVs
+bGVzLiBCQ0U6IDA0MTQuMjA3LjEyMy4gUlBNIEJydXhlbGxlcy4gSUJBTjogQkU4MzU3MDEyMTg5
+NTYxNS4gU3dpZnQ6IENJVElCRUJYLiBUVkEgQkUgMDQxNC4yMDcuMTIzDQoNCg0KX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
+IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
+cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
