@@ -1,131 +1,127 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 19 May 2012 18:48:20 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (max34440) Add support for MAX34460
-Message-Id: <1337453300-27643-2-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Tue, 22 May 2012 20:18:59 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.5-rc1
+Message-Id: <20120522201859.GA1068@ericsson.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3518454047510931503=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+--===============3518454047510931503==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Content-Disposition: inline
+
+--sm4nu43k4a2Rpi4c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.5-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+
+------
+
+The following changes since commit 76e10d158efb6d4516018846f60c2ab5501900bc:
+
+  Linux 3.4 (2012-05-20 15:29:13 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+for you to fetch changes up to 4573acbc461b8089198500cee06ef0cdc5b70e82:
+
+  hwmon: (it87) Make temp3 attribute conditional for IT8782F (2012-05-22 06:48:49 -0700)
+
+----------------------------------------------------------------
+hwmon updates for 3.5-rc1
+
+New driver for INA219 and INA226, added support for IT8782F and IT8783E/F to
+it87 driver, plus cleanups in a couple of drivers.
+
+----------------------------------------------------------------
+Axel Lin (1):
+      hwmon: use module_pci_driver
+
+Felten, Lothar (1):
+      hwmon: INA219 and INA226 support
+
+Guenter Roeck (9):
+      hwmon: (it87) Add support for IT8782F and IT8783E/F
+      hwmon: (ad7314) Remove unused defines, and rename OFFSET to SHIFT
+      hwmon: (ntc_thermistor) Convert to devm_kzalloc
+      hwmon: (ntc_thermistor) Return error code from hwmon_device_register
+      hwmon: (ntc_thermistor) Optimize and fix build warning
+      hwmon: (ntc_thermistor) Fix checkpatch warning
+      hwmon: (it87) Create voltage attributes only if voltage is enabled
+      hwmon: (it87) Convert to use devm_kzalloc and devm_request_region
+      hwmon: (it87) Make temp3 attribute conditional for IT8782F
+
+Kyle McMartin (5):
+      acpi_power_meter: use the same struct {rw,ro}_sensor_template for both
+      acpi_power_meter: use a {RW,RO}_SENSOR_TEMPLATE macro to clean things up
+      acpi_power_meter: remove duplicate code between register_{ro,rw}_attrs
+      acpi_power_meter: drop meter_rw_attrs, use common meter_attrs
+      acpi_power_meter: clean up code around setup_attrs
+
+ Documentation/hwmon/ina2xx           |   29 +++
+ Documentation/hwmon/it87             |   28 ++-
+ drivers/hwmon/Kconfig                |   13 ++
+ drivers/hwmon/Makefile               |    1 +
+ drivers/hwmon/acpi_power_meter.c     |  166 +++++++---------
+ drivers/hwmon/ad7314.c               |   11 +-
+ drivers/hwmon/fam15h_power.c         |   13 +-
+ drivers/hwmon/ina2xx.c               |  368 ++++++++++++++++++++++++++++++++
+ drivers/hwmon/it87.c                 |  384 +++++++++++++++++++++++++---------
+ drivers/hwmon/k10temp.c              |   13 +-
+ drivers/hwmon/k8temp.c               |   13 +-
+ drivers/hwmon/ntc_thermistor.c       |  191 ++++++++---------
+ include/linux/platform_data/ina2xx.h |   19 ++
+ 13 files changed, 902 insertions(+), 347 deletions(-)
+ create mode 100644 Documentation/hwmon/ina2xx
+ create mode 100644 drivers/hwmon/ina2xx.c
+ create mode 100644 include/linux/platform_data/ina2xx.h
+
+--sm4nu43k4a2Rpi4c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPu/SzAAoJEMsfJm/On5mB26MP/ROaSbB4ijExFD1vGaJ1EumB
+8eTtPvdfqNFOUe/Y4vgrq+f9ITyU+WDAkTsEPYmP22r68t3h1EAzHyM+LkBg5pmF
++nOW/kG57KmUxy52CEVphe7nRitc5M0PIsZZT91SCux6nKkrjrMdMdxGQgcTlM4E
+yQPcFlXG9/32Fam4uFkmHVrdAgkKyaCO6KsaOitegQroZkYm4GujsIvPy73lfchS
+ysTMck5SJqTnlrVFbfDGv4um3o5/zhav+LAkxDNPRJldBbnvjGwZw0xssKQuDQBQ
+a8ZNDiIevwzoP/eZhXUz2BNbJ9eOqoa6CbVRbNAwS9zsoRqQaLn0V6ecpHedlBnt
+GaKq/0VugKODstQSgK0Hh3KzidjFZsRjvsu6/7AZ1jVYuppKKgOxGIjHQ/5Jm7gf
+QOXqoRiws8plPNsuLGFmhsedXNMcw2Ohfcb5DV0/nltjuw3soBc8tsNSst1ShdvG
+wSZR50SFtUQq9ScT6wby4gX3cctb4eiMZBnH+OE4RYf207CTY6J8Q83A8JF/96qf
+ewLj70WYe6/wYaJtqCP2au4f+AbwZNLry/DsDXeM6pgp/xwoTXJlVL8yNIbtia4P
+D59Ui3f9J1JpyjG9j3ZTz8sv8fkrtrV2e93g1kvhfWPVb62Kk4iXpcRc79TtCxFz
+SLGBop8+bmrydNws2Sn0
+=Gw7Y
+-----END PGP SIGNATURE-----
+
+--sm4nu43k4a2Rpi4c--
+
+
+--===============3518454047510931503==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-MAX34460 is a PMBus 12-Channel Voltage Monitor & Sequencer.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- Documentation/hwmon/max34440   |    7 +++++++
- drivers/hwmon/pmbus/Kconfig    |    2 +-
- drivers/hwmon/pmbus/max34440.c |   37 +++++++++++++++++++++++++++++++++++--
- 3 files changed, 43 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/hwmon/max34440 b/Documentation/hwmon/max34440
-index 0448222..fb06c60 100644
---- a/Documentation/hwmon/max34440
-+++ b/Documentation/hwmon/max34440
-@@ -16,6 +16,11 @@ Supported chips:
-     Prefixes: 'max34446'
-     Addresses scanned: -
-     Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX34446.pdf
-+  * Maxim MAX34460
-+    PMBus 12-Channel Voltage Monitor & Sequencer
-+    Prefix: 'max34460'
-+    Addresses scanned: -
-+    Datasheet: Not yet final
- 
- Author: Guenter Roeck <guenter.roeck@ericsson.com>
- 
-@@ -109,3 +114,5 @@ temp[1-8]_reset_history	Write any value to reset history.
- 
- 			temp7 and temp8 attributes only exist for MAX34440.
- 			MAX34446 only supports temp[1-3].
-+
-+MAX34460 supports attribute groups in[1-12] and temp[1-5].
-diff --git a/drivers/hwmon/pmbus/Kconfig b/drivers/hwmon/pmbus/Kconfig
-index 2ca6a5a..a6d0b77 100644
---- a/drivers/hwmon/pmbus/Kconfig
-+++ b/drivers/hwmon/pmbus/Kconfig
-@@ -72,7 +72,7 @@ config SENSORS_MAX34440
- 	default n
- 	help
- 	  If you say yes here you get hardware monitoring support for Maxim
--	  MAX34440, MAX34441, and MAX34446.
-+	  MAX34440, MAX34441, MAX34446, and MAX34460.
- 
- 	  This driver can also be built as a module. If so, the module will
- 	  be called max34440.
-diff --git a/drivers/hwmon/pmbus/max34440.c b/drivers/hwmon/pmbus/max34440.c
-index 2ada7b0..c677dbb 100644
---- a/drivers/hwmon/pmbus/max34440.c
-+++ b/drivers/hwmon/pmbus/max34440.c
-@@ -25,7 +25,7 @@
- #include <linux/i2c.h>
- #include "pmbus.h"
- 
--enum chips { max34440, max34441, max34446 };
-+enum chips { max34440, max34441, max34446, max34460 };
- 
- #define MAX34440_MFR_VOUT_PEAK		0xd4
- #define MAX34440_MFR_IOUT_PEAK		0xd5
-@@ -87,7 +87,7 @@ static int max34440_read_word_data(struct i2c_client *client, int page, int reg)
- 					   MAX34446_MFR_POUT_PEAK);
- 		break;
- 	case PMBUS_VIRT_READ_TEMP_AVG:
--		if (data->id != max34446)
-+		if (data->id != max34446 && data->id != max34460)
- 			return -ENXIO;
- 		ret = pmbus_read_word_data(client, page,
- 					   MAX34446_MFR_TEMPERATURE_AVG);
-@@ -322,6 +322,38 @@ static struct pmbus_driver_info max34440_info[] = {
- 		.read_word_data = max34440_read_word_data,
- 		.write_word_data = max34440_write_word_data,
- 	},
-+	[max34460] = {
-+		.pages = 18,
-+		.format[PSC_VOLTAGE_OUT] = direct,
-+		.format[PSC_TEMPERATURE] = direct,
-+		.m[PSC_VOLTAGE_OUT] = 1,
-+		.b[PSC_VOLTAGE_OUT] = 0,
-+		.R[PSC_VOLTAGE_OUT] = 3,
-+		.m[PSC_TEMPERATURE] = 1,
-+		.b[PSC_TEMPERATURE] = 0,
-+		.R[PSC_TEMPERATURE] = 2,
-+		.func[0] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[1] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[2] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[3] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[4] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[5] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[6] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[7] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[8] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[9] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[10] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[11] = PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT,
-+		.func[13] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
-+		.func[14] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
-+		.func[15] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
-+		.func[16] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
-+		.func[17] = PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP,
-+		.read_byte_data = max34440_read_byte_data,
-+		.read_word_data = max34440_read_word_data,
-+		.write_word_data = max34440_write_word_data,
-+		.status_register = PMBUS_STATUS_WORD,
-+	},
- };
- 
- static int max34440_probe(struct i2c_client *client,
-@@ -343,6 +375,7 @@ static const struct i2c_device_id max34440_id[] = {
- 	{"max34440", max34440},
- 	{"max34441", max34441},
- 	{"max34446", max34446},
-+	{"max34460", max34460},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, max34440_id);
--- 
-1.7.5.4
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3518454047510931503==--
