@@ -1,29 +1,50 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 10 May 2012 21:15:11 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (it87) Make temp3 attribute conditional for IT8782F and IT8783F
-Message-Id: <1336684511.22553.181.camel@groeck-laptop>
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 24 May 2012 20:18:58 +0000
+Subject: [lm-sensors] [PATCH] hwmon/sch56xx: Depend on watchdog for watchdog core functions
+Message-Id: <1337890738-26533-1-git-send-email-hdegoede@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1336530714-26615-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-watchdog@vger.kernel.org
+Cc: Wim Van Sebroeck <wim@iguana.be>, LM Sensors <lm-sensors@lm-sensors.org>, linux-next@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-T24gVGh1LCAyMDEyLTA1LTEwIGF0IDE1OjQxIC0wNDAwLCBCasO2cm4gR2VyaGFydCB3cm90ZToK
-PiBIaSBHdWVudGVyLAo+IAo+IEFtIDA5LjA1LjIwMTIgdW0gMTk6NDMgc2NocmllYiBHdWVudGVy
-IFJvZWNrOgo+ID4gSGkgQmpvZXJuLAo+ID4gCj4gPiBMb29raW5nIHRocm91Z2ggdGhlIGRhdGEg
-c2hlZXQsIGl0IHNlZW1zIHRoYXQgdGhlcmUgaXMgbm8gd2F5IHRvIHJlYWQKPiA+IHRoZSBzZXR0
-aW5nIG9mIEpQNC9QaW4gMSBpbiBTVy4gVGhpcyBtZWFucyBJIGNhbiBub3QgcmVhbGx5IGRldGVj
-dCBpZgo+ID4gVUFSVDYgcGluIDYgb3ZlcmxhcHMgd2l0aCB0ZW1wMyBvciBub3QuIElzIHRoaXMg
-Y29ycmVjdCA/Cj4gCj4gRGlzY3Vzc2VkIHRoYXQgd2l0aCBteSBodyBmb2xrcy4gWWVzLCB0aGF0
-J3MgY29ycmVjdDogc2FkbHkgdGhlcmUgaXMgbm8gd2F5IHRvIHJlYWQgb3V0IHRoaXMgc2V0dGlu
-Zy4KPiAKR29vZCBhbmQgYmFkIC4uLiBnb29kIHRoYXQgSSBkaWRuJ3Qgb3Zlcmxvb2sgYW55dGhp
-bmcsIGJhZCB0aGF0IGl0IGlzCnVuZGV0ZWN0YWJsZS4KCj4gPiBJZiB5ZXMsIEkKPiA+IHRoaW5r
-IHdlIGhhdmUgdG8gZHJvcCB0aGlzIHBhdGNoLgo+ID4gCj4gb2ssIGFncmVlZC4KCkkgc2VudCBv
-dXQgcmV2MiB3aGljaCBkcm9wcyB0aGUgdGVtcDMvdWFydDYgb3ZlcmxhcCBkZXRlY3Rpb24gZm9y
-CklUODc4M0Ygb25seS4gSVQ4NzgyRiBkb2Vzbid0IGhhdmUgdGhlIHN0cmFwcGluZyBvcHRpb24g
-dG8gcmUtcm91dGUKdWFydDYuCgpUaGFua3MsCkd1ZW50ZXIKCgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0t
-c2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1h
-bi9saXN0aW5mby9sbS1zZW5zb3Jz
+Since the watchdog code in sch56xx-common now uses the watchdog core, the
+Kconfig entires for the sch5627 and sch5636 should depend on WATCHDOG
+being set.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/hwmon/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 8deedc1..3d16d66 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1036,7 +1036,7 @@ config SENSORS_SCH56XX_COMMON
+ 
+ config SENSORS_SCH5627
+ 	tristate "SMSC SCH5627"
+-	depends on !PPC
++	depends on !PPC && WATCHDOG
+ 	select SENSORS_SCH56XX_COMMON
+ 	help
+ 	  If you say yes here you get support for the hardware monitoring
+@@ -1048,7 +1048,7 @@ config SENSORS_SCH5627
+ 
+ config SENSORS_SCH5636
+ 	tristate "SMSC SCH5636"
+-	depends on !PPC
++	depends on !PPC && WATCHDOG
+ 	select SENSORS_SCH56XX_COMMON
+ 	help
+ 	  SMSC SCH5636 Super I/O chips include an embedded microcontroller for
+-- 
+1.7.10
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
