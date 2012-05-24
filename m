@@ -1,58 +1,40 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 21 May 2012 01:08:26 +0000
-Subject: Re: [lm-sensors] Fan control for Asus P8Z77
-Message-Id: <20120521010826.GA20905@ericsson.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Date: Thu, 24 May 2012 18:08:21 +0000
+Subject: Re: [lm-sensors] linux-next: Tree for May 24 (hwmon/sch56xx)
+Message-Id: <4FBE7915.2000704@xenotime.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAD=fgeLGr1H4-+mXO3W3+Gzr55qM8Wsy=bSgdeavQX0QzKSK+A@mail.gmail.com>
-In-Reply-To: <CAD=fgeLGr1H4-+mXO3W3+Gzr55qM8Wsy=bSgdeavQX0QzKSK+A@mail.gmail.com>
+References: <20120524164915.fc6b1d90b75c50baab856280@canb.auug.org.au>
+In-Reply-To: <20120524164915.fc6b1d90b75c50baab856280@canb.auug.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, lm-sensors@lm-sensors.org, Hans de Goede <hdegoede@redhat.com>
 
-On Sun, May 20, 2012 at 04:30:27PM -0400, Andr=E9e 'Glaucous' wrote:
-> Indeed, after an hour of searching around I actually found that experimen=
-tal
-> driver.
-> I can confirm that it works very well!
->=20
-Please don't top-post.
+On 05/23/12 23:49, Stephen Rothwell wrote:
 
-Looks like it is time to submit the driver for review so it can make it int=
-o the kernel.
+> Hi all,
+> 
+> Changes since 20120523:
 
-Guenter
 
-> On 20 May 2012 21:21, Guenter Roeck <guenter.roeck@ericsson.com> wrote:
->=20
->     On Sun, May 20, 2012 at 01:19:46PM -0400, Andr e 'Glaucous' wrote:
->     > Hi,
->     >
->     > The (somewhat) new Asus P8Z77 boards have arrived, I'm wondering ho=
-w the
->     status
->     > for fan control is for them?
->     > I have a Asus P8Z77-V Pro, tried both it87 and asus_atk0110, both r=
-esult
->     in
->     > that pwmconfig cannot find any controllable fans.
->     >
->     > Currently running libsensors version 3.3.2+SVN. I'm up for testing =
-any
->     patches
->     > related to this chipset.
->=20
->     Are you sure the board uses an IT87xx ? As far as I know, it uses NCT=
-6779D.
->=20
->     For NCT6779D, you can find an experimental driver at https://github.c=
-om/
->     groeck/nct6775.
->=20
->     Thanks,
->     Guenter
->=20
->=20
+
+
+when CONFIG_WATCHDOG is not enabled:
+
+drivers/built-in.o: In function `sch56xx_watchdog_register':
+(.text+0x50711c): undefined reference to `watchdog_register_device'
+drivers/built-in.o: In function `sch56xx_watchdog_unregister':
+(.text+0x507171): undefined reference to `watchdog_unregister_device'
+
+or when SCH56XX_COMMON=m:
+
+ERROR: "watchdog_unregister_device" [drivers/hwmon/sch56xx-common.ko] undefined!
+ERROR: "watchdog_register_device" [drivers/hwmon/sch56xx-common.ko] undefined!
+
+
+-- 
+~Randy
 
 _______________________________________________
 lm-sensors mailing list
