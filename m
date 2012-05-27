@@ -1,34 +1,47 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 30 May 2012 15:38:16 +0000
-Subject: Re: [lm-sensors] ITE IT8771E Driver
-Message-Id: <20120530153816.GB15570@ericsson.com>
+From: sebl@storm-clan.de
+Date: Sun, 27 May 2012 21:39:23 +0000
+Subject: [lm-sensors] Problems with SMSC EMC2103-2
+Message-Id: <3652e486e75012b50617cd207d9ce279.squirrel@webmail.storm-clan.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAKJpqGGwhwUDsbr1MThzcvMyfU4rQh_8_ZFU0-YwdXZcsfGz_Q@mail.gmail.com>
-In-Reply-To: <CAKJpqGGwhwUDsbr1MThzcvMyfU4rQh_8_ZFU0-YwdXZcsfGz_Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, May 30, 2012 at 09:04:45AM -0400, clement clem wrote:
-> Hello,
-> 
-> 
-> I have a mini ITX motherboard Asus P8H61-i.
-> 
-> This card has a chip ITE IT8771E, the temperature just work with the latest 
-> Kernel 3.4 of Ubuntu 12.04.
-> 
-> I download the driver here for IT87xx  here
-> 
-> Extracted file, which folder it installs your driver?
-> 
-Not sure if I understand your question. You should be able to use the standard driver.
-Load it with "modprobe it87 force_id=0x8721". This _should_ work from experience gathered
-so far, but since we don't have a datasheet, and the vendor is not willing to provide one,
-we can not be sure.
+Hi,
 
-Guenter
+somehow lm-sensors does not seem to recognize the EMC2103-2 chip in my
+notebook (HP 2530p). When i run sensors-detect it says:
+
+#Do you want to scan for Super I/O sensors? (YES/no): y
+#Probing for Super-I/O at 0x2e/0x2f
+#Trying family `National Semiconductor/ITE'... No
+!#Trying family `SMSC'... Yes
+!#Found unknown chip with ID 0x4501
+#Probing for Super-I/O at 0x4e/0x4f
+#Trying family `National Semiconductor/ITE'... No
+#Trying family `SMSC'... No
+#Trying family `VIA/Winbond/Nuvoton/Fintek'... No
+#Trying family `ITE'... No
+
+"Found unknown chip with ID 0x4501" But I'm 100% certain that it is the
+EMC2103-2 chip which is described as support in the documentation. I can
+load the driver with modprobe emc2103, but nothing happens. lm-sensors
+only detects the temperature-sensors correctly, not the fan speed or
+anything else. Are there known problems with this chip? Or is somenone
+successfully running lm-sensors with EMC2103-2?
+
+sensors -v
+sensors version 3.3.2 with libsensors version 3.3.2
+
+uname -r
+3.2.0-24-generic-phc
+
+best regards
+
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
