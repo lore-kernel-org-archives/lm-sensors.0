@@ -1,74 +1,68 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 31 May 2012 20:52:04 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of SMSC LPC47N217 and SIO10N268
-Message-Id: <1338497524.478.120.camel@groeck-laptop>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 30 May 2012 11:29:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (coretemp) Improve support of recent Atom CPU models
+Message-Id: <20120530132956.6161d552@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20110217195640.GA20934@ericsson.com>
-In-Reply-To: <20110217195640.GA20934@ericsson.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 2012-05-31 at 15:53 -0400, Jean Delvare wrote:
-> On Thu, 31 May 2012 11:00:46 -0700, Guenter Roeck wrote:
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  CHANGES                    |    1 +
-> >  prog/detect/sensors-detect |    8 ++++++++
-> >  2 files changed, 9 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/CHANGES b/CHANGES
-> > index b08d205..8361883 100644
-> > --- a/CHANGES
-> > +++ b/CHANGES
-> > @@ -7,6 +7,7 @@ SVN HEAD
-> >    sensors-detect: Don't choke on systems without PCI
-> >                    Avoid probing EDID addresses on graphics cards (#2386)
-> >  		  Add detection of NCT6779D and NCT6102D/NCT6106D
-> > +		  Add detection of SMSC LPC47N217 and SIO10N268
-> >  
-> >  3.3.2 (2012-03-14)
-> >    libsensors: Added support for new sysfs attributes
-> > diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-> > index 6bfd1e2..df0e301 100755
-> > --- a/prog/detect/sensors-detect
-> > +++ b/prog/detect/sensors-detect
-> > @@ -1904,6 +1904,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
-> >  		driver => "not-a-sensor",
-> >  		devid => 0x28,
-> >  	}, {
-> > +		name => "SMSC LPC47N217 Super IO",
-> > +		driver => "not-a-sensor",
-> > +		devid => 0x7a,
-> > +	}, {
-> >  		name => "SMSC LPC47N227 Super IO",
-> >  		driver => "not-a-sensor",
-> >  		devid => 0x5a,
-> > @@ -1911,6 +1915,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
-> >  		name => "SMSC LPC47N237 Super IO",
-> >  		driver => "not-a-sensor",
-> >  		devid => 0x13,
-> > +	}, {
-> > +		name => "SMSC SIO10N268 Notebook IO",
-> > +		driver => "not-a-sensor",
-> > +		devid => 0x5b,
-> >  	}
-> >  );
-> >  
-> 
-> I didn't check the IDs but the "code" itself looks OK, please commit.
-> 
-Jean,
+Document the new Atom series (Tunnel Creek and Medfield) as being
+supported, and list TjMax for the Atom E600 series.
 
-did you see the earlier patch I sent out a couple of weeks ago, adding
-support to detect the new Nuvoton chips ? I would like to commit that
-patch as well if it is ok with you.
+Also enable the Atom tjmax heuristic for these Atom CPU models.
 
-Thanks,
-Guenter
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Alexander Stein <alexander.stein@systec-electronic.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>
+---
+This patch has been sitting in my tree for months now for no good
+reason, it's about time to push it upstream. Testers are welcome.
+
+ Documentation/hwmon/coretemp |    5 ++++-
+ drivers/hwmon/coretemp.c     |    3 ++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+--- linux-3.1-rc4.orig/Documentation/hwmon/coretemp	2011-09-28 12:45:58.000000000 +0200
++++ linux-3.1-rc4/Documentation/hwmon/coretemp	2011-09-28 16:18:18.000000000 +0200
+@@ -6,7 +6,8 @@ Supported chips:
+     Prefix: 'coretemp'
+     CPUID: family 0x6, models 0xe (Pentium M DC), 0xf (Core 2 DC 65nm),
+                               0x16 (Core 2 SC 65nm), 0x17 (Penryn 45nm),
+-                              0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield)
++                              0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield),
++                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom)
+     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
+                Volume 3A: System Programming Guide
+                http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
+@@ -85,6 +86,8 @@ Process		Processor					TjMax(C)
+ 		N475/470/455/450				100
+ 		N280/270					90
+ 		330/230						125
++		E680/660/640/620				90
++		E680T/660T/640T/620T				110
+ 
+ 45nm		Core2 Processors
+ 		Solo ULV SU3500/3300				100
+--- linux-3.1-rc4.orig/drivers/hwmon/coretemp.c	2011-09-28 14:22:44.000000000 +0200
++++ linux-3.1-rc4/drivers/hwmon/coretemp.c	2011-09-28 16:23:29.000000000 +0200
+@@ -210,7 +210,8 @@ static int adjust_tjmax(struct cpuinfo_x
+ 
+ 	/* Atom CPUs */
+ 
+-	if (c->x86_model = 0x1c) {
++	if (c->x86_model = 0x1c || c->x86_model = 0x26
++	    || c->x86_model = 0x27) {
+ 		usemsr_ee = 0;
+ 
+ 		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
 
 
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
