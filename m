@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 21 May 2012 00:59:36 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of NCT6779D and NCT6102D/NCT6106D
-Message-Id: <1337561976-5803-1-git-send-email-linux@roeck-us.net>
+Date: Thu, 31 May 2012 18:00:46 +0000
+Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of SMSC LPC47N217 and SIO10N268
+Message-Id: <1338487246-5419-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
@@ -13,44 +13,47 @@ To: lm-sensors@vger.kernel.org
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
  CHANGES                    |    1 +
- prog/detect/sensors-detect |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 0 deletions(-)
+ prog/detect/sensors-detect |    8 ++++++++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
 diff --git a/CHANGES b/CHANGES
-index 615ed65..b08d205 100644
+index b08d205..8361883 100644
 --- a/CHANGES
 +++ b/CHANGES
-@@ -6,6 +6,7 @@ SVN HEAD
-   sensors: Fix libiconv linkage need detection in rare corner case
+@@ -7,6 +7,7 @@ SVN HEAD
    sensors-detect: Don't choke on systems without PCI
                    Avoid probing EDID addresses on graphics cards (#2386)
-+		  Add detection of NCT6779D and NCT6102D/NCT6106D
+ 		  Add detection of NCT6779D and NCT6102D/NCT6106D
++		  Add detection of SMSC LPC47N217 and SIO10N268
  
  3.3.2 (2012-03-14)
    libsensors: Added support for new sysfs attributes
 diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 58f7fd0..6bfd1e2 100755
+index 6bfd1e2..df0e301 100755
 --- a/prog/detect/sensors-detect
 +++ b/prog/detect/sensors-detect
-@@ -2034,6 +2034,18 @@ use constant FEAT_SMBUS	=> (1 << 7);
- 		logdev => 0x0b,
- 		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+@@ -1904,6 +1904,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		driver => "not-a-sensor",
+ 		devid => 0x28,
  	}, {
-+		name => "Nuvoton NCT6779D Super IO Sensors",
-+		driver => "to-be-written",	# nct6775, new driver
-+		devid => 0xC562,
-+		logdev => 0x0b,
-+		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++		name => "SMSC LPC47N217 Super IO",
++		driver => "not-a-sensor",
++		devid => 0x7a,
 +	}, {
-+		name => "Nuvoton NCT6102D/NCT6106D Super IO Sensors",
-+		driver => "to-be-written",	# nct6775, new driver
-+		devid => 0x1061,
-+		logdev => 0x0b,
-+		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+ 		name => "SMSC LPC47N227 Super IO",
+ 		driver => "not-a-sensor",
+ 		devid => 0x5a,
+@@ -1911,6 +1915,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
+ 		name => "SMSC LPC47N237 Super IO",
+ 		driver => "not-a-sensor",
+ 		devid => 0x13,
 +	}, {
- 		name => "Fintek F71805F/FG Super IO Sensors",
- 		driver => "f71805f",
- 		devid => 0x0406,
++		name => "SMSC SIO10N268 Notebook IO",
++		driver => "not-a-sensor",
++		devid => 0x5b,
+ 	}
+ );
+ 
 -- 
 1.7.5.4
 
