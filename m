@@ -1,92 +1,78 @@
-From: "Sebl" <sebl@storm-clan.de>
-Date: Wed, 30 May 2012 18:41:20 +0000
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Date: Thu, 31 May 2012 18:00:45 +0000
 Subject: Re: [lm-sensors] Problems with SMSC EMC2103-2
-Message-Id: <005e01cd3e93$cebb52f0$6c31f8d0$@storm-clan.de>
+Message-Id: <1338487245.478.111.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <3652e486e75012b50617cd207d9ce279.squirrel@webmail.storm-clan.de>
 In-Reply-To: <3652e486e75012b50617cd207d9ce279.squirrel@webmail.storm-clan.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-Yes I'm 100% certain because I can read the top marking. It says: SMSC
-EMC2103. So there is no! doubt. But I can send you pictures, if you want.
-Hardwaremonitoring (Vcore, fan, ...) is possible with windows, so there
-should be the possibility to monitor it with linux, too.
-I can send you lspci later, but as far as I remember it only listed the
-intel chipset drivers.
-hp_wmi and hp_accel modules are automatically loaded @ startup.
-
-
-
------Urspr=FCngliche Nachricht-----
-Von: Jean Delvare [mailto:khali@linux-fr.org]
-Gesendet: Montag, 28. Mai 2012 09:02
-An: sebl@storm-clan.de
-Cc: lm-sensors@lm-sensors.org; Steve Glendinning; Juerg Haefliger
-Betreff: Re: [lm-sensors] Problems with SMSC EMC2103-2
-
-On Sun, 27 May 2012 23:39:23 +0200, sebl@storm-clan.de wrote:
-> Hi,
->=20
-> somehow lm-sensors does not seem to recognize the EMC2103-2 chip in my=20
-> notebook (HP 2530p). When i run sensors-detect it says:
->=20
-> #Do you want to scan for Super I/O sensors? (YES/no): y #Probing for=20
-> Super-I/O at 0x2e/0x2f #Trying family `National Semiconductor/ITE'...
-> No !#Trying family `SMSC'... Yes !#Found unknown chip with ID 0x4501=20
-> #Probing for Super-I/O at 0x4e/0x4f #Trying family `National=20
-> Semiconductor/ITE'... No #Trying family `SMSC'... No #Trying family=20
-> `VIA/Winbond/Nuvoton/Fintek'... No #Trying family `ITE'... No
->=20
-> "Found unknown chip with ID 0x4501" But I'm 100% certain that it is=20
-> the
-> EMC2103-2 chip which is described as support in the documentation.
-
-How are you 100% certain? Did you read the top marking of the chip?
-
-Me, I am 100% certain that the above is NOT an EMC2103-2, because it is
-connected to the LPC bus while the EMC2103-2 is an SMBus chip. Can't be the
-same chip.
-
-The chip above is likely to be a HP-specific Super-I/O chip, maybe Juerg
-(Cc'd) can identify it. There is no guarantee that it includes hardware
-monitoring features though.
-
-> I can
-> load the driver with modprobe emc2103, but nothing happens.
-
-This is expected for all SMBus-based drivers, devices can appear afterward
-so drivers never refuse to load.
-
-> lm-sensors
-> only detects the temperature-sensors correctly, not the fan speed or=20
-> anything else. Are there known problems with this chip? Or is somenone=20
-> successfully running lm-sensors with EMC2103-2?
-
-Driver was contributed by SMSC themselves (Steve Cc'd), I'm fairly certain
-that they tested their code.
-
-What could happen is that the SMBus controller to which the EMC2103-2 chip
-is connected, is not properly supported on your system. Maybe it is a very
-recent chip we don't support yet, or maybe ACPI gets in the way and prevents
-the driver from binding to the chip. I'd like to see the complete output of
-sensors-detect and lspci.
-
-Note BTW that it is very frequent for laptops to not include complete
-hardware monitoring chips. Furthermore, the monitoring chip is usually
-hidden behind ACPI so all you get is the limited ACPI thermal zone
-interface, or some proprietary interface. You may want to give a try to the
-hp_accel and hp-wmi modules for laptop-specific features support.
-
---
-Jean Delvare
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCAyMDEyLTA1LTMwIGF0IDE0OjQxIC0wNDAwLCBTZWJsIHdyb3RlOgo+IAo+IFllcyBJ
+J20gMTAwJSBjZXJ0YWluIGJlY2F1c2UgSSBjYW4gcmVhZCB0aGUgdG9wIG1hcmtpbmcuIEl0IHNh
+eXM6IFNNU0MKPiBFTUMyMTAzLiBTbyB0aGVyZSBpcyBubyEgZG91YnQuIEJ1dCBJIGNhbiBzZW5k
+IHlvdSBwaWN0dXJlcywgaWYgeW91IHdhbnQuCj4gSGFyZHdhcmVtb25pdG9yaW5nIChWY29yZSwg
+ZmFuLCAuLi4pIGlzIHBvc3NpYmxlIHdpdGggd2luZG93cywgc28gdGhlcmUKPiBzaG91bGQgYmUg
+dGhlIHBvc3NpYmlsaXR5IHRvIG1vbml0b3IgaXQgd2l0aCBsaW51eCwgdG9vLgo+IEkgY2FuIHNl
+bmQgeW91IGxzcGNpIGxhdGVyLCBidXQgYXMgZmFyIGFzIEkgcmVtZW1iZXIgaXQgb25seSBsaXN0
+ZWQgdGhlCj4gaW50ZWwgY2hpcHNldCBkcml2ZXJzLgo+IGhwX3dtaSBhbmQgaHBfYWNjZWwgbW9k
+dWxlcyBhcmUgYXV0b21hdGljYWxseSBsb2FkZWQgQCBzdGFydHVwLgo+IAo+IApQbGVhc2UgZG9u
+J3QgdG9wLXBvc3QuCgpNYXliZSB5b3UgaGF2ZSB0aGUgRU1DMjEwMyBvbiB5b3VyIGJvYXJkLCBj
+b25uZWN0ZWQgdG8gb25lIG9mIGl0cyBJMkMKYnVzc2VzLgpCdXQgaXQgaXMgbm90IHRoZSBjaGlw
+IGRldGVjdGVkIG9uIHRoZSBMUEMgYnVzLgoKR3VlbnRlcgoKPiAKPiAtLS0tLVVyc3Byw7xuZ2xp
+Y2hlIE5hY2hyaWNodC0tLS0tCj4gVm9uOiBKZWFuIERlbHZhcmUgW21haWx0bzpraGFsaUBsaW51
+eC1mci5vcmddCj4gR2VzZW5kZXQ6IE1vbnRhZywgMjguIE1haSAyMDEyIDA5OjAyCj4gQW46IHNl
+YmxAc3Rvcm0tY2xhbi5kZQo+IENjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnOyBTdGV2ZSBH
+bGVuZGlubmluZzsgSnVlcmcgSGFlZmxpZ2VyCj4gQmV0cmVmZjogUmU6IFtsbS1zZW5zb3JzXSBQ
+cm9ibGVtcyB3aXRoIFNNU0MgRU1DMjEwMy0yCj4gCj4gT24gU3VuLCAyNyBNYXkgMjAxMiAyMzoz
+OToyMyArMDIwMCwgc2VibEBzdG9ybS1jbGFuLmRlIHdyb3RlOgo+ID4gSGksCj4gPiAKPiA+IHNv
+bWVob3cgbG0tc2Vuc29ycyBkb2VzIG5vdCBzZWVtIHRvIHJlY29nbml6ZSB0aGUgRU1DMjEwMy0y
+IGNoaXAgaW4gbXkgCj4gPiBub3RlYm9vayAoSFAgMjUzMHApLiBXaGVuIGkgcnVuIHNlbnNvcnMt
+ZGV0ZWN0IGl0IHNheXM6Cj4gPiAKPiA+ICNEbyB5b3Ugd2FudCB0byBzY2FuIGZvciBTdXBlciBJ
+L08gc2Vuc29ycz8gKFlFUy9ubyk6IHkgI1Byb2JpbmcgZm9yIAo+ID4gU3VwZXItSS9PIGF0IDB4
+MmUvMHgyZiAjVHJ5aW5nIGZhbWlseSBgTmF0aW9uYWwgU2VtaWNvbmR1Y3Rvci9JVEUnLi4uCj4g
+PiBObyAhI1RyeWluZyBmYW1pbHkgYFNNU0MnLi4uIFllcyAhI0ZvdW5kIHVua25vd24gY2hpcCB3
+aXRoIElEIDB4NDUwMSAKPiA+ICNQcm9iaW5nIGZvciBTdXBlci1JL08gYXQgMHg0ZS8weDRmICNU
+cnlpbmcgZmFtaWx5IGBOYXRpb25hbCAKPiA+IFNlbWljb25kdWN0b3IvSVRFJy4uLiBObyAjVHJ5
+aW5nIGZhbWlseSBgU01TQycuLi4gTm8gI1RyeWluZyBmYW1pbHkgCj4gPiBgVklBL1dpbmJvbmQv
+TnV2b3Rvbi9GaW50ZWsnLi4uIE5vICNUcnlpbmcgZmFtaWx5IGBJVEUnLi4uIE5vCj4gPiAKPiA+
+ICJGb3VuZCB1bmtub3duIGNoaXAgd2l0aCBJRCAweDQ1MDEiIEJ1dCBJJ20gMTAwJSBjZXJ0YWlu
+IHRoYXQgaXQgaXMgCj4gPiB0aGUKPiA+IEVNQzIxMDMtMiBjaGlwIHdoaWNoIGlzIGRlc2NyaWJl
+ZCBhcyBzdXBwb3J0IGluIHRoZSBkb2N1bWVudGF0aW9uLgo+IAo+IEhvdyBhcmUgeW91IDEwMCUg
+Y2VydGFpbj8gRGlkIHlvdSByZWFkIHRoZSB0b3AgbWFya2luZyBvZiB0aGUgY2hpcD8KPiAKPiBN
+ZSwgSSBhbSAxMDAlIGNlcnRhaW4gdGhhdCB0aGUgYWJvdmUgaXMgTk9UIGFuIEVNQzIxMDMtMiwg
+YmVjYXVzZSBpdCBpcwo+IGNvbm5lY3RlZCB0byB0aGUgTFBDIGJ1cyB3aGlsZSB0aGUgRU1DMjEw
+My0yIGlzIGFuIFNNQnVzIGNoaXAuIENhbid0IGJlIHRoZQo+IHNhbWUgY2hpcC4KPiAKPiBUaGUg
+Y2hpcCBhYm92ZSBpcyBsaWtlbHkgdG8gYmUgYSBIUC1zcGVjaWZpYyBTdXBlci1JL08gY2hpcCwg
+bWF5YmUgSnVlcmcKPiAoQ2MnZCkgY2FuIGlkZW50aWZ5IGl0LiBUaGVyZSBpcyBubyBndWFyYW50
+ZWUgdGhhdCBpdCBpbmNsdWRlcyBoYXJkd2FyZQo+IG1vbml0b3JpbmcgZmVhdHVyZXMgdGhvdWdo
+Lgo+IAo+ID4gSSBjYW4KPiA+IGxvYWQgdGhlIGRyaXZlciB3aXRoIG1vZHByb2JlIGVtYzIxMDMs
+IGJ1dCBub3RoaW5nIGhhcHBlbnMuCj4gCj4gVGhpcyBpcyBleHBlY3RlZCBmb3IgYWxsIFNNQnVz
+LWJhc2VkIGRyaXZlcnMsIGRldmljZXMgY2FuIGFwcGVhciBhZnRlcndhcmQKPiBzbyBkcml2ZXJz
+IG5ldmVyIHJlZnVzZSB0byBsb2FkLgo+IAo+ID4gbG0tc2Vuc29ycwo+ID4gb25seSBkZXRlY3Rz
+IHRoZSB0ZW1wZXJhdHVyZS1zZW5zb3JzIGNvcnJlY3RseSwgbm90IHRoZSBmYW4gc3BlZWQgb3Ig
+Cj4gPiBhbnl0aGluZyBlbHNlLiBBcmUgdGhlcmUga25vd24gcHJvYmxlbXMgd2l0aCB0aGlzIGNo
+aXA/IE9yIGlzIHNvbWVub25lIAo+ID4gc3VjY2Vzc2Z1bGx5IHJ1bm5pbmcgbG0tc2Vuc29ycyB3
+aXRoIEVNQzIxMDMtMj8KPiAKPiBEcml2ZXIgd2FzIGNvbnRyaWJ1dGVkIGJ5IFNNU0MgdGhlbXNl
+bHZlcyAoU3RldmUgQ2MnZCksIEknbSBmYWlybHkgY2VydGFpbgo+IHRoYXQgdGhleSB0ZXN0ZWQg
+dGhlaXIgY29kZS4KPiAKPiBXaGF0IGNvdWxkIGhhcHBlbiBpcyB0aGF0IHRoZSBTTUJ1cyBjb250
+cm9sbGVyIHRvIHdoaWNoIHRoZSBFTUMyMTAzLTIgY2hpcAo+IGlzIGNvbm5lY3RlZCwgaXMgbm90
+IHByb3Blcmx5IHN1cHBvcnRlZCBvbiB5b3VyIHN5c3RlbS4gTWF5YmUgaXQgaXMgYSB2ZXJ5Cj4g
+cmVjZW50IGNoaXAgd2UgZG9uJ3Qgc3VwcG9ydCB5ZXQsIG9yIG1heWJlIEFDUEkgZ2V0cyBpbiB0
+aGUgd2F5IGFuZCBwcmV2ZW50cwo+IHRoZSBkcml2ZXIgZnJvbSBiaW5kaW5nIHRvIHRoZSBjaGlw
+LiBJJ2QgbGlrZSB0byBzZWUgdGhlIGNvbXBsZXRlIG91dHB1dCBvZgo+IHNlbnNvcnMtZGV0ZWN0
+IGFuZCBsc3BjaS4KPiAKPiBOb3RlIEJUVyB0aGF0IGl0IGlzIHZlcnkgZnJlcXVlbnQgZm9yIGxh
+cHRvcHMgdG8gbm90IGluY2x1ZGUgY29tcGxldGUKPiBoYXJkd2FyZSBtb25pdG9yaW5nIGNoaXBz
+LiBGdXJ0aGVybW9yZSwgdGhlIG1vbml0b3JpbmcgY2hpcCBpcyB1c3VhbGx5Cj4gaGlkZGVuIGJl
+aGluZCBBQ1BJIHNvIGFsbCB5b3UgZ2V0IGlzIHRoZSBsaW1pdGVkIEFDUEkgdGhlcm1hbCB6b25l
+Cj4gaW50ZXJmYWNlLCBvciBzb21lIHByb3ByaWV0YXJ5IGludGVyZmFjZS4gWW91IG1heSB3YW50
+IHRvIGdpdmUgYSB0cnkgdG8gdGhlCj4gaHBfYWNjZWwgYW5kIGhwLXdtaSBtb2R1bGVzIGZvciBs
+YXB0b3Atc3BlY2lmaWMgZmVhdHVyZXMgc3VwcG9ydC4KPiAKPiAtLQo+IEplYW4gRGVsdmFyZQo+
+IAo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4g
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKPiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gaHR0
+cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycwoKCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
+IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
+ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
