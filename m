@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 31 May 2012 18:00:46 +0000
-Subject: [lm-sensors] [PATCH] sensors-detect: Add detection of SMSC LPC47N217 and SIO10N268
-Message-Id: <1338487246-5419-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 31 May 2012 19:53:45 +0000
+Subject: Re: [lm-sensors] [PATCH] sensors-detect: Add detection of SMSC LPC47N217 and SIO10N268
+Message-Id: <20120531215345.34efcd7a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20110217195640.GA20934@ericsson.com>
 In-Reply-To: <20110217195640.GA20934@ericsson.com>
@@ -10,53 +10,56 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- CHANGES                    |    1 +
- prog/detect/sensors-detect |    8 ++++++++
- 2 files changed, 9 insertions(+), 0 deletions(-)
+On Thu, 31 May 2012 11:00:46 -0700, Guenter Roeck wrote:
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  CHANGES                    |    1 +
+>  prog/detect/sensors-detect |    8 ++++++++
+>  2 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/CHANGES b/CHANGES
+> index b08d205..8361883 100644
+> --- a/CHANGES
+> +++ b/CHANGES
+> @@ -7,6 +7,7 @@ SVN HEAD
+>    sensors-detect: Don't choke on systems without PCI
+>                    Avoid probing EDID addresses on graphics cards (#2386)
+>  		  Add detection of NCT6779D and NCT6102D/NCT6106D
+> +		  Add detection of SMSC LPC47N217 and SIO10N268
+>  
+>  3.3.2 (2012-03-14)
+>    libsensors: Added support for new sysfs attributes
+> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+> index 6bfd1e2..df0e301 100755
+> --- a/prog/detect/sensors-detect
+> +++ b/prog/detect/sensors-detect
+> @@ -1904,6 +1904,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
+>  		driver => "not-a-sensor",
+>  		devid => 0x28,
+>  	}, {
+> +		name => "SMSC LPC47N217 Super IO",
+> +		driver => "not-a-sensor",
+> +		devid => 0x7a,
+> +	}, {
+>  		name => "SMSC LPC47N227 Super IO",
+>  		driver => "not-a-sensor",
+>  		devid => 0x5a,
+> @@ -1911,6 +1915,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
+>  		name => "SMSC LPC47N237 Super IO",
+>  		driver => "not-a-sensor",
+>  		devid => 0x13,
+> +	}, {
+> +		name => "SMSC SIO10N268 Notebook IO",
+> +		driver => "not-a-sensor",
+> +		devid => 0x5b,
+>  	}
+>  );
+>  
 
-diff --git a/CHANGES b/CHANGES
-index b08d205..8361883 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -7,6 +7,7 @@ SVN HEAD
-   sensors-detect: Don't choke on systems without PCI
-                   Avoid probing EDID addresses on graphics cards (#2386)
- 		  Add detection of NCT6779D and NCT6102D/NCT6106D
-+		  Add detection of SMSC LPC47N217 and SIO10N268
- 
- 3.3.2 (2012-03-14)
-   libsensors: Added support for new sysfs attributes
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 6bfd1e2..df0e301 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -1904,6 +1904,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
- 		driver => "not-a-sensor",
- 		devid => 0x28,
- 	}, {
-+		name => "SMSC LPC47N217 Super IO",
-+		driver => "not-a-sensor",
-+		devid => 0x7a,
-+	}, {
- 		name => "SMSC LPC47N227 Super IO",
- 		driver => "not-a-sensor",
- 		devid => 0x5a,
-@@ -1911,6 +1915,10 @@ use constant FEAT_SMBUS	=> (1 << 7);
- 		name => "SMSC LPC47N237 Super IO",
- 		driver => "not-a-sensor",
- 		devid => 0x13,
-+	}, {
-+		name => "SMSC SIO10N268 Notebook IO",
-+		driver => "not-a-sensor",
-+		devid => 0x5b,
- 	}
- );
- 
+I didn't check the IDs but the "code" itself looks OK, please commit.
+
 -- 
-1.7.5.4
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
