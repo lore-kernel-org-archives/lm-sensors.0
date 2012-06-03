@@ -1,64 +1,78 @@
-From: Iain Paton <ipaton0@gmail.com>
-Date: Tue, 19 Jun 2012 11:34:57 +0000
-Subject: [lm-sensors] [PATCH] sensors: add humidity data to output of sensors command
-Message-Id: <4FE063E1.5050301@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 03 Jun 2012 05:32:59 +0000
+Subject: [lm-sensors] [PATCH] MAINTAINERS: Update my e-mail address
+Message-Id: <1338701579-13496-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Testing out a humidity sensor recently and was thinking the driver wasn't working somehow. 
-Discovered instead that the driver works fine, but the sensors command was ignoring the 
-humidity data.
-This adds output of humidity data for sensors that support it.
+Maintainer activities moved to home server. Update e-mail address to reflect
+reality.
 
-Please consider applying it.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ MAINTAINERS |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
-Thanks,
-Iain 
-
-diff -Naur lm_sensors-3.3.2-org/prog/sensors/chips.c lm_sensors-3.3.2/prog/sensors/chips.c
---- lm_sensors-3.3.2-org/prog/sensors/chips.c	2012-03-07 16:12:56.000000000 +0000
-+++ lm_sensors-3.3.2/prog/sensors/chips.c	2012-06-18 17:35:15.769803432 +0100
-@@ -658,6 +658,27 @@
- 	free(label);
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 55f0fda..5b75b97 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2270,7 +2270,7 @@ F:	include/linux/device-mapper.h
+ F:	include/linux/dm-*.h
  
-+static void print_chip_humidity(const sensors_chip_name *name,
-+			   const sensors_feature *feature,
-+			   int label_size)
-+{
-+	char *label;
-+	const sensors_subfeature *subfeature;
-+	double vid;
+ DIOLAN U2C-12 I2C DRIVER
+-M:	Guenter Roeck <guenter.roeck@ericsson.com>
++M:	Guenter Roeck <linux@roeck-us.net>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	drivers/i2c/busses/i2c-diolan-u2c.c
+@@ -3138,7 +3138,7 @@ F:	drivers/tty/hvc/
+ 
+ HARDWARE MONITORING
+ M:	Jean Delvare <khali@linux-fr.org>
+-M:	Guenter Roeck <guenter.roeck@ericsson.com>
++M:	Guenter Roeck <linux@roeck-us.net>
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+ T:	quilt kernel.org/pub/linux/kernel/people/jdelvare/linux-2.6/jdelvare-hwmon/
+@@ -4411,6 +4411,13 @@ S:	Orphan
+ F:	drivers/video/matrox/matroxfb_*
+ F:	include/linux/matroxfb.h
+ 
++MAX16065 HARDWARE MONITOR DRIVER
++M:	Guenter Roeck <linux@roeck-us.net>
++L:	lm-sensors@lm-sensors.org
++S:	Maintained
++F:	Documentation/hwmon/max16065
++F:	drivers/hwmon/max16065.c
 +
-+	subfeature = sensors_get_subfeature(name, feature,
-+					    SENSORS_SUBFEATURE_HUMIDITY_INPUT);
-+	if (!subfeature)
-+		return;
-+
-+	if ((label = sensors_get_label(name, feature))
-+	 && !sensors_get_value(name, subfeature->number, &vid)) {
-+		print_label(label, label_size);
-+		printf("%6.1f \%RH\n", vid);
-+	}
-+	free(label);
-+}
-+
- static void print_chip_beep_enable(const sensors_chip_name *name,
- 				   const sensors_feature *feature,
- 				   int label_size)
-@@ -792,6 +813,9 @@
- 		case SENSORS_FEATURE_INTRUSION:
- 			print_chip_intrusion(name, feature, label_size);
- 			break;
-+		case SENSORS_FEATURE_HUMIDITY:
-+			print_chip_humidity(name, feature, label_size);
-+			break;
- 		default:
- 			continue;
- 		}
+ MAX6650 HARDWARE MONITOR AND FAN CONTROLLER DRIVER
+ M:	"Hans J. Koch" <hjk@hansjkoch.de>
+ L:	lm-sensors@lm-sensors.org
+@@ -5149,7 +5156,7 @@ F:	drivers/leds/leds-pca9532.c
+ F:	include/linux/leds-pca9532.h
+ 
+ PCA9541 I2C BUS MASTER SELECTOR DRIVER
+-M:	Guenter Roeck <guenter.roeck@ericsson.com>
++M:	Guenter Roeck <linux@roeck-us.net>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	drivers/i2c/muxes/i2c-mux-pca9541.c
+@@ -5299,7 +5306,7 @@ F:	drivers/video/fb-puv3.c
+ F:	drivers/rtc/rtc-puv3.c
+ 
+ PMBUS HARDWARE MONITORING DRIVERS
+-M:	Guenter Roeck <guenter.roeck@ericsson.com>
++M:	Guenter Roeck <linux@roeck-us.net>
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+ W:	http://www.roeck-us.net/linux/drivers/
+-- 
+1.7.5.4
+
 
 _______________________________________________
 lm-sensors mailing list
