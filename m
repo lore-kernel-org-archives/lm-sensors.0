@@ -1,60 +1,121 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:24:08 +0000
-Subject: [lm-sensors] [PATCH 87/95] hwmon: (w83l786ng) Convert to use devm_ functions
-Message-Id: <1339773856-3443-88-git-send-email-linux@roeck-us.net>
+Date: Sun, 03 Jun 2012 20:17:16 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (ina2xx) Add support for INA220 and INA230
+Message-Id: <1338754636-20376-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+INA220 is register compatible to INA219, and INA230 is register compatible to
+INA226, so all we need to do is to add name aliases for those two chips.
 
+Cc: Lothar Felten <l-felten@ti.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/w83l786ng.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ Documentation/hwmon/ina2xx |   18 ++++++++++++++++++
+ drivers/hwmon/Kconfig      |    6 +++---
+ drivers/hwmon/ina2xx.c     |   10 ++++++++++
+ 3 files changed, 31 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/w83l786ng.c b/drivers/hwmon/w83l786ng.c
-index 5850b77..c99c8a0 100644
---- a/drivers/hwmon/w83l786ng.c
-+++ b/drivers/hwmon/w83l786ng.c
-@@ -668,11 +668,10 @@ w83l786ng_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	int i, err = 0;
- 	u8 reg_tmp;
+diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
+index f50a6cc..03444f9 100644
+--- a/Documentation/hwmon/ina2xx
++++ b/Documentation/hwmon/ina2xx
+@@ -8,12 +8,24 @@ Supported chips:
+     Datasheet: Publicly available at the Texas Instruments website
+                http://www.ti.com/
  
--	data = kzalloc(sizeof(struct w83l786ng_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct w83l786ng_data),
-+			    GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
++  * Texas Instruments INA220
++    Prefix: 'ina220'
++    Addresses: I2C 0x40 - 0x4f
++    Datasheet: Publicly available at the Texas Instruments website
++               http://www.ti.com/
++
+   * Texas Instruments INA226
+     Prefix: 'ina226'
+     Addresses: I2C 0x40 - 0x4f
+     Datasheet: Publicly available at the Texas Instruments website
+                http://www.ti.com/
  
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-@@ -708,8 +707,6 @@ w83l786ng_probe(struct i2c_client *client, const struct i2c_device_id *id)
++  * Texas Instruments INA230
++    Prefix: 'ina230'
++    Addresses: I2C 0x40 - 0x4f
++    Datasheet: Publicly available at the Texas Instruments website
++               http://www.ti.com/
++
+ Author: Lothar Felten <l-felten@ti.com>
  
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &w83l786ng_group);
--	kfree(data);
--exit:
- 	return err;
- }
+ Description
+@@ -23,7 +35,13 @@ The INA219 is a high-side current shunt and power monitor with an I2C
+ interface. The INA219 monitors both shunt drop and supply voltage, with
+ programmable conversion times and filtering.
  
-@@ -721,8 +718,6 @@ w83l786ng_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &w83l786ng_group);
++The INA220 is a high or low side current shunt and power monitor with an I2C
++interface. The INA220 monitors both shunt drop and supply voltage.
++
+ The INA226 is a current shunt and power monitor with an I2C interface.
+ The INA226 monitors both a shunt voltage drop and bus supply voltage.
  
--	kfree(data);
--
- 	return 0;
- }
++The INA230 is a high or low side current shunt and power monitor with an I2C
++interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
++
+ The shunt value in micro-ohms can be set via platform data.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 6f1d167..349f895 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1105,11 +1105,11 @@ config SENSORS_AMC6821
+ 	  will be called amc6821.
  
+ config SENSORS_INA2XX
+-	tristate "Texas Instruments INA219, INA226"
++	tristate "Texas Instruments INA219, INA220, INA226, and INA230"
+ 	depends on I2C && EXPERIMENTAL
+ 	help
+-	  If you say yes here you get support for INA219 and INA226 power
+-	  monitor chips.
++	  If you say yes here you get support for INA219, INA220, INA226, and
++	  INA230 power monitor chips.
+ 
+ 	  The INA2xx driver is configured for the default configuration of
+ 	  the part as described in the datasheet.
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index eb42e8b..5ca273a 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -5,10 +5,18 @@
+  * Zero Drift Bi-Directional Current/Power Monitor with I2C Interface
+  * Datasheet: http://www.ti.com/product/ina219
+  *
++ * INA220:
++ * Bi-Directional Current/Power Monitor with I2C Interface
++ * Datasheet: http://www.ti.com/product/ina220
++ *
+  * INA226:
+  * Bi-Directional Current/Power Monitor with I2C Interface
+  * Datasheet: http://www.ti.com/product/ina226
+  *
++ * INA230:
++ * Bidirectional Current/Power Monitor with I2C Interface
++ * Datasheet: http://www.ti.com/product/ina230
++ *
+  * Copyright (C) 2012 Lothar Felten <l-felten@ti.com>
+  * Thanks to Jan Volkering
+  *
+@@ -278,7 +286,9 @@ static int ina2xx_remove(struct i2c_client *client)
+ 
+ static const struct i2c_device_id ina2xx_id[] = {
+ 	{ "ina219", ina219 },
++	{ "ina220", ina219 },
+ 	{ "ina226", ina226 },
++	{ "ina230", ina226 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ina2xx_id);
 -- 
-1.7.9.7
+1.7.5.4
 
 
 _______________________________________________
