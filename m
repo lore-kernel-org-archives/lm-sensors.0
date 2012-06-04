@@ -1,61 +1,164 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Wed, 06 Jun 2012 04:29:30 +0000
-Subject: Re: [lm-sensors] [PATCH RFC] hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
-Message-Id: <20120606042930.GA19356@ericsson.com>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 04 Jun 2012 07:51:25 +0000
+Subject: Re: [lm-sensors] Supermicro X7DB8 sensors3.conf
+Message-Id: <20120604095125.39c8e895@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1338827851-702-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1338827851-702-1-git-send-email-linux@roeck-us.net>
+References: <20120530143325.45feb5a2.gem@rellim.com>
+In-Reply-To: <20120530143325.45feb5a2.gem@rellim.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 06, 2012 at 12:15:52AM -0400, R, Durgadoss wrote:
-> Hi Guenter,
-> 
-> [snip.]
-> > > I don't have any public specification as such. I use the same platform for testing.
-> > > There it says TjMax is 90 (which corresponds to cpu model 0x27).
-> > > This is the patch that Jean has submitted a couple of days ago.
-> > >
-> > Hi Durga,
-> > 
-> > sorry, you lost me. What do you mean with "there" ? If it is what coretemp
-> > reports,
-> > it is just a wild guess, unless you or Jean know better from some document.
-> 
-> It is what coretemp reports.
-> I know it is 90C, from an internal document, though :-(
-> That's why was asking is there a place where I can ask folks to update.
-> 
-That is easy - we can add it to Documentation/hwmon/coretemp. I'll do that with my
-series of patches.
+Hi Gary,
 
-> > 
-> > > Guenter, Could you please give me website link where you are getting details
-> > on
-> > > TjMax for other platforms ? I will try and see if I can make people add the
-> > > 'Atom platform' details also there.
-> > >
-> > 
-> > Usually it is in the device datasheet / specification or the device thermal guide
-> > if it exists. I don't think there is a single web site with all the information,
-> > or at least I don't know one. Problem is that no such documentation seems to
-> > exist,
-> > at least not in public, for the Z2460 (or CE4100, for that matter). Only reason
-> > for mentioning CE4100 is that someone suggested a patch for it a couple of years
-> > ago,
-> > but it went nowhere, presumably since tjmax (supposedly 110 C) was never
-> > confirmed,
-> > nor are there well defined means to detect it.
-> > 
+On Wed, 30 May 2012 14:33:25 -0700, Gary E. Miller wrote:
+> Yo lm_sensors!
 > 
-> I will see if I can talk to people to see what can be done better here.
-> I will try & try & try.. :-)
+> See below for a sensors3.conf file for the Supermicro X7DB8 motherboard.
 > 
-Thanks!
+> Please post on the wiki.
 
-Guenter
+Well we already have a configuration file for the X7DBE, which was
+supposedly compatible with that board... But maybe not.
+
+> ---------------------------------------------------------------------------
+> Gary E. Miller Rellim 109 NW Wilmington Ave., Suite E, Bend, OR 97701
+> 	gem@rellim.com  Tel:+1(541)382-8588
+> 
+> # /etc/sensors.d/X7DB8
+> # settings for the supermicro X7DB8
+> # originally written by Gary E. Miller <gem@rellim.com>
+> # use at your own risk !
+> # Date: 30 May 2012
+> 
+> # Here's the info as supplied by Supermicro:
+> 
+> #
+> 
+> # Bus Type = SMBus
+> # One W83793G
+> # 
+> # Windbond W83793G, Slave Address=0x2f (0x5E in 8-Bit format)
+> # ==============================> # Fan1 Fan Speed, Offset 0x23, 0x24			RPM = 1350000/Data
+> # Fan2 Fan Speed, Offset 0x25, 0x26			RPM = 1350000/Data
+> # Fan3 Fan Speed, Offset 0x27, 0x28			RPM = 1350000/Data
+> # Fan4 Fan Speed, Offset 0x29, 0x2a			RPM = 1350000/Data
+> # Fan5 Fan Speed, Offset 0x2b, 0x2c			RPM = 1350000/Data
+> # Fan6 Fan Speed, Offset 0x2d, 0x2e			RPM = 1350000/Data
+> # Fan7/CPU1 Fan Speed, Offset 0x2f, 0x30		RPM = 1350000/Data
+> # Fan8/CPU2 Fan Speed, Offset 0x31, 0x32		RPM = 1350000/Data
+> # CPU1 Core Voltage, Offset 0x10			Voltage = Data* 0.008	
+> # CPU2 Core Voltage, Offset 0x11			Voltage = Data* 0.008
+> # -12V Voltage, Offset 0x14				Voltage = ((Data*0.016)- (2.048*(232./260.)))/(1-(232./260.))
+> # +1.5V Voltage, Offset 0x15				Voltage = Data* 0.016
+> # +3.3V Voltage, Offset 0x16				Voltage = Data* 0.016
+> # +12V Voltage, Offset 0x17				Voltage = Data* 0.008/ (10./120.)
+> # +5V Voltage, Offset 0x18				Voltage = Data* 0.024
+> # 5Vsb Voltage, Offset 0x19				Voltage = Data* 0.024
+> # Battery Voltage, Offset 0x1a				Voltage = Data* 0.016
+> # CPU1 CoreA (PECI Agent1) Temperature, Offset 0x1c	Temperature = Data
+> # CPU1 CoreB (PECI Agent2) Temperature, Offset 0x1d	Temperature = Data
+> # CPU2 CoreA (PECI Agent3) Temperature, Offset 0x1e	Temperature = Data
+> # CPU2 CoreB (PECI Agent4) Temperature, Offset 0x1f	Temperature = Data
+> # System Temperature, Offset 0x20			Temperature = Data
+> # Chassis Intrusion, Offset 0x44, BitMask 0x40		1 = Bad, 0 = Good
+> # 
+> # 
+> # Windbond W83627HF
+> # ==============================> # Power Supply Failure, GP11(From W83627HF)		1 = Good, 0 = Bad
+> #
+> 
+> chip "w83627hf-isa-0290"
+>     # no driver access to GP11, so I turned off everything.
+>     ignore in0
+>     ignore in1
+>     ignore in2
+>     ignore in3
+>     ignore in4
+>     ignore in5
+>     ignore in6
+>     ignore in7
+>     ignore in8
+>     ignore cpu0_vid
+>     ignore fan1
+>     ignore fan2
+>     ignore fan3
+>     ignore temp1
+>     ignore temp2
+>     ignore temp3
+
+Again, best is to just not load the driver in the first place.
+
+> 
+> 
+> 
+> bus "i2c-0" "SMBus I801 adapter at 1100"
+> 
+> chip "w83793-i2c-0-2f"
+> 
+> 	label fan7	fanCPU1
+> 	label fan8	fanCPU2
+> 
+> # Voltages ; note that in the table above, the .008, .016, and .024 factors are
+> # already computed in the driver...
+> 	label in0 "CPU1"
+> 	label in1 "CPU2"
+> 	ignore in2
+> 	label in3 "-12V"
+> 	label in4 "1.5V"
+> 	label in5 "3.3V"
+> 	label in6 "12V"
+> 	label in7 "5V"
+> 	label in8 "5Vsb"
+> 	label in9 "Vbat"
+> 
+> 	label temp1 "CPU1 CoreA"
+> 	label temp2 "CPU1 CoreB"
+> 	label temp3 "CPU2 CoreA"
+> 	label temp4 "CPU2 CoreB"
+> 	label temp5 "mobo"
+> 
+> 	compute in3  (@ - (2.048*(232/260)))/(1-(232/260)), (@*(1-(232/260)))+(2.048*(232/260))
+> 	compute in6  @ * 12 , @ / 12
+> 
+> 
+> 	# CPUs
+> 	set in0_min  0.82
+> 	set in0_max  1.35
+> 	set in1_min  0.82
+> 	set in1_max  1.35
+> 
+> 	# -12V, 10%
+> 	set in3_max  -12.0 * 0.90
+> 	set in3_min  -12.0 * 1.10
+> 	# 3.3V, 5%
+> 	set in5_min  3.3 * 0.95
+> 	set in5_max  3.3 * 1.05
+> 	# 12V, 10%
+> 	set in6_min  12.0 * 0.90
+> 	set in6_max  12.0 * 1.10
+> 	# 5V, 10%
+> 	set in7_min  5.0 * 0.90
+> 	set in7_max  5.0 * 1.10
+> 	# 5Vsb, 10%
+> 	set in8_min  5.0 * 0.90
+> 	set in8_max  5.0 * 1.10
+> 	# Vbat, 10%
+> 	set in9_min  3.0 * 0.90
+> 	set in9_max  3.0 * 1.10
+
+You are too tolerant, ATX specifications says +/- 5% for +5V, +12V and
+5VSB. I admit it's not rare to see 5VSB diverge by more than 5%, but
++5V and +12V definitely shouldn't.
+
+Cleaned up configuration file is at:
+http://www.lm-sensors.org/wiki/Configurations/SuperMicro/X7DB8
+
+Thanks for your contribution!
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
