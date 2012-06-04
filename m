@@ -1,159 +1,71 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:22 +0000
-Subject: [lm-sensors] [PATCH 41/95] hwmon: (ibmaem) Convert to use devm_ functions
-Message-Id: <1339773856-3443-42-git-send-email-linux@roeck-us.net>
+Date: Mon, 04 Jun 2012 23:32:28 +0000
+Subject: [lm-sensors] [RFC PATCH 1/2] hwmon: (coretemp) Add support for Atom D2000 and N2000 series CPU model
+Message-Id: <1338852749-5564-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+Document the Atom series D2000 and N2000 (Cedar Trail) as being supported,
+and list TjMax for those series.
 
-Cc: Darrick J. Wong <djwong@us.ibm.com>
+Also enable the Atom tjmax heuristic for these Atom CPU models.
+
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ibmaem.c |   35 ++++++++++++-----------------------
- 1 file changed, 12 insertions(+), 23 deletions(-)
+This patch applies on top of Jean's patch to add Tunnel Creek and Medfield
+support.
 
-diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
-index 37f17e0..6bc25e8 100644
---- a/drivers/hwmon/ibmaem.c
-+++ b/drivers/hwmon/ibmaem.c
-@@ -488,13 +488,10 @@ static void aem_delete(struct aem_data *data)
- {
- 	list_del(&data->list);
- 	aem_remove_sensors(data);
--	kfree(data->rs_resp);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	ipmi_destroy_user(data->ipmi.user);
--	platform_set_drvdata(data->pdev, NULL);
- 	platform_device_unregister(data->pdev);
- 	ida_simple_remove(&aem_ida, data->id);
--	kfree(data);
- }
+Found references to Cedar Trail while verifying the Atom detection patch.
+No idea if the detection code is really needed, or if those CPUs support
+the TjMax register. Does anyone know ?
+
+ Documentation/hwmon/coretemp |    5 ++++-
+ drivers/hwmon/coretemp.c     |    2 +-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index 3d7f2d7..015dfd4 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -7,7 +7,8 @@ Supported chips:
+     CPUID: family 0x6, models 0xe (Pentium M DC), 0xf (Core 2 DC 65nm),
+                               0x16 (Core 2 SC 65nm), 0x17 (Penryn 45nm),
+                               0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield),
+-                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom)
++                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom),
++			      0x36 (Cedar Trail)
+     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
+                Volume 3A: System Programming Guide
+                http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
+@@ -88,6 +89,8 @@ Process		Processor					TjMax(C)
+ 		330/230						125
+ 		E680/660/640/620				90
+ 		E680T/660T/640T/620T				110
++		D2500/2550/2700					100
++		N2600/2650/2800/2850				100
  
- /* Probe functions for AEM1 devices */
-@@ -537,7 +534,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
- 	int i;
- 	int res = -ENOMEM;
+ 45nm		Core2 Processors
+ 		Solo ULV SU3500/3300				100
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 495add5..07160126 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -211,7 +211,7 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
+ 	/* Atom CPUs */
  
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(probe->bmc_device, sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return res;
- 	mutex_init(&data->lock);
-@@ -552,7 +549,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
- 	/* Create sub-device for this fw instance */
- 	data->id = ida_simple_get(&aem_ida, 0, 0, GFP_KERNEL);
- 	if (data->id < 0)
--		goto id_err;
-+		return data->id;
+ 	if (c->x86_model = 0x1c || c->x86_model = 0x26
+-	    || c->x86_model = 0x27) {
++	    || c->x86_model = 0x27 || c->x86_model = 0x36) {
+ 		usemsr_ee = 0;
  
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
-@@ -582,7 +579,9 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
- 	}
- 
- 	data->update = update_aem1_sensors;
--	data->rs_resp = kzalloc(sizeof(*(data->rs_resp)) + 8, GFP_KERNEL);
-+	data->rs_resp = devm_kzalloc(probe->bmc_device,
-+				     sizeof(*(data->rs_resp)) + 8,
-+				     GFP_KERNEL);
- 	if (!data->rs_resp) {
- 		res = -ENOMEM;
- 		goto alloc_resp_err;
-@@ -591,7 +590,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
- 	/* Find sensors */
- 	res = aem1_find_sensors(data);
- 	if (res)
--		goto sensor_err;
-+		goto alloc_resp_err;
- 
- 	/* Add to our list of AEM devices */
- 	list_add_tail(&data->list, &driver_data.aem_devices);
-@@ -601,20 +600,14 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
- 		 data->module_handle);
- 	return 0;
- 
--sensor_err:
--	kfree(data->rs_resp);
- alloc_resp_err:
- 	hwmon_device_unregister(data->hwmon_dev);
- hwmon_reg_err:
- 	ipmi_destroy_user(data->ipmi.user);
- ipmi_err:
--	platform_set_drvdata(data->pdev, NULL);
- 	platform_device_unregister(data->pdev);
- dev_err:
- 	ida_simple_remove(&aem_ida, data->id);
--id_err:
--	kfree(data);
--
- 	return res;
- }
- 
-@@ -677,7 +670,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
- 	int i;
- 	int res = -ENOMEM;
- 
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(probe->bmc_device, sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return res;
- 	mutex_init(&data->lock);
-@@ -692,7 +685,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
- 	/* Create sub-device for this fw instance */
- 	data->id = ida_simple_get(&aem_ida, 0, 0, GFP_KERNEL);
- 	if (data->id < 0)
--		goto id_err;
-+		return data->id;
- 
- 	data->pdev = platform_device_alloc(DRVNAME, data->id);
- 	if (!data->pdev)
-@@ -722,7 +715,9 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
- 	}
- 
- 	data->update = update_aem2_sensors;
--	data->rs_resp = kzalloc(sizeof(*(data->rs_resp)) + 8, GFP_KERNEL);
-+	data->rs_resp = devm_kzalloc(probe->bmc_device,
-+				     sizeof(*(data->rs_resp)) + 8,
-+				     GFP_KERNEL);
- 	if (!data->rs_resp) {
- 		res = -ENOMEM;
- 		goto alloc_resp_err;
-@@ -731,7 +726,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
- 	/* Find sensors */
- 	res = aem2_find_sensors(data);
- 	if (res)
--		goto sensor_err;
-+		goto alloc_resp_err;
- 
- 	/* Add to our list of AEM devices */
- 	list_add_tail(&data->list, &driver_data.aem_devices);
-@@ -741,20 +736,14 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
- 		 data->module_handle);
- 	return 0;
- 
--sensor_err:
--	kfree(data->rs_resp);
- alloc_resp_err:
- 	hwmon_device_unregister(data->hwmon_dev);
- hwmon_reg_err:
- 	ipmi_destroy_user(data->ipmi.user);
- ipmi_err:
--	platform_set_drvdata(data->pdev, NULL);
- 	platform_device_unregister(data->pdev);
- dev_err:
- 	ida_simple_remove(&aem_ida, data->id);
--id_err:
--	kfree(data);
--
- 	return res;
- }
- 
+ 		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
 -- 
-1.7.9.7
+1.7.5.4
 
 
 _______________________________________________
