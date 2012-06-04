@@ -1,7 +1,7 @@
 From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 03 Jun 2012 23:16:36 +0000
+Date: Mon, 04 Jun 2012 16:46:58 +0000
 Subject: Re: [lm-sensors] System: "Point of View ION-MB330-1" produces wrong values with lm-sensors 3.3.2
-Message-Id: <20120603231636.GA3901@ericsson.com>
+Message-Id: <1338828418.478.172.camel@groeck-laptop>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAOB5NSGJmSkyng5C4YDACgcKAAAAQAAAARsa0Leonh0i8VcwkGa2IBgEAAAAA@casema.nl>
 In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAOB5NSGJmSkyng5C4YDACgcKAAAAQAAAARsa0Leonh0i8VcwkGa2IBgEAAAAA@casema.nl>
@@ -10,24 +10,123 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gU3VuLCBKdW4gMDMsIDIwMTIgYXQgMDE6NTA6MTRQTSAtMDQwMCwgZ2V2ZTAwMUBjYXNlbWEu
-bmwgd3JvdGU6Cj4gT24gc2xhY2t3YXJlLCBzZW5zb3JzIHByb2R1Y2UgYSB3cm9uZyB2YWx1ZSBm
-b3IgQ1BVIHRlbXBlcmF0dXJlIGZvciB0aGUgTUIKPiAiUG9pbnQgb2YgVmlldyBJT04tTUIzMzAt
-MSIKPiAKPiAgCj4gCj4gSXQgaXMgb2ZmIGF0IGxlYXN0IDIwIGRlZ3JlZXMuCj4gCj4gQ1BVLTAg
-YW5kIENQVS0xIGRpZmZlciAxMCBkZWdyZWVzIHdoaWNoIGlzIG9kZC4gQ1BVLTAgaGFzIG1vcmUg
-bG9hZCBhbmQgbG93ZXIKPiB0ZW1wIChzZWUgbXBzdGF0KQo+IAo+IENyaXRpY2FsIHRlbXBlcmF0
-dXJlIHNob3VsZCBiZSAxMjUgYWNjb3JkaW5nIHRvIGRhdGFzaGVldHMKPiAKPiAgCj4gCj4gU29t
-ZSBHb29nbGUgdG9waWNzIHN1Z2dlc3QgdG8gYWRkIDIwIGRlZ3JlZXMsIGJ1dCBpbiB0aG9zZSBj
-YXNlcyB0aGUgY3B14oCZcyBoYXZlCj4gdGhlIHNhbWUgbG93IHRlbXAuCj4gCj4gIAo+IAo+ID09
-PiBIb3cgdG8gdGFja2xlIHRoaXMgcHJvYmxlbT8/Cj4gCj4gIAo+IAo+IC0tLS0tLS0tLS0tLS0g
-TGludXgga2VybmVsIDIuNi4zNy42Cj4gCj4gcm9vdEBhdG9tOn4jIHVuYW1lIC1hCj4gCj4gTGlu
-dXggYXRvbSAyLjYuMzcuNi1zbXAgIzIgU01QIFNhdCBBcHIgOSAyMzozOTowNyBDRFQgMjAxMSBp
-Njg2IEludGVsKFIpIEF0b20KPiAoVE0pIENQVSAgMzMwICAgQCAxLjYwR0h6IEdlbnVpbmVJbnRl
-bCBHTlUvTGludXgKPiAKPiAgCj4gCkxvb2tzIGxpa2UgdGhlIENQVSBkb2VzIG5vdCBwcm92aWRl
-IGEgdmFsdWUgZm9yIFRqTWF4IGl0c2VsZiwgYW5kIHdlIGRvbid0IGRldGVjdAp0aGUgQ1BVIHR5
-cGUgY29ycmVjdGx5IHRvIGFkanVzdCBpdC4KCkNhbiB5b3UgcHJvdmlkZSB0aGUgb3V0cHV0IG9m
-IC9wcm9jL2NwdWluZm8gPwoKQXMgd29ya2Fyb3VuZCwgeW91IGNhbiBzZXQgdGhlIG1vZHVsZSBw
-YXJhbWV0ZXIgZm9yY2VfdGptYXggdG8gMTI1LiAKClRoYW5rcywKR3VlbnRlcgoKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
-ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
-b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Sun, 2012-06-03 at 20:18 -0400, Ben Kamen wrote:
+> I'm using a Supermicro X7SPA D510 and it's like 10'C different btween coretemp readings and what the IPMI reports for its CPU sensor...
+> 
+> For what it's worth, /proc/cpuinfo reads:
+> 
+> > processor       : 0
+> > vendor_id       : GenuineIntel
+> > cpu family      : 6
+> > model           : 28
+> > model name      : Intel(R) Atom(TM) CPU D510   @ 1.66GHz
+> > stepping        : 10
+> > cpu MHz         : 1666.670
+> > cache size      : 512 KB
+> > physical id     : 0
+> > siblings        : 4
+> > core id         : 0
+> > cpu cores       : 2
+> > apicid          : 0
+> > initial apicid  : 0
+> > fpu             : yes
+> > fpu_exception   : yes
+> > cpuid level     : 10
+> > wp              : yes
+> > flags           : fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca cmov pat pse36 clflush dts ac                                 pi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts rep_good aperfmpe                                 rf pni dtes64 monitor ds_cpl tm2 ssse3 cx16 xtpr pdcm movbe lahf_lm dts
+> > bogomips        : 3334.02
+> > clflush size    : 64
+> > cache_alignment : 64
+> > address sizes   : 36 bits physical, 48 bits virtual
+> > power management:
+> >
+> > processor       : 1
+> > vendor_id       : GenuineIntel
+> > cpu family      : 6
+> > model           : 28
+> > model name      : Intel(R) Atom(TM) CPU D510   @ 1.66GHz
+> > stepping        : 10
+> > cpu MHz         : 1666.670
+> > cache size      : 512 KB
+> > physical id     : 0
+> > siblings        : 4
+> > core id         : 1
+> > cpu cores       : 2
+> > apicid          : 2
+> > initial apicid  : 2
+> > fpu             : yes
+> > fpu_exception   : yes
+> > cpuid level     : 10
+> > wp              : yes
+> > flags           : fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca cmov pat pse36 clflush dts ac                                 pi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts aperfmperf pni dt                                 es64 monitor ds_cpl tm2 ssse3 cx16 xtpr pdcm movbe lahf_lm dts
+> > bogomips        : 3399.83
+> > clflush size    : 64
+> > cache_alignment : 64
+> > address sizes   : 36 bits physical, 48 bits virtual
+> > power management:
+> >
+> > processor       : 2
+> > vendor_id       : GenuineIntel
+> > cpu family      : 6
+> > model           : 28
+> > model name      : Intel(R) Atom(TM) CPU D510   @ 1.66GHz
+> > stepping        : 10
+> > cpu MHz         : 1666.670
+> > cache size      : 512 KB
+> > physical id     : 0
+> > siblings        : 4
+> > core id         : 0
+> > cpu cores       : 2
+> > apicid          : 1
+> > initial apicid  : 1
+> > fpu             : yes
+> > fpu_exception   : yes
+> > cpuid level     : 10
+> > wp              : yes
+> > flags           : fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca cmov pat pse36 clflush dts ac                                 pi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts aperfmperf pni dt                                 es64 monitor ds_cpl tm2 ssse3 cx16 xtpr pdcm movbe lahf_lm dts
+> > bogomips        : 3333.13
+> > clflush size    : 64
+> > cache_alignment : 64
+> > address sizes   : 36 bits physical, 48 bits virtual
+> > power management:
+> >
+> > processor       : 3
+> > vendor_id       : GenuineIntel
+> > cpu family      : 6
+> > model           : 28
+> > model name      : Intel(R) Atom(TM) CPU D510   @ 1.66GHz
+> > stepping        : 10
+> > cpu MHz         : 1666.670
+> > cache size      : 512 KB
+> > physical id     : 0
+> > siblings        : 4
+> > core id         : 1
+> > cpu cores       : 2
+> > apicid          : 3
+> > initial apicid  : 3
+> > fpu             : yes
+> > fpu_exception   : yes
+> > cpuid level     : 10
+> > wp              : yes
+> > flags           : fpu vme de pse tsc msr pae mce cx8 apic mtrr pge mca cmov pat pse36 clflush dts ac                                 pi mmx fxsr sse sse2 ss ht tm pbe syscall nx lm constant_tsc arch_perfmon pebs bts aperfmperf pni dt                                 es64 monitor ds_cpl tm2 ssse3 cx16 xtpr pdcm movbe lahf_lm dts
+> > bogomips        : 3333.24
+> > clflush size    : 64
+> > cache_alignment : 64
+> > address sizes   : 36 bits physical, 48 bits virtual
+> > power management:
+> 
+TjMax detection for Atom CPUs is at best marginal today. It should be
+100 degrees C for your CPU, but is probably detected as 90.
+
+I submitted an RFC patch a minute ago, trying to improve it. Maybe you
+can give it a try.
+
+Thanks,
+Guenter
+
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
