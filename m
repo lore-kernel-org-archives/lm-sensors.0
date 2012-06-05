@@ -1,104 +1,226 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 04 Jun 2012 20:51:59 +0000
+From: "Ger vermeulen" <geve002@casema.nl>
+Date: Tue, 05 Jun 2012 19:10:01 +0000
 Subject: Re: [lm-sensors] System: "Point of View ION-MB330-1" produces wrong values with lm-sensors 3.3.2
-Message-Id: <1338843119.478.218.camel@groeck-laptop>
+Message-Id: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAOB5NSGJmSkyng5C4YDACgUKFAAAQAAAAEwCUkyf/6kW0pmMXIuBtbQEAAAAA@casema.nl>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAOB5NSGJmSkyng5C4YDACgcKAAAAQAAAARsa0Leonh0i8VcwkGa2IBgEAAAAA@casema.nl>
 In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAOB5NSGJmSkyng5C4YDACgcKAAAAQAAAARsa0Leonh0i8VcwkGa2IBgEAAAAA@casema.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-T24gTW9uLCAyMDEyLTA2LTA0IGF0IDE1OjIzIC0wNDAwLCBHZXIgdmVybWV1bGVuIHdyb3RlOgo+
-IEFkZGVkIHJlcXVlc3RlZCBjcHVpbmZvIGF0IHRoZSBib3R0b20KPiAKSGksCgpQbGVhc2UgZG9u
-J3QgdG9wLXBvc3QuCgo+IEkgYWxzbyBub3RpY2VkIGEgbG9nZ2luZyBpbiB0aGUgc3lzbG9nICJV
-bmFibGUgdG8gcmVhZCBUak1heCBmcm9tIENQVSIsCj4gTWF5YmUgZ2l2ZXMgYSBoaW50IHRvIHJl
-YXNvbi4KPiAKPiByb290QGF0b206fiMgcm1tb2QgY29yZXRlbXAKPiByb290QGF0b206fiMgbW9k
-cHJvYmUgY29yZXRlbXAKPiAKPiBKdW4gIDQgMjE6MDY6NDggYXRvbSBrZXJuZWw6IFs4ODQ1OS42
-Mzg3NzJdIGNvcmV0ZW1wIGNvcmV0ZW1wLjA6IFVuYWJsZSB0bwo+IHJlYWQgVGpNYXggZnJvbSBD
-UFUuCj4gSnVuICA0IDIxOjA2OjQ4IGF0b20ga2VybmVsOiBbODg0NTkuNjQwNjMzXSBjb3JldGVt
-cCBjb3JldGVtcC4xOiBVbmFibGUgdG8KPiByZWFkIFRqTWF4IGZyb20gQ1BVLgo+IApUaGlzIGlz
-ICJub3JtYWwiIGZvciBBdG9tIENQVXMuCgo+IHJvb3RAYXRvbTp+IyBzZW5zb3JzCj4gY29yZXRl
-bXAtaXNhLTAwMDAKPiBBZGFwdGVyOiBJU0EgYWRhcHRlcgo+IENvcmUwOiAgICAgICAgIC0xLjDC
-sEMgIChjcml0ID0gKzkwLjDCsEMpCj4gCj4gY29yZXRlbXAtaXNhLTAwMDEKPiBBZGFwdGVyOiBJ
-U0EgYWRhcHRlcgo+IENvcmUxOiAgICAgICAgKzEwLjDCsEMgIChjcml0ID0gKzkwLjDCsEMpCj4g
-Cj4gcm9vdEBhdG9tOn4jIGNhdCAvc3lzL2RldmljZXMvcGxhdGZvcm0vY29yZXRlbXAuMC90ZW1w
-MV9pbnB1dAo+IC0xMDAwCj4gcm9vdEBhdG9tOn4jIGNhdCAvc3lzL2RldmljZXMvcGxhdGZvcm0v
-Y29yZXRlbXAuMS90ZW1wMV9pbnB1dAo+IDEwMDAwCj4gClByb2JsZW0gaXMgdGhhdCBUak1heCBp
-cyBub3QgY29ycmVjdGx5IGRldGVjdGVkLiBJIHN1Ym1pdHRlZCBhbiBSRkMKcGF0Y2ggdG8gc2Vl
-IGlmIHdlIGNhbiBpbXByb3ZlIG9uIGl0LiBUaGF0IHdvbid0IGJlIG1hZGUgYXZhaWxhYmxlIGlu
-CnlvdXIgdmVyc2lvbiBvZiB0aGUga2VybmVsLCB0aG91Z2gsIHNvIHlvdSB3b3VsZCBlaXRoZXIg
-aGF2ZSB0byBpbXBvcnQKdGhlIGNvcmV0ZW1wIG1vZHVsZSBmcm9tIGEgbGF0ZXIgdmVyc2lvbiBv
-ZiB0aGUga2VybmVsLCBvciB1c2UgdGhlCndvcmthcm91bmQgSSBzdWdnZXN0ZWQgYmVsb3cuIFRq
-TWF4IGZvciB0aGUgQXRvbSAzMzAgQ1BVIGlzIDEyNSBkZWdyZWVzCkMsIHNvIHRoZSByZWFsIHRl
-bXBlcmF0dXJlcyBhcmUgMzQgZGVncmVlcyBDIGFuZCA0NSBkZWdyZWVzIEMuCgpJIGNhbiBub3Qg
-ZXhwbGFpbiB0aGUgZGlmZmVyZW5jZXMgaW4gdGhlIHJlcG9ydGVkIHRlbXBlcmF0dXJlcyB2cy4g
-dGhlCndvcmsgbG9hZC4gTWF5YmUgQ29yZTAgYW5kIENvcmUxIGFyZSBnZXR0aW5nIHN3YXBwZWQg
-c29tZXdoZXJlLiBPdmVyYWxsLAp0aG91Z2gsIGtlZXAgaW4gbWluZCB0aGF0IHRoZSByZXBvcnRl
-ZCB0ZW1wZXJhdHVyZXMgYXJlIHZlcnkgdW5yZWxpYWJsZQpmb3IgdGVtcGVyYXR1cmVzIGFzIGZh
-ciBiZWxvdyBUak1heCBhcyB5b3UgZXhwZXJpZW5jZSBpbiB5b3VyIHN5c3RlbS4KCkd1ZW50ZXIK
-Cj4gcm9vdEBhdG9tOn4jIGNhdCAvcHJvYy9jcHVpbmZvCj4gcHJvY2Vzc29yICAgICAgIDogMAo+
-IHZlbmRvcl9pZCAgICAgICA6IEdlbnVpbmVJbnRlbAo+IGNwdSBmYW1pbHkgICAgICA6IDYKPiBt
-b2RlbCAgICAgICAgICAgOiAyOAo+IG1vZGVsIG5hbWUgICAgICA6IEludGVsKFIpIEF0b20oVE0p
-IENQVSAgMzMwICAgQCAxLjYwR0h6Cj4gc3RlcHBpbmcgICAgICAgIDogMgo+IGNwdSBNSHogICAg
-ICAgICA6IDE1OTkuOTkxCj4gY2FjaGUgc2l6ZSAgICAgIDogNTEyIEtCCj4gcGh5c2ljYWwgaWQg
-ICAgIDogMAo+IHNpYmxpbmdzICAgICAgICA6IDIKPiBjb3JlIGlkICAgICAgICAgOiAwCj4gY3B1
-IGNvcmVzICAgICAgIDogMgo+IGFwaWNpZCAgICAgICAgICA6IDAKPiBpbml0aWFsIGFwaWNpZCAg
-OiAwCj4gZmRpdl9idWcgICAgICAgIDogbm8KPiBobHRfYnVnICAgICAgICAgOiBubwo+IGYwMGZf
-YnVnICAgICAgICA6IG5vCj4gY29tYV9idWcgICAgICAgIDogbm8KPiBmcHUgICAgICAgICAgICAg
-OiB5ZXMKPiBmcHVfZXhjZXB0aW9uICAgOiB5ZXMKPiBjcHVpZCBsZXZlbCAgICAgOiAxMAo+IHdw
-ICAgICAgICAgICAgICA6IHllcwo+IGZsYWdzICAgICAgICAgICA6IGZwdSB2bWUgZGUgcHNlIHRz
-YyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAgbXRyciBwZ2UgbWNhCj4gY21vdiBwYXQgY2xmbHVz
-aCBkdHMgYWNwaSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgbnggbG0gY29uc3RhbnRf
-dHNjCj4gYXJjaF9wZXJmbW9uIHBlYnMgYnRzIGFwZXJmbXBlcmYgcG5pIGR0ZXM2NCBtb25pdG9y
-IGRzX2NwbCB0bTIgc3NzZTMgY3gxNgo+IHh0cHIgcGRjbSBtb3ZiZSBsYWhmX2xtIGR0cwo+IGJv
-Z29taXBzICAgICAgICA6IDMxOTkuOTgKPiBjbGZsdXNoIHNpemUgICAgOiA2NAo+IGNhY2hlX2Fs
-aWdubWVudCA6IDY0Cj4gYWRkcmVzcyBzaXplcyAgIDogMzIgYml0cyBwaHlzaWNhbCwgNDggYml0
-cyB2aXJ0dWFsCj4gcG93ZXIgbWFuYWdlbWVudDoKPiAKPiBwcm9jZXNzb3IgICAgICAgOiAxCj4g
-dmVuZG9yX2lkICAgICAgIDogR2VudWluZUludGVsCj4gY3B1IGZhbWlseSAgICAgIDogNgo+IG1v
-ZGVsICAgICAgICAgICA6IDI4Cj4gbW9kZWwgbmFtZSAgICAgIDogSW50ZWwoUikgQXRvbShUTSkg
-Q1BVICAzMzAgICBAIDEuNjBHSHoKPiBzdGVwcGluZyAgICAgICAgOiAyCj4gY3B1IE1IeiAgICAg
-ICAgIDogMTU5OS45OTEKPiBjYWNoZSBzaXplICAgICAgOiA1MTIgS0IKPiBwaHlzaWNhbCBpZCAg
-ICAgOiAwCj4gc2libGluZ3MgICAgICAgIDogMgo+IGNvcmUgaWQgICAgICAgICA6IDEKPiBjcHUg
-Y29yZXMgICAgICAgOiAyCj4gYXBpY2lkICAgICAgICAgIDogMgo+IGluaXRpYWwgYXBpY2lkICA6
-IDIKPiBmZGl2X2J1ZyAgICAgICAgOiBubwo+IGhsdF9idWcgICAgICAgICA6IG5vCj4gZjAwZl9i
-dWcgICAgICAgIDogbm8KPiBjb21hX2J1ZyAgICAgICAgOiBubwo+IGZwdSAgICAgICAgICAgICA6
-IHllcwo+IGZwdV9leGNlcHRpb24gICA6IHllcwo+IGNwdWlkIGxldmVsICAgICA6IDEwCj4gd3Ag
-ICAgICAgICAgICAgIDogeWVzCj4gZmxhZ3MgICAgICAgICAgIDogZnB1IHZtZSBkZSBwc2UgdHNj
-IG1zciBwYWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EKPiBjbW92IHBhdCBjbGZsdXNo
-IGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0IHRtIHBiZSBueCBsbSBjb25zdGFudF90
-c2MKPiBhcmNoX3BlcmZtb24gcGVicyBidHMgYXBlcmZtcGVyZiBwbmkgZHRlczY0IG1vbml0b3Ig
-ZHNfY3BsIHRtMiBzc3NlMyBjeDE2Cj4geHRwciBwZGNtIG1vdmJlIGxhaGZfbG0gZHRzCj4gYm9n
-b21pcHMgICAgICAgIDogMzE5OS41Ngo+IGNsZmx1c2ggc2l6ZSAgICA6IDY0Cj4gY2FjaGVfYWxp
-Z25tZW50IDogNjQKPiBhZGRyZXNzIHNpemVzICAgOiAzMiBiaXRzIHBoeXNpY2FsLCA0OCBiaXRz
-IHZpcnR1YWwKPiBwb3dlciBtYW5hZ2VtZW50Ogo+IAo+IAo+ID4gLS0tLS1PcmlnaW5hbCBNZXNz
-YWdlLS0tLS0KPiA+IEZyb206IEd1ZW50ZXIgUm9lY2sgW21haWx0bzpndWVudGVyLnJvZWNrQGVy
-aWNzc29uLmNvbV0KPiA+IFNlbnQ6IE1vbmRheSwgMDQgSnVuZSwgMjAxMiAwMToxNwo+ID4gVG86
-IGdldmUwMDJAY2FzZW1hLm5sCj4gPiBDYzogbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwo+ID4g
-U3ViamVjdDogUmU6IFtsbS1zZW5zb3JzXSBTeXN0ZW06ICJQb2ludCBvZiBWaWV3IElPTi1NQjMz
-MC0xIiBwcm9kdWNlcwo+ID4gd3JvbmcgdmFsdWVzIHdpdGggbG0tc2Vuc29ycyAzLjMuMgo+ID4g
-Cj4gPiBPbiBTdW4sIEp1biAwMywgMjAxMiBhdCAwMTo1MDoxNFBNIC0wNDAwLCBnZXZlMDAxQGNh
-c2VtYS5ubCB3cm90ZToKPiA+ID4gT24gc2xhY2t3YXJlLCBzZW5zb3JzIHByb2R1Y2UgYSB3cm9u
-ZyB2YWx1ZSBmb3IgQ1BVIHRlbXBlcmF0dXJlIGZvciB0aGUKPiA+IE1CCj4gPiA+ICJQb2ludCBv
-ZiBWaWV3IElPTi1NQjMzMC0xIgo+ID4gPgo+ID4gPgo+ID4gPgo+ID4gPiBJdCBpcyBvZmYgYXQg
-bGVhc3QgMjAgZGVncmVlcy4KPiA+ID4KPiA+ID4gQ1BVLTAgYW5kIENQVS0xIGRpZmZlciAxMCBk
-ZWdyZWVzIHdoaWNoIGlzIG9kZC4gQ1BVLTAgaGFzIG1vcmUgbG9hZCBhbmQKPiA+IGxvd2VyCj4g
-PiA+IHRlbXAgKHNlZSBtcHN0YXQpCj4gPiA+Cj4gPiA+IENyaXRpY2FsIHRlbXBlcmF0dXJlIHNo
-b3VsZCBiZSAxMjUgYWNjb3JkaW5nIHRvIGRhdGFzaGVldHMKPiA+ID4KPiA+ID4KPiA+ID4KPiA+
-ID4gU29tZSBHb29nbGUgdG9waWNzIHN1Z2dlc3QgdG8gYWRkIDIwIGRlZ3JlZXMsIGJ1dCBpbiB0
-aG9zZSBjYXNlcyB0aGUKPiA+IGNwdeKAmXMgaGF2ZQo+ID4gPiB0aGUgc2FtZSBsb3cgdGVtcC4K
-PiA+ID4KPiA+ID4KPiA+ID4KPiA+ID4gPT0+IEhvdyB0byB0YWNrbGUgdGhpcyBwcm9ibGVtPz8K
-PiA+ID4KPiA+ID4KPiA+ID4KPiA+ID4gLS0tLS0tLS0tLS0tLSBMaW51eCBrZXJuZWwgMi42LjM3
-LjYKPiA+ID4KPiA+ID4gcm9vdEBhdG9tOn4jIHVuYW1lIC1hCj4gPiA+Cj4gPiA+IExpbnV4IGF0
-b20gMi42LjM3LjYtc21wICMyIFNNUCBTYXQgQXByIDkgMjM6Mzk6MDcgQ0RUIDIwMTEgaTY4NiBJ
-bnRlbChSKQo+ID4gQXRvbQo+ID4gPiAoVE0pIENQVSAgMzMwICAgQCAxLjYwR0h6IEdlbnVpbmVJ
-bnRlbCBHTlUvTGludXgKPiA+ID4KPiA+ID4KPiA+ID4KPiA+IExvb2tzIGxpa2UgdGhlIENQVSBk
-b2VzIG5vdCBwcm92aWRlIGEgdmFsdWUgZm9yIFRqTWF4IGl0c2VsZiwgYW5kIHdlIGRvbid0Cj4g
-PiBkZXRlY3QKPiA+IHRoZSBDUFUgdHlwZSBjb3JyZWN0bHkgdG8gYWRqdXN0IGl0Lgo+ID4gCj4g
-PiBDYW4geW91IHByb3ZpZGUgdGhlIG91dHB1dCBvZiAvcHJvYy9jcHVpbmZvID8KPiA+IAo+ID4g
-QXMgd29ya2Fyb3VuZCwgeW91IGNhbiBzZXQgdGhlIG1vZHVsZSBwYXJhbWV0ZXIgZm9yY2VfdGpt
-YXggdG8gMTI1Lgo+ID4gCj4gPiBUaGFua3MsCj4gPiBHdWVudGVyCj4gCgoKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
-aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
-L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+> -----Original Message-----
+> From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
+> Sent: Monday, 04 June, 2012 22:52
+> To: geve002@casema.nl
+> Cc: lm-sensors@lm-sensors.org
+> Subject: RE: [lm-sensors] System: "Point of View ION-MB330-1" produces
+> wrong values with lm-sensors 3.3.2
+>=20
+> On Mon, 2012-06-04 at 15:23 -0400, Ger vermeulen wrote:
+> > Added requested cpuinfo at the bottom
+> >
+> Hi,
+>=20
+> Please don't top-post.
+>=20
+> > I also noticed a logging in the syslog "Unable to read TjMax from CPU",
+> > Maybe gives a hint to reason.
+> >
+> > root@atom:~# rmmod coretemp
+> > root@atom:~# modprobe coretemp
+> >
+> > Jun  4 21:06:48 atom kernel: [88459.638772] coretemp coretemp.0: Unable
+> to
+> > read TjMax from CPU.
+> > Jun  4 21:06:48 atom kernel: [88459.640633] coretemp coretemp.1: Unable
+> to
+> > read TjMax from CPU.
+> >
+> This is "normal" for Atom CPUs.
+>=20
+> > root@atom:~# sensors
+> > coretemp-isa-0000
+> > Adapter: ISA adapter
+> > Core0:         -1.0=B0C  (crit =3D +90.0=B0C)
+> >
+> > coretemp-isa-0001
+> > Adapter: ISA adapter
+> > Core1:        +10.0=B0C  (crit =3D +90.0=B0C)
+> >
+> > root@atom:~# cat /sys/devices/platform/coretemp.0/temp1_input
+> > -1000
+> > root@atom:~# cat /sys/devices/platform/coretemp.1/temp1_input
+> > 10000
+> >
+> Problem is that TjMax is not correctly detected. I submitted an RFC
+> patch to see if we can improve on it. That won't be made available in
+> your version of the kernel, though, so you would either have to import
+> the coretemp module from a later version of the kernel, or use the
+> workaround I suggested below. TjMax for the Atom 330 CPU is 125 degrees
+> C, so the real temperatures are 34 degrees C and 45 degrees C.
+>=20
+> I can not explain the differences in the reported temperatures vs. the
+> work load. Maybe Core0 and Core1 are getting swapped somewhere. Overall,
+> though, keep in mind that the reported temperatures are very unreliable
+> for temperatures as far below TjMax as you experience in your system.
+>=20
+> Guenter
+>=20
+> > root@atom:~# cat /proc/cpuinfo
+> > processor       : 0
+> > vendor_id       : GenuineIntel
+> > cpu family      : 6
+> > model           : 28
+> > model name      : Intel(R) Atom(TM) CPU  330   @ 1.60GHz
+> > stepping        : 2
+> > cpu MHz         : 1599.991
+> > cache size      : 512 KB
+> > physical id     : 0
+> > siblings        : 2
+> > core id         : 0
+> > cpu cores       : 2
+> > apicid          : 0
+> > initial apicid  : 0
+> > fdiv_bug        : no
+> > hlt_bug         : no
+> > f00f_bug        : no
+> > coma_bug        : no
+> > fpu             : yes
+> > fpu_exception   : yes
+> > cpuid level     : 10
+> > wp              : yes
+> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+> mca
+> > cmov pat clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx lm
+> constant_tsc
+> > arch_perfmon pebs bts aperfmperf pni dtes64 monitor ds_cpl tm2 ssse3
+> cx16
+> > xtpr pdcm movbe lahf_lm dts
+> > bogomips        : 3199.98
+> > clflush size    : 64
+> > cache_alignment : 64
+> > address sizes   : 32 bits physical, 48 bits virtual
+> > power management:
+> >
+> > processor       : 1
+> > vendor_id       : GenuineIntel
+> > cpu family      : 6
+> > model           : 28
+> > model name      : Intel(R) Atom(TM) CPU  330   @ 1.60GHz
+> > stepping        : 2
+> > cpu MHz         : 1599.991
+> > cache size      : 512 KB
+> > physical id     : 0
+> > siblings        : 2
+> > core id         : 1
+> > cpu cores       : 2
+> > apicid          : 2
+> > initial apicid  : 2
+> > fdiv_bug        : no
+> > hlt_bug         : no
+> > f00f_bug        : no
+> > coma_bug        : no
+> > fpu             : yes
+> > fpu_exception   : yes
+> > cpuid level     : 10
+> > wp              : yes
+> > flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+> mca
+> > cmov pat clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx lm
+> constant_tsc
+> > arch_perfmon pebs bts aperfmperf pni dtes64 monitor ds_cpl tm2 ssse3
+> cx16
+> > xtpr pdcm movbe lahf_lm dts
+> > bogomips        : 3199.56
+> > clflush size    : 64
+> > cache_alignment : 64
+> > address sizes   : 32 bits physical, 48 bits virtual
+> > power management:
+> >
+> >
+> > > -----Original Message-----
+> > > From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
+> > > Sent: Monday, 04 June, 2012 01:17
+> > > To: geve002@casema.nl
+> > > Cc: lm-sensors@lm-sensors.org
+> > > Subject: Re: [lm-sensors] System: "Point of View ION-MB330-1" produces
+> > > wrong values with lm-sensors 3.3.2
+> > >
+> > > On Sun, Jun 03, 2012 at 01:50:14PM -0400, geve001@casema.nl wrote:
+> > > > On slackware, sensors produce a wrong value for CPU temperature for
+> the
+> > > MB
+> > > > "Point of View ION-MB330-1"
+> > > >
+> > > >
+> > > >
+> > > > It is off at least 20 degrees.
+> > > >
+> > > > CPU-0 and CPU-1 differ 10 degrees which is odd. CPU-0 has more load
+> and
+> > > lower
+> > > > temp (see mpstat)
+> > > >
+> > > > Critical temperature should be 125 according to datasheets
+> > > >
+> > > >
+> > > >
+> > > > Some Google topics suggest to add 20 degrees, but in those cases the
+> > > cpu=92s have
+> > > > the same low temp.
+> > > >
+> > > >
+> > > >
+> > > > =3D=3D> How to tackle this problem??
+> > > >
+> > > >
+> > > >
+> > > > ------------- Linux kernel 2.6.37.6
+> > > >
+> > > > root@atom:~# uname -a
+> > > >
+> > > > Linux atom 2.6.37.6-smp #2 SMP Sat Apr 9 23:39:07 CDT 2011 i686
+> Intel(R)
+> > > Atom
+> > > > (TM) CPU  330   @ 1.60GHz GenuineIntel GNU/Linux
+> > > >
+> > > >
+> > > >
+> > > Looks like the CPU does not provide a value for TjMax itself, and we
+> don't
+> > > detect
+> > > the CPU type correctly to adjust it.
+> > >
+> > > Can you provide the output of /proc/cpuinfo ?
+> > >
+> > > As workaround, you can set the module parameter force_tjmax to 125.
+> > >
+> > > Thanks,
+> > > Guenter
+> >
+
+
+The workaround you suggested to change the tjmax is not possible for my
+coretemp.ko unknown symbol.
+
+So a work around can be adding to /etc/sensors3.conf
+
+chip "coretemp-isa-0000"
+     label temp1 "Core0"
+     compute temp1 @+35,@-35
+
+chip "coretemp-isa-0001"
+     label temp1 "Core1"
+     compute temp1 @+35,@-35
+
+Is this correct?
+
+Thanks, Ger
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
