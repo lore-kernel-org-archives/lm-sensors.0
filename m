@@ -1,76 +1,40 @@
-From: Michael Markusch <markuschmichael@gmx.de>
-Date: Wed, 20 Jun 2012 19:08:11 +0000
-Subject: Re: [lm-sensors] Lifebook E8020, no sensors
-Message-Id: <4FE21F9B.3080303@gmx.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 06 Jun 2012 04:48:34 +0000
+Subject: [lm-sensors] [PATCH 1/3] hwmon: (coretemp) Document TjMax for Atom Z2460 CPU
+Message-Id: <1338958116-6205-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FE0EE87.8080806@gmx.de>
-In-Reply-To: <4FE0EE87.8080806@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
+TjMax for Atom Z2460 (Medfield) is 90 degrees C per information from Intel.
+Document it.
 
-thanks for your reply and the detailed information!
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "R, Durgadoss" <durgadoss.r@intel.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/coretemp |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-You will be right, that I had confused the machine.
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index 3d7f2d7..f6aed440 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -66,6 +66,9 @@ Process		Processor					TjMax(C)
+ 		U3400						105
+ 		P4505/P4500 					90
+ 
++32nm		Atom Processors
++		Z2460						90
++
+ 45nm		Xeon Processors 5400 Quad-Core
+ 		X5492, X5482, X5472, X5470, X5460, X5450	85
+ 		E5472, E5462, E5450/40/30/20/10/05		85
+-- 
+1.7.5.4
 
-Thanks,
-Michael
-
-Am 20.06.2012 20:48, schrieb Jean Delvare:
-> On Wed, 20 Jun 2012 18:40:05 +0200, Michael Markusch wrote:
->> Hi Jean,
->>
->> thank you for your answer!
->>
->>>> I'm not sure. Please try:
->>>> * The latest version of sensors-detect:
->>>>   http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
->>>> * Loading the coretemp driver manually even if sensors-detect did not
->>>>   recommend it.
->>
->> I tried this steps, but it doesn't work.
->>
->>>> If that doesn't work, please provide the contents of /proc/cpuinfo.
->>
->> processor	: 0
->> vendor_id	: GenuineIntel
->> cpu family	: 6
->> model		: 13
->> model name	: Intel(R) Pentium(R) M processor 2.00GHz
->> stepping	: 8
->> microcode	: 0x20
->> cpu MHz		: 2000.000
->> cache size	: 2048 KB
->> fdiv_bug	: no
->> hlt_bug		: no
->> f00f_bug	: no
->> coma_bug	: no
->> fpu		: yes
->> fpu_exception	: yes
->> cpuid level	: 2
-> 
-> Ah, got it. Detection requires cpuid level >= 6, that's why both
-> sensors-detect and the coretemp driver skip this CPU.
-> 
->> wp		: yes
->> flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov
->> clflush dts acpi mmx fxsr sse sse2 ss tm pbe nx up bts est tm2
-> 
-> Furthermore, we have a kernel flaw. Two different CPU features are
-> reported as "dts" here: Debug Store (which your CPU has) and Digital
-> Thermal Sensor (which it does not.) Not sure why "dts" was used instead
-> of just "ds" for the former... Maybe an old version of the CPUID
-> document used a different name.
-> 
-> Bottom line is that I don't think this CPU is supported by the coretemp
-> driver (which matches my memory that model 14 was the first one with
-> the DTS feature.) So if you ever saw a temperature reported on this
-> machine, that must have been through a different means (no idea which
-> one sorry). Or maybe you're confusing with a different machine.
-> 
 
 _______________________________________________
 lm-sensors mailing list
