@@ -1,48 +1,48 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 20 Jun 2012 15:59:23 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (ntc_thermistor) Ensure that data->name string is terminated
-Message-Id: <20120620175923.3a46d4a1@endymion.delvare>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Thu, 07 Jun 2012 08:54:29 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (applesmc) Limit key length in warning messages
+Message-Id: <1339059269-383-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1340204010-14603-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1340204010-14603-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-On Wed, 20 Jun 2012 07:53:30 -0700, Guenter Roeck wrote:
-> Fix Coverity warning: Calling strncpy with a maximum size argument of 20 bytes
-> on destination array "data->name" of size 20 bytes might leave the destination
-> string unterminated.
-> 
-> Fix by replacing strncpy() with strlcpy() and by using sizeof() to determine
-> the maximum string length.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Use strlcpy instead of strncpy
-> 
->  drivers/hwmon/ntc_thermistor.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
-> index 6da9696..74a6c58 100644
-> --- a/drivers/hwmon/ntc_thermistor.c
-> +++ b/drivers/hwmon/ntc_thermistor.c
-> @@ -351,7 +351,7 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
->  
->  	data->dev = &pdev->dev;
->  	data->pdata = pdata;
-> -	strncpy(data->name, pdev->id_entry->name, PLATFORM_NAME_SIZE);
-> +	strlcpy(data->name, pdev->id_entry->name, sizeof(data->name));
->  
->  	switch (pdev->id_entry->driver_data) {
->  	case TYPE_NCPXXWB473:
+Key lookups may call read_smc() with a fixed-length key string,
+and if the lookup fails, trailing stack content may appear in the
+kernel log. Fixed with this patch.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+ drivers/hwmon/applesmc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index f082e48..70d62f5 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -215,7 +215,7 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
+ 	int i;
+ 
+ 	if (send_command(cmd) || send_argument(key)) {
+-		pr_warn("%s: read arg fail\n", key);
++		pr_warn("%.4s: read arg fail\n", key);
+ 		return -EIO;
+ 	}
+ 
+@@ -223,7 +223,7 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
+ 
+ 	for (i = 0; i < len; i++) {
+ 		if (__wait_status(0x05)) {
+-			pr_warn("%s: read data fail\n", key);
++			pr_warn("%.4s: read data fail\n", key);
+ 			return -EIO;
+ 		}
+ 		buffer[i] = inb(APPLESMC_DATA_PORT);
 -- 
-Jean Delvare
+1.7.10.3
+
 
 _______________________________________________
 lm-sensors mailing list
