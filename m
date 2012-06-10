@@ -1,65 +1,62 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Sun, 10 Jun 2012 06:30:27 +0000
+From: =?ISO-8859-1?Q?Torbj=F6rn_=D6sterdahl?= <torbjorn@ultra-marine.org>
+Date: Sun, 10 Jun 2012 08:25:02 +0000
 Subject: Re: [lm-sensors] ASUS Sabertooth Z77 / nct6775.ko report
-Message-Id: <20120610063027.GB10102@ericsson.com>
+Message-Id: <1339316702.8135.9.camel@colibri>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120523123730.6f2d7e36@desktop>
 In-Reply-To: <20120523123730.6f2d7e36@desktop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jun 09, 2012 at 02:35:18PM -0400, Torbj=F6rn =D6sterdahl wrote:
-> I have got a Asus P8Z77-M PRO and have similar experiences.
->=20
-> - The standard lm-sensors package that comes with my distribution, (i:3.3=
-.1/
-> Ubuntu), does not include support for setting PWM fan speeds.
-> - By downloading and compiling the nct6775 module from https://github.com/
-> groeck/nct6775 these things work to statisfaction.
-> - Temperatures as read from the chipset is low. Compared to temperatures
-> measured by a thermometer in the case they are lower and does not go up as
-> quickly when they system load increases. I.e. my idle system have a chips=
-et
-> temperature of 28 Degrees - they temperature in the case is meassured to =
-32.
-> The loaded system reports a chipset temperature of 32 but the thermometer=
- in
-> the case reports 44!
-> - Case temperature as read from the acpiz module are identical though.
-
-I can't really comment on that. No idea how accurate the sensors are.
-Some of the sensors (eg the CPU sensor if measured through PECI) are extrem=
-ely
-inaccurate at low temperatures.
-
-> - hysteresis values, i.e. pwm3_auto_point1_temp_hyst, behave strange. It =
-is
-> depenant on the corresponding temp field and often takes negative values.
-
-The hysteresis should show a constant difference to the matching temperatur=
-e,
-and is displayed as absolute temperature.
-
-For example, assume pwm3_auto_point1_temp_hyst is set to 20000 and pwm3_aut=
-o_point1_temp
-is set to 60000. If you change pwm3_auto_point1_temp to 30000, pwm3_auto_po=
-int1_temp_hyst
-should change to -10000. Is that what you see ?
-
-> - In Thermal Cruise mode it sometimes stops the fan completely which I co=
-nsider
-> unnecessary. I was not able to prevent this.
-
-pwmX_stop_output is the lowest pwm value. It is only used if pwmX_stop_outp=
-ut_enable
-is set, otherwise the output drops to 0. Can you try this ?
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+U2FtIDIwMTItMDYtMDkga2xvY2thbiAyMzozMCAtMDcwMCBza3JldiBHdWVudGVyIFJvZWNrOgo+
+IE9uIFNhdCwgSnVuIDA5LCAyMDEyIGF0IDAyOjM1OjE4UE0gLTA0MDAsIFRvcmJqw7ZybiDDlnN0
+ZXJkYWhsIHdyb3RlOgo+ID4gSSBoYXZlIGdvdCBhIEFzdXMgUDhaNzctTSBQUk8gYW5kIGhhdmUg
+c2ltaWxhciBleHBlcmllbmNlcy4KPiA+IAo+ID4gLSBUaGUgc3RhbmRhcmQgbG0tc2Vuc29ycyBw
+YWNrYWdlIHRoYXQgY29tZXMgd2l0aCBteSBkaXN0cmlidXRpb24sIChpOjMuMy4xLwo+ID4gVWJ1
+bnR1KSwgZG9lcyBub3QgaW5jbHVkZSBzdXBwb3J0IGZvciBzZXR0aW5nIFBXTSBmYW4gc3BlZWRz
+Lgo+ID4gLSBCeSBkb3dubG9hZGluZyBhbmQgY29tcGlsaW5nIHRoZSBuY3Q2Nzc1IG1vZHVsZSBm
+cm9tIGh0dHBzOi8vZ2l0aHViLmNvbS8KPiA+IGdyb2Vjay9uY3Q2Nzc1IHRoZXNlIHRoaW5ncyB3
+b3JrIHRvIHN0YXRpc2ZhY3Rpb24uCj4gPiAtIFRlbXBlcmF0dXJlcyBhcyByZWFkIGZyb20gdGhl
+IGNoaXBzZXQgaXMgbG93LiBDb21wYXJlZCB0byB0ZW1wZXJhdHVyZXMKPiA+IG1lYXN1cmVkIGJ5
+IGEgdGhlcm1vbWV0ZXIgaW4gdGhlIGNhc2UgdGhleSBhcmUgbG93ZXIgYW5kIGRvZXMgbm90IGdv
+IHVwIGFzCj4gPiBxdWlja2x5IHdoZW4gdGhleSBzeXN0ZW0gbG9hZCBpbmNyZWFzZXMuIEkuZS4g
+bXkgaWRsZSBzeXN0ZW0gaGF2ZSBhIGNoaXBzZXQKPiA+IHRlbXBlcmF0dXJlIG9mIDI4IERlZ3Jl
+ZXMgLSB0aGV5IHRlbXBlcmF0dXJlIGluIHRoZSBjYXNlIGlzIG1lYXNzdXJlZCB0byAzMi4KPiA+
+IFRoZSBsb2FkZWQgc3lzdGVtIHJlcG9ydHMgYSBjaGlwc2V0IHRlbXBlcmF0dXJlIG9mIDMyIGJ1
+dCB0aGUgdGhlcm1vbWV0ZXIgaW4KPiA+IHRoZSBjYXNlIHJlcG9ydHMgNDQhCj4gPiAtIENhc2Ug
+dGVtcGVyYXR1cmUgYXMgcmVhZCBmcm9tIHRoZSBhY3BpeiBtb2R1bGUgYXJlIGlkZW50aWNhbCB0
+aG91Z2guCj4gCj4gSSBjYW4ndCByZWFsbHkgY29tbWVudCBvbiB0aGF0LiBObyBpZGVhIGhvdyBh
+Y2N1cmF0ZSB0aGUgc2Vuc29ycyBhcmUuCj4gU29tZSBvZiB0aGUgc2Vuc29ycyAoZWcgdGhlIENQ
+VSBzZW5zb3IgaWYgbWVhc3VyZWQgdGhyb3VnaCBQRUNJKSBhcmUgZXh0cmVtZWx5Cj4gaW5hY2N1
+cmF0ZSBhdCBsb3cgdGVtcGVyYXR1cmVzLgo+IAo+ID4gLSBoeXN0ZXJlc2lzIHZhbHVlcywgaS5l
+LiBwd20zX2F1dG9fcG9pbnQxX3RlbXBfaHlzdCwgYmVoYXZlIHN0cmFuZ2UuIEl0IGlzCj4gPiBk
+ZXBlbmFudCBvbiB0aGUgY29ycmVzcG9uZGluZyB0ZW1wIGZpZWxkIGFuZCBvZnRlbiB0YWtlcyBu
+ZWdhdGl2ZSB2YWx1ZXMuCj4gCj4gVGhlIGh5c3RlcmVzaXMgc2hvdWxkIHNob3cgYSBjb25zdGFu
+dCBkaWZmZXJlbmNlIHRvIHRoZSBtYXRjaGluZyB0ZW1wZXJhdHVyZSwKPiBhbmQgaXMgZGlzcGxh
+eWVkIGFzIGFic29sdXRlIHRlbXBlcmF0dXJlLgo+IAo+IEZvciBleGFtcGxlLCBhc3N1bWUgcHdt
+M19hdXRvX3BvaW50MV90ZW1wX2h5c3QgaXMgc2V0IHRvIDIwMDAwIGFuZCBwd20zX2F1dG9fcG9p
+bnQxX3RlbXAKPiBpcyBzZXQgdG8gNjAwMDAuIElmIHlvdSBjaGFuZ2UgcHdtM19hdXRvX3BvaW50
+MV90ZW1wIHRvIDMwMDAwLCBwd20zX2F1dG9fcG9pbnQxX3RlbXBfaHlzdAo+IHNob3VsZCBjaGFu
+Z2UgdG8gLTEwMDAwLiBJcyB0aGF0IHdoYXQgeW91IHNlZSA/CgpZZXMuIEl0IHJlZmxlY3RzIG15
+IG9ic2VydmF0aW9ucy4gCgpNeSBleHBlY3RhdGlvbiB3YXMgdGhhdCBJIHNob3VsZCBzZXQgdGhl
+ICdoeXN0ZXJlc2lzJyB0byBkZXRlcm1pbmUgaG93CnNlbnNpdGl2ZSB0aGUgY2lyY3VpdCByZWFj
+dGVkIHRvIGRldmlhdGlvbnMgZnJvbSB0aGUgdGFyZ2V0IHRlbXBlcmF0dXJlLgpOb3cgaXQgYXBw
+ZWFycyB0aGF0IGl0IGRvZXMgbm90IG1hdHRlciBpZiBJIHNldCBpdCBvciBub3QsIHRob3VnaC4g
+Cgo+IAo+ID4gLSBJbiBUaGVybWFsIENydWlzZSBtb2RlIGl0IHNvbWV0aW1lcyBzdG9wcyB0aGUg
+ZmFuIGNvbXBsZXRlbHkgd2hpY2ggSSBjb25zaWRlcgo+ID4gdW5uZWNlc3NhcnkuIEkgd2FzIG5v
+dCBhYmxlIHRvIHByZXZlbnQgdGhpcy4KPiAKPiBwd21YX3N0b3Bfb3V0cHV0IGlzIHRoZSBsb3dl
+c3QgcHdtIHZhbHVlLiBJdCBpcyBvbmx5IHVzZWQgaWYgcHdtWF9zdG9wX291dHB1dF9lbmFibGUK
+PiBpcyBzZXQsIG90aGVyd2lzZSB0aGUgb3V0cHV0IGRyb3BzIHRvIDAuIENhbiB5b3UgdHJ5IHRo
+aXMgPwoKWWVzLiBUaGF0IHdvcmtzLiBQZXJmZWN0LiAKCj4gVGhhbmtzLAo+IEd1ZW50ZXIKCkFu
+b3RoZXIgb2RkaXR5IGlzIHRoYXQgc29tZXRpbWVzKCE/KSBJIGFtIG5vdCBhYmxlIHRvIHNldCB2
+YWx1ZXMgdXNpbmcKc3VkbywgaS5lLiAnc3VkbyBlY2hvICIxIgo+IC9zeXMvY2xhc3MvaHdtb24v
+aHdtb24yL2RldmljZS9wd20zX3N0b3Bfb3V0cHV0X2VuYWJsZScuIEl0IGRvZXMgbm90Cm1hdHRl
+ciBpZiBJIHVzZSAnc3lzL2RldmljZXMvcGxhdGZvcm0nIG9yICcvc3lzL2NsYXNzL2h3bW9uL2h3
+bW9uMi8nIEkKb2Z0ZW4gbmVlZCB0byBjaGFuZ2UgdG8gYSByb290IGNvbnNvbGUgZmlyc3QuIFNp
+bmNlIEkgaGF2ZSBub3Qgc2V0IGFueQpyb290IHBhc3N3b3JkIEkgYW0gdXNpbmcgJ3N1ZG8gLWkn
+IHdoaWNoIHdvcmtzIG5pY2VseS4gCgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNl
+bnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xt
+LXNlbnNvcnM
