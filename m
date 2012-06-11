@@ -1,91 +1,76 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 06 Jun 2012 04:48:36 +0000
-Subject: [lm-sensors] [PATCH v3 3/3] hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
-Message-Id: <1338958116-6205-3-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 11 Jun 2012 19:24:50 +0000
+Subject: Re: [lm-sensors] [PATCH v3 3/3] hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
+Message-Id: <20120611212450.744264ed@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1338958116-6205-3-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1338958116-6205-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Atom CPUs don't have a register to retrieve TjMax. Detection so far was
-incomplete. Use the X86 model ID to improve it.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-v2: Dropped PCI dependencies
-    Fixed 330 and 230 detection (2 spaces between CPU and 330/230)
-    Added support for Cedar Creek CPUs
-    Declared atom_tjmax as __cpuinitconst
-
-v3: Reverted PCI code to avoid possible regressions. Run PCI code first,
-    then override resulting value with table entry if one exists.
-    Dropped entries for N2000 and D2000 CPUs as those all have a Tjmax of 100 C
-    which we can detect separately based on the CPU model number.
-    Dropped table entries for E6xx series, since the E6xx can not be
-    distinguished from E6xxT using the model ID string (nor by any other means).
-
- drivers/hwmon/coretemp.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 928a3ec..6bd8d23 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -191,6 +191,24 @@ static ssize_t show_temp(struct device *dev,
- 	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
- }
- 
-+struct tjmax {
-+	char const *id;
-+	int tjmax;
-+};
-+
-+static struct tjmax __cpuinitconst tjmax_table[] = {
-+	{ "CPU D410", 100000 },
-+	{ "CPU D425", 100000 },
-+	{ "CPU D510", 100000 },
-+	{ "CPU D525", 100000 },
-+	{ "CPU N450", 100000 },
-+	{ "CPU N455", 100000 },
-+	{ "CPU N470", 100000 },
-+	{ "CPU N475", 100000 },
-+	{ "CPU  230", 100000 },
-+	{ "CPU  330", 125000 },
-+};
-+
- static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
- 				  struct device *dev)
- {
-@@ -215,6 +233,8 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
- 		tjmax = 100000;
- 	} else if (c->x86_model = 0x1c || c->x86_model = 0x26
- 		   || c->x86_model = 0x27) {
-+		int i;
-+
- 		usemsr_ee = 0;
- 		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
- 
-@@ -226,6 +246,14 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
- 			tjmax = 90000;
- 
- 		pci_dev_put(host_bridge);
-+
-+		/* explicit table entries override heuristics */
-+		for (i = 0; i < ARRAY_SIZE(tjmax_table); i++) {
-+			if (strstr(c->x86_model_id, tjmax_table[i].id)) {
-+				tjmax = tjmax_table[i].tjmax;
-+				break;
-+			}
-+		}
- 	}
- 
- 	if (c->x86_model > 0xe && usemsr_ee) {
--- 
-1.7.5.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwKCk9uIFR1ZSwgIDUgSnVuIDIwMTIgMjE6NDg6MzYgLTA3MDAsIEd1ZW50ZXIg
+Um9lY2sgd3JvdGU6Cj4gQXRvbSBDUFVzIGRvbid0IGhhdmUgYSByZWdpc3RlciB0byByZXRyaWV2
+ZSBUak1heC4gRGV0ZWN0aW9uIHNvIGZhciB3YXMKPiBpbmNvbXBsZXRlLiBVc2UgdGhlIFg4NiBt
+b2RlbCBJRCB0byBpbXByb3ZlIGl0Lgo+IAo+IFNpZ25lZC1vZmYtYnk6IEd1ZW50ZXIgUm9lY2sg
+PGxpbnV4QHJvZWNrLXVzLm5ldD4KPiAtLS0KPiB2MjogRHJvcHBlZCBQQ0kgZGVwZW5kZW5jaWVz
+Cj4gICAgIEZpeGVkIDMzMCBhbmQgMjMwIGRldGVjdGlvbiAoMiBzcGFjZXMgYmV0d2VlbiBDUFUg
+YW5kIDMzMC8yMzApCj4gICAgIEFkZGVkIHN1cHBvcnQgZm9yIENlZGFyIENyZWVrIENQVXMKPiAg
+ICAgRGVjbGFyZWQgYXRvbV90am1heCBhcyBfX2NwdWluaXRjb25zdAo+IAo+IHYzOiBSZXZlcnRl
+ZCBQQ0kgY29kZSB0byBhdm9pZCBwb3NzaWJsZSByZWdyZXNzaW9ucy4gUnVuIFBDSSBjb2RlIGZp
+cnN0LAo+ICAgICB0aGVuIG92ZXJyaWRlIHJlc3VsdGluZyB2YWx1ZSB3aXRoIHRhYmxlIGVudHJ5
+IGlmIG9uZSBleGlzdHMuCj4gICAgIERyb3BwZWQgZW50cmllcyBmb3IgTjIwMDAgYW5kIEQyMDAw
+IENQVXMgYXMgdGhvc2UgYWxsIGhhdmUgYSBUam1heCBvZiAxMDAgQwo+ICAgICB3aGljaCB3ZSBj
+YW4gZGV0ZWN0IHNlcGFyYXRlbHkgYmFzZWQgb24gdGhlIENQVSBtb2RlbCBudW1iZXIuCj4gICAg
+IERyb3BwZWQgdGFibGUgZW50cmllcyBmb3IgRTZ4eCBzZXJpZXMsIHNpbmNlIHRoZSBFNnh4IGNh
+biBub3QgYmUKPiAgICAgZGlzdGluZ3Vpc2hlZCBmcm9tIEU2eHhUIHVzaW5nIHRoZSBtb2RlbCBJ
+RCBzdHJpbmcgKG5vciBieSBhbnkgb3RoZXIgbWVhbnMpLgo+IAo+ICBkcml2ZXJzL2h3bW9uL2Nv
+cmV0ZW1wLmMgfCAgIDI4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgMSBmaWxlcyBj
+aGFuZ2VkLCAyOCBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQg
+YS9kcml2ZXJzL2h3bW9uL2NvcmV0ZW1wLmMgYi9kcml2ZXJzL2h3bW9uL2NvcmV0ZW1wLmMKPiBp
+bmRleCA5MjhhM2VjLi42YmQ4ZDIzIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaHdtb24vY29yZXRl
+bXAuYwo+ICsrKyBiL2RyaXZlcnMvaHdtb24vY29yZXRlbXAuYwo+IEBAIC0xOTEsNiArMTkxLDI0
+IEBAIHN0YXRpYyBzc2l6ZV90IHNob3dfdGVtcChzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gIAlyZXR1
+cm4gdGRhdGEtPnZhbGlkID8gc3ByaW50ZihidWYsICIlZFxuIiwgdGRhdGEtPnRlbXApIDogLUVB
+R0FJTjsKPiAgfQo+ICAKPiArc3RydWN0IHRqbWF4IHsKPiArCWNoYXIgY29uc3QgKmlkOwo+ICsJ
+aW50IHRqbWF4Owo+ICt9Owo+ICsKPiArc3RhdGljIHN0cnVjdCB0am1heCBfX2NwdWluaXRjb25z
+dCB0am1heF90YWJsZVtdID0gewo+ICsJeyAiQ1BVIEQ0MTAiLCAxMDAwMDAgfSwKPiArCXsgIkNQ
+VSBENDI1IiwgMTAwMDAwIH0sCj4gKwl7ICJDUFUgRDUxMCIsIDEwMDAwMCB9LAo+ICsJeyAiQ1BV
+IEQ1MjUiLCAxMDAwMDAgfSwKPiArCXsgIkNQVSBONDUwIiwgMTAwMDAwIH0sCj4gKwl7ICJDUFUg
+TjQ1NSIsIDEwMDAwMCB9LAo+ICsJeyAiQ1BVIE40NzAiLCAxMDAwMDAgfSwKPiArCXsgIkNQVSBO
+NDc1IiwgMTAwMDAwIH0sCj4gKwl7ICJDUFUgIDIzMCIsIDEwMDAwMCB9LAo+ICsJeyAiQ1BVICAz
+MzAiLCAxMjUwMDAgfSwKPiArfTsKPiArCj4gIHN0YXRpYyBpbnQgX19jcHVpbml0IGFkanVzdF90
+am1heChzdHJ1Y3QgY3B1aW5mb194ODYgKmMsIHUzMiBpZCwKPiAgCQkJCSAgc3RydWN0IGRldmlj
+ZSAqZGV2KQo+ICB7Cj4gQEAgLTIxNSw2ICsyMzMsOCBAQCBzdGF0aWMgaW50IF9fY3B1aW5pdCBh
+ZGp1c3RfdGptYXgoc3RydWN0IGNwdWluZm9feDg2ICpjLCB1MzIgaWQsCj4gIAkJdGptYXggPSAx
+MDAwMDA7Cj4gIAl9IGVsc2UgaWYgKGMtPng4Nl9tb2RlbCA9PSAweDFjIHx8IGMtPng4Nl9tb2Rl
+bCA9PSAweDI2Cj4gIAkJICAgfHwgYy0+eDg2X21vZGVsID09IDB4MjcpIHsKPiArCQlpbnQgaTsK
+PiArCj4gIAkJdXNlbXNyX2VlID0gMDsKPiAgCQlob3N0X2JyaWRnZSA9IHBjaV9nZXRfYnVzX2Fu
+ZF9zbG90KDAsIFBDSV9ERVZGTigwLCAwKSk7Cj4gIAo+IEBAIC0yMjYsNiArMjQ2LDE0IEBAIHN0
+YXRpYyBpbnQgX19jcHVpbml0IGFkanVzdF90am1heChzdHJ1Y3QgY3B1aW5mb194ODYgKmMsIHUz
+MiBpZCwKPiAgCQkJdGptYXggPSA5MDAwMDsKPiAgCj4gIAkJcGNpX2Rldl9wdXQoaG9zdF9icmlk
+Z2UpOwo+ICsKPiArCQkvKiBleHBsaWNpdCB0YWJsZSBlbnRyaWVzIG92ZXJyaWRlIGhldXJpc3Rp
+Y3MgKi8KPiArCQlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRSh0am1heF90YWJsZSk7IGkrKykg
+ewo+ICsJCQlpZiAoc3Ryc3RyKGMtPng4Nl9tb2RlbF9pZCwgdGptYXhfdGFibGVbaV0uaWQpKSB7
+Cj4gKwkJCQl0am1heCA9IHRqbWF4X3RhYmxlW2ldLnRqbWF4Owo+ICsJCQkJYnJlYWs7Cj4gKwkJ
+CX0KPiArCQl9Cj4gIAl9CgpJIGRvbid0IGdldCB3aHkgeW91IHB1dCB0aGF0IGNvZGUgaGVyZS4g
+Rm9yIG9uZSB0aGluZywgaXQgaXNuJ3QKZnVuZGFtZW50YWxseSBzcGVjaWZpYyB0byB0aGVzZSBt
+b2RlbHMuIE1heWJlIHRvZGF5IGFsbCB0aGUgbW9kZWxzIGluCnRoaXMgbGlzdCBhcmUgZm9yIHRo
+ZXNlIG1vZGVscywgYnV0IGlmIHRvbW9ycm93IHdlIG5lZWQgdG8gYWRkIHRoZSBzYW1lCmtpbmQg
+b2YgdGFibGUgZm9yIGEgZGlmZmVyZW50IG1vZGVsLCB5b3UgZG9uJ3QgcmVhbGx5IHdhbnQgdG8g
+Y3JlYXRlIGEKc2VwYXJhdGUgdGFibGUgZm9yIHRoZXNlLCBkbyB5b3U/IE9yIGFyZSB5b3UgY29u
+Y2VybmVkIGJ5IHBlcmZvcm1hbmNlPwoKRm9yIGFub3RoZXIsIHlvdSBsZXQgdGhlIGNvZGUgZmxv
+dywgYW5kIGxhdGVyIGluIHRoZSBmdW5jdGlvbiB3ZQpkaXNwbGF5IGEgd2FybmluZyBtZXNzYWdl
+IGlmIFRqTWF4ID0gMTAwwrBDLCB3aGljaCBpcyB0aGUgY2FzZSBvZiBtb3N0Cm1vZGVscyBpbiB0
+aGUgdGFibGUuIFdlIGRvbid0IHdhbnQgdGhhdC4KClNvIHVubGVzcyB5b3UncmUgcmVhbGx5IGNv
+bmNlcm5lZCBhYm91dCBwZXJmb3JtYW5jZSwgSSdkIHB1dCB0aGUKdGFibGUtYmFzZWQgZGVjaXNp
+b24gX2JlZm9yZV8gb3RoZXIgdGVzdHMgaW4gdGhpcyBmdW5jdGlvbiwgYXMgaXQgaXMKbW9yZSBy
+ZWxpYWJsZSwgYW5kIHJldHVybiB0aGUgdmFsdWUgaW1tZWRpYXRlbHkgb24gbWF0Y2guCgpBbmQg
+aWYgeW91J3JlIGNvbmNlcm5lZCBhYm91dCBwZXJmb3JtYW5jZSwgdGhlIHNhbWUgc3RpbGwgaG9s
+ZHMsIGJ1dAp5b3UnZCBhZGRpdGlvbmFsbHkgbGltaXQgdGhlIHN0cmluZyBjb21wYXJpc29ucyBv
+biBhIHBlci1tb2RlbCBiYXNpcy4KCj4gIAo+ICAJaWYgKGMtPng4Nl9tb2RlbCA+IDB4ZSAmJiB1
+c2Vtc3JfZWUpIHsKCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3Jz
+QGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2xtLXNlbnNvcnM
