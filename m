@@ -1,63 +1,81 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 04 Jun 2012 15:53:48 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (emc2103) Fix use of an uninitilized variable in error case
-Message-Id: <1338825228-29311-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 13 Jun 2012 15:57:37 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (emc2103) Fix use of an uninitilized variable in error case
+Message-Id: <20120613175737.28ecce5b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1338825228-29311-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1338825228-29311-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fix:
+Hi Guenter,
 
-emc2103.c: In function set_pwm_enable:
-emc2103.c:463:12: warning: conf_reg may be used uninitialized in this function
+On Mon,  4 Jun 2012 08:53:48 -0700, Guenter Roeck wrote:
+> Fix:
+> 
+> emc2103.c: In function set_pwm_enable:
+> emc2103.c:463:12: warning: conf_reg may be used uninitialized in this function
+> 
+> by checking the return value from read_u8_from_i2c(). This fixes a real problem,
+> as conf_reg is really uninitialized if read_u8_from_i2c returns an error.
+> 
+> Cc: Steve Glendinning <steve.glendinning@smsc.com>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/emc2103.c |   12 ++++++++----
+>  1 files changed, 8 insertions(+), 4 deletions(-)
 
-by checking the return value from read_u8_from_i2c(). This fixes a real problem,
-as conf_reg is really uninitialized if read_u8_from_i2c returns an error.
+Good catch. Still I'm a little worried about...
 
-Cc: Steve Glendinning <steve.glendinning@smsc.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/emc2103.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
+> index 9691f66..ff68563 100644
+> --- a/drivers/hwmon/emc2103.c
+> +++ b/drivers/hwmon/emc2103.c
+> @@ -451,11 +451,13 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *da,
+>  		data->fan_rpm_control = true;
+>  		break;
+>  	default:
+> -		mutex_unlock(&data->update_lock);
+> -		return -EINVAL;
+> +		result = -EINVAL;
+> +		goto err;
+>  	}
+>  
+> -	read_u8_from_i2c(client, REG_FAN_CONF1, &conf_reg);
+> +	result = read_u8_from_i2c(client, REG_FAN_CONF1, &conf_reg);
+> +	if (result)
+> +		goto err;
+>  
+>  	if (data->fan_rpm_control)
+>  		conf_reg |= 0x80;
+> @@ -464,8 +466,10 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *da,
+>  
+>  	i2c_smbus_write_byte_data(client, REG_FAN_CONF1, conf_reg);
+>  
+> +	result = count;
 
-diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
-index 9691f66..ff68563 100644
---- a/drivers/hwmon/emc2103.c
-+++ b/drivers/hwmon/emc2103.c
-@@ -451,11 +451,13 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *da,
- 		data->fan_rpm_control = true;
- 		break;
- 	default:
--		mutex_unlock(&data->update_lock);
--		return -EINVAL;
-+		result = -EINVAL;
-+		goto err;
- 	}
- 
--	read_u8_from_i2c(client, REG_FAN_CONF1, &conf_reg);
-+	result = read_u8_from_i2c(client, REG_FAN_CONF1, &conf_reg);
-+	if (result)
-+		goto err;
- 
- 	if (data->fan_rpm_control)
- 		conf_reg |= 0x80;
-@@ -464,8 +466,10 @@ static ssize_t set_pwm_enable(struct device *dev, struct device_attribute *da,
- 
- 	i2c_smbus_write_byte_data(client, REG_FAN_CONF1, conf_reg);
- 
-+	result = count;
-+err:
- 	mutex_unlock(&data->update_lock);
--	return count;
-+	return result;
- }
- 
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
+... this. Is it guaranteed that sizeof(int) >= sizeof(size_t)? Probably
+it doesn't matter much in practice, but I'm still wondering. I think I
+would prefer if you'd return "count" and stuff error codes in it when
+needed, rather than returning "result".
+
+But you can also just ignore me if you think it's irrelevant. Both
+cases, you have my ack.
+
+> +err:
+>  	mutex_unlock(&data->update_lock);
+> -	return count;
+> +	return result;
+>  }
+>  
+>  static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
+
+
 -- 
-1.7.5.4
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
