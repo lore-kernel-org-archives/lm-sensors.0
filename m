@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:54 +0000
-Subject: [lm-sensors] [PATCH 73/95] hwmon: (sht21) Convert to use devm_ functions
-Message-Id: <1339773856-3443-74-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:22:47 +0000
+Subject: [lm-sensors] [PATCH 06/95] hwmon: (ad7418) Convert to use devm_ functions
+Message-Id: <1339773856-3443-7-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,56 +10,65 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Urs Fleisch <urs.fleisch@sensirion.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/sht21.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/hwmon/ad7418.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/hwmon/sht21.c b/drivers/hwmon/sht21.c
-index 6c2dede..3120887 100644
---- a/drivers/hwmon/sht21.c
-+++ b/drivers/hwmon/sht21.c
-@@ -199,9 +199,9 @@ static int __devinit sht21_probe(struct i2c_client *client,
- 		return -ENODEV;
- 	}
+diff --git a/drivers/hwmon/ad7418.c b/drivers/hwmon/ad7418.c
+index a50a6be..57d4a62 100644
+--- a/drivers/hwmon/ad7418.c
++++ b/drivers/hwmon/ad7418.c
+@@ -227,16 +227,13 @@ static int ad7418_probe(struct i2c_client *client,
+ 	int err;
  
--	sht21 = kzalloc(sizeof(*sht21), GFP_KERNEL);
-+	sht21 = devm_kzalloc(&client->dev, sizeof(*sht21), GFP_KERNEL);
- 	if (!sht21) {
--		dev_dbg(&client->dev, "kzalloc failed\n");
-+		dev_dbg(&client->dev, "devm_kzalloc failed\n");
- 		return -ENOMEM;
- 	}
- 	i2c_set_clientdata(client, sht21);
-@@ -211,7 +211,7 @@ static int __devinit sht21_probe(struct i2c_client *client,
- 	err = sysfs_create_group(&client->dev.kobj, &sht21_attr_group);
- 	if (err) {
- 		dev_dbg(&client->dev, "could not create sysfs files\n");
--		goto fail_free;
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+-					I2C_FUNC_SMBUS_WORD_DATA)) {
+-		err = -EOPNOTSUPP;
+-		goto exit;
+-	}
++					I2C_FUNC_SMBUS_WORD_DATA))
++		return -EOPNOTSUPP;
+ 
+-	data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct ad7418_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	i2c_set_clientdata(client, data);
+ 
+@@ -268,7 +265,7 @@ static int ad7418_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
+ 	if (err)
+-		goto exit_free;
 +		return err;
- 	}
- 	sht21->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(sht21->hwmon_dev)) {
-@@ -226,9 +226,6 @@ static int __devinit sht21_probe(struct i2c_client *client,
  
- fail_remove_sysfs:
- 	sysfs_remove_group(&client->dev.kobj, &sht21_attr_group);
--fail_free:
--	kfree(sht21);
--
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -280,9 +277,6 @@ static int ad7418_probe(struct i2c_client *client,
+ 
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-exit_free:
+-	kfree(data);
+-exit:
  	return err;
  }
  
-@@ -242,7 +239,6 @@ static int __devexit sht21_remove(struct i2c_client *client)
- 
- 	hwmon_device_unregister(sht21->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &sht21_attr_group);
--	kfree(sht21);
- 
+@@ -291,7 +285,6 @@ static int ad7418_remove(struct i2c_client *client)
+ 	struct ad7418_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-	kfree(data);
  	return 0;
  }
+ 
 -- 
 1.7.9.7
 
