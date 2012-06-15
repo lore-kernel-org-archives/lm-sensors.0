@@ -1,35 +1,66 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 19 Jun 2012 15:46:43 +0000
-Subject: [lm-sensors] [PATCH 4/4] hwmon: (twl4030-madc-hwmon) Initialize uninitialized structure elements
-Message-Id: <1340120803-23543-4-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:02 +0000
+Subject: [lm-sensors] [PATCH 21/95] hwmon: (amc6821) Convert to use devm_ functions
+Message-Id: <1339773856-3443-22-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-twl4030_madc_conversion uses do_avg and type structure elements of
-twl4030_madc_request. Initialize to avoid random operation.
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Keerthy <j-keerthy@ti.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/twl4030-madc-hwmon.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/hwmon/amc6821.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
-index 0018c7d..f8ba8b0 100644
---- a/drivers/hwmon/twl4030-madc-hwmon.c
-+++ b/drivers/hwmon/twl4030-madc-hwmon.c
-@@ -50,6 +50,8 @@ static ssize_t madc_read(struct device *dev,
- 	req.channels = (1 << attr->index);
- 	req.method = TWL4030_MADC_SW2;
- 	req.func_cb = NULL;
-+	req.do_avg = 0;
-+	req.type = TWL4030_MADC_WAIT;
- 	val = twl4030_madc_conversion(&req);
- 	if (val < 0)
- 		return val;
+diff --git a/drivers/hwmon/amc6821.c b/drivers/hwmon/amc6821.c
+index f600fa1..5f444ab 100644
+--- a/drivers/hwmon/amc6821.c
++++ b/drivers/hwmon/amc6821.c
+@@ -862,7 +862,8 @@ static int amc6821_probe(
+ 	struct amc6821_data *data;
+ 	int err;
+ 
+-	data = kzalloc(sizeof(struct amc6821_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct amc6821_data),
++			    GFP_KERNEL);
+ 	if (!data) {
+ 		dev_err(&client->dev, "out of memory.\n");
+ 		return -ENOMEM;
+@@ -877,11 +878,11 @@ static int amc6821_probe(
+ 	 */
+ 	err = amc6821_init_client(client);
+ 	if (err)
+-		goto err_free;
++		return err;
+ 
+ 	err = sysfs_create_group(&client->dev.kobj, &amc6821_attr_grp);
+ 	if (err)
+-		goto err_free;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (!IS_ERR(data->hwmon_dev))
+@@ -890,8 +891,6 @@ static int amc6821_probe(
+ 	err = PTR_ERR(data->hwmon_dev);
+ 	dev_err(&client->dev, "error registering hwmon device.\n");
+ 	sysfs_remove_group(&client->dev.kobj, &amc6821_attr_grp);
+-err_free:
+-	kfree(data);
+ 	return err;
+ }
+ 
+@@ -902,8 +901,6 @@ static int amc6821_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &amc6821_attr_grp);
+ 
+-	kfree(data);
+-
+ 	return 0;
+ }
+ 
 -- 
 1.7.9.7
 
