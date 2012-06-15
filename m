@@ -1,53 +1,54 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Jun 2012 08:22:52 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: struct x86_cpu_id arrays can be __initconst
-Message-Id: <20120619102252.62e87752@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:04 +0000
+Subject: [lm-sensors] [PATCH 23/95] hwmon: (asc7621) Convert to use devm_ functions
+Message-Id: <1339773856-3443-24-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FDF1E8E020000780008A655@nat28.tlf.novell.com>
-In-Reply-To: <4FDF1E8E020000780008A655@nat28.tlf.novell.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 18 Jun 2012 11:26:54 +0100, Jan Beulich wrote:
-> ... as being referenced from __init code only.
-> 
-> Signed-off-by: Jan Beulich <jbeulich@suse.com>
-> 
-> ---
->  drivers/hwmon/coretemp.c    |    2 +-
->  drivers/hwmon/via-cputemp.c |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> --- 3.5-rc3/drivers/hwmon/coretemp.c
-> +++ 3.5-rc3-x86-hwmon-sections/drivers/hwmon/coretemp.c
-> @@ -764,7 +764,7 @@ static struct notifier_block coretemp_cp
->  	.notifier_call = coretemp_cpu_callback,
->  };
->  
-> -static const struct x86_cpu_id coretemp_ids[] = {
-> +static const struct x86_cpu_id __initconst coretemp_ids[] = {
->  	{ X86_VENDOR_INTEL, X86_FAMILY_ANY, X86_MODEL_ANY, X86_FEATURE_DTS },
->  	{}
->  };
-> --- 3.5-rc3/drivers/hwmon/via-cputemp.c
-> +++ 3.5-rc3-x86-hwmon-sections/drivers/hwmon/via-cputemp.c
-> @@ -309,7 +309,7 @@ static struct notifier_block via_cputemp
->  	.notifier_call = via_cputemp_cpu_callback,
->  };
->  
-> -static const struct x86_cpu_id cputemp_ids[] = {
-> +static const struct x86_cpu_id __initconst cputemp_ids[] = {
->  	{ X86_VENDOR_CENTAUR, 6, 0xa, }, /* C7 A */
->  	{ X86_VENDOR_CENTAUR, 6, 0xd, }, /* C7 D */
->  	{ X86_VENDOR_CENTAUR, 6, 0xf, }, /* Nano */
-> 
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-Applied, thanks.
+Cc: George Joseph <george.joseph@fairview5.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/asc7621.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/hwmon/asc7621.c b/drivers/hwmon/asc7621.c
+index 7caa242..b867aab7 100644
+--- a/drivers/hwmon/asc7621.c
++++ b/drivers/hwmon/asc7621.c
+@@ -1109,7 +1109,8 @@ asc7621_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
+ 
+-	data = kzalloc(sizeof(struct asc7621_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct asc7621_data),
++			    GFP_KERNEL);
+ 	if (data = NULL)
+ 		return -ENOMEM;
+ 
+@@ -1143,7 +1144,6 @@ exit_remove:
+ 				   &(asc7621_params[i].sda.dev_attr));
+ 	}
+ 
+-	kfree(data);
+ 	return err;
+ }
+ 
+@@ -1192,7 +1192,6 @@ static int asc7621_remove(struct i2c_client *client)
+ 				   &(asc7621_params[i].sda.dev_attr));
+ 	}
+ 
+-	kfree(data);
+ 	return 0;
+ }
+ 
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
