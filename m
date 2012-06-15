@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:24:15 +0000
-Subject: [lm-sensors] [PATCH 94/95] hwmon: (jz4740-hwmon) Convert to use devm_ functions
-Message-Id: <1339773856-3443-95-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:39 +0000
+Subject: [lm-sensors] [PATCH 58/95] hwmon: (max1668) Convert to use devm_ functions
+Message-Id: <1339773856-3443-59-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,116 +10,48 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Lars-Peter Clausen <lars@metafoo.de>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/jz4740-hwmon.c |   45 +++++++++++-------------------------------
- 1 file changed, 12 insertions(+), 33 deletions(-)
+ drivers/hwmon/max1668.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hwmon/jz4740-hwmon.c b/drivers/hwmon/jz4740-hwmon.c
-index 5253d23..37993fc 100644
---- a/drivers/hwmon/jz4740-hwmon.c
-+++ b/drivers/hwmon/jz4740-hwmon.c
-@@ -106,7 +106,7 @@ static int __devinit jz4740_hwmon_probe(struct platform_device *pdev)
- 	int ret;
- 	struct jz4740_hwmon *hwmon;
+diff --git a/drivers/hwmon/max1668.c b/drivers/hwmon/max1668.c
+index 335b183..666d9f6 100644
+--- a/drivers/hwmon/max1668.c
++++ b/drivers/hwmon/max1668.c
+@@ -411,7 +411,8 @@ static int max1668_probe(struct i2c_client *client,
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
  
--	hwmon = kmalloc(sizeof(*hwmon), GFP_KERNEL);
-+	hwmon = devm_kzalloc(&pdev->dev, sizeof(*hwmon), GFP_KERNEL);
- 	if (!hwmon) {
- 		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
+-	data = kzalloc(sizeof(struct max1668_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct max1668_data),
++			    GFP_KERNEL);
+ 	if (!data)
  		return -ENOMEM;
-@@ -116,32 +116,28 @@ static int __devinit jz4740_hwmon_probe(struct platform_device *pdev)
  
- 	hwmon->irq = platform_get_irq(pdev, 0);
- 	if (hwmon->irq < 0) {
--		ret = hwmon->irq;
- 		dev_err(&pdev->dev, "Failed to get platform irq: %d\n", ret);
--		goto err_free;
-+		return hwmon->irq;
- 	}
+@@ -422,7 +423,7 @@ static int max1668_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &max1668_group_common);
+ 	if (err)
+-		goto error_free;
++		return err;
  
- 	hwmon->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!hwmon->mem) {
--		ret = -ENOENT;
- 		dev_err(&pdev->dev, "Failed to get platform mmio resource\n");
--		goto err_free;
-+		return -ENOENT;
- 	}
- 
--	hwmon->mem = request_mem_region(hwmon->mem->start,
-+	hwmon->mem = devm_request_mem_region(&pdev->dev, hwmon->mem->start,
- 			resource_size(hwmon->mem), pdev->name);
- 	if (!hwmon->mem) {
--		ret = -EBUSY;
- 		dev_err(&pdev->dev, "Failed to request mmio memory region\n");
--		goto err_free;
-+		return -EBUSY;
- 	}
- 
--	hwmon->base = ioremap_nocache(hwmon->mem->start,
--			resource_size(hwmon->mem));
-+	hwmon->base = devm_ioremap_nocache(&pdev->dev, hwmon->mem->start,
-+					   resource_size(hwmon->mem));
- 	if (!hwmon->base) {
--		ret = -EBUSY;
- 		dev_err(&pdev->dev, "Failed to ioremap mmio memory\n");
--		goto err_release_mem_region;
-+		return -EBUSY;
- 	}
- 
- 	init_completion(&hwmon->read_completion);
-@@ -149,17 +145,18 @@ static int __devinit jz4740_hwmon_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, hwmon);
- 
--	ret = request_irq(hwmon->irq, jz4740_hwmon_irq, 0, pdev->name, hwmon);
-+	ret = devm_request_irq(&pdev->dev, hwmon->irq, jz4740_hwmon_irq, 0,
-+			       pdev->name, hwmon);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to request irq: %d\n", ret);
--		goto err_iounmap;
-+		return ret;
- 	}
- 	disable_irq(hwmon->irq);
- 
- 	ret = sysfs_create_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Failed to create sysfs group: %d\n", ret);
--		goto err_free_irq;
-+		return ret;
- 	}
- 
- 	hwmon->hwmon = hwmon_device_register(&pdev->dev);
-@@ -172,16 +169,6 @@ static int __devinit jz4740_hwmon_probe(struct platform_device *pdev)
- 
- err_remove_file:
- 	sysfs_remove_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
--err_free_irq:
--	free_irq(hwmon->irq, hwmon);
--err_iounmap:
--	platform_set_drvdata(pdev, NULL);
--	iounmap(hwmon->base);
--err_release_mem_region:
--	release_mem_region(hwmon->mem->start, resource_size(hwmon->mem));
--err_free:
--	kfree(hwmon);
--
- 	return ret;
+ 	if (data->type = max1668 || data->type = max1989) {
+ 		err = sysfs_create_group(&client->dev.kobj,
+@@ -444,8 +445,6 @@ error_sysrem1:
+ 		sysfs_remove_group(&client->dev.kobj, &max1668_group_unique);
+ error_sysrem0:
+ 	sysfs_remove_group(&client->dev.kobj, &max1668_group_common);
+-error_free:
+-	kfree(data);
+ 	return err;
  }
  
-@@ -192,14 +179,6 @@ static int __devexit jz4740_hwmon_remove(struct platform_device *pdev)
- 	hwmon_device_unregister(hwmon->hwmon);
- 	sysfs_remove_group(&pdev->dev.kobj, &jz4740_hwmon_attr_group);
+@@ -459,7 +458,6 @@ static int max1668_remove(struct i2c_client *client)
  
--	free_irq(hwmon->irq, hwmon);
--
--	iounmap(hwmon->base);
--	release_mem_region(hwmon->mem->start, resource_size(hwmon->mem));
--
--	platform_set_drvdata(pdev, NULL);
--	kfree(hwmon);
--
+ 	sysfs_remove_group(&client->dev.kobj, &max1668_group_common);
+ 
+-	kfree(data);
  	return 0;
  }
  
