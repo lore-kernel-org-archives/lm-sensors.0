@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:22:56 +0000
-Subject: [lm-sensors] [PATCH 15/95] hwmon: (ads7828) Convert to use devm_ functions
-Message-Id: <1339773856-3443-16-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:24:02 +0000
+Subject: [lm-sensors] [PATCH 81/95] hwmon: (vt8231) Convert to use devm_ functions
+Message-Id: <1339773856-3443-82-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,56 +10,71 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
+Cc: Roger Lucas <vt8231@hiddenengine.co.uk>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ads7828.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/hwmon/vt8231.c |   24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
-index bf3fdf4..1f9e8af 100644
---- a/drivers/hwmon/ads7828.c
-+++ b/drivers/hwmon/ads7828.c
-@@ -154,7 +154,6 @@ static int ads7828_remove(struct i2c_client *client)
- 	struct ads7828_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &ads7828_group);
--	kfree(i2c_get_clientdata(client));
- 	return 0;
- }
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 386a845..84e3dc5 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -789,18 +789,16 @@ static int vt8231_probe(struct platform_device *pdev)
  
-@@ -217,11 +216,10 @@ static int ads7828_probe(struct i2c_client *client,
- 	struct ads7828_data *data;
- 	int err;
+ 	/* Reserve the ISA region */
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, VT8231_EXTENT,
+-			    vt8231_driver.driver.name)) {
++	if (!devm_request_region(&pdev->dev, res->start, VT8231_EXTENT,
++				 vt8231_driver.driver.name)) {
+ 		dev_err(&pdev->dev, "Region 0x%lx-0x%lx already in use!\n",
+ 			(unsigned long)res->start, (unsigned long)res->end);
+ 		return -ENODEV;
+ 	}
  
--	data = kzalloc(sizeof(struct ads7828_data), GFP_KERNEL);
+-	data = kzalloc(sizeof(struct vt8231_data), GFP_KERNEL);
 -	if (!data) {
 -		err = -ENOMEM;
--		goto exit;
+-		goto exit_release;
 -	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct ads7828_data),
-+			    GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct vt8231_data), GFP_KERNEL);
 +	if (!data)
 +		return -ENOMEM;
  
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-@@ -229,7 +227,7 @@ static int ads7828_probe(struct i2c_client *client,
+ 	platform_set_drvdata(pdev, data);
+ 	data->addr = res->start;
+@@ -812,7 +810,7 @@ static int vt8231_probe(struct platform_device *pdev)
  	/* Register sysfs hooks */
- 	err = sysfs_create_group(&client->dev.kobj, &ads7828_group);
+ 	err = sysfs_create_group(&pdev->dev.kobj, &vt8231_group);
  	if (err)
 -		goto exit_free;
 +		return err;
  
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -241,9 +239,6 @@ static int ads7828_probe(struct i2c_client *client,
+ 	/* Must update device information to find out the config field */
+ 	data->uch_config = vt8231_read_value(data, VT8231_REG_UCH_CONFIG);
+@@ -850,13 +848,6 @@ exit_remove_files:
+ 		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_temps[i]);
  
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &ads7828_group);
+ 	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
+-
 -exit_free:
+-	platform_set_drvdata(pdev, NULL);
 -	kfree(data);
--exit:
+-
+-exit_release:
+-	release_region(res->start, VT8231_EXTENT);
  	return err;
+ }
+ 
+@@ -875,9 +866,6 @@ static int __devexit vt8231_remove(struct platform_device *pdev)
+ 
+ 	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
+ 
+-	release_region(data->addr, VT8231_EXTENT);
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+ 	return 0;
  }
  
 -- 
