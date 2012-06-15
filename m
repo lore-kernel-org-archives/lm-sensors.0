@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:02 +0000
-Subject: [lm-sensors] [PATCH 21/95] hwmon: (amc6821) Convert to use devm_ functions
-Message-Id: <1339773856-3443-22-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:24 +0000
+Subject: [lm-sensors] [PATCH 43/95] hwmon: (lm70) Convert to use devm_ functions
+Message-Id: <1339773856-3443-44-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,55 +12,38 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/amc6821.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/hwmon/lm70.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/amc6821.c b/drivers/hwmon/amc6821.c
-index f600fa1..5f444ab 100644
---- a/drivers/hwmon/amc6821.c
-+++ b/drivers/hwmon/amc6821.c
-@@ -862,7 +862,8 @@ static int amc6821_probe(
- 	struct amc6821_data *data;
- 	int err;
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index 472f795..78b6157 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -149,7 +149,7 @@ static int __devinit lm70_probe(struct spi_device *spi)
  
--	data = kzalloc(sizeof(struct amc6821_data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(struct amc6821_data),
-+			    GFP_KERNEL);
- 	if (!data) {
- 		dev_err(&client->dev, "out of memory.\n");
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+ 
+-	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
++	p_lm70 = devm_kzalloc(&spi->dev, sizeof *p_lm70, GFP_KERNEL);
+ 	if (!p_lm70)
  		return -ENOMEM;
-@@ -877,11 +878,11 @@ static int amc6821_probe(
- 	 */
- 	err = amc6821_init_client(client);
- 	if (err)
--		goto err_free;
-+		return err;
  
- 	err = sysfs_create_group(&client->dev.kobj, &amc6821_attr_grp);
- 	if (err)
--		goto err_free;
-+		return err;
- 
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (!IS_ERR(data->hwmon_dev))
-@@ -890,8 +891,6 @@ static int amc6821_probe(
- 	err = PTR_ERR(data->hwmon_dev);
- 	dev_err(&client->dev, "error registering hwmon device.\n");
- 	sysfs_remove_group(&client->dev.kobj, &amc6821_attr_grp);
--err_free:
--	kfree(data);
- 	return err;
+@@ -181,7 +181,6 @@ out_dev_create_file_failed:
+ 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+ out_dev_create_temp_file_failed:
+ 	spi_set_drvdata(spi, NULL);
+-	kfree(p_lm70);
+ 	return status;
  }
  
-@@ -902,8 +901,6 @@ static int amc6821_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &amc6821_attr_grp);
+@@ -193,7 +192,6 @@ static int __devexit lm70_remove(struct spi_device *spi)
+ 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
+ 	device_remove_file(&spi->dev, &dev_attr_name);
+ 	spi_set_drvdata(spi, NULL);
+-	kfree(p_lm70);
  
--	kfree(data);
--
  	return 0;
  }
- 
 -- 
 1.7.9.7
 
