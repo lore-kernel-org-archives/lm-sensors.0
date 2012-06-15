@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:22:55 +0000
-Subject: [lm-sensors] [PATCH 14/95] hwmon: (ads1015) Convert to use devm_ functions
-Message-Id: <1339773856-3443-15-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:22:46 +0000
+Subject: [lm-sensors] [PATCH 05/95] hwmon: (ad7414) Convert to use devm_ functions
+Message-Id: <1339773856-3443-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,47 +10,63 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Dirk Eibach <eibach@gdsys.de>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ads1015.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/hwmon/ad7414.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
-index 1958f03..2798246 100644
---- a/drivers/hwmon/ads1015.c
-+++ b/drivers/hwmon/ads1015.c
-@@ -156,7 +156,6 @@ static int ads1015_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	for (k = 0; k < ADS1015_CHANNELS; ++k)
- 		device_remove_file(&client->dev, &ads1015_in[k].dev_attr);
--	kfree(data);
- 	return 0;
- }
- 
-@@ -254,11 +253,10 @@ static int ads1015_probe(struct i2c_client *client,
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+index 06d2d60..b420fb3 100644
+--- a/drivers/hwmon/ad7414.c
++++ b/drivers/hwmon/ad7414.c
+@@ -185,16 +185,13 @@ static int ad7414_probe(struct i2c_client *client,
  	int err;
- 	unsigned int k;
  
--	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+-				     I2C_FUNC_SMBUS_READ_WORD_DATA)) {
+-		err = -EOPNOTSUPP;
+-		goto exit;
+-	}
++				     I2C_FUNC_SMBUS_READ_WORD_DATA))
++		return -EOPNOTSUPP;
+ 
+-	data = kzalloc(sizeof(struct ad7414_data), GFP_KERNEL);
 -	if (!data) {
 -		err = -ENOMEM;
 -		goto exit;
 -	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct ads1015_data),
++	data = devm_kzalloc(&client->dev, sizeof(struct ad7414_data),
 +			    GFP_KERNEL);
 +	if (!data)
 +		return -ENOMEM;
  
  	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-@@ -284,8 +282,6 @@ static int ads1015_probe(struct i2c_client *client,
+ 	mutex_init(&data->lock);
+@@ -214,7 +211,7 @@ static int ad7414_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &ad7414_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -226,9 +223,6 @@ static int ad7414_probe(struct i2c_client *client,
+ 
  exit_remove:
- 	for (k = 0; k < ADS1015_CHANNELS; ++k)
- 		device_remove_file(&client->dev, &ads1015_in[k].dev_attr);
+ 	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
+-exit_free:
 -	kfree(data);
 -exit:
  	return err;
+ }
+ 
+@@ -238,7 +232,6 @@ static int __devexit ad7414_remove(struct i2c_client *client)
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
+-	kfree(data);
+ 	return 0;
  }
  
 -- 
