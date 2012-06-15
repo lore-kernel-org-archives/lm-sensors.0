@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:22:57 +0000
-Subject: [lm-sensors] [PATCH 16/95] hwmon: (ads7871) Convert to use devm_ functions
-Message-Id: <1339773856-3443-17-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:52 +0000
+Subject: [lm-sensors] [PATCH 71/95] hwmon: (sch5636) Convert to use devm_ functions
+Message-Id: <1339773856-3443-72-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,58 +12,32 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ads7871.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+ drivers/hwmon/sch5636.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
-index e65c6e4..e837707 100644
---- a/drivers/hwmon/ads7871.c
-+++ b/drivers/hwmon/ads7871.c
-@@ -189,20 +189,17 @@ static int __devinit ads7871_probe(struct spi_device *spi)
- 	 * because there is no other error checking on an SPI bus
- 	 * we need to make sure we really have a chip
- 	 */
--	if (val != ret) {
--		err = -ENODEV;
--		goto exit;
--	}
-+	if (val != ret)
-+		return -ENODEV;
+diff --git a/drivers/hwmon/sch5636.c b/drivers/hwmon/sch5636.c
+index 96a7e68..5171180 100644
+--- a/drivers/hwmon/sch5636.c
++++ b/drivers/hwmon/sch5636.c
+@@ -402,9 +402,6 @@ static int sch5636_remove(struct platform_device *pdev)
+ 		device_remove_file(&pdev->dev,
+ 				   &sch5636_fan_attr[i].dev_attr);
  
--	pdata = kzalloc(sizeof(struct ads7871_data), GFP_KERNEL);
--	if (!pdata) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	pdata = devm_kzalloc(&spi->dev, sizeof(struct ads7871_data),
-+			     GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
- 
- 	err = sysfs_create_group(&spi->dev.kobj, &ads7871_group);
- 	if (err < 0)
--		goto error_free;
-+		return err;
- 
- 	spi_set_drvdata(spi, pdata);
- 
-@@ -216,9 +213,6 @@ static int __devinit ads7871_probe(struct spi_device *spi)
- 
- error_remove:
- 	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
--error_free:
--	kfree(pdata);
--exit:
- 	return err;
- }
- 
-@@ -228,7 +222,6 @@ static int __devexit ads7871_remove(struct spi_device *spi)
- 
- 	hwmon_device_unregister(pdata->hwmon_dev);
- 	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
--	kfree(pdata);
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+-
  	return 0;
  }
+ 
+@@ -414,7 +411,8 @@ static int __devinit sch5636_probe(struct platform_device *pdev)
+ 	int i, err, val, revision[2];
+ 	char id[4];
+ 
+-	data = kzalloc(sizeof(struct sch5636_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct sch5636_data),
++			    GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
  
 -- 
 1.7.9.7
