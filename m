@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:06 +0000
-Subject: [lm-sensors] [PATCH 25/95] hwmon: (dme1737) Convert to use devm_ functions
-Message-Id: <1339773856-3443-26-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:22 +0000
+Subject: [lm-sensors] [PATCH 41/95] hwmon: (ibmaem) Convert to use devm_ functions
+Message-Id: <1339773856-3443-42-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,141 +10,148 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Juerg Haefliger <juergh@gmail.com>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/dme1737.c |   45 +++++++++++++--------------------------------
- 1 file changed, 13 insertions(+), 32 deletions(-)
+ drivers/hwmon/ibmaem.c |   35 ++++++++++++-----------------------
+ 1 file changed, 12 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/hwmon/dme1737.c b/drivers/hwmon/dme1737.c
-index e7c6a19..fe0eeec 100644
---- a/drivers/hwmon/dme1737.c
-+++ b/drivers/hwmon/dme1737.c
-@@ -2475,11 +2475,9 @@ static int dme1737_i2c_probe(struct i2c_client *client,
- 	struct device *dev = &client->dev;
- 	int err;
- 
--	data = kzalloc(sizeof(struct dme1737_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	data = devm_kzalloc(dev, sizeof(struct dme1737_data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
- 
- 	i2c_set_clientdata(client, data);
- 	data->type = id->driver_data;
-@@ -2491,14 +2489,14 @@ static int dme1737_i2c_probe(struct i2c_client *client,
- 	err = dme1737_init_device(dev);
- 	if (err) {
- 		dev_err(dev, "Failed to initialize device.\n");
--		goto exit_kfree;
-+		return err;
- 	}
- 
- 	/* Create sysfs files */
- 	err = dme1737_create_files(dev);
- 	if (err) {
- 		dev_err(dev, "Failed to create sysfs files.\n");
--		goto exit_kfree;
-+		return err;
- 	}
- 
- 	/* Register device */
-@@ -2513,9 +2511,6 @@ static int dme1737_i2c_probe(struct i2c_client *client,
- 
- exit_remove:
- 	dme1737_remove_files(dev);
--exit_kfree:
--	kfree(data);
--exit:
- 	return err;
- }
- 
-@@ -2526,7 +2521,6 @@ static int dme1737_i2c_remove(struct i2c_client *client)
+diff --git a/drivers/hwmon/ibmaem.c b/drivers/hwmon/ibmaem.c
+index 37f17e0..6bc25e8 100644
+--- a/drivers/hwmon/ibmaem.c
++++ b/drivers/hwmon/ibmaem.c
+@@ -488,13 +488,10 @@ static void aem_delete(struct aem_data *data)
+ {
+ 	list_del(&data->list);
+ 	aem_remove_sensors(data);
+-	kfree(data->rs_resp);
  	hwmon_device_unregister(data->hwmon_dev);
- 	dme1737_remove_files(&client->dev);
- 
+ 	ipmi_destroy_user(data->ipmi.user);
+-	platform_set_drvdata(data->pdev, NULL);
+ 	platform_device_unregister(data->pdev);
+ 	ida_simple_remove(&aem_ida, data->id);
 -	kfree(data);
+ }
+ 
+ /* Probe functions for AEM1 devices */
+@@ -537,7 +534,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 	int i;
+ 	int res = -ENOMEM;
+ 
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(probe->bmc_device, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return res;
+ 	mutex_init(&data->lock);
+@@ -552,7 +549,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 	/* Create sub-device for this fw instance */
+ 	data->id = ida_simple_get(&aem_ida, 0, 0, GFP_KERNEL);
+ 	if (data->id < 0)
+-		goto id_err;
++		return data->id;
+ 
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+@@ -582,7 +579,9 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 	}
+ 
+ 	data->update = update_aem1_sensors;
+-	data->rs_resp = kzalloc(sizeof(*(data->rs_resp)) + 8, GFP_KERNEL);
++	data->rs_resp = devm_kzalloc(probe->bmc_device,
++				     sizeof(*(data->rs_resp)) + 8,
++				     GFP_KERNEL);
+ 	if (!data->rs_resp) {
+ 		res = -ENOMEM;
+ 		goto alloc_resp_err;
+@@ -591,7 +590,7 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 	/* Find sensors */
+ 	res = aem1_find_sensors(data);
+ 	if (res)
+-		goto sensor_err;
++		goto alloc_resp_err;
+ 
+ 	/* Add to our list of AEM devices */
+ 	list_add_tail(&data->list, &driver_data.aem_devices);
+@@ -601,20 +600,14 @@ static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
+ 		 data->module_handle);
  	return 0;
- }
  
-@@ -2645,19 +2639,16 @@ static int __devinit dme1737_isa_probe(struct platform_device *pdev)
- 	int err;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
--	if (!request_region(res->start, DME1737_EXTENT, "dme1737")) {
-+	if (!devm_request_region(dev, res->start, DME1737_EXTENT, "dme1737")) {
- 		dev_err(dev, "Failed to request region 0x%04x-0x%04x.\n",
- 			(unsigned short)res->start,
- 			(unsigned short)res->start + DME1737_EXTENT - 1);
--		err = -EBUSY;
--		goto exit;
-+		return -EBUSY;
- 	}
- 
--	data = kzalloc(sizeof(struct dme1737_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit_release_region;
--	}
-+	data = devm_kzalloc(dev, sizeof(struct dme1737_data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
- 
- 	data->addr = res->start;
- 	platform_set_drvdata(pdev, data);
-@@ -2683,8 +2674,7 @@ static int __devinit dme1737_isa_probe(struct platform_device *pdev)
- 			   (device = SCH5127_DEVICE)) {
- 			data->type = sch5127;
- 		} else {
--			err = -ENODEV;
--			goto exit_kfree;
-+			return -ENODEV;
- 		}
- 	}
- 
-@@ -2703,14 +2693,14 @@ static int __devinit dme1737_isa_probe(struct platform_device *pdev)
- 	err = dme1737_init_device(dev);
- 	if (err) {
- 		dev_err(dev, "Failed to initialize device.\n");
--		goto exit_kfree;
-+		return err;
- 	}
- 
- 	/* Create sysfs files */
- 	err = dme1737_create_files(dev);
- 	if (err) {
- 		dev_err(dev, "Failed to create sysfs files.\n");
--		goto exit_kfree;
-+		return err;
- 	}
- 
- 	/* Register device */
-@@ -2725,12 +2715,6 @@ static int __devinit dme1737_isa_probe(struct platform_device *pdev)
- 
- exit_remove_files:
- 	dme1737_remove_files(dev);
--exit_kfree:
--	platform_set_drvdata(pdev, NULL);
--	kfree(data);
--exit_release_region:
--	release_region(res->start, DME1737_EXTENT);
--exit:
- 	return err;
- }
- 
-@@ -2740,9 +2724,6 @@ static int __devexit dme1737_isa_remove(struct platform_device *pdev)
- 
+-sensor_err:
+-	kfree(data->rs_resp);
+ alloc_resp_err:
  	hwmon_device_unregister(data->hwmon_dev);
- 	dme1737_remove_files(&pdev->dev);
--	release_region(data->addr, DME1737_EXTENT);
--	platform_set_drvdata(pdev, NULL);
+ hwmon_reg_err:
+ 	ipmi_destroy_user(data->ipmi.user);
+ ipmi_err:
+-	platform_set_drvdata(data->pdev, NULL);
+ 	platform_device_unregister(data->pdev);
+ dev_err:
+ 	ida_simple_remove(&aem_ida, data->id);
+-id_err:
 -	kfree(data);
- 
- 	return 0;
+-
+ 	return res;
  }
+ 
+@@ -677,7 +670,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 	int i;
+ 	int res = -ENOMEM;
+ 
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(probe->bmc_device, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return res;
+ 	mutex_init(&data->lock);
+@@ -692,7 +685,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 	/* Create sub-device for this fw instance */
+ 	data->id = ida_simple_get(&aem_ida, 0, 0, GFP_KERNEL);
+ 	if (data->id < 0)
+-		goto id_err;
++		return data->id;
+ 
+ 	data->pdev = platform_device_alloc(DRVNAME, data->id);
+ 	if (!data->pdev)
+@@ -722,7 +715,9 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 	}
+ 
+ 	data->update = update_aem2_sensors;
+-	data->rs_resp = kzalloc(sizeof(*(data->rs_resp)) + 8, GFP_KERNEL);
++	data->rs_resp = devm_kzalloc(probe->bmc_device,
++				     sizeof(*(data->rs_resp)) + 8,
++				     GFP_KERNEL);
+ 	if (!data->rs_resp) {
+ 		res = -ENOMEM;
+ 		goto alloc_resp_err;
+@@ -731,7 +726,7 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 	/* Find sensors */
+ 	res = aem2_find_sensors(data);
+ 	if (res)
+-		goto sensor_err;
++		goto alloc_resp_err;
+ 
+ 	/* Add to our list of AEM devices */
+ 	list_add_tail(&data->list, &driver_data.aem_devices);
+@@ -741,20 +736,14 @@ static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
+ 		 data->module_handle);
+ 	return 0;
+ 
+-sensor_err:
+-	kfree(data->rs_resp);
+ alloc_resp_err:
+ 	hwmon_device_unregister(data->hwmon_dev);
+ hwmon_reg_err:
+ 	ipmi_destroy_user(data->ipmi.user);
+ ipmi_err:
+-	platform_set_drvdata(data->pdev, NULL);
+ 	platform_device_unregister(data->pdev);
+ dev_err:
+ 	ida_simple_remove(&aem_ida, data->id);
+-id_err:
+-	kfree(data);
+-
+ 	return res;
+ }
+ 
 -- 
 1.7.9.7
 
