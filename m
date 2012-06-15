@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:46 +0000
-Subject: [lm-sensors] [PATCH 65/95] hwmon: (mcp3021) Convert to use devm_ functions
-Message-Id: <1339773856-3443-66-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:03 +0000
+Subject: [lm-sensors] [PATCH 22/95] hwmon: (asb100) Convert to use devm_ functions
+Message-Id: <1339773856-3443-23-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,65 +10,60 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Mingkai Hu <Mingkai.hu@freescale.com>
-Cc: Xie Xiaobo <X.Xie@freescale.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/mcp3021.c |   15 +++++----------
+ drivers/hwmon/asb100.c |   15 +++++----------
  1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/mcp3021.c b/drivers/hwmon/mcp3021.c
-index d0afc0c..5162bb9 100644
---- a/drivers/hwmon/mcp3021.c
-+++ b/drivers/hwmon/mcp3021.c
-@@ -103,7 +103,8 @@ static int mcp3021_probe(struct i2c_client *client,
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
- 		return -ENODEV;
+diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
+index 4b8814d..7b0acb1 100644
+--- a/drivers/hwmon/asb100.c
++++ b/drivers/hwmon/asb100.c
+@@ -787,11 +787,11 @@ static int asb100_probe(struct i2c_client *client,
+ 	int err;
+ 	struct asb100_data *data;
  
--	data = kzalloc(sizeof(struct mcp3021_data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(struct mcp3021_data),
+-	data = kzalloc(sizeof(struct asb100_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct asb100_data),
 +			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
+ 	if (!data) {
+-		pr_debug("probe failed, kzalloc failed!\n");
+-		err = -ENOMEM;
+-		goto ERROR0;
++		pr_debug("probe failed, devm_kzalloc failed!\n");
++		return -ENOMEM;
+ 	}
  
-@@ -111,17 +112,14 @@ static int mcp3021_probe(struct i2c_client *client,
- 
- 	if (client->dev.platform_data) {
- 		data->vdd = *(u32 *)client->dev.platform_data;
--		if (data->vdd > MCP3021_VDD_MAX ||
--				data->vdd < MCP3021_VDD_MIN) {
--			err = -EINVAL;
--			goto exit_free;
--		}
-+		if (data->vdd > MCP3021_VDD_MAX || data->vdd < MCP3021_VDD_MIN)
-+			return -EINVAL;
- 	} else
- 		data->vdd = MCP3021_VDD_REF;
- 
- 	err = sysfs_create_file(&client->dev.kobj, &dev_attr_in0_input.attr);
+ 	i2c_set_clientdata(client, data);
+@@ -801,7 +801,7 @@ static int asb100_probe(struct i2c_client *client,
+ 	/* Attach secondary lm75 clients */
+ 	err = asb100_detect_subclients(client);
  	if (err)
--		goto exit_free;
+-		goto ERROR1;
 +		return err;
  
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -133,8 +131,6 @@ static int mcp3021_probe(struct i2c_client *client,
- 
- exit_remove:
- 	sysfs_remove_file(&client->dev.kobj, &dev_attr_in0_input.attr);
--exit_free:
+ 	/* Initialize the chip */
+ 	asb100_init_client(client);
+@@ -829,9 +829,6 @@ ERROR4:
+ ERROR3:
+ 	i2c_unregister_device(data->lm75[1]);
+ 	i2c_unregister_device(data->lm75[0]);
+-ERROR1:
 -	kfree(data);
+-ERROR0:
  	return err;
  }
  
-@@ -144,7 +140,6 @@ static int mcp3021_remove(struct i2c_client *client)
+@@ -845,8 +842,6 @@ static int asb100_remove(struct i2c_client *client)
+ 	i2c_unregister_device(data->lm75[1]);
+ 	i2c_unregister_device(data->lm75[0]);
  
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_file(&client->dev.kobj, &dev_attr_in0_input.attr);
 -	kfree(data);
- 
+-
  	return 0;
  }
+ 
 -- 
 1.7.9.7
 
