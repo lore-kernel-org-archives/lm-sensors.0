@@ -1,27 +1,76 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Thu, 07 Jun 2012 13:38:36 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (applesmc) Limit key length in warning messages
-Message-Id: <20120607133836.GC26008@ericsson.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:22:49 +0000
+Subject: [lm-sensors] [PATCH 08/95] hwmon: (adm1021) Convert to use devm_ functions
+Message-Id: <1339773856-3443-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1339059269-383-1-git-send-email-rydberg@euromail.se>
-In-Reply-To: <1339059269-383-1-git-send-email-rydberg@euromail.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Henrik Rydberg <rydberg@euromail.se>
-Cc: Jean Delvare <khali@linux-fr.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Jun 07, 2012 at 04:54:29AM -0400, Henrik Rydberg wrote:
-> Key lookups may call read_smc() with a fixed-length key string,
-> and if the lookup fails, trailing stack content may appear in the
-> kernel log. Fixed with this patch.
-> 
-> Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-Applied.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/adm1021.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/adm1021.c b/drivers/hwmon/adm1021.c
+index 4394e7e..fd1d1b1 100644
+--- a/drivers/hwmon/adm1021.c
++++ b/drivers/hwmon/adm1021.c
+@@ -366,11 +366,11 @@ static int adm1021_probe(struct i2c_client *client,
+ 	struct adm1021_data *data;
+ 	int err;
+ 
+-	data = kzalloc(sizeof(struct adm1021_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct adm1021_data),
++			    GFP_KERNEL);
+ 	if (!data) {
+-		pr_debug("adm1021: detect failed, kzalloc failed!\n");
+-		err = -ENOMEM;
+-		goto error0;
++		pr_debug("adm1021: detect failed, devm_kzalloc failed!\n");
++		return -ENOMEM;
+ 	}
+ 
+ 	i2c_set_clientdata(client, data);
+@@ -384,21 +384,18 @@ static int adm1021_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &adm1021_group);
+ 	if (err)
+-		goto error1;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
+-		goto error3;
++		goto error;
+ 	}
+ 
+ 	return 0;
+ 
+-error3:
++error:
+ 	sysfs_remove_group(&client->dev.kobj, &adm1021_group);
+-error1:
+-	kfree(data);
+-error0:
+ 	return err;
+ }
+ 
+@@ -418,7 +415,6 @@ static int adm1021_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1021_group);
+ 
+-	kfree(data);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
