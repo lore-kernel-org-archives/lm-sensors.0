@@ -1,47 +1,71 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 Jun 2012 14:27:33 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: Honeywell Humidicon HIH-6130/HIH-6131 humidity and temperature se
-Message-Id: <20120627142733.GB12554@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:42 +0000
+Subject: [lm-sensors] [PATCH 61/95] hwmon: (max6650) Convert to use devm_ functions
+Message-Id: <1339773856-3443-62-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FE46822.9040304@gmail.com>
-In-Reply-To: <4FE46822.9040304@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCBKdW4gMjcsIDIwMTIgYXQgMDc6NDE6MThBTSArMDAwMCwgSWFpbiBQYXRvbiB3cm90
-ZToKPiBPbiAwNi8yMi8yMDEyIDAzOjM0IFBNLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+IAo+ID4+
-ICsJICogUmVzcG9uc2UgdGltZSBmb3IgdGhlIHNlbnNvciBpcyBtZWFzdXJlZCBpbiBzZWNvbmRz
-LCBzbyB3ZSBoYXZlCj4gPiAKPiA+IGluIHNlY29uZHMgPwo+IApIaSBJYWluLAoKSG93IGFib3V0
-ICJSZXNwb25zZSB0aW1lIGZvciB0aGUgc2Vuc29yIHRvIHJlYWN0IHRvIGNoYW5nZXMgaW4gZXh0
-ZXJuYWwKY29uZGl0aW9ucyBpcyBzZXZlcmFsIHNlY29uZHMsIHNvIHdlIGhhdmUgLi4uIgoKPiBT
-bywgaG93IHRvIHdvcmQgaXQgdGhlbi4uLiAgSW4gdGhlIGRhdGFzaGVldHMgd29yZHMsICJUaGUg
-bWVhc3VyZW1lbnQgY3ljbGUgCj4gZHVyYXRpb24gaXMgdHlwaWNhbGx5IDM2LjY1IG1zIGZvciB0
-ZW1wZXJhdHVyZSBhbmQgaHVtaWRpdHkgcmVhZGluZ3MuIgo+IAo+IEhvd2V2ZXIgd2UgYWxzbyBo
-YXZlCj4gCj4gVGFibGUgMi4gSHVtaWRpdHkgUGVyZm9ybWFuY2UgU3BlY2lmaWNhdGlvbnMKPiBD
-aGFyYWN0ZXJpc3RpYyBDb25kaXRpb24gICAgICAgICAgICAgICAgTWluICBUeXAgIE1heCAgVW5p
-dAo+IFJlc3BvbnNlIHRpbWUgIGFpcmZsb3cgbWluaW11bSAyMCBsL21pbiAg4oCTICAgIDYgICAg
-OCAgICBzCj4gCj4gCj4gVGFibGUgMy4gVGVtcGVyYXR1cmUgUGVyZm9ybWFuY2UgU3BlY2lmaWNh
-dGlvbnMKPiBDaGFyYWN0ZXJpc3RpYyBDb25kaXRpb24gICAgICAgICAgICAgICAgTWluICBUeXAg
-IE1heCAgVW5pdAo+IFJlc3BvbnNlIHRpbWUgIDEvZSBzbG93IG1vdmluZyBhaXIgICAgICAgNSAg
-ICAtICAgIDMwICAgcwo+IAo+IFNvIGFsdGhvdWdoIHdlIGNhbiBydW4gYSBtZWFzdXJlbWVudCBp
-biBhcm91bmQgNDBtcyBpdCB3aWxsIHRha2UgdGhlIHNlbnNvciBsb25nZXIKPiB0byByZWFjdCB0
-byBhIGNoYW5nZS4KPiAKPiBJIGFncmVlIHRoaXMgbmVlZHMgdG8gYmUgY2xlYXIsIG9yIHRoZXJl
-J3Mgbm8gcG9pbnQgdG8gdGhlIGNvbW1lbnQuIEp1c3QgdGhhdCAKPiB5b3UncmUgYXNraW5nIHN1
-Z2dlc3RzIGl0J3Mgbm90IGNsZWFyIGVub3VnaC4gU3VnZ2VzdGlvbnMgPwo+IAo+IAo+IEhvdyBh
-Ym91dCB0aGlzOgo+IAo+IFdoaWxlIHRoZSBtZWFzdXJlbWVudCBjYW4gYmUgY29tcGxldGVkIGlu
-IH40MG1zIHRoZSBzZW5zb3IgdGFrZXMgbXVjaCBsb25nZXIgdG8gcmVhY3QKPiB0byBhIGNoYW5n
-ZSBpbiBleHRlcm5hbCBjb25kaXRpb25zLiBIb3cgcXVpY2tseSBpdCByZWFjdHMgZGVwZW5kcyBv
-biBhaXJmbG93IGFuZCBvdGhlcgo+IGZhY3RvcnMgb3V0d2l0aCBvdXIgY29udHJvbC4KPiBUaGUg
-ZGF0YXNoZWV0IHNwZWNpZmllcyBtYXhpbXVtICdSZXNwb25zZSB0aW1lJyBmb3IgaHVtaWRpdHkg
-YXQgOHMgYW5kIHRlbXBlcmF0dXJlIGF0Cj4gMzBzIHVuZGVyIHNwZWNpZmllZCBjb25kaXRpb25z
-Lgo+IFdlIHRoZXJlZm9yZSBjaG9vc2UgdG8gb25seSByZWFkIHRoZSBzZW5zb3IgYXQgbW9zdCBv
-bmNlIHBlciBzZWNvbmQuIFRoaXMgdHJhZGVzIG9mZgo+IHBvaW50bGVzcyBhY3Rpdml0eSBwb2xs
-aW5nIHRoZSBzZW5zb3IgbXVjaCBmYXN0ZXIgdGhhbiBpdCBjYW4gcmVhY3QgYWdhaW5zdCBiZXR0
-ZXIgCj4gcmVzcG9uc2UgdGltZXMgaW4gY29uZGl0aW9ucyBtb3JlIGZhdm91cmFibGUgdGhhbiBz
-cGVjaWZpZWQgaW4gdGhlIGRhdGFzaGVldC4KPiAKU291bmRzIGxpa2UgYW4gZXhjZWxsZW50IG5v
-dGUgdG8gYWRkIHRvIHRoZSBEb2N1bWVudGF0aW9uIGZpbGUuCgpUaGFua3MsCkd1ZW50ZXIKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMg
-bWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNl
-bnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Convert to use devm_ functions to reduce code size and simplify the code.
+
+Cc: Hans J. Koch <hjk@hansjkoch.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/max6650.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
+index 33a8a7f..f739f83 100644
+--- a/drivers/hwmon/max6650.c
++++ b/drivers/hwmon/max6650.c
+@@ -545,7 +545,8 @@ static int max6650_probe(struct i2c_client *client,
+ 	struct max6650_data *data;
+ 	int err;
+ 
+-	data = kzalloc(sizeof(struct max6650_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct max6650_data),
++			    GFP_KERNEL);
+ 	if (!data) {
+ 		dev_err(&client->dev, "out of memory.\n");
+ 		return -ENOMEM;
+@@ -560,11 +561,11 @@ static int max6650_probe(struct i2c_client *client,
+ 	 */
+ 	err = max6650_init_client(client);
+ 	if (err)
+-		goto err_free;
++		return err;
+ 
+ 	err = sysfs_create_group(&client->dev.kobj, &max6650_attr_grp);
+ 	if (err)
+-		goto err_free;
++		return err;
+ 	/* 3 additional fan inputs for the MAX6651 */
+ 	if (data->nr_fans = 4) {
+ 		err = sysfs_create_group(&client->dev.kobj, &max6651_attr_grp);
+@@ -582,8 +583,6 @@ static int max6650_probe(struct i2c_client *client,
+ 		sysfs_remove_group(&client->dev.kobj, &max6651_attr_grp);
+ err_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
+-err_free:
+-	kfree(data);
+ 	return err;
+ }
+ 
+@@ -595,7 +594,6 @@ static int max6650_remove(struct i2c_client *client)
+ 	if (data->nr_fans = 4)
+ 		sysfs_remove_group(&client->dev.kobj, &max6651_attr_grp);
+ 	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
+-	kfree(data);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
