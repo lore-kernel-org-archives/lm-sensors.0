@@ -1,37 +1,66 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 21 Jun 2012 13:56:54 +0000
-Subject: [lm-sensors] [PATCH 2/3] hwmon: (fam15h_power) Fix unintentional integer overflow
-Message-Id: <1340287015-14008-2-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:18 +0000
+Subject: [lm-sensors] [PATCH 37/95] hwmon: (gl518sm) Convert to use devm_ functions
+Message-Id: <1339773856-3443-38-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Expression with two unsigned integer variables is calculated as unsigned integer
-before it is converted to u64. This may result in an integer overflow.
-Fix by typecasting the left operand to u64 before performing the left shift.
-
-This patch addresses Coverity #402320: Unintentional integer overflow.
+Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/fam15h_power.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/hwmon/gl518sm.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
-index 6b13f1a..2764b78 100644
---- a/drivers/hwmon/fam15h_power.c
-+++ b/drivers/hwmon/fam15h_power.c
-@@ -67,7 +67,8 @@ static ssize_t show_power(struct device *dev,
- 				  REG_TDP_LIMIT3, &val);
+diff --git a/drivers/hwmon/gl518sm.c b/drivers/hwmon/gl518sm.c
+index 764a083..2c74673 100644
+--- a/drivers/hwmon/gl518sm.c
++++ b/drivers/hwmon/gl518sm.c
+@@ -544,11 +544,10 @@ static int gl518_probe(struct i2c_client *client,
+ 	struct gl518_data *data;
+ 	int err, revision;
  
- 	tdp_limit = val >> 16;
--	curr_pwr_watts = (tdp_limit + data->base_tdp) << running_avg_range;
-+	curr_pwr_watts = ((u64)(tdp_limit +
-+				data->base_tdp)) << running_avg_range;
- 	curr_pwr_watts -= running_avg_capture;
- 	curr_pwr_watts *= data->tdp_to_watts;
+-	data = kzalloc(sizeof(struct gl518_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct gl518_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	i2c_set_clientdata(client, data);
+ 	revision = gl518_read_value(client, GL518_REG_REVISION);
+@@ -562,7 +561,7 @@ static int gl518_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &gl518_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 	if (data->type = gl518sm_r80) {
+ 		err = sysfs_create_group(&client->dev.kobj, &gl518_group_r80);
+ 		if (err)
+@@ -581,9 +580,6 @@ exit_remove_files:
+ 	sysfs_remove_group(&client->dev.kobj, &gl518_group);
+ 	if (data->type = gl518sm_r80)
+ 		sysfs_remove_group(&client->dev.kobj, &gl518_group_r80);
+-exit_free:
+-	kfree(data);
+-exit:
+ 	return err;
+ }
+ 
+@@ -617,7 +613,6 @@ static int gl518_remove(struct i2c_client *client)
+ 	if (data->type = gl518sm_r80)
+ 		sysfs_remove_group(&client->dev.kobj, &gl518_group_r80);
+ 
+-	kfree(data);
+ 	return 0;
+ }
  
 -- 
 1.7.9.7
