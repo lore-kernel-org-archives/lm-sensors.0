@@ -1,45 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 11 Jun 2012 14:32:46 +0000
-Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (coretemp) Document TjMax for Atom Z2460 CPU
-Message-Id: <20120611163246.17f0604a@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:32 +0000
+Subject: [lm-sensors] [PATCH 51/95] hwmon: (lm90) Convert to use devm_ functions
+Message-Id: <1339773856-3443-52-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1338958116-6205-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1338958116-6205-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue,  5 Jun 2012 21:48:34 -0700, Guenter Roeck wrote:
-> TjMax for Atom Z2460 (Medfield) is 90 degrees C per information from Intel.
-> Document it.
-> 
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: "R, Durgadoss" <durgadoss.r@intel.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  Documentation/hwmon/coretemp |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
-> index 3d7f2d7..f6aed440 100644
-> --- a/Documentation/hwmon/coretemp
-> +++ b/Documentation/hwmon/coretemp
-> @@ -66,6 +66,9 @@ Process		Processor					TjMax(C)
->  		U3400						105
->  		P4505/P4500 					90
->  
-> +32nm		Atom Processors
-> +		Z2460						90
-> +
->  45nm		Xeon Processors 5400 Quad-Core
->  		X5492, X5482, X5472, X5470, X5460, X5450	85
->  		E5472, E5462, E5450/40/30/20/10/05		85
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-Applied, thanks.
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm90.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index 22b14a68..863412a 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -1399,11 +1399,10 @@ static int lm90_probe(struct i2c_client *client,
+ 	struct lm90_data *data;
+ 	int err;
+ 
+-	data = kzalloc(sizeof(struct lm90_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct lm90_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+@@ -1474,8 +1473,6 @@ exit_remove_files:
+ 	lm90_remove_files(client, data);
+ exit_restore:
+ 	lm90_restore_conf(client, data);
+-	kfree(data);
+-exit:
+ 	return err;
+ }
+ 
+@@ -1487,7 +1484,6 @@ static int lm90_remove(struct i2c_client *client)
+ 	lm90_remove_files(client, data);
+ 	lm90_restore_conf(client, data);
+ 
+-	kfree(data);
+ 	return 0;
+ }
+ 
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
