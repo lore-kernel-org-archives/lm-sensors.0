@@ -1,153 +1,128 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 04 Jun 2012 20:24:54 +0000
-Subject: Re: [lm-sensors] Mini ITX fully compatible Lm-sensors
-Message-Id: <1338841494.478.199.camel@groeck-laptop>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:48 +0000
+Subject: [lm-sensors] [PATCH 67/95] hwmon: (pc87427) Convert to use devm_ functions
+Message-Id: <1339773856-3443-68-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAKJpqGHvWrDSCz+7G5UvR2p_96gR98MpmHZ6G-kmr5-5OiMhog@mail.gmail.com>
-In-Reply-To: <CAKJpqGHvWrDSCz+7G5UvR2p_96gR98MpmHZ6G-kmr5-5OiMhog@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 2012-06-04 at 15:08 -0400, clement clem wrote:
-> 
-> 
-> 2012/6/4 Guenter Roeck <guenter.roeck@ericsson.com>
->         On Mon, 2012-06-04 at 02:21 -0400, clement clem wrote:
->         >
->         >
->         > 2012/6/3 Guenter Roeck <guenter.roeck@ericsson.com>
->         >         On Sun, Jun 03, 2012 at 04:47:54AM -0400, Jean
->         Delvare wrote:
->         >         > On Sun, 3 Jun 2012 09:12:33 +0200, clement clem
->         wrote:
->         >         > > The chip-Nuvoton W83677HG i totally works with
->         Kernel
->         >         2.6.35.32 (Ubuntu
->         >         > > 10.10)?
->         >         >
->         >         > Not out of the box. See
->         >         http://www.lm-sensors.org/wiki/Devices :
->         >         > W83677HG support was added in kernel 2.6.39. That
->         being said
->         >         you can
->         >         > always use a manually built standalone driver.
->         >         >
->         >
->         >         Or use Ubuntu 12.04 instead. 10.04 is getting old,
->         and 10.10
->         >         is no longer supported.
->         >
->         > Hello to all,
->         >   I work on 14.10 LTS or 10.10 as the current version 14.12
->         with the
->         > Gnome Unity is not really productive.
->         >
->         >         > Also note that the fact that the chipset is
->         supported is not
->         >         a
->         >         > guarantee that things will work. There is always
->         the
->         >         possibility that
->         >         > the vendor did not use the monitoring features, or
->         not all
->         >         of them, or
->         >         > that the ACPI BIOS takes control of the chip.
->         >         >
->         >
->         >         Intel doesn't use ACPI. There is a chance, though,
->         that they
->         >         control
->         >         the fans through their own chipset and MEI. And we
->         don't have
->         >         a hwmon driver
->         >         for MEI. The board's technical specification should
->         tell,
->         >         though.
->         >
->         >         On the plus side, the Intel boards have the Nuvoton
->         chips well
->         >         programmed,
->         >         much better than all the others I have seen.
->         >
->         > Ok,  For control of fan that's no big deal because my
->         project will be
->         > 100% fanless.
->         > And at worst a single 120mm fan that will be in the low
->         rotation, if
->         > the controller shows that the speed is sufficient.
->         >
->         > So this card with the Intel chip DH61DL Nuvoton W83677HG
->         seems good
->         > for my project.
->         >
->         > The ASRock B75M-ITX also has potential ...
->         >
->         >
->         >         > > Do you have information on the chip card mini
->         ITX:
->         >         > >   ASRock B75M-ITX
->         >
->         >
->         >         This one may use ACPI, and also use the GPIO based
->         fan
->         >         multiplexer.
->         >
->         >  Which chip manufacturer has been installed on this card
->         AsRock ?
->         > I find anything on the web.
->         >
->         
->         Most likely the same as on the B75 Pro 3 M you had earlier, ie
->         NCT6776F.
->         
-> I finally find an HD image of this mainboard, it's a smart team that
-> Nuvoton NCT5573d this card.
-> http://www.xfastest.com/cms/tid-76811-4/
-> There are pictures of various chip...
-> 
-Please don't drop the list from your replies.
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-> LM Sensors supports this chip?
-> 
-No. I wasn't even aware that it exists, and it is not listed on
-Nuvoton's web site either.
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/pc87427.c |   41 +++++++----------------------------------
+ 1 file changed, 7 insertions(+), 34 deletions(-)
 
-Guenter
-
-> Clem
-> 
-> 
->         Guenter
->         
->         >
->         >         > >   MSI E35-H61I
->         >         > > Gigabyte GA-H61N
->         >         >
->         >         > No we don't.
->         >         >
->         >         > > These smart you are monitoring it completely
->         taken over by
->         >         Lm-Sensors certain
->         >         > > person we make test?
->         >         >
->         >         > I don't understand your question, sorry.
->         >         >
->         >
->         >         Me not either.
->         >
->         > I ask if any member of the list, use the Mini ITX with
->         Lm-Sensors, if
->         > so what model ?
->         >
->         > Thank
->         > Clem
->         
->         
->         
-> 
-
+diff --git a/drivers/hwmon/pc87427.c b/drivers/hwmon/pc87427.c
+index 37059a3..75f67a8 100644
+--- a/drivers/hwmon/pc87427.c
++++ b/drivers/hwmon/pc87427.c
+@@ -956,17 +956,6 @@ static DEVICE_ATTR(name, S_IRUGO, show_name, NULL);
+  * Device detection, attach and detach
+  */
+ 
+-static void pc87427_release_regions(struct platform_device *pdev, int count)
+-{
+-	struct resource *res;
+-	int i;
+-
+-	for (i = 0; i < count; i++) {
+-		res = platform_get_resource(pdev, IORESOURCE_IO, i);
+-		release_region(res->start, resource_size(res));
+-	}
+-}
+-
+ static int __devinit pc87427_request_regions(struct platform_device *pdev,
+ 					     int count)
+ {
+@@ -980,7 +969,8 @@ static int __devinit pc87427_request_regions(struct platform_device *pdev,
+ 			dev_err(&pdev->dev, "Missing resource #%d\n", i);
+ 			break;
+ 		}
+-		if (!request_region(res->start, resource_size(res), DRVNAME)) {
++		if (!devm_request_region(&pdev->dev, res->start,
++					 resource_size(res), DRVNAME)) {
+ 			err = -EBUSY;
+ 			dev_err(&pdev->dev,
+ 				"Failed to request region 0x%lx-0x%lx\n",
+@@ -989,10 +979,6 @@ static int __devinit pc87427_request_regions(struct platform_device *pdev,
+ 			break;
+ 		}
+ 	}
+-
+-	if (err && i)
+-		pc87427_release_regions(pdev, i);
+-
+ 	return err;
+ }
+ 
+@@ -1094,11 +1080,11 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
+ 	struct pc87427_data *data;
+ 	int i, err, res_count;
+ 
+-	data = kzalloc(sizeof(struct pc87427_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct pc87427_data),
++			    GFP_KERNEL);
+ 	if (!data) {
+-		err = -ENOMEM;
+ 		pr_err("Out of memory\n");
+-		goto exit;
++		return -ENOMEM;
+ 	}
+ 
+ 	data->address[0] = sio_data->address[0];
+@@ -1107,7 +1093,7 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
+ 
+ 	err = pc87427_request_regions(pdev, res_count);
+ 	if (err)
+-		goto exit_kfree;
++		return err;
+ 
+ 	mutex_init(&data->lock);
+ 	data->name = "pc87427";
+@@ -1117,7 +1103,7 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
+ 	/* Register sysfs hooks */
+ 	err = device_create_file(&pdev->dev, &dev_attr_name);
+ 	if (err)
+-		goto exit_release_region;
++		return err;
+ 	for (i = 0; i < 8; i++) {
+ 		if (!(data->fan_enabled & (1 << i)))
+ 			continue;
+@@ -1154,28 +1140,15 @@ static int __devinit pc87427_probe(struct platform_device *pdev)
+ 
+ exit_remove_files:
+ 	pc87427_remove_files(&pdev->dev);
+-exit_release_region:
+-	pc87427_release_regions(pdev, res_count);
+-exit_kfree:
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+-exit:
+ 	return err;
+ }
+ 
+ static int __devexit pc87427_remove(struct platform_device *pdev)
+ {
+ 	struct pc87427_data *data = platform_get_drvdata(pdev);
+-	int res_count;
+-
+-	res_count = (data->address[0] != 0) + (data->address[1] != 0);
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	pc87427_remove_files(&pdev->dev);
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+-
+-	pc87427_release_regions(pdev, res_count);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.7
 
 
 _______________________________________________
