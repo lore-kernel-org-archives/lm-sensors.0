@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:22:45 +0000
-Subject: [lm-sensors] [PATCH 04/95] hwmon: (ad7314) Convert to use devm_ functions
-Message-Id: <1339773856-3443-5-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:00 +0000
+Subject: [lm-sensors] [PATCH 19/95] hwmon: (adt7470) Convert to use devm_ functions
+Message-Id: <1339773856-3443-20-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,54 +12,56 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ad7314.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ drivers/hwmon/adt7470.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
-index cfec802..455294f 100644
---- a/drivers/hwmon/ad7314.c
-+++ b/drivers/hwmon/ad7314.c
-@@ -104,16 +104,16 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
- 	int ret;
- 	struct ad7314_data *chip;
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 54ec890..39ecb1a 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -1256,11 +1256,10 @@ static int adt7470_probe(struct i2c_client *client,
+ 	struct adt7470_data *data;
+ 	int err;
  
--	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
--	if (chip = NULL) {
--		ret = -ENOMEM;
--		goto error_ret;
+-	data = kzalloc(sizeof(struct adt7470_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
 -	}
-+	chip = devm_kzalloc(&spi_dev->dev, sizeof(*chip), GFP_KERNEL);
-+	if (chip = NULL)
++	data = devm_kzalloc(&client->dev, sizeof(struct adt7470_data),
++			    GFP_KERNEL);
++	if (!data)
 +		return -ENOMEM;
-+
- 	dev_set_drvdata(&spi_dev->dev, chip);
  
- 	ret = sysfs_create_group(&spi_dev->dev.kobj, &ad7314_group);
- 	if (ret < 0)
--		goto error_free_chip;
-+		return ret;
-+
- 	chip->hwmon_dev = hwmon_device_register(&spi_dev->dev);
- 	if (IS_ERR(chip->hwmon_dev)) {
- 		ret = PTR_ERR(chip->hwmon_dev);
-@@ -124,9 +124,6 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
- 	return 0;
- error_remove_group:
- 	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
--error_free_chip:
--	kfree(chip);
--error_ret:
- 	return ret;
+ 	data->num_temp_sensors = -1;
+ 	data->auto_update_interval = AUTO_UPDATE_INTERVAL;
+@@ -1277,7 +1276,7 @@ static int adt7470_probe(struct i2c_client *client,
+ 	data->attrs.attrs = adt7470_attr;
+ 	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -1299,9 +1298,6 @@ exit_unregister:
+ 	hwmon_device_unregister(data->hwmon_dev);
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-exit_free:
+-	kfree(data);
+-exit:
+ 	return err;
  }
  
-@@ -136,7 +133,6 @@ static int __devexit ad7314_remove(struct spi_device *spi_dev)
- 
- 	hwmon_device_unregister(chip->hwmon_dev);
- 	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
--	kfree(chip);
- 
+@@ -1313,7 +1309,6 @@ static int adt7470_remove(struct i2c_client *client)
+ 	wait_for_completion(&data->auto_update_stop);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-	kfree(data);
  	return 0;
  }
+ 
 -- 
 1.7.9.7
 
