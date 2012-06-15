@@ -1,27 +1,69 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 16 Jun 2012 19:58:46 +0000
-Subject: Re: [lm-sensors] [PATCH 52/95] hwmon: (lm92) Convert to use devm_ functions
-Message-Id: <20120616215846.56da3d1e@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:23 +0000
+Subject: [lm-sensors] [PATCH 42/95] hwmon: (lm63) Convert to use devm_ functions
+Message-Id: <1339773856-3443-43-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1339773856-3443-53-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1339773856-3443-53-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 15 Jun 2012 08:23:33 -0700, Guenter Roeck wrote:
-> Convert to use devm_ functions to reduce code size and simplify the code.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/lm92.c |   15 +++++----------
->  1 file changed, 5 insertions(+), 10 deletions(-)
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm63.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/hwmon/lm63.c b/drivers/hwmon/lm63.c
+index 602a0f0..eed4d94 100644
+--- a/drivers/hwmon/lm63.c
++++ b/drivers/hwmon/lm63.c
+@@ -1108,11 +1108,9 @@ static int lm63_probe(struct i2c_client *client,
+ 	struct lm63_data *data;
+ 	int err;
+ 
+-	data = kzalloc(sizeof(struct lm63_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct lm63_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	i2c_set_clientdata(client, data);
+ 	data->valid = 0;
+@@ -1129,7 +1127,7 @@ static int lm63_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &lm63_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 	if (data->config & 0x04) { /* tachometer enabled */
+ 		err = sysfs_create_group(&client->dev.kobj, &lm63_group_fan1);
+ 		if (err)
+@@ -1161,9 +1159,6 @@ exit_remove_files:
+ 		device_remove_file(&client->dev, &dev_attr_temp2_type);
+ 		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+ 	}
+-exit_free:
+-	kfree(data);
+-exit:
+ 	return err;
+ }
+ 
+@@ -1179,7 +1174,6 @@ static int lm63_remove(struct i2c_client *client)
+ 		sysfs_remove_group(&client->dev.kobj, &lm63_group_extra_lut);
+ 	}
+ 
+-	kfree(data);
+ 	return 0;
+ }
+ 
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
