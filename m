@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:03 +0000
-Subject: [lm-sensors] [PATCH 22/95] hwmon: (asb100) Convert to use devm_ functions
-Message-Id: <1339773856-3443-23-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:17 +0000
+Subject: [lm-sensors] [PATCH 36/95] hwmon: (g760a) Convert to use devm_ functions
+Message-Id: <1339773856-3443-37-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,55 +10,48 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/asb100.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/hwmon/g760a.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
-index 4b8814d..7b0acb1 100644
---- a/drivers/hwmon/asb100.c
-+++ b/drivers/hwmon/asb100.c
-@@ -787,11 +787,11 @@ static int asb100_probe(struct i2c_client *client,
- 	int err;
- 	struct asb100_data *data;
+diff --git a/drivers/hwmon/g760a.c b/drivers/hwmon/g760a.c
+index ebcd269..8b2106f 100644
+--- a/drivers/hwmon/g760a.c
++++ b/drivers/hwmon/g760a.c
+@@ -207,7 +207,8 @@ static int g760a_probe(struct i2c_client *client,
+ 				     I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
  
--	data = kzalloc(sizeof(struct asb100_data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(struct asb100_data),
+-	data = kzalloc(sizeof(struct g760a_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct g760a_data),
 +			    GFP_KERNEL);
- 	if (!data) {
--		pr_debug("probe failed, kzalloc failed!\n");
--		err = -ENOMEM;
--		goto ERROR0;
-+		pr_debug("probe failed, devm_kzalloc failed!\n");
-+		return -ENOMEM;
- 	}
+ 	if (!data)
+ 		return -ENOMEM;
  
- 	i2c_set_clientdata(client, data);
-@@ -801,7 +801,7 @@ static int asb100_probe(struct i2c_client *client,
- 	/* Attach secondary lm75 clients */
- 	err = asb100_detect_subclients(client);
+@@ -223,7 +224,7 @@ static int g760a_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &g760a_group);
  	if (err)
--		goto ERROR1;
+-		goto error_sysfs_create_group;
 +		return err;
  
- 	/* Initialize the chip */
- 	asb100_init_client(client);
-@@ -829,9 +829,6 @@ ERROR4:
- ERROR3:
- 	i2c_unregister_device(data->lm75[1]);
- 	i2c_unregister_device(data->lm75[0]);
--ERROR1:
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -235,9 +236,6 @@ static int g760a_probe(struct i2c_client *client,
+ 
+ error_hwmon_device_register:
+ 	sysfs_remove_group(&client->dev.kobj, &g760a_group);
+-error_sysfs_create_group:
 -	kfree(data);
--ERROR0:
+-
  	return err;
  }
  
-@@ -845,8 +842,6 @@ static int asb100_remove(struct i2c_client *client)
- 	i2c_unregister_device(data->lm75[1]);
- 	i2c_unregister_device(data->lm75[0]);
- 
+@@ -246,8 +244,6 @@ static int g760a_remove(struct i2c_client *client)
+ 	struct g760a_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &g760a_group);
 -	kfree(data);
 -
  	return 0;
