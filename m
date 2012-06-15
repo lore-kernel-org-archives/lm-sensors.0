@@ -1,81 +1,89 @@
-From: Guenter Roeck <guenter.roeck@ericsson.com>
-Date: Mon, 11 Jun 2012 19:31:13 +0000
-Subject: Re: [lm-sensors] [PATCH v3 3/3] hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
-Message-Id: <1339443073.31822.41.camel@groeck-laptop>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:24:12 +0000
+Subject: [lm-sensors] [PATCH 91/95] hwmon: (smsc47b397) Convert to use devm_ functions
+Message-Id: <1339773856-3443-92-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1338958116-6205-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1338958116-6205-3-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgSmVhbiwKCk9uIE1vbiwgMjAxMi0wNi0xMSBhdCAxNToyNCAtMDQwMCwgSmVhbiBEZWx2YXJl
-IHdyb3RlOgo+IEhpIEd1ZW50ZXIsCj4gCj4gT24gVHVlLCAgNSBKdW4gMjAxMiAyMTo0ODozNiAt
-MDcwMCwgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IEF0b20gQ1BVcyBkb24ndCBoYXZlIGEgcmVn
-aXN0ZXIgdG8gcmV0cmlldmUgVGpNYXguIERldGVjdGlvbiBzbyBmYXIgd2FzCj4gPiBpbmNvbXBs
-ZXRlLiBVc2UgdGhlIFg4NiBtb2RlbCBJRCB0byBpbXByb3ZlIGl0Lgo+ID4gCj4gPiBTaWduZWQt
-b2ZmLWJ5OiBHdWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Cj4gPiAtLS0KPiA+IHYy
-OiBEcm9wcGVkIFBDSSBkZXBlbmRlbmNpZXMKPiA+ICAgICBGaXhlZCAzMzAgYW5kIDIzMCBkZXRl
-Y3Rpb24gKDIgc3BhY2VzIGJldHdlZW4gQ1BVIGFuZCAzMzAvMjMwKQo+ID4gICAgIEFkZGVkIHN1
-cHBvcnQgZm9yIENlZGFyIENyZWVrIENQVXMKPiA+ICAgICBEZWNsYXJlZCBhdG9tX3RqbWF4IGFz
-IF9fY3B1aW5pdGNvbnN0Cj4gPiAKPiA+IHYzOiBSZXZlcnRlZCBQQ0kgY29kZSB0byBhdm9pZCBw
-b3NzaWJsZSByZWdyZXNzaW9ucy4gUnVuIFBDSSBjb2RlIGZpcnN0LAo+ID4gICAgIHRoZW4gb3Zl
-cnJpZGUgcmVzdWx0aW5nIHZhbHVlIHdpdGggdGFibGUgZW50cnkgaWYgb25lIGV4aXN0cy4KPiA+
-ICAgICBEcm9wcGVkIGVudHJpZXMgZm9yIE4yMDAwIGFuZCBEMjAwMCBDUFVzIGFzIHRob3NlIGFs
-bCBoYXZlIGEgVGptYXggb2YgMTAwIEMKPiA+ICAgICB3aGljaCB3ZSBjYW4gZGV0ZWN0IHNlcGFy
-YXRlbHkgYmFzZWQgb24gdGhlIENQVSBtb2RlbCBudW1iZXIuCj4gPiAgICAgRHJvcHBlZCB0YWJs
-ZSBlbnRyaWVzIGZvciBFNnh4IHNlcmllcywgc2luY2UgdGhlIEU2eHggY2FuIG5vdCBiZQo+ID4g
-ICAgIGRpc3Rpbmd1aXNoZWQgZnJvbSBFNnh4VCB1c2luZyB0aGUgbW9kZWwgSUQgc3RyaW5nIChu
-b3IgYnkgYW55IG90aGVyIG1lYW5zKS4KPiA+IAo+ID4gIGRyaXZlcnMvaHdtb24vY29yZXRlbXAu
-YyB8ICAgMjggKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ID4gIDEgZmlsZXMgY2hhbmdl
-ZCwgMjggaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKPiA+IAo+ID4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvaHdtb24vY29yZXRlbXAuYyBiL2RyaXZlcnMvaHdtb24vY29yZXRlbXAuYwo+ID4g
-aW5kZXggOTI4YTNlYy4uNmJkOGQyMyAxMDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvaHdtb24vY29y
-ZXRlbXAuYwo+ID4gKysrIGIvZHJpdmVycy9od21vbi9jb3JldGVtcC5jCj4gPiBAQCAtMTkxLDYg
-KzE5MSwyNCBAQCBzdGF0aWMgc3NpemVfdCBzaG93X3RlbXAoc3RydWN0IGRldmljZSAqZGV2LAo+
-ID4gIAlyZXR1cm4gdGRhdGEtPnZhbGlkID8gc3ByaW50ZihidWYsICIlZFxuIiwgdGRhdGEtPnRl
-bXApIDogLUVBR0FJTjsKPiA+ICB9Cj4gPiAgCj4gPiArc3RydWN0IHRqbWF4IHsKPiA+ICsJY2hh
-ciBjb25zdCAqaWQ7Cj4gPiArCWludCB0am1heDsKPiA+ICt9Owo+ID4gKwo+ID4gK3N0YXRpYyBz
-dHJ1Y3QgdGptYXggX19jcHVpbml0Y29uc3QgdGptYXhfdGFibGVbXSA9IHsKPiA+ICsJeyAiQ1BV
-IEQ0MTAiLCAxMDAwMDAgfSwKPiA+ICsJeyAiQ1BVIEQ0MjUiLCAxMDAwMDAgfSwKPiA+ICsJeyAi
-Q1BVIEQ1MTAiLCAxMDAwMDAgfSwKPiA+ICsJeyAiQ1BVIEQ1MjUiLCAxMDAwMDAgfSwKPiA+ICsJ
-eyAiQ1BVIE40NTAiLCAxMDAwMDAgfSwKPiA+ICsJeyAiQ1BVIE40NTUiLCAxMDAwMDAgfSwKPiA+
-ICsJeyAiQ1BVIE40NzAiLCAxMDAwMDAgfSwKPiA+ICsJeyAiQ1BVIE40NzUiLCAxMDAwMDAgfSwK
-PiA+ICsJeyAiQ1BVICAyMzAiLCAxMDAwMDAgfSwKPiA+ICsJeyAiQ1BVICAzMzAiLCAxMjUwMDAg
-fSwKPiA+ICt9Owo+ID4gKwo+ID4gIHN0YXRpYyBpbnQgX19jcHVpbml0IGFkanVzdF90am1heChz
-dHJ1Y3QgY3B1aW5mb194ODYgKmMsIHUzMiBpZCwKPiA+ICAJCQkJICBzdHJ1Y3QgZGV2aWNlICpk
-ZXYpCj4gPiAgewo+ID4gQEAgLTIxNSw2ICsyMzMsOCBAQCBzdGF0aWMgaW50IF9fY3B1aW5pdCBh
-ZGp1c3RfdGptYXgoc3RydWN0IGNwdWluZm9feDg2ICpjLCB1MzIgaWQsCj4gPiAgCQl0am1heCA9
-IDEwMDAwMDsKPiA+ICAJfSBlbHNlIGlmIChjLT54ODZfbW9kZWwgPT0gMHgxYyB8fCBjLT54ODZf
-bW9kZWwgPT0gMHgyNgo+ID4gIAkJICAgfHwgYy0+eDg2X21vZGVsID09IDB4MjcpIHsKPiA+ICsJ
-CWludCBpOwo+ID4gKwo+ID4gIAkJdXNlbXNyX2VlID0gMDsKPiA+ICAJCWhvc3RfYnJpZGdlID0g
-cGNpX2dldF9idXNfYW5kX3Nsb3QoMCwgUENJX0RFVkZOKDAsIDApKTsKPiA+ICAKPiA+IEBAIC0y
-MjYsNiArMjQ2LDE0IEBAIHN0YXRpYyBpbnQgX19jcHVpbml0IGFkanVzdF90am1heChzdHJ1Y3Qg
-Y3B1aW5mb194ODYgKmMsIHUzMiBpZCwKPiA+ICAJCQl0am1heCA9IDkwMDAwOwo+ID4gIAo+ID4g
-IAkJcGNpX2Rldl9wdXQoaG9zdF9icmlkZ2UpOwo+ID4gKwo+ID4gKwkJLyogZXhwbGljaXQgdGFi
-bGUgZW50cmllcyBvdmVycmlkZSBoZXVyaXN0aWNzICovCj4gPiArCQlmb3IgKGkgPSAwOyBpIDwg
-QVJSQVlfU0laRSh0am1heF90YWJsZSk7IGkrKykgewo+ID4gKwkJCWlmIChzdHJzdHIoYy0+eDg2
-X21vZGVsX2lkLCB0am1heF90YWJsZVtpXS5pZCkpIHsKPiA+ICsJCQkJdGptYXggPSB0am1heF90
-YWJsZVtpXS50am1heDsKPiA+ICsJCQkJYnJlYWs7Cj4gPiArCQkJfQo+ID4gKwkJfQo+ID4gIAl9
-Cj4gCj4gSSBkb24ndCBnZXQgd2h5IHlvdSBwdXQgdGhhdCBjb2RlIGhlcmUuIEZvciBvbmUgdGhp
-bmcsIGl0IGlzbid0Cj4gZnVuZGFtZW50YWxseSBzcGVjaWZpYyB0byB0aGVzZSBtb2RlbHMuIE1h
-eWJlIHRvZGF5IGFsbCB0aGUgbW9kZWxzIGluCj4gdGhpcyBsaXN0IGFyZSBmb3IgdGhlc2UgbW9k
-ZWxzLCBidXQgaWYgdG9tb3Jyb3cgd2UgbmVlZCB0byBhZGQgdGhlIHNhbWUKPiBraW5kIG9mIHRh
-YmxlIGZvciBhIGRpZmZlcmVudCBtb2RlbCwgeW91IGRvbid0IHJlYWxseSB3YW50IHRvIGNyZWF0
-ZSBhCj4gc2VwYXJhdGUgdGFibGUgZm9yIHRoZXNlLCBkbyB5b3U/IE9yIGFyZSB5b3UgY29uY2Vy
-bmVkIGJ5IHBlcmZvcm1hbmNlPwo+IApObyBzcGVjaWZpYyByZWFzb24uCgo+IEZvciBhbm90aGVy
-LCB5b3UgbGV0IHRoZSBjb2RlIGZsb3csIGFuZCBsYXRlciBpbiB0aGUgZnVuY3Rpb24gd2UKPiBk
-aXNwbGF5IGEgd2FybmluZyBtZXNzYWdlIGlmIFRqTWF4ID0gMTAwwrBDLCB3aGljaCBpcyB0aGUg
-Y2FzZSBvZiBtb3N0Cj4gbW9kZWxzIGluIHRoZSB0YWJsZS4gV2UgZG9uJ3Qgd2FudCB0aGF0Lgo+
-IApPay4KCj4gU28gdW5sZXNzIHlvdSdyZSByZWFsbHkgY29uY2VybmVkIGFib3V0IHBlcmZvcm1h
-bmNlLCBJJ2QgcHV0IHRoZQo+IHRhYmxlLWJhc2VkIGRlY2lzaW9uIF9iZWZvcmVfIG90aGVyIHRl
-c3RzIGluIHRoaXMgZnVuY3Rpb24sIGFzIGl0IGlzCj4gbW9yZSByZWxpYWJsZSwgYW5kIHJldHVy
-biB0aGUgdmFsdWUgaW1tZWRpYXRlbHkgb24gbWF0Y2guCj4gCk1ha2VzIHNlbnNlOyBJJ2xsIGRv
-IHRoYXQuCgo+IEFuZCBpZiB5b3UncmUgY29uY2VybmVkIGFib3V0IHBlcmZvcm1hbmNlLCB0aGUg
-c2FtZSBzdGlsbCBob2xkcywgYnV0Cj4geW91J2QgYWRkaXRpb25hbGx5IGxpbWl0IHRoZSBzdHJp
-bmcgY29tcGFyaXNvbnMgb24gYSBwZXItbW9kZWwgYmFzaXMuCj4gCk5vLCBub3QgcmVhbGx5LiBU
-aGlzIGlzIGEgb25lLXRpbWUgdGhpbmcsIGFmdGVyIGFsbC4KClRoYW5rcywKR3VlbnRlcgoKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3Jz
-IG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1z
-ZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+Convert to use devm_ functions to reduce code size and simplify the code.
+
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/smsc47b397.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/hwmon/smsc47b397.c b/drivers/hwmon/smsc47b397.c
+index c5f6be4..65b07de 100644
+--- a/drivers/hwmon/smsc47b397.c
++++ b/drivers/hwmon/smsc47b397.c
+@@ -231,13 +231,9 @@ static const struct attribute_group smsc47b397_group = {
+ static int __devexit smsc47b397_remove(struct platform_device *pdev)
+ {
+ 	struct smsc47b397_data *data = platform_get_drvdata(pdev);
+-	struct resource *res;
+ 
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&pdev->dev.kobj, &smsc47b397_group);
+-	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	release_region(res->start, SMSC_EXTENT);
+-	kfree(data);
+ 
+ 	return 0;
+ }
+@@ -261,19 +257,17 @@ static int __devinit smsc47b397_probe(struct platform_device *pdev)
+ 	int err = 0;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, SMSC_EXTENT,
+-			    smsc47b397_driver.driver.name)) {
++	if (!devm_request_region(dev, res->start, SMSC_EXTENT,
++				 smsc47b397_driver.driver.name)) {
+ 		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
+ 			(unsigned long)res->start,
+ 			(unsigned long)res->start + SMSC_EXTENT - 1);
+ 		return -EBUSY;
+ 	}
+ 
+-	data = kzalloc(sizeof(struct smsc47b397_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto error_release;
+-	}
++	data = devm_kzalloc(dev, sizeof(struct smsc47b397_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	data->addr = res->start;
+ 	data->name = "smsc47b397";
+@@ -283,7 +277,7 @@ static int __devinit smsc47b397_probe(struct platform_device *pdev)
+ 
+ 	err = sysfs_create_group(&dev->kobj, &smsc47b397_group);
+ 	if (err)
+-		goto error_free;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -295,10 +289,6 @@ static int __devinit smsc47b397_probe(struct platform_device *pdev)
+ 
+ error_remove:
+ 	sysfs_remove_group(&dev->kobj, &smsc47b397_group);
+-error_free:
+-	kfree(data);
+-error_release:
+-	release_region(res->start, SMSC_EXTENT);
+ 	return err;
+ }
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
