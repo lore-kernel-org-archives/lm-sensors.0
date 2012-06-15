@@ -1,71 +1,80 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 04 Jun 2012 23:32:28 +0000
-Subject: [lm-sensors] [RFC PATCH 1/2] hwmon: (coretemp) Add support for Atom D2000 and N2000 series CPU model
-Message-Id: <1338852749-5564-1-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:22:52 +0000
+Subject: [lm-sensors] [PATCH 11/95] hwmon: (adm1029) Convert to use devm_ functions
+Message-Id: <1339773856-3443-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Document the Atom series D2000 and N2000 (Cedar Trail) as being supported,
-and list TjMax for those series.
+Convert to use devm_ functions to reduce code size and simplify the code.
 
-Also enable the Atom tjmax heuristic for these Atom CPU models.
-
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: "R, Durgadoss" <durgadoss.r@intel.com>
+Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-This patch applies on top of Jean's patch to add Tunnel Creek and Medfield
-support.
+ drivers/hwmon/adm1029.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-Found references to Cedar Trail while verifying the Atom detection patch.
-No idea if the detection code is really needed, or if those CPUs support
-the TjMax register. Does anyone know ?
-
- Documentation/hwmon/coretemp |    5 ++++-
- drivers/hwmon/coretemp.c     |    2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
-index 3d7f2d7..015dfd4 100644
---- a/Documentation/hwmon/coretemp
-+++ b/Documentation/hwmon/coretemp
-@@ -7,7 +7,8 @@ Supported chips:
-     CPUID: family 0x6, models 0xe (Pentium M DC), 0xf (Core 2 DC 65nm),
-                               0x16 (Core 2 SC 65nm), 0x17 (Penryn 45nm),
-                               0x1a (Nehalem), 0x1c (Atom), 0x1e (Lynnfield),
--                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom)
-+                              0x26 (Tunnel Creek Atom), 0x27 (Medfield Atom),
-+			      0x36 (Cedar Trail)
-     Datasheet: Intel 64 and IA-32 Architectures Software Developer's Manual
-                Volume 3A: System Programming Guide
-                http://softwarecommunity.intel.com/Wiki/Mobility/720.htm
-@@ -88,6 +89,8 @@ Process		Processor					TjMax(C)
- 		330/230						125
- 		E680/660/640/620				90
- 		E680T/660T/640T/620T				110
-+		D2500/2550/2700					100
-+		N2600/2650/2800/2850				100
+diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
+index 80cc465..97f4718 100644
+--- a/drivers/hwmon/adm1029.c
++++ b/drivers/hwmon/adm1029.c
+@@ -342,11 +342,10 @@ static int adm1029_probe(struct i2c_client *client,
+ 	struct adm1029_data *data;
+ 	int err;
  
- 45nm		Core2 Processors
- 		Solo ULV SU3500/3300				100
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 495add5..07160126 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -211,7 +211,7 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
- 	/* Atom CPUs */
+-	data = kzalloc(sizeof(struct adm1029_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct adm1029_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
  
- 	if (c->x86_model = 0x1c || c->x86_model = 0x26
--	    || c->x86_model = 0x27) {
-+	    || c->x86_model = 0x27 || c->x86_model = 0x36) {
- 		usemsr_ee = 0;
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+@@ -355,15 +354,13 @@ static int adm1029_probe(struct i2c_client *client,
+ 	 * Initialize the ADM1029 chip
+ 	 * Check config register
+ 	 */
+-	if (adm1029_init_client(client) = 0) {
+-		err = -ENODEV;
+-		goto exit_free;
+-	}
++	if (adm1029_init_client(client) = 0)
++		return -ENODEV;
  
- 		host_bridge = pci_get_bus_and_slot(0, PCI_DEVFN(0, 0));
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &adm1029_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -375,9 +372,6 @@ static int adm1029_probe(struct i2c_client *client,
+ 
+  exit_remove_files:
+ 	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
+- exit_free:
+-	kfree(data);
+- exit:
+ 	return err;
+ }
+ 
+@@ -405,7 +399,6 @@ static int adm1029_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
+ 
+-	kfree(data);
+ 	return 0;
+ }
+ 
 -- 
-1.7.5.4
+1.7.9.7
 
 
 _______________________________________________
