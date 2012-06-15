@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:23:14 +0000
-Subject: [lm-sensors] [PATCH 33/95] hwmon: (f71882fg) Convert to use devm_ functions
-Message-Id: <1339773856-3443-34-git-send-email-linux@roeck-us.net>
+Date: Fri, 15 Jun 2012 15:23:35 +0000
+Subject: [lm-sensors] [PATCH 54/95] hwmon: (lm95241) Convert to use devm_ functions
+Message-Id: <1339773856-3443-55-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,56 +12,56 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/f71882fg.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ drivers/hwmon/lm95241.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index 6d12263..4c84554 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -2274,7 +2274,8 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
- 	int err, i;
- 	u8 start_reg, reg;
+diff --git a/drivers/hwmon/lm95241.c b/drivers/hwmon/lm95241.c
+index bd8cdb7..4b68fb2 100644
+--- a/drivers/hwmon/lm95241.c
++++ b/drivers/hwmon/lm95241.c
+@@ -391,11 +391,10 @@ static int lm95241_probe(struct i2c_client *new_client,
+ 	struct lm95241_data *data;
+ 	int err;
  
--	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(struct f71882fg_data),
+-	data = kzalloc(sizeof(struct lm95241_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&new_client->dev, sizeof(struct lm95241_data),
 +			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
++	if (!data)
++		return -ENOMEM;
  
-@@ -2288,13 +2289,11 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
- 	start_reg = f71882fg_read8(data, F71882FG_REG_START);
- 	if (start_reg & 0x04) {
- 		dev_warn(&pdev->dev, "Hardware monitor is powered down\n");
--		err = -ENODEV;
+ 	i2c_set_clientdata(new_client, data);
+ 	mutex_init(&data->update_lock);
+@@ -406,7 +405,7 @@ static int lm95241_probe(struct i2c_client *new_client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&new_client->dev.kobj, &lm95241_group);
+ 	if (err)
 -		goto exit_free;
-+		return -ENODEV;
- 	}
- 	if (!(start_reg & 0x03)) {
- 		dev_warn(&pdev->dev, "Hardware monitoring not activated\n");
--		err = -ENODEV;
--		goto exit_free;
-+		return -ENODEV;
- 	}
++		return err;
  
- 	/* Register sysfs interface files */
-@@ -2422,8 +2421,6 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
- exit_unregister_sysfs:
- 	f71882fg_remove(pdev); /* Will unregister the sysfs files for us */
- 	return err; /* f71882fg_remove() also frees our data */
+ 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -418,9 +417,6 @@ static int lm95241_probe(struct i2c_client *new_client,
+ 
+ exit_remove_files:
+ 	sysfs_remove_group(&new_client->dev.kobj, &lm95241_group);
 -exit_free:
 -	kfree(data);
+-exit:
  	return err;
  }
  
-@@ -2527,7 +2524,6 @@ static int f71882fg_remove(struct platform_device *pdev)
- 	}
+@@ -431,7 +427,6 @@ static int lm95241_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &lm95241_group);
  
- 	platform_set_drvdata(pdev, NULL);
 -	kfree(data);
- 
  	return 0;
  }
+ 
 -- 
 1.7.9.7
 
