@@ -1,70 +1,27 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:22:53 +0000
-Subject: [lm-sensors] [PATCH 12/95] hwmon: (adm1031) Convert to use devm_ functions
-Message-Id: <1339773856-3443-13-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 16 Jun 2012 16:46:45 +0000
+Subject: Re: [lm-sensors] [PATCH 12/95] hwmon: (adm1031) Convert to use devm_ functions
+Message-Id: <20120616184645.23761253@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1339773856-3443-13-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1339773856-3443-13-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+On Fri, 15 Jun 2012 08:22:53 -0700, Guenter Roeck wrote:
+> Convert to use devm_ functions to reduce code size and simplify the code.
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/adm1031.c |   15 +++++----------
+>  1 file changed, 5 insertions(+), 10 deletions(-)
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/adm1031.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-diff --git a/drivers/hwmon/adm1031.c b/drivers/hwmon/adm1031.c
-index 44e1fd7..c6a4631 100644
---- a/drivers/hwmon/adm1031.c
-+++ b/drivers/hwmon/adm1031.c
-@@ -954,11 +954,10 @@ static int adm1031_probe(struct i2c_client *client,
- 	struct adm1031_data *data;
- 	int err;
- 
--	data = kzalloc(sizeof(struct adm1031_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct adm1031_data),
-+			    GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
- 
- 	i2c_set_clientdata(client, data);
- 	data->chip_type = id->driver_data;
-@@ -975,7 +974,7 @@ static int adm1031_probe(struct i2c_client *client,
- 	/* Register sysfs hooks */
- 	err = sysfs_create_group(&client->dev.kobj, &adm1031_group);
- 	if (err)
--		goto exit_free;
-+		return err;
- 
- 	if (data->chip_type = adm1031) {
- 		err = sysfs_create_group(&client->dev.kobj, &adm1031_group_opt);
-@@ -994,9 +993,6 @@ static int adm1031_probe(struct i2c_client *client,
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &adm1031_group);
- 	sysfs_remove_group(&client->dev.kobj, &adm1031_group_opt);
--exit_free:
--	kfree(data);
--exit:
- 	return err;
- }
- 
-@@ -1007,7 +1003,6 @@ static int adm1031_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &adm1031_group);
- 	sysfs_remove_group(&client->dev.kobj, &adm1031_group_opt);
--	kfree(data);
- 	return 0;
- }
- 
 -- 
-1.7.9.7
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
