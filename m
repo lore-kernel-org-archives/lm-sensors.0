@@ -1,77 +1,37 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 15 Jun 2012 15:22:47 +0000
-Subject: [lm-sensors] [PATCH 06/95] hwmon: (ad7418) Convert to use devm_ functions
-Message-Id: <1339773856-3443-7-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 17 Jun 2012 17:01:22 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for Linux 3.5
+Message-Id: <20120617190122.48e05149@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+Hi Linus,
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/ad7418.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+Please pull hwmon subsystem fixes for Linux 3.5 from:
 
-diff --git a/drivers/hwmon/ad7418.c b/drivers/hwmon/ad7418.c
-index a50a6be..57d4a62 100644
---- a/drivers/hwmon/ad7418.c
-+++ b/drivers/hwmon/ad7418.c
-@@ -227,16 +227,13 @@ static int ad7418_probe(struct i2c_client *client,
- 	int err;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
--					I2C_FUNC_SMBUS_WORD_DATA)) {
--		err = -EOPNOTSUPP;
--		goto exit;
--	}
-+					I2C_FUNC_SMBUS_WORD_DATA))
-+		return -EOPNOTSUPP;
- 
--	data = kzalloc(sizeof(struct ad7418_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct ad7418_data),
-+			    GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
- 
- 	i2c_set_clientdata(client, data);
- 
-@@ -268,7 +265,7 @@ static int ad7418_probe(struct i2c_client *client,
- 	/* Register sysfs hooks */
- 	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
- 	if (err)
--		goto exit_free;
-+		return err;
- 
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -280,9 +277,6 @@ static int ad7418_probe(struct i2c_client *client,
- 
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
--exit_free:
--	kfree(data);
--exit:
- 	return err;
- }
- 
-@@ -291,7 +285,6 @@ static int ad7418_remove(struct i2c_client *client)
- 	struct ad7418_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
--	kfree(data);
- 	return 0;
- }
- 
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
+
+ Documentation/hwmon/coretemp |   22 +++++++++++++++++++++-
+ drivers/hwmon/coretemp.c     |   33 +++++++++++++++++++++++++++++++--
+ 2 files changed, 52 insertions(+), 3 deletions(-)
+
+---------------
+
+Guenter Roeck (3):
+      hwmon: (coretemp) Add support for Atom D2000 and N2000 series CPU models
+      hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
+      hwmon: (coretemp) Document TjMax for 3rd generation i5/i7 processors
+
+Jean Delvare (2):
+      hwmon: (coretemp) Improve support of recent Atom CPU models
+      hwmon: (coretemp) Drop needless initialization
+
+Thanks,
 -- 
-1.7.9.7
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
