@@ -1,28 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 17 Jun 2012 19:48:17 +0000
-Subject: Re: [lm-sensors] [PATCH 91/95] hwmon: (smsc47b397) Convert to use devm_ functions
-Message-Id: <20120617214817.2522f41c@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 19 Jun 2012 15:46:40 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (ntc_thermistor) Ensure that data->name string is terminated
+Message-Id: <1340120803-23543-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1339773856-3443-92-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1339773856-3443-92-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, 15 Jun 2012 08:24:12 -0700, Guenter Roeck wrote:
-> Convert to use devm_ functions to reduce code size and simplify the code.
-> 
-> Cc: Mark M. Hoffman <mhoffman@lightlink.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/smsc47b397.c |   22 ++++++----------------
->  1 file changed, 6 insertions(+), 16 deletions(-)
+Fix Coverity warning: Calling strncpy with a maximum size argument of 20 bytes
+on destination array "data->name" of size 20 bytes might leave the destination
+string unterminated.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ntc_thermistor.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index 6da9696..e46a5b2 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -351,7 +351,7 @@ static int __devinit ntc_thermistor_probe(struct platform_device *pdev)
+ 
+ 	data->dev = &pdev->dev;
+ 	data->pdata = pdata;
+-	strncpy(data->name, pdev->id_entry->name, PLATFORM_NAME_SIZE);
++	strncpy(data->name, pdev->id_entry->name, sizeof(data->name) - 1);
+ 
+ 	switch (pdev->id_entry->driver_data) {
+ 	case TYPE_NCPXXWB473:
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
