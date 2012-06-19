@@ -1,25 +1,39 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 03 Jun 2012 08:50:09 +0000
-Subject: Re: [lm-sensors] [PATCH] MAINTAINERS: Update my e-mail address
-Message-Id: <20120603105009.5a7271b4@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 19 Jun 2012 15:46:41 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon: (applesmc) Do not return random value in error case
+Message-Id: <1340120803-23543-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1338701579-13496-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1338701579-13496-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat,  2 Jun 2012 22:32:59 -0700, Guenter Roeck wrote:
-> Maintainer activities moved to home server. Update e-mail address to reflect
-> reality.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+If a bad parameter is passed to applesmc_read_motion_sensor(), an uninitialized
+and thus arbitrary value is returned. Fix by returning immediately if a bad
+parameter is detected.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/applesmc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index f082e48..cc8dd57 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -450,7 +450,7 @@ static int applesmc_read_motion_sensor(int index, s16 *value)
+ 		ret = applesmc_read_key(MOTION_SENSOR_Z_KEY, buffer, 2);
+ 		break;
+ 	default:
+-		ret = -EINVAL;
++		return -EINVAL;
+ 	}
+ 
+ 	*value = ((s16)buffer[0] << 8) | buffer[1];
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
