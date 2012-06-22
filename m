@@ -1,150 +1,401 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Date: Sat, 12 May 2012 09:52:40 +0000
-Subject: [lm-sensors] [PATCH v4 0/5] thermal: exynos: Add kernel thermal support for exynos platform
-Message-Id: <1336815645-29625-1-git-send-email-amit.kachhap@linaro.org>
+From: Iain Paton <ipaton0@gmail.com>
+Date: Fri, 22 Jun 2012 12:42:10 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: Honeywell Humidicon HIH-6130/HIH-6131 humidity and temperature sensor
+Message-Id: <4FE46822.9040304@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@lists.linux-foundation.org, akpm@linux-foundation.org
-Cc: linux-samsung-soc@vger.kernel.org, patches@linaro.org, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, khali@linux-fr.org, linaro-dev@lists.linaro.org, guenter.roeck@ericsson.com
+To: lm-sensors@vger.kernel.org
 
-Hi Andrew/Rui,
+Hi,
 
-As discussed with Rui Zhang, I dropped the patch for new trip type 
-THERMAL_TRIP_STATE_INSTANCE and made the necessary state magnagement changes
-in cpufreq cooling functions. Also I fixed all the review comments suggested
-by Andrew. If any other changes please let me know.
+This is a new driver for the Honeywell Humidicon HIH-6130/HIH-6131 humidity sensor.
+
+The driver is based on the existing Sensiron sht21 driver with the necessary changes 
+to the probe, update_measurements and conversion functions necessary to use the 
+Honeywell sensors.
+
+There's no difference between the 6130 & 6131 other than the 6131 having an external 
+condensation filter attached.
+
+
+Changed for v2:
+renamed driver to hih6130
+added Documentation/hwmon/hih6130
+calcuations now use DIV_ROUND_CLOSEST and shouldn't cause 32bit int overflow
+addressed other minor review comments
+
+addressing the alignment concern for the hih6130_show_temperature function gives 
+me an 82 char line and a checkpatch fail, I've left it that way for now as there's a
+couple of other things I'm not sure about, so I think there'll be at least another 
+version of this anyway.
+
+Signed-off-by: Iain Paton <ipaton0@gmail.com>
+
+diff --git a/Documentation/hwmon/hih6130 b/Documentation/hwmon/hih6130
+new file mode 100644
+index 0000000..2958648
+--- /dev/null
++++ b/Documentation/hwmon/hih6130
+@@ -0,0 +1,34 @@
++Kernel driver hih6130
++==========+
++Supported chips:
++  * Honeywell HIH-6130 / HIH-6131
++    Prefix: 'hih6130'
++    Addresses scanned: none
++    Datasheet: Publicly available at the Honeywell website
++    http://sensing.honeywell.com/index.php?ci_id106&la_id=1&defIdD872
++
++Author:
++  Iain Paton <ipaton0@gmail.com>
++
++Description
++-----------
++
++The HIH-6130 & HIH-6131 are humidity and temperature sensors in a SO8 package.
++The difference between the two devices is the HIH-6131 has a condensation
++filter
++
++The devices communicate with the I2C protocol. All sensors are set to the same
++I2C address 0x27 by default, so an entry with I2C_BOARD_INFO("hih6130", 0x27)
++can be used in the board setup code.
++
++sysfs-Interface
++---------------
++
++temp1_input - temperature input
++humidity1_input - humidity input
++
++Notes
++-----
++
++Command mode and alarms are not currently supported.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 6f1d167..033c8c6 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -433,6 +433,16 @@ config SENSORS_GPIO_FAN
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called gpio-fan.
  
-This patchset introduces a new generic cooling device based on cpufreq that
-can be used on non-ACPI platforms. As a proof of concept, we have drivers for
-the following platforms using this mechanism now:
-
- * Samsung Exynos (Exynos4 and Exynos5) in the current patchset.
- * TI OMAP (git://git.linaro.org/people/amitdanielk/linux.git omap4460_thermal)
- * Freescale i.MX (git://git.linaro.org/people/amitdanielk/linux.git imx6q_thermal)
-
-The is a small change in cpufreq cooling registration APIs, so a minor change is
-needed for OMAP and Freescale platforms.
-
-Thanks,
-Amit Daniel
-
-Changes since V3:
-* Dropped the concept of using new trip type THERMAL_TRIP_STATE_INSTANCE as
- discussed with Rui Zhang. This requires adding some state management logic
- in cpufreq cooling implementation.
-* Many review comments suggested by Andrew Morton
-* More documentation added in cpufreq cooling codes.
-
-Changes since V2:
-*Added Exynos5 TMU sensor support by enhancing the exynos4 tmu driver. Exynos5 TMU
- driver was internally developed by SangWook Ju <sw.ju@samsung.com>.
-*Removed cpuhotplug cooling code in this patchset.
-*Rebased the patches against 3.4-rc6 kernel.
-
-Changes since V1:
-*Moved the sensor driver to driver/thermal folder from driver/hwmon folder
- as suggested by Mark Brown and Guenter Roeck 
-*Added notifier support to notify the registered drivers of any cpu cooling
- action. The driver can modify the default cooling behaviour(eg set different
- max clip frequency).
-*The percentage based frequency replaced with absolute clipped frequency.
-*Some more conditional checks when setting max frequency.
-*Renamed the new trip type THERMAL_TRIP_STATE_ACTIVE to
- THERMAL_TRIP_STATE_INSTANCE
-*Many review comments from R, Durgadoss <durgadoss.r@intel.com> and 
- eduardo.valentin@ti.com implemented.
-*Removed cooling stats through debugfs patch
-*The V1 based can be found here,
- https://lkml.org/lkml/2012/2/22/123
- http://lkml.org/lkml/2012/3/3/32
-
-Changes since RFC:
-*Changed the cpu cooling registration/unregistration API's to instance based
-*Changed the STATE_ACTIVE trip type to pass correct instance id
-*Adding support to restore back the policy->max_freq after doing frequency 
-  clipping.
-*Moved the trip cooling stats from sysfs node to debugfs node as suggested
-  by Greg KH greg@kroah.com 
-*Incorporated several review comments from eduardo.valentin@ti.com
-*Moved the Temperature sensor driver from driver/hwmon/ to driver/mfd
- as discussed with Guenter Roeck <guenter.roeck@ericsson.com> and 
- Donggeun Kim <dg77.kim@samsung.com> (https://lkml.org/lkml/2012/1/5/7)
-*Some changes according to the changes in common cpu cooling APIs
-*The RFC based patches can be found here,
- https://lkml.org/lkml/2011/12/13/186
- https://lkml.org/lkml/2011/12/21/169
-
-
-Brief Description:
-
-1) The generic cooling devices code is placed inside driver/thermal/* as 
-placing inside acpi folder will need un-necessary enabling of acpi code. This
-codes is architecture independent.
-
-2) This patchset adds generic cpu cooling low level implementation through
-frequency clipping. In future, other cpu related cooling devices may be added
-here. An ACPI version of this already exists (drivers/acpi/processor_thermal.c)
-. But this will be useful for platforms like ARM using the generic
-thermal interface along with the generic cpu cooling devices. The cooling
-device registration API's return cooling device pointers which can be easily
-binded with the thermal zone trip points. The important APIs exposed are,
-   a)struct thermal_cooling_device *cpufreq_cooling_register(
-	struct freq_clip_table *tab_ptr, unsigned int tab_size)
-   b)void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
-
-3) Samsung exynos platform thermal implementation is done using the generic
-cpu cooling APIs and the new trip type. The temperature sensor driver present
-in the hwmon folder(registered as hwmon driver) is moved to thermal folder
-and registered as a thermal driver.
-
-All this patchset is based on Kernel version 3.4-rc6 
-
-A simple data/control flow diagrams is shown below,
-
-Core Linux thermal <----->  Exynos thermal interface <----- Temperature Sensor
-	  |                             |
-	 \|/                            |
-  Cpufreq cooling device <---------------
-
-TODO:
-*Will send the DT enablement patches later after the driver is merged.
-
-
-Amit Daniel Kachhap (5):
-  thermal: Add generic cpufreq cooling implementation
-  hwmon: exynos4: Move thermal sensor driver to driver/thermal
-    directory
-  thermal: exynos5: Add exynos5 thermal sensor driver support
-  thermal: exynos: Register the tmu sensor with the kernel thermal
-    layer
-  ARM: exynos: Add thermal sensor driver platform data support
-
- Documentation/hwmon/exynos4_tmu              |   81 ---
- Documentation/thermal/cpu-cooling-api.txt    |   60 ++
- Documentation/thermal/exynos_thermal         |   52 ++
- drivers/hwmon/Kconfig                        |   10 -
- drivers/hwmon/Makefile                       |    1 -
- drivers/hwmon/exynos4_tmu.c                  |  514 --------------
- drivers/thermal/Kconfig                      |   20 +
- drivers/thermal/Makefile                     |    4 +-
- drivers/thermal/cpu_cooling.c                |  483 +++++++++++++
- drivers/thermal/exynos_thermal.c             |  956 ++++++++++++++++++++++++++
- include/linux/cpu_cooling.h                  |   99 +++
- include/linux/platform_data/exynos4_tmu.h    |   83 ---
- include/linux/platform_data/exynos_thermal.h |  100 +++
- 13 files changed, 1773 insertions(+), 690 deletions(-)
- delete mode 100644 Documentation/hwmon/exynos4_tmu
- create mode 100644 Documentation/thermal/cpu-cooling-api.txt
- create mode 100644 Documentation/thermal/exynos_thermal
- delete mode 100644 drivers/hwmon/exynos4_tmu.c
- create mode 100644 drivers/thermal/cpu_cooling.c
- create mode 100644 drivers/thermal/exynos_thermal.c
- create mode 100644 include/linux/cpu_cooling.h
- delete mode 100644 include/linux/platform_data/exynos4_tmu.h
- create mode 100644 include/linux/platform_data/exynos_thermal.h
-
++config SENSORS_HIH6130
++	tristate "Honeywell Humidicon HIH-6130 humidity/temperature sensor"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for Honeywell Humidicon
++	  HIH-6130 or HIH-6131 Humidicon humidity sensors.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called hih6130.
++
+ config SENSORS_CORETEMP
+ 	tristate "Intel Core/Core2/Atom temperature sensor"
+ 	depends on X86 && PCI && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index e1eeac1..5c4e2e9 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -58,6 +58,7 @@ obj-$(CONFIG_SENSORS_G760A)	+= g760a.o
+ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm.o
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_GPIO_FAN)	+= gpio-fan.o
++obj-$(CONFIG_SENSORS_HIH6130)	+= hih6130.o
+ obj-$(CONFIG_SENSORS_ULTRA45)	+= ultra45_env.o
+ obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
+ obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
+diff --git a/drivers/hwmon/hih6130.c b/drivers/hwmon/hih6130.c
+new file mode 100644
+index 0000000..d238868
+--- /dev/null
++++ b/drivers/hwmon/hih6130.c
+@@ -0,0 +1,285 @@
++/* Honeywell HIH-6130/HIH-6131 humidity and temperature sensor driver
++ *
++ * Copyright (C) 2012 Iain Paton <ipaton0@gmail.com>
++ *
++ * heavily based on the sht21 driver
++ * Copyright (C) 2010 Urs Fleisch <urs.fleisch@sensirion.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA
++ *
++ * Data sheets available (2012-06-22) at
++ * http://sensing.honeywell.com/index.php?ci_id106&la_id=1&defIdD872
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/device.h>
++#include <linux/delay.h>
++
++/**
++ * struct hih6130 - HIH-6136 device specific data
++ * @hwmon_dev: device registered with hwmon
++ * @lock: mutex to protect measurement values
++ * @valid: only 0 before first measurement is taken
++ * @last_update: time of last update (jiffies)
++ * @temperature: cached temperature measurement value
++ * @humidity: cached humidity measurement value
++ */
++struct hih6130 {
++	struct device *hwmon_dev;
++	struct mutex lock;
++	bool valid;
++	unsigned long last_update;
++	int temperature;
++	int humidity;
++};
++
++/**
++ * hih6130_temp_ticks_to_millicelsius() - convert raw temperature ticks to
++ * milli celsius
++ * @ticks: temperature ticks value received from sensor
++ */
++static inline int hih6130_temp_ticks_to_millicelsius(int ticks)
++{
++
++	ticks = ticks >> 2;
++	/*
++	 * from data sheet section 5.0
++	 * Formula T = ( ticks / ( 2^14 - 2 ) ) * 165 -40
++	 */
++	return (DIV_ROUND_CLOSEST((ticks * 1650), 16382) - 400) * 100;
++}
++
++/**
++ * hih6130_rh_ticks_to_per_cent_mille() - convert raw humidity ticks to
++ * one-thousandths of a percent relative humidity
++ * @ticks: humidity ticks value received from sensor
++ */
++static inline int hih6130_rh_ticks_to_per_cent_mille(int ticks)
++{
++
++	ticks &= ~0xC000; /* clear status bits */
++	/*
++	 * from data sheet section 4.0
++	 * Formula RH = ( ticks / ( 2^14 -2 ) ) * 100
++	 */
++	return DIV_ROUND_CLOSEST((ticks * 1000), 16382) * 100;
++}
++
++/**
++ * hih6130_update_measurements() - get updated measurements from device
++ * @client: I2C client device
++ *
++ * Returns 0 on success, else negative errno.
++ */
++static int hih6130_update_measurements(struct i2c_client *client)
++{
++	int ret = 0;
++	int t;
++	struct hih6130 *hih6130 = i2c_get_clientdata(client);
++	unsigned char tmp[4];
++	struct i2c_msg msgs[1] = {
++		{
++			.addr = client->addr,
++			.flags = I2C_M_RD,
++			.len = 4,
++			.buf = tmp,
++		}
++	};
++
++	mutex_lock(&hih6130->lock);
++
++	/*
++	 * Response time for the sensor is measured in seconds, so we have
++	 * nothing to gain from reading any faster
++	 */
++	if (time_after(jiffies, hih6130->last_update + HZ) || !hih6130->valid) {
++
++		/* write to slave address, no data, to request a measurement */
++		ret = i2c_master_send(client, tmp, 0);
++		if (ret < 0)
++			goto out;
++
++		/* measurement cycle time is ~36.65msec */
++		msleep(40);
++
++		ret = i2c_transfer(client->adapter, msgs, 1);
++		if (ret < 0)
++			goto out;
++
++		if ((tmp[0] & 0xC0) != 0) {
++			dev_err(&client->dev, "Error while reading measurement result\n");
++			ret = -EIO;
++			goto out;
++		}
++
++		t = (tmp[0] << 8) + tmp[1];
++		hih6130->humidity = hih6130_rh_ticks_to_per_cent_mille(t);
++
++		t = (tmp[2] << 8) + tmp[3];
++		hih6130->temperature = hih6130_temp_ticks_to_millicelsius(t);
++
++		hih6130->last_update = jiffies;
++		hih6130->valid = 1;
++	}
++out:
++	mutex_unlock(&hih6130->lock);
++
++	return ret >= 0 ? 0 : ret;
++}
++
++/**
++ * hih6130_show_temperature() - show temperature measurement value in sysfs
++ * @dev: device
++ * @attr: device attribute
++ * @buf: sysfs buffer (PAGE_SIZE) where measurement values are written to
++ *
++ * Will be called on read access to temp1_input sysfs attribute.
++ * Returns number of bytes written into buffer, negative errno on error.
++ */
++static ssize_t hih6130_show_temperature(struct device *dev,
++					struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct hih6130 *hih6130 = i2c_get_clientdata(client);
++	int ret = hih6130_update_measurements(client);
++	if (ret < 0)
++		return ret;
++	return sprintf(buf, "%d\n", hih6130->temperature);
++}
++
++/**
++ * hih6130_show_humidity() - show humidity measurement value in sysfs
++ * @dev: device
++ * @attr: device attribute
++ * @buf: sysfs buffer (PAGE_SIZE) where measurement values are written to
++ *
++ * Will be called on read access to humidity1_input sysfs attribute.
++ * Returns number of bytes written into buffer, negative errno on error.
++ */
++static ssize_t hih6130_show_humidity(struct device *dev,
++				     struct device_attribute *attr, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct hih6130 *hih6130 = i2c_get_clientdata(client);
++	int ret = hih6130_update_measurements(client);
++	if (ret < 0)
++		return ret;
++	return sprintf(buf, "%d\n", hih6130->humidity);
++}
++
++/* sysfs attributes */
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, hih6130_show_temperature,
++	NULL, 0);
++static SENSOR_DEVICE_ATTR(humidity1_input, S_IRUGO, hih6130_show_humidity,
++	NULL, 0);
++
++static struct attribute *hih6130_attributes[] = {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_humidity1_input.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group hih6130_attr_group = {
++	.attrs = hih6130_attributes,
++};
++
++/**
++ * hih6130_probe() - probe device
++ * @client: I2C client device
++ * @id: device ID
++ *
++ * Called by the I2C core when an entry in the ID table matches a
++ * device's name.
++ * Returns 0 on success.
++ */
++static int __devinit hih6130_probe(struct i2c_client *client,
++	const struct i2c_device_id *id)
++{
++	struct hih6130 *hih6130;
++	int err;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
++		dev_err(&client->dev, "adapter does not support true I2C\n");
++		return -ENODEV;
++	}
++
++	hih6130 = devm_kzalloc(&client->dev, sizeof(*hih6130), GFP_KERNEL);
++	if (!hih6130)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, hih6130);
++
++	mutex_init(&hih6130->lock);
++
++	err = sysfs_create_group(&client->dev.kobj, &hih6130_attr_group);
++	if (err) {
++		dev_dbg(&client->dev, "could not create sysfs files\n");
++		return err;
++	}
++
++	hih6130->hwmon_dev = hwmon_device_register(&client->dev);
++	if (IS_ERR(hih6130->hwmon_dev)) {
++		dev_dbg(&client->dev, "unable to register hwmon device\n");
++		err = PTR_ERR(hih6130->hwmon_dev);
++		goto fail_remove_sysfs;
++	}
++
++	return 0;
++
++fail_remove_sysfs:
++	sysfs_remove_group(&client->dev.kobj, &hih6130_attr_group);
++	return err;
++}
++
++/**
++ * hih6130_remove() - remove device
++ * @client: I2C client device
++ */
++static int __devexit hih6130_remove(struct i2c_client *client)
++{
++	struct hih6130 *hih6130 = i2c_get_clientdata(client);
++
++	hwmon_device_unregister(hih6130->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &hih6130_attr_group);
++
++	return 0;
++}
++
++/* Device ID table */
++static const struct i2c_device_id hih6130_id[] = {
++	{ "hih6130", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, hih6130_id);
++
++static struct i2c_driver hih6130_driver = {
++	.driver.name = "hih6130",
++	.probe       = hih6130_probe,
++	.remove      = __devexit_p(hih6130_remove),
++	.id_table    = hih6130_id,
++};
++
++module_i2c_driver(hih6130_driver);
++
++MODULE_AUTHOR("Iain Paton <ipaton0@gmail.com>");
++MODULE_DESCRIPTION("Honeywell HIH-6130 humidity and temperature sensor driver");
++MODULE_LICENSE("GPL");
 
 _______________________________________________
 lm-sensors mailing list
