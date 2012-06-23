@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 18 Jun 2012 11:03:19 +0000
+Date: Sat, 23 Jun 2012 16:02:36 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (w83781d) Fix compile warning
-Message-Id: <20120618110319.GA28693@roeck-us.net>
+Message-Id: <20120623160236.GA22891@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1339620986-14314-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1339620986-14314-1-git-send-email-linux@roeck-us.net>
@@ -35,17 +35,13 @@ On Mon, Jun 18, 2012 at 12:07:25PM +0200, Jean Delvare wrote:
 > the compiler equally happy, I think it would be a better way to solve
 > this warning.
 > 
-
 Hi Jean,
 
-Try with http://roeck-us.net/linux/config.hwmon as config file.
-I tried with gcc versions 4.4.3 and 4.6.3.
+did you have time to look into this some more ? Statistically, I see the warning
+in about one out of ten randconfig builds.
 
-Unfortunately, const kind does not help.
-
-My guess is that the sequence is too complex for gcc to resolve, ie that it does
-not connect the reason for the break statement in the second loop with the fact
-that sc_addr[1] was never initialized.
+Thanks,
+Guenter
 
 > > Cc: Jean Delvare <khali@linux-fr.org>
 > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
@@ -66,8 +62,6 @@ that sc_addr[1] was never initialized.
 > This name is inadequate, you're not counting adapters but subclients.
 > num_sc maybe? Or num_subclients if you want to be verbose.
 > 
-Sure, no problem.
-
 > >  
 > >  	id = i2c_adapter_id(adapter);
 > >  
