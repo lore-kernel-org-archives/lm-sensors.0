@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Fri, 22 Jun 2012 13:12:36 +0000
+From: Paul Crawford <psc@sat.dundee.ac.uk>
+Date: Mon, 25 Jun 2012 10:54:28 +0000
 Subject: Re: [lm-sensors] Configuration for EL620-C motherboard
-Message-Id: <20120622151236.5ed48ade@endymion.delvare>
+Message-Id: <4FE84364.2030508@sat.dundee.ac.uk>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4FE232BE.7060409@sat.dundee.ac.uk>
 In-Reply-To: <4FE232BE.7060409@sat.dundee.ac.uk>
@@ -10,21 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gRnJpLCAyMiBKdW4gMjAxMiAxMzowMDozMyArMDEwMCwgUGF1bCBDcmF3Zm9yZCB3cm90ZToK
-PiBJIHN1c3BlY3Qgc28sIGJ1dCBhcyB0aGUgY3VycmVudCBQQyBpcyBpbiB1c2UgSSBjYW4ndCBj
-aGVjayB0aGlzIHVudGlsIAo+IHRoZSByZW1haW5kZXIgYXJlIHJlYWR5LiBXaGVuIEkgY2hlY2tl
-ZCBpdCBiZWZvcmUgY3JlYXRpbmcgdGhlIHNlbnNvcnMgCj4gY29uZmlnIGZpbGUgaXQgcmVhZDoK
-PiAKPiB0ZW1wMTogICAgICAgICsyOC4wwrBDICAoaGlnaCA9IC0yOS4wwrBDLCBoeXN0ID0gKzM4
-LjDCsEMpICBzZW5zb3IgPSB0aGVybWlzdG9yCj4gdGVtcDI6ICAgICAgICArMjMuMMKwQyAgKGhp
-Z2ggPSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rvcgo+IHRl
-bXAzOiAgICAgICAgKzM2LjXCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykg
-IHNlbnNvciA9IHRoZXJtaXN0b3IKPiAKPiBXaGlsZSB0ZW1wMSBjbGVhcmx5IGhhcyBpbmNvcnJl
-Y3QgbGltaXRzLCB0aGUgdmFsdWVzIG9mIDgwQyAmIDc1QyBmb3IgCj4gdGhlIHRlbXAyID0gQ1BV
-IGlzIG5vdCB1bnJlYXNvbmFibGUuCgpGV0lXIEkgdGhpbmsgZXZlcnkgV2luYm9uZC9OdXZvdG9u
-IFc4MyogU3VwZXItSS9PIGNoaXAgSSd2ZSBldmVyIHNlZW4KaGFkIHRlbXAxIGxpbWl0cyB1bmlu
-aXRpYWxpemVkIGFuZCB0ZW1wMiBhbmQgdGVtcDMgbGltaXRzIGluaXRpYWxpemVkCnRvIHNhbmUg
-dmFsdWVzIGFzIHlvdSBoYXZlIGFib3ZlLgoKSSBhZ3JlZSB3aXRoIGFsbCBwcm9wb3NlZCBjaGFu
-Z2VzIGFuZCBoYXZlIGFwcGxpZWQgdGhlbSB0byB0aGUgd2lraS4KClRoYW5rcywKLS0gCkplYW4g
-RGVsdmFyZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
-bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Dear Jean
+>> While temp1 clearly has incorrect limits, the values of 80C & 75C for
+>> the temp2 = CPU is not unreasonable.
+>
+> FWIW I think every Winbond/Nuvoton W83* Super-I/O chip I've ever seen
+> had temp1 limits uninitialized and temp2 and temp3 limits initialized
+> to sane values as you have above.
+
+That makes sense.
+
+> I agree with all proposed changes and have applied them to the wiki.
+
+Thanks.
+
+I also had a look around the motherboard and found that:
+
+Temperature sensor #1 (RT1) is located next to the w83627dhg chip, close 
+to the rear of the motherboard and between the PCI and ISA slots.
+
+Temperature sensor #2 (RT2) is located just under the Intel G41 "Express 
+Chipset" in the centre of the motherboard (probably the hottest device 
+aside from the CPU).
+
+Regards,
+Paul
+-- 
+Dr. Paul S. Crawford
+Satellite Station
+Dundee University
+Small's Wynd, Dundee,
+DD1 4HN, U.K.
+Tel: +44 (0)1382 38 4687
+Email: psc@sat.dundee.ac.uk
+The University of Dundee is a Scottish Registered Charity, No. SC015096
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
