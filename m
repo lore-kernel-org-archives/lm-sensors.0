@@ -1,76 +1,60 @@
-From: "Hans J. Koch" <hjk@hansjkoch.de>
-Date: Fri, 15 Jun 2012 16:22:12 +0000
-Subject: Re: [lm-sensors] [PATCH 61/95] hwmon: (max6650) Convert to use devm_ functions
-Message-Id: <20120615162212.GC13597@local>
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Date: Tue, 26 Jun 2012 23:56:00 +0000
+Subject: [lm-sensors] Fintek f71882fg ACPI conflict
+Message-Id: <4FEA4C10.2060904@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1339773856-3443-62-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1339773856-3443-62-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jun 15, 2012 at 08:23:42AM -0700, Guenter Roeck wrote:
-> Convert to use devm_ functions to reduce code size and simplify the code.
-> 
-> Cc: Hans J. Koch <hjk@hansjkoch.de>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Hello,
 
-Acked-by: "Hans J. Koch" <hjk@hansjkoch.de>
+I hope this is the right place to place my query!
 
-> ---
->  drivers/hwmon/max6650.c |   10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/hwmon/max6650.c b/drivers/hwmon/max6650.c
-> index 33a8a7f..f739f83 100644
-> --- a/drivers/hwmon/max6650.c
-> +++ b/drivers/hwmon/max6650.c
-> @@ -545,7 +545,8 @@ static int max6650_probe(struct i2c_client *client,
->  	struct max6650_data *data;
->  	int err;
->  
-> -	data = kzalloc(sizeof(struct max6650_data), GFP_KERNEL);
-> +	data = devm_kzalloc(&client->dev, sizeof(struct max6650_data),
-> +			    GFP_KERNEL);
->  	if (!data) {
->  		dev_err(&client->dev, "out of memory.\n");
->  		return -ENOMEM;
-> @@ -560,11 +561,11 @@ static int max6650_probe(struct i2c_client *client,
->  	 */
->  	err = max6650_init_client(client);
->  	if (err)
-> -		goto err_free;
-> +		return err;
->  
->  	err = sysfs_create_group(&client->dev.kobj, &max6650_attr_grp);
->  	if (err)
-> -		goto err_free;
-> +		return err;
->  	/* 3 additional fan inputs for the MAX6651 */
->  	if (data->nr_fans = 4) {
->  		err = sysfs_create_group(&client->dev.kobj, &max6651_attr_grp);
-> @@ -582,8 +583,6 @@ static int max6650_probe(struct i2c_client *client,
->  		sysfs_remove_group(&client->dev.kobj, &max6651_attr_grp);
->  err_remove:
->  	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
-> -err_free:
-> -	kfree(data);
->  	return err;
->  }
->  
-> @@ -595,7 +594,6 @@ static int max6650_remove(struct i2c_client *client)
->  	if (data->nr_fans = 4)
->  		sysfs_remove_group(&client->dev.kobj, &max6651_attr_grp);
->  	sysfs_remove_group(&client->dev.kobj, &max6650_attr_grp);
-> -	kfree(data);
->  	return 0;
->  }
->  
-> -- 
-> 1.7.9.7
-> 
-> 
+I am trying to take control and initialise my fan censors and=20
+"sensors-detect" is telling me that the chip on the board is "Fintek=20
+f71869a at 0x290, revision 32". However, when I run sensors (the=20
+service) this driver is not loaded (I can't see any of the fan sensors=20
+either) and dmesg is showing me the following:
+
+[ 2312.804747] f71882fg: Found f71869a chip at 0x290, revision 32
+[ 2312.804902] ACPI Warning: 0x00000290-0x00000297 SystemIO conflicts=20
+with Region \_TZ_.IP__ 1 (20120111/utaddress-251)
+[ 2312.804919] ACPI Warning: 0x00000290-0x00000297 SystemIO conflicts=20
+with Region \_SB_.PCI0.LPCB.SIO1.RNTR 2 (20120111/utaddress-251)
+[ 2312.804934] ACPI: If an ACPI driver is available for this device, you=20
+should use it instead of the native driver
+
+Could anybody tell me what the above means please? Is there a conflict=20
+between ACPI and the Fintek kernel module sensors (the service) is=20
+trying to load? Is there a separate "ACPI driver" I should be using=20
+instead? If so, how can I activate it so that I could get to read my fan=20
+sensors?
+
+When I run "sensors" (the program) I see very limited information, like=20
+this:
+
+acpitz-virtual-0
+Adapter: Virtual device
+temp1:        +48.0=B0C  (crit =3D +127.0=B0C)
+temp2:        +26.8=B0C  (crit =3D +127.0=B0C)
+temp3:        +26.8=B0C  (crit =3D +100.0=B0C)
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:       +51.0=B0C  (crit =3D +100.0=B0C)
+Core 1:       +51.0=B0C  (crit =3D +100.0=B0C)
+
+This is not OK because I don't have any RPMs of any of the fans (I have=20
+3 fans running) and various voltages I have on this board. I am using=20
+Fedora Core 17 with kernel version 3.3.4 with the latest version of=20
+lm_sensors (3.3.2, I think).
+
+Many thanks!
+
+
+MZ
 
 _______________________________________________
 lm-sensors mailing list
