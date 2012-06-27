@@ -1,83 +1,115 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 Jun 2012 17:15:05 +0000
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Date: Wed, 27 Jun 2012 23:00:56 +0000
 Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Message-Id: <20120627171505.GB12712@roeck-us.net>
+Message-Id: <4FEB90A8.8050901@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FEA4C10.2060904@googlemail.com>
-In-Reply-To: <4FEA4C10.2060904@googlemail.com>
+References: <4FEA4C10.2060904@googlemail.com> <20120627171505.GB12712@roeck-us.net>
+In-Reply-To: <20120627171505.GB12712@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Michael Zintakis <michael.zintakis@googlemail.com>
-Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Wed, Jun 27, 2012 at 12:56:00AM +0100, Michael Zintakis wrote:
-> Hello,
->=20
-> I hope this is the right place to place my query!
->=20
-> I am trying to take control and initialise my fan censors and
-> "sensors-detect" is telling me that the chip on the board is "Fintek
-> f71869a at 0x290, revision 32". However, when I run sensors (the
-> service) this driver is not loaded (I can't see any of the fan
-> sensors either) and dmesg is showing me the following:
->=20
-> [ 2312.804747] f71882fg: Found f71869a chip at 0x290, revision 32
-> [ 2312.804902] ACPI Warning: 0x00000290-0x00000297 SystemIO
-> conflicts with Region \_TZ_.IP__ 1 (20120111/utaddress-251)
-> [ 2312.804919] ACPI Warning: 0x00000290-0x00000297 SystemIO
-> conflicts with Region \_SB_.PCI0.LPCB.SIO1.RNTR 2
-> (20120111/utaddress-251)
-> [ 2312.804934] ACPI: If an ACPI driver is available for this device,
-> you should use it instead of the native driver
->=20
-> Could anybody tell me what the above means please? Is there a
-> conflict between ACPI and the Fintek kernel module sensors (the
-> service) is trying to load? Is there a separate "ACPI driver" I
-> should be using instead? If so, how can I activate it so that I
-> could get to read my fan sensors?
->=20
-> When I run "sensors" (the program) I see very limited information,
-> like this:
->=20
-> acpitz-virtual-0
-> Adapter: Virtual device
-> temp1:        +48.0=B0C  (crit =3D +127.0=B0C)
-> temp2:        +26.8=B0C  (crit =3D +127.0=B0C)
-> temp3:        +26.8=B0C  (crit =3D +100.0=B0C)
->=20
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> Core 0:       +51.0=B0C  (crit =3D +100.0=B0C)
-> Core 1:       +51.0=B0C  (crit =3D +100.0=B0C)
->=20
-> This is not OK because I don't have any RPMs of any of the fans (I
-> have 3 fans running) and various voltages I have on this board. I am
-> using Fedora Core 17 with kernel version 3.3.4 with the latest
-> version of lm_sensors (3.3.2, I think).
->=20
-> Many thanks!
->=20
-Hi Michael,
+Hello Guenter and All,
 
-Please see http://hansdegoede.livejournal.com/7932.html; it should explain =
-what
-is going on.
 
-Unfortunately, the generic ACPI driver does not permit much fan control.
-There are some board specific ACPI drivers, providing better support (eg AS=
-US
-and Thinkpad), but for the most part you either get no or very limited fan
-monitoring/control support.
+> Please see http://hansdegoede.livejournal.com/7932.html; it should explain what
+> is going on.
+>   
+This is precisely what I stumbled upon when reading the documentation 
+about the kernel acpi parameters today and tried it straight away 
+(though, in all honesty, I didn't have a clue that it is actually a bad 
+idea until I read the article above - thanks for posting!). Could any of 
+the more knowledgeable on here explain why is it such a bad idea please?
 
-I don't know if generic support for ACPI based hardware monitoring can be
-improved. Since it might be useful to know, I am copying the ACPI maintainer
-and the ACPI mailing list. Maybe they can provide some additional informati=
-on or
-pointers.
+I also tried another, much cleaner solution which was described in that 
+kernel documentation file, namely:
 
-Thanks,
-Guenter
+memmap=nn[KMG]$ss[KMG]
+            [KNL,ACPI] Mark specific memory as reserved.
+            Region of memory to be used, from ss to ss+nn.
+            Example: Exclude memory from 0x18690000-0x1869ffff
+                     memmapdK$0x18690000
+                     or
+                     memmap=0x10000$0x18690000
+
+So, I tried to use the following kernel command line parameter: 
+"memmap=0x08$0x00000290" in order to force ACPI to mark this memory 
+space as "reserved" and not use it, but that didn't work for some 
+reason. When I tried to load the f71882fg driver the same error 
+happened. :-(
+
+The only solution, it seems, is by using "acpi_enforce_resources=lax" - 
+that way it all works out.
+
+Relying on ACPI is not an option for me whatsoever - I am using this 
+board to run critical applications 24/7 and I *need* to have active fan, 
+voltage and temperature management at *all* times.
+
+ACPI cannot provide that!
+
+The only piece of software which could provide what I need is the 
+f71882fg driver and it does it very well, though, there I have one 
+issue, which you, or anyone else could address for me, if possible. The 
+issue is this:
+
+Initially, when the board is first powered up, all fans (all 3 of them) 
+are at a standstill because the board temperature is low. After some 
+time passes by, when the temperature starts to rise steadily, it comes a 
+point where the BIOS/the f71882fg driver increase the pwm parameter of 
+the fans, but there comes a problem: due to the fact that the current 
+increase is very gentle and also due to the fact of the actual physical 
+fan inertia (for a lack of better word), the fan does *not* start.
+
+That causes overheating!
+
+If I gently push the fan or blow towards it, it starts spinning and 
+BIOS/f71882fg takes over and controls it very well and it all works, 
+until there comes a point again where the fan stops (outside temperature 
+drops for example), in which case the whole cycle repeats.
+
+I devised one ugly hack to fix this: I created a shell script, which 
+runs every 10 seconds and checks to see if fanX_alarm=1 (this happens, 
+for example, when there is current applied to the fan - i.e. its "pwmX" 
+value is >0 and "fanX_input=0", i.e. the fan is not moving - the 
+scenario I described above). If that is the case, then the script, 
+temporarily, switches to "manual" control (pwmX_enable=1), throttles up 
+the fan up to a maximum (i.e. pwmX%5), checks that the fan is running, 
+and then restores automatic control (reverts pwmX_enable back to 2).
+
+That way, when the fan is initially stopped and the BIOS/f71882fg driver 
+applies some current to it in order to get it going and can't do it, it 
+gets a gentle "push" from my script, after which automatic control takes 
+over again and all is well.
+
+That way it works, but I don't like it - there has to be another, more 
+"civilised" way of doing this, surely!
+
+One last question (though this is more specific to the f71882fg driver): 
+I have a procfs file called "pwmX_auto_pointY" (Y being from 1-5), which 
+indicates the various pwm current value which is to be applied for 
+different points: 4 being when the controlling temperature is low (the 
+value of pwmX_auto_point4_temp to be precise) and 1 being where the 
+current is at its maximum - normally 255.
+
+Now, what is the purpose of pwmX_auto_point5 - does this hold the pwm 
+value where the fan is in an idle state (i.e. the temperature is below 
+pwmX_auto_point4_temp)? Because on all 3 fans, I have this set to 1, 
+which, I am assuming is when the fans are stopped.
+
+Even if I bring this value to some "idle" current, that won't help much 
+because when I first boot the system, the fans are *always* still, so 
+even if the idle state is >1, that won't help me much, so there must be 
+another - better - way than using a script to "kickstart" the fans 
+initially, surely!
+
+Apologies for this long post, but I have been banging my head against 
+the wall with these problems for the past week with no end in sight!
+
+
+MZ
+
 
 _______________________________________________
 lm-sensors mailing list
