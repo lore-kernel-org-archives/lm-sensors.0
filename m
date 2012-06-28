@@ -1,74 +1,69 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 28 Jun 2012 17:12:09 +0000
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Date: Thu, 28 Jun 2012 17:39:03 +0000
 Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Message-Id: <20120628171209.GB7283@roeck-us.net>
+Message-Id: <4FEC96B7.50500@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FEA4C10.2060904@googlemail.com>
- <20120627171505.GB12712@roeck-us.net>
- <4FEB90A8.8050901@googlemail.com>
- <20120628052032.GA16364@roeck-us.net>
- <4FEC4092.7090104@googlemail.com>
-In-Reply-To: <4FEC4092.7090104@googlemail.com>
+References: <4FEA4C10.2060904@googlemail.com> <20120627171505.GB12712@roeck-us.net> <4FEB90A8.8050901@googlemail.com> <20120628052032.GA16364@roeck-us.net> <4FEC4092.7090104@googlemail.com> <20120628171209.GB7283@roeck-us.net>
+In-Reply-To: <20120628171209.GB7283@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Zintakis <michael.zintakis@googlemail.com>
+To: Guenter Roeck <linux@roeck-us.net>
 Cc: lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Thu, Jun 28, 2012 at 12:31:30PM +0100, Michael Zintakis wrote:
-> 
-> >Do you mean sysfs ?
-> Yeah, sorry. Everything under /sys/class/hwmon/...
-> 
-> >Correct. 1 is too low, though. Default value per datasheet is 0x80.
-> >Whatever it is, it should be high enough for the fans to start spinning.
-> That won't be enough! I did a bit of experimenting and discovered
-> the following:
-> 
-> The minimum value for pwm on all fans necessary to keep them going
-> is 75 (decimal) - below that value the fan just stops. The minimum
-> value to kick-start the fan and make it spin from standstill is 190
-> (also decimal) - nothing below this value is sufficient to move the
-> fan from its standstill position (in my script I use the maximum
-> value - 255 - to be on the safe side).
-> 
-> So, even if I set the pwmX_auto_point5_pwm to 75 that won't be
-> enough to kick-start the fan initially. On the other hand, if I set
-> it to 190 that would be enough, but the fan will continue to spin at
-> this rate which is very high (I may as well abandon fan/temperature
-> management then).
-> 
-> >The F71882FG does not have a register to set a "start spinning" pwm value,
-> >so your minimum must guarantee that the fans do start to spin.
-> >
-> >What is your setting for pwmX_enable ? It should probably be set to
-> >automatic(2) so the chip can automatically control the fan speed depending
-> >on the temperature.
-> It is indeed set to 2.
-> 
-> >>Even if I bring this value to some "idle" current, that won't help
-> >>much because when I first boot the system, the fans are *always*
-> >>still, so even if the idle state is >1, that won't help me much, so
-> >>there must be another - better - way than using a script to
-> >>"kickstart" the fans initially, surely!
-> >>
-> >Maybe fan control is not set to automatic by the BIOS ?
-> It is and it is why I am keeping this automatic BIOS fan management
-> in place and my script only intervenes to kick-start the fans when
-> they are still, otherwise this automatic control is doing a good
-> job. The problem is the actual kick-start (and the fact that there
-> is no way I could force ACPI to abandon the region of memory used by
-> the driver).
 
-That isn't BIOS fan management - it is completely handled by the chip itself.
-Problem is most likely that the BIOS does not "kick-start" the fan(s),
-and the chip does not have a register to set a "start fan" pwm value (other
-chips such as the NCT677X do have a register for that purpose). So you may
-be stuck with your manual method if you want to keep the fan running at speeds
-lower than pwm0. Another option might be to find a fan which starts at lower
-pwm values, and/or does not need to be kick-started.
+> That isn't BIOS fan management - it is completely handled by the chip itself.
+>   
+Whatever it is, it seems to be "automatic" - i.e. I don't determine what 
+needs to be done, but the BIOS/the driver does this "on my behalf", 
+which is good enough for me, provided I know how to avoid the ACPI 
+conflict, because I am not about to start playing Russian roulette with 
+my hardware.
 
-Guenter
+I've spend some time earlier today looking at the ACPI code and it seems 
+as though the first conflicting region (\_TZ_.IP__ 1) is from the ACPI 
+thermal driver. I think I could easily deactivate this with 
+"thermal.off=1". The second region though  (\_SB_.PCI0.LPCB.SIO1.RNTR) 
+is a complete mystery to me.
+
+There are a couple of lines in my dmesg file where these IO regions are 
+mentioned:
+
+[    0.117903] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7]
+[...]
+[    0.117952] pci 0000:00:00.0: [8086:0bf3] type 0 class 0x000600
+[...]
+[    0.203459] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7]
+[...]
+[    0.203550] pci_bus 0000:04: resource 4 [io  0x0000-0x0cf7]
+
+So, provided I could avoid the first conflict by using thermal.off=1, I 
+need to find out what is causing the second one and find out how to 
+prevent it...
+
+> Problem is most likely that the BIOS does not "kick-start" the fan(s),
+> and the chip does not have a register to set a "start fan" pwm value (other
+> chips such as the NCT677X do have a register for that purpose).
+Yep, that seems to be the case indeed.
+
+>  So you may
+> be stuck with your manual method if you want to keep the fan running at speeds
+> lower than pwm0.
+Would it be possible for such feature to be implemented in the f71882fg 
+driver? Most of the stuff which is done with my bash script will be very 
+easy to implement in the driver as it involves nothing more than playing 
+with the registry values and adding a bit of logic to it. Would that be 
+possible?
+
+>  Another option might be to find a fan which starts at lower
+> pwm values, and/or does not need to be kick-started.
+>   
+I've had enough problem selecting the fans which suit my needs (i.e. 
+noise levels, RPM speed, power consumption etc) and I am not prepared to 
+go through that again, no way!
+
+
+MZ
 
 _______________________________________________
 lm-sensors mailing list
