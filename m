@@ -1,138 +1,96 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 28 Jun 2012 03:53:38 +0000
+From: Arun Raghavan <arraghav@gmail.com>
+Date: Thu, 28 Jun 2012 04:23:04 +0000
 Subject: Re: [lm-sensors] Reducing fan speed for w83627ehf
-Message-Id: <20120628035338.GA16191@roeck-us.net>
+Message-Id: <10088077-D33B-48ED-9D4C-BE84A9171D58@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAP3RjSfZQevwuBONgEbA0XaE_aiUik6sDdYY6ZJA+bWmZW1MQw@mail.gmail.com>
 In-Reply-To: <CAP3RjSfZQevwuBONgEbA0XaE_aiUik6sDdYY6ZJA+bWmZW1MQw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Jun 27, 2012 at 06:18:09PM -0400, Arun Raghavan wrote:
-> Hi,
->=20
-> > I need to get fairly fine grain control on my CPU fan speed for some
->=20
-> > > experiments, but I am currently unable to set the fan speed below 1054
-> > RPM.
-> > > pwmconfig confirms the same across the divisor range. Processor is
-> > i7-2600,
-> > > motherboard
-> > >
-> > > I tried setting pwm2_enable to 1 and pwm2 to 1 manually and I see that
-> > the
-> > > fan speed varies but the min RPM remains 1054.  Info below.
-> > >
-> > What happens if you write 0 into pwmX ? Also, did you select manual fan
-> > speed
-> > control ?
-> >
-> >
-> Writing 0 to pwm2 also keeps it at 1054 RPM. I'm setting pwm2_enable to 1,
-> isn't that supposed to make it manual? Also, I do see a variation between
-> 1054 RM and 2109 RPM (and some steps in between), when I change pwm2. I
-> can't get it to spin lower than 1054 RPM though.
->=20
-Maybe that is the lowest fan speed supported by this fan ?
-
-Guenter
-
-> thanks,
-> -arun
->=20
->=20
-> > > so how would be very helpful.
-> > >
-> > > thanks,
-> > > -arun
-> > >
-> > > root@sandy:/sys/devices/platform/w83627ehf.656# echo 255 > pwm2
-> > > root@sandy:/sys/devices/platform/w83627ehf.656# sensors
-> > > coretemp-isa-0000
-> > > Adapter: ISA adapter
-> > > Any pointers on whether it is possible to reduce fan speed further, a=
-nd
-> > if
-> > > Physical id 0:  +46.0=B0C  (high =3D +78.0=B0C, crit =3D +98.0=B0C)  =
-ALARM (CRIT)
-> > > Core 0:         +46.0=B0C  (high =3D +78.0=B0C, crit =3D +98.0=B0C)  =
-ALARM (CRIT)
-> > >
-> > > nct6775-isa-0290
-> > > Adapter: ISA adapter
-> > > Vcore:         +0.82 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-> > > in1:           +1.12 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > AVCC:          +3.46 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > > +3.3V:         +3.46 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > > in4:           +1.06 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > in5:           +1.05 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > in6:           +1.08 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > 3VSB:          +3.41 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > > Vbat:          +3.34 V  (min =3D  +2.70 V, max =3D  +3.30 V)  ALARM
-> > > fan1:            0 RPM  (min =3D    0 RPM, div =3D 128)
-> > > fan2:         2109 RPM  (min =3D    0 RPM, div =3D 128)  ALARM <----
-> > > fan3:            0 RPM  (min =3D    0 RPM, div =3D 128)
-> > > fan4:            0 RPM  (div =3D 128)
-> > > SYSTIN:        +31.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  A=
-LARM  sensor
-> > > =3D CPU diode
-> > > CPUTIN:        +29.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  s=
-ensor =3D CPU
-> > > diode
-> > > AUXTIN:        +22.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  s=
-ensor =3D
-> > > thermistor
-> > > PECI Agent 0:  +45.5=B0C
-> > > cpu0_vid:     +2.050 V
-> > > intrusion0:   OK
-> > >
-> > > root@sandy:/sys/devices/platform/w83627ehf.656# echo 1 > pwm2
-> > > root@sandy:/sys/devices/platform/w83627ehf.656# sensors
-> > > coretemp-isa-0000
-> > > Adapter: ISA adapter
-> > > Physical id 0:  +46.0=B0C  (high =3D +78.0=B0C, crit =3D +98.0=B0C)  =
-ALARM (CRIT)
-> > > Core 0:         +46.0=B0C  (high =3D +78.0=B0C, crit =3D +98.0=B0C)  =
-ALARM (CRIT)
-> > >
-> > > nct6775-isa-0290
-> > > Adapter: ISA adapter
-> > > Vcore:         +0.85 V  (min =3D  +0.00 V, max =3D  +1.74 V)
-> > > in1:           +1.12 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > AVCC:          +3.46 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > > +3.3V:         +3.46 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > > in4:           +1.06 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > in5:           +1.05 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > in6:           +1.08 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
-> > > 3VSB:          +3.41 V  (min =3D  +2.98 V, max =3D  +3.63 V)
-> > > Vbat:          +3.34 V  (min =3D  +2.70 V, max =3D  +3.30 V)  ALARM
-> > > fan1:            0 RPM  (min =3D    0 RPM, div =3D 128)
-> > > fan2:         1054 RPM  (min =3D    0 RPM, div =3D 128)  ALARM
-> > > fan3:            0 RPM  (min =3D    0 RPM, div =3D 128)
-> > > fan4:            0 RPM  (div =3D 128)
-> > > SYSTIN:        +30.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  A=
-LARM  sensor
-> > > =3D CPU diode
-> > > CPUTIN:        +29.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  s=
-ensor =3D CPU
-> > > diode
-> > > AUXTIN:        +22.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  s=
-ensor =3D
-> > > thermistor
-> > > PECI Agent 0:  +44.5=B0C
-> > > cpu0_vid:     +2.050 V
-> > > intrusion0:   OK
-> >
-> > > _______________________________________________
-> > > lm-sensors mailing list
-> > > lm-sensors@lm-sensors.org
-> > > http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> >
-> >
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+RmFuIG9yIHdpbmJvbmQgPyBIb3cgY2FuIEkgY29uZmlybT8KCk9uIEp1biAyNywgMjAxMiwgYXQg
+MTE6NTMgUE0sIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4gd3JvdGU6Cgo+IE9u
+IFdlZCwgSnVuIDI3LCAyMDEyIGF0IDA2OjE4OjA5UE0gLTA0MDAsIEFydW4gUmFnaGF2YW4gd3Jv
+dGU6Cj4+IEhpLAo+PiAKPj4+IEkgbmVlZCB0byBnZXQgZmFpcmx5IGZpbmUgZ3JhaW4gY29udHJv
+bCBvbiBteSBDUFUgZmFuIHNwZWVkIGZvciBzb21lCj4+IAo+Pj4+IGV4cGVyaW1lbnRzLCBidXQg
+SSBhbSBjdXJyZW50bHkgdW5hYmxlIHRvIHNldCB0aGUgZmFuIHNwZWVkIGJlbG93IDEwNTQKPj4+
+IFJQTS4KPj4+PiBwd21jb25maWcgY29uZmlybXMgdGhlIHNhbWUgYWNyb3NzIHRoZSBkaXZpc29y
+IHJhbmdlLiBQcm9jZXNzb3IgaXMKPj4+IGk3LTI2MDAsCj4+Pj4gbW90aGVyYm9hcmQKPj4+PiAK
+Pj4+PiBJIHRyaWVkIHNldHRpbmcgcHdtMl9lbmFibGUgdG8gMSBhbmQgcHdtMiB0byAxIG1hbnVh
+bGx5IGFuZCBJIHNlZSB0aGF0Cj4+PiB0aGUKPj4+PiBmYW4gc3BlZWQgdmFyaWVzIGJ1dCB0aGUg
+bWluIFJQTSByZW1haW5zIDEwNTQuICBJbmZvIGJlbG93Lgo+Pj4+IAo+Pj4gV2hhdCBoYXBwZW5z
+IGlmIHlvdSB3cml0ZSAwIGludG8gcHdtWCA/IEFsc28sIGRpZCB5b3Ugc2VsZWN0IG1hbnVhbCBm
+YW4KPj4+IHNwZWVkCj4+PiBjb250cm9sID8KPj4+IAo+Pj4gCj4+IFdyaXRpbmcgMCB0byBwd20y
+IGFsc28ga2VlcHMgaXQgYXQgMTA1NCBSUE0uIEknbSBzZXR0aW5nIHB3bTJfZW5hYmxlIHRvIDEs
+Cj4+IGlzbid0IHRoYXQgc3VwcG9zZWQgdG8gbWFrZSBpdCBtYW51YWw/IEFsc28sIEkgZG8gc2Vl
+IGEgdmFyaWF0aW9uIGJldHdlZW4KPj4gMTA1NCBSTSBhbmQgMjEwOSBSUE0gKGFuZCBzb21lIHN0
+ZXBzIGluIGJldHdlZW4pLCB3aGVuIEkgY2hhbmdlIHB3bTIuIEkKPj4gY2FuJ3QgZ2V0IGl0IHRv
+IHNwaW4gbG93ZXIgdGhhbiAxMDU0IFJQTSB0aG91Z2guCj4+IAo+IE1heWJlIHRoYXQgaXMgdGhl
+IGxvd2VzdCBmYW4gc3BlZWQgc3VwcG9ydGVkIGJ5IHRoaXMgZmFuID8KPiAKPiBHdWVudGVyCj4g
+Cj4+IHRoYW5rcywKPj4gLWFydW4KPj4gCj4+IAo+Pj4+IHNvIGhvdyB3b3VsZCBiZSB2ZXJ5IGhl
+bHBmdWwuCj4+Pj4gCj4+Pj4gdGhhbmtzLAo+Pj4+IC1hcnVuCj4+Pj4gCj4+Pj4gcm9vdEBzYW5k
+eTovc3lzL2RldmljZXMvcGxhdGZvcm0vdzgzNjI3ZWhmLjY1NiMgZWNobyAyNTUgPiBwd20yCj4+
+Pj4gcm9vdEBzYW5keTovc3lzL2RldmljZXMvcGxhdGZvcm0vdzgzNjI3ZWhmLjY1NiMgc2Vuc29y
+cwo+Pj4+IGNvcmV0ZW1wLWlzYS0wMDAwCj4+Pj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPj4+PiBB
+bnkgcG9pbnRlcnMgb24gd2hldGhlciBpdCBpcyBwb3NzaWJsZSB0byByZWR1Y2UgZmFuIHNwZWVk
+IGZ1cnRoZXIsIGFuZAo+Pj4gaWYKPj4+PiBQaHlzaWNhbCBpZCAwOiAgKzQ2LjDCsEMgIChoaWdo
+ID0gKzc4LjDCsEMsIGNyaXQgPSArOTguMMKwQykgIEFMQVJNIChDUklUKQo+Pj4+IENvcmUgMDog
+ICAgICAgICArNDYuMMKwQyAgKGhpZ2ggPSArNzguMMKwQywgY3JpdCA9ICs5OC4wwrBDKSAgQUxB
+Uk0gKENSSVQpCj4+Pj4gCj4+Pj4gbmN0Njc3NS1pc2EtMDI5MAo+Pj4+IEFkYXB0ZXI6IElTQSBh
+ZGFwdGVyCj4+Pj4gVmNvcmU6ICAgICAgICAgKzAuODIgViAgKG1pbiA9ICArMC4wMCBWLCBtYXgg
+PSAgKzEuNzQgVikKPj4+PiBpbjE6ICAgICAgICAgICArMS4xMiBWICAobWluID0gICswLjAwIFYs
+IG1heCA9ICArMC4wMCBWKSAgQUxBUk0KPj4+PiBBVkNDOiAgICAgICAgICArMy40NiBWICAobWlu
+ID0gICsyLjk4IFYsIG1heCA9ICArMy42MyBWKQo+Pj4+ICszLjNWOiAgICAgICAgICszLjQ2IFYg
+IChtaW4gPSAgKzIuOTggViwgbWF4ID0gICszLjYzIFYpCj4+Pj4gaW40OiAgICAgICAgICAgKzEu
+MDYgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4+Pj4gaW41OiAg
+ICAgICAgICAgKzEuMDUgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJN
+Cj4+Pj4gaW42OiAgICAgICAgICAgKzEuMDggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAu
+MDAgVikgIEFMQVJNCj4+Pj4gM1ZTQjogICAgICAgICAgKzMuNDEgViAgKG1pbiA9ICArMi45OCBW
+LCBtYXggPSAgKzMuNjMgVikKPj4+PiBWYmF0OiAgICAgICAgICArMy4zNCBWICAobWluID0gICsy
+LjcwIFYsIG1heCA9ICArMy4zMCBWKSAgQUxBUk0KPj4+PiBmYW4xOiAgICAgICAgICAgIDAgUlBN
+ICAobWluID0gICAgMCBSUE0sIGRpdiA9IDEyOCkKPj4+PiBmYW4yOiAgICAgICAgIDIxMDkgUlBN
+ICAobWluID0gICAgMCBSUE0sIGRpdiA9IDEyOCkgIEFMQVJNIDwtLS0tCj4+Pj4gZmFuMzogICAg
+ICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNLCBkaXYgPSAxMjgpCj4+Pj4gZmFuNDogICAg
+ICAgICAgICAwIFJQTSAgKGRpdiA9IDEyOCkKPj4+PiBTWVNUSU46ICAgICAgICArMzEuMMKwQyAg
+KGhpZ2ggPSAgKzAuMMKwQywgaHlzdCA9ICArMC4wwrBDKSAgQUxBUk0gIHNlbnNvcgo+Pj4+ID0g
+Q1BVIGRpb2RlCj4+Pj4gQ1BVVElOOiAgICAgICAgKzI5LjXCsEMgIChoaWdoID0gKzgwLjDCsEMs
+IGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9IENQVQo+Pj4+IGRpb2RlCj4+Pj4gQVVYVElOOiAg
+ICAgICAgKzIyLjDCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNv
+ciA9Cj4+Pj4gdGhlcm1pc3Rvcgo+Pj4+IFBFQ0kgQWdlbnQgMDogICs0NS41wrBDCj4+Pj4gY3B1
+MF92aWQ6ICAgICArMi4wNTAgVgo+Pj4+IGludHJ1c2lvbjA6ICAgT0sKPj4+PiAKPj4+PiByb290
+QHNhbmR5Oi9zeXMvZGV2aWNlcy9wbGF0Zm9ybS93ODM2MjdlaGYuNjU2IyBlY2hvIDEgPiBwd20y
+Cj4+Pj4gcm9vdEBzYW5keTovc3lzL2RldmljZXMvcGxhdGZvcm0vdzgzNjI3ZWhmLjY1NiMgc2Vu
+c29ycwo+Pj4+IGNvcmV0ZW1wLWlzYS0wMDAwCj4+Pj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIKPj4+
+PiBQaHlzaWNhbCBpZCAwOiAgKzQ2LjDCsEMgIChoaWdoID0gKzc4LjDCsEMsIGNyaXQgPSArOTgu
+MMKwQykgIEFMQVJNIChDUklUKQo+Pj4+IENvcmUgMDogICAgICAgICArNDYuMMKwQyAgKGhpZ2gg
+PSArNzguMMKwQywgY3JpdCA9ICs5OC4wwrBDKSAgQUxBUk0gKENSSVQpCj4+Pj4gCj4+Pj4gbmN0
+Njc3NS1pc2EtMDI5MAo+Pj4+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4+Pj4gVmNvcmU6ICAgICAg
+ICAgKzAuODUgViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzEuNzQgVikKPj4+PiBpbjE6ICAg
+ICAgICAgICArMS4xMiBWICAobWluID0gICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgQUxBUk0K
+Pj4+PiBBVkNDOiAgICAgICAgICArMy40NiBWICAobWluID0gICsyLjk4IFYsIG1heCA9ICArMy42
+MyBWKQo+Pj4+ICszLjNWOiAgICAgICAgICszLjQ2IFYgIChtaW4gPSAgKzIuOTggViwgbWF4ID0g
+ICszLjYzIFYpCj4+Pj4gaW40OiAgICAgICAgICAgKzEuMDYgViAgKG1pbiA9ICArMC4wMCBWLCBt
+YXggPSAgKzAuMDAgVikgIEFMQVJNCj4+Pj4gaW41OiAgICAgICAgICAgKzEuMDUgViAgKG1pbiA9
+ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4+Pj4gaW42OiAgICAgICAgICAgKzEu
+MDggViAgKG1pbiA9ICArMC4wMCBWLCBtYXggPSAgKzAuMDAgVikgIEFMQVJNCj4+Pj4gM1ZTQjog
+ICAgICAgICAgKzMuNDEgViAgKG1pbiA9ICArMi45OCBWLCBtYXggPSAgKzMuNjMgVikKPj4+PiBW
+YmF0OiAgICAgICAgICArMy4zNCBWICAobWluID0gICsyLjcwIFYsIG1heCA9ICArMy4zMCBWKSAg
+QUxBUk0KPj4+PiBmYW4xOiAgICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0sIGRpdiA9
+IDEyOCkKPj4+PiBmYW4yOiAgICAgICAgIDEwNTQgUlBNICAobWluID0gICAgMCBSUE0sIGRpdiA9
+IDEyOCkgIEFMQVJNCj4+Pj4gZmFuMzogICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBN
+LCBkaXYgPSAxMjgpCj4+Pj4gZmFuNDogICAgICAgICAgICAwIFJQTSAgKGRpdiA9IDEyOCkKPj4+
+PiBTWVNUSU46ICAgICAgICArMzAuMMKwQyAgKGhpZ2ggPSAgKzAuMMKwQywgaHlzdCA9ICArMC4w
+wrBDKSAgQUxBUk0gIHNlbnNvcgo+Pj4+ID0gQ1BVIGRpb2RlCj4+Pj4gQ1BVVElOOiAgICAgICAg
+KzI5LjXCsEMgIChoaWdoID0gKzgwLjDCsEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9IENQ
+VQo+Pj4+IGRpb2RlCj4+Pj4gQVVYVElOOiAgICAgICAgKzIyLjDCsEMgIChoaWdoID0gKzgwLjDC
+sEMsIGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9Cj4+Pj4gdGhlcm1pc3Rvcgo+Pj4+IFBFQ0kg
+QWdlbnQgMDogICs0NC41wrBDCj4+Pj4gY3B1MF92aWQ6ICAgICArMi4wNTAgVgo+Pj4+IGludHJ1
+c2lvbjA6ICAgT0sKPj4+IAo+Pj4+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCj4+Pj4gbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKPj4+PiBsbS1zZW5zb3Jz
+QGxtLXNlbnNvcnMub3JnCj4+Pj4gaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycwo+Pj4gCj4+PiAKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNA
+bG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGlu
+Zm8vbG0tc2Vuc29ycw=
