@@ -1,41 +1,57 @@
-From: Andrey Repin <hell-for-yahoo@umail.ru>
-Date: Thu, 28 Jun 2012 03:15:25 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 28 Jun 2012 05:20:32 +0000
 Subject: Re: [lm-sensors] Fintek f71882fg ACPI conflict
-Message-Id: <1744359228.20120628071525@mtu-net.ru>
+Message-Id: <20120628052032.GA16364@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <4FEA4C10.2060904@googlemail.com>
-In-Reply-To: <4FEA4C10.2060904@googlemail.com>
+ <20120627171505.GB12712@roeck-us.net>
+ <4FEB90A8.8050901@googlemail.com>
+In-Reply-To: <4FEB90A8.8050901@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Michael Zintakis <michael.zintakis@googlemail.com>
+Cc: lm-sensors@lm-sensors.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-Greetings, Michael Zintakis!
+On Thu, Jun 28, 2012 at 12:00:56AM +0100, Michael Zintakis wrote:
+> Hello Guenter and All,
+> 
+[ .. ]
 
-> Initially, when the board is first powered up, all fans (all 3 of them)
-> are at a standstill because the board temperature is low.
+> One last question (though this is more specific to the f71882fg
+> driver): I have a procfs file called "pwmX_auto_pointY" (Y being
 
-This SHOULD NOT be the case. Precisely because of the issue you've outlined
-below:
+Do you mean sysfs ?
 
-> [...] due to the fact of the actual physical fan inertia (for a lack of
-> better word), the fan does *not* start.
+> from 1-5), which indicates the various pwm current value which is to
+> be applied for different points: 4 being when the controlling
+> temperature is low (the value of pwmX_auto_point4_temp to be
+> precise) and 1 being where the current is at its maximum - normally
+> 255.
+> 
+> Now, what is the purpose of pwmX_auto_point5 - does this hold the
+> pwm value where the fan is in an idle state (i.e. the temperature is
+> below pwmX_auto_point4_temp)? Because on all 3 fans, I have this set
+> to 1, which, I am assuming is when the fans are stopped.
+> 
+Correct. 1 is too low, though. Default value per datasheet is 0x80.
+Whatever it is, it should be high enough for the fans to start spinning.
+The F71882FG does not have a register to set a "start spinning" pwm value,
+so your minimum must guarantee that the fans do start to spin.
 
-All fans SHOULD spin at some low rate to make the system work.
-Alternatively, the BIOS may provide a kickstart, when there's rise of
-temperature over certain threshold, like you did in your script.
-I suggest you raise this issue with your board manufacturer.
+What is your setting for pwmX_enable ? It should probably be set to
+automatic(2) so the chip can automatically control the fan speed depending
+on the temperature.
 
-P.S.
-All capitalization in accordance with RFC#2119.
+> Even if I bring this value to some "idle" current, that won't help
+> much because when I first boot the system, the fans are *always*
+> still, so even if the idle state is >1, that won't help me much, so
+> there must be another - better - way than using a script to
+> "kickstart" the fans initially, surely!
+> 
+Maybe fan control is not set to automatic by the BIOS ?
 
-
---
-WBR,
-Andrey Repin (hell-for-yahoo@umail.ru) 28.06.2012, <07:08>
-
-Sorry for my terrible english...
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
