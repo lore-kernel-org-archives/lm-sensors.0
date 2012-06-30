@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 30 Jun 2012 19:24:59 +0000
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Date: Sat, 30 Jun 2012 22:46:14 +0000
 Subject: Re: [lm-sensors] CPU fan with full speed
-Message-Id: <20120630192459.GA21228@roeck-us.net>
+Message-Id: <4FEF81B6.6010209@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <jsm40t$qk8$1@dough.gmane.org>
 In-Reply-To: <jsm40t$qk8$1@dough.gmane.org>
@@ -10,63 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jun 30, 2012 at 07:27:49PM +0200, Philipp Kraus wrote:
-> On 2012-06-30 19:03:44 +0200, Guenter Roeck said:
-> 
-> >On Sat, Jun 30, 2012 at 06:04:53PM +0200, Philipp Kraus wrote:
-> >>On 2012-06-30 17:33:38 +0200, Guenter Roeck said:
-> >>
-> >>>On Sat, Jun 30, 2012 at 04:37:28PM +0200, Philipp Kraus wrote:
-> >>>>
-> >>>>the grep command shows
-> >>>>grep: /sys/class/hwmon/hwmon1/device/driver: Is a directory
-> >>>>grep: /sys/class/hwmon/hwmon1/device/hwmon: Is a directory
-> >>>>grep: /sys/class/hwmon/hwmon1/device/power: Is a directory
-> >>>>grep: /sys/class/hwmon/hwmon1/device/subsystem: Is a directory
-> >>>>
-> >>>>and within the directory are the in*, pwm* temp* files
-> >>>>
-> >>>Not sure I understand.
-> >>>
-> >>>I'll need the names and output for the pwm* and temp* files. They
-> >>>_should_ be in
-> >>>/sys/class/hwmon/hwmon1/device/pwm* and /sys/class/hwmon/hwmon1/device/temp*.
-> >>
-> >>the command grep /sys.... does not work, I have run an ls -l and
-> >
-> >Phil,
-> >
-> >It wasn't "grep /sys/...", it was "grep . /sys/class/hwmon/hwmon1/device/*".
-> >The "." is important. Your output gives me the file names, but I need names and
-> >content, not names and permissions.
-> 
-> Sorry, my mistake, I haven't seen that it ist "grep . <space> /sys..."
-> Hope this the correct output now
-> 
-> /sys/class/hwmon/hwmon1/device/pwm1:252
 
-Looks like all pwm values report the "default" pwm value.
+> If I understand the code and the data sheet correectly, this attribute
+> is a bit map used to map a temperature source to one or multiple fans.
+>   
+I was just about to fire-up a question regarding that point! My 
+pwm3_auto_channels_pwm has a value of 4 and I was a bit baffled why 4 
+and not 3 - the above explains it very well.
 
-> /sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm:1
+Related to this query: as part of my censors setup, I have 3 different 
+temperature monitors which supply reading for my CPU. 2 of them are in 
+hwmon0/device/tempX_input (Intel's own coretemp module, X=2,3) and one 
+of them is part of my f71882fg chip-supported reading: 
+hwmon1/device/temp1_input. There are 2 Intel readings, because the CPU 
+is multi-core.
 
-If I understand the code and the data sheet correectly, this attribute
-is a bit map used to map a temperature source to one or multiple fans.
-And it looks like all temperature sources are mapped to fan1, which
-in turn means that effectively temp4 controls the speed of fan1 (the highest
-temperature determines the fan speed), and all other fans are not mapped to
-a temperature input.
+Now, the f71882fg CPU reading is a bit off. What I mean by that is that 
+it shows temperature which is between 3-7 degrees cooler than the 
+Intel's own (coretemp) readings. Is there a way (via 
+pwm1_auto_channels_pwm perhaps) to force f71882fg to take the coretemp 
+reading into account instead of using its own?
 
-What you should probably do is to find the association between tempX and pwmX
-and program tempX_auto_channels_pwm such that the two map. For example, if temp1
-is the CPU1 temperature, and pwm4 (fan4) is connected to the CPU1 fan, write
-0b00001000 = 0x08 into /sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm.
-Similar, if temp2 is the CPU2 temperature and fan5/pwm5 controls its fan,
-write 0x10 () into /sys/class/hwmon/hwmon1/device/temp2_auto_channels_pwm.
+I tried to "cheat" by executing "ln -s 
+/sys/class/hwmon/hwmon0/device/temp2_input 
+/sysclass/hwmon/hwmon1/device/temp4_input" but that didn't work - I get 
+"No such file or directory" error. I cannot write anything to that 
+hwmon1/device directory. Is there any way of pointing my f71882fg driver 
+to read the 2 Intel temperatures temperatures instead of using its own, 
+not very accurate reading?
 
-You might have to play with the values a bit to find the correct mapping.
-
-Hope this helps,
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
