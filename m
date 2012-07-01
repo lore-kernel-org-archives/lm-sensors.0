@@ -1,40 +1,81 @@
-From: Boussac Jean-Paul <mahimahi@laposte.net>
-Date: Fri, 20 Jul 2012 07:04:51 +0000
-Subject: Re: [lm-sensors] SYSTIN, CPUTIN, AUXTIN...
-Message-Id: <50090313.6050801@laposte.net>
+From: Philipp Kraus <philipp.kraus@flashpixx.de>
+Date: Sun, 01 Jul 2012 00:06:27 +0000
+Subject: Re: [lm-sensors] CPU fan with full speed
+Message-Id: <jso44p$mdv$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
-In-Reply-To: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
+References: <jsm40t$qk8$1@dough.gmane.org>
+In-Reply-To: <jsm40t$qk8$1@dough.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Le 20/07/2012 17:46, Jean Delvare a =E9crit :
-> On Fri, 20 Jul 2012 05:14:26 +0200, mahimahi wrote:
->> In fact, I've two files in my /etc/sensors.d/ :
->> - ignoreFANs
->> - ignoreAUTRE
->> and in the two, I put the same first line (chip "nct6776-*")... but in "=
-ignoreAUTRE",
->> there is an error :
->> Error: File /etc/sensors.d/ignoreAUTRE~, line 7: Parse error in chip name
->> I see it when I run "sensors - u"
->>
->> I replace chip "nct6776-*" by chip "nct6776-isa-0290"... and it work fine
->>
->> I don't understand why two same lines (copy/paste)... are not same !?!
-> They are not. Pay attention to the exact file name reported:
-> ignoreAUTRE~. The trailing ~ indicates a backup copy of the file,
-> created by your text editor. "sensors -s" doesn't know it should ignore
-> this file. So you must delete this backup file manually.
->
-Merci beaucoup pour cette explication, je suis vraiment con - et aveugle=20
-- parfois !
+On 2012-06-30 21:24:59 +0200, Guenter Roeck said:
 
-Thank you very much, it's a fine explanation, i'm a guy sometime...
+> On Sat, Jun 30, 2012 at 07:27:49PM +0200, Philipp Kraus wrote:
+>> On 2012-06-30 19:03:44 +0200, Guenter Roeck said:
+>> 
+>>> On Sat, Jun 30, 2012 at 06:04:53PM +0200, Philipp Kraus wrote:
+>>>> On 2012-06-30 17:33:38 +0200, Guenter Roeck said:
+>>>> 
+>>>>> On Sat, Jun 30, 2012 at 04:37:28PM +0200, Philipp Kraus wrote:
+>>>>>> 
+>>>>>> the grep command shows
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/driver: Is a directory
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/hwmon: Is a directory
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/power: Is a directory
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/subsystem: Is a directory
+>>>>>> 
+>>>>>> and within the directory are the in*, pwm* temp* files
+>>>>>> 
+>>>>> Not sure I understand.
+>>>>> 
+>>>>> I'll need the names and output for the pwm* and temp* files. They
+>>>>> _should_ be in
+>>>>> /sys/class/hwmon/hwmon1/device/pwm* and /sys/class/hwmon/hwmon1/device/temp*.
+>>>> 
+>>>> the command grep /sys.... does not work, I have run an ls -l and
+>>> 
+>>> Phil,
+>>> 
+>>> It wasn't "grep /sys/...", it was "grep . /sys/class/hwmon/hwmon1/device/*".
+>>> The "." is important. Your output gives me the file names, but I need names and
+>>> content, not names and permissions.
+>> 
+>> Sorry, my mistake, I haven't seen that it ist "grep . <space> /sys..."
+>> Hope this the correct output now
+>> 
+>> /sys/class/hwmon/hwmon1/device/pwm1:252
+> 
+> Looks like all pwm values report the "default" pwm value.
+> 
+>> /sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm:1
+> 
+> If I understand the code and the data sheet correectly, this attribute
+> is a bit map used to map a temperature source to one or multiple fans.
+> And it looks like all temperature sources are mapped to fan1, which
+> in turn means that effectively temp4 controls the speed of fan1 (the highest
+> temperature determines the fan speed), and all other fans are not mapped to
+> a temperature input.
+> 
+> What you should probably do is to find the association between tempX and pwmX
+> and program tempX_auto_channels_pwm such that the two map. For example, 
+> if temp1
+> is the CPU1 temperature, and pwm4 (fan4) is connected to the CPU1 fan, write
+> 0b00001000 = 0x08 into /sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm.
+> Similar, if temp2 is the CPU2 temperature and fan5/pwm5 controls its fan,
+> write 0x10 () into /sys/class/hwmon/hwmon1/device/temp2_auto_channels_pwm.
 
-Jean-Paul BOUSSAC
+Okay, I will test in the next days and write a report to thisl ist. But 
+why fails this mapping?
+I think if I get a correct order, I must past the values on each boot 
+into the hwmon files
+with a little script.
+
+Thanks
+
+Phil
+
 
 
 _______________________________________________
