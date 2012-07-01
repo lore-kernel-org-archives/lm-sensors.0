@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 01 Jul 2012 00:31:41 +0000
+From: Michael Zintakis <michael.zintakis@googlemail.com>
+Date: Sun, 01 Jul 2012 03:46:11 +0000
 Subject: Re: [lm-sensors] CPU fan with full speed
-Message-Id: <20120701003141.GB21694@roeck-us.net>
+Message-Id: <4FEFC803.6050700@googlemail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <jsm40t$qk8$1@dough.gmane.org>
 In-Reply-To: <jsm40t$qk8$1@dough.gmane.org>
@@ -10,46 +10,43 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Jun 30, 2012 at 11:46:14PM +0100, Michael Zintakis wrote:
-> 
-> >If I understand the code and the data sheet correectly, this attribute
-> >is a bit map used to map a temperature source to one or multiple fans.
-> I was just about to fire-up a question regarding that point! My
-> pwm3_auto_channels_pwm has a value of 4 and I was a bit baffled why
-> 4 and not 3 - the above explains it very well.
-> 
-> Related to this query: as part of my censors setup, I have 3
-> different temperature monitors which supply reading for my CPU. 2 of
-> them are in hwmon0/device/tempX_input (Intel's own coretemp module,
-> X=2,3) and one of them is part of my f71882fg chip-supported
-> reading: hwmon1/device/temp1_input. There are 2 Intel readings,
-> because the CPU is multi-core.
-> 
-> Now, the f71882fg CPU reading is a bit off. What I mean by that is
-> that it shows temperature which is between 3-7 degrees cooler than
-> the Intel's own (coretemp) readings. Is there a way (via
-> pwm1_auto_channels_pwm perhaps) to force f71882fg to take the
-> coretemp reading into account instead of using its own?
-> 
-> I tried to "cheat" by executing "ln -s
-> /sys/class/hwmon/hwmon0/device/temp2_input
-> /sysclass/hwmon/hwmon1/device/temp4_input" but that didn't work - I
-> get "No such file or directory" error. I cannot write anything to
-> that hwmon1/device directory. Is there any way of pointing my
-> f71882fg driver to read the 2 Intel temperatures temperatures
-> instead of using its own, not very accurate reading?
->
-No ... those are separate drivers, and different sensors. Also, the coretemp
-reading is not really that exact. Especially at low temperatures it can be quite
-a bit off, as far as I remember by 10 degrees C or more. It is more accurate at
-very high temperatures.
 
-Also, keep in mind that you have a different chip. pwm3_auto_channels_pwm
-means something completely different on the f71882fg. For that chip, it is
-not a bit map, but the temperature sensor index. 1..4 in pwmX_auto_channels_pwm
-reflects temp[1..4]_input.
+> No ... those are separate drivers, and different sensors. Also, the coretemp
+> reading is not really that exact. Especially at low temperatures it can be quite
+> a bit off, as far as I remember by 10 degrees C or more. It is more accurate at
+> very high temperatures.
+>   
+I see, interesting - for some reason I always thought the Intel censors 
+are more accurate (judging by their measurements, because when I place a 
+load on that machine, both Intel CPU readings jump, but the f71882fg 
+driver barely moves a degree or two and stays in line with the rest of 
+the sensors, which doesn't really makes sense - when the CPU is under 
+load its temperature should rise rapidly).
 
-Guenter
+> Also, keep in mind that you have a different chip. pwm3_auto_channels_pwm
+> means something completely different on the f71882fg. For that chip, it is
+> not a bit map, but the temperature sensor index. 1..4 in pwmX_auto_channels_pwm
+> reflects temp[1..4]_input.
+>   
+I am totally confused now! :-\
+
+The driver has only 3 temperature readings: temp[1..3]_input, 
+corresponding to CPU (single censor, even though I've got 2 cores) and 2 
+motherboard readings (one on the PC board extension card and another one 
+on the main board itself).
+
+So, I have the following values by default:
+
+pwm1_auto_channels_pwm = 1 (1 binary - fan1)
+pwm2_auto_channels_pwm = 2 (10 binary - fan2)
+pwm3_auto_channels_pwm = 4 (100 binary - fan3)
+
+Makes perfect sense since I do not have a 4th temperature reading 
+anywhere on the system, unless you take into account the coretemp 
+driver, which is in a different subdirectory: hwmon0 and not hwmon1 as 
+the f71882fg driver is.
+
+
 
 _______________________________________________
 lm-sensors mailing list
