@@ -1,7 +1,7 @@
-From: Michael Zintakis <michael.zintakis@googlemail.com>
-Date: Sun, 01 Jul 2012 10:03:05 +0000
+From: Philipp Kraus <philipp.kraus@flashpixx.de>
+Date: Mon, 02 Jul 2012 01:14:03 +0000
 Subject: Re: [lm-sensors] CPU fan with full speed
-Message-Id: <4FF02059.7070601@googlemail.com>
+Message-Id: <jsqsfg$hf2$1@dough.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <jsm40t$qk8$1@dough.gmane.org>
 In-Reply-To: <jsm40t$qk8$1@dough.gmane.org>
@@ -10,25 +10,79 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On 2012-06-30 21:24:59 +0200, Guenter Roeck said:
 
->> So, I have the following values by default:
->>
->> pwm1_auto_channels_pwm = 1 (1 binary - fan1)
->> pwm2_auto_channels_pwm = 2 (10 binary - fan2)
->> pwm3_auto_channels_pwm = 4 (100 binary - fan3)
->>
->>     
-> Guess you mean pwm[1-3]_auto_channels_temp.
->   
-Yeah, that's right.
+> On Sat, Jun 30, 2012 at 07:27:49PM +0200, Philipp Kraus wrote:
+>> On 2012-06-30 19:03:44 +0200, Guenter Roeck said:
+>> 
+>>> On Sat, Jun 30, 2012 at 06:04:53PM +0200, Philipp Kraus wrote:
+>>>> On 2012-06-30 17:33:38 +0200, Guenter Roeck said:
+>>>> 
+>>>>> On Sat, Jun 30, 2012 at 04:37:28PM +0200, Philipp Kraus wrote:
+>>>>>> 
+>>>>>> the grep command shows
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/driver: Is a directory
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/hwmon: Is a directory
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/power: Is a directory
+>>>>>> grep: /sys/class/hwmon/hwmon1/device/subsystem: Is a directory
+>>>>>> 
+>>>>>> and within the directory are the in*, pwm* temp* files
+>>>>>> 
+>>>>> Not sure I understand.
+>>>>> 
+>>>>> I'll need the names and output for the pwm* and temp* files. They
+>>>>> _should_ be in
+>>>>> /sys/class/hwmon/hwmon1/device/pwm* and /sys/class/hwmon/hwmon1/device/temp*.
+>>>> 
+>>>> the command grep /sys.... does not work, I have run an ls -l and
+>>> 
+>>> Phil,
+>>> 
+>>> It wasn't "grep /sys/...", it was "grep . /sys/class/hwmon/hwmon1/device/*".
+>>> The "." is important. Your output gives me the file names, but I need names and
+>>> content, not names and permissions.
+>> 
+>> Sorry, my mistake, I haven't seen that it ist "grep . <space> /sys..."
+>> Hope this the correct output now
+>> 
+>> /sys/class/hwmon/hwmon1/device/pwm1:252
+> 
+> Looks like all pwm values report the "default" pwm value.
+> 
+>> /sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm:1
+> 
+> If I understand the code and the data sheet correectly, this attribute
+> is a bit map used to map a temperature source to one or multiple fans.
+> And it looks like all temperature sources are mapped to fan1, which
+> in turn means that effectively temp4 controls the speed of fan1 (the highest
+> temperature determines the fan speed), and all other fans are not mapped to
+> a temperature input.
+> 
+> What you should probably do is to find the association between tempX and pwmX
+> and program tempX_auto_channels_pwm such that the two map.
+> For example, if temp1
+> is the CPU1 temperature, and pwm4 (fan4) is connected to the CPU1 fan, write
+> 0b00001000 = 0x08 into /sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm.
+> Similar, if temp2 is the CPU2 temperature and fan5/pwm5 controls its fan,
+> write 0x10 () into /sys/class/hwmon/hwmon1/device/temp2_auto_channels_pwm.
 
-> You are right - sorry for that. I looked into the driver. The chip
-> understands [1, 2, 3], but the driver maps those values into a bit map,
-> where only one bit can be true at any given time.
->   
-OK, nice to know as when I set it up (with "echo X > ...") I can't use 
-anything other than 1, 2 or 4 so was a bit surprised that 3 is supposed 
-to be the correct value.
+You are write, temp1 and temp2 are the values for the CPU 1 and CPU 2. 
+The fans for the CPU
+are fan7 = CPU 1 and fan8 = CPU 2
+
+Can you explane me in detail how you create the map 0b00001000 = 0x08 ?
+I think 0x08 = 0x8 = 8 is a hexadecimal value but is this 0b00001000 
+also a hexadecimal value, in this case both values are not equal !?
+Should I write with echo -e "\x8" > 
+/sys/class/hwmon/hwmon1/device/temp1_auto_channels_pwm ?
+
+IMHO I must enable (1) the n-th bit on the auto_channels_pwm value for 
+the n-th fan, so in my configuration the 7 and 8 bit (begin = 0)?
+
+Thanks
+
+Phil
+
 
 
 _______________________________________________
