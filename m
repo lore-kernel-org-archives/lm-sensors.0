@@ -1,59 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Date: Fri, 27 Jul 2012 18:44:27 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (acpi_power_meter) Fix build warning
-Message-Id: <201207272044.27931.rjw@sisk.pl>
+From: Vahid Keykhaey <vahid.keykhaey@gmail.com>
+Date: Tue, 03 Jul 2012 13:13:47 +0000
+Subject: [lm-sensors] Cannot monitor fan
+Message-Id: <CAMcsHH1FV2K9mpe4yNybo7jOf1r0pVVhNFrjvZTaLOijwwQqhA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5614989476469491739=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1343398922-24764-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1343398922-24764-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Friday, July 27, 2012, Guenter Roeck wrote:
-> Commit c5dec0182256361a3f823316e8fb85263f76efe7 (acpi_power_meter: Use struct
-> dev_pm_ops for power management) introduced the following build warning. It is
-> seen if CONFIG_PM_SLEEP is not defined.
-> 
-> acpi_power_meter.c:930:12: warning: acpi_power_meter_resume defined but not used
-> 
-> Fix it.
-> 
-> Cc: Rafael J. Wysocki <rjw@sisk.pl>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+--===============5614989476469491739==
+Content-Type: multipart/alternative; boundary=20cf3071d0ba4e9fcc04c3ecaf5e
 
-Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+--20cf3071d0ba4e9fcc04c3ecaf5e
+Content-Type: text/plain; charset=ISO-8859-1
 
-> ---
->  drivers/hwmon/acpi_power_meter.c |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
-> index 563c029..23ab3c4 100644
-> --- a/drivers/hwmon/acpi_power_meter.c
-> +++ b/drivers/hwmon/acpi_power_meter.c
-> @@ -927,6 +927,8 @@ static int acpi_power_meter_remove(struct acpi_device *device, int type)
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_PM_SLEEP
-> +
->  static int acpi_power_meter_resume(struct device *dev)
->  {
->  	struct acpi_power_meter_resource *resource;
-> @@ -944,6 +946,8 @@ static int acpi_power_meter_resume(struct device *dev)
->  	return 0;
->  }
->  
-> +#endif /* CONFIG_PM_SLEEP */
-> +
->  static SIMPLE_DEV_PM_OPS(acpi_power_meter_pm, NULL, acpi_power_meter_resume);
->  
->  static struct acpi_driver acpi_power_meter_driver = {
-> 
+Dear Reader,
+I have an Asus P8Z77-V motherboard with an Intel Core i7 2600 Processor,
+and I am working on my M.Sc. thesis. In order to Implementing my project, I
+need to monitor CPU temperature, and that is why I need to use LM-Sensors,
+but I do not know why my installed LM-Sensors does not monitor fan speed,
+and it only gets me the temperatures.
+I am using Ubuntu 12.04 with kernel version of 3.2.0.23.
 
+Thank you in advance for your help and support.
+Regards,
+Vahid Keykhaey
+
+--20cf3071d0ba4e9fcc04c3ecaf5e
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+Dear Reader,<br>I have an Asus P8Z77-V motherboard with an Intel Core i7 26=
+00 Processor, and I am working on my M.Sc. thesis. In order to Implementing=
+ my project, I need to monitor CPU temperature, and that is why I need to u=
+se LM-Sensors, but I do not know why my installed LM-Sensors does not monit=
+or fan speed, and it only gets me the temperatures. <br>
+I am using Ubuntu 12.04 with kernel version of 3.2.0.23.<br><br>Thank you i=
+n advance for your help and support.<br>Regards,<br>Vahid Keykhaey<br>
+
+--20cf3071d0ba4e9fcc04c3ecaf5e--
+
+
+--===============5614989476469491739==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5614989476469491739==--
