@@ -1,51 +1,76 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 11 Jul 2012 22:43:06 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Preserve configuration register bits on init
-Message-Id: <20120711224306.GA20916@roeck-us.net>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Sat, 07 Jul 2012 21:06:08 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon / exynos4_tmu: Use struct dev_pm_ops for power management
+Message-Id: <201207072306.09305.rjw@sisk.pl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120711221130.6d8bfa6e@endymion.delvare>
-In-Reply-To: <20120711221130.6d8bfa6e@endymion.delvare>
+References: <201207072302.16491.rjw@sisk.pl>
+In-Reply-To: <201207072302.16491.rjw@sisk.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Alistair John Strachan <alistair@devzero.co.uk>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene.kim@samsung.com>
 
-On Wed, Jul 11, 2012 at 10:11:30PM +0200, Jean Delvare wrote:
-> We were accidentally losing one bit in the configuration register on
-> device initialization. It was reported to freeze one specific system
-> right away. Properly preserve all bits we don't explicitly want to
-> change in order to prevent that.
-> 
-> Reported-by: Stevie Trujillo <stevie.trujillo@gmail.com>
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Make the Exynos4 TMU driver define its PM callbacks through
+a struct dev_pm_ops object rather than by using legacy PM hooks
+in struct platform_driver.
 
-> ---
->  drivers/hwmon/it87.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- linux-3.5-rc6.orig/drivers/hwmon/it87.c	2012-06-05 16:22:59.000000000 +0200
-> +++ linux-3.5-rc6/drivers/hwmon/it87.c	2012-07-11 22:04:23.476958967 +0200
-> @@ -2341,7 +2341,7 @@ static void __devinit it87_init_device(s
->  
->  	/* Start monitoring */
->  	it87_write_value(data, IT87_REG_CONFIG,
-> -			 (it87_read_value(data, IT87_REG_CONFIG) & 0x36)
-> +			 (it87_read_value(data, IT87_REG_CONFIG) & 0x3e)
->  			 | (update_vbat ? 0x41 : 0x01));
->  }
->  
-> 
-> -- 
-> Jean Delvare
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/hwmon/exynos4_tmu.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+Index: linux/drivers/hwmon/exynos4_tmu.c
+=================================--- linux.orig/drivers/hwmon/exynos4_tmu.c
++++ linux/drivers/hwmon/exynos4_tmu.c
+@@ -476,34 +476,37 @@ static int __devexit exynos4_tmu_remove(
+ }
+ 
+ #ifdef CONFIG_PM
+-static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
++static int exynos4_tmu_suspend(struct device *dev)
+ {
+-	exynos4_tmu_control(pdev, false);
++	exynos4_tmu_control(to_platform_device(dev), false);
+ 
+ 	return 0;
+ }
+ 
+-static int exynos4_tmu_resume(struct platform_device *pdev)
++static int exynos4_tmu_resume(struct device *dev)
+ {
++	struct platform_device *pdev = to_platform_device(dev);
++
+ 	exynos4_tmu_initialize(pdev);
+ 	exynos4_tmu_control(pdev, true);
+ 
+ 	return 0;
+ }
++
++static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm, exynos4_tmu_suspend, exynos4_tmu_resume);
++#define EXYNOS4_TMU_PM	(&exynos4_tmu_pm)
+ #else
+-#define exynos4_tmu_suspend NULL
+-#define exynos4_tmu_resume NULL
++#define EXYNOS4_TMU_PM	NULL
+ #endif
+ 
+ static struct platform_driver exynos4_tmu_driver = {
+ 	.driver = {
+ 		.name   = "exynos4-tmu",
+ 		.owner  = THIS_MODULE,
++		.pm     = EXYNOS4_TMU_PM,
+ 	},
+ 	.probe = exynos4_tmu_probe,
+ 	.remove	= __devexit_p(exynos4_tmu_remove),
+-	.suspend = exynos4_tmu_suspend,
+-	.resume = exynos4_tmu_resume,
+ };
+ 
+ module_platform_driver(exynos4_tmu_driver);
+
 
 _______________________________________________
 lm-sensors mailing list
