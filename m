@@ -1,43 +1,81 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 07 Jul 2012 15:07:11 +0000
-Subject: Re: [lm-sensors] [PATCH 3/3] hwmon: (w83627ehf) Add missing break statement
-Message-Id: <20120707170711.45c526d8@endymion.delvare>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Date: Sat, 07 Jul 2012 21:04:42 +0000
+Subject: [lm-sensors] [PATCH 2/4] hwmon / abituguru3: Use struct dev_pm_ops for power management
+Message-Id: <201207072304.42750.rjw@sisk.pl>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201207072302.16491.rjw@sisk.pl>
+In-Reply-To: <201207072302.16491.rjw@sisk.pl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Alistair John Strachan <alistair@devzero.co.uk>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Kukjin Kim <kgene.kim@samsung.com>
 
-On Thu, 21 Jun 2012 06:56:55 -0700, Guenter Roeck wrote:
-> A case statement in nct6775_write_fan_div() is missing a break. Fix it.
-> 
-> This patch addresses Coverity #141439: Missing break in switch.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/w83627ehf.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/hwmon/w83627ehf.c b/drivers/hwmon/w83627ehf.c
-> index 54922ed..1821b74 100644
-> --- a/drivers/hwmon/w83627ehf.c
-> +++ b/drivers/hwmon/w83627ehf.c
-> @@ -599,6 +599,7 @@ static void nct6775_write_fan_div(struct w83627ehf_data *data, int nr)
->  		reg = (w83627ehf_read_value(data, NCT6775_REG_FANDIV1) & 0x7)
->  		    | ((data->fan_div[1] << 4) & 0x70);
->  		w83627ehf_write_value(data, NCT6775_REG_FANDIV1, reg);
-> +		break;
->  	case 2:
->  		reg = (w83627ehf_read_value(data, NCT6775_REG_FANDIV2) & 0x70)
->  		    | (data->fan_div[2] & 0x7);
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Make the Abit uGuru rev. 3 driver define its PM callbacks through
+a struct dev_pm_ops object rather than by using legacy PM hooks
+in struct platform_driver.
 
-Good catch, thankfully it is harmless as we are simply writing an
-unchanged value to the other register.
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+---
+ drivers/hwmon/abituguru3.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
--- 
-Jean Delvare
+Index: linux/drivers/hwmon/abituguru3.c
+=================================--- linux.orig/drivers/hwmon/abituguru3.c
++++ linux/drivers/hwmon/abituguru3.c
+@@ -1142,9 +1142,11 @@ LEAVE_UPDATE:
+ }
+ 
+ #ifdef CONFIG_PM
+-static int abituguru3_suspend(struct platform_device *pdev, pm_message_t state)
++static int abituguru3_suspend(struct device *dev)
+ {
+-	struct abituguru3_data *data = platform_get_drvdata(pdev);
++	struct abituguru3_data *data;
++
++	data = platform_get_drvdata(to_platform_device(dev));
+ 	/*
+ 	 * make sure all communications with the uguru3 are done and no new
+ 	 * ones are started
+@@ -1153,26 +1155,29 @@ static int abituguru3_suspend(struct pla
+ 	return 0;
+ }
+ 
+-static int abituguru3_resume(struct platform_device *pdev)
++static int abituguru3_resume(struct device *dev)
+ {
+-	struct abituguru3_data *data = platform_get_drvdata(pdev);
++	struct abituguru3_data *data;
++
++	data = platform_get_drvdata(to_platform_device(dev));
+ 	mutex_unlock(&data->update_lock);
+ 	return 0;
+ }
++
++static SIMPLE_DEV_PM_OPS(abituguru3_pm, abituguru3_suspend, abituguru3_resume);
++#define ABIT_UGURU3_PM	(&abituguru3_pm)
+ #else
+-#define abituguru3_suspend	NULL
+-#define abituguru3_resume	NULL
++#define ABIT_UGURU3_PM	NULL
+ #endif /* CONFIG_PM */
+ 
+ static struct platform_driver abituguru3_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+ 		.name	= ABIT_UGURU3_NAME,
++		.pm	= ABIT_UGURU3_PM
+ 	},
+ 	.probe	= abituguru3_probe,
+ 	.remove	= __devexit_p(abituguru3_remove),
+-	.suspend = abituguru3_suspend,
+-	.resume = abituguru3_resume
+ };
+ 
+ static int __init abituguru3_dmi_detect(void)
+
 
 _______________________________________________
 lm-sensors mailing list
