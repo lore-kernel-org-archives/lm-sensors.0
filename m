@@ -1,44 +1,62 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 26 Jul 2012 14:14:26 +0000
-Subject: Re: [lm-sensors] [RFC][PATCH] hwmon: add support for Sensirion C1 sensor
-Message-Id: <20120726141426.GA15985@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sat, 07 Jul 2012 14:48:34 +0000
+Subject: Re: [lm-sensors] [PATCH 1/3] hwmon: (acpi_power_meter) Fix unintentional integer overflow
+Message-Id: <20120707164834.26522aae@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1342789042-13433-1-git-send-email-johannes.winkelmann@sensirion.com>
- <20120721170150.GA13086@roeck-us.net>
- <CAEYbzYsTQttoOnkoYqw9RkDO1zUc3qpyg0CzEY11_=oqdk0H-Q@mail.gmail.com>
-In-Reply-To: <CAEYbzYsTQttoOnkoYqw9RkDO1zUc3qpyg0CzEY11_=oqdk0H-Q@mail.gmail.com>
+References: <1340287015-14008-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1340287015-14008-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Johannes Winkelmann <johannes.winkelmann@gmail.com>
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Johannes Winkelmann <johannes.winkelmann@sensirion.com>
+To: lm-sensors@vger.kernel.org
 
-Hi Johannes,
+Hi Guenter,
 
-On Thu, Jul 26, 2012 at 03:53:12PM +0200, Johannes Winkelmann wrote:
-> Hi Guenter,
+On Thu, 21 Jun 2012 06:56:53 -0700, Guenter Roeck wrote:
+> Expression with two integer variables is calculated as integer before it is
+> converted to u64. This may result in an integer overflow. Fix by declaring
+> the constant as ULL.
 > 
-> Thanks a lot for the feedback; I've incorporated most of it in
-> preparation for a v2 of the patch; I have some comments on the points
-> I'm not certain about:
+> This patch addresses Coverity #200596: Unintentional integer overflow.
 > 
-[ ... ]
-> >> +
-> >> +The device communicates with the I2C protocol. All sensors are set to the same
-> >> +I2C address 0x70, so an entry with I2C_BOARD_INFO("shtc1", 0x70) can be used
-> >> +in the board setup code.
-> >> +
-> > Please also provide a reference to the other means to instantiate the driver.
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  drivers/hwmon/acpi_power_meter.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I've checked a couple of documentation files and haven't found what
-> else I should add, in fact the other sensor documents I checked didn't
-> cover this, except for the one from the sht21 after which I modelled
-> the document. Could you give me a pointer where to look?
-> 
-Just add a reference to Documentation/i2c/instantiating-devices.
+> diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
+> index 9a0821f1..c8ac1c6 100644
+> --- a/drivers/hwmon/acpi_power_meter.c
+> +++ b/drivers/hwmon/acpi_power_meter.c
+> @@ -434,7 +434,7 @@ static ssize_t show_val(struct device *dev,
+>  		if (resource->trip[attr->index - 7] < 0)
+>  			return sprintf(buf, "unknown\n");
+>  
+> -		val = resource->trip[attr->index - 7] * 1000;
+> +		val = resource->trip[attr->index - 7] * 1000ULL;
+>  		break;
+>  	default:
+>  		BUG();
 
-Thanks,
-Guenter
+That's one way to fix it... Me, I wonder why resource->trip is an
+arrays of ints, when every other power value handled by the driver is a
+u64. The trip values end up feeding acpi objects in set_acpi_trip,
+where 64-bit values would be handled properly. So I don't know much
+about this driver and I'm not using it, but maybe making trip values
+64-bit would be a better fix. Then you still have the problem of signed
+vs. unsigned, as currently trip = -1 means unset, but this is probably
+easy to solve.
+
+Also note that the trip values are gathered from sysfs using kstrtoul,
+so a value between 0x80000000 and 0xffffffff would be silently stored
+as a negative number. Maybe worth fixing...
+
+And I also see that kstrtoul is used for cap and avg_interval, while
+they are stored as u64 in struct acpi_power_meter_resource. No overflow
+here, but an arbitrary limitation on what values the user can set.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
