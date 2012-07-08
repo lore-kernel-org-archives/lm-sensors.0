@@ -1,41 +1,52 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 11 Jul 2012 18:38:40 +0000
-Subject: Re: [lm-sensors] GA-Z77X-UD3H with ITE IT8728F, modprobe it87  freezes system
-Message-Id: <20120711203840.6a4d22d5@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 08 Jul 2012 16:50:38 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (acpi_power_meter) Fix unintentional integer overflow
+Message-Id: <1341766238-10943-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAJiZuY3QBnkcAsisvbg9pEzMt044aVBF+vwzrCHsGTS_N9ez1A@mail.gmail.com>
-In-Reply-To: <CAJiZuY3QBnkcAsisvbg9pEzMt044aVBF+vwzrCHsGTS_N9ez1A@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 11 Jul 2012 11:31:24 -0700, Guenter Roeck wrote:
-> On Wed, Jul 11, 2012 at 06:10:43PM +0200, Jean Delvare wrote:
-> > The 0xb7 is from the very first version of the it87 driver by Christophe
-> > Gauthron 11 years ago. I have no idea why bit 3 was explicitly cleared back
-> > then.
->
-> Oversight, maybe, or the bit name was confusing.
-> 
-> It doesn't make much sense to enable SMI interrupts while keeping global
-> interrupts disabled. We may just have been lucky to never hit this problem.
+Expression with two integer variables is calculated as integer before it is
+converted to u64. This may result in an integer overflow. Fix by declaring
+trip point variables as s64 instead of int.
 
-I think so, yes.
+This patch addresses Coverity #200596: Unintentional integer overflow.
 
-> > > Replacing the 0x36 mask above with 0x3e might possibly solve the problem.
-> > 
-> > Indeed. I'm not too sure what to do about bit 5, BTW, it might be
-> > self-clearing as bit 7.
->
-> I'd keep it as-is. Not worth trying to solve a problem which may not exist.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Fix by declaring trip point variables as s64 instead of multiplying with
+    1000ULL. This is more consistent with the rest of the code.
 
-Agreed. I'll push the fix to Linus ASAP.
+ drivers/hwmon/acpi_power_meter.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Thanks Stevie for the quick test report!
-
+diff --git a/drivers/hwmon/acpi_power_meter.c b/drivers/hwmon/acpi_power_meter.c
+index 9a0821f1..5363da5 100644
+--- a/drivers/hwmon/acpi_power_meter.c
++++ b/drivers/hwmon/acpi_power_meter.c
+@@ -101,7 +101,7 @@ struct acpi_power_meter_resource {
+ 	unsigned long		sensors_last_updated;
+ 	struct sensor_device_attribute	sensors[NUM_SENSORS];
+ 	int			num_sensors;
+-	int			trip[2];
++	s64			trip[2];
+ 	int			num_domain_devices;
+ 	struct acpi_device	**domain_devices;
+ 	struct kobject		*holders_dir;
+@@ -308,8 +308,6 @@ static ssize_t set_trip(struct device *dev, struct device_attribute *devattr,
+ 		return res;
+ 
+ 	temp = DIV_ROUND_CLOSEST(temp, 1000);
+-	if (temp > INT_MAX)
+-		return -EINVAL;
+ 
+ 	mutex_lock(&resource->lock);
+ 	resource->trip[attr->index - 7] = temp;
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
