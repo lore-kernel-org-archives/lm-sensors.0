@@ -1,97 +1,103 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 09 Jul 2012 04:42:35 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4][update] hwmon / exynos4_tmu: Use struct dev_pm_ops for power management
-Message-Id: <20120709044235.GA21850@roeck-us.net>
+From: Mohsen Jamali <mohsen.aria@gmail.com>
+Date: Sun, 08 Jul 2012 07:54:37 +0000
+Subject: [lm-sensors] ACPI: I/O resource dme1737 [0xa70-0xa71] conflicts with ACPI region RNTR [0xa00-0xa7f]
+Message-Id: <CAOi8JQyxPWqc4=w+NorQSWQfVyY3Mswmkf0wQ58BTvH0qKFFhg@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8931328882443882967=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201207072302.16491.rjw@sisk.pl>
- <201207082148.15674.rjw@sisk.pl>
- <20120708203004.GA20390@roeck-us.net>
- <201207082246.13006.rjw@sisk.pl>
-In-Reply-To: <201207082246.13006.rjw@sisk.pl>
-MIME-Version: 1.0
+To: lm-sensors@vger.kernel.org
+
+--===============8931328882443882967==
+Content-Type: multipart/alternative; boundary=20cf303dd5a4f5451004c44cb9e1
+
+--20cf303dd5a4f5451004c44cb9e1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+*1Hi guys :)*
+im using Debian squeeze on this machine :
+http://www.advantech.com/products/PCM-9363/mod_235FB6C7-A605-4230-B8DA-33F5=
+B4F6A1AA.aspx
+*
+this machine have a hardware watchdog that i want to use it on Debian.
+these are the output of some command that i think is useful to know:
+*
+root@dhcppc2:/home/p# acpi -V
+No support for device type: power_supply
+No support for device type: power_supply
+Cooling 0: Processor 0 of 0
+Cooling 1: Processor 0 of 0
+
+root@dhcppc2:/home/p# modprobe dme1737
+FATAL: Error inserting dme1737
+(/lib/modules/2.6.32-5-amd64/kernel/drivers/hwmon/dme1737.ko): Device or
+resource busy
+
+root@dhcppc2:/home/p# sensors
+coretemp-isa-0000
+Adapter: ISA adapter
+Core 0:      +45.0=B0C  (crit =3D +100.0=B0C)
+
+
+*and here is the output of dmesg:*
+[  403.388163] ACPI: I/O resource dme1737 [0xa70-0xa71] conflicts with ACPI
+region RNTR [0xa00-0xa7f]
+[  403.388175] ACPI: If an ACPI driver is available for this device, you
+should use it instead of the native driver
+
+*and when i uncomment this line of /etc/watchdog.conf the machine restarts!=
+*
+#watchdog-device        =3D /dev/watchdog
+
+*what's the solution of this problem?
+thanks :)*
+
+--20cf303dd5a4f5451004c44cb9e1
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<font color=3D"#000066"><font><font face=3D"tahoma,sans-serif"><b>1Hi guys =
+:)</b><br>im using Debian squeeze on this machine : <a href=3D"http://www.a=
+dvantech.com/products/PCM-9363/mod_235FB6C7-A605-4230-B8DA-33F5B4F6A1AA.asp=
+x">http://www.advantech.com/products/PCM-9363/mod_235FB6C7-A605-4230-B8DA-3=
+3F5B4F6A1AA.aspx</a><br>
+
+<b><br>this machine have a hardware watchdog that i want to use it on Debia=
+n. these are the output of some command that i think is useful to know:<br>=
+</b><br>root@dhcppc2:/home/p# acpi -V
+<br>No support for device type: power_supply
+<br>No support for device type: power_supply
+<br>Cooling 0: Processor 0 of 0
+<br>Cooling 1: Processor 0 of 0<br><br>root@dhcppc2:/home/p# modprobe dme17=
+37
+<br>FATAL: Error inserting dme1737 (/lib/modules/2.6.32-5-amd64/kernel/driv=
+ers/hwmon/dme1737.ko): Device or resource busy
+<br><br>root@dhcppc2:/home/p# sensors
+<br>coretemp-isa-0000
+<br>Adapter: ISA adapter
+<br>Core 0:=A0=A0=A0=A0=A0 +45.0=B0C=A0 (crit =3D +100.0=B0C)=A0=A0=A0=A0 <=
+br><br><br><b>and here is the output of dmesg:</b><br>[=A0 403.388163] ACPI=
+: I/O resource dme1737 [0xa70-0xa71] conflicts with ACPI region RNTR [0xa00=
+-0xa7f]
+<br>[=A0 403.388175] ACPI: If an ACPI driver is available for this device, =
+you should use it instead of the native driver<br><br><b>and when i uncomme=
+nt this line of /etc/watchdog.conf the machine restarts!</b><br>#watchdog-d=
+evice=A0=A0=A0=A0=A0=A0=A0 =3D /dev/watchdog<br>
+
+<br><b>what&#39;s the solution of this problem? <br>thanks :)</b><br></font=
+></font></font>
+
+--20cf303dd5a4f5451004c44cb9e1--
+
+
+--===============8931328882443882967==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Alistair John Strachan <alistair@devzero.co.uk>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, Kukjin Kim <kgene.kim@samsung.com>
-
-On Sun, Jul 08, 2012 at 10:46:12PM +0200, Rafael J. Wysocki wrote:
-> On Sunday, July 08, 2012, Guenter Roeck wrote:
-> > On Sun, Jul 08, 2012 at 09:48:15PM +0200, Rafael J. Wysocki wrote:
-> > > From: Rafael J. Wysocki <rjw@sisk.pl>
-> > > 
-> > Hi Rafael,
-> > 
-> > > Make the Exynos4 TMU driver define its PM callbacks through
-> > > a struct dev_pm_ops object rather than by using legacy PM hooks
-> > > in struct platform_driver.
-> > > 
-> > > Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-> > > ---
-> > >  drivers/hwmon/exynos4_tmu.c |   18 +++++++++++-------
-> > >  1 file changed, 11 insertions(+), 7 deletions(-)
-> > > 
-> > > Index: linux/drivers/hwmon/exynos4_tmu.c
-> > > =================================> > > --- linux.orig/drivers/hwmon/exynos4_tmu.c
-> > > +++ linux/drivers/hwmon/exynos4_tmu.c
-> > > @@ -476,34 +476,38 @@ static int __devexit exynos4_tmu_remove(
-> > >  }
-> > >  
-> > >  #ifdef CONFIG_PM
-> > > -static int exynos4_tmu_suspend(struct platform_device *pdev, pm_message_t state)
-> > > +static int exynos4_tmu_suspend(struct device *dev)
-> > >  {
-> > > -	exynos4_tmu_control(pdev, false);
-> > > +	exynos4_tmu_control(to_platform_device(dev), false);
-> > >  
-> > >  	return 0;
-> > >  }
-> > >  
-> > > -static int exynos4_tmu_resume(struct platform_device *pdev)
-> > > +static int exynos4_tmu_resume(struct device *dev)
-> > >  {
-> > > +	struct platform_device *pdev = to_platform_device(dev);
-> > > +
-> > >  	exynos4_tmu_initialize(pdev);
-> > >  	exynos4_tmu_control(pdev, true);
-> > >  
-> > >  	return 0;
-> > >  }
-> > > +
-> > > +static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm,
-> > > +			 exynos4_tmu_suspend, exynos4_tmu_resume);
-> > > +#define EXYNOS4_TMU_PM	(&exynos4_tmu_pm)
-> > >  #else
-> > > -#define exynos4_tmu_suspend NULL
-> > > -#define exynos4_tmu_resume NULL
-> > > +#define EXYNOS4_TMU_PM	NULL
-> > >  #endif
-> > 
-> > Actually, looking into other drivers, the common approach seems to be to declare
-> > 
-> > static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm,
-> > 			 exynos4_tmu_suspend, exynos4_tmu_resume);
-> > 
-> > outside the #ifdef code and then just assign
-> > 
-> > 		.pm = &exynos4_tmu_pm;
-> > 
-> > unconditionally.
-> > 
-> > That seems to be a much simpler solution. Any special reason for not
-> > implementing it this way ? Same question applies to the other patches in the
-> > series.
-> 
-> In fact, there are two ways.  One of them is what you said, the other is to
-> put SIMPLE_DEV_PM_OPS() under the #ifdef like I did.  I'm not sure which one
-> is prevalent, but what I did has the advatnage that the kernel data will
-> be slightly smaller if CONFIG_PM is unset.
-> 
-Ok, make sense. Applied to -next.
-
-Thanks,
-Guenter
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8931328882443882967==--
