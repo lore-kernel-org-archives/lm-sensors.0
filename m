@@ -1,42 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 17 Jul 2012 01:13:50 +0000
-Subject: Re: [lm-sensors] Unsuported ITE chipset 0x8771
-Message-Id: <20120717011350.GA22254@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 11 Jul 2012 20:11:30 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (it87) Preserve configuration register bits on init
+Message-Id: <20120711221130.6d8bfa6e@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
-In-Reply-To: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Jul 15, 2012 at 12:18:07AM +0000, Dennis Hohmann wrote:
-> Hi,
->=20
-> can anybody tell me how to compile the driver? I made the changes to the =
-source
-> code but I always get the following error:
->=20
->     root@nas ~/it87 $ make
->     make[1]: Entering directory `/lib/modules/3.2.0-0.bpo.2-amd64/build'
->     make[1]: *** No rule to male =BBmodules=AB. Quit.
->     make[1]: Leaving directory `/lib/modules/3.2.0-0.bpo.2-amd64/build'
->     make: *** [modules] Error 2
->=20
->=20
-> I'm running Debian with Kernel 3.2.0-0.bpo.2-amd64 and installed the Kern=
-el
-> Headers. Same error happens on 2.6.32-5-amd64.
->=20
-Dennis,
+We were accidentally losing one bit in the configuration register on
+device initialization. It was reported to freeze one specific system
+right away. Properly preserve all bits we don't explicitly want to
+change in order to prevent that.
 
-Unfortunately, your e-mail lacks both information about the driver you are
-trying to compile and the changes you are trying to make. Unless someone on=
- the
-list happens to be a psychic, it may be difficult to help without that
-information.
+Reported-by: Stevie Trujillo <stevie.trujillo@gmail.com>
+Cc: stable@vger.kernel.org
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/it87.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Guenter
+--- linux-3.5-rc6.orig/drivers/hwmon/it87.c	2012-06-05 16:22:59.000000000 +0200
++++ linux-3.5-rc6/drivers/hwmon/it87.c	2012-07-11 22:04:23.476958967 +0200
+@@ -2341,7 +2341,7 @@ static void __devinit it87_init_device(s
+ 
+ 	/* Start monitoring */
+ 	it87_write_value(data, IT87_REG_CONFIG,
+-			 (it87_read_value(data, IT87_REG_CONFIG) & 0x36)
++			 (it87_read_value(data, IT87_REG_CONFIG) & 0x3e)
+ 			 | (update_vbat ? 0x41 : 0x01));
+ }
+ 
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
