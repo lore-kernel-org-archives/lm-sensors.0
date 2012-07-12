@@ -1,31 +1,176 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 30 Jul 2012 09:42:46 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon update for Linux 3.6
-Message-Id: <20120730114246.11ae98c7@endymion.delvare>
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Date: Thu, 12 Jul 2012 13:53:08 +0000
+Subject: [lm-sensors] [RESEND PATCH v4 5/5] ARM: exynos: add thermal sensor driver platform data support
+Message-Id: <1342100468-19426-6-git-send-email-amit.kachhap@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1342100468-19426-1-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <1342100468-19426-1-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org, lenb@kernel.org
+Cc: linux-samsung-soc@vger.kernel.org, SangWook Ju <sw.ju@samsung.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, akpm@linux-foundation.org, Donggeun Kim <dg77.kim@samsung.com>
 
-Hi Linus,
+Add necessary default platform data support needed for TMU driver.  This
+dt/non-dt values are tested for origen exynos4210 and smdk exynos5250
+platforms.
 
-Please pull one hwmon subsystem update for Linux 3.6 from:
+Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: Donggeun Kim <dg77.kim@samsung.com>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: SangWook Ju <sw.ju@samsung.com>
+Cc: Durgadoss <durgadoss.r@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+ drivers/thermal/exynos_thermal.c |  111 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 110 insertions(+), 1 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
-
- drivers/hwmon/coretemp.c    |    2 +-
- drivers/hwmon/via-cputemp.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
----------------
-
-Jan Beulich (1):
-      hwmon: struct x86_cpu_id arrays can be __initconst
-
-Thanks,
+diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
+index 52255fb..b561295 100644
+--- a/drivers/thermal/exynos_thermal.c
++++ b/drivers/thermal/exynos_thermal.c
+@@ -662,14 +662,121 @@ static irqreturn_t exynos_tmu_irq(int irq, void *id)
+ static struct thermal_sensor_conf exynos_sensor_conf = {
+ 	.name			= "exynos-therm",
+ 	.read_temperature	= (int (*)(void *))exynos_tmu_read,
++};
++
++#if defined(CONFIG_CPU_EXYNOS4210)
++static struct exynos_tmu_platform_data const exynos4_default_tmu_data = {
++	.threshold = 80,
++	.trigger_levels[0] = 5,
++	.trigger_levels[1] = 20,
++	.trigger_levels[2] = 30,
++	.trigger_level0_en = 1,
++	.trigger_level1_en = 1,
++	.trigger_level2_en = 1,
++	.trigger_level3_en = 0,
++	.gain = 15,
++	.reference_voltage = 7,
++	.cal_type = TYPE_ONE_POINT_TRIMMING,
++	.freq_tab[0] = {
++		.freq_clip_max = 800 * 1000,
++		.temp_level = 85,
++	},
++	.freq_tab[1] = {
++		.freq_clip_max = 200 * 1000,
++		.temp_level = 100,
++	},
++	.freq_tab_count = 2,
++	.type = SOC_ARCH_EXYNOS4,
++};
++#define EXYNOS4_TMU_DRV_DATA (&exynos4_default_tmu_data)
++#else
++#define EXYNOS4_TMU_DRV_DATA (NULL)
++#endif
++
++#if defined(CONFIG_SOC_EXYNOS5250)
++static struct exynos_tmu_platform_data const exynos5_default_tmu_data = {
++	.trigger_levels[0] = 85,
++	.trigger_levels[1] = 103,
++	.trigger_levels[2] = 110,
++	.trigger_level0_en = 1,
++	.trigger_level1_en = 1,
++	.trigger_level2_en = 1,
++	.trigger_level3_en = 0,
++	.gain = 8,
++	.reference_voltage = 16,
++	.noise_cancel_mode = 4,
++	.cal_type = TYPE_ONE_POINT_TRIMMING,
++	.efuse_value = 55,
++	.freq_tab[0] = {
++		.freq_clip_max = 800 * 1000,
++		.temp_level = 85,
++	},
++	.freq_tab[1] = {
++		.freq_clip_max = 200 * 1000,
++		.temp_level = 103,
++	},
++	.freq_tab_count = 2,
++	.type = SOC_ARCH_EXYNOS5,
++};
++#define EXYNOS5_TMU_DRV_DATA (&exynos5_default_tmu_data)
++#else
++#define EXYNOS5_TMU_DRV_DATA (NULL)
++#endif
++
++#ifdef CONFIG_OF
++static const struct of_device_id exynos_tmu_match[] = {
++	{
++		.compatible = "samsung,exynos4-tmu",
++		.data = (void *)EXYNOS4_TMU_DRV_DATA,
++	},
++	{
++		.compatible = "samsung,exynos5-tmu",
++		.data = (void *)EXYNOS5_TMU_DRV_DATA,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, exynos_tmu_match);
++#else
++#define  exynos_tmu_match NULL
++#endif
++
++static struct platform_device_id exynos_tmu_driver_ids[] = {
++	{
++		.name		= "exynos4-tmu",
++		.driver_data    = (kernel_ulong_t)EXYNOS4_TMU_DRV_DATA,
++	},
++	{
++		.name		= "exynos5-tmu",
++		.driver_data    = (kernel_ulong_t)EXYNOS5_TMU_DRV_DATA,
++	},
++	{ },
++};
++MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
++
++static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
++			struct platform_device *pdev)
++{
++#ifdef CONFIG_OF
++	if (pdev->dev.of_node) {
++		const struct of_device_id *match;
++		match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
++		if (!match)
++			return NULL;
++		return (struct exynos_tmu_platform_data *) match->data;
++	}
++#endif
++	return (struct exynos_tmu_platform_data *)
++			platform_get_device_id(pdev)->driver_data;
+ }
+-;
+ static int __devinit exynos_tmu_probe(struct platform_device *pdev)
+ {
+ 	struct exynos_tmu_data *data;
+ 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
+ 	int ret, i;
+ 
++	if (!pdata)
++		pdata = exynos_get_driver_data(pdev);
++
+ 	if (!pdata) {
+ 		dev_err(&pdev->dev, "No platform init data supplied.\n");
+ 		return -ENODEV;
+@@ -832,11 +939,13 @@ static struct platform_driver exynos_tmu_driver = {
+ 	.driver = {
+ 		.name   = "exynos-tmu",
+ 		.owner  = THIS_MODULE,
++		.of_match_table = exynos_tmu_match,
+ 	},
+ 	.probe = exynos_tmu_probe,
+ 	.remove	= __devexit_p(exynos_tmu_remove),
+ 	.suspend = exynos_tmu_suspend,
+ 	.resume = exynos_tmu_resume,
++	.id_table = exynos_tmu_driver_ids,
+ };
+ 
+ module_platform_driver(exynos_tmu_driver);
 -- 
-Jean Delvare
+1.7.1
+
 
 _______________________________________________
 lm-sensors mailing list
