@@ -1,90 +1,58 @@
-From: Aurelien Jarno <aurelien@aurel32.net>
-Date: Sat, 14 Jul 2012 15:26:26 +0000
-Subject: [lm-sensors] [PATCH]: i2c-tools/decode-dimms: fix cryptic error message
-Message-Id: <20120714152626.GA24918@volta.aurel32.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2190072190934725501=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 15 Jul 2012 17:19:44 +0000
+Subject: Re: [lm-sensors] [PATCH]: i2c-tools/decode-dimms: fix cryptic error message
+Message-Id: <20120715191944.29c64ee8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20120714152626.GA24918@volta.aurel32.net>
+In-Reply-To: <20120714152626.GA24918@volta.aurel32.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
---===============2190072190934725501==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pWyiEgJYm5f9v55/"
-Content-Disposition: inline
-
-
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-decode-dimms doesn't handle correctly the case where the eeprom module
-is loaded, but not eeprom is actually found (most of the cases when no
-bus i2c driver exist for the system):
-
-| # decode-dimms version 5929 (2011-02-16 14:58:38 +0100)
-|=20
-| Memory Serial Presence Detect Decoder
-| By Philip Edelbrock, Christian Zuckschwerdt, Burkart Lingner,
-| Jean Delvare, Trent Piepho and others
-| Can't use string ("") as a HASH ref while "strict refs" in use at /usr/bi=
-n/decode-dimms line 178
-
-This tends to be a cryptic error message, at least for the users. The
-patch below fixes the issue by outputting an error message in that
-case.
-
-Regards,
-Aurelien
-
-
-Index: eeprom/decode-dimms
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- eeprom/decode-dimms	(r=E9vision 6060)
-+++ eeprom/decode-dimms	(copie de travail)
-@@ -1774,6 +1774,9 @@
- 	} elsif (! -d '/sys/module/eeprom') {
- 		print "No EEPROM found, are you sure the eeprom module is loaded?\n";
- 		exit;
-+	} else {
-+		print "No EEPROM found, the kernel probably does not support your hardwa=
-re.\n";
-+		exit;
- 	}
- }
-
---=20
-Aurelien Jarno                          GPG: 1024D/F1BCDB73
-aurelien@aurel32.net                 http://www.aurel32.net
-
---pWyiEgJYm5f9v55/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iD8DBQFQAY+iw3ao2vG823MRAkyVAJ9GKug217mOQrPUasAEqT+6DlN97wCfURcl
-bVpEG3Q+JHDUuKfYImH8Jys=
-=clLn
------END PGP SIGNATURE-----
-
---pWyiEgJYm5f9v55/--
-
-
---===============2190072190934725501==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2190072190934725501==--
+U2FsdXQgQXVyZWxpZW4sCgpPbiBTYXQsIDE0IEp1bCAyMDEyIDE3OjI2OjI2ICswMjAwLCBBdXJl
+bGllbiBKYXJubyB3cm90ZToKPiBkZWNvZGUtZGltbXMgZG9lc24ndCBoYW5kbGUgY29ycmVjdGx5
+IHRoZSBjYXNlIHdoZXJlIHRoZSBlZXByb20gbW9kdWxlCj4gaXMgbG9hZGVkLCBidXQgbm90IGVl
+cHJvbSBpcyBhY3R1YWxseSBmb3VuZCAobW9zdCBvZiB0aGUgY2FzZXMgd2hlbiBubwo+IGJ1cyBp
+MmMgZHJpdmVyIGV4aXN0IGZvciB0aGUgc3lzdGVtKToKPiAKPiB8ICMgZGVjb2RlLWRpbW1zIHZl
+cnNpb24gNTkyOSAoMjAxMS0wMi0xNiAxNDo1ODozOCArMDEwMCkKPiB8IAo+IHwgTWVtb3J5IFNl
+cmlhbCBQcmVzZW5jZSBEZXRlY3QgRGVjb2Rlcgo+IHwgQnkgUGhpbGlwIEVkZWxicm9jaywgQ2hy
+aXN0aWFuIFp1Y2tzY2h3ZXJkdCwgQnVya2FydCBMaW5nbmVyLAo+IHwgSmVhbiBEZWx2YXJlLCBU
+cmVudCBQaWVwaG8gYW5kIG90aGVycwo+IHwgQ2FuJ3QgdXNlIHN0cmluZyAoIiIpIGFzIGEgSEFT
+SCByZWYgd2hpbGUgInN0cmljdCByZWZzIiBpbiB1c2UgYXQgL3Vzci9iaW4vZGVjb2RlLWRpbW1z
+IGxpbmUgMTc4CgpMaW5lIG51bWJlciBoZXJlIGlzIGluY29ycmVjdCwgSSBzdXNwZWN0IHRoZSB0
+cmFpbGluZyBkaWdpdCBpcyBtaXNzaW5nLgoKPiBUaGlzIHRlbmRzIHRvIGJlIGEgY3J5cHRpYyBl
+cnJvciBtZXNzYWdlLCBhdCBsZWFzdCBmb3IgdGhlIHVzZXJzLgoKT2J2aW91c2x5IGl0IGlzbid0
+IGFuIGVycm9yIG1lc3NhZ2UgZm9yIHRoZSB1c2VyLCBpdCBpcyBhIGJ1ZyBpbiB0aGUKc2NyaXB0
+LiBJIGFtIGFibGUgdG8gcmVwcm9kdWNlIHRoaXMgYnVnLgoKPiBUaGUKPiBwYXRjaCBiZWxvdyBm
+aXhlcyB0aGUgaXNzdWUgYnkgb3V0cHV0dGluZyBhbiBlcnJvciBtZXNzYWdlIGluIHRoYXQKPiBj
+YXNlLgo+IAo+IEluZGV4OiBlZXByb20vZGVjb2RlLWRpbW1zCj4gPT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQo+IC0tLSBl
+ZXByb20vZGVjb2RlLWRpbW1zCShyw6l2aXNpb24gNjA2MCkKPiArKysgZWVwcm9tL2RlY29kZS1k
+aW1tcwkoY29waWUgZGUgdHJhdmFpbCkKPiBAQCAtMTc3NCw2ICsxNzc0LDkgQEAKPiAgCX0gZWxz
+aWYgKCEgLWQgJy9zeXMvbW9kdWxlL2VlcHJvbScpIHsKPiAgCQlwcmludCAiTm8gRUVQUk9NIGZv
+dW5kLCBhcmUgeW91IHN1cmUgdGhlIGVlcHJvbSBtb2R1bGUgaXMgbG9hZGVkP1xuIjsKPiAgCQll
+eGl0Owo+ICsJfSBlbHNlIHsKPiArCQlwcmludCAiTm8gRUVQUk9NIGZvdW5kLCB0aGUga2VybmVs
+IHByb2JhYmx5IGRvZXMgbm90IHN1cHBvcnQgeW91ciBoYXJkd2FyZS5cbiI7Cj4gKwkJZXhpdDsK
+PiAgCX0KPiAgfQoKVGhlIGFib3ZlIG1lc3NhZ2UgaXMgc3BlY3VsYXRpb24sIHRoZXJlIGNhbiBi
+ZSBvdGhlciByZWFzb25zIChmb3IKZXhhbXBsZSB0aGUgc3lzdGVtIG1heSBoYXZlIG5vIFNQRCBF
+RVBST00gYXQgYWxsLCBvciB0aGUgT1MgaXMgbm90CmdpdmVuIGFjY2VzcyB0byB0aGVzZS4pCgpU
+aGUgYnVnIGlzIHRoYXQgZnVuY3Rpb24gZ2V0X2RpbW1fbGlzdCByZXR1cm5zIHJhbmRvbSBjcmFw
+IGluIHRoZQpwcm9ibGVtYXRpYyBjYXNlIChsYWNrIG9mIHJldHVybiBzdGF0ZW1lbnQpIGluc3Rl
+YWQgb2YgYW4gZW1wdHkgYXJyYXkKYXMgaXQgc2hvdWxkLiBJJ2xsIHRha2UgdGhlIGJsYW1lIGZv
+ciBpdCBhcyBpdCB3YXMgaW50cm9kdWNlZCBieSBhCmNsZWFudXAgY29tbWl0IG9mIG1pbmU6CiAg
+aHR0cDovL3d3dy5sbS1zZW5zb3JzLm9yZy9jaGFuZ2VzZXQvNTY5MAoKU28gSU1PIHRoZSBwcm9w
+ZXIgZml4IHdvdWxkIHJhdGhlciBiZToKCi0tLSBpMmMtdG9vbHMub3JpZy9lZXByb20vZGVjb2Rl
+LWRpbW1zCTIwMTItMDQtMTkgMDk6NDA6MDEuMDAwMDAwMDAwICswMjAwCisrKyBpMmMtdG9vbHMv
+ZWVwcm9tL2RlY29kZS1kaW1tcwkyMDEyLTA3LTE1IDE5OjE3OjM4LjY4NzgxMDMzMyArMDIwMApA
+QCAtMTc2OSwxMiArMTc2OSwxMiBAQCBzdWIgZ2V0X2RpbW1fbGlzdAogCQljbG9zZShESVIpOwog
+CX0KIAotCWlmIChAZmlsZXMpIHsKLQkJcmV0dXJuIHNvcnQgeyAkYS0+e2ZpbGV9IGNtcCAkYi0+
+e2ZpbGV9IH0gQGZpbGVzOwotCX0gZWxzaWYgKCEgLWQgJy9zeXMvbW9kdWxlL2VlcHJvbScpIHsK
+KwlpZiAoIUBmaWxlcyAmJiAhLWQgJy9zeXMvbW9kdWxlL2VlcHJvbScpIHsKIAkJcHJpbnQgIk5v
+IEVFUFJPTSBmb3VuZCwgYXJlIHlvdSBzdXJlIHRoZSBlZXByb20gbW9kdWxlIGlzIGxvYWRlZD9c
+biI7CiAJCWV4aXQ7CiAJfQorCisJcmV0dXJuIHNvcnQgeyAkYS0+e2ZpbGV9IGNtcCAkYi0+e2Zp
+bGV9IH0gQGZpbGVzOwogfQogCiAjIEBkaW1tIGlzIGEgbGlzdCBvZiBoYXNoZXMuIFRoZXJlJ3Mg
+b25lIGhhc2ggZm9yIGVhY2ggRUVQUk9NIHdlIGZvdW5kLgoKCi0tIApKZWFuIERlbHZhcmUKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMg
+bWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNl
+bnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
