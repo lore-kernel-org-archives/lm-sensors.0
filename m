@@ -1,29 +1,24 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Fri, 27 Jul 2012 21:30:50 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (applesmc) Decode and act on read/write status codes
-Message-Id: <20120727213050.GA1099@polaris.bitmath.org>
+From: Dennis Hohmann <er4z0r@gmx.net>
+Date: Sun, 15 Jul 2012 00:18:07 +0000
+Subject: Re: [lm-sensors] Unsuported ITE chipset 0x8771
+Message-Id: <loom.20120715T021636-95@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1343412766-552-1-git-send-email-rydberg@euromail.se>
- <20120727210337.GA11324@roeck-us.net>
-In-Reply-To: <20120727210337.GA11324@roeck-us.net>
+References: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
+In-Reply-To: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Guenter Roeck <guenter.roeck@ericsson.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-> > As I mentioned in a previous mail, backporting e70acc100 by itself is
-> > not a good idea, but together with this patch it should be ok.
-> > 
-> I think the patches should mature a bit in mainline. We can decide in a month
-> or so if we want to backport them to previous releases.
-
-Yes, sorry, that was what I meant - backporting "at all". :-)
-
-Thanks,
-Henrik
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGksCgpjYW4gYW55Ym9keSB0ZWxsIG1lIGhvdyB0byBjb21waWxlIHRoZSBkcml2ZXI/IEkgbWFk
+ZSB0aGUgY2hhbmdlcyB0byB0aGUgc291cmNlCmNvZGUgYnV0IEkgYWx3YXlzIGdldCB0aGUgZm9s
+bG93aW5nIGVycm9yOgoKICAgIHJvb3RAbmFzIH4vaXQ4NyAkIG1ha2UKICAgIG1ha2VbMV06IEVu
+dGVyaW5nIGRpcmVjdG9yeSBgL2xpYi9tb2R1bGVzLzMuMi4wLTAuYnBvLjItYW1kNjQvYnVpbGQn
+CiAgICBtYWtlWzFdOiAqKiogTm8gcnVsZSB0byBtYWxlIMK7bW9kdWxlc8KrLiBRdWl0LgogICAg
+bWFrZVsxXTogTGVhdmluZyBkaXJlY3RvcnkgYC9saWIvbW9kdWxlcy8zLjIuMC0wLmJwby4yLWFt
+ZDY0L2J1aWxkJwogICAgbWFrZTogKioqIFttb2R1bGVzXSBFcnJvciAyCgoKSSdtIHJ1bm5pbmcg
+RGViaWFuIHdpdGggS2VybmVsIDMuMi4wLTAuYnBvLjItYW1kNjQgYW5kIGluc3RhbGxlZCB0aGUg
+S2VybmVsCkhlYWRlcnMuIFNhbWUgZXJyb3IgaGFwcGVucyBvbiAyLjYuMzItNS1hbWQ2NC4KCgpU
+aGFuayB5b3UhCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
+Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
