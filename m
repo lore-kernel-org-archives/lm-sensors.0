@@ -1,24 +1,44 @@
-From: Dennis Hohmann <er4z0r@gmx.net>
-Date: Sun, 15 Jul 2012 00:18:07 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 17 Jul 2012 01:13:50 +0000
 Subject: Re: [lm-sensors] Unsuported ITE chipset 0x8771
-Message-Id: <loom.20120715T021636-95@post.gmane.org>
+Message-Id: <20120717011350.GA22254@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
 In-Reply-To: <6CFD278BAABA444AAA6A1BAC172498CD@adminDator>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-SGksCgpjYW4gYW55Ym9keSB0ZWxsIG1lIGhvdyB0byBjb21waWxlIHRoZSBkcml2ZXI/IEkgbWFk
-ZSB0aGUgY2hhbmdlcyB0byB0aGUgc291cmNlCmNvZGUgYnV0IEkgYWx3YXlzIGdldCB0aGUgZm9s
-bG93aW5nIGVycm9yOgoKICAgIHJvb3RAbmFzIH4vaXQ4NyAkIG1ha2UKICAgIG1ha2VbMV06IEVu
-dGVyaW5nIGRpcmVjdG9yeSBgL2xpYi9tb2R1bGVzLzMuMi4wLTAuYnBvLjItYW1kNjQvYnVpbGQn
-CiAgICBtYWtlWzFdOiAqKiogTm8gcnVsZSB0byBtYWxlIMK7bW9kdWxlc8KrLiBRdWl0LgogICAg
-bWFrZVsxXTogTGVhdmluZyBkaXJlY3RvcnkgYC9saWIvbW9kdWxlcy8zLjIuMC0wLmJwby4yLWFt
-ZDY0L2J1aWxkJwogICAgbWFrZTogKioqIFttb2R1bGVzXSBFcnJvciAyCgoKSSdtIHJ1bm5pbmcg
-RGViaWFuIHdpdGggS2VybmVsIDMuMi4wLTAuYnBvLjItYW1kNjQgYW5kIGluc3RhbGxlZCB0aGUg
-S2VybmVsCkhlYWRlcnMuIFNhbWUgZXJyb3IgaGFwcGVucyBvbiAyLjYuMzItNS1hbWQ2NC4KCgpU
-aGFuayB5b3UhCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRw
-Oi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Sun, Jul 15, 2012 at 12:18:07AM +0000, Dennis Hohmann wrote:
+> Hi,
+>=20
+> can anybody tell me how to compile the driver? I made the changes to the =
+source
+> code but I always get the following error:
+>=20
+>     root@nas ~/it87 $ make
+>     make[1]: Entering directory `/lib/modules/3.2.0-0.bpo.2-amd64/build'
+>     make[1]: *** No rule to male =BBmodules=AB. Quit.
+>     make[1]: Leaving directory `/lib/modules/3.2.0-0.bpo.2-amd64/build'
+>     make: *** [modules] Error 2
+>=20
+>=20
+> I'm running Debian with Kernel 3.2.0-0.bpo.2-amd64 and installed the Kern=
+el
+> Headers. Same error happens on 2.6.32-5-amd64.
+>=20
+Dennis,
+
+Unfortunately, your e-mail lacks both information about the driver you are
+trying to compile and the changes you are trying to make. Unless someone on=
+ the
+list happens to be a psychic, it may be difficult to help without that
+information.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
