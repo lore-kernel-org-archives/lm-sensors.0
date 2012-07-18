@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 18 Jul 2012 10:45:00 +0000
+Date: Wed, 18 Jul 2012 11:36:42 +0000
 Subject: Re: [lm-sensors] k15 cpu and wrong k10temp readings
-Message-Id: <20120718124500.0547cf3e@endymion.delvare>
+Message-Id: <20120718133642.0dddbb50@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <8d88955561f011f99165a0705ba32184@mariom.pl>
 In-Reply-To: <8d88955561f011f99165a0705ba32184@mariom.pl>
@@ -10,19 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgTWFyaXVzeiwKCk9uIFdlZCwgMTggSnVsIDIwMTIgMTI6MjY6MzUgKzAyMDAsIE1hcml1c3og
-S296YWtvd3NraSB3cm90ZToKPiBIaSwKPiBpIGhhdmUgZngtODEyMC4gazEwdGVtcCByZXR1cm5z
-IHZlcnkgbG93IHRlbXBlcmF0dXJlLCBhcyBpJ20gd3JpdGluZyAKPiB0aGlzIG1haWw6Cj4gCj4g
-azEwdGVtcC1wY2ktMDBjMwo+IEFkYXB0ZXI6IFBDSSBhZGFwdGVyCj4gdGVtcDE6ICAgICAgICAr
-MTYuNsKwQyAgKGhpZ2ggPSArNzAuMMKwQykKPiAgICAgICAgICAgICAgICAgICAgICAgICAoY3Jp
-dCA9ICs5MC4wwrBDLCBoeXN0ID0gKzg3LjDCsEMpCj4gCj4gSXQncyBpbXBvc3NpYmxlIHRvIGhh
-dmUgdGVtcGVyYXR1cmUgbG93ZXIgdGhhbiBpbiByb29tIHdoZXJlIHBjIGlzLiBTbywgCj4gdGhl
-cmUgaXMgcXVlc3Rpb24gLSBwcm9ibGVtIGlzIHNvbWV3aGVyZSBpbiBteSBjb25maWcsIGJyb2tl
-biBzZW5zb3JzIG9uIAo+IGNwdSBvciBrMTB0ZW1wIGhhcyBhIGJ1Zz8KClBsZWFzZSByZWFkOgpo
-dHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL3dpa2kvRkFRL0NoYXB0ZXIzI2NvcmV0ZW1wcmV0dXJu
-c3VucmVhbGlzdGljdmFsdWVzCgpUaGUgZW50cnkgd2FzIG9yaWdpbmFsbHkgd3JpdHRlbiBmb3Ig
-dGhlIEludGVsIGNvcmV0ZW1wIGRyaXZlciBidXQgdGhlCkFNRCBrOHRlbXAgYW5kIGsxMHRlbXAg
-ZHJpdmVycyBzdWZmZXIgZnJvbSB0aGUgc2FtZSBpc3N1ZSBBRkFJSy4KLS0gCkplYW4gRGVsdmFy
-ZQoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vu
-c29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMu
-bG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Please keep the list in Cc.
+
+On Wed, 18 Jul 2012 12:55:52 +0200, Mariusz Kozakowski wrote:
+> Jean Delvare <khali@linux-fr.org> writes:
+> > Please read:
+> > http://www.lm-sensors.org/wiki/FAQ/Chapter3#coretempreturnsunrealisticvalues
+> >
+> > The entry was originally written for the Intel coretemp driver but the
+> > AMD k8temp and k10temp drivers suffer from the same issue AFAIK.
+> So, on 3.4 and 3.5-rc7 it should work properly? I had this problem on
+> 3.2, 3.3, 3.4 and now i'm having it on 3.5-rc7. If i understand
+> correctly - ACPI resource check was fixed in 3.3 kernel.
+
+You read the wrong FAQ entry. The one I referred to is titled:
+"coretemp returns unrealistic values".
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
