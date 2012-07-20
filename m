@@ -1,42 +1,28 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 20 Jul 2012 01:52:39 +0000
+From: mahimahi <mahimahi@laposte.net>
+Date: Fri, 20 Jul 2012 03:14:26 +0000
 Subject: Re: [lm-sensors] SYSTIN, CPUTIN, AUXTIN...
-Message-Id: <20120720015239.GA5351@roeck-us.net>
+Message-Id: <921934009.1805065.1342754066558.JavaMail.www@wwinf8210>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
 In-Reply-To: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jul 20, 2012 at 12:25:45AM +0200, mahimahi wrote:
-> (sorry for my bad english... je double plus bas en fran=E7ais)
->=20
-> Hello,
->=20
-> In my Psensor frame, I've more lines that I don't understand what it to m=
-atch
-> SYSTIN
-> CPUTIN
-> AUXTIN
-> PECI Agent 0
->=20
-> I've tried to remove it :
-> [file /etc/sensors.d/ignoreAUTRE]
-> chip "nct6776-*"
-> ignore temp0
-> ignore CPUTIN
-> ignore AUXTIN
-> ignore "lmsensor nct6776-isa-0290 PECI Agent 0"
->=20
-Run "sensors -u" to see the label to attribute association. SYSTIN/CPUTIN/A=
-UXTIN
-will be temp1..temp3.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+PiBSdW4gInNlbnNvcnMgLXUiIHRvIHNlZSB0aGUgbGFiZWwgdG8gYXR0cmlidXRlIGFzc29jaWF0
+aW9uLiBTWVNUSU4vQ1BVVElOL0FVWFRJTgo+IHdpbGwgYmUgdGVtcDEuLnRlbXAzLgo+IAo+IEd1
+ZW50ZXIKPiAKSW4gZmFjdCwgSSd2ZSB0d28gZmlsZXMgaW4gbXkgL2V0Yy9zZW5zb3JzLmQvIDoK
+LSBpZ25vcmVGQU5zCi0gaWdub3JlQVVUUkUKYW5kIGluIHRoZSB0d28sIEkgcHV0IHRoZSBzYW1l
+IGZpcnN0IGxpbmUgKGNoaXAgIm5jdDY3NzYtKiIpLi4uIGJ1dCBpbiAiaWdub3JlQVVUUkUiLCAK
+dGhlcmUgaXMgYW4gZXJyb3IgOgpFcnJvcjogRmlsZSAvZXRjL3NlbnNvcnMuZC9pZ25vcmVBVVRS
+RX4sIGxpbmUgNzogUGFyc2UgZXJyb3IgaW4gY2hpcCBuYW1lCkkgc2VlIGl0IHdoZW4gSSBydW4g
+InNlbnNvcnMgLSB1IgoKSSByZXBsYWNlIGNoaXAgIm5jdDY3NzYtKiIgYnkgY2hpcCAibmN0Njc3
+Ni1pc2EtMDI5MCIuLi4gYW5kIGl0IHdvcmsgZmluZQoKSSBkb24ndCB1bmRlcnN0YW5kIHdoeSB0
+d28gc2FtZSBsaW5lcyAoY29weS9wYXN0ZSkuLi4gYXJlIG5vdCBzYW1lICE/IQoKVGhhbmsgeW91
+IHZlcnkgbXVjaAoKSmVhbi1QYXVsIEJPVVNTQUMKClVuZSBtZXNzYWdlcmllIGdyYXR1aXRlLCBn
+YXJhbnRpZSDDoCB2aWUgZXQgZGVzIHNlcnZpY2VzIGVuIHBsdXMsIMOnYSB2b3VzIHRlbnRlID8K
+SmUgY3LDqWUgbWEgYm/DrnRlIG1haWwgd3d3LmxhcG9zdGUubmV0CgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
