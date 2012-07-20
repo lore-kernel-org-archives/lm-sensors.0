@@ -1,34 +1,42 @@
-From: mahimahi <mahimahi@laposte.net>
-Date: Thu, 19 Jul 2012 22:25:45 +0000
-Subject: [lm-sensors] SYSTIN, CPUTIN, AUXTIN...
-Message-Id: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 20 Jul 2012 01:52:39 +0000
+Subject: Re: [lm-sensors] SYSTIN, CPUTIN, AUXTIN...
+Message-Id: <20120720015239.GA5351@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
+In-Reply-To: <911349481.542030.1342736745161.JavaMail.www@wwinf8212>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-KHNvcnJ5IGZvciBteSBiYWQgZW5nbGlzaC4uLiBqZSBkb3VibGUgcGx1cyBiYXMgZW4gZnJhbsOn
-YWlzKQoKSGVsbG8sCgpJbiBteSBQc2Vuc29yIGZyYW1lLCBJJ3ZlIG1vcmUgbGluZXMgdGhhdCBJ
-IGRvbid0IHVuZGVyc3RhbmQgd2hhdCBpdCB0byBtYXRjaApTWVNUSU4KQ1BVVElOCkFVWFRJTgpQ
-RUNJIEFnZW50IDAKCkkndmUgdHJpZWQgdG8gcmVtb3ZlIGl0IDoKW2ZpbGUgL2V0Yy9zZW5zb3Jz
-LmQvaWdub3JlQVVUUkVdCmNoaXAgIm5jdDY3NzYtKiIKaWdub3JlIHRlbXAwCmlnbm9yZSBDUFVU
-SU4KaWdub3JlIEFVWFRJTgppZ25vcmUgImxtc2Vuc29yIG5jdDY3NzYtaXNhLTAyOTAgUEVDSSBB
-Z2VudCAwIgoKYnV0IGRvbid0IHdvcmsuCgpJJ20gYSBBc3VzIFA4UDY3IE1vdGhlcmJvYXJkCgpU
-d28gcXVlc3Rpb25zIDoKLSB3aGF0IHRvIG1hdGNoIHRoaXMgcHJvYmUgPwotIHdoeSByZW1vdmUg
-aXQgaWYgaXQgZG9uJ3QgbWF0Y2ggd2l0aCBub3RoaW5nID8KClRoYW5rIHlvdQoKLi4uLi4uLi4u
-LiAoZW4gZnJhbsOnYWlzKQoKQm9uam91ciwKCkRhbnMgbWEgZmVuw6p0cmUgZGUgUHNlbnNvciwg
-aidhaSBwbHVzaWV1cnMgbGlnbmVzIGRvbnQgamUgbmUgY29tcHJlbmRzIHBhcyDDoCBxdW9pIGVs
-bGVzIApjb3JyZXNwb25kZW50IDoKU1lTVElOCkNQVVRJTgpBVVhUSU4KUEVDSSBBZ2VudCAwCgpK
-J2FpIGVzc2F5w6kgZGUgbGVzIHN1cHByaW1lciA6CltmaWNoaWVyIC9ldGMvc2Vuc29ycy5kL2ln
-bm9yZUFVVFJFXQpjaGlwICJuY3Q2Nzc2LSoiCmlnbm9yZSB0ZW1wMAppZ25vcmUgQ1BVVElOCmln
-bm9yZSBBVVhUSU4KaWdub3JlICJsbXNlbnNvciBuY3Q2Nzc2LWlzYS0wMjkwIFBFQ0kgQWdlbnQg
-MCIKCm1haXMgw6dhIG4nYSByaWVuIGRvbm7DqS4KCkonYWkgdW5lIGNhcnRlIG3DqHJlIEFzdXMg
-UDhQNjcKCkRldXggcXVlc3Rpb25zIDoKLSDDoCBxdW9pIGNvcnJlc3BvbmRlbnQgY2VzIHNvbmRl
-cyA/Ci0gY29tbWVudCBlbmxldmVyIGNlcyBsaWduZXMgc2kgZWxsZXMgbmUgc2VydmVudCBwYXMg
-PwoKTWVyY2kgYmVhdWNvdXAKCkplYW4tUGF1bCBCT1VTU0FDCgpVbmUgbWVzc2FnZXJpZSBncmF0
-dWl0ZSwgZ2FyYW50aWUgw6AgdmllIGV0IGRlcyBzZXJ2aWNlcyBlbiBwbHVzLCDDp2Egdm91cyB0
-ZW50ZSA/CkplIGNyw6llIG1hIGJvw650ZSBtYWlsIHd3dy5sYXBvc3RlLm5ldAoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+On Fri, Jul 20, 2012 at 12:25:45AM +0200, mahimahi wrote:
+> (sorry for my bad english... je double plus bas en fran=E7ais)
+>=20
+> Hello,
+>=20
+> In my Psensor frame, I've more lines that I don't understand what it to m=
+atch
+> SYSTIN
+> CPUTIN
+> AUXTIN
+> PECI Agent 0
+>=20
+> I've tried to remove it :
+> [file /etc/sensors.d/ignoreAUTRE]
+> chip "nct6776-*"
+> ignore temp0
+> ignore CPUTIN
+> ignore AUXTIN
+> ignore "lmsensor nct6776-isa-0290 PECI Agent 0"
+>=20
+Run "sensors -u" to see the label to attribute association. SYSTIN/CPUTIN/A=
+UXTIN
+will be temp1..temp3.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
