@@ -1,61 +1,246 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Date: Thu, 12 Jul 2012 13:53:03 +0000
-Subject: [lm-sensors] [RESEND PATCH v4 0/5] thermal: Add kernel thermal support for exynos platform
-Message-Id: <1342100468-19426-1-git-send-email-amit.kachhap@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 23 Jul 2012 22:21:46 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.6
+Message-Id: <20120723222146.GA3150@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============1609216238218180964=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-pm@lists.linux-foundation.org, lenb@kernel.org
-Cc: linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, amit.kachhap@linaro.org, akpm@linux-foundation.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi Len,
 
-This series is a repost of the thermal support for exynos platform.
-These set of patches were already accepted for 3.5 merge.
-(https://lkml.org/lkml/2012/6/2/7) but somehow could not go through so,
-I am resending them again with rebasing against 3.5-rc6. Please apply them
-for 3.6 merge.
+--===============1609216238218180964==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Content-Disposition: inline
+
+
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.6 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
 
 Thanks,
-Amit Daniel
+Guenter
+------
+
+The following changes since commit 28a33cbc24e4256c143dce96c7d93bf423229f92:
+
+  Linux 3.5 (2012-07-21 13:58:29 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to e30bca12573fbf54e2470723aadc047549d147ce:
+
+  hwmon: (applesmc) Ignore some temperature registers (2012-07-21 21:48:45 -0700)
+
+----------------------------------------------------------------
+New drivers for DA9052/53 PMIC as well as HIH-6130/HIH-6131 humidity and
+temperature sensors.
+
+Convert drivers to use devm_ functions and to use dev_pm_ops.
+Address a couple of Coverity errors/warnings as well as compile warnings.
+Some functional improvements in applesmc driver.
+
+----------------------------------------------------------------
+Ashish Jangam (1):
+      hwmon: Driver for DA9052/53 PMIC
+
+Guenter Roeck (61):
+      hwmon: (w83627ehf) Add missing break statement
+      hwmon: (fam15h_power) Fix unintentional integer overflow
+      hwmon: (wm831x-hwmon) Convert to use devm_ functions
+      hwmon: (max6650) Convert to use devm_ functions
+      hwmon: (max6639) Convert to use devm_ functions
+      hwmon: (mc13783-adc.c) Convert to use devm_ functions
+      hwmon: (pc87360) Convert to use devm_ functions
+      hwmon: (adm1025) Convert to use devm_ functions
+      hwmon: (adt7475) Convert to use devm_ functions
+      hwmon: (lm78) Convert to use devm_ functions
+      hwmon: (f71805f) Convert to use devm_ functions
+      hwmon: (lm83) Convert to use devm_ functions
+      hwmon: (lm90) Convert to use devm_ functions
+      hwmon: (w83795) Convert to use devm_ functions
+      hwmon: (adm1021) Convert to use devm_ functions
+      hwmon: (adm1026) Convert to use devm_ functions
+      hwmon: (adm1031) Convert to use devm_ functions
+      hwmon: (adm9240) Convert to use devm_ functions
+      hwmon: (atxp1) Convert to use devm_ functions
+      hwmon: (ds1621) Convert to use devm_ functions
+      hwmon: (emc6w201) Convert to use devm_ functions
+      hwmon: (gl518sm) Convert to use devm_ functions
+      hwmon: (gl520sm) Convert to use devm_ functions
+      hwmon: (lm63) Convert to use devm_ functions
+      hwmon: (lm75) Convert to use devm_ functions
+      hwmon: (lm77) Improve code readability
+      hwmon: (lm77) Convert to use devm_ functions
+      hwmon: (lm80) Convert to use devm_ functions
+      hwmon: (lm85) Convert to use devm_ functions
+      hwmon: (lm87) Convert to use devm_ functions
+      hwmon: (asc7621) Convert to use devm_ functions
+      hwmon: (lm92) Convert to use devm_ functions
+      hwmon: (lm93) Convert to use devm_ functions
+      hwmon: (max1111) Convert to use devm_ functions
+      hwmon: (max1619) Convert to use devm_ functions
+      hwmon: (max6642) Convert to use devm_ functions
+      hwmon: (pcf8591) Convert to use devm_ functions
+      hwmon: (gpio-fan) Convert to use devm_ functions
+      hwmon: Document the use of devres functions
+      hwmon: (pc87427) Convert to use devm_ functions
+      hwmon: (sis5595) Convert to use devm_ functions
+      hwmon: (thmc50) Convert to use devm_ functions
+      hwmon: (tmp102) Convert to use devm_ functions
+      hwmon: (tmp401) Convert to use devm_ functions
+      hwmon: (tmp421) Convert to use devm_ functions
+      hwmon: (via686a) Convert to use devm_ functions
+      hwmon: (vt1211) Convert to use devm_ functions
+      hwmon: (w83627hf) Convert to use devm_ functions
+      hwmon: (w83781d) Convert to use devm_ functions
+      hwmon: (w83792d) Convert to use devm_ functions
+      hwmon: (w83791d) Convert to use devm_ functions
+      hwmon: (k8temp) Convert to use devm_ functions
+      hwmon: (smsc47b397) Convert to use devm_ functions
+      hwmon: (smsc47m1) Convert to use devm_ functions
+      hwmon: (smsc47m192) Convert to use devm_ functions
+      hwmon: (w83l785ts) Simplify code and improve readability
+      hwmon: (w83l785ts) Convert to use devm_ functions
+      hwmon: (ntc_thermistor) Ensure that data->name string is terminated
+      hwmon: (acpi_power_meter) Cleanup and optimizations
+      hwmon: (acpi_power_meter) Fix unintentional integer overflow
+      hwmon: (w83781d) Fix compile warning
+
+Henrik Rydberg (4):
+      hwmon: (applesmc) Skip sensor mapping
+      hwmon: (applesmc) Shorten minimum wait time
+      hwmon: (applesmc) Allow negative temperature values
+      hwmon: (applesmc) Ignore some temperature registers
+
+Iain Paton (1):
+      hwmon: Honeywell Humidicon HIH-6130/HIH-6131 humidity and temperature sensor driver
+
+Rafael J. Wysocki (4):
+      hwmon: (abituguru) Use struct dev_pm_ops for power management
+      hwmon: (abituguru3) Use struct dev_pm_ops for power management
+      hwmon: (gpio-fan) Use struct dev_pm_ops for power management
+      hwmon: (exynos4_tmu) Use struct dev_pm_ops for power management
+
+Sachin Kamat (1):
+      hwmon: (s3c-hwmon) Use devm_kzalloc instead of kzalloc
+
+ Documentation/hwmon/da9052             |   61 ++++++
+ Documentation/hwmon/hih6130            |   37 ++++
+ Documentation/hwmon/submitting-patches |    3 +
+ drivers/hwmon/Kconfig                  |   20 ++
+ drivers/hwmon/Makefile                 |    2 +
+ drivers/hwmon/abituguru.c              |   19 +-
+ drivers/hwmon/abituguru3.c             |   19 +-
+ drivers/hwmon/acpi_power_meter.c       |    8 +-
+ drivers/hwmon/adm1021.c                |   18 +-
+ drivers/hwmon/adm1025.c                |   15 +-
+ drivers/hwmon/adm1026.c                |   15 +-
+ drivers/hwmon/adm1031.c                |   15 +-
+ drivers/hwmon/adm9240.c                |   14 +-
+ drivers/hwmon/adt7475.c                |    7 +-
+ drivers/hwmon/applesmc.c               |  133 ++++++------
+ drivers/hwmon/asc7621.c                |    5 +-
+ drivers/hwmon/atxp1.c                  |   16 +-
+ drivers/hwmon/da9052-hwmon.c           |  344 ++++++++++++++++++++++++++++++++
+ drivers/hwmon/ds1621.c                 |   16 +-
+ drivers/hwmon/emc6w201.c               |   15 +-
+ drivers/hwmon/exynos4_tmu.c            |   20 +-
+ drivers/hwmon/f71805f.c                |   26 +--
+ drivers/hwmon/fam15h_power.c           |    3 +-
+ drivers/hwmon/gl518sm.c                |   15 +-
+ drivers/hwmon/gl520sm.c                |   15 +-
+ drivers/hwmon/gpio-fan.c               |   77 +++----
+ drivers/hwmon/hih6130.c                |  293 +++++++++++++++++++++++++++
+ drivers/hwmon/k8temp.c                 |   25 +--
+ drivers/hwmon/lm63.c                   |   14 +-
+ drivers/hwmon/lm75.c                   |    9 +-
+ drivers/hwmon/lm77.c                   |   73 +++----
+ drivers/hwmon/lm78.c                   |   36 +---
+ drivers/hwmon/lm80.c                   |   14 +-
+ drivers/hwmon/lm83.c                   |   15 +-
+ drivers/hwmon/lm85.c                   |    7 +-
+ drivers/hwmon/lm87.c                   |   15 +-
+ drivers/hwmon/lm90.c                   |   12 +-
+ drivers/hwmon/lm92.c                   |   15 +-
+ drivers/hwmon/lm93.c                   |   14 +-
+ drivers/hwmon/max1111.c                |    9 +-
+ drivers/hwmon/max1619.c                |   15 +-
+ drivers/hwmon/max6639.c                |   17 +-
+ drivers/hwmon/max6642.c                |   15 +-
+ drivers/hwmon/max6650.c                |   10 +-
+ drivers/hwmon/mc13783-adc.c            |   12 +-
+ drivers/hwmon/ntc_thermistor.c         |    2 +-
+ drivers/hwmon/pc87360.c                |   41 ++--
+ drivers/hwmon/pc87427.c                |   51 +----
+ drivers/hwmon/pcf8591.c                |   15 +-
+ drivers/hwmon/s3c-hwmon.c              |    7 +-
+ drivers/hwmon/sis5595.c                |   28 +--
+ drivers/hwmon/smsc47b397.c             |   22 +-
+ drivers/hwmon/smsc47m1.c               |   45 +----
+ drivers/hwmon/smsc47m192.c             |   16 +-
+ drivers/hwmon/thmc50.c                 |   17 +-
+ drivers/hwmon/tmp102.c                 |   14 +-
+ drivers/hwmon/tmp401.c                 |    6 +-
+ drivers/hwmon/tmp421.c                 |   13 +-
+ drivers/hwmon/via686a.c                |   23 +--
+ drivers/hwmon/vt1211.c                 |   22 +-
+ drivers/hwmon/w83627ehf.c              |    1 +
+ drivers/hwmon/w83627hf.c               |   46 ++---
+ drivers/hwmon/w83781d.c                |   52 ++---
+ drivers/hwmon/w83791d.c                |   15 +-
+ drivers/hwmon/w83792d.c                |   18 +-
+ drivers/hwmon/w83795.c                 |   11 +-
+ drivers/hwmon/w83l785ts.c              |   34 ++--
+ drivers/hwmon/wm831x-hwmon.c           |    9 +-
+ 68 files changed, 1220 insertions(+), 846 deletions(-)
+ create mode 100644 Documentation/hwmon/da9052
+ create mode 100644 Documentation/hwmon/hih6130
+ create mode 100644 drivers/hwmon/da9052-hwmon.c
+ create mode 100644 drivers/hwmon/hih6130.c
+
+--J/dobhs11T7y2rNN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQDc56AAoJEMsfJm/On5mBtwcP/3jk7cVsN78nbtrQ7+YxDI9y
+Sy4Azwqoq/j3WKQAmXlkjjjMbmCKgktMTlwIgCouj3ZP3qq51juatw0telro27L0
+63M75udR9CkNuLe6ZkVbyHA8/mAwdlPZYHm3FgAxWuGOTd26v6J5yk+s8J9tf0Wl
+bf3aiMoGvmOjatpZxH795bzIL0V33XZIuXzrjAHpRwQlMD5ksx5tLaqQTC5B1Wqg
+F7N8b+Ok3Jqhe/3d/0cDP9b+L1yviu5QZQLz6T7tBdkcww95opPV7TmMIRLItrEG
+IXLbpFwIYaOeL7k/9Ull0ZeNATOl5r0WU+8xMQIRflL0pt3qt3ExO7TESnrEClwU
+2w+KnA1CrSHIPKrQvxY3rnOzPy3uP9FmR8FENKAZAQkd4Hf1mbQfl1sgAWYZZGMh
+/nHMNSay2NUt1GGOPS3B2evaZeFI02ONZEalROU1Xslpn94Xy2ambNl633H7+6+5
+6nQB99LS0rUlQpOQqjvn7rIalIBZzjbG+qx+EYsIsKuAHeTUr12rwF/f/E0JVJ5r
+nHfqebCYPY5S/SvgwmSGEmTAGQhFHQeBOc1/H6T2j6yfx4pckeeTdt14tPBiaH90
+vqviI70z2kvWCOXqT26dvw1arJmQdmv9iW1o9lV+QqpnWRgCuwVxT7PjpZOwB2F/
+Vqn1DymZ1vUn3YAugtQO
+=A75K
+-----END PGP SIGNATURE-----
+
+--J/dobhs11T7y2rNN--
 
 
-Amit Daniel Kachhap (5):
-  thermal: add generic cpufreq cooling implementation
-  hwmon: exynos4: move thermal sensor driver to driver/thermal
-    directory
-  thermal: exynos5: add exynos5 thermal sensor driver support
-  thermal: exynos: register the tmu sensor with the kernel thermal
-    layer
-  ARM: exynos: add thermal sensor driver platform data support
-
- Documentation/hwmon/exynos4_tmu              |   81 ---
- Documentation/thermal/cpu-cooling-api.txt    |   60 ++
- Documentation/thermal/exynos_thermal         |   52 ++
- drivers/hwmon/Kconfig                        |   10 -
- drivers/hwmon/Makefile                       |    1 -
- drivers/hwmon/exynos4_tmu.c                  |  514 --------------
- drivers/thermal/Kconfig                      |   20 +
- drivers/thermal/Makefile                     |    4 +-
- drivers/thermal/cpu_cooling.c                |  483 +++++++++++++
- drivers/thermal/exynos_thermal.c             |  956 ++++++++++++++++++++++++++
- include/linux/cpu_cooling.h                  |   99 +++
- include/linux/platform_data/exynos4_tmu.h    |   83 ---
- include/linux/platform_data/exynos_thermal.h |  100 +++
- 13 files changed, 1773 insertions(+), 690 deletions(-)
- delete mode 100644 Documentation/hwmon/exynos4_tmu
- create mode 100644 Documentation/thermal/cpu-cooling-api.txt
- create mode 100644 Documentation/thermal/exynos_thermal
- delete mode 100644 drivers/hwmon/exynos4_tmu.c
- create mode 100644 drivers/thermal/cpu_cooling.c
- create mode 100644 drivers/thermal/exynos_thermal.c
- create mode 100644 include/linux/cpu_cooling.h
- delete mode 100644 include/linux/platform_data/exynos4_tmu.h
- create mode 100644 include/linux/platform_data/exynos_thermal.h
-
+--===============1609216238218180964==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============1609216238218180964==--
