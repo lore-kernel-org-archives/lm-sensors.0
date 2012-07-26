@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 26 Jul 2012 13:37:50 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 26 Jul 2012 19:59:36 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (jc42) Don't reset hysteresis on device removal
-Message-Id: <20120726133750.GA14371@roeck-us.net>
+Message-Id: <20120726215936.31f36772@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120726145745.0bc82f8d@endymion.delvare>
 In-Reply-To: <20120726145745.0bc82f8d@endymion.delvare>
@@ -10,39 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Jul 26, 2012 at 02:57:45PM +0200, Jean Delvare wrote:
-> Restoring the configuration register on device removal has the side
-> effect of also resetting the hysteresis value. This is inconsistent as
-> the other limits are not reset, only hysteresis. So, following the
-> principle of least surprise, preserve the hysteresis value when
-> restoring the configuration register.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Guenter Roeck <linux@roeck-us.net>
-
-Good catch. Applied.
-
-> ---
-> Note: this would be more readable if JC42_CFG_HYST_MASK was the mask
-> _before_ shifting instead of after shifting. Guenter, do you want me
-> to send a separate patch doing that, or do you like it the way it is?
-> 
-Please send a patch.
-
-> Alternatively we could invert the logic and only restore the
-> JC42_CFG_SHUTDOWN bit. As this bit and the two hysteresis bits are the
-> only ones the driver touches, this is equivalent. I don't know if
-> there is an intent to ever have the jc42 driver touch any other bit in
-> the configuration register. Guenter, I am leaving the decision up to
-> you.
-> 
-Hard to say, though looking into it seems unlikely. But who knows. I would
-suggest to keep it generic as you implemented.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwKCk9uIFRodSwgMjYgSnVsIDIwMTIgMDY6Mzc6NTAgLTA3MDAsIEd1ZW50ZXIg
+Um9lY2sgd3JvdGU6Cj4gT24gVGh1LCBKdWwgMjYsIDIwMTIgYXQgMDI6NTc6NDVQTSArMDIwMCwg
+SmVhbiBEZWx2YXJlIHdyb3RlOgo+ID4gUmVzdG9yaW5nIHRoZSBjb25maWd1cmF0aW9uIHJlZ2lz
+dGVyIG9uIGRldmljZSByZW1vdmFsIGhhcyB0aGUgc2lkZQo+ID4gZWZmZWN0IG9mIGFsc28gcmVz
+ZXR0aW5nIHRoZSBoeXN0ZXJlc2lzIHZhbHVlLiBUaGlzIGlzIGluY29uc2lzdGVudCBhcwo+ID4g
+dGhlIG90aGVyIGxpbWl0cyBhcmUgbm90IHJlc2V0LCBvbmx5IGh5c3RlcmVzaXMuIFNvLCBmb2xs
+b3dpbmcgdGhlCj4gPiBwcmluY2lwbGUgb2YgbGVhc3Qgc3VycHJpc2UsIHByZXNlcnZlIHRoZSBo
+eXN0ZXJlc2lzIHZhbHVlIHdoZW4KPiA+IHJlc3RvcmluZyB0aGUgY29uZmlndXJhdGlvbiByZWdp
+c3Rlci4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogSmVhbiBEZWx2YXJlIDxraGFsaUBsaW51eC1m
+ci5vcmc+Cj4gPiBDYzogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+IAo+IEdv
+b2QgY2F0Y2guIEFwcGxpZWQuCgpEb2gsIHBsZWFzZSBkcm9wIGl0LCB0aGUgcGF0Y2ggaXMgYnVn
+Z3kuIEkgd3JvdGUgfCB3aGVyZSBJIG1lYW50ICYgYW5kCnRoaXMgaGFyZC1jb2RlcyB0aGUgaHlz
+dGVyZXNpcyB0byAtNsKwQyBhdCBkcml2ZXIgcmVtb3ZhbCBpZiB0aGUgY29uZmlnCnJlZ2lzdGVy
+IGNoYW5nZWQuIEkgZGlkbid0IG5vdGljZSBkdXJpbmcgbXkgdGVzdGluZyBiZWNhdXNlIGNvbmZp
+Zwpkb2Vzbid0IGNoYW5nZSBmb3IgbWUuIFNvcnJ5IGZvciB0aGUgbm9pc2UuCgo+ID4gTm90ZTog
+dGhpcyB3b3VsZCBiZSBtb3JlIHJlYWRhYmxlIGlmIEpDNDJfQ0ZHX0hZU1RfTUFTSyB3YXMgdGhl
+IG1hc2sKPiA+IF9iZWZvcmVfIHNoaWZ0aW5nIGluc3RlYWQgb2YgYWZ0ZXIgc2hpZnRpbmcuIEd1
+ZW50ZXIsIGRvIHlvdSB3YW50IG1lCj4gPiB0byBzZW5kIGEgc2VwYXJhdGUgcGF0Y2ggZG9pbmcg
+dGhhdCwgb3IgZG8geW91IGxpa2UgaXQgdGhlIHdheSBpdCBpcz8KPgo+IFBsZWFzZSBzZW5kIGEg
+cGF0Y2guCgpJJ2xsIHJlc2VuZCBhIHR3by1wYXRjaCBzZXJpZXMuCgo+ID4gQWx0ZXJuYXRpdmVs
+eSB3ZSBjb3VsZCBpbnZlcnQgdGhlIGxvZ2ljIGFuZCBvbmx5IHJlc3RvcmUgdGhlCj4gPiBKQzQy
+X0NGR19TSFVURE9XTiBiaXQuIEFzIHRoaXMgYml0IGFuZCB0aGUgdHdvIGh5c3RlcmVzaXMgYml0
+cyBhcmUgdGhlCj4gPiBvbmx5IG9uZXMgdGhlIGRyaXZlciB0b3VjaGVzLCB0aGlzIGlzIGVxdWl2
+YWxlbnQuIEkgZG9uJ3Qga25vdyBpZgo+ID4gdGhlcmUgaXMgYW4gaW50ZW50IHRvIGV2ZXIgaGF2
+ZSB0aGUgamM0MiBkcml2ZXIgdG91Y2ggYW55IG90aGVyIGJpdCBpbgo+ID4gdGhlIGNvbmZpZ3Vy
+YXRpb24gcmVnaXN0ZXIuIEd1ZW50ZXIsIEkgYW0gbGVhdmluZyB0aGUgZGVjaXNpb24gdXAgdG8K
+PiA+IHlvdS4KPgo+IEhhcmQgdG8gc2F5LCB0aG91Z2ggbG9va2luZyBpbnRvIGl0IHNlZW1zIHVu
+bGlrZWx5LiBCdXQgd2hvIGtub3dzLiBJIHdvdWxkCj4gc3VnZ2VzdCB0byBrZWVwIGl0IGdlbmVy
+aWMgYXMgeW91IGltcGxlbWVudGVkLgoKRmluZSB3aXRoIG1lLgoKLS0gCkplYW4gRGVsdmFyZQoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
