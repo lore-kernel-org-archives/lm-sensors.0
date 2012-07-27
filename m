@@ -1,38 +1,198 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 19 Jul 2012 16:44:06 +0000
-Subject: Re: [lm-sensors] [PATCH]: i2c-tools/decode-dimms: fix cryptic error message
-Message-Id: <20120719184406.140ca6df@endymion.delvare>
+From: "Henrik Rydberg" <rydberg@euromail.se>
+Date: Fri, 27 Jul 2012 18:12:46 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (applesmc) Decode and act on read/write status codes
+Message-Id: <1343412766-552-1-git-send-email-rydberg@euromail.se>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120714152626.GA24918@volta.aurel32.net>
-In-Reply-To: <20120714152626.GA24918@volta.aurel32.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Henrik Rydberg <rydberg@euromail.se>
 
-T24gU3VuLCAxNSBKdWwgMjAxMiAxOToxOTo0NCArMDIwMCwgSmVhbiBEZWx2YXJlIHdyb3RlOgo+
-IE9uIFNhdCwgMTQgSnVsIDIwMTIgMTc6MjY6MjYgKzAyMDAsIEF1cmVsaWVuIEphcm5vIHdyb3Rl
-Ogo+ID4gVGhlCj4gPiBwYXRjaCBiZWxvdyBmaXhlcyB0aGUgaXNzdWUgYnkgb3V0cHV0dGluZyBh
-biBlcnJvciBtZXNzYWdlIGluIHRoYXQKPiA+IGNhc2UuCj4gPiAKPiA+IEluZGV4OiBlZXByb20v
-ZGVjb2RlLWRpbW1zCj4gPiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gPiAtLS0gZWVwcm9tL2RlY29kZS1kaW1tcwko
-csOpdmlzaW9uIDYwNjApCj4gPiArKysgZWVwcm9tL2RlY29kZS1kaW1tcwkoY29waWUgZGUgdHJh
-dmFpbCkKPiA+IEBAIC0xNzc0LDYgKzE3NzQsOSBAQAo+ID4gIAl9IGVsc2lmICghIC1kICcvc3lz
-L21vZHVsZS9lZXByb20nKSB7Cj4gPiAgCQlwcmludCAiTm8gRUVQUk9NIGZvdW5kLCBhcmUgeW91
-IHN1cmUgdGhlIGVlcHJvbSBtb2R1bGUgaXMgbG9hZGVkP1xuIjsKPiA+ICAJCWV4aXQ7Cj4gPiAr
-CX0gZWxzZSB7Cj4gPiArCQlwcmludCAiTm8gRUVQUk9NIGZvdW5kLCB0aGUga2VybmVsIHByb2Jh
-Ymx5IGRvZXMgbm90IHN1cHBvcnQgeW91ciBoYXJkd2FyZS5cbiI7Cj4gPiArCQlleGl0Owo+ID4g
-IAl9Cj4gPiAgfQo+IAo+IFRoZSBhYm92ZSBtZXNzYWdlIGlzIHNwZWN1bGF0aW9uLCB0aGVyZSBj
-YW4gYmUgb3RoZXIgcmVhc29ucyAoZm9yCj4gZXhhbXBsZSB0aGUgc3lzdGVtIG1heSBoYXZlIG5v
-IFNQRCBFRVBST00gYXQgYWxsLCBvciB0aGUgT1MgaXMgbm90Cj4gZ2l2ZW4gYWNjZXNzIHRvIHRo
-ZXNlLikKPiAKPiBUaGUgYnVnIGlzIHRoYXQgZnVuY3Rpb24gZ2V0X2RpbW1fbGlzdCByZXR1cm5z
-IHJhbmRvbSBjcmFwIGluIHRoZQo+IHByb2JsZW1hdGljIGNhc2UgKGxhY2sgb2YgcmV0dXJuIHN0
-YXRlbWVudCkgaW5zdGVhZCBvZiBhbiBlbXB0eSBhcnJheQo+IGFzIGl0IHNob3VsZC4gSSdsbCB0
-YWtlIHRoZSBibGFtZSBmb3IgaXQgYXMgaXQgd2FzIGludHJvZHVjZWQgYnkgYQo+IGNsZWFudXAg
-Y29tbWl0IG9mIG1pbmU6Cj4gICBodHRwOi8vd3d3LmxtLXNlbnNvcnMub3JnL2NoYW5nZXNldC81
-NjkwCj4gCj4gU28gSU1PIHRoZSBwcm9wZXIgZml4IHdvdWxkIHJhdGhlciBiZToKPiAoLi4uKQoK
-SSBmaXhlZCBpdCBzbGlnaHRseSBkaWZmZXJlbnRseSwgc2VlOgpodHRwOi8vd3d3LmxtLXNlbnNv
-cnMub3JnL2NoYW5nZXNldC82MDYyCgotLSAKSmVhbiBEZWx2YXJlCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdAps
-bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+The behavior of the SMC has changed several times over the years,
+causing read failures in the driver. It seems the problem can be
+explained by a shift in SMC speed combined with improper action on
+status codes.
+
+We should first wait for the SMC to settle, which was the most
+frequent response on the old slow machines. Then, if the SMC is busy,
+we need to try again later by resending the command. This was the most
+likely response until 2012. Now, with a shorter wait time, we are
+again most likely to poll while the SMC is settling, and as a result
+we see high failure rates on many old and new models.
+
+With the distinction between busy and failure, we can also wait longer
+before retrying, without sacrificing speed.  This seems to bring
+failures down to virtually zero on all models.
+
+Tested on: MBA1,1 MBA3,1 MBA5,1 MBA5,2 MBP9,2
+
+Tested-by: Adam Somerville <adamsomerville@gmail.com>
+Tested-by: Hubert Eichner <hubert.georg.eichner@gmail.com>
+Signed-off-by: Henrik Rydberg <rydberg@euromail.se>
+---
+Hi Guenter,
+
+It turns out the mid-2012 Macbooks need additional changes in order to
+work reliably. Since the needed change is a great improvement also on
+other problematic machines, it would make a lot of sense if this patch
+could be squeezed into the merge window.
+
+As I mentioned in a previous mail, backporting e70acc100 by itself is
+not a good idea, but together with this patch it should be ok.
+
+The patch has been wetted in the forums for a bit.
+
+Thanks,
+Henrik
+
+ drivers/hwmon/applesmc.c | 70 +++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 46 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 4d937a1..2827088 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -55,9 +55,9 @@
+ 
+ /* wait up to 32 ms for a status change. */
+ #define APPLESMC_MIN_WAIT	0x0010
++#define APPLESMC_RETRY_WAIT	0x0100
+ #define APPLESMC_MAX_WAIT	0x8000
+ 
+-#define APPLESMC_STATUS_MASK	0x0f
+ #define APPLESMC_READ_CMD	0x10
+ #define APPLESMC_WRITE_CMD	0x11
+ #define APPLESMC_GET_KEY_BY_INDEX_CMD	0x12
+@@ -162,51 +162,68 @@ static unsigned int key_at_index;
+ static struct workqueue_struct *applesmc_led_wq;
+ 
+ /*
+- * __wait_status - Wait up to 32ms for the status port to get a certain value
+- * (masked with 0x0f), returning zero if the value is obtained.  Callers must
++ * wait_read - Wait for a byte to appear on SMC port. Callers must
+  * hold applesmc_lock.
+  */
+-static int __wait_status(u8 val)
++static int wait_read(void)
+ {
++	u8 status;
+ 	int us;
+-
+-	val = val & APPLESMC_STATUS_MASK;
+-
+ 	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+ 		udelay(us);
+-		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = val)
++		status = inb(APPLESMC_CMD_PORT);
++		/* read: wait for smc to settle */
++		if (status & 0x01)
+ 			return 0;
+ 	}
+ 
++	pr_warn("wait_read() fail: 0x%02x\n", status);
+ 	return -EIO;
+ }
+ 
+ /*
+- * special treatment of command port - on newer macbooks, it seems necessary
+- * to resend the command byte before polling the status again. Callers must
+- * hold applesmc_lock.
++ * send_byte - Write to SMC port, retrying when necessary. Callers
++ * must hold applesmc_lock.
+  */
+-static int send_command(u8 cmd)
++static int send_byte(u8 cmd, u16 port)
+ {
++	u8 status;
+ 	int us;
++
++	outb(cmd, port);
+ 	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+-		outb(cmd, APPLESMC_CMD_PORT);
+ 		udelay(us);
+-		if ((inb(APPLESMC_CMD_PORT) & APPLESMC_STATUS_MASK) = 0x0c)
++		status = inb(APPLESMC_CMD_PORT);
++		/* write: wait for smc to settle */
++		if (status & 0x02)
++			continue;
++		/* ready: cmd accepted, return */
++		if (status & 0x04)
+ 			return 0;
++		/* timeout: give up */
++		if (us << 1 = APPLESMC_MAX_WAIT)
++			break;
++		/* busy: long wait and resend */
++		udelay(APPLESMC_RETRY_WAIT);
++		outb(cmd, port);
+ 	}
++
++	pr_warn("send_byte(0x%02x, 0x%04x) fail: 0x%02x\n", cmd, port, status);
+ 	return -EIO;
+ }
+ 
++static int send_command(u8 cmd)
++{
++	return send_byte(cmd, APPLESMC_CMD_PORT);
++}
++
+ static int send_argument(const char *key)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < 4; i++) {
+-		outb(key[i], APPLESMC_DATA_PORT);
+-		if (__wait_status(0x04))
++	for (i = 0; i < 4; i++)
++		if (send_byte(key[i], APPLESMC_DATA_PORT))
+ 			return -EIO;
+-	}
+ 	return 0;
+ }
+ 
+@@ -219,11 +236,14 @@ static int read_smc(u8 cmd, const char *key, u8 *buffer, u8 len)
+ 		return -EIO;
+ 	}
+ 
+-	outb(len, APPLESMC_DATA_PORT);
++	if (send_byte(len, APPLESMC_DATA_PORT)) {
++		pr_warn("%.4s: read len fail\n", key);
++		return -EIO;
++	}
+ 
+ 	for (i = 0; i < len; i++) {
+-		if (__wait_status(0x05)) {
+-			pr_warn("%.4s: read data fail\n", key);
++		if (wait_read()) {
++			pr_warn("%.4s: read data[%d] fail\n", key, i);
+ 			return -EIO;
+ 		}
+ 		buffer[i] = inb(APPLESMC_DATA_PORT);
+@@ -241,14 +261,16 @@ static int write_smc(u8 cmd, const char *key, const u8 *buffer, u8 len)
+ 		return -EIO;
+ 	}
+ 
+-	outb(len, APPLESMC_DATA_PORT);
++	if (send_byte(len, APPLESMC_DATA_PORT)) {
++		pr_warn("%.4s: write len fail\n", key);
++		return -EIO;
++	}
+ 
+ 	for (i = 0; i < len; i++) {
+-		if (__wait_status(0x04)) {
++		if (send_byte(buffer[i], APPLESMC_DATA_PORT)) {
+ 			pr_warn("%s: write data fail\n", key);
+ 			return -EIO;
+ 		}
+-		outb(buffer[i], APPLESMC_DATA_PORT);
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.11.3
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
