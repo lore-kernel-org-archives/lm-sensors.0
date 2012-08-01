@@ -1,29 +1,80 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 21 Aug 2012 15:28:26 +0000
-Subject: Re: [lm-sensors] Chassis fan is reported incorrectly with M5A78L motherboard
-Message-Id: <20120821152826.GC6827@growl>
+From: John Rippetoe <jrippetoe@comconcepts.com>
+Date: Wed, 01 Aug 2012 15:59:40 +0000
+Subject: [lm-sensors] Output problem with adcxx  on at91
+Message-Id: <5019526C.2030802@comconcepts.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20531.32769.603792.771925@freddi.uddeborg>
-In-Reply-To: <20531.32769.603792.771925@freddi.uddeborg>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Aug 21, 2012 at 08:01:14AM -0700, Guenter Roeck wrote:
-> > It always reads the same sensor. The other ("new") monitoring interface
-> > seems fine though. Unload the module and try reloading it with
-> > "new_if=1", like this:
-> > 
-> > modprobe asus_atk0110 new_if=1
-> > 
-> > And see if everything looks good.
-> > 
-> If it does, should we add the board to atk_force_new_if[] ?
+I am attempting to setup lm-sensors on an embedded platform, more 
+specifically the Micromint Electrum 100.  I'm experiencing an issue with 
+the output of the sensors program where the output is obviously bogus, 
+especially given that all the values are identical.  Some basic details 
+about the system:
 
-Yes, I'm preparing the patch.
+- 6.04 Debian squeeze
+- Atmel AT91SAM9G20 cpu (armv5)
+- ADC128S052 SPI ADC
+- atmel_spi driver built in to pre-compiled kernel
+- hwmon, and adcxx loaded as modules later
 
-Luca
+The adcxx kernel module successfully loads and binds to the device. 
+Reading the sysfs files it creates for each input, the same value of 
+52799 is seen on each.  I know the device works because I have tested it 
+with some userland example code provided by the manufacturer and get 
+expected values for various inputs.
+
+I initially had an issue with getting the adcxx module to bind with the 
+device, but found that the problem was because of an alias problem.  In 
+./arch/arm/mach-at91/board-electrum-100.c the ADC was declared with an 
+alias as shown in the code segment below:
+
+/static struct spi_board_info ek_spi_devices[] = {
+/  .....
+/    {    /* ADC128S052 analog inputs */
+/        .modalias    = "adc128s052",
+/        .chip_select    = 2,
+/        .max_speed_hz    = 8 * 1000 * 1000,
+/        .bus_num    = 1,
+/    },
+/  .....
+
+Rather than change the alias in board-electrum-100.c and have to 
+recompile and install a new kernel, I opted to add the alias as shown 
+above to adcxx_ids[] in adcxx.c
+
+/static const struct spi_device_id adcxx_ids[] = {
+/    { "adcxx1s", 1 },
+/    { "adcxx2s", 2 },
+/    { "adcxx4s", 4 },
+/    { "adcxx8s", 8 },
+/    { "adc128s052", 8},   <-- added here
+/    { },
+/};
+
+With that done, sensors starting giving me output, just not anything 
+worth reading.  At this point I'm a little baffled as to what is causing 
+this and crawling the internet has turned up nothing. Here is my output 
+for sensors:
+
+electrum100:~# sensors
+adcxx8s-spi-1-2
+Adapter: SPI adapter
+in0:         +52.80 V
+in1:         +52.80 V
+in2:         +52.80 V
+in3:         +52.80 V
+in4:         +52.80 V
+in5:         +52.80 V
+in6:         +52.80 V
+in7:         +52.80 V
+
+
+Any help would be greatly appreciated.  Thank you.
+
+     - John
 
 _______________________________________________
 lm-sensors mailing list
