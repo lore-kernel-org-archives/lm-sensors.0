@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 01 Aug 2012 23:42:49 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Thu, 02 Aug 2012 06:18:37 +0000
 Subject: Re: [lm-sensors] help with i2cdetect
-Message-Id: <20120801234249.GA17829@roeck-us.net>
+Message-Id: <20120802081837.7b844c2f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAF+LJYhBpqcps-OYJBVPH22+GpdwfftOt+KszTYGUsKKOKNW-g@mail.gmail.com>
 In-Reply-To: <CAF+LJYhBpqcps-OYJBVPH22+GpdwfftOt+KszTYGUsKKOKNW-g@mail.gmail.com>
@@ -10,29 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Aug 01, 2012 at 04:10:41PM -0700, ed in 92626 wrote:
-> Hi,
-> 
-> I am using your software for the first time.
-> Does it work on Fedora17, kernel 3.1.0?
-> 
-> When I run it, 'i2cdetect -l' I get no devices back.
-> 
+On Wed, 1 Aug 2012 16:10:41 -0700, ed in 92626 wrote:
 > When I try i2cdump 0xa8 3 I get
-> could not open file /dev/;i2c/168.
-> 
-> A8 is he address of my DIMM memory modue.
-> 
-> Does every i2c device need to have an entry in
-> /dev? I checked two machines and don't see
-> any i2c under /dev.
-> 
-> thanks if you have any info.
-> 
-Execute "sudo modprobe i2c-dev" first. Otherwise you won't see the i2c devices
-in /dev.
+> could not open file /dev/i2c/168.
 
-Guenter
+You passed the parameter in the wrong order, bus number must be first
+and slave address second.
+
+> A8 is the address of my DIMM memory module.
+
+Maybe in some document you have, it is, but not for the Linux kernel,
+which uses right-aligned 7-bit slave addresses. 0xa8 is obviously a
+left-aligned 7-bit address. So the address you actually want to pass to
+i2cdump is 0xA8 >> 1 = 0x54.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
