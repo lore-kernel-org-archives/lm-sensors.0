@@ -1,869 +1,626 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Date: Fri, 17 Aug 2012 13:44:55 +0000
-Subject: Re: [lm-sensors] [RESEND PATCH v6 1/6] thermal: add generic cpufreq cooling implementation
-Message-Id: <CAK44p23BXBosB5uaXv0QGWmYfcC5nPugJR5PNLaHhFop=WM7ow@mail.gmail.com>
+From: Hartmut Knaack <knaack.h@gmx.de>
+Date: Fri, 03 Aug 2012 10:31:24 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: Driver for ADT7410
+Message-Id: <501BA87C.2020907@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAK44p21qxbpvi0Qtu89ac8ciuJRWDvn44Z8=DggMMxiwjKcczw@mail.gmail.com>
-	<1345210143-27603-1-git-send-email-amit.kachhap@linaro.org>
-In-Reply-To: <1345210143-27603-1-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: linux-samsung-soc@vger.kernel.org, SangWook Ju <sw.ju@samsung.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Jean Delvare <khali@linux-fr.org>, Kyungmin Park <kmpark@infradead.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-This is repost containing the changes suggested by Zhang Rui. Now the
-cpufreq current state will be calculated each time instead of earlier
-way of returning the cached value.
+Hi,
+this patch brings basic support for the Analog Devices ADT7410 temperature =
+sensor, based on the lm75 hwmon driver and the adt7410 iio driver. Changes =
+as suggested by Guenter have been applied. The following functionality has =
+been implemented:
 
-Thanks,
-Amit Daniel
+  * get current temperature
+  * get/set minimum, maximum and critical temperature
+  * get/set hysteresis
+  * get alarm events for minimum, maximum and critical temperature
 
-On 17 August 2012 18:59, Amit Daniel Kachhap <amit.kachhap@linaro.org> wrote:
-> This patchset introduces a new generic cooling device based on cpufreq
-> that can be used on non-ACPI platforms.  As a proof of concept, we have
-> drivers for the following platforms using this mechanism now:
->
->  * Samsung Exynos (Exynos4 and Exynos5) in the current patchset.
->  * Freescale i.MX (git://git.linaro.org/people/amitdanielk/linux.git imx6q_thermal)
->  * Omap platforms in drivers/staging/omap-thermal/
->
-> There is a small change in cpufreq cooling registration APIs, so a minor
-> change is needed for Freescale and omap platforms.
->
-> Brief Description:
->
-> 1) The generic cooling devices code is placed inside driver/thermal/*
->    as placing inside acpi folder will need un-necessary enabling of acpi
->    code.  This code is architecture independent.
->
-> 2) This patchset adds generic cpu cooling low level implementation
->    through frequency clipping.  In future, other cpu related cooling
->    devices may be added here.  An ACPI version of this already exists
->    (drivers/acpi/processor_thermal.c) .But this will be useful for
->    platforms like ARM using the generic thermal interface along with the
->    generic cpu cooling devices.  The cooling device registration API's
->    return cooling device pointers which can be easily binded with the
->    thermal zone trip points.  The important APIs exposed are,
->
->    a) struct thermal_cooling_device *cpufreq_cooling_register(
->         struct cpumask *clip_cpus)
->    b) void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
->
-> 3) Samsung exynos platform thermal implementation is done using the
->    generic cpu cooling APIs and the new trip type.  The temperature sensor
->    driver present in the hwmon folder(registered as hwmon driver) is moved
->    to thermal folder and registered as a thermal driver.
->
-> A simple data/control flow diagrams is shown below,
->
-> Core Linux thermal <----->  Exynos thermal interface <----- Temperature Sensor
->           |                             |
->          \|/                            |
->   Cpufreq cooling device <---------------
->
-> About this patch:
->
-> Add support for generic cpu thermal cooling low level implementations
-> using frequency scaling up/down based on the registration parameters.
-> Different cpu related cooling devices can be registered by the user and
-> the binding of these cooling devices to the corresponding trip points can
-> be easily done as the registration APIs return the cooling device pointer.
-> The user of these APIs are responsible for passing clipping frequency .
-> The drivers can also register to recieve notification about any cooling
-> action called.
->
-> [akpm@linux-foundation.org: fix comment layout]
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: SangWook Ju <sw.ju@samsung.com>
-> Cc: Durgadoss <durgadoss.r@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: Kyungmin Park <kmpark@infradead.org>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> ---
->  Documentation/thermal/cpu-cooling-api.txt |   52 +++
->  drivers/thermal/Kconfig                   |   11 +
->  drivers/thermal/Makefile                  |    1 +
->  drivers/thermal/cpu_cooling.c             |  586 +++++++++++++++++++++++++++++
->  include/linux/cpu_cooling.h               |   79 ++++
->  5 files changed, 729 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/thermal/cpu-cooling-api.txt
->  create mode 100644 drivers/thermal/cpu_cooling.c
->  create mode 100644 include/linux/cpu_cooling.h
->
-> diff --git a/Documentation/thermal/cpu-cooling-api.txt b/Documentation/thermal/cpu-cooling-api.txt
-> new file mode 100644
-> index 0000000..a1f2a6b
-> --- /dev/null
-> +++ b/Documentation/thermal/cpu-cooling-api.txt
-> @@ -0,0 +1,52 @@
-> +CPU cooling APIs How To
-> +=================> +
-> +Written by Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> +
-> +Updated: 12 May 2012
-> +
-> +Copyright (c)  2012 Samsung Electronics Co., Ltd(http://www.samsung.com)
-> +
-> +0. Introduction
-> +
-> +The generic cpu cooling(freq clipping) provides registration/unregistration APIs
-> +to the caller. The binding of the cooling devices to the trip point is left for
-> +the user. The registration APIs returns the cooling device pointer.
-> +
-> +1. cpu cooling APIs
-> +
-> +1.1 cpufreq registration/unregistration APIs
-> +1.1.1 struct thermal_cooling_device *cpufreq_cooling_register(
-> +       struct cpumask *clip_cpus)
-> +
-> +    This interface function registers the cpufreq cooling device with the name
-> +    "thermal-cpufreq-%x". This api can support multiple instances of cpufreq
-> +    cooling devices.
-> +
-> +   clip_cpus: cpumask of cpus where the frequency constraints will happen.
-> +
-> +1.1.2 void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
-> +
-> +    This interface function unregisters the "thermal-cpufreq-%x" cooling device.
-> +
-> +    cdev: Cooling device pointer which has to be unregistered.
-> +
-> +
-> +1.2 CPU cooling action notifier register/unregister interface
-> +1.2.1 int cputherm_register_notifier(struct notifier_block *nb,
-> +       unsigned int list)
-> +
-> +    This interface registers a driver with cpu cooling layer. The driver will
-> +    be notified when any cpu cooling action is called.
-> +
-> +    nb: notifier function to register
-> +    list: CPUFREQ_COOLING_START or CPUFREQ_COOLING_STOP
-> +
-> +1.2.2 int cputherm_unregister_notifier(struct notifier_block *nb,
-> +       unsigned int list)
-> +
-> +    This interface registers a driver with cpu cooling layer. The driver will
-> +    be notified when any cpu cooling action is called.
-> +
-> +    nb: notifier function to register
-> +    list: CPUFREQ_COOLING_START or CPUFREQ_COOLING_STOP
-> diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> index 7dd8c34..996003b 100644
-> --- a/drivers/thermal/Kconfig
-> +++ b/drivers/thermal/Kconfig
-> @@ -19,6 +19,17 @@ config THERMAL_HWMON
->         depends on HWMON=y || HWMON=THERMAL
->         default y
->
-> +config CPU_THERMAL
-> +       bool "generic cpu cooling support"
-> +       depends on THERMAL && CPU_FREQ
-> +       help
-> +         This implements the generic cpu cooling mechanism through frequency
-> +         reduction, cpu hotplug and any other ways of reducing temperature. An
-> +         ACPI version of this already exists(drivers/acpi/processor_thermal.c).
-> +         This will be useful for platforms using the generic thermal interface
-> +         and not the ACPI interface.
-> +         If you want this support, you should say Y here.
-> +
->  config SPEAR_THERMAL
->         bool "SPEAr thermal sensor driver"
->         depends on THERMAL
-> diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-> index fd9369a..aae59ad 100644
-> --- a/drivers/thermal/Makefile
-> +++ b/drivers/thermal/Makefile
-> @@ -3,5 +3,6 @@
->  #
->
->  obj-$(CONFIG_THERMAL)          += thermal_sys.o
-> +obj-$(CONFIG_CPU_THERMAL)              += cpu_cooling.o
->  obj-$(CONFIG_SPEAR_THERMAL)            += spear_thermal.o
->  obj-$(CONFIG_RCAR_THERMAL)     += rcar_thermal.o
-> diff --git a/drivers/thermal/cpu_cooling.c b/drivers/thermal/cpu_cooling.c
-> new file mode 100644
-> index 0000000..66cbd52
-> --- /dev/null
-> +++ b/drivers/thermal/cpu_cooling.c
-> @@ -0,0 +1,586 @@
-> +/*
-> + *  linux/drivers/thermal/cpu_cooling.c
-> + *
-> + *  Copyright (C) 2012 Samsung Electronics Co., Ltd(http://www.samsung.com)
-> + *  Copyright (C) 2012  Amit Daniel <amit.kachhap@linaro.org>
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; version 2 of the License.
-> + *
-> + *  This program is distributed in the hope that it will be useful, but
-> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + *  General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License along
-> + *  with this program; if not, write to the Free Software Foundation, Inc.,
-> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/thermal.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/cpufreq.h>
-> +#include <linux/err.h>
-> +#include <linux/slab.h>
-> +#include <linux/cpu.h>
-> +#include <linux/cpu_cooling.h>
-> +
-> +/**
-> + * struct cpufreq_cooling_device
-> + * @id: unique integer value corresponding to each cpufreq_cooling_device
-> + *     registered.
-> + * @cool_dev: thermal_cooling_device pointer to keep track of the the
-> + *     egistered cooling device.
-> + * @cpufreq_state: integer value representing the current state of cpufreq
-> + *     cooling devices.
-> + * @cpufreq_val: integer value representing the absolute value of the clipped
-> + *     frequency.
-> + * @allowed_cpus: all the cpus involved for this cpufreq_cooling_device.
-> + * @node: list_head to link all cpufreq_cooling_device together.
-> + *
-> + * This structure is required for keeping information of each
-> + * cpufreq_cooling_device registered as a list whose head is represented by
-> + * cooling_cpufreq_list. In order to prevent corruption of this list a
-> + * mutex lock cooling_cpufreq_lock is used.
-> + */
-> +struct cpufreq_cooling_device {
-> +       int id;
-> +       struct thermal_cooling_device *cool_dev;
-> +       unsigned int cpufreq_state;
-> +       unsigned int cpufreq_val;
-> +       struct cpumask allowed_cpus;
-> +       struct list_head node;
-> +};
-> +static LIST_HEAD(cooling_cpufreq_list);
-> +static DEFINE_IDR(cpufreq_idr);
-> +
-> +static struct mutex cooling_cpufreq_lock;
-> +
-> +/* notify_table passes value to the CPUFREQ_ADJUST callback function. */
-> +#define NOTIFY_INVALID NULL
-> +struct cpufreq_cooling_device *notify_device;
-> +
-> +/* Head of the blocking notifier chain to inform about frequency clamping */
-> +static BLOCKING_NOTIFIER_HEAD(cputherm_state_notifier_list);
-> +
-> +/**
-> + * get_idr - function to get a unique id.
-> + * @idr: struct idr * handle used to create a id.
-> + * @id: int * value generated by this function.
-> + */
-> +static int get_idr(struct idr *idr, int *id)
-> +{
-> +       int err;
-> +again:
-> +       if (unlikely(idr_pre_get(idr, GFP_KERNEL) = 0))
-> +               return -ENOMEM;
-> +
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       err = idr_get_new(idr, NULL, id);
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +
-> +       if (unlikely(err = -EAGAIN))
-> +               goto again;
-> +       else if (unlikely(err))
-> +               return err;
-> +
-> +       *id = *id & MAX_ID_MASK;
-> +       return 0;
-> +}
-> +
-> +/**
-> + * release_idr - function to free the unique id.
-> + * @idr: struct idr * handle used for creating the id.
-> + * @id: int value representing the unique id.
-> + */
-> +static void release_idr(struct idr *idr, int id)
-> +{
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       idr_remove(idr, id);
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +}
-> +
-> +/**
-> + * cputherm_register_notifier - Register a notifier with cpu cooling interface.
-> + * @nb:        struct notifier_block * with callback info.
-> + * @list: integer value for which notification is needed. possible values are
-> + *     CPUFREQ_COOLING_START and CPUFREQ_COOLING_STOP.
-> + *
-> + * This exported function registers a driver with cpu cooling layer. The driver
-> + * will be notified when any cpu cooling action is called.
-> + */
-> +int cputherm_register_notifier(struct notifier_block *nb, unsigned int list)
-> +{
-> +       int ret = 0;
-> +
-> +       switch (list) {
-> +       case CPUFREQ_COOLING_START:
-> +       case CPUFREQ_COOLING_STOP:
-> +               ret = blocking_notifier_chain_register(
-> +                               &cputherm_state_notifier_list, nb);
-> +               break;
-> +       default:
-> +               ret = -EINVAL;
-> +       }
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL(cputherm_register_notifier);
-> +
-> +/**
-> + * cputherm_unregister_notifier - Un-register a notifier.
-> + * @nb:        struct notifier_block * with callback info.
-> + * @list: integer value for which notification is needed. values possible are
-> + *     CPUFREQ_COOLING_START or CPUFREQ_COOLING_STOP.
-> + *
-> + * This exported function un-registers a driver with cpu cooling layer.
-> + */
-> +int cputherm_unregister_notifier(struct notifier_block *nb, unsigned int list)
-> +{
-> +       int ret = 0;
-> +
-> +       switch (list) {
-> +       case CPUFREQ_COOLING_START:
-> +       case CPUFREQ_COOLING_STOP:
-> +               ret = blocking_notifier_chain_unregister(
-> +                               &cputherm_state_notifier_list, nb);
-> +               break;
-> +       default:
-> +               ret = -EINVAL;
-> +       }
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL(cputherm_unregister_notifier);
-> +
-> +/* Below code defines functions to be used for cpufreq as cooling device */
-> +
-> +/**
-> + * is_cpufreq_valid - function to check if a cpu has frequency transition policy.
-> + * @cpu: cpu for which check is needed.
-> + */
-> +static int is_cpufreq_valid(int cpu)
-> +{
-> +       struct cpufreq_policy policy;
-> +       return !cpufreq_get_policy(&policy, cpu);
-> +}
-> +
-> +/**
-> + * get_cpu_frequency - get the absolute value of frequency from level.
-> + * @cpu: cpu for which frequency is fetched.
-> + * @level: level of frequency of the CPU
-> + *     e.g level=0 --> 1st MAX FREQ, LEVEL=1 ---> 2nd MAX FREQ, .... etc
-> + * @return: frequency of the cpu or 0 for error.
-> + */
-> +static unsigned int get_cpu_frequency(unsigned int cpu, unsigned int level)
-> +{
-> +       int ret = 0, i = 0;
-> +       unsigned int level_index;
-> +       bool descend = false;
-> +       struct cpufreq_frequency_table *table > +                                       cpufreq_frequency_get_table(cpu);
-> +       if (!table)
-> +               return ret;
-> +
-> +       while (table[i].frequency != CPUFREQ_TABLE_END) {
-> +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> +                       continue;
-> +
-> +               /*check if table in ascending or descending order*/
-> +               if ((table[i + 1].frequency != CPUFREQ_TABLE_END) &&
-> +                       (table[i + 1].frequency < table[i].frequency)
-> +                       && !descend) {
-> +                       descend = true;
-> +               }
-> +
-> +               /*return if level matched and table in descending order*/
-> +               if (descend && i = level)
-> +                       return table[i].frequency;
-> +               i++;
-> +       }
-> +       i--;
-> +
-> +       if (level > i || descend)
-> +               return ret;
-> +       level_index = i - level;
-> +
-> +       /*Scan the table in reverse order and match the level*/
-> +       while (i >= 0) {
-> +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> +                       continue;
-> +               /*return if level matched*/
-> +               if (i = level_index)
-> +                       return table[i].frequency;
-> +               i--;
-> +       }
-> +       return ret;
-> +}
-> +
-> +/**
-> + * get_frequency_level - get the level from the frequency.
-> + * @cpu: cpu for which frequency is fetched.
-> + * @freq: frequency for which level is requested.
-> + *
-> + * @return: level corresponding to the frequency.
-> + *     e.g level=0 --> 1st MAX FREQ, LEVEL=1 ---> 2nd MAX FREQ, .... etc
-> + *     or negative value for any error.
-> + */
-> +static int get_frequency_level(unsigned int cpu, unsigned int freq)
-> +{
-> +       int ret = -EINVAL, i = 0;
-> +       unsigned int max_index;
-> +       bool descend = false;
-> +       struct cpufreq_frequency_table *table > +                                       cpufreq_frequency_get_table(cpu);
-> +       if (!table)
-> +               return ret;
-> +
-> +       while (table[i].frequency != CPUFREQ_TABLE_END) {
-> +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> +                       continue;
-> +
-> +               /*check if table in ascending or descending order*/
-> +               if ((table[i + 1].frequency != CPUFREQ_TABLE_END) &&
-> +                       (table[i + 1].frequency < table[i].frequency)
-> +                       && !descend) {
-> +                       descend = true;
-> +               }
-> +
-> +               /*return if level matched and table in descending order*/
-> +               if (descend && table[i].frequency = freq)
-> +                       return i;
-> +               i++;
-> +       }
-> +       i--;
-> +
-> +       if (descend)
-> +               return ret;
-> +
-> +       max_index = i;
-> +
-> +       /*Scan the table in reverse order and match the freq*/
-> +       while (i >= 0) {
-> +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> +                       continue;
-> +               /*return if level matched*/
-> +               if (table[i].frequency = freq)
-> +                       return max_index - i;
-> +               i--;
-> +       }
-> +       return ret;
-> +}
-> +
-> +/**
-> + * cpufreq_apply_cooling - function to apply frequency clipping.
-> + * @cpufreq_device: cpufreq_cooling_device pointer containing frequency
-> + *     clipping data.
-> + * @cooling_state: value of the cooling state.
-> + */
-> +static int cpufreq_apply_cooling(struct cpufreq_cooling_device *cpufreq_device,
-> +                               unsigned long cooling_state)
-> +{
-> +       unsigned int event, cpuid, clip_freq;
-> +       struct cpumask *mask = &cpufreq_device->allowed_cpus;
-> +       unsigned int cpu = cpumask_any(mask);
-> +
-> +
-> +       /* Check if the old cooling action is same as new cooling action */
-> +       if (cpufreq_device->cpufreq_state = cooling_state)
-> +               return 0;
-> +
-> +       clip_freq = get_cpu_frequency(cpu, cooling_state);
-> +       if (!clip_freq)
-> +               return -EINVAL;
-> +
-> +       cpufreq_device->cpufreq_state = cooling_state;
-> +       cpufreq_device->cpufreq_val = clip_freq;
-> +       notify_device = cpufreq_device;
-> +
-> +       if (cooling_state != 0)
-> +               event = CPUFREQ_COOLING_START;
-> +       else
-> +               event = CPUFREQ_COOLING_STOP;
-> +
-> +       blocking_notifier_call_chain(&cputherm_state_notifier_list,
-> +                                               event, &clip_freq);
-> +
-> +       for_each_cpu(cpuid, mask) {
-> +               if (is_cpufreq_valid(cpuid))
-> +                       cpufreq_update_policy(cpuid);
-> +       }
-> +
-> +       notify_device = NOTIFY_INVALID;
-> +
-> +       return 0;
-> +}
-> +
-> +/**
-> + * cpufreq_thermal_notifier - notifier callback for cpufreq policy change.
-> + * @nb:        struct notifier_block * with callback info.
-> + * @event: value showing cpufreq event for which this function invoked.
-> + * @data: callback-specific data
-> + */
-> +static int cpufreq_thermal_notifier(struct notifier_block *nb,
-> +                                       unsigned long event, void *data)
-> +{
-> +       struct cpufreq_policy *policy = data;
-> +       unsigned long max_freq = 0;
-> +
-> +       if (event != CPUFREQ_ADJUST || notify_device = NOTIFY_INVALID)
-> +               return 0;
-> +
-> +       if (cpumask_test_cpu(policy->cpu, &notify_device->allowed_cpus))
-> +               max_freq = notify_device->cpufreq_val;
-> +
-> +       /* Never exceed user_policy.max*/
-> +       if (max_freq > policy->user_policy.max)
-> +               max_freq = policy->user_policy.max;
-> +
-> +       if (policy->max > max_freq)
-> +               cpufreq_verify_within_limits(policy, 0, max_freq);
-> +
-> +       return 0;
-> +}
-> +
-> +/*
-> + * cpufreq cooling device callback functions are defined below
-> + */
-> +
-> +/**
-> + * cpufreq_get_max_state - callback function to get the max cooling state.
-> + * @cdev: thermal cooling device pointer.
-> + * @state: fill this variable with the max cooling state.
-> + */
-> +static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
-> +                                unsigned long *state)
-> +{
-> +       int ret = -EINVAL, i = 0;
-> +       struct cpufreq_cooling_device *cpufreq_device;
-> +       struct cpumask *mask;
-> +       unsigned int cpu;
-> +       struct cpufreq_frequency_table *table;
-> +
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       list_for_each_entry(cpufreq_device, &cooling_cpufreq_list, node) {
-> +               if (cpufreq_device && cpufreq_device->cool_dev = cdev)
-> +                       break;
-> +       }
-> +       if (cpufreq_device = NULL)
-> +               goto return_get_max_state;
-> +
-> +       mask = &cpufreq_device->allowed_cpus;
-> +       cpu = cpumask_any(mask);
-> +       table = cpufreq_frequency_get_table(cpu);
-> +       if (!table) {
-> +               *state = 0;
-> +               ret = 0;
-> +               goto return_get_max_state;
-> +       }
-> +
-> +       while (table[i].frequency != CPUFREQ_TABLE_END) {
-> +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> +                       continue;
-> +               i++;
-> +       }
-> +       if (i > 0) {
-> +               *state = --i;
-> +               ret = 0;
-> +       }
-> +
-> +return_get_max_state:
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +       return ret;
-> +}
-> +
-> +/**
-> + * cpufreq_get_cur_state - callback function to get the current cooling state.
-> + * @cdev: thermal cooling device pointer.
-> + * @state: fill this variable with the current cooling state.
-> + */
-> +static int cpufreq_get_cur_state(struct thermal_cooling_device *cdev,
-> +                                unsigned long *state)
-> +{
-> +       int ret = -EINVAL;
-> +       struct cpufreq_cooling_device *cpufreq_device;
-> +       struct cpumask *mask;
-> +       unsigned int cpu;
-> +       struct cpufreq_policy policy;
-> +
-> +       *state = 0;
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       list_for_each_entry(cpufreq_device, &cooling_cpufreq_list, node) {
-> +               if (cpufreq_device && cpufreq_device->cool_dev = cdev)
-> +                       break;
-> +       }
-> +       if (cpufreq_device = NULL)
-> +               goto err_get_cur_state;
-> +
-> +       mask = &cpufreq_device->allowed_cpus;
-> +       cpu = cpumask_any(mask);
-> +
-> +       ret = cpufreq_get_policy(&policy, cpu);
-> +       if (ret)
-> +               goto uninit_get_cur_state;
-> +
-> +       ret = get_frequency_level(cpu, policy.max);
-> +       if (ret < 0)
-> +               goto uninit_get_cur_state;
-> +
-> +       *state = ret;
-> +
-> +uninit_get_cur_state:
-> +       ret = 0;
-> +err_get_cur_state:
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +       return ret;
-> +}
-> +
-> +/**
-> + * cpufreq_set_cur_state - callback function to set the current cooling state.
-> + * @cdev: thermal cooling device pointer.
-> + * @state: set this variable to the current cooling state.
-> + */
-> +static int cpufreq_set_cur_state(struct thermal_cooling_device *cdev,
-> +                                unsigned long state)
-> +{
-> +       int ret = -EINVAL;
-> +       struct cpufreq_cooling_device *cpufreq_device;
-> +
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       list_for_each_entry(cpufreq_device, &cooling_cpufreq_list, node) {
-> +               if (cpufreq_device && cpufreq_device->cool_dev = cdev) {
-> +                       ret = 0;
-> +                       break;
-> +               }
-> +       }
-> +       if (!ret)
-> +               ret = cpufreq_apply_cooling(cpufreq_device, state);
-> +
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +
-> +       return ret;
-> +}
-> +
-> +/* Bind cpufreq callbacks to thermal cooling device ops */
-> +static struct thermal_cooling_device_ops const cpufreq_cooling_ops = {
-> +       .get_max_state = cpufreq_get_max_state,
-> +       .get_cur_state = cpufreq_get_cur_state,
-> +       .set_cur_state = cpufreq_set_cur_state,
-> +};
-> +
-> +/* Notifier for cpufreq policy change */
-> +static struct notifier_block thermal_cpufreq_notifier_block = {
-> +       .notifier_call = cpufreq_thermal_notifier,
-> +};
-> +
-> +/**
-> + * cpufreq_cooling_register - function to create cpufreq cooling device.
-> + * @clip_cpus: cpumask of cpus where the frequency constraints will happen.
-> + */
-> +struct thermal_cooling_device *cpufreq_cooling_register(
-> +       struct cpumask *clip_cpus)
-> +{
-> +       struct thermal_cooling_device *cool_dev;
-> +       struct cpufreq_cooling_device *cpufreq_dev = NULL;
-> +       unsigned int cpufreq_dev_count = 0, min = 0, max = 0;
-> +       char dev_name[THERMAL_NAME_LENGTH];
-> +       int ret = 0, id = 0, i;
-> +       struct cpufreq_policy policy;
-> +
-> +       list_for_each_entry(cpufreq_dev, &cooling_cpufreq_list, node)
-> +               cpufreq_dev_count++;
-> +
-> +       /*Verify that all the clip cpus have same freq_min, freq_max limit*/
-> +       for_each_cpu(i, clip_cpus) {
-> +               /*continue if cpufreq policy not found and not return error*/
-> +               if (!cpufreq_get_policy(&policy, i))
-> +                       continue;
-> +               if (min = 0 && max = 0) {
-> +                       min = policy.cpuinfo.min_freq;
-> +                       max = policy.cpuinfo.max_freq;
-> +               } else {
-> +                       if (min != policy.cpuinfo.min_freq ||
-> +                               max != policy.cpuinfo.max_freq)
-> +                               return ERR_PTR(-EINVAL);
-> +               }
-> +       }
-> +       cpufreq_dev = kzalloc(sizeof(struct cpufreq_cooling_device),
-> +                       GFP_KERNEL);
-> +       if (!cpufreq_dev)
-> +               return ERR_PTR(-ENOMEM);
-> +
-> +       cpumask_copy(&cpufreq_dev->allowed_cpus, clip_cpus);
-> +
-> +       if (cpufreq_dev_count = 0)
-> +               mutex_init(&cooling_cpufreq_lock);
-> +
-> +       ret = get_idr(&cpufreq_idr, &cpufreq_dev->id);
-> +       if (ret) {
-> +               kfree(cpufreq_dev);
-> +               return ERR_PTR(-EINVAL);
-> +       }
-> +
-> +       sprintf(dev_name, "thermal-cpufreq-%d", cpufreq_dev->id);
-> +
-> +       cool_dev = thermal_cooling_device_register(dev_name, cpufreq_dev,
-> +                                               &cpufreq_cooling_ops);
-> +       if (!cool_dev) {
-> +               release_idr(&cpufreq_idr, cpufreq_dev->id);
-> +               kfree(cpufreq_dev);
-> +               return ERR_PTR(-EINVAL);
-> +       }
-> +       cpufreq_dev->id = id;
-> +       cpufreq_dev->cool_dev = cool_dev;
-> +       cpufreq_dev->cpufreq_state = 0;
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       list_add_tail(&cpufreq_dev->node, &cooling_cpufreq_list);
-> +
-> +       /* Register the notifier for first cpufreq cooling device */
-> +       if (cpufreq_dev_count = 0)
-> +               cpufreq_register_notifier(&thermal_cpufreq_notifier_block,
-> +                                               CPUFREQ_POLICY_NOTIFIER);
-> +
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +       return cool_dev;
-> +}
-> +EXPORT_SYMBOL(cpufreq_cooling_register);
-> +
-> +/**
-> + * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-> + * @cdev: thermal cooling device pointer.
-> + */
-> +void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
-> +{
-> +       struct cpufreq_cooling_device *cpufreq_dev = NULL;
-> +       unsigned int cpufreq_dev_count = 0;
-> +
-> +       mutex_lock(&cooling_cpufreq_lock);
-> +       list_for_each_entry(cpufreq_dev, &cooling_cpufreq_list, node) {
-> +               if (cpufreq_dev && cpufreq_dev->cool_dev = cdev)
-> +                       break;
-> +               cpufreq_dev_count++;
-> +       }
-> +
-> +       if (!cpufreq_dev || cpufreq_dev->cool_dev != cdev) {
-> +               mutex_unlock(&cooling_cpufreq_lock);
-> +               return;
-> +       }
-> +
-> +       list_del(&cpufreq_dev->node);
-> +
-> +       /* Unregister the notifier for the last cpufreq cooling device */
-> +       if (cpufreq_dev_count = 1) {
-> +               cpufreq_unregister_notifier(&thermal_cpufreq_notifier_block,
-> +                                       CPUFREQ_POLICY_NOTIFIER);
-> +       }
-> +       mutex_unlock(&cooling_cpufreq_lock);
-> +       thermal_cooling_device_unregister(cpufreq_dev->cool_dev);
-> +       release_idr(&cpufreq_idr, cpufreq_dev->id);
-> +       if (cpufreq_dev_count = 1)
-> +               mutex_destroy(&cooling_cpufreq_lock);
-> +       kfree(cpufreq_dev);
-> +}
-> +EXPORT_SYMBOL(cpufreq_cooling_unregister);
-> diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-> new file mode 100644
-> index 0000000..555b917
-> --- /dev/null
-> +++ b/include/linux/cpu_cooling.h
-> @@ -0,0 +1,79 @@
-> +/*
-> + *  linux/include/linux/cpu_cooling.h
-> + *
-> + *  Copyright (C) 2012 Samsung Electronics Co., Ltd(http://www.samsung.com)
-> + *  Copyright (C) 2012  Amit Daniel <amit.kachhap@linaro.org>
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; version 2 of the License.
-> + *
-> + *  This program is distributed in the hope that it will be useful, but
-> + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + *  General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License along
-> + *  with this program; if not, write to the Free Software Foundation, Inc.,
-> + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-> + *
-> + * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> + */
-> +
-> +#ifndef __CPU_COOLING_H__
-> +#define __CPU_COOLING_H__
-> +
-> +#include <linux/thermal.h>
-> +
-> +#define CPUFREQ_COOLING_START          0
-> +#define CPUFREQ_COOLING_STOP           1
-> +
-> +/**
-> + * cputherm_register_notifier - Register a notifier with cpu cooling interface.
-> + * @nb:        struct notifier_block * with callback info.
-> + * @list: integer value for which notification is needed. possible values are
-> + *     CPUFREQ_COOLING_START and CPUFREQ_COOLING_STOP.
-> + *
-> + * This exported function registers a driver with cpu cooling layer. The driver
-> + * will be notified when any cpu cooling action is called.
-> + */
-> +int cputherm_register_notifier(struct notifier_block *nb, unsigned int list);
-> +
-> +/**
-> + * cputherm_unregister_notifier - Un-register a notifier.
-> + * @nb:        struct notifier_block * with callback info.
-> + * @list: integer value for which notification is needed. values possible are
-> + *     CPUFREQ_COOLING_START and CPUFREQ_COOLING_STOP.
-> + *
-> + * This exported function un-registers a driver with cpu cooling layer.
-> + */
-> +int cputherm_unregister_notifier(struct notifier_block *nb, unsigned int list);
-> +
-> +#ifdef CONFIG_CPU_THERMAL
-> +/**
-> + * cpufreq_cooling_register - function to create cpufreq cooling device.
-> + * @clip_cpus: cpumask of cpus where the frequency constraints will happen
-> + */
-> +struct thermal_cooling_device *cpufreq_cooling_register(
-> +               struct cpumask *clip_cpus);
-> +
-> +/**
-> + * cpufreq_cooling_unregister - function to remove cpufreq cooling device.
-> + * @cdev: thermal cooling device pointer.
-> + */
-> +void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
-> +#else /* !CONFIG_CPU_THERMAL */
-> +static inline struct thermal_cooling_device *cpufreq_cooling_register(
-> +       struct cpumask *clip_cpus)
-> +{
-> +       return NULL;
-> +}
-> +static inline void cpufreq_cooling_unregister(
-> +               struct thermal_cooling_device *cdev)
-> +{
-> +       return;
-> +}
-> +#endif /* CONFIG_CPU_THERMAL */
-> +
-> +#endif /* __CPU_COOLING_H__ */
-> --
-> 1.7.1
->
+All implemented sysfs-symbols have been sucessfully tested at temperatures =
+of 15=B0C to 40=B0C.
+
+Signed-off-by: Hartmut Knaack <knaack.h <at> gmx.de>
+---
+diff --git a/Documentation/hwmon/adt7410 b/Documentation/hwmon/adt7410
+new file mode 100644
+index 0000000..5ccae11
+--- /dev/null
++++ b/Documentation/hwmon/adt7410
+@@ -0,0 +1,47 @@
++Kernel driver adt7410
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++
++Supported chips:
++  * Analog Devices ADT7410
++    Prefix: 'adt7410'
++    Addresses scanned: I2C 0x48 - 0x4B
++    Datasheet: Publicly available at the Analog Devices website
++               http://www.analog.com/static/imported-files/data_sheets/ADT=
+7410.pdf
++
++Author: Hartmut Knaack <knaack.h <at> gmx.de>
++
++Description
++-----------
++
++The ADT7410 is a temperature sensor with rated temperature range of -55=B0=
+C to
+++150=B0C. It has a high accuracy of +/-0.5=B0C and can be operated at a re=
+solution
++of 13 bits (0.0625=B0C) or 16 bits (0.0078=B0C). The sensor provides an IN=
+T pin to
++indicate an excession of a set minimum or maximum temperature, as well as a
++critical temperature (CT) pin to indicate an excession of a set critical
++temperature. Both pins can be set up with a common hysteresis of 0=B0C - 1=
+5=B0C
++and a fault queue ranging from 1 to 4 events. Both pins can individually s=
+et
++to be active-low or active-high, while the whole device can either run in
++comparator mode or interrupt mode. The ADT7410 supports continous temperat=
+ure
++sampling, as well as sampling one temperature value per second or even just
++get one sample on demand for power saving. Besides, it can completely power
++down its ADC, if power management is required.
++
++Configuration Notes
++-------------------
++
++Since the device uses one hysteresis value, which is a delta to minimum,
++maximum and critical temperature, the driver will represent it as
++temp#_max_hyst.
++The device is set to 16 bit resolution and comparator mode by default.
++
++sysfs-Interface
++---------------
++
++temp#_input		- temperature input
++temp#_min		- temperature minimum setpoint
++temp#_max		- temperature maximum setpoint
++temp#_crit		- critical temperature setpoint
++temp#_max_hyst		- hysteresis for temperature maximum
++temp#_min_alarm		- temperature minimum alarm flag
++temp#_max_alarm		- temperature maximum alarm flag
++temp#_crit_alarm	- critical temperature alarm flag
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 6f1d167..7ed1989 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -179,6 +179,16 @@ config SENSORS_ADM9240
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called adm9240.
+=20
++config SENSORS_ADT7410
++	tristate "Analog Devices ADT7410"
++	depends on I2C && EXPERIMENTAL
++	help
++	  If you say yes here you get support for the Analog Devices
++	  ADT7410 temperature monitoring chip.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called adt7410.
++
+ config SENSORS_ADT7411
+ 	tristate "Analog Devices ADT7411"
+ 	depends on I2C && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index e1eeac1..112ce3a 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -34,6 +34,7 @@ obj-$(CONFIG_SENSORS_ADM9240)	+=3D adm9240.o
+ obj-$(CONFIG_SENSORS_ADS1015)	+=3D ads1015.o
+ obj-$(CONFIG_SENSORS_ADS7828)	+=3D ads7828.o
+ obj-$(CONFIG_SENSORS_ADS7871)	+=3D ads7871.o
++obj-$(CONFIG_SENSORS_ADT7410)	+=3D adt7410.o
+ obj-$(CONFIG_SENSORS_ADT7411)	+=3D adt7411.o
+ obj-$(CONFIG_SENSORS_ADT7462)	+=3D adt7462.o
+ obj-$(CONFIG_SENSORS_ADT7470)	+=3D adt7470.o
+diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
+new file mode 100644
+index 0000000..19dbbf9
+--- /dev/null
++++ b/drivers/hwmon/adt7410.c
+@@ -0,0 +1,495 @@
++/*
++ * adt7410.c - Part of lm_sensors, Linux kernel modules for hardware
++ *	 monitoring
++ * Hartmut Knaack <knaack.h <at> gmx.de> 2012-07-22
++ * based on lm75.c by Frodo Looijaard <frodol <at> dds.nl>
++ * and adt7410.c from iio-staging by Sonic Zhang <sonic.zhang <at> analog.=
+com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/slab.h>
++#include <linux/jiffies.h>
++#include <linux/i2c.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/err.h>
++#include <linux/mutex.h>
++#include <linux/delay.h>
++
++/*
++ * ADT7410 registers definition
++ */
++
++#define ADT7410_TEMPERATURE		0
++#define ADT7410_STATUS			2
++#define ADT7410_CONFIG			3
++#define ADT7410_T_ALARM_HIGH		4
++#define ADT7410_T_ALARM_LOW		6
++#define ADT7410_T_CRIT			8
++#define ADT7410_T_HYST			0xA
++#define ADT7410_ID			0xB
++#define ADT7410_RESET			0x2F
++
++/*
++ * ADT7410 status
++ */
++#define ADT7410_STAT_T_LOW		0x10
++#define ADT7410_STAT_T_HIGH		0x20
++#define ADT7410_STAT_T_CRIT		0x40
++#define ADT7410_STAT_NOT_RDY		0x80
++
++/*
++ * ADT7410 config
++ */
++#define ADT7410_FAULT_QUEUE_MASK	0x3
++#define ADT7410_CT_POLARITY		0x4
++#define ADT7410_INT_POLARITY		0x8
++#define ADT7410_EVENT_MODE		0x10
++#define ADT7410_MODE_MASK		0x60
++#define ADT7410_FULL			0x0
++#define ADT7410_ONESHOT			0x20
++#define ADT7410_SPS			0x40
++#define ADT7410_PD			0x60
++#define ADT7410_RESOLUTION		0x80
++
++/*
++ * ADT7410 masks
++ */
++#define ADT7410_T16_VALUE_SIGN			0x8000
++#define ADT7410_T16_VALUE_FLOAT_OFFSET		7
++#define ADT7410_T16_VALUE_FLOAT_MASK		0x7F
++#define ADT7410_T13_VALUE_MASK			0xFFF8
++#define ADT7410_T_HYST_MASK			0xF
++#define ADT7410_DEVICE_ID_MASK			0x7
++#define ADT7410_DEVICE_ID			0x3
++#define ADT7410_MANUFACTURE_ID_OFFSET		3
++#define ADT7410_MANUFACTURE_ID			0x19
++#define ADT7410_IRQS				2
++
++
++/* straight from the datasheet */
++#define ADT7410_TEMP_MIN (-55000)
++#define ADT7410_TEMP_MAX 150000
++
++/*
++ * This driver handles the ADT7410 and compatible digital temperature sens=
+ors.
++ */
++
++enum adt7410_type {		/* keep sorted in alphabetical order */
++	adt7410,
++};
++
++/* Addresses scanned */
++static const unsigned short normal_i2c[] =3D { 0x48, 0x49, 0x4a, 0x4b,
++					I2C_CLIENT_END };
++
++static const u8 ADT7410_REG_TEMP[4] =3D {
++	ADT7410_TEMPERATURE,		/* input */
++	ADT7410_T_ALARM_HIGH,		/* high */
++	ADT7410_T_ALARM_LOW,		/* low */
++	ADT7410_T_CRIT,			/* critical */
++};
++
++/* Each client has this additional data */
++struct adt7410_data {
++	struct device		*hwmon_dev;
++	struct mutex		update_lock;
++	u8			config;
++	bool			valid;		/* !=3D0 if registers valid */
++	unsigned long		last_updated;	/* In jiffies */
++	u16			temp[4];	/* Register values,
++						   0 =3D input
++						   1 =3D high
++						   2 =3D low
++						   3 =3D critical */
++};
++
++/*
++ * adt7410 register access by I2C
++ */
++static int adt7410_temp_ready(struct i2c_client *client)
++{
++	int i, status;
++
++	for (i =3D 0; i < 4; i++) {
++		status =3D i2c_smbus_read_byte_data(client, ADT7410_STATUS);
++		if (status < 0)
++			return status;
++		if (!(status & ADT7410_STAT_NOT_RDY))
++			return 0;
++		msleep(100);
++	}
++	return -EIO;
++}
++
++static struct adt7410_data *adt7410_update_device(struct device *dev)
++{
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++	struct adt7410_data *ret =3D data;
++	mutex_lock(&data->update_lock);
++
++	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
++	    || !data->valid) {
++		int i;
++
++		dev_dbg(&client->dev, "Starting adt7410 update\n");
++
++		for (i =3D 0; i < ARRAY_SIZE(data->temp); i++) {
++			int status;
++
++			if (i =3D=3D 0) {/* wait for register be set */
++				status =3D adt7410_temp_ready(client);
++				if (status)
++					return ERR_PTR(status);
++			}
++			status =3D i2c_smbus_read_word_swapped(client,
++							 ADT7410_REG_TEMP[i]);
++			if (unlikely(status < 0)) {
++				dev_dbg(dev,
++					"ADT7410: Failed to read value: reg %d, error %d\n",
++					ADT7410_REG_TEMP[i], status);
++				ret =3D ERR_PTR(status);
++				data->valid =3D 0;
++				goto abort;
++			}
++			data->temp[i] =3D status;
++		}
++		data->last_updated =3D jiffies;
++		data->valid =3D 1;
++	}
++
++abort:
++	mutex_unlock(&data->update_lock);
++	return ret;
++}
++
++static u16 ADT7410_TEMP_TO_REG(long temp)
++{
++	return (u16)((SENSORS_LIMIT(temp, ADT7410_TEMP_MIN,
++				    ADT7410_TEMP_MAX) * 128) / 1000);
++}
++
++static int ADT7410_REG_TO_TEMP(struct adt7410_data *data,
++			       u16 reg)
++{
++	/* in 13 bit mode, bits 0-2 are status flags - mask them out */
++	if (!(data->config & ADT7410_RESOLUTION))
++		reg &=3D ADT7410_T13_VALUE_MASK;
++	/* temperature is stored in twos complement format, in steps of
++	 * 1/128=B0C */
++	return ((int)reg * 1000) / 128;
++}
++
++
++
++/*-----------------------------------------------------------------------*/
++
++/* sysfs attributes for hwmon */
++
++static ssize_t adt7410_show_temp(struct device *dev,
++				 struct device_attribute *da,
++				 char *buf)
++{
++	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
++	struct adt7410_data *data =3D adt7410_update_device(dev);
++
++	if (IS_ERR(data))
++		return PTR_ERR(data);
++
++	return sprintf(buf, "%d\n", ADT7410_REG_TO_TEMP(data,
++		       data->temp[attr->index]));
++}
++
++static ssize_t adt7410_set_temp(struct device *dev,
++				struct device_attribute *da,
++				const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++	int nr =3D attr->index;
++	long temp;
++	int ret;
++
++	ret =3D kstrtol(buf, 10, &temp);
++	if (ret)
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	data->temp[nr] =3D ADT7410_TEMP_TO_REG(temp);
++	i2c_smbus_write_word_swapped(client, ADT7410_REG_TEMP[nr],
++				     data->temp[nr]);
++	mutex_unlock(&data->update_lock);
++	return count;
++}
++
++static ssize_t adt7410_show_t_hyst(struct device *dev,
++				   struct device_attribute *da,
++				   char *buf)
++{
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++	int ret;
++
++	ret =3D i2c_smbus_read_byte_data(client, ADT7410_T_HYST);
++	if (ret < 0)
++		return ret;
++	/* hysteresis is stored as a 4 bit delta in the device, convert it
++	 * to an absolute value in relation to t_max */
++	return sprintf(buf, "%d\n", ADT7410_REG_TO_TEMP(data, data->temp[1]
++		       - (u16)((ret & ADT7410_T_HYST_MASK) << 7)));
++}
++
++static ssize_t adt7410_set_t_hyst(struct device *dev,
++				  struct device_attribute *da,
++				  const char *buf, size_t count)
++{
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++	int ret;
++	long hyst;
++	u8 t_hyst;
++
++	ret =3D kstrtol(buf, 10, &hyst);
++	if ((hyst < ADT7410_TEMP_MIN) || (hyst > ADT7410_TEMP_MAX))
++		return -EINVAL;
++	/* convert absolute hysteresis value to a 4 bit delta value */
++	t_hyst =3D (u8)(((s32)(data->temp[1] * 1000) / 128 - hyst) / 1000);
++	if (ret || (t_hyst > ADT7410_T_HYST_MASK))
++		return -EINVAL;
++
++	ret =3D i2c_smbus_write_byte_data(client, ADT7410_T_HYST, t_hyst);
++	if (ret)
++		return ret;
++
++	return count;
++}
++
++static ssize_t adt7410_show_alarm(struct device *dev,
++				  struct device_attribute *da,
++				  char *buf)
++{
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct sensor_device_attribute_2 *attr2 =3D to_sensor_dev_attr_2(da);
++	int ret;
++
++	ret =3D i2c_smbus_read_byte_data(client, ADT7410_STATUS);
++	if (ret < 0)
++		return ret;
++
++	return sprintf(buf, "%d\n", (ret & attr2->nr) ? 1 : 0);
++}
++
++static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, adt7410_show_temp, NULL, 0=
+);
++static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
++			  adt7410_show_temp, adt7410_set_temp, 1);
++static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
++			  adt7410_show_temp, adt7410_set_temp, 2);
++static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO,
++			  adt7410_show_temp, adt7410_set_temp, 3);
++static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
++			  adt7410_show_t_hyst, adt7410_set_t_hyst, 4);
++static SENSOR_DEVICE_ATTR_2(temp1_min_alarm, S_IRUGO, adt7410_show_alarm,
++			    NULL, ADT7410_STAT_T_LOW, 2);
++static SENSOR_DEVICE_ATTR_2(temp1_max_alarm, S_IRUGO, adt7410_show_alarm,
++			    NULL, ADT7410_STAT_T_HIGH, 1);
++static SENSOR_DEVICE_ATTR_2(temp1_crit_alarm, S_IRUGO, adt7410_show_alarm,
++			    NULL, ADT7410_STAT_T_CRIT, 3);
++
++static struct attribute *adt7410_attributes[] =3D {
++	&sensor_dev_attr_temp1_input.dev_attr.attr,
++	&sensor_dev_attr_temp1_max.dev_attr.attr,
++	&sensor_dev_attr_temp1_min.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
++	NULL
++};
++
++static const struct attribute_group adt7410_group =3D {
++	.attrs =3D adt7410_attributes,
++};
++
++/*-----------------------------------------------------------------------*/
++
++/* device probe and removal */
++
++static int adt7410_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct adt7410_data *data;
++	int ret, new;
++
++	if (!i2c_check_functionality(client->adapter,
++			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
++		return -EIO;
++
++	data =3D devm_kzalloc(&client->dev, sizeof(struct adt7410_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	i2c_set_clientdata(client, data);
++	mutex_init(&data->update_lock);
++
++	/* configure as specified */
++	ret =3D i2c_smbus_read_byte_data(client, ADT7410_CONFIG);
++	if (ret < 0) {
++		dev_dbg(&client->dev, "Can't read config? %d\n", ret);
++		return ret;
++	}
++	data->config =3D ret;
++	/* Set to 16 bit resolution, continous conversion and comparator mode.
++	 * Then tweak to be more precise when appropriate.
++	 */
++	new =3D data->config | ADT7410_FULL | ADT7410_RESOLUTION |
++			ADT7410_EVENT_MODE;
++	if (data->config !=3D new) {
++		i2c_smbus_write_byte_data(client, ADT7410_CONFIG, new);
++		data->config =3D new;
++	}
++	dev_dbg(&client->dev, "Config %02x\n", new);
++
++	/* Register sysfs hooks */
++	ret =3D sysfs_create_group(&client->dev.kobj, &adt7410_group);
++	if (ret)
++		return ret;
++
++	data->hwmon_dev =3D hwmon_device_register(&client->dev);
++	if (IS_ERR(data->hwmon_dev)) {
++		ret =3D PTR_ERR(data->hwmon_dev);
++		goto exit_remove;
++	}
++
++	dev_info(&client->dev, "%s: sensor '%s'\n",
++		 dev_name(data->hwmon_dev), client->name);
++
++	return 0;
++
++exit_remove:
++	sysfs_remove_group(&client->dev.kobj, &adt7410_group);
++	return ret;
++}
++
++static int adt7410_remove(struct i2c_client *client)
++{
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++
++	hwmon_device_unregister(data->hwmon_dev);
++	sysfs_remove_group(&client->dev.kobj, &adt7410_group);
++	i2c_smbus_write_byte_data(client, ADT7410_CONFIG, data->config);
++	return 0;
++}
++
++static const struct i2c_device_id adt7410_ids[] =3D {
++	{ "adt7410", adt7410, },
++	{ /* LIST END */ }
++};
++MODULE_DEVICE_TABLE(i2c, adt7410_ids);
++
++/* Return 0 if detection is successful, -ENODEV otherwise
++ * very basic detection */
++static int adt7410_detect(struct i2c_client *new_client,
++			  struct i2c_board_info *info)
++{
++	struct i2c_adapter *adapter =3D new_client->adapter;
++	int ret;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA |
++				     I2C_FUNC_SMBUS_WORD_DATA))
++		return -ENODEV;
++
++	ret =3D i2c_smbus_read_byte_data(new_client, ADT7410_ID);
++	if (ret < 0)
++		return ret;
++
++	if ((ret >> ADT7410_MANUFACTURE_ID_OFFSET) !=3D ADT7410_MANUFACTURE_ID)
++		return -ENODEV;
++
++	if ((ret & ADT7410_DEVICE_ID_MASK) !=3D ADT7410_DEVICE_ID)
++		return -ENODEV;
++
++	/* Bits 0-3 of status register read back 0000 */
++	ret =3D i2c_smbus_read_byte_data(new_client, ADT7410_STATUS);
++	if (ret < 0)
++		return ret;
++
++	if (ret & 0xF)
++		return -ENODEV;
++
++	strlcpy(info->type, "adt7410", I2C_NAME_SIZE);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int adt7410_suspend(struct device *dev)
++{
++	int ret;
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++
++	ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
++					data->config | ADT7410_PD);
++	if (ret)
++		return ret;
++	return 0;
++}
++
++static int adt7410_resume(struct device *dev)
++{
++	int ret;
++	struct i2c_client *client =3D to_i2c_client(dev);
++	struct adt7410_data *data =3D i2c_get_clientdata(client);
++
++	ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG, data->config);
++	if (ret)
++		return ret;
++	return 0;
++}
++
++static const struct dev_pm_ops adt7410_dev_pm_ops =3D {
++	.suspend	=3D adt7410_suspend,
++	.resume		=3D adt7410_resume,
++};
++#define ADT7410_DEV_PM_OPS (&adt7410_dev_pm_ops)
++#else
++#define ADT7410_DEV_PM_OPS NULL
++#endif /* CONFIG_PM */
++
++static struct i2c_driver adt7410_driver =3D {
++	.class		=3D I2C_CLASS_HWMON,
++	.driver =3D {
++		.name	=3D "adt7410",
++		.pm	=3D ADT7410_DEV_PM_OPS,
++	},
++	.probe		=3D adt7410_probe,
++	.remove		=3D adt7410_remove,
++	.id_table	=3D adt7410_ids,
++	.detect		=3D adt7410_detect,
++	.address_list	=3D normal_i2c,
++};
++
++module_i2c_driver(adt7410_driver);
++
++MODULE_AUTHOR("Hartmut Knaack <knaack.h <at> gmx.de>");
++MODULE_DESCRIPTION("ADT7410 driver");
++MODULE_LICENSE("GPL");
 
 _______________________________________________
 lm-sensors mailing list
