@@ -1,197 +1,32 @@
-From: Thomas Abraham <thomas.abraham@linaro.org>
-Date: Fri, 17 Aug 2012 04:07:24 +0000
-Subject: Re: [lm-sensors] [PATCH v6 5/6] ARM: exynos: add thermal sensor driver platform data support
-Message-Id: <CAJuYYwQiEHgmn8iJfuENDTAhVQof8M29WHGYePE3a_x3eAZt2Q@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 06 Aug 2012 14:07:16 +0000
+Subject: Re: [lm-sensors] hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
+Message-Id: <20120806140716.GA26589@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
-	<1345117305-8299-6-git-send-email-amit.kachhap@linaro.org>
-In-Reply-To: <1345117305-8299-6-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, SangWook Ju <sw.ju@samsung.com>, Durgadoss <durgadoss.r@intel.com>, Jean Delvare <khali@linux-fr.org>, jonghwa lee <jonghwa3.lee@samsung.com>, Kyungmin Park <kmpark@infradead.org>, Kukjin Kim <kgene.kim@samsung.com>
+To: lm-sensors@vger.kernel.org
 
-On 16 August 2012 17:11, Amit Daniel Kachhap <amit.kachhap@linaro.org> wrote:
-> Add necessary default platform data support needed for TMU driver.  The
-> supplied dt/non-dt values are tested for origen exynos4210 and smdk exynos5250
-> platforms and only compile tested for exynos4412.
->
-> Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-> Cc: SangWook Ju <sw.ju@samsung.com>
-> Cc: Durgadoss <durgadoss.r@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> Cc: jonghwa lee <jonghwa3.lee@samsung.com>
-> Cc: Kyungmin Park <kmpark@infradead.org>
-> Cc: Kukjin Kim <kgene.kim@samsung.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
-> ---
->  drivers/thermal/exynos_thermal.c |  111 +++++++++++++++++++++++++++++++++++++-
->  1 files changed, 110 insertions(+), 1 deletions(-)
-
-Reviewed-by: Thomas Abraham <thomas.abraham@linaro.org>
-
-Few minor comments inline below.
-
->
-> diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
-> index e79cdc9..03a99e4 100644
-> --- a/drivers/thermal/exynos_thermal.c
-> +++ b/drivers/thermal/exynos_thermal.c
-> @@ -723,14 +723,121 @@ static irqreturn_t exynos_tmu_irq(int irq, void *id)
->  static struct thermal_sensor_conf exynos_sensor_conf = {
->         .name                   = "exynos-therm",
->         .read_temperature       = (int (*)(void *))exynos_tmu_read,
-> +};
-> +
-> +#if defined(CONFIG_CPU_EXYNOS4210)
-> +static struct exynos_tmu_platform_data const exynos4210_default_tmu_data = {
-> +       .threshold = 80,
-> +       .trigger_levels[0] = 5,
-> +       .trigger_levels[1] = 20,
-> +       .trigger_levels[2] = 30,
-> +       .trigger_level0_en = 1,
-> +       .trigger_level1_en = 1,
-> +       .trigger_level2_en = 1,
-> +       .trigger_level3_en = 0,
-> +       .gain = 15,
-> +       .reference_voltage = 7,
-> +       .cal_type = TYPE_ONE_POINT_TRIMMING,
-> +       .freq_tab[0] = {
-> +               .freq_clip_max = 800 * 1000,
-> +               .temp_level = 85,
-> +       },
-> +       .freq_tab[1] = {
-> +               .freq_clip_max = 200 * 1000,
-> +               .temp_level = 100,
-> +       },
-> +       .freq_tab_count = 2,
-> +       .type = SOC_ARCH_EXYNOS4210,
-> +};
-> +#define EXYNOS4210_TMU_DRV_DATA (&exynos4210_default_tmu_data)
-> +#else
-> +#define EXYNOS4210_TMU_DRV_DATA (NULL)
-> +#endif
-> +
-> +#if defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS4412)
-> +static struct exynos_tmu_platform_data const exynos_default_tmu_data = {
-> +       .trigger_levels[0] = 85,
-> +       .trigger_levels[1] = 103,
-> +       .trigger_levels[2] = 110,
-> +       .trigger_level0_en = 1,
-> +       .trigger_level1_en = 1,
-> +       .trigger_level2_en = 1,
-> +       .trigger_level3_en = 0,
-> +       .gain = 8,
-> +       .reference_voltage = 16,
-> +       .noise_cancel_mode = 4,
-> +       .cal_type = TYPE_ONE_POINT_TRIMMING,
-> +       .efuse_value = 55,
-> +       .freq_tab[0] = {
-> +               .freq_clip_max = 800 * 1000,
-> +               .temp_level = 85,
-> +       },
-> +       .freq_tab[1] = {
-> +               .freq_clip_max = 200 * 1000,
-> +               .temp_level = 103,
-> +       },
-> +       .freq_tab_count = 2,
-> +       .type = SOC_ARCH_EXYNOS,
-> +};
-> +#define EXYNOS_TMU_DRV_DATA (&exynos_default_tmu_data)
-> +#else
-> +#define EXYNOS_TMU_DRV_DATA (NULL)
-> +#endif
-> +
-> +#ifdef CONFIG_OF
-> +static const struct of_device_id exynos_tmu_match[] = {
-> +       {
-> +               .compatible = "samsung,exynos4210-tmu",
-> +               .data = (void *)EXYNOS4210_TMU_DRV_DATA,
-> +       },
-> +       {
-
-This can be  }, {
-
-> +               .compatible = "samsung,exynos5250-tmu",
-> +               .data = (void *)EXYNOS_TMU_DRV_DATA,
-> +       },
-> +       {},
-> +};
-> +MODULE_DEVICE_TABLE(of, exynos_tmu_match);
-> +#else
-> +#define  exynos_tmu_match NULL
-> +#endif
-> +
-> +static struct platform_device_id exynos_tmu_driver_ids[] = {
-> +       {
-> +               .name           = "exynos4210-tmu",
-> +               .driver_data    = (kernel_ulong_t)EXYNOS4210_TMU_DRV_DATA,
-> +       },
-> +       {
-> +               .name           = "exynos5250-tmu",
-> +               .driver_data    = (kernel_ulong_t)EXYNOS_TMU_DRV_DATA,
-> +       },
-
-Since Exynos5250 platforms are dt based, the above entry could be left out.
-
-> +       { },
-> +};
-> +MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
-> +
-> +static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
-> +                       struct platform_device *pdev)
-> +{
-> +#ifdef CONFIG_OF
-> +       if (pdev->dev.of_node) {
-> +               const struct of_device_id *match;
-> +               match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
-> +               if (!match)
-> +                       return NULL;
-> +               return (struct exynos_tmu_platform_data *) match->data;
-> +       }
-> +#endif
-> +       return (struct exynos_tmu_platform_data *)
-> +                       platform_get_device_id(pdev)->driver_data;
->  }
-> -;
->  static int __devinit exynos_tmu_probe(struct platform_device *pdev)
->  {
->         struct exynos_tmu_data *data;
->         struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
->         int ret, i;
->
-> +       if (!pdata)
-> +               pdata = exynos_get_driver_data(pdev);
-> +
->         if (!pdata) {
->                 dev_err(&pdev->dev, "No platform init data supplied.\n");
->                 return -ENODEV;
-> @@ -899,9 +1006,11 @@ static struct platform_driver exynos_tmu_driver = {
->                 .name   = "exynos-tmu",
->                 .owner  = THIS_MODULE,
->                 .pm     = EXYNOS_TMU_PM,
-> +               .of_match_table = exynos_tmu_match,
->         },
->         .probe = exynos_tmu_probe,
->         .remove = __devexit_p(exynos_tmu_remove),
-> +       .id_table = exynos_tmu_driver_ids,
->  };
->
->  module_platform_driver(exynos_tmu_driver);
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCBBdWcgMDYsIDIwMTIgYXQgMTA6MDI6MDNBTSArMDIwMCwgTWljaGHFgiBQaW90cm93
+c2tpIHdyb3RlOgo+IEhpLAo+IAo+IENvbW1pdCA0MWU1OGExZjJiOTBjODhkOTRiNGJkODRiZWI5
+OTI3YTRjMjcwNGU5Cj4gCj4gKyAgICAgICB7ICJDUFUgIDMzMCIsIDEyNTAwMCB9LAo+IAo+IEkg
+YmVsaXZlIHRoYXQgdmFsdWUgZm9yIEF0b20gMzMwIHNob3VsZCBiZSA4NTAwMCBpbnN0ZWFkIG9m
+IDEyNTAwMC4KPiBQbGVhc2Ugc2VlIFRjYXNlIGluIHNwZWMKPiBodHRwOi8vYXJrLmludGVsLmNv
+bS9wcm9kdWN0cy8zNTY0MS9JbnRlbC1BdG9tLVByb2Nlc3Nvci0zMzAtKDFNLUNhY2hlLTFfNjAt
+R0h6LTUzMy1NSHotRlNCKQo+IApUaGF0IGlzIFRjYXNlLCBub3QgVGptYXguCgpUam1heCBpcyBz
+dXBwb3NlZCB0byBiZSAxMjUgZm9yIEF0b20gMzMwLiBPZiBjb3Vyc2UsIHdpdGggSW50ZWwsIHdo
+byBrbm93czsKbWF5YmUgdGhleSBoYXZlIHZhcmlhbnRzIHdpdGggZGlmZmVyZW50IFRqbWF4LiBD
+YW4geW91IHByb3ZpZGUgdGhlIG91dHB1dCBvZgovcHJvYy9jcHVpbmZvID8KClRoYW5rcywKR3Vl
+bnRlcgoKPiBUaGlzIHBhdGNoIHNlcmllcyByZXN1bHRlZCBpbiBhIHNpZ25pZmljYW50IGluY3Jl
+YXNlIGluIHRlbXBlcmF0dXJlCj4gb24gbXkgZGV2ZWxvcG1lbnQgc2VydmVyIDspCj4gCj4gMy40
+LjYtMi5mYzE3Lng4Nl82NAo+IAo+IGNvcmV0ZW1wLWlzYS0wMDAwCj4gQWRhcHRlcjogSVNBIGFk
+YXB0ZXIKPiBDb3JlIDA6ICAgICAgICs0Mi4wwrBDICAoY3JpdCA9ICs5MC4wwrBDKQo+IENvcmUg
+MTogICAgICAgKzQ5LjDCsEMgIChjcml0ID0gKzkwLjDCsEMpCj4gCj4gCj4gCj4gMy41LjAtMi5m
+YzE3Lng4Nl82NAo+IAo+IGNvcmV0ZW1wLWlzYS0wMDAwCj4gQWRhcHRlcjogSVNBIGFkYXB0ZXIK
+PiBDb3JlIDA6ICAgICAgICs3Ny4wwrBDICAoY3JpdCA9ICsxMjUuMMKwQykKPiBDb3JlIDE6ICAg
+ICAgICs4NC4wwrBDICAoY3JpdCA9ICsxMjUuMMKwQykKPiAKPiAtLSAKPiBCZXN0IHJlZ2FyZHMs
+Cj4gTWljaGFsCj4gCj4gaHR0cDovL2V2ZW50aG9yaXpvbi5wbC8KPiAKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0
+CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21h
+aWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
