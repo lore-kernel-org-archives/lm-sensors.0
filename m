@@ -1,80 +1,95 @@
-From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
-Date: Fri, 24 Aug 2012 13:45:00 +0000
-Subject: [lm-sensors] [RFC PATCH 0/8] DA906x PMIC driver
-Message-Id: <201208241445@sw-eng-lt-dc-vm2>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 06 Aug 2012 14:22:54 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (f71882fg) Fix build warning
+Message-Id: <1344262974-26914-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201208240830@sw-eng-lt-dc-vm2>
-In-Reply-To: <201208240830@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, "Richard Purdie <rpurdie@rpsys.net>
-	Anthony Olech" <anthony.olech@diasemi.com>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
+To: lm-sensors@vger.kernel.org
 
-Greetings,
+Fix:
 
-The following patch set adds new multifunction device providing support for
-DA906x PMIC chips.
+warning: 'address' may be used uninitialized in this function [-Wuninitialized]
 
-I am resending this as it looks, the first send failed.
+While this is a false warning, the patch reduces module size on x86_64 by
+approximately 175 bytes, so it is still worth the effort.
 
-Please add some comments to the driver patch, which targets Linux Kernel v3.6.
-
-Thank you,
-
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-Krystian Garbaciak (8):
-  mfd: Add Dialog DA906x core driver.
-  regulator: Add Dialog DA906x voltage regulators support.
-  rtc: Add RTC driver for DA906x PMIC.
-  hwmon: Add DA906x hardware monitoring support.
-  input: Add support for DA906x PMIC OnKey detection.
-  input: Add support for DA906x vibration motor driver.
-  watchdog: Add DA906x PMIC watchdog driver.
-  leds: Add DA906x PMIC LED driver.
+ drivers/hwmon/f71882fg.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
- drivers/hwmon/Kconfig                 |    6 +
- drivers/hwmon/Makefile                |    1 +
- drivers/hwmon/da906x-hwmon.c          |  393 ++++++++++++
- drivers/input/misc/Kconfig            |   13 +
- drivers/input/misc/Makefile           |    2 +
- drivers/input/misc/da906x-onkey.c     |  139 +++++
- drivers/input/misc/da906x-vibration.c |  153 +++++
- drivers/leds/Kconfig                  |    8 +
- drivers/leds/Makefile                 |    1 +
- drivers/leds/leds-da906x.c            |  438 +++++++++++++
- drivers/mfd/Kconfig                   |   11 +
- drivers/mfd/Makefile                  |    4 +
- drivers/mfd/da906x-core.c             |  228 +++++++
- drivers/mfd/da906x-i2c.c              |  389 ++++++++++++
- drivers/mfd/da906x-irq.c              |  192 ++++++
- drivers/regulator/Kconfig             |    6 +
- drivers/regulator/Makefile            |    1 +
- drivers/regulator/da906x-regulator.c  | 1018 ++++++++++++++++++++++++++++++
- drivers/rtc/Kconfig                   |    7 +
- drivers/rtc/Makefile                  |    1 +
- drivers/rtc/rtc-da906x.c              |  379 ++++++++++++
- drivers/watchdog/Kconfig              |   27 +
- drivers/watchdog/Makefile             |    1 +
- drivers/watchdog/da906x_wdt.c         |  276 +++++++++
- include/linux/mfd/da906x/core.h       |  121 ++++
- include/linux/mfd/da906x/pdata.h      |  114 ++++
- include/linux/mfd/da906x/registers.h  | 1093 +++++++++++++++++++++++++++++++++
- 27 files changed, 5022 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hwmon/da906x-hwmon.c
- create mode 100644 drivers/input/misc/da906x-onkey.c
- create mode 100644 drivers/input/misc/da906x-vibration.c
- create mode 100644 drivers/leds/leds-da906x.c
- create mode 100644 drivers/mfd/da906x-core.c
- create mode 100644 drivers/mfd/da906x-i2c.c
- create mode 100644 drivers/mfd/da906x-irq.c
- create mode 100644 drivers/regulator/da906x-regulator.c
- create mode 100644 drivers/rtc/rtc-da906x.c
- create mode 100644 drivers/watchdog/da906x_wdt.c
- create mode 100644 include/linux/mfd/da906x/core.h
- create mode 100644 include/linux/mfd/da906x/pdata.h
- create mode 100644 include/linux/mfd/da906x/registers.h
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index 6d12263..bc1b205 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -2532,10 +2532,10 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __init f71882fg_find(int sioaddr, unsigned short *address,
+-	struct f71882fg_sio_data *sio_data)
++static int __init f71882fg_find(int sioaddr, struct f71882fg_sio_data *sio_data)
+ {
+ 	u16 devid;
++	unsigned short address;
+ 	int err = superio_enter(sioaddr);
+ 	if (err)
+ 		return err;
+@@ -2603,17 +2603,17 @@ static int __init f71882fg_find(int sioaddr, unsigned short *address,
+ 		goto exit;
+ 	}
+ 
+-	*address = superio_inw(sioaddr, SIO_REG_ADDR);
+-	if (*address = 0) {
++	address = superio_inw(sioaddr, SIO_REG_ADDR);
++	if (address = 0) {
+ 		pr_warn("Base address not set\n");
+ 		err = -ENODEV;
+ 		goto exit;
+ 	}
+-	*address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
++	address &= ~(REGION_LENGTH - 1);	/* Ignore 3 LSB */
+ 
+-	err = 0;
++	err = address;
+ 	pr_info("Found %s chip at %#x, revision %d\n",
+-		f71882fg_names[sio_data->type],	(unsigned int)*address,
++		f71882fg_names[sio_data->type],	(unsigned int)address,
+ 		(int)superio_inb(sioaddr, SIO_REG_DEVREV));
+ exit:
+ 	superio_exit(sioaddr);
+@@ -2674,13 +2674,15 @@ static int __init f71882fg_init(void)
+ 
+ 	memset(&sio_data, 0, sizeof(sio_data));
+ 
+-	if (f71882fg_find(0x2e, &address, &sio_data) &&
+-	    f71882fg_find(0x4e, &address, &sio_data))
+-		goto exit;
++	address = f71882fg_find(0x2e, &sio_data);
++	if (address < 0)
++		address = f71882fg_find(0x4e, &sio_data);
++	if (address < 0)
++		return address;
+ 
+ 	err = platform_driver_register(&f71882fg_driver);
+ 	if (err)
+-		goto exit;
++		return err;
+ 
+ 	err = f71882fg_device_add(address, &sio_data);
+ 	if (err)
+@@ -2690,7 +2692,6 @@ static int __init f71882fg_init(void)
+ 
+ exit_driver:
+ 	platform_driver_unregister(&f71882fg_driver);
+-exit:
+ 	return err;
+ }
+ 
+-- 
+1.7.9.7
 
 
 _______________________________________________
