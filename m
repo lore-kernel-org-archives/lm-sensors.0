@@ -1,26 +1,63 @@
-From: vadugs <vadugs@gmail.com>
-Date: Tue, 14 Aug 2012 19:12:53 +0000
-Subject: Re: [lm-sensors] =?utf-8?q?Coretemp_ERROR=3A_Can=27t_get_value_of_sub?=
-Message-Id: <loom.20120814T211014-749@post.gmane.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:19:57 +0000
+Subject: [lm-sensors] [PATCH 08/39] hwmon: (ads1015) Convert to use devm_ functions
+Message-Id: <1344352828-25143-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SmVhbiBEZWx2YXJlIDxraGFsaSA8YXQ+IGxpbnV4LWZyLm9yZz4gd3JpdGVzOgoKPiAKPiAKPiBJ
-dCBtYWtlcyBubyBzZW5zZSB0byBydW4gc2Vuc29ycyBvciBhbnkgX2hhcmR3YXJlXyBtb25pdG9y
-aW5nCj4gYXBwbGljYXRpb24gb24gYSBfdmlydHVhbF8gbWFjaGluZS4gSGFyZHdhcmUgbW9uaXRv
-cmluZyBzaG91bGQgYmUgZG9uZQo+IG9uIHRoZSBob3N0IHN5c3RlbSwgbm90IG9uIHRoZSBndWVz
-dHMuCj4gCj4gPiAoLi4uKQo+ID4gKjMuIFRoZSBvdXRwdXQgb2Ygc2Vuc29yczogKgo+ID4gY29y
-ZXRlbXAtaXNhLTAwMDAKPiA+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gPiBFUlJPUjogQ2FuJ3Qg
-Z2V0IHZhbHVlIG9mIHN1YmZlYXR1cmUgdGVtcDFfaW5wdXQ6IENhbid0IHJlYWQKPiA+IENvcmUg
-MDogICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArMTAwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCj4g
-Cj4gSSBwcmVzdW1lIHRoYXQgVk13YXJlIHNpbXBseSBkb2Vzbid0IGFsbG93IGd1ZXN0IGRyaXZl
-cnMgdG8gYWNjZXNzIENQVQo+IE1TUi4gTm90aGluZyB3ZSBjYW4gZG8uCj4gCgpIZXkgSSBhbSBm
-YWNpbmcgdGhlIHNhbWUgZXJyb3IuIEkganVzdCB3YW50ZWQgdG8gYXNrIGlmIHRoZXJlIGFueSBv
-dGhlciB3YXkgdG8gCm9idGFpbiB0ZW1wZXJhdHVyZSBieSBydW5uaW5nIGFueSBoYXJkd2FyZSBt
-b25pdG9yaW5nIGFwcGxpY2F0aW9uIG9uIGEgdmlydHVhbCAKbWFjaGluZT8KCgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
-IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Convert to use devm_ functions to reduce code size and simplify the code.
+
+Cc: Dirk Eibach <eibach@gdsys.de>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/ads1015.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/hwmon/ads1015.c b/drivers/hwmon/ads1015.c
+index 1958f03..2798246 100644
+--- a/drivers/hwmon/ads1015.c
++++ b/drivers/hwmon/ads1015.c
+@@ -156,7 +156,6 @@ static int ads1015_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	for (k = 0; k < ADS1015_CHANNELS; ++k)
+ 		device_remove_file(&client->dev, &ads1015_in[k].dev_attr);
+-	kfree(data);
+ 	return 0;
+ }
+ 
+@@ -254,11 +253,10 @@ static int ads1015_probe(struct i2c_client *client,
+ 	int err;
+ 	unsigned int k;
+ 
+-	data = kzalloc(sizeof(struct ads1015_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct ads1015_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+@@ -284,8 +282,6 @@ static int ads1015_probe(struct i2c_client *client,
+ exit_remove:
+ 	for (k = 0; k < ADS1015_CHANNELS; ++k)
+ 		device_remove_file(&client->dev, &ads1015_in[k].dev_attr);
+-	kfree(data);
+-exit:
+ 	return err;
+ }
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
