@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:02 +0000
-Subject: [lm-sensors] [PATCH 13/39] hwmon: (adt7470) Convert to use devm_ functions
-Message-Id: <1344352828-25143-14-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:20:09 +0000
+Subject: [lm-sensors] [PATCH 20/39] hwmon: (f71882fg) Convert to use devm_ functions
+Message-Id: <1344352828-25143-21-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,53 +12,56 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/adt7470.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/hwmon/f71882fg.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
-index 54ec8905..39ecb1a 100644
---- a/drivers/hwmon/adt7470.c
-+++ b/drivers/hwmon/adt7470.c
-@@ -1256,11 +1256,10 @@ static int adt7470_probe(struct i2c_client *client,
- 	struct adt7470_data *data;
- 	int err;
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index bc1b205..b6304eb 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -2274,7 +2274,8 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
+ 	int err, i;
+ 	u8 start_reg, reg;
  
--	data = kzalloc(sizeof(struct adt7470_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct adt7470_data),
+-	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct f71882fg_data),
 +			    GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
+ 	if (!data)
+ 		return -ENOMEM;
  
- 	data->num_temp_sensors = -1;
- 	data->auto_update_interval = AUTO_UPDATE_INTERVAL;
-@@ -1277,7 +1276,7 @@ static int adt7470_probe(struct i2c_client *client,
- 	data->attrs.attrs = adt7470_attr;
- 	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
- 	if (err)
+@@ -2288,13 +2289,11 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
+ 	start_reg = f71882fg_read8(data, F71882FG_REG_START);
+ 	if (start_reg & 0x04) {
+ 		dev_warn(&pdev->dev, "Hardware monitor is powered down\n");
+-		err = -ENODEV;
 -		goto exit_free;
-+		return err;
++		return -ENODEV;
+ 	}
+ 	if (!(start_reg & 0x03)) {
+ 		dev_warn(&pdev->dev, "Hardware monitoring not activated\n");
+-		err = -ENODEV;
+-		goto exit_free;
++		return -ENODEV;
+ 	}
  
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -1299,9 +1298,6 @@ exit_unregister:
- 	hwmon_device_unregister(data->hwmon_dev);
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+ 	/* Register sysfs interface files */
+@@ -2422,8 +2421,6 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
+ exit_unregister_sysfs:
+ 	f71882fg_remove(pdev); /* Will unregister the sysfs files for us */
+ 	return err; /* f71882fg_remove() also frees our data */
 -exit_free:
 -	kfree(data);
--exit:
  	return err;
  }
  
-@@ -1313,7 +1309,6 @@ static int adt7470_remove(struct i2c_client *client)
- 	wait_for_completion(&data->auto_update_stop);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+@@ -2525,10 +2522,6 @@ static int f71882fg_remove(struct platform_device *pdev)
+ 				ARRAY_SIZE(fxxxx_auto_pwm_attr[0]) * nr_fans);
+ 		}
+ 	}
+-
+-	platform_set_drvdata(pdev, NULL);
 -	kfree(data);
+-
  	return 0;
  }
  
