@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:06 +0000
-Subject: [lm-sensors] [PATCH 17/39] hwmon: (ds620) Convert to use devm_ functions
-Message-Id: <1344352828-25143-18-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:20:14 +0000
+Subject: [lm-sensors] [PATCH 25/39] hwmon: (lm95245) Convert to use devm_ functions
+Message-Id: <1344352828-25143-26-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,56 +10,56 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
+Cc: Alexander Stein <alexander.stein@systec-electronic.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ds620.c |   16 +++++-----------
- 1 file changed, 5 insertions(+), 11 deletions(-)
+ drivers/hwmon/lm95245.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/ds620.c b/drivers/hwmon/ds620.c
-index 50663ef..f1d6b42 100644
---- a/drivers/hwmon/ds620.c
-+++ b/drivers/hwmon/ds620.c
-@@ -232,11 +232,10 @@ static int ds620_probe(struct i2c_client *client,
- 	struct ds620_data *data;
+diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
+index 9a46c10..2915fd9 100644
+--- a/drivers/hwmon/lm95245.c
++++ b/drivers/hwmon/lm95245.c
+@@ -462,11 +462,10 @@ static int lm95245_probe(struct i2c_client *new_client,
+ 	struct lm95245_data *data;
  	int err;
  
--	data = kzalloc(sizeof(struct ds620_data), GFP_KERNEL);
+-	data = kzalloc(sizeof(struct lm95245_data), GFP_KERNEL);
 -	if (!data) {
 -		err = -ENOMEM;
 -		goto exit;
 -	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct ds620_data),
++	data = devm_kzalloc(&new_client->dev, sizeof(struct lm95245_data),
 +			    GFP_KERNEL);
 +	if (!data)
 +		return -ENOMEM;
  
- 	i2c_set_clientdata(client, data);
+ 	i2c_set_clientdata(new_client, data);
  	mutex_init(&data->update_lock);
-@@ -247,7 +246,7 @@ static int ds620_probe(struct i2c_client *client,
+@@ -477,7 +476,7 @@ static int lm95245_probe(struct i2c_client *new_client,
  	/* Register sysfs hooks */
- 	err = sysfs_create_group(&client->dev.kobj, &ds620_group);
+ 	err = sysfs_create_group(&new_client->dev.kobj, &lm95245_group);
  	if (err)
 -		goto exit_free;
 +		return err;
  
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
  	if (IS_ERR(data->hwmon_dev)) {
-@@ -261,9 +260,6 @@ static int ds620_probe(struct i2c_client *client,
+@@ -489,9 +488,6 @@ static int lm95245_probe(struct i2c_client *new_client,
  
  exit_remove_files:
- 	sysfs_remove_group(&client->dev.kobj, &ds620_group);
+ 	sysfs_remove_group(&new_client->dev.kobj, &lm95245_group);
 -exit_free:
 -	kfree(data);
 -exit:
  	return err;
  }
  
-@@ -274,8 +270,6 @@ static int ds620_remove(struct i2c_client *client)
+@@ -502,7 +498,6 @@ static int lm95245_remove(struct i2c_client *client)
  	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &ds620_group);
+ 	sysfs_remove_group(&client->dev.kobj, &lm95245_group);
  
 -	kfree(data);
--
  	return 0;
  }
  
