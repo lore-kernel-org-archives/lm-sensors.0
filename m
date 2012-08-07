@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:07 +0000
-Subject: [lm-sensors] [PATCH 18/39] hwmon: (emc1403) Convert to use devm_ functions
-Message-Id: <1344352828-25143-19-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:19:53 +0000
+Subject: [lm-sensors] [PATCH 04/39] hwmon: (ad7414) Convert to use devm_ functions
+Message-Id: <1344352828-25143-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,58 +12,59 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/emc1403.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ drivers/hwmon/ad7414.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/hwmon/emc1403.c b/drivers/hwmon/emc1403.c
-index 149dcb0..68ab94b 100644
---- a/drivers/hwmon/emc1403.c
-+++ b/drivers/hwmon/emc1403.c
-@@ -306,11 +306,10 @@ static int emc1403_probe(struct i2c_client *client,
- 	int res;
- 	struct thermal_data *data;
+diff --git a/drivers/hwmon/ad7414.c b/drivers/hwmon/ad7414.c
+index 06d2d60..b420fb3 100644
+--- a/drivers/hwmon/ad7414.c
++++ b/drivers/hwmon/ad7414.c
+@@ -185,16 +185,13 @@ static int ad7414_probe(struct i2c_client *client,
+ 	int err;
  
--	data = kzalloc(sizeof(struct thermal_data), GFP_KERNEL);
--	if (data = NULL) {
--		dev_warn(&client->dev, "out of memory");
-+	data = devm_kzalloc(&client->dev, sizeof(struct thermal_data),
-+			    GFP_KERNEL);
-+	if (data = NULL)
- 		return -ENOMEM;
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA |
+-				     I2C_FUNC_SMBUS_READ_WORD_DATA)) {
+-		err = -EOPNOTSUPP;
+-		goto exit;
 -	}
++				     I2C_FUNC_SMBUS_READ_WORD_DATA))
++		return -EOPNOTSUPP;
+ 
+-	data = kzalloc(sizeof(struct ad7414_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct ad7414_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
  
  	i2c_set_clientdata(client, data);
- 	mutex_init(&data->mutex);
-@@ -319,21 +318,19 @@ static int emc1403_probe(struct i2c_client *client,
- 	res = sysfs_create_group(&client->dev.kobj, &m_thermal_gr);
- 	if (res) {
- 		dev_warn(&client->dev, "create group failed\n");
--		goto thermal_error1;
-+		return res;
- 	}
+ 	mutex_init(&data->lock);
+@@ -214,7 +211,7 @@ static int ad7414_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &ad7414_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 
  	data->hwmon_dev = hwmon_device_register(&client->dev);
  	if (IS_ERR(data->hwmon_dev)) {
- 		res = PTR_ERR(data->hwmon_dev);
- 		dev_warn(&client->dev, "register hwmon dev failed\n");
--		goto thermal_error2;
-+		goto thermal_error;
- 	}
- 	dev_info(&client->dev, "EMC1403 Thermal chip found\n");
--	return res;
-+	return 0;
+@@ -226,9 +223,6 @@ static int ad7414_probe(struct i2c_client *client,
  
--thermal_error2:
-+thermal_error:
- 	sysfs_remove_group(&client->dev.kobj, &m_thermal_gr);
--thermal_error1:
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
+-exit_free:
 -	kfree(data);
- 	return res;
+-exit:
+ 	return err;
  }
  
-@@ -343,7 +340,6 @@ static int emc1403_remove(struct i2c_client *client)
+@@ -238,7 +232,6 @@ static int __devexit ad7414_remove(struct i2c_client *client)
  
  	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &m_thermal_gr);
+ 	sysfs_remove_group(&client->dev.kobj, &ad7414_group);
 -	kfree(data);
  	return 0;
  }
