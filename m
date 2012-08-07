@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:14 +0000
-Subject: [lm-sensors] [PATCH 25/39] hwmon: (lm95245) Convert to use devm_ functions
-Message-Id: <1344352828-25143-26-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:20:00 +0000
+Subject: [lm-sensors] [PATCH 11/39] hwmon: (adt7411) Convert to use devm_ functions
+Message-Id: <1344352828-25143-12-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,55 +10,55 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Alexander Stein <alexander.stein@systec-electronic.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm95245.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ drivers/hwmon/adt7411.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/hwmon/lm95245.c b/drivers/hwmon/lm95245.c
-index 9a46c10..2915fd9 100644
---- a/drivers/hwmon/lm95245.c
-+++ b/drivers/hwmon/lm95245.c
-@@ -462,11 +462,10 @@ static int lm95245_probe(struct i2c_client *new_client,
- 	struct lm95245_data *data;
- 	int err;
+diff --git a/drivers/hwmon/adt7411.c b/drivers/hwmon/adt7411.c
+index 71bacc5..fe72c69 100644
+--- a/drivers/hwmon/adt7411.c
++++ b/drivers/hwmon/adt7411.c
+@@ -283,7 +283,7 @@ static int __devinit adt7411_probe(struct i2c_client *client,
+ 	struct adt7411_data *data;
+ 	int ret;
  
--	data = kzalloc(sizeof(struct lm95245_data), GFP_KERNEL);
--	if (!data) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	data = devm_kzalloc(&new_client->dev, sizeof(struct lm95245_data),
-+			    GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
  
- 	i2c_set_clientdata(new_client, data);
- 	mutex_init(&data->update_lock);
-@@ -477,7 +476,7 @@ static int lm95245_probe(struct i2c_client *new_client,
- 	/* Register sysfs hooks */
- 	err = sysfs_create_group(&new_client->dev.kobj, &lm95245_group);
- 	if (err)
+@@ -294,14 +294,14 @@ static int __devinit adt7411_probe(struct i2c_client *client,
+ 	ret = adt7411_modify_bit(client, ADT7411_REG_CFG1,
+ 				 ADT7411_CFG1_START_MONITOR, 1);
+ 	if (ret < 0)
 -		goto exit_free;
-+		return err;
++		return ret;
  
- 	data->hwmon_dev = hwmon_device_register(&new_client->dev);
+ 	/* force update on first occasion */
+ 	data->next_update = jiffies;
+ 
+ 	ret = sysfs_create_group(&client->dev.kobj, &adt7411_attr_grp);
+ 	if (ret)
+-		goto exit_free;
++		return ret;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
  	if (IS_ERR(data->hwmon_dev)) {
-@@ -489,9 +488,6 @@ static int lm95245_probe(struct i2c_client *new_client,
+@@ -315,8 +315,6 @@ static int __devinit adt7411_probe(struct i2c_client *client,
  
- exit_remove_files:
- 	sysfs_remove_group(&new_client->dev.kobj, &lm95245_group);
--exit_free:
+  exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &adt7411_attr_grp);
+- exit_free:
 -	kfree(data);
--exit:
- 	return err;
+ 	return ret;
  }
  
-@@ -502,7 +498,6 @@ static int lm95245_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm95245_group);
+@@ -326,7 +324,6 @@ static int __devexit adt7411_remove(struct i2c_client *client)
  
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &adt7411_attr_grp);
 -	kfree(data);
  	return 0;
  }
