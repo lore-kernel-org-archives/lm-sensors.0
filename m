@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:04 +0000
-Subject: [lm-sensors] [PATCH 15/39] hwmon: (asb100) Convert to use devm_ functions
-Message-Id: <1344352828-25143-16-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:19:56 +0000
+Subject: [lm-sensors] [PATCH 07/39] hwmon: (adm1029) Convert to use devm_ functions
+Message-Id: <1344352828-25143-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,58 +10,66 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Cc: Corentin Labbe <corentin.labbe@geomatys.fr>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/asb100.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ drivers/hwmon/adm1029.c |   21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/hwmon/asb100.c b/drivers/hwmon/asb100.c
-index 4b8814d..a227be4 100644
---- a/drivers/hwmon/asb100.c
-+++ b/drivers/hwmon/asb100.c
-@@ -787,12 +787,10 @@ static int asb100_probe(struct i2c_client *client,
+diff --git a/drivers/hwmon/adm1029.c b/drivers/hwmon/adm1029.c
+index 80cc465..97f4718 100644
+--- a/drivers/hwmon/adm1029.c
++++ b/drivers/hwmon/adm1029.c
+@@ -342,11 +342,10 @@ static int adm1029_probe(struct i2c_client *client,
+ 	struct adm1029_data *data;
  	int err;
- 	struct asb100_data *data;
  
--	data = kzalloc(sizeof(struct asb100_data), GFP_KERNEL);
+-	data = kzalloc(sizeof(struct adm1029_data), GFP_KERNEL);
 -	if (!data) {
--		pr_debug("probe failed, kzalloc failed!\n");
 -		err = -ENOMEM;
--		goto ERROR0;
+-		goto exit;
 -	}
-+	data = devm_kzalloc(&client->dev, sizeof(struct asb100_data),
++	data = devm_kzalloc(&client->dev, sizeof(struct adm1029_data),
 +			    GFP_KERNEL);
 +	if (!data)
 +		return -ENOMEM;
  
  	i2c_set_clientdata(client, data);
- 	mutex_init(&data->lock);
-@@ -801,7 +799,7 @@ static int asb100_probe(struct i2c_client *client,
- 	/* Attach secondary lm75 clients */
- 	err = asb100_detect_subclients(client);
+ 	mutex_init(&data->update_lock);
+@@ -355,15 +354,13 @@ static int adm1029_probe(struct i2c_client *client,
+ 	 * Initialize the ADM1029 chip
+ 	 * Check config register
+ 	 */
+-	if (adm1029_init_client(client) = 0) {
+-		err = -ENODEV;
+-		goto exit_free;
+-	}
++	if (adm1029_init_client(client) = 0)
++		return -ENODEV;
+ 
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &adm1029_group);
  	if (err)
--		goto ERROR1;
+-		goto exit_free;
 +		return err;
  
- 	/* Initialize the chip */
- 	asb100_init_client(client);
-@@ -829,9 +827,6 @@ ERROR4:
- ERROR3:
- 	i2c_unregister_device(data->lm75[1]);
- 	i2c_unregister_device(data->lm75[0]);
--ERROR1:
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -375,9 +372,6 @@ static int adm1029_probe(struct i2c_client *client,
+ 
+  exit_remove_files:
+ 	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
+- exit_free:
 -	kfree(data);
--ERROR0:
+- exit:
  	return err;
  }
  
-@@ -845,8 +840,6 @@ static int asb100_remove(struct i2c_client *client)
- 	i2c_unregister_device(data->lm75[1]);
- 	i2c_unregister_device(data->lm75[0]);
+@@ -405,7 +399,6 @@ static int adm1029_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &adm1029_group);
  
 -	kfree(data);
--
  	return 0;
  }
  
