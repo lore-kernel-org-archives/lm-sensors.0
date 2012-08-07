@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:09 +0000
-Subject: [lm-sensors] [PATCH 20/39] hwmon: (f71882fg) Convert to use devm_ functions
-Message-Id: <1344352828-25143-21-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:20:25 +0000
+Subject: [lm-sensors] [PATCH 36/39] hwmon: (w83l786ng) Convert to use devm_ functions
+Message-Id: <1344352828-25143-37-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,54 +12,42 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/f71882fg.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/hwmon/w83l786ng.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
-index bc1b205..b6304eb 100644
---- a/drivers/hwmon/f71882fg.c
-+++ b/drivers/hwmon/f71882fg.c
-@@ -2274,7 +2274,8 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
- 	int err, i;
- 	u8 start_reg, reg;
+diff --git a/drivers/hwmon/w83l786ng.c b/drivers/hwmon/w83l786ng.c
+index 5850b77..c99c8a0 100644
+--- a/drivers/hwmon/w83l786ng.c
++++ b/drivers/hwmon/w83l786ng.c
+@@ -668,11 +668,10 @@ w83l786ng_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	int i, err = 0;
+ 	u8 reg_tmp;
  
--	data = kzalloc(sizeof(struct f71882fg_data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(struct f71882fg_data),
+-	data = kzalloc(sizeof(struct w83l786ng_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct w83l786ng_data),
 +			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
++	if (!data)
++		return -ENOMEM;
  
-@@ -2288,13 +2289,11 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
- 	start_reg = f71882fg_read8(data, F71882FG_REG_START);
- 	if (start_reg & 0x04) {
- 		dev_warn(&pdev->dev, "Hardware monitor is powered down\n");
--		err = -ENODEV;
--		goto exit_free;
-+		return -ENODEV;
- 	}
- 	if (!(start_reg & 0x03)) {
- 		dev_warn(&pdev->dev, "Hardware monitoring not activated\n");
--		err = -ENODEV;
--		goto exit_free;
-+		return -ENODEV;
- 	}
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+@@ -708,8 +707,6 @@ w83l786ng_probe(struct i2c_client *client, const struct i2c_device_id *id)
  
- 	/* Register sysfs interface files */
-@@ -2422,8 +2421,6 @@ static int __devinit f71882fg_probe(struct platform_device *pdev)
- exit_unregister_sysfs:
- 	f71882fg_remove(pdev); /* Will unregister the sysfs files for us */
- 	return err; /* f71882fg_remove() also frees our data */
--exit_free:
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &w83l786ng_group);
 -	kfree(data);
+-exit:
  	return err;
  }
  
-@@ -2525,10 +2522,6 @@ static int f71882fg_remove(struct platform_device *pdev)
- 				ARRAY_SIZE(fxxxx_auto_pwm_attr[0]) * nr_fans);
- 		}
- 	}
--
--	platform_set_drvdata(pdev, NULL);
+@@ -721,8 +718,6 @@ w83l786ng_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &w83l786ng_group);
+ 
 -	kfree(data);
 -
  	return 0;
