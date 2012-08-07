@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:12 +0000
-Subject: [lm-sensors] [PATCH 23/39] hwmon: (lm70) Convert to use devm_ functions
-Message-Id: <1344352828-25143-24-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:20:02 +0000
+Subject: [lm-sensors] [PATCH 13/39] hwmon: (adt7470) Convert to use devm_ functions
+Message-Id: <1344352828-25143-14-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -12,38 +12,56 @@ Convert to use devm_ functions to reduce code size and simplify the code.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/lm70.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/hwmon/adt7470.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
-index 472f795..dd7f0ca 100644
---- a/drivers/hwmon/lm70.c
-+++ b/drivers/hwmon/lm70.c
-@@ -149,7 +149,7 @@ static int __devinit lm70_probe(struct spi_device *spi)
+diff --git a/drivers/hwmon/adt7470.c b/drivers/hwmon/adt7470.c
+index 54ec8905..39ecb1a 100644
+--- a/drivers/hwmon/adt7470.c
++++ b/drivers/hwmon/adt7470.c
+@@ -1256,11 +1256,10 @@ static int adt7470_probe(struct i2c_client *client,
+ 	struct adt7470_data *data;
+ 	int err;
  
- 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+-	data = kzalloc(sizeof(struct adt7470_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(struct adt7470_data),
++			    GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
  
--	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
-+	p_lm70 = devm_kzalloc(&spi->dev, sizeof(*p_lm70), GFP_KERNEL);
- 	if (!p_lm70)
- 		return -ENOMEM;
+ 	data->num_temp_sensors = -1;
+ 	data->auto_update_interval = AUTO_UPDATE_INTERVAL;
+@@ -1277,7 +1276,7 @@ static int adt7470_probe(struct i2c_client *client,
+ 	data->attrs.attrs = adt7470_attr;
+ 	err = sysfs_create_group(&client->dev.kobj, &data->attrs);
+ 	if (err)
+-		goto exit_free;
++		return err;
  
-@@ -181,7 +181,6 @@ out_dev_create_file_failed:
- 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
- out_dev_create_temp_file_failed:
- 	spi_set_drvdata(spi, NULL);
--	kfree(p_lm70);
- 	return status;
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -1299,9 +1298,6 @@ exit_unregister:
+ 	hwmon_device_unregister(data->hwmon_dev);
+ exit_remove:
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-exit_free:
+-	kfree(data);
+-exit:
+ 	return err;
  }
  
-@@ -193,7 +192,6 @@ static int __devexit lm70_remove(struct spi_device *spi)
- 	device_remove_file(&spi->dev, &dev_attr_temp1_input);
- 	device_remove_file(&spi->dev, &dev_attr_name);
- 	spi_set_drvdata(spi, NULL);
--	kfree(p_lm70);
- 
+@@ -1313,7 +1309,6 @@ static int adt7470_remove(struct i2c_client *client)
+ 	wait_for_completion(&data->auto_update_stop);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &data->attrs);
+-	kfree(data);
  	return 0;
  }
+ 
 -- 
 1.7.9.7
 
