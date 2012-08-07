@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:16 +0000
-Subject: [lm-sensors] [PATCH 27/39] hwmon: (ltc4151) Convert to use devm_ functions
-Message-Id: <1344352828-25143-28-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:19:55 +0000
+Subject: [lm-sensors] [PATCH 06/39] hwmon: (adcxx) Convert to use devm_ functions
+Message-Id: <1344352828-25143-7-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,59 +10,40 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Per Dalen <per.dalen@appeartv.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ltc4151.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/hwmon/adcxx.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/hwmon/ltc4151.c b/drivers/hwmon/ltc4151.c
-index 4d005b2..8496baa 100644
---- a/drivers/hwmon/ltc4151.c
-+++ b/drivers/hwmon/ltc4151.c
-@@ -181,11 +181,9 @@ static int ltc4151_probe(struct i2c_client *client,
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
+diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
+index a3d3183..111af7c 100644
+--- a/drivers/hwmon/adcxx.c
++++ b/drivers/hwmon/adcxx.c
+@@ -171,7 +171,7 @@ static int __devinit adcxx_probe(struct spi_device *spi)
+ 	int status;
+ 	int i;
  
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
--	if (!data) {
--		ret = -ENOMEM;
--		goto out_kzalloc;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
+-	adc = kzalloc(sizeof *adc, GFP_KERNEL);
++	adc = devm_kzalloc(&spi->dev, sizeof(*adc), GFP_KERNEL);
+ 	if (!adc)
+ 		return -ENOMEM;
  
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-@@ -193,7 +191,7 @@ static int ltc4151_probe(struct i2c_client *client,
- 	/* Register sysfs hooks */
- 	ret = sysfs_create_group(&client->dev.kobj, &ltc4151_group);
- 	if (ret)
--		goto out_sysfs_create_group;
-+		return ret;
+@@ -208,7 +208,6 @@ out_err:
  
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -205,9 +203,6 @@ static int ltc4151_probe(struct i2c_client *client,
- 
- out_hwmon_device_register:
- 	sysfs_remove_group(&client->dev.kobj, &ltc4151_group);
--out_sysfs_create_group:
--	kfree(data);
--out_kzalloc:
- 	return ret;
+ 	spi_set_drvdata(spi, NULL);
+ 	mutex_unlock(&adc->lock);
+-	kfree(adc);
+ 	return status;
  }
  
-@@ -218,8 +213,6 @@ static int ltc4151_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &ltc4151_group);
+@@ -224,7 +223,6 @@ static int __devexit adcxx_remove(struct spi_device *spi)
  
--	kfree(data);
--
+ 	spi_set_drvdata(spi, NULL);
+ 	mutex_unlock(&adc->lock);
+-	kfree(adc);
+ 
  	return 0;
  }
- 
 -- 
 1.7.9.7
 
