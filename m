@@ -1,90 +1,87 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 20 Aug 2012 16:40:22 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.6-rc3
-Message-Id: <20120820164022.GA20942@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============0227019223834580486=="
+Date: Tue, 07 Aug 2012 15:20:24 +0000
+Subject: [lm-sensors] [PATCH 35/39] hwmon: (vt8231) Convert to use devm_ functions
+Message-Id: <1344352828-25143-36-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============0227019223834580486==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Content-Disposition: inline
-
-
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.6-rc3 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit d9875690d9b89a866022ff49e3fcea892345ad92:
-
-  Linux 3.6-rc2 (2012-08-16 14:51:24 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 64f503076f9921fc714a2c79fb0fa520869d2c08:
-
-  sections: Fix section conflicts in drivers/hwmon (2012-08-18 16:17:43 -0700)
-
-----------------------------------------------------------------
-One patch with section conflict fixes.
-
-----------------------------------------------------------------
-Andi Kleen (1):
-      sections: Fix section conflicts in drivers/hwmon
-
- drivers/hwmon/coretemp.c |    2 +-
- drivers/hwmon/w83627hf.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQMmh2AAoJEMsfJm/On5mB86EP/1vQjUyZYd15QHoITEB1J/Xb
-MZHvsw2toHMqtQuuNXLxKOuFt1F/MlQJK+jSxNu7yR5rbb7SdMb45cCD+fLp+Hhf
-PXB9QGfFfxdGU498GJUzO0tIcdPHp0AKVb8wHcz/MsHOOKSUOpc56lsCKuQTNsKu
-DxbL5uFp8hgOKUVKpwngH5my1gm31SbzqaOBukXIT0av6MmLhFz4fIafrdUjS6dG
-+92F1Ez0uiAjDuDv/f+FfdHuc4tRad7lAOHlQ9eEuiLBHddw5mP74aE58K+hP6r+
-UOomFBboIepLhoZ1Ln0kkoxVNDiyvY7xOyFInfCeN/664klOF8W6YPyVYV1wpNTC
-FFkg5vQUI+OqyUNAlE7rNHrmglSK4evgY7HlKs78u/6w8EK1bN7j89NgS8KfAjKg
-vN1IMtkwG+uaFUUKBky4kp5NGhhN8JsbWH90dMFztLNpgwO3ZThm7dQnOPPDD8AK
-fg4Hfmc0o55K8tuQl9Uy4HCWp+dM8TxSr3tzKUmjaQuASxQ6kX1dCzT1R/4IxUtR
-n0gEHEfmGq/R5Sb57UQMo+3kIeWzaYNO9fdo526lodXaC+z2La5in+J7i1jj25QY
-55CZOs7tRv2sZSI0dJC2NhnD5CLEHKqVJt7j5gyndVcqF4cHLKTYHWNr06FX5w6b
-+vNYPVefJ3gVrJn9eg83
-=i4fl
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
-
-
---===============0227019223834580486==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Convert to use devm_ functions to reduce code size and simplify the code.
+
+Cc: Roger Lucas <vt8231@hiddenengine.co.uk>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/vt8231.c |   24 ++++++------------------
+ 1 file changed, 6 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/hwmon/vt8231.c b/drivers/hwmon/vt8231.c
+index 386a845..84e3dc5 100644
+--- a/drivers/hwmon/vt8231.c
++++ b/drivers/hwmon/vt8231.c
+@@ -789,18 +789,16 @@ static int vt8231_probe(struct platform_device *pdev)
+ 
+ 	/* Reserve the ISA region */
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+-	if (!request_region(res->start, VT8231_EXTENT,
+-			    vt8231_driver.driver.name)) {
++	if (!devm_request_region(&pdev->dev, res->start, VT8231_EXTENT,
++				 vt8231_driver.driver.name)) {
+ 		dev_err(&pdev->dev, "Region 0x%lx-0x%lx already in use!\n",
+ 			(unsigned long)res->start, (unsigned long)res->end);
+ 		return -ENODEV;
+ 	}
+ 
+-	data = kzalloc(sizeof(struct vt8231_data), GFP_KERNEL);
+-	if (!data) {
+-		err = -ENOMEM;
+-		goto exit_release;
+-	}
++	data = devm_kzalloc(&pdev->dev, sizeof(struct vt8231_data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	platform_set_drvdata(pdev, data);
+ 	data->addr = res->start;
+@@ -812,7 +810,7 @@ static int vt8231_probe(struct platform_device *pdev)
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&pdev->dev.kobj, &vt8231_group);
+ 	if (err)
+-		goto exit_free;
++		return err;
+ 
+ 	/* Must update device information to find out the config field */
+ 	data->uch_config = vt8231_read_value(data, VT8231_REG_UCH_CONFIG);
+@@ -850,13 +848,6 @@ exit_remove_files:
+ 		sysfs_remove_group(&pdev->dev.kobj, &vt8231_group_temps[i]);
+ 
+ 	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
+-
+-exit_free:
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+-
+-exit_release:
+-	release_region(res->start, VT8231_EXTENT);
+ 	return err;
+ }
+ 
+@@ -875,9 +866,6 @@ static int __devexit vt8231_remove(struct platform_device *pdev)
+ 
+ 	sysfs_remove_group(&pdev->dev.kobj, &vt8231_group);
+ 
+-	release_region(data->addr, VT8231_EXTENT);
+-	platform_set_drvdata(pdev, NULL);
+-	kfree(data);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============0227019223834580486==--
