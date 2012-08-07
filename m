@@ -1,89 +1,67 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 26 Aug 2012 17:39:40 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.6-rc4
-Message-Id: <20120826173940.GA32304@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1518387506069420752=="
+Date: Tue, 07 Aug 2012 15:20:11 +0000
+Subject: [lm-sensors] [PATCH 22/39] hwmon: (g760a) Convert to use devm_ functions
+Message-Id: <1344352828-25143-23-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============1518387506069420752==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Content-Disposition: inline
-
-
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.6-rc4 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit fea7a08acb13524b47711625eebea40a0ede69a0:
-
-  Linux 3.6-rc3 (2012-08-22 13:29:06 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 43ca6cb28c871f2fbad10117b0648e5ae3b0f638:
-
-  hwmon: (asus_atk0110) Add quirk for Asus M5A78L (2012-08-22 22:33:31 -0700)
-
-----------------------------------------------------------------
-Fix sensor readings for Asus M5A78L in asus_atk0110 driver.
-
-----------------------------------------------------------------
-Luca Tettamanti (1):
-      hwmon: (asus_atk0110) Add quirk for Asus M5A78L
-
- drivers/hwmon/asus_atk0110.c |    6 ++++++
- 1 file changed, 6 insertions(+)
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQOl9cAAoJEMsfJm/On5mBoaQP/A1hokwMqpm3G39OPA2NHjAA
-tBQaE3FXI+T7wm3UdxwwY2WfyCDVKCVGagetHZ6kriyOD5B3ETdLs8zmnJMwrAvK
-arKtfPY5bm8ECxtjdnsnfpV5XxYqRIlpUiyskgBE5zTWVwFDemzb9B5VOCpxCIkt
-EqRACOcNSKGbjBBdupcBv4VAOkw+BYZvsH9kuk/8Uv7SYaQjxtageVuCtsuBqE6A
-FYtnTlrjRVT7yD7G4uKcBegCbMs3vAw6nHVw371/YU7RZ3zd+COaG4saror1k5/q
-oE4ihMcHdlvAKQV4Oe19yPXydtbeqc0snzyPG1edEWq2qfo2O5NeUhYwzTVNUwiN
-5pMFhhPPgxm+qcDHo84vvVPR/Ve+uGTx9gGTfQpQnuFesXoXzFUpAEsamLUP0YEF
-o7cf4+VRdWeF3uAv/1/XOfuEn+8o+xUCf0xO+vv7x1zAwHXZJP0/DyKSpifuD2qf
-qb1WPF3Bqe1KTKySuxmh2i5o65GC9iXCzEQW6x3xjddncGxJegs6i0otYcNb4Au3
-UfSFCuVvakGsN8qPP/SlMNg4NoapX1xYAv7UtP6wYBa4FS1yKq90mYQD6rg6OR1H
-OdjnaJCpSiytayARmri6pRv0dTiL0OB44/wdP0jauYlhusv0ete7kBNFW6lo4U6y
-jyGTwOwBaoSAZeUjgpP2
-=PIh5
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
-
-
---===============1518387506069420752==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+Convert to use devm_ functions to reduce code size and simplify the code.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/g760a.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/hwmon/g760a.c b/drivers/hwmon/g760a.c
+index ebcd269..8b2106f 100644
+--- a/drivers/hwmon/g760a.c
++++ b/drivers/hwmon/g760a.c
+@@ -207,7 +207,8 @@ static int g760a_probe(struct i2c_client *client,
+ 				     I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
+ 
+-	data = kzalloc(sizeof(struct g760a_data), GFP_KERNEL);
++	data = devm_kzalloc(&client->dev, sizeof(struct g760a_data),
++			    GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
+ 
+@@ -223,7 +224,7 @@ static int g760a_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &g760a_group);
+ 	if (err)
+-		goto error_sysfs_create_group;
++		return err;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -235,9 +236,6 @@ static int g760a_probe(struct i2c_client *client,
+ 
+ error_hwmon_device_register:
+ 	sysfs_remove_group(&client->dev.kobj, &g760a_group);
+-error_sysfs_create_group:
+-	kfree(data);
+-
+ 	return err;
+ }
+ 
+@@ -246,8 +244,6 @@ static int g760a_remove(struct i2c_client *client)
+ 	struct g760a_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &g760a_group);
+-	kfree(data);
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1518387506069420752==--
