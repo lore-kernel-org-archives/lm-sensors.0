@@ -1,8 +1,10 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:08 +0000
+Date: Tue, 07 Aug 2012 15:59:03 +0000
 Subject: [lm-sensors] [PATCH 19/39] hwmon: (emc2103) Convert to use devm_ functions
-Message-Id: <1344352828-25143-20-git-send-email-linux@roeck-us.net>
+Message-Id: <1344355143-26178-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1344352828-25143-20-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1344352828-25143-20-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -10,9 +12,11 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Steve Glendinning <steve.glendinning@smsc.com>
+Cc: Steve Glendinning <steve.glendinning@shawell.net>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
+Resent with fixed e-mail address.
+
  drivers/hwmon/emc2103.c |   10 ++++------
  1 file changed, 4 insertions(+), 6 deletions(-)
 
