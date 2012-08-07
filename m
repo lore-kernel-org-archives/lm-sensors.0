@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:20 +0000
-Subject: [lm-sensors] [PATCH 31/39] hwmon: (sch5627) Convert to use devm_ functions
-Message-Id: <1344352828-25143-32-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:20:16 +0000
+Subject: [lm-sensors] [PATCH 27/39] hwmon: (ltc4151) Convert to use devm_ functions
+Message-Id: <1344352828-25143-28-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,34 +10,58 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Per Dalen <per.dalen@appeartv.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/sch5627.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/hwmon/ltc4151.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/hwmon/sch5627.c b/drivers/hwmon/sch5627.c
-index 8342275..49f6230 100644
---- a/drivers/hwmon/sch5627.c
-+++ b/drivers/hwmon/sch5627.c
-@@ -461,8 +461,6 @@ static int sch5627_remove(struct platform_device *pdev)
- 		hwmon_device_unregister(data->hwmon_dev);
+diff --git a/drivers/hwmon/ltc4151.c b/drivers/hwmon/ltc4151.c
+index 4d005b2..8496baa 100644
+--- a/drivers/hwmon/ltc4151.c
++++ b/drivers/hwmon/ltc4151.c
+@@ -181,11 +181,9 @@ static int ltc4151_probe(struct i2c_client *client,
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
  
- 	sysfs_remove_group(&pdev->dev.kobj, &sch5627_group);
--	platform_set_drvdata(pdev, NULL);
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data) {
+-		ret = -ENOMEM;
+-		goto out_kzalloc;
+-	}
++	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
+ 
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+@@ -193,7 +191,7 @@ static int ltc4151_probe(struct i2c_client *client,
+ 	/* Register sysfs hooks */
+ 	ret = sysfs_create_group(&client->dev.kobj, &ltc4151_group);
+ 	if (ret)
+-		goto out_sysfs_create_group;
++		return ret;
+ 
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -205,9 +203,6 @@ static int ltc4151_probe(struct i2c_client *client,
+ 
+ out_hwmon_device_register:
+ 	sysfs_remove_group(&client->dev.kobj, &ltc4151_group);
+-out_sysfs_create_group:
 -	kfree(data);
+-out_kzalloc:
+ 	return ret;
+ }
  
+@@ -218,8 +213,6 @@ static int ltc4151_remove(struct i2c_client *client)
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &ltc4151_group);
+ 
+-	kfree(data);
+-
  	return 0;
  }
-@@ -472,7 +470,8 @@ static int __devinit sch5627_probe(struct platform_device *pdev)
- 	struct sch5627_data *data;
- 	int err, build_code, build_id, hwmon_rev, val;
- 
--	data = kzalloc(sizeof(struct sch5627_data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(struct sch5627_data),
-+			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
  
 -- 
 1.7.9.7
