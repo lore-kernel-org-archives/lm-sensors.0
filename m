@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:17 +0000
-Subject: [lm-sensors] [PATCH 28/39] hwmon: (ltc4215) Convert to use devm_ functions
-Message-Id: <1344352828-25143-29-git-send-email-linux@roeck-us.net>
+Date: Tue, 07 Aug 2012 15:19:50 +0000
+Subject: [lm-sensors] [PATCH 01/39] hwmon: (abituguru) Convert to use devm_ functions
+Message-Id: <1344352828-25143-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,59 +10,44 @@ To: lm-sensors@vger.kernel.org
 
 Convert to use devm_ functions to reduce code size and simplify the code.
 
-Cc: Ira W. Snyder <iws@ovro.caltech.edu>
+Cc: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/ltc4215.c |   15 ++++-----------
- 1 file changed, 4 insertions(+), 11 deletions(-)
+ drivers/hwmon/abituguru.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/hwmon/ltc4215.c b/drivers/hwmon/ltc4215.c
-index 429c5b2..98b3d04f 100644
---- a/drivers/hwmon/ltc4215.c
-+++ b/drivers/hwmon/ltc4215.c
-@@ -253,11 +253,9 @@ static int ltc4215_probe(struct i2c_client *client,
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
+diff --git a/drivers/hwmon/abituguru.c b/drivers/hwmon/abituguru.c
+index d4419b4..78b8179 100644
+--- a/drivers/hwmon/abituguru.c
++++ b/drivers/hwmon/abituguru.c
+@@ -1278,7 +1278,8 @@ static int __devinit abituguru_probe(struct platform_device *pdev)
+ 		0x00, 0x01, 0x03, 0x04, 0x0A, 0x08, 0x0E, 0x02,
+ 		0x09, 0x06, 0x05, 0x0B, 0x0F, 0x0D, 0x07, 0x0C };
  
--	data = kzalloc(sizeof(*data), GFP_KERNEL);
--	if (!data) {
--		ret = -ENOMEM;
--		goto out_kzalloc;
--	}
-+	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
+-	data = kzalloc(sizeof(struct abituguru_data), GFP_KERNEL);
++	data = devm_kzalloc(&pdev->dev, sizeof(struct abituguru_data),
++			    GFP_KERNEL);
+ 	if (!data)
+ 		return -ENOMEM;
  
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
-@@ -268,7 +266,7 @@ static int ltc4215_probe(struct i2c_client *client,
- 	/* Register sysfs hooks */
- 	ret = sysfs_create_group(&client->dev.kobj, &ltc4215_group);
- 	if (ret)
--		goto out_sysfs_create_group;
-+		return ret;
- 
- 	data->hwmon_dev = hwmon_device_register(&client->dev);
- 	if (IS_ERR(data->hwmon_dev)) {
-@@ -280,9 +278,6 @@ static int ltc4215_probe(struct i2c_client *client,
- 
- out_hwmon_device_register:
- 	sysfs_remove_group(&client->dev.kobj, &ltc4215_group);
--out_sysfs_create_group:
+@@ -1430,8 +1431,6 @@ abituguru_probe_error:
+ 	for (i = 0; i < ARRAY_SIZE(abituguru_sysfs_attr); i++)
+ 		device_remove_file(&pdev->dev,
+ 			&abituguru_sysfs_attr[i].dev_attr);
+-	platform_set_drvdata(pdev, NULL);
 -	kfree(data);
--out_kzalloc:
- 	return ret;
+ 	return res;
  }
  
-@@ -293,8 +288,6 @@ static int ltc4215_remove(struct i2c_client *client)
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &ltc4215_group);
- 
+@@ -1446,8 +1445,6 @@ static int __devexit abituguru_remove(struct platform_device *pdev)
+ 	for (i = 0; i < ARRAY_SIZE(abituguru_sysfs_attr); i++)
+ 		device_remove_file(&pdev->dev,
+ 			&abituguru_sysfs_attr[i].dev_attr);
+-	platform_set_drvdata(pdev, NULL);
 -	kfree(data);
--
+ 
  	return 0;
  }
- 
 -- 
 1.7.9.7
 
