@@ -1,70 +1,112 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:19:52 +0000
-Subject: [lm-sensors] [PATCH 03/39] hwmon: (ad7314) Convert to use devm_ functions
-Message-Id: <1344352828-25143-4-git-send-email-linux@roeck-us.net>
+From: Holger <hdecarne@gmail.com>
+Date: Thu, 09 Aug 2012 12:14:11 +0000
+Subject: [lm-sensors] Config for "intel/D27000MUD" board
+Message-Id: <CAKpZH7z_YbDrA4ntHO8oLuDUnWVGomEm5MMZV8pDw=mvSHowMw@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="14dae9340fe74abf3004c6d42aea"
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+--14dae9340fe74abf3004c6d42aea
+Content-Type: multipart/alternative; boundary=14dae9340fe74abf2704c6d42ae8
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/ad7314.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+--14dae9340fe74abf2704c6d42ae8
+Content-Type: text/plain; charset=UTF-8
 
-diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
-index cfec802..455294f 100644
---- a/drivers/hwmon/ad7314.c
-+++ b/drivers/hwmon/ad7314.c
-@@ -104,16 +104,16 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
- 	int ret;
- 	struct ad7314_data *chip;
- 
--	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
--	if (chip = NULL) {
--		ret = -ENOMEM;
--		goto error_ret;
--	}
-+	chip = devm_kzalloc(&spi_dev->dev, sizeof(*chip), GFP_KERNEL);
-+	if (chip = NULL)
-+		return -ENOMEM;
-+
- 	dev_set_drvdata(&spi_dev->dev, chip);
- 
- 	ret = sysfs_create_group(&spi_dev->dev.kobj, &ad7314_group);
- 	if (ret < 0)
--		goto error_free_chip;
-+		return ret;
-+
- 	chip->hwmon_dev = hwmon_device_register(&spi_dev->dev);
- 	if (IS_ERR(chip->hwmon_dev)) {
- 		ret = PTR_ERR(chip->hwmon_dev);
-@@ -124,9 +124,6 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
- 	return 0;
- error_remove_group:
- 	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
--error_free_chip:
--	kfree(chip);
--error_ret:
- 	return ret;
- }
- 
-@@ -136,7 +133,6 @@ static int __devexit ad7314_remove(struct spi_device *spi_dev)
- 
- 	hwmon_device_unregister(chip->hwmon_dev);
- 	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
--	kfree(chip);
- 
- 	return 0;
- }
--- 
-1.7.9.7
+Hi,
 
+I would like to share the sensor configuration for the Intel D2700MUD board
+(http://www.intel.com/p/de_DE/support/highlights/dsktpboards/db-d2700mud/).
+Feel free to put this on the wiki.
+
+Kind Regards,
+Holger
+
+--14dae9340fe74abf2704c6d42ae8
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<div><br></div><div>I would like to share the sensor configuration for t=
+he Intel D2700MUD board (<a href=3D"http://www.intel.com/p/de_DE/support/hi=
+ghlights/dsktpboards/db-d2700mud/">http://www.intel.com/p/de_DE/support/hig=
+hlights/dsktpboards/db-d2700mud/</a>). Feel free to put this on the wiki.</=
+div>
+<div><br></div><div>Kind Regards,</div><div>Holger</div>
+
+--14dae9340fe74abf2704c6d42ae8--
+
+--14dae9340fe74abf3004c6d42aea
+Content-Type: application/octet-stream; name="D2700MUD.conf"
+Content-Disposition: attachment; filename="D2700MUD.conf"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h5nt1ytu0
+
+IyBDb25maWd1cmF0aW9uIGZvciBJbnRlbCBEMjcwME1VRCBib2FyZAojCiMgVGhlIGNvbW1lbnRz
+IGFyZSB0aGUgdW5jb25maWd1cmVkICdzZW5zb3JzIC11JyBvdXRwdXQuCiMgV2hlcmUgYXZhaWxh
+YmxlIGxhYmVscyBhcmUgdGFrZW4gZnJvbSB0aGUgQklPUyBtb25pdG9yaW5nIHNjcmVlbi4KIwoj
+IEkgdXNlZCB0aGUgaW5zdHJ1Y3Rpb25zIGZyb20gaHR0cDovL2xtLXNlbnNvcnMub3JnL3dpa2kv
+Vm9sdGFnZUxhYmVsc0FuZFNjYWxpbmcKIyB0byBkZXRlcm1pbmUgdGhlIG5vdCBvYnZpb3VzIHNl
+dHRpbmdzLgojCiMgQXMgdGhlIGJvYXJkIGNvbWVzIHdpdGhvdXQgYSBmYW4sIHRoZSBmYW4xIHNl
+dHRpbmdzIG5lZWQgdG8gYmUgYWRhcHQgdGhlIGluZGl2aWR1YWwgc2V0dXAuCiMKCmNoaXAgImNv
+cmV0ZW1wLSoiCgojQ29yZSAwOgojICB0ZW1wMl9pbnB1dDogMzYuMDAwCiMgIHRlbXAyX2NyaXQ6
+IDEwMC4wMDAKIyAgdGVtcDJfY3JpdF9hbGFybTogMC4wMDAKCWxhYmVsIHRlbXAyICJDb3JlIDAi
+CgojQ29yZSAxOgojICB0ZW1wM19pbnB1dDogMzEuMDAwCiMgIHRlbXAzX2NyaXQ6IDEwMC4wMDAK
+IyAgdGVtcDNfY3JpdF9hbGFybTogMC4wMDAKCWxhYmVsIHRlbXAzICJDb3JlIDEiCgpjaGlwICJ3
+ODM2MjdkaGctKiIKCiNWY29yZToKIyAgaW4wX2lucHV0OiAxLjIwOAojICBpbjBfbWluOiAxLjE0
+NAojICBpbjBfbWF4OiAxLjI2NAojICBpbjBfYWxhcm06IDAuMDAwCglsYWJlbCBpbjAgIlByb2Nl
+c3NvciBWY2MiCglzZXQgaW4wX21pbiAxLjIgKiAwLjk1CglzZXQgaW4wX21heCAxLjIgKiAxLjA1
+CgojaW4xOgojICBpbjFfaW5wdXQ6IDAuOTkyCiMgIGluMV9taW46IDEuMzIwCiMgIGluMV9tYXg6
+IDEuNDgwCiMgIGluMV9hbGFybTogMS4wMDAKCWxhYmVsIGluMSAiKzUuMFYiCgljb21wdXRlIGlu
+MSAgQCAqICg0OTgwLzk5MiksIEAgLyAoNDk4MC85OTIpCglzZXQgaW4xX21pbiA1ICogMC45NQoJ
+c2V0IGluMV9tYXggNSAqIDEuMDUKCiNBVkNDOgojICBpbjJfaW5wdXQ6IDMuMzQ0CiMgIGluMl9t
+aW46IDIuOTc2CiMgIGluMl9tYXg6IDMuNjMyCiMgIGluMl9hbGFybTogMC4wMDAKCiMrMy4zVjoK
+IyAgaW4zX2lucHV0OiAzLjM0NAojICBpbjNfbWluOiAyLjk3NgojICBpbjNfbWF4OiAzLjYzMgoj
+ICBpbjNfYWxhcm06IDAuMDAwCglsYWJlbCBpbjMgIiszLjNWIgoJc2V0IGluM19taW4gMy4zICog
+MC45NQoJc2V0IGluM19tYXggMy4zICogMS4wNQkKCiNpbjQ6CiMgIGluNF9pbnB1dDogMS4wMjQK
+IyAgaW40X21pbjogMC45NTIKIyAgaW40X21heDogMC44NDgKIyAgaW40X2FsYXJtOiAxLjAwMAoJ
+bGFiZWwgaW40ICIrMTIuMFYiCgljb21wdXRlIGluNCAgQCAqICgxMjI4MC8xMDI0KSwgQCAvICgx
+MjI4MC8xMDI0KQoJc2V0IGluNF9taW4gMTIgKiAwLjk1CglzZXQgaW40X21heCAxMiAqIDEuMDUK
+CiNpbjU6CiMgIGluNV9pbnB1dDogMS41MTIKIyAgaW41X21pbjogMC4zNzYKIyAgaW41X21heDog
+MC4wODgKIyAgaW41X2FsYXJtOiAxLjAwMAoJbGFiZWwgaW41ICJNZW1vcnkgVmNjIgoJc2V0IGlu
+NV9taW4gMS41ICogMC45NQoJc2V0IGluNV9tYXggMS41ICogMS4wNQoKI2luNjoKIyAgaW42X2lu
+cHV0OiAxLjAxNgojICBpbjZfbWluOiAwLjYxNgojICBpbjZfbWF4OiAwLjY3MgojICBpbjZfYWxh
+cm06IDEuMDAwCglsYWJlbCBpbjYgIis1LjBWIFN0YW5kYnkiCgljb21wdXRlIGluNiAgQCAqICg1
+MTQwLzEwMTYpLCBAIC8gKDUxNDAvMTAxNikKCXNldCBpbjZfbWluIDUgKiAwLjk1CglzZXQgaW42
+X21heCA1ICogMS4wNQoKIzNWU0I6CiMgIGluN19pbnB1dDogMy4zMTIKIyAgaW43X21pbjogMi45
+NzYKIyAgaW43X21heDogMy42MzIKIyAgaW43X2FsYXJtOiAwLjAwMAoJbGFiZWwgaW43ICIrMy4z
+ViBTdGFuZGJ5IgoJc2V0IGluN19taW4gMy4zICogMC45NQoJc2V0IGluN19tYXggMy4zICogMS4w
+NQoKI1ZiYXQ6CiMgIGluOF9pbnB1dDogMy4xODQKIyAgaW44X21pbjogMi43MDQKIyAgaW44X21h
+eDogMy4yOTYKIyAgaW44X2FsYXJtOiAwLjAwMAoKI2ZhbjE6CiMgIGZhbjFfaW5wdXQ6IDAuMDAw
+CiMgIGZhbjFfbWluOiA3NTMuMDAwCiMgIGZhbjFfYWxhcm06IDEuMDAwCiMgIGZhbjFfZGl2OiAx
+MjguMDAwCglsYWJlbCBmYW4xICJTeXN0ZW0gRmFuIgoJY29tcHV0ZSBmYW4xIEAgKiAyLCBAIC8g
+MgoJc2V0IGZhbjFfbWluIDEzMDAgKiAwLjgKCiNmYW4yOgojICBmYW4yX2lucHV0OiAwLjAwMAoj
+ICBmYW4yX21pbjogODc4LjAwMAojICBmYW4yX2FsYXJtOiAxLjAwMAojICBmYW4yX2RpdjogMTI4
+LjAwMAoJaWdub3JlIGZhbjIKCiNmYW4zOgojICBmYW4zX2lucHV0OiAwLjAwMAojICBmYW4zX21p
+bjogMzYzLjAwMAojICBmYW4zX2FsYXJtOiAxLjAwMAojICBmYW4zX2RpdjogMTI4LjAwMAoJaWdu
+b3JlIGZhbjMKCiNmYW40OgojICBmYW40X2lucHV0OiAwLjAwMAojICBmYW40X21pbjogOTU4LjAw
+MAojICBmYW40X2FsYXJtOiAxLjAwMAojICBmYW40X2RpdjogMTI4LjAwMAoJaWdub3JlIGZhbjQK
+CiNmYW41OgojICBmYW41X2lucHV0OiAwLjAwMAojICBmYW41X21pbjogNTg1LjAwMAojICBmYW41
+X2FsYXJtOiAxLjAwMAojICBmYW41X2RpdjogMTI4LjAwMAoJaWdub3JlIGZhbjUKCiN0ZW1wMToK
+IyAgdGVtcDFfaW5wdXQ6IDQ3LjAwMAojICB0ZW1wMV9tYXg6IDExLjAwMAojICB0ZW1wMV9tYXhf
+aHlzdDogLTEyMi4wMDAKIyAgdGVtcDFfYWxhcm06IDEuMDAwCiMgIHRlbXAxX3R5cGU6IDEuMDAw
+CiMgIHRlbXAxX29mZnNldDogMC4wMDAKCWxhYmVsIHRlbXAxICJNZW1vcnkgVGVtcGVyYXR1cmUi
+CglzZXQgdGVtcDFfbWF4IDkwCglzZXQgdGVtcDFfbWF4X2h5c3QgODAKCiN0ZW1wMjoKIyAgdGVt
+cDJfaW5wdXQ6IDExMC41MDAKIyAgdGVtcDJfbWF4OiA4MC4wMDAKIyAgdGVtcDJfbWF4X2h5c3Q6
+IDc1LjAwMAojICB0ZW1wMl9hbGFybTogMS4wMDAKIyAgdGVtcDJfdHlwZTogMS4wMDAKIyAgdGVt
+cDJfb2Zmc2V0OiAtMTcuMDAwCglpZ25vcmUgdGVtcDIKCiN0ZW1wMzoKIyAgdGVtcDNfaW5wdXQ6
+IDM0LjAwMAojICB0ZW1wM19tYXg6IDgwLjAwMAojICB0ZW1wM19tYXhfaHlzdDogNzUuMDAwCiMg
+IHRlbXAzX2FsYXJtOiAwLjAwMAojICB0ZW1wM190eXBlOiAxLjAwMAojICB0ZW1wM19vZmZzZXQ6
+IDAuMDAwCglsYWJlbCB0ZW1wMyAiVlIgVGVtcGVyYXR1cmUiCglzZXQgdGVtcDNfbWF4IDkwCglz
+ZXQgdGVtcDNfbWF4X2h5c3QgODAKCiNjcHUwX3ZpZDoKIyAgY3B1MF92aWQ6IDAuMDAwCglpZ25v
+cmUgY3B1MF92aWQKCiNpbnRydXNpb24wOgojICBpbnRydXNpb24wX2FsYXJtOiAwLjAwMAo=
+--14dae9340fe74abf3004c6d42aea
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--14dae9340fe74abf3004c6d42aea--
