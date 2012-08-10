@@ -1,49 +1,34 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 14 Aug 2012 08:21:29 +0000
-Subject: Re: [lm-sensors] Please reconsider SCH5514
-Message-Id: <502A0A89.3040407@redhat.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Fri, 10 Aug 2012 09:24:37 +0000
+Subject: [lm-sensors] [patch] hwmon: (f71882fg) Signedness bug in f71882fg_init()
+Message-Id: <20120810092435.GC26875@elgon.mountain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <c966e4f2e75e94e9ebf54ef8b7a6237d.squirrel@libra-investments.com>
-In-Reply-To: <c966e4f2e75e94e9ebf54ef8b7a6237d.squirrel@libra-investments.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-Hi,
+"address" stores and unsigned short on success but a negative on failure
+so it needs to be an int.
 
-On 08/13/2012 10:02 PM, Guenter Roeck wrote:
-> On Mon, Aug 13, 2012 at 11:17:55AM -0700, Norbert Schlenker wrote:
->>> Hello,
->>>
->>> Have you seen this: http://www.spinics.net/lists/lm-sensors/msg24621.html ?
->>>
->>> Without having full specifications it's hard to write a driver, and signing
->>> a NDA goes against open source (Non Disclosure Agrement <> Open Source).
->>>
->>> Regards
->>> Ian Dobson
->>
->> Thanks for the pointer.
->>
->> Email sent to Mark Hoffman asking if the driver was ever released.
->>
-> I don't think so - I don't find one anywhere in the archives.
->
-> Key problem, though, is really the lack of a data sheet. Even if someone would
-> be able to get a data sheet under NDA, it might be impossible for that person
-> to publish a driver, since publishing register details (as one has to when
-> publishing a driver) would very likely violate the NDA.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Applies to linux-next.  This was introduced in 1f7f944 "hwmon:
+(f71882fg) Fix build warning".
 
-That very much depends on the NDA, Linux driver are written based on datasheets
-under NDA all of the time, it is just a matter of having both parties understand
-that although the datasheet will fall under the NDA, the source of the driver
-written with the help of the datasheet will not, and putting something like that
-explicitly in the NDA. Note IANAL, and this is not legal advice :)
-
-Regards,
-
-Hans
+diff --git a/drivers/hwmon/f71882fg.c b/drivers/hwmon/f71882fg.c
+index b6304eb..853f544 100644
+--- a/drivers/hwmon/f71882fg.c
++++ b/drivers/hwmon/f71882fg.c
+@@ -2662,7 +2662,7 @@ exit_device_put:
+ static int __init f71882fg_init(void)
+ {
+ 	int err = -ENODEV;
+-	unsigned short address;
++	int address;
+ 	struct f71882fg_sio_data sio_data;
+ 
+ 	memset(&sio_data, 0, sizeof(sio_data));
 
 _______________________________________________
 lm-sensors mailing list
