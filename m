@@ -1,7 +1,7 @@
-From: John Rippetoe <jrippetoe@comconcepts.com>
-Date: Fri, 10 Aug 2012 13:12:55 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 10 Aug 2012 16:34:43 +0000
 Subject: Re: [lm-sensors] Output problem with adcxx  on at91
-Message-Id: <502508D7.8040707@comconcepts.com>
+Message-Id: <20120810163443.GB29281@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5019526C.2030802@comconcepts.com>
 In-Reply-To: <5019526C.2030802@comconcepts.com>
@@ -10,66 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 08/10/2012 08:31 AM, John Rippetoe wrote:
-> Marc,
->
-> No problem at all, better for it to be accessible to others in case they run across similar issues.
->
-> No kidding? As far as I know the at91rm9200 is essentially the grandfather of the at91sam9g20 I am using now; similar design but two revisions older.
->
-> As of yesterday afternoon I myself have begun to suspect there could be a problem with the spi controller hardware within the mcu. I have also been working with the board manufacturer in solving this problem as well. In an attempt to troubleshoot  your driver I was comparing it with a different kernel driver recommended by my board manufacturer (Micromint) that was written by another customer. This particular driver has apparently been well received, however, I have yet to have any luck getting it to work. Even when a representative from the company sent it to me precompiled and tested, I still had no lluck getting it to work in an identical environment.
->
-> Now I know the ADC works because I have userland code which directly accesses the ADC and I get correct output.  Note that this code completely bypasses the atmel spi controller and operates directly on the ADC128S052s registers. Suspicious right?
+On Fri, Aug 10, 2012 at 08:46:20AM +0200, Marc Pignat wrote:
+> Hi John,
+> 
+> (You asked me in private, but I prefer to respond on the mailing list).
+> 
+> This driver was working, I wrote (and tested it) in 2008 ;)
+> The hardware it was running on was a custom at91rm9200 based board with
+> a adc084s051.
+> The last time a checked it, it was on 2.6.28, and it was still working fine.
+> 
+> I just had a look to the adc128s052 datasheet, and it looks compatible
+> with this driver.
+> 
+> Guenter, the spi_write_then_read() function is really the good one.
+> In brief, the write selects the channel, then the read reads the data.
+> 
+Yes, I noticed that this must be the idea. I _think_ it assumes that the first
+access initiates the conversion, and the second access reads the data (while
+providing a dummy ADC index). The data sheet seems to confirm that. In other
+words, the read data obtained with the first write is the ADC result from the
+_previous_ conversion. The data sheet seems to confirm that: "The first
+conversion result after power-up will be that of IN0".
 
-Strike that, the userland example doesn't access the ADC directly. It 
-actually accesses the spi controller directly.  I didn't have a copy of 
-the code on hand when I wrote that and was mistaken.  Sorry about that.
+I think I am going to order a couple of those chips and check what is happening
+on the bus with a Logic Analyzer.
 
->
-> I assume you are using the atmel-spi driver as the master controller driver correct? If so, did you make any modifications to it at all?
->
-> Thanks for your help guys.
->
-> John
->
-> Marc Pignat <marc.pignat@hevs.ch> wrote:
->
->> Hi John,
->>
->> (You asked me in private, but I prefer to respond on the mailing list).
->>
->> This driver was working, I wrote (and tested it) in 2008 ;)
->> The hardware it was running on was a custom at91rm9200 based board with
->> a adc084s051.
->> The last time a checked it, it was on 2.6.28, and it was still working fine.
->>
->> I just had a look to the adc128s052 datasheet, and it looks compatible
->> with this driver.
->>
->> Guenter, the spi_write_then_read() function is really the good one.
->> In brief, the write selects the channel, then the read reads the data.
->>
->> I think the problem you're facing is either in the spi driver or in the
->> hardware.
->>
->>
->> Best regards
->>
->>
->> Marc
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-
-
--- 
-Respectfully,
-
-John Rippetoe
-Communication Concepts
-813-888-6611
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
