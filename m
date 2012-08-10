@@ -1,7 +1,7 @@
-From: John <rippetoej@gmail.com>
-Date: Thu, 02 Aug 2012 03:07:00 +0000
+From: Marc Pignat <marc.pignat@hevs.ch>
+Date: Fri, 10 Aug 2012 06:46:20 +0000
 Subject: Re: [lm-sensors] Output problem with adcxx  on at91
-Message-Id: <loom.20120802T045816-837@post.gmane.org>
+Message-Id: <5024AE3C.5050903@hevs.ch>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5019526C.2030802@comconcepts.com>
 In-Reply-To: <5019526C.2030802@comconcepts.com>
@@ -10,75 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Guenter Roeck <linux <at> roeck-us.net> writes:
-> 
-> > >./arch/arm/mach-at91/board-electrum-100.c is not in mainline, so this is 
-a bit
-> > >difficult. Given the above, it may even be that there is a separate 
-driver for
-> > >the chip somewhere in your tree (ok, I think I found the patch, there 
-isn't,
-> > >but that means this never worked).
-> > I could have sworn that I saw it in mainline, but now that I check I
-> > see it is not there.  Sorry about that! I am not sure what you mean
-> > as far as the driver never working and exactly what patch you are
-> > talking about.  Could you clarify?
-> 
-> http://stoian.us/misc/files/linux-3.3.0-micromint.patch
-> 
-> Since the patch sets modalias to "adc128s052", and a driver with that name 
-does
-> not exist in the kernel, it can not have worked, at least not with this
-> configuration.
-> 
+Hi John,
 
-Oh, I see what you are referring to now.  That specicif modalias "adc128s052" 
-is what I added to the adcxx driver in order to get it to bind to the device 
-lsited there in that board configuration.  
+(You asked me in private, but I prefer to respond on the mailing list).
 
-> > >Other than that, there could be many things wrong. Chip select, bus 
-number,
-> > >clock speed, chip access mode. There is no example for a working 
-instantiation
-> > >in the upstream kernel, so I have no idea what the valid parameters might 
-be.
-> > >You mentioned user mode access worked - maybe you can compare it with the 
-kernel
-> > >settings.
-> > As far as I can tell (and I may be wrong here, this is all still
-> > pretty new to me) the bus and chip select are all correct.  Clock
-> > speed could be an issue I suppose.  I just did the reverse math on
-> > the value that the driver is reporting and realized that before it
-> > is converted, the raw value is 2 bytes worth of 1's.  I am going to
-> > trace through the spi_write_then_read() function in the adcxx driver
-> > and compare its method to that used by the user mode program and the
-> > atmel_spi driver.  I'm not sure how far I am going to get though.
-> > 
-> 
-> Doesn't sound good, and I am not entirely sure if using spi_write_then_read
-() is
-> correct for this chip. You might try the access in single-channel mode to 
-see if
-> it makes a difference.
+This driver was working, I wrote (and tested it) in 2008 ;)
+The hardware it was running on was a custom at91rm9200 based board with
+a adc084s051.
+The last time a checked it, it was on 2.6.28, and it was still working fine.
+
+I just had a look to the adc128s052 datasheet, and it looks compatible
+with this driver.
+
+Guenter, the spi_write_then_read() function is really the good one.
+In brief, the write selects the channel, then the read reads the data.
+
+I think the problem you're facing is either in the spi driver or in the
+hardware.
 
 
-You are most definitely right.  After doing a little reading, I realize that I 
-am going to be doing a little bit of driver 'rewriting' tomorrow.  More 
-specifically, I am going to adapt the adcxx protocol driver to use the 
-functions from the atmel_spi controller driver.  I will report back with 
-results when finished, though I will more likely be back with more questions 
-before than.  
-
-Thanks again for the guidance.
-
-John 
+Best regards
 
 
-> 
-> Guenter
-> 
-
-
+Marc
 
 _______________________________________________
 lm-sensors mailing list
