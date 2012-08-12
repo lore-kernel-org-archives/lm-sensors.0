@@ -1,35 +1,100 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Date: Sun, 26 Aug 2012 19:32:34 +0000
-Subject: Re: [lm-sensors] doubt about assignments of the thermal sensors to their physical location
-Message-Id: <20120826193234.GA29093@srcf.ucam.org>
+From: "Warren Post" <warren@copaninvest.com>
+Date: Sun, 12 Aug 2012 22:40:01 +0000
+Subject: [lm-sensors] Configuration file for Intel DG31GL
+Message-Id: <op.wix88zhxn283x7@verdi>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <503A78A7.9020205@gmx.de>
-In-Reply-To: <503A78A7.9020205@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, Aug 26, 2012 at 09:27:35PM +0200, Toralf F=F6rster wrote:
+I can't claim to know what I'm doing, but I have cobbled together a  
+configuration file for my Intel DG31GL that meets my needs and thought I'd  
+share it with the community:
 
-> for a ThinkPad T420 (model 4180-f65) running at a stable Gentoo w/
-> kernel 3-5.3 I'm wondering, if the kernel (module thinkpad_acpi) + the
-> package  sys-apps/lm_sensors-3.3.1 works fine together wrt to the
-> assignments of the thermal sensors to their physical location.
+***config file begins***
 
-thinkpad-acpi isn't involved here. The core temperatures are all coming=20
-from the CPU itself.
+# lm_sensors configuration file for the Intel DG31GL motherboard
+# 2011-01-02, Warren Post <warren@copaninvest.com>
+# Comments welcome
 
-> I'm wondering why the 2 cores of the "Intel(R) Core(TM) i5-2540M CPU @
-> 2.60GHz stepping 07" doesn't have the same temperature of 43=B0C and
-> "Physical id 0:" has the other (different) value of 40=B0C.
+# Winbond configuration adapted from Hans de Goede's work at:
+# http://www.lm-sensors.org/wiki/Configurations/ASRock/AM2NF3-VSTA
+chip "w83627dhg-*"
 
-The two cores can be different temperatures. The physical id 0 value is=20
-the package temperature, which will typically just be the highest of the=20
-core temperatures.
+     label in0 "VCore"
+     label in1 "VCore2"
+     label in2 "AVCC"
+     label in3 "3VCC"
+     label in6 "12V"
+     label in7 "VSB"
+     label in8 "VBAT"
 
---=20
-Matthew Garrett | mjg59@srcf.ucam.org
+# +12V and +5V use dividers recommended by datasheet
+     compute in6 @*(1+(56/10)),  @/(1+(56/10))
+     compute in9 @*(1+(22/10)),  @/(1+(22/10))
+
+# in4 and in5 are not used (they seem to be hooked up to 3.3v/2, but thats
+# already monitored)
+
+     ignore in4
+     ignore in5
+
+# we need to set all voltage limits (hurray for a well written BIOS)
+# Note you may need to adapt in0 and in1 depending on your CPU
+
+     set in0_min   0.9
+     set in0_max   1.5
+     set in1_min   0.9
+     set in1_max   1.7       # Supress alarm; default value 1.5
+     set in2_min   3.3*0.95
+     set in2_max   3.3*1.05
+     set in3_min   3.3*0.95
+     set in3_max   3.3*1.05
+     set in6_min   0         # Supress alarm; default value 12.0*0.9
+     set in6_max   12.0*1.1
+     set in7_min   3.3*0.95
+     set in7_max   3.3*1.05
+     set in8_min   3.0
+     set in8_max   3.3*1.05
+
+# Fans
+
+    ignore fan1    # No sensors available for case fans
+    label fan2     "CPU Fan"
+    ignore fan3
+    ignore fan4
+    ignore fan5
+
+# Fan minumums
+
+    set fan2_min    1000
+
+# Temperatures
+
+    label temp1     "Sys Temp"
+    label temp2     "CPU Temp"
+    label temp3     "CPU2 Temp"
+    ignore temp3    # Suppress alarm
+
+    set temp1_max       100  # Supress alarm; default value 45
+    set temp1_max_hyst  100  # Supress alarm; default value 40
+
+    set temp2_max       100  # Supress alarm; default value 45
+    set temp2_max_hyst  100  # Supress alarm; default value 40
+
+    set temp3_max       45
+    set temp3_max_hyst  40
+
+
+***config file ends***
+
+
+With my thanks for the lm_sensors project,
+
+-- 
+Warren Post
+http://my.opera.com/wpost/blog/lm-sensors-config-file
 
 _______________________________________________
 lm-sensors mailing list
