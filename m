@@ -1,66 +1,26 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:20:10 +0000
-Subject: [lm-sensors] [PATCH 21/39] hwmon: (f75375s) Convert to use devm_ functions
-Message-Id: <1344352828-25143-22-git-send-email-linux@roeck-us.net>
+From: vadugs <vadugs@gmail.com>
+Date: Tue, 14 Aug 2012 19:12:53 +0000
+Subject: Re: [lm-sensors] =?utf-8?q?Coretemp_ERROR=3A_Can=27t_get_value_of_sub?=
+Message-Id: <loom.20120814T211014-749@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
-
-Cc: Riku Voipio <riku.voipio@iki.fi>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/f75375s.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/hwmon/f75375s.c b/drivers/hwmon/f75375s.c
-index ece4159..f7dba22 100644
---- a/drivers/hwmon/f75375s.c
-+++ b/drivers/hwmon/f75375s.c
-@@ -838,7 +838,8 @@ static int f75375_probe(struct i2c_client *client,
- 	if (!i2c_check_functionality(client->adapter,
- 				I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -EIO;
--	data = kzalloc(sizeof(struct f75375_data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(struct f75375_data),
-+			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
-@@ -848,7 +849,7 @@ static int f75375_probe(struct i2c_client *client,
- 
- 	err = sysfs_create_group(&client->dev.kobj, &f75375_group);
- 	if (err)
--		goto exit_free;
-+		return err;
- 
- 	if (data->kind != f75373) {
- 		err = sysfs_chmod_file(&client->dev.kobj,
-@@ -875,8 +876,6 @@ static int f75375_probe(struct i2c_client *client,
- 
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &f75375_group);
--exit_free:
--	kfree(data);
- 	return err;
- }
- 
-@@ -885,7 +884,6 @@ static int f75375_remove(struct i2c_client *client)
- 	struct f75375_data *data = i2c_get_clientdata(client);
- 	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &f75375_group);
--	kfree(data);
- 	return 0;
- }
- 
--- 
-1.7.9.7
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SmVhbiBEZWx2YXJlIDxraGFsaSA8YXQ+IGxpbnV4LWZyLm9yZz4gd3JpdGVzOgoKPiAKPiAKPiBJ
+dCBtYWtlcyBubyBzZW5zZSB0byBydW4gc2Vuc29ycyBvciBhbnkgX2hhcmR3YXJlXyBtb25pdG9y
+aW5nCj4gYXBwbGljYXRpb24gb24gYSBfdmlydHVhbF8gbWFjaGluZS4gSGFyZHdhcmUgbW9uaXRv
+cmluZyBzaG91bGQgYmUgZG9uZQo+IG9uIHRoZSBob3N0IHN5c3RlbSwgbm90IG9uIHRoZSBndWVz
+dHMuCj4gCj4gPiAoLi4uKQo+ID4gKjMuIFRoZSBvdXRwdXQgb2Ygc2Vuc29yczogKgo+ID4gY29y
+ZXRlbXAtaXNhLTAwMDAKPiA+IEFkYXB0ZXI6IElTQSBhZGFwdGVyCj4gPiBFUlJPUjogQ2FuJ3Qg
+Z2V0IHZhbHVlIG9mIHN1YmZlYXR1cmUgdGVtcDFfaW5wdXQ6IENhbid0IHJlYWQKPiA+IENvcmUg
+MDogICAgICAgKzAuMMKwQyAgKGhpZ2ggPSArMTAwLjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCj4g
+Cj4gSSBwcmVzdW1lIHRoYXQgVk13YXJlIHNpbXBseSBkb2Vzbid0IGFsbG93IGd1ZXN0IGRyaXZl
+cnMgdG8gYWNjZXNzIENQVQo+IE1TUi4gTm90aGluZyB3ZSBjYW4gZG8uCj4gCgpIZXkgSSBhbSBm
+YWNpbmcgdGhlIHNhbWUgZXJyb3IuIEkganVzdCB3YW50ZWQgdG8gYXNrIGlmIHRoZXJlIGFueSBv
+dGhlciB3YXkgdG8gCm9idGFpbiB0ZW1wZXJhdHVyZSBieSBydW5uaW5nIGFueSBoYXJkd2FyZSBt
+b25pdG9yaW5nIGFwcGxpY2F0aW9uIG9uIGEgdmlydHVhbCAKbWFjaGluZT8KCgoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
+IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
+cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
