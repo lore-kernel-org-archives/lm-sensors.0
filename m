@@ -1,205 +1,1373 @@
-From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
-Date: Fri, 24 Aug 2012 08:32:00 +0000
-Subject: [lm-sensors] [PATCH 5/8] input: Add support for DA906x PMIC OnKey detection.
-Message-Id: <201208240835@sw-eng-lt-dc-vm2>
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Date: Thu, 16 Aug 2012 11:53:41 +0000
+Subject: [lm-sensors] [PATCH v6 2/6] hwmon: exynos4: move thermal sensor driver to driver/thermal directory
+Message-Id: <1345117305-8299-3-git-send-email-amit.kachhap@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201208240834@sw-eng-lt-dc-vm2>
-In-Reply-To: <201208240834@sw-eng-lt-dc-vm2>
+References: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, Richard Purdie <rpurdie@rpsys.net>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
+To: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-samsung-soc@vger.kernel.org, SangWook Ju <sw.ju@samsung.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Jean Delvare <khali@linux-fr.org>, Kyungmin Park <kmpark@infradead.org>
 
-This driver creates input device that reports a key event on an OnKey button
-release. The reported key code depends on the time, the button was holded for.
-If holding time < 2 seconds - KEY_SLEEP is reported on button release,
-otherwise KEY_POWER is reported after 2 seconds.
+This movement is needed because the hwmon entries and corresponding sysfs
+interface is a duplicate of utilities already provided by
+driver/thermal/thermal_sys.c.  The goal is to place it in thermal folder
+and add necessary functions to use the in-kernel thermal interfaces.
 
-Signed-off-by: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
+Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
+Cc: SangWook Ju <sw.ju@samsung.com>
+Cc: Durgadoss <durgadoss.r@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Kyungmin Park <kmpark@infradead.org>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
 ---
- drivers/input/misc/Kconfig        |    6 ++
- drivers/input/misc/Makefile       |    1 +
- drivers/input/misc/da906x-onkey.c |  139 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 146 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/misc/da906x-onkey.c
+ Documentation/hwmon/exynos4_tmu              |   81 ----
+ Documentation/thermal/exynos_thermal         |   52 +++
+ drivers/hwmon/Kconfig                        |   10 -
+ drivers/hwmon/Makefile                       |    1 -
+ drivers/hwmon/exynos4_tmu.c                  |  518 --------------------------
+ drivers/thermal/Kconfig                      |    7 +
+ drivers/thermal/Makefile                     |    1 +
+ drivers/thermal/exynos_thermal.c             |  413 ++++++++++++++++++++
+ include/linux/platform_data/exynos4_tmu.h    |   83 ----
+ include/linux/platform_data/exynos_thermal.h |   83 ++++
+ 10 files changed, 556 insertions(+), 693 deletions(-)
+ delete mode 100644 Documentation/hwmon/exynos4_tmu
+ create mode 100644 Documentation/thermal/exynos_thermal
+ delete mode 100644 drivers/hwmon/exynos4_tmu.c
+ create mode 100644 drivers/thermal/exynos_thermal.c
+ delete mode 100644 include/linux/platform_data/exynos4_tmu.h
+ create mode 100644 include/linux/platform_data/exynos_thermal.h
 
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index 7c0f1ec..fd8d951 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -486,6 +486,12 @@ config INPUT_DA9052_ONKEY
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called da9052_onkey.
- 
-+config INPUT_DA906X_ONKEY
-+	tristate "Dialog DA906x OnKey"
-+	depends on MFD_DA906X
-+	help
-+	  Support for Dialog Semiconductor input onkey device.
-+
- config INPUT_DM355EVM
- 	tristate "TI DaVinci DM355 EVM Keypad and IR Remote"
- 	depends on MFD_DM355EVM_MSP
-diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index 83fe6f5..73406ac 100644
---- a/drivers/input/misc/Makefile
-+++ b/drivers/input/misc/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_INPUT_CMA3000)		+= cma3000_d0x.o
- obj-$(CONFIG_INPUT_CMA3000_I2C)		+= cma3000_d0x_i2c.o
- obj-$(CONFIG_INPUT_COBALT_BTNS)		+= cobalt_btns.o
- obj-$(CONFIG_INPUT_DA9052_ONKEY)	+= da9052_onkey.o
-+obj-$(CONFIG_INPUT_DA906X_ONKEY)	+= da906x-onkey.o
- obj-$(CONFIG_INPUT_DM355EVM)		+= dm355evm_keys.o
- obj-$(CONFIG_INPUT_GP2A)		+= gp2ap002a00f.o
- obj-$(CONFIG_INPUT_GPIO_TILT_POLLED)	+= gpio_tilt_polled.o
-diff --git a/drivers/input/misc/da906x-onkey.c b/drivers/input/misc/da906x-onkey.c
+diff --git a/Documentation/hwmon/exynos4_tmu b/Documentation/hwmon/exynos4_tmu
+deleted file mode 100644
+index c3c6b41..0000000
+--- a/Documentation/hwmon/exynos4_tmu
++++ /dev/null
+@@ -1,81 +0,0 @@
+-Kernel driver exynos4_tmu
+-========-
+-Supported chips:
+-* ARM SAMSUNG EXYNOS4 series of SoC
+-  Prefix: 'exynos4-tmu'
+-  Datasheet: Not publicly available
+-
+-Authors: Donggeun Kim <dg77.kim@samsung.com>
+-
+-Description
+------------
+-
+-This driver allows to read temperature inside SAMSUNG EXYNOS4 series of SoC.
+-
+-The chip only exposes the measured 8-bit temperature code value
+-through a register.
+-Temperature can be taken from the temperature code.
+-There are three equations converting from temperature to temperature code.
+-
+-The three equations are:
+-  1. Two point trimming
+-	Tc = (T - 25) * (TI2 - TI1) / (85 - 25) + TI1
+-
+-  2. One point trimming
+-	Tc = T + TI1 - 25
+-
+-  3. No trimming
+-	Tc = T + 50
+-
+-  Tc: Temperature code, T: Temperature,
+-  TI1: Trimming info for 25 degree Celsius (stored at TRIMINFO register)
+-       Temperature code measured at 25 degree Celsius which is unchanged
+-  TI2: Trimming info for 85 degree Celsius (stored at TRIMINFO register)
+-       Temperature code measured at 85 degree Celsius which is unchanged
+-
+-TMU(Thermal Management Unit) in EXYNOS4 generates interrupt
+-when temperature exceeds pre-defined levels.
+-The maximum number of configurable threshold is four.
+-The threshold levels are defined as follows:
+-  Level_0: current temperature > trigger_level_0 + threshold
+-  Level_1: current temperature > trigger_level_1 + threshold
+-  Level_2: current temperature > trigger_level_2 + threshold
+-  Level_3: current temperature > trigger_level_3 + threshold
+-
+-  The threshold and each trigger_level are set
+-  through the corresponding registers.
+-
+-When an interrupt occurs, this driver notify user space of
+-one of four threshold levels for the interrupt
+-through kobject_uevent_env and sysfs_notify functions.
+-Although an interrupt condition for level_0 can be set,
+-it is not notified to user space through sysfs_notify function.
+-
+-Sysfs Interface
+----------------
+-name		name of the temperature sensor
+-		RO
+-
+-temp1_input	temperature
+-		RO
+-
+-temp1_max	temperature for level_1 interrupt
+-		RO
+-
+-temp1_crit	temperature for level_2 interrupt
+-		RO
+-
+-temp1_emergency	temperature for level_3 interrupt
+-		RO
+-
+-temp1_max_alarm	alarm for level_1 interrupt
+-		RO
+-
+-temp1_crit_alarm
+-		alarm for level_2 interrupt
+-		RO
+-
+-temp1_emergency_alarm
+-		alarm for level_3 interrupt
+-		RO
+diff --git a/Documentation/thermal/exynos_thermal b/Documentation/thermal/exynos_thermal
 new file mode 100644
-index 0000000..477c554
+index 0000000..2b46f67
 --- /dev/null
-+++ b/drivers/input/misc/da906x-onkey.c
-@@ -0,0 +1,139 @@
++++ b/Documentation/thermal/exynos_thermal
+@@ -0,0 +1,52 @@
++Kernel driver exynos4_tmu
++========+
++Supported chips:
++* ARM SAMSUNG EXYNOS4 series of SoC
++  Prefix: 'exynos4-tmu'
++  Datasheet: Not publicly available
++
++Authors: Donggeun Kim <dg77.kim@samsung.com>
++
++Description
++-----------
++
++This driver allows to read temperature inside SAMSUNG EXYNOS4 series of SoC.
++
++The chip only exposes the measured 8-bit temperature code value
++through a register.
++Temperature can be taken from the temperature code.
++There are three equations converting from temperature to temperature code.
++
++The three equations are:
++  1. Two point trimming
++	Tc = (T - 25) * (TI2 - TI1) / (85 - 25) + TI1
++
++  2. One point trimming
++	Tc = T + TI1 - 25
++
++  3. No trimming
++	Tc = T + 50
++
++  Tc: Temperature code, T: Temperature,
++  TI1: Trimming info for 25 degree Celsius (stored at TRIMINFO register)
++       Temperature code measured at 25 degree Celsius which is unchanged
++  TI2: Trimming info for 85 degree Celsius (stored at TRIMINFO register)
++       Temperature code measured at 85 degree Celsius which is unchanged
++
++TMU(Thermal Management Unit) in EXYNOS4 generates interrupt
++when temperature exceeds pre-defined levels.
++The maximum number of configurable threshold is four.
++The threshold levels are defined as follows:
++  Level_0: current temperature > trigger_level_0 + threshold
++  Level_1: current temperature > trigger_level_1 + threshold
++  Level_2: current temperature > trigger_level_2 + threshold
++  Level_3: current temperature > trigger_level_3 + threshold
++
++  The threshold and each trigger_level are set
++  through the corresponding registers.
++
++When an interrupt occurs, this driver notify kernel thermal framework
++with the function exynos4_report_trigger.
++Although an interrupt condition for level_0 can be set,
++it can be used to synchronize the cooling action.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index b0a2e4c..84e02b4 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -324,16 +324,6 @@ config SENSORS_DA9052_ADC
+ 	  This driver can also be built as module. If so, the module
+ 	  will be called da9052-hwmon.
+ 
+-config SENSORS_EXYNOS4_TMU
+-	tristate "Temperature sensor on Samsung EXYNOS4"
+-	depends on ARCH_EXYNOS4
+-	help
+-	  If you say yes here you get support for TMU (Thermal Management
+-	  Unit) on SAMSUNG EXYNOS4 series of SoC.
+-
+-	  This driver can also be built as a module. If so, the module
+-	  will be called exynos4-tmu.
+-
+ config SENSORS_I5K_AMB
+ 	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
+ 	depends on PCI && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 7aa9811..3eafe48 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -49,7 +49,6 @@ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
+ obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
+ obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
+ obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
+-obj-$(CONFIG_SENSORS_EXYNOS4_TMU)	+= exynos4_tmu.o
+ obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
+ obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
+ obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
+diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
+deleted file mode 100644
+index e912059..0000000
+--- a/drivers/hwmon/exynos4_tmu.c
++++ /dev/null
+@@ -1,518 +0,0 @@
+-/*
+- * exynos4_tmu.c - Samsung EXYNOS4 TMU (Thermal Management Unit)
+- *
+- *  Copyright (C) 2011 Samsung Electronics
+- *  Donggeun Kim <dg77.kim@samsung.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/err.h>
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/platform_device.h>
+-#include <linux/interrupt.h>
+-#include <linux/clk.h>
+-#include <linux/workqueue.h>
+-#include <linux/sysfs.h>
+-#include <linux/kobject.h>
+-#include <linux/io.h>
+-#include <linux/mutex.h>
+-
+-#include <linux/hwmon.h>
+-#include <linux/hwmon-sysfs.h>
+-
+-#include <linux/platform_data/exynos4_tmu.h>
+-
+-#define EXYNOS4_TMU_REG_TRIMINFO	0x0
+-#define EXYNOS4_TMU_REG_CONTROL		0x20
+-#define EXYNOS4_TMU_REG_STATUS		0x28
+-#define EXYNOS4_TMU_REG_CURRENT_TEMP	0x40
+-#define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
+-#define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
+-#define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
+-#define EXYNOS4_TMU_REG_TRIG_LEVEL2	0x58
+-#define EXYNOS4_TMU_REG_TRIG_LEVEL3	0x5C
+-#define EXYNOS4_TMU_REG_PAST_TEMP0	0x60
+-#define EXYNOS4_TMU_REG_PAST_TEMP1	0x64
+-#define EXYNOS4_TMU_REG_PAST_TEMP2	0x68
+-#define EXYNOS4_TMU_REG_PAST_TEMP3	0x6C
+-#define EXYNOS4_TMU_REG_INTEN		0x70
+-#define EXYNOS4_TMU_REG_INTSTAT		0x74
+-#define EXYNOS4_TMU_REG_INTCLEAR	0x78
+-
+-#define EXYNOS4_TMU_GAIN_SHIFT		8
+-#define EXYNOS4_TMU_REF_VOLTAGE_SHIFT	24
+-
+-#define EXYNOS4_TMU_TRIM_TEMP_MASK	0xff
+-#define EXYNOS4_TMU_CORE_ON	3
+-#define EXYNOS4_TMU_CORE_OFF	2
+-#define EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET	50
+-#define EXYNOS4_TMU_TRIG_LEVEL0_MASK	0x1
+-#define EXYNOS4_TMU_TRIG_LEVEL1_MASK	0x10
+-#define EXYNOS4_TMU_TRIG_LEVEL2_MASK	0x100
+-#define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
+-#define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
+-
+-struct exynos4_tmu_data {
+-	struct exynos4_tmu_platform_data *pdata;
+-	struct device *hwmon_dev;
+-	struct resource *mem;
+-	void __iomem *base;
+-	int irq;
+-	struct work_struct irq_work;
+-	struct mutex lock;
+-	struct clk *clk;
+-	u8 temp_error1, temp_error2;
+-};
+-
+-/*
+- * TMU treats temperature as a mapped temperature code.
+- * The temperature is converted differently depending on the calibration type.
+- */
+-static int temp_to_code(struct exynos4_tmu_data *data, u8 temp)
+-{
+-	struct exynos4_tmu_platform_data *pdata = data->pdata;
+-	int temp_code;
+-
+-	/* temp should range between 25 and 125 */
+-	if (temp < 25 || temp > 125) {
+-		temp_code = -EINVAL;
+-		goto out;
+-	}
+-
+-	switch (pdata->cal_type) {
+-	case TYPE_TWO_POINT_TRIMMING:
+-		temp_code = (temp - 25) *
+-		    (data->temp_error2 - data->temp_error1) /
+-		    (85 - 25) + data->temp_error1;
+-		break;
+-	case TYPE_ONE_POINT_TRIMMING:
+-		temp_code = temp + data->temp_error1 - 25;
+-		break;
+-	default:
+-		temp_code = temp + EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
+-		break;
+-	}
+-out:
+-	return temp_code;
+-}
+-
+-/*
+- * Calculate a temperature value from a temperature code.
+- * The unit of the temperature is degree Celsius.
+- */
+-static int code_to_temp(struct exynos4_tmu_data *data, u8 temp_code)
+-{
+-	struct exynos4_tmu_platform_data *pdata = data->pdata;
+-	int temp;
+-
+-	/* temp_code should range between 75 and 175 */
+-	if (temp_code < 75 || temp_code > 175) {
+-		temp = -ENODATA;
+-		goto out;
+-	}
+-
+-	switch (pdata->cal_type) {
+-	case TYPE_TWO_POINT_TRIMMING:
+-		temp = (temp_code - data->temp_error1) * (85 - 25) /
+-		    (data->temp_error2 - data->temp_error1) + 25;
+-		break;
+-	case TYPE_ONE_POINT_TRIMMING:
+-		temp = temp_code - data->temp_error1 + 25;
+-		break;
+-	default:
+-		temp = temp_code - EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
+-		break;
+-	}
+-out:
+-	return temp;
+-}
+-
+-static int exynos4_tmu_initialize(struct platform_device *pdev)
+-{
+-	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
+-	struct exynos4_tmu_platform_data *pdata = data->pdata;
+-	unsigned int status, trim_info;
+-	int ret = 0, threshold_code;
+-
+-	mutex_lock(&data->lock);
+-	clk_enable(data->clk);
+-
+-	status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
+-	if (!status) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-
+-	/* Save trimming info in order to perform calibration */
+-	trim_info = readl(data->base + EXYNOS4_TMU_REG_TRIMINFO);
+-	data->temp_error1 = trim_info & EXYNOS4_TMU_TRIM_TEMP_MASK;
+-	data->temp_error2 = ((trim_info >> 8) & EXYNOS4_TMU_TRIM_TEMP_MASK);
+-
+-	/* Write temperature code for threshold */
+-	threshold_code = temp_to_code(data, pdata->threshold);
+-	if (threshold_code < 0) {
+-		ret = threshold_code;
+-		goto out;
+-	}
+-	writeb(threshold_code,
+-		data->base + EXYNOS4_TMU_REG_THRESHOLD_TEMP);
+-
+-	writeb(pdata->trigger_levels[0],
+-		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL0);
+-	writeb(pdata->trigger_levels[1],
+-		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL1);
+-	writeb(pdata->trigger_levels[2],
+-		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL2);
+-	writeb(pdata->trigger_levels[3],
+-		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL3);
+-
+-	writel(EXYNOS4_TMU_INTCLEAR_VAL,
+-		data->base + EXYNOS4_TMU_REG_INTCLEAR);
+-out:
+-	clk_disable(data->clk);
+-	mutex_unlock(&data->lock);
+-
+-	return ret;
+-}
+-
+-static void exynos4_tmu_control(struct platform_device *pdev, bool on)
+-{
+-	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
+-	struct exynos4_tmu_platform_data *pdata = data->pdata;
+-	unsigned int con, interrupt_en;
+-
+-	mutex_lock(&data->lock);
+-	clk_enable(data->clk);
+-
+-	con = pdata->reference_voltage << EXYNOS4_TMU_REF_VOLTAGE_SHIFT |
+-		pdata->gain << EXYNOS4_TMU_GAIN_SHIFT;
+-	if (on) {
+-		con |= EXYNOS4_TMU_CORE_ON;
+-		interrupt_en = pdata->trigger_level3_en << 12 |
+-			pdata->trigger_level2_en << 8 |
+-			pdata->trigger_level1_en << 4 |
+-			pdata->trigger_level0_en;
+-	} else {
+-		con |= EXYNOS4_TMU_CORE_OFF;
+-		interrupt_en = 0; /* Disable all interrupts */
+-	}
+-	writel(interrupt_en, data->base + EXYNOS4_TMU_REG_INTEN);
+-	writel(con, data->base + EXYNOS4_TMU_REG_CONTROL);
+-
+-	clk_disable(data->clk);
+-	mutex_unlock(&data->lock);
+-}
+-
+-static int exynos4_tmu_read(struct exynos4_tmu_data *data)
+-{
+-	u8 temp_code;
+-	int temp;
+-
+-	mutex_lock(&data->lock);
+-	clk_enable(data->clk);
+-
+-	temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
+-	temp = code_to_temp(data, temp_code);
+-
+-	clk_disable(data->clk);
+-	mutex_unlock(&data->lock);
+-
+-	return temp;
+-}
+-
+-static void exynos4_tmu_work(struct work_struct *work)
+-{
+-	struct exynos4_tmu_data *data = container_of(work,
+-			struct exynos4_tmu_data, irq_work);
+-
+-	mutex_lock(&data->lock);
+-	clk_enable(data->clk);
+-
+-	writel(EXYNOS4_TMU_INTCLEAR_VAL, data->base + EXYNOS4_TMU_REG_INTCLEAR);
+-
+-	kobject_uevent(&data->hwmon_dev->kobj, KOBJ_CHANGE);
+-
+-	enable_irq(data->irq);
+-
+-	clk_disable(data->clk);
+-	mutex_unlock(&data->lock);
+-}
+-
+-static irqreturn_t exynos4_tmu_irq(int irq, void *id)
+-{
+-	struct exynos4_tmu_data *data = id;
+-
+-	disable_irq_nosync(irq);
+-	schedule_work(&data->irq_work);
+-
+-	return IRQ_HANDLED;
+-}
+-
+-static ssize_t exynos4_tmu_show_name(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	return sprintf(buf, "exynos4-tmu\n");
+-}
+-
+-static ssize_t exynos4_tmu_show_temp(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
+-	int ret;
+-
+-	ret = exynos4_tmu_read(data);
+-	if (ret < 0)
+-		return ret;
+-
+-	/* convert from degree Celsius to millidegree Celsius */
+-	return sprintf(buf, "%d\n", ret * 1000);
+-}
+-
+-static ssize_t exynos4_tmu_show_alarm(struct device *dev,
+-		struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
+-	struct exynos4_tmu_platform_data *pdata = data->pdata;
+-	int temp;
+-	unsigned int trigger_level;
+-
+-	temp = exynos4_tmu_read(data);
+-	if (temp < 0)
+-		return temp;
+-
+-	trigger_level = pdata->threshold + pdata->trigger_levels[attr->index];
+-
+-	return sprintf(buf, "%d\n", !!(temp > trigger_level));
+-}
+-
+-static ssize_t exynos4_tmu_show_level(struct device *dev,
+-		struct device_attribute *devattr, char *buf)
+-{
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+-	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
+-	struct exynos4_tmu_platform_data *pdata = data->pdata;
+-	unsigned int temp = pdata->threshold +
+-			pdata->trigger_levels[attr->index];
+-
+-	return sprintf(buf, "%u\n", temp * 1000);
+-}
+-
+-static DEVICE_ATTR(name, S_IRUGO, exynos4_tmu_show_name, NULL);
+-static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, exynos4_tmu_show_temp, NULL, 0);
+-
+-static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
+-		exynos4_tmu_show_alarm, NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
+-		exynos4_tmu_show_alarm, NULL, 2);
+-static SENSOR_DEVICE_ATTR(temp1_emergency_alarm, S_IRUGO,
+-		exynos4_tmu_show_alarm, NULL, 3);
+-
+-static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, exynos4_tmu_show_level, NULL, 1);
+-static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, exynos4_tmu_show_level, NULL, 2);
+-static SENSOR_DEVICE_ATTR(temp1_emergency, S_IRUGO,
+-		exynos4_tmu_show_level, NULL, 3);
+-
+-static struct attribute *exynos4_tmu_attributes[] = {
+-	&dev_attr_name.attr,
+-	&sensor_dev_attr_temp1_input.dev_attr.attr,
+-	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+-	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
+-	&sensor_dev_attr_temp1_emergency_alarm.dev_attr.attr,
+-	&sensor_dev_attr_temp1_max.dev_attr.attr,
+-	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+-	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
+-	NULL,
+-};
+-
+-static const struct attribute_group exynos4_tmu_attr_group = {
+-	.attrs = exynos4_tmu_attributes,
+-};
+-
+-static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
+-{
+-	struct exynos4_tmu_data *data;
+-	struct exynos4_tmu_platform_data *pdata = pdev->dev.platform_data;
+-	int ret;
+-
+-	if (!pdata) {
+-		dev_err(&pdev->dev, "No platform init data supplied.\n");
+-		return -ENODEV;
+-	}
+-
+-	data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
+-	if (!data) {
+-		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
+-		return -ENOMEM;
+-	}
+-
+-	data->irq = platform_get_irq(pdev, 0);
+-	if (data->irq < 0) {
+-		ret = data->irq;
+-		dev_err(&pdev->dev, "Failed to get platform irq\n");
+-		goto err_free;
+-	}
+-
+-	INIT_WORK(&data->irq_work, exynos4_tmu_work);
+-
+-	data->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!data->mem) {
+-		ret = -ENOENT;
+-		dev_err(&pdev->dev, "Failed to get platform resource\n");
+-		goto err_free;
+-	}
+-
+-	data->mem = request_mem_region(data->mem->start,
+-			resource_size(data->mem), pdev->name);
+-	if (!data->mem) {
+-		ret = -ENODEV;
+-		dev_err(&pdev->dev, "Failed to request memory region\n");
+-		goto err_free;
+-	}
+-
+-	data->base = ioremap(data->mem->start, resource_size(data->mem));
+-	if (!data->base) {
+-		ret = -ENODEV;
+-		dev_err(&pdev->dev, "Failed to ioremap memory\n");
+-		goto err_mem_region;
+-	}
+-
+-	ret = request_irq(data->irq, exynos4_tmu_irq,
+-		IRQF_TRIGGER_RISING,
+-		"exynos4-tmu", data);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
+-		goto err_io_remap;
+-	}
+-
+-	data->clk = clk_get(NULL, "tmu_apbif");
+-	if (IS_ERR(data->clk)) {
+-		ret = PTR_ERR(data->clk);
+-		dev_err(&pdev->dev, "Failed to get clock\n");
+-		goto err_irq;
+-	}
+-
+-	data->pdata = pdata;
+-	platform_set_drvdata(pdev, data);
+-	mutex_init(&data->lock);
+-
+-	ret = exynos4_tmu_initialize(pdev);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Failed to initialize TMU\n");
+-		goto err_clk;
+-	}
+-
+-	ret = sysfs_create_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Failed to create sysfs group\n");
+-		goto err_clk;
+-	}
+-
+-	data->hwmon_dev = hwmon_device_register(&pdev->dev);
+-	if (IS_ERR(data->hwmon_dev)) {
+-		ret = PTR_ERR(data->hwmon_dev);
+-		dev_err(&pdev->dev, "Failed to register hwmon device\n");
+-		goto err_create_group;
+-	}
+-
+-	exynos4_tmu_control(pdev, true);
+-
+-	return 0;
+-
+-err_create_group:
+-	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
+-err_clk:
+-	platform_set_drvdata(pdev, NULL);
+-	clk_put(data->clk);
+-err_irq:
+-	free_irq(data->irq, data);
+-err_io_remap:
+-	iounmap(data->base);
+-err_mem_region:
+-	release_mem_region(data->mem->start, resource_size(data->mem));
+-err_free:
+-	kfree(data);
+-
+-	return ret;
+-}
+-
+-static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
+-{
+-	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
+-
+-	exynos4_tmu_control(pdev, false);
+-
+-	hwmon_device_unregister(data->hwmon_dev);
+-	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
+-
+-	clk_put(data->clk);
+-
+-	free_irq(data->irq, data);
+-
+-	iounmap(data->base);
+-	release_mem_region(data->mem->start, resource_size(data->mem));
+-
+-	platform_set_drvdata(pdev, NULL);
+-
+-	kfree(data);
+-
+-	return 0;
+-}
+-
+-#ifdef CONFIG_PM_SLEEP
+-static int exynos4_tmu_suspend(struct device *dev)
+-{
+-	exynos4_tmu_control(to_platform_device(dev), false);
+-
+-	return 0;
+-}
+-
+-static int exynos4_tmu_resume(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-
+-	exynos4_tmu_initialize(pdev);
+-	exynos4_tmu_control(pdev, true);
+-
+-	return 0;
+-}
+-
+-static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm,
+-			 exynos4_tmu_suspend, exynos4_tmu_resume);
+-#define EXYNOS4_TMU_PM	&exynos4_tmu_pm
+-#else
+-#define EXYNOS4_TMU_PM	NULL
+-#endif
+-
+-static struct platform_driver exynos4_tmu_driver = {
+-	.driver = {
+-		.name   = "exynos4-tmu",
+-		.owner  = THIS_MODULE,
+-		.pm     = EXYNOS4_TMU_PM,
+-	},
+-	.probe = exynos4_tmu_probe,
+-	.remove	= __devexit_p(exynos4_tmu_remove),
+-};
+-
+-module_platform_driver(exynos4_tmu_driver);
+-
+-MODULE_DESCRIPTION("EXYNOS4 TMU Driver");
+-MODULE_AUTHOR("Donggeun Kim <dg77.kim@samsung.com>");
+-MODULE_LICENSE("GPL");
+-MODULE_ALIAS("platform:exynos4-tmu");
+diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
+index 996003b..8f2b6ea 100644
+--- a/drivers/thermal/Kconfig
++++ b/drivers/thermal/Kconfig
+@@ -46,3 +46,10 @@ config RCAR_THERMAL
+ 	help
+ 	  Enable this to plug the R-Car thermal sensor driver into the Linux
+ 	  thermal framework
++
++config EXYNOS_THERMAL
++	tristate "Temperature sensor on Samsung EXYNOS"
++	depends on ARCH_EXYNOS4 && THERMAL
++	help
++	  If you say yes here you get support for TMU (Thermal Managment
++	  Unit) on SAMSUNG EXYNOS series of SoC.
+diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
+index aae59ad..885550d 100644
+--- a/drivers/thermal/Makefile
++++ b/drivers/thermal/Makefile
+@@ -6,3 +6,4 @@ obj-$(CONFIG_THERMAL)		+= thermal_sys.o
+ obj-$(CONFIG_CPU_THERMAL)		+= cpu_cooling.o
+ obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
+ obj-$(CONFIG_RCAR_THERMAL)	+= rcar_thermal.o
++obj-$(CONFIG_EXYNOS_THERMAL)		+= exynos_thermal.o
+diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
+new file mode 100644
+index 0000000..556d15b
+--- /dev/null
++++ b/drivers/thermal/exynos_thermal.c
+@@ -0,0 +1,413 @@
 +/*
-+ * OnKey device driver for Dialog DA906x PMIC
++ * exynos_thermal.c - Samsung EXYNOS TMU (Thermal Management Unit)
 + *
-+ * Copyright 2012 Dialog Semiconductors Ltd.
++ *  Copyright (C) 2011 Samsung Electronics
++ *  Donggeun Kim <dg77.kim@samsung.com>
++ *  Amit Daniel Kachhap <amit.kachhap@linaro.org>
 + *
-+ * Author:  <michal.hajduk@diasemi.com>
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + *
 + */
 +
 +#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
++#include <linux/err.h>
 +#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
++#include <linux/slab.h>
 +#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/clk.h>
 +#include <linux/workqueue.h>
++#include <linux/sysfs.h>
++#include <linux/kobject.h>
++#include <linux/io.h>
++#include <linux/mutex.h>
 +
-+#include <linux/mfd/da906x/core.h>
-+#include <linux/mfd/da906x/registers.h>
++#include <linux/platform_data/exynos_thermal.h>
 +
++#define EXYNOS4_TMU_REG_TRIMINFO	0x0
++#define EXYNOS4_TMU_REG_CONTROL		0x20
++#define EXYNOS4_TMU_REG_STATUS		0x28
++#define EXYNOS4_TMU_REG_CURRENT_TEMP	0x40
++#define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
++#define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
++#define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
++#define EXYNOS4_TMU_REG_TRIG_LEVEL2	0x58
++#define EXYNOS4_TMU_REG_TRIG_LEVEL3	0x5C
++#define EXYNOS4_TMU_REG_PAST_TEMP0	0x60
++#define EXYNOS4_TMU_REG_PAST_TEMP1	0x64
++#define EXYNOS4_TMU_REG_PAST_TEMP2	0x68
++#define EXYNOS4_TMU_REG_PAST_TEMP3	0x6C
++#define EXYNOS4_TMU_REG_INTEN		0x70
++#define EXYNOS4_TMU_REG_INTSTAT		0x74
++#define EXYNOS4_TMU_REG_INTCLEAR	0x78
 +
-+struct da906x_onkey {
-+	struct	da906x *da906x;
-+	struct	input_dev *input;
++#define EXYNOS4_TMU_GAIN_SHIFT		8
++#define EXYNOS4_TMU_REF_VOLTAGE_SHIFT	24
++
++#define EXYNOS4_TMU_TRIM_TEMP_MASK	0xff
++#define EXYNOS4_TMU_CORE_ON	3
++#define EXYNOS4_TMU_CORE_OFF	2
++#define EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET	50
++#define EXYNOS4_TMU_TRIG_LEVEL0_MASK	0x1
++#define EXYNOS4_TMU_TRIG_LEVEL1_MASK	0x10
++#define EXYNOS4_TMU_TRIG_LEVEL2_MASK	0x100
++#define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
++#define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
++
++struct exynos4_tmu_data {
++	struct exynos4_tmu_platform_data *pdata;
++	struct resource *mem;
++	void __iomem *base;
 +	int irq;
++	struct work_struct irq_work;
++	struct mutex lock;
++	struct clk *clk;
++	u8 temp_error1, temp_error2;
 +};
 +
-+static irqreturn_t da906x_onkey_irq_handler(int irq, void *data)
++/*
++ * TMU treats temperature as a mapped temperature code.
++ * The temperature is converted differently depending on the calibration type.
++ */
++static int temp_to_code(struct exynos4_tmu_data *data, u8 temp)
 +{
-+	struct da906x_onkey *onkey = data;
-+	unsigned int code;
-+	int ret;
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	int temp_code;
 +
-+	ret = da906x_reg_read(onkey->da906x, DA906X_REG_STATUS_A);
-+	if ((ret >= 0) && (ret & DA906X_NONKEY)) {
-+		dev_notice(&onkey->input->dev, "KEY_POWER pressed.\n");
-+		code = KEY_POWER;
-+	} else {
-+		dev_notice(&onkey->input->dev, "KEY_SLEEP pressed.\n");
-+		code = KEY_SLEEP;
++	/* temp should range between 25 and 125 */
++	if (temp < 25 || temp > 125) {
++		temp_code = -EINVAL;
++		goto out;
 +	}
 +
-+	/* Interrupt raised for key release only,
-+	   so report consecutive button press and release. */
-+	input_report_key(onkey->input, code, 1);
-+	input_report_key(onkey->input, code, 0);
-+	input_sync(onkey->input);
++	switch (pdata->cal_type) {
++	case TYPE_TWO_POINT_TRIMMING:
++		temp_code = (temp - 25) *
++		    (data->temp_error2 - data->temp_error1) /
++		    (85 - 25) + data->temp_error1;
++		break;
++	case TYPE_ONE_POINT_TRIMMING:
++		temp_code = temp + data->temp_error1 - 25;
++		break;
++	default:
++		temp_code = temp + EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
++		break;
++	}
++out:
++	return temp_code;
++}
++
++/*
++ * Calculate a temperature value from a temperature code.
++ * The unit of the temperature is degree Celsius.
++ */
++static int code_to_temp(struct exynos4_tmu_data *data, u8 temp_code)
++{
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	int temp;
++
++	/* temp_code should range between 75 and 175 */
++	if (temp_code < 75 || temp_code > 175) {
++		temp = -ENODATA;
++		goto out;
++	}
++
++	switch (pdata->cal_type) {
++	case TYPE_TWO_POINT_TRIMMING:
++		temp = (temp_code - data->temp_error1) * (85 - 25) /
++		    (data->temp_error2 - data->temp_error1) + 25;
++		break;
++	case TYPE_ONE_POINT_TRIMMING:
++		temp = temp_code - data->temp_error1 + 25;
++		break;
++	default:
++		temp = temp_code - EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
++		break;
++	}
++out:
++	return temp;
++}
++
++static int exynos4_tmu_initialize(struct platform_device *pdev)
++{
++	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int status, trim_info;
++	int ret = 0, threshold_code;
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
++	if (!status) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	/* Save trimming info in order to perform calibration */
++	trim_info = readl(data->base + EXYNOS4_TMU_REG_TRIMINFO);
++	data->temp_error1 = trim_info & EXYNOS4_TMU_TRIM_TEMP_MASK;
++	data->temp_error2 = ((trim_info >> 8) & EXYNOS4_TMU_TRIM_TEMP_MASK);
++
++	/* Write temperature code for threshold */
++	threshold_code = temp_to_code(data, pdata->threshold);
++	if (threshold_code < 0) {
++		ret = threshold_code;
++		goto out;
++	}
++	writeb(threshold_code,
++		data->base + EXYNOS4_TMU_REG_THRESHOLD_TEMP);
++
++	writeb(pdata->trigger_levels[0],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL0);
++	writeb(pdata->trigger_levels[1],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL1);
++	writeb(pdata->trigger_levels[2],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL2);
++	writeb(pdata->trigger_levels[3],
++		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL3);
++
++	writel(EXYNOS4_TMU_INTCLEAR_VAL,
++		data->base + EXYNOS4_TMU_REG_INTCLEAR);
++out:
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++
++	return ret;
++}
++
++static void exynos4_tmu_control(struct platform_device *pdev, bool on)
++{
++	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++	struct exynos4_tmu_platform_data *pdata = data->pdata;
++	unsigned int con, interrupt_en;
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	con = pdata->reference_voltage << EXYNOS4_TMU_REF_VOLTAGE_SHIFT |
++		pdata->gain << EXYNOS4_TMU_GAIN_SHIFT;
++	if (on) {
++		con |= EXYNOS4_TMU_CORE_ON;
++		interrupt_en = pdata->trigger_level3_en << 12 |
++			pdata->trigger_level2_en << 8 |
++			pdata->trigger_level1_en << 4 |
++			pdata->trigger_level0_en;
++	} else {
++		con |= EXYNOS4_TMU_CORE_OFF;
++		interrupt_en = 0; /* Disable all interrupts */
++	}
++	writel(interrupt_en, data->base + EXYNOS4_TMU_REG_INTEN);
++	writel(con, data->base + EXYNOS4_TMU_REG_CONTROL);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++}
++
++static int exynos4_tmu_read(struct exynos4_tmu_data *data)
++{
++	u8 temp_code;
++	int temp;
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
++	temp = code_to_temp(data, temp_code);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++
++	return temp;
++}
++
++static void exynos4_tmu_work(struct work_struct *work)
++{
++	struct exynos4_tmu_data *data = container_of(work,
++			struct exynos4_tmu_data, irq_work);
++
++	mutex_lock(&data->lock);
++	clk_enable(data->clk);
++
++	writel(EXYNOS4_TMU_INTCLEAR_VAL, data->base + EXYNOS4_TMU_REG_INTCLEAR);
++
++	enable_irq(data->irq);
++
++	clk_disable(data->clk);
++	mutex_unlock(&data->lock);
++}
++
++static irqreturn_t exynos4_tmu_irq(int irq, void *id)
++{
++	struct exynos4_tmu_data *data = id;
++
++	disable_irq_nosync(irq);
++	schedule_work(&data->irq_work);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static int __devinit da906x_onkey_probe(struct platform_device *pdev)
++static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
 +{
-+	struct da906x *da906x = dev_get_drvdata(pdev->dev.parent);
-+	struct da906x_onkey *onkey;
-+	int ret = 0;
++	struct exynos4_tmu_data *data;
++	struct exynos4_tmu_platform_data *pdata = pdev->dev.platform_data;
++	int ret;
 +
-+	onkey = devm_kzalloc(&pdev->dev, sizeof(struct da906x_onkey),
-+			     GFP_KERNEL);
-+	if (!onkey) {
-+		dev_err(&pdev->dev, "Failed to allocate memory.\n");
++	if (!pdata) {
++		dev_err(&pdev->dev, "No platform init data supplied.\n");
++		return -ENODEV;
++	}
++
++	data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
++	if (!data) {
++		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
 +		return -ENOMEM;
 +	}
 +
-+	onkey->input = input_allocate_device();
-+	if (!onkey->input) {
-+		dev_err(&pdev->dev, "Failed to allocated inpute device.\n");
-+		return -ENOMEM;
++	data->irq = platform_get_irq(pdev, 0);
++	if (data->irq < 0) {
++		ret = data->irq;
++		dev_err(&pdev->dev, "Failed to get platform irq\n");
++		goto err_free;
 +	}
 +
-+	onkey->irq = platform_get_irq_byname(pdev, DA906X_DRVNAME_ONKEY);
-+	onkey->da906x = da906x;
++	INIT_WORK(&data->irq_work, exynos4_tmu_work);
 +
-+	onkey->input->evbit[0] = BIT_MASK(EV_KEY);
-+	onkey->input->name = DA906X_DRVNAME_ONKEY;
-+	onkey->input->phys = DA906X_DRVNAME_ONKEY "/input0";
-+	onkey->input->dev.parent = &pdev->dev;
-+	input_set_capability(onkey->input, EV_KEY, KEY_POWER);
-+	input_set_capability(onkey->input, EV_KEY, KEY_SLEEP);
-+
-+	ret = request_threaded_irq(onkey->irq, NULL, da906x_onkey_irq_handler,
-+			IRQF_TRIGGER_LOW | IRQF_ONESHOT, "ONKEY", onkey);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request IRQ.\n");
-+		goto err_input;
++	data->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!data->mem) {
++		ret = -ENOENT;
++		dev_err(&pdev->dev, "Failed to get platform resource\n");
++		goto err_free;
 +	}
 +
-+	ret = input_register_device(onkey->input);
++	data->mem = request_mem_region(data->mem->start,
++			resource_size(data->mem), pdev->name);
++	if (!data->mem) {
++		ret = -ENODEV;
++		dev_err(&pdev->dev, "Failed to request memory region\n");
++		goto err_free;
++	}
++
++	data->base = ioremap(data->mem->start, resource_size(data->mem));
++	if (!data->base) {
++		ret = -ENODEV;
++		dev_err(&pdev->dev, "Failed to ioremap memory\n");
++		goto err_mem_region;
++	}
++
++	ret = request_irq(data->irq, exynos4_tmu_irq,
++		IRQF_TRIGGER_RISING,
++		"exynos4-tmu", data);
 +	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request IRQ.\n");
++		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
++		goto err_io_remap;
++	}
++
++	data->clk = clk_get(NULL, "tmu_apbif");
++	if (IS_ERR(data->clk)) {
++		ret = PTR_ERR(data->clk);
++		dev_err(&pdev->dev, "Failed to get clock\n");
 +		goto err_irq;
 +	}
 +
-+	platform_set_drvdata(pdev, onkey);
++	data->pdata = pdata;
++	platform_set_drvdata(pdev, data);
++	mutex_init(&data->lock);
 +
-+	/* Interrupt reacts on button release */
-+	da906x_reg_update(da906x, DA906X_REG_CONFIG_I,
-+			  DA906X_NONKEY_PIN_MASK, DA906X_NONKEY_PIN_SWDOWN);
++	ret = exynos4_tmu_initialize(pdev);
++	if (ret) {
++		dev_err(&pdev->dev, "Failed to initialize TMU\n");
++		goto err_clk;
++	}
++
++	exynos4_tmu_control(pdev, true);
 +
 +	return 0;
-+
++err_clk:
++	platform_set_drvdata(pdev, NULL);
++	clk_put(data->clk);
 +err_irq:
-+	free_irq(onkey->da906x->irq_base + onkey->irq , onkey);
-+err_input:
-+	input_free_device(onkey->input);
++	free_irq(data->irq, data);
++err_io_remap:
++	iounmap(data->base);
++err_mem_region:
++	release_mem_region(data->mem->start, resource_size(data->mem));
++err_free:
++	kfree(data);
++
 +	return ret;
 +}
 +
-+static int __devexit da906x_onkey_remove(struct platform_device *pdev)
++static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
 +{
-+	struct	da906x_onkey *onkey = platform_get_drvdata(pdev);
++	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
 +
-+	free_irq(onkey->irq, onkey);
-+	input_unregister_device(onkey->input);
++	exynos4_tmu_control(pdev, false);
++
++	clk_put(data->clk);
++
++	free_irq(data->irq, data);
++
++	iounmap(data->base);
++	release_mem_region(data->mem->start, resource_size(data->mem));
++
++	platform_set_drvdata(pdev, NULL);
++
++	kfree(data);
++
 +	return 0;
 +}
 +
-+static struct platform_driver da906x_onkey_driver = {
-+	.probe	= da906x_onkey_probe,
-+	.remove	= __devexit_p(da906x_onkey_remove),
-+	.driver	= {
-+		.name	= DA906X_DRVNAME_ONKEY,
-+		.owner	= THIS_MODULE,
++#ifdef CONFIG_PM_SLEEP
++static int exynos4_tmu_suspend(struct device *dev)
++{
++	exynos4_tmu_control(to_platform_device(dev), false);
++
++	return 0;
++}
++
++static int exynos4_tmu_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++
++	exynos4_tmu_initialize(pdev);
++	exynos4_tmu_control(pdev, true);
++
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm,
++			 exynos4_tmu_suspend, exynos4_tmu_resume);
++#define EXYNOS4_TMU_PM	(&exynos4_tmu_pm)
++#else
++#define EXYNOS4_TMU_PM	NULL
++#endif
++
++static struct platform_driver exynos4_tmu_driver = {
++	.driver = {
++		.name   = "exynos4-tmu",
++		.owner  = THIS_MODULE,
++		.pm     = EXYNOS4_TMU_PM,
 +	},
++	.probe = exynos4_tmu_probe,
++	.remove	= __devexit_p(exynos4_tmu_remove),
 +};
 +
-+module_platform_driver(da906x_onkey_driver);
++module_platform_driver(exynos4_tmu_driver);
 +
-+MODULE_AUTHOR("Dialog Semiconductor <michal.hajduk@diasemi.com>");
-+MODULE_DESCRIPTION("Onkey driver for DA906X");
++MODULE_DESCRIPTION("EXYNOS4 TMU Driver");
++MODULE_AUTHOR("Donggeun Kim <dg77.kim@samsung.com>");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("paltform:" DA906X_DRVNAME_ONKEY);
++MODULE_ALIAS("platform:exynos4-tmu");
+diff --git a/include/linux/platform_data/exynos4_tmu.h b/include/linux/platform_data/exynos4_tmu.h
+deleted file mode 100644
+index 39e038c..0000000
+--- a/include/linux/platform_data/exynos4_tmu.h
++++ /dev/null
+@@ -1,83 +0,0 @@
+-/*
+- * exynos4_tmu.h - Samsung EXYNOS4 TMU (Thermal Management Unit)
+- *
+- *  Copyright (C) 2011 Samsung Electronics
+- *  Donggeun Kim <dg77.kim@samsung.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-
+-#ifndef _LINUX_EXYNOS4_TMU_H
+-#define _LINUX_EXYNOS4_TMU_H
+-
+-enum calibration_type {
+-	TYPE_ONE_POINT_TRIMMING,
+-	TYPE_TWO_POINT_TRIMMING,
+-	TYPE_NONE,
+-};
+-
+-/**
+- * struct exynos4_tmu_platform_data
+- * @threshold: basic temperature for generating interrupt
+- *	       25 <= threshold <= 125 [unit: degree Celsius]
+- * @trigger_levels: array for each interrupt levels
+- *	[unit: degree Celsius]
+- *	0: temperature for trigger_level0 interrupt
+- *	   condition for trigger_level0 interrupt:
+- *		current temperature > threshold + trigger_levels[0]
+- *	1: temperature for trigger_level1 interrupt
+- *	   condition for trigger_level1 interrupt:
+- *		current temperature > threshold + trigger_levels[1]
+- *	2: temperature for trigger_level2 interrupt
+- *	   condition for trigger_level2 interrupt:
+- *		current temperature > threshold + trigger_levels[2]
+- *	3: temperature for trigger_level3 interrupt
+- *	   condition for trigger_level3 interrupt:
+- *		current temperature > threshold + trigger_levels[3]
+- * @trigger_level0_en:
+- *	1 = enable trigger_level0 interrupt,
+- *	0 = disable trigger_level0 interrupt
+- * @trigger_level1_en:
+- *	1 = enable trigger_level1 interrupt,
+- *	0 = disable trigger_level1 interrupt
+- * @trigger_level2_en:
+- *	1 = enable trigger_level2 interrupt,
+- *	0 = disable trigger_level2 interrupt
+- * @trigger_level3_en:
+- *	1 = enable trigger_level3 interrupt,
+- *	0 = disable trigger_level3 interrupt
+- * @gain: gain of amplifier in the positive-TC generator block
+- *	0 <= gain <= 15
+- * @reference_voltage: reference voltage of amplifier
+- *	in the positive-TC generator block
+- *	0 <= reference_voltage <= 31
+- * @cal_type: calibration type for temperature
+- *
+- * This structure is required for configuration of exynos4_tmu driver.
+- */
+-struct exynos4_tmu_platform_data {
+-	u8 threshold;
+-	u8 trigger_levels[4];
+-	bool trigger_level0_en;
+-	bool trigger_level1_en;
+-	bool trigger_level2_en;
+-	bool trigger_level3_en;
+-
+-	u8 gain;
+-	u8 reference_voltage;
+-
+-	enum calibration_type cal_type;
+-};
+-#endif /* _LINUX_EXYNOS4_TMU_H */
+diff --git a/include/linux/platform_data/exynos_thermal.h b/include/linux/platform_data/exynos_thermal.h
+new file mode 100644
+index 0000000..d6c3f93
+--- /dev/null
++++ b/include/linux/platform_data/exynos_thermal.h
+@@ -0,0 +1,83 @@
++/*
++ * exynos_thermal.h - Samsung EXYNOS4 TMU (Thermal Management Unit)
++ *
++ *  Copyright (C) 2011 Samsung Electronics
++ *  Donggeun Kim <dg77.kim@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#ifndef _LINUX_EXYNOS_THERMAL_H
++#define _LINUX_EXYNOS_THERMAL_H
++
++enum calibration_type {
++	TYPE_ONE_POINT_TRIMMING,
++	TYPE_TWO_POINT_TRIMMING,
++	TYPE_NONE,
++};
++
++/**
++ * struct exynos4_tmu_platform_data
++ * @threshold: basic temperature for generating interrupt
++ *	       25 <= threshold <= 125 [unit: degree Celsius]
++ * @trigger_levels: array for each interrupt levels
++ *	[unit: degree Celsius]
++ *	0: temperature for trigger_level0 interrupt
++ *	   condition for trigger_level0 interrupt:
++ *		current temperature > threshold + trigger_levels[0]
++ *	1: temperature for trigger_level1 interrupt
++ *	   condition for trigger_level1 interrupt:
++ *		current temperature > threshold + trigger_levels[1]
++ *	2: temperature for trigger_level2 interrupt
++ *	   condition for trigger_level2 interrupt:
++ *		current temperature > threshold + trigger_levels[2]
++ *	3: temperature for trigger_level3 interrupt
++ *	   condition for trigger_level3 interrupt:
++ *		current temperature > threshold + trigger_levels[3]
++ * @trigger_level0_en:
++ *	1 = enable trigger_level0 interrupt,
++ *	0 = disable trigger_level0 interrupt
++ * @trigger_level1_en:
++ *	1 = enable trigger_level1 interrupt,
++ *	0 = disable trigger_level1 interrupt
++ * @trigger_level2_en:
++ *	1 = enable trigger_level2 interrupt,
++ *	0 = disable trigger_level2 interrupt
++ * @trigger_level3_en:
++ *	1 = enable trigger_level3 interrupt,
++ *	0 = disable trigger_level3 interrupt
++ * @gain: gain of amplifier in the positive-TC generator block
++ *	0 <= gain <= 15
++ * @reference_voltage: reference voltage of amplifier
++ *	in the positive-TC generator block
++ *	0 <= reference_voltage <= 31
++ * @cal_type: calibration type for temperature
++ *
++ * This structure is required for configuration of exynos4_tmu driver.
++ */
++struct exynos4_tmu_platform_data {
++	u8 threshold;
++	u8 trigger_levels[4];
++	bool trigger_level0_en;
++	bool trigger_level1_en;
++	bool trigger_level2_en;
++	bool trigger_level3_en;
++
++	u8 gain;
++	u8 reference_voltage;
++
++	enum calibration_type cal_type;
++};
++#endif /* _LINUX_EXYNOS_THERMAL_H */
 -- 
-1.7.0.4
+1.7.1
 
 
 _______________________________________________
