@@ -1,55 +1,67 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:19:50 +0000
-Subject: [lm-sensors] [PATCH 01/39] hwmon: (abituguru) Convert to use devm_ functions
-Message-Id: <1344352828-25143-2-git-send-email-linux@roeck-us.net>
+From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Date: Thu, 16 Aug 2012 11:53:39 +0000
+Subject: [lm-sensors] [PATCH v6 0/6] thermal: Add kernel thermal support for exynos platform
+Message-Id: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, amit.kachhap@linaro.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+Hi Andrew/Zhang/Len,
 
-Cc: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/abituguru.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+This current patchset is based on 3.6-rc1 and Zhang Rui's core thermal
+enhancement patches(http://permalink.gmane.org/gmane.linux.acpi.devel/54564).
 
-diff --git a/drivers/hwmon/abituguru.c b/drivers/hwmon/abituguru.c
-index d4419b4..78b8179 100644
---- a/drivers/hwmon/abituguru.c
-+++ b/drivers/hwmon/abituguru.c
-@@ -1278,7 +1278,8 @@ static int __devinit abituguru_probe(struct platform_device *pdev)
- 		0x00, 0x01, 0x03, 0x04, 0x0A, 0x08, 0x0E, 0x02,
- 		0x09, 0x06, 0x05, 0x0B, 0x0F, 0x0D, 0x07, 0x0C };
- 
--	data = kzalloc(sizeof(struct abituguru_data), GFP_KERNEL);
-+	data = devm_kzalloc(&pdev->dev, sizeof(struct abituguru_data),
-+			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
-@@ -1430,8 +1431,6 @@ abituguru_probe_error:
- 	for (i = 0; i < ARRAY_SIZE(abituguru_sysfs_attr); i++)
- 		device_remove_file(&pdev->dev,
- 			&abituguru_sysfs_attr[i].dev_attr);
--	platform_set_drvdata(pdev, NULL);
--	kfree(data);
- 	return res;
- }
- 
-@@ -1446,8 +1445,6 @@ static int __devexit abituguru_remove(struct platform_device *pdev)
- 	for (i = 0; i < ARRAY_SIZE(abituguru_sysfs_attr); i++)
- 		device_remove_file(&pdev->dev,
- 			&abituguru_sysfs_attr[i].dev_attr);
--	platform_set_drvdata(pdev, NULL);
--	kfree(data);
- 
- 	return 0;
- }
--- 
-1.7.9.7
+Version V5 is present in linux-next tree. Since Zhang Rui's implementation are
+already present in linux-next so requesting Andrew to add this V6 series and drop
+earlier V5 version.
+
+Changes since v5:
+This patchset basically simplifies the cpufreq cooling API's to take just
+cpumask as an input parameter and also removes the state management logic as they
+are now taken care in the core thermal layer.
+
+All these patches over Zhang Rui's work can be found in the git link
+git://git.linaro.org/people/amitdanielk/linux.git exynos_v6_thermal_tree
+
+Thanks,
+Amit Daniel
+
+Amit Daniel Kachhap (6):
+  thermal: add generic cpufreq cooling implementation
+  hwmon: exynos4: move thermal sensor driver to driver/thermal
+    directory
+  thermal: exynos5: add exynos5250 thermal sensor driver support
+  thermal: exynos: register the tmu sensor with the kernel thermal
+    layer
+  ARM: exynos: add thermal sensor driver platform data support
+  thermal: exynos: Use devm_* functions
+
+ Documentation/hwmon/exynos4_tmu              |   81 ---
+ Documentation/thermal/cpu-cooling-api.txt    |   52 ++
+ Documentation/thermal/exynos_thermal         |   52 ++
+ drivers/hwmon/Kconfig                        |   10 -
+ drivers/hwmon/Makefile                       |    1 -
+ drivers/hwmon/exynos4_tmu.c                  |  518 --------------
+ drivers/thermal/Kconfig                      |   18 +
+ drivers/thermal/Makefile                     |    2 +
+ drivers/thermal/cpu_cooling.c                |  512 +++++++++++++
+ drivers/thermal/exynos_thermal.c             |  994 ++++++++++++++++++++++++++
+ include/linux/cpu_cooling.h                  |   79 ++
+ include/linux/platform_data/exynos4_tmu.h    |   83 ---
+ include/linux/platform_data/exynos_thermal.h |  116 +++
+ 13 files changed, 1825 insertions(+), 693 deletions(-)
+ delete mode 100644 Documentation/hwmon/exynos4_tmu
+ create mode 100644 Documentation/thermal/cpu-cooling-api.txt
+ create mode 100644 Documentation/thermal/exynos_thermal
+ delete mode 100644 drivers/hwmon/exynos4_tmu.c
+ create mode 100644 drivers/thermal/cpu_cooling.c
+ create mode 100644 drivers/thermal/exynos_thermal.c
+ create mode 100644 include/linux/cpu_cooling.h
+ delete mode 100644 include/linux/platform_data/exynos4_tmu.h
+ create mode 100644 include/linux/platform_data/exynos_thermal.h
 
 
 _______________________________________________
