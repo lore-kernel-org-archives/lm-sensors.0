@@ -1,914 +1,351 @@
-From: Amit Kachhap <amit.kachhap@linaro.org>
-Date: Fri, 17 Aug 2012 03:55:04 +0000
-Subject: Re: [lm-sensors] [linux-pm] [PATCH v6 1/6] thermal: add generic cpufreq cooling implementation
-Message-Id: <CAK44p22MLjCGEYpeM0tUw0S_3jL-b_OKmCPf-EAiZkKgzNXsrA@mail.gmail.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Fri, 17 Aug 2012 07:24:10 +0000
+Subject: Re: [lm-sensors] [PATCH v6 1/6] thermal: add generic cpufreq cooling implementation
+Message-Id: <1345188250.1682.887.camel@rui.sh.intel.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
-	<1345117305-8299-2-git-send-email-amit.kachhap@linaro.org>
-	<CAGF5oy8wLjU0-nnqyv1KfxtpzBZV6h8ksyBHpm-nfNVMyfB5kA@mail.gmail.com>
-In-Reply-To: <CAGF5oy8wLjU0-nnqyv1KfxtpzBZV6h8ksyBHpm-nfNVMyfB5kA@mail.gmail.com>
+	 <1345117305-8299-2-git-send-email-amit.kachhap@linaro.org>
+In-Reply-To: <1345117305-8299-2-git-send-email-amit.kachhap@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Valentin, Eduardo" <eduardo.valentin@ti.com>
-Cc: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-samsung-soc@vger.kernel.org, SangWook Ju <sw.ju@samsung.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Jean Delvare <khali@linux-fr.org>, Kyungmin Park <kmpark@infradead.org>, Guenter Roeck <guenter.roeck@ericsson.com>
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Len Brown <lenb@kernel.org>, linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Guenter Roeck <guenter.roeck@ericsson.com>, SangWook Ju <sw.ju@samsung.com>, Durgadoss <durgadoss.r@intel.com>, Jean Delvare <khali@linux-fr.org>, Kyungmin Park <kmpark@infradead.org>, Kukjin Kim <kgene.kim@samsung.com>
 
-On 16 August 2012 20:22, Valentin, Eduardo <eduardo.valentin@ti.com> wrote:
->
-> Amit,
->
-> Thanks again for keeping this up.
->
-> On Thu, Aug 16, 2012 at 2:41 PM, Amit Daniel Kachhap
-> <amit.kachhap@linaro.org> wrote:
-> > This patchset introduces a new generic cooling device based on cpufreq
-> > that can be used on non-ACPI platforms.  As a proof of concept, we have
-> > drivers for the following platforms using this mechanism now:
-> >
-> >  * Samsung Exynos (Exynos4 and Exynos5) in the current patchset.
-> >  * Freescale i.MX (git://git.linaro.org/people/amitdanielk/linux.git
-> > imx6q_thermal)
->
-> FYI, the OMAP code is under drivers/staging/omap-thermal/. The file
-> omap-thermal-common.c is the one which is using your generic cooling
-> device. But it needs to be updated accordingly to the API change you
-> mention.
->
-> >
-> > There is a small change in cpufreq cooling registration APIs, so a minor
-> > change is needed for Freescale platforms.
-> >
-> > Brief Description:
-> >
-> > 1) The generic cooling devices code is placed inside driver/thermal/*
-> >    as placing inside acpi folder will need un-necessary enabling of acpi
-> >    code.  This code is architecture independent.
-> >
-> > 2) This patchset adds generic cpu cooling low level implementation
-> >    through frequency clipping.  In future, other cpu related cooling
-> >    devices may be added here.  An ACPI version of this already exists
-> >    (drivers/acpi/processor_thermal.c) .But this will be useful for
-> >    platforms like ARM using the generic thermal interface along with the
-> >    generic cpu cooling devices.  The cooling device registration API's
-> >    return cooling device pointers which can be easily binded with the
-> >    thermal zone trip points.  The important APIs exposed are,
-> >
-> >    a) struct thermal_cooling_device *cpufreq_cooling_register(
-> >         struct cpumask *clip_cpus)
-> >    b) void cpufreq_cooling_unregister(struct thermal_cooling_device
-> > *cdev)
-> >
-> > 3) Samsung exynos platform thermal implementation is done using the
-> >    generic cpu cooling APIs and the new trip type.  The temperature
-> > sensor
-> >    driver present in the hwmon folder(registered as hwmon driver) is
-> > moved
-> >    to thermal folder and registered as a thermal driver.
-> >
-> > A simple data/control flow diagrams is shown below,
-> >
-> > Core Linux thermal <----->  Exynos thermal interface <----- Temperature
-> > Sensor
-> >           |                             |
-> >          \|/                            |
-> >   Cpufreq cooling device <---------------
-> >
-> > TODO:
-> > *Will send the DT enablement patches later after the driver is merged.
-> >
-> > This patch:
-> >
-> > Add support for generic cpu thermal cooling low level implementations
-> > using frequency scaling up/down based on the registration parameters.
-> > Different cpu related cooling devices can be registered by the user and
-> > the binding of these cooling devices to the corresponding trip points
-> > can
-> > be easily done as the registration APIs return the cooling device
-> > pointer.
-> > The user of these APIs are responsible for passing clipping frequency .
-> > The drivers can also register to recieve notification about any cooling
-> > action called.
-> >
-> > [akpm@linux-foundation.org: fix comment layout]
-> > Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> > Cc: Guenter Roeck <guenter.roeck@ericsson.com>
-> > Cc: SangWook Ju <sw.ju@samsung.com>
-> > Cc: Durgadoss <durgadoss.r@intel.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > Cc: Kyungmin Park <kmpark@infradead.org>
-> > Cc: Kukjin Kim <kgene.kim@samsung.com>
-> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> > Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
->
->
-> Reviewed-by: Eduardo Valentin <eduardo.valentin@ti.com>
-
-Thanks Eduardo .
-
->
->
-> > ---
-> >  Documentation/thermal/cpu-cooling-api.txt |   52 +++
-> >  drivers/thermal/Kconfig                   |   11 +
-> >  drivers/thermal/Makefile                  |    1 +
-> >  drivers/thermal/cpu_cooling.c             |  512
-> > +++++++++++++++++++++++++++++
-> >  include/linux/cpu_cooling.h               |   79 +++++
-> >  5 files changed, 655 insertions(+), 0 deletions(-)
-> >  create mode 100644 Documentation/thermal/cpu-cooling-api.txt
-> >  create mode 100644 drivers/thermal/cpu_cooling.c
-> >  create mode 100644 include/linux/cpu_cooling.h
-> >
-> > diff --git a/Documentation/thermal/cpu-cooling-api.txt
-> > b/Documentation/thermal/cpu-cooling-api.txt
-> > new file mode 100644
-> > index 0000000..a1f2a6b
-> > --- /dev/null
-> > +++ b/Documentation/thermal/cpu-cooling-api.txt
-> > @@ -0,0 +1,52 @@
-> > +CPU cooling APIs How To
-> > +=================> > +
-> > +Written by Amit Daniel Kachhap <amit.kachhap@linaro.org>
-> > +
-> > +Updated: 12 May 2012
-> > +
-> > +Copyright (c)  2012 Samsung Electronics Co.,
-> > Ltd(http://www.samsung.com)
-> > +
-> > +0. Introduction
-> > +
-> > +The generic cpu cooling(freq clipping) provides
-> > registration/unregistration APIs
-> > +to the caller. The binding of the cooling devices to the trip point is
-> > left for
-> > +the user. The registration APIs returns the cooling device pointer.
-> > +
-> > +1. cpu cooling APIs
-> > +
-> > +1.1 cpufreq registration/unregistration APIs
-> > +1.1.1 struct thermal_cooling_device *cpufreq_cooling_register(
-> > +       struct cpumask *clip_cpus)
-> > +
-> > +    This interface function registers the cpufreq cooling device with
-> > the name
-> > +    "thermal-cpufreq-%x". This api can support multiple instances of
-> > cpufreq
-> > +    cooling devices.
-> > +
-> > +   clip_cpus: cpumask of cpus where the frequency constraints will
-> > happen.
-> > +
-> > +1.1.2 void cpufreq_cooling_unregister(struct thermal_cooling_device
-> > *cdev)
-> > +
-> > +    This interface function unregisters the "thermal-cpufreq-%x"
-> > cooling device.
-> > +
-> > +    cdev: Cooling device pointer which has to be unregistered.
-> > +
-> > +
-> > +1.2 CPU cooling action notifier register/unregister interface
-> > +1.2.1 int cputherm_register_notifier(struct notifier_block *nb,
-> > +       unsigned int list)
-> > +
-> > +    This interface registers a driver with cpu cooling layer. The
-> > driver will
-> > +    be notified when any cpu cooling action is called.
-> > +
-> > +    nb: notifier function to register
-> > +    list: CPUFREQ_COOLING_START or CPUFREQ_COOLING_STOP
-> > +
-> > +1.2.2 int cputherm_unregister_notifier(struct notifier_block *nb,
-> > +       unsigned int list)
-> > +
-> > +    This interface registers a driver with cpu cooling layer. The
-> > driver will
-> > +    be notified when any cpu cooling action is called.
-> > +
-> > +    nb: notifier function to register
-> > +    list: CPUFREQ_COOLING_START or CPUFREQ_COOLING_STOP
-> > diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-> > index 7dd8c34..996003b 100644
-> > --- a/drivers/thermal/Kconfig
-> > +++ b/drivers/thermal/Kconfig
-> > @@ -19,6 +19,17 @@ config THERMAL_HWMON
-> >         depends on HWMON=y || HWMON=THERMAL
-> >         default y
-> >
-> > +config CPU_THERMAL
-> > +       bool "generic cpu cooling support"
-> > +       depends on THERMAL && CPU_FREQ
-> > +       help
-> > +         This implements the generic cpu cooling mechanism through
-> > frequency
-> > +         reduction, cpu hotplug and any other ways of reducing
-> > temperature. An
-> > +         ACPI version of this already
-> > exists(drivers/acpi/processor_thermal.c).
-> > +         This will be useful for platforms using the generic thermal
-> > interface
-> > +         and not the ACPI interface.
-> > +         If you want this support, you should say Y here.
-> > +
-> >  config SPEAR_THERMAL
-> >         bool "SPEAr thermal sensor driver"
-> >         depends on THERMAL
-> > diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-> > index fd9369a..aae59ad 100644
-> > --- a/drivers/thermal/Makefile
-> > +++ b/drivers/thermal/Makefile
-> > @@ -3,5 +3,6 @@
-> >  #
-> >
-> >  obj-$(CONFIG_THERMAL)          += thermal_sys.o
-> > +obj-$(CONFIG_CPU_THERMAL)              += cpu_cooling.o
-> >  obj-$(CONFIG_SPEAR_THERMAL)            += spear_thermal.o
-> >  obj-$(CONFIG_RCAR_THERMAL)     += rcar_thermal.o
-> > diff --git a/drivers/thermal/cpu_cooling.c
-> > b/drivers/thermal/cpu_cooling.c
-> > new file mode 100644
-> > index 0000000..c42e557
-> > --- /dev/null
-> > +++ b/drivers/thermal/cpu_cooling.c
-> > @@ -0,0 +1,512 @@
-> > +/*
-> > + *  linux/drivers/thermal/cpu_cooling.c
-> > + *
-> > + *  Copyright (C) 2012 Samsung Electronics Co.,
-> > Ltd(http://www.samsung.com)
-> > + *  Copyright (C) 2012  Amit Daniel <amit.kachhap@linaro.org>
-> > + *
-> > + *
-> > ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > + *  This program is free software; you can redistribute it and/or
-> > modify
-> > + *  it under the terms of the GNU General Public License as published
-> > by
-> > + *  the Free Software Foundation; version 2 of the License.
-> > + *
-> > + *  This program is distributed in the hope that it will be useful, but
-> > + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + *  General Public License for more details.
-> > + *
-> > + *  You should have received a copy of the GNU General Public License
-> > along
-> > + *  with this program; if not, write to the Free Software Foundation,
-> > Inc.,
-> > + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-> > + *
-> > + *
-> > ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > + */
-> > +#include <linux/kernel.h>
-> > +#include <linux/module.h>
-> > +#include <linux/thermal.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/cpufreq.h>
-> > +#include <linux/err.h>
-> > +#include <linux/slab.h>
-> > +#include <linux/cpu.h>
-> > +#include <linux/cpu_cooling.h>
-> > +
-> > +/**
-> > + * struct cpufreq_cooling_device
-> > + * @id: unique integer value corresponding to each
-> > cpufreq_cooling_device
-> > + *     registered.
-> > + * @cool_dev: thermal_cooling_device pointer to keep track of the the
-> > + *     egistered cooling device.
-> > + * @cpufreq_state: integer value representing the current state of
-> > cpufreq
-> > + *     cooling devices.
-> > + * @cpufreq_val: integer value representing the absolute value of the
-> > clipped
-> > + *     frequency.
-> > + * @allowed_cpus: all the cpus involved for this
-> > cpufreq_cooling_device.
-> > + * @node: list_head to link all cpufreq_cooling_device together.
-> > + *
-> > + * This structure is required for keeping information of each
-> > + * cpufreq_cooling_device registered as a list whose head is
-> > represented by
-> > + * cooling_cpufreq_list. In order to prevent corruption of this list a
-> > + * mutex lock cooling_cpufreq_lock is used.
-> > + */
-> > +struct cpufreq_cooling_device {
-> > +       int id;
-> > +       struct thermal_cooling_device *cool_dev;
-> > +       unsigned int cpufreq_state;
-> > +       unsigned int cpufreq_val;
-> > +       struct cpumask allowed_cpus;
-> > +       struct list_head node;
-> > +};
-> > +static LIST_HEAD(cooling_cpufreq_list);
-> > +static DEFINE_IDR(cpufreq_idr);
-> > +
-> > +static struct mutex cooling_cpufreq_lock;
-> > +
-> > +/* notify_table passes value to the CPUFREQ_ADJUST callback function.
-> > */
-> > +#define NOTIFY_INVALID NULL
-> > +struct cpufreq_cooling_device *notify_device;
-> > +
-> > +/* Head of the blocking notifier chain to inform about frequency
-> > clamping */
-> > +static BLOCKING_NOTIFIER_HEAD(cputherm_state_notifier_list);
-> > +
-> > +/**
-> > + * get_idr - function to get a unique id.
-> > + * @idr: struct idr * handle used to create a id.
-> > + * @id: int * value generated by this function.
-> > + */
-> > +static int get_idr(struct idr *idr, int *id)
-> > +{
-> > +       int err;
-> > +again:
-> > +       if (unlikely(idr_pre_get(idr, GFP_KERNEL) = 0))
-> > +               return -ENOMEM;
-> > +
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       err = idr_get_new(idr, NULL, id);
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +
-> > +       if (unlikely(err = -EAGAIN))
-> > +               goto again;
-> > +       else if (unlikely(err))
-> > +               return err;
-> > +
-> > +       *id = *id & MAX_ID_MASK;
-> > +       return 0;
-> > +}
-> > +
-> > +/**
-> > + * release_idr - function to free the unique id.
-> > + * @idr: struct idr * handle used for creating the id.
-> > + * @id: int value representing the unique id.
-> > + */
-> > +static void release_idr(struct idr *idr, int id)
-> > +{
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       idr_remove(idr, id);
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +}
-> > +
-> > +/**
-> > + * cputherm_register_notifier - Register a notifier with cpu cooling
-> > interface.
-> > + * @nb:        struct notifier_block * with callback info.
-> > + * @list: integer value for which notification is needed. possible
-> > values are
-> > + *     CPUFREQ_COOLING_START and CPUFREQ_COOLING_STOP.
-> > + *
-> > + * This exported function registers a driver with cpu cooling layer.
-> > The driver
-> > + * will be notified when any cpu cooling action is called.
-> > + */
-> > +int cputherm_register_notifier(struct notifier_block *nb, unsigned int
-> > list)
-> > +{
-> > +       int ret = 0;
-> > +
-> > +       switch (list) {
-> > +       case CPUFREQ_COOLING_START:
-> > +       case CPUFREQ_COOLING_STOP:
-> > +               ret = blocking_notifier_chain_register(
-> > +                               &cputherm_state_notifier_list, nb);
-> > +               break;
-> > +       default:
-> > +               ret = -EINVAL;
-> > +       }
-> > +       return ret;
-> > +}
-> > +EXPORT_SYMBOL(cputherm_register_notifier);
-> > +
-> > +/**
-> > + * cputherm_unregister_notifier - Un-register a notifier.
-> > + * @nb:        struct notifier_block * with callback info.
-> > + * @list: integer value for which notification is needed. values
-> > possible are
-> > + *     CPUFREQ_COOLING_START or CPUFREQ_COOLING_STOP.
-> > + *
-> > + * This exported function un-registers a driver with cpu cooling layer.
-> > + */
-> > +int cputherm_unregister_notifier(struct notifier_block *nb, unsigned
-> > int list)
-> > +{
-> > +       int ret = 0;
-> > +
-> > +       switch (list) {
-> > +       case CPUFREQ_COOLING_START:
-> > +       case CPUFREQ_COOLING_STOP:
-> > +               ret = blocking_notifier_chain_unregister(
-> > +                               &cputherm_state_notifier_list, nb);
-> > +               break;
-> > +       default:
-> > +               ret = -EINVAL;
-> > +       }
-> > +       return ret;
-> > +}
-> > +EXPORT_SYMBOL(cputherm_unregister_notifier);
-> > +
-> > +/* Below code defines functions to be used for cpufreq as cooling
-> > device */
-> > +
-> > +/**
-> > + * is_cpufreq_valid - function to check if a cpu has frequency
-> > transition policy.
-> > + * @cpu: cpu for which check is needed.
-> > + */
-> > +static int is_cpufreq_valid(int cpu)
-> > +{
-> > +       struct cpufreq_policy policy;
-> > +       return !cpufreq_get_policy(&policy, cpu);
-> > +}
-> > +
-> > +/**
-> > + * get_cpu_frequency - get the absolute value of frequency from level.
-> > + * @cpu: cpu for which frequency is fetched.
-> > + * @level: level of frequency of the CPU
-> > + *     e.g level=1 --> 1st MAX FREQ, LEVEL=2 ---> 2nd MAX FREQ, ....
-> > etc
-> > + */
-> > +static unsigned int get_cpu_frequency(unsigned int cpu, unsigned long
-> > level)
->
->
-> I like this. With previous implemention I had to write a similar
-> function, but with output of the required freq  clip table. Now that
-> you have the freq walk here it simplifies the zone setup code.
->
->
-> > +{
-> > +       int ret = 0, i = 0;
-> > +       unsigned long level_index;
-> > +       bool descend = false;
-> > +       struct cpufreq_frequency_table *table > > +
-> > cpufreq_frequency_get_table(cpu);
-> > +       if (!table)
-> > +               return ret;
-> > +
-> > +       while (table[i].frequency != CPUFREQ_TABLE_END) {
-> > +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> > +                       continue;
-> > +
-> > +               /*check if table in ascending or descending order*/
-> > +               if ((table[i + 1].frequency != CPUFREQ_TABLE_END) &&
-> > +                       (table[i + 1].frequency < table[i].frequency)
-> > +                       && !descend) {
-> > +                       descend = true;
-> > +               }
-> > +
-> > +               /*return if level matched and table in descending
-> > order*/
-> > +               if (descend && i = level)
-> > +                       return table[i].frequency;
-> > +               i++;
-> > +       }
-> > +       i--;
-> > +
-> > +       if (level > i || descend)
-> > +               return ret;
-> > +       level_index = i - level;
-> > +
-> > +       /*Scan the table in reverse order and match the level*/
-> > +       while (i >= 0) {
-> > +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> > +                       continue;
-> > +               /*return if level matched*/
-> > +               if (i = level_index)
-> > +                       return table[i].frequency;
-> > +               i--;
-> > +       }
-> > +       return ret;
-> > +}
-> > +
-> > +/**
-> > + * cpufreq_apply_cooling - function to apply frequency clipping.
-> > + * @cpufreq_device: cpufreq_cooling_device pointer containing frequency
-> > + *     clipping data.
-> > + * @cooling_state: value of the cooling state.
-> > + */
-> > +static int cpufreq_apply_cooling(struct cpufreq_cooling_device
-> > *cpufreq_device,
-> > +                               unsigned long cooling_state)
-> > +{
-> > +       unsigned int event, cpuid, clip_freq;
-> > +       struct cpumask *maskPtr = &cpufreq_device->allowed_cpus;
-> > +       unsigned int cpu = cpumask_any(maskPtr);
-> > +
-> > +
-> > +       /* Check if the old cooling action is same as new cooling action
-> > */
-> > +       if (cpufreq_device->cpufreq_state = cooling_state)
-> > +               return 0;
-> > +
-> > +       clip_freq = get_cpu_frequency(cpu, cooling_state);
-> > +       if (!clip_freq)
-> > +               return -EINVAL;
-> > +
-> > +       cpufreq_device->cpufreq_state = cooling_state;
-> > +       cpufreq_device->cpufreq_val = clip_freq;
-> > +       notify_device = cpufreq_device;
-> > +
-> > +       if (cooling_state != 0)
-> > +               event = CPUFREQ_COOLING_START;
-> > +       else
-> > +               event = CPUFREQ_COOLING_STOP;
-> > +
-> > +       blocking_notifier_call_chain(&cputherm_state_notifier_list,
-> > +                                               event, &clip_freq);
-> > +
-> > +       for_each_cpu(cpuid, maskPtr) {
-> > +               if (is_cpufreq_valid(cpuid))
-> > +                       cpufreq_update_policy(cpuid);
-> > +       }
-> > +
-> > +       notify_device = NOTIFY_INVALID;
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +/**
-> > + * cpufreq_thermal_notifier - notifier callback for cpufreq policy
-> > change.
-> > + * @nb:        struct notifier_block * with callback info.
-> > + * @event: value showing cpufreq event for which this function invoked.
-> > + * @data: callback-specific data
-> > + */
-> > +static int cpufreq_thermal_notifier(struct notifier_block *nb,
-> > +                                       unsigned long event, void *data)
-> > +{
-> > +       struct cpufreq_policy *policy = data;
-> > +       unsigned long max_freq = 0;
-> > +
-> > +       if (event != CPUFREQ_ADJUST || notify_device = NOTIFY_INVALID)
-> > +               return 0;
-> > +
-> > +       if (cpumask_test_cpu(policy->cpu, &notify_device->allowed_cpus))
-> > +               max_freq = notify_device->cpufreq_val;
-> > +
-> > +       /* Never exceed user_policy.max*/
-> > +       if (max_freq > policy->user_policy.max)
-> > +               max_freq = policy->user_policy.max;
-> > +
-> > +       if (policy->max != max_freq)
-> > +               cpufreq_verify_within_limits(policy, 0, max_freq);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> > +/*
-> > + * cpufreq cooling device callback functions are defined below
-> > + */
-> > +
-> > +/**
-> > + * cpufreq_get_max_state - callback function to get the max cooling
-> > state.
-> > + * @cdev: thermal cooling device pointer.
-> > + * @state: fill this variable with the max cooling state.
-> > + */
-> > +static int cpufreq_get_max_state(struct thermal_cooling_device *cdev,
-> > +                                unsigned long *state)
-> > +{
-> > +       int ret = -EINVAL, i = 0;
-> > +       struct cpufreq_cooling_device *cpufreq_device;
-> > +       struct cpumask *maskPtr;
-> > +       unsigned int cpu;
-> > +       struct cpufreq_frequency_table *table;
-> > +
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       list_for_each_entry(cpufreq_device, &cooling_cpufreq_list, node)
-> > {
-> > +               if (cpufreq_device && cpufreq_device->cool_dev = cdev)
-> > +                       break;
-> > +       }
-> > +       if (cpufreq_device = NULL)
-> > +               goto return_get_max_state;
-> > +
-> > +       maskPtr = &cpufreq_device->allowed_cpus;
-> > +       cpu = cpumask_any(maskPtr);
-> > +       table = cpufreq_frequency_get_table(cpu);
-> > +       if (!table) {
-> > +               *state = 0;
-> > +               ret = 0;
-> > +               goto return_get_max_state;
-> > +       }
-> > +
-> > +       while (table[i].frequency != CPUFREQ_TABLE_END) {
-> > +               if (table[i].frequency = CPUFREQ_ENTRY_INVALID)
-> > +                       continue;
-> > +               i++;
-> > +       }
-> > +       if (i > 0) {
-> > +               *state = --i;
-> > +               ret = 0;
-> > +       }
-> > +
-> > +return_get_max_state:
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +       return ret;
-> > +}
-> > +
-> > +/**
-> > + * cpufreq_get_cur_state - callback function to get the current cooling
-> > state.
-> > + * @cdev: thermal cooling device pointer.
-> > + * @state: fill this variable with the current cooling state.
-> > + */
-> > +static int cpufreq_get_cur_state(struct thermal_cooling_device *cdev,
-> > +                                unsigned long *state)
-> > +{
-> > +       int ret = -EINVAL;
-> > +       struct cpufreq_cooling_device *cpufreq_device;
-> > +
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       list_for_each_entry(cpufreq_device, &cooling_cpufreq_list, node)
-> > {
-> > +               if (cpufreq_device && cpufreq_device->cool_dev = cdev)
-> > {
-> > +                       *state = cpufreq_device->cpufreq_state;
-> > +                       ret = 0;
-> > +                       break;
-> > +               }
-> > +       }
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +
-> > +       return ret;
-> > +}
-> > +
-> > +/**
-> > + * cpufreq_set_cur_state - callback function to set the current cooling
-> > state.
-> > + * @cdev: thermal cooling device pointer.
-> > + * @state: set this variable to the current cooling state.
-> > + */
-> > +static int cpufreq_set_cur_state(struct thermal_cooling_device *cdev,
-> > +                                unsigned long state)
-> > +{
-> > +       int ret = -EINVAL;
-> > +       struct cpufreq_cooling_device *cpufreq_device;
-> > +
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       list_for_each_entry(cpufreq_device, &cooling_cpufreq_list, node)
-> > {
-> > +               if (cpufreq_device && cpufreq_device->cool_dev = cdev)
-> > {
-> > +                       ret = 0;
-> > +                       break;
-> > +               }
-> > +       }
-> > +       if (!ret)
-> > +               ret = cpufreq_apply_cooling(cpufreq_device, state);
-> > +
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +
-> > +       return ret;
-> > +}
-> > +
-> > +/* Bind cpufreq callbacks to thermal cooling device ops */
-> > +static struct thermal_cooling_device_ops const cpufreq_cooling_ops = {
-> > +       .get_max_state = cpufreq_get_max_state,
-> > +       .get_cur_state = cpufreq_get_cur_state,
-> > +       .set_cur_state = cpufreq_set_cur_state,
-> > +};
-> > +
-> > +/* Notifier for cpufreq policy change */
-> > +static struct notifier_block thermal_cpufreq_notifier_block = {
-> > +       .notifier_call = cpufreq_thermal_notifier,
-> > +};
-> > +
-> > +/**
-> > + * cpufreq_cooling_register - function to create cpufreq cooling
-> > device.
-> > + * @clip_cpus: cpumask of cpus where the frequency constraints will
-> > happen.
-> > + */
-> > +struct thermal_cooling_device *cpufreq_cooling_register(
-> > +       struct cpumask *clip_cpus)
-> > +{
-> > +       struct thermal_cooling_device *cool_dev;
-> > +       struct cpufreq_cooling_device *cpufreq_dev = NULL;
-> > +       unsigned int cpufreq_dev_count = 0, min = 0, max = 0;
-> > +       char dev_name[THERMAL_NAME_LENGTH];
-> > +       int ret = 0, id = 0, i;
-> > +       struct cpufreq_policy policy;
-> > +
-> > +       list_for_each_entry(cpufreq_dev, &cooling_cpufreq_list, node)
-> > +               cpufreq_dev_count++;
-> > +
-> > +       /*Verify that all the clip cpus have same freq_min, freq_max
-> > limit*/
-> > +       for_each_cpu(i, clip_cpus) {
-> > +               /*continue if cpufreq policy not found and not return
-> > error*/
-> > +               if (!cpufreq_get_policy(&policy, i))
-> > +                       continue;
-> > +               if (min = 0 && max = 0) {
-> > +                       min = policy.cpuinfo.min_freq;
-> > +                       max = policy.cpuinfo.max_freq;
-> > +               } else {
-> > +                       if (min != policy.cpuinfo.min_freq ||
-> > +                               max != policy.cpuinfo.max_freq)
-> > +                               return ERR_PTR(-EINVAL);
-> > +}
-> > +       }
-> > +       cpufreq_dev = kzalloc(sizeof(struct cpufreq_cooling_device),
-> > +                       GFP_KERNEL);
-> > +       if (!cpufreq_dev)
-> > +               return ERR_PTR(-ENOMEM);
-> > +
-> > +       cpumask_copy(&cpufreq_dev->allowed_cpus, clip_cpus);
-> > +
-> > +       if (cpufreq_dev_count = 0)
-> > +               mutex_init(&cooling_cpufreq_lock);
-> > +
-> > +       ret = get_idr(&cpufreq_idr, &cpufreq_dev->id);
-> > +       if (ret) {
-> > +               kfree(cpufreq_dev);
-> > +               return ERR_PTR(-EINVAL);
-> > +       }
-> > +
-> > +       sprintf(dev_name, "thermal-cpufreq-%d", cpufreq_dev->id);
-> > +
-> > +       cool_dev = thermal_cooling_device_register(dev_name,
-> > cpufreq_dev,
-> > +                                               &cpufreq_cooling_ops);
-> > +       if (!cool_dev) {
-> > +               release_idr(&cpufreq_idr, cpufreq_dev->id);
-> > +               kfree(cpufreq_dev);
-> > +               return ERR_PTR(-EINVAL);
-> > +       }
-> > +       cpufreq_dev->id = id;
-> > +       cpufreq_dev->cool_dev = cool_dev;
-> > +       cpufreq_dev->cpufreq_state = 0;
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       list_add_tail(&cpufreq_dev->node, &cooling_cpufreq_list);
-> > +
-> > +       /* Register the notifier for first cpufreq cooling device */
-> > +       if (cpufreq_dev_count = 0)
-> > +
-> > cpufreq_register_notifier(&thermal_cpufreq_notifier_block,
-> > +
-> > CPUFREQ_POLICY_NOTIFIER);
-> > +
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +       return cool_dev;
-> > +}
-> > +EXPORT_SYMBOL(cpufreq_cooling_register);
-> > +
-> > +/**
-> > + * cpufreq_cooling_unregister - function to remove cpufreq cooling
-> > device.
-> > + * @cdev: thermal cooling device pointer.
-> > + */
-> > +void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev)
-> > +{
-> > +       struct cpufreq_cooling_device *cpufreq_dev = NULL;
-> > +       unsigned int cpufreq_dev_count = 0;
-> > +
-> > +       mutex_lock(&cooling_cpufreq_lock);
-> > +       list_for_each_entry(cpufreq_dev, &cooling_cpufreq_list, node) {
-> > +               if (cpufreq_dev && cpufreq_dev->cool_dev = cdev)
-> > +                       break;
-> > +               cpufreq_dev_count++;
-> > +       }
-> > +
-> > +       if (!cpufreq_dev || cpufreq_dev->cool_dev != cdev) {
-> > +               mutex_unlock(&cooling_cpufreq_lock);
-> > +               return;
-> > +       }
-> > +
-> > +       list_del(&cpufreq_dev->node);
-> > +
-> > +       /* Unregister the notifier for the last cpufreq cooling device
-> > */
-> > +       if (cpufreq_dev_count = 1) {
-> > +
-> > cpufreq_unregister_notifier(&thermal_cpufreq_notifier_block,
-> > +                                       CPUFREQ_POLICY_NOTIFIER);
-> > +       }
-> > +       mutex_unlock(&cooling_cpufreq_lock);
-> > +       thermal_cooling_device_unregister(cpufreq_dev->cool_dev);
-> > +       release_idr(&cpufreq_idr, cpufreq_dev->id);
-> > +       if (cpufreq_dev_count = 1)
-> > +               mutex_destroy(&cooling_cpufreq_lock);
-> > +       kfree(cpufreq_dev);
-> > +}
-> > +EXPORT_SYMBOL(cpufreq_cooling_unregister);
-> > diff --git a/include/linux/cpu_cooling.h b/include/linux/cpu_cooling.h
-> > new file mode 100644
-> > index 0000000..555b917
-> > --- /dev/null
-> > +++ b/include/linux/cpu_cooling.h
-> > @@ -0,0 +1,79 @@
-> > +/*
-> > + *  linux/include/linux/cpu_cooling.h
-> > + *
-> > + *  Copyright (C) 2012 Samsung Electronics Co.,
-> > Ltd(http://www.samsung.com)
-> > + *  Copyright (C) 2012  Amit Daniel <amit.kachhap@linaro.org>
-> > + *
-> > + *
-> > ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > + *  This program is free software; you can redistribute it and/or
-> > modify
-> > + *  it under the terms of the GNU General Public License as published
-> > by
-> > + *  the Free Software Foundation; version 2 of the License.
-> > + *
-> > + *  This program is distributed in the hope that it will be useful, but
-> > + *  WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + *  General Public License for more details.
-> > + *
-> > + *  You should have received a copy of the GNU General Public License
-> > along
-> > + *  with this program; if not, write to the Free Software Foundation,
-> > Inc.,
-> > + *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-> > + *
-> > + *
-> > ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> > + */
-> > +
-> > +#ifndef __CPU_COOLING_H__
-> > +#define __CPU_COOLING_H__
-> > +
-> > +#include <linux/thermal.h>
-> > +
-> > +#define CPUFREQ_COOLING_START          0
-> > +#define CPUFREQ_COOLING_STOP           1
-> > +
-> > +/**
-> > + * cputherm_register_notifier - Register a notifier with cpu cooling
-> > interface.
-> > + * @nb:        struct notifier_block * with callback info.
-> > + * @list: integer value for which notification is needed. possible
-> > values are
-> > + *     CPUFREQ_COOLING_START and CPUFREQ_COOLING_STOP.
-> > + *
-> > + * This exported function registers a driver with cpu cooling layer.
-> > The driver
-> > + * will be notified when any cpu cooling action is called.
-> > + */
-> > +int cputherm_register_notifier(struct notifier_block *nb, unsigned int
-> > list);
-> > +
-> > +/**
-> > + * cputherm_unregister_notifier - Un-register a notifier.
-> > + * @nb:        struct notifier_block * with callback info.
-> > + * @list: integer value for which notification is needed. values
-> > possible are
-> > + *     CPUFREQ_COOLING_START and CPUFREQ_COOLING_STOP.
-> > + *
-> > + * This exported function un-registers a driver with cpu cooling layer.
-> > + */
-> > +int cputherm_unregister_notifier(struct notifier_block *nb, unsigned
-> > int list);
-> > +
-> > +#ifdef CONFIG_CPU_THERMAL
-> > +/**
-> > + * cpufreq_cooling_register - function to create cpufreq cooling
-> > device.
-> > + * @clip_cpus: cpumask of cpus where the frequency constraints will
-> > happen
-> > + */
-> > +struct thermal_cooling_device *cpufreq_cooling_register(
-> > +               struct cpumask *clip_cpus);
-> > +
-> > +/**
-> > + * cpufreq_cooling_unregister - function to remove cpufreq cooling
-> > device.
-> > + * @cdev: thermal cooling device pointer.
-> > + */
-> > +void cpufreq_cooling_unregister(struct thermal_cooling_device *cdev);
-> > +#else /* !CONFIG_CPU_THERMAL */
-> > +static inline struct thermal_cooling_device *cpufreq_cooling_register(
-> > +       struct cpumask *clip_cpus)
-> > +{
-> > +       return NULL;
-> > +}
-> > +static inline void cpufreq_cooling_unregister(
-> > +               struct thermal_cooling_device *cdev)
-> > +{
-> > +       return;
-> > +}
-> > +#endif /* CONFIG_CPU_THERMAL */
-> > +
-> > +#endif /* __CPU_COOLING_H__ */
-> > --
-> > 1.7.1
-> >
->
->
->
-> --
->
-> Eduardo Valentin
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24g5ZubLCAyMDEyLTA4LTE2IGF0IDE3OjExICswNTMwLCBBbWl0IERhbmllbCBLYWNoaGFwIHdy
+b3RlOgo+IFRoaXMgcGF0Y2hzZXQgaW50cm9kdWNlcyBhIG5ldyBnZW5lcmljIGNvb2xpbmcgZGV2
+aWNlIGJhc2VkIG9uIGNwdWZyZXEKPiB0aGF0IGNhbiBiZSB1c2VkIG9uIG5vbi1BQ1BJIHBsYXRm
+b3Jtcy4gIEFzIGEgcHJvb2Ygb2YgY29uY2VwdCwgd2UgaGF2ZQo+IGRyaXZlcnMgZm9yIHRoZSBm
+b2xsb3dpbmcgcGxhdGZvcm1zIHVzaW5nIHRoaXMgbWVjaGFuaXNtIG5vdzoKPiAKPiAgKiBTYW1z
+dW5nIEV4eW5vcyAoRXh5bm9zNCBhbmQgRXh5bm9zNSkgaW4gdGhlIGN1cnJlbnQgcGF0Y2hzZXQu
+Cj4gICogRnJlZXNjYWxlIGkuTVggKGdpdDovL2dpdC5saW5hcm8ub3JnL3Blb3BsZS9hbWl0ZGFu
+aWVsay9saW51eC5naXQgaW14NnFfdGhlcm1hbCkKPiAKPiBUaGVyZSBpcyBhIHNtYWxsIGNoYW5n
+ZSBpbiBjcHVmcmVxIGNvb2xpbmcgcmVnaXN0cmF0aW9uIEFQSXMsIHNvIGEgbWlub3IKPiBjaGFu
+Z2UgaXMgbmVlZGVkIGZvciBGcmVlc2NhbGUgcGxhdGZvcm1zLgo+IAo+IEJyaWVmIERlc2NyaXB0
+aW9uOgo+IAo+IDEpIFRoZSBnZW5lcmljIGNvb2xpbmcgZGV2aWNlcyBjb2RlIGlzIHBsYWNlZCBp
+bnNpZGUgZHJpdmVyL3RoZXJtYWwvKgo+ICAgIGFzIHBsYWNpbmcgaW5zaWRlIGFjcGkgZm9sZGVy
+IHdpbGwgbmVlZCB1bi1uZWNlc3NhcnkgZW5hYmxpbmcgb2YgYWNwaQo+ICAgIGNvZGUuICBUaGlz
+IGNvZGUgaXMgYXJjaGl0ZWN0dXJlIGluZGVwZW5kZW50Lgo+IAo+IDIpIFRoaXMgcGF0Y2hzZXQg
+YWRkcyBnZW5lcmljIGNwdSBjb29saW5nIGxvdyBsZXZlbCBpbXBsZW1lbnRhdGlvbgo+ICAgIHRo
+cm91Z2ggZnJlcXVlbmN5IGNsaXBwaW5nLiAgSW4gZnV0dXJlLCBvdGhlciBjcHUgcmVsYXRlZCBj
+b29saW5nCj4gICAgZGV2aWNlcyBtYXkgYmUgYWRkZWQgaGVyZS4gIEFuIEFDUEkgdmVyc2lvbiBv
+ZiB0aGlzIGFscmVhZHkgZXhpc3RzCj4gICAgKGRyaXZlcnMvYWNwaS9wcm9jZXNzb3JfdGhlcm1h
+bC5jKSAuQnV0IHRoaXMgd2lsbCBiZSB1c2VmdWwgZm9yCj4gICAgcGxhdGZvcm1zIGxpa2UgQVJN
+IHVzaW5nIHRoZSBnZW5lcmljIHRoZXJtYWwgaW50ZXJmYWNlIGFsb25nIHdpdGggdGhlCj4gICAg
+Z2VuZXJpYyBjcHUgY29vbGluZyBkZXZpY2VzLiAgVGhlIGNvb2xpbmcgZGV2aWNlIHJlZ2lzdHJh
+dGlvbiBBUEkncwo+ICAgIHJldHVybiBjb29saW5nIGRldmljZSBwb2ludGVycyB3aGljaCBjYW4g
+YmUgZWFzaWx5IGJpbmRlZCB3aXRoIHRoZQo+ICAgIHRoZXJtYWwgem9uZSB0cmlwIHBvaW50cy4g
+IFRoZSBpbXBvcnRhbnQgQVBJcyBleHBvc2VkIGFyZSwKPiAKPiAgICBhKSBzdHJ1Y3QgdGhlcm1h
+bF9jb29saW5nX2RldmljZSAqY3B1ZnJlcV9jb29saW5nX3JlZ2lzdGVyKAo+ICAgICAgICAgc3Ry
+dWN0IGNwdW1hc2sgKmNsaXBfY3B1cykKPiAgICBiKSB2b2lkIGNwdWZyZXFfY29vbGluZ191bnJl
+Z2lzdGVyKHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2KQo+IAo+IDMpIFNhbXN1
+bmcgZXh5bm9zIHBsYXRmb3JtIHRoZXJtYWwgaW1wbGVtZW50YXRpb24gaXMgZG9uZSB1c2luZyB0
+aGUKPiAgICBnZW5lcmljIGNwdSBjb29saW5nIEFQSXMgYW5kIHRoZSBuZXcgdHJpcCB0eXBlLiAg
+VGhlIHRlbXBlcmF0dXJlIHNlbnNvcgo+ICAgIGRyaXZlciBwcmVzZW50IGluIHRoZSBod21vbiBm
+b2xkZXIocmVnaXN0ZXJlZCBhcyBod21vbiBkcml2ZXIpIGlzIG1vdmVkCj4gICAgdG8gdGhlcm1h
+bCBmb2xkZXIgYW5kIHJlZ2lzdGVyZWQgYXMgYSB0aGVybWFsIGRyaXZlci4KPiAKPiBBIHNpbXBs
+ZSBkYXRhL2NvbnRyb2wgZmxvdyBkaWFncmFtcyBpcyBzaG93biBiZWxvdywKPiAKPiBDb3JlIExp
+bnV4IHRoZXJtYWwgPC0tLS0tPiAgRXh5bm9zIHRoZXJtYWwgaW50ZXJmYWNlIDwtLS0tLSBUZW1w
+ZXJhdHVyZSBTZW5zb3IKPiAgICAgICAgICAgfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+fAo+ICAgICAgICAgIFx8LyAgICAgICAgICAgICAgICAgICAgICAgICAgICB8Cj4gICBDcHVmcmVx
+IGNvb2xpbmcgZGV2aWNlIDwtLS0tLS0tLS0tLS0tLS0KPiAKPiBUT0RPOgo+ICpXaWxsIHNlbmQg
+dGhlIERUIGVuYWJsZW1lbnQgcGF0Y2hlcyBsYXRlciBhZnRlciB0aGUgZHJpdmVyIGlzIG1lcmdl
+ZC4KPiAKPiBUaGlzIHBhdGNoOgo+IAo+IEFkZCBzdXBwb3J0IGZvciBnZW5lcmljIGNwdSB0aGVy
+bWFsIGNvb2xpbmcgbG93IGxldmVsIGltcGxlbWVudGF0aW9ucwo+IHVzaW5nIGZyZXF1ZW5jeSBz
+Y2FsaW5nIHVwL2Rvd24gYmFzZWQgb24gdGhlIHJlZ2lzdHJhdGlvbiBwYXJhbWV0ZXJzLgo+IERp
+ZmZlcmVudCBjcHUgcmVsYXRlZCBjb29saW5nIGRldmljZXMgY2FuIGJlIHJlZ2lzdGVyZWQgYnkg
+dGhlIHVzZXIgYW5kCj4gdGhlIGJpbmRpbmcgb2YgdGhlc2UgY29vbGluZyBkZXZpY2VzIHRvIHRo
+ZSBjb3JyZXNwb25kaW5nIHRyaXAgcG9pbnRzIGNhbgo+IGJlIGVhc2lseSBkb25lIGFzIHRoZSBy
+ZWdpc3RyYXRpb24gQVBJcyByZXR1cm4gdGhlIGNvb2xpbmcgZGV2aWNlIHBvaW50ZXIuCj4gVGhl
+IHVzZXIgb2YgdGhlc2UgQVBJcyBhcmUgcmVzcG9uc2libGUgZm9yIHBhc3NpbmcgY2xpcHBpbmcg
+ZnJlcXVlbmN5IC4KPiBUaGUgZHJpdmVycyBjYW4gYWxzbyByZWdpc3RlciB0byByZWNpZXZlIG5v
+dGlmaWNhdGlvbiBhYm91dCBhbnkgY29vbGluZwo+IGFjdGlvbiBjYWxsZWQuCj4gCj4gW2FrcG1A
+bGludXgtZm91bmRhdGlvbi5vcmc6IGZpeCBjb21tZW50IGxheW91dF0KPiBTaWduZWQtb2ZmLWJ5
+OiBBbWl0IERhbmllbCBLYWNoaGFwIDxhbWl0LmthY2hoYXBAbGluYXJvLm9yZz4KPiBDYzogR3Vl
+bnRlciBSb2VjayA8Z3VlbnRlci5yb2Vja0Blcmljc3Nvbi5jb20+Cj4gQ2M6IFNhbmdXb29rIEp1
+IDxzdy5qdUBzYW1zdW5nLmNvbT4KPiBDYzogRHVyZ2Fkb3NzIDxkdXJnYWRvc3MuckBpbnRlbC5j
+b20+Cj4gQ2M6IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPgo+IENjOiBKZWFuIERlbHZhcmUg
+PGtoYWxpQGxpbnV4LWZyLm9yZz4KPiBDYzogS3l1bmdtaW4gUGFyayA8a21wYXJrQGluZnJhZGVh
+ZC5vcmc+Cj4gQ2M6IEt1a2ppbiBLaW0gPGtnZW5lLmtpbUBzYW1zdW5nLmNvbT4KPiBTaWduZWQt
+b2ZmLWJ5OiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgo+IFNpZ25l
+ZC1vZmYtYnk6IEFtaXQgRGFuaWVsIEthY2hoYXAgPGFtaXQuZGFuaWVsQHNhbXN1bmcuY29tPgo+
+IC0tLQo+ICBEb2N1bWVudGF0aW9uL3RoZXJtYWwvY3B1LWNvb2xpbmctYXBpLnR4dCB8ICAgNTIg
+KysrCj4gIGRyaXZlcnMvdGhlcm1hbC9LY29uZmlnICAgICAgICAgICAgICAgICAgIHwgICAxMSAr
+Cj4gIGRyaXZlcnMvdGhlcm1hbC9NYWtlZmlsZSAgICAgICAgICAgICAgICAgIHwgICAgMSArCj4g
+IGRyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGluZy5jICAgICAgICAgICAgIHwgIDUxMiArKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKwo+ICBpbmNsdWRlL2xpbnV4L2NwdV9jb29saW5nLmggICAg
+ICAgICAgICAgICB8ICAgNzkgKysrKysKPiAgNSBmaWxlcyBjaGFuZ2VkLCA2NTUgaW5zZXJ0aW9u
+cygrKSwgMCBkZWxldGlvbnMoLSkKPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IERvY3VtZW50YXRpb24v
+dGhlcm1hbC9jcHUtY29vbGluZy1hcGkudHh0Cj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJz
+L3RoZXJtYWwvY3B1X2Nvb2xpbmcuYwo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgaW5jbHVkZS9saW51
+eC9jcHVfY29vbGluZy5oCj4gCj4gZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vdGhlcm1hbC9j
+cHUtY29vbGluZy1hcGkudHh0IGIvRG9jdW1lbnRhdGlvbi90aGVybWFsL2NwdS1jb29saW5nLWFw
+aS50eHQKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAwMDAuLmExZjJhNmIKPiAt
+LS0gL2Rldi9udWxsCj4gKysrIGIvRG9jdW1lbnRhdGlvbi90aGVybWFsL2NwdS1jb29saW5nLWFw
+aS50eHQKPiBAQCAtMCwwICsxLDUyIEBACj4gK0NQVSBjb29saW5nIEFQSXMgSG93IFRvCj4gKz09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4gKwo+ICtXcml0dGVuIGJ5IEFtaXQg
+RGFuaWVsIEthY2hoYXAgPGFtaXQua2FjaGhhcEBsaW5hcm8ub3JnPgo+ICsKPiArVXBkYXRlZDog
+MTIgTWF5IDIwMTIKPiArCj4gK0NvcHlyaWdodCAoYykgIDIwMTIgU2Ftc3VuZyBFbGVjdHJvbmlj
+cyBDby4sIEx0ZChodHRwOi8vd3d3LnNhbXN1bmcuY29tKQo+ICsKPiArMC4gSW50cm9kdWN0aW9u
+Cj4gKwo+ICtUaGUgZ2VuZXJpYyBjcHUgY29vbGluZyhmcmVxIGNsaXBwaW5nKSBwcm92aWRlcyBy
+ZWdpc3RyYXRpb24vdW5yZWdpc3RyYXRpb24gQVBJcwo+ICt0byB0aGUgY2FsbGVyLiBUaGUgYmlu
+ZGluZyBvZiB0aGUgY29vbGluZyBkZXZpY2VzIHRvIHRoZSB0cmlwIHBvaW50IGlzIGxlZnQgZm9y
+Cj4gK3RoZSB1c2VyLiBUaGUgcmVnaXN0cmF0aW9uIEFQSXMgcmV0dXJucyB0aGUgY29vbGluZyBk
+ZXZpY2UgcG9pbnRlci4KPiArCj4gKzEuIGNwdSBjb29saW5nIEFQSXMKPiArCj4gKzEuMSBjcHVm
+cmVxIHJlZ2lzdHJhdGlvbi91bnJlZ2lzdHJhdGlvbiBBUElzCj4gKzEuMS4xIHN0cnVjdCB0aGVy
+bWFsX2Nvb2xpbmdfZGV2aWNlICpjcHVmcmVxX2Nvb2xpbmdfcmVnaXN0ZXIoCj4gKwlzdHJ1Y3Qg
+Y3B1bWFzayAqY2xpcF9jcHVzKQo+ICsKPiArICAgIFRoaXMgaW50ZXJmYWNlIGZ1bmN0aW9uIHJl
+Z2lzdGVycyB0aGUgY3B1ZnJlcSBjb29saW5nIGRldmljZSB3aXRoIHRoZSBuYW1lCj4gKyAgICAi
+dGhlcm1hbC1jcHVmcmVxLSV4Ii4gVGhpcyBhcGkgY2FuIHN1cHBvcnQgbXVsdGlwbGUgaW5zdGFu
+Y2VzIG9mIGNwdWZyZXEKPiArICAgIGNvb2xpbmcgZGV2aWNlcy4KPiArCj4gKyAgIGNsaXBfY3B1
+czogY3B1bWFzayBvZiBjcHVzIHdoZXJlIHRoZSBmcmVxdWVuY3kgY29uc3RyYWludHMgd2lsbCBo
+YXBwZW4uCj4gKwo+ICsxLjEuMiB2b2lkIGNwdWZyZXFfY29vbGluZ191bnJlZ2lzdGVyKHN0cnVj
+dCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2KQo+ICsKPiArICAgIFRoaXMgaW50ZXJmYWNl
+IGZ1bmN0aW9uIHVucmVnaXN0ZXJzIHRoZSAidGhlcm1hbC1jcHVmcmVxLSV4IiBjb29saW5nIGRl
+dmljZS4KPiArCj4gKyAgICBjZGV2OiBDb29saW5nIGRldmljZSBwb2ludGVyIHdoaWNoIGhhcyB0
+byBiZSB1bnJlZ2lzdGVyZWQuCj4gKwo+ICsKPiArMS4yIENQVSBjb29saW5nIGFjdGlvbiBub3Rp
+ZmllciByZWdpc3Rlci91bnJlZ2lzdGVyIGludGVyZmFjZQo+ICsxLjIuMSBpbnQgY3B1dGhlcm1f
+cmVnaXN0ZXJfbm90aWZpZXIoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICpuYiwKPiArCXVuc2lnbmVk
+IGludCBsaXN0KQo+ICsKPiArICAgIFRoaXMgaW50ZXJmYWNlIHJlZ2lzdGVycyBhIGRyaXZlciB3
+aXRoIGNwdSBjb29saW5nIGxheWVyLiBUaGUgZHJpdmVyIHdpbGwKPiArICAgIGJlIG5vdGlmaWVk
+IHdoZW4gYW55IGNwdSBjb29saW5nIGFjdGlvbiBpcyBjYWxsZWQuCj4gKwo+ICsgICAgbmI6IG5v
+dGlmaWVyIGZ1bmN0aW9uIHRvIHJlZ2lzdGVyCj4gKyAgICBsaXN0OiBDUFVGUkVRX0NPT0xJTkdf
+U1RBUlQgb3IgQ1BVRlJFUV9DT09MSU5HX1NUT1AKPiArCj4gKzEuMi4yIGludCBjcHV0aGVybV91
+bnJlZ2lzdGVyX25vdGlmaWVyKHN0cnVjdCBub3RpZmllcl9ibG9jayAqbmIsCj4gKwl1bnNpZ25l
+ZCBpbnQgbGlzdCkKPiArCj4gKyAgICBUaGlzIGludGVyZmFjZSByZWdpc3RlcnMgYSBkcml2ZXIg
+d2l0aCBjcHUgY29vbGluZyBsYXllci4gVGhlIGRyaXZlciB3aWxsCj4gKyAgICBiZSBub3RpZmll
+ZCB3aGVuIGFueSBjcHUgY29vbGluZyBhY3Rpb24gaXMgY2FsbGVkLgo+ICsKPiArICAgIG5iOiBu
+b3RpZmllciBmdW5jdGlvbiB0byByZWdpc3Rlcgo+ICsgICAgbGlzdDogQ1BVRlJFUV9DT09MSU5H
+X1NUQVJUIG9yIENQVUZSRVFfQ09PTElOR19TVE9QCgp3aGF0IGFyZSB0aGVzZSB0d28gQVBJcyB1
+c2VkIGZvcj8KSSBkaWQgbm90IHNlZSB0aGV5IGFyZSB1c2VkIGluIHlvdXIgcGF0Y2ggc2V0LCBk
+byBJIG1pc3Mgc29tZXRoaW5nPwoKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy90aGVybWFsL0tjb25m
+aWcgYi9kcml2ZXJzL3RoZXJtYWwvS2NvbmZpZwo+IGluZGV4IDdkZDhjMzQuLjk5NjAwM2IgMTAw
+NjQ0Cj4gLS0tIGEvZHJpdmVycy90aGVybWFsL0tjb25maWcKPiArKysgYi9kcml2ZXJzL3RoZXJt
+YWwvS2NvbmZpZwo+IEBAIC0xOSw2ICsxOSwxNyBAQCBjb25maWcgVEhFUk1BTF9IV01PTgo+ICAJ
+ZGVwZW5kcyBvbiBIV01PTj15IHx8IEhXTU9OPVRIRVJNQUwKPiAgCWRlZmF1bHQgeQo+ICAKPiAr
+Y29uZmlnIENQVV9USEVSTUFMCj4gKwlib29sICJnZW5lcmljIGNwdSBjb29saW5nIHN1cHBvcnQi
+Cj4gKwlkZXBlbmRzIG9uIFRIRVJNQUwgJiYgQ1BVX0ZSRVEKPiArCWhlbHAKPiArCSAgVGhpcyBp
+bXBsZW1lbnRzIHRoZSBnZW5lcmljIGNwdSBjb29saW5nIG1lY2hhbmlzbSB0aHJvdWdoIGZyZXF1
+ZW5jeQo+ICsJICByZWR1Y3Rpb24sIGNwdSBob3RwbHVnIGFuZCBhbnkgb3RoZXIgd2F5cyBvZiBy
+ZWR1Y2luZyB0ZW1wZXJhdHVyZS4gQW4KPiArCSAgQUNQSSB2ZXJzaW9uIG9mIHRoaXMgYWxyZWFk
+eSBleGlzdHMoZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl90aGVybWFsLmMpLgo+ICsJICBUaGlzIHdp
+bGwgYmUgdXNlZnVsIGZvciBwbGF0Zm9ybXMgdXNpbmcgdGhlIGdlbmVyaWMgdGhlcm1hbCBpbnRl
+cmZhY2UKPiArCSAgYW5kIG5vdCB0aGUgQUNQSSBpbnRlcmZhY2UuCj4gKwkgIElmIHlvdSB3YW50
+IHRoaXMgc3VwcG9ydCwgeW91IHNob3VsZCBzYXkgWSBoZXJlLgo+ICsKPiAgY29uZmlnIFNQRUFS
+X1RIRVJNQUwKPiAgCWJvb2wgIlNQRUFyIHRoZXJtYWwgc2Vuc29yIGRyaXZlciIKPiAgCWRlcGVu
+ZHMgb24gVEhFUk1BTAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3RoZXJtYWwvTWFrZWZpbGUgYi9k
+cml2ZXJzL3RoZXJtYWwvTWFrZWZpbGUKPiBpbmRleCBmZDkzNjlhLi5hYWU1OWFkIDEwMDY0NAo+
+IC0tLSBhL2RyaXZlcnMvdGhlcm1hbC9NYWtlZmlsZQo+ICsrKyBiL2RyaXZlcnMvdGhlcm1hbC9N
+YWtlZmlsZQo+IEBAIC0zLDUgKzMsNiBAQAo+ICAjCj4gIAo+ICBvYmotJChDT05GSUdfVEhFUk1B
+TCkJCSs9IHRoZXJtYWxfc3lzLm8KPiArb2JqLSQoQ09ORklHX0NQVV9USEVSTUFMKQkJKz0gY3B1
+X2Nvb2xpbmcubwo+ICBvYmotJChDT05GSUdfU1BFQVJfVEhFUk1BTCkJCSs9IHNwZWFyX3RoZXJt
+YWwubwo+ICBvYmotJChDT05GSUdfUkNBUl9USEVSTUFMKQkrPSByY2FyX3RoZXJtYWwubwo+IGRp
+ZmYgLS1naXQgYS9kcml2ZXJzL3RoZXJtYWwvY3B1X2Nvb2xpbmcuYyBiL2RyaXZlcnMvdGhlcm1h
+bC9jcHVfY29vbGluZy5jCj4gbmV3IGZpbGUgbW9kZSAxMDA2NDQKPiBpbmRleCAwMDAwMDAwLi5j
+NDJlNTU3Cj4gLS0tIC9kZXYvbnVsbAo+ICsrKyBiL2RyaXZlcnMvdGhlcm1hbC9jcHVfY29vbGlu
+Zy5jCj4gQEAgLTAsMCArMSw1MTIgQEAKPiArLyoKPiArICogIGxpbnV4L2RyaXZlcnMvdGhlcm1h
+bC9jcHVfY29vbGluZy5jCj4gKyAqCj4gKyAqICBDb3B5cmlnaHQgKEMpIDIwMTIJU2Ftc3VuZyBF
+bGVjdHJvbmljcyBDby4sIEx0ZChodHRwOi8vd3d3LnNhbXN1bmcuY29tKQo+ICsgKiAgQ29weXJp
+Z2h0IChDKSAyMDEyICBBbWl0IERhbmllbCA8YW1pdC5rYWNoaGFwQGxpbmFyby5vcmc+Cj4gKyAq
+Cj4gKyAqIH5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+Cj4gKyAqICBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0
+d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQo+ICsgKiAgaXQgdW5k
+ZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNo
+ZWQgYnkKPiArICogIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IHZlcnNpb24gMiBvZiB0
+aGUgTGljZW5zZS4KPiArICoKPiArICogIFRoaXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0
+aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLCBidXQKPiArICogIFdJVEhPVVQgQU5ZIFdB
+UlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YKPiArICogIE1FUkNI
+QU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUg
+R05VCj4gKyAqICBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuCj4gKyAq
+Cj4gKyAqICBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRoZSBHTlUgR2VuZXJh
+bCBQdWJsaWMgTGljZW5zZSBhbG9uZwo+ICsgKiAgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwg
+d3JpdGUgdG8gdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbiwgSW5jLiwKPiArICogIDU5IFRl
+bXBsZSBQbGFjZSwgU3VpdGUgMzMwLCBCb3N0b24sIE1BIDAyMTExLTEzMDcgVVNBLgo+ICsgKgo+
+ICsgKiB+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+
+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fgo+ICsgKi8KPiArI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5o
+Pgo+ICsjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC90aGVybWFs
+Lmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KPiArI2luY2x1ZGUgPGxp
+bnV4L2NwdWZyZXEuaD4KPiArI2luY2x1ZGUgPGxpbnV4L2Vyci5oPgo+ICsjaW5jbHVkZSA8bGlu
+dXgvc2xhYi5oPgo+ICsjaW5jbHVkZSA8bGludXgvY3B1Lmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9j
+cHVfY29vbGluZy5oPgo+ICsKPiArLyoqCj4gKyAqIHN0cnVjdCBjcHVmcmVxX2Nvb2xpbmdfZGV2
+aWNlCj4gKyAqIEBpZDogdW5pcXVlIGludGVnZXIgdmFsdWUgY29ycmVzcG9uZGluZyB0byBlYWNo
+IGNwdWZyZXFfY29vbGluZ19kZXZpY2UKPiArICoJcmVnaXN0ZXJlZC4KPiArICogQGNvb2xfZGV2
+OiB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlIHBvaW50ZXIgdG8ga2VlcCB0cmFjayBvZiB0aGUgdGhl
+Cj4gKyAqCWVnaXN0ZXJlZCBjb29saW5nIGRldmljZS4KPiArICogQGNwdWZyZXFfc3RhdGU6IGlu
+dGVnZXIgdmFsdWUgcmVwcmVzZW50aW5nIHRoZSBjdXJyZW50IHN0YXRlIG9mIGNwdWZyZXEKPiAr
+ICoJY29vbGluZwlkZXZpY2VzLgo+ICsgKiBAY3B1ZnJlcV92YWw6IGludGVnZXIgdmFsdWUgcmVw
+cmVzZW50aW5nIHRoZSBhYnNvbHV0ZSB2YWx1ZSBvZiB0aGUgY2xpcHBlZAo+ICsgKglmcmVxdWVu
+Y3kuCj4gKyAqIEBhbGxvd2VkX2NwdXM6IGFsbCB0aGUgY3B1cyBpbnZvbHZlZCBmb3IgdGhpcyBj
+cHVmcmVxX2Nvb2xpbmdfZGV2aWNlLgo+ICsgKiBAbm9kZTogbGlzdF9oZWFkIHRvIGxpbmsgYWxs
+IGNwdWZyZXFfY29vbGluZ19kZXZpY2UgdG9nZXRoZXIuCj4gKyAqCj4gKyAqIFRoaXMgc3RydWN0
+dXJlIGlzIHJlcXVpcmVkIGZvciBrZWVwaW5nIGluZm9ybWF0aW9uIG9mIGVhY2gKPiArICogY3B1
+ZnJlcV9jb29saW5nX2RldmljZSByZWdpc3RlcmVkIGFzIGEgbGlzdCB3aG9zZSBoZWFkIGlzIHJl
+cHJlc2VudGVkIGJ5Cj4gKyAqIGNvb2xpbmdfY3B1ZnJlcV9saXN0LiBJbiBvcmRlciB0byBwcmV2
+ZW50IGNvcnJ1cHRpb24gb2YgdGhpcyBsaXN0IGEKPiArICogbXV0ZXggbG9jayBjb29saW5nX2Nw
+dWZyZXFfbG9jayBpcyB1c2VkLgo+ICsgKi8KPiArc3RydWN0IGNwdWZyZXFfY29vbGluZ19kZXZp
+Y2Ugewo+ICsJaW50IGlkOwo+ICsJc3RydWN0IHRoZXJtYWxfY29vbGluZ19kZXZpY2UgKmNvb2xf
+ZGV2Owo+ICsJdW5zaWduZWQgaW50IGNwdWZyZXFfc3RhdGU7Cj4gKwl1bnNpZ25lZCBpbnQgY3B1
+ZnJlcV92YWw7Cj4gKwlzdHJ1Y3QgY3B1bWFzayBhbGxvd2VkX2NwdXM7Cj4gKwlzdHJ1Y3QgbGlz
+dF9oZWFkIG5vZGU7Cj4gK307Cj4gK3N0YXRpYyBMSVNUX0hFQUQoY29vbGluZ19jcHVmcmVxX2xp
+c3QpOwo+ICtzdGF0aWMgREVGSU5FX0lEUihjcHVmcmVxX2lkcik7Cj4gKwo+ICtzdGF0aWMgc3Ry
+dWN0IG11dGV4IGNvb2xpbmdfY3B1ZnJlcV9sb2NrOwo+ICsKPiArLyogbm90aWZ5X3RhYmxlIHBh
+c3NlcyB2YWx1ZSB0byB0aGUgQ1BVRlJFUV9BREpVU1QgY2FsbGJhY2sgZnVuY3Rpb24uICovCj4g
+KyNkZWZpbmUgTk9USUZZX0lOVkFMSUQgTlVMTAo+ICtzdHJ1Y3QgY3B1ZnJlcV9jb29saW5nX2Rl
+dmljZSAqbm90aWZ5X2RldmljZTsKPiArCj4gKy8qIEhlYWQgb2YgdGhlIGJsb2NraW5nIG5vdGlm
+aWVyIGNoYWluIHRvIGluZm9ybSBhYm91dCBmcmVxdWVuY3kgY2xhbXBpbmcgKi8KPiArc3RhdGlj
+IEJMT0NLSU5HX05PVElGSUVSX0hFQUQoY3B1dGhlcm1fc3RhdGVfbm90aWZpZXJfbGlzdCk7Cj4g
+Kwo+ICsvKioKPiArICogZ2V0X2lkciAtIGZ1bmN0aW9uIHRvIGdldCBhIHVuaXF1ZSBpZC4KPiAr
+ICogQGlkcjogc3RydWN0IGlkciAqIGhhbmRsZSB1c2VkIHRvIGNyZWF0ZSBhIGlkLgo+ICsgKiBA
+aWQ6IGludCAqIHZhbHVlIGdlbmVyYXRlZCBieSB0aGlzIGZ1bmN0aW9uLgo+ICsgKi8KPiArc3Rh
+dGljIGludCBnZXRfaWRyKHN0cnVjdCBpZHIgKmlkciwgaW50ICppZCkKPiArewo+ICsJaW50IGVy
+cjsKPiArYWdhaW46Cj4gKwlpZiAodW5saWtlbHkoaWRyX3ByZV9nZXQoaWRyLCBHRlBfS0VSTkVM
+KSA9PSAwKSkKPiArCQlyZXR1cm4gLUVOT01FTTsKPiArCj4gKwltdXRleF9sb2NrKCZjb29saW5n
+X2NwdWZyZXFfbG9jayk7Cj4gKwllcnIgPSBpZHJfZ2V0X25ldyhpZHIsIE5VTEwsIGlkKTsKPiAr
+CW11dGV4X3VubG9jaygmY29vbGluZ19jcHVmcmVxX2xvY2spOwo+ICsKPiArCWlmICh1bmxpa2Vs
+eShlcnIgPT0gLUVBR0FJTikpCj4gKwkJZ290byBhZ2FpbjsKPiArCWVsc2UgaWYgKHVubGlrZWx5
+KGVycikpCj4gKwkJcmV0dXJuIGVycjsKPiArCj4gKwkqaWQgPSAqaWQgJiBNQVhfSURfTUFTSzsK
+PiArCXJldHVybiAwOwo+ICt9Cj4gKwo+ICsvKioKPiArICogcmVsZWFzZV9pZHIgLSBmdW5jdGlv
+biB0byBmcmVlIHRoZSB1bmlxdWUgaWQuCj4gKyAqIEBpZHI6IHN0cnVjdCBpZHIgKiBoYW5kbGUg
+dXNlZCBmb3IgY3JlYXRpbmcgdGhlIGlkLgo+ICsgKiBAaWQ6IGludCB2YWx1ZSByZXByZXNlbnRp
+bmcgdGhlIHVuaXF1ZSBpZC4KPiArICovCj4gK3N0YXRpYyB2b2lkIHJlbGVhc2VfaWRyKHN0cnVj
+dCBpZHIgKmlkciwgaW50IGlkKQo+ICt7Cj4gKwltdXRleF9sb2NrKCZjb29saW5nX2NwdWZyZXFf
+bG9jayk7Cj4gKwlpZHJfcmVtb3ZlKGlkciwgaWQpOwo+ICsJbXV0ZXhfdW5sb2NrKCZjb29saW5n
+X2NwdWZyZXFfbG9jayk7Cj4gK30KPiArCj4gKy8qKgo+ICsgKiBjcHV0aGVybV9yZWdpc3Rlcl9u
+b3RpZmllciAtIFJlZ2lzdGVyIGEgbm90aWZpZXIgd2l0aCBjcHUgY29vbGluZyBpbnRlcmZhY2Uu
+Cj4gKyAqIEBuYjoJc3RydWN0IG5vdGlmaWVyX2Jsb2NrICogd2l0aCBjYWxsYmFjayBpbmZvLgo+
+ICsgKiBAbGlzdDogaW50ZWdlciB2YWx1ZSBmb3Igd2hpY2ggbm90aWZpY2F0aW9uIGlzIG5lZWRl
+ZC4gcG9zc2libGUgdmFsdWVzIGFyZQo+ICsgKglDUFVGUkVRX0NPT0xJTkdfU1RBUlQgYW5kIENQ
+VUZSRVFfQ09PTElOR19TVE9QLgo+ICsgKgo+ICsgKiBUaGlzIGV4cG9ydGVkIGZ1bmN0aW9uIHJl
+Z2lzdGVycyBhIGRyaXZlciB3aXRoIGNwdSBjb29saW5nIGxheWVyLiBUaGUgZHJpdmVyCj4gKyAq
+IHdpbGwgYmUgbm90aWZpZWQgd2hlbiBhbnkgY3B1IGNvb2xpbmcgYWN0aW9uIGlzIGNhbGxlZC4K
+PiArICovCj4gK2ludCBjcHV0aGVybV9yZWdpc3Rlcl9ub3RpZmllcihzdHJ1Y3Qgbm90aWZpZXJf
+YmxvY2sgKm5iLCB1bnNpZ25lZCBpbnQgbGlzdCkKPiArewo+ICsJaW50IHJldCA9IDA7Cj4gKwo+
+ICsJc3dpdGNoIChsaXN0KSB7Cj4gKwljYXNlIENQVUZSRVFfQ09PTElOR19TVEFSVDoKPiArCWNh
+c2UgQ1BVRlJFUV9DT09MSU5HX1NUT1A6Cj4gKwkJcmV0ID0gYmxvY2tpbmdfbm90aWZpZXJfY2hh
+aW5fcmVnaXN0ZXIoCj4gKwkJCQkmY3B1dGhlcm1fc3RhdGVfbm90aWZpZXJfbGlzdCwgbmIpOwo+
+ICsJCWJyZWFrOwo+ICsJZGVmYXVsdDoKPiArCQlyZXQgPSAtRUlOVkFMOwo+ICsJfQo+ICsJcmV0
+dXJuIHJldDsKPiArfQo+ICtFWFBPUlRfU1lNQk9MKGNwdXRoZXJtX3JlZ2lzdGVyX25vdGlmaWVy
+KTsKPiArCj4gKy8qKgo+ICsgKiBjcHV0aGVybV91bnJlZ2lzdGVyX25vdGlmaWVyIC0gVW4tcmVn
+aXN0ZXIgYSBub3RpZmllci4KPiArICogQG5iOglzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKiB3aXRo
+IGNhbGxiYWNrIGluZm8uCj4gKyAqIEBsaXN0OiBpbnRlZ2VyIHZhbHVlIGZvciB3aGljaCBub3Rp
+ZmljYXRpb24gaXMgbmVlZGVkLiB2YWx1ZXMgcG9zc2libGUgYXJlCj4gKyAqCUNQVUZSRVFfQ09P
+TElOR19TVEFSVCBvciBDUFVGUkVRX0NPT0xJTkdfU1RPUC4KPiArICoKPiArICogVGhpcyBleHBv
+cnRlZCBmdW5jdGlvbiB1bi1yZWdpc3RlcnMgYSBkcml2ZXIgd2l0aCBjcHUgY29vbGluZyBsYXll
+ci4KPiArICovCj4gK2ludCBjcHV0aGVybV91bnJlZ2lzdGVyX25vdGlmaWVyKHN0cnVjdCBub3Rp
+Zmllcl9ibG9jayAqbmIsIHVuc2lnbmVkIGludCBsaXN0KQo+ICt7Cj4gKwlpbnQgcmV0ID0gMDsK
+PiArCj4gKwlzd2l0Y2ggKGxpc3QpIHsKPiArCWNhc2UgQ1BVRlJFUV9DT09MSU5HX1NUQVJUOgo+
+ICsJY2FzZSBDUFVGUkVRX0NPT0xJTkdfU1RPUDoKPiArCQlyZXQgPSBibG9ja2luZ19ub3RpZmll
+cl9jaGFpbl91bnJlZ2lzdGVyKAo+ICsJCQkJJmNwdXRoZXJtX3N0YXRlX25vdGlmaWVyX2xpc3Qs
+IG5iKTsKPiArCQlicmVhazsKPiArCWRlZmF1bHQ6Cj4gKwkJcmV0ID0gLUVJTlZBTDsKPiArCX0K
+PiArCXJldHVybiByZXQ7Cj4gK30KPiArRVhQT1JUX1NZTUJPTChjcHV0aGVybV91bnJlZ2lzdGVy
+X25vdGlmaWVyKTsKPiArCj4gKy8qIEJlbG93IGNvZGUgZGVmaW5lcyBmdW5jdGlvbnMgdG8gYmUg
+dXNlZCBmb3IgY3B1ZnJlcSBhcyBjb29saW5nIGRldmljZSAqLwo+ICsKPiArLyoqCj4gKyAqIGlz
+X2NwdWZyZXFfdmFsaWQgLSBmdW5jdGlvbiB0byBjaGVjayBpZiBhIGNwdSBoYXMgZnJlcXVlbmN5
+IHRyYW5zaXRpb24gcG9saWN5Lgo+ICsgKiBAY3B1OiBjcHUgZm9yIHdoaWNoIGNoZWNrIGlzIG5l
+ZWRlZC4KPiArICovCj4gK3N0YXRpYyBpbnQgaXNfY3B1ZnJlcV92YWxpZChpbnQgY3B1KQo+ICt7
+Cj4gKwlzdHJ1Y3QgY3B1ZnJlcV9wb2xpY3kgcG9saWN5Owo+ICsJcmV0dXJuICFjcHVmcmVxX2dl
+dF9wb2xpY3koJnBvbGljeSwgY3B1KTsKPiArfQo+ICsKPiArLyoqCj4gKyAqIGdldF9jcHVfZnJl
+cXVlbmN5IC0gZ2V0IHRoZSBhYnNvbHV0ZSB2YWx1ZSBvZiBmcmVxdWVuY3kgZnJvbSBsZXZlbC4K
+PiArICogQGNwdTogY3B1IGZvciB3aGljaCBmcmVxdWVuY3kgaXMgZmV0Y2hlZC4KPiArICogQGxl
+dmVsOiBsZXZlbCBvZiBmcmVxdWVuY3kgb2YgdGhlIENQVQo+ICsgKgllLmcgbGV2ZWw9MSAtLT4g
+MXN0IE1BWCBGUkVRLCBMRVZFTD0yIC0tLT4gMm5kIE1BWCBGUkVRLCAuLi4uIGV0Ywo+ICsgKi8K
+PiArc3RhdGljIHVuc2lnbmVkIGludCBnZXRfY3B1X2ZyZXF1ZW5jeSh1bnNpZ25lZCBpbnQgY3B1
+LCB1bnNpZ25lZCBsb25nIGxldmVsKQo+ICt7Cj4gKwlpbnQgcmV0ID0gMCwgaSA9IDA7Cj4gKwl1
+bnNpZ25lZCBsb25nIGxldmVsX2luZGV4Owo+ICsJYm9vbCBkZXNjZW5kID0gZmFsc2U7Cj4gKwlz
+dHJ1Y3QgY3B1ZnJlcV9mcmVxdWVuY3lfdGFibGUgKnRhYmxlID0KPiArCQkJCQljcHVmcmVxX2Zy
+ZXF1ZW5jeV9nZXRfdGFibGUoY3B1KTsKPiArCWlmICghdGFibGUpCj4gKwkJcmV0dXJuIHJldDsK
+PiArCj4gKwl3aGlsZSAodGFibGVbaV0uZnJlcXVlbmN5ICE9IENQVUZSRVFfVEFCTEVfRU5EKSB7
+Cj4gKwkJaWYgKHRhYmxlW2ldLmZyZXF1ZW5jeSA9PSBDUFVGUkVRX0VOVFJZX0lOVkFMSUQpCj4g
+KwkJCWNvbnRpbnVlOwo+ICsKPiArCQkvKmNoZWNrIGlmIHRhYmxlIGluIGFzY2VuZGluZyBvciBk
+ZXNjZW5kaW5nIG9yZGVyKi8KPiArCQlpZiAoKHRhYmxlW2kgKyAxXS5mcmVxdWVuY3kgIT0gQ1BV
+RlJFUV9UQUJMRV9FTkQpICYmCj4gKwkJCSh0YWJsZVtpICsgMV0uZnJlcXVlbmN5IDwgdGFibGVb
+aV0uZnJlcXVlbmN5KQo+ICsJCQkmJiAhZGVzY2VuZCkgewo+ICsJCQlkZXNjZW5kID0gdHJ1ZTsK
+PiArCQl9Cj4gKwo+ICsJCS8qcmV0dXJuIGlmIGxldmVsIG1hdGNoZWQgYW5kIHRhYmxlIGluIGRl
+c2NlbmRpbmcgb3JkZXIqLwo+ICsJCWlmIChkZXNjZW5kICYmIGkgPT0gbGV2ZWwpCj4gKwkJCXJl
+dHVybiB0YWJsZVtpXS5mcmVxdWVuY3k7Cj4gKwkJaSsrOwo+ICsJfQo+ICsJaS0tOwo+ICsKPiAr
+CWlmIChsZXZlbCA+IGkgfHwgZGVzY2VuZCkKPiArCQlyZXR1cm4gcmV0Owo+ICsJbGV2ZWxfaW5k
+ZXggPSBpIC0gbGV2ZWw7Cj4gKwo+ICsJLypTY2FuIHRoZSB0YWJsZSBpbiByZXZlcnNlIG9yZGVy
+IGFuZCBtYXRjaCB0aGUgbGV2ZWwqLwo+ICsJd2hpbGUgKGkgPj0gMCkgewo+ICsJCWlmICh0YWJs
+ZVtpXS5mcmVxdWVuY3kgPT0gQ1BVRlJFUV9FTlRSWV9JTlZBTElEKQo+ICsJCQljb250aW51ZTsK
+PiArCQkvKnJldHVybiBpZiBsZXZlbCBtYXRjaGVkKi8KPiArCQlpZiAoaSA9PSBsZXZlbF9pbmRl
+eCkKPiArCQkJcmV0dXJuIHRhYmxlW2ldLmZyZXF1ZW5jeTsKPiArCQlpLS07Cj4gKwl9Cj4gKwly
+ZXR1cm4gcmV0Owo+ICt9Cj4gKwo+ICsvKioKPiArICogY3B1ZnJlcV9hcHBseV9jb29saW5nIC0g
+ZnVuY3Rpb24gdG8gYXBwbHkgZnJlcXVlbmN5IGNsaXBwaW5nLgo+ICsgKiBAY3B1ZnJlcV9kZXZp
+Y2U6IGNwdWZyZXFfY29vbGluZ19kZXZpY2UgcG9pbnRlciBjb250YWluaW5nIGZyZXF1ZW5jeQo+
+ICsgKgljbGlwcGluZyBkYXRhLgo+ICsgKiBAY29vbGluZ19zdGF0ZTogdmFsdWUgb2YgdGhlIGNv
+b2xpbmcgc3RhdGUuCj4gKyAqLwo+ICtzdGF0aWMgaW50IGNwdWZyZXFfYXBwbHlfY29vbGluZyhz
+dHJ1Y3QgY3B1ZnJlcV9jb29saW5nX2RldmljZSAqY3B1ZnJlcV9kZXZpY2UsCj4gKwkJCQl1bnNp
+Z25lZCBsb25nIGNvb2xpbmdfc3RhdGUpCj4gK3sKPiArCXVuc2lnbmVkIGludCBldmVudCwgY3B1
+aWQsIGNsaXBfZnJlcTsKPiArCXN0cnVjdCBjcHVtYXNrICptYXNrUHRyID0gJmNwdWZyZXFfZGV2
+aWNlLT5hbGxvd2VkX2NwdXM7Cj4gKwl1bnNpZ25lZCBpbnQgY3B1ID0gY3B1bWFza19hbnkobWFz
+a1B0cik7Cj4gKwo+ICsKPiArCS8qIENoZWNrIGlmIHRoZSBvbGQgY29vbGluZyBhY3Rpb24gaXMg
+c2FtZSBhcyBuZXcgY29vbGluZyBhY3Rpb24gKi8KPiArCWlmIChjcHVmcmVxX2RldmljZS0+Y3B1
+ZnJlcV9zdGF0ZSA9PSBjb29saW5nX3N0YXRlKQo+ICsJCXJldHVybiAwOwo+ICsKPiArCWNsaXBf
+ZnJlcSA9IGdldF9jcHVfZnJlcXVlbmN5KGNwdSwgY29vbGluZ19zdGF0ZSk7Cj4gKwlpZiAoIWNs
+aXBfZnJlcSkKPiArCQlyZXR1cm4gLUVJTlZBTDsKPiArCj4gKwljcHVmcmVxX2RldmljZS0+Y3B1
+ZnJlcV9zdGF0ZSA9IGNvb2xpbmdfc3RhdGU7Cj4gKwljcHVmcmVxX2RldmljZS0+Y3B1ZnJlcV92
+YWwgPSBjbGlwX2ZyZXE7Cj4gKwlub3RpZnlfZGV2aWNlID0gY3B1ZnJlcV9kZXZpY2U7Cj4gKwo+
+ICsJaWYgKGNvb2xpbmdfc3RhdGUgIT0gMCkKPiArCQlldmVudCA9IENQVUZSRVFfQ09PTElOR19T
+VEFSVDsKPiArCWVsc2UKPiArCQlldmVudCA9IENQVUZSRVFfQ09PTElOR19TVE9QOwo+ICsKPiAr
+CWJsb2NraW5nX25vdGlmaWVyX2NhbGxfY2hhaW4oJmNwdXRoZXJtX3N0YXRlX25vdGlmaWVyX2xp
+c3QsCj4gKwkJCQkJCWV2ZW50LCAmY2xpcF9mcmVxKTsKPiArCj4gKwlmb3JfZWFjaF9jcHUoY3B1
+aWQsIG1hc2tQdHIpIHsKPiArCQlpZiAoaXNfY3B1ZnJlcV92YWxpZChjcHVpZCkpCj4gKwkJCWNw
+dWZyZXFfdXBkYXRlX3BvbGljeShjcHVpZCk7Cj4gKwl9Cj4gKwo+ICsJbm90aWZ5X2RldmljZSA9
+IE5PVElGWV9JTlZBTElEOwo+ICsKPiArCXJldHVybiAwOwo+ICt9Cj4gKwo+ICsvKioKPiArICog
+Y3B1ZnJlcV90aGVybWFsX25vdGlmaWVyIC0gbm90aWZpZXIgY2FsbGJhY2sgZm9yIGNwdWZyZXEg
+cG9saWN5IGNoYW5nZS4KPiArICogQG5iOglzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKiB3aXRoIGNh
+bGxiYWNrIGluZm8uCj4gKyAqIEBldmVudDogdmFsdWUgc2hvd2luZyBjcHVmcmVxIGV2ZW50IGZv
+ciB3aGljaCB0aGlzIGZ1bmN0aW9uIGludm9rZWQuCj4gKyAqIEBkYXRhOiBjYWxsYmFjay1zcGVj
+aWZpYyBkYXRhCj4gKyAqLwo+ICtzdGF0aWMgaW50IGNwdWZyZXFfdGhlcm1hbF9ub3RpZmllcihz
+dHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iLAo+ICsJCQkJCXVuc2lnbmVkIGxvbmcgZXZlbnQsIHZv
+aWQgKmRhdGEpCj4gK3sKPiArCXN0cnVjdCBjcHVmcmVxX3BvbGljeSAqcG9saWN5ID0gZGF0YTsK
+PiArCXVuc2lnbmVkIGxvbmcgbWF4X2ZyZXEgPSAwOwo+ICsKPiArCWlmIChldmVudCAhPSBDUFVG
+UkVRX0FESlVTVCB8fCBub3RpZnlfZGV2aWNlID09IE5PVElGWV9JTlZBTElEKQo+ICsJCXJldHVy
+biAwOwo+ICsKPiArCWlmIChjcHVtYXNrX3Rlc3RfY3B1KHBvbGljeS0+Y3B1LCAmbm90aWZ5X2Rl
+dmljZS0+YWxsb3dlZF9jcHVzKSkKPiArCQltYXhfZnJlcSA9IG5vdGlmeV9kZXZpY2UtPmNwdWZy
+ZXFfdmFsOwo+ICsKPiArCS8qIE5ldmVyIGV4Y2VlZCB1c2VyX3BvbGljeS5tYXgqLwo+ICsJaWYg
+KG1heF9mcmVxID4gcG9saWN5LT51c2VyX3BvbGljeS5tYXgpCj4gKwkJbWF4X2ZyZXEgPSBwb2xp
+Y3ktPnVzZXJfcG9saWN5Lm1heDsKPiArCj4gKwlpZiAocG9saWN5LT5tYXggIT0gbWF4X2ZyZXEp
+Cj4gKwkJY3B1ZnJlcV92ZXJpZnlfd2l0aGluX2xpbWl0cyhwb2xpY3ksIDAsIG1heF9mcmVxKTsK
+PiArCj4gKwlyZXR1cm4gMDsKPiArfQo+ICsKPiArLyoKPiArICogY3B1ZnJlcSBjb29saW5nIGRl
+dmljZSBjYWxsYmFjayBmdW5jdGlvbnMgYXJlIGRlZmluZWQgYmVsb3cKPiArICovCj4gKwo+ICsv
+KioKPiArICogY3B1ZnJlcV9nZXRfbWF4X3N0YXRlIC0gY2FsbGJhY2sgZnVuY3Rpb24gdG8gZ2V0
+IHRoZSBtYXggY29vbGluZyBzdGF0ZS4KPiArICogQGNkZXY6IHRoZXJtYWwgY29vbGluZyBkZXZp
+Y2UgcG9pbnRlci4KPiArICogQHN0YXRlOiBmaWxsIHRoaXMgdmFyaWFibGUgd2l0aCB0aGUgbWF4
+IGNvb2xpbmcgc3RhdGUuCj4gKyAqLwo+ICtzdGF0aWMgaW50IGNwdWZyZXFfZ2V0X21heF9zdGF0
+ZShzdHJ1Y3QgdGhlcm1hbF9jb29saW5nX2RldmljZSAqY2RldiwKPiArCQkJCSB1bnNpZ25lZCBs
+b25nICpzdGF0ZSkKPiArewo+ICsJaW50IHJldCA9IC1FSU5WQUwsIGkgPSAwOwo+ICsJc3RydWN0
+IGNwdWZyZXFfY29vbGluZ19kZXZpY2UgKmNwdWZyZXFfZGV2aWNlOwo+ICsJc3RydWN0IGNwdW1h
+c2sgKm1hc2tQdHI7Cj4gKwl1bnNpZ25lZCBpbnQgY3B1Owo+ICsJc3RydWN0IGNwdWZyZXFfZnJl
+cXVlbmN5X3RhYmxlICp0YWJsZTsKPiArCj4gKwltdXRleF9sb2NrKCZjb29saW5nX2NwdWZyZXFf
+bG9jayk7Cj4gKwlsaXN0X2Zvcl9lYWNoX2VudHJ5KGNwdWZyZXFfZGV2aWNlLCAmY29vbGluZ19j
+cHVmcmVxX2xpc3QsIG5vZGUpIHsKPiArCQlpZiAoY3B1ZnJlcV9kZXZpY2UgJiYgY3B1ZnJlcV9k
+ZXZpY2UtPmNvb2xfZGV2ID09IGNkZXYpCj4gKwkJCWJyZWFrOwo+ICsJfQo+ICsJaWYgKGNwdWZy
+ZXFfZGV2aWNlID09IE5VTEwpCj4gKwkJZ290byByZXR1cm5fZ2V0X21heF9zdGF0ZTsKPiArCj4g
+KwltYXNrUHRyID0gJmNwdWZyZXFfZGV2aWNlLT5hbGxvd2VkX2NwdXM7Cj4gKwljcHUgPSBjcHVt
+YXNrX2FueShtYXNrUHRyKTsKPiArCXRhYmxlID0gY3B1ZnJlcV9mcmVxdWVuY3lfZ2V0X3RhYmxl
+KGNwdSk7Cj4gKwlpZiAoIXRhYmxlKSB7Cj4gKwkJKnN0YXRlID0gMDsKPiArCQlyZXQgPSAwOwo+
+ICsJCWdvdG8gcmV0dXJuX2dldF9tYXhfc3RhdGU7Cj4gKwl9Cj4gKwo+ICsJd2hpbGUgKHRhYmxl
+W2ldLmZyZXF1ZW5jeSAhPSBDUFVGUkVRX1RBQkxFX0VORCkgewo+ICsJCWlmICh0YWJsZVtpXS5m
+cmVxdWVuY3kgPT0gQ1BVRlJFUV9FTlRSWV9JTlZBTElEKQo+ICsJCQljb250aW51ZTsKPiArCQlp
+Kys7Cj4gKwl9Cj4gKwlpZiAoaSA+IDApIHsKPiArCQkqc3RhdGUgPSAtLWk7Cj4gKwkJcmV0ID0g
+MDsKPiArCX0KPiArCj4gK3JldHVybl9nZXRfbWF4X3N0YXRlOgo+ICsJbXV0ZXhfdW5sb2NrKCZj
+b29saW5nX2NwdWZyZXFfbG9jayk7Cj4gKwlyZXR1cm4gcmV0Owo+ICt9Cj4gKwo+ICsvKioKPiAr
+ICogY3B1ZnJlcV9nZXRfY3VyX3N0YXRlIC0gY2FsbGJhY2sgZnVuY3Rpb24gdG8gZ2V0IHRoZSBj
+dXJyZW50IGNvb2xpbmcgc3RhdGUuCj4gKyAqIEBjZGV2OiB0aGVybWFsIGNvb2xpbmcgZGV2aWNl
+IHBvaW50ZXIuCj4gKyAqIEBzdGF0ZTogZmlsbCB0aGlzIHZhcmlhYmxlIHdpdGggdGhlIGN1cnJl
+bnQgY29vbGluZyBzdGF0ZS4KPiArICovCj4gK3N0YXRpYyBpbnQgY3B1ZnJlcV9nZXRfY3VyX3N0
+YXRlKHN0cnVjdCB0aGVybWFsX2Nvb2xpbmdfZGV2aWNlICpjZGV2LAo+ICsJCQkJIHVuc2lnbmVk
+IGxvbmcgKnN0YXRlKQo+ICt7Cj4gKwlpbnQgcmV0ID0gLUVJTlZBTDsKPiArCXN0cnVjdCBjcHVm
+cmVxX2Nvb2xpbmdfZGV2aWNlICpjcHVmcmVxX2RldmljZTsKPiArCj4gKwltdXRleF9sb2NrKCZj
+b29saW5nX2NwdWZyZXFfbG9jayk7Cj4gKwlsaXN0X2Zvcl9lYWNoX2VudHJ5KGNwdWZyZXFfZGV2
+aWNlLCAmY29vbGluZ19jcHVmcmVxX2xpc3QsIG5vZGUpIHsKPiArCQlpZiAoY3B1ZnJlcV9kZXZp
+Y2UgJiYgY3B1ZnJlcV9kZXZpY2UtPmNvb2xfZGV2ID09IGNkZXYpIHsKPiArCQkJKnN0YXRlID0g
+Y3B1ZnJlcV9kZXZpY2UtPmNwdWZyZXFfc3RhdGU7Cj4gKwkJCXJldCA9IDA7Cj4gKwkJCWJyZWFr
+Owo+ICsJCX0KPiArCX0KPiArCW11dGV4X3VubG9jaygmY29vbGluZ19jcHVmcmVxX2xvY2spOwo+
+ICsKCmFzIGNwdWZyZXEgbWF5IGJlIGNoYW5nZWQgaW4gb3RoZXIgcGxhY2VzLCBlLmcuIHZpYSBz
+eXNmcyBJL0YsIHdlIHNob3VsZAp1c2UgdGhlIGN1cnJlbnQgY3B1IGZyZXF1ZW5jeSB0byBnZXQg
+dGhlIFJFQUwgY29vbGluZyBzdGF0ZSwgcmF0aGVyIHRoYW4KdXNpbmcgYSBjYWNoZWQgdmFsdWUu
+Cgp0aGFua3MsCnJ1aQoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
+Cmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
