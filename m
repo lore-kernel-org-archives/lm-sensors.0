@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 18 Aug 2012 17:51:45 +0000
+Date: Sat, 18 Aug 2012 18:08:23 +0000
 Subject: Re: [lm-sensors] [Module] hwmon: GM/GME965 GM45 and more chips IGP thermal report
-Message-Id: <20120818175145.GA4997@roeck-us.net>
+Message-Id: <20120818180823.GB4997@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <73511e6c0907180440p43b81f33x85c4dc70007165b3@mail.gmail.com>
 In-Reply-To: <73511e6c0907180440p43b81f33x85c4dc70007165b3@mail.gmail.com>
@@ -10,15 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sat, Aug 18, 2012 at 11:44:43AM -0500, Mark Fern wrote:
-> Hello.  I have an HP Dv4 laptop with the 'coretemp' sensors.  It runs hot
-> because Ubuntu 1204 doesn't have the acpi driver.  I'm relatively new to
-> linux, so I need some instruction on how to install the driver you created.
->  Do I need to un-TAR it, and then what do I do with it?  I'm happy to read
-> and learn if you want to send some links, and I do appreciate your help.
->  Thank you.
+On Sat, Aug 18, 2012 at 10:51:45AM -0700, Guenter Roeck wrote:
+> On Sat, Aug 18, 2012 at 11:44:43AM -0500, Mark Fern wrote:
+> > Hello.  I have an HP Dv4 laptop with the 'coretemp' sensors.  It runs hot
+> > because Ubuntu 1204 doesn't have the acpi driver.  I'm relatively new to
+> > linux, so I need some instruction on how to install the driver you created.
+> >  Do I need to un-TAR it, and then what do I do with it?  I'm happy to read
+> > and learn if you want to send some links, and I do appreciate your help.
+> >  Thank you.
+> > 
+> What driver specifically do you refer to that is not in Ubuntu 12.4 ?
 > 
-What driver specifically do you refer to that is not in Ubuntu 12.4 ?
+Never mind, searching for the headline helped.
+
+This should work:
+	wget http://lists.lm-sensors.org/pipermail/lm-sensors/attachments/20090718/58aad378/attachment-0001.gz
+	gunzip attachment-0001.gz
+	tar xf attachment-0001
+	cd gm965temp-module
+	make
+	sudo make install
+	sudo modprobe gm965temp
+
+No idea what that has to do with ACPI, though.
 
 Guenter
 
