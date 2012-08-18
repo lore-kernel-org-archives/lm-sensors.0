@@ -1,77 +1,64 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:59:03 +0000
-Subject: [lm-sensors] [PATCH 19/39] hwmon: (emc2103) Convert to use devm_ functions
-Message-Id: <1344355143-26178-1-git-send-email-linux@roeck-us.net>
+Date: Sat, 18 Aug 2012 23:23:04 +0000
+Subject: Re: [lm-sensors] [PATCH 14/31] sections: Fix section conflicts in drivers/hwmon
+Message-Id: <20120818232304.GA19997@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1344352828-25143-20-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1344352828-25143-20-git-send-email-linux@roeck-us.net>
+References: <1345311022-26328-1-git-send-email-andi@firstfloor.org>
+ <1345311022-26328-15-git-send-email-andi@firstfloor.org>
+In-Reply-To: <1345311022-26328-15-git-send-email-andi@firstfloor.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andi Kleen <andi@firstfloor.org>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, Andi Kleen <ak@linux.intel.com>, lm-sensors@lm-sensors.org
 
-Convert to use devm_ functions to reduce code size and simplify the code.
+On Sat, Aug 18, 2012 at 10:30:05AM -0700, Andi Kleen wrote:
+> From: Andi Kleen <ak@linux.intel.com>
+> 
+> Signed-off-by: Andi Kleen <ak@linux.intel.com>
 
-Cc: Steve Glendinning <steve.glendinning@shawell.net>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-Resent with fixed e-mail address.
+Applied.
 
- drivers/hwmon/emc2103.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+Looks like you did not include maintainers and/or subject mailing lists in your
+patch series, so I guess you won't get much feedback.
 
-diff --git a/drivers/hwmon/emc2103.c b/drivers/hwmon/emc2103.c
-index 7bb8e88..77f434c 100644
---- a/drivers/hwmon/emc2103.c
-+++ b/drivers/hwmon/emc2103.c
-@@ -590,7 +590,8 @@ emc2103_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -EIO;
- 
--	data = kzalloc(sizeof(struct emc2103_data), GFP_KERNEL);
-+	data = devm_kzalloc(&client->dev, sizeof(struct emc2103_data),
-+			    GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
- 
-@@ -608,7 +609,7 @@ emc2103_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		if (status < 0) {
- 			dev_dbg(&client->dev, "reg 0x%02x, err %d\n", REG_CONF1,
- 				status);
--			goto exit_free;
-+			return status;
- 		}
- 
- 		/* detect current state of hardware */
-@@ -631,7 +632,7 @@ emc2103_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Register sysfs hooks */
- 	status = sysfs_create_group(&client->dev.kobj, &emc2103_group);
- 	if (status)
--		goto exit_free;
-+		return status;
- 
- 	if (data->temp_count >= 3) {
- 		status = sysfs_create_group(&client->dev.kobj,
-@@ -666,8 +667,6 @@ exit_remove_temp3:
- 		sysfs_remove_group(&client->dev.kobj, &emc2103_temp3_group);
- exit_remove:
- 	sysfs_remove_group(&client->dev.kobj, &emc2103_group);
--exit_free:
--	kfree(data);
- 	return status;
- }
- 
-@@ -685,7 +684,6 @@ static int emc2103_remove(struct i2c_client *client)
- 
- 	sysfs_remove_group(&client->dev.kobj, &emc2103_group);
- 
--	kfree(data);
- 	return 0;
- }
- 
--- 
-1.7.9.7
+Guenter
 
+> ---
+>  drivers/hwmon/coretemp.c |    2 +-
+>  drivers/hwmon/w83627hf.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+> index faa16f8..0fa356f 100644
+> --- a/drivers/hwmon/coretemp.c
+> +++ b/drivers/hwmon/coretemp.c
+> @@ -196,7 +196,7 @@ struct tjmax {
+>  	int tjmax;
+>  };
+>  
+> -static struct tjmax __cpuinitconst tjmax_table[] = {
+> +static const struct tjmax __cpuinitconst tjmax_table[] = {
+>  	{ "CPU D410", 100000 },
+>  	{ "CPU D425", 100000 },
+>  	{ "CPU D510", 100000 },
+> diff --git a/drivers/hwmon/w83627hf.c b/drivers/hwmon/w83627hf.c
+> index ab48252..5b1a6a6 100644
+> --- a/drivers/hwmon/w83627hf.c
+> +++ b/drivers/hwmon/w83627hf.c
+> @@ -1206,7 +1206,7 @@ static int __init w83627hf_find(int sioaddr, unsigned short *addr,
+>  	int err = -ENODEV;
+>  	u16 val;
+>  
+> -	static const __initdata char *names[] = {
+> +	static __initconst char *const names[] = {
+>  		"W83627HF",
+>  		"W83627THF",
+>  		"W83697HF",
+> -- 
+> 1.7.7.6
+> 
+> 
 
 _______________________________________________
 lm-sensors mailing list
