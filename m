@@ -1,75 +1,90 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 07 Aug 2012 15:19:59 +0000
-Subject: [lm-sensors] [PATCH 10/39] hwmon: (ads7871) Convert to use devm_ functions
-Message-Id: <1344352828-25143-11-git-send-email-linux@roeck-us.net>
+Date: Mon, 20 Aug 2012 16:40:22 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.6-rc3
+Message-Id: <20120820164022.GA20942@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============0227019223834580486=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============0227019223834580486==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
+Content-Disposition: inline
+
+
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon fixes for Linux 3.6-rc3 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit d9875690d9b89a866022ff49e3fcea892345ad92:
+
+  Linux 3.6-rc2 (2012-08-16 14:51:24 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 64f503076f9921fc714a2c79fb0fa520869d2c08:
+
+  sections: Fix section conflicts in drivers/hwmon (2012-08-18 16:17:43 -0700)
+
+----------------------------------------------------------------
+One patch with section conflict fixes.
+
+----------------------------------------------------------------
+Andi Kleen (1):
+      sections: Fix section conflicts in drivers/hwmon
+
+ drivers/hwmon/coretemp.c |    2 +-
+ drivers/hwmon/w83627hf.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQMmh2AAoJEMsfJm/On5mB86EP/1vQjUyZYd15QHoITEB1J/Xb
+MZHvsw2toHMqtQuuNXLxKOuFt1F/MlQJK+jSxNu7yR5rbb7SdMb45cCD+fLp+Hhf
+PXB9QGfFfxdGU498GJUzO0tIcdPHp0AKVb8wHcz/MsHOOKSUOpc56lsCKuQTNsKu
+DxbL5uFp8hgOKUVKpwngH5my1gm31SbzqaOBukXIT0av6MmLhFz4fIafrdUjS6dG
++92F1Ez0uiAjDuDv/f+FfdHuc4tRad7lAOHlQ9eEuiLBHddw5mP74aE58K+hP6r+
+UOomFBboIepLhoZ1Ln0kkoxVNDiyvY7xOyFInfCeN/664klOF8W6YPyVYV1wpNTC
+FFkg5vQUI+OqyUNAlE7rNHrmglSK4evgY7HlKs78u/6w8EK1bN7j89NgS8KfAjKg
+vN1IMtkwG+uaFUUKBky4kp5NGhhN8JsbWH90dMFztLNpgwO3ZThm7dQnOPPDD8AK
+fg4Hfmc0o55K8tuQl9Uy4HCWp+dM8TxSr3tzKUmjaQuASxQ6kX1dCzT1R/4IxUtR
+n0gEHEfmGq/R5Sb57UQMo+3kIeWzaYNO9fdo526lodXaC+z2La5in+J7i1jj25QY
+55CZOs7tRv2sZSI0dJC2NhnD5CLEHKqVJt7j5gyndVcqF4cHLKTYHWNr06FX5w6b
++vNYPVefJ3gVrJn9eg83
+=i4fl
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
+
+
+--===============0227019223834580486==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
-
-Convert to use devm_ functions to reduce code size and simplify the code.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/ads7871.c |   21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
-index e65c6e4..e837707 100644
---- a/drivers/hwmon/ads7871.c
-+++ b/drivers/hwmon/ads7871.c
-@@ -189,20 +189,17 @@ static int __devinit ads7871_probe(struct spi_device *spi)
- 	 * because there is no other error checking on an SPI bus
- 	 * we need to make sure we really have a chip
- 	 */
--	if (val != ret) {
--		err = -ENODEV;
--		goto exit;
--	}
-+	if (val != ret)
-+		return -ENODEV;
- 
--	pdata = kzalloc(sizeof(struct ads7871_data), GFP_KERNEL);
--	if (!pdata) {
--		err = -ENOMEM;
--		goto exit;
--	}
-+	pdata = devm_kzalloc(&spi->dev, sizeof(struct ads7871_data),
-+			     GFP_KERNEL);
-+	if (!pdata)
-+		return -ENOMEM;
- 
- 	err = sysfs_create_group(&spi->dev.kobj, &ads7871_group);
- 	if (err < 0)
--		goto error_free;
-+		return err;
- 
- 	spi_set_drvdata(spi, pdata);
- 
-@@ -216,9 +213,6 @@ static int __devinit ads7871_probe(struct spi_device *spi)
- 
- error_remove:
- 	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
--error_free:
--	kfree(pdata);
--exit:
- 	return err;
- }
- 
-@@ -228,7 +222,6 @@ static int __devexit ads7871_remove(struct spi_device *spi)
- 
- 	hwmon_device_unregister(pdata->hwmon_dev);
- 	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
--	kfree(pdata);
- 	return 0;
- }
- 
--- 
-1.7.9.7
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============0227019223834580486==--
