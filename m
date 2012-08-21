@@ -1,29 +1,30 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Tue, 21 Aug 2012 15:36:28 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (asus_atk0110): add quirk for Asus M5A78L
-Message-Id: <1345563388-9276-1-git-send-email-kronos.it@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 21 Aug 2012 15:43:49 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (asus_atk0110): add quirk for Asus M5A78L
+Message-Id: <20120821154349.GA25864@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1345563388-9276-1-git-send-email-kronos.it@gmail.com>
+In-Reply-To: <1345563388-9276-1-git-send-email-kronos.it@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-VGhlIG9sZCBpbnRlcmZhY2UgaXMgYnVnZ2VkIGFuZCByZWFkcyB0aGUgd3Jvbmcgc2Vuc29yIHdo
-ZW4gcmV0cmlldmluZwp0aGUgcmVhZGluZyBmb3IgdGhlIGNoYXNzaXMgZmFuIChpdCByZWFkcyB0
-aGUgQ1BVIHNlbnNvcnMpOyB0aGUgbmV3CmludGVyZmFjZSB3b3JrcyBmaW5lLgoKQ2M6IHN0YWJs
-ZUB2Z2VyLmtlcm5lbC5vcmcKClRlc3RlZC1ieTogR8O2cmFuIFVkZGVib3JnIDxnb2VyYW5AdWRk
-ZWJvcmcuc2U+ClNpZ25lZC1vZmYtYnk6IEx1Y2EgVGV0dGFtYW50aSA8a3Jvbm9zLml0QGdtYWls
-LmNvbT4KLS0tCiBkcml2ZXJzL2h3bW9uL2FzdXNfYXRrMDExMC5jIHwgICAgNiArKysrKysKIDEg
-ZmlsZSBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9u
-L2FzdXNfYXRrMDExMC5jIGIvZHJpdmVycy9od21vbi9hc3VzX2F0azAxMTAuYwppbmRleCAzNTFk
-MWY0Li40ZWU1Nzg5IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2FzdXNfYXRrMDExMC5jCisr
-KyBiL2RyaXZlcnMvaHdtb24vYXN1c19hdGswMTEwLmMKQEAgLTM0LDYgKzM0LDEyIEBAIHN0YXRp
-YyBjb25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCBfX2luaXRjb25zdCBhdGtfZm9yY2VfbmV3X2lm
-W10gPSB7CiAJCS5tYXRjaGVzID0gewogCQkJRE1JX01BVENIKERNSV9CT0FSRF9OQU1FLCAiU0FC
-RVJUT09USCBYNTgiKQogCQl9CisJfSwgeworCQkvKiBPbGQgaW50ZXJmYWNlIHJlYWRzIHRoZSBz
-YW1lIHNlbnNvciBmb3IgZmFuMCBhbmQgZmFuMSAqLworCQkuaWRlbnQgPSAiQXN1cyBNNUE3OEwi
-LAorCQkubWF0Y2hlcyA9IHsKKwkJCURNSV9NQVRDSChETUlfQk9BUkRfTkFNRSwgIk01QTc4TCIp
-CisJCX0KIAl9LAogCXsgfQogfTsKLS0gCjEuNy4xMC40CgoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vu
-c29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9sbS1zZW5zb3Jz
+On Tue, Aug 21, 2012 at 05:36:28PM +0200, Luca Tettamanti wrote:
+> The old interface is bugged and reads the wrong sensor when retrieving
+> the reading for the chassis fan (it reads the CPU sensors); the new
+> interface works fine.
+>=20
+> Cc: stable@vger.kernel.org
+>=20
+> Tested-by: G=F6ran Uddeborg <goeran@uddeborg.se>
+> Signed-off-by: Luca Tettamanti <kronos.it@gmail.com>
+
+Applied, thanks
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
