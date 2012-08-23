@@ -1,97 +1,142 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Mon, 06 Aug 2012 14:33:56 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (sch56xx-common) Fix build warnings
-Message-Id: <501FD5D4.5010509@redhat.com>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Date: Thu, 23 Aug 2012 15:32:12 +0000
+Subject: [lm-sensors] [PATCH] hwmon/lm70: adding support for NS LM74 chip
+Message-Id: <201208231532.q7NFWCQZ023407@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1344262986-26950-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1344262986-26950-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Hi,
+Hello,
 
-On 08/06/2012 04:23 PM, Guenter Roeck wrote:
-> Fix:
-> warning: 'address' may be used uninitialized in this function
-> warning: 'name' may be used uninitialized in this function
->
-> While those are false warnings, the patch reduces module size on x86_64 by
-> approximately 110 bytes, so it is still worth the effort.
->
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+This Patch adds support for the LM74 chip from National Semiconductor (NS) 
+in the lm70 driver
 
-Looks good:
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
-
-Regards,
-
-Hans
-
-
-> ---
->   drivers/hwmon/sch56xx-common.c |   22 +++++++++++-----------
->   1 file changed, 11 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/hwmon/sch56xx-common.c b/drivers/hwmon/sch56xx-common.c
-> index 4380f5d..69abbf7 100644
-> --- a/drivers/hwmon/sch56xx-common.c
-> +++ b/drivers/hwmon/sch56xx-common.c
-> @@ -503,10 +503,10 @@ EXPORT_SYMBOL(sch56xx_watchdog_unregister);
->    * platform dev find, add and remove functions
->    */
->
-> -static int __init sch56xx_find(int sioaddr, unsigned short *address,
-> -			       const char **name)
-> +static int __init sch56xx_find(int sioaddr, const char **name)
->   {
->   	u8 devid;
-> +	unsigned short address;
->   	int err;
->
->   	err = superio_enter(sioaddr);
-> @@ -540,13 +540,14 @@ static int __init sch56xx_find(int sioaddr, unsigned short *address,
->   	 * Warning the order of the low / high byte is the other way around
->   	 * as on most other superio devices!!
->   	 */
-> -	*address = superio_inb(sioaddr, SIO_REG_ADDR) |
-> +	address = superio_inb(sioaddr, SIO_REG_ADDR) |
->   		   superio_inb(sioaddr, SIO_REG_ADDR + 1) << 8;
-> -	if (*address = 0) {
-> +	if (address = 0) {
->   		pr_warn("Base address not set\n");
->   		err = -ENODEV;
->   		goto exit;
->   	}
-> +	err = address;
->
->   exit:
->   	superio_exit(sioaddr);
-> @@ -593,15 +594,14 @@ exit_device_put:
->
->   static int __init sch56xx_init(void)
->   {
-> -	int err;
->   	unsigned short address;
-> -	const char *name;
-> +	const char *name = NULL;
->
-> -	err = sch56xx_find(0x4e, &address, &name);
-> -	if (err)
-> -		err = sch56xx_find(0x2e, &address, &name);
-> -	if (err)
-> -		return err;
-> +	address = sch56xx_find(0x4e, &name);
-> +	if (address < 0)
-> +		address = sch56xx_find(0x2e, &name);
-> +	if (address < 0)
-> +		return address;
->
->   	return sch56xx_device_add(address, name);
->   }
->
+diff -u linux-3.5-vanilla/drivers/hwmon/Kconfig linux-3.5/drivers/hwmon/Kconfig
+--- linux-3.5-vanilla/drivers/hwmon/Kconfig	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/drivers/hwmon/Kconfig	2012-08-21 13:46:47.000000000 +0200
+@@ -530,11 +530,11 @@
+ 	  will be called lm63.
+ 
+ config SENSORS_LM70
+-	tristate "National Semiconductor LM70 / Texas Instruments TMP121"
++	tristate "National Semiconductor LM70&LM74 / Texas Instruments TMP121"
+ 	depends on SPI_MASTER
+ 	help
+ 	  If you say yes here you get support for the National Semiconductor
+-	  LM70 and Texas Instruments TMP121/TMP123 digital temperature
++	  LM70 and LM74 and Texas Instruments TMP121/TMP123 digital temperature
+ 	  sensor chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+diff -u linux-3.5-vanilla/drivers/hwmon/lm70.c linux-3.5/drivers/hwmon/lm70.c
+--- linux-3.5-vanilla/drivers/hwmon/lm70.c	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/drivers/hwmon/lm70.c	2012-08-21 13:46:31.000000000 +0200
+@@ -3,11 +3,12 @@
+  *
+  * The LM70 is a temperature sensor chip from National Semiconductor (NS).
+  * Copyright (C) 2006 Kaiwan N Billimoria <kaiwan@designergraphix.com>
++ * Copyright (C) 2012 Christophe Leroy <christophe.leroy@c-s.fr>
+  *
+  * The LM70 communicates with a host processor via an SPI/Microwire Bus
+  * interface. The complete datasheet is available at National's website
+  * here:
+- * http://www.national.com/pf/LM/LM70.html
++ * http://www.ti.com/product/LM70
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -43,6 +44,7 @@
+ 
+ #define LM70_CHIP_LM70		0	/* original NS LM70 */
+ #define LM70_CHIP_TMP121	1	/* TI TMP121/TMP123 */
++#define LM70_CHIP_LM74		2	/* original NS LM74 */
+ 
+ struct lm70 {
+ 	struct device *hwmon_dev;
+@@ -98,6 +100,7 @@
+ 		break;
+ 
+ 	case LM70_CHIP_TMP121:
++	case LM70_CHIP_LM74:
+ 		val = ((int)raw / 8) * 625 / 10;
+ 		break;
+ 	}
+@@ -123,6 +126,9 @@
+ 	case LM70_CHIP_TMP121:
+ 		ret = sprintf(buf, "tmp121\n");
+ 		break;
++	case LM70_CHIP_LM74:
++		ret = sprintf(buf, "lm74\n");
++		break;
+ 	default:
+ 		ret = -EINVAL;
+ 	}
+@@ -139,12 +145,13 @@
+ 	struct lm70 *p_lm70;
+ 	int status;
+ 
+-	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
++	/* signaling is SPI_MODE_0 for LM70, LM74 and TMP121 */
+ 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+ 		return -EINVAL;
+ 
+-	/* 3-wire link (shared SI/SO) for LM70 */
+-	if (chip = LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
++	/* 3-wire link (shared SI/SO) for LM70 and LM74 */
++	if ((chip = LM70_CHIP_LM70 || chip = LM70_CHIP_LM74)
++			&& !(spi->mode & SPI_3WIRE))
+ 		return -EINVAL;
+ 
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+@@ -202,6 +209,7 @@
+ static const struct spi_device_id lm70_ids[] = {
+ 	{ "lm70",   LM70_CHIP_LM70 },
+ 	{ "tmp121", LM70_CHIP_TMP121 },
++	{ "lm74",   LM70_CHIP_LM74 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(spi, lm70_ids);
+@@ -219,5 +227,5 @@
+ module_spi_driver(lm70_driver);
+ 
+ MODULE_AUTHOR("Kaiwan N Billimoria");
+-MODULE_DESCRIPTION("NS LM70 / TI TMP121/TMP123 Linux driver");
++MODULE_DESCRIPTION("NS LM70 & LM74 / TI TMP121/TMP123 Linux driver");
+ MODULE_LICENSE("GPL");
+diff -u linux-3.5-vanilla/Documentation/hwmon/lm70 linux-3.5/Documentation/hwmon/lm70
+--- linux-3.5-vanilla/Documentation/hwmon/lm70	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/Documentation/hwmon/lm70	2012-08-21 13:38:24.000000000 +0200
+@@ -3,7 +3,9 @@
+ 
+ Supported chips:
+   * National Semiconductor LM70
+-    Datasheet: http://www.national.com/pf/LM/LM70.html
++    Datasheet: http://www.ti.com/product/LM70
++  * National Semiconductor LM74
++    Datasheet: http://www.ti.com/product/LM74
+   * Texas Instruments TMP121/TMP123
+     Information: http://focus.ti.com/docs/prod/folders/print/tmp121.html
+ 
+@@ -31,9 +33,11 @@
+ with a "SPI master controller driver", see drivers/spi/spi_lm70llp.c
+ and its associated documentation.
+ 
+-The TMP121/TMP123 are very similar; main differences are 4 wire SPI inter-
+-face (read only) and 13-bit temperature data (0.0625 degrees celsius reso-
+-lution).
++The LM74 is very similar; main differences is 13-bit temperature data 
++(0.0625 degrees celsius resolution).
++
++The TMP121/TMP123 are very similar to the LM74; main difference is 4 wire
++SPI interface (read only).
+ 
+ Thanks to
+ ---------
 
 _______________________________________________
 lm-sensors mailing list
