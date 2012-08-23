@@ -1,168 +1,61 @@
-From: =?UTF-8?B?0JDQvdGC0L7QvSDQmtC+0YfQutC+0LI=?= <anton.kochkov@gmail.com>
-Date: Wed, 22 Aug 2012 19:48:54 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 23 Aug 2012 00:18:28 +0000
 Subject: Re: [lm-sensors] lm-sensors and ITE IT8512
-Message-Id: <CA+8M6wmjboMh-eB818PLJo24Kax5n9Jdk7fz+0ZKdnFgfQs0VQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2387043822063733949=="
+Message-Id: <20120823001828.GB13288@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CA+8M6wmjboMh-eB818PLJo24Kax5n9Jdk7fz+0ZKdnFgfQs0VQ@mail.gmail.com>
+In-Reply-To: <CA+8M6wmjboMh-eB818PLJo24Kax5n9Jdk7fz+0ZKdnFgfQs0VQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2387043822063733949==
-Content-Type: multipart/alternative; boundary=e89a8f83a80b62da3604c7e008f2
-
---e89a8f83a80b62da3604c7e008f2
-Content-Type: text/plain; charset=UTF-8
-
-ITE IT8512 very similar to IT8502 one. Btw, you can see sources of
-superiotool (http://coreboot.org/Superiotool ) to figure its registers.
-Main issue with these chips that they are embedded controllers, and have
-their own firmware, which can differ from one OEM/ODM to another. I have no
-luck with interfacing to them yet :(
-
-Best regards,
-Anton Kochkov.
-
-
-
-On Wed, Aug 22, 2012 at 11:41 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-
-> On Wed, Aug 22, 2012 at 07:43:22PM +0200, Gianluigi Papia wrote:
-> > Hi,
-> >
-> > First of all, sorry for my English but I'm french speaking.
-> > I would like to control the speed of the CPU fan of my Dell Studio
-> > 1555, but it seems that lm-sensors doesn't support my fan.
-> > When I do sensors-detect, I have this:
-> > Trying family `National Semiconductor/ITE'...               Yes
-> > Found `ITE IT8512E/F/G Super IO'
-> >     (no support yet)
-> >
-> > Driver `coretemp':
-> >   * Chip `Intel digital thermal sensor' (confidence: 9)
-> >
-> > To load everything that is needed, add this to /etc/modules:
-> > #----cut here----
-> > # Chip drivers
-> > coretemp
-> > #----cut here----
-> >
-> > Of course, when I do pwmconfig, it doesn't work:
-> > /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed
-> >
-> > I've tried to force the loading of it87 module, but I've this error:
-> > modprobe -v it87 force_id=0x8512
-> > insmod /lib/modules/3.2.0-3-amd64/kernel/drivers/hwmon/it87.ko
-> force_id=0x8512
-> > ERROR: could not insert 'it87': No such device
-> >
-> You can not force the ID to the "real" id ... or at least it won't help.
->
-> > I've also read that there are several issues because of acpi, so I've
-> > added in /etc/default/grub:
-> > GRUB_CMDLINE_LINUX_DEFAULT="quiet acpi_enforce_resources=lax"
-> >
-> > But, it still doesn't work. Is it dead for good because of ITE IT8512
-> > which has no support, or is there another solution?
-> >
-> It is not supported. I looked into the data sheet; the chip is not related
-> to
-> the IT87 series, and would require a completely new driver.
->
-> Guenter
->
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
->
-
---e89a8f83a80b62da3604c7e008f2
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-ITE IT8512 very similar to IT8502 one. Btw, you can see sources of superiot=
-ool (<a href=3D"http://coreboot.org/Superiotool">http://coreboot.org/Superi=
-otool</a> ) to figure its registers. Main issue with these chips that they =
-are embedded controllers, and have their own firmware, which can differ fro=
-m one OEM/ODM to another. I have no luck with interfacing to them yet :(<br=
->
-<br clear=3D"all">Best regards,<br>Anton Kochkov.<br><br>
-<br><br><div class=3D"gmail_quote">On Wed, Aug 22, 2012 at 11:41 PM, Guente=
-r Roeck <span dir=3D"ltr">&lt;<a href=3D"mailto:linux@roeck-us.net" target=
-=3D"_blank">linux@roeck-us.net</a>&gt;</span> wrote:<br><blockquote class=
-=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padd=
-ing-left:1ex">
-<div class=3D"im">On Wed, Aug 22, 2012 at 07:43:22PM +0200, Gianluigi Papia=
- wrote:<br>
-&gt; Hi,<br>
-&gt;<br>
-&gt; First of all, sorry for my English but I&#39;m french speaking.<br>
-&gt; I would like to control the speed of the CPU fan of my Dell Studio<br>
-&gt; 1555, but it seems that lm-sensors doesn&#39;t support my fan.<br>
-&gt; When I do sensors-detect, I have this:<br>
-&gt; Trying family `National Semiconductor/ITE&#39;... =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 Yes<br>
-&gt; Found `ITE IT8512E/F/G Super IO&#39;<br>
-&gt; =C2=A0 =C2=A0 (no support yet)<br>
-&gt;<br>
-&gt; Driver `coretemp&#39;:<br>
-&gt; =C2=A0 * Chip `Intel digital thermal sensor&#39; (confidence: 9)<br>
-&gt;<br>
-&gt; To load everything that is needed, add this to /etc/modules:<br>
-&gt; #----cut here----<br>
-&gt; # Chip drivers<br>
-&gt; coretemp<br>
-&gt; #----cut here----<br>
-&gt;<br>
-&gt; Of course, when I do pwmconfig, it doesn&#39;t work:<br>
-&gt; /usr/sbin/pwmconfig: There are no pwm-capable sensor modules installed=
-<br>
-&gt;<br>
-&gt; I&#39;ve tried to force the loading of it87 module, but I&#39;ve this =
-error:<br>
-&gt; modprobe -v it87 force_id=3D0x8512<br>
-&gt; insmod /lib/modules/3.2.0-3-amd64/kernel/drivers/hwmon/it87.ko force_i=
-d=3D0x8512<br>
-&gt; ERROR: could not insert &#39;it87&#39;: No such device<br>
-&gt;<br>
-</div>You can not force the ID to the &quot;real&quot; id ... or at least i=
-t won&#39;t help.<br>
-<div class=3D"im"><br>
-&gt; I&#39;ve also read that there are several issues because of acpi, so I=
-&#39;ve<br>
-&gt; added in /etc/default/grub:<br>
-&gt; GRUB_CMDLINE_LINUX_DEFAULT=3D&quot;quiet acpi_enforce_resources=3Dlax&=
-quot;<br>
-&gt;<br>
-&gt; But, it still doesn&#39;t work. Is it dead for good because of ITE IT8=
-512<br>
-&gt; which has no support, or is there another solution?<br>
-&gt;<br>
-</div>It is not supported. I looked into the data sheet; the chip is not re=
-lated to<br>
-the IT87 series, and would require a completely new driver.<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br>
-Guenter<br>
-</font></span><div class=3D"HOEnZb"><div class=3D"h5"><br>
-_______________________________________________<br>
-lm-sensors mailing list<br>
-<a href=3D"mailto:lm-sensors@lm-sensors.org">lm-sensors@lm-sensors.org</a><=
-br>
-<a href=3D"http://lists.lm-sensors.org/mailman/listinfo/lm-sensors" target=
-=3D"_blank">http://lists.lm-sensors.org/mailman/listinfo/lm-sensors</a><br>
-</div></div></blockquote></div><br>
-
---e89a8f83a80b62da3604c7e008f2--
-
-
---===============2387043822063733949==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2387043822063733949==--
+T24gV2VkLCBBdWcgMjIsIDIwMTIgYXQgMTE6NDg6NTRQTSArMDQwMCwg0JDQvdGC0L7QvSDQmtC+
+0YfQutC+0LIgd3JvdGU6Cj4gSVRFIElUODUxMiB2ZXJ5IHNpbWlsYXIgdG8gSVQ4NTAyIG9uZS4g
+QnR3LCB5b3UgY2FuIHNlZSBzb3VyY2VzIG9mCj4gc3VwZXJpb3Rvb2wgKGh0dHA6Ly9jb3JlYm9v
+dC5vcmcvU3VwZXJpb3Rvb2wgKSB0byBmaWd1cmUgaXRzIHJlZ2lzdGVycy4KPiBNYWluIGlzc3Vl
+IHdpdGggdGhlc2UgY2hpcHMgdGhhdCB0aGV5IGFyZSBlbWJlZGRlZCBjb250cm9sbGVycywgYW5k
+IGhhdmUKPiB0aGVpciBvd24gZmlybXdhcmUsIHdoaWNoIGNhbiBkaWZmZXIgZnJvbSBvbmUgT0VN
+L09ETSB0byBhbm90aGVyLiBJIGhhdmUgbm8KPiBsdWNrIHdpdGggaW50ZXJmYWNpbmcgdG8gdGhl
+bSB5ZXQgOigKPiAKLi4uIGFuZCBJVDg1MTBFLiBEYXRhIHNoZWV0cyBhcmUgYWN0dWFsbHkgb24g
+dGhlIHdlYiAtIHNlYXJjaCBmb3IgIklUODUxMkUKcHJlbGltaW5hcnkgc3BlY2lmaWNhdGlvbiIu
+IEJ1dCBldmVuIHdpdGggdGhhdCBhbGwgd2Uga25vdyBpcyB0aGF0IHdlIHdvdWxkIG5lZWQKYSBu
+ZXcgZHJpdmVyLgoKVGhhbmtzLApHdWVudGVyCgo+IEJlc3QgcmVnYXJkcywKPiBBbnRvbiBLb2No
+a292Lgo+IAo+IAo+IAo+IE9uIFdlZCwgQXVnIDIyLCAyMDEyIGF0IDExOjQxIFBNLCBHdWVudGVy
+IFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+IHdyb3RlOgo+IAo+ID4gT24gV2VkLCBBdWcgMjIs
+IDIwMTIgYXQgMDc6NDM6MjJQTSArMDIwMCwgR2lhbmx1aWdpIFBhcGlhIHdyb3RlOgo+ID4gPiBI
+aSwKPiA+ID4KPiA+ID4gRmlyc3Qgb2YgYWxsLCBzb3JyeSBmb3IgbXkgRW5nbGlzaCBidXQgSSdt
+IGZyZW5jaCBzcGVha2luZy4KPiA+ID4gSSB3b3VsZCBsaWtlIHRvIGNvbnRyb2wgdGhlIHNwZWVk
+IG9mIHRoZSBDUFUgZmFuIG9mIG15IERlbGwgU3R1ZGlvCj4gPiA+IDE1NTUsIGJ1dCBpdCBzZWVt
+cyB0aGF0IGxtLXNlbnNvcnMgZG9lc24ndCBzdXBwb3J0IG15IGZhbi4KPiA+ID4gV2hlbiBJIGRv
+IHNlbnNvcnMtZGV0ZWN0LCBJIGhhdmUgdGhpczoKPiA+ID4gVHJ5aW5nIGZhbWlseSBgTmF0aW9u
+YWwgU2VtaWNvbmR1Y3Rvci9JVEUnLi4uICAgICAgICAgICAgICAgWWVzCj4gPiA+IEZvdW5kIGBJ
+VEUgSVQ4NTEyRS9GL0cgU3VwZXIgSU8nCj4gPiA+ICAgICAobm8gc3VwcG9ydCB5ZXQpCj4gPiA+
+Cj4gPiA+IERyaXZlciBgY29yZXRlbXAnOgo+ID4gPiAgICogQ2hpcCBgSW50ZWwgZGlnaXRhbCB0
+aGVybWFsIHNlbnNvcicgKGNvbmZpZGVuY2U6IDkpCj4gPiA+Cj4gPiA+IFRvIGxvYWQgZXZlcnl0
+aGluZyB0aGF0IGlzIG5lZWRlZCwgYWRkIHRoaXMgdG8gL2V0Yy9tb2R1bGVzOgo+ID4gPiAjLS0t
+LWN1dCBoZXJlLS0tLQo+ID4gPiAjIENoaXAgZHJpdmVycwo+ID4gPiBjb3JldGVtcAo+ID4gPiAj
+LS0tLWN1dCBoZXJlLS0tLQo+ID4gPgo+ID4gPiBPZiBjb3Vyc2UsIHdoZW4gSSBkbyBwd21jb25m
+aWcsIGl0IGRvZXNuJ3Qgd29yazoKPiA+ID4gL3Vzci9zYmluL3B3bWNvbmZpZzogVGhlcmUgYXJl
+IG5vIHB3bS1jYXBhYmxlIHNlbnNvciBtb2R1bGVzIGluc3RhbGxlZAo+ID4gPgo+ID4gPiBJJ3Zl
+IHRyaWVkIHRvIGZvcmNlIHRoZSBsb2FkaW5nIG9mIGl0ODcgbW9kdWxlLCBidXQgSSd2ZSB0aGlz
+IGVycm9yOgo+ID4gPiBtb2Rwcm9iZSAtdiBpdDg3IGZvcmNlX2lkPTB4ODUxMgo+ID4gPiBpbnNt
+b2QgL2xpYi9tb2R1bGVzLzMuMi4wLTMtYW1kNjQva2VybmVsL2RyaXZlcnMvaHdtb24vaXQ4Ny5r
+bwo+ID4gZm9yY2VfaWQ9MHg4NTEyCj4gPiA+IEVSUk9SOiBjb3VsZCBub3QgaW5zZXJ0ICdpdDg3
+JzogTm8gc3VjaCBkZXZpY2UKPiA+ID4KPiA+IFlvdSBjYW4gbm90IGZvcmNlIHRoZSBJRCB0byB0
+aGUgInJlYWwiIGlkIC4uLiBvciBhdCBsZWFzdCBpdCB3b24ndCBoZWxwLgo+ID4KPiA+ID4gSSd2
+ZSBhbHNvIHJlYWQgdGhhdCB0aGVyZSBhcmUgc2V2ZXJhbCBpc3N1ZXMgYmVjYXVzZSBvZiBhY3Bp
+LCBzbyBJJ3ZlCj4gPiA+IGFkZGVkIGluIC9ldGMvZGVmYXVsdC9ncnViOgo+ID4gPiBHUlVCX0NN
+RExJTkVfTElOVVhfREVGQVVMVD0icXVpZXQgYWNwaV9lbmZvcmNlX3Jlc291cmNlcz1sYXgiCj4g
+PiA+Cj4gPiA+IEJ1dCwgaXQgc3RpbGwgZG9lc24ndCB3b3JrLiBJcyBpdCBkZWFkIGZvciBnb29k
+IGJlY2F1c2Ugb2YgSVRFIElUODUxMgo+ID4gPiB3aGljaCBoYXMgbm8gc3VwcG9ydCwgb3IgaXMg
+dGhlcmUgYW5vdGhlciBzb2x1dGlvbj8KPiA+ID4KPiA+IEl0IGlzIG5vdCBzdXBwb3J0ZWQuIEkg
+bG9va2VkIGludG8gdGhlIGRhdGEgc2hlZXQ7IHRoZSBjaGlwIGlzIG5vdCByZWxhdGVkCj4gPiB0
+bwo+ID4gdGhlIElUODcgc2VyaWVzLCBhbmQgd291bGQgcmVxdWlyZSBhIGNvbXBsZXRlbHkgbmV3
+IGRyaXZlci4KPiA+Cj4gPiBHdWVudGVyCj4gPgo+ID4gX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KPiA+IGxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cj4gPiBs
+bS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gPiBodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
+bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3JzCj4gPgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
