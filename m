@@ -1,20 +1,25 @@
 From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
-Date: Fri, 24 Aug 2012 08:32:00 +0000
+Date: Fri, 24 Aug 2012 13:45:00 +0000
 Subject: [lm-sensors] [RFC PATCH 0/8] DA906x PMIC driver
-Message-Id: <201208240830@sw-eng-lt-dc-vm2>
+Message-Id: <201208241445@sw-eng-lt-dc-vm2>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <201208240830@sw-eng-lt-dc-vm2>
+In-Reply-To: <201208240830@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, Richard Purdie <rpurdie@rpsys.net>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, "Richard Purdie <rpurdie@rpsys.net>
+	Anthony Olech" <anthony.olech@diasemi.com>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
 
 Greetings,
 
 The following patch set adds new multifunction device providing support for
 DA906x PMIC chips.
 
-Please add some comments to the driver, which targets Linux Kernel v3.6.
+I am resending this as it looks, the first send failed.
+
+Please add some comments to the driver patch, which targets Linux Kernel v3.6.
 
 Thank you,
 
