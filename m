@@ -1,15 +1,16 @@
 From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
-Date: Fri, 24 Aug 2012 08:32:00 +0000
+Date: Fri, 24 Aug 2012 13:50:00 +0000
 Subject: [lm-sensors] [PATCH 1/8] mfd: Add Dialog DA906x core driver.
-Message-Id: <201208240831@sw-eng-lt-dc-vm2>
+Message-Id: <201208241450@sw-eng-lt-dc-vm2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201208240830@sw-eng-lt-dc-vm2>
-In-Reply-To: <201208240830@sw-eng-lt-dc-vm2>
+References: <201208241445@sw-eng-lt-dc-vm2>
+In-Reply-To: <201208241445@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, Richard Purdie <rpurdie@rpsys.net>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, "Richard Purdie <rpurdie@rpsys.net>
+	Anthony Olech" <anthony.olech@diasemi.com>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
 
 This is MFD module providing access to registers and interrupts of DA906x
 series PMIC. It is used by other functional modules, registered as MFD cells.
