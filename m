@@ -1,74 +1,89 @@
 From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
-Date: Fri, 24 Aug 2012 08:32:00 +0000
-Subject: [lm-sensors] [PATCH 3/8] rtc: Add RTC driver for DA906x PMIC.
-Message-Id: <201208240833@sw-eng-lt-dc-vm2>
+Date: Fri, 24 Aug 2012 14:20:00 +0000
+Subject: [lm-sensors] [RFC PATCH 7/8] watchdog: Add DA906x PMIC watchdog driver.
+Message-Id: <201208241520@sw-eng-lt-dc-vm2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201208240832@sw-eng-lt-dc-vm2>
-In-Reply-To: <201208240832@sw-eng-lt-dc-vm2>
+References: <201208241515@sw-eng-lt-dc-vm2>
+In-Reply-To: <201208241515@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, Richard Purdie <rpurdie@rpsys.net>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, "Richard Purdie <rpurdie@rpsys.net>
+	Anthony Olech" <anthony.olech@diasemi.com>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
 
-DA906x RTC driver supports date/time and alarm.
-
-In hardware, PMIC supports alarm setting with a resolution of one minute and
-tick event (every second update event). The driver combines it, providing alarm
-with one second resolution.
-
-The driver requires MFD core driver for operation.
+This driver supports watchdog device inside DA906x PMIC.
 
 Signed-off-by: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
 ---
- drivers/rtc/Kconfig      |    7 +
- drivers/rtc/Makefile     |    1 +
- drivers/rtc/rtc-da906x.c |  379 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 387 insertions(+), 0 deletions(-)
- create mode 100644 drivers/rtc/rtc-da906x.c
+ drivers/watchdog/Kconfig      |   27 ++++
+ drivers/watchdog/Makefile     |    1 +
+ drivers/watchdog/da906x_wdt.c |  276 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 304 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/watchdog/da906x_wdt.c
 
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index fabc99a..e6037cd 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -571,6 +571,13 @@ config RTC_DRV_DA9052
- 	  Say y here to support the RTC driver for Dialog Semiconductor
- 	  DA9052-BC and DA9053-AA/Bx PMICs.
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index 53d7571..ef07575 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -76,6 +76,33 @@ config DA9052_WATCHDOG
+           Alternatively say M to compile the driver as a module,
+           which will be called da9052_wdt.
  
-+config RTC_DRV_DA906X
-+	tristate "Dialog DA906X RTC"
++config DA906X_WATCHDOG
++	tristate "Dialog DA906X Watchdog"
 +	depends on MFD_DA906X
++	select WATCHDOG_CORE
 +	help
-+	  Say y here to support the RTC driver for
-+	  Dialog Semiconductor DA906x PMIC.
++	  Support for the watchdog in the DA906X PMIC.
 +
- config RTC_DRV_EFI
- 	tristate "EFI RTC"
- 	depends on IA64
-diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
-index 0d5b2b6..d9c1e9f 100644
---- a/drivers/rtc/Makefile
-+++ b/drivers/rtc/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq4802.o
- obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
- obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
- obj-$(CONFIG_RTC_DRV_DA9052)	+= rtc-da9052.o
-+obj-$(CONFIG_RTC_DRV_DA906X)	+= rtc-da906x.o
- obj-$(CONFIG_RTC_DRV_DAVINCI)	+= rtc-davinci.o
- obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
- obj-$(CONFIG_RTC_DRV_VRTC)	+= rtc-mrst.o
-diff --git a/drivers/rtc/rtc-da906x.c b/drivers/rtc/rtc-da906x.c
++config DA906X_WDT_DEFAULT_TIMEOUT
++	int "Watchdog timeout in seconds <2, 4, 8, 16, 32, 65, 131>"
++	depends on DA906X_WATCHDOG
++	default 8
++	range 2 131
++	help
++	  Select the default watchdog timer period to be used by the
++	  Dialog DA906x watchdog driver. Supported values are:
++	  2, 4, 8, 16, 32, 65, 131 seconds.
++
++config DA906X_WDT_FLEXIBLE_TIMEOUT
++	bool "Flexible watchdog timeout (when requested value is unsupported)"
++	depends on DA906X_WATCHDOG
++	default y
++	help
++	  Say Y here to allow to select longer watchdog timer period to be
++	  used when requested value is not supported. The lowest available
++	  value higher than requested will be used (watchdog will never
++	  expire before requested timeout).
++
+ config WM831X_WATCHDOG
+ 	tristate "WM831x watchdog"
+ 	depends on MFD_WM831X
+diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
+index 572b39b..0746a87 100644
+--- a/drivers/watchdog/Makefile
++++ b/drivers/watchdog/Makefile
+@@ -164,6 +164,7 @@ obj-$(CONFIG_XEN_WDT) += xen_wdt.o
+ 
+ # Architecture Independent
+ obj-$(CONFIG_DA9052_WATCHDOG) += da9052_wdt.o
++obj-$(CONFIG_DA906X_WATCHDOG) += da906x_wdt.o
+ obj-$(CONFIG_WM831X_WATCHDOG) += wm831x_wdt.o
+ obj-$(CONFIG_WM8350_WATCHDOG) += wm8350_wdt.o
+ obj-$(CONFIG_MAX63XX_WATCHDOG) += max63xx_wdt.o
+diff --git a/drivers/watchdog/da906x_wdt.c b/drivers/watchdog/da906x_wdt.c
 new file mode 100644
-index 0000000..0b4fecc
+index 0000000..a67e4fa
 --- /dev/null
-+++ b/drivers/rtc/rtc-da906x.c
-@@ -0,0 +1,379 @@
++++ b/drivers/watchdog/da906x_wdt.c
+@@ -0,0 +1,276 @@
 +/*
-+ * Real Time Clock driver for DA906x PMIC family
++ * Watchdog driver for DA906X PMICs.
 + *
-+ * Copyright 2012 Dialog Semiconductors Ltd.
++ * Copyright(c) 2012 Dialog Semiconductor Ltd.
 + *
-+ * Author: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
++ * Author: Mariusz Wojtasik <mariusz.wojtasik@diasemi.com>
 + *
 + *  This program is free software; you can redistribute  it and/or modify it
 + *  under  the terms of  the GNU General  Public License as published by the
@@ -76,372 +91,269 @@ index 0000000..0b4fecc
 + *  option) any later version.
 + *
 + */
++
 +#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/init.h>
++#include <linux/watchdog.h>
 +#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/rtc.h>
++#include <linux/uaccess.h>
 +#include <linux/slab.h>
 +#include <linux/delay.h>
++
 +#include <linux/mfd/da906x/registers.h>
 +#include <linux/mfd/da906x/core.h>
 +
-+#define YEARS_TO_DA906X(year)		((year) - 100)
-+#define MONTHS_TO_DA906X(month)		((month) + 1)
-+#define YEARS_FROM_DA906X(year)		((year) + 100)
-+#define MONTHS_FROM_DA906X(month)	((month) - 1)
++#define	SUPPORTED_TIMEOUTS_STR		"2, 4, 8, 16, 32, 65, 131"
 +
-+#define CLOCK_DATA_LEN	(DA906X_REG_COUNT_Y - DA906X_REG_COUNT_S + 1)
-+#define ALARM_DATA_LEN	(DA906X_REG_ALARM_Y - DA906X_REG_ALARM_MI + 1)
-+enum {
-+	DATA_SEC = 0,
-+	DATA_MIN,
-+	DATA_HOUR,
-+	DATA_DAY,
-+	DATA_MONTH,
-+	DATA_YEAR,
++/* Watchdog selector to timeout in seconds.
++   0: WDT disabled;
++   others: timeout = 2048 ms * 2^(TWDSCALE-1). */
++const int wdt_timeout[] = { 0, 2, 4, 8, 16, 32, 65, 131 };
++#define DA906X_TWDSCALE_DISABLE		0
++#define DA906X_TWDSCALE_MIN		1
++#define DA906X_TWDSCALE_MAX		(ARRAY_SIZE(wdt_timeout) - 1)
++#define DA906X_WDT_MIN_TIMEOUT		wdt_timeout[DA906X_TWDSCALE_MIN]
++#define DA906X_WDT_MAX_TIMEOUT		wdt_timeout[DA906X_TWDSCALE_MAX]
++#define WATCHDOG_DEFAULT_TIMEOUT	wdt_timeout[3];
++
++/* module parameters */
++static int default_timeout = CONFIG_DA906X_WDT_DEFAULT_TIMEOUT;
++module_param(default_timeout, int, 0);
++MODULE_PARM_DESC(default_timeout,
++	"Watchdog timeout in seconds (select from: " SUPPORTED_TIMEOUTS_STR
++	" default=" __stringify(CONFIG_DA906X_WDT_DEFAULT_TIMEOUT) ")");
++
++static bool flex_timeout = CONFIG_DA906X_WDT_FLEXIBLE_TIMEOUT;
++module_param(flex_timeout, bool, false);
++MODULE_PARM_DESC(flex_timeout,
++	"Watchdog flexible timeout, allows longer timeout than requested"
++	" (default=" __stringify(CONFIG_DA906X_WDT_FLEXIBLE_TIMEOUT) ")");
++
++static int nowayout = WATCHDOG_NOWAYOUT;
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout,
++		 "Watchdog cannot be stopped once started (default="
++		 __stringify(WATCHDOG_NOWAYOUT) ")");
++
++
++struct da906x_watchdog {
++	struct da906x *da906x;
++	struct watchdog_device *wdtdev;
++	struct mutex lock;
 +};
++static struct da906x_watchdog da906x_watchdog;
 +
-+struct da906x_rtc {
-+	struct rtc_device	*rtc_dev;
-+	struct da906x		*hw;
-+	int			irq_alarm;
-+	int			irq_tick;
-+
-+	/* Config flag */
-+	int			tick_wake;
-+
-+	/* Used to expand alarm precision from minutes up to seconds
-+	   using hardware ticks */
-+	unsigned int		alarmSecs;
-+	unsigned int		alarmTicks;
-+};
-+
-+static void da906x_data_to_tm(u8 *data, struct rtc_time *tm)
++static int _da906x_wdt_timeout_to_sel(int secs)
 +{
-+	tm->tm_sec = data[DATA_SEC] & DA906X_COUNT_SEC_MASK;
-+	tm->tm_min = data[DATA_MIN] & DA906X_COUNT_MIN_MASK;
-+	tm->tm_hour = data[DATA_HOUR] & DA906X_COUNT_HOUR_MASK;
-+	tm->tm_mday = data[DATA_DAY] & DA906X_COUNT_DAY_MASK;
-+	tm->tm_mon = MONTHS_FROM_DA906X(data[DATA_MONTH] &
-+					 DA906X_COUNT_MONTH_MASK);
-+	tm->tm_year = YEARS_FROM_DA906X(data[DATA_YEAR] &
-+					 DA906X_COUNT_YEAR_MASK);
-+}
++	int i;
 +
-+static void da906x_tm_to_data(struct rtc_time *tm, u8 *data)
-+{
-+	data[DATA_SEC] &= ~DA906X_COUNT_SEC_MASK;
-+	data[DATA_SEC] |= tm->tm_sec & DA906X_COUNT_SEC_MASK;
-+	data[DATA_MIN] &= ~DA906X_COUNT_MIN_MASK;
-+	data[DATA_MIN] |= tm->tm_min & DA906X_COUNT_MIN_MASK;
-+	data[DATA_HOUR] &= ~DA906X_COUNT_HOUR_MASK;
-+	data[DATA_HOUR] |= tm->tm_hour & DA906X_COUNT_HOUR_MASK;
-+	data[DATA_DAY] &= ~DA906X_COUNT_DAY_MASK;
-+	data[DATA_DAY] |= tm->tm_mday & DA906X_COUNT_DAY_MASK;
-+	data[DATA_MONTH] &= ~DA906X_COUNT_MONTH_MASK;
-+	data[DATA_MONTH] |= MONTHS_TO_DA906X(tm->tm_mon) &
-+			    DA906X_COUNT_MONTH_MASK;
-+	data[DATA_YEAR] &= ~DA906X_COUNT_YEAR_MASK;
-+	data[DATA_YEAR] |= YEARS_TO_DA906X(tm->tm_year) &
-+			   DA906X_COUNT_YEAR_MASK;
-+}
-+
-+#define DA906X_ALARM_DELAY	INT_MAX
-+static int da906x_rtc_test_delay(struct rtc_time *alarm, struct rtc_time *cur)
-+{
-+	unsigned long a_time, c_time;
-+
-+	rtc_tm_to_time(alarm, &a_time);
-+	rtc_tm_to_time(cur, &c_time);
-+
-+	/* Alarm time has already passed */
-+	if (a_time < c_time)
-+		return -1;
-+
-+	/* If alarm is set for current minute, return ticks to count down.
-+	   If alarm is set for following minutes, return DA906X_ALARM_DELAY
-+	   to set alarm first.
-+	   But when it is less than 2 seconds for the former to become true,
-+	   return ticks, because alarm needs some time to synchronise. */
-+	if (a_time - c_time < alarm->tm_sec + 2)
-+		return a_time - c_time;
-+	else
-+		return DA906X_ALARM_DELAY;
-+}
-+
-+static int da906x_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct da906x_rtc *rtc = dev_get_drvdata(dev);
-+	u8 data[CLOCK_DATA_LEN];
-+	int ret;
-+
-+	ret = da906x_block_read(rtc->hw,
-+				DA906X_REG_COUNT_S, CLOCK_DATA_LEN, data);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Check, if RTC logic is initialised */
-+	if (!(data[DATA_SEC] & DA906X_RTC_READ))
-+		return -EBUSY;
-+
-+	da906x_data_to_tm(data, tm);
-+
-+	return rtc_valid_tm(tm);
-+}
-+
-+static int da906x_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct da906x_rtc *rtc = dev_get_drvdata(dev);
-+	u8 data[CLOCK_DATA_LEN] = { [0 ... (CLOCK_DATA_LEN - 1)] = 0 };
-+	int ret;
-+
-+	da906x_tm_to_data(tm, data);
-+
-+	ret = da906x_block_write(rtc->hw,
-+				 DA906X_REG_COUNT_S, CLOCK_DATA_LEN, data);
-+
-+	return ret;
-+}
-+
-+static int da906x_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct da906x_rtc *rtc = dev_get_drvdata(dev);
-+	u8 data[CLOCK_DATA_LEN];
-+	int ret;
-+
-+	ret = da906x_block_read(rtc->hw, DA906X_REG_ALARM_MI, ALARM_DATA_LEN,
-+				&data[DATA_MIN]);
-+	if (ret < 0)
-+		return ret;
-+
-+	da906x_data_to_tm(data, &alrm->time);
-+	alrm->time.tm_sec = rtc->alarmSecs;
-+	alrm->enabled = !!(data[DATA_YEAR] & DA906X_ALARM_ON);
-+
-+	/* If there is no ticks left to count down and RTC event is
-+	   not processed yet, indicate pending */
-+	if (rtc->alarmTicks = 0) {
-+		ret = da906x_reg_read(rtc->hw, DA906X_REG_EVENT_A);
-+		if (ret < 0)
-+			return ret;
-+		if (ret & (DA906X_E_ALARM | DA906X_E_TICK))
-+			alrm->pending = 1;
-+	} else {
-+		alrm->pending = 0;
++	for (i = DA906X_TWDSCALE_MIN; i <= DA906X_TWDSCALE_MAX; i++) {
++		if (wdt_timeout[i] = secs ||
++		    (flex_timeout && wdt_timeout[i] > secs))
++			return i;
 +	}
 +
 +	return 0;
 +}
 +
-+static int da906x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++static int _da906x_wdt_disable(struct da906x *da906x)
 +{
-+	struct da906x_rtc *rtc = dev_get_drvdata(dev);
-+	u8 data[CLOCK_DATA_LEN] = { [0 ... (CLOCK_DATA_LEN - 1)] = 0 };
-+	struct rtc_time cur_tm;
-+	int cmp_val;
-+	int ret;
-+
-+	data[DATA_MIN] = DA906X_ALARM_STATUS_ALARM;
-+	data[DATA_MONTH] = DA906X_TICK_TYPE_SEC;
-+	if (rtc->tick_wake)
-+		data[DATA_MONTH] |= DA906X_TICK_WAKE;
-+
-+	ret = da906x_rtc_read_time(dev, &cur_tm);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (alrm->enabled) {
-+		cmp_val = da906x_rtc_test_delay(&alrm->time, &cur_tm);
-+		if (cmp_val = DA906X_ALARM_DELAY) {
-+			/* Set alarm for longer delay */
-+			data[DATA_YEAR] |= DA906X_ALARM_ON;
-+		} else if (cmp_val > 0) {
-+			/* Count ticks for shorter delay */
-+			rtc->alarmTicks = cmp_val - 1;
-+			data[DATA_YEAR] |= DA906X_TICK_ON;
-+		} else if (cmp_val = 0) {
-+			/* Just about time - report event */
-+			rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
-+		}
-+	}
-+
-+	da906x_tm_to_data(&alrm->time, data);
-+	rtc->alarmSecs = alrm->time.tm_sec;
-+
-+	return da906x_block_write(rtc->hw, DA906X_REG_ALARM_MI, ALARM_DATA_LEN,
-+				 &data[DATA_MIN]);
++	return da906x_reg_update(da906x, DA906X_REG_CONTROL_D,
++			DA906X_TWDSCALE_MASK,
++			DA906X_TWDSCALE_DISABLE << DA906X_TWDSCALE_SHIFT);
 +}
 +
-+static int da906x_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++static int _da906x_wdt_set_timeout(struct da906x *da906x, unsigned int regval)
 +{
-+	struct da906x_rtc *rtc = dev_get_drvdata(dev);
-+	struct rtc_wkalrm alrm;
-+	int ret;
++	if (regval > DA906X_TWDSCALE_MAX)
++		return -EINVAL;
 +
-+	ret = da906x_reg_read(rtc->hw, DATA_YEAR);
-+	if (ret < 0)
-+		return ret;
++	return da906x_reg_update(da906x, DA906X_REG_CONTROL_D,
++			DA906X_TWDSCALE_MASK, regval << DA906X_TWDSCALE_SHIFT);
++}
 +
-+	if (enabled) {
-+		/* Enable alarm, if it is not enabled already */
-+		if (!(ret & (DA906X_ALARM_ON | DA906X_TICK_ON))) {
-+			ret = da906x_rtc_read_alarm(dev, &alrm);
-+			if (ret < 0)
-+				return ret;
++static int _da906x_wdt_kick(struct da906x *da906x)
++{
++	return da906x_reg_write(da906x, DA906X_REG_CONTROL_F, DA906X_WATCHDOG);
++}
 +
-+			alrm.enabled = 1;
-+			ret = da906x_rtc_set_alarm(dev, &alrm);
-+		}
-+	} else {
-+		ret = da906x_reg_clear_bits(rtc->hw, DA906X_REG_ALARM_Y,
-+					    DA906X_ALARM_ON);
++static int da906x_wdt_start(struct watchdog_device *wdd)
++{
++	struct da906x_watchdog *wdt = watchdog_get_drvdata(wdd);
++	unsigned int selector;
++	int ret = 0;
++
++	mutex_lock(&wdt->lock);
++	selector = _da906x_wdt_timeout_to_sel(wdt->wdtdev->timeout);
++	ret = _da906x_wdt_set_timeout(wdt->da906x, selector);
++	if (ret != 0) {
++		dev_err(wdt->da906x->dev,
++			"Watchdog failed to start (err = %d)\n", ret);
 +	}
++	mutex_unlock(&wdt->lock);
 +
 +	return ret;
 +}
 +
-+/* On alarm interrupt, start to count ticks to enable seconds precision
-+   (if alarm seconds != 0). */
-+static irqreturn_t da906x_alarm_event(int irq, void *data)
++static int da906x_wdt_stop(struct watchdog_device *wdd)
 +{
-+	struct da906x_rtc *rtc = data;
++	struct da906x_watchdog *wdt = watchdog_get_drvdata(wdd);
++	int ret = 0;
 +
-+	if (rtc->alarmSecs) {
-+		rtc->alarmTicks = rtc->alarmSecs - 1;
-+		da906x_reg_update(rtc->hw, DA906X_REG_ALARM_Y,
-+				  DA906X_ALARM_ON | DA906X_TICK_ON,
-+				  DA906X_TICK_ON);
-+	} else {
-+		da906x_reg_clear_bits(rtc->hw, DA906X_REG_ALARM_Y,
-+				      DA906X_ALARM_ON);
-+		rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
-+	}
++	mutex_lock(&wdt->lock);
++	ret = _da906x_wdt_disable(wdt->da906x);
++	if (ret < 0)
++		dev_alert(wdt->da906x->dev,
++			  "Watchdog failed to stop (err = %d)\n", ret);
++	mutex_unlock(&wdt->lock);
 +
-+	return IRQ_HANDLED;
++	return ret;
 +}
 +
-+/* On tick interrupt, count down seconds left to timeout */
-+static irqreturn_t da906x_tick_event(int irq, void *data)
++static int da906x_wdt_ping(struct watchdog_device *wdd)
 +{
-+	struct da906x_rtc *rtc = data;
++	struct da906x_watchdog *wdt = watchdog_get_drvdata(wdd);
++	int ret = 0;
 +
-+	if (rtc->alarmTicks-- = 0) {
-+		da906x_reg_clear_bits(rtc->hw,
-+				      DA906X_REG_ALARM_Y, DA906X_TICK_ON);
-+		rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_UF);
-+	}
++	mutex_lock(&wdt->lock);
++	ret = _da906x_wdt_kick(wdt->da906x);
++	if (ret < 0)
++		dev_alert(wdt->da906x->dev,
++			  "Failed to ping the watchdog (err = %d)\n", ret);
++	mutex_unlock(&wdt->lock);
 +
-+	return IRQ_HANDLED;
++	return ret;
 +}
 +
-+static const struct rtc_class_ops da906x_rtc_ops = {
-+	.read_time = da906x_rtc_read_time,
-+	.set_time = da906x_rtc_set_time,
-+	.read_alarm = da906x_rtc_read_alarm,
-+	.set_alarm = da906x_rtc_set_alarm,
-+	.alarm_irq_enable = da906x_rtc_alarm_irq_enable,
++static int da906x_wdt_set_timeout(struct watchdog_device *wdd,
++							unsigned int timeout)
++{
++	struct da906x_watchdog *wdt = watchdog_get_drvdata(wdd);
++	unsigned int selector;
++	int ret = 0;
++
++	mutex_lock(&wdt->lock);
++	selector = _da906x_wdt_timeout_to_sel(timeout);
++	if (selector = 0) {
++		dev_err(wdt->da906x->dev,
++			"Unsupported watchdog timeout (selecto from: "
++			SUPPORTED_TIMEOUTS_STR ")\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	ret = _da906x_wdt_set_timeout(wdt->da906x, selector);
++	if (ret < 0) {
++		dev_err(wdt->da906x->dev,
++			"Failed to set watchdog timeout (err = %d)\n", ret);
++		goto out;
++	}
++
++	wdd->timeout = wdt_timeout[selector];
++
++out:
++	mutex_unlock(&wdt->lock);
++
++	return ret;
++}
++
++static struct watchdog_info da906x_watchdog_info = {
++	.options	= WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING,
++	.identity	= "DA906x Watchdog",
 +};
 +
-+static __devinit int da906x_rtc_probe(struct platform_device *pdev)
++static struct watchdog_ops da906x_watchdog_ops = {
++	.owner	= THIS_MODULE,
++	.start		= da906x_wdt_start,
++	.stop		= da906x_wdt_stop,
++	.ping		= da906x_wdt_ping,
++	.set_timeout	= da906x_wdt_set_timeout,
++};
++
++static struct watchdog_device da906x_watchdog_device = {
++	.info	= &da906x_watchdog_info,
++	.ops	= &da906x_watchdog_ops,
++	.driver_data = &da906x_watchdog,
++};
++
++static int __devinit da906x_wdt_probe(struct platform_device *pdev)
 +{
++	int ret;
 +	struct da906x *da906x = dev_get_drvdata(pdev->dev.parent);
-+	struct da906x_rtc *rtc;
-+	int ret;
-+	int alarm_mo;
++	struct da906x_watchdog *wdt = &da906x_watchdog;
++	unsigned int selector;
 +
-+	/* Enable RTC hardware */
-+	ret = da906x_reg_set_bits(da906x, DA906X_REG_CONTROL_E, DA906X_RTC_EN);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to enable RTC.\n");
-+		return ret;
++	if (wdt->da906x != NULL) {
++		dev_err(da906x->dev, DA906X_DRVNAME_WATCHDOG
++			" already registered.\n");
++		return -EBUSY;
 +	}
 +
-+	ret = da906x_reg_set_bits(da906x, DA906X_REG_EN_32K, DA906X_CRYSTAL);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to run 32 KHz OSC.\n");
-+		return ret;
++	wdt->da906x = da906x;
++	wdt->wdtdev = &da906x_watchdog_device;
++	mutex_init(&wdt->lock);
++
++	if (nowayout)
++		set_bit(WDOG_NO_WAY_OUT, &wdt->wdtdev->status);
++
++	if (flex_timeout)
++		wdt->wdtdev->min_timeout = 1;
++	else
++		wdt->wdtdev->min_timeout = DA906X_WDT_MIN_TIMEOUT;
++
++	wdt->wdtdev->max_timeout = DA906X_WDT_MAX_TIMEOUT;
++
++	selector = _da906x_wdt_timeout_to_sel(default_timeout);
++	if (selector = 0) {
++		wdt->wdtdev->timeout = WATCHDOG_DEFAULT_TIMEOUT;
++		dev_warn(da906x->dev,
++			 "Invalid default timeout: %d "
++			 "(select from: " SUPPORTED_TIMEOUTS_STR ").\n",
++			 default_timeout);
++		dev_warn(da906x->dev, "Default timeout is %d secs.\n",
++			 wdt->wdtdev->timeout);
++	} else {
++		wdt->wdtdev->timeout = wdt_timeout[selector];
++		if (wdt->wdtdev->timeout != default_timeout) {
++			dev_info(da906x->dev, "Using %d secs timeout.\n",
++				 wdt->wdtdev->timeout);
++		}
 +	}
 +
-+	ret = da906x_reg_read(da906x, DA906X_REG_ALARM_MO);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to read RTC register.\n");
-+		return ret;
-+	}
-+	alarm_mo = ret;
++	ret = watchdog_register_device(wdt->wdtdev);
++	if (ret)
++		dev_err(da906x->dev, DA906X_DRVNAME_WATCHDOG
++			" registration failed (err = %d)", ret);
 +
-+	/* Register RTC device */
-+	rtc = devm_kzalloc(&pdev->dev, sizeof *rtc, GFP_KERNEL);
-+	if (!rtc)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, rtc);
-+
-+	rtc->hw = da906x;
-+	rtc->rtc_dev = rtc_device_register(DA906X_DRVNAME_RTC, &pdev->dev,
-+					   &da906x_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc_dev)) {
-+		dev_err(&pdev->dev, "Failed to register RTC device: %ld\n",
-+			PTR_ERR(rtc->rtc_dev));
-+		return PTR_ERR(rtc->rtc_dev);
-+	}
-+
-+	if (alarm_mo & DA906X_TICK_WAKE)
-+		rtc->tick_wake = 1;
-+
-+	/* Register interrupts. Complain on errors but let device
-+	   to be registered at least for date/time. */
-+	rtc->irq_alarm = platform_get_irq_byname(pdev, "ALARM");
-+	ret = request_threaded_irq(rtc->irq_alarm, NULL, da906x_alarm_event,
-+				IRQF_TRIGGER_LOW | IRQF_ONESHOT, "ALARM", rtc);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request ALARM IRQ.\n");
-+		rtc->irq_alarm = -ENXIO;
-+		return 0;
-+	}
-+
-+	rtc->irq_tick = platform_get_irq_byname(pdev, "TICK");
-+	ret = request_threaded_irq(rtc->irq_tick, NULL, da906x_tick_event,
-+			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "TICK", rtc);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request TICK IRQ.\n");
-+		rtc->irq_tick = -ENXIO;
-+	}
-+
-+	return 0;
++	return ret;
 +}
 +
-+static int __devexit da906x_rtc_remove(struct platform_device *pdev)
++static int __devexit da906x_wdt_remove(struct platform_device *dev)
 +{
-+	struct da906x_rtc *rtc = platform_get_drvdata(pdev);
++	struct da906x_watchdog *wdt = &da906x_watchdog;
 +
-+	if (rtc->irq_alarm >= 0)
-+		free_irq(rtc->irq_alarm, rtc);
++	watchdog_unregister_device(&da906x_watchdog_device);
++	wdt->da906x = NULL;
++	wdt->wdtdev = NULL;
 +
-+	if (rtc->irq_tick >= 0)
-+		free_irq(rtc->irq_tick, rtc);
-+
-+	rtc_device_unregister(rtc->rtc_dev);
 +	return 0;
 +}
 +
-+static struct platform_driver da906x_rtc_driver = {
-+	.probe		= da906x_rtc_probe,
-+	.remove		= __devexit_p(da906x_rtc_remove),
-+	.driver		= {
-+		.name	= DA906X_DRVNAME_RTC,
++static struct platform_driver da906x_wdt_driver = {
++	.probe = da906x_wdt_probe,
++	.remove = __devexit_p(da906x_wdt_remove),
++	.driver = {
++		.name	= DA906X_DRVNAME_WATCHDOG,
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+module_platform_driver(da906x_rtc_driver);
++module_platform_driver(da906x_wdt_driver);
 +
-+/* Module information */
-+MODULE_AUTHOR("Krystian Garbaciak <krystian.garbaciak@diasemi.com>");
-+MODULE_DESCRIPTION("DA906x RTC driver");
++MODULE_AUTHOR("Mariusz Wojtasik <mariusz.wojtasik@diasemi.com>");
++MODULE_DESCRIPTION("Watchdog driver for Dialog DA906x");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DA906X_DRVNAME_RTC);
++MODULE_ALIAS("platform:" DA906X_DRVNAME_WATCHDOG);
 -- 
 1.7.0.4
 
