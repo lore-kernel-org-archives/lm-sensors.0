@@ -1,1373 +1,1102 @@
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Date: Thu, 16 Aug 2012 11:53:41 +0000
-Subject: [lm-sensors] [PATCH v6 2/6] hwmon: exynos4: move thermal sensor driver to driver/thermal directory
-Message-Id: <1345117305-8299-3-git-send-email-amit.kachhap@linaro.org>
+From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
+Date: Fri, 24 Aug 2012 08:32:00 +0000
+Subject: [lm-sensors] [PATCH 2/8] regulator: Add Dialog DA906x voltage regulators support.
+Message-Id: <201208240832@sw-eng-lt-dc-vm2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
-In-Reply-To: <1345117305-8299-1-git-send-email-amit.kachhap@linaro.org>
+References: <201208240831@sw-eng-lt-dc-vm2>
+In-Reply-To: <201208240831@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pm@lists.linux-foundation.org, Andrew Morton <akpm@linux-foundation.org>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
-Cc: linux-samsung-soc@vger.kernel.org, SangWook Ju <sw.ju@samsung.com>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>, Jean Delvare <khali@linux-fr.org>, Kyungmin Park <kmpark@infradead.org>
+To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, Richard Purdie <rpurdie@rpsys.net>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
 
-This movement is needed because the hwmon entries and corresponding sysfs
-interface is a duplicate of utilities already provided by
-driver/thermal/thermal_sys.c.  The goal is to place it in thermal folder
-and add necessary functions to use the in-kernel thermal interfaces.
+The driver adds support for the following DA9063 PMIC regulators:
+ - 11x LDOs (named LDO1 - LDO11),
+ - 6x buck converters (BCORE1, BCORE2, BPRO, BMEM, BIO, BPERI),
+ - 1x power switch to switch on/off 32 KHz oscilator output (32K_OUT).
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: SangWook Ju <sw.ju@samsung.com>
-Cc: Durgadoss <durgadoss.r@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Kyungmin Park <kmpark@infradead.org>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Amit Daniel Kachhap <amit.daniel@samsung.com>
+Regulators provide following operations:
+ - REGULATOR_CHANGE_STATUS for all regulators,
+ - REGULATOR_CHANGE_VOLTAGE for LDOs and buck converters,
+ - REGULATOR_CHANGE_MODE for LDOs and buck converters, where:
+     - LDOs allow REGULATOR_MODE_NORMAL and REGULATOR_MODE_STANDBY,
+     - buck converters allow REGULATOR_MODE_FAST, REGULATOR_MODE_NORMAL
+       and REGULATOR_MODE_STANDBY,
+ - REGULATOR_CHANGE_CURRENT for buck converters (current limits).
+
+The driver generates REGULATOR_EVENT_OVER_CURRENT for LDO3, LDO4, LDO7, LDO8
+and LDO11.
+
+Internally, PMIC provides two voltage configurations for normal and suspend
+system state for each regulator. The driver switches between those on
+suspend/wake-up to provide quick and fluent output voltage change.
+
+This driver requires MFD core driver for operation.
+
+Signed-off-by: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
 ---
- Documentation/hwmon/exynos4_tmu              |   81 ----
- Documentation/thermal/exynos_thermal         |   52 +++
- drivers/hwmon/Kconfig                        |   10 -
- drivers/hwmon/Makefile                       |    1 -
- drivers/hwmon/exynos4_tmu.c                  |  518 --------------------------
- drivers/thermal/Kconfig                      |    7 +
- drivers/thermal/Makefile                     |    1 +
- drivers/thermal/exynos_thermal.c             |  413 ++++++++++++++++++++
- include/linux/platform_data/exynos4_tmu.h    |   83 ----
- include/linux/platform_data/exynos_thermal.h |   83 ++++
- 10 files changed, 556 insertions(+), 693 deletions(-)
- delete mode 100644 Documentation/hwmon/exynos4_tmu
- create mode 100644 Documentation/thermal/exynos_thermal
- delete mode 100644 drivers/hwmon/exynos4_tmu.c
- create mode 100644 drivers/thermal/exynos_thermal.c
- delete mode 100644 include/linux/platform_data/exynos4_tmu.h
- create mode 100644 include/linux/platform_data/exynos_thermal.h
+ drivers/regulator/Kconfig            |    6 +
+ drivers/regulator/Makefile           |    1 +
+ drivers/regulator/da906x-regulator.c | 1018 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 1025 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/regulator/da906x-regulator.c
 
-diff --git a/Documentation/hwmon/exynos4_tmu b/Documentation/hwmon/exynos4_tmu
-deleted file mode 100644
-index c3c6b41..0000000
---- a/Documentation/hwmon/exynos4_tmu
-+++ /dev/null
-@@ -1,81 +0,0 @@
--Kernel driver exynos4_tmu
--========-
--Supported chips:
--* ARM SAMSUNG EXYNOS4 series of SoC
--  Prefix: 'exynos4-tmu'
--  Datasheet: Not publicly available
--
--Authors: Donggeun Kim <dg77.kim@samsung.com>
--
--Description
-------------
--
--This driver allows to read temperature inside SAMSUNG EXYNOS4 series of SoC.
--
--The chip only exposes the measured 8-bit temperature code value
--through a register.
--Temperature can be taken from the temperature code.
--There are three equations converting from temperature to temperature code.
--
--The three equations are:
--  1. Two point trimming
--	Tc = (T - 25) * (TI2 - TI1) / (85 - 25) + TI1
--
--  2. One point trimming
--	Tc = T + TI1 - 25
--
--  3. No trimming
--	Tc = T + 50
--
--  Tc: Temperature code, T: Temperature,
--  TI1: Trimming info for 25 degree Celsius (stored at TRIMINFO register)
--       Temperature code measured at 25 degree Celsius which is unchanged
--  TI2: Trimming info for 85 degree Celsius (stored at TRIMINFO register)
--       Temperature code measured at 85 degree Celsius which is unchanged
--
--TMU(Thermal Management Unit) in EXYNOS4 generates interrupt
--when temperature exceeds pre-defined levels.
--The maximum number of configurable threshold is four.
--The threshold levels are defined as follows:
--  Level_0: current temperature > trigger_level_0 + threshold
--  Level_1: current temperature > trigger_level_1 + threshold
--  Level_2: current temperature > trigger_level_2 + threshold
--  Level_3: current temperature > trigger_level_3 + threshold
--
--  The threshold and each trigger_level are set
--  through the corresponding registers.
--
--When an interrupt occurs, this driver notify user space of
--one of four threshold levels for the interrupt
--through kobject_uevent_env and sysfs_notify functions.
--Although an interrupt condition for level_0 can be set,
--it is not notified to user space through sysfs_notify function.
--
--Sysfs Interface
-----------------
--name		name of the temperature sensor
--		RO
--
--temp1_input	temperature
--		RO
--
--temp1_max	temperature for level_1 interrupt
--		RO
--
--temp1_crit	temperature for level_2 interrupt
--		RO
--
--temp1_emergency	temperature for level_3 interrupt
--		RO
--
--temp1_max_alarm	alarm for level_1 interrupt
--		RO
--
--temp1_crit_alarm
--		alarm for level_2 interrupt
--		RO
--
--temp1_emergency_alarm
--		alarm for level_3 interrupt
--		RO
-diff --git a/Documentation/thermal/exynos_thermal b/Documentation/thermal/exynos_thermal
-new file mode 100644
-index 0000000..2b46f67
---- /dev/null
-+++ b/Documentation/thermal/exynos_thermal
-@@ -0,0 +1,52 @@
-+Kernel driver exynos4_tmu
-+========+
-+Supported chips:
-+* ARM SAMSUNG EXYNOS4 series of SoC
-+  Prefix: 'exynos4-tmu'
-+  Datasheet: Not publicly available
-+
-+Authors: Donggeun Kim <dg77.kim@samsung.com>
-+
-+Description
-+-----------
-+
-+This driver allows to read temperature inside SAMSUNG EXYNOS4 series of SoC.
-+
-+The chip only exposes the measured 8-bit temperature code value
-+through a register.
-+Temperature can be taken from the temperature code.
-+There are three equations converting from temperature to temperature code.
-+
-+The three equations are:
-+  1. Two point trimming
-+	Tc = (T - 25) * (TI2 - TI1) / (85 - 25) + TI1
-+
-+  2. One point trimming
-+	Tc = T + TI1 - 25
-+
-+  3. No trimming
-+	Tc = T + 50
-+
-+  Tc: Temperature code, T: Temperature,
-+  TI1: Trimming info for 25 degree Celsius (stored at TRIMINFO register)
-+       Temperature code measured at 25 degree Celsius which is unchanged
-+  TI2: Trimming info for 85 degree Celsius (stored at TRIMINFO register)
-+       Temperature code measured at 85 degree Celsius which is unchanged
-+
-+TMU(Thermal Management Unit) in EXYNOS4 generates interrupt
-+when temperature exceeds pre-defined levels.
-+The maximum number of configurable threshold is four.
-+The threshold levels are defined as follows:
-+  Level_0: current temperature > trigger_level_0 + threshold
-+  Level_1: current temperature > trigger_level_1 + threshold
-+  Level_2: current temperature > trigger_level_2 + threshold
-+  Level_3: current temperature > trigger_level_3 + threshold
-+
-+  The threshold and each trigger_level are set
-+  through the corresponding registers.
-+
-+When an interrupt occurs, this driver notify kernel thermal framework
-+with the function exynos4_report_trigger.
-+Although an interrupt condition for level_0 can be set,
-+it can be used to synchronize the cooling action.
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index b0a2e4c..84e02b4 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -324,16 +324,6 @@ config SENSORS_DA9052_ADC
- 	  This driver can also be built as module. If so, the module
- 	  will be called da9052-hwmon.
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 4e932cc..b57b6c6 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -110,6 +110,12 @@ config REGULATOR_DA9052
+ 	  This driver supports the voltage regulators of DA9052-BC and
+ 	  DA9053-AA/Bx PMIC.
  
--config SENSORS_EXYNOS4_TMU
--	tristate "Temperature sensor on Samsung EXYNOS4"
--	depends on ARCH_EXYNOS4
--	help
--	  If you say yes here you get support for TMU (Thermal Management
--	  Unit) on SAMSUNG EXYNOS4 series of SoC.
--
--	  This driver can also be built as a module. If so, the module
--	  will be called exynos4-tmu.
--
- config SENSORS_I5K_AMB
- 	tristate "FB-DIMM AMB temperature sensor on Intel 5000 series chipsets"
- 	depends on PCI && EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 7aa9811..3eafe48 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -49,7 +49,6 @@ obj-$(CONFIG_SENSORS_DS1621)	+= ds1621.o
- obj-$(CONFIG_SENSORS_EMC1403)	+= emc1403.o
- obj-$(CONFIG_SENSORS_EMC2103)	+= emc2103.o
- obj-$(CONFIG_SENSORS_EMC6W201)	+= emc6w201.o
--obj-$(CONFIG_SENSORS_EXYNOS4_TMU)	+= exynos4_tmu.o
- obj-$(CONFIG_SENSORS_F71805F)	+= f71805f.o
- obj-$(CONFIG_SENSORS_F71882FG)	+= f71882fg.o
- obj-$(CONFIG_SENSORS_F75375S)	+= f75375s.o
-diff --git a/drivers/hwmon/exynos4_tmu.c b/drivers/hwmon/exynos4_tmu.c
-deleted file mode 100644
-index e912059..0000000
---- a/drivers/hwmon/exynos4_tmu.c
-+++ /dev/null
-@@ -1,518 +0,0 @@
--/*
-- * exynos4_tmu.c - Samsung EXYNOS4 TMU (Thermal Management Unit)
-- *
-- *  Copyright (C) 2011 Samsung Electronics
-- *  Donggeun Kim <dg77.kim@samsung.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-- */
--
--#include <linux/module.h>
--#include <linux/err.h>
--#include <linux/kernel.h>
--#include <linux/slab.h>
--#include <linux/platform_device.h>
--#include <linux/interrupt.h>
--#include <linux/clk.h>
--#include <linux/workqueue.h>
--#include <linux/sysfs.h>
--#include <linux/kobject.h>
--#include <linux/io.h>
--#include <linux/mutex.h>
--
--#include <linux/hwmon.h>
--#include <linux/hwmon-sysfs.h>
--
--#include <linux/platform_data/exynos4_tmu.h>
--
--#define EXYNOS4_TMU_REG_TRIMINFO	0x0
--#define EXYNOS4_TMU_REG_CONTROL		0x20
--#define EXYNOS4_TMU_REG_STATUS		0x28
--#define EXYNOS4_TMU_REG_CURRENT_TEMP	0x40
--#define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
--#define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
--#define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
--#define EXYNOS4_TMU_REG_TRIG_LEVEL2	0x58
--#define EXYNOS4_TMU_REG_TRIG_LEVEL3	0x5C
--#define EXYNOS4_TMU_REG_PAST_TEMP0	0x60
--#define EXYNOS4_TMU_REG_PAST_TEMP1	0x64
--#define EXYNOS4_TMU_REG_PAST_TEMP2	0x68
--#define EXYNOS4_TMU_REG_PAST_TEMP3	0x6C
--#define EXYNOS4_TMU_REG_INTEN		0x70
--#define EXYNOS4_TMU_REG_INTSTAT		0x74
--#define EXYNOS4_TMU_REG_INTCLEAR	0x78
--
--#define EXYNOS4_TMU_GAIN_SHIFT		8
--#define EXYNOS4_TMU_REF_VOLTAGE_SHIFT	24
--
--#define EXYNOS4_TMU_TRIM_TEMP_MASK	0xff
--#define EXYNOS4_TMU_CORE_ON	3
--#define EXYNOS4_TMU_CORE_OFF	2
--#define EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET	50
--#define EXYNOS4_TMU_TRIG_LEVEL0_MASK	0x1
--#define EXYNOS4_TMU_TRIG_LEVEL1_MASK	0x10
--#define EXYNOS4_TMU_TRIG_LEVEL2_MASK	0x100
--#define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
--#define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
--
--struct exynos4_tmu_data {
--	struct exynos4_tmu_platform_data *pdata;
--	struct device *hwmon_dev;
--	struct resource *mem;
--	void __iomem *base;
--	int irq;
--	struct work_struct irq_work;
--	struct mutex lock;
--	struct clk *clk;
--	u8 temp_error1, temp_error2;
--};
--
--/*
-- * TMU treats temperature as a mapped temperature code.
-- * The temperature is converted differently depending on the calibration type.
-- */
--static int temp_to_code(struct exynos4_tmu_data *data, u8 temp)
--{
--	struct exynos4_tmu_platform_data *pdata = data->pdata;
--	int temp_code;
--
--	/* temp should range between 25 and 125 */
--	if (temp < 25 || temp > 125) {
--		temp_code = -EINVAL;
--		goto out;
--	}
--
--	switch (pdata->cal_type) {
--	case TYPE_TWO_POINT_TRIMMING:
--		temp_code = (temp - 25) *
--		    (data->temp_error2 - data->temp_error1) /
--		    (85 - 25) + data->temp_error1;
--		break;
--	case TYPE_ONE_POINT_TRIMMING:
--		temp_code = temp + data->temp_error1 - 25;
--		break;
--	default:
--		temp_code = temp + EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
--		break;
--	}
--out:
--	return temp_code;
--}
--
--/*
-- * Calculate a temperature value from a temperature code.
-- * The unit of the temperature is degree Celsius.
-- */
--static int code_to_temp(struct exynos4_tmu_data *data, u8 temp_code)
--{
--	struct exynos4_tmu_platform_data *pdata = data->pdata;
--	int temp;
--
--	/* temp_code should range between 75 and 175 */
--	if (temp_code < 75 || temp_code > 175) {
--		temp = -ENODATA;
--		goto out;
--	}
--
--	switch (pdata->cal_type) {
--	case TYPE_TWO_POINT_TRIMMING:
--		temp = (temp_code - data->temp_error1) * (85 - 25) /
--		    (data->temp_error2 - data->temp_error1) + 25;
--		break;
--	case TYPE_ONE_POINT_TRIMMING:
--		temp = temp_code - data->temp_error1 + 25;
--		break;
--	default:
--		temp = temp_code - EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
--		break;
--	}
--out:
--	return temp;
--}
--
--static int exynos4_tmu_initialize(struct platform_device *pdev)
--{
--	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
--	struct exynos4_tmu_platform_data *pdata = data->pdata;
--	unsigned int status, trim_info;
--	int ret = 0, threshold_code;
--
--	mutex_lock(&data->lock);
--	clk_enable(data->clk);
--
--	status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
--	if (!status) {
--		ret = -EBUSY;
--		goto out;
--	}
--
--	/* Save trimming info in order to perform calibration */
--	trim_info = readl(data->base + EXYNOS4_TMU_REG_TRIMINFO);
--	data->temp_error1 = trim_info & EXYNOS4_TMU_TRIM_TEMP_MASK;
--	data->temp_error2 = ((trim_info >> 8) & EXYNOS4_TMU_TRIM_TEMP_MASK);
--
--	/* Write temperature code for threshold */
--	threshold_code = temp_to_code(data, pdata->threshold);
--	if (threshold_code < 0) {
--		ret = threshold_code;
--		goto out;
--	}
--	writeb(threshold_code,
--		data->base + EXYNOS4_TMU_REG_THRESHOLD_TEMP);
--
--	writeb(pdata->trigger_levels[0],
--		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL0);
--	writeb(pdata->trigger_levels[1],
--		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL1);
--	writeb(pdata->trigger_levels[2],
--		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL2);
--	writeb(pdata->trigger_levels[3],
--		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL3);
--
--	writel(EXYNOS4_TMU_INTCLEAR_VAL,
--		data->base + EXYNOS4_TMU_REG_INTCLEAR);
--out:
--	clk_disable(data->clk);
--	mutex_unlock(&data->lock);
--
--	return ret;
--}
--
--static void exynos4_tmu_control(struct platform_device *pdev, bool on)
--{
--	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
--	struct exynos4_tmu_platform_data *pdata = data->pdata;
--	unsigned int con, interrupt_en;
--
--	mutex_lock(&data->lock);
--	clk_enable(data->clk);
--
--	con = pdata->reference_voltage << EXYNOS4_TMU_REF_VOLTAGE_SHIFT |
--		pdata->gain << EXYNOS4_TMU_GAIN_SHIFT;
--	if (on) {
--		con |= EXYNOS4_TMU_CORE_ON;
--		interrupt_en = pdata->trigger_level3_en << 12 |
--			pdata->trigger_level2_en << 8 |
--			pdata->trigger_level1_en << 4 |
--			pdata->trigger_level0_en;
--	} else {
--		con |= EXYNOS4_TMU_CORE_OFF;
--		interrupt_en = 0; /* Disable all interrupts */
--	}
--	writel(interrupt_en, data->base + EXYNOS4_TMU_REG_INTEN);
--	writel(con, data->base + EXYNOS4_TMU_REG_CONTROL);
--
--	clk_disable(data->clk);
--	mutex_unlock(&data->lock);
--}
--
--static int exynos4_tmu_read(struct exynos4_tmu_data *data)
--{
--	u8 temp_code;
--	int temp;
--
--	mutex_lock(&data->lock);
--	clk_enable(data->clk);
--
--	temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
--	temp = code_to_temp(data, temp_code);
--
--	clk_disable(data->clk);
--	mutex_unlock(&data->lock);
--
--	return temp;
--}
--
--static void exynos4_tmu_work(struct work_struct *work)
--{
--	struct exynos4_tmu_data *data = container_of(work,
--			struct exynos4_tmu_data, irq_work);
--
--	mutex_lock(&data->lock);
--	clk_enable(data->clk);
--
--	writel(EXYNOS4_TMU_INTCLEAR_VAL, data->base + EXYNOS4_TMU_REG_INTCLEAR);
--
--	kobject_uevent(&data->hwmon_dev->kobj, KOBJ_CHANGE);
--
--	enable_irq(data->irq);
--
--	clk_disable(data->clk);
--	mutex_unlock(&data->lock);
--}
--
--static irqreturn_t exynos4_tmu_irq(int irq, void *id)
--{
--	struct exynos4_tmu_data *data = id;
--
--	disable_irq_nosync(irq);
--	schedule_work(&data->irq_work);
--
--	return IRQ_HANDLED;
--}
--
--static ssize_t exynos4_tmu_show_name(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	return sprintf(buf, "exynos4-tmu\n");
--}
--
--static ssize_t exynos4_tmu_show_temp(struct device *dev,
--		struct device_attribute *attr, char *buf)
--{
--	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
--	int ret;
--
--	ret = exynos4_tmu_read(data);
--	if (ret < 0)
--		return ret;
--
--	/* convert from degree Celsius to millidegree Celsius */
--	return sprintf(buf, "%d\n", ret * 1000);
--}
--
--static ssize_t exynos4_tmu_show_alarm(struct device *dev,
--		struct device_attribute *devattr, char *buf)
--{
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
--	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
--	struct exynos4_tmu_platform_data *pdata = data->pdata;
--	int temp;
--	unsigned int trigger_level;
--
--	temp = exynos4_tmu_read(data);
--	if (temp < 0)
--		return temp;
--
--	trigger_level = pdata->threshold + pdata->trigger_levels[attr->index];
--
--	return sprintf(buf, "%d\n", !!(temp > trigger_level));
--}
--
--static ssize_t exynos4_tmu_show_level(struct device *dev,
--		struct device_attribute *devattr, char *buf)
--{
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
--	struct exynos4_tmu_data *data = dev_get_drvdata(dev);
--	struct exynos4_tmu_platform_data *pdata = data->pdata;
--	unsigned int temp = pdata->threshold +
--			pdata->trigger_levels[attr->index];
--
--	return sprintf(buf, "%u\n", temp * 1000);
--}
--
--static DEVICE_ATTR(name, S_IRUGO, exynos4_tmu_show_name, NULL);
--static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, exynos4_tmu_show_temp, NULL, 0);
--
--static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
--		exynos4_tmu_show_alarm, NULL, 1);
--static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO,
--		exynos4_tmu_show_alarm, NULL, 2);
--static SENSOR_DEVICE_ATTR(temp1_emergency_alarm, S_IRUGO,
--		exynos4_tmu_show_alarm, NULL, 3);
--
--static SENSOR_DEVICE_ATTR(temp1_max, S_IRUGO, exynos4_tmu_show_level, NULL, 1);
--static SENSOR_DEVICE_ATTR(temp1_crit, S_IRUGO, exynos4_tmu_show_level, NULL, 2);
--static SENSOR_DEVICE_ATTR(temp1_emergency, S_IRUGO,
--		exynos4_tmu_show_level, NULL, 3);
--
--static struct attribute *exynos4_tmu_attributes[] = {
--	&dev_attr_name.attr,
--	&sensor_dev_attr_temp1_input.dev_attr.attr,
--	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp1_emergency_alarm.dev_attr.attr,
--	&sensor_dev_attr_temp1_max.dev_attr.attr,
--	&sensor_dev_attr_temp1_crit.dev_attr.attr,
--	&sensor_dev_attr_temp1_emergency.dev_attr.attr,
--	NULL,
--};
--
--static const struct attribute_group exynos4_tmu_attr_group = {
--	.attrs = exynos4_tmu_attributes,
--};
--
--static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
--{
--	struct exynos4_tmu_data *data;
--	struct exynos4_tmu_platform_data *pdata = pdev->dev.platform_data;
--	int ret;
--
--	if (!pdata) {
--		dev_err(&pdev->dev, "No platform init data supplied.\n");
--		return -ENODEV;
--	}
--
--	data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
--	if (!data) {
--		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
--		return -ENOMEM;
--	}
--
--	data->irq = platform_get_irq(pdev, 0);
--	if (data->irq < 0) {
--		ret = data->irq;
--		dev_err(&pdev->dev, "Failed to get platform irq\n");
--		goto err_free;
--	}
--
--	INIT_WORK(&data->irq_work, exynos4_tmu_work);
--
--	data->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!data->mem) {
--		ret = -ENOENT;
--		dev_err(&pdev->dev, "Failed to get platform resource\n");
--		goto err_free;
--	}
--
--	data->mem = request_mem_region(data->mem->start,
--			resource_size(data->mem), pdev->name);
--	if (!data->mem) {
--		ret = -ENODEV;
--		dev_err(&pdev->dev, "Failed to request memory region\n");
--		goto err_free;
--	}
--
--	data->base = ioremap(data->mem->start, resource_size(data->mem));
--	if (!data->base) {
--		ret = -ENODEV;
--		dev_err(&pdev->dev, "Failed to ioremap memory\n");
--		goto err_mem_region;
--	}
--
--	ret = request_irq(data->irq, exynos4_tmu_irq,
--		IRQF_TRIGGER_RISING,
--		"exynos4-tmu", data);
--	if (ret) {
--		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
--		goto err_io_remap;
--	}
--
--	data->clk = clk_get(NULL, "tmu_apbif");
--	if (IS_ERR(data->clk)) {
--		ret = PTR_ERR(data->clk);
--		dev_err(&pdev->dev, "Failed to get clock\n");
--		goto err_irq;
--	}
--
--	data->pdata = pdata;
--	platform_set_drvdata(pdev, data);
--	mutex_init(&data->lock);
--
--	ret = exynos4_tmu_initialize(pdev);
--	if (ret) {
--		dev_err(&pdev->dev, "Failed to initialize TMU\n");
--		goto err_clk;
--	}
--
--	ret = sysfs_create_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
--	if (ret) {
--		dev_err(&pdev->dev, "Failed to create sysfs group\n");
--		goto err_clk;
--	}
--
--	data->hwmon_dev = hwmon_device_register(&pdev->dev);
--	if (IS_ERR(data->hwmon_dev)) {
--		ret = PTR_ERR(data->hwmon_dev);
--		dev_err(&pdev->dev, "Failed to register hwmon device\n");
--		goto err_create_group;
--	}
--
--	exynos4_tmu_control(pdev, true);
--
--	return 0;
--
--err_create_group:
--	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
--err_clk:
--	platform_set_drvdata(pdev, NULL);
--	clk_put(data->clk);
--err_irq:
--	free_irq(data->irq, data);
--err_io_remap:
--	iounmap(data->base);
--err_mem_region:
--	release_mem_region(data->mem->start, resource_size(data->mem));
--err_free:
--	kfree(data);
--
--	return ret;
--}
--
--static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
--{
--	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
--
--	exynos4_tmu_control(pdev, false);
--
--	hwmon_device_unregister(data->hwmon_dev);
--	sysfs_remove_group(&pdev->dev.kobj, &exynos4_tmu_attr_group);
--
--	clk_put(data->clk);
--
--	free_irq(data->irq, data);
--
--	iounmap(data->base);
--	release_mem_region(data->mem->start, resource_size(data->mem));
--
--	platform_set_drvdata(pdev, NULL);
--
--	kfree(data);
--
--	return 0;
--}
--
--#ifdef CONFIG_PM_SLEEP
--static int exynos4_tmu_suspend(struct device *dev)
--{
--	exynos4_tmu_control(to_platform_device(dev), false);
--
--	return 0;
--}
--
--static int exynos4_tmu_resume(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--
--	exynos4_tmu_initialize(pdev);
--	exynos4_tmu_control(pdev, true);
--
--	return 0;
--}
--
--static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm,
--			 exynos4_tmu_suspend, exynos4_tmu_resume);
--#define EXYNOS4_TMU_PM	&exynos4_tmu_pm
--#else
--#define EXYNOS4_TMU_PM	NULL
--#endif
--
--static struct platform_driver exynos4_tmu_driver = {
--	.driver = {
--		.name   = "exynos4-tmu",
--		.owner  = THIS_MODULE,
--		.pm     = EXYNOS4_TMU_PM,
--	},
--	.probe = exynos4_tmu_probe,
--	.remove	= __devexit_p(exynos4_tmu_remove),
--};
--
--module_platform_driver(exynos4_tmu_driver);
--
--MODULE_DESCRIPTION("EXYNOS4 TMU Driver");
--MODULE_AUTHOR("Donggeun Kim <dg77.kim@samsung.com>");
--MODULE_LICENSE("GPL");
--MODULE_ALIAS("platform:exynos4-tmu");
-diff --git a/drivers/thermal/Kconfig b/drivers/thermal/Kconfig
-index 996003b..8f2b6ea 100644
---- a/drivers/thermal/Kconfig
-+++ b/drivers/thermal/Kconfig
-@@ -46,3 +46,10 @@ config RCAR_THERMAL
- 	help
- 	  Enable this to plug the R-Car thermal sensor driver into the Linux
- 	  thermal framework
-+
-+config EXYNOS_THERMAL
-+	tristate "Temperature sensor on Samsung EXYNOS"
-+	depends on ARCH_EXYNOS4 && THERMAL
++config REGULATOR_DA906X
++	bool "Dialog DA906X Regulator family chip"
++	depends on MFD_DA906X
 +	help
-+	  If you say yes here you get support for TMU (Thermal Managment
-+	  Unit) on SAMSUNG EXYNOS series of SoC.
-diff --git a/drivers/thermal/Makefile b/drivers/thermal/Makefile
-index aae59ad..885550d 100644
---- a/drivers/thermal/Makefile
-+++ b/drivers/thermal/Makefile
-@@ -6,3 +6,4 @@ obj-$(CONFIG_THERMAL)		+= thermal_sys.o
- obj-$(CONFIG_CPU_THERMAL)		+= cpu_cooling.o
- obj-$(CONFIG_SPEAR_THERMAL)		+= spear_thermal.o
- obj-$(CONFIG_RCAR_THERMAL)	+= rcar_thermal.o
-+obj-$(CONFIG_EXYNOS_THERMAL)		+= exynos_thermal.o
-diff --git a/drivers/thermal/exynos_thermal.c b/drivers/thermal/exynos_thermal.c
++	  Support for Dialog Semiconductor DA906x chip.
++
+ config REGULATOR_ANATOP
+ 	tristate "Freescale i.MX on-chip ANATOP LDO regulators"
+ 	depends on MFD_ANATOP
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+index 3342615..46a503a 100644
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_REGULATOR_ANATOP) += anatop-regulator.o
+ obj-$(CONFIG_REGULATOR_ARIZONA) += arizona-micsupp.o arizona-ldo1.o
+ obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
+ obj-$(CONFIG_REGULATOR_DA9052)	+= da9052-regulator.o
++obj-$(CONFIG_REGULATOR_DA906X) += da906x-regulator.o
+ obj-$(CONFIG_REGULATOR_DBX500_PRCMU) += dbx500-prcmu.o
+ obj-$(CONFIG_REGULATOR_DB8500_PRCMU) += db8500-prcmu.o
+ obj-$(CONFIG_REGULATOR_GPIO) += gpio-regulator.o
+diff --git a/drivers/regulator/da906x-regulator.c b/drivers/regulator/da906x-regulator.c
 new file mode 100644
-index 0000000..556d15b
+index 0000000..1b68de0
 --- /dev/null
-+++ b/drivers/thermal/exynos_thermal.c
-@@ -0,0 +1,413 @@
++++ b/drivers/regulator/da906x-regulator.c
+@@ -0,0 +1,1018 @@
 +/*
-+ * exynos_thermal.c - Samsung EXYNOS TMU (Thermal Management Unit)
++ * Regulator driver for DA906x PMIC series
 + *
-+ *  Copyright (C) 2011 Samsung Electronics
-+ *  Donggeun Kim <dg77.kim@samsung.com>
-+ *  Amit Daniel Kachhap <amit.kachhap@linaro.org>
++ * Copyright 2012 Dialog Semiconductors Ltd.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Author: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
 + *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
 + *
 + */
-+
-+#include <linux/module.h>
-+#include <linux/err.h>
 +#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
 +#include <linux/slab.h>
 +#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/clk.h>
-+#include <linux/workqueue.h>
-+#include <linux/sysfs.h>
-+#include <linux/kobject.h>
-+#include <linux/io.h>
-+#include <linux/mutex.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/mfd/da906x/core.h>
++#include <linux/mfd/da906x/pdata.h>
++#include <linux/mfd/da906x/registers.h>
 +
-+#include <linux/platform_data/exynos_thermal.h>
 +
-+#define EXYNOS4_TMU_REG_TRIMINFO	0x0
-+#define EXYNOS4_TMU_REG_CONTROL		0x20
-+#define EXYNOS4_TMU_REG_STATUS		0x28
-+#define EXYNOS4_TMU_REG_CURRENT_TEMP	0x40
-+#define EXYNOS4_TMU_REG_THRESHOLD_TEMP	0x44
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL0	0x50
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL1	0x54
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL2	0x58
-+#define EXYNOS4_TMU_REG_TRIG_LEVEL3	0x5C
-+#define EXYNOS4_TMU_REG_PAST_TEMP0	0x60
-+#define EXYNOS4_TMU_REG_PAST_TEMP1	0x64
-+#define EXYNOS4_TMU_REG_PAST_TEMP2	0x68
-+#define EXYNOS4_TMU_REG_PAST_TEMP3	0x6C
-+#define EXYNOS4_TMU_REG_INTEN		0x70
-+#define EXYNOS4_TMU_REG_INTSTAT		0x74
-+#define EXYNOS4_TMU_REG_INTCLEAR	0x78
++/* Definition for registering bit fields */
++struct bfield {
++	unsigned short	addr;
++	unsigned char	mask;
++};
++#define BFIELD(_addr, _mask) \
++	{ .addr = _addr, .mask = _mask }
 +
-+#define EXYNOS4_TMU_GAIN_SHIFT		8
-+#define EXYNOS4_TMU_REF_VOLTAGE_SHIFT	24
++struct field {
++	unsigned short	addr;
++	unsigned char	mask;
++	unsigned char	shift;
++	unsigned char	offset;
++};
++#define FIELD(_addr, _mask, _shift, _offset) \
++	{ .addr = _addr, .mask = _mask, .shift = _shift, .offset = _offset }
 +
-+#define EXYNOS4_TMU_TRIM_TEMP_MASK	0xff
-+#define EXYNOS4_TMU_CORE_ON	3
-+#define EXYNOS4_TMU_CORE_OFF	2
-+#define EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET	50
-+#define EXYNOS4_TMU_TRIG_LEVEL0_MASK	0x1
-+#define EXYNOS4_TMU_TRIG_LEVEL1_MASK	0x10
-+#define EXYNOS4_TMU_TRIG_LEVEL2_MASK	0x100
-+#define EXYNOS4_TMU_TRIG_LEVEL3_MASK	0x1000
-+#define EXYNOS4_TMU_INTCLEAR_VAL	0x1111
++/* Regulator capabilities and registers description */
++struct da906x_regulator_info {
++	int			id;
++	char			*name;
++	struct regulator_ops	*ops;
 +
-+struct exynos4_tmu_data {
-+	struct exynos4_tmu_platform_data *pdata;
-+	struct resource *mem;
-+	void __iomem *base;
-+	int irq;
-+	struct work_struct irq_work;
-+	struct mutex lock;
-+	struct clk *clk;
-+	u8 temp_error1, temp_error2;
++	/* Voltage adjust range */
++	int		min_uV;
++	int		max_uV;
++	unsigned	step_uV;
++	unsigned	n_steps;
++
++	/* Current limiting */
++	unsigned	n_current_limits;
++	const int	*current_limits;
++
++	/* DA906x main register fields */
++	struct bfield	enable;		/* bit used to enable regulator,
++					   it returns actual state when read */
++	struct field	mode;		/* buck mode of operation */
++	struct bfield	suspend;
++	struct bfield	sleep;
++	struct bfield	suspend_sleep;
++	struct field	voltage;
++	struct field	suspend_voltage;
++	struct field	ilimit;
++
++	/* DA906x event detection bit */
++	struct bfield	oc_event;
 +};
 +
++/* Macro for switch regulator */
++#define DA906X_SWITCH(chip, regl_name) \
++	.id = chip##_ID_##regl_name, \
++	.name = __stringify(chip##_##regl_name), \
++	.ops = &da906x_switch_ops, \
++	.n_steps = 0
++
++/* Macros for LDO */
++#define DA906X_LDO(chip, regl_name, min_mV, step_mV, max_mV) \
++	.id = chip##_ID_##regl_name, \
++	.name = __stringify(chip##_##regl_name), \
++	.ops = &da906x_ldo_ops, \
++	.min_uV = (min_mV) * 1000, \
++	.max_uV = (max_mV) * 1000, \
++	.step_uV = (step_mV) * 1000, \
++	.n_steps = (((max_mV) - (min_mV))/(step_mV) + 1)
++
++#define DA906X_LDO_COMMON_FIELDS(regl_name) \
++	.enable = BFIELD(DA906X_REG_##regl_name##_CONT, DA906X_LDO_EN), \
++	.sleep = BFIELD(DA906X_REG_V##regl_name##_A, DA906X_LDO_SL), \
++	.suspend_sleep = BFIELD(DA906X_REG_V##regl_name##_B, DA906X_LDO_SL), \
++	.voltage = FIELD(DA906X_REG_V##regl_name##_A, \
++			DA906X_V##regl_name##_MASK, \
++			DA906X_V##regl_name##_SHIFT, \
++			DA906X_V##regl_name##_BIAS), \
++	.suspend_voltage = FIELD(DA906X_REG_V##regl_name##_B, \
++			DA906X_V##regl_name##_MASK,\
++			DA906X_V##regl_name##_SHIFT, \
++			DA906X_V##regl_name##_BIAS)
++
++/* Macros for voltage DC/DC converters (BUCKs) */
++#define DA906X_BUCK(chip, regl_name, min_mV, step_mV, max_mV, limits_array) \
++	.id = chip##_ID_##regl_name, \
++	.name = __stringify(chip##_##regl_name), \
++	.ops = &da906x_buck_ops, \
++	.min_uV = (min_mV) * 1000, \
++	.max_uV = (max_mV) * 1000, \
++	.step_uV = (step_mV) * 1000, \
++	.n_steps = ((max_mV) - (min_mV))/(step_mV) + 1, \
++	.current_limits = limits_array, \
++	.n_current_limits = ARRAY_SIZE(limits_array)
++
++#define DA906X_BUCK_COMMON_FIELDS(regl_name) \
++	.enable = BFIELD(DA906X_REG_##regl_name##_CONT, DA906X_BUCK_EN), \
++	.sleep = BFIELD(DA906X_REG_V##regl_name##_A, DA906X_BUCK_SL), \
++	.suspend_sleep = BFIELD(DA906X_REG_V##regl_name##_B, DA906X_BUCK_SL), \
++	.voltage = FIELD(DA906X_REG_V##regl_name##_A, \
++			 DA906X_VBUCK_MASK, \
++			 DA906X_VBUCK_SHIFT, \
++			 DA906X_VBUCK_BIAS), \
++	.suspend_voltage = FIELD(DA906X_REG_V##regl_name##_B, \
++				 DA906X_VBUCK_MASK,\
++				 DA906X_VBUCK_SHIFT, \
++				 DA906X_VBUCK_BIAS), \
++	.mode = FIELD(DA906X_REG_##regl_name##_CFG, DA906X_BUCK_MODE_MASK, \
++		      DA906X_BUCK_MODE_SHIFT, 0)
++
++/* Defines asignment of regulators info table to chip model */
++struct da906x_dev_model {
++	const struct da906x_regulator_info	*regulator_info;
++	unsigned				n_regulators;
++	unsigned				dev_model;
++};
++
++/* Single regulator settings */
++struct da906x_regulator {
++	struct regulator_desc			desc;
++	struct regulator_dev			*rdev;
++	struct da906x				*hw;
++	const struct da906x_regulator_info	*info;
++
++	unsigned				mode;
++	unsigned				suspend_mode;
++};
++
++/* Encapsulates all information for the regulators driver */
++struct da906x_regulators {
++	int					irq_ldo_lim;
++	int					irq_uvov;
++
++	unsigned				n_regulators;
++	/* Array size to be defined during init. Keep at end. */
++	struct da906x_regulator			regulator[0];
++};
++
++/* System states for da906x_update_mode_internal()
++   and for da906x_get_mode_internal() */
++enum {
++	SYS_STATE_NORMAL,
++	SYS_STATE_SUSPEND,
++	SYS_STATE_CURRENT
++};
++
++/* BUCK modes for DA906x */
++enum {
++	BUCK_MODE_MANUAL,	/* 0 */
++	BUCK_MODE_SLEEP,	/* 1 */
++	BUCK_MODE_SYNC,		/* 2 */
++	BUCK_MODE_AUTO		/* 3 */
++};
++
++/* Regulator operations */
++static int da906x_set_voltage(struct regulator_dev *rdev, int min_uV,
++			      int max_uV, unsigned *selector);
++static int da906x_get_voltage_sel(struct regulator_dev *rdev);
++static int da906x_set_current_limit(struct regulator_dev *rdev,
++				    int min_uA, int max_uA);
++static int da906x_get_current_limit(struct regulator_dev *rdev);
++static int da906x_enable(struct regulator_dev *rdev);
++static int da906x_set_mode(struct regulator_dev *rdev, unsigned int mode);
++static unsigned da906x_get_mode(struct regulator_dev *rdev);
++static int da906x_get_status(struct regulator_dev *rdev);
++static int da906x_set_suspend_voltage(struct regulator_dev *rdev, int uV);
++static int da906x_suspend_enable(struct regulator_dev *rdev);
++static int da906x_set_suspend_mode(struct regulator_dev *rdev, unsigned mode);
++
++static struct regulator_ops da906x_switch_ops = {
++	.enable			= da906x_enable,
++	.disable		= regulator_disable_regmap,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.set_suspend_enable	= da906x_enable,
++	.set_suspend_disable	= regulator_disable_regmap,
++};
++
++static struct regulator_ops da906x_ldo_ops = {
++	.enable			= da906x_enable,
++	.disable		= regulator_disable_regmap,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.set_voltage		= da906x_set_voltage,
++	.get_voltage_sel	= da906x_get_voltage_sel,
++	.list_voltage		= regulator_list_voltage_linear,
++	.set_mode		= da906x_set_mode,
++	.get_mode		= da906x_get_mode,
++	.get_status		= da906x_get_status,
++	.set_suspend_voltage	= da906x_set_suspend_voltage,
++	.set_suspend_enable	= da906x_suspend_enable,
++	.set_suspend_disable	= regulator_disable_regmap,
++	.set_suspend_mode	= da906x_set_suspend_mode,
++};
++
++static struct regulator_ops da906x_buck_ops = {
++	.enable			= da906x_enable,
++	.disable		= regulator_disable_regmap,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.set_voltage		= da906x_set_voltage,
++	.get_voltage_sel	= da906x_get_voltage_sel,
++	.list_voltage		= regulator_list_voltage_linear,
++	.set_current_limit	= da906x_set_current_limit,
++	.get_current_limit	= da906x_get_current_limit,
++	.set_mode		= da906x_set_mode,
++	.get_mode		= da906x_get_mode,
++	.get_status		= da906x_get_status,
++	.set_suspend_voltage	= da906x_set_suspend_voltage,
++	.set_suspend_enable	= da906x_suspend_enable,
++	.set_suspend_disable	= regulator_disable_regmap,
++	.set_suspend_mode	= da906x_set_suspend_mode,
++};
++
++/* Current limits array (in uA) for BCORE1, BCORE2, BPRO.
++   Entry indexes corresponds to register values. */
++static const int da9063_buck_a_limits[] = {
++	 500000,  600000,  700000,  800000,  900000, 1000000, 1100000, 1200000,
++	1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000, 2000000
++};
++
++/* Current limits array (in uA) for BMEM, BIO, BPERI.
++   Entry indexes corresponds to register values. */
++static const int da9063_buck_b_limits[] = {
++	1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000,
++	2300000, 2400000, 2500000, 2600000, 2700000, 2800000, 2900000, 3000000
++};
++
++/* Current limits array (in uA) for merged BCORE1 and BCORE2.
++   Entry indexes corresponds to register values. */
++static const int da9063_bcores_merged_limits[] = {
++	1000000, 1200000, 1400000, 1600000, 1800000, 2000000, 2200000, 2400000,
++	2600000, 2800000, 3000000, 3200000, 3400000, 3600000, 3800000, 4000000
++};
++
++/* Current limits array (in uA) for merged BMEM and BIO.
++   Entry indexes corresponds to register values. */
++static const int da9063_bmem_bio_merged_limits[] = {
++	3000000, 3200000, 3400000, 3600000, 3800000, 4000000, 4200000, 4400000,
++	4600000, 4800000, 5000000, 5200000, 5400000, 5600000, 5800000, 6000000
++};
++
++/* Info of regulators for DA9063 */
++static const struct da906x_regulator_info da9063_regulator_info[] = {
++	{
++		DA906X_BUCK(DA9063, BCORE1, 300, 10, 1570,
++			    da9063_buck_a_limits),
++		DA906X_BUCK_COMMON_FIELDS(BCORE1),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBCORE1_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_C, DA906X_BCORE1_ILIM_MASK,
++				DA906X_BCORE1_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BCORE2, 300, 10, 1570,
++			    da9063_buck_a_limits),
++		DA906X_BUCK_COMMON_FIELDS(BCORE2),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBCORE2_SEL),
++
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_C,
++				DA906X_BCORE2_ILIM_MASK,
++				DA906X_BCORE2_ILIM_SHIFT,
++				0),
++	},
++	{
++		DA906X_BUCK(DA9063, BPRO, 530, 10, 1800,
++			    da9063_buck_a_limits),
++		DA906X_BUCK_COMMON_FIELDS(BPRO),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBPRO_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_B, DA906X_BPRO_ILIM_MASK,
++				DA906X_BPRO_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BMEM, 800, 20, 3340,
++			    da9063_buck_b_limits),
++		DA906X_BUCK_COMMON_FIELDS(BMEM),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBMEM_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_A, DA906X_BMEM_ILIM_MASK,
++				DA906X_BMEM_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BIO, 800, 20, 3340,
++			    da9063_buck_b_limits),
++		DA906X_BUCK_COMMON_FIELDS(BIO),
++		.suspend = BFIELD(DA906X_REG_DVC_2, DA906X_VBIO_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_A, DA906X_BIO_ILIM_MASK,
++				DA906X_BIO_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BPERI, 800, 20, 3340,
++			    da9063_buck_b_limits),
++		DA906X_BUCK_COMMON_FIELDS(BPERI),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBPERI_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_B, DA906X_BPERI_ILIM_MASK,
++				DA906X_BPERI_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BCORES_MERGED, 300, 10, 1570,
++			    da9063_bcores_merged_limits),
++		/* BCORES_MERGED uses the same register fields as BCORE1 */
++		DA906X_BUCK_COMMON_FIELDS(BCORE1),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBCORE1_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_C, DA906X_BCORE1_ILIM_MASK,
++				DA906X_BCORE1_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BMEM_BIO_MERGED, 800, 20, 3340,
++			    da9063_bmem_bio_merged_limits),
++		/* BMEM_BIO_MERGED uses the same register fields as BMEM */
++		DA906X_BUCK_COMMON_FIELDS(BMEM),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBMEM_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_A, DA906X_BMEM_ILIM_MASK,
++				DA906X_BMEM_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_LDO(DA9063, LDO1, 600, 20, 1860),
++		DA906X_LDO_COMMON_FIELDS(LDO1),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VLDO1_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO2, 600, 20, 1860),
++		DA906X_LDO_COMMON_FIELDS(LDO2),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VLDO2_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO3, 900, 20, 3440),
++		DA906X_LDO_COMMON_FIELDS(LDO3),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VLDO3_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO3_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO4, 900, 20, 3440),
++		DA906X_LDO_COMMON_FIELDS(LDO4),
++		.suspend = BFIELD(DA906X_REG_DVC_2, DA906X_VLDO4_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO4_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO5, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO5),
++		.suspend = BFIELD(DA906X_REG_LDO5_CONT, DA906X_VLDO5_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO6, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO6),
++		.suspend = BFIELD(DA906X_REG_LDO6_CONT, DA906X_VLDO6_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO7, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO7),
++		.suspend = BFIELD(DA906X_REG_LDO7_CONT, DA906X_VLDO7_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO7_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO8, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO8),
++		.suspend = BFIELD(DA906X_REG_LDO8_CONT, DA906X_VLDO8_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO8_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO9, 950, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO9),
++		.suspend = BFIELD(DA906X_REG_LDO9_CONT, DA906X_VLDO9_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO10, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO10),
++		.suspend = BFIELD(DA906X_REG_LDO10_CONT, DA906X_VLDO10_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO11, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO11),
++		.suspend = BFIELD(DA906X_REG_LDO11_CONT, DA906X_VLDO11_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO11_LIM),
++	},
++	{
++		DA906X_SWITCH(DA9063, 32K_OUT),
++		.enable = BFIELD(DA906X_REG_EN_32K, DA906X_OUT_32K_EN),
++	},
++};
++
++/* Link chip model with regulators info table */
++static struct da906x_dev_model regulators_models[] = {
++	{
++		.regulator_info = da9063_regulator_info,
++		.n_regulators = ARRAY_SIZE(da9063_regulator_info),
++		.dev_model = PMIC_DA9063,
++	},
++	{NULL, 0, 0}	/* End of list */
++};
++
++
 +/*
-+ * TMU treats temperature as a mapped temperature code.
-+ * The temperature is converted differently depending on the calibration type.
++ * Regulator internal functions
 + */
-+static int temp_to_code(struct exynos4_tmu_data *data, u8 temp)
++static int da906x_update_mode_internal(struct da906x_regulator *regl,
++				       int sys_state)
 +{
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	int temp_code;
++	const struct da906x_regulator_info *rinfo = regl->info;
++	unsigned val;
++	unsigned mode;
++	int ret;
 +
-+	/* temp should range between 25 and 125 */
-+	if (temp < 25 || temp > 125) {
-+		temp_code = -EINVAL;
-+		goto out;
++	if (sys_state = SYS_STATE_SUSPEND)
++		/* Get mode for regulator in suspend state */
++		mode = regl->suspend_mode;
++	else
++		/* Get mode for regulator in normal operation */
++		mode = regl->mode;
++
++	/* LDOs use sleep flags - one for normal and one for suspend state.
++	   For BUCKs single mode register field is used in normal and
++	   suspend state. */
++	if (rinfo->mode.addr) {
++		/* Set mode for BUCK - 3 modes are supported */
++		switch (mode) {
++		case REGULATOR_MODE_FAST:
++			val = BUCK_MODE_SYNC;
++			break;
++		case REGULATOR_MODE_NORMAL:
++			val = BUCK_MODE_AUTO;
++			break;
++		case REGULATOR_MODE_STANDBY:
++			val = BUCK_MODE_SLEEP;
++			break;
++		default:
++			return -EINVAL;
++		}
++		val = val << rinfo->mode.shift;
++
++		ret = da906x_reg_update(regl->hw, rinfo->mode.addr,
++					rinfo->mode.mask, val);
++	} else {
++		/* Set mode for LDO - 2 modes are supported */
++		switch (mode) {
++		case REGULATOR_MODE_NORMAL:
++			val = 0;
++			break;
++		case REGULATOR_MODE_STANDBY:
++			val = DA906X_LDO_SL;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		if (sys_state = SYS_STATE_SUSPEND) {
++			if (!rinfo->suspend_sleep.addr)
++				return -EINVAL;
++			ret = da906x_reg_update(regl->hw,
++						rinfo->suspend_sleep.addr,
++						rinfo->suspend_sleep.mask,
++						val);
++		} else {
++			if (!rinfo->sleep.addr)
++				return -EINVAL;
++			ret = da906x_reg_update(regl->hw,
++						rinfo->sleep.addr,
++						rinfo->sleep.mask, val);
++		}
 +	}
-+
-+	switch (pdata->cal_type) {
-+	case TYPE_TWO_POINT_TRIMMING:
-+		temp_code = (temp - 25) *
-+		    (data->temp_error2 - data->temp_error1) /
-+		    (85 - 25) + data->temp_error1;
-+		break;
-+	case TYPE_ONE_POINT_TRIMMING:
-+		temp_code = temp + data->temp_error1 - 25;
-+		break;
-+	default:
-+		temp_code = temp + EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
-+		break;
-+	}
-+out:
-+	return temp_code;
-+}
-+
-+/*
-+ * Calculate a temperature value from a temperature code.
-+ * The unit of the temperature is degree Celsius.
-+ */
-+static int code_to_temp(struct exynos4_tmu_data *data, u8 temp_code)
-+{
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	int temp;
-+
-+	/* temp_code should range between 75 and 175 */
-+	if (temp_code < 75 || temp_code > 175) {
-+		temp = -ENODATA;
-+		goto out;
-+	}
-+
-+	switch (pdata->cal_type) {
-+	case TYPE_TWO_POINT_TRIMMING:
-+		temp = (temp_code - data->temp_error1) * (85 - 25) /
-+		    (data->temp_error2 - data->temp_error1) + 25;
-+		break;
-+	case TYPE_ONE_POINT_TRIMMING:
-+		temp = temp_code - data->temp_error1 + 25;
-+		break;
-+	default:
-+		temp = temp_code - EXYNOS4_TMU_DEF_CODE_TO_TEMP_OFFSET;
-+		break;
-+	}
-+out:
-+	return temp;
-+}
-+
-+static int exynos4_tmu_initialize(struct platform_device *pdev)
-+{
-+	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int status, trim_info;
-+	int ret = 0, threshold_code;
-+
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
-+
-+	status = readb(data->base + EXYNOS4_TMU_REG_STATUS);
-+	if (!status) {
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	/* Save trimming info in order to perform calibration */
-+	trim_info = readl(data->base + EXYNOS4_TMU_REG_TRIMINFO);
-+	data->temp_error1 = trim_info & EXYNOS4_TMU_TRIM_TEMP_MASK;
-+	data->temp_error2 = ((trim_info >> 8) & EXYNOS4_TMU_TRIM_TEMP_MASK);
-+
-+	/* Write temperature code for threshold */
-+	threshold_code = temp_to_code(data, pdata->threshold);
-+	if (threshold_code < 0) {
-+		ret = threshold_code;
-+		goto out;
-+	}
-+	writeb(threshold_code,
-+		data->base + EXYNOS4_TMU_REG_THRESHOLD_TEMP);
-+
-+	writeb(pdata->trigger_levels[0],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL0);
-+	writeb(pdata->trigger_levels[1],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL1);
-+	writeb(pdata->trigger_levels[2],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL2);
-+	writeb(pdata->trigger_levels[3],
-+		data->base + EXYNOS4_TMU_REG_TRIG_LEVEL3);
-+
-+	writel(EXYNOS4_TMU_INTCLEAR_VAL,
-+		data->base + EXYNOS4_TMU_REG_INTCLEAR);
-+out:
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
 +
 +	return ret;
 +}
 +
-+static void exynos4_tmu_control(struct platform_device *pdev, bool on)
++static unsigned da906x_get_mode_internal(struct da906x_regulator *regl,
++					 int sys_state)
 +{
-+	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
-+	struct exynos4_tmu_platform_data *pdata = data->pdata;
-+	unsigned int con, interrupt_en;
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int val;
++	int addr;
++	int mask;
++	unsigned mode = 0;
 +
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
++	/* Bucks use single mode register field for normal operation
++	   and suspend state. LDOs use sleep flags - one for normal
++	   and one for suspend state. */
++	if (rinfo->mode.addr) {
++		/* For BUCKs, there are 3 modes to map to */
++		val = da906x_reg_read(regl->hw, rinfo->mode.addr);
++		if (val < 0)
++			return val;
 +
-+	con = pdata->reference_voltage << EXYNOS4_TMU_REF_VOLTAGE_SHIFT |
-+		pdata->gain << EXYNOS4_TMU_GAIN_SHIFT;
-+	if (on) {
-+		con |= EXYNOS4_TMU_CORE_ON;
-+		interrupt_en = pdata->trigger_level3_en << 12 |
-+			pdata->trigger_level2_en << 8 |
-+			pdata->trigger_level1_en << 4 |
-+			pdata->trigger_level0_en;
++		val = (val & rinfo->mode.mask) >> rinfo->mode.shift;
++		switch (val) {
++		default:
++		case BUCK_MODE_MANUAL:
++			mode = REGULATOR_MODE_FAST | REGULATOR_MODE_STANDBY;
++			/* Sleep flag bit decides the mode */
++			break;
++		case BUCK_MODE_SLEEP:
++			return REGULATOR_MODE_STANDBY;
++		case BUCK_MODE_SYNC:
++			return REGULATOR_MODE_FAST;
++		case BUCK_MODE_AUTO:
++			return REGULATOR_MODE_NORMAL;
++		}
++	} else if (rinfo->sleep.addr) {
++		/* For LDOs there are 2 modes to map to */
++		mode = REGULATOR_MODE_NORMAL | REGULATOR_MODE_STANDBY;
++		/* Sleep flag bit decides the mode */
 +	} else {
-+		con |= EXYNOS4_TMU_CORE_OFF;
-+		interrupt_en = 0; /* Disable all interrupts */
++		/* No support */
++		return 0;
 +	}
-+	writel(interrupt_en, data->base + EXYNOS4_TMU_REG_INTEN);
-+	writel(con, data->base + EXYNOS4_TMU_REG_CONTROL);
 +
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
++	/* If sys_state = SYS_STATE_CURRENT, current regulator state
++	   is detected. */
++	if (sys_state = SYS_STATE_CURRENT && rinfo->suspend.addr) {
++		val = da906x_reg_read(regl->hw,
++					  rinfo->suspend.addr);
++		if (val < 0)
++			return val;
++
++		if (val & rinfo->suspend.mask)
++			sys_state = SYS_STATE_SUSPEND;
++		else
++			sys_state = SYS_STATE_NORMAL;
++	}
++
++	/* Read regulator mode from proper register,
++	   depending on selected system state */
++	if (sys_state = SYS_STATE_SUSPEND && rinfo->suspend_sleep.addr) {
++		addr = rinfo->suspend_sleep.addr;
++		mask = rinfo->suspend_sleep.mask;
++	} else {
++		addr = rinfo->sleep.addr;
++		mask = rinfo->sleep.mask;
++	}
++
++	val = da906x_reg_read(regl->hw, addr);
++	if (val < 0)
++		return val;
++
++	if (val & mask)
++		mode &= REGULATOR_MODE_STANDBY;
++	else
++		mode &= REGULATOR_MODE_NORMAL | REGULATOR_MODE_FAST;
++
++	return mode;
 +}
 +
-+static int exynos4_tmu_read(struct exynos4_tmu_data *data)
++static int da906x_set_voltage(struct regulator_dev *rdev,
++				int min_uV, int max_uV, unsigned *selector)
 +{
-+	u8 temp_code;
-+	int temp;
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct field *fvol = &regl->info->voltage;
++	int ret;
++	unsigned val;
 +
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
++	val = regulator_map_voltage_linear(rdev, min_uV, max_uV);
++	if (val < 0)
++		return -EINVAL;
 +
-+	temp_code = readb(data->base + EXYNOS4_TMU_REG_CURRENT_TEMP);
-+	temp = code_to_temp(data, temp_code);
++	val = (val + fvol->offset) << fvol->shift;
++	ret = da906x_reg_update(regl->hw, fvol->addr, fvol->mask, val);
++	if (ret >= 0)
++		*selector = val;
 +
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
-+
-+	return temp;
++	return ret;
 +}
 +
-+static void exynos4_tmu_work(struct work_struct *work)
++static int da906x_get_voltage_sel(struct regulator_dev *rdev)
 +{
-+	struct exynos4_tmu_data *data = container_of(work,
-+			struct exynos4_tmu_data, irq_work);
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int sel;
 +
-+	mutex_lock(&data->lock);
-+	clk_enable(data->clk);
++	sel = da906x_reg_read(regl->hw, rinfo->voltage.addr);
++	if (sel < 0)
++		return sel;
 +
-+	writel(EXYNOS4_TMU_INTCLEAR_VAL, data->base + EXYNOS4_TMU_REG_INTCLEAR);
++	sel = (sel & rinfo->voltage.mask) >> rinfo->voltage.shift;
++	sel -= rinfo->voltage.offset;
++	if (sel < 0)
++		sel = 0;
++	if (sel >= rinfo->n_steps)
++		sel = rinfo->n_steps - 1;
 +
-+	enable_irq(data->irq);
-+
-+	clk_disable(data->clk);
-+	mutex_unlock(&data->lock);
++	return sel;
 +}
 +
-+static irqreturn_t exynos4_tmu_irq(int irq, void *id)
++static int da906x_set_current_limit(struct regulator_dev *rdev,
++							int min_uA, int max_uA)
 +{
-+	struct exynos4_tmu_data *data = id;
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int val = INT_MAX;
++	unsigned sel = 0;
++	int n;
++	int tval;
 +
-+	disable_irq_nosync(irq);
-+	schedule_work(&data->irq_work);
++	if (!rinfo->current_limits)
++		return -EINVAL;
++
++	for (n = 0; n < rinfo->n_current_limits; n++) {
++		tval = rinfo->current_limits[n];
++		if (tval >= min_uA && tval <= max_uA && val > tval) {
++			val = tval;
++			sel = n;
++		}
++	}
++	if (val = INT_MAX)
++		return -EINVAL;
++
++	sel = (sel + rinfo->ilimit.offset) << rinfo->ilimit.shift;
++	return da906x_reg_update(regl->hw, rinfo->ilimit.addr,
++						rinfo->ilimit.mask, sel);
++}
++
++static int da906x_get_current_limit(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int sel;
++
++	sel = da906x_reg_read(regl->hw, rinfo->ilimit.addr);
++	if (sel < 0)
++		return sel;
++
++	sel = (sel & rinfo->ilimit.mask) >> rinfo->ilimit.shift;
++	sel -= rinfo->ilimit.offset;
++	if (sel < 0)
++		sel = 0;
++	if (sel >= rinfo->n_current_limits)
++		sel = rinfo->n_current_limits - 1;
++
++	return rinfo->current_limits[sel];
++}
++
++static int da906x_enable(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	int ret;
++
++	if (regl->info->suspend.mask) {
++		/* Make sure to exit from suspend mode on enable */
++		ret = da906x_reg_clear_bits(regl->hw, regl->info->suspend.addr,
++					    regl->info->suspend.mask);
++		if (ret < 0)
++			return ret;
++
++		/* BUCKs need mode update after wake-up from suspend state. */
++		ret = da906x_update_mode_internal(regl, SYS_STATE_NORMAL);
++		if (ret < 0)
++			return ret;
++	}
++
++	return regulator_enable_regmap(rdev);
++}
++
++static int da906x_set_mode(struct regulator_dev *rdev, unsigned mode)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	unsigned orig_mode = regl->mode;
++	int ret;
++
++	regl->mode = mode;
++	ret = da906x_update_mode_internal(regl, SYS_STATE_NORMAL);
++	if (ret)
++		regl->mode = orig_mode;
++
++	return ret;
++}
++
++static unsigned da906x_get_mode(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++
++	return da906x_get_mode_internal(regl, SYS_STATE_CURRENT);
++}
++
++static int da906x_get_status(struct regulator_dev *rdev)
++{
++	int ret = regulator_is_enabled_regmap(rdev);
++
++	if (ret = 0) {
++		ret = REGULATOR_STATUS_OFF;
++	} else if (ret > 0) {
++		ret = da906x_get_mode(rdev);
++		if (ret > 0)
++			ret = regulator_mode_to_status(ret);
++		else if (ret = 0)
++			ret = -EIO;
++	}
++
++	return ret;
++}
++
++static int da906x_set_suspend_voltage(struct regulator_dev *rdev, int uV)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	const struct field *fsusvol = &rinfo->suspend_voltage;
++	int val;
++	int ret;
++
++	val = regulator_map_voltage_linear(rdev, uV, uV);
++	if (val < 0)
++		return -EINVAL;
++
++	val = (val + fsusvol->offset) << fsusvol->shift;
++	ret = da906x_reg_update(regl->hw, fsusvol->addr, fsusvol->mask, val);
++
++	return ret;
++}
++
++static int da906x_suspend_enable(struct regulator_dev *rdev)
++{
++	int ret;
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct bfield *bsuspend = &regl->info->suspend;
++
++	ret = da906x_reg_set_bits(regl->hw, bsuspend->addr, bsuspend->mask);
++	return ret;
++}
++
++static int da906x_set_suspend_mode(struct regulator_dev *rdev, unsigned mode)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	int ret;
++
++	regl->suspend_mode = mode;
++	ret = da906x_update_mode_internal(regl, SYS_STATE_SUSPEND);
++	return ret;
++}
++
++/* Regulator event handlers */
++irqreturn_t da906x_ldo_lim_event(int irq, void *data)
++{
++	struct da906x_regulators *regulators = data;
++	struct da906x *hw = regulators->regulator[0].hw;
++	struct da906x_regulator *regl;
++	int bits;
++	int i;
++
++	bits = da906x_reg_read(hw, DA906X_REG_STATUS_D);
++	if (bits < 0)
++		return IRQ_HANDLED;
++
++	for (i = regulators->n_regulators - 1; i >= 0; i--) {
++		regl = &regulators->regulator[i];
++		if (regl->info->oc_event.addr != DA906X_REG_STATUS_D)
++			continue;
++
++		if (regl->info->oc_event.mask & bits)
++			regulator_notifier_call_chain(regl->rdev,
++					REGULATOR_EVENT_OVER_CURRENT, NULL);
++	}
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static int __devinit exynos4_tmu_probe(struct platform_device *pdev)
++/*
++ * Probing and Initialisation functions
++ */
++static __devinit const struct da906x_regulator_info *
++da906x_get_regl_info(const struct da906x *da906x,
++		     const struct da906x_dev_model *model, int id)
 +{
-+	struct exynos4_tmu_data *data;
-+	struct exynos4_tmu_platform_data *pdata = pdev->dev.platform_data;
++	int m;
++
++	for (m = model->n_regulators - 1;
++	     model->regulator_info[m].id != id; m--) {
++		if (m <= 0)
++			return NULL;
++	}
++	return &model->regulator_info[m];
++}
++
++static __devinit int da906x_regulator_probe(struct platform_device *pdev)
++{
++	struct da906x *da906x = dev_get_drvdata(pdev->dev.parent);
++	struct da906x_pdata *da906x_pdata = dev_get_platdata(da906x->dev);
++	struct da906x_regulators_pdata *regl_pdata;
++	struct da906x_regulator_data *rdata;
++	const struct da906x_dev_model *model;
++	struct da906x_regulators *regulators;
++	struct da906x_regulator *regl;
++	struct regulator_config config;
++	bool bcores_merged, bmem_bio_merged;
++	size_t size;
++	int n;
 +	int ret;
 +
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "No platform init data supplied.\n");
++	if (!da906x_pdata) {
++		dev_err(&pdev->dev, "No platform init data supplied\n");
++		return -ENODEV;
++	}
++	regl_pdata = da906x_pdata->regulators_pdata;
++
++	if (!regl_pdata || regl_pdata->n_regulators = 0) {
++		dev_err(&pdev->dev,
++			"No regulators defined for the platform\n");
 +		return -ENODEV;
 +	}
 +
-+	data = kzalloc(sizeof(struct exynos4_tmu_data), GFP_KERNEL);
-+	if (!data) {
-+		dev_err(&pdev->dev, "Failed to allocate driver structure\n");
++	/* Find regulators set for particular device model */
++	for (model = regulators_models; model->regulator_info; model++) {
++		if (model->dev_model = da906x_model(da906x))
++			break;
++	}
++	if (!model->regulator_info) {
++		dev_err(&pdev->dev, "Chip model not recognised (%u)\n",
++			da906x_model(da906x));
++		return -ENODEV;
++	}
++
++	ret = da906x_reg_read(da906x, DA906X_REG_CONFIG_H);
++	if (ret < 0) {
++		dev_err(&pdev->dev,
++			"Error while reading BUCKs configuration\n");
++		return -EIO;
++	}
++	bcores_merged = (ret & DA906X_BCORE_MERGE) ? true : false;
++	bmem_bio_merged = (ret & DA906X_BUCK_MERGE) ? true : false;
++
++	/* Allocate memory required by usable regulators */
++	size = sizeof(struct da906x_regulators) +
++		regl_pdata->n_regulators * sizeof(struct da906x_regulator);
++	regulators = devm_kzalloc(&pdev->dev, size, GFP_KERNEL);
++	if (!regulators) {
++		dev_err(&pdev->dev, "No memory for regulators\n");
 +		return -ENOMEM;
 +	}
 +
-+	data->irq = platform_get_irq(pdev, 0);
-+	if (data->irq < 0) {
-+		ret = data->irq;
-+		dev_err(&pdev->dev, "Failed to get platform irq\n");
-+		goto err_free;
++	regulators->n_regulators = regl_pdata->n_regulators;
++	platform_set_drvdata(pdev, regulators);
++
++	/* Register all regulators declared in platform information */
++	n = 0;
++	while (n < regulators->n_regulators) {
++		rdata = &regl_pdata->regulator_data[n];
++
++		/* Check regulator ID against merge mode configuration */
++		switch (rdata->id) {
++		case DA9063_ID_BCORE1:
++		case DA9063_ID_BCORE2:
++			if (bcores_merged) {
++				dev_err(&pdev->dev,
++					"Cannot use BCORE1 and BCORE2 separately, when in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		case DA9063_ID_BMEM:
++		case DA9063_ID_BIO:
++			if (bmem_bio_merged) {
++				dev_err(&pdev->dev,
++					"Cannot use BMEM and BIO separately, when in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		case DA9063_ID_BCORES_MERGED:
++			if (!bcores_merged) {
++				dev_err(&pdev->dev,
++					"BCORE1 and BCORE2 are unavailable in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		case DA9063_ID_BMEM_BIO_MERGED:
++			if (!bmem_bio_merged) {
++				dev_err(&pdev->dev,
++					"BMEM and BIO are unavailable in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		}
++
++		/* Initialise regulator structure */
++		regl = &regulators->regulator[n];
++		regl->hw = da906x;
++		regl->info = da906x_get_regl_info(da906x, model, rdata->id);
++		if (!regl->info) {
++			dev_err(&pdev->dev,
++				"Invalid regulator ID in platform data\n");
++			ret = -EINVAL;
++			goto err;
++		}
++		regl->desc.type = REGULATOR_VOLTAGE;
++		regl->desc.owner = THIS_MODULE;
++		regl->desc.name = regl->info->name;
++		regl->desc.id = rdata->id;
++		regl->desc.ops = regl->info->ops;
++		regl->desc.n_voltages = regl->info->n_steps;
++		regl->desc.min_uV = regl->info->min_uV;
++		regl->desc.uV_step = regl->info->step_uV;
++		regl->desc.enable_reg = regl->info->enable.addr +
++					DA906X_MAPPING_BASE;
++		regl->desc.enable_mask = regl->info->enable.mask;
++
++		/* Register regulator */
++		config.dev = &pdev->dev;
++		config.init_data = rdata->initdata;
++		config.driver_data = regl;
++		config.regmap = da906x->regmap;
++		regl->rdev = regulator_register(&regl->desc, &config);
++		if (IS_ERR_OR_NULL(regl->rdev)) {
++			dev_err(&pdev->dev,
++				"Failed to register %s regulator\n",
++				regl->info->name);
++			ret = PTR_ERR(regl->rdev);
++			goto err;
++		}
++		n++;
++
++		/* Get current modes of operation (A/B voltage selection)
++		   for normal and suspend states */
++		ret = da906x_get_mode_internal(regl, SYS_STATE_NORMAL);
++		if (ret < 0) {
++			dev_err(&pdev->dev,
++				"Failed to read %s regulator's mode\n",
++				regl->info->name);
++			goto err;
++		}
++		if (ret = 0)
++			regl->mode = REGULATOR_MODE_NORMAL;
++		else
++			regl->mode = ret;
++
++		ret = da906x_get_mode_internal(regl, SYS_STATE_SUSPEND);
++		if (ret < 0) {
++			dev_err(&pdev->dev,
++				"Failed to read %s regulator's mode\n",
++				regl->info->name);
++			goto err;
++		}
++		if (ret = 0)
++			regl->suspend_mode = REGULATOR_MODE_NORMAL;
++		else
++			regl->mode = ret;
 +	}
 +
-+	INIT_WORK(&data->irq_work, exynos4_tmu_work);
-+
-+	data->mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!data->mem) {
-+		ret = -ENOENT;
-+		dev_err(&pdev->dev, "Failed to get platform resource\n");
-+		goto err_free;
++	/* LDOs overcurrent event support */
++	regulators->irq_ldo_lim = platform_get_irq_byname(pdev, "LDO_LIM");
++	if (regulators->irq_ldo_lim >= 0) {
++		ret = request_threaded_irq(regulators->irq_ldo_lim,
++					   NULL, da906x_ldo_lim_event,
++					   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++					   "LDO_LIM", regulators);
++		if (ret) {
++			dev_err(&pdev->dev,
++					"Failed to request LDO_LIM IRQ.\n");
++			regulators->irq_ldo_lim = -ENXIO;
++		}
 +	}
-+
-+	data->mem = request_mem_region(data->mem->start,
-+			resource_size(data->mem), pdev->name);
-+	if (!data->mem) {
-+		ret = -ENODEV;
-+		dev_err(&pdev->dev, "Failed to request memory region\n");
-+		goto err_free;
-+	}
-+
-+	data->base = ioremap(data->mem->start, resource_size(data->mem));
-+	if (!data->base) {
-+		ret = -ENODEV;
-+		dev_err(&pdev->dev, "Failed to ioremap memory\n");
-+		goto err_mem_region;
-+	}
-+
-+	ret = request_irq(data->irq, exynos4_tmu_irq,
-+		IRQF_TRIGGER_RISING,
-+		"exynos4-tmu", data);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request irq: %d\n", data->irq);
-+		goto err_io_remap;
-+	}
-+
-+	data->clk = clk_get(NULL, "tmu_apbif");
-+	if (IS_ERR(data->clk)) {
-+		ret = PTR_ERR(data->clk);
-+		dev_err(&pdev->dev, "Failed to get clock\n");
-+		goto err_irq;
-+	}
-+
-+	data->pdata = pdata;
-+	platform_set_drvdata(pdev, data);
-+	mutex_init(&data->lock);
-+
-+	ret = exynos4_tmu_initialize(pdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "Failed to initialize TMU\n");
-+		goto err_clk;
-+	}
-+
-+	exynos4_tmu_control(pdev, true);
 +
 +	return 0;
-+err_clk:
-+	platform_set_drvdata(pdev, NULL);
-+	clk_put(data->clk);
-+err_irq:
-+	free_irq(data->irq, data);
-+err_io_remap:
-+	iounmap(data->base);
-+err_mem_region:
-+	release_mem_region(data->mem->start, resource_size(data->mem));
-+err_free:
-+	kfree(data);
++
++err:
++	/* Wind back regulators registeration */
++	while (--n >= 0) {
++		regulator_unregister(regulators->regulator[n].rdev);
++	}
 +
 +	return ret;
 +}
 +
-+static int __devexit exynos4_tmu_remove(struct platform_device *pdev)
++static int __devexit da906x_regulator_remove(struct platform_device *pdev)
 +{
-+	struct exynos4_tmu_data *data = platform_get_drvdata(pdev);
++	struct da906x_regulators *regulators = platform_get_drvdata(pdev);
++	struct da906x_regulator *regl;
 +
-+	exynos4_tmu_control(pdev, false);
++	free_irq(regulators->irq_ldo_lim, regulators);
++	free_irq(regulators->irq_uvov, regulators);
 +
-+	clk_put(data->clk);
-+
-+	free_irq(data->irq, data);
-+
-+	iounmap(data->base);
-+	release_mem_region(data->mem->start, resource_size(data->mem));
-+
-+	platform_set_drvdata(pdev, NULL);
-+
-+	kfree(data);
++	for (regl = &regulators->regulator[regulators->n_regulators - 1];
++	     regl >= &regulators->regulator[0]; regl--)
++		regulator_unregister(regl->rdev);
 +
 +	return 0;
 +}
 +
-+#ifdef CONFIG_PM_SLEEP
-+static int exynos4_tmu_suspend(struct device *dev)
-+{
-+	exynos4_tmu_control(to_platform_device(dev), false);
-+
-+	return 0;
-+}
-+
-+static int exynos4_tmu_resume(struct device *dev)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+
-+	exynos4_tmu_initialize(pdev);
-+	exynos4_tmu_control(pdev, true);
-+
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(exynos4_tmu_pm,
-+			 exynos4_tmu_suspend, exynos4_tmu_resume);
-+#define EXYNOS4_TMU_PM	(&exynos4_tmu_pm)
-+#else
-+#define EXYNOS4_TMU_PM	NULL
-+#endif
-+
-+static struct platform_driver exynos4_tmu_driver = {
++static struct platform_driver da906x_regulator_driver = {
 +	.driver = {
-+		.name   = "exynos4-tmu",
-+		.owner  = THIS_MODULE,
-+		.pm     = EXYNOS4_TMU_PM,
++		.name = DA906X_DRVNAME_REGULATORS,
++		.owner = THIS_MODULE,
 +	},
-+	.probe = exynos4_tmu_probe,
-+	.remove	= __devexit_p(exynos4_tmu_remove),
++	.probe = da906x_regulator_probe,
++	.remove = __devexit_p(da906x_regulator_remove),
 +};
 +
-+module_platform_driver(exynos4_tmu_driver);
++static int __init da906x_regulator_init(void)
++{
++	return platform_driver_register(&da906x_regulator_driver);
++}
++subsys_initcall(da906x_regulator_init);
 +
-+MODULE_DESCRIPTION("EXYNOS4 TMU Driver");
-+MODULE_AUTHOR("Donggeun Kim <dg77.kim@samsung.com>");
++static void __exit da906x_regulator_cleanup(void)
++{
++	platform_driver_unregister(&da906x_regulator_driver);
++}
++module_exit(da906x_regulator_cleanup);
++
++
++/* Module information */
++MODULE_AUTHOR("Krystian Garbaciak <krystian.garbaciak@diasemi.com>");
++MODULE_DESCRIPTION("DA906x regulators driver");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:exynos4-tmu");
-diff --git a/include/linux/platform_data/exynos4_tmu.h b/include/linux/platform_data/exynos4_tmu.h
-deleted file mode 100644
-index 39e038c..0000000
---- a/include/linux/platform_data/exynos4_tmu.h
-+++ /dev/null
-@@ -1,83 +0,0 @@
--/*
-- * exynos4_tmu.h - Samsung EXYNOS4 TMU (Thermal Management Unit)
-- *
-- *  Copyright (C) 2011 Samsung Electronics
-- *  Donggeun Kim <dg77.kim@samsung.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- */
--
--#ifndef _LINUX_EXYNOS4_TMU_H
--#define _LINUX_EXYNOS4_TMU_H
--
--enum calibration_type {
--	TYPE_ONE_POINT_TRIMMING,
--	TYPE_TWO_POINT_TRIMMING,
--	TYPE_NONE,
--};
--
--/**
-- * struct exynos4_tmu_platform_data
-- * @threshold: basic temperature for generating interrupt
-- *	       25 <= threshold <= 125 [unit: degree Celsius]
-- * @trigger_levels: array for each interrupt levels
-- *	[unit: degree Celsius]
-- *	0: temperature for trigger_level0 interrupt
-- *	   condition for trigger_level0 interrupt:
-- *		current temperature > threshold + trigger_levels[0]
-- *	1: temperature for trigger_level1 interrupt
-- *	   condition for trigger_level1 interrupt:
-- *		current temperature > threshold + trigger_levels[1]
-- *	2: temperature for trigger_level2 interrupt
-- *	   condition for trigger_level2 interrupt:
-- *		current temperature > threshold + trigger_levels[2]
-- *	3: temperature for trigger_level3 interrupt
-- *	   condition for trigger_level3 interrupt:
-- *		current temperature > threshold + trigger_levels[3]
-- * @trigger_level0_en:
-- *	1 = enable trigger_level0 interrupt,
-- *	0 = disable trigger_level0 interrupt
-- * @trigger_level1_en:
-- *	1 = enable trigger_level1 interrupt,
-- *	0 = disable trigger_level1 interrupt
-- * @trigger_level2_en:
-- *	1 = enable trigger_level2 interrupt,
-- *	0 = disable trigger_level2 interrupt
-- * @trigger_level3_en:
-- *	1 = enable trigger_level3 interrupt,
-- *	0 = disable trigger_level3 interrupt
-- * @gain: gain of amplifier in the positive-TC generator block
-- *	0 <= gain <= 15
-- * @reference_voltage: reference voltage of amplifier
-- *	in the positive-TC generator block
-- *	0 <= reference_voltage <= 31
-- * @cal_type: calibration type for temperature
-- *
-- * This structure is required for configuration of exynos4_tmu driver.
-- */
--struct exynos4_tmu_platform_data {
--	u8 threshold;
--	u8 trigger_levels[4];
--	bool trigger_level0_en;
--	bool trigger_level1_en;
--	bool trigger_level2_en;
--	bool trigger_level3_en;
--
--	u8 gain;
--	u8 reference_voltage;
--
--	enum calibration_type cal_type;
--};
--#endif /* _LINUX_EXYNOS4_TMU_H */
-diff --git a/include/linux/platform_data/exynos_thermal.h b/include/linux/platform_data/exynos_thermal.h
-new file mode 100644
-index 0000000..d6c3f93
---- /dev/null
-+++ b/include/linux/platform_data/exynos_thermal.h
-@@ -0,0 +1,83 @@
-+/*
-+ * exynos_thermal.h - Samsung EXYNOS4 TMU (Thermal Management Unit)
-+ *
-+ *  Copyright (C) 2011 Samsung Electronics
-+ *  Donggeun Kim <dg77.kim@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef _LINUX_EXYNOS_THERMAL_H
-+#define _LINUX_EXYNOS_THERMAL_H
-+
-+enum calibration_type {
-+	TYPE_ONE_POINT_TRIMMING,
-+	TYPE_TWO_POINT_TRIMMING,
-+	TYPE_NONE,
-+};
-+
-+/**
-+ * struct exynos4_tmu_platform_data
-+ * @threshold: basic temperature for generating interrupt
-+ *	       25 <= threshold <= 125 [unit: degree Celsius]
-+ * @trigger_levels: array for each interrupt levels
-+ *	[unit: degree Celsius]
-+ *	0: temperature for trigger_level0 interrupt
-+ *	   condition for trigger_level0 interrupt:
-+ *		current temperature > threshold + trigger_levels[0]
-+ *	1: temperature for trigger_level1 interrupt
-+ *	   condition for trigger_level1 interrupt:
-+ *		current temperature > threshold + trigger_levels[1]
-+ *	2: temperature for trigger_level2 interrupt
-+ *	   condition for trigger_level2 interrupt:
-+ *		current temperature > threshold + trigger_levels[2]
-+ *	3: temperature for trigger_level3 interrupt
-+ *	   condition for trigger_level3 interrupt:
-+ *		current temperature > threshold + trigger_levels[3]
-+ * @trigger_level0_en:
-+ *	1 = enable trigger_level0 interrupt,
-+ *	0 = disable trigger_level0 interrupt
-+ * @trigger_level1_en:
-+ *	1 = enable trigger_level1 interrupt,
-+ *	0 = disable trigger_level1 interrupt
-+ * @trigger_level2_en:
-+ *	1 = enable trigger_level2 interrupt,
-+ *	0 = disable trigger_level2 interrupt
-+ * @trigger_level3_en:
-+ *	1 = enable trigger_level3 interrupt,
-+ *	0 = disable trigger_level3 interrupt
-+ * @gain: gain of amplifier in the positive-TC generator block
-+ *	0 <= gain <= 15
-+ * @reference_voltage: reference voltage of amplifier
-+ *	in the positive-TC generator block
-+ *	0 <= reference_voltage <= 31
-+ * @cal_type: calibration type for temperature
-+ *
-+ * This structure is required for configuration of exynos4_tmu driver.
-+ */
-+struct exynos4_tmu_platform_data {
-+	u8 threshold;
-+	u8 trigger_levels[4];
-+	bool trigger_level0_en;
-+	bool trigger_level1_en;
-+	bool trigger_level2_en;
-+	bool trigger_level3_en;
-+
-+	u8 gain;
-+	u8 reference_voltage;
-+
-+	enum calibration_type cal_type;
-+};
-+#endif /* _LINUX_EXYNOS_THERMAL_H */
++MODULE_ALIAS("paltform:" DA906X_DRVNAME_REGULATORS);
 -- 
-1.7.1
+1.7.0.4
 
 
 _______________________________________________
