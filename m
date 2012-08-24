@@ -1,724 +1,1104 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 10 Aug 2012 05:46:31 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: Driver for ADT7410
-Message-Id: <20120810054631.GA19116@roeck-us.net>
+From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
+Date: Fri, 24 Aug 2012 13:55:00 +0000
+Subject: [lm-sensors] [RFC PATCH 2/8] regulator: Add Dialog DA906x voltage regulators support.
+Message-Id: <201208241455@sw-eng-lt-dc-vm2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <501BA87C.2020907@gmx.de>
-In-Reply-To: <501BA87C.2020907@gmx.de>
+References: <201208241450@sw-eng-lt-dc-vm2>
+In-Reply-To: <201208241450@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, "Richard Purdie <rpurdie@rpsys.net>
+	Anthony Olech" <anthony.olech@diasemi.com>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
 
-On Fri, Aug 10, 2012 at 12:32:15AM +0200, Hartmut Knaack wrote:
-> New driver for ADT7410 temperature sensor
->=20
-> This patch brings basic support for the Analog Devices ADT7410 temperature
-> sensor, based on the lm75 hwmon driver and the adt7410 iio driver. The fo=
-llowing
-> functionality has been implemented:
->=20
->   * get current temperature
->   * get/set minimum, maximum and critical temperature
->   * get/set hysteresis
->   * get alarm events for minimum, maximum and critical temperature
->=20
-> All implemented sysfs-symbols have been successfully tested at temperatur=
-es of
-> 15=B0C to 40=B0C.
->=20
-> Signed-off-by: Hartmut Knaack <knaack.h@gmx.de>
+The driver adds support for the following DA9063 PMIC regulators:
+ - 11x LDOs (named LDO1 - LDO11),
+ - 6x buck converters (BCORE1, BCORE2, BPRO, BMEM, BIO, BPERI),
+ - 1x power switch to switch on/off 32 KHz oscilator output (32K_OUT).
 
-Hi Hartmut,
+Regulators provide following operations:
+ - REGULATOR_CHANGE_STATUS for all regulators,
+ - REGULATOR_CHANGE_VOLTAGE for LDOs and buck converters,
+ - REGULATOR_CHANGE_MODE for LDOs and buck converters, where:
+     - LDOs allow REGULATOR_MODE_NORMAL and REGULATOR_MODE_STANDBY,
+     - buck converters allow REGULATOR_MODE_FAST, REGULATOR_MODE_NORMAL
+       and REGULATOR_MODE_STANDBY,
+ - REGULATOR_CHANGE_CURRENT for buck converters (current limits).
 
-almost there. Couple of additional comments below. As usual for me, I keep =
-finding
-stuff, and there are some new problems.
+The driver generates REGULATOR_EVENT_OVER_CURRENT for LDO3, LDO4, LDO7, LDO8
+and LDO11.
 
-Thanks,
-Guenter
+Internally, PMIC provides two voltage configurations for normal and suspend
+system state for each regulator. The driver switches between those on
+suspend/wake-up to provide quick and fluent output voltage change.
 
-> ---
-> v3:
-> Rework based on Guenter Roecks review:
-> - fixed format issues
-> - changed some variable types
-> - optimized sleep delay of adt7410_temp_ready
-> - always return original error codes
-> - set hysteresis with SENSORS_LIMIT
-> - drop adt7410_detect
->=20
-> v2:
-> Applied changes recommended by Guenter Roeck:
-> - use devm_ function for allocation
-> - use i2c_smbus functions instead of wrapper functions
-> - change "valid" from char to bool
-> - move delay code to adt7410_temp_ready and use sleep
-> - improved detect function
-> - merge show_xxx_alarm functions
-> - improve format, drop variables
->=20
-> diff --git a/Documentation/hwmon/adt7410 b/Documentation/hwmon/adt7410
-> new file mode 100644
-> index 0000000..a70cea7
-> --- /dev/null
-> +++ b/Documentation/hwmon/adt7410
-> @@ -0,0 +1,50 @@
-> +Kernel driver adt7410
-> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> +
-> +Supported chips:
-> +  * Analog Devices ADT7410
-> +    Prefix: 'adt7410'
-> +    Addresses scanned: I2C 0x48 - 0x4B
-> +    Datasheet: Publicly available at the Analog Devices website
-> +               http://www.analog.com/static/imported-files/data_sheets/A=
-DT7410.pdf
-> +
-> +Author: Hartmut Knaack <knaack.h@gmx.de>
-> +
-> +Description
-> +-----------
-> +
-> +The ADT7410 is a temperature sensor with rated temperature range of -55=
-=B0C to
-> ++150=B0C. It has a high accuracy of +/-0.5=B0C and can be operated at a =
-resolution
-> +of 13 bits (0.0625=B0C) or 16 bits (0.0078=B0C). The sensor provides an =
-INT pin to
-> +indicate an excession of a set minimum or maximum temperature, as well a=
-s a
+This driver requires MFD core driver for operation.
 
-excession - that word does not seeem to exist (except as a book written by =
-Ian
-Banks ;). Do you mean the noun associated with "exceed" ? If so, maybe reph=
-rase
-the sentence to
+Signed-off-by: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
+---
+ drivers/regulator/Kconfig            |    6 +
+ drivers/regulator/Makefile           |    1 +
+ drivers/regulator/da906x-regulator.c | 1018 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 1025 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/regulator/da906x-regulator.c
 
-	to indicate that a minimum or maximum temperature set point has been excee=
-ded
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 4e932cc..b57b6c6 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -110,6 +110,12 @@ config REGULATOR_DA9052
+ 	  This driver supports the voltage regulators of DA9052-BC and
+ 	  DA9053-AA/Bx PMIC.
+ 
++config REGULATOR_DA906X
++	bool "Dialog DA906X Regulator family chip"
++	depends on MFD_DA906X
++	help
++	  Support for Dialog Semiconductor DA906x chip.
++
+ config REGULATOR_ANATOP
+ 	tristate "Freescale i.MX on-chip ANATOP LDO regulators"
+ 	depends on MFD_ANATOP
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+index 3342615..46a503a 100644
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_REGULATOR_ANATOP) += anatop-regulator.o
+ obj-$(CONFIG_REGULATOR_ARIZONA) += arizona-micsupp.o arizona-ldo1.o
+ obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
+ obj-$(CONFIG_REGULATOR_DA9052)	+= da9052-regulator.o
++obj-$(CONFIG_REGULATOR_DA906X) += da906x-regulator.o
+ obj-$(CONFIG_REGULATOR_DBX500_PRCMU) += dbx500-prcmu.o
+ obj-$(CONFIG_REGULATOR_DB8500_PRCMU) += db8500-prcmu.o
+ obj-$(CONFIG_REGULATOR_GPIO) += gpio-regulator.o
+diff --git a/drivers/regulator/da906x-regulator.c b/drivers/regulator/da906x-regulator.c
+new file mode 100644
+index 0000000..1b68de0
+--- /dev/null
++++ b/drivers/regulator/da906x-regulator.c
+@@ -0,0 +1,1018 @@
++/*
++ * Regulator driver for DA906x PMIC series
++ *
++ * Copyright 2012 Dialog Semiconductors Ltd.
++ *
++ * Author: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
++ *
++ *  This program is free software; you can redistribute  it and/or modify it
++ *  under  the terms of  the GNU General  Public License as published by the
++ *  Free Software Foundation;  either version 2 of the  License, or (at your
++ *  option) any later version.
++ *
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/mfd/da906x/core.h>
++#include <linux/mfd/da906x/pdata.h>
++#include <linux/mfd/da906x/registers.h>
++
++
++/* Definition for registering bit fields */
++struct bfield {
++	unsigned short	addr;
++	unsigned char	mask;
++};
++#define BFIELD(_addr, _mask) \
++	{ .addr = _addr, .mask = _mask }
++
++struct field {
++	unsigned short	addr;
++	unsigned char	mask;
++	unsigned char	shift;
++	unsigned char	offset;
++};
++#define FIELD(_addr, _mask, _shift, _offset) \
++	{ .addr = _addr, .mask = _mask, .shift = _shift, .offset = _offset }
++
++/* Regulator capabilities and registers description */
++struct da906x_regulator_info {
++	int			id;
++	char			*name;
++	struct regulator_ops	*ops;
++
++	/* Voltage adjust range */
++	int		min_uV;
++	int		max_uV;
++	unsigned	step_uV;
++	unsigned	n_steps;
++
++	/* Current limiting */
++	unsigned	n_current_limits;
++	const int	*current_limits;
++
++	/* DA906x main register fields */
++	struct bfield	enable;		/* bit used to enable regulator,
++					   it returns actual state when read */
++	struct field	mode;		/* buck mode of operation */
++	struct bfield	suspend;
++	struct bfield	sleep;
++	struct bfield	suspend_sleep;
++	struct field	voltage;
++	struct field	suspend_voltage;
++	struct field	ilimit;
++
++	/* DA906x event detection bit */
++	struct bfield	oc_event;
++};
++
++/* Macro for switch regulator */
++#define DA906X_SWITCH(chip, regl_name) \
++	.id = chip##_ID_##regl_name, \
++	.name = __stringify(chip##_##regl_name), \
++	.ops = &da906x_switch_ops, \
++	.n_steps = 0
++
++/* Macros for LDO */
++#define DA906X_LDO(chip, regl_name, min_mV, step_mV, max_mV) \
++	.id = chip##_ID_##regl_name, \
++	.name = __stringify(chip##_##regl_name), \
++	.ops = &da906x_ldo_ops, \
++	.min_uV = (min_mV) * 1000, \
++	.max_uV = (max_mV) * 1000, \
++	.step_uV = (step_mV) * 1000, \
++	.n_steps = (((max_mV) - (min_mV))/(step_mV) + 1)
++
++#define DA906X_LDO_COMMON_FIELDS(regl_name) \
++	.enable = BFIELD(DA906X_REG_##regl_name##_CONT, DA906X_LDO_EN), \
++	.sleep = BFIELD(DA906X_REG_V##regl_name##_A, DA906X_LDO_SL), \
++	.suspend_sleep = BFIELD(DA906X_REG_V##regl_name##_B, DA906X_LDO_SL), \
++	.voltage = FIELD(DA906X_REG_V##regl_name##_A, \
++			DA906X_V##regl_name##_MASK, \
++			DA906X_V##regl_name##_SHIFT, \
++			DA906X_V##regl_name##_BIAS), \
++	.suspend_voltage = FIELD(DA906X_REG_V##regl_name##_B, \
++			DA906X_V##regl_name##_MASK,\
++			DA906X_V##regl_name##_SHIFT, \
++			DA906X_V##regl_name##_BIAS)
++
++/* Macros for voltage DC/DC converters (BUCKs) */
++#define DA906X_BUCK(chip, regl_name, min_mV, step_mV, max_mV, limits_array) \
++	.id = chip##_ID_##regl_name, \
++	.name = __stringify(chip##_##regl_name), \
++	.ops = &da906x_buck_ops, \
++	.min_uV = (min_mV) * 1000, \
++	.max_uV = (max_mV) * 1000, \
++	.step_uV = (step_mV) * 1000, \
++	.n_steps = ((max_mV) - (min_mV))/(step_mV) + 1, \
++	.current_limits = limits_array, \
++	.n_current_limits = ARRAY_SIZE(limits_array)
++
++#define DA906X_BUCK_COMMON_FIELDS(regl_name) \
++	.enable = BFIELD(DA906X_REG_##regl_name##_CONT, DA906X_BUCK_EN), \
++	.sleep = BFIELD(DA906X_REG_V##regl_name##_A, DA906X_BUCK_SL), \
++	.suspend_sleep = BFIELD(DA906X_REG_V##regl_name##_B, DA906X_BUCK_SL), \
++	.voltage = FIELD(DA906X_REG_V##regl_name##_A, \
++			 DA906X_VBUCK_MASK, \
++			 DA906X_VBUCK_SHIFT, \
++			 DA906X_VBUCK_BIAS), \
++	.suspend_voltage = FIELD(DA906X_REG_V##regl_name##_B, \
++				 DA906X_VBUCK_MASK,\
++				 DA906X_VBUCK_SHIFT, \
++				 DA906X_VBUCK_BIAS), \
++	.mode = FIELD(DA906X_REG_##regl_name##_CFG, DA906X_BUCK_MODE_MASK, \
++		      DA906X_BUCK_MODE_SHIFT, 0)
++
++/* Defines asignment of regulators info table to chip model */
++struct da906x_dev_model {
++	const struct da906x_regulator_info	*regulator_info;
++	unsigned				n_regulators;
++	unsigned				dev_model;
++};
++
++/* Single regulator settings */
++struct da906x_regulator {
++	struct regulator_desc			desc;
++	struct regulator_dev			*rdev;
++	struct da906x				*hw;
++	const struct da906x_regulator_info	*info;
++
++	unsigned				mode;
++	unsigned				suspend_mode;
++};
++
++/* Encapsulates all information for the regulators driver */
++struct da906x_regulators {
++	int					irq_ldo_lim;
++	int					irq_uvov;
++
++	unsigned				n_regulators;
++	/* Array size to be defined during init. Keep at end. */
++	struct da906x_regulator			regulator[0];
++};
++
++/* System states for da906x_update_mode_internal()
++   and for da906x_get_mode_internal() */
++enum {
++	SYS_STATE_NORMAL,
++	SYS_STATE_SUSPEND,
++	SYS_STATE_CURRENT
++};
++
++/* BUCK modes for DA906x */
++enum {
++	BUCK_MODE_MANUAL,	/* 0 */
++	BUCK_MODE_SLEEP,	/* 1 */
++	BUCK_MODE_SYNC,		/* 2 */
++	BUCK_MODE_AUTO		/* 3 */
++};
++
++/* Regulator operations */
++static int da906x_set_voltage(struct regulator_dev *rdev, int min_uV,
++			      int max_uV, unsigned *selector);
++static int da906x_get_voltage_sel(struct regulator_dev *rdev);
++static int da906x_set_current_limit(struct regulator_dev *rdev,
++				    int min_uA, int max_uA);
++static int da906x_get_current_limit(struct regulator_dev *rdev);
++static int da906x_enable(struct regulator_dev *rdev);
++static int da906x_set_mode(struct regulator_dev *rdev, unsigned int mode);
++static unsigned da906x_get_mode(struct regulator_dev *rdev);
++static int da906x_get_status(struct regulator_dev *rdev);
++static int da906x_set_suspend_voltage(struct regulator_dev *rdev, int uV);
++static int da906x_suspend_enable(struct regulator_dev *rdev);
++static int da906x_set_suspend_mode(struct regulator_dev *rdev, unsigned mode);
++
++static struct regulator_ops da906x_switch_ops = {
++	.enable			= da906x_enable,
++	.disable		= regulator_disable_regmap,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.set_suspend_enable	= da906x_enable,
++	.set_suspend_disable	= regulator_disable_regmap,
++};
++
++static struct regulator_ops da906x_ldo_ops = {
++	.enable			= da906x_enable,
++	.disable		= regulator_disable_regmap,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.set_voltage		= da906x_set_voltage,
++	.get_voltage_sel	= da906x_get_voltage_sel,
++	.list_voltage		= regulator_list_voltage_linear,
++	.set_mode		= da906x_set_mode,
++	.get_mode		= da906x_get_mode,
++	.get_status		= da906x_get_status,
++	.set_suspend_voltage	= da906x_set_suspend_voltage,
++	.set_suspend_enable	= da906x_suspend_enable,
++	.set_suspend_disable	= regulator_disable_regmap,
++	.set_suspend_mode	= da906x_set_suspend_mode,
++};
++
++static struct regulator_ops da906x_buck_ops = {
++	.enable			= da906x_enable,
++	.disable		= regulator_disable_regmap,
++	.is_enabled		= regulator_is_enabled_regmap,
++	.set_voltage		= da906x_set_voltage,
++	.get_voltage_sel	= da906x_get_voltage_sel,
++	.list_voltage		= regulator_list_voltage_linear,
++	.set_current_limit	= da906x_set_current_limit,
++	.get_current_limit	= da906x_get_current_limit,
++	.set_mode		= da906x_set_mode,
++	.get_mode		= da906x_get_mode,
++	.get_status		= da906x_get_status,
++	.set_suspend_voltage	= da906x_set_suspend_voltage,
++	.set_suspend_enable	= da906x_suspend_enable,
++	.set_suspend_disable	= regulator_disable_regmap,
++	.set_suspend_mode	= da906x_set_suspend_mode,
++};
++
++/* Current limits array (in uA) for BCORE1, BCORE2, BPRO.
++   Entry indexes corresponds to register values. */
++static const int da9063_buck_a_limits[] = {
++	 500000,  600000,  700000,  800000,  900000, 1000000, 1100000, 1200000,
++	1300000, 1400000, 1500000, 1600000, 1700000, 1800000, 1900000, 2000000
++};
++
++/* Current limits array (in uA) for BMEM, BIO, BPERI.
++   Entry indexes corresponds to register values. */
++static const int da9063_buck_b_limits[] = {
++	1500000, 1600000, 1700000, 1800000, 1900000, 2000000, 2100000, 2200000,
++	2300000, 2400000, 2500000, 2600000, 2700000, 2800000, 2900000, 3000000
++};
++
++/* Current limits array (in uA) for merged BCORE1 and BCORE2.
++   Entry indexes corresponds to register values. */
++static const int da9063_bcores_merged_limits[] = {
++	1000000, 1200000, 1400000, 1600000, 1800000, 2000000, 2200000, 2400000,
++	2600000, 2800000, 3000000, 3200000, 3400000, 3600000, 3800000, 4000000
++};
++
++/* Current limits array (in uA) for merged BMEM and BIO.
++   Entry indexes corresponds to register values. */
++static const int da9063_bmem_bio_merged_limits[] = {
++	3000000, 3200000, 3400000, 3600000, 3800000, 4000000, 4200000, 4400000,
++	4600000, 4800000, 5000000, 5200000, 5400000, 5600000, 5800000, 6000000
++};
++
++/* Info of regulators for DA9063 */
++static const struct da906x_regulator_info da9063_regulator_info[] = {
++	{
++		DA906X_BUCK(DA9063, BCORE1, 300, 10, 1570,
++			    da9063_buck_a_limits),
++		DA906X_BUCK_COMMON_FIELDS(BCORE1),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBCORE1_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_C, DA906X_BCORE1_ILIM_MASK,
++				DA906X_BCORE1_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BCORE2, 300, 10, 1570,
++			    da9063_buck_a_limits),
++		DA906X_BUCK_COMMON_FIELDS(BCORE2),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBCORE2_SEL),
++
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_C,
++				DA906X_BCORE2_ILIM_MASK,
++				DA906X_BCORE2_ILIM_SHIFT,
++				0),
++	},
++	{
++		DA906X_BUCK(DA9063, BPRO, 530, 10, 1800,
++			    da9063_buck_a_limits),
++		DA906X_BUCK_COMMON_FIELDS(BPRO),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBPRO_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_B, DA906X_BPRO_ILIM_MASK,
++				DA906X_BPRO_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BMEM, 800, 20, 3340,
++			    da9063_buck_b_limits),
++		DA906X_BUCK_COMMON_FIELDS(BMEM),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBMEM_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_A, DA906X_BMEM_ILIM_MASK,
++				DA906X_BMEM_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BIO, 800, 20, 3340,
++			    da9063_buck_b_limits),
++		DA906X_BUCK_COMMON_FIELDS(BIO),
++		.suspend = BFIELD(DA906X_REG_DVC_2, DA906X_VBIO_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_A, DA906X_BIO_ILIM_MASK,
++				DA906X_BIO_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BPERI, 800, 20, 3340,
++			    da9063_buck_b_limits),
++		DA906X_BUCK_COMMON_FIELDS(BPERI),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBPERI_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_B, DA906X_BPERI_ILIM_MASK,
++				DA906X_BPERI_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BCORES_MERGED, 300, 10, 1570,
++			    da9063_bcores_merged_limits),
++		/* BCORES_MERGED uses the same register fields as BCORE1 */
++		DA906X_BUCK_COMMON_FIELDS(BCORE1),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBCORE1_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_C, DA906X_BCORE1_ILIM_MASK,
++				DA906X_BCORE1_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_BUCK(DA9063, BMEM_BIO_MERGED, 800, 20, 3340,
++			    da9063_bmem_bio_merged_limits),
++		/* BMEM_BIO_MERGED uses the same register fields as BMEM */
++		DA906X_BUCK_COMMON_FIELDS(BMEM),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VBMEM_SEL),
++		.ilimit = FIELD(DA906X_REG_BUCK_ILIM_A, DA906X_BMEM_ILIM_MASK,
++				DA906X_BMEM_ILIM_SHIFT, 0),
++	},
++	{
++		DA906X_LDO(DA9063, LDO1, 600, 20, 1860),
++		DA906X_LDO_COMMON_FIELDS(LDO1),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VLDO1_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO2, 600, 20, 1860),
++		DA906X_LDO_COMMON_FIELDS(LDO2),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VLDO2_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO3, 900, 20, 3440),
++		DA906X_LDO_COMMON_FIELDS(LDO3),
++		.suspend = BFIELD(DA906X_REG_DVC_1, DA906X_VLDO3_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO3_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO4, 900, 20, 3440),
++		DA906X_LDO_COMMON_FIELDS(LDO4),
++		.suspend = BFIELD(DA906X_REG_DVC_2, DA906X_VLDO4_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO4_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO5, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO5),
++		.suspend = BFIELD(DA906X_REG_LDO5_CONT, DA906X_VLDO5_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO6, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO6),
++		.suspend = BFIELD(DA906X_REG_LDO6_CONT, DA906X_VLDO6_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO7, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO7),
++		.suspend = BFIELD(DA906X_REG_LDO7_CONT, DA906X_VLDO7_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO7_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO8, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO8),
++		.suspend = BFIELD(DA906X_REG_LDO8_CONT, DA906X_VLDO8_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO8_LIM),
++	},
++	{
++		DA906X_LDO(DA9063, LDO9, 950, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO9),
++		.suspend = BFIELD(DA906X_REG_LDO9_CONT, DA906X_VLDO9_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO10, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO10),
++		.suspend = BFIELD(DA906X_REG_LDO10_CONT, DA906X_VLDO10_SEL),
++	},
++	{
++		DA906X_LDO(DA9063, LDO11, 900, 50, 3600),
++		DA906X_LDO_COMMON_FIELDS(LDO11),
++		.suspend = BFIELD(DA906X_REG_LDO11_CONT, DA906X_VLDO11_SEL),
++		.oc_event = BFIELD(DA906X_REG_STATUS_D, DA906X_LDO11_LIM),
++	},
++	{
++		DA906X_SWITCH(DA9063, 32K_OUT),
++		.enable = BFIELD(DA906X_REG_EN_32K, DA906X_OUT_32K_EN),
++	},
++};
++
++/* Link chip model with regulators info table */
++static struct da906x_dev_model regulators_models[] = {
++	{
++		.regulator_info = da9063_regulator_info,
++		.n_regulators = ARRAY_SIZE(da9063_regulator_info),
++		.dev_model = PMIC_DA9063,
++	},
++	{NULL, 0, 0}	/* End of list */
++};
++
++
++/*
++ * Regulator internal functions
++ */
++static int da906x_update_mode_internal(struct da906x_regulator *regl,
++				       int sys_state)
++{
++	const struct da906x_regulator_info *rinfo = regl->info;
++	unsigned val;
++	unsigned mode;
++	int ret;
++
++	if (sys_state = SYS_STATE_SUSPEND)
++		/* Get mode for regulator in suspend state */
++		mode = regl->suspend_mode;
++	else
++		/* Get mode for regulator in normal operation */
++		mode = regl->mode;
++
++	/* LDOs use sleep flags - one for normal and one for suspend state.
++	   For BUCKs single mode register field is used in normal and
++	   suspend state. */
++	if (rinfo->mode.addr) {
++		/* Set mode for BUCK - 3 modes are supported */
++		switch (mode) {
++		case REGULATOR_MODE_FAST:
++			val = BUCK_MODE_SYNC;
++			break;
++		case REGULATOR_MODE_NORMAL:
++			val = BUCK_MODE_AUTO;
++			break;
++		case REGULATOR_MODE_STANDBY:
++			val = BUCK_MODE_SLEEP;
++			break;
++		default:
++			return -EINVAL;
++		}
++		val = val << rinfo->mode.shift;
++
++		ret = da906x_reg_update(regl->hw, rinfo->mode.addr,
++					rinfo->mode.mask, val);
++	} else {
++		/* Set mode for LDO - 2 modes are supported */
++		switch (mode) {
++		case REGULATOR_MODE_NORMAL:
++			val = 0;
++			break;
++		case REGULATOR_MODE_STANDBY:
++			val = DA906X_LDO_SL;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		if (sys_state = SYS_STATE_SUSPEND) {
++			if (!rinfo->suspend_sleep.addr)
++				return -EINVAL;
++			ret = da906x_reg_update(regl->hw,
++						rinfo->suspend_sleep.addr,
++						rinfo->suspend_sleep.mask,
++						val);
++		} else {
++			if (!rinfo->sleep.addr)
++				return -EINVAL;
++			ret = da906x_reg_update(regl->hw,
++						rinfo->sleep.addr,
++						rinfo->sleep.mask, val);
++		}
++	}
++
++	return ret;
++}
++
++static unsigned da906x_get_mode_internal(struct da906x_regulator *regl,
++					 int sys_state)
++{
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int val;
++	int addr;
++	int mask;
++	unsigned mode = 0;
++
++	/* Bucks use single mode register field for normal operation
++	   and suspend state. LDOs use sleep flags - one for normal
++	   and one for suspend state. */
++	if (rinfo->mode.addr) {
++		/* For BUCKs, there are 3 modes to map to */
++		val = da906x_reg_read(regl->hw, rinfo->mode.addr);
++		if (val < 0)
++			return val;
++
++		val = (val & rinfo->mode.mask) >> rinfo->mode.shift;
++		switch (val) {
++		default:
++		case BUCK_MODE_MANUAL:
++			mode = REGULATOR_MODE_FAST | REGULATOR_MODE_STANDBY;
++			/* Sleep flag bit decides the mode */
++			break;
++		case BUCK_MODE_SLEEP:
++			return REGULATOR_MODE_STANDBY;
++		case BUCK_MODE_SYNC:
++			return REGULATOR_MODE_FAST;
++		case BUCK_MODE_AUTO:
++			return REGULATOR_MODE_NORMAL;
++		}
++	} else if (rinfo->sleep.addr) {
++		/* For LDOs there are 2 modes to map to */
++		mode = REGULATOR_MODE_NORMAL | REGULATOR_MODE_STANDBY;
++		/* Sleep flag bit decides the mode */
++	} else {
++		/* No support */
++		return 0;
++	}
++
++	/* If sys_state = SYS_STATE_CURRENT, current regulator state
++	   is detected. */
++	if (sys_state = SYS_STATE_CURRENT && rinfo->suspend.addr) {
++		val = da906x_reg_read(regl->hw,
++					  rinfo->suspend.addr);
++		if (val < 0)
++			return val;
++
++		if (val & rinfo->suspend.mask)
++			sys_state = SYS_STATE_SUSPEND;
++		else
++			sys_state = SYS_STATE_NORMAL;
++	}
++
++	/* Read regulator mode from proper register,
++	   depending on selected system state */
++	if (sys_state = SYS_STATE_SUSPEND && rinfo->suspend_sleep.addr) {
++		addr = rinfo->suspend_sleep.addr;
++		mask = rinfo->suspend_sleep.mask;
++	} else {
++		addr = rinfo->sleep.addr;
++		mask = rinfo->sleep.mask;
++	}
++
++	val = da906x_reg_read(regl->hw, addr);
++	if (val < 0)
++		return val;
++
++	if (val & mask)
++		mode &= REGULATOR_MODE_STANDBY;
++	else
++		mode &= REGULATOR_MODE_NORMAL | REGULATOR_MODE_FAST;
++
++	return mode;
++}
++
++static int da906x_set_voltage(struct regulator_dev *rdev,
++				int min_uV, int max_uV, unsigned *selector)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct field *fvol = &regl->info->voltage;
++	int ret;
++	unsigned val;
++
++	val = regulator_map_voltage_linear(rdev, min_uV, max_uV);
++	if (val < 0)
++		return -EINVAL;
++
++	val = (val + fvol->offset) << fvol->shift;
++	ret = da906x_reg_update(regl->hw, fvol->addr, fvol->mask, val);
++	if (ret >= 0)
++		*selector = val;
++
++	return ret;
++}
++
++static int da906x_get_voltage_sel(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int sel;
++
++	sel = da906x_reg_read(regl->hw, rinfo->voltage.addr);
++	if (sel < 0)
++		return sel;
++
++	sel = (sel & rinfo->voltage.mask) >> rinfo->voltage.shift;
++	sel -= rinfo->voltage.offset;
++	if (sel < 0)
++		sel = 0;
++	if (sel >= rinfo->n_steps)
++		sel = rinfo->n_steps - 1;
++
++	return sel;
++}
++
++static int da906x_set_current_limit(struct regulator_dev *rdev,
++							int min_uA, int max_uA)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int val = INT_MAX;
++	unsigned sel = 0;
++	int n;
++	int tval;
++
++	if (!rinfo->current_limits)
++		return -EINVAL;
++
++	for (n = 0; n < rinfo->n_current_limits; n++) {
++		tval = rinfo->current_limits[n];
++		if (tval >= min_uA && tval <= max_uA && val > tval) {
++			val = tval;
++			sel = n;
++		}
++	}
++	if (val = INT_MAX)
++		return -EINVAL;
++
++	sel = (sel + rinfo->ilimit.offset) << rinfo->ilimit.shift;
++	return da906x_reg_update(regl->hw, rinfo->ilimit.addr,
++						rinfo->ilimit.mask, sel);
++}
++
++static int da906x_get_current_limit(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	int sel;
++
++	sel = da906x_reg_read(regl->hw, rinfo->ilimit.addr);
++	if (sel < 0)
++		return sel;
++
++	sel = (sel & rinfo->ilimit.mask) >> rinfo->ilimit.shift;
++	sel -= rinfo->ilimit.offset;
++	if (sel < 0)
++		sel = 0;
++	if (sel >= rinfo->n_current_limits)
++		sel = rinfo->n_current_limits - 1;
++
++	return rinfo->current_limits[sel];
++}
++
++static int da906x_enable(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	int ret;
++
++	if (regl->info->suspend.mask) {
++		/* Make sure to exit from suspend mode on enable */
++		ret = da906x_reg_clear_bits(regl->hw, regl->info->suspend.addr,
++					    regl->info->suspend.mask);
++		if (ret < 0)
++			return ret;
++
++		/* BUCKs need mode update after wake-up from suspend state. */
++		ret = da906x_update_mode_internal(regl, SYS_STATE_NORMAL);
++		if (ret < 0)
++			return ret;
++	}
++
++	return regulator_enable_regmap(rdev);
++}
++
++static int da906x_set_mode(struct regulator_dev *rdev, unsigned mode)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	unsigned orig_mode = regl->mode;
++	int ret;
++
++	regl->mode = mode;
++	ret = da906x_update_mode_internal(regl, SYS_STATE_NORMAL);
++	if (ret)
++		regl->mode = orig_mode;
++
++	return ret;
++}
++
++static unsigned da906x_get_mode(struct regulator_dev *rdev)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++
++	return da906x_get_mode_internal(regl, SYS_STATE_CURRENT);
++}
++
++static int da906x_get_status(struct regulator_dev *rdev)
++{
++	int ret = regulator_is_enabled_regmap(rdev);
++
++	if (ret = 0) {
++		ret = REGULATOR_STATUS_OFF;
++	} else if (ret > 0) {
++		ret = da906x_get_mode(rdev);
++		if (ret > 0)
++			ret = regulator_mode_to_status(ret);
++		else if (ret = 0)
++			ret = -EIO;
++	}
++
++	return ret;
++}
++
++static int da906x_set_suspend_voltage(struct regulator_dev *rdev, int uV)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct da906x_regulator_info *rinfo = regl->info;
++	const struct field *fsusvol = &rinfo->suspend_voltage;
++	int val;
++	int ret;
++
++	val = regulator_map_voltage_linear(rdev, uV, uV);
++	if (val < 0)
++		return -EINVAL;
++
++	val = (val + fsusvol->offset) << fsusvol->shift;
++	ret = da906x_reg_update(regl->hw, fsusvol->addr, fsusvol->mask, val);
++
++	return ret;
++}
++
++static int da906x_suspend_enable(struct regulator_dev *rdev)
++{
++	int ret;
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	const struct bfield *bsuspend = &regl->info->suspend;
++
++	ret = da906x_reg_set_bits(regl->hw, bsuspend->addr, bsuspend->mask);
++	return ret;
++}
++
++static int da906x_set_suspend_mode(struct regulator_dev *rdev, unsigned mode)
++{
++	struct da906x_regulator *regl = rdev_get_drvdata(rdev);
++	int ret;
++
++	regl->suspend_mode = mode;
++	ret = da906x_update_mode_internal(regl, SYS_STATE_SUSPEND);
++	return ret;
++}
++
++/* Regulator event handlers */
++irqreturn_t da906x_ldo_lim_event(int irq, void *data)
++{
++	struct da906x_regulators *regulators = data;
++	struct da906x *hw = regulators->regulator[0].hw;
++	struct da906x_regulator *regl;
++	int bits;
++	int i;
++
++	bits = da906x_reg_read(hw, DA906X_REG_STATUS_D);
++	if (bits < 0)
++		return IRQ_HANDLED;
++
++	for (i = regulators->n_regulators - 1; i >= 0; i--) {
++		regl = &regulators->regulator[i];
++		if (regl->info->oc_event.addr != DA906X_REG_STATUS_D)
++			continue;
++
++		if (regl->info->oc_event.mask & bits)
++			regulator_notifier_call_chain(regl->rdev,
++					REGULATOR_EVENT_OVER_CURRENT, NULL);
++	}
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * Probing and Initialisation functions
++ */
++static __devinit const struct da906x_regulator_info *
++da906x_get_regl_info(const struct da906x *da906x,
++		     const struct da906x_dev_model *model, int id)
++{
++	int m;
++
++	for (m = model->n_regulators - 1;
++	     model->regulator_info[m].id != id; m--) {
++		if (m <= 0)
++			return NULL;
++	}
++	return &model->regulator_info[m];
++}
++
++static __devinit int da906x_regulator_probe(struct platform_device *pdev)
++{
++	struct da906x *da906x = dev_get_drvdata(pdev->dev.parent);
++	struct da906x_pdata *da906x_pdata = dev_get_platdata(da906x->dev);
++	struct da906x_regulators_pdata *regl_pdata;
++	struct da906x_regulator_data *rdata;
++	const struct da906x_dev_model *model;
++	struct da906x_regulators *regulators;
++	struct da906x_regulator *regl;
++	struct regulator_config config;
++	bool bcores_merged, bmem_bio_merged;
++	size_t size;
++	int n;
++	int ret;
++
++	if (!da906x_pdata) {
++		dev_err(&pdev->dev, "No platform init data supplied\n");
++		return -ENODEV;
++	}
++	regl_pdata = da906x_pdata->regulators_pdata;
++
++	if (!regl_pdata || regl_pdata->n_regulators = 0) {
++		dev_err(&pdev->dev,
++			"No regulators defined for the platform\n");
++		return -ENODEV;
++	}
++
++	/* Find regulators set for particular device model */
++	for (model = regulators_models; model->regulator_info; model++) {
++		if (model->dev_model = da906x_model(da906x))
++			break;
++	}
++	if (!model->regulator_info) {
++		dev_err(&pdev->dev, "Chip model not recognised (%u)\n",
++			da906x_model(da906x));
++		return -ENODEV;
++	}
++
++	ret = da906x_reg_read(da906x, DA906X_REG_CONFIG_H);
++	if (ret < 0) {
++		dev_err(&pdev->dev,
++			"Error while reading BUCKs configuration\n");
++		return -EIO;
++	}
++	bcores_merged = (ret & DA906X_BCORE_MERGE) ? true : false;
++	bmem_bio_merged = (ret & DA906X_BUCK_MERGE) ? true : false;
++
++	/* Allocate memory required by usable regulators */
++	size = sizeof(struct da906x_regulators) +
++		regl_pdata->n_regulators * sizeof(struct da906x_regulator);
++	regulators = devm_kzalloc(&pdev->dev, size, GFP_KERNEL);
++	if (!regulators) {
++		dev_err(&pdev->dev, "No memory for regulators\n");
++		return -ENOMEM;
++	}
++
++	regulators->n_regulators = regl_pdata->n_regulators;
++	platform_set_drvdata(pdev, regulators);
++
++	/* Register all regulators declared in platform information */
++	n = 0;
++	while (n < regulators->n_regulators) {
++		rdata = &regl_pdata->regulator_data[n];
++
++		/* Check regulator ID against merge mode configuration */
++		switch (rdata->id) {
++		case DA9063_ID_BCORE1:
++		case DA9063_ID_BCORE2:
++			if (bcores_merged) {
++				dev_err(&pdev->dev,
++					"Cannot use BCORE1 and BCORE2 separately, when in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		case DA9063_ID_BMEM:
++		case DA9063_ID_BIO:
++			if (bmem_bio_merged) {
++				dev_err(&pdev->dev,
++					"Cannot use BMEM and BIO separately, when in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		case DA9063_ID_BCORES_MERGED:
++			if (!bcores_merged) {
++				dev_err(&pdev->dev,
++					"BCORE1 and BCORE2 are unavailable in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		case DA9063_ID_BMEM_BIO_MERGED:
++			if (!bmem_bio_merged) {
++				dev_err(&pdev->dev,
++					"BMEM and BIO are unavailable in merge mode\n");
++				ret = -EINVAL;
++				goto err;
++			}
++			break;
++		}
++
++		/* Initialise regulator structure */
++		regl = &regulators->regulator[n];
++		regl->hw = da906x;
++		regl->info = da906x_get_regl_info(da906x, model, rdata->id);
++		if (!regl->info) {
++			dev_err(&pdev->dev,
++				"Invalid regulator ID in platform data\n");
++			ret = -EINVAL;
++			goto err;
++		}
++		regl->desc.type = REGULATOR_VOLTAGE;
++		regl->desc.owner = THIS_MODULE;
++		regl->desc.name = regl->info->name;
++		regl->desc.id = rdata->id;
++		regl->desc.ops = regl->info->ops;
++		regl->desc.n_voltages = regl->info->n_steps;
++		regl->desc.min_uV = regl->info->min_uV;
++		regl->desc.uV_step = regl->info->step_uV;
++		regl->desc.enable_reg = regl->info->enable.addr +
++					DA906X_MAPPING_BASE;
++		regl->desc.enable_mask = regl->info->enable.mask;
++
++		/* Register regulator */
++		config.dev = &pdev->dev;
++		config.init_data = rdata->initdata;
++		config.driver_data = regl;
++		config.regmap = da906x->regmap;
++		regl->rdev = regulator_register(&regl->desc, &config);
++		if (IS_ERR_OR_NULL(regl->rdev)) {
++			dev_err(&pdev->dev,
++				"Failed to register %s regulator\n",
++				regl->info->name);
++			ret = PTR_ERR(regl->rdev);
++			goto err;
++		}
++		n++;
++
++		/* Get current modes of operation (A/B voltage selection)
++		   for normal and suspend states */
++		ret = da906x_get_mode_internal(regl, SYS_STATE_NORMAL);
++		if (ret < 0) {
++			dev_err(&pdev->dev,
++				"Failed to read %s regulator's mode\n",
++				regl->info->name);
++			goto err;
++		}
++		if (ret = 0)
++			regl->mode = REGULATOR_MODE_NORMAL;
++		else
++			regl->mode = ret;
++
++		ret = da906x_get_mode_internal(regl, SYS_STATE_SUSPEND);
++		if (ret < 0) {
++			dev_err(&pdev->dev,
++				"Failed to read %s regulator's mode\n",
++				regl->info->name);
++			goto err;
++		}
++		if (ret = 0)
++			regl->suspend_mode = REGULATOR_MODE_NORMAL;
++		else
++			regl->mode = ret;
++	}
++
++	/* LDOs overcurrent event support */
++	regulators->irq_ldo_lim = platform_get_irq_byname(pdev, "LDO_LIM");
++	if (regulators->irq_ldo_lim >= 0) {
++		ret = request_threaded_irq(regulators->irq_ldo_lim,
++					   NULL, da906x_ldo_lim_event,
++					   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
++					   "LDO_LIM", regulators);
++		if (ret) {
++			dev_err(&pdev->dev,
++					"Failed to request LDO_LIM IRQ.\n");
++			regulators->irq_ldo_lim = -ENXIO;
++		}
++	}
++
++	return 0;
++
++err:
++	/* Wind back regulators registeration */
++	while (--n >= 0) {
++		regulator_unregister(regulators->regulator[n].rdev);
++	}
++
++	return ret;
++}
++
++static int __devexit da906x_regulator_remove(struct platform_device *pdev)
++{
++	struct da906x_regulators *regulators = platform_get_drvdata(pdev);
++	struct da906x_regulator *regl;
++
++	free_irq(regulators->irq_ldo_lim, regulators);
++	free_irq(regulators->irq_uvov, regulators);
++
++	for (regl = &regulators->regulator[regulators->n_regulators - 1];
++	     regl >= &regulators->regulator[0]; regl--)
++		regulator_unregister(regl->rdev);
++
++	return 0;
++}
++
++static struct platform_driver da906x_regulator_driver = {
++	.driver = {
++		.name = DA906X_DRVNAME_REGULATORS,
++		.owner = THIS_MODULE,
++	},
++	.probe = da906x_regulator_probe,
++	.remove = __devexit_p(da906x_regulator_remove),
++};
++
++static int __init da906x_regulator_init(void)
++{
++	return platform_driver_register(&da906x_regulator_driver);
++}
++subsys_initcall(da906x_regulator_init);
++
++static void __exit da906x_regulator_cleanup(void)
++{
++	platform_driver_unregister(&da906x_regulator_driver);
++}
++module_exit(da906x_regulator_cleanup);
++
++
++/* Module information */
++MODULE_AUTHOR("Krystian Garbaciak <krystian.garbaciak@diasemi.com>");
++MODULE_DESCRIPTION("DA906x regulators driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("paltform:" DA906X_DRVNAME_REGULATORS);
+-- 
+1.7.0.4
 
-> +critical temperature (CT) pin to indicate an excession of a set critical
-
-Same here.
-
-> +temperature. Both pins can be set up with a common hysteresis of 0=B0C -=
- 15=B0C
-> +and a fault queue ranging from 1 to 4 events. Both pins can individually=
- set
-> +to be active-low or active-high, while the whole device can either run in
-> +comparator mode or interrupt mode. The ADT7410 supports continuous tempe=
-rature
-> +sampling, as well as sampling one temperature value per second or even j=
-ust
-> +get one sample on demand for power saving. Besides, it can completely po=
-wer
-> +down its ADC, if power management is required.
-> +
-> +Configuration Notes
-> +-------------------
-> +
-> +Since the device uses one hysteresis value, which is an offset to minimu=
-m,
-> +maximum and critical temperature, it can only be set for temp#_max_hyst.
-> +However, temp#_min_hyst and temp#_crit_hyst show their corresponding
-> +hysteresis.
-> +The device is set to 16 bit resolution and comparator mode.
-> +
-> +sysfs-Interface
-> +---------------
-> +
-> +temp#_input		- temperature input
-> +temp#_min		- temperature minimum setpoint
-> +temp#_max		- temperature maximum setpoint
-> +temp#_crit		- critical temperature setpoint
-> +temp#_min_hyst		- hysteresis for temperature minimum (read-only)
-> +temp#_max_hyst		- hysteresis for temperature maximum (read/write)
-> +temp#_crit_hyst		- hysteresis for critical temperature (read-only)
-
-The idea was to make the hysteresis writable for all attributes. More on th=
-at
-below.
-
-> +temp#_min_alarm		- temperature minimum alarm flag
-> +temp#_max_alarm		- temperature maximum alarm flag
-> +temp#_crit_alarm	- critical temperature alarm flag
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 6f1d167..7ed1989 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -179,6 +179,16 @@ config SENSORS_ADM9240
->  	  This driver can also be built as a module.  If so, the module
->  	  will be called adm9240.
-> =20
-> +config SENSORS_ADT7410
-> +	tristate "Analog Devices ADT7410"
-> +	depends on I2C && EXPERIMENTAL
-> +	help
-> +	  If you say yes here you get support for the Analog Devices
-> +	  ADT7410 temperature monitoring chip.
-> +
-> +	  This driver can also be built as a module. If so, the module
-> +	  will be called adt7410.
-> +
->  config SENSORS_ADT7411
->  	tristate "Analog Devices ADT7411"
->  	depends on I2C && EXPERIMENTAL
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index e1eeac1..112ce3a 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -34,6 +34,7 @@ obj-$(CONFIG_SENSORS_ADM9240)	+=3D adm9240.o
->  obj-$(CONFIG_SENSORS_ADS1015)	+=3D ads1015.o
->  obj-$(CONFIG_SENSORS_ADS7828)	+=3D ads7828.o
->  obj-$(CONFIG_SENSORS_ADS7871)	+=3D ads7871.o
-> +obj-$(CONFIG_SENSORS_ADT7410)	+=3D adt7410.o
->  obj-$(CONFIG_SENSORS_ADT7411)	+=3D adt7411.o
->  obj-$(CONFIG_SENSORS_ADT7462)	+=3D adt7462.o
->  obj-$(CONFIG_SENSORS_ADT7470)	+=3D adt7470.o
-> diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
-> new file mode 100644
-> index 0000000..9069ad9
-> --- /dev/null
-> +++ b/drivers/hwmon/adt7410.c
-> @@ -0,0 +1,465 @@
-> +/*
-> + * adt7410.c - Part of lm_sensors, Linux kernel modules for hardware
-> + *	 monitoring
-> + * This driver handles the ADT7410 and compatible digital temperature se=
-nsors.
-> + * Hartmut Knaack <knaack.h@gmx.de> 2012-07-22
-> + * based on lm75.c by Frodo Looijaard <frodol@dds.nl>
-> + * and adt7410.c from iio-staging by Sonic Zhang <sonic.zhang@analog.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/slab.h>
-> +#include <linux/jiffies.h>
-> +#include <linux/i2c.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/hwmon-sysfs.h>
-> +#include <linux/err.h>
-> +#include <linux/mutex.h>
-> +#include <linux/delay.h>
-> +
-> +/*
-> + * ADT7410 registers definition
-> + */
-> +
-> +#define ADT7410_TEMPERATURE		0
-> +#define ADT7410_STATUS			2
-> +#define ADT7410_CONFIG			3
-> +#define ADT7410_T_ALARM_HIGH		4
-> +#define ADT7410_T_ALARM_LOW		6
-> +#define ADT7410_T_CRIT			8
-> +#define ADT7410_T_HYST			0xA
-> +
-> +/*
-> + * ADT7410 status
-> + */
-> +#define ADT7410_STAT_T_LOW		(1 << 4)
-> +#define ADT7410_STAT_T_HIGH		(1 << 5)
-> +#define ADT7410_STAT_T_CRIT		(1 << 6)
-> +#define ADT7410_STAT_NOT_RDY		(1 << 7)
-> +
-> +/*
-> + * ADT7410 config
-> + */
-> +#define ADT7410_FAULT_QUEUE_MASK	(1 << 0 | 1 << 1)
-> +#define ADT7410_CT_POLARITY		(1 << 2)
-> +#define ADT7410_INT_POLARITY		(1 << 3)
-> +#define ADT7410_EVENT_MODE		(1 << 4)
-> +#define ADT7410_MODE_MASK		(1 << 5 | 1 << 6)
-> +#define ADT7410_FULL			(0 << 5 | 0 << 6)
-> +#define ADT7410_PD			(1 << 5 | 1 << 6)
-> +#define ADT7410_RESOLUTION		(1 << 7)
-> +
-> +/*
-> + * ADT7410 masks
-> + */
-> +#define ADT7410_T13_VALUE_MASK			0xFFF8
-> +#define ADT7410_T_HYST_MASK			0xF
-> +
-> +/* straight from the datasheet */
-> +#define ADT7410_TEMP_MIN (-55000)
-> +#define ADT7410_TEMP_MAX 150000
-> +
-> +enum adt7410_type {		/* keep sorted in alphabetical order */
-> +	adt7410,
-> +};
-> +
-> +/* Addresses scanned */
-> +static const unsigned short normal_i2c[] =3D { 0x48, 0x49, 0x4a, 0x4b,
-> +					I2C_CLIENT_END };
-> +
-> +static const u8 ADT7410_REG_TEMP[4] =3D {
-> +	ADT7410_TEMPERATURE,		/* input */
-> +	ADT7410_T_ALARM_HIGH,		/* high */
-> +	ADT7410_T_ALARM_LOW,		/* low */
-> +	ADT7410_T_CRIT,			/* critical */
-> +};
-> +
-> +/* Each client has this additional data */
-> +struct adt7410_data {
-> +	struct device		*hwmon_dev;
-> +	struct mutex		update_lock;
-> +	u8			config;
-> +	u8			oldconfig;
-> +	bool			valid;		/* true if registers valid */
-> +	unsigned long		last_updated;	/* In jiffies */
-> +	s16			temp[4];	/* Register values,
-> +						   0 =3D input
-> +						   1 =3D high
-> +						   2 =3D low
-> +						   3 =3D critical */
-> +	u8			hyst;		/* hysteresis offset */
-> +};
-> +
-> +/*
-> + * adt7410 register access by I2C
-> + */
-> +static int adt7410_temp_ready(struct i2c_client *client)
-> +{
-> +	int i, status;
-> +
-> +	for (i =3D 0; i < 6; i++) {
-> +		status =3D i2c_smbus_read_byte_data(client, ADT7410_STATUS);
-> +		if (status < 0)
-> +			return status;
-> +		if (!(status & ADT7410_STAT_NOT_RDY))
-> +			return 0;
-> +		msleep(60);
-> +	}
-> +	return -EIO;
-
--ETIMEDOUT might be better here, and give the user a better hint about the =
-problem.
-
-> +}
-> +
-> +static struct adt7410_data *adt7410_update_device(struct device *dev)
-> +{
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct adt7410_data *data =3D i2c_get_clientdata(client);
-> +	struct adt7410_data *ret =3D data;
-> +	mutex_lock(&data->update_lock);
-> +
-> +	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
-> +	    || !data->valid) {
-> +		int i, status;
-> +
-> +		dev_dbg(&client->dev, "Starting update\n");
-> +
-> +		status =3D adt7410_temp_ready(client); /* check for new value */
-> +		if (status)
-> +			return ERR_PTR(status);
-
-missing unlock, and you might use unlikely since you do it elsewhere as wel=
-l.
-
-> +		for (i =3D 0; i < ARRAY_SIZE(data->temp); i++) {
-> +			status =3D i2c_smbus_read_word_swapped(client,
-> +							 ADT7410_REG_TEMP[i]);
-> +			if (unlikely(status < 0)) {
-> +				dev_dbg(dev,
-> +					"ADT7410: Failed to read value: reg %d, error %d\n",
-
-In general, you don't need the ADT7410: in the messages. That is what dev_d=
-bg is
-foe.
-
-> +					ADT7410_REG_TEMP[i], status);
-> +				ret =3D ERR_PTR(status);
-> +				goto abort;
-> +			}
-> +			data->temp[i] =3D status;
-> +		}
-> +		status =3D i2c_smbus_read_byte_data(client, ADT7410_T_HYST);
-> +			if (unlikely(status < 0)) {
-> +				dev_dbg(dev,
-> +					"ADT7410: Failed to read value: reg %d, error %d\n",
-> +					ADT7410_T_HYST, status);
-> +				ret =3D ERR_PTR(status);
-> +				goto abort;
-> +			}
-> +			data->hyst =3D status;
-
-Is there some alignment problem above or does it just look like it ?
-
-> +		data->last_updated =3D jiffies;
-> +		data->valid =3D true;
-> +	}
-> +
-> +abort:
-> +	mutex_unlock(&data->update_lock);
-> +	return ret;
-> +}
-> +
-> +static u16 ADT7410_TEMP_TO_REG(long temp)
-> +{
-> +	return DIV_ROUND_CLOSEST(SENSORS_LIMIT(temp, ADT7410_TEMP_MIN,
-> +				    ADT7410_TEMP_MAX) * 128, 1000);
-> +}
-> +
-> +static int ADT7410_REG_TO_TEMP(struct adt7410_data *data, u16 reg)
-> +{
-> +	/* in 13 bit mode, bits 0-2 are status flags - mask them out */
-> +	if (!(data->config & ADT7410_RESOLUTION))
-> +		reg &=3D ADT7410_T13_VALUE_MASK;
-> +	/*
-> +	 * temperature is stored in twos complement format, in steps of
-> +	 * 1/128=B0C
-> +	 */
-> +	return DIV_ROUND_CLOSEST((s16)reg * 1000, 128);
-> +}
-> +
-> +/*----------------------------------------------------------------------=
--*/
-> +
-> +/* sysfs attributes for hwmon */
-> +
-> +static ssize_t adt7410_show_temp(struct device *dev,
-> +				 struct device_attribute *da, char *buf)
-> +{
-> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
-> +	struct adt7410_data *data =3D adt7410_update_device(dev);
-> +
-> +	if (IS_ERR(data))
-> +		return PTR_ERR(data);
-> +
-> +	return sprintf(buf, "%d\n", ADT7410_REG_TO_TEMP(data,
-> +		       data->temp[attr->index]));
-> +}
-> +
-> +static ssize_t adt7410_set_temp(struct device *dev,
-> +				struct device_attribute *da,
-> +				const char *buf, size_t count)
-> +{
-> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct adt7410_data *data =3D i2c_get_clientdata(client);
-> +	int nr =3D attr->index;
-> +	long temp;
-> +	int ret;
-> +
-> +	ret =3D kstrtol(buf, 10, &temp);
-> +	if (ret)
-> +		return ret;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	data->temp[nr] =3D ADT7410_TEMP_TO_REG(temp);
-> +	ret =3D i2c_smbus_write_word_swapped(client, ADT7410_REG_TEMP[nr],
-> +				     data->temp[nr]);
-> +	if (ret)
-> +		return ret;
-
-Missing unlock. One possibility might be
-	if (ret)
-		count =3D ret;
-
-> +	mutex_unlock(&data->update_lock);
-> +	return count;
-> +}
-> +
-> +static ssize_t adt7410_show_t_hyst(struct device *dev,
-> +				   struct device_attribute *da,
-> +				   char *buf)
-> +{
-> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
-> +	struct adt7410_data *data =3D adt7410_update_device(dev);
-> +	int nr =3D attr->index;
-> +
-> +	/*
-> +	 * hysteresis is stored as a 4 bit offset in the device, convert it
-> +	 * to an absolute value
-> +	 */
-> +	if (nr =3D=3D 2)	/* min has positive offset, others have negative */
-> +		return sprintf(buf, "%d\n",
-> +			       ADT7410_REG_TO_TEMP(data, data->temp[nr])
-> +			       + (data->hyst & ADT7410_T_HYST_MASK) * 1000);
-> +	return sprintf(buf, "%d\n", ADT7410_REG_TO_TEMP(data, data->temp[nr])
-> +		       - (data->hyst & ADT7410_T_HYST_MASK) * 1000);
-
-How about this ?
-
-	int hyst =3D (data->hyst & ADT7410_T_HYST_MASK) * 1000;
-
-	if (nr =3D=3D 2)	/* min has positive offset, others have negative */
-		hyst =3D -hyst;
-=09
-	return sprintf(buf, "%d\n",
-		       ADT7410_REG_TO_TEMP(data, data->temp[nr]) - hyst);
-
-> +}
-> +
-> +static ssize_t adt7410_set_t_hyst(struct device *dev,
-> +				  struct device_attribute *da,
-> +				  const char *buf, size_t count)
-> +{
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct adt7410_data *data =3D i2c_get_clientdata(client);
-> +	int ret;
-> +	long hyst;
-> +
-> +	ret =3D kstrtol(buf, 10, &hyst);
-> +	if (ret)
-> +		return ret;
-> +	/* convert absolute hysteresis value to a 4 bit delta value */
-> +	hyst =3D DIV_ROUND_CLOSEST((data->temp[1] * 1000) / 128
-> +				 - SENSORS_LIMIT(hyst, ADT7410_TEMP_MIN,
-> +						 ADT7410_TEMP_MAX), 1000);
-> +	data->hyst =3D SENSORS_LIMIT(hyst, 0, ADT7410_T_HYST_MASK);
-
-I think there may be some sign problems in there again, if data->temp[1] is
-negative.
-
-This might work a bit better:
-
-	int limit =3D ADT7410_REG_TO_TEMP(data, data->temp[attr->index]);
-	hyst =3D SENSORS_LIMIT(hyst, ADT7410_TEMP_MIN, ADT7410_TEMP_MAX);
-	if (attr->index =3D=3D 2)
-		hyst =3D hyst - limit;
-	else
-		hyst =3D limit - hyst;
-
-	data->hyst =3D SENSORS_LIMIT(DIV_ROUND_CLOSEST(hyst, 1000), 0,
-				   ADT7410_T_HYST_MASK);
-
-With this code, you can make all hyst attributes read-write, and even thoug=
-h it
-needs an additional variable I think it is a bit easier to read.
-
-> +	ret =3D i2c_smbus_write_byte_data(client, ADT7410_T_HYST, data->hyst);
-> +	if (ret)
-> +		return ret;
-> +
-> +	return count;
-> +}
-> +
-> +static ssize_t adt7410_show_alarm(struct device *dev,
-> +				  struct device_attribute *da,
-> +				  char *buf)
-> +{
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
-> +	int ret;
-> +
-> +	ret =3D i2c_smbus_read_byte_data(client, ADT7410_STATUS);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return sprintf(buf, "%d\n", !!(ret & attr->index));
-> +}
-> +
-> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, adt7410_show_temp, NULL,=
- 0);
-> +static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
-> +			  adt7410_show_temp, adt7410_set_temp, 1);
-> +static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
-> +			  adt7410_show_temp, adt7410_set_temp, 2);
-> +static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO,
-> +			  adt7410_show_temp, adt7410_set_temp, 3);
-> +static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
-> +			  adt7410_show_t_hyst, adt7410_set_t_hyst, 1);
-> +static SENSOR_DEVICE_ATTR(temp1_min_hyst, S_IWUSR | S_IRUGO,
-> +			  adt7410_show_t_hyst, NULL, 2);
-> +static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IWUSR | S_IRUGO,
-> +			  adt7410_show_t_hyst, NULL, 3);
-
-Not a problem if you make all hyst attributes writable, but the current code
-might have trouble with S_IWUSR and no write function.
-
-> +static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, adt7410_show_alarm,
-> +			    NULL, ADT7410_STAT_T_LOW);
-> +static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, adt7410_show_alarm,
-> +			    NULL, ADT7410_STAT_T_HIGH);
-> +static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, adt7410_show_alarm,
-> +			    NULL, ADT7410_STAT_T_CRIT);
-> +
-> +static struct attribute *adt7410_attributes[] =3D {
-> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_min.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_crit.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_min_hyst.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
-> +	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group adt7410_group =3D {
-> +	.attrs =3D adt7410_attributes,
-> +};
-> +
-> +/*----------------------------------------------------------------------=
--*/
-> +
-> +/* device probe and removal */
-> +
-> +static int adt7410_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *id)
-> +{
-> +	struct adt7410_data *data;
-> +	int ret, res;
-> +
-> +	if (!i2c_check_functionality(client->adapter,
-> +			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
-> +		return -ENODEV;
-> +
-> +	data =3D devm_kzalloc(&client->dev, sizeof(struct adt7410_data),
-> +			    GFP_KERNEL);
-> +	if (!data)
-> +		return -ENOMEM;
-> +
-> +	i2c_set_clientdata(client, data);
-> +	mutex_init(&data->update_lock);
-> +
-> +	/* configure as specified */
-> +	ret =3D i2c_smbus_read_byte_data(client, ADT7410_CONFIG);
-> +	if (ret < 0) {
-> +		dev_dbg(&client->dev, "Can't read config? %d\n", ret);
-> +		return ret;
-> +	}
-> +	data->oldconfig =3D ret;
-> +	/*
-> +	 * Set to 16 bit resolution, continous conversion and comparator mode.
-> +	 */
-> +	data->config =3D ret | ADT7410_FULL | ADT7410_RESOLUTION |
-> +		       ADT7410_EVENT_MODE;
-> +	if (data->config !=3D data->oldconfig) {
-> +		ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
-> +						data->config);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +	dev_dbg(&client->dev, "Config %02x\n", data->config);
-> +
-> +	/* Register sysfs hooks */
-> +	ret =3D sysfs_create_group(&client->dev.kobj, &adt7410_group);
-> +	if (ret)
-> +		goto exit_restore;
-> +
-> +	data->hwmon_dev =3D hwmon_device_register(&client->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		ret =3D PTR_ERR(data->hwmon_dev);
-> +		goto exit_remove;
-> +	}
-> +
-> +	dev_info(&client->dev, "sensor '%s'\n", client->name);
-> +
-> +	return 0;
-> +
-> +exit_remove:
-> +	sysfs_remove_group(&client->dev.kobj, &adt7410_group);
-> +exit_restore:
-> +	res =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
-> +					data->oldconfig);
-> +	if (res)
-> +		return res;
-
-Don't check for an i2c error here. You are hiding the real error, and the c=
-onfig
-restore error is really irrelevant at this point.
-
-> +	return ret;
-> +}
-> +
-> +static int adt7410_remove(struct i2c_client *client)
-> +{
-> +	struct adt7410_data *data =3D i2c_get_clientdata(client);
-> +	int ret;
-> +
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +	sysfs_remove_group(&client->dev.kobj, &adt7410_group);
-> +	if (data->oldconfig !=3D data->config) {
-> +		ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
-> +						data->oldconfig);
-> +		if (ret)
-> +			return ret;
-
-Returning an error here means the driver won't unload, which will cause all
-kinds of problems. Just ignore the i2c error here, and don't return an erro=
-r.
-
-> +	}
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id adt7410_ids[] =3D {
-> +	{ "adt7410", adt7410, },
-> +	{ /* LIST END */ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, adt7410_ids);
-> +
-> +#ifdef CONFIG_PM
-> +static int adt7410_suspend(struct device *dev)
-> +{
-> +	int ret;
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct adt7410_data *data =3D i2c_get_clientdata(client);
-> +
-> +	ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
-> +					data->config | ADT7410_PD);
-> +	return ret;
-> +}
-> +
-> +static int adt7410_resume(struct device *dev)
-> +{
-> +	int ret;
-> +	struct i2c_client *client =3D to_i2c_client(dev);
-> +	struct adt7410_data *data =3D i2c_get_clientdata(client);
-> +
-> +	ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG, data->config);
-> +	return ret;
-> +}
-> +
-> +static const struct dev_pm_ops adt7410_dev_pm_ops =3D {
-> +	.suspend	=3D adt7410_suspend,
-> +	.resume		=3D adt7410_resume,
-> +};
-> +#define ADT7410_DEV_PM_OPS (&adt7410_dev_pm_ops)
-> +#else
-> +#define ADT7410_DEV_PM_OPS NULL
-> +#endif /* CONFIG_PM */
-> +
-> +static struct i2c_driver adt7410_driver =3D {
-> +	.class		=3D I2C_CLASS_HWMON,
-> +	.driver =3D {
-> +		.name	=3D "adt7410",
-> +		.pm	=3D ADT7410_DEV_PM_OPS,
-> +	},
-> +	.probe		=3D adt7410_probe,
-> +	.remove		=3D adt7410_remove,
-> +	.id_table	=3D adt7410_ids,
-> +	.address_list	=3D normal_i2c,
-> +};
-> +
-> +module_i2c_driver(adt7410_driver);
-> +
-> +MODULE_AUTHOR("Hartmut Knaack");
-> +MODULE_DESCRIPTION("ADT7410 driver");
-> +MODULE_LICENSE("GPL");
->=20
->=20
 
 _______________________________________________
 lm-sensors mailing list
