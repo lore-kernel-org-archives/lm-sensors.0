@@ -1,71 +1,74 @@
 From: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
-Date: Fri, 24 Aug 2012 14:10:00 +0000
-Subject: [lm-sensors] [RFC PATCH 5/8] input: Add support for DA906x PMIC OnKey detection.
-Message-Id: <201208241510@sw-eng-lt-dc-vm2>
+Date: Fri, 24 Aug 2012 08:32:00 +0000
+Subject: [lm-sensors] [PATCH 3/8] rtc: Add RTC driver for DA906x PMIC.
+Message-Id: <201208240833@sw-eng-lt-dc-vm2>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201208241505@sw-eng-lt-dc-vm2>
-In-Reply-To: <201208241505@sw-eng-lt-dc-vm2>
+References: <201208240832@sw-eng-lt-dc-vm2>
+In-Reply-To: <201208240832@sw-eng-lt-dc-vm2>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-leds@vger.kernel.org
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, "Richard Purdie <rpurdie@rpsys.net>
-	Anthony Olech" <anthony.olech@diasemi.com>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>, Andrew Jones <drjones@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>, Ashish Jangam <ashish.jangam@kpitcummins.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Donggeun Kim <dg77.kim@samsung.com>, Wim Van Sebroeck <wim@iguana.be>, Richard Purdie <rpurdie@rpsys.net>, Bryan Wu <bryan.wu@canonical.com>, Liam Girdwood <lrg@ti.com>
 
-This driver creates input device that reports a key event on an OnKey button
-release. The reported key code depends on the time, the button was holded for.
-If holding time < 2 seconds - KEY_SLEEP is reported on button release,
-otherwise KEY_POWER is reported after 2 seconds.
+DA906x RTC driver supports date/time and alarm.
+
+In hardware, PMIC supports alarm setting with a resolution of one minute and
+tick event (every second update event). The driver combines it, providing alarm
+with one second resolution.
+
+The driver requires MFD core driver for operation.
 
 Signed-off-by: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
 ---
- drivers/input/misc/Kconfig        |    6 ++
- drivers/input/misc/Makefile       |    1 +
- drivers/input/misc/da906x-onkey.c |  139 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 146 insertions(+), 0 deletions(-)
- create mode 100644 drivers/input/misc/da906x-onkey.c
+ drivers/rtc/Kconfig      |    7 +
+ drivers/rtc/Makefile     |    1 +
+ drivers/rtc/rtc-da906x.c |  379 ++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 387 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/rtc/rtc-da906x.c
 
-diff --git a/drivers/input/misc/Kconfig b/drivers/input/misc/Kconfig
-index 7c0f1ec..fd8d951 100644
---- a/drivers/input/misc/Kconfig
-+++ b/drivers/input/misc/Kconfig
-@@ -486,6 +486,12 @@ config INPUT_DA9052_ONKEY
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called da9052_onkey.
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index fabc99a..e6037cd 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -571,6 +571,13 @@ config RTC_DRV_DA9052
+ 	  Say y here to support the RTC driver for Dialog Semiconductor
+ 	  DA9052-BC and DA9053-AA/Bx PMICs.
  
-+config INPUT_DA906X_ONKEY
-+	tristate "Dialog DA906x OnKey"
++config RTC_DRV_DA906X
++	tristate "Dialog DA906X RTC"
 +	depends on MFD_DA906X
 +	help
-+	  Support for Dialog Semiconductor input onkey device.
++	  Say y here to support the RTC driver for
++	  Dialog Semiconductor DA906x PMIC.
 +
- config INPUT_DM355EVM
- 	tristate "TI DaVinci DM355 EVM Keypad and IR Remote"
- 	depends on MFD_DM355EVM_MSP
-diff --git a/drivers/input/misc/Makefile b/drivers/input/misc/Makefile
-index 83fe6f5..73406ac 100644
---- a/drivers/input/misc/Makefile
-+++ b/drivers/input/misc/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_INPUT_CMA3000)		+= cma3000_d0x.o
- obj-$(CONFIG_INPUT_CMA3000_I2C)		+= cma3000_d0x_i2c.o
- obj-$(CONFIG_INPUT_COBALT_BTNS)		+= cobalt_btns.o
- obj-$(CONFIG_INPUT_DA9052_ONKEY)	+= da9052_onkey.o
-+obj-$(CONFIG_INPUT_DA906X_ONKEY)	+= da906x-onkey.o
- obj-$(CONFIG_INPUT_DM355EVM)		+= dm355evm_keys.o
- obj-$(CONFIG_INPUT_GP2A)		+= gp2ap002a00f.o
- obj-$(CONFIG_INPUT_GPIO_TILT_POLLED)	+= gpio_tilt_polled.o
-diff --git a/drivers/input/misc/da906x-onkey.c b/drivers/input/misc/da906x-onkey.c
+ config RTC_DRV_EFI
+ 	tristate "EFI RTC"
+ 	depends on IA64
+diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
+index 0d5b2b6..d9c1e9f 100644
+--- a/drivers/rtc/Makefile
++++ b/drivers/rtc/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq4802.o
+ obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
+ obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
+ obj-$(CONFIG_RTC_DRV_DA9052)	+= rtc-da9052.o
++obj-$(CONFIG_RTC_DRV_DA906X)	+= rtc-da906x.o
+ obj-$(CONFIG_RTC_DRV_DAVINCI)	+= rtc-davinci.o
+ obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
+ obj-$(CONFIG_RTC_DRV_VRTC)	+= rtc-mrst.o
+diff --git a/drivers/rtc/rtc-da906x.c b/drivers/rtc/rtc-da906x.c
 new file mode 100644
-index 0000000..477c554
+index 0000000..0b4fecc
 --- /dev/null
-+++ b/drivers/input/misc/da906x-onkey.c
-@@ -0,0 +1,139 @@
++++ b/drivers/rtc/rtc-da906x.c
+@@ -0,0 +1,379 @@
 +/*
-+ * OnKey device driver for Dialog DA906x PMIC
++ * Real Time Clock driver for DA906x PMIC family
 + *
 + * Copyright 2012 Dialog Semiconductors Ltd.
 + *
-+ * Author:  <michal.hajduk@diasemi.com>
++ * Author: Krystian Garbaciak <krystian.garbaciak@diasemi.com>
 + *
 + *  This program is free software; you can redistribute  it and/or modify it
 + *  under  the terms of  the GNU General  Public License as published by the
@@ -73,132 +76,372 @@ index 0000000..477c554
 + *  option) any later version.
 + *
 + */
-+
++#include <linux/kernel.h>
 +#include <linux/module.h>
 +#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
 +#include <linux/platform_device.h>
-+#include <linux/workqueue.h>
-+
-+#include <linux/mfd/da906x/core.h>
++#include <linux/interrupt.h>
++#include <linux/rtc.h>
++#include <linux/slab.h>
++#include <linux/delay.h>
 +#include <linux/mfd/da906x/registers.h>
++#include <linux/mfd/da906x/core.h>
 +
++#define YEARS_TO_DA906X(year)		((year) - 100)
++#define MONTHS_TO_DA906X(month)		((month) + 1)
++#define YEARS_FROM_DA906X(year)		((year) + 100)
++#define MONTHS_FROM_DA906X(month)	((month) - 1)
 +
-+struct da906x_onkey {
-+	struct	da906x *da906x;
-+	struct	input_dev *input;
-+	int irq;
++#define CLOCK_DATA_LEN	(DA906X_REG_COUNT_Y - DA906X_REG_COUNT_S + 1)
++#define ALARM_DATA_LEN	(DA906X_REG_ALARM_Y - DA906X_REG_ALARM_MI + 1)
++enum {
++	DATA_SEC = 0,
++	DATA_MIN,
++	DATA_HOUR,
++	DATA_DAY,
++	DATA_MONTH,
++	DATA_YEAR,
 +};
 +
-+static irqreturn_t da906x_onkey_irq_handler(int irq, void *data)
++struct da906x_rtc {
++	struct rtc_device	*rtc_dev;
++	struct da906x		*hw;
++	int			irq_alarm;
++	int			irq_tick;
++
++	/* Config flag */
++	int			tick_wake;
++
++	/* Used to expand alarm precision from minutes up to seconds
++	   using hardware ticks */
++	unsigned int		alarmSecs;
++	unsigned int		alarmTicks;
++};
++
++static void da906x_data_to_tm(u8 *data, struct rtc_time *tm)
 +{
-+	struct da906x_onkey *onkey = data;
-+	unsigned int code;
++	tm->tm_sec = data[DATA_SEC] & DA906X_COUNT_SEC_MASK;
++	tm->tm_min = data[DATA_MIN] & DA906X_COUNT_MIN_MASK;
++	tm->tm_hour = data[DATA_HOUR] & DA906X_COUNT_HOUR_MASK;
++	tm->tm_mday = data[DATA_DAY] & DA906X_COUNT_DAY_MASK;
++	tm->tm_mon = MONTHS_FROM_DA906X(data[DATA_MONTH] &
++					 DA906X_COUNT_MONTH_MASK);
++	tm->tm_year = YEARS_FROM_DA906X(data[DATA_YEAR] &
++					 DA906X_COUNT_YEAR_MASK);
++}
++
++static void da906x_tm_to_data(struct rtc_time *tm, u8 *data)
++{
++	data[DATA_SEC] &= ~DA906X_COUNT_SEC_MASK;
++	data[DATA_SEC] |= tm->tm_sec & DA906X_COUNT_SEC_MASK;
++	data[DATA_MIN] &= ~DA906X_COUNT_MIN_MASK;
++	data[DATA_MIN] |= tm->tm_min & DA906X_COUNT_MIN_MASK;
++	data[DATA_HOUR] &= ~DA906X_COUNT_HOUR_MASK;
++	data[DATA_HOUR] |= tm->tm_hour & DA906X_COUNT_HOUR_MASK;
++	data[DATA_DAY] &= ~DA906X_COUNT_DAY_MASK;
++	data[DATA_DAY] |= tm->tm_mday & DA906X_COUNT_DAY_MASK;
++	data[DATA_MONTH] &= ~DA906X_COUNT_MONTH_MASK;
++	data[DATA_MONTH] |= MONTHS_TO_DA906X(tm->tm_mon) &
++			    DA906X_COUNT_MONTH_MASK;
++	data[DATA_YEAR] &= ~DA906X_COUNT_YEAR_MASK;
++	data[DATA_YEAR] |= YEARS_TO_DA906X(tm->tm_year) &
++			   DA906X_COUNT_YEAR_MASK;
++}
++
++#define DA906X_ALARM_DELAY	INT_MAX
++static int da906x_rtc_test_delay(struct rtc_time *alarm, struct rtc_time *cur)
++{
++	unsigned long a_time, c_time;
++
++	rtc_tm_to_time(alarm, &a_time);
++	rtc_tm_to_time(cur, &c_time);
++
++	/* Alarm time has already passed */
++	if (a_time < c_time)
++		return -1;
++
++	/* If alarm is set for current minute, return ticks to count down.
++	   If alarm is set for following minutes, return DA906X_ALARM_DELAY
++	   to set alarm first.
++	   But when it is less than 2 seconds for the former to become true,
++	   return ticks, because alarm needs some time to synchronise. */
++	if (a_time - c_time < alarm->tm_sec + 2)
++		return a_time - c_time;
++	else
++		return DA906X_ALARM_DELAY;
++}
++
++static int da906x_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct da906x_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[CLOCK_DATA_LEN];
 +	int ret;
 +
-+	ret = da906x_reg_read(onkey->da906x, DA906X_REG_STATUS_A);
-+	if ((ret >= 0) && (ret & DA906X_NONKEY)) {
-+		dev_notice(&onkey->input->dev, "KEY_POWER pressed.\n");
-+		code = KEY_POWER;
++	ret = da906x_block_read(rtc->hw,
++				DA906X_REG_COUNT_S, CLOCK_DATA_LEN, data);
++	if (ret < 0)
++		return ret;
++
++	/* Check, if RTC logic is initialised */
++	if (!(data[DATA_SEC] & DA906X_RTC_READ))
++		return -EBUSY;
++
++	da906x_data_to_tm(data, tm);
++
++	return rtc_valid_tm(tm);
++}
++
++static int da906x_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct da906x_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[CLOCK_DATA_LEN] = { [0 ... (CLOCK_DATA_LEN - 1)] = 0 };
++	int ret;
++
++	da906x_tm_to_data(tm, data);
++
++	ret = da906x_block_write(rtc->hw,
++				 DA906X_REG_COUNT_S, CLOCK_DATA_LEN, data);
++
++	return ret;
++}
++
++static int da906x_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct da906x_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[CLOCK_DATA_LEN];
++	int ret;
++
++	ret = da906x_block_read(rtc->hw, DA906X_REG_ALARM_MI, ALARM_DATA_LEN,
++				&data[DATA_MIN]);
++	if (ret < 0)
++		return ret;
++
++	da906x_data_to_tm(data, &alrm->time);
++	alrm->time.tm_sec = rtc->alarmSecs;
++	alrm->enabled = !!(data[DATA_YEAR] & DA906X_ALARM_ON);
++
++	/* If there is no ticks left to count down and RTC event is
++	   not processed yet, indicate pending */
++	if (rtc->alarmTicks = 0) {
++		ret = da906x_reg_read(rtc->hw, DA906X_REG_EVENT_A);
++		if (ret < 0)
++			return ret;
++		if (ret & (DA906X_E_ALARM | DA906X_E_TICK))
++			alrm->pending = 1;
 +	} else {
-+		dev_notice(&onkey->input->dev, "KEY_SLEEP pressed.\n");
-+		code = KEY_SLEEP;
++		alrm->pending = 0;
 +	}
 +
-+	/* Interrupt raised for key release only,
-+	   so report consecutive button press and release. */
-+	input_report_key(onkey->input, code, 1);
-+	input_report_key(onkey->input, code, 0);
-+	input_sync(onkey->input);
++	return 0;
++}
++
++static int da906x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct da906x_rtc *rtc = dev_get_drvdata(dev);
++	u8 data[CLOCK_DATA_LEN] = { [0 ... (CLOCK_DATA_LEN - 1)] = 0 };
++	struct rtc_time cur_tm;
++	int cmp_val;
++	int ret;
++
++	data[DATA_MIN] = DA906X_ALARM_STATUS_ALARM;
++	data[DATA_MONTH] = DA906X_TICK_TYPE_SEC;
++	if (rtc->tick_wake)
++		data[DATA_MONTH] |= DA906X_TICK_WAKE;
++
++	ret = da906x_rtc_read_time(dev, &cur_tm);
++	if (ret < 0)
++		return ret;
++
++	if (alrm->enabled) {
++		cmp_val = da906x_rtc_test_delay(&alrm->time, &cur_tm);
++		if (cmp_val = DA906X_ALARM_DELAY) {
++			/* Set alarm for longer delay */
++			data[DATA_YEAR] |= DA906X_ALARM_ON;
++		} else if (cmp_val > 0) {
++			/* Count ticks for shorter delay */
++			rtc->alarmTicks = cmp_val - 1;
++			data[DATA_YEAR] |= DA906X_TICK_ON;
++		} else if (cmp_val = 0) {
++			/* Just about time - report event */
++			rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
++		}
++	}
++
++	da906x_tm_to_data(&alrm->time, data);
++	rtc->alarmSecs = alrm->time.tm_sec;
++
++	return da906x_block_write(rtc->hw, DA906X_REG_ALARM_MI, ALARM_DATA_LEN,
++				 &data[DATA_MIN]);
++}
++
++static int da906x_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct da906x_rtc *rtc = dev_get_drvdata(dev);
++	struct rtc_wkalrm alrm;
++	int ret;
++
++	ret = da906x_reg_read(rtc->hw, DATA_YEAR);
++	if (ret < 0)
++		return ret;
++
++	if (enabled) {
++		/* Enable alarm, if it is not enabled already */
++		if (!(ret & (DA906X_ALARM_ON | DA906X_TICK_ON))) {
++			ret = da906x_rtc_read_alarm(dev, &alrm);
++			if (ret < 0)
++				return ret;
++
++			alrm.enabled = 1;
++			ret = da906x_rtc_set_alarm(dev, &alrm);
++		}
++	} else {
++		ret = da906x_reg_clear_bits(rtc->hw, DA906X_REG_ALARM_Y,
++					    DA906X_ALARM_ON);
++	}
++
++	return ret;
++}
++
++/* On alarm interrupt, start to count ticks to enable seconds precision
++   (if alarm seconds != 0). */
++static irqreturn_t da906x_alarm_event(int irq, void *data)
++{
++	struct da906x_rtc *rtc = data;
++
++	if (rtc->alarmSecs) {
++		rtc->alarmTicks = rtc->alarmSecs - 1;
++		da906x_reg_update(rtc->hw, DA906X_REG_ALARM_Y,
++				  DA906X_ALARM_ON | DA906X_TICK_ON,
++				  DA906X_TICK_ON);
++	} else {
++		da906x_reg_clear_bits(rtc->hw, DA906X_REG_ALARM_Y,
++				      DA906X_ALARM_ON);
++		rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
++	}
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static int __devinit da906x_onkey_probe(struct platform_device *pdev)
++/* On tick interrupt, count down seconds left to timeout */
++static irqreturn_t da906x_tick_event(int irq, void *data)
++{
++	struct da906x_rtc *rtc = data;
++
++	if (rtc->alarmTicks-- = 0) {
++		da906x_reg_clear_bits(rtc->hw,
++				      DA906X_REG_ALARM_Y, DA906X_TICK_ON);
++		rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_UF);
++	}
++
++	return IRQ_HANDLED;
++}
++
++static const struct rtc_class_ops da906x_rtc_ops = {
++	.read_time = da906x_rtc_read_time,
++	.set_time = da906x_rtc_set_time,
++	.read_alarm = da906x_rtc_read_alarm,
++	.set_alarm = da906x_rtc_set_alarm,
++	.alarm_irq_enable = da906x_rtc_alarm_irq_enable,
++};
++
++static __devinit int da906x_rtc_probe(struct platform_device *pdev)
 +{
 +	struct da906x *da906x = dev_get_drvdata(pdev->dev.parent);
-+	struct da906x_onkey *onkey;
-+	int ret = 0;
++	struct da906x_rtc *rtc;
++	int ret;
++	int alarm_mo;
 +
-+	onkey = devm_kzalloc(&pdev->dev, sizeof(struct da906x_onkey),
-+			     GFP_KERNEL);
-+	if (!onkey) {
-+		dev_err(&pdev->dev, "Failed to allocate memory.\n");
++	/* Enable RTC hardware */
++	ret = da906x_reg_set_bits(da906x, DA906X_REG_CONTROL_E, DA906X_RTC_EN);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to enable RTC.\n");
++		return ret;
++	}
++
++	ret = da906x_reg_set_bits(da906x, DA906X_REG_EN_32K, DA906X_CRYSTAL);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to run 32 KHz OSC.\n");
++		return ret;
++	}
++
++	ret = da906x_reg_read(da906x, DA906X_REG_ALARM_MO);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to read RTC register.\n");
++		return ret;
++	}
++	alarm_mo = ret;
++
++	/* Register RTC device */
++	rtc = devm_kzalloc(&pdev->dev, sizeof *rtc, GFP_KERNEL);
++	if (!rtc)
 +		return -ENOMEM;
++
++	platform_set_drvdata(pdev, rtc);
++
++	rtc->hw = da906x;
++	rtc->rtc_dev = rtc_device_register(DA906X_DRVNAME_RTC, &pdev->dev,
++					   &da906x_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rtc_dev)) {
++		dev_err(&pdev->dev, "Failed to register RTC device: %ld\n",
++			PTR_ERR(rtc->rtc_dev));
++		return PTR_ERR(rtc->rtc_dev);
 +	}
 +
-+	onkey->input = input_allocate_device();
-+	if (!onkey->input) {
-+		dev_err(&pdev->dev, "Failed to allocated inpute device.\n");
-+		return -ENOMEM;
-+	}
++	if (alarm_mo & DA906X_TICK_WAKE)
++		rtc->tick_wake = 1;
 +
-+	onkey->irq = platform_get_irq_byname(pdev, DA906X_DRVNAME_ONKEY);
-+	onkey->da906x = da906x;
-+
-+	onkey->input->evbit[0] = BIT_MASK(EV_KEY);
-+	onkey->input->name = DA906X_DRVNAME_ONKEY;
-+	onkey->input->phys = DA906X_DRVNAME_ONKEY "/input0";
-+	onkey->input->dev.parent = &pdev->dev;
-+	input_set_capability(onkey->input, EV_KEY, KEY_POWER);
-+	input_set_capability(onkey->input, EV_KEY, KEY_SLEEP);
-+
-+	ret = request_threaded_irq(onkey->irq, NULL, da906x_onkey_irq_handler,
-+			IRQF_TRIGGER_LOW | IRQF_ONESHOT, "ONKEY", onkey);
++	/* Register interrupts. Complain on errors but let device
++	   to be registered at least for date/time. */
++	rtc->irq_alarm = platform_get_irq_byname(pdev, "ALARM");
++	ret = request_threaded_irq(rtc->irq_alarm, NULL, da906x_alarm_event,
++				IRQF_TRIGGER_LOW | IRQF_ONESHOT, "ALARM", rtc);
 +	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request IRQ.\n");
-+		goto err_input;
++		dev_err(&pdev->dev, "Failed to request ALARM IRQ.\n");
++		rtc->irq_alarm = -ENXIO;
++		return 0;
 +	}
 +
-+	ret = input_register_device(onkey->input);
++	rtc->irq_tick = platform_get_irq_byname(pdev, "TICK");
++	ret = request_threaded_irq(rtc->irq_tick, NULL, da906x_tick_event,
++			IRQF_TRIGGER_RISING | IRQF_ONESHOT, "TICK", rtc);
 +	if (ret) {
-+		dev_err(&pdev->dev, "Failed to request IRQ.\n");
-+		goto err_irq;
++		dev_err(&pdev->dev, "Failed to request TICK IRQ.\n");
++		rtc->irq_tick = -ENXIO;
 +	}
-+
-+	platform_set_drvdata(pdev, onkey);
-+
-+	/* Interrupt reacts on button release */
-+	da906x_reg_update(da906x, DA906X_REG_CONFIG_I,
-+			  DA906X_NONKEY_PIN_MASK, DA906X_NONKEY_PIN_SWDOWN);
 +
 +	return 0;
-+
-+err_irq:
-+	free_irq(onkey->da906x->irq_base + onkey->irq , onkey);
-+err_input:
-+	input_free_device(onkey->input);
-+	return ret;
 +}
 +
-+static int __devexit da906x_onkey_remove(struct platform_device *pdev)
++static int __devexit da906x_rtc_remove(struct platform_device *pdev)
 +{
-+	struct	da906x_onkey *onkey = platform_get_drvdata(pdev);
++	struct da906x_rtc *rtc = platform_get_drvdata(pdev);
 +
-+	free_irq(onkey->irq, onkey);
-+	input_unregister_device(onkey->input);
++	if (rtc->irq_alarm >= 0)
++		free_irq(rtc->irq_alarm, rtc);
++
++	if (rtc->irq_tick >= 0)
++		free_irq(rtc->irq_tick, rtc);
++
++	rtc_device_unregister(rtc->rtc_dev);
 +	return 0;
 +}
 +
-+static struct platform_driver da906x_onkey_driver = {
-+	.probe	= da906x_onkey_probe,
-+	.remove	= __devexit_p(da906x_onkey_remove),
-+	.driver	= {
-+		.name	= DA906X_DRVNAME_ONKEY,
++static struct platform_driver da906x_rtc_driver = {
++	.probe		= da906x_rtc_probe,
++	.remove		= __devexit_p(da906x_rtc_remove),
++	.driver		= {
++		.name	= DA906X_DRVNAME_RTC,
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+module_platform_driver(da906x_onkey_driver);
++module_platform_driver(da906x_rtc_driver);
 +
-+MODULE_AUTHOR("Dialog Semiconductor <michal.hajduk@diasemi.com>");
-+MODULE_DESCRIPTION("Onkey driver for DA906X");
++/* Module information */
++MODULE_AUTHOR("Krystian Garbaciak <krystian.garbaciak@diasemi.com>");
++MODULE_DESCRIPTION("DA906x RTC driver");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("paltform:" DA906X_DRVNAME_ONKEY);
++MODULE_ALIAS("platform:" DA906X_DRVNAME_RTC);
 -- 
 1.7.0.4
 
