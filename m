@@ -1,31 +1,37 @@
-From: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
-Date: Sun, 26 Aug 2012 19:27:35 +0000
-Subject: [lm-sensors] doubt about assignments of the thermal sensors to their physical location
-Message-Id: <503A78A7.9020205@gmx.de>
+From: Matthew Garrett <mjg59@srcf.ucam.org>
+Date: Sun, 26 Aug 2012 19:32:34 +0000
+Subject: Re: [lm-sensors] doubt about assignments of the thermal sensors to their physical location
+Message-Id: <20120826193234.GA29093@srcf.ucam.org>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <503A78A7.9020205@gmx.de>
+In-Reply-To: <503A78A7.9020205@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-CkhlbGxvLAoKCmZvciBhIFRoaW5rUGFkIFQ0MjAgKG1vZGVsIDQxODAtZjY1KSBydW5uaW5nIGF0
-IGEgc3RhYmxlIEdlbnRvbyB3LwprZXJuZWwgMy01LjMgSSdtIHdvbmRlcmluZywgaWYgdGhlIGtl
-cm5lbCAobW9kdWxlIHRoaW5rcGFkX2FjcGkpICsgdGhlCnBhY2thZ2UgIHN5cy1hcHBzL2xtX3Nl
-bnNvcnMtMy4zLjEgd29ya3MgZmluZSB0b2dldGhlciB3cnQgdG8gdGhlCmFzc2lnbm1lbnRzIG9m
-IHRoZSB0aGVybWFsIHNlbnNvcnMgdG8gdGhlaXIgcGh5c2ljYWwgbG9jYXRpb24uCgpMb29raW5n
-IGF0IHRoaXMgb3V0cHV0IG9mIHRoZSBjb21tYW5kICJzZW5zb3JzIiA6Ci0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KY29yZXRlbXAtaXNh
-LTAwMDAKQWRhcHRlcjogSVNBIGFkYXB0ZXIKUGh5c2ljYWwgaWQgMDogICs0My4wwrBDICAoaGln
-aCA9ICs4Ni4wwrBDLCBjcml0ID0gKzEwMC4wwrBDKQpDb3JlIDA6ICAgICAgICAgKzQzLjDCsEMg
-IChoaWdoID0gKzg2LjDCsEMsIGNyaXQgPSArMTAwLjDCsEMpCkNvcmUgMTogICAgICAgICArNDAu
-MMKwQyAgKGhpZ2ggPSArODYuMMKwQywgY3JpdCA9ICsxMDAuMMKwQykKCnRoaW5rcGFkLWlzYS0w
-MDAwCkFkYXB0ZXI6IElTQSBhZGFwdGVyCmZhbjE6ICAgICAgICAyNDU0IFJQTQotLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgpJJ20gd29u
-ZGVyaW5nIHdoeSB0aGUgMiBjb3JlcyBvZiB0aGUgIkludGVsKFIpIENvcmUoVE0pIGk1LTI1NDBN
-IENQVSBACjIuNjBHSHogc3RlcHBpbmcgMDciIGRvZXNuJ3QgaGF2ZSB0aGUgc2FtZSB0ZW1wZXJh
-dHVyZSBvZiA0M8KwQyBhbmQKIlBoeXNpY2FsIGlkIDA6IiBoYXMgdGhlIG90aGVyIChkaWZmZXJl
-bnQpIHZhbHVlIG9mIDQwwrBDLgoKCi0tIApNZkcvU2luY2VyZWx5ClRvcmFsZiBGw7Zyc3Rlcgpw
-Z3AgZmluZ2VyIHByaW50OiA3QjFBIDA3RjQgRUM4MiAwRjkwIEQ0QzIgODkzNiA4NzJBIEU1MDgg
-N0RCNiA5REEzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6
-Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNlbnNvcnM
+On Sun, Aug 26, 2012 at 09:27:35PM +0200, Toralf F=F6rster wrote:
+
+> for a ThinkPad T420 (model 4180-f65) running at a stable Gentoo w/
+> kernel 3-5.3 I'm wondering, if the kernel (module thinkpad_acpi) + the
+> package  sys-apps/lm_sensors-3.3.1 works fine together wrt to the
+> assignments of the thermal sensors to their physical location.
+
+thinkpad-acpi isn't involved here. The core temperatures are all coming=20
+from the CPU itself.
+
+> I'm wondering why the 2 cores of the "Intel(R) Core(TM) i5-2540M CPU @
+> 2.60GHz stepping 07" doesn't have the same temperature of 43=B0C and
+> "Physical id 0:" has the other (different) value of 40=B0C.
+
+The two cores can be different temperatures. The physical id 0 value is=20
+the package temperature, which will typically just be the highest of the=20
+core temperatures.
+
+--=20
+Matthew Garrett | mjg59@srcf.ucam.org
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
