@@ -1,89 +1,545 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 28 Aug 2012 16:30:56 +0000
-Subject: [lm-sensors] =?utf-8?q?=5BPATCH_2/2=5D_hwmon=3A_Use_IDIV=5FROUND?= =?utf-8?q?=5FCLOSEST_if_the_divid
-Message-Id: <1346171456-29255-2-git-send-email-linux@roeck-us.net>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Thu, 30 Aug 2012 21:12:51 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: add Maxim MAX197 support
+Message-Id: <1346361171-22985-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1346171456-29255-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1346171456-29255-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Pekka Enberg <penberg@kernel.org>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>, Dirk Eibach <eibach@gdsys.de>, Steve Glendinning <steve.glendinning@shawell.net>
+To: lm-sensors@lm-sensors.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, linux-kernel@vger.kernel.org
 
-RElWX1JPVU5EX0NMT1NFU1QgcmV0dXJucyBiYWQgdmFsdWVzIGZvciBuZWdhdGl2ZSBkaXZpZGVu
-ZHMuClJlcGxhY2Ugd2l0aCBJRElWX1JPVU5EX0NMT1NFU1Qgd2hlcmUgdGhpcyBjYW4gaGFwcGVu
-LgoKQ2M6IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPgpDYzogRGlyayBFaWJhY2gg
-PGVpYmFjaEBnZHN5cy5kZT4KQ2M6IFN0ZXZlIEdsZW5kaW5uaW5nIDxzdGV2ZS5nbGVuZGlubmlu
-Z0BzaGF3ZWxsLm5ldD4KU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2st
-dXMubmV0PgotLS0KIGRyaXZlcnMvaHdtb24vYWQ3MzE0LmMgICAgICAgICAgIHwgICAgMiArLQog
-ZHJpdmVycy9od21vbi9hZHMxMDE1LmMgICAgICAgICAgfCAgICAyICstCiBkcml2ZXJzL2h3bW9u
-L2FkdDc0MTAuYyAgICAgICAgICB8ICAgIDYgKysrLS0tCiBkcml2ZXJzL2h3bW9uL2VtYzIxMDMu
-YyAgICAgICAgICB8ICAgIDQgKystLQogZHJpdmVycy9od21vbi9wbWJ1cy9wbWJ1c19jb3JlLmMg
-fCAgICA0ICsrLS0KIGRyaXZlcnMvaHdtb24vdzgzNjI3ZWhmLmMgICAgICAgIHwgICAgMiArLQog
-NiBmaWxlcyBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlvbnMoLSkKCmRpZmYg
-LS1naXQgYS9kcml2ZXJzL2h3bW9uL2FkNzMxNC5jIGIvZHJpdmVycy9od21vbi9hZDczMTQuYwpp
-bmRleCA0NTUyOTRmLi42ZmIzMDEzIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2FkNzMxNC5j
-CisrKyBiL2RyaXZlcnMvaHdtb24vYWQ3MzE0LmMKQEAgLTgxLDcgKzgxLDcgQEAgc3RhdGljIHNz
-aXplX3QgYWQ3MzE0X3Nob3dfdGVtcGVyYXR1cmUoc3RydWN0IGRldmljZSAqZGV2LAogCQlkYXRh
-ID0gKGRhdGEgPDwgMikgPj4gMjsKIAogCQlyZXR1cm4gc3ByaW50ZihidWYsICIlZFxuIiwKLQkJ
-CSAgICAgICBESVZfUk9VTkRfQ0xPU0VTVChkYXRhICogMzEyNSwgMTAwKSk7CisJCQkgICAgICAg
-SURJVl9ST1VORF9DTE9TRVNUKGRhdGEgKiAzMTI1LCAxMDApKTsKIAlkZWZhdWx0OgogCQlyZXR1
-cm4gLUVJTlZBTDsKIAl9CmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2FkczEwMTUuYyBiL2Ry
-aXZlcnMvaHdtb24vYWRzMTAxNS5jCmluZGV4IDI3OTgyNDYuLmFiMTJjN2YgMTAwNjQ0Ci0tLSBh
-L2RyaXZlcnMvaHdtb24vYWRzMTAxNS5jCisrKyBiL2RyaXZlcnMvaHdtb24vYWRzMTAxNS5jCkBA
-IC0xMTQsNyArMTE0LDcgQEAgc3RhdGljIGludCBhZHMxMDE1X3JlZ190b19tdihzdHJ1Y3QgaTJj
-X2NsaWVudCAqY2xpZW50LCB1bnNpZ25lZCBpbnQgY2hhbm5lbCwKIAl1bnNpZ25lZCBpbnQgcGdh
-ID0gZGF0YS0+Y2hhbm5lbF9kYXRhW2NoYW5uZWxdLnBnYTsKIAlpbnQgZnVsbHNjYWxlID0gZnVs
-bHNjYWxlX3RhYmxlW3BnYV07CiAKLQlyZXR1cm4gRElWX1JPVU5EX0NMT1NFU1QocmVnICogZnVs
-bHNjYWxlLCAweDdmZjApOworCXJldHVybiBJRElWX1JPVU5EX0NMT1NFU1QocmVnICogZnVsbHNj
-YWxlLCAweDdmZjApOwogfQogCiAvKiBzeXNmcyBjYWxsYmFjayBmdW5jdGlvbiAqLwpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9od21vbi9hZHQ3NDEwLmMgYi9kcml2ZXJzL2h3bW9uL2FkdDc0MTAuYwpp
-bmRleCAwMzBjOGQ3Li4wYWNjODg3IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2FkdDc0MTAu
-YworKysgYi9kcml2ZXJzL2h3bW9uL2FkdDc0MTAuYwpAQCAtMTczLDggKzE3Myw4IEBAIGFib3J0
-OgogCiBzdGF0aWMgczE2IEFEVDc0MTBfVEVNUF9UT19SRUcobG9uZyB0ZW1wKQogewotCXJldHVy
-biBESVZfUk9VTkRfQ0xPU0VTVChTRU5TT1JTX0xJTUlUKHRlbXAsIEFEVDc0MTBfVEVNUF9NSU4s
-Ci0JCQkJCSAgICAgICBBRFQ3NDEwX1RFTVBfTUFYKSAqIDEyOCwgMTAwMCk7CisJcmV0dXJuIElE
-SVZfUk9VTkRfQ0xPU0VTVChTRU5TT1JTX0xJTUlUKHRlbXAsIEFEVDc0MTBfVEVNUF9NSU4sCisJ
-CQkJCQlBRFQ3NDEwX1RFTVBfTUFYKSAqIDEyOCwgMTAwMCk7CiB9CiAKIHN0YXRpYyBpbnQgQURU
-NzQxMF9SRUdfVE9fVEVNUChzdHJ1Y3QgYWR0NzQxMF9kYXRhICpkYXRhLCBzMTYgcmVnKQpAQCAt
-MTg2LDcgKzE4Niw3IEBAIHN0YXRpYyBpbnQgQURUNzQxMF9SRUdfVE9fVEVNUChzdHJ1Y3QgYWR0
-NzQxMF9kYXRhICpkYXRhLCBzMTYgcmVnKQogCSAqIHRlbXBlcmF0dXJlIGlzIHN0b3JlZCBpbiB0
-d29zIGNvbXBsZW1lbnQgZm9ybWF0LCBpbiBzdGVwcyBvZgogCSAqIDEvMTI4wrBDCiAJICovCi0J
-cmV0dXJuIERJVl9ST1VORF9DTE9TRVNUKHJlZyAqIDEwMDAsIDEyOCk7CisJcmV0dXJuIElESVZf
-Uk9VTkRfQ0xPU0VTVChyZWcgKiAxMDAwLCAxMjgpOwogfQogCiAvKi0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKi8K
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vZW1jMjEwMy5jIGIvZHJpdmVycy9od21vbi9lbWMy
-MTAzLmMKaW5kZXggNzdmNDM0Yy4uMTYxMzQzZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9l
-bWMyMTAzLmMKKysrIGIvZHJpdmVycy9od21vbi9lbWMyMTAzLmMKQEAgLTI1MCw3ICsyNTAsNyBA
-QCBzdGF0aWMgc3NpemVfdCBzZXRfdGVtcF9taW4oc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3Qg
-ZGV2aWNlX2F0dHJpYnV0ZSAqZGEsCiAJaWYgKHJlc3VsdCA8IDApCiAJCXJldHVybiAtRUlOVkFM
-OwogCi0JdmFsID0gRElWX1JPVU5EX0NMT1NFU1QodmFsLCAxMDAwKTsKKwl2YWwgPSBJRElWX1JP
-VU5EX0NMT1NFU1QodmFsLCAxMDAwKTsKIAlpZiAoKHZhbCA8IC02MykgfHwgKHZhbCA+IDEyNykp
-CiAJCXJldHVybiAtRUlOVkFMOwogCkBAIC0yNzQsNyArMjc0LDcgQEAgc3RhdGljIHNzaXplX3Qg
-c2V0X3RlbXBfbWF4KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUg
-KmRhLAogCWlmIChyZXN1bHQgPCAwKQogCQlyZXR1cm4gLUVJTlZBTDsKIAotCXZhbCA9IERJVl9S
-T1VORF9DTE9TRVNUKHZhbCwgMTAwMCk7CisJdmFsID0gSURJVl9ST1VORF9DTE9TRVNUKHZhbCwg
-MTAwMCk7CiAJaWYgKCh2YWwgPCAtNjMpIHx8ICh2YWwgPiAxMjcpKQogCQlyZXR1cm4gLUVJTlZB
-TDsKIApkaWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9wbWJ1cy9wbWJ1c19jb3JlLmMgYi9kcml2
-ZXJzL2h3bW9uL3BtYnVzL3BtYnVzX2NvcmUuYwppbmRleCAyOWIzMTlkLi41OGRkZjU3IDEwMDY0
-NAotLS0gYS9kcml2ZXJzL2h3bW9uL3BtYnVzL3BtYnVzX2NvcmUuYworKysgYi9kcml2ZXJzL2h3
-bW9uL3BtYnVzL3BtYnVzX2NvcmUuYwpAQCAtNTA3LDcgKzUwNyw3IEBAIHN0YXRpYyBsb25nIHBt
-YnVzX3JlZzJkYXRhX2RpcmVjdChzdHJ1Y3QgcG1idXNfZGF0YSAqZGF0YSwKIAkJUi0tOwogCX0K
-IAl3aGlsZSAoUiA8IDApIHsKLQkJdmFsID0gRElWX1JPVU5EX0NMT1NFU1QodmFsLCAxMCk7CisJ
-CXZhbCA9IElESVZfUk9VTkRfQ0xPU0VTVCh2YWwsIDEwKTsKIAkJUisrOwogCX0KIApAQCAtNjQ3
-LDcgKzY0Nyw3IEBAIHN0YXRpYyB1MTYgcG1idXNfZGF0YTJyZWdfZGlyZWN0KHN0cnVjdCBwbWJ1
-c19kYXRhICpkYXRhLAogCQlSLS07CiAJfQogCXdoaWxlIChSIDwgMCkgewotCQl2YWwgPSBESVZf
-Uk9VTkRfQ0xPU0VTVCh2YWwsIDEwKTsKKwkJdmFsID0gSURJVl9ST1VORF9DTE9TRVNUKHZhbCwg
-MTApOwogCQlSKys7CiAJfQogCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5j
-IGIvZHJpdmVycy9od21vbi93ODM2MjdlaGYuYwppbmRleCAxODIxYjc0Li5mNTAwZmE5IDEwMDY0
-NAotLS0gYS9kcml2ZXJzL2h3bW9uL3c4MzYyN2VoZi5jCisrKyBiL2RyaXZlcnMvaHdtb24vdzgz
-NjI3ZWhmLmMKQEAgLTEyNTgsNyArMTI1OCw3IEBAIHN0b3JlX3RlbXBfb2Zmc2V0KHN0cnVjdCBk
-ZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmF0dHIsCiAJaWYgKGVyciA8IDAp
-CiAJCXJldHVybiBlcnI7CiAKLQl2YWwgPSBTRU5TT1JTX0xJTUlUKERJVl9ST1VORF9DTE9TRVNU
-KHZhbCwgMTAwMCksIC0xMjgsIDEyNyk7CisJdmFsID0gU0VOU09SU19MSU1JVChJRElWX1JPVU5E
-X0NMT1NFU1QodmFsLCAxMDAwKSwgLTEyOCwgMTI3KTsKIAogCW11dGV4X2xvY2soJmRhdGEtPnVw
-ZGF0ZV9sb2NrKTsKIAlkYXRhLT50ZW1wX29mZnNldFtucl0gPSB2YWw7Ci0tIAoxLjcuOS43CgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
-cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
-c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+The MAX197 is an A/D converter, made by Maxim. This driver currently
+supports the MAX197, and MAX199. They are both 8-Channel, Multi-Range,
+5V, 12-Bit DAS with 8+4 Bus Interface and Fault Protection.
+
+The available ranges for the MAX197 are {0,-5V} to 5V, and {0,-10V} to
+10V, while they are {0,-2V} to 2V, and {0,-4V} to 4V on the MAX199.
+
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ Documentation/hwmon/max197           |  60 ++++++
+ drivers/hwmon/Kconfig                |   9 +
+ drivers/hwmon/Makefile               |   1 +
+ drivers/hwmon/max197.c               | 377 +++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/max197.h |  21 ++
+ 5 files changed, 468 insertions(+)
+ create mode 100644 Documentation/hwmon/max197
+ create mode 100644 drivers/hwmon/max197.c
+ create mode 100644 include/linux/platform_data/max197.h
+
+diff --git a/Documentation/hwmon/max197 b/Documentation/hwmon/max197
+new file mode 100644
+index 0000000..8d89b90
+--- /dev/null
++++ b/Documentation/hwmon/max197
+@@ -0,0 +1,60 @@
++Maxim MAX197 driver
++=========+
++Author:
++  * Vivien Didelot <vivien.didelot@savoirfairelinux.com>
++
++Supported chips:
++  * Maxim MAX197
++    Prefix: 'max197'
++    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX197.pdf
++
++  * Maxim MAX199
++    Prefix: 'max199'
++    Datasheet: http://datasheets.maxim-ic.com/en/ds/MAX199.pdf
++
++Description
++-----------
++
++The A/D converters MAX197, and MAX199 are both 8-Channel, Multi-Range, 5V,
++12-Bit DAS with 8+4 Bus Interface and Fault Protection.
++
++The available ranges for the MAX197 are {0,-5V} to 5V, and {0,-10V} to 10V,
++while they are {0,-2V} to 2V, and {0,-4V} to 4V on the MAX199.
++
++Platform data
++-------------
++
++The MAX197 platform data (defined in linux/platform_data/max197.h) should be
++filled with a pointer to a conversion function, defined like:
++
++    int convert(u8 ctrl);
++
++ctrl is the control byte to write to start a new conversion.
++On success, the function must return the 12-bit raw value read from the chip,
++or a negative error code otherwise.
++
++Control byte format:
++
++Bit     Name       Description
++7,6     PD1,PD0    Clock and Power-Down modes
++5       ACQMOD     Internal or External Controlled Acquisition
++4       RNG        Full-scale voltage magnitude at the input
++3       BIP        Unipolar or Bipolar conversion mode
++2,1,0   A2,A1,A0   Channel
++
++Sysfs interface
++---------------
++
++* in[0-7]_input: The conversion value for the corresponding channel.
++                 RO
++
++* in[0-7]_min:   The lower limit (in mV) for the corresponding channel.
++                 For the MAX197, it will be adjusted to -10000, -5000, or 0.
++                 For the MAX199, it will be adjusted to -4000, -2000, or 0.
++                 RW
++
++* in[0-7]_max:   The higher limit (in mV) for the corresponding channel.
++                 For the MAX197, it will be adjusted to 0, 5000, or 10000.
++                 For the MAX199, it will be adjusted to 0, 2000, or 4000.
++                 RW
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index b0a2e4c..2196869 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -803,6 +803,15 @@ config SENSORS_MAX1668
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called max1668.
+ 
++config SENSORS_MAX197
++	tristate "Maxim MAX197 and compatibles"
++	help
++	  Support for the Maxim MAX197 A/D converter.
++	  Support will include, but not be limited to, MAX197, and MAX199.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called max197.
++
+ config SENSORS_MAX6639
+ 	tristate "Maxim MAX6639 sensor chip"
+ 	depends on I2C && EXPERIMENTAL
+diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+index 7aa9811..1e8f690 100644
+--- a/drivers/hwmon/Makefile
++++ b/drivers/hwmon/Makefile
+@@ -94,6 +94,7 @@ obj-$(CONFIG_SENSORS_MAX1111)	+= max1111.o
+ obj-$(CONFIG_SENSORS_MAX16065)	+= max16065.o
+ obj-$(CONFIG_SENSORS_MAX1619)	+= max1619.o
+ obj-$(CONFIG_SENSORS_MAX1668)	+= max1668.o
++obj-$(CONFIG_SENSORS_MAX197)	+= max197.o
+ obj-$(CONFIG_SENSORS_MAX6639)	+= max6639.o
+ obj-$(CONFIG_SENSORS_MAX6642)	+= max6642.o
+ obj-$(CONFIG_SENSORS_MAX6650)	+= max6650.o
+diff --git a/drivers/hwmon/max197.c b/drivers/hwmon/max197.c
+new file mode 100644
+index 0000000..e923385
+--- /dev/null
++++ b/drivers/hwmon/max197.c
+@@ -0,0 +1,377 @@
++/*
++ * Maxim MAX197 A/D Converter driver
++ *
++ * Copyright (c) 2012 Savoir-faire Linux Inc.
++ *          Vivien Didelot <vivien.didelot@savoirfairelinux.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * For further information, see the Documentation/hwmon/max197 file.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/mutex.h>
++#include <linux/device.h>
++#include <linux/sysfs.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/platform_device.h>
++#include <linux/platform_data/max197.h>
++
++#define MAX199_LIMIT	4000		/* 4V */
++#define MAX197_LIMIT	10000		/* 10V */
++
++#define MAX197_NUM_CH	8		/* 8 Analog Input Channels */
++
++/* Control byte format */
++#define MAX197_BIP	(1 << 3)	/* Bipolarity */
++#define MAX197_RNG	(1 << 4)	/* Full range */
++
++#define MAX197_SCALE	12207		/* Scale coefficient for raw data */
++
++/**
++ * struct max197_chip - device instance specific data
++ * @pdata:		Platform data.
++ * @hwmon_dev:		The hwmon device.
++ * @lock:		Read/Write mutex.
++ * @limit:		Max range value (10V for MAX197, 4V for MAX199).
++ * @scale:		Need to scale.
++ * @ctrl_bytes:		Channels control byte.
++ */
++struct max197_chip {
++	struct max197_platform_data *pdata;
++	struct device *hwmon_dev;
++	struct mutex lock;
++	int limit;
++	bool scale;
++	u8 ctrl_bytes[MAX197_NUM_CH];
++};
++
++static inline void max197_set_unipolarity(struct max197_chip *chip, int channel)
++{
++	chip->ctrl_bytes[channel] &= ~MAX197_BIP;
++}
++
++static inline void max197_set_bipolarity(struct max197_chip *chip, int channel)
++{
++	chip->ctrl_bytes[channel] |= MAX197_BIP;
++}
++
++static inline void max197_set_half_range(struct max197_chip *chip, int channel)
++{
++	chip->ctrl_bytes[channel] &= ~MAX197_RNG;
++}
++
++static inline void max197_set_full_range(struct max197_chip *chip, int channel)
++{
++	chip->ctrl_bytes[channel] |= MAX197_RNG;
++}
++
++static inline bool max197_is_bipolar(struct max197_chip *chip, int channel)
++{
++	return chip->ctrl_bytes[channel] & MAX197_BIP;
++}
++
++static inline bool max197_is_full_range(struct max197_chip *chip, int channel)
++{
++	return chip->ctrl_bytes[channel] & MAX197_RNG;
++}
++
++/* Function called on read access on in{0,1,2,3,4,5,6,7}_{min,max} */
++static ssize_t max197_show_range(struct device *dev,
++				 struct device_attribute *devattr, char *buf)
++{
++	struct max197_chip *chip = dev_get_drvdata(dev);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++	int channel = attr->index;
++	bool is_min = attr->nr;
++	int range;
++
++	if (mutex_lock_interruptible(&chip->lock))
++		return -ERESTARTSYS;
++
++	range = max197_is_full_range(chip, channel) ?
++		chip->limit : chip->limit / 2;
++	if (is_min) {
++		if (max197_is_bipolar(chip, channel))
++			range = -range;
++		else
++			range = 0;
++	}
++
++	mutex_unlock(&chip->lock);
++
++	return sprintf(buf, "%d\n", range);
++}
++
++/* Function called on write access on in{0,1,2,3,4,5,6,7}_{min,max} */
++static ssize_t max197_store_range(struct device *dev,
++				  struct device_attribute *devattr,
++				  const char *buf, size_t count)
++{
++	struct max197_chip *chip = dev_get_drvdata(dev);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
++	int channel = attr->index;
++	bool is_min = attr->nr;
++	long value;
++	int half = chip->limit / 2;
++	int full = chip->limit;
++
++	if (kstrtol(buf, 10, &value))
++		return -EINVAL;
++
++	if (is_min) {
++		if (value <= -full)
++			value = -full;
++		else if (value < 0)
++			value = -half;
++		else
++			value = 0;
++	} else {
++		if (value >= full)
++			value = full;
++		else
++			value = half;
++	}
++
++	if (mutex_lock_interruptible(&chip->lock))
++		return -ERESTARTSYS;
++
++	if (value = 0) {
++		/* We can deduce only the polarity */
++		max197_set_unipolarity(chip, channel);
++	} else if (value = -half) {
++		max197_set_bipolarity(chip, channel);
++		max197_set_half_range(chip, channel);
++	} else if (value = -full) {
++		max197_set_bipolarity(chip, channel);
++		max197_set_full_range(chip, channel);
++	} else if (value = half) {
++		/* We can deduce only the range */
++		max197_set_half_range(chip, channel);
++	} else if (value = full) {
++		/* We can deduce only the range */
++		max197_set_full_range(chip, channel);
++	}
++
++	mutex_unlock(&chip->lock);
++
++	return count;
++}
++
++/* Function called on read access on in{0,1,2,3,4,5,6,7}_input */
++static ssize_t max197_show_input(struct device *dev,
++				 struct device_attribute *devattr,
++				 char *buf)
++{
++	struct max197_chip *chip = dev_get_drvdata(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	int channel = attr->index;
++	s32 value;
++	int ret;
++
++	if (mutex_lock_interruptible(&chip->lock))
++		return -ERESTARTSYS;
++
++	ret = chip->pdata->convert(chip->ctrl_bytes[channel]);
++	if (ret < 0) {
++		dev_err(dev, "conversion failed\n");
++		goto unlock;
++	}
++	value = ret;
++
++	/*
++	 * Coefficient to apply on raw value.
++	 * See Table 1. Full Scale and Zero Scale in the MAX197 datasheet.
++	 */
++	if (chip->scale) {
++		value *= MAX197_SCALE;
++		if (max197_is_full_range(chip, channel))
++			value *= 2;
++		value /= 10000;
++	}
++
++	ret = sprintf(buf, "%d\n", value);
++
++unlock:
++	mutex_unlock(&chip->lock);
++	return ret;
++}
++
++static ssize_t max197_show_name(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	return sprintf(buf, "%s\n", pdev->name);
++}
++
++#define MAX197_SENSOR_DEVICE_ATTR_CH(chan)				\
++	static SENSOR_DEVICE_ATTR(in##chan##_input, S_IRUGO,		\
++				  max197_show_input, NULL, chan);	\
++	static SENSOR_DEVICE_ATTR_2(in##chan##_min, S_IRUGO | S_IWUSR,	\
++				    max197_show_range,			\
++				    max197_store_range,			\
++				    true, chan);			\
++	static SENSOR_DEVICE_ATTR_2(in##chan##_max, S_IRUGO | S_IWUSR,	\
++				    max197_show_range,			\
++				    max197_store_range,			\
++				    false, chan)
++
++#define MAX197_SENSOR_DEV_ATTR_IN(chan)					\
++	&sensor_dev_attr_in##chan##_input.dev_attr.attr,		\
++	&sensor_dev_attr_in##chan##_max.dev_attr.attr,			\
++	&sensor_dev_attr_in##chan##_min.dev_attr.attr
++
++static DEVICE_ATTR(name, S_IRUGO, max197_show_name, NULL);
++
++MAX197_SENSOR_DEVICE_ATTR_CH(0);
++MAX197_SENSOR_DEVICE_ATTR_CH(1);
++MAX197_SENSOR_DEVICE_ATTR_CH(2);
++MAX197_SENSOR_DEVICE_ATTR_CH(3);
++MAX197_SENSOR_DEVICE_ATTR_CH(4);
++MAX197_SENSOR_DEVICE_ATTR_CH(5);
++MAX197_SENSOR_DEVICE_ATTR_CH(6);
++MAX197_SENSOR_DEVICE_ATTR_CH(7);
++
++static const struct attribute_group max197_sysfs_group = {
++	.attrs = (struct attribute *[]) {
++		&dev_attr_name.attr,
++		MAX197_SENSOR_DEV_ATTR_IN(0),
++		MAX197_SENSOR_DEV_ATTR_IN(1),
++		MAX197_SENSOR_DEV_ATTR_IN(2),
++		MAX197_SENSOR_DEV_ATTR_IN(3),
++		MAX197_SENSOR_DEV_ATTR_IN(4),
++		MAX197_SENSOR_DEV_ATTR_IN(5),
++		MAX197_SENSOR_DEV_ATTR_IN(6),
++		MAX197_SENSOR_DEV_ATTR_IN(7),
++		NULL
++	}
++};
++
++static int __devinit max197_probe(struct platform_device *pdev)
++{
++	struct max197_chip *chip;
++	struct max197_platform_data *pdata;
++	int ch, ret;
++
++	if (pdev->dev.platform_data = NULL) {
++		dev_err(&pdev->dev, "no platform data supplied\n");
++		return -EINVAL;
++	}
++	pdata = pdev->dev.platform_data;
++
++	if (pdata->convert = NULL) {
++		dev_err(&pdev->dev, "no convert function supplied\n");
++		return -EINVAL;
++	}
++
++	chip = devm_kzalloc(&pdev->dev, sizeof(struct max197_chip), GFP_KERNEL);
++	if (!chip) {
++		dev_err(&pdev->dev, "devm_kzalloc failed\n");
++		return -ENOMEM;
++	}
++
++	chip->pdata = pdata;
++	mutex_init(&chip->lock);
++
++	if (strcmp("max197", pdev->name) = 0) {
++		chip->limit = MAX197_LIMIT;
++		chip->scale = true;
++	} else {
++		chip->limit = MAX199_LIMIT;
++		chip->scale = false;
++	}
++
++	for (ch = 0; ch < MAX197_NUM_CH; ch++)
++		chip->ctrl_bytes[ch] = (u8) ch;
++
++	platform_set_drvdata(pdev, chip);
++
++	ret = sysfs_create_group(&pdev->dev.kobj, &max197_sysfs_group);
++	if (ret) {
++		dev_err(&pdev->dev, "sysfs create group failed\n");
++		return ret;
++	}
++
++	chip->hwmon_dev = hwmon_device_register(&pdev->dev);
++	if (IS_ERR(chip->hwmon_dev)) {
++		ret = PTR_ERR(chip->hwmon_dev);
++		dev_err(&pdev->dev, "hwmon device register failed\n");
++		goto error;
++	}
++
++	return 0;
++
++error:
++	sysfs_remove_group(&pdev->dev.kobj, &max197_sysfs_group);
++	return ret;
++}
++
++static int __devexit max197_remove(struct platform_device *pdev)
++{
++	struct max197_chip *chip = platform_get_drvdata(pdev);
++
++	hwmon_device_unregister(chip->hwmon_dev);
++	sysfs_remove_group(&pdev->dev.kobj, &max197_sysfs_group);
++
++	return 0;
++}
++
++static struct platform_driver __refdata maxim_drivers[] = {
++	{
++		.driver = {
++			.name = "max197",
++			.owner = THIS_MODULE,
++		},
++		.probe = max197_probe,
++		.remove = __devexit_p(max197_remove),
++	}, {
++		.driver = {
++			.name = "max199",
++			.owner = THIS_MODULE,
++		},
++		.probe = max197_probe,
++		.remove = __devexit_p(max197_remove),
++	}
++};
++
++static int __init max197_init(void)
++{
++	int ret;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(maxim_drivers); i++) {
++		ret = platform_driver_register(&maxim_drivers[i]);
++		if (ret)
++			goto error_unregister;
++	}
++
++	return 0;
++
++error_unregister:
++	while (--i >= 0)
++		platform_driver_unregister(&maxim_drivers[i]);
++
++	return ret;
++}
++module_init(max197_init);
++
++static void __exit max197_exit(void)
++{
++	int i;
++	for (i = ARRAY_SIZE(maxim_drivers) - 1; i >= 0; i--)
++		platform_driver_unregister(&maxim_drivers[i]);
++}
++module_exit(max197_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:max197");
++MODULE_ALIAS("platform:max199");
++MODULE_AUTHOR("Savoir-faire Linux Inc. <kernel@savoirfairelinux.com>");
++MODULE_DESCRIPTION("Maxim MAX197 A/D Converter driver");
+diff --git a/include/linux/platform_data/max197.h b/include/linux/platform_data/max197.h
+new file mode 100644
+index 0000000..e2a41dd
+--- /dev/null
++++ b/include/linux/platform_data/max197.h
+@@ -0,0 +1,21 @@
++/*
++ * Maxim MAX197 A/D Converter Driver
++ *
++ * Copyright (c) 2012 Savoir-faire Linux Inc.
++ *          Vivien Didelot <vivien.didelot@savoirfairelinux.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * For further information, see the Documentation/hwmon/max197 file.
++ */
++
++/**
++ * struct max197_platform_data - MAX197 connectivity info
++ * @convert:	Function used to start a conversion with control byte ctrl.
++ *		It must return the raw data, or a negative error code.
++ */
++struct max197_platform_data {
++	int (*convert)(u8 ctrl);
++};
+-- 
+1.7.11.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
