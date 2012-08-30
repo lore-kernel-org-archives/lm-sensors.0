@@ -1,34 +1,36 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 30 Aug 2012 21:14:44 +0000
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Thu, 30 Aug 2012 21:22:02 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: add Maxim MAX197 support
-Message-Id: <20120830211444.GA11181@roeck-us.net>
+Message-Id: <378258773.403150.1346361722651.JavaMail.root@mail.savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120830201019.GA3875@roeck-us.net>
- <1040994502.402858.1346361031972.JavaMail.root@mail.savoirfairelinux.com>
-In-Reply-To: <1040994502.402858.1346361031972.JavaMail.root@mail.savoirfairelinux.com>
+In-Reply-To: <20120830211444.GA11181@roeck-us.net>
+References: <1346351995-9038-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1346351995-9038-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+To: Guenter Roeck <linux@roeck-us.net>
 Cc: lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org
 
-On Thu, Aug 30, 2012 at 05:10:32PM -0400, Vivien Didelot wrote:
-> Hi Guenter,
-> 
-> Thanks for your detailed comments. I'll send a new version soon.
-> 
-> About the following comment, I agree with you. However as there is no convention for this case, for now I would prefer to stick with the model as seen in drivers such as sht15.
-> 
-Actually, there is a convention, and it is much cleaner than using
-multiple platform driver instances. I sent you a separate e-mail a
-minute ago, describing how it works.
-
-We should actually fix the sht15 driver as well to use the same approach.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SSBndWVzcyB3ZSdyZSB0b28gZmFzdCEKCkkndmUganVzdCBzZWVuIHlvdXIgcmVwbHksIHRoaXMg
+aXMgbXVjaCBjbGVhbmVyLCBpbmRlZWQuCkknbGwgdXBkYXRlIHRoZSBtYXgxOTcgZHJpdmVyLCBh
+bmQgZml4IHRoZSBzaHQxNSBkcml2ZXIgYXMgc29vbiBhcyBJIGNhbi4KClRoYW5rcywKVml2aWVu
+CgotLS0tLSBNYWlsIG9yaWdpbmFsIC0tLS0tCkRlOiAiR3VlbnRlciBSb2VjayIgPGxpbnV4QHJv
+ZWNrLXVzLm5ldD4Kw4A6ICJWaXZpZW4gRGlkZWxvdCIgPHZpdmllbi5kaWRlbG90QHNhdm9pcmZh
+aXJlbGludXguY29tPgpDYzogbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZywgIkplYW4gRGVsdmFy
+ZSIgPGtoYWxpQGxpbnV4LWZyLm9yZz4sIGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKRW52
+b3nDqTogSmV1ZGkgMzAgQW/Du3QgMjAxMiAxNzoxNDo0NApPYmpldDogUmU6IFtQQVRDSF0gaHdt
+b246IGFkZCBNYXhpbSBNQVgxOTcgc3VwcG9ydAoKT24gVGh1LCBBdWcgMzAsIDIwMTIgYXQgMDU6
+MTA6MzJQTSAtMDQwMCwgVml2aWVuIERpZGVsb3Qgd3JvdGU6Cj4gSGkgR3VlbnRlciwKPiAKPiBU
+aGFua3MgZm9yIHlvdXIgZGV0YWlsZWQgY29tbWVudHMuIEknbGwgc2VuZCBhIG5ldyB2ZXJzaW9u
+IHNvb24uCj4gCj4gQWJvdXQgdGhlIGZvbGxvd2luZyBjb21tZW50LCBJIGFncmVlIHdpdGggeW91
+LiBIb3dldmVyIGFzIHRoZXJlIGlzIG5vIGNvbnZlbnRpb24gZm9yIHRoaXMgY2FzZSwgZm9yIG5v
+dyBJIHdvdWxkIHByZWZlciB0byBzdGljayB3aXRoIHRoZSBtb2RlbCBhcyBzZWVuIGluIGRyaXZl
+cnMgc3VjaCBhcyBzaHQxNS4KPiAKQWN0dWFsbHksIHRoZXJlIGlzIGEgY29udmVudGlvbiwgYW5k
+IGl0IGlzIG11Y2ggY2xlYW5lciB0aGFuIHVzaW5nCm11bHRpcGxlIHBsYXRmb3JtIGRyaXZlciBp
+bnN0YW5jZXMuIEkgc2VudCB5b3UgYSBzZXBhcmF0ZSBlLW1haWwgYQptaW51dGUgYWdvLCBkZXNj
+cmliaW5nIGhvdyBpdCB3b3Jrcy4KCldlIHNob3VsZCBhY3R1YWxseSBmaXggdGhlIHNodDE1IGRy
+aXZlciBhcyB3ZWxsIHRvIHVzZSB0aGUgc2FtZSBhcHByb2FjaC4KClRoYW5rcywKR3VlbnRlcgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
