@@ -1,46 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 31 Aug 2012 16:07:50 +0000
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Fri, 31 Aug 2012 17:38:13 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: add Maxim MAX197 support
-Message-Id: <20120831160750.GC5756@roeck-us.net>
+Message-Id: <645218150.271690.1346434693393.JavaMail.root@mail.savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20120831160750.GC5756@roeck-us.net>
 References: <1346351995-9038-1-git-send-email-vivien.didelot@savoirfairelinux.com>
- <20120830210959.GA11153@roeck-us.net>
- <20120831163718.38144c01@endymion.delvare>
-In-Reply-To: <20120831163718.38144c01@endymion.delvare>
+In-Reply-To: <1346351995-9038-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 
-On Fri, Aug 31, 2012 at 04:37:18PM +0200, Jean Delvare wrote:
-> On Thu, 30 Aug 2012 14:09:59 -0700, Guenter Roeck wrote:
-> > I have the solution for the platform driver.
-> > 
-> > enum chips { max197, max199 };
-> > 
-> > [ ... ]
-> > 
-> > static struct platform_device_id max197_driver_ids[] = {
-> >         {
-> > 		.name = "max197",
-> > 		.driver_data = max197,
-> > 	}, {
-> > 		.name = "max199",
-> > 		.driver_data = max199,
-> > 	}
-> > };
-> > MODULE_DEVICE_TABLE(platform, max197_driver_ids);
-> 
-> Wow, I thought this did not exist and this made me rumble a number of
-> times, and now I see this was finally introduced over 3 years ago.
-> Cool! And spi has it too now, wonderful world :)
-> 
-Same here ... and now I feel a bit embarassed that I didn't know :)
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+WWVzLCBnb29kIHRvIGtub3cgdGhhdCBpdCBleGlzdHMuIFRoYW5rcyBmb3Igc3BvdHRpbmcgdGhp
+cyBhbmQgYXBwbHlpbmcgdGhlIHBhdGNoZXMhCgpSZWdhcmRzLApWaXZpZW4KCi0tLS0tIE1haWwg
+b3JpZ2luYWwgLS0tLS0KRGU6ICJHdWVudGVyIFJvZWNrIiA8bGludXhAcm9lY2stdXMubmV0PgrD
+gDogIkplYW4gRGVsdmFyZSIgPGtoYWxpQGxpbnV4LWZyLm9yZz4KQ2M6ICJWaXZpZW4gRGlkZWxv
+dCIgPHZpdmllbi5kaWRlbG90QHNhdm9pcmZhaXJlbGludXguY29tPiwgbG0tc2Vuc29yc0BsbS1z
+ZW5zb3JzLm9yZywgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwpFbnZvecOpOiBWZW5kcmVk
+aSAzMSBBb8O7dCAyMDEyIDEyOjA3OjUwCk9iamV0OiBSZTogW1BBVENIXSBod21vbjogYWRkIE1h
+eGltIE1BWDE5NyBzdXBwb3J0CgpPbiBGcmksIEF1ZyAzMSwgMjAxMiBhdCAwNDozNzoxOFBNICsw
+MjAwLCBKZWFuIERlbHZhcmUgd3JvdGU6Cj4gT24gVGh1LCAzMCBBdWcgMjAxMiAxNDowOTo1OSAt
+MDcwMCwgR3VlbnRlciBSb2VjayB3cm90ZToKPiA+IEkgaGF2ZSB0aGUgc29sdXRpb24gZm9yIHRo
+ZSBwbGF0Zm9ybSBkcml2ZXIuCj4gPiAKPiA+IGVudW0gY2hpcHMgeyBtYXgxOTcsIG1heDE5OSB9
+Owo+ID4gCj4gPiBbIC4uLiBdCj4gPiAKPiA+IHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
+X2lkIG1heDE5N19kcml2ZXJfaWRzW10gPSB7Cj4gPiAgICAgICAgIHsKPiA+IAkJLm5hbWUgPSAi
+bWF4MTk3IiwKPiA+IAkJLmRyaXZlcl9kYXRhID0gbWF4MTk3LAo+ID4gCX0sIHsKPiA+IAkJLm5h
+bWUgPSAibWF4MTk5IiwKPiA+IAkJLmRyaXZlcl9kYXRhID0gbWF4MTk5LAo+ID4gCX0KPiA+IH07
+Cj4gPiBNT0RVTEVfREVWSUNFX1RBQkxFKHBsYXRmb3JtLCBtYXgxOTdfZHJpdmVyX2lkcyk7Cj4g
+Cj4gV293LCBJIHRob3VnaHQgdGhpcyBkaWQgbm90IGV4aXN0IGFuZCB0aGlzIG1hZGUgbWUgcnVt
+YmxlIGEgbnVtYmVyIG9mCj4gdGltZXMsIGFuZCBub3cgSSBzZWUgdGhpcyB3YXMgZmluYWxseSBp
+bnRyb2R1Y2VkIG92ZXIgMyB5ZWFycyBhZ28uCj4gQ29vbCEgQW5kIHNwaSBoYXMgaXQgdG9vIG5v
+dywgd29uZGVyZnVsIHdvcmxkIDopCj4gClNhbWUgaGVyZSAuLi4gYW5kIG5vdyBJIGZlZWwgYSBi
+aXQgZW1iYXJhc3NlZCB0aGF0IEkgZGlkbid0IGtub3cgOikKCkd1ZW50ZXIKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBs
+aXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3Jn
+L21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
