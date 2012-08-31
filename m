@@ -1,100 +1,57 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 06 Aug 2012 17:31:17 +0000
-Subject: Re: [lm-sensors] hwmon: (coretemp) Improve support for TjMax detection on Atom CPUs
-Message-Id: <20120806173117.GB28388@roeck-us.net>
+Date: Fri, 31 Aug 2012 00:10:47 +0000
+Subject: [lm-sensors] [PATCH v3] linux/kernel.h: Fix DIV_ROUND_CLOSEST to support negative operands
+Message-Id: <1346371847-21384-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120806140716.GA26589@roeck-us.net>
-In-Reply-To: <20120806140716.GA26589@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Pekka Enberg <penberg@kernel.org>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
 
-T24gTW9uLCBBdWcgMDYsIDIwMTIgYXQgMDQ6MjM6MDRQTSArMDIwMCwgTWljaGHFgiBQaW90cm93
-c2tpIHdyb3RlOgo+IFcgZG5pdSAyMDEyLTA4LTA2IDE2OjA3LCBHdWVudGVyIFJvZWNrIHBpc3pl
-Ogo+ID5PbiBNb24sIEF1ZyAwNiwgMjAxMiBhdCAxMDowMjowM0FNICswMjAwLCBNaWNoYcWCIFBp
-b3Ryb3dza2kgd3JvdGU6Cj4gPj5IaSwKPiA+Pgo+ID4+Q29tbWl0IDQxZTU4YTFmMmI5MGM4OGQ5
-NGI0YmQ4NGJlYjk5MjdhNGMyNzA0ZTkKPiA+Pgo+ID4+KyAgICAgICB7ICJDUFUgIDMzMCIsIDEy
-NTAwMCB9LAo+ID4+Cj4gPj5JIGJlbGl2ZSB0aGF0IHZhbHVlIGZvciBBdG9tIDMzMCBzaG91bGQg
-YmUgODUwMDAgaW5zdGVhZCBvZiAxMjUwMDAuCj4gPj5QbGVhc2Ugc2VlIFRjYXNlIGluIHNwZWMK
-PiA+Pmh0dHA6Ly9hcmsuaW50ZWwuY29tL3Byb2R1Y3RzLzM1NjQxL0ludGVsLUF0b20tUHJvY2Vz
-c29yLTMzMC0oMU0tQ2FjaGUtMV82MC1HSHotNTMzLU1Iei1GU0IpCj4gPj4KPiA+VGhhdCBpcyBU
-Y2FzZSwgbm90IFRqbWF4Lgo+IAo+IEkgaGFkIHRoZSBpbXByZXNzaW9uIHRoYXQgYm90aCBhcmUg
-dGhlIHNhbWUuCj4gCk5vOyBUY2FzZSBpcyBtdWNoIGxvd2VyLgoKPiA+Cj4gPlRqbWF4IGlzIHN1
-cHBvc2VkIHRvIGJlIDEyNSBmb3IgQXRvbSAzMzAuIE9mIGNvdXJzZSwgd2l0aCBJbnRlbCwgd2hv
-IGtub3dzOwo+ID5tYXliZSB0aGV5IGhhdmUgdmFyaWFudHMgd2l0aCBkaWZmZXJlbnQgVGptYXgu
-IENhbiB5b3UgcHJvdmlkZSB0aGUgb3V0cHV0IG9mCj4gPi9wcm9jL2NwdWluZm8gPwo+IAo+IEF0
-dGFjaGVkLgo+IApIbW0uLi4gbG9va3MgbGlrZSB0aGVyZSBtYXkgYmUgZGlmZmVyZW50IEF0b20g
-MzMwcyB3aXRoIGRpZmZlcmVudCBUak1heCwgdW5sZXNzCnlvdXIgc3lzdGVtIGlzIHJ1bm5pbmcg
-cmVhbGx5IGhvdC4gV2UnbGwgaGF2ZSB0byB0cmFjayB0aGlzLiBGb3IgdGhlIHRpbWUgYmVpbmcK
-eW91IGNhbiBvdmVycmlkZSB0aGUgaW50ZXJuYWwgdmFsdWUgd2l0aCB0aGUgdGptYXggbW9kdWxl
-IHBhcmFtZXRlcgoKc3VkbyBtb2Rwcm9iZSAtciBjb3JldGVtcApzdWRvIG1vZHByb2JlIGNvcmV0
-ZW1wIHRqbWF4PTkwCgpUaGFua3MsCkd1ZW50ZXIKCj4gPgo+ID5UaGFua3MsCj4gPkd1ZW50ZXIK
-PiA+Cj4gPj5UaGlzIHBhdGNoIHNlcmllcyByZXN1bHRlZCBpbiBhIHNpZ25pZmljYW50IGluY3Jl
-YXNlIGluIHRlbXBlcmF0dXJlCj4gPj5vbiBteSBkZXZlbG9wbWVudCBzZXJ2ZXIgOykKPiA+Pgo+
-ID4+My40LjYtMi5mYzE3Lng4Nl82NAo+ID4+Cj4gPj5jb3JldGVtcC1pc2EtMDAwMAo+ID4+QWRh
-cHRlcjogSVNBIGFkYXB0ZXIKPiA+PkNvcmUgMDogICAgICAgKzQyLjDCsEMgIChjcml0ID0gKzkw
-LjDCsEMpCj4gPj5Db3JlIDE6ICAgICAgICs0OS4wwrBDICAoY3JpdCA9ICs5MC4wwrBDKQo+ID4+
-Cj4gPj4KPiA+Pgo+ID4+My41LjAtMi5mYzE3Lng4Nl82NAo+ID4+Cj4gPj5jb3JldGVtcC1pc2Et
-MDAwMAo+ID4+QWRhcHRlcjogSVNBIGFkYXB0ZXIKPiA+PkNvcmUgMDogICAgICAgKzc3LjDCsEMg
-IChjcml0ID0gKzEyNS4wwrBDKQo+ID4+Q29yZSAxOiAgICAgICArODQuMMKwQyAgKGNyaXQgPSAr
-MTI1LjDCsEMpCj4gPj4KPiA+Pi0tCj4gPj5CZXN0IHJlZ2FyZHMsCj4gPj5NaWNoYWwKPiA+Pgo+
-ID4+aHR0cDovL2V2ZW50aG9yaXpvbi5wbC8KPiA+Pgo+IAo+IAo+IC0tIAo+IEJlc3QgcmVnYXJk
-cywKPiBNaWNoYWwKPiAKPiBodHRwOi8vZXZlbnRob3Jpem9uLnBsLwoKPiBwcm9jZXNzb3IJOiAw
-Cj4gdmVuZG9yX2lkCTogR2VudWluZUludGVsCj4gY3B1IGZhbWlseQk6IDYKPiBtb2RlbAkJOiAy
-OAo+IG1vZGVsIG5hbWUJOiBJbnRlbChSKSBBdG9tKFRNKSBDUFUgIDMzMCAgIEAgMS42MEdIego+
-IHN0ZXBwaW5nCTogMgo+IG1pY3JvY29kZQk6IDB4MjE5Cj4gY3B1IE1IegkJOiAxNTk5Ljk5Ngo+
-IGNhY2hlIHNpemUJOiA1MTIgS0IKPiBwaHlzaWNhbCBpZAk6IDAKPiBzaWJsaW5ncwk6IDQKPiBj
-b3JlIGlkCQk6IDAKPiBjcHUgY29yZXMJOiAyCj4gYXBpY2lkCQk6IDAKPiBpbml0aWFsIGFwaWNp
-ZAk6IDAKPiBmcHUJCTogeWVzCj4gZnB1X2V4Y2VwdGlvbgk6IHllcwo+IGNwdWlkIGxldmVsCTog
-MTAKPiB3cAkJOiB5ZXMKPiBmbGFncwkJOiBmcHUgdm1lIGRlIHBzZSB0c2MgbXNyIHBhZSBtY2Ug
-Y3g4IGFwaWMgc2VwIG10cnIgcGdlIG1jYSBjbW92IHBhdCBjbGZsdXNoIGR0cyBhY3BpIG1teCBm
-eHNyIHNzZSBzc2UyIHNzIGh0IHRtIHBiZSBzeXNjYWxsIG54IGxtIGNvbnN0YW50X3RzYyBhcmNo
-X3BlcmZtb24gcGVicyBidHMgbm9wbCBhcGVyZm1wZXJmIHBuaSBkdGVzNjQgbW9uaXRvciBkc19j
-cGwgdG0yIHNzc2UzIGN4MTYgeHRwciBwZGNtIG1vdmJlIGxhaGZfbG0gZHRoZXJtCj4gYm9nb21p
-cHMJOiAzMTkyLjI0Cj4gY2xmbHVzaCBzaXplCTogNjQKPiBjYWNoZV9hbGlnbm1lbnQJOiA2NAo+
-IGFkZHJlc3Mgc2l6ZXMJOiAzMiBiaXRzIHBoeXNpY2FsLCA0OCBiaXRzIHZpcnR1YWwKPiBwb3dl
-ciBtYW5hZ2VtZW50Ogo+IAo+IHByb2Nlc3Nvcgk6IDEKPiB2ZW5kb3JfaWQJOiBHZW51aW5lSW50
-ZWwKPiBjcHUgZmFtaWx5CTogNgo+IG1vZGVsCQk6IDI4Cj4gbW9kZWwgbmFtZQk6IEludGVsKFIp
-IEF0b20oVE0pIENQVSAgMzMwICAgQCAxLjYwR0h6Cj4gc3RlcHBpbmcJOiAyCj4gbWljcm9jb2Rl
-CTogMHgyMTkKPiBjcHUgTUh6CQk6IDE1OTkuOTk2Cj4gY2FjaGUgc2l6ZQk6IDUxMiBLQgo+IHBo
-eXNpY2FsIGlkCTogMAo+IHNpYmxpbmdzCTogNAo+IGNvcmUgaWQJCTogMQo+IGNwdSBjb3Jlcwk6
-IDIKPiBhcGljaWQJCTogMgo+IGluaXRpYWwgYXBpY2lkCTogMgo+IGZwdQkJOiB5ZXMKPiBmcHVf
-ZXhjZXB0aW9uCTogeWVzCj4gY3B1aWQgbGV2ZWwJOiAxMAo+IHdwCQk6IHllcwo+IGZsYWdzCQk6
-IGZwdSB2bWUgZGUgcHNlIHRzYyBtc3IgcGFlIG1jZSBjeDggYXBpYyBzZXAgbXRyciBwZ2UgbWNh
-IGNtb3YgcGF0IGNsZmx1c2ggZHRzIGFjcGkgbW14IGZ4c3Igc3NlIHNzZTIgc3MgaHQgdG0gcGJl
-IHN5c2NhbGwgbnggbG0gY29uc3RhbnRfdHNjIGFyY2hfcGVyZm1vbiBwZWJzIGJ0cyBub3BsIGFw
-ZXJmbXBlcmYgcG5pIGR0ZXM2NCBtb25pdG9yIGRzX2NwbCB0bTIgc3NzZTMgY3gxNiB4dHByIHBk
-Y20gbW92YmUgbGFoZl9sbSBkdGhlcm0KPiBib2dvbWlwcwk6IDMxOTIuMjQKPiBjbGZsdXNoIHNp
-emUJOiA2NAo+IGNhY2hlX2FsaWdubWVudAk6IDY0Cj4gYWRkcmVzcyBzaXplcwk6IDMyIGJpdHMg
-cGh5c2ljYWwsIDQ4IGJpdHMgdmlydHVhbAo+IHBvd2VyIG1hbmFnZW1lbnQ6Cj4gCj4gcHJvY2Vz
-c29yCTogMgo+IHZlbmRvcl9pZAk6IEdlbnVpbmVJbnRlbAo+IGNwdSBmYW1pbHkJOiA2Cj4gbW9k
-ZWwJCTogMjgKPiBtb2RlbCBuYW1lCTogSW50ZWwoUikgQXRvbShUTSkgQ1BVICAzMzAgICBAIDEu
-NjBHSHoKPiBzdGVwcGluZwk6IDIKPiBtaWNyb2NvZGUJOiAweDIxOQo+IGNwdSBNSHoJCTogMTU5
-OS45OTYKPiBjYWNoZSBzaXplCTogNTEyIEtCCj4gcGh5c2ljYWwgaWQJOiAwCj4gc2libGluZ3MJ
-OiA0Cj4gY29yZSBpZAkJOiAwCj4gY3B1IGNvcmVzCTogMgo+IGFwaWNpZAkJOiAxCj4gaW5pdGlh
-bCBhcGljaWQJOiAxCj4gZnB1CQk6IHllcwo+IGZwdV9leGNlcHRpb24JOiB5ZXMKPiBjcHVpZCBs
-ZXZlbAk6IDEwCj4gd3AJCTogeWVzCj4gZmxhZ3MJCTogZnB1IHZtZSBkZSBwc2UgdHNjIG1zciBw
-YWUgbWNlIGN4OCBhcGljIHNlcCBtdHJyIHBnZSBtY2EgY21vdiBwYXQgY2xmbHVzaCBkdHMgYWNw
-aSBtbXggZnhzciBzc2Ugc3NlMiBzcyBodCB0bSBwYmUgc3lzY2FsbCBueCBsbSBjb25zdGFudF90
-c2MgYXJjaF9wZXJmbW9uIHBlYnMgYnRzIG5vcGwgYXBlcmZtcGVyZiBwbmkgZHRlczY0IG1vbml0
-b3IgZHNfY3BsIHRtMiBzc3NlMyBjeDE2IHh0cHIgcGRjbSBtb3ZiZSBsYWhmX2xtIGR0aGVybQo+
-IGJvZ29taXBzCTogMzE5Mi4yNAo+IGNsZmx1c2ggc2l6ZQk6IDY0Cj4gY2FjaGVfYWxpZ25tZW50
-CTogNjQKPiBhZGRyZXNzIHNpemVzCTogMzIgYml0cyBwaHlzaWNhbCwgNDggYml0cyB2aXJ0dWFs
-Cj4gcG93ZXIgbWFuYWdlbWVudDoKPiAKPiBwcm9jZXNzb3IJOiAzCj4gdmVuZG9yX2lkCTogR2Vu
-dWluZUludGVsCj4gY3B1IGZhbWlseQk6IDYKPiBtb2RlbAkJOiAyOAo+IG1vZGVsIG5hbWUJOiBJ
-bnRlbChSKSBBdG9tKFRNKSBDUFUgIDMzMCAgIEAgMS42MEdIego+IHN0ZXBwaW5nCTogMgo+IG1p
-Y3JvY29kZQk6IDB4MjE5Cj4gY3B1IE1IegkJOiAxNTk5Ljk5Ngo+IGNhY2hlIHNpemUJOiA1MTIg
-S0IKPiBwaHlzaWNhbCBpZAk6IDAKPiBzaWJsaW5ncwk6IDQKPiBjb3JlIGlkCQk6IDEKPiBjcHUg
-Y29yZXMJOiAyCj4gYXBpY2lkCQk6IDMKPiBpbml0aWFsIGFwaWNpZAk6IDMKPiBmcHUJCTogeWVz
-Cj4gZnB1X2V4Y2VwdGlvbgk6IHllcwo+IGNwdWlkIGxldmVsCTogMTAKPiB3cAkJOiB5ZXMKPiBm
-bGFncwkJOiBmcHUgdm1lIGRlIHBzZSB0c2MgbXNyIHBhZSBtY2UgY3g4IGFwaWMgc2VwIG10cnIg
-cGdlIG1jYSBjbW92IHBhdCBjbGZsdXNoIGR0cyBhY3BpIG1teCBmeHNyIHNzZSBzc2UyIHNzIGh0
-IHRtIHBiZSBzeXNjYWxsIG54IGxtIGNvbnN0YW50X3RzYyBhcmNoX3BlcmZtb24gcGVicyBidHMg
-bm9wbCBhcGVyZm1wZXJmIHBuaSBkdGVzNjQgbW9uaXRvciBkc19jcGwgdG0yIHNzc2UzIGN4MTYg
-eHRwciBwZGNtIG1vdmJlIGxhaGZfbG0gZHRoZXJtCj4gYm9nb21pcHMJOiAzMTkyLjI0Cj4gY2xm
-bHVzaCBzaXplCTogNjQKPiBjYWNoZV9hbGlnbm1lbnQJOiA2NAo+IGFkZHJlc3Mgc2l6ZXMJOiAz
-MiBiaXRzIHBoeXNpY2FsLCA0OCBiaXRzIHZpcnR1YWwKPiBwb3dlciBtYW5hZ2VtZW50Ogo+IAoK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
-cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
-LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+DIV_ROUND_CLOSEST returns a bad result for dividends with different sign:
+	DIV_ROUND_CLOSEST(-2, 2) = 0
+
+Most of the time this does not matter. However, in the hardware monitoring
+subsystem, DIV_ROUND_CLOSEST is sometimes used on integers which can be
+negative (such as temperatures).
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v3: Instead of adding a new macro, fix DIV_ROUND_CLOSEST.
+    This version works for negative dividend and divisor.
+
+v2: v1 did not work if typeof(divisor) was an unsigned variable type
+    (which can obviously not be negative).
+    Rework to revert to DIV_ROUND_CLOSEST if the dividend is unsigned,
+    or if it is signed but non-negative.
+
+ include/linux/kernel.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index 6043821..4b180de 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -84,8 +84,11 @@
+ )
+ #define DIV_ROUND_CLOSEST(x, divisor)(			\
+ {							\
+-	typeof(divisor) __divisor = divisor;		\
+-	(((x) + ((__divisor) / 2)) / (__divisor));	\
++	typeof(x) __x = x;				\
++	typeof(divisor) __d = divisor;			\
++	((__x) < 0) = ((__d) < 0) ?			\
++		(((__x) + ((__d) / 2)) / (__d)) :	\
++		(((__x) - ((__d) / 2)) / (__d));	\
+ }							\
+ )
+ 
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
