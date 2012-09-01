@@ -1,131 +1,76 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 11 Sep 2012 09:52:15 +0000
-Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: (ina2xx) Add support for INA220 and INA230
-Message-Id: <20120911115215.68b99975@endymion.delvare>
+Date: Sat, 01 Sep 2012 17:02:54 +0000
+Subject: Re: [lm-sensors] [PATCH v4] linux/kernel.h: Fix DIV_ROUND_CLOSEST to support negative dividends
+Message-Id: <20120901190254.108e3f6b@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1347336566-32662-5-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1347336566-32662-5-git-send-email-linux@roeck-us.net>
+References: <1346425339-17138-1-git-send-email-linux@roeck-us.net>
+	<20120831123812.62729e1c.akpm@linux-foundation.org>
+In-Reply-To: <20120831123812.62729e1c.akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Guenter Roeck <linux@roeck-us.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, lm-sensors@lm-sensors.org
 
-Hi Guenter,
+Hi Andrew, Guenter,
 
-On Mon, 10 Sep 2012 21:09:26 -0700, Guenter Roeck wrote:
-> INA220 is register compatible to INA219, and INA230 is register compatible to
-> INA226, so all we need to do is to add name aliases for those two chips.
+On Fri, 31 Aug 2012 12:38:12 -0700, Andrew Morton wrote:
+> On Fri, 31 Aug 2012 08:02:19 -0700
+> Guenter Roeck <linux@roeck-us.net> wrote:
 > 
-> Cc: Lothar Felten <l-felten@ti.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  Documentation/hwmon/ina2xx |   18 ++++++++++++++++++
->  drivers/hwmon/Kconfig      |    6 +++---
->  drivers/hwmon/ina2xx.c     |   10 ++++++++++
->  3 files changed, 31 insertions(+), 3 deletions(-)
+> > DIV_ROUND_CLOSEST returns a bad result for negative dividends:
+> > 	DIV_ROUND_CLOSEST(-2, 2) = 0
+> > 
+> > Most of the time this does not matter. However, in the hardware monitoring
+> > subsystem, DIV_ROUND_CLOSEST is sometimes used on integers which can be
+> > negative (such as temperatures).
+> > 
+> > ...
+> >
+> > +
+> > +/*
+> > + * Divide positive or negative dividend by positive divisor and round
+> > + * to closest integer. Result is undefined for negative divisors.
+> > + */
+> >  #define DIV_ROUND_CLOSEST(x, divisor)(			\
+> >  {							\
+> > -	typeof(divisor) __divisor = divisor;		\
+> > -	(((x) + ((__divisor) / 2)) / (__divisor));	\
+> > +	typeof(x) __x = x;				\
+> > +	typeof(divisor) __d = divisor;			\
+> > +	(((typeof(x))-1) >= 0 || (__x) >= 0) ?		\
+> > +		(((__x) + ((__d) / 2)) / (__d)) :	\
+> > +		(((__x) - ((__d) / 2)) / (__d));	\
+> >  }							\
 > 
-> diff --git a/Documentation/hwmon/ina2xx b/Documentation/hwmon/ina2xx
-> index f50a6cc..03444f9 100644
-> --- a/Documentation/hwmon/ina2xx
-> +++ b/Documentation/hwmon/ina2xx
-> @@ -8,12 +8,24 @@ Supported chips:
->      Datasheet: Publicly available at the Texas Instruments website
->                 http://www.ti.com/
->  
-> +  * Texas Instruments INA220
-> +    Prefix: 'ina220'
-> +    Addresses: I2C 0x40 - 0x4f
-> +    Datasheet: Publicly available at the Texas Instruments website
-> +               http://www.ti.com/
-> +
->    * Texas Instruments INA226
->      Prefix: 'ina226'
->      Addresses: I2C 0x40 - 0x4f
->      Datasheet: Publicly available at the Texas Instruments website
->                 http://www.ti.com/
->  
-> +  * Texas Instruments INA230
-> +    Prefix: 'ina230'
-> +    Addresses: I2C 0x40 - 0x4f
-> +    Datasheet: Publicly available at the Texas Instruments website
-> +               http://www.ti.com/
-> +
->  Author: Lothar Felten <l-felten@ti.com>
->  
->  Description
-> @@ -23,7 +35,13 @@ The INA219 is a high-side current shunt and power monitor with an I2C
->  interface. The INA219 monitors both shunt drop and supply voltage, with
->  programmable conversion times and filtering.
->  
-> +The INA220 is a high or low side current shunt and power monitor with an I2C
-> +interface. The INA220 monitors both shunt drop and supply voltage.
-> +
->  The INA226 is a current shunt and power monitor with an I2C interface.
->  The INA226 monitors both a shunt voltage drop and bus supply voltage.
->  
-> +The INA230 is a high or low side current shunt and power monitor with an I2C
-> +interface. The INA230 monitors both a shunt voltage drop and bus supply voltage.
-> +
->  The shunt value in micro-ohms can be set via platform data.
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index 148903c..f8ee9b4 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1145,11 +1145,11 @@ config SENSORS_AMC6821
->  	  will be called amc6821.
->  
->  config SENSORS_INA2XX
-> -	tristate "Texas Instruments INA219, INA226"
-> +	tristate "Texas Instruments INA219 and compatibles"
->  	depends on I2C && EXPERIMENTAL
->  	help
-> -	  If you say yes here you get support for INA219 and INA226 power
-> -	  monitor chips.
-> +	  If you say yes here you get support for INA219, INA220, INA226, and
-> +	  INA230 power monitor chips.
->  
->  	  The INA2xx driver is configured for the default configuration of
->  	  the part as described in the datasheet.
-> diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-> index eb42e8b..5ca273a 100644
-> --- a/drivers/hwmon/ina2xx.c
-> +++ b/drivers/hwmon/ina2xx.c
-> @@ -5,10 +5,18 @@
->   * Zero Drift Bi-Directional Current/Power Monitor with I2C Interface
->   * Datasheet: http://www.ti.com/product/ina219
->   *
-> + * INA220:
-> + * Bi-Directional Current/Power Monitor with I2C Interface
-> + * Datasheet: http://www.ti.com/product/ina220
-> + *
->   * INA226:
->   * Bi-Directional Current/Power Monitor with I2C Interface
->   * Datasheet: http://www.ti.com/product/ina226
->   *
-> + * INA230:
-> + * Bidirectional Current/Power Monitor with I2C Interface
+> Looks good to me.
 
-It's spelled "Bi-Directional" everywhere else.
+My testing looks good too.
 
-> + * Datasheet: http://www.ti.com/product/ina230
-> + *
->   * Copyright (C) 2012 Lothar Felten <l-felten@ti.com>
->   * Thanks to Jan Volkering
->   *
-> @@ -278,7 +286,9 @@ static int ina2xx_remove(struct i2c_client *client)
->  
->  static const struct i2c_device_id ina2xx_id[] = {
->  	{ "ina219", ina219 },
-> +	{ "ina220", ina219 },
->  	{ "ina226", ina226 },
-> +	{ "ina230", ina226 },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(i2c, ina2xx_id);
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-I did not check the datasheets but I'll trust you on compatibility.
+> The patch causes no change in text size for
+> kernel/sched/fair.o and drivers/cpuidle/governors/menu.o, so it seems
+> that the cc trickery is working.
 
-Reviewed-by: Jean Delvare <khali@linux-fr.org>
+Indeed. I looked for test size increase, and for my config, besides
+hwmon, I only spotted the following ones:
+
+drivers/media/rc/mceusb.o
+drivers/gpu/drm/i915/intel_pm.o
+drivers/tty/serial/pch_uart.o
+
+These don't look like hot paths, so I'd say we don't care. Plus the
+intel_pm one can probably be solved by using an unsigned int, I don't
+see why/how ia_freq could be negative (negative frequency anyone?) And
+for mceusb it can be solved easily by changing "1" to "1U".
+
+For hwmon drivers, we typically only use DIV_ROUND_CLOSEST when the
+user changes a setting, this isn't a frequent event. Plus, this is
+exactly the case we are fixing here, as temperature limits, and to a
+lesser extent voltage limits, can be negative.
+
+> I'll add it to my tree for testing - please merge this via your tree.
 
 -- 
 Jean Delvare
