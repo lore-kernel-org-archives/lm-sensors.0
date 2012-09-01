@@ -1,37 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 26 Sep 2012 18:21:09 +0000
-Subject: Re: [lm-sensors] No such subfeature known when sensors -s
-Message-Id: <20120926182109.GA29908@roeck-us.net>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Sat, 01 Sep 2012 09:31:11 +0000
+Subject: Re: [lm-sensors] [PATCH v3] hwmon: add Maxim MAX197 support
+Message-Id: <5041D5DF.7060402@metafoo.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5051971B.7030608@iol.ie>
-In-Reply-To: <5051971B.7030608@iol.ie>
+References: <1346377377-24717-1-git-send-email-vivien.didelot@savoirfairelinux.com> <20120831160439.GA5756@roeck-us.net>
+In-Reply-To: <20120831160439.GA5756@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org
 
-On Wed, Sep 26, 2012 at 03:01:55PM +0100, MrNice wrote:
-> On 09/23/2012 07:39 PM, Jean Delvare wrote:
-> >On Sun, 23 Sep 2012 19:07:05 +0100, MrNice wrote:
-> >>Question: What program do you advise to heavy load the CPU and get
-> >>higher temp?
-> >$ md5sum /dev/zero &
-> >
-> >once per logical CPU.
-> >
-> Thanks Jean.
+On 08/31/2012 06:04 PM, Guenter Roeck wrote:
+> On Thu, Aug 30, 2012 at 09:42:57PM -0400, Vivien Didelot wrote:
+>> The MAX197 is an A/D converter, made by Maxim. This driver currently
+>> supports the MAX197, and MAX199. They are both 8-Channel, Multi-Range,
+>> 5V, 12-Bit DAS with 8+4 Bus Interface and Fault Protection.
+>>
+>> The available ranges for the MAX197 are {0,-5V} to 5V, and {0,-10V} to
+>> 10V, while they are {0,-2V} to 2V, and {0,-4V} to 4V on the MAX199.
+>>
+>> Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 > 
-> Unfortunately after the next boot, fan2 (CPU_FAN1 for ASROCK 970)
-> was again at 0 RPM.
-> I tried more reboots, changes in the UEFI but nothing.
-> Very strange...
+> Applied to -next.
 > 
-The only idea I have at this point is for you to run superiotool (the version I
-pointed you to earlier) when you see the fan output, and then again when you
-don't. If we are lucky, we might see a difference in GPIO programming for the
-two cases.
 
-Guenter
+Hm, now it's probably to late, but for this kind of general purpose ADC the IIO
+framework is in my opinion the better place to add support for it.
+
+- Lars
 
 _______________________________________________
 lm-sensors mailing list
