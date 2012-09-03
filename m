@@ -1,7 +1,7 @@
-From: Francesco Turco <fturco@fastmail.fm>
-Date: Mon, 03 Sep 2012 10:38:44 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 03 Sep 2012 15:55:27 +0000
 Subject: Re: [lm-sensors] Some doubts with fancontrol
-Message-Id: <504488B4.2010605@fastmail.fm>
+Message-Id: <20120903155527.GA6274@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <504241C4.30701@fastmail.fm>
 In-Reply-To: <504241C4.30701@fastmail.fm>
@@ -10,14 +10,29 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-> These were my thoughts exactly. There's no good reason for touching
-> these settings in general. If your Thinkpad gets noisy, best is to
-> disassemble it (IBM/Lenovo has wonderful hardware maintenance manuals
-> for all their laptop lines AFAIK) and remove all the dust inside. I did
-> that once with two different models, with good results.
+On Mon, Sep 03, 2012 at 09:36:48AM +0200, Jean Delvare wrote:
+> Adding Henrique to Cc.
+> 
+[ ... ]
 
-Good suggestion. It's a lot of time I don't remove the dust inside of my 
-laptop...
+> >
+> > See above. It can not select 2, since values above 1 are driver and hardware
+> > specific. fancontrol does not know about specific hardware and has to play it
+> > safe. Which, again, is to select manual mode and the fastest available fan
+> > speed.
+> 
+> That's indeed the logic behind the current implementation. That being
+> said, while the fancontrol script cannot switch to pwmN_enable=2
+> unconditionally, we could make it remember the pwmN_enable values when
+> it starts, and restore these values at exit if they are 2 or above.
+> Guenter, what do you think?
+> 
+Yes, that would be good idea. After all, it is what we are trying to do in at
+least some of the drivers. To be on the safe side, we should probably safe
+and restore both the pwm value and and pwm_enable.
+
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
