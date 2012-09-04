@@ -1,31 +1,48 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 21 Sep 2012 13:18:40 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (mcp3021) Add MCP3221 support
-Message-Id: <20120921131840.GB26844@roeck-us.net>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Date: Tue, 04 Sep 2012 08:40:44 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon/lm70: Allow 4wire SPI bus with LM70
+Message-Id: <201209040840.q848eiPg028975@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1348225462-16767-2-git-send-email-schuchmann@schleissheimer.de>
-In-Reply-To: <1348225462-16767-2-git-send-email-schuchmann@schleissheimer.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Fri, Sep 21, 2012 at 01:04:22PM +0200, Sven Schuchmann wrote:
-> This Patch adds support for mcp3221 chip to the
-> mcp3021 driver.
-> 
-> Signed-off-by: Sven Schuchmann <schuchmann@schleissheimer.de>
+Removing the 3wire limitation on LM70 as the component also allows
+operation on 4wire SPI bus
 
-Applied to -next. Minor comment:
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
 
-[ ... ]
-> +	tristate "Microchip MCP3021/MCP3221"
-
-We prefer "MCP3021 and compatibles". I had to touch that line anyway
-to resolve a conflict in -next, so I changed that; no need to resubmit.
-
-Thanks,
-Guenter
+diff -u linux-3.5-vanilla/drivers/hwmon/lm70.c linux-3.5/drivers/hwmon/lm70.c
+--- linux-3.5-vanilla/drivers/hwmon/lm70.c	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/drivers/hwmon/lm70.c	2012-08-25 00:35:40.000000000 +0200
+@@ -143,10 +143,6 @@
+ 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+ 		return -EINVAL;
+ 
+-	/* 3-wire link (shared SI/SO) for LM70 */
+-	if (chip = LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
+-		return -EINVAL;
+-
+ 	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
+ 
+ 	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
+diff -u linux-3.5-vanilla/Documentation/hwmon/lm70 linux-3.5/Documentation/hwmon/lm70
+--- linux-3.5-vanilla/Documentation/hwmon/lm70	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/Documentation/hwmon/lm70	2012-08-25 00:37:15.000000000 +0200
+@@ -31,9 +31,8 @@
+ with a "SPI master controller driver", see drivers/spi/spi_lm70llp.c
+ and its associated documentation.
+ 
+-The TMP121/TMP123 are very similar; main differences are 4 wire SPI inter-
+-face (read only) and 13-bit temperature data (0.0625 degrees celsius reso-
+-lution).
++The TMP121/TMP123 are very similar; main difference is 13-bit temperature
++data (0.0625 degrees celsius resolution).
+ 
+ Thanks to
+ ---------
 
 _______________________________________________
 lm-sensors mailing list
