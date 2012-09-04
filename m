@@ -1,142 +1,144 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 28 Sep 2012 01:35:59 +0000
-Subject: Re: [lm-sensors] How to use SC18IS602 driver ?
-Message-Id: <20120928013559.GA14405@roeck-us.net>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Date: Tue, 04 Sep 2012 08:41:34 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon/lm70: Adds support for LM71 and LM74
+Message-Id: <201209040841.q848fY60028987@localhost.localdomain>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Thu, Sep 27, 2012 at 07:40:14PM -0500, Bruce Parker wrote:
-> ok...see below
+Adding support for LM74 and LM71 chips
 
-Adding mailing list back in. Please don't drop it, and please don't top-post.
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
 
-> # ls /sys/class/i2c-adapter/i2c-0
-> 0-0020         0-0025         0-004c         0-0054         i2c-dev
-> 0-0021         0-0026         0-0050         0-0055         name
-> 0-0022         0-0027         0-0051         0-0056         new_device
-> 0-0023         0-0028         0-0052         delete_device  subsystem
-> 0-0024         0-0037         0-0053         device         uevent
-> # ls /sys/class/i2c-adapter/i2c-0/0-0028
-> driver      modalias    name        spi_master  subsystem   uevent
-> # ls /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/
-> spi0
-> # ls /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/spi0
-> device     spi0.0     subsystem  uevent
-> # ls /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/spi0/spi0.0
-> modalias   subsystem  uevent
-> #
-> 
-> I guess I don't understand when the /dev/mtd* device is supposed to be created?
-> 
-Given the above, you must have either a device tree based configuration or a
-platform initialization file. In there you would specify the parameters of the
-SPI EEPROM. Assuming it is a Jedec compliant eeprom, that would in turn
-instantiate the mtd devices. If you use device tree, I think you would specify
-partition sizes in it as well.
-
-Guenter
-
-> -----Original Message-----
-> From: Guenter Roeck [mailto:linux@roeck-us.net]
-> Sent: Thu 9/27/2012 7:10 PM
-> To: Bruce Parker
-> Subject: Re: How to use SC18IS602 driver ?
->  
-> On Thu, Sep 27, 2012 at 05:56:02PM -0500, Bruce Parker wrote:
-> > I'm logged in as root, but doesn't look like "sudo" or "i2cdetect" are
-> > on my filesystem. Guess I need to get it added to ramdisk?
-> > 
-> Try "ls /sys/class/i2c-adapter/i2c-0"
-> 
-> Guenter
-> 
-> > Bruce...
-> > 
-> > -----Original Message-----
-> > From: Guenter Roeck [mailto:linux@roeck-us.net] 
-> > Sent: Thursday, September 27, 2012 5:48 PM
-> > To: Bruce Parker
-> > Subject: Re: How to use SC18IS602 driver ?
-> > 
-> > On Thu, Sep 27, 2012 at 04:50:53PM -0500, Bruce Parker wrote:
-> > > Message at bottom of email...
-> > >  
-> > > > -----Original Message-----
-> > > > From: Guenter Roeck [mailto:linux@roeck-us.net] 
-> > > > Sent: Tuesday, August 28, 2012 6:38 PM
-> > > > To: Bruce Parker
-> > > > Subject: Re: How to use SC18IS602 driver ?
-> > > > 
-> > > > On Tue, Aug 28, 2012 at 06:34:03PM -0500, Bruce Parker wrote:
-> > > > >  [snip]
-> > > > > >
-> > > > > > With these entries, I can successfully boot Linux and see that
-> > an
-> > > > > entry
-> > > > > > has been created at:
-> > > > > > /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/spi0/spi0.0
-> > > > > >
-> > > > > Do you also see it at /sys/class/spi_master/spi0/spi0.0 ?
-> > > > > 
-> > > > > Yes
-> > > > > 
-> > > > > > In the past I have accessed eeproms by just having them in the
-> > > > device
-> > > > > > tree, then doing open(/sys/bus/i2c/devices/0-005x/eeprom) to get
-> > > > file
-> > > > > > descriptor. Then using file descriptor to do
-> > > read()/write()...pretty
-> > > > > > straight forward. Of course those eeproms were hanging directly
-> > on
-> > > > the
-> > > > > > I2C bus.
-> > > > > 
-> > > > > Yes, this is how it works with I2C EEPROMs, or with AT25
-> > conpatible
-> > > > SPI
-> > > > > EEPROMs.
-> > > > > m25p80 works differently; it creates an mfd device.
-> > > > > 
-> > > > > Do you see any output with dmesg ? You should either see something
-> > > > like
-> > > > >         m25p80 spi0.0: s25sl064a (xxx Kbytes)
-> > > > > or
-> > > > >         m25p80 spi0.0: unrecognized JEDEC id ffffff
-> > > > > 
-> > > > > In the latter case, try again with mode 3 instead of mode 0.
-> > > > > 
-> > > > > No, but I don't have the hardware with the bridge and m25p80 on it
-> > > > yet.
-> > > > > Does that matter?
-> > > > 
-> > > > Ok, then I guess you'll have to wait for the hardware. The /dev/mtd
-> > > > entries will
-> > > > only be created if the hardware is actually there.
-> > > > 
-> > > > Guenter
-> > > Hi again Guenter,
-> > > I have my hardware now, but it does not appear to be discovered by the
-> > > kernel at boot time. Using an I2C bus monitor, I do not see any
-> > accesses
-> > > to the I2C bridge during boot. The device is definitely in the device
-> > > tree because the /sys/class/spi_master/spi0/spi0.0 file is being
-> > > created. Should I see the kernel probing for the Bridge during boot
-> > > time? Is there some specific kernel configuration I need to ask my
-> > > kernel guy to enable?
-> > > 
-> > The driver is not an auto-detect driver, so you would not see any i2c
-> > activity
-> > unless you try to access a SPI device.
-> > 
-> > What do you see if you run "sudo i2cdetect 0" ?
-> > 
-> > Guenter
-> > 
-> > 
-> 
+diff -u linux-3.5-vanilla/drivers/hwmon/Kconfig linux-3.5/drivers/hwmon/Kconfig
+--- linux-3.5-vanilla/drivers/hwmon/Kconfig	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/drivers/hwmon/Kconfig	2012-08-25 00:44:05.000000000 +0200
+@@ -530,12 +530,12 @@
+ 	  will be called lm63.
+ 
+ config SENSORS_LM70
+-	tristate "National Semiconductor LM70 / Texas Instruments TMP121"
++	tristate "National Semiconductor LM70 and compatibles"
+ 	depends on SPI_MASTER
+ 	help
+ 	  If you say yes here you get support for the National Semiconductor
+-	  LM70 and Texas Instruments TMP121/TMP123 digital temperature
+-	  sensor chips.
++	  LM70, LM71, LM74 and Texas Instruments TMP121/TMP123 digital tempera-
++	  ture sensor chips.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called lm70.
+diff -u linux-3.5-vanilla/drivers/hwmon/lm70.c linux-3.5/drivers/hwmon/lm70.c
+--- linux-3.5-vanilla/drivers/hwmon/lm70.c	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/drivers/hwmon/lm70.c	2012-08-25 00:49:46.000000000 +0200
+@@ -43,6 +43,8 @@
+ 
+ #define LM70_CHIP_LM70		0	/* original NS LM70 */
+ #define LM70_CHIP_TMP121	1	/* TI TMP121/TMP123 */
++#define LM70_CHIP_LM71		2	/* NS LM71 */
++#define LM70_CHIP_LM74		3	/* NS LM71 */
+ 
+ struct lm70 {
+ 	struct device *hwmon_dev;
+@@ -88,9 +90,13 @@
+ 	 * Celsius.
+ 	 * So it's equivalent to multiplying by 0.25 * 1000 = 250.
+ 	 *
+-	 * TMP121/TMP123:
++	 * LM74 and TMP121/TMP123:
+ 	 * 13 bits of 2's complement data, discard LSB 3 bits,
+ 	 * resolution 0.0625 degrees celsius.
++	 *
++	 * LM71:
++	 * 14 bits of 2's complement data, discard LSB 2 bits,
++	 * resolution 0.0312 degrees celsius.
+ 	 */
+ 	switch (p_lm70->chip) {
+ 	case LM70_CHIP_LM70:
+@@ -98,8 +104,13 @@
+ 		break;
+ 
+ 	case LM70_CHIP_TMP121:
++	case LM70_CHIP_LM74:
+ 		val = ((int)raw / 8) * 625 / 10;
+ 		break;
++
++	case LM70_CHIP_LM71:
++		val = ((int)raw / 4) * 3125 / 100;
++		break;
+ 	}
+ 
+ 	status = sprintf(buf, "%d\n", val); /* millidegrees Celsius */
+@@ -123,6 +134,12 @@
+ 	case LM70_CHIP_TMP121:
+ 		ret = sprintf(buf, "tmp121\n");
+ 		break;
++	case LM71_CHIP_LM71:
++		ret = sprintf(buf, "lm71\n");
++		break;
++	case LM74_CHIP_LM74:
++		ret = sprintf(buf, "lm74\n");
++		break;
+ 	default:
+ 		ret = -EINVAL;
+ 	}
+@@ -139,7 +156,7 @@
+ 	struct lm70 *p_lm70;
+ 	int status;
+ 
+-	/* signaling is SPI_MODE_0 for both LM70 and TMP121 */
++	/* signaling is SPI_MODE_0 */
+ 	if (spi->mode & (SPI_CPOL | SPI_CPHA))
+ 		return -EINVAL;
+ 
+@@ -198,6 +215,8 @@
+ static const struct spi_device_id lm70_ids[] = {
+ 	{ "lm70",   LM70_CHIP_LM70 },
+ 	{ "tmp121", LM70_CHIP_TMP121 },
++	{ "lm71", LM70_CHIP_LM71 },
++	{ "lm74", LM70_CHIP_LM74 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(spi, lm70_ids);
+@@ -215,5 +234,5 @@
+ module_spi_driver(lm70_driver);
+ 
+ MODULE_AUTHOR("Kaiwan N Billimoria");
+-MODULE_DESCRIPTION("NS LM70 / TI TMP121/TMP123 Linux driver");
++MODULE_DESCRIPTION("NS LM70 and compatibles Linux driver");
+ MODULE_LICENSE("GPL");
+diff -u linux-3.5-vanilla/Documentation/hwmon/lm70 linux-3.5/Documentation/hwmon/lm70
+--- linux-3.5-vanilla/Documentation/hwmon/lm70	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.5/Documentation/hwmon/lm70	2012-08-25 00:37:15.000000000 +0200
+@@ -6,6 +6,10 @@
+     Datasheet: http://www.national.com/pf/LM/LM70.html
+   * Texas Instruments TMP121/TMP123
+     Information: http://focus.ti.com/docs/prod/folders/print/tmp121.html
++  * National Semiconductor LM71
++    Datasheet: http://www.ti.com/product/LM71
++  * National Semiconductor LM74
++    Datasheet: http://www.ti.com/product/LM74
+ 
+ Author:
+         Kaiwan N Billimoria <kaiwan@designergraphix.com>
+@@ -31,9 +35,12 @@
+ with a "SPI master controller driver", see drivers/spi/spi_lm70llp.c
+ and its associated documentation.
+ 
+-The TMP121/TMP123 are very similar; main difference is 13-bit temperature
++The LM74 and TMP121/TMP123 are very similar; main difference is 13-bit temperature
+ data (0.0625 degrees celsius resolution).
+ 
++The LM71 is also very similar; main difference is 14-bit temperature
++data (0.03125 degrees celsius resolution).
++
+ Thanks to
+ ---------
+ Jean Delvare <khali@linux-fr.org> for mentoring the hwmon-side driver
 
 _______________________________________________
 lm-sensors mailing list
