@@ -1,63 +1,64 @@
-From: Fabio Cecamore <ceca_89@hotmail.com>
-Date: Sat, 08 Sep 2012 18:20:54 +0000
-Subject: Re: [lm-sensors] lm-sensors and ipmisensors
-Message-Id: <DUB110-DS38423B9B4B1C69B96C0D5395AE0@phx.gbl>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 05 Sep 2012 02:03:29 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (w83793) Remove legacy chassis intrusion detection sysfs attributes
+Message-Id: <1346810610-26352-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <DUB110-DS33CA6E7EFD176F658182695AE0@phx.gbl>
-In-Reply-To: <DUB110-DS33CA6E7EFD176F658182695AE0@phx.gbl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Pi0tLS0tTWVzc2FnZ2lvIG9yaWdpbmFsZS0tLS0tIAo+RnJvbTogR3VlbnRlciBSb2Vjawo+U2Vu
-dDogU2F0dXJkYXksIFNlcHRlbWJlciAwOCwgMjAxMiA3OjU1IFBNCj5UbzogRmFiaW8gQ2VjYW1v
-cmUKPkNjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj5TdWJqZWN0OiBSZTogW2xtLXNlbnNv
-cnNdIGxtLXNlbnNvcnMgYW5kIGlwbWlzZW5zb3JzCj4KPk9uIFNhdCwgU2VwIDA4LCAyMDEyIGF0
-IDA3OjM1OjE2UE0gKzAyMDAsIEZhYmlvIENlY2Ftb3JlIHdyb3RlOgo+PiBUaGFua3MgZm9yIHlv
-dSByZXBseSwgaSB0cnllZCB5ZXQgYnV0IHRoaXMgaXMgdGhlIHJlc3VsdHM6Cj4+Cj4+IHJvb3RA
-UHJvTGlhbnQ6fiMgaXBtaS1zZW5zb3JzCj4+IGNvdWxkIG5vdCBmaW5kIGluYmFuZCBkZXZpY2UK
-Pj4gcm9vdEBQcm9MaWFudDp+IyBpcG1pLXNlbnNvcnMtY29uZmlnIC0tY2hlY2tvdXQKPj4gY291
-bGQgbm90IGZpbmQgaW5iYW5kIGRldmljZQo+PiByb290QFByb0xpYW50On4jCj4+Cj4+IEkgdGhp
-bmsgbmVlZCBkcml2ZXIKPj4KPlBsZWFzZSBkb24ndCB0b3AtcG9zdC4KPgo+SSBzdXNwZWN0IHlv
-dSBtaWdodCBuZWVkIHRvIGNvbmZpZ3VyZSBpdCBjb3JyZWN0bHkuIFVuZm9ydHVuYXRlbHksIEkg
-Y2FuIAo+bm90Cj5oZWxwIHlvdSB0aGVyZSAtIEkgaGF2ZSBubyBpZGVhIHdoYXQgaXMgbmVlZGVk
-IHRvIGdldCBpdCB3b3JraW5nLiBUcnkgdGhlCj5mcmVlaXBtaSBtYWlsaW5nIGxpc3QgKGZyZWVp
-cG1pLXVzZXJzQGdudS5vcmcpLgo+Cj5UaGFua3MsCj5HdWVudGVyCgpPayBpIHdpbGwgd3JpdGUg
-dGhleSB0b28KU28gdGhlcmUgaXMgbm8gd2F5IHRvIHVzZSBsbV9zZW5zb3JzID8gQW5kIHdoeSA/
-Cgo+IC0tLS0tTWVzc2FnZ2lvIG9yaWdpbmFsZS0tLS0tIEZyb206IEd1ZW50ZXIgUm9lY2sKPiBT
-ZW50OiBTYXR1cmRheSwgU2VwdGVtYmVyIDA4LCAyMDEyIDY6NTkgUE0KPiBUbzogRmFiaW8gQ2Vj
-YW1vcmUKPiBDYzogbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwo+IFN1YmplY3Q6IFJlOiBbbG0t
-c2Vuc29yc10gbG0tc2Vuc29ycyBhbmQgaXBtaXNlbnNvcnMKPgo+IE9uIFNhdCwgU2VwIDA4LCAy
-MDEyIGF0IDAzOjQwOjE3UE0gKzAyMDAsIEZhYmlvIENlY2Ftb3JlIHdyb3RlOgo+ID5IZWxsbyBh
-bGwsCj4gPmnigJltIHRyeWluZyB0byB1c2UgbG0tc2Vuc29ycyBvbiBteSBwcm9saWFudCBzZXJ2
-ZXIgYnV0IGxtLXNlbnNvcnMKPiA+dGVsbCBtZSBpIG5lZWQgaXBtaXNlbnNvcnMgZHJpdmVyIGJ1
-dC4uIGkgZG9u4oCZdCBmaW5kIGl0IGV2ZXJ5d2hlcmUKPiA+Cj4gPlNlYXJjaGluZyBpbiB0aGUg
-bW9kdWxlcyAob3Iga2VybmVsIGNvbmZpZykgdGhlIG9ubHkgaXBtaSBpIGZpbmQgYXJlIAo+ID50
-aGlzOgo+ID4KPiA+L2xpYi9tb2R1bGVzLzMuMi4yMy1ydDM3L2tlcm5lbC9kcml2ZXJzL2FjcGkv
-YWNwaV9pcG1pLmtvCj4gPi9saWIvbW9kdWxlcy8zLjIuMjMtcnQzNy9rZXJuZWwvZHJpdmVycy9j
-aGFyL2lwbWkKPiA+L2xpYi9tb2R1bGVzLzMuMi4yMy1ydDM3L2tlcm5lbC9kcml2ZXJzL2NoYXIv
-aXBtaS9pcG1pX2RldmludGYua28KPiA+L2xpYi9tb2R1bGVzLzMuMi4yMy1ydDM3L2tlcm5lbC9k
-cml2ZXJzL2NoYXIvaXBtaS9pcG1pX21zZ2hhbmRsZXIua28KPiA+L2xpYi9tb2R1bGVzLzMuMi4y
-My1ydDM3L2tlcm5lbC9kcml2ZXJzL2NoYXIvaXBtaS9pcG1pX3dhdGNoZG9nLmtvCj4gPi9saWIv
-bW9kdWxlcy8zLjIuMjMtcnQzNy9rZXJuZWwvZHJpdmVycy9jaGFyL2lwbWkvaXBtaV9wb3dlcm9m
-Zi5rbwo+ID4vbGliL21vZHVsZXMvMy4yLjIzLXJ0Mzcva2VybmVsL2RyaXZlcnMvY2hhci9pcG1p
-L2lwbWlfc2kua28KPiA+Cj4gPmJ1dCB3aGVuIGkgdHJ5IHRvIGxvYWQgc29tZSBpbiBkbWVzZzoK
-PiA+Cj4gPls4MTE5NC42NzI3NzNdIGlwbWkgbWVzc2FnZSBoYW5kbGVyIHZlcnNpb24gMzkuMgo+
-ID5bODEyMDkuMTMwMTg5XSBJUE1JIFN5c3RlbSBJbnRlcmZhY2UgZHJpdmVyLgo+ID5bODEyMDku
-MTMwMjc3XSBpcG1pX3NpOiBwcm9iaW5nIHZpYSBTTUJJT1MKPiA+WzgxMjA5LjEzMDI4NV0gaXBt
-aV9zaTogU01CSU9TOiBtZW0gMHgwIHJlZ3NpemUgMSBzcGFjaW5nIDEgaXJxIDAKPiA+WzgxMjA5
-LjEzMDI5Ml0gaXBtaV9zaTogQWRkaW5nIFNNQklPUy1zcGVjaWZpZWQga2NzIHN0YXRlIG1hY2hp
-bmUKPiA+WzgxMjA5LjEzMDMwMV0gaXBtaV9zaTogcHJvYmluZyB2aWEgU1BNSQo+ID5bODEyMDku
-MTMwMzA4XSBpcG1pX3NpOiBTUE1JOiBtZW0gMHgwIHJlZ3NpemUgMSBzcGFjaW5nIDEgaXJxIDAK
-PiA+WzgxMjA5LjEzMDMxM10gaXBtaV9zaTogQWRkaW5nIFNQTUktc3BlY2lmaWVkIHNtaWMgc3Rh
-dGUgbWFjaGluZQo+ID5kdXBsaWNhdGUgaW50ZXJmYWNlCj4gPls4MTIwOS4xMzAzMjNdIGlwbWlf
-c2k6IFRyeWluZyBTTUJJT1Mtc3BlY2lmaWVkIGtjcyBzdGF0ZSBtYWNoaW5lIGF0Cj4gPm1lbSBh
-ZGRyZXNzIDB4MCwgc2xhdmUgYWRkcmVzcyAweDIwLCBpcnEgMAo+ID5bODEyMDkuMTMwMzMxXSBp
-cG1pX3NpOiBDb3VsZCBub3Qgc2V0IHVwIEkvTyBzcGFjZQo+ID4KPiA+YW5kIHNlbnNvcnMgZG9u
-J3QgZmluZCBub3RoaW5nLi4KPiA+Cj4gPldoZXJlIGNhbiBpIGZpbmQgdGhpcyBkcml2ZXIgPwo+
-Cj4gVHJ5IHRoZSBmcmVlaXBtaS10b29scyBwYWNrYWdlLiBJdCBpbmNsdWRlcyBpcG1pLXNlbnNv
-cnMgd2hpY2ggbWlnaHQgZG8gCj4gdGhlCj4gdHJpY2suCj4KPiBHdWVudGVyCj4KPiAKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFp
-bGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNv
-cnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/w83793.c |   23 -----------------------
+ 1 file changed, 23 deletions(-)
+
+diff --git a/drivers/hwmon/w83793.c b/drivers/hwmon/w83793.c
+index d6b0bdd..4fc47e0 100644
+--- a/drivers/hwmon/w83793.c
++++ b/drivers/hwmon/w83793.c
+@@ -442,27 +442,6 @@ store_beep_enable(struct device *dev, struct device_attribute *attr,
+ 	return count;
+ }
+ 
+-/* Write any value to clear chassis alarm */
+-static ssize_t
+-store_chassis_clear_legacy(struct device *dev,
+-			   struct device_attribute *attr, const char *buf,
+-			   size_t count)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct w83793_data *data = i2c_get_clientdata(client);
+-	u8 val;
+-
+-	dev_warn(dev, "Attribute chassis is deprecated, "
+-		 "use intrusion0_alarm instead\n");
+-
+-	mutex_lock(&data->update_lock);
+-	val = w83793_read_value(client, W83793_REG_CLR_CHASSIS);
+-	val |= 0x80;
+-	w83793_write_value(client, W83793_REG_CLR_CHASSIS, val);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-
+ /* Write 0 to clear chassis alarm */
+ static ssize_t
+ store_chassis_clear(struct device *dev,
+@@ -1189,8 +1168,6 @@ static struct sensor_device_attribute_2 w83793_vid[] = {
+ static DEVICE_ATTR(vrm, S_IWUSR | S_IRUGO, show_vrm, store_vrm);
+ 
+ static struct sensor_device_attribute_2 sda_single_files[] = {
+-	SENSOR_ATTR_2(chassis, S_IWUSR | S_IRUGO, show_alarm_beep,
+-		      store_chassis_clear_legacy, ALARM_STATUS, 30),
+ 	SENSOR_ATTR_2(intrusion0_alarm, S_IWUSR | S_IRUGO, show_alarm_beep,
+ 		      store_chassis_clear, ALARM_STATUS, 30),
+ 	SENSOR_ATTR_2(beep_enable, S_IWUSR | S_IRUGO, show_beep_enable,
+-- 
+1.7.9.7
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
