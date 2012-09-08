@@ -1,41 +1,52 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Sep 2012 16:35:17 +0000
-Subject: Re: [lm-sensors] CONFIG_THERMAL_HWMON in thermal_sys.c
-Message-Id: <20120911163517.GA14630@roeck-us.net>
+From: Andreas Hartmann <andihartmann@01019freenet.de>
+Date: Sat, 08 Sep 2012 16:34:16 +0000
+Subject: [lm-sensors] Strange temperature of AMD FX4100 cpu and power consumption
+Message-Id: <504B7388.8020102@01019freenet.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4D68720C2E767A4AA6A8796D42C8EB591B6F8F@BGSMSX101.gar.corp.intel.com>
- <20120911091204.24fd1510@endymion.delvare>
- <4D68720C2E767A4AA6A8796D42C8EB591B7261@BGSMSX101.gar.corp.intel.com>
- <20120911110335.68009452@endymion.delvare>
- <4D68720C2E767A4AA6A8796D42C8EB591B72C6@BGSMSX101.gar.corp.intel.com>
- <20120911114921.2e39e28c@endymion.delvare>
- <20120911134505.GA4123@roeck-us.net>
- <20120911160538.1fc4d23e@endymion.delvare>
-In-Reply-To: <20120911160538.1fc4d23e@endymion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: "R, Durgadoss" <durgadoss.r@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, lm-sensors@lm-sensors.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 11, 2012 at 04:05:38PM +0200, Jean Delvare wrote:
-> On Tue, 11 Sep 2012 06:45:05 -0700, Guenter Roeck wrote:
-> > I do wonder what is going to happen with existing hwmon temperature sensor
-> > drivers which are needed as thermal drivers. Re-write/copy ?
-> 
-> Have them register as thermal devices and leave their hwmon interface
-> unchanged?
-> 
-> For simple temperature sensor devices, the current situation (expose
-> thermal devices as hwmon devices automatically) works well, but if a
-> more complex devices (with, say, voltage sensors) needs to be exposed
-> as a thermal device then it doesn't work. If we want to handle this
-> case, then I see no alternative to having each driver implement both
-> interfaces.
-> 
-Ok, makes sense.
+Hello,
 
-Guenter
+I'm getting this temperature after more than one hour of activity
+(mostly idle, load of the machine is: 0,11, 0,17, 0,21):
+
+sensors
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +14.5=B0C  (high =3D +70.0=B0C)
+                       (crit =3D +70.0=B0C, hyst =3D +67.0=B0C)
+
+14.5=B0C is completely impossible as the surrounding temperature is
+> 20=B0C.
+
+
+fam15h_power-pci-00c4
+Adapter: PCI adapter
+power1:       85.74 W
+
+I read about this value, which would be the power consumption of the
+CPU. If this would be correct, my cpu wouldn't be a cpu but a light bulb
+:-) and the fan would most probably run on maximum speed non stop (which
+it doesn't do - it's running on minimum).
+
+CPU:       AMD FX(tm)-4100 Quad-Core Processor
+Board:     Gigabyte GA-990XA-UD3
+Bios:      Award F11 05/17/2012
+Kernel:    3.4.10-1.1-desktop 64 bit (openSUSE)
+lmsensors: sensors-3.3.2-55.1.x86_64
+
+
+Do you need more information about the hardware? Feel free to ask!
+
+
+
+
+Thanks for any hint,
+kind regards,
+Andreas Hartmann
 
 _______________________________________________
 lm-sensors mailing list
