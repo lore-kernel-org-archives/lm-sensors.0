@@ -1,7 +1,7 @@
-From: Kelly Anderson <kelly@silka.with-linux.com>
-Date: Sat, 08 Sep 2012 07:21:02 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 08 Sep 2012 14:18:23 +0000
 Subject: Re: [lm-sensors] [PATCH 0/1] Add lm-sensors support for it8771 (Asus E350M1-I).
-Message-Id: <504AF1DE.1040503@silka.with-linux.com>
+Message-Id: <20120908141823.GA27065@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1347060881-14106-1-git-send-email-kelly@silka.with-linux.com>
 In-Reply-To: <1347060881-14106-1-git-send-email-kelly@silka.with-linux.com>
@@ -10,43 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 09/07/2012 06:28 PM, Guenter Roeck wrote:
-> On Fri, Sep 07, 2012 at 05:34:40PM -0600, Kelly Anderson wrote:
->> Signed-off-by: Kelly Anderson <kelly@silka.with-linux.com>
->>
->> Kelly Anderson (1):
->>    Add lm-sensors support for it8771 (Asus E350M1-I).
->>
->>   drivers/hwmon/it87.c | 19 ++++++++++++++-----
->>   1 file changed, 14 insertions(+), 5 deletions(-)
->>
-> Hi Kelly,
->
-> both in one message (Signed-off is part of the commit log), please, and
->
-> WARNING: line over 80 characters
-> #87: FILE: drivers/hwmon/it87.c:64:
-> +enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8771,
-> it8782,
->
-> Just a note for next time - no need to resend. We'll need to sort out what
-> to do with the patch, ie if we want to take the risk of applying it without
-> technical documentation.
->
-> In this context - how does the fan output look like in your system ? Does it
-> make sense ? Also, can you control the fan speed with the pwm attributes,
-> and do the pwmX_auto_point4_XXX attributes report reasonable information ?
->
-> Thanks,
-> Guenter
+On Sat, Sep 08, 2012 at 01:21:02AM -0600, Kelly Anderson wrote:
+> On 09/07/2012 06:28 PM, Guenter Roeck wrote:
+> >On Fri, Sep 07, 2012 at 05:34:40PM -0600, Kelly Anderson wrote:
+> >>Signed-off-by: Kelly Anderson <kelly@silka.with-linux.com>
+> >>
+> >>Kelly Anderson (1):
+> >>   Add lm-sensors support for it8771 (Asus E350M1-I).
+> >>
+> >>  drivers/hwmon/it87.c | 19 ++++++++++++++-----
+> >>  1 file changed, 14 insertions(+), 5 deletions(-)
+> >>
+> >Hi Kelly,
+> >
+> >both in one message (Signed-off is part of the commit log), please, and
+> >
+> >WARNING: line over 80 characters
+> >#87: FILE: drivers/hwmon/it87.c:64:
+> >+enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it8771,
+> >it8782,
+> >
+> >Just a note for next time - no need to resend. We'll need to sort out what
+> >to do with the patch, ie if we want to take the risk of applying it without
+> >technical documentation.
+> >
+> >In this context - how does the fan output look like in your system ? Does it
+> >make sense ? Also, can you control the fan speed with the pwm attributes,
+> >and do the pwmX_auto_point4_XXX attributes report reasonable information ?
+> >
+> >Thanks,
+> >Guenter
+> 
+> Yes, the fan speed seems appropriate when in auto mode (changes
+> depending on load).
+> 
+> Pwm fan control seems to work also, the fan speed changes as
+> pwmcontrol runs it's check.
+> 
+Does the number of fans reported match the number of fans in your system ?
+How many fans are reported ?
 
-Yes, the fan speed seems appropriate when in auto mode (changes 
-depending on load).
-
-Pwm fan control seems to work also, the fan speed changes as pwmcontrol 
-runs it's check.
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
