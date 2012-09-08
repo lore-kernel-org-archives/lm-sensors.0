@@ -1,117 +1,38 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Sep 2012 03:38:47 +0000
-Subject: Re: [lm-sensors] [PATCH 0/1] Add lm-sensors support for it8771 (Asus E350M1-I).
-Message-Id: <20120911033847.GA31782@roeck-us.net>
+From: Fabio Cecamore <ceca_89@hotmail.com>
+Date: Sat, 08 Sep 2012 13:40:17 +0000
+Subject: [lm-sensors] lm-sensors and ipmisensors
+Message-Id: <DUB110-DS33CA6E7EFD176F658182695AE0@phx.gbl>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1347060881-14106-1-git-send-email-kelly@silka.with-linux.com>
-In-Reply-To: <1347060881-14106-1-git-send-email-kelly@silka.with-linux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Jean,
-
-On Sat, Sep 08, 2012 at 03:11:53PM -0600, Kelly Anderson wrote:
-> On 09/08/2012 08:18 AM, Guenter Roeck wrote:
-> >On Sat, Sep 08, 2012 at 01:21:02AM -0600, Kelly Anderson wrote:
-> >>On 09/07/2012 06:28 PM, Guenter Roeck wrote:
-> >>>On Fri, Sep 07, 2012 at 05:34:40PM -0600, Kelly Anderson wrote:
-> >>>>Signed-off-by: Kelly Anderson <kelly@silka.with-linux.com>
-> >>>>
-> >>>>Kelly Anderson (1):
-> >>>>   Add lm-sensors support for it8771 (Asus E350M1-I).
-> >>>>
-> >>>>  drivers/hwmon/it87.c | 19 ++++++++++++++-----
-> >>>>  1 file changed, 14 insertions(+), 5 deletions(-)
-> >>>>
-> >>>Hi Kelly,
-> >>>
-> >>>both in one message (Signed-off is part of the commit log), please, and
-> >>>
-> >>>WARNING: line over 80 characters
-> >>>#87: FILE: drivers/hwmon/it87.c:64:
-> >>>+enum chips { it87, it8712, it8716, it8718, it8720, it8721, it8728, it=
-8771,
-> >>>it8782,
-> >>>
-> >>>Just a note for next time - no need to resend. We'll need to sort out =
-what
-> >>>to do with the patch, ie if we want to take the risk of applying it wi=
-thout
-> >>>technical documentation.
-> >>>
-> >>>In this context - how does the fan output look like in your system ? D=
-oes it
-> >>>make sense ? Also, can you control the fan speed with the pwm attribut=
-es,
-> >>>and do the pwmX_auto_point4_XXX attributes report reasonable informati=
-on ?
-> >>>
-> >>>Thanks,
-> >>>Guenter
-> >>Yes, the fan speed seems appropriate when in auto mode (changes
-> >>depending on load).
-> >>
-> >>Pwm fan control seems to work also, the fan speed changes as
-> >>pwmcontrol runs it's check.
-> >>
-> >Does the number of fans reported match the number of fans in your system=
- ?
-> >How many fans are reported ?
-> >
-> >Thanks,
-> >Guenter
->=20
-> Yes, the number of fans identified matches the system's
-> configuration.  I have one fan connected, with the E350M1-I's
-> massive passive heatsink it's not necessary to have more than one.
-> Lm-sensors does detect both fan headers.
->=20
-> fan1 is the cpu fan.
-> fan2 is the chassis fan.
->=20
-> It might be useful to relabel fan1 to "CPU Fan" as is done on some
-> other sensors.
->=20
-> it8771-isa-0290
-> Adapter: ISA adapter
-> in0:          +0.56 V  (min =3D  +2.78 V, max =3D  +0.23 V)  ALARM
-> in1:          +2.22 V  (min =3D  +1.64 V, max =3D  +0.74 V)  ALARM
-> in2:          +2.86 V  (min =3D  +1.31 V, max =3D  +2.64 V)  ALARM
-> +3.3V:        +3.34 V  (min =3D  +4.20 V, max =3D  +5.40 V)  ALARM
-> in4:          +2.22 V  (min =3D  +2.24 V, max =3D  +0.67 V)  ALARM
-> in5:          +2.93 V  (min =3D  +2.96 V, max =3D  +0.92 V)  ALARM
-> in6:          +2.22 V  (min =3D  +1.50 V, max =3D  +1.98 V)  ALARM
-> 3VSB:         +3.38 V  (min =3D  +5.14 V, max =3D  +3.41 V)  ALARM
-> Vbat:         +3.26 V
-> fan1:        1175 RPM  (min =3D   23 RPM)
-> fan2:           0 RPM  (min =3D   12 RPM)  ALARM
-> temp1:        +40.0=B0C  (low  =3D -11.0=B0C, high =3D +94.0=B0C)  sensor=
- =3D thermistor
-> temp2:        +34.0=B0C  (low  =3D -26.0=B0C, high =3D +10.0=B0C)  ALARM
-> sensor =3D thermistor
-> temp3:         -8.0=B0C  (low  =3D -28.0=B0C, high =3D +63.0=B0C)  sensor=
- =3D thermistor
-> intrusion0:  OK
->=20
-
-I am inclined to accept this patch, and also add support for IT8772E, assum=
-ing
-it is fully compatible.
-
-We have had a number of requests, it has been tested, OpenHardwareMonitor
-supports it, and mosys as well as coreboot have extensive support for IT877=
-2E.
-So overall, even though we don't have access to data sheets, I think we know
-enough and the risk is quite low.
-
-Thoughts / comments / objections ?
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGVsbG8gYWxsLApp4oCZbSB0cnlpbmcgdG8gdXNlIGxtLXNlbnNvcnMgb24gbXkgcHJvbGlhbnQg
+c2VydmVyIGJ1dCBsbS1zZW5zb3JzIHRlbGwgbWUgaSAKbmVlZCBpcG1pc2Vuc29ycyBkcml2ZXIg
+YnV0Li4gaSBkb27igJl0IGZpbmQgaXQgZXZlcnl3aGVyZQoKU2VhcmNoaW5nIGluIHRoZSBtb2R1
+bGVzIChvciBrZXJuZWwgY29uZmlnKSB0aGUgb25seSBpcG1pIGkgZmluZCBhcmUgdGhpczoKCi9s
+aWIvbW9kdWxlcy8zLjIuMjMtcnQzNy9rZXJuZWwvZHJpdmVycy9hY3BpL2FjcGlfaXBtaS5rbwov
+bGliL21vZHVsZXMvMy4yLjIzLXJ0Mzcva2VybmVsL2RyaXZlcnMvY2hhci9pcG1pCi9saWIvbW9k
+dWxlcy8zLjIuMjMtcnQzNy9rZXJuZWwvZHJpdmVycy9jaGFyL2lwbWkvaXBtaV9kZXZpbnRmLmtv
+Ci9saWIvbW9kdWxlcy8zLjIuMjMtcnQzNy9rZXJuZWwvZHJpdmVycy9jaGFyL2lwbWkvaXBtaV9t
+c2doYW5kbGVyLmtvCi9saWIvbW9kdWxlcy8zLjIuMjMtcnQzNy9rZXJuZWwvZHJpdmVycy9jaGFy
+L2lwbWkvaXBtaV93YXRjaGRvZy5rbwovbGliL21vZHVsZXMvMy4yLjIzLXJ0Mzcva2VybmVsL2Ry
+aXZlcnMvY2hhci9pcG1pL2lwbWlfcG93ZXJvZmYua28KL2xpYi9tb2R1bGVzLzMuMi4yMy1ydDM3
+L2tlcm5lbC9kcml2ZXJzL2NoYXIvaXBtaS9pcG1pX3NpLmtvCgpidXQgd2hlbiBpIHRyeSB0byBs
+b2FkIHNvbWUgaW4gZG1lc2c6CgpbODExOTQuNjcyNzczXSBpcG1pIG1lc3NhZ2UgaGFuZGxlciB2
+ZXJzaW9uIDM5LjIKWzgxMjA5LjEzMDE4OV0gSVBNSSBTeXN0ZW0gSW50ZXJmYWNlIGRyaXZlci4K
+WzgxMjA5LjEzMDI3N10gaXBtaV9zaTogcHJvYmluZyB2aWEgU01CSU9TCls4MTIwOS4xMzAyODVd
+IGlwbWlfc2k6IFNNQklPUzogbWVtIDB4MCByZWdzaXplIDEgc3BhY2luZyAxIGlycSAwCls4MTIw
+OS4xMzAyOTJdIGlwbWlfc2k6IEFkZGluZyBTTUJJT1Mtc3BlY2lmaWVkIGtjcyBzdGF0ZSBtYWNo
+aW5lCls4MTIwOS4xMzAzMDFdIGlwbWlfc2k6IHByb2JpbmcgdmlhIFNQTUkKWzgxMjA5LjEzMDMw
+OF0gaXBtaV9zaTogU1BNSTogbWVtIDB4MCByZWdzaXplIDEgc3BhY2luZyAxIGlycSAwCls4MTIw
+OS4xMzAzMTNdIGlwbWlfc2k6IEFkZGluZyBTUE1JLXNwZWNpZmllZCBzbWljIHN0YXRlIG1hY2hp
+bmUgZHVwbGljYXRlIAppbnRlcmZhY2UKWzgxMjA5LjEzMDMyM10gaXBtaV9zaTogVHJ5aW5nIFNN
+QklPUy1zcGVjaWZpZWQga2NzIHN0YXRlIG1hY2hpbmUgYXQgbWVtIAphZGRyZXNzIDB4MCwgc2xh
+dmUgYWRkcmVzcyAweDIwLCBpcnEgMApbODEyMDkuMTMwMzMxXSBpcG1pX3NpOiBDb3VsZCBub3Qg
+c2V0IHVwIEkvTyBzcGFjZQoKYW5kIHNlbnNvcnMgZG9uJ3QgZmluZCBub3RoaW5nLi4KCldoZXJl
+IGNhbiBpIGZpbmQgdGhpcyBkcml2ZXIgPwpUaGFuayB5b3UhCgpGYWJpby4gQwoKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGlu
+ZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMu
+b3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
