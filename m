@@ -1,79 +1,58 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 02 Sep 2012 02:14:10 +0000
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Sun, 09 Sep 2012 14:57:34 +0000
 Subject: Re: [lm-sensors] [PATCH v4] linux/kernel.h: Fix DIV_ROUND_CLOSEST to support negative dividends
-Message-Id: <20120902021410.GA1578@roeck-us.net>
+Message-Id: <CAMuHMdWT2xKzOY9t05mYTMjmk=-V_XQQ8mZc69eQyrDN99hMuw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1346425339-17138-1-git-send-email-linux@roeck-us.net>
- <20120831123812.62729e1c.akpm@linux-foundation.org>
- <20120901190254.108e3f6b@endymion.delvare>
-In-Reply-To: <20120901190254.108e3f6b@endymion.delvare>
+In-Reply-To: <1346425339-17138-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Pekka Enberg <penberg@kernel.org>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
 
-On Sat, Sep 01, 2012 at 07:02:54PM +0200, Jean Delvare wrote:
-> Hi Andrew, Guenter,
-> 
-> On Fri, 31 Aug 2012 12:38:12 -0700, Andrew Morton wrote:
-> > On Fri, 31 Aug 2012 08:02:19 -0700
-> > Guenter Roeck <linux@roeck-us.net> wrote:
-> > 
-> > > DIV_ROUND_CLOSEST returns a bad result for negative dividends:
-> > > 	DIV_ROUND_CLOSEST(-2, 2) = 0
-> > > 
-> > > Most of the time this does not matter. However, in the hardware monitoring
-> > > subsystem, DIV_ROUND_CLOSEST is sometimes used on integers which can be
-> > > negative (such as temperatures).
-> > > 
-> > > ...
-> > >
-> > > +
-> > > +/*
-> > > + * Divide positive or negative dividend by positive divisor and round
-> > > + * to closest integer. Result is undefined for negative divisors.
-> > > + */
-> > >  #define DIV_ROUND_CLOSEST(x, divisor)(			\
-> > >  {							\
-> > > -	typeof(divisor) __divisor = divisor;		\
-> > > -	(((x) + ((__divisor) / 2)) / (__divisor));	\
-> > > +	typeof(x) __x = x;				\
-> > > +	typeof(divisor) __d = divisor;			\
-> > > +	(((typeof(x))-1) >= 0 || (__x) >= 0) ?		\
-> > > +		(((__x) + ((__d) / 2)) / (__d)) :	\
-> > > +		(((__x) - ((__d) / 2)) / (__d));	\
-> > >  }							\
-> > 
-> > Looks good to me.
-> 
-> My testing looks good too.
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-Thanks a lot!
+On Fri, Aug 31, 2012 at 5:02 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+> DIV_ROUND_CLOSEST returns a bad result for negative dividends:
+>         DIV_ROUND_CLOSEST(-2, 2) = 0
+>
+> Most of the time this does not matter. However, in the hardware monitoring
+> subsystem, DIV_ROUND_CLOSEST is sometimes used on integers which can be
+> negative (such as temperatures).
 
-> > The patch causes no change in text size for
-> > kernel/sched/fair.o and drivers/cpuidle/governors/menu.o, so it seems
-> > that the cc trickery is working.
-> 
-> Indeed. I looked for test size increase, and for my config, besides
-> hwmon, I only spotted the following ones:
-> 
-> drivers/media/rc/mceusb.o
-> drivers/gpu/drm/i915/intel_pm.o
-> drivers/tty/serial/pch_uart.o
-> 
-> These don't look like hot paths, so I'd say we don't care. Plus the
-> intel_pm one can probably be solved by using an unsigned int, I don't
-> see why/how ia_freq could be negative (negative frequency anyone?) And
-> for mceusb it can be solved easily by changing "1" to "1U".
-> 
-Yes, it helps a lot that the C trickery optimizes the changes away most of the time.
+This seems to cause 3 new warnings in my m68k builds of v3.6-rc5:
 
-I'll let the patch rest in -next for a few more days before I send it to Linus.
+drivers/hwmon/mcp3021.c:76: warning: comparison is always true due to
+limited range of data type
+drivers/ide/ide-cd.c:1158: warning: comparison is always true due to
+limited range of data type
+drivers/ide/ide-cd.c:1159: warning: comparison is always true due to
+limited range of data type
 
-Guenter
+$ m68k-linux-gnu-gcc -v
+Using built-in specs.
+Target: m68k-linux-gnu
+Configured with: ../src/configure -v --enable-languages=c,c++
+--prefix=/usr --enable-shared --with-system-zlib --libexecdir=/usr/lib
+--without-included-gettext --enable-threads=posix --enable-nls
+--with-gxx-include-dir=/usr/m68k-linux-gnu/include/c++/4.1.2
+--program-suffix=-4.1 --enable-__cxa_atexit --enable-clocale=gnu
+--enable-libstdcxx-debug --disable-libssp --disable-werror
+--enable-checking=release --program-prefix=m68k-linux-gnu-
+--includedir=/usr/m68k-linux-gnu/include --build=x86_64-linux-gnu
+--host=x86_64-linux-gnu --target=m68k-linux-gnu
+Thread model: posix
+gcc version 4.1.2 20061115 (prerelease) (Ubuntu 4.1.1-21)
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
 
 _______________________________________________
 lm-sensors mailing list
