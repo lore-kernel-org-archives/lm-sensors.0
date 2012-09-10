@@ -1,7 +1,7 @@
 From: Andreas Hartmann <andihartmann@01019freenet.de>
-Date: Mon, 10 Sep 2012 15:28:30 +0000
+Date: Mon, 10 Sep 2012 19:13:46 +0000
 Subject: Re: [lm-sensors] Strange temperature of AMD FX4100 cpu and power consumption
-Message-Id: <504E071E.6010004@01019freenet.de>
+Message-Id: <504E3BEA.3020503@01019freenet.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <504B7388.8020102@01019freenet.de>
 In-Reply-To: <504B7388.8020102@01019freenet.de>
@@ -41,13 +41,25 @@ Andreas Herrmann wrote:
 > 
 >   # setpci -s 18.5 0xe0.l
 
-# setpci -s 18.5 0xe0.l
-003930c9
+Hmm, a few hours later and one s2ram / resume cycle in between, the
+power value is broken again. It's showing constantly
+	power1:       85.74 W
+in idle mode. setpci now says:
+
+00fff83e (first try)
+
+00fffffe (all other tries)
+
+
+As I did it a few hours ago, I got 003930c9 and the reported values have
+been between 26 W and 40 W (sounds reasonable to me) - before and after
+entering setpci.
+
 
 
 Thanks,
 kind regards,
-Andreas
+Andreas Hartmann
 
 _______________________________________________
 lm-sensors mailing list
