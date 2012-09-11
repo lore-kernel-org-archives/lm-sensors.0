@@ -1,37 +1,56 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Sep 2012 19:06:08 +0000
-Subject: Re: [lm-sensors] [PATCH] sensors: add humidity data to output of sensors command
-Message-Id: <20120911190608.GA15811@roeck-us.net>
+Date: Tue, 11 Sep 2012 20:52:50 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon: (lm70) Simplify show_name function
+Message-Id: <1347396773-32108-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <4FE063E1.5050301@gmail.com>
-In-Reply-To: <4FE063E1.5050301@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 11, 2012 at 09:04:00AM +0200, Jean Delvare wrote:
-> On Mon, 10 Sep 2012 21:17:27 -0700, Guenter Roeck wrote:
-> > Hi Jean,
-> > 
-> > On Tue, Jun 19, 2012 at 11:34:57AM +0000, Iain Paton wrote:
-> > > Testing out a humidity sensor recently and was thinking the driver wasn't working somehow. 
-> > > Discovered instead that the driver works fine, but the sensors command was ignoring the 
-> > > humidity data.
-> > > This adds output of humidity data for sensors that support it.
-> > > 
-> > > Please consider applying it.
-> > > 
-> > > Thanks,
-> > > Iain 
-> > > 
-> > mind if I apply this patch to lm-sensors ?
-> 
-> Please do, I could never find the time to review or test it :(
-> 
-Cleaned up a bit, tested, and committed.
+Instead of using a switch statement to determine the device name, use
+to_spi_device(dev)->modalias to simplify the code and reduce module size.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/lm70.c |   21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
+
+diff --git a/drivers/hwmon/lm70.c b/drivers/hwmon/lm70.c
+index 789753d..2d1777a 100644
+--- a/drivers/hwmon/lm70.c
++++ b/drivers/hwmon/lm70.c
+@@ -124,26 +124,7 @@ static DEVICE_ATTR(temp1_input, S_IRUGO, lm70_sense_temp, NULL);
+ static ssize_t lm70_show_name(struct device *dev, struct device_attribute
+ 			      *devattr, char *buf)
+ {
+-	struct lm70 *p_lm70 = dev_get_drvdata(dev);
+-	int ret;
+-
+-	switch (p_lm70->chip) {
+-	case LM70_CHIP_LM70:
+-		ret = sprintf(buf, "lm70\n");
+-		break;
+-	case LM70_CHIP_TMP121:
+-		ret = sprintf(buf, "tmp121\n");
+-		break;
+-	case LM70_CHIP_LM71:
+-		ret = sprintf(buf, "lm71\n");
+-		break;
+-	case LM70_CHIP_LM74:
+-		ret = sprintf(buf, "lm74\n");
+-		break;
+-	default:
+-		ret = -EINVAL;
+-	}
+-	return ret;
++	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
+ }
+ 
+ static DEVICE_ATTR(name, S_IRUGO, lm70_show_name, NULL);
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
