@@ -1,47 +1,61 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 23 Sep 2012 17:01:21 +0000
-Subject: Re: [lm-sensors] Configuration for Foxconn A7GM-S 2.0
-Message-Id: <20120923190121.0226340c@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 11 Sep 2012 20:52:52 +0000
+Subject: [lm-sensors] [PATCH 3/4] hwmon: (ads7871) Add 'name' sysfs attribute
+Message-Id: <1347396773-32108-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20556.55176.173597.530756@freddi.uddeborg>
-In-Reply-To: <20556.55176.173597.530756@freddi.uddeborg>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 23 Sep 2012 17:39:22 +0200, G=F6ran Uddeborg wrote:
-> Jean Delvare:
-> >    compure in3  @ * (1 + 6.8 / 10), @ / (1 + 6.8 / 10)
->=20
-> That gives me 4.92V, which seems reasonable for the 5V line, yes.
-> (Just check the spelling of "compute" before you cut and paste into
-> the wiki. :-)
+The 'name' sysfs attribute is mandatory for hwmon devices, but was missing
+in this driver.
 
-Got it right it the wiki, thankfully :)
+Cc: Paul Thomas <pthomas8589@gmail.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Candidate for -stable
 
-> (...)
-> I commented out those lines and restarted (with power off for a short
-> while).  After that, the limits seems unset:
->=20
->     it8716-isa-0e80
->     Adapter: ISA adapter
->     CPU core:      +1.31 V  (min =3D  +0.00 V, max =3D  +4.08 V)
->=20
-> So I assume the BIOS does NOT set anything limits on its own.
+ drivers/hwmon/ads7871.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Indeed, so doing it in sensors.conf is the right thing to do.
+diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
+index e837707..1b53aa4 100644
+--- a/drivers/hwmon/ads7871.c
++++ b/drivers/hwmon/ads7871.c
+@@ -139,6 +139,12 @@ static ssize_t show_voltage(struct device *dev,
+ 	}
+ }
+ 
++static ssize_t ads7871_show_name(struct device *dev,
++				 struct device_attribute *devattr, char *buf)
++{
++	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
++}
++
+ static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, show_voltage, NULL, 0);
+ static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, show_voltage, NULL, 1);
+ static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, show_voltage, NULL, 2);
+@@ -148,6 +154,8 @@ static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, show_voltage, NULL, 5);
+ static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, show_voltage, NULL, 6);
+ static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, show_voltage, NULL, 7);
+ 
++static DEVICE_ATTR(name, S_IRUGO, ads7871_show_name, NULL);
++
+ static struct attribute *ads7871_attributes[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+ 	&sensor_dev_attr_in1_input.dev_attr.attr,
+@@ -157,6 +165,7 @@ static struct attribute *ads7871_attributes[] = {
+ 	&sensor_dev_attr_in5_input.dev_attr.attr,
+ 	&sensor_dev_attr_in6_input.dev_attr.attr,
+ 	&sensor_dev_attr_in7_input.dev_attr.attr,
++	&dev_attr_name.attr,
+ 	NULL
+ };
+ 
+-- 
+1.7.9.7
 
-> B.t.w., I enabled in8/Vbat as you suggested.  I don't get any min or
-> max values for that sensor.  Not even if I try to explicitly set them
-> in the configuration file.  That is normal and reflects the hardware,
-> right?
-
-Yes, this is a hardware limitation. I think the non-mandatory character
-of Vbat explains this.
-
---=20
-Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
