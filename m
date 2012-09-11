@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Sep 2012 01:42:16 +0000
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Tue, 11 Sep 2012 10:05:04 +0000
 Subject: Re: [lm-sensors] Strange temperature of AMD FX4100 cpu and power consumption
-Message-Id: <20120911014215.GA31628@roeck-us.net>
+Message-Id: <20120911100504.GA24179@alberich>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <504B7388.8020102@01019freenet.de>
 In-Reply-To: <504B7388.8020102@01019freenet.de>
@@ -55,12 +55,28 @@ On Mon, Sep 10, 2012 at 09:13:46PM +0200, Andreas Hartmann wrote:
 > As I did it a few hours ago, I got 003930c9 and the reported values have
 > been between 26 W and 40 W (sounds reasonable to me) - before and after
 > entering setpci.
-> 
-Looking into the driver, I suspect the power meter configuration might not
-survive a suspend/resume cycle. What do you see after a complete reboot ?
 
-Thanks,
-Guenter
+We had added a quirk to set a different initialization value for the
+running average range register (It's 0xe after resume on your box, we
+set it to 0x9, see also your mail where you reported 0x003930c9 for
+the setpci command output.)
+
+ commit 00250ec90963b7ef6678438888f3244985ecde14
+ Author: Andre Przywara <andre.przywara@amd.com>
+ Date:   Mon Apr 9 18:16:34 2012 -0400
+
+    hwmon: fam15h_power: fix bogus values with current BIOSes
+
+So it seems that the quirk explicitly needs to be applied
+on resume. (as the BIOS restores the old bogus value)
+
+Thanks for testing.
+Will look at how to address this with a patch.
+
+
+Regards,
+Andreas
+
 
 _______________________________________________
 lm-sensors mailing list
