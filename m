@@ -1,65 +1,50 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 19 Sep 2012 20:24:23 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (w83791d) Drop unnecessary compare statements
-Message-Id: <20120919222423.5db743c2@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 11 Sep 2012 20:52:53 +0000
+Subject: [lm-sensors] [PATCH 4/4] hwmon: (ad7314) Add 'name' sysfs attribute
+Message-Id: <1347396773-32108-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1348085749-1498-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1348085749-1498-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 19 Sep 2012 13:15:49 -0700, Guenter Roeck wrote:
-> The following build warnings are seen with -Wextra.
-> 
-> w83791d.c: In function store_temp_target:
-> w83791d.c:858:2: warning: comparison of unsigned expression < 0 is always false
-> w83791d.c: In function store_temp_tolerance:
-> w83791d.c:920:2: warning: comparison of unsigned expression < 0 is always false
-> 
-> For store_temp_target, accept negative numbers and clamp to >= 0.
-> For store_temp_tolerance, drop the unnecessary comparison.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Accept negative values in store_temp_target and clamp to >= 0.
-> 
->  drivers/hwmon/w83791d.c |    7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/hwmon/w83791d.c b/drivers/hwmon/w83791d.c
-> index 9ade4d4..93ea81a 100644
-> --- a/drivers/hwmon/w83791d.c
-> +++ b/drivers/hwmon/w83791d.c
-> @@ -259,8 +259,7 @@ static u8 fan_to_reg(long rpm, int div)
->  					((val) + 500) / 1000)
->  
->  /* for thermal cruise temp tolerance, 4-bits, LSB = 1 degree Celsius */
-> -#define TOL_TEMP_TO_REG(val)		((val) < 0 ? 0 : \
-> -					(val) >= 15000 ? 15 : \
-> +#define TOL_TEMP_TO_REG(val)		((val) >= 15000 ? 15 : \
->  					((val) + 500) / 1000)
->  
->  #define BEEP_MASK_TO_REG(val)		((val) & 0xffffff)
-> @@ -848,10 +847,10 @@ static ssize_t store_temp_target(struct device *dev,
->  	struct i2c_client *client = to_i2c_client(dev);
->  	struct w83791d_data *data = i2c_get_clientdata(client);
->  	int nr = sensor_attr->index;
-> -	unsigned long val;
-> +	long val;
->  	u8 target_mask;
->  
-> -	if (kstrtoul(buf, 10, &val))
-> +	if (kstrtol(buf, 10, &val))
->  		return -EINVAL;
->  
->  	mutex_lock(&data->update_lock);
+The 'name' sysfs attribute is mandatory for hwmon devices, but was missing
+in this driver.
 
-Acked-by: Jean Delvare <khali@linux-fr.org>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+candidate for -stable
 
+ drivers/hwmon/ad7314.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
+index 455294f..37c01e7 100644
+--- a/drivers/hwmon/ad7314.c
++++ b/drivers/hwmon/ad7314.c
+@@ -87,10 +87,18 @@ static ssize_t ad7314_show_temperature(struct device *dev,
+ 	}
+ }
+ 
++static ssize_t ad7314_show_name(struct device *dev,
++				struct device_attribute *devattr, char *buf)
++{
++	return sprintf(buf, "%s\n", to_spi_device(dev)->modalias);
++}
++
++static DEVICE_ATTR(name, S_IRUGO, ad7314_show_name, NULL);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+ 			  ad7314_show_temperature, NULL, 0);
+ 
+ static struct attribute *ad7314_attributes[] = {
++	&dev_attr_name.attr,
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	NULL,
+ };
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
