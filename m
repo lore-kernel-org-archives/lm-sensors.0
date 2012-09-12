@@ -1,98 +1,36 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Sep 2012 16:34:17 +0000
-Subject: [lm-sensors] [PATCH 3/5] hwmon: (ina2xx) Fix word size register read and write operations
-Message-Id: <1347381259-14585-4-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 12 Sep 2012 08:24:41 +0000
+Subject: Re: [lm-sensors] [PATCH 3/5] hwmon: (ina2xx) Fix word size register read and write operations
+Message-Id: <20120912102441.66e7999c@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1347381259-14585-4-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1347381259-14585-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The driver uses be16_to_cpu and cpu_to_be16 to convert data in SMBus word
-operations from chip to host byte order. However, the data passed from and to
-the SMBus word API functions is in host byte order, not in chip byte order.
-Conversion should therefore use swab16 instead of be16 to change the byte order.
+On Tue, 11 Sep 2012 09:34:17 -0700, Guenter Roeck wrote:
+> The driver uses be16_to_cpu and cpu_to_be16 to convert data in SMBus word
+> operations from chip to host byte order. However, the data passed from and to
+> the SMBus word API functions is in host byte order, not in chip byte order.
+> Conversion should therefore use swab16 instead of be16 to change the byte order.
+> 
+> Replace driver internal word conversion functions with SMBus API functions to
+> solve the problem.
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> Candidate for 3.6 and -stable.
 
-Replace driver internal word conversion functions with SMBus API functions to
-solve the problem.
+Agreed, down to 3.2 (when i2c_smbus_read/write_word_swapped were
+introduced.) If anyone needs the fix for a kernel older than this, it
+will have to be implemented differently.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
-Candidate for 3.6 and -stable.
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
- drivers/hwmon/ina2xx.c |   30 +++++++++---------------------
- 1 file changed, 9 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index 7f3f4a3..6021482 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -69,22 +69,6 @@ struct ina2xx_data {
- 	u16 regs[INA2XX_MAX_REGISTERS];
- };
- 
--int ina2xx_read_word(struct i2c_client *client, int reg)
--{
--	int val = i2c_smbus_read_word_data(client, reg);
--	if (unlikely(val < 0)) {
--		dev_dbg(&client->dev,
--			"Failed to read register: %d\n", reg);
--		return val;
--	}
--	return be16_to_cpu(val);
--}
--
--void ina2xx_write_word(struct i2c_client *client, int reg, int data)
--{
--	i2c_smbus_write_word_data(client, reg, cpu_to_be16(data));
--}
--
- static struct ina2xx_data *ina2xx_update_device(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -102,7 +86,7 @@ static struct ina2xx_data *ina2xx_update_device(struct device *dev)
- 
- 		/* Read all registers */
- 		for (i = 0; i < data->registers; i++) {
--			int rv = ina2xx_read_word(client, i);
-+			int rv = i2c_smbus_read_word_swapped(client, i);
- 			if (rv < 0) {
- 				ret = ERR_PTR(rv);
- 				goto abort;
-@@ -279,22 +263,26 @@ static int ina2xx_probe(struct i2c_client *client,
- 	switch (data->kind) {
- 	case ina219:
- 		/* device configuration */
--		ina2xx_write_word(client, INA2XX_CONFIG, INA219_CONFIG_DEFAULT);
-+		i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
-+					     INA219_CONFIG_DEFAULT);
- 
- 		/* set current LSB to 1mA, shunt is in uOhms */
- 		/* (equation 13 in datasheet) */
--		ina2xx_write_word(client, INA2XX_CALIBRATION, 40960000 / shunt);
-+		i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
-+					     40960000 / shunt);
- 		dev_info(&client->dev,
- 			 "power monitor INA219 (Rshunt = %li uOhm)\n", shunt);
- 		data->registers = INA219_REGISTERS;
- 		break;
- 	case ina226:
- 		/* device configuration */
--		ina2xx_write_word(client, INA2XX_CONFIG, INA226_CONFIG_DEFAULT);
-+		i2c_smbus_write_word_swapped(client, INA2XX_CONFIG,
-+					     INA226_CONFIG_DEFAULT);
- 
- 		/* set current LSB to 1mA, shunt is in uOhms */
- 		/* (equation 1 in datasheet)*/
--		ina2xx_write_word(client, INA2XX_CALIBRATION, 5120000 / shunt);
-+		i2c_smbus_write_word_swapped(client, INA2XX_CALIBRATION,
-+					     5120000 / shunt);
- 		dev_info(&client->dev,
- 			 "power monitor INA226 (Rshunt = %li uOhm)\n", shunt);
- 		data->registers = INA226_REGISTERS;
 -- 
-1.7.9.7
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
