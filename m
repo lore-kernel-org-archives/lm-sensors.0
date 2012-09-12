@@ -1,8 +1,9 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 12 Sep 2012 16:30:24 +0000
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Wed, 12 Sep 2012 17:17:06 +0000
 Subject: Re: [lm-sensors] [PATCH] hwmon: (sht15) move header to linux/platform_data/
-Message-Id: <20120912163024.GA23096@roeck-us.net>
+Message-Id: <1009769296.403552.1347470226680.JavaMail.root@mail.savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <20120912163024.GA23096@roeck-us.net>
 References: <1347467024-3231-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 In-Reply-To: <1347467024-3231-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
@@ -10,23 +11,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Wed, Sep 12, 2012 at 12:23:44PM -0400, Vivien Didelot wrote:
-> This patch moves the sht15.h header from include/linux to
-> include/linux/platform_data, and update existing support (stargate2
-> platform) accordingly.
-> 
-> Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-
-Applied to -next, and fixed:
-
-/home/groeck/src/linux-staging/.git/rebase-apply/patch:80: new blank line at
-EOF.
-+
-warning: 1 line adds whitespace errors.
-
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+SGkgR3VlbnRlciwKCkkgZGlkbid0IG5vdGljZSBzaHQxNS5oIGhhZCBhIGJsYW5rIGxpbmUgYXQg
+dGhlIGVuZC4KTWF5YmUgdGhpcyBjaGVjayBjYW4gYmUgYWRkZWQgdG8gdGhlIGNoZWNrcGF0Y2gu
+cGwgc2NyaXB0LgpBbmR5LCB3aGF0IGRvIHlvdSB0aGluaz8KClRoYW5rcywKVml2aWVuCgotLS0t
+LSBNYWlsIG9yaWdpbmFsIC0tLS0tCkRlOiAiR3VlbnRlciBSb2VjayIgPGxpbnV4QHJvZWNrLXVz
+Lm5ldD4Kw4A6ICJWaXZpZW4gRGlkZWxvdCIgPHZpdmllbi5kaWRlbG90QHNhdm9pcmZhaXJlbGlu
+dXguY29tPgpDYzogbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZywgIkplYW4gRGVsdmFyZSIgPGto
+YWxpQGxpbnV4LWZyLm9yZz4sICJKb25hdGhhbiBDYW1lcm9uIiA8amljMjNAY2FtLmFjLnVrPiwg
+bGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCkVudm95w6k6IE1lcmNyZWRpIDEy
+IFNlcHRlbWJyZSAyMDEyIDEyOjMwOjI0Ck9iamV0OiBSZTogW1BBVENIXSBod21vbjogKHNodDE1
+KSBtb3ZlIGhlYWRlciB0byBsaW51eC9wbGF0Zm9ybV9kYXRhLwoKT24gV2VkLCBTZXAgMTIsIDIw
+MTIgYXQgMTI6MjM6NDRQTSAtMDQwMCwgVml2aWVuIERpZGVsb3Qgd3JvdGU6Cj4gVGhpcyBwYXRj
+aCBtb3ZlcyB0aGUgc2h0MTUuaCBoZWFkZXIgZnJvbSBpbmNsdWRlL2xpbnV4IHRvCj4gaW5jbHVk
+ZS9saW51eC9wbGF0Zm9ybV9kYXRhLCBhbmQgdXBkYXRlIGV4aXN0aW5nIHN1cHBvcnQgKHN0YXJn
+YXRlMgo+IHBsYXRmb3JtKSBhY2NvcmRpbmdseS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBWaXZpZW4g
+RGlkZWxvdCA8dml2aWVuLmRpZGVsb3RAc2F2b2lyZmFpcmVsaW51eC5jb20+CgpBcHBsaWVkIHRv
+IC1uZXh0LCBhbmQgZml4ZWQ6CgovaG9tZS9ncm9lY2svc3JjL2xpbnV4LXN0YWdpbmcvLmdpdC9y
+ZWJhc2UtYXBwbHkvcGF0Y2g6ODA6IG5ldyBibGFuayBsaW5lIGF0CkVPRi4KKwp3YXJuaW5nOiAx
+IGxpbmUgYWRkcyB3aGl0ZXNwYWNlIGVycm9ycy4KCkd1ZW50ZXIKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
+LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
+YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
