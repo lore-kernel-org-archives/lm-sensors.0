@@ -1,38 +1,92 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sun, 23 Sep 2012 18:41:23 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for Linux 3.6
-Message-Id: <20120923204123.20edef90@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 14 Sep 2012 04:20:51 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.6-rc6
+Message-Id: <20120914042051.GA20414@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8989270473153323037=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============8989270473153323037==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Disposition: inline
+
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 Hi Linus,
 
-Please pull hwmon subsystem fixes for Linux 3.6 from:
+Please pull hwmon fixes for Linux 3.6-rc6 from signed tag:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
-
- drivers/hwmon/coretemp.c     |    5 +++++
- drivers/hwmon/fam15h_power.c |   15 +++++++++++++--
- drivers/hwmon/via-cputemp.c  |    5 +++++
- 3 files changed, 23 insertions(+), 2 deletions(-)
-
----------------
-
-Andreas Herrmann (1):
-      hwmon: (fam15h_power) Tweak runavg_range on resume
-
-Silas Boyd-Wickizer (2):
-      hwmon: (via-cputemp) Use get_online_cpus to avoid races involving CPU hotplug
-      hwmon: (coretemp) Use get_online_cpus to avoid races involving CPU hotplug
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
 
 Thanks,
--- 
-Jean Delvare
+Guenter
+------
+
+The following changes since commit 55d512e245bc7699a8800e23df1a24195dd08217:
+
+  Linux 3.6-rc5 (2012-09-08 16:43:45 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 080b98e9ab30734bda2f1b8b33cd55a4c4ef406a:
+
+  hwmon: (ina2xx) Fix word size register read and write operations (2012-09-12 06:42:11 -0700)
+
+----------------------------------------------------------------
+Fix word size register read and write operations in ina2xx driver, and
+initialize uninitialized structure elements in twl4030-madc-hwmon driver.
+
+----------------------------------------------------------------
+Guenter Roeck (2):
+      hwmon: (twl4030-madc-hwmon) Initialize uninitialized structure elements
+      hwmon: (ina2xx) Fix word size register read and write operations
+
+ drivers/hwmon/ina2xx.c             |   30 +++++++++---------------------
+ drivers/hwmon/twl4030-madc-hwmon.c |    9 +++++----
+ 2 files changed, 14 insertions(+), 25 deletions(-)
+
+--7AUc2qLy4jB3hD7Z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQUrCjAAoJEMsfJm/On5mB8v4P/jYlP0QN/lIbuPgG7mWCAWyw
+7EYIdTAu/tE1HIjcXmx97p5b/cDA1jB4JTJs5KhOJp5FUccNEXaf6WS3Q7j4EppN
+bUJrhsLJNqcwIgpyis2HNpedMxDhHDL4zlE6lVXt1joOokol3EERo2UHTH6N9+Lj
+NhGgJjPCZkBQvMnizKelgOHx8G27sE47+g6sOzfC1252NsamMeWOHt1O0A+Z3UwH
+IslcBOiRa8nULskFbDTjDYDdTCipbZFJeIG5u8VuyPPe17g/9AO6ufYsW9XppZDz
+306ed1Ldz111WGR50geTXyT09VrF5DeFHOcqi01bB+N+NodGlvnrm8Rj92TSCP25
+Oe+usfubzqDW7WFhBM1/NQ1i2bWuwufsIIRynqnXxI1yDLyXF5fVN3jM735LH1TO
+2/T+XwPyRO9Ec+Z8kORGgMh4hPRlk+dtzkU6MnSMxzwYzoIZm2Mylv+WiJYexQt5
+Ty1g8bwVRq+wtW6hJHrKHo9qPDh0/Dp+/Gl2oQEZxDWAPIRE3SlLyv4e4JN/fgdI
+oSeo4sEaoRn7XDUhkrgfxpr50jaEp9WU481dY/Ojvw9Sy0gl/zkBTyX4Eid252BV
+QyuyqZZEU/5IuCqCp0LQy41nIe5wiABC3ayIypjDVrqUQ0O5JlWOSIDf7s54Gf1L
+YBoSUQ43H9UlLc/HEnNv
+=Z2IP
+-----END PGP SIGNATURE-----
+
+--7AUc2qLy4jB3hD7Z--
+
+
+--===============8989270473153323037==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8989270473153323037==--
