@@ -1,95 +1,85 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 06 Sep 2012 15:19:28 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.6-rc5
-Message-Id: <20120906151928.GA18841@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============6466798553664065123=="
+From: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Date: Fri, 14 Sep 2012 13:32:12 +0000
+Subject: [lm-sensors] [Patch v1 0/7] DA9055 PMIC driver
+Message-Id: <1347628812.18587.4.camel@dhruva>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============6466798553664065123==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SLDf9lqlvOQaIe6s"
-Content-Disposition: inline
-
-
---SLDf9lqlvOQaIe6s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.6-rc5 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-There is only one patch in this pull request. While the changes are not in the
-drivers/hwmon directory, the problem primarily affects hwmon drivers, and it
-makes sense to push the patch through the hwmon tree.
-
-The patch has been in -mm and -next for about a week with no adverse effects.
-
-Thanks,
-Guenter
-------
-
-The following changes since commit 4cbe5a555fa58a79b6ecbb6c531b8bab0650778d:
-
-  Linux 3.6-rc4 (2012-09-01 10:39:58 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to b6d86d3d6d6e4c9b588d81615c81b5a8292b62ed:
-
-  linux/kernel.h: Fix DIV_ROUND_CLOSEST to support negative dividends (2012-09-01 18:58:09 -0700)
-
-----------------------------------------------------------------
-One patch, fixing DIV_ROUND_CLOSEST to support negative dividends.
-
-----------------------------------------------------------------
-Guenter Roeck (1):
-      linux/kernel.h: Fix DIV_ROUND_CLOSEST to support negative dividends
-
- include/linux/kernel.h |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
---SLDf9lqlvOQaIe6s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQSL8AAAoJEMsfJm/On5mBhqQP/1NzZ1G7S6eiZXCO9hi56G3a
-zhrmYj4GQzzuUdUKnhJnB/Q8RyyeRNKuDo/jt35aGPEf5HQgVQcB6ylUIAFvvzBC
-0VXmtjkS/nZjJmg9UCsQQSPnXzeoBtXWDTe97XXz1ThoxdbpgWybOUzW5rW4MF+z
-SBhpIDuOfZC299rK/JjGPI49KzmY2voOAlIvZJp76jT+KLs+CptuHlp+yJa5KYck
-d/68zaL5YvVb5I+hQZLsbri1HK5EpkE9Irjg6mw7P7nmp/+V/7daqpz6kLDFfIM2
-tNAeXijE93E2JpFLBwjKaICMsYOKLCHzyctCJbdepqwVaKEGIeny395QhsBSoIFs
-msDJbAj9U9d4RTSv7u5Bz+niYwfR7UelbV2o8NFv3F2w00OAScXByIYEFxt6jjH3
-jBMZ7Rn1sMqm3SglR6wPmdBdoXjtjTR5/3wfbGTsnMIU6YoDGSDNBOGZbdAW3bEO
-DBNvR3kcoYlDMkjyik5ius06zsj+gz/ByHclSR2NrGXtPrxu+3stvRAiKTUIbsrK
-Jt7A5IZ1y2KoOboxiw05mz9P6gEU4Ot30gkRxcnQ96xiAazqKBuNZh1WW5Ogvg1t
-dIUs78WuAMkqInMfz4RAc165aSWfaYFShYxCMG9fytX2icoDbaKqdLhJ8JOuzqxc
-fKLfSZ7OfS6jHPi7QRon
-=kD6t
------END PGP SIGNATURE-----
-
---SLDf9lqlvOQaIe6s--
-
-
---===============6466798553664065123==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Samuel Ortiz <sameo@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Guenter Roeck <linux@roeck-us.net>, Alessandro Zummo <a.zummo@towertech.it>, Wim Van Sebroeck <wim@iguana.be>, Grant Likely <grant.likely@secretlab.ca>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, rtc-linux@googlegroups.com, linux-watchdog@vger.kernel.org, linux-input@vger.kernel.org, David Dajun Chen <dchen@diasemi.com>
+
+The following patch series adds support to the DA9055 PMIC.
+
+The DA9055 is a low power Power Management Integrated Circuit. This PMIC
+device is only controlled from an I2C device.
+
+The driver for the DA9055 consists of a core (i2c) device driver and its
+dependent component device drivers for:
+regulator - 2 BUCKS, 6 LDOs
+rtc - low power clock
+gpio - 3 pins
+hwmon - 5 ADC channels
+watchdog - system monitor
+onkey - button device
+
+These drivers has been tested on a Samsung SMDK6410.
+
+Ashish Jangam (7):
+  DA9058 MFD core
+  DA9058 REGULATOR driver
+  DA9058 RTC driver
+  DA9058 GPIO driver
+  DA9058 HWMON driver
+  DA9058 WATCHDOG driver
+  DA9058 ONKEY driver
+
+ Documentation/hwmon/da9055           |   47 +++
+ drivers/gpio/Kconfig                 |   11 +
+ drivers/gpio/Makefile                |    1 +
+ drivers/gpio/gpio-da9055.c           |  204 ++++++++++
+ drivers/hwmon/Kconfig                |   10 +
+ drivers/hwmon/Makefile               |    1 +
+ drivers/hwmon/da9055-hwmon.c         |  342 ++++++++++++++++
+ drivers/input/misc/Kconfig           |   10 +
+ drivers/input/misc/Makefile          |    1 +
+ drivers/input/misc/da9055_onkey.c    |  121 ++++++
+ drivers/mfd/Kconfig                  |   17 +
+ drivers/mfd/Makefile                 |    3 +
+ drivers/mfd/da9055-core.c            |  423 ++++++++++++++++++++
+ drivers/mfd/da9055-i2c.c             |   93 +++++
+ drivers/regulator/Kconfig            |   10 +
+ drivers/regulator/Makefile           |    1 +
+ drivers/regulator/da9055-regulator.c |  727
+++++++++++++++++++++++++++++++++++
+ drivers/rtc/Kconfig                  |   10 +
+ drivers/rtc/Makefile                 |    1 +
+ drivers/rtc/rtc-da9055.c             |  430 ++++++++++++++++++++
+ drivers/watchdog/Kconfig             |   10 +
+ drivers/watchdog/Makefile            |    1 +
+ drivers/watchdog/da9055_wdt.c        |  227 +++++++++++
+ include/linux/mfd/da9055/core.h      |   94 +++++
+ include/linux/mfd/da9055/pdata.h     |   32 ++
+ include/linux/mfd/da9055/reg.h       |  699
+++++++++++++++++++++++++++++++++
+ 26 files changed, 3526 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/hwmon/da9055
+ create mode 100644 drivers/gpio/gpio-da9055.c
+ create mode 100644 drivers/hwmon/da9055-hwmon.c
+ create mode 100644 drivers/input/misc/da9055_onkey.c
+ create mode 100644 drivers/mfd/da9055-core.c
+ create mode 100644 drivers/mfd/da9055-i2c.c
+ create mode 100644 drivers/regulator/da9055-regulator.c
+ mode change 100644 => 100755 drivers/rtc/Kconfig
+ create mode 100644 drivers/rtc/rtc-da9055.c
+ create mode 100644 drivers/watchdog/da9055_wdt.c
+ create mode 100644 include/linux/mfd/da9055/core.h
+ create mode 100644 include/linux/mfd/da9055/pdata.h
+ create mode 100644 include/linux/mfd/da9055/reg.h
+
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============6466798553664065123==--
