@@ -1,46 +1,82 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 19 Sep 2012 19:41:24 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (w83791d) Drop unnecessary compare statements
-Message-Id: <20120919214124.475b79ac@endymion.delvare>
+From: =?ISO-8859-15?Q?=C5sa_Uhrenius?= <asa.uhrenius@transmode.com>
+Date: Fri, 14 Sep 2012 09:25:07 +0000
+Subject: [lm-sensors] pmbus-questions
+Message-Id: <OF6A0069A8.54748E02-ONC1257A79.002B4CFE-C1257A79.0033BD0D@transmode.se>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============7303006122072540586=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1348079452-32082-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1348079452-32082-2-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgR3VlbnRlciwKCk9uIFdlZCwgMTkgU2VwIDIwMTIgMTE6MzA6NTIgLTA3MDAsIEd1ZW50ZXIg
-Um9lY2sgd3JvdGU6Cj4gVGhlIGZvbGxvd2luZyBidWlsZCB3YXJuaW5ncyBhcmUgc2VlbiB3aXRo
-IC1XZXh0cmEuCj4gCj4gdzgzNzkxZC5jOiBJbiBmdW5jdGlvbiDigJhzdG9yZV90ZW1wX3Rhcmdl
-dOKAmToKPiB3ODM3OTFkLmM6ODU4OjI6IHdhcm5pbmc6IGNvbXBhcmlzb24gb2YgdW5zaWduZWQg
-ZXhwcmVzc2lvbiA8IDAgaXMgYWx3YXlzIGZhbHNlCj4gdzgzNzkxZC5jOiBJbiBmdW5jdGlvbiDi
-gJhzdG9yZV90ZW1wX3RvbGVyYW5jZeKAmToKPiB3ODM3OTFkLmM6OTIwOjI6IHdhcm5pbmc6IGNv
-bXBhcmlzb24gb2YgdW5zaWduZWQgZXhwcmVzc2lvbiA8IDAgaXMgYWx3YXlzIGZhbHNlCj4gCj4g
-RHJvcCB0aGUgdW5uZWNlc3NhcnkgY29tcGFyaXNvbnMuCj4gCj4gU2lnbmVkLW9mZi1ieTogR3Vl
-bnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+IC0tLQo+ICBkcml2ZXJzL2h3bW9uL3c4
-Mzc5MWQuYyB8ICAgIDYgKystLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyks
-IDQgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vdzgzNzkxZC5j
-IGIvZHJpdmVycy9od21vbi93ODM3OTFkLmMKPiBpbmRleCA5YWRlNGQ0Li41NjZhYzQ0IDEwMDY0
-NAo+IC0tLSBhL2RyaXZlcnMvaHdtb24vdzgzNzkxZC5jCj4gKysrIGIvZHJpdmVycy9od21vbi93
-ODM3OTFkLmMKPiBAQCAtMjU0LDEzICsyNTQsMTEgQEAgc3RhdGljIHU4IGZhbl90b19yZWcobG9u
-ZyBycG0sIGludCBkaXYpCj4gIAkJCQkgKCh2YWwpICsgMjUwKSAvIDUwMCAqIDEyOCkKPiAgCj4g
-IC8qIGZvciB0aGVybWFsIGNydWlzZSB0YXJnZXQgdGVtcCwgNy1iaXRzLCBMU0IgPSAxIGRlZ3Jl
-ZSBDZWxzaXVzICovCj4gLSNkZWZpbmUgVEFSR0VUX1RFTVBfVE9fUkVHKHZhbCkJCSgodmFsKSA8
-IDAgPyAwIDogXAo+IC0JCQkJCSh2YWwpID49IDEyNzAwMCA/IDEyNyA6IFwKPiArI2RlZmluZSBU
-QVJHRVRfVEVNUF9UT19SRUcodmFsKQkJKCh2YWwpID49IDEyNzAwMCA/IDEyNyA6IFwKPiAgCQkJ
-CQkoKHZhbCkgKyA1MDApIC8gMTAwMCkKClRoZSBjb3JyZWN0IGZpeCBoZXJlIGlzIHRvIGFjY2Vw
-dCBuZWdhdGl2ZSBpbnB1dCB2YWx1ZXMgZnJvbSB0aGUgdXNlcgphbmQgY2xhbXAgdGhlbSB0byAw
-LiBUaGVyZSdzIG5vIHdheSB0aGUgdXNlciBjYW4ga25vdyB0aGF0IHRoZSBkZXZpY2UKd29uJ3Qg
-c3VwcG9ydCBuZWdhdGl2ZSB0YXJnZXQgdGVtcGVyYXR1cmVzIHdoaWxlIGl0IHN1cHBvcnRzIG5l
-Z2F0aXZlCmlucHV0IHRlbXBlcmF0dXJlcy4KCj4gIAo+ICAvKiBmb3IgdGhlcm1hbCBjcnVpc2Ug
-dGVtcCB0b2xlcmFuY2UsIDQtYml0cywgTFNCID0gMSBkZWdyZWUgQ2Vsc2l1cyAqLwo+IC0jZGVm
-aW5lIFRPTF9URU1QX1RPX1JFRyh2YWwpCQkoKHZhbCkgPCAwID8gMCA6IFwKPiAtCQkJCQkodmFs
-KSA+PSAxNTAwMCA/IDE1IDogXAo+ICsjZGVmaW5lIFRPTF9URU1QX1RPX1JFRyh2YWwpCQkoKHZh
-bCkgPj0gMTUwMDAgPyAxNSA6IFwKPiAgCQkJCQkoKHZhbCkgKyA1MDApIC8gMTAwMCkKCgpUaGlz
-IG9uZSBpcyBjb3JyZWN0LgoKVGhlc2UgbWFjcm9zIHNob3VsZCBiZSBmdW5jdGlvbnMsIHRoZXkg
-c2hvdWxkIHVzZSBESVZfUk9VTkRfQ0xPU0VTVCBhbmQKU0VOU09SX0xJTUlULCBidXQgdGhhdCBn
-b2VzIGJleW9uZCB0aGlzIHNpbXBsZSBjbGVhbnVwLgoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+This is a multipart message in MIME format.
+--===============7303006122072540586==
+Content-Type: multipart/alternative; boundary="=_alternative 0033BCE2C1257A79_="
+
+This is a multipart message in MIME format.
+--=_alternative 0033BCE2C1257A79_=
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I have some questions concerning pmbus. If you are not the persons I=20
+should contact concerning this please let me know and advise me to whom I=20
+should send this.
+
+Questions:
+Is it correct that pmbus is used for monitoring only and can't be used for =
+
+writing data to a pmbus compatible devices?=20
+If so, are there any plans to include writing capability and when if=20
+that's the case?
+
+The reason to my questions is that I would like to write a powerlevel to a =
+
+power device, which supports the Pmbus protocol.
+
+Thanks in advance!
+
+Best Regards / =C5sa Uhrenius, Transmode
+
+--=_alternative 0033BCE2C1257A79_=
+Content-Type: text/html; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<font size=3D2 face=3D"sans-serif">Hi,</font>
+<br>
+<br><font size=3D2 face=3D"sans-serif">I have some questions concerning pmb=
+us.
+If you are not the persons I should contact concerning this please let
+me know and advise me to whom I should send this.</font>
+<br>
+<br><font size=3D2 face=3D"sans-serif">Questions:</font>
+<ol>
+<li value=3D1><font size=3D2 face=3D"sans-serif">Is it correct that pmbus is
+used for monitoring only and can't be used for writing data to a pmbus
+compatible devices? &nbsp; </font>
+<li value=3D2><font size=3D2 face=3D"sans-serif">If so, are there any plans=
+ to
+include writing capability and when if that's the case?</font>
+<li value=3D3></ol><font size=3D2 face=3D"sans-serif">The reason to my ques=
+tions
+is that I would like to write a powerlevel to a power device, which supports
+the Pmbus protocol.</font>
+<br>
+<br><font size=3D2 face=3D"sans-serif">Thanks in advance!</font>
+<br>
+<br><font size=3D2 face=3D"sans-serif">Best Regards / =C5sa Uhrenius, Trans=
+mode</font>
+<br>
+--=_alternative 0033BCE2C1257A79_=--
+
+
+--===============7303006122072540586==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============7303006122072540586==--
