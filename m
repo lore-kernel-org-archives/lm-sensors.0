@@ -1,61 +1,68 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Sep 2012 02:03:23 +0000
-Subject: Re: [lm-sensors] [PATCH v2 03/13] hwmon: Versatile Express hwmon driver
-Message-Id: <20120920020323.GB22634@roeck-us.net>
+From: Parag Warudkar <parag.lkml@gmail.com>
+Date: Sat, 15 Sep 2012 22:42:30 +0000
+Subject: [lm-sensors] [PATCH] applesmc: Bump max wait and rearrange udelay
+Message-Id: <alpine.DEB.2.02.1209151834120.2271@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1347977875-16855-1-git-send-email-pawel.moll@arm.com>
- <1347977875-16855-4-git-send-email-pawel.moll@arm.com>
- <20120918152430.GA5911@roeck-us.net>
- <1348074288.11116.86.camel@hornet>
-In-Reply-To: <1348074288.11116.86.camel@hornet>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: rydberg@euromail.se, khali@linux-fr.org, linux@roeck-us.net
 
-On Wed, Sep 19, 2012 at 06:04:48PM +0100, Pawel Moll wrote:
-> Hi Guenter,
-> 
-> Thanks for your quick response (and apologies about me being delayed), I
-> appreciate your time!
-> 
-> On Tue, 2012-09-18 at 16:24 +0100, Guenter Roeck wrote:
-> > and a highly unusual way of, as much as I understand of it, bypass the hwmon
-> > infrastructure as much as possible.
-> 
-> I can assure you that it wasn't my aim. Generally, my platform has a lot
-> of small "control" devices providing one sensor each. And as they are
-> separate from the device model point of view, I wanted them to be
-> logically grouped around a single hwmon device (I was actually looking
-> at the coretemp driver). But it's not a big deal, really.
-> 
-I don't think the coretemp driver does what you are doing in your driver ...
+I have been getting a steady stream of wait_read timeouts on my 2010 MBP.
 
-> > I don't even understand what you are trying to do, much less why you don't
-> > just use the existing infrastructure, and I don't have time to try to figure
-> > it out. Maybe Jean has time to review this driver, but not me.
-> > 
-> > So, no, for my part I don't think it would be a good idea to rush this driver
-> > into 3.7.
-> > 
-> > Really, I would suggest to submit a standard hwmon driver (there are lots of
-> > examples out there).
-> 
-> Sure thing, I'll quickly spin a simplified version and post it for
-> review.
-> 
-When you do that, please have a look at Documentation/hwmon/submitting-patches,
-specifically the "New drivers" section.
+After playing around with various values of APPLESMC_MAX_WAIT a value of 
+0x10000 reduces the wait_read failures to zero under most normal workloads 
+- with and without AC power plugged in, at idle and and at make -j4 loads.
 
-Regarding your device model, yes, it is a bit odd that you have a separate
-platform device for each sensor, especially if the vexpress is physically a
-single chip. It would be much simpler to have a single vexpress-hwmon platform
-device instead. But if you insist having such a complicated platform device
-architecture, you should not try to clean it up with a complicated and
-difficult to understand hwmon driver.
+While there I noticed we don't really need to udelay before first inb() - 
+so I moved it down to after first and subsequent failures.
 
-Thanks,
-Guenter
+Been running this for couple days without any issues.
+
+Signed-off-by: Parag Warudkar <parag.lkml@gmail.com>
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 2827088..46cb458 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -56,7 +56,7 @@
+ /* wait up to 32 ms for a status change. */
+ #define APPLESMC_MIN_WAIT	0x0010
+ #define APPLESMC_RETRY_WAIT	0x0100
+-#define APPLESMC_MAX_WAIT	0x8000
++#define APPLESMC_MAX_WAIT	0x10000
+ 
+ #define APPLESMC_READ_CMD	0x10
+ #define APPLESMC_WRITE_CMD	0x11
+@@ -170,11 +170,11 @@ static int wait_read(void)
+ 	u8 status;
+ 	int us;
+ 	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+-		udelay(us);
+ 		status = inb(APPLESMC_CMD_PORT);
+ 		/* read: wait for smc to settle */
+ 		if (status & 0x01)
+ 			return 0;
++		udelay(us);
+ 	}
+ 
+ 	pr_warn("wait_read() fail: 0x%02x\n", status);
+@@ -192,11 +192,12 @@ static int send_byte(u8 cmd, u16 port)
+ 
+ 	outb(cmd, port);
+ 	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+-		udelay(us);
+ 		status = inb(APPLESMC_CMD_PORT);
+ 		/* write: wait for smc to settle */
+-		if (status & 0x02)
++		if (status & 0x02) {
++			udelay(us);
+ 			continue;
++		}
+ 		/* ready: cmd accepted, return */
+ 		if (status & 0x04)
+ 			return 0;
 
 _______________________________________________
 lm-sensors mailing list
