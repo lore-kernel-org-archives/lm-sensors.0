@@ -1,104 +1,111 @@
-From: "Henrik Rydberg" <rydberg@euromail.se>
-Date: Sun, 16 Sep 2012 09:35:20 +0000
+From: Parag Warudkar <parag.lkml@gmail.com>
+Date: Sun, 16 Sep 2012 21:22:21 +0000
 Subject: Re: [lm-sensors] [PATCH] applesmc: Bump max wait and rearrange udelay
-Message-Id: <20120916093520.GA5623@polaris.bitmath.org>
+Message-Id: <alpine.DEB.2.02.1209161712070.14838@ubuntu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <alpine.DEB.2.02.1209151834120.2271@ubuntu>
- <20120915225841.GA3816@roeck-us.net>
- <alpine.DEB.2.02.1209151918210.2271@ubuntu>
- <alpine.DEB.2.02.1209152323490.2088@ubuntu>
- <20120916043116.GA4477@roeck-us.net>
-In-Reply-To: <20120916043116.GA4477@roeck-us.net>
+References: <alpine.DEB.2.02.1209151834120.2271@ubuntu> <20120915225841.GA3816@roeck-us.net> <alpine.DEB.2.02.1209151918210.2271@ubuntu> <alpine.DEB.2.02.1209152323490.2088@ubuntu> <20120916043116.GA4477@roeck-us.net>
+ <20120916093520.GA5623@polaris.bitmath.org>
+In-Reply-To: <20120916093520.GA5623@polaris.bitmath.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Parag Warudkar <parag.lkml@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, khali@linux-fr.org
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Guenter Roeck <linux@roeck-us.net>, Parag Warudkar <parag.lkml@gmail.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, khali@linux-fr.org
 
-On Sat, Sep 15, 2012 at 09:31:16PM -0700, Guenter Roeck wrote:
-> On Sat, Sep 15, 2012 at 11:29:58PM -0400, Parag Warudkar wrote:
+
+
+On Sun, 16 Sep 2012, Henrik Rydberg wrote:
+
+> On Sat, Sep 15, 2012 at 09:31:16PM -0700, Guenter Roeck wrote:
+> > That looks terribly complicated. Better keep the loop, and just replace
+> > 	udelay(us);
+> > with something like
+> > 	usleep_range(us, us << 1);
 > > 
-> > 
-> > On Sat, 15 Sep 2012, Parag Warudkar wrote:
-> > 
-> > > 
-> > > 
-> > > On Sat, 15 Sep 2012, Guenter Roeck wrote:
-> > > > 
-> > > > Also, since the delay time can get quite large, would it make sense to replace
-> > > > udelay with usleep_range() ?
-> > > > 
-> > > 
-> > > Yes, I think that would be a good thing to do. We could sleep in range of 
-> > > us<<=1 and us<<1 and if usleep_range() returns actual sleep time we can 
-> > > factor that in for next loop iteration if necessary. Gotta think a bit on 
-> > > that one.
-> > > 
-> > > I will rework the patch to fix the loop termination and keep the bump to 
-> > > 0x10000 in place and possibly also experiment with usleep_range().
-> > > 
-> > 
-> > Below is what I am experimenting with right now. I chose to keep the 
-> > APPLESMC_MAX_WAIT to current 0x8000 (32ms). With the fixed loop 
-> > termination and use of usleep_range() instead of udelay - I will try to 
-> > run this a couple days and see if I can recreate the failure within 32ms.
-> > 
-> > Does this look ok? (I haven't yet changed send_byte to use usleep_range - 
-> > if this approach looks ok I can change that as well.)
-> > 
-> > Signed-off-by: Parag Warudkar <parag.lkml@gmail.com>
-> > 
-> > diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-> > index 2827088..6610037 100644
-> > --- a/drivers/hwmon/applesmc.c
-> > +++ b/drivers/hwmon/applesmc.c
-> > @@ -168,15 +168,20 @@ static struct workqueue_struct *applesmc_led_wq;
-> >  static int wait_read(void)
-> >  {
-> >  	u8 status;
-> > -	int us;
-> > -	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
-> > -		udelay(us);
-> > +	unsigned long r1_us = APPLESMC_MIN_WAIT;
-> > +	unsigned long r2_us;
-> > +	do {
-> >  		status = inb(APPLESMC_CMD_PORT);
-> >  		/* read: wait for smc to settle */
-> >  		if (status & 0x01)
-> >  			return 0;
-> > -	}
-> > -
-> > +		r2_us = r1_us << 2;
-> > +		if (r2_us > APPLESMC_MAX_WAIT)
-> > +			goto fail;
-> > +		usleep_range(r1_us, r2_us);
-> > +		r1_us = r2_us;
+> > Alternatively, just use a constant such as
+> > 	usleep_range(us, us + APPLESMC_MIN_WAIT);
 > 
-> That looks terribly complicated. Better keep the loop, and just replace
-> 	udelay(us);
-> with something like
-> 	usleep_range(us, us << 1);
+Well I don't think there is anything terribly complicated there - but I 
+tried to make it simpler. Below patch seems to work better for me for my 
+normal workload - I got no failures or other oddities with the default 
+32ms timeout. I haven't tried very hard to get to the corner cases which 
+earlier required a higher timeout. 
+
+I would like to get this in for now if there aren't any further 
+suggestions, as it fixes the failures by making it use the 
+32ms maximum it was originally supposed to and for bonus it's also 
+converted to use usleep_range which is better from PM standpoint.
+
+> It would be worthwhile to check if there are other bits in status that
+> encodes a busy state, similar to what we now have in send_byte(). This
+> is what has finally made almost all machines error-free. Increasing
+> the max wait is possible, of course, but it only kills the symptoms.
 > 
-> Alternatively, just use a constant such as
-> 	usleep_range(us, us + APPLESMC_MIN_WAIT);
-
-It would be worthwhile to check if there are other bits in status that
-encodes a busy state, similar to what we now have in send_byte(). This
-is what has finally made almost all machines error-free. Increasing
-the max wait is possible, of course, but it only kills the symptoms.
-
-So, Parag, would it be possible for you to print the status field as
-you go through one of those long waits? If you find a bit that seems
-to change occasionally, you could try to use it as a busy indicator,
-and use the APPLESMC_RETRY_WAIT for that case.
-
-As for the rearrangement to remove the initial wait time, it is quite
-possible that we can simply reduce APPLESMC_MIN_WAIT to zero-ish,
-provided we understand the status bits that tell us when to actually
-wait.
+> So, Parag, would it be possible for you to print the status field as
+> you go through one of those long waits? If you find a bit that seems
+> to change occasionally, you could try to use it as a busy indicator,
+> and use the APPLESMC_RETRY_WAIT for that case.
+> 
+Henrik - if the below patch still results in failures we can 
+revisit the long  wait cases. For now I am satisfied that there aren't any 
+normal case failures like before.
 
 Thanks,
-Henrik
+Parag
+
+Signed-off-by: Parag Warudkar <parag.lkml@gmail.com>
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index 2827088..569aa8d 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -168,14 +168,14 @@ static struct workqueue_struct *applesmc_led_wq;
+ static int wait_read(void)
+ {
+ 	u8 status;
+-	int us;
+-	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+-		udelay(us);
++	int us = APPLESMC_MIN_WAIT;
++	do {
+ 		status = inb(APPLESMC_CMD_PORT);
+ 		/* read: wait for smc to settle */
+ 		if (status & 0x01)
+ 			return 0;
+-	}
++		usleep_range(us, us << 1);
++	} while ((us <<= 1) <= APPLESMC_MAX_WAIT);
+ 
+ 	pr_warn("wait_read() fail: 0x%02x\n", status);
+ 	return -EIO;
+@@ -192,19 +192,22 @@ static int send_byte(u8 cmd, u16 port)
+ 
+ 	outb(cmd, port);
+ 	for (us = APPLESMC_MIN_WAIT; us < APPLESMC_MAX_WAIT; us <<= 1) {
+-		udelay(us);
+ 		status = inb(APPLESMC_CMD_PORT);
+ 		/* write: wait for smc to settle */
+-		if (status & 0x02)
++		if (status & 0x02) {
++			usleep_range(us, us << 1);
+ 			continue;
++		}
+ 		/* ready: cmd accepted, return */
+ 		if (status & 0x04)
+ 			return 0;
+ 		/* timeout: give up */
+-		if (us << 1 = APPLESMC_MAX_WAIT)
++		if (us << 1 > APPLESMC_MAX_WAIT) {
++			pr_warn("Timeout with us: %d\n", us);
+ 			break;
++		}
+ 		/* busy: long wait and resend */
+-		udelay(APPLESMC_RETRY_WAIT);
++		usleep_range(APPLESMC_RETRY_WAIT, APPLESMC_RETRY_WAIT << 1);
+ 		outb(cmd, port);
+ 	}
+ 
+ 
 
 _______________________________________________
 lm-sensors mailing list
