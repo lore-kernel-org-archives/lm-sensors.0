@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 17 Sep 2012 16:38:51 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 17 Sep 2012 19:07:07 +0000
 Subject: Re: [lm-sensors] [PATCH 4/4] hwmon: (ad7314) Add 'name' sysfs attribute
-Message-Id: <20120917163851.GE1925@roeck-us.net>
+Message-Id: <20120917210707.2c8b96aa@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1347396773-32108-4-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1347396773-32108-4-git-send-email-linux@roeck-us.net>
@@ -10,9 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-ping
-
-On Tue, Sep 11, 2012 at 01:52:53PM -0700, Guenter Roeck wrote:
+On Tue, 11 Sep 2012 13:52:53 -0700, Guenter Roeck wrote:
 > The 'name' sysfs attribute is mandatory for hwmon devices, but was missing
 > in this driver.
 > 
@@ -47,10 +45,11 @@ On Tue, Sep 11, 2012 at 01:52:53PM -0700, Guenter Roeck wrote:
 >  	&sensor_dev_attr_temp1_input.dev_attr.attr,
 >  	NULL,
 >  };
-> -- 
-> 1.7.9.7
-> 
-> 
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
