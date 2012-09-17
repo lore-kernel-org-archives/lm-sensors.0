@@ -1,72 +1,80 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 17 Sep 2012 19:31:27 +0000
-Subject: Re: [lm-sensors] [PATCH 03/39] hwmon: (ad7314) Convert to use devm_ functions
-Message-Id: <20120917213127.0dcad219@endymion.delvare>
+Date: Mon, 17 Sep 2012 19:28:13 +0000
+Subject: Re: [lm-sensors] [PATCH 10/39] hwmon: (ads7871) Convert to use devm_ functions
+Message-Id: <20120917212813.72ea34e8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue,  7 Aug 2012 08:19:52 -0700, Guenter Roeck wrote:
+On Tue,  7 Aug 2012 08:19:59 -0700, Guenter Roeck wrote:
 > Convert to use devm_ functions to reduce code size and simplify the code.
 > 
 > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
->  drivers/hwmon/ad7314.c |   16 ++++++----------
->  1 file changed, 6 insertions(+), 10 deletions(-)
+>  drivers/hwmon/ads7871.c |   21 +++++++--------------
+>  1 file changed, 7 insertions(+), 14 deletions(-)
 > 
-> diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
-> index cfec802..455294f 100644
-> --- a/drivers/hwmon/ad7314.c
-> +++ b/drivers/hwmon/ad7314.c
-> @@ -104,16 +104,16 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
->  	int ret;
->  	struct ad7314_data *chip;
->  
-> -	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-> -	if (chip = NULL) {
-> -		ret = -ENOMEM;
-> -		goto error_ret;
+> diff --git a/drivers/hwmon/ads7871.c b/drivers/hwmon/ads7871.c
+> index e65c6e4..e837707 100644
+> --- a/drivers/hwmon/ads7871.c
+> +++ b/drivers/hwmon/ads7871.c
+> @@ -189,20 +189,17 @@ static int __devinit ads7871_probe(struct spi_device *spi)
+>  	 * because there is no other error checking on an SPI bus
+>  	 * we need to make sure we really have a chip
+>  	 */
+> -	if (val != ret) {
+> -		err = -ENODEV;
+> -		goto exit;
 > -	}
-> +	chip = devm_kzalloc(&spi_dev->dev, sizeof(*chip), GFP_KERNEL);
-> +	if (chip = NULL)
-> +		return -ENOMEM;
-> +
->  	dev_set_drvdata(&spi_dev->dev, chip);
+> +	if (val != ret)
+> +		return -ENODEV;
 >  
->  	ret = sysfs_create_group(&spi_dev->dev.kobj, &ad7314_group);
->  	if (ret < 0)
-> -		goto error_free_chip;
-> +		return ret;
-> +
->  	chip->hwmon_dev = hwmon_device_register(&spi_dev->dev);
->  	if (IS_ERR(chip->hwmon_dev)) {
->  		ret = PTR_ERR(chip->hwmon_dev);
-> @@ -124,9 +124,6 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
->  	return 0;
->  error_remove_group:
->  	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
-> -error_free_chip:
-> -	kfree(chip);
-> -error_ret:
->  	return ret;
+> -	pdata = kzalloc(sizeof(struct ads7871_data), GFP_KERNEL);
+> -	if (!pdata) {
+> -		err = -ENOMEM;
+> -		goto exit;
+> -	}
+> +	pdata = devm_kzalloc(&spi->dev, sizeof(struct ads7871_data),
+> +			     GFP_KERNEL);
+> +	if (!pdata)
+> +		return -ENOMEM;
+>  
+>  	err = sysfs_create_group(&spi->dev.kobj, &ads7871_group);
+>  	if (err < 0)
+> -		goto error_free;
+> +		return err;
+>  
+>  	spi_set_drvdata(spi, pdata);
+>  
+> @@ -216,9 +213,6 @@ static int __devinit ads7871_probe(struct spi_device *spi)
+>  
+>  error_remove:
+>  	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
+> -error_free:
+> -	kfree(pdata);
+> -exit:
+>  	return err;
 >  }
 
-Same comment here as for the ads7871 driver. But still functionally
-correct so:
+At this point it becomes dubious to use a separate error path. You have
+a single label and you use it only once, so there is no practical
+benefit.
+
+>  
+> @@ -228,7 +222,6 @@ static int __devexit ads7871_remove(struct spi_device *spi)
+>  
+>  	hwmon_device_unregister(pdata->hwmon_dev);
+>  	sysfs_remove_group(&spi->dev.kobj, &ads7871_group);
+> -	kfree(pdata);
+>  	return 0;
+>  }
+>  
+
+Functionally the change is correct, so:
 
 Acked-by: Jean Delvare <khali@linux-fr.org>
-
->  
-> @@ -136,7 +133,6 @@ static int __devexit ad7314_remove(struct spi_device *spi_dev)
->  
->  	hwmon_device_unregister(chip->hwmon_dev);
->  	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
-> -	kfree(chip);
->  
->  	return 0;
->  }
 
 -- 
 Jean Delvare
