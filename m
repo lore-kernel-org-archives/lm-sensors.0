@@ -1,52 +1,72 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 17 Sep 2012 19:23:46 +0000
-Subject: Re: [lm-sensors] [PATCH 06/39] hwmon: (adcxx) Convert to use devm_ functions
-Message-Id: <20120917212346.175c7021@endymion.delvare>
+Date: Mon, 17 Sep 2012 19:31:27 +0000
+Subject: Re: [lm-sensors] [PATCH 03/39] hwmon: (ad7314) Convert to use devm_ functions
+Message-Id: <20120917213127.0dcad219@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue,  7 Aug 2012 08:19:55 -0700, Guenter Roeck wrote:
+On Tue,  7 Aug 2012 08:19:52 -0700, Guenter Roeck wrote:
 > Convert to use devm_ functions to reduce code size and simplify the code.
 > 
 > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
->  drivers/hwmon/adcxx.c |    4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+>  drivers/hwmon/ad7314.c |   16 ++++++----------
+>  1 file changed, 6 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/hwmon/adcxx.c b/drivers/hwmon/adcxx.c
-> index a3d3183..111af7c 100644
-> --- a/drivers/hwmon/adcxx.c
-> +++ b/drivers/hwmon/adcxx.c
-> @@ -171,7 +171,7 @@ static int __devinit adcxx_probe(struct spi_device *spi)
->  	int status;
->  	int i;
+> diff --git a/drivers/hwmon/ad7314.c b/drivers/hwmon/ad7314.c
+> index cfec802..455294f 100644
+> --- a/drivers/hwmon/ad7314.c
+> +++ b/drivers/hwmon/ad7314.c
+> @@ -104,16 +104,16 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
+>  	int ret;
+>  	struct ad7314_data *chip;
 >  
-> -	adc = kzalloc(sizeof *adc, GFP_KERNEL);
-> +	adc = devm_kzalloc(&spi->dev, sizeof(*adc), GFP_KERNEL);
->  	if (!adc)
->  		return -ENOMEM;
+> -	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
+> -	if (chip = NULL) {
+> -		ret = -ENOMEM;
+> -		goto error_ret;
+> -	}
+> +	chip = devm_kzalloc(&spi_dev->dev, sizeof(*chip), GFP_KERNEL);
+> +	if (chip = NULL)
+> +		return -ENOMEM;
+> +
+>  	dev_set_drvdata(&spi_dev->dev, chip);
 >  
-> @@ -208,7 +208,6 @@ out_err:
->  
->  	spi_set_drvdata(spi, NULL);
->  	mutex_unlock(&adc->lock);
-> -	kfree(adc);
->  	return status;
+>  	ret = sysfs_create_group(&spi_dev->dev.kobj, &ad7314_group);
+>  	if (ret < 0)
+> -		goto error_free_chip;
+> +		return ret;
+> +
+>  	chip->hwmon_dev = hwmon_device_register(&spi_dev->dev);
+>  	if (IS_ERR(chip->hwmon_dev)) {
+>  		ret = PTR_ERR(chip->hwmon_dev);
+> @@ -124,9 +124,6 @@ static int __devinit ad7314_probe(struct spi_device *spi_dev)
+>  	return 0;
+>  error_remove_group:
+>  	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
+> -error_free_chip:
+> -	kfree(chip);
+> -error_ret:
+>  	return ret;
 >  }
+
+Same comment here as for the ads7871 driver. But still functionally
+correct so:
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
 >  
-> @@ -224,7 +223,6 @@ static int __devexit adcxx_remove(struct spi_device *spi)
+> @@ -136,7 +133,6 @@ static int __devexit ad7314_remove(struct spi_device *spi_dev)
 >  
->  	spi_set_drvdata(spi, NULL);
->  	mutex_unlock(&adc->lock);
-> -	kfree(adc);
+>  	hwmon_device_unregister(chip->hwmon_dev);
+>  	sysfs_remove_group(&spi_dev->dev.kobj, &ad7314_group);
+> -	kfree(chip);
 >  
 >  	return 0;
 >  }
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
 
 -- 
 Jean Delvare
