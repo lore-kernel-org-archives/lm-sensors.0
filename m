@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 16 Sep 2012 22:19:16 +0000
+From: MrNice <wxcvbn2006@iol.ie>
+Date: Mon, 17 Sep 2012 10:37:25 +0000
 Subject: Re: [lm-sensors] No such subfeature known when sensors -s
-Message-Id: <20120916221916.GA29366@roeck-us.net>
+Message-Id: <5056FD65.3000907@iol.ie>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5051971B.7030608@iol.ie>
 In-Reply-To: <5051971B.7030608@iol.ie>
@@ -9,6 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
+
 
 On Sun, Sep 16, 2012 at 09:03:17PM +0100, Jean-Pierre Thibert wrote:
 > On 16/09/12 19:53, Guenter Roeck wrote:
@@ -80,8 +81,8 @@ On Sun, Sep 16, 2012 at 09:03:17PM +0100, Jean-Pierre Thibert wrote:
 > d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 > e0: 7f 7f ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 > f0: 00 00 00 a4 ff 10 00 87 47 00 00 ff ff ff ff ff
->=20
->=20
+>
+>
 > sudo isadump -y -k 0x87,0x87 0x2e 0x2f 8
 >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
 > 00: ff ff 00 ff ff ff ff 08 ff ff ff ff ff ff ff ff
@@ -100,413 +101,254 @@ On Sun, Sep 16, 2012 at 09:03:17PM +0100, Jean-Pierre Thibert wrote:
 > d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 > e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
 > f0: f3 f3 00 ff 00 00 00 00 ff ff ff ff ff ff ff ff
->=20
+>
 
-I just noticed that you dropped the mailing list in your reply.
-Please don't do that; others may need the information later on,
-and I myself use it for searches.
+Not good :(. The problem is "30: 01" above; it suggests that the SuperIO GP=
+IO pins
+which I thought would be used to control the fan multiplexer are in fact di=
+sabled.
 
-I initially thought the above does not help, but it kind of makes sense.
+One more try ... please download superiotool fromhttp://roeck-us.net/linux/=
+bin/superiotool
+and run it with "sudo ./superiotool -d -e".
 
-You can try the following command sequence (at your own risk):
+If you don't want to run untrusted binaries, please clone the latest version
+of coreboot (git clonehttp://review.coreboot.org/p/coreboot) and build and =
+run
+superiotool from it (cd util/superiotool; make; sudo ./superiotool -d -e).
 
-isaset -y -f 0x2e 0x87
-isaset -y -f 0x2e 0x87
-isaset -y 0x2e 0x2f 0x7 0x8
-isaset -y 0x2e 0x2f 0xf0 0xb2
-isaset -y 0x2e 0x2f 0xf1 0xb3
-
-The 0xb3 in the last command should select CPUFANIN. Replace it with 0xf2 to
-select CPUFANIN2.
-
-You'll have to copy the commands into a file and execute it as shell script.
-
-Do _not_ play with other settings of register 0xf0 or 0xf1. The information
-in the ASRock tool suggests that one of the bits is used to control the DDR3
-voltage.
-
+Thanks,
 Guenter
 
->  sudo dmidecode
-> # dmidecode 2.11
-> SMBIOS 2.6 present.
-> 28 structures occupying 1531 bytes.
-> Table at 0x000EF110.
->=20
-> Handle 0x0001, DMI type 1, 27 bytes
-> System Information
->     Manufacturer: To Be Filled By O.E.M.
->     Product Name: To Be Filled By O.E.M.
->     Version: To Be Filled By O.E.M.
->     Serial Number: To Be Filled By O.E.M.
->     UUID: 03000200-0400-0500-0006-000700080009
->     Wake-up Type: Power Switch
->     SKU Number: To Be Filled By O.E.M.
->     Family: To Be Filled By O.E.M.
->=20
-> Handle 0x0002, DMI type 2, 15 bytes
-> Base Board Information
->     Manufacturer: ASRock
->     Product Name: 970 Extreme4
->     Version:
->     Serial Number:
->     Asset Tag:
->     Features:
->         Board is a hosting board
->         Board is replaceable
->     Location In Chassis:
->     Chassis Handle: 0x0003
->     Type: Motherboard
->     Contained Object Handles: 0
->=20
-> Handle 0x0003, DMI type 3, 21 bytes
-> Chassis Information
->     Manufacturer: To Be Filled By O.E.M.
->     Type: Desktop
->     Lock: Not Present
->     Version: To Be Filled By O.E.M.
->     Serial Number: To Be Filled By O.E.M.
->     Asset Tag: To Be Filled By O.E.M.
->     Boot-up State: Safe
->     Power Supply State: Safe
->     Thermal State: Safe
->     Security Status: None
->     OEM Information: 0x00000000
->     Height: Unspecified
->     Number Of Power Cords: 1
->     Contained Elements: 0
->=20
-> Handle 0x0004, DMI type 4, 42 bytes
-> Processor Information
->     Socket Designation: CPUSocket
->     Type: Central Processor
->     Family: <OUT OF SPEC>
->     Manufacturer: AMD
->     ID: 12 0F 60 00 FF FB 8B 17
->     Version: AMD FX(tm)-8120 Eight-Core Processor
->     Voltage: 1.4 V
->     External Clock: 200 MHz
->     Max Speed: 3100 MHz
->     Current Speed: 3100 MHz
->     Status: Populated, Enabled
->     Upgrade: Socket AM3
->     L1 Cache Handle: 0x0005
->     L2 Cache Handle: 0x0006
->     L3 Cache Handle: 0x0007
->     Serial Number: To Be Filled By O.E.M.
->     Asset Tag: To Be Filled By O.E.M.
->     Part Number: To Be Filled By O.E.M.
->     Core Count: 8
->     Core Enabled: 8
->     Thread Count: 8
->     Characteristics:
->         64-bit capable
->=20
-> Handle 0x0005, DMI type 7, 19 bytes
-> Cache Information
->     Socket Designation: L1-Cache
->     Configuration: Enabled, Not Socketed, Level 1
->     Operational Mode: Write Back
->     Location: Internal
->     Installed Size: 384 kB
->     Maximum Size: 384 kB
->     Supported SRAM Types:
->         Pipeline Burst
->     Installed SRAM Type: Pipeline Burst
->     Speed: 1 ns
->     Error Correction Type: Multi-bit ECC
->     System Type: Unified
->     Associativity: 2-way Set-associative
->=20
-> Handle 0x0006, DMI type 7, 19 bytes
-> Cache Information
->     Socket Designation: L2-Cache
->     Configuration: Enabled, Not Socketed, Level 2
->     Operational Mode: Write Back
->     Location: Internal
->     Installed Size: 8192 kB
->     Maximum Size: 8192 kB
->     Supported SRAM Types:
->         Pipeline Burst
->     Installed SRAM Type: Pipeline Burst
->     Speed: 1 ns
->     Error Correction Type: Multi-bit ECC
->     System Type: Unified
->     Associativity: 16-way Set-associative
->=20
-> Handle 0x0007, DMI type 7, 19 bytes
-> Cache Information
->     Socket Designation: L3-Cache
->     Configuration: Enabled, Not Socketed, Level 3
->     Operational Mode: Write Back
->     Location: Internal
->     Installed Size: 8192 kB
->     Maximum Size: 8192 kB
->     Supported SRAM Types:
->         Pipeline Burst
->     Installed SRAM Type: Pipeline Burst
->     Speed: 1 ns
->     Error Correction Type: Multi-bit ECC
->     System Type: Unified
->     Associativity: 64-way Set-associative
->=20
-> Handle 0x0008, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCI1
->     Type: 32-bit PCI
->     Current Usage: In Use
->     Length: Short
->     ID: 1
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->=20
-> Handle 0x0009, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCI2
->     Type: 32-bit PCI
->     Current Usage: In Use
->     Length: Short
->     ID: 2
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->=20
-> Handle 0x000A, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCIE1
->     Type: x1 PCI Express
->     Current Usage: In Use
->     Length: Short
->     ID: 17
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->     Bus Address: 0000:00:0f.0
->=20
-> Handle 0x000B, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCIE2
->     Type: x16 PCI Express
->     Current Usage: In Use
->     Length: Short
->     ID: 18
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->     Bus Address: 0000:00:02.0
->=20
-> Handle 0x000C, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCIE3
->     Type: x1 PCI Express
->     Current Usage: In Use
->     Length: Short
->     ID: 19
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->     Bus Address: 0000:00:0f.1
->=20
-> Handle 0x000D, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCIE4
->     Type: x16 PCI Express
->     Current Usage: In Use
->     Length: Short
->     ID: 20
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->     Bus Address: 0000:00:0b.0
->=20
-> Handle 0x000E, DMI type 9, 17 bytes
-> System Slot Information
->     Designation: PCIE5
->     Type: x4 PCI Express
->     Current Usage: In Use
->     Length: Short
->     ID: 21
->     Characteristics:
->         3.3 V is provided
->         Opening is shared
->         PME signal is supported
->     Bus Address: 0000:00:0d.0
->=20
-> Handle 0x000F, DMI type 11, 5 bytes
-> OEM Strings
->     String 1: To Be Filled By O.E.M.
->=20
-> Handle 0x0010, DMI type 16, 15 bytes
-> Physical Memory Array
->     Location: System Board Or Motherboard
->     Use: System Memory
->     Error Correction Type: None
->     Maximum Capacity: 32 GB
->     Error Information Handle: Not Provided
->     Number Of Devices: 4
->=20
-> Handle 0x0011, DMI type 19, 15 bytes
-> Memory Array Mapped Address
->     Starting Address: 0x00000000000
->     Ending Address: 0x0021F0003FF
->     Range Size: 8688 MB
->     Physical Array Handle: 0x0010
->     Partition Width: 255
->=20
-> Handle 0x0012, DMI type 17, 28 bytes
-> Memory Device
->     Array Handle: 0x0010
->     Error Information Handle: Not Provided
->     Total Width: Unknown
->     Data Width: 64 bits
->     Size: No Module Installed
->     Form Factor: DIMM
->     Set: None
->     Locator: A1_DIMM0
->     Bank Locator: A1_BANK0
->     Type: Unknown
->     Type Detail: Synchronous
->     Speed: Unknown
->     Manufacturer: A1_Manufacturer0
->     Serial Number: A1_SerNum0
->     Asset Tag: A1_AssetTagNum0
->     Part Number: Array1_PartNumber0
->     Rank: Unknown
->=20
-> Handle 0x0013, DMI type 126, 19 bytes
-> Inactive
->=20
-> Handle 0x0014, DMI type 17, 28 bytes
-> Memory Device
->     Array Handle: 0x0010
->     Error Information Handle: Not Provided
->     Total Width: 64 bits
->     Data Width: 64 bits
->     Size: 4096 MB
->     Form Factor: DIMM
->     Set: None
->     Locator: A1_DIMM1
->     Bank Locator: A1_BANK1
->     Type: DDR3
->     Type Detail: Synchronous
->     Speed: 667 MHz
->     Manufacturer: Corsair
->     Serial Number: 00000000
->     Asset Tag: A1_AssetTagNum1
->     Part Number: CMZ8GX3M2A1600C9
->     Rank: 2
->=20
-> Handle 0x0015, DMI type 20, 19 bytes
-> Memory Device Mapped Address
->     Starting Address: 0x00000000000
->     Ending Address: 0x000FFFFFFFF
->     Range Size: 4 GB
->     Physical Device Handle: 0x0014
->     Memory Array Mapped Address Handle: 0x0011
->     Partition Row Position: 1
->=20
-> Handle 0x0016, DMI type 17, 28 bytes
-> Memory Device
->     Array Handle: 0x0010
->     Error Information Handle: Not Provided
->     Total Width: Unknown
->     Data Width: 64 bits
->     Size: No Module Installed
->     Form Factor: DIMM
->     Set: None
->     Locator: A1_DIMM2
->     Bank Locator: A1_BANK2
->     Type: Unknown
->     Type Detail: Synchronous
->     Speed: Unknown
->     Manufacturer: A1_Manufacturer2
->     Serial Number: A1_SerNum2
->     Asset Tag: A1_AssetTagNum2
->     Part Number: Array1_PartNumber2
->     Rank: Unknown
->=20
-> Handle 0x0017, DMI type 126, 19 bytes
-> Inactive
->=20
-> Handle 0x0018, DMI type 17, 28 bytes
-> Memory Device
->     Array Handle: 0x0010
->     Error Information Handle: Not Provided
->     Total Width: 64 bits
->     Data Width: 64 bits
->     Size: 4096 MB
->     Form Factor: DIMM
->     Set: None
->     Locator: A1_DIMM3
->     Bank Locator: A1_BANK3
->     Type: DDR3
->     Type Detail: Synchronous
->     Speed: 667 MHz
->     Manufacturer: Corsair
->     Serial Number: 00000000
->     Asset Tag: A1_AssetTagNum3
->     Part Number: CMZ8GX3M2A1600C9
->     Rank: 2
->=20
-> Handle 0x0019, DMI type 20, 19 bytes
-> Memory Device Mapped Address
->     Starting Address: 0x00100000000
->     Ending Address: 0x001FFFFFFFF
->     Range Size: 4 GB
->     Physical Device Handle: 0x0018
->     Memory Array Mapped Address Handle: 0x0011
->     Partition Row Position: 1
->=20
-> Handle 0x001A, DMI type 32, 20 bytes
-> System Boot Information
->     Status: No errors detected
->=20
-> Handle 0x0000, DMI type 0, 24 bytes
-> BIOS Information
->     Vendor: American Megatrends Inc.
->     Version: P2.00
->     Release Date: 08/30/2012
->     Address: 0xF0000
->     Runtime Size: 64 kB
->     ROM Size: 4096 kB
->     Characteristics:
->         PCI is supported
->         BIOS is upgradeable
->         BIOS shadowing is allowed
->         Boot from CD is supported
->         Selectable boot is supported
->         BIOS ROM is socketed
->         EDD is supported
->         5.25"/1.2 MB floppy services are supported (int 13h)
->         3.5"/720 kB floppy services are supported (int 13h)
->         3.5"/2.88 MB floppy services are supported (int 13h)
->         Print screen service is supported (int 5h)
->         8042 keyboard services are supported (int 9h)
->         Serial services are supported (int 14h)
->         Printer services are supported (int 17h)
->         ACPI is supported
->         USB legacy is supported
->         BIOS boot specification is supported
->         Targeted content distribution is supported
->     BIOS Revision: 4.6
->=20
-> Handle 0x001B, DMI type 127, 4 bytes
-> End Of Table
->=20
->=20
-> Many thanks for you help.
-> Don't hesitate to ask me more info if needed
->=20
-> Jean-Pierre
->=20
->=20
+sudo ./superiotool -d -e
+superiotool r4.0-2514-gf419483
+Found Nuvoton NCT6776F (C) (id=3D0xc333) at 0x2e
+Register dump:
+idx 10 11 13 14 16 17 18 19  1a 1b 1c 1d 1e 1f 20 21  22 23 24 25 26 27 28 =
+2a  2b 2c 2d 2e 2f
+val ff ff ff ff ff ff ff ff  f8 ce 00 00 ff ff c3 33  ff 00 5c 00 00 90 00 =
+60  04 81 00 00 01
+def ff ff 00 00 ff ff ff ff  f0 78 00 00 ff ff c3 33  ff 00 64 00 MM 00 00 =
+c0  00 81 00 00 MM
+LDN 0x00 (FDC)
+idx 30 60 61 70 74 f0 f1 f2  f4 f5
+val 00 03 f0 06 02 0e 00 ff  00 00
+def 01 03 f0 06 02 0e 00 ff  00 00
+LDN 0x01 (Parallel Port)
+idx 30 60 61 70 74 f0
+val 00 03 78 07 04 3f
+def 01 03 78 07 04 3f
+LDN 0x02 (UART A)
+idx 30 60 61 70 f0 f2
+val 00 03 f8 04 00 00
+def 01 03 f8 04 00 00
+LDN 0x03 (UART B, IR)
+idx 30 60 61 70 f0 f1 f2
+val 00 02 f8 03 00 00 00
+def 01 02 f8 03 00 00 00
+LDN 0x05 (Keyboard Controller)
+idx 30 60 61 62 63 70 72 f0
+val 01 00 60 00 64 01 0c 83
+def 00 00 00 00 00 00 00 83
+LDN 0x06 (CIR)
+idx 30 60 61 70 f0 f1 f2 f3
+val 00 00 00 00 08 09 32 00
+def 00 00 00 00 08 09 32 00
+LDN 0x07 (GPIO6, GPIO7, GPIO8, GPIO9)
+idx 30 e0 e1 e2 e3 e4 e5 e6  e7 e8 e9 ea eb ec ed ee  f4 f5 f6 f7 f8
+val 00 ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  ff ff ff ff ff
+def 03 ff 00 00 00 ef 00 00  00 ff 00 00 00 00 00 00  ff 00 00 00 00
+LDN 0x08 (WDT1, GPIO0, GPIO1, GPIOA)
+idx 30 60 61 e0 e1 e2 e3 e4  f0 f1 f2 f3 f4 f5 f6 f7
+val 01 00 00 ff ff ff ff ff  f3 f3 00 f3 00 00 00 00
+def 02 00 00 ff 00 00 00 ef  ff 00 00 00 00 00 00 00
+LDN 0x09 (GPIO2, GPIO3, GPIO4, GPIO5)
+idx 30 e0 e1 e2 e3 e4 e5 e6  e7 e8 e9 ea eb ee f0 f1  f2 f4 f5 f6 f7 fe
+val 36 ff 00 00 00 ff ff ff  ff 4c 00 ff 00 00 ff 0c  00 ff 00 00 00 00
+def 04 df 00 00 00 ff 00 00  00 00 00 00 00 00 ff 00  00 ff 00 00 00 00
+LDN 0x0a (ACPI)
+idx e0 e1 e2 e3 e4 e5 e6 e7  e9 ee f0 f2 f3 f4 f6 f7  fe
+val 01 00 00 05 00 02 4c 00  00 00 00 5c 00 00 00 c0  00
+def 01 00 00 00 00 02 1c 00  00 00 00 00 00 00 00 c0  00
+LDN 0x0b (Hardware Monitor, Front Panel LED)
+idx 30 60 61 62 63 70 e0 e1  e2 f0 f1 f2 f5 f6 f7 f8  f9 fa
+val e1 02 90 00 00 00 7f 7f  ff 00 00 00 10 00 87 47  00 00
+def 00 00 00 00 00 00 7f 7f  ff 00 00 00 10 00 87 47  00 00
+LDN 0x0d (VID)
+idx e0 e1 e2 e3 e4 e5 e6 e9  ee ef f0 f4 f5
+val 00 00 00 00 00 00 00 00  88 00 00 00 00
+def 00 00 00 00 00 00 00 00  88 00 00 00 00
+LDN 0x0e (CIR WAKE-UP)
+idx 30 60 61 70
+val 00 00 00 00
+def 00 00 00 00
+LDN 0x0f (GPIO Push-Pull or Open-drain)
+idx e0 e1 e2 e3 e4 e5 e6 e7  e8 e9 f0 f1 f2
+val ff df ff fe f6 ff ff d3  ff 9f 00 00 00
+def ff df ff fe f6 ff ff d3  ff 9f 00 00 00
+LDN 0x14 (SVID)
+idx e0 e1 e3 e4
+val 00 80 00 00
+def 00 80 00 00
+LDN 0x16 (Deep Sleep)
+idx 30 e0 e1 e2
+val 20 20 04 05
+def 20 20 04 05
+LDN 0x17 (GPIOA)
+idx e0 e1 e2 e3 e4 e5
+val ff ff ff ff 01 ff
+def 01 00 00 00 01 00
+Bank 0:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: 04 ff 04 c0 00 ff ff ff ff ff ff ff ff ff ff ff
+01: 04 ff 00 00 00 00 ff ff 40 00 00 00 00 00 00 00
+02: 72 e7 cf ce 03 d6 03 1c ff ff ff da 00 00 00 e3
+03: ba e3 ba 00 00 00 00 00 00 00 00 ff ff ff ff ff
+04: 03 de 30 ff ff 00 3f ff 2d ff ff ff 08 05 00 a3
+05: ff ff ff ff ff ff ff ff c1 ff ff ff ff 01 00 ff
+06: cf ff ff ff ff 01 00 ff ff ff ff ff ff ff ff ff
+07: 00 0a 00 1c 80 1a 00 7f 80 ff ff ff ff ff ff ff
+08: ff 03 1f 0f ff 3c 3c 3c 00 00 00 00 00 00 00 00
+09: 0a 00 00 00 00 0a 0a 0a 0a aa ef 80 ff 40 46 c4
+0a: 0e 01 00 00 ff 00 00 ff 00 00 80 66 66 06 00 01
+0b: 00 00 00 00 00 00 27 00 1c 00 00 34 28 c0 c4 ff
+0c: 01 00 00 00 00 00 00 00 00 08 01 ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 1:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: 01 00 00 0a 0a 01 01 3c ff ff ff ff 00 ff ff ff
+01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+02: 00 19 23 2d 37 ff ff 8c aa c8 e6 ff ff ff ff ff
+03: ff 00 ff ff 00 7f ff ff 00 01 00 00 00 00 00 00
+04: ff ff ff ff ff a4 00 ff ff ff ff ff ff ff 01 ff
+05: 1a 00 00 4b 00 50 00 ff ff ff ff ff ff ff ff ff
+06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 2:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: 82 2d 12 0a 0a c0 ff 60 ff c0 ff ff 00 ff ff ff
+01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+02: 00 28 32 3c 46 ff ff 8c aa c8 e6 ff ff ff ff ff
+03: ff 00 ff ff 00 7f ff ff 00 01 00 00 00 00 00 00
+04: ff ff ff ff ff a4 00 ff ff ff ff ff ff ff 02 ff
+05: 7f 80 00 72 00 72 00 ff ff ff ff ff ff ff ff ff
+06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 3:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: 03 00 00 0a 0a 01 01 3c ff ff ff ff 00 ff ff ff
+01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+02: 00 19 23 2d 37 ff ff 8c aa c8 e6 ff ff ff ff ff
+03: ff 00 ff ff 00 3c ff ff 00 01 00 00 00 00 00 00
+04: ff ff ff ff ff a4 00 ff ff ff ff ff ff ff 03 ff
+05: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 4:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+01: 00 00 00 00 00 00 00 00 00 00 00 ff ff ff ff ff
+02: ff ff ff 96 64 96 64 e1 96 ff ff ff ff ff ff ff
+03: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+04: 3f 00 03 ff ff ff ff ff ff ff ff ff ff ff 04 ff
+05: 33 13 ff ff 00 00 00 ff 00 d2 3b b2 09 ff ff ff
+06: ff 01 00 00 00 00 00 00 ff ff ff ff ff ff ff ff
+07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 5:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: ff ff 00 00 00 00 ff ff ff ff ff ff ff 00 00 ff
+01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+02: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+03: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+04: ff ff ff ff ff ff ff ff ff ff ff ff ff ff 05 ff
+05: d8 d1 80 ff e3 ba ce a9 ff ff ff ff ff ff ff ff
+06: 00 00 00 00 00 00 07 00 00 ff ff ff ff ff ff ff
+07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 6:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+01: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+02: ff 01 02 03 01 01 01 ff 00 00 00 1c 1c 1c 07 ff
+03: ff 1f ff 1f ff 1f ff 1f ff 1f 00 00 00 00 00 00
+04: ff 1f 00 00 02 02 02 ff ff ff ff ff ff ff 06 ff
+05: 7f 7f 7f 7f 7f 7f 00 a4 00 a4 00 a4 00 a4 00 a4
+06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+07: 7f 7f 50 4b 04 7f 7f 50 4b 04 7f 7f 50 4b 04 ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+Bank 7:
+     00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+00: ff 10 02 00 00 00 00 00 00 00 00 00 00 00 00 00
+01: 00 00 00 00 00 00 00 f8 80 f8 80 f8 80 f8 80 00
+02: 28 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+03: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff ff
+04: ff ff ff ff ff ff ff ff ff ff ff ff ff ff 07 ff
+05: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+06: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+07: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+08: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+09: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0a: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0b: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0c: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0d: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0e: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+0f: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+
+
+
+
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
