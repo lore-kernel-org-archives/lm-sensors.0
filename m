@@ -1,25 +1,52 @@
-From: Matthew Monaco <matt@0x01b.net>
-Date: Wed, 19 Sep 2012 06:04:25 +0000
-Subject: [lm-sensors] i8k: non-standard fan control
-Message-Id: <50596069.9030904@0x01b.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 19 Sep 2012 11:49:46 +0000
+Subject: Re: [lm-sensors] i8k: non-standard fan control
+Message-Id: <20120919134946.7960f894@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <50596069.9030904@0x01b.net>
+In-Reply-To: <50596069.9030904@0x01b.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello,
+Hi Matthew,
 
-I am interested in extending the i8k module's hwmon support. This module (among
-other things) allows the status of Dell laptop fans to be controlled. The fan
-speed is controlled via an integer from 0 (off) to 2 (fast).
+On Wed, 19 Sep 2012 00:04:25 -0600, Matthew Monaco wrote:
+> I am interested in extending the i8k module's hwmon support. This module (among
+> other things) allows the status of Dell laptop fans to be controlled. The fan
+> speed is controlled via an integer from 0 (off) to 2 (fast).
 
-Is there any way to support these semantics through hwmon? I easily added a
-fanN_status sysfs entry through hwmon that does the right thing. However the
-_status doesn't follow all other naming conventions that I can find.
+You can change the desired speed of the fans, not their status.
 
-Best,
-Matt
+> Is there any way to support these semantics through hwmon? I easily added a
+> fanN_status sysfs entry through hwmon that does the right thing. However the
+> _status doesn't follow all other naming conventions that I can find.
+
+The standard fan speed control interface is through the pwm* sysfs
+attributes. However this interface wasn't designed for discrete speed
+values like the i8k driver offers, so while you can map the 3 discrete
+values to arbitrary PWM duty cycles (0%, 50% and 100%) it's somewhat
+confusing.
+
+Still, I tried to add support for this over a year ago already:
+
+Subject: [lm-sensors] [PATCH 2/2] Add hwmon-style fan speed control
+http://marc.info/?l=lm-sensors&m0270896704113&w=2
+
+But I did not receive any feedback so it didn't go upstream. Note that
+my limited experience with Dell laptops suggests that at least some
+models don't behave like the driver claims, changing the fan speed
+setting in the user's back. That's another reason why the patch didn't
+go upstream. The problem also exists with the current driver but my
+patch would make it even more visible, as the pwm* interface is
+standardized.
+
+Feel tree to play with my patch, but I'm not sure we really want to
+push it upstream.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
