@@ -1,92 +1,81 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 14 Sep 2012 16:08:00 +0000
+Date: Wed, 19 Sep 2012 13:50:56 +0000
 Subject: Re: [lm-sensors] pmbus-questions
-Message-Id: <20120914160800.GA13185@roeck-us.net>
+Message-Id: <20120919135056.GA17992@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <OF6A0069A8.54748E02-ONC1257A79.002B4CFE-C1257A79.0033BD0D@transmode.se>
 In-Reply-To: <OF6A0069A8.54748E02-ONC1257A79.002B4CFE-C1257A79.0033BD0D@transmode.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 To: lm-sensors@vger.kernel.org
 
-On Fri, Sep 14, 2012 at 11:25:07AM +0200, =C5sa Uhrenius wrote:
-> Hi,
->=20
-> I have some questions concerning pmbus. If you are not the persons I=20
-> should contact concerning this please let me know and advise me to whom I=
-=20
-> should send this.
->=20
-> Questions:
-> Is it correct that pmbus is used for monitoring only and can't be used fo=
-r=20
-> writing data to a pmbus compatible devices?=20
-> If so, are there any plans to include writing capability and when if=20
-
-Yes and no. You can write data, but writes are limited to setting limits.
-
-> that's the case?
->=20
-> The reason to my questions is that I would like to write a powerlevel to =
-a=20
-I assume you refer to setting power levels.
-
-There are a number of answers to that.
-
-First, so far there has to be demand. My need and the need of others using =
-the
-pmbus driver is for monitoring purposes, so there was no need to add suppor=
-t for
-actually regulating power levels.
-
-Adding support for setting power levels can be done. It would, however, req=
-uire
-the driver to be reworked as multi-function driver, with hardware monitorin=
-g and
-(probably) regulator sub-drivers. That is a substantial effort, for which I=
- don't
-have time for right now. That doesn't mean it won't happen, but unless my e=
-mployer
-decides to assign such a task to me (which is highly unlikely), someone els=
-e would
-have to pick it up and submit patches.
-
-That leads to the next, and more substantial, set of problems: The ability =
-to
-modify power levels is nice, but if misused can lead to physical damage to =
-the
-board. After all, PMBus chis are typically not used to set, say, battery po=
-wer
-levels, but to provide power to on-board components. Adding support for man=
-ipulating
-such power levels would have to be done very carefully. In addition to that,
-power level manipulation is an area which is not too well defined in the PM=
-Bus
-standard. For some chips, it is just a matter of changing the expected power
-level registers. Other chips need to follow an elaborate sequence of comman=
-ds,
-and it is effectively only possible to change the power level on those chip=
-s with
-the tools provided by the chip manufacturer. Everything else tends to cause=
- such
-chips to shut down, or in bad cases to literally blow up. So this is someth=
-ing I
-would only want to get into on a per-chip basis, and only permit it if I am
-really sure that this specific chip does support "simple" means to set the =
-power
-level.
-
-Another question is _why_ you want to be able to set the power level. If it=
- is
-for diagnostics purposes, you might be better off by writing the required I=
-2C
-commands directly into the chip, eg with the i2cset command from i2c-tools.
-
-Hope this helps,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gV2VkLCBTZXAgMTksIDIwMTIgYXQgMDM6MTc6MzlQTSArMDIwMCwgxXNhIFVocmVuaXVzIHdy
+b3RlOgo+IEhpIEd1ZW50ZXIsCj4gClBsZWFzZSBkb24ndCB0b3AtcG9zdCwgYW5kIGRvbid0IGRy
+b3AgdGhlIG1haWxpbmcgbGlzdCBmcm9tIHlvdXIgcmVwbGllcy4KCj4gVGhhbmtzIGEgbG90IGZv
+ciB5b3VyIGFuc3dlciEgSSBnZXQgeW91ciBwb2ludC4KPiAKPiBJZiBJIHVuZGVyc3RhbmQgdGhl
+IGRvY3VtZW50cyBJIGZpbmQgY29ycmVjdGx5LCBpdCdzIHBvc3NpYmxlIHRvIHdyaXRlIGEgCj4g
+dm9sdGFnZSBsZXZlbCB0byBhIHBtYnVzLWNvbXBhdGlibGUgZGV2aWNlIHdpdGggcG1idXMuIENv
+cnJlY3Q/Cj4gSWYgc28sIGluIHdoaWNoIHZlcnNpb24gd2FzIHRoYXQgaW5jbHVkZWQ/Cj4gCgpB
+bGwgdmVyc2lvbnMuIFNlZSBjaGFwdGVyIDggYW5kIDkgb2YgdGhlIFBNQnVzIHNwZWNpZmljYXRp
+b24uIEJlZm9yZSB5b3UgcGxheQp3aXRoIGl0LCB0aG91Z2gsIG1ha2Ugc3VyZSB5b3UgcmVhZCBh
+bmQgdW5kZXJzdGFuZCB0aGUgZGF0YSBzaGVldCBmb3IgeW91cgpzcGVjaWZpYyBjaGlwLCBhcyB0
+aGUgb3BlcmF0aW9uIG9mIHRoZSByZWxhdGVkIGNvbW1hbmRzIGlzIGhpZ2hseSBjaGlwCnNwZWNp
+ZmljLgoKR3VlbnRlcgoKPiBUaGFua3MgYW5kIFJlZ2FyZHMgLyDFc2EgVWhyZW5pdXMKPiAKPiAK
+PiAKPiAKPiAKPiAKPiBGcm9tOiAgIEd1ZW50ZXIgUm9lY2sgPGxpbnV4QHJvZWNrLXVzLm5ldD4K
+PiBUbzogICAgIMVzYSBVaHJlbml1cyA8YXNhLnVocmVuaXVzQHRyYW5zbW9kZS5jb20+Cj4gQ2M6
+ICAgICBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3JnCj4gRGF0ZTogICAyMDEyLzA5LzE0IDE4OjA4
+Cj4gU3ViamVjdDogICAgICAgIFJlOiBbbG0tc2Vuc29yc10gcG1idXMtcXVlc3Rpb25zCj4gCj4g
+Cj4gCj4gT24gRnJpLCBTZXAgMTQsIDIwMTIgYXQgMTE6MjU6MDdBTSArMDIwMCwgxXNhIFVocmVu
+aXVzIHdyb3RlOgo+ID4gSGksCj4gPiAKPiA+IEkgaGF2ZSBzb21lIHF1ZXN0aW9ucyBjb25jZXJu
+aW5nIHBtYnVzLiBJZiB5b3UgYXJlIG5vdCB0aGUgcGVyc29ucyBJIAo+ID4gc2hvdWxkIGNvbnRh
+Y3QgY29uY2VybmluZyB0aGlzIHBsZWFzZSBsZXQgbWUga25vdyBhbmQgYWR2aXNlIG1lIHRvIHdo
+b20gCj4gSSAKPiA+IHNob3VsZCBzZW5kIHRoaXMuCj4gPiAKPiA+IFF1ZXN0aW9uczoKPiA+IElz
+IGl0IGNvcnJlY3QgdGhhdCBwbWJ1cyBpcyB1c2VkIGZvciBtb25pdG9yaW5nIG9ubHkgYW5kIGNh
+bid0IGJlIHVzZWQgCj4gZm9yIAo+ID4gd3JpdGluZyBkYXRhIHRvIGEgcG1idXMgY29tcGF0aWJs
+ZSBkZXZpY2VzPyAKPiA+IElmIHNvLCBhcmUgdGhlcmUgYW55IHBsYW5zIHRvIGluY2x1ZGUgd3Jp
+dGluZyBjYXBhYmlsaXR5IGFuZCB3aGVuIGlmIAo+IAo+IFllcyBhbmQgbm8uIFlvdSBjYW4gd3Jp
+dGUgZGF0YSwgYnV0IHdyaXRlcyBhcmUgbGltaXRlZCB0byBzZXR0aW5nIGxpbWl0cy4KPiAKPiA+
+IHRoYXQncyB0aGUgY2FzZT8KPiA+IAo+ID4gVGhlIHJlYXNvbiB0byBteSBxdWVzdGlvbnMgaXMg
+dGhhdCBJIHdvdWxkIGxpa2UgdG8gd3JpdGUgYSBwb3dlcmxldmVsIHRvIAo+IGEgCj4gSSBhc3N1
+bWUgeW91IHJlZmVyIHRvIHNldHRpbmcgcG93ZXIgbGV2ZWxzLgo+IAo+IFRoZXJlIGFyZSBhIG51
+bWJlciBvZiBhbnN3ZXJzIHRvIHRoYXQuCj4gCj4gRmlyc3QsIHNvIGZhciB0aGVyZSBoYXMgdG8g
+YmUgZGVtYW5kLiBNeSBuZWVkIGFuZCB0aGUgbmVlZCBvZiBvdGhlcnMgdXNpbmcgCj4gdGhlCj4g
+cG1idXMgZHJpdmVyIGlzIGZvciBtb25pdG9yaW5nIHB1cnBvc2VzLCBzbyB0aGVyZSB3YXMgbm8g
+bmVlZCB0byBhZGQgCj4gc3VwcG9ydCBmb3IKPiBhY3R1YWxseSByZWd1bGF0aW5nIHBvd2VyIGxl
+dmVscy4KPiAKPiBBZGRpbmcgc3VwcG9ydCBmb3Igc2V0dGluZyBwb3dlciBsZXZlbHMgY2FuIGJl
+IGRvbmUuIEl0IHdvdWxkLCBob3dldmVyLCAKPiByZXF1aXJlCj4gdGhlIGRyaXZlciB0byBiZSBy
+ZXdvcmtlZCBhcyBtdWx0aS1mdW5jdGlvbiBkcml2ZXIsIHdpdGggaGFyZHdhcmUgCj4gbW9uaXRv
+cmluZyBhbmQKPiAocHJvYmFibHkpIHJlZ3VsYXRvciBzdWItZHJpdmVycy4gVGhhdCBpcyBhIHN1
+YnN0YW50aWFsIGVmZm9ydCwgZm9yIHdoaWNoIAo+IEkgZG9uJ3QKPiBoYXZlIHRpbWUgZm9yIHJp
+Z2h0IG5vdy4gVGhhdCBkb2Vzbid0IG1lYW4gaXQgd29uJ3QgaGFwcGVuLCBidXQgdW5sZXNzIG15
+IAo+IGVtcGxveWVyCj4gZGVjaWRlcyB0byBhc3NpZ24gc3VjaCBhIHRhc2sgdG8gbWUgKHdoaWNo
+IGlzIGhpZ2hseSB1bmxpa2VseSksIHNvbWVvbmUgCj4gZWxzZSB3b3VsZAo+IGhhdmUgdG8gcGlj
+ayBpdCB1cCBhbmQgc3VibWl0IHBhdGNoZXMuCj4gCj4gVGhhdCBsZWFkcyB0byB0aGUgbmV4dCwg
+YW5kIG1vcmUgc3Vic3RhbnRpYWwsIHNldCBvZiBwcm9ibGVtczogVGhlIGFiaWxpdHkgCj4gdG8K
+PiBtb2RpZnkgcG93ZXIgbGV2ZWxzIGlzIG5pY2UsIGJ1dCBpZiBtaXN1c2VkIGNhbiBsZWFkIHRv
+IHBoeXNpY2FsIGRhbWFnZSB0byAKPiB0aGUKPiBib2FyZC4gQWZ0ZXIgYWxsLCBQTUJ1cyBjaGlz
+IGFyZSB0eXBpY2FsbHkgbm90IHVzZWQgdG8gc2V0LCBzYXksIGJhdHRlcnkgCj4gcG93ZXIKPiBs
+ZXZlbHMsIGJ1dCB0byBwcm92aWRlIHBvd2VyIHRvIG9uLWJvYXJkIGNvbXBvbmVudHMuIEFkZGlu
+ZyBzdXBwb3J0IGZvciAKPiBtYW5pcHVsYXRpbmcKPiBzdWNoIHBvd2VyIGxldmVscyB3b3VsZCBo
+YXZlIHRvIGJlIGRvbmUgdmVyeSBjYXJlZnVsbHkuIEluIGFkZGl0aW9uIHRvIAo+IHRoYXQsCj4g
+cG93ZXIgbGV2ZWwgbWFuaXB1bGF0aW9uIGlzIGFuIGFyZWEgd2hpY2ggaXMgbm90IHRvbyB3ZWxs
+IGRlZmluZWQgaW4gdGhlIAo+IFBNQnVzCj4gc3RhbmRhcmQuIEZvciBzb21lIGNoaXBzLCBpdCBp
+cyBqdXN0IGEgbWF0dGVyIG9mIGNoYW5naW5nIHRoZSBleHBlY3RlZCAKPiBwb3dlcgo+IGxldmVs
+IHJlZ2lzdGVycy4gT3RoZXIgY2hpcHMgbmVlZCB0byBmb2xsb3cgYW4gZWxhYm9yYXRlIHNlcXVl
+bmNlIG9mIAo+IGNvbW1hbmRzLAo+IGFuZCBpdCBpcyBlZmZlY3RpdmVseSBvbmx5IHBvc3NpYmxl
+IHRvIGNoYW5nZSB0aGUgcG93ZXIgbGV2ZWwgb24gdGhvc2UgCj4gY2hpcHMgd2l0aAo+IHRoZSB0
+b29scyBwcm92aWRlZCBieSB0aGUgY2hpcCBtYW51ZmFjdHVyZXIuIEV2ZXJ5dGhpbmcgZWxzZSB0
+ZW5kcyB0byAKPiBjYXVzZSBzdWNoCj4gY2hpcHMgdG8gc2h1dCBkb3duLCBvciBpbiBiYWQgY2Fz
+ZXMgdG8gbGl0ZXJhbGx5IGJsb3cgdXAuIFNvIHRoaXMgaXMgCj4gc29tZXRoaW5nIEkKPiB3b3Vs
+ZCBvbmx5IHdhbnQgdG8gZ2V0IGludG8gb24gYSBwZXItY2hpcCBiYXNpcywgYW5kIG9ubHkgcGVy
+bWl0IGl0IGlmIEkgCj4gYW0KPiByZWFsbHkgc3VyZSB0aGF0IHRoaXMgc3BlY2lmaWMgY2hpcCBk
+b2VzIHN1cHBvcnQgInNpbXBsZSIgbWVhbnMgdG8gc2V0IHRoZSAKPiBwb3dlcgo+IGxldmVsLgo+
+IAo+IEFub3RoZXIgcXVlc3Rpb24gaXMgX3doeV8geW91IHdhbnQgdG8gYmUgYWJsZSB0byBzZXQg
+dGhlIHBvd2VyIGxldmVsLiBJZiAKPiBpdCBpcwo+IGZvciBkaWFnbm9zdGljcyBwdXJwb3Nlcywg
+eW91IG1pZ2h0IGJlIGJldHRlciBvZmYgYnkgd3JpdGluZyB0aGUgcmVxdWlyZWQgCj4gSTJDCj4g
+Y29tbWFuZHMgZGlyZWN0bHkgaW50byB0aGUgY2hpcCwgZWcgd2l0aCB0aGUgaTJjc2V0IGNvbW1h
+bmQgZnJvbSAKPiBpMmMtdG9vbHMuCj4gCj4gSG9wZSB0aGlzIGhlbHBzLAo+IEd1ZW50ZXIKPiAK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNv
+cnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxt
+LXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw==
