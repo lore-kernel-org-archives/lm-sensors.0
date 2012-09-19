@@ -1,7 +1,7 @@
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Wed, 19 Sep 2012 08:33:06 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 19 Sep 2012 11:26:22 +0000
 Subject: Re: [lm-sensors] [PATCH] linux/kernel.h: Fix warning seen with W=1 due to change in DIV_ROUND_CLOSES
-Message-Id: <50598342.8060407@redhat.com>
+Message-Id: <20120919132622.672336ac@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1348027209-29710-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1348027209-29710-1-git-send-email-linux@roeck-us.net>
@@ -9,9 +9,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Jean Delvare <khali@linux-fr.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, lm-sensors@lm-sensors.org
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, lm-sensors@lm-sensors.org
 
-Em 19-09-2012 01:00, Guenter Roeck escreveu:
+On Tue, 18 Sep 2012 21:00:09 -0700, Guenter Roeck wrote:
 > After commit b6d86d3d (Fix DIV_ROUND_CLOSEST to support negative dividends),
 > the following warning is seen if the kernel is compiled with W=1 (-Wextra):
 > 
@@ -35,10 +35,6 @@ Em 19-09-2012 01:00, Guenter Roeck escreveu:
 > i=4: DIV_ROUND_CLOSEST(i, 2)=2
 > 
 > Code size is the same as before.
-
-It is great to have this warning disappearing.
-
-Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
 > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
@@ -58,8 +54,13 @@ Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 >  		(((__x) + ((__d) / 2)) / (__d)) :	\
 >  		(((__x) - ((__d) / 2)) / (__d));	\
 >  }							\
-> 
 
+Very nice. Let's push this upstream ASAP.
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
