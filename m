@@ -1,42 +1,27 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Sep 2012 08:26:36 +0000
-Subject: Re: [lm-sensors] [PATCH v2 4/5] hwmon: (ina2xx) Use structure array to distinguish chip types
-Message-Id: <20120912102636.655456c6@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 19 Sep 2012 18:30:51 +0000
+Subject: [lm-sensors] [PATCH 1/2] hwmon: (lm93) Drop unnecessary compare statement
+Message-Id: <1348079452-32082-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1347381259-14585-5-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1347381259-14585-5-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 11 Sep 2012 09:34:18 -0700, Guenter Roeck wrote:
-> Replace per-device initialization and per-device calculation code with
-> per-device configuration data, which is then used to configure the chip and
-> perform calculations based on that data.
-> 
-> This patch reduces code size by more than 400 bytes on x86_64.
-> 
-> Cc: Lothar Felten <l-felten@ti.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> v2: Review feedback:
->     Fix for word swap operations split to second patch
->     Change config variable name to config_default
->     Change variable types to const where appropriate
->     Use DIV_ROUND_CLOSEST for divide operation in INA2XX_BUS_VOLTAGE case
->     Get rid of data->registers (use data->config->registers instead)
-> 
->  drivers/hwmon/ina2xx.c |  159 +++++++++++++++++-------------------------------
->  1 file changed, 56 insertions(+), 103 deletions(-)
-> (...)
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIGZvbGxvd2luZyBidWlsZCB3YXJuaW5nIGlzIHNlZW4gd2l0aCAtV2V4dHJhLgoKbG05My5j
+OiBJbiBmdW5jdGlvbiDigJhzdG9yZV9mYW5fc21hcnRfdGFjaOKAmToKbG05My5jOjE4MzM6Mjog
+d2FybmluZzogY29tcGFyaXNvbiBvZiB1bnNpZ25lZCBleHByZXNzaW9uID49IDAgaXMgYWx3YXlz
+IHRydWUKCkRyb3AgdGhlIHVubmVjZXNzYXJ5IGNvbXBhcmlzb24uCgpTaWduZWQtb2ZmLWJ5OiBH
+dWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Ci0tLQogZHJpdmVycy9od21vbi9sbTkz
+LmMgfCAgICAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRpb24o
+LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL2xtOTMuYyBiL2RyaXZlcnMvaHdtb24vbG05
+My5jCmluZGV4IGJmOTQ2MTguLmMzZDQyNTUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vbG05
+My5jCisrKyBiL2RyaXZlcnMvaHdtb24vbG05My5jCkBAIC0xODMwLDcgKzE4MzAsNyBAQCBzdGF0
+aWMgc3NpemVfdCBzdG9yZV9mYW5fc21hcnRfdGFjaChzdHJ1Y3QgZGV2aWNlICpkZXYsCiAKIAlt
+dXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7CiAJLyogc2FuaXR5IHRlc3QsIGlnbm9yZSB0
+aGUgd3JpdGUgb3RoZXJ3aXNlICovCi0JaWYgKDAgPD0gdmFsICYmIHZhbCA8PSAyKSB7CisJaWYg
+KHZhbCA8PSAyKSB7CiAJCS8qIGNhbid0IGVuYWJsZSBpZiBwd20gZnJlcSBpcyAyMi41S0h6ICov
+CiAJCWlmICh2YWwpIHsKIAkJCXU4IGN0bDQgPSBsbTkzX3JlYWRfYnl0ZShjbGllbnQsCi0tIAox
+LjcuOS43CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+bG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8v
+bGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
