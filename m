@@ -1,59 +1,36 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 04 Sep 2012 16:28:12 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon/lm70: Allow 4wire SPI bus with LM70
-Message-Id: <20120904162812.GB16877@roeck-us.net>
+Date: Wed, 19 Sep 2012 18:30:52 +0000
+Subject: [lm-sensors] [PATCH 2/2] hwmon: (w83791d) Drop unnecessary compare statements
+Message-Id: <1348079452-32082-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201209040840.q848eiPg028975@localhost.localdomain>
-In-Reply-To: <201209040840.q848eiPg028975@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, Sep 04, 2012 at 10:40:44AM +0200, Christophe Leroy wrote:
-> Removing the 3wire limitation on LM70 as the component also allows
-> operation on 4wire SPI bus
-> 
-> Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
-> 
-Applied to -next.
-
-Thanks,
-Guenter
-
-> diff -u linux-3.5-vanilla/drivers/hwmon/lm70.c linux-3.5/drivers/hwmon/lm70.c
-> --- linux-3.5-vanilla/drivers/hwmon/lm70.c	2012-07-21 22:58:29.000000000 +0200
-> +++ linux-3.5/drivers/hwmon/lm70.c	2012-08-25 00:35:40.000000000 +0200
-> @@ -143,10 +143,6 @@
->  	if (spi->mode & (SPI_CPOL | SPI_CPHA))
->  		return -EINVAL;
->  
-> -	/* 3-wire link (shared SI/SO) for LM70 */
-> -	if (chip = LM70_CHIP_LM70 && !(spi->mode & SPI_3WIRE))
-> -		return -EINVAL;
-> -
->  	/* NOTE:  we assume 8-bit words, and convert to 16 bits manually */
->  
->  	p_lm70 = kzalloc(sizeof *p_lm70, GFP_KERNEL);
-> diff -u linux-3.5-vanilla/Documentation/hwmon/lm70 linux-3.5/Documentation/hwmon/lm70
-> --- linux-3.5-vanilla/Documentation/hwmon/lm70	2012-07-21 22:58:29.000000000 +0200
-> +++ linux-3.5/Documentation/hwmon/lm70	2012-08-25 00:37:15.000000000 +0200
-> @@ -31,9 +31,8 @@
->  with a "SPI master controller driver", see drivers/spi/spi_lm70llp.c
->  and its associated documentation.
->  
-> -The TMP121/TMP123 are very similar; main differences are 4 wire SPI inter-
-> -face (read only) and 13-bit temperature data (0.0625 degrees celsius reso-
-> -lution).
-> +The TMP121/TMP123 are very similar; main difference is 13-bit temperature
-> +data (0.0625 degrees celsius resolution).
->  
->  Thanks to
->  ---------
-> 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhlIGZvbGxvd2luZyBidWlsZCB3YXJuaW5ncyBhcmUgc2VlbiB3aXRoIC1XZXh0cmEuCgp3ODM3
+OTFkLmM6IEluIGZ1bmN0aW9uIOKAmHN0b3JlX3RlbXBfdGFyZ2V04oCZOgp3ODM3OTFkLmM6ODU4
+OjI6IHdhcm5pbmc6IGNvbXBhcmlzb24gb2YgdW5zaWduZWQgZXhwcmVzc2lvbiA8IDAgaXMgYWx3
+YXlzIGZhbHNlCnc4Mzc5MWQuYzogSW4gZnVuY3Rpb24g4oCYc3RvcmVfdGVtcF90b2xlcmFuY2Xi
+gJk6Cnc4Mzc5MWQuYzo5MjA6Mjogd2FybmluZzogY29tcGFyaXNvbiBvZiB1bnNpZ25lZCBleHBy
+ZXNzaW9uIDwgMCBpcyBhbHdheXMgZmFsc2UKCkRyb3AgdGhlIHVubmVjZXNzYXJ5IGNvbXBhcmlz
+b25zLgoKU2lnbmVkLW9mZi1ieTogR3VlbnRlciBSb2VjayA8bGludXhAcm9lY2stdXMubmV0Pgot
+LS0KIGRyaXZlcnMvaHdtb24vdzgzNzkxZC5jIHwgICAgNiArKy0tLS0KIDEgZmlsZSBjaGFuZ2Vk
+LCAyIGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9o
+d21vbi93ODM3OTFkLmMgYi9kcml2ZXJzL2h3bW9uL3c4Mzc5MWQuYwppbmRleCA5YWRlNGQ0Li41
+NjZhYzQ0IDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL3c4Mzc5MWQuYworKysgYi9kcml2ZXJz
+L2h3bW9uL3c4Mzc5MWQuYwpAQCAtMjU0LDEzICsyNTQsMTEgQEAgc3RhdGljIHU4IGZhbl90b19y
+ZWcobG9uZyBycG0sIGludCBkaXYpCiAJCQkJICgodmFsKSArIDI1MCkgLyA1MDAgKiAxMjgpCiAK
+IC8qIGZvciB0aGVybWFsIGNydWlzZSB0YXJnZXQgdGVtcCwgNy1iaXRzLCBMU0IgPSAxIGRlZ3Jl
+ZSBDZWxzaXVzICovCi0jZGVmaW5lIFRBUkdFVF9URU1QX1RPX1JFRyh2YWwpCQkoKHZhbCkgPCAw
+ID8gMCA6IFwKLQkJCQkJKHZhbCkgPj0gMTI3MDAwID8gMTI3IDogXAorI2RlZmluZSBUQVJHRVRf
+VEVNUF9UT19SRUcodmFsKQkJKCh2YWwpID49IDEyNzAwMCA/IDEyNyA6IFwKIAkJCQkJKCh2YWwp
+ICsgNTAwKSAvIDEwMDApCiAKIC8qIGZvciB0aGVybWFsIGNydWlzZSB0ZW1wIHRvbGVyYW5jZSwg
+NC1iaXRzLCBMU0IgPSAxIGRlZ3JlZSBDZWxzaXVzICovCi0jZGVmaW5lIFRPTF9URU1QX1RPX1JF
+Ryh2YWwpCQkoKHZhbCkgPCAwID8gMCA6IFwKLQkJCQkJKHZhbCkgPj0gMTUwMDAgPyAxNSA6IFwK
+KyNkZWZpbmUgVE9MX1RFTVBfVE9fUkVHKHZhbCkJCSgodmFsKSA+PSAxNTAwMCA/IDE1IDogXAog
+CQkJCQkoKHZhbCkgKyA1MDApIC8gMTAwMCkKIAogI2RlZmluZSBCRUVQX01BU0tfVE9fUkVHKHZh
+bCkJCSgodmFsKSAmIDB4ZmZmZmZmKQotLSAKMS43LjkuNwoKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNl
+bnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4v
+bGlzdGluZm8vbG0tc2Vuc29ycw=
