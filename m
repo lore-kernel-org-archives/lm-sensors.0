@@ -1,124 +1,58 @@
-From: Simon Tims <si@cog24.com>
-Date: Wed, 12 Sep 2012 15:11:25 +0000
-Subject: Re: [lm-sensors] Patching help
-Message-Id: <CAPevXivQN-x=Cob9hFfooru2OHzj9CV8rzUJeaqGmY3+h7Ychg@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1295267996631326648=="
+From: Jack Kelly <jack-list@xlk.org.uk>
+Date: Thu, 20 Sep 2012 00:19:13 +0000
+Subject: [lm-sensors] CPU fan rapidly turns on and off
+Message-Id: <CALHKqSXP=Qkeor_orw+Cu5B9jaBb9O6EHicZUp_OP2nWcJGLpg@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAPevXitqR63A+B0KH3ZfRfC-E=dHQVF7ak7MupQf-WUzcDnhbQ@mail.gmail.com>
-In-Reply-To: <CAPevXitqR63A+B0KH3ZfRfC-E=dHQVF7ak7MupQf-WUzcDnhbQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============1295267996631326648==
-Content-Type: multipart/alternative; boundary=bcaec54fb4f2b3729f04c9829a47
+Dear lm-sensors list,
 
---bcaec54fb4f2b3729f04c9829a47
-Content-Type: text/plain; charset=ISO-8859-1
+Please may I ask for a bit of technical support (the problem I'm
+experiencing may be the result of a bug but I'm not sure... it might
+also be me being an idiot!)
 
-On 11 September 2012 15:19, Jean Delvare <khali@linux-fr.org> wrote:
+I am using lm-sensors and coretemp on an HP ProBook 6450b laptop with
+an Intel i5 quad-core CPU.  I'm running Ubuntu 12.04 with all the
+latest updates:
 
-> Hi Simon,
->
-> Please don't top-post.
->
-> On Sun, 9 Sep 2012 20:11:41 +0100, Simon Tims wrote:
-> > Yes, that does give more detail:
-> >
-> > /boot/config-3.0.0-12-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-16-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-17-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-19-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-20-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-21-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-22-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.0.0-24-generic-pae:CONFIG_I2C_PIIX4=m
-> > /boot/config-3.2.0-29-generic-pae:CONFIG_I2C_PIIX4=m
->
-> So your kernel has the i2c-piix4 driver compiled as a module. You
-> should see it as file:
->
-> /lib/modules/3.2.0-29-generic-pae/kernel/drivers/i2c/busses/i2c-piix4.ko
->
-> Please confirm you have this file.
->
-> Next step is to have a standalone replacement of that driver with
-> support for the additional SMBus channels. Thomas (Cc'd) is supposedly
-> working on this, once the code goes upstream, I will make a standalone
-> i2c-piix4 driver available for download.
->
-> --
-> Jean Delvare
->
+$ uname -a
+Linux probook 3.2.0-31-generic #50-Ubuntu SMP Fri Sep 7 16:16:45 UTC
+2012 x86_64 x86_64 x86_64 GNU/Linux
 
+The CPU fan is off when the system is idling.  When I stress the
+system the fan starts running when the CPU gets to 105 degrees C
+(which seems rather high but never mind...).  The problem is that the
+system appears to be  failing to provide a constant current to the
+fan.  Instead the fan is being turned on and off very rapidly which
+results in a "clicking" noise which sounds a little like a hard disk
+seeking.  I have manually measured the voltage supplied to the fan and
+it does indeed turn on and off rapidly.
 
-Hi Jean
+I wonder if this problem could be fixed by enabling a hysteresis
+setting in coretemp?
 
-Yes, that file does indeed exist at the location you specify.
+This "clicking fan" problem does not occur if I run Windows7 or if I
+boot Linux using apci=off.
 
-I look forward to the standalone driver, and thank you (and everyone
- who contributes to this project) for your assistance and guidance.
+Alternatively, is there a way for me to manually set the max and crit
+temperatures for my CPU?  I've tried
 
-Simon
+sudo bash -c "echo 90000 > /sys/class/hwmon/hwmon1/device/temp2_max"
 
---bcaec54fb4f2b3729f04c9829a47
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+But I get a "permission denied" error.
 
-<div class=3D"gmail_quote">On 11 September 2012 15:19, Jean Delvare <span d=
-ir=3D"ltr">&lt;<a href=3D"mailto:khali@linux-fr.org" target=3D"_blank">khal=
-i@linux-fr.org</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" s=
-tyle=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
-Hi Simon,<br>
-<br>
-Please don&#39;t top-post.<br>
-<br>
-On Sun, 9 Sep 2012 20:11:41 +0100, Simon Tims wrote:<br>
-&gt; Yes, that does give more detail:<br>
-&gt;<br>
-&gt; /boot/config-3.0.0-12-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-16-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-17-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-19-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-20-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-21-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-22-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.0.0-24-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-&gt; /boot/config-3.2.0-29-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
-<br>
-So your kernel has the i2c-piix4 driver compiled as a module. You<br>
-should see it as file:<br>
-<br>
-/lib/modules/3.2.0-29-generic-pae/kernel/drivers/i2c/busses/i2c-piix4.ko<br=
->
-<br>
-Please confirm you have this file.<br>
-<br>
-Next step is to have a standalone replacement of that driver with<br>
-support for the additional SMBus channels. Thomas (Cc&#39;d) is supposedly<=
-br>
-working on this, once the code goes upstream, I will make a standalone<br>
-i2c-piix4 driver available for download.<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br>
---<br>
-Jean Delvare<br>
-</font></span></blockquote></div><br><div><br></div><div>Hi Jean</div><div>=
-<br></div><div>Yes, that file does indeed exist at the location you specify=
-.</div><div><br></div><div>I look forward to the standalone driver, and tha=
-nk you (and everyone</div>
-<div>=A0who contributes to this project)=A0for your assistance and guidance=
-.</div><div><br></div><div>Simon</div>
+I've also tried adding "set temp2_max 90000" to sensors3.conf but I
+get a "Failed to set value" error.
 
---bcaec54fb4f2b3729f04c9829a47--
+Any help would be wonderful!
 
-
---===============1295267996631326648==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Many thanks,
+Jack
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1295267996631326648==--
