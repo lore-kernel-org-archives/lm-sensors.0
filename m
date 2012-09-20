@@ -1,7 +1,7 @@
-From: Andreas Hartmann <andihartmann@01019freenet.de>
-Date: Thu, 20 Sep 2012 16:26:01 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 20 Sep 2012 16:35:39 +0000
 Subject: Re: [lm-sensors] [PATCH v2] hwmon, fam15h_power: Tweak runavg_range on resume
-Message-Id: <505B4399.7070708@01019freenet.de>
+Message-Id: <20120920163539.GA25657@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20120920103408.GD4602@alberich>
 In-Reply-To: <20120920103408.GD4602@alberich>
@@ -10,9 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hello Andreas,
-
-Andreas Herrmann wrote:
+On Thu, Sep 20, 2012 at 12:34:08PM +0200, Andreas Herrmann wrote:
 > 
 > The quirk introduced with commit
 > 00250ec90963b7ef6678438888f3244985ecde14 (hwmon: fam15h_power: fix
@@ -22,22 +20,83 @@ Andreas Herrmann wrote:
 > running average range register during resume.
 > 
 > Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+> ---
+>  drivers/hwmon/fam15h_power.c |   15 +++++++++++++--
+>  1 file changed, 13 insertions(+), 2 deletions(-)
+> 
+> Hi Jean,
+> 
+> Thanks for spotting the issues.
+> Here's a new patch version, esp. to fix the section mismatch.
+> 
+> Please apply.
+> 
+> 
+> Thanks,
+> 
+> Andreas
+> 
+> diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+> index 2764b78a784b..af69073b3fe8 100644
+> --- a/drivers/hwmon/fam15h_power.c
+> +++ b/drivers/hwmon/fam15h_power.c
+> @@ -129,12 +129,12 @@ static bool __devinit fam15h_power_is_internal_node0(struct pci_dev *f4)
+>   * counter saturations resulting in bogus power readings.
+>   * We correct this value ourselves to cope with older BIOSes.
+>   */
+> -static DEFINE_PCI_DEVICE_TABLE(affected_device) = {
+> +static const struct pci_device_id affected_device[] = {
 
+I would prefer if we could keep DEFINE_PCI_DEVICE_TABLE to avoid the
+checkpatch warning. Should be easy to implement, by moving pci_match_id
+into the probe function and only call tweak_runavg_range() if it returns true.
+You could keep the response in fam15h_power_data, as a flag such as needs_tweak,
+for use in fam15h_power_resume().
 
-I could test your patch successfully with kernel 3.4.11. The reported
-power consumption
+Just my $0.02, though. I'll leave it up to Jean to decide if the patch is ok
+as-is. 
 
-fam15h_power-pci-00c4
-Adapter: PCI adapter
-power1:       28.45 W
+Guenter
 
-works now as expected.
-
-
-Thanks,
-kind regards,
-Andreas Hartmann
-
+>  	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
+>  	{ 0 }
+>  };
+>  
+> -static void __devinit tweak_runavg_range(struct pci_dev *pdev)
+> +static void tweak_runavg_range(struct pci_dev *pdev)
+>  {
+>  	u32 val;
+>  
+> @@ -158,6 +158,16 @@ static void __devinit tweak_runavg_range(struct pci_dev *pdev)
+>  		REG_TDP_RUNNING_AVERAGE, val);
+>  }
+>  
+> +#ifdef CONFIG_PM
+> +static int fam15h_power_resume(struct pci_dev *pdev)
+> +{
+> +	tweak_runavg_range(pdev);
+> +	return 0;
+> +}
+> +#else
+> +#define fam15h_power_resume NULL
+> +#endif
+> +
+>  static void __devinit fam15h_power_init_data(struct pci_dev *f4,
+>  					     struct fam15h_power_data *data)
+>  {
+> @@ -256,6 +266,7 @@ static struct pci_driver fam15h_power_driver = {
+>  	.id_table = fam15h_power_id_table,
+>  	.probe = fam15h_power_probe,
+>  	.remove = __devexit_p(fam15h_power_remove),
+> +	.resume = fam15h_power_resume,
+>  };
+>  
+>  module_pci_driver(fam15h_power_driver);
+> -- 
+> 1.7.10.4
+> 
+> 
+> 
 
 _______________________________________________
 lm-sensors mailing list
