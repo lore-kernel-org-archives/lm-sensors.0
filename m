@@ -1,54 +1,86 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 11 Sep 2012 07:01:49 +0000
-Subject: Re: [lm-sensors] [PATCH 1/4] hwmon: (twl4030-madc-hwmon) Initialize uninitialized structure elements
-Message-Id: <20120911090149.75e4bd4f@endymion.delvare>
+From: Andreas Herrmann <andreas.herrmann3@amd.com>
+Date: Thu, 20 Sep 2012 10:34:08 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon, fam15h_power: Tweak runavg_range on resume
+Message-Id: <20120920103408.GD4602@alberich>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1347336566-32662-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1347336566-32662-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 10 Sep 2012 21:09:23 -0700, Guenter Roeck wrote:
-> twl4030_madc_conversion uses do_avg and type structure elements of
-> twl4030_madc_request. Initialize to avoid random operation.
-> 
-> Cc: Keerthy <j-keerthy@ti.com>
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/twl4030-madc-hwmon.c |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/hwmon/twl4030-madc-hwmon.c b/drivers/hwmon/twl4030-madc-hwmon.c
-> index 0018c7d..f8ba8b0 100644
-> --- a/drivers/hwmon/twl4030-madc-hwmon.c
-> +++ b/drivers/hwmon/twl4030-madc-hwmon.c
-> @@ -50,6 +50,8 @@ static ssize_t madc_read(struct device *dev,
->  	req.channels = (1 << attr->index);
->  	req.method = TWL4030_MADC_SW2;
->  	req.func_cb = NULL;
-> +	req.do_avg = 0;
-> +	req.type = TWL4030_MADC_WAIT;
->  	val = twl4030_madc_conversion(&req);
->  	if (val < 0)
->  		return val;
 
-What about a structure-wide initialization at declaration time?
+The quirk introduced with commit
+00250ec90963b7ef6678438888f3244985ecde14 (hwmon: fam15h_power: fix
+bogus values with current BIOSes) is not only required during driver
+load but also when system resumes from suspend. The BIOS might set the
+previously recommended (but unsuitable) initilization value for the
+running average range register during resume.
 
-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-	struct twl4030_madc_request req = {
-		.channels = 1 << attr->index,
-		.method = TWL4030_MADC_SW2,
-		.type = TWL4030_MADC_WAIT,
-	};
+Signed-off-by: Andreas Herrmann <andreas.herrmann3@amd.com>
+---
+ drivers/hwmon/fam15h_power.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-IIRC the compiler will initialize all other fields to 0 in this case,
-which is what we want, and this also works if more fields are added in
-the future.
+Hi Jean,
 
+Thanks for spotting the issues.
+Here's a new patch version, esp. to fix the section mismatch.
+
+Please apply.
+
+
+Thanks,
+
+Andreas
+
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 2764b78a784b..af69073b3fe8 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -129,12 +129,12 @@ static bool __devinit fam15h_power_is_internal_node0(struct pci_dev *f4)
+  * counter saturations resulting in bogus power readings.
+  * We correct this value ourselves to cope with older BIOSes.
+  */
+-static DEFINE_PCI_DEVICE_TABLE(affected_device) = {
++static const struct pci_device_id affected_device[] = {
+ 	{ PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
+ 	{ 0 }
+ };
+ 
+-static void __devinit tweak_runavg_range(struct pci_dev *pdev)
++static void tweak_runavg_range(struct pci_dev *pdev)
+ {
+ 	u32 val;
+ 
+@@ -158,6 +158,16 @@ static void __devinit tweak_runavg_range(struct pci_dev *pdev)
+ 		REG_TDP_RUNNING_AVERAGE, val);
+ }
+ 
++#ifdef CONFIG_PM
++static int fam15h_power_resume(struct pci_dev *pdev)
++{
++	tweak_runavg_range(pdev);
++	return 0;
++}
++#else
++#define fam15h_power_resume NULL
++#endif
++
+ static void __devinit fam15h_power_init_data(struct pci_dev *f4,
+ 					     struct fam15h_power_data *data)
+ {
+@@ -256,6 +266,7 @@ static struct pci_driver fam15h_power_driver = {
+ 	.id_table = fam15h_power_id_table,
+ 	.probe = fam15h_power_probe,
+ 	.remove = __devexit_p(fam15h_power_remove),
++	.resume = fam15h_power_resume,
+ };
+ 
+ module_pci_driver(fam15h_power_driver);
 -- 
-Jean Delvare
+1.7.10.4
+
+
 
 _______________________________________________
 lm-sensors mailing list
