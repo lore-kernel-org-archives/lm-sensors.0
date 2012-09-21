@@ -1,478 +1,153 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Sep 2012 23:57:27 +0000
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Fri, 21 Sep 2012 15:38:45 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon: Versatile Express hwmon driver
-Message-Id: <20120920235727.GA18860@roeck-us.net>
+Message-Id: <1348241925.11116.242.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1348160058-13425-1-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1348160058-13425-1-git-send-email-pawel.moll@arm.com>
+ <20120920235727.GA18860@roeck-us.net>
+In-Reply-To: <20120920235727.GA18860@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 20, 2012 at 05:54:18PM +0100, Pawel Moll wrote:
-> hwmon framework driver for Versatile Express sensors, providing
-> information about board level voltage (only when regulator driver
-> is not configured), currents, temperature and power/energy usage.
-> Labels for the values can be defined as DT properties.
-> 
-> Signed-off-by: Pawel Moll <pawel.moll@arm.com>
-> ---
->  .../devicetree/bindings/hwmon/vexpress.txt         |   23 ++
->  Documentation/hwmon/vexpress                       |   34 +++
->  drivers/hwmon/Kconfig                              |    8 +
->  drivers/hwmon/Makefile                             |    1 +
->  drivers/hwmon/vexpress.c                           |  255 ++++++++++++++++++++
->  5 files changed, 321 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/hwmon/vexpress.txt
->  create mode 100644 Documentation/hwmon/vexpress
->  create mode 100644 drivers/hwmon/vexpress.c
-> 
-Your patch is substantially corrupted and unusable as patch file. Did you send
-it through outlook ?
-
-> diff --git a/Documentation/devicetree/bindings/hwmon/vexpress.txt b/Documentation/devicetree/bindings/hwmon/vexpress.txt
-> new file mode 100644
-> index 0000000..9c27ed6
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/hwmon/vexpress.txt
-> @@ -0,0 +1,23 @@
-> +Versatile Express hwmon sensors
-> +-------------------------------
-> +
-> +Requires node properties:
-> +- "compatible" value : one of
-> +	"arm,vexpress-volt"
-> +	"arm,vexpress-amp"
-> +	"arm,vexpress-temp"
-> +	"arm,vexpress-power"
-> +	"arm,vexpress-energy"
-> +- "arm,vexpress-sysreg,func" when controlled via vexpress-sysreg
-> +  (see Documentation/devicetree/bindings/arm/vexpress-sysreg.txt
-> +  for more details)
-> +
-> +Optional node properties:
-> +- label : string describing the monitored value
-> +
-> +Example:
-> +	energy@0 {
-> +		compatible = "arm,vexpress-energy";
-> +		arm,vexpress-sysreg,func = <13 0>;
-> +		label = "A15 Jcore";
-> +	};
-> diff --git a/Documentation/hwmon/vexpress b/Documentation/hwmon/vexpress
-> new file mode 100644
-> index 0000000..557d6d5
-> --- /dev/null
-> +++ b/Documentation/hwmon/vexpress
-> @@ -0,0 +1,34 @@
-> +Kernel driver vexpress
-> +===========
-> +
-> +Supported systems:
-> +  * ARM Ltd. Versatile Express platform
-> +    Prefix: 'vexpress'
-> +    Datasheets:
-> +      * "Hardware Description" sections of the Technical Reference Manuals
-> +        for the Versatile Express boards:
-> +        http://infocenter.arm.com/help/topic/com.arm.doc.subset.boards.express/index.html
-> +      * Section "4.4.14. System Configuration registers" of the V2M-P1 TRM:
-> +        http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0447-/index.html
-> +
-> +Author: Pawel Moll
-> +
-> +Description
-> +-----------
-> +
-> +Versatile Express platform (http://www.arm.com/versatileexpress/) is a
-> +reference & prototyping system for ARM Ltd. processors. It can be set up
-> +from a wide range of boards, each of them containing (apart of the main
-> +chip/FPGA) a number of microcontrollers responsible for platform
-> +configuration and control. Theses microcontrollers can also monitor the
-> +board and its environment by a number of internal and external sensors,
-> +providing information about power lines voltages and currents, board
-> +temperature and power usage. Some of them also calculate consumed energy
-> +and provide a cumulative use counter.
-> +
-> +The configuration devices are _not_ memory mapped and must be accessed
-> +via a custom interface, abstracted by the "vexpress_config" API.
-> +
-> +As these devices are non-discoverable, they must be described in a Device
-> +Tree passed to the kernel. Details of the DT binding for them can be found
-> +in Documentation/devicetree/bindings/hwmon/vexpress.txt.
-> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> index b0a2e4c..7359a07 100644
-> --- a/drivers/hwmon/Kconfig
-> +++ b/drivers/hwmon/Kconfig
-> @@ -1187,6 +1187,14 @@ config SENSORS_TWL4030_MADC
->  	This driver can also be built as a module. If so it will be called
->  	twl4030-madc-hwmon.
->  
-> +config SENSORS_VEXPRESS
-> +	tristate "Versatile Express"
-> +	depends on VEXPRESS_CONFIG
-> +	help
-> +	  This driver provides support for hardware sensors available on
-> +	  the ARM Ltd's Versatile Express platform. It can provide wide
-> +	  range of information like temperature, power, energy.
-> +
->  config SENSORS_VIA_CPUTEMP
->  	tristate "VIA CPU temperature sensor"
->  	depends on X86
-> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> index 7aa9811..e719a7d 100644
-> --- a/drivers/hwmon/Makefile
-> +++ b/drivers/hwmon/Makefile
-> @@ -120,6 +120,7 @@ obj-$(CONFIG_SENSORS_TMP102)	+= tmp102.o
->  obj-$(CONFIG_SENSORS_TMP401)	+= tmp401.o
->  obj-$(CONFIG_SENSORS_TMP421)	+= tmp421.o
->  obj-$(CONFIG_SENSORS_TWL4030_MADC)+= twl4030-madc-hwmon.o
-> +obj-$(CONFIG_SENSORS_VEXPRESS)	+= vexpress.o
->  obj-$(CONFIG_SENSORS_VIA_CPUTEMP)+= via-cputemp.o
->  obj-$(CONFIG_SENSORS_VIA686A)	+= via686a.o
->  obj-$(CONFIG_SENSORS_VT1211)	+= vt1211.o
-> diff --git a/drivers/hwmon/vexpress.c b/drivers/hwmon/vexpress.c
-> new file mode 100644
-> index 0000000..d9f091e
-> --- /dev/null
-> +++ b/drivers/hwmon/vexpress.c
-> @@ -0,0 +1,255 @@
-> +/*
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * Copyright (C) 2012 ARM Limited
-> + */
-> +
-> +#define DRVNAME "vexpress-hwmon"
-> +#define pr_fmt(fmt) DRVNAME ": " fmt
-> +
-> +#include <linux/device.h>
-> +#include <linux/err.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/vexpress.h>
-> +
-> +struct vexpress_hwmon_data {
-> +	struct device *hwmon_dev;
-> +	struct vexpress_config_func *func;
-> +};
-> +
-> +struct vexpress_hwmon_attr {
-> +	struct device_attribute dev_attr;
-> +	u32 divisor;
-> +};
-> +
-Unnecessary - see below.
-
-> +static ssize_t vexpress_hwmon_name_show(struct device *dev,
-> +		struct device_attribute *dev_attr, char *buffer)
-> +{
-> +	const char *compatible = of_get_property(dev->of_node, "compatible",
-> +			NULL);
-> +
-
-Can compatible be NULL ?
-
-> +	return sprintf(buffer, "%s\n", compatible);
-> +}
-> +
-> +static ssize_t vexpress_hwmon_label_show(struct device *dev,
-> +		struct device_attribute *dev_attr, char *buffer)
-> +{
-> +	const char *label = of_get_property(dev->of_node, "label", NULL);
-> +
-
-Can label be NULL (eg if missing in device tree data) ?
-What happens if it is NULL ? Seems to me the label attribute should not exist in
-that case.
-
-> +	return snprintf(buffer, PAGE_SIZE, "%s\n", label);
-> +}
-> +
-> +static ssize_t vexpress_hwmon_u32_show(struct device *dev,
-> +		struct device_attribute *dev_attr, char *buffer)
-> +{
-> +	struct vexpress_hwmon_attr *attr = container_of(dev_attr,
-> +			struct vexpress_hwmon_attr, dev_attr);
-> +	struct vexpress_hwmon_data *data = dev_get_drvdata(dev);
-> +	int err;
-> +	u32 value;
-> +
-> +	err = vexpress_config_read(data->func, 0, &value);
-> +	if (err)
-> +		return err;
-> +
-> +	return snprintf(buffer, PAGE_SIZE, "%u\n", value / attr->divisor);
-> +}
-> +
-> +static ssize_t vexpress_hwmon_u64_show(struct device *dev,
-> +		struct device_attribute *dev_attr, char *buffer)
-> +{
-> +	struct vexpress_hwmon_attr *attr = container_of(dev_attr,
-> +			struct vexpress_hwmon_attr, dev_attr);
-> +	struct vexpress_hwmon_data *data = dev_get_drvdata(dev);
-> +	int err;
-> +	u32 value_hi, value_lo;
-> +
-> +	err = vexpress_config_read(data->func, 0, &value_lo);
-> +	if (err)
-> +		return err;
-> +
-> +	err = vexpress_config_read(data->func, 1, &value_hi);
-> +	if (err)
-> +		return err;
-> +
-> +	return snprintf(buffer, PAGE_SIZE, "%llu\n",
-> +			div_u64(((u64)value_hi << 32) | value_lo,
-> +			attr->divisor));
-> +}
-> +
-> +static DEVICE_ATTR(name, S_IRUGO, vexpress_hwmon_name_show, NULL);
-> +
-> +#define VEXPRESS_HWMON_ATTR(_name, _show, _divisor)		\
-> +struct vexpress_hwmon_attr vexpress_hwmon_attr_##_name = {	\
-> +	.dev_attr = __ATTR(_name, S_IRUGO, _show, NULL),	\
-> +	.divisor = _divisor,					\
-> +}
-
-You should be able to use SENSOR_DEVICE_ATTR here.
-
-> +
-> +#define VEXPRESS_HWMON_ATTRS(_name, _label_attr, _input_attr)	\
-> +struct attribute *vexpress_hwmon_attrs_##_name[] = {		\
-> +	&dev_attr_name.attr,					\
-> +	&dev_attr_##_label_attr.attr,				\
-> +	&vexpress_hwmon_attr_##_input_attr.dev_attr.attr,	\
-> +	NULL							\
-> +}
-> +
-> +#if !defined(CONFIG_REGULATOR_VEXPRESS)
-> +static DEVICE_ATTR(in1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
-> +static VEXPRESS_HWMON_ATTR(in1_input, vexpress_hwmon_u32_show, 1000);
-> +static VEXPRESS_HWMON_ATTRS(volt, in1_label, in1_input);
-> +static struct attribute_group vexpress_hwmon_group_volt = {
-> +	.attrs = vexpress_hwmon_attrs_volt,
-> +};
-> +#endif
-> +
-> +static DEVICE_ATTR(curr1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
-> +static VEXPRESS_HWMON_ATTR(curr1_input, vexpress_hwmon_u32_show, 1000);
-> +static VEXPRESS_HWMON_ATTRS(amp, curr1_label, curr1_input);
-> +static struct attribute_group vexpress_hwmon_group_amp = {
-> +	.attrs = vexpress_hwmon_attrs_amp,
-> +};
-> +
-> +static DEVICE_ATTR(temp1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
-> +static VEXPRESS_HWMON_ATTR(temp1_input, vexpress_hwmon_u32_show, 1000);
-> +static VEXPRESS_HWMON_ATTRS(temp, temp1_label, temp1_input);
-> +static struct attribute_group vexpress_hwmon_group_temp = {
-> +	.attrs = vexpress_hwmon_attrs_temp,
-> +};
-> +
-> +static DEVICE_ATTR(power1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
-> +static VEXPRESS_HWMON_ATTR(power1_input, vexpress_hwmon_u32_show, 1);
-> +static VEXPRESS_HWMON_ATTRS(power, power1_label, power1_input);
-> +static struct attribute_group vexpress_hwmon_group_power = {
-> +	.attrs = vexpress_hwmon_attrs_power,
-> +};
-> +
-> +static DEVICE_ATTR(energy1_label, S_IRUGO, vexpress_hwmon_label_show, NULL);
-> +static VEXPRESS_HWMON_ATTR(energy1_input, vexpress_hwmon_u64_show, 1);
-> +static VEXPRESS_HWMON_ATTRS(energy, energy1_label, energy1_input);
-> +static struct attribute_group vexpress_hwmon_group_energy = {
-> +	.attrs = vexpress_hwmon_attrs_energy,
-> +};
-> +
-> +static struct of_device_id vexpress_hwmon_of_match[] = {
-> +#if !defined(CONFIG_REGULATOR_VEXPRESS)
-> +	{
-> +		.compatible = "arm,vexpress-volt",
-> +		.data = &vexpress_hwmon_group_volt,
-> +	},
-> +#endif
-
-Just wondering - is the hwmon driver mutually exclusive with the regulator
-driver, or can both coexist ?
-
-FWIW, the references to "arm,vexpress-volt" I can find on the web all do not
-include "label", so I think you'll really have to look into what happens if
-there is no such property.
-
-> +	{
-> +		.compatible = "arm,vexpress-amp",
-> +		.data = &vexpress_hwmon_group_amp,
-> +	}, {
-> +		.compatible = "arm,vexpress-temp",
-> +		.data = &vexpress_hwmon_group_temp,
-> +	}, {
-> +		.compatible = "arm,vexpress-power",
-> +		.data = &vexpress_hwmon_group_power,
-> +	}, {
-> +		.compatible = "arm,vexpress-energy",
-> +		.data = &vexpress_hwmon_group_energy,
-> +	},
-> +	{}
-> +};
-> +MODULE_DEVICE_TABLE(of, vexpress_hwmon_of_match);
-> +
-
-Just wondering .... would the following work ?
-
-	hwmon@0 {
-		compatible = "arm,vexpress-hwmon";
-		volt@0 {
-			/* Logic level voltage */
-			arm,vexpress-sysreg,func = <2 0>;
-			label = "VIO";
-		};
-
-		amp@0 {
-			/* Total current for the two cores */
-			arm,vexpress-sysreg,func = <3 0>;
-			label = "Core current";
-		};
-
-		temp@0 {
-			/* DCC internal temperature */
-			arm,vexpress-sysreg,func = <4 0>;
-			label = "DCC";
-		};
-
-		power@0 {
-			/* Total power */
-			arm,vexpress-sysreg,func = <12 0>;
-			label = "Core power";
-		};
-
-		energy@0 {
-			/* Total energy */
-			arm,vexpress-sysreg,func = <13 0>;
-			label = "Core energy";
-		};
-	};
-
-I am not a device tree expert, but it seems to me that you would only have a single device node
-with this approach, and you could parse its children with for_each_child_of_node().
-
-> +static int vexpress_hwmon_probe(struct platform_device *pdev)
-> +{
-> +	int err;
-> +	const struct of_device_id *match;
-> +	struct vexpress_hwmon_data *data;
-> +
-> +	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-> +	if (!data) {
-> +		err = -ENOMEM;
-> +		goto error_kzalloc;
-> +	}
-> +
-> +	match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
-> +	if (!match) {
-> +		err = -EINVAL;
-
-ENODEV ?
-
-> +		goto error_match_device;
-> +	}
-> +
-> +	data->func = vexpress_config_func_get_by_dev(&pdev->dev);
-> +	if (!data->func) {
-> +		err = -ENXIO;
-
-ENODEV ?
-
-> +		goto error_get_func;
-> +	}
-> +
-> +	err = sysfs_create_group(&pdev->dev.kobj, match->data);
-> +	if (err)
-> +		goto error_create_group;
-> +
-> +	data->hwmon_dev = hwmon_device_register(&pdev->dev);
-> +	if (IS_ERR(data->hwmon_dev)) {
-> +		err = PTR_ERR(data->hwmon_dev);
-> +		goto error_hwmon_device_register;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, data);
-> +
-Must be set before sysfs files are created.
-
-> +	return 0;
-> +
-> +error_hwmon_device_register:
-> +	sysfs_remove_group(&pdev->dev.kobj, match->data);
-> +error_create_group:
-> +	vexpress_config_func_put(data->func);
-> +error_get_func:
-> +error_match_device:
-> +error_kzalloc:
-
-Just return the error instead of using goto. No need for all those goto labels.
-
-> +	return err;
-> +}
-> +
-> +static int __devexit vexpress_hwmon_remove(struct platform_device *pdev)
-> +{
-> +	struct vexpress_hwmon_data *data = platform_get_drvdata(pdev);
-> +	const struct of_device_id *match;
-> +
-> +	hwmon_device_unregister(data->hwmon_dev);
-> +
-> +	match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
-> +	sysfs_remove_group(&pdev->dev.kobj, match->data);
-> +
-> +	vexpress_config_func_put(data->func);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver vexpress_hwmon_driver = {
-> +	.probe = vexpress_hwmon_probe,
-> +	.remove = __devexit_p(vexpress_hwmon_remove),
-> +	.driver	= {
-> +		.name = DRVNAME,
-> +		.owner = THIS_MODULE,
-> +		.of_match_table = vexpress_hwmon_of_match,
-> +	},
-> +};
-> +
-> +static int __init vexpress_hwmon_init(void)
-> +{
-> +	return platform_driver_register(&vexpress_hwmon_driver);
-> +}
-> +
-> +static void __exit vexpress_hwmon_exit(void)
-> +{
-> +	platform_driver_unregister(&vexpress_hwmon_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Pawel Moll <pawel.moll@arm.com>");
-> +MODULE_DESCRIPTION("Versatile Express hwmon sensors driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(vexpress_hwmon_init);
-> +module_exit(vexpress_hwmon_exit);
-
-You can use module_platform_driver here.
-
-> -- 
-> 1.7.9.5
-> 
-> 
-> 
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gRnJpLCAyMDEyLTA5LTIxIGF0IDAwOjU3ICswMTAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
+IFlvdXIgcGF0Y2ggaXMgc3Vic3RhbnRpYWxseSBjb3JydXB0ZWQgYW5kIHVudXNhYmxlIGFzIHBh
+dGNoIGZpbGUuIERpZCB5b3Ugc2VuZAo+IGl0IHRocm91Z2ggb3V0bG9vayA/CgpObywgaXQncyBu
+b3JtYWwgZ2l0LXNlbmQtZW1haWwsIGJ1dCBpdCBnb2VzIHRocm91Z2ggRXhjaGFuZ2UgbWFpbCBz
+ZXJ2ZXIKd2hpY2ggY2FuIGRvIHN0dXBpZCB0aGluZ3Mgd2l0aCB0aGUgbWVzc2FnZSBib2R5IChp
+ZS4gY2hhbmdlIGl0ISkuIFNvcnJ5CmFib3V0IGl0LCBJJ2xsIHNlbmQgdGhlIG5leHQgdmVyc2lv
+biBmcm9tIG15IHByaXZhdGUgYWNjb3VudCB0byBhdm9pZApzdWNoIHByb2JsZW1zLgoKPiA+ICtz
+dGF0aWMgc3NpemVfdCB2ZXhwcmVzc19od21vbl9uYW1lX3Nob3coc3RydWN0IGRldmljZSAqZGV2
+LAo+ID4gKyAgICAgICAgICAgICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2X2F0dHIsIGNo
+YXIgKmJ1ZmZlcikKPiA+ICt7Cj4gPiArICAgICBjb25zdCBjaGFyICpjb21wYXRpYmxlID0gb2Zf
+Z2V0X3Byb3BlcnR5KGRldi0+b2Zfbm9kZSwgImNvbXBhdGlibGUiLAo+ID4gKyAgICAgICAgICAg
+ICAgICAgICAgIE5VTEwpOwo+ID4gKwo+IENhbiBjb21wYXRpYmxlIGJlIE5VTEwgPwoKTm8sIGNv
+bXBhdGlibGUgdmFsdWUgbWFrZXMgdGhlIGRldmljZSBib3VuZCB3aXRoIHRoZSBkcml2ZXIuIE5v
+dGhpbmcgb2YKdGhpcyB3b3VsZCBoYXBwZW4gd2l0aG91dCBjb3JyZWN0IGNvbXBhdGlibGUgc3Ry
+aW5nLiBBbmQgdGhlIGRldmljZSB3aWxsCmJlIG5ldmVyIHN1Y2Nlc3NmdWxseSBwcm9iZWQgd2l0
+aG91dCBEVCBub2RlICJiZWhpbmQgaXQiICh0aGUKb2ZfbWF0Y2hfZGV2aWNlKCkgYmVsb3cgd2ls
+bCByZXR1cm4gTlVMTCkuCgo+ID4gKyAgICAgcmV0dXJuIHNwcmludGYoYnVmZmVyLCAiJXNcbiIs
+IGNvbXBhdGlibGUpOwo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgc3NpemVfdCB2ZXhwcmVzc19o
+d21vbl9sYWJlbF9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwKPiA+ICsgICAgICAgICAgICAgc3Ry
+dWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldl9hdHRyLCBjaGFyICpidWZmZXIpCj4gPiArewo+ID4g
+KyAgICAgY29uc3QgY2hhciAqbGFiZWwgPSBvZl9nZXRfcHJvcGVydHkoZGV2LT5vZl9ub2RlLCAi
+bGFiZWwiLCBOVUxMKTsKPiA+ICsKPiAKPiBDYW4gbGFiZWwgYmUgTlVMTCAoZWcgaWYgbWlzc2lu
+ZyBpbiBkZXZpY2UgdHJlZSBkYXRhKSA/Cj4gV2hhdCBoYXBwZW5zIGlmIGl0IGlzIE5VTEwgPyAK
+Ckl0IGlzIHByaW50ZWQgYXMgIihudWxsKSIuCgo+IFNlZW1zIHRvIG1lIHRoZSBsYWJlbCBhdHRy
+aWJ1dGUgc2hvdWxkIG5vdCBleGlzdCBpbiB0aGF0IGNhc2UuCgpJIGNhbiBkbyB0aGF0LCBidXQg
+SSBmaW5kIHRoZSBsYWNrIG9mIGxhYmVsIGFuIGVycm9yIC0gZXNzZW50aWFsbHkgdGhlcmUKaXMg
+bm8gb3RoZXIgd2F5IG9mIHVuZGVyc3RhbmRpbmcgdGhlIG1lYW5pbmcgb2YgYSB2YWx1ZS4gVGhl
+IG9yZGVyIG9mCmRldmljZXMgY2FuIGJlIHJhbmRvbSwgc28gbm8gbGFiZWwgLSBubyBpZGVhIHdo
+YXQgdGhlIHZhbHVlIGlzLgoKSSB3aWxsIG1ha2UgdGhlIGxhYmVsIHByb3BlcnR5ICJyZXF1aXJl
+ZCIgaW4gdGhlIGJpbmRpbmcgZG9jdW1lbnRhdGlvbi4KCj4gPiArI2RlZmluZSBWRVhQUkVTU19I
+V01PTl9BVFRSKF9uYW1lLCBfc2hvdywgX2Rpdmlzb3IpICAgICAgICAgIFwKPiA+ICtzdHJ1Y3Qg
+dmV4cHJlc3NfaHdtb25fYXR0ciB2ZXhwcmVzc19od21vbl9hdHRyXyMjX25hbWUgPSB7ICAgXAo+
+ID4gKyAgICAgLmRldl9hdHRyID0gX19BVFRSKF9uYW1lLCBTX0lSVUdPLCBfc2hvdywgTlVMTCks
+ICAgICAgICBcCj4gPiArICAgICAuZGl2aXNvciA9IF9kaXZpc29yLCAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIFwKPiA+ICt9Cj4gCj4gWW91IHNob3VsZCBiZSBhYmxlIHRvIHVz
+ZSBTRU5TT1JfREVWSUNFX0FUVFIgaGVyZS4KCkkgZGlkbid0IHdhbnQgdG8gIm92ZXJsb2FkIiB0
+aGUgaW5kZXggdmFsdWUgZm9yIG90aGVyIHJlYXNvbiwgYnV0IGlmIHlvdQp0aGluayBpdCdzIGJl
+dHRlciBhcHByb2FjaCBJJ2xsIGRvIHRoYXQuCgo+ID4gK3N0YXRpYyBzdHJ1Y3Qgb2ZfZGV2aWNl
+X2lkIHZleHByZXNzX2h3bW9uX29mX21hdGNoW10gPSB7Cj4gPiArI2lmICFkZWZpbmVkKENPTkZJ
+R19SRUdVTEFUT1JfVkVYUFJFU1MpCj4gPiArICAgICB7Cj4gPiArICAgICAgICAgICAgIC5jb21w
+YXRpYmxlID0gImFybSx2ZXhwcmVzcy12b2x0IiwKPiA+ICsgICAgICAgICAgICAgLmRhdGEgPSAm
+dmV4cHJlc3NfaHdtb25fZ3JvdXBfdm9sdCwKPiA+ICsgICAgIH0sCj4gPiArI2VuZGlmCj4gCj4g
+SnVzdCB3b25kZXJpbmcgLSBpcyB0aGUgaHdtb24gZHJpdmVyIG11dHVhbGx5IGV4Y2x1c2l2ZSB3
+aXRoIHRoZSByZWd1bGF0b3IKPiBkcml2ZXIsIG9yIGNhbiBib3RoIGNvZXhpc3QgPwoKVGhlIGRl
+dmljZSBtb2RlbCB3aWxsIG5vdCBsZXQgb25lIGRldmljZSB0byBiZSBib3VuZCB0byB0d28gZGlm
+ZmVyZW50CmRyaXZlcnMsIHNvIHRoZXJlIHdpbGwgYmUgYSByYWNlIGZvciB0aGUgZGV2aWNlLCBk
+ZXBlbmRpbmcgb24gdGhlCmluaXRjYWxsIG9yZGVyaW5nLi4uIEFuZCB0aGUgcmVndWxhdG9yIGRy
+aXZlciBtdXN0IGhhdmUgImhpZ2hlcgpwcmlvcml0eSIgdGhlbiBod21vbi4KCkhhdmluZyBzYWlk
+IHRoYXQsIGl0IHNlZW1zIHRoYXQgd2UgY291bGQgaGF2ZSBhICJnZW5lcmljIiBod21vbgoicmVn
+dWxhdG9yIHNlbnNvciIgZHJpdmVyIChhcyBpbjogaW4xX2lucHV0IGRvaW5nCnJlZ3VsYXRvcl9n
+ZXRfdm9sdGFnZSgpKSwgYXMgSSB0aGluayBhIHJlZ3VsYXRvciBjYW4gYmUgc2hhcmVkIGJldHdl
+ZW4KY29uc3VtZXJzIHVuZGVyIGNlcnRhaW4gY29uZGl0aW9ucyAoSSdkIGhhdmUgdG8gY2hlY2sg
+dGhpcywgdGhvdWdoKS4KCj4gRldJVywgdGhlIHJlZmVyZW5jZXMgdG8gImFybSx2ZXhwcmVzcy12
+b2x0IiBJIGNhbiBmaW5kIG9uIHRoZSB3ZWIgYWxsIGRvIG5vdAo+IGluY2x1ZGUgImxhYmVsIiwg
+c28gSSB0aGluayB5b3UnbGwgcmVhbGx5IGhhdmUgdG8gbG9vayBpbnRvIHdoYXQgaGFwcGVucyBp
+Zgo+IHRoZXJlIGlzIG5vIHN1Y2ggcHJvcGVydHkuCgpZZXMsIHRoZSBwYXRjaGVzIHlvdSBzYXcg
+d2VyZSBwcmVwYXJlZCBmb3IgdGhlIHByZXZpb3VzIHZlcnNpb24gb2YgdGhlCmRyaXZlci4gTGFz
+dCBuaWdodCB3aGVuIHRlc3RpbmcgdGhlIGNvZGUgSSBzcG90dGVkIHRoZSAobnVsbCkgbGFiZWxz
+IGFuZAp1cGRhdGVkIHRoZSBEVFMgZmlsZXMgc28gdGhlIGFsbCB0aGUgInZvbHRzIiBhbHJlYWR5
+IGhhdmUgbGFiZWxzIChJCmhhdmVuJ3QgcmVwb3N0ZWQgdGhlIERldmljZSBUcmVlIHBhdGNoZXMg
+eWV0KS4KCj4gPiArICAgICB7Cj4gPiArICAgICAgICAgICAgIC5jb21wYXRpYmxlID0gImFybSx2
+ZXhwcmVzcy1hbXAiLAo+ID4gKyAgICAgICAgICAgICAuZGF0YSA9ICZ2ZXhwcmVzc19od21vbl9n
+cm91cF9hbXAsCj4gPiArICAgICB9LCB7Cj4gPiArICAgICAgICAgICAgIC5jb21wYXRpYmxlID0g
+ImFybSx2ZXhwcmVzcy10ZW1wIiwKPiA+ICsgICAgICAgICAgICAgLmRhdGEgPSAmdmV4cHJlc3Nf
+aHdtb25fZ3JvdXBfdGVtcCwKPiA+ICsgICAgIH0sIHsKPiA+ICsgICAgICAgICAgICAgLmNvbXBh
+dGlibGUgPSAiYXJtLHZleHByZXNzLXBvd2VyIiwKPiA+ICsgICAgICAgICAgICAgLmRhdGEgPSAm
+dmV4cHJlc3NfaHdtb25fZ3JvdXBfcG93ZXIsCj4gPiArICAgICB9LCB7Cj4gPiArICAgICAgICAg
+ICAgIC5jb21wYXRpYmxlID0gImFybSx2ZXhwcmVzcy1lbmVyZ3kiLAo+ID4gKyAgICAgICAgICAg
+ICAuZGF0YSA9ICZ2ZXhwcmVzc19od21vbl9ncm91cF9lbmVyZ3ksCj4gPiArICAgICB9LAo+ID4g
+KyAgICAge30KPiA+ICt9Owo+ID4gK01PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIHZleHByZXNzX2h3
+bW9uX29mX21hdGNoKTsKPiA+ICsKPiAKPiBKdXN0IHdvbmRlcmluZyAuLi4uIHdvdWxkIHRoZSBm
+b2xsb3dpbmcgd29yayA/Cj4gCj4gICAgICAgICBod21vbkAwIHsKPiAgICAgICAgICAgICAgICAg
+Y29tcGF0aWJsZSA9ICJhcm0sdmV4cHJlc3MtaHdtb24iOwo+ICAgICAgICAgICAgICAgICB2b2x0
+QDAgewo+ICAgICAgICAgICAgICAgICAgICAgICAgIC8qIExvZ2ljIGxldmVsIHZvbHRhZ2UgKi8K
+PiAgICAgICAgICAgICAgICAgICAgICAgICBhcm0sdmV4cHJlc3Mtc3lzcmVnLGZ1bmMgPSA8MiAw
+PjsKPiAgICAgICAgICAgICAgICAgICAgICAgICBsYWJlbCA9ICJWSU8iOwo+ICAgICAgICAgICAg
+ICAgICB9Owo+IAo+ICAgICAgICAgICAgICAgICBhbXBAMCB7Cj4gICAgICAgICAgICAgICAgICAg
+ICAgICAgLyogVG90YWwgY3VycmVudCBmb3IgdGhlIHR3byBjb3JlcyAqLwo+ICAgICAgICAgICAg
+ICAgICAgICAgICAgIGFybSx2ZXhwcmVzcy1zeXNyZWcsZnVuYyA9IDwzIDA+Owo+ICAgICAgICAg
+ICAgICAgICAgICAgICAgIGxhYmVsID0gIkNvcmUgY3VycmVudCI7Cj4gICAgICAgICAgICAgICAg
+IH07Cj4gCj4gICAgICAgICAgICAgICAgIHRlbXBAMCB7Cj4gICAgICAgICAgICAgICAgICAgICAg
+ICAgLyogRENDIGludGVybmFsIHRlbXBlcmF0dXJlICovCj4gICAgICAgICAgICAgICAgICAgICAg
+ICAgYXJtLHZleHByZXNzLXN5c3JlZyxmdW5jID0gPDQgMD47Cj4gICAgICAgICAgICAgICAgICAg
+ICAgICAgbGFiZWwgPSAiRENDIjsKPiAgICAgICAgICAgICAgICAgfTsKPiAKPiAgICAgICAgICAg
+ICAgICAgcG93ZXJAMCB7Cj4gICAgICAgICAgICAgICAgICAgICAgICAgLyogVG90YWwgcG93ZXIg
+Ki8KPiAgICAgICAgICAgICAgICAgICAgICAgICBhcm0sdmV4cHJlc3Mtc3lzcmVnLGZ1bmMgPSA8
+MTIgMD47Cj4gICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWwgPSAiQ29yZSBwb3dlciI7Cj4g
+ICAgICAgICAgICAgICAgIH07Cj4gCj4gICAgICAgICAgICAgICAgIGVuZXJneUAwIHsKPiAgICAg
+ICAgICAgICAgICAgICAgICAgICAvKiBUb3RhbCBlbmVyZ3kgKi8KPiAgICAgICAgICAgICAgICAg
+ICAgICAgICBhcm0sdmV4cHJlc3Mtc3lzcmVnLGZ1bmMgPSA8MTMgMD47Cj4gICAgICAgICAgICAg
+ICAgICAgICAgICAgbGFiZWwgPSAiQ29yZSBlbmVyZ3kiOwo+ICAgICAgICAgICAgICAgICB9Owo+
+ICAgICAgICAgfTsKPiAKPiBJIGFtIG5vdCBhIGRldmljZSB0cmVlIGV4cGVydCwgYnV0IGl0IHNl
+ZW1zIHRvIG1lIHRoYXQgeW91IHdvdWxkIG9ubHkKPiBoYXZlIGEgc2luZ2xlIGRldmljZSBub2Rl
+IHdpdGggdGhpcyBhcHByb2FjaCwgYW5kIHlvdSBjb3VsZCBwYXJzZSBpdHMKPiBjaGlsZHJlbiB3
+aXRoIGZvcl9lYWNoX2NoaWxkX29mX25vZGUoKS4KClRoZSB0aGluZyBpcyB0aGF0IHRoZXJlIGFy
+ZSBvdGhlciBjb25maWcgZGV2aWNlcywgbm9uIGh3bW9uIHJlbGV2YW50LiBJbgpwYXJ0aWN1bGFy
+OiBjbG9jayBnZW5lcmF0b3JzICgib3NjaWxsYXRvcnMiKSwgcmVzZXQgY29udHJvbGxlcnMsIERW
+SQptdWx0aXBsZXhlcnMgZXRjLiBldGMuIEFuZCB0aGV5IGFyZSB0cmVhdGVkIGVxdWFsbHksIGFz
+IHNpbXBsZSBwbGF0Zm9ybQpkZXZpY2VzLiBBbmQgdGhlIC12b2x0IGNhc2UgaXMgYSBnb29kIGV4
+YW1wbGUgd2h5Li4uCgkKPiA+ICtzdGF0aWMgaW50IHZleHByZXNzX2h3bW9uX3Byb2JlKHN0cnVj
+dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gPiArewo+ID4gKyAgICAgaW50IGVycjsKPiA+ICsg
+ICAgIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgKm1hdGNoOwo+ID4gKyAgICAgc3RydWN0IHZl
+eHByZXNzX2h3bW9uX2RhdGEgKmRhdGE7Cj4gPiArCj4gPiArICAgICBkYXRhID0gZGV2bV9remFs
+bG9jKCZwZGV2LT5kZXYsIHNpemVvZigqZGF0YSksIEdGUF9LRVJORUwpOwo+ID4gKyAgICAgaWYg
+KCFkYXRhKSB7Cj4gPiArICAgICAgICAgICAgIGVyciA9IC1FTk9NRU07Cj4gPiArICAgICAgICAg
+ICAgIGdvdG8gZXJyb3Jfa3phbGxvYzsKPiA+ICsgICAgIH0KPiA+ICsKPiA+ICsgICAgIG1hdGNo
+ID0gb2ZfbWF0Y2hfZGV2aWNlKHZleHByZXNzX2h3bW9uX29mX21hdGNoLCAmcGRldi0+ZGV2KTsK
+PiA+ICsgICAgIGlmICghbWF0Y2gpIHsKPiA+ICsgICAgICAgICAgICAgZXJyID0gLUVJTlZBTDsK
+PiAKPiBFTk9ERVYgPwoKRnJhbmtseSBzcGVha2luZyB0aGUgIi8qIEludmFsaWQgYXJndW1lbnQg
+Ki8iIHNlZW1zIG1vcmUgYXBwcm9wcmlhdGUKaGVyZSwgYnV0IGNhbiBkbywgbm8gcHJvYmxlbS4K
+Cj4gPiArICAgICAgICAgICAgIGdvdG8gZXJyb3JfbWF0Y2hfZGV2aWNlOwo+ID4gKyAgICAgfQo+
+ID4gKwo+ID4gKyAgICAgZGF0YS0+ZnVuYyA9IHZleHByZXNzX2NvbmZpZ19mdW5jX2dldF9ieV9k
+ZXYoJnBkZXYtPmRldik7Cj4gPiArICAgICBpZiAoIWRhdGEtPmZ1bmMpIHsKPiA+ICsgICAgICAg
+ICAgICAgZXJyID0gLUVOWElPOwo+IAo+IEVOT0RFViA/CgpBZ2FpbiwgaXQncyAiLyogTm8gc3Vj
+aCBkZXZpY2Ugb3IgYWRkcmVzcyAqLyIgdnMgIi8qIE5vIHN1Y2ggZGV2aWNlICovIi4KQm90aCBm
+aW5lIHdpdGggbWUsIHdpbGwgZG8uCgo+ID4gKyAgICAgICAgICAgICBnb3RvIGVycm9yX2dldF9m
+dW5jOwo+ID4gKyAgICAgfQo+ID4gKwo+ID4gKyAgICAgZXJyID0gc3lzZnNfY3JlYXRlX2dyb3Vw
+KCZwZGV2LT5kZXYua29iaiwgbWF0Y2gtPmRhdGEpOwo+ID4gKyAgICAgaWYgKGVycikKPiA+ICsg
+ICAgICAgICAgICAgZ290byBlcnJvcl9jcmVhdGVfZ3JvdXA7Cj4gPiArCj4gPiArICAgICBkYXRh
+LT5od21vbl9kZXYgPSBod21vbl9kZXZpY2VfcmVnaXN0ZXIoJnBkZXYtPmRldik7Cj4gPiArICAg
+ICBpZiAoSVNfRVJSKGRhdGEtPmh3bW9uX2RldikpIHsKPiA+ICsgICAgICAgICAgICAgZXJyID0g
+UFRSX0VSUihkYXRhLT5od21vbl9kZXYpOwo+ID4gKyAgICAgICAgICAgICBnb3RvIGVycm9yX2h3
+bW9uX2RldmljZV9yZWdpc3RlcjsKPiA+ICsgICAgIH0KPiA+ICsKPiA+ICsgICAgIHBsYXRmb3Jt
+X3NldF9kcnZkYXRhKHBkZXYsIGRhdGEpOwo+ID4gKwo+IE11c3QgYmUgc2V0IGJlZm9yZSBzeXNm
+cyBmaWxlcyBhcmUgY3JlYXRlZC4KClN1cmUgdGhpbmcsIHRoYW5rcyBmb3Igc3BvdHRpbmcgdGhp
+cy4KCj4gPiArICAgICByZXR1cm4gMDsKPiA+ICsKPiA+ICtlcnJvcl9od21vbl9kZXZpY2VfcmVn
+aXN0ZXI6Cj4gPiArICAgICBzeXNmc19yZW1vdmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCBtYXRj
+aC0+ZGF0YSk7Cj4gPiArZXJyb3JfY3JlYXRlX2dyb3VwOgo+ID4gKyAgICAgdmV4cHJlc3NfY29u
+ZmlnX2Z1bmNfcHV0KGRhdGEtPmZ1bmMpOwo+ID4gK2Vycm9yX2dldF9mdW5jOgo+ID4gK2Vycm9y
+X21hdGNoX2RldmljZToKPiA+ICtlcnJvcl9remFsbG9jOgo+IAo+IEp1c3QgcmV0dXJuIHRoZSBl
+cnJvciBpbnN0ZWFkIG9mIHVzaW5nIGdvdG8uIE5vIG5lZWQgZm9yIGFsbCB0aG9zZSBnb3RvIGxh
+YmVscy4KCkkndmUgaGVhcmQgZXhhY3RseSB0aGUgb3Bwb3NpdGUgbnVtYmVyIG9mIHRpbWVzICh1
+c3VhbGx5IHBvaW50aW5nIG1lIGF0CkNvZGluZ1N0eWxlIDstKSBidXQgbm8gcHJvYmxlbSwgd2ls
+bCBkby4KCj4gPiArbW9kdWxlX2luaXQodmV4cHJlc3NfaHdtb25faW5pdCk7Cj4gPiArbW9kdWxl
+X2V4aXQodmV4cHJlc3NfaHdtb25fZXhpdCk7Cj4gCj4gWW91IGNhbiB1c2UgbW9kdWxlX3BsYXRm
+b3JtX2RyaXZlciBoZXJlLgoKU3VyZSwgZm9yZ290IGFib3V0IHRoaXMgbmV3IGZlYXR1cmUuCgpU
+aGFua3MgZm9yIHRoZSByZXZpZXchCgpQYXdlxYIKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
+aW5mby9sbS1zZW5zb3Jz
