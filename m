@@ -1,153 +1,254 @@
-From: Pawel Moll <pawel.moll@arm.com>
-Date: Fri, 21 Sep 2012 15:38:45 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 21 Sep 2012 15:54:47 +0000
 Subject: Re: [lm-sensors] [PATCH v3] hwmon: Versatile Express hwmon driver
-Message-Id: <1348241925.11116.242.camel@hornet>
+Message-Id: <20120921155447.GA13980@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1348160058-13425-1-git-send-email-pawel.moll@arm.com>
  <20120920235727.GA18860@roeck-us.net>
-In-Reply-To: <20120920235727.GA18860@roeck-us.net>
+ <1348241925.11116.242.camel@hornet>
+In-Reply-To: <1348241925.11116.242.camel@hornet>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-T24gRnJpLCAyMDEyLTA5LTIxIGF0IDAwOjU3ICswMTAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
-IFlvdXIgcGF0Y2ggaXMgc3Vic3RhbnRpYWxseSBjb3JydXB0ZWQgYW5kIHVudXNhYmxlIGFzIHBh
-dGNoIGZpbGUuIERpZCB5b3Ugc2VuZAo+IGl0IHRocm91Z2ggb3V0bG9vayA/CgpObywgaXQncyBu
-b3JtYWwgZ2l0LXNlbmQtZW1haWwsIGJ1dCBpdCBnb2VzIHRocm91Z2ggRXhjaGFuZ2UgbWFpbCBz
-ZXJ2ZXIKd2hpY2ggY2FuIGRvIHN0dXBpZCB0aGluZ3Mgd2l0aCB0aGUgbWVzc2FnZSBib2R5IChp
-ZS4gY2hhbmdlIGl0ISkuIFNvcnJ5CmFib3V0IGl0LCBJJ2xsIHNlbmQgdGhlIG5leHQgdmVyc2lv
-biBmcm9tIG15IHByaXZhdGUgYWNjb3VudCB0byBhdm9pZApzdWNoIHByb2JsZW1zLgoKPiA+ICtz
-dGF0aWMgc3NpemVfdCB2ZXhwcmVzc19od21vbl9uYW1lX3Nob3coc3RydWN0IGRldmljZSAqZGV2
-LAo+ID4gKyAgICAgICAgICAgICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGV2X2F0dHIsIGNo
-YXIgKmJ1ZmZlcikKPiA+ICt7Cj4gPiArICAgICBjb25zdCBjaGFyICpjb21wYXRpYmxlID0gb2Zf
-Z2V0X3Byb3BlcnR5KGRldi0+b2Zfbm9kZSwgImNvbXBhdGlibGUiLAo+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgIE5VTEwpOwo+ID4gKwo+IENhbiBjb21wYXRpYmxlIGJlIE5VTEwgPwoKTm8sIGNv
-bXBhdGlibGUgdmFsdWUgbWFrZXMgdGhlIGRldmljZSBib3VuZCB3aXRoIHRoZSBkcml2ZXIuIE5v
-dGhpbmcgb2YKdGhpcyB3b3VsZCBoYXBwZW4gd2l0aG91dCBjb3JyZWN0IGNvbXBhdGlibGUgc3Ry
-aW5nLiBBbmQgdGhlIGRldmljZSB3aWxsCmJlIG5ldmVyIHN1Y2Nlc3NmdWxseSBwcm9iZWQgd2l0
-aG91dCBEVCBub2RlICJiZWhpbmQgaXQiICh0aGUKb2ZfbWF0Y2hfZGV2aWNlKCkgYmVsb3cgd2ls
-bCByZXR1cm4gTlVMTCkuCgo+ID4gKyAgICAgcmV0dXJuIHNwcmludGYoYnVmZmVyLCAiJXNcbiIs
-IGNvbXBhdGlibGUpOwo+ID4gK30KPiA+ICsKPiA+ICtzdGF0aWMgc3NpemVfdCB2ZXhwcmVzc19o
-d21vbl9sYWJlbF9zaG93KHN0cnVjdCBkZXZpY2UgKmRldiwKPiA+ICsgICAgICAgICAgICAgc3Ry
-dWN0IGRldmljZV9hdHRyaWJ1dGUgKmRldl9hdHRyLCBjaGFyICpidWZmZXIpCj4gPiArewo+ID4g
-KyAgICAgY29uc3QgY2hhciAqbGFiZWwgPSBvZl9nZXRfcHJvcGVydHkoZGV2LT5vZl9ub2RlLCAi
-bGFiZWwiLCBOVUxMKTsKPiA+ICsKPiAKPiBDYW4gbGFiZWwgYmUgTlVMTCAoZWcgaWYgbWlzc2lu
-ZyBpbiBkZXZpY2UgdHJlZSBkYXRhKSA/Cj4gV2hhdCBoYXBwZW5zIGlmIGl0IGlzIE5VTEwgPyAK
-Ckl0IGlzIHByaW50ZWQgYXMgIihudWxsKSIuCgo+IFNlZW1zIHRvIG1lIHRoZSBsYWJlbCBhdHRy
-aWJ1dGUgc2hvdWxkIG5vdCBleGlzdCBpbiB0aGF0IGNhc2UuCgpJIGNhbiBkbyB0aGF0LCBidXQg
-SSBmaW5kIHRoZSBsYWNrIG9mIGxhYmVsIGFuIGVycm9yIC0gZXNzZW50aWFsbHkgdGhlcmUKaXMg
-bm8gb3RoZXIgd2F5IG9mIHVuZGVyc3RhbmRpbmcgdGhlIG1lYW5pbmcgb2YgYSB2YWx1ZS4gVGhl
-IG9yZGVyIG9mCmRldmljZXMgY2FuIGJlIHJhbmRvbSwgc28gbm8gbGFiZWwgLSBubyBpZGVhIHdo
-YXQgdGhlIHZhbHVlIGlzLgoKSSB3aWxsIG1ha2UgdGhlIGxhYmVsIHByb3BlcnR5ICJyZXF1aXJl
-ZCIgaW4gdGhlIGJpbmRpbmcgZG9jdW1lbnRhdGlvbi4KCj4gPiArI2RlZmluZSBWRVhQUkVTU19I
-V01PTl9BVFRSKF9uYW1lLCBfc2hvdywgX2Rpdmlzb3IpICAgICAgICAgIFwKPiA+ICtzdHJ1Y3Qg
-dmV4cHJlc3NfaHdtb25fYXR0ciB2ZXhwcmVzc19od21vbl9hdHRyXyMjX25hbWUgPSB7ICAgXAo+
-ID4gKyAgICAgLmRldl9hdHRyID0gX19BVFRSKF9uYW1lLCBTX0lSVUdPLCBfc2hvdywgTlVMTCks
-ICAgICAgICBcCj4gPiArICAgICAuZGl2aXNvciA9IF9kaXZpc29yLCAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIFwKPiA+ICt9Cj4gCj4gWW91IHNob3VsZCBiZSBhYmxlIHRvIHVz
-ZSBTRU5TT1JfREVWSUNFX0FUVFIgaGVyZS4KCkkgZGlkbid0IHdhbnQgdG8gIm92ZXJsb2FkIiB0
-aGUgaW5kZXggdmFsdWUgZm9yIG90aGVyIHJlYXNvbiwgYnV0IGlmIHlvdQp0aGluayBpdCdzIGJl
-dHRlciBhcHByb2FjaCBJJ2xsIGRvIHRoYXQuCgo+ID4gK3N0YXRpYyBzdHJ1Y3Qgb2ZfZGV2aWNl
-X2lkIHZleHByZXNzX2h3bW9uX29mX21hdGNoW10gPSB7Cj4gPiArI2lmICFkZWZpbmVkKENPTkZJ
-R19SRUdVTEFUT1JfVkVYUFJFU1MpCj4gPiArICAgICB7Cj4gPiArICAgICAgICAgICAgIC5jb21w
-YXRpYmxlID0gImFybSx2ZXhwcmVzcy12b2x0IiwKPiA+ICsgICAgICAgICAgICAgLmRhdGEgPSAm
-dmV4cHJlc3NfaHdtb25fZ3JvdXBfdm9sdCwKPiA+ICsgICAgIH0sCj4gPiArI2VuZGlmCj4gCj4g
-SnVzdCB3b25kZXJpbmcgLSBpcyB0aGUgaHdtb24gZHJpdmVyIG11dHVhbGx5IGV4Y2x1c2l2ZSB3
-aXRoIHRoZSByZWd1bGF0b3IKPiBkcml2ZXIsIG9yIGNhbiBib3RoIGNvZXhpc3QgPwoKVGhlIGRl
-dmljZSBtb2RlbCB3aWxsIG5vdCBsZXQgb25lIGRldmljZSB0byBiZSBib3VuZCB0byB0d28gZGlm
-ZmVyZW50CmRyaXZlcnMsIHNvIHRoZXJlIHdpbGwgYmUgYSByYWNlIGZvciB0aGUgZGV2aWNlLCBk
-ZXBlbmRpbmcgb24gdGhlCmluaXRjYWxsIG9yZGVyaW5nLi4uIEFuZCB0aGUgcmVndWxhdG9yIGRy
-aXZlciBtdXN0IGhhdmUgImhpZ2hlcgpwcmlvcml0eSIgdGhlbiBod21vbi4KCkhhdmluZyBzYWlk
-IHRoYXQsIGl0IHNlZW1zIHRoYXQgd2UgY291bGQgaGF2ZSBhICJnZW5lcmljIiBod21vbgoicmVn
-dWxhdG9yIHNlbnNvciIgZHJpdmVyIChhcyBpbjogaW4xX2lucHV0IGRvaW5nCnJlZ3VsYXRvcl9n
-ZXRfdm9sdGFnZSgpKSwgYXMgSSB0aGluayBhIHJlZ3VsYXRvciBjYW4gYmUgc2hhcmVkIGJldHdl
-ZW4KY29uc3VtZXJzIHVuZGVyIGNlcnRhaW4gY29uZGl0aW9ucyAoSSdkIGhhdmUgdG8gY2hlY2sg
-dGhpcywgdGhvdWdoKS4KCj4gRldJVywgdGhlIHJlZmVyZW5jZXMgdG8gImFybSx2ZXhwcmVzcy12
-b2x0IiBJIGNhbiBmaW5kIG9uIHRoZSB3ZWIgYWxsIGRvIG5vdAo+IGluY2x1ZGUgImxhYmVsIiwg
-c28gSSB0aGluayB5b3UnbGwgcmVhbGx5IGhhdmUgdG8gbG9vayBpbnRvIHdoYXQgaGFwcGVucyBp
-Zgo+IHRoZXJlIGlzIG5vIHN1Y2ggcHJvcGVydHkuCgpZZXMsIHRoZSBwYXRjaGVzIHlvdSBzYXcg
-d2VyZSBwcmVwYXJlZCBmb3IgdGhlIHByZXZpb3VzIHZlcnNpb24gb2YgdGhlCmRyaXZlci4gTGFz
-dCBuaWdodCB3aGVuIHRlc3RpbmcgdGhlIGNvZGUgSSBzcG90dGVkIHRoZSAobnVsbCkgbGFiZWxz
-IGFuZAp1cGRhdGVkIHRoZSBEVFMgZmlsZXMgc28gdGhlIGFsbCB0aGUgInZvbHRzIiBhbHJlYWR5
-IGhhdmUgbGFiZWxzIChJCmhhdmVuJ3QgcmVwb3N0ZWQgdGhlIERldmljZSBUcmVlIHBhdGNoZXMg
-eWV0KS4KCj4gPiArICAgICB7Cj4gPiArICAgICAgICAgICAgIC5jb21wYXRpYmxlID0gImFybSx2
-ZXhwcmVzcy1hbXAiLAo+ID4gKyAgICAgICAgICAgICAuZGF0YSA9ICZ2ZXhwcmVzc19od21vbl9n
-cm91cF9hbXAsCj4gPiArICAgICB9LCB7Cj4gPiArICAgICAgICAgICAgIC5jb21wYXRpYmxlID0g
-ImFybSx2ZXhwcmVzcy10ZW1wIiwKPiA+ICsgICAgICAgICAgICAgLmRhdGEgPSAmdmV4cHJlc3Nf
-aHdtb25fZ3JvdXBfdGVtcCwKPiA+ICsgICAgIH0sIHsKPiA+ICsgICAgICAgICAgICAgLmNvbXBh
-dGlibGUgPSAiYXJtLHZleHByZXNzLXBvd2VyIiwKPiA+ICsgICAgICAgICAgICAgLmRhdGEgPSAm
-dmV4cHJlc3NfaHdtb25fZ3JvdXBfcG93ZXIsCj4gPiArICAgICB9LCB7Cj4gPiArICAgICAgICAg
-ICAgIC5jb21wYXRpYmxlID0gImFybSx2ZXhwcmVzcy1lbmVyZ3kiLAo+ID4gKyAgICAgICAgICAg
-ICAuZGF0YSA9ICZ2ZXhwcmVzc19od21vbl9ncm91cF9lbmVyZ3ksCj4gPiArICAgICB9LAo+ID4g
-KyAgICAge30KPiA+ICt9Owo+ID4gK01PRFVMRV9ERVZJQ0VfVEFCTEUob2YsIHZleHByZXNzX2h3
-bW9uX29mX21hdGNoKTsKPiA+ICsKPiAKPiBKdXN0IHdvbmRlcmluZyAuLi4uIHdvdWxkIHRoZSBm
-b2xsb3dpbmcgd29yayA/Cj4gCj4gICAgICAgICBod21vbkAwIHsKPiAgICAgICAgICAgICAgICAg
-Y29tcGF0aWJsZSA9ICJhcm0sdmV4cHJlc3MtaHdtb24iOwo+ICAgICAgICAgICAgICAgICB2b2x0
-QDAgewo+ICAgICAgICAgICAgICAgICAgICAgICAgIC8qIExvZ2ljIGxldmVsIHZvbHRhZ2UgKi8K
-PiAgICAgICAgICAgICAgICAgICAgICAgICBhcm0sdmV4cHJlc3Mtc3lzcmVnLGZ1bmMgPSA8MiAw
-PjsKPiAgICAgICAgICAgICAgICAgICAgICAgICBsYWJlbCA9ICJWSU8iOwo+ICAgICAgICAgICAg
-ICAgICB9Owo+IAo+ICAgICAgICAgICAgICAgICBhbXBAMCB7Cj4gICAgICAgICAgICAgICAgICAg
-ICAgICAgLyogVG90YWwgY3VycmVudCBmb3IgdGhlIHR3byBjb3JlcyAqLwo+ICAgICAgICAgICAg
-ICAgICAgICAgICAgIGFybSx2ZXhwcmVzcy1zeXNyZWcsZnVuYyA9IDwzIDA+Owo+ICAgICAgICAg
-ICAgICAgICAgICAgICAgIGxhYmVsID0gIkNvcmUgY3VycmVudCI7Cj4gICAgICAgICAgICAgICAg
-IH07Cj4gCj4gICAgICAgICAgICAgICAgIHRlbXBAMCB7Cj4gICAgICAgICAgICAgICAgICAgICAg
-ICAgLyogRENDIGludGVybmFsIHRlbXBlcmF0dXJlICovCj4gICAgICAgICAgICAgICAgICAgICAg
-ICAgYXJtLHZleHByZXNzLXN5c3JlZyxmdW5jID0gPDQgMD47Cj4gICAgICAgICAgICAgICAgICAg
-ICAgICAgbGFiZWwgPSAiRENDIjsKPiAgICAgICAgICAgICAgICAgfTsKPiAKPiAgICAgICAgICAg
-ICAgICAgcG93ZXJAMCB7Cj4gICAgICAgICAgICAgICAgICAgICAgICAgLyogVG90YWwgcG93ZXIg
-Ki8KPiAgICAgICAgICAgICAgICAgICAgICAgICBhcm0sdmV4cHJlc3Mtc3lzcmVnLGZ1bmMgPSA8
-MTIgMD47Cj4gICAgICAgICAgICAgICAgICAgICAgICAgbGFiZWwgPSAiQ29yZSBwb3dlciI7Cj4g
-ICAgICAgICAgICAgICAgIH07Cj4gCj4gICAgICAgICAgICAgICAgIGVuZXJneUAwIHsKPiAgICAg
-ICAgICAgICAgICAgICAgICAgICAvKiBUb3RhbCBlbmVyZ3kgKi8KPiAgICAgICAgICAgICAgICAg
-ICAgICAgICBhcm0sdmV4cHJlc3Mtc3lzcmVnLGZ1bmMgPSA8MTMgMD47Cj4gICAgICAgICAgICAg
-ICAgICAgICAgICAgbGFiZWwgPSAiQ29yZSBlbmVyZ3kiOwo+ICAgICAgICAgICAgICAgICB9Owo+
-ICAgICAgICAgfTsKPiAKPiBJIGFtIG5vdCBhIGRldmljZSB0cmVlIGV4cGVydCwgYnV0IGl0IHNl
-ZW1zIHRvIG1lIHRoYXQgeW91IHdvdWxkIG9ubHkKPiBoYXZlIGEgc2luZ2xlIGRldmljZSBub2Rl
-IHdpdGggdGhpcyBhcHByb2FjaCwgYW5kIHlvdSBjb3VsZCBwYXJzZSBpdHMKPiBjaGlsZHJlbiB3
-aXRoIGZvcl9lYWNoX2NoaWxkX29mX25vZGUoKS4KClRoZSB0aGluZyBpcyB0aGF0IHRoZXJlIGFy
-ZSBvdGhlciBjb25maWcgZGV2aWNlcywgbm9uIGh3bW9uIHJlbGV2YW50LiBJbgpwYXJ0aWN1bGFy
-OiBjbG9jayBnZW5lcmF0b3JzICgib3NjaWxsYXRvcnMiKSwgcmVzZXQgY29udHJvbGxlcnMsIERW
-SQptdWx0aXBsZXhlcnMgZXRjLiBldGMuIEFuZCB0aGV5IGFyZSB0cmVhdGVkIGVxdWFsbHksIGFz
-IHNpbXBsZSBwbGF0Zm9ybQpkZXZpY2VzLiBBbmQgdGhlIC12b2x0IGNhc2UgaXMgYSBnb29kIGV4
-YW1wbGUgd2h5Li4uCgkKPiA+ICtzdGF0aWMgaW50IHZleHByZXNzX2h3bW9uX3Byb2JlKHN0cnVj
-dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCj4gPiArewo+ID4gKyAgICAgaW50IGVycjsKPiA+ICsg
-ICAgIGNvbnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgKm1hdGNoOwo+ID4gKyAgICAgc3RydWN0IHZl
-eHByZXNzX2h3bW9uX2RhdGEgKmRhdGE7Cj4gPiArCj4gPiArICAgICBkYXRhID0gZGV2bV9remFs
-bG9jKCZwZGV2LT5kZXYsIHNpemVvZigqZGF0YSksIEdGUF9LRVJORUwpOwo+ID4gKyAgICAgaWYg
-KCFkYXRhKSB7Cj4gPiArICAgICAgICAgICAgIGVyciA9IC1FTk9NRU07Cj4gPiArICAgICAgICAg
-ICAgIGdvdG8gZXJyb3Jfa3phbGxvYzsKPiA+ICsgICAgIH0KPiA+ICsKPiA+ICsgICAgIG1hdGNo
-ID0gb2ZfbWF0Y2hfZGV2aWNlKHZleHByZXNzX2h3bW9uX29mX21hdGNoLCAmcGRldi0+ZGV2KTsK
-PiA+ICsgICAgIGlmICghbWF0Y2gpIHsKPiA+ICsgICAgICAgICAgICAgZXJyID0gLUVJTlZBTDsK
-PiAKPiBFTk9ERVYgPwoKRnJhbmtseSBzcGVha2luZyB0aGUgIi8qIEludmFsaWQgYXJndW1lbnQg
-Ki8iIHNlZW1zIG1vcmUgYXBwcm9wcmlhdGUKaGVyZSwgYnV0IGNhbiBkbywgbm8gcHJvYmxlbS4K
-Cj4gPiArICAgICAgICAgICAgIGdvdG8gZXJyb3JfbWF0Y2hfZGV2aWNlOwo+ID4gKyAgICAgfQo+
-ID4gKwo+ID4gKyAgICAgZGF0YS0+ZnVuYyA9IHZleHByZXNzX2NvbmZpZ19mdW5jX2dldF9ieV9k
-ZXYoJnBkZXYtPmRldik7Cj4gPiArICAgICBpZiAoIWRhdGEtPmZ1bmMpIHsKPiA+ICsgICAgICAg
-ICAgICAgZXJyID0gLUVOWElPOwo+IAo+IEVOT0RFViA/CgpBZ2FpbiwgaXQncyAiLyogTm8gc3Vj
-aCBkZXZpY2Ugb3IgYWRkcmVzcyAqLyIgdnMgIi8qIE5vIHN1Y2ggZGV2aWNlICovIi4KQm90aCBm
-aW5lIHdpdGggbWUsIHdpbGwgZG8uCgo+ID4gKyAgICAgICAgICAgICBnb3RvIGVycm9yX2dldF9m
-dW5jOwo+ID4gKyAgICAgfQo+ID4gKwo+ID4gKyAgICAgZXJyID0gc3lzZnNfY3JlYXRlX2dyb3Vw
-KCZwZGV2LT5kZXYua29iaiwgbWF0Y2gtPmRhdGEpOwo+ID4gKyAgICAgaWYgKGVycikKPiA+ICsg
-ICAgICAgICAgICAgZ290byBlcnJvcl9jcmVhdGVfZ3JvdXA7Cj4gPiArCj4gPiArICAgICBkYXRh
-LT5od21vbl9kZXYgPSBod21vbl9kZXZpY2VfcmVnaXN0ZXIoJnBkZXYtPmRldik7Cj4gPiArICAg
-ICBpZiAoSVNfRVJSKGRhdGEtPmh3bW9uX2RldikpIHsKPiA+ICsgICAgICAgICAgICAgZXJyID0g
-UFRSX0VSUihkYXRhLT5od21vbl9kZXYpOwo+ID4gKyAgICAgICAgICAgICBnb3RvIGVycm9yX2h3
-bW9uX2RldmljZV9yZWdpc3RlcjsKPiA+ICsgICAgIH0KPiA+ICsKPiA+ICsgICAgIHBsYXRmb3Jt
-X3NldF9kcnZkYXRhKHBkZXYsIGRhdGEpOwo+ID4gKwo+IE11c3QgYmUgc2V0IGJlZm9yZSBzeXNm
-cyBmaWxlcyBhcmUgY3JlYXRlZC4KClN1cmUgdGhpbmcsIHRoYW5rcyBmb3Igc3BvdHRpbmcgdGhp
-cy4KCj4gPiArICAgICByZXR1cm4gMDsKPiA+ICsKPiA+ICtlcnJvcl9od21vbl9kZXZpY2VfcmVn
-aXN0ZXI6Cj4gPiArICAgICBzeXNmc19yZW1vdmVfZ3JvdXAoJnBkZXYtPmRldi5rb2JqLCBtYXRj
-aC0+ZGF0YSk7Cj4gPiArZXJyb3JfY3JlYXRlX2dyb3VwOgo+ID4gKyAgICAgdmV4cHJlc3NfY29u
-ZmlnX2Z1bmNfcHV0KGRhdGEtPmZ1bmMpOwo+ID4gK2Vycm9yX2dldF9mdW5jOgo+ID4gK2Vycm9y
-X21hdGNoX2RldmljZToKPiA+ICtlcnJvcl9remFsbG9jOgo+IAo+IEp1c3QgcmV0dXJuIHRoZSBl
-cnJvciBpbnN0ZWFkIG9mIHVzaW5nIGdvdG8uIE5vIG5lZWQgZm9yIGFsbCB0aG9zZSBnb3RvIGxh
-YmVscy4KCkkndmUgaGVhcmQgZXhhY3RseSB0aGUgb3Bwb3NpdGUgbnVtYmVyIG9mIHRpbWVzICh1
-c3VhbGx5IHBvaW50aW5nIG1lIGF0CkNvZGluZ1N0eWxlIDstKSBidXQgbm8gcHJvYmxlbSwgd2ls
-bCBkby4KCj4gPiArbW9kdWxlX2luaXQodmV4cHJlc3NfaHdtb25faW5pdCk7Cj4gPiArbW9kdWxl
-X2V4aXQodmV4cHJlc3NfaHdtb25fZXhpdCk7Cj4gCj4gWW91IGNhbiB1c2UgbW9kdWxlX3BsYXRm
-b3JtX2RyaXZlciBoZXJlLgoKU3VyZSwgZm9yZ290IGFib3V0IHRoaXMgbmV3IGZlYXR1cmUuCgpU
-aGFua3MgZm9yIHRoZSByZXZpZXchCgpQYXdlxYIKCgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29y
-c0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0
-aW5mby9sbS1zZW5zb3Jz
+On Fri, Sep 21, 2012 at 04:38:45PM +0100, Pawel Moll wrote:
+> On Fri, 2012-09-21 at 00:57 +0100, Guenter Roeck wrote:
+> > Your patch is substantially corrupted and unusable as patch file. Did you send
+> > it through outlook ?
+> 
+> No, it's normal git-send-email, but it goes through Exchange mail server
+> which can do stupid things with the message body (ie. change it!). Sorry
+> about it, I'll send the next version from my private account to avoid
+> such problems.
+> 
+> > > +static ssize_t vexpress_hwmon_name_show(struct device *dev,
+> > > +             struct device_attribute *dev_attr, char *buffer)
+> > > +{
+> > > +     const char *compatible = of_get_property(dev->of_node, "compatible",
+> > > +                     NULL);
+> > > +
+> > Can compatible be NULL ?
+> 
+> No, compatible value makes the device bound with the driver. Nothing of
+> this would happen without correct compatible string. And the device will
+> be never successfully probed without DT node "behind it" (the
+> of_match_device() below will return NULL).
+> 
+> > > +     return sprintf(buffer, "%s\n", compatible);
+> > > +}
+> > > +
+> > > +static ssize_t vexpress_hwmon_label_show(struct device *dev,
+> > > +             struct device_attribute *dev_attr, char *buffer)
+> > > +{
+> > > +     const char *label = of_get_property(dev->of_node, "label", NULL);
+> > > +
+> > 
+> > Can label be NULL (eg if missing in device tree data) ?
+> > What happens if it is NULL ? 
+> 
+> It is printed as "(null)".
+> 
+> > Seems to me the label attribute should not exist in that case.
+> 
+> I can do that, but I find the lack of label an error - essentially there
+> is no other way of understanding the meaning of a value. The order of
+> devices can be random, so no label - no idea what the value is.
+> 
+There are lots of unlabeled sensors in hwmon. The context is always board
+specific. Following your line of argument, you are declaring each sensor w/o
+label to be at error. Besides, one does know what the value is - a voltage in mV,
+current in mA, power in uW, and so on. The knowledge _which_ voltage or current
+is reflected can be configured in sensors.conf and does not have to be provided
+in devicetree. That you want it to be there doesn't make it an error if it
+isn't.
+
+I won't accept the lack of an error check and the "(null)" output. Refuse to generate
+the device if you like, or don't generate a label, or have the function return an error,
+but you can not depend on the printf function fixing your problems. 
+
+> I will make the label property "required" in the binding documentation.
+> 
+> > > +#define VEXPRESS_HWMON_ATTR(_name, _show, _divisor)          \
+> > > +struct vexpress_hwmon_attr vexpress_hwmon_attr_##_name = {   \
+> > > +     .dev_attr = __ATTR(_name, S_IRUGO, _show, NULL),        \
+> > > +     .divisor = _divisor,                                    \
+> > > +}
+> > 
+> > You should be able to use SENSOR_DEVICE_ATTR here.
+> 
+> I didn't want to "overload" the index value for other reason, but if you
+> think it's better approach I'll do that.
+> 
+> > > +static struct of_device_id vexpress_hwmon_of_match[] = {
+> > > +#if !defined(CONFIG_REGULATOR_VEXPRESS)
+> > > +     {
+> > > +             .compatible = "arm,vexpress-volt",
+> > > +             .data = &vexpress_hwmon_group_volt,
+> > > +     },
+> > > +#endif
+> > 
+> > Just wondering - is the hwmon driver mutually exclusive with the regulator
+> > driver, or can both coexist ?
+> 
+> The device model will not let one device to be bound to two different
+> drivers, so there will be a race for the device, depending on the
+> initcall ordering... And the regulator driver must have "higher
+> priority" then hwmon.
+> 
+> Having said that, it seems that we could have a "generic" hwmon
+> "regulator sensor" driver (as in: in1_input doing
+> regulator_get_voltage()), as I think a regulator can be shared between
+> consumers under certain conditions (I'd have to check this, though).
+> 
+> > FWIW, the references to "arm,vexpress-volt" I can find on the web all do not
+> > include "label", so I think you'll really have to look into what happens if
+> > there is no such property.
+> 
+> Yes, the patches you saw were prepared for the previous version of the
+> driver. Last night when testing the code I spotted the (null) labels and
+> updated the DTS files so the all the "volts" already have labels (I
+> haven't reposted the Device Tree patches yet).
+> 
+> > > +     {
+> > > +             .compatible = "arm,vexpress-amp",
+> > > +             .data = &vexpress_hwmon_group_amp,
+> > > +     }, {
+> > > +             .compatible = "arm,vexpress-temp",
+> > > +             .data = &vexpress_hwmon_group_temp,
+> > > +     }, {
+> > > +             .compatible = "arm,vexpress-power",
+> > > +             .data = &vexpress_hwmon_group_power,
+> > > +     }, {
+> > > +             .compatible = "arm,vexpress-energy",
+> > > +             .data = &vexpress_hwmon_group_energy,
+> > > +     },
+> > > +     {}
+> > > +};
+> > > +MODULE_DEVICE_TABLE(of, vexpress_hwmon_of_match);
+> > > +
+> > 
+> > Just wondering .... would the following work ?
+> > 
+> >         hwmon@0 {
+> >                 compatible = "arm,vexpress-hwmon";
+> >                 volt@0 {
+> >                         /* Logic level voltage */
+> >                         arm,vexpress-sysreg,func = <2 0>;
+> >                         label = "VIO";
+> >                 };
+> > 
+> >                 amp@0 {
+> >                         /* Total current for the two cores */
+> >                         arm,vexpress-sysreg,func = <3 0>;
+> >                         label = "Core current";
+> >                 };
+> > 
+> >                 temp@0 {
+> >                         /* DCC internal temperature */
+> >                         arm,vexpress-sysreg,func = <4 0>;
+> >                         label = "DCC";
+> >                 };
+> > 
+> >                 power@0 {
+> >                         /* Total power */
+> >                         arm,vexpress-sysreg,func = <12 0>;
+> >                         label = "Core power";
+> >                 };
+> > 
+> >                 energy@0 {
+> >                         /* Total energy */
+> >                         arm,vexpress-sysreg,func = <13 0>;
+> >                         label = "Core energy";
+> >                 };
+> >         };
+> > 
+> > I am not a device tree expert, but it seems to me that you would only
+> > have a single device node with this approach, and you could parse its
+> > children with for_each_child_of_node().
+> 
+> The thing is that there are other config devices, non hwmon relevant. In
+> particular: clock generators ("oscillators"), reset controllers, DVI
+> multiplexers etc. etc. And they are treated equally, as simple platform
+> devices. And the -volt case is a good example why...
+> 	
+
+Hmm ... I don't get the logic, but I'll leave that up to you.
+
+> > > +static int vexpress_hwmon_probe(struct platform_device *pdev)
+> > > +{
+> > > +     int err;
+> > > +     const struct of_device_id *match;
+> > > +     struct vexpress_hwmon_data *data;
+> > > +
+> > > +     data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+> > > +     if (!data) {
+> > > +             err = -ENOMEM;
+> > > +             goto error_kzalloc;
+> > > +     }
+> > > +
+> > > +     match = of_match_device(vexpress_hwmon_of_match, &pdev->dev);
+> > > +     if (!match) {
+> > > +             err = -EINVAL;
+> > 
+> > ENODEV ?
+> 
+> Frankly speaking the "/* Invalid argument */" seems more appropriate
+> here, but can do, no problem.
+> 
+> > > +             goto error_match_device;
+> > > +     }
+> > > +
+> > > +     data->func = vexpress_config_func_get_by_dev(&pdev->dev);
+> > > +     if (!data->func) {
+> > > +             err = -ENXIO;
+> > 
+> > ENODEV ?
+> 
+> Again, it's "/* No such device or address */" vs "/* No such device */".
+> Both fine with me, will do.
+> 
+> > > +             goto error_get_func;
+> > > +     }
+> > > +
+> > > +     err = sysfs_create_group(&pdev->dev.kobj, match->data);
+> > > +     if (err)
+> > > +             goto error_create_group;
+> > > +
+> > > +     data->hwmon_dev = hwmon_device_register(&pdev->dev);
+> > > +     if (IS_ERR(data->hwmon_dev)) {
+> > > +             err = PTR_ERR(data->hwmon_dev);
+> > > +             goto error_hwmon_device_register;
+> > > +     }
+> > > +
+> > > +     platform_set_drvdata(pdev, data);
+> > > +
+> > Must be set before sysfs files are created.
+> 
+> Sure thing, thanks for spotting this.
+> 
+> > > +     return 0;
+> > > +
+> > > +error_hwmon_device_register:
+> > > +     sysfs_remove_group(&pdev->dev.kobj, match->data);
+> > > +error_create_group:
+> > > +     vexpress_config_func_put(data->func);
+> > > +error_get_func:
+> > > +error_match_device:
+> > > +error_kzalloc:
+> > 
+> > Just return the error instead of using goto. No need for all those goto labels.
+> 
+> I've heard exactly the opposite number of times (usually pointing me at
+> CodingStyle ;-) but no problem, will do.
+> 
+Good point. Have a look into CodingStyle, and when the argument comes up again,
+point to the example in Chapter 7, which does return immediately if there is
+nothing else to do.
+
+Guenter
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
