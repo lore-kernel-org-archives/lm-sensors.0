@@ -1,53 +1,30 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 24 Sep 2012 17:18:17 +0000
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Mon, 24 Sep 2012 17:24:21 +0000
 Subject: Re: [lm-sensors] [PATCH v4] hwmon: Versatile Express hwmon driver
-Message-Id: <20120924171817.GA29274@roeck-us.net>
+Message-Id: <1348507461.27071.22.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1348246591-2409-1-git-send-email-mail@pawelmoll.com>
- <20120924155947.GA14060@roeck-us.net>
- <1348502972.27071.16.camel@hornet>
-In-Reply-To: <1348502972.27071.16.camel@hornet>
+ <20120924155947.GA14060@roeck-us.net> <1348502972.27071.16.camel@hornet>
+ <20120924171817.GA29274@roeck-us.net>
+In-Reply-To: <20120924171817.GA29274@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon, Sep 24, 2012 at 05:09:32PM +0100, Pawel Moll wrote:
-> On Mon, 2012-09-24 at 16:59 +0100, Guenter Roeck wrote:
-> > On Fri, Sep 21, 2012 at 05:56:31PM +0100, Pawel Moll wrote:
-> > > From: Pawel Moll <pawel.moll@arm.com>
-> > > 
-> > > hwmon framework driver for Versatile Express sensors, providing
-> > > information about board level voltage (only when regulator driver
-> > > is not configured), currents, temperature and power/energy usage.
-> > > Labels for the values can be defined as DT properties.
-> > > 
-> > > Signed-off-by: Pawel Moll <pawel.moll@arm.com>
-> > 
-> > After my concern was clarified ...
-> > 
-> > Acked-by: Guenter Roeck <linux@roeck-us.net>
-> 
-> Thanks a lot!
-> 
-> > I assume this will go upstream through the arm tree ?
-> 
-> I was planning to push the subsystem patches (hwmon, regulator etc.)
-> through respective maintainers, so through your tree - the driver
-> depends on VEXPRESS_CONFIG so won't cause any build issues before the
-> infrastructure is in place. Of course if you'd rather see it go through
-> arm-soc, I'll add it to that branch. Just let me know what is your
-> preference.
-> 
-Since the driver can not be built w/o the rest of the infrastructure,
-I think it should be pushed through a tree where it can. This way we also
-make sure that it is in sync with its infrastructure, and avoid bad surprises
-late in the game.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gTW9uLCAyMDEyLTA5LTI0IGF0IDE4OjE4ICswMTAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
+ID4gSSB3YXMgcGxhbm5pbmcgdG8gcHVzaCB0aGUgc3Vic3lzdGVtIHBhdGNoZXMgKGh3bW9uLCBy
+ZWd1bGF0b3IgZXRjLikKPiA+IHRocm91Z2ggcmVzcGVjdGl2ZSBtYWludGFpbmVycywgc28gdGhy
+b3VnaCB5b3VyIHRyZWUgLSB0aGUgZHJpdmVyCj4gPiBkZXBlbmRzIG9uIFZFWFBSRVNTX0NPTkZJ
+RyBzbyB3b24ndCBjYXVzZSBhbnkgYnVpbGQgaXNzdWVzIGJlZm9yZSB0aGUKPiA+IGluZnJhc3Ry
+dWN0dXJlIGlzIGluIHBsYWNlLiBPZiBjb3Vyc2UgaWYgeW91J2QgcmF0aGVyIHNlZSBpdCBnbyB0
+aHJvdWdoCj4gPiBhcm0tc29jLCBJJ2xsIGFkZCBpdCB0byB0aGF0IGJyYW5jaC4gSnVzdCBsZXQg
+bWUga25vdyB3aGF0IGlzIHlvdXIKPiA+IHByZWZlcmVuY2UuCj4gPiAKPiBTaW5jZSB0aGUgZHJp
+dmVyIGNhbiBub3QgYmUgYnVpbHQgdy9vIHRoZSByZXN0IG9mIHRoZSBpbmZyYXN0cnVjdHVyZSwK
+PiBJIHRoaW5rIGl0IHNob3VsZCBiZSBwdXNoZWQgdGhyb3VnaCBhIHRyZWUgd2hlcmUgaXQgY2Fu
+LiBUaGlzIHdheSB3ZSBhbHNvCj4gbWFrZSBzdXJlIHRoYXQgaXQgaXMgaW4gc3luYyB3aXRoIGl0
+cyBpbmZyYXN0cnVjdHVyZSwgYW5kIGF2b2lkIGJhZCBzdXJwcmlzZXMKPiBsYXRlIGluIHRoZSBn
+YW1lLgoKTm8gcHJvYmxlbSwgdGhhbmtzIGFnYWluIGZvciB5b3VyIHRpbWUhCgpQYXdlxYIKCgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
