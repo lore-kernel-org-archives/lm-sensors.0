@@ -1,46 +1,48 @@
-From: Pawel Moll <pawel.moll@arm.com>
-Date: Mon, 24 Sep 2012 12:03:02 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 24 Sep 2012 12:08:40 +0000
 Subject: Re: [lm-sensors] [PATCH v4] hwmon: Versatile Express hwmon driver
-Message-Id: <1348488182.2530.13.camel@hornet>
+Message-Id: <20120924140840.70ddbbd7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1348246591-2409-1-git-send-email-mail@pawelmoll.com>
  <20120921181844.GA20763@roeck-us.net>
-In-Reply-To: <20120921181844.GA20763@roeck-us.net>
+ <1348488182.2530.13.camel@hornet>
+In-Reply-To: <1348488182.2530.13.camel@hornet>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-T24gRnJpLCAyMDEyLTA5LTIxIGF0IDE5OjE4ICswMTAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOgo+
-IE9uIEZyaSwgU2VwIDIxLCAyMDEyIGF0IDA1OjU2OjMxUE0gKzAxMDAsIFBhd2VsIE1vbGwgd3Jv
-dGU6Cj4gPiBGcm9tOiBQYXdlbCBNb2xsIDxwYXdlbC5tb2xsQGFybS5jb20+Cj4gPiAKPiA+IGh3
-bW9uIGZyYW1ld29yayBkcml2ZXIgZm9yIFZlcnNhdGlsZSBFeHByZXNzIHNlbnNvcnMsIHByb3Zp
-ZGluZwo+ID4gaW5mb3JtYXRpb24gYWJvdXQgYm9hcmQgbGV2ZWwgdm9sdGFnZSAob25seSB3aGVu
-IHJlZ3VsYXRvciBkcml2ZXIKPiA+IGlzIG5vdCBjb25maWd1cmVkKSwgY3VycmVudHMsIHRlbXBl
-cmF0dXJlIGFuZCBwb3dlci9lbmVyZ3kgdXNhZ2UuCj4gPiBMYWJlbHMgZm9yIHRoZSB2YWx1ZXMg
-Y2FuIGJlIGRlZmluZWQgYXMgRFQgcHJvcGVydGllcy4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTog
-UGF3ZWwgTW9sbCA8cGF3ZWwubW9sbEBhcm0uY29tPgo+ID4gLS0tCj4gPiAgLi4uL2RldmljZXRy
-ZWUvYmluZGluZ3MvaHdtb24vdmV4cHJlc3MudHh0ICAgICAgICAgfCAgIDIzICsrCj4gPiAgRG9j
-dW1lbnRhdGlvbi9od21vbi92ZXhwcmVzcyAgICAgICAgICAgICAgICAgICAgICAgfCAgIDM0ICsr
-Kwo+ID4gIGRyaXZlcnMvaHdtb24vS2NvbmZpZyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICAgOCArCj4gPiAgZHJpdmVycy9od21vbi9NYWtlZmlsZSAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgfCAgICAxICsKPiA+ICBkcml2ZXJzL2h3bW9uL3ZleHByZXNzLmMgICAgICAgICAg
-ICAgICAgICAgICAgICAgICB8ICAyMjkgKysrKysrKysrKysrKysrKysrKysKPiA+ICA1IGZpbGVz
-IGNoYW5nZWQsIDI5NSBpbnNlcnRpb25zKCspCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IERvY3Vt
-ZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9od21vbi92ZXhwcmVzcy50eHQKPiA+ICBjcmVh
-dGUgbW9kZSAxMDA2NDQgRG9jdW1lbnRhdGlvbi9od21vbi92ZXhwcmVzcwo+ID4gIGNyZWF0ZSBt
-b2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9uL3ZleHByZXNzLmMKPiA+IAo+IFsgLi4uIF0KPiAKPiA+
-ICsKPiA+ICsJZXJyID0gc3lzZnNfY3JlYXRlX2dyb3VwKCZwZGV2LT5kZXYua29iaiwgbWF0Y2gt
-PmRhdGEpOwo+ID4gKwlpZiAoZXJyKQo+ID4gKwkJZ290byBlcnJvcjsKPiAKPiBZb3UnbGwgbmVl
-ZCBhIHNlY29uZCBsYWJlbCBmb3IgdGhhdC4gU2luY2UgdGhlIGdyb3VwIHdhcyBub3QgY3JlYXRl
-ZCwgeW91IGNhbgo+IG5vdCBkZWxldGUgaXQuCgpBY3R1YWxseSBJIHRoaW5rIEkgY2FuLi4uIFRo
-ZSBzeXNmc19yZW1vdmVfZ3JvdXAoKSBlZmZlY3RpdmVseSBpcyBhCndyYXBwZXIgZm9yIHN5c2Zz
-X2hhc2hfYW5kX3JlbW92ZSgpIHdoaWNoIGFjdHMgbGlrZSAicm0gLWYiIC0gZG9lcwpub3RoaW5n
-IGlmIHRoZSBmaWxlIGRvZXNuJ3QgZXhpc3QuIEV2ZW4gZHJpdmVycy9od21vbi9sbTgzLmMgKHdo
-aWNoLCBieQpwdXJlIGNvaW5jaWRlbmNlLCBJIHdhcyBsb29raW5nIGF0IHdoZW4gcmUtd29ya2lu
-ZyB0aGlzIGRyaXZlcikgZG9lcwp0aGF0IGluIGV4aXRfcmVtb3ZlX2ZpbGVzLi4uCgpBbnl3YXks
-IGl0J3Mgbm90aGluZyB0byBhcmd1ZSBhYm91dCwgc28gSSdsbCBjaGFuZ2UgaXQgYW5kIHNlbmQK
-KGhvcGVmdWxseSA7LSkgZmluYWwgdmVyc2lvbiBpbiBhIGppZmZ5LgoKVGhhbmtzIQoKUGF3ZcWC
-CgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNl
-bnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3Rz
-LmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+On Mon, 24 Sep 2012 13:03:02 +0100, Pawel Moll wrote:
+> On Fri, 2012-09-21 at 19:18 +0100, Guenter Roeck wrote:
+> > On Fri, Sep 21, 2012 at 05:56:31PM +0100, Pawel Moll wrote:
+> > > +
+> > > +	err = sysfs_create_group(&pdev->dev.kobj, match->data);
+> > > +	if (err)
+> > > +		goto error;
+> > 
+> > You'll need a second label for that. Since the group was not created, you can
+> > not delete it.
+> 
+> Actually I think I can... The sysfs_remove_group() effectively is a
+> wrapper for sysfs_hash_and_remove() which acts like "rm -f" - does
+> nothing if the file doesn't exist. Even drivers/hwmon/lm83.c (which, by
+> pure coincidence, I was looking at when re-working this driver) does
+> that in exit_remove_files...
+
+You are right, and many hwmon drivers do exactly that, to limit the
+number of labels. This is code which isn't executed when all is fine,
+so we don't care about performance. Plus, in many cases the file
+removals are unconditional in the remove function anyway.
+
+> Anyway, it's nothing to argue about, so I'll change it and send
+> (hopefully ;-) final version in a jiffy.
+
+You can keep the code as is too, if you prefer.
+
+-- 
+Jean Delvare
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
