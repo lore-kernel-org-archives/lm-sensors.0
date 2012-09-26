@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 26 Sep 2012 16:35:21 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 26 Sep 2012 18:00:21 +0000
 Subject: Re: [lm-sensors] Core2Quad and very hight temperature
-Message-Id: <20120926183521.7046d270@endymion.delvare>
+Message-Id: <20120926180021.GA27614@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <92013948.11222.1348656112623.JavaMail.open-xchange@atlas>
 In-Reply-To: <92013948.11222.1348656112623.JavaMail.open-xchange@atlas>
@@ -10,116 +10,120 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hallo Markus,
-
-On Wed, 26 Sep 2012 12:41:52 +0200 (CEST), rupprecht-admin2, Markus wrote:
-> I'm the admin of a school. Our Server ist a Server has a Intel DG33FB Mai=
-nboard
-> (it's Intel G33) with a Intel Core2Quad processor.
+On Wed, Sep 26, 2012 at 06:35:21PM +0200, Jean Delvare wrote:
+> Hallo Markus,
 >=20
-> We are running Debian Lenny 2.6.35.9
+> On Wed, 26 Sep 2012 12:41:52 +0200 (CEST), rupprecht-admin2, Markus wrote:
+> > I'm the admin of a school. Our Server ist a Server has a Intel DG33FB M=
+ainboard
+> > (it's Intel G33) with a Intel Core2Quad processor.
+> >=20
+> > We are running Debian Lenny 2.6.35.9
+> >=20
+> > While doing a backup with clonezilla there was the message, that the cpu
+> > temperature is too hot and that the cpu will work slower.
+> > After restarting the server I draw the four cores in kde systemmonitor =
+(in
+> > german it's calles KDE Systemueberwachung).
+> > It shows -0,77 and -0,77 and=A0 100 and 95 =B0C. I guess the decimal nu=
+mber is above
+> > 100=B0C.
 >=20
-> While doing a backup with clonezilla there was the message, that the cpu
-> temperature is too hot and that the cpu will work slower.
-> After restarting the server I draw the four cores in kde systemmonitor (in
-> german it's calles KDE Systemueberwachung).
-> It shows -0,77 and -0,77 and=A0 100 and 95 =B0C. I guess the decimal numb=
-er is above
-> 100=B0C.
-
-It was more likely an error code which wasn't caught by the software.
-Given the output of "sensors" below, this seems more plausible. The
-coretemp driver can't report a temperature value above the critical
-limit, it is technically not possible.
-
-> Now I'm unsure, if this could be right.
+> It was more likely an error code which wasn't caught by the software.
+> Given the output of "sensors" below, this seems more plausible. The
+> coretemp driver can't report a temperature value above the critical
+> limit, it is technically not possible.
 >=20
-> So I did sensors-detect
-> 12:26/0 server ~ # sensors-detect
-> # sensors-detect revision 5249 (2008-05-11 22:56:25 +0200)
-
-You do realize this is 4.5 year old, right? Not as old as your board,
-but still, using a more recent version may help:
-  http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
-
-(Seems to be down right now, you'll have to check later.)
-
-> Now follows a summary of the probes I have just done.
-> Just press ENTER to continue:
+> > Now I'm unsure, if this could be right.
+> >=20
+> > So I did sensors-detect
+> > 12:26/0 server ~ # sensors-detect
+> > # sensors-detect revision 5249 (2008-05-11 22:56:25 +0200)
 >=20
-> Driver `coretemp' (should be inserted):
-> =A0 Detects correctly:
-> =A0 * Chip `Intel Core family thermal sensor' (confidence: 9)
-> (...)
-> I checked: coretemp is build in.
-> I googled "PC8374L" and fount that i have to use lm85.
-
-You would if the chip had monitoring enabled, but that's not the case.
-So you can forget about the lm85 driver. This is unfortunate because
-this would have given us a point of comparison. On several Intel boards
-of that era, monitoring was implemented in a way Linux doesn't support.
-
-Does the BIOS display temperatures and/or other monitoring values?
-
-> 12:28/1 server ~ # sensors
-> coretemp-isa-0000
-> Adapter: ISA adapter
-> ERROR: Can't get value of subfeature temp1_input: Can't read
-> Core 0:=A0=A0=A0=A0=A0=A0 +0.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 C)=
+> You do realize this is 4.5 year old, right? Not as old as your board,
+> but still, using a more recent version may help:
+>   http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
+>=20
+> (Seems to be down right now, you'll have to check later.)
+>=20
+> > Now follows a summary of the probes I have just done.
+> > Just press ENTER to continue:
+> >=20
+> > Driver `coretemp' (should be inserted):
+> > =A0 Detects correctly:
+> > =A0 * Chip `Intel Core family thermal sensor' (confidence: 9)
+> > (...)
+> > I checked: coretemp is build in.
+> > I googled "PC8374L" and fount that i have to use lm85.
+>=20
+> You would if the chip had monitoring enabled, but that's not the case.
+> So you can forget about the lm85 driver. This is unfortunate because
+> this would have given us a point of comparison. On several Intel boards
+> of that era, monitoring was implemented in a way Linux doesn't support.
+>=20
+> Does the BIOS display temperatures and/or other monitoring values?
+>=20
+> > 12:28/1 server ~ # sensors
+> > coretemp-isa-0000
+> > Adapter: ISA adapter
+> > ERROR: Can't get value of subfeature temp1_input: Can't read
+> > Core 0:=A0=A0=A0=A0=A0=A0 +0.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 =
+C)=A0 ALARM
+> >=20
+> > coretemp-isa-0001
+> > Adapter: ISA adapter
+> > Core 2:=A0=A0=A0=A0 +100.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 C)=
 =A0 ALARM
+> >=20
+> > coretemp-isa-0002
+> > Adapter: ISA adapter
+> > ERROR: Can't get value of subfeature temp1_input: Can't read
+> > Core 1:=A0=A0=A0=A0=A0=A0 +0.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 =
+C)=A0 ALARM
+> >=20
+> > coretemp-isa-0003
+> > Adapter: ISA adapter
+> > Core 3:=A0=A0=A0=A0=A0 +96.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 C)
 >=20
-> coretemp-isa-0001
-> Adapter: ISA adapter
-> Core 2:=A0=A0=A0=A0 +100.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 C)=A0 =
-ALARM
+> The errors for cores 0 and 1 are worrisome. We've seen these a couple
+> times in the past, but could never explain them nor fix them.
 >=20
-> coretemp-isa-0002
-> Adapter: ISA adapter
-> ERROR: Can't get value of subfeature temp1_input: Can't read
-> Core 1:=A0=A0=A0=A0=A0=A0 +0.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 C)=
-=A0 ALARM
+> > Can this be true? On the cpu is a very huge cooler with heatpipes and a=
+ large
+> > fan. When I touch it, it is not hot. It seams to be mounted ok.
 >=20
-> coretemp-isa-0003
-> Adapter: ISA adapter
-> Core 3:=A0=A0=A0=A0=A0 +96.0 C=A0 (high =3D +84.0 C, crit =3D +100.0 C)
+> You did not tell us what exact CPU model your machine has. Different
+> models can have very different max TDP values.
+>=20
+> The fact that the heatsink is not hot isn't necessarily a good thing.
+> The heat is generated by the CPU and is then expected to dissipate to
+> the heatsink, where the fan will extract it, and if the case is
+> properly designed, the heat goes outside of the system.
+>=20
+> A cold heatsink can mean that the fan is doing a very good job. But it
+> can also mean that the dissipation from the CPU to the heatsink doesn't
+> happen, either because insufficient/bad thermal paste, or because the
+> heatsink is improperly mounted.
+>=20
+> The fact that you got error messages related to CPU throttling suggest
+> the problem is "real", i.e. not a coretemp driver issue. That being
+> said, the CPU throttling code is reading its values from the same
+> model-specific registers as the coretemp driver, so if these registers
+> are somehow busted in your CPU, both will misbehave.
+>=20
+> You may want to give a try to the latest coretemp driver:
+>   http://khali.linux-fr.org/devel/misc/coretemp/
+> I'm not holding my breath though. Another thing worth trying is a live
+> DVD using a more recent kernel.
+>=20
+> But I think that either you have a real overheating problem (check your
+> thermal paste and heatsink mounting) or your CPU got somehow damaged.
+>=20
+My guess is that it is an overheating problem. Of course, with the CPU runn=
+ing
+that hot, it might well be damaged by now as well.
 
-The errors for cores 0 and 1 are worrisome. We've seen these a couple
-times in the past, but could never explain them nor fix them.
-
-> Can this be true? On the cpu is a very huge cooler with heatpipes and a l=
-arge
-> fan. When I touch it, it is not hot. It seams to be mounted ok.
-
-You did not tell us what exact CPU model your machine has. Different
-models can have very different max TDP values.
-
-The fact that the heatsink is not hot isn't necessarily a good thing.
-The heat is generated by the CPU and is then expected to dissipate to
-the heatsink, where the fan will extract it, and if the case is
-properly designed, the heat goes outside of the system.
-
-A cold heatsink can mean that the fan is doing a very good job. But it
-can also mean that the dissipation from the CPU to the heatsink doesn't
-happen, either because insufficient/bad thermal paste, or because the
-heatsink is improperly mounted.
-
-The fact that you got error messages related to CPU throttling suggest
-the problem is "real", i.e. not a coretemp driver issue. That being
-said, the CPU throttling code is reading its values from the same
-model-specific registers as the coretemp driver, so if these registers
-are somehow busted in your CPU, both will misbehave.
-
-You may want to give a try to the latest coretemp driver:
-  http://khali.linux-fr.org/devel/misc/coretemp/
-I'm not holding my breath though. Another thing worth trying is a live
-DVD using a more recent kernel.
-
-But I think that either you have a real overheating problem (check your
-thermal paste and heatsink mounting) or your CPU got somehow damaged.
-
---=20
-Jean Delvare
-http://khali.linux-fr.org/wishlist.html
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
