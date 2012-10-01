@@ -1,326 +1,215 @@
 From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Mon, 01 Oct 2012 20:44:20 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (ads7828) add support for ADS7830
-Message-Id: <1349124260-28656-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+Date: Mon, 01 Oct 2012 21:09:11 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (ads7828) add support for ADS7830
+Message-Id: <197551023.728862.1349125751841.JavaMail.root@mail.savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
+In-Reply-To: <1349124260-28656-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+References: <1349124260-28656-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1349124260-28656-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Guenter Roeck <guenter.roeck@ericsson.com>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+To: lm-sensors@lm-sensors.org, Guenter Roeck <linux@roeck-us.net>
+Cc: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>
 
-From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-
-The ADS7830 is almost the same chip, except that it does 8-bit sampling.
-This patch extends the ads7828 driver to support this device.
-
-Signed-off-by: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-
-Also clean the driver a bit by removing unused macros, and moving
-the driver declaration to avoid some function prototypes.
-
-Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
----
- Documentation/hwmon/ads7828 |  12 +++-
- drivers/hwmon/Kconfig       |   7 ++-
- drivers/hwmon/ads7828.c     | 137 +++++++++++++++++++++++++-------------------
- 3 files changed, 93 insertions(+), 63 deletions(-)
-
-diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
-index 2bbebe6..4366a87 100644
---- a/Documentation/hwmon/ads7828
-+++ b/Documentation/hwmon/ads7828
-@@ -8,8 +8,15 @@ Supported chips:
-     Datasheet: Publicly available at the Texas Instruments website :
-                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
- 
-+  * Texas Instruments ADS7830
-+    Prefix: 'ads7830'
-+    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
-+    Datasheet: Publicly available at the Texas Instruments website:
-+               http://focus.ti.com/lit/ds/symlink/ads7830.pdf
-+
- Authors:
-         Steve Hardy <shardy@redhat.com>
-+        Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
- 
- Module Parameters
- -----------------
-@@ -24,9 +31,10 @@ Module Parameters
- Description
- -----------
- 
--This driver implements support for the Texas Instruments ADS7828.
-+This driver implements support for the Texas Instruments ADS7828, and ADS7830.
- 
--This device is a 12-bit 8-channel A-D converter.
-+The ADS7828 device is a 12-bit 8-channel A/D converter, while the ADS7830 does
-+8-bit sampling.
- 
- It can operate in single ended mode (8 +ve inputs) or in differential mode,
- where 4 differential pairs can be measured.
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 83e3e9d..960c8c5 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -1060,11 +1060,12 @@ config SENSORS_ADS1015
- 	  will be called ads1015.
- 
- config SENSORS_ADS7828
--	tristate "Texas Instruments ADS7828"
-+	tristate "Texas Instruments ADS7828 and compatibles"
- 	depends on I2C
- 	help
--	  If you say yes here you get support for Texas Instruments ADS7828
--	  12-bit 8-channel ADC device.
-+	  If you say yes here you get support for Texas Instruments ADS7828 and
-+	  ADS7830 8-channel A/D converters. ADS7828 resolution is 12-bit, while
-+	  it is 8-bit on ADS7830.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ads7828.
-diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
-index bf3fdf4..58f28ea 100644
---- a/drivers/hwmon/ads7828.c
-+++ b/drivers/hwmon/ads7828.c
-@@ -1,12 +1,12 @@
- /*
-- * ads7828.c - lm_sensors driver for ads7828 12-bit 8-channel ADC
-- * (C) 2007 EADS Astrium
-+ * ads7828.c - driver for TI ADS7828 8-channel A/D converter and compatibles
-  *
-- * This driver is based on the lm75 and other lm_sensors/hwmon drivers
-+ * Copyright (C) 2007 EADS Astrium
-+ * Copyright (C) Steve Hardy <shardy@redhat.com>
-+ * Copyright (C) 2012 Savoir-faire Linux Inc.
-+ *	Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-  *
-- * Written by Steve Hardy <shardy@redhat.com>
-- *
-- * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads7828.pdf
-+ * For further information, see the Documentation/hwmon/ads7828 file.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -34,14 +34,15 @@
- #include <linux/mutex.h>
- 
- /* The ADS7828 registers */
--#define ADS7828_NCH 8 /* 8 channels of 12-bit A-D supported */
--#define ADS7828_CMD_SD_SE 0x80 /* Single ended inputs */
--#define ADS7828_CMD_SD_DIFF 0x00 /* Differential inputs */
--#define ADS7828_CMD_PD0 0x0 /* Power Down between A-D conversions */
--#define ADS7828_CMD_PD1 0x04 /* Internal ref OFF && A-D ON */
--#define ADS7828_CMD_PD2 0x08 /* Internal ref ON && A-D OFF */
--#define ADS7828_CMD_PD3 0x0C /* Internal ref ON && A-D ON */
--#define ADS7828_INT_VREF_MV 2500 /* Internal vref is 2.5V, 2500mV */
-+#define ADS7828_NCH		8	/* 8 channels supported */
-+#define ADS7828_CMD_SD_SE	0x80	/* Single ended inputs */
-+#define ADS7828_CMD_SD_DIFF	0x00	/* Differential inputs */
-+#define ADS7828_CMD_PD1		0x04	/* Internal ref OFF && A/D ON */
-+#define ADS7828_CMD_PD3		0x0C	/* Internal ref ON && A/D ON */
-+#define ADS7828_INT_VREF_MV	2500	/* Internal vref is 2.5V, 2500mV */
-+
-+/* List of supported devices */
-+enum ads7828_chips { ads7828, ads7830 };
- 
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
-@@ -57,23 +58,27 @@ module_param(vref_mv, int, S_IRUGO);
- 
- /* Global Variables */
- static u8 ads7828_cmd_byte; /* cmd byte without channel bits */
--static unsigned int ads7828_lsb_resol; /* resolution of the ADC sample lsb */
- 
--/* Each client has this additional data */
-+/**
-+ * struct ads7828_data - client specific data
-+ * @hwmon_dev:		The hwmon device.
-+ * @update_lock:	Mutex protecting updates.
-+ * @valid:		Validity flag.
-+ * @last_updated:	Last updated time (in jiffies).
-+ * @adc_input:		ADS7828_NCH samples.
-+ * @lsb_resol:		Resolution of the A/D converter sample LSB.
-+ * @read_channel:	Function used to read a channel.
-+ */
- struct ads7828_data {
- 	struct device *hwmon_dev;
--	struct mutex update_lock; /* mutex protect updates */
--	char valid; /* !=0 if following fields are valid */
--	unsigned long last_updated; /* In jiffies */
--	u16 adc_input[ADS7828_NCH]; /* ADS7828_NCH 12-bit samples */
-+	struct mutex update_lock;
-+	char valid;
-+	unsigned long last_updated;
-+	u16 adc_input[ADS7828_NCH];
-+	unsigned int lsb_resol;
-+	s32 (*read_channel)(const struct i2c_client *client, u8 command);
- };
- 
--/* Function declaration - necessary due to function dependencies */
--static int ads7828_detect(struct i2c_client *client,
--			  struct i2c_board_info *info);
--static int ads7828_probe(struct i2c_client *client,
--			 const struct i2c_device_id *id);
--
- static inline u8 channel_cmd_byte(int ch)
- {
- 	/* cmd byte C2,C1,C0 - see datasheet */
-@@ -97,8 +102,7 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
- 
- 		for (ch = 0; ch < ADS7828_NCH; ch++) {
- 			u8 cmd = channel_cmd_byte(ch);
--			data->adc_input[ch] -				i2c_smbus_read_word_swapped(client, cmd);
-+			data->adc_input[ch] = data->read_channel(client, cmd);
- 		}
- 		data->last_updated = jiffies;
- 		data->valid = 1;
-@@ -116,8 +120,8 @@ static ssize_t show_in(struct device *dev, struct device_attribute *da,
- 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
- 	struct ads7828_data *data = ads7828_update_device(dev);
- 	/* Print value (in mV as specified in sysfs-interface documentation) */
--	return sprintf(buf, "%d\n", (data->adc_input[attr->index] *
--		ads7828_lsb_resol)/1000);
-+	return sprintf(buf, "%d\n",
-+		       (data->adc_input[attr->index] * data->lsb_resol) / 1000);
- }
- 
- #define in_reg(offset)\
-@@ -158,31 +162,13 @@ static int ads7828_remove(struct i2c_client *client)
- 	return 0;
- }
- 
--static const struct i2c_device_id ads7828_id[] = {
--	{ "ads7828", 0 },
--	{ }
--};
--MODULE_DEVICE_TABLE(i2c, ads7828_id);
--
--/* This is the driver that will be inserted */
--static struct i2c_driver ads7828_driver = {
--	.class = I2C_CLASS_HWMON,
--	.driver = {
--		.name = "ads7828",
--	},
--	.probe = ads7828_probe,
--	.remove = ads7828_remove,
--	.id_table = ads7828_id,
--	.detect = ads7828_detect,
--	.address_list = normal_i2c,
--};
--
- /* Return 0 if detection is successful, -ENODEV otherwise */
- static int ads7828_detect(struct i2c_client *client,
- 			  struct i2c_board_info *info)
- {
- 	struct i2c_adapter *adapter = client->adapter;
- 	int ch;
-+	bool is_8bit = false;
- 
- 	/* Check we have a valid client */
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_READ_WORD_DATA))
-@@ -193,20 +179,30 @@ static int ads7828_detect(struct i2c_client *client,
- 	 * dedicated register so attempt to sanity check using knowledge of
- 	 * the chip
- 	 * - Read from the 8 channel addresses
--	 * - Check the top 4 bits of each result are not set (12 data bits)
-+	 * - Check the top 4 bits of each result:
-+	 *   - They should not be set in case of 12-bit samples
-+	 *   - The two bytes should be equal in case of 8-bit samples
- 	 */
- 	for (ch = 0; ch < ADS7828_NCH; ch++) {
- 		u16 in_data;
- 		u8 cmd = channel_cmd_byte(ch);
- 		in_data = i2c_smbus_read_word_swapped(client, cmd);
- 		if (in_data & 0xF000) {
--			pr_debug("%s : Doesn't look like an ads7828 device\n",
--				 __func__);
--			return -ENODEV;
-+			if ((in_data >> 8) = (in_data & 0xFF)) {
-+				/* Seems to be an ADS7830 (8-bit sample) */
-+				is_8bit = true;
-+			} else {
-+				dev_dbg(&client->dev, "doesn't look like an "
-+					"ADS7828 compatible device\n");
-+				return -ENODEV;
-+			}
- 		}
- 	}
- 
--	strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
-+	if (is_8bit)
-+		strlcpy(info->type, "ads7830", I2C_NAME_SIZE);
-+	else
-+		strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
- 
- 	return 0;
- }
-@@ -223,6 +219,15 @@ static int ads7828_probe(struct i2c_client *client,
- 		goto exit;
- 	}
- 
-+	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
-+	if (id->driver_data = ads7828) {
-+		data->read_channel = i2c_smbus_read_word_swapped;
-+		data->lsb_resol = (vref_mv * 1000) / 4096;
-+	} else {
-+		data->read_channel = i2c_smbus_read_byte_data;
-+		data->lsb_resol = (vref_mv * 1000) / 256;
-+	}
-+
- 	i2c_set_clientdata(client, data);
- 	mutex_init(&data->update_lock);
- 
-@@ -247,6 +252,25 @@ exit:
- 	return err;
- }
- 
-+static const struct i2c_device_id ads7828_ids[] = {
-+	{ "ads7828", ads7828 },
-+	{ "ads7830", ads7830 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, ads7828_ids);
-+
-+static struct i2c_driver ads7828_driver = {
-+	.class = I2C_CLASS_HWMON,
-+	.driver = {
-+		.name = "ads7828",
-+	},
-+	.probe = ads7828_probe,
-+	.remove = ads7828_remove,
-+	.id_table = ads7828_ids,
-+	.detect = ads7828_detect,
-+	.address_list = normal_i2c,
-+};
-+
- static int __init sensors_ads7828_init(void)
- {
- 	/* Initialize the command byte according to module parameters */
-@@ -255,9 +279,6 @@ static int __init sensors_ads7828_init(void)
- 	ads7828_cmd_byte |= int_vref ?
- 		ADS7828_CMD_PD3 : ADS7828_CMD_PD1;
- 
--	/* Calculate the LSB resolution */
--	ads7828_lsb_resol = (vref_mv*1000)/4096;
--
- 	return i2c_add_driver(&ads7828_driver);
- }
- 
-@@ -267,7 +288,7 @@ static void __exit sensors_ads7828_exit(void)
- }
- 
- MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
--MODULE_DESCRIPTION("ADS7828 driver");
-+MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter and compatibles");
- MODULE_LICENSE("GPL");
- 
- module_init(sensors_ads7828_init);
--- 
-1.7.11.4
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T29wcywgSSB1c2VkIHRoZSB3cm9uZyBhZGRyZXNzIGZvciBHdWVudGVyLiBIZXJlIHdlIGdvLgoK
+VGhhbmtzLApWaXZpZW4KCi0tLS0tIE1haWwgb3JpZ2luYWwgLS0tLS0KRGU6ICJWaXZpZW4gRGlk
+ZWxvdCIgPHZpdmllbi5kaWRlbG90QHNhdm9pcmZhaXJlbGludXguY29tPgrDgDogbG0tc2Vuc29y
+c0BsbS1zZW5zb3JzLm9yZwpDYzogIkd1aWxsYXVtZSBSb2d1ZXoiIDxndWlsbGF1bWUucm9ndWV6
+QHNhdm9pcmZhaXJlbGludXguY29tPiwgIkd1ZW50ZXIgUm9lY2siIDxndWVudGVyLnJvZWNrQGVy
+aWNzc29uLmNvbT4sICJKZWFuIERlbHZhcmUiIDxraGFsaUBsaW51eC1mci5vcmc+LCBsaW51eC1r
+ZXJuZWxAdmdlci5rZXJuZWwub3JnLCAiU3RldmUgSGFyZHkiIDxzaGFyZHlAcmVkaGF0LmNvbT4s
+ICJWaXZpZW4gRGlkZWxvdCIgPHZpdmllbi5kaWRlbG90QHNhdm9pcmZhaXJlbGludXguY29tPgpF
+bnZvecOpOiBMdW5kaSAxIE9jdG9icmUgMjAxMiAxNjo0NDoyMApPYmpldDogW1BBVENIXSBod21v
+bjogKGFkczc4MjgpIGFkZCBzdXBwb3J0IGZvciBBRFM3ODMwCgpGcm9tOiBHdWlsbGF1bWUgUm9n
+dWV6IDxndWlsbGF1bWUucm9ndWV6QHNhdm9pcmZhaXJlbGludXguY29tPgoKVGhlIEFEUzc4MzAg
+aXMgYWxtb3N0IHRoZSBzYW1lIGNoaXAsIGV4Y2VwdCB0aGF0IGl0IGRvZXMgOC1iaXQgc2FtcGxp
+bmcuClRoaXMgcGF0Y2ggZXh0ZW5kcyB0aGUgYWRzNzgyOCBkcml2ZXIgdG8gc3VwcG9ydCB0aGlz
+IGRldmljZS4KClNpZ25lZC1vZmYtYnk6IEd1aWxsYXVtZSBSb2d1ZXogPGd1aWxsYXVtZS5yb2d1
+ZXpAc2F2b2lyZmFpcmVsaW51eC5jb20+CgpBbHNvIGNsZWFuIHRoZSBkcml2ZXIgYSBiaXQgYnkg
+cmVtb3ZpbmcgdW51c2VkIG1hY3JvcywgYW5kIG1vdmluZwp0aGUgZHJpdmVyIGRlY2xhcmF0aW9u
+IHRvIGF2b2lkIHNvbWUgZnVuY3Rpb24gcHJvdG90eXBlcy4KClNpZ25lZC1vZmYtYnk6IFZpdmll
+biBEaWRlbG90IDx2aXZpZW4uZGlkZWxvdEBzYXZvaXJmYWlyZWxpbnV4LmNvbT4KLS0tCiBEb2N1
+bWVudGF0aW9uL2h3bW9uL2Fkczc4MjggfCAgMTIgKysrLQogZHJpdmVycy9od21vbi9LY29uZmln
+ICAgICAgIHwgICA3ICsrLQogZHJpdmVycy9od21vbi9hZHM3ODI4LmMgICAgIHwgMTM3ICsrKysr
+KysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tCiAzIGZpbGVzIGNoYW5nZWQs
+IDkzIGluc2VydGlvbnMoKyksIDYzIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL0RvY3VtZW50
+YXRpb24vaHdtb24vYWRzNzgyOCBiL0RvY3VtZW50YXRpb24vaHdtb24vYWRzNzgyOAppbmRleCAy
+YmJlYmU2Li40MzY2YTg3IDEwMDY0NAotLS0gYS9Eb2N1bWVudGF0aW9uL2h3bW9uL2Fkczc4MjgK
+KysrIGIvRG9jdW1lbnRhdGlvbi9od21vbi9hZHM3ODI4CkBAIC04LDggKzgsMTUgQEAgU3VwcG9y
+dGVkIGNoaXBzOgogICAgIERhdGFzaGVldDogUHVibGljbHkgYXZhaWxhYmxlIGF0IHRoZSBUZXhh
+cyBJbnN0cnVtZW50cyB3ZWJzaXRlIDoKICAgICAgICAgICAgICAgIGh0dHA6Ly9mb2N1cy50aS5j
+b20vbGl0L2RzL3N5bWxpbmsvYWRzNzgyOC5wZGYKIAorICAqIFRleGFzIEluc3RydW1lbnRzIEFE
+Uzc4MzAKKyAgICBQcmVmaXg6ICdhZHM3ODMwJworICAgIEFkZHJlc3NlcyBzY2FubmVkOiBJMkMg
+MHg0OCwgMHg0OSwgMHg0YSwgMHg0YgorICAgIERhdGFzaGVldDogUHVibGljbHkgYXZhaWxhYmxl
+IGF0IHRoZSBUZXhhcyBJbnN0cnVtZW50cyB3ZWJzaXRlOgorICAgICAgICAgICAgICAgaHR0cDov
+L2ZvY3VzLnRpLmNvbS9saXQvZHMvc3ltbGluay9hZHM3ODMwLnBkZgorCiBBdXRob3JzOgogICAg
+ICAgICBTdGV2ZSBIYXJkeSA8c2hhcmR5QHJlZGhhdC5jb20+CisgICAgICAgIEd1aWxsYXVtZSBS
+b2d1ZXogPGd1aWxsYXVtZS5yb2d1ZXpAc2F2b2lyZmFpcmVsaW51eC5jb20+CiAKIE1vZHVsZSBQ
+YXJhbWV0ZXJzCiAtLS0tLS0tLS0tLS0tLS0tLQpAQCAtMjQsOSArMzEsMTAgQEAgTW9kdWxlIFBh
+cmFtZXRlcnMKIERlc2NyaXB0aW9uCiAtLS0tLS0tLS0tLQogCi1UaGlzIGRyaXZlciBpbXBsZW1l
+bnRzIHN1cHBvcnQgZm9yIHRoZSBUZXhhcyBJbnN0cnVtZW50cyBBRFM3ODI4LgorVGhpcyBkcml2
+ZXIgaW1wbGVtZW50cyBzdXBwb3J0IGZvciB0aGUgVGV4YXMgSW5zdHJ1bWVudHMgQURTNzgyOCwg
+YW5kIEFEUzc4MzAuCiAKLVRoaXMgZGV2aWNlIGlzIGEgMTItYml0IDgtY2hhbm5lbCBBLUQgY29u
+dmVydGVyLgorVGhlIEFEUzc4MjggZGV2aWNlIGlzIGEgMTItYml0IDgtY2hhbm5lbCBBL0QgY29u
+dmVydGVyLCB3aGlsZSB0aGUgQURTNzgzMCBkb2VzCis4LWJpdCBzYW1wbGluZy4KIAogSXQgY2Fu
+IG9wZXJhdGUgaW4gc2luZ2xlIGVuZGVkIG1vZGUgKDggK3ZlIGlucHV0cykgb3IgaW4gZGlmZmVy
+ZW50aWFsIG1vZGUsCiB3aGVyZSA0IGRpZmZlcmVudGlhbCBwYWlycyBjYW4gYmUgbWVhc3VyZWQu
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL0tjb25maWcgYi9kcml2ZXJzL2h3bW9uL0tjb25m
+aWcKaW5kZXggODNlM2U5ZC4uOTYwYzhjNSAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9LY29u
+ZmlnCisrKyBiL2RyaXZlcnMvaHdtb24vS2NvbmZpZwpAQCAtMTA2MCwxMSArMTA2MCwxMiBAQCBj
+b25maWcgU0VOU09SU19BRFMxMDE1CiAJICB3aWxsIGJlIGNhbGxlZCBhZHMxMDE1LgogCiBjb25m
+aWcgU0VOU09SU19BRFM3ODI4Ci0JdHJpc3RhdGUgIlRleGFzIEluc3RydW1lbnRzIEFEUzc4Mjgi
+CisJdHJpc3RhdGUgIlRleGFzIEluc3RydW1lbnRzIEFEUzc4MjggYW5kIGNvbXBhdGlibGVzIgog
+CWRlcGVuZHMgb24gSTJDCiAJaGVscAotCSAgSWYgeW91IHNheSB5ZXMgaGVyZSB5b3UgZ2V0IHN1
+cHBvcnQgZm9yIFRleGFzIEluc3RydW1lbnRzIEFEUzc4MjgKLQkgIDEyLWJpdCA4LWNoYW5uZWwg
+QURDIGRldmljZS4KKwkgIElmIHlvdSBzYXkgeWVzIGhlcmUgeW91IGdldCBzdXBwb3J0IGZvciBU
+ZXhhcyBJbnN0cnVtZW50cyBBRFM3ODI4IGFuZAorCSAgQURTNzgzMCA4LWNoYW5uZWwgQS9EIGNv
+bnZlcnRlcnMuIEFEUzc4MjggcmVzb2x1dGlvbiBpcyAxMi1iaXQsIHdoaWxlCisJICBpdCBpcyA4
+LWJpdCBvbiBBRFM3ODMwLgogCiAJICBUaGlzIGRyaXZlciBjYW4gYWxzbyBiZSBidWlsdCBhcyBh
+IG1vZHVsZS4gIElmIHNvLCB0aGUgbW9kdWxlCiAJICB3aWxsIGJlIGNhbGxlZCBhZHM3ODI4Lgpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9od21vbi9hZHM3ODI4LmMgYi9kcml2ZXJzL2h3bW9uL2Fkczc4
+MjguYwppbmRleCBiZjNmZGY0Li41OGYyOGVhIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL2Fk
+czc4MjguYworKysgYi9kcml2ZXJzL2h3bW9uL2Fkczc4MjguYwpAQCAtMSwxMiArMSwxMiBAQAog
+LyoKLSAqIGFkczc4MjguYyAtIGxtX3NlbnNvcnMgZHJpdmVyIGZvciBhZHM3ODI4IDEyLWJpdCA4
+LWNoYW5uZWwgQURDCi0gKiAoQykgMjAwNyBFQURTIEFzdHJpdW0KKyAqIGFkczc4MjguYyAtIGRy
+aXZlciBmb3IgVEkgQURTNzgyOCA4LWNoYW5uZWwgQS9EIGNvbnZlcnRlciBhbmQgY29tcGF0aWJs
+ZXMKICAqCi0gKiBUaGlzIGRyaXZlciBpcyBiYXNlZCBvbiB0aGUgbG03NSBhbmQgb3RoZXIgbG1f
+c2Vuc29ycy9od21vbiBkcml2ZXJzCisgKiBDb3B5cmlnaHQgKEMpIDIwMDcgRUFEUyBBc3RyaXVt
+CisgKiBDb3B5cmlnaHQgKEMpIFN0ZXZlIEhhcmR5IDxzaGFyZHlAcmVkaGF0LmNvbT4KKyAqIENv
+cHlyaWdodCAoQykgMjAxMiBTYXZvaXItZmFpcmUgTGludXggSW5jLgorICoJR3VpbGxhdW1lIFJv
+Z3VleiA8Z3VpbGxhdW1lLnJvZ3VlekBzYXZvaXJmYWlyZWxpbnV4LmNvbT4KICAqCi0gKiBXcml0
+dGVuIGJ5IFN0ZXZlIEhhcmR5IDxzaGFyZHlAcmVkaGF0LmNvbT4KLSAqCi0gKiBEYXRhc2hlZXQg
+YXZhaWxhYmxlIGF0OiBodHRwOi8vZm9jdXMudGkuY29tL2xpdC9kcy9zeW1saW5rL2Fkczc4Mjgu
+cGRmCisgKiBGb3IgZnVydGhlciBpbmZvcm1hdGlvbiwgc2VlIHRoZSBEb2N1bWVudGF0aW9uL2h3
+bW9uL2Fkczc4MjggZmlsZS4KICAqCiAgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsg
+eW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQogICogaXQgdW5kZXIgdGhlIHRl
+cm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkKQEAg
+LTM0LDE0ICszNCwxNSBAQAogI2luY2x1ZGUgPGxpbnV4L211dGV4Lmg+CiAKIC8qIFRoZSBBRFM3
+ODI4IHJlZ2lzdGVycyAqLwotI2RlZmluZSBBRFM3ODI4X05DSCA4IC8qIDggY2hhbm5lbHMgb2Yg
+MTItYml0IEEtRCBzdXBwb3J0ZWQgKi8KLSNkZWZpbmUgQURTNzgyOF9DTURfU0RfU0UgMHg4MCAv
+KiBTaW5nbGUgZW5kZWQgaW5wdXRzICovCi0jZGVmaW5lIEFEUzc4MjhfQ01EX1NEX0RJRkYgMHgw
+MCAvKiBEaWZmZXJlbnRpYWwgaW5wdXRzICovCi0jZGVmaW5lIEFEUzc4MjhfQ01EX1BEMCAweDAg
+LyogUG93ZXIgRG93biBiZXR3ZWVuIEEtRCBjb252ZXJzaW9ucyAqLwotI2RlZmluZSBBRFM3ODI4
+X0NNRF9QRDEgMHgwNCAvKiBJbnRlcm5hbCByZWYgT0ZGICYmIEEtRCBPTiAqLwotI2RlZmluZSBB
+RFM3ODI4X0NNRF9QRDIgMHgwOCAvKiBJbnRlcm5hbCByZWYgT04gJiYgQS1EIE9GRiAqLwotI2Rl
+ZmluZSBBRFM3ODI4X0NNRF9QRDMgMHgwQyAvKiBJbnRlcm5hbCByZWYgT04gJiYgQS1EIE9OICov
+Ci0jZGVmaW5lIEFEUzc4MjhfSU5UX1ZSRUZfTVYgMjUwMCAvKiBJbnRlcm5hbCB2cmVmIGlzIDIu
+NVYsIDI1MDBtViAqLworI2RlZmluZSBBRFM3ODI4X05DSAkJOAkvKiA4IGNoYW5uZWxzIHN1cHBv
+cnRlZCAqLworI2RlZmluZSBBRFM3ODI4X0NNRF9TRF9TRQkweDgwCS8qIFNpbmdsZSBlbmRlZCBp
+bnB1dHMgKi8KKyNkZWZpbmUgQURTNzgyOF9DTURfU0RfRElGRgkweDAwCS8qIERpZmZlcmVudGlh
+bCBpbnB1dHMgKi8KKyNkZWZpbmUgQURTNzgyOF9DTURfUEQxCQkweDA0CS8qIEludGVybmFsIHJl
+ZiBPRkYgJiYgQS9EIE9OICovCisjZGVmaW5lIEFEUzc4MjhfQ01EX1BEMwkJMHgwQwkvKiBJbnRl
+cm5hbCByZWYgT04gJiYgQS9EIE9OICovCisjZGVmaW5lIEFEUzc4MjhfSU5UX1ZSRUZfTVYJMjUw
+MAkvKiBJbnRlcm5hbCB2cmVmIGlzIDIuNVYsIDI1MDBtViAqLworCisvKiBMaXN0IG9mIHN1cHBv
+cnRlZCBkZXZpY2VzICovCitlbnVtIGFkczc4MjhfY2hpcHMgeyBhZHM3ODI4LCBhZHM3ODMwIH07
+CiAKIC8qIEFkZHJlc3NlcyB0byBzY2FuICovCiBzdGF0aWMgY29uc3QgdW5zaWduZWQgc2hvcnQg
+bm9ybWFsX2kyY1tdID0geyAweDQ4LCAweDQ5LCAweDRhLCAweDRiLApAQCAtNTcsMjMgKzU4LDI3
+IEBAIG1vZHVsZV9wYXJhbSh2cmVmX212LCBpbnQsIFNfSVJVR08pOwogCiAvKiBHbG9iYWwgVmFy
+aWFibGVzICovCiBzdGF0aWMgdTggYWRzNzgyOF9jbWRfYnl0ZTsgLyogY21kIGJ5dGUgd2l0aG91
+dCBjaGFubmVsIGJpdHMgKi8KLXN0YXRpYyB1bnNpZ25lZCBpbnQgYWRzNzgyOF9sc2JfcmVzb2w7
+IC8qIHJlc29sdXRpb24gb2YgdGhlIEFEQyBzYW1wbGUgbHNiICovCiAKLS8qIEVhY2ggY2xpZW50
+IGhhcyB0aGlzIGFkZGl0aW9uYWwgZGF0YSAqLworLyoqCisgKiBzdHJ1Y3QgYWRzNzgyOF9kYXRh
+IC0gY2xpZW50IHNwZWNpZmljIGRhdGEKKyAqIEBod21vbl9kZXY6CQlUaGUgaHdtb24gZGV2aWNl
+LgorICogQHVwZGF0ZV9sb2NrOglNdXRleCBwcm90ZWN0aW5nIHVwZGF0ZXMuCisgKiBAdmFsaWQ6
+CQlWYWxpZGl0eSBmbGFnLgorICogQGxhc3RfdXBkYXRlZDoJTGFzdCB1cGRhdGVkIHRpbWUgKGlu
+IGppZmZpZXMpLgorICogQGFkY19pbnB1dDoJCUFEUzc4MjhfTkNIIHNhbXBsZXMuCisgKiBAbHNi
+X3Jlc29sOgkJUmVzb2x1dGlvbiBvZiB0aGUgQS9EIGNvbnZlcnRlciBzYW1wbGUgTFNCLgorICog
+QHJlYWRfY2hhbm5lbDoJRnVuY3Rpb24gdXNlZCB0byByZWFkIGEgY2hhbm5lbC4KKyAqLwogc3Ry
+dWN0IGFkczc4MjhfZGF0YSB7CiAJc3RydWN0IGRldmljZSAqaHdtb25fZGV2OwotCXN0cnVjdCBt
+dXRleCB1cGRhdGVfbG9jazsgLyogbXV0ZXggcHJvdGVjdCB1cGRhdGVzICovCi0JY2hhciB2YWxp
+ZDsgLyogIT0wIGlmIGZvbGxvd2luZyBmaWVsZHMgYXJlIHZhbGlkICovCi0JdW5zaWduZWQgbG9u
+ZyBsYXN0X3VwZGF0ZWQ7IC8qIEluIGppZmZpZXMgKi8KLQl1MTYgYWRjX2lucHV0W0FEUzc4Mjhf
+TkNIXTsgLyogQURTNzgyOF9OQ0ggMTItYml0IHNhbXBsZXMgKi8KKwlzdHJ1Y3QgbXV0ZXggdXBk
+YXRlX2xvY2s7CisJY2hhciB2YWxpZDsKKwl1bnNpZ25lZCBsb25nIGxhc3RfdXBkYXRlZDsKKwl1
+MTYgYWRjX2lucHV0W0FEUzc4MjhfTkNIXTsKKwl1bnNpZ25lZCBpbnQgbHNiX3Jlc29sOworCXMz
+MiAoKnJlYWRfY2hhbm5lbCkoY29uc3Qgc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwgdTggY29t
+bWFuZCk7CiB9OwogCi0vKiBGdW5jdGlvbiBkZWNsYXJhdGlvbiAtIG5lY2Vzc2FyeSBkdWUgdG8g
+ZnVuY3Rpb24gZGVwZW5kZW5jaWVzICovCi1zdGF0aWMgaW50IGFkczc4MjhfZGV0ZWN0KHN0cnVj
+dCBpMmNfY2xpZW50ICpjbGllbnQsCi0JCQkgIHN0cnVjdCBpMmNfYm9hcmRfaW5mbyAqaW5mbyk7
+Ci1zdGF0aWMgaW50IGFkczc4MjhfcHJvYmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKLQkJ
+CSBjb25zdCBzdHJ1Y3QgaTJjX2RldmljZV9pZCAqaWQpOwotCiBzdGF0aWMgaW5saW5lIHU4IGNo
+YW5uZWxfY21kX2J5dGUoaW50IGNoKQogewogCS8qIGNtZCBieXRlIEMyLEMxLEMwIC0gc2VlIGRh
+dGFzaGVldCAqLwpAQCAtOTcsOCArMTAyLDcgQEAgc3RhdGljIHN0cnVjdCBhZHM3ODI4X2RhdGEg
+KmFkczc4MjhfdXBkYXRlX2RldmljZShzdHJ1Y3QgZGV2aWNlICpkZXYpCiAKIAkJZm9yIChjaCA9
+IDA7IGNoIDwgQURTNzgyOF9OQ0g7IGNoKyspIHsKIAkJCXU4IGNtZCA9IGNoYW5uZWxfY21kX2J5
+dGUoY2gpOwotCQkJZGF0YS0+YWRjX2lucHV0W2NoXSA9Ci0JCQkJaTJjX3NtYnVzX3JlYWRfd29y
+ZF9zd2FwcGVkKGNsaWVudCwgY21kKTsKKwkJCWRhdGEtPmFkY19pbnB1dFtjaF0gPSBkYXRhLT5y
+ZWFkX2NoYW5uZWwoY2xpZW50LCBjbWQpOwogCQl9CiAJCWRhdGEtPmxhc3RfdXBkYXRlZCA9IGpp
+ZmZpZXM7CiAJCWRhdGEtPnZhbGlkID0gMTsKQEAgLTExNiw4ICsxMjAsOCBAQCBzdGF0aWMgc3Np
+emVfdCBzaG93X2luKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGRldmljZV9hdHRyaWJ1dGUg
+KmRhLAogCXN0cnVjdCBzZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciA9IHRvX3NlbnNvcl9k
+ZXZfYXR0cihkYSk7CiAJc3RydWN0IGFkczc4MjhfZGF0YSAqZGF0YSA9IGFkczc4MjhfdXBkYXRl
+X2RldmljZShkZXYpOwogCS8qIFByaW50IHZhbHVlIChpbiBtViBhcyBzcGVjaWZpZWQgaW4gc3lz
+ZnMtaW50ZXJmYWNlIGRvY3VtZW50YXRpb24pICovCi0JcmV0dXJuIHNwcmludGYoYnVmLCAiJWRc
+biIsIChkYXRhLT5hZGNfaW5wdXRbYXR0ci0+aW5kZXhdICoKLQkJYWRzNzgyOF9sc2JfcmVzb2wp
+LzEwMDApOworCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLAorCQkgICAgICAgKGRhdGEtPmFk
+Y19pbnB1dFthdHRyLT5pbmRleF0gKiBkYXRhLT5sc2JfcmVzb2wpIC8gMTAwMCk7CiB9CiAKICNk
+ZWZpbmUgaW5fcmVnKG9mZnNldClcCkBAIC0xNTgsMzEgKzE2MiwxMyBAQCBzdGF0aWMgaW50IGFk
+czc4MjhfcmVtb3ZlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCiAJcmV0dXJuIDA7CiB9CiAK
+LXN0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX2RldmljZV9pZCBhZHM3ODI4X2lkW10gPSB7Ci0JeyAi
+YWRzNzgyOCIsIDAgfSwKLQl7IH0KLX07Ci1NT0RVTEVfREVWSUNFX1RBQkxFKGkyYywgYWRzNzgy
+OF9pZCk7Ci0KLS8qIFRoaXMgaXMgdGhlIGRyaXZlciB0aGF0IHdpbGwgYmUgaW5zZXJ0ZWQgKi8K
+LXN0YXRpYyBzdHJ1Y3QgaTJjX2RyaXZlciBhZHM3ODI4X2RyaXZlciA9IHsKLQkuY2xhc3MgPSBJ
+MkNfQ0xBU1NfSFdNT04sCi0JLmRyaXZlciA9IHsKLQkJLm5hbWUgPSAiYWRzNzgyOCIsCi0JfSwK
+LQkucHJvYmUgPSBhZHM3ODI4X3Byb2JlLAotCS5yZW1vdmUgPSBhZHM3ODI4X3JlbW92ZSwKLQku
+aWRfdGFibGUgPSBhZHM3ODI4X2lkLAotCS5kZXRlY3QgPSBhZHM3ODI4X2RldGVjdCwKLQkuYWRk
+cmVzc19saXN0ID0gbm9ybWFsX2kyYywKLX07Ci0KIC8qIFJldHVybiAwIGlmIGRldGVjdGlvbiBp
+cyBzdWNjZXNzZnVsLCAtRU5PREVWIG90aGVyd2lzZSAqLwogc3RhdGljIGludCBhZHM3ODI4X2Rl
+dGVjdChzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LAogCQkJICBzdHJ1Y3QgaTJjX2JvYXJkX2lu
+Zm8gKmluZm8pCiB7CiAJc3RydWN0IGkyY19hZGFwdGVyICphZGFwdGVyID0gY2xpZW50LT5hZGFw
+dGVyOwogCWludCBjaDsKKwlib29sIGlzXzhiaXQgPSBmYWxzZTsKIAogCS8qIENoZWNrIHdlIGhh
+dmUgYSB2YWxpZCBjbGllbnQgKi8KIAlpZiAoIWkyY19jaGVja19mdW5jdGlvbmFsaXR5KGFkYXB0
+ZXIsIEkyQ19GVU5DX1NNQlVTX1JFQURfV09SRF9EQVRBKSkKQEAgLTE5MywyMCArMTc5LDMwIEBA
+IHN0YXRpYyBpbnQgYWRzNzgyOF9kZXRlY3Qoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKIAkg
+KiBkZWRpY2F0ZWQgcmVnaXN0ZXIgc28gYXR0ZW1wdCB0byBzYW5pdHkgY2hlY2sgdXNpbmcga25v
+d2xlZGdlIG9mCiAJICogdGhlIGNoaXAKIAkgKiAtIFJlYWQgZnJvbSB0aGUgOCBjaGFubmVsIGFk
+ZHJlc3NlcwotCSAqIC0gQ2hlY2sgdGhlIHRvcCA0IGJpdHMgb2YgZWFjaCByZXN1bHQgYXJlIG5v
+dCBzZXQgKDEyIGRhdGEgYml0cykKKwkgKiAtIENoZWNrIHRoZSB0b3AgNCBiaXRzIG9mIGVhY2gg
+cmVzdWx0OgorCSAqICAgLSBUaGV5IHNob3VsZCBub3QgYmUgc2V0IGluIGNhc2Ugb2YgMTItYml0
+IHNhbXBsZXMKKwkgKiAgIC0gVGhlIHR3byBieXRlcyBzaG91bGQgYmUgZXF1YWwgaW4gY2FzZSBv
+ZiA4LWJpdCBzYW1wbGVzCiAJICovCiAJZm9yIChjaCA9IDA7IGNoIDwgQURTNzgyOF9OQ0g7IGNo
+KyspIHsKIAkJdTE2IGluX2RhdGE7CiAJCXU4IGNtZCA9IGNoYW5uZWxfY21kX2J5dGUoY2gpOwog
+CQlpbl9kYXRhID0gaTJjX3NtYnVzX3JlYWRfd29yZF9zd2FwcGVkKGNsaWVudCwgY21kKTsKIAkJ
+aWYgKGluX2RhdGEgJiAweEYwMDApIHsKLQkJCXByX2RlYnVnKCIlcyA6IERvZXNuJ3QgbG9vayBs
+aWtlIGFuIGFkczc4MjggZGV2aWNlXG4iLAotCQkJCSBfX2Z1bmNfXyk7Ci0JCQlyZXR1cm4gLUVO
+T0RFVjsKKwkJCWlmICgoaW5fZGF0YSA+PiA4KSA9PSAoaW5fZGF0YSAmIDB4RkYpKSB7CisJCQkJ
+LyogU2VlbXMgdG8gYmUgYW4gQURTNzgzMCAoOC1iaXQgc2FtcGxlKSAqLworCQkJCWlzXzhiaXQg
+PSB0cnVlOworCQkJfSBlbHNlIHsKKwkJCQlkZXZfZGJnKCZjbGllbnQtPmRldiwgImRvZXNuJ3Qg
+bG9vayBsaWtlIGFuICIKKwkJCQkJIkFEUzc4MjggY29tcGF0aWJsZSBkZXZpY2VcbiIpOworCQkJ
+CXJldHVybiAtRU5PREVWOworCQkJfQogCQl9CiAJfQogCi0Jc3RybGNweShpbmZvLT50eXBlLCAi
+YWRzNzgyOCIsIEkyQ19OQU1FX1NJWkUpOworCWlmIChpc184Yml0KQorCQlzdHJsY3B5KGluZm8t
+PnR5cGUsICJhZHM3ODMwIiwgSTJDX05BTUVfU0laRSk7CisJZWxzZQorCQlzdHJsY3B5KGluZm8t
+PnR5cGUsICJhZHM3ODI4IiwgSTJDX05BTUVfU0laRSk7CiAKIAlyZXR1cm4gMDsKIH0KQEAgLTIy
+Myw2ICsyMTksMTUgQEAgc3RhdGljIGludCBhZHM3ODI4X3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50
+ICpjbGllbnQsCiAJCWdvdG8gZXhpdDsKIAl9CiAKKwkvKiBBRFM3ODI4IHVzZXMgMTItYml0IHNh
+bXBsZXMsIHdoaWxlIEFEUzc4MzAgaXMgOC1iaXQgKi8KKwlpZiAoaWQtPmRyaXZlcl9kYXRhID09
+IGFkczc4MjgpIHsKKwkJZGF0YS0+cmVhZF9jaGFubmVsID0gaTJjX3NtYnVzX3JlYWRfd29yZF9z
+d2FwcGVkOworCQlkYXRhLT5sc2JfcmVzb2wgPSAodnJlZl9tdiAqIDEwMDApIC8gNDA5NjsKKwl9
+IGVsc2UgeworCQlkYXRhLT5yZWFkX2NoYW5uZWwgPSBpMmNfc21idXNfcmVhZF9ieXRlX2RhdGE7
+CisJCWRhdGEtPmxzYl9yZXNvbCA9ICh2cmVmX212ICogMTAwMCkgLyAyNTY7CisJfQorCiAJaTJj
+X3NldF9jbGllbnRkYXRhKGNsaWVudCwgZGF0YSk7CiAJbXV0ZXhfaW5pdCgmZGF0YS0+dXBkYXRl
+X2xvY2spOwogCkBAIC0yNDcsNiArMjUyLDI1IEBAIGV4aXQ6CiAJcmV0dXJuIGVycjsKIH0KIAor
+c3RhdGljIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkIGFkczc4MjhfaWRzW10gPSB7CisJeyAi
+YWRzNzgyOCIsIGFkczc4MjggfSwKKwl7ICJhZHM3ODMwIiwgYWRzNzgzMCB9LAorCXsgfQorfTsK
+K01PRFVMRV9ERVZJQ0VfVEFCTEUoaTJjLCBhZHM3ODI4X2lkcyk7CisKK3N0YXRpYyBzdHJ1Y3Qg
+aTJjX2RyaXZlciBhZHM3ODI4X2RyaXZlciA9IHsKKwkuY2xhc3MgPSBJMkNfQ0xBU1NfSFdNT04s
+CisJLmRyaXZlciA9IHsKKwkJLm5hbWUgPSAiYWRzNzgyOCIsCisJfSwKKwkucHJvYmUgPSBhZHM3
+ODI4X3Byb2JlLAorCS5yZW1vdmUgPSBhZHM3ODI4X3JlbW92ZSwKKwkuaWRfdGFibGUgPSBhZHM3
+ODI4X2lkcywKKwkuZGV0ZWN0ID0gYWRzNzgyOF9kZXRlY3QsCisJLmFkZHJlc3NfbGlzdCA9IG5v
+cm1hbF9pMmMsCit9OworCiBzdGF0aWMgaW50IF9faW5pdCBzZW5zb3JzX2Fkczc4MjhfaW5pdCh2
+b2lkKQogewogCS8qIEluaXRpYWxpemUgdGhlIGNvbW1hbmQgYnl0ZSBhY2NvcmRpbmcgdG8gbW9k
+dWxlIHBhcmFtZXRlcnMgKi8KQEAgLTI1NSw5ICsyNzksNiBAQCBzdGF0aWMgaW50IF9faW5pdCBz
+ZW5zb3JzX2Fkczc4MjhfaW5pdCh2b2lkKQogCWFkczc4MjhfY21kX2J5dGUgfD0gaW50X3ZyZWYg
+PwogCQlBRFM3ODI4X0NNRF9QRDMgOiBBRFM3ODI4X0NNRF9QRDE7CiAKLQkvKiBDYWxjdWxhdGUg
+dGhlIExTQiByZXNvbHV0aW9uICovCi0JYWRzNzgyOF9sc2JfcmVzb2wgPSAodnJlZl9tdioxMDAw
+KS80MDk2OwotCiAJcmV0dXJuIGkyY19hZGRfZHJpdmVyKCZhZHM3ODI4X2RyaXZlcik7CiB9CiAK
+QEAgLTI2Nyw3ICsyODgsNyBAQCBzdGF0aWMgdm9pZCBfX2V4aXQgc2Vuc29yc19hZHM3ODI4X2V4
+aXQodm9pZCkKIH0KIAogTU9EVUxFX0FVVEhPUigiU3RldmUgSGFyZHkgPHNoYXJkeUByZWRoYXQu
+Y29tPiIpOwotTU9EVUxFX0RFU0NSSVBUSU9OKCJBRFM3ODI4IGRyaXZlciIpOworTU9EVUxFX0RF
+U0NSSVBUSU9OKCJEcml2ZXIgZm9yIFRJIEFEUzc4MjggQS9EIGNvbnZlcnRlciBhbmQgY29tcGF0
+aWJsZXMiKTsKIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKIAogbW9kdWxlX2luaXQoc2Vuc29yc19h
+ZHM3ODI4X2luaXQpOwotLSAKMS43LjExLjQKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxt
+LXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZv
+L2xtLXNlbnNvcnM
