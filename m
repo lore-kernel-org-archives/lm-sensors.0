@@ -1,120 +1,225 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 12 Oct 2012 16:14:15 +0000
-Subject: Re: [lm-sensors] [PATCH 2/5] hwmon: (coretemp) Use model table instead of if/else to identify CPU mo
-Message-Id: <20121012161415.GA6300@roeck-us.net>
+From: "Bruce Parker" <BruceP@tanisys.com>
+Date: Mon, 01 Oct 2012 14:03:15 +0000
+Subject: Re: [lm-sensors] How to use SC18IS602 driver ?
+Message-Id: <16691A8B34B5D9458EA3A1C37A11555A01B20426@tanisys-ex2.Tanisys.Local>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1349816943-17697-3-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1349816943-17697-3-git-send-email-linux@roeck-us.net>
+References: <20120928013559.GA14405@roeck-us.net>
+In-Reply-To: <20120928013559.GA14405@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 12, 2012 at 11:12:04AM +0200, Jean Delvare wrote:
-> On Tue,  9 Oct 2012 14:09:00 -0700, Guenter Roeck wrote:
-> > Make the code easier to extend and easier to adjust by using a model table
-> > listing CPU models, stepping/mask, and associated TjMax.
+ 
+> Adding mailing list back in. Please don't drop it, and please 
+> don't top-post.
+> 
+> > # ls /sys/class/i2c-adapter/i2c-0
+> > 0-0020         0-0025         0-004c         0-0054         i2c-dev
+> > 0-0021         0-0026         0-0050         0-0055         name
+> > 0-0022         0-0027         0-0051         0-0056         
+> new_device
+> > 0-0023         0-0028         0-0052         delete_device  
+> subsystem
+> > 0-0024         0-0037         0-0053         device         uevent
+> > # ls /sys/class/i2c-adapter/i2c-0/0-0028
+> > driver      modalias    name        spi_master  subsystem   uevent
+> > # ls /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/
+> > spi0
+> > # ls /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/spi0
+> > device     spi0.0     subsystem  uevent
+> > # ls /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/spi0/spi0.0
+> > modalias   subsystem  uevent
+> > #
 > > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  drivers/hwmon/coretemp.c |   36 ++++++++++++++++++++++--------------
-> >  1 file changed, 22 insertions(+), 14 deletions(-)
+> > I guess I don't understand when the /dev/mtd* device is 
+> supposed to be created?
+> > 
+> Given the above, you must have either a device tree based 
+> configuration or a
+> platform initialization file. In there you would specify the 
+> parameters of the
+> SPI EEPROM. Assuming it is a Jedec compliant eeprom, that 
+> would in turn
+> instantiate the mtd devices. If you use device tree, I think 
+> you would specify
+> partition sizes in it as well.
 > 
-> I like the idea. Just a couple things about the implementation:
+> Guenter
 > 
-> > diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> > index 1937cd4..7107096 100644
-> > --- a/drivers/hwmon/coretemp.c
-> > +++ b/drivers/hwmon/coretemp.c
-> > @@ -208,6 +208,23 @@ static const struct tjmax __cpuinitconst tjmax_table[] = {
-> >  	{ "CPU  330", 125000 },
-> >  };
+> > -----Original Message-----
+> > From: Guenter Roeck [mailto:linux@roeck-us.net]
+> > Sent: Thu 9/27/2012 7:10 PM
+> > To: Bruce Parker
+> > Subject: Re: How to use SC18IS602 driver ?
 > >  
-> > +struct tjmax_model {
-> > +	u8 model;
-> > +	u8 mask;
-> > +	int tjmax;
-> > +};
-> > +
-> > +static const struct tjmax_model __cpuinitconst tjmax_model_table[] = {
-> > +	{ 0x1c, 10, 100000 },	/* D4xx, N4xx, D5xx, N5xx */
-> > +	{ 0x1c, 0, 90000 },	/* Z5xx, N2xx, 230, 330, others	*/
+> > On Thu, Sep 27, 2012 at 05:56:02PM -0500, Bruce Parker wrote:
+> > > I'm logged in as root, but doesn't look like "sudo" or 
+> "i2cdetect" are
+> > > on my filesystem. Guess I need to get it added to ramdisk?
+> > > 
+> > Try "ls /sys/class/i2c-adapter/i2c-0"
+> > 
+> > Guenter
+> > 
+> > > Bruce...
+> > > 
+> > > -----Original Message-----
+> > > From: Guenter Roeck [mailto:linux@roeck-us.net] 
+> > > Sent: Thursday, September 27, 2012 5:48 PM
+> > > To: Bruce Parker
+> > > Subject: Re: How to use SC18IS602 driver ?
+> > > 
+> > > On Thu, Sep 27, 2012 at 04:50:53PM -0500, Bruce Parker wrote:
+> > > > Message at bottom of email...
+> > > >  
+> > > > > -----Original Message-----
+> > > > > From: Guenter Roeck [mailto:linux@roeck-us.net] 
+> > > > > Sent: Tuesday, August 28, 2012 6:38 PM
+> > > > > To: Bruce Parker
+> > > > > Subject: Re: How to use SC18IS602 driver ?
+> > > > > 
+> > > > > On Tue, Aug 28, 2012 at 06:34:03PM -0500, Bruce Parker wrote:
+> > > > > >  [snip]
+> > > > > > >
+> > > > > > > With these entries, I can successfully boot Linux 
+> and see that
+> > > an
+> > > > > > entry
+> > > > > > > has been created at:
+> > > > > > > /sys/class/i2c-adapter/i2c-0/0-0028/spi_master/spi0/spi0.0
+> > > > > > >
+> > > > > > Do you also see it at /sys/class/spi_master/spi0/spi0.0 ?
+> > > > > > 
+> > > > > > Yes
+> > > > > > 
+> > > > > > > In the past I have accessed eeproms by just 
+> having them in the
+> > > > > device
+> > > > > > > tree, then doing 
+> open(/sys/bus/i2c/devices/0-005x/eeprom) to get
+> > > > > file
+> > > > > > > descriptor. Then using file descriptor to do
+> > > > read()/write()...pretty
+> > > > > > > straight forward. Of course those eeproms were 
+> hanging directly
+> > > on
+> > > > > the
+> > > > > > > I2C bus.
+> > > > > > 
+> > > > > > Yes, this is how it works with I2C EEPROMs, or with AT25
+> > > conpatible
+> > > > > SPI
+> > > > > > EEPROMs.
+> > > > > > m25p80 works differently; it creates an mfd device.
+> > > > > > 
+> > > > > > Do you see any output with dmesg ? You should 
+> either see something
+> > > > > like
+> > > > > >         m25p80 spi0.0: s25sl064a (xxx Kbytes)
+> > > > > > or
+> > > > > >         m25p80 spi0.0: unrecognized JEDEC id ffffff
+> > > > > > 
+> > > > > > In the latter case, try again with mode 3 instead of mode 0.
+> > > > > > 
+> > > > > > No, but I don't have the hardware with the bridge 
+> and m25p80 on it
+> > > > > yet.
+> > > > > > Does that matter?
+> > > > > 
+> > > > > Ok, then I guess you'll have to wait for the 
+> hardware. The /dev/mtd
+> > > > > entries will
+> > > > > only be created if the hardware is actually there.
+> > > > > 
+> > > > > Guenter
+> > > > Hi again Guenter,
+> > > > I have my hardware now, but it does not appear to be 
+> discovered by the
+> > > > kernel at boot time. Using an I2C bus monitor, I do not see any
+> > > accesses
+> > > > to the I2C bridge during boot. The device is definitely 
+> in the device
+> > > > tree because the /sys/class/spi_master/spi0/spi0.0 file is being
+> > > > created. Should I see the kernel probing for the Bridge 
+> during boot
+> > > > time? Is there some specific kernel configuration I 
+> need to ask my
+> > > > kernel guy to enable?
+> > > > 
+> > > The driver is not an auto-detect driver, so you would not 
+> see any i2c
+> > > activity
+> > > unless you try to access a SPI device.
+> > > 
+> > > What do you see if you run "sudo i2cdetect 0" ?
+> > > 
+> > > Guenter
+> > > 
+> > > 
+> > 
 > 
-> I don't think the 230 and 330 should be listed there, as they are
-> overridden by an earlier match in tjmax_table[].
-> 
-I rephrased it:
-				/* Z5xx, N2xx, possibly others
-                                 * Note: Also matches 230 and 330,
-				 * which are covered by tjmax_table
-				 */
 
-> > +	{ 0x26, 0, 90000 },	/* Atom Tunnel Creek (Exx), Lincroft (Z6xx)
-> > +				 * Note: TjMax for E6xxT is 110C, but CPU type
-> > +				 * is undetectable by software
-> > +				 */
-> > +	{ 0x27, 0, 90000 },	/* Atom Medfield (Z2460) */
-> > +	{ 0x36, 0, 100000 },	/* Atom Cedar Trail/Cedarview (N2xxx, D2xxx) */
-> > +};
-> 
-> Using 0 as a special value may be problematic, as I think it is a
-> possible stepping value:
-> 
-> http://openbenchmarking.org/system/1109120-IV-TSCP1539338/tscp1/cpuinfo
-> 
-> (I agree model name looks odd, not sure if it is a public model or some
-> engineering sample.)
-> 
-> In hwmon-vid we have:
-> 
-> #define ANY 0xFF
-> 
-Good idea. I changed the code to use ANY.
+Ok...got i2cdetect installed and below is result:
+# i2cdetect 0
+WARNING! This program can confuse your I2C bus, cause data loss and
+worse!
+I will probe file /dev/i2c-0.
+I will probe address range 0x03-0x77.
+Continue? [Y/n] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: UU UU UU UU UU UU UU UU UU -- -- -- -- -- -- --
+30: -- 31 -- -- -- -- -- UU -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- UU -- -- --
+50: UU UU UU UU UU UU UU -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+I2C-SPI bridge is at addr 28, so it appears to be detected. 
 
-> and we use that when the stepping doesn't matter. Note that we also
-> support stepping ranges there, maybe we'll need it for coretemp too
-> some day, but I guess we can add it then.
-> 
-Agreed.
+Below is my entry in device tree, but I do not see anything special in
+/dev/mtd*
+                                spi: spi@28 {
+                                        compatible = "nxp,sc18is602";
+                                        #address-cells = <1>;
+                                        #size-cells = <0>;
+                                        reg = <0x28>;
+                                        m25p80@0 {
+                                                #address-cells = <1>;
+                                                #size-cells = <1>;
+                                                compatible "fsl,espi-flash";
+                                                linux,modalias "m25p80";
+                                                spi-max-frequency <25000000>;
+                                                modal = "s25sl064a";
+                                                reg = <0>;
+                                                mode = <0>;
 
-> > +
-> >  static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
-> >  				  struct device *dev)
-> >  {
-> > @@ -226,20 +243,11 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
-> >  			return tjmax_table[i].tjmax;
-> >  	}
-> >  
-> > -	/* Atom CPUs */
-> > -
-> > -	if (c->x86_model = 0x1c) {
-> > -		/*
-> > -		 * TjMax for stepping 10 CPUs (N4xx, N5xx, D4xx, D5xx)
-> > -		 * is 100 degrees C, for all others it is 90 degrees C.
-> > -		 */
-> > -		if (c->x86_mask = 10)
-> > -			return 100000;
-> > -		return 90000;
-> > -	} else if (c->x86_model = 0x26 || c->x86_model = 0x27) {
-> > -		return 90000;
-> > -	} else if (c->x86_model = 0x36) {
-> > -		return 100000;
-> > +	for (i = 0; i < ARRAY_SIZE(tjmax_model_table); i++) {
-> > +		const struct tjmax_model *tm = &tjmax_model_table[i];
-> > +		if (c->x86_model = tm->model &&
-> > +		    (!tm->mask || c->x86_mask = tm->mask))
-> > +			return tm->tjmax;
-> >  	}
-> >  
-> >  	/* Early chips have no MSR for TjMax */
-> 
-> Other than these implementation details:
-> 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-Thanks!
+                                                partition@0 {
+                                                    reg = <0x0
+0x00080000>;
+                                                    label = "Test
+Image";
+                                                    read-only;
+                                                };
+                                        };
+                                };
 
-Guenter
+
+# ls /dev/mtd*
+/dev/mtd0        /dev/mtd6        /dev/mtdblock2   /dev/mtdr12
+/dev/mtd1        /dev/mtd7        /dev/mtdblock3   /dev/mtdr13
+/dev/mtd10       /dev/mtd8        /dev/mtdblock4   /dev/mtdr14
+/dev/mtd11       /dev/mtd9        /dev/mtdblock5   /dev/mtdr15
+/dev/mtd12       /dev/mtdblock0   /dev/mtdblock6   /dev/mtdr2
+/dev/mtd13       /dev/mtdblock1   /dev/mtdblock7   /dev/mtdr3
+/dev/mtd14       /dev/mtdblock10  /dev/mtdblock8   /dev/mtdr4
+/dev/mtd15       /dev/mtdblock11  /dev/mtdblock9   /dev/mtdr5
+/dev/mtd2        /dev/mtdblock12  /dev/mtdr0       /dev/mtdr6
+/dev/mtd3        /dev/mtdblock13  /dev/mtdr1       /dev/mtdr7
+/dev/mtd4        /dev/mtdblock14  /dev/mtdr10      /dev/mtdr8
+/dev/mtd5        /dev/mtdblock15  /dev/mtdr11      /dev/mtdr9
+
 
 _______________________________________________
 lm-sensors mailing list
