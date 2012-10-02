@@ -1,44 +1,134 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 29 Oct 2012 13:45:04 +0000
-Subject: Re: [lm-sensors] [PATCH 1/9] hwmon: (it87) Save temperature registers in 2-dimensional array
-Message-Id: <20121029134504.GA4053@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 02 Oct 2012 16:20:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon: Drop needless includes of <linux/delay.h>
+Message-Id: <20121002182056.6adb0fa4@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351448401-13985-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1351448401-13985-2-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Oct 29, 2012 at 08:34:59AM +0100, Jean Delvare wrote:
-> On Sun, 28 Oct 2012 20:29:38 -0700, Guenter Roeck wrote:
-> > On Sun, Oct 28, 2012 at 10:39:54PM +0100, Jean Delvare wrote:
-> > > On Sun, 28 Oct 2012 11:19:53 -0700, Guenter Roeck wrote:
-> > > > +#define S_IRUGOWU	(S_IRUGO | S_IWUSR)
-> > > 
-> > > I'm not a big fan of this being defined in a single driver. If you
-> > > think it helps, then it would help several hundred drivers, not just
-> > > this one, so it should be defined in <linux/stat.h>, not locally.
-> > > 
-> > It helps me avoid the 80-column limit later on.
-> 
-> Line splits aren't that terrific, are they?
-> 
-> Actually, as the maintainer of the it87 driver (just remembered that
-> tonight) I would prefer line splits to a driver-specific define using a
-> (kind of) general name-space.
-> 
-Ok, I'll change it.
+These drivers use no sleep or delay functions so they don't need to
+include <linux/delay.h>.
 
-> > I agree, it would be great to have this and similar definitions in
-> > a global include file, I am just not sure if there would be much
-> > of a chance to get it accepted there.
-> 
-> Just try and see how your proposal is received?
-> 
-Maybe ...
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Rudolf Marek <r.marek@assembler.cz>
+---
+ drivers/hwmon/adt7411.c          |    1 -
+ drivers/hwmon/adt7462.c          |    1 -
+ drivers/hwmon/da9052-hwmon.c     |    1 -
+ drivers/hwmon/emc6w201.c         |    1 -
+ drivers/hwmon/i5k_amb.c          |    1 -
+ drivers/hwmon/k8temp.c           |    1 -
+ drivers/hwmon/max16065.c         |    1 -
+ drivers/hwmon/pmbus/pmbus_core.c |    1 -
+ drivers/hwmon/s3c-hwmon.c        |    1 -
+ drivers/hwmon/w83795.c           |    1 -
+ 10 files changed, 10 deletions(-)
 
-Guenter
+--- linux-3.7-rc0.orig/drivers/hwmon/adt7411.c	2012-10-02 08:54:00.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/adt7411.c	2012-10-02 18:13:50.152275197 +0200
+@@ -15,7 +15,6 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
+-#include <linux/delay.h>
+ #include <linux/mutex.h>
+ #include <linux/jiffies.h>
+ #include <linux/i2c.h>
+--- linux-3.7-rc0.orig/drivers/hwmon/adt7462.c	2012-10-02 08:54:00.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/adt7462.c	2012-10-02 18:13:34.791270368 +0200
+@@ -26,7 +26,6 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+-#include <linux/delay.h>
+ #include <linux/log2.h>
+ #include <linux/slab.h>
+ 
+--- linux-3.7-rc0.orig/drivers/hwmon/da9052-hwmon.c	2012-10-01 09:22:38.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/da9052-hwmon.c	2012-10-02 18:14:12.009281303 +0200
+@@ -12,7 +12,6 @@
+  *
+  */
+ 
+-#include <linux/delay.h>
+ #include <linux/err.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+--- linux-3.7-rc0.orig/drivers/hwmon/emc6w201.c	2012-10-01 09:22:38.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/emc6w201.c	2012-10-02 18:13:45.704273808 +0200
+@@ -18,7 +18,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/jiffies.h>
+--- linux-3.7-rc0.orig/drivers/hwmon/i5k_amb.c	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/i5k_amb.c	2012-10-02 18:13:28.499268624 +0200
+@@ -26,7 +26,6 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+-#include <linux/delay.h>
+ #include <linux/log2.h>
+ #include <linux/pci.h>
+ #include <linux/platform_device.h>
+--- linux-3.7-rc0.orig/drivers/hwmon/k8temp.c	2012-10-01 09:22:38.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/k8temp.c	2012-10-02 18:13:41.961272565 +0200
+@@ -22,7 +22,6 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/jiffies.h>
+--- linux-3.7-rc0.orig/drivers/hwmon/max16065.c	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/max16065.c	2012-10-02 18:14:16.607282770 +0200
+@@ -22,7 +22,6 @@
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+-#include <linux/delay.h>
+ #include <linux/jiffies.h>
+ 
+ enum chips { max16065, max16066, max16067, max16068, max16070, max16071 };
+--- linux-3.7-rc0.orig/drivers/hwmon/pmbus/pmbus_core.c	2012-07-21 22:58:29.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/pmbus/pmbus_core.c	2012-10-02 18:13:54.414276552 +0200
+@@ -26,7 +26,6 @@
+ #include <linux/i2c.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+-#include <linux/delay.h>
+ #include <linux/i2c/pmbus.h>
+ #include "pmbus.h"
+ 
+--- linux-3.7-rc0.orig/drivers/hwmon/s3c-hwmon.c	2012-10-02 08:54:00.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/s3c-hwmon.c	2012-10-02 18:13:58.213277857 +0200
+@@ -22,7 +22,6 @@
+ 
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/delay.h>
+ #include <linux/io.h>
+ #include <linux/init.h>
+ #include <linux/err.h>
+--- linux-3.7-rc0.orig/drivers/hwmon/w83795.c	2012-10-01 09:22:38.000000000 +0200
++++ linux-3.7-rc0/drivers/hwmon/w83795.c	2012-10-02 18:14:04.073279344 +0200
+@@ -34,7 +34,6 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/err.h>
+ #include <linux/mutex.h>
+-#include <linux/delay.h>
+ 
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = {
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
