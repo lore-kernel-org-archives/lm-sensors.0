@@ -1,209 +1,208 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 11 Oct 2012 14:36:12 +0000
-Subject: [lm-sensors] [PATCH 2/7] hwmon: (it87) Save voltage register values in 2-dimensional array
-Message-Id: <1349966177-25985-3-git-send-email-linux@roeck-us.net>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Tue, 02 Oct 2012 22:10:03 +0000
+Subject: [lm-sensors] [PATCH v3 2/2] hwmon: (ads7828) add support for ADS7830
+Message-Id: <1349215803-10999-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1349215803-10999-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1349215803-10999-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 
-Reduces code size (more than 600 bytes on x86_64),
-and gets rid of some checkpatch errors.
+From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+The ADS7830 device is almost the same as the ADS7828,
+except that it does 8-bit sampling, instead of 12-bit.
+This patch extends the ads7828 driver to support this chip.
+
+Signed-off-by: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 ---
- drivers/hwmon/it87.c |  135 +++++++++++++++++++-------------------------------
- 1 file changed, 52 insertions(+), 83 deletions(-)
+ Documentation/hwmon/ads7828 | 12 ++++++++++--
+ drivers/hwmon/Kconfig       |  7 ++++---
+ drivers/hwmon/ads7828.c     | 45 ++++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 48 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 350d8f4..d211c2b 100644
---- a/drivers/hwmon/it87.c
-+++ b/drivers/hwmon/it87.c
-@@ -258,9 +258,7 @@ struct it87_data {
- 	unsigned long last_updated;	/* In jiffies */
+diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
+index b35668c..51eab52 100644
+--- a/Documentation/hwmon/ads7828
++++ b/Documentation/hwmon/ads7828
+@@ -8,8 +8,15 @@ Supported chips:
+     Datasheet: Publicly available at the Texas Instruments website:
+                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
  
- 	u16 in_scaled;		/* Internal voltage sensors are scaled */
--	u8 in[9];		/* Register value */
--	u8 in_max[8];		/* Register value */
--	u8 in_min[8];		/* Register value */
-+	u8 in[9][3];		/* [nr][0]=in, [1]=min, [2]=max */
- 	u8 has_fan;		/* Bitfield, fans enabled */
- 	u16 fan[5];		/* Register values, possibly combined */
- 	u16 fan_min[5];		/* Register values, possibly combined */
-@@ -445,40 +443,22 @@ static struct platform_driver it87_driver = {
++  * Texas Instruments ADS7830
++    Prefix: 'ads7830'
++    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
++    Datasheet: Publicly available at the Texas Instruments website:
++               http://focus.ti.com/lit/ds/symlink/ads7830.pdf
++
+ Authors:
+         Steve Hardy <shardy@redhat.com>
++        Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+ 
+ Platform data
+ -------------
+@@ -35,9 +42,10 @@ The structure fields are:
+ Description
+ -----------
+ 
+-This driver implements support for the Texas Instruments ADS7828.
++This driver implements support for the Texas Instruments ADS7828 and ADS7830.
+ 
+-This device is a 12-bit 8-channel A-D converter.
++The ADS7828 device is a 12-bit 8-channel A/D converter, while the ADS7830 does
++8-bit sampling.
+ 
+ It can operate in single ended mode (8 +ve inputs) or in differential mode,
+ where 4 differential pairs can be measured.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 83e3e9d..960c8c5 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1060,11 +1060,12 @@ config SENSORS_ADS1015
+ 	  will be called ads1015.
+ 
+ config SENSORS_ADS7828
+-	tristate "Texas Instruments ADS7828"
++	tristate "Texas Instruments ADS7828 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for Texas Instruments ADS7828
+-	  12-bit 8-channel ADC device.
++	  If you say yes here you get support for Texas Instruments ADS7828 and
++	  ADS7830 8-channel A/D converters. ADS7828 resolution is 12-bit, while
++	  it is 8-bit on ADS7830.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ads7828.
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index 0a13bf8..809c065 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -1,11 +1,13 @@
+ /*
+- * ads7828.c - lm_sensors driver for ads7828 12-bit 8-channel ADC
++ * ads7828.c - driver for TI ADS7828 8-channel A/D converter and compatibles
+  * (C) 2007 EADS Astrium
+  *
+  * This driver is based on the lm75 and other lm_sensors/hwmon drivers
+  *
+  * Written by Steve Hardy <shardy@redhat.com>
+  *
++ * ADS7830 support, by Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
++ *
+  * For further information, see the Documentation/hwmon/ads7828 file.
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -43,6 +45,9 @@
+ #define ADS7828_EXT_VREF_MV_MIN	50	/* External vref min value 0.05V */
+ #define ADS7828_EXT_VREF_MV_MAX	5250	/* External vref max value 5.25V */
+ 
++/* List of supported devices */
++enum ads7828_chips { ads7828, ads7830 };
++
+ /* Addresses to scan */
+ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
+ 	I2C_CLIENT_END };
+@@ -59,6 +64,7 @@ struct ads7828_data {
+ 	unsigned int vref_mv;		/* voltage reference value */
+ 	u8 cmd_byte;			/* Command byte without channel bits */
+ 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
++	s32 (*read_channel)(const struct i2c_client *client, u8 command);
  };
  
- static ssize_t show_in(struct device *dev, struct device_attribute *attr,
--		char *buf)
-+		       char *buf)
- {
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
--
--	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", in_from_reg(data, nr, data->in[nr]));
--}
--
--static ssize_t show_in_min(struct device *dev, struct device_attribute *attr,
--		char *buf)
--{
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
--
--	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", in_from_reg(data, nr, data->in_min[nr]));
--}
--
--static ssize_t show_in_max(struct device *dev, struct device_attribute *attr,
--		char *buf)
--{
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
-+	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
-+	int nr = sattr->nr;
-+	int index = sattr->index;
+ /* Command byte C2,C1,C0 - see datasheet */
+@@ -82,8 +88,7 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
  
- 	struct it87_data *data = it87_update_device(dev);
--	return sprintf(buf, "%d\n", in_from_reg(data, nr, data->in_max[nr]));
-+	return sprintf(buf, "%d\n", in_from_reg(data, nr, data->in[nr][index]));
- }
- 
--static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
-+static ssize_t set_in(struct device *dev, struct device_attribute *attr,
-+		      const char *buf, size_t count)
- {
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
-+	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
-+	int nr = sattr->nr;
-+	int index = sattr->index;
- 
- 	struct it87_data *data = dev_get_drvdata(dev);
- 	unsigned long val;
-@@ -487,59 +467,50 @@ static ssize_t set_in_min(struct device *dev, struct device_attribute *attr,
- 		return -EINVAL;
- 
- 	mutex_lock(&data->update_lock);
--	data->in_min[nr] = in_to_reg(data, nr, val);
--	it87_write_value(data, IT87_REG_VIN_MIN(nr),
--			data->in_min[nr]);
-+	data->in[nr][index] = in_to_reg(data, nr, val);
-+	it87_write_value(data,
-+			 index = 1 ? IT87_REG_VIN_MIN(nr)
-+				    : IT87_REG_VIN_MAX(nr),
-+			 data->in[nr][index]);
- 	mutex_unlock(&data->update_lock);
- 	return count;
- }
--static ssize_t set_in_max(struct device *dev, struct device_attribute *attr,
--		const char *buf, size_t count)
--{
--	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
--	int nr = sensor_attr->index;
- 
--	struct it87_data *data = dev_get_drvdata(dev);
--	unsigned long val;
-+#define S_IRUGOWU	(S_IRUGO | S_IWUSR)
- 
--	if (kstrtoul(buf, 10, &val) < 0)
--		return -EINVAL;
-+static SENSOR_DEVICE_ATTR_2(in0_input, S_IRUGO, show_in, NULL, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(in0_min, S_IRUGOWU, show_in, set_in, 0, 1);
-+static SENSOR_DEVICE_ATTR_2(in0_max, S_IRUGOWU, show_in, set_in, 0, 2);
- 
--	mutex_lock(&data->update_lock);
--	data->in_max[nr] = in_to_reg(data, nr, val);
--	it87_write_value(data, IT87_REG_VIN_MAX(nr),
--			data->in_max[nr]);
--	mutex_unlock(&data->update_lock);
--	return count;
--}
-+static SENSOR_DEVICE_ATTR_2(in1_input, S_IRUGO, show_in, NULL, 1, 0);
-+static SENSOR_DEVICE_ATTR_2(in1_min, S_IRUGOWU, show_in, set_in, 1, 1);
-+static SENSOR_DEVICE_ATTR_2(in1_max, S_IRUGOWU, show_in, set_in, 1, 2);
-+
-+static SENSOR_DEVICE_ATTR_2(in2_input, S_IRUGO, show_in, NULL, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(in2_min, S_IRUGOWU, show_in, set_in, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(in2_max, S_IRUGOWU, show_in, set_in, 2, 2);
-+
-+static SENSOR_DEVICE_ATTR_2(in3_input, S_IRUGO, show_in, NULL, 3, 0);
-+static SENSOR_DEVICE_ATTR_2(in3_min, S_IRUGOWU, show_in, set_in, 3, 1);
-+static SENSOR_DEVICE_ATTR_2(in3_max, S_IRUGOWU, show_in, set_in, 3, 2);
- 
--#define show_in_offset(offset)					\
--static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO,		\
--		show_in, NULL, offset);
--
--#define limit_in_offset(offset)					\
--static SENSOR_DEVICE_ATTR(in##offset##_min, S_IRUGO | S_IWUSR,	\
--		show_in_min, set_in_min, offset);		\
--static SENSOR_DEVICE_ATTR(in##offset##_max, S_IRUGO | S_IWUSR,	\
--		show_in_max, set_in_max, offset);
--
--show_in_offset(0);
--limit_in_offset(0);
--show_in_offset(1);
--limit_in_offset(1);
--show_in_offset(2);
--limit_in_offset(2);
--show_in_offset(3);
--limit_in_offset(3);
--show_in_offset(4);
--limit_in_offset(4);
--show_in_offset(5);
--limit_in_offset(5);
--show_in_offset(6);
--limit_in_offset(6);
--show_in_offset(7);
--limit_in_offset(7);
--show_in_offset(8);
-+static SENSOR_DEVICE_ATTR_2(in4_input, S_IRUGO, show_in, NULL, 4, 0);
-+static SENSOR_DEVICE_ATTR_2(in4_min, S_IRUGOWU, show_in, set_in, 4, 1);
-+static SENSOR_DEVICE_ATTR_2(in4_max, S_IRUGOWU, show_in, set_in, 4, 2);
-+
-+static SENSOR_DEVICE_ATTR_2(in5_input, S_IRUGO, show_in, NULL, 5, 0);
-+static SENSOR_DEVICE_ATTR_2(in5_min, S_IRUGOWU, show_in, set_in, 5, 1);
-+static SENSOR_DEVICE_ATTR_2(in5_max, S_IRUGOWU, show_in, set_in, 5, 2);
-+
-+static SENSOR_DEVICE_ATTR_2(in6_input, S_IRUGO, show_in, NULL, 6, 0);
-+static SENSOR_DEVICE_ATTR_2(in6_min, S_IRUGOWU, show_in, set_in, 6, 1);
-+static SENSOR_DEVICE_ATTR_2(in6_max, S_IRUGOWU, show_in, set_in, 6, 2);
-+
-+static SENSOR_DEVICE_ATTR_2(in7_input, S_IRUGO, show_in, NULL, 7, 0);
-+static SENSOR_DEVICE_ATTR_2(in7_min, S_IRUGOWU, show_in, set_in, 7, 1);
-+static SENSOR_DEVICE_ATTR_2(in7_max, S_IRUGOWU, show_in, set_in, 7, 2);
-+
-+static SENSOR_DEVICE_ATTR_2(in8_input, S_IRUGO, show_in, NULL, 8, 0);
- 
- /* 3 temperatures */
- static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
-@@ -575,8 +546,6 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
- 	return count;
- }
- 
--#define S_IRUGOWU	(S_IRUGO | S_IWUSR)
--
- static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
- static SENSOR_DEVICE_ATTR_2(temp1_min, S_IRUGOWU, show_temp, set_temp, 0, 1);
- static SENSOR_DEVICE_ATTR_2(temp1_max, S_IRUGOWU, show_temp, set_temp, 0, 2);
-@@ -2357,15 +2326,15 @@ static struct it87_data *it87_update_device(struct device *dev)
- 				it87_read_value(data, IT87_REG_CONFIG) | 0x40);
+ 		for (ch = 0; ch < ADS7828_NCH; ch++) {
+ 			u8 cmd = ads7828_cmd_byte(data->cmd_byte, ch);
+-			data->adc_input[ch] -				i2c_smbus_read_word_swapped(client, cmd);
++			data->adc_input[ch] = data->read_channel(client, cmd);
  		}
- 		for (i = 0; i <= 7; i++) {
--			data->in[i] +			data->in[i][0]  				it87_read_value(data, IT87_REG_VIN(i));
--			data->in_min[i] +			data->in[i][1]  				it87_read_value(data, IT87_REG_VIN_MIN(i));
--			data->in_max[i] +			data->in[i][2]  				it87_read_value(data, IT87_REG_VIN_MAX(i));
- 		}
- 		/* in8 (battery) has no limit registers */
--		data->in[8] = it87_read_value(data, IT87_REG_VIN(8));
-+		data->in[8][0] = it87_read_value(data, IT87_REG_VIN(8));
+ 		data->last_updated = jiffies;
+ 		data->valid = true;
+@@ -148,6 +153,7 @@ static int ads7828_detect(struct i2c_client *client,
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	u8 default_cmd_byte = ADS7828_CMD_SD_SE | ADS7828_CMD_PD3;
++	bool is_8bit = false;
+ 	int ch;
  
- 		for (i = 0; i < 5; i++) {
- 			/* Skip disabled fans */
+ 	/* Check we have a valid client */
+@@ -159,7 +165,9 @@ static int ads7828_detect(struct i2c_client *client,
+ 	 * dedicated register so attempt to sanity check using knowledge of
+ 	 * the chip
+ 	 * - Read from the 8 channel addresses
+-	 * - Check the top 4 bits of each result are not set (12 data bits)
++	 * - Check the top 4 bits of each result:
++	 *   - They should not be set in case of 12-bit samples
++	 *   - The two bytes should be equal in case of 8-bit samples
+ 	 */
+ 	for (ch = 0; ch < ADS7828_NCH; ch++) {
+ 		u8 cmd = ads7828_cmd_byte(default_cmd_byte, ch);
+@@ -169,13 +177,20 @@ static int ads7828_detect(struct i2c_client *client,
+ 			return -ENODEV;
+ 
+ 		if (in_data & 0xF000) {
+-			pr_debug("%s : Doesn't look like an ads7828 device\n",
+-				 __func__);
+-			return -ENODEV;
++			if ((in_data >> 8) = (in_data & 0xFF)) {
++				/* Seems to be an ADS7830 (8-bit sample) */
++				is_8bit = true;
++			} else {
++				dev_dbg(&client->dev, "doesn't look like an ADS7828 compatible device\n");
++				return -ENODEV;
++			}
+ 		}
+ 	}
+ 
+-	strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
++	if (is_8bit)
++		strlcpy(info->type, "ads7830", I2C_NAME_SIZE);
++	else
++		strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
+ 
+ 	return 0;
+ }
+@@ -207,7 +222,14 @@ static int ads7828_probe(struct i2c_client *client,
+ 	else
+ 		data->vref_mv = ADS7828_INT_VREF_MV;
+ 
+-	data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
++	if (id->driver_data = ads7828) {
++		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++		data->read_channel = i2c_smbus_read_word_swapped;
++	} else {
++		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 256);
++		data->read_channel = i2c_smbus_read_byte_data;
++	}
+ 
+ 	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
+ 	if (!data->diff_input)
+@@ -234,7 +256,8 @@ error:
+ }
+ 
+ static const struct i2c_device_id ads7828_ids[] = {
+-	{ "ads7828", 0 },
++	{ "ads7828", ads7828 },
++	{ "ads7830", ads7830 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ads7828_ids);
+@@ -264,5 +287,5 @@ static void __exit sensors_ads7828_exit(void)
+ module_exit(sensors_ads7828_exit);
+ 
+ MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
+-MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter");
++MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter and compatibles");
+ MODULE_LICENSE("GPL");
 -- 
-1.7.9.7
+1.7.11.4
 
 
 _______________________________________________
