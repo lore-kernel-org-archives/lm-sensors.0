@@ -1,100 +1,428 @@
-From: rayer <rayer@seznam.cz>
-Date: Wed, 31 Oct 2012 09:51:57 +0000
-Subject: Re: [lm-sensors] coretemp.ko -- Sandy Bridge: temperature readings "biased" based on power consumpti
-Message-Id: <5090F4BD.4090006@seznam.cz>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Wed, 03 Oct 2012 03:33:26 +0000
+Subject: [lm-sensors] [PATCH v4 1/2] hwmon: (ads7828) driver cleanup
+Message-Id: <1349235207-7517-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <50905C34.31182.67732CA0@Frantisek.Rysanek.post.cz>
-In-Reply-To: <50905C34.31182.67732CA0@Frantisek.Rysanek.post.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>
 
-Hi,
-yes Guenter is right. Intel placed the DTS sensor into hottest place 
-inside CPU core(s).
-This is needed for safe thermal shutdown if any problem. Due to thermal 
-impedance
-between silicon, IHS and heatsink it happen that heat cannot flow so 
-fast through silicon
-to heatsink (thermal conductivity is less than metal) and fast 
-tepmperature rise will occur.
-It's normal. On my C2D system with E8500 it has idle temp about 40C and 
-when I run
-CPU burn it will jump about 10C in few seconds then slower the rise up 
-to 60-65C.
-CPU fan doesn't react so fast on each load peak, it spin up slowly if 
-longer load remains.
-So I don't see any problem at all.
-It may be more visible on latest IvyBridge CPU with poor chip to IHS paste.
-It doesnt affect notebooks because they don't use IHS (heatsink directly 
-on silicon die).
-On desktop CPU it was proven that removing the IHS may take temp some tens C
-down under load, esp. when overclocked.
+* Remove module parameters, add a ads7828_platform_data;
+* Move driver declaration to avoid adding function prototypes;
+* Remove unused macros;
+* Coding Style fixes.
 
-Martin
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ Documentation/hwmon/ads7828           |  31 +++--
+ drivers/hwmon/ads7828.c               | 206 ++++++++++++++++------------------
+ include/linux/platform_data/ads7828.h |  29 +++++
+ 3 files changed, 147 insertions(+), 119 deletions(-)
+ create mode 100644 include/linux/platform_data/ads7828.h
 
-Guenter Roeck wrote:
-> Hi Frantisek,
->
-> On Wed, Oct 31, 2012 at 12:01:08AM +0100, Frantisek Rysanek wrote:
->> >Dear gentlemen,
->> >
->> >I've just tried looking at the CPU temperature via coretemp.ko on
->> >some SandyBridge CPU's. I have a desktop-grade Core I3 at 3.3 GHz,
->> >and a mobile Core i5 at 2.5 GHz. When I flip the CPU from "pretty
->> >much idle" to "each core running a cpuburn instance", the temperature
->> >reported by coretemp*jumps*  up in a second. On the desktop CPU, the
->> >jump is about 10*C. On the mobile CPU, the jump is about 25-30 *C !
->> >It jumps up in a second after I launch the software load - and then
->> >it proceeds to gradually inch up, as the massive heatsink starts to
->> >warm up a bit (perhaps another degree C in twenty seconds to a
->> >minute).
->> >
-> I think that is pretty normal. Keep in mind this is the temperature within
-> the chip core, not at the external package.
->
-> I have systems with i7-2600 and i7-3770K. Both run at 30C or less when idle.
-> The core temperature jumps by at least 10C as soon as I add load. If the
-> load is at 100% for a minute or so on all cores, the temperature increases
-> to around 80C, and the CPU fan speed increases to keep it there.
-> Nothing to be concerned about unless your fan control is not working.
->
->> >Should I look for some thermal mischief in my system?
->> >Or, do the SandyBridge CPU's indeed "precompensate" the temperature
->> >reading based on instantaneous power consumption?
-> Not really. It is just that with higher power consumption, the CPU temperature
-> can jump significantly within a few seconds. After all, the power translates
-> into produced heat, which has to go somewhere. Since the sensors are directly
-> at the core, you see the impact immediately.
->
-> I think that may be a bit different to older CPUs, which probably tend to run a
-> bit hotter even when idle, resulting in less temperature increase under load.
-> Or, in other words, Intel probably did a good job conserving power when it
-> is not needed with recent CPUs.
->
->> >I.e., is the "digital thermal sensor" more like a "fan control hint
->> >with a strong feed-forward component", rather than a half-decent
->> >thermometer?
->> >
->> >I've noticed already on some recent 45nm Core2 CPU's (on a gigabyte
->> >motherboard) that the fan control feedback loop responds magically
->> >swiftly to me launching some software load.
->> >I know that modern SuperIO chips (containing PWM fan control logic)
->> >can take the CPU temp value straight from the CPU (perhaps mediated
->> >by the south bridge), using a digital link called PECI. I also know a
->> >bit about the autonomous fan control algorithms implemented in chips
->> >by ITE and Winbond(Nuvoton) - I've played with these before.
->> >If indeed the CPU's DTHERM sensor would "bump up the reading" in
->> >response to power consumption, that would explain the swift
->> >modulation of fan speed based on instantaneous CPU load...
->> >
-> power -> heat -> increased temperature ... no need to be too fancy.
->
-> Hope this helps,
->
-> Guenter
->
+diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
+index 2bbebe6..b35668c 100644
+--- a/Documentation/hwmon/ads7828
++++ b/Documentation/hwmon/ads7828
+@@ -5,21 +5,32 @@ Supported chips:
+   * Texas Instruments/Burr-Brown ADS7828
+     Prefix: 'ads7828'
+     Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
+-    Datasheet: Publicly available at the Texas Instruments website :
++    Datasheet: Publicly available at the Texas Instruments website:
+                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+ 
+ Authors:
+         Steve Hardy <shardy@redhat.com>
+ 
+-Module Parameters
+------------------
+-
+-* se_input: bool (default Y)
+-  Single ended operation - set to N for differential mode
+-* int_vref: bool (default Y)
+-  Operate with the internal 2.5V reference - set to N for external reference
+-* vref_mv: int (default 2500)
+-  If using an external reference, set this to the reference voltage in mV
++Platform data
++-------------
++
++The ads7828 driver accepts an optional ads7828_platform_data structure (defined
++in include/linux/platform_data/ads7828.h). If no structure is provided, the
++configuration defaults to single ended operation and internal vref (2.5V).
++
++The structure fields are:
++
++* diff_input: bool
++  Differential operation - set to true for differential mode,
++  false for default single ended mode.
++* ext_vref: bool
++  External reference - set to true if it operates with an external reference,
++  false for default internal reference.
++* vref_mv: int
++  Voltage reference - if using an external reference, set this to the reference
++  voltage in mV, otherwise, it will default to the internal value (2500mV).
++  This value will be bounded with limits accepted by the chip, described in the
++  datasheet.
+ 
+ Description
+ -----------
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index 1f9e8af..756bd1b 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -6,7 +6,7 @@
+  *
+  * Written by Steve Hardy <shardy@redhat.com>
+  *
+- * Datasheet available at: http://focus.ti.com/lit/ds/symlink/ads7828.pdf
++ * For further information, see the Documentation/hwmon/ads7828 file.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -23,63 +23,48 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/slab.h>
+-#include <linux/jiffies.h>
+-#include <linux/i2c.h>
++#include <linux/err.h>
+ #include <linux/hwmon.h>
+ #include <linux/hwmon-sysfs.h>
+-#include <linux/err.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/jiffies.h>
++#include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/platform_data/ads7828.h>
++#include <linux/slab.h>
+ 
+ /* The ADS7828 registers */
+-#define ADS7828_NCH 8 /* 8 channels of 12-bit A-D supported */
+-#define ADS7828_CMD_SD_SE 0x80 /* Single ended inputs */
+-#define ADS7828_CMD_SD_DIFF 0x00 /* Differential inputs */
+-#define ADS7828_CMD_PD0 0x0 /* Power Down between A-D conversions */
+-#define ADS7828_CMD_PD1 0x04 /* Internal ref OFF && A-D ON */
+-#define ADS7828_CMD_PD2 0x08 /* Internal ref ON && A-D OFF */
+-#define ADS7828_CMD_PD3 0x0C /* Internal ref ON && A-D ON */
+-#define ADS7828_INT_VREF_MV 2500 /* Internal vref is 2.5V, 2500mV */
++#define ADS7828_NCH		8	/* 8 channels supported */
++#define ADS7828_CMD_SD_SE	0x80	/* Single ended inputs */
++#define ADS7828_CMD_PD1		0x04	/* Internal vref OFF && A/D ON */
++#define ADS7828_CMD_PD3		0x0C	/* Internal vref ON && A/D ON */
++#define ADS7828_INT_VREF_MV	2500	/* Internal vref is 2.5V, 2500mV */
++#define ADS7828_EXT_VREF_MV_MIN	50	/* External vref min value 0.05V */
++#define ADS7828_EXT_VREF_MV_MAX	5250	/* External vref max value 5.25V */
+ 
+ /* Addresses to scan */
+-static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
++static const unsigned short ads7828_normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
+ 	I2C_CLIENT_END };
+ 
+-/* Module parameters */
+-static bool se_input = 1; /* Default is SE, 0 = diff */
+-static bool int_vref = 1; /* Default is internal ref ON */
+-static int vref_mv = ADS7828_INT_VREF_MV; /* set if vref != 2.5V */
+-module_param(se_input, bool, S_IRUGO);
+-module_param(int_vref, bool, S_IRUGO);
+-module_param(vref_mv, int, S_IRUGO);
+-
+-/* Global Variables */
+-static u8 ads7828_cmd_byte; /* cmd byte without channel bits */
+-static unsigned int ads7828_lsb_resol; /* resolution of the ADC sample lsb */
+-
+-/* Each client has this additional data */
++/* Client specific data */
+ struct ads7828_data {
+ 	struct device *hwmon_dev;
+-	struct mutex update_lock; /* mutex protect updates */
+-	char valid; /* !=0 if following fields are valid */
+-	unsigned long last_updated; /* In jiffies */
+-	u16 adc_input[ADS7828_NCH]; /* ADS7828_NCH 12-bit samples */
++	struct mutex update_lock;	/* Mutex protecting updates */
++	unsigned long last_updated;	/* Last updated time (in jiffies) */
++	u16 adc_input[ADS7828_NCH];	/* ADS7828_NCH samples */
++	bool valid;			/* Validity flag */
++	bool diff_input;		/* Differential input */
++	bool ext_vref;			/* External voltage reference */
++	unsigned int vref_mv;		/* voltage reference value */
++	u8 cmd_byte;			/* Command byte without channel bits */
++	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
+ };
+ 
+-/* Function declaration - necessary due to function dependencies */
+-static int ads7828_detect(struct i2c_client *client,
+-			  struct i2c_board_info *info);
+-static int ads7828_probe(struct i2c_client *client,
+-			 const struct i2c_device_id *id);
+-
+-static inline u8 channel_cmd_byte(int ch)
++/* Command byte C2,C1,C0 - see datasheet */
++static inline u8 ads7828_cmd_byte(u8 cmd, int ch)
+ {
+-	/* cmd byte C2,C1,C0 - see datasheet */
+-	u8 cmd = (((ch>>1) | (ch&0x01)<<2)<<4);
+-	cmd |= ads7828_cmd_byte;
+-	return cmd;
++	return cmd | (((ch >> 1) | (ch & 0x01) << 2) << 4);
+ }
+ 
+ /* Update data for the device (all 8 channels) */
+@@ -96,12 +81,12 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
+ 		dev_dbg(&client->dev, "Starting ads7828 update\n");
+ 
+ 		for (ch = 0; ch < ADS7828_NCH; ch++) {
+-			u8 cmd = channel_cmd_byte(ch);
++			u8 cmd = ads7828_cmd_byte(data->cmd_byte, ch);
+ 			data->adc_input[ch]  				i2c_smbus_read_word_swapped(client, cmd);
+ 		}
+ 		data->last_updated = jiffies;
+-		data->valid = 1;
++		data->valid = true;
+ 	}
+ 
+ 	mutex_unlock(&data->update_lock);
+@@ -110,28 +95,25 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
+ }
+ 
+ /* sysfs callback function */
+-static ssize_t show_in(struct device *dev, struct device_attribute *da,
+-	char *buf)
++static ssize_t ads7828_show_in(struct device *dev, struct device_attribute *da,
++			       char *buf)
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct ads7828_data *data = ads7828_update_device(dev);
+-	/* Print value (in mV as specified in sysfs-interface documentation) */
+-	return sprintf(buf, "%d\n", (data->adc_input[attr->index] *
+-		ads7828_lsb_resol)/1000);
+-}
++	unsigned int value = DIV_ROUND_CLOSEST(data->adc_input[attr->index] *
++					       data->lsb_resol, 1000);
+ 
+-#define in_reg(offset)\
+-static SENSOR_DEVICE_ATTR(in##offset##_input, S_IRUGO, show_in,\
+-	NULL, offset)
++	return sprintf(buf, "%d\n", value);
++}
+ 
+-in_reg(0);
+-in_reg(1);
+-in_reg(2);
+-in_reg(3);
+-in_reg(4);
+-in_reg(5);
+-in_reg(6);
+-in_reg(7);
++static SENSOR_DEVICE_ATTR(in0_input, S_IRUGO, ads7828_show_in, NULL, 0);
++static SENSOR_DEVICE_ATTR(in1_input, S_IRUGO, ads7828_show_in, NULL, 1);
++static SENSOR_DEVICE_ATTR(in2_input, S_IRUGO, ads7828_show_in, NULL, 2);
++static SENSOR_DEVICE_ATTR(in3_input, S_IRUGO, ads7828_show_in, NULL, 3);
++static SENSOR_DEVICE_ATTR(in4_input, S_IRUGO, ads7828_show_in, NULL, 4);
++static SENSOR_DEVICE_ATTR(in5_input, S_IRUGO, ads7828_show_in, NULL, 5);
++static SENSOR_DEVICE_ATTR(in6_input, S_IRUGO, ads7828_show_in, NULL, 6);
++static SENSOR_DEVICE_ATTR(in7_input, S_IRUGO, ads7828_show_in, NULL, 7);
+ 
+ static struct attribute *ads7828_attributes[] = {
+ 	&sensor_dev_attr_in0_input.dev_attr.attr,
+@@ -152,35 +134,19 @@ static const struct attribute_group ads7828_group = {
+ static int ads7828_remove(struct i2c_client *client)
+ {
+ 	struct ads7828_data *data = i2c_get_clientdata(client);
++
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &ads7828_group);
++
+ 	return 0;
+ }
+ 
+-static const struct i2c_device_id ads7828_id[] = {
+-	{ "ads7828", 0 },
+-	{ }
+-};
+-MODULE_DEVICE_TABLE(i2c, ads7828_id);
+-
+-/* This is the driver that will be inserted */
+-static struct i2c_driver ads7828_driver = {
+-	.class = I2C_CLASS_HWMON,
+-	.driver = {
+-		.name = "ads7828",
+-	},
+-	.probe = ads7828_probe,
+-	.remove = ads7828_remove,
+-	.id_table = ads7828_id,
+-	.detect = ads7828_detect,
+-	.address_list = normal_i2c,
+-};
+-
+ /* Return 0 if detection is successful, -ENODEV otherwise */
+ static int ads7828_detect(struct i2c_client *client,
+ 			  struct i2c_board_info *info)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
++	u8 default_cmd_byte = ADS7828_CMD_SD_SE | ADS7828_CMD_PD3;
+ 	int ch;
+ 
+ 	/* Check we have a valid client */
+@@ -195,9 +161,12 @@ static int ads7828_detect(struct i2c_client *client,
+ 	 * - Check the top 4 bits of each result are not set (12 data bits)
+ 	 */
+ 	for (ch = 0; ch < ADS7828_NCH; ch++) {
+-		u16 in_data;
+-		u8 cmd = channel_cmd_byte(ch);
+-		in_data = i2c_smbus_read_word_swapped(client, cmd);
++		u8 cmd = ads7828_cmd_byte(default_cmd_byte, ch);
++		u16 in_data = i2c_smbus_read_word_swapped(client, cmd);
++
++		if (in_data < 0)
++			return -ENODEV;
++
+ 		if (in_data & 0xF000) {
+ 			pr_debug("%s : Doesn't look like an ads7828 device\n",
+ 				 __func__);
+@@ -213,6 +182,7 @@ static int ads7828_detect(struct i2c_client *client,
+ static int ads7828_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
++	struct ads7828_platform_data *pdata = client->dev.platform_data;
+ 	struct ads7828_data *data;
+ 	int err;
+ 
+@@ -221,10 +191,30 @@ static int ads7828_probe(struct i2c_client *client,
+ 	if (!data)
+ 		return -ENOMEM;
+ 
++	if (pdata) {
++		data->diff_input = pdata->diff_input;
++		data->ext_vref = pdata->ext_vref;
++		if (data->ext_vref)
++			data->vref_mv = pdata->vref_mv;
++	}
++
++	/* Bound Vref with min/max values if it was provided */
++	if (data->vref_mv)
++		data->vref_mv = SENSORS_LIMIT(data->vref_mv,
++					      ADS7828_EXT_VREF_MV_MIN,
++					      ADS7828_EXT_VREF_MV_MAX);
++	else
++		data->vref_mv = ADS7828_INT_VREF_MV;
++
++	data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++
++	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
++	if (!data->diff_input)
++		data->cmd_byte |= ADS7828_CMD_SD_SE;
++
+ 	i2c_set_clientdata(client, data);
+ 	mutex_init(&data->update_lock);
+ 
+-	/* Register sysfs hooks */
+ 	err = sysfs_create_group(&client->dev.kobj, &ads7828_group);
+ 	if (err)
+ 		return err;
+@@ -232,38 +222,36 @@ static int ads7828_probe(struct i2c_client *client,
+ 	data->hwmon_dev = hwmon_device_register(&client->dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+ 		err = PTR_ERR(data->hwmon_dev);
+-		goto exit_remove;
++		goto error;
+ 	}
+ 
+ 	return 0;
+ 
+-exit_remove:
++error:
+ 	sysfs_remove_group(&client->dev.kobj, &ads7828_group);
+ 	return err;
+ }
+ 
+-static int __init sensors_ads7828_init(void)
+-{
+-	/* Initialize the command byte according to module parameters */
+-	ads7828_cmd_byte = se_input ?
+-		ADS7828_CMD_SD_SE : ADS7828_CMD_SD_DIFF;
+-	ads7828_cmd_byte |= int_vref ?
+-		ADS7828_CMD_PD3 : ADS7828_CMD_PD1;
+-
+-	/* Calculate the LSB resolution */
+-	ads7828_lsb_resol = (vref_mv*1000)/4096;
++static const struct i2c_device_id ads7828_device_ids[] = {
++	{ "ads7828", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ads7828_device_ids);
+ 
+-	return i2c_add_driver(&ads7828_driver);
+-}
++static struct i2c_driver ads7828_driver = {
++	.class = I2C_CLASS_HWMON,
++	.driver = {
++		.name = "ads7828",
++	},
++	.address_list = ads7828_normal_i2c,
++	.detect = ads7828_detect,
++	.probe = ads7828_probe,
++	.remove = ads7828_remove,
++	.id_table = ads7828_device_ids,
++};
+ 
+-static void __exit sensors_ads7828_exit(void)
+-{
+-	i2c_del_driver(&ads7828_driver);
+-}
++module_i2c_driver(ads7828_driver);
+ 
+-MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
+-MODULE_DESCRIPTION("ADS7828 driver");
+ MODULE_LICENSE("GPL");
+-
+-module_init(sensors_ads7828_init);
+-module_exit(sensors_ads7828_exit);
++MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
++MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter");
+diff --git a/include/linux/platform_data/ads7828.h b/include/linux/platform_data/ads7828.h
+new file mode 100644
+index 0000000..3245f45
+--- /dev/null
++++ b/include/linux/platform_data/ads7828.h
+@@ -0,0 +1,29 @@
++/*
++ * TI ADS7828 A/D Converter platform data definition
++ *
++ * Copyright (c) 2012 Savoir-faire Linux Inc.
++ *          Vivien Didelot <vivien.didelot@savoirfairelinux.com>
++ *
++ * For further information, see the Documentation/hwmon/ads7828 file.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _PDATA_ADS7828_H
++#define _PDATA_ADS7828_H
++
++/**
++ * struct ads7828_platform_data - optional ADS7828 connectivity info
++ * @diff_input:		Differential input mode.
++ * @ext_vref:		Use an external voltage reference.
++ * @vref_mv:		Voltage reference value, if external.
++ */
++struct ads7828_platform_data {
++	bool diff_input;
++	bool ext_vref;
++	unsigned int vref_mv;
++};
++
++#endif /* _PDATA_ADS7828_H */
+-- 
+1.7.11.4
 
 
 _______________________________________________
