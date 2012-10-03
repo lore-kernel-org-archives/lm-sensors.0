@@ -1,7 +1,7 @@
 From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Wed, 03 Oct 2012 19:02:44 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Add missing inclusions of <linux/jiffies.h>
-Message-Id: <CAKPcRGrvC-dks1Qyx=d-kwdVxvE3rJQB=tvxuO_e6QECpjZEwA@mail.gmail.com>
+Date: Wed, 03 Oct 2012 19:03:05 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: Add missing inclusions of <linux/err.h>
+Message-Id: <CAKPcRGoDH3xqmQKK2-wu9UXX017VMedyHTT9Smyn86K0tPJn0w@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20121003131908.3a36fe3a@endymion.delvare>
 In-Reply-To: <20121003131908.3a36fe3a@endymion.delvare>
@@ -10,12 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 3, 2012 at 1:19 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> Many hwmon drivers use jiffies but omit the inclusion of the header
-> file. Fix that, and also fix one driver which was including the header
-> file but didn't need it.
+On Wed, Oct 3, 2012 at 1:37 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> These drivers use IS_ERR so they should include <linux/err.h>.
 >
 > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Henrik Rydberg <rydberg@euromail.se>
 > Cc: Luca Tettamanti <kronos.it@gmail.com>
 
 Acked-by: Luca Tettamanti <kronos.it@gmail.com>
