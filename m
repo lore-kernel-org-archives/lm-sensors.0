@@ -1,34 +1,208 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 12 Oct 2012 16:48:24 +0000
-Subject: Re: [lm-sensors] [PATCH 1/5] hwmon: (coretemp) Drop dependency on PCI for TjMax detection on Atom CP
-Message-Id: <20121012164824.GD6300@roeck-us.net>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Wed, 03 Oct 2012 03:33:27 +0000
+Subject: [lm-sensors] [PATCH v4 2/2] hwmon: (ads7828) add support for ADS7830
+Message-Id: <1349235207-7517-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1349816943-17697-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1349816943-17697-2-git-send-email-linux@roeck-us.net>
+References: <1349235207-7517-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1349235207-7517-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: lm-sensors@lm-sensors.org
+Cc: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 
-On Fri, Oct 12, 2012 at 11:01:32AM +0200, Jean Delvare wrote:
-> On Fri, 12 Oct 2012 10:40:32 +0200, Jean Delvare wrote:
-> > I think we simply never bothered special-casing the Atom 230/330.
->=20
-> Oh actually we did, I didn't remember that. So well no, I have no idea
-> where the 100=B0C for Atom 230 comes from, probably we just got it wrong
-> when introducing tjmax_table in commit 41e58a1f.
->=20
-Maybe. Part of the problem is that TjMax is really 90 C according to the
-230/330 datasheet, and that at least the 330 uses not TjMax but 125 as
-the base temperature for its temperature offset calculation. So we don't
-really have an idea what the 230 does.
+From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
 
-Would be great if you have a chance to test it with the 230 before we blind=
-ly
-change it to some other value.
+The ADS7830 device is almost the same as the ADS7828,
+except that it does 8-bit sampling, instead of 12-bit.
+This patch extends the ads7828 driver to support this chip.
 
-Thanks,
-Guenter
+Signed-off-by: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ Documentation/hwmon/ads7828 | 12 ++++++++++--
+ drivers/hwmon/Kconfig       |  7 ++++---
+ drivers/hwmon/ads7828.c     | 45 ++++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 48 insertions(+), 16 deletions(-)
+
+diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
+index b35668c..51eab52 100644
+--- a/Documentation/hwmon/ads7828
++++ b/Documentation/hwmon/ads7828
+@@ -8,8 +8,15 @@ Supported chips:
+     Datasheet: Publicly available at the Texas Instruments website:
+                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+ 
++  * Texas Instruments ADS7830
++    Prefix: 'ads7830'
++    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
++    Datasheet: Publicly available at the Texas Instruments website:
++               http://focus.ti.com/lit/ds/symlink/ads7830.pdf
++
+ Authors:
+         Steve Hardy <shardy@redhat.com>
++        Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+ 
+ Platform data
+ -------------
+@@ -35,9 +42,10 @@ The structure fields are:
+ Description
+ -----------
+ 
+-This driver implements support for the Texas Instruments ADS7828.
++This driver implements support for the Texas Instruments ADS7828 and ADS7830.
+ 
+-This device is a 12-bit 8-channel A-D converter.
++The ADS7828 device is a 12-bit 8-channel A/D converter, while the ADS7830 does
++8-bit sampling.
+ 
+ It can operate in single ended mode (8 +ve inputs) or in differential mode,
+ where 4 differential pairs can be measured.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 83e3e9d..960c8c5 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1060,11 +1060,12 @@ config SENSORS_ADS1015
+ 	  will be called ads1015.
+ 
+ config SENSORS_ADS7828
+-	tristate "Texas Instruments ADS7828"
++	tristate "Texas Instruments ADS7828 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for Texas Instruments ADS7828
+-	  12-bit 8-channel ADC device.
++	  If you say yes here you get support for Texas Instruments ADS7828 and
++	  ADS7830 8-channel A/D converters. ADS7828 resolution is 12-bit, while
++	  it is 8-bit on ADS7830.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ads7828.
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index 756bd1b..638c969 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -1,11 +1,13 @@
+ /*
+- * ads7828.c - lm_sensors driver for ads7828 12-bit 8-channel ADC
++ * ads7828.c - driver for TI ADS7828 8-channel A/D converter and compatibles
+  * (C) 2007 EADS Astrium
+  *
+  * This driver is based on the lm75 and other lm_sensors/hwmon drivers
+  *
+  * Written by Steve Hardy <shardy@redhat.com>
+  *
++ * ADS7830 support, by Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
++ *
+  * For further information, see the Documentation/hwmon/ads7828 file.
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -43,6 +45,9 @@
+ #define ADS7828_EXT_VREF_MV_MIN	50	/* External vref min value 0.05V */
+ #define ADS7828_EXT_VREF_MV_MAX	5250	/* External vref max value 5.25V */
+ 
++/* List of supported devices */
++enum ads7828_chips { ads7828, ads7830 };
++
+ /* Addresses to scan */
+ static const unsigned short ads7828_normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
+ 	I2C_CLIENT_END };
+@@ -59,6 +64,7 @@ struct ads7828_data {
+ 	unsigned int vref_mv;		/* voltage reference value */
+ 	u8 cmd_byte;			/* Command byte without channel bits */
+ 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
++	s32 (*read_channel)(const struct i2c_client *client, u8 command);
+ };
+ 
+ /* Command byte C2,C1,C0 - see datasheet */
+@@ -82,8 +88,7 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
+ 
+ 		for (ch = 0; ch < ADS7828_NCH; ch++) {
+ 			u8 cmd = ads7828_cmd_byte(data->cmd_byte, ch);
+-			data->adc_input[ch] -				i2c_smbus_read_word_swapped(client, cmd);
++			data->adc_input[ch] = data->read_channel(client, cmd);
+ 		}
+ 		data->last_updated = jiffies;
+ 		data->valid = true;
+@@ -147,6 +152,7 @@ static int ads7828_detect(struct i2c_client *client,
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	u8 default_cmd_byte = ADS7828_CMD_SD_SE | ADS7828_CMD_PD3;
++	bool is_8bit = false;
+ 	int ch;
+ 
+ 	/* Check we have a valid client */
+@@ -158,7 +164,9 @@ static int ads7828_detect(struct i2c_client *client,
+ 	 * dedicated register so attempt to sanity check using knowledge of
+ 	 * the chip
+ 	 * - Read from the 8 channel addresses
+-	 * - Check the top 4 bits of each result are not set (12 data bits)
++	 * - Check the top 4 bits of each result:
++	 *   - They should not be set in case of 12-bit samples
++	 *   - The two bytes should be equal in case of 8-bit samples
+ 	 */
+ 	for (ch = 0; ch < ADS7828_NCH; ch++) {
+ 		u8 cmd = ads7828_cmd_byte(default_cmd_byte, ch);
+@@ -168,13 +176,20 @@ static int ads7828_detect(struct i2c_client *client,
+ 			return -ENODEV;
+ 
+ 		if (in_data & 0xF000) {
+-			pr_debug("%s : Doesn't look like an ads7828 device\n",
+-				 __func__);
+-			return -ENODEV;
++			if ((in_data >> 8) = (in_data & 0xFF)) {
++				/* Seems to be an ADS7830 (8-bit sample) */
++				is_8bit = true;
++			} else {
++				dev_dbg(&client->dev, "doesn't look like an ADS7828 compatible device\n");
++				return -ENODEV;
++			}
+ 		}
+ 	}
+ 
+-	strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
++	if (is_8bit)
++		strlcpy(info->type, "ads7830", I2C_NAME_SIZE);
++	else
++		strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
+ 
+ 	return 0;
+ }
+@@ -206,7 +221,14 @@ static int ads7828_probe(struct i2c_client *client,
+ 	else
+ 		data->vref_mv = ADS7828_INT_VREF_MV;
+ 
+-	data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
++	if (id->driver_data = ads7828) {
++		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++		data->read_channel = i2c_smbus_read_word_swapped;
++	} else {
++		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 256);
++		data->read_channel = i2c_smbus_read_byte_data;
++	}
+ 
+ 	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
+ 	if (!data->diff_input)
+@@ -233,7 +255,8 @@ error:
+ }
+ 
+ static const struct i2c_device_id ads7828_device_ids[] = {
+-	{ "ads7828", 0 },
++	{ "ads7828", ads7828 },
++	{ "ads7830", ads7830 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ads7828_device_ids);
+@@ -254,4 +277,4 @@ module_i2c_driver(ads7828_driver);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
+-MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter");
++MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter and compatibles");
+-- 
+1.7.11.4
+
 
 _______________________________________________
 lm-sensors mailing list
