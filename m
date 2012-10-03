@@ -1,117 +1,166 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 24 Oct 2012 20:01:44 +0000
-Subject: Re: [lm-sensors] [RFC] Energy/power monitoring within the kernel
-Message-Id: <20121024200144.GA21137@roeck-us.net>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Wed, 03 Oct 2012 20:54:08 +0000
+Subject: [lm-sensors] [PATCH v5 2/2] hwmon: (ads7828) add support for ADS7830
+Message-Id: <1349297648-19843-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351013449.9070.5.camel@hornet>
- <20121023220240.GA25895@roeck-us.net>
- <1351096647.23327.64.camel@hornet>
-In-Reply-To: <1351096647.23327.64.camel@hornet>
+References: <1349297648-19843-1-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <1349297648-19843-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pawel Moll <pawel.moll@arm.com>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Delvare <khali@linux-fr.org>, Steven Rostedt <rostedt@goodmis.org>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, Jesper Juhl <jj@chaosbits.net>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
+To: lm-sensors@lm-sensors.org
+Cc: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 
-T24gV2VkLCBPY3QgMjQsIDIwMTIgYXQgMDU6Mzc6MjdQTSArMDEwMCwgUGF3ZWwgTW9sbCB3cm90
-ZToKPiBPbiBUdWUsIDIwMTItMTAtMjMgYXQgMjM6MDIgKzAxMDAsIEd1ZW50ZXIgUm9lY2sgd3Jv
-dGU6Cj4gPiA+IFRyYWRpdGlvbmFsbHkgc3VjaCBkYXRhIHNob3VsZCBiZSBleHBvc2VkIHRvIHRo
-ZSB1c2VyIHZpYSBod21vbiBzeXNmcwo+ID4gPiBpbnRlcmZhY2UsIGFuZCB0aGF0J3MgZXhhY3Rs
-eSB3aGF0IEkgZGlkIGZvciAibXkiIHBsYXRmb3JtIC0gSSBoYXZlCj4gPiA+IGEgL3N5cy9jbGFz
-cy9od21vbi9od21vbiovZGV2aWNlL2VuZXJneSpfaW5wdXQgYW5kIHRoaXMgd2FzIGdvb2QKPiA+
-ID4gZW5vdWdoIHRvIGRyYXcgcHJldHR5IGdyYXBocyBpbiB1c2Vyc3BhY2UuIEV2ZXJ5b25lIHdh
-cyBoYXBweS4uLgo+ID4gPiAKPiA+IE9ubHkgZHJpdmVyIHN1cHBvcnRpbmcgImVuZXJneSIgb3V0
-cHV0IHNvIGZhciBpcyBpYm1hZW0sIGFuZCB0aGUgcmVwb3J0ZWQgZW5lcmd5Cj4gPiBpcyBzdXBw
-b3NlZCB0byBiZSBjdW11bGF0aXZlLCBhcyBpbiBlbmVyZ3kgPSBwb3dlciAqIHRpbWUuIERvIHlv
-dSBtZWFuIHBvd2VyLAo+ID4gcG9zc2libHkgPwo+IAo+IFNvIHRoZSB2ZXhwcmVzcyB3b3VsZCBi
-ZSB0aGUgc2Vjb25kIG9uZSwgdGhhbiA6LSkgYXMgdGhlIGVuZXJneQo+ICJtb25pdG9yIiBhY3R1
-YWxseSBvbiB0aGUgbGF0ZXN0IHRpbGVzIHJlcG9ydHMgNjQtYml0IHZhbHVlIG9mCj4gbWljcm9K
-b3VsZXMgY29uc3VtZWQgKG9yIHByb2R1Y2VkKSBzaW5jZSB0aGUgcG93ZXItdXAuCj4gCj4gU29t
-ZSBvZiB0aGUgb2xkZXIgYm9hcmRzIHdlcmUgYWJsZSB0byByZXBvcnQgaW5zdGFudCBwb3dlciwg
-YnV0IHRoaXMKPiBtZXRyaWNzIGlzIGxlc3MgdXNlZnVsIGluIG91ciBjYXNlLgo+IAo+ID4gPiBO
-b3cgSSBhbSBnZXR0aW5nIG5ldyByZXF1ZXN0cyB0byBkbyBtb3JlIHdpdGggdGhpcyBkYXRhLiBJ
-biBwYXJ0aWN1bGFyCj4gPiA+IEknbSBhc2tlZCBob3cgdG8gYWRkIHN1Y2ggaW5mb3JtYXRpb24g
-dG8gZnRyYWNlL3BlcmYgb3V0cHV0LiBUaGUgc2Vjb25kCj4gPiA+IG1vc3QgZnJlcXVlbnQgcmVx
-dWVzdCBpcyBhYm91dCBwcm92aWRpbmcgaXQgdG8gYSAiZW5lcmd5IGF3YXJlIgo+ID4gPiBjcHVm
-cmVxIGdvdmVybm9yLgo+ID4gCj4gPiBBbnl0aGluZyBlbmVyZ3kgcmVsYXRlZCB3b3VsZCBoYXZl
-IHRvIGJlIGFsb25nIHRoZSBsaW5lIG9mICJkbyBzb21ldGhpbmcgYWZ0ZXIgYQo+ID4gY2VydGFp
-biBhbW91bnQgb2Ygd29yayBoYXMgYmVlbiBwZXJmb3JtZWQiLCB3aGljaCBhdCBsZWFzdCBhdCB0
-aGUgc3VyZmFjZSBkb2VzCj4gPiBub3QgbWFrZSBtdWNoIHNlbnNlIHRvIG1lLCB1bmxlc3MgeW91
-IG1lYW4gc29tZXRoaW5nIGFsb25nIHRoZSBsaW5lIG9mIGEKPiA+IHByb2Nlc3Mgc2NoZWR1bGVy
-IHdoaWNoIHNjaGVkdWxlcyBhIHByb2Nlc3Mgbm90IGJhc2VkIG9uIHRpbWUgc2xpY2VzIGJ1dCBi
-YXNlZAo+ID4gb24gZW5lcmd5IGNvbnN1bWVkLCBpZSBpZiB5b3Ugd2FudCB0byBkZWZpbmUgYSB0
-aW1lIHNsaWNlIG5vdCBpbiBtaWxsaS1zZWNvbmRzCj4gPiBidXQgaW4gSm91bGUuCj4gCj4gQWN0
-dWFsbHkgdGhlcmUgaXMgc29tZSByZXNlYXJjaCBiZWluZyBkb25lIGluIHRoaXMgZGlyZWN0aW9u
-LCBidXQgaXQncwo+IHdheSB0b28gZWFybHkgdG8gZHJhdyBhbnkgY29uY2x1c2lvbnMuLi4KPiAK
-PiA+IElmIHNvLCBJIHdvdWxkIGFyZ3VlIHRoYXQgYSBzaW1pbGFyIGJlaGF2aW9yIGNvdWxkIGJl
-IGFjaGlldmVkIGJ5IHZhcnlpbmcgdGhlCj4gPiBkdXJhdGlvbiBvZiB0aW1lIHNsaWNlcyB3aXRo
-IHRoZSBjdXJyZW50IENQVSBzcGVlZCwgb3Igc2ltcGx5IGJ5IHVzaW5nIGN5Y2xlCj4gPiBjb3Vu
-dCBpbnN0ZWFkIG9mIHRpbWUgYXMgdGltZSBzbGljZSBwYXJhbWV0ZXIuIE5vdCB0aGF0IEkgYW0g
-c3VyZSBpZiBzdWNoIGFuCj4gPiBhcHByb2FjaCB3b3VsZCByZWFsbHkgYmUgb2YgaW50ZXJlc3Qg
-Zm9yIGFueW9uZS4gCj4gPiAKPiA+IE9yIGRvIHlvdSByZWFsbHkgbWVhbiBwb3dlciwgbm90IGVu
-ZXJneSwgc3VjaCBhcyBpbiAicmVkdWNlIENQVSBzcGVlZCBpZiBpdHMKPiA+IHBvd2VyIGNvbnN1
-bXB0aW9uIGlzIGFib3ZlIFggV2F0dCIgPwo+IAo+IFVoLiBUbyBiZSBjb21wbGV0ZWx5IGhvbmVz
-dCBJIG11c3QgYW5zd2VyOiBJJ20gbm90IHN1cmUgaG93IHRoZSAiZW5lcmd5Cj4gYXdhcmUiIGNw
-dWZyZXEgZ292ZXJub3IgaXMgc3VwcG9zZWQgdG8gd29yay4gSSBoYXZlIGJlZW4gc2ltcGx5IGFz
-a2VkIHRvCj4gcHJvdmlkZSB0aGUgZGF0YSBpbiBzb21lIHN0YW5kYXJkIHdheSwgaWYgcG9zc2li
-bGUuCj4gCj4gPiBJIGFtIG5vdCBzdXJlIGhvdyB0aGlzIHdvdWxkIGJlIGV4cGVjdGVkIHRvIHdv
-cmsuIGh3bW9uIGlzLCBieSBpdHMgdmVyeSBuYXR1cmUsCj4gPiBhIHBhc3NpdmUgc3Vic3lzdGVt
-OiBJdCBkb2Vzbid0IGRvIGFueXRoaW5nIHVubGVzcyBkYXRhIGlzIGV4cGxpY2l0bHkgcmVxdWVz
-dGVkCj4gPiBmcm9tIGl0LiBJdCBkb2VzIG5vdCB1cGRhdGUgYW4gYXR0cmlidXRlIHVubGVzcyB0
-aGF0IGF0dHJpYnV0ZSBpcyByZWFkLgo+ID4gVGhhdCBkb2VzIG5vdCBzZWVtIHRvIGZpdCB3ZWxs
-IHdpdGggdGhlIGlkZWEgb2YgdHJhY2luZyAtIHdoaWNoIGFzc3VtZXMKPiA+IHRoYXQgc29tZSBh
-Y3Rpdml0eSBpcyBoYXBwZW5pbmcsIHVsdGltYXRlbHksIGFsbCBieSBpdHNlbGYsIHByZXN1bWFi
-bHkKPiA+IHBlcmlvZGljYWxseS4gVGhlIGlkZWEgdG8gaGF2ZSBhIHVzZXIgc3BhY2UgYXBwbGlj
-YXRpb24gcmVhZCBod21vbiBkYXRhIG9ubHkKPiA+IGZvciBpdCB0byB0cmlnZ2VyIHRyYWNlIGV2
-ZW50cyBkb2VzIG5vdCBzZWVtIHRvIGJlIHZlcnkgY29tcGVsbGluZyB0byBtZS4KPiAKPiBXaGF0
-IEkgaGFkIGluIG1pbmQgd2FzIHNpbWlsYXIgdG8gd2hhdCBhZHQ3NDcwIGRyaXZlciBkb2VzLiBU
-aGUgZHJpdmVyCj4gd291bGQgYXV0b21hdGljYWxseSBhY2Nlc3MgdGhlIGRldmljZSBldmVyeSBu
-b3cgYW5kIHRoZW4gdG8gdXBkYXRlIGl0J3MKPiBpbnRlcm5hbCBzdGF0ZSBhbmQgZ2VuZXJhdGUg
-dGhlIHRyYWNlIGV2ZW50IG9uIHRoZSB3YXkuIFRoaXMKPiBhdXRvLXJlZnJlc2ggImZlYXR1cmUi
-IGlzIHBhcnRpY3VsYXJseSBhcHBlYWxpbmcgZm9yIG1lLCBhcyBvbiBzb21lIG9mCj4gIm15IiBw
-bGF0Zm9ybXMgY2FuIHRha2UgdXAgdG8gNTAwIG1pY3Jvc2Vjb25kcyB0byBhY3R1YWxseSBnZXQg
-dGhlIGRhdGEuCj4gU28gZG9pbmcgdGhpcyBpbiBiYWNrZ3JvdW5kIChhbmQgcHJvdmlkaW5nIHVz
-ZXJzIHdpdGggdGhlIGxhc3Qga25vd24KPiB2YWx1ZSBpbiB0aGUgbWVhbnRpbWUpIHNlZW1zIGF0
-dHJhY3RpdmUuCj4gCkEgYmFkIGV4YW1wbGUgZG9lc24ndCBtZWFuIGl0IHNob3VsZCBiZSB1c2Vk
-IGVsc2V3aGVyZS4KCmFkdDc0NzAgbmVlZHMgdXAgdG8gdHdvIHNlY29uZHMgZm9yIGEgdGVtcGVy
-YXR1cmUgbWVhc3VyZW1lbnQgY3ljbGUsIGFuZCBpdApjYW4gbm90IHBlcmZvcm0gYXV0b21hdGlj
-IGN5Y2xlcyBhbGwgYnkgaXRzZWxmLiBJbiB0aGlzIGNvbnRleHQsIGV4ZWN1dGluZwp0ZW1wZXJh
-dHVyZSBtZWFzdXJlbWVudCBjeWNsZXMgaW4gdGhlIGJhY2tncm91bmQgbWFrZXMgYSBsb3Qgb2Yg
-c2Vuc2UsCmVzcGVjaWFsbHkgc2luY2Ugb25lIGRvZXMgbm90IHdhbnQgdG8gd2FpdCBmb3IgdHdv
-IHNlY29uZHMgd2hlbiByZWFkaW5nCmEgc3lzZnMgYXR0cmlidXRlLgoKQnV0IHRoYXQgb25seSBt
-ZWFucyB0aGF0IHRoZSBjaGlwIGlzIG1vc3QgbGlrZWx5IG5vdCBhIGdvb2QgY2hvaWNlIHdoZW4g
-c2VsZWN0aW5nCmEgdGVtcGVyYXR1cmUgc2Vuc29yLCBub3QgdGhhdCB0aGUgY29kZSBuZWNlc3Nh
-cnkgdG8gZ2V0IGl0IHdvcmtpbmcgc2hvdWxkIGJlIHVzZWQKYXMgYW4gZXhhbXBsZSBmb3Igb3Ro
-ZXIgZHJpdmVycy4gCgpHdWVudGVyCgo+ID4gQW4gZXhjZXB0aW9uIGlzIGlmIGEgbW9uaXRvcmlu
-ZyBkZXZpY2Ugc3VwcHBvcnRzIGludGVycnVwdHMsIGFuZCBpZiBpdHMgZHJpdmVyCj4gPiBhY3R1
-YWxseSBpbXBsZW1lbnRzIHRob3NlIGludGVycnVwdHMuIFRoaXMgaXMsIGhvd2V2ZXIsIG5vdCB0
-aGUgY2FzZSBmb3IgbW9zdCBvZgo+ID4gdGhlIGN1cnJlbnQgZHJpdmVycyAoaWYgYW55KSwgbW9z
-dGx5IGJlY2F1c2UgaW50ZXJydXB0IHN1cHBvcnQgZm9yIGhhcmR3YXJlCj4gPiBtb25pdG9yaW5n
-IGRldmljZXMgaXMgdmVyeSBwbGF0Zm9ybSBkZXBlbmRlbnQgYW5kIHRodXMgZGlmZmljdWx0IHRv
-IGltcGxlbWVudC4KPiAKPiBJbnRlcmVzdGluZ2x5IGVub3VnaCB0aGUgbmV3ZXN0IHZlcnNpb24g
-b2Ygb3VyIHBsYXRmb3JtIGNvbnRyb2wgbWljcm8KPiAoZG9pbmcgdGhlIGVuZXJneSBtb25pdG9y
-aW5nIGFzIHdlbGwpIGNhbiBnZW5lcmF0ZSBhbmQgaW50ZXJydXB0IHdoZW4gYQo+IHRyYW5zYWN0
-aW9uIGlzIGZpbmlzaGVkLCBzbyBJIHdhcyBwbGFubmluZyB0byBwZXJpb2RpY2FsbHkgdXBkYXRl
-IHRoZQo+IGFsbCBzb3J0IG9mIHZhbHVlcy4gQW5kIGFnYWluLCBnZW5lcmF0aW5nIGEgdHJhY2Ug
-ZXZlbnQgb24gdGhpcwo+IG9wcG9ydHVuaXR5IHdvdWxkIGJlIHRyaXZpYWwuCj4gCj4gPiA+IE9m
-IGNvdXJzZSBhIHBhcnRpY3VsYXIgZHJpdmVyIGNvdWxkIHJlZ2lzdGVyIGl0cyBvd24gcGVyZiBQ
-TVUgb24gaXRzCj4gPiA+IG93bi4gSXQncyBjZXJ0YWlubHkgYW4gb3B0aW9uLCBqdXN0IHZlcnkg
-c3Vib3B0aW1hbCBpbiBteSBvcGluaW9uLgo+ID4gPiBPciBtYXliZSBub3Q/IE1heWJlIHRoZSB0
-YXNrIGlzIHNvIHNwZWNpYWxpemVkIHRoYXQgaXQgbWFrZXMgc2Vuc2U/Cj4gPiA+IAo+ID4gV2Ug
-aGFkIGEgY291cGxlIG9mIGF0dGVtcHRzIHRvIHByb3ZpZGUgYW4gaW4ta2VybmVsIEFQSS4gVW5m
-b3J0dW5hdGVseSwKPiA+IHRoZSByZXN1bHQgd2FzLCBhdCBsZWFzdCBzbyBmYXIsIG1vcmUgY29t
-cGxleGl0eSBvbiB0aGUgZHJpdmVyIHNpZGUuCj4gPiBTbyB0aGUgZGlmZmljdWx0eSBpcyByZWFs
-bHkgdG8gZGVmaW5lIGFuIEFQSSB3aGljaCBpcyByZWFsbHkgc2ltcGxlLCBhbmQgZG9lcwo+ID4g
-bm90IGp1c3QgY29tcGxpY2F0ZSBkcml2ZXIgZGV2ZWxvcG1lbnQgZm9yIGEgKHByZXN1bWFibHkp
-IHJhcmUgdXNlIGNhc2UuCj4gCj4gWWVzLCBJIGFwcHJlY2lhdGUgdGhpcy4gVGhhdCdzIHdoeSB0
-aGlzIG9wdGlvbiBpcyBhY3R1YWxseSBteSBsZWFzdAo+IGZhdm91cml0ZS4gQW55d2F5LCB3aGF0
-IEkgd2FzIHRoaW5raW5nIGFib3V0IHdhcyBqdXN0IGEgdGhpbiBzaGluIHRoYXQKPiAqY2FuKiBi
-ZSB1c2VkIGJ5IGEgZHJpdmVyIHRvIHJlZ2lzdGVyIHNvbWUgcGFydGljdWxhciB2YWx1ZSB3aXRo
-IHRoZQo+IGNvcmUgKHNvIGl0IGNhbiBiZSBlbnVtZXJhdGVkIGFuZCBhY2Nlc3NlZCBieSBpbi1r
-ZXJuZWwgY2xpZW50cykgYW5kIHRoZQo+IGNvcmUgY291bGQgKG9yIG5vdCkgY3JlYXRlIGEgc3lz
-ZnMgYXR0cmlidXRlIGZvciB0aGlzIHZhbHVlIG9uIGJlaGFsZiBvZgo+IHRoZSBkcml2ZXIuIFNl
-ZW1zIGxpZ2h0d2VpZ2h0IGVub3VnaCwgdW5sZXNzIHByZXZpb3VzIGV4cGVyaWVuY2UKPiBzdWdn
-ZXN0cyBvdGhlcndpc2U/Cj4gCj4gQ2hlZXJzIQo+IAo+IFBhd2XFggo+IAo+IAo+IAoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+
+The ADS7830 device is almost the same as the ADS7828,
+except that it does 8-bit sampling, instead of 12-bit.
+This patch extends the ads7828 driver to support this chip.
+
+Signed-off-by: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ Documentation/hwmon/ads7828 | 11 +++++++++--
+ drivers/hwmon/Kconfig       |  7 ++++---
+ drivers/hwmon/ads7828.c     | 25 +++++++++++++++++++------
+ 3 files changed, 32 insertions(+), 11 deletions(-)
+
+diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
+index a987c94..f6e263e 100644
+--- a/Documentation/hwmon/ads7828
++++ b/Documentation/hwmon/ads7828
+@@ -7,9 +7,15 @@ Supported chips:
+     Datasheet: Publicly available at the Texas Instruments website:
+                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
+ 
++  * Texas Instruments ADS7830
++    Prefix: 'ads7830'
++    Datasheet: Publicly available at the Texas Instruments website:
++               http://focus.ti.com/lit/ds/symlink/ads7830.pdf
++
+ Authors:
+         Steve Hardy <shardy@redhat.com>
+         Vivien Didelot <vivien.didelot@savoirfairelinux.com>
++        Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+ 
+ Platform data
+ -------------
+@@ -35,9 +41,10 @@ in include/linux/platform_data/ads7828.h). The structure fields are:
+ Description
+ -----------
+ 
+-This driver implements support for the Texas Instruments ADS7828.
++This driver implements support for the Texas Instruments ADS7828 and ADS7830.
+ 
+-This device is a 12-bit 8-channel A-D converter.
++The ADS7828 device is a 12-bit 8-channel A/D converter, while the ADS7830 does
++8-bit sampling.
+ 
+ It can operate in single ended mode (8 +ve inputs) or in differential mode,
+ where 4 differential pairs can be measured.
+diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+index 83e3e9d..960c8c5 100644
+--- a/drivers/hwmon/Kconfig
++++ b/drivers/hwmon/Kconfig
+@@ -1060,11 +1060,12 @@ config SENSORS_ADS1015
+ 	  will be called ads1015.
+ 
+ config SENSORS_ADS7828
+-	tristate "Texas Instruments ADS7828"
++	tristate "Texas Instruments ADS7828 and compatibles"
+ 	depends on I2C
+ 	help
+-	  If you say yes here you get support for Texas Instruments ADS7828
+-	  12-bit 8-channel ADC device.
++	  If you say yes here you get support for Texas Instruments ADS7828 and
++	  ADS7830 8-channel A/D converters. ADS7828 resolution is 12-bit, while
++	  it is 8-bit on ADS7830.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ads7828.
+diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
+index 42914fc..409b5c1 100644
+--- a/drivers/hwmon/ads7828.c
++++ b/drivers/hwmon/ads7828.c
+@@ -1,11 +1,13 @@
+ /*
+- * ads7828.c - lm_sensors driver for ads7828 12-bit 8-channel ADC
++ * ads7828.c - driver for TI ADS7828 8-channel A/D converter and compatibles
+  * (C) 2007 EADS Astrium
+  *
+  * This driver is based on the lm75 and other lm_sensors/hwmon drivers
+  *
+  * Written by Steve Hardy <shardy@redhat.com>
+  *
++ * ADS7830 support, by Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
++ *
+  * For further information, see the Documentation/hwmon/ads7828 file.
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -43,6 +45,9 @@
+ #define ADS7828_EXT_VREF_MV_MIN	50	/* External vref min value 0.05V */
+ #define ADS7828_EXT_VREF_MV_MAX	5250	/* External vref max value 5.25V */
+ 
++/* List of supported devices */
++enum ads7828_chips { ads7828, ads7830 };
++
+ /* Client specific data */
+ struct ads7828_data {
+ 	struct device *hwmon_dev;
+@@ -55,6 +60,7 @@ struct ads7828_data {
+ 	unsigned int vref_mv;		/* voltage reference value */
+ 	u8 cmd_byte;			/* Command byte without channel bits */
+ 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
++	s32 (*read_channel)(const struct i2c_client *client, u8 command);
+ };
+ 
+ /* Command byte C2,C1,C0 - see datasheet */
+@@ -78,8 +84,7 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
+ 
+ 		for (ch = 0; ch < ADS7828_NCH; ch++) {
+ 			u8 cmd = ads7828_cmd_byte(data->cmd_byte, ch);
+-			data->adc_input[ch] -				i2c_smbus_read_word_swapped(client, cmd);
++			data->adc_input[ch] = data->read_channel(client, cmd);
+ 		}
+ 		data->last_updated = jiffies;
+ 		data->valid = true;
+@@ -164,7 +169,14 @@ static int ads7828_probe(struct i2c_client *client,
+ 	else
+ 		data->vref_mv = ADS7828_INT_VREF_MV;
+ 
+-	data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
++	if (id->driver_data = ads7828) {
++		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
++		data->read_channel = i2c_smbus_read_word_swapped;
++	} else {
++		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 256);
++		data->read_channel = i2c_smbus_read_byte_data;
++	}
+ 
+ 	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
+ 	if (!data->diff_input)
+@@ -191,7 +203,8 @@ error:
+ }
+ 
+ static const struct i2c_device_id ads7828_device_ids[] = {
+-	{ "ads7828", 0 },
++	{ "ads7828", ads7828 },
++	{ "ads7830", ads7830 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, ads7828_device_ids);
+@@ -210,4 +223,4 @@ module_i2c_driver(ads7828_driver);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
+-MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter");
++MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter and compatibles");
+-- 
+1.7.11.4
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
