@@ -1,33 +1,35 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 03 Oct 2012 23:37:58 +0000
+From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+Date: Thu, 04 Oct 2012 00:09:58 +0000
 Subject: Re: [lm-sensors] [PATCH v5 2/2] hwmon: (ads7828) add support for ADS7830
-Message-Id: <20121003233758.GC21410@roeck-us.net>
+Message-Id: <655051847.640945.1349309398187.JavaMail.root@mail.savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1349297648-19843-1-git-send-email-vivien.didelot@savoirfairelinux.com>
- <1349297648-19843-2-git-send-email-vivien.didelot@savoirfairelinux.com>
+In-Reply-To: <20121003233758.GC21410@roeck-us.net>
+References: <1349297648-19843-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 In-Reply-To: <1349297648-19843-2-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Cc: lm-sensors@lm-sensors.org, Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
 
-On Wed, Oct 03, 2012 at 04:54:08PM -0400, Vivien Didelot wrote:
-> From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-> 
-> The ADS7830 device is almost the same as the ADS7828,
-> except that it does 8-bit sampling, instead of 12-bit.
-> This patch extends the ads7828 driver to support this chip.
-> 
-> Signed-off-by: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-> Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-
-Applied to -next.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhhbmtzIGEgbG90IEd1ZW50ZXIhClRoYW5rcyBhIGxvdCBWaXZpZW4gYWxzbyBmb3IgdGhlIGhl
+bHAuCgpHdWlsbGF1bWUKCi0tLS0tIE1haWwgb3JpZ2luYWwgLS0tLS0KRGU6ICJHdWVudGVyIFJv
+ZWNrIiA8bGludXhAcm9lY2stdXMubmV0PgrDgDogIlZpdmllbiBEaWRlbG90IiA8dml2aWVuLmRp
+ZGVsb3RAc2F2b2lyZmFpcmVsaW51eC5jb20+CkNjOiBsbS1zZW5zb3JzQGxtLXNlbnNvcnMub3Jn
+LCAiR3VpbGxhdW1lIFJvZ3VleiIgPGd1aWxsYXVtZS5yb2d1ZXpAc2F2b2lyZmFpcmVsaW51eC5j
+b20+LCAiSmVhbiBEZWx2YXJlIiA8a2hhbGlAbGludXgtZnIub3JnPiwgbGludXgta2VybmVsQHZn
+ZXIua2VybmVsLm9yZywgIlN0ZXZlIEhhcmR5IiA8c2hhcmR5QHJlZGhhdC5jb20+CkVudm95w6k6
+IE1lcmNyZWRpIDMgT2N0b2JyZSAyMDEyIDE5OjM3OjU4Ck9iamV0OiBSZTogW1BBVENIIHY1IDIv
+Ml0gaHdtb246IChhZHM3ODI4KSBhZGQgc3VwcG9ydCBmb3IgQURTNzgzMAoKT24gV2VkLCBPY3Qg
+MDMsIDIwMTIgYXQgMDQ6NTQ6MDhQTSAtMDQwMCwgVml2aWVuIERpZGVsb3Qgd3JvdGU6Cj4gRnJv
+bTogR3VpbGxhdW1lIFJvZ3VleiA8Z3VpbGxhdW1lLnJvZ3VlekBzYXZvaXJmYWlyZWxpbnV4LmNv
+bT4KPiAKPiBUaGUgQURTNzgzMCBkZXZpY2UgaXMgYWxtb3N0IHRoZSBzYW1lIGFzIHRoZSBBRFM3
+ODI4LAo+IGV4Y2VwdCB0aGF0IGl0IGRvZXMgOC1iaXQgc2FtcGxpbmcsIGluc3RlYWQgb2YgMTIt
+Yml0Lgo+IFRoaXMgcGF0Y2ggZXh0ZW5kcyB0aGUgYWRzNzgyOCBkcml2ZXIgdG8gc3VwcG9ydCB0
+aGlzIGNoaXAuCj4gCj4gU2lnbmVkLW9mZi1ieTogR3VpbGxhdW1lIFJvZ3VleiA8Z3VpbGxhdW1l
+LnJvZ3VlekBzYXZvaXJmYWlyZWxpbnV4LmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBWaXZpZW4gRGlk
+ZWxvdCA8dml2aWVuLmRpZGVsb3RAc2F2b2lyZmFpcmVsaW51eC5jb20+CgpBcHBsaWVkIHRvIC1u
+ZXh0LgoKVGhhbmtzLApHdWVudGVyCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5zb3JzQGxtLXNlbnNv
+cnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xtLXNl
+bnNvcnM
