@@ -1,49 +1,38 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 31 Oct 2012 16:28:48 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/3] hwmon: (it87) Report thermal sensor type as Intel PECI if appropriat
-Message-Id: <20121031172848.6b14b513@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 09 Oct 2012 21:09:02 +0000
+Subject: [lm-sensors] [PATCH 4/5] hwmon: (coretemp) List TjMax for Z650/670 and N550/570
+Message-Id: <1349816943-17697-5-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351624399-22595-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1351624399-22595-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 30 Oct 2012 12:13:19 -0700, Guenter Roeck wrote:
-> IT8721 and IT8728 support Intel PECI temperature reporting. Each sensor
-> can be programmed to display the temperature reported on the PECI interface.
-> 
-> If configured for Intel PECI, the driver reported the wrong sensor type for
-> the respective thermal sensor. Fix the code to correctly report it as
-> "Intel PECI (6)".
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> I noticed that IT8718 and IT8720 also support PECI, but differently. Does it
-> make sense to add those ? That would be a separate patch, though.
+as per processor data sheets.
 
-If it is supported by the hardware and driver support is can be made
-sane, sure we want it.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/coretemp |    2 ++
+ 1 file changed, 2 insertions(+)
 
-> v2: "diode connected"  -> diode-connected"
->     Reported type was not necessarily 0 if PECI was selected. Fix description.
->     FEAT_PECI -> FEAT_TEMP_PECI
->     has_peci -> has_temp_peci
->     Introduce flag "peci_mask" to indicate which attributes can be
->     used to report the PECI temperature
->     Reorder code in set_temp_type to check for peci only after checking for
->     other types.
-> 
->  Documentation/hwmon/it87 |    3 ++-
->  drivers/hwmon/it87.c     |   20 +++++++++++++++++---
->  2 files changed, 19 insertions(+), 4 deletions(-)
-> (...)
-
-Applied, thanks.
-
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index c86b50c..0cc4050 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -98,8 +98,10 @@ Process		Processor					TjMax(C)
+ 
+ 45nm		Atom Processors
+ 		D525/510/425/410				100
++		Z650/670					90
+ 		Z560/550/540/530P/530/520PT/520/515/510PT/510P	90
+ 		Z510/500					90
++		N550/570					100
+ 		N475/470/455/450				100
+ 		N280/270					90
+ 		330/230						125
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
