@@ -1,59 +1,78 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 03 Oct 2012 04:48:54 +0000
-Subject: Re: [lm-sensors] [PATCH v4 1/2] hwmon: (ads7828) driver cleanup
-Message-Id: <20121003044854.GA7491@roeck-us.net>
+Date: Tue, 09 Oct 2012 21:09:00 +0000
+Subject: [lm-sensors] [PATCH 2/5] hwmon: (coretemp) Use model table instead of if/else to identify CPU models
+Message-Id: <1349816943-17697-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1349235207-7517-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1349235207-7517-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Cc: lm-sensors@lm-sensors.org, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>
+To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 02, 2012 at 11:33:26PM -0400, Vivien Didelot wrote:
-> * Remove module parameters, add a ads7828_platform_data;
-> * Move driver declaration to avoid adding function prototypes;
-> * Remove unused macros;
-> * Coding Style fixes.
-> 
-> Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Make the code easier to extend and easier to adjust by using a model table
+listing CPU models, stepping/mask, and associated TjMax.
 
-Hi Vivien,
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/coretemp.c |   36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
-nice cleanup.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 1937cd4..7107096 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -208,6 +208,23 @@ static const struct tjmax __cpuinitconst tjmax_table[] = {
+ 	{ "CPU  330", 125000 },
+ };
+ 
++struct tjmax_model {
++	u8 model;
++	u8 mask;
++	int tjmax;
++};
++
++static const struct tjmax_model __cpuinitconst tjmax_model_table[] = {
++	{ 0x1c, 10, 100000 },	/* D4xx, N4xx, D5xx, N5xx */
++	{ 0x1c, 0, 90000 },	/* Z5xx, N2xx, 230, 330, others	*/
++	{ 0x26, 0, 90000 },	/* Atom Tunnel Creek (Exx), Lincroft (Z6xx)
++				 * Note: TjMax for E6xxT is 110C, but CPU type
++				 * is undetectable by software
++				 */
++	{ 0x27, 0, 90000 },	/* Atom Medfield (Z2460) */
++	{ 0x36, 0, 100000 },	/* Atom Cedar Trail/Cedarview (N2xxx, D2xxx) */
++};
++
+ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
+ 				  struct device *dev)
+ {
+@@ -226,20 +243,11 @@ static int __cpuinit adjust_tjmax(struct cpuinfo_x86 *c, u32 id,
+ 			return tjmax_table[i].tjmax;
+ 	}
+ 
+-	/* Atom CPUs */
+-
+-	if (c->x86_model = 0x1c) {
+-		/*
+-		 * TjMax for stepping 10 CPUs (N4xx, N5xx, D4xx, D5xx)
+-		 * is 100 degrees C, for all others it is 90 degrees C.
+-		 */
+-		if (c->x86_mask = 10)
+-			return 100000;
+-		return 90000;
+-	} else if (c->x86_model = 0x26 || c->x86_model = 0x27) {
+-		return 90000;
+-	} else if (c->x86_model = 0x36) {
+-		return 100000;
++	for (i = 0; i < ARRAY_SIZE(tjmax_model_table); i++) {
++		const struct tjmax_model *tm = &tjmax_model_table[i];
++		if (c->x86_model = tm->model &&
++		    (!tm->mask || c->x86_mask = tm->mask))
++			return tm->tjmax;
+ 	}
+ 
+ 	/* Early chips have no MSR for TjMax */
+-- 
+1.7.9.7
 
-One more comment below. No need to re-send; I'll fix that and apply the patch to
--next.
-
-Guenter
-
-[ ... ]
-
->  /* Return 0 if detection is successful, -ENODEV otherwise */
->  static int ads7828_detect(struct i2c_client *client,
->  			  struct i2c_board_info *info)
->  {
->  	struct i2c_adapter *adapter = client->adapter;
-> +	u8 default_cmd_byte = ADS7828_CMD_SD_SE | ADS7828_CMD_PD3;
->  	int ch;
->  
->  	/* Check we have a valid client */
-> @@ -195,9 +161,12 @@ static int ads7828_detect(struct i2c_client *client,
->  	 * - Check the top 4 bits of each result are not set (12 data bits)
->  	 */
->  	for (ch = 0; ch < ADS7828_NCH; ch++) {
-> -		u16 in_data;
-> -		u8 cmd = channel_cmd_byte(ch);
-> -		in_data = i2c_smbus_read_word_swapped(client, cmd);
-> +		u8 cmd = ads7828_cmd_byte(default_cmd_byte, ch);
-> +		u16 in_data = i2c_smbus_read_word_swapped(client, cmd);
-
-s/u16/int/
-
-Otherwise in_data can never be < 0.
-
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
