@@ -1,81 +1,57 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 12 Oct 2012 16:43:37 +0000
-Subject: Re: [lm-sensors] [PATCH 5/5] hwmon: (coretemp) Add support for Atom CE4110/4150/4170
-Message-Id: <20121012164337.GC6300@roeck-us.net>
+From: Ian Pilcher <arequipeno@gmail.com>
+Date: Thu, 11 Oct 2012 00:46:01 +0000
+Subject: [lm-sensors] Temperature sensors changed by BIOS update
+Message-Id: <k554s3$g79$1@ger.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1349816943-17697-6-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1349816943-17697-6-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 12, 2012 at 11:22:48AM +0200, Jean Delvare wrote:
-> On Tue,  9 Oct 2012 14:09:03 -0700, Guenter Roeck wrote:
-> > TjMax for the CE4100 series of Atom CPUs was previously reported to be
-> > 110 degrees C.
-> > 
-> > cpuinfo logs on the web show existing CPU types CE4110, CE4150, and CE4170,
-> > reported as "model name : Intel(R) Atom(TM) CPU CE41{1|5|7}0 @ 1.{2|6}0GHz"
-> > with model 28 (0x1c) and stepping 10 (0x0a). Add the three known variants
-> > to the tjmax table.
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  Documentation/hwmon/coretemp |    1 +
-> >  drivers/hwmon/coretemp.c     |    7 +++++--
-> >  2 files changed, 6 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
-> > index 0cc4050..e36960a 100644
-> > --- a/Documentation/hwmon/coretemp
-> > +++ b/Documentation/hwmon/coretemp
-> > @@ -107,6 +107,7 @@ Process		Processor					TjMax(C)
-> >  		330/230						125
-> >  		E680/660/640/620				90
-> >  		E680T/660T/640T/620T				110
-> > +		CE4110/4150/4170				110
-> 
-> Reverse order.
-> 
-Ah, now I get it ... you mean order within the line, not line-to-line. That
-explains the Z670/650 and N570/550 as well. Done (for both).
+At least I think that the BIOS update is the cause.  (I'm not willing
+to risk downgrading my BIOS to be absolutely sure.)
 
-> >  
-> >  45nm		Core2 Processors
-> >  		Solo ULV SU3500/3300				100
-> > diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-> > index 96ab10c..f6ff76c 100644
-> > --- a/drivers/hwmon/coretemp.c
-> > +++ b/drivers/hwmon/coretemp.c
-> > @@ -196,8 +196,11 @@ struct tjmax {
-> >  };
-> >  
-> >  static const struct tjmax __cpuinitconst tjmax_table[] = {
-> > -	{ "CPU  230", 100000 },
-> > -	{ "CPU  330", 125000 },
-> > +	{ "CPU  230", 100000 },		/* Model 0x1c, stepping 2	*/
-> > +	{ "CPU  330", 125000 },		/* Model 0x1c, stepping 2	*/
-> > +	{ "CPU CE4110", 110000 },	/* Model 0x1c, stepping 10	*/
-> > +	{ "CPU CE4150", 110000 },	/* Model 0x1c, stepping 10	*/
-> > +	{ "CPU CE4170", 110000 },	/* Model 0x1c, stepping 10	*/
-> >  };
-> >  
-> >  struct tjmax_model {
-> 
-> I did not check the datasheets but I'll trust you got it right.
-> 
-I don't have datasheets (the processors don't really exist, after all, if you
-try to find them on Intel's web page). The TjMax values are based on
-	http://comments.gmane.org/gmane.linux.kernel/1076932
+The system in question is an Intel DQ67SW board, using the lm_sensors
+configuration file here:
 
-> Acked-by: Jean Delvare <khali@linux-fr.org>
-> 
-> Candidate for stable? If so you'll have to change the patch order.
-> 
-Didn't think about it. Good point. I'll do that.
+    http://lm-sensors.org/wiki/Configurations/Intel/DQ67SW
 
-Guenter
+Today, I noticed that gkrellm was reporting my CPU temperature as
+-128=B0C.  The temperature mappings in that file (which I created about
+18 months ago) are:
+
+    temp1: Memory DIMM Temperature
+    temp2: VR Temperature
+    temp3: Processor Temperature
+    temp4: PCH Temperature
+
+It seems that the correct mappings are now:
+
+    temp1 (SYSTIN)       : Memory DIMM Temperature (no change)
+    temp2 (CPUTIN)       : VR Temperature (no change)
+    temp3 (AUXTIN)       : (always reports -128=B0C)
+    temp6 (PECI Agent 0) : Processor Temperature
+    temp7 (PCH_CHIP_TEMP): PCH Temperature
+    temp8 (PECI Agent 1) : (always reports 0.0=B0C)
+
+temp4 and temp5 don't exist at all!
+
+Does it make sense that a BIOS update could have this effect?  If so, I
+guess I'll submit an updated configuration file that's only applicable
+to boards with more recent BIOS revs.
+
+Thanks!
+
+--=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Ian Pilcher                                         arequipeno@gmail.com
+"Sometimes there's nothing left to do but crash and burn, or die trying"
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+
 
 _______________________________________________
 lm-sensors mailing list
