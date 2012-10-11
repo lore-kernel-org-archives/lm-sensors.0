@@ -1,62 +1,49 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 02 Oct 2012 19:52:59 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Drop needless includes of <linux/delay.h>
-Message-Id: <20121002195259.GA31690@roeck-us.net>
+From: Axel Lin <axel.lin@ingics.com>
+Date: Thu, 11 Oct 2012 15:56:26 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (ina2xx) Use module_i2c_driver macro
+Message-Id: <1349970986.9548.1.camel@phoenix>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121002182056.6adb0fa4@endymion.delvare>
-In-Reply-To: <20121002182056.6adb0fa4@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: Lothar Felten <l-felten@ti.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-On Tue, Oct 02, 2012 at 09:13:42PM +0200, Jean Delvare wrote:
-> On Tue, 2 Oct 2012 11:23:09 -0700, Guenter Roeck wrote:
-> > On Tue, Oct 02, 2012 at 06:20:56PM +0200, Jean Delvare wrote:
-> > > These drivers use no sleep or delay functions so they don't need to
-> > > include <linux/delay.h>.
-> > > 
-> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > > Cc: Rudolf Marek <r.marek@assembler.cz>
-> > 
-> > Acked-by: Guenter Roeck <linux@roeck-us.net>
-> > 
-> > Related question: Some drivers use jiffies but don't include linux/jiffies.h.
-> > Should we add that ?
-> 
-> Yes we should, otherwise we are at the mercy of build errors in the
-> future whenever inter-header file inclusions change.
-> 
-> I'll take care of this second patch to avoid conflicts with this one.
-> 
-Ok. Here is the list of affected files:
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
+---
+ drivers/hwmon/ina2xx.c |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-   drivers/hwmon/adm9240.c
-   drivers/hwmon/adt7475.c
-   drivers/hwmon/asus_atk0110.c
-   drivers/hwmon/emc1403.c
-   drivers/hwmon/hih6130.c
-   drivers/hwmon/i5k_amb.c	(includes jiffies.h but doesn't use it as far as I can see)
-   drivers/hwmon/ina2xx.c
-   drivers/hwmon/lineage-pem.c
-   drivers/hwmon/lm92.c
-   drivers/hwmon/lm93.c
-   drivers/hwmon/ltc4151.c
-   drivers/hwmon/ltc4245.c
-   drivers/hwmon/ltc4261.c
-   drivers/hwmon/pmbus/pmbus_core.c
-   drivers/hwmon/sht21.c
-   drivers/hwmon/smm665.c
-   drivers/hwmon/thmc50.c
-   drivers/hwmon/tmp102.c
-   drivers/hwmon/w83792d.c
-   drivers/hwmon/w83793.c
-   drivers/hwmon/w83795.c
-   drivers/hwmon/w83l786ng.c
+diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
+index 2b72634..8e7158c 100644
+--- a/drivers/hwmon/ina2xx.c
++++ b/drivers/hwmon/ina2xx.c
+@@ -302,19 +302,8 @@ static struct i2c_driver ina2xx_driver = {
+ 	.id_table	= ina2xx_id,
+ };
+ 
+-static int __init ina2xx_init(void)
+-{
+-	return i2c_add_driver(&ina2xx_driver);
+-}
+-
+-static void __exit ina2xx_exit(void)
+-{
+-	i2c_del_driver(&ina2xx_driver);
+-}
++module_i2c_driver(ina2xx_driver);
+ 
+ MODULE_AUTHOR("Lothar Felten <l-felten@ti.com>");
+ MODULE_DESCRIPTION("ina2xx driver");
+ MODULE_LICENSE("GPL");
+-
+-module_init(ina2xx_init);
+-module_exit(ina2xx_exit);
+-- 
+1.7.9.5
 
-Guess I am guilty for many of those :).
 
-Guenter
+
 
 _______________________________________________
 lm-sensors mailing list
