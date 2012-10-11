@@ -1,49 +1,30 @@
-From: Axel Lin <axel.lin@ingics.com>
-Date: Thu, 11 Oct 2012 15:56:26 +0000
-Subject: [lm-sensors] [PATCH] hwmon: (ina2xx) Use module_i2c_driver macro
-Message-Id: <1349970986.9548.1.camel@phoenix>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 11 Oct 2012 16:22:51 +0000
+Subject: Re: [lm-sensors] [PATCH] hwmon: (ina2xx) Use module_i2c_driver macro
+Message-Id: <20121011162251.GA31269@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1349970986.9548.1.camel@phoenix>
+In-Reply-To: <1349970986.9548.1.camel@phoenix>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
-Cc: Lothar Felten <l-felten@ti.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+To: Axel Lin <axel.lin@ingics.com>
+Cc: Jean Delvare <khali@linux-fr.org>, Lothar Felten <l-felten@ti.com>, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/hwmon/ina2xx.c |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+On Thu, Oct 11, 2012 at 11:56:26PM +0800, Axel Lin wrote:
+> Signed-off-by: Axel Lin <axel.lin@ingics.com>
+> ---
+>  drivers/hwmon/ina2xx.c |   13 +------------
+>  1 file changed, 1 insertion(+), 12 deletions(-)
+> 
+Hi Axel,
 
-diff --git a/drivers/hwmon/ina2xx.c b/drivers/hwmon/ina2xx.c
-index 2b72634..8e7158c 100644
---- a/drivers/hwmon/ina2xx.c
-+++ b/drivers/hwmon/ina2xx.c
-@@ -302,19 +302,8 @@ static struct i2c_driver ina2xx_driver = {
- 	.id_table	= ina2xx_id,
- };
- 
--static int __init ina2xx_init(void)
--{
--	return i2c_add_driver(&ina2xx_driver);
--}
--
--static void __exit ina2xx_exit(void)
--{
--	i2c_del_driver(&ina2xx_driver);
--}
-+module_i2c_driver(ina2xx_driver);
- 
- MODULE_AUTHOR("Lothar Felten <l-felten@ti.com>");
- MODULE_DESCRIPTION("ina2xx driver");
- MODULE_LICENSE("GPL");
--
--module_init(ina2xx_init);
--module_exit(ina2xx_exit);
--- 
-1.7.9.5
+A similar patch from Wei Yongjun is already queued in my -next branch.
+It is not in linux-next yet since I am supposed to hold off until
+the commit window closes. 
 
-
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
