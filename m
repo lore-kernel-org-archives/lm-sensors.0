@@ -1,94 +1,70 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 30 Oct 2012 16:52:25 +0000
-Subject: Re: [lm-sensors] drivers/hwmon/w83627ehf.c:2672 w83627ehf_resume() error: buffer overflow 'W83627EHF
-Message-Id: <20121030165225.GB11394@roeck-us.net>
+Date: Thu, 11 Oct 2012 14:36:13 +0000
+Subject: [lm-sensors] [PATCH 3/7] hwmon: (it87) Replace macro defining tempX_type sensors with direct definit
+Message-Id: <1349966177-25985-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 30, 2012 at 06:54:56AM -0700, Guenter Roeck wrote:
-> On Tue, Oct 30, 2012 at 02:50:14PM +0100, Jean Delvare wrote:
-> > On Tue, 30 Oct 2012 06:30:32 -0700, Guenter Roeck wrote:
-> > > Hi Jean,
-> > >=20
-> > > On Tue, Oct 30, 2012 at 12:22:29PM +0100, Jean Delvare wrote:
-> > > > Hi Peter,
-> > > >=20
-> > > > On Mon, 29 Oct 2012 21:58:47 +0100, Peter H=FCwe wrote:
-> > > > > FYI, there are new smatch warnings show up in
-> > > > >=20
-> > > > > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-=
-next master
-> > > > > head:   8243aafc4f54244984d7ea707265e98810a3a066
-> > > > > commit: 0110e1dd583ee412ccde1ba027dced6b828fb466 hwmon: (w83627eh=
-f) Add support for suspend
-> > > > > date:   32 hours ago
-> > > > > :::::: branch date: 3 hours ago
-> > > > > :::::: commit date: 32 hours ago
-> > > > >=20
-> > > > >   drivers/hwmon/w83627ehf.c:911 w83627ehf_update_device() error: =
-buffer overflow 'W83627EHF_REG_TEMP_OFFSET' 3 <=3D 8
-> > > > >   drivers/hwmon/w83627ehf.c:909 w83627ehf_update_device() error: =
-buffer overflow 'data->temp_offset' 3 <=3D 8
-> > > > > + drivers/hwmon/w83627ehf.c:2672 w83627ehf_resume() error: buffer=
- overflow 'W83627EHF_REG_TEMP_OFFSET' 3 <=3D 8
-> > > > > + drivers/hwmon/w83627ehf.c:2673 w83627ehf_resume() error: buffer=
- overflow 'data->temp_offset' 3 <=3D 8
-> > > > >=20
-> > > > > git remote update next
-> > > > > git checkout 0110e1dd583ee412ccde1ba027dced6b828fb466
-> > > > > vim +2672 drivers/hwmon/w83627ehf.c
-> > > > >=20
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2666                           =
-                    data->temp_max[i]);
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2667                  if (data-=
->reg_temp_hyst[i])
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2668                          w=
-83627ehf_write_temp(data, data->reg_temp_hyst[i],
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2669                           =
-                    data->temp_max_hyst[i]);
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2670                  if (data-=
->have_temp_offset & (1 << i))
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2671                          w=
-83627ehf_write_value(data,
-> > > > > 0110e1dd Jean Delvare 2012-10-25 @2672                           =
-                     W83627EHF_REG_TEMP_OFFSET[i],
-> > > > > 0110e1dd Jean Delvare 2012-10-25 @2673                           =
-                     data->temp_offset[i]);
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2674          }
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2675 =20
-> > > > > 0110e1dd Jean Delvare 2012-10-25  2676          /* Restore other =
-settings */
-> > > > >=20
-> > > > > I checked it and it seems valid.
-> > > >=20
-> > > > Actually this is a false positive, only the lower 3 bits of
-> > > > data->have_temp_offset can be set so the write is never attempted w=
-ith
-> > > > i >=3D 3. However this isn't something a static code analyzer can e=
-asily
-> > > > figure out, so it would be better and safer to adjust the code to m=
-ake
-> > > > it more obvious. I'll send a patch.
-> > >
-> > > If you really want to patch it, there are more places like that; pret=
-ty much
-> > > every loop around the temperature registers is affected. I marked the=
- others
-> > > as false positive quite some time ago.
-> >=20
-> > Marked how?
-> >=20
-> On coverity. Only looks like they changed the UI and I don't find the rep=
-orts
-> anymore :(. I'll try again later today.
->=20
-Looks like it was only one case in update_device, and you fixed it in your
-patch.
+The macro name show_sensor_offset is confusing since it related to the sensor
+type, not an offset - even more so when we introduce offset attributes later on.
+Replace it with direct definitions, and replace the show_sensor/set_sensor
+function names with show_type/set_type. This also resolves a checkpatch error.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index d211c2b..82f7924 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -556,8 +556,8 @@ static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, 0);
+ static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGOWU, show_temp, set_temp, 2, 1);
+ static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGOWU, show_temp, set_temp, 2, 2);
+ 
+-static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
+-		char *buf)
++static ssize_t show_type(struct device *dev, struct device_attribute *attr,
++			 char *buf)
+ {
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+@@ -570,8 +570,9 @@ static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
+ 		return sprintf(buf, "4\n");  /* thermistor */
+ 	return sprintf(buf, "0\n");      /* disabled */
+ }
+-static ssize_t set_sensor(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
++
++static ssize_t set_type(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
+ {
+ 	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+ 	int nr = sensor_attr->index;
+@@ -606,13 +607,10 @@ static ssize_t set_sensor(struct device *dev, struct device_attribute *attr,
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-#define show_sensor_offset(offset)					\
+-static SENSOR_DEVICE_ATTR(temp##offset##_type, S_IRUGO | S_IWUSR,	\
+-		show_sensor, set_sensor, offset - 1);
+ 
+-show_sensor_offset(1);
+-show_sensor_offset(2);
+-show_sensor_offset(3);
++static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGOWU, show_type, set_type, 0);
++static SENSOR_DEVICE_ATTR(temp2_type, S_IRUGOWU, show_type, set_type, 1);
++static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGOWU, show_type, set_type, 2);
+ 
+ /* 3 Fans */
+ 
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
