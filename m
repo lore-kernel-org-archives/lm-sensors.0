@@ -1,148 +1,152 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 21 Oct 2012 17:53:14 +0000
-Subject: [lm-sensors] [PATCH 7/8] hwmon: (it87) Replace pwm group macro with direct attribute definitions
-Message-Id: <1350841995-5748-8-git-send-email-linux@roeck-us.net>
+Date: Thu, 11 Oct 2012 14:36:11 +0000
+Subject: [lm-sensors] [PATCH 1/7] hwmon: (it87) Save temperature registers in 2-dimensional array
+Message-Id: <1349966177-25985-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Fix checkpatch error:
-
-ERROR: Macros with multiple statements should be enclosed in a do - while loop
+Cleaner code, fewer checkpatch errors, and reduced code size
+(saves more than 500 bytes on x86-64).
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/it87.c |  115 ++++++++++++++++++++++++++++++++------------------
- 1 file changed, 74 insertions(+), 41 deletions(-)
+ drivers/hwmon/it87.c |   92 ++++++++++++++++----------------------------------
+ 1 file changed, 30 insertions(+), 62 deletions(-)
 
 diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-index 328c440..5275c6c 100644
+index f1de397..350d8f4 100644
 --- a/drivers/hwmon/it87.c
 +++ b/drivers/hwmon/it87.c
-@@ -1061,47 +1061,80 @@ static SENSOR_DEVICE_ATTR_2(fan4_min, S_IRUGOWU, show_fan, set_fan, 3, 1);
- static SENSOR_DEVICE_ATTR_2(fan5_input, S_IRUGO, show_fan, NULL, 4, 0);
- static SENSOR_DEVICE_ATTR_2(fan5_min, S_IRUGOWU, show_fan, set_fan, 4, 1);
+@@ -265,9 +265,7 @@ struct it87_data {
+ 	u16 fan[5];		/* Register values, possibly combined */
+ 	u16 fan_min[5];		/* Register values, possibly combined */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+-	s8 temp[3];		/* Register value */
+-	s8 temp_high[3];	/* Register value */
+-	s8 temp_low[3];		/* Register value */
++	s8 temp[3][3];		/* [nr][0]=temp, [1]=min, [2]=max */
+ 	u8 sensor;		/* Register value */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+ 	u8 vid;			/* Register encoding, combined */
+@@ -545,38 +543,22 @@ show_in_offset(8);
  
--#define show_pwm_offset(offset)						\
--static SENSOR_DEVICE_ATTR(pwm##offset##_enable, S_IRUGO | S_IWUSR,	\
--		show_pwm_enable, set_pwm_enable, offset - 1);		\
--static SENSOR_DEVICE_ATTR(pwm##offset, S_IRUGO | S_IWUSR,		\
--		show_pwm, set_pwm, offset - 1);				\
--static DEVICE_ATTR(pwm##offset##_freq,					\
--		(offset = 1 ? S_IRUGO | S_IWUSR : S_IRUGO),		\
--		show_pwm_freq, (offset = 1 ? set_pwm_freq : NULL));	\
--static SENSOR_DEVICE_ATTR(pwm##offset##_auto_channels_temp,		\
--		S_IRUGO | S_IWUSR, show_pwm_temp_map, set_pwm_temp_map,	\
--		offset - 1);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point1_pwm,		\
--		S_IRUGO | S_IWUSR, show_auto_pwm, set_auto_pwm,		\
--		offset - 1, 0);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point2_pwm,		\
--		S_IRUGO | S_IWUSR, show_auto_pwm, set_auto_pwm,		\
--		offset - 1, 1);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point3_pwm,		\
--		S_IRUGO | S_IWUSR, show_auto_pwm, set_auto_pwm,		\
--		offset - 1, 2);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point4_pwm,		\
--		S_IRUGO, show_auto_pwm, NULL, offset - 1, 3);		\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point1_temp,		\
--		S_IRUGO | S_IWUSR, show_auto_temp, set_auto_temp,	\
--		offset - 1, 1);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point1_temp_hyst,	\
--		S_IRUGO | S_IWUSR, show_auto_temp, set_auto_temp,	\
--		offset - 1, 0);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point2_temp,		\
--		S_IRUGO | S_IWUSR, show_auto_temp, set_auto_temp,	\
--		offset - 1, 2);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point3_temp,		\
--		S_IRUGO | S_IWUSR, show_auto_temp, set_auto_temp,	\
--		offset - 1, 3);						\
--static SENSOR_DEVICE_ATTR_2(pwm##offset##_auto_point4_temp,		\
--		S_IRUGO | S_IWUSR, show_auto_temp, set_auto_temp,	\
--		offset - 1, 4);
+ /* 3 temperatures */
+ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+-		char *buf)
++			 char *buf)
+ {
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
 -
--show_pwm_offset(1);
--show_pwm_offset(2);
--show_pwm_offset(3);
-+static SENSOR_DEVICE_ATTR(pwm1_enable, S_IRUGOWU,
-+			  show_pwm_enable, set_pwm_enable, 0);
-+static SENSOR_DEVICE_ATTR(pwm1, S_IRUGOWU, show_pwm, set_pwm, 0);
-+static DEVICE_ATTR(pwm1_freq, S_IRUGOWU, show_pwm_freq, set_pwm_freq);
-+static SENSOR_DEVICE_ATTR(pwm1_auto_channels_temp, S_IRUGOWU,
-+			  show_pwm_temp_map, set_pwm_temp_map, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point2_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 0, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point3_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 0, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point4_pwm, S_IRUGO,
-+			    show_auto_pwm, NULL, 0, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 0, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point1_temp_hyst, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 0, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point2_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 0, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point3_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 0, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm1_auto_point4_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 0, 4);
-+
-+static SENSOR_DEVICE_ATTR(pwm2_enable, S_IRUGOWU,
-+			  show_pwm_enable, set_pwm_enable, 1);
-+static SENSOR_DEVICE_ATTR(pwm2, S_IRUGOWU, show_pwm, set_pwm, 1);
-+static DEVICE_ATTR(pwm2_freq, S_IRUGO, show_pwm_freq, NULL);
-+static SENSOR_DEVICE_ATTR(pwm2_auto_channels_temp, S_IRUGOWU,
-+			  show_pwm_temp_map, set_pwm_temp_map, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 1, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point2_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 1, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point3_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 1, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point4_pwm, S_IRUGO,
-+			    show_auto_pwm, NULL, 1, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 1, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point1_temp_hyst, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 1, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point2_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 1, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point3_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 1, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm2_auto_point4_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 1, 4);
-+
-+static SENSOR_DEVICE_ATTR(pwm3_enable, S_IRUGOWU,
-+			  show_pwm_enable, set_pwm_enable, 2);
-+static SENSOR_DEVICE_ATTR(pwm3, S_IRUGOWU, show_pwm, set_pwm, 2);
-+static DEVICE_ATTR(pwm3_freq, S_IRUGO, show_pwm_freq, NULL);
-+static SENSOR_DEVICE_ATTR(pwm3_auto_channels_temp, S_IRUGOWU,
-+			  show_pwm_temp_map, set_pwm_temp_map, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point2_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_pwm, S_IRUGOWU,
-+			    show_auto_pwm, set_auto_pwm, 2, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point4_pwm, S_IRUGO,
-+			    show_auto_pwm, NULL, 2, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 2, 1);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point1_temp_hyst, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 2, 0);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point2_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 2, 2);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point3_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 2, 3);
-+static SENSOR_DEVICE_ATTR_2(pwm3_auto_point4_temp, S_IRUGOWU,
-+			    show_auto_temp, set_auto_temp, 2, 4);
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	int nr = sattr->nr;
++	int index = sattr->index;
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
+-}
+-static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
  
- /* Alarms */
- static ssize_t show_alarms(struct device *dev, struct device_attribute *attr,
+-	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr][index]));
+ }
+-static ssize_t show_temp_min(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+ 
+-	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_low[nr]));
+-}
+-static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
++static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
+ {
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	int nr = sattr->nr;
++	int index = sattr->index;
+ 	struct it87_data *data = dev_get_drvdata(dev);
+ 	long val;
+ 
+@@ -584,40 +566,26 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->temp_high[nr] = TEMP_TO_REG(val);
+-	it87_write_value(data, IT87_REG_TEMP_HIGH(nr), data->temp_high[nr]);
++	data->temp[nr][index] = TEMP_TO_REG(val);
++	it87_write_value(data,
++			 index = 1 ? IT87_REG_TEMP_LOW(nr)
++				    : IT87_REG_TEMP_HIGH(nr),
++			 data->temp[nr][index]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
+-	struct it87_data *data = dev_get_drvdata(dev);
+-	long val;
+ 
+-	if (kstrtol(buf, 10, &val) < 0)
+-		return -EINVAL;
++#define S_IRUGOWU	(S_IRUGO | S_IWUSR)
+ 
+-	mutex_lock(&data->update_lock);
+-	data->temp_low[nr] = TEMP_TO_REG(val);
+-	it87_write_value(data, IT87_REG_TEMP_LOW(nr), data->temp_low[nr]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-#define show_temp_offset(offset)					\
+-static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO,		\
+-		show_temp, NULL, offset - 1);				\
+-static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
+-		show_temp_max, set_temp_max, offset - 1);		\
+-static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
+-		show_temp_min, set_temp_min, offset - 1);
+-
+-show_temp_offset(1);
+-show_temp_offset(2);
+-show_temp_offset(3);
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
++static SENSOR_DEVICE_ATTR_2(temp1_min, S_IRUGOWU, show_temp, set_temp, 0, 1);
++static SENSOR_DEVICE_ATTR_2(temp1_max, S_IRUGOWU, show_temp, set_temp, 0, 2);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 1, 0);
++static SENSOR_DEVICE_ATTR_2(temp2_min, S_IRUGOWU, show_temp, set_temp, 1, 1);
++static SENSOR_DEVICE_ATTR_2(temp2_max, S_IRUGOWU, show_temp, set_temp, 1, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, 0);
++static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGOWU, show_temp, set_temp, 2, 1);
++static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGOWU, show_temp, set_temp, 2, 2);
+ 
+ static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -2419,12 +2387,12 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 		for (i = 0; i < 3; i++) {
+ 			if (!(data->has_temp & (1 << i)))
+ 				continue;
+-			data->temp[i] +			data->temp[i][0]  				it87_read_value(data, IT87_REG_TEMP(i));
+-			data->temp_high[i] -				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+-			data->temp_low[i] +			data->temp[i][1]  				it87_read_value(data, IT87_REG_TEMP_LOW(i));
++			data->temp[i][2] +				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+ 		}
+ 
+ 		/* Newer chips don't have clock dividers */
 -- 
 1.7.9.7
 
