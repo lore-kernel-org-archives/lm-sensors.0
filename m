@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 11 Oct 2012 03:27:21 +0000
+From: Ian Pilcher <arequipeno@gmail.com>
+Date: Thu, 11 Oct 2012 05:56:38 +0000
 Subject: Re: [lm-sensors] Temperature sensors changed by BIOS update
-Message-Id: <20121011032721.GA11825@roeck-us.net>
+Message-Id: <50765F96.20906@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <k554s3$g79$1@ger.gmane.org>
 In-Reply-To: <k554s3$g79$1@ger.gmane.org>
@@ -10,57 +10,77 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 10, 2012 at 07:46:01PM -0500, Ian Pilcher wrote:
-> At least I think that the BIOS update is the cause.  (I'm not willing
-> to risk downgrading my BIOS to be absolutely sure.)
->=20
-> The system in question is an Intel DQ67SW board, using the lm_sensors
-> configuration file here:
->=20
->     http://lm-sensors.org/wiki/Configurations/Intel/DQ67SW
->=20
-> Today, I noticed that gkrellm was reporting my CPU temperature as
-> -128=B0C.  The temperature mappings in that file (which I created about
-> 18 months ago) are:
->=20
->     temp1: Memory DIMM Temperature
->     temp2: VR Temperature
->     temp3: Processor Temperature
->     temp4: PCH Temperature
->=20
-> It seems that the correct mappings are now:
->=20
->     temp1 (SYSTIN)       : Memory DIMM Temperature (no change)
->     temp2 (CPUTIN)       : VR Temperature (no change)
->     temp3 (AUXTIN)       : (always reports -128=B0C)
->     temp6 (PECI Agent 0) : Processor Temperature
->     temp7 (PCH_CHIP_TEMP): PCH Temperature
->     temp8 (PECI Agent 1) : (always reports 0.0=B0C)
->=20
-> temp4 and temp5 don't exist at all!
->=20
-Do you use the new nct6775 driver ? Can you provide the complete output of =
-the
-sensors command ?
+On 10/10/2012 10:27 PM, Guenter Roeck wrote:
+> Do you use the new nct6775 driver ? Can you provide the complete output o=
+f the
+> sensors command ?
 
-> Does it make sense that a BIOS update could have this effect?  If so, I
-> guess I'll submit an updated configuration file that's only applicable
-> to boards with more recent BIOS revs.
->=20
-Could be, if the new BIOS changed the temperature sensor mappings, but I wo=
-uld
-consider it unlikely. More likely you updated the driver; the new nct6775 d=
-river
-handles the various sensors on the chip differently.=20
+I'm using the w83627ehf driver in Fedora 17 (3.5.6-1.fc17.x86_64).
+There does not appear to be any nct6775 module, so I assume that it's
+either not in 3.5.6 or not built as part of Fedora's kernel.
 
-The AUXTIN value suggests that either nothing is connected to the input pin=
-, or
-that the wrong sensor type (eg diode vs. thermistor) is selected. Most like=
-ly nothing
-is connected to it. The mappings for temp6/7/8 are pretty common for Intel =
-boards.
+# modinfo w83627ehf
+filename:
+/lib/modules/3.5.6-1.fc17.x86_64/kernel/drivers/hwmon/w83627ehf.ko
+license:        GPL
+description:    W83627EHF driver
+author:         Jean Delvare <khali@linux-fr.org>
+depends:        hwmon-vid
+intree:         Y
+vermagic:       3.5.6-1.fc17.x86_64 SMP mod_unload
+parm:           force_id:Override the detected device ID (ushort)
+parm:           fan_debounce:Enable debouncing for fan RPM signal (ushort)
 
-Guenter
+# modinfo nct6775
+ERROR: Module nct6775 not found.
+
+sensors -c /dev/null says:
+
+coretemp-isa-0000
+Adapter: ISA adapter
+Physical id 0:  +42.0=B0C  (high =3D +80.0=B0C, crit =3D +99.0=B0C)
+Core 0:         +36.0=B0C  (high =3D +80.0=B0C, crit =3D +99.0=B0C)
+Core 1:         +42.0=B0C  (high =3D +80.0=B0C, crit =3D +99.0=B0C)
+Core 2:         +35.0=B0C  (high =3D +80.0=B0C, crit =3D +99.0=B0C)
+Core 3:         +30.0=B0C  (high =3D +80.0=B0C, crit =3D +99.0=B0C)
+
+nct6775-isa-0290
+Adapter: ISA adapter
+in0:            +1.22 V  (min =3D  +0.20 V, max =3D  +1.60 V)
+in1:            +0.76 V  (min =3D  +0.67 V, max =3D  +0.82 V)
+in2:            +3.36 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+in3:            +3.36 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+in4:            +1.28 V  (min =3D  +1.18 V, max =3D  +1.33 V)
+in5:            +1.48 V  (min =3D  +1.40 V, max =3D  +1.60 V)
+in6:            +1.05 V  (min =3D  +0.60 V, max =3D  +1.60 V)
+in7:            +3.28 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+in8:            +3.26 V  (min =3D  +2.70 V, max =3D  +3.63 V)
+fan1:          1506 RPM  (min =3D  251 RPM, div =3D 32)
+fan2:           629 RPM  (min =3D  251 RPM, div =3D 32)
+fan3:          1506 RPM  (min =3D  251 RPM, div =3D 32)
+fan4:             0 RPM  (div =3D 128)
+SYSTIN:         +29.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor=
+ =3D CPU
+diode
+CPUTIN:         +29.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor=
+ =3D CPU
+diode
+AUXTIN:        -128.0=B0C    sensor =3D CPU diode
+PECI Agent 0:   +42.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+PCH_CHIP_TEMP:  +46.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+PECI Agent 1:    +0.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)
+cpu0_vid:      +0.000 V
+intrusion0:    OK
+
+--=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Ian Pilcher                                         arequipeno@gmail.com
+"Sometimes there's nothing left to do but crash and burn, or die trying"
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
 _______________________________________________
 lm-sensors mailing list
