@@ -1,194 +1,141 @@
-From: Logan Freijo <loganfreijo@embarqmail.com>
-Date: Wed, 31 Oct 2012 22:37:01 +0000
-Subject: [lm-sensors] f71882fg not showing motherboard temps
-Message-Id: <5091A80D.3090101@embarqmail.com>
+From: Simon Tims <si@cog24.com>
+Date: Mon, 15 Oct 2012 15:12:48 +0000
+Subject: Re: [lm-sensors] Patching help
+Message-Id: <CAPevXiuSmPj61ff8tPpkhNEXj4zUesi3tp7qH=X1zKD2t33kfA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============8686889383359265663=="
 List-Id: <lm-sensors.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <CAPevXitqR63A+B0KH3ZfRfC-E=dHQVF7ak7MupQf-WUzcDnhbQ@mail.gmail.com>
+In-Reply-To: <CAPevXitqR63A+B0KH3ZfRfC-E=dHQVF7ak7MupQf-WUzcDnhbQ@mail.gmail.com>
 To: lm-sensors@vger.kernel.org
 
-**Hello. I have a system running Ubuntu Server 12.04.1 on a Jetway 
-motherboard. Sensors-detect finds my AMD cpu temp and a chip for the 
-motherboard (f71882fg). However, after adding the suggested line to 
-/etc/modules and rebooting, only the cpu temp shows up using the sensors 
-command. I have tried acpi-enforce-resources=lax with no effect. I have 
-tried searching the internet for an answer and I find none. Below is the 
-information requested in the FAQ.  I would like to note that this is not 
-a new problem, it has been ongoing since I bought the motherboard in Jan 
-2011.
+--===============8686889383359265663==
+Content-Type: multipart/alternative; boundary=f46d0438909575761c04cc1a781a
 
-Any help would be appreciated.
+--f46d0438909575761c04cc1a781a
+Content-Type: text/plain; charset=ISO-8859-1
 
-Logan
+On 11 September 2012 15:19, Jean Delvare <khali@linux-fr.org> wrote:
+
+>  Hi Simon,
+>>
+>> Please don't top-post.
+>>
+>> On Sun, 9 Sep 2012 20:11:41 +0100, Simon Tims wrote:
+>> > Yes, that does give more detail:
+>> >
+>> > /boot/config-3.0.0-12-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-16-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-17-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-19-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-20-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-21-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-22-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.0.0-24-generic-pae:CONFIG_I2C_PIIX4=m
+>> > /boot/config-3.2.0-29-generic-pae:CONFIG_I2C_PIIX4=m
+>>
+>> So your kernel has the i2c-piix4 driver compiled as a module. You
+>> should see it as file:
+>>
+>> /lib/modules/3.2.0-29-generic-pae/kernel/drivers/i2c/busses/i2c-piix4.ko
+>>
+>> Please confirm you have this file.
+>>
+>> Next step is to have a standalone replacement of that driver with
+>> support for the additional SMBus channels. Thomas (Cc'd) is supposedly
+>> working on this, once the code goes upstream, I will make a standalone
+>> i2c-piix4 driver available for download.
+>>
+>> --
+>> Jean Delvare
+>>
+>
+>
+> Hi Jean
+>
+> Yes, that file does indeed exist at the location you specify.
+>
+> I look forward to the standalone driver, and thank you (and everyone
+>  who contributes to this project) for your assistance and guidance.
+>
+> Simon
+>
+
+Hi everyone
+
+Is there any more development of the standalone i2c-piix4 driver?
+
+Thank you
+
+Simon
+
+--f46d0438909575761c04cc1a781a
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+On 11 September 2012 15:19, Jean Delvare <span dir=3D"ltr">&lt;<a href=3D"m=
+ailto:khali@linux-fr.org" target=3D"_blank">khali@linux-fr.org</a>&gt;</spa=
+n> wrote:<br><div class=3D"gmail_quote"><blockquote class=3D"gmail_quote" s=
+tyle=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
+
+<div class=3D"gmail_quote"><blockquote class=3D"gmail_quote" style=3D"margi=
+n:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex">
+Hi Simon,<br>
+<br>
+Please don&#39;t top-post.<br>
+<br>
+On Sun, 9 Sep 2012 20:11:41 +0100, Simon Tims wrote:<br>
+&gt; Yes, that does give more detail:<br>
+&gt;<br>
+&gt; /boot/config-3.0.0-12-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-16-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-17-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-19-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-20-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-21-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-22-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.0.0-24-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+&gt; /boot/config-3.2.0-29-generic-pae:CONFIG_I2C_PIIX4=3Dm<br>
+<br>
+So your kernel has the i2c-piix4 driver compiled as a module. You<br>
+should see it as file:<br>
+<br>
+/lib/modules/3.2.0-29-generic-pae/kernel/drivers/i2c/busses/i2c-piix4.ko<br=
+>
+<br>
+Please confirm you have this file.<br>
+<br>
+Next step is to have a standalone replacement of that driver with<br>
+support for the additional SMBus channels. Thomas (Cc&#39;d) is supposedly<=
+br>
+working on this, once the code goes upstream, I will make a standalone<br>
+i2c-piix4 driver available for download.<br>
+<span><font color=3D"#888888"><br>
+--<br>
+Jean Delvare<br>
+</font></span></blockquote></div><br><div><br></div><div>Hi Jean</div><div>=
+<br></div><div>Yes, that file does indeed exist at the location you specify=
+.</div><div><br></div><div>I look forward to the standalone driver, and tha=
+nk you (and everyone</div>
 
 
-*
+<div>=A0who contributes to this project)=A0for your assistance and guidance=
+.</div><span><font color=3D"#888888"><div><br></div><div>Simon</div></font>=
+</span></blockquote><div><br></div><div>Hi everyone</div><div>
+<br>Is there any more development of the standalone i2c-piix4 driver?<br><b=
+r>Thank you=A0</div></div><br><div>Simon</div>
 
-Motherboard vendor and model*
-     JetWay JHZ03-GT-LF
+--f46d0438909575761c04cc1a781a--
 
-*Lm_sensors and kernel versions*
-     sensors version 3.3.1 with libsensors version 3.3.1
-     3.2.0-32-generic #51-Ubuntu SMP Wed Sep 26 21:33:09 UTC 2012 x86_64 
-x86_64 x86_64 GNU/Linux
 
-*The output of sensors*
-     k10temp-pci-00c3
-     Adapter: PCI adapter
-     CPU Temp:     +26.0 C  (high = +70.0 C)
-
-*The dmesg or syslog output if applicable*
-     kernel: [    8.795196] f71882fg: Found f71882fg chip at 0x220, 
-revision 32
-     kernel: [    8.795228] f71882fg.544: failed to claim resource 0
-     kernel: [    8.795233] f71882fg: Device addition failed
-
-*The output of (as root) sensors-detect*
-# sensors-detect revision 5984 (2011-07-10 21:22:53 +0200)
-# System: To Be Filled By O.E.M. To Be Filled By O.E.M.
-# Board: JETWAY HZ03-GT
-
-This program will help you determine which kernel modules you need
-to load to use lm_sensors most effectively. It is generally safe
-and recommended to accept the default answers to all questions,
-unless you know what you're doing.
-
-Some south bridges, CPUs or memory controllers contain embedded sensors.
-Do you want to scan for them? This is totally safe. (YES/no):
-Module cpuid loaded successfully.
-Silicon Integrated Systems SIS5595...                       No
-VIA VT82C686 Integrated Sensors...                          No
-VIA VT8231 Integrated Sensors...                            No
-AMD K8 thermal sensors...                                   No
-AMD Family 10h thermal sensors...                           Success!
-     (driver `k10temp')
-AMD Family 11h thermal sensors...                           No
-AMD Family 12h and 14h thermal sensors...                   No
-AMD Family 15h thermal sensors...                           No
-AMD Family 15h power sensors...                             No
-Intel digital thermal sensor...                             No
-Intel AMB FB-DIMM thermal sensor...                         No
-VIA C7 thermal sensor...                                    No
-VIA Nano thermal sensor...                                  No
-
-Some Super I/O chips contain embedded sensors. We have to write to
-standard I/O ports to probe them. This is usually safe.
-Do you want to scan for Super I/O sensors? (YES/no):
-Probing for Super-I/O at 0x2e/0x2f
-Trying family `National Semiconductor/ITE'...               No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-Found `Fintek F71882FG/F71883FG Super IO Sensors'           Success!
-     (address 0x225, driver `f71882fg')
-Probing for Super-I/O at 0x4e/0x4f
-Trying family `National Semiconductor/ITE'...               No
-Trying family `SMSC'...                                     No
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
-Trying family `ITE'...                                      No
-
-Some systems (mainly servers) implement IPMI, a set of common interfaces
-through which system health data may be retrieved, amongst other things.
-We first try to get the information from SMBIOS. If we don't find it
-there, we have to read from arbitrary I/O ports to probe for such
-interfaces. This is normally safe. Do you want to scan for IPMI
-interfaces? (YES/no):
-Probing for `IPMI BMC KCS' at 0xca0...                      No
-Probing for `IPMI BMC SMIC' at 0xca8...                     No
-
-Some hardware monitoring chips are accessible through the ISA I/O ports.
-We have to write to arbitrary I/O ports to probe them. This is usually
-safe though. Yes, you do have ISA I/O ports even if you do not have any
-ISA slots! Do you want to scan the ISA I/O ports? (yes/NO):
-
-Lastly, we can probe the I2C/SMBus adapters for connected hardware
-monitoring devices. This is the most risky part, and while it works
-reasonably well on most systems, it has been reported to cause trouble
-on some systems.
-Do you want to probe the I2C/SMBus adapters now? (YES/no):
-Using driver `i2c-piix4' for device 0000:00:14.0: ATI Technologies Inc 
-SB600/SB700/SB800 SMBus
-Module i2c-dev loaded successfully.
-
-Next adapter: Radeon i2c bit bus 0x90 (i2c-0)
-Do you want to scan it? (YES/no/selectively):
-Client found at address 0x50
-Probing for `Analog Devices ADM1033'...                     No
-Probing for `Analog Devices ADM1034'...                     No
-Probing for `SPD EEPROM'...                                 No
-Probing for `EDID EEPROM'...                                Yes
-     (confidence 8, not a hardware monitoring chip)
-
-Next adapter: Radeon i2c bit bus 0x91 (i2c-1)
-Do you want to scan it? (YES/no/selectively):
-
-Next adapter: Radeon i2c bit bus 0x92 (i2c-2)
-Do you want to scan it? (YES/no/selectively):
-
-Next adapter: Radeon i2c bit bus 0x93 (i2c-3)
-Do you want to scan it? (YES/no/selectively):
-
-Next adapter: Radeon i2c bit bus 0x14 (i2c-4)
-Do you want to scan it? (YES/no/selectively):
-
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
-
-Driver `k10temp' (autoloaded):
-   * Chip `AMD Family 10h thermal sensors' (confidence: 9)
-
-Driver `f71882fg':
-   * ISA bus, address 0x225
-     Chip `Fintek F71882FG/F71883FG Super IO Sensors' (confidence: 9)
-
-To load everything that is needed, add this to /etc/modules:
-#----cut here----
-# Chip drivers
-f71882fg
-#----cut here----
-If you have some drivers built into your kernel, the list above will
-contain too many modules. Skip the appropriate ones!
-
-Do you want to add these lines automatically to /etc/modules? (yes/NO)n
-
-Unloading i2c-dev... OK
-Unloading cpuid... OK
-
-*The output of lsmod*
-
-Module                  Size  Used by
-cifs                  287317  0
-ext2                   73795  1
-dm_multipath           23230  0
-psmouse                97443  0
-edac_core              53746  0
-radeon                804460  1
-serio_raw              13211  0
-k10temp                13166  0
-edac_mce_amd           23709  0
-ttm                    76949  1 radeon
-sp5100_tco             13791  0
-drm_kms_helper         46978  1 radeon
-joydev                 17693  0
-i2c_piix4              13301  0
-drm                   241921  3 radeon,ttm,drm_kms_helper
-i2c_algo_bit           13423  1 radeon
-mac_hid                13253  0
-shpchp                 37277  0
-wmi                    19256  0
-lp                     17799  0
-parport                46562  1 lp
-usbhid                 47199  1
-hid                    99559  1 usbhid
-r8169                  62099  0
-pata_atiixp            13204  4
-dm_raid45              78155  0
-xor                    12894  1 dm_raid45
-dm_mirror              22203  0
-dm_region_hash         20918  1 dm_mirror
-dm_log                 18564  3 dm_raid45,dm_mirror,dm_region_hash
+--===============8686889383359265663==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============8686889383359265663==--
