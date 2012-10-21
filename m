@@ -1,121 +1,216 @@
-From: Klaus Dahlke <klaus.dahlke@gmx.de>
-Date: Mon, 08 Oct 2012 20:37:18 +0000
-Subject: Re: [lm-sensors] Temperature reading too high for it87
-Message-Id: <20121008223718.60387922.klaus.dahlke@gmx.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 21 Oct 2012 17:53:15 +0000
+Subject: [lm-sensors] [PATCH v2 8/8] hwmon: (it87) Manage device specific features with table
+Message-Id: <1350841995-5748-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121001225656.0e964dbe.klaus.dahlke@gmx.de>
-In-Reply-To: <20121001225656.0e964dbe.klaus.dahlke@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi G=FCnter,
-thanks for the comments.
+This simplifies the code, improves runtime performance, reduces
+code size (about 280 bytes on x86_64), and makes it easier
+to add support for new devices.
 
-In meanwhile I put some load to the system when compiling a couple of progr=
-ams. K10temp and temp3 go up then. I operate my PC as dual boot. On Windows=
- 7 the 'speedfan' program reports also ~60=B0C for temp2 whereby the Gigaby=
-te utility program reports only temp1 and temp3. temp1 is the 'system tempe=
-rature', temp3 the APU temp. An indication for that is that k10temp and tem=
-p3 have 70=B0C as high warning. In the BIOS I only set the CPU temperature =
-to high=3D70=B0C, the system temperature is on 'auto'. Anyhow, as the syste=
-ms works fine in the moment, I don't mind the weird readings.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Don't introduce new chip type for IT8726F. Doing that would break backward
+    compatibility.
+    Since we dropped the has_16bit_fans flag from patch 5/8, changing the code
+    back to use has_16bit_fans() is no longer needed.
 
-Best regards,
-Klaus=20
+ drivers/hwmon/it87.c |  140 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 77 insertions(+), 63 deletions(-)
 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 5275c6c..ef9194c 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -228,6 +228,59 @@ static const u8 IT87_REG_FANX_MIN[]	= { 0x1b, 0x1c, 0x1d, 0x85, 0x87 };
+ #define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
+ #define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
+ 
++struct it87_devices {
++	const char * const name;
++	u16 features;
++};
++
++#define	FEAT_12MV_ADC		(1 << 0)
++#define	FEAT_NEWER_AUTOPWM	(1 << 1)
++#define	FEAT_OLD_AUTOPWM	(1 << 2)
++#define	FEAT_16BIT_FAN		(1 << 3)
++
++static const struct it87_devices it87_devices[] = {
++	[it87] = {
++		.name = "it87",
++		.features = FEAT_OLD_AUTOPWM,	/* may need to override */
++	},
++	[it8712] = {
++		.name = "it8712",
++		.features = FEAT_OLD_AUTOPWM,	/* may need to overwrite */
++	},
++	[it8716] = {
++		.name = "it8716",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8718] = {
++		.name = "it8718",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8720] = {
++		.name = "it8720",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8721] = {
++		.name = "it8721",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN,
++	},
++	[it8728] = {
++		.name = "it8728",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN,
++	},
++	[it8782] = {
++		.name = "it8782",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8783] = {
++		.name = "it8783",
++		.features = FEAT_16BIT_FAN,
++	},
++};
++
++#define has_16bit_fans(data)	((data)->features & FEAT_16BIT_FAN)
++#define has_12mv_adc(data)	((data)->features & FEAT_12MV_ADC)
++#define has_newer_autopwm(data)	((data)->features & FEAT_NEWER_AUTOPWM)
++#define has_old_autopwm(data)	((data)->features & FEAT_OLD_AUTOPWM)
+ 
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -251,7 +304,7 @@ struct it87_sio_data {
+ struct it87_data {
+ 	struct device *hwmon_dev;
+ 	enum chips type;
+-	u8 revision;
++	u32 features;
+ 
+ 	unsigned short addr;
+ 	const char *name;
+@@ -293,26 +346,6 @@ struct it87_data {
+ 	s8 auto_temp[3][5];	/* [nr][0] is point1_temp_hyst */
+ };
+ 
+-static inline int has_12mv_adc(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8721F and later have a 12 mV ADC, also with internal scaling
+-	 * on selected inputs.
+-	 */
+-	return data->type = it8721
+-	    || data->type = it8728;
+-}
+-
+-static inline int has_newer_autopwm(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8721F and later have separate registers for the temperature
+-	 * mapping and the manual duty cycle.
+-	 */
+-	return data->type = it8721
+-	    || data->type = it8728;
+-}
+-
+ static int adc_lsb(const struct it87_data *data, int nr)
+ {
+ 	int lsb = has_12mv_adc(data) ? 12 : 16;
+@@ -395,35 +428,6 @@ static const unsigned int pwm_freq[8] = {
+ 	750000 / 128,
+ };
+ 
+-static inline int has_16bit_fans(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8705F Datasheet 0.4.1, 3h = Version G.
+-	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
+-	 * These are the first revisions with 16-bit tachometer support.
+-	 */
+-	return (data->type = it87 && data->revision >= 0x03)
+-	    || (data->type = it8712 && data->revision >= 0x08)
+-	    || data->type = it8716
+-	    || data->type = it8718
+-	    || data->type = it8720
+-	    || data->type = it8721
+-	    || data->type = it8728
+-	    || data->type = it8782
+-	    || data->type = it8783;
+-}
+-
+-static inline int has_old_autopwm(const struct it87_data *data)
+-{
+-	/*
+-	 * The old automatic fan speed control interface is implemented
+-	 * by IT8705F chips up to revision F and IT8712F chips up to
+-	 * revision G.
+-	 */
+-	return (data->type = it87 && data->revision < 0x03)
+-	    || (data->type = it8712 && data->revision < 0x08);
+-}
+-
+ static int it87_probe(struct platform_device *pdev);
+ static int __devexit it87_remove(struct platform_device *pdev);
+ 
+@@ -1885,17 +1889,6 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	int err = 0, i;
+ 	int enable_pwm_interface;
+ 	int fan_beep_need_rw;
+-	static const char * const names[] = {
+-		"it87",
+-		"it8712",
+-		"it8716",
+-		"it8718",
+-		"it8720",
+-		"it8721",
+-		"it8728",
+-		"it8782",
+-		"it8783",
+-	};
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -1912,8 +1905,29 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 
+ 	data->addr = res->start;
+ 	data->type = sio_data->type;
+-	data->revision = sio_data->revision;
+-	data->name = names[sio_data->type];
++	data->features = it87_devices[data->type].features;
++	data->name = it87_devices[sio_data->type].name;
++	/*
++	 * IT8705F Datasheet 0.4.1, 3h = Version G.
++	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
++	 * These are the first revisions with 16-bit tachometer support.
++	 */
++	switch (data->type) {
++	case it87:
++		if (sio_data->revision >= 0x03) {
++			data->features &= ~FEAT_OLD_AUTOPWM;
++			data->features |= FEAT_16BIT_FAN;
++		}
++		break;
++	case it8712:
++		if (sio_data->revision >= 0x08) {
++			data->features &= ~FEAT_OLD_AUTOPWM;
++			data->features |= FEAT_16BIT_FAN;
++		}
++		break;
++	default:
++		break;
++	}
+ 
+ 	/* Now, we do the remaining detection. */
+ 	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
+-- 
+1.7.9.7
 
-
-On Thu, 4 Oct 2012 19:55:21 -0700
-Guenter Roeck <linux@roeck-us.net> wrote:
-
-> On Mon, Oct 01, 2012 at 10:56:56PM +0200, Klaus Dahlke wrote:
-> >=20
-> > Dear all,
-> > I just put together a new PC with the following components:
-> > mainboard: Gigabyte GA-A75M-UD2H, newest BIOS (beta)
-> > CPU: AMD A8-3850 APU
-> >=20
-> > Using lm_sensors, one temperature of the APU via it87 is shown far too =
-high. The BIOS/PC Health Status (after reboot) reports basically 34=B0C and=
- 34=B0C which were also the usual temparatures at my old PC when just surfi=
-ng or doing some office stuff. But for teh new PC lm_sensors shows now for =
-the CPU a temperature of 59=B0C which is about the sum of the first tempera=
-ture and the temperature in the case/housing (case has an own thermocouple)=
-. It is the same behaviour with the kernel module as well as the driver fro=
-m your download page.
-> >=20
-> > I would be happy if you could investigate a bit further to get also a c=
-orrect temperature reading.
-> >=20
-> >=20
-> > $ sensors
-> > k10temp-pci-00c3
-> > Adapter: PCI adapter
-> > temp1:         +3.8=B0C  (high =3D +70.0=B0C)
-> >=20
-> This is reported by the CPU and a relative value. A number of people have=
- reported
-> similar low values. I start suspecting that it may have to do with the fa=
-ct
-> that thermal control is disabled on your board (which we know because the=
-re is
-> no critical temperature reported), and that the reported temperature is p=
-ossibly
-> relative to the critical temperature, which in turn may be initialized to=
- a much-too-low
-> value (eg 70 degrees C instead of around 100 degrees C). But someone from=
- AMD would have
-> to confirm that, and/or someone with an AMD board would have to play with=
- it to
-> confirm if that is really the case.
->=20
-> > it8720-isa-0228
-> > Adapter: ISA adapter
-> > in0:          +1.02 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > in1:          +1.49 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > in2:          +3.34 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > +5V:          +3.02 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > in4:          +3.09 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > in5:          +2.13 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > in6:          +2.13 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > 5VSB:         +2.99 V  (min =3D  +0.00 V, max =3D  +4.08 V)
-> > Vbat:      +3.07 V =20
-> > fan1:        1115 RPM  (min =3D   10 RPM)
-> > fan2:        1147 RPM  (min =3D    0 RPM)
-> > fan3:           0 RPM  (min =3D    0 RPM)
-> > temp1:        +34.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  se=
-nsor =3D thermistor
-> > temp2:        +59.0=B0C  (low  =3D +127.0=B0C, high =3D +127.0=B0C)  se=
-nsor =3D thermistor
-> > temp3:        +13.0=B0C  (low  =3D +127.0=B0C, high =3D +70.0=B0C)  sen=
-sor =3D thermistor
->=20
-> Those temperature values are as reported to the chip by the hardware. Dep=
-ending
-> on the board and the actual sensors, the reported value can differ from t=
-he real
-> temperature. Unfortunately, that is board specific, and compensation would
-> depend on information from the board vendor. The chip has registers to
-> compensate for that, but there is no guarantee that those registers are
-> initialized by the BIOS, and the it87 Linux driver does not support writi=
-ng them.
->=20
-> On the other side, it may well be possible that _some_ component runs a b=
-it
-> hotter than others on your board, and that temp2 reports such a temperatu=
-re.
-> I see that, for example, with the PCH chip on one of my Intel boards. But=
- unless
-> you run your computer in a fridge, 13=B0C is really a bit on the low side=
- ;).
->=20
-> Only idea I have would be to adjust the raw readings in your sensors.conf=
- file
-> to something you think is reasonable.
->=20
-> Guenter
 
 _______________________________________________
 lm-sensors mailing list
