@@ -1,66 +1,155 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 30 Oct 2012 16:54:06 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83627ehf) Get rid of smatch warnings
-Message-Id: <20121030165406.GC11394@roeck-us.net>
+Date: Sun, 21 Oct 2012 17:53:08 +0000
+Subject: [lm-sensors] [PATCH 1/8] hwmon: (it87) Save temperature registers in 2-dimensional array
+Message-Id: <1350841995-5748-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Oct 30, 2012 at 02:27:39PM +0100, Jean Delvare wrote:
-> The smatch static code analyzer complains:
-> 
-> drivers/hwmon/w83627ehf.c:911 w83627ehf_update_device() error: buffer overflow 'W83627EHF_REG_TEMP_OFFSET' 3 <= 8
-> drivers/hwmon/w83627ehf.c:909 w83627ehf_update_device() error: buffer overflow 'data->temp_offset' 3 <= 8
-> drivers/hwmon/w83627ehf.c:2672 w83627ehf_resume() error: buffer overflow 'W83627EHF_REG_TEMP_OFFSET' 3 <= 8
-> drivers/hwmon/w83627ehf.c:2673 w83627ehf_resume() error: buffer overflow 'data->temp_offset' 3 <= 8
-> 
-> A deeper analysis of the code shows that these are false positives, as
-> only the lower 3 bits of data->have_temp_offset can be set so the
-> write is never attempted with i >= 3. However this shows that the code
-> isn't very robust and future changes could easily introduce a buffer
-> overflow. So let's add a safety check to prevent that and make smatch
-> happy.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Peter Huewe <PeterHuewe@gmx.de>
+Cleaner code, fewer checkpatch errors, and reduced code size
+(saves more than 500 bytes on x86-64).
 
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |   92 ++++++++++++++++----------------------------------
+ 1 file changed, 30 insertions(+), 62 deletions(-)
 
-> ---
->  drivers/hwmon/w83627ehf.c |    4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> --- linux-3.7-rc3.orig/drivers/hwmon/w83627ehf.c	2012-10-30 12:04:16.418693691 +0100
-> +++ linux-3.7-rc3/drivers/hwmon/w83627ehf.c	2012-10-30 12:33:11.500486698 +0100
-> @@ -905,6 +905,8 @@ static struct w83627ehf_data *w83627ehf_
->  				data->temp_max_hyst[i]
->  				  = w83627ehf_read_temp(data,
->  						data->reg_temp_hyst[i]);
-> +			if (i > 2)
-> +				continue;
->  			if (data->have_temp_offset & (1 << i))
->  				data->temp_offset[i]
->  				  = w83627ehf_read_value(data,
-> @@ -2670,6 +2672,8 @@ static int w83627ehf_resume(struct devic
->  		if (data->reg_temp_hyst[i])
->  			w83627ehf_write_temp(data, data->reg_temp_hyst[i],
->  					     data->temp_max_hyst[i]);
-> +		if (i > 2)
-> +			continue;
->  		if (data->have_temp_offset & (1 << i))
->  			w83627ehf_write_value(data,
->  					      W83627EHF_REG_TEMP_OFFSET[i],
-> 
-> -- 
-> Jean Delvare
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index f1de397..350d8f4 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -265,9 +265,7 @@ struct it87_data {
+ 	u16 fan[5];		/* Register values, possibly combined */
+ 	u16 fan_min[5];		/* Register values, possibly combined */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+-	s8 temp[3];		/* Register value */
+-	s8 temp_high[3];	/* Register value */
+-	s8 temp_low[3];		/* Register value */
++	s8 temp[3][3];		/* [nr][0]=temp, [1]=min, [2]=max */
+ 	u8 sensor;		/* Register value */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+ 	u8 vid;			/* Register encoding, combined */
+@@ -545,38 +543,22 @@ show_in_offset(8);
+ 
+ /* 3 temperatures */
+ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+-		char *buf)
++			 char *buf)
+ {
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	int nr = sattr->nr;
++	int index = sattr->index;
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
+-}
+-static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+ 
+-	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr][index]));
+ }
+-static ssize_t show_temp_min(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+ 
+-	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_low[nr]));
+-}
+-static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
++static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
+ {
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	int nr = sattr->nr;
++	int index = sattr->index;
+ 	struct it87_data *data = dev_get_drvdata(dev);
+ 	long val;
+ 
+@@ -584,40 +566,26 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->temp_high[nr] = TEMP_TO_REG(val);
+-	it87_write_value(data, IT87_REG_TEMP_HIGH(nr), data->temp_high[nr]);
++	data->temp[nr][index] = TEMP_TO_REG(val);
++	it87_write_value(data,
++			 index = 1 ? IT87_REG_TEMP_LOW(nr)
++				    : IT87_REG_TEMP_HIGH(nr),
++			 data->temp[nr][index]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
+-	struct it87_data *data = dev_get_drvdata(dev);
+-	long val;
+ 
+-	if (kstrtol(buf, 10, &val) < 0)
+-		return -EINVAL;
++#define S_IRUGOWU	(S_IRUGO | S_IWUSR)
+ 
+-	mutex_lock(&data->update_lock);
+-	data->temp_low[nr] = TEMP_TO_REG(val);
+-	it87_write_value(data, IT87_REG_TEMP_LOW(nr), data->temp_low[nr]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-#define show_temp_offset(offset)					\
+-static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO,		\
+-		show_temp, NULL, offset - 1);				\
+-static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
+-		show_temp_max, set_temp_max, offset - 1);		\
+-static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
+-		show_temp_min, set_temp_min, offset - 1);
+-
+-show_temp_offset(1);
+-show_temp_offset(2);
+-show_temp_offset(3);
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
++static SENSOR_DEVICE_ATTR_2(temp1_min, S_IRUGOWU, show_temp, set_temp, 0, 1);
++static SENSOR_DEVICE_ATTR_2(temp1_max, S_IRUGOWU, show_temp, set_temp, 0, 2);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 1, 0);
++static SENSOR_DEVICE_ATTR_2(temp2_min, S_IRUGOWU, show_temp, set_temp, 1, 1);
++static SENSOR_DEVICE_ATTR_2(temp2_max, S_IRUGOWU, show_temp, set_temp, 1, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, 0);
++static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGOWU, show_temp, set_temp, 2, 1);
++static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGOWU, show_temp, set_temp, 2, 2);
+ 
+ static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -2419,12 +2387,12 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 		for (i = 0; i < 3; i++) {
+ 			if (!(data->has_temp & (1 << i)))
+ 				continue;
+-			data->temp[i] +			data->temp[i][0]  				it87_read_value(data, IT87_REG_TEMP(i));
+-			data->temp_high[i] -				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+-			data->temp_low[i] +			data->temp[i][1]  				it87_read_value(data, IT87_REG_TEMP_LOW(i));
++			data->temp[i][2] +				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+ 		}
+ 
+ 		/* Newer chips don't have clock dividers */
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
