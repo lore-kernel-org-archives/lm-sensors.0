@@ -1,53 +1,87 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 21 Oct 2012 17:25:20 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (it87) Manage device specific features with table
-Message-Id: <20121021172520.GA31650@roeck-us.net>
+From: Harald Judt <h.judt@gmx.at>
+Date: Mon, 22 Oct 2012 15:03:45 +0000
+Subject: [lm-sensors] w83627ehf: Wrong values reported after resuming from suspend/hibernation
+Message-Id: <50856051.5070803@gmx.at>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1350837712-31556-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1350837712-31556-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Sun, Oct 21, 2012 at 06:57:26PM +0200, Jean Delvare wrote:
-> On Sun, 21 Oct 2012 09:41:52 -0700, Guenter Roeck wrote:
-> > This simplifies the code, improves runtime performance, reduces
-> > code size (about 300 bytes on x86_64), and makes it easier
-> > to add support for new devices.
-> 
-> No time for a full review right now, just one thing:
-> 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> > This patch applies on top of the previously submitted patch series for it87.
-> > 
-> >  drivers/hwmon/it87.c |  217 ++++++++++++++++++++++++++------------------------
-> >  1 file changed, 111 insertions(+), 106 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-> > index e7b604c..560f9a9 100644
-> > --- a/drivers/hwmon/it87.c
-> > +++ b/drivers/hwmon/it87.c
-> > (...)
-> > +	[it8726] = {
-> > +		.name = "it8726",
-> > +		.id = IT8726F_DEVID,
-> > +		.features = FEAT_16BIT_FAN,
-> > +	},
-> 
-> The name change is breaking user-space compatibility. With lm-sensors
-> 2.10.x an IT8726F chip will suddenly become unrecognized. With
-> lm-sensors 3.x this isn't so bad but the name change may still break
-> chip matching in board-specific configuration files, sensord rrd
-> databases, custom scripts etc. So please don't do that.
-> 
-> This is exactly the reason why the IT8705F is still named "it87"
-> instead of the more consistent "it8705".
-> 
-Ok, I'll change that. Thanks for the note.
+Hi,
 
-Guenter
+After resuming from suspend or hibernation, the Vbat value is reported=20
+to be 0.0. Before that, it reported the correct value. Min/max values=20
+are wrong too.
+
+Linux-3.6.2, ASRock Z77 Extreme4 BIOS v1.80.
+
+Before suspend:
+nct6776-isa-0290
+Adapter: ISA adapter
+Vcore:         +0.97 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+in1:           +1.84 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+AVCC:          +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
++3.3V:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+in4:           +1.04 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+3VSB:          +3.47 V  (min =3D  +2.98 V, max =3D  +3.63 V)
+Vbat:          +3.31 V  (min =3D  +2.70 V, max =3D  +3.63 V)
+fan1:            0 RPM  (min =3D    0 RPM)  ALARM
+fan2:         1289 RPM  (min =3D    0 RPM)  ALARM
+fan3:          724 RPM  (min =3D    0 RPM)  ALARM
+fan4:          661 RPM  (min =3D    0 RPM)  ALARM
+fan5:         1076 RPM  (min =3D    0 RPM)  ALARM
+SYSTIN:        +37.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM  =
+sensor=20
+=3D thermistor
+CPUTIN:        +28.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D=20
+thermistor
+AUXTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D=20
+thermistor
+PECI Agent 0:  +32.0=B0C
+cpu0_vid:     +0.000 V
+intrusion0:   ALARM
+intrusion1:   ALARM
+
+After resuming:
+nct6776-isa-0290
+Adapter: ISA adapter
+Vcore:         +0.97 V  (min =3D  +0.00 V, max =3D  +1.74 V)
+in1:           +1.84 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+AVCC:          +3.34 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
++3.3V:         +3.34 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+in4:           +1.03 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+3VSB:          +3.47 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
+Vbat:          +0.00 V  (min =3D  +0.00 V, max =3D  +0.00 V)
+fan1:            0 RPM  (min =3D    0 RPM)  ALARM
+fan2:         1271 RPM  (min =3D    0 RPM)  ALARM
+fan3:          734 RPM  (min =3D    0 RPM)  ALARM
+fan4:          673 RPM  (min =3D    0 RPM)  ALARM
+fan5:         1093 RPM  (min =3D    0 RPM)  ALARM
+SYSTIN:        +36.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALARM  =
+sensor=20
+=3D thermistor
+CPUTIN:        +26.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D=20
+thermistor
+AUXTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sensor =
+=3D=20
+thermistor
+PECI Agent 0:  +30.0=B0C
+cpu0_vid:     +0.000 V
+intrusion0:   ALARM
+intrusion1:   ALARM
+
+Reloading the module helps. Of course, a fresh boot too ;-)
+
+Harald
+
+--=20
+`Experience is the best teacher.'
 
 _______________________________________________
 lm-sensors mailing list
