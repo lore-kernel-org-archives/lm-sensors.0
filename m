@@ -1,163 +1,99 @@
-From: Harald Judt <h.judt@gmx.at>
-Date: Tue, 23 Oct 2012 09:57:41 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 23 Oct 2012 11:45:16 +0000
 Subject: Re: [lm-sensors] w83627ehf: Wrong values reported after resuming from suspend/hibernation
-Message-Id: <50866A15.1040605@gmx.at>
+Message-Id: <20121023134516.6bc384b7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50856051.5070803@gmx.at>
 In-Reply-To: <50856051.5070803@gmx.at>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
+On Tue, 23 Oct 2012 11:57:41 +0200, Harald Judt wrote:
+> Am 23.10.2012 09:14, schrieb Jean Delvare:
+> > Reloading the module shouldn't help for limits, they are set by
+> > user-space. Reloading the lm_sensors service instead should help.
+> 
+> Actually that's what I did. Why the need to reload the service after 
+> suspend? Restarting the service causes some user applications to crash 
+> (yes maybe they should be fixed so that doesn't happen).
 
-Am 23.10.2012 09:14, schrieb Jean Delvare:
-> On Mon, 22 Oct 2012 14:40:00 -0700, Guenter Roeck wrote:
->> On Mon, Oct 22, 2012 at 05:03:45PM +0200, Harald Judt wrote:
->>> Hi,
->>>
->>> After resuming from suspend or hibernation, the Vbat value is
->>> reported to be 0.0. Before that, it reported the correct value.
->>> Min/max values are wrong too.
->>>
->>> Linux-3.6.2, ASRock Z77 Extreme4 BIOS v1.80.
->>>
->>> Before suspend:
->>> nct6776-isa-0290
->>> Adapter: ISA adapter
->>> Vcore:         +0.97 V  (min =3D  +0.00 V, max =3D  +1.74 V)
->>> in1:           +1.84 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> AVCC:          +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
->>> +3.3V:         +3.34 V  (min =3D  +2.98 V, max =3D  +3.63 V)
->>> in4:           +1.04 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> 3VSB:          +3.47 V  (min =3D  +2.98 V, max =3D  +3.63 V)
->>> Vbat:          +3.31 V  (min =3D  +2.70 V, max =3D  +3.63 V)
->>> fan1:            0 RPM  (min =3D    0 RPM)  ALARM
->>> fan2:         1289 RPM  (min =3D    0 RPM)  ALARM
->>> fan3:          724 RPM  (min =3D    0 RPM)  ALARM
->>> fan4:          661 RPM  (min =3D    0 RPM)  ALARM
->>> fan5:         1076 RPM  (min =3D    0 RPM)  ALARM
->>> SYSTIN:        +37.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALA=
-RM
->>> sensor =3D thermistor
->>> CPUTIN:        +28.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sen=
-sor =3D
->>> thermistor
->>> AUXTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sen=
-sor =3D
->>> thermistor
->>> PECI Agent 0:  +32.0=B0C
->>> cpu0_vid:     +0.000 V
->>> intrusion0:   ALARM
->>> intrusion1:   ALARM
->>>
->>> After resuming:
->>> nct6776-isa-0290
->>> Adapter: ISA adapter
->>> Vcore:         +0.97 V  (min =3D  +0.00 V, max =3D  +1.74 V)
->>> in1:           +1.84 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> AVCC:          +3.34 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> +3.3V:         +3.34 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> in4:           +1.03 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> in5:           +1.68 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> 3VSB:          +3.47 V  (min =3D  +0.00 V, max =3D  +0.00 V)  ALARM
->>> Vbat:          +0.00 V  (min =3D  +0.00 V, max =3D  +0.00 V)
->>> fan1:            0 RPM  (min =3D    0 RPM)  ALARM
->>> fan2:         1271 RPM  (min =3D    0 RPM)  ALARM
->>> fan3:          734 RPM  (min =3D    0 RPM)  ALARM
->>> fan4:          673 RPM  (min =3D    0 RPM)  ALARM
->>> fan5:         1093 RPM  (min =3D    0 RPM)  ALARM
->>> SYSTIN:        +36.0=B0C  (high =3D  +0.0=B0C, hyst =3D  +0.0=B0C)  ALA=
-RM
->>> sensor =3D thermistor
->>> CPUTIN:        +26.5=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sen=
-sor =3D
->>> thermistor
->>> AUXTIN:        +33.0=B0C  (high =3D +80.0=B0C, hyst =3D +75.0=B0C)  sen=
-sor =3D
->>> thermistor
->>> PECI Agent 0:  +30.0=B0C
->>> cpu0_vid:     +0.000 V
->>> intrusion0:   ALARM
->>> intrusion1:   ALARM
->>>
->>> Reloading the module helps. Of course, a fresh boot too ;-)
->
-> Reloading the module shouldn't help for limits, they are set by
-> user-space. Reloading the lm_sensors service instead should help.
+The key issue with service reloading is that it will reload (some of)
+the hwmon drivers, which it turn causes hwmon devices to disappear and
+reappear in sysfs. libsensors doesn't notice so it can't tell the
+applications. If we want to be able to handle that kind of cases
+properly we need to let libsensors monitor this and notify the
+applications.
 
-Actually that's what I did. Why the need to reload the service after=20
-suspend? Restarting the service causes some user applications to crash=20
-(yes maybe they should be fixed so that doesn't happen).
+The fact that this isn't supported at the moment certainly speaks in
+favor of adding proper suspend/resume to the affected drivers rather
+than blindly reloading the lm_sensors service after resume.
 
-> Vbat is indeed enabled by the driver at device bind time, as well as a
-> few other things. In your case you report battery monitoring missing,
-> but other settings may be broken, for example temperature monitoring
-> could be stuck or overall monitoring could be disabled. Do all values
-> (other than Vbat) change as before? The exact effects really depend on
-> what the BIOS is doing to the chip at boot time and resume time.
+> > Vbat is indeed enabled by the driver at device bind time, as well as a
+> > few other things. In your case you report battery monitoring missing,
+> > but other settings may be broken, for example temperature monitoring
+> > could be stuck or overall monitoring could be disabled. Do all values
+> > (other than Vbat) change as before? The exact effects really depend on
+> > what the BIOS is doing to the chip at boot time and resume time.
+> 
+> All values except the ones mentioned are being reported correctly after 
+> resuming.
 
-All values except the ones mentioned are being reported correctly after=20
-resuming.
+OK. This might depend on the board though. But we can start with your
+particular case, and improve on top of that.
 
->> The driver doesn't implement suspend/resume support, so it is not very
->> surprising that the limits get lost - and it looks like vbat monitoring
->> is disabled by default, so that gets lost as well.
->>
->> Someone would have to submit a patch to add suspend/resume support to
->> the driver ... any takers out there ?
->
-> I've been pondering this for a long time. Adding support for limit
-> saving and restoring to all hwmon drivers would be a significant amount
-> of code. An easier workaround would be to run "sensors -s" after
-> resume. This is what I had suggested here:
->    https://bugzilla.novell.com/show_bug.cgi?id=3D580988#c3
+> > I've been pondering this for a long time. Adding support for limit
+> > saving and restoring to all hwmon drivers would be a significant amount
+> > of code. An easier workaround would be to run "sensors -s" after
+> > resume. This is what I had suggested here:
+> >    https://bugzilla.novell.com/show_bug.cgi?idX0988#c3
+> 
+> I will try this and see if it helps. However, the min/max values or 
+> alarms are not something I use on my desktop, so I don't care very much 
+> if they don't work. In other environments, they will be much more 
+> important I guess.
 
-I will try this and see if it helps. However, the min/max values or=20
-alarms are not something I use on my desktop, so I don't care very much=20
-if they don't work. In other environments, they will be much more=20
-important I guess.
+Really depends on who is monitoring and for what reasons. Also depends
+if the wrong limits trigger alarms, which in turn may trigger all sort
+of (software or hardware) events.
 
-> However I am not totally happy with this either, because 1* relying on
-> user-space for anything related to hardware monitoring or fan control
-> always makes me feel a little nervous, 2* there is no guarantee that
-> the chip limits at suspend time match the libsensors configuration
-> files and 3* there are a few other settings which aren't covered by the
-> libsensors configuration files.
->
-> For 1* I suppose it can't be worse than the current situation where we
-> don't do anything at all at resume time. For 2* it should be correct in
-> 99% of the cases. 3* is the real problem, for example if the user has a
-> custom script at initialization time to alter fan speeds, etc.
->
-> That being said, I'm not sure how many monitoring chips actually lose
-> their configuration at suspend time. My initial assumption was "most of
-> them" but if that was the case I presume we would have received many
-> more complaints than we did. The other report I had was also about a
-> Winbond Super-I/O chip, and these chips have an area named "Value RAM",
-> as opposed to actual registers. I would bet this is the part which is
-> lost on suspend.
+The workaround won't work completely for you anyway, as running
+"sensors -s" won't get your Vbat reading back. We will have to do it
+explicitly in the driver's resume function.
 
-Maybe people don't notice or care too if _some_ values are missing.=20
-Especially when those values are not vital. CPU temp, fan speeds etc ok,=20
-but how many typical users monitor the VBAT voltage?
+More generally, my first tests suggest that saving and restoring the
+"Value RAM" is neither required (all values read from the sensors are
+useless) nor sufficient (there are other register values which get
+lost.) Some register values are reverted to their default values, which
+suggests these registers are as volatile as the "Value RAM". Other
+values change arbitrarily, suggesting that the BIOS is explicitly
+setting them to different values at resume time.
 
-The VBAT voltage is not shown in BIOS, while other values are. Maybe the=20
-BIOS is at fault here, and the problem needs to be tackled there.
+If we want to be able to deal with all chips and all BIOS bugs, there's
+a lot of work ahead.
 
-> So it could be that only drivers for Winbond/Nuvoton drivers need to be
-> taught how to save and restore values at suspend/resume. Well this is 9
-> drivers still, but this is only a small percentage of the whole driver
-> set. Plus the "Value RAM" is a contiguous area so saving and restoring
-> it should be very easy. I'll give it a try.
+> (...)
+> Maybe people don't notice or care too if _some_ values are missing. 
+> Especially when those values are not vital. CPU temp, fan speeds etc ok, 
+> but how many typical users monitor the VBAT voltage?
 
-Harald
+Actually everyone should, a dead batter can have very bad consequences.
 
---=20
-`Experience is the best teacher.'
+> The VBAT voltage is not shown in BIOS, while other values are. Maybe the 
+> BIOS is at fault here, and the problem needs to be tackled there.
 
+It is very frequent that the BIOS doesn't display the values for all
+available sensors. This is a vendor decision, there's nothing we can or
+should do.
+
+I'm working on my test system now. It has a different chip (W83627THF)
+supported by a different driver (w83627hf) but the logic should be very
+similar. When I'm done with my case, I'll post my results and do the
+same for the w83627ehf driver.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
