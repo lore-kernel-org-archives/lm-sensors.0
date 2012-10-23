@@ -1,171 +1,183 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 01 Oct 2012 19:35:32 +0000
-Subject: Re: [lm-sensors] How to use SC18IS602 driver ?
-Message-Id: <20121001193532.GA2781@roeck-us.net>
+From: Pawel Moll <pawel.moll@arm.com>
+Date: Tue, 23 Oct 2012 17:30:49 +0000
+Subject: [lm-sensors] [RFC] Energy/power monitoring within the kernel
+Message-Id: <1351013449.9070.5.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20120928013559.GA14405@roeck-us.net>
-In-Reply-To: <20120928013559.GA14405@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Amit Daniel Kachhap <amit.kachhap@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Steven Rostedt <rostedt@goodmis.org>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, Jesper Juhl <jj@chaosbits.net>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, Amit Daniel Kachhap <amit.kachhap@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Steven Rostedt <rostedt@goodmis.org>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, Jesper Juhl <jj@chaosbits.net>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lm-sensors@lm-sensors.org, linaro-dev@lists.linaro.org
 
-On Mon, Oct 01, 2012 at 01:41:00PM -0500, Bruce Parker wrote:
->  
-> 
-> > -----Original Message-----
-> > From: Guenter Roeck [mailto:linux@roeck-us.net] 
-> > Sent: Monday, October 01, 2012 12:19 PM
-> > To: Bruce Parker
-> > Cc: lm-sensors@lm-sensors.org
-> > Subject: Re: How to use SC18IS602 driver ?
-> > 
-> > On Mon, Oct 01, 2012 at 09:03:15AM -0500, Bruce Parker wrote:
-> > 
-> > [ ... ]
-> > 
-> > > 
-> > > Ok...got i2cdetect installed and below is result:
-> > > # i2cdetect 0
-> > > WARNING! This program can confuse your I2C bus, cause data loss and
-> > > worse!
-> > > I will probe file /dev/i2c-0.
-> > > I will probe address range 0x03-0x77.
-> > > Continue? [Y/n] y
-> > >      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> > > 00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-> > > 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> > > 20: UU UU UU UU UU UU UU UU UU -- -- -- -- -- -- --
-> > > 30: -- 31 -- -- -- -- -- UU -- -- -- -- -- -- -- --
-> > > 40: -- -- -- -- -- -- -- -- -- -- -- -- UU -- -- --
-> > > 50: UU UU UU UU UU UU UU -- -- -- -- -- -- -- -- --
-> > > 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> > > 70: -- -- -- -- -- -- -- --
-> > > I2C-SPI bridge is at addr 28, so it appears to be detected. 
-> > > 
-> > > Below is my entry in device tree, but I do not see anything 
-> > special in
-> > > /dev/mtd*
-> > >                                 spi: spi@28 {
-> > >                                         compatible = 
-> > "nxp,sc18is602";
-> > >                                         #address-cells = <1>;
-> > >                                         #size-cells = <0>;
-> > >                                         reg = <0x28>;
-> > >                                         m25p80@0 {
-> > >                                                 
-> > #address-cells = <1>;
-> > >                                                 #size-cells = <1>;
-> > >                                                 compatible > > > "fsl,espi-flash";
-> > >                                                 linux,modalias > > > "m25p80";
-> > >                                                 spi-max-frequency > > > <25000000>;
-> > >                                                 modal = "s25sl064a";
-> > >                                                 reg = <0>;
-> > >                                                 mode = <0>;
-> > > 
-> > >                                                 partition@0 {
-> > >                                                     reg = <0x0
-> > > 0x00080000>;
-> > >                                                     label = "Test
-> > > Image";
-> > >                                                     read-only;
-> > >                                                 };
-> > >                                         };
-> > >                                 };
-> > 
-> > I don't know much about devicetree instantiation, but the one 
-> > example I found
-> > for  m25p80 looks a bit different and much simpler.
-> > 
-> > 	flash: m25p80@0 {
-> >         	compatible = "sst,sst25vf016b";
-> > 		spi-max-frequency = <20000000>;
-> > 		reg = <0>;
-> > 	};
-> > 
-> Ok, tried your example in my device tree and it definitely changed
-> something. Unfortunately, the kernel crashed during booting as shown
-> below. But I guess it does imply it was trying to instantiate the
-> device, where previous device tree didn't seem to be doing anything for
-> the SPI. Do you know how I could try to instantiate the device outside
-> of a device tree?
-> 
+Greetings All,
 
-I typically use the new_device ABI I introduced for that purpose:
-	https://patchwork.kernel.org/patch/1426841/
-Unfortunately, it was not accepted upstream, to some degree because no one
-besides me supported it. It does not support creating partitions, but you
-should be able to create a simple device with a single partition.
+More and more of people are getting interested in the subject of power
+(energy) consumption monitoring. We have some external tools like
+"battery simulators", energy probes etc., but some targets can measure
+their power usage on their own.
 
-> Unable to handle kernel paging request for instruction fetch
-> Faulting instruction address: 0x00000000
-> Oops: Kernel access of bad area, sig: 11 [#1]
-> PowerPC 44x Platform
-> Modules linked in:
-> NIP: 00000000 LR: 8022dcb4 CTR: 00000000
-> REGS: 9f8a5ec0 TRAP: 0400   Not tainted  (3.4.0-tanisys-sx2-25227)
-> MSR: 00029000 <CE,EE,ME>  CR: 22000022  XER: 20000000
-> TASK = ef8fd5e0[1039] 'spi0' THREAD: 9f8a4000
-> GPR00: 00000000 9f8a5f70 ef8fd5e0 ef8cf400 ef8fd5e0 ffff5762 ffffffff
-> ffd23940
-> GPR08: 00000001 00000000 ef8cf524 ef8cf524 22002022 10220170 7fff2500
-> 7ffe122c
-> GPR16: 7ffe1250 00000000 7ffed388 034f2c0f 03000040 7ff31f70 80000010
-> 0000000e
-> GPR24: 00000000 7ff31e90 00000e80 80047c38 ef8cf504 00029000 ef8cf504
-> ef8cf400
-> NIP [00000000]   (null)
-> LR [8022dcb4] spi_pump_messages+0x108/0x160
-> Call Trace:
-> [9f8a5f70] [7ff31e90] 0x7ff31e90 (unreliable)
-> [9f8a5f90] [80047ba0] kthread_worker_fn+0x98/0x130
-> [9f8a5fb0] [80047cbc] kthread+0x84/0x88
-> [9f8a5ff0] [8000b390] kernel_thread+0x4c/0x68
-> Instruction dump:
-> XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX
-> XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX
-> ---[ end trace f360c06729bfcc7f ]---
+Traditionally such data should be exposed to the user via hwmon sysfs
+interface, and that's exactly what I did for "my" platform - I have
+a /sys/class/hwmon/hwmon*/device/energy*_input and this was good
+enough to draw pretty graphs in userspace. Everyone was happy...
 
-Odd, that suggests that something was not initialized properly. No idea what is
-going on, though.
+Now I am getting new requests to do more with this data. In particular
+I'm asked how to add such information to ftrace/perf output. The second
+most frequent request is about providing it to a "energy aware"
+cpufreq governor.
 
-Guenter
+I've came up with three (non-mutually exclusive) options. I will
+appreciate any other ideas and comments (including "it makes not sense
+whatsoever" ones, with justification). Of course I am more than willing
+to spend time on prototyping anything that seems reasonable and propose
+patches.
 
-> > > 
-> > > 
-> > > # ls /dev/mtd*
-> > > /dev/mtd0        /dev/mtd6        /dev/mtdblock2   /dev/mtdr12
-> > > /dev/mtd1        /dev/mtd7        /dev/mtdblock3   /dev/mtdr13
-> > > /dev/mtd10       /dev/mtd8        /dev/mtdblock4   /dev/mtdr14
-> > > /dev/mtd11       /dev/mtd9        /dev/mtdblock5   /dev/mtdr15
-> > > /dev/mtd12       /dev/mtdblock0   /dev/mtdblock6   /dev/mtdr2
-> > > /dev/mtd13       /dev/mtdblock1   /dev/mtdblock7   /dev/mtdr3
-> > > /dev/mtd14       /dev/mtdblock10  /dev/mtdblock8   /dev/mtdr4
-> > > /dev/mtd15       /dev/mtdblock11  /dev/mtdblock9   /dev/mtdr5
-> > > /dev/mtd2        /dev/mtdblock12  /dev/mtdr0       /dev/mtdr6
-> > > /dev/mtd3        /dev/mtdblock13  /dev/mtdr1       /dev/mtdr7
-> > > /dev/mtd4        /dev/mtdblock14  /dev/mtdr10      /dev/mtdr8
-> > > /dev/mtd5        /dev/mtdblock15  /dev/mtdr11      /dev/mtdr9
-> > > 
-> > Since you do see a whole lot of mtd devices, did you try to 
-> > access any of those ?
-> > 
-> > Also, what is the output of /proc/mtd ? That should give you 
-> > a mapping from
-> > the partition label to the actual mtd device if the partition 
-> > was created.
-> > 
-> > Thanks,
-> > Guenter
-> > 
-> Forgot to include this before but /proc/mtd shows nothing even though
-> all those files are there.
-> # cat /proc/mtd
-> dev:    size   erasesize  name
-> #
-> 
-> Bruce...
-> 
+
+
+== Option 1: Trace event =
+This seems to be the "cheapest" option. Simply defining a trace event
+that can be generated by a hwmon (or any other) driver makes the
+interesting data immediately available to any ftrace/perf user. Of
+course it doesn't really help with the cpufreq case, but seems to be
+a good place to start with.
+
+The question is how to define it... I've came up with two prototypes:
+
+= Generic hwmon trace event 
+This one allows any driver to generate a trace event whenever any
+"hwmon attribute" (measured value) gets updated. The rate at which the
+updates happen can be controlled by already existing "update_interval"
+attribute.
+
+8<-------------------------------------------
+TRACE_EVENT(hwmon_attr_update,
+	TP_PROTO(struct device *dev, struct attribute *attr, long long input),
+	TP_ARGS(dev, attr, input),
+
+	TP_STRUCT__entry(
+		__string(       dev,		dev_name(dev))
+		__string(	attr,		attr->name)
+		__field(	long long,	input)
+	),
+
+	TP_fast_assign(
+		__assign_str(dev, dev_name(dev));
+		__assign_str(attr, attr->name);
+		__entry->input = input;
+	),
+
+	TP_printk("%s %s %lld", __get_str(dev), __get_str(attr), __entry->input)
+);
+8<-------------------------------------------
+
+It generates such ftrace message:
+
+<...>212.673126: hwmon_attr_update: hwmon4 temp1_input 34361
+
+One issue with this is that some external knowledge is required to
+relate a number to a processor core. Or maybe it's not an issue at all
+because it should be left for the user(space)?
+
+= CPU power/energy/temperature trace event 
+This one is designed to emphasize the relation between the measured
+value (whether it is energy, temperature or any other physical
+phenomena, really) and CPUs, so it is quite specific (too specific?)
+
+8<-------------------------------------------
+TRACE_EVENT(cpus_environment,
+	TP_PROTO(const struct cpumask *cpus, long long value, char unit),
+	TP_ARGS(cpus, value, unit),
+
+	TP_STRUCT__entry(
+		__array(	unsigned char,	cpus,	sizeof(struct cpumask))
+		__field(	long long,	value)
+		__field(	char,		unit)
+	),
+
+	TP_fast_assign(
+		memcpy(__entry->cpus, cpus, sizeof(struct cpumask));
+		__entry->value = value;
+		__entry->unit = unit;
+	),
+
+	TP_printk("cpus %s %lld[%c]",
+		__print_cpumask((struct cpumask *)__entry->cpus),
+		__entry->value, __entry->unit)
+);
+8<-------------------------------------------
+
+And the equivalent ftrace message is:
+
+<...>127.063107: cpus_environment: cpus 0,1,2,3 34361[C]
+
+It's a cpumask, not just single cpu id, because the sensor may measure
+the value per set of CPUs, eg. a temperature of the whole silicon die
+(so all the cores) or an energy consumed by a subset of cores (this
+is my particular use case - two meters monitor a cluster of two
+processors and a cluster of three processors, all working as a SMP
+system).
+
+Of course the cpus __array could be actually a special __cpumask field
+type (I've just hacked the __print_cpumask so far). And I've just
+realised that the unit field should actually be a string to allow unit
+prefixes to be specified (the above should obviously be "34361[mC]"
+not "[C]"). Also - excuse the "cpus_environment" name - this was the
+best I was able to come up with at the time and I'm eager to accept
+any alternative suggestions :-)
+
+
+
+== Option 2: hwmon perf PMU =
+Although the trace event makes it possible to obtain interesting
+information using perf, the user wouldn't be able to treat the
+energy meter as a normal data source. In particular there would
+be no way of creating a group of events consisting eg. of a
+"normal" leader (eg. cache miss event) triggering energy meter
+read. The only way to get this done is to implement a perf PMU
+backend providing "environmental data" to the user.
+
+= High-level hwmon API and PMU 
+Current hwmon subsystem does not provide any abstraction for the
+measured values and requires particular drivers to create specified
+sysfs attributes than used by userspace libsensors. This makes
+the framework ultimately flexible and ultimately hard to access
+from within the kernel...
+
+What could be done here is some (simple) API to register the
+measured values with the hwmon core which would result in creating
+equivalent sysfs attributes automagically, but also allow a
+in-kernel API for values enumeration and access. That way the core
+could also register a "hwmon PMU" with the perf framework providing
+data from all "compliant" drivers.
+
+= A driver-specific PMU 
+Of course a particular driver could register its own perf PMU on its
+own. It's certainly an option, just very suboptimal in my opinion.
+Or maybe not? Maybe the task is so specialized that it makes sense?
+
+
+
+== Option 3: CPU power(energy) monitoring framework =
+And last but not least, maybe the problem deserves some dedicated
+API? Something that would take providers and feed their data into
+interested parties, in particular a perf PMU implementation and
+cpufreq governors?
+
+Maybe it could be an extension to the thermal framework? It already
+gives some meaning to a physical phenomena. Adding other, related ones
+like energy, and relating it to cpu cores could make some sense.
+
+
+
+I've tried to gather all potentially interested audience in the To:
+list, but if I missed anyone - please, do let them (and/or me) know.
+
+Best regards and thanks for participation in the discussion!
+
+Pawel
+
+
+
 
 _______________________________________________
 lm-sensors mailing list
