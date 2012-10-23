@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 23 Oct 2012 15:09:46 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 23 Oct 2012 20:16:42 +0000
 Subject: Re: [lm-sensors] [PATCH v2 0/8] hwmon: it87 patch series
-Message-Id: <20121023170946.2aeb0b14@endymion.delvare>
+Message-Id: <20121023201642.GA22003@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1350841995-5748-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1350841995-5748-1-git-send-email-linux@roeck-us.net>
@@ -10,18 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 21 Oct 2012 10:53:07 -0700, Guenter Roeck wrote:
-> This series started with the idea of adding temperature offset registers.
-> It ended with fixing all checkpatch warnings and errors, and reducing
-> object file size by more than 2k on x86_64.
+On Tue, Oct 23, 2012 at 05:09:46PM +0200, Jean Delvare wrote:
+> On Sun, 21 Oct 2012 10:53:07 -0700, Guenter Roeck wrote:
+> > This series started with the idea of adding temperature offset registers.
+> > It ended with fixing all checkpatch warnings and errors, and reducing
+> > object file size by more than 2k on x86_64.
+> > 
+> > v2: Added one more patch to the series, and don't introduce has_16bit_fans
+> >     flag (which was dropped in the latest patch anyway).
 > 
-> v2: Added one more patch to the series, and don't introduce has_16bit_fans
->     flag (which was dropped in the latest patch anyway).
+> Do you have the hardware to test the it87 driver? I no longer do :(
+> 
+Unfortunately not. Maybe I should get one ...
 
-Do you have the hardware to test the it87 driver? I no longer do :(
-
--- 
-Jean Delvare
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
