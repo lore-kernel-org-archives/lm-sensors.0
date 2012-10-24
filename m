@@ -1,43 +1,39 @@
 From: Pawel Moll <pawel.moll@arm.com>
-Date: Wed, 24 Oct 2012 16:00:32 +0000
+Date: Wed, 24 Oct 2012 16:05:11 +0000
 Subject: Re: [lm-sensors] [RFC] Energy/power monitoring within the kernel
-Message-Id: <1351094432.23327.42.camel@hornet>
+Message-Id: <1351094711.23327.47.camel@hornet>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351013449.9070.5.camel@hornet>
-	 <1351014187.8467.24.camel@gandalf.local.home>
-In-Reply-To: <1351014187.8467.24.camel@gandalf.local.home>
+References: <1351013449.9070.5.camel@hornet> <5086E6D6.8000208@linaro.org>
+In-Reply-To: <5086E6D6.8000208@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, Jesper Juhl <jj@chaosbits.net>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
+To: Andy Green <andy.green@linaro.org>
+Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>, Zhang Rui <rui.zhang@intel.com>, Viresh Kumar <viresh.kumar@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Steven Rostedt <rostedt@goodmis.org>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@elte.hu>, Jesper Juhl <jj@chaosbits.net>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>
 
-T24gVHVlLCAyMDEyLTEwLTIzIGF0IDE4OjQzICswMTAwLCBTdGV2ZW4gUm9zdGVkdCB3cm90ZToK
-PiA+IDwuLi4+MjEyLjY3MzEyNjogaHdtb25fYXR0cl91cGRhdGU6IGh3bW9uNCB0ZW1wMV9pbnB1
-dCAzNDM2MQo+ID4gCj4gPiBPbmUgaXNzdWUgd2l0aCB0aGlzIGlzIHRoYXQgc29tZSBleHRlcm5h
-bCBrbm93bGVkZ2UgaXMgcmVxdWlyZWQgdG8KPiA+IHJlbGF0ZSBhIG51bWJlciB0byBhIHByb2Nl
-c3NvciBjb3JlLiBPciBtYXliZSBpdCdzIG5vdCBhbiBpc3N1ZSBhdCBhbGwKPiA+IGJlY2F1c2Ug
-aXQgc2hvdWxkIGJlIGxlZnQgZm9yIHRoZSB1c2VyKHNwYWNlKT8KPiAKPiBJZiB0aGUgZXh0ZXJu
-YWwga25vd2xlZGdlIGNhbiBiZSBjaGFyYWN0ZXJpemVkIGluIGEgdXNlcnNwYWNlIHRvb2wgd2l0
-aAo+IHRoZSBnaXZlbiBkYXRhIGhlcmUsIEkgc2VlIG5vIGlzc3VlcyB3aXRoIHRoaXMuCgpPaywg
-ZmluZS4KCj4gPiAJVFBfZmFzdF9hc3NpZ24oCj4gPiAJCW1lbWNweShfX2VudHJ5LT5jcHVzLCBj
-cHVzLCBzaXplb2Yoc3RydWN0IGNwdW1hc2spKTsKPiAKPiBDb3B5aW5nIHRoZSBlbnRpcmUgY3B1
-bWFzayBzZWVtcyBsaWtlIG92ZXJraWxsLiBFc3BlY2lhbGx5IHdoZW4geW91IGhhdmUKPiA0MDk2
-IENQVSBtYWNoaW5lcy4KClVoLCByaWdodC4gSSBkaWRuJ3QgY29uc2lkZXIgc3VjaCB1c2UgY2Fz
-ZS4uLgoKPiBQZXJoYXBzIG1ha2luZyBhIGZpZWxkIHRoYXQgY2FuIGJlIGEgc3Vic2V0IG9mIGNw
-dXMgbWF5IGJlIGJldHRlci4gVGhhdAo+IHdheSB3ZSBkb24ndCB3YXN0ZSB0aGUgcmluZyBidWZm
-ZXIgd2l0aCBsb3RzIG9mIHplcm9zLiBJJ20gZ3Vlc3NpbmcgdGhhdAo+IGl0IHdpbGwgb25seSBi
-ZSBhIGdyb3VwIG9mIGNwdXMsIGFuZCBub3QgYSBzY2F0dGVyZWQgbGlzdD8gT2YgY291cnNlLAo+
-IEkndmUgc2VlbiBib3hlcyB3aGVyZSB0aGUgY3B1IG51bWJlcnMgd2VudCBmcm9tIGNvcmUgdG8g
-Y29yZS4gVGhhdCBpcywKPiBjcHUgMCB3YXMgb24gY29yZSAxLCBjcHUgMSB3YXMgb24gY29yZSAy
-LCBhbmQgdGhlbiBpdCB3b3VsZCByZXBlYXQuIAo+IGNwdSA4IHdhcyBvbiBjb3JlIDEsIGNwdSA5
-IHdhcyBvbiBjb3JlIDIsIGV0Yy4KPiAKPiBCdXQgc3RpbGwsIHRoaXMgY291bGQgYmUgY29tcHJl
-c3NlZCBzb21laG93LgoKU3VyZSB0aGluZy4gT3IgSSBjb3VsZCBzaW1wbHkgdXNlIGNwdW1hc2tf
-c2NucHJpbnRmKCkgb24gdGhlIGFzc2lnbgpzdGFnZSBhbmQga2VlcCBhbiBhbHJlYWR5LWZvcm1h
-dHRlZCBzdHJpbmcuIE9yLCBhcyB0aGUgY3B1bWFzayBwZXIKc2Vuc29yIHdvdWxkIGJlIGRlLWZh
-Y3RvIGNvbnN0YW50LCBJIGNvdWxkIGFzc3VtZSBrZWVwIG9ubHkgYSBwb2ludGVyIHRvCml0LiBX
-aWxsIGtlZXAgaXQgaW4gbWluZCBpZiB0aGlzIGV2ZW50IHdhcyBzdXBwb3NlZCB0byBoYXBwZW4u
-CgpUaGFua3MhCgpQYXdlxYIKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29y
-cy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vu
-c29ycw=
+T24gVHVlLCAyMDEyLTEwLTIzIGF0IDE5OjQ5ICswMTAwLCBBbmR5IEdyZWVuIHdyb3RlOgo+IEEg
+dGhvdWdodCBvbiB0aGF0Li4uIGZyb20gYW4gU29DIHBlcnNwZWN0aXZlIHRoZXJlIGFyZSBvdGhl
+ciBpbnRlcmVzdGluZyAKPiBwb3dlciByYWlscyB0aGFuIGdvIHRvIGp1c3QgdGhlIENQVSBjb3Jl
+LiAgRm9yIGV4YW1wbGUgRERSIHBvd2VyIGFuZCAKPiByYWlscyBpbnZvbHZlZCB3aXRoIG90aGVy
+IElQIHVuaXRzIG9uIHRoZSBTb0Mgc3VjaCBhcyAzRCBncmFwaGljcyB1bml0LiAKPiAgIFNvIHR5
+aW5nIG9uZSBudW1iZXIgdG8gc3BlY2lmaWNhbGx5IGEgQ1BVIGNvcmUgZG9lcyBub3Qgc291bmQg
+bGlrZSAKPiBpdCdzIGVub3VnaC4KCkkgZG8gcmVhbGl6ZSB0aGlzLiBJIGp1c3QgZGlkbid0IHdh
+bnQgdG8gdHJ5IHRvIGNvdmVyIHRvbyBtdWNoIGdyb3VuZCwKYW5kIGNwdWZyZXEgZ292ZXJub3Ig
+d291bGQgYmUgaW50ZXJlc3RlZCBpbiBjcHUtcmVsYXRlZCBkYXRhIGFueXdheS4uLgoKPiBJZiB5
+b3UgdHVybiB0aGUgcHJvYmxlbSB1cHNpZGUgZG93biB0byBzb2x2ZSB0aGUgcmVwcmVzZW50YXRp
+b24gcXVlc3Rpb24gCj4gZmlyc3QsIG1heWJlIHRoZXJlJ3MgYSB3YXkgZm9yd2FyZCBkZWZpbmlu
+ZyB0aGUgInBvd2VyIHRyZWUiIGluIHRlcm1zIG9mIAo+IHJlZ3VsYXRvcnMsIGFuZCB0aGVuIGFk
+ZGluZyBzb21ldGhpbmcgaW4gc3RydWN0IHJlZ3VsYXRvciB0aGF0IHNwYW1zIAo+IHJlYWRlcnMg
+d2l0aCB0aW1lc3RhbXBlZCByZXN1bHRzIGlmIHRoZSByZWd1bGF0b3IgaGFzIGEgcG93ZXIgbW9u
+aXRvcmluZyAKPiBjYXBhYmlsaXR5Lgo+IAo+IFRoZW4geW91IGNhbiBtYXAgdGhlIHJlZ3VsYXRv
+cnMgaW4gdGhlIHBvd2VyIHRyZWUgdG8gcmVhbCBkZXZpY2VzIGJ5IHRoZSAKPiBuYW1lcyBvciB0
+aGUgc3VwcGx5IHN0dWZmLiAgSnVzdCBhIHRob3VnaHQuCgpIbS4gSW50ZXJlc3RpbmcgaWRlYSBp
+bmRlZWQgLSBpZiBhIHJlZ3VsYXRvciBkZXZpY2Ugd2FzIGFibGUgdG8gcmVwb3J0CnRoZSBlbmVy
+Z3kgYmVpbmcgcHJvZHVjZWQgYnkgaXQgKGluc3RlYWQgb2YgbG9va2luZyBhdCBjdW11bGF0aXZl
+IGVuZXJneQpjb25zdW1lZCBieSBtb3JlIHRoYW4gb25lIGRldmljZSksIGRlZmluaW5nICJwb3dl
+ciBkb21haW5zIiAoYnkgYWRkaW5nCnNlbGVjdGVkIGNwdXMgYXMgY29uc3VtZXJzKSB3b3VsZCBi
+ZSBzdHJhaWdodCBmb3J3YXJkIGFuZCB0aGUgY3B1ZnJlcQpjb3VsZCByZXF1ZXN0IHRoZSBpbmZv
+cm1hdGlvbiB0aGF0IHdheS4KCkknbGwgbG9vayBpbnRvIGl0LCB0aGFua3MhCgpQYXdlxYIKCgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29y
+cyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0t
+c2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
