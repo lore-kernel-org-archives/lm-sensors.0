@@ -1,7 +1,7 @@
 From: Thomas Renninger <trenn@suse.de>
-Date: Wed, 24 Oct 2012 00:40:49 +0000
+Date: Wed, 24 Oct 2012 00:41:09 +0000
 Subject: Re: [lm-sensors] [RFC] Energy/power monitoring within the kernel
-Message-Id: <4317776.evLpJapyim@hammer82.arch.suse.de>
+Message-Id: <2863728.eWy5qxh2lp@hammer82.arch.suse.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1351013449.9070.5.camel@hornet>
 In-Reply-To: <1351013449.9070.5.camel@hornet>
