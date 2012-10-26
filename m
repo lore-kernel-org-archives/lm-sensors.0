@@ -1,27 +1,38 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 29 Oct 2012 12:26:03 +0000
-Subject: Re: [lm-sensors] [PATCH 7/9] hwmon: (it87) Replace pwm group macro with direct attribute definitions
-Message-Id: <20121029132603.625c2a73@endymion.delvare>
+Date: Fri, 26 Oct 2012 07:58:59 +0000
+Subject: [lm-sensors] [PATCH] hwmon (w83627hf) Don't touch nonexistent I2C address registers
+Message-Id: <20121026095859.1725b2a8@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351448401-13985-8-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1351448401-13985-8-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Sun, 28 Oct 2012 11:19:59 -0700, Guenter Roeck wrote:
-> Fix checkpatch error:
-> 
-> ERROR: Macros with multiple statements should be enclosed in a do - while loop
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
->  drivers/hwmon/it87.c |  115 ++++++++++++++++++++++++++++++++------------------
->  1 file changed, 74 insertions(+), 41 deletions(-)
-> (...)
+Only the W83627HF could be accessed through I2C. All other supported
+chips are LPC-only, so they do not have I2C address registers. Don't
+write to nonexistent or reserved registers on these chips.
 
-Looks good.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/w83627hf.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+--- linux-3.7-rc2.orig/drivers/hwmon/w83627hf.c	2012-10-26 09:38:18.000000000 +0200
++++ linux-3.7-rc2/drivers/hwmon/w83627hf.c	2012-10-26 09:50:44.935025004 +0200
+@@ -1732,8 +1732,10 @@ static void __devinit w83627hf_init_devi
+ 	/* Minimize conflicts with other winbond i2c-only clients...  */
+ 	/* disable i2c subclients... how to disable main i2c client?? */
+ 	/* force i2c address to relatively uncommon address */
+-	w83627hf_write_value(data, W83781D_REG_I2C_SUBADDR, 0x89);
+-	w83627hf_write_value(data, W83781D_REG_I2C_ADDR, force_i2c);
++	if (type = w83627hf) {
++		w83627hf_write_value(data, W83781D_REG_I2C_SUBADDR, 0x89);
++		w83627hf_write_value(data, W83781D_REG_I2C_ADDR, force_i2c);
++	}
+ 
+ 	/* Read VID only once */
+ 	if (type = w83627hf || type = w83637hf) {
+
 
 -- 
 Jean Delvare
