@@ -1,30 +1,35 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 29 Oct 2012 15:27:48 +0000
-Subject: Re: [lm-sensors] [PATCH v2 5/9] hwmon: (it87) Save fan registers in 2-dimensional array
-Message-Id: <20121029162748.1e282a77@endymion.delvare>
+Date: Fri, 26 Oct 2012 07:37:38 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (w83627ehf) Force initial bank selection
+Message-Id: <20121026093738.2fd9131d@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351448401-13985-6-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1351448401-13985-6-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, 29 Oct 2012 06:49:09 -0700, Guenter Roeck wrote:
-> On Mon, Oct 29, 2012 at 11:27:01AM +0100, Jean Delvare wrote:
-> > has_16bit_fans() is slow so I don't like it being called at run-time.
-> > That's why we had different sets of sysfs callback functions
-> > originally. The change above is only acceptable because I see you'll
-> > fix the performance regression in patch 8/9. Ideally you should have
-> > ordered them in the other direction, but don't bother swapping them if
-> > it means more work for you.
->
-> I had originally introduced a flag named "has_16bit_fans" for that very purpose
-> (see v2 comments above), and removed it since its only practical impact was to
-> increase the size of patch 8. Easy to revert to v1 of the patch if you prefer.
+Don't assume bank 0 is selected at device probe time. This may not be
+the case. Force bank selection at first register access to guarantee
+that we read the right registers upon driver loading.
 
-No, v2 is better than v1 as long as patch 8 is going to be applied (and
-it is.)
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: stable@vger.kernel.org
+---
+ drivers/hwmon/w83627ehf.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- linux-3.7-rc2.orig/drivers/hwmon/w83627ehf.c	2012-10-26 09:28:16.000000000 +0200
++++ linux-3.7-rc2/drivers/hwmon/w83627ehf.c	2012-10-26 09:34:04.028295469 +0200
+@@ -2083,6 +2083,7 @@ static int __devinit w83627ehf_probe(str
+ 	mutex_init(&data->lock);
+ 	mutex_init(&data->update_lock);
+ 	data->name = w83627ehf_device_names[sio_data->kind];
++	data->bank = 0xff;		/* Force initial bank selection */
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	/* 627EHG and 627EHF have 10 voltage inputs; 627DHG and 667HG have 9 */
+
 
 -- 
 Jean Delvare
