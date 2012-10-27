@@ -1,14 +1,14 @@
 From: Greg Mansfield <greg@GregMansfield.com>
-Date: Sat, 27 Oct 2012 16:49:29 +0000
-Subject: [lm-sensors] Giga-Byte Technology GA-990FXA-UD3 motherboard sensors configuration file
-Message-Id: <508C1099.4050101@GregMansfield.com>
+Date: Sat, 27 Oct 2012 16:44:37 +0000
+Subject: [lm-sensors] Giga-Byte Technology GA-MA990FXA-UD3 motherboard sensors configuration file
+Message-Id: <508C0F75.8060607@GregMansfield.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-# libsensors configuration file for Gigabyte GA-990FXA-UD3 motherboard
+# libsensors configuration file for Gigabyte GA-MA990FXA-UD3 motherboard
 
 # Began with configuration file for Gigabyte GA-MA770-DS3 motherboard
 
