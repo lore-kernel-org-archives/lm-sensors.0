@@ -1,97 +1,102 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 19 Oct 2012 18:40:35 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.7-rc2
-Message-Id: <20121019184035.GA7287@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============1793428215730416239=="
+From: Greg Mansfield <greg@GregMansfield.com>
+Date: Sat, 27 Oct 2012 16:49:29 +0000
+Subject: [lm-sensors] Giga-Byte Technology GA-990FXA-UD3 motherboard sensors configuration file
+Message-Id: <508C1099.4050101@GregMansfield.com>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============1793428215730416239==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HlL+5n6rz5pIUxbD"
-Content-Disposition: inline
-
-
---HlL+5n6rz5pIUxbD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.7-rc2 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit ddffeb8c4d0331609ef2581d84de4d763607bd37:
-
-  Linux 3.7-rc1 (2012-10-14 14:41:04 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 1102dcab849313bd5a340b299b5cf61b518fbc0f:
-
-  hwmon: (coretemp) Add support for Atom CE4110/4150/4170 (2012-10-14 15:21:33 -0700)
-
-----------------------------------------------------------------
-Drop some leftover dependencies on CONFIG_EXPERIMENTAL,
-and add support for Intel Atom CE4110/4150/4170.
-
-----------------------------------------------------------------
-Guenter Roeck (1):
-      hwmon: (coretemp) Add support for Atom CE4110/4150/4170
-
-Kees Cook (2):
-      hwmon: (pmbus) remove CONFIG_EXPERIMENTAL
-      Documentation/hwmon: remove CONFIG_EXPERIMENTAL
-
- Documentation/hwmon/coretemp           |    1 +
- Documentation/hwmon/submitting-patches |    3 +--
- drivers/hwmon/coretemp.c               |    7 +++++--
- drivers/hwmon/pmbus/Kconfig            |    2 +-
- 4 files changed, 8 insertions(+), 5 deletions(-)
-
---HlL+5n6rz5pIUxbD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQgZ6iAAoJEMsfJm/On5mBtVYP/RJPyk5d/3ApIM8iCun2ZHBY
-rKe0CefH7Uj/tJa3t9mwISzGmD1nPs/WrO0pqpku1FBSWF/8RScpUtd9UwJRZJ52
-+hGpo6F29/uc/iLyup79UzCWTPi0CgrE+gFo010nQmZvJ67W7KgFWS/7Kehq612W
-tJJkNQDqJ8da7xW9lhv1N45KTlhZw/rRKGlqWJ98BvTLe1ORSlPQn1Tr8NEglp9M
-HDlW4RRyDAnduhIG/O3hzuQILm18zk+fdWvyJp63AuWfChS77yVT/Cp4bOoJHXhC
-mB2yV/HThp6wRvibKoZTtprmW9KHVd3Fr5m3N2maHI8K241/W0bQdtOXv3oboCPw
-wpHXuWMGfQN33gQ/RyTzn1MDuBjmdk7ZgyDIBTsgrvJHROfSS7NwvYSLnZKT7e6U
-I4Pfl+5KFQeR81UE4mNrvclEy2jdny4zrpwPFG9xjzo0i7mLoUu4bKGp6MIhV5V6
-60/RBz32xGRfYzeLRMHFNQBQtAoMI0Vl1GTiWPNC4dAAipB9SYHahaXEVoHrUJ8M
-um9xiy7D2q3jUCHNzo7NekQ6/n4vsJn2EEI+FE8P55JTvYYL5IcFXk51TvCQPboJ
-woHUbmRT08GYZ29f4c8QFoNj6SUi3juTO3ZrIPrSZo6ceMyVn6hy7Ap3MCmyc57m
-rVZFtLBR+g1dc3vIQ3H3
-=J6xN
------END PGP SIGNATURE-----
-
---HlL+5n6rz5pIUxbD--
-
-
---===============1793428215730416239==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+# libsensors configuration file for Gigabyte GA-990FXA-UD3 motherboard
+
+# Began with configuration file for Gigabyte GA-MA770-DS3 motherboard
+
+chip "it8720-*"
+
+     # lmsensors' values were compared with values from online images
+     # of Everest or EasyTune 6 displays
+     # Labels are copied from BIOS setup screens when value shown
+
+     # Voltages
+
+     label   in0 "Vcore"
+         # 1.312
+         # BIOS: 1.312
+     set     in0_min 0.85
+     set     in0_max 1.40
+
+     label   in1 "DDR3 V"
+         # 1.472
+         # BIOS: 1.472
+                 # No scaling so no compute
+     set     in1_min 1.5 * 0.95 # 95% of nominal
+     set     in1_max 1.5 * 1.10 # 110% of nominal
+
+     label   in2 "+3.3V"
+         # 3.264
+         # BIOS: 3.280
+     set     in2_min 3.3 * 0.95 # 95% of nominal
+     set     in2_max 3.3 * 1.05 # 105% of nominal
+
+     label   in3 "Vcc"
+         # 2.944
+         # Assume standard Winbond scaling resistors 6.8 - 10 (1.68)
+     compute in3 @ * ((6.8/10)+1), @ / ((6.8/10)+1)
+     set     in3_min 5 * 0.95 # 95% of nominal
+     set     in3_max 5 * 1.05 # 105% of nominal
+
+     label   in4 "+12V"
+         # 3.072
+         # BIOS: 12.239
+     compute in4 @ * 4, @ / 4
+     set     in4_min 12 * 0.95 # 95% of nominal
+     set     in4_max 12 * 1.05 # 105% of nominal
+
+     label   in5 "-12V"
+         # 3.088
+     compute in5 @ * -4, @ / -4
+     set     in5_min -12 * 0.95 # 95% of nominal
+     set     in5_max -12 * 1.05 # 105% of nominal
+
+     ignore in6
+         # 4.080
+
+     label in7 "VCCH"
+         # 2.96
+     compute in7 @ *1.68, @/1.68
+     set     in7_min 5 * 0.95 # 95% of nominal
+     set     in7_max 5 * 1.05 # 105% of nominal
+
+     label   in8 "Vbat"
+         # 3.088
+         # Internal connection
+
+
+     # Temperatures
+
+     label   temp1  "System"
+     set     temp1_min 20
+     set     temp1_max 60
+
+     label   temp2  "CPU"
+     set     temp2_min 20
+     set     temp2_max 60
+
+     label   temp3 "Northbridge"
+     set     temp3_min 20
+     set     temp3_max 90
+
+     # Fans
+     # The labels chosen are the ones printed on the motherboard
+
+     label   fan1 "CPU_FAN"
+     set     fan1_min 0 # fancontrol may stop fan
+     label   fan2 "SYS_FAN1"
+     label   fan3 "SYS_FAN2"
+     label   fan4 #PWR_FAN"
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============1793428215730416239==--
