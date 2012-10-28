@@ -1,165 +1,106 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 26 Oct 2012 13:57:28 +0000
-Subject: Re: [lm-sensors] [PATCH v2] hwmon: (w83627ehf) Add support for suspend
-Message-Id: <20121026135728.GC29852@roeck-us.net>
+Date: Sun, 28 Oct 2012 18:20:01 +0000
+Subject: [lm-sensors] [PATCH 9/9] hwmon: (it87) Report thermal sensor type as Intel PECI if appropriate
+Message-Id: <1351448401-13985-10-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121026094623.329f0764@endymion.delvare>
-In-Reply-To: <20121026094623.329f0764@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Oct 26, 2012 at 09:46:23AM +0200, Jean Delvare wrote:
-> On suspend some register values are lost, most notably the Value RAM
-> areas but also other limits and settings. Restore them on resume.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+IT8721 and IT8728 support Intel PECI temperature reporting. Each sensor
+can be programmed to display the temperature reported on the PECI interface.
 
-Reviewed-and-Tested-by: Guenter Roeck <linux@roeck-us.net>
+If configured for Intel PECI, the driver reported the respective thermal sensor
+as "disabled (0)". Fix the code to correctly report it as "Intel PECI (6)".
 
-> ---
-> Changes since v1:
->  * Force initial bank selection at resume. Thanks Guenter :)
-> 
-> I also updated the driver at:
->   http://khali.linux-fr.org/devel/misc/w83627ehf/
-> 
->  drivers/hwmon/w83627ehf.c |   95 ++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 94 insertions(+), 1 deletion(-)
-> 
-> --- linux-3.7-rc2.orig/drivers/hwmon/w83627ehf.c	2012-10-26 09:34:04.028295469 +0200
-> +++ linux-3.7-rc2/drivers/hwmon/w83627ehf.c	2012-10-26 09:40:28.102773093 +0200
-> @@ -1,7 +1,7 @@
->  /*
->   *  w83627ehf - Driver for the hardware monitoring functionality of
->   *		the Winbond W83627EHF Super-I/O chip
-> - *  Copyright (C) 2005-2011  Jean Delvare <khali@linux-fr.org>
-> + *  Copyright (C) 2005-2012  Jean Delvare <khali@linux-fr.org>
->   *  Copyright (C) 2006  Yuan Mu (Winbond),
->   *			Rudolf Marek <r.marek@assembler.cz>
->   *			David Hubbard <david.c.hubbard@gmail.com>
-> @@ -502,6 +502,13 @@ struct w83627ehf_data {
->  	u16 have_temp_offset;
->  	u8 in6_skip:1;
->  	u8 temp3_val_only:1;
-> +
-> +#ifdef CONFIG_PM
-> +	/* Remember extra register values over suspend/resume */
-> +	u8 vbat;
-> +	u8 fandiv1;
-> +	u8 fandiv2;
-> +#endif
->  };
->  
->  struct w83627ehf_sio_data {
-> @@ -2608,10 +2615,96 @@ static int __devexit w83627ehf_remove(st
->  	return 0;
->  }
->  
-> +#ifdef CONFIG_PM
-> +static int w83627ehf_suspend(struct device *dev)
-> +{
-> +	struct w83627ehf_data *data = w83627ehf_update_device(dev);
-> +	struct w83627ehf_sio_data *sio_data = dev->platform_data;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	data->vbat = w83627ehf_read_value(data, W83627EHF_REG_VBAT);
-> +	if (sio_data->kind = nct6775) {
-> +		data->fandiv1 = w83627ehf_read_value(data, NCT6775_REG_FANDIV1);
-> +		data->fandiv2 = w83627ehf_read_value(data, NCT6775_REG_FANDIV2);
-> +	}
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static int w83627ehf_resume(struct device *dev)
-> +{
-> +	struct w83627ehf_data *data = dev_get_drvdata(dev);
-> +	struct w83627ehf_sio_data *sio_data = dev->platform_data;
-> +	int i;
-> +
-> +	mutex_lock(&data->update_lock);
-> +	data->bank = 0xff;		/* Force initial bank selection */
-> +
-> +	/* Restore limits */
-> +	for (i = 0; i < data->in_num; i++) {
-> +		if ((i = 6) && data->in6_skip)
-> +			continue;
-> +
-> +		w83627ehf_write_value(data, W83627EHF_REG_IN_MIN(i),
-> +				      data->in_min[i]);
-> +		w83627ehf_write_value(data, W83627EHF_REG_IN_MAX(i),
-> +				      data->in_max[i]);
-> +	}
-> +
-> +	for (i = 0; i < 5; i++) {
-> +		if (!(data->has_fan_min & (1 << i)))
-> +			continue;
-> +
-> +		w83627ehf_write_value(data, data->REG_FAN_MIN[i],
-> +				      data->fan_min[i]);
-> +	}
-> +
-> +	for (i = 0; i < NUM_REG_TEMP; i++) {
-> +		if (!(data->have_temp & (1 << i)))
-> +			continue;
-> +
-> +		if (data->reg_temp_over[i])
-> +			w83627ehf_write_temp(data, data->reg_temp_over[i],
-> +					     data->temp_max[i]);
-> +		if (data->reg_temp_hyst[i])
-> +			w83627ehf_write_temp(data, data->reg_temp_hyst[i],
-> +					     data->temp_max_hyst[i]);
-> +		if (data->have_temp_offset & (1 << i))
-> +			w83627ehf_write_value(data,
-> +					      W83627EHF_REG_TEMP_OFFSET[i],
-> +					      data->temp_offset[i]);
-> +	}
-> +
-> +	/* Restore other settings */
-> +	w83627ehf_write_value(data, W83627EHF_REG_VBAT, data->vbat);
-> +	if (sio_data->kind = nct6775) {
-> +		w83627ehf_write_value(data, NCT6775_REG_FANDIV1, data->fandiv1);
-> +		w83627ehf_write_value(data, NCT6775_REG_FANDIV2, data->fandiv2);
-> +	}
-> +
-> +	/* Force re-reading all values */
-> +	data->valid = 0;
-> +	mutex_unlock(&data->update_lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops w83627ehf_dev_pm_ops = {
-> +	.suspend = w83627ehf_suspend,
-> +	.resume = w83627ehf_resume,
-> +};
-> +
-> +#define W83627EHF_DEV_PM_OPS	(&w83627ehf_dev_pm_ops)
-> +#else
-> +#define W83627EHF_DEV_PM_OPS	NULL
-> +#endif /* CONFIG_PM */
-> +
->  static struct platform_driver w83627ehf_driver = {
->  	.driver = {
->  		.owner	= THIS_MODULE,
->  		.name	= DRVNAME,
-> +		.pm	= W83627EHF_DEV_PM_OPS,
->  	},
->  	.probe		= w83627ehf_probe,
->  	.remove		= __devexit_p(w83627ehf_remove),
-> 
-> 
-> -- 
-> Jean Delvare
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Another potential candidate for -stable.
+
+ Documentation/hwmon/it87 |    3 ++-
+ drivers/hwmon/it87.c     |   18 ++++++++++++++----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+index 92ce617..3d938aea 100644
+--- a/Documentation/hwmon/it87
++++ b/Documentation/hwmon/it87
+@@ -217,4 +217,5 @@ Temperature offset attributes
+ The driver supports temp[1-3]_offset sysfs attributes to adjust the reported
+ temperature for thermal diodes or diode connected thermal transistors.
+ If a temperature sensor is configured for thermistors, the attribute values
+-are ignored.
++are ignored. If the thermal sensor type is Intel PECI, the temperature offset
++must be programmed to the critical CPU temperature.
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index f3f3e79..f8336be 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -237,6 +237,7 @@ struct it87_devices {
+ #define	FEAT_NEWER_AUTOPWM	(1 << 1)
+ #define	FEAT_OLD_AUTOPWM	(1 << 2)
+ #define	FEAT_16BIT_FAN		(1 << 3)
++#define	FEAT_PECI		(1 << 4)
+ 
+ static const struct it87_devices it87_devices[] = {
+ 	[it87] = {
+@@ -261,11 +262,13 @@ static const struct it87_devices it87_devices[] = {
+ 	},
+ 	[it8721] = {
+ 		.name = "it8721",
+-		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN,
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN
++		  | FEAT_PECI,
+ 	},
+ 	[it8728] = {
+ 		.name = "it8728",
+-		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN,
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN
++		  | FEAT_PECI,
+ 	},
+ 	[it8782] = {
+ 		.name = "it8782",
+@@ -281,6 +284,7 @@ static const struct it87_devices it87_devices[] = {
+ #define has_12mv_adc(data)	((data)->features & FEAT_12MV_ADC)
+ #define has_newer_autopwm(data)	((data)->features & FEAT_NEWER_AUTOPWM)
+ #define has_old_autopwm(data)	((data)->features & FEAT_OLD_AUTOPWM)
++#define has_peci(data)		((data)->features & FEAT_PECI)
+ 
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -581,6 +585,8 @@ static ssize_t show_type(struct device *dev, struct device_attribute *attr,
+ 	struct it87_data *data = it87_update_device(dev);
+ 	u8 reg = data->sensor;	    /* In case value is updated while used */
+ 
++	if (has_peci(data) && (reg >> 6 = nr + 1))
++		return sprintf(buf, "6\n");  /* Intel PECI */
+ 	if (reg & (1 << nr))
+ 		return sprintf(buf, "3\n");  /* thermal diode */
+ 	if (reg & (8 << nr))
+@@ -604,13 +610,17 @@ static ssize_t set_type(struct device *dev, struct device_attribute *attr,
+ 	reg = it87_read_value(data, IT87_REG_TEMP_ENABLE);
+ 	reg &= ~(1 << nr);
+ 	reg &= ~(8 << nr);
++	if (has_peci(data) && (reg >> 6 = nr + 1 || val = 6))
++		reg &= 0x3f;
+ 	if (val = 2) {	/* backwards compatibility */
+ 		dev_warn(dev,
+ 			 "Sensor type 2 is deprecated, please use 4 instead\n");
+ 		val = 4;
+ 	}
+-	/* 3 = thermal diode; 4 = thermistor; 0 = disabled */
+-	if (val = 3)
++	/* 3 = thermal diode; 4 = thermistor; 6 = Intel PECI; 0 = disabled */
++	if (has_peci(data) && val = 6)
++		reg |= (nr + 1) << 6;
++	else if (val = 3)
+ 		reg |= 1 << nr;
+ 	else if (val = 4)
+ 		reg |= 8 << nr;
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
