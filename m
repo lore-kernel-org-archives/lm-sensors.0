@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 23 Oct 2012 20:16:42 +0000
+Date: Sun, 28 Oct 2012 18:14:37 +0000
 Subject: Re: [lm-sensors] [PATCH v2 0/8] hwmon: it87 patch series
-Message-Id: <20121023201642.GA22003@roeck-us.net>
+Message-Id: <20121028181437.GA13927@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1350841995-5748-1-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1350841995-5748-1-git-send-email-linux@roeck-us.net>
@@ -21,7 +21,8 @@ On Tue, Oct 23, 2012 at 05:09:46PM +0200, Jean Delvare wrote:
 > 
 > Do you have the hardware to test the it87 driver? I no longer do :(
 > 
-Unfortunately not. Maybe I should get one ...
+Update ... I got hardware with IT8728F. The offset register patch has a bug,
+the rest is working. I'll send an updated patch series later today or tomorrow.
 
 Guenter
 
