@@ -1,42 +1,216 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 26 Oct 2012 01:28:49 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (w83627hf) Add support for suspend
-Message-Id: <20121026012849.GA5144@roeck-us.net>
+Date: Sun, 28 Oct 2012 18:20:00 +0000
+Subject: [lm-sensors] [PATCH v2 8/9] hwmon: (it87) Manage device specific features with table
+Message-Id: <1351448401-13985-9-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121023175025.6d6e46a4@endymion.delvare>
-In-Reply-To: <20121023175025.6d6e46a4@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, Oct 24, 2012 at 08:17:26AM +0200, Jean Delvare wrote:
-> On Tue, 23 Oct 2012 20:33:55 -0700, Guenter Roeck wrote:
-> > On Tue, Oct 23, 2012 at 05:50:25PM +0200, Jean Delvare wrote:
-> > > On suspend some register values are lost, most notably the Value RAM
-> > > areas but also other limits. Restore them on resume. On top of that,
-> > > some fixups are needed to work around BIOS bugs, in particular when
-> > > the BIOS omits running the same initialization sequence on resume
-> > > that it does after boot. In that case we have to carry initialization
-> > > over suspend.
-> > > 
-> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > 
-> > Does the BIOS bug apply to all BIOSes, or just to some, or does it not matter ?
-> 
-> At least mine. But there is no downside on other systems, reading and
-> writing two extra registers over the LPC bus is pretty cheap. And I
-> would be very surprised if other BIOSes out there don't need the same
-> anyway.
-> 
-> > I have a system with w83627hf - want me to test the code with it ?
-> 
-> Would be great, yes. Dumping the registers before and after suspend
-> would be a good way to ensure it worked fine.
-> 
-Acked-and-Tested-by: Guenter Roeck <linux@roeck-us.net>
+This simplifies the code, improves runtime performance, reduces
+code size (about 280 bytes on x86_64), and makes it easier
+to add support for new devices.
 
-Guenter
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Don't introduce new chip type for IT8726F. Doing that would break backward
+    compatibility.
+    Since we dropped the has_16bit_fans flag from patch 5/8, changing the code
+    back to use has_16bit_fans() is no longer needed.
+
+ drivers/hwmon/it87.c |  140 +++++++++++++++++++++++++++-----------------------
+ 1 file changed, 77 insertions(+), 63 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 340c4ea..f3f3e79 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -228,6 +228,59 @@ static const u8 IT87_REG_TEMP_OFFSET[]	= { 0x56, 0x57, 0x59 };
+ #define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
+ #define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
+ 
++struct it87_devices {
++	const char * const name;
++	u16 features;
++};
++
++#define	FEAT_12MV_ADC		(1 << 0)
++#define	FEAT_NEWER_AUTOPWM	(1 << 1)
++#define	FEAT_OLD_AUTOPWM	(1 << 2)
++#define	FEAT_16BIT_FAN		(1 << 3)
++
++static const struct it87_devices it87_devices[] = {
++	[it87] = {
++		.name = "it87",
++		.features = FEAT_OLD_AUTOPWM,	/* may need to override */
++	},
++	[it8712] = {
++		.name = "it8712",
++		.features = FEAT_OLD_AUTOPWM,	/* may need to overwrite */
++	},
++	[it8716] = {
++		.name = "it8716",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8718] = {
++		.name = "it8718",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8720] = {
++		.name = "it8720",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8721] = {
++		.name = "it8721",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN,
++	},
++	[it8728] = {
++		.name = "it8728",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FAN,
++	},
++	[it8782] = {
++		.name = "it8782",
++		.features = FEAT_16BIT_FAN,
++	},
++	[it8783] = {
++		.name = "it8783",
++		.features = FEAT_16BIT_FAN,
++	},
++};
++
++#define has_16bit_fans(data)	((data)->features & FEAT_16BIT_FAN)
++#define has_12mv_adc(data)	((data)->features & FEAT_12MV_ADC)
++#define has_newer_autopwm(data)	((data)->features & FEAT_NEWER_AUTOPWM)
++#define has_old_autopwm(data)	((data)->features & FEAT_OLD_AUTOPWM)
+ 
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -251,7 +304,7 @@ struct it87_sio_data {
+ struct it87_data {
+ 	struct device *hwmon_dev;
+ 	enum chips type;
+-	u8 revision;
++	u32 features;
+ 
+ 	unsigned short addr;
+ 	const char *name;
+@@ -293,26 +346,6 @@ struct it87_data {
+ 	s8 auto_temp[3][5];	/* [nr][0] is point1_temp_hyst */
+ };
+ 
+-static inline int has_12mv_adc(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8721F and later have a 12 mV ADC, also with internal scaling
+-	 * on selected inputs.
+-	 */
+-	return data->type = it8721
+-	    || data->type = it8728;
+-}
+-
+-static inline int has_newer_autopwm(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8721F and later have separate registers for the temperature
+-	 * mapping and the manual duty cycle.
+-	 */
+-	return data->type = it8721
+-	    || data->type = it8728;
+-}
+-
+ static int adc_lsb(const struct it87_data *data, int nr)
+ {
+ 	int lsb = has_12mv_adc(data) ? 12 : 16;
+@@ -395,35 +428,6 @@ static const unsigned int pwm_freq[8] = {
+ 	750000 / 128,
+ };
+ 
+-static inline int has_16bit_fans(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8705F Datasheet 0.4.1, 3h = Version G.
+-	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
+-	 * These are the first revisions with 16-bit tachometer support.
+-	 */
+-	return (data->type = it87 && data->revision >= 0x03)
+-	    || (data->type = it8712 && data->revision >= 0x08)
+-	    || data->type = it8716
+-	    || data->type = it8718
+-	    || data->type = it8720
+-	    || data->type = it8721
+-	    || data->type = it8728
+-	    || data->type = it8782
+-	    || data->type = it8783;
+-}
+-
+-static inline int has_old_autopwm(const struct it87_data *data)
+-{
+-	/*
+-	 * The old automatic fan speed control interface is implemented
+-	 * by IT8705F chips up to revision F and IT8712F chips up to
+-	 * revision G.
+-	 */
+-	return (data->type = it87 && data->revision < 0x03)
+-	    || (data->type = it8712 && data->revision < 0x08);
+-}
+-
+ static int it87_probe(struct platform_device *pdev);
+ static int __devexit it87_remove(struct platform_device *pdev);
+ 
+@@ -1892,17 +1896,6 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	int err = 0, i;
+ 	int enable_pwm_interface;
+ 	int fan_beep_need_rw;
+-	static const char * const names[] = {
+-		"it87",
+-		"it8712",
+-		"it8716",
+-		"it8718",
+-		"it8720",
+-		"it8721",
+-		"it8728",
+-		"it8782",
+-		"it8783",
+-	};
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -1919,8 +1912,29 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 
+ 	data->addr = res->start;
+ 	data->type = sio_data->type;
+-	data->revision = sio_data->revision;
+-	data->name = names[sio_data->type];
++	data->features = it87_devices[data->type].features;
++	data->name = it87_devices[sio_data->type].name;
++	/*
++	 * IT8705F Datasheet 0.4.1, 3h = Version G.
++	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
++	 * These are the first revisions with 16-bit tachometer support.
++	 */
++	switch (data->type) {
++	case it87:
++		if (sio_data->revision >= 0x03) {
++			data->features &= ~FEAT_OLD_AUTOPWM;
++			data->features |= FEAT_16BIT_FAN;
++		}
++		break;
++	case it8712:
++		if (sio_data->revision >= 0x08) {
++			data->features &= ~FEAT_OLD_AUTOPWM;
++			data->features |= FEAT_16BIT_FAN;
++		}
++		break;
++	default:
++		break;
++	}
+ 
+ 	/* Now, we do the remaining detection. */
+ 	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
