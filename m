@@ -1,88 +1,155 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 30 Oct 2012 17:27:28 +0000
-Subject: Re: [lm-sensors] sensors-detect changes monitor settings on hp pavilion dv7
-Message-Id: <20121030182728.6be5703a@endymion.delvare>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 28 Oct 2012 18:19:53 +0000
+Subject: [lm-sensors] [PATCH 1/9] hwmon: (it87) Save temperature registers in 2-dimensional array
+Message-Id: <1351448401-13985-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAAq1RJmLU+cyc59=3fnm-ZNZckk0t-qkcE=2rWNHMfj0HedKSQ@mail.gmail.com>
-In-Reply-To: <CAAq1RJmLU+cyc59=3fnm-ZNZckk0t-qkcE=2rWNHMfj0HedKSQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, 4 Oct 2012 18:30:11 +0200, Jean Delvare wrote:
-> Hi Andrew,
-> 
-> On Thu, 4 Oct 2012 11:30:45 -0400, Andrew Potter wrote:
-> > Hi, I wasn't quite sure from the information on lm-sensors.org how to open
-> > an official ticket, but the details of my problem are here:
-> > 
-> > https://bbs.archlinux.org/viewtopic.php?pid70583
-> > 
-> > Basically, when I probe i915 gmbus panel (i2c-2) with sensors-detect, when
-> > it probes address 0x4f my monitor settings (I think the sharpness mostly)
-> > are changed drastically.  This is persistent over any operating system and
-> > reboot, leading me to believe a) its a hardware issue, or b) nothing
-> > usually touches whatever values were changed.  Any help would be greatly
-> > appreciated, in the forum post I've also included some experimentation with
-> > i2c-tools.  The problem originally occured on an Arch Linux system.  Let me
-> > know if you need anything else!
-> 
-> Thanks for reporting. We have had that kind of problem popping up every
-> other year or so, and take such reports very seriously. We've done our
-> best to make sensors-detect as safe as possible, but the fact is, the
-> I2C and SMBus protocols do not support device probing in general, so
-> the whole thing is a hack, and hacks can turn bad sometimes.
-> 
-> Please keep in mind that everything you will do to investigate and
-> solve this issue (including things I or others may suggest you do) may
-> make things even worse than they are today. So it's all up to you what
-> you want to do and when you prefer to stop and stick with what you have.
-> 
-> First thing I would like to know is the version of lm-sensors (or
-> sensors-detect) you have been running.
-> 
-> Second thing I would like to know is the exact revision of your laptop
-> HP Pavillon DV7. If possible, provide the dmidecode output. We want to
-> document the problem and prevent it from happening to other users with
-> the same hardware, using a blacklist if needed.
-> 
-> One thing I don't quite understand is how there can be two different
-> graphics chips (one Intel, one Nvidia) in a laptop. What sense does it
-> make, and which one are you using? If the Intel is an integrated thing
-> and the Nvidia chip was added and is supposed to be better, then I
-> would suppose that's what you're using, but then I do not understand
-> how messing up with the Intel I2C buses can have any adverse effect.
-> 
-> It might be a good idea to prevent scanning of I2C buses on graphics
-> cards by default, as we do for multimedia (TV) cards already. These
-> days drm drivers should take care of instantiating the hardware
-> monitoring devices present without user-space probing, so it's probably
-> doing more harm than good.
-> 
-> You said you ran i2cdump on the chip, did you save the output? I'd like
-> to take a look.
-> 
-> The only chance to get your system back to its original state by
-> software is to know what chips exactly are on the I2C bus of your Intel
-> graphics chip and in particular at I2C address 0x4a. Unfortunately this
-> information is usually very hard to get.
-> 
-> Another thing you should try is:
-> * Power down the machine.
-> * Remove the battery, unplug the AC adapter.
-> * Wait 1 minute at least, 10 minutes if you have time.
-> * Put the battery and AC adapter back in place.
-> * Power up the machine again.
-> 
-> With some luck this will restore the original state. It has worked for
-> others in the past.
+Cleaner code, fewer checkpatch errors, and reduced code size
+(saves more than 500 bytes on x86-64).
 
-Andrew, were you able to solve the problem somehow, using my suggestion
-or otherwise?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/it87.c |   92 ++++++++++++++++----------------------------------
+ 1 file changed, 30 insertions(+), 62 deletions(-)
 
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index f1de397..350d8f4 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -265,9 +265,7 @@ struct it87_data {
+ 	u16 fan[5];		/* Register values, possibly combined */
+ 	u16 fan_min[5];		/* Register values, possibly combined */
+ 	u8 has_temp;		/* Bitfield, temp sensors enabled */
+-	s8 temp[3];		/* Register value */
+-	s8 temp_high[3];	/* Register value */
+-	s8 temp_low[3];		/* Register value */
++	s8 temp[3][3];		/* [nr][0]=temp, [1]=min, [2]=max */
+ 	u8 sensor;		/* Register value */
+ 	u8 fan_div[3];		/* Register encoding, shifted right */
+ 	u8 vid;			/* Register encoding, combined */
+@@ -545,38 +543,22 @@ show_in_offset(8);
+ 
+ /* 3 temperatures */
+ static ssize_t show_temp(struct device *dev, struct device_attribute *attr,
+-		char *buf)
++			 char *buf)
+ {
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	int nr = sattr->nr;
++	int index = sattr->index;
+ 	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr]));
+-}
+-static ssize_t show_temp_max(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+ 
+-	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_high[nr]));
++	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp[nr][index]));
+ }
+-static ssize_t show_temp_min(struct device *dev, struct device_attribute *attr,
+-		char *buf)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+ 
+-	struct it87_data *data = it87_update_device(dev);
+-	return sprintf(buf, "%d\n", TEMP_FROM_REG(data->temp_low[nr]));
+-}
+-static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
++static ssize_t set_temp(struct device *dev, struct device_attribute *attr,
++			const char *buf, size_t count)
+ {
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
++	struct sensor_device_attribute_2 *sattr = to_sensor_dev_attr_2(attr);
++	int nr = sattr->nr;
++	int index = sattr->index;
+ 	struct it87_data *data = dev_get_drvdata(dev);
+ 	long val;
+ 
+@@ -584,40 +566,26 @@ static ssize_t set_temp_max(struct device *dev, struct device_attribute *attr,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&data->update_lock);
+-	data->temp_high[nr] = TEMP_TO_REG(val);
+-	it87_write_value(data, IT87_REG_TEMP_HIGH(nr), data->temp_high[nr]);
++	data->temp[nr][index] = TEMP_TO_REG(val);
++	it87_write_value(data,
++			 index = 1 ? IT87_REG_TEMP_LOW(nr)
++				    : IT87_REG_TEMP_HIGH(nr),
++			 data->temp[nr][index]);
+ 	mutex_unlock(&data->update_lock);
+ 	return count;
+ }
+-static ssize_t set_temp_min(struct device *dev, struct device_attribute *attr,
+-		const char *buf, size_t count)
+-{
+-	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
+-	int nr = sensor_attr->index;
+-
+-	struct it87_data *data = dev_get_drvdata(dev);
+-	long val;
+ 
+-	if (kstrtol(buf, 10, &val) < 0)
+-		return -EINVAL;
++#define S_IRUGOWU	(S_IRUGO | S_IWUSR)
+ 
+-	mutex_lock(&data->update_lock);
+-	data->temp_low[nr] = TEMP_TO_REG(val);
+-	it87_write_value(data, IT87_REG_TEMP_LOW(nr), data->temp_low[nr]);
+-	mutex_unlock(&data->update_lock);
+-	return count;
+-}
+-#define show_temp_offset(offset)					\
+-static SENSOR_DEVICE_ATTR(temp##offset##_input, S_IRUGO,		\
+-		show_temp, NULL, offset - 1);				\
+-static SENSOR_DEVICE_ATTR(temp##offset##_max, S_IRUGO | S_IWUSR,	\
+-		show_temp_max, set_temp_max, offset - 1);		\
+-static SENSOR_DEVICE_ATTR(temp##offset##_min, S_IRUGO | S_IWUSR,	\
+-		show_temp_min, set_temp_min, offset - 1);
+-
+-show_temp_offset(1);
+-show_temp_offset(2);
+-show_temp_offset(3);
++static SENSOR_DEVICE_ATTR_2(temp1_input, S_IRUGO, show_temp, NULL, 0, 0);
++static SENSOR_DEVICE_ATTR_2(temp1_min, S_IRUGOWU, show_temp, set_temp, 0, 1);
++static SENSOR_DEVICE_ATTR_2(temp1_max, S_IRUGOWU, show_temp, set_temp, 0, 2);
++static SENSOR_DEVICE_ATTR_2(temp2_input, S_IRUGO, show_temp, NULL, 1, 0);
++static SENSOR_DEVICE_ATTR_2(temp2_min, S_IRUGOWU, show_temp, set_temp, 1, 1);
++static SENSOR_DEVICE_ATTR_2(temp2_max, S_IRUGOWU, show_temp, set_temp, 1, 2);
++static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, 0);
++static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGOWU, show_temp, set_temp, 2, 1);
++static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGOWU, show_temp, set_temp, 2, 2);
+ 
+ static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -2419,12 +2387,12 @@ static struct it87_data *it87_update_device(struct device *dev)
+ 		for (i = 0; i < 3; i++) {
+ 			if (!(data->has_temp & (1 << i)))
+ 				continue;
+-			data->temp[i] +			data->temp[i][0]  				it87_read_value(data, IT87_REG_TEMP(i));
+-			data->temp_high[i] -				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+-			data->temp_low[i] +			data->temp[i][1]  				it87_read_value(data, IT87_REG_TEMP_LOW(i));
++			data->temp[i][2] +				it87_read_value(data, IT87_REG_TEMP_HIGH(i));
+ 		}
+ 
+ 		/* Newer chips don't have clock dividers */
 -- 
-Jean Delvare
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
