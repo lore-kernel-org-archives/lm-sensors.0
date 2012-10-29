@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 29 Oct 2012 17:18:33 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 29 Oct 2012 17:19:49 +0000
 Subject: Re: [lm-sensors] [PATCH v2 4/9] hwmon: (it87) Introduce support for tempX_offset sysfs attribute
-Message-Id: <20121029171833.GA20291@roeck-us.net>
+Message-Id: <20121029181949.432205b7@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1351448401-13985-5-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1351448401-13985-5-git-send-email-linux@roeck-us.net>
@@ -10,10 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi again,
-
-[ ... ]
-
+On Mon, 29 Oct 2012 08:37:31 -0700, Guenter Roeck wrote:
+> On Mon, Oct 29, 2012 at 11:08:30AM +0100, Jean Delvare wrote:
+> > On Sun, 28 Oct 2012 11:19:56 -0700, Guenter Roeck wrote:
+> > > diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+> > > index 82f7924..fe2cdd4 100644
+> > > --- a/drivers/hwmon/it87.c
+> > > +++ b/drivers/hwmon/it87.c
+> > > @@ -203,6 +203,8 @@ static const u8 IT87_REG_FAN[]		= { 0x0d, 0x0e, 0x0f, 0x80, 0x82 };
+> > >  static const u8 IT87_REG_FAN_MIN[]	= { 0x10, 0x11, 0x12, 0x84, 0x86 };
+> > >  static const u8 IT87_REG_FANX[]		= { 0x18, 0x19, 0x1a, 0x81, 0x83 };
+> > >  static const u8 IT87_REG_FANX_MIN[]	= { 0x1b, 0x1c, 0x1d, 0x85, 0x87 };
 > > > +static const u8 IT87_REG_TEMP_OFFSET[]	= { 0x56, 0x57, 0x59 };
 > > 
 > > Not all supported chips have these registers. For example, the IT8712F
@@ -31,7 +38,7 @@ Hi again,
 > > offsets. A quick grep suggests that even the latest IT8705F and IT8712F
 > > chip revisons had a voltage value in these registers, so support would
 > > start with the IT8716F.
-> > 
+> 
 > Actually, I did check all chip revisions for which I have documentation.
 > 
 > I have the following datasheets:
@@ -41,32 +48,24 @@ Hi again,
 > 
 > In all those specifications, the registers exist and are called "Thermal Diode
 > Zero Degree Adjust {1|2|3} Register".
-> 
+
+Right, but the contents are different from what later chips have. The
+default value (56h) and description (Zero Degree *Voltage Value*) make
+it quite clear to me.
+
 > Kind of odd (and a bit scary) that they would remove the registers with later
 > chip revisions. Anyway, I'll have to see if I can find any additional versions
 > of the specifications.
-> 
-Ok, they didn't remove it, they added it. Got the sequence wrong here.
-That makes more sense.
+
+No, they did not remove these in later chip revisions. They changed the
+register unit/values with the IT8716F.
 
 > Maybe I should simply drop the attributes for IT8705F and IT8712F ?
-> 
-I did some more reading and found an older version of the IT8712F spec.
-Oddly enough, even with IT8716F the register values are named as "Zero Degree
-Adjust Register", but are described as "Zero Degree Voltage Value", even
-though the default value is 0. Wonder if the description is wrong in the IT8712
-specification, but that is hard to say w/o hardware to actually test it.
 
-To be on the safe side, I'll make the attributes available starting with
-IT8716F.
+Agreed.
 
-For IT8721F and IT8728F, the register is used to specify Tcrit if the selected
-input is PECI (that is not documented, or I did not find it in the spec),
-and at least on my board the BIOS-selected value is wrong. So we actually
-have a very good reason to make the attributes available and writable.
-
-Thanks,
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
