@@ -1,53 +1,75 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 26 Oct 2012 13:53:50 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon (w83627hf) Don't touch nonexistent I2C address registers
-Message-Id: <20121026135350.GA29852@roeck-us.net>
+From: Andreas Herrmann <herrmann.der.user@googlemail.com>
+Date: Mon, 29 Oct 2012 17:50:47 +0000
+Subject: [lm-sensors] [PATCH 1/4] hwmon, fam15h_power: Change email address, MAINTAINERS entry
+Message-Id: <20121029175047.GB5024@tweety>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121026095859.1725b2a8@endymion.delvare>
-In-Reply-To: <20121026095859.1725b2a8@endymion.delvare>
+References: <20121029174924.GA5024@tweety>
+In-Reply-To: <20121029174924.GA5024@tweety>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>
+Cc: lm-sensors@lm-sensors.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, oprofile-list@lists.sf.net, Stephane Eranian <eranian@google.com>, Robert Richter <rric@kernel.org>, Borislav Petkov <bp@alien8.de>, =?iso-8859-1?Q?J=F6rg_R=F6del?= <joro@8bytes.org>
 
-On Fri, Oct 26, 2012 at 09:58:59AM +0200, Jean Delvare wrote:
-> Only the W83627HF could be accessed through I2C. All other supported
-> chips are LPC-only, so they do not have I2C address registers. Don't
-> write to nonexistent or reserved registers on these chips.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-Acked-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Andreas Herrmann <herrmann.der.user@googlemail.com>
+---
+ Documentation/hwmon/fam15h_power |    2 +-
+ MAINTAINERS                      |    2 +-
+ drivers/hwmon/fam15h_power.c     |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-> ---
->  drivers/hwmon/w83627hf.c |    6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> --- linux-3.7-rc2.orig/drivers/hwmon/w83627hf.c	2012-10-26 09:38:18.000000000 +0200
-> +++ linux-3.7-rc2/drivers/hwmon/w83627hf.c	2012-10-26 09:50:44.935025004 +0200
-> @@ -1732,8 +1732,10 @@ static void __devinit w83627hf_init_devi
->  	/* Minimize conflicts with other winbond i2c-only clients...  */
->  	/* disable i2c subclients... how to disable main i2c client?? */
->  	/* force i2c address to relatively uncommon address */
-> -	w83627hf_write_value(data, W83781D_REG_I2C_SUBADDR, 0x89);
-> -	w83627hf_write_value(data, W83781D_REG_I2C_ADDR, force_i2c);
-> +	if (type = w83627hf) {
-> +		w83627hf_write_value(data, W83781D_REG_I2C_SUBADDR, 0x89);
-> +		w83627hf_write_value(data, W83781D_REG_I2C_ADDR, force_i2c);
-> +	}
->  
->  	/* Read VID only once */
->  	if (type = w83627hf || type = w83637hf) {
-> 
-> 
-> -- 
-> Jean Delvare
-> 
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-> 
+diff --git a/Documentation/hwmon/fam15h_power b/Documentation/hwmon/fam15h_power
+index a92918e..8065481 100644
+--- a/Documentation/hwmon/fam15h_power
++++ b/Documentation/hwmon/fam15h_power
+@@ -10,7 +10,7 @@ Supported chips:
+   BIOS and Kernel Developer's Guide (BKDG) For AMD Family 15h Processors
+     (not yet published)
+ 
+-Author: Andreas Herrmann <andreas.herrmann3@amd.com>
++Author: Andreas Herrmann <herrmann.der.user@googlemail.com>
+ 
+ Description
+ -----------
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1fa9074..a4e8136 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -503,7 +503,7 @@ F:	include/linux/altera_uart.h
+ F:	include/linux/altera_jtaguart.h
+ 
+ AMD FAM15H PROCESSOR POWER MONITORING DRIVER
+-M:	Andreas Herrmann <andreas.herrmann3@amd.com>
++M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/fam15h_power
+diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
+index 68ad7d2..4f41104 100644
+--- a/drivers/hwmon/fam15h_power.c
++++ b/drivers/hwmon/fam15h_power.c
+@@ -2,7 +2,7 @@
+  * fam15h_power.c - AMD Family 15h processor power monitoring
+  *
+  * Copyright (c) 2011 Advanced Micro Devices, Inc.
+- * Author: Andreas Herrmann <andreas.herrmann3@amd.com>
++ * Author: Andreas Herrmann <herrmann.der.user@googlemail.com>
+  *
+  *
+  * This driver is free software; you can redistribute it and/or
+@@ -28,7 +28,7 @@
+ #include <asm/processor.h>
+ 
+ MODULE_DESCRIPTION("AMD Family 15h CPU processor power monitor");
+-MODULE_AUTHOR("Andreas Herrmann <andreas.herrmann3@amd.com>");
++MODULE_AUTHOR("Andreas Herrmann <herrmann.der.user@googlemail.com>");
+ MODULE_LICENSE("GPL");
+ 
+ /* D18F3 */
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
