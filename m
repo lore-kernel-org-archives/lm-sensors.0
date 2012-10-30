@@ -1,87 +1,237 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 29 Oct 2012 13:45:42 +0000
-Subject: Re: [lm-sensors] [PATCH 3/9] hwmon: (it87) Replace macro defining tempX_type sensors with direct def
-Message-Id: <20121029134542.GB4053@roeck-us.net>
+Date: Tue, 30 Oct 2012 19:13:18 +0000
+Subject: [lm-sensors] [PATCH v4 2/3] hwmon: (it87) Manage device specific features with table
+Message-Id: <1351624399-22595-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1351448401-13985-4-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1351448401-13985-4-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Oct 29, 2012 at 08:38:27AM +0100, Jean Delvare wrote:
-> On Sun, 28 Oct 2012 11:19:55 -0700, Guenter Roeck wrote:
-> > The macro name show_sensor_offset is confusing since it related to the sensor
-> > type, not an offset - even more so when we introduce offset attributes later on.
-> > Replace it with direct definitions,
-> 
-> I like it. Macro-generated code is evil.
-> 
-> > and replace the show_sensor/set_sensor
-> > function names with show_type/set_type. This also resolves a checkpatch error.
-> 
-> "show_type" and "set_type" are confusing name, it's not clear you're
-> talking about temperature sensors. What about the more explicit names
-> "show_temp_type" and "set_temp_type"? Yes I know, 80-column limit...
-> 
-Ok.
+This simplifies the code, improves runtime performance, reduces
+code size (about 280 bytes on x86_64), and makes it easier
+to add support for new devices.
 
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  drivers/hwmon/it87.c |   18 ++++++++----------
-> >  1 file changed, 8 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
-> > index d211c2b..82f7924 100644
-> > --- a/drivers/hwmon/it87.c
-> > +++ b/drivers/hwmon/it87.c
-> > @@ -556,8 +556,8 @@ static SENSOR_DEVICE_ATTR_2(temp3_input, S_IRUGO, show_temp, NULL, 2, 0);
-> >  static SENSOR_DEVICE_ATTR_2(temp3_min, S_IRUGOWU, show_temp, set_temp, 2, 1);
-> >  static SENSOR_DEVICE_ATTR_2(temp3_max, S_IRUGOWU, show_temp, set_temp, 2, 2);
-> >  
-> > -static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
-> > -		char *buf)
-> > +static ssize_t show_type(struct device *dev, struct device_attribute *attr,
-> > +			 char *buf)
-> >  {
-> >  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> >  	int nr = sensor_attr->index;
-> > @@ -570,8 +570,9 @@ static ssize_t show_sensor(struct device *dev, struct device_attribute *attr,
-> >  		return sprintf(buf, "4\n");  /* thermistor */
-> >  	return sprintf(buf, "0\n");      /* disabled */
-> >  }
-> > -static ssize_t set_sensor(struct device *dev, struct device_attribute *attr,
-> > -		const char *buf, size_t count)
-> > +
-> > +static ssize_t set_type(struct device *dev, struct device_attribute *attr,
-> > +			const char *buf, size_t count)
-> >  {
-> >  	struct sensor_device_attribute *sensor_attr = to_sensor_dev_attr(attr);
-> >  	int nr = sensor_attr->index;
-> > @@ -606,13 +607,10 @@ static ssize_t set_sensor(struct device *dev, struct device_attribute *attr,
-> >  	mutex_unlock(&data->update_lock);
-> >  	return count;
-> >  }
-> > -#define show_sensor_offset(offset)					\
-> > -static SENSOR_DEVICE_ATTR(temp##offset##_type, S_IRUGO | S_IWUSR,	\
-> > -		show_sensor, set_sensor, offset - 1);
-> >  
-> > -show_sensor_offset(1);
-> > -show_sensor_offset(2);
-> > -show_sensor_offset(3);
-> > +static SENSOR_DEVICE_ATTR(temp1_type, S_IRUGOWU, show_type, set_type, 0);
-> > +static SENSOR_DEVICE_ATTR(temp2_type, S_IRUGOWU, show_type, set_type, 1);
-> > +static SENSOR_DEVICE_ATTR(temp3_type, S_IRUGOWU, show_type, set_type, 2);
-> >  
-> >  /* 3 Fans */
-> >  
-> 
-> 
-> -- 
-> Jean Delvare
-> 
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v4: s/override/overwrite/
+    Add back lost break statement in it87_probe()
+v3: s/define^I/define /
+    Handle new conditional FEAT_TEMP_OFFSET
+    const char * const name -> const char *name
+    define "features" flag consistently as u16
+v2: Don't introduce new chip type for IT8726F. Doing that would break backward
+    compatibility.
+    Since we dropped the has_16bit_fans flag from patch 5/8, changing the code
+    back to use has_16bit_fans() is no longer needed.
+
+ drivers/hwmon/it87.c |  155 ++++++++++++++++++++++++++------------------------
+ 1 file changed, 81 insertions(+), 74 deletions(-)
+
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 6ec827d..c154d43 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -228,6 +228,63 @@ static const u8 IT87_REG_TEMP_OFFSET[]	= { 0x56, 0x57, 0x59 };
+ #define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
+ #define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
+ 
++struct it87_devices {
++	const char *name;
++	u16 features;
++};
++
++#define FEAT_12MV_ADC		(1 << 0)
++#define FEAT_NEWER_AUTOPWM	(1 << 1)
++#define FEAT_OLD_AUTOPWM	(1 << 2)
++#define FEAT_16BIT_FANS		(1 << 3)
++#define FEAT_TEMP_OFFSET	(1 << 4)
++
++static const struct it87_devices it87_devices[] = {
++	[it87] = {
++		.name = "it87",
++		.features = FEAT_OLD_AUTOPWM,	/* may need to overwrite */
++	},
++	[it8712] = {
++		.name = "it8712",
++		.features = FEAT_OLD_AUTOPWM,	/* may need to overwrite */
++	},
++	[it8716] = {
++		.name = "it8716",
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET,
++	},
++	[it8718] = {
++		.name = "it8718",
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET,
++	},
++	[it8720] = {
++		.name = "it8720",
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET,
++	},
++	[it8721] = {
++		.name = "it8721",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
++		  | FEAT_TEMP_OFFSET,
++	},
++	[it8728] = {
++		.name = "it8728",
++		.features = FEAT_NEWER_AUTOPWM | FEAT_12MV_ADC | FEAT_16BIT_FANS
++		  | FEAT_TEMP_OFFSET,
++	},
++	[it8782] = {
++		.name = "it8782",
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET,
++	},
++	[it8783] = {
++		.name = "it8783",
++		.features = FEAT_16BIT_FANS | FEAT_TEMP_OFFSET,
++	},
++};
++
++#define has_16bit_fans(data)	((data)->features & FEAT_16BIT_FANS)
++#define has_12mv_adc(data)	((data)->features & FEAT_12MV_ADC)
++#define has_newer_autopwm(data)	((data)->features & FEAT_NEWER_AUTOPWM)
++#define has_old_autopwm(data)	((data)->features & FEAT_OLD_AUTOPWM)
++#define has_temp_offset(data)	((data)->features & FEAT_TEMP_OFFSET)
+ 
+ struct it87_sio_data {
+ 	enum chips type;
+@@ -251,7 +308,7 @@ struct it87_sio_data {
+ struct it87_data {
+ 	struct device *hwmon_dev;
+ 	enum chips type;
+-	u8 revision;
++	u16 features;
+ 
+ 	unsigned short addr;
+ 	const char *name;
+@@ -293,37 +350,6 @@ struct it87_data {
+ 	s8 auto_temp[3][5];	/* [nr][0] is point1_temp_hyst */
+ };
+ 
+-static inline int has_12mv_adc(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8721F and later have a 12 mV ADC, also with internal scaling
+-	 * on selected inputs.
+-	 */
+-	return data->type = it8721
+-	    || data->type = it8728;
+-}
+-
+-static inline int has_newer_autopwm(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8721F and later have separate registers for the temperature
+-	 * mapping and the manual duty cycle.
+-	 */
+-	return data->type = it8721
+-	    || data->type = it8728;
+-}
+-
+-static inline int has_temp_offset(const struct it87_data *data)
+-{
+-	return data->type = it8716
+-	    || data->type = it8718
+-	    || data->type = it8720
+-	    || data->type = it8721
+-	    || data->type = it8728
+-	    || data->type = it8782
+-	    || data->type = it8783;
+-}
+-
+ static int adc_lsb(const struct it87_data *data, int nr)
+ {
+ 	int lsb = has_12mv_adc(data) ? 12 : 16;
+@@ -406,35 +432,6 @@ static const unsigned int pwm_freq[8] = {
+ 	750000 / 128,
+ };
+ 
+-static inline int has_16bit_fans(const struct it87_data *data)
+-{
+-	/*
+-	 * IT8705F Datasheet 0.4.1, 3h = Version G.
+-	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
+-	 * These are the first revisions with 16-bit tachometer support.
+-	 */
+-	return (data->type = it87 && data->revision >= 0x03)
+-	    || (data->type = it8712 && data->revision >= 0x08)
+-	    || data->type = it8716
+-	    || data->type = it8718
+-	    || data->type = it8720
+-	    || data->type = it8721
+-	    || data->type = it8728
+-	    || data->type = it8782
+-	    || data->type = it8783;
+-}
+-
+-static inline int has_old_autopwm(const struct it87_data *data)
+-{
+-	/*
+-	 * The old automatic fan speed control interface is implemented
+-	 * by IT8705F chips up to revision F and IT8712F chips up to
+-	 * revision G.
+-	 */
+-	return (data->type = it87 && data->revision < 0x03)
+-	    || (data->type = it8712 && data->revision < 0x08);
+-}
+-
+ static int it87_probe(struct platform_device *pdev);
+ static int __devexit it87_remove(struct platform_device *pdev);
+ 
+@@ -1952,17 +1949,6 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	int err = 0, i;
+ 	int enable_pwm_interface;
+ 	int fan_beep_need_rw;
+-	static const char * const names[] = {
+-		"it87",
+-		"it8712",
+-		"it8716",
+-		"it8718",
+-		"it8720",
+-		"it8721",
+-		"it8728",
+-		"it8782",
+-		"it8783",
+-	};
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -1979,8 +1965,29 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 
+ 	data->addr = res->start;
+ 	data->type = sio_data->type;
+-	data->revision = sio_data->revision;
+-	data->name = names[sio_data->type];
++	data->features = it87_devices[sio_data->type].features;
++	data->name = it87_devices[sio_data->type].name;
++	/*
++	 * IT8705F Datasheet 0.4.1, 3h = Version G.
++	 * IT8712F Datasheet 0.9.1, section 8.3.5 indicates 8h = Version J.
++	 * These are the first revisions with 16-bit tachometer support.
++	 */
++	switch (data->type) {
++	case it87:
++		if (sio_data->revision >= 0x03) {
++			data->features &= ~FEAT_OLD_AUTOPWM;
++			data->features |= FEAT_16BIT_FANS;
++		}
++		break;
++	case it8712:
++		if (sio_data->revision >= 0x08) {
++			data->features &= ~FEAT_OLD_AUTOPWM;
++			data->features |= FEAT_16BIT_FANS;
++		}
++		break;
++	default:
++		break;
++	}
+ 
+ 	/* Now, we do the remaining detection. */
+ 	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
