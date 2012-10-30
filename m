@@ -1,15 +1,30 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 09 Oct 2012 21:08:58 +0000
-Subject: [lm-sensors] [PATCH 0/5] hwmon: coretemp patches
-Message-Id: <1349816943-17697-1-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 30 Oct 2012 16:52:02 +0000
+Subject: Re: [lm-sensors] [PATCH v2 7/9] hwmon: (it87) Replace pwm group macro with direct attribute definiti
+Message-Id: <20121030175202.53b933d4@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Change TjMax detection to no longer depend on PCI, and add support for
-additional Atom CPUs.
+On Mon, 29 Oct 2012 17:45:47 -0700, Guenter Roeck wrote:
+> Fix checkpatch error:
+> 
+> ERROR: Macros with multiple statements should be enclosed in a do - while loop
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2: s/S_IRUGOWU/S_IRUGO | S_IWUSR/
+> 
+>  drivers/hwmon/it87.c |  115 ++++++++++++++++++++++++++++++++------------------
+>  1 file changed, 74 insertions(+), 41 deletions(-)
+> (...)
+
+Applied, thanks.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
