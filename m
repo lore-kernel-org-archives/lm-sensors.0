@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 04 Oct 2012 16:35:59 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 30 Oct 2012 17:27:28 +0000
 Subject: Re: [lm-sensors] sensors-detect changes monitor settings on hp pavilion dv7
-Message-Id: <20121004163559.GA5141@roeck-us.net>
+Message-Id: <20121030182728.6be5703a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAAq1RJmLU+cyc59=3fnm-ZNZckk0t-qkcE=2rWNHMfj0HedKSQ@mail.gmail.com>
 In-Reply-To: <CAAq1RJmLU+cyc59=3fnm-ZNZckk0t-qkcE=2rWNHMfj0HedKSQ@mail.gmail.com>
@@ -10,7 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Oct 04, 2012 at 06:30:11PM +0200, Jean Delvare wrote:
+On Thu, 4 Oct 2012 18:30:11 +0200, Jean Delvare wrote:
 > Hi Andrew,
 > 
 > On Thu, 4 Oct 2012 11:30:45 -0400, Andrew Potter wrote:
@@ -54,12 +54,35 @@ On Thu, Oct 04, 2012 at 06:30:11PM +0200, Jean Delvare wrote:
 > would suppose that's what you're using, but then I do not understand
 > how messing up with the Intel I2C buses can have any adverse effect.
 > 
+> It might be a good idea to prevent scanning of I2C buses on graphics
+> cards by default, as we do for multimedia (TV) cards already. These
+> days drm drivers should take care of instantiating the hardware
+> monitoring devices present without user-space probing, so it's probably
+> doing more harm than good.
+> 
+> You said you ran i2cdump on the chip, did you save the output? I'd like
+> to take a look.
+> 
+> The only chance to get your system back to its original state by
+> software is to know what chips exactly are on the I2C bus of your Intel
+> graphics chip and in particular at I2C address 0x4a. Unfortunately this
+> information is usually very hard to get.
+> 
+> Another thing you should try is:
+> * Power down the machine.
+> * Remove the battery, unplug the AC adapter.
+> * Wait 1 minute at least, 10 minutes if you have time.
+> * Put the battery and AC adapter back in place.
+> * Power up the machine again.
+> 
+> With some luck this will restore the original state. It has worked for
+> others in the past.
 
-I think I know the answer to that one: the laptop uses the Intel CPU graphics
-for most applications to consserve power, but can switch to the Nvidia chip
-for high-demand graphics applications such as games.
+Andrew, were you able to solve the problem somehow, using my suggestion
+or otherwise?
 
-Guenter
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
