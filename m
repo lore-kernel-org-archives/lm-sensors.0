@@ -1,40 +1,24 @@
-From: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Date: Mon, 29 Oct 2012 17:53:25 +0000
-Subject: [lm-sensors] [PATCH 4/4] MAINTAINERS: Update email address for Robert Richter
-Message-Id: <20121029175325.GE5024@tweety>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 30 Oct 2012 19:13:16 +0000
+Subject: [lm-sensors] [PATCH v5 0/3] hwmon: it87 patch series
+Message-Id: <1351624399-22595-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121029174924.GA5024@tweety>
-In-Reply-To: <20121029174924.GA5024@tweety>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, H Peter Anvin <hpa@zytor.com>
-Cc: lm-sensors@lm-sensors.org, cpufreq@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, oprofile-list@lists.sf.net, Stephane Eranian <eranian@google.com>, Robert Richter <rric@kernel.org>, Borislav Petkov <bp@alien8.de>, =?iso-8859-1?Q?J=F6rg_R=F6del?= <joro@8bytes.org>
+To: lm-sensors@vger.kernel.org
 
-From: Robert Richter <rric@kernel.org>
+This series started with the idea of adding temperature offset registers.
+It ended with fixing all checkpatch warnings and errors, and reducing
+object file size by more than 2k on x86_64.
 
-Signed-off-by: Robert Richter <rric@kernel.org>
-Signed-off-by: Andreas Herrmann <herrmann.der.user@googlemail.com>
----
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 5a66583..5b8935b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -5363,7 +5363,7 @@ S:	Maintained
- F:	sound/drivers/opl4/
- 
- OPROFILE
--M:	Robert Richter <robert.richter@amd.com>
-+M:	Robert Richter <rric@kernel.org>
- L:	oprofile-list@lists.sf.net
- S:	Maintained
- F:	arch/*/include/asm/oprofile*.h
--- 
-1.7.9.5
-
+v5: More review feedback; dropped applied patches from series
+v4: Review feedback
+v3: Fixed broken temperature offset code.
+    Tested patch series with IT8728F.
+    Add patch to support reporting Intel PECI temperature sensors
+v2: Added one more patch to the series, and don't introduce has_16bit_fans
+    flag (which was dropped in the latest patch anyway).
 
 _______________________________________________
 lm-sensors mailing list
