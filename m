@@ -1,209 +1,94 @@
-From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
-Date: Tue, 02 Oct 2012 22:10:03 +0000
-Subject: [lm-sensors] [PATCH v3 2/2] hwmon: (ads7828) add support for ADS7830
-Message-Id: <1349215803-10999-2-git-send-email-vivien.didelot@savoirfairelinux.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 30 Oct 2012 16:52:25 +0000
+Subject: Re: [lm-sensors] drivers/hwmon/w83627ehf.c:2672 w83627ehf_resume() error: buffer overflow 'W83627EHF
+Message-Id: <20121030165225.GB11394@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1349215803-10999-1-git-send-email-vivien.didelot@savoirfairelinux.com>
-In-Reply-To: <1349215803-10999-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@lm-sensors.org
-Cc: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>, Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Steve Hardy <shardy@redhat.com>, Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: lm-sensors@vger.kernel.org
 
-From: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
+On Tue, Oct 30, 2012 at 06:54:56AM -0700, Guenter Roeck wrote:
+> On Tue, Oct 30, 2012 at 02:50:14PM +0100, Jean Delvare wrote:
+> > On Tue, 30 Oct 2012 06:30:32 -0700, Guenter Roeck wrote:
+> > > Hi Jean,
+> > >=20
+> > > On Tue, Oct 30, 2012 at 12:22:29PM +0100, Jean Delvare wrote:
+> > > > Hi Peter,
+> > > >=20
+> > > > On Mon, 29 Oct 2012 21:58:47 +0100, Peter H=FCwe wrote:
+> > > > > FYI, there are new smatch warnings show up in
+> > > > >=20
+> > > > > tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-=
+next master
+> > > > > head:   8243aafc4f54244984d7ea707265e98810a3a066
+> > > > > commit: 0110e1dd583ee412ccde1ba027dced6b828fb466 hwmon: (w83627eh=
+f) Add support for suspend
+> > > > > date:   32 hours ago
+> > > > > :::::: branch date: 3 hours ago
+> > > > > :::::: commit date: 32 hours ago
+> > > > >=20
+> > > > >   drivers/hwmon/w83627ehf.c:911 w83627ehf_update_device() error: =
+buffer overflow 'W83627EHF_REG_TEMP_OFFSET' 3 <=3D 8
+> > > > >   drivers/hwmon/w83627ehf.c:909 w83627ehf_update_device() error: =
+buffer overflow 'data->temp_offset' 3 <=3D 8
+> > > > > + drivers/hwmon/w83627ehf.c:2672 w83627ehf_resume() error: buffer=
+ overflow 'W83627EHF_REG_TEMP_OFFSET' 3 <=3D 8
+> > > > > + drivers/hwmon/w83627ehf.c:2673 w83627ehf_resume() error: buffer=
+ overflow 'data->temp_offset' 3 <=3D 8
+> > > > >=20
+> > > > > git remote update next
+> > > > > git checkout 0110e1dd583ee412ccde1ba027dced6b828fb466
+> > > > > vim +2672 drivers/hwmon/w83627ehf.c
+> > > > >=20
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2666                           =
+                    data->temp_max[i]);
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2667                  if (data-=
+>reg_temp_hyst[i])
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2668                          w=
+83627ehf_write_temp(data, data->reg_temp_hyst[i],
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2669                           =
+                    data->temp_max_hyst[i]);
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2670                  if (data-=
+>have_temp_offset & (1 << i))
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2671                          w=
+83627ehf_write_value(data,
+> > > > > 0110e1dd Jean Delvare 2012-10-25 @2672                           =
+                     W83627EHF_REG_TEMP_OFFSET[i],
+> > > > > 0110e1dd Jean Delvare 2012-10-25 @2673                           =
+                     data->temp_offset[i]);
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2674          }
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2675 =20
+> > > > > 0110e1dd Jean Delvare 2012-10-25  2676          /* Restore other =
+settings */
+> > > > >=20
+> > > > > I checked it and it seems valid.
+> > > >=20
+> > > > Actually this is a false positive, only the lower 3 bits of
+> > > > data->have_temp_offset can be set so the write is never attempted w=
+ith
+> > > > i >=3D 3. However this isn't something a static code analyzer can e=
+asily
+> > > > figure out, so it would be better and safer to adjust the code to m=
+ake
+> > > > it more obvious. I'll send a patch.
+> > >
+> > > If you really want to patch it, there are more places like that; pret=
+ty much
+> > > every loop around the temperature registers is affected. I marked the=
+ others
+> > > as false positive quite some time ago.
+> >=20
+> > Marked how?
+> >=20
+> On coverity. Only looks like they changed the UI and I don't find the rep=
+orts
+> anymore :(. I'll try again later today.
+>=20
+Looks like it was only one case in update_device, and you fixed it in your
+patch.
 
-The ADS7830 device is almost the same as the ADS7828,
-except that it does 8-bit sampling, instead of 12-bit.
-This patch extends the ads7828 driver to support this chip.
-
-Signed-off-by: Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
----
- Documentation/hwmon/ads7828 | 12 ++++++++++--
- drivers/hwmon/Kconfig       |  7 ++++---
- drivers/hwmon/ads7828.c     | 45 ++++++++++++++++++++++++++++++++++-----------
- 3 files changed, 48 insertions(+), 16 deletions(-)
-
-diff --git a/Documentation/hwmon/ads7828 b/Documentation/hwmon/ads7828
-index b35668c..51eab52 100644
---- a/Documentation/hwmon/ads7828
-+++ b/Documentation/hwmon/ads7828
-@@ -8,8 +8,15 @@ Supported chips:
-     Datasheet: Publicly available at the Texas Instruments website:
-                http://focus.ti.com/lit/ds/symlink/ads7828.pdf
- 
-+  * Texas Instruments ADS7830
-+    Prefix: 'ads7830'
-+    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4b
-+    Datasheet: Publicly available at the Texas Instruments website:
-+               http://focus.ti.com/lit/ds/symlink/ads7830.pdf
-+
- Authors:
-         Steve Hardy <shardy@redhat.com>
-+        Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
- 
- Platform data
- -------------
-@@ -35,9 +42,10 @@ The structure fields are:
- Description
- -----------
- 
--This driver implements support for the Texas Instruments ADS7828.
-+This driver implements support for the Texas Instruments ADS7828 and ADS7830.
- 
--This device is a 12-bit 8-channel A-D converter.
-+The ADS7828 device is a 12-bit 8-channel A/D converter, while the ADS7830 does
-+8-bit sampling.
- 
- It can operate in single ended mode (8 +ve inputs) or in differential mode,
- where 4 differential pairs can be measured.
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 83e3e9d..960c8c5 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -1060,11 +1060,12 @@ config SENSORS_ADS1015
- 	  will be called ads1015.
- 
- config SENSORS_ADS7828
--	tristate "Texas Instruments ADS7828"
-+	tristate "Texas Instruments ADS7828 and compatibles"
- 	depends on I2C
- 	help
--	  If you say yes here you get support for Texas Instruments ADS7828
--	  12-bit 8-channel ADC device.
-+	  If you say yes here you get support for Texas Instruments ADS7828 and
-+	  ADS7830 8-channel A/D converters. ADS7828 resolution is 12-bit, while
-+	  it is 8-bit on ADS7830.
- 
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ads7828.
-diff --git a/drivers/hwmon/ads7828.c b/drivers/hwmon/ads7828.c
-index 0a13bf8..809c065 100644
---- a/drivers/hwmon/ads7828.c
-+++ b/drivers/hwmon/ads7828.c
-@@ -1,11 +1,13 @@
- /*
-- * ads7828.c - lm_sensors driver for ads7828 12-bit 8-channel ADC
-+ * ads7828.c - driver for TI ADS7828 8-channel A/D converter and compatibles
-  * (C) 2007 EADS Astrium
-  *
-  * This driver is based on the lm75 and other lm_sensors/hwmon drivers
-  *
-  * Written by Steve Hardy <shardy@redhat.com>
-  *
-+ * ADS7830 support, by Guillaume Roguez <guillaume.roguez@savoirfairelinux.com>
-+ *
-  * For further information, see the Documentation/hwmon/ads7828 file.
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -43,6 +45,9 @@
- #define ADS7828_EXT_VREF_MV_MIN	50	/* External vref min value 0.05V */
- #define ADS7828_EXT_VREF_MV_MAX	5250	/* External vref max value 5.25V */
- 
-+/* List of supported devices */
-+enum ads7828_chips { ads7828, ads7830 };
-+
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
- 	I2C_CLIENT_END };
-@@ -59,6 +64,7 @@ struct ads7828_data {
- 	unsigned int vref_mv;		/* voltage reference value */
- 	u8 cmd_byte;			/* Command byte without channel bits */
- 	unsigned int lsb_resol;		/* Resolution of the ADC sample LSB */
-+	s32 (*read_channel)(const struct i2c_client *client, u8 command);
- };
- 
- /* Command byte C2,C1,C0 - see datasheet */
-@@ -82,8 +88,7 @@ static struct ads7828_data *ads7828_update_device(struct device *dev)
- 
- 		for (ch = 0; ch < ADS7828_NCH; ch++) {
- 			u8 cmd = ads7828_cmd_byte(data->cmd_byte, ch);
--			data->adc_input[ch] -				i2c_smbus_read_word_swapped(client, cmd);
-+			data->adc_input[ch] = data->read_channel(client, cmd);
- 		}
- 		data->last_updated = jiffies;
- 		data->valid = true;
-@@ -148,6 +153,7 @@ static int ads7828_detect(struct i2c_client *client,
- {
- 	struct i2c_adapter *adapter = client->adapter;
- 	u8 default_cmd_byte = ADS7828_CMD_SD_SE | ADS7828_CMD_PD3;
-+	bool is_8bit = false;
- 	int ch;
- 
- 	/* Check we have a valid client */
-@@ -159,7 +165,9 @@ static int ads7828_detect(struct i2c_client *client,
- 	 * dedicated register so attempt to sanity check using knowledge of
- 	 * the chip
- 	 * - Read from the 8 channel addresses
--	 * - Check the top 4 bits of each result are not set (12 data bits)
-+	 * - Check the top 4 bits of each result:
-+	 *   - They should not be set in case of 12-bit samples
-+	 *   - The two bytes should be equal in case of 8-bit samples
- 	 */
- 	for (ch = 0; ch < ADS7828_NCH; ch++) {
- 		u8 cmd = ads7828_cmd_byte(default_cmd_byte, ch);
-@@ -169,13 +177,20 @@ static int ads7828_detect(struct i2c_client *client,
- 			return -ENODEV;
- 
- 		if (in_data & 0xF000) {
--			pr_debug("%s : Doesn't look like an ads7828 device\n",
--				 __func__);
--			return -ENODEV;
-+			if ((in_data >> 8) = (in_data & 0xFF)) {
-+				/* Seems to be an ADS7830 (8-bit sample) */
-+				is_8bit = true;
-+			} else {
-+				dev_dbg(&client->dev, "doesn't look like an ADS7828 compatible device\n");
-+				return -ENODEV;
-+			}
- 		}
- 	}
- 
--	strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
-+	if (is_8bit)
-+		strlcpy(info->type, "ads7830", I2C_NAME_SIZE);
-+	else
-+		strlcpy(info->type, "ads7828", I2C_NAME_SIZE);
- 
- 	return 0;
- }
-@@ -207,7 +222,14 @@ static int ads7828_probe(struct i2c_client *client,
- 	else
- 		data->vref_mv = ADS7828_INT_VREF_MV;
- 
--	data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
-+	/* ADS7828 uses 12-bit samples, while ADS7830 is 8-bit */
-+	if (id->driver_data = ads7828) {
-+		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 4096);
-+		data->read_channel = i2c_smbus_read_word_swapped;
-+	} else {
-+		data->lsb_resol = DIV_ROUND_CLOSEST(data->vref_mv * 1000, 256);
-+		data->read_channel = i2c_smbus_read_byte_data;
-+	}
- 
- 	data->cmd_byte = data->ext_vref ? ADS7828_CMD_PD1 : ADS7828_CMD_PD3;
- 	if (!data->diff_input)
-@@ -234,7 +256,8 @@ error:
- }
- 
- static const struct i2c_device_id ads7828_ids[] = {
--	{ "ads7828", 0 },
-+	{ "ads7828", ads7828 },
-+	{ "ads7830", ads7830 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, ads7828_ids);
-@@ -264,5 +287,5 @@ static void __exit sensors_ads7828_exit(void)
- module_exit(sensors_ads7828_exit);
- 
- MODULE_AUTHOR("Steve Hardy <shardy@redhat.com>");
--MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter");
-+MODULE_DESCRIPTION("Driver for TI ADS7828 A/D converter and compatibles");
- MODULE_LICENSE("GPL");
--- 
-1.7.11.4
-
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
