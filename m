@@ -1,29 +1,40 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 20 Nov 2012 08:45:39 +0000
-Subject: Re: [lm-sensors] [PATCH 131/493] hwmon: remove use of __devexit_p
-Message-Id: <20121120094539.233271a6@endymion.delvare>
+Date: Thu, 01 Nov 2012 12:56:07 +0000
+Subject: Re: [lm-sensors] [PATCH 9/9] hwmon: (it87) Report thermal sensor type as Intel PECI if appropriate
+Message-Id: <20121101135607.64be5cdf@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1353349642-3677-131-git-send-email-wfp5p@virginia.edu>
-In-Reply-To: <1353349642-3677-131-git-send-email-wfp5p@virginia.edu>
+References: <1351448401-13985-10-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1351448401-13985-10-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Bill,
+On Mon, 29 Oct 2012 10:28:30 -0700, Guenter Roeck wrote:
+> On Mon, Oct 29, 2012 at 05:55:20PM +0100, Jean Delvare wrote:
+> > On Sun, 28 Oct 2012 11:20:01 -0700, Guenter Roeck wrote:
+> > > diff --git a/Documentation/hwmon/it87 b/Documentation/hwmon/it87
+> > > index 92ce617..3d938aea 100644
+> > > --- a/Documentation/hwmon/it87
+> > > +++ b/Documentation/hwmon/it87
+> > > @@ -217,4 +217,5 @@ Temperature offset attributes
+> > >  The driver supports temp[1-3]_offset sysfs attributes to adjust the reported
+> > >  temperature for thermal diodes or diode connected thermal transistors.
+> > >  If a temperature sensor is configured for thermistors, the attribute values
+> > > -are ignored.
+> > > +are ignored. If the thermal sensor type is Intel PECI, the temperature offset
+> > > +must be programmed to the critical CPU temperature.
+> > 
+> > I don't quite get this part.. Who should do that, and how?
+>
+> The BIOS, presumably. It does it on my board, but wrongly. It sets it
+> to 97 degrees C, while the CPU's Tcrit is 105 degrees C. I fixed the
+> offset to 105, and now the reported temperature matches the CPU temperature
+> (and moves with it). This is how I found out about PECI support in the
+> first place.
 
-On Mon, 19 Nov 2012 13:21:20 -0500, Bill Pemberton wrote:
-> CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-> needed.
-
-I don't see any value in making this a separate patch from [PATCH
-402/493] hwmon: remove use of __devexit. __devexit_p only exists
-because __devexit exists, so they should all be removed at once.
-
-More generally, I don't see any point in making separate patches for
-__devinit, __devexit, __devinitdata... If we are getting rid of the
-whole __dev* section markers then it can all go in a single patch (per
-subsystem). This will be much easier to handle that way IMHO.
+In which register is the PECI temperature offset value stored? I am
+looking at the IT8720F datasheet and I can't find it.
 
 -- 
 Jean Delvare
