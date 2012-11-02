@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Thu, 01 Nov 2012 19:25:56 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Fri, 02 Nov 2012 03:20:57 +0000
 Subject: Re: [lm-sensors] f71882fg not showing motherboard temps
-Message-Id: <5092CCC4.8090701@redhat.com>
+Message-Id: <20121102032057.GA9162@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5091A80D.3090101@embarqmail.com>
 In-Reply-To: <5091A80D.3090101@embarqmail.com>
@@ -12,114 +12,60 @@ To: lm-sensors@vger.kernel.org
 
 Hi,
 
-On 11/01/2012 05:38 PM, Logan Freijo wrote:
-> On 11/1/2012 12:19 PM, Hans de Goede wrote:
+On Thu, Nov 01, 2012 at 01:34:35PM -0400, Logan Freijo wrote:
 
-<snip>
+[ ... ]
 
->> Can you do a "cat /proc/ioports" and send us the output?
->>
->> That may help to figure out what is causing the io conflict.
->>
->> Regards,
->>
->> Hans
->>
-> Here you go:
->
-> 0000-0cf7 : PCI Bus 0000:00
->    0000-001f : dma1
->    0020-0021 : pic1
->    0040-0043 : timer0
->    0050-0053 : timer1
->    0060-0060 : keyboard
->    0064-0064 : keyboard
->    0070-0071 : rtc0
->    0080-008f : dma page reg
->    00a0-00a1 : pic2
->    00c0-00df : dma2
->    00f0-00ff : fpu
->    0170-0177 : 0000:00:14.1
->      0170-0177 : pata_atiixp
->    01f0-01f7 : 0000:00:14.1
->      01f0-01f7 : pata_atiixp
->    0225-0244 : pnp 00:09
->    0376-0376 : 0000:00:14.1
->      0376-0376 : pata_atiixp
->    03f6-03f6 : 0000:00:14.1
->      03f6-03f6 : pata_atiixp
->    040b-040b : pnp 00:08
->    04d0-04d1 : pnp 00:08
->    04d6-04d6 : pnp 00:08
->    0800-089f : pnp 00:08
->      0800-0803 : ACPI PM1a_EVT_BLK
->      0804-0805 : ACPI PM1a_CNT_BLK
->      0808-080b : ACPI PM_TMR
->      0810-0815 : ACPI CPU throttle
->      0820-0827 : ACPI GPE0_BLK
->    0900-090f : pnp 00:08
->    0910-091f : pnp 00:08
->    0ae0-0aef : pnp 00:09
->    0b00-0b0f : pnp 00:08
->    0b20-0b3f : pnp 00:08
->    0c00-0c01 : pnp 00:08
->    0c14-0c14 : pnp 00:08
->    0c50-0c51 : pnp 00:08
->    0c52-0c52 : pnp 00:08
->    0c6c-0c6c : pnp 00:08
->    0c6f-0c6f : pnp 00:08
->    0cd0-0cd1 : pnp 00:08
->    0cd2-0cd3 : pnp 00:08
->    0cd4-0cd5 : pnp 00:08
->    0cd6-0cd7 : pnp 00:08
->    0cd8-0cdf : pnp 00:08
-> 0cf8-0cff : PCI conf1
-> 0d00-ffff : PCI Bus 0000:00
->    8000-800f : 0000:00:11.0
->      8000-800f : ahci
->    9000-9003 : 0000:00:11.0
->      9000-9003 : ahci
->    a000-a007 : 0000:00:11.0
->      a000-a007 : ahci
->    b000-b003 : 0000:00:11.0
->      b000-b003 : ahci
->    c000-c007 : 0000:00:11.0
->      c000-c007 : ahci
->    d000-dfff : PCI Bus 0000:01
->      d000-d0ff : 0000:01:05.0
->    e000-efff : PCI Bus 0000:02
->      e800-e8ff : 0000:02:00.0
->        e800-e8ff : r8169
->    fe00-fefe : pnp 00:08
->    ff00-ff0f : 0000:00:14.1
->      ff00-ff0f : pata_atiixp
+> >
+> After my last reply I searched the web again and noticed that some
+> places indicate "acpi-enforce-resources=lax" and others
+> "acpi_enforce_resources=lax". So I decided to try all options again.
+> I found after several reboots that "pnpacpi=off" did when I passed
+> it by itself. I now have a full range of sensor readings. Is there
 
-Hmm, it seems that your bios is claiming
-the io-range for the hwmon part (and then some
-more ports too ...)
+Would be great if you can provide the logs Hans asked for.
 
-Can you try adding "pnp_reserve_io=0x220,8" on the kernel
-cmdline? That *might* help. Also to further debug this,
-can you please do:
-
-ls -lR /sys/bus/pnp/devices/00\:09/
-
-And:
-
-cat /sys/bus/pnp/devices/00\:09/id
-
-And include the output in your next mail?
+> anyway to determine which sensor is which? My output for sensors is
+> below. in1 - in6 seem to be reading incorrect values.
+> 
+Not incorrect - simple reason is that there are voltage dividers on the board.
+Tricky part now is to find out what the divider values are. A good starting point
+is http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling.
 
 Thanks,
+Guenter
 
-Hans
-
-
-
->
 > Thanks,
->
+> 
 > Logan
+> 
+> f71882fg-isa-0220
+> Adapter: ISA adapter
+> +3.3V:        +3.50 V
+> in1:          +1.06 V  (max =  +2.04 V)
+> in2:          +0.42 V
+> in3:          +0.98 V
+> in4:          +1.13 V
+> in5:          +0.96 V
+> in6:          +0.75 V
+> 3VSB:         +3.31 V
+> Vbat:         +3.33 V
+> fan1:        1492 RPM
+> fan2:           0 RPM  ALARM
+> fan3:        1007 RPM
+> fan4:           0 RPM  ALARM
+> temp1:        +33.0 C  (high = +85.0 C, hyst = +81.0 C)
+>                        (crit = +100.0 C, hyst = +96.0 C)  sensor > transistor
+> temp2:        +32.0 C  (high = +85.0 C, hyst = +81.0 C)
+>                        (crit = +100.0 C, hyst = +96.0 C)  sensor > transistor
+> temp3:        +32.0 C  (high = +70.0 C, hyst = +68.0 C)
+>                        (crit = +85.0 C, hyst = +83.0 C)  sensor > transistor
+> 
+> k10temp-pci-00c3
+> Adapter: PCI adapter
+> CPU Temp:     +26.1 C  (high = +70.0 C)
+> 
+> 
 
 _______________________________________________
 lm-sensors mailing list
