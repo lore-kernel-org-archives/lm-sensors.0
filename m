@@ -1,49 +1,38 @@
-From: Luca Tettamanti <kronos.it@gmail.com>
-Date: Wed, 21 Nov 2012 16:27:20 +0000
-Subject: Re: [lm-sensors] Getting alarms using lm-sensors
-Message-Id: <CAKPcRGpT1pbbub_wnd1Ha-4b0Y+qdoaAqTR1PrwYCdZqt4RZZQ@mail.gmail.com>
+From: Sadin Selmani <sadinselmani@gmail.com>
+Date: Sat, 03 Nov 2012 04:13:33 +0000
+Subject: Re: [lm-sensors] Temperature reading too high for it87
+Message-Id: <loom.20121103T050316-869@post.gmane.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <201211160616.qAG6GnV2010183@mx3.lsn.net>
-In-Reply-To: <201211160616.qAG6GnV2010183@mx3.lsn.net>
+References: <20121001225656.0e964dbe.klaus.dahlke@gmx.de>
+In-Reply-To: <20121001225656.0e964dbe.klaus.dahlke@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Nov 20, 2012 at 2:42 PM, Luca Tettamanti <kronos.it@gmail.com> wrote:
-> On Sat, Nov 17, 2012 at 5:13 PM, Leslie Rhorer <lrhorer@mygrande.net> wrote:
->>> >> You can try loading the module forcing the use of a different ACPI
->>> >> interface:
->>> >> rmmod asus_atk0110
->>> >> modprobe asus_atk0110 new_if=1
->>> >
->>> > No, that didn't work.  Loading the module with the new_if=1 parm issues
->>> an
->>> > error:
->>> >
->>> > FATAL: Error inserting asus_atk0110
->>> > (/lib/modules/2.6.32-5-amd64/kernel/drivers/hwmon/asus_atk0110.ko):
->>> Unknown
->>> > symbol in module, or unknown parameter (see dmesg)
->>> >
->>> > And from dmesg:
->>> >
->>> > [25982.929792] asus_atk0110: Unknown parameter `new_if'
->>>
->>> What kernel are you using?
->>
->> 2.6.32-5-amd64
->
-> Ah, it's too old, it does not support the override. Can you send me a
-> copy of this file:
-> /sys/firmware/acpi/tables/DSDT (or /proc/acpi/dsdt if you don't have
-> the sysfs file).
-> I'll see if there might be a problem with the detection heuristic.
+Sorry if I'm posting in the wrong mail-list, but I have a similar problem worth 
+noting.
 
-Nope, there's only one interface (GITM), the BIOS probably has
-hard-coded labels and does not read the ACPI table.
+As for my temp sensing, I think the senors are cheating. It simply reflects CPU 
+usage and scales it to a temp. Either that, or my CPU is running SUPER COOL, 
+which is highly unlikely. See for yourself.
 
-Luca
+http://s8.postimage.org/w5wigedxh/sensors.png
+http://s17.postimage.org/t68xgqn4f/Psensor_Temperature_Monitor_005.png
+
+These Screenshots were taken during a small battery of burn-in tests which ran 
+all 4 of my cores at 100%. See 
+[URL="http://www.roylongbottom.org.uk/linux%20burn-
+in%20apps.htm#anchorStart"]this[/URL] for more details.
+For comparison, BIOS looks WAY more realistic (and scary).
+
+http://s14.postimage.org/u3m74ntbl/2012_11_02_23_08_00.jpg
+
+After reading [URL="http://www.mjmwired.net/kernel/Documentation/hwmon/k10temp"] 
+this, it almost appears like the KERNEL driver "k10temp" is the culprit since it 
+kind of explains what's happening with temp sensing. Time to file a bug?
+
+
 
 _______________________________________________
 lm-sensors mailing list
