@@ -1,111 +1,155 @@
-From: Logan Freijo <loganfreijo@embarqmail.com>
-Date: Sun, 04 Nov 2012 02:02:44 +0000
-Subject: Re: [lm-sensors] f71882fg not showing motherboard temps
-Message-Id: <5095CCC4.5080301@embarqmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 03 Nov 2012 16:29:44 +0000
+Subject: [lm-sensors] [PATCH v2] hwmon: (it87) Add support for AMDTSI, and restrict sensor type configuration
+Message-Id: <1351960184-23005-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <5091A80D.3090101@embarqmail.com>
-In-Reply-To: <5091A80D.3090101@embarqmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 11/3/2012 11:43 AM, Hans de Goede wrote:
-> Hi,
->
->
-> Now a days not really, since there is little ISA stuff left in a 
-> modern PC, and what
-> is there usually is detected fine without isapnp too, since it has 
-> been at the
-> same isa address since the beginning of time (ie serial ports, if 
-> you're lucky enough
-> to have a serial port on your motherboard). However if in the future 
-> you think:
-> "hey why is Linux not seeing my foobar hardware" where by foobar is 
-> something
-> ancient like say a floppy controller, try removing the option. Note 
-> this is all
-> AFAIK, this is veering away a bit from my area of expertise (which is 
-> certain hwmon
-> chips and usb).
->
-> > Is it possible there is a CMOS option that will disable the BIOS use 
-> of this resource?
->
-> Not likely.
->
-> Regards,
->
-> Hans
->
+Add support to detect and report AMDTSI temperature sensor types.
+Only enable PECI and AMDTSI sensor selection if the chip is configured
+for it.
 
-Ok. I won't worry about it then. The wiki says that custom 
-configurations should be sent to the mailing list. Below is the 
-configuration I have that seems to work. Hopefully this will help 
-someone else.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Applies on top of the previously submitted patches.
+Only tested with IT8728F and Intel CPU.
 
-Thanks,
+v2: Add AMDTSI support to IT8728F.
 
-Logan
+ drivers/hwmon/it87.c |   68 +++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 62 insertions(+), 6 deletions(-)
 
-
-
-chip "f71882fg-*"
-
-### Voltages
-
-    #Not sure about in2. Reading changes with change to NB voltage
-    #and Vcore voltage
-
-    label  in1   "Vcore"
-    label  in2   "NBcore"
-    label  in3   "+5V"
-    label  in4   "+12V"
-    label  in5   "5VSB"
-    label  in6   "VDIMM"
-
-    compute  in2  @ * (16/8), @ / (16/8)
-    compute  in3  @ * (42/8), @ / (42/8)
-    compute  in4  @ * (88/8), @ / (88/8)
-    compute  in5  @ * (42/8), @ / (42/8)
-    compute  in6  @ * (16/8), @ / (16/8)
-
-    set in1_min   0.7
-    set in1_max   1.5
-    set in2_min   1.2 * 0.95
-    set in2_max   1.2 * 1.05
-    set in3_min   5   * 0.95
-    set in3_max   5   * 1.05
-    set in4_min   12  * 0.95
-    set in4_max   12  * 1.05
-    set in5_min   5   * 0.95
-    set in5_max   5   * 1.95
-    set in6_min   1.5 * 0.95
-    set in6_max   1.5 * 1.95
-
-
-###Temps
-
-
-    label  temp1   "CPU Temp"
-    label  temp2   "SYS Temp1"
-    label  temp3   "SYS Temp2"
-
-
-
-###Fans
-
-    #Fan4 doesn't exist on this motherboard
-    ignore fan4
-
-    label fan1   "CPU Fan"
-    label fan2   "SYS Fan1"
-    label fan3   "SYS Fan2"
-
-    set fan1_min   500
-    set fan2_min   500
-    set fan3_min   500
+diff --git a/drivers/hwmon/it87.c b/drivers/hwmon/it87.c
+index 6a1410b..ab5a8c5 100644
+--- a/drivers/hwmon/it87.c
++++ b/drivers/hwmon/it87.c
+@@ -228,6 +228,8 @@ static const u8 IT87_REG_TEMP_OFFSET[]	= { 0x56, 0x57, 0x59 };
+ #define IT87_REG_AUTO_TEMP(nr, i) (0x60 + (nr) * 8 + (i))
+ #define IT87_REG_AUTO_PWM(nr, i)  (0x65 + (nr) * 8 + (i))
+ 
++#define IT87_REG_AMDTSI_HSR    0x98
++
+ struct it87_devices {
+ 	const char *name;
+ 	u16 features;
+@@ -331,6 +333,7 @@ struct it87_data {
+ 	u16 features;
+ 	u8 peci_mask;
+ 	u8 old_peci_mask;
++	u8 ext_temp_type;	/* external temperature sensor type (5 or 6) */
+ 
+ 	unsigned short addr;
+ 	const char *name;
+@@ -643,7 +646,7 @@ static ssize_t show_temp_type(struct device *dev, struct device_attribute *attr,
+ 
+ 	if ((has_temp_peci(data, nr) && (reg >> 6 = nr + 1))
+ 	    || (has_temp_old_peci(data, nr) && (extra & 0x80)))
+-		return sprintf(buf, "6\n");  /* Intel PECI */
++		return sprintf(buf, "%u\n", data->ext_temp_type);
+ 	if (reg & (1 << nr))
+ 		return sprintf(buf, "3\n");  /* thermal diode */
+ 	if (reg & (8 << nr))
+@@ -667,24 +670,26 @@ static ssize_t set_temp_type(struct device *dev, struct device_attribute *attr,
+ 	reg = it87_read_value(data, IT87_REG_TEMP_ENABLE);
+ 	reg &= ~(1 << nr);
+ 	reg &= ~(8 << nr);
+-	if (has_temp_peci(data, nr) && (reg >> 6 = nr + 1 || val = 6))
++	if (has_temp_peci(data, nr) && (reg >> 6 = nr + 1 ||
++					val = data->ext_temp_type))
+ 		reg &= 0x3f;
+ 	extra = it87_read_value(data, IT87_REG_TEMP_EXTRA);
+-	if (has_temp_old_peci(data, nr) && ((extra & 0x80) || val = 6))
++	if (has_temp_old_peci(data, nr) && ((extra & 0x80) ||
++					    val = data->ext_temp_type))
+ 		extra &= 0x7f;
+ 	if (val = 2) {	/* backwards compatibility */
+ 		dev_warn(dev,
+ 			 "Sensor type 2 is deprecated, please use 4 instead\n");
+ 		val = 4;
+ 	}
+-	/* 3 = thermal diode; 4 = thermistor; 6 = Intel PECI; 0 = disabled */
++	/* 3 = thermal diode; 4 = thermistor; 5/6 = AMDTSI/PECI; 0 = disabled */
+ 	if (val = 3)
+ 		reg |= 1 << nr;
+ 	else if (val = 4)
+ 		reg |= 8 << nr;
+-	else if (has_temp_peci(data, nr) && val = 6)
++	else if (has_temp_peci(data, nr) && val = data->ext_temp_type)
+ 		reg |= (nr + 1) << 6;
+-	else if (has_temp_old_peci(data, nr) && val = 6)
++	else if (has_temp_old_peci(data, nr) && val = data->ext_temp_type)
+ 		extra |= 0x80;
+ 	else if (val != 0)
+ 		return -EINVAL;
+@@ -1988,6 +1993,7 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 	int err = 0, i;
+ 	int enable_pwm_interface;
+ 	int fan_beep_need_rw;
++	u8 reg;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+ 	if (!devm_request_region(&pdev->dev, res->start, IT87_EC_EXTENT,
+@@ -2030,6 +2036,56 @@ static int __devinit it87_probe(struct platform_device *pdev)
+ 		break;
+ 	}
+ 
++	if (data->features & FEAT_TEMP_OLD_PECI) {
++		reg = it87_read_value(data, IT87_REG_VID);
++		switch ((reg >> 4) & 0x07) {
++		case 0x0:
++		default:
++			data->features &+			  ~(FEAT_TEMP_OLD_PECI | FEAT_TEMP_PECI);
++			break;
++		case 0x3:	/* PCH (IT8721F) */
++			if (data->features & FEAT_TEMP_PECI) {
++				data->features &= ~FEAT_TEMP_PECI;
++				data->ext_temp_type = 6;
++			} else {
++				data->features &= ~FEAT_TEMP_OLD_PECI;
++			}
++			break;
++		case 0x4:	/* AMDTSI */
++			data->ext_temp_type = 5;
++			break;
++		case 0x5:	/* SST slave */
++		case 0x6:	/* PECI */
++		case 0x7:	/* SST host */
++			if (data->features & FEAT_TEMP_PECI)
++				data->features &= ~FEAT_TEMP_OLD_PECI;
++			data->ext_temp_type = 6;
++			break;
++		}
++	} else if (data->features & FEAT_TEMP_PECI) {
++		reg = it87_read_value(data, IT87_REG_VID);
++		switch ((reg >> 4) & 0x03) {
++		case 0x0:	/* disabled */
++			/* Check if AMDTSI is enabled */
++			if (reg & 0x40) {
++				reg = it87_read_value(data,
++						      IT87_REG_AMDTSI_HSR);
++				if (reg & 0x40) {
++					data->ext_temp_type = 5;
++					break;
++				}
++			}
++			data->features &= ~FEAT_TEMP_PECI;
++			break;
++		case 0x1:	/* SST slave */
++		case 0x2:	/* PECI */
++		case 0x3:	/* SST host */
++			data->ext_temp_type = 6;
++			break;
++		}
++	}
++
+ 	/* Now, we do the remaining detection. */
+ 	if ((it87_read_value(data, IT87_REG_CONFIG) & 0x80)
+ 	 || it87_read_value(data, IT87_REG_CHIPID) != 0x90)
+-- 
+1.7.9.7
 
 
 _______________________________________________
