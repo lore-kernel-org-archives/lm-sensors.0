@@ -1,7 +1,7 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Sat, 03 Nov 2012 15:43:24 +0000
+From: Logan Freijo <loganfreijo@embarqmail.com>
+Date: Sun, 04 Nov 2012 02:02:44 +0000
 Subject: Re: [lm-sensors] f71882fg not showing motherboard temps
-Message-Id: <50953B9C.5010004@redhat.com>
+Message-Id: <5095CCC4.5080301@embarqmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <5091A80D.3090101@embarqmail.com>
 In-Reply-To: <5091A80D.3090101@embarqmail.com>
@@ -10,106 +10,103 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-On 11/02/2012 09:04 PM, Logan Freijo wrote:
-> On 11/2/2012 12:28 PM, Hans de Goede wrote:
->> Hi,
->>
->> On 11/02/2012 02:22 PM, Logan Freijo wrote:
->>> On 11/2/2012 5:09 AM, Hans de Goede wrote:
->>>> Hi,
->>>>
->>>> On 11/02/2012 06:29 AM, Logan Freijo wrote:
->>>>
->>>> <snip>
->>>>
->>>>> Device 09 no longer shows up.
->>>>> ls -lR /sys/bus/pnp/devices/00\:09/
->>>>> and
->>>>> cat /sys/bus/pnp/devices/00\:09/id
->>>>> return "No such file or directory"
->>>>>
->>>>
->>>> Yeah, that is due to the pnpacpi=off option you
->>>> are using, please boot without that (or any other
->>>> special options), and then repeat the 2 above
->>>> commands. This will give us an idea if it will be
->>>> feasible to fix this in a way which will not
->>>> require passing those special kernel cmdline
->>>> options.
->>>>
->>>> Regards,
->>>>
->>>> Hans
->>>>
->>> Alright. Here is ls -lR /sys/bus/pnp/devices/00\:09/
->>>
->>> /sys/bus/pnp/devices/00:09/:
->>> total 0
->>> lrwxrwxrwx 1 root root    0 Nov  2 09:18 driver -> ../../../bus/pnp/drivers/system
->>> lrwxrwxrwx 1 root root    0 Nov  2 09:18 firmware_node -> ../../LNXSYSTM:00/device:00/PNP0A03:00/device:17/PNP0C02:03
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 id
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 options
->>> drwxr-xr-x 2 root root    0 Nov  2 09:18 power
->>> -rw-r--r-- 1 root root 4096 Nov  2 09:18 resources
->>> lrwxrwxrwx 1 root root    0 Nov  2 09:17 subsystem -> ../../../bus/pnp
->>> -rw-r--r-- 1 root root 4096 Nov  2 09:17 uevent
->>>
->>> /sys/bus/pnp/devices/00:09/power:
->>> total 0
->>> -rw-r--r-- 1 root root 4096 Nov  2 09:18 async
->>> -rw-r--r-- 1 root root 4096 Nov  2 09:18 autosuspend_delay_ms
->>> -rw-r--r-- 1 root root 4096 Nov  2 09:18 control
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 runtime_active_kids
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 runtime_active_time
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 runtime_enabled
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 runtime_status
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 runtime_suspended_time
->>> -r--r--r-- 1 root root 4096 Nov  2 09:18 runtime_usage
->>>
->>
->> Good, no other drivers are using this pnp-id, but:
->>
->>>
->>> And  cat /sys/bus/pnp/devices/00\:09/id
->>>
->>> PNP0c02
->>
->> But this is bad news, this is the general pnp ID for reserving
->> resources, without specifying a driver to use them ...
->>
->> This could mean that your ACPI code is using the device, and
->> the firmware authors are reserving it in a funky way. More likely
->> this is just a BIOS misfeature of some sorts...
->>
->> Anyways there is little we can do here to fix things, as we can
->> not make the f71882fg driver claim that pnp id.
->>
->> Regards,
->>
->> Hans
->>
-> Hello,
+On 11/3/2012 11:43 AM, Hans de Goede wrote:
+> Hi,
 >
-> Thanks for looking into this further Hans. Is there any adverse effect to using the pnpacpi=off option?
+>
+> Now a days not really, since there is little ISA stuff left in a 
+> modern PC, and what
+> is there usually is detected fine without isapnp too, since it has 
+> been at the
+> same isa address since the beginning of time (ie serial ports, if 
+> you're lucky enough
+> to have a serial port on your motherboard). However if in the future 
+> you think:
+> "hey why is Linux not seeing my foobar hardware" where by foobar is 
+> something
+> ancient like say a floppy controller, try removing the option. Note 
+> this is all
+> AFAIK, this is veering away a bit from my area of expertise (which is 
+> certain hwmon
+> chips and usb).
+>
+> > Is it possible there is a CMOS option that will disable the BIOS use 
+> of this resource?
+>
+> Not likely.
+>
+> Regards,
+>
+> Hans
+>
 
-Now a days not really, since there is little ISA stuff left in a modern PC, and what
-is there usually is detected fine without isapnp too, since it has been at the
-same isa address since the beginning of time (ie serial ports, if you're lucky enough
-to have a serial port on your motherboard). However if in the future you think:
-"hey why is Linux not seeing my foobar hardware" where by foobar is something
-ancient like say a floppy controller, try removing the option. Note this is all
-AFAIK, this is veering away a bit from my area of expertise (which is certain hwmon
-chips and usb).
+Ok. I won't worry about it then. The wiki says that custom 
+configurations should be sent to the mailing list. Below is the 
+configuration I have that seems to work. Hopefully this will help 
+someone else.
 
- > Is it possible there is a CMOS option that will disable the BIOS use of this resource?
+Thanks,
 
-Not likely.
+Logan
 
-Regards,
 
-Hans
+
+chip "f71882fg-*"
+
+### Voltages
+
+    #Not sure about in2. Reading changes with change to NB voltage
+    #and Vcore voltage
+
+    label  in1   "Vcore"
+    label  in2   "NBcore"
+    label  in3   "+5V"
+    label  in4   "+12V"
+    label  in5   "5VSB"
+    label  in6   "VDIMM"
+
+    compute  in2  @ * (16/8), @ / (16/8)
+    compute  in3  @ * (42/8), @ / (42/8)
+    compute  in4  @ * (88/8), @ / (88/8)
+    compute  in5  @ * (42/8), @ / (42/8)
+    compute  in6  @ * (16/8), @ / (16/8)
+
+    set in1_min   0.7
+    set in1_max   1.5
+    set in2_min   1.2 * 0.95
+    set in2_max   1.2 * 1.05
+    set in3_min   5   * 0.95
+    set in3_max   5   * 1.05
+    set in4_min   12  * 0.95
+    set in4_max   12  * 1.05
+    set in5_min   5   * 0.95
+    set in5_max   5   * 1.95
+    set in6_min   1.5 * 0.95
+    set in6_max   1.5 * 1.95
+
+
+###Temps
+
+
+    label  temp1   "CPU Temp"
+    label  temp2   "SYS Temp1"
+    label  temp3   "SYS Temp2"
+
+
+
+###Fans
+
+    #Fan4 doesn't exist on this motherboard
+    ignore fan4
+
+    label fan1   "CPU Fan"
+    label fan2   "SYS Fan1"
+    label fan3   "SYS Fan2"
+
+    set fan1_min   500
+    set fan2_min   500
+    set fan3_min   500
+
 
 _______________________________________________
 lm-sensors mailing list
