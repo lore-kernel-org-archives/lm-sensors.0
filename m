@@ -1,82 +1,107 @@
-From: "Frantisek Rysanek" <Frantisek.Rysanek@post.cz>
-Date: Thu, 01 Nov 2012 09:14:25 +0000
-Subject: Re: [lm-sensors] coretemp.ko -- Sandy Bridge: temperature readings "biased" based on power consumpti
-Message-Id: <50923D71.11396.6ECB01BF@Frantisek.Rysanek.post.cz>
+From: =?UTF-8?B?TGFycyBQw7Z0dGVy?= <lars@ing-poetter.de>
+Date: Thu, 08 Nov 2012 21:06:07 +0000
+Subject: [lm-sensors] Configuration File for ASRock B75 Pro3
+Message-Id: <509C1EBF.3000309@ing-poetter.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <50905C34.31182.67732CA0@Frantisek.Rysanek.post.cz>
-In-Reply-To: <50905C34.31182.67732CA0@Frantisek.Rysanek.post.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On 31 Oct 2012 at 6:31, Phil Pokorny wrote:
-> 
-> On Tue, Oct 30, 2012 at 5:32 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-[...]
->    > I think that is pretty normal. Keep in mind this is the 
->    > temperature within the chip core, not at the external package.
-> 
-> And there is internal thermal paste inside the CPU package between the
-> CPU die itself and the integrated heat spreader. That thermal material
-> also explains why the silicon die temperature can jump so quickly. It
-> has a higher deg C/W than the IHS and the heatsink on top of that.
-> 
-> Phil P.
+I use the following configuration file:
 
-Hmm. Okay - I should check my thermocoupling again.
+chip "nct6776-isa-0290"
+    label in1 "+1.9V"
+    ignore in4
+    label in5 "+1.66V"
+    ignore fan1
+    label fan2 "CPU Fan"
+    ignore fan3
+    ignore fan4
+    ignore fan5
+    label SYSTIN "SystemTemperature"
 
-The CPU that "jumps up 30*C in a second" (and jumps down
-equally fast when I turn the load off) is actually a mobile/embedded 
-version, i.e. it has no I.H.S. The chip is supposedly thermocoupled 
-straight flat to the heatsink. This is a passive heatsink, and it's 
-pretty massive, and I know that heatsinks tend to have quite some 
-thermal inertia. Theoretically this should be the optimum style of 
-thermocoupling in "passive cooled" computers.
+    set in1_min  1.9 * 0.90
+    set in1_max  1.9 * 1.10
+    set in5_min  1.66 * 0.90
+    set in5_max  1.66 * 1.10
 
-The catch is, that this particular hardware setup had flawed 
-thermocoupling between the CPU and the heatsink (ex works). The CPU 
-had a pad of "thermocouple chewing gum" on it (likely Fuji Sarcon), 
-approx. 1.1 mm thick. That way the CPU reported 80*C in the BIOS 
-Setup a few dozen seconds after power-up :-)  = one core running in a 
-tight loop, other cores asleep, heatsink at 20*C, with the whole 
-computer consuming roughly 27 Watts. (Under Linux, when properly 
-idling, consumption dropped to 12 Watts.)
+    set fan2_min  900 * 0.90
+    set fan2_max  3000 * 1.10
 
-I've tried to fix the problem by inserting a sheet of 1mm copper 
-(about 4 by 4 cm) and by glueing it all toghether by Ceramique CMQ2 - 
-I couldn't use the Coollaboratory liquid (Ga+In+Sn), because the 
-heatsink is made of Aluminium... In a similar scenario, I used to get 
-maybe 10*C of a temperature gradient between a Core2 Duo and the 
-heatsink, and that was across a rather long aluminium "thermocouple 
-bridge".
-In the case at hand I was fairly satisfied with the way the CPU leans 
-against my improvised heat spreader - I could feel it by the 
-screwdriver, as I was tightening the mounting bolts. Also, the square 
-of the SandyBridge chip is *big* compared to C2D Mobile = more heat 
-transfer surface for a similar wattage. Unfortunately there's no way 
-for me to inspect the gap with the heatsink mounted, so I'll probably 
-have to trust the thermal sensor :-)
+    set SYSTIN_min  15
+    set SYSTIN_max  50
 
-I still plan to keep an eye on the mobile SandyBridge CPU's whenever 
-I get a chance, to get some "benchmark" / comparable readings on 
-other hardware. I don't meet too many SandyBridge CPU's in our 
-embedded computers - the boxes are dominated by the Atom and I have 
-to agree that even mobile SandyBridge is thermally a bit of an 
-overkill in those small boxes (just like the mobile C2D was). 
-Besides, SandyBridge is stil a bit of a newcomer in the 
-industrial/embedded hardware. There are some SandyBridge notebooks 
-around - so I'll probably have to ask my boss to let me PXE-boot into 
-Linux to run a comparison test on his gear...
 
-I can see a similar jump (20-25*C) in a Core i5 Arrandale -based 
-notebook, where I have reasons to believe that the thermocoupling is 
-done right.
+But I still get these error reports in syslog:
 
-Hmm... interesting stuff :-)
-Thanks for your insight - to everybody who responded.
 
-Frank Rysanek
+Nov  8 21:54:36 sensord: sensord started
+Nov  8 21:54:36 sensord: Sensor alarm: Chip nct6776-isa-0290: +1.9V:
++1.90 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Nov  8 21:54:36 sensord: Sensor alarm: Chip nct6776-isa-0290: +1.66V:
++1.66 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Nov  8 21:54:36 sensord: Sensor alarm: Chip nct6776-isa-0290: CPU Fan:
+1597 RPM (min = 0 RPM) [ALARM]
+Nov  8 21:54:36 sensord: Sensor alarm: Chip nct6776-isa-0290: SYSTIN:
+27.0 C (limit = 0.0 C, hysteresis = 0.0 C) [ALARM]
+Nov  8 21:54:36 sensord: Chip: coretemp-isa-0000
+Nov  8 21:54:36 sensord: Adapter: ISA adapter
+Nov  8 21:54:36 sensord:   Physical id 0: 33.0 C
+Nov  8 21:54:36 sensord:   Core 0: 26.0 C
+Nov  8 21:54:36 sensord:   Core 1: 26.0 C
+Nov  8 21:54:36 sensord:   Core 2: 33.0 C
+Nov  8 21:54:36 sensord:   Core 3: 25.0 C
+Nov  8 21:54:36 sensord: Chip: nct6776-isa-0290
+Nov  8 21:54:36 sensord: Adapter: ISA adapter
+Nov  8 21:54:36 sensord:   Vcore: +0.99 V (min = +0.00 V, max = +1.74 V)
+Nov  8 21:54:36 sensord:   +1.9V: +1.90 V (min = +0.00 V, max = +0.00 V)
+[ALARM]
+Nov  8 21:54:36 sensord:   AVCC: +3.42 V (min = +2.98 V, max = +3.63 V)
+Nov  8 21:54:36 sensord:   +3.3V: +3.42 V (min = +2.98 V, max = +3.63 V)
+Nov  8 21:54:36 sensord:   +1.66V: +1.66 V (min = +0.00 V, max = +0.00
+V) [ALARM]
+Nov  8 21:54:36 sensord:   3VSB: +3.44 V (min = +2.98 V, max = +3.63 V)
+Nov  8 21:54:36 sensord:   Vbat: +3.25 V (min = +2.70 V, max = +3.30 V)
+Nov  8 21:54:36 sensord:   CPU Fan: 1597 RPM (min = 0 RPM) [ALARM]
+Nov  8 21:54:36 sensord:   SYSTIN: 27.0 C (limit = 0.0 C, hysteresis 0.0 C) [ALARM]
+Nov  8 21:54:36 sensord:   CPUTIN: 27.5 C (limit = 80.0 C, hysteresis 75.0 C)
+Nov  8 21:54:36 sensord:   AUXTIN: 57.0 C (limit = 80.0 C, hysteresis 75.0 C)
+Nov  8 21:54:36 sensord:   PECI Agent 0: 33.0 C
+Nov  8 21:54:36 sensord:   cpu0_vid: +2.050 V
+Nov  8 21:55:36 sensord: Sensor alarm: Chip nct6776-isa-0290: +1.9V:
++1.90 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Nov  8 21:55:36 sensord: Sensor alarm: Chip nct6776-isa-0290: +1.66V:
++1.66 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Nov  8 21:55:36 sensord: Sensor alarm: Chip nct6776-isa-0290: CPU Fan:
+1601 RPM (min = 0 RPM) [ALARM]
+Nov  8 21:55:36 sensord: Sensor alarm: Chip nct6776-isa-0290: SYSTIN:
+27.0 C (limit = 0.0 C, hysteresis = 0.0 C) [ALARM]
+Nov  8 21:56:36 sensord: Sensor alarm: Chip nct6776-isa-0290: +1.9V:
++1.91 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Nov  8 21:56:36 sensord: Sensor alarm: Chip nct6776-isa-0290: +1.66V:
++1.66 V (min = +0.00 V, max = +0.00 V) [ALARM]
+Nov  8 21:56:36 sensord: Sensor alarm: Chip nct6776-isa-0290: CPU Fan:
+1610 RPM (min = 0 RPM) [ALARM]
+Nov  8 21:56:36 sensord: Sensor alarm: Chip nct6776-isa-0290: SYSTIN:
+27.0 C (limit = 0.0 C, hysteresis = 0.0 C) [ALARM]
+
+ /usr/sbin/sensord --version
+sensord version 3.3.1
+
+So it reads the config file as the labels are used, but the limits are
+not recognized.
+
+I tried to ignore all the conflicting signals but ignoring SYSTIN does
+not work.
+
+What am I doing wrong here?
+
+Best Regards
+
+Lars
+
+PS: I'm not subscribed to the list so please CC me.
 
 
 _______________________________________________
