@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 17 Nov 2012 04:16:27 +0000
+From: "Leslie Rhorer" <lrhorer@mygrande.net>
+Date: Sat, 17 Nov 2012 04:45:05 +0000
 Subject: Re: [lm-sensors] Getting alarms using lm-sensors
-Message-Id: <20121117041627.GA25291@roeck-us.net>
+Message-Id: <201211170445.qAH4j6PA002454@mx3.lsn.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201211160616.qAG6GnV2010183@mx3.lsn.net>
 In-Reply-To: <201211160616.qAG6GnV2010183@mx3.lsn.net>
@@ -10,91 +10,57 @@ Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Fri, Nov 16, 2012 at 09:48:59PM -0600, Leslie Rhorer wrote:
-> > -----Original Message-----
-> > From: Guenter Roeck [mailto:linux@roeck-us.net]
-> > Sent: Friday, November 16, 2012 12:37 AM
-> > To: Leslie Rhorer
-> > Cc: lm-sensors@lm-sensors.org
-> > Subject: Re: [lm-sensors] Getting alarms using lm-sensors
-> >=20
-> > On Fri, Nov 16, 2012 at 12:16:48AM -0600, Leslie Rhorer wrote:
-> > > Hello, All.
-> > >
-> > > 	I have been trying to configure lm_sensors to provide alarms for
-> > > failing fans, high temperatures, etc.  I get a reasonable output from
-> > the
-> > > sensors command, but when I deliverately create an alarm condition, it
-> > does
-> > > not report as an alarm.  For example, I just pulled the fan on the
-> > OPT_FAN3
-> > > sensor, and the speed dropped from 1800 RPM to 0, but `sensors` does =
-not
-> > > report any alarm:
-> > >
-> > > RAID-Server:/usr/share/sensors# sensors
-> > > acpitz-virtual-0
-> > > Adapter: Virtual device
-> > > temp1:       +40.0=B0C  (crit =3D +75.0=B0C)
-> > >
-> > > atk0110-acpi-0
-> > > Adapter: ACPI interface
-> > > Vcore Voltage:      +1.42 V  (min =3D  +0.85 V, max =3D  +1.60 V)
-> > > +12V Voltage:      +12.03 V  (min =3D +10.20 V, max =3D +13.80 V)
-> > > +5V Voltage:        +4.92 V  (min =3D  +4.50 V, max =3D  +5.50 V)
-> > > +3.3V Voltage:      +3.30 V  (min =3D  +2.97 V, max =3D  +3.63 V)
-> > > DDR2:               +2.00 V  (min =3D  +1.71 V, max =3D  +2.09 V)
-> > > HT:                 +1.28 V  (min =3D  +1.08 V, max =3D  +1.32 V)
-> > > SB:                 +1.30 V  (min =3D  +0.99 V, max =3D  +1.21 V)
-> > > BR:                 +1.23 V  (min =3D  +1.08 V, max =3D  +1.32 V)
-> > > VDDA:               +2.61 V  (min =3D  +2.25 V, max =3D  +2.75 V)
-> > > DDR2 TERM.:         +0.98 V  (min =3D  +0.85 V, max =3D  +1.04 V)
-> > > VDDNB:              +1.20 V  (min =3D  +1.17 V, max =3D  +1.43 V)
-> > > CPU_FAN FAN Speed: 2227 RPM  (min =3D  800 RPM)
-> > > CHA_FAN1 FAN Speed:2766 RPM  (min =3D  800 RPM)
-> > > CHA_FAN2 FAN Speed:2766 RPM  (min =3D  800 RPM)
-> > > OPT_FAN1 FAN Speed:   0 RPM  (min =3D  800 RPM)
-> > > OPT_FAN2 FAN Speed:   0 RPM  (min =3D  800 RPM)
-> > > OPT_FAN3 FAN Speed:   0 RPM  (min =3D  800 RPM)
-> > > PWR_FAN FAN Speed: 1180 RPM  (min =3D  800 RPM)
-> > > CHA_FAN3 FAN Speed:   0 RPM  (min =3D  800 RPM)
-> > > CPU Temperature:    +41.0=B0C  (high =3D +60.0=B0C, crit =3D +95.0=B0=
-C)
-> > > MB Temperature:     +45.0=B0C  (high =3D +45.0=B0C, crit =3D +95.0=B0=
-C)
-> > > OPT1:                +0.0=B0C  (high =3D +45.0=B0C, crit =3D +95.0=B0=
-C)
-> > > OPT2:                +0.0=B0C  (high =3D +45.0=B0C, crit =3D +95.0=B0=
-C)
-> > > OPT3:                +0.0=B0C  (high =3D +45.0=B0C, crit =3D +95.0=B0=
-C)
-> > >
-> > > k10temp-pci-00c3
-> > > Adapter: PCI adapter
-> > > temp1:       +32.5=B0C  (high =3D +70.0=B0C, crit =3D +70.0=B0C)
-> >=20
-> > All those drivers don't support alarms.
-> >=20
-> > Guenter
->=20
-> Oi.  Thanks, anyway.
->=20
-> Well, OK, then.  I've started working on a cron script that will send
-> e-mails when a parameter falls out of bounds or shut down the shelf if it=
- is
-> critical, so on a related note, what sensors, exactly, are acpitz-virtual=
--0
-> and k10temp-pci-00c3?  It's very nice they are in bounds, but if they sho=
-uld
-> drift out of bounds, what should I believe is getting too hot?
->=20
-k10temp is the AMD CPU temperature as reported by the CPU itself. It isn't
-really accurate. acpitz-virtual is, as the name says, a virtual device.
-acpitx is short for "ACPI thermal zone". It may also reflect the CPU
-temperature, but I don't know for sure.
+> > > > SB:                 +1.30 V  (min =3D  +0.99 V, max =3D  +1.21 V)
 
-Guenter
+> > > > MB Temperature:     +45.0=B0C  (high =3D +45.0=B0C, crit =3D +95.0=
+=B0C)
+
+
+> k10temp is the AMD CPU temperature as reported by the CPU itself. It isn't
+> really accurate. acpitz-virtual is, as the name says, a virtual device.
+> acpitx is short for "ACPI thermal zone". It may also reflect the CPU
+> temperature, but I don't know for sure.
 >=20
+> Guenter
+
+	OK, thanks once again.  I guess I will ignore them.  I hope you
+don't mind me asking all these questions, but I do have a couple more.  Note
+the two reports above.  Where is the sensors routine getting its limit
+values?  Both the SouthBridge voltage and the chip array temperature are
+reported out of bounds, yet I am not overclocking, at all.  The manual says
+the motherboard offers legitimate OC values of 1.10, 1.12, 1.14, 1.16, 2.98,
+and 3.00 VDC.  Given that, I shouldn't think 1.3V would be out of bounds.
+
+	That, and 45C is just not really that hot.  The chipset often rises
+to well over 60C, and I don't really believe it to be a problem.
+
+	Finally, and this one I admit is really getting close to being
+totally off-topic, but the script I am writing reports the out of bounds
+values to me via mail.  The degree character gets mangled, though, making
+the text look funny.  It's really not a big deal, but it is a bit annoying.
+The text above comes out as:
+
++40.0=C2=B0C (high =3D +60.0=C2=B0C, crit =3D +95.0=C2=B0C)
+
+All I do is store the text of the `sensors` command to a variable and then
+pass the variables to mail.  (This is a bash script.)
+
+	SID=3D$( echo $line | cut -d ":" -f1 )		# $SID =3D Sensor ID
+	AID=3D$(echo $line | cut -d ":" -f4 )		# $AID =3D Sensor Name
+	TID=3D$(echo $line | cut -d ":" -f5 )		# $TID =3D Text Name
+for e-mail
+	FIELDS=3D$( sensors | grep "$AID:" )		# $FIELDS =3D Text
+from `sensors`
+	F2=3D$( echo $FIELDS | cut -d ":" -f2 )		# $F2 =3D Description
+from `sensors`
+	CVAL=3D${F2% (*}					# $CVAL =3D Current
+Sensor Value
+
+...
+
+echo "$TID $ATEXT  Value: $F2" | mail -a From:sensor_monitor -s "RAID-Server
+Sensor Event Notification" xxxxxxxxxx@yyyyyyyyy.com
+
 
 _______________________________________________
 lm-sensors mailing list
