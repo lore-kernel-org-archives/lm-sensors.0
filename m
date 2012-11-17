@@ -1,54 +1,50 @@
-From: "Leslie Rhorer" <lrhorer@mygrande.net>
-Date: Sat, 17 Nov 2012 15:26:08 +0000
+From: Luca Tettamanti <kronos.it@gmail.com>
+Date: Sat, 17 Nov 2012 15:51:04 +0000
 Subject: Re: [lm-sensors] Getting alarms using lm-sensors
-Message-Id: <201211171526.qAHFQ9BM018940@mx3.lsn.net>
+Message-Id: <CAKPcRGq=URf09VUKVMDNn78d=3teE-X=v72wHpzb9oMQ=KyOjw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201211160616.qAG6GnV2010183@mx3.lsn.net>
 In-Reply-To: <201211160616.qAG6GnV2010183@mx3.lsn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: Jean Delvare [mailto:khali@linux-fr.org]
-> Sent: Saturday, November 17, 2012 5:01 AM
-> To: Leslie Rhorer
-> Cc: 'Guenter Roeck'; lm-sensors@lm-sensors.org
-> Subject: Re: [lm-sensors] Getting alarms using lm-sensors
->=20
-> On Sat, 17 Nov 2012 03:19:34 -0600, Leslie Rhorer wrote:
-> > OTOH, in actuality, the use of the degree symbol is incorrect.  The term
-> > 45.0=B0C implies a DIFFERENCE in temperature of 45=B0C between two bodi=
-es.
-> The
-> > absolute temperature is referenced as 45C.  Thus, there is a huge
-> difference
-> > between 45C and 45K (273.15=B0), but 45=B0C and 45=B0K mean precisely t=
-he same
-> > thing.
->=20
-> No. From Wikipedia:
->=20
-> "The degree Celsius (=B0C) can refer to a specific temperature on the
-> Celsius scale as well as a unit to indicate a temperature interval, a
-> difference between two temperatures (...)"
->=20
-> The use of "C" to designate degrees Celsius is simply wrong.
->=20
-> --
-> Jean Delvare
-
-	OK, I looked it up, and apparently the definition has changed (in
-1989) since the days (late 1970s) when I worked as a physicist in a low
-temperature laboratory.  That, or my memory is just failing me.  In any
-case, the sky won't fall if my email employs C instead of =B0C.
-
-
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+T24gU2F0LCBOb3YgMTcsIDIwMTIgYXQgMTA6MTkgQU0sIExlc2xpZSBSaG9yZXIgPGxyaG9yZXJA
+bXlncmFuZGUubmV0PiB3cm90ZToKPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tCj4gPiBG
+cm9tOiBKZWFuIERlbHZhcmUgW21haWx0bzpraGFsaUBsaW51eC1mci5vcmddCj4gPiBTZW50OiBT
+YXR1cmRheSwgTm92ZW1iZXIgMTcsIDIwMTIgMjoxMyBBTQo+ID4gVG86IExlc2xpZSBSaG9yZXIK
+PiA+IENjOiAnR3VlbnRlciBSb2Vjayc7IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiA+IFN1
+YmplY3Q6IFJlOiBbbG0tc2Vuc29yc10gR2V0dGluZyBhbGFybXMgdXNpbmcgbG0tc2Vuc29ycwo+
+ID4KPiA+IE9uIEZyaSwgMTYgTm92IDIwMTIgMjI6NDU6MDUgLTA2MDAsIExlc2xpZSBSaG9yZXIg
+d3JvdGU6Cj4gPiA+ID4gPiA+ID4gU0I6ICAgICAgICAgICAgICAgICArMS4zMCBWICAobWluID0g
+ICswLjk5IFYsIG1heCA9ICArMS4yMSBWKQo+ID4gPgo+ID4gPiA+ID4gPiA+IE1CIFRlbXBlcmF0
+dXJlOiAgICAgKzQ1LjDCsEMgIChoaWdoID0gKzQ1LjDCsEMsIGNyaXQgPSArOTUuMMKwQykKPiA+
+ID4KPiA+ID4KPiA+ID4gPiBrMTB0ZW1wIGlzIHRoZSBBTUQgQ1BVIHRlbXBlcmF0dXJlIGFzIHJl
+cG9ydGVkIGJ5IHRoZSBDUFUgaXRzZWxmLiBJdAo+ID4gaXNuJ3QKPiA+ID4gPiByZWFsbHkgYWNj
+dXJhdGUuIGFjcGl0ei12aXJ0dWFsIGlzLCBhcyB0aGUgbmFtZSBzYXlzLCBhIHZpcnR1YWwKPiA+
+IGRldmljZS4KPiA+ID4gPiBhY3BpdHggaXMgc2hvcnQgZm9yICJBQ1BJIHRoZXJtYWwgem9uZSIu
+IEl0IG1heSBhbHNvIHJlZmxlY3QgdGhlIENQVQo+ID4gPiA+IHRlbXBlcmF0dXJlLCBidXQgSSBk
+b24ndCBrbm93IGZvciBzdXJlLgo+ID4gPiA+Cj4gPiA+ID4gR3VlbnRlcgo+ID4gPgo+ID4gPiAg
+ICAgT0ssIHRoYW5rcyBvbmNlIGFnYWluLiAgSSBndWVzcyBJIHdpbGwgaWdub3JlIHRoZW0uICBJ
+IGhvcGUgeW91Cj4gPiA+IGRvbid0IG1pbmQgbWUgYXNraW5nIGFsbCB0aGVzZSBxdWVzdGlvbnMs
+IGJ1dCBJIGRvIGhhdmUgYSBjb3VwbGUgbW9yZS4KPiA+IE5vdGUKPiA+ID4gdGhlIHR3byByZXBv
+cnRzIGFib3ZlLiAgV2hlcmUgaXMgdGhlIHNlbnNvcnMgcm91dGluZSBnZXR0aW5nIGl0cyBsaW1p
+dAo+ID4gPiB2YWx1ZXM/ICBCb3RoIHRoZSBTb3V0aEJyaWRnZSB2b2x0YWdlIGFuZCB0aGUgY2hp
+cCBhcnJheSB0ZW1wZXJhdHVyZSBhcmUKPiA+ID4gcmVwb3J0ZWQgb3V0IG9mIGJvdW5kcywgeWV0
+IEkgYW0gbm90IG92ZXJjbG9ja2luZywgYXQgYWxsLiAgVGhlIG1hbnVhbAo+ID4gc2F5cwo+ID4g
+PiB0aGUgbW90aGVyYm9hcmQgb2ZmZXJzIGxlZ2l0aW1hdGUgT0MgdmFsdWVzIG9mIDEuMTAsIDEu
+MTIsIDEuMTQsIDEuMTYsCj4gPiAyLjk4LAo+ID4gPiBhbmQgMy4wMCBWREMuICBHaXZlbiB0aGF0
+LCBJIHNob3VsZG4ndCB0aGluayAxLjNWIHdvdWxkIGJlIG91dCBvZgo+ID4gYm91bmRzLgo+ID4K
+PiA+IFRoZSBsaW1pdHMgYXJlIHNldCBieSB0aGUgQklPUyBpdHNlbGYuIE5vdGUgdGhhdCBBVEsw
+MTEwIGlzIGEgdmlydHVhbAo+Cj4gICAgICAgICAiTGltaXRzIiBpbiB0ZXJtcyBvZiB3aGF0PyAg
+VGhlIGNoaXAgYXBwYXJlbnRseSBkb2VzIG5vdCBoYXZlIGFueQo+IGFsYXJtaW5nIGNhcGFiaWxp
+dHkuICBEbyB5b3UgbWVhbiB0aGUgdGV4dCBpcyBwcm9kdWNlZCBieSB0aGUgQklPUz8KClllcywg
+dGhlIGRyaXZlciBqdXN0IHNob3dzIHRoZSBsYWJlbHMgYXMgcmV0dXJuZWQgYnkgdGhlIEJJT1Mu
+Cgo+ICBPZGQsCj4gaW5kZWVkLCBpZiBzbywgc2luY2UgdGhlIHRleHQgaW5zaWRlIHRoZSBCSU9T
+IHV0aWxpdHkgaXMgcXVpdGUgZGlmZmVyZW50LgoKWW91IGNhbiB0cnkgbG9hZGluZyB0aGUgbW9k
+dWxlIGZvcmNpbmcgdGhlIHVzZSBvZiBhIGRpZmZlcmVudCBBQ1BJIGludGVyZmFjZToKcm1tb2Qg
+YXN1c19hdGswMTEwCm1vZHByb2JlIGFzdXNfYXRrMDExMCBuZXdfaWY9MQoKTAoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5n
+IGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5v
+cmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
