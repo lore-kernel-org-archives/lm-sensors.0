@@ -1,81 +1,51 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 21 Nov 2012 22:05:31 +0000
-Subject: Re: [lm-sensors] Configuration File for ASRock B75 Pro3
-Message-Id: <20121121230531.46691f54@endymion.delvare>
+From: David Hubbard <david.c.hubbard@gmail.com>
+Date: Wed, 28 Nov 2012 20:41:03 +0000
+Subject: [lm-sensors] ITE it8603e
+Message-Id: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <509C1EBF.3000309@ing-poetter.de>
-In-Reply-To: <509C1EBF.3000309@ing-poetter.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 21 Nov 2012 21:09:59 +0100, Lars P=F6tter wrote:
-> Am 12.11.2012 10:28, schrieb Jean Delvare:
-> > +1.9V and +1.66V make little sense to me. These voltage values aren't
-> > part of the ATX specification. They most certainly correspond to +12V
-> > and +5V (the ASROck BIOS displays these) and need proper scaling
-> > factors. Please read:
-> >   http://www.lm-sensors.org/wiki/VoltageLabelsAndScaling
-> > then you should be able to figure out who is who and which scaling
-> > factors should be applied.
->=20
-> The Bios has:
-> VCore        +1,048V
-> +12V        +12,513V
-> +5V          +4,992V
-> +3,3V        +3,424V
->=20
-> and sensors -u has:
-> nct6776-isa-0290
-> Adapter: ISA adapter
-> (...)
-> +1.9V:
->   in1_input: 1.896
-> (...)
-> +1.66V:
->   in5_input: 1.656
->=20
-> I hope that makes sense to you.
+Hi Jean,
 
-As explained in the wiki page I wrote and pointed you to, you need
-several samples for every input in order to be able to find the mapping
-and scaling factors of multiple voltage inputs. I can't do anything
-with just the values above, we need more voltage samples from the BIOS.
+Rudolf and I are collaborating on a new Asus board for coreboot.org,
+the F2A85-M, which has a new ITE chip, the it8603e. sensors-detect
+says:
 
-> > You have only one fan in your machine but the board had 5 headers. The
-> > BIOS can display 5 fan speed values, so we don't want these ignore
-> > statements in the configuration file that will go to the wiki. Best
-> > would be to provide the right label for each fan, with some luck they
-> > are in the same order as in the BIOS, but you if you have a spare fan
-> > to confirm that, it would be great.
->=20
-> I don't have a spare fan to confirm, but these are the Names in the Bios
-> used for the Fan Connectors:
-> - CPU-FAN1 (The ios shows my fan there so this must be fan2 althoug it
-> is listed first in the Bios)
-> - CPU-FAN2
-> - Chassis FAN 1
-> - Chassis FAN 2
-> - Power FAN
+Probing for Super-I/O at 0x2e/0x2f
+Trying family `National Semiconductor/ITE'...               No
+Trying family `SMSC'...                                     No
+Trying family `VIA/Winbond/Nuvoton/Fintek'...               No
+Trying family `ITE'...                                      Yes
+Found unknown chip with ID 0x8603
+    (logical device 4 has address 0x290, could be sensors)
 
-If even the CPU fan input aren't in the BIOS display order, I wouldn't
-place any bet on the rest, especially on an ASRock board. Let's leave
-the fan labels blank for the time being.
+I created a quick patch for sensors-detect to recognize the chip. I'd
+like to start poking at it to see if the it87 driver can extract any
+useful information (likely). Rudolf has requested the datasheet from
+ITE, but in the likely event nothing happens, we thought it would be
+worth asking you - you know people in the industry. I would be happy
+to sign an NDA if that will help.
 
-> (...)
-> I understand that it is important for an open source Project to care for
-> high quality, but from the user perspective I would prefer to have a
-> "beta" or "alpha" marked config file to not having a config file. This
-> also gives the user that finds the "beta" version to improve it,..
+Thanks,
+David
 
-I'm fine with preliminary configuration files, but not with wrong ones.
-Configuration files which ignore inputs which do exist on the board are
-not OK. Wrong labels aren't OK either - if you don't know what an input
-is, just don't label it.
-
---=20
-Jean Delvare
+--- sensors-detect    2012-11-28 21:15:16.601391282 -0700
++++ sensors-detect    2012-11-28 21:34:24.392508598 -0700
+@@ -2133,6 +2133,12 @@
+         devid => 0x8772,
+         logdev => 0x04,
+         features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
++    }, {
++        name => "ITE IT8603E Super IO Sensors",
++        driver => "to-be-written",    # it87
++        devid => 0x8603,
++        logdev => 0x04,
++        features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+     }
+ );
 
 _______________________________________________
 lm-sensors mailing list
