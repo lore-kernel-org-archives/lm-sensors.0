@@ -1,38 +1,51 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Sat, 03 Nov 2012 12:07:29 +0000
-Subject: Re: [lm-sensors] [RFC PATCH] hwmon: (it87) Support PECI for additional chips
-Message-Id: <20121103130729.2bbf651d@endymion.delvare>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Date: Thu, 29 Nov 2012 14:59:25 +0000
+Subject: [lm-sensors] =?utf-8?q?=5BPATCH=5D_hwmon=3A_lm73=3A_add_device_tr?= =?utf-8?q?ee_support_to_LM73_dri
+Message-Id: <1354201165-4105-1-git-send-email-p.zabel@pengutronix.de>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi Guenter,
-
-On Tue, 30 Oct 2012 13:20:40 -0700, Guenter Roeck wrote:
-> Extend support for reporting and selecting PECI temperature sensors
-> to IT8718, IT8720, IT8782, and IT8783. For IT8721, report the sensor
-> type for temp2 as Intel PECI (6) if the chip is configured to report
-> the PCH temperature.
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> ---
-> Untested, so this one deserved extra scrutiny if accepted.
-
-I got it tested by one IT8720F user, successfully.
-
-> 
->  drivers/hwmon/it87.c |   48 ++++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 38 insertions(+), 10 deletions(-)
-> (...)
-
-The code looks good, I can't see any problem with it. Applied, thanks.
-
--- 
-Jean Delvare
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+VGhpcyBwYXRjaCBhZGRzIGRldmljZSB0cmVlIHN1cHBvcnQgdG8gdGhlIGxtNzMgZHJpdmVyLiBJ
+dCBpcyBhCnRyaXZpYWwgaTJjIGRldmljZSB0aGF0IG1hdGNoZXMgYWdhaW5zdCB0aGUgY29tcGF0
+aWJsZSBwcm9wZXJ0eQp2YWx1ZSAibmF0aW9uYWwsbG03MyI6CgogICAgaTJjIHsKICAgICAgICAg
+ICAgLyogLi4uICovCgogICAgICAgICAgICB0ZW1wZXJhdHVyZS1zZW5zb3JANDkgewogICAgICAg
+ICAgICAgICAgICAgIGNvbXBhdGlibGUgPSAibmF0aW9uYWwsbG03MyI7CiAgICAgICAgICAgICAg
+ICAgICAgcmVnID0gPDB4NDk+OwogICAgICAgICAgICB9OwogICAgfTsKClNpZ25lZC1vZmYtYnk6
+IFBoaWxpcHAgWmFiZWwgPHAuemFiZWxAcGVuZ3V0cm9uaXguZGU+Ci0tLQogRG9jdW1lbnRhdGlv
+bi9kZXZpY2V0cmVlL2JpbmRpbmdzL2kyYy90cml2aWFsLWRldmljZXMudHh0IHwgICAgMSArCiBk
+cml2ZXJzL2h3bW9uL2xtNzMuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+fCAgICA5ICsrKysrKysrKwogMiBmaWxlcyBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspCgpkaWZm
+IC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2kyYy90cml2aWFsLWRl
+dmljZXMudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL2kyYy90cml2aWFs
+LWRldmljZXMudHh0CmluZGV4IDJmNTMyMmIuLjZkMjcwNDIgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50
+YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9pMmMvdHJpdmlhbC1kZXZpY2VzLnR4dAorKysgYi9E
+b2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvaTJjL3RyaXZpYWwtZGV2aWNlcy50eHQK
+QEAgLTM5LDYgKzM5LDcgQEAgbWF4aW0sZHMxMDUwCQk1IEJpdCBQcm9ncmFtbWFibGUsIFB1bHNl
+LVdpZHRoIE1vZHVsYXRvcgogbWF4aW0sbWF4MTIzNwkJTG93LVBvd2VyLCA0LS8xMi1DaGFubmVs
+LCAyLVdpcmUgU2VyaWFsLCAxMi1CaXQgQURDcwogbWF4aW0sbWF4NjYyNQkJOS1CaXQvMTItQml0
+IFRlbXBlcmF0dXJlIFNlbnNvcnMgd2l0aCBJwrJDLUNvbXBhdGlibGUgU2VyaWFsIEludGVyZmFj
+ZQogbWMscnYzMDI5YzIJCVJlYWwgVGltZSBDbG9jayBNb2R1bGUgd2l0aCBJMkMtQnVzCituYXRp
+b25hbCxsbTczCQlJMkMgVEVNUCBTRU5TT1IKIG5hdGlvbmFsLGxtNzUJCUkyQyBURU1QIFNFTlNP
+UgogbmF0aW9uYWwsbG04MAkJU2VyaWFsIEludGVyZmFjZSBBQ1BJLUNvbXBhdGlibGUgTWljcm9w
+cm9jZXNzb3IgU3lzdGVtIEhhcmR3YXJlIE1vbml0b3IKIG5hdGlvbmFsLGxtOTIJCcKxMC4zM8Kw
+QyBBY2N1cmF0ZSwgMTItQml0ICsgU2lnbiBUZW1wZXJhdHVyZSBTZW5zb3IgYW5kIFRoZXJtYWwg
+V2luZG93IENvbXBhcmF0b3Igd2l0aCBUd28tV2lyZSBJbnRlcmZhY2UKZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvaHdtb24vbG03My5jIGIvZHJpdmVycy9od21vbi9sbTczLmMKaW5kZXggOGZhMjYzMi4u
+OTZiY2YyNSAxMDA2NDQKLS0tIGEvZHJpdmVycy9od21vbi9sbTczLmMKKysrIGIvZHJpdmVycy9o
+d21vbi9sbTczLmMKQEAgLTIwLDYgKzIwLDcgQEAKICNpbmNsdWRlIDxsaW51eC9od21vbi5oPgog
+I2luY2x1ZGUgPGxpbnV4L2h3bW9uLXN5c2ZzLmg+CiAjaW5jbHVkZSA8bGludXgvZXJyLmg+Cisj
+aW5jbHVkZSA8bGludXgvb2YuaD4KIAogCiAvKiBBZGRyZXNzZXMgc2Nhbm5lZCAqLwpAQCAtMTgy
+LDEwICsxODMsMTggQEAgc3RhdGljIGludCBsbTczX2RldGVjdChzdHJ1Y3QgaTJjX2NsaWVudCAq
+bmV3X2NsaWVudCwKIAlyZXR1cm4gMDsKIH0KIAorI2lmZGVmIENPTkZJR19PRgorc3RhdGljIGNv
+bnN0IHN0cnVjdCBvZl9kZXZpY2VfaWQgbG03M19kdF9pZHNbXSA9IHsKKwl7IC5jb21wYXRpYmxl
+ID0gIm5hdGlvbmFsLGxtNzMiIH0sCisJe30KK307CisjZW5kaWYKKwogc3RhdGljIHN0cnVjdCBp
+MmNfZHJpdmVyIGxtNzNfZHJpdmVyID0gewogCS5jbGFzcwkJPSBJMkNfQ0xBU1NfSFdNT04sCiAJ
+LmRyaXZlciA9IHsKIAkJLm5hbWUJPSAibG03MyIsCisJCS5vZl9tYXRjaF90YWJsZSA9IG9mX21h
+dGNoX3B0cihsbTczX2R0X2lkcyksCiAJfSwKIAkucHJvYmUJCT0gbG03M19wcm9iZSwKIAkucmVt
+b3ZlCQk9IGxtNzNfcmVtb3ZlLAotLSAKMS43LjEwLjQKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpsbS1zZW5zb3JzIG1haWxpbmcgbGlzdApsbS1zZW5z
+b3JzQGxtLXNlbnNvcnMub3JnCmh0dHA6Ly9saXN0cy5sbS1zZW5zb3JzLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xtLXNlbnNvcnM
