@@ -1,72 +1,41 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 21 Dec 2012 16:45:41 +0000
-Subject: Re: [lm-sensors] i2c tools build failure with gcc 4.6
-Message-Id: <20121221164541.GA31248@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 02 Dec 2012 17:57:28 +0000
+Subject: Re: [lm-sensors] ITE it8603e
+Message-Id: <20121202185728.720eed38@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121220010733.GA31336@roeck-us.net>
- <20121220104510.2fa8a0fb@endymion.delvare>
- <20121220142006.GB32230@roeck-us.net>
- <20121220153735.2ae73802@endymion.delvare>
- <20121220155354.3e600483@endymion.delvare>
- <20121220163945.GB32096@roeck-us.net>
- <20121221094541.5e6125ac@endymion.delvare>
-In-Reply-To: <20121221094541.5e6125ac-R0o5gVi9kd7kN2dkZ6Wm7A@public.gmane.org>
+References: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
+In-Reply-To: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
+To: lm-sensors@vger.kernel.org
 
-On Fri, Dec 21, 2012 at 09:45:41AM +0100, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Thu, 20 Dec 2012 08:39:45 -0800, Guenter Roeck wrote:
-> > I found the problem. -li2c must be specified after the .o files.
-> > 
-> > Patch:
-> > 
-> > diff --git a/tools/Module.mk b/tools/Module.mk
-> > index 1979248..bfd3250 100644
-> > --- a/tools/Module.mk
-> > +++ b/tools/Module.mk
-> > @@ -21,16 +21,16 @@ TOOLS_TARGETS	:= i2cdetect i2cdump i2cset i2cget
-> >  #
-> >  
-> >  $(TOOLS_DIR)/i2cdetect: $(TOOLS_DIR)/i2cdetect.o $(TOOLS_DIR)/i2cbusses.o
-> > -	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
-> > +	$(CC) $(LDFLAGS) -o $@ $^ $(TOOLS_LDFLAGS)
-> >  
-> >  $(TOOLS_DIR)/i2cdump: $(TOOLS_DIR)/i2cdump.o $(TOOLS_DIR)/i2cbusses.o $(TOOLS_DIR)/util.o
-> > -	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
-> > +	$(CC) $(LDFLAGS) -o $@ $^  $(TOOLS_LDFLAGS)
-> >  
-> >  $(TOOLS_DIR)/i2cset: $(TOOLS_DIR)/i2cset.o $(TOOLS_DIR)/i2cbusses.o $(TOOLS_DIR)/util.o
-> > -	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
-> > +	$(CC) $(LDFLAGS) -o $@ $^ $(TOOLS_LDFLAGS)
-> >  
-> >  $(TOOLS_DIR)/i2cget: $(TOOLS_DIR)/i2cget.o $(TOOLS_DIR)/i2cbusses.o $(TOOLS_DIR)/util.o
-> > -	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
-> > +	$(CC) $(LDFLAGS) -o $@ $^ $(TOOLS_LDFLAGS)
-> >  
-> >  #
-> >  # Objects
-> 
-> Hmm, OK. The gcc manual page is somewhat confusing on this topic but as
-> I understand it, when processing a library, it only considers symbols
-> which were already referenced but not defined, and discards the rest.
-> So object files must indeed come first on the command line.
-> 
-> Why it has always worked for me the other way around is a mystery.
-> 
-Something must have changed, since it works for me with an older version of gcc
-(4.4).
+Hi David,
 
-> You have write permissions to the repository, so please just commit
-> this fix, thanks.
-> 
-Done.
+On Wed, 28 Nov 2012 13:41:03 -0700, David Hubbard wrote:
+> I created a quick patch for sensors-detect to recognize the chip. I'd
+> like to start poking at it to see if the it87 driver can extract any
+> useful information (likely). Rudolf has requested the datasheet from
+> ITE, but in the likely event nothing happens, we thought it would be
+> worth asking you - you know people in the industry. I would be happy
+> to sign an NDA if that will help.
 
-Guenter
+The information I was able to get from my contact at ITE:
+
+* The IT8603E does supports hardware monitoring.
+
+* The chip has a built-in 8-bit ADC, two thermal inputs with mode
+  selection (thermistor / transistor), 5 external voltage inputs +
+  3VSB, AVCC3 and VBAT measured internally. It features limits for all
+  measured values (although probably not for VBAT) and fetching of
+  external temperature values over SST/PECI/AMDSTI/PCH SM-Link.
+
+* The IT8603E does support automatic fan speed control.
+
+* The IT8603E is compatible to some degree with the IT87xxF family.
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
