@@ -1,33 +1,42 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 20 Dec 2012 15:17:55 +0000
-Subject: Re: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.8
-Message-Id: <CA+55aFwvVPV2amFN=oDfBgp_CZCFTifgf3J_Wh9vEPHtQ2Mv2Q@mail.gmail.com>
+From: Jaromir Capik <jcapik@redhat.com>
+Date: Fri, 07 Dec 2012 14:52:47 +0000
+Subject: [lm-sensors] [RFE] ARM/OMAP4 temperature sensor support
+Message-Id: <2095681616.44463223.1354891967908.JavaMail.root@redhat.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20121219223353.7b671d1f@endymion.delvare>
-In-Reply-To: <20121219223353.7b671d1f@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 20, 2012 at 1:26 AM, Jean Delvare <khali@linux-fr.org> wrote:
->
-> At first I thought that this was caused by me using diff option -d when
-> generating the patch originally. However dropping it did change the
-> output but still did not lead to what I get when pulling from git.
->
-> So I can only suspect that the differences were somehow reformatted by
-> the git instance on kernel.org.
+Hello.
 
-All diffing is done at run-time, so it's always the local version that matters.
+I'd like to ask you to introduce the OMAP4 temp sensor
+support in lm_sensors.
+I found the following source code, that seems to work
+correctly with my OMAP4 cpu.
 
-And it does look like this is one of the fairly rare cases where the
-git version matters (probably because the XDL_NEED_MINIMAL flag got
-dropped due to some excessive CPU use in extreme cases). I notice that
-"git diff --patience" gives something much closer to your local
-result.
+http://hardwarebug.org/files/omap4_temp.c
 
-           Linus
+It seems it uses /dev/mem for reading the sensor output.
+Please, let me know. I'm always willing to test the changes.
+
+Thanks in advance.
+
+Regards,
+Jaromir.
+
+
+--
+Jaromir Capik
+Red Hat Czech, s.r.o.
+Software Engineer / BaseOS
+
+Email: jcapik@redhat.com
+Web: www.cz.redhat.com
+Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
+IC: 27690016 
+
+
 
 _______________________________________________
 lm-sensors mailing list
