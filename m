@@ -1,31 +1,102 @@
-From: Guenter Roeck <groeck-dsl@sbcglobal.net>
-Date: Tue, 11 Dec 2012 14:43:34 +0000
-Subject: Re: [lm-sensors] Fwd:  Driver for Bulldozer
-Message-Id: <20121211144334.GA30334@roeck-us.net>
+From: "Gabriel L. Somlo" <somlo@cmu.edu>
+Date: Mon, 10 Dec 2012 22:23:13 +0000
+Subject: [lm-sensors] [PATCH v2] applesmc: add sysfs file to report OSK
+Message-Id: <20121210222313.GF2097@hedwig.ini.cmu.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAMcsHH3ou4U_v5oFGivFPKMKKWKG7guueS=byF5pTqB8Q9VuDQ@mail.gmail.com>
-In-Reply-To: <CAMcsHH3ou4U_v5oFGivFPKMKKWKG7guueS=byF5pTqB8Q9VuDQ@mail.gmail.com>
+In-Reply-To: <20121210195414.GA642@polaris.bitmath.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Henrik Rydberg <rydberg@euromail.se>
+Cc: Guenter Roeck <groeck-dsl@sbcglobal.net>, khali@linux-fr.org, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, agraf@suse.de, rene@exactcode.com
 
-On Tue, Dec 11, 2012 at 04:19:17AM -0500, Vahid Keykhaey wrote:
-> Dear Reader,
-> Hi,
-> When I try to install cpufreqmodules, I get a fail on "loading cpufreq
-> kernel modules".
-> 
-> and the result of my sensors-detect command is enclosed.
-> 
-> thank you for your help. I do not need power monitoring modules but thermal
-> monitoring modules.
-> 
-Guess you are asking to have the respective change change made to the k10temp
-driver. Should not be a problem if someone happens to know the correct PCI
-device ID (it might be 0x1533 but I am just guessing).
+The AppleSMC contains two char[32] keys, OSK0 and OSK1, which are not
+reported in the key count and index by default. These keys are used by
+the OS X boot sequence, and normally don't matter when running Linux.
 
-Guenter
+This patch creates a sysfs entry which reports the value of these keys
+as an ASCII string, to help emulators (such as QEMU) load OS X when
+running on genuine Apple hardware.
+
+Signed-off-by: Gabriel L. Somlo <somlo@cmu.edu>
+---
+
+Henrik,
+
+On Mon, Dec 10, 2012 at 09:19:51PM +0100, Alexander Graf wrote:
+>
+> On Mon, Dec 10, 2012 at 08:54:14PM +0100, Henrik Rydberg wrote:
+> >
+> > The OSK string seems constant accross machines, which renders the
+> > patch rather pointless, no? And even if the OSK differs between a
+> > couple of machines, the emulator could easily handle it gracefully.
+>
+> The point is that the return value of the OSK is a copyrighted string,
+> we can not include in any other layer. The only way to make this
+> legally savvy is to   read the key from the host.
+
+I believe this second version addresses your stylistic objections.
+
+As Alex pointed out, hardcoding the OSK in any open-source project
+might lead to legal/copyright related issues, whereas simply reporting
+whatever the the hardware happens to contain should keep everyone safe.
+
+As for struct applesmc_node_group info_group[]:
+
+> > Unfortunately this is not a good place to put random things going
+> > forward.
+
+I figured "info_group" for the "least bad" place to put the OSK, given
+that it's more or less "information from/about the SMC". If you could be
+persuaded by the above arguments to accept the patch, and have a better
+place in mind, I'd be happy to move it there...
+
+Thanks again,
+ Gabriel
+
+ drivers/hwmon/applesmc.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index b41baff..b37b271 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -1013,6 +1013,24 @@ static ssize_t applesmc_key_at_index_store(struct device *dev,
+ 	return count;
+ }
+ 
++static ssize_t applesmc_osk_show(struct device *dev,
++				struct device_attribute *attr, char *sysfsbuf)
++{
++	int ret;
++	char buf[65];
++
++	mutex_lock(&smcreg.mutex);
++	ret = read_smc(APPLESMC_READ_CMD, "OSK0", buf, 32);
++	if (!ret)
++		ret = read_smc(APPLESMC_READ_CMD, "OSK1", buf + 32, 32);
++	mutex_unlock(&smcreg.mutex);
++	if (ret)
++		return ret;
++
++	buf[64] = '\0';
++	return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", buf);
++}
++
+ static struct led_classdev applesmc_backlight = {
+ 	.name			= "smc::kbd_backlight",
+ 	.default_trigger	= "nand-disk",
+@@ -1027,6 +1045,7 @@ static struct applesmc_node_group info_group[] = {
+ 	{ "key_at_index_type", applesmc_key_at_index_type_show },
+ 	{ "key_at_index_data_length", applesmc_key_at_index_data_length_show },
+ 	{ "key_at_index_data", applesmc_key_at_index_read_show },
++	{ "osk", applesmc_osk_show },
+ 	{ }
+ };
+ 
+-- 
+1.7.7.6
+
 
 _______________________________________________
 lm-sensors mailing list
