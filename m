@@ -1,55 +1,81 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 19 Dec 2012 16:00:24 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (emc6w201) Fix DIV_ROUND_CLOSEST problem with unsigned divisors
-Message-Id: <20121219160024.GA28524@roeck-us.net>
+From: "Gabriel L. Somlo" <somlo@cmu.edu>
+Date: Mon, 10 Dec 2012 14:51:35 +0000
+Subject: [lm-sensors] [PATCH] applesmc: add sysfs file to report OSK
+Message-Id: <20121210145134.GA2097@hedwig.ini.cmu.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1355928244-2677-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1355928244-2677-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: rydberg@euromail.se, khali@linux-fr.org, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org
+Cc: agraf@suse.de, rene@exactcode.com
 
-On Wed, Dec 19, 2012 at 03:58:31PM +0100, Jean Delvare wrote:
-> On Wed, 19 Dec 2012 06:44:04 -0800, Guenter Roeck wrote:
-> > Result of DIV_ROUND_CLOSEST is undefined for negative dividends if the divisor
-> > variable type is unsigned. Fix by declaring dividend as unsigned.
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  drivers/hwmon/emc6w201.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/emc6w201.c b/drivers/hwmon/emc6w201.c
-> > index a98c917..c450c7d 100644
-> > --- a/drivers/hwmon/emc6w201.c
-> > +++ b/drivers/hwmon/emc6w201.c
-> > @@ -208,10 +208,10 @@ static ssize_t set_in(struct device *dev, struct device_attribute *devattr,
-> >  	int sf = to_sensor_dev_attr_2(devattr)->index;
-> >  	int nr = to_sensor_dev_attr_2(devattr)->nr;
-> >  	int err;
-> > -	long val;
-> > +	unsigned long val;
-> >  	u8 reg;
-> >  
-> > -	err = kstrtol(buf, 10, &val);
-> > +	err = kstrtoul(buf, 10, &val);
-> >  	if (err < 0)
-> >  		return err;
-> >  
-> 
-> Nack, sorry. Negative voltage input values must be supported (and
-> clamped to 0 if needs be). Rationale: the value written can result from
-> applying a compute formula, so the user may not even realize he/she is
-> trying to write a negative value.
-> 
-> Just change the type of nominal_mv to s16 or even int?
-> 
-No problem, that was my other solution anyway. I'll send an updated patch in a
-minute.
+The AppleSMC contains two char[32] keys, OSK0 and OSK1, which are not
+reported in the key count and index by default. These keys are used by
+the OS X boot sequence, and normally don't matter when running Linux.
+
+This patch creates a sysfs entry which reports the value of these keys
+as an ASCII string, to help emulators (such as QEMU) load OS X when
+running on genuine Apple hardware.
+
+Signed-off-by: Gabriel L. Somlo <somlo@cmu.edu>
+---
+
+For extra context: To boot OS X as a guest, QEMU must (among others)
+emulate the AppleSMC. To boot successfully, OS X insists on querying
+the (emulated) SMC for the value of OSK0 and OSK1. Currently, these
+values must be supplied on the QEMU command line as
+
+  -device applesmc,osk="...concatenated values of OSK0 and OSK1..."
+
+With the availability of /sys/devices/platform/applesmc.768/osk, the
+emulated QEMU AppleSMC could acquire this string directly from the
+(Apple-manufactured) host machine.
 
 Thanks,
-Guenter
+  Gabriel
+
+ drivers/hwmon/applesmc.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+index b41baff..0c7cc71 100644
+--- a/drivers/hwmon/applesmc.c
++++ b/drivers/hwmon/applesmc.c
+@@ -1013,6 +1013,23 @@ static ssize_t applesmc_key_at_index_store(struct device *dev,
+ 	return count;
+ }
+ 
++static ssize_t applesmc_osk_show(struct device *dev,
++				struct device_attribute *attr, char *sysfsbuf)
++{
++	int fail;
++
++	mutex_lock(&smcreg.mutex);
++	fail = read_smc(APPLESMC_READ_CMD, "OSK0", sysfsbuf, 32) ||
++	       read_smc(APPLESMC_READ_CMD, "OSK1", sysfsbuf + 32, 32);
++	mutex_unlock(&smcreg.mutex);
++	if (fail)
++		return -1;
++
++	sysfsbuf[64] = '\n';
++	sysfsbuf[65] = '\0';
++	return 65;
++}
++
+ static struct led_classdev applesmc_backlight = {
+ 	.name			= "smc::kbd_backlight",
+ 	.default_trigger	= "nand-disk",
+@@ -1027,6 +1044,7 @@ static struct applesmc_node_group info_group[] = {
+ 	{ "key_at_index_type", applesmc_key_at_index_type_show },
+ 	{ "key_at_index_data_length", applesmc_key_at_index_data_length_show },
+ 	{ "key_at_index_data", applesmc_key_at_index_read_show },
++	{ "osk", applesmc_osk_show },
+ 	{ }
+ };
+ 
+-- 
+1.7.7.6
+
 
 _______________________________________________
 lm-sensors mailing list
