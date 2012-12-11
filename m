@@ -1,73 +1,126 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 11 Dec 2012 20:55:59 +0000
-Subject: [lm-sensors] [PATCH v5 06/11] hwmon: (nct6775) Add support for fan debounce module parameter
-Message-Id: <1355259364-14293-7-git-send-email-linux@roeck-us.net>
+Date: Tue, 11 Dec 2012 20:56:00 +0000
+Subject: [lm-sensors] [PATCH v5 07/11] hwmon: (nct6775) Add power management support
+Message-Id: <1355259364-14293-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-If set, fan debounce is enabled when loading the driver.
-
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/nct6775.c |   28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/hwmon/nct6775.c |   86 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
 
 diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index 996e619..74d2b0b 100644
+index 74d2b0b..0777309 100644
 --- a/drivers/hwmon/nct6775.c
 +++ b/drivers/hwmon/nct6775.c
-@@ -72,6 +72,10 @@ static unsigned short force_id;
- module_param(force_id, ushort, 0);
- MODULE_PARM_DESC(force_id, "Override the detected device ID");
+@@ -509,6 +509,12 @@ struct nct6775_data {
+ 	u16 have_temp;
+ 	u16 have_temp_fixed;
+ 	u16 have_in;
++#ifdef CONFIG_PM
++	/* Remember extra register values over suspend/resume */
++	u8 vbat;
++	u8 fandiv1;
++	u8 fandiv2;
++#endif
+ };
  
-+static unsigned short fan_debounce;
-+module_param(fan_debounce, ushort, 0);
-+MODULE_PARM_DESC(fan_debounce, "Enable debouncing for fan RPM signal");
-+
- #define DRVNAME "nct6775"
+ struct nct6775_sio_data {
+@@ -2267,10 +2273,90 @@ static int nct6775_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
- /*
-@@ -183,6 +187,8 @@ static const u16 NCT6775_REG_IN[] = {
- #define NCT6775_REG_FANDIV1		0x506
- #define NCT6775_REG_FANDIV2		0x507
- 
-+#define NCT6775_REG_CR_FAN_DEBOUNCE	0xf0
++#ifdef CONFIG_PM
++static int nct6775_suspend(struct device *dev)
++{
++	struct nct6775_data *data = nct6775_update_device(dev);
++	struct nct6775_sio_data *sio_data = dev->platform_data;
 +
- static const u16 NCT6775_REG_ALARM[NUM_REG_ALARM] = { 0x459, 0x45A, 0x45B };
- 
- /* 0..15 voltages, 16..23 fans, 24..31 temperatures */
-@@ -2107,6 +2113,28 @@ static int nct6775_probe(struct platform_device *pdev)
- 	 */
- 	superio_select(sio_data->sioreg, NCT6775_LD_VID);
- 	data->vid = superio_inb(sio_data->sioreg, 0xe3);
++	mutex_lock(&data->update_lock);
++	data->vbat = nct6775_read_value(data, data->REG_VBAT);
++	if (sio_data->kind = nct6775) {
++		data->fandiv1 = nct6775_read_value(data, NCT6775_REG_FANDIV1);
++		data->fandiv2 = nct6775_read_value(data, NCT6775_REG_FANDIV2);
++	}
++	mutex_unlock(&data->update_lock);
 +
-+	if (fan_debounce) {
-+		u8 tmp;
++	return 0;
++}
 +
-+		superio_select(sio_data->sioreg, NCT6775_LD_HWM);
-+		tmp = superio_inb(sio_data->sioreg,
-+				  NCT6775_REG_CR_FAN_DEBOUNCE);
-+		switch (data->kind) {
-+		case nct6775:
-+			tmp |= 0x1e;
-+			break;
-+		case nct6776:
-+		case nct6779:
-+			tmp |= 0x3e;
-+			break;
-+		}
-+		superio_outb(sio_data->sioreg, NCT6775_REG_CR_FAN_DEBOUNCE,
-+			     tmp);
-+		dev_info(&pdev->dev, "Enabled fan debounce for chip %s\n",
-+			 data->name);
++static int nct6775_resume(struct device *dev)
++{
++	struct nct6775_data *data = dev_get_drvdata(dev);
++	struct nct6775_sio_data *sio_data = dev->platform_data;
++	int i, j;
++
++	mutex_lock(&data->update_lock);
++	data->bank = 0xff;		/* Force initial bank selection */
++
++	/* Restore limits */
++	for (i = 0; i < data->in_num; i++) {
++		if (!(data->have_in & (1 << i)))
++			continue;
++
++		nct6775_write_value(data, data->REG_IN_MINMAX[0][i],
++				    data->in[i][1]);
++		nct6775_write_value(data, data->REG_IN_MINMAX[1][i],
++				    data->in[i][2]);
 +	}
 +
- 	superio_exit(sio_data->sioreg);
- 
- 	err = device_create_file(dev, &dev_attr_cpu0_vid);
++	for (i = 0; i < 5; i++) {
++		if (!(data->has_fan_min & (1 << i)))
++			continue;
++
++		nct6775_write_value(data, data->REG_FAN_MIN[i],
++				    data->fan_min[i]);
++	}
++
++	for (i = 0; i < NUM_TEMP; i++) {
++		if (!(data->have_temp & (1 << i)))
++			continue;
++
++		for (j = 1; j < 4; j++)
++			if (data->reg_temp[j][i])
++				nct6775_write_temp(data, data->reg_temp[j][i],
++						   data->temp[j][i]);
++	}
++
++	/* Restore other settings */
++	nct6775_write_value(data, data->REG_VBAT, data->vbat);
++	if (sio_data->kind = nct6775) {
++		nct6775_write_value(data, NCT6775_REG_FANDIV1, data->fandiv1);
++		nct6775_write_value(data, NCT6775_REG_FANDIV2, data->fandiv2);
++	}
++
++	/* Force re-reading all values */
++	data->valid = false;
++	mutex_unlock(&data->update_lock);
++
++	return 0;
++}
++
++static const struct dev_pm_ops nct6775_dev_pm_ops = {
++	.suspend = nct6775_suspend,
++	.resume = nct6775_resume,
++};
++
++#define NCT6775_DEV_PM_OPS	(&nct6775_dev_pm_ops)
++#else
++#define NCT6775_DEV_PM_OPS	NULL
++#endif /* CONFIG_PM */
++
+ static struct platform_driver nct6775_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+ 		.name	= DRVNAME,
++		.pm	= NCT6775_DEV_PM_OPS,
+ 	},
+ 	.probe		= nct6775_probe,
+ 	.remove		= nct6775_remove,
 -- 
 1.7.9.7
 
