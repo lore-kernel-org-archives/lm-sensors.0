@@ -1,110 +1,78 @@
-From: Vahid Keykhaey <vahid.keykhaey@gmail.com>
-Date: Tue, 11 Dec 2012 09:38:13 +0000
-Subject: Re: [lm-sensors] Fwd: Driver for Bulldozer
-Message-Id: <CAMcsHH3ak=7wtyAfu0JgYsDrWCTMtsTL7S5NiCJxAKz4QP1UkQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2803937480736087946=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 11 Dec 2012 20:55:59 +0000
+Subject: [lm-sensors] [PATCH v5 06/11] hwmon: (nct6775) Add support for fan debounce module parameter
+Message-Id: <1355259364-14293-7-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2803937480736087946==
-Content-Type: multipart/alternative; boundary=bcaec50408ecd4ce2504d0907027
+If set, fan debounce is enabled when loading the driver.
 
---bcaec50408ecd4ce2504d0907027
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/nct6775.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-test -d /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon || mkdir
-/lib/modules/3.2.0-23-generic/kernel/drivers/hwmon
-cp k10temp.ko /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon
-depmod -a -F /lib/modules/3.2.0-23-generic/build/System.map 3.2.0-23-generic
-FATAL: Could not open '/lib/modules/3.2.0-23-generic/build/System.map': No
-such file or directory
-make: *** [modules_install] Error 1
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index 996e619..74d2b0b 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -72,6 +72,10 @@ static unsigned short force_id;
+ module_param(force_id, ushort, 0);
+ MODULE_PARM_DESC(force_id, "Override the detected device ID");
+ 
++static unsigned short fan_debounce;
++module_param(fan_debounce, ushort, 0);
++MODULE_PARM_DESC(fan_debounce, "Enable debouncing for fan RPM signal");
++
+ #define DRVNAME "nct6775"
+ 
+ /*
+@@ -183,6 +187,8 @@ static const u16 NCT6775_REG_IN[] = {
+ #define NCT6775_REG_FANDIV1		0x506
+ #define NCT6775_REG_FANDIV2		0x507
+ 
++#define NCT6775_REG_CR_FAN_DEBOUNCE	0xf0
++
+ static const u16 NCT6775_REG_ALARM[NUM_REG_ALARM] = { 0x459, 0x45A, 0x45B };
+ 
+ /* 0..15 voltages, 16..23 fans, 24..31 temperatures */
+@@ -2107,6 +2113,28 @@ static int nct6775_probe(struct platform_device *pdev)
+ 	 */
+ 	superio_select(sio_data->sioreg, NCT6775_LD_VID);
+ 	data->vid = superio_inb(sio_data->sioreg, 0xe3);
++
++	if (fan_debounce) {
++		u8 tmp;
++
++		superio_select(sio_data->sioreg, NCT6775_LD_HWM);
++		tmp = superio_inb(sio_data->sioreg,
++				  NCT6775_REG_CR_FAN_DEBOUNCE);
++		switch (data->kind) {
++		case nct6775:
++			tmp |= 0x1e;
++			break;
++		case nct6776:
++		case nct6779:
++			tmp |= 0x3e;
++			break;
++		}
++		superio_outb(sio_data->sioreg, NCT6775_REG_CR_FAN_DEBOUNCE,
++			     tmp);
++		dev_info(&pdev->dev, "Enabled fan debounce for chip %s\n",
++			 data->name);
++	}
++
+ 	superio_exit(sio_data->sioreg);
+ 
+ 	err = device_create_file(dev, &dev_attr_cpu0_vid);
+-- 
+1.7.9.7
 
-
-
-On Tue, Dec 11, 2012 at 4:33 AM, Jean Delvare <khali@linux-fr.org> wrote:
-
-> On Tue, 11 Dec 2012 04:20:22 -0500, Vahid Keykhaey wrote:
-> > Dear Mr Delvare,
-> > Hi,
-> > Thank you for the installation instructions, but it did not work. There
-> was
-> > a problem. At line "make install", I got these:
-> > root@user-desktop:~/Desktop# make install
-> > test -d /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon || mkdir
-> > /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon
-> > cp k10temp.ko /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon
-> > depmod -a -F /lib/modules/3.2.0-23-generic/build/System.map
-> 3.2.0-23-generic
-> > FATAL: Could not open '/lib/modules/3.2.0-23-generic/build/System.map':
-> No
-> > such file or directory
-> > make: *** [modules_install] Error 1
->
-> Your distribution puts the System.map file at a different location.
-> I've updated the Makefile, please download it again and it should work
-> now.
->
-> --
-> Jean Delvare
->
-
---bcaec50408ecd4ce2504d0907027
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-test -d /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon || mkdir /lib/mo=
-dules/3.2.0-23-generic/kernel/drivers/hwmon<br>cp k10temp.ko /lib/modules/3=
-.2.0-23-generic/kernel/drivers/hwmon<br>depmod -a -F /lib/modules/3.2.0-23-=
-generic/build/System.map 3.2.0-23-generic<br>
-FATAL: Could not open &#39;/lib/modules/3.2.0-23-generic/build/System.map&#=
-39;: No such file or directory<br>make: *** [modules_install] Error 1<br><b=
-r><div class=3D"gmail_extra"><br><br><div class=3D"gmail_quote">On Tue, Dec=
- 11, 2012 at 4:33 AM, Jean Delvare <span dir=3D"ltr">&lt;<a href=3D"mailto:=
-khali@linux-fr.org" target=3D"_blank">khali@linux-fr.org</a>&gt;</span> wro=
-te:<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex"><div class=3D"im">On Tue, 11 Dec 2012 04:20:=
-22 -0500, Vahid Keykhaey wrote:<br>
-&gt; Dear Mr Delvare,<br>
-&gt; Hi,<br>
-&gt; Thank you for the installation instructions, but it did not work. Ther=
-e was<br>
-&gt; a problem. At line &quot;make install&quot;, I got these:<br>
-&gt; root@user-desktop:~/Desktop# make install<br>
-&gt; test -d /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon || mkdir<br=
->
-&gt; /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon<br>
-&gt; cp k10temp.ko /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon<br>
-&gt; depmod -a -F /lib/modules/3.2.0-23-generic/build/System.map 3.2.0-23-g=
-eneric<br>
-&gt; FATAL: Could not open &#39;/lib/modules/3.2.0-23-generic/build/System.=
-map&#39;: No<br>
-&gt; such file or directory<br>
-&gt; make: *** [modules_install] Error 1<br>
-<br>
-</div>Your distribution puts the System.map file at a different location.<b=
-r>
-I&#39;ve updated the Makefile, please download it again and it should work<=
-br>
-now.<br>
-<span class=3D"HOEnZb"><font color=3D"#888888"><br>
---<br>
-Jean Delvare<br>
-</font></span></blockquote></div><br></div>
-
---bcaec50408ecd4ce2504d0907027--
-
-
---===============2803937480736087946==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2803937480736087946==--
