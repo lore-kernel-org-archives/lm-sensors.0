@@ -1,36 +1,127 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 31 Dec 2012 08:13:08 +0000
-Subject: [lm-sensors] [PATCH 2/2] hwmon: (vexpress) Fix build error seen if CONFIG_OF_DEVICE is not set
-Message-Id: <1356941588-25249-2-git-send-email-linux@roeck-us.net>
+From: Guenter Roeck <groeck-dsl@sbcglobal.net>
+Date: Tue, 11 Dec 2012 05:59:54 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.8-rc1
+Message-Id: <20121211055954.GA2621@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============3743172830194154367=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1356941588-25249-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1356941588-25249-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors <lm-sensors@lm-sensors.org>
-Cc: Pawel Moll <pawel.moll@arm.com>, Jean Delvare <khali@linux-fr.org>, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
-Rml4Ogp2ZXhwcmVzcy5jOiBJbiBmdW5jdGlvbiDigJh2ZXhwcmVzc19od21vbl9uYW1lX3Nob3fi
-gJk6CnZleHByZXNzLmM6MzQ6MjogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0
-aW9uCuKAmG9mX2dldF9wcm9wZXJ0eeKAmSBbLVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNs
-YXJhdGlvbl0KdmV4cHJlc3MuYzozNDoyNzogd2FybmluZzogaW5pdGlhbGl6YXRpb24gbWFrZXMg
-cG9pbnRlciBmcm9tIGludGVnZXIKd2l0aG91dCBhIGNhc3QgW2VuYWJsZWQgYnkgZGVmYXVsdF0K
-dmV4cHJlc3MuYzogSW4gZnVuY3Rpb24g4oCYdmV4cHJlc3NfaHdtb25fbGFiZWxfc2hvd+KAmToK
-dmV4cHJlc3MuYzo0MzoyMjogd2FybmluZzogaW5pdGlhbGl6YXRpb24gbWFrZXMgcG9pbnRlciBm
-cm9tIGludGVnZXIKd2l0aG91dCBhIGNhc3QgW2VuYWJsZWQgYnkgZGVmYXVsdF0KClNlZW4gaWYg
-Q09ORklHX09GX0RFVklDRSBpcyBub3QgZGVmaW5lZC4gb2ZfZ2V0X3Byb3BlcnR5IGlzIGRlY2xh
-cmVkIGluCm9mLmggd2hpY2ggaXMgb25seSBpbmNsdWRlZCBieSBvZl9kZXZpY2UuaCBpZiBDT05G
-SUdfT0ZfREVWSUNFIGlzIGRlZmluZWQuCm9mLmggbmVlZHMgdG8gYmUgaW5jbHVkZWQgZGlyZWN0
-bHkuCgpTaWduZWQtb2ZmLWJ5OiBHdWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Ci0t
-LQogZHJpdmVycy9od21vbi92ZXhwcmVzcy5jIHwgICAgMSArCiAxIGZpbGUgY2hhbmdlZCwgMSBp
-bnNlcnRpb24oKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL3ZleHByZXNzLmMgYi9kcml2
-ZXJzL2h3bW9uL3ZleHByZXNzLmMKaW5kZXggODZkN2Y2ZC4uZDg2N2U2YiAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy9od21vbi92ZXhwcmVzcy5jCisrKyBiL2RyaXZlcnMvaHdtb24vdmV4cHJlc3MuYwpA
-QCAtMTksNiArMTksNyBAQAogI2luY2x1ZGUgPGxpbnV4L2h3bW9uLmg+CiAjaW5jbHVkZSA8bGlu
-dXgvaHdtb24tc3lzZnMuaD4KICNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KKyNpbmNsdWRlIDxs
-aW51eC9vZi5oPgogI2luY2x1ZGUgPGxpbnV4L29mX2RldmljZS5oPgogI2luY2x1ZGUgPGxpbnV4
-L3BsYXRmb3JtX2RldmljZS5oPgogI2luY2x1ZGUgPGxpbnV4L3ZleHByZXNzLmg+Ci0tIAoxLjcu
-OS43CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0t
-c2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlz
-dHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+
+--===============3743172830194154367==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
+Content-Disposition: inline
+
+
+--bg08WKrSYDhXBjb5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.8-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 9489e9dcae718d5fde988e4a684a0f55b5f94d17:
+
+  Linux 3.7-rc7 (2012-11-25 17:59:19 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 44f751cee1b4baef9e3b49c6bd954f8b12b097a6:
+
+  hwmon: (da9055) Fix chan_mux[DA9055_ADC_ADCIN3] setting (2012-12-05 10:55:55 -0800)
+
+----------------------------------------------------------------
+New driver: DA9055
+Added/improved support for new chips in existing drivers: Z650/670, N550/570,
+ADS7830, AMD 16h family
+
+----------------------------------------------------------------
+Ashish Jangam (1):
+      hwmon: DA9055 HWMON driver
+
+Axel Lin (2):
+      hwmon: da9052: Use da9052_reg_update for rmw operations
+      hwmon: (da9055) Fix chan_mux[DA9055_ADC_ADCIN3] setting
+
+Boris Ostrovsky (1):
+      x86,AMD: Power driver support for AMD's family 16h processors
+
+Guenter Roeck (4):
+      hwmon: (coretemp) Drop dependency on PCI for TjMax detection on Atom CPUs
+      hwmon: (coretemp) Use model table instead of if/else to identify CPU models
+      hwmon: (coretemp) Drop N4xx, N5xx, D4xx, D5xx CPUs from tjmax table
+      hwmon: (coretemp) List TjMax for Z650/670 and N550/570
+
+Guillaume Roguez (1):
+      hwmon: (ads7828) add support for ADS7830
+
+Vivien Didelot (1):
+      hwmon: (ads7828) driver cleanup
+
+Wei Yongjun (1):
+      hwmon: (ina2xx) use module_i2c_driver to simplify the code
+
+ Documentation/hwmon/ads7828           |   46 +++--
+ Documentation/hwmon/coretemp          |    2 +
+ Documentation/hwmon/da9055            |   47 +++++
+ drivers/hwmon/Kconfig                 |   19 +-
+ drivers/hwmon/Makefile                |    1 +
+ drivers/hwmon/ads7828.c               |  247 ++++++++++--------------
+ drivers/hwmon/coretemp.c              |   60 +++---
+ drivers/hwmon/da9052-hwmon.c          |   27 +--
+ drivers/hwmon/da9055-hwmon.c          |  336 +++++++++++++++++++++++++++++++++
+ drivers/hwmon/fam15h_power.c          |    4 +
+ drivers/hwmon/ina2xx.c                |   13 +-
+ include/linux/platform_data/ads7828.h |   29 +++
+ 12 files changed, 607 insertions(+), 224 deletions(-)
+ create mode 100644 Documentation/hwmon/da9055
+ create mode 100644 drivers/hwmon/da9055-hwmon.c
+ create mode 100644 include/linux/platform_data/ads7828.h
+
+--bg08WKrSYDhXBjb5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQxsvaAAoJEMsfJm/On5mBknIP/irp7q0KiK0kUczgTA2Lq5ga
+9N5kbJ3S7T4JuRLgQyPqDzIMgf9qpDk/WXNVcF39vux6t2Ofc+tcTzNbXM7DFXXm
+qUt41j2/6v2o17hpfIXtgEEi2zDJSPFBfnfxf357dvjXj+kq/abpDHY1g6nL5i0g
+lk4M40H9LsQMeQ7/6IDfQvTpjm7dxcFiq9cqm40kiTabWbo+PK0G43I2mfHvyBC7
+TGI5DwywKyVNWgBAZ1HiFexirmnORtFof8YmqOrdxOOuEc5MTiX7wZLiMs6Xx9ZH
+z8MVWIykC6MDex1RIZagnoM1CW1+5STb25iSEfBFFm8/PBSlULnJuMuh4pNgd2KW
+RRtflWvQQQPQ563f8ZMqjWHZ9dNdIsB0YROP6ffNXf4pqD5pMWhJ0mq+6MLGyHJ3
+paN9s7JlYI1tuzIMAryv/vkI+yvnZiVeZhcE13SLgaOpgjSTZy+7MxHzpoLilFJV
+WUvlvQRGpcW+prKBD59d3nU5vAy13proV/yyFGJkil4Wbtj3qRENSSSZ3WvSEJxg
+jxtGyCBJgeiS/8pZm6xdNNoQFmo79pio4TxnacKkoIjmiikm3fkCZyyAJNorZycY
+idqqBquPL0iV9WckE8fBGJQy/7Niv3RgX4Vlg2lIrehIwrUXhYI/wES1Kkmgz1fw
+Do/iwmmvUgnjgZHvjoef
+=VZft
+-----END PGP SIGNATURE-----
+
+--bg08WKrSYDhXBjb5--
+
+
+--===============3743172830194154367==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============3743172830194154367==--
