@@ -1,34 +1,45 @@
-From: Chris Verges <kg4ysn@gmail.com>
-Date: Mon, 24 Dec 2012 19:49:07 +0000
-Subject: [lm-sensors] [PATCH 2/2] lm73: fixed Documentation/hwmon/lm73 header
-Message-Id: <1356378547-31499-2-git-send-email-kg4ysn@gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 11 Dec 2012 20:55:53 +0000
+Subject: [lm-sensors] [PATCH v5 00/11] hwmon: Driver for Nuvoton NCT6775F, NCT6776F, and NCT6779D
+Message-Id: <1355259364-14293-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-The lm90 documentation was used as a template for the lm73, and the
-header was not appropriately updated.
+This driver will replace the w83627ehf driver for NCT6775F and NCT6776F,
+and provides support for NCT6779D.
 
-Signed-off-by: Chris Verges <kg4ysn@gmail.com>
----
- Documentation/hwmon/lm73 |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+v5:
+- Review fedback
+  - Documentation fixes
+  - Split patch into several parts to simplify review. 
+  - Updated attribute names
+- Improved support for thermal and speed cruise modes
+- Dropped pwmX_interpolate (or pwmX_step_enable) since I could not get it
+  to work on any of the chips.
+- Added power management support
+- Added support for fanX_pulses attribute
+- Improved fan divider selection
+- Removed unused defines
+- 'valid' is now bool
+- Removed __devinit/__devexit
 
-diff --git a/Documentation/hwmon/lm73 b/Documentation/hwmon/lm73
-index 2d947d3..284661a 100644
---- a/Documentation/hwmon/lm73
-+++ b/Documentation/hwmon/lm73
-@@ -1,4 +1,4 @@
--Kernel driver lm90
-+Kernel driver lm73
- =========
- 
- Supported chips:
--- 
-1.7.9.5
+v4:
+- Fix "temp" array size (reported by smatch)
+- Fix whitespace errors reported by "git am" (but not by checkpatch).
+- Order register definition data by chip type
+- Improve parameter alignment
 
+v3:
+- Variables pwm_temp, REG_TEMP_MON, and NCT6775_REG_TEMP_MON are not used,
+  drop it.
+
+v2:
+- superio region access protection
+- Add support for pwmX_step_enable attribute
+- Improved documentation
 
 _______________________________________________
 lm-sensors mailing list
