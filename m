@@ -1,7 +1,7 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 11 Dec 2012 10:25:46 +0000
+Date: Tue, 11 Dec 2012 10:52:35 +0000
 Subject: Re: [lm-sensors] Driver for Bulldozer
-Message-Id: <20121211112546.531ff229@endymion.delvare>
+Message-Id: <20121211115235.0cfdc837@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAMcsHH20xPDkTq7+9KyxDodnNYKB+UNS3_T=Exfq=BfP+kaxjw@mail.gmail.com>
 In-Reply-To: <CAMcsHH20xPDkTq7+9KyxDodnNYKB+UNS3_T=Exfq=BfP+kaxjw@mail.gmail.com>
@@ -10,12 +10,13 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 11 Dec 2012 05:03:59 -0500, Vahid Keykhaey wrote:
-> -rw------- 1 root root 2884358 Apr 10  2012
-> /boot/System.map-3.2.0-23-generic
+On Tue, 11 Dec 2012 14:17:14 +0330, Vahid Keykhaey wrote:
+> Thanks, it is fixed now. As the final question, is there any hope that
+> there would be a situation to read per core temperatures in the Bulldozer
+> processor?
 
-As I expected, but there was a typo in the new Makefile. Fixed, should
-work now.
+No, this is a hardware limitation, you can't read values from sensors
+that do not exist in the hardware.
 
 -- 
 Jean Delvare
