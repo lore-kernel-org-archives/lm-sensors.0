@@ -1,30 +1,31 @@
-From: Marc Ferland <ferlandm@sonatest.com>
-Date: Tue, 20 Nov 2012 14:26:12 +0000
-Subject: [lm-sensors] fancontrol configuration with absolute paths
-Message-Id: <87fw444agr.fsf@sonatest.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 12 Dec 2012 17:05:56 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (twl4030-madc-hwmon) Fix warning message caused by removal of __devexit
+Message-Id: <1355331956-19170-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Hi,
-
-The fancontrol man page states that you can use both relative (from
-/sys/bus/i2c/devices or /sys/class/hwmon) or absolute paths in
-fancontrol configuration files but from what I've tested (and from the
-fancontrol code) it seems like this is currently broken.
-
-For example, I get:
-Configuration is too old, please run pwmconfig again
-
-when running a configuration that uses absolute paths.
-
-Regards,
-
-Marc
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+Q29tbWl0IDI4MWRmZDAgcmVtb3ZlZCBfX2RldmV4aXQgZnJvbSB0aGUgZXhpdCBmdW5jdGlvbiBi
+dXQgbGVmdCBfX2V4aXRfcCBpbgpwbGFjZS4gVGhpcyByZXN1bHRzIGluIHRoZSBmb2xsb3dpbmcg
+d2FybmluZyBtZXNzYWdlIGlmIHRoZSBtb2R1bGUgaXMgYnVpbHQgaW50bwp0aGUga2VybmVsLgoK
+dHdsNDAzMC1tYWRjLWh3bW9uLmM6MTIzOjEyOiB3YXJuaW5nOiDigJh0d2w0MDMwX21hZGNfaHdt
+b25fcmVtb3Zl4oCZIGRlZmluZWQKYnV0IG5vdCB1c2VkIFstV3VudXNlZC1mdW5jdGlvbl0KCkZp
+eCBieSByZW1vdmluZyBfX2V4aXRfcCBhcyB3ZWxsLgoKU2lnbmVkLW9mZi1ieTogR3VlbnRlciBS
+b2VjayA8bGludXhAcm9lY2stdXMubmV0PgotLS0KIGRyaXZlcnMvaHdtb24vdHdsNDAzMC1tYWRj
+LWh3bW9uLmMgfCAgICAyICstCiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVs
+ZXRpb24oLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2h3bW9uL3R3bDQwMzAtbWFkYy1od21vbi5j
+IGIvZHJpdmVycy9od21vbi90d2w0MDMwLW1hZGMtaHdtb24uYwppbmRleCAxNDlkNDRhLi42YzZk
+NDQwIDEwMDY0NAotLS0gYS9kcml2ZXJzL2h3bW9uL3R3bDQwMzAtbWFkYy1od21vbi5jCisrKyBi
+L2RyaXZlcnMvaHdtb24vdHdsNDAzMC1tYWRjLWh3bW9uLmMKQEAgLTEzMCw3ICsxMzAsNyBAQCBz
+dGF0aWMgaW50IHR3bDQwMzBfbWFkY19od21vbl9yZW1vdmUoc3RydWN0IHBsYXRmb3JtX2Rldmlj
+ZSAqcGRldikKIAogc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kcml2ZXIgdHdsNDAzMF9tYWRjX2h3
+bW9uX2RyaXZlciA9IHsKIAkucHJvYmUgPSB0d2w0MDMwX21hZGNfaHdtb25fcHJvYmUsCi0JLnJl
+bW92ZSA9IF9fZXhpdF9wKHR3bDQwMzBfbWFkY19od21vbl9yZW1vdmUpLAorCS5yZW1vdmUgPSB0
+d2w0MDMwX21hZGNfaHdtb25fcmVtb3ZlLAogCS5kcml2ZXIgPSB7CiAJCSAgIC5uYW1lID0gInR3
+bDQwMzBfbWFkY19od21vbiIsCiAJCSAgIC5vd25lciA9IFRISVNfTU9EVUxFLAotLSAKMS43Ljku
+NwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNl
+bnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3Rz
+LmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
