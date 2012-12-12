@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 03 Dec 2012 14:35:45 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 12 Dec 2012 14:45:32 +0000
 Subject: Re: [lm-sensors] ITE it8603e
-Message-Id: <20121203143545.GA31258@roeck-us.net>
+Message-Id: <20121212154532.41e1a812@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
 In-Reply-To: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
@@ -10,37 +10,94 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Mon, Dec 03, 2012 at 09:44:30AM +0100, Jean Delvare wrote:
-> On Sun, 2 Dec 2012 18:57:28 +0100, Jean Delvare wrote:
-> > On Wed, 28 Nov 2012 13:41:03 -0700, David Hubbard wrote:
-> > > I created a quick patch for sensors-detect to recognize the chip. I'd
-> > > like to start poking at it to see if the it87 driver can extract any
-> > > useful information (likely). Rudolf has requested the datasheet from
-> > > ITE, but in the likely event nothing happens, we thought it would be
-> > > worth asking you - you know people in the industry. I would be happy
-> > > to sign an NDA if that will help.
-> > 
-> > The information I was able to get from my contact at ITE:
-> > 
-> > * The IT8603E does supports hardware monitoring.
-> > 
-> > * The chip has a built-in 8-bit ADC, two thermal inputs with mode
-> >   selection (thermistor / transistor), 5 external voltage inputs +
-> >   3VSB, AVCC3 and VBAT measured internally. It features limits for all
-> >   measured values (although probably not for VBAT) and fetching of
-> >   external temperature values over SST/PECI/AMDSTI/PCH SM-Link.
-> > 
-> > * The IT8603E does support automatic fan speed control.
-> > 
-> > * The IT8603E is compatible to some degree with the IT87xxF family.
-> 
-> In addition: this is a custom part for a specific customer (= board
-> maker.) My contact says ITE can't disclose the datasheet for such parts
-> and it should be requested from the board designer.
-> 
-Heard the same before, for IT8771E and ASUS. And ASUS doesn't provide it.
+Hi David,
 
-Guenter
+On Thu, 29 Nov 2012 11:00:21 -0700, David Hubbard wrote:
+> Hi Jean,
+> 
+> On Thu, Nov 29, 2012 at 4:48 AM, Jean Delvare <khali@linux-fr.org> wrote:
+> > On Thu, 29 Nov 2012 03:09:01 -0700, David Hubbard wrote:
+> >> +             * at all, not sure about the IT8728F or IT8603E
+> >> +             * (IT8603E - "hwmon_vid: Unknown VRM version of your x86 CPU"
+> >> +             * and cpu0_vid reads as 0)
+> >
+> > This has nothing to do with the IT8603E but only with your CPU. Which
+> > kernel version are you running, and can we see (one entry in)
+> > your /proc/cpuinfo?
+> 
+> Yes. I am most interested in the datasheet, but I appreciate your help
+> to tweak the it87 driver as a fallback.
+> 
+> $ uname -a
+> Linux f2a85 3.6.6-gentoo #13 SMP Wed Nov 28 22:29:55 MST 2012 x86_64
+> AMD A10-5800K APU with Radeon(tm) HD Graphics AuthenticAMD GNU/Linux
+> 
+> $ cat /proc/cpuinfo
+> processor       : 0
+> vendor_id       : AuthenticAMD
+> cpu family      : 21
+> model           : 16
+> model name      : AMD A10-5800K APU with Radeon(tm) HD Graphics
+> stepping        : 1
+
+We do not support any VID decoding since family 10h CPUs for AMD:
+
+	{X86_VENDOR_AMD, 0x10, 0x0, ANY, ANY, 25},	/* NPT family 10h */
+
+Starting with family 11h CPUs, AMD has given up on parallel VID in
+favor of serial VID which uses only 2 pins. I know that the IT8720F has
+support for this, but I did not find any trace in other ITE datasheets.
+
+The serial VID uses 7-bit codes which are incompatible with the
+previous 6-bit parallel VID codes used by family 10h CPUs. BTW the
+family 10h CPUs already supported serial VID, and I have no idea how to
+support that properly as hwmon-vid has no idea whether the code came
+from the serial or parallel VID interface.
+
+The following should at least get rid of the warning in the kernel logs:
+
+* * * * *
+
+Since family 11h processors, AMD is exclusively using 7-bit VID codes
+transmitted using a serial protocol over two pins (clock and data.)
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/hwmon/hwmon-vid.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+--- linux-3.7-rc8.orig/drivers/hwmon/hwmon-vid.c	2012-10-20 21:11:32.000000000 +0200
++++ linux-3.7-rc8/drivers/hwmon/hwmon-vid.c	2012-12-12 15:36:36.309882929 +0100
+@@ -115,6 +115,12 @@ int vid_from_reg(int val, u8 vrm)
+ 		return (val < 32) ? 1550 - 25 * val
+ 			: 775 - (25 * (val - 31)) / 2;
+ 
++	case 26:		/* AMD family 10h to 15h, serial VID */
++		val &= 0x7f;
++		if (val >= 0x7c)
++			return 0;
++		return DIV_ROUND_CLOSEST(15500 - 125 * val, 10);
++
+ 	case 91:		/* VRM 9.1 */
+ 	case 90:		/* VRM 9.0 */
+ 		val &= 0x1f;
+@@ -195,6 +201,10 @@ static struct vrm_model vrm_models[] = {
+ 	{X86_VENDOR_AMD, 0xF, 0x40, 0x7F, ANY, 24},	/* NPT family 0Fh */
+ 	{X86_VENDOR_AMD, 0xF, 0x80, ANY, ANY, 25},	/* future fam. 0Fh */
+ 	{X86_VENDOR_AMD, 0x10, 0x0, ANY, ANY, 25},	/* NPT family 10h */
++	{X86_VENDOR_AMD, 0x11, 0x0, ANY, ANY, 26},	/* family 11h */
++	{X86_VENDOR_AMD, 0x12, 0x0, ANY, ANY, 26},	/* family 12h */
++	{X86_VENDOR_AMD, 0x14, 0x0, ANY, ANY, 26},	/* family 14h */
++	{X86_VENDOR_AMD, 0x15, 0x0, ANY, ANY, 26},	/* family 15h */
+ 
+ 	{X86_VENDOR_INTEL, 0x6, 0x0, 0x6, ANY, 82},	/* Pentium Pro,
+ 							 * Pentium II, Xeon,
+
+Also available as a standalone driver at:
+  http://khali.linux-fr.org/devel/misc/hwmon-vid/
+
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
