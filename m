@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Dec 2012 13:35:12 +0000
+From: "Leslie Rhorer" <lrhorer@mygrande.net>
+Date: Wed, 12 Dec 2012 15:14:30 +0000
 Subject: Re: [lm-sensors] Fried CPU?
-Message-Id: <20121212143512.0b36ce69@endymion.delvare>
+Message-Id: <201212121514.qBCFEUe8026422@mx1.lsn.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201212101840.qBAIe73K013644@mx1.lsn.net>
 In-Reply-To: <201212101840.qBAIe73K013644@mx1.lsn.net>
@@ -10,48 +10,87 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-SGkgTGVzbGllLAoKT24gVHVlLCAxMSBEZWMgMjAxMiAwOTo1MTo1MiAtMDYwMCwgTGVzbGllIFJo
-b3JlciB3cm90ZToKPiBGcm9tOiBKZWFuIERlbHZhcmUgW21haWx0bzpraGFsaUBsaW51eC1mci5v
-cmddCj4gPiBPbiBNb24sIDEwIERlYyAyMDEyIDEyOjQwOjA3IC0wNjAwLCBMZXNsaWUgUmhvcmVy
-IHdyb3RlOgo+ID4gPiByZXBvcnRlZCBhIGNvcnJlY3QgdGVtcGVyYXR1cmUgdG8gdGhlIEJJT1Ms
-IGJ1dCB0aGF0IGBzZW5zb3JzYCBpcwo+ID4gPiByZXBvcnRpbmcgZ2FyYmFnZS4KPiA+IAo+ID4g
-RXZlbiBtb3JlIHNvIHdoZW4gdXNpbmcgdGhlIGFzdXNfYXRrMDExMCBkcml2ZXIsIHdoaWNoIGdl
-dHMgaXRzCj4gPiByZWFkaW5ncyBzdHJhaWdodCBmcm9tIHRoZSBCSU9TLgo+IAo+IEkgZG9u4oCZ
-dCB1bmRlcnN0YW5kIHdoYXQgeW91IG1lYW4uICBXaGF0IGlzIGV2ZW4gbW9yZSBzbz8KCkkgbWVh
-bnQgdGhhdCBJIHNoYXJlIHlvdXIgc2tlcHRpY2lzbSB3aXRoIHJlZ2FyZHMgdG8gdGVtcGVyYXR1
-cmUgdmFsdWVzCmJlaW5nIHJlcG9ydGVkIHByb3Blcmx5IGluIHRoZSBCSU9TIGFuZCBpbXByb3Bl
-cmx5IGluIExpbnV4LCBiZWNhdXNlCmFzdXNfYXRrMDExMCBpc24ndCBhIG5hdGl2ZSBkcml2ZXIg
-YnV0IGFuIEFDUEkgZHJpdmVyLiBJdCBkb2Vzbid0IHJlYWQKdGhlIHZhbHVlcyBmcm9tIHRoZSBo
-YXJkd2FyZSBkaXJlY3RseSwgaW5zdGVhZCBpdCBhc2tzIHRoZSBBQ1BJIEJJT1MKZm9yIHRoZW0u
-IFNvIHRoZSB2ZXJ5IHNhbWUgQklPUyBjb2RlIHN1cHBvc2VkbHkgcHJvdmlkZXMgdGhlIEJJT1MK
-dmFsdWVzIGFuZCB0aGUgTGludXggdmFsdWVzIGFzIGZhciBhcyBtb25pdG9yaW5nIGlzIGNvbmNl
-cm5lZC4KCj4gPiA+ICguLi4pCj4gPiA+IEkgZGlkIHJ1biB0aGUgYHNlbnNvcnMtZGV0ZWN0YCBj
-b21tYW5kIHByaW9yIHRvIHNodXR0aW5nIHRoZQo+ID4gPiBzeXN0ZW0gZG93biBpbiBvcmRlciB0
-byBjaGVjayBzb21ldGhpbmcuCj4gPiAKPiA+IFdoZW4gZGlkIHlvdSBkbyB0aGF0IGV4YWN0bHk/
-IHNlbnNvcnMtZGV0ZWN0IGlzIGtub3duIHRvIGhhdmUgY2F1c2VkCj4gPiBzZXJpb3VzIHRyb3Vi
-bGUgb24gYSBzbWFsbCBudW1iZXIgb2Ygc3lzdGVtcywgYnV0IGdpdmVuIHRoZSBoaXN0b3J5IG9m
-Cj4gPiB5b3VyIHN5c3RlbSB0aGlzIGRvZXNuJ3Qgc2VlbSBsaWtlIHRoZSBwcmltZSBzdXNwZWN0
-IGZvciB5b3VyIHNwZWNpZmljCj4gPiBwcm9ibGVtLgo+IAo+IEl0IHdhcyBydW4ganVzdCBwcmlv
-ciB0byBzd2FwcGluZyBvdXQgdGhlIHNvbGlkIHN0YXRlIGNvb2xpbmcgZm9yIHRoZSBsaXF1aWQK
-PiBjb29pbmcgd2hlbiB0aGUgcmVwbGFjZW1lbnQgYXJyaXZlZC4KPiAKPiA+IFdoYXQgbW90aGVy
-Ym9hcmQgaXMgdGhpcz8KPiAKPiBBc3VzIENyb3NzaGFpciBJSSBGb3JtdWxhCgpOb2JvZHkgZWxz
-ZSByZXBvcnRlZCB0byB1cyB1c2luZyB0aGF0IG1vdGhlcmJvYXJkLgoKPiA+IFdoaWNoIHZlcnNp
-b24gb2YgbG0tc2Vuc29ycyBvciBzZW5zb3JzLWRldGVjdCBkaWQgeW91IHVzZT8KPiAKPiAxOjMu
-MS4yLTYKCk9LLiBUaGlzIGlzIGEgYml0IG9sZCBidXQgYXMgZmFyIGFzIEkgY2FuIHNlZSBhbGwg
-a25vd24gU01CdXMgZGV0ZWN0aW9uCmlzc3VlcyB3ZXJlIGFscmVhZHkgZml4ZWQgaW4gdGhpcyB2
-ZXJzaW9uLiBUaGlzIG1ha2VzIG1lIGJlbGlldmUgaXQgaXMKdW5saWtlbHkgdGhhdCBzZW5zb3Jz
-LWRldGVjdCBjYXVzZWQgdGhlIGlzc3VlcyB5b3UncmUgc2VlaW5nLiBUaGlzCmNvdWxkIHN0aWxs
-IGJlIHRoZSBjYXNlIGlmIEFzdXMgdXNlZCBzb21lIG92ZXJjbG9ja2luZyBjaGlwIGNvbm5lY3Rl
-ZAp0byB0aGUgU01CdXMgYW5kIGJlaGF2aW5nIGRpZmZlcmVudGx5IGZyb20gZXZlcnkgb3RoZXIg
-Y2hpcCB3ZSd2ZSBzZWVuCmJlZm9yZS4KCkluIHRoZSBldmVudCB0aGlzIGlzIHJlYWxseSB3aGF0
-IGhhcHBlbmVkLCBoZXJlIGlzIHRoZSByZWNvbW1lbmRlZApwcm9jZWR1cmUgd2hpY2ggZGlkIGhl
-bHAgc29tZSB1c2VycyBpbiB0aGUgcGFzdCAobm8gZ3VhcmFudGVlIG9mCmNvdXJzZSk6CiogUG93
-ZXIgb2ZmIHRoZSBtYWNoaW5lLCBzd2l0Y2ggdGhlIFBTVSBvZmYsIHVucGx1ZyBmcm9tIHRoZSB3
-YWxsCiAgb3V0bGV0LgoqIFJlbW92ZSB0aGUgYmFja3VwIGJhdHRlcnksIGNsZWFyIHRoZSBDTU9T
-LgoqIFdhaXQgZm9yIDEwIG1pbnV0ZXMuCiogUHV0IHRoZSBiYWNrdXAgYmF0dGVyeSBiYWNrLCBw
-bHVnLCBzd2l0Y2ggb24uCiogTG9hZCB0aGUgQklPUyBkZWZhdWx0cy4KCkJ1dCB0aGVuIGFnYWlu
-IHRoZSBtb3N0IGxpa2VseSBpcyB0aGF0IHlvdXIgQ1BVIGdvdCBwYXJ0bHkgZGFtYWdlZAp3aGls
-ZSB0aGUgcHVtcCB3YXMgZGVhZC4KCi0tIApKZWFuIERlbHZhcmUKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0Cmxt
-LXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDovL2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxt
-YW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
+> -----Original Message-----
+> From: Jean Delvare [mailto:khali@linux-fr.org]
+> Sent: Wednesday, December 12, 2012 7:35 AM
+> To: Leslie Rhorer
+> Cc: lm-sensors@lm-sensors.org
+> Subject: Re: [lm-sensors] Fried CPU?
+> 
+> Hi Leslie,
+> 
+> On Tue, 11 Dec 2012 09:51:52 -0600, Leslie Rhorer wrote:
+> > From: Jean Delvare [mailto:khali@linux-fr.org]
+> > > On Mon, 10 Dec 2012 12:40:07 -0600, Leslie Rhorer wrote:
+> > > > reported a correct temperature to the BIOS, but that `sensors` is
+> > > > reporting garbage.
+> > >
+> > > Even more so when using the asus_atk0110 driver, which gets its
+> > > readings straight from the BIOS.
+> >
+> > I don't understand what you mean.  What is even more so?
+> 
+> I meant that I share your skepticism with regards to temperature values
+> being reported properly in the BIOS and improperly in Linux, because
+> asus_atk0110 isn't a native driver but an ACPI driver. It doesn't read
+> the values from the hardware directly, instead it asks the ACPI BIOS
+> for them. So the very same BIOS code supposedly provides the BIOS
+> values and the Linux values as far as monitoring is concerned.
+
+OK.
+
+> > > > (...)
+> > > > I did run the `sensors-detect` command prior to shutting the
+> > > > system down in order to check something.
+> > >
+> > > When did you do that exactly? sensors-detect is known to have caused
+> > > serious trouble on a small number of systems, but given the history of
+> > > your system this doesn't seem like the prime suspect for your specific
+> > > problem.
+> >
+> > It was run just prior to swapping out the solid state cooling for the
+> liquid
+> > cooing when the replacement arrived.
+> >
+> > > What motherboard is this?
+> >
+> > Asus Crosshair II Formula
+> 
+> Nobody else reported to us using that motherboard.
+> 
+> > > Which version of lm-sensors or sensors-detect did you use?
+> >
+> > 1:3.1.2-6
+> 
+> OK. This is a bit old but as far as I can see all known SMBus detection
+> issues were already fixed in this version. This makes me believe it is
+> unlikely that sensors-detect caused the issues you're seeing. This
+> could still be the case if Asus used some overclocking chip connected
+> to the SMBus and behaving differently from every other chip we've seen
+> before.
+> 
+> In the event this is really what happened, here is the recommended
+> procedure which did help some users in the past (no guarantee of
+> course):
+> * Power off the machine, switch the PSU off, unplug from the wall
+>   outlet.
+> * Remove the backup battery, clear the CMOS.
+> * Wait for 10 minutes.
+> * Put the backup battery back, plug, switch on.
+> * Load the BIOS defaults.
+
+Actually, I had to do just that to get the machine to boot prior to sending
+out my last message, but while the machine did boot afterwards, it was still
+sending out a bogus value for the CPU temp.  It has been stable for the last
+couple of days, though.
+
+> But then again the most likely is that your CPU got partly damaged
+> while the pump was dead.
+
+Yeah, that seems to be the case.  Damn
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
