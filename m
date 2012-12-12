@@ -1,102 +1,99 @@
 From: "Gabriel L. Somlo" <somlo@cmu.edu>
-Date: Mon, 10 Dec 2012 22:23:13 +0000
-Subject: [lm-sensors] [PATCH v2] applesmc: add sysfs file to report OSK
-Message-Id: <20121210222313.GF2097@hedwig.ini.cmu.edu>
+Date: Wed, 12 Dec 2012 23:01:28 +0000
+Subject: Re: [lm-sensors] [PATCH v2] applesmc: add sysfs file to report OSK
+Message-Id: <20121212230128.GE16373@lobsang.ini.cmu.edu>
 List-Id: <lm-sensors.vger.kernel.org>
-In-Reply-To: <20121210195414.GA642@polaris.bitmath.org>
+References: <20121210195414.GA642@polaris.bitmath.org>
+ <20121210222313.GF2097@hedwig.ini.cmu.edu>
+In-Reply-To: <20121210222313.GF2097@hedwig.ini.cmu.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Henrik Rydberg <rydberg@euromail.se>
 Cc: Guenter Roeck <groeck-dsl@sbcglobal.net>, khali@linux-fr.org, linux@roeck-us.net, lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, agraf@suse.de, rene@exactcode.com
 
-The AppleSMC contains two char[32] keys, OSK0 and OSK1, which are not
-reported in the key count and index by default. These keys are used by
-the OS X boot sequence, and normally don't matter when running Linux.
+Henrik, I agree with you that it's silly to poke the hardware for a
+string we KNOW will NEVER change :)
 
-This patch creates a sysfs entry which reports the value of these keys
-as an ASCII string, to help emulators (such as QEMU) load OS X when
-running on genuine Apple hardware.
+That being said, I too would love to live in a world where technical
+common sense prevailed over bullshit lawyerly tactics, "corporate
+strategies", and the ensuing FUD.
 
-Signed-off-by: Gabriel L. Somlo <somlo@cmu.edu>
----
+The way things stand today, in order to boot Mac OS X on QEMU/KVM/Linux
+(running on Mac hardware of course, in compliance with Apple's license)
+requires the end user supplying the OSK on the QEMU command line via the
+-osk="..." argument.
 
-Henrik,
+I would like to make it easy for people who run Linux natively on Apple
+hardware (of which I am one) to run OS X from QEMU "out of the box".
 
-On Mon, Dec 10, 2012 at 09:19:51PM +0100, Alexander Graf wrote:
->
-> On Mon, Dec 10, 2012 at 08:54:14PM +0100, Henrik Rydberg wrote:
-> >
-> > The OSK string seems constant accross machines, which renders the
-> > patch rather pointless, no? And even if the OSK differs between a
-> > couple of machines, the emulator could easily handle it gracefully.
->
-> The point is that the return value of the OSK is a copyrighted string,
-> we can not include in any other layer. The only way to make this
-> legally savvy is to   read the key from the host.
+I could try to hardcode the OSK inside QEMU, or I could try to include
+it as a default config file entry, but I'm quite certain the QEMU project
+would be uncomfortable "distributing" a string on which Apple claims
+copyright. Even if that happened, distros might then balk at shipping
+QEMU as part of their package repositories, for the exact same reason.
 
-I believe this second version addresses your stylistic objections.
+Currently, we're all beating around the bush about the OSK, with vague
+hints and hoops to jump through for end users to acquire the OSK and
+pass it to QEMU on the command line. This process will have the
+unfortunate side effect of filtering out "normal" users :(
 
-As Alex pointed out, hardcoding the OSK in any open-source project
-might lead to legal/copyright related issues, whereas simply reporting
-whatever the the hardware happens to contain should keep everyone safe.
+The only viable (from a legal CYA standpoint) thing I can think of is
+to make it easy to acquire the OSK automatically, on demand, directly
+from the hardware. Right now, the logical place for that is applesmc.ko.
+It already controls access to the SMC, and already reports values for
+various keys.
 
-As for struct applesmc_node_group info_group[]:
+Yes it may feel silly to "go through the motions" when you KNOW it's
+always going to be the same value that gets returned. But this patch
+is mostly about reassuring people that lawyers will continue not to
+have a reason to get involved...
 
-> > Unfortunately this is not a good place to put random things going
-> > forward.
+Thanks for reading, and hope I'm being sufficiently persuasive :)
+--Gabriel
 
-I figured "info_group" for the "least bad" place to put the OSK, given
-that it's more or less "information from/about the SMC". If you could be
-persuaded by the above arguments to accept the patch, and have a better
-place in mind, I'd be happy to move it there...
-
-Thanks again,
- Gabriel
-
- drivers/hwmon/applesmc.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
-index b41baff..b37b271 100644
---- a/drivers/hwmon/applesmc.c
-+++ b/drivers/hwmon/applesmc.c
-@@ -1013,6 +1013,24 @@ static ssize_t applesmc_key_at_index_store(struct device *dev,
- 	return count;
- }
- 
-+static ssize_t applesmc_osk_show(struct device *dev,
-+				struct device_attribute *attr, char *sysfsbuf)
-+{
-+	int ret;
-+	char buf[65];
-+
-+	mutex_lock(&smcreg.mutex);
-+	ret = read_smc(APPLESMC_READ_CMD, "OSK0", buf, 32);
-+	if (!ret)
-+		ret = read_smc(APPLESMC_READ_CMD, "OSK1", buf + 32, 32);
-+	mutex_unlock(&smcreg.mutex);
-+	if (ret)
-+		return ret;
-+
-+	buf[64] = '\0';
-+	return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", buf);
-+}
-+
- static struct led_classdev applesmc_backlight = {
- 	.name			= "smc::kbd_backlight",
- 	.default_trigger	= "nand-disk",
-@@ -1027,6 +1045,7 @@ static struct applesmc_node_group info_group[] = {
- 	{ "key_at_index_type", applesmc_key_at_index_type_show },
- 	{ "key_at_index_data_length", applesmc_key_at_index_data_length_show },
- 	{ "key_at_index_data", applesmc_key_at_index_read_show },
-+	{ "osk", applesmc_osk_show },
- 	{ }
- };
- 
--- 
-1.7.7.6
-
+>  drivers/hwmon/applesmc.c |   19 +++++++++++++++++++
+>  1 files changed, 19 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/hwmon/applesmc.c b/drivers/hwmon/applesmc.c
+> index b41baff..b37b271 100644
+> --- a/drivers/hwmon/applesmc.c
+> +++ b/drivers/hwmon/applesmc.c
+> @@ -1013,6 +1013,24 @@ static ssize_t applesmc_key_at_index_store(struct device *dev,
+>  	return count;
+>  }
+>  
+> +static ssize_t applesmc_osk_show(struct device *dev,
+> +				struct device_attribute *attr, char *sysfsbuf)
+> +{
+> +	int ret;
+> +	char buf[65];
+> +
+> +	mutex_lock(&smcreg.mutex);
+> +	ret = read_smc(APPLESMC_READ_CMD, "OSK0", buf, 32);
+> +	if (!ret)
+> +		ret = read_smc(APPLESMC_READ_CMD, "OSK1", buf + 32, 32);
+> +	mutex_unlock(&smcreg.mutex);
+> +	if (ret)
+> +		return ret;
+> +
+> +	buf[64] = '\0';
+> +	return snprintf(sysfsbuf, PAGE_SIZE, "%s\n", buf);
+> +}
+> +
+>  static struct led_classdev applesmc_backlight = {
+>  	.name			= "smc::kbd_backlight",
+>  	.default_trigger	= "nand-disk",
+> @@ -1027,6 +1045,7 @@ static struct applesmc_node_group info_group[] = {
+>  	{ "key_at_index_type", applesmc_key_at_index_type_show },
+>  	{ "key_at_index_data_length", applesmc_key_at_index_data_length_show },
+>  	{ "key_at_index_data", applesmc_key_at_index_read_show },
+> +	{ "osk", applesmc_osk_show },
+>  	{ }
+>  };
+>  
+> -- 
+> 1.7.7.6
 
 _______________________________________________
 lm-sensors mailing list
