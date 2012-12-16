@@ -1,214 +1,98 @@
-From: David Hubbard <david.c.hubbard@gmail.com>
-Date: Thu, 13 Dec 2012 22:40:22 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Sun, 16 Dec 2012 10:15:06 +0000
 Subject: Re: [lm-sensors] ITE it8603e
-Message-Id: <CAC-0EqiDVUDQTBX0VWsdRU9+K+eUs1tuH1CFDJNKGwvyyo2j4Q@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5748585274577042010=="
+Message-Id: <20121216111506.2bad51f5@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
 In-Reply-To: <CAC-0Eqii0d94mPbn=8MoOn9UMP_srC3s5Dt3q45G+GTdo2kptw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============5748585274577042010==
-Content-Type: multipart/alternative; boundary=0016e6d27188abbcea04d0c3997d
+Hi David,
 
---0016e6d27188abbcea04d0c3997d
-Content-Type: text/plain; charset=ISO-8859-1
-
-Hi Guenter,
-
-On Thu, Dec 13, 2012 at 3:13 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-
-> On Thu, Dec 13, 2012 at 02:27:57PM -0700, David Hubbard wrote:
-> > Hi Guenter,
+On Thu, 13 Dec 2012 00:58:35 -0700, David Hubbard wrote:
+> On Wed, Dec 12, 2012 at 7:45 AM, Jean Delvare <khali@linux-fr.org> wrote:
+> > We do not support any VID decoding since family 10h CPUs for AMD:
 > >
-> > On Thu, Dec 13, 2012 at 9:07 AM, Guenter Roeck <groeck-dsl@sbcglobal.net
-> >wrote:
+> >         {X86_VENDOR_AMD, 0x10, 0x0, ANY, ANY, 25},      /* NPT family 10h
+> > */
 > >
-> > > On Thu, Dec 13, 2012 at 01:00:30AM -0700, David Hubbard wrote:
-> > > > I'd like to send the same patch again but add signed-off-by this
-> time :)
-> > > I
-> > > > apologize.
-> > > >
-> > > > * * * * *
-> > > >
-> > > > Add experimental support for the it8603e chip (Asus f2a85-m
-> motherboard)
-> > > > Write only tested for pwmN and pwmN_enable.
-> > > > Read tested, but the following appear broken:
-> > > >   alarms
-> > > >   fanN_alarm
-> > > >   inN_alarm
-> > > >   inN_max
-> > > >   inN_min
-> > > >   intrusionN_alarm
-> > > >   pwmN_auto_channels_temp
-> > > >   pwmN_freq
-> > >
-> > > I don't think it is a good idea to report attributes which "appear to
-> be
-> > > broken". At least for the voltage limits and the alarms it should be
-> > > relatively
-> > > easy to find out if they work/don't work. Whatever doesn't work should
-> not
-> > > be
-> > > there.
-> > >
+> > Starting with family 11h CPUs, AMD has given up on parallel VID in
+> > favor of serial VID which uses only 2 pins. I know that the IT8720F has
+> > support for this, but I did not find any trace in other ITE datasheets.
 > >
-> > They don't work but I don't know why. Until we have a datasheet, I'd like
-> > to leave them in the *experimental* driver and wait for a second opinion
-> > from someone who actually has the chip.
+> > The serial VID uses 7-bit codes which are incompatible with the
+> > previous 6-bit parallel VID codes used by family 10h CPUs. BTW the
+> > family 10h CPUs already supported serial VID, and I have no idea how to
+> > support that properly as hwmon-vid has no idea whether the code came
+> > from the serial or parallel VID interface.
+> >
+> > The following should at least get rid of the warning in the kernel logs:
+> >
+> > * * * * *
+> >
+> > Since family 11h processors, AMD is exclusively using 7-bit VID codes
+> > transmitted using a serial protocol over two pins (clock and data.)
+> >
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > ---
+> >  drivers/hwmon/hwmon-vid.c |   10 ++++++++++
+> >  1 file changed, 10 insertions(+)
+> >
+> > --- linux-3.7-rc8.orig/drivers/hwmon/hwmon-vid.c        2012-10-20
+> > 21:11:32.000000000 +0200
+> > +++ linux-3.7-rc8/drivers/hwmon/hwmon-vid.c     2012-12-12
+> > 15:36:36.309882929 +0100
+> > @@ -115,6 +115,12 @@ int vid_from_reg(int val, u8 vrm)
+> >                 return (val < 32) ? 1550 - 25 * val
+> >                         : 775 - (25 * (val - 31)) / 2;
+> >
+> > +       case 26:                /* AMD family 10h to 15h, serial VID */
+> > +               val &= 0x7f;
+> > +               if (val >= 0x7c)
+> > +                       return 0;
+> > +               return DIV_ROUND_CLOSEST(15500 - 125 * val, 10);
+> > +
+> >         case 91:                /* VRM 9.1 */
+> >         case 90:                /* VRM 9.0 */
+> >                 val &= 0x1f;
+> > @@ -195,6 +201,10 @@ static struct vrm_model vrm_models[] = {
+> >         {X86_VENDOR_AMD, 0xF, 0x40, 0x7F, ANY, 24},     /* NPT family 0Fh
+> > */
+> >         {X86_VENDOR_AMD, 0xF, 0x80, ANY, ANY, 25},      /* future fam. 0Fh
+> > */
+> >         {X86_VENDOR_AMD, 0x10, 0x0, ANY, ANY, 25},      /* NPT family 10h
+> > */
+> > +       {X86_VENDOR_AMD, 0x11, 0x0, ANY, ANY, 26},      /* family 11h */
+> > +       {X86_VENDOR_AMD, 0x12, 0x0, ANY, ANY, 26},      /* family 12h */
+> > +       {X86_VENDOR_AMD, 0x14, 0x0, ANY, ANY, 26},      /* family 14h */
+> > +       {X86_VENDOR_AMD, 0x15, 0x0, ANY, ANY, 26},      /* family 15h */
+> >
+> >         {X86_VENDOR_INTEL, 0x6, 0x0, 0x6, ANY, 82},     /* Pentium Pro,
+> >                                                          * Pentium II,
+> > Xeon,
+> >
+> > Also available as a standalone driver at:
+> >   http://khali.linux-fr.org/devel/misc/hwmon-vid/
 > >
 > >
-> > >
-> > > >   temp3_input (there is no 3rd analog temp input to the chip)
-> > > >
-> > > Other IT87xx chips report the AMDSTI/PCH temperature as one of the
-> inputs.
-> > > This
-> > > is usually configurable.
-> > >
-> > >
-> > Ok, fine with me.
-> >
-> > Another question is to what extend we can depend on the logic in
-> > > it87_find() to
-> > > detect enabled chip features. It might make more sense to create
-> another
-> > > if case
-> > > in that function to handle the IT8603 separately.
-> > >
-> >
-> > it87_find() seems to have identified the correct features of the IT8603.
-> I
-> > don't understand your concern with the way it is currently working.
-> >
-> "they don't work ... " and "identified the correct features" seems to
-> somewhat contradict each other.
->
->
-Oh, okay. That's easy. "They don't work," but "it87_find() seems to have
-identified the correct features" -- the features exist, independently
-confirmed by the OEM Asus BIOS. So it87_find() reports data consistent with
-the Asus BIOS. I'd like to leave them in the experimental driver because I
-think it87_find() is operating correctly.
+> After applying the patch you sent cpu0_vid reads as 1550. Thanks much, that
+> was very helpful.
 
-All that needs to be done to get them to work is a datasheet or equivalent
-technical description of the I/O interface. I don't think Asus is going to
-provide one, but another motherboard with the same chip could be extremely
-useful for A/B testing.
+1.550 V is the maximum value supported by the VID encoding on these
+processors. This corresponds to value 00h. This means that either the
+chip doesn't support VID, or not in this register, or it is supported
+but not wired on the board in question.
 
-Thanks,
-David
+Either way, thanks for testing, I'll push this upstream for other AMD
+family 11h+ processor users.
 
---0016e6d27188abbcea04d0c3997d
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi Guenter,<br><div class=3D"gmail_extra"><br><div class=3D"gmail_quote">On=
- Thu, Dec 13, 2012 at 3:13 PM, Guenter Roeck <span dir=3D"ltr">&lt;<a href=
-=3D"mailto:linux@roeck-us.net" target=3D"_blank">linux@roeck-us.net</a>&gt;=
-</span> wrote:<br>
-<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
-x #ccc solid;padding-left:1ex"><div class=3D"HOEnZb"><div class=3D"h5">On T=
-hu, Dec 13, 2012 at 02:27:57PM -0700, David Hubbard wrote:<br>
-&gt; Hi Guenter,<br>
-&gt;<br>
-&gt; On Thu, Dec 13, 2012 at 9:07 AM, Guenter Roeck &lt;<a href=3D"mailto:g=
-roeck-dsl@sbcglobal.net">groeck-dsl@sbcglobal.net</a>&gt;wrote:<br>
-&gt;<br>
-&gt; &gt; On Thu, Dec 13, 2012 at 01:00:30AM -0700, David Hubbard wrote:<br=
->
-&gt; &gt; &gt; I&#39;d like to send the same patch again but add signed-off=
--by this time :)<br>
-&gt; &gt; I<br>
-&gt; &gt; &gt; apologize.<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; * * * * *<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; Add experimental support for the it8603e chip (Asus f2a85-m =
-motherboard)<br>
-&gt; &gt; &gt; Write only tested for pwmN and pwmN_enable.<br>
-&gt; &gt; &gt; Read tested, but the following appear broken:<br>
-&gt; &gt; &gt; =A0 alarms<br>
-&gt; &gt; &gt; =A0 fanN_alarm<br>
-&gt; &gt; &gt; =A0 inN_alarm<br>
-&gt; &gt; &gt; =A0 inN_max<br>
-&gt; &gt; &gt; =A0 inN_min<br>
-&gt; &gt; &gt; =A0 intrusionN_alarm<br>
-&gt; &gt; &gt; =A0 pwmN_auto_channels_temp<br>
-&gt; &gt; &gt; =A0 pwmN_freq<br>
-&gt; &gt;<br>
-&gt; &gt; I don&#39;t think it is a good idea to report attributes which &q=
-uot;appear to be<br>
-&gt; &gt; broken&quot;. At least for the voltage limits and the alarms it s=
-hould be<br>
-&gt; &gt; relatively<br>
-&gt; &gt; easy to find out if they work/don&#39;t work. Whatever doesn&#39;=
-t work should not<br>
-&gt; &gt; be<br>
-&gt; &gt; there.<br>
-&gt; &gt;<br>
-&gt;<br>
-&gt; They don&#39;t work but I don&#39;t know why. Until we have a datashee=
-t, I&#39;d like<br>
-&gt; to leave them in the *experimental* driver and wait for a second opini=
-on<br>
-&gt; from someone who actually has the chip.<br>
-&gt;<br>
-&gt;<br>
-&gt; &gt;<br>
-&gt; &gt; &gt; =A0 temp3_input (there is no 3rd analog temp input to the ch=
-ip)<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; Other IT87xx chips report the AMDSTI/PCH temperature as one of th=
-e inputs.<br>
-&gt; &gt; This<br>
-&gt; &gt; is usually configurable.<br>
-&gt; &gt;<br>
-&gt; &gt;<br>
-&gt; Ok, fine with me.<br>
-&gt;<br>
-&gt; Another question is to what extend we can depend on the logic in<br>
-&gt; &gt; it87_find() to<br>
-&gt; &gt; detect enabled chip features. It might make more sense to create =
-another<br>
-&gt; &gt; if case<br>
-&gt; &gt; in that function to handle the IT8603 separately.<br>
-&gt; &gt;<br>
-&gt;<br>
-&gt; it87_find() seems to have identified the correct features of the IT860=
-3. I<br>
-&gt; don&#39;t understand your concern with the way it is currently working=
-.<br>
-&gt;<br>
-</div></div>&quot;they don&#39;t work ... &quot; and &quot;identified the c=
-orrect features&quot; seems to<br>
-somewhat contradict each other.<br>
-<span class=3D"HOEnZb"></span><br></blockquote><div><br>Oh, okay. That&#39;=
-s easy. &quot;They don&#39;t work,&quot; but &quot;it87_find() seems to hav=
-e identified the correct features&quot; -- the features exist, independentl=
-y confirmed by the OEM Asus BIOS. So it87_find() reports data consistent wi=
-th the Asus BIOS. I&#39;d like to leave them in the experimental driver bec=
-ause I think it87_find() is operating correctly.<br>
-<br>All that needs to be done to get them to work is a datasheet or equival=
-ent technical description of the I/O interface. I don&#39;t think Asus is g=
-oing to provide one, but another motherboard with the same chip could be ex=
-tremely useful for A/B testing.<br>
-<br>Thanks,<br>David <br></div></div></div>
-
---0016e6d27188abbcea04d0c3997d--
-
-
---===============5748585274577042010==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5748585274577042010==--
