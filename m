@@ -1,57 +1,57 @@
-From: Vahid Keykhaey <vahid.keykhaey@gmail.com>
-Date: Tue, 11 Dec 2012 09:44:50 +0000
-Subject: [lm-sensors] Fwd:  Fwd: Driver for Bulldozer
-Message-Id: <CAMcsHH3ysybE5FRBVJu+K_4NDRXLs3gyrO9gPfuUtfX7396DZw@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2608186640634292655=="
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 19 Dec 2012 21:33:53 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for Linux 3.8
+Message-Id: <20121219223353.7b671d1f@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CAMcsHH1KFnR-0kKjbQU52CWhJ-=g+=K+wP8mOGahodmYjcymjQ@mail.gmail.com>
-In-Reply-To: <CAMcsHH1KFnR-0kKjbQU52CWhJ-=g+=K+wP8mOGahodmYjcymjQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============2608186640634292655==
-Content-Type: multipart/alternative; boundary=bcaec50408ec7bc08a04d09088ff
+Hi Linus,
 
---bcaec50408ec7bc08a04d09088ff
-Content-Type: text/plain; charset=ISO-8859-1
+Please pull hwmon subsystem updates for Linux 3.8 from:
 
-test -d /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon || mkdir
-/lib/modules/3.2.0-23-generic/kernel/drivers/hwmon
-cp k10temp.ko /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon
-depmod -a -F /lib/modules/3.2.0-23-generic/build/System.map 3.2.0-23-generic
-FATAL: Could not open '/lib/modules/3.2.0-23-generic/build/System.map': No
-such file or directory
-make: *** [modules_install] Error 1Your distribution puts the System.map
-file at a different location.
+git://git.kernel.org/pub/scm/linux/kernel/git/jdelvare/staging.git hwmon-for-linus
 
-I got it again with new makefile.
+There are many improvements to the it87 driver, as well as suspend
+support for the Winbond Super-I/O chips, and a few other fixes.
 
---bcaec50408ec7bc08a04d09088ff
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+ Documentation/hwmon/it87  |   10 +
+ drivers/hwmon/hwmon-vid.c |   10 +
+ drivers/hwmon/hwmon.c     |   24 +-
+ drivers/hwmon/it87.c      |  890 +++++++++++++++++++++++---------------------
+ drivers/hwmon/w83627ehf.c |   99 +++++-
+ drivers/hwmon/w83627hf.c  |   81 ++++-
+ 6 files changed, 674 insertions(+), 440 deletions(-)
 
-<div class=3D"gmail_quote"><div>test -d /lib/modules/3.2.0-23-generic/kerne=
-l/drivers/hwmon || mkdir /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon=
-<br>cp k10temp.ko /lib/modules/3.2.0-23-generic/kernel/drivers/hwmon<br>dep=
-mod -a -F /lib/modules/3.2.0-23-generic/build/System.map 3.2.0-23-generic<b=
-r>
+---------------
 
-FATAL: Could not open &#39;/lib/modules/3.2.0-23-generic/build/System.map&#=
-39;: No such file or directory<br>make: *** [modules_install] Error 1Your d=
-istribution puts the System.map file at a different location.<br></div>
-<br>I got it again with new makefile.<br></div>
+Guenter Roeck (10):
+      hwmon: (it87) Save temperature registers in 2-dimensional array
+      hwmon: (it87) Save voltage register values in 2-dimensional array
+      hwmon: (it87) Replace macro defining tempX_type sensors with direct definitions
+      hwmon: (it87) Introduce support for tempX_offset sysfs attribute
+      hwmon: (it87) Save fan registers in 2-dimensional array
+      hwmon: (it87) Avoid quoted string splits across lines
+      hwmon: (it87) Replace pwm group macro with direct attribute definitions
+      hwmon: (it87) Manage device specific features with table
+      hwmon: (it87) Report thermal sensor type as Intel PECI if appropriate
+      hwmon: (it87) Support PECI for additional chips
 
---bcaec50408ec7bc08a04d09088ff--
+Jean Delvare (6):
+      hwmon: Fix PCI device reference leak in quirk
+      hwmon: (w83627hf) Add support for suspend
+      hwmon: (w83627ehf) Add support for suspend
+      hwmon: (w83627hf) Don't touch nonexistent I2C address registers
+      hwmon: (w83627ehf) Get rid of smatch warnings
+      hwmon-vid: Add support for AMD family 11h to 15h processors
 
-
---===============2608186640634292655==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2608186640634292655==--
