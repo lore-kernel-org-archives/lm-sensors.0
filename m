@@ -1,65 +1,54 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 20 Dec 2012 11:48:20 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 20 Dec 2012 14:13:44 +0000
 Subject: Re: [lm-sensors] [PATCH v2] linux/kernel.h: Fix DIV_ROUND_CLOSEST with unsigned divisors
-Message-Id: <20121220124820.0069aa66@endymion.delvare>
+Message-Id: <20121220141344.GA32230@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1355928015-26212-1-git-send-email-linux@roeck-us.net>
-	<20121219232115.727a2e91@endymion.delvare>
-	<20121219230144.GB26863@roeck-us.net>
-In-Reply-To: <20121219230144.GB26863@roeck-us.net>
+ <20121219134721.bbde212f.akpm@linux-foundation.org>
+ <20121219224122.GA26863@roeck-us.net>
+ <20121220112202.3ead1fe1@endymion.delvare>
+In-Reply-To: <20121220112202.3ead1fe1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Juergen Beisert <jbe@pengutronix.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Juergen Beisert <jbe@pengutronix.de>
 
-On Wed, 19 Dec 2012 15:01:44 -0800, Guenter Roeck wrote:
-> On Wed, Dec 19, 2012 at 11:21:15PM +0100, Jean Delvare wrote:
-> > Hi Guenter,
-> > 
-> > On Wed, 19 Dec 2012 06:40:15 -0800, Guenter Roeck wrote:
-> > > Commit 263a523 fixes a warning seen with W=1 due to change in
-> > > DIV_ROUND_CLOSEST. Unfortunately, the C compiler converts divide operations
-> > > with unsigned divisors to unsigned, even if the dividend is signed and
-> > > negative (for example, -10 / 5U = 858993457). The C standard says "If one
-> > > operand has unsigned int type, the other operand is converted to unsigned
-> > > int", so the compiler is not to blame.
-> > 
-> > This is surprising to say the least. But if the C standard says so...
->
-> Agreed, but it is how it is.
+On Thu, Dec 20, 2012 at 11:22:02AM +0100, Jean Delvare wrote:
+> Hi Guenter,
 > 
-> > I wouldn't be surprised if there are bugs because of this in the kernel
-> > and in other projects.
->
-> Might easily be. This might make a good interview question - I suspect many
-> if not most engineers would fail it. At least I would have until yesterday :).
-
-Neither did I. And I'm not sure I'll remember it in one year from now.
-
-> > (...)
-> > Thinking a bit more about this... Documenting the non-working cases is
-> > great, however I don't really expect all developers to pay attention. I
-> > can also imagine variable types changing from signed to unsigned later,
-> > and never thinking this can introduce a bug.
+> On Wed, 19 Dec 2012 14:41:22 -0800, Guenter Roeck wrote:
+> > On Wed, Dec 19, 2012 at 01:47:21PM -0800, Andrew Morton wrote:
+> > > The changelog didn't describe the end-user visible effects of the bug.
+> > > Please always include this information.  Because...
+> >
+> > One observed effect is that the s2c_hwmon driver reports a value of 4198403
+> > instead of 0 if the ADC reads 0.
 > > 
-> > So, is there nothing we can do to spot at least the second issue at
-> > build time? For regular division there's nothing we can do (although I
-> > don't understand why gcc doesn't warn...) but here we get the
-> > opportunity to report the issue, let's take it.
+> > Other impact is unpredictable. Problem is seen if the divisor is an unsigned
+> > variable or constant and the dividend is less than (divisor/2).
+> 
+> Really? In my own testing, the problem only shows with dividend = 0, and even
+> then, only when dividend is signed and divisor is not.  DIV_ROUND_CLOSEST(5,
+> 20U) returns 0 as expected, and so do DIV_ROUND_CLOSEST(0 / 20),
+> DIV_ROUND_CLOSEST(0U / 20) and DIV_ROUND_CLOSEST(0U / 20U).
+> 
+> Are your observations different?
+> 
+
+Hmm, you are right - it only happens with 0. I thought I had also seen it with
+other values.
+
+> > > The patch is applicable to 3.7.x.  Should we backport it?
+> >
+> > Yes. DIV_ROUND_CLOSEST is used throughout the kernel, and impact is
+> > unpredictable.
 > > 
-> > And given that the divisor is almost always a constant,
-> > maybe we can check for negative divisors too, this would be safer and
-> > the code size increase would probably be very small in practice.
-> > Opinions?
->
-> Agreed, though we should fix the problem now and think about reporting
-> afterwards.
+> > 3.6 needs it as well.
+> 
+Turns out 3.6 is EOL, so we'll only need it in 3.7.
 
-Yes, that's a good plan.
-
--- 
-Jean Delvare
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
