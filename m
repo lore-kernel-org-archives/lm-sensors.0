@@ -1,110 +1,62 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Thu, 20 Dec 2012 11:00:58 +0000
+Date: Thu, 20 Dec 2012 11:48:20 +0000
 Subject: Re: [lm-sensors] [PATCH v2] linux/kernel.h: Fix DIV_ROUND_CLOSEST with unsigned divisors
-Message-Id: <20121220120058.48fb7c28@endymion.delvare>
+Message-Id: <20121220124820.0069aa66@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1355928015-26212-1-git-send-email-linux@roeck-us.net>
-	<20121219224122.GA26863@roeck-us.net>
-	<20121220112202.3ead1fe1@endymion.delvare>
-	<201212201130.39235.jbe@pengutronix.de>
-In-Reply-To: <201212201130.39235.jbe@pengutronix.de>
+	<20121219232115.727a2e91@endymion.delvare>
+	<20121219230144.GB26863@roeck-us.net>
+In-Reply-To: <20121219230144.GB26863@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Juergen Beisert <jbe@pengutronix.de>
-Cc: Guenter Roeck <linux@roeck-us.net>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, lm-sensors@lm-sensors.org, Juergen Beisert <jbe@pengutronix.de>
 
-Hi Juergen,
+On Wed, 19 Dec 2012 15:01:44 -0800, Guenter Roeck wrote:
+> On Wed, Dec 19, 2012 at 11:21:15PM +0100, Jean Delvare wrote:
+> > Hi Guenter,
+> > 
+> > On Wed, 19 Dec 2012 06:40:15 -0800, Guenter Roeck wrote:
+> > > Commit 263a523 fixes a warning seen with W=1 due to change in
+> > > DIV_ROUND_CLOSEST. Unfortunately, the C compiler converts divide operations
+> > > with unsigned divisors to unsigned, even if the dividend is signed and
+> > > negative (for example, -10 / 5U = 858993457). The C standard says "If one
+> > > operand has unsigned int type, the other operand is converted to unsigned
+> > > int", so the compiler is not to blame.
+> > 
+> > This is surprising to say the least. But if the C standard says so...
+>
+> Agreed, but it is how it is.
+> 
+> > I wouldn't be surprised if there are bugs because of this in the kernel
+> > and in other projects.
+>
+> Might easily be. This might make a good interview question - I suspect many
+> if not most engineers would fail it. At least I would have until yesterday :).
 
-On Thu, 20 Dec 2012 11:30:38 +0100, Juergen Beisert wrote:
-> Hi Jean,
-> 
-> Jean Delvare wrote:
-> > On Wed, 19 Dec 2012 14:41:22 -0800, Guenter Roeck wrote:
-> > > One observed effect is that the s2c_hwmon driver reports a value of
-> > > 4198403 instead of 0 if the ADC reads 0.
-> > >
-> > > Other impact is unpredictable. Problem is seen if the divisor is an
-> > > unsigned variable or constant and the dividend is less than (divisor/2).
-> >
-> > Really? In my own testing, the problem only shows with dividend = 0,
-> > and even then, only when dividend is signed and divisor is not.
-> > DIV_ROUND_CLOSEST(5, 20U) returns 0 as expected, and so do
-> > DIV_ROUND_CLOSEST(0 / 20), DIV_ROUND_CLOSEST(0U / 20) and
-> > DIV_ROUND_CLOSEST(0U / 20U).
-> >
-> > Are your observations different?
-> 
-> I tried it with this simple user-land program to get an idea what's going 
-> wrong in the s3c_hwmon.c ADC driver:
-> 
-> #define DIV_ROUND_CLOSEST(x, divisor)(			\
-> {							\
-> 	typeof(x) __x = x;				\
-> 	typeof(divisor) __d = divisor;			\
-> 	(((typeof(x))-1) > 0 || (__x) > 0) ?		\
-> 		(((__x) + ((__d) / 2)) / (__d)) :	\
-> 		(((__x) - ((__d) / 2)) / (__d));	\
-> }							\
-> )
-> 
-> int main(int argc, char *argv[])
-> {
-> 	int x;
-> 	unsigned y;
-> 
-> 	printf("Constants\n");
-> 
-> 	printf("-1 -> %d\n", DIV_ROUND_CLOSEST(-1, 2));
-> 	printf("-1 -> %d\n", DIV_ROUND_CLOSEST(-1, 1023));
-> 	printf("0 -> %d\n", DIV_ROUND_CLOSEST(0, 1023));
-> 	printf("0 -> %d\n", DIV_ROUND_CLOSEST(0, 2));
-> 	printf("1 -> %d\n", DIV_ROUND_CLOSEST(1, 2));
-> 	printf("1 -> %d\n", DIV_ROUND_CLOSEST(3300, 1023));
-> 	printf("2 -> %d\n", DIV_ROUND_CLOSEST(6600, 1023));
+Neither did I. And I'm not sure I'll remember it in one year from now.
 
-This all works properly, because everything is signed here.
- 
-> 	printf("Variables\n");
-> 
-> 	x = -1; y = 2;
-> 	printf("-1 -> %d\n", DIV_ROUND_CLOSEST(x, y));
-> 	x = -1; y = 1023;
-> 	printf("-1 -> %d\n", DIV_ROUND_CLOSEST(x, y));
-> 	x = 0; y = 1023;
-> 	printf("0 -> %d\n", DIV_ROUND_CLOSEST(x, y));
-> 	x = 3300; y = 1023;
-> 	printf("3300 -> %d\n", DIV_ROUND_CLOSEST(3300, 1023));
-> 	x = 6600; y = 1023;
-> 	printf("6600 -> %d\n", DIV_ROUND_CLOSEST(6600, 1023));
+> > (...)
+> > Thinking a bit more about this... Documenting the non-working cases is
+> > great, however I don't really expect all developers to pay attention. I
+> > can also imagine variable types changing from signed to unsigned later,
+> > and never thinking this can introduce a bug.
+> > 
+> > So, is there nothing we can do to spot at least the second issue at
+> > build time? For regular division there's nothing we can do (although I
+> > don't understand why gcc doesn't warn...) but here we get the
+> > opportunity to report the issue, let's take it.
+> > 
+> > And given that the divisor is almost always a constant,
+> > maybe we can check for negative divisors too, this would be safer and
+> > the code size increase would probably be very small in practice.
+> > Opinions?
+>
+> Agreed, though we should fix the problem now and think about reporting
+> afterwards.
 
-I don't think variables vs. constants make any difference. What makes a
-difference is signed vs. unsigned. You see failures here because y is
-unsigned. You'd see the same with the constants above by changing 2 to
-2U and 1023 to 1023U.
-
-> 
-> 	return 0;
-> }
-> 
-> Result is on my x86 host (same on my ARM target):
-> 
-> Constants
-> -1 -> -1
-> -1 -> 0
-> 0 -> 0
-> 0 -> 0
-> 1 -> 1
-> 1 -> 3
-> 2 -> 6
-> Variables
-> -1 -> 2147483647
-> -1 -> 4198403
-> 0 -> 4198403
-> 3300 -> 3
-> 6600 -> 6
-
-I see the same here with your test program.
+Yes, that's a good plan.
 
 -- 
 Jean Delvare
