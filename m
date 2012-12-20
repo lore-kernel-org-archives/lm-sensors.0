@@ -1,90 +1,162 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 17 Dec 2012 18:42:51 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon fixes for 3.8-rc1
-Message-Id: <20121217184251.GA10776@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============4840063435380113186=="
+Date: Thu, 20 Dec 2012 06:29:35 +0000
+Subject: [lm-sensors] [PATCH RFC 2/3] hwmon: (coretemp) Rename temp_data to core_data
+Message-Id: <1355984976-1033-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============4840063435380113186==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
-Content-Disposition: inline
-
-
---xHFwDpU9dbj6ez1V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon fixes for Linux 3.8-rc1 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit aed606e3bc1f10753254db308d3fd8c053c41328:
-
-  Merge branch 'for-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gerg/m68knommu (2012-12-16 17:42:21 -0800)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 7764b5282e7e04ede3020d86787122887840e016:
-
-  hwmon: (twl4030-madc-hwmon) Fix warning message caused by removal of __devexit (2012-12-16 18:21:33 -0800)
-
-----------------------------------------------------------------
-Fix fallout from __devexit removal
-
-----------------------------------------------------------------
-Guenter Roeck (1):
-      hwmon: (twl4030-madc-hwmon) Fix warning message caused by removal of __devexit
-
- drivers/hwmon/twl4030-madc-hwmon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---xHFwDpU9dbj6ez1V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQz2erAAoJEMsfJm/On5mBfFgP/0dxhTbSU6osYazXG0VVy9fk
-H7EsrJ0QTWnC75k4emm9LYYCho8MfjUl36s1OpT2YXmBpmKUfFAtYJwpFDeiNB8q
-93Wz5lGCfIL2AZm27WTBzftx3kJ9x6JOt/czE8Nxe4r73BoUh6hQJwwjBAthbXAm
-oUlhbBSxkE8YQzNVUKWpLTmu4E8VkLILtcs2sUTLvwakPEotHXxwvVM2mJCvGgaI
-nMQFFIOASM2hfvHh/kL35CyGDYVteELOzqIY8gx0yvG/DSxpt4BIHe0/xO7muQ9G
-PKEPBK62Yu8pQjKnOgb6RTsbWhZozvcNIcVgxFALZ4kZTQaibCIJxh8N0E+R4Ibm
-RbN0n1M6G/BXzll7VSXvvlqD6k+uS2IhL9lPpIpfN+i54KsCBR6gNGkOd59vCmWc
-5hGDkKB9pGcoHqMtWMsu9ZoiZ8DvIvqAvxEYr8wDP/FjMJgtfqqI7EOPH99HerXq
-l7/GFDIbFjl7R8uihP/vBwbSCb5PYu0kzxCWC2W1o+h90HcOMMbMP20Tx8Wvqi7N
-QSSwYq7WMd13I32Mszic3P4U2IukqvjaMnhr3WIp2Bree2F95wADu0mTOwz9BG8C
-rL2DlE/TiwRp6vYsb07bVQVpkf+HdiX9wWpK7VQ0xw1dR9yk1QJLE87Dbk7XOssz
-5bioqO6Uz7iDVGjtg+gV
-=tPrx
------END PGP SIGNATURE-----
-
---xHFwDpU9dbj6ez1V--
-
-
---===============4840063435380113186==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+We are going to use the data structure for power data as well.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ drivers/hwmon/coretemp.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 3f1e297..02ac401 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -76,11 +76,11 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
+  *		from where the temperature values should be read.
+  * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
+- * @is_pkg_data: If this is 1, the temp_data holds pkgtemp data.
+- *		Otherwise, temp_data holds coretemp data.
+- * @valid: If this is 1, the current temperature is valid.
++ * @is_pkg_data: If this is true, the core_data holds pkgtemp data.
++ *		Otherwise, core_data holds coretemp data.
++ * @valid: If this is true, the current temperature is valid.
+  */
+-struct temp_data {
++struct core_data {
+ 	int temp;
+ 	int ttarget;
+ 	int tjmax;
+@@ -100,7 +100,7 @@ struct temp_data {
+ struct platform_data {
+ 	struct device *hwmon_dev;
+ 	u16 phys_proc_id;
+-	struct temp_data *core_data[MAX_CORE_DATA];
++	struct core_data *core_data[MAX_CORE_DATA];
+ 	struct device_attribute name_attr;
+ };
+ 
+@@ -124,7 +124,7 @@ static ssize_t show_label(struct device *dev,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+-	struct temp_data *tdata = pdata->core_data[attr->index];
++	struct core_data *tdata = pdata->core_data[attr->index];
+ 
+ 	if (tdata->is_pkg_data)
+ 		return sprintf(buf, "Physical id %u\n", pdata->phys_proc_id);
+@@ -138,7 +138,7 @@ static ssize_t show_crit_alarm(struct device *dev,
+ 	u32 eax, edx;
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+-	struct temp_data *tdata = pdata->core_data[attr->index];
++	struct core_data *tdata = pdata->core_data[attr->index];
+ 
+ 	rdmsr_on_cpu(tdata->cpu, tdata->status_reg, &eax, &edx);
+ 
+@@ -169,7 +169,7 @@ static ssize_t show_temp(struct device *dev,
+ 	u32 eax, edx;
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+-	struct temp_data *tdata = pdata->core_data[attr->index];
++	struct core_data *tdata = pdata->core_data[attr->index];
+ 
+ 	mutex_lock(&tdata->update_lock);
+ 
+@@ -367,7 +367,7 @@ static int create_name_attr(struct platform_data *pdata,
+ 	return device_create_file(dev, &pdata->name_attr);
+ }
+ 
+-static int __cpuinit create_core_attrs(struct temp_data *tdata,
++static int __cpuinit create_core_attrs(struct core_data *tdata,
+ 				       struct device *dev, int attr_no)
+ {
+ 	int err, i;
+@@ -435,12 +435,12 @@ static struct platform_device __cpuinit *coretemp_get_pdev(unsigned int cpu)
+ 	return NULL;
+ }
+ 
+-static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
+-						  int pkg_flag)
++static struct core_data __cpuinit *init_core_data(unsigned int cpu,
++						  bool pkg_flag)
+ {
+-	struct temp_data *tdata;
++	struct core_data *tdata;
+ 
+-	tdata = kzalloc(sizeof(struct temp_data), GFP_KERNEL);
++	tdata = kzalloc(sizeof(struct core_data), GFP_KERNEL);
+ 	if (!tdata)
+ 		return NULL;
+ 
+@@ -455,9 +455,9 @@ static struct temp_data __cpuinit *init_temp_data(unsigned int cpu,
+ }
+ 
+ static int __cpuinit create_core_data(struct platform_device *pdev,
+-				unsigned int cpu, int pkg_flag)
++				unsigned int cpu, bool pkg_flag)
+ {
+-	struct temp_data *tdata;
++	struct core_data *tdata;
+ 	struct platform_data *pdata = platform_get_drvdata(pdev);
+ 	struct cpuinfo_x86 *c = &cpu_data(cpu);
+ 	u32 eax, edx;
+@@ -484,7 +484,7 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
+ 	if (pdata->core_data[attr_no] != NULL)
+ 		return 0;
+ 
+-	tdata = init_temp_data(cpu, pkg_flag);
++	tdata = init_core_data(cpu, pkg_flag);
+ 	if (!tdata)
+ 		return -ENOMEM;
+ 
+@@ -525,7 +525,7 @@ exit_free:
+ 	return err;
+ }
+ 
+-static void __cpuinit coretemp_add_core(unsigned int cpu, int pkg_flag)
++static void __cpuinit coretemp_add_core(unsigned int cpu, bool pkg_flag)
+ {
+ 	struct platform_device *pdev = coretemp_get_pdev(cpu);
+ 	int err;
+@@ -542,7 +542,7 @@ static void coretemp_remove_core(struct platform_data *pdata,
+ 				struct device *dev, int indx)
+ {
+ 	int i;
+-	struct temp_data *tdata = pdata->core_data[indx];
++	struct core_data *tdata = pdata->core_data[indx];
+ 
+ 	/* Remove the sysfs attributes */
+ 	for (i = 0; i < tdata->attr_size; i++)
+@@ -717,13 +717,13 @@ static void __cpuinit get_core_online(unsigned int cpu)
+ 		 * If so, add interfaces for pkgtemp.
+ 		 */
+ 		if (cpu_has(c, X86_FEATURE_PTS))
+-			coretemp_add_core(cpu, 1);
++			coretemp_add_core(cpu, true);
+ 	}
+ 	/*
+ 	 * Physical CPU device already exists.
+ 	 * So, just add interfaces for this core.
+ 	 */
+-	coretemp_add_core(cpu, 0);
++	coretemp_add_core(cpu, false);
+ }
+ 
+ static void __cpuinit put_core_offline(unsigned int cpu)
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============4840063435380113186==--
