@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Dec 2012 16:31:13 +0000
+Date: Thu, 20 Dec 2012 16:39:45 +0000
 Subject: Re: [lm-sensors] i2c tools build failure with gcc 4.6
-Message-Id: <20121220163113.GA5190@roeck-us.net>
+Message-Id: <20121220163945.GB32096@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <20121220010733.GA31336@roeck-us.net>
  <20121220104510.2fa8a0fb@endymion.delvare>
@@ -35,10 +35,36 @@ On Thu, Dec 20, 2012 at 03:53:54PM +0100, Jean Delvare wrote:
 > 
 > The SVN repository should be back now, thanks to Axel Thimm.
 > 
-It is, thanks. No improvement, though; I still get the same error. Trying to
-find out what is happening.
 
-Guenter
+I found the problem. -li2c must be specified after the .o files.
+
+Patch:
+
+diff --git a/tools/Module.mk b/tools/Module.mk
+index 1979248..bfd3250 100644
+--- a/tools/Module.mk
++++ b/tools/Module.mk
+@@ -21,16 +21,16 @@ TOOLS_TARGETS	:= i2cdetect i2cdump i2cset i2cget
+ #
+ 
+ $(TOOLS_DIR)/i2cdetect: $(TOOLS_DIR)/i2cdetect.o $(TOOLS_DIR)/i2cbusses.o
+-	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
++	$(CC) $(LDFLAGS) -o $@ $^ $(TOOLS_LDFLAGS)
+ 
+ $(TOOLS_DIR)/i2cdump: $(TOOLS_DIR)/i2cdump.o $(TOOLS_DIR)/i2cbusses.o $(TOOLS_DIR)/util.o
+-	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
++	$(CC) $(LDFLAGS) -o $@ $^  $(TOOLS_LDFLAGS)
+ 
+ $(TOOLS_DIR)/i2cset: $(TOOLS_DIR)/i2cset.o $(TOOLS_DIR)/i2cbusses.o $(TOOLS_DIR)/util.o
+-	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
++	$(CC) $(LDFLAGS) -o $@ $^ $(TOOLS_LDFLAGS)
+ 
+ $(TOOLS_DIR)/i2cget: $(TOOLS_DIR)/i2cget.o $(TOOLS_DIR)/i2cbusses.o $(TOOLS_DIR)/util.o
+-	$(CC) $(LDFLAGS) $(TOOLS_LDFLAGS) -o $@ $^
++	$(CC) $(LDFLAGS) -o $@ $^ $(TOOLS_LDFLAGS)
+ 
+ #
+ # Objects
 
 _______________________________________________
 lm-sensors mailing list
