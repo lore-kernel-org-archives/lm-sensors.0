@@ -1,36 +1,89 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 12 Dec 2012 17:38:15 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: (twl4030-madc-hwmon) Fix warning message caused by removal of __deve
-Message-Id: <20121212183815.71779917@endymion.delvare>
+From: Chris Verges <kg4ysn@gmail.com>
+Date: Fri, 21 Dec 2012 09:58:34 +0000
+Subject: [lm-sensors] [PATCH 1/1] lm73: detect i2c bus errors before scnprintf()
+Message-Id: <1356083914-17579-1-git-send-email-kg4ysn@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1355331956-19170-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1355331956-19170-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-T24gV2VkLCAxMiBEZWMgMjAxMiAwOTowNTo1NiAtMDgwMCwgR3VlbnRlciBSb2VjayB3cm90ZToK
-PiBDb21taXQgMjgxZGZkMCByZW1vdmVkIF9fZGV2ZXhpdCBmcm9tIHRoZSBleGl0IGZ1bmN0aW9u
-IGJ1dCBsZWZ0IF9fZXhpdF9wIGluCj4gcGxhY2UuIFRoaXMgcmVzdWx0cyBpbiB0aGUgZm9sbG93
-aW5nIHdhcm5pbmcgbWVzc2FnZSBpZiB0aGUgbW9kdWxlIGlzIGJ1aWx0IGludG8KPiB0aGUga2Vy
-bmVsLgo+IAo+IHR3bDQwMzAtbWFkYy1od21vbi5jOjEyMzoxMjogd2FybmluZzog4oCYdHdsNDAz
-MF9tYWRjX2h3bW9uX3JlbW92ZeKAmSBkZWZpbmVkCj4gYnV0IG5vdCB1c2VkIFstV3VudXNlZC1m
-dW5jdGlvbl0KPiAKPiBGaXggYnkgcmVtb3ZpbmcgX19leGl0X3AgYXMgd2VsbC4KPiAKPiBTaWdu
-ZWQtb2ZmLWJ5OiBHdWVudGVyIFJvZWNrIDxsaW51eEByb2Vjay11cy5uZXQ+Cj4gLS0tCj4gIGRy
-aXZlcnMvaHdtb24vdHdsNDAzMC1tYWRjLWh3bW9uLmMgfCAgICAyICstCj4gIDEgZmlsZSBjaGFu
-Z2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL2h3bW9uL3R3bDQwMzAtbWFkYy1od21vbi5jIGIvZHJpdmVycy9od21vbi90d2w0MDMwLW1h
-ZGMtaHdtb24uYwo+IGluZGV4IDE0OWQ0NGEuLjZjNmQ0NDAgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVy
-cy9od21vbi90d2w0MDMwLW1hZGMtaHdtb24uYwo+ICsrKyBiL2RyaXZlcnMvaHdtb24vdHdsNDAz
-MC1tYWRjLWh3bW9uLmMKPiBAQCAtMTMwLDcgKzEzMCw3IEBAIHN0YXRpYyBpbnQgdHdsNDAzMF9t
-YWRjX2h3bW9uX3JlbW92ZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQo+ICAKPiAgc3Rh
-dGljIHN0cnVjdCBwbGF0Zm9ybV9kcml2ZXIgdHdsNDAzMF9tYWRjX2h3bW9uX2RyaXZlciA9IHsK
-PiAgCS5wcm9iZSA9IHR3bDQwMzBfbWFkY19od21vbl9wcm9iZSwKPiAtCS5yZW1vdmUgPSBfX2V4
-aXRfcCh0d2w0MDMwX21hZGNfaHdtb25fcmVtb3ZlKSwKPiArCS5yZW1vdmUgPSB0d2w0MDMwX21h
-ZGNfaHdtb25fcmVtb3ZlLAo+ICAJLmRyaXZlciA9IHsKPiAgCQkgICAubmFtZSA9ICJ0d2w0MDMw
-X21hZGNfaHdtb24iLAo+ICAJCSAgIC5vd25lciA9IFRISVNfTU9EVUxFLAoKUmV2aWV3ZWQtYnk6
-IEplYW4gRGVsdmFyZSA8a2hhbGlAbGludXgtZnIub3JnPgoKLS0gCkplYW4gRGVsdmFyZQoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBt
-YWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vu
-c29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+If an LM73 device does not exist on an I2C bus, attempts to communicate
+with the device result in an error code returned from the i2c read/write
+functions.  The current lm73 driver casts that return value from a s32
+type to a s16 type, then converts it to a temperature in celsius.
+Because negative temperatures are valid, it is difficult to distinguish
+between an error code printed to the response buffer and a negative
+temperature recorded by the sensor.
+
+The solution is to evaluate the return value from the i2c functions
+before performing any temperature calculations.  If the i2c function did
+not succeed, the error code should be passed back through the virtual
+file system layer instead of being printed into the response buffer.
+
+Before:
+
+   $ cat /sys/class/hwmon/hwmon0/device/temp1_input
+   -46
+
+After:
+
+   $ cat /sys/class/hwmon/hwmon0/device/temp1_input
+   cat: read error: No such device or address
+
+Signed-off-by: Chris Verges <kg4ysn@gmail.com>
+---
+ drivers/hwmon/lm73.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
+index 8fa2632..7272176 100644
+--- a/drivers/hwmon/lm73.c
++++ b/drivers/hwmon/lm73.c
+@@ -49,6 +49,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	long temp;
+ 	short value;
++	s32 err;
+ 
+ 	int status = kstrtol(buf, 10, &temp);
+ 	if (status < 0)
+@@ -57,8 +58,8 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 	/* Write value */
+ 	value = (short) SENSORS_LIMIT(temp/250, (LM73_TEMP_MIN*4),
+ 		(LM73_TEMP_MAX*4)) << 5;
+-	i2c_smbus_write_word_swapped(client, attr->index, value);
+-	return count;
++	err = i2c_smbus_write_word_swapped(client, attr->index, value);
++	return (err < 0) ? err : count;
+ }
+ 
+ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+@@ -66,11 +67,16 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ {
+ 	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
+ 	struct i2c_client *client = to_i2c_client(dev);
++	int temp;
++
++	s32 err = i2c_smbus_read_word_swapped(client, attr->index);
++	if (err < 0)
++		return err;
++
+ 	/* use integer division instead of equivalent right shift to
+ 	   guarantee arithmetic shift and preserve the sign */
+-	int temp = ((s16) (i2c_smbus_read_word_swapped(client,
+-		    attr->index))*250) / 32;
+-	return sprintf(buf, "%d\n", temp);
++	temp = (((s16) err) * 250) / 32;
++	return scnprintf(buf, PAGE_SIZE, "%d\n", temp);
+ }
+ 
+ 
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
