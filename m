@@ -1,63 +1,69 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 05 Dec 2012 05:09:50 +0000
-Subject: Re: [lm-sensors] [PATCH] x86, AMD: Power driver support for AMD's family 16h processors
-Message-Id: <20121205050900.GA7793@roeck-us.net>
+From: "Simon J. Rowe" <srowe@mose.org.uk>
+Date: Mon, 24 Dec 2012 08:37:57 +0000
+Subject: [lm-sensors] RFC: Intel QST driver
+Message-Id: <50D81465.9060802@mose.org.uk>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1354623004-8169-1-git-send-email-boris.ostrovsky@amd.com>
- <CAErSpo4p1-=71SXN3eg0KVu_S0mwjVjYUBfXSBMypJAatvnAiA@mail.gmail.com>
-In-Reply-To: <CAErSpo4p1-=71SXN3eg0KVu_S0mwjVjYUBfXSBMypJAatvnAiA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Boris Ostrovsky <boris.ostrovsky@amd.com>
-Cc: herrmann.der.user@googlemail.com, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 04, 2012 at 10:26:16AM -0700, Bjorn Helgaas wrote:
-> On Tue, Dec 4, 2012 at 5:10 AM, Boris Ostrovsky <boris.ostrovsky@amd.com> wrote:
-> > Add family 16h PCI ID to AMD's power driver to allow it report
-> > power consumption on these processors.
-> >
-> > Signed-off-by: Boris Ostrovsky <boris.ostrovsky@amd.com>
-> > ---
-> >  drivers/hwmon/fam15h_power.c |    1 +
-> >  include/linux/pci_ids.h      |    1 +
-> >  2 files changed, 2 insertions(+)
-> >
-> > diff --git a/drivers/hwmon/fam15h_power.c b/drivers/hwmon/fam15h_power.c
-> > index 4f41104..dda1113 100644
-> > --- a/drivers/hwmon/fam15h_power.c
-> > +++ b/drivers/hwmon/fam15h_power.c
-> > @@ -248,6 +248,7 @@ static void __devexit fam15h_power_remove(struct pci_dev *pdev)
-> >
-> >  static DEFINE_PCI_DEVICE_TABLE(fam15h_power_id_table) = {
-> >         { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_15H_NB_F4) },
-> > +       { PCI_VDEVICE(AMD, PCI_DEVICE_ID_AMD_16H_NB_F4) },
-> >         {}
-> >  };
-> >  MODULE_DEVICE_TABLE(pci, fam15h_power_id_table);
-> > diff --git a/include/linux/pci_ids.h b/include/linux/pci_ids.h
-> > index 9d36b82..9c9a464 100644
-> > --- a/include/linux/pci_ids.h
-> > +++ b/include/linux/pci_ids.h
-> > @@ -524,6 +524,7 @@
-> >  #define PCI_DEVICE_ID_AMD_15H_NB_F3    0x1603
-> >  #define PCI_DEVICE_ID_AMD_15H_NB_F4    0x1604
-> >  #define PCI_DEVICE_ID_AMD_15H_NB_F5    0x1605
-> > +#define PCI_DEVICE_ID_AMD_16H_NB_F4    0x1534
-> >  #define PCI_DEVICE_ID_AMD_CNB17H_F3    0x1703
-> >  #define PCI_DEVICE_ID_AMD_LANCE                0x2000
-> >  #define PCI_DEVICE_ID_AMD_LANCE_HOME   0x2001
-> 
-> Read the comment at the top of pci_ids.h.  Based on just this patch,
-> it doesn't seem like the pci_ids.h change is warranted.
-> 
-Boris,
+I've written a driver for the Intel Quiet System Technology (QST)
+function of the Management Engine Interface found on recent Intel
+chipsets.
 
-can you move the define into fam15h_power.c and resubmit the patch ?
-It would simplify integration.
+The git repo can be found here:
 
-Thanks,
-Guenter
+     http://mose.dyndns.org/mei.git
+
+A few questions / observations,
+
+1) The code was developed and tested on 2.6.39. I would hope it
+compiles and runs on 3.x but I haven't tried it.
+
+2) The main hwmon code is in qst-hwmon.c. This implements QST v1, I
+don't have access to hardware that supports v2. I would imagine that
+implementing v2 would result in a new module (qst2-hwmon) which would
+be almost identical.
+
+3) I've gone a bit overboard with preprocessor macros but it does mean
+that the amount of duplicated code is kept to a minimum.
+
+3) I've not implemented any PWM methods yet.
+
+4) I don't believe the MEI (HECI) implementation that Intel have
+already submitted to the mainline kernel is usable by other kernel
+modules. I have re-implemented it in a way that is accessible to
+either the kernel or userspace.
+
+5) I had to patch libsensors to work with a new bus type
+
+diff -ur lm_sensors-3.3.1.org//lib/sysfs.c lm_sensors-3.3.1/lib/sysfs.c
+--- lm_sensors-3.3.1.org//lib/sysfs.c   2011-03-04 20:37:43.000000000 +0000
++++ lm_sensors-3.3.1/lib/sysfs.c        2012-11-14 21:48:52.144860375 +0000
+@@ -701,6 +701,12 @@
+                 /* As of kernel 2.6.32, the hid device names don't look 
+good */
+                 entry.chip.bus.nr = bus;
+                 entry.chip.addr = id;
++       } else
++       if (subsys && !strcmp(subsys, "intel-mei") &&
++           sscanf(dev_name, "mei%d:%d", &bus, &fn) = 2) {
++               entry.chip.bus.type = SENSORS_BUS_TYPE_PCI;
++               entry.chip.bus.nr = bus;
++               entry.chip.addr = fn;
+         } else {
+                 /* Ignore unknown device */
+                 err = 0;
+
+surely this sort of knowledge belongs in the driver not userspace?
+Could drivers not provide another set of sysfs attributes which expose
+bus type, number, addr etc?
+
+Please let me know if there's any changes or improvements I can make
+to it.
+
+Simon
 
 _______________________________________________
 lm-sensors mailing list
