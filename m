@@ -1,27 +1,34 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 25 Dec 2012 11:50:21 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] lm73: added 'update_interval' attribute
-Message-Id: <20121225115021.GA28426@roeck-us.net>
+From: Chris Verges <kg4ysn@gmail.com>
+Date: Mon, 24 Dec 2012 19:49:07 +0000
+Subject: [lm-sensors] [PATCH 2/2] lm73: fixed Documentation/hwmon/lm73 header
+Message-Id: <1356378547-31499-2-git-send-email-kg4ysn@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1356378547-31499-1-git-send-email-kg4ysn@gmail.com>
-In-Reply-To: <1356378547-31499-1-git-send-email-kg4ysn@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Dec 25, 2012 at 01:05:31AM -0800, Chris Verges wrote:
-> On Mon, Dec 24, 2012 at 10:24 PM, Guenter Roeck <linux@roeck-us.net> wrote:
-> > *snip*
-> 
-> Good suggestions.  I'll add them in.  I'm also working on a patch for
-> ALERT support.  Might take a couple more days.  Expect a full patch for
-> all of it when you get back.
-> 
-Cool. Just to be sure - remember SubmittingPatches rule #3.
+The lm90 documentation was used as a template for the lm73, and the
+header was not appropriately updated.
 
-Thanks,
-Guenter
+Signed-off-by: Chris Verges <kg4ysn@gmail.com>
+---
+ Documentation/hwmon/lm73 |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Documentation/hwmon/lm73 b/Documentation/hwmon/lm73
+index 2d947d3..284661a 100644
+--- a/Documentation/hwmon/lm73
++++ b/Documentation/hwmon/lm73
+@@ -1,4 +1,4 @@
+-Kernel driver lm90
++Kernel driver lm73
+ =========
+ 
+ Supported chips:
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
