@@ -1,54 +1,135 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 20 Dec 2012 14:13:44 +0000
-Subject: Re: [lm-sensors] [PATCH v2] linux/kernel.h: Fix DIV_ROUND_CLOSEST with unsigned divisors
-Message-Id: <20121220141344.GA32230@roeck-us.net>
+From: Chris Verges <kg4ysn@gmail.com>
+Date: Mon, 24 Dec 2012 08:11:09 +0000
+Subject: [lm-sensors] [PATCH 1/1] lm73: added 'update_interval' attribute
+Message-Id: <1356336669-18722-1-git-send-email-kg4ysn@gmail.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1355928015-26212-1-git-send-email-linux@roeck-us.net>
- <20121219134721.bbde212f.akpm@linux-foundation.org>
- <20121219224122.GA26863@roeck-us.net>
- <20121220112202.3ead1fe1@endymion.delvare>
-In-Reply-To: <20121220112202.3ead1fe1@endymion.delvare>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org, Juergen Beisert <jbe@pengutronix.de>
+To: lm-sensors@vger.kernel.org
 
-On Thu, Dec 20, 2012 at 11:22:02AM +0100, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Wed, 19 Dec 2012 14:41:22 -0800, Guenter Roeck wrote:
-> > On Wed, Dec 19, 2012 at 01:47:21PM -0800, Andrew Morton wrote:
-> > > The changelog didn't describe the end-user visible effects of the bug.
-> > > Please always include this information.  Because...
-> >
-> > One observed effect is that the s2c_hwmon driver reports a value of 4198403
-> > instead of 0 if the ADC reads 0.
-> > 
-> > Other impact is unpredictable. Problem is seen if the divisor is an unsigned
-> > variable or constant and the dividend is less than (divisor/2).
-> 
-> Really? In my own testing, the problem only shows with dividend = 0, and even
-> then, only when dividend is signed and divisor is not.  DIV_ROUND_CLOSEST(5,
-> 20U) returns 0 as expected, and so do DIV_ROUND_CLOSEST(0 / 20),
-> DIV_ROUND_CLOSEST(0U / 20) and DIV_ROUND_CLOSEST(0U / 20U).
-> 
-> Are your observations different?
-> 
+The LM73 supports four A/D conversion resolutions.  The default used by
+the existing lm73 driver is the chip's default, 11-bit (0.25 C/LSB).
+This patch enables changing of this resolution from userspace via the
+temp1_update_interval attribute.
 
-Hmm, you are right - it only happens with 0. I thought I had also seen it with
-other values.
+To change the resolution, write the maximum conversion time as specified
+in the LM73 datasheet for the resolution desired:
 
-> > > The patch is applicable to 3.7.x.  Should we backport it?
-> >
-> > Yes. DIV_ROUND_CLOSEST is used throughout the kernel, and impact is
-> > unpredictable.
-> > 
-> > 3.6 needs it as well.
-> 
-Turns out 3.6 is EOL, so we'll only need it in 3.7.
+   echo 14  > temp1_update_interval;   # 11-bit, 0.25 C/LSB
+   echo 28  > temp1_update_interval;   # 12-bit, 0.125 C/LSB
+   echo 56  > temp1_update_interval;   # 13-bit, 0.0625 C/LSB
+   echo 112 > temp1_update_interval;   # 14-bit, 0.03125 C/LSB
 
-Guenter
+In essence, the user can trade off conversion time for increased
+precision.
+
+Signed-off-by: Chris Verges <kg4ysn@gmail.com>
+---
+ drivers/hwmon/lm73.c |   67 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 66 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
+index 7272176..e6c1e05 100644
+--- a/drivers/hwmon/lm73.c
++++ b/drivers/hwmon/lm73.c
+@@ -39,6 +39,17 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
+ #define LM73_TEMP_MIN		(-40)
+ #define LM73_TEMP_MAX		150
+ 
++#define LM73_CTRL_RES_OFFSET	(5)
++#define LM73_CTRL_RES_SIZE	(2)
++#define LM73_CTRL_RES_MASK	((1 << LM73_CTRL_RES_SIZE) - 1)
++
++static long lm73_valid_convrates[] = {
++	14,	/* 11-bits (0.25000 C/LSB): RES1 Bit = 0, RES0 Bit = 0 */
++	28,	/* 12-bits (0.12500 C/LSB): RES1 Bit = 0, RES0 Bit = 1 */
++	56,	/* 13-bits (0.06250 C/LSB): RES1 Bit = 1, RES0 Bit = 0 */
++	112,	/* 14-bits (0.03125 C/LSB): RES1 Bit = 1, RES0 Bit = 1 */
++};
++
+ /*-----------------------------------------------------------------------*/
+ 
+ 
+@@ -79,6 +90,58 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
+ 	return scnprintf(buf, PAGE_SIZE, "%d\n", temp);
+ }
+ 
++static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
++			    const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct i2c_client *client = to_i2c_client(dev);
++	long convrate;
++	uint32_t ctrl;
++	u8 res_bits = 0;
++	u8 value;
++	u32 err;
++
++	int status = kstrtol(buf, 10, &convrate);
++	if (status < 0)
++		return status;
++
++	/* Validate the accepted conversion rate */
++	while (res_bits < ARRAY_SIZE(lm73_valid_convrates) && lm73_valid_convrates[res_bits] != convrate)
++		res_bits++;
++
++	if (res_bits >= ARRAY_SIZE(lm73_valid_convrates))
++		return -EINVAL;
++
++	/* Read existing control value */
++	ctrl = i2c_smbus_read_byte_data(client, attr->index);
++	if (ctrl < 0)
++		return ctrl;
++
++	/* Write value */
++	value = ctrl;
++	value &= ~(LM73_CTRL_RES_MASK << LM73_CTRL_RES_OFFSET);
++	value |= ((res_bits & LM73_CTRL_RES_MASK) << LM73_CTRL_RES_OFFSET);
++	err = i2c_smbus_write_byte_data(client, attr->index, value);
++	return (err < 0) ? err : count;
++}
++
++static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
++			     char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct i2c_client *client = to_i2c_client(dev);
++	uint32_t ctrl;
++	u8 res_bits = 0;
++
++	/* Read existing control value */
++	ctrl = i2c_smbus_read_byte_data(client, attr->index);
++	if (ctrl < 0)
++		return ctrl;
++
++	res_bits = (ctrl & ~LM73_CTRL_RES_MASK) >> LM73_CTRL_RES_OFFSET;
++	return scnprintf(buf, PAGE_SIZE, "%u\n", res_bits);
++}
++
+ 
+ /*-----------------------------------------------------------------------*/
+ 
+@@ -90,13 +153,15 @@ static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
+ 			show_temp, set_temp, LM73_REG_MIN);
+ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+ 			show_temp, NULL, LM73_REG_INPUT);
++static SENSOR_DEVICE_ATTR(temp1_update_interval, S_IWUSR | S_IRUGO,
++			show_convrate, set_convrate, LM73_REG_CTRL);
+ 
+ 
+ static struct attribute *lm73_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+-
++	&sensor_dev_attr_temp1_update_interval.dev_attr.attr,
+ 	NULL
+ };
+ 
+-- 
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
