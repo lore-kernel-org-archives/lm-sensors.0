@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 25 Dec 2012 02:42:44 +0000
+Date: Tue, 25 Dec 2012 06:24:02 +0000
 Subject: Re: [lm-sensors] [PATCH 1/2] lm73: added 'update_interval' attribute
-Message-Id: <20121225024244.GA17859@roeck-us.net>
+Message-Id: <20121225062402.GA18148@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1356378547-31499-1-git-send-email-kg4ysn@gmail.com>
 In-Reply-To: <1356378547-31499-1-git-send-email-kg4ysn@gmail.com>
@@ -19,10 +19,7 @@ On Mon, Dec 24, 2012 at 11:49:06AM -0800, Chris Verges wrote:
 > 
 > Signed-off-by: Chris Verges <kg4ysn@gmail.com>
 
-I'll be out of town for the next couple of weeks. I'll get back to you
-afterwards.
-
-Guenter
+Pretty good. Couple of quick comments below.
 
 > ---
 >  Documentation/hwmon/lm73 |   78 ++++++++++++++++++++++++++++++++++++++++++++++
@@ -137,6 +134,12 @@ Guenter
 >  
 > +#define SCALE_150_PERCENT(x)	(((x) * 150) / 100)
 > +
+How about
+
+#define SCALE_150_PERCENT(x) ((x) + (x) / 2)
+
+That would be less costly.
+
 > +static const unsigned short lm73_valid_convrates[] = {
 > +	14,	/* 11-bits (0.25000 C/LSB): RES1 Bit = 0, RES0 Bit = 0 */
 > +	28,	/* 12-bits (0.12500 C/LSB): RES1 Bit = 0, RES0 Bit = 1 */
@@ -197,6 +200,13 @@ Guenter
 > +{
 > +	struct i2c_client *client = to_i2c_client(dev);
 > +	uint32_t ctrl;
+
+Needs to be s32 or int
+
+Anything else will have to wait until after I am back ...
+
+Guenter
+
 > +	u8 res_bits = 0;
 > +
 > +	/* Read existing control value */
