@@ -1,133 +1,87 @@
-From: nicolas maloeuvre <nicolas.maloeuvre@gmail.com>
-Date: Sat, 29 Dec 2012 02:00:13 +0000
-Subject: [lm-sensors] "Detected by sensors-detect : No"
-Message-Id: <CAB2-rMZxKzF8cqBG2uSATBXoUodJ8Q=QRZySzm84QUoy8B7Chw@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 27 Dec 2012 13:58:25 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon patches for 3.8-rc2
+Message-Id: <20121227135825.GA9302@roeck-us.net>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============8484928992161845647=="
+Content-Type: multipart/mixed; boundary="===============4481745167965571814=="
 List-Id: <lm-sensors.vger.kernel.org>
-To: lm-sensors@vger.kernel.org
-
---===============8484928992161845647==
-Content-Type: multipart/alternative; boundary=14dae93410c509f97404d1f424cc
-
---14dae93410c509f97404d1f424cc
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
- Hello,
-I wonder if i could see and/or control fan speed of my laptop. With
-"sensors-detect", three modules were loaded : coretemp, max6650 and sbs.
-max6650 is a fan speed regulator so i want it.
-http://www.lm-sensors.org/wiki/Devices says that max6650 cannot be detected
-by sensors-detect so there is a contradiction. When i launch "sensors"
-there is no fan controller. So fancontrol doesn't work.
-
-I think it is normal that lm_sensor does not detect my fan controller
-because it is listed as "undetectable" in your website. If i want to write
-a program for control it, which advice will you give me?
-I see that i have access to :
- /lib/modules/3.4.11-1.fu2012.i686/kernel/drivers/hwmon/max6650.ko
-Do you think i can use it? how can we use a .ko file?
-
-Sincerely,
-Nicolas Maloeuvre
-
->sensors-detect :
-Now follows a summary of the probes I have just done.
-Just press ENTER to continue:
-
-Driver `coretemp':
-  * Chip `Intel digital thermal sensor' (confidence: 9)
-
-Driver `max6650':
-  * Bus `Radeon i2c bit bus 0x96'
-    Busdriver `drm', I2C address 0x1b
-    Chip `Maxim MAX6650/MAX6651' (confidence: 2)
-  * Bus `Radeon i2c bit bus 0x96'
-    Busdriver `drm', I2C address 0x1f
-    Chip `Maxim MAX6650/MAX6651' (confidence: 2)
-  * Bus `Radeon i2c bit bus 0x96'
-    Busdriver `drm', I2C address 0x48
-    Chip `Maxim MAX6650/MAX6651' (confidence: 2)
-  * Bus `Radeon i2c bit bus 0x96'
-    Busdriver `drm', I2C address 0x4b
-    Chip `Maxim MAX6650/MAX6651' (confidence: 2)
-
-Driver `sbs':
-  * Bus `Radeon i2c bit bus 0x96'
-    Busdriver `drm', I2C address 0x0b
-    Chip `Smart Battery' (confidence: 5)
-
->sensors :
-acpitz-virtual-0
-Adapter: Virtual device
-temp1:        +69.0=B0C
-
-radeon-pci-0100
-Adapter: PCI adapter
-temp1:        +69.5=B0C
-
-coretemp-isa-0000
-Adapter: ISA adapter
-Physical id 0:  +69.0=B0C  (high =3D +80.0=B0C, crit =3D +85.0=B0C)
-Core 0:         +67.0=B0C  (high =3D +80.0=B0C, crit =3D +85.0=B0C)
-Core 1:         +69.0=B0C  (high =3D +80.0=B0C, crit =3D +85.0=B0C)
-
->uname -a:
-Linux localhost.Nicolas 3.4.11-1.fu2012.i686 #1 SMP Sat Sep 29 07:35:39 EDT
-2012 i686 i686 i386 GNU/Linux
-
---14dae93410c509f97404d1f424cc
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div><div><div><div><div>=A0Hello,<br></div>I wonder if i =
-could see and/or control fan speed of my laptop. With &quot;sensors-detect&=
-quot;, three modules were loaded : coretemp, max6650 and sbs. max6650 is a =
-fan speed regulator so i want it.<br>
-<a href=3D"http://www.lm-sensors.org/wiki/Devices">http://www.lm-sensors.or=
-g/wiki/Devices</a> says that max6650 cannot be detected by sensors-detect s=
-o there is a contradiction. When i launch &quot;sensors&quot; there is no f=
-an controller. So fancontrol doesn&#39;t work.<br>
-<br></div><div>I think it is normal that lm_sensor does not detect my fan c=
-ontroller because it is listed as &quot;undetectable&quot; in your website.=
- If i want to write a program for control it, which advice will you give me=
-?<br>
-</div><div>I see that i have access to :<br>=A0/lib/modules/3.4.11-1.fu2012=
-.i686/kernel/drivers/hwmon/max6650.ko<br></div>Do you think i can use it? h=
-ow can we use a .ko file?<br></div><div><br></div><div>Sincerely,<br></div>
-<div>Nicolas Maloeuvre<br></div><div><br></div>&gt;sensors-detect :<br>Now =
-follows a summary of the probes I have just done.<br>Just press ENTER to co=
-ntinue: <br><br>Driver `coretemp&#39;:<br>=A0 * Chip `Intel digital thermal=
- sensor&#39; (confidence: 9)<br>
-<br>Driver `max6650&#39;:<br>=A0 * Bus `Radeon i2c bit bus 0x96&#39;<br>=A0=
-=A0=A0 Busdriver `drm&#39;, I2C address 0x1b<br>=A0=A0=A0 Chip `Maxim MAX66=
-50/MAX6651&#39; (confidence: 2)<br>=A0 * Bus `Radeon i2c bit bus 0x96&#39;<=
-br>=A0=A0=A0 Busdriver `drm&#39;, I2C address 0x1f<br>
-=A0=A0=A0 Chip `Maxim MAX6650/MAX6651&#39; (confidence: 2)<br>=A0 * Bus `Ra=
-deon i2c bit bus 0x96&#39;<br>=A0=A0=A0 Busdriver `drm&#39;, I2C address 0x=
-48<br>=A0=A0=A0 Chip `Maxim MAX6650/MAX6651&#39; (confidence: 2)<br>=A0 * B=
-us `Radeon i2c bit bus 0x96&#39;<br>
-=A0=A0=A0 Busdriver `drm&#39;, I2C address 0x4b<br>=A0=A0=A0 Chip `Maxim MA=
-X6650/MAX6651&#39; (confidence: 2)<br><br>Driver `sbs&#39;:<br>=A0 * Bus `R=
-adeon i2c bit bus 0x96&#39;<br>=A0=A0=A0 Busdriver `drm&#39;, I2C address 0=
-x0b<br>=A0=A0=A0 Chip `Smart Battery&#39; (confidence: 5)<br>
-<br></div>&gt;sensors :<br>acpitz-virtual-0<br>Adapter: Virtual device<br>t=
-emp1:=A0=A0=A0=A0=A0=A0=A0 +69.0=B0C=A0 <br><br>radeon-pci-0100<br>Adapter:=
- PCI adapter<br>temp1:=A0=A0=A0=A0=A0=A0=A0 +69.5=B0C=A0 <br><br>coretemp-i=
-sa-0000<br>Adapter: ISA adapter<br>
-Physical id 0:=A0 +69.0=B0C=A0 (high =3D +80.0=B0C, crit =3D +85.0=B0C)<br>=
-Core 0:=A0=A0=A0=A0=A0=A0=A0=A0 +67.0=B0C=A0 (high =3D +80.0=B0C, crit =3D =
-+85.0=B0C)<br>Core 1:=A0=A0=A0=A0=A0=A0=A0=A0 +69.0=B0C=A0 (high =3D +80.0=
-=B0C, crit =3D +85.0=B0C)<br><br></div>&gt;uname -a:<br>Linux localhost.Nic=
-olas 3.4.11-1.fu2012.i686 #1 SMP Sat Sep 29 07:35:39 EDT 2012 i686 i686 i38=
-6 GNU/Linux<br>
-<br><div><div><br></div></div></div>
-
---14dae93410c509f97404d1f424cc--
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
 
 
---===============8484928992161845647==
+--===============4481745167965571814==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZPt4rx8FFjLCG7dd"
+Content-Disposition: inline
+
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon patches for Linux 3.8-rc2 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit a49f0d1ea3ec94fc7cf33a7c36a16343b74bd565:
+
+  Linux 3.8-rc1 (2012-12-21 17:19:00 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 86266ca0e23b2b8e7e38edda1675cd085a9abc14:
+
+  hwmon: (emc6w201) Fix DIV_ROUND_CLOSEST problem with unsigned divisors (2012-12-22 02:16:40 -0800)
+
+----------------------------------------------------------------
+Report i2c errors to userspace in lm73 driver
+Fix problem with DIV_ROUND_CLOSEST and unsigned divisors in emc6w201 driver
+
+----------------------------------------------------------------
+Chris Verges (1):
+      hwmon: (lm73} Detect and report i2c bus errors
+
+Guenter Roeck (1):
+      hwmon: (emc6w201) Fix DIV_ROUND_CLOSEST problem with unsigned divisors
+
+ drivers/hwmon/emc6w201.c |    2 +-
+ drivers/hwmon/lm73.c     |   16 +++++++++++-----
+ 2 files changed, 12 insertions(+), 6 deletions(-)
+
+--ZPt4rx8FFjLCG7dd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJQ3FQBAAoJEMsfJm/On5mB/QgP/0h4HGPtK/IbpXTX4ZrXfmga
+6LWcHHCl4xS/I948gOIiPREvvC6Lqp3OMQRZuFDsZsOgC3O7P9dahTxAaqN+WwB1
+UbosY+S6hqiMmxI1XKPbtlxZq/ZTTIRcPdGg+Z8VqafarNHR2WYYsYPDlimzxOh2
+HPcoTx4THX5oa1tJsrVNyJeKakAm+RuKMA7dtBdIRZ5Jq0SnsfaC+o4I5VQQ8tJD
+X0mlthskniYBxzhQpk40BPo9oKqX7t352czpmj61Og45nu68ZjyPxu950ztT2CA+
+rUmvkVvzc9KVF2iq6qorbUQxKZg9xC0EXSpr8Tc7LRdzRSfKAetjEhcjv0qVZ9KU
+6Rfvet1W4adm869Z3g+WWr5aFkgiTF6N5pZzd0LtirpWGl80tNNCvG8KsgWs5QQz
+4BNHQwyD1+iCw4GD0+XLLwG+lRbyaPFgQb5VFWNen2T0FFZJYoF5/7WJYdnGjb7m
+RgLp3IbO9aOtQ3bWUQFYxF/8yu6fW8e+IE6r0/g3Clq3mRzvRxrRHDWaPHjSaq+S
+LxVJRE/ERDolQxxV9q2BamL8EesU1u8E7+g9NbxQRnC5CrEN0gg9DBLinD08cVwU
+e37v1Yo3gQvmS2x0aiU08ytRFxh6KJoT5/BKFuGRUXnda0AEVNWBT9LPM1AXjp4P
+MUPjT98u0WDmSJ+7GARa
+=liQD
+-----END PGP SIGNATURE-----
+
+--ZPt4rx8FFjLCG7dd--
+
+
+--===============4481745167965571814==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -137,4 +91,4 @@ _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============8484928992161845647==--
+--===============4481745167965571814==--
