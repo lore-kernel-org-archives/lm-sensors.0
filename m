@@ -1,33 +1,95 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Jan 2013 08:49:12 +0000
+From: "Leslie Rhorer" <lrhorer@mygrande.net>
+Date: Mon, 07 Jan 2013 21:01:19 +0000
 Subject: Re: [lm-sensors] ASUS M5A99X EVO R2.0
-Message-Id: <20130107094912.40137a7d@endymion.delvare>
+Message-Id: <201301072101.r07L1KWY016399@mx3.lsn.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <201301050318.r053Ioa1022953@mx3.lsn.net>
 In-Reply-To: <201301050318.r053Ioa1022953@mx3.lsn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-Hi Leslie,
 
-On Sat, 5 Jan 2013 11:58:22 -0600, Leslie Rhorer wrote:
-> so I downloaded the source
-> code for it87 from http://khali.linux-fr.org/devel/misc/it87.  When I
-> attempt to run `make`, however, it complains: "*** No rule to make target
-> `modules'.  Stop."  I don't see anything wrong with the Makefile, but then I
-> am far from being an expert on Makefiles.  Does anyone have a suggestion?
 
-Builds just fine for me. Please make sure all files are still using
-Unix (not DOS) line ending. Also make sure that you have installed all
-packages your distribution provides for kernel building.
-http://khali.linux-fr.org/devel/misc/INSTALL has suggestions on what
-may be needed. I'll be happy to update that file if something is
-missing and you can figure out what it is.
+> -----Original Message-----
+> From: Jean Delvare [mailto:khali@linux-fr.org]
+> Sent: Monday, January 07, 2013 2:49 AM
+> To: Leslie Rhorer
+> Cc: lm-sensors@lm-sensors.org
+> Subject: Re: [lm-sensors] ASUS M5A99X EVO R2.0
+>=20
+> Hi Leslie,
+>=20
+> On Sat, 5 Jan 2013 11:58:22 -0600, Leslie Rhorer wrote:
+> > so I downloaded the source
+> > code for it87 from http://khali.linux-fr.org/devel/misc/it87.  When I
+> > attempt to run `make`, however, it complains: "*** No rule to make
+> target
+> > `modules'.  Stop."  I don't see anything wrong with the Makefile, but
+> then I
+> > am far from being an expert on Makefiles.  Does anyone have a
+> suggestion?
+>=20
+> Builds just fine for me. Please make sure all files are still using
+> Unix (not DOS) line ending. Also make sure that you have installed all
+> packages your distribution provides for kernel building.
+> http://khali.linux-fr.org/devel/misc/INSTALL has suggestions on what
+> may be needed. I'll be happy to update that file if something is
+> missing and you can figure out what it is.
 
--- 
-Jean Delvare
+	The one glaring thing from the web page was /lib/modules/$(uname
+-r)/build did not exist.  I created the link, and the make worked, so we're
+moving right along.
+
+	The `sensors command was finding ISA targets, but none other, so I
+also downloaded and compiled k10temp and hwmon-vid.  Here is the output now:
+
+RAID-Server:/tmp# sensors
+it8721-isa-0290
+Adapter: ISA adapter
+in0:          +2.81 V  (min =3D  +1.04 V, max =3D  +1.99 V)  ALARM
+in1:          +2.81 V  (min =3D  +1.08 V, max =3D  +2.48 V)  ALARM
+in2:          +0.90 V  (min =3D  +2.34 V, max =3D  +0.72 V)  ALARM
++3.3V:        +3.29 V  (min =3D  +2.33 V, max =3D  +1.87 V)  ALARM
+in4:          +1.54 V  (min =3D  +0.06 V, max =3D  +1.70 V)
+in5:          +2.51 V  (min =3D  +2.40 V, max =3D  +2.92 V)
+in6:          +1.54 V  (min =3D  +0.12 V, max =3D  +0.58 V)  ALARM
+3VSB:         +3.46 V  (min =3D  +5.06 V, max =3D  +1.34 V)  ALARM
+Vbat:         +3.38 V =20
+fan1:           0 RPM  (min =3D   14 RPM)  ALARM
+fan2:        2213 RPM  (min =3D   32 RPM)
+fan3:        2191 RPM  (min =3D   11 RPM)
+temp1:        +32.0=B0C  (low  =3D +36.0=B0C, high =3D +11.0=B0C)  ALARM  s=
+ensor =3D
+thermistor
+temp2:        +31.0=B0C  (low  =3D  +0.0=B0C, high =3D +49.0=B0C)  sensor =
+=3D thermistor
+temp3:       -128.0=B0C  (low  =3D +116.0=B0C, high =3D +93.0=B0C)  sensor =
+=3D disabled
+intrusion0:  OK
+
+k10temp-pci-00c3
+Adapter: PCI adapter
+temp1:        +10.2=B0C  (high =3D +70.0=B0C)
+                       (crit =3D +90.0=B0C, hyst =3D +87.0=B0C)
+
+
+	Obviously, I need to do some editing of /etc/sensors.conf, but how
+do I know which parameter is which?  The fans are pretty easy (just
+disconnect one and see which fan drops to 0 RPM), but which temperature is
+which device?  Temp1 and temp2 on it87 look almost reasonable (I think the
+temps are somewhat higher), but temp1 on k10temp obviously is not, so it
+would seem it requires some computation, but using what values?  Is temp3 on
+it87 really not in use?  Should I try changing the sensor type on temp1 of
+k10temp?  What about the temp1 and temp2 sensors on it87?
+
+	Additionally, there are 5 fans on this machine (actually, one is a
+pump, but the MB doesn't know that), and all 5 are spinning and attached to
+the motherboard sensors.  The `sensors` command is only reporting three, and
+one of those is said to be stalled.  'Any ideas how I can fix the fan1
+report and access the other fans?
+
 
 _______________________________________________
 lm-sensors mailing list
