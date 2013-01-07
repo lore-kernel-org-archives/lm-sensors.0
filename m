@@ -1,58 +1,103 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 23 Jan 2013 04:30:32 +0000
-Subject: Re: [lm-sensors] [PATCH] hwmon: Driver for Texas Instruments INA209
-Message-Id: <20130123043032.GA30235@roeck-us.net>
+From: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+Date: Mon, 07 Jan 2013 19:18:38 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (sht15) avoid CamelCase
+Message-Id: <1357586319-2089-1-git-send-email-vivien.didelot@savoirfairelinux.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20090831_202450_066558.tomaz.mertelj@guest.arnes.si>
-In-Reply-To: <20090831_202450_066558.tomaz.mertelj@guest.arnes.si>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Vivien Didelot <vivien.didelot@savoirfairelinux.com>, Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, linux-kernel@vger.kernel.org, kernel@savoirfairelinux.com
 
-On Tue, Jan 22, 2013 at 02:15:30PM -0800, Ira W. Snyder wrote:
-> On Tue, Jan 22, 2013 at 01:43:48PM -0800, Ira W. Snyder wrote:
-> > On Mon, Jan 14, 2013 at 10:04:28PM -0800, Guenter Roeck wrote:
-> > > On Mon, Jan 14, 2013 at 01:17:04PM -0800, Ira W. Snyder wrote:
-> > > > On Sat, Jan 12, 2013 at 04:16:04PM -0800, Guenter Roeck wrote:
-> > > > > Add support for the TI / Burr-Brown INA209 voltage / current / power
-> > > > > monitor.
-> > > > > 
-> > > > > Cc: Paul Hays <haysp@magma.net>
-> > > > > Cc: Ira W. Snyder <iws@ovro.caltech.edu>
-> > > > > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > > > 
-> > > > Hi Guenter,
-> > > > 
-> > > > I didn't notice any issues with a quick review. Thanks for pushing the
-> > > > driver to mainline.
-> > > > 
-> > > Hi Ira,
-> > > 
-> > > you are welcome. I actually had the code in my queue for a long time;
-> > > I just found some time last weekend to finally test it.
-> > > 
-> > > It would be great if you can do some testing and send me a Tested-by and/or
-> > > Acked-by feedback.
-> > > 
-> > 
-> > Hi Guenter,
-> > 
-> > I finally got around to testing this today. The driver works great.
-> > Please add my:
-> > 
-> > Tested-by: Ira W. Snyder <iws@ovro.caltech.edu>
-> > 
-> 
-> One minor suggestion below. Sorry that I didn't catch it earlier.
-> 
-Hi Ira,
+This patch renames the supply_uV* variables to supply_uv* to avoid
+CamelCase as warned by the checkpatch.pl script.
 
-I just sent a new version of the driver, with added devicetree support as you
-suggested. Would be great if you can test it again.
+Signed-off-by: Vivien Didelot <vivien.didelot@savoirfairelinux.com>
+---
+ drivers/hwmon/sht15.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/sht15.c b/drivers/hwmon/sht15.c
+index 1c85d39..9a594e6 100644
+--- a/drivers/hwmon/sht15.c
++++ b/drivers/hwmon/sht15.c
+@@ -139,12 +139,12 @@ static const u8 sht15_crc8_table[] = {
+  * @reg:		associated regulator (if specified).
+  * @nb:			notifier block to handle notifications of voltage
+  *                      changes.
+- * @supply_uV:		local copy of supply voltage used to allow use of
++ * @supply_uv:		local copy of supply voltage used to allow use of
+  *                      regulator consumer if available.
+- * @supply_uV_valid:	indicates that an updated value has not yet been
++ * @supply_uv_valid:	indicates that an updated value has not yet been
+  *			obtained from the regulator and so any calculations
+  *			based upon it will be invalid.
+- * @update_supply_work:	work struct that is used to update the supply_uV.
++ * @update_supply_work:	work struct that is used to update the supply_uv.
+  * @interrupt_handled:	flag used to indicate a handler has been scheduled.
+  */
+ struct sht15_data {
+@@ -166,8 +166,8 @@ struct sht15_data {
+ 	struct device			*hwmon_dev;
+ 	struct regulator		*reg;
+ 	struct notifier_block		nb;
+-	int				supply_uV;
+-	bool				supply_uV_valid;
++	int				supply_uv;
++	bool				supply_uv_valid;
+ 	struct work_struct		update_supply_work;
+ 	atomic_t			interrupt_handled;
+ };
+@@ -598,8 +598,8 @@ static inline int sht15_calc_temp(struct sht15_data *data)
+ 
+ 	for (i = ARRAY_SIZE(temppoints) - 1; i > 0; i--)
+ 		/* Find pointer to interpolate */
+-		if (data->supply_uV > temppoints[i - 1].vdd) {
+-			d1 = (data->supply_uV - temppoints[i - 1].vdd)
++		if (data->supply_uv > temppoints[i - 1].vdd) {
++			d1 = (data->supply_uv - temppoints[i - 1].vdd)
+ 				* (temppoints[i].d1 - temppoints[i - 1].d1)
+ 				/ (temppoints[i].vdd - temppoints[i - 1].vdd)
+ 				+ temppoints[i - 1].d1;
+@@ -859,7 +859,7 @@ static void sht15_update_voltage(struct work_struct *work_s)
+ 	struct sht15_data *data
+ 		= container_of(work_s, struct sht15_data,
+ 			       update_supply_work);
+-	data->supply_uV = regulator_get_voltage(data->reg);
++	data->supply_uv = regulator_get_voltage(data->reg);
+ }
+ 
+ /**
+@@ -878,7 +878,7 @@ static int sht15_invalidate_voltage(struct notifier_block *nb,
+ 	struct sht15_data *data = container_of(nb, struct sht15_data, nb);
+ 
+ 	if (event = REGULATOR_EVENT_VOLTAGE_CHANGE)
+-		data->supply_uV_valid = false;
++		data->supply_uv_valid = false;
+ 	schedule_work(&data->update_supply_work);
+ 
+ 	return NOTIFY_OK;
+@@ -906,7 +906,7 @@ static int sht15_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 	data->pdata = pdev->dev.platform_data;
+-	data->supply_uV = data->pdata->supply_mv * 1000;
++	data->supply_uv = data->pdata->supply_mv * 1000;
+ 	if (data->pdata->checksum)
+ 		data->checksumming = true;
+ 	if (data->pdata->no_otp_reload)
+@@ -924,7 +924,7 @@ static int sht15_probe(struct platform_device *pdev)
+ 
+ 		voltage = regulator_get_voltage(data->reg);
+ 		if (voltage)
+-			data->supply_uV = voltage;
++			data->supply_uv = voltage;
+ 
+ 		regulator_enable(data->reg);
+ 		/*
+-- 
+1.8.1
+
 
 _______________________________________________
 lm-sensors mailing list
