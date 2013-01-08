@@ -1,68 +1,100 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 08 Jan 2013 13:50:39 +0000
+From: Mauro Molinari <mauromol@tiscali.it>
+Date: Tue, 08 Jan 2013 14:54:27 +0000
 Subject: Re: [lm-sensors] Help to make lm-sensors work with an Asus TUSL2-C
-Message-Id: <20130108145039.17abf535@endymion.delvare>
+Message-Id: <50EC3323.2030508@tiscali.it>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50DB2017.8010403@tiscali.it>
 In-Reply-To: <50DB2017.8010403@tiscali.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: lm-sensors@vger.kernel.org
 
-On Tue, 08 Jan 2013 14:34:55 +0100, Mauro Molinari wrote:
-> Some progress is made compared to the version I have in my Linux 
-> distribution, because the latest script says:
-> 
-> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-> Found unknown chip with ID 0x5953
->      (logical device 9 has address 0x290, could be sensors)
+Hi Jean,
+thank you for your help.
 
-Very strange, I wouldn't expected an unknown Super-I/O chip on such an
-old board. Can you find the chip's name by visual inspection of the
-board or from the documentation?
+Il 08/01/2013 14:50, Jean Delvare ha scritto:
+>> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
+>> Found unknown chip with ID 0x5953
+>>       (logical device 9 has address 0x290, could be sensors)
+>
+> Very strange, I wouldn't expected an unknown Super-I/O chip on such an
+> old board. Can you find the chip's name by visual inspection of the
+> board or from the documentation?
 
-> However, later it still says:
-> Probing for `National Semiconductor LM78' at 0x290...       No
-> Probing for `National Semiconductor LM79' at 0x290...       No
-> Probing for `Winbond W83781D' at 0x290...                   No
-> Probing for `Winbond W83782D' at 0x290...                   No
-> 
-> And finally again:
-> Sorry, no sensors were detected.
-> 
-> So, it seems like something is present at 0x290, but nothing lm-sensors 
-> can detect. The strange thing is that from what I read on the Internet 
-> (as stated in my previous mail message), my mainboard (Asus TUSL2-C) 
-> should actually have a AS99127F chip, supported by the w83781d driver.
-> 
-> Please note I have the following warning message at boot:
-> [   10.092229] i801_smbus 0000:00:1f.3: PCI INT B -> GSI 17 (level, low) 
-> -> IRQ 17
-> [   10.092243] ACPI: I/O resource 0000:00:1f.3 [0xe800-0xe80f] conflicts 
-> with ACPI region SM00 [0xe800-0xe806]
-> [   10.092291] ACPI: If an ACPI driver is available for this device, you 
-> should use it instead of the native driver
-> 
-> However I did some research on the Internet and found out that this 
-> should not be a problem and simply means that the native driver is not 
-> used, because an AHCI interface to the i801 SMBus device is available. 
-> Actually, the sensors-detect correctly queries that device:
-> Using driver `i2c-i801' for device 0000:00:1f.3: Intel 82801BA ICH2
-> but it still doesn't find any sensor there, however I don't think this 
-> is in any way related to my problem.
+The documentation (manual) just speaks about an "Asus ASIC" hardware.
+I will visually inspect the mainboard as soon as possible (I can't right=20
+now).
 
-The above message means that sensors-detect knows which driver should
-be used for the ICH2 SMBus. That doesn't mean the driver did
-successfully bind to the device. And if device binding failed (as the
-log messages pasted above suggest) then scanning isn't possible.
+> The above message means that sensors-detect knows which driver should
+> be used for the ICH2 SMBus. That doesn't mean the driver did
+> successfully bind to the device. And if device binding failed (as the
+> log messages pasted above suggest) then scanning isn't possible.
+>
+> The AS99127F is an SMBus chip. Please boot with
+> acpi_enforce_resources=3Dlax and run sensors-detect again, it should find
+> your AS99127F chip then.
 
-The AS99127F is an SMBus chip. Please boot with
-acpi_enforce_resources=lax and run sensors-detect again, it should find
-your AS99127F chip then.
+Well, strange enough, I added the acpi_enforce_resources=3Dlax to the=20
+Kernel boot options, as dmesg demonstrates:
+[    0.000000] Kernel command line:=20
+BOOT_IMAGE=3D/boot/vmlinuz-2.6.32-5-686=20
+root=3DUUID=3D7034614e-0226-481e-99cb-9fe0789f0a57 ro quiet nomodeset=20
+acpi_enforce_resources=3Dlax
 
--- 
-Jean Delvare
+However, the "conflict" message is still displayed:
+[   10.478084] i801_smbus 0000:00:1f.3: PCI INT B -> GSI 17 (level, low)=20
+-> IRQ 17
+[   10.478099] ACPI: I/O resource 0000:00:1f.3 [0xe800-0xe80f] conflicts=20
+with ACPI region SM00 [0xe800-0xe806]
+[   10.478105] ACPI: This conflict may cause random problems and system=20
+instability
+[   10.478110] ACPI: If an ACPI driver is available for this device, you=20
+should use it instead of the native driver
+
+Nonetheless, now the sensors-detect script does find something:
+Probing for `Asus AS99127F (rev.1)'...                      Success!
+     (confidence 8, driver `w83781d', other addresses: 0x48 0x49)
+[...]
+Driver `w83781d':
+   * Bus `SMBus I801 adapter at e800'
+     Busdriver `i2c_i801', I2C address 0x2d (and 0x48 0x49)
+     Chip `Asus AS99127F (rev.1)' (confidence: 8)
+
+So, first question: am I forced to use the acpi_enforce_resources=3Dlax=20
+option to use lm_sensors on my system? No other option? (I read this is=20
+not optimal)
+
+Now, the sensors-detect script downloaded from=20
+http://www.lm-sensors.org/wiki/iwizard/NoSensorsDetected asks me to=20
+create /etc/sysconfig/lm_sensors: I reply "YES" and then I try to run=20
+"sensors", but it says it does not find any sensors. However, it does=20
+work after I run "modprobe w83781d".
+
+So, second question: what is /etc/sysconfig/lm_sensors for? I do have=20
+/etc/init.d/lm-sensors in my system (it's a Debian-based distribution)=20
+but even if I do a "/etc/init.d/lm-sensors restart", I still need to=20
+"modprobe w83781d" before being able to use "sensors". Maybe there's=20
+some Debian-specific way to do the same thing (instead of using=20
+/etc/sysconfig/lm_sensors)?
+
+Finally, among the output of sensors I find:
+CPU Temp:     +5.5=B0C  (high =3D +100.0=B0C, hyst =3D +92.0=B0C)
+which sounds quite funny. I think this has something to do with the=20
+configuration. I created the file /etc/sensors.d/asus.conf, by copying=20
+the example configuration file and uncommenting the sections that are=20
+meant for Asus TUSL2-C. But I'm not sure that this file is taken into=20
+consideration.
+
+Third question: is this asus.conf taken by sensors? Or do I have to=20
+specify a command-line parameter to sensors in order to take it? I read=20
+the documentation on the lm_sensors wiki and the man page, but it's not=20
+clear to me whether configuration files in /etc/sensors.d should have=20
+specific names or whether any any name is ok (and configuration files=20
+are all automatically found and used by sensors command).
+
+Thanks again,
+Mauro
 
 _______________________________________________
 lm-sensors mailing list
