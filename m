@@ -1,17 +1,14 @@
 From: Mauro Molinari <mauromol@tiscali.it>
-Date: Tue, 08 Jan 2013 14:54:27 +0000
+Date: Tue, 08 Jan 2013 15:16:12 +0000
 Subject: Re: [lm-sensors] Help to make lm-sensors work with an Asus TUSL2-C
-Message-Id: <50EC3323.2030508@tiscali.it>
+Message-Id: <50EC383C.2050501@tiscali.it>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50DB2017.8010403@tiscali.it>
 In-Reply-To: <50DB2017.8010403@tiscali.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
-
-Hi Jean,
-thank you for your help.
 
 Il 08/01/2013 14:50, Jean Delvare ha scritto:
 >> Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
@@ -22,79 +19,13 @@ Il 08/01/2013 14:50, Jean Delvare ha scritto:
 > old board. Can you find the chip's name by visual inspection of the
 > board or from the documentation?
 
-The documentation (manual) just speaks about an "Asus ASIC" hardware.
-I will visually inspect the mainboard as soon as possible (I can't right=20
-now).
+The visual inspection on the board confirmed it has an Asus AS99127F 
+chip. I don't think I have any other thermal sensor on the board... I 
+just have a Pentium III 1000EB (Coppermine) CPU, an ancient nVidia Riva 
+TNT AGP card, a Realtek Gigabit LAN card and two Silicon Image 3512 SATA 
+controllers. Any idea on what that Super-I/O chip might be?
 
-> The above message means that sensors-detect knows which driver should
-> be used for the ICH2 SMBus. That doesn't mean the driver did
-> successfully bind to the device. And if device binding failed (as the
-> log messages pasted above suggest) then scanning isn't possible.
->
-> The AS99127F is an SMBus chip. Please boot with
-> acpi_enforce_resources=3Dlax and run sensors-detect again, it should find
-> your AS99127F chip then.
-
-Well, strange enough, I added the acpi_enforce_resources=3Dlax to the=20
-Kernel boot options, as dmesg demonstrates:
-[    0.000000] Kernel command line:=20
-BOOT_IMAGE=3D/boot/vmlinuz-2.6.32-5-686=20
-root=3DUUID=3D7034614e-0226-481e-99cb-9fe0789f0a57 ro quiet nomodeset=20
-acpi_enforce_resources=3Dlax
-
-However, the "conflict" message is still displayed:
-[   10.478084] i801_smbus 0000:00:1f.3: PCI INT B -> GSI 17 (level, low)=20
--> IRQ 17
-[   10.478099] ACPI: I/O resource 0000:00:1f.3 [0xe800-0xe80f] conflicts=20
-with ACPI region SM00 [0xe800-0xe806]
-[   10.478105] ACPI: This conflict may cause random problems and system=20
-instability
-[   10.478110] ACPI: If an ACPI driver is available for this device, you=20
-should use it instead of the native driver
-
-Nonetheless, now the sensors-detect script does find something:
-Probing for `Asus AS99127F (rev.1)'...                      Success!
-     (confidence 8, driver `w83781d', other addresses: 0x48 0x49)
-[...]
-Driver `w83781d':
-   * Bus `SMBus I801 adapter at e800'
-     Busdriver `i2c_i801', I2C address 0x2d (and 0x48 0x49)
-     Chip `Asus AS99127F (rev.1)' (confidence: 8)
-
-So, first question: am I forced to use the acpi_enforce_resources=3Dlax=20
-option to use lm_sensors on my system? No other option? (I read this is=20
-not optimal)
-
-Now, the sensors-detect script downloaded from=20
-http://www.lm-sensors.org/wiki/iwizard/NoSensorsDetected asks me to=20
-create /etc/sysconfig/lm_sensors: I reply "YES" and then I try to run=20
-"sensors", but it says it does not find any sensors. However, it does=20
-work after I run "modprobe w83781d".
-
-So, second question: what is /etc/sysconfig/lm_sensors for? I do have=20
-/etc/init.d/lm-sensors in my system (it's a Debian-based distribution)=20
-but even if I do a "/etc/init.d/lm-sensors restart", I still need to=20
-"modprobe w83781d" before being able to use "sensors". Maybe there's=20
-some Debian-specific way to do the same thing (instead of using=20
-/etc/sysconfig/lm_sensors)?
-
-Finally, among the output of sensors I find:
-CPU Temp:     +5.5=B0C  (high =3D +100.0=B0C, hyst =3D +92.0=B0C)
-which sounds quite funny. I think this has something to do with the=20
-configuration. I created the file /etc/sensors.d/asus.conf, by copying=20
-the example configuration file and uncommenting the sections that are=20
-meant for Asus TUSL2-C. But I'm not sure that this file is taken into=20
-consideration.
-
-Third question: is this asus.conf taken by sensors? Or do I have to=20
-specify a command-line parameter to sensors in order to take it? I read=20
-the documentation on the lm_sensors wiki and the man page, but it's not=20
-clear to me whether configuration files in /etc/sensors.d should have=20
-specific names or whether any any name is ok (and configuration files=20
-are all automatically found and used by sensors command).
-
-Thanks again,
-Mauro
+Mauro.
 
 _______________________________________________
 lm-sensors mailing list
