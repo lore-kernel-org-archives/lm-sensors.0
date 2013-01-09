@@ -1,53 +1,72 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 16 Jan 2013 16:04:38 +0000
-Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: (it87) Add support for IT8771E
-Message-Id: <20130116160438.GA8484@roeck-us.net>
+Date: Wed, 09 Jan 2013 16:59:09 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: Retire SENSORS_LIMIT
+Message-Id: <1357750750-30512-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <20100225090135.4fefd2f6@hyperion.delvare>
-In-Reply-To: <20100225090135.4fefd2f6@hyperion.delvare>
+References: <1357750750-30512-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1357750750-30512-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: lm-sensors@lm-sensors.org
+Cc: Jean Delvare <khali@linux-fr.org>, "Mark M. Hoffman" <mhoffman@lightlink.com>, George Joseph <george.joseph@fairview5.com>, Juerg Haefliger <juergh@gmail.com>, Steve Glendinning <steve.glendinning@shawell.net>, Riku Voipio <riku.voipio@iki.fi>, Guillaume Ligneul <guillaume.ligneul@gmail.com>, "Hans J. Koch" <hjk@hansjkoch.de>, Roger Lucas <vt8231@hiddenengine.co.uk>, Marc Hulsman <m.hulsman@tudelft.nl>, Rudolf Marek <r.marek@assembler.cz>, Corentin Chary <corentin.chary@gmail.com>, Matthew Garrett <mjg@redhat.com>, platform-driver-x86@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-On Wed, Jan 16, 2013 at 03:28:05PM +0100, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Sun,  2 Dec 2012 11:17:47 -0800, Guenter Roeck wrote:
-> > From: Kelly Anderson <kelly@silka.with-linux.com>
-> > 
-> > Assume that IT8771E is fully compatible with IT8728F.
-> > 
-> > Contributions-by: Kelly Anderson <kelly@silka.with-linux.com>
-> 
-> This is a non-standard tag, I'd rather just credit Kelly in the patch
-> description to make checkpatch happy.
-> 
-Ok.
+SENSORS_LIMIT and clamp_val have the same functionality, so retire SENSORS_LIMIT
+as it is no longer needed.
 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> >  Documentation/hwmon/it87 |   10 +++++++---
-> >  drivers/hwmon/Kconfig    |    2 +-
-> >  drivers/hwmon/it87.c     |   25 ++++++++++++++++++++-----
-> >  3 files changed, 28 insertions(+), 9 deletions(-)
-> 
-> The patch looks alright, feel free to commit:
-> 
-> Reviewed-by: Jean Delvare <khali@linux-fr.org>
-> 
-> The IT8772E patch touches exactly the same areas and is so similar that
-> I would suggest merging them both into a single patch, having them
-> separated adds no value IMHO.
-> 
-Done.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ Documentation/hwmon/sysfs-interface |    8 ++++----
+ include/linux/hwmon.h               |   12 ------------
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
-> I have updated sensors-detect and the wiki already, as well as the
-> standalone it87 driver.
-> 
-Great. Thanks a lot!
+diff --git a/Documentation/hwmon/sysfs-interface b/Documentation/hwmon/sysfs-interface
+index 1f4dd85..79f8257 100644
+--- a/Documentation/hwmon/sysfs-interface
++++ b/Documentation/hwmon/sysfs-interface
+@@ -722,14 +722,14 @@ add/subtract if it has been divided before the add/subtract.
+ What to do if a value is found to be invalid, depends on the type of the
+ sysfs attribute that is being set. If it is a continuous setting like a
+ tempX_max or inX_max attribute, then the value should be clamped to its
+-limits using SENSORS_LIMIT(value, min_limit, max_limit). If it is not
+-continuous like for example a tempX_type, then when an invalid value is
+-written, -EINVAL should be returned.
++limits using clamp_val(value, min_limit, max_limit). If it is not continuous
++like for example a tempX_type, then when an invalid value is written,
++-EINVAL should be returned.
+ 
+ Example1, temp1_max, register is a signed 8 bit value (-128 - 127 degrees):
+ 
+ 	long v = simple_strtol(buf, NULL, 10) / 1000;
+-	v = SENSORS_LIMIT(v, -128, 127);
++	v = clamp_val(v, -128, 127);
+ 	/* write v to register */
+ 
+ Example2, fan divider setting, valid values 2, 4 and 8:
+diff --git a/include/linux/hwmon.h b/include/linux/hwmon.h
+index 82b29ae..b2514f7 100644
+--- a/include/linux/hwmon.h
++++ b/include/linux/hwmon.h
+@@ -20,16 +20,4 @@ struct device *hwmon_device_register(struct device *dev);
+ 
+ void hwmon_device_unregister(struct device *dev);
+ 
+-/* Scale user input to sensible values */
+-static inline int SENSORS_LIMIT(long value, long low, long high)
+-{
+-	if (value < low)
+-		return low;
+-	else if (value > high)
+-		return high;
+-	else
+-		return value;
+-}
+-
+ #endif
+-
+-- 
+1.7.9.7
 
-Guenter
 
 _______________________________________________
 lm-sensors mailing list
