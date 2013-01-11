@@ -1,89 +1,123 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 11 Jan 2013 22:40:36 +0000
-Subject: [lm-sensors] [GIT PULL] hwmon patches for 3.8-rc4
-Message-Id: <20130111224036.GA6268@roeck-us.net>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============2318149708444681120=="
+Date: Fri, 11 Jan 2013 14:46:08 +0000
+Subject: [lm-sensors] [PATCH 2/3] hwmon: (lm73) Add support for max/min alarms
+Message-Id: <1357915569-6669-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-To: torvalds@linux-foundation.org
-Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
-
-
---===============2318149708444681120==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0F1p//8PRICkK4MW"
-Content-Disposition: inline
-
-
---0F1p//8PRICkK4MW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi Linus,
-
-Please pull hwmon patches for Linux 3.8-rc4 from signed tag:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
-
-Thanks,
-Guenter
-------
-
-The following changes since commit 9931faca02c604c22335f5a935a501bb2ace6e20:
-
-  Linux 3.8-rc3 (2013-01-09 18:59:55 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
-
-for you to fetch changes up to 08245ad87e2970ac56987caab5cd5900563db4e1:
-
-  hwmon: (vexpress) Fix build error seen if CONFIG_OF_DEVICE is not set (2013-01-09 21:47:22 -0800)
-
-----------------------------------------------------------------
-Fix build error in vexpress driver
-
-----------------------------------------------------------------
-Guenter Roeck (1):
-      hwmon: (vexpress) Fix build error seen if CONFIG_OF_DEVICE is not set
-
- drivers/hwmon/vexpress.c |    1 +
- 1 file changed, 1 insertion(+)
-
---0F1p//8PRICkK4MW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJQ8JTkAAoJEMsfJm/On5mBf60P/R51pv9/Bca211d/nujuCcNt
-7HD/MOU7i5T4V4HgDDdqTD9wiXz+b5DzH0FkER6dHukNSc0Wk/I1BOWdkGkqaHiG
-7gaXu1/g1h0wWDDz6FO6RT54KyMJ1RLCZM15dPo5nTD87LkF3vnNDMrnqN3g0Z7H
-HeuI36yFMhq8VNZ5XCLdoyARdTVey04YnMlVtRdlVmRT0NB72cL7SERffsqDf6U1
-hhD+mv/Gkos0SwZLQQPCu7iMTrdYZYQxYgCp0v4LCu8h5BNg9s3TPnQ2iw4eHJPs
-Z4Gp6fyratebMPjC3WALXHnCn+imD0kNBufTYAynDjio0+LUOtODT2Skzbtd+TNX
-3iTI339VBrIK1US97ORgFcBT9Vi90d9shwDOrzxUqNHyETMd3XJRqZTK4k9IRDh6
-TM+OM7XxzCyar+pV+3OhEdVA1iFGgzP1/DYhliJDdKwOuA+0l2H5PwhJl4rQbLOG
-hW70Lvuq8zp2f4JYQAwu54hwWE13sw9CmnvEznMoTrIfBgrCCwR8P3wkVJa+0MCw
-HbRkavC7nUZuFbPL31ZhYuu4YLXsM7VZLOGst81nf9uSaNN39ufIGa0NNMoxxULF
-Utb5POsRbbriiEY9i6C2r29/Fl3F1jqyjAVU2ZnZY3Jx954QUkZt+NNkdT3pE8G0
-IrfAaF9dGji+ABg+Sf5T
-=8NSf
------END PGP SIGNATURE-----
-
---0F1p//8PRICkK4MW--
-
-
---===============2318149708444681120==
-Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+To: lm-sensors@vger.kernel.org
+
+From: Chris Verges <kg4ysn@gmail.com>
+
+Add support for temp1_min_alarm and temp1_max_alarm
+
+Signed-off-by: Chris Verges <kg4ysn@gmail.com>
+[linux@roeck-us.net: cleanup; dropped platform data and interrupt support]
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+I dropped platform data and interrupt support from the patch because
+I can not test it with my setup. We can add that back in later
+if wanted/needed.
+
+ Documentation/hwmon/lm73 |   11 +++++++++++
+ drivers/hwmon/lm73.c     |   32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 43 insertions(+)
+
+diff --git a/Documentation/hwmon/lm73 b/Documentation/hwmon/lm73
+index 782b3e1..8af059d 100644
+--- a/Documentation/hwmon/lm73
++++ b/Documentation/hwmon/lm73
+@@ -77,3 +77,14 @@ via the following function:
+ 
+ where 'x' is the output from 'update_interval' and 'g(x)' is the
+ resolution in degrees C per LSB.
++
++Alarm Support
++-------------
++
++The LM73 features a simple over-temperature alarm mechanism.  This
++feature is exposed via the sysfs attributes.
++
++The attributes 'temp1_max_alarm' and 'temp1_min_alarm' are flags
++provided by the LM73 that indicate whether the measured temperature has
++passed the 'temp1_max' and 'temp1_min' thresholds, respectively.  These
++values _must_ be read to clear the registers on the LM73.
+diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
+index 904c9ba..6f0134e 100644
+--- a/drivers/hwmon/lm73.c
++++ b/drivers/hwmon/lm73.c
+@@ -8,6 +8,7 @@
+  * Guillaume Ligneul <guillaume.ligneul@gmail.com>
+  * Adrien Demarez <adrien.demarez@bolloretelecom.eu>
+  * Jeremy Laine <jeremy.laine@bolloretelecom.eu>
++ * Chris Verges <kg4ysn@gmail.com>
+  *
+  * This software program is licensed subject to the GNU General Public License
+  * (GPL).Version 2,June 1991, available at
+@@ -43,6 +44,9 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
+ #define LM73_CTRL_RES_MASK	(BIT(5) | BIT(6))
+ #define LM73_CTRL_TO_MASK	BIT(7)
+ 
++#define LM73_CTRL_HI_SHIFT	2
++#define LM73_CTRL_LO_SHIFT	1
++
+ static const unsigned short lm73_convrates[] = {
+ 	14,	/* 11-bits (0.25000 C/LSB): RES1 Bit = 0, RES0 Bit = 0 */
+ 	28,	/* 12-bits (0.12500 C/LSB): RES1 Bit = 0, RES0 Bit = 1 */
+@@ -141,6 +145,28 @@ static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
+ 	return scnprintf(buf, PAGE_SIZE, "%hu\n", lm73_convrates[res]);
+ }
+ 
++static ssize_t show_maxmin_alarm(struct device *dev,
++				 struct device_attribute *da, char *buf)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
++	struct lm73_data *data = i2c_get_clientdata(client);
++	s32 ctrl;
++
++	mutex_lock(&data->lock);
++	ctrl = i2c_smbus_read_byte_data(client, LM73_REG_CTRL);
++	if (ctrl < 0)
++		goto abort;
++	data->ctrl = ctrl;
++	mutex_unlock(&data->lock);
++
++	return scnprintf(buf, PAGE_SIZE, "%d\n", (ctrl >> attr->index) & 1);
++
++abort:
++	mutex_unlock(&data->lock);
++	return ctrl;
++}
++
+ /*-----------------------------------------------------------------------*/
+ 
+ /* sysfs attributes for hwmon */
+@@ -153,12 +179,18 @@ static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
+ 			show_temp, NULL, LM73_REG_INPUT);
+ static SENSOR_DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO,
+ 			show_convrate, set_convrate, 0);
++static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO,
++			show_maxmin_alarm, NULL, LM73_CTRL_HI_SHIFT);
++static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO,
++			show_maxmin_alarm, NULL, LM73_CTRL_LO_SHIFT);
+ 
+ static struct attribute *lm73_attributes[] = {
+ 	&sensor_dev_attr_temp1_input.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_max.dev_attr.attr,
+ 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+ 	&sensor_dev_attr_update_interval.dev_attr.attr,
++	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
++	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
+ 	NULL
+ };
+ 
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============2318149708444681120==--
