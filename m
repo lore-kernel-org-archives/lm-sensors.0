@@ -1,7 +1,7 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 11 Jan 2013 22:23:36 +0000
+From: Mauro Molinari <mauromol@tiscali.it>
+Date: Fri, 11 Jan 2013 23:11:10 +0000
 Subject: Re: [lm-sensors] Help to make lm-sensors work with an Asus TUSL2-C
-Message-Id: <20130111222336.GA5118@roeck-us.net>
+Message-Id: <50F09C0E.2020307@tiscali.it>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <50DB2017.8010403@tiscali.it>
 In-Reply-To: <50DB2017.8010403@tiscali.it>
@@ -10,26 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Fri, Jan 11, 2013 at 09:08:03PM +0100, Mauro Molinari wrote:
-> Il 11/01/2013 19:59, Guenter Roeck ha scritto:
-> >>Hi Jean!
-> >>I looked at the mainboard again as you suggested. The Super I/O chip
-> >>is a Winbond W83627GF-AW.
-> >>
-> >I think that may be W83627SF, not GF. Datasheet is on the web.
-> >If so, it does not support hardware monitoring.
-> 
-> Well, maybe the serigraphy on the chip is wrong, but it actually
-> says GF. I double checked it once again. If you search with Google,
-> you'll find some retailers that sell it.
-> 
-> Here is the datasheet for the W83627G-AW (without the "F" - I don't
-> know if it may apply or not):
-> http://pdf1.alldatasheet.com/datasheet-pdf/view/203870/WINBOND/W83627G-AW.html
-> 
-That points to the W83627HF/HG datasheet.
+Il 11/01/2013 23:23, Guenter Roeck ha scritto:
+>> Here is the datasheet for the W83627G-AW (without the "F" - I don't
+>> know if it may apply or not):
+>> http://pdf1.alldatasheet.com/datasheet-pdf/view/203870/WINBOND/W83627G-AW.html
+>>
+> That points to the W83627HF/HG datasheet.
 
-Guenter
+Hi Guenter,
+actually the first page of the PDF says: W83627HF/F/HG/G
+So, it also applies to W83627G, as I said.
+
+Mauro
 
 _______________________________________________
 lm-sensors mailing list
