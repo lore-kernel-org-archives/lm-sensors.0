@@ -1,135 +1,48 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 27 Jan 2013 02:17:37 +0000
-Subject: [lm-sensors] [PATCH 03/13] hwmon: (pmbus) Use dev variable to represent client->dev
-Message-Id: <1359253067-11644-4-git-send-email-linux@roeck-us.net>
+Date: Fri, 11 Jan 2013 14:46:09 +0000
+Subject: [lm-sensors] [PATCH 3/3] hwmon: (lm73) Fix lower and upper temperature limits
+Message-Id: <1357915569-6669-3-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-This simplifies the code and makes it a bit smaller.
+While the LM73 is only specified for temperatures from -40 to +150 degrees C,
+its power-up minimum and maximum temperature limits are -256 and +255.75
+degrees C. For better consistency and to avoid confusion, clamp limits to
+the power-up limits and not to -40 / +150 degrees C.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/pmbus/pmbus_core.c |   37 ++++++++++++++++++-------------------
- 1 file changed, 18 insertions(+), 19 deletions(-)
+ drivers/hwmon/lm73.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
-index b9ba8ce..97eca03 100644
---- a/drivers/hwmon/pmbus/pmbus_core.c
-+++ b/drivers/hwmon/pmbus/pmbus_core.c
-@@ -1691,7 +1691,8 @@ static int pmbus_identify_common(struct i2c_client *client,
- int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 		   struct pmbus_driver_info *info)
- {
--	const struct pmbus_platform_data *pdata = client->dev.platform_data;
-+	struct device *dev = &client->dev;
-+	const struct pmbus_platform_data *pdata = dev->platform_data;
- 	struct pmbus_data *data;
- 	int ret;
+diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
+index 6f0134e..9bde964 100644
+--- a/drivers/hwmon/lm73.c
++++ b/drivers/hwmon/lm73.c
+@@ -37,8 +37,8 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
  
-@@ -1703,7 +1704,7 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 				     | I2C_FUNC_SMBUS_WORD_DATA))
- 		return -ENODEV;
+ #define LM73_ID			0x9001	/* 0x0190, byte-swapped */
+ #define DRVNAME			"lm73"
+-#define LM73_TEMP_MIN		(-40)
+-#define LM73_TEMP_MAX		150
++#define LM73_TEMP_MIN		(-256000 / 250)
++#define LM73_TEMP_MAX		(255750 / 250)
  
--	data = devm_kzalloc(&client->dev, sizeof(*data), GFP_KERNEL);
-+	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
+ #define LM73_CTRL_RES_SHIFT	5
+ #define LM73_CTRL_RES_MASK	(BIT(5) | BIT(6))
+@@ -76,8 +76,7 @@ static ssize_t set_temp(struct device *dev, struct device_attribute *da,
+ 		return status;
  
-@@ -1712,7 +1713,7 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 
- 	/* Bail out if PMBus status register does not exist. */
- 	if (i2c_smbus_read_byte_data(client, PMBUS_STATUS_BYTE) < 0) {
--		dev_err(&client->dev, "PMBus status register not found\n");
-+		dev_err(dev, "PMBus status register not found\n");
- 		return -ENODEV;
- 	}
- 
-@@ -1725,40 +1726,38 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 	if (info->identify) {
- 		ret = (*info->identify)(client, info);
- 		if (ret < 0) {
--			dev_err(&client->dev, "Chip identification failed\n");
-+			dev_err(dev, "Chip identification failed\n");
- 			return ret;
- 		}
- 	}
- 
- 	if (info->pages <= 0 || info->pages > PMBUS_PAGES) {
--		dev_err(&client->dev, "Bad number of PMBus pages: %d\n",
--			info->pages);
-+		dev_err(dev, "Bad number of PMBus pages: %d\n", info->pages);
- 		return -ENODEV;
- 	}
- 
- 	ret = pmbus_identify_common(client, data);
- 	if (ret < 0) {
--		dev_err(&client->dev, "Failed to identify chip capabilities\n");
-+		dev_err(dev, "Failed to identify chip capabilities\n");
- 		return ret;
- 	}
- 
--	ret = -ENOMEM;
--	data->sensors = devm_kzalloc(&client->dev, sizeof(struct pmbus_sensor)
-+	data->sensors = devm_kzalloc(dev, sizeof(struct pmbus_sensor)
- 				     * data->max_sensors, GFP_KERNEL);
- 	if (!data->sensors)
- 		return -ENOMEM;
- 
--	data->booleans = devm_kzalloc(&client->dev, sizeof(struct pmbus_boolean)
--				 * data->max_booleans, GFP_KERNEL);
-+	data->booleans = devm_kzalloc(dev, sizeof(struct pmbus_boolean)
-+				      * data->max_booleans, GFP_KERNEL);
- 	if (!data->booleans)
- 		return -ENOMEM;
- 
--	data->labels = devm_kzalloc(&client->dev, sizeof(struct pmbus_label)
-+	data->labels = devm_kzalloc(dev, sizeof(struct pmbus_label)
- 				    * data->max_labels, GFP_KERNEL);
- 	if (!data->labels)
- 		return -ENOMEM;
- 
--	data->attributes = devm_kzalloc(&client->dev, sizeof(struct attribute *)
-+	data->attributes = devm_kzalloc(dev, sizeof(struct attribute *)
- 					* data->max_attributes, GFP_KERNEL);
- 	if (!data->attributes)
- 		return -ENOMEM;
-@@ -1770,27 +1769,27 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
- 	 * Bail out instead of trying to register nothing.
- 	 */
- 	if (!data->num_attributes) {
--		dev_err(&client->dev, "No attributes found\n");
-+		dev_err(dev, "No attributes found\n");
- 		return -ENODEV;
- 	}
- 
- 	/* Register sysfs hooks */
- 	data->group.attrs = data->attributes;
--	ret = sysfs_create_group(&client->dev.kobj, &data->group);
-+	ret = sysfs_create_group(&dev->kobj, &data->group);
- 	if (ret) {
--		dev_err(&client->dev, "Failed to create sysfs entries\n");
-+		dev_err(dev, "Failed to create sysfs entries\n");
- 		return ret;
- 	}
--	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	data->hwmon_dev = hwmon_device_register(dev);
- 	if (IS_ERR(data->hwmon_dev)) {
- 		ret = PTR_ERR(data->hwmon_dev);
--		dev_err(&client->dev, "Failed to register hwmon device\n");
-+		dev_err(dev, "Failed to register hwmon device\n");
- 		goto out_hwmon_device_register;
- 	}
- 	return 0;
- 
- out_hwmon_device_register:
--	sysfs_remove_group(&client->dev.kobj, &data->group);
-+	sysfs_remove_group(&dev->kobj, &data->group);
- 	return ret;
+ 	/* Write value */
+-	value = (short) clamp_val(temp / 250, LM73_TEMP_MIN * 4,
+-				  LM73_TEMP_MAX * 4) << 5;
++	value = clamp_val(temp / 250, LM73_TEMP_MIN, LM73_TEMP_MAX) << 5;
+ 	err = i2c_smbus_write_word_swapped(client, attr->index, value);
+ 	return (err < 0) ? err : count;
  }
- EXPORT_SYMBOL_GPL(pmbus_do_probe);
 -- 
 1.7.9.7
 
