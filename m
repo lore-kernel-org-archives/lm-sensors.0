@@ -1,83 +1,44 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 29 Jan 2013 04:40:48 +0000
-Subject: [lm-sensors] [PATCH 2/2] sensors-detect: Add detection of MCP98244
-Message-Id: <1359434448-21181-2-git-send-email-linux@roeck-us.net>
+Date: Wed, 16 Jan 2013 05:49:18 +0000
+Subject: Re: [lm-sensors] MAX1363 IIO driver questions
+Message-Id: <20130116054918.GA7056@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <20121124052707.GA17392@roeck-us.net>
+ <50B09EDC.4020200@kernel.org>
+In-Reply-To: <50B09EDC.4020200@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: linux-iio@vger.kernel.org, Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
 
-MCP98244 is a JC42 temperature sensor.
+On Sat, Nov 24, 2012 at 10:18:04AM +0000, Jonathan Cameron wrote:
+> On 11/24/2012 05:27 AM, Guenter Roeck wrote:
+> > Hi all,
+> Hi Guenter,
+> > 
+> > What would it take to move the MAX1363 driver out of staging ?
+> >
+> Nothing given it is already out of staging in linux-next (though only has been
+> for about a week)
+> 
+> > Background is that I need a hardware monitoring driver for MAX1139, and would
+> > like to avoid using a driver from staging if possible (after all, it might
+> > go away anytime). Another option would be to submit a hwmon driver for it,
+> > but that doesn't seem to be the best approach.
+> 
+> The hwmon driver client driver for iio devices is still in staging, but mainly
+> because I haven't had a chance to take a last look at it before posting it to
+> the hmwon list.  IIRC you were more or less happy with what went into staging
+> in the first place, so hopefully not too much left to do.
+> 
+Jonathan,
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- CHANGES                    |    3 ++-
- prog/detect/sensors-detect |   13 ++++++++++++-
- 2 files changed, 14 insertions(+), 2 deletions(-)
+can you educate me how to actually use iio_hwmon ? I get it loaded,
+which registers the platform driver, but I have no idea how to instantiate it.
 
-diff --git a/CHANGES b/CHANGES
-index 465bd61..90e1e89 100644
---- a/CHANGES
-+++ b/CHANGES
-@@ -4,7 +4,8 @@ lm-sensors CHANGES file
- SVN HEAD
-   sensors.conf.5: Mention "sensors -u" to get the raw feature names
-   sensors: Clarify what option -u is good for
--  sensors-detect: Add detection of IT8752F
-+  sensors-detect: Add detection of MCP98244
-+                  Add detection of IT8752F
-                   Add detection of AMD family 16h power sensors
-                   Map IT8771E, IT8772E, IT8782F and IT8783F to it87
-                   Use /sys/module instead of /proc/modules where available
-diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
-index 59378c2..7db4812 100755
---- a/prog/detect/sensors-detect
-+++ b/prog/detect/sensors-detect
-@@ -1400,6 +1400,11 @@ use vars qw(@i2c_adapter_names);
- 		i2c_addrs => [0x18..0x1f],
- 		i2c_detect => sub { jedec_JC42_4_detect(@_, 7); },
- 	}, {
-+		name => "Microchip MCP98244",
-+		driver => "jc42",
-+		i2c_addrs => [0x18..0x1f],
-+		i2c_detect => sub { jedec_JC42_4_detect(@_, 15); },
-+	}, {
- 		name => "Microchip MCP9843",
- 		driver => "jc42",
- 		i2c_addrs => [0x18..0x1f],
-@@ -6058,7 +6063,7 @@ sub max6655_detect
- #                 4 = TS3000/TSE2002, 5 = MAX6604, 6 = MCP98242,
- #                 7 = MCP98243, 8 = MCP9843, 9 = CAT6095 / CAT34TS02,
- #                 10 = STTS424E, 11 = STTS2002, 12 = STTS3000
--#                 13 = MCP9804, 14 = AT30TS00
-+#                 13 = MCP9804, 14 = AT30TS00, 15 = MCP98244
- # Registers used:
- #   0x00: Capabilities
- #   0x01: Configuration
-@@ -6127,6 +6132,9 @@ sub jedec_JC42_4_detect
- 	} elsif ($chip = 14) {
- 		return unless $manid = 0x00;		# Atmel
- 		return unless $devid = 0x82;		# AT30TS00
-+	} elsif ($chip = 15) {
-+		return unless $manid = 0x00;		# MCP
-+		return unless $devid = 0x22;		# MCP98244
- 	}
- 
- 	# Now, do it all again with words. Note that we get
-@@ -6184,6 +6192,9 @@ sub jedec_JC42_4_detect
- 	} elsif ($chip = 14) {
- 		return unless $manid = 0x1f00;		# Atmel
- 		return unless ($devid & 0xfeff) = 0x0082; # AT30TS00
-+	} elsif ($chip = 15) {
-+		return unless $manid = 0x5400;		# MCP
-+		return unless ($devid & 0xfcff) = 0x0022; # MCP98244
- 	}
- 
- 	return 5;
--- 
-1.7.9.7
-
+Thanks,
+Guenter
 
 _______________________________________________
 lm-sensors mailing list
