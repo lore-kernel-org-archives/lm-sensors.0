@@ -1,40 +1,43 @@
-From: Mauro Molinari <mauromol@tiscali.it>
-Date: Tue, 22 Jan 2013 08:29:49 +0000
-Subject: Re: [lm-sensors] Help to make lm-sensors work with an Asus TUSL2-C
-Message-Id: <50FE4DFD.2030700@tiscali.it>
+From: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Date: Fri, 18 Jan 2013 05:36:52 +0000
+Subject: [lm-sensors] [patch v1 3/5] hwmon: da9055 change irq state to default
+Message-Id: <1358486692.14373.12.camel@dhruva>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <50DB2017.8010403@tiscali.it>
-In-Reply-To: <50DB2017.8010403@tiscali.it>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, lm-sensors@lm-sensors.org, David Dajun Chen <dchen@diasemi.com>, linux-kernel@vger.kernel.org
 
-Il 11/01/2013 21:55, Jean Delvare ha scritto:
-> The W83627GF seems to exist as well and it is entirely possible that
-> both have the same ID. The lack of "H" in the names indicates the lack
-> of hardware monitoring function in these chips.
->
-> I have added detection to sensors-detect. Even if the chip has no
-> hardware monitoring features, identifying it is good, as it clarifies
-> the situation.
->
-> Mauro, feel free to try:
-> http://dl.lm-sensors.org/lm-sensors/files/sensors-detect
->
-> It should now detect your Super-I/O chip. But the change is informative
-> only, it won't change the driver list for your board.
+This patch changes the irq state from high to the now default low
+state.
 
-Hi Jean,
-I confirm the detection works with the updated sensors-detect:
+This patch is dependent on the DA9055 MFD.
 
-Trying family `VIA/Winbond/Nuvoton/Fintek'...               Yes
-Found `Winbond W83627SF/GF Super IO'
-     (no hardware monitoring capabilities)
+This patch is tested on smdk6410 board.
 
-Thanks again for your support on this issue.
+Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
+---
+ drivers/hwmon/da9055-hwmon.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Mauro.
+diff --git a/drivers/hwmon/da9055-hwmon.c b/drivers/hwmon/da9055-hwmon.c
+index 9465c05..dfd0db1 100644
+--- a/drivers/hwmon/da9055-hwmon.c
++++ b/drivers/hwmon/da9055-hwmon.c
+@@ -284,7 +284,7 @@ static int da9055_hwmon_probe(struct platform_device *pdev)
+ 
+ 	ret = devm_request_threaded_irq(&pdev->dev, hwmon_irq,
+ 					NULL, da9055_auxadc_irq,
+-					IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
++					IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+ 					"adc-irq", hwmon);
+ 	if (ret != 0) {
+ 		dev_err(hwmon->da9055->dev, "DA9055 ADC IRQ failed ret=%d\n",
+-- 
+1.7.0.4
+
+
 
 _______________________________________________
 lm-sensors mailing list
