@@ -1,97 +1,57 @@
-From: Jaromir Capik <jcapik@redhat.com>
-Date: Thu, 17 Jan 2013 15:12:41 +0000
-Subject: [lm-sensors] [PATCH] avoid unwanted sensors-detect termination when the /dev/port is missing
-Message-Id: <1978493810.11074933.1358435561516.JavaMail.root@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_11074931_1361360766.1358435561512"
+From: Jean Delvare <khali@linux-fr.org>
+Date: Wed, 23 Jan 2013 09:35:30 +0000
+Subject: Re: [lm-sensors] [PATCH] avoid unwanted sensors-detect termination when the /dev/port is missing
+Message-Id: <20130123103530.1cc5bc18@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1978493810.11074933.1358435561516.JavaMail.root@redhat.com>
+In-Reply-To: <1978493810.11074933.1358435561516.JavaMail.root@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-------=_Part_11074931_1361360766.1358435561512
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Hi Jaromir,
 
-Hello guys.
+On Thu, 17 Jan 2013 10:12:41 -0500 (EST), Jaromir Capik wrote:
+> Hello guys.
+> 
+> The device file /dev/port might be missing in some cases
+> and the sensors detection is terminated when the user
+> tries to detect sensors dependent on it's existence.
+> That's not correct -> it's not a reason for terminating
+> the detection.
 
-The device file /dev/port might be missing in some cases
-and the sensors detection is terminated when the user
-tries to detect sensors dependent on it's existence.
-That's not correct -> it's not a reason for terminating
-the detection.
-The attached patch solves the issue, so that a warning
-is displayed and the detection continues.
+I admit that dying in this case is a little abrupt. That being said,
+without /dev/port, you won't be able to detect Super-I/O chips, ISA
+chips and I/O-based IPMI interfaces, which only leave you with
+I2C/SMBus-based, PCI-based and MSR-based sensors. Are there really
+systems out there without /dev/proc where any of these is present? I am
+not particularly interested in tweaking sensors-detect for
+theoretical-only cases.
 
-The patch can be applied on the current trunk version.
-Please, check the patch and merge it if possible.
+> The attached patch solves the issue, so that a warning
+> is displayed and the detection continues.
 
-Thank you.
+This is a first step forward, but from a user-friendliness perspective
+I'd say it is insufficient. If /dev/port isn't there then you shouldn't
+even try to open it, even less try 4 times and display 4 times the same
+error message. Instead, you should check for /dev/port absence upfront,
+let the user know about that and the limitations it implies, and then
+plain skip all detection steps which you know have no chance of
+succeeding.
 
-Regards,
-Jaromir.
+> The patch can be applied on the current trunk version.
+> Please, check the patch and merge it if possible.
 
---
-Jaromir Capik
-Red Hat Czech, s.r.o.
-Software Engineer / BaseOS
+I have applied it [1], with an additional STDERR for the error message
+destination.
 
-Email: jcapik@redhat.com
-Web: www.cz.redhat.com
-Red Hat Czech s.r.o., Purkynova 99/71, 612 45, Brno, Czech Republic
-IC: 27690016 
+[1] http://www.lm-sensors.org/changeset/6116
 
-------=_Part_11074931_1361360766.1358435561512
-Content-Type: text/x-patch; name=sensors-detect-no-dev-port.patch
-Content-Disposition: attachment; filename=sensors-detect-no-dev-port.patch
-Content-Transfer-Encoding: base64
-
-LS0tIHNlbnNvcnMtZGV0ZWN0Lm9yaWcJMjAxMy0wMS0xNyAxNjowNDoxMC4wMDAwMDAwMDAgKzAx
-MDAKKysrIHNlbnNvcnMtZGV0ZWN0CTIwMTMtMDEtMTcgMTY6MDU6MzIuMjA5NDAwNDMwICswMTAw
-CkBAIC0yNDcxLDkgKzI0NzEsMTIgQEAKIAogc3ViIGluaXRpYWxpemVfaW9wb3J0cwogewotCXN5
-c29wZW4oSU9QT1JUUywgIi9kZXYvcG9ydCIsIE9fUkRXUikKLQkJb3IgZGllICIvZGV2L3BvcnQ6
-ICQhXG4iOwotCWJpbm1vZGUoSU9QT1JUUyk7CisJaWYgKHN5c29wZW4oSU9QT1JUUywgIi9kZXYv
-cG9ydCIsIE9fUkRXUikpIHsKKwkJYmlubW9kZShJT1BPUlRTKTsKKwkJcmV0dXJuIDE7CisJfQor
-CXByaW50ICIvZGV2L3BvcnQ6ICQhXG4iOworCXJldHVybiAwOwogfQogCiBzdWIgY2xvc2VfaW9w
-b3J0cwpAQCAtMzUxMSwxMyArMzUxNCwxNCBAQAogCQkJCXByaW50KCJDYW4ndCBzZXQgSTJDIGFk
-ZHJlc3MgZm9yICRkZXZcbiIpLAogCQkJCW5leHQ7CiAKLQkJCWluaXRpYWxpemVfaW9wb3J0cygp
-OwotCQkJJGFsaWFzX2RldGVjdCA9ICRkZXRlY3RlZC0+WyRpc2FdLT57YWxpYXNfZGV0ZWN0fTsK
-LQkJCSRpc19hbGlhcyA9ICYkYWxpYXNfZGV0ZWN0KCRkZXRlY3RlZC0+WyRpc2FdLT57aXNhX2Fk
-ZHJ9LAotCQkJCQkJICAgXCpGSUxFLAotCQkJCQkJICAgJGRldGVjdGVkLT5bJGkyY10tPntpMmNf
-YWRkcn0pOworCQkJaWYgKGluaXRpYWxpemVfaW9wb3J0cygpKSB7CisJCQkJJGFsaWFzX2RldGVj
-dCA9ICRkZXRlY3RlZC0+WyRpc2FdLT57YWxpYXNfZGV0ZWN0fTsKKwkJCQkkaXNfYWxpYXMgPSAm
-JGFsaWFzX2RldGVjdCgkZGV0ZWN0ZWQtPlskaXNhXS0+e2lzYV9hZGRyfSwKKwkJCQkJCQkgICBc
-KkZJTEUsCisJCQkJCQkJICAgJGRldGVjdGVkLT5bJGkyY10tPntpMmNfYWRkcn0pOworCQkJCWNs
-b3NlX2lvcG9ydHMoKTsKKwkJCX0KIAkJCWNsb3NlKEZJTEUpOwotCQkJY2xvc2VfaW9wb3J0cygp
-OwogCiAJCQluZXh0IHVubGVzcyAkaXNfYWxpYXM7CiAJCQkjIFRoaXMgaXMgYW4gYWxpYXM6IGNv
-cHkgdGhlIEkyQyBkYXRhIGludG8gdGhlIElTQQpAQCAtNjgxOSwxMCArNjgyMywxMSBAQAogCQkg
-ICAgICAic3RhbmRhcmQgSS9PIHBvcnRzIHRvIHByb2JlIHRoZW0uIFRoaXMgaXMgdXN1YWxseSBz
-YWZlLlxuIjsKIAkJcHJpbnQgIkRvIHlvdSB3YW50IHRvIHNjYW4gZm9yIFN1cGVyIEkvTyBzZW5z
-b3JzPyAoWUVTL25vKTogIjsKIAkJdW5sZXNzICg8U1RESU4+ID1+IC9eXHMqbi9pKSB7Ci0JCQlp
-bml0aWFsaXplX2lvcG9ydHMoKTsKLQkJCSRzdXBlcmlvX2ZlYXR1cmVzIHw9IHNjYW5fc3VwZXJp
-bygweDJlLCAweDJmKTsKLQkJCSRzdXBlcmlvX2ZlYXR1cmVzIHw9IHNjYW5fc3VwZXJpbygweDRl
-LCAweDRmKTsKLQkJCWNsb3NlX2lvcG9ydHMoKTsKKwkJCWlmIChpbml0aWFsaXplX2lvcG9ydHMo
-KSkgeworCQkJCSRzdXBlcmlvX2ZlYXR1cmVzIHw9IHNjYW5fc3VwZXJpbygweDJlLCAweDJmKTsK
-KwkJCQkkc3VwZXJpb19mZWF0dXJlcyB8PSBzY2FuX3N1cGVyaW8oMHg0ZSwgMHg0Zik7CisJCQkJ
-Y2xvc2VfaW9wb3J0cygpOworCQkJfQogCQl9CiAJCXByaW50ICJcbiI7CiAKQEAgLTY4MzUsOSAr
-Njg0MCwxMCBAQAogCQkJICAgICAgImludGVyZmFjZXM/IChZRVMvbm8pOiAiOwogCQkJdW5sZXNz
-ICg8U1RESU4+ID1+IC9eXHMqbi9pKSB7CiAJCQkJaWYgKCFpcG1pX2Zyb21fc21iaW9zKCkpIHsK
-LQkJCQkJaW5pdGlhbGl6ZV9pb3BvcnRzKCk7Ci0JCQkJCXNjYW5faXNhX2J1cyhcQGlwbWlfaWZz
-KTsKLQkJCQkJY2xvc2VfaW9wb3J0cygpOworCQkJCQlpZiAoaW5pdGlhbGl6ZV9pb3BvcnRzKCkp
-IHsKKwkJCQkJCXNjYW5faXNhX2J1cyhcQGlwbWlfaWZzKTsKKwkJCQkJCWNsb3NlX2lvcG9ydHMo
-KTsKKwkJCQkJfQogCQkJCX0KIAkJCX0KIAkJCXByaW50ICJcbiI7CkBAIC02ODUxLDkgKzY4NTcs
-MTAgQEAKIAkJJGlucHV0ID0gPFNURElOPjsKIAkJdW5sZXNzICgkaW5wdXQgPX4gL15ccypuL2kK
-IAkJICAgICB8fCAoJHN1cGVyaW9fZmVhdHVyZXMgJiYgJGlucHV0ICF+IC9eXHMqeS9pKSkgewot
-CQkJaW5pdGlhbGl6ZV9pb3BvcnRzKCk7Ci0JCQlzY2FuX2lzYV9idXMoXEBjaGlwX2lkcyk7Ci0J
-CQljbG9zZV9pb3BvcnRzKCk7CisJCQlpZiAoaW5pdGlhbGl6ZV9pb3BvcnRzKCkpIHsKKwkJCQlz
-Y2FuX2lzYV9idXMoXEBjaGlwX2lkcyk7CisJCQkJY2xvc2VfaW9wb3J0cygpOworCQkJfQogCQl9
-CiAJCXByaW50ICJcbiI7CiAJfQo=
-------=_Part_11074931_1361360766.1358435561512
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
-------=_Part_11074931_1361360766.1358435561512--
