@@ -1,145 +1,66 @@
-From: Bogdan Butnaru <bogdanb@gmail.com>
-Date: Wed, 23 Jan 2013 14:18:03 +0000
-Subject: [lm-sensors] Corsair H80i support
-Message-Id: <CACp6Rvb8h+br0mkmMJehT7MtnaDzd0EcPfdvvagWcpzryw5PTw@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="===============5841232595200109011=="
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 24 Jan 2013 04:48:44 +0000
+Subject: Re: [lm-sensors] Corsair H80i support
+Message-Id: <20130124044844.GA2064@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <CACp6Rvb8h+br0mkmMJehT7MtnaDzd0EcPfdvvagWcpzryw5PTw@mail.gmail.com>
+In-Reply-To: <CACp6Rvb8h+br0mkmMJehT7MtnaDzd0EcPfdvvagWcpzryw5PTw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
---===============5841232595200109011==
-Content-Type: multipart/alternative; boundary=047d7b3436ac8ac66804d3f55eef
-
---047d7b3436ac8ac66804d3f55eef
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-I=E2=80=99ve recently installed a Corsair Hydro Series H80i* integrated liq=
-uid CPU
-cooler in my work computer.** It works in Linux without any software, but
-Corsair has a Windows software package with some extra features and I was
-thinking of porting some of it to Linux. I=E2=80=99ve only just started loo=
-king at
-reverse engineering it, and I don't even know yet what it can do, but as
-far as I can tell it should at least have sensors for the fan rotation
-speeds, and it probably has at least one temperature sensor and allows
-software control of the fans=E2=80=99 speeds.
-
-I intend to reverse engineer what the Corsair software does and make a
-little application to do at least those parts that I=E2=80=99m interested i=
-n, but I
-thought I might integrate the relevant parts of it in existing Linux tools.
-lm-sensors is the first that came to mind, so here I am. This is a sort of
-preemptive search for information. Perhaps some of you could offer some
-pointers about how best to handle integrating the functionality in
-lm-sensors (and maybe other things where it would make sense; I'm willing
-to do some work even on programs I don=E2=80=99t use as an exercise, though=
- I=E2=80=99m not
-sure how much time I=E2=80=99ll be able to spend on that). Once I have some=
- running
-code I=E2=80=99ll start digging through the site and the dev docs by myself=
-, no
-need for RTFM answers, I=E2=80=99m just hoping that someone with experience=
- could
-point me to the more relevant code & documentation or give some advice to
-avoid dead-ends or common mistakes. (In particular, the FAQ says =E2=80=9Cs=
-ee
-doc/developers/new_drivers=E2=80=9D
-for instructions, but at least in trunk that file seems to be missing, is
-there any replacement somewhere?)
-
-The cooler uses an somewhat unusual (at least in my experience) technique:
-it connects to an internal USB header on the motherboard, and presents
-itself as a USB HID (human interface device), though to my knowledge it
-uses a manufacturer-specific interface (i.e., it does not masquerade as a
-keyboard or anything like that).
-
-AFAIK lm-sensors does not seem to have support for anything USB-based, at
-least on first sight I didn=E2=80=99t notice any. Some pointers towards the=
- best
-way to handle it would be welcome.
-
-=E2=80=94 Bogdan Butnaru
-
-(*:
-http://www.corsair.com/us/hydro-series-h80i-high-performance-liquid-cpu-coo=
-ler.html)
-
-(**: The previous one, a no longer sold model from a different
-manufacturer, decided to spill its coolant all over the inside of the
-computer one night. After a day of washing everything with alcohol and
-forced drying, everything else seems to work.)
-
---047d7b3436ac8ac66804d3f55eef
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<div dir=3D"ltr"><div style>Hello,</div><div style><br></div><div style>I=
-=E2=80=99ve recently installed a Corsair Hydro Series H80i* integrated liqu=
-id CPU cooler in my work computer.** It works in Linux without any software=
-, but Corsair has a Windows software package with some extra features and I=
- was thinking of porting some of it to Linux. I=E2=80=99ve only just starte=
-d looking at reverse engineering it, and I don&#39;t even know yet what it =
-can do, but as far as I can tell it should at least have sensors for the fa=
-n rotation speeds, and it probably has at least one temperature sensor and =
-allows software control of the fans=E2=80=99 speeds.</div>
-
-<div style><br></div><div style>I intend to reverse engineer what the Corsa=
-ir software does and make a little application to do at least those parts t=
-hat I=E2=80=99m interested in, but I thought I might integrate the relevant=
-=C2=A0parts of it in existing Linux tools. lm-sensors is the first that cam=
-e to mind, so here I am. This is a sort of preemptive search for informatio=
-n. Perhaps some of you could offer some pointers about how best to handle i=
-ntegrating the functionality in lm-sensors (and maybe other things where it=
- would make sense; I&#39;m willing to do some work even on programs I don=
-=E2=80=99t use as an exercise, though I=E2=80=99m not sure how much time I=
-=E2=80=99ll be able to spend on that). Once I have some running code I=E2=
-=80=99ll start digging through the site and the dev docs by myself, no need=
- for RTFM answers, I=E2=80=99m just hoping that someone with experience cou=
-ld point me to the more relevant code &amp; documentation or give some advi=
-ce to avoid dead-ends or common mistakes. (In particular, the FAQ says =E2=
-=80=9Csee=C2=A0<span style=3D"color:rgb(0,0,0);font-family:Verdana,Arial,&#=
-39;Bitstream Vera Sans&#39;,Helvetica,sans-serif;font-size:13px">doc/develo=
-pers/new_drivers=E2=80=9D for instructions, but at least in trunk that file=
- seems to be missing, is there any replacement somewhere?)</span></div>
-
-<div style><br></div><div style>The cooler uses an somewhat unusual (at lea=
-st in my experience) technique: it connects to an internal USB header on th=
-e motherboard, and presents itself as a USB HID (human interface device), t=
-hough to my knowledge it uses a manufacturer-specific interface (i.e., it d=
-oes not masquerade as a keyboard or anything like that).</div>
-
-<div><br></div><div style>AFAIK lm-sensors does not seem to have support fo=
-r anything USB-based, at least on first sight I didn=E2=80=99t notice any. =
-Some pointers towards the best way to handle it would be welcome.</div><br =
-clear=3D"all">
-
-<div>=E2=80=94=E2=80=8ABogdan=C2=A0Butnaru</div><div><br></div><div>(*:=C2=
-=A0<a href=3D"http://www.corsair.com/us/hydro-series-h80i-high-performance-=
-liquid-cpu-cooler.html">http://www.corsair.com/us/hydro-series-h80i-high-pe=
-rformance-liquid-cpu-cooler.html</a>=E2=80=8A)</div>
-
-<div><br></div><div>(**: The previous one, a no longer sold model from a di=
-fferent manufacturer, decided to spill its coolant all over the inside of t=
-he computer one night. After a day of washing everything with alcohol and f=
-orced drying, everything else seems to work.)<br>
-
-</div><div><br></div><div><br></div>
-</div>
-
---047d7b3436ac8ac66804d3f55eef--
-
-
---===============5841232595200109011==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
---===============5841232595200109011==--
+T24gV2VkLCBKYW4gMjMsIDIwMTMgYXQgMDM6MTg6MDNQTSArMDEwMCwgQm9nZGFuIEJ1dG5hcnUg
+d3JvdGU6Cj4gSGVsbG8sCj4gCj4gSeKAmXZlIHJlY2VudGx5IGluc3RhbGxlZCBhIENvcnNhaXIg
+SHlkcm8gU2VyaWVzIEg4MGkqIGludGVncmF0ZWQgbGlxdWlkIENQVQo+IGNvb2xlciBpbiBteSB3
+b3JrIGNvbXB1dGVyLioqIEl0IHdvcmtzIGluIExpbnV4IHdpdGhvdXQgYW55IHNvZnR3YXJlLCBi
+dXQKPiBDb3JzYWlyIGhhcyBhIFdpbmRvd3Mgc29mdHdhcmUgcGFja2FnZSB3aXRoIHNvbWUgZXh0
+cmEgZmVhdHVyZXMgYW5kIEkgd2FzCj4gdGhpbmtpbmcgb2YgcG9ydGluZyBzb21lIG9mIGl0IHRv
+IExpbnV4LiBJ4oCZdmUgb25seSBqdXN0IHN0YXJ0ZWQgbG9va2luZyBhdAo+IHJldmVyc2UgZW5n
+aW5lZXJpbmcgaXQsIGFuZCBJIGRvbid0IGV2ZW4ga25vdyB5ZXQgd2hhdCBpdCBjYW4gZG8sIGJ1
+dCBhcwo+IGZhciBhcyBJIGNhbiB0ZWxsIGl0IHNob3VsZCBhdCBsZWFzdCBoYXZlIHNlbnNvcnMg
+Zm9yIHRoZSBmYW4gcm90YXRpb24KPiBzcGVlZHMsIGFuZCBpdCBwcm9iYWJseSBoYXMgYXQgbGVh
+c3Qgb25lIHRlbXBlcmF0dXJlIHNlbnNvciBhbmQgYWxsb3dzCj4gc29mdHdhcmUgY29udHJvbCBv
+ZiB0aGUgZmFuc+KAmSBzcGVlZHMuCj4gCj4gSSBpbnRlbmQgdG8gcmV2ZXJzZSBlbmdpbmVlciB3
+aGF0IHRoZSBDb3JzYWlyIHNvZnR3YXJlIGRvZXMgYW5kIG1ha2UgYQo+IGxpdHRsZSBhcHBsaWNh
+dGlvbiB0byBkbyBhdCBsZWFzdCB0aG9zZSBwYXJ0cyB0aGF0IEnigJltIGludGVyZXN0ZWQgaW4s
+IGJ1dCBJCj4gdGhvdWdodCBJIG1pZ2h0IGludGVncmF0ZSB0aGUgcmVsZXZhbnQgcGFydHMgb2Yg
+aXQgaW4gZXhpc3RpbmcgTGludXggdG9vbHMuCj4gbG0tc2Vuc29ycyBpcyB0aGUgZmlyc3QgdGhh
+dCBjYW1lIHRvIG1pbmQsIHNvIGhlcmUgSSBhbS4gVGhpcyBpcyBhIHNvcnQgb2YKPiBwcmVlbXB0
+aXZlIHNlYXJjaCBmb3IgaW5mb3JtYXRpb24uIFBlcmhhcHMgc29tZSBvZiB5b3UgY291bGQgb2Zm
+ZXIgc29tZQo+IHBvaW50ZXJzIGFib3V0IGhvdyBiZXN0IHRvIGhhbmRsZSBpbnRlZ3JhdGluZyB0
+aGUgZnVuY3Rpb25hbGl0eSBpbgo+IGxtLXNlbnNvcnMgKGFuZCBtYXliZSBvdGhlciB0aGluZ3Mg
+d2hlcmUgaXQgd291bGQgbWFrZSBzZW5zZTsgSSdtIHdpbGxpbmcKPiB0byBkbyBzb21lIHdvcmsg
+ZXZlbiBvbiBwcm9ncmFtcyBJIGRvbuKAmXQgdXNlIGFzIGFuIGV4ZXJjaXNlLCB0aG91Z2ggSeKA
+mW0gbm90Cj4gc3VyZSBob3cgbXVjaCB0aW1lIEnigJlsbCBiZSBhYmxlIHRvIHNwZW5kIG9uIHRo
+YXQpLiBPbmNlIEkgaGF2ZSBzb21lIHJ1bm5pbmcKPiBjb2RlIEnigJlsbCBzdGFydCBkaWdnaW5n
+IHRocm91Z2ggdGhlIHNpdGUgYW5kIHRoZSBkZXYgZG9jcyBieSBteXNlbGYsIG5vCj4gbmVlZCBm
+b3IgUlRGTSBhbnN3ZXJzLCBJ4oCZbSBqdXN0IGhvcGluZyB0aGF0IHNvbWVvbmUgd2l0aCBleHBl
+cmllbmNlIGNvdWxkCj4gcG9pbnQgbWUgdG8gdGhlIG1vcmUgcmVsZXZhbnQgY29kZSAmIGRvY3Vt
+ZW50YXRpb24gb3IgZ2l2ZSBzb21lIGFkdmljZSB0bwo+IGF2b2lkIGRlYWQtZW5kcyBvciBjb21t
+b24gbWlzdGFrZXMuIChJbiBwYXJ0aWN1bGFyLCB0aGUgRkFRIHNheXMg4oCcc2VlCj4gZG9jL2Rl
+dmVsb3BlcnMvbmV3X2RyaXZlcnPigJ0KPiBmb3IgaW5zdHJ1Y3Rpb25zLCBidXQgYXQgbGVhc3Qg
+aW4gdHJ1bmsgdGhhdCBmaWxlIHNlZW1zIHRvIGJlIG1pc3NpbmcsIGlzCj4gdGhlcmUgYW55IHJl
+cGxhY2VtZW50IHNvbWV3aGVyZT8pCj4gCj4gVGhlIGNvb2xlciB1c2VzIGFuIHNvbWV3aGF0IHVu
+dXN1YWwgKGF0IGxlYXN0IGluIG15IGV4cGVyaWVuY2UpIHRlY2huaXF1ZToKPiBpdCBjb25uZWN0
+cyB0byBhbiBpbnRlcm5hbCBVU0IgaGVhZGVyIG9uIHRoZSBtb3RoZXJib2FyZCwgYW5kIHByZXNl
+bnRzCj4gaXRzZWxmIGFzIGEgVVNCIEhJRCAoaHVtYW4gaW50ZXJmYWNlIGRldmljZSksIHRob3Vn
+aCB0byBteSBrbm93bGVkZ2UgaXQKPiB1c2VzIGEgbWFudWZhY3R1cmVyLXNwZWNpZmljIGludGVy
+ZmFjZSAoaS5lLiwgaXQgZG9lcyBub3QgbWFzcXVlcmFkZSBhcyBhCj4ga2V5Ym9hcmQgb3IgYW55
+dGhpbmcgbGlrZSB0aGF0KS4KPiAKPiBBRkFJSyBsbS1zZW5zb3JzIGRvZXMgbm90IHNlZW0gdG8g
+aGF2ZSBzdXBwb3J0IGZvciBhbnl0aGluZyBVU0ItYmFzZWQsIGF0Cj4gbGVhc3Qgb24gZmlyc3Qg
+c2lnaHQgSSBkaWRu4oCZdCBub3RpY2UgYW55LiBTb21lIHBvaW50ZXJzIHRvd2FyZHMgdGhlIGJl
+c3QKPiB3YXkgdG8gaGFuZGxlIGl0IHdvdWxkIGJlIHdlbGNvbWUuCj4gCllvdSdsbCBoYXZlIHRv
+IGZpZ3VyZSBvdXQgdGhlIFVTQiBjb21tYW5kIHByb3RvY29sLiBXaW5kb3dzIGhhcyBzb21lIHRv
+b2xzIHRvCmxldCB5b3UgZG8gdGhhdCwgdGhvdWdoIGl0IGNhbiBiZSB0cmlja3kgdG8gdW5kZXJz
+dGFuZCB0aGUgZGF0YSBleGNoYW5nZS4KCk9uY2UgeW91IGtub3cgdGhlIGNvbW1hbmQgcHJvdG9j
+b2wsIHlvdSBjYW4gaW1wbGVtZW50IGEgdXNiIGRyaXZlciB1c2luZyBpdC4KVGhlIGRyaXZlciB3
+b3VsZCByZWdpc3RlciBpdHNlbGYgd2l0aCB0aGUgdXNiIHN1YnN5c3RlbSAoc2VlIG1vZHVsZV91
+c2JfZHJpdmVyLApzdHJ1Y3QgdXNiX2RyaXZlciwgYW5kIHN0cnVjdCB1c2JfZGV2aWNlX2lkKSwg
+YW5kIHJlZ2lzdGVyIGFuZCBleHBvcnQgaXRzCnNlbnNvcihzKSBhcyB3ZWxsIGFzIGZhbiBjb250
+cm9sL3N0YXR1cyBpbmZvcm1hdGlvbiBsaWtlIGFueSBvdGhlciBod21vbiBkcml2ZXIuCgpZb3Ug
+Y291bGQgdXNlIG9uZSBvZiB0aGUgdXNiIGkyYyBtYXN0ZXIgZHJpdmVycyBhcyBzdGFydGluZyBw
+b2ludCwgb3IgYW55IG90aGVyCihzaW1wbGUgOykgdXNiIGRyaXZlci4KCkdvb2QgbHVjayAuLi4K
+Ckd1ZW50ZXIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxtLXNlbnNvcnMgbWFpbGluZyBsaXN0CmxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKaHR0cDov
+L2xpc3RzLmxtLXNlbnNvcnMub3JnL21haWxtYW4vbGlzdGluZm8vbG0tc2Vuc29ycw=
