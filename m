@@ -1,269 +1,279 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Fri, 11 Jan 2013 14:46:07 +0000
-Subject: [lm-sensors] [PATCH 1/3] hwmon: (lm73) Add 'update_interval' attribute
-Message-Id: <1357915569-6669-1-git-send-email-linux@roeck-us.net>
+Date: Sun, 27 Jan 2013 02:17:41 +0000
+Subject: [lm-sensors] [PATCH 07/13] hwmon: (pmbus) Use krealloc to allocate attribute memory
+Message-Id: <1359253067-11644-8-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-From: Chris Verges <kg4ysn@gmail.com>
+So far, attribute memory was allocated by pre-calculating the maximum possible
+amount of attributes. Not only does this waste memory, it is also risky because
+the calculation might be wrong. It also requires a lot of defines to specify
+the maximum number of attributes per class.
 
-The LM73 supports four A/D conversion resolutions.  The default used by
-the existing lm73 driver is the chip's default, 11-bit (0.25 C/LSB).
-This patch enables changing of this resolution from userspace via the
-update_interval sysfs attribute.  Full details on usage are included in
-Documentation/hwmon/lm73.
+Allocate attribute memory using krealloc() instead. That means we have to use
+kfree(), since devm_krealloc() does not exist, but that is still less costly
+and less risky than trying to predict the number of attributes at the beginning.
 
-Signed-off-by: Chris Verges <kg4ysn@gmail.com>
-[linux@roeck-us.net: cleanup]
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- Documentation/hwmon/lm73 |   79 +++++++++++++++++++++++++++++++++++++
- drivers/hwmon/lm73.c     |   97 ++++++++++++++++++++++++++++++++++++++++------
- 2 files changed, 165 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/hwmon/lm73
+ drivers/hwmon/pmbus/pmbus_core.c |  140 +++++++++-----------------------------
+ 1 file changed, 31 insertions(+), 109 deletions(-)
 
-diff --git a/Documentation/hwmon/lm73 b/Documentation/hwmon/lm73
-new file mode 100644
-index 0000000..782b3e1
---- /dev/null
-+++ b/Documentation/hwmon/lm73
-@@ -0,0 +1,79 @@
-+Kernel driver lm73
-+=========
-+
-+Supported chips:
-+  * Texas Instruments LM73
-+    Prefix: 'lm73'
-+    Addresses scanned: I2C 0x48, 0x49, 0x4a, 0x4c, 0x4d, and 0x4e
-+    Datasheet: Publicly available at the Texas Instruments website
-+               http://www.ti.com/product/lm73
-+
-+Author: Guillaume Ligneul <guillaume.ligneul@gmail.com>
-+Documentation: Chris Verges <kg4ysn@gmail.com>
-+
-+
-+Description
-+-----------
-+
-+The LM73 is a digital temperature sensor.  All temperature values are
-+given in degrees Celsius.
-+
-+Measurement Resolution Support
-+------------------------------
-+
-+The LM73 supports four resolutions, defined in terms of degrees C per
-+LSB: 0.25, 0.125, 0.0625, and 0.3125.  Changing the resolution mode
-+affects the conversion time of the LM73's analog-to-digital converter.
-+From userspace, the desired resolution can be specified as a function of
-+conversion time via the 'update_interval' sysfs attribute for the
-+device.  This attribute will normalize ranges of input values to the
-+maximum times defined for the resolution in the datasheet.
-+
-+    Resolution    Conv. Time    Input Range
-+    (C/LSB)       (msec)        (msec)
-+    --------------------------------------
-+    0.25          14             0..14
-+    0.125         28            15..28
-+    0.0625        56            29..56
-+    0.03125       112           57..infinity
-+    --------------------------------------
-+
-+The following examples show how the 'update_interval' attribute can be
-+used to change the conversion time:
-+
-+    $ echo 0 > update_interval
-+    $ cat update_interval
-+    14
-+    $ cat temp1_input
-+    24250
-+
-+    $ echo 22 > update_interval
-+    $ cat update_interval
-+    28
-+    $ cat temp1_input
-+    24125
-+
-+    $ echo 56 > update_interval
-+    $ cat update_interval
-+    56
-+    $ cat temp1_input
-+    24062
-+
-+    $ echo 85 > update_interval
-+    $ cat update_interval
-+    112
-+    $ cat temp1_input
-+    24031
-+
-+As shown here, the lm73 driver automatically adjusts any user input for
-+'update_interval' via a step function.  Reading back the
-+'update_interval' value after a write operation will confirm the
-+conversion time actively in use.
-+
-+Mathematically, the resolution can be derived from the conversion time
-+via the following function:
-+
-+   g(x) = 0.250 * [log(x/14) / log(2)]
-+
-+where 'x' is the output from 'update_interval' and 'g(x)' is the
-+resolution in degrees C per LSB.
-diff --git a/drivers/hwmon/lm73.c b/drivers/hwmon/lm73.c
-index 5166a8e3..904c9ba 100644
---- a/drivers/hwmon/lm73.c
-+++ b/drivers/hwmon/lm73.c
-@@ -39,8 +39,24 @@ static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4c,
- #define LM73_TEMP_MIN		(-40)
- #define LM73_TEMP_MAX		150
+diff --git a/drivers/hwmon/pmbus/pmbus_core.c b/drivers/hwmon/pmbus/pmbus_core.c
+index 3782fda..26b699a 100644
+--- a/drivers/hwmon/pmbus/pmbus_core.c
++++ b/drivers/hwmon/pmbus/pmbus_core.c
+@@ -31,39 +31,10 @@
+ #include "pmbus.h"
  
--/*-----------------------------------------------------------------------*/
-+#define LM73_CTRL_RES_SHIFT	5
-+#define LM73_CTRL_RES_MASK	(BIT(5) | BIT(6))
-+#define LM73_CTRL_TO_MASK	BIT(7)
-+
-+static const unsigned short lm73_convrates[] = {
-+	14,	/* 11-bits (0.25000 C/LSB): RES1 Bit = 0, RES0 Bit = 0 */
-+	28,	/* 12-bits (0.12500 C/LSB): RES1 Bit = 0, RES0 Bit = 1 */
-+	56,	/* 13-bits (0.06250 C/LSB): RES1 Bit = 1, RES0 Bit = 0 */
-+	112,	/* 14-bits (0.03125 C/LSB): RES1 Bit = 1, RES0 Bit = 1 */
-+};
-+
-+struct lm73_data {
-+	struct device *hwmon_dev;
-+	struct mutex lock;
-+	u8 ctrl;			/* control register value */
-+};
+ /*
+- * Constants needed to determine number of sensors, booleans, and labels.
++ * Number of additional attribute pointers to allocate
++ * with each call to krealloc
+  */
+-#define PMBUS_MAX_INPUT_SENSORS		22	/* 10*volt, 7*curr, 5*power */
+-#define PMBUS_VOUT_SENSORS_PER_PAGE	9	/* input, min, max, lcrit,
+-						   crit, lowest, highest, avg,
+-						   reset */
+-#define PMBUS_IOUT_SENSORS_PER_PAGE	8	/* input, min, max, crit,
+-						   lowest, highest, avg,
+-						   reset */
+-#define PMBUS_POUT_SENSORS_PER_PAGE	7	/* input, cap, max, crit,
+-						 * highest, avg, reset
+-						 */
+-#define PMBUS_MAX_SENSORS_PER_FAN	1	/* input */
+-#define PMBUS_MAX_SENSORS_PER_TEMP	9	/* input, min, max, lcrit,
+-						 * crit, lowest, highest, avg,
+-						 * reset
+-						 */
+-
+-#define PMBUS_MAX_INPUT_BOOLEANS	7	/* v: min_alarm, max_alarm,
+-						   lcrit_alarm, crit_alarm;
+-						   c: alarm, crit_alarm;
+-						   p: crit_alarm */
+-#define PMBUS_VOUT_BOOLEANS_PER_PAGE	4	/* min_alarm, max_alarm,
+-						   lcrit_alarm, crit_alarm */
+-#define PMBUS_IOUT_BOOLEANS_PER_PAGE	3	/* alarm, lcrit_alarm,
+-						   crit_alarm */
+-#define PMBUS_POUT_BOOLEANS_PER_PAGE	3	/* cap_alarm, alarm, crit_alarm
+-						 */
+-#define PMBUS_MAX_BOOLEANS_PER_FAN	2	/* alarm, fault */
+-#define PMBUS_MAX_BOOLEANS_PER_TEMP	4	/* min_alarm, max_alarm,
+-						   lcrit_alarm, crit_alarm */
+-
+-#define PMBUS_MAX_INPUT_LABELS		4	/* vin, vcap, iin, pin */
++#define PMBUS_ATTR_ALLOC_SIZE	32
  
-+/*-----------------------------------------------------------------------*/
+ /*
+  * status, status_vout, status_iout, status_fans, status_fan34, and status_temp
+@@ -127,7 +98,6 @@ struct pmbus_data {
  
- static ssize_t set_temp(struct device *dev, struct device_attribute *da,
- 			const char *buf, size_t count)
-@@ -79,6 +95,51 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
- 	return scnprintf(buf, PAGE_SIZE, "%d\n", temp);
+ 	int max_attributes;
+ 	int num_attributes;
+-	struct attribute **attributes;
+ 	struct attribute_group group;
+ 
+ 	struct pmbus_sensor *sensors;
+@@ -790,6 +760,22 @@ static ssize_t pmbus_show_label(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", label->label);
  }
  
-+static ssize_t set_convrate(struct device *dev, struct device_attribute *da,
-+			    const char *buf, size_t count)
++static int pmbus_add_attribute(struct pmbus_data *data, struct attribute *attr)
 +{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm73_data *data = i2c_get_clientdata(client);
-+	unsigned long convrate;
-+	s32 err;
-+	int res = 0;
++	if (data->num_attributes >= data->max_attributes - 1) {
++		data->max_attributes += PMBUS_ATTR_ALLOC_SIZE;
++		data->group.attrs = krealloc(data->group.attrs,
++					     sizeof(struct attribute *) *
++					     data->max_attributes, GFP_KERNEL);
++		if (data->group.attrs = NULL)
++			return -ENOMEM;
++	}
 +
-+	err = kstrtoul(buf, 10, &convrate);
-+	if (err < 0)
-+		return err;
-+
-+	/*
-+	 * Convert the desired conversion rate into register bits.
-+	 * res is already initialized, and everything past the second-to-last
-+	 * value in the array is treated as belonging to the last value
-+	 * in the array.
-+	 */
-+	while (res < (ARRAY_SIZE(lm73_convrates) - 1) &&
-+			convrate > lm73_convrates[res])
-+		res++;
-+
-+	mutex_lock(&data->lock);
-+	data->ctrl &= LM73_CTRL_TO_MASK;
-+	data->ctrl |= res << LM73_CTRL_RES_SHIFT;
-+	err = i2c_smbus_write_byte_data(client, LM73_REG_CTRL, data->ctrl);
-+	mutex_unlock(&data->lock);
-+
-+	if (err < 0)
-+		return err;
-+
-+	return count;
++	data->group.attrs[data->num_attributes++] = attr;
++	data->group.attrs[data->num_attributes] = NULL;
++	return 0;
 +}
 +
-+static ssize_t show_convrate(struct device *dev, struct device_attribute *da,
-+			     char *buf)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct lm73_data *data = i2c_get_clientdata(client);
-+	int res;
-+
-+	res = (data->ctrl & LM73_CTRL_RES_MASK) >> LM73_CTRL_RES_SHIFT;
-+	return scnprintf(buf, PAGE_SIZE, "%hu\n", lm73_convrates[res]);
-+}
+ static void pmbus_dev_attr_init(struct device_attribute *dev_attr,
+ 				const char *name,
+ 				umode_t mode,
+@@ -831,8 +817,6 @@ static int pmbus_add_boolean(struct pmbus_data *data,
+ 	struct pmbus_boolean *boolean;
+ 	struct sensor_device_attribute *a;
  
- /*-----------------------------------------------------------------------*/
- 
-@@ -90,13 +151,14 @@ static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
- 			show_temp, set_temp, LM73_REG_MIN);
- static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO,
- 			show_temp, NULL, LM73_REG_INPUT);
+-	BUG_ON(data->num_attributes >= data->max_attributes);
 -
-+static SENSOR_DEVICE_ATTR(update_interval, S_IWUSR | S_IRUGO,
-+			show_convrate, set_convrate, 0);
+ 	boolean = devm_kzalloc(data->dev, sizeof(*boolean), GFP_KERNEL);
+ 	if (!boolean)
+ 		return -ENOMEM;
+@@ -845,9 +829,8 @@ static int pmbus_add_boolean(struct pmbus_data *data,
+ 	boolean->s2 = s2;
+ 	pmbus_attr_init(a, boolean->name, S_IRUGO, pmbus_show_boolean, NULL,
+ 			(reg << 8) | mask);
+-	data->attributes[data->num_attributes++] = &a->dev_attr.attr;
  
- static struct attribute *lm73_attributes[] = {
- 	&sensor_dev_attr_temp1_input.dev_attr.attr,
- 	&sensor_dev_attr_temp1_max.dev_attr.attr,
- 	&sensor_dev_attr_temp1_min.dev_attr.attr,
+-	return 0;
++	return pmbus_add_attribute(data, &a->dev_attr.attr);
+ }
+ 
+ static struct pmbus_sensor *pmbus_add_sensor(struct pmbus_data *data,
+@@ -859,8 +842,6 @@ static struct pmbus_sensor *pmbus_add_sensor(struct pmbus_data *data,
+ 	struct pmbus_sensor *sensor;
+ 	struct device_attribute *a;
+ 
+-	BUG_ON(data->num_attributes >= data->max_attributes);
 -
-+	&sensor_dev_attr_update_interval.dev_attr.attr,
- 	NULL
- };
+ 	sensor = devm_kzalloc(data->dev, sizeof(*sensor), GFP_KERNEL);
+ 	if (!sensor)
+ 		return NULL;
+@@ -876,7 +857,9 @@ static struct pmbus_sensor *pmbus_add_sensor(struct pmbus_data *data,
+ 			    readonly ? S_IRUGO : S_IRUGO | S_IWUSR,
+ 			    pmbus_show_sensor, pmbus_set_sensor);
  
-@@ -111,23 +173,36 @@ static const struct attribute_group lm73_group = {
- static int
- lm73_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
--	struct device *hwmon_dev;
- 	int status;
-+	struct lm73_data *data;
-+	int ctrl;
+-	data->attributes[data->num_attributes++] = &a->attr;
++	if (pmbus_add_attribute(data, &a->attr))
++		return NULL;
 +
-+	data = devm_kzalloc(&client->dev, sizeof(struct lm73_data),
-+			    GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
-+	i2c_set_clientdata(client, data);
-+	mutex_init(&data->lock);
-+
-+	ctrl = i2c_smbus_read_byte_data(client, LM73_REG_CTRL);
-+	if (ctrl < 0)
-+		return ctrl;
-+	data->ctrl = ctrl;
+ 	sensor->next = data->sensors;
+ 	data->sensors = sensor;
+ 
+@@ -890,8 +873,6 @@ static int pmbus_add_label(struct pmbus_data *data,
+ 	struct pmbus_label *label;
+ 	struct device_attribute *a;
+ 
+-	BUG_ON(data->num_attributes >= data->max_attributes);
+-
+ 	label = devm_kzalloc(data->dev, sizeof(*label), GFP_KERNEL);
+ 	if (!label)
+ 		return -ENOMEM;
+@@ -906,62 +887,7 @@ static int pmbus_add_label(struct pmbus_data *data,
+ 			 index);
+ 
+ 	pmbus_dev_attr_init(a, label->name, S_IRUGO, pmbus_show_label, NULL);
+-	data->attributes[data->num_attributes++] = &a->attr;
+-	return 0;
+-}
+-
+-/*
+- * Determine maximum number of sensors, booleans, and labels.
+- * To keep things simple, only make a rough high estimate.
+- */
+-static void pmbus_find_max_attr(struct i2c_client *client,
+-				struct pmbus_data *data)
+-{
+-	const struct pmbus_driver_info *info = data->info;
+-	int page, max_sensors, max_booleans, max_labels;
+-
+-	max_sensors = PMBUS_MAX_INPUT_SENSORS;
+-	max_booleans = PMBUS_MAX_INPUT_BOOLEANS;
+-	max_labels = PMBUS_MAX_INPUT_LABELS;
+-
+-	for (page = 0; page < info->pages; page++) {
+-		if (info->func[page] & PMBUS_HAVE_VOUT) {
+-			max_sensors += PMBUS_VOUT_SENSORS_PER_PAGE;
+-			max_booleans += PMBUS_VOUT_BOOLEANS_PER_PAGE;
+-			max_labels++;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_IOUT) {
+-			max_sensors += PMBUS_IOUT_SENSORS_PER_PAGE;
+-			max_booleans += PMBUS_IOUT_BOOLEANS_PER_PAGE;
+-			max_labels++;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_POUT) {
+-			max_sensors += PMBUS_POUT_SENSORS_PER_PAGE;
+-			max_booleans += PMBUS_POUT_BOOLEANS_PER_PAGE;
+-			max_labels++;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_FAN12) {
+-			max_sensors += 2 * PMBUS_MAX_SENSORS_PER_FAN;
+-			max_booleans += 2 * PMBUS_MAX_BOOLEANS_PER_FAN;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_FAN34) {
+-			max_sensors += 2 * PMBUS_MAX_SENSORS_PER_FAN;
+-			max_booleans += 2 * PMBUS_MAX_BOOLEANS_PER_FAN;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_TEMP) {
+-			max_sensors += PMBUS_MAX_SENSORS_PER_TEMP;
+-			max_booleans += PMBUS_MAX_BOOLEANS_PER_TEMP;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_TEMP2) {
+-			max_sensors += PMBUS_MAX_SENSORS_PER_TEMP;
+-			max_booleans += PMBUS_MAX_BOOLEANS_PER_TEMP;
+-		}
+-		if (info->func[page] & PMBUS_HAVE_TEMP3) {
+-			max_sensors += PMBUS_MAX_SENSORS_PER_TEMP;
+-			max_booleans += PMBUS_MAX_BOOLEANS_PER_TEMP;
+-		}
+-	}
+-	data->max_attributes = max_sensors + max_booleans + max_labels;
++	return pmbus_add_attribute(data, &a->attr);
+ }
+ 
+ /*
+@@ -1709,8 +1635,6 @@ static int pmbus_identify_common(struct i2c_client *client,
+ 		}
+ 	}
+ 
+-	/* Determine maximum number of sensors, booleans, and labels */
+-	pmbus_find_max_attr(client, data);
+ 	pmbus_clear_fault_page(client, 0);
+ 	return 0;
+ }
+@@ -1770,14 +1694,9 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 		return ret;
+ 	}
+ 
+-	data->attributes = devm_kzalloc(dev, sizeof(struct attribute *)
+-					* data->max_attributes, GFP_KERNEL);
+-	if (!data->attributes)
+-		return -ENOMEM;
+-
+ 	ret = pmbus_find_attributes(client, data);
+ 	if (ret)
+-		return ret;
++		goto out_kfree;
+ 
+ 	/*
+ 	 * If there are no attributes, something is wrong.
+@@ -1785,15 +1704,15 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
+ 	 */
+ 	if (!data->num_attributes) {
+ 		dev_err(dev, "No attributes found\n");
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto out_kfree;
+ 	}
  
  	/* Register sysfs hooks */
- 	status = sysfs_create_group(&client->dev.kobj, &lm73_group);
- 	if (status)
- 		return status;
- 
--	hwmon_dev = hwmon_device_register(&client->dev);
--	if (IS_ERR(hwmon_dev)) {
--		status = PTR_ERR(hwmon_dev);
-+	data->hwmon_dev = hwmon_device_register(&client->dev);
-+	if (IS_ERR(data->hwmon_dev)) {
-+		status = PTR_ERR(data->hwmon_dev);
- 		goto exit_remove;
+-	data->group.attrs = data->attributes;
+ 	ret = sysfs_create_group(&dev->kobj, &data->group);
+ 	if (ret) {
+ 		dev_err(dev, "Failed to create sysfs entries\n");
+-		return ret;
++		goto out_kfree;
  	}
--	i2c_set_clientdata(client, hwmon_dev);
+ 	data->hwmon_dev = hwmon_device_register(dev);
+ 	if (IS_ERR(data->hwmon_dev)) {
+@@ -1805,6 +1724,8 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
  
- 	dev_info(&client->dev, "%s: sensor '%s'\n",
--		 dev_name(hwmon_dev), client->name);
-+		 dev_name(data->hwmon_dev), client->name);
- 
- 	return 0;
- 
-@@ -138,9 +213,9 @@ exit_remove:
- 
- static int lm73_remove(struct i2c_client *client)
- {
--	struct device *hwmon_dev = i2c_get_clientdata(client);
-+	struct lm73_data *data = i2c_get_clientdata(client);
- 
--	hwmon_device_unregister(hwmon_dev);
-+	hwmon_device_unregister(data->hwmon_dev);
- 	sysfs_remove_group(&client->dev.kobj, &lm73_group);
+ out_hwmon_device_register:
+ 	sysfs_remove_group(&dev->kobj, &data->group);
++out_kfree:
++	kfree(data->group.attrs);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(pmbus_do_probe);
+@@ -1814,6 +1735,7 @@ int pmbus_do_remove(struct i2c_client *client)
+ 	struct pmbus_data *data = i2c_get_clientdata(client);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	sysfs_remove_group(&client->dev.kobj, &data->group);
++	kfree(data->group.attrs);
  	return 0;
  }
+ EXPORT_SYMBOL_GPL(pmbus_do_remove);
 -- 
 1.7.9.7
 
