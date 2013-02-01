@@ -1,182 +1,151 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 16 Feb 2013 19:15:43 +0000
-Subject: Re: [lm-sensors] [PATCH 7/9] hwmon: (adt7410) Add support for the adt7310/adt7320
-Message-Id: <20130216191543.GA13740@roeck-us.net>
+From: Vincent Palatin <vpalatin@chromium.org>
+Date: Fri, 01 Feb 2013 21:18:22 +0000
+Subject: [lm-sensors] [PATCH] hwmon: (lm90) Add device tree support
+Message-Id: <1359753502-13240-1-git-send-email-vpalatin@chromium.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1360947438-2550-1-git-send-email-lars@metafoo.de>
- <1360947438-2550-7-git-send-email-lars@metafoo.de>
- <20130215203243.GG32433@roeck-us.net>
- <511FADFF.1040604@metafoo.de>
-In-Reply-To: <511FADFF.1040604@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jean Delvare <khali@linux-fr.org>, Hartmut Knaack <knaack.h@gmx.de>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>, lm-sensors@lm-sensors.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Guenter Roeck <linux@roeck-us.net>, Vincent Palatin <vpalatin@chromium.org>, linux-kernel@vger.kernel.org, Olof Johansson <olofj@chromium.org>, Sameer Nanda <snanda@chromium.org>
 
-On Sat, Feb 16, 2013 at 05:04:15PM +0100, Lars-Peter Clausen wrote:
-> On 02/15/2013 09:32 PM, Guenter Roeck wrote:
-> > On Fri, Feb 15, 2013 at 05:57:16PM +0100, Lars-Peter Clausen wrote:
-> >> The adt7310/adt7320 is the SPI version of the adt7410/adt7320. The register map
-> >> layout is a bit different, i.e. the register addresses differ between the two
-> >> variants, but the bit layouts of the individual registers are identical. So both
-> >> chip variants can easily be supported by the same driver. The issue of non
-> >> matching register address layouts is solved by a simple look-up table which
-> >> translates the I2C addresses to the SPI addresses.
-> >>
-> >> The patch moves the bulk of the adt7410 driver to a common module that will be
-> >> shared by the adt7410 and adt7310 drivers. This common module implements the
-> >> driver logic and uses a set of virtual functions to perform IO access. The
-> >> adt7410 and adt7310 driver modules provide proper implementations of these IO
-> >> accessor functions for I2C respective SPI.
-> >>
-> >> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-> >> ---
-> >>  drivers/hwmon/Kconfig   |  20 ++
-> >>  drivers/hwmon/Makefile  |   2 +
-> >>  drivers/hwmon/adt7310.c | 160 ++++++++++++++++
-> >>  drivers/hwmon/adt7410.c | 472 ++++++-----------------------------------------
-> >>  drivers/hwmon/adt7x10.c | 476 ++++++++++++++++++++++++++++++++++++++++++++++++
-> >>  drivers/hwmon/adt7x10.h |  47 +++++
-> >>  6 files changed, 758 insertions(+), 419 deletions(-)
-> >>  create mode 100644 drivers/hwmon/adt7310.c
-> >>  create mode 100644 drivers/hwmon/adt7x10.c
-> >>  create mode 100644 drivers/hwmon/adt7x10.h
-> >>
-> >> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-> >> index 89ac1cb..aaa14f4 100644
-> >> --- a/drivers/hwmon/Kconfig
-> >> +++ b/drivers/hwmon/Kconfig
-> >> @@ -179,9 +179,29 @@ config SENSORS_ADM9240
-> >>  	  This driver can also be built as a module.  If so, the module
-> >>  	  will be called adm9240.
-> >>  
-> >> +config SENSORS_ADT7X10
-> >> +	tristate
-> >> +	help
-> >> +	  This module contains common code shared by the ADT7310/ADT7320 and
-> >> +	  ADT7410/ADT7420 temperature monitoring chip drivers.
-> >> +
-> >> +	  If build as a module, the module will be called adt7x10.
-> >> +
-> >> +config SENSORS_ADT7310
-> >> +	tristate "Analog Devices ADT7310/ADT7320"
-> >> +	depends on SPI_MASTER
-> >> +	select SENSORS_ADT7X10
-> >> +	help
-> >> +	  If you say yes here you get support for the Analog Devices
-> >> +	  ADT7310 and ADT7320 temperature monitoring chips.
-> >> +
-> >> +	  This driver can also be built as a module. If so, the module
-> >> +	  will be called adt7310.
-> >> +
-> >>  config SENSORS_ADT7410
-> >>  	tristate "Analog Devices ADT7410/ADT7420"
-> >>  	depends on I2C
-> >> +	select SENSORS_ADT7X10
-> >>  	help
-> >>  	  If you say yes here you get support for the Analog Devices
-> >>  	  ADT7410 and ADT7420 temperature monitoring chips.
-> >> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-> >> index 8d6d97e..5d36a57 100644
-> >> --- a/drivers/hwmon/Makefile
-> >> +++ b/drivers/hwmon/Makefile
-> >> @@ -34,6 +34,8 @@ obj-$(CONFIG_SENSORS_ADM9240)	+= adm9240.o
-> >>  obj-$(CONFIG_SENSORS_ADS1015)	+= ads1015.o
-> >>  obj-$(CONFIG_SENSORS_ADS7828)	+= ads7828.o
-> >>  obj-$(CONFIG_SENSORS_ADS7871)	+= ads7871.o
-> >> +obj-$(CONFIG_SENSORS_ADT7X10)	+= adt7x10.o
-> >> +obj-$(CONFIG_SENSORS_ADT7310)	+= adt7310.o
-> >>  obj-$(CONFIG_SENSORS_ADT7410)	+= adt7410.o
-> >>  obj-$(CONFIG_SENSORS_ADT7411)	+= adt7411.o
-> >>  obj-$(CONFIG_SENSORS_ADT7462)	+= adt7462.o
-> >> diff --git a/drivers/hwmon/adt7310.c b/drivers/hwmon/adt7310.c
-> >> new file mode 100644
-> >> index 0000000..0483e6c
-> >> --- /dev/null
-> >> +++ b/drivers/hwmon/adt7310.c
-> >> @@ -0,0 +1,160 @@
-> >> +/*
-> >> + * ADT7310/ADT7310 digital temperature sensor driver
-> >> + *
-> >> + * Copyright 2010-2013 Analog Devices Inc.
-> >> + *   Author: Lars-Peter Clausen <lars@metafoo.de>
-> >> + *
-> >> + * Licensed under the GPL-2 or later.
-> >> + */
-> >> +
-> >> +#include <linux/module.h>
-> >> +#include <linux/init.h>
-> >> +#include <linux/spi/spi.h>
-> >> +
-> >> +#include "adt7x10.h"
-> >> +
-> >> +static const u8 adt7371_reg_table[] = {
-> >> +	[ADT7410_TEMPERATURE]   = ADT7310_TEMPERATURE,
-> >> +	[ADT7410_STATUS]	= ADT7310_STATUS,
-> >> +	[ADT7410_CONFIG]	= ADT7310_CONFIG,
-> >> +	[ADT7410_T_ALARM_HIGH]	= ADT7310_T_ALARM_HIGH,
-> >> +	[ADT7410_T_ALARM_LOW]	= ADT7310_T_ALARM_LOW,
-> >> +	[ADT7410_T_CRIT]	= ADT7310_T_CRIT,
-> >> +	[ADT7410_T_HYST]	= ADT7310_T_HYST,
-> >> +	[ADT7410_ID]		= ADT7310_ID,
-> >> +};
-> >> +
-> >> +#define ADT7310_CMD_REG_MASK			0x28
-> >> +#define ADT7310_CMD_REG_OFFSET			3
-> >> +#define ADT7310_CMD_READ			0x40
-> >> +#define ADT7310_CMD_CON_READ			0x4
-> >> +
-> >> +#define AD7310_COMMAND(reg) (adt7371_reg_table[(reg)] << ADT7310_CMD_REG_OFFSET)
-> >> +
-> >> +static int adt7310_spi_read_word(struct device *dev,
-> >> +	u8 reg, u16 *data)
-> > 
-> > I don't really like the approach of separating the return value from the error
-> > code, if both can be returned directly. There are two reasons: First, the code
-> > gets more complex, and second, the compiler tends to get confused under some
-> > conditions abd believe that the return value is not set. And I really don't want
-> > to have to deal with the resulting build warnings, after getting rid of pretty
-> > much all such warnings in the hwmon subsystem. So I'd really appreciate if you
-> > could rewrite this and the subsequent patches to return both error and value as
-> > function return values.
-> > 
-> 
-> I can change it, but I don't think that the current code will confuse the
-> compiler, the return value is set under all circumstances. And the code
-
-There still tend to be conditions (mostly hit with randconfig configurations or
-with some oddball configurations) where it gets confused; at least that is what
-tends to happen.
-
-> actually gets slightly more complex by rewriting it. Most of the time we don't
-> want to store the result of the read operation on stack but rather somewhere else.
-> 
-> 	ret = adt7410_read_word(dev, TEMP);
-> 	if (ret < 0) {
-> 		...
-> 	}
-> 	data->temp[0] = ret;
-> 
-> Without the change we can write it as:
-> 
-> 	ret = adt7410_read_word(dev, TEMP, &data->temp[0])
-> 	if (ret) {
-> 		...
-> 	}
-> 
-> The difference is not that big, so I won't argue over it if you prefer the
-> first version.
-> 
-On the other side, you can then use functions such as spi_w8r16 and spi_w8r8,
-and you don't need the conversion from one method to another in the i2c code.
-
-So, yes, I would appreciate if you can make that change.
-
-Thanks,
-Guenter
-
-_______________________________________________
-lm-sensors mailing list
-lm-sensors@lm-sensors.org
-http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+QWRkIHN1cHBvcnQgdG8gaW5zdGFudGlhdGUgTE05MC1jb21wYXRpYmxlIHNlbnNvcnMgZnJvbSBh
+IGRldmljZS10cmVlCmNvbmZpZ3VyYXRpb24uCldoZW4gdGhlIGtlcm5lbCBoYXMgZGV2aWNlIHRy
+ZWUgc3VwcG9ydCwgd2UgYXZvaWQgZG9pbmcgdGhlIGF1dG8tZGV0ZWN0aW9uCmFzIHByb2Jpbmcg
+dGhlIGJ1c3NlcyBtaWdodCBtZXNzLXVwIHNlbnNpdGl2ZSBJMkMgZGV2aWNlcyBvciB0cmlnZ2Vy
+IGxvbmcKdGltZW91dHMgb24gbm9uLWZ1bmN0aW9uYWwgYnVzc2VzLgoKU2lnbmVkLW9mZi1ieTog
+VmluY2VudCBQYWxhdGluIDx2cGFsYXRpbkBjaHJvbWl1bS5vcmc+Ci0tLQogLi4uL2RldmljZXRy
+ZWUvYmluZGluZ3MvaTJjL3RyaXZpYWwtZGV2aWNlcy50eHQgICAgfCAxOSArKysrKysrKysKIC4u
+Li9kZXZpY2V0cmVlL2JpbmRpbmdzL3ZlbmRvci1wcmVmaXhlcy50eHQgICAgICAgIHwgIDEgKwog
+ZHJpdmVycy9od21vbi9sbTkwLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCA0NyAr
+KysrKysrKysrKysrKysrKysrKystCiAzIGZpbGVzIGNoYW5nZWQsIDY1IGluc2VydGlvbnMoKyks
+IDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2Jp
+bmRpbmdzL2kyYy90cml2aWFsLWRldmljZXMudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVl
+L2JpbmRpbmdzL2kyYy90cml2aWFsLWRldmljZXMudHh0CmluZGV4IDQ0Njg1OWYuLjRkOTkxY2Eg
+MTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9pMmMvdHJpdmlh
+bC1kZXZpY2VzLnR4dAorKysgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvaTJj
+L3RyaXZpYWwtZGV2aWNlcy50eHQKQEAgLTEwLDYgKzEwLDcgQEAgZG9jdW1lbnQgZm9yIGl0IGp1
+c3QgbGlrZSBhbnkgb3RoZXIgZGV2aWNlcy4KIENvbXBhdGlibGUJCVZlbmRvciAvIENoaXAKID09
+PT09PT09PT0JCT09PT09PT09PT09PT0KIGFkLGFkNzQxNAkJU01CdXMvSTJDIERpZ2l0YWwgVGVt
+cGVyYXR1cmUgU2Vuc29yIGluIDYtUGluIFNPVCB3aXRoIFNNQnVzIEFsZXJ0IGFuZCBPdmVyIFRl
+bXBlcmF0dXJlIFBpbgorYWQsYWRtMTAzMgkJKy8tMUMgUmVtb3RlIGFuZCBsb2NhbCBzeXN0ZW0g
+dGVtcGVyYXR1cmUgbW9uaXRvcgogYWQsYWRtOTI0MAkJQURNOTI0MDogIENvbXBsZXRlIFN5c3Rl
+bSBIYXJkd2FyZSBNb25pdG9yIGZvciB1UHJvY2Vzc29yLUJhc2VkIFN5c3RlbXMKIGFkaSxhZHQ3
+NDYxCQkrLy0xQyBURE0gRXh0ZW5kZWQgVGVtcCBSYW5nZSBJLkMKIGFkdDc0NjEJCQkrLy0xQyBU
+RE0gRXh0ZW5kZWQgVGVtcCBSYW5nZSBJLkMKQEAgLTM1LDE2ICszNiwzMyBAQCBmc2wsbWMxMzg5
+MgkJTUMxMzg5MjogUG93ZXIgTWFuYWdlbWVudCBJbnRlZ3JhdGVkIENpcmN1aXQgKFBNSUMpIGZv
+ciBpLk1YMzUvNTEKIGZzbCxtbWE4NDUwCQlNTUE4NDUwUTogWHRyaW5zaWMgTG93LXBvd2VyLCAz
+LWF4aXMgWHRyaW5zaWMgQWNjZWxlcm9tZXRlcgogZnNsLG1wcjEyMQkJTVBSMTIxOiBQcm94aW1p
+dHkgQ2FwYWNpdGl2ZSBUb3VjaCBTZW5zb3IgQ29udHJvbGxlcgogZnNsLHNndGw1MDAwCQlTR1RM
+NTAwMDogVWx0cmEgTG93LVBvd2VyIEF1ZGlvIENvZGVjCitnbXQsZzc4MQkJKy8tMUMgUmVtb3Rl
+IGFuZCBsb2NhbCB0ZW1wZXJhdHVyZSBzZW5zb3IKIG1heGltLGRzMTA1MAkJNSBCaXQgUHJvZ3Jh
+bW1hYmxlLCBQdWxzZS1XaWR0aCBNb2R1bGF0b3IKIG1heGltLG1heDEyMzcJCUxvdy1Qb3dlciwg
+NC0vMTItQ2hhbm5lbCwgMi1XaXJlIFNlcmlhbCwgMTItQml0IEFEQ3MKIG1heGltLG1heDY2MjUJ
+CTktQml0LzEyLUJpdCBUZW1wZXJhdHVyZSBTZW5zb3JzIHdpdGggScKyQy1Db21wYXRpYmxlIFNl
+cmlhbCBJbnRlcmZhY2UKK21heGltLG1heDY2NDYJCSsxNDVDIFByZWNpc2lvbiBTTUJ1cy1Db21w
+YXRpYmxlIFJlbW90ZS9Mb2NhbCBTZW5zb3JzCittYXhpbSxtYXg2NjQ3CQkrMTQ1QyBQcmVjaXNp
+b24gU01CdXMtQ29tcGF0aWJsZSBSZW1vdGUvTG9jYWwgU2Vuc29ycworbWF4aW0sbWF4NjY0OQkJ
+KzE0NUMgUHJlY2lzaW9uIFNNQnVzLUNvbXBhdGlibGUgUmVtb3RlL0xvY2FsIFNlbnNvcnMKK21h
+eGltLG1heDY2NTcJCSsvLTFDIFNNQnVzLUNvbXBhdGlibGUgUmVtb3RlL0xvY2FsIFNlbnNvcnMK
+K21heGltLG1heDY2NTgJCSsvLTFDIFNNQnVzLUNvbXBhdGlibGUgUmVtb3RlL0xvY2FsIFNlbnNv
+cnMKK21heGltLG1heDY2NTkJCSsvLTFDIFNNQnVzLUNvbXBhdGlibGUgUmVtb3RlL0xvY2FsIFNl
+bnNvcnMKK21heGltLG1heDY2ODAJCSsvLTFDIEZhaWwtU2FmZSBSZW1vdGUvTG9jYWwgVGVtcGVy
+YXR1cmUgU2Vuc29ycworbWF4aW0sbWF4NjY4MQkJKy8tMUMgRmFpbC1TYWZlIFJlbW90ZS9Mb2Nh
+bCBUZW1wZXJhdHVyZSBTZW5zb3JzCittYXhpbSxtYXg2Njk1CQlEdWFsIFJlbW90ZS9Mb2NhbCBU
+ZW1wZXJhdHVyZSBTZW5zb3JzCittYXhpbSxtYXg2Njk2CQlEdWFsIFJlbW90ZS9Mb2NhbCBUZW1w
+ZXJhdHVyZSBTZW5zb3JzCiBtYyxydjMwMjljMgkJUmVhbCBUaW1lIENsb2NrIE1vZHVsZSB3aXRo
+IEkyQy1CdXMKIG5hdGlvbmFsLGxtNzUJCUkyQyBURU1QIFNFTlNPUgogbmF0aW9uYWwsbG04MAkJ
+U2VyaWFsIEludGVyZmFjZSBBQ1BJLUNvbXBhdGlibGUgTWljcm9wcm9jZXNzb3IgU3lzdGVtIEhh
+cmR3YXJlIE1vbml0b3IKK25hdGlvbmFsLGxtODYJCSsvLTAuNzVDIEFjY3VyYXRlLCBSZW1vdGUg
+RGlvZGUgYW5kIExvY2FsIERpZ2l0YWwgVGVtcGVyYXR1cmUgU2Vuc29yIHdpdGggVHdvLVdpcmUg
+SW50ZXJmYWNlCituYXRpb25hbCxsbTg5CQkrLy0wLjc1QyBSZW1vdGUgYW5kIExvY2FsIERpZ2l0
+YWwgVGVtcGVyYXR1cmUgU2Vuc29yIHdpdGggVHdvLVdpcmUgSW50ZXJmYWNlLVdpcmUgSW50ZXJm
+YWNlCituYXRpb25hbCxsbTkwCQkrLy0zQyBBY2N1cmF0ZSwgUmVtb3RlIERpb2RlIGFuZCBMb2Nh
+bCBEaWdpdGFsIFRlbXBlcmF0dXJlIFNlbnNvciB3aXRoIFR3by1XaXJlIEludGVyZmFjZQogbmF0
+aW9uYWwsbG05MgkJwrEwLjMzwrBDIEFjY3VyYXRlLCAxMi1CaXQgKyBTaWduIFRlbXBlcmF0dXJl
+IFNlbnNvciBhbmQgVGhlcm1hbCBXaW5kb3cgQ29tcGFyYXRvciB3aXRoIFR3by1XaXJlIEludGVy
+ZmFjZQorbmF0aW9uYWwsbG05OQkJKy8tMUMgQWNjdXJhdGUsIFJlbW90ZSBEaW9kZSBhbmQgTG9j
+YWwgRGlnaXRhbCBUZW1wZXJhdHVyZSBTZW5zb3Igd2l0aCBUd28tV2lyZSBJbnRlcmZhY2UKIG54
+cCxwY2E5NTU2CQlPY3RhbCBTTUJ1cyBhbmQgSTJDIHJlZ2lzdGVyZWQgaW50ZXJmYWNlCiBueHAs
+cGNhOTU1NwkJOC1iaXQgSTJDLWJ1cyBhbmQgU01CdXMgSS9PIHBvcnQgd2l0aCByZXNldAogbnhw
+LHBjZjg1NjMJCVJlYWwtdGltZSBjbG9jay9jYWxlbmRhcgorbnhwLHNhNTYwMDQJCXJlbW90ZS9s
+b2NhbCBkaWdpdGFsIHRlbXBlcmF0dXJlIHNlbnNvciB3aXRoIG92ZXJ0ZW1wZXJhdHVyZSBhbGFy
+bXMKK29ubm4sbmN0MTAwOAkJKy8tMUMgVGVtcGVyYXR1cmUgTW9uaXRvciB3aXRoIFNlcmllcyBS
+ZXNpc3RhbmNlIENhbmNlbGxhdGlvbgogb3Z0aSxvdjU2NDIJCU9WNTY0MjogQ29sb3IgQ01PUyBR
+U1hHQSAoNS1tZWdhcGl4ZWwpIEltYWdlIFNlbnNvciB3aXRoIE9tbmlCU0kgYW5kIEVtYmVkZGVk
+IFRydWVGb2N1cwogcGVyaWNvbSxwdDdjNDMzOAlSZWFsLXRpbWUgQ2xvY2sgTW9kdWxlCiBwbHgs
+cGV4ODY0OAkJNDgtTGFuZSwgMTItUG9ydCBQQ0kgRXhwcmVzcyBHZW4gMiAoNS4wIEdUL3MpIFN3
+aXRjaApAQCAtNTksMyArNzcsNCBAQCB0YW9zLHRzbDI1NTAJCUFtYmllbnQgTGlnaHQgU2Vuc29y
+IHdpdGggU01CVVMvVHdvIFdpcmUgU2VyaWFsIEludGVyZmFjZQogdGksdHNjMjAwMwkJSTJDIFRv
+dWNoLVNjcmVlbiBDb250cm9sbGVyCiB0aSx0bXAxMDIJCUxvdyBQb3dlciBEaWdpdGFsIFRlbXBl
+cmF0dXJlIFNlbnNvciB3aXRoIFNNQlVTL1R3byBXaXJlIFNlcmlhbCBJbnRlcmZhY2UKIHRpLHRt
+cDI3NQkJRGlnaXRhbCBUZW1wZXJhdHVyZSBTZW5zb3IKK3dpbmJvbmQsdzgzbDc3MQkJSC9XIE1v
+bml0b3IgSUMKZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy92
+ZW5kb3ItcHJlZml4ZXMudHh0IGIvRG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3Zl
+bmRvci1wcmVmaXhlcy50eHQKaW5kZXggOTAyYjFiMS4uMjA3NDY5OSAxMDA2NDQKLS0tIGEvRG9j
+dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3ZlbmRvci1wcmVmaXhlcy50eHQKKysrIGIv
+RG9jdW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL3ZlbmRvci1wcmVmaXhlcy50eHQKQEAg
+LTIzLDYgKzIzLDcgQEAgZXN0CUVTVGVlbSBXaXJlbGVzcyBNb2RlbXMKIGZzbAlGcmVlc2NhbGUg
+U2VtaWNvbmR1Y3RvcgogR0VGYW51YwlHRSBGYW51YyBJbnRlbGxpZ2VudCBQbGF0Zm9ybXMgRW1i
+ZWRkZWQgU3lzdGVtcywgSW5jLgogZ2VmCUdFIEZhbnVjIEludGVsbGlnZW50IFBsYXRmb3JtcyBF
+bWJlZGRlZCBTeXN0ZW1zLCBJbmMuCitnbXQJR2xvYmFsIE1peGVkLW1vZGUgVGVjaG5vbG9neSBJ
+bmMuCiBocAlIZXdsZXR0IFBhY2thcmQKIGlibQlJbnRlcm5hdGlvbmFsIEJ1c2luZXNzIE1hY2hp
+bmVzIChJQk0pCiBpZHQJSW50ZWdyYXRlZCBEZXZpY2UgVGVjaG5vbG9naWVzLCBJbmMuCmRpZmYg
+LS1naXQgYS9kcml2ZXJzL2h3bW9uL2xtOTAuYyBiL2RyaXZlcnMvaHdtb24vbG05MC5jCmluZGV4
+IDg2MzQxMmEuLmMwN2ZkMTkgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvaHdtb24vbG05MC5jCisrKyBi
+L2RyaXZlcnMvaHdtb24vbG05MC5jCkBAIC0xMDYsOCArMTA2LDExIEBACiAgKi8KIAogc3RhdGlj
+IGNvbnN0IHVuc2lnbmVkIHNob3J0IG5vcm1hbF9pMmNbXSA9IHsKKyNpZm5kZWYgQ09ORklHX09G
+CiAJMHgxOCwgMHgxOSwgMHgxYSwgMHgyOSwgMHgyYSwgMHgyYiwgMHg0OCwgMHg0OSwgMHg0YSwg
+MHg0YiwgMHg0YywKLQkweDRkLCAweDRlLCAweDRmLCBJMkNfQ0xJRU5UX0VORCB9OworCTB4NGQs
+IDB4NGUsIDB4NGYsCisjZW5kaWYKKwlJMkNfQ0xJRU5UX0VORCB9OwogCiBlbnVtIGNoaXBzIHsg
+bG05MCwgYWRtMTAzMiwgbG05OSwgbG04NiwgbWF4NjY1NywgbWF4NjY1OSwgYWR0NzQ2MSwgbWF4
+NjY4MCwKIAltYXg2NjQ2LCB3ODNsNzcxLCBtYXg2Njk2LCBzYTU2MDA0LCBnNzgxIH07CkBAIC0y
+MDksNiArMjEyLDMyIEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaTJjX2RldmljZV9pZCBsbTkwX2lk
+W10gPSB7CiB9OwogTU9EVUxFX0RFVklDRV9UQUJMRShpMmMsIGxtOTBfaWQpOwogCisjaWZkZWYg
+Q09ORklHX09GCitzdGF0aWMgc3RydWN0IG9mX2RldmljZV9pZCBsbTkwX2R0X21hdGNoW10gPSB7
+CisJeyAuY29tcGF0aWJsZSA9ICJhZCxhZG0xMDMyIiwgLmRhdGEgPSAodm9pZCAqKWFkbTEwMzIg
+fSwKKwl7IC5jb21wYXRpYmxlID0gImFkaSxhZHQ3NDYxIiwgLmRhdGEgPSAodm9pZCAqKWFkdDc0
+NjEgfSwKKwl7IC5jb21wYXRpYmxlID0gImdtdCxnNzgxIiwgLmRhdGEgPSAodm9pZCAqKWc3ODEg
+fSwKKwl7IC5jb21wYXRpYmxlID0gIm5hdGlvbmFsLGxtOTAiLCAuZGF0YSA9ICh2b2lkICopbG05
+MCB9LAorCXsgLmNvbXBhdGlibGUgPSAibmF0aW9uYWwsbG04NiIsIC5kYXRhID0gKHZvaWQgKils
+bTg2IH0sCisJeyAuY29tcGF0aWJsZSA9ICJuYXRpb25hbCxsbTg5IiwgLmRhdGEgPSAodm9pZCAq
+KWxtODYgfSwKKwl7IC5jb21wYXRpYmxlID0gIm5hdGlvbmFsLGxtOTkiLCAuZGF0YSA9ICh2b2lk
+ICopbG05OSB9LAorCXsgLmNvbXBhdGlibGUgPSAibWF4aW0sbWF4NjY0NiIsIC5kYXRhID0gKHZv
+aWQgKiltYXg2NjQ2IH0sCisJeyAuY29tcGF0aWJsZSA9ICJtYXhpbSxtYXg2NjQ3IiwgLmRhdGEg
+PSAodm9pZCAqKW1heDY2NDYgfSwKKwl7IC5jb21wYXRpYmxlID0gIm1heGltLG1heDY2NDkiLCAu
+ZGF0YSA9ICh2b2lkICopbWF4NjY0NiB9LAorCXsgLmNvbXBhdGlibGUgPSAibWF4aW0sbWF4NjY1
+NyIsIC5kYXRhID0gKHZvaWQgKiltYXg2NjU3IH0sCisJeyAuY29tcGF0aWJsZSA9ICJtYXhpbSxt
+YXg2NjU4IiwgLmRhdGEgPSAodm9pZCAqKW1heDY2NTcgfSwKKwl7IC5jb21wYXRpYmxlID0gIm1h
+eGltLG1heDY2NTkiLCAuZGF0YSA9ICh2b2lkICopbWF4NjY1OSB9LAorCXsgLmNvbXBhdGlibGUg
+PSAibWF4aW0sbWF4NjY4MCIsIC5kYXRhID0gKHZvaWQgKiltYXg2NjgwIH0sCisJeyAuY29tcGF0
+aWJsZSA9ICJtYXhpbSxtYXg2NjgxIiwgLmRhdGEgPSAodm9pZCAqKW1heDY2ODAgfSwKKwl7IC5j
+b21wYXRpYmxlID0gIm1heGltLG1heDY2OTUiLCAuZGF0YSA9ICh2b2lkICopbWF4NjY5NiB9LAor
+CXsgLmNvbXBhdGlibGUgPSAibWF4aW0sbWF4NjY5NiIsIC5kYXRhID0gKHZvaWQgKiltYXg2Njk2
+IH0sCisJeyAuY29tcGF0aWJsZSA9ICJvbm5uLG5jdDEwMDgiLCAuZGF0YSA9ICh2b2lkICopYWR0
+NzQ2MSB9LAorCXsgLmNvbXBhdGlibGUgPSAid2luYm9uZCx3ODNsNzcxIiwgLmRhdGEgPSAodm9p
+ZCAqKXc4M2w3NzEgfSwKKwl7IC5jb21wYXRpYmxlID0gIm54cCxzYTU2MDA0IiwgLmRhdGEgPSAo
+dm9pZCAqKXNhNTYwMDQgfSwKKwl7IH0KK307CisjZW5kaWYKKwogLyoKICAqIGNoaXAgdHlwZSBz
+cGVjaWZpYyBwYXJhbWV0ZXJzCiAgKi8KQEAgLTEzOTEsNiArMTQyMCwxOSBAQCBzdGF0aWMgdm9p
+ZCBsbTkwX2luaXRfY2xpZW50KHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCiAJCWkyY19zbWJ1
+c193cml0ZV9ieXRlX2RhdGEoY2xpZW50LCBMTTkwX1JFR19XX0NPTkZJRzEsIGNvbmZpZyk7CiB9
+CiAKK3N0YXRpYyBpbmxpbmUgaW50IGxtOTBfZ2V0X2RyaXZlcl9kYXRhKHN0cnVjdCBpMmNfY2xp
+ZW50ICppMmMsCisJCQkJICAgICAgIGNvbnN0IHN0cnVjdCBpMmNfZGV2aWNlX2lkICppZCkKK3sK
+KyNpZmRlZiBDT05GSUdfT0YKKwlpZiAoaTJjLT5kZXYub2Zfbm9kZSkgeworCQljb25zdCBzdHJ1
+Y3Qgb2ZfZGV2aWNlX2lkICptYXRjaDsKKwkJbWF0Y2ggPSBvZl9tYXRjaF9ub2RlKGxtOTBfZHRf
+bWF0Y2gsIGkyYy0+ZGV2Lm9mX25vZGUpOworCQlyZXR1cm4gKGludCltYXRjaC0+ZGF0YTsKKwl9
+CisjZW5kaWYKKwlyZXR1cm4gKGludClpZC0+ZHJpdmVyX2RhdGE7Cit9CisKIHN0YXRpYyBpbnQg
+bG05MF9wcm9iZShzdHJ1Y3QgaTJjX2NsaWVudCAqY2xpZW50LAogCQkgICAgICBjb25zdCBzdHJ1
+Y3QgaTJjX2RldmljZV9pZCAqaWQpCiB7CkBAIC0xNDA3LDcgKzE0NDksNyBAQCBzdGF0aWMgaW50
+IGxtOTBfcHJvYmUoc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCwKIAltdXRleF9pbml0KCZkYXRh
+LT51cGRhdGVfbG9jayk7CiAKIAkvKiBTZXQgdGhlIGRldmljZSB0eXBlICovCi0JZGF0YS0+a2lu
+ZCA9IGlkLT5kcml2ZXJfZGF0YTsKKwlkYXRhLT5raW5kID0gbG05MF9nZXRfZHJpdmVyX2RhdGEo
+Y2xpZW50LCBpZCk7CiAJaWYgKGRhdGEtPmtpbmQgPT0gYWRtMTAzMikgewogCQlpZiAoIWkyY19j
+aGVja19mdW5jdGlvbmFsaXR5KGFkYXB0ZXIsIEkyQ19GVU5DX1NNQlVTX0JZVEUpKQogCQkJY2xp
+ZW50LT5mbGFncyAmPSB+STJDX0NMSUVOVF9QRUM7CkBAIC0xNTMzLDYgKzE1NzUsNyBAQCBzdGF0
+aWMgc3RydWN0IGkyY19kcml2ZXIgbG05MF9kcml2ZXIgPSB7CiAJLmNsYXNzCQk9IEkyQ19DTEFT
+U19IV01PTiwKIAkuZHJpdmVyID0gewogCQkubmFtZQk9ICJsbTkwIiwKKwkJLm9mX21hdGNoX3Rh
+YmxlID0gb2ZfbWF0Y2hfcHRyKGxtOTBfZHRfbWF0Y2gpLAogCX0sCiAJLnByb2JlCQk9IGxtOTBf
+cHJvYmUsCiAJLnJlbW92ZQkJPSBsbTkwX3JlbW92ZSwKLS0gCjEuOC4xCgoKX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxp
+c3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcv
+bWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
