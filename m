@@ -1,86 +1,61 @@
 From: Jean Delvare <khali@linux-fr.org>
-Date: Wed, 20 Feb 2013 20:47:21 +0000
-Subject: Re: [lm-sensors] [PATCH 2/2] hwmon: (ltc2978) Add support for LTC2974 and LTC3883
-Message-Id: <20130220214721.1dd48208@endymion.delvare>
+Date: Mon, 04 Feb 2013 19:58:02 +0000
+Subject: Re: [lm-sensors] [PATCH 1/2] sensors-detect: Add detection of IT8752F
+Message-Id: <20130204205802.1129fa2a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1360079815-15187-2-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1360079815-15187-2-git-send-email-linux@roeck-us.net>
+References: <1359434448-21181-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1359434448-21181-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Wed, 20 Feb 2013 08:42:31 -0800, Guenter Roeck wrote:
-> On Tue, Feb 19, 2013 at 01:28:28PM +0100, Jean Delvare wrote:
-> > On Tue,  5 Feb 2013 07:56:55 -0800, Guenter Roeck wrote:
-> > > @@ -48,7 +56,7 @@ in1_min_alarm		Input voltage low alarm.
-> > >  in1_max_alarm		Input voltage high alarm.
-> > >  in1_lcrit_alarm		Input voltage critical low alarm.
-> > >  in1_crit_alarm		Input voltage critical high alarm.
-> > > -in1_lowest		Lowest input voltage. LTC2978 only.
-> > > +in1_lowest		Lowest input voltage. LTC2974 and LTC2978 only.
-> > >  in1_highest		Highest input voltage.
-> > >  in1_reset_history	Reset history. Writing into this attribute will reset
-> > >  			history for all attributes.
-> > > @@ -63,7 +71,7 @@ in[2-9]_min_alarm	Output voltage low alarm.
-> > 
-> > in[2-9]_label says "Channels 3 to 9 on LTC2978 only" but I suppose
-> > channels 3 to 5 are also available on LTC2974?
-> > 
-> > >  in[2-9]_max_alarm	Output voltage high alarm.
-> > >  in[2-9]_lcrit_alarm	Output voltage critical low alarm.
-> > >  in[2-9]_crit_alarm	Output voltage critical high alarm.
-> > > -in[2-9]_lowest		Lowest output voltage. LTC2978 only.
-> > > +in[2-9]_lowest		Lowest output voltage. LTC2974 and LTC2978 only.
-> > >  in[2-9]_highest		Lowest output voltage.
-> > >  in[2-9]_reset_history	Reset history. Writing into this attribute will reset
-> > >  			history for all attributes.
-> > > @@ -82,20 +90,20 @@ temp[1-3]_min_alarm	Chip temperature low alarm.
-> > 
-> > temp[1-3]_input has a detailed description of the input mappings for
-> > the LTC2978 and LTC3880, it would seem desirable to have a similar
-> > description for the two new chips LTC2974 and LTC3883.
-> > 
-> > >  temp[1-3]_max_alarm	Chip temperature high alarm.
-> > >  temp[1-3]_lcrit_alarm	Chip temperature critical low alarm.
-> > >  temp[1-3]_crit_alarm	Chip temperature critical high alarm.
-> > > -temp[1-3]_lowest	Lowest measured temperature. LTC2978 only.
-> > > +temp[1-3]_lowest	Lowest measured temperature. LTC2974 and LTC2978 only.
-> > >  temp[1-3]_highest	Highest measured temperature.
-> > >  temp[1-3]_reset_history	Reset history. Writing into this attribute will reset
-> > >  			history for all attributes.
-> > >  
-> > > -power[1-2]_label	"pout[1-2]". LTC3880 only.
-> > > +power[1-2]_label	"pout[1-2]". LTC2974, LTC3880, LTC3883 only.
-> > 
-> > I am under the impression that LTC2974 has pout[3-4] as well?
-> > 
-> > >  power[1-2]_input	Measured power.
-> > >  
-> > > -curr1_label		"iin". LTC3880 only.
-> > > +curr1_label		"iin". LTC3880 and LTC3883 only.
-> > >  curr1_input		Measured input current.
-> > >  curr1_max		Maximum input current.
-> > >  curr1_max_alarm		Input current high alarm.
-> > >  
-> > > -curr[2-3]_label		"iout[1-2]". LTC3880 only.
-> > > +curr[2-3]_label		"iout[1-2]". LTC3880 and LTC3883 only.
-> > 
-> > What about LTC2974? It has PMBUS_HAVE_IOUT on all 4 pages, doesn't this
-> > translate to curr[2-5]_* files? This would correlate with the size
-> > increase of data->iout_min/max from 2 to 4 elements.
+On Mon, 28 Jan 2013 20:40:47 -0800, Guenter Roeck wrote:
+> IT8752F appears to be mostly compatible to IT8728F.
+> Supported by HWSensors4 and derived code.
 > 
-> I have been wondering if I should create per device attribute lists. Things are
-> getting confusing. Do you think that would make sense / be better ?
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+>  CHANGES                    |    3 ++-
+>  prog/detect/sensors-detect |    6 ++++++
+>  2 files changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/CHANGES b/CHANGES
+> index 7ef4c2b..465bd61 100644
+> --- a/CHANGES
+> +++ b/CHANGES
+> @@ -4,7 +4,8 @@ lm-sensors CHANGES file
+>  SVN HEAD
+>    sensors.conf.5: Mention "sensors -u" to get the raw feature names
+>    sensors: Clarify what option -u is good for
+> -  sensors-detect: Add detection of AMD family 16h power sensors
+> +  sensors-detect: Add detection of IT8752F
+> +                  Add detection of AMD family 16h power sensors
+>                    Map IT8771E, IT8772E, IT8782F and IT8783F to it87
+>                    Use /sys/module instead of /proc/modules where available
+>                    Drop legacy sysconfig configuration file syntax
 
-There are pros and cons each way, as you have already found out I'm
-sure. I do not have a strong opinion. Maybe take the middle road, and
-make one section for LTC297x and one for LTC388x?
+We don't keep this list sorted, you can simply append at the end.
 
-> Other comments are all valid ... I pulled the code from 3.9 and will have another
-> look. Especially regarding the peak values - yes, I noticed at some point that
-> something is wrong with the initialization, but then forgot to follow up on it.
-> Oh well :(.
+> diff --git a/prog/detect/sensors-detect b/prog/detect/sensors-detect
+> index a96a33e..59378c2 100755
+> --- a/prog/detect/sensors-detect
+> +++ b/prog/detect/sensors-detect
+> @@ -2224,6 +2224,12 @@ use constant FEAT_SMBUS	=> (1 << 7);
+>  		logdev => 0x04,
+>  		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+>  	}, {
+> +		name => "ITE IT8752F Super IO Sensors",
+> +		driver => "to-be-written",	# it87
+> +		devid => 0x8752,
+> +		logdev => 0x04,
+> +		features => FEAT_IN | FEAT_FAN | FEAT_TEMP,
+> +	}, {
+>  		name => "ITE IT8771E Super IO Sensors",
+>  		driver => "it87",
+>  		devid => 0x8771,
+
+Looks good, please commit and add an entry in wiki/Devices.
 
 -- 
 Jean Delvare
