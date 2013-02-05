@@ -1,27 +1,45 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 26 Feb 2013 16:04:21 +0000
-Subject: Re: [lm-sensors] [PATCH 1/7] hwmon: Update my e-mail address in driver documentation
-Message-Id: <20130226160421.GA30108@roeck-us.net>
+From: Dag Wieers <dag@wieers.com>
+Date: Tue, 05 Feb 2013 09:08:49 +0000
+Subject: [lm-sensors] i2c-i801 on AppleTV (1st gen)
+Message-Id: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361585975-5604-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1361585975-5604-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 26, 2013 at 11:02:54AM +0100, Jean Delvare wrote:
-[ ... ]
-> 
-> If no already done, please consider fixing these as well:
-> 
-> drivers/i2c/muxes/i2c-mux-pca9541.c: * Author: Guenter Roeck <guenter.roeck@ericsson.com>
-> Documentation/i2c/busses/i2c-diolan-u2c:Author: Guenter Roeck <guenter.roeck@ericsson.com>
-> 
-Done.
+Hi,
 
-Thanks,
-Guenter
+For the OpenELEC project I am looking into enabling the i2c-i801 interface 
+for getting more system information (voltage, temperature, fan).
+
+The AppleTV (1st Gen) has a N10/ICH 7 Family SMBus Controller (8086:27da) 
+device that is supported by i2c-i801, but I haven't been able to get 
+anything to work apart from loading the driver.
+
+   00:1f.3 SMBus: Intel Corporation N10/ICH 7 Family SMBus Controller (rev 02)
+           Subsystem: Intel Corporation Device 7270
+           Flags: medium devsel, IRQ 19
+           I/O ports at efa0 [size2]
+           Kernel driver in use: i801_smbus
+           Kernel modules: i2c-i801
+
+(Lacking perl, I haven't been able to get sensors-detect working yet. We 
+will have to add perl to the OpenELEC buildsystem for this)
+
+I tried loading all sensors from kernel 3.7.5, to no avail.
+
+Is there something I can do to test whether the i2c SMBus is at all 
+functional ?
+
+PS If needed, I can provide remote access to an AppleTV device.
+
+Kind regards,
+-- 
+-- dag wieers, dag@wieers.com, http://dag.wieers.com/
+-- dagit linux solutions, info@dagit.net, http://dagit.net/
+
+[Any errors in spelling, tact or fact are transmission errors]
 
 _______________________________________________
 lm-sensors mailing list
