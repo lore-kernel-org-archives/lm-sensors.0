@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 05 Feb 2013 09:18:01 +0000
+From: Dag Wieers <dag@wieers.com>
+Date: Tue, 05 Feb 2013 10:33:49 +0000
 Subject: Re: [lm-sensors] i2c-i801 on AppleTV (1st gen)
-Message-Id: <20130205101801.154bbe84@endymion.delvare>
+Message-Id: <alpine.LRH.2.02.1302051132040.2736@pikachu.3ti.be>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
 In-Reply-To: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
@@ -10,39 +10,51 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 5 Feb 2013 10:08:49 +0100 (CET), Dag Wieers wrote:
-> For the OpenELEC project I am looking into enabling the i2c-i801 interface 
-> for getting more system information (voltage, temperature, fan).
-> 
-> The AppleTV (1st Gen) has a N10/ICH 7 Family SMBus Controller (8086:27da) 
-> device that is supported by i2c-i801, but I haven't been able to get 
-> anything to work apart from loading the driver.
-> 
->    00:1f.3 SMBus: Intel Corporation N10/ICH 7 Family SMBus Controller (rev 02)
->            Subsystem: Intel Corporation Device 7270
->            Flags: medium devsel, IRQ 19
->            I/O ports at efa0 [size2]
->            Kernel driver in use: i801_smbus
->            Kernel modules: i2c-i801
+On Tue, 5 Feb 2013, Jean Delvare wrote:
 
-This looks good.
+> On Tue, 5 Feb 2013 10:08:49 +0100 (CET), Dag Wieers wrote:
+>
+>> Is there something I can do to test whether the i2c SMBus is at all
+>> functional ?
+>
+> Install i2c-tools [1] and try i2cdetect.
+>
+> [1] http://www.lm-sensors.org/wiki/I2CTools
 
-> (Lacking perl, I haven't been able to get sensors-detect working yet. We 
-> will have to add perl to the OpenELEC buildsystem for this)
-> 
-> I tried loading all sensors from kernel 3.7.5, to no avail.
+Ok, I included i2ctools as part of the OpenELEC build and this is now what 
+I get:
 
-This is pretty risky, I wouldn't do that.
+root ~ # ./i2cdetect -l
+i2c-0   smbus           SMBus I801 adapter at efa0              SMBus adapter
+i2c-1   i2c             Afatech AF9015 reference design         I2C adapter
+i2c-2   i2c             NVIDIA i2c adapter 1 at 1:00.0          I2C adapter
+i2c-3   i2c             NVIDIA i2c adapter 2 at 1:00.0          I2C adapter
 
-> Is there something I can do to test whether the i2c SMBus is at all 
-> functional ?
+root ~ # ./i2cdetect -F 0
+Functionalities implemented by /dev/i2c-0:
+I2C                              no
+SMBus Quick Command              yes
+SMBus Send Byte                  yes
+SMBus Receive Byte               yes
+SMBus Write Byte                 yes
+SMBus Read Byte                  yes
+SMBus Write Word                 yes
+SMBus Read Word                  yes
+SMBus Process Call               no
+SMBus Block Write                yes
+SMBus Block Read                 yes
+SMBus Block Process Call         no
+SMBus PEC                        yes
+I2C Block Write                  yes
+I2C Block Read                   yes
 
-Install i2c-tools [1] and try i2cdetect.
-
-[1] http://www.lm-sensors.org/wiki/I2CTools
+What's next ?
 
 -- 
-Jean Delvare
+-- dag wieers, dag@wieers.com, http://dag.wieers.com/
+-- dagit linux solutions, info@dagit.net, http://dagit.net/
+
+[Any errors in spelling, tact or fact are transmission errors]
 
 _______________________________________________
 lm-sensors mailing list
