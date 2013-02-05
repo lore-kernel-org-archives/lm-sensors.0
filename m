@@ -1,7 +1,7 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 05 Feb 2013 11:00:26 +0000
+From: Dag Wieers <dag@wieers.com>
+Date: Tue, 05 Feb 2013 11:10:05 +0000
 Subject: Re: [lm-sensors] i2c-i801 on AppleTV (1st gen)
-Message-Id: <20130205120026.1c941025@endymion.delvare>
+Message-Id: <alpine.LRH.2.02.1302051201420.2736@pikachu.3ti.be>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
 In-Reply-To: <alpine.LRH.2.02.1302050844220.2736@pikachu.3ti.be>
@@ -10,45 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, 5 Feb 2013 11:40:50 +0100 (CET), Dag Wieers wrote:
-> On Tue, 5 Feb 2013, Jean Delvare wrote:
-> > # ./i2cdetect 0
-> 
-> root ~ # ./i2cdetect 0
-> WARNING! This program can confuse your I2C bus, cause data loss and worse!
-> I will probe file /dev/i2c-0.
-> I will probe address range 0x03-0x77.
-> Continue? [Y/n] Y
->       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-> 00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-> 60: -- -- -- -- -- -- -- -- -- 69 -- -- -- -- -- --
-> 70: -- -- -- -- -- -- -- --
-> 
-> Anything I can read to understand the output ?
+On Tue, 5 Feb 2013, Jean Delvare wrote:
 
-Not really. It takes some experience to interpret the results, although
-the above is so simple that it should be easy.
+> Do you have any reason to believe that there is an SMBus-based hardware
+> monitoring chip on this system?
 
-A single chip replied to the probes, at 7-bit I2C slave address 0x69.
-On computers, this address is most typically used by a clock chip. It
-is advised to leave that kind of chip alone unless you know exactly
-what brand and model it is and how it is connected to the other components
-on the board.
+No I haven't. In fact I would be surprised if there was one (given how 
+Apple stripped the device), but I wanted to make sure that we're using all 
+the capabilities of the system (and I wasn't sure if anyone went through 
+the trouble already for this device).
 
-To put it short: if you were looking for a hardware monitoring chip,
-it's not there. Or maybe it is there but behind a multiplexer -
-something which can't be detected.
+Since the device has no power button and little ACPI functionality, it 
+would have been helpful to measure temperature and voltage so we could 
+determine whether changes to xbmc or the kernel improve the situation or 
+makes it worse.
 
-Do you have any reason to believe that there is an SMBus-based hardware
-monitoring chip on this system?
+From the other i2c devices, the only one that returns any info is:
 
+root ~ # ./i2cdetect -l
+i2c-0   smbus           SMBus I801 adapter at efa0              SMBus adapter
+i2c-1   i2c             Afatech AF9015 reference design         I2C adapter
+i2c-2   i2c             NVIDIA i2c adapter 1 at 1:00.0          I2C adapter
+i2c-3   i2c             NVIDIA i2c adapter 2 at 1:00.0          I2C adapter
+
+
+Not sure what this output provides us with:
+
+root ~ # ./i2cdetect 2
+WARNING! This program can confuse your I2C bus, cause data loss and worse!
+I will probe file /dev/i2c-2.
+I will probe address range 0x03-0x77.
+Continue? [Y/n]
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- 37 -- -- 3a -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+
+Thanks for your insights,
 -- 
-Jean Delvare
+-- dag wieers, dag@wieers.com, http://dag.wieers.com/
+-- dagit linux solutions, info@dagit.net, http://dagit.net/
+
+[Any errors in spelling, tact or fact are transmission errors]
 
 _______________________________________________
 lm-sensors mailing list
