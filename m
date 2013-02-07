@@ -1,186 +1,313 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Date: Fri, 15 Feb 2013 16:57:17 +0000
-Subject: [lm-sensors] [PATCH 8/9] hwmon: (adt7x10) Add alarm interrupt support
-Message-Id: <1360947438-2550-8-git-send-email-lars@metafoo.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 07 Feb 2013 02:49:10 +0000
+Subject: [lm-sensors] [PATCH v4] hwmon: (coretemp) Report package power and energy consumption
+Message-Id: <1360205350-15764-1-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1360947438-2550-1-git-send-email-lars@metafoo.de>
-In-Reply-To: <1360947438-2550-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
+To: lm-sensors@vger.kernel.org
 
-This allows a userspace application to poll() on the alarm files to get notified
-in case of an temperature threshold event.
+Supported by SandyBridge and newer CPUs.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/adt7310.c |  4 ++--
- drivers/hwmon/adt7410.c |  4 ++--
- drivers/hwmon/adt7x10.c | 49 ++++++++++++++++++++++++++++++++++++++++++++-----
- drivers/hwmon/adt7x10.h |  4 ++--
- 4 files changed, 50 insertions(+), 11 deletions(-)
+v4: Replaced INIT_DELAYED_WORK with INIT_DEFERRABLE_WORK
+v3: Added Cc:
+v2: Fix missing symbol error on i386 builds
+    Dropped leftover pr_info from debugging
 
-diff --git a/drivers/hwmon/adt7310.c b/drivers/hwmon/adt7310.c
-index 0483e6c..dcd8d5a 100644
---- a/drivers/hwmon/adt7310.c
-+++ b/drivers/hwmon/adt7310.c
-@@ -127,13 +127,13 @@ static const struct adt7410_ops adt7310_spi_ops = {
+I dropped this patch from my -next queue. The potential negative impact
+due to scheduled work especially in suspend situations is too risky
+without feedback and review by others.
+
+ Documentation/hwmon/coretemp |    6 ++
+ drivers/hwmon/coretemp.c     |  188 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 191 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
+index fec5a9b..a6b75b5 100644
+--- a/Documentation/hwmon/coretemp
++++ b/Documentation/hwmon/coretemp
+@@ -43,6 +43,12 @@ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
+ tempX_label	 - Contains string "Core X", where X is processor
+ 		   number. For Package temp, this will be "Physical id Y",
+ 		   where Y is the package number.
++energyX_input	 - Package energy consumption since driver was loaded
++powerX_cap	 - Package power limit
++powerX_cap_max	 - Maximum value for powerX_cap
++powerX_cap_min	 - Minimum value for powerX_cap
++powerX_input	 - Package power consumption
++powerX_max	 - Maximum package power
  
- static int adt7310_spi_probe(struct spi_device *spi)
- {
--	return adt7410_probe(&spi->dev, spi_get_device_id(spi)->name,
-+	return adt7410_probe(&spi->dev, spi_get_device_id(spi)->name, spi->irq,
- 			&adt7310_spi_ops);
- }
+ On CPU models which support it, TjMax is read from a model-specific register.
+ On other models, it is set to an arbitrary value based on weak heuristics.
+diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
+index 02ac401..51f537b 100644
+--- a/drivers/hwmon/coretemp.c
++++ b/drivers/hwmon/coretemp.c
+@@ -54,7 +54,7 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+ #define NUM_REAL_CORES		32	/* Number of Real cores per cpu */
+ #define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
+ #define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
+-#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
++#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 9)
+ #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
  
- static int adt7310_spi_remove(struct spi_device *spi)
- {
--	return adt7410_remove(&spi->dev);
-+	return adt7410_remove(&spi->dev, spi->irq);
- }
- 
- static const struct spi_device_id adt7310_id[] = {
-diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
-index 13734c5..35880c6 100644
---- a/drivers/hwmon/adt7410.c
-+++ b/drivers/hwmon/adt7410.c
-@@ -84,12 +84,12 @@ static int adt7410_i2c_probe(struct i2c_client *client,
- 			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
- 		return -ENODEV;
- 
--	return adt7410_probe(&client->dev, NULL, &adt7410_i2c_ops);
-+	return adt7410_probe(&client->dev, NULL, client->irq, &adt7410_i2c_ops);
- }
- 
- static int adt7410_i2c_remove(struct i2c_client *client)
- {
--	return adt7410_remove(&client->dev);
-+	return adt7410_remove(&client->dev, client->irq);
- }
- 
- static const struct i2c_device_id adt7410_id[] = {
-diff --git a/drivers/hwmon/adt7x10.c b/drivers/hwmon/adt7x10.c
-index 2598aaf..d042596 100644
---- a/drivers/hwmon/adt7x10.c
-+++ b/drivers/hwmon/adt7x10.c
-@@ -30,6 +30,7 @@
- #include <linux/err.h>
- #include <linux/mutex.h>
- #include <linux/delay.h>
-+#include <linux/interrupt.h>
- 
- #include "adt7x10.h"
- 
-@@ -112,6 +113,26 @@ static const u8 ADT7410_REG_TEMP[4] = {
- 	ADT7410_T_CRIT,			/* critical */
+ #define TO_PHYS_ID(cpu)		(cpu_data(cpu).phys_proc_id)
+@@ -79,6 +79,15 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+  * @is_pkg_data: If this is true, the core_data holds pkgtemp data.
+  *		Otherwise, core_data holds coretemp data.
+  * @valid: If this is true, the current temperature is valid.
++ * @has_rapl:		true if the CPU supports RAPL (power measurement)
++ * @rapl_power_units:	Units of power as reported by the chip
++ * @rapl_energy_units:	Units of energy as reported by the chip
++ * @rapl_energy_raw:	Most recent energy measurement (raw)
++ * @rapl_energy:	cumulative energy (mJ)
++ * @rapl_power:		current power usage (mW)
++ * @rapl_power_max:	maximum power (mW) as reported by the chip
++ * @rapl_power_cap_min:	minimum power limit (mW) as reported by the chip
++ * @rapl_power_cap_max:	maximum power limit (mW) as reported by the chip
+  */
+ struct core_data {
+ 	int temp;
+@@ -94,6 +103,17 @@ struct core_data {
+ 	struct sensor_device_attribute sd_attrs[TOTAL_ATTRS];
+ 	char attr_name[TOTAL_ATTRS][CORETEMP_NAME_LENGTH];
+ 	struct mutex update_lock;
++	/* power values */
++	bool has_rapl;
++	u32 rapl_power_units;
++	u32 rapl_energy_units;
++	u32 rapl_energy_raw;
++	u64 rapl_energy;
++	u32 rapl_power;
++	u32 rapl_power_max;
++	u32 rapl_power_cap_min;
++	u32 rapl_power_cap_max;
++	struct delayed_work rapl_wq;
  };
  
-+static irqreturn_t adt7410_irq_handler(int irq, void *private)
+ /* Platform Data per Physical CPU */
+@@ -132,6 +152,26 @@ static ssize_t show_label(struct device *dev,
+ 	return sprintf(buf, "Core %u\n", tdata->cpu_core_id);
+ }
+ 
++static ssize_t show_power_label(struct device *dev,
++				struct device_attribute *devattr, char *buf)
 +{
-+	struct device *dev = private;
-+	u8 status;
-+	int ret;
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
 +
-+	ret = adt7410_read_byte(dev, ADT7410_STATUS, &status);
-+	if (ret)
-+		return IRQ_HANDLED;
-+
-+	if (status & ADT7410_STAT_T_HIGH)
-+		sysfs_notify(&dev->kobj, NULL, "temp1_max_alarm");
-+	if (status & ADT7410_STAT_T_LOW)
-+		sysfs_notify(&dev->kobj, NULL, "temp1_min_alarm");
-+	if (status & ADT7410_STAT_T_CRIT)
-+		sysfs_notify(&dev->kobj, NULL, "temp1_crit_alarm");
-+
-+	return IRQ_HANDLED;
++	return sprintf(buf, "Pkg %u power\n", tdata->cpu_core_id);
 +}
 +
- /*
-  * adt7410 register access by I2C
-  */
-@@ -359,7 +380,7 @@ static const struct attribute_group adt7410_group = {
- 	.attrs = adt7410_attributes,
- };
- 
--int adt7410_probe(struct device *dev, const char *name,
-+int adt7410_probe(struct device *dev, const char *name, int irq,
- 	const struct adt7410_ops *ops)
++static ssize_t show_energy_label(struct device *dev,
++				 struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
++
++	return sprintf(buf, "Pkg %u energy\n", tdata->cpu_core_id);
++}
++
+ static ssize_t show_crit_alarm(struct device *dev,
+ 				struct device_attribute *devattr, char *buf)
  {
- 	struct adt7410_data *data;
-@@ -383,11 +404,17 @@ int adt7410_probe(struct device *dev, const char *name,
- 		return ret;
- 	}
- 	/*
--	 * Set to 16 bit resolution, continous conversion and comparator mode.
-+	 * Set to 16 bit resolution and continous conversion
- 	 */
- 	data->config = data->oldconfig;
--	data->config &= ~ADT7410_MODE_MASK;
--	data->config |= ADT7410_FULL | ADT7410_RESOLUTION | ADT7410_EVENT_MODE;
-+	data->config &= ~(ADT7410_MODE_MASK | ADT7410_CT_POLARITY |
-+			ADT7410_INT_POLARITY);
-+	data->config |= ADT7410_FULL | ADT7410_RESOLUTION;
+@@ -190,6 +230,73 @@ static ssize_t show_temp(struct device *dev,
+ 	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
+ }
+ 
++static ssize_t show_power(struct device *dev,
++			  struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
 +
-+	/* If we are not using interrupts use comperator mode */
-+	if (irq <= 0)
-+		data->config |= ADT7410_EVENT_MODE;
++	return sprintf(buf, "%u\n",
++		       pdata->core_data[attr->index]->rapl_power * 1000);
++}
 +
- 	if (data->config != data->oldconfig) {
- 		ret = adt7410_write_byte(dev, ADT7410_CONFIG, data->config);
- 		if (ret)
-@@ -421,8 +448,17 @@ int adt7410_probe(struct device *dev, const char *name,
- 		goto exit_remove_name;
++static ssize_t show_power_max(struct device *dev,
++			      struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
++
++	return sprintf(buf, "%u\n", tdata->rapl_power_max * 1000);
++}
++
++static ssize_t show_power_cap(struct device *dev,
++			      struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
++	u32 cap1, cap2, eax, edx;
++	u64 cap;
++
++	rdmsr_on_cpu(tdata->cpu, MSR_PKG_POWER_LIMIT, &eax, &edx);
++	cap1 = (eax & 0x8000) ? (eax & 0x7fff) : 0;
++	cap2 = (edx & 0x8000) ? (edx & 0x7fff) : 0;
++	cap = (max(cap1, cap2) * 1000000LL) >> tdata->rapl_power_units;
++
++	return sprintf(buf, "%llu\n", cap);
++}
++
++static ssize_t show_power_cap_min(struct device *dev,
++				  struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
++
++	return sprintf(buf, "%u\n", tdata->rapl_power_cap_min * 1000);
++}
++
++static ssize_t show_power_cap_max(struct device *dev,
++				  struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
++
++	return sprintf(buf, "%u\n", tdata->rapl_power_cap_max * 1000);
++}
++
++static ssize_t show_energy(struct device *dev,
++			   struct device_attribute *devattr, char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
++
++	return sprintf(buf, "%llu\n", tdata->rapl_energy * 1000ULL);
++}
++
+ struct tjmax {
+ 	char const *id;
+ 	int tjmax;
+@@ -374,11 +481,17 @@ static int __cpuinit create_core_attrs(struct core_data *tdata,
+ 	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
+ 			struct device_attribute *devattr, char *buf) = {
+ 			show_label, show_crit_alarm, show_temp, show_tjmax,
+-			show_ttarget };
++			show_ttarget, show_power_label, show_power,
++			show_power_max, show_power_cap, show_power_cap_min,
++			show_power_cap_max, show_energy_label, show_energy };
+ 	static const char *const names[TOTAL_ATTRS] = {
+ 					"temp%d_label", "temp%d_crit_alarm",
+ 					"temp%d_input", "temp%d_crit",
+-					"temp%d_max" };
++					"temp%d_max", "power%d_label",
++					"power%d_input", "power%d_max",
++					"power%d_cap", "power%d_cap_min",
++					"power%d_cap_max", "energy%d_label",
++					"energy%d_input" };
+ 
+ 	for (i = 0; i < tdata->attr_size; i++) {
+ 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+@@ -454,6 +567,66 @@ static struct core_data __cpuinit *init_core_data(unsigned int cpu,
+ 	return tdata;
+ }
+ 
++static u32 coretemp_delta_wrap(u32 new, u32 old)
++{
++	if (new > old)
++		return new - old;
++	return 0x100000000LL + new - old;
++}
++
++static void coretemp_rapl_work(struct work_struct *work)
++{
++	struct core_data *tdata = container_of(work, struct core_data,
++					       rapl_wq.work);
++	u32 eax, edx;
++	u32 delta;
++	u32 power;
++
++	rdmsr_on_cpu(tdata->cpu, MSR_PKG_ENERGY_STATUS, &eax, &edx);
++	delta = coretemp_delta_wrap(eax, tdata->rapl_energy_raw);
++	tdata->rapl_energy_raw = eax;
++
++	power = (delta * 1000LL) >> tdata->rapl_energy_units;
++	tdata->rapl_power = power;
++	tdata->rapl_energy += power;
++
++	schedule_delayed_work(&tdata->rapl_wq, HZ);
++}
++
++static void coretemp_init_rapl(struct platform_device *pdev,
++			       int cpu, struct core_data *tdata)
++{
++	u32 eax, edx;
++	int err;
++
++	/* Test if we can access rapl registers */
++	err = rdmsr_safe_on_cpu(cpu, MSR_RAPL_POWER_UNIT, &eax, &edx);
++	if (err)
++		return;
++
++	tdata->rapl_power_units = eax & 0x000f;
++	tdata->rapl_energy_units = (eax >> 8) & 0x001f;
++
++	err = rdmsr_safe_on_cpu(cpu, MSR_PKG_POWER_INFO, &eax, &edx);
++	if (err)
++		return;
++
++	tdata->rapl_power_cap_min +	  (((eax >> 16) & 0x7fff) * 1000) >> tdata->rapl_power_units;
++
++	tdata->rapl_power_cap_max = tdata->rapl_power_max +	  ((edx & 0x7fff) * 1000) >> tdata->rapl_power_units;
++
++	rdmsr_on_cpu(tdata->cpu, MSR_PKG_ENERGY_STATUS, &eax, &edx);
++	tdata->rapl_energy_raw = eax;
++	tdata->rapl_energy = (eax * 1000LL) >> tdata->rapl_energy_units;
++
++	INIT_DEFERRABLE_WORK(&tdata->rapl_wq, coretemp_rapl_work);
++
++	tdata->has_rapl = true;
++	tdata->attr_size += 8;
++}
++
+ static int __cpuinit create_core_data(struct platform_device *pdev,
+ 				unsigned int cpu, bool pkg_flag)
+ {
+@@ -511,6 +684,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
+ 		}
  	}
  
-+	if (irq > 0) {
-+		ret = request_threaded_irq(irq, NULL, adt7410_irq_handler,
-+				IRQF_TRIGGER_LOW | IRQF_ONESHOT, name, dev);
-+		if (ret)
-+			goto exit_hwmon_device_unregister;
-+	}
++	if (pkg_flag)
++		coretemp_init_rapl(pdev, cpu, tdata);
++
+ 	pdata->core_data[attr_no] = tdata;
+ 
+ 	/* Create sysfs interfaces */
+@@ -518,6 +694,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
+ 	if (err)
+ 		goto exit_free;
+ 
++	if (tdata->has_rapl)
++		schedule_delayed_work(&tdata->rapl_wq, HZ);
 +
  	return 0;
+ exit_free:
+ 	pdata->core_data[attr_no] = NULL;
+@@ -544,6 +723,9 @@ static void coretemp_remove_core(struct platform_data *pdata,
+ 	int i;
+ 	struct core_data *tdata = pdata->core_data[indx];
  
-+exit_hwmon_device_unregister:
-+	hwmon_device_unregister(data->hwmon_dev);
- exit_remove_name:
- 	if (name)
- 		device_remove_file(dev, &dev_attr_name);
-@@ -434,10 +470,13 @@ exit_restore:
- }
- EXPORT_SYMBOL_GPL(adt7410_probe);
- 
--int adt7410_remove(struct device *dev)
-+int adt7410_remove(struct device *dev, int irq)
- {
- 	struct adt7410_data *data = dev_get_drvdata(dev);
- 
-+	if (irq > 0)
-+		free_irq(irq, dev);
++	if (tdata->has_rapl)
++		cancel_delayed_work(&tdata->rapl_wq);
 +
- 	hwmon_device_unregister(data->hwmon_dev);
- 	if (data->name)
- 		device_remove_file(dev, &dev_attr_name);
-diff --git a/drivers/hwmon/adt7x10.h b/drivers/hwmon/adt7x10.h
-index 17c8053..173b094 100644
---- a/drivers/hwmon/adt7x10.h
-+++ b/drivers/hwmon/adt7x10.h
-@@ -32,9 +32,9 @@ struct adt7410_ops {
- 	int (*write_byte)(struct device *, u8 reg, u8 data);
- };
- 
--int adt7410_probe(struct device *dev, const char *name,
-+int adt7410_probe(struct device *dev, const char *name, int irq,
- 	const struct adt7410_ops *ops);
--int adt7410_remove(struct device *dev);
-+int adt7410_remove(struct device *dev, int irq);
- 
- 
- #ifdef CONFIG_PM_SLEEP
+ 	/* Remove the sysfs attributes */
+ 	for (i = 0; i < tdata->attr_size; i++)
+ 		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
 -- 
-1.8.0
+1.7.9.7
 
 
 _______________________________________________
