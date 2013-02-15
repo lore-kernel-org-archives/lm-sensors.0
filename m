@@ -1,50 +1,50 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Wed, 20 Feb 2013 10:27:29 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 3/9] hwmon: (lm90) add support to handle irq
-Message-Id: <5124A511.1060508@nvidia.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Date: Fri, 15 Feb 2013 16:57:13 +0000
+Subject: [lm-sensors] [PATCH 4/9] hwmon: (adt7410) Use I2C_ADDRS helper macro
+Message-Id: <1360947438-2550-4-git-send-email-lars@metafoo.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361187031-3679-1-git-send-email-wni@nvidia.com> <1361187031-3679-4-git-send-email-wni@nvidia.com> <512403F5.5010005@wwwdotorg.org> <5124429B.2000404@nvidia.com>
-In-Reply-To: <5124429B.2000404-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+References: <1360947438-2550-1-git-send-email-lars@metafoo.de>
+In-Reply-To: <1360947438-2550-1-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alex Courbot <acourbot-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, "durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: Hartmut Knaack <knaack.h@gmx.de>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
 
-On 02/20/2013 11:27 AM, Alex Courbot wrote:
-> On 02/20/2013 08:00 AM, Stephen Warren wrote:
->> On 02/18/2013 04:30 AM, Wei Ni wrote:
->>> Add support to handle irq. When the temperature touch the limit value, the
->>> driver can handle the interrupt.
->>
->>> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
->>
->>> +static void lm90_irq_work(struct work_struct *work)
->> ...
->>> +	enable_irq(client->irq);
->>> +}
->>> +
->>> +static irqreturn_t lm90_irq(int irq, void *dev_id)
->>> +{
->>> +	struct lm90_data *data = dev_id;
->>> +
->>> +	disable_irq_nosync(irq);
->>
->> I think IRQF_ONESHOT would enable you to remove the manual
->> enable/disable_irq calls.
-> 
-> Oh, right. Using a threaded IRQ with IRQF_ONESHOT would make that happen 
-> transparently. Wasn't aware of that, thanks.
+Use the I2C_ADDRS macro to initialize the I2C device's address_list. Doing so
+saves a few lines of boilerplate code.
 
-Oh, yes, I will use it in my next version.
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+---
+ drivers/hwmon/adt7410.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Thanks.
-Wei.
-
-> 
-> Alex.
-> 
-> 
+diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
+index 4ae16e0..99f6d32 100644
+--- a/drivers/hwmon/adt7410.c
++++ b/drivers/hwmon/adt7410.c
+@@ -78,10 +78,6 @@ enum adt7410_type {		/* keep sorted in alphabetical order */
+ 	adt7410,
+ };
+ 
+-/* Addresses scanned */
+-static const unsigned short normal_i2c[] = { 0x48, 0x49, 0x4a, 0x4b,
+-					I2C_CLIENT_END };
+-
+ static const u8 ADT7410_REG_TEMP[4] = {
+ 	ADT7410_TEMPERATURE,		/* input */
+ 	ADT7410_T_ALARM_HIGH,		/* high */
+@@ -453,7 +449,7 @@ static struct i2c_driver adt7410_driver = {
+ 	.probe		= adt7410_probe,
+ 	.remove		= adt7410_remove,
+ 	.id_table	= adt7410_ids,
+-	.address_list	= normal_i2c,
++	.address_list	= I2C_ADDRS(0x48, 0x49, 0x4a, 0x4b),
+ };
+ 
+ module_i2c_driver(adt7410_driver);
+-- 
+1.8.0
 
 
 _______________________________________________
