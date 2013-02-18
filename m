@@ -1,96 +1,278 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 02 Feb 2013 16:12:36 +0000
-Subject: Re: [lm-sensors] SMSC SIO10n268 Super I/O Linux support
-Message-Id: <20130202161236.GB10386@roeck-us.net>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 18 Feb 2013 11:30:28 +0000
+Subject: [lm-sensors] [RFC PATCH 6/9] hwmon: (lm90) Register to the thermal framework
+Message-Id: <1361187031-3679-7-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <CANSy19gSLySBGDBkD5bbTjY7F6y3vmqWquSC0=8HuV4rzr8krw@mail.gmail.com>
-In-Reply-To: <CANSy19gSLySBGDBkD5bbTjY7F6y3vmqWquSC0=8HuV4rzr8krw@mail.gmail.com>
+References: <1361187031-3679-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1361187031-3679-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-On Sat, Feb 02, 2013 at 08:39:17PM +0530, Sreekanth W wrote:
-> Thanks again,
-> 
-> May be I'm new to the Super I/O device, I was just curious to know more
-> info about it, but not found much info on this device support in Linux,
-> though I found some code/patch in Coreboot and lm-sensors.
-> 
-Yes, because there is no need for it when it comes to standard functionality
-such as UART and floppy access. Coreboot only initializes the chip,
-and lm-sensors handles hardware monitoring.
+Register the remote sensor to the thermal framework.
+It can support to show the temperature and read/write threshold.
 
-Guenter
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra30-cardhu.dtsi |    1 +
+ drivers/hwmon/lm90.c                  |  182 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 182 insertions(+), 1 deletion(-)
 
-> Let me test this device using the UART driver in Linux, and hope it should
-> work.
-> 
-> Sreekanth
-> 
-> On Sat, Feb 2, 2013 at 9:47 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-> 
-> > On Sat, Feb 02, 2013 at 09:31:38AM +0530, Sreekanth W wrote:
-> > > Hi Guenter,
-> > >
-> > Please don't top-post.
-> >
-> > > Thanks for your response.
-> > >
-> > > Yes, this Super I/O is not a Sensor.
-> > > But I'm just wondering will it work with the standard Linux 8250 UART
-> > > driver, or any additional driver is required for this device to control
-> > > it's Serial port registers and the Serial port to be functional.
-> > >
-> > Do you have any indication that there is a problem ?
-> >
-> > If not, the time to bother about it is if/when it is not working, not
-> > beforehand.
-> >
-> > Thanks,
-> > Guenter
-> >
-> > > Regards,
-> > > Sreekanth
-> > >
-> > > On Sat, Feb 2, 2013 at 12:05 AM, Guenter Roeck <linux@roeck-us.net>
-> > wrote:
-> > >
-> > > > On Fri, Feb 01, 2013 at 08:42:56PM +0530, Sreekanth W wrote:
-> > > > > Hello,
-> > > > >
-> > > > > I would like to know whether the SMSC SIO10n268 Super I/O support
-> > exist
-> > > > in
-> > > > > the Linux kernel? Does it need a Linux Kernel driver? OR does it work
-> > > > with
-> > > > > the lm-sensors package?
-> > > > >
-> > > > Unless I am missing something, this chip does not have hardware
-> > monitoring
-> > > > support, so there won't be a hardware monitoring driver for it.
-> > > >
-> > > > > I'm able to detect the device with "sensors-detect" and "superiotool"
-> > > > > utilities, also able to dump the device registers with "superiotool
-> > -d".
-> > > > >
-> > > > > How to configure a UART port connected to this Super IO device? Is
-> > there
-> > > > > any other application/tool for this?
-> > > > >
-> > > > Per datasheet: "High Speed NS16C550 Compatible UARTs with Send/Receive
-> > > > 16-Byte FIFOs". It should behave like a standard UART port.
-> > > > Do you have any indication that this is not the case ?
-> > > >
-> > > > Thanks,
-> > > > Guenter
-> > > >
-> >
-
-> _______________________________________________
-> lm-sensors mailing list
-> lm-sensors@lm-sensors.org
-> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+diff --git a/arch/arm/boot/dts/tegra30-cardhu.dtsi b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+index 15ad1ad..3f6ab89 100644
+--- a/arch/arm/boot/dts/tegra30-cardhu.dtsi
++++ b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+@@ -279,6 +279,7 @@
+ 			reg = <0x4c>;
+ 			interrupt-parent = <&gpio>;
+ 			interrupts = <226 0x08>; /* gpio PCC2 */
++			#sensor-cells = <1>;
+ 		};
+ 	};
+ 
+diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
+index de5a476..0abdedc 100644
+--- a/drivers/hwmon/lm90.c
++++ b/drivers/hwmon/lm90.c
+@@ -91,6 +91,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/interrupt.h>
+ #include <linux/of_irq.h>
++#include <linux/thermal.h>
+ 
+ /*
+  * Addresses to scan
+@@ -182,6 +183,15 @@ enum chips { lm90, adm1032, lm99, lm86, max6657, max6659, adt7461, max6680,
+ #define LM90_HAVE_BROKEN_ALERT	(1 << 7) /* Broken alert		*/
+ 
+ /*
++ * Thermal framework
++ */
++enum lm90_thresholds {
++	LM90_LOW_THRESHOLDS = 0,	/* threshold 0: low limits */
++	LM90_HIGH_THRESHOLDS,		/* threshold 1: high limits */
++	LM90_NUM_THRESHOLDS
++};
++
++/*
+  * Driver data (common to all clients)
+  */
+ 
+@@ -377,6 +387,9 @@ struct lm90_data {
+ 	s16 temp11[TEMP11_REG_NUM];
+ 	u8 temp_hyst;
+ 	u16 alarms; /* bitvector (upper 8 bits for max6695/96) */
++
++	struct thermal_sensor *ts_remote;
++	struct thermal_sensor *ts_local;
+ };
+ 
+ /*
+@@ -1493,12 +1506,151 @@ static irqreturn_t lm90_irq(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
++static int lm90_read_remote_temp(struct thermal_sensor *ts, long *temp)
++{
++	struct i2c_client *client = ts->devdata;
++	struct device *dev = &client->dev;
++
++	_show_temp11(dev, TEMP11_REMOTE_TEMP, (int *)temp);
++
++	return 0;
++}
++
++static int lm90_read_remote_threshold(struct thermal_sensor *ts, int th_index,
++					long *val)
++{
++	struct i2c_client *client = ts->devdata;
++	struct device *dev = &client->dev;
++	int index;
++
++	switch (th_index) {
++	case LM90_LOW_THRESHOLDS:
++		/* remote low limit */
++		index = TEMP11_REMOTE_LOW;
++		break;
++	case LM90_HIGH_THRESHOLDS:
++		/* remote high limit */
++		index = TEMP11_REMOTE_HIGH;
++		break;
++	default:
++		dev_err(dev, "read remote threshold failed.\n");
++		return -EINVAL;
++	}
++
++	_show_temp11(dev, index, (int *)val);
++
++	return 0;
++}
++
++static int lm90_write_remote_threshold(struct thermal_sensor *ts, int th_index,
++					long val)
++{
++	struct i2c_client *client = ts->devdata;
++	struct device *dev = &client->dev;
++	int nr, index;
++
++	switch (th_index) {
++	case LM90_LOW_THRESHOLDS:
++		/* remote low limit */
++		nr = NR_CHAN_0_REMOTE_LOW;
++		index = TEMP11_REMOTE_LOW;
++		break;
++	case LM90_HIGH_THRESHOLDS:
++		/* remote high limit */
++		nr = NR_CHAN_0_REMOTE_HIGH;
++		index = TEMP11_REMOTE_HIGH;
++		break;
++	default:
++		dev_err(dev, "write remote threshold failed.\n");
++		return -EINVAL;
++	}
++
++	_set_temp11(dev, nr, index, val);
++
++	return 0;
++}
++
++static struct thermal_sensor_ops remote_ops = {
++	.get_temp = lm90_read_remote_temp,
++	.get_threshold = lm90_read_remote_threshold,
++	.set_threshold = lm90_write_remote_threshold,
++};
++
++static int lm90_read_local_temp(struct thermal_sensor *ts, long *temp)
++{
++	struct i2c_client *client = ts->devdata;
++	struct device *dev = &client->dev;
++
++	_show_temp11(dev, TEMP11_LOCAL_TEMP, (int *)temp);
++
++	return 0;
++}
++
++static int lm90_read_local_threshold(struct thermal_sensor *ts, int th_index,
++					long *val)
++{
++	struct i2c_client *client = ts->devdata;
++	struct device *dev = &client->dev;
++	int index;
++
++	switch (th_index) {
++	case LM90_LOW_THRESHOLDS:
++		/* local low limit */
++		index = TEMP8_LOCAL_LOW;
++		break;
++	case LM90_HIGH_THRESHOLDS:
++		/* local high limit */
++		index = TEMP8_LOCAL_HIGH;
++		break;
++	default:
++		dev_err(dev, "read local threshold failed.\n");
++		return -EINVAL;
++	}
++
++	_show_temp8(dev, index, (int *)val);
++
++	return 0;
++}
++
++static int lm90_write_local_threshold(struct thermal_sensor *ts, int th_index,
++					long val)
++{
++	struct i2c_client *client = ts->devdata;
++	struct device *dev = &client->dev;
++	int index;
++
++	switch (th_index) {
++	case LM90_LOW_THRESHOLDS:
++		/* local low limit */
++		index = TEMP8_LOCAL_LOW;
++		break;
++	case LM90_HIGH_THRESHOLDS:
++		/* local high limit */
++		index = TEMP8_LOCAL_HIGH;
++		break;
++	default:
++		dev_err(dev, "write local threshold failed.\n");
++		return -EINVAL;
++	}
++
++	_set_temp8(dev, index, val);
++
++	return 0;
++}
++
++static struct thermal_sensor_ops local_ops = {
++	.get_temp = lm90_read_local_temp,
++	.get_threshold = lm90_read_local_threshold,
++	.set_threshold = lm90_write_local_threshold,
++};
++
+ static int lm90_probe(struct i2c_client *client,
+ 		      const struct i2c_device_id *id)
+ {
+ 	struct device *dev = &client->dev;
+ 	struct i2c_adapter *adapter = to_i2c_adapter(dev->parent);
+ 	struct lm90_data *data;
++	struct node_args np_args;
+ 	int err;
+ 
+ 	data = devm_kzalloc(&client->dev, sizeof(struct lm90_data), GFP_KERNEL);
+@@ -1576,12 +1728,38 @@ static int lm90_probe(struct i2c_client *client,
+ 				       "lm90", data);
+ 		if (err < 0) {
+ 			dev_err(dev, "cannot request interrupt\n");
+-			goto exit_remove_files;
++			goto exit_unregister_hwmon;
+ 		}
+ 	}
+ 
++	np_args.np = dev->of_node;
++	np_args.index = 0;
++	data->ts_remote = thermal_sensor_register("lm90_remote",
++						LM90_NUM_THRESHOLDS,
++						&np_args,
++						&remote_ops, client);
++	if (IS_ERR(data->ts_remote)) {
++		dev_err(dev, "cannot register sensor to thermal framework\n");
++		err = -EINVAL;
++		goto exit_unregister_hwmon;
++	}
++
++	np_args.index = 1;
++	data->ts_local = thermal_sensor_register("lm90_local",
++						LM90_NUM_THRESHOLDS,
++						&np_args,
++						&local_ops, client);
++
++	if (IS_ERR(data->ts_local)) {
++		dev_err(dev, "cannot register sensor to thermal framework\n");
++		err = -EINVAL;
++		goto exit_unregister_hwmon;
++	}
++
+ 	return 0;
+ 
++exit_unregister_hwmon:
++	hwmon_device_unregister(data->hwmon_dev);
+ exit_remove_files:
+ 	lm90_remove_files(client, data);
+ exit_restore:
+@@ -1594,6 +1772,8 @@ static int lm90_remove(struct i2c_client *client)
+ 	struct lm90_data *data = i2c_get_clientdata(client);
+ 
+ 	free_irq(client->irq, data);
++	thermal_sensor_unregister(data->ts_remote);
++	thermal_sensor_unregister(data->ts_local);
+ 	hwmon_device_unregister(data->hwmon_dev);
+ 	lm90_remove_files(client, data);
+ 	lm90_restore_conf(client, data);
+-- 
+1.7.9.5
 
 
 _______________________________________________
