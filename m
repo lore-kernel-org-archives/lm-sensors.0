@@ -1,39 +1,56 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 25 Feb 2013 07:50:56 +0000
-Subject: Re: [lm-sensors] [Patch] ADT7411: Added attribute to the driver to set the power-down bit
-Message-Id: <20130225085056.39720cef@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 18 Feb 2013 11:30:22 +0000
+Subject: [lm-sensors] [RFC PATCH 0/9] Support for tegra30 thermal.
+Message-Id: <1361187031-3679-1-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: durgadoss.r@intel.com, rui.zhang@intel.com, MLongnecker@nvidia.com, khali@linux-fr.org
+Cc: devicetree-discuss@lists.ozlabs.org, linux-tegra@vger.kernel.org, lm-sensors@lm-sensors.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.orgrs.org, linux-arm-kernel@lists.infradead.org, Wei Ni <wni@nvidia.com>
 
-Hi Michael,
+This patch series is to add tegra30 thermal driver.
+It use new linux thermal framework, which is developing by Durgadoss.
 
-Please send patches to the lm-sensors mailing list. Any patch sent to
-me only is likely to get lost.
+Note:
+1. my series are based on the patches:
+http://thread.gmane.org/gmane.linux.power-management.general/30692 ,
+which come from Durgadoss.
+And the tree is Rui's -next tree.
 
-On Sat, 23 Feb 2013 17:33:05 +0100, Michael Arndt wrote:
-> I am using Analog ADT7411 in an embedded project, where I mainly
-> use the internal temperature sensor.
-> 
-> Now the internal temperature readings get pretty bad if the sensor
-> is powered for a couple of minutes, as it will heat itself up with
-> about 10mW of power.
-> 
-> When the chip is powered down, it can do with about ~33uW of power, thus
-> reducing the heat-up. Entering the power-down mode automatically would
-> probably be the best thing, but we would need heuristics to decide when
-> to power down, so this patch just adds a new attribute, so the chip
-> can be manually powered down from sysfs.
-> 
-> In my case it really helps to keep the chip cool.
+Next steps:
+1. enhance the tegra30 thermal driver, something like handling the irq, setting
+the sensor limit value.
+2. seprate codes to create a new files which is for cooling device, something
+like tegra3_cooling.c. it will handle dvfs.
 
-Please do not add a custom sysfs attribute for that. There is a nice
-standard power management framework, please use it.
+Wei Ni (9):
+  ARM: dt: t30 cardhu: add dt entry for lm90
+  hwmon: (lm90) split set&show temp as common codes
+  hwmon: (lm90) add support to handle irq
+  hwmon: (lm90) use macros for the indexes of temp8 and temp11
+  Thermal: Support using dt node to get sensor
+  hwmon: (lm90) Register to the thermal framework
+  thermal: tegra30: add tegra30 thermal driver
+  ARM: dt: t30 cardhu: add dt entry for thermal driver
+  ARM: tegra: defconfig: enable thermal framework
+
+ .../devicetree/bindings/thermal/tegra3-thermal.txt |   41 ++
+ arch/arm/boot/dts/tegra30-cardhu.dtsi              |   27 +
+ arch/arm/configs/tegra_defconfig                   |    2 +
+ drivers/hwmon/lm90.c                               |  514 +++++++++++++++-----
+ drivers/thermal/Kconfig                            |    9 +
+ drivers/thermal/Makefile                           |    1 +
+ drivers/thermal/tegra3_thermal.c                   |  289 +++++++++++
+ drivers/thermal/thermal_sys.c                      |   30 ++
+ include/linux/thermal.h                            |    9 +
+ 9 files changed, 812 insertions(+), 110 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/thermal/tegra3-thermal.txt
+ create mode 100644 drivers/thermal/tegra3_thermal.c
 
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
