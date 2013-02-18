@@ -1,84 +1,106 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Tue, 19 Feb 2013 13:52:03 +0000
-Subject: Re: [lm-sensors] Asus P8P67 Pro configuration (for wiki)
-Message-Id: <20130219145203.5ce5abcd@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 18 Feb 2013 11:30:30 +0000
+Subject: [lm-sensors] [RFC PATCH 8/9] ARM: dt: t30 cardhu: add dt entry for thermal driver
+Message-Id: <1361187031-3679-9-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1268999849.63442.1360921639457.JavaMail.mail@webmail07>
-In-Reply-To: <1268999849.63442.1360921639457.JavaMail.mail@webmail07>
+References: <1361187031-3679-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1361187031-3679-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-SGkgQXJ0ZW0sCgpPbiBUdWUsIDE5IEZlYiAyMDEzIDEzOjE3OjA0ICswMDAwIChVVEMpLCBBcnRl
-bSBTLiBUYXNoa2lub3Ygd3JvdGU6Cj4gRmViIDE5LCAyMDEzIDA2OjUzOjQxIFBNLCBKZWFuIERl
-bHZhcmUgd3JvdGU6Cj4gSGkgQXJ0ZW0sCj4gPgo+ID5PbiBGcmksIDE1IEZlYiAyMDEzIDA5OjQ3
-OjE5ICswMDAwIChVVEMpLCBBcnRlbSBTLiBUYXNoa2lub3Ygd3JvdGU6Cj4gPj4gSGksCj4gPj4g
-Cj4gPj4gSGVyZSAgJ3MgbXkgQXN1cyBQOFA2NyBQcm8gbG0tc2Vuc29ycyBjb25maWd1cmF0aW9u
-IChJIGNvdWxkbiAgJ3QgY3JlYXRlIGEgd2lraSBwYWdlKToKPiA+Cj4gPkkgICd2ZSBjcmVhdGVk
-IGl0IGZvciB5b3U6Cj4gPmh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9Db25maWd1cmF0
-aW9ucy9Bc3VzL1A4UDY3JTIwUHJvCj4gPgo+ID4KPiA+VGhpcyBsb29rcyBpbmNvbXBsZXRlOiBu
-byArNVYsIG5vICsxMlYgYW5kIG5vIGZhbnM/IFRoZSBCSU9TIHNob3dzIHRoZW0KPiA+c28gdGhl
-eSBtdXN0IGJlIHByZXNlbnQuIElmIHlvdSBuZWVkIGhlbHAgdG8gZmluZCB0aGUgbWFwcGluZyBh
-bmQKPiA+c2NhbGluZyBmb3IgKzVWIGFuZCArMTJWLCBwbGVhc2UgcmVhZCB0aGlzIGFydGljbGU6
-Cj4gPmh0dHA6Ly93d3cubG0tc2Vuc29ycy5vcmcvd2lraS9Wb2x0YWdlTGFiZWxzQW5kU2NhbGlu
-Zwo+ID4KPiA+QWxzbyB0aGUgdm9sdGFnZSBsaW1pdHMgYXJlIG9kZCwgdGhlcmUgICdzIGxpdHRs
-ZSByYXRpb25hbGUgZm9yIGFsbG93aW5nCj4gPi01JSBidXQgdXAgdG8gKzEwJS4gVGhlIEFUWCBz
-cGVjaWZpY2F0aW9uIHNheXMgKy8tIDUlIGZvciBwb3NpdGl2ZQo+ID52b2x0YWdlIHZhbHVlcy4K
-PiAKPiBNeSBiYWQsIGl0IHR1cm5zIG91dCBJIGhhZCB0d28gY29uZmlndXJhdGlvbnMgaW4gdXNl
-LiBNeSByYXcgZGF0YSBsb29rcwo+IHRoaXMgd2F5Ogo+IAo+IG5jdDY3NzYtaXNhLTAyOTAKPiBB
-ZGFwdGVyOiBJU0EgYWRhcHRlcgo+IGluMDogICAgICAgICAgKzAuNzkgViAgKG1pbiA9ICArMC43
-NSBWLCBtYXggPSAgKzEuMzUgVikKPiBpbjE6ICAgICAgICAgICsxLjAyIFYgIChtaW4gPSAgKzAu
-OTUgViwgbWF4ID0gICsxLjA1IFYpCj4gaW4yOiAgICAgICAgICArMy4zMyBWICAobWluID0gICsz
-LjE0IFYsIG1heCA9ICArMy42MyBWKQo+IGluMzogICAgICAgICAgKzMuMzMgViAgKG1pbiA9ICAr
-My4xNCBWLCBtYXggPSAgKzMuNjMgVikKPiBpbjQ6ICAgICAgICAgICsxLjAyIFYgIChtaW4gPSAg
-KzAuOTUgViwgbWF4ID0gICsxLjA1IFYpCj4gaW41OiAgICAgICAgICArMi4wNCBWICAobWluID0g
-ICswLjAwIFYsIG1heCA9ICArMC4wMCBWKSAgIEFMQVJNCj4gaW43OiAgICAgICAgICArMy40MSBW
-ICAobWluID0gICszLjE0IFYsIG1heCA9ICArMy42MyBWKQo+IGluODogICAgICAgICAgKzMuMzQg
-ViAgKG1pbiA9ICArMy4xNCBWLCBtYXggPSAgKzMuNDcgVikKPiBmYW4xOiAgICAgICAgICAgMCBS
-UE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCj4gZmFuMjogICAgICAgICA3MTAgUlBNICAobWlu
-ID0gIDUwMCBSUE0pCj4gZmFuMzogICAgICAgICAgIDAgUlBNICAobWluID0gICAgMCBSUE0pICBB
-TEFSTQo+IGZhbjQ6ICAgICAgICAgICAwIFJQTSAgKG1pbiA9ICAgIDAgUlBNKSAgQUxBUk0KPiBm
-YW41OiAgICAgICAgICAgMCBSUE0gIChtaW4gPSAgICAwIFJQTSkgIEFMQVJNCj4gU1lTVElOOiAg
-ICAgICArMzUuMMKwQyAgKGhpZ2ggPSArNTAuMMKwQywgaHlzdCA9ICs0MC4wwrBDKSAgc2Vuc29y
-ID0gdGhlcm1pc3Rvcgo+IENQVVRJTjogICAgICAgLTYwLjDCsEMgIChoaWdoID0gKzgwLjDCsEMs
-IGh5c3QgPSArNzUuMMKwQykgIHNlbnNvciA9IGRpb2RlCj4gQVVYVElOOiAgICAgICArMzQuNcKw
-QyAgKGhpZ2ggPSArODAuMMKwQywgaHlzdCA9ICs3NS4wwrBDKSAgc2Vuc29yID0gdGhlcm1pc3Rv
-cgo+IFBFQ0kgQWdlbnQgMDogKzIzLjXCsEMKPiBjcHUwX3ZpZDogICAgKzAuMDAwIFYKPiAKPiBN
-eSBmYW4xLDMtNSBhcmUgbm90IGNvbm5lY3RlZCBzbyBJIHJlbW92ZWQgdGhlbSBmcm9tIHRoZSBj
-b25maWd1cmF0aW9uCj4gdG8gYXZvaWQgdGhlIG5vaXNlIHRoZSBzZW5zb3JzIGNvbW1hbmQgcHJv
-ZHVjZXMuCgpJIHdpbGwgY29tbWVudCBvdXQgdGhlIGlnbm9yZSBzdGF0ZW1lbnRzIGZyb20gdGhl
-IGNvbmZpZ3VyYXRpb24gZmlsZSBpbgp0aGUgd2lraSwgc28gdGhhdCBvdGhlciB1c2VycyBkb24n
-dCB3b25kZXIgd2hlcmUgdGhleSBmYW5zIGhhdmUgZ29uZS4KQW55IGZhbiBpbnB1dCB3aXRoIGFu
-IGFjdHVhbCBoZWFkZXIgb24gdGhlIGJvYXJkIHNob3VsZCBiZSBkaXNwbGF5ZWQgYnkKZGVmYXVs
-dC4KCj4gCj4gT0ssIGhlcmUncyB0aGUgZmluYWwsIGhvcGVmdWxseSBjb3JyZWN0IHZlcnNpb24u
-IEknbSB2ZXJ5IHNvcnJ5IGZvciBwb3N0aW5nIHRoZQo+IGluY29ycmVjdCB2ZXJzaW9uLgoKTm8g
-cHJvYmxlbSwgdGhhbmtzIGZvciB0aGUgcXVpY2sgdXBkYXRlLgoKPiAKPiBjaGlwICJ3ODM2Mjdl
-aGYtKiIgInc4MzYyN2RoZy0qIiAidzgzNjY3aGctKiIgIm5jdDY3NzUtKiIgIm5jdDY3NzYtKiIK
-Ck5vIG5lZWQgdG8gbGlzdCBjaGlwcyB3aGljaCBhcmVuJ3QgcmVsZXZhbnQgZm9yIHlvdXIgYm9h
-cmQuCgo+ICMgbmN0Njc3NiB2YWx1ZXMgZm9yIEFzdXMgUDhQNjcgUFJPCj4gCj4gbGFiZWwgaW4w
-ICJWY29yZSIKPiAgICAgc2V0IGluMF9taW4gMC43NQo+ICAgICBzZXQgaW4wX21heCAxLjM1Cj4g
-Cj4gbGFiZWwgaW4xICIrMTJWIgo+ICAgICBjb21wdXRlIGluMSBAICogMTIsIEAgLyAxMgo+ICAg
-ICBzZXQgaW4xX21pbiAgMTIgKiAwLjk1Cj4gICAgIHNldCBpbjFfbWF4ICAxMiAqIDEuMDUKPiAK
-PiBsYWJlbCBpbjIgIkFWQ0MiCj4gICAgIHNldCBpbjJfbWluICAzLjMgKiAwLjk1Cj4gICAgIHNl
-dCBpbjJfbWF4ICAzLjMgKiAxLjA1Cj4gCj4gbGFiZWwgaW4zICIrMy4zViIKPiAgICAgc2V0IGlu
-M19taW4gIDMuMyAqIDAuOTUKPiAgICAgc2V0IGluM19tYXggIDMuMyAqIDEuMDUKPiAKPiBsYWJl
-bCBpbjQgIis1ViIKPiAgICAgY29tcHV0ZSBpbjQgQCAqIDUsIEAgLyA1Cj4gICAgIHNldCBpbjRf
-bWluICA1ICogMC45NQo+ICAgICBzZXQgaW40X21heCAgNSAqIDEuMDUKPiAKPiAjIGFsd2F5cyBy
-ZWFkcyArMi4wNFYsIGlnbm9yaW5nCj4gaWdub3JlIGluNQo+IAo+IGxhYmVsIGluNyAiM1ZTQiIK
-PiAgICAgc2V0IGluN19taW4gIDMuMyAqIDAuOTUKPiAgICAgc2V0IGluN19tYXggIDMuMyAqIDEu
-MDUKPiAKPiBsYWJlbCBpbjggIlZiYXQiCj4gICAgIHNldCBpbjhfbWluICAzLjMgKiAwLjk1Cj4g
-ICAgIHNldCBpbjhfbWF4ICAzLjMgKiAxLjA1CgpJJ2QgYmUgbW9yZSBjYXV0aW91cyB3aXRoIGlu
-OF9taW4sIFZiYXQgaXMgbm9ybWFsbHkgcG93ZXJlZCBmcm9tIGEgKzNWCmxpdGhpdW0gYmF0dGVy
-eSwgc28gMy4wICogMC45NSB3b3VsZCBzZWVtIG1vcmUgcmVhc29uYWJsZS4gaW44X21heCBpcwpP
-SyBhcyBWYmF0IHdpbGwgZXZlbnR1YWxseSBiZSBiYWNrZWQgdXAgYnkgM1ZTQiAoYXQgbGVhc3Qg
-bXkKb2JzZXJ2YXRpb25zIG9uIHNldmVyYWwgYm9hcmRzIHN1Z2dlc3QgdGhpcy4pCgo+IAo+IGxh
-YmVsIHRlbXAxICJNQiIKPiAgICAgc2V0IHRlbXAxX21heCA1MAo+ICAgICBzZXQgdGVtcDFfbWF4
-X2h5c3QgNDAKPiAKPiAjIGFsd2F5cyByZWFkcyAtNjBDLCBpZ25vcmluZwo+IGlnbm9yZSB0ZW1w
-Mgo+IAo+IGxhYmVsIHRlbXAzICJNQidzIENQVSBzZW5zb3IiCj4gCj4gIyB0aGVzZSBmYW5zIGFy
-ZSBub3QgcHJlc2VudAo+IGlnbm9yZSBmYW4xCj4gaWdub3JlIGZhbjMKPiBpZ25vcmUgZmFuNAo+
-IGlnbm9yZSBmYW41Cj4gCj4gbGFiZWwgZmFuMiAiQ1BVIEZhbiIKPiAgICAgc2V0IGZhbjJfbWlu
-ICA1MDAKPiAKCldpa2kgdXBkYXRlZCwgdGhhbmtzIQoKLS0gCkplYW4gRGVsdmFyZQoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWls
-aW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5zb3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29y
-cy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1zZW5zb3Jz
+Enable thermal driver in the dts file.
+Set sensor as lm90 remote sensor, and set throttle data.
+
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ .../devicetree/bindings/thermal/tegra3-thermal.txt |   41 ++++++++++++++++++++
+ arch/arm/boot/dts/tegra30-cardhu.dtsi              |   19 +++++++++
+ 2 files changed, 60 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/thermal/tegra3-thermal.txt
+
+diff --git a/Documentation/devicetree/bindings/thermal/tegra3-thermal.txt b/Documentation/devicetree/bindings/thermal/tegra3-thermal.txt
+new file mode 100644
+index 0000000..dc3f922
+--- /dev/null
++++ b/Documentation/devicetree/bindings/thermal/tegra3-thermal.txt
+@@ -0,0 +1,41 @@
++* Nvidia Tegra30 Thermal
++
++** Thermal node properties:
++
++- compatible : "nvidia,tegra30-thermal";
++- sensors: the sensor device node which we want to use in the thermal zone,
++  the arguments is the index of the sensor in sensor device node;
++- passive-delay: passive delay;
++- num-passive-trips : number of passive trip points, this is required, set
++  it 0 if none, if greater than 0, the following properties must be defined;
++- passive-trips : temperature of passive trip points;
++- num-active-trips: number of active trip points, this is required, set
++  it 0 if none, if greater than 0, the following properties must be defined;
++- active-trips: temperature of active trip points;
++- throt-tab-size: size of the throttle table, it's the max cooling state.
++- throt-tab: throttle table. the cooling state will be defined according to
++  this table.
++
++Usually these properties are separated in board related dts files.
++
++Example:
++thermal {
++	compatible = "nvidia,tegra30-thermal";
++	sensors = <&nct1008 0>;
++	passive-delay = <2000>;
++	num-passive-trips = <3>;
++	passive-trips = <70 80 90>;
++	num-active-trips = <4>;
++	active-trips = < 60 70 80 90>;
++	throt-tab-size = <10>;
++	throt-tab = <0 1000
++		640000 1000
++		640000 1000
++		640000 1000
++		640000 1000
++		640000 1000
++		760000 1050
++		760000 1050
++		1000000 1050
++		1000000 1050>;
++};
+diff --git a/arch/arm/boot/dts/tegra30-cardhu.dtsi b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+index 3f6ab89..9748b9b 100644
+--- a/arch/arm/boot/dts/tegra30-cardhu.dtsi
++++ b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+@@ -492,4 +492,23 @@
+ 		nvidia,spkr-en-gpios = <&wm8903 2 0>;
+ 		nvidia,hp-det-gpios = <&gpio 178 0>; /* gpio PW2 */
+ 	};
++
++	thermal {
++		compatible = "nvidia,tegra30-thermal";
++		sensors = <&nct1008 0>;
++		passive-delay = <2000>;
++		num-passive-trips = <1>;
++		passive-trips = <80>;
++		throt-tab-size = <10>;
++		throt-tab = <0 1000
++			640000 1000
++			640000 1000
++			640000 1000
++			640000 1000
++			640000 1000
++			760000 1050
++			760000 1050
++			1000000 1050
++			1000000 1050>;
++	};
+ };
+-- 
+1.7.9.5
+
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
