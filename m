@@ -1,47 +1,44 @@
-From: Jean Delvare <khali@linux-fr.org>
-Date: Mon, 07 Jan 2013 08:41:41 +0000
-Subject: Re: [lm-sensors] "Detected by sensors-detect : No"
-Message-Id: <20130107094141.1a930861@endymion.delvare>
+From: Wei Ni <wni@nvidia.com>
+Date: Mon, 18 Feb 2013 11:30:23 +0000
+Subject: [lm-sensors] [RFC PATCH 1/9] ARM: dt: t30 cardhu: add dt entry for lm90
+Message-Id: <1361187031-3679-2-git-send-email-wni@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1361187031-3679-1-git-send-email-wni@nvidia.com>
+In-Reply-To: <1361187031-3679-1-git-send-email-wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+To: durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org
+Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TZX6JHB/w77yyCwEArCW2h5@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Wei Ni <wni-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 
-Hi Nicolas,
+Enable thermal sensor lm90 in the dts file.
 
-On Sat, 29 Dec 2012 03:00:13 +0100, nicolas maloeuvre wrote:
->  Hello,
-> I wonder if i could see and/or control fan speed of my laptop. With
-> "sensors-detect", three modules were loaded : coretemp, max6650 and sbs.
-> max6650 is a fan speed regulator so i want it.
-> http://www.lm-sensors.org/wiki/Devices says that max6650 cannot be detected
-> by sensors-detect so there is a contradiction.
+Signed-off-by: Wei Ni <wni@nvidia.com>
+---
+ arch/arm/boot/dts/tegra30-cardhu.dtsi |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-The contradiction comes from the fact that you are running an old
-version of sensors-detect. As seen in the changelog, detection of the
-Maxim MAX6650 was dropped in version 3.3.1 because it was unreliable.
-
-And as a matter of fact, it is very unlikely that you have a Maxim
-MAX6650 in your laptop.
-
-> When i launch "sensors"
-> there is no fan controller. So fancontrol doesn't work.
-
-Fan speed control on most laptops is achieved either through ACPI or
-platform-specific drivers, not generic hwmon ones. sensors-detect
-doesn't know about these, nor does fancontrol.
-
-> Driver `sbs':
->   * Bus `Radeon i2c bit bus 0x96'
->     Busdriver `drm', I2C address 0x0b
->     Chip `Smart Battery' (confidence: 5)
-
-FWIW, this is most certainly a misdetection too, as the Smart Battery
-would be on your SMBus and not your graphics chip's I2C bus. 
-
+diff --git a/arch/arm/boot/dts/tegra30-cardhu.dtsi b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+index bdb2a66..15ad1ad 100644
+--- a/arch/arm/boot/dts/tegra30-cardhu.dtsi
++++ b/arch/arm/boot/dts/tegra30-cardhu.dtsi
+@@ -273,6 +273,13 @@
+ 				};
+ 			};
+ 		};
++
++		nct1008: lm90@4c {
++			compatible = "lm90";
++			reg = <0x4c>;
++			interrupt-parent = <&gpio>;
++			interrupts = <226 0x08>; /* gpio PCC2 */
++		};
+ 	};
+ 
+ 	spi@7000da00 {
 -- 
-Jean Delvare
+1.7.9.5
+
 
 _______________________________________________
 lm-sensors mailing list
