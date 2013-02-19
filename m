@@ -1,365 +1,1424 @@
-From: Hartmut Knaack <knaack.h@gmx.de>
-Date: Mon, 18 Feb 2013 21:07:48 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 19 Feb 2013 01:30:03 +0000
 Subject: Re: [lm-sensors] [PATCH v2 2/4] hwmon: (adt7410) Add support for the adt7310/adt7320
-Message-Id: <51229824.4080402@gmx.de>
+Message-Id: <20130219013003.GB25124@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1361194739-16525-1-git-send-email-lars@metafoo.de>
+ <1361194739-16525-2-git-send-email-lars@metafoo.de>
+In-Reply-To: <1361194739-16525-2-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Jean Delvare <khali@linux-fr.org>, Hartmut Knaack <knaack.h@gmx.de>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-SnVzdCBoYWQgYSBxdWljayBsb29rIG92ZXIgdGhlIHBhdGNoIGFuZCBjb21tZW50ZWQgb24gdGhp
-bmdzIHRoYXQgY2F1Z2h0IG15IGF0dGVudGlvbiBhZnRlciBhcHBseWluZyB5b3VyIHByZXZpb3Vz
-IHBhdGNoLXNldC4gSSB3aWxsIGFsc28gYXBwbHkgdGhpcyBwYXRjaCBsYXRlciB0byB2aWV3IHRo
-ZSByZXN1bHQuIEFuZCBJIGZvdW5kIHNvbWUgb2YgbXkgdHlwb3MsIHRoYXQgd2Ugc2hvdWxkIG5v
-dCBjYXJyeSBvbiA7LSkKCkxhcnMtUGV0ZXIgQ2xhdXNlbiBzY2hyaWViOgo+IFRoZSBhZHQ3MzEw
-L2FkdDczMjAgaXMgdGhlIFNQSSB2ZXJzaW9uIG9mIHRoZSBhZHQ3NDEwL2FkdDc0MjAuIFRoZSBy
-ZWdpc3RlciBtYXAKPiBsYXlvdXQgaXMgYSBiaXQgZGlmZmVyZW50LCBpLmUuIHRoZSByZWdpc3Rl
-ciBhZGRyZXNzZXMgZGlmZmVyIGJldHdlZW4gdGhlIHR3bwo+IHZhcmlhbnRzLCBidXQgdGhlIGJp
-dCBsYXlvdXRzIG9mIHRoZSBpbmRpdmlkdWFsIHJlZ2lzdGVycyBhcmUgaWRlbnRpY2FsLiBTbyBi
-b3RoCj4gY2hpcCB2YXJpYW50cyBjYW4gZWFzaWx5IGJlIHN1cHBvcnRlZCBieSB0aGUgc2FtZSBk
-cml2ZXIuIFRoZSBpc3N1ZSBvZiBub24KPiBtYXRjaGluZyByZWdpc3RlciBhZGRyZXNzIGxheW91
-dHMgaXMgc29sdmVkIGJ5IGEgc2ltcGxlIGxvb2stdXAgdGFibGUgd2hpY2gKPiB0cmFuc2xhdGVz
-IHRoZSBJMkMgYWRkcmVzc2VzIHRvIHRoZSBTUEkgYWRkcmVzc2VzLgo+Cj4gVGhlIHBhdGNoIG1v
-dmVzIHRoZSBidWxrIG9mIHRoZSBhZHQ3NDEwIGRyaXZlciB0byBhIGNvbW1vbiBtb2R1bGUgdGhh
-dCB3aWxsIGJlCj4gc2hhcmVkIGJ5IHRoZSBhZHQ3NDEwIGFuZCBhZHQ3MzEwIGRyaXZlcnMuIFRo
-aXMgY29tbW9uIG1vZHVsZSBpbXBsZW1lbnRzIHRoZQo+IGRyaXZlciBsb2dpYyBhbmQgdXNlcyBh
-IHNldCBvZiB2aXJ0dWFsIGZ1bmN0aW9ucyB0byBwZXJmb3JtIElPIGFjY2Vzcy4gVGhlCj4gYWR0
-NzQxMCBhbmQgYWR0NzMxMCBkcml2ZXIgbW9kdWxlcyBwcm92aWRlIHByb3BlciBpbXBsZW1lbnRh
-dGlvbnMgb2YgdGhlc2UgSU8KPiBhY2Nlc3NvciBmdW5jdGlvbnMgZm9yIEkyQyByZXNwZWN0aXZl
-IFNQSS4KPgo+IFNpZ25lZC1vZmYtYnk6IExhcnMtUGV0ZXIgQ2xhdXNlbiA8bGFyc0BtZXRhZm9v
-LmRlPgo+Cj4gLS0tCj4gQ2hhbmdlcyBzaW5jZSB2MToKPiAJKiBVcGRhdGUgdGhlIGRyaXZlciBk
-b2N1bWVudGF0aW9uIHRvIGluY2x1ZGUgQURUNzMxMC9BRFQ3MzIwL0FEVDc0MjAKPiAJKiBQYXNz
-IHRoZSByZXN1bHQgb2YgdGhlIHJlYWQgbWV0aG9kcyB2aWEgdGhlIHJldHVybiB2YWx1ZSBpbnN0
-ZWFkIG9mIGEKPiAJICBwb2ludGVyIGFyZ3VtZW50Cj4gCSogU2ltcGxpZnkgc3BpIHJlYWQgbWV0
-aG9kcyBieSB1c2luZyBzcGlfdzhyOCBhbmQgc3BpX3c4cjE2Cj4gCSogVXBkYXRlIG1vZHVsZSBk
-ZXNjcmlwdGlvbiBvZiB0aGUgc2hhcmVkIG1vZHVsZQo+IAkqIEZpeCBzb21lIHR5cG9zCj4gLS0t
-Cj4gIERvY3VtZW50YXRpb24vaHdtb24vYWR0NzQxMCB8ICA0MiArKy0tCj4gIGRyaXZlcnMvaHdt
-b24vS2NvbmZpZyAgICAgICB8ICAyMCArKwo+ICBkcml2ZXJzL2h3bW9uL01ha2VmaWxlICAgICAg
-fCAgIDIgKwo+ICBkcml2ZXJzL2h3bW9uL2FkdDczMTAuYyAgICAgfCAxMTUgKysrKysrKysrKysK
-PiAgZHJpdmVycy9od21vbi9hZHQ3NDEwLmMgICAgIHwgNDY0ICsrKy0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ICBkcml2ZXJzL2h3bW9uL2FkdDd4MTAuYyAgICAgfCA0
-NzYgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgZHJpdmVy
-cy9od21vbi9hZHQ3eDEwLmggICAgIHwgIDQ4ICsrKysrCj4gIDcgZmlsZXMgY2hhbmdlZCwgNzIw
-IGluc2VydGlvbnMoKyksIDQ0NyBkZWxldGlvbnMoLSkKPiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGRy
-aXZlcnMvaHdtb24vYWR0NzMxMC5jCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2h3bW9u
-L2FkdDd4MTAuYwo+ICBjcmVhdGUgbW9kZSAxMDA2NDQgZHJpdmVycy9od21vbi9hZHQ3eDEwLmgK
-Pgo+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2h3bW9uL2FkdDc0MTAgYi9Eb2N1bWVudGF0
-aW9uL2h3bW9uL2FkdDc0MTAKPiBpbmRleCA5NjAwNDAwLi5lNDUyYWUwIDEwMDY0NAo+IC0tLSBh
-L0RvY3VtZW50YXRpb24vaHdtb24vYWR0NzQxMAo+ICsrKyBiL0RvY3VtZW50YXRpb24vaHdtb24v
-YWR0NzQxMAo+IEBAIC03LDI1ICs3LDQxIEBAIFN1cHBvcnRlZCBjaGlwczoKPiAgICAgIEFkZHJl
-c3NlcyBzY2FubmVkOiBJMkMgMHg0OCAtIDB4NEIKPiAgICAgIERhdGFzaGVldDogUHVibGljbHkg
-YXZhaWxhYmxlIGF0IHRoZSBBbmFsb2cgRGV2aWNlcyB3ZWJzaXRlCj4gICAgICAgICAgICAgICAg
-IGh0dHA6Ly93d3cuYW5hbG9nLmNvbS9zdGF0aWMvaW1wb3J0ZWQtZmlsZXMvZGF0YV9zaGVldHMv
-QURUNzQxMC5wZGYKPiArICAqIEFuYWxvZyBEZXZpY2VzIEFEVDc0MjAKPiArICAgIFByZWZpeDog
-J2FkdDc0MjAnCj4gKyAgICBBZGRyZXNzZXMgc2Nhbm5lZDogSTJDIDB4NDggLSAweDRCCj4gKyAg
-ICBEYXRhc2hlZXQ6IFB1YmxpY2x5IGF2YWlsYWJsZSBhdCB0aGUgQW5hbG9nIERldmljZXMgd2Vi
-c2l0ZQo+ICsgICAgICAgICAgICAgICBodHRwOi8vd3d3LmFuYWxvZy5jb20vc3RhdGljL2ltcG9y
-dGVkLWZpbGVzL2RhdGFfc2hlZXRzL0FEVDc0MjAucGRmCj4gKyAgKiBBbmFsb2cgRGV2aWNlcyBB
-RFQ3MzEwCj4gKyAgICBQcmVmaXg6ICdhZHQ3MzEwJwo+ICsgICAgQWRkcmVzc2VzIHNjYW5uZWQ6
-IEkyQyAweDQ4IC0gMHg0Qgo+ICsgICAgRGF0YXNoZWV0OiBQdWJsaWNseSBhdmFpbGFibGUgYXQg
-dGhlIEFuYWxvZyBEZXZpY2VzIHdlYnNpdGUKPiArICAgICAgICAgICAgICAgaHR0cDovL3d3dy5h
-bmFsb2cuY29tL3N0YXRpYy9pbXBvcnRlZC1maWxlcy9kYXRhX3NoZWV0cy9BRFQ3MzEwLnBkZgo+
-ICsgICogQW5hbG9nIERldmljZXMgQURUNzMyMAo+ICsgICAgUHJlZml4OiAnYWR0NzMyMCcKPiAr
-ICAgIEFkZHJlc3NlcyBzY2FubmVkOiBJMkMgMHg0OCAtIDB4NEIKPiArICAgIERhdGFzaGVldDog
-UHVibGljbHkgYXZhaWxhYmxlIGF0IHRoZSBBbmFsb2cgRGV2aWNlcyB3ZWJzaXRlCj4gKyAgICAg
-ICAgICAgICAgIGh0dHA6Ly93d3cuYW5hbG9nLmNvbS9zdGF0aWMvaW1wb3J0ZWQtZmlsZXMvZGF0
-YV9zaGVldHMvQURUNzMyMC5wZGYKPiAgCj4gIEF1dGhvcjogSGFydG11dCBLbmFhY2sgPGtuYWFj
-ay5oQGdteC5kZT4KPiAgCj4gIERlc2NyaXB0aW9uCj4gIC0tLS0tLS0tLS0tCj4gIAo+IC1UaGUg
-QURUNzQxMCBpcyBhIHRlbXBlcmF0dXJlIHNlbnNvciB3aXRoIHJhdGVkIHRlbXBlcmF0dXJlIHJh
-bmdlIG9mIC01NcKwQyB0bwo+IC0rMTUwwrBDLiBJdCBoYXMgYSBoaWdoIGFjY3VyYWN5IG9mICsv
-LTAuNcKwQyBhbmQgY2FuIGJlIG9wZXJhdGVkIGF0IGEgcmVzb2x1dGlvbgo+IC1vZiAxMyBiaXRz
-ICgwLjA2MjXCsEMpIG9yIDE2IGJpdHMgKDAuMDA3OMKwQykuIFRoZSBzZW5zb3IgcHJvdmlkZXMg
-YW4gSU5UIHBpbiB0bwo+IC1pbmRpY2F0ZSB0aGF0IGEgbWluaW11bSBvciBtYXhpbXVtIHRlbXBl
-cmF0dXJlIHNldCBwb2ludCBoYXMgYmVlbiBleGNlZWRlZCwgYXMKPiAtd2VsbCBhcyBhIGNyaXRp
-Y2FsIHRlbXBlcmF0dXJlIChDVCkgcGluIHRvIGluZGljYXRlIHRoYXQgdGhlIGNyaXRpY2FsCj4g
-LXRlbXBlcmF0dXJlIHNldCBwb2ludCBoYXMgYmVlbiBleGNlZWRlZC4gQm90aCBwaW5zIGNhbiBi
-ZSBzZXQgdXAgd2l0aCBhIGNvbW1vbgo+IC1oeXN0ZXJlc2lzIG9mIDDCsEMgLSAxNcKwQyBhbmQg
-YSBmYXVsdCBxdWV1ZSwgcmFuZ2luZyBmcm9tIDEgdG8gNCBldmVudHMuIEJvdGgKPiAtcGlucyBj
-YW4gaW5kaXZpZHVhbGx5IHNldCB0byBiZSBhY3RpdmUtbG93IG9yIGFjdGl2ZS1oaWdoLCB3aGls
-ZSB0aGUgd2hvbGUKPiAtZGV2aWNlIGNhbiBlaXRoZXIgcnVuIGluIGNvbXBhcmF0b3IgbW9kZSBv
-ciBpbnRlcnJ1cHQgbW9kZS4gVGhlIEFEVDc0MTAKPiAtc3VwcG9ydHMgY29udGlub3VzIHRlbXBl
-cmF0dXJlIHNhbXBsaW5nLCBhcyB3ZWxsIGFzIHNhbXBsaW5nIG9uZSB0ZW1wZXJhdHVyZQo+IC12
-YWx1ZSBwZXIgc2Vjb25kIG9yIGV2ZW4ganVzdGdldCBvbmUgc2FtcGxlIG9uIGRlbWFuZCBmb3Ig
-cG93ZXIgc2F2aW5nLgo+IC1CZXNpZGVzLCBpdCBjYW4gY29tcGxldGVseSBwb3dlciBkb3duIGl0
-cyBBREMsIGlmIHBvd2VyIG1hbmFnZW1lbnQgaXMKPiAtcmVxdWlyZWQuCj4gK1RoZSBBRFQ3NDEw
-IGFuZCBzaW1pbGFyIGFyZSBhIHRlbXBlcmF0dXJlIHNlbnNvcnMgd2l0aCByYXRlZCB0ZW1wZXJh
-dHVyZSByYW5nZQo+ICtvZiAtNTXCsEMgdG8gKzE1MMKwQyAoQURUNzMxMC9BRFQ3NDEwKSBvciAt
-NDDCsEMgdG8gKzE1MMKwQyAoQURUNzMyMC9BRFQ3NDIwKS4gVGhleQo+ICtoYXZlIGEgaGlnaCBh
-Y2N1cmFjeSBvZiArLy0wLjXCsEMgKEFEVDczMTAvQURUNzQxMCkgb3IgKy8tMC4yQyAoQURUNzQz
-MC9BRFQ3NDIwKQo+ICthbmQgY2FuIGJlIG9wZXJhdGVkIGF0IGEgcmVzb2x1dGlvbiBvZiAxMyBi
-aXRzICgwLjA2MjXCsEMpIG9yIDE2IGJpdHMgKDAuMDA3OMKwQykuCj4gK1RoZSBzZW5zb3IgcHJv
-dmlkZXMgYW4gSU5UIHBpbiB0byBpbmRpY2F0ZSB0aGF0IGEgbWluaW11bSBvciBtYXhpbXVtIHRl
-bXBlcmF0dXJlCj4gK3NldCBwb2ludCBoYXMgYmVlbiBleGNlZWRlZCwgYXMgd2VsbCBhcyBhIGNy
-aXRpY2FsIHRlbXBlcmF0dXJlIChDVCkgcGluIHRvCj4gK2luZGljYXRlIHRoYXQgdGhlIGNyaXRp
-Y2FsIHRlbXBlcmF0dXJlIHNldCBwb2ludCBoYXMgYmVlbiBleGNlZWRlZC4gQm90aCBwaW5zCj4g
-K2NhbiBiZSBzZXQgdXAgd2l0aCBhIGNvbW1vbiBoeXN0ZXJlc2lzIG9mIDDCsEMgLSAxNcKwQyBh
-bmQgYSBmYXVsdCBxdWV1ZSwgcmFuZ2luZwo+ICtmcm9tIDEgdG8gNCBldmVudHMuIEJvdGggcGlu
-cyBjYW4gaW5kaXZpZHVhbGx5IHNldCB0byBiZSBhY3RpdmUtbG93IG9yCj4gK2FjdGl2ZS1oaWdo
-LCB3aGlsZSB0aGUgd2hvbGUgZGV2aWNlIGNhbiBlaXRoZXIgcnVuIGluIGNvbXBhcmF0b3IgbW9k
-ZSBvcgo+ICtpbnRlcnJ1cHQgbW9kZS4gVGhlIEFEVDc0MTAgc3VwcG9ydHMgY29udGlub3VzIHRl
-bXBlcmF0dXJlIHNhbXBsaW5nLCBhcyB3ZWxsIGFzCkl0IGlzIG15IHR5cG8sIGJ1dCBzaW5jZSB5
-b3UgYXJlIGFscmVhZHkgb24gaXQ6IGNvbnRpbnVvdXMuCj4gK3NhbXBsaW5nIG9uZSB0ZW1wZXJh
-dHVyZSB2YWx1ZSBwZXIgc2Vjb25kIG9yIGV2ZW4ganVzdGdldCBvbmUgc2FtcGxlIG9uIGRlbWFu
-ZApTYW1lIGhlcmU6IGp1c3QgZ2V0Lgo+ICtmb3IgcG93ZXIgc2F2aW5nLiAgQmVzaWRlcywgaXQg
-Y2FuIGNvbXBsZXRlbHkgcG93ZXIgZG93biBpdHMgQURDLCBpZiBwb3dlcgo+ICttYW5hZ2VtZW50
-IGlzIHJlcXVpcmVkLgo+ICAKPiAgQ29uZmlndXJhdGlvbiBOb3Rlcwo+ICAtLS0tLS0tLS0tLS0t
-LS0tLS0tCjwuLi4+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaHdtb24vYWR0N3gxMC5jIGIvZHJp
-dmVycy9od21vbi9hZHQ3eDEwLmMKPiBuZXcgZmlsZSBtb2RlIDEwMDY0NAo+IGluZGV4IDAwMDAw
-MDAuLmVlZmYxOThjCj4gLS0tIC9kZXYvbnVsbAo+ICsrKyBiL2RyaXZlcnMvaHdtb24vYWR0N3gx
-MC5jCj4gQEAgLTAsMCArMSw0NzYgQEAKPiArLyoKPiArICogYWR0NzQxMC5jIC0gUGFydCBvZiBs
-bV9zZW5zb3JzLCBMaW51eCBrZXJuZWwgbW9kdWxlcyBmb3IgaGFyZHdhcmUKPiArICoJIG1vbml0
-b3JpbmcKPiArICogVGhpcyBkcml2ZXIgaGFuZGxlcyB0aGUgQURUNzQxMCBhbmQgY29tcGF0aWJs
-ZSBkaWdpdGFsIHRlbXBlcmF0dXJlIHNlbnNvcnMuCj4gKyAqIEhhcnRtdXQgS25hYWNrIDxrbmFh
-Y2suaEBnbXguZGU+IDIwMTItMDctMjIKPiArICogYmFzZWQgb24gbG03NS5jIGJ5IEZyb2RvIExv
-b2lqYWFyZCA8ZnJvZG9sQGRkcy5ubD4KPiArICogYW5kIGFkdDc0MTAuYyBmcm9tIGlpby1zdGFn
-aW5nIGJ5IFNvbmljIFpoYW5nIDxzb25pYy56aGFuZ0BhbmFsb2cuY29tPgo+ICsgKgo+ICsgKiBU
-aGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQgYW5k
-L29yIG1vZGlmeQo+ICsgKiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1
-YmxpYyBMaWNlbnNlIGFzIHB1Ymxpc2hlZCBieQo+ICsgKiB0aGUgRnJlZSBTb2Z0d2FyZSBGb3Vu
-ZGF0aW9uOyBlaXRoZXIgdmVyc2lvbiAyIG9mIHRoZSBMaWNlbnNlLCBvcgo+ICsgKiAoYXQgeW91
-ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgo+ICsgKgo+ICsgKiBUaGlzIHByb2dyYW0gaXMg
-ZGlzdHJpYnV0ZWQgaW4gdGhlIGhvcGUgdGhhdCBpdCB3aWxsIGJlIHVzZWZ1bCwKPiArICogYnV0
-IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkg
-b2YKPiArICogTUVSQ0hBTlRBQklMSVRZIG9yIEZJVE5FU1MgRk9SIEEgUEFSVElDVUxBUiBQVVJQ
-T1NFLiAgU2VlIHRoZQo+ICsgKiBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBmb3IgbW9yZSBk
-ZXRhaWxzLgo+ICsgKgo+ICsgKiBZb3Ugc2hvdWxkIGhhdmUgcmVjZWl2ZWQgYSBjb3B5IG9mIHRo
-ZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZQo+ICsgKiBhbG9uZyB3aXRoIHRoaXMgcHJvZ3Jh
-bTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJlZSBTb2Z0d2FyZQo+ICsgKiBGb3VuZGF0aW9uLCBJ
-bmMuLCA2NzUgTWFzcyBBdmUsIENhbWJyaWRnZSwgTUEgMDIxMzksIFVTQS4KPiArICovCj4gKwo+
-ICsjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9pbml0Lmg+Cj4g
-KyNpbmNsdWRlIDxsaW51eC9zbGFiLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9qaWZmaWVzLmg+Cj4g
-KyNpbmNsdWRlIDxsaW51eC9od21vbi5oPgo+ICsjaW5jbHVkZSA8bGludXgvaHdtb24tc3lzZnMu
-aD4KPiArI2luY2x1ZGUgPGxpbnV4L2Vyci5oPgo+ICsjaW5jbHVkZSA8bGludXgvbXV0ZXguaD4K
-PiArI2luY2x1ZGUgPGxpbnV4L2RlbGF5Lmg+Cj4gKwo+ICsjaW5jbHVkZSAiYWR0N3gxMC5oIgo+
-ICsKPiArLyoKPiArICogQURUNzQxMCBzdGF0dXMKPiArICovCj4gKyNkZWZpbmUgQURUNzQxMF9T
-VEFUX1RfTE9XCQkoMSA8PCA0KQo+ICsjZGVmaW5lIEFEVDc0MTBfU1RBVF9UX0hJR0gJCSgxIDw8
-IDUpCj4gKyNkZWZpbmUgQURUNzQxMF9TVEFUX1RfQ1JJVAkJKDEgPDwgNikKPiArI2RlZmluZSBB
-RFQ3NDEwX1NUQVRfTk9UX1JEWQkJKDEgPDwgNykKPiArCj4gKy8qCj4gKyAqIEFEVDc0MTAgY29u
-ZmlnCj4gKyAqLwo+ICsjZGVmaW5lIEFEVDc0MTBfRkFVTFRfUVVFVUVfTUFTSwkoMSA8PCAwIHwg
-MSA8PCAxKQo+ICsjZGVmaW5lIEFEVDc0MTBfQ1RfUE9MQVJJVFkJCSgxIDw8IDIpCj4gKyNkZWZp
-bmUgQURUNzQxMF9JTlRfUE9MQVJJVFkJCSgxIDw8IDMpCj4gKyNkZWZpbmUgQURUNzQxMF9FVkVO
-VF9NT0RFCQkoMSA8PCA0KQo+ICsjZGVmaW5lIEFEVDc0MTBfTU9ERV9NQVNLCQkoMSA8PCA1IHwg
-MSA8PCA2KQo+ICsjZGVmaW5lIEFEVDc0MTBfRlVMTAkJCSgwIDw8IDUgfCAwIDw8IDYpCj4gKyNk
-ZWZpbmUgQURUNzQxMF9QRAkJCSgxIDw8IDUgfCAxIDw8IDYpCj4gKyNkZWZpbmUgQURUNzQxMF9S
-RVNPTFVUSU9OCQkoMSA8PCA3KQo+ICsKPiArLyoKPiArICogQURUNzQxMCBtYXNrcwo+ICsgKi8K
-PiArI2RlZmluZSBBRFQ3NDEwX1QxM19WQUxVRV9NQVNLCQkJMHhGRkY4Cj4gKyNkZWZpbmUgQURU
-NzQxMF9UX0hZU1RfTUFTSwkJCTB4Rgo+ICsKPiArLyogc3RyYWlnaHQgZnJvbSB0aGUgZGF0YXNo
-ZWV0ICovCj4gKyNkZWZpbmUgQURUNzQxMF9URU1QX01JTiAoLTU1MDAwKQo+ICsjZGVmaW5lIEFE
-VDc0MTBfVEVNUF9NQVggMTUwMDAwCj4gKwo+ICsvKiBFYWNoIGNsaWVudCBoYXMgdGhpcyBhZGRp
-dGlvbmFsIGRhdGEgKi8KPiArc3RydWN0IGFkdDc0MTBfZGF0YSB7Cj4gKwljb25zdCBzdHJ1Y3Qg
-YWR0NzQxMF9vcHMgKm9wczsKPiArCWNvbnN0IGNoYXIJCSpuYW1lOwo+ICsJc3RydWN0IGRldmlj
-ZQkJKmh3bW9uX2RldjsKPiArCXN0cnVjdCBtdXRleAkJdXBkYXRlX2xvY2s7Cj4gKwl1OAkJCWNv
-bmZpZzsKPiArCXU4CQkJb2xkY29uZmlnOwo+ICsJYm9vbAkJCXZhbGlkOwkJLyogdHJ1ZSBpZiBy
-ZWdpc3RlcnMgdmFsaWQgKi8KPiArCXVuc2lnbmVkIGxvbmcJCWxhc3RfdXBkYXRlZDsJLyogSW4g
-amlmZmllcyAqLwo+ICsJczE2CQkJdGVtcFs0XTsJLyogUmVnaXN0ZXIgdmFsdWVzLAo+ICsJCQkJ
-CQkgICAwID0gaW5wdXQKPiArCQkJCQkJICAgMSA9IGhpZ2gKPiArCQkJCQkJICAgMiA9IGxvdwo+
-ICsJCQkJCQkgICAzID0gY3JpdGljYWwgKi8KPiArCXU4CQkJaHlzdDsJCS8qIGh5c3RlcmVzaXMg
-b2Zmc2V0ICovCj4gK307Cj4gKwo+ICtzdGF0aWMgaW50IGFkdDc0MTBfcmVhZF9ieXRlKHN0cnVj
-dCBkZXZpY2UgKmRldiwgdTggcmVnKQo+ICt7Cj4gKwlzdHJ1Y3QgYWR0NzQxMF9kYXRhICpkID0g
-ZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwlyZXR1cm4gZC0+b3BzLT5yZWFkX2J5dGUoZGV2LCBy
-ZWcpOwo+ICt9Cj4gKwo+ICtzdGF0aWMgaW50IGFkdDc0MTBfd3JpdGVfYnl0ZShzdHJ1Y3QgZGV2
-aWNlICpkZXYsIHU4IHJlZywgdTggZGF0YSkKPiArewo+ICsJc3RydWN0IGFkdDc0MTBfZGF0YSAq
-ZCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+ICsJcmV0dXJuIGQtPm9wcy0+d3JpdGVfYnl0ZShk
-ZXYsIHJlZywgZGF0YSk7Cj4gK30KPiArCj4gK3N0YXRpYyBpbnQgYWR0NzQxMF9yZWFkX3dvcmQo
-c3RydWN0IGRldmljZSAqZGV2LCB1OCByZWcpCj4gK3sKPiArCXN0cnVjdCBhZHQ3NDEwX2RhdGEg
-KmQgPSBkZXZfZ2V0X2RydmRhdGEoZGV2KTsKPiArCXJldHVybiBkLT5vcHMtPnJlYWRfd29yZChk
-ZXYsIHJlZyk7Cj4gK30KPiArCj4gK3N0YXRpYyBpbnQgYWR0NzQxMF93cml0ZV93b3JkKHN0cnVj
-dCBkZXZpY2UgKmRldiwgdTggcmVnLCB1MTYgZGF0YSkKPiArewo+ICsJc3RydWN0IGFkdDc0MTBf
-ZGF0YSAqZCA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+ICsJcmV0dXJuIGQtPm9wcy0+d3JpdGVf
-d29yZChkZXYsIHJlZywgZGF0YSk7Cj4gK30KPiArCj4gK3N0YXRpYyBjb25zdCB1OCBBRFQ3NDEw
-X1JFR19URU1QWzRdID0gewo+ICsJQURUNzQxMF9URU1QRVJBVFVSRSwJCS8qIGlucHV0ICovCj4g
-KwlBRFQ3NDEwX1RfQUxBUk1fSElHSCwJCS8qIGhpZ2ggKi8KPiArCUFEVDc0MTBfVF9BTEFSTV9M
-T1csCQkvKiBsb3cgKi8KPiArCUFEVDc0MTBfVF9DUklULAkJCS8qIGNyaXRpY2FsICovCj4gK307
-Cj4gKwo+ICtzdGF0aWMgaW50IGFkdDc0MTBfdGVtcF9yZWFkeShzdHJ1Y3QgZGV2aWNlICpkZXYp
-Cj4gK3sKPiArCWludCBpLCBzdGF0dXM7Cj4gKwo+ICsJZm9yIChpID0gMDsgaSA8IDY7IGkrKykg
-ewo+ICsJCXN0YXR1cyA9IGFkdDc0MTBfcmVhZF9ieXRlKGRldiwgQURUNzQxMF9TVEFUVVMpOwo+
-ICsJCWlmIChzdGF0dXMgPCAwKQo+ICsJCQlyZXR1cm4gc3RhdHVzOwo+ICsJCWlmICghKHN0YXR1
-cyAmIEFEVDc0MTBfU1RBVF9OT1RfUkRZKSkKPiArCQkJcmV0dXJuIDA7Cj4gKwkJbXNsZWVwKDYw
-KTsKPiArCX0KPiArCXJldHVybiAtRVRJTUVET1VUOwo+ICt9Cj4gKwo+ICtzdGF0aWMgaW50IGFk
-dDc0MTBfdXBkYXRlX3RlbXAoc3RydWN0IGRldmljZSAqZGV2KQo+ICt7Cj4gKwlzdHJ1Y3QgYWR0
-NzQxMF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwlpbnQgcmV0ID0gMDsK
-PiArCj4gKwltdXRleF9sb2NrKCZkYXRhLT51cGRhdGVfbG9jayk7Cj4gKwo+ICsJaWYgKHRpbWVf
-YWZ0ZXIoamlmZmllcywgZGF0YS0+bGFzdF91cGRhdGVkICsgSFogKyBIWiAvIDIpCj4gKwkgICAg
-fHwgIWRhdGEtPnZhbGlkKSB7Cj4gKwkJaW50IHRlbXA7Cj4gKwo+ICsJCWRldl9kYmcoZGV2LCAi
-U3RhcnRpbmcgdXBkYXRlXG4iKTsKPiArCj4gKwkJcmV0ID0gYWR0NzQxMF90ZW1wX3JlYWR5KGRl
-dik7IC8qIGNoZWNrIGZvciBuZXcgdmFsdWUgKi8KPiArCQlpZiAocmV0KQo+ICsJCQlnb3RvIGFi
-b3J0Owo+ICsKPiArCQl0ZW1wID0gYWR0NzQxMF9yZWFkX3dvcmQoZGV2LCBBRFQ3NDEwX1JFR19U
-RU1QWzBdKTsKPiArCQlpZiAodGVtcCA8IDApIHsKPiArCQkJcmV0ID0gdGVtcDsKPiArCQkJZGV2
-X2RiZyhkZXYsICJGYWlsZWQgdG8gcmVhZCB2YWx1ZTogcmVnICVkLCBlcnJvciAlZFxuIiwKPiAr
-CQkJCUFEVDc0MTBfUkVHX1RFTVBbMF0sIHJldCk7Cj4gKwkJCWdvdG8gYWJvcnQ7Cj4gKwkJfQo+
-ICsJCWRhdGEtPnRlbXBbMF0gPSB0ZW1wOwo+ICsJCWRhdGEtPmxhc3RfdXBkYXRlZCA9IGppZmZp
-ZXM7Cj4gKwkJZGF0YS0+dmFsaWQgPSB0cnVlOwo+ICsJfQo+ICsKPiArYWJvcnQ6Cj4gKwltdXRl
-eF91bmxvY2soJmRhdGEtPnVwZGF0ZV9sb2NrKTsKPiArCXJldHVybiByZXQ7Cj4gK30KPiArCj4g
-K3N0YXRpYyBpbnQgYWR0NzQxMF9maWxsX2NhY2hlKHN0cnVjdCBkZXZpY2UgKmRldikKPiArewo+
-ICsJc3RydWN0IGFkdDc0MTBfZGF0YSAqZGF0YSA9IGRldl9nZXRfZHJ2ZGF0YShkZXYpOwo+ICsJ
-aW50IHJldDsKPiArCWludCBpOwo+ICsKPiArCWZvciAoaSA9IDE7IGkgPCBBUlJBWV9TSVpFKGRh
-dGEtPnRlbXApOyBpKyspIHsKPiArCQlyZXQgPSBhZHQ3NDEwX3JlYWRfd29yZChkZXYsIEFEVDc0
-MTBfUkVHX1RFTVBbaV0pOwo+ICsJCWlmIChyZXQgPCAwKSB7Cj4gKwkJCWRldl9kYmcoZGV2LCAi
-RmFpbGVkIHRvIHJlYWQgdmFsdWU6IHJlZyAlZCwgZXJyb3IgJWRcbiIsCj4gKwkJCQlBRFQ3NDEw
-X1JFR19URU1QWzBdLCByZXQpOwpUaGF0IHNob3VsZCBiZSBBRFQ3NDEwX1JFR19URU1QW2ldLgo+
-ICsJCQlyZXR1cm4gcmV0Owo+ICsJCX0KPiArCQlkYXRhLT50ZW1wW2ldID0gcmV0Owo+ICsJfQo+
-ICsKPiArCXJldCA9IGFkdDc0MTBfcmVhZF9ieXRlKGRldiwgQURUNzQxMF9UX0hZU1QpOwo+ICsJ
-aWYgKHJldCA8IDApIHsKPiArCQlkZXZfZGJnKGRldiwgIkZhaWxlZCB0byByZWFkIHZhbHVlOiBy
-ZWcgJWQsIGVycm9yICVkXG4iLAo+ICsJCQkJQURUNzQxMF9UX0hZU1QsIHJldCk7Cj4gKwkJcmV0
-dXJuIHJldDsKPiArCX0KPiArCWRhdGEtPmh5c3QgPSByZXQ7Cj4gKwo+ICsJcmV0dXJuIDA7Cj4g
-K30KPiArCj4gK3N0YXRpYyBzMTYgQURUNzQxMF9URU1QX1RPX1JFRyhsb25nIHRlbXApCj4gK3sK
-PiArCXJldHVybiBESVZfUk9VTkRfQ0xPU0VTVChjbGFtcF92YWwodGVtcCwgQURUNzQxMF9URU1Q
-X01JTiwKPiArCQkJCQkgICAgICAgQURUNzQxMF9URU1QX01BWCkgKiAxMjgsIDEwMDApOwo+ICt9
-CmNsYW1wX3ZhbCB2cy4gU0VOU09SU19MSU1JVC4gV2hhdCBhcmUgdGhlIHByb3MgYW5kIGNvbnMg
-b2YgZWFjaCBtYWNybz8gR3VlbnRoZXIsIGFyZSB0aGVyZSBhbnkgcmVhc29ucyBwcmV2ZW50aW5n
-IHRvIGRyb3AgU0VOU09SU19MSU1JVCBpbiBmYXZvciBvZiBjbGFtcF92YWwgaW4gdGhlIHdob2xl
-IGh3bW9uIHN1YnN5c3RlbT8KPiArCj4gK3N0YXRpYyBpbnQgQURUNzQxMF9SRUdfVE9fVEVNUChz
-dHJ1Y3QgYWR0NzQxMF9kYXRhICpkYXRhLCBzMTYgcmVnKQo+ICt7Cj4gKwkvKiBpbiAxMyBiaXQg
-bW9kZSwgYml0cyAwLTIgYXJlIHN0YXR1cyBmbGFncyAtIG1hc2sgdGhlbSBvdXQgKi8KPiArCWlm
-ICghKGRhdGEtPmNvbmZpZyAmIEFEVDc0MTBfUkVTT0xVVElPTikpCj4gKwkJcmVnICY9IEFEVDc0
-MTBfVDEzX1ZBTFVFX01BU0s7Cj4gKwkvKgo+ICsJICogdGVtcGVyYXR1cmUgaXMgc3RvcmVkIGlu
-IHR3b3MgY29tcGxlbWVudCBmb3JtYXQsIGluIHN0ZXBzIG9mCj4gKwkgKiAxLzEyOMKwQwo+ICsJ
-ICovCj4gKwlyZXR1cm4gRElWX1JPVU5EX0NMT1NFU1QocmVnICogMTAwMCwgMTI4KTsKPiArfQo+
-ICsKPiArLyotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLSovCj4gKwo+ICsvKiBzeXNmcyBhdHRyaWJ1dGVzIGZvciBo
-d21vbiAqLwo+ICsKPiArc3RhdGljIHNzaXplX3QgYWR0NzQxMF9zaG93X3RlbXAoc3RydWN0IGRl
-dmljZSAqZGV2LAo+ICsJCQkJIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICpkYSwgY2hhciAqYnVm
-KQo+ICt7Cj4gKwlzdHJ1Y3Qgc2Vuc29yX2RldmljZV9hdHRyaWJ1dGUgKmF0dHIgPSB0b19zZW5z
-b3JfZGV2X2F0dHIoZGEpOwo+ICsJc3RydWN0IGFkdDc0MTBfZGF0YSAqZGF0YSA9IGRldl9nZXRf
-ZHJ2ZGF0YShkZXYpOwo+ICsKPiArCj4gKwlpZiAoYXR0ci0+aW5kZXggPT0gMCkgewo+ICsJCWlu
-dCByZXQ7Cj4gKwo+ICsJCXJldCA9IGFkdDc0MTBfdXBkYXRlX3RlbXAoZGV2KTsKPiArCQlpZiAo
-cmV0KQo+ICsJCQlyZXR1cm4gcmV0Owo+ICsJfQo+ICsKPiArCXJldHVybiBzcHJpbnRmKGJ1Ziwg
-IiVkXG4iLCBBRFQ3NDEwX1JFR19UT19URU1QKGRhdGEsCj4gKwkJICAgICAgIGRhdGEtPnRlbXBb
-YXR0ci0+aW5kZXhdKSk7Cj4gK30KPiArCj4gK3N0YXRpYyBzc2l6ZV90IGFkdDc0MTBfc2V0X3Rl
-bXAoc3RydWN0IGRldmljZSAqZGV2LAo+ICsJCQkJc3RydWN0IGRldmljZV9hdHRyaWJ1dGUgKmRh
-LAo+ICsJCQkJY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQpCj4gK3sKPiArCXN0cnVjdCBz
-ZW5zb3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciA9IHRvX3NlbnNvcl9kZXZfYXR0cihkYSk7Cj4g
-KwlzdHJ1Y3QgYWR0NzQxMF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwlp
-bnQgbnIgPSBhdHRyLT5pbmRleDsKPiArCWxvbmcgdGVtcDsKPiArCWludCByZXQ7Cj4gKwo+ICsJ
-cmV0ID0ga3N0cnRvbChidWYsIDEwLCAmdGVtcCk7Cj4gKwlpZiAocmV0KQo+ICsJCXJldHVybiBy
-ZXQ7Cj4gKwo+ICsJbXV0ZXhfbG9jaygmZGF0YS0+dXBkYXRlX2xvY2spOwo+ICsJZGF0YS0+dGVt
-cFtucl0gPSBBRFQ3NDEwX1RFTVBfVE9fUkVHKHRlbXApOwo+ICsJcmV0ID0gYWR0NzQxMF93cml0
-ZV93b3JkKGRldiwgQURUNzQxMF9SRUdfVEVNUFtucl0sIGRhdGEtPnRlbXBbbnJdKTsKPiArCWlm
-IChyZXQpCj4gKwkJY291bnQgPSByZXQ7Cj4gKwltdXRleF91bmxvY2soJmRhdGEtPnVwZGF0ZV9s
-b2NrKTsKPiArCXJldHVybiBjb3VudDsKPiArfQo+ICsKPiArc3RhdGljIHNzaXplX3QgYWR0NzQx
-MF9zaG93X3RfaHlzdChzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gKwkJCQkgICBzdHJ1Y3QgZGV2aWNl
-X2F0dHJpYnV0ZSAqZGEsCj4gKwkJCQkgICBjaGFyICpidWYpCj4gK3sKPiArCXN0cnVjdCBzZW5z
-b3JfZGV2aWNlX2F0dHJpYnV0ZSAqYXR0ciA9IHRvX3NlbnNvcl9kZXZfYXR0cihkYSk7Cj4gKwlz
-dHJ1Y3QgYWR0NzQxMF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwlpbnQg
-bnIgPSBhdHRyLT5pbmRleDsKPiArCWludCBoeXN0Owo+ICsKPiArCWh5c3QgPSAoZGF0YS0+aHlz
-dCAmIEFEVDc0MTBfVF9IWVNUX01BU0spICogMTAwMDsKPiArCj4gKwkvKgo+ICsJICogaHlzdGVy
-ZXNpcyBpcyBzdG9yZWQgYXMgYSA0IGJpdCBvZmZzZXQgaW4gdGhlIGRldmljZSwgY29udmVydCBp
-dAo+ICsJICogdG8gYW4gYWJzb2x1dGUgdmFsdWUKPiArCSAqLwo+ICsJaWYgKG5yID09IDIpCS8q
-IG1pbiBoYXMgcG9zaXRpdmUgb2Zmc2V0LCBvdGhlcnMgaGF2ZSBuZWdhdGl2ZSAqLwo+ICsJCWh5
-c3QgPSAtaHlzdDsKPiArCXJldHVybiBzcHJpbnRmKGJ1ZiwgIiVkXG4iLAo+ICsJCSAgICAgICBB
-RFQ3NDEwX1JFR19UT19URU1QKGRhdGEsIGRhdGEtPnRlbXBbbnJdKSAtIGh5c3QpOwo+ICt9Cj4g
-Kwo+ICtzdGF0aWMgc3NpemVfdCBhZHQ3NDEwX3NldF90X2h5c3Qoc3RydWN0IGRldmljZSAqZGV2
-LAo+ICsJCQkJICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAqZGEsCj4gKwkJCQkgIGNvbnN0IGNo
-YXIgKmJ1Ziwgc2l6ZV90IGNvdW50KQo+ICt7Cj4gKwlzdHJ1Y3QgYWR0NzQxMF9kYXRhICpkYXRh
-ID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwlpbnQgbGltaXQsIHJldDsKPiArCWxvbmcgaHlz
-dDsKPiArCj4gKwlyZXQgPSBrc3RydG9sKGJ1ZiwgMTAsICZoeXN0KTsKPiArCWlmIChyZXQpCj4g
-KwkJcmV0dXJuIHJldDsKPiArCS8qIGNvbnZlcnQgYWJzb2x1dGUgaHlzdGVyZXNpcyB2YWx1ZSB0
-byBhIDQgYml0IGRlbHRhIHZhbHVlICovCj4gKwlsaW1pdCA9IEFEVDc0MTBfUkVHX1RPX1RFTVAo
-ZGF0YSwgZGF0YS0+dGVtcFsxXSk7Cj4gKwloeXN0ID0gY2xhbXBfdmFsKGh5c3QsIEFEVDc0MTBf
-VEVNUF9NSU4sIEFEVDc0MTBfVEVNUF9NQVgpOwo+ICsJZGF0YS0+aHlzdCA9IGNsYW1wX3ZhbChE
-SVZfUk9VTkRfQ0xPU0VTVChsaW1pdCAtIGh5c3QsIDEwMDApLAo+ICsJCQkJICAgMCwgQURUNzQx
-MF9UX0hZU1RfTUFTSyk7Cj4gKwlyZXQgPSBhZHQ3NDEwX3dyaXRlX2J5dGUoZGV2LCBBRFQ3NDEw
-X1RfSFlTVCwgZGF0YS0+aHlzdCk7Cj4gKwlpZiAocmV0KQo+ICsJCXJldHVybiByZXQ7Cj4gKwo+
-ICsJcmV0dXJuIGNvdW50Owo+ICt9Cj4gKwo+ICtzdGF0aWMgc3NpemVfdCBhZHQ3NDEwX3Nob3df
-YWxhcm0oc3RydWN0IGRldmljZSAqZGV2LAo+ICsJCQkJICBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0
-ZSAqZGEsCj4gKwkJCQkgIGNoYXIgKmJ1ZikKPiArewo+ICsJc3RydWN0IHNlbnNvcl9kZXZpY2Vf
-YXR0cmlidXRlICphdHRyID0gdG9fc2Vuc29yX2Rldl9hdHRyKGRhKTsKPiArCWludCByZXQ7Cj4g
-Kwo+ICsJcmV0ID0gYWR0NzQxMF9yZWFkX2J5dGUoZGV2LCBBRFQ3NDEwX1NUQVRVUyk7Cj4gKwlp
-ZiAocmV0IDwgMCkKPiArCQlyZXR1cm4gcmV0Owo+ICsKPiArCXJldHVybiBzcHJpbnRmKGJ1Ziwg
-IiVkXG4iLCAhIShyZXQgJiBhdHRyLT5pbmRleCkpOwo+ICt9Cj4gKwo+ICtzdGF0aWMgc3NpemVf
-dCBhZHQ3NDEwX3Nob3dfbmFtZShzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gKwkJCQkgIHN0cnVjdCBk
-ZXZpY2VfYXR0cmlidXRlICpkYSwgY2hhciAqYnVmKQo+ICt7Cj4gKwlzdHJ1Y3QgYWR0NzQxMF9k
-YXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwo+ICsJcmV0dXJuIHNwcmludGYo
-YnVmLCAiJXNcbiIsIGRhdGEtPm5hbWUpOwo+ICt9Cj4gKwo+ICtzdGF0aWMgU0VOU09SX0RFVklD
-RV9BVFRSKHRlbXAxX2lucHV0LCBTX0lSVUdPLCBhZHQ3NDEwX3Nob3dfdGVtcCwgTlVMTCwgMCk7
-Cj4gK3N0YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfbWF4LCBTX0lXVVNSIHwgU19JUlVH
-TywKPiArCQkJICBhZHQ3NDEwX3Nob3dfdGVtcCwgYWR0NzQxMF9zZXRfdGVtcCwgMSk7Cj4gK3N0
-YXRpYyBTRU5TT1JfREVWSUNFX0FUVFIodGVtcDFfbWluLCBTX0lXVVNSIHwgU19JUlVHTywKPiAr
-CQkJICBhZHQ3NDEwX3Nob3dfdGVtcCwgYWR0NzQxMF9zZXRfdGVtcCwgMik7Cj4gK3N0YXRpYyBT
-RU5TT1JfREVWSUNFX0FUVFIodGVtcDFfY3JpdCwgU19JV1VTUiB8IFNfSVJVR08sCj4gKwkJCSAg
-YWR0NzQxMF9zaG93X3RlbXAsIGFkdDc0MTBfc2V0X3RlbXAsIDMpOwo+ICtzdGF0aWMgU0VOU09S
-X0RFVklDRV9BVFRSKHRlbXAxX21heF9oeXN0LCBTX0lXVVNSIHwgU19JUlVHTywKPiArCQkJICBh
-ZHQ3NDEwX3Nob3dfdF9oeXN0LCBhZHQ3NDEwX3NldF90X2h5c3QsIDEpOwo+ICtzdGF0aWMgU0VO
-U09SX0RFVklDRV9BVFRSKHRlbXAxX21pbl9oeXN0LCBTX0lSVUdPLAo+ICsJCQkgIGFkdDc0MTBf
-c2hvd190X2h5c3QsIE5VTEwsIDIpOwo+ICtzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAx
-X2NyaXRfaHlzdCwgU19JUlVHTywKPiArCQkJICBhZHQ3NDEwX3Nob3dfdF9oeXN0LCBOVUxMLCAz
-KTsKPiArc3RhdGljIFNFTlNPUl9ERVZJQ0VfQVRUUih0ZW1wMV9taW5fYWxhcm0sIFNfSVJVR08s
-IGFkdDc0MTBfc2hvd19hbGFybSwKPiArCQkJICBOVUxMLCBBRFQ3NDEwX1NUQVRfVF9MT1cpOwo+
-ICtzdGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAxX21heF9hbGFybSwgU19JUlVHTywgYWR0
-NzQxMF9zaG93X2FsYXJtLAo+ICsJCQkgIE5VTEwsIEFEVDc0MTBfU1RBVF9UX0hJR0gpOwo+ICtz
-dGF0aWMgU0VOU09SX0RFVklDRV9BVFRSKHRlbXAxX2NyaXRfYWxhcm0sIFNfSVJVR08sIGFkdDc0
-MTBfc2hvd19hbGFybSwKPiArCQkJICBOVUxMLCBBRFQ3NDEwX1NUQVRfVF9DUklUKTsKPiArc3Rh
-dGljIERFVklDRV9BVFRSKG5hbWUsIFNfSVJVR08sIGFkdDc0MTBfc2hvd19uYW1lLCBOVUxMKTsK
-PiArCj4gK3N0YXRpYyBzdHJ1Y3QgYXR0cmlidXRlICphZHQ3NDEwX2F0dHJpYnV0ZXNbXSA9IHsK
-PiArCSZzZW5zb3JfZGV2X2F0dHJfdGVtcDFfaW5wdXQuZGV2X2F0dHIuYXR0ciwKPiArCSZzZW5z
-b3JfZGV2X2F0dHJfdGVtcDFfbWF4LmRldl9hdHRyLmF0dHIsCj4gKwkmc2Vuc29yX2Rldl9hdHRy
-X3RlbXAxX21pbi5kZXZfYXR0ci5hdHRyLAo+ICsJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9jcml0
-LmRldl9hdHRyLmF0dHIsCj4gKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21heF9oeXN0LmRldl9h
-dHRyLmF0dHIsCj4gKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX21pbl9oeXN0LmRldl9hdHRyLmF0
-dHIsCj4gKwkmc2Vuc29yX2Rldl9hdHRyX3RlbXAxX2NyaXRfaHlzdC5kZXZfYXR0ci5hdHRyLAo+
-ICsJJnNlbnNvcl9kZXZfYXR0cl90ZW1wMV9taW5fYWxhcm0uZGV2X2F0dHIuYXR0ciwKPiArCSZz
-ZW5zb3JfZGV2X2F0dHJfdGVtcDFfbWF4X2FsYXJtLmRldl9hdHRyLmF0dHIsCj4gKwkmc2Vuc29y
-X2Rldl9hdHRyX3RlbXAxX2NyaXRfYWxhcm0uZGV2X2F0dHIuYXR0ciwKPiArCU5VTEwKPiArfTsK
-PiArCj4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgYXR0cmlidXRlX2dyb3VwIGFkdDc0MTBfZ3JvdXAg
-PSB7Cj4gKwkuYXR0cnMgPSBhZHQ3NDEwX2F0dHJpYnV0ZXMsCj4gK307Cj4gKwo+ICtpbnQgYWR0
-NzQxMF9wcm9iZShzdHJ1Y3QgZGV2aWNlICpkZXYsIGNvbnN0IGNoYXIgKm5hbWUsCj4gKwljb25z
-dCBzdHJ1Y3QgYWR0NzQxMF9vcHMgKm9wcykKPiArewo+ICsJc3RydWN0IGFkdDc0MTBfZGF0YSAq
-ZGF0YTsKPiArCWludCByZXQ7Cj4gKwo+ICsJZGF0YSA9IGRldm1fa3phbGxvYyhkZXYsIHNpemVv
-ZihzdHJ1Y3QgYWR0NzQxMF9kYXRhKSwKPiArCQkJICAgIEdGUF9LRVJORUwpOwo+ICsJaWYgKCFk
-YXRhKQo+ICsJCXJldHVybiAtRU5PTUVNOwo+ICsKPiArCWRhdGEtPm9wcyA9IG9wczsKPiArCWRh
-dGEtPm5hbWUgPSBuYW1lOwo+ICsKPiArCWRldl9zZXRfZHJ2ZGF0YShkZXYsIGRhdGEpOwo+ICsJ
-bXV0ZXhfaW5pdCgmZGF0YS0+dXBkYXRlX2xvY2spOwo+ICsKPiArCS8qIGNvbmZpZ3VyZSBhcyBz
-cGVjaWZpZWQgKi8KPiArCXJldCA9IGFkdDc0MTBfcmVhZF9ieXRlKGRldiwgQURUNzQxMF9DT05G
-SUcpOwo+ICsJaWYgKHJldCA8IDApIHsKPiArCQlkZXZfZGJnKGRldiwgIkNhbid0IHJlYWQgY29u
-ZmlnPyAlZFxuIiwgcmV0KTsKPiArCQlyZXR1cm4gcmV0Owo+ICsJfQo+ICsJZGF0YS0+b2xkY29u
-ZmlnID0gcmV0Owo+ICsKPiArCS8qCj4gKwkgKiBTZXQgdG8gMTYgYml0IHJlc29sdXRpb24sIGNv
-bnRpbm91cyBjb252ZXJzaW9uIGFuZCBjb21wYXJhdG9yIG1vZGUuCj4gKwkgKi8KPiArCWRhdGEt
-PmNvbmZpZyA9IGRhdGEtPm9sZGNvbmZpZzsKPiArCWRhdGEtPmNvbmZpZyAmPSB+QURUNzQxMF9N
-T0RFX01BU0s7Cj4gKwlkYXRhLT5jb25maWcgfD0gQURUNzQxMF9GVUxMIHwgQURUNzQxMF9SRVNP
-TFVUSU9OIHwgQURUNzQxMF9FVkVOVF9NT0RFOwo+ICsJaWYgKGRhdGEtPmNvbmZpZyAhPSBkYXRh
-LT5vbGRjb25maWcpIHsKPiArCQlyZXQgPSBhZHQ3NDEwX3dyaXRlX2J5dGUoZGV2LCBBRFQ3NDEw
-X0NPTkZJRywgZGF0YS0+Y29uZmlnKTsKPiArCQlpZiAocmV0KQo+ICsJCQlyZXR1cm4gcmV0Owo+
-ICsJfQo+ICsJZGV2X2RiZyhkZXYsICJDb25maWcgJTAyeFxuIiwgZGF0YS0+Y29uZmlnKTsKPiAr
-Cj4gKwlyZXQgPSBhZHQ3NDEwX2ZpbGxfY2FjaGUoZGV2KTsKPiArCWlmIChyZXQpCj4gKwkJZ290
-byBleGl0X3Jlc3RvcmU7Cj4gKwo+ICsJLyogUmVnaXN0ZXIgc3lzZnMgaG9va3MgKi8KPiArCXJl
-dCA9IHN5c2ZzX2NyZWF0ZV9ncm91cCgmZGV2LT5rb2JqLCAmYWR0NzQxMF9ncm91cCk7Cj4gKwlp
-ZiAocmV0KQo+ICsJCWdvdG8gZXhpdF9yZXN0b3JlOwo+ICsKPiArCS8qCj4gKwkgKiBUaGUgSTJD
-IGRldmljZSB3aWxsIGFscmVhZHkgaGF2ZSBpdCdzIG93biAnbmFtZScgYXR0cmlidXRlLCBidXQg
-Zm9yCj4gKwkgKiB0aGUgU1BJIGRldmljZSB3ZSBuZWVkIHRvIHJlZ2lzdGVyIGl0LiBuYW1lIHdp
-bGwgb25seSBiZSBub24gTlVMTCBpZgo+ICsJICogdGhlIGRldmljZSBkb2Vzbid0IHJlZ2lzdGVy
-IHRoZSAnbmFtZScgYXR0cmlidXRlIG9uIGl0cyBvd24uCj4gKwkgKi8KPiArCWlmIChuYW1lKSB7
-Cj4gKwkJcmV0ID0gZGV2aWNlX2NyZWF0ZV9maWxlKGRldiwgJmRldl9hdHRyX25hbWUpOwo+ICsJ
-CWlmIChyZXQpCj4gKwkJCWdvdG8gZXhpdF9yZW1vdmU7Cj4gKwl9Cj4gKwo+ICsJZGF0YS0+aHdt
-b25fZGV2ID0gaHdtb25fZGV2aWNlX3JlZ2lzdGVyKGRldik7Cj4gKwlpZiAoSVNfRVJSKGRhdGEt
-Pmh3bW9uX2RldikpIHsKPiArCQlyZXQgPSBQVFJfRVJSKGRhdGEtPmh3bW9uX2Rldik7Cj4gKwkJ
-Z290byBleGl0X3JlbW92ZV9uYW1lOwo+ICsJfQo+ICsKPiArCXJldHVybiAwOwo+ICsKPiArZXhp
-dF9yZW1vdmVfbmFtZToKPiArCWlmIChuYW1lKQo+ICsJCWRldmljZV9yZW1vdmVfZmlsZShkZXYs
-ICZkZXZfYXR0cl9uYW1lKTsKPiArZXhpdF9yZW1vdmU6Cj4gKwlzeXNmc19yZW1vdmVfZ3JvdXAo
-JmRldi0+a29iaiwgJmFkdDc0MTBfZ3JvdXApOwo+ICtleGl0X3Jlc3RvcmU6Cj4gKwlhZHQ3NDEw
-X3dyaXRlX2J5dGUoZGV2LCBBRFQ3NDEwX0NPTkZJRywgZGF0YS0+b2xkY29uZmlnKTsKPiArCXJl
-dHVybiByZXQ7Cj4gK30KPiArRVhQT1JUX1NZTUJPTF9HUEwoYWR0NzQxMF9wcm9iZSk7Cj4gKwo+
-ICtpbnQgYWR0NzQxMF9yZW1vdmUoc3RydWN0IGRldmljZSAqZGV2KQo+ICt7Cj4gKwlzdHJ1Y3Qg
-YWR0NzQxMF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwo+ICsJaHdtb25f
-ZGV2aWNlX3VucmVnaXN0ZXIoZGF0YS0+aHdtb25fZGV2KTsKPiArCWlmIChkYXRhLT5uYW1lKQo+
-ICsJCWRldmljZV9yZW1vdmVfZmlsZShkZXYsICZkZXZfYXR0cl9uYW1lKTsKPiArCXN5c2ZzX3Jl
-bW92ZV9ncm91cCgmZGV2LT5rb2JqLCAmYWR0NzQxMF9ncm91cCk7Cj4gKwlpZiAoZGF0YS0+b2xk
-Y29uZmlnICE9IGRhdGEtPmNvbmZpZykKPiArCQlhZHQ3NDEwX3dyaXRlX2J5dGUoZGV2LCBBRFQ3
-NDEwX0NPTkZJRywKPiArCQkJCQkgIGRhdGEtPm9sZGNvbmZpZyk7Cj4gKwlyZXR1cm4gMDsKPiAr
-fQo+ICtFWFBPUlRfU1lNQk9MX0dQTChhZHQ3NDEwX3JlbW92ZSk7Cj4gKwo+ICsjaWZkZWYgQ09O
-RklHX1BNX1NMRUVQCj4gKwo+ICtzdGF0aWMgaW50IGFkdDc0MTBfc3VzcGVuZChzdHJ1Y3QgZGV2
-aWNlICpkZXYpCj4gK3sKPiArCXN0cnVjdCBhZHQ3NDEwX2RhdGEgKmRhdGEgPSBkZXZfZ2V0X2Ry
-dmRhdGEoZGV2KTsKPiArCj4gKwlyZXR1cm4gYWR0NzQxMF93cml0ZV9ieXRlKGRldiwgQURUNzQx
-MF9DT05GSUcsCj4gKwkJZGF0YS0+Y29uZmlnIHwgQURUNzQxMF9QRCk7Cj4gK30KPiArCj4gK3N0
-YXRpYyBpbnQgYWR0NzQxMF9yZXN1bWUoc3RydWN0IGRldmljZSAqZGV2KQo+ICt7Cj4gKwlzdHJ1
-Y3QgYWR0NzQxMF9kYXRhICpkYXRhID0gZGV2X2dldF9kcnZkYXRhKGRldik7Cj4gKwo+ICsJcmV0
-dXJuIGFkdDc0MTBfd3JpdGVfYnl0ZShkZXYsIEFEVDc0MTBfQ09ORklHLCBkYXRhLT5jb25maWcp
-Owo+ICt9Cj4gKwo+ICtTSU1QTEVfREVWX1BNX09QUyhhZHQ3NDEwX2Rldl9wbV9vcHMsIGFkdDc0
-MTBfc3VzcGVuZCwgYWR0NzQxMF9yZXN1bWUpOwo+ICtFWFBPUlRfU1lNQk9MX0dQTChhZHQ3NDEw
-X2Rldl9wbV9vcHMpOwo+ICsKPiArI2VuZGlmIC8qIENPTkZJR19QTV9TTEVFUCAqLwo+ICsKPiAr
-TU9EVUxFX0FVVEhPUigiSGFydG11dCBLbmFhY2siKTsKPiArTU9EVUxFX0RFU0NSSVBUSU9OKCJB
-RFQ3NDEwL0FEVDc0MjAsIEFEVDczMTAvQURUNzMyMCBjb21tb24gY29kZSIpOwo+ICtNT0RVTEVf
-TElDRU5TRSgiR1BMIik7Cj4KPC4uPgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbG0tc2Vuc29ycyBtYWlsaW5nIGxpc3QKbG0tc2Vuc29yc0BsbS1zZW5z
-b3JzLm9yZwpodHRwOi8vbGlzdHMubG0tc2Vuc29ycy5vcmcvbWFpbG1hbi9saXN0aW5mby9sbS1z
-ZW5zb3Jz
+On Mon, Feb 18, 2013 at 02:38:57PM +0100, Lars-Peter Clausen wrote:
+> The adt7310/adt7320 is the SPI version of the adt7410/adt7420. The regist=
+er map
+> layout is a bit different, i.e. the register addresses differ between the=
+ two
+> variants, but the bit layouts of the individual registers are identical. =
+So both
+> chip variants can easily be supported by the same driver. The issue of non
+> matching register address layouts is solved by a simple look-up table whi=
+ch
+> translates the I2C addresses to the SPI addresses.
+>=20
+> The patch moves the bulk of the adt7410 driver to a common module that wi=
+ll be
+> shared by the adt7410 and adt7310 drivers. This common module implements =
+the
+> driver logic and uses a set of virtual functions to perform IO access. The
+> adt7410 and adt7310 driver modules provide proper implementations of thes=
+e IO
+> accessor functions for I2C respective SPI.
+>=20
+> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+>=20
+> ---
+> Changes since v1:
+> 	* Update the driver documentation to include ADT7310/ADT7320/ADT7420
+> 	* Pass the result of the read methods via the return value instead of a
+> 	  pointer argument
+> 	* Simplify spi read methods by using spi_w8r8 and spi_w8r16
+> 	* Update module description of the shared module
+> 	* Fix some typos
+> ---
+>  Documentation/hwmon/adt7410 |  42 ++--
+>  drivers/hwmon/Kconfig       |  20 ++
+>  drivers/hwmon/Makefile      |   2 +
+>  drivers/hwmon/adt7310.c     | 115 +++++++++++
+>  drivers/hwmon/adt7410.c     | 464 +++-----------------------------------=
+----
+>  drivers/hwmon/adt7x10.c     | 476 ++++++++++++++++++++++++++++++++++++++=
+++++++
+>  drivers/hwmon/adt7x10.h     |  48 +++++
+>  7 files changed, 720 insertions(+), 447 deletions(-)
+>  create mode 100644 drivers/hwmon/adt7310.c
+>  create mode 100644 drivers/hwmon/adt7x10.c
+>  create mode 100644 drivers/hwmon/adt7x10.h
+>=20
+> diff --git a/Documentation/hwmon/adt7410 b/Documentation/hwmon/adt7410
+> index 9600400..e452ae0 100644
+> --- a/Documentation/hwmon/adt7410
+> +++ b/Documentation/hwmon/adt7410
+> @@ -7,25 +7,41 @@ Supported chips:
+>      Addresses scanned: I2C 0x48 - 0x4B
+>      Datasheet: Publicly available at the Analog Devices website
+>                 http://www.analog.com/static/imported-files/data_sheets/A=
+DT7410.pdf
+> +  * Analog Devices ADT7420
+> +    Prefix: 'adt7420'
+> +    Addresses scanned: I2C 0x48 - 0x4B
+> +    Datasheet: Publicly available at the Analog Devices website
+> +               http://www.analog.com/static/imported-files/data_sheets/A=
+DT7420.pdf
+> +  * Analog Devices ADT7310
+> +    Prefix: 'adt7310'
+> +    Addresses scanned: I2C 0x48 - 0x4B
+> +    Datasheet: Publicly available at the Analog Devices website
+> +               http://www.analog.com/static/imported-files/data_sheets/A=
+DT7310.pdf
+> +  * Analog Devices ADT7320
+> +    Prefix: 'adt7320'
+> +    Addresses scanned: I2C 0x48 - 0x4B
+> +    Datasheet: Publicly available at the Analog Devices website
+> +               http://www.analog.com/static/imported-files/data_sheets/A=
+DT7320.pdf
+> =20
+>  Author: Hartmut Knaack <knaack.h@gmx.de>
+> =20
+>  Description
+>  -----------
+> =20
+> -The ADT7410 is a temperature sensor with rated temperature range of -55=
+=B0C to
+> -+150=B0C. It has a high accuracy of +/-0.5=B0C and can be operated at a =
+resolution
+> -of 13 bits (0.0625=B0C) or 16 bits (0.0078=B0C). The sensor provides an =
+INT pin to
+> -indicate that a minimum or maximum temperature set point has been exceed=
+ed, as
+> -well as a critical temperature (CT) pin to indicate that the critical
+> -temperature set point has been exceeded. Both pins can be set up with a =
+common
+> -hysteresis of 0=B0C - 15=B0C and a fault queue, ranging from 1 to 4 even=
+ts. Both
+> -pins can individually set to be active-low or active-high, while the who=
+le
+> -device can either run in comparator mode or interrupt mode. The ADT7410
+> -supports continous temperature sampling, as well as sampling one tempera=
+ture
+> -value per second or even justget one sample on demand for power saving.
+> -Besides, it can completely power down its ADC, if power management is
+> -required.
+> +The ADT7410 and similar are a temperature sensors with rated temperature=
+ range
+> +of -55=B0C to +150=B0C (ADT7310/ADT7410) or -40=B0C to +150=B0C (ADT7320=
+/ADT7420). They
+> +have a high accuracy of +/-0.5=B0C (ADT7310/ADT7410) or +/-0.2C (ADT7430=
+/ADT7420)
+> +and can be operated at a resolution of 13 bits (0.0625=B0C) or 16 bits (=
+0.0078=B0C).
+> +The sensor provides an INT pin to indicate that a minimum or maximum tem=
+perature
+> +set point has been exceeded, as well as a critical temperature (CT) pin =
+to
+> +indicate that the critical temperature set point has been exceeded. Both=
+ pins
+> +can be set up with a common hysteresis of 0=B0C - 15=B0C and a fault que=
+ue, ranging
+> +from 1 to 4 events. Both pins can individually set to be active-low or
+> +active-high, while the whole device can either run in comparator mode or
+> +interrupt mode. The ADT7410 supports continous temperature sampling, as =
+well as
+> +sampling one temperature value per second or even justget one sample on =
+demand
+> +for power saving.  Besides, it can completely power down its ADC, if pow=
+er
+> +management is required.
+> =20
+>  Configuration Notes
+>  -------------------
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
+> index 89ac1cb..aaa14f4 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -179,9 +179,29 @@ config SENSORS_ADM9240
+>  	  This driver can also be built as a module.  If so, the module
+>  	  will be called adm9240.
+> =20
+> +config SENSORS_ADT7X10
+> +	tristate
+> +	help
+> +	  This module contains common code shared by the ADT7310/ADT7320 and
+> +	  ADT7410/ADT7420 temperature monitoring chip drivers.
+> +
+> +	  If build as a module, the module will be called adt7x10.
+> +
+> +config SENSORS_ADT7310
+> +	tristate "Analog Devices ADT7310/ADT7320"
+> +	depends on SPI_MASTER
+> +	select SENSORS_ADT7X10
+> +	help
+> +	  If you say yes here you get support for the Analog Devices
+> +	  ADT7310 and ADT7320 temperature monitoring chips.
+> +
+> +	  This driver can also be built as a module. If so, the module
+> +	  will be called adt7310.
+> +
+>  config SENSORS_ADT7410
+>  	tristate "Analog Devices ADT7410/ADT7420"
+>  	depends on I2C
+> +	select SENSORS_ADT7X10
+>  	help
+>  	  If you say yes here you get support for the Analog Devices
+>  	  ADT7410 and ADT7420 temperature monitoring chips.
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index 8d6d97e..5d36a57 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -34,6 +34,8 @@ obj-$(CONFIG_SENSORS_ADM9240)	+=3D adm9240.o
+>  obj-$(CONFIG_SENSORS_ADS1015)	+=3D ads1015.o
+>  obj-$(CONFIG_SENSORS_ADS7828)	+=3D ads7828.o
+>  obj-$(CONFIG_SENSORS_ADS7871)	+=3D ads7871.o
+> +obj-$(CONFIG_SENSORS_ADT7X10)	+=3D adt7x10.o
+> +obj-$(CONFIG_SENSORS_ADT7310)	+=3D adt7310.o
+>  obj-$(CONFIG_SENSORS_ADT7410)	+=3D adt7410.o
+>  obj-$(CONFIG_SENSORS_ADT7411)	+=3D adt7411.o
+>  obj-$(CONFIG_SENSORS_ADT7462)	+=3D adt7462.o
+> diff --git a/drivers/hwmon/adt7310.c b/drivers/hwmon/adt7310.c
+> new file mode 100644
+> index 0000000..2196ac3
+> --- /dev/null
+> +++ b/drivers/hwmon/adt7310.c
+> @@ -0,0 +1,115 @@
+> +/*
+> + * ADT7310/ADT7310 digital temperature sensor driver
+> + *
+> + * Copyright 2010-2013 Analog Devices Inc.
+
+Not really; copyright is yours, unless you are signing it off to analog or =
+if
+you are working for them and have permission (or the duty) to sign off the
+copyright. Even then it should be 2013 only for this file.
+
+> + *   Author: Lars-Peter Clausen <lars@metafoo.de>
+> + *
+> + * Licensed under the GPL-2 or later.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/spi/spi.h>
+> +#include <asm/unaligned.h>
+> +
+> +#include "adt7x10.h"
+> +
+> +static const u8 adt7310_reg_table[] =3D {
+> +	[ADT7410_TEMPERATURE]   =3D ADT7310_TEMPERATURE,
+> +	[ADT7410_STATUS]	=3D ADT7310_STATUS,
+> +	[ADT7410_CONFIG]	=3D ADT7310_CONFIG,
+> +	[ADT7410_T_ALARM_HIGH]	=3D ADT7310_T_ALARM_HIGH,
+> +	[ADT7410_T_ALARM_LOW]	=3D ADT7310_T_ALARM_LOW,
+> +	[ADT7410_T_CRIT]	=3D ADT7310_T_CRIT,
+> +	[ADT7410_T_HYST]	=3D ADT7310_T_HYST,
+> +	[ADT7410_ID]		=3D ADT7310_ID,
+> +};
+> +
+> +#define ADT7310_CMD_REG_OFFSET	3
+> +#define ADT7310_CMD_READ	0x40
+> +
+> +#define AD7310_COMMAND(reg) (adt7310_reg_table[(reg)] << ADT7310_CMD_REG=
+_OFFSET)
+> +
+> +static int adt7310_spi_read_word(struct device *dev, u8 reg)
+> +{
+> +	struct spi_device *spi =3D to_spi_device(dev);
+> +	int ret;
+> +
+> +	ret =3D spi_w8r16(spi, AD7310_COMMAND(reg) | ADT7310_CMD_READ);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return be16_to_cpu(ret);
+> +}
+> +
+> +static int adt7310_spi_write_word(struct device *dev, u8 reg,
+> +	u16 data)
+> +{
+> +	struct spi_device *spi =3D to_spi_device(dev);
+> +	u8 buf[3];
+> +
+> +	buf[0] =3D AD7310_COMMAND(reg);
+> +	put_unaligned_be16(data, &buf[1]);
+> +
+> +	return spi_write(spi, buf, sizeof(buf));
+> +}
+> +
+> +static int adt7310_spi_read_byte(struct device *dev, u8 reg)
+> +{
+> +	struct spi_device *spi =3D to_spi_device(dev);
+> +
+> +	return spi_w8r8(spi, AD7310_COMMAND(reg) | ADT7310_CMD_READ);
+> +}
+> +
+> +static int adt7310_spi_write_byte(struct device *dev, u8 reg,
+> +	u8 data)
+> +{
+> +	struct spi_device *spi =3D to_spi_device(dev);
+> +	u8 buf[2];
+> +
+> +	buf[0] =3D AD7310_COMMAND(reg);
+> +	buf[1] =3D data;
+> +
+> +	return spi_write(spi, buf, sizeof(buf));
+> +}
+> +
+> +static const struct adt7410_ops adt7310_spi_ops =3D {
+> +	.read_word =3D adt7310_spi_read_word,
+> +	.write_word =3D adt7310_spi_write_word,
+> +	.read_byte =3D adt7310_spi_read_byte,
+> +	.write_byte =3D adt7310_spi_write_byte,
+> +};
+> +
+> +static int adt7310_spi_probe(struct spi_device *spi)
+> +{
+> +	return adt7410_probe(&spi->dev, spi_get_device_id(spi)->name,
+> +			&adt7310_spi_ops);
+> +}
+> +
+> +static int adt7310_spi_remove(struct spi_device *spi)
+> +{
+> +	return adt7410_remove(&spi->dev);
+> +}
+> +
+> +static const struct spi_device_id adt7310_id[] =3D {
+> +	{ "adt7310", 0 },
+> +	{ "adt7320", 0 },
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(spi, adt7310_id);
+> +
+> +static struct spi_driver adt7310_driver =3D {
+> +	.driver =3D {
+> +		.name =3D "adt7310",
+> +		.owner =3D THIS_MODULE,
+> +		.pm	=3D ADT7410_DEV_PM_OPS,
+
+Should probably be named ADT7X10_DEV_PM_OPS to avoid confusion.
+
+> +	},
+> +	.probe =3D adt7310_spi_probe,
+> +	.remove =3D adt7310_spi_remove,
+> +	.id_table =3D adt7310_id,
+> +};
+> +module_spi_driver(adt7310_driver);
+> +
+> +MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
+> +MODULE_DESCRIPTION("ADT7310/ADT7320 driver");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
+> index b6acfa4..b500ab3 100644
+> --- a/drivers/hwmon/adt7410.c
+> +++ b/drivers/hwmon/adt7410.c
+> @@ -1,485 +1,81 @@
+>  /*
+> - * adt7410.c - Part of lm_sensors, Linux kernel modules for hardware
+> - *	 monitoring
+> - * This driver handles the ADT7410 and compatible digital temperature se=
+nsors.
+> - * Hartmut Knaack <knaack.h@gmx.de> 2012-07-22
+> - * based on lm75.c by Frodo Looijaard <frodol@dds.nl>
+> - * and adt7410.c from iio-staging by Sonic Zhang <sonic.zhang@analog.com>
+> + * ADT7410/ADT7420 digital temperature sensor driver
+>   *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation; either version 2 of the License, or
+> - * (at your option) any later version.
+> + * Copyright 2010-2013 Analog Devices Inc.
+> + *   Author: Lars-Peter Clausen <lars@metafoo.de>
+
+Same as before.
+
+>   *
+> - * This program is distributed in the hope that it will be useful,
+> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> - * GNU General Public License for more details.
+> - *
+> - * You should have received a copy of the GNU General Public License
+> - * along with this program; if not, write to the Free Software
+> - * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + * Licensed under the GPL-2 or later.
+>   */
+> =20
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+> -#include <linux/slab.h>
+> -#include <linux/jiffies.h>
+>  #include <linux/i2c.h>
+> -#include <linux/hwmon.h>
+> -#include <linux/hwmon-sysfs.h>
+> -#include <linux/err.h>
+> -#include <linux/mutex.h>
+> -#include <linux/delay.h>
+> -
+> -/*
+> - * ADT7410 registers definition
+> - */
+> -
+> -#define ADT7410_TEMPERATURE		0
+> -#define ADT7410_STATUS			2
+> -#define ADT7410_CONFIG			3
+> -#define ADT7410_T_ALARM_HIGH		4
+> -#define ADT7410_T_ALARM_LOW		6
+> -#define ADT7410_T_CRIT			8
+> -#define ADT7410_T_HYST			0xA
+> -
+> -/*
+> - * ADT7410 status
+> - */
+> -#define ADT7410_STAT_T_LOW		(1 << 4)
+> -#define ADT7410_STAT_T_HIGH		(1 << 5)
+> -#define ADT7410_STAT_T_CRIT		(1 << 6)
+> -#define ADT7410_STAT_NOT_RDY		(1 << 7)
+> =20
+> -/*
+> - * ADT7410 config
+> - */
+> -#define ADT7410_FAULT_QUEUE_MASK	(1 << 0 | 1 << 1)
+> -#define ADT7410_CT_POLARITY		(1 << 2)
+> -#define ADT7410_INT_POLARITY		(1 << 3)
+> -#define ADT7410_EVENT_MODE		(1 << 4)
+> -#define ADT7410_MODE_MASK		(1 << 5 | 1 << 6)
+> -#define ADT7410_FULL			(0 << 5 | 0 << 6)
+> -#define ADT7410_PD			(1 << 5 | 1 << 6)
+> -#define ADT7410_RESOLUTION		(1 << 7)
+> +#include "adt7x10.h"
+> =20
+> -/*
+> - * ADT7410 masks
+> - */
+> -#define ADT7410_T13_VALUE_MASK			0xFFF8
+> -#define ADT7410_T_HYST_MASK			0xF
+> -
+> -/* straight from the datasheet */
+> -#define ADT7410_TEMP_MIN (-55000)
+> -#define ADT7410_TEMP_MAX 150000
+> -
+> -enum adt7410_type {		/* keep sorted in alphabetical order */
+> -	adt7410,
+> -};
+> -
+> -static const u8 ADT7410_REG_TEMP[4] =3D {
+> -	ADT7410_TEMPERATURE,		/* input */
+> -	ADT7410_T_ALARM_HIGH,		/* high */
+> -	ADT7410_T_ALARM_LOW,		/* low */
+> -	ADT7410_T_CRIT,			/* critical */
+> -};
+> -
+> -/* Each client has this additional data */
+> -struct adt7410_data {
+> -	struct device		*hwmon_dev;
+> -	struct mutex		update_lock;
+> -	u8			config;
+> -	u8			oldconfig;
+> -	bool			valid;		/* true if registers valid */
+> -	unsigned long		last_updated;	/* In jiffies */
+> -	s16			temp[4];	/* Register values,
+> -						   0 =3D input
+> -						   1 =3D high
+> -						   2 =3D low
+> -						   3 =3D critical */
+> -	u8			hyst;		/* hysteresis offset */
+> -};
+> -
+> -/*
+> - * adt7410 register access by I2C
+> - */
+> -static int adt7410_temp_ready(struct i2c_client *client)
+> +static int adt7410_i2c_read_word(struct device *dev, u8 reg)
+>  {
+> -	int i, status;
+> -
+> -	for (i =3D 0; i < 6; i++) {
+> -		status =3D i2c_smbus_read_byte_data(client, ADT7410_STATUS);
+> -		if (status < 0)
+> -			return status;
+> -		if (!(status & ADT7410_STAT_NOT_RDY))
+> -			return 0;
+> -		msleep(60);
+> -	}
+> -	return -ETIMEDOUT;
+> +	return i2c_smbus_read_word_swapped(to_i2c_client(dev), reg);
+>  }
+> =20
+> -static int adt7410_update_temp(struct device *dev)
+> +static int adt7410_i2c_write_word(struct device *dev, u8 reg, u16 data)
+>  {
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -	int ret =3D 0;
+> -
+> -	mutex_lock(&data->update_lock);
+> -
+> -	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+> -	    || !data->valid) {
+> -		int temp;
+> -
+> -		dev_dbg(&client->dev, "Starting update\n");
+> -
+> -		ret =3D adt7410_temp_ready(client); /* check for new value */
+> -		if (ret)
+> -			goto abort;
+> -
+> -		temp =3D i2c_smbus_read_word_swapped(client, ADT7410_REG_TEMP[0]);
+> -		if (temp < 0) {
+> -			ret =3D temp;
+> -			dev_dbg(dev, "Failed to read value: reg %d, error %d\n",
+> -				ADT7410_REG_TEMP[0], ret);
+> -			goto abort;
+> -		}
+> -		data->temp[0] =3D temp;
+> -
+> -		data->last_updated =3D jiffies;
+> -		data->valid =3D true;
+> -	}
+> -
+> -abort:
+> -	mutex_unlock(&data->update_lock);
+> -	return ret;
+> -}
+> -
+> -static int adt7410_fill_cache(struct i2c_client *client)
+> -{
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -	int ret;
+> -	int i;
+> -
+> -	for (i =3D 1; i < ARRAY_SIZE(ADT7410_REG_TEMP); i++) {
+> -		ret =3D i2c_smbus_read_word_swapped(client, ADT7410_REG_TEMP[i]);
+> -		if (ret < 0) {
+> -			dev_dbg(&client->dev,
+> -				"Failed to read value: reg %d, error %d\n",
+> -				ADT7410_REG_TEMP[0], ret);
+> -			return ret;
+> -		}
+> -		data->temp[i] =3D ret;
+> -	}
+> -
+> -	ret =3D i2c_smbus_read_byte_data(client, ADT7410_T_HYST);
+> -	if (ret < 0) {
+> -		dev_dbg(&client->dev,
+> -			"Failed to read value: hyst reg, error %d\n",
+> -			ret);
+> -		return ret;
+> -	}
+> -	data->hyst =3D ret;
+> -
+> -	return 0;
+> +	return i2c_smbus_write_word_swapped(to_i2c_client(dev), reg, data);
+>  }
+> =20
+> -static s16 ADT7410_TEMP_TO_REG(long temp)
+> +static int adt7410_i2c_read_byte(struct device *dev, u8 reg)
+>  {
+> -	return DIV_ROUND_CLOSEST(clamp_val(temp, ADT7410_TEMP_MIN,
+> -					   ADT7410_TEMP_MAX) * 128, 1000);
+> +	return i2c_smbus_read_byte_data(to_i2c_client(dev), reg);
+>  }
+> =20
+> -static int ADT7410_REG_TO_TEMP(struct adt7410_data *data, s16 reg)
+> +static int adt7410_i2c_write_byte(struct device *dev, u8 reg, u8 data)
+>  {
+> -	/* in 13 bit mode, bits 0-2 are status flags - mask them out */
+> -	if (!(data->config & ADT7410_RESOLUTION))
+> -		reg &=3D ADT7410_T13_VALUE_MASK;
+> -	/*
+> -	 * temperature is stored in twos complement format, in steps of
+> -	 * 1/128=B0C
+> -	 */
+> -	return DIV_ROUND_CLOSEST(reg * 1000, 128);
+> +	return i2c_smbus_write_byte_data(to_i2c_client(dev), reg, data);
+>  }
+> =20
+> -/*----------------------------------------------------------------------=
+-*/
+> -
+> -/* sysfs attributes for hwmon */
+> -
+> -static ssize_t adt7410_show_temp(struct device *dev,
+> -				 struct device_attribute *da, char *buf)
+> -{
+> -	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -
+> -	if (attr->index =3D=3D 0) {
+> -		int ret;
+> -
+> -		ret =3D adt7410_update_temp(dev);
+> -		if (ret)
+> -			return ret;
+> -	}
+> -
+> -	return sprintf(buf, "%d\n", ADT7410_REG_TO_TEMP(data,
+> -		       data->temp[attr->index]));
+> -}
+> -
+> -static ssize_t adt7410_set_temp(struct device *dev,
+> -				struct device_attribute *da,
+> -				const char *buf, size_t count)
+> -{
+> -	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -	int nr =3D attr->index;
+> -	long temp;
+> -	int ret;
+> -
+> -	ret =3D kstrtol(buf, 10, &temp);
+> -	if (ret)
+> -		return ret;
+> -
+> -	mutex_lock(&data->update_lock);
+> -	data->temp[nr] =3D ADT7410_TEMP_TO_REG(temp);
+> -	ret =3D i2c_smbus_write_word_swapped(client, ADT7410_REG_TEMP[nr],
+> -					   data->temp[nr]);
+> -	if (ret)
+> -		count =3D ret;
+> -	mutex_unlock(&data->update_lock);
+> -	return count;
+> -}
+> -
+> -static ssize_t adt7410_show_t_hyst(struct device *dev,
+> -				   struct device_attribute *da,
+> -				   char *buf)
+> -{
+> -	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -	int nr =3D attr->index;
+> -	int hyst;
+> -
+> -	hyst =3D (data->hyst & ADT7410_T_HYST_MASK) * 1000;
+> -
+> -	/*
+> -	 * hysteresis is stored as a 4 bit offset in the device, convert it
+> -	 * to an absolute value
+> -	 */
+> -	if (nr =3D=3D 2)	/* min has positive offset, others have negative */
+> -		hyst =3D -hyst;
+> -	return sprintf(buf, "%d\n",
+> -		       ADT7410_REG_TO_TEMP(data, data->temp[nr]) - hyst);
+> -}
+> -
+> -static ssize_t adt7410_set_t_hyst(struct device *dev,
+> -				  struct device_attribute *da,
+> -				  const char *buf, size_t count)
+> -{
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -	int limit, ret;
+> -	long hyst;
+> -
+> -	ret =3D kstrtol(buf, 10, &hyst);
+> -	if (ret)
+> -		return ret;
+> -	/* convert absolute hysteresis value to a 4 bit delta value */
+> -	limit =3D ADT7410_REG_TO_TEMP(data, data->temp[1]);
+> -	hyst =3D clamp_val(hyst, ADT7410_TEMP_MIN, ADT7410_TEMP_MAX);
+> -	data->hyst =3D clamp_val(DIV_ROUND_CLOSEST(limit - hyst, 1000), 0,
+> -			       ADT7410_T_HYST_MASK);
+> -	ret =3D i2c_smbus_write_byte_data(client, ADT7410_T_HYST, data->hyst);
+> -	if (ret)
+> -		return ret;
+> -
+> -	return count;
+> -}
+> -
+> -static ssize_t adt7410_show_alarm(struct device *dev,
+> -				  struct device_attribute *da,
+> -				  char *buf)
+> -{
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> -	int ret;
+> -
+> -	ret =3D i2c_smbus_read_byte_data(client, ADT7410_STATUS);
+> -	if (ret < 0)
+> -		return ret;
+> -
+> -	return sprintf(buf, "%d\n", !!(ret & attr->index));
+> -}
+> -
+> -static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, adt7410_show_temp, NULL,=
+ 0);
+> -static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
+> -			  adt7410_show_temp, adt7410_set_temp, 1);
+> -static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
+> -			  adt7410_show_temp, adt7410_set_temp, 2);
+> -static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO,
+> -			  adt7410_show_temp, adt7410_set_temp, 3);
+> -static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
+> -			  adt7410_show_t_hyst, adt7410_set_t_hyst, 1);
+> -static SENSOR_DEVICE_ATTR(temp1_min_hyst, S_IRUGO,
+> -			  adt7410_show_t_hyst, NULL, 2);
+> -static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IRUGO,
+> -			  adt7410_show_t_hyst, NULL, 3);
+> -static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, adt7410_show_alarm,
+> -			  NULL, ADT7410_STAT_T_LOW);
+> -static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, adt7410_show_alarm,
+> -			  NULL, ADT7410_STAT_T_HIGH);
+> -static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, adt7410_show_alarm,
+> -			  NULL, ADT7410_STAT_T_CRIT);
+> -
+> -static struct attribute *adt7410_attributes[] =3D {
+> -	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_min.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_min_hyst.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+> -	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
+> -	NULL
+> -};
+> -
+> -static const struct attribute_group adt7410_group =3D {
+> -	.attrs =3D adt7410_attributes,
+> +static const struct adt7410_ops adt7410_i2c_ops =3D {
+> +	.read_word =3D adt7410_i2c_read_word,
+> +	.write_word =3D adt7410_i2c_write_word,
+> +	.read_byte =3D adt7410_i2c_read_byte,
+> +	.write_byte =3D adt7410_i2c_write_byte,
+>  };
+> =20
+> -/*----------------------------------------------------------------------=
+-*/
+> -
+> -/* device probe and removal */
+> -
+> -static int adt7410_probe(struct i2c_client *client,
+> -			 const struct i2c_device_id *id)
+> +static int adt7410_i2c_probe(struct i2c_client *client,
+> +	const struct i2c_device_id *id)
+>  {
+> -	struct adt7410_data *data;
+> -	int ret;
+> =20
+>  	if (!i2c_check_functionality(client->adapter,
+>  			I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_WORD_DATA))
+>  		return -ENODEV;
+> =20
+> -	data =3D devm_kzalloc(&client->dev, sizeof(struct adt7410_data),
+> -			    GFP_KERNEL);
+> -	if (!data)
+> -		return -ENOMEM;
+> -
+> -	i2c_set_clientdata(client, data);
+> -	mutex_init(&data->update_lock);
+> -
+> -	/* configure as specified */
+> -	ret =3D i2c_smbus_read_byte_data(client, ADT7410_CONFIG);
+> -	if (ret < 0) {
+> -		dev_dbg(&client->dev, "Can't read config? %d\n", ret);
+> -		return ret;
+> -	}
+> -	data->oldconfig =3D ret;
+> -	/*
+> -	 * Set to 16 bit resolution, continous conversion and comparator mode.
+> -	 */
+> -	ret &=3D ~ADT7410_MODE_MASK;
+> -	data->config =3D ret | ADT7410_FULL | ADT7410_RESOLUTION |
+> -			ADT7410_EVENT_MODE;
+> -	if (data->config !=3D data->oldconfig) {
+> -		ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
+> -						data->config);
+> -		if (ret)
+> -			return ret;
+> -	}
+> -	dev_dbg(&client->dev, "Config %02x\n", data->config);
+> -
+> -	ret =3D adt7410_fill_cache(client);
+> -	if (ret)
+> -		goto exit_restore;
+> -
+> -	/* Register sysfs hooks */
+> -	ret =3D sysfs_create_group(&client->dev.kobj, &adt7410_group);
+> -	if (ret)
+> -		goto exit_restore;
+> -
+> -	data->hwmon_dev =3D hwmon_device_register(&client->dev);
+> -	if (IS_ERR(data->hwmon_dev)) {
+> -		ret =3D PTR_ERR(data->hwmon_dev);
+> -		goto exit_remove;
+> -	}
+> -
+> -	dev_info(&client->dev, "sensor '%s'\n", client->name);
+> -
+> -	return 0;
+> -
+> -exit_remove:
+> -	sysfs_remove_group(&client->dev.kobj, &adt7410_group);
+> -exit_restore:
+> -	i2c_smbus_write_byte_data(client, ADT7410_CONFIG, data->oldconfig);
+> -	return ret;
+> +	return adt7410_probe(&client->dev, NULL, &adt7410_i2c_ops);
+>  }
+> =20
+> -static int adt7410_remove(struct i2c_client *client)
+> +static int adt7410_i2c_remove(struct i2c_client *client)
+>  {
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -
+> -	hwmon_device_unregister(data->hwmon_dev);
+> -	sysfs_remove_group(&client->dev.kobj, &adt7410_group);
+> -	if (data->oldconfig !=3D data->config)
+> -		i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
+> -					  data->oldconfig);
+> -	return 0;
+> +	return adt7410_remove(&client->dev);
+>  }
+> =20
+>  static const struct i2c_device_id adt7410_ids[] =3D {
+> -	{ "adt7410", adt7410, },
+> -	{ "adt7420", adt7410, },
+> -	{ /* LIST END */ }
+> +	{ "adt7410", 0 },
+> +	{ "adt7420", 0 },
+> +	{}
+>  };
+>  MODULE_DEVICE_TABLE(i2c, adt7410_ids);
+> =20
+> -#ifdef CONFIG_PM_SLEEP
+> -static int adt7410_suspend(struct device *dev)
+> -{
+> -	int ret;
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -
+> -	ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG,
+> -					data->config | ADT7410_PD);
+> -	return ret;
+> -}
+> -
+> -static int adt7410_resume(struct device *dev)
+> -{
+> -	int ret;
+> -	struct i2c_client *client =3D to_i2c_client(dev);
+> -	struct adt7410_data *data =3D i2c_get_clientdata(client);
+> -
+> -	ret =3D i2c_smbus_write_byte_data(client, ADT7410_CONFIG, data->config);
+> -	return ret;
+> -}
+> -
+> -static SIMPLE_DEV_PM_OPS(adt7410_dev_pm_ops, adt7410_suspend, adt7410_re=
+sume);
+> -
+> -#define ADT7410_DEV_PM_OPS (&adt7410_dev_pm_ops)
+> -#else
+> -#define ADT7410_DEV_PM_OPS NULL
+> -#endif /* CONFIG_PM */
+> -
+>  static struct i2c_driver adt7410_driver =3D {
+>  	.class		=3D I2C_CLASS_HWMON,
+>  	.driver =3D {
+>  		.name	=3D "adt7410",
+>  		.pm	=3D ADT7410_DEV_PM_OPS,
+>  	},
+> -	.probe		=3D adt7410_probe,
+> -	.remove		=3D adt7410_remove,
+> +	.probe		=3D adt7410_i2c_probe,
+> +	.remove		=3D adt7410_i2c_remove,
+>  	.id_table	=3D adt7410_ids,
+>  	.address_list	=3D I2C_ADDRS(0x48, 0x49, 0x4a, 0x4b),
+>  };
+> -
+>  module_i2c_driver(adt7410_driver);
+> =20
+> -MODULE_AUTHOR("Hartmut Knaack");
+> -MODULE_DESCRIPTION("ADT7410/ADT7420 driver");
+> +MODULE_AUTHOR("Lars-Peter Clausen <lars@metafoo.de>");
+> +MODULE_DESCRIPTION("ADT7410/AD7420 driver");
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/hwmon/adt7x10.c b/drivers/hwmon/adt7x10.c
+> new file mode 100644
+> index 0000000..eeff198c
+> --- /dev/null
+> +++ b/drivers/hwmon/adt7x10.c
+> @@ -0,0 +1,476 @@
+> +/*
+> + * adt7410.c - Part of lm_sensors, Linux kernel modules for hardware
+
+Needs file name and purpose update
+
+> + *	 monitoring
+> + * This driver handles the ADT7410 and compatible digital temperature se=
+nsors.
+> + * Hartmut Knaack <knaack.h@gmx.de> 2012-07-22
+> + * based on lm75.c by Frodo Looijaard <frodol@dds.nl>
+> + * and adt7410.c from iio-staging by Sonic Zhang <sonic.zhang@analog.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/slab.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/hwmon.h>
+> +#include <linux/hwmon-sysfs.h>
+> +#include <linux/err.h>
+> +#include <linux/mutex.h>
+> +#include <linux/delay.h>
+> +
+> +#include "adt7x10.h"
+> +
+> +/*
+> + * ADT7410 status
+> + */
+> +#define ADT7410_STAT_T_LOW		(1 << 4)
+> +#define ADT7410_STAT_T_HIGH		(1 << 5)
+> +#define ADT7410_STAT_T_CRIT		(1 << 6)
+> +#define ADT7410_STAT_NOT_RDY		(1 << 7)
+> +
+> +/*
+> + * ADT7410 config
+> + */
+> +#define ADT7410_FAULT_QUEUE_MASK	(1 << 0 | 1 << 1)
+> +#define ADT7410_CT_POLARITY		(1 << 2)
+> +#define ADT7410_INT_POLARITY		(1 << 3)
+> +#define ADT7410_EVENT_MODE		(1 << 4)
+> +#define ADT7410_MODE_MASK		(1 << 5 | 1 << 6)
+> +#define ADT7410_FULL			(0 << 5 | 0 << 6)
+> +#define ADT7410_PD			(1 << 5 | 1 << 6)
+> +#define ADT7410_RESOLUTION		(1 << 7)
+> +
+> +/*
+> + * ADT7410 masks
+> + */
+> +#define ADT7410_T13_VALUE_MASK			0xFFF8
+> +#define ADT7410_T_HYST_MASK			0xF
+> +
+> +/* straight from the datasheet */
+> +#define ADT7410_TEMP_MIN (-55000)
+> +#define ADT7410_TEMP_MAX 150000
+> +
+> +/* Each client has this additional data */
+> +struct adt7410_data {
+> +	const struct adt7410_ops *ops;
+> +	const char		*name;
+> +	struct device		*hwmon_dev;
+> +	struct mutex		update_lock;
+> +	u8			config;
+> +	u8			oldconfig;
+> +	bool			valid;		/* true if registers valid */
+> +	unsigned long		last_updated;	/* In jiffies */
+> +	s16			temp[4];	/* Register values,
+> +						   0 =3D input
+> +						   1 =3D high
+> +						   2 =3D low
+> +						   3 =3D critical */
+> +	u8			hyst;		/* hysteresis offset */
+> +};
+> +
+> +static int adt7410_read_byte(struct device *dev, u8 reg)
+> +{
+> +	struct adt7410_data *d =3D dev_get_drvdata(dev);
+> +	return d->ops->read_byte(dev, reg);
+> +}
+> +
+> +static int adt7410_write_byte(struct device *dev, u8 reg, u8 data)
+> +{
+> +	struct adt7410_data *d =3D dev_get_drvdata(dev);
+> +	return d->ops->write_byte(dev, reg, data);
+> +}
+> +
+> +static int adt7410_read_word(struct device *dev, u8 reg)
+> +{
+> +	struct adt7410_data *d =3D dev_get_drvdata(dev);
+> +	return d->ops->read_word(dev, reg);
+> +}
+> +
+> +static int adt7410_write_word(struct device *dev, u8 reg, u16 data)
+> +{
+> +	struct adt7410_data *d =3D dev_get_drvdata(dev);
+> +	return d->ops->write_word(dev, reg, data);
+> +}
+> +
+> +static const u8 ADT7410_REG_TEMP[4] =3D {
+> +	ADT7410_TEMPERATURE,		/* input */
+> +	ADT7410_T_ALARM_HIGH,		/* high */
+> +	ADT7410_T_ALARM_LOW,		/* low */
+> +	ADT7410_T_CRIT,			/* critical */
+> +};
+> +
+> +static int adt7410_temp_ready(struct device *dev)
+> +{
+> +	int i, status;
+> +
+> +	for (i =3D 0; i < 6; i++) {
+> +		status =3D adt7410_read_byte(dev, ADT7410_STATUS);
+> +		if (status < 0)
+> +			return status;
+> +		if (!(status & ADT7410_STAT_NOT_RDY))
+> +			return 0;
+> +		msleep(60);
+> +	}
+> +	return -ETIMEDOUT;
+> +}
+> +
+> +static int adt7410_update_temp(struct device *dev)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +	int ret =3D 0;
+> +
+> +	mutex_lock(&data->update_lock);
+> +
+> +	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
+> +	    || !data->valid) {
+> +		int temp;
+> +
+> +		dev_dbg(dev, "Starting update\n");
+> +
+> +		ret =3D adt7410_temp_ready(dev); /* check for new value */
+> +		if (ret)
+> +			goto abort;
+> +
+> +		temp =3D adt7410_read_word(dev, ADT7410_REG_TEMP[0]);
+> +		if (temp < 0) {
+> +			ret =3D temp;
+> +			dev_dbg(dev, "Failed to read value: reg %d, error %d\n",
+> +				ADT7410_REG_TEMP[0], ret);
+> +			goto abort;
+> +		}
+> +		data->temp[0] =3D temp;
+> +		data->last_updated =3D jiffies;
+> +		data->valid =3D true;
+> +	}
+> +
+> +abort:
+> +	mutex_unlock(&data->update_lock);
+> +	return ret;
+> +}
+> +
+> +static int adt7410_fill_cache(struct device *dev)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +	int ret;
+> +	int i;
+> +
+> +	for (i =3D 1; i < ARRAY_SIZE(data->temp); i++) {
+> +		ret =3D adt7410_read_word(dev, ADT7410_REG_TEMP[i]);
+> +		if (ret < 0) {
+> +			dev_dbg(dev, "Failed to read value: reg %d, error %d\n",
+> +				ADT7410_REG_TEMP[0], ret);
+
+ADT7410_REG_TEMP[i] as Hartmut pointed out
+
+> +			return ret;
+> +		}
+> +		data->temp[i] =3D ret;
+> +	}
+> +
+> +	ret =3D adt7410_read_byte(dev, ADT7410_T_HYST);
+> +	if (ret < 0) {
+> +		dev_dbg(dev, "Failed to read value: reg %d, error %d\n",
+> +				ADT7410_T_HYST, ret);
+> +		return ret;
+> +	}
+> +	data->hyst =3D ret;
+> +
+> +	return 0;
+> +}
+> +
+> +static s16 ADT7410_TEMP_TO_REG(long temp)
+> +{
+> +	return DIV_ROUND_CLOSEST(clamp_val(temp, ADT7410_TEMP_MIN,
+> +					       ADT7410_TEMP_MAX) * 128, 1000);
+> +}
+> +
+> +static int ADT7410_REG_TO_TEMP(struct adt7410_data *data, s16 reg)
+> +{
+> +	/* in 13 bit mode, bits 0-2 are status flags - mask them out */
+> +	if (!(data->config & ADT7410_RESOLUTION))
+> +		reg &=3D ADT7410_T13_VALUE_MASK;
+> +	/*
+> +	 * temperature is stored in twos complement format, in steps of
+> +	 * 1/128=B0C
+> +	 */
+> +	return DIV_ROUND_CLOSEST(reg * 1000, 128);
+> +}
+> +
+> +/*----------------------------------------------------------------------=
+-*/
+> +
+> +/* sysfs attributes for hwmon */
+> +
+> +static ssize_t adt7410_show_temp(struct device *dev,
+> +				 struct device_attribute *da, char *buf)
+> +{
+> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +
+> +
+> +	if (attr->index =3D=3D 0) {
+> +		int ret;
+> +
+> +		ret =3D adt7410_update_temp(dev);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return sprintf(buf, "%d\n", ADT7410_REG_TO_TEMP(data,
+> +		       data->temp[attr->index]));
+> +}
+> +
+> +static ssize_t adt7410_set_temp(struct device *dev,
+> +				struct device_attribute *da,
+> +				const char *buf, size_t count)
+> +{
+> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +	int nr =3D attr->index;
+> +	long temp;
+> +	int ret;
+> +
+> +	ret =3D kstrtol(buf, 10, &temp);
+> +	if (ret)
+> +		return ret;
+> +
+> +	mutex_lock(&data->update_lock);
+> +	data->temp[nr] =3D ADT7410_TEMP_TO_REG(temp);
+> +	ret =3D adt7410_write_word(dev, ADT7410_REG_TEMP[nr], data->temp[nr]);
+> +	if (ret)
+> +		count =3D ret;
+> +	mutex_unlock(&data->update_lock);
+> +	return count;
+> +}
+> +
+> +static ssize_t adt7410_show_t_hyst(struct device *dev,
+> +				   struct device_attribute *da,
+> +				   char *buf)
+> +{
+> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +	int nr =3D attr->index;
+> +	int hyst;
+> +
+> +	hyst =3D (data->hyst & ADT7410_T_HYST_MASK) * 1000;
+> +
+> +	/*
+> +	 * hysteresis is stored as a 4 bit offset in the device, convert it
+> +	 * to an absolute value
+> +	 */
+> +	if (nr =3D=3D 2)	/* min has positive offset, others have negative */
+> +		hyst =3D -hyst;
+> +	return sprintf(buf, "%d\n",
+> +		       ADT7410_REG_TO_TEMP(data, data->temp[nr]) - hyst);
+> +}
+> +
+> +static ssize_t adt7410_set_t_hyst(struct device *dev,
+> +				  struct device_attribute *da,
+> +				  const char *buf, size_t count)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +	int limit, ret;
+> +	long hyst;
+> +
+> +	ret =3D kstrtol(buf, 10, &hyst);
+> +	if (ret)
+> +		return ret;
+> +	/* convert absolute hysteresis value to a 4 bit delta value */
+> +	limit =3D ADT7410_REG_TO_TEMP(data, data->temp[1]);
+> +	hyst =3D clamp_val(hyst, ADT7410_TEMP_MIN, ADT7410_TEMP_MAX);
+> +	data->hyst =3D clamp_val(DIV_ROUND_CLOSEST(limit - hyst, 1000),
+> +				   0, ADT7410_T_HYST_MASK);
+> +	ret =3D adt7410_write_byte(dev, ADT7410_T_HYST, data->hyst);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return count;
+> +}
+> +
+> +static ssize_t adt7410_show_alarm(struct device *dev,
+> +				  struct device_attribute *da,
+> +				  char *buf)
+> +{
+> +	struct sensor_device_attribute *attr =3D to_sensor_dev_attr(da);
+> +	int ret;
+> +
+> +	ret =3D adt7410_read_byte(dev, ADT7410_STATUS);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return sprintf(buf, "%d\n", !!(ret & attr->index));
+> +}
+> +
+> +static ssize_t adt7410_show_name(struct device *dev,
+> +				  struct device_attribute *da, char *buf)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +
+> +	return sprintf(buf, "%s\n", data->name);
+> +}
+> +
+> +static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, adt7410_show_temp, NULL,=
+ 0);
+> +static SENSOR_DEVICE_ATTR(temp1_max, S_IWUSR | S_IRUGO,
+> +			  adt7410_show_temp, adt7410_set_temp, 1);
+> +static SENSOR_DEVICE_ATTR(temp1_min, S_IWUSR | S_IRUGO,
+> +			  adt7410_show_temp, adt7410_set_temp, 2);
+> +static SENSOR_DEVICE_ATTR(temp1_crit, S_IWUSR | S_IRUGO,
+> +			  adt7410_show_temp, adt7410_set_temp, 3);
+> +static SENSOR_DEVICE_ATTR(temp1_max_hyst, S_IWUSR | S_IRUGO,
+> +			  adt7410_show_t_hyst, adt7410_set_t_hyst, 1);
+> +static SENSOR_DEVICE_ATTR(temp1_min_hyst, S_IRUGO,
+> +			  adt7410_show_t_hyst, NULL, 2);
+> +static SENSOR_DEVICE_ATTR(temp1_crit_hyst, S_IRUGO,
+> +			  adt7410_show_t_hyst, NULL, 3);
+> +static SENSOR_DEVICE_ATTR(temp1_min_alarm, S_IRUGO, adt7410_show_alarm,
+> +			  NULL, ADT7410_STAT_T_LOW);
+> +static SENSOR_DEVICE_ATTR(temp1_max_alarm, S_IRUGO, adt7410_show_alarm,
+> +			  NULL, ADT7410_STAT_T_HIGH);
+> +static SENSOR_DEVICE_ATTR(temp1_crit_alarm, S_IRUGO, adt7410_show_alarm,
+> +			  NULL, ADT7410_STAT_T_CRIT);
+> +static DEVICE_ATTR(name, S_IRUGO, adt7410_show_name, NULL);
+> +
+> +static struct attribute *adt7410_attributes[] =3D {
+> +	&sensor_dev_attr_temp1_input.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_min.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_crit.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max_hyst.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_min_hyst.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_crit_hyst.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_min_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_max_alarm.dev_attr.attr,
+> +	&sensor_dev_attr_temp1_crit_alarm.dev_attr.attr,
+> +	NULL
+> +};
+> +
+> +static const struct attribute_group adt7410_group =3D {
+> +	.attrs =3D adt7410_attributes,
+> +};
+> +
+> +int adt7410_probe(struct device *dev, const char *name,
+> +	const struct adt7410_ops *ops)
+
+Preferred alignment is to have the second line start at the (. Usually I do=
+n't
+complain but since you'll have to do another rev anyway maybe you can fix t=
+his
+whereever it occurs.
+
+> +{
+> +	struct adt7410_data *data;
+> +	int ret;
+> +
+> +	data =3D devm_kzalloc(dev, sizeof(struct adt7410_data),
+> +			    GFP_KERNEL);
+
+No need to split the line above.
+
+> +	if (!data)
+> +		return -ENOMEM;
+> +
+> +	data->ops =3D ops;
+> +	data->name =3D name;
+> +
+> +	dev_set_drvdata(dev, data);
+> +	mutex_init(&data->update_lock);
+> +
+> +	/* configure as specified */
+> +	ret =3D adt7410_read_byte(dev, ADT7410_CONFIG);
+> +	if (ret < 0) {
+> +		dev_dbg(dev, "Can't read config? %d\n", ret);
+> +		return ret;
+> +	}
+> +	data->oldconfig =3D ret;
+> +
+> +	/*
+> +	 * Set to 16 bit resolution, continous conversion and comparator mode.
+> +	 */
+> +	data->config =3D data->oldconfig;
+> +	data->config &=3D ~ADT7410_MODE_MASK;
+> +	data->config |=3D ADT7410_FULL | ADT7410_RESOLUTION | ADT7410_EVENT_MOD=
+E;
+> +	if (data->config !=3D data->oldconfig) {
+> +		ret =3D adt7410_write_byte(dev, ADT7410_CONFIG, data->config);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +	dev_dbg(dev, "Config %02x\n", data->config);
+> +
+> +	ret =3D adt7410_fill_cache(dev);
+> +	if (ret)
+> +		goto exit_restore;
+> +
+> +	/* Register sysfs hooks */
+> +	ret =3D sysfs_create_group(&dev->kobj, &adt7410_group);
+> +	if (ret)
+> +		goto exit_restore;
+> +
+> +	/*
+> +	 * The I2C device will already have it's own 'name' attribute, but for
+> +	 * the SPI device we need to register it. name will only be non NULL if
+> +	 * the device doesn't register the 'name' attribute on its own.
+> +	 */
+> +	if (name) {
+> +		ret =3D device_create_file(dev, &dev_attr_name);
+> +		if (ret)
+> +			goto exit_remove;
+> +	}
+> +
+> +	data->hwmon_dev =3D hwmon_device_register(dev);
+> +	if (IS_ERR(data->hwmon_dev)) {
+> +		ret =3D PTR_ERR(data->hwmon_dev);
+> +		goto exit_remove_name;
+> +	}
+> +
+> +	return 0;
+> +
+> +exit_remove_name:
+> +	if (name)
+> +		device_remove_file(dev, &dev_attr_name);
+> +exit_remove:
+> +	sysfs_remove_group(&dev->kobj, &adt7410_group);
+> +exit_restore:
+> +	adt7410_write_byte(dev, ADT7410_CONFIG, data->oldconfig);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(adt7410_probe);
+> +
+> +int adt7410_remove(struct device *dev)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +
+> +	hwmon_device_unregister(data->hwmon_dev);
+> +	if (data->name)
+> +		device_remove_file(dev, &dev_attr_name);
+> +	sysfs_remove_group(&dev->kobj, &adt7410_group);
+> +	if (data->oldconfig !=3D data->config)
+> +		adt7410_write_byte(dev, ADT7410_CONFIG,
+> +					  data->oldconfig);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(adt7410_remove);
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +
+> +static int adt7410_suspend(struct device *dev)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +
+> +	return adt7410_write_byte(dev, ADT7410_CONFIG,
+> +		data->config | ADT7410_PD);
+> +}
+> +
+> +static int adt7410_resume(struct device *dev)
+> +{
+> +	struct adt7410_data *data =3D dev_get_drvdata(dev);
+> +
+> +	return adt7410_write_byte(dev, ADT7410_CONFIG, data->config);
+> +}
+> +
+> +SIMPLE_DEV_PM_OPS(adt7410_dev_pm_ops, adt7410_suspend, adt7410_resume);
+> +EXPORT_SYMBOL_GPL(adt7410_dev_pm_ops);
+> +
+> +#endif /* CONFIG_PM_SLEEP */
+> +
+> +MODULE_AUTHOR("Hartmut Knaack");
+> +MODULE_DESCRIPTION("ADT7410/ADT7420, ADT7310/ADT7320 common code");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/hwmon/adt7x10.h b/drivers/hwmon/adt7x10.h
+> new file mode 100644
+> index 0000000..a7165e6
+> --- /dev/null
+> +++ b/drivers/hwmon/adt7x10.h
+> @@ -0,0 +1,48 @@
+> +#ifndef __HWMON_ADT7X10_H__
+> +#define __HWMON_ADT7X10_H__
+> +
+> +#include <linux/types.h>
+> +#include <linux/pm.h>
+> +
+> +/* ADT7410 registers definition */
+> +#define ADT7410_TEMPERATURE		0
+> +#define ADT7410_STATUS			2
+> +#define ADT7410_CONFIG			3
+> +#define ADT7410_T_ALARM_HIGH		4
+> +#define ADT7410_T_ALARM_LOW		6
+> +#define ADT7410_T_CRIT			8
+> +#define ADT7410_T_HYST			0xA
+> +#define ADT7410_ID			0xB
+> +
+> +/* ADT7310 registers definition */
+> +#define ADT7310_STATUS			0
+> +#define ADT7310_CONFIG			1
+> +#define ADT7310_TEMPERATURE		2
+> +#define ADT7310_ID			3
+> +#define ADT7310_T_CRIT			4
+> +#define ADT7310_T_HYST			5
+> +#define ADT7310_T_ALARM_HIGH		6
+> +#define ADT7310_T_ALARM_LOW		7
+> +
+> +struct device;
+> +
+> +struct adt7410_ops {
+> +	int (*read_byte)(struct device *, u8 reg);
+> +	int (*write_byte)(struct device *, u8 reg, u8 data);
+> +	int (*read_word)(struct device *, u8 reg);
+> +	int (*write_word)(struct device *, u8 reg, u16 data);
+> +};
+> +
+> +int adt7410_probe(struct device *dev, const char *name,
+> +	const struct adt7410_ops *ops);
+> +int adt7410_remove(struct device *dev);
+> +
+
+I think the above should be adt7x10_ops, adt7x10_probe and adt7x10_remove, =
+to
+indicate that those are common functions.
+
+I would actually suggest to rename all functions in adt7x10.c (not just the
+exported ones).
+
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +extern const struct dev_pm_ops adt7410_dev_pm_ops;
+> +#define ADT7410_DEV_PM_OPS (&adt7410_dev_pm_ops)
+
+As mentioned above, I think ADT7X10_DEV_PM_OPS would be better here.
+
+> +#else
+> +#define ADT7410_DEV_PM_OPS NULL
+> +#endif
+> +
+> +#endif
+> --=20
+> 1.8.0
+>=20
+>=20
+
+_______________________________________________
+lm-sensors mailing list
+lm-sensors@lm-sensors.org
+http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
