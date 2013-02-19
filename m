@@ -1,7 +1,7 @@
-From: MyungJoo Ham <myungjoo.ham@samsung.com>
-Date: Tue, 19 Feb 2013 10:25:40 +0000
+From: Jean Delvare <khali@linux-fr.org>
+Date: Tue, 19 Feb 2013 12:35:52 +0000
 Subject: Re: [lm-sensors] [PATCH 1/1] hwmon: (ntc_thermistor): Fix sparse warnings
-Message-Id: <15937039.788961361269539797.JavaMail.weblogic@epmltmp1>
+Message-Id: <20130219133552.5a7ddd8a@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1361266654-25960-1-git-send-email-sachin.kamat@linaro.org>
 In-Reply-To: <1361266654-25960-1-git-send-email-sachin.kamat@linaro.org>
@@ -10,6 +10,7 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
+On Tue, 19 Feb 2013 15:07:34 +0530, Sachin Kamat wrote:
 > Fixes the following sparse warnings:
 > drivers/hwmon/ntc_thermistor.c:46:31: warning:
 > symbol 'ncpXXwb473' was not declared. Should it be static?
@@ -19,7 +20,11 @@ To: lm-sensors@vger.kernel.org
 > Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
 > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Acked-by: MyungJoo Ham <myungjoo.ham@samsung.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+Guenter, it happens that I have exactly 0 patches in my hwmon queue for
+kernel 3.9. So I'll skip my turn on this one and let you handle all the
+hwmon patches which should go in 3.9.
 
 > ---
 >  drivers/hwmon/ntc_thermistor.c |    4 ++--
@@ -47,8 +52,11 @@ Acked-by: MyungJoo Ham <myungjoo.ham@samsung.com>
 >  	{ .temp_C	= -40, .ohm	= 1610154 },
 >  	{ .temp_C	= -35, .ohm	= 1130850 },
 >  	{ .temp_C	= -30, .ohm	= 802609 },
-> -- 
-> 1.7.4.1
+
+
+-- 
+Jean Delvare
+
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
