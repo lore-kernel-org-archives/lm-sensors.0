@@ -1,87 +1,24 @@
 From: Wei Ni <wni@nvidia.com>
-Date: Wed, 20 Feb 2013 12:23:43 +0000
+Date: Wed, 20 Feb 2013 12:29:50 +0000
 Subject: Re: [lm-sensors] [RFC PATCH 7/9] thermal: tegra30: add tegra30 thermal driver
-Message-Id: <5124C04F.1080200@nvidia.com>
+Message-Id: <5124C1BE.8030401@nvidia.com>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361187031-3679-1-git-send-email-wni@nvidia.com> <1361187031-3679-8-git-send-email-wni@nvidia.com> <51240F5A.1060309@wwwdotorg.org>
-In-Reply-To: <51240F5A.1060309@wwwdotorg.org>
+References: <1361187031-3679-1-git-send-email-wni@nvidia.com> <1361187031-3679-8-git-send-email-wni@nvidia.com> <20130219235629.GU17833@n2100.arm.linux.org.uk>
+In-Reply-To: <20130219235629.GU17833-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "rui.zhang@intel.com" <rui.zhang@intel.com>, Matthew Longnecker <MLongnecker@nvidia.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.orgrs.org" <linux-kernel@vger.kernel.orgrs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: "durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <durgadoss.r-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Longnecker <MLongnecker-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org" <lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 
-On 02/20/2013 07:48 AM, Stephen Warren wrote:
-> On 02/18/2013 04:30 AM, Wei Ni wrote:
->> dd Tegra30 thermal driver support. It create thermal zone with thermal
->> sensors and cooling device to participate in the linux thermal management.
-> 
->> diff --git a/drivers/thermal/tegra3_thermal.c b/drivers/thermal/tegra3_thermal.c
-> 
->> +struct tegra_thermal_data {
-> 
-> That's not really "thermal data", but that "thermal zone" or "thermal
-> device" itself.
-> 
->> +static int
->> +tegra_throttle_set_cur_state(struct thermal_cooling_device *cdev,
->> +				unsigned long cur_state)
->> +{
->> +	struct balanced_throttle *bthrot = cdev->devdata;
->> +	int index;
->> +
->> +	mutex_lock(&cpu_throttle_lock);
->> +
->> +	/* TODO: we will handle the dvfs here */
-> 
-> That seems like rather a large TODO. We don't have any DVFS support for
-> Tegra yet. Is it even worth moving forward with this driver without that?
-
-I think it's better to split this file into two driver, one is for the
-thermal sensor, it can read/write temperature. And the other one is for
-the cooling device, something like tegra3_cooling .c, it will call dvfs
-interface to handle throttling when dvfs is ready.
-And by now, we can focus on this tegra3_thermal.c.
-
-> 
->> +struct thermal_cooling_device *balanced_throttle_register(
->> +		struct balanced_throttle *bthrot, char *type)
-> 
-> What does "balanced" mean here; isn't balanced a governor, whereas this
-> driver is simply providing the implementation that an arbitrary governor
-> would use to do its will?
-> 
-> This function also appears to be rather generically named. A consistent
-> function/symbol-name prefix of e.g. "tegra30_thermal" would be useful
-> throughout the file.
-
-I port these codes from our downstream kernel, I will move them to the
-new tegra3_cooling.c, and since the dvfs is not ready, I will remain
-simplest codes, and remove the "balanced".
-> 
+On 02/20/2013 07:56 AM, Russell King - ARM Linux wrote:
+> On Mon, Feb 18, 2013 at 07:30:29PM +0800, Wei Ni wrote:
 >> +static struct tegra_thermal_data * __devinit thermal_tegra_dt_parse_pdata(
->> +						struct platform_device *pdev)
 > 
-> I'd like some slight re-structing here.
-> 
-> Tegra only supports device tree now; no board files (upstream at least,
-> which is all that's relevant here). Hence, none of the Tegra drivers
-> support platform data at all after the last round of cleanup patches I
-> sent on Friday (most of which haven't been checked in yet). Hence, this
-> function is not parsing platform data out of DT, it's plain parsing
-> device tree.
-> 
-> So, can you move the devm_kzalloc of the tdata into probe() right at the
-> start, rename this function tegra30_thermal_parse_dt(), and call it
-> right after allocating "tdata" (which also is more like "tdev" or
-> "tzone" perhaps).
+> __dev* no longer exists.
 
-Got it, I will change it.
+Ok, I will change it.
 
-> 
-> Downstream if you still need to support platform data, you can simply
-> copy the platform data into "tdev" rather than calling
-> tegra30_thermal_parse_dt(); a simple patch to carry.
 > 
 >> +	tdata = devm_kzalloc(&pdev->dev, sizeof(*tdata), GFP_KERNEL);
 >> +	if (!tdata) {
@@ -90,91 +27,57 @@ Got it, I will change it.
 >> +	}
 >> +	memset(tdata, 0, sizeof(*tdata));
 > 
-> That last line is kinda the whole point of k*z*alloc...
+> Useless memset.  k*z*alloc already zeros the memory before returning.
 
-Yes, I forgot to remove it.
-
-> 
->> +
->> +	ret = of_parse_phandle_with_args(np, "sensors", "#sensor-cells", 0,
->> +					&args);
->> +	if (ret) {
->> +		dev_err(&pdev->dev, "Can't get sensor.\n");
->> +		return NULL;
->> +	}
->> +	tdata->np_args.np = args.np;
->> +	tdata->np_args.index = args.args[0];
-> 
-> That lookup should be implemented as part of the thermal core. It
-> shouldn't be duplicated in every single driver.
-> 
->> +	ret = of_property_read_u32(np, "passive-delay", &val);
->> +	if (!ret)
->> +		tdata->passive_delay = val;
-> 
-> The DT binding documentation doesn't say this property is optional. If
-> you intend it to be, the documentation should say so, and specify what
-> the default is if the property is missing.
-
-Ok, I will change it.
-
-> 
->> +	ret = of_property_read_u32(np, "num-passive-trips", &val);
->> +	if (!ret)
->> +		tdata->trip_ext.num_passive_trips = val;
->> +
->> +	if (tdata->trip_ext.num_passive_trips) {
->> +		tdata->trip_ext.passive_trips = devm_kzalloc(&pdev->dev,
->> +						sizeof(int) * val, GFP_KERNEL);
-> 
-> DT cells are specifically U32 not int. You probably want the driver to
-> use U32 instead of int to make 100% sure the range matches.
-
-Ok.
-
-> 
->> +
->> +		of_property_read_u32_array(np, "passive-trips",
->> +				(u32 *)(tdata->trip_ext.passive_trips),
->> +				tdata->trip_ext.num_passive_trips);
-> 
-> ... and then you wouldn't need this cast!
-> 
->> +	}
-> 
->> +	of_property_read_u32_array(np, "throt-tab",
->> +				(u32 *)(&tdata->tj_throttle.throt_tab),
->> +				tdata->tj_throttle.throt_tab_size * 2);
-> 
-> What about error-handling that API call, and all the others?
-
-I will add it.
+Yes, I forgot to remove this line.
 
 > 
 >> +static int tegra30_thermal_probe(struct platform_device *pdev)
 >> +{
 >> +	struct tegra_thermal_data *pdata = pdev->dev.platform_data;
 > 
-> Lets not support platform data at all upstream.
+> You read pdata here....
+> 
+>> +	struct thermal_zone *tz;
+>> +	struct thermal_sensor *ts;
+>> +	static struct thermal_cooling_device *cdev;
+>> +	int ret;
+>> +
+>> +	pdata = thermal_tegra_dt_parse_pdata(pdev);
+> 
+> and immediately overwrite it here.
+> 
+>> +	if (!pdata) {
+>> +		dev_err(&pdev->dev, "Get platform data failed.\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	/* Create a thermal zone */
+>> +	tz = create_thermal_zone("tz_tegra", NULL);
+>> +	if (!tz) {
+>> +		dev_err(&pdev->dev, "Create thermal_zone failed.\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	pdata->tz = tz;
+> 
+> This isn't how you deal with driver data.  Set driver data against a
+> platform device using platform_set_drvdata(pdev, tz).
 
-Got it, thanks.
+Yes, I didn't consider it carefully.
+As Stephen said, our tegra will only support DT, so I will remove the
+platform date.
+
+Thanks.
+Wei.
 
 > 
->> +	/* Register cooling device */
->> +	cdev = balanced_throttle_register(&pdata->tj_throttle, "cdev_throttle");
+>> +static int tegra30_thermal_remove(struct platform_device *pdev)
+>> +{
+>> +	struct tegra_thermal_data *pdata = pdev->dev.platform_data;
 > 
-> Is this picking specific policy ("balanced")? Should it be? What is
-> "cdev_throttle"?
-
-These codes are ported from our downstream kernel, it may handle
-multiple cooling device, so it named as "balanced", but in here we
-didn't use it, so it's better to remove them, and remain simplest codes.
-I will change it as I said above.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-tegra" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> and use platform_get_drvdata() here - and don't use pdata->tz.
+> 	struct struct thermal_zone *tz = platform_get_drvdata(pdev);
 > 
 
 
