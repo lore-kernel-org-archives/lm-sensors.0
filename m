@@ -1,1170 +1,226 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Date: Fri, 15 Feb 2013 16:57:18 +0000
-Subject: [lm-sensors] [PATCH 9/9] staging:iio: Remove adt7410 driver
-Message-Id: <1360947438-2550-9-git-send-email-lars@metafoo.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Wed, 20 Feb 2013 16:37:43 +0000
+Subject: [lm-sensors] [GIT PULL] hwmon updates for 3.9-rc1
+Message-Id: <20130220163743.GA11596@roeck-us.net>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="===============5329418360460273221=="
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1360947438-2550-1-git-send-email-lars@metafoo.de>
-In-Reply-To: <1360947438-2550-1-git-send-email-lars@metafoo.de>
-MIME-Version: 1.0
+To: torvalds@linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, lm-sensors@lm-sensors.org
+
+
+--===============5329418360460273221==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
+Content-Disposition: inline
+
+
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Linus,
+
+Please pull hwmon updates for Linux 3.9-rc1 from signed tag:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git hwmon-for-linus
+
+Thanks,
+Guenter
+------
+
+The following changes since commit 949db153b6466c6f7cad5a427ecea94985927311:
+
+  Linux 3.8-rc5 (2013-01-25 11:57:28 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/groeck/linux-staging.git tags/hwmon-for-linus
+
+for you to fetch changes up to 4626dcff78a70258f0064fbdd6d504249f918bcd:
+
+  hwmon: (ntc_thermistor): Fix sparse warnings (2013-02-19 17:34:17 -0800)
+
+----------------------------------------------------------------
+New drivers for MAX6697 and compatibles and for INA209.
+Added support for IT8771E, IT8772E, MAX34460, MAX34461, MCP98244,
+and ADT7420 to existing drivers.
+Added support for additional attributes to various drivers.
+Replaced SENSORS_LIMIT with clamp_val; retire SENSORS_LIMIT;
+Clean up PMBus code to reduce its size; clean up adt7410 driver.
+A couple of minor bug fixes as well as documentation cleanup.
+
+Out-of-tree change: Replace SENSORS_LIMIT with clamp_val in
+platform/x86/eeepc-laptop driver.
+
+----------------------------------------------------------------
+Chris Verges (2):
+      hwmon: (lm73) Add 'update_interval' attribute
+      hwmon: (lm73) Add support for max/min alarms
+
+Guenter Roeck (22):
+      hwmon: Replace SENSORS_LIMIT with clamp_val
+      platform/x86: (eeepc-laptop) Replace SENSORS_LIMIT with clamp_val
+      hwmon: Retire SENSORS_LIMIT
+      hwmon: (coretemp) Document and add support for additional CPU models
+      hwmon: Driver for Maxim MAX6697 and compatibles
+      hwmon: (it87) Add support for IT8771E and IT8772E
+      hwmon: (lm73) Fix lower and upper temperature limits
+      hwmon: Driver for Texas Instruments INA209
+      hwmon: (pmbus) Drop unnecessary error messages in probe error path
+      hwmon: (pmbus) Fix 'Macros with multiple statements' checkpatch error
+      hwmon: (pmbus) Use dev variable to represent client->dev
+      hwmon: (pmbus) Simplify memory allocation for labels and booleans
+      hwmon: (pmbus) Improve boolean handling
+      hwmon: (pmbus) Simplify memory allocation for sensor attributes
+      hwmon: (pmbus) Use krealloc to allocate attribute memory
+      hwmon: (pmbus) Add support for additional voltage sensor
+      hwmon: (pmbus) Add function to clear sensor cache
+      hwmon: (pmbus/zl6100) Add support for VMON/VDRV
+      hwmon: (pmbus) Add support for word status register
+      hwmon: (pmbus/max34440) Add support for MAX34460 and MAX34461
+      hwmon: (pmbus) Clean up for code size reduction
+      hwmon: (jc42) Add support for MCP98244
+
+Lars-Peter Clausen (5):
+      hwmon: (adt7410) Clear unwanted bits in the config register
+      hwmon: (adt7410) Let suspend/resume depend on CONFIG_PM_SLEEP
+      hwmon: (adt7410) Use the SIMPLE_DEV_PM_OPS helper macro
+      hwmon: (adt7410) Use I2C_ADDRS helper macro
+      hwmon: (adt7410) Add device table entry for the adt7420
+
+Sachin Kamat (1):
+      hwmon: (ntc_thermistor): Fix sparse warnings
+
+Vivien Didelot (2):
+      hwmon: (sht15) avoid CamelCase
+      hwmon: (sht15) check GPIO directions
+
+ Documentation/devicetree/bindings/i2c/ina209.txt  |   18 +
+ Documentation/devicetree/bindings/i2c/max6697.txt |   64 ++
+ Documentation/hwmon/coretemp                      |    9 +
+ Documentation/hwmon/ina209                        |   93 +++
+ Documentation/hwmon/it87                          |   16 +-
+ Documentation/hwmon/jc42                          |    3 +-
+ Documentation/hwmon/lm73                          |   90 +++
+ Documentation/hwmon/max34440                      |   16 +
+ Documentation/hwmon/max6697                       |   58 ++
+ Documentation/hwmon/sysfs-interface               |    8 +-
+ Documentation/hwmon/zl6100                        |   26 +-
+ drivers/hwmon/Kconfig                             |   32 +-
+ drivers/hwmon/Makefile                            |    2 +
+ drivers/hwmon/ad7414.c                            |    2 +-
+ drivers/hwmon/adm1021.c                           |    4 +-
+ drivers/hwmon/adm1026.c                           |   16 +-
+ drivers/hwmon/adm1031.c                           |   12 +-
+ drivers/hwmon/adm9240.c                           |    6 +-
+ drivers/hwmon/ads7828.c                           |    6 +-
+ drivers/hwmon/adt7410.c                           |   28 +-
+ drivers/hwmon/adt7462.c                           |   20 +-
+ drivers/hwmon/adt7470.c                           |   20 +-
+ drivers/hwmon/adt7475.c                           |   18 +-
+ drivers/hwmon/amc6821.c                           |   32 +-
+ drivers/hwmon/asb100.c                            |   10 +-
+ drivers/hwmon/asc7621.c                           |   26 +-
+ drivers/hwmon/coretemp.c                          |    5 +-
+ drivers/hwmon/dme1737.c                           |   15 +-
+ drivers/hwmon/emc2103.c                           |    2 +-
+ drivers/hwmon/emc6w201.c                          |    6 +-
+ drivers/hwmon/f71882fg.c                          |   25 +-
+ drivers/hwmon/f75375s.c                           |   12 +-
+ drivers/hwmon/fschmd.c                            |    4 +-
+ drivers/hwmon/g760a.c                             |    2 +-
+ drivers/hwmon/gl518sm.c                           |   10 +-
+ drivers/hwmon/gl520sm.c                           |    9 +-
+ drivers/hwmon/ina209.c                            |  636 ++++++++++++++++
+ drivers/hwmon/it87.c                              |   52 +-
+ drivers/hwmon/jc42.c                              |   10 +-
+ drivers/hwmon/lm63.c                              |    8 +-
+ drivers/hwmon/lm73.c                              |  136 +++-
+ drivers/hwmon/lm75.h                              |    2 +-
+ drivers/hwmon/lm77.c                              |    2 +-
+ drivers/hwmon/lm78.c                              |    6 +-
+ drivers/hwmon/lm80.c                              |    8 +-
+ drivers/hwmon/lm85.c                              |   10 +-
+ drivers/hwmon/lm90.c                              |    2 +-
+ drivers/hwmon/lm93.c                              |   28 +-
+ drivers/hwmon/lm95245.c                           |    4 +-
+ drivers/hwmon/max16065.c                          |    2 +-
+ drivers/hwmon/max1668.c                           |    4 +-
+ drivers/hwmon/max6639.c                           |    4 +-
+ drivers/hwmon/max6642.c                           |    2 +-
+ drivers/hwmon/max6650.c                           |    4 +-
+ drivers/hwmon/max6697.c                           |  726 ++++++++++++++++++
+ drivers/hwmon/ntc_thermistor.c                    |    4 +-
+ drivers/hwmon/pmbus/Kconfig                       |    2 +-
+ drivers/hwmon/pmbus/max34440.c                    |   75 +-
+ drivers/hwmon/pmbus/pmbus.h                       |   11 +
+ drivers/hwmon/pmbus/pmbus_core.c                  |  840 ++++++++++-----------
+ drivers/hwmon/pmbus/zl6100.c                      |  176 ++++-
+ drivers/hwmon/sht15.c                             |  157 ++--
+ drivers/hwmon/sis5595.c                           |    6 +-
+ drivers/hwmon/smsc47m1.c                          |    2 +-
+ drivers/hwmon/smsc47m192.c                        |    4 +-
+ drivers/hwmon/thmc50.c                            |    6 +-
+ drivers/hwmon/tmp102.c                            |    2 +-
+ drivers/hwmon/tmp401.c                            |   14 +-
+ drivers/hwmon/via686a.c                           |   17 +-
+ drivers/hwmon/vt1211.c                            |   10 +-
+ drivers/hwmon/vt8231.c                            |   22 +-
+ drivers/hwmon/w83627ehf.c                         |   17 +-
+ drivers/hwmon/w83627hf.c                          |   23 +-
+ drivers/hwmon/w83781d.c                           |   17 +-
+ drivers/hwmon/w83791d.c                           |   10 +-
+ drivers/hwmon/w83792d.c                           |   25 +-
+ drivers/hwmon/w83793.c                            |   18 +-
+ drivers/hwmon/w83795.c                            |   28 +-
+ drivers/hwmon/w83l786ng.c                         |   17 +-
+ drivers/platform/x86/eeepc-laptop.c               |    2 +-
+ include/linux/hwmon.h                             |   12 -
+ include/linux/platform_data/max6697.h             |   36 +
+ 82 files changed, 3048 insertions(+), 876 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/ina209.txt
+ create mode 100644 Documentation/devicetree/bindings/i2c/max6697.txt
+ create mode 100644 Documentation/hwmon/ina209
+ create mode 100644 Documentation/hwmon/lm73
+ create mode 100644 Documentation/hwmon/max6697
+ create mode 100644 drivers/hwmon/ina209.c
+ create mode 100644 drivers/hwmon/max6697.c
+ create mode 100644 include/linux/platform_data/max6697.h
+
+--NzB8fVQJ5HfG6fxh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRJPvXAAoJEMsfJm/On5mBpM8P/jh/IRvqQEetP07UrZlvNBNC
+PHwXsKefvDuKUoPeV6K0/beoVIuhQdIakml/8gXcwdRifWjAqGdjtOX3sngs9Zo4
+liHCEVfUVg0yZV2ah+o6t/37Xx+SM0F6kAFmtNgJEDH3x3xj5CaydlNXzIgatp8A
+34wgCBui48psacxEIANNl7VJJsRjVlXKdteXo9cdhRdqJFmraTbbHmNgNskhD56S
+4KNVJwuNA4xe7pZUAjcItgwt9eCMCyn4pSzQyddGgUVX0WfZmQHz/0/AT9w+5LVX
+knvkwUQJYEx6CB2Vk9lv+bOPrPKNe6Sxb0YRYaVfOy+fxmfWVXQ+4MrD/MZqZEOC
+ffcbWq7QA+x5qXqzSJWKR0gs1CwF0w07y+plooie71s0WZm+NvFlAxMh+PHnMiCX
+AxI1dXngGUYbXg2n5tUQaX8njJP1LukFIF7MfLAIpKksDn10uzkM9XLyR1YQq1QD
+emUGtqOtc0UWO913rZ9OPthRw68rQny3+uPZmQmxSNh6Ftls/o73QwdmYyceyljI
+cPIeSt4vUFMm6v1JfuFgROslIWQbO0KpKWNjkMEtV0piFdWJwAyA6sZB0XLpRJfc
+ymKYl/IMbgg9NcrU6V8GHmB+3PJF3053HBq69Z2/Xl8GUP0wBm6CcaNggVe3PPHV
+ScSo7s8pZcNx8wA+HJw/
+=0Iuj
+-----END PGP SIGNATURE-----
+
+--NzB8fVQJ5HfG6fxh--
+
+
+--===============5329418360460273221==
 Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>
-Cc: Hartmut Knaack <knaack.h@gmx.de>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-
-The adt7410 hwmon driver is feature wise more or less on par with the IIO
-driver. So we can finally remove the IIO driver.
-
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
----
- drivers/staging/iio/adc/Kconfig   |    7 -
- drivers/staging/iio/adc/Makefile  |    1 -
- drivers/staging/iio/adc/adt7410.c | 1102 -------------------------------------
- 3 files changed, 1110 deletions(-)
- delete mode 100644 drivers/staging/iio/adc/adt7410.c
-
-diff --git a/drivers/staging/iio/adc/Kconfig b/drivers/staging/iio/adc/Kconfig
-index fb8c239..029ae54 100644
---- a/drivers/staging/iio/adc/Kconfig
-+++ b/drivers/staging/iio/adc/Kconfig
-@@ -90,13 +90,6 @@ config AD7192
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ad7192.
- 
--config ADT7410
--	tristate "Analog Devices ADT7310/ADT7410 temperature sensor driver"
--	depends on I2C || SPI_MASTER
--	help
--	  Say yes here to build support for Analog Devices ADT7310/ADT7410
--	  temperature sensors.
--
- config AD7280
- 	tristate "Analog Devices AD7280A Lithium Ion Battery Monitoring System"
- 	depends on SPI
-diff --git a/drivers/staging/iio/adc/Makefile b/drivers/staging/iio/adc/Makefile
-index d285596..3e9fb14 100644
---- a/drivers/staging/iio/adc/Makefile
-+++ b/drivers/staging/iio/adc/Makefile
-@@ -16,7 +16,6 @@ obj-$(CONFIG_AD7291) += ad7291.o
- obj-$(CONFIG_AD7780) += ad7780.o
- obj-$(CONFIG_AD7816) += ad7816.o
- obj-$(CONFIG_AD7192) += ad7192.o
--obj-$(CONFIG_ADT7410) += adt7410.o
- obj-$(CONFIG_AD7280) += ad7280a.o
- obj-$(CONFIG_LPC32XX_ADC) += lpc32xx_adc.o
- obj-$(CONFIG_MXS_LRADC) += mxs-lradc.o
-diff --git a/drivers/staging/iio/adc/adt7410.c b/drivers/staging/iio/adc/adt7410.c
-deleted file mode 100644
-index 35455e1..0000000
---- a/drivers/staging/iio/adc/adt7410.c
-+++ /dev/null
-@@ -1,1102 +0,0 @@
--/*
-- * ADT7410 digital temperature sensor driver supporting ADT7310/ADT7410
-- *
-- * Copyright 2010 Analog Devices Inc.
-- *
-- * Licensed under the GPL-2 or later.
-- */
--
--#include <linux/interrupt.h>
--#include <linux/device.h>
--#include <linux/kernel.h>
--#include <linux/slab.h>
--#include <linux/sysfs.h>
--#include <linux/list.h>
--#include <linux/i2c.h>
--#include <linux/spi/spi.h>
--#include <linux/module.h>
--
--#include <linux/iio/iio.h>
--#include <linux/iio/sysfs.h>
--#include <linux/iio/events.h>
--
--/*
-- * ADT7410 registers definition
-- */
--
--#define ADT7410_TEMPERATURE		0
--#define ADT7410_STATUS			2
--#define ADT7410_CONFIG			3
--#define ADT7410_T_ALARM_HIGH		4
--#define ADT7410_T_ALARM_LOW		6
--#define ADT7410_T_CRIT			8
--#define ADT7410_T_HYST			0xA
--#define ADT7410_ID			0xB
--#define ADT7410_RESET			0x2F
--
--/*
-- * ADT7310 registers definition
-- */
--
--#define ADT7310_STATUS			0
--#define ADT7310_CONFIG			1
--#define ADT7310_TEMPERATURE		2
--#define ADT7310_ID			3
--#define ADT7310_T_CRIT			4
--#define ADT7310_T_HYST			5
--#define ADT7310_T_ALARM_HIGH		6
--#define ADT7310_T_ALARM_LOW		7
--
--/*
-- * ADT7410 status
-- */
--#define ADT7410_STAT_T_LOW		0x10
--#define ADT7410_STAT_T_HIGH		0x20
--#define ADT7410_STAT_T_CRIT		0x40
--#define ADT7410_STAT_NOT_RDY		0x80
--
--/*
-- * ADT7410 config
-- */
--#define ADT7410_FAULT_QUEUE_MASK	0x3
--#define ADT7410_CT_POLARITY		0x4
--#define ADT7410_INT_POLARITY		0x8
--#define ADT7410_EVENT_MODE		0x10
--#define ADT7410_MODE_MASK		0x60
--#define ADT7410_ONESHOT			0x20
--#define ADT7410_SPS			0x40
--#define ADT7410_PD			0x60
--#define ADT7410_RESOLUTION		0x80
--
--/*
-- * ADT7410 masks
-- */
--#define ADT7410_T16_VALUE_SIGN			0x8000
--#define ADT7410_T16_VALUE_FLOAT_OFFSET		7
--#define ADT7410_T16_VALUE_FLOAT_MASK		0x7F
--#define ADT7410_T13_VALUE_SIGN			0x1000
--#define ADT7410_T13_VALUE_OFFSET		3
--#define ADT7410_T13_VALUE_FLOAT_OFFSET		4
--#define ADT7410_T13_VALUE_FLOAT_MASK		0xF
--#define ADT7410_T_HYST_MASK			0xF
--#define ADT7410_DEVICE_ID_MASK			0xF
--#define ADT7410_MANUFACTORY_ID_MASK		0xF0
--#define ADT7410_MANUFACTORY_ID_OFFSET		4
--
--
--#define ADT7310_CMD_REG_MASK			0x28
--#define ADT7310_CMD_REG_OFFSET			3
--#define ADT7310_CMD_READ			0x40
--#define ADT7310_CMD_CON_READ			0x4
--
--#define ADT7410_IRQS				2
--
--/*
-- * struct adt7410_chip_info - chip specifc information
-- */
--
--struct adt7410_chip_info;
--
--struct adt7410_ops {
--	int (*read_word)(struct adt7410_chip_info *, u8 reg, u16 *data);
--	int (*write_word)(struct adt7410_chip_info *, u8 reg, u16 data);
--	int (*read_byte)(struct adt7410_chip_info *, u8 reg, u8 *data);
--	int (*write_byte)(struct adt7410_chip_info *, u8 reg, u8 data);
--};
--
--struct adt7410_chip_info {
--	struct device *dev;
--	u8  config;
--
--	const struct adt7410_ops *ops;
--};
--
--static int adt7410_read_word(struct adt7410_chip_info *chip, u8 reg, u16 *data)
--{
--	return chip->ops->read_word(chip, reg, data);
--}
--
--static int adt7410_write_word(struct adt7410_chip_info *chip, u8 reg, u16 data)
--{
--	return chip->ops->write_word(chip, reg, data);
--}
--
--static int adt7410_read_byte(struct adt7410_chip_info *chip, u8 reg, u8 *data)
--{
--	return chip->ops->read_byte(chip, reg, data);
--}
--
--static int adt7410_write_byte(struct adt7410_chip_info *chip, u8 reg, u8 data)
--{
--	return chip->ops->write_byte(chip, reg, data);
--}
--
--static ssize_t adt7410_show_mode(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	u8 config;
--
--	config = chip->config & ADT7410_MODE_MASK;
--
--	switch (config) {
--	case ADT7410_PD:
--		return sprintf(buf, "power-down\n");
--	case ADT7410_ONESHOT:
--		return sprintf(buf, "one-shot\n");
--	case ADT7410_SPS:
--		return sprintf(buf, "sps\n");
--	default:
--		return sprintf(buf, "full\n");
--	}
--}
--
--static ssize_t adt7410_store_mode(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	u16 config;
--	int ret;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	config = chip->config & (~ADT7410_MODE_MASK);
--	if (strcmp(buf, "power-down"))
--		config |= ADT7410_PD;
--	else if (strcmp(buf, "one-shot"))
--		config |= ADT7410_ONESHOT;
--	else if (strcmp(buf, "sps"))
--		config |= ADT7410_SPS;
--
--	ret = adt7410_write_byte(chip, ADT7410_CONFIG, config);
--	if (ret)
--		return -EIO;
--
--	chip->config = config;
--
--	return len;
--}
--
--static IIO_DEVICE_ATTR(mode, S_IRUGO | S_IWUSR,
--		adt7410_show_mode,
--		adt7410_store_mode,
--		0);
--
--static ssize_t adt7410_show_available_modes(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	return sprintf(buf, "full\none-shot\nsps\npower-down\n");
--}
--
--static IIO_DEVICE_ATTR(available_modes, S_IRUGO, adt7410_show_available_modes, NULL, 0);
--
--static ssize_t adt7410_show_resolution(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	int ret;
--	int bits;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	if (chip->config & ADT7410_RESOLUTION)
--		bits = 16;
--	else
--		bits = 13;
--
--	return sprintf(buf, "%d bits\n", bits);
--}
--
--static ssize_t adt7410_store_resolution(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	unsigned long data;
--	u16 config;
--	int ret;
--
--	ret = strict_strtoul(buf, 10, &data);
--	if (ret)
--		return -EINVAL;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	config = chip->config & (~ADT7410_RESOLUTION);
--	if (data)
--		config |= ADT7410_RESOLUTION;
--
--	ret = adt7410_write_byte(chip, ADT7410_CONFIG, config);
--	if (ret)
--		return -EIO;
--
--	chip->config = config;
--
--	return len;
--}
--
--static IIO_DEVICE_ATTR(resolution, S_IRUGO | S_IWUSR,
--		adt7410_show_resolution,
--		adt7410_store_resolution,
--		0);
--
--static ssize_t adt7410_show_id(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	u8 id;
--	int ret;
--
--	ret = adt7410_read_byte(chip, ADT7410_ID, &id);
--	if (ret)
--		return -EIO;
--
--	return sprintf(buf, "device id: 0x%x\nmanufactory id: 0x%x\n",
--			id & ADT7410_DEVICE_ID_MASK,
--			(id & ADT7410_MANUFACTORY_ID_MASK) >> ADT7410_MANUFACTORY_ID_OFFSET);
--}
--
--static IIO_DEVICE_ATTR(id, S_IRUGO | S_IWUSR,
--		adt7410_show_id,
--		NULL,
--		0);
--
--static ssize_t adt7410_convert_temperature(struct adt7410_chip_info *chip,
--		u16 data, char *buf)
--{
--	char sign = ' ';
--
--	if (!(chip->config & ADT7410_RESOLUTION))
--		data &= ~0x7;
--
--	if (data & ADT7410_T16_VALUE_SIGN) {
--		/* convert supplement to positive value */
--		data = (u16)((ADT7410_T16_VALUE_SIGN << 1) - (u32)data);
--		sign = '-';
--	}
--	return sprintf(buf, "%c%d.%.7d\n", sign,
--			(data >> ADT7410_T16_VALUE_FLOAT_OFFSET),
--			(data & ADT7410_T16_VALUE_FLOAT_MASK) * 78125);
--}
--
--static ssize_t adt7410_show_value(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	u8 status;
--	u16 data;
--	int ret, i = 0;
--
--	do {
--		ret = adt7410_read_byte(chip, ADT7410_STATUS, &status);
--		if (ret)
--			return -EIO;
--		i++;
--		if (i = 10000)
--			return -EIO;
--	} while (status & ADT7410_STAT_NOT_RDY);
--
--	ret = adt7410_read_word(chip, ADT7410_TEMPERATURE, &data);
--	if (ret)
--		return -EIO;
--
--	return adt7410_convert_temperature(chip, data, buf);
--}
--
--static IIO_DEVICE_ATTR(value, S_IRUGO, adt7410_show_value, NULL, 0);
--
--static struct attribute *adt7410_attributes[] = {
--	&iio_dev_attr_available_modes.dev_attr.attr,
--	&iio_dev_attr_mode.dev_attr.attr,
--	&iio_dev_attr_resolution.dev_attr.attr,
--	&iio_dev_attr_id.dev_attr.attr,
--	&iio_dev_attr_value.dev_attr.attr,
--	NULL,
--};
--
--static const struct attribute_group adt7410_attribute_group = {
--	.attrs = adt7410_attributes,
--};
--
--static irqreturn_t adt7410_event_handler(int irq, void *private)
--{
--	struct iio_dev *indio_dev = private;
--	struct adt7410_chip_info *chip = iio_priv(indio_dev);
--	s64 timestamp = iio_get_time_ns();
--	u8 status;
--
--	if (adt7410_read_byte(chip, ADT7410_STATUS, &status))
--		return IRQ_HANDLED;
--
--	if (status & ADT7410_STAT_T_HIGH)
--		iio_push_event(indio_dev,
--			       IIO_UNMOD_EVENT_CODE(IIO_TEMP, 0,
--						    IIO_EV_TYPE_THRESH,
--						    IIO_EV_DIR_RISING),
--			       timestamp);
--	if (status & ADT7410_STAT_T_LOW)
--		iio_push_event(indio_dev,
--			       IIO_UNMOD_EVENT_CODE(IIO_TEMP, 0,
--						    IIO_EV_TYPE_THRESH,
--						    IIO_EV_DIR_FALLING),
--			       timestamp);
--	if (status & ADT7410_STAT_T_CRIT)
--		iio_push_event(indio_dev,
--			       IIO_UNMOD_EVENT_CODE(IIO_TEMP, 0,
--						    IIO_EV_TYPE_THRESH,
--						    IIO_EV_DIR_RISING),
--			       timestamp);
--
--	return IRQ_HANDLED;
--}
--
--static ssize_t adt7410_show_event_mode(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	int ret;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	if (chip->config & ADT7410_EVENT_MODE)
--		return sprintf(buf, "interrupt\n");
--	else
--		return sprintf(buf, "comparator\n");
--}
--
--static ssize_t adt7410_set_event_mode(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	u16 config;
--	int ret;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	config = chip->config &= ~ADT7410_EVENT_MODE;
--	if (strcmp(buf, "comparator") != 0)
--		config |= ADT7410_EVENT_MODE;
--
--	ret = adt7410_write_byte(chip, ADT7410_CONFIG, config);
--	if (ret)
--		return -EIO;
--
--	chip->config = config;
--
--	return ret;
--}
--
--static ssize_t adt7410_show_available_event_modes(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	return sprintf(buf, "comparator\ninterrupt\n");
--}
--
--static ssize_t adt7410_show_fault_queue(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	int ret;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	return sprintf(buf, "%d\n", chip->config & ADT7410_FAULT_QUEUE_MASK);
--}
--
--static ssize_t adt7410_set_fault_queue(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	unsigned long data;
--	int ret;
--	u8 config;
--
--	ret = strict_strtoul(buf, 10, &data);
--	if (ret || data > 3)
--		return -EINVAL;
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret)
--		return -EIO;
--
--	config = chip->config & ~ADT7410_FAULT_QUEUE_MASK;
--	config |= data;
--	ret = adt7410_write_byte(chip, ADT7410_CONFIG, config);
--	if (ret)
--		return -EIO;
--
--	chip->config = config;
--
--	return ret;
--}
--
--static inline ssize_t adt7410_show_t_bound(struct device *dev,
--		struct device_attribute *attr,
--		u8 bound_reg,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	u16 data;
--	int ret;
--
--	ret = adt7410_read_word(chip, bound_reg, &data);
--	if (ret)
--		return -EIO;
--
--	return adt7410_convert_temperature(chip, data, buf);
--}
--
--static inline ssize_t adt7410_set_t_bound(struct device *dev,
--		struct device_attribute *attr,
--		u8 bound_reg,
--		const char *buf,
--		size_t len)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	long tmp1, tmp2;
--	u16 data;
--	char *pos;
--	int ret;
--
--	pos = strchr(buf, '.');
--
--	ret = strict_strtol(buf, 10, &tmp1);
--
--	if (ret || tmp1 > 127 || tmp1 < -128)
--		return -EINVAL;
--
--	if (pos) {
--		len = strlen(pos);
--
--		if (chip->config & ADT7410_RESOLUTION) {
--			if (len > ADT7410_T16_VALUE_FLOAT_OFFSET)
--				len = ADT7410_T16_VALUE_FLOAT_OFFSET;
--			pos[len] = 0;
--			ret = strict_strtol(pos, 10, &tmp2);
--
--			if (!ret)
--				tmp2 = (tmp2 / 78125) * 78125;
--		} else {
--			if (len > ADT7410_T13_VALUE_FLOAT_OFFSET)
--				len = ADT7410_T13_VALUE_FLOAT_OFFSET;
--			pos[len] = 0;
--			ret = strict_strtol(pos, 10, &tmp2);
--
--			if (!ret)
--				tmp2 = (tmp2 / 625) * 625;
--		}
--	}
--
--	if (tmp1 < 0)
--		data = (u16)(-tmp1);
--	else
--		data = (u16)tmp1;
--
--	if (chip->config & ADT7410_RESOLUTION) {
--		data = (data << ADT7410_T16_VALUE_FLOAT_OFFSET) |
--			(tmp2 & ADT7410_T16_VALUE_FLOAT_MASK);
--
--		if (tmp1 < 0)
--			/* convert positive value to supplyment */
--			data = (u16)((ADT7410_T16_VALUE_SIGN << 1) - (u32)data);
--	} else {
--		data = (data << ADT7410_T13_VALUE_FLOAT_OFFSET) |
--			(tmp2 & ADT7410_T13_VALUE_FLOAT_MASK);
--
--		if (tmp1 < 0)
--			/* convert positive value to supplyment */
--			data = (ADT7410_T13_VALUE_SIGN << 1) - data;
--		data <<= ADT7410_T13_VALUE_OFFSET;
--	}
--
--	ret = adt7410_write_word(chip, bound_reg, data);
--	if (ret)
--		return -EIO;
--
--	return ret;
--}
--
--static ssize_t adt7410_show_t_alarm_high(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	return adt7410_show_t_bound(dev, attr,
--			ADT7410_T_ALARM_HIGH, buf);
--}
--
--static inline ssize_t adt7410_set_t_alarm_high(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	return adt7410_set_t_bound(dev, attr,
--			ADT7410_T_ALARM_HIGH, buf, len);
--}
--
--static ssize_t adt7410_show_t_alarm_low(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	return adt7410_show_t_bound(dev, attr,
--			ADT7410_T_ALARM_LOW, buf);
--}
--
--static inline ssize_t adt7410_set_t_alarm_low(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	return adt7410_set_t_bound(dev, attr,
--			ADT7410_T_ALARM_LOW, buf, len);
--}
--
--static ssize_t adt7410_show_t_crit(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	return adt7410_show_t_bound(dev, attr,
--			ADT7410_T_CRIT, buf);
--}
--
--static inline ssize_t adt7410_set_t_crit(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	return adt7410_set_t_bound(dev, attr,
--			ADT7410_T_CRIT, buf, len);
--}
--
--static ssize_t adt7410_show_t_hyst(struct device *dev,
--		struct device_attribute *attr,
--		char *buf)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	int ret;
--	u8 t_hyst;
--
--	ret = adt7410_read_byte(chip, ADT7410_T_HYST, &t_hyst);
--	if (ret)
--		return -EIO;
--
--	return sprintf(buf, "%d\n", t_hyst & ADT7410_T_HYST_MASK);
--}
--
--static inline ssize_t adt7410_set_t_hyst(struct device *dev,
--		struct device_attribute *attr,
--		const char *buf,
--		size_t len)
--{
--	struct iio_dev *dev_info = dev_to_iio_dev(dev);
--	struct adt7410_chip_info *chip = iio_priv(dev_info);
--	int ret;
--	unsigned long data;
--	u8 t_hyst;
--
--	ret = strict_strtol(buf, 10, &data);
--
--	if (ret || data > ADT7410_T_HYST_MASK)
--		return -EINVAL;
--
--	t_hyst = (u8)data;
--
--	ret = adt7410_write_byte(chip, ADT7410_T_HYST, t_hyst);
--	if (ret)
--		return -EIO;
--
--	return ret;
--}
--
--static IIO_DEVICE_ATTR(event_mode,
--		       S_IRUGO | S_IWUSR,
--		       adt7410_show_event_mode, adt7410_set_event_mode, 0);
--static IIO_DEVICE_ATTR(available_event_modes,
--		       S_IRUGO,
--		       adt7410_show_available_event_modes, NULL, 0);
--static IIO_DEVICE_ATTR(fault_queue,
--		       S_IRUGO | S_IWUSR,
--		       adt7410_show_fault_queue, adt7410_set_fault_queue, 0);
--static IIO_DEVICE_ATTR(t_alarm_high,
--		       S_IRUGO | S_IWUSR,
--		       adt7410_show_t_alarm_high, adt7410_set_t_alarm_high, 0);
--static IIO_DEVICE_ATTR(t_alarm_low,
--		       S_IRUGO | S_IWUSR,
--		       adt7410_show_t_alarm_low, adt7410_set_t_alarm_low, 0);
--static IIO_DEVICE_ATTR(t_crit,
--		       S_IRUGO | S_IWUSR,
--		       adt7410_show_t_crit, adt7410_set_t_crit, 0);
--static IIO_DEVICE_ATTR(t_hyst,
--		       S_IRUGO | S_IWUSR,
--		       adt7410_show_t_hyst, adt7410_set_t_hyst, 0);
--
--static struct attribute *adt7410_event_int_attributes[] = {
--	&iio_dev_attr_event_mode.dev_attr.attr,
--	&iio_dev_attr_available_event_modes.dev_attr.attr,
--	&iio_dev_attr_fault_queue.dev_attr.attr,
--	&iio_dev_attr_t_alarm_high.dev_attr.attr,
--	&iio_dev_attr_t_alarm_low.dev_attr.attr,
--	&iio_dev_attr_t_crit.dev_attr.attr,
--	&iio_dev_attr_t_hyst.dev_attr.attr,
--	NULL,
--};
--
--static struct attribute_group adt7410_event_attribute_group = {
--	.attrs = adt7410_event_int_attributes,
--	.name = "events",
--};
--
--static const struct iio_info adt7410_info = {
--	.attrs = &adt7410_attribute_group,
--	.event_attrs = &adt7410_event_attribute_group,
--	.driver_module = THIS_MODULE,
--};
--
--/*
-- * device probe and remove
-- */
--
--static int adt7410_probe(struct device *dev, int irq,
--	const char *name, const struct adt7410_ops *ops)
--{
--	unsigned long *adt7410_platform_data = dev->platform_data;
--	unsigned long local_pdata[] = {0, 0};
--	struct adt7410_chip_info *chip;
--	struct iio_dev *indio_dev;
--	int ret = 0;
--
--	indio_dev = iio_device_alloc(sizeof(*chip));
--	if (indio_dev = NULL) {
--		ret = -ENOMEM;
--		goto error_ret;
--	}
--	chip = iio_priv(indio_dev);
--	/* this is only used for device removal purposes */
--	dev_set_drvdata(dev, indio_dev);
--
--	chip->dev = dev;
--	chip->ops = ops;
--
--	indio_dev->name = name;
--	indio_dev->dev.parent = dev;
--	indio_dev->info = &adt7410_info;
--	indio_dev->modes = INDIO_DIRECT_MODE;
--
--	if (!adt7410_platform_data)
--		adt7410_platform_data = local_pdata;
--
--	/* CT critcal temperature event. line 0 */
--	if (irq) {
--		ret = request_threaded_irq(irq,
--					   NULL,
--					   &adt7410_event_handler,
--					   IRQF_TRIGGER_LOW | IRQF_ONESHOT,
--					   name,
--					   indio_dev);
--		if (ret)
--			goto error_free_dev;
--	}
--
--	/* INT bound temperature alarm event. line 1 */
--	if (adt7410_platform_data[0]) {
--		ret = request_threaded_irq(adt7410_platform_data[0],
--					   NULL,
--					   &adt7410_event_handler,
--					   adt7410_platform_data[1] |
--					   IRQF_ONESHOT,
--					   name,
--					   indio_dev);
--		if (ret)
--			goto error_unreg_ct_irq;
--	}
--
--	ret = adt7410_read_byte(chip, ADT7410_CONFIG, &chip->config);
--	if (ret) {
--		ret = -EIO;
--		goto error_unreg_int_irq;
--	}
--
--	chip->config |= ADT7410_RESOLUTION;
--
--	if (irq && adt7410_platform_data[0]) {
--
--		/* set irq polarity low level */
--		chip->config &= ~ADT7410_CT_POLARITY;
--
--		if (adt7410_platform_data[1] & IRQF_TRIGGER_HIGH)
--			chip->config |= ADT7410_INT_POLARITY;
--		else
--			chip->config &= ~ADT7410_INT_POLARITY;
--	}
--
--	ret = adt7410_write_byte(chip, ADT7410_CONFIG, chip->config);
--	if (ret) {
--		ret = -EIO;
--		goto error_unreg_int_irq;
--	}
--	ret = iio_device_register(indio_dev);
--	if (ret)
--		goto error_unreg_int_irq;
--
--	dev_info(dev, "%s temperature sensor registered.\n",
--			 name);
--
--	return 0;
--
--error_unreg_int_irq:
--	free_irq(adt7410_platform_data[0], indio_dev);
--error_unreg_ct_irq:
--	free_irq(irq, indio_dev);
--error_free_dev:
--	iio_device_free(indio_dev);
--error_ret:
--	return ret;
--}
--
--static int adt7410_remove(struct device *dev, int irq)
--{
--	struct iio_dev *indio_dev = dev_get_drvdata(dev);
--	unsigned long *adt7410_platform_data = dev->platform_data;
--
--	iio_device_unregister(indio_dev);
--	if (adt7410_platform_data[0])
--		free_irq(adt7410_platform_data[0], indio_dev);
--	if (irq)
--		free_irq(irq, indio_dev);
--	iio_device_free(indio_dev);
--
--	return 0;
--}
--
--#if IS_ENABLED(CONFIG_I2C)
--
--static int adt7410_i2c_read_word(struct adt7410_chip_info *chip, u8 reg,
--	u16 *data)
--{
--	struct i2c_client *client = to_i2c_client(chip->dev);
--	int ret = 0;
--
--	ret = i2c_smbus_read_word_data(client, reg);
--	if (ret < 0) {
--		dev_err(&client->dev, "I2C read error\n");
--		return ret;
--	}
--
--	*data = swab16((u16)ret);
--
--	return 0;
--}
--
--static int adt7410_i2c_write_word(struct adt7410_chip_info *chip, u8 reg,
--	u16 data)
--{
--	struct i2c_client *client = to_i2c_client(chip->dev);
--	int ret = 0;
--
--	ret = i2c_smbus_write_word_data(client, reg, swab16(data));
--	if (ret < 0)
--		dev_err(&client->dev, "I2C write error\n");
--
--	return ret;
--}
--
--static int adt7410_i2c_read_byte(struct adt7410_chip_info *chip, u8 reg,
--	u8 *data)
--{
--	struct i2c_client *client = to_i2c_client(chip->dev);
--	int ret = 0;
--
--	ret = i2c_smbus_read_byte_data(client, reg);
--	if (ret < 0) {
--		dev_err(&client->dev, "I2C read error\n");
--		return ret;
--	}
--
--	*data = (u8)ret;
--
--	return 0;
--}
--
--static int adt7410_i2c_write_byte(struct adt7410_chip_info *chip, u8 reg,
--	u8 data)
--{
--	struct i2c_client *client = to_i2c_client(chip->dev);
--	int ret = 0;
--
--	ret = i2c_smbus_write_byte_data(client, reg, data);
--	if (ret < 0)
--		dev_err(&client->dev, "I2C write error\n");
--
--	return ret;
--}
--
--static const struct adt7410_ops adt7410_i2c_ops = {
--	.read_word = adt7410_i2c_read_word,
--	.write_word = adt7410_i2c_write_word,
--	.read_byte = adt7410_i2c_read_byte,
--	.write_byte = adt7410_i2c_write_byte,
--};
--
--static int adt7410_i2c_probe(struct i2c_client *client,
--	const struct i2c_device_id *id)
--{
--	return adt7410_probe(&client->dev, client->irq, id->name,
--		&adt7410_i2c_ops);
--}
--
--static int adt7410_i2c_remove(struct i2c_client *client)
--{
--	return adt7410_remove(&client->dev, client->irq);
--}
--
--static const struct i2c_device_id adt7410_id[] = {
--	{ "adt7410", 0 },
--	{}
--};
--
--MODULE_DEVICE_TABLE(i2c, adt7410_id);
--
--static struct i2c_driver adt7410_driver = {
--	.driver = {
--		.name = "adt7410",
--	},
--	.probe = adt7410_i2c_probe,
--	.remove = adt7410_i2c_remove,
--	.id_table = adt7410_id,
--};
--
--static int __init adt7410_i2c_init(void)
--{
--	return i2c_add_driver(&adt7410_driver);
--}
--
--static void __exit adt7410_i2c_exit(void)
--{
--	i2c_del_driver(&adt7410_driver);
--}
--
--#else
--
--static int  __init adt7410_i2c_init(void) { return 0; };
--static void __exit adt7410_i2c_exit(void) {};
--
--#endif
--
--#if IS_ENABLED(CONFIG_SPI_MASTER)
--
--static const u8 adt7371_reg_table[] = {
--	[ADT7410_TEMPERATURE]   = ADT7310_TEMPERATURE,
--	[ADT7410_STATUS]	= ADT7310_STATUS,
--	[ADT7410_CONFIG]	= ADT7310_CONFIG,
--	[ADT7410_T_ALARM_HIGH]	= ADT7310_T_ALARM_HIGH,
--	[ADT7410_T_ALARM_LOW]	= ADT7310_T_ALARM_LOW,
--	[ADT7410_T_CRIT]	= ADT7310_T_CRIT,
--	[ADT7410_T_HYST]	= ADT7310_T_HYST,
--	[ADT7410_ID]		= ADT7310_ID,
--};
--
--#define AD7310_COMMAND(reg) (adt7371_reg_table[(reg)] << ADT7310_CMD_REG_OFFSET)
--
--static int adt7310_spi_read_word(struct adt7410_chip_info *chip,
--	u8 reg, u16 *data)
--{
--	struct spi_device *spi = to_spi_device(chip->dev);
--	u8 command = AD7310_COMMAND(reg);
--	int ret = 0;
--
--	command |= ADT7310_CMD_READ;
--	ret = spi_write(spi, &command, sizeof(command));
--	if (ret < 0) {
--		dev_err(&spi->dev, "SPI write command error\n");
--		return ret;
--	}
--
--	ret = spi_read(spi, (u8 *)data, sizeof(*data));
--	if (ret < 0) {
--		dev_err(&spi->dev, "SPI read word error\n");
--		return ret;
--	}
--
--	*data = be16_to_cpu(*data);
--
--	return 0;
--}
--
--static int adt7310_spi_write_word(struct adt7410_chip_info *chip, u8 reg,
--	u16 data)
--{
--	struct spi_device *spi = to_spi_device(chip->dev);
--	u8 buf[3];
--	int ret = 0;
--
--	buf[0] = AD7310_COMMAND(reg);
--	buf[1] = (u8)(data >> 8);
--	buf[2] = (u8)(data & 0xFF);
--
--	ret = spi_write(spi, buf, 3);
--	if (ret < 0) {
--		dev_err(&spi->dev, "SPI write word error\n");
--		return ret;
--	}
--
--	return ret;
--}
--
--static int adt7310_spi_read_byte(struct adt7410_chip_info *chip, u8 reg,
--	u8 *data)
--{
--	struct spi_device *spi = to_spi_device(chip->dev);
--	u8 command = AD7310_COMMAND(reg);
--	int ret = 0;
--
--	command |= ADT7310_CMD_READ;
--	ret = spi_write(spi, &command, sizeof(command));
--	if (ret < 0) {
--		dev_err(&spi->dev, "SPI write command error\n");
--		return ret;
--	}
--
--	ret = spi_read(spi, data, sizeof(*data));
--	if (ret < 0) {
--		dev_err(&spi->dev, "SPI read byte error\n");
--		return ret;
--	}
--
--	return 0;
--}
--
--static int adt7310_spi_write_byte(struct adt7410_chip_info *chip, u8 reg,
--	u8 data)
--{
--	struct spi_device *spi = to_spi_device(chip->dev);
--	u8 buf[2];
--	int ret = 0;
--
--	buf[0] = AD7310_COMMAND(reg);
--	buf[1] = data;
--
--	ret = spi_write(spi, buf, 2);
--	if (ret < 0) {
--		dev_err(&spi->dev, "SPI write byte error\n");
--		return ret;
--	}
--
--	return ret;
--}
--
--static const struct adt7410_ops adt7310_spi_ops = {
--	.read_word = adt7310_spi_read_word,
--	.write_word = adt7310_spi_write_word,
--	.read_byte = adt7310_spi_read_byte,
--	.write_byte = adt7310_spi_write_byte,
--};
--
--static int adt7310_spi_probe(struct spi_device *spi)
--{
--	return adt7410_probe(&spi->dev, spi->irq,
--		spi_get_device_id(spi)->name, &adt7310_spi_ops);
--}
--
--static int adt7310_spi_remove(struct spi_device *spi)
--{
--	return adt7410_remove(&spi->dev, spi->irq);
--}
--
--static const struct spi_device_id adt7310_id[] = {
--	{ "adt7310", 0 },
--	{}
--};
--MODULE_DEVICE_TABLE(spi, adt7310_id);
--
--static struct spi_driver adt7310_driver = {
--	.driver = {
--		.name = "adt7310",
--		.owner = THIS_MODULE,
--	},
--	.probe = adt7310_spi_probe,
--	.remove = adt7310_spi_remove,
--	.id_table = adt7310_id,
--};
--
--static int __init adt7310_spi_init(void)
--{
--	return spi_register_driver(&adt7310_driver);
--}
--
--static void adt7310_spi_exit(void)
--{
--	spi_unregister_driver(&adt7310_driver);
--}
--
--#else
--
--static int __init adt7310_spi_init(void) { return 0; };
--static void adt7310_spi_exit(void) {};
--
--#endif
--
--static int __init adt7410_init(void)
--{
--	int ret;
--
--	ret = adt7310_spi_init();
--	if (ret)
--		return ret;
--
--	ret = adt7410_i2c_init();
--	if (ret)
--		adt7310_spi_exit();
--
--	return ret;
--}
--module_init(adt7410_init);
--
--static void __exit adt7410_exit(void)
--{
--	adt7410_i2c_exit();
--	adt7310_spi_exit();
--}
--module_exit(adt7410_exit);
--
--MODULE_AUTHOR("Sonic Zhang <sonic.zhang@analog.com>");
--MODULE_DESCRIPTION("Analog Devices ADT7310/ADT7410 digital temperature sensor driver");
--MODULE_LICENSE("GPL v2");
--- 
-1.8.0
-
+Content-Disposition: inline
 
 _______________________________________________
 lm-sensors mailing list
 lm-sensors@lm-sensors.org
 http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
+--===============5329418360460273221==--
