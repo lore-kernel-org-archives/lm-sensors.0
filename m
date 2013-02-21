@@ -1,60 +1,57 @@
-From: Wei Ni <wni@nvidia.com>
-Date: Wed, 20 Feb 2013 10:40:25 +0000
-Subject: Re: [lm-sensors] [RFC PATCH 6/9] hwmon: (lm90) Register to the thermal framework
-Message-Id: <5124A819.7040400@nvidia.com>
+From: Hongbo Zhang <hongbo.zhang@linaro.org>
+Date: Thu, 21 Feb 2013 10:32:40 +0000
+Subject: [lm-sensors] [PATCH v3 2/3] ab8500: make res_to_temp tables public
+Message-Id: <1361442761-2690-3-git-send-email-hongbo.zhang@linaro.org>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361187031-3679-1-git-send-email-wni@nvidia.com> <1361187031-3679-7-git-send-email-wni@nvidia.com> <5124082E.604@wwwdotorg.org>
-In-Reply-To: <5124082E.604@wwwdotorg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Stephen Warren <swarren@wwwdotorg.org>
-Cc: "durgadoss.r@intel.com" <durgadoss.r@intel.com>, "rui.zhang@intel.com" <rui.zhang@intel.com>, Matthew Longnecker <MLongnecker@nvidia.com>, "khali@linux-fr.org" <khali@linux-fr.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: lm-sensors@vger.kernel.org
 
-On 02/20/2013 07:18 AM, Stephen Warren wrote:
-> On 02/18/2013 04:30 AM, Wei Ni wrote:
->> Register the remote sensor to the thermal framework.
->> It can support to show the temperature and read/write threshold.
-> 
->>  arch/arm/boot/dts/tegra30-cardhu.dtsi |    1 +
->>  drivers/hwmon/lm90.c                  |  182 ++++++++++++++++++++++++++++++++-
-> 
-> There shouldn't be any need to edit both those files in the same patch.
-> This patch is making multiple separate logical changes, which should be
-> separate patches.
+These NTC resistance to temperature tables should be public, so others such as
+ab8500 hwmon driver can look up these tables to convert NTC resistance to
+temperature.
 
-I will follow Matthew's suggestion to split this serial patch into 3
-separate sets.
+Signed-off-by: Hongbo Zhang <hongbo.zhang@linaro.org>
+---
+ drivers/power/ab8500_bmdata.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-> 
->> diff --git a/arch/arm/boot/dts/tegra30-cardhu.dtsi b/arch/arm/boot/dts/tegra30-cardhu.dtsi
-> 
->> +			#sensor-cells = <1>;
-> 
-> Again, in order to allow that, you need some documentation in
-> Documentation/devicetree/bindings/. Related to that, you need to Cc the
-> devicetree maintainers on at least the patches that add that documentation.
-
-Ok, I will do it.
-
-> 
->> diff --git a/drivers/hwmon/lm90.c b/drivers/hwmon/lm90.c
-> 
->> @@ -1576,12 +1728,38 @@ static int lm90_probe(struct i2c_client *client,
-> ...
->> +	np_args.np = dev->of_node;
->> +	np_args.index = 0;
-> 
-> As I mentioned before, that'd be better replaced by an explicit of_xlate
-> function.
-
-Yes, I will try to use this func.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/power/ab8500_bmdata.c b/drivers/power/ab8500_bmdata.c
+index f034ae4..53f3324 100644
+--- a/drivers/power/ab8500_bmdata.c
++++ b/drivers/power/ab8500_bmdata.c
+@@ -11,7 +11,7 @@
+  * Note that the res_to_temp table must be strictly sorted by falling resistance
+  * values to work.
+  */
+-static struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
++struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
+ 	{-5, 53407},
+ 	{ 0, 48594},
+ 	{ 5, 43804},
+@@ -29,7 +29,9 @@ static struct abx500_res_to_temp temp_tbl_A_thermistor[] = {
+ 	{65, 12500},
+ };
+ 
+-static struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
++int temp_tbl_A_size = ARRAY_SIZE(temp_tbl_A_thermistor);
++
++struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
+ 	{-5, 200000},
+ 	{ 0, 159024},
+ 	{ 5, 151921},
+@@ -47,6 +49,8 @@ static struct abx500_res_to_temp temp_tbl_B_thermistor[] = {
+ 	{65,  82869},
+ };
+ 
++int temp_tbl_B_size = ARRAY_SIZE(temp_tbl_B_thermistor);
++
+ static struct abx500_v_to_cap cap_tbl_A_thermistor[] = {
+ 	{4171,	100},
+ 	{4114,	 95},
+-- 
+1.8.0
 
 
 _______________________________________________
