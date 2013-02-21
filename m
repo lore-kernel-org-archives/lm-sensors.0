@@ -1,7 +1,7 @@
 From: Hartmut Knaack <knaack.h@gmx.de>
-Date: Tue, 19 Feb 2013 23:21:56 +0000
+Date: Thu, 21 Feb 2013 00:10:07 +0000
 Subject: Re: [lm-sensors] [PATCH 5/9] hwmon: (adt7410) Add device table entry for the adt7420
-Message-Id: <51240914.80206@gmx.de>
+Message-Id: <512565DF.8030901@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1360947438-2550-1-git-send-email-lars@metafoo.de> <1360947438-2550-5-git-send-email-lars@metafoo.de>
 In-Reply-To: <1360947438-2550-5-git-send-email-lars@metafoo.de>
@@ -15,7 +15,9 @@ Lars-Peter Clausen schrieb:
 > The adt7420 is software compatible to the adt7410.
 >
 > Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Reviewed-by: Hartmut Knaack <knaack.h@gmx.de>
+
+I did some basic testing of the patch-set until this one (instantiation, removal, get/set min/max/crit/hyst, monitor temperatures and alarm triggers while changing temperatures) on an ADT7410, all went fine. No suspend/resume tested.
+Tested-by: Hartmut Knaack <knaack.h@gmx.de>
 > ---
 >  drivers/hwmon/Kconfig   | 4 ++--
 >  drivers/hwmon/adt7410.c | 3 ++-
