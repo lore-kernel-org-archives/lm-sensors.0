@@ -1,86 +1,111 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 26 Feb 2013 18:23:40 +0000
-Subject: [lm-sensors] [PATCH 12/12] hwmon: (nct6775) Only report VID if supported and enabled
-Message-Id: <1361903020-18526-13-git-send-email-linux@roeck-us.net>
+Date: Sat, 23 Feb 2013 02:19:34 +0000
+Subject: [lm-sensors] [PATCH 6/7] hwmon: (pmbus/ltc2978) Clean up documentation
+Message-Id: <1361585975-5604-6-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361903020-18526-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1361903020-18526-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jean Delvare <khali@linux-fr.org>
-Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
+To: lm-sensors@vger.kernel.org
 
-VID is not always enabled (NCT6775, NCT6776) or supported (NCT6779).
+Some sysfs attributes are only supported on LTC2978 and not on LTC3880.
+Update documentation to reflect which attributes are supported for which chips.
+
+Output current attributes supported on LTC3880 were described as providing
+input current values. Fix text to reflect that the attributes provide output
+current values.
+
+"reset history" attribute descriptions were misleading and seemed to imply
+that all history was reset when writing a single attribute. Replace with more
+accurate text.
+
+Replace 'internal temperature" with "chip temperature". Temperature limits
+not only apply to the chip temperature, but also to external temperatures
+on LTC3880, so remove the word "chip" from the attribute description.
 
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/hwmon/nct6775.c |   30 ++++++++++++++++++++++++------
- 1 file changed, 24 insertions(+), 6 deletions(-)
+ Documentation/hwmon/ltc2978 |   41 +++++++++++++++++++----------------------
+ 1 file changed, 19 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
-index a4b076a..aeeb0a1 100644
---- a/drivers/hwmon/nct6775.c
-+++ b/drivers/hwmon/nct6775.c
-@@ -3398,6 +3398,8 @@ static int nct6775_probe(struct platform_device *pdev)
- 	const u16 *reg_temp, *reg_temp_over, *reg_temp_hyst, *reg_temp_config;
- 	const u16 *reg_temp_alternate, *reg_temp_crit;
- 	int num_reg_temp;
-+	bool have_vid = false;
-+	u8 cr2a;
+diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
+index e4d75c6..dcb10be 100644
+--- a/Documentation/hwmon/ltc2978
++++ b/Documentation/hwmon/ltc2978
+@@ -41,17 +41,16 @@ Sysfs attributes
+ in1_label		"vin"
+ in1_input		Measured input voltage.
+ in1_min			Minimum input voltage.
+-in1_max			Maximum input voltage.
+-in1_lcrit		Critical minimum input voltage.
++in1_max			Maximum input voltage. LTC2978 only.
++in1_lcrit		Critical minimum input voltage. LTC2978 only.
+ in1_crit		Critical maximum input voltage.
+ in1_min_alarm		Input voltage low alarm.
+-in1_max_alarm		Input voltage high alarm.
+-in1_lcrit_alarm		Input voltage critical low alarm.
++in1_max_alarm		Input voltage high alarm. LTC2978 only.
++in1_lcrit_alarm		Input voltage critical low alarm. LTC2978 only.
+ in1_crit_alarm		Input voltage critical high alarm.
+ in1_lowest		Lowest input voltage. LTC2978 only.
+ in1_highest		Highest input voltage.
+-in1_reset_history	Reset history. Writing into this attribute will reset
+-			history for all attributes.
++in1_reset_history	Reset input voltage history.
  
- 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
- 	if (!devm_request_region(&pdev->dev, res->start, IOREGION_LENGTH,
-@@ -3766,17 +3768,31 @@ static int nct6775_probe(struct platform_device *pdev)
- 	/* Initialize the chip */
- 	nct6775_init_device(data);
+ in[2-9]_label		"vout[1-8]". Channels 3 to 9 on LTC2978 only.
+ in[2-9]_input		Measured output voltage.
+@@ -65,27 +64,25 @@ in[2-9]_lcrit_alarm	Output voltage critical low alarm.
+ in[2-9]_crit_alarm	Output voltage critical high alarm.
+ in[2-9]_lowest		Lowest output voltage. LTC2978 only.
+ in[2-9]_highest		Lowest output voltage.
+-in[2-9]_reset_history	Reset history. Writing into this attribute will reset
+-			history for all attributes.
++in[2-9]_reset_history	Reset output voltage history.
  
--	data->vrm = vid_which_vrm();
- 	err = superio_enter(sio_data->sioreg);
- 	if (err)
- 		return err;
+ temp[1-3]_input		Measured temperature.
+ 			On LTC2978, only one temperature measurement is
+-			supported and reflects the internal temperature.
++			supported and reports the chip temperature.
+ 			On LTC3880, temp1 and temp2 report external
+-			temperatures, and temp3 reports the internal
++			temperatures, and temp3 reports the chip
+ 			temperature.
+-temp[1-3]_min		Mimimum temperature.
++temp[1-3]_min		Mimimum temperature. LTC2978 only.
+ temp[1-3]_max		Maximum temperature.
+ temp[1-3]_lcrit		Critical low temperature.
+ temp[1-3]_crit		Critical high temperature.
+-temp[1-3]_min_alarm	Chip temperature low alarm.
+-temp[1-3]_max_alarm	Chip temperature high alarm.
+-temp[1-3]_lcrit_alarm	Chip temperature critical low alarm.
+-temp[1-3]_crit_alarm	Chip temperature critical high alarm.
++temp[1-3]_min_alarm	Temperature low alarm. LTC2978 only.
++temp[1-3]_max_alarm	Temperature high alarm.
++temp[1-3]_lcrit_alarm	Temperature critical low alarm.
++temp[1-3]_crit_alarm	Temperature critical high alarm.
+ temp[1-3]_lowest	Lowest measured temperature. LTC2978 only.
+ temp[1-3]_highest	Highest measured temperature.
+-temp[1-3]_reset_history	Reset history. Writing into this attribute will reset
+-			history for all attributes.
++temp[1-3]_reset_history	Reset temperature history.
  
-+	cr2a = superio_inb(sio_data->sioreg, 0x2a);
-+	switch (data->kind) {
-+	case nct6775:
-+		have_vid = (cr2a & 0x40);
-+		break;
-+	case nct6776:
-+		have_vid = (cr2a & 0x60) = 0x40;
-+		break;
-+	case nct6779:
-+		break;
-+	}
-+
- 	/*
- 	 * Read VID value
- 	 * We can get the VID input values directly at logical device D 0xe3.
- 	 */
--	superio_select(sio_data->sioreg, NCT6775_LD_VID);
--	data->vid = superio_inb(sio_data->sioreg, 0xe3);
-+	if (have_vid) {
-+		superio_select(sio_data->sioreg, NCT6775_LD_VID);
-+		data->vid = superio_inb(sio_data->sioreg, 0xe3);
-+		data->vrm = vid_which_vrm();
-+	}
+ power[1-2]_label	"pout[1-2]". LTC3880 only.
+ power[1-2]_input	Measured power.
+@@ -96,8 +93,8 @@ curr1_max		Maximum input current.
+ curr1_max_alarm		Input current high alarm.
  
- 	if (fan_debounce) {
- 		u8 tmp;
-@@ -3801,9 +3817,11 @@ static int nct6775_probe(struct platform_device *pdev)
- 
- 	superio_exit(sio_data->sioreg);
- 
--	err = device_create_file(dev, &dev_attr_cpu0_vid);
--	if (err)
--		return err;
-+	if (have_vid) {
-+		err = device_create_file(dev, &dev_attr_cpu0_vid);
-+		if (err)
-+			return err;
-+	}
- 
- 	err = nct6775_check_fan_inputs(sio_data, data);
- 	if (err)
+ curr[2-3]_label		"iout[1-2]". LTC3880 only.
+-curr[2-3]_input		Measured input current.
+-curr[2-3]_max		Maximum input current.
+-curr[2-3]_crit		Critical input current.
+-curr[2-3]_max_alarm	Input current high alarm.
+-curr[2-3]_crit_alarm	Input current critical high alarm.
++curr[2-3]_input		Measured output current.
++curr[2-3]_max		Maximum output current.
++curr[2-3]_crit		Critical output current.
++curr[2-3]_max_alarm	Output current high alarm.
++curr[2-3]_crit_alarm	Output current critical high alarm.
 -- 
 1.7.9.7
 
