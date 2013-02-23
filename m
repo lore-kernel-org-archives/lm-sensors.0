@@ -1,131 +1,40 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 19 Feb 2013 17:10:44 +0000
-Subject: Re: [lm-sensors] [PATCH v2 3/4] hwmon: (adt7x10) Add alarm interrupt support
-Message-Id: <20130219171044.GD19550@roeck-us.net>
+Date: Sat, 23 Feb 2013 02:19:32 +0000
+Subject: [lm-sensors] [PATCH 4/7] hwmon: (pmbus/ltc2978) Use detected chip ID to select supported functionali
+Message-Id: <1361585975-5604-4-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361194739-16525-1-git-send-email-lars@metafoo.de>
- <1361194739-16525-3-git-send-email-lars@metafoo.de>
- <20130219013933.GD25124@roeck-us.net>
- <51236A96.3040000@metafoo.de>
-In-Reply-To: <51236A96.3040000@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jean Delvare <khali@linux-fr.org>, Hartmut Knaack <knaack.h@gmx.de>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 19, 2013 at 01:05:42PM +0100, Lars-Peter Clausen wrote:
-> On 02/19/2013 02:39 AM, Guenter Roeck wrote:
-> > On Mon, Feb 18, 2013 at 02:38:58PM +0100, Lars-Peter Clausen wrote:
-> >> This allows a userspace application to poll() on the alarm files to get notified
-> >> in case of an temperature threshold event.
-> >>
-> >> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-> >>
-> [...]
-> >>  
-> >> +static irqreturn_t adt7410_irq_handler(int irq, void *private)
-> >> +{
-> >> +	struct device *dev = private;
-> >> +	int status;
-> >> +
-> >> +	status = adt7410_read_byte(dev, ADT7410_STATUS);
-> >> +	if (status < 0)
-> >> +		return IRQ_HANDLED;
-> >> +
-> >> +	if (status & ADT7410_STAT_T_HIGH)
-> >> +		sysfs_notify(&dev->kobj, NULL, "temp1_max_alarm");
-> >> +	if (status & ADT7410_STAT_T_LOW)
-> >> +		sysfs_notify(&dev->kobj, NULL, "temp1_min_alarm");
-> >> +	if (status & ADT7410_STAT_T_CRIT)
-> >> +		sysfs_notify(&dev->kobj, NULL, "temp1_crit_alarm");
-> >> +
-> > Question about semantics: Do you want a notification on all attributes each time
-> > one is set during an interrupt, or do you want a notification each time an
-> > attribute changes state ? With the above code, the 1->0 transition does not
-> > result in a notification. Is that on purpose ?
-> > 
-> 
-> Now that the code uses an edge triggered IRQ and comparator mode it would
-> actually be possible to also generate an event for a 1->0 transition, but
-> I'm not sure how much sense that makes. Usually you'd only want to respond
-> quickly to the case where a threshold event happens.
-> 
-I am not sure if it would make sense either. I am fine either way - this is
-quite new functionality for hwmon, and we can add support for two-way
-notification later if it turns out to be needed.
+We read the chip ID from the chip, use it to determine if the chip ID provided
+to the driver is correct, and report it if wrong. We should also use the
+correct chip ID to select supported functionality.
 
-> >> +	return IRQ_HANDLED;
-> >> +}
-> >> +
-> >>  static int adt7410_temp_ready(struct device *dev)
-> >>  {
-> >>  	int i, status;
-> >> @@ -357,7 +377,7 @@ static const struct attribute_group adt7410_group = {
-> >>  	.attrs = adt7410_attributes,
-> >>  };
-> >>  
-> >> -int adt7410_probe(struct device *dev, const char *name,
-> >> +int adt7410_probe(struct device *dev, const char *name, int irq,
-> >>  	const struct adt7410_ops *ops)
-> >>  {
-> >>  	struct adt7410_data *data;
-> >> @@ -383,11 +403,13 @@ int adt7410_probe(struct device *dev, const char *name,
-> >>  	data->oldconfig = ret;
-> >>  
-> >>  	/*
-> >> -	 * Set to 16 bit resolution, continous conversion and comparator mode.
-> >> +	 * Set to 16 bit resolution and continous conversion
-> >>  	 */
-> >>  	data->config = data->oldconfig;
-> >> -	data->config &= ~ADT7410_MODE_MASK;
-> >> +	data->config &= ~(ADT7410_MODE_MASK | ADT7410_CT_POLARITY |
-> >> +			ADT7410_INT_POLARITY);
-> >>  	data->config |= ADT7410_FULL | ADT7410_RESOLUTION | ADT7410_EVENT_MODE;
-> >> +
-> >>  	if (data->config != data->oldconfig) {
-> >>  		ret = adt7410_write_byte(dev, ADT7410_CONFIG, data->config);
-> >>  		if (ret)
-> >> @@ -421,8 +443,18 @@ int adt7410_probe(struct device *dev, const char *name,
-> >>  		goto exit_remove_name;
-> >>  	}
-> >>  
-> >> +	if (irq > 0) {
-> >> +		ret = request_threaded_irq(irq, NULL, adt7410_irq_handler,
-> >> +				IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
-> >> +				dev_name(dev), dev);
-> > 
-> > If you use devm_request_threaded_irq, you don't have to release it on remove.
-> 
-> devm_request_threaded_irq is tricky, since the IRQ will only be freed after
-> the drivers remove callback has been run. This can cause race conditions,
-> since the IRQ handler often access resources already freed in the remove
-> callback. In this case it will work fine since sysfs_notify handles the case
-> where the files are already gone gracefully and just does nothing in that
-> case. I'd still prefer to keep the explicit free, so things are cleaned up
-> in the reverse order to the way they were set up.
-> 
-Ok, makes sense.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Candidate for -stable.
 
-> > 
-> >> +		if (ret)
-> >> +			goto exit_hwmon_device_unregister;
-> >> +	}
-> >> +
-> > 
-> > This code should be before hwmon registration.
-> 
-> Why? It doesn't make sense to signal an event before userspace can actually
-> discover the device.
-> 
-You are right. Historically we keep hwmon registration as last operation to
-avoid user-space confusion if the attributes are gone by the time user-space
-tries to access them. Getting a notification prior to registration is just as
-bad, and would be "normal" operation instead of error handling, so your code
-makes sense.
+ drivers/hwmon/pmbus/ltc2978.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Guenter
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index eec294a..14f96ae 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -326,7 +326,7 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	data->temp_min = 0x7bff;
+ 	data->temp_max = 0x7c00;
+ 
+-	switch (id->driver_data) {
++	switch (data->id) {
+ 	case ltc2978:
+ 		info->read_word_data = ltc2978_read_word_data;
+ 		info->pages = 8;
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
