@@ -1,42 +1,44 @@
-From: Hartmut Knaack <knaack.h@gmx.de>
-Date: Tue, 19 Feb 2013 23:13:14 +0000
-Subject: Re: [lm-sensors] [PATCH 3/9] hwmon: (adt7410) Use the SIMPLE_DEV_PM_OPS helper macro
-Message-Id: <5124070A.6080205@gmx.de>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 23 Feb 2013 02:19:30 +0000
+Subject: [lm-sensors] [PATCH v2 2/7] hwmon: (pmbus/ltc2978) Update datasheet links
+Message-Id: <1361585975-5604-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1360947438-2550-1-git-send-email-lars@metafoo.de> <1360947438-2550-3-git-send-email-lars@metafoo.de>
-In-Reply-To: <1360947438-2550-3-git-send-email-lars@metafoo.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Jean Delvare <khali@linux-fr.org>, Guenter Roeck <linux@roeck-us.net>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: lm-sensors@vger.kernel.org
 
-Lars-Peter Clausen schrieb:
-> Use the SIMPLE_DEV_PM_OPS macro to declare the driver's pm_ops.
->
-> Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Reviewed-by: Hartmut Knaack <knaack.h@gmx.de>
-> ---
->  drivers/hwmon/adt7410.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
-> index ae80815..4ae16e0 100644
-> --- a/drivers/hwmon/adt7410.c
-> +++ b/drivers/hwmon/adt7410.c
-> @@ -437,10 +437,8 @@ static int adt7410_resume(struct device *dev)
->  	return ret;
->  }
->  
-> -static const struct dev_pm_ops adt7410_dev_pm_ops = {
-> -	.suspend	= adt7410_suspend,
-> -	.resume		= adt7410_resume,
-> -};
-> +static SIMPLE_DEV_PM_OPS(adt7410_dev_pm_ops, adt7410_suspend, adt7410_resume);
-> +
->  #define ADT7410_DEV_PM_OPS (&adt7410_dev_pm_ops)
->  #else
->  #define ADT7410_DEV_PM_OPS NULL
+Links to datasheets are no longer valid. Provide links to product information
+instead (which provides links to the datasheets and is hopefully more
+persistent).
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Point to product information pages
+
+ Documentation/hwmon/ltc2978 |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/hwmon/ltc2978 b/Documentation/hwmon/ltc2978
+index 1642348..e4d75c6 100644
+--- a/Documentation/hwmon/ltc2978
++++ b/Documentation/hwmon/ltc2978
+@@ -5,11 +5,11 @@ Supported chips:
+   * Linear Technology LTC2978
+     Prefix: 'ltc2978'
+     Addresses scanned: -
+-    Datasheet: http://cds.linear.com/docs/Datasheet/2978fa.pdf
++    Datasheet: http://www.linear.com/product/ltc2978
+   * Linear Technology LTC3880
+     Prefix: 'ltc3880'
+     Addresses scanned: -
+-    Datasheet: http://cds.linear.com/docs/Datasheet/3880f.pdf
++    Datasheet: http://www.linear.com/product/ltc3880
+ 
+ Author: Guenter Roeck <linux@roeck-us.net>
+ 
+-- 
+1.7.9.7
 
 
 _______________________________________________
