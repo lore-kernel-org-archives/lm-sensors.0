@@ -1,18 +1,18 @@
 From: Hartmut Knaack <knaack.h@gmx.de>
-Date: Mon, 25 Feb 2013 21:30:30 +0000
+Date: Mon, 25 Feb 2013 22:03:50 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/4] hwmon: (adt7410) Don't re-read non-volatile registers
-Message-Id: <512BD7F6.6040105@gmx.de>
+Message-Id: <512BDFC6.8060504@gmx.de>
 List-Id: <lm-sensors.vger.kernel.org>
-References: <1361194739-16525-1-git-send-email-lars@metafoo.de> <51228D7A.8030608@gmx.de> <20130219010229.GA25124@roeck-us.net> <5123D4F5.5030001@gmx.de> <20130220012249.GA15948@roeck-us.net> <5128112C.4080909@gmx.de> <512B34E2.70709@metafoo.de>
-In-Reply-To: <512B34E2.70709@metafoo.de>
+References: <1361194739-16525-1-git-send-email-lars@metafoo.de> <51228D7A.8030608@gmx.de> <20130219010229.GA25124@roeck-us.net> <5123D4F5.5030001@gmx.de> <20130220012249.GA15948@roeck-us.net> <5128112C.4080909@gmx.de> <20130223201853.GA11055@roeck-us.net>
+In-Reply-To: <20130223201853.GA11055@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Guenter Roeck <linux@roeck-us.net>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-Lars-Peter Clausen schrieb:
-> On 02/23/2013 01:45 AM, Hartmut Knaack wrote:
+Guenter Roeck schrieb:
+> On Sat, Feb 23, 2013 at 01:45:32AM +0100, Hartmut Knaack wrote:
 >> Guenter Roeck schrieb:
 >>> On Tue, Feb 19, 2013 at 08:39:33PM +0100, Hartmut Knaack wrote:
 >>>> Guenter Roeck schrieb:
@@ -41,141 +41,25 @@ Lars-Peter Clausen schrieb:
 >>> Guenter
 >> Well, think about a use case where you optically decouple your master and slave using PCA9600 (may it be using optical fibers to cover a big distance, or just to operate the slave in a hazardous environment), where the slave is powered from a different source. Now, if the slaves Vcc drops for a certain time, all its registers get reset (especially min, max and crit) - without the master noticing anything.
 >> Therefor I would prefer something like the following solution, where unnecessary load on the bus gets avoided and the cached values get used, until they expire and get read again from the sensor. This is mainly a draft, but do you see any reason against it?
->> Thanks
->>
-> That's a bit of an artificially constructed situation, isn't it? Anyway,
-> wouldn't it be better to not cache at all in that case. For the cache to be
-> useful userspace would have to poll the file with period of less than 1.5
-> seconds. I don't think anybody is going to do this for the threshold properties.
+> Yes, it adds a lot of complexity. Also, at least in theory it would apply to all
+> i2c drivers, so solving the problem for one chip doesn't help much.
 >
-> - Lars
-I could agree with not caching those registers - nobody would probably want to read them too often, intentionally (although bugged userspace code might DoS the bus). The other few i2c drivers I know also do uncached reads.
+> A somewhat cleanly designed hardware should inform the software that a device went
+> offline, for example with an interrupt; otherwise its operation could be severely
+> affected and system behavior would be unpredictable.
 >
+> So the question here is if this is a practical problem in your use case, or a
+> theoretical problem. If it is a theoretical problem, we can address it for
+> affected drivers as it is seen. If it is a practical problem, I think we'll need
+> to come up with a simpler solution. The only one I can think of right now would
+> be a module parameter. If set, it the driver could re-load the cache each time
+> the temperature sensor is updated.
 >
->> diff --git a/drivers/hwmon/adt7410.c b/drivers/hwmon/adt7410.c
->> old mode 100644
->> new mode 100755
->> index 99a7290..dc11cac
->> --- a/drivers/hwmon/adt7410.c
->> +++ b/drivers/hwmon/adt7410.c
->> @@ -91,8 +91,13 @@ struct adt7410_data {
->>  	struct mutex		update_lock;
->>  	u8			config;
->>  	u8			oldconfig;
->> -	bool			valid;		/* true if registers valid */
->> -	unsigned long		last_updated;	/* In jiffies */
->> +	u8			valid;		/* true if registers valid */
->> +	unsigned long		last_updated[5];	/* In jiffies
->> +							   0 = input
->> +							   1 = high
->> +							   2 = low
->> +							   3 = critical
->> +							   4 = hysteresis */
->>  	s16			temp[4];	/* Register values,
->>  						   0 = input
->>  						   1 = high
->> @@ -119,25 +124,27 @@ static int adt7410_temp_ready(struct i2c_client *client)
->>  	return -ETIMEDOUT;
->>  }
->>  
->> -static struct adt7410_data *adt7410_update_device(struct device *dev)
->> +static struct adt7410_data *adt7410_update_device(struct device *dev, int i)
->>  {
->>  	struct i2c_client *client = to_i2c_client(dev);
->>  	struct adt7410_data *data = i2c_get_clientdata(client);
->>  	struct adt7410_data *ret = data;
->>  	mutex_lock(&data->update_lock);
->>  
->> -	if (time_after(jiffies, data->last_updated + HZ + HZ / 2)
->> -	    || !data->valid) {
->> -		int i, status;
->> +	if (time_after(jiffies, data->last_updated[i] + HZ + HZ / 2)
->> +	    || !(data->valid & ~(1 << i))) {
->> +		int status;
->>  
->>  		dev_dbg(&client->dev, "Starting update\n");
->>  
->> -		status = adt7410_temp_ready(client); /* check for new value */
->> -		if (unlikely(status)) {
->> -			ret = ERR_PTR(status);
->> -			goto abort;
->> -		}
->> -		for (i = 0; i < ARRAY_SIZE(data->temp); i++) {
->> +		if (i >= 0 && i <=3) {
->> +			if (!i) {
->> +				status = adt7410_temp_ready(client); /* check for new value */
->> +				if (unlikely(status)) {
->> +					ret = ERR_PTR(status);
->> +					goto abort;
->> +				}
->> +			}
->>  			status = i2c_smbus_read_word_swapped(client,
->>  							ADT7410_REG_TEMP[i]);
->>  			if (unlikely(status < 0)) {
->> @@ -148,18 +155,24 @@ static struct adt7410_data *adt7410_update_device(struct device *dev)
->>  				goto abort;
->>  			}
->>  			data->temp[i] = status;
->> +			data->last_updated[i] = jiffies;
->> +			data->valid |= 1 << i;
->>  		}
->> -		status = i2c_smbus_read_byte_data(client, ADT7410_T_HYST);
->> -		if (unlikely(status < 0)) {
->> -			dev_dbg(dev,
->> -				"Failed to read value: reg %d, error %d\n",
->> -				ADT7410_T_HYST, status);
->> -			ret = ERR_PTR(status);
->> -			goto abort;
->> +		else if (i = 4) {
->> +			status = i2c_smbus_read_byte_data(client, ADT7410_T_HYST);
->> +			if (unlikely(status < 0)) {
->> +				dev_dbg(dev,
->> +					"Failed to read value: reg %d, error %d\n",
->> +					ADT7410_T_HYST, status);
->> +				ret = ERR_PTR(status);
->> +				goto abort;
->> +			}
->> +			data->hyst = status;
->> +			data->last_updated[i] = jiffies;
->> +			data->valid |= 1 << i;
->>  		}
->> -		data->hyst = status;
->> -		data->last_updated = jiffies;
->> -		data->valid = true;
->> +		else
->> +			ret = ERR_PTR(-EINVAL);
->>  	}
->>  
->>  abort:
->> @@ -193,7 +206,7 @@ static ssize_t adt7410_show_temp(struct device *dev,
->>  				 struct device_attribute *da, char *buf)
->>  {
->>  	struct sensor_device_attribute *attr = to_sensor_dev_attr(da);
->> -	struct adt7410_data *data = adt7410_update_device(dev);
->> +	struct adt7410_data *data = adt7410_update_device(dev, attr->index);
->>  
->>  	if (IS_ERR(data))
->>  		return PTR_ERR(data);
->> @@ -236,7 +249,10 @@ static ssize_t adt7410_show_t_hyst(struct device *dev,
->>  	int nr = attr->index;
->>  	int hyst;
->>  
->> -	data = adt7410_update_device(dev);
->> +	data = adt7410_update_device(dev, nr);
->> +	if (IS_ERR(data))
->> +		return PTR_ERR(data);
->> +	data = adt7410_update_device(dev, 4);
->>  	if (IS_ERR(data))
->>  		return PTR_ERR(data);
->>  	hyst = (data->hyst & ADT7410_T_HYST_MASK) * 1000;
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks,
+> Guenter
 >
-
+My intended use for this sensor type is just temperature logging, so it is just a theoretical problem for me. But I don't trust I2C any more than really necessary (and always keeping Murphy's law in mind) and feel somehow responsible for this driver.
+I can agree on having a 'paranoid' module parameter to force register reads, just for those folks who need it.
 
 _______________________________________________
 lm-sensors mailing list
