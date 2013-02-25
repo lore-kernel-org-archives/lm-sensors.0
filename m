@@ -1,102 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 28 Feb 2013 16:46:31 +0000
-Subject: [lm-sensors] [PATCH 2/4] hwmon: (pmbus/ltc2978): Code cleanup
-Message-Id: <1362069993-9530-2-git-send-email-linux@roeck-us.net>
+From: Jean Delvare <khali@linux-fr.org>
+Date: Mon, 25 Feb 2013 07:50:56 +0000
+Subject: Re: [lm-sensors] [Patch] ADT7411: Added attribute to the driver to set the power-down bit
+Message-Id: <20130225085056.39720cef@endymion.delvare>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-Use u16 instead of int to store cached limit attributes.
-This reduces allocated data size per driver instance by 48 bytes.
-Use defines for the number of pages supported by individual chips.
-Use ARRAY_SIZE for loops to initialize array variables, and
-initialize all variables in the same code block.
+Hi Michael,
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/hwmon/pmbus/ltc2978.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+Please send patches to the lm-sensors mailing list. Any patch sent to
+me only is likely to get lost.
 
-diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-index 6d61307..945f7ec 100644
---- a/drivers/hwmon/pmbus/ltc2978.c
-+++ b/drivers/hwmon/pmbus/ltc2978.c
-@@ -49,6 +49,9 @@ enum chips { ltc2978, ltc3880 };
- #define LTC3880_ID			0x4000
- #define LTC3880_ID_MASK			0xff00
- 
-+#define LTC2978_NUM_PAGES		8
-+#define LTC3880_NUM_PAGES		2
-+
- /*
-  * LTC2978 clears peak data whenever the CLEAR_FAULTS command is executed, which
-  * happens pretty much each time chip data is updated. Raw peak data therefore
-@@ -56,13 +59,14 @@ enum chips { ltc2978, ltc3880 };
-  * internal cache of measured peak data, which is only cleared if an explicit
-  * "clear peak" command is executed for the sensor in question.
-  */
-+
- struct ltc2978_data {
- 	enum chips id;
--	int vin_min, vin_max;
--	int temp_min, temp_max[2];
--	int vout_min[8], vout_max[8];
--	int iout_max[2];
--	int temp2_max;
-+	u16 vin_min, vin_max;
-+	u16 temp_min, temp_max[LTC3880_NUM_PAGES];
-+	u16 vout_min[LTC2978_NUM_PAGES], vout_max[LTC2978_NUM_PAGES];
-+	u16 iout_max[LTC3880_NUM_PAGES];
-+	u16 temp2_max;
- 	struct pmbus_driver_info info;
- };
- 
-@@ -323,6 +327,8 @@ static int ltc2978_probe(struct i2c_client *client,
- 
- 	data->vin_min = 0x7bff;
- 	data->vin_max = 0x7c00;
-+	for (i = 0; i < ARRAY_SIZE(data->vout_min); i++)
-+		data->vout_min[i] = 0xffff;
- 	data->temp_min = 0x7bff;
- 	for (i = 0; i < ARRAY_SIZE(data->temp_max); i++)
- 		data->temp_max[i] = 0x7c00;
-@@ -331,18 +337,18 @@ static int ltc2978_probe(struct i2c_client *client,
- 	switch (data->id) {
- 	case ltc2978:
- 		info->read_word_data = ltc2978_read_word_data;
--		info->pages = 8;
-+		info->pages = LTC2978_NUM_PAGES;
- 		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_STATUS_INPUT
- 		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
- 		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
--		for (i = 1; i < 8; i++) {
-+		for (i = 1; i < LTC2978_NUM_PAGES; i++) {
- 			info->func[i] = PMBUS_HAVE_VOUT
- 			  | PMBUS_HAVE_STATUS_VOUT;
- 		}
- 		break;
- 	case ltc3880:
- 		info->read_word_data = ltc3880_read_word_data;
--		info->pages = 2;
-+		info->pages = LTC3880_NUM_PAGES;
- 		info->func[0] = PMBUS_HAVE_VIN | PMBUS_HAVE_IIN
- 		  | PMBUS_HAVE_STATUS_INPUT
- 		  | PMBUS_HAVE_VOUT | PMBUS_HAVE_STATUS_VOUT
-@@ -359,9 +365,6 @@ static int ltc2978_probe(struct i2c_client *client,
- 	default:
- 		return -ENODEV;
- 	}
--	for (i = 0; i < info->pages; i++)
--		data->vout_min[i] = 0xffff;
--
- 	return pmbus_do_probe(client, id, info);
- }
- 
+On Sat, 23 Feb 2013 17:33:05 +0100, Michael Arndt wrote:
+> I am using Analog ADT7411 in an embedded project, where I mainly
+> use the internal temperature sensor.
+> 
+> Now the internal temperature readings get pretty bad if the sensor
+> is powered for a couple of minutes, as it will heat itself up with
+> about 10mW of power.
+> 
+> When the chip is powered down, it can do with about ~33uW of power, thus
+> reducing the heat-up. Entering the power-down mode automatically would
+> probably be the best thing, but we would need heuristics to decide when
+> to power down, so this patch just adds a new attribute, so the chip
+> can be manually powered down from sysfs.
+> 
+> In my case it really helps to keep the chip cool.
+
+Please do not add a custom sysfs attribute for that. There is a nice
+standard power management framework, please use it.
+
 -- 
-1.7.9.7
-
+Jean Delvare
 
 _______________________________________________
 lm-sensors mailing list
