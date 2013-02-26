@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 26 Feb 2013 01:39:06 +0000
+Date: Tue, 26 Feb 2013 01:40:25 +0000
 Subject: Re: [lm-sensors] [PATCH v2 1/4] hwmon: (adt7410) Don't re-read non-volatile registers
-Message-Id: <20130226013906.GA2290@roeck-us.net>
+Message-Id: <20130226014025.GB2290@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1361194739-16525-1-git-send-email-lars@metafoo.de>
  <51228D7A.8030608@gmx.de>
@@ -9,18 +9,18 @@ References: <1361194739-16525-1-git-send-email-lars@metafoo.de>
  <5123D4F5.5030001@gmx.de>
  <20130220012249.GA15948@roeck-us.net>
  <5128112C.4080909@gmx.de>
- <512B34E2.70709@metafoo.de>
- <512BD7F6.6040105@gmx.de>
-In-Reply-To: <512BD7F6.6040105@gmx.de>
+ <20130223201853.GA11055@roeck-us.net>
+ <512BDFC6.8060504@gmx.de>
+In-Reply-To: <512BDFC6.8060504@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Hartmut Knaack <knaack.h@gmx.de>
 Cc: Lars-Peter Clausen <lars@metafoo.de>, Jean Delvare <khali@linux-fr.org>, Jonathan Cameron <jic23@cam.ac.uk>, lm-sensors@lm-sensors.org, linux-iio@vger.kernel.org
 
-On Mon, Feb 25, 2013 at 10:30:30PM +0100, Hartmut Knaack wrote:
-> Lars-Peter Clausen schrieb:
-> > On 02/23/2013 01:45 AM, Hartmut Knaack wrote:
+On Mon, Feb 25, 2013 at 11:03:50PM +0100, Hartmut Knaack wrote:
+> Guenter Roeck schrieb:
+> > On Sat, Feb 23, 2013 at 01:45:32AM +0100, Hartmut Knaack wrote:
 > >> Guenter Roeck schrieb:
 > >>> On Tue, Feb 19, 2013 at 08:39:33PM +0100, Hartmut Knaack wrote:
 > >>>> Guenter Roeck schrieb:
@@ -49,18 +49,29 @@ On Mon, Feb 25, 2013 at 10:30:30PM +0100, Hartmut Knaack wrote:
 > >>> Guenter
 > >> Well, think about a use case where you optically decouple your master and slave using PCA9600 (may it be using optical fibers to cover a big distance, or just to operate the slave in a hazardous environment), where the slave is powered from a different source. Now, if the slaves Vcc drops for a certain time, all its registers get reset (especially min, max and crit) - without the master noticing anything.
 > >> Therefor I would prefer something like the following solution, where unnecessary load on the bus gets avoided and the cached values get used, until they expire and get read again from the sensor. This is mainly a draft, but do you see any reason against it?
-> >> Thanks
-> >>
-> > That's a bit of an artificially constructed situation, isn't it? Anyway,
-> > wouldn't it be better to not cache at all in that case. For the cache to be
-> > useful userspace would have to poll the file with period of less than 1.5
-> > seconds. I don't think anybody is going to do this for the threshold properties.
+> > Yes, it adds a lot of complexity. Also, at least in theory it would apply to all
+> > i2c drivers, so solving the problem for one chip doesn't help much.
 > >
-> > - Lars
-> I could agree with not caching those registers - nobody would probably want to read them too often, intentionally (although bugged userspace code might DoS the bus). The other few i2c drivers I know also do uncached reads.
+> > A somewhat cleanly designed hardware should inform the software that a device went
+> > offline, for example with an interrupt; otherwise its operation could be severely
+> > affected and system behavior would be unpredictable.
+> >
+> > So the question here is if this is a practical problem in your use case, or a
+> > theoretical problem. If it is a theoretical problem, we can address it for
+> > affected drivers as it is seen. If it is a practical problem, I think we'll need
+> > to come up with a simpler solution. The only one I can think of right now would
+> > be a module parameter. If set, it the driver could re-load the cache each time
+> > the temperature sensor is updated.
+> >
+> > Thanks,
+> > Guenter
+> >
+> My intended use for this sensor type is just temperature logging, so it is just a theoretical problem for me. But I don't trust I2C any more than really necessary (and always keeping Murphy's law in mind) and feel somehow responsible for this driver.
+> I can agree on having a 'paranoid' module parameter to force register reads, just for those folks who need it.
+> 
+If it is a theoretic problem, let's address it once/if it ever gets a real one.
 
-The "sensors" program always reads all attributes.
-
+Thanks,
 Guenter
 
 _______________________________________________
