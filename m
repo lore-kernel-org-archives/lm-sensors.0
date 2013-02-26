@@ -1,587 +1,549 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 26 Feb 2013 16:16:55 +0000
-Subject: [lm-sensors] [PATCH v2 2/2] hwmon: (coretemp) Report power and energy consumption
-Message-Id: <1361895415-18253-2-git-send-email-linux@roeck-us.net>
+Date: Tue, 26 Feb 2013 18:23:38 +0000
+Subject: [lm-sensors] [PATCH v5 10/12] hwmon: (nct6775) Add support for weighted fan control
+Message-Id: <1361903020-18526-11-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
+References: <1361903020-18526-1-git-send-email-linux@roeck-us.net>
+In-Reply-To: <1361903020-18526-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: lm-sensors@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Jean Delvare <khali@linux-fr.org>
+Cc: lm-sensors@lm-sensors.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-Supported by SandyBridge and newer CPUs.
+The NCT677X series support weighted fan control. In this mode, a secondary
+temperature source is used in addition to the primary temperature source to
+control fan speed. Add support for this feature.
 
-Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-v2:
-- Report graphics and DRAM domain power (if supported) in addition to
-  package and core domain power
-- Add support for suspend and resume
-- Do not report powerX_cap_min and powerX_cap_max as it was misleading
-  and did not really report valid ranges for powerX_cap
-- Only report powerX_cap if enabled
-- Only report powerX_max for package power
-- When calculating power in periodic function, take into account that
-  measurements might not be exactly one second apart
+ Documentation/hwmon/nct6775 |   19 +++
+ drivers/hwmon/nct6775.c     |  280 +++++++++++++++++++++++++++++++++++++++=
++---
+ 2 files changed, 285 insertions(+), 14 deletions(-)
 
- Documentation/hwmon/coretemp |   16 ++
- drivers/hwmon/coretemp.c     |  378 +++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 372 insertions(+), 22 deletions(-)
-
-diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
-index fec5a9b..cdb533d 100644
---- a/Documentation/hwmon/coretemp
-+++ b/Documentation/hwmon/coretemp
-@@ -43,6 +43,22 @@ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
- tempX_label	 - Contains string "Core X", where X is processor
- 		   number. For Package temp, this will be "Physical id Y",
- 		   where Y is the package number.
-+energy1_input	 - Package energy consumption since driver was loaded
-+power1_cap	 - Package power limit
-+power1_input	 - Package power consumption
-+power1_max	 - Maximum package power
-+energy2_input	 - Cores energy consumption since driver was loaded
-+power2_cap	 - Cores power limit
-+power2_input	 - Cores power consumption
-+energy3_input	 - Graphics domain energy consumption since driver was loaded
-+power3_cap	 - Graphics domain power limit
-+power3_input	 - Graphics domain power consumption
-+energy4_input	 - DRAM domain energy consumption since driver was loaded
-+power4_cap	 - DRAM domain power limit
-+power4_input	 - DRAM domain power consumption
+diff --git a/Documentation/hwmon/nct6775 b/Documentation/hwmon/nct6775
+index b4fe6bc..3f5587e 100644
+--- a/Documentation/hwmon/nct6775
++++ b/Documentation/hwmon/nct6775
+@@ -92,6 +92,25 @@ Common fan control attributes
+=20
+ pwm[1-5]_temp_sel	Temperature source. Value is temperature sensor index.
+ 			For example, select '1' for temp1_input.
++pwm[1-5]_weight_temp_sel
++			Secondary temperature source. Value is temperature
++			sensor index. For example, select '1' for temp1_input.
++			Set to 0 to disable secondary temperature control.
 +
-+Graphics and DRAM power domains are not supported on all chip variants.
-+powerX_cap is only reported if enabled.
- 
- On CPU models which support it, TjMax is read from a model-specific register.
- On other models, it is set to an arbitrary value based on weak heuristics.
-diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 02ac401..8b8131f 100644
---- a/drivers/hwmon/coretemp.c
-+++ b/drivers/hwmon/coretemp.c
-@@ -54,6 +54,7 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
- #define NUM_REAL_CORES		32	/* Number of Real cores per cpu */
- #define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
- #define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
-+#define MAX_POWER_ATTRS		6	/* Maximum no of power attrs */
- #define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
- #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
- 
-@@ -67,6 +68,36 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
- #define for_each_sibling(i, cpu)	for (i = 0; false; )
- #endif
- 
-+#define RAPL_PKG_INDEX		0
-+#define RAPL_CORE_INDEX		1
-+#define RAPL_GFX_INDEX		2
-+#define RAPL_DRAM_INDEX		3
-+#define RAPL_DOMAINS		(RAPL_DRAM_INDEX + 1)
++If secondary temperature functionality is enabled, it is controlled with t=
+he
++following attributes.
 +
-+#define HAS_RAPL_PKG		(1 << RAPL_PKG_INDEX)
-+#define HAS_RAPL_CORE		(1 << RAPL_CORE_INDEX)
++pwm[1-5]_weight_duty_step
++			Duty step size.
++pwm[1-5]_weight_temp_step
++			Temperature step size. With each step over
++			temp_step_base, the value of weight_duty_step is added
++			to the current pwm value.
++pwm[1-5]_weight_temp_step_base
++			Temperature at which secondary temperature control kicks
++			in.
++pwm[1-5]_weight_temp_step_tol
++			Temperature step tolerance.
+=20
+ Thermal Cruise mode (2)
+ -----------------------
+diff --git a/drivers/hwmon/nct6775.c b/drivers/hwmon/nct6775.c
+index bf47bcb..50e38c6 100644
+--- a/drivers/hwmon/nct6775.c
++++ b/drivers/hwmon/nct6775.c
+@@ -255,6 +255,17 @@ static const u16 NCT6775_REG_TEMP_SOURCE[] =3D {
+ static const u16 NCT6775_REG_TEMP_SEL[] =3D {
+ 	0x100, 0x200, 0x300, 0x800, 0x900 };
+=20
++static const u16 NCT6775_REG_WEIGHT_TEMP_SEL[] =3D {
++	0x139, 0x239, 0x339, 0x839, 0x939 };
++static const u16 NCT6775_REG_WEIGHT_TEMP_STEP[] =3D {
++	0x13a, 0x23a, 0x33a, 0x83a, 0x93a };
++static const u16 NCT6775_REG_WEIGHT_TEMP_STEP_TOL[] =3D {
++	0x13b, 0x23b, 0x33b, 0x83b, 0x93b };
++static const u16 NCT6775_REG_WEIGHT_DUTY_STEP[] =3D {
++	0x13c, 0x23c, 0x33c, 0x83c, 0x93c };
++static const u16 NCT6775_REG_WEIGHT_TEMP_BASE[] =3D {
++	0x13d, 0x23d, 0x33d, 0x83d, 0x93d };
 +
-+static const u32 power_limit_msr[] = {
-+	MSR_PKG_POWER_LIMIT,
-+	MSR_PP0_POWER_LIMIT,
-+	MSR_PP1_POWER_LIMIT,
-+	MSR_DRAM_POWER_LIMIT,
-+};
+ static const u16 NCT6775_REG_TEMP_OFFSET[] =3D { 0x454, 0x455, 0x456 };
+=20
+ static const u16 NCT6775_REG_AUTO_TEMP[] =3D {
+@@ -323,6 +334,9 @@ static const u8 NCT6776_PWM_MODE_MASK[] =3D { 0x01, 0, =
+0 };
+ static const u16 NCT6776_REG_FAN_MIN[] =3D { 0x63a, 0x63c, 0x63e, 0x640, 0=
+x642 };
+ static const u16 NCT6776_REG_FAN_PULSES[] =3D { 0x644, 0x645, 0x646, 0, 0 =
+};
+=20
++static const u16 NCT6776_REG_WEIGHT_DUTY_BASE[] =3D {
++	0x13e, 0x23e, 0x33e, 0x83e, 0x93e };
 +
-+static const u32 energy_status_msr[] = {
-+	MSR_PKG_ENERGY_STATUS,
-+	MSR_PP0_ENERGY_STATUS,
-+	MSR_PP1_ENERGY_STATUS,
-+	MSR_DRAM_ENERGY_STATUS,
-+};
+ static const u16 NCT6776_REG_TEMP_CONFIG[11] =3D {
+ 	0x18, 0x152, 0x252, 0x628, 0x629, 0x62A };
+=20
+@@ -568,8 +582,9 @@ struct nct6775_data {
+ 	const u8 *REG_PWM_MODE;
+ 	const u8 *PWM_MODE_MASK;
+=20
+-	const u16 *REG_PWM[5];	/* [0]=3Dpwm, [1]=3Dpwm_start, [2]=3Dpwm_floor,
+-				 * [3]=3Dpwm_max, [4]=3Dpwm_step
++	const u16 *REG_PWM[7];	/* [0]=3Dpwm, [1]=3Dpwm_start, [2]=3Dpwm_floor,
++				 * [3]=3Dpwm_max, [4]=3Dpwm_step,
++				 * [5]=3Dweight_duty_step, [6]=3Dweight_duty_base
+ 				 */
+ 	const u16 *REG_PWM_READ;
+=20
+@@ -581,6 +596,9 @@ struct nct6775_data {
+=20
+ 	const u16 *REG_TEMP_SOURCE;	/* temp register sources */
+ 	const u16 *REG_TEMP_SEL;
++	const u16 *REG_WEIGHT_TEMP_SEL;
++	const u16 *REG_WEIGHT_TEMP[3];	/* 0=BAse, 1=3Dtolerance, 2=3Dstep */
 +
-+static const u32 power_info_msr[] = {
-+	MSR_PKG_POWER_INFO,
-+	0,
-+	0,
-+	MSR_DRAM_POWER_INFO,
-+};
+ 	const u16 *REG_TEMP_OFFSET;
+=20
+ 	const u16 *REG_ALARM;
+@@ -622,8 +640,9 @@ struct nct6775_data {
+ 			 * 4->SmartFan III
+ 			 * 5->enhanced variable thermal cruise (SmartFan IV)
+ 			 */
+-	u8 pwm[5][5];	/* [0]=3Dpwm, [1]=3Dpwm_start, [2]=3Dpwm_floor,
+-			 * [3]=3Dpwm_max, [4]=3Dpwm_step
++	u8 pwm[7][5];	/* [0]=3Dpwm, [1]=3Dpwm_start, [2]=3Dpwm_floor,
++			 * [3]=3Dpwm_max, [4]=3Dpwm_step,
++			 * [5]=3Dweight_duty_step, [6]=3Dweight_duty_base
+ 			 */
+=20
+ 	u8 target_temp[5];
+@@ -642,6 +661,10 @@ struct nct6775_data {
+ 	u8 auto_pwm[5][7];
+ 	u8 auto_temp[5][7];
+ 	u8 pwm_temp_sel[5];
++	u8 pwm_weight_temp_sel[5];
++	u8 weight_temp[3][5];	/* 0->temp_step, 1->temp_step_tol,
++				 * 2->temp_base
++				 */
+=20
+ 	u8 vid;
+ 	u8 vrm;
+@@ -969,6 +992,19 @@ static void nct6775_update_pwm(struct device *dev)
+ 		/* If fan can stop, report floor as 0 */
+ 		if (reg & 0x80)
+ 			data->pwm[2][i] =3D 0;
 +
- /*
-  * Per-Core Temperature Data
-  * @last_updated: The time when the current temperature value was updated
-@@ -75,10 +106,20 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
-  *		This value is passed as "id" field to rdmsr/wrmsr functions.
-  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
-  *		from where the temperature values should be read.
-- * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
-+ * @attr_size:  Total number of per-core attrs displayed in the sysfs.
-  * @is_pkg_data: If this is true, the core_data holds pkgtemp data.
-  *		Otherwise, core_data holds coretemp data.
-  * @valid: If this is true, the current temperature is valid.
-+ * @rapl:		Bit mask or supported RAPL (energy measurement) domains
-+ * @rapl_attr_mask:	Masks for enabled power attributes per domain
-+ * @rapl_timestamp:	Last time energy/power was retrieved
-+ * @rapl_power_units:	Units of power as reported by the chip
-+ * @rapl_energy_units:	Units of energy as reported by the chip
-+ * @rapl_energy_raw:	Most recent energy measurement (raw) per domain
-+ * @rapl_energy:	cumulative energy (mJ) per domain
-+ * @rapl_power:		current power usage (mW) per domain
-+ * @rapl_power_max:	maximum power (TDP, mW) per domain as reported
-+ *			by the chip
-  */
- struct core_data {
- 	int temp;
-@@ -91,9 +132,24 @@ struct core_data {
- 	int attr_size;
- 	bool is_pkg_data;
- 	bool valid;
--	struct sensor_device_attribute sd_attrs[TOTAL_ATTRS];
-+	struct sensor_device_attribute_2 sd_attrs[TOTAL_ATTRS];
- 	char attr_name[TOTAL_ATTRS][CORETEMP_NAME_LENGTH];
- 	struct mutex update_lock;
-+	/* power/energy */
-+	struct sensor_device_attribute_2 sd_power_attrs[MAX_POWER_ATTRS
-+							* RAPL_DOMAINS];
-+	char power_attr_name[MAX_POWER_ATTRS * RAPL_DOMAINS]
-+			    [CORETEMP_NAME_LENGTH];
-+	u32 rapl;
-+	u32 rapl_attr_mask[RAPL_DOMAINS];
-+	unsigned long rapl_timestamp;
-+	u32 rapl_power_units;
-+	u32 rapl_energy_units;
-+	u32 rapl_energy_raw[RAPL_DOMAINS];
-+	u64 rapl_energy[RAPL_DOMAINS];
-+	u32 rapl_power[RAPL_DOMAINS];
-+	u32 rapl_power_max[RAPL_DOMAINS];
-+	struct delayed_work rapl_wq;
- };
- 
- /* Platform Data per Physical CPU */
-@@ -122,7 +178,7 @@ static ssize_t show_name(struct device *dev,
- static ssize_t show_label(struct device *dev,
- 				struct device_attribute *devattr, char *buf)
- {
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
- 	struct core_data *tdata = pdata->core_data[attr->index];
- 
-@@ -132,11 +188,34 @@ static ssize_t show_label(struct device *dev,
- 	return sprintf(buf, "Core %u\n", tdata->cpu_core_id);
- }
- 
-+static const char * const power_domains[] = {
-+	"Pkg",
-+	"Cores",
-+	"Graphics",
-+	"DRAM",
-+};
++		reg =3D nct6775_read_value(data, data->REG_WEIGHT_TEMP_SEL[i]);
++		data->pwm_weight_temp_sel[i] =3D reg & 0x1f;
++		/* If weight is disabled, report weight source as 0 */
++		if (j =3D 1 && !(reg & 0x80))
++			data->pwm_weight_temp_sel[i] =3D 0;
 +
-+static ssize_t show_power_label(struct device *dev,
-+				struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+
-+	return sprintf(buf, "%s power\n", power_domains[attr->nr]);
-+}
-+
-+static ssize_t show_energy_label(struct device *dev,
-+				 struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+
-+	return sprintf(buf, "%s energy\n", power_domains[attr->nr]);
-+}
-+
- static ssize_t show_crit_alarm(struct device *dev,
- 				struct device_attribute *devattr, char *buf)
- {
- 	u32 eax, edx;
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
- 	struct core_data *tdata = pdata->core_data[attr->index];
- 
-@@ -148,7 +227,7 @@ static ssize_t show_crit_alarm(struct device *dev,
- static ssize_t show_tjmax(struct device *dev,
- 			struct device_attribute *devattr, char *buf)
- {
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
- 
- 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->tjmax);
-@@ -157,7 +236,7 @@ static ssize_t show_tjmax(struct device *dev,
- static ssize_t show_ttarget(struct device *dev,
- 				struct device_attribute *devattr, char *buf)
- {
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
- 
- 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->ttarget);
-@@ -167,7 +246,7 @@ static ssize_t show_temp(struct device *dev,
- 			struct device_attribute *devattr, char *buf)
- {
- 	u32 eax, edx;
--	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
- 	struct platform_data *pdata = dev_get_drvdata(dev);
- 	struct core_data *tdata = pdata->core_data[attr->index];
- 
-@@ -190,6 +269,58 @@ static ssize_t show_temp(struct device *dev,
- 	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
- }
- 
-+static ssize_t show_power(struct device *dev,
-+			  struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
-+
-+	return sprintf(buf, "%u\n", tdata->rapl_power[attr->nr] * 1000);
-+}
-+
-+static ssize_t show_power_max(struct device *dev,
-+			      struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
-+
-+	return sprintf(buf, "%u\n", tdata->rapl_power_max[attr->nr] * 1000);
-+}
-+
-+static ssize_t show_power_cap(struct device *dev,
-+			      struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
-+	u32 eax, edx;
-+	u64 cap;
-+
-+	rdmsr_on_cpu(tdata->cpu, power_limit_msr[attr->nr], &eax, &edx);
-+
-+	/* Report lowest configured cap limit */
-+	cap = (eax & 0x8000) ? (eax & 0x7fff) : 0;
-+	if (attr->nr && (edx & 0x8000) && (!(eax & 0x8000) ||
-+					   (edx & 0x7fff) < cap))
-+		cap = edx & 0x7fff;
-+
-+	cap = (cap * 1000000LL) >> tdata->rapl_power_units;
-+
-+	return sprintf(buf, "%llu\n", cap);
-+}
-+
-+static ssize_t show_energy(struct device *dev,
-+			   struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
-+
-+	return sprintf(buf, "%llu\n", tdata->rapl_energy[attr->nr] * 1000ULL);
-+}
-+
- struct tjmax {
- 	char const *id;
- 	int tjmax;
-@@ -367,10 +498,55 @@ static int create_name_attr(struct platform_data *pdata,
- 	return device_create_file(dev, &pdata->name_attr);
- }
- 
-+static void remove_core_files(struct device *dev, struct core_data *tdata)
-+{
-+	int d, i;
-+
-+	for (i = 0; i < tdata->attr_size; i++)
-+		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
-+
-+	if (!tdata->is_pkg_data)
-+		return;
-+
-+	for (d = 0; d < RAPL_DOMAINS; d++) {
-+		if (!(tdata->rapl & (1 << d)))
-+			continue;
-+		for (i = 0; i < MAX_POWER_ATTRS; i++) {
-+			int index = d * MAX_POWER_ATTRS + i;
-+
-+			if (!(tdata->rapl_attr_mask[d] & (1 << i)))
-+				continue;
-+			device_remove_file(dev,
-+					&tdata->sd_power_attrs[index].dev_attr);
++		/* Weight temp data */
++		for (j =3D 0; j < 3; j++) {
++			data->weight_temp[j][i]
++			  =3D nct6775_read_value(data,
++					       data->REG_WEIGHT_TEMP[j][i]);
 +		}
-+	}
+ 	}
+ }
+=20
+@@ -1935,9 +1971,9 @@ store_pwm(struct device *dev, struct device_attribute=
+ *attr, const char *buf,
+ 	int nr =3D sattr->nr;
+ 	int index =3D sattr->index;
+ 	unsigned long val;
+-	int minval[5] =3D { 0, 1, 1, data->pwm[2][nr], 0 };
+-	int maxval[5]
+-	  =3D { 255, 255, data->pwm[3][nr] ? : 255, 255, 255 };
++	int minval[7] =3D { 0, 1, 1, data->pwm[2][nr], 0, 0, 0 };
++	int maxval[7]
++	  =3D { 255, 255, data->pwm[3][nr] ? : 255, 255, 255, 255, 255 };
+ 	int err;
+ 	u8 reg;
+=20
+@@ -2075,13 +2111,9 @@ store_pwm_enable(struct device *dev, struct device_a=
+ttribute *attr,
+ }
+=20
+ static ssize_t
+-show_pwm_temp_sel(struct device *dev, struct device_attribute *attr, char =
+*buf)
++show_pwm_temp_sel_common(struct nct6775_data *data, char *buf, int src)
+ {
+-	struct nct6775_data *data =3D nct6775_update_device(dev);
+-	struct sensor_device_attribute *sattr =3D to_sensor_dev_attr(attr);
+-	int i, src, sel =3D 0;
+-
+-	src =3D data->pwm_temp_sel[sattr->index];
++	int i, sel =3D 0;
+=20
+ 	for (i =3D 0; i < NUM_TEMP; i++) {
+ 		if (!(data->have_temp & (1 << i)))
+@@ -2096,6 +2128,16 @@ show_pwm_temp_sel(struct device *dev, struct device_=
+attribute *attr, char *buf)
+ }
+=20
+ static ssize_t
++show_pwm_temp_sel(struct device *dev, struct device_attribute *attr, char =
+*buf)
++{
++	struct nct6775_data *data =3D nct6775_update_device(dev);
++	struct sensor_device_attribute *sattr =3D to_sensor_dev_attr(attr);
++	int index =3D sattr->index;
++
++	return show_pwm_temp_sel_common(data, buf, data->pwm_temp_sel[index]);
 +}
 +
-+static int __cpuinit create_core_attr(struct device *dev,
-+				      struct sensor_device_attribute_2 *attr,
-+				      char *attr_name,
-+				      int index, int nr,
-+				      ssize_t (*const rd_ptr)(struct device *,
-+					struct device_attribute *, char *),
-+				      const char *const template)
++static ssize_t
+ store_pwm_temp_sel(struct device *dev, struct device_attribute *attr,
+ 		   const char *buf, size_t count)
+ {
+@@ -2126,6 +2168,56 @@ store_pwm_temp_sel(struct device *dev, struct device=
+_attribute *attr,
+ }
+=20
+ static ssize_t
++show_pwm_weight_temp_sel(struct device *dev, struct device_attribute *attr,
++			 char *buf)
 +{
++	struct nct6775_data *data =3D nct6775_update_device(dev);
++	struct sensor_device_attribute *sattr =3D to_sensor_dev_attr(attr);
++	int index =3D sattr->index;
++
++	return show_pwm_temp_sel_common(data, buf,
++					data->pwm_weight_temp_sel[index]);
++}
++
++static ssize_t
++store_pwm_weight_temp_sel(struct device *dev, struct device_attribute *att=
+r,
++			  const char *buf, size_t count)
++{
++	struct nct6775_data *data =3D nct6775_update_device(dev);
++	struct sensor_device_attribute *sattr =3D to_sensor_dev_attr(attr);
++	int nr =3D sattr->index;
++	unsigned long val;
++	int err, reg, src;
++
++	err =3D kstrtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++	if (val > NUM_TEMP)
++		return -EINVAL;
++	if (val && (!(data->have_temp & (1 << (val - 1))) ||
++		    !data->temp_src[val - 1]))
++		return -EINVAL;
++
++	mutex_lock(&data->update_lock);
++	if (val) {
++		src =3D data->temp_src[val - 1];
++		data->pwm_weight_temp_sel[nr] =3D src;
++		reg =3D nct6775_read_value(data, data->REG_WEIGHT_TEMP_SEL[nr]);
++		reg &=3D 0xe0;
++		reg |=3D (src | 0x80);
++		nct6775_write_value(data, data->REG_WEIGHT_TEMP_SEL[nr], reg);
++	} else {
++		data->pwm_weight_temp_sel[nr] =3D 0;
++		reg =3D nct6775_read_value(data, data->REG_WEIGHT_TEMP_SEL[nr]);
++		reg &=3D 0x7f;
++		nct6775_write_value(data, data->REG_WEIGHT_TEMP_SEL[nr], reg);
++	}
++	mutex_unlock(&data->update_lock);
++
++	return count;
++}
++
++static ssize_t
+ show_target_temp(struct device *dev, struct device_attribute *attr, char *=
+buf)
+ {
+ 	struct nct6775_data *data =3D nct6775_update_device(dev);
+@@ -2378,6 +2470,115 @@ static SENSOR_DEVICE_ATTR(fan5_tolerance, S_IWUSR |=
+ S_IRUGO,
+ /* Smart Fan registers */
+=20
+ static ssize_t
++show_weight_temp(struct device *dev, struct device_attribute *attr, char *=
+buf)
++{
++	struct nct6775_data *data =3D nct6775_update_device(dev);
++	struct sensor_device_attribute_2 *sattr =3D to_sensor_dev_attr_2(attr);
++	int nr =3D sattr->nr;
++	int index =3D sattr->index;
++
++	return sprintf(buf, "%d\n", data->weight_temp[index][nr] * 1000);
++}
++
++static ssize_t
++store_weight_temp(struct device *dev, struct device_attribute *attr,
++		  const char *buf, size_t count)
++{
++	struct nct6775_data *data =3D dev_get_drvdata(dev);
++	struct sensor_device_attribute_2 *sattr =3D to_sensor_dev_attr_2(attr);
++	int nr =3D sattr->nr;
++	int index =3D sattr->index;
++	unsigned long val;
 +	int err;
 +
-+	snprintf(attr_name, CORETEMP_NAME_LENGTH, template, nr);
-+	sysfs_attr_init(&attr->dev_attr.attr);
-+	attr->dev_attr.attr.name = attr_name;
-+	attr->dev_attr.attr.mode = S_IRUGO;
-+	attr->dev_attr.show = rd_ptr;
-+	attr->index = index;
-+	attr->nr = nr - 1;
-+	err = device_create_file(dev, &attr->dev_attr);
-+	return err;
++	err =3D kstrtoul(buf, 10, &val);
++	if (err < 0)
++		return err;
++
++	val =3D clamp_val(DIV_ROUND_CLOSEST(val, 1000), 0, 255);
++
++	mutex_lock(&data->update_lock);
++	data->weight_temp[index][nr] =3D val;
++	nct6775_write_value(data, data->REG_WEIGHT_TEMP[index][nr], val);
++	mutex_unlock(&data->update_lock);
++	return count;
 +}
 +
- static int __cpuinit create_core_attrs(struct core_data *tdata,
- 				       struct device *dev, int attr_no)
++static SENSOR_DEVICE_ATTR(pwm1_weight_temp_sel, S_IWUSR | S_IRUGO,
++			    show_pwm_weight_temp_sel, store_pwm_weight_temp_sel,
++			    0);
++static SENSOR_DEVICE_ATTR(pwm2_weight_temp_sel, S_IWUSR | S_IRUGO,
++			    show_pwm_weight_temp_sel, store_pwm_weight_temp_sel,
++			    1);
++static SENSOR_DEVICE_ATTR(pwm3_weight_temp_sel, S_IWUSR | S_IRUGO,
++			    show_pwm_weight_temp_sel, store_pwm_weight_temp_sel,
++			    2);
++static SENSOR_DEVICE_ATTR(pwm4_weight_temp_sel, S_IWUSR | S_IRUGO,
++			    show_pwm_weight_temp_sel, store_pwm_weight_temp_sel,
++			    3);
++static SENSOR_DEVICE_ATTR(pwm5_weight_temp_sel, S_IWUSR | S_IRUGO,
++			    show_pwm_weight_temp_sel, store_pwm_weight_temp_sel,
++			    4);
++
++static SENSOR_DEVICE_ATTR_2(pwm1_weight_temp_step, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 0, 0);
++static SENSOR_DEVICE_ATTR_2(pwm2_weight_temp_step, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 1, 0);
++static SENSOR_DEVICE_ATTR_2(pwm3_weight_temp_step, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 2, 0);
++static SENSOR_DEVICE_ATTR_2(pwm4_weight_temp_step, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 3, 0);
++static SENSOR_DEVICE_ATTR_2(pwm5_weight_temp_step, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 4, 0);
++
++static SENSOR_DEVICE_ATTR_2(pwm1_weight_temp_step_tol, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 0, 1);
++static SENSOR_DEVICE_ATTR_2(pwm2_weight_temp_step_tol, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 1, 1);
++static SENSOR_DEVICE_ATTR_2(pwm3_weight_temp_step_tol, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 2, 1);
++static SENSOR_DEVICE_ATTR_2(pwm4_weight_temp_step_tol, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 3, 1);
++static SENSOR_DEVICE_ATTR_2(pwm5_weight_temp_step_tol, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 4, 1);
++
++static SENSOR_DEVICE_ATTR_2(pwm1_weight_temp_step_base, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 0, 2);
++static SENSOR_DEVICE_ATTR_2(pwm2_weight_temp_step_base, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 1, 2);
++static SENSOR_DEVICE_ATTR_2(pwm3_weight_temp_step_base, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 2, 2);
++static SENSOR_DEVICE_ATTR_2(pwm4_weight_temp_step_base, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 3, 2);
++static SENSOR_DEVICE_ATTR_2(pwm5_weight_temp_step_base, S_IWUSR | S_IRUGO,
++			    show_weight_temp, store_weight_temp, 4, 2);
++
++static SENSOR_DEVICE_ATTR_2(pwm1_weight_duty_step, S_IWUSR | S_IRUGO,
++			    show_pwm, store_pwm, 0, 5);
++static SENSOR_DEVICE_ATTR_2(pwm2_weight_duty_step, S_IWUSR | S_IRUGO,
++			    show_pwm, store_pwm, 1, 5);
++static SENSOR_DEVICE_ATTR_2(pwm3_weight_duty_step, S_IWUSR | S_IRUGO,
++			    show_pwm, store_pwm, 2, 5);
++static SENSOR_DEVICE_ATTR_2(pwm4_weight_duty_step, S_IWUSR | S_IRUGO,
++			    show_pwm, store_pwm, 3, 5);
++static SENSOR_DEVICE_ATTR_2(pwm5_weight_duty_step, S_IWUSR | S_IRUGO,
++			    show_pwm, store_pwm, 4, 5);
++
++/* duty_base is not supported on all chips */
++static struct sensor_device_attribute_2 sda_weight_duty_base[] =3D {
++	SENSOR_ATTR_2(pwm1_weight_duty_base, S_IWUSR | S_IRUGO,
++		      show_pwm, store_pwm, 0, 6),
++	SENSOR_ATTR_2(pwm2_weight_duty_base, S_IWUSR | S_IRUGO,
++		      show_pwm, store_pwm, 1, 6),
++	SENSOR_ATTR_2(pwm3_weight_duty_base, S_IWUSR | S_IRUGO,
++		      show_pwm, store_pwm, 2, 6),
++	SENSOR_ATTR_2(pwm4_weight_duty_base, S_IWUSR | S_IRUGO,
++		      show_pwm, store_pwm, 3, 6),
++	SENSOR_ATTR_2(pwm5_weight_duty_base, S_IWUSR | S_IRUGO,
++		      show_pwm, store_pwm, 4, 6),
++};
++
++static ssize_t
+ show_fan_time(struct device *dev, struct device_attribute *attr, char *buf)
  {
--	int err, i;
-+	int err, d, i;
- 	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
- 			struct device_attribute *devattr, char *buf) = {
- 			show_label, show_crit_alarm, show_temp, show_tjmax,
-@@ -379,24 +555,51 @@ static int __cpuinit create_core_attrs(struct core_data *tdata,
- 					"temp%d_label", "temp%d_crit_alarm",
- 					"temp%d_input", "temp%d_crit",
- 					"temp%d_max" };
-+	static ssize_t (*const p_rd_ptr[MAX_POWER_ATTRS]) (struct device *dev,
-+			struct device_attribute *devattr, char *buf) = {
-+			show_energy_label, show_energy,
-+			show_power_label, show_power, show_power_max,
-+			show_power_cap };
-+	static const char *const power_names[MAX_POWER_ATTRS] = {
-+					"energy%d_label", "energy%d_input",
-+					"power%d_label", "power%d_input",
-+					"power%d_max", "power%d_cap" };
- 
- 	for (i = 0; i < tdata->attr_size; i++) {
--		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
--			attr_no);
--		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
--		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
--		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
--		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
--		tdata->sd_attrs[i].index = attr_no;
--		err = device_create_file(dev, &tdata->sd_attrs[i].dev_attr);
-+		err = create_core_attr(dev, &tdata->sd_attrs[i],
-+				       tdata->attr_name[i],
-+				       attr_no, attr_no,
-+				       rd_ptr[i],
-+				       names[i]);
- 		if (err)
- 			goto exit_free;
- 	}
-+	if (tdata->is_pkg_data) {
-+		for (d = 0; d < RAPL_DOMAINS; d++) {
-+			if (!(tdata->rapl & (1 << d)))
-+				continue;
-+			for (i = 0; i < MAX_POWER_ATTRS; i++) {
-+				int index = d * MAX_POWER_ATTRS + i;
-+
-+				if (!(tdata->rapl_attr_mask[d] & (1 << i)))
-+					continue;
-+
-+				err = create_core_attr(dev,
-+					&tdata->sd_power_attrs[index],
-+					tdata->power_attr_name[index],
-+					attr_no, d + 1,
-+					p_rd_ptr[i],
-+					power_names[i]);
-+				if (err)
-+					goto exit_free;
-+			}
-+		}
-+	}
-+
- 	return 0;
- 
- exit_free:
--	while (--i >= 0)
--		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
-+	remove_core_files(dev, tdata);
- 	return err;
- }
- 
-@@ -454,6 +657,81 @@ static struct core_data __cpuinit *init_core_data(unsigned int cpu,
- 	return tdata;
- }
- 
-+static void coretemp_rapl_work(struct work_struct *work)
-+{
-+	struct core_data *tdata = container_of(work, struct core_data,
-+					       rapl_wq.work);
-+	u32 eax, edx;
-+	u32 delta;
-+	u32 power;
-+	int d;
-+	unsigned long elapsed = jiffies - tdata->rapl_timestamp;
-+
-+	for (d = 0; d < RAPL_DOMAINS; d++) {
-+		if (!(tdata->rapl & (1 << d)))
-+			continue;
-+
-+		rdmsr_on_cpu(tdata->cpu, energy_status_msr[d], &eax, &edx);
-+		delta = eax - tdata->rapl_energy_raw[d];
-+		power = (delta * 1000LL) >> tdata->rapl_energy_units;
-+		tdata->rapl_energy_raw[d] = eax;
-+		tdata->rapl_energy[d] += power;
-+		if (elapsed)
-+			power = DIV_ROUND_CLOSEST(power * HZ, elapsed);
-+		tdata->rapl_power[d] = power;
-+	}
-+
-+	tdata->rapl_timestamp = jiffies;
-+	schedule_delayed_work(&tdata->rapl_wq, HZ);
-+}
-+
-+static void coretemp_init_rapl(struct platform_device *pdev,
-+			       int cpu, struct core_data *tdata)
-+{
-+	u32 eax, edx;
-+	int d, err;
-+
-+	/* Test if we can access rapl registers */
-+	err = rdmsr_safe_on_cpu(cpu, MSR_RAPL_POWER_UNIT, &eax, &edx);
-+	if (err)
-+		return;
-+
-+	tdata->rapl_power_units = eax & 0x000f;
-+	tdata->rapl_energy_units = (eax >> 8) & 0x001f;
-+
-+	INIT_DEFERRABLE_WORK(&tdata->rapl_wq, coretemp_rapl_work);
-+
-+	tdata->rapl_timestamp = jiffies;
-+
-+	for (d = 0; d < RAPL_DOMAINS; d++) {
-+		err = rdmsr_safe_on_cpu(cpu, energy_status_msr[d], &eax, &edx);
-+		if (err)
-+			continue;
-+		tdata->rapl |= 1 << d;
-+		tdata->rapl_energy_raw[d] = eax;
-+		tdata->rapl_attr_mask[d] = BIT(0) | BIT(1) | BIT(2) | BIT(3);
-+
-+		/*
-+		 * Only report power cap if supported for domain and enabled.
-+		 * Note: package domain (index 0) has two cap limits.
-+		 */
-+		err = rdmsr_safe_on_cpu(tdata->cpu, power_limit_msr[d],
-+					&eax, &edx);
-+		if (!err && ((eax & 0x8000) || (d && (edx & 0x8000))))
-+			tdata->rapl_attr_mask[d] |= BIT(5);
-+
-+		/* Only report max power if it exists for the domain */
-+		if (!power_info_msr[d])
-+			continue;
-+		err = rdmsr_safe_on_cpu(cpu, power_info_msr[d], &eax, &edx);
-+		if (err)
-+			continue;
-+		tdata->rapl_power_max[d] +			((eax & 0x7fff) * 1000) >> tdata->rapl_power_units;
-+		tdata->rapl_attr_mask[d] |= BIT(4);
-+	}
-+}
-+
- static int __cpuinit create_core_data(struct platform_device *pdev,
- 				unsigned int cpu, bool pkg_flag)
- {
-@@ -511,6 +789,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
- 		}
- 	}
- 
-+	if (tdata->is_pkg_data)
-+		coretemp_init_rapl(pdev, cpu, tdata);
-+
- 	pdata->core_data[attr_no] = tdata;
- 
- 	/* Create sysfs interfaces */
-@@ -518,6 +799,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
- 	if (err)
- 		goto exit_free;
- 
-+	if (tdata->rapl)
-+		schedule_delayed_work(&tdata->rapl_wq, HZ);
-+
- 	return 0;
- exit_free:
- 	pdata->core_data[attr_no] = NULL;
-@@ -541,12 +825,12 @@ static void __cpuinit coretemp_add_core(unsigned int cpu, bool pkg_flag)
- static void coretemp_remove_core(struct platform_data *pdata,
- 				struct device *dev, int indx)
- {
--	int i;
- 	struct core_data *tdata = pdata->core_data[indx];
- 
--	/* Remove the sysfs attributes */
--	for (i = 0; i < tdata->attr_size; i++)
--		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
-+	if (tdata->rapl)
-+		cancel_delayed_work(&tdata->rapl_wq);
-+
-+	remove_core_files(dev, tdata);
- 
- 	kfree(pdata->core_data[indx]);
- 	pdata->core_data[indx] = NULL;
-@@ -601,10 +885,60 @@ static int coretemp_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM_SLEEP
-+static int coretemp_suspend(struct device *dev)
-+{
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata;
-+	int i;
-+
-+	for (i = 0; i < MAX_CORE_DATA; i++) {
-+		tdata = pdata->core_data[i];
-+		if (tdata && tdata->rapl)
-+			cancel_delayed_work(&tdata->rapl_wq);
-+	}
-+	return 0;
-+}
-+
-+static int coretemp_resume(struct device *dev)
-+{
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata;
-+	int d, i;
-+	u32 eax, edx;
-+
-+	for (i = 0; i < MAX_CORE_DATA; i++) {
-+		tdata = pdata->core_data[i];
-+		if (tdata && tdata->rapl) {
-+			tdata->rapl_timestamp = jiffies;
-+			for (d = 0; d < RAPL_DOMAINS; d++) {
-+				if (!(tdata->rapl & (1 << d)))
-+					continue;
-+
-+				rdmsr_on_cpu(tdata->cpu,
-+					     energy_status_msr[d],
-+					     &eax, &edx);
-+				tdata->rapl_energy_raw[d] = eax;
-+			}
-+			schedule_delayed_work(&tdata->rapl_wq, HZ);
-+		}
-+	}
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(coretemp_dev_pm_ops, coretemp_suspend,
-+			 coretemp_resume);
-+
-+#define CORETEMP_DEV_PM_OPS (&coretemp_dev_pm_ops)
-+#else
-+#define CORETEMP_DEV_PM_OPS NULL
-+#endif /* CONFIG_PM_SLEEP */
-+
- static struct platform_driver coretemp_driver = {
- 	.driver = {
- 		.owner = THIS_MODULE,
- 		.name = DRVNAME,
-+		.pm = CORETEMP_DEV_PM_OPS,
+ 	struct nct6775_data *data =3D nct6775_update_device(dev);
+@@ -2523,7 +2724,7 @@ static struct sensor_device_attribute_2 sda_pwm_step[=
+] =3D {
+ 	SENSOR_ATTR_2(pwm5_step, S_IWUSR | S_IRUGO, show_pwm, store_pwm, 4, 4),
+ };
+=20
+-static struct attribute *nct6775_attributes_pwm[5][15] =3D {
++static struct attribute *nct6775_attributes_pwm[5][20] =3D {
+ 	{
+ 		&sensor_dev_attr_pwm1.dev_attr.attr,
+ 		&sensor_dev_attr_pwm1_mode.dev_attr.attr,
+@@ -2539,6 +2740,11 @@ static struct attribute *nct6775_attributes_pwm[5][1=
+5] =3D {
+ 		&sensor_dev_attr_pwm1_step_down_time.dev_attr.attr,
+ 		&sensor_dev_attr_pwm1_start.dev_attr.attr,
+ 		&sensor_dev_attr_pwm1_floor.dev_attr.attr,
++		&sensor_dev_attr_pwm1_weight_temp_sel.dev_attr.attr,
++		&sensor_dev_attr_pwm1_weight_temp_step.dev_attr.attr,
++		&sensor_dev_attr_pwm1_weight_temp_step_tol.dev_attr.attr,
++		&sensor_dev_attr_pwm1_weight_temp_step_base.dev_attr.attr,
++		&sensor_dev_attr_pwm1_weight_duty_step.dev_attr.attr,
+ 		NULL
  	},
- 	.probe = coretemp_probe,
- 	.remove = coretemp_remove,
--- 
+ 	{
+@@ -2556,6 +2762,11 @@ static struct attribute *nct6775_attributes_pwm[5][1=
+5] =3D {
+ 		&sensor_dev_attr_pwm2_step_down_time.dev_attr.attr,
+ 		&sensor_dev_attr_pwm2_start.dev_attr.attr,
+ 		&sensor_dev_attr_pwm2_floor.dev_attr.attr,
++		&sensor_dev_attr_pwm2_weight_temp_sel.dev_attr.attr,
++		&sensor_dev_attr_pwm2_weight_temp_step.dev_attr.attr,
++		&sensor_dev_attr_pwm2_weight_temp_step_tol.dev_attr.attr,
++		&sensor_dev_attr_pwm2_weight_temp_step_base.dev_attr.attr,
++		&sensor_dev_attr_pwm2_weight_duty_step.dev_attr.attr,
+ 		NULL
+ 	},
+ 	{
+@@ -2573,6 +2784,11 @@ static struct attribute *nct6775_attributes_pwm[5][1=
+5] =3D {
+ 		&sensor_dev_attr_pwm3_step_down_time.dev_attr.attr,
+ 		&sensor_dev_attr_pwm3_start.dev_attr.attr,
+ 		&sensor_dev_attr_pwm3_floor.dev_attr.attr,
++		&sensor_dev_attr_pwm3_weight_temp_sel.dev_attr.attr,
++		&sensor_dev_attr_pwm3_weight_temp_step.dev_attr.attr,
++		&sensor_dev_attr_pwm3_weight_temp_step_tol.dev_attr.attr,
++		&sensor_dev_attr_pwm3_weight_temp_step_base.dev_attr.attr,
++		&sensor_dev_attr_pwm3_weight_duty_step.dev_attr.attr,
+ 		NULL
+ 	},
+ 	{
+@@ -2590,6 +2806,11 @@ static struct attribute *nct6775_attributes_pwm[5][1=
+5] =3D {
+ 		&sensor_dev_attr_pwm4_step_down_time.dev_attr.attr,
+ 		&sensor_dev_attr_pwm4_start.dev_attr.attr,
+ 		&sensor_dev_attr_pwm4_floor.dev_attr.attr,
++		&sensor_dev_attr_pwm4_weight_temp_sel.dev_attr.attr,
++		&sensor_dev_attr_pwm4_weight_temp_step.dev_attr.attr,
++		&sensor_dev_attr_pwm4_weight_temp_step_tol.dev_attr.attr,
++		&sensor_dev_attr_pwm4_weight_temp_step_base.dev_attr.attr,
++		&sensor_dev_attr_pwm4_weight_duty_step.dev_attr.attr,
+ 		NULL
+ 	},
+ 	{
+@@ -2607,6 +2828,11 @@ static struct attribute *nct6775_attributes_pwm[5][1=
+5] =3D {
+ 		&sensor_dev_attr_pwm5_step_down_time.dev_attr.attr,
+ 		&sensor_dev_attr_pwm5_start.dev_attr.attr,
+ 		&sensor_dev_attr_pwm5_floor.dev_attr.attr,
++		&sensor_dev_attr_pwm5_weight_temp_sel.dev_attr.attr,
++		&sensor_dev_attr_pwm5_weight_temp_step.dev_attr.attr,
++		&sensor_dev_attr_pwm5_weight_temp_step_tol.dev_attr.attr,
++		&sensor_dev_attr_pwm5_weight_temp_step_base.dev_attr.attr,
++		&sensor_dev_attr_pwm5_weight_duty_step.dev_attr.attr,
+ 		NULL
+ 	},
+ };
+@@ -2971,6 +3197,9 @@ static void nct6775_device_remove_files(struct device=
+ *dev)
+ 	for (i =3D 0; i < ARRAY_SIZE(sda_pwm_step); i++)
+ 		device_remove_file(dev, &sda_pwm_step[i].dev_attr);
+=20
++	for (i =3D 0; i < ARRAY_SIZE(sda_weight_duty_base); i++)
++		device_remove_file(dev, &sda_weight_duty_base[i].dev_attr);
++
+ 	for (i =3D 0; i < ARRAY_SIZE(sda_auto_pwm_arrays); i++)
+ 		device_remove_file(dev, &sda_auto_pwm_arrays[i].dev_attr);
+=20
+@@ -3200,6 +3429,7 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->REG_PWM[2] =3D NCT6775_REG_FAN_STOP_OUTPUT;
+ 		data->REG_PWM[3] =3D NCT6775_REG_FAN_MAX_OUTPUT;
+ 		data->REG_PWM[4] =3D NCT6775_REG_FAN_STEP_OUTPUT;
++		data->REG_PWM[5] =3D NCT6775_REG_WEIGHT_DUTY_STEP;
+ 		data->REG_PWM_READ =3D NCT6775_REG_PWM_READ;
+ 		data->REG_PWM_MODE =3D NCT6775_REG_PWM_MODE;
+ 		data->PWM_MODE_MASK =3D NCT6775_PWM_MODE_MASK;
+@@ -3211,6 +3441,10 @@ static int nct6775_probe(struct platform_device *pde=
+v)
+ 		data->REG_TEMP_OFFSET =3D NCT6775_REG_TEMP_OFFSET;
+ 		data->REG_TEMP_SOURCE =3D NCT6775_REG_TEMP_SOURCE;
+ 		data->REG_TEMP_SEL =3D NCT6775_REG_TEMP_SEL;
++		data->REG_WEIGHT_TEMP_SEL =3D NCT6775_REG_WEIGHT_TEMP_SEL;
++		data->REG_WEIGHT_TEMP[0] =3D NCT6775_REG_WEIGHT_TEMP_STEP;
++		data->REG_WEIGHT_TEMP[1] =3D NCT6775_REG_WEIGHT_TEMP_STEP_TOL;
++		data->REG_WEIGHT_TEMP[2] =3D NCT6775_REG_WEIGHT_TEMP_BASE;
+ 		data->REG_ALARM =3D NCT6775_REG_ALARM;
+=20
+ 		reg_temp =3D NCT6775_REG_TEMP;
+@@ -3258,6 +3492,8 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->REG_PWM[0] =3D NCT6775_REG_PWM;
+ 		data->REG_PWM[1] =3D NCT6775_REG_FAN_START_OUTPUT;
+ 		data->REG_PWM[2] =3D NCT6775_REG_FAN_STOP_OUTPUT;
++		data->REG_PWM[5] =3D NCT6775_REG_WEIGHT_DUTY_STEP;
++		data->REG_PWM[6] =3D NCT6776_REG_WEIGHT_DUTY_BASE;
+ 		data->REG_PWM_READ =3D NCT6775_REG_PWM_READ;
+ 		data->REG_PWM_MODE =3D NCT6776_REG_PWM_MODE;
+ 		data->PWM_MODE_MASK =3D NCT6776_PWM_MODE_MASK;
+@@ -3269,6 +3505,10 @@ static int nct6775_probe(struct platform_device *pde=
+v)
+ 		data->REG_TEMP_OFFSET =3D NCT6775_REG_TEMP_OFFSET;
+ 		data->REG_TEMP_SOURCE =3D NCT6775_REG_TEMP_SOURCE;
+ 		data->REG_TEMP_SEL =3D NCT6775_REG_TEMP_SEL;
++		data->REG_WEIGHT_TEMP_SEL =3D NCT6775_REG_WEIGHT_TEMP_SEL;
++		data->REG_WEIGHT_TEMP[0] =3D NCT6775_REG_WEIGHT_TEMP_STEP;
++		data->REG_WEIGHT_TEMP[1] =3D NCT6775_REG_WEIGHT_TEMP_STEP_TOL;
++		data->REG_WEIGHT_TEMP[2] =3D NCT6775_REG_WEIGHT_TEMP_BASE;
+ 		data->REG_ALARM =3D NCT6775_REG_ALARM;
+=20
+ 		reg_temp =3D NCT6775_REG_TEMP;
+@@ -3316,6 +3556,8 @@ static int nct6775_probe(struct platform_device *pdev)
+ 		data->REG_PWM[0] =3D NCT6775_REG_PWM;
+ 		data->REG_PWM[1] =3D NCT6775_REG_FAN_START_OUTPUT;
+ 		data->REG_PWM[2] =3D NCT6775_REG_FAN_STOP_OUTPUT;
++		data->REG_PWM[5] =3D NCT6775_REG_WEIGHT_DUTY_STEP;
++		data->REG_PWM[6] =3D NCT6776_REG_WEIGHT_DUTY_BASE;
+ 		data->REG_PWM_READ =3D NCT6775_REG_PWM_READ;
+ 		data->REG_PWM_MODE =3D NCT6776_REG_PWM_MODE;
+ 		data->PWM_MODE_MASK =3D NCT6776_PWM_MODE_MASK;
+@@ -3327,6 +3569,10 @@ static int nct6775_probe(struct platform_device *pde=
+v)
+ 		data->REG_TEMP_OFFSET =3D NCT6779_REG_TEMP_OFFSET;
+ 		data->REG_TEMP_SOURCE =3D NCT6775_REG_TEMP_SOURCE;
+ 		data->REG_TEMP_SEL =3D NCT6775_REG_TEMP_SEL;
++		data->REG_WEIGHT_TEMP_SEL =3D NCT6775_REG_WEIGHT_TEMP_SEL;
++		data->REG_WEIGHT_TEMP[0] =3D NCT6775_REG_WEIGHT_TEMP_STEP;
++		data->REG_WEIGHT_TEMP[1] =3D NCT6775_REG_WEIGHT_TEMP_STEP_TOL;
++		data->REG_WEIGHT_TEMP[2] =3D NCT6775_REG_WEIGHT_TEMP_BASE;
+ 		data->REG_ALARM =3D NCT6779_REG_ALARM;
+=20
+ 		reg_temp =3D NCT6779_REG_TEMP;
+@@ -3554,6 +3800,12 @@ static int nct6775_probe(struct platform_device *pde=
+v)
+ 			if (err)
+ 				goto exit_remove;
+ 		}
++		if (data->REG_PWM[6]) {
++			err =3D device_create_file(dev,
++					&sda_weight_duty_base[i].dev_attr);
++			if (err)
++				goto exit_remove;
++		}
+ 	}
+ 	for (i =3D 0; i < ARRAY_SIZE(sda_auto_pwm_arrays); i++) {
+ 		struct sensor_device_attribute_2 *attr --=20
 1.7.9.7
 
 
