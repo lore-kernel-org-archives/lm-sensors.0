@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 26 Feb 2013 23:14:04 +0000
+Date: Tue, 26 Feb 2013 23:32:33 +0000
 Subject: Re: [lm-sensors] [PATCH 3/7] hwmon: (pmbus/ltc2978) Fix peak attribute inizialization and clearing
-Message-Id: <20130226231404.GA23228@roeck-us.net>
+Message-Id: <20130226233233.GA14963@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 References: <1361585975-5604-3-git-send-email-linux@roeck-us.net>
 In-Reply-To: <1361585975-5604-3-git-send-email-linux@roeck-us.net>
@@ -10,127 +10,119 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: lm-sensors@vger.kernel.org
 
-On Tue, Feb 26, 2013 at 11:07:16PM +0100, Jean Delvare wrote:
-> Hi Guenter,
-> 
-> On Fri, 22 Feb 2013 18:19:31 -0800, Guenter Roeck wrote:
-> > Peak attributes were not initialized and cleared correctly.
-> > 
-> > Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> > ---
-> > Candidate for -stable.
-> 
-> Agreed, once it is correct...
-> 
-Maybe I'll even manage to get it right at some point in the far distant future ...
+Subject: [PATCH v2 3/7] hwmon: (pmbus/ltc2978) Fix peak attribute handling
 
-> > 
-> >  drivers/hwmon/pmbus/ltc2978.c |   24 ++++++++++++++----------
-> >  1 file changed, 14 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
-> > index 9652a2c..eec294a 100644
-> > --- a/drivers/hwmon/pmbus/ltc2978.c
-> > +++ b/drivers/hwmon/pmbus/ltc2978.c
-> > @@ -248,26 +248,26 @@ static int ltc2978_write_word_data(struct i2c_client *client, int page,
-> >  
-> >  	switch (reg) {
-> >  	case PMBUS_VIRT_RESET_IOUT_HISTORY:
-> > -		data->iout_max[page] = 0x7fff;
-> > +		data->iout_max[page] = 0x7c00;
-> >  		ret = ltc2978_clear_peaks(client, page, data->id);
-> >  		break;
-> >  	case PMBUS_VIRT_RESET_TEMP2_HISTORY:
-> > -		data->temp2_max[page] = 0x7fff;
-> > +		data->temp2_max[page] = 0x7c00;
-> >  		ret = ltc2978_clear_peaks(client, page, data->id);
-> >  		break;
-> >  	case PMBUS_VIRT_RESET_VOUT_HISTORY:
-> >  		data->vout_min[page] = 0xffff;
-> > -		data->vout_max[page] = 0;
-> > +		data->vout_max[page] = 0x0000;
-> 
-> If the patch is intended for stable you may want to avoid this kind of
-> avoidable change.
-> 
-> >  		ret = ltc2978_clear_peaks(client, page, data->id);
-> >  		break;
-> >  	case PMBUS_VIRT_RESET_VIN_HISTORY:
-> >  		data->vin_min = 0x7bff;
-> > -		data->vin_max = 0;
-> > +		data->vin_max = 0x7c00;
-> >  		ret = ltc2978_clear_peaks(client, page, data->id);
-> >  		break;
-> >  	case PMBUS_VIRT_RESET_TEMP_HISTORY:
-> > -		data->temp_min = 0x7bff;
-> > -		data->temp_max = 0x7fff;
-> > +		data->temp_min = 0xfbff;
-> 
-> This looks wrong, 0x7bff was correct as far as I can see? And that's
-> what you still use during probe, BTW.
-> 
-No idea what I am doing. Typo :(.
+Peak attributes were not initialized and cleared correctly.
+Also, temp2_max is only supported on page 0 and thus does not need to be
+an array.
 
-> > +		data->temp_max = 0x7c00;
-> >  		ret = ltc2978_clear_peaks(client, page, data->id);
-> >  		break;
-> >  	default:
-> > @@ -321,10 +321,10 @@ static int ltc2978_probe(struct i2c_client *client,
-> >  	info = &data->info;
-> >  	info->write_word_data = ltc2978_write_word_data;
-> >  
-> > -	data->vout_min[0] = 0xffff;
-> >  	data->vin_min = 0x7bff;
-> > +	data->vin_max = 0x7c00;
-> >  	data->temp_min = 0x7bff;
-> > -	data->temp_max = 0x7fff;
-> > +	data->temp_max = 0x7c00;
-> >  
-> >  	switch (id->driver_data) {
-> >  	case ltc2978:
-> > @@ -336,7 +336,6 @@ static int ltc2978_probe(struct i2c_client *client,
-> >  		for (i = 1; i < 8; i++) {
-> >  			info->func[i] = PMBUS_HAVE_VOUT
-> >  			  | PMBUS_HAVE_STATUS_VOUT;
-> > -			data->vout_min[i] = 0xffff;
-> >  		}
-> >  		break;
-> >  	case ltc3880:
-> > @@ -352,11 +351,16 @@ static int ltc2978_probe(struct i2c_client *client,
-> >  		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
-> >  		  | PMBUS_HAVE_POUT
-> >  		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
-> > -		data->vout_min[1] = 0xffff;
-> > +		data->temp2_max[0] = 0x7c00;
-> > +		data->temp2_max[1] = 0x7c00;
-> 
-> Unrelated to this patch, but how is data->temp2_max[1] is supposed to
-> be used when only page 0 has PMBUS_HAVE_TEMP2 defined?
-> 
-And why is it an array in the first place ? Yes, I know. That was removed
-in one of the subsequent patches, but I might as well do it in this one.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+Candidate for -stable.
 
-> >  		break;
-> >  	default:
-> >  		return -ENODEV;
-> >  	}
-> > +	for (i = 0; i < info->pages; i++) {
-> > +		data->vout_min[i] = 0xffff;
-> > +		data->iout_max[i] = 0x7c00;
-> 
-> Looks very wrong, data->iout_max[] contains 2 elements and info->pages
-> could be 8. Only the LTC3880 needs data->iout_max[] anyway, right?
-> 
-> > +	}
-> 
-> IMHO it would make more sense to have this grouped with the other
-> similar initializations. Or left where it was originally...
-> 
-info->pages is only known here, so I would have to use the maximum number
-of pages as loop terminator if I move it up.
+v2: Fix still wrong initializations.
+    temp2_max is only supported/used on page 0 and does not have to be an array.
 
-Thanks,
-Guenter
+ drivers/hwmon/pmbus/ltc2978.c |   28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/hwmon/pmbus/ltc2978.c b/drivers/hwmon/pmbus/ltc2978.c
+index 9652a2c..cc29a7e 100644
+--- a/drivers/hwmon/pmbus/ltc2978.c
++++ b/drivers/hwmon/pmbus/ltc2978.c
+@@ -62,7 +62,7 @@ struct ltc2978_data {
+ 	int temp_min, temp_max;
+ 	int vout_min[8], vout_max[8];
+ 	int iout_max[2];
+-	int temp2_max[2];
++	int temp2_max;
+ 	struct pmbus_driver_info info;
+ };
+ 
+@@ -204,10 +204,9 @@ static int ltc3880_read_word_data(struct i2c_client *client, int page, int reg)
+ 		ret = pmbus_read_word_data(client, page,
+ 					   LTC3880_MFR_TEMPERATURE2_PEAK);
+ 		if (ret >= 0) {
+-			if (lin11_to_val(ret)
+-			    > lin11_to_val(data->temp2_max[page]))
+-				data->temp2_max[page] = ret;
+-			ret = data->temp2_max[page];
++			if (lin11_to_val(ret) > lin11_to_val(data->temp2_max))
++				data->temp2_max = ret;
++			ret = data->temp2_max;
+ 		}
+ 		break;
+ 	case PMBUS_VIRT_READ_VIN_MIN:
+@@ -248,11 +247,11 @@ static int ltc2978_write_word_data(struct i2c_client *client, int page,
+ 
+ 	switch (reg) {
+ 	case PMBUS_VIRT_RESET_IOUT_HISTORY:
+-		data->iout_max[page] = 0x7fff;
++		data->iout_max[page] = 0x7c00;
+ 		ret = ltc2978_clear_peaks(client, page, data->id);
+ 		break;
+ 	case PMBUS_VIRT_RESET_TEMP2_HISTORY:
+-		data->temp2_max[page] = 0x7fff;
++		data->temp2_max = 0x7c00;
+ 		ret = ltc2978_clear_peaks(client, page, data->id);
+ 		break;
+ 	case PMBUS_VIRT_RESET_VOUT_HISTORY:
+@@ -262,12 +261,12 @@ static int ltc2978_write_word_data(struct i2c_client *client, int page,
+ 		break;
+ 	case PMBUS_VIRT_RESET_VIN_HISTORY:
+ 		data->vin_min = 0x7bff;
+-		data->vin_max = 0;
++		data->vin_max = 0x7c00;
+ 		ret = ltc2978_clear_peaks(client, page, data->id);
+ 		break;
+ 	case PMBUS_VIRT_RESET_TEMP_HISTORY:
+ 		data->temp_min = 0x7bff;
+-		data->temp_max = 0x7fff;
++		data->temp_max = 0x7c00;
+ 		ret = ltc2978_clear_peaks(client, page, data->id);
+ 		break;
+ 	default:
+@@ -321,10 +320,11 @@ static int ltc2978_probe(struct i2c_client *client,
+ 	info = &data->info;
+ 	info->write_word_data = ltc2978_write_word_data;
+ 
+-	data->vout_min[0] = 0xffff;
+ 	data->vin_min = 0x7bff;
++	data->vin_max = 0x7c00;
+ 	data->temp_min = 0x7bff;
+-	data->temp_max = 0x7fff;
++	data->temp_max = 0x7c00;
++	data->temp2_max = 0x7c00;
+ 
+ 	switch (id->driver_data) {
+ 	case ltc2978:
+@@ -336,7 +336,6 @@ static int ltc2978_probe(struct i2c_client *client,
+ 		for (i = 1; i < 8; i++) {
+ 			info->func[i] = PMBUS_HAVE_VOUT
+ 			  | PMBUS_HAVE_STATUS_VOUT;
+-			data->vout_min[i] = 0xffff;
+ 		}
+ 		break;
+ 	case ltc3880:
+@@ -352,11 +351,14 @@ static int ltc2978_probe(struct i2c_client *client,
+ 		  | PMBUS_HAVE_IOUT | PMBUS_HAVE_STATUS_IOUT
+ 		  | PMBUS_HAVE_POUT
+ 		  | PMBUS_HAVE_TEMP | PMBUS_HAVE_STATUS_TEMP;
+-		data->vout_min[1] = 0xffff;
++		data->iout_max[0] = 0x7c00;
++		data->iout_max[1] = 0x7c00;
+ 		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
++	for (i = 0; i < info->pages; i++)
++		data->vout_min[i] = 0xffff;
+ 
+ 	return pmbus_do_probe(client, id, info);
+ }
+-- 
+1.7.9.7
+
 
 _______________________________________________
 lm-sensors mailing list
