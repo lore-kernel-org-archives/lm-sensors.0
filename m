@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 07 Feb 2013 02:49:10 +0000
-Subject: [lm-sensors] [PATCH v4] hwmon: (coretemp) Report package power and energy consumption
-Message-Id: <1360205350-15764-1-git-send-email-linux@roeck-us.net>
+Date: Tue, 26 Feb 2013 16:16:55 +0000
+Subject: [lm-sensors] [PATCH v2 2/2] hwmon: (coretemp) Report power and energy consumption
+Message-Id: <1361895415-18253-2-git-send-email-linux@roeck-us.net>
 List-Id: <lm-sensors.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -13,215 +13,399 @@ Supported by SandyBridge and newer CPUs.
 Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
-v4: Replaced INIT_DELAYED_WORK with INIT_DEFERRABLE_WORK
-v3: Added Cc:
-v2: Fix missing symbol error on i386 builds
-    Dropped leftover pr_info from debugging
+v2:
+- Report graphics and DRAM domain power (if supported) in addition to
+  package and core domain power
+- Add support for suspend and resume
+- Do not report powerX_cap_min and powerX_cap_max as it was misleading
+  and did not really report valid ranges for powerX_cap
+- Only report powerX_cap if enabled
+- Only report powerX_max for package power
+- When calculating power in periodic function, take into account that
+  measurements might not be exactly one second apart
 
-I dropped this patch from my -next queue. The potential negative impact
-due to scheduled work especially in suspend situations is too risky
-without feedback and review by others.
-
- Documentation/hwmon/coretemp |    6 ++
- drivers/hwmon/coretemp.c     |  188 +++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 191 insertions(+), 3 deletions(-)
+ Documentation/hwmon/coretemp |   16 ++
+ drivers/hwmon/coretemp.c     |  378 +++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 372 insertions(+), 22 deletions(-)
 
 diff --git a/Documentation/hwmon/coretemp b/Documentation/hwmon/coretemp
-index fec5a9b..a6b75b5 100644
+index fec5a9b..cdb533d 100644
 --- a/Documentation/hwmon/coretemp
 +++ b/Documentation/hwmon/coretemp
-@@ -43,6 +43,12 @@ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
+@@ -43,6 +43,22 @@ tempX_crit_alarm - Set when Out-of-spec bit is set, never clears.
  tempX_label	 - Contains string "Core X", where X is processor
  		   number. For Package temp, this will be "Physical id Y",
  		   where Y is the package number.
-+energyX_input	 - Package energy consumption since driver was loaded
-+powerX_cap	 - Package power limit
-+powerX_cap_max	 - Maximum value for powerX_cap
-+powerX_cap_min	 - Minimum value for powerX_cap
-+powerX_input	 - Package power consumption
-+powerX_max	 - Maximum package power
++energy1_input	 - Package energy consumption since driver was loaded
++power1_cap	 - Package power limit
++power1_input	 - Package power consumption
++power1_max	 - Maximum package power
++energy2_input	 - Cores energy consumption since driver was loaded
++power2_cap	 - Cores power limit
++power2_input	 - Cores power consumption
++energy3_input	 - Graphics domain energy consumption since driver was loaded
++power3_cap	 - Graphics domain power limit
++power3_input	 - Graphics domain power consumption
++energy4_input	 - DRAM domain energy consumption since driver was loaded
++power4_cap	 - DRAM domain power limit
++power4_input	 - DRAM domain power consumption
++
++Graphics and DRAM power domains are not supported on all chip variants.
++powerX_cap is only reported if enabled.
  
  On CPU models which support it, TjMax is read from a model-specific register.
  On other models, it is set to an arbitrary value based on weak heuristics.
 diff --git a/drivers/hwmon/coretemp.c b/drivers/hwmon/coretemp.c
-index 02ac401..51f537b 100644
+index 02ac401..8b8131f 100644
 --- a/drivers/hwmon/coretemp.c
 +++ b/drivers/hwmon/coretemp.c
-@@ -54,7 +54,7 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+@@ -54,6 +54,7 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
  #define NUM_REAL_CORES		32	/* Number of Real cores per cpu */
  #define CORETEMP_NAME_LENGTH	17	/* String Length of attrs */
  #define MAX_CORE_ATTRS		4	/* Maximum no of basic attrs */
--#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
-+#define TOTAL_ATTRS		(MAX_CORE_ATTRS + 9)
++#define MAX_POWER_ATTRS		6	/* Maximum no of power attrs */
+ #define TOTAL_ATTRS		(MAX_CORE_ATTRS + 1)
  #define MAX_CORE_DATA		(NUM_REAL_CORES + BASE_SYSFS_ATTR_NO)
  
- #define TO_PHYS_ID(cpu)		(cpu_data(cpu).phys_proc_id)
-@@ -79,6 +79,15 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+@@ -67,6 +68,36 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+ #define for_each_sibling(i, cpu)	for (i = 0; false; )
+ #endif
+ 
++#define RAPL_PKG_INDEX		0
++#define RAPL_CORE_INDEX		1
++#define RAPL_GFX_INDEX		2
++#define RAPL_DRAM_INDEX		3
++#define RAPL_DOMAINS		(RAPL_DRAM_INDEX + 1)
++
++#define HAS_RAPL_PKG		(1 << RAPL_PKG_INDEX)
++#define HAS_RAPL_CORE		(1 << RAPL_CORE_INDEX)
++
++static const u32 power_limit_msr[] = {
++	MSR_PKG_POWER_LIMIT,
++	MSR_PP0_POWER_LIMIT,
++	MSR_PP1_POWER_LIMIT,
++	MSR_DRAM_POWER_LIMIT,
++};
++
++static const u32 energy_status_msr[] = {
++	MSR_PKG_ENERGY_STATUS,
++	MSR_PP0_ENERGY_STATUS,
++	MSR_PP1_ENERGY_STATUS,
++	MSR_DRAM_ENERGY_STATUS,
++};
++
++static const u32 power_info_msr[] = {
++	MSR_PKG_POWER_INFO,
++	0,
++	0,
++	MSR_DRAM_POWER_INFO,
++};
++
+ /*
+  * Per-Core Temperature Data
+  * @last_updated: The time when the current temperature value was updated
+@@ -75,10 +106,20 @@ MODULE_PARM_DESC(tjmax, "TjMax value in degrees Celsius");
+  *		This value is passed as "id" field to rdmsr/wrmsr functions.
+  * @status_reg: One of IA32_THERM_STATUS or IA32_PACKAGE_THERM_STATUS,
+  *		from where the temperature values should be read.
+- * @attr_size:  Total number of pre-core attrs displayed in the sysfs.
++ * @attr_size:  Total number of per-core attrs displayed in the sysfs.
   * @is_pkg_data: If this is true, the core_data holds pkgtemp data.
   *		Otherwise, core_data holds coretemp data.
   * @valid: If this is true, the current temperature is valid.
-+ * @has_rapl:		true if the CPU supports RAPL (power measurement)
++ * @rapl:		Bit mask or supported RAPL (energy measurement) domains
++ * @rapl_attr_mask:	Masks for enabled power attributes per domain
++ * @rapl_timestamp:	Last time energy/power was retrieved
 + * @rapl_power_units:	Units of power as reported by the chip
 + * @rapl_energy_units:	Units of energy as reported by the chip
-+ * @rapl_energy_raw:	Most recent energy measurement (raw)
-+ * @rapl_energy:	cumulative energy (mJ)
-+ * @rapl_power:		current power usage (mW)
-+ * @rapl_power_max:	maximum power (mW) as reported by the chip
-+ * @rapl_power_cap_min:	minimum power limit (mW) as reported by the chip
-+ * @rapl_power_cap_max:	maximum power limit (mW) as reported by the chip
++ * @rapl_energy_raw:	Most recent energy measurement (raw) per domain
++ * @rapl_energy:	cumulative energy (mJ) per domain
++ * @rapl_power:		current power usage (mW) per domain
++ * @rapl_power_max:	maximum power (TDP, mW) per domain as reported
++ *			by the chip
   */
  struct core_data {
  	int temp;
-@@ -94,6 +103,17 @@ struct core_data {
- 	struct sensor_device_attribute sd_attrs[TOTAL_ATTRS];
+@@ -91,9 +132,24 @@ struct core_data {
+ 	int attr_size;
+ 	bool is_pkg_data;
+ 	bool valid;
+-	struct sensor_device_attribute sd_attrs[TOTAL_ATTRS];
++	struct sensor_device_attribute_2 sd_attrs[TOTAL_ATTRS];
  	char attr_name[TOTAL_ATTRS][CORETEMP_NAME_LENGTH];
  	struct mutex update_lock;
-+	/* power values */
-+	bool has_rapl;
++	/* power/energy */
++	struct sensor_device_attribute_2 sd_power_attrs[MAX_POWER_ATTRS
++							* RAPL_DOMAINS];
++	char power_attr_name[MAX_POWER_ATTRS * RAPL_DOMAINS]
++			    [CORETEMP_NAME_LENGTH];
++	u32 rapl;
++	u32 rapl_attr_mask[RAPL_DOMAINS];
++	unsigned long rapl_timestamp;
 +	u32 rapl_power_units;
 +	u32 rapl_energy_units;
-+	u32 rapl_energy_raw;
-+	u64 rapl_energy;
-+	u32 rapl_power;
-+	u32 rapl_power_max;
-+	u32 rapl_power_cap_min;
-+	u32 rapl_power_cap_max;
++	u32 rapl_energy_raw[RAPL_DOMAINS];
++	u64 rapl_energy[RAPL_DOMAINS];
++	u32 rapl_power[RAPL_DOMAINS];
++	u32 rapl_power_max[RAPL_DOMAINS];
 +	struct delayed_work rapl_wq;
  };
  
  /* Platform Data per Physical CPU */
-@@ -132,6 +152,26 @@ static ssize_t show_label(struct device *dev,
+@@ -122,7 +178,7 @@ static ssize_t show_name(struct device *dev,
+ static ssize_t show_label(struct device *dev,
+ 				struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+ 	struct core_data *tdata = pdata->core_data[attr->index];
+ 
+@@ -132,11 +188,34 @@ static ssize_t show_label(struct device *dev,
  	return sprintf(buf, "Core %u\n", tdata->cpu_core_id);
  }
  
++static const char * const power_domains[] = {
++	"Pkg",
++	"Cores",
++	"Graphics",
++	"DRAM",
++};
++
 +static ssize_t show_power_label(struct device *dev,
 +				struct device_attribute *devattr, char *buf)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
 +
-+	return sprintf(buf, "Pkg %u power\n", tdata->cpu_core_id);
++	return sprintf(buf, "%s power\n", power_domains[attr->nr]);
 +}
 +
 +static ssize_t show_energy_label(struct device *dev,
 +				 struct device_attribute *devattr, char *buf)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
 +
-+	return sprintf(buf, "Pkg %u energy\n", tdata->cpu_core_id);
++	return sprintf(buf, "%s energy\n", power_domains[attr->nr]);
 +}
 +
  static ssize_t show_crit_alarm(struct device *dev,
  				struct device_attribute *devattr, char *buf)
  {
-@@ -190,6 +230,73 @@ static ssize_t show_temp(struct device *dev,
+ 	u32 eax, edx;
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+ 	struct core_data *tdata = pdata->core_data[attr->index];
+ 
+@@ -148,7 +227,7 @@ static ssize_t show_crit_alarm(struct device *dev,
+ static ssize_t show_tjmax(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+ 
+ 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->tjmax);
+@@ -157,7 +236,7 @@ static ssize_t show_tjmax(struct device *dev,
+ static ssize_t show_ttarget(struct device *dev,
+ 				struct device_attribute *devattr, char *buf)
+ {
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+ 
+ 	return sprintf(buf, "%d\n", pdata->core_data[attr->index]->ttarget);
+@@ -167,7 +246,7 @@ static ssize_t show_temp(struct device *dev,
+ 			struct device_attribute *devattr, char *buf)
+ {
+ 	u32 eax, edx;
+-	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
+ 	struct platform_data *pdata = dev_get_drvdata(dev);
+ 	struct core_data *tdata = pdata->core_data[attr->index];
+ 
+@@ -190,6 +269,58 @@ static ssize_t show_temp(struct device *dev,
  	return tdata->valid ? sprintf(buf, "%d\n", tdata->temp) : -EAGAIN;
  }
  
 +static ssize_t show_power(struct device *dev,
 +			  struct device_attribute *devattr, char *buf)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
 +	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata = pdata->core_data[attr->index];
 +
-+	return sprintf(buf, "%u\n",
-+		       pdata->core_data[attr->index]->rapl_power * 1000);
++	return sprintf(buf, "%u\n", tdata->rapl_power[attr->nr] * 1000);
 +}
 +
 +static ssize_t show_power_max(struct device *dev,
 +			      struct device_attribute *devattr, char *buf)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
 +	struct platform_data *pdata = dev_get_drvdata(dev);
 +	struct core_data *tdata = pdata->core_data[attr->index];
 +
-+	return sprintf(buf, "%u\n", tdata->rapl_power_max * 1000);
++	return sprintf(buf, "%u\n", tdata->rapl_power_max[attr->nr] * 1000);
 +}
 +
 +static ssize_t show_power_cap(struct device *dev,
 +			      struct device_attribute *devattr, char *buf)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
 +	struct platform_data *pdata = dev_get_drvdata(dev);
 +	struct core_data *tdata = pdata->core_data[attr->index];
-+	u32 cap1, cap2, eax, edx;
++	u32 eax, edx;
 +	u64 cap;
 +
-+	rdmsr_on_cpu(tdata->cpu, MSR_PKG_POWER_LIMIT, &eax, &edx);
-+	cap1 = (eax & 0x8000) ? (eax & 0x7fff) : 0;
-+	cap2 = (edx & 0x8000) ? (edx & 0x7fff) : 0;
-+	cap = (max(cap1, cap2) * 1000000LL) >> tdata->rapl_power_units;
++	rdmsr_on_cpu(tdata->cpu, power_limit_msr[attr->nr], &eax, &edx);
++
++	/* Report lowest configured cap limit */
++	cap = (eax & 0x8000) ? (eax & 0x7fff) : 0;
++	if (attr->nr && (edx & 0x8000) && (!(eax & 0x8000) ||
++					   (edx & 0x7fff) < cap))
++		cap = edx & 0x7fff;
++
++	cap = (cap * 1000000LL) >> tdata->rapl_power_units;
 +
 +	return sprintf(buf, "%llu\n", cap);
-+}
-+
-+static ssize_t show_power_cap_min(struct device *dev,
-+				  struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
-+
-+	return sprintf(buf, "%u\n", tdata->rapl_power_cap_min * 1000);
-+}
-+
-+static ssize_t show_power_cap_max(struct device *dev,
-+				  struct device_attribute *devattr, char *buf)
-+{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
-+	struct platform_data *pdata = dev_get_drvdata(dev);
-+	struct core_data *tdata = pdata->core_data[attr->index];
-+
-+	return sprintf(buf, "%u\n", tdata->rapl_power_cap_max * 1000);
 +}
 +
 +static ssize_t show_energy(struct device *dev,
 +			   struct device_attribute *devattr, char *buf)
 +{
-+	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct sensor_device_attribute_2 *attr = to_sensor_dev_attr_2(devattr);
 +	struct platform_data *pdata = dev_get_drvdata(dev);
 +	struct core_data *tdata = pdata->core_data[attr->index];
 +
-+	return sprintf(buf, "%llu\n", tdata->rapl_energy * 1000ULL);
++	return sprintf(buf, "%llu\n", tdata->rapl_energy[attr->nr] * 1000ULL);
 +}
 +
  struct tjmax {
  	char const *id;
  	int tjmax;
-@@ -374,11 +481,17 @@ static int __cpuinit create_core_attrs(struct core_data *tdata,
+@@ -367,10 +498,55 @@ static int create_name_attr(struct platform_data *pdata,
+ 	return device_create_file(dev, &pdata->name_attr);
+ }
+ 
++static void remove_core_files(struct device *dev, struct core_data *tdata)
++{
++	int d, i;
++
++	for (i = 0; i < tdata->attr_size; i++)
++		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
++
++	if (!tdata->is_pkg_data)
++		return;
++
++	for (d = 0; d < RAPL_DOMAINS; d++) {
++		if (!(tdata->rapl & (1 << d)))
++			continue;
++		for (i = 0; i < MAX_POWER_ATTRS; i++) {
++			int index = d * MAX_POWER_ATTRS + i;
++
++			if (!(tdata->rapl_attr_mask[d] & (1 << i)))
++				continue;
++			device_remove_file(dev,
++					&tdata->sd_power_attrs[index].dev_attr);
++		}
++	}
++}
++
++static int __cpuinit create_core_attr(struct device *dev,
++				      struct sensor_device_attribute_2 *attr,
++				      char *attr_name,
++				      int index, int nr,
++				      ssize_t (*const rd_ptr)(struct device *,
++					struct device_attribute *, char *),
++				      const char *const template)
++{
++	int err;
++
++	snprintf(attr_name, CORETEMP_NAME_LENGTH, template, nr);
++	sysfs_attr_init(&attr->dev_attr.attr);
++	attr->dev_attr.attr.name = attr_name;
++	attr->dev_attr.attr.mode = S_IRUGO;
++	attr->dev_attr.show = rd_ptr;
++	attr->index = index;
++	attr->nr = nr - 1;
++	err = device_create_file(dev, &attr->dev_attr);
++	return err;
++}
++
+ static int __cpuinit create_core_attrs(struct core_data *tdata,
+ 				       struct device *dev, int attr_no)
+ {
+-	int err, i;
++	int err, d, i;
  	static ssize_t (*const rd_ptr[TOTAL_ATTRS]) (struct device *dev,
  			struct device_attribute *devattr, char *buf) = {
  			show_label, show_crit_alarm, show_temp, show_tjmax,
--			show_ttarget };
-+			show_ttarget, show_power_label, show_power,
-+			show_power_max, show_power_cap, show_power_cap_min,
-+			show_power_cap_max, show_energy_label, show_energy };
- 	static const char *const names[TOTAL_ATTRS] = {
+@@ -379,24 +555,51 @@ static int __cpuinit create_core_attrs(struct core_data *tdata,
  					"temp%d_label", "temp%d_crit_alarm",
  					"temp%d_input", "temp%d_crit",
--					"temp%d_max" };
-+					"temp%d_max", "power%d_label",
-+					"power%d_input", "power%d_max",
-+					"power%d_cap", "power%d_cap_min",
-+					"power%d_cap_max", "energy%d_label",
-+					"energy%d_input" };
+ 					"temp%d_max" };
++	static ssize_t (*const p_rd_ptr[MAX_POWER_ATTRS]) (struct device *dev,
++			struct device_attribute *devattr, char *buf) = {
++			show_energy_label, show_energy,
++			show_power_label, show_power, show_power_max,
++			show_power_cap };
++	static const char *const power_names[MAX_POWER_ATTRS] = {
++					"energy%d_label", "energy%d_input",
++					"power%d_label", "power%d_input",
++					"power%d_max", "power%d_cap" };
  
  	for (i = 0; i < tdata->attr_size; i++) {
- 		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
-@@ -454,6 +567,66 @@ static struct core_data __cpuinit *init_core_data(unsigned int cpu,
+-		snprintf(tdata->attr_name[i], CORETEMP_NAME_LENGTH, names[i],
+-			attr_no);
+-		sysfs_attr_init(&tdata->sd_attrs[i].dev_attr.attr);
+-		tdata->sd_attrs[i].dev_attr.attr.name = tdata->attr_name[i];
+-		tdata->sd_attrs[i].dev_attr.attr.mode = S_IRUGO;
+-		tdata->sd_attrs[i].dev_attr.show = rd_ptr[i];
+-		tdata->sd_attrs[i].index = attr_no;
+-		err = device_create_file(dev, &tdata->sd_attrs[i].dev_attr);
++		err = create_core_attr(dev, &tdata->sd_attrs[i],
++				       tdata->attr_name[i],
++				       attr_no, attr_no,
++				       rd_ptr[i],
++				       names[i]);
+ 		if (err)
+ 			goto exit_free;
+ 	}
++	if (tdata->is_pkg_data) {
++		for (d = 0; d < RAPL_DOMAINS; d++) {
++			if (!(tdata->rapl & (1 << d)))
++				continue;
++			for (i = 0; i < MAX_POWER_ATTRS; i++) {
++				int index = d * MAX_POWER_ATTRS + i;
++
++				if (!(tdata->rapl_attr_mask[d] & (1 << i)))
++					continue;
++
++				err = create_core_attr(dev,
++					&tdata->sd_power_attrs[index],
++					tdata->power_attr_name[index],
++					attr_no, d + 1,
++					p_rd_ptr[i],
++					power_names[i]);
++				if (err)
++					goto exit_free;
++			}
++		}
++	}
++
+ 	return 0;
+ 
+ exit_free:
+-	while (--i >= 0)
+-		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
++	remove_core_files(dev, tdata);
+ 	return err;
+ }
+ 
+@@ -454,6 +657,81 @@ static struct core_data __cpuinit *init_core_data(unsigned int cpu,
  	return tdata;
  }
  
-+static u32 coretemp_delta_wrap(u32 new, u32 old)
-+{
-+	if (new > old)
-+		return new - old;
-+	return 0x100000000LL + new - old;
-+}
-+
 +static void coretemp_rapl_work(struct work_struct *work)
 +{
 +	struct core_data *tdata = container_of(work, struct core_data,
@@ -229,15 +413,24 @@ index 02ac401..51f537b 100644
 +	u32 eax, edx;
 +	u32 delta;
 +	u32 power;
++	int d;
++	unsigned long elapsed = jiffies - tdata->rapl_timestamp;
 +
-+	rdmsr_on_cpu(tdata->cpu, MSR_PKG_ENERGY_STATUS, &eax, &edx);
-+	delta = coretemp_delta_wrap(eax, tdata->rapl_energy_raw);
-+	tdata->rapl_energy_raw = eax;
++	for (d = 0; d < RAPL_DOMAINS; d++) {
++		if (!(tdata->rapl & (1 << d)))
++			continue;
 +
-+	power = (delta * 1000LL) >> tdata->rapl_energy_units;
-+	tdata->rapl_power = power;
-+	tdata->rapl_energy += power;
++		rdmsr_on_cpu(tdata->cpu, energy_status_msr[d], &eax, &edx);
++		delta = eax - tdata->rapl_energy_raw[d];
++		power = (delta * 1000LL) >> tdata->rapl_energy_units;
++		tdata->rapl_energy_raw[d] = eax;
++		tdata->rapl_energy[d] += power;
++		if (elapsed)
++			power = DIV_ROUND_CLOSEST(power * HZ, elapsed);
++		tdata->rapl_power[d] = power;
++	}
 +
++	tdata->rapl_timestamp = jiffies;
 +	schedule_delayed_work(&tdata->rapl_wq, HZ);
 +}
 +
@@ -245,7 +438,7 @@ index 02ac401..51f537b 100644
 +			       int cpu, struct core_data *tdata)
 +{
 +	u32 eax, edx;
-+	int err;
++	int d, err;
 +
 +	/* Test if we can access rapl registers */
 +	err = rdmsr_safe_on_cpu(cpu, MSR_RAPL_POWER_UNIT, &eax, &edx);
@@ -255,57 +448,139 @@ index 02ac401..51f537b 100644
 +	tdata->rapl_power_units = eax & 0x000f;
 +	tdata->rapl_energy_units = (eax >> 8) & 0x001f;
 +
-+	err = rdmsr_safe_on_cpu(cpu, MSR_PKG_POWER_INFO, &eax, &edx);
-+	if (err)
-+		return;
-+
-+	tdata->rapl_power_cap_min +	  (((eax >> 16) & 0x7fff) * 1000) >> tdata->rapl_power_units;
-+
-+	tdata->rapl_power_cap_max = tdata->rapl_power_max +	  ((edx & 0x7fff) * 1000) >> tdata->rapl_power_units;
-+
-+	rdmsr_on_cpu(tdata->cpu, MSR_PKG_ENERGY_STATUS, &eax, &edx);
-+	tdata->rapl_energy_raw = eax;
-+	tdata->rapl_energy = (eax * 1000LL) >> tdata->rapl_energy_units;
-+
 +	INIT_DEFERRABLE_WORK(&tdata->rapl_wq, coretemp_rapl_work);
 +
-+	tdata->has_rapl = true;
-+	tdata->attr_size += 8;
++	tdata->rapl_timestamp = jiffies;
++
++	for (d = 0; d < RAPL_DOMAINS; d++) {
++		err = rdmsr_safe_on_cpu(cpu, energy_status_msr[d], &eax, &edx);
++		if (err)
++			continue;
++		tdata->rapl |= 1 << d;
++		tdata->rapl_energy_raw[d] = eax;
++		tdata->rapl_attr_mask[d] = BIT(0) | BIT(1) | BIT(2) | BIT(3);
++
++		/*
++		 * Only report power cap if supported for domain and enabled.
++		 * Note: package domain (index 0) has two cap limits.
++		 */
++		err = rdmsr_safe_on_cpu(tdata->cpu, power_limit_msr[d],
++					&eax, &edx);
++		if (!err && ((eax & 0x8000) || (d && (edx & 0x8000))))
++			tdata->rapl_attr_mask[d] |= BIT(5);
++
++		/* Only report max power if it exists for the domain */
++		if (!power_info_msr[d])
++			continue;
++		err = rdmsr_safe_on_cpu(cpu, power_info_msr[d], &eax, &edx);
++		if (err)
++			continue;
++		tdata->rapl_power_max[d] +			((eax & 0x7fff) * 1000) >> tdata->rapl_power_units;
++		tdata->rapl_attr_mask[d] |= BIT(4);
++	}
 +}
 +
  static int __cpuinit create_core_data(struct platform_device *pdev,
  				unsigned int cpu, bool pkg_flag)
  {
-@@ -511,6 +684,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
+@@ -511,6 +789,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
  		}
  	}
  
-+	if (pkg_flag)
++	if (tdata->is_pkg_data)
 +		coretemp_init_rapl(pdev, cpu, tdata);
 +
  	pdata->core_data[attr_no] = tdata;
  
  	/* Create sysfs interfaces */
-@@ -518,6 +694,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
+@@ -518,6 +799,9 @@ static int __cpuinit create_core_data(struct platform_device *pdev,
  	if (err)
  		goto exit_free;
  
-+	if (tdata->has_rapl)
++	if (tdata->rapl)
 +		schedule_delayed_work(&tdata->rapl_wq, HZ);
 +
  	return 0;
  exit_free:
  	pdata->core_data[attr_no] = NULL;
-@@ -544,6 +723,9 @@ static void coretemp_remove_core(struct platform_data *pdata,
- 	int i;
+@@ -541,12 +825,12 @@ static void __cpuinit coretemp_add_core(unsigned int cpu, bool pkg_flag)
+ static void coretemp_remove_core(struct platform_data *pdata,
+ 				struct device *dev, int indx)
+ {
+-	int i;
  	struct core_data *tdata = pdata->core_data[indx];
  
-+	if (tdata->has_rapl)
+-	/* Remove the sysfs attributes */
+-	for (i = 0; i < tdata->attr_size; i++)
+-		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
++	if (tdata->rapl)
 +		cancel_delayed_work(&tdata->rapl_wq);
 +
- 	/* Remove the sysfs attributes */
- 	for (i = 0; i < tdata->attr_size; i++)
- 		device_remove_file(dev, &tdata->sd_attrs[i].dev_attr);
++	remove_core_files(dev, tdata);
+ 
+ 	kfree(pdata->core_data[indx]);
+ 	pdata->core_data[indx] = NULL;
+@@ -601,10 +885,60 @@ static int coretemp_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int coretemp_suspend(struct device *dev)
++{
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata;
++	int i;
++
++	for (i = 0; i < MAX_CORE_DATA; i++) {
++		tdata = pdata->core_data[i];
++		if (tdata && tdata->rapl)
++			cancel_delayed_work(&tdata->rapl_wq);
++	}
++	return 0;
++}
++
++static int coretemp_resume(struct device *dev)
++{
++	struct platform_data *pdata = dev_get_drvdata(dev);
++	struct core_data *tdata;
++	int d, i;
++	u32 eax, edx;
++
++	for (i = 0; i < MAX_CORE_DATA; i++) {
++		tdata = pdata->core_data[i];
++		if (tdata && tdata->rapl) {
++			tdata->rapl_timestamp = jiffies;
++			for (d = 0; d < RAPL_DOMAINS; d++) {
++				if (!(tdata->rapl & (1 << d)))
++					continue;
++
++				rdmsr_on_cpu(tdata->cpu,
++					     energy_status_msr[d],
++					     &eax, &edx);
++				tdata->rapl_energy_raw[d] = eax;
++			}
++			schedule_delayed_work(&tdata->rapl_wq, HZ);
++		}
++	}
++	return 0;
++}
++
++static SIMPLE_DEV_PM_OPS(coretemp_dev_pm_ops, coretemp_suspend,
++			 coretemp_resume);
++
++#define CORETEMP_DEV_PM_OPS (&coretemp_dev_pm_ops)
++#else
++#define CORETEMP_DEV_PM_OPS NULL
++#endif /* CONFIG_PM_SLEEP */
++
+ static struct platform_driver coretemp_driver = {
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = DRVNAME,
++		.pm = CORETEMP_DEV_PM_OPS,
+ 	},
+ 	.probe = coretemp_probe,
+ 	.remove = coretemp_remove,
 -- 
 1.7.9.7
 
